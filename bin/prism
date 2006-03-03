@@ -1,0 +1,41 @@
+#!/bin/sh
+
+# Startup script for PRISM (Linux/Solaris)
+
+# PRISM home directory
+PRISM_DIR=/data/private/luser/tmp/prismtest/prism-2.1.dev11.sim8
+
+# Command to launch Java
+if [ "$PRISM_JAVA" = "" ]; then
+	PRISM_JAVA=java
+fi
+
+# Max memory for Java
+if [ "$PRISM_JAVAMAXMEM" != "" ]; then
+	PRISM_JAVAMAXMEM=`echo "$PRISM_JAVAMAXMEM" | awk /^[0-9]+[mk]?$/`
+	if [ "$PRISM_JAVAMAXMEM" = "" ]; then
+		echo; echo "Error: Environment variable PRISM_JAVAMAXMEM is invalid."; exit
+	fi
+	PRISM_JAVAMAXMEM="-Xmx$PRISM_JAVAMAXMEM"
+fi
+
+# Add PRISM to LD_LIBRARY_PATH
+if [ "$LD_LIBRARY_PATH" = "" ]; then
+	LD_LIBRARY_PATH="$PRISM_DIR"/lib
+else
+	LD_LIBRARY_PATH="$PRISM_DIR"/lib:$LD_LIBRARY_PATH
+fi
+
+# Set up classpath - jar file (for binary versions) gets priority
+PRISM_CLASSPATH="$PRISM_DIR"/lib/prism.jar:"$PRISM_DIR"/classes:"$PRISM_DIR"/lib/pepa.zip
+
+# Export environment variables
+export PRISM_DIR LD_LIBRARY_PATH
+
+# Main Java class to launch
+if [ "$PRISM_MAINCLASS" = "" ]; then
+	PRISM_MAINCLASS=prism.PrismCL
+fi
+
+# Run PRISM through Java
+"$PRISM_JAVA" $PRISM_JAVAMAXMEM -Djava.library.path=$PRISM_DIR/lib -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"

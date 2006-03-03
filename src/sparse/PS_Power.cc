@@ -1,0 +1,256 @@
+//==============================================================================
+//	
+//	Copyright (c) 2002-2004, Dave Parker
+//	
+//	This file is part of PRISM.
+//	
+//	PRISM is free software; you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation; either version 2 of the License, or
+//	(at your option) any later version.
+//	
+//	PRISM is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
+//	
+//	You should have received a copy of the GNU General Public License
+//	along with PRISM; if not, write to the Free Software Foundation,
+//	Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//	
+//==============================================================================
+
+// includes
+#include "PrismSparse.h"
+#include <math.h>
+#include <util.h>
+#include <cudd.h>
+#include <dd.h>
+#include <odd.h>
+#include <dv.h>
+#include "sparse.h"
+#include "PrismSparseGlob.h"
+
+//------------------------------------------------------------------------------
+
+// solve the linear equation system Ax=x with the Power method
+// in addition, solutions may be provided for additional states in the vector b
+// these states are assumed not to have non-zero rows in the matrix A
+
+jint JNICALL Java_sparse_PrismSparse_PS_1Power
+(
+JNIEnv *env,
+jclass cls,
+jint _odd,			// odd
+jint rv,			// row vars
+jint num_rvars,
+jint cv,			// col vars
+jint num_cvars,
+jint _a,			// matrix A
+jint _b,			// vector b (if null, assume all zero)
+jint _init,			// init soln
+jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
+)
+{
+	// cast function parameters
+	ODDNode *odd = (ODDNode *)_odd;		// odd
+	DdNode **rvars = (DdNode **)rv; 	// row vars
+	DdNode **cvars = (DdNode **)cv; 	// col vars
+	DdNode *a = (DdNode *)_a;			// matrix A
+	DdNode *b = (DdNode *)_b;			// vector b
+	DdNode *init = (DdNode *)_init;		// init soln
+	// model stats
+	int n;
+	long nnz;
+	// flags
+	bool compact_a, compact_b;
+	// sparse matrix
+	RMSparseMatrix *rmsm;
+	CMSRSparseMatrix *cmsrsm;
+	// vectors
+	double *b_vec, *soln, *soln2, *tmpsoln;
+	DistVector *b_dist;
+	// timing stuff
+	long start1, start2, start3, stop;
+	double time_taken, time_for_setup, time_for_iters;
+	// misc
+	int i, j, l, h, iters;
+	double d, kb, kbt;
+	bool done;
+	
+	// start clocks
+	start1 = start2 = util_cpu_time();
+	
+	// get number of states
+	n = odd->eoff + odd->toff;
+	
+	// make local copy of a
+	Cudd_Ref(a);
+	
+	// build sparse matrix
+	PS_PrintToMainLog(env, "\nBuilding sparse matrix... ");
+	// if requested, try and build a "compact" version
+	compact_a = true;
+	cmsrsm = NULL;
+	if (compact) cmsrsm = build_cmsr_sparse_matrix(ddman, a, rvars, cvars, num_rvars, odd, transpose);
+	if (cmsrsm != NULL) {
+		nnz = cmsrsm->nnz;
+		kb = cmsrsm->mem;
+	}
+	// if not or if it wasn't possible, built a normal one
+	else {
+		compact_a = false;
+		rmsm = build_rm_sparse_matrix(ddman, a, rvars, cvars, num_rvars, odd, transpose);
+		nnz = rmsm->nnz;
+		kb = rmsm->mem;
+	}
+	// print some info
+	PS_PrintToMainLog(env, "[n=%d, nnz=%d%s] ", n, nnz, compact_a?", compact":"");
+	kbt = kb;
+	PS_PrintToMainLog(env, "[%.1f KB]\n", kb);
+	
+	// build b vector (if present)
+	if (b != NULL) {
+		PS_PrintToMainLog(env, "Creating vector for RHS... ");
+		b_vec = mtbdd_to_double_vector(ddman, b, rvars, num_rvars, odd);
+		// try and convert to compact form if required
+		compact_b = false;
+		if (compact) {
+			if (b_dist = double_vector_to_dist(b_vec, n)) {
+				compact_b = true;
+				free(b_vec);
+			}
+		}
+		kb = (!compact_b) ? n*8.0/1024.0 : (b_dist->num_dist*8.0+n*2.0)/1024.0;
+		kbt += kb;
+		if (!compact_b) PS_PrintToMainLog(env, "[%.1f KB]\n", kb);
+		else PS_PrintToMainLog(env, "[dist=%d, compact] [%.1f KB]\n", b_dist->num_dist, kb);
+	}
+	
+	// create solution/iteration vectors
+	PS_PrintToMainLog(env, "Allocating iteration vectors... ");
+	soln = mtbdd_to_double_vector(ddman, init, rvars, num_rvars, odd);
+	soln2 = new double[n];
+	kb = n*8.0/1024.0;
+	kbt += 2*kb;
+	PS_PrintToMainLog(env, "[2 x %.1f KB]\n", kb);
+	
+	// print total memory usage
+	PS_PrintToMainLog(env, "TOTAL: [%.1f KB]\n", kbt);
+	
+	// get setup time
+	stop = util_cpu_time();
+	time_for_setup = (double)(stop - start2)/1000;
+	start2 = stop;
+	
+	// start iterations
+	iters = 0;
+	done = false;
+	PS_PrintToMainLog(env, "\nStarting iterations...\n");
+	
+	while (!done && iters < max_iters) {
+		
+		iters++;
+		
+//		PS_PrintToMainLog(env, "Iteration %d: ", iters);
+//		start3 = util_cpu_time();
+		
+		// store local copies of stuff
+		double *non_zeros;
+		unsigned char *row_counts;
+		int *row_starts;
+		bool use_counts;
+		unsigned int *cols;
+		double *dist;
+		int dist_shift;
+		int dist_mask;
+		if (!compact_a) {
+			non_zeros = rmsm->non_zeros;
+			row_counts = rmsm->row_counts;
+			row_starts = (int *)rmsm->row_counts;
+			use_counts = rmsm->use_counts;
+			cols = rmsm->cols;
+		} else {
+			row_counts = cmsrsm->row_counts;
+			row_starts = (int *)cmsrsm->row_counts;
+			use_counts = cmsrsm->use_counts;
+			cols = cmsrsm->cols;
+			dist = cmsrsm->dist;
+			dist_shift = cmsrsm->dist_shift;
+			dist_mask = cmsrsm->dist_mask;
+		}
+		
+		// matrix multiply
+		h = 0;
+		for (i = 0; i < n; i++) {
+			
+			d = (b == NULL) ? 0.0 : ((!compact_b) ? b_vec[i] : b_dist->dist[b_dist->ptrs[i]]);
+			if (!use_counts) { l = row_starts[i]; h = row_starts[i+1]; }
+			else { l = h; h += row_counts[i]; }
+			// "row major" version
+			if (!compact_a) {
+				for (j = l; j < h; j++) {
+					d += non_zeros[j] * soln[cols[j]];
+				}
+			// "compact msr" version
+			} else {
+				for (j = l; j < h; j++) {
+					d += dist[(int)(cols[j] & dist_mask)] * soln[(int)(cols[j] >> dist_shift)];
+				}
+			}
+			// set vector element
+			soln2[i] = d;
+		}
+		
+		// check convergence
+		// (note: doing outside loop means may not need to check all elements)
+		switch (term_crit) {
+		case TERM_CRIT_ABSOLUTE:
+			done = true;
+			for (i = 0; i < n; i++) {
+				if (fabs(soln2[i] - soln[i]) > term_crit_param) {
+					done = false;
+					break;
+				}
+				
+			}
+			break;
+		case TERM_CRIT_RELATIVE:
+			done = true;
+			for (i = 0; i < n; i++) {
+				if (fabs(soln2[i] - soln[i])/soln2[i] > term_crit_param) {
+					done = false;
+					break;
+				}
+				
+			}
+			break;
+		}
+		
+		// prepare for next iteration
+		tmpsoln = soln;
+		soln = soln2;
+		soln2 = tmpsoln;
+		
+//		PS_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
+	}
+	
+	// stop clocks
+	stop = util_cpu_time();
+	time_for_iters = (double)(stop - start2)/1000;
+	time_taken = (double)(stop - start1)/1000;
+	
+	// print iters/timing info
+	if (!done) PS_PrintToMainLog(env, "\nWarning: Iterative method stopped early at %d iterations.\n", iters);
+	PS_PrintToMainLog(env, "\nPower method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
+	
+	// free memory
+	Cudd_RecursiveDeref(ddman, a);
+	if (compact_a) free_cmsr_sparse_matrix(cmsrsm); else free_rm_sparse_matrix(rmsm);
+	if (b != NULL) if (compact_b) free_dist_vector(b_dist); else free(b_vec);
+	delete soln2;
+	
+	return (int)soln;
+}
+
+//------------------------------------------------------------------------------

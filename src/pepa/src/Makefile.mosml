@@ -1,0 +1,71 @@
+# A makefile for the PEPA to PRISM compiler
+all:
+	/home/mlj/version-0.1/bin/mlj pepacompiler
+	javac -classpath pepacompiler.zip Test.java
+	java -classpath .:pepacompiler.zip Test
+
+
+java:
+	export SAROOT=/home/stg/pub/pwb/COMPILER/0.021.4/JAVAsrc
+	export CLASSPATH=/home/java/jdk/jdk1.1.6/usr/local/opt/java1.1/lib/classes.zip:pepaMLj.zip
+	cp pepaMLj.zip	JAVAsrc
+	cd JAVAsrc
+	unzip pepaMLj.zip
+	for i in *.class ; do \
+	  echo Decompiling $$i ... ; \
+	  /home/stg/SourceAgain/SourceAgain1.1/srcagain $$i > $$i.java ; \
+	  echo ; \
+	done
+
+mosml:
+	mosmlc -c Debugging.sig
+	mosmlc -c Debugging.sml
+	mosmlc -c Error.sig
+	mosmlc -c Error.sml
+	mosmlc -c Files.sig
+	mosmlc -c Files.sml
+	mosmlc -c Pepa.sig
+	mosmlc -c Pepa.sml
+	mosmlc -c Lexer.sig
+	mosmlc -c Lexer.sml
+	mosmlc -c Parser.sig
+	mosmlc -c Parser.sml
+	mosmlc -c Sort.sig
+	mosmlc -c Sort.sml
+	mosmlc -c Semantic.sig
+	mosmlc -c Semantic.sml
+	mosmlc -c Prettyprinter.sig
+	mosmlc -c Prettyprinter.sml
+	mosmlc -c Lists.sig
+	mosmlc -c Lists.sml
+	mosmlc -c Derivatives.sig
+	mosmlc -c Derivatives.sml
+	mosmlc -c Alphabets.sig
+	mosmlc -c Alphabets.sml
+	mosmlc -c Extractor.sig
+	mosmlc -c Extractor.sml
+	mosmlc -c PEPA2PRISM.sig
+	mosmlc -c PEPA2PRISM.sml
+# The following command produces a dynamically linked ELF binary
+	mosmlc -o pepa2prism.linux-x86 compiler.sml
+
+static:
+# the following command doesn't seem to work ...	
+# this was an attempt to produce a statically linked ELF binary
+	mosmlc -standalone -o pepa2prism.linux-x86-static compiler.sml
+
+clean:	
+	rm *.ui *.uo
+
+m140:
+	mosmlc -o pepa2prism Int.uo Error.uo Options.uo Files.uo Pepa.uo Lexer.uo  Prettyprinter.uo Parser.uo  CommandLine.uo Sort.uo Semantic.uo PEPA2PRISM.uo Substring.uo Path.uo Time.uo OS.uo FileSys.uo Timer.uo Mosml.uo mosml140pepa2prism.sml
+	cat /usr/local/bin/camlrunm ./pepa2prism > pepa2prism.sun4-51
+	chmod a+x pepa2prism.sun4-51
+
+tests:
+	for i in TESTS/*.pepa ; do \
+	  echo pepa2prism.linux-x86 $$i ; \
+	  ./pepa2prism.linux-x86 $$i ; \
+	  echo ; \
+	done
+

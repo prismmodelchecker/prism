@@ -1,0 +1,78 @@
+% The Manhattan mobile phone model by Leila Kloul
+
+lambda1 = 0.5;
+lambda2 = 1.8;
+lambda3 = 1.0;
+
+mu = 0.008;
+mu2 = 0.016;
+mu3 = 0.024; 
+mu4 = 0.032; 
+mu5 = 0.040; 
+mu6 = 0.048; 
+mu7 = 0.054; 
+
+alpha = 0.018;
+alpha2 = 0.036;
+alpha3 = 0.054; 
+alpha4 = 0.072; 
+alpha5 = 0.090; 
+alpha6 = 0.108; 
+alpha7 = 0.126;
+
+
+
+
+#Macro0 = (in, lambda1).Macro1 + (handoff_up, top).Macro1 
+	+ (handoff_in_up_c, top).Macro1 + (handoff_out_up_c, top).Macro1;
+#Macro1 = (in, lambda1).Macro2 + (handoff_up, top).Macro2 + (handoff_in_up_c, top).Macro2 
+        + (handoff_out_up_c, top).Macro2 + (service, mu).Macro0;
+#Macro2 = (in, lambda1).Macro3 + (handoff_up, top).Macro3 + (handoff_in_up_c, top).Macro3 
+        + (handoff_out_up_c, top).Macro3 + (service, mu2).Macro1;
+#Macro3 = (in, lambda1).Macro4 + (handoff_up, top).Macro4 + (handoff_in_up_c, top).Macro4 
+        + (handoff_out_up_c, top).Macro4 + (service, mu3).Macro2;
+#Macro4 = (in, lambda1).Macro5 + (handoff_up, top).Macro5 + (handoff_in_up_c, top).Macro5 
+        + (handoff_out_up_c, top).Macro5 + (service, mu4).Macro3;
+#Macro5 = (in, lambda1).Macro6 + (handoff_up, top).Macro6 + (handoff_in_up_c, top).Macro6 
+        + (handoff_out_up_c, top).Macro6 + (service, mu5).Macro4;
+#Macro6 = (in, lambda1).Macro7 + (handoff_up, top).Macro7 + (handoff_in_up_c, top).Macro7 
+        + (handoff_out_up_c, top).Macro7 + (service, mu6).Macro5;
+#Macro7 = (handoff_down, lambda1).Macro7 + (handoff_up, top).Macro7 + (handoff_in_up_c, top).Macro7 
+        + (handoff_out_up_c, top).Macro7 + (service, mu7).Macro6;
+
+
+#Micro0 = (in, lambda2).Micro1 + (handoff_out_c, top).Micro1 + (handoff_down, top).Micro1;
+#Micro1 = (in, lambda2).Micro2 + (handoff_out_c, top).Micro2 + (handoff_in_up_c, alpha).Micro0 
+        + (handoff_in_c, alpha).Micro0 + (service, mu).Micro0 + (handoff_down, top).Micro2;
+#Micro2 = (in, lambda2).Micro3 + (handoff_out_c, top).Micro3 + (handoff_in_up_c, alpha2).Micro1 
+        + (handoff_in_c, alpha2).Micro1 + (service, mu2).Micro1 + (handoff_down, top).Micro3;
+#Micro3 = (in, lambda2).Micro4 + (handoff_out_c, top).Micro4 + (handoff_in_up_c, alpha3).Micro2 
+        + (handoff_in_c, alpha3).Micro2 + (service, mu3).Micro2 + (handoff_down, top).Micro4;
+#Micro4 = (in, lambda2).Micro5 + (handoff_out_c, top).Micro5 + (handoff_in_up_c, alpha4).Micro3 
+        + (handoff_in_c, alpha4).Micro3 + (service, mu4).Micro3 + (handoff_down, top).Micro5;
+#Micro5 = (in, lambda2).Micro6 + (handoff_out_c, top).Micro6 + (handoff_in_up_c, alpha5).Micro4 
+        + (handoff_in_c, alpha5).Micro4 + (service, mu5).Micro4 + (handoff_down, top).Micro6;
+#Micro6 = (in, lambda2).Micro7 + (handoff_out_c, top).Micro7 + (handoff_in_up_c, alpha6).Micro5 
+        + (handoff_in_c, alpha6).Micro5 + (service, mu6).Micro5 + (handoff_down, top).Micro7;
+#Micro7 = (handoff_up, lambda2).Micro7 + (handoff_out_up_c, top).Micro7 + (handoff_in_up_c, alpha7).Micro6 
+        + (handoff_in_c, alpha7).Micro6 + (service, mu7).Micro6  + (handoff_down, top).Micro7;
+
+
+#MicroC0 = (in, lambda3).MicroC1 + (handoff_in_c, top).MicroC1;
+#MicroC1 = (in, lambda3).MicroC2 + (handoff_out_c, alpha).MicroC0 + (handoff_out_up_c, alpha).MicroC0 
+         + (handoff_in_c, top).MicroC2 + (service, mu).MicroC0;
+#MicroC2 = (in, lambda3).MicroC3 + (handoff_out_c, alpha2).MicroC1 + (handoff_out_up_c, alpha2).MicroC1 
+         + (handoff_in_c, top).MicroC3 + (service, mu2).MicroC1;
+#MicroC3 = (in, lambda3).MicroC4 + (handoff_out_c, alpha3).MicroC2 + (handoff_out_up_c, alpha3).MicroC2 
+         + (handoff_in_c, top).MicroC4 + (service, mu3).MicroC2;
+#MicroC4 = (in, lambda3).MicroC5 + (handoff_out_c, alpha4).MicroC3 + (handoff_out_up_c, alpha4).MicroC3 
+         + (handoff_in_c, top).MicroC5 + (service, mu4).MicroC3;
+#MicroC5 = (in, lambda3).MicroC6 + (handoff_out_c, alpha5).MicroC4 + (handoff_out_up_c, alpha5).MicroC4 
+         + (handoff_in_c, top).MicroC6 + (service, mu5).MicroC4;
+#MicroC6 = (in, lambda3).MicroC7 + (handoff_out_c, alpha6).MicroC5 + (handoff_out_up_c, alpha6).MicroC5 
+         + (handoff_in_c, top).MicroC7 + (service, mu6).MicroC5;
+#MicroC7 = (handoff_in_up_c, top).MicroC7 + (handoff_out_c, alpha7).MicroC6 + (service, mu7).MicroC6 
+         + (handoff_up, lambda3).MicroC7 + (handoff_out_up_c, alpha7).MicroC6;
+
+
+((Micro0<>Micro0<>Micro0<>Micro0) <handoff_in_c,handoff_out_c> MicroC0) <handoff_up,handoff_in_up_c,handoff_out_up_c> Macro0 

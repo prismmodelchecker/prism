@@ -1,0 +1,16 @@
+
+"# This is a script which compiles the PEPA to PRISM compiler."
+
+sourcepath /home/stg/pub/pwb/COMPILER/0.03.2
+
+classpath /home/stg/java/java1.1.6/classes.zip
+
+classpath + /home/stg/pub/pwb/COMPILER/0.03.2/JAVA
+
+"echo Compiling the PEPA to PRISM compiler ... as pepa.zip "
+
+make pepa.T pepa
+
+"echo Compilation of the PEPA to PRISM compiler finished, exiting MLj. "
+
+quit

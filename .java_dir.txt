@@ -1,0 +1,28 @@
+
+PRISM was unable to find the directory which contains
+your Java distribution. Please specify this manually to
+make as in the following example:
+
+  make JAVA_DIR=/usr/java/j2sdk1.4.2
+
+If you don't know where your Java distribution is, try typing:
+
+  which javac
+
+If the output is of the form 'javac: Command not found' or
+'which: no javaccc in...' then either you don't have Java
+installed or your path is not set up to include Java.
+If the output is something like:
+
+  /bham/java/packages/j2sdk1.4.2/bin/javac
+
+then the directory is /usr/java/j2sdk1.4.2
+(i.e. with the '/bin/javac' removed).
+One situation where this doesn't work is when javac
+has been set up as a symbolic link. In this case, type:
+
+  ls -l `which javac`
+
+which will tell you where javac actually is (the part displayed
+after the -> arrow. You can then deduce what the directory is as above.
+

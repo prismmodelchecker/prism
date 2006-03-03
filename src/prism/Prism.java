@@ -1,0 +1,1217 @@
+//==============================================================================
+//
+//	Copyright (c) 2002-2005, Dave Parker, Andrew Hinton
+//
+//	This file is part of PRISM.
+//
+//	PRISM is free software; you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation; either version 2 of the License, or
+//	(at your option) any later version.
+//
+//	PRISM is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
+//
+//	You should have received a copy of the GNU General Public License
+//	along with PRISM; if not, write to the Free Software Foundation,
+//	Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+//==============================================================================
+
+package prism;
+
+import java.io.*;
+import java.util.Vector;
+import java.util.ArrayList;
+
+import jdd.*;
+import dv.*;
+import odd.*;
+import mtbdd.*;
+import sparse.*;
+import hybrid.*;
+import parser.*;
+import apmc.*;
+import simulator.*;
+
+// prism class - main class for model checker
+// (independent of user interface (command line or gui))
+
+public class Prism
+{
+	// prism version
+	private static final String version = "2.1.dev11.sim8";
+	
+	//------------------------------------------------------------------------------
+	// Constants
+	//------------------------------------------------------------------------------
+	
+	// underlying computation engine
+	public static final int MTBDD = 1;
+	public static final int SPARSE = 2;
+	public static final int HYBRID = 3;
+	
+	// methods for solving linear equation systems
+	public static final int POWER = 1;
+	public static final int JACOBI = 2;
+	public static final int GAUSSSEIDEL = 3;
+	public static final int BGAUSSSEIDEL = 4;
+	public static final int PGAUSSSEIDEL = 5;
+	public static final int BPGAUSSSEIDEL = 6;
+	public static final int JOR = 7;
+	public static final int SOR = 8;
+	public static final int BSOR = 9;
+	public static final int PSOR = 10;
+	public static final int BPSOR = 11;
+	
+	// termination criterion for iterative methods
+	public static final int ABSOLUTE = 1;
+	public static final int RELATIVE = 2;
+	
+	// options for model matrix export
+	public static final int EXPORT_PLAIN = 1;
+	public static final int EXPORT_MATLAB = 2;
+	
+	//------------------------------------------------------------------------------
+	// Settings / flags / options
+	//------------------------------------------------------------------------------
+	
+	// Main PRISM settings
+	private PrismSettings settings;
+	
+	// A few miscellaneous options (i.e. defunct/hidden/undocumented/etc.)
+	
+	private boolean doReach;	// do reachability? (sometimes might want to skip it)
+	private boolean bsccComp;	// do bscc computation before steady-state?
+	
+	// mtbdd construction method
+	//  1 - use with ordering 1: nondet vars form a tree at the top
+	//  3 - use with ordering 2: zero for nonexistant bits
+	// nb: option 2 removed because it was stupid
+	private int construction;
+
+	// mtbdd variable ordering
+	//  1 - (s ... s) (l ... l) (r c ... r c)
+	//  2 - (s l ... l r c ... r c) (s l ... l r c ... r c) ...
+	private int ordering;
+	
+	//------------------------------------------------------------------------------
+	// Logs
+	//------------------------------------------------------------------------------
+	
+	private PrismLog mainLog; // one log for most output
+	private PrismLog techLog; // another one for technical/diagnostic output
+	
+	//------------------------------------------------------------------------------
+	// parsers/translators
+	//------------------------------------------------------------------------------
+	
+	private static PrismParser thePrismParser = null;
+	private static boolean prismParserInUse = false;
+	private Modules2MTBDD mod2mtbdd = null;
+	private Explicit2MTBDD exp2mtbdd = null;
+	
+	//------------------------------------------------------------------------------
+	// model checkers/simulators
+	//------------------------------------------------------------------------------
+	
+	private ModelChecker mc = null;
+	private SimulatorEngine theSimulator = null;
+	private Apmc apmc = null;
+	
+	//------------------------------------------------------------------------------
+	// flags
+	//------------------------------------------------------------------------------
+	
+	private boolean cuddStarted = false;
+	
+	//------------------------------------------------------------------------------
+	// methods
+	//------------------------------------------------------------------------------
+	
+	// constructor
+	
+	public Prism(PrismLog l1, PrismLog l2)
+	{
+		// set up logs
+		mainLog = l1;
+		techLog = l2;
+		
+		// set up some default options
+		settings = new PrismSettings();
+		
+		// default values for miscellaneous options 
+		doReach = true;
+		bsccComp = true;
+		construction = 0;
+		ordering = 1;
+	}
+	
+	// set methods
+	
+	public void setMainLog(PrismLog l)
+	{
+		// store new log
+		mainLog = l;
+		// pass to other components
+		PrismMTBDD.setMainLog(mainLog);
+		PrismSparse.setMainLog(mainLog);
+		PrismHybrid.setMainLog(mainLog);
+	}
+	
+	public void setTechLog(PrismLog l)
+	{
+		// store new log
+		techLog = l;
+		// pass to other components
+		JDD.SetOutputStream(techLog.getFilePointer());
+		PrismMTBDD.setTechLog(techLog);
+		PrismSparse.setTechLog(techLog);
+		PrismHybrid.setTechLog(techLog);
+	}
+	
+	// set methods for main prism settings
+	// provided for convenience and for compatability with old code
+	
+	public void setEngine(int e) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_ENGINE, e-1); // note index offset correction
+	}
+	
+	public void setVerbose(boolean b) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_VERBOSE, b);
+	}
+	
+	public void setFairness(boolean b) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_FAIRNESS, b);
+	}
+	
+	public void setPrecomp(boolean b) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_PRECOMPUTATION, b);
+	}
+	
+	public void setDoProbChecks(boolean b) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_DO_PROB_CHECKS, b);
+	} 
+	
+	public void setCompact(boolean b) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_COMPACT, b);
+	}
+	
+	public void setLinEqMethod(int i) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_LIN_EQ_METHOD, i-1); // note index offset correction
+	}
+	
+	public void setLinEqMethodParam(double d) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_LIN_EQ_METHOD_PARAM,  d);
+	}
+	
+	public void setTermCrit(int i) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_TERM_CRIT, i-1); // note index offset correction
+	}
+	
+	public void setTermCritParam(double d) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_TERM_CRIT_PARAM, d);
+	}
+	
+	public void setMaxIters(int i) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_MAX_ITERS, i);
+	}
+	
+	public void setCUDDMaxMem(int i) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_CUDD_MAX_MEM, i);
+		if (cuddStarted)
+		{
+			JDD.SetCUDDMaxMem(settings.getInteger(PrismSettings.PRISM_CUDD_MAX_MEM));
+		}
+	}
+	
+	public void setCUDDEpsilon(double d) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_CUDD_EPSILON, d);
+		
+		if (cuddStarted)
+		{
+			JDD.SetCUDDEpsilon(settings.getDouble(PrismSettings.PRISM_CUDD_EPSILON));
+		}
+	}
+	
+	public void setNumSBLevels(int i) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_NUM_SB_LEVELS, i);
+	}
+	
+	public void setSBMaxMem(int i) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_SB_MAX_MEM, i);
+	}
+	
+	public void setNumSORLevels(int i) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_NUM_SOR_LEVELS, i);
+	}
+	
+	public void setSORMaxMem(int i) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_SOR_MAX_MEM, i);
+	}
+	
+	public void setApmcStrategy(int i) throws PrismException
+	{
+		settings.set(PrismSettings.SIMULATOR_APMC_STRATEGY, i);
+	}
+	
+	// set methods for miscellaneous options
+	
+	public void setDoReach(boolean b) throws PrismException
+	{
+		doReach = b;
+	}
+	
+	public void setBSCCComp(boolean b) throws PrismException
+	{
+		bsccComp = b;
+	}
+	
+	public void setConstruction(int i) throws PrismException
+	{
+		construction = i;
+	}
+	
+	public void setOrdering(int i) throws PrismException
+	{
+		ordering = i;
+	}
+	
+	// get methods
+	
+	public static String getVersion()
+	{ return version; }
+	
+	public PrismLog getMainLog()
+	{ return mainLog; }
+	
+	public PrismLog getTechLog()
+	{ return techLog; }
+	
+	// get methods for main prism settings
+	// as above, provided for convenience and for compatability with old code
+	
+	public int getEngine()
+	{ return settings.getInteger(PrismSettings.PRISM_ENGINE)+1; } //note the correction
+	
+	public boolean getDoProbChecks()
+	{ return settings.getBoolean(PrismSettings.PRISM_DO_PROB_CHECKS); }
+	
+	public int getLinEqMethod()
+	{ return settings.getInteger(PrismSettings.PRISM_LIN_EQ_METHOD)+1; } //NOTE THE CORRECTION for the ChoiceSetting index
+	
+	public double getLinEqMethodParam()
+	{ return settings.getDouble(PrismSettings.PRISM_LIN_EQ_METHOD_PARAM); }
+	
+	public int getTermCrit()
+	{ return settings.getInteger(PrismSettings.PRISM_TERM_CRIT)+1; } //NOTE THE CORRECTION for the ChoiceSetting index
+	
+	public double getTermCritParam()
+	{ return settings.getDouble(PrismSettings.PRISM_TERM_CRIT_PARAM); }
+	
+	public int getMaxIters()
+	{ return settings.getInteger(PrismSettings.PRISM_MAX_ITERS); }
+	
+	public boolean getVerbose()
+	{ return settings.getBoolean(PrismSettings.PRISM_VERBOSE); }
+	
+	public boolean getPrecomp()
+	{ return settings.getBoolean(PrismSettings.PRISM_PRECOMPUTATION); }
+	
+	public boolean getFairness()
+	{ return settings.getBoolean(PrismSettings.PRISM_FAIRNESS); }
+	
+	public int getSBMaxMem()
+	{ return settings.getInteger(PrismSettings.PRISM_SB_MAX_MEM); }
+	
+	public int getNumSBLevels()
+	{ return settings.getInteger(PrismSettings.PRISM_NUM_SB_LEVELS); }
+	
+	public int getSORMaxMem()
+	{ return settings.getInteger(PrismSettings.PRISM_SOR_MAX_MEM); }
+	
+	public int getNumSORLevels()
+	{ return settings.getInteger(PrismSettings.PRISM_NUM_SOR_LEVELS); }
+	
+	public boolean getCompact()
+	{ return settings.getBoolean(PrismSettings.PRISM_COMPACT); }
+	
+	public long getCUDDMaxMem()
+	{ return settings.getInteger(PrismSettings.PRISM_CUDD_MAX_MEM); }
+	
+	public double getCUDDEpsilon()
+	{ return settings.getDouble(PrismSettings.PRISM_CUDD_EPSILON); }
+	
+	public int getApmcStrategy()
+	{ return settings.getInteger(PrismSettings.SIMULATOR_APMC_STRATEGY); }
+	
+	// get methods for miscellaneous options
+	
+	public boolean getDoReach()
+	{ return doReach; }
+	
+	public boolean getBSCCComp()
+	{ return bsccComp; }
+	
+	public int getConstruction()
+	{ return construction; }
+	
+	public int getOrdering()
+	{ return ordering; }
+	
+	// get/release (exclusive) access to the prism parser
+	
+	// note: this mutex mechanism is based on public domain code by Doug Lea
+	
+	public static PrismParser getPrismParser() throws InterruptedException
+	{
+		if (Thread.interrupted()) throw new InterruptedException();
+		// this code is synchronized on the whole Prism class
+		// (because this is a static method)
+		synchronized (Prism.class) {
+			try {
+				// wait until parser is free
+				while (prismParserInUse) { Prism.class.wait(); }
+				// lock parser
+				prismParserInUse = true;
+				// return parser, creating anew if necessary
+				if (thePrismParser == null) thePrismParser = new PrismParser();
+				return thePrismParser;
+			}
+			catch (InterruptedException e) {
+				Prism.class.notify();
+				throw e;
+			}
+		}
+	}
+	
+	public static synchronized void releasePrismParser()
+	{
+		prismParserInUse = false;
+		Prism.class.notify(); 
+	}
+
+	// get Simulator object, creating if necessary
+	
+	public SimulatorEngine getSimulator()
+	{
+		if (theSimulator == null) {
+			theSimulator = new SimulatorEngine();
+			theSimulator.setMainLog(mainLog);
+		}
+		return theSimulator; 
+	}
+
+	// initialise
+	
+	public void initialise() throws PrismException
+	{
+		mainLog.print("PRISM\n=====\n");
+		mainLog.print("\nVersion: " + version + "\n");
+		mainLog.print("Date: " + new java.util.Date() + "\n");
+		try {
+			String h = java.net.InetAddress.getLocalHost().getHostName();
+			mainLog.print("Hostname: " + h + "\n");
+		} catch (java.net.UnknownHostException e) {}
+		
+		// initialise cudd/jdd
+		JDD.InitialiseCUDD(getCUDDMaxMem(), getCUDDEpsilon());
+		cuddStarted = true;
+		JDD.SetOutputStream(techLog.getFilePointer());
+		
+		// initialise all three engines
+		PrismMTBDD.initialise(mainLog, techLog);
+		PrismSparse.initialise(mainLog, techLog);
+		PrismHybrid.initialise(mainLog, techLog);
+		
+		// set cudd manager in other packages
+		DoubleVector.setCUDDManager();
+		ODDUtils.setCUDDManager();
+	}
+	
+	// parse model from file
+	
+	public ModulesFile parseModelFile(File file) throws FileNotFoundException, ParseException, PrismException { return parseModelFile(file, 0); }
+	
+	public ModulesFile parseModelFile(File file, int typeOverride) throws FileNotFoundException, ParseException, PrismException
+	{
+		FileInputStream strModel;
+		PrismParser prismParser; 
+		ModulesFile modulesFile = null;
+		
+		// open file
+		strModel = new FileInputStream(file);
+		
+		try {
+			// obtain exclusive access to the prism parser
+			// (don't forget to release it afterwards)
+			prismParser = getPrismParser();
+			try {
+				// parse file
+				modulesFile = prismParser.parseModulesFile(strModel, typeOverride);
+			}
+			finally {
+				// release prism parser
+				releasePrismParser();
+			}
+		}
+		catch(InterruptedException ie) {
+			throw new ParseException("Concurrency error in parser");
+		}
+		
+		modulesFile.tidyUp();
+		
+		return modulesFile;
+	}
+
+	// parse model from string
+	
+	public ModulesFile parseModelString(String s) throws ParseException, PrismException { return parseModelString(s, 0); }
+	
+	public ModulesFile parseModelString(String s, int typeOverride) throws ParseException, PrismException
+	{
+		PrismParser prismParser; 
+		ModulesFile modulesFile = null;
+		
+		try {
+			// obtain exclusive access to the prism parser
+			// (don't forget to release it afterwards)
+			prismParser = getPrismParser();
+			try {
+				// parse string
+				modulesFile = prismParser.parseModulesFile(new ByteArrayInputStream(s.getBytes()), typeOverride);
+			}
+			finally {
+				// release prism parser
+				releasePrismParser();
+			}
+		}
+		catch(InterruptedException ie) {
+			throw new ParseException("Concurrency error in parser");
+		}
+		
+		modulesFile.tidyUp();
+		
+		return modulesFile;
+	}
+
+	// import pepa from file
+	
+	public ModulesFile importPepaFile(File file) throws ParseException, PrismException
+	{
+		ModulesFile modulesFile;
+		String modelString;
+		
+		// compile pepa file to string
+		try {
+			modelString = pepa.compiler.Main.compile("" + file);
+		}
+		catch (pepa.compiler.InternalError e) {
+			throw new PrismException("Could not import PEPA file:\n" + e.getMessage());
+		}
+		
+		// parse string as prism model and return
+		return parseModelString(modelString);
+	}
+	
+	// import pepa from string
+	
+	public ModulesFile importPepaString(String s) throws ParseException, PrismException
+	{
+		File pepaFile = null;
+		ModulesFile modulesFile;
+		String modelString;
+		
+		// create temporary file containing pepa model
+		try
+		{
+			pepaFile = File.createTempFile("tempPepa" + System.currentTimeMillis(), ".pepa");
+			FileWriter write = new FileWriter(pepaFile);
+			write.write(s);
+			write.close();
+		}
+		catch(IOException e)
+		{
+			if(pepaFile != null) pepaFile.delete();
+			throw new PrismException("Couldn't create temporary file for PEPA conversion");
+		}
+		
+		// compile pepa file to string
+		try {
+			modelString = pepa.compiler.Main.compile("" + pepaFile);
+		}
+		catch (pepa.compiler.InternalError e) {
+			if(pepaFile != null) pepaFile.delete();
+			throw new PrismException("Could not import PEPA file:\n" + e.getMessage());
+		}
+		
+		// parse string as prism model and return
+		return parseModelString(modelString);
+	}
+
+	// parse pctl properties from file
+	// nb: need to pass in modules file to access its constants
+	//     but if its null, we just create a blank one for you.
+	
+	public PropertiesFile parsePropertiesFile(ModulesFile mf, File file) throws FileNotFoundException, ParseException, PrismException
+	{
+		FileInputStream strProperties;
+		PrismParser prismParser; 
+		PropertiesFile propertiesFile = null;
+		
+		// open file
+		strProperties = new FileInputStream(file);
+		
+		// if null modules file passed, create a blank one
+		if (mf == null) {
+			mf = new ModulesFile();
+			mf.setFormulaList(new FormulaList());
+			mf.setConstantList(new ConstantList());
+		}
+		
+		try {
+			// obtain exclusive access to the prism parser
+			// (don't forget to release it afterwards)
+			prismParser = getPrismParser();
+			try {
+				// parse file
+				propertiesFile = prismParser.parsePropertiesFile(mf, strProperties);
+			}
+			finally {
+				// release prism parser
+				releasePrismParser();
+			}
+		}
+		catch(InterruptedException ie) {
+			throw new ParseException("Concurrency error in parser");
+		}
+		
+		propertiesFile.tidyUp();
+		
+		return propertiesFile;
+	}
+
+	// parse pctl properties from string
+	// nb: need to pass in modules file to access its constants
+	//     but if its null, we just create a blank one for you.
+	
+	public PropertiesFile parsePropertiesString(ModulesFile mf, String s) throws ParseException, PrismException
+	{
+		PrismParser prismParser; 
+		PropertiesFile propertiesFile = null;
+		
+		// if null modules file passed, create a blank one
+		if (mf == null) {
+			mf = new ModulesFile();
+			mf.setFormulaList(new FormulaList());
+			mf.setConstantList(new ConstantList());
+		}
+		
+		try {
+			// obtain exclusive access to the prism parser
+			// (don't forget to release it afterwards)
+			prismParser = getPrismParser();
+			try {
+				// parse string
+				propertiesFile = prismParser.parsePropertiesFile(mf, new ByteArrayInputStream(s.getBytes()));
+			}
+			finally {
+				// release prism parser
+				releasePrismParser();
+			}
+		}
+		catch(InterruptedException ie) {
+			throw new ParseException("Concurrency error in parser");
+		}
+		
+		propertiesFile.tidyUp();
+		
+		return propertiesFile;
+	}
+
+	// parse single expression from string
+	
+	public Expression parseSingleExpressionString(String s) throws ParseException, PrismException
+	{
+		PrismParser prismParser; 
+		Expression expr;
+		
+		try {
+			// obtain exclusive access to the prism parser
+			// (don't forget to release it afterwards)
+			prismParser = getPrismParser();
+			try {
+				// parse expression
+				expr = prismParser.parseSingleExpression(new ByteArrayInputStream(s.getBytes()));
+			}
+			finally {
+				// release prism parser
+				releasePrismParser();
+			}
+		}
+		catch(InterruptedException ie) {
+			throw new ParseException("Concurrency error in parser");
+		}
+		
+		return expr;
+	}
+
+	// parse for loop from string
+	
+	public ForLoop parseForLoopString(String s) throws ParseException, PrismException
+	{
+		PrismParser prismParser; 
+		ForLoop fl;
+		
+		try {
+			// obtain exclusive access to the prism parser
+			// (don't forget to release it afterwards)
+			prismParser = getPrismParser();
+			try {
+				// parse for loop
+				fl = prismParser.parseForLoop(new ByteArrayInputStream(s.getBytes()));
+			}
+			finally {
+				// release prism parser
+				releasePrismParser();
+			}
+		}
+		catch(InterruptedException ie) {
+			throw new ParseException("Concurrency error in parser");
+		}
+		
+		return fl;
+	}
+
+	// build model, i.e. convert ModulesFile to Model
+	// optionally pass in a short message to identify the model being built
+	// (typically the values of undefined constants)
+	
+	public Model buildModel(ModulesFile modulesFile) throws PrismException
+	{
+		return buildModel(modulesFile, "");
+	}
+	
+	public Model buildModel(ModulesFile modulesFile, String msg) throws PrismException
+	{
+		long l; // timer
+		Model model;
+		
+		mainLog.print("\nBuilding model");
+		if (msg != null) if (msg.length() > 0) mainLog.print(" (" + msg + ")");
+		mainLog.print("...\n");
+		
+		// create translator
+		mod2mtbdd = new Modules2MTBDD(mainLog, techLog, modulesFile);
+		mod2mtbdd.setOption("ordering", getOrdering());
+		mod2mtbdd.setOption("construction", getConstruction());
+		mod2mtbdd.setOption("doreach", getDoReach());
+		mod2mtbdd.setOption("doprobchecks", getDoProbChecks());
+		
+		// build model
+		l = System.currentTimeMillis();
+		model = mod2mtbdd.translate();
+		l = System.currentTimeMillis() - l;
+		
+		mainLog.println("\nTime for model construction: " + l/1000.0 + " seconds.");
+		
+		return model;
+	}
+	
+	public ModulesFile parseExplicitModel(File statesFile, File transFile, int typeOverride) throws PrismException
+	{
+		// create Explicit2MTBDD object
+		exp2mtbdd = new Explicit2MTBDD(mainLog, techLog, statesFile, transFile, typeOverride);
+		exp2mtbdd.setOption("doreach", getDoReach());
+		
+		// build state space
+		return exp2mtbdd.buildStates();
+	}
+	
+	public Model buildExplicitModel() throws PrismException
+	{
+		long l; // timer
+		Model model;
+		
+		// check Explicit2MTBDD object created
+		if (exp2mtbdd == null) throw new PrismException("Explicit2MTBDD object never created");
+		
+		mainLog.print("\nBuilding model...\n");
+		
+		// build model
+		l = System.currentTimeMillis();
+		model = exp2mtbdd.buildModel();
+		l = System.currentTimeMillis() - l;
+		
+		mainLog.println("\nTime for model construction: " + l/1000.0 + " seconds.");
+		
+		return model;
+	}
+	
+	// export trans to a spy file
+	
+	public void exportToSpyFile(Model model, File file) throws FileNotFoundException
+	{
+		int depth;
+		JDDNode tmp;
+		
+		mainLog.println("\nExporting to spy file \"" + file + "\"...");
+		
+		// choose depth
+		depth = model.getAllDDRowVars().n();
+		if (depth > 9) depth = 9;
+		
+		// get rid of non det vars if necessary
+		tmp = model.getTrans();
+		JDD.Ref(tmp);
+		if (model instanceof NondetModel)
+		{
+			tmp = JDD.MaxAbstract(tmp, ((NondetModel)model).getAllDDNondetVars());
+		}
+		
+		// export to spy file
+		JDD.ExportMatrixToSpyFile(tmp, model.getAllDDRowVars(), model.getAllDDColVars(), depth, file.getPath());
+		JDD.Deref(tmp);
+	}
+	
+	// export trans to a dot file
+	
+	public void exportToDotFile(Model model, File file) throws FileNotFoundException
+	{
+		mainLog.println("\nExporting to dot file \"" + file + "\"...");
+		
+		// export to dot file
+		JDD.ExportDDToDotFileLabelled(model.getTrans(), file.getPath(), model.getDDVarNames());
+	}
+	
+	// export trans to a file (plain, matlab, ...)
+	
+	public void exportToFile(Model model, boolean ordered, int exportType, File file) throws FileNotFoundException
+	{
+		// print message
+		switch (exportType)
+		{
+			case EXPORT_PLAIN: mainLog.println("\nExporting to plain text file \"" + file + "\"..."); break;
+			case EXPORT_MATLAB: mainLog.println("\nExporting to Matlab file \"" + file + "\"..."); break;
+			default: mainLog.println("\nWarning: Did not perform export (unrecognised type)"); return;
+		}
+		
+		// can only do ordered version of export for mdps
+		if (model instanceof NondetModel)
+		{
+			if (!ordered) mainLog.println("\nWarning: Performing ordered export (only choice for MDPs)");
+			ordered = true;
+		}
+		
+		// do export
+		model.exportToFile(exportType, ordered, file);
+	}
+	
+	// model checking
+	// returns result or throws an exception in case of error
+	
+	public Object modelCheck(Model model, PropertiesFile propertiesFile, PCTLFormula f) throws PrismException
+	{
+		Object res;
+		
+		// check that formula is valid pctl/csl
+		if (model instanceof ProbModel || model instanceof NondetModel)
+		{
+			f.checkValidPCTL();
+		}
+		if (model instanceof StochModel)
+		{
+			f.checkValidCSL();
+		}
+		
+		// create new model checker object
+		if (model instanceof ProbModel)
+		{
+			mc = new ProbModelChecker(mainLog, techLog, model, propertiesFile);
+		}
+		else if (model instanceof NondetModel)
+		{
+			mc = new NondetModelChecker(mainLog, techLog, model, propertiesFile);
+		}
+		else if (model instanceof StochModel)
+		{
+			mc = new StochModelChecker(mainLog, techLog, model, propertiesFile);
+		}
+		else
+		{
+			throw new PrismException("Unknown model type");
+		}
+		
+		// configure model checker
+		mc.setEngine(getEngine());
+		if (!(model instanceof NondetModel))
+		{
+			mc.setOption("lineqmethod", getLinEqMethod());
+			mc.setOption("lineqmethodparam", getLinEqMethodParam());
+		}
+		mc.setOption("termcrit", getTermCrit());
+		mc.setOption("termcritparam", getTermCritParam());
+		mc.setOption("maxiters", getMaxIters());
+		mc.setOption("verbose", getVerbose());
+		mc.setOption("precomp", getPrecomp());
+		if (model instanceof StochModel)
+		{
+			mc.setOption("bscccomp", getBSCCComp());
+		}
+		if (model instanceof NondetModel)
+		{
+			mc.setOption("fairness", getFairness());
+		}
+		if (getEngine() == HYBRID || getEngine() == SPARSE)
+		{
+			mc.setOption("compact", getCompact());
+		}
+		if (getEngine() == HYBRID)
+		{
+			mc.setOption("sbmaxmem", getSBMaxMem());
+			mc.setOption("numsblevels", getNumSBLevels());
+		}
+		if ((getEngine() == HYBRID) && !(model instanceof NondetModel))
+		{
+			mc.setOption("sormaxmem", getSORMaxMem());
+			mc.setOption("numsorlevels", getNumSORLevels());
+		}
+		
+		//		// print out which engine we are using
+		//		mainLog.print("\nEngine: ");
+		//		switch (engine) {
+		//		case MTBDD: mainLog.println("MTBDD"); break;
+		//		case SPARSE: mainLog.println("Sparse"); break;
+		//		case HYBRID: mainLog.println("Hybrid"); break;
+		//		default: mainLog.print("?????"); break;
+		//		}
+		
+		// do model checking
+		res = mc.check(f);
+		
+		// return result
+		return res;
+	}
+	
+	// compute parameters for simulation
+	
+	public double computeSimulationApproximation(double confid, int numSamples)
+	{
+		return getSimulator().computeSimulationApproximation(confid, numSamples);
+	}
+	public double computeSimulationConfidence(double approx, int numSamples)
+	{
+		return getSimulator().computeSimulationConfidence(approx, numSamples);
+	}
+	public int computeSimulationNumSamples(double approx, double confid)
+	{
+		return getSimulator().computeSimulationNumSamples(approx, confid);
+	}
+
+	// check if a property is suitable for analysis with the simulator
+	
+	public void checkPropertyForSimulation(ModulesFile modulesFile, PropertiesFile propertiesFile, PCTLFormula f) throws PrismException
+	{
+		try {
+			getSimulator().checkPropertyForSimulation(modulesFile, propertiesFile, f);
+		}
+		catch (SimulatorException e) {
+			throw new PrismException(e.getMessage());
+		}
+	}
+	
+	// model check using simulator
+	// returns result or throws an exception in case of error
+	
+	public Object modelCheckSimulator(ModulesFile modulesFile, PropertiesFile propertiesFile, PCTLFormula f, Values initialState, int noIterations, int maxPathLength) throws PrismException
+	{
+		Object res = null;
+		
+		//do model checking
+		try
+		{
+			res = getSimulator().modelCheckSingleProperty(modulesFile, propertiesFile, f, initialState, noIterations, maxPathLength);
+		}
+		catch(SimulatorException e)
+		{
+			throw new PrismException(e.getMessage());
+		}
+		
+		return res;
+	}
+	
+	// model check using simulator (several properties simultaneously)
+	// returns an array of results, some of which may be Exception objects if there were errors
+	// in the case of an error which affects all properties, an exception is thrown
+	
+	public Object[] modelCheckSimulatorSimultaneously(ModulesFile modulesFile, PropertiesFile propertiesFile, ArrayList fs, Values initialState, int noIterations, int maxPathLength) throws PrismException
+	{
+		Object[] res = null;
+		
+		try
+		{
+			res = getSimulator().modelCheckMultipleProperties(modulesFile, propertiesFile, fs, initialState, noIterations, maxPathLength);
+		}
+		catch(SimulatorException e)
+		{
+			throw new PrismException(e.getMessage());
+		}
+		
+		return res;
+	}
+	
+	// model check using simulator (ranging over some constants - from properties file only)
+	// results are stored in the ResultsCollection, some of which may be Exception objects if there were errors
+	// in the case of an error which affects all properties, an exception is thrown
+	
+	public void modelCheckSimulatorExperiment(ModulesFile modulesFile, PropertiesFile propertiesFile, UndefinedConstants undefinedConstants, ResultsCollection results, PCTLFormula propertyToCheck, Values initialState, int noIterations, int pathLength) throws PrismException, InterruptedException
+	{
+		try
+		{
+			getSimulator().modelCheckExperiment(modulesFile, propertiesFile, undefinedConstants, results, propertyToCheck, initialState, pathLength, noIterations);
+		}
+		catch(SimulatorException e)
+		{
+			throw new PrismException(e.getMessage());
+		}
+		catch(PrismException e)
+		{
+			throw e;
+		}
+	}
+	
+	// model checking using APMC techniques
+	
+	public void checkPropertyForAPMC(ModulesFile modulesFile, PropertiesFile propertiesFile, PCTLFormula f) throws PrismException
+	{
+		// check APMC techniques are enabled
+		if (!Apmc.isEnabled()) throw new PrismException("APMC techniques are not currently enabled");
+		
+		// check model is a dtmc
+		if (modulesFile.getType() != ModulesFile.PROBABILISTIC)
+		{
+			throw new PrismException("APMC techniques can only be applied to DTMCs");
+		}
+		
+		// check that formula is valid pctl
+		f.checkValidPCTL();
+		
+		// check the formula is of the correct type for apmc
+		if (f instanceof PCTLProb)
+		{
+			if ((((PCTLProb)f).getProb() != null))
+			{
+				throw new PrismException("APMC techniques can only be applied to PCTL formulas of the form \"P=? [ ... ]\"");
+			}
+		}
+		else
+		{
+			throw new PrismException("APMC techniques can only be applied to PCTL formulas of the form \"P=? [ ... ]\"");
+		}
+		if (f.computeMaxNested() > 1)
+		{
+			throw new PrismException("APMC techniques cannot handle nested \"P=? [...]\" operators");
+		}
+		
+		// create new APMC object (if necessary)
+		if (apmc == null) apmc = new Apmc();
+	}
+	
+	public Object modelCheckAPMC(ModulesFile modulesFile, PropertiesFile propertiesFile, PCTLFormula f, int noIterations, int pathLength) throws PrismException
+	{
+		return modelCheckAPMC(modulesFile, propertiesFile, f, modulesFile.getInitialValues(), noIterations, pathLength);
+	}
+	
+	public Object modelCheckAPMC(ModulesFile modulesFile, PropertiesFile propertiesFile, PCTLFormula f, Values initialState, int noIterations, int pathLength) throws PrismException
+	{
+		Object res = null;
+		
+		checkPropertyForAPMC(modulesFile, propertiesFile, f);
+		
+		// do model checking
+		try
+		{
+			apmc.setEvaluateContext(modulesFile.getConstantValues(), initialState, propertiesFile.getLabelList());
+			modulesFile.toApmc(apmc);
+			apmc.setInitialState( initialState );
+			propertiesFile.toApmc(apmc);
+			
+			apmc.addFormula(f.toApmc(apmc));
+			res = apmc.runLocalClient(pathLength, noIterations, getApmcStrategy());
+			apmc.cleanup();
+		}
+		catch (apmc.ApmcException e)
+		{
+			apmc.cleanup();
+			throw new PrismException(e.getMessage());
+		}
+		
+		// return result
+		return res;
+	}
+	
+	// do steady state
+	
+	public void doSteadyState(Model model) throws PrismException
+	{
+		long l = 0; // timer
+		StateProbs probs = null;
+		
+		mainLog.println("\nComputing steady-state probabilities...");
+		
+		// create/configure new model checker object
+		mc = new StochModelChecker(mainLog, techLog, model, null);
+		switch (getEngine())
+		{
+			case MTBDD: mc.setEngine(MTBDD); break;
+			case SPARSE: mc.setEngine(SPARSE); break;
+			case HYBRID: mc.setEngine(HYBRID); break;
+			default: break;
+		}
+		mc.setOption("lineqmethod", getLinEqMethod());
+		mc.setOption("lineqmethodparam", getLinEqMethodParam());
+		mc.setOption("termcrit", getTermCrit());
+		mc.setOption("termcritparam", getTermCritParam());
+		mc.setOption("maxiters", getMaxIters());
+		mc.setOption("verbose", getVerbose());
+		mc.setOption("bscccomp", getBSCCComp());
+		if (getEngine() == HYBRID || getEngine() == SPARSE)
+		{
+			mc.setOption("compact", getCompact());
+		}
+		if (getEngine() == HYBRID)
+		{
+			mc.setOption("sbmaxmem", getSBMaxMem());
+			mc.setOption("numsblevels", getNumSBLevels());
+			mc.setOption("sormaxmem", getSORMaxMem());
+			mc.setOption("numsorlevels", getNumSORLevels());
+		}
+		
+		//		// print out which engine we are using
+		//		mainLog.print("\nEngine: ");
+		//		switch (engine) {
+		//		case MTBDD: mainLog.println("MTBDD"); break;
+		//		case SPARSE: mainLog.println("Sparse"); break;
+		//		case HYBRID: mainLog.println("Hybrid"); break;
+		//		default: mainLog.print("?????"); break;
+		//		}
+		
+		// do steady state calculation
+		l = System.currentTimeMillis();
+		probs = ((StochModelChecker)mc).doSteadyState();
+		l = System.currentTimeMillis() - l;
+		
+		// print out probabilities
+		mainLog.print("\nProbabilities: \n");
+		probs.print(mainLog);
+		probs.clear();
+		
+		// print out model checking time
+		mainLog.println("\nTime for steady-state probability computation: " + l/1000.0 + " seconds.");
+	}
+	
+	// do transient
+	
+	public void doTransient(Model model, double time) throws PrismException
+	{
+		long l = 0; // timer
+		StateProbs probs = null;
+		
+		mainLog.println("\nComputing transient probabilities (time = " + time + ")...");
+		
+		// create/configure new model checker object
+		mc = new StochModelChecker(mainLog, techLog, model, null);
+		switch (getEngine())
+		{
+			case MTBDD: mc.setEngine(MTBDD); break;
+			case SPARSE: mc.setEngine(SPARSE); break;
+			case HYBRID: mc.setEngine(HYBRID); break;
+			default: break;
+		}
+		mc.setOption("lineqmethod", getLinEqMethod()); // don't really need
+		mc.setOption("lineqmethodparam", getLinEqMethodParam()); // don't really need
+		mc.setOption("termcrit", getTermCrit());
+		mc.setOption("termcritparam", getTermCritParam());
+		mc.setOption("maxiters", getMaxIters()); // don't really need
+		mc.setOption("verbose", getVerbose());
+		mc.setOption("bscccomp", getBSCCComp()); // don't really need
+		if (getEngine() == HYBRID || getEngine() == SPARSE)
+		{
+			mc.setOption("compact", getCompact());
+		}
+		if (getEngine() == HYBRID)
+		{
+			mc.setOption("sbmaxmem", getSBMaxMem());
+			mc.setOption("numsblevels", getNumSBLevels());
+			mc.setOption("sormaxmem", getSORMaxMem()); // don't really need
+			mc.setOption("numsorlevels", getNumSORLevels()); // don't really need
+		}
+		
+		//		// print out which engine we are using
+		//		mainLog.print("\nEngine: ");
+		//		switch (engine) {
+		//		case MTBDD: mainLog.println("MTBDD"); break;
+		//		case SPARSE: mainLog.println("Sparse"); break;
+		//		case HYBRID: mainLog.println("Hybrid"); break;
+		//		default: mainLog.print("?????"); break;
+		//		}
+		
+		// do steady state calculation
+		l = System.currentTimeMillis();
+		probs = ((StochModelChecker)mc).doTransient(time);
+		l = System.currentTimeMillis() - l;
+		
+		// print out probabilities
+		mainLog.print("\nProbabilities: \n");
+		probs.print(mainLog);
+		probs.clear();
+		
+		// print out model checking time
+		mainLog.println("\nTime for transient probability computation: " + l/1000.0 + " seconds.");
+	}
+	
+	// clear up and close down
+	
+	public void closeDown()
+	{ closeDown(true); }
+	public void closeDown(boolean check)
+	{
+		// close down engines
+		PrismMTBDD.closeDown();
+		PrismSparse.closeDown();
+		PrismHybrid.closeDown();
+		// close down jdd/cudd
+		if (cuddStarted)
+		{
+			JDD.CloseDownCUDD(check);
+		}
+	}
+	
+	//access method for the settings
+	
+	public PrismSettings getSettings()
+	{
+		return settings;
+	}
+}
+
+//------------------------------------------------------------------------------

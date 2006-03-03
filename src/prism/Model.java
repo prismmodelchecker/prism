@@ -1,0 +1,96 @@
+//==============================================================================
+//	
+//	Copyright (c) 2002-2004, Dave Parker
+//	
+//	This file is part of PRISM.
+//	
+//	PRISM is free software; you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation; either version 2 of the License, or
+//	(at your option) any later version.
+//	
+//	PRISM is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
+//	
+//	You should have received a copy of the GNU General Public License
+//	along with PRISM; if not, write to the Free Software Foundation,
+//	Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//	
+//==============================================================================
+
+package prism;
+
+import java.io.*;
+import java.util.Vector;
+
+import jdd.*;
+import odd.*;
+import parser.*;
+
+public interface Model
+{
+	String getType();
+
+	int getNumModules();
+	String[] getModuleNames();
+	String getModuleName(int i);
+	
+	int getNumVars();
+	VarList getVarList();
+	String getVarName(int i);
+	int getVarIndex(String n);
+	int getVarModule(int i);
+	int getVarLow(int i);
+	int getVarHigh(int i);
+	int getVarRange(int i);
+	Values getConstantValues();
+	String globalToLocal(long x);
+	int globalToLocal(long x, int l);
+	
+	StateList getReachableStates();
+	StateList getDeadlockStates();
+	StateList getStartStates();
+	long getNumStates();
+	long getNumTransitions();
+	long getNumStartStates();
+	String getNumStatesString();
+	String getNumTransitionsString();
+	String getNumStartStatesString();
+
+	JDDNode getTrans();
+	JDDNode getTrans01();
+	JDDNode getStart();
+	JDDNode getReach();
+	JDDNode getDeadlocks();
+	JDDNode getFixedDeadlocks();
+	JDDNode getStateRewards();
+	JDDNode getTransRewards();
+	JDDVars[] getVarDDRowVars();
+	JDDVars[] getVarDDColVars();
+	JDDVars getVarDDRowVars(int i);
+	JDDVars getVarDDColVars(int i);
+	JDDVars[] getModuleDDRowVars();
+	JDDVars[] getModuleDDColVars();
+	JDDVars getModuleDDRowVars(int i);
+	JDDVars getModuleDDColVars(int i);
+	JDDVars getAllDDRowVars();
+	JDDVars getAllDDColVars();
+	int getNumDDRowVars();
+	int getNumDDColVars();
+	int getNumDDVarsInTrans();
+	Vector getDDVarNames();
+	
+	ODDNode getODD();
+
+	void fixDeadlocks();
+	void printTrans();
+	void printTrans01();
+	void printTransInfo(PrismLog log);
+	void exportToFile(int exportType, boolean explicit, File file) throws FileNotFoundException;
+
+	void clear();
+}
+
+//------------------------------------------------------------------------------

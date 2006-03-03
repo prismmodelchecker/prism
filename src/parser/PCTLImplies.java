@@ -1,0 +1,68 @@
+//==============================================================================
+//	
+//	Copyright (c) 2002-2004, Dave Parker, Hinton
+//	
+//	This file is part of PRISM.
+//	
+//	PRISM is free software; you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation; either version 2 of the License, or
+//	(at your option) any later version.
+//	
+//	PRISM is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
+//	
+//	You should have received a copy of the GNU General Public License
+//	along with PRISM; if not, write to the Free Software Foundation,
+//	Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//	
+//==============================================================================
+
+package parser;
+
+import apmc.*;
+import simulator.*;
+
+public class PCTLImplies extends PCTLFormulaBinary
+{
+	// constructor
+	
+	public PCTLImplies(PCTLFormula f1, PCTLFormula f2)
+	{
+		super(f1, f2);
+	}
+
+	// convert to apmc data structures
+	
+	public int toApmc(Apmc apmc) throws ApmcException
+	{
+		return
+			apmc.newBinaryOperand( apmc.OR,
+				apmc.newUnaryOperand( apmc.NOT,
+					operand1.toApmc(apmc)) ,
+					operand2.toApmc(apmc) );
+	}
+
+	/**
+	 *	Convert and build simulator data structures
+	 */
+	public int toSimulator(SimulatorEngine sim ) throws SimulatorException
+	{
+		//Implies is just !operand1 || operand2
+		int[]exprPointers = new int[2];
+		exprPointers[0] = SimulatorEngine.createNot(operand1.toSimulator(sim));
+		exprPointers[1] = operand2.toSimulator(sim);
+		return SimulatorEngine.createOr(exprPointers);
+	}
+
+	// convert to string
+	
+	public String toString()
+	{
+		return operand1 + " => " + operand2;
+	}
+}
+
+//------------------------------------------------------------------------------

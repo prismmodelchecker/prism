@@ -1,0 +1,237 @@
+// Output from the PEPA-to-PRISM compiler
+// Version 0.03.2 "Jean Armour Avenue"
+// Released: 08-11-2002
+// 
+// Model file: TESTS/mobile
+
+// All PEPA models define CTMCs so mark this as a stochastic model 
+stochastic
+
+// The rates used in the model 
+rate lambda1 = 0.5;
+rate lambda2 = 1.8;
+rate lambda3 = 1.0;
+rate mu = 0.008;
+rate mu2 = 0.016;
+rate mu3 = 0.024;
+rate mu4 = 0.032;
+rate mu5 = 0.040;
+rate mu6 = 0.048;
+rate mu7 = 0.054;
+rate alpha = 0.018;
+rate alpha2 = 0.036;
+rate alpha3 = 0.054;
+rate alpha4 = 0.072;
+rate alpha5 = 0.090;
+rate alpha6 = 0.108;
+rate alpha7 = 0.126;
+
+
+// Information about components inferred by the compiler
+// during static analysis:
+//
+//    interface Macro0 empty: only individual or passive activities
+//    interface MicroC0
+//      activity handoff_out_c
+//      activity handoff_out_up_c
+//      activity handoff_up
+//    endinterface 
+
+//    interface Micro0
+//      activity handoff_in_c
+//      activity handoff_in_up_c
+//      activity handoff_up
+//    endinterface 
+
+
+// Descriptive names for the local states of
+// this module, taken from the PEPA input model
+const Micro0 = 0;
+const Micro1 = 1;
+const Micro2 = 2;
+const Micro3 = 3;
+const Micro4 = 4;
+const Micro5 = 5;
+const Micro6 = 6;
+const Micro7 = 7;
+module Micro0
+
+        Micro0_STATE : [0..7] init Micro0;
+
+        [in] (Micro0_STATE=Micro0) -> lambda2 : (Micro0_STATE'=Micro1);
+        [handoff_out_c] (Micro0_STATE=Micro0) -> 1 : (Micro0_STATE'=Micro1);
+        [handoff_down] (Micro0_STATE=Micro0) -> 1 : (Micro0_STATE'=Micro1);
+        [in] (Micro0_STATE=Micro1) -> lambda2 : (Micro0_STATE'=Micro2);
+        [handoff_out_c] (Micro0_STATE=Micro1) -> 1 : (Micro0_STATE'=Micro2);
+        [handoff_in_up_c] (Micro0_STATE=Micro1) -> alpha : (Micro0_STATE'=Micro0);
+        [handoff_in_c] (Micro0_STATE=Micro1) -> alpha : (Micro0_STATE'=Micro0);
+        [service] (Micro0_STATE=Micro1) -> mu : (Micro0_STATE'=Micro0);
+        [handoff_down] (Micro0_STATE=Micro1) -> 1 : (Micro0_STATE'=Micro2);
+        [in] (Micro0_STATE=Micro2) -> lambda2 : (Micro0_STATE'=Micro3);
+        [handoff_out_c] (Micro0_STATE=Micro2) -> 1 : (Micro0_STATE'=Micro3);
+        [handoff_in_up_c] (Micro0_STATE=Micro2) -> alpha2 : (Micro0_STATE'=Micro1);
+        [handoff_in_c] (Micro0_STATE=Micro2) -> alpha2 : (Micro0_STATE'=Micro1);
+        [service] (Micro0_STATE=Micro2) -> mu2 : (Micro0_STATE'=Micro1);
+        [handoff_down] (Micro0_STATE=Micro2) -> 1 : (Micro0_STATE'=Micro3);
+        [in] (Micro0_STATE=Micro3) -> lambda2 : (Micro0_STATE'=Micro4);
+        [handoff_out_c] (Micro0_STATE=Micro3) -> 1 : (Micro0_STATE'=Micro4);
+        [handoff_in_up_c] (Micro0_STATE=Micro3) -> alpha3 : (Micro0_STATE'=Micro2);
+        [handoff_in_c] (Micro0_STATE=Micro3) -> alpha3 : (Micro0_STATE'=Micro2);
+        [service] (Micro0_STATE=Micro3) -> mu3 : (Micro0_STATE'=Micro2);
+        [handoff_down] (Micro0_STATE=Micro3) -> 1 : (Micro0_STATE'=Micro4);
+        [in] (Micro0_STATE=Micro4) -> lambda2 : (Micro0_STATE'=Micro5);
+        [handoff_out_c] (Micro0_STATE=Micro4) -> 1 : (Micro0_STATE'=Micro5);
+        [handoff_in_up_c] (Micro0_STATE=Micro4) -> alpha4 : (Micro0_STATE'=Micro3);
+        [handoff_in_c] (Micro0_STATE=Micro4) -> alpha4 : (Micro0_STATE'=Micro3);
+        [service] (Micro0_STATE=Micro4) -> mu4 : (Micro0_STATE'=Micro3);
+        [handoff_down] (Micro0_STATE=Micro4) -> 1 : (Micro0_STATE'=Micro5);
+        [in] (Micro0_STATE=Micro5) -> lambda2 : (Micro0_STATE'=Micro6);
+        [handoff_out_c] (Micro0_STATE=Micro5) -> 1 : (Micro0_STATE'=Micro6);
+        [handoff_in_up_c] (Micro0_STATE=Micro5) -> alpha5 : (Micro0_STATE'=Micro4);
+        [handoff_in_c] (Micro0_STATE=Micro5) -> alpha5 : (Micro0_STATE'=Micro4);
+        [service] (Micro0_STATE=Micro5) -> mu5 : (Micro0_STATE'=Micro4);
+        [handoff_down] (Micro0_STATE=Micro5) -> 1 : (Micro0_STATE'=Micro6);
+        [in] (Micro0_STATE=Micro6) -> lambda2 : (Micro0_STATE'=Micro7);
+        [handoff_out_c] (Micro0_STATE=Micro6) -> 1 : (Micro0_STATE'=Micro7);
+        [handoff_in_up_c] (Micro0_STATE=Micro6) -> alpha6 : (Micro0_STATE'=Micro5);
+        [handoff_in_c] (Micro0_STATE=Micro6) -> alpha6 : (Micro0_STATE'=Micro5);
+        [service] (Micro0_STATE=Micro6) -> mu6 : (Micro0_STATE'=Micro5);
+        [handoff_down] (Micro0_STATE=Micro6) -> 1 : (Micro0_STATE'=Micro7);
+        [handoff_up] (Micro0_STATE=Micro7) -> lambda2 : (Micro0_STATE'=Micro7);
+        [handoff_out_up_c] (Micro0_STATE=Micro7) -> 1 : (Micro0_STATE'=Micro7);
+        [handoff_in_up_c] (Micro0_STATE=Micro7) -> alpha7 : (Micro0_STATE'=Micro6);
+        [handoff_in_c] (Micro0_STATE=Micro7) -> alpha7 : (Micro0_STATE'=Micro6);
+        [service] (Micro0_STATE=Micro7) -> mu7 : (Micro0_STATE'=Micro6);
+        [handoff_down] (Micro0_STATE=Micro7) -> 1 : (Micro0_STATE'=Micro7);
+
+endmodule
+
+// We make another copy of module Micro0
+module Micro0_2 = Micro0[Micro0_STATE=Micro0_2_STATE]
+endmodule
+
+// We make another copy of module Micro0
+module Micro0_3 = Micro0[Micro0_STATE=Micro0_3_STATE]
+endmodule
+
+// We make another copy of module Micro0
+module Micro0_4 = Micro0[Micro0_STATE=Micro0_4_STATE]
+endmodule
+
+// Descriptive names for the local states of
+// this module, taken from the PEPA input model
+const MicroC0 = 0;
+const MicroC1 = 1;
+const MicroC2 = 2;
+const MicroC3 = 3;
+const MicroC4 = 4;
+const MicroC5 = 5;
+const MicroC6 = 6;
+const MicroC7 = 7;
+module MicroC0
+
+        MicroC0_STATE : [0..7] init MicroC0;
+
+        [in] (MicroC0_STATE=MicroC0) -> lambda3 : (MicroC0_STATE'=MicroC1);
+        [handoff_in_c] (MicroC0_STATE=MicroC0) -> 1 : (MicroC0_STATE'=MicroC1);
+        [in] (MicroC0_STATE=MicroC1) -> lambda3 : (MicroC0_STATE'=MicroC2);
+        [handoff_out_c] (MicroC0_STATE=MicroC1) -> alpha : (MicroC0_STATE'=MicroC0);
+        [handoff_out_up_c] (MicroC0_STATE=MicroC1) -> alpha : (MicroC0_STATE'=MicroC0);
+        [handoff_in_c] (MicroC0_STATE=MicroC1) -> 1 : (MicroC0_STATE'=MicroC2);
+        [service] (MicroC0_STATE=MicroC1) -> mu : (MicroC0_STATE'=MicroC0);
+        [in] (MicroC0_STATE=MicroC2) -> lambda3 : (MicroC0_STATE'=MicroC3);
+        [handoff_out_c] (MicroC0_STATE=MicroC2) -> alpha2 : (MicroC0_STATE'=MicroC1);
+        [handoff_out_up_c] (MicroC0_STATE=MicroC2) -> alpha2 : (MicroC0_STATE'=MicroC1);
+        [handoff_in_c] (MicroC0_STATE=MicroC2) -> 1 : (MicroC0_STATE'=MicroC3);
+        [service] (MicroC0_STATE=MicroC2) -> mu2 : (MicroC0_STATE'=MicroC1);
+        [in] (MicroC0_STATE=MicroC3) -> lambda3 : (MicroC0_STATE'=MicroC4);
+        [handoff_out_c] (MicroC0_STATE=MicroC3) -> alpha3 : (MicroC0_STATE'=MicroC2);
+        [handoff_out_up_c] (MicroC0_STATE=MicroC3) -> alpha3 : (MicroC0_STATE'=MicroC2);
+        [handoff_in_c] (MicroC0_STATE=MicroC3) -> 1 : (MicroC0_STATE'=MicroC4);
+        [service] (MicroC0_STATE=MicroC3) -> mu3 : (MicroC0_STATE'=MicroC2);
+        [in] (MicroC0_STATE=MicroC4) -> lambda3 : (MicroC0_STATE'=MicroC5);
+        [handoff_out_c] (MicroC0_STATE=MicroC4) -> alpha4 : (MicroC0_STATE'=MicroC3);
+        [handoff_out_up_c] (MicroC0_STATE=MicroC4) -> alpha4 : (MicroC0_STATE'=MicroC3);
+        [handoff_in_c] (MicroC0_STATE=MicroC4) -> 1 : (MicroC0_STATE'=MicroC5);
+        [service] (MicroC0_STATE=MicroC4) -> mu4 : (MicroC0_STATE'=MicroC3);
+        [in] (MicroC0_STATE=MicroC5) -> lambda3 : (MicroC0_STATE'=MicroC6);
+        [handoff_out_c] (MicroC0_STATE=MicroC5) -> alpha5 : (MicroC0_STATE'=MicroC4);
+        [handoff_out_up_c] (MicroC0_STATE=MicroC5) -> alpha5 : (MicroC0_STATE'=MicroC4);
+        [handoff_in_c] (MicroC0_STATE=MicroC5) -> 1 : (MicroC0_STATE'=MicroC6);
+        [service] (MicroC0_STATE=MicroC5) -> mu5 : (MicroC0_STATE'=MicroC4);
+        [in] (MicroC0_STATE=MicroC6) -> lambda3 : (MicroC0_STATE'=MicroC7);
+        [handoff_out_c] (MicroC0_STATE=MicroC6) -> alpha6 : (MicroC0_STATE'=MicroC5);
+        [handoff_out_up_c] (MicroC0_STATE=MicroC6) -> alpha6 : (MicroC0_STATE'=MicroC5);
+        [handoff_in_c] (MicroC0_STATE=MicroC6) -> 1 : (MicroC0_STATE'=MicroC7);
+        [service] (MicroC0_STATE=MicroC6) -> mu6 : (MicroC0_STATE'=MicroC5);
+        [handoff_in_up_c] (MicroC0_STATE=MicroC7) -> 1 : (MicroC0_STATE'=MicroC7);
+        [handoff_out_c] (MicroC0_STATE=MicroC7) -> alpha7 : (MicroC0_STATE'=MicroC6);
+        [service] (MicroC0_STATE=MicroC7) -> mu7 : (MicroC0_STATE'=MicroC6);
+        [handoff_up] (MicroC0_STATE=MicroC7) -> lambda3 : (MicroC0_STATE'=MicroC7);
+        [handoff_out_up_c] (MicroC0_STATE=MicroC7) -> alpha7 : (MicroC0_STATE'=MicroC6);
+
+endmodule
+
+// Descriptive names for the local states of
+// this module, taken from the PEPA input model
+const Macro0 = 0;
+const Macro1 = 1;
+const Macro2 = 2;
+const Macro3 = 3;
+const Macro4 = 4;
+const Macro5 = 5;
+const Macro6 = 6;
+const Macro7 = 7;
+module Macro0
+
+        Macro0_STATE : [0..7] init Macro0;
+
+        [in] (Macro0_STATE=Macro0) -> lambda1 : (Macro0_STATE'=Macro1);
+        [handoff_up] (Macro0_STATE=Macro0) -> 1 : (Macro0_STATE'=Macro1);
+        [handoff_in_up_c] (Macro0_STATE=Macro0) -> 1 : (Macro0_STATE'=Macro1);
+        [handoff_out_up_c] (Macro0_STATE=Macro0) -> 1 : (Macro0_STATE'=Macro1);
+        [in] (Macro0_STATE=Macro1) -> lambda1 : (Macro0_STATE'=Macro2);
+        [handoff_up] (Macro0_STATE=Macro1) -> 1 : (Macro0_STATE'=Macro2);
+        [handoff_in_up_c] (Macro0_STATE=Macro1) -> 1 : (Macro0_STATE'=Macro2);
+        [handoff_out_up_c] (Macro0_STATE=Macro1) -> 1 : (Macro0_STATE'=Macro2);
+        [service] (Macro0_STATE=Macro1) -> mu : (Macro0_STATE'=Macro0);
+        [in] (Macro0_STATE=Macro2) -> lambda1 : (Macro0_STATE'=Macro3);
+        [handoff_up] (Macro0_STATE=Macro2) -> 1 : (Macro0_STATE'=Macro3);
+        [handoff_in_up_c] (Macro0_STATE=Macro2) -> 1 : (Macro0_STATE'=Macro3);
+        [handoff_out_up_c] (Macro0_STATE=Macro2) -> 1 : (Macro0_STATE'=Macro3);
+        [service] (Macro0_STATE=Macro2) -> mu2 : (Macro0_STATE'=Macro1);
+        [in] (Macro0_STATE=Macro3) -> lambda1 : (Macro0_STATE'=Macro4);
+        [handoff_up] (Macro0_STATE=Macro3) -> 1 : (Macro0_STATE'=Macro4);
+        [handoff_in_up_c] (Macro0_STATE=Macro3) -> 1 : (Macro0_STATE'=Macro4);
+        [handoff_out_up_c] (Macro0_STATE=Macro3) -> 1 : (Macro0_STATE'=Macro4);
+        [service] (Macro0_STATE=Macro3) -> mu3 : (Macro0_STATE'=Macro2);
+        [in] (Macro0_STATE=Macro4) -> lambda1 : (Macro0_STATE'=Macro5);
+        [handoff_up] (Macro0_STATE=Macro4) -> 1 : (Macro0_STATE'=Macro5);
+        [handoff_in_up_c] (Macro0_STATE=Macro4) -> 1 : (Macro0_STATE'=Macro5);
+        [handoff_out_up_c] (Macro0_STATE=Macro4) -> 1 : (Macro0_STATE'=Macro5);
+        [service] (Macro0_STATE=Macro4) -> mu4 : (Macro0_STATE'=Macro3);
+        [in] (Macro0_STATE=Macro5) -> lambda1 : (Macro0_STATE'=Macro6);
+        [handoff_up] (Macro0_STATE=Macro5) -> 1 : (Macro0_STATE'=Macro6);
+        [handoff_in_up_c] (Macro0_STATE=Macro5) -> 1 : (Macro0_STATE'=Macro6);
+        [handoff_out_up_c] (Macro0_STATE=Macro5) -> 1 : (Macro0_STATE'=Macro6);
+        [service] (Macro0_STATE=Macro5) -> mu5 : (Macro0_STATE'=Macro4);
+        [in] (Macro0_STATE=Macro6) -> lambda1 : (Macro0_STATE'=Macro7);
+        [handoff_up] (Macro0_STATE=Macro6) -> 1 : (Macro0_STATE'=Macro7);
+        [handoff_in_up_c] (Macro0_STATE=Macro6) -> 1 : (Macro0_STATE'=Macro7);
+        [handoff_out_up_c] (Macro0_STATE=Macro6) -> 1 : (Macro0_STATE'=Macro7);
+        [service] (Macro0_STATE=Macro6) -> mu6 : (Macro0_STATE'=Macro5);
+        [handoff_down] (Macro0_STATE=Macro7) -> lambda1 : (Macro0_STATE'=Macro7);
+        [handoff_up] (Macro0_STATE=Macro7) -> 1 : (Macro0_STATE'=Macro7);
+        [handoff_in_up_c] (Macro0_STATE=Macro7) -> 1 : (Macro0_STATE'=Macro7);
+        [handoff_out_up_c] (Macro0_STATE=Macro7) -> 1 : (Macro0_STATE'=Macro7);
+        [service] (Macro0_STATE=Macro7) -> mu7 : (Macro0_STATE'=Macro6);
+
+endmodule
+
+
+// The system equation
+system
+        (((Micro0 ||| (Micro0_2 ||| (Micro0_3 ||| Micro0_4))) |[handoff_in_c, handoff_out_c]| MicroC0) |[handoff_up, handoff_in_up_c, handoff_out_up_c]| Macro0)
+endsystem
+
+// End of output from the PEPA-to-PRISM compiler

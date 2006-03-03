@@ -1,0 +1,8 @@
+
+The files in this directory should be rejected by the PEPA compiler
+because they contain deliberate errors.  Thus there is no
+corresponding output for these input PEPA models.
+
+Stephen Gilmore <stg@inf.ed.ac.uk>
+2-12-2002
+

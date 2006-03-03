@@ -1,0 +1,45 @@
+// Output from the PEPA-to-PRISM compiler
+// Version 0.03.2 "Jean Armour Avenue"
+// Released: 08-11-2002
+// 
+// Model file: TESTS/small
+
+// All PEPA models define CTMCs so mark this as a stochastic model 
+stochastic
+
+// The rates used in the model 
+rate r = 1.0;
+rate t = 1.56;
+
+
+// Information about components inferred by the compiler
+// during static analysis:
+//
+
+//    interface P empty: only individual or passive activities
+
+
+// Descriptive names for the local states of
+// this module, taken from the PEPA input model
+const P = 0;
+const P2 = 1;
+module P
+
+        P_STATE : [0..1] init P;
+
+        [a] (P_STATE=P) -> r : (P_STATE'=P2);
+        [b] (P_STATE=P2) -> t : (P_STATE'=P);
+
+endmodule
+
+// We make another copy of module P
+module P_2 = P[P_STATE=P_2_STATE]
+endmodule
+
+
+// The system equation
+system
+        (P ||| P_2)
+endsystem
+
+// End of output from the PEPA-to-PRISM compiler

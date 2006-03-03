@@ -1,0 +1,259 @@
+//==============================================================================
+//	
+//	Copyright (c) 2002-2004, Andrew Hinton, Dave Parker
+//	
+//	This file is part of PRISM.
+//	
+//	PRISM is free software; you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation; either version 2 of the License, or
+//	(at your option) any later version.
+//	
+//	PRISM is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
+//	
+//	You should have received a copy of the GNU General Public License
+//	along with PRISM; if not, write to the Free Software Foundation,
+//	Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//	
+//==============================================================================
+
+package userinterface.properties;
+
+import javax.swing.*;
+import java.awt.*;
+import javax.swing.table.*;
+import java.util.*; 
+import parser.*;
+import prism.*;
+
+/**
+ *
+ * @author  ug60axh
+ */
+ 
+public class GUIExperimentTable extends JTable
+{
+	
+	private ExperimentTableModel expModel;
+	private GUIMultiProperties guiProps;
+	
+	/** Creates a new instance of GUIExperimentPanel */
+	public GUIExperimentTable(GUIMultiProperties guiProps)
+	{
+		super();
+		this.guiProps = guiProps;
+		initComponents();
+		TableColumn col = getColumnModel().getColumn(2);
+		col.setCellRenderer(new ProgressBarRenderer());
+	}
+	
+	//UPDATE METHODS
+	
+	public void deleteSelected()
+	{
+		while(getSelectedRowCount() > 0)
+		{
+			int row = this.getSelectedRow();
+			removeExperiment(row);
+		}
+	}
+
+	
+	public int newExperiment(PropertiesFile propFile, UndefinedConstants cons, ModulesFile mf, boolean useSimulation)//propFile only contains 1 con
+	{
+		GUIExperiment ge = new GUIExperiment(this, guiProps, propFile, cons, mf, "", useSimulation); 
+		return expModel.addExperiment(ge);
+	}
+	
+	public void removeExperiment(int i)
+	{
+		expModel.removeExperiment(i);
+	}
+	
+	public void startExperiment(int i)
+	{
+		expModel.getExperiment(i).startExperiment();
+	}
+	
+	public void startExperiment(int i, chart.MultiGraphModel mgm, String ranger, ArrayList others, ArrayList seriesName)
+	{
+		expModel.getExperiment(i).startExperiment(mgm, ranger, others, seriesName);
+	}
+	
+	public void progressChanged()
+	{
+		repaint();
+	}
+	
+	public void stop()
+	{
+		expModel.stop();
+	}
+	
+	//ACCESS METHODS
+	
+	public int getNumExperiments()
+	{
+		return expModel.getNumExperiments();
+	}
+	
+	public GUIExperiment getExperiment(int i)
+	{
+		return expModel.getExperiment(i);
+	}
+	
+	private void initComponents()
+	{
+		expModel = new ExperimentTableModel();
+		setModel(expModel);
+	}
+
+	class ExperimentTableModel extends AbstractTableModel
+	{
+		ArrayList experiments;
+		
+		public ExperimentTableModel()
+		{
+			experiments = new ArrayList();
+		}
+		
+		public String getColumnName(int index)
+		{
+			switch(index)
+			{
+				case 0: return "Property";
+				case 1: return "Defined Constants";
+				case 2: return "Progress";
+				case 3: return "Status";
+				case 4: return "Method";
+				default: return "";
+			}
+		}
+		
+		public int getColumnCount()
+		{
+			return 5;
+		}
+		
+		public int getRowCount()
+		{
+			return experiments.size();
+		}
+		
+		public Object getValueAt(int rowIndex, int columnIndex)
+		{
+			GUIExperiment ge = getExperiment(rowIndex);
+			switch(columnIndex)
+			{
+				case 0: return ge.getPropertyString();
+				case 1: return ge.getDefinedConstantsString();
+				case 2:
+					{
+					JProgressBar b = new JProgressBar();
+					// default case
+					if (ge.getTotalIterations() > 0) 
+					{
+						b.setMaximum(ge.getTotalIterations());
+						b.setValue(ge.getCurrentIterations());
+						b.setStringPainted(true);
+						b.setBackground(Color.white);
+						int percent = (int)((double)ge.getCurrentIterations()/(double)ge.getTotalIterations()*100.0);
+						b.setString(""+ge.getCurrentIterations()+"/"+ge.getTotalIterations()+" ("+percent+"%)");
+					}
+						// special case where there are 0 iterations
+					else 
+					{
+						b.setMaximum(1);
+						b.setValue(1);
+						b.setStringPainted(true);
+						b.setBackground(Color.white);
+						b.setString("0/0 (100%)");
+					}
+					return b;
+				}
+				case 3:
+					{
+					if (!ge.isFinished()) return "Running";
+					else return (ge.getCurrentIterations() < ge.getTotalIterations()) ? "Stopped" : "Done";
+				}
+				case 4:
+					{
+					if(ge.isUseSimulation())
+						if(ge.isApmc())return "Simulation (APMC)";
+							else return "Simulation";
+					else return "Verification";
+				}
+				default: return "";
+			}
+		}
+		
+		public GUIExperiment getExperiment(int i)
+		{
+			return (GUIExperiment)experiments.get(i);
+		}
+		
+		public int getNumExperiments()
+		{
+			return experiments.size();
+		}
+		
+		public int addExperiment(GUIExperiment e)
+		{
+			experiments.add(e);
+			fireTableRowsInserted(experiments.size()-1, experiments.size()-1);
+			return experiments.indexOf(e);
+		}
+		
+		public void removeExperiment(int i)
+		{
+			GUIExperiment ge = getExperiment(i);
+			ge.clear();
+			experiments.remove(i);
+			fireTableRowsDeleted(i,i);
+		}
+		
+		public void stop()
+		{
+			for(int i = 0; i < getNumExperiments(); i++)
+			{
+				getExperiment(i).stop();
+			}
+		}
+		
+		public Class getColumnClass(int i)
+		{
+			switch(i)
+			{
+				case 0: 
+				case 1: return String.class;
+				case 2: return JProgressBar.class;
+				case 3: return String.class;
+				default: return Object.class;
+			}
+		}
+	}
+
+	class ProgressBarRenderer implements TableCellRenderer
+	{
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
+		{
+			if(value instanceof JProgressBar)
+			{
+				JProgressBar b = new JProgressBar();
+				if(isSelected)
+				{
+					b.setBackground(getSelectionBackground());
+				}
+				else
+				{
+					b.setBackground(getBackground());
+				}
+				return (JProgressBar)value;
+			}
+			else return new JPanel();
+		}
+	}
+}

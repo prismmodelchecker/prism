@@ -1,0 +1,65 @@
+SIM
+===
+
+options entry for displayloop- need each time start new path etc
+
+
+getChosenIndexOfOldUpdate?
+
+
+sim/mc threads - all properties in propertiesfile passed in?
+
+changelog : list of new additions from andrew? (emails? his directory?)
+
+deadlock warning
+
+
+bug - file these details somewhere
+  fixed tablemodel for each set of series properties
+  when does this change upon click in SeriesList?
+  public void valueChanged(ListSelectionEvent e) in GraphOptionsPanel line 531
+  SingleLineEditor focusLost
+  check prism-dev11?
+
+
+status of path formula (tick/cross in gui) doesn't reflect loops
+
+
+max paths reached (SimEng.java)
+
+timings - make platform independent (but not tied to cudd libs)
+check timings for os x platform in general?
+
+warnings displayed for sim with mdps?
+
+model errors in sim e.g. out of range
+add check() method called before build AND sim?
+
+when does sim actually throw an error? why not for U<=-9?
+
+diff dev9,11 parser/ExpressionFunc.java - (modulo 0 bug fixes?) handled in sim?
+
+grep TODO/TO-DO
+
+grep 2.1.dev9.simapmc
+
+new dialog boxes - tidy up (GUIPlugin etc.)
+
+
+
+
+GUI
+===
+
+
+
+
+==
+userinterface/model/graphicModel/ModuleDrawingPane.java
+prism/Prism.java
+
+evaluate context? prism.Prism
+
+deleting a window doesn't remove it's editor window
+==
+

@@ -1,0 +1,121 @@
+// Output from the PEPA-to-PRISM compiler
+// Version 0.03.2 "Jean Armour Avenue"
+// Released: 08-11-2002
+// 
+// Model file: TESTS/badge.1.4
+
+// All PEPA models define CTMCs so mark this as a stochastic model 
+stochastic
+
+// The rates used in the model 
+rate r = 2.0;
+rate m = 2.0;
+
+
+// Information about components inferred by the compiler
+// during static analysis:
+//
+//    interface DB14 empty: only individual or passive activities
+//    interface P14
+//      activity reg14
+//      activity reg15
+//      activity reg16
+//    endinterface 
+//    interface S14
+//      activity rep14
+//    endinterface 
+//    interface S15
+//      activity rep15
+//    endinterface 
+//    interface S16
+//      activity rep16
+//    endinterface 
+
+
+
+// Descriptive names for the local states of
+// this module, taken from the PEPA input model
+const S15 = 0;
+const S15_prime = 1;
+module S15
+
+        S15_STATE : [0..1] init S15;
+
+        [reg15] (S15_STATE=S15) -> 1 : (S15_STATE'=S15_prime);
+        [rep15] (S15_STATE=S15_prime) -> r : (S15_STATE'=S15);
+
+endmodule
+
+// Descriptive names for the local states of
+// this module, taken from the PEPA input model
+const S16 = 0;
+const S16_prime = 1;
+module S16
+
+        S16_STATE : [0..1] init S16;
+
+        [reg16] (S16_STATE=S16) -> 1 : (S16_STATE'=S16_prime);
+        [rep16] (S16_STATE=S16_prime) -> r : (S16_STATE'=S16);
+
+endmodule
+
+// Descriptive names for the local states of
+// this module, taken from the PEPA input model
+const S14 = 0;
+const S14_prime = 1;
+module S14
+
+        S14_STATE : [0..1] init S14;
+
+        [reg14] (S14_STATE=S14) -> 1 : (S14_STATE'=S14_prime);
+        [rep14] (S14_STATE=S14_prime) -> r : (S14_STATE'=S14);
+
+endmodule
+
+// Descriptive names for the local states of
+// this module, taken from the PEPA input model
+const DB14 = 0;
+const DB15 = 1;
+const DB16 = 2;
+module DB14
+
+        DB14_STATE : [0..2] init DB14;
+
+        [rep14] (DB14_STATE=DB14) -> 1 : (DB14_STATE'=DB14);
+        [rep15] (DB14_STATE=DB14) -> 1 : (DB14_STATE'=DB15);
+        [rep16] (DB14_STATE=DB14) -> 1 : (DB14_STATE'=DB16);
+        [rep14] (DB14_STATE=DB15) -> 1 : (DB14_STATE'=DB14);
+        [rep15] (DB14_STATE=DB15) -> 1 : (DB14_STATE'=DB15);
+        [rep16] (DB14_STATE=DB15) -> 1 : (DB14_STATE'=DB16);
+        [rep14] (DB14_STATE=DB16) -> 1 : (DB14_STATE'=DB14);
+        [rep15] (DB14_STATE=DB16) -> 1 : (DB14_STATE'=DB15);
+        [rep16] (DB14_STATE=DB16) -> 1 : (DB14_STATE'=DB16);
+
+endmodule
+
+// Descriptive names for the local states of
+// this module, taken from the PEPA input model
+const P14 = 0;
+const P15 = 1;
+const P16 = 2;
+module P14
+
+        P14_STATE : [0..2] init P14;
+
+        [reg14] (P14_STATE=P14) -> r : (P14_STATE'=P14);
+        [move15] (P14_STATE=P14) -> m : (P14_STATE'=P15);
+        [move14] (P14_STATE=P15) -> m : (P14_STATE'=P14);
+        [reg15] (P14_STATE=P15) -> r : (P14_STATE'=P15);
+        [move16] (P14_STATE=P15) -> m : (P14_STATE'=P16);
+        [move15] (P14_STATE=P16) -> m : (P14_STATE'=P15);
+        [reg16] (P14_STATE=P16) -> r : (P14_STATE'=P16);
+
+endmodule
+
+
+// The system equation
+system
+        (S15 |[reg15, rep15]| (S16 |[reg16, rep16]| ((S14 |[rep14]| DB14) |[reg14]| P14)))
+endsystem
+
+// End of output from the PEPA-to-PRISM compiler

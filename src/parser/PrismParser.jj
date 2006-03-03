@@ -1,0 +1,2267 @@
+//==============================================================================
+//	
+//	Copyright (c) 2002-2004, Dave Parker
+//	
+//	This file is part of PRISM.
+//	
+//	PRISM is free software; you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation; either version 2 of the License, or
+//	(at your option) any later version.
+//	
+//	PRISM is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
+//	
+//	You should have received a copy of the GNU General Public License
+//	along with PRISM; if not, write to the Free Software Foundation,
+//	Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//	
+//==============================================================================
+
+options {
+	LOOKAHEAD = 2147483647; // max possible lookahead
+}
+
+PARSER_BEGIN(PrismParser)
+
+package parser;
+
+import java.io.*;
+import java.util.Vector;
+import java.util.Stack;
+
+import prism.PrismException;
+
+public class PrismParser
+{
+	// formulas
+	private static FormulaList formulaList;
+	// labels
+	private static LabelList labelList;
+	// constants
+	private static ConstantList constantList;
+	// stacks
+	private static Stack stack = new Stack();
+	private static Stack reverseStack = new Stack();
+	// temp store for modules file associated with properties file
+	private static ModulesFile modulesFile;
+	
+	//-----------------------------------------------------------------------------------
+	// main method for testing purposes
+	//-----------------------------------------------------------------------------------
+
+	public static void main(String[] args) throws ParseException
+	{
+		if (args.length == 0) {
+			System.out.println("Usage: java parser.PrismParser <switch>");
+			System.out.println("Where: <switch> = -modulesfile or -f");
+			System.out.println("                  -propertiesfile or -pf");
+			System.out.println("                  -expression or -e");
+			System.exit(1);
+		}
+		else if (args[0].equals("-modulesfile") || args[0].equals("-mf")) {
+			ModulesFile mf = null;
+			try {
+				PrismParser p = new PrismParser();
+				mf = p.parseModulesFile(System.in);
+				System.out.println("Modules file:\n=============\n");
+				System.out.print(mf);
+			}
+			catch (ParseException e) {
+				System.out.println("Syntax error:\n" + e.getShortMessage());
+				System.exit(0);
+			}
+
+			System.out.println("\nAnd after expansion:\n====================\n");
+
+			try {
+				// sort out some things in the ModulesFile
+				mf.tidyUp();
+				// print out again
+				System.out.print(mf);
+			}
+			catch (PrismException e) {
+				System.out.println("Error:\n" + e.getMessage());
+				System.exit(0);
+			}
+		}
+		else if (args[0].equals("-propertiesfile") || args[0].equals("-pf")) {
+			PropertiesFile pf = null;
+			try {
+				// create empty modules file
+				ModulesFile mf = new ModulesFile();
+				mf.setFormulaList(new FormulaList());
+				mf.setConstantList(new ConstantList());
+				// parse
+				PrismParser p = new PrismParser();
+				pf = p.parsePropertiesFile(mf, System.in);
+				System.out.println("Properties file:\n===============\n");
+				System.out.print(pf);
+				System.out.print(pf.toTreeString());
+			}
+			catch (ParseException e) {
+				System.out.println("Syntax error:\n" + e.getShortMessage());
+				System.exit(0);
+			}
+			
+			try {
+				// sort out some things in the Properties
+				pf.tidyUp();
+				// print out again
+				System.out.println("\nAnd after expansion:\n====================\n");
+				System.out.print(pf);
+			}
+			catch (PrismException e) {
+				System.out.println("Error:\n" + e.getMessage());
+				System.exit(0);
+			}
+		}
+		else if (args[0].equals("-expression") || args[0].equals("-e")) {
+			Expression expr = null;
+			try {
+				PrismParser p = new PrismParser();
+				expr = p.parseSingleExpression(System.in);
+				System.out.println("Expression: " + expr.toString());
+				System.out.print("Tree:\n" + expr.toTreeString(0));
+				expr.check();
+				System.out.println("Type: " + Expression.getTypeString(expr.getType()));
+				System.out.println("Eval: " + expr.evaluate(null, null));
+			}
+			catch (ParseException e) {
+				System.out.println("Syntax error:\n" + e.getShortMessage());
+				System.exit(0);
+			}
+			catch (PrismException e) {
+				System.out.println("Error:\n" + e.getMessage());
+				System.exit(0);
+			}
+		}
+	}
+
+	//-----------------------------------------------------------------------------------
+	// methods called by Prism
+	//-----------------------------------------------------------------------------------
+
+	// constructor
+
+	public PrismParser()
+	{
+		this(System.in);
+	}
+	
+	// parse modules file
+	
+	public ModulesFile parseModulesFile(InputStream str) throws ParseException { return parseModulesFile(str, 0); }
+	
+	public ModulesFile parseModulesFile(InputStream str, int typeOverride) throws ParseException
+	{
+		ModulesFile mf = null;
+		
+		// restart parser
+		ReInit(str);
+		
+		// clear all vectors/stacks
+		formulaList = new FormulaList();
+		constantList = new ConstantList();
+		stack.clear();
+		reverseStack.clear();
+		
+		// do parse
+		try {
+			mf = ModulesFile();
+		}
+		catch (TokenMgrError e) {
+			throw new ParseException(e.getMessage());
+		}
+		
+		// override type of model if requested
+		if (typeOverride != 0) {
+			mf.setType(typeOverride);
+		}
+		
+		return mf;
+	}
+	
+	// properties file
+	// nb: pass ModulesFile in to get at its constants
+	
+	public PropertiesFile parsePropertiesFile(ModulesFile mf, InputStream str) throws ParseException
+	{
+		PropertiesFile pf = null;
+		
+		// start parser again
+		ReInit(str);
+		
+		// clear all vectors/stacks
+		labelList = new LabelList();
+		constantList = new ConstantList();
+		stack.clear();
+		reverseStack.clear();
+		
+		// store modules file
+		modulesFile = mf;
+		
+		// do parse
+		try {
+			pf = PropertiesFile();
+		}
+		catch (TokenMgrError e) {
+			throw new ParseException(e.getMessage());
+		}
+
+		return pf;
+	}
+	
+	// a single expression
+	
+	public Expression parseSingleExpression(InputStream str) throws ParseException
+	{
+		Expression expr = null;
+		
+		// restart parser
+		ReInit(str);
+		
+		// clear all stacks
+		stack.clear();
+		reverseStack.clear();
+		
+		// do parse
+		try {
+			expr = SingleExpression();
+		}
+		catch (TokenMgrError e) {
+			throw new ParseException(e.getMessage());
+		}
+		
+		return expr;
+	}
+	
+	// a for loop
+	
+	public ForLoop parseForLoop(InputStream str) throws ParseException
+	{
+		ForLoop fl = null;
+		
+		// restart parser
+		ReInit(str);
+		
+		// clear all stacks
+		stack.clear();
+		reverseStack.clear();
+		
+		// do parse
+		try {
+			fl = ForLoop();
+		}
+		catch (TokenMgrError e) {
+			throw new ParseException(e.getMessage());
+		}
+		
+		return fl;
+	}
+	
+	//-----------------------------------------------------------------------------------
+	// some utility methods
+	//-----------------------------------------------------------------------------------
+	
+	// get comment block (including white space)
+	// preceding a token and remove "//" characters
+	
+	public static String getPrecedingCommentBlock(Token firstToken)
+	{
+		String comment = "", s;
+		Token t = firstToken;
+		
+		// extract any comment from the previous lines of the file
+		if (t.specialToken != null) {
+			// trace back thru special tokens
+			t = t.specialToken;
+			while (t.specialToken != null) t = t.specialToken;
+			// ignore initial white space
+			while (t != null && t.kind == PrismParserConstants.WHITESPACE) t = t.next;
+			// concatenate special tokens
+			while (t != null) {
+				s = t.image;
+				// strip any nasty carriage returns
+				s = s.replaceAll("\r", "");
+				// remove "//" and preceding/subsequent spaces/tabs from comments
+				if (t.kind == PrismParserConstants.COMMENT) {
+					while (comment.length() > 0 && (""+comment.charAt(comment.length()-1)).matches("[ \t]"))
+						comment = comment.substring(0,comment.length()-1);
+					s = s.substring(2);
+					s = s.replaceFirst("[ \t]*", "");
+				}
+				comment += s;
+				t = t.next;
+			}
+		}
+		// remove final new line (if present)
+		if (comment.length() > 0 && (comment.charAt(comment.length()-1) == '\n'))
+			comment = comment.substring(0,comment.length()-1);
+		
+		return comment;
+	}
+	
+	// add "//"s into comment block
+	
+	public static String slashCommentBlock(String comment)
+	{
+		int i;
+		String s, res = "";
+		// break into lines
+		while ((i = comment.indexOf("\n")) != -1) {
+			s = comment.substring(0, i);
+			comment = comment.substring(i+1);
+			// add "//" to non-empty lines
+			if (s.trim().length()>0) res += "// " + s;
+			res += "\n";
+		}
+		// deal with any trailing characters (with no new line ending them)
+		if (comment.trim().length()>0) res += "// " + comment + "\n";
+		return res;
+	}
+}
+
+//-----------------------------------------------------------------------------------
+
+PARSER_END(PrismParser)
+
+// token definitions follow
+// note that PrismSyntaxHighlighter makes assumptions about the ordering of these
+
+// skip (but store) all other white space
+
+SPECIAL_TOKEN :
+{
+	<WHITESPACE: (" "|"\t"|"\n"|"\r")>
+}
+
+// skip (but store) comments
+
+SPECIAL_TOKEN :
+{
+	<COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+}
+
+// tokens
+
+TOKEN :
+{
+	// keywords
+	< BOOL:				"bool" >
+|	< CONST:			"const" >
+|	< CEIL:				"ceil" >
+|	< CTMC:				"ctmc" >
+|	< CUMUL:			"C" >
+|	< DOUBLE:			"double" >
+|	< DTMC:				"dtmc" >
+|	< ENDINIT:			"endinit" >
+|	< ENDMODULE:		"endmodule" >
+|	< ENDREWARDS:		"endrewards" >
+|	< ENDSYSTEM:		"endsystem" >
+|	< FALSE:			"false" >
+|	< FLOOR:			"floor" >
+|	< FORMULA:			"formula" >
+|	< FUNC:				"func" >
+|	< FUTURE:			"F" >
+|	< GLOBAL:			"global" >
+|	< GLOB:				"G" >
+|	< INIT:				"init" >
+|	< INST:				"I" >
+|	< INT:				"int" >
+|	< LABEL:			"label" >
+|	< MAX:				"max" >
+|	< MDP:				"mdp" >
+|	< MIN:				"min" >
+|	< MODULE:			"module" >
+|	< NEXT:				"X" >
+|	< NONDETERMINISTIC:	"nondeterministic" >
+|	< PMAX:				"Pmax" >
+|	< PMIN:				"Pmin" >
+|	< P:				"P" >
+|	< PROBABILISTIC:	"probabilistic" >
+|	< PROB:				"prob" >
+|	< RATE:				"rate" >
+|	< REWARDS:			"rewards" >
+|	< RMAX:				"Rmax" >
+|	< RMIN:				"Rmin" >
+|	< R:				"R" >
+|	< S:				"S" >
+|	< STOCHASTIC:		"stochastic" >
+|	< SYSTEM:			"system" >
+|	< TRUE:				"true" >
+|	< UNTIL:			"U" >
+	// punctuation, etc.
+	// note that "NOT" must be the first item of punctuation in this list
+	// (PrismSyntaxHighlighter relies on this fact)
+|	< NOT:			"!" >
+|	< AND:			"&" >
+|	< OR:			"|" >
+|	< IMPLIES:		"=>" >
+|	< RARROW:		"->" >
+|	< COLON:		":" >
+|	< SEMICOLON:	";" >
+|	< COMMA:		"," >
+|	< DOTS:			".." >
+|	< LPARENTH:		"(" >
+|	< RPARENTH:		")" >
+|	< LBRACKET: 	"[" >
+|	< RBRACKET:		"]" >
+|	< LBRACE:		"{" >
+|	< RBRACE:		"}" >
+|	< EQ:			"=" >
+|	< NE:			"!=" >
+|	< LT:			"<" >
+|	< GT:			">" >
+|	< LE:			"<=" >
+|	< GE:			">=" >
+|	< PLUS:			"+" >
+|	< MINUS:		"-" >
+|	< TIMES:		"*" >
+|	< DIVIDE:		"/" >
+|	< PRIME:		"'" >
+|	< RENAME:		"<-" >
+|	< QMARK:		"?" >
+|	< DQUOTE:		"\"" >
+	// regular expressions
+|	< REG_INT:			(["1"-"9"](["0"-"9"])*)|("0") >
+|	< REG_DOUBLE:		<REG_INT>"."(["0"-"9"])+ >
+|	< REG_IDENTPRIME:	["_","a"-"z","A"-"Z"](["_","a"-"z","A"-"Z","0"-"9"])*"'" >	
+|	< REG_IDENT:		["_","a"-"z","A"-"Z"](["_","a"-"z","A"-"Z","0"-"9"])* >	
+}
+
+//-----------------------------------------------------------------------------------
+// top-level stuff
+//-----------------------------------------------------------------------------------
+
+// modules file
+
+ModulesFile ModulesFile() :
+{
+	int type = 0;
+}
+{
+	(
+	( type=ModulesFileType() )?
+	( FormulaDef() | ConstantDef() | GlobalDecl() | Module() | RenamedModule() | SystemComp() | RewardStruct() | Init() )*
+	<EOF>
+	)
+	{
+		// create new ModulesFile object
+		ModulesFile modulesFile = new ModulesFile();
+		
+		// pass lists of formulas, constants to ModulesFile
+		modulesFile.setFormulaList(formulaList);
+		modulesFile.setConstantList(constantList);
+		
+		// set type (default is nondeterministic)
+		switch (type) {
+			case PROBABILISTIC:
+			case DTMC:
+				modulesFile.setType(ModulesFile.PROBABILISTIC); break;
+			case NONDETERMINISTIC:
+			case MDP:
+				modulesFile.setType(ModulesFile.NONDETERMINISTIC); break;
+			case STOCHASTIC:
+			case CTMC:
+				modulesFile.setType(ModulesFile.STOCHASTIC); break;
+			default : modulesFile.setType(ModulesFile.NONDETERMINISTIC); break;
+		}
+		
+		// get all modules/globals off stack
+		// and put them on reverse stack
+		while (!stack.empty()) {
+			if (stack.peek() instanceof Declaration ||
+				stack.peek() instanceof Module ||
+				stack.peek() instanceof RenamedModule ||
+				stack.peek() instanceof SystemDefn ||
+				stack.peek() instanceof RewardStruct ||
+				stack.peek() instanceof Expression) {
+				reverseStack.push(stack.pop());
+			}
+			else {
+				break;
+			}
+		}
+		// take all globals/modules/etc from reverse stack
+		// and add to ModulesFile object
+		// (everything now in correct order)
+		while (!reverseStack.empty()) {
+			if (reverseStack.peek() instanceof Declaration) {
+				modulesFile.addGlobal((Declaration)reverseStack.pop());
+			}
+			else if (reverseStack.peek() instanceof Module) {
+				modulesFile.addModule((Module)reverseStack.pop());
+			}
+			else if (reverseStack.peek() instanceof RenamedModule) {
+				modulesFile.addRenamedModule((RenamedModule)reverseStack.pop());
+			}
+			else if (reverseStack.peek() instanceof SystemDefn) {
+				modulesFile.setSystemDefn((SystemDefn)reverseStack.pop());
+			}
+			else if (reverseStack.peek() instanceof RewardStruct) {
+				modulesFile.setRewardStruct((RewardStruct)reverseStack.pop());
+			}
+			else if (reverseStack.peek() instanceof Expression) {
+				modulesFile.setInitialStates((Expression)reverseStack.pop());
+			}
+		}
+		
+		// return completed ModulesFile object
+		return modulesFile;
+	}
+}
+
+// properties file
+
+PropertiesFile PropertiesFile() :
+{
+}
+{
+	( ( LabelDef() | ConstantDef() | SinglePCTLFormula() )* <EOF> ) // possibly several pctl formulas then eof
+	{
+		// create new PropertiesFile object
+		// (pass in associated ModulesFile)
+		PropertiesFile propertiesFile = new PropertiesFile(modulesFile);
+		
+		// pass lists of labels, constants to PropertiesFile
+		propertiesFile.setLabelList(labelList);
+		propertiesFile.setConstantList(constantList);
+
+		// get properties off stack and reverse their order
+		while (!(stack.empty())) {
+			reverseStack.push(stack.pop());
+		}
+		// add properties to list
+		while (!(reverseStack.empty())) {
+			// get property
+			PCTLFormula f = (PCTLFormula)reverseStack.pop();
+			// check for any comment
+			String comment = "";
+			if (!reverseStack.empty()) if (reverseStack.peek() instanceof String) {
+				comment = (String)reverseStack.pop();
+			}
+			// add to PropertiesFile object
+			propertiesFile.addProperty(f, comment);
+		}
+
+		return propertiesFile;
+	}
+}
+
+// a single expression
+
+Expression SingleExpression() :
+{
+}
+{
+	( Expression() <EOF> )
+	{
+		return (Expression)stack.pop();
+ 	}
+}
+
+//-----------------------------------------------------------------------------------
+// modules file stuff
+//-----------------------------------------------------------------------------------
+
+// keyword denoting module type (nondeterministic, probabilistic, ...)
+
+int ModulesFileType() :
+{
+}
+{
+	( <PROBABILISTIC> | <NONDETERMINISTIC> | <STOCHASTIC> | <DTMC> | <MDP> | <CTMC> )
+	{
+		return token.kind;
+	}
+}
+
+// formula definition
+
+void FormulaDef() :
+{
+	String s;
+}
+{
+	( <FORMULA> s=Identifier() <EQ> Expression() <SEMICOLON> )
+	{
+		// store formula
+		formulaList.addFormula(s, (Expression)stack.pop());
+	}
+}
+
+// label definition
+
+void LabelDef() :
+{
+	String s;
+}
+{
+	( <LABEL> <DQUOTE> s=Identifier() <DQUOTE> <EQ> Expression() <SEMICOLON> )
+	{
+		// store label
+		labelList.addLabel(s, (Expression)stack.pop());
+	}
+}
+
+// constant definition
+
+void ConstantDef() :
+{
+	String s;
+	Token t = null;
+}
+{
+	// integer constant
+	( <CONST> <INT> s=Identifier() (t=<EQ> Expression())? <SEMICOLON> )
+	{
+		// case where constant is defined
+		if (t != null) {
+			constantList.addConstant(s, (Expression)stack.pop(), Expression.INT);
+		}
+		// and case where it is left undefined
+		else {
+			constantList.addConstant(s, null, Expression.INT);
+		}
+	}
+	// double constant
+	| ( <CONST> <DOUBLE> s=Identifier() (t=<EQ> Expression())? <SEMICOLON> )
+	{
+		// case where constant is defined
+		if (t != null) {
+			constantList.addConstant(s, (Expression)stack.pop(), Expression.DOUBLE);
+		}
+		// and case where it is left undefined
+		else {
+			constantList.addConstant(s, null, Expression.DOUBLE);
+		}
+	}
+	// boolean constant
+	| ( <CONST> <BOOL> s=Identifier() (t=<EQ> Expression())? <SEMICOLON> )
+	{
+		// case where constant is defined
+		if (t != null) {
+			constantList.addConstant(s, (Expression)stack.pop(), Expression.BOOLEAN);
+		}
+		// and case where it is left undefined
+		else {
+			constantList.addConstant(s, null, Expression.BOOLEAN);
+		}
+	}
+
+	// for backwards compatibility, allow old style constant defs
+	
+	// integers, i.e. no type is explicitly given
+	| ( <CONST> s=Identifier() (t=<EQ> Expression())? <SEMICOLON> )
+	{
+		// case where constant value is defined
+		if (t != null) {
+			constantList.addConstant(s, (Expression)stack.pop(), Expression.INT);
+		}
+		// and case where it is left undefined
+		else {
+			constantList.addConstant(s, null, Expression.INT);
+		}
+	}
+	// doubles, i.e. using rate/prob keywords
+	| ( ( <RATE> | <PROB> ) s=Identifier() (t=<EQ> Expression())? <SEMICOLON> )
+	{
+		// case where constant is defined
+		if (t != null) {
+			constantList.addConstant(s, (Expression)stack.pop(), Expression.DOUBLE);
+		}
+		// and case where it is left undefined
+		else {
+			constantList.addConstant(s, null, Expression.DOUBLE);
+		}
+	}
+}
+
+// global variable declaration
+
+void GlobalDecl() :
+{
+}
+{
+	( <GLOBAL> Declaration() )
+}
+
+// module definition
+
+void Module() :
+{
+	String name;
+	// put '*' marker on stack to indicate where this Module started
+	// (otherwise global/local declarations may be confused)
+	stack.push(new Character('*'));
+}
+{
+	// normal module definition
+	( <MODULE> name=Identifier() ( Declaration() )* ( Command() )* <ENDMODULE> )
+	{
+		// create new Module object
+		Module m = new Module(name);
+		// get all commands off stack
+		// and put them on the reverse stack
+		while (!stack.empty()) {
+			if (stack.peek() instanceof Command) {
+				reverseStack.push(stack.pop());
+			}
+			else {
+				break;
+			}
+		}
+		// get all commands off reverse stack
+		// and add them to the Module object
+		// (now in correct order)
+		while (!reverseStack.empty()) {
+			m.addCommand((Command)reverseStack.pop());
+		}
+		
+		// get all declarations off stack
+		// and put them on the reverse stack
+		while (!stack.empty()) {
+			if (stack.peek() instanceof Declaration) {
+				reverseStack.push(stack.pop());
+			}
+			else {
+				break;
+			}
+		}
+		// get all declarations off reverse stack
+		// and add them to the Module object
+		// (now in correct order)
+		while (!reverseStack.empty()) {
+			m.addDeclaration((Declaration)reverseStack.pop());
+		}
+
+		// get marker off stack
+		stack.pop();
+		// put completed Module object back on stack
+		stack.push(m);
+	}
+}
+
+// variable declaration
+
+void Declaration() :
+{
+	String name;			// name
+	Token t = null;
+	// put '*' marker on stack
+	stack.push(new Character('*'));
+}
+{
+	// normal variable declaration
+	( name=Identifier() <COLON> <LBRACKET> Expression() <DOTS> Expression() <RBRACKET>
+	( <INIT> Expression() )? <SEMICOLON> )
+	{
+		Expression e1, e2, l, h, s;
+		// get Expressions off stack
+		e1 = (Expression)stack.pop();
+		e2 = (Expression)stack.pop();
+		// if there are three expressions, an initial value was specified
+		if (stack.peek() instanceof Expression) {
+			l = (Expression)stack.pop();
+			h = e2;
+			s = e1;
+		}
+		// otherwise, no default value given
+		else {
+			l = e2;
+			h = e1;
+			s = null;
+		}
+		// get marker off stack
+		stack.pop();
+		// put Declaration object back on stack
+		stack.push(new Declaration(name, l, h, s));
+	}
+	// boolean variable declaration
+	| ( name=Identifier() <COLON> <BOOL>
+	( <INIT> Expression() )? <SEMICOLON> )
+	{
+		Expression s;
+		// get the initial value expression, if there was one
+		if (stack.peek() instanceof Expression) {
+			s = (Expression)stack.pop();
+		}
+		else {
+			s = null;
+		}
+		// get marker off stack
+		stack.pop();
+		// put Declaration object back on stack
+		stack.push(new Declaration(name, s));
+	}
+}
+
+// command definition
+
+void Command() :
+{
+	String s = null;
+	Token t = null;
+}
+{
+	( <LBRACKET> ( s=Identifier() )? <RBRACKET> Expression() <RARROW> Updates() <SEMICOLON> )
+	//( <LBRACKET> ( s=Identifier() )? ( t=<COMMA> Expression() )? <RBRACKET> Expression() <RARROW> Updates() <SEMICOLON> )
+	{
+		// create new Command object
+		Command c = new Command();
+		// get synchronisation (if any)
+		if (s != null) {
+			c.setSynch(s);
+		}
+		// get updates part
+		Updates u = (Updates)stack.pop();
+		c.setUpdates(u);
+		// get guard part
+		Expression g = (Expression)stack.pop();
+		c.setGuard(g);
+		// get reward (if any)
+		// if (t != null) {
+		// 	Expression r = (Expression)stack.pop();
+		// 	c.setReward(r);
+		// }
+		// push Line onto stack
+		stack.push(c);
+	}
+}
+
+void Updates() :
+{
+	// put '*' marker on stack
+	stack.push(new Character('*'));
+}
+{
+	// single update with probability 1
+	( Update() )
+	{
+		// create new Updates object
+		Updates u = new Updates();
+		u.addUpdate(new ExpressionDouble(1), (Update)stack.pop());
+		// remove '*' marker
+		stack.pop();
+		// put updates on to stack
+		stack.push(u);
+	}
+	
+	// several probabilistic updates
+	| ( ProbUpdate() ( <PLUS> ProbUpdate() )* )
+	{
+		// create new Updates object
+		
+		// take all probability/Update pairs off stack
+		// and put them on the reverse stack
+		while (!(stack.peek() instanceof Character)) {
+			reverseStack.push(stack.pop());
+			reverseStack.push(stack.pop());
+		}
+		// remove '*' marker
+		stack.pop();
+		// then add them to an Updates object
+		// (updates now in correct order)
+		Updates us = new Updates();
+		while (!reverseStack.empty()) {
+			Expression p = (Expression)reverseStack.pop();
+			Update u = (Update)reverseStack.pop();
+			us.addUpdate(p, u);
+		}
+		// push complete Updates object back on stack
+		stack.push(us);
+	}
+}
+
+void ProbUpdate() :
+{
+}
+{
+	// probabilistic update
+	( Expression() <COLON> Update() )
+	{
+	}
+}
+
+void Update() :
+{
+	// put '*' marker on stack
+	stack.push(new Character('*'));
+}
+{
+	// conjunction of UpdateElements
+	( UpdateElement() ( <AND> UpdateElement() )* )
+	{
+		// create new Update object
+		Update u = new Update();
+		// take all var/expr pairs off the stack
+		// and put them on the reverse stack
+		while (!(stack.peek() instanceof Character)) {
+			reverseStack.push(stack.pop());
+			reverseStack.push(stack.pop());
+		}
+		// then add to Update object
+		// (pairs now in correct order)
+		while (!reverseStack.empty()) {
+			Expression e = (Expression)reverseStack.pop();
+			u.addElement((String)reverseStack.pop(), e);
+		}		
+		// get marker off stack
+		stack.pop();
+		// push completed Update object back on stack
+		stack.push(u);
+	}
+	// trivial case - empty conjunction
+	| ( <TRUE> )
+	{
+		// create new (empty) Update object
+		Update u = new Update();
+		// get marker off stack
+		stack.pop();
+		// push Update object onto stack
+		stack.push(u);
+	}
+}
+
+void UpdateElement() :
+{
+	String var="";
+}
+{
+	// note: we allow two forms - with and without parentheses
+	// in some cases parentheses are required because the "+" between
+	// elements gets wrongly bound to the Expression()
+	// officially we only support the WITH option
+	// but the WITHOUT option is preserved to maintain compatability
+	// with older versions of the tool and its examples
+	( <LPARENTH> var=IdentifierPrime() <EQ> Expression() <RPARENTH> )
+	{
+		// expression is now already on stack
+		// put variable identifier String on too
+		stack.push(var);
+	}
+	| ( var=IdentifierPrime() <EQ> Expression() )
+	{
+		// expression is now already on stack
+		// put variable identifier String on too
+		stack.push(var);
+	}
+}
+
+// module definition (by renaming)
+
+void RenamedModule() :
+{
+	String name, base;
+}
+{
+	// module defined by renaming
+	( <MODULE> name=Identifier() <EQ> base=Identifier() <LBRACKET> Renames() <RBRACKET> <ENDMODULE> )
+	{
+		RenamedModule m = new RenamedModule(name, base);
+		// get Rename's off stack and reverse their order
+		while (!(stack.peek() instanceof Character)) {
+			reverseStack.push(stack.pop());
+		}
+		// remove '*' marker
+		stack.pop();
+		// store renames in RenamedModule
+		while (!reverseStack.empty()) {
+			m.addRename((String)reverseStack.pop(), (String)reverseStack.pop());
+		}
+		// push the completed RenamedModule on to the stack
+		stack.push(m);
+	}
+}
+
+void Renames() :
+{
+	// put '*' marker on stack to indicate where this Renames started
+	stack.push(new Character('*'));
+}
+{
+	( Rename() ( <COMMA> Rename() )* )
+}
+
+void Rename() :
+{
+	String id1, id2;
+}
+{
+	// nb: have to explicitly include keywords for functions as they can be renamed
+	((( id1=Identifier() ) | ( <MIN> { id1="min"; } ) | ( <MAX> { id1="max"; } ) | ( <FLOOR> { id1="floor"; } ) | ( <CEIL> { id1="ceil"; } ))
+	<EQ>
+	(( id2=Identifier() ) | ( <MIN> { id2="min"; } ) | ( <MAX> { id2="max"; } ) | ( <FLOOR> { id2="floor"; } ) | ( <CEIL> { id2="ceil"; } )))
+	{
+		stack.push(id1);
+		stack.push(id2);
+	}
+}
+
+// system composition definition
+
+void SystemComp() :
+{
+}
+{
+	( <SYSTEM> SystemParallels() <ENDSYSTEM> )
+	{
+	}
+}
+
+// system definition component
+
+void SystemParallels() :
+{
+}
+{
+	( SystemFullParallel() )
+	|
+	( SystemInterleaved() )
+	|
+	( SystemParallel() )
+	|
+	( SystemHideRename() )
+}
+
+// system definition component (full parallel)
+
+void SystemFullParallel() :
+{
+	// put '*' marker on stack
+	stack.push(new Character('*'));
+}
+{
+	( SystemHideRename() ( <OR> <OR> SystemHideRename() )+ )
+	{
+		// get SystemDefns off stack and reverse their order
+		while (!(stack.peek() instanceof Character)) {
+			reverseStack.push(stack.pop());
+		}
+		// remove '*' marker
+		stack.pop();
+		// construct SystemFullParallel object and add operands
+		SystemFullParallel s = new SystemFullParallel();
+		while (!reverseStack.empty()) {
+			s.addOperand((SystemDefn)reverseStack.pop());
+		}
+		// put the SystemFullParallel on the stack
+		stack.push(s);
+	}
+}
+
+// system definition component (interleaved parallel)
+
+void SystemInterleaved() :
+{
+	// put '*' marker on stack
+	stack.push(new Character('*'));
+}
+{
+	( SystemHideRename() ( <OR> <OR> <OR> SystemHideRename() )+ )
+	{
+		// get SystemDefns off stack and reverse their order
+		while (!(stack.peek() instanceof Character)) {
+			reverseStack.push(stack.pop());
+		}
+		// remove '*' marker
+		stack.pop();
+		// construct SystemInterleaved object and add operands
+		SystemInterleaved s = new SystemInterleaved();
+		while (!reverseStack.empty()) {
+			s.addOperand((SystemDefn)reverseStack.pop());
+		}
+		// put the SystemInterleaved on the stack
+		stack.push(s);
+	}
+}
+
+// system definition component (parallel over set of actions)
+
+void SystemParallel() :
+{
+}
+{
+	( SystemHideRename() <OR> <LBRACKET> ( SystemAction() ( <COMMA> SystemAction() )* ) <RBRACKET> <OR> SystemHideRename() )
+	{
+		SystemDefn s1, s2;
+		
+		// get first (second) SystemDefn off stack
+		s2 = (SystemDefn)stack.pop();
+		// get actions off stack and reverse their order
+		while (stack.peek() instanceof String) {
+			reverseStack.push(stack.pop());
+		}
+		// get second (first) SystemDefn off stack
+		s1 = (SystemDefn)stack.pop();
+		// construct SystemParallel object and add operands/actions
+		SystemParallel s = new SystemParallel();
+		s.setOperand1(s1);
+		s.setOperand2(s2);
+		while (!reverseStack.empty()) {
+			s.addAction((String)reverseStack.pop());
+		}
+		// put the SystemParallel on the stack
+		stack.push(s);
+	}
+}
+
+// system definition component (hiding and renaming)
+
+void SystemHideRename() :
+{
+}
+{
+	// another component
+	( SystemAtomic() ( (
+	
+	// followed by any number of hiding constructs
+	( <DIVIDE> <LBRACE> ( SystemAction() ( <COMMA> SystemAction() )* ) <RBRACE> )
+	{
+		SystemDefn s1;
+		
+		// get actions off stack and reverse their order
+		while (stack.peek() instanceof String) {
+			reverseStack.push(stack.pop());
+		}
+		// get SystemDefn off stack
+		s1 = (SystemDefn)stack.pop();
+		// construct SystemHide object and add operands/actions
+		SystemHide s = new SystemHide(s1);
+		while (!reverseStack.empty()) {
+			s.addAction((String)reverseStack.pop());
+		}
+		// put the SystemHide on the stack
+		stack.push(s);
+	}
+	|
+	// or renaming constructs
+	( <LBRACE> SystemAction() <RENAME> SystemAction() ( <COMMA> SystemAction() <RENAME> SystemAction() )* <RBRACE> )
+	{
+		SystemDefn sd;
+		
+		// get actions off stack and reverse their order
+		while (stack.peek() instanceof String) {
+			reverseStack.push(stack.pop());
+		}
+		// get SystemDefn off stack
+		sd = (SystemDefn)stack.pop();
+		// construct SystemRename object and add operands/action pairs
+		SystemRename sr = new SystemRename(sd);
+		while (!reverseStack.empty()) {
+			sr.addRename((String)reverseStack.pop(), (String)reverseStack.pop());
+		}
+		// put the SystemRename on the stack
+		stack.push(sr);
+	}
+	) )* )
+}
+
+// system definition component (bottom level)
+
+void SystemAtomic() :
+{
+}
+{
+	( SystemModule() )
+	|
+	( SystemBrackets() )
+}
+
+// system definition component (action identifier)
+
+void SystemAction() :
+{
+	String id;
+}
+{
+	( id=Identifier() )
+	{
+		stack.push(id);
+	}
+}
+
+// system definition component (module identifier)
+
+void SystemModule() :
+{
+	String id;
+}
+{
+	( id=Identifier() )
+	{
+		// create new SystemModule object with this identifier
+		SystemModule s = new SystemModule(id);
+		// put it on the stack
+		stack.push(s);
+	}
+}
+
+// system definition component (brackets)
+
+void SystemBrackets() : 
+{
+}
+{
+	( <LPARENTH> SystemParallels() <RPARENTH> )
+	{
+		SystemBrackets s = new SystemBrackets();
+		s.setOperand((SystemDefn)stack.pop());
+		stack.push(s);
+	}
+}
+
+// reward structure
+
+void RewardStruct() :
+{
+	// put '*' marker on stack
+	stack.push(new Character('*'));
+}
+{
+	(
+		( <REWARDS> ( RewardStructItem() )+ <ENDREWARDS> )
+	)
+	{
+		// get RewardStructItems off stack and reverse their order
+		while (!(stack.peek() instanceof Character)) {
+			reverseStack.push(stack.pop());
+		}
+		// remove '*' marker
+		stack.pop();
+		// add the RewardStructItems to a RewardStruct object
+		RewardStruct rs = new RewardStruct();
+		while (!reverseStack.empty()) {
+			rs.addItem((RewardStructItem)reverseStack.pop());
+		}
+		// and put it on the stack
+		stack.push(rs);
+	}
+}
+
+// single line (item) of state-based rewards structure
+
+void RewardStructItem() :
+{
+	double d;
+	String s = "";
+	Token t = null;
+}
+{
+	( ( t=<LBRACKET> ( s=Identifier() )? <RBRACKET> )? Expression() <COLON> Expression() <SEMICOLON> )
+	{
+		// create RewardStructItem and put on stack
+		Expression reward = (Expression)stack.pop();
+		Expression states = (Expression)stack.pop();
+		stack.push(new RewardStructItem((t == null)?null:s, states, reward));
+	}
+}
+
+// multiple initial states
+
+void Init() :
+{
+}
+{
+	(
+		( <INIT> Expression() <ENDINIT> )
+	)
+	{
+		// just leave it on the stack
+	}
+}
+
+//-----------------------------------------------------------------------------------
+// properties file stuff
+//-----------------------------------------------------------------------------------
+
+// pctl formula
+
+void SinglePCTLFormula() :
+{
+	// store the first token of this formula
+	Token t = getToken(1);
+}
+{
+	( PCTLFormula() )
+	{
+		// get any preceding comment and put onto stack
+		String comment = getPrecedingCommentBlock(t);
+		if (comment.length() > 0) stack.push(comment);
+	}
+}
+
+void PCTLFormula() :
+{
+}
+{
+	( PCTLImplies() )
+}
+
+void PCTLImplies() :
+{
+	Token t = null;
+}
+{
+	( PCTLOr() ( t=<IMPLIES> PCTLOr() )? )
+	{
+		if (t != null) {
+			PCTLFormula f1, f2;
+			f2 = (PCTLFormula)stack.pop();
+			f1 = (PCTLFormula)stack.pop();
+			stack.push(new PCTLImplies(f1, f2));
+		}
+	}
+}
+
+void PCTLOr() :
+{
+	// put *' marker on stack
+	stack.push(new Character('*'));
+}
+{
+	( PCTLAnd() ( <OR> PCTLAnd() )* )
+	{
+		// get operands off stack and reverse their order
+		while (!(stack.peek() instanceof Character)) {
+			reverseStack.push(stack.pop());
+		}
+		// remove '*' marker
+		stack.pop();
+		// if there is only one operand, just put it back on the stack
+		if (reverseStack.size() == 1) {
+			stack.push(reverseStack.pop());
+		}
+		// otherwise, add the operands to a PCTLOr in the correct order
+		else {
+			PCTLOr p = new PCTLOr();
+			while (!reverseStack.empty()) {
+				p.addOperand((PCTLFormula)reverseStack.pop());
+			}
+			// put the PCTLOr on the stack
+			stack.push(p);
+		}
+	}
+}
+
+void PCTLAnd() :
+{
+	// put *' marker on stack
+	stack.push(new Character('*'));
+}
+{
+	( PCTLNot() ( <AND> PCTLNot() )* )
+	{
+		// get operands off stack and reverse their order
+		while (!(stack.peek() instanceof Character)) {
+			reverseStack.push(stack.pop());
+		}
+		// remove '*' marker
+		stack.pop();
+		// if there is only one operand, just put it back on the stack
+		if (reverseStack.size() == 1) {
+			stack.push(reverseStack.pop());
+		}
+		// otherwise, add the operands to a PCTLAnd in the correct order
+		else {
+			PCTLAnd p = new PCTLAnd();
+			while (!reverseStack.empty()) {
+				p.addOperand((PCTLFormula)reverseStack.pop());
+			}
+			// put the PCTLAnd on the stack
+			stack.push(p);
+		}
+	}
+}
+
+void PCTLNot() :
+{
+	Token t = null;
+}
+{
+	( (t=<NOT>)? PCTLProb() )
+	{
+		if (t != null) {
+			// pop the formula off the stack
+			// and put it in an PCTLNot
+			stack.push(new PCTLNot((PCTLFormula)stack.pop()));
+		}
+	}
+}
+
+// pctl prob operator
+
+void PCTLProb() :
+{
+	String relOp = null;
+	Token tf = null; // detects if a filter is included
+	Token tfmin = null; // detects if min of filter requested
+	Token tfmax = null; // detects if max of filter requested
+}
+{
+	( (
+	// various options for initial part
+	( <P> relOp=LtGt() Expression() ) |
+	( <P> <EQ> <QMARK> {relOp="=";} ) |
+	( <P> <MIN> <EQ> <QMARK> {relOp="min=";} ) |
+	( <P> <MAX> <EQ> <QMARK> {relOp="max=";} ) |
+	// these two are dupes of above but allow space to be omitted
+	( <PMIN> <EQ> <QMARK> {relOp="min=";} ) |
+	( <PMAX> <EQ> <QMARK> {relOp="max=";} ) )
+	// path formula bit
+	<LBRACKET>
+	( PCTLProbNext() | PCTLProbBoundedUntil() | PCTLProbUntil() )
+	( tf=<LBRACE> PCTLFormula() <RBRACE>
+	(( tfmin=<LBRACE> <MIN> <RBRACE> ) | ( tfmax=<LBRACE> <MAX> <RBRACE> ))*
+	)? <RBRACKET> )
+	{
+		PCTLFormula f, filter = null;
+		Expression prob;
+		PCTLProb pp;
+		
+		// tf is non-null if there is a filter included
+		if (tf != null) {
+			filter = (PCTLFormula)stack.pop();
+		}
+		// create PCTLProb object
+		f = (PCTLFormula)stack.pop();
+		prob = (relOp.equals("=") || relOp.equals("min=") || relOp.equals("max=")) ? null : (Expression)stack.pop();
+		pp = new PCTLProb(f, relOp, prob);
+		// add filter if present
+		if (tf != null) {
+			pp.setFilter(filter);
+			// and register any requests
+			if (tfmin != null) pp.setFilterMinRequested(true);
+			if (tfmax != null) pp.setFilterMaxRequested(true);
+		}
+		// push result onto stack
+		stack.push(pp);
+	}
+	| ( PCTLSS() )
+}
+
+// pctl next
+
+void PCTLProbNext() :
+{
+}
+{
+	( <NEXT> PCTLFormula() )
+	{
+		PCTLProbNext n;
+		
+		// create PCTLProbNext object
+		n = new PCTLProbNext((PCTLFormula)stack.pop());
+		// push result onto stack
+		stack.push(n);
+	}
+}
+
+// pctl bounded until
+
+void PCTLProbBoundedUntil() :
+{
+	Token tle = null; // detects if a <= time bound is used
+	Token tge = null; // detects if a >= time bound is used
+	Token tr = null; // detects if a range time bound is used
+}
+{
+	( PCTLFormula() <UNTIL> ((tle=<LE> Expression()) | (tge=<GE> Expression()) | (tr=<LBRACKET> Expression() <COMMA> Expression() <RBRACKET>)) PCTLFormula() )
+	{
+		PCTLFormula f1, f2 = null;
+		Expression lb, ub;
+		PCTLProbBoundedUntil u;
+		
+		// pop second until operand off stack
+		f2 = (PCTLFormula)stack.pop();
+		// creation of PCTLProbBoundedUntil object depends on type of time bound
+		// U<=ub
+		if (tle != null) {
+			ub = (Expression)stack.pop();
+			f1 = (PCTLFormula)stack.pop();
+			u = new PCTLProbBoundedUntil(f1, f2, null, ub);
+		}
+		// U>=lb
+		else if (tge != null) {
+			lb = (Expression)stack.pop();
+			f1 = (PCTLFormula)stack.pop();
+			u = new PCTLProbBoundedUntil(f1, f2, lb, null);
+		}
+		// U[lb,ub]
+		else {
+			ub = (Expression)stack.pop();
+			lb = (Expression)stack.pop();
+			f1 = (PCTLFormula)stack.pop();
+			u = new PCTLProbBoundedUntil(f1, f2, lb, ub);
+		}
+		// push result onto stack
+		stack.push(u);
+	}
+}
+
+// pctl until (unbounded)
+
+void PCTLProbUntil() :
+{
+}
+{
+	( PCTLFormula() <UNTIL> PCTLFormula() )
+	{
+		PCTLFormula f1, f2;
+		PCTLProbUntil u;
+		
+		// create PCTLProbUntil object
+		f2 = (PCTLFormula)stack.pop();
+		f1 = (PCTLFormula)stack.pop();
+		u = new PCTLProbUntil(f1, f2);
+		// push result onto stack
+		stack.push(u);
+	}
+}
+
+// pctl steady state (actually only csl - not pctl at all)
+
+void PCTLSS() :
+{
+	String relOp;
+	Token tf = null;
+}
+{
+	(
+		( (
+		// various options for initial part
+		( <S> relOp=LtGt() Expression() ) |
+		( <S> <EQ> <QMARK> {relOp="=";} ) )
+		// path formula bit
+		<LBRACKET> PCTLFormula() ( tf=<LBRACE> PCTLFormula() <RBRACE> )? <RBRACKET> )
+	)
+	{
+		PCTLFormula f, filter = null;
+		Expression p;
+		PCTLSS ss;
+		
+		// tf is non-null if there is a filter included
+		if (tf != null) {
+			filter = (PCTLFormula)stack.pop();
+		}
+		// create PCTLSS object
+		f = (PCTLFormula)stack.pop();
+		p = (relOp.equals("=")) ? null : (Expression)stack.pop();
+		ss = new PCTLSS(f, relOp, p);
+		// add filter if present
+		if (tf != null) {
+			ss.setFilter(filter);
+		}
+		// push result onto stack
+		stack.push(ss);
+	}
+	| ( PCTLReward() )
+}
+
+// pctl reward operator
+
+void PCTLReward() :
+{
+	String relOp = null;
+	Token tf = null; // detects if a filter is included
+	Token tfmin = null; // detects if min of filter requested
+	Token tfmax = null; // detects if max of filter requested
+}
+{
+	( (
+	// various options for initial part
+	( <R> relOp=LtGt() Expression() ) |
+	( <R> <EQ> <QMARK> {relOp="=";} ) |
+	( <R> <MIN> <EQ> <QMARK> {relOp="min=";} ) |
+	( <R> <MAX> <EQ> <QMARK> {relOp="max=";} ) |
+	// these two are dupes of above but allow space to be omitted
+	( <RMIN> <EQ> <QMARK> {relOp="min=";} ) |
+	( <RMAX> <EQ> <QMARK> {relOp="max=";} ) )
+	// path formula bit
+	<LBRACKET>
+	( PCTLRewardCumul() | PCTLRewardInst() | PCTLRewardReach() | PCTLRewardSS() )
+	( tf=<LBRACE> PCTLFormula() <RBRACE>
+	(( tfmin=<LBRACE> <MIN> <RBRACE> ) | ( tfmax=<LBRACE> <MAX> <RBRACE> ))*
+	)? <RBRACKET> )
+	{
+		PCTLFormula f, filter = null;
+		Expression rew;
+		PCTLReward pr;
+		
+		// tf is non-null if there is a filter included
+		if (tf != null) {
+			filter = (PCTLFormula)stack.pop();
+		}
+		// create PCTLReward object
+		f = (PCTLFormula)stack.pop();
+		rew = (relOp.equals("=") || relOp.equals("min=") || relOp.equals("max=")) ? null : (Expression)stack.pop();
+		pr = new PCTLReward(f, relOp, rew);
+		// add filter if present
+		if (tf != null) {
+			pr.setFilter(filter);
+			// and register any requests
+			if (tfmin != null) pr.setFilterMinRequested(true);
+			if (tfmax != null) pr.setFilterMaxRequested(true);
+		}
+		// push result onto stack
+		stack.push(pr);
+	}
+	| ( PCTLInit() )
+}
+
+// cumulative reward
+
+void PCTLRewardCumul() :
+{
+}
+{
+	( <CUMUL> <LE> Expression() )
+	{
+		Expression b;
+		PCTLRewardCumul rc;
+		
+		// create PCTLRewardCumul object
+		b = (Expression)stack.pop();
+		rc = new PCTLRewardCumul(b);
+		// push result onto stack
+		stack.push(rc);
+	}
+}
+
+// instantaneous reward
+
+void PCTLRewardInst() :
+{
+}
+{
+	( <INST> <EQ> Expression() )
+	{
+		Expression t;
+		PCTLRewardInst ri;
+		
+		// create PCTLRewardInst object
+		t = (Expression)stack.pop();
+		ri = new PCTLRewardInst(t);
+		// push result onto stack
+		stack.push(ri);
+	}
+}
+
+// reach reward
+
+void PCTLRewardReach() :
+{
+}
+{
+	( <FUTURE> PCTLFormula() )
+	{
+		PCTLFormula f;
+		PCTLRewardReach rr;
+		
+		// create PCTLRewardInst object
+		f = (PCTLFormula)stack.pop();
+		rr = new PCTLRewardReach(f);
+		// push result onto stack
+		stack.push(rr);
+	}
+}
+
+// steady-state reward
+
+void PCTLRewardSS() :
+{
+}
+{
+	( <S> )
+	{
+		PCTLRewardSS rs;
+		
+		// create PCTLRewardSS object
+		rs = new PCTLRewardSS();
+		// push result onto stack
+		stack.push(rs);
+	}
+}
+
+// init
+
+void PCTLInit() :
+{
+}
+{
+	( <DQUOTE> <INIT> <DQUOTE> )
+	{
+		stack.push(new PCTLInit());
+	}
+	| ( PCTLLabel() )
+}
+
+// label
+
+void PCTLLabel() :
+{
+	String s;
+}
+{
+	( <DQUOTE> s=Identifier() <DQUOTE> )
+	{
+		stack.push(new PCTLLabel(s));
+	}
+	| ( PCTLBrackets() )
+}
+
+// brackets
+
+void PCTLBrackets() : 
+{
+}
+{
+	( <LPARENTH> PCTLFormula() <RPARENTH> )
+	{
+		PCTLBrackets e = new PCTLBrackets();
+		e.setOperand((PCTLFormula)stack.pop());
+		stack.push(e);
+	}
+	| ( PCTLExpression() )
+}
+
+// pctl expression
+
+void PCTLExpression() :
+{
+}
+{
+	// Note that we jump into the middle of the Expression hierarchy.
+	// In practice, this means that Boolean conjunctives in expressions
+	// must be below at least one level of parentheses. Otherwise, the
+	// fact that both PCTLFormulas and Expressions can contain such
+	// operators leads to an ambiguous grammar and a whole world of
+	// associated problems. Chances are the or/and/not will just be
+	// happily parsed as a PCTL operator anyway. Note that this is
+	// not true for the if-then-else operator which is not present in
+	// PCTL but has lower precedence than or/and/not. Oh well.
+	( ExpressionRelOpRange() )
+	{
+		PCTLFormula f;
+		
+		f = new PCTLExpression((Expression)stack.pop());
+		stack.push(f);
+	}
+}
+
+//-----------------------------------------------------------------------------------
+// for loop
+//-----------------------------------------------------------------------------------
+
+ForLoop ForLoop() :
+{
+	String s;
+	Token t = null;
+}
+{
+	( s=Identifier() <EQ> Expression() <COLON> Expression() ( t=<COLON> Expression() )? <EOF> )
+	{
+		ForLoop fl = new ForLoop();
+		fl.setLHS(s);
+		if (t != null) {
+			fl.setTo((Expression)stack.pop());
+			fl.setStep((Expression)stack.pop());
+		}
+		else {
+			fl.setTo((Expression)stack.pop());
+		}
+		fl.setFrom((Expression)stack.pop());
+		
+		return fl;
+	}
+}
+
+//-----------------------------------------------------------------------------------
+// expression stuff
+//-----------------------------------------------------------------------------------
+
+// expression
+
+void Expression() :
+{
+}
+{
+	( ExpressionITE() )
+}
+
+
+// expression (if-then-else)
+
+void ExpressionITE() :
+{
+}
+{
+	( ExpressionOr() <QMARK> ExpressionOr() <COLON> ExpressionITE() )
+	{
+		Expression c, t, e;
+		e = (Expression)stack.pop();
+		t = (Expression)stack.pop();
+		c = (Expression)stack.pop();
+		stack.push(new ExpressionITE(c, t, e));
+	}
+	| ( ExpressionOr() )
+}
+
+// expression (or)
+
+void ExpressionOr() :
+{
+	// put '*' marker on stack
+	stack.push(new Character('*'));
+}
+{
+	( ExpressionAnd() ( <OR> ExpressionOr() )? )
+	{
+		// get Expressions off stack and reverse their order
+		while (!(stack.peek() instanceof Character)) {
+			reverseStack.push(stack.pop());
+		}
+		// remove '*' marker
+		stack.pop();
+		// if there is only one Expression, just put it back on the stack
+		if (reverseStack.size() == 1) {
+			stack.push(reverseStack.pop());
+		}
+		// otherwise, add the Expressions to an ExpressionOr in the correct order
+		else {
+			ExpressionOr e = new ExpressionOr();
+			while (!reverseStack.empty()) {
+				e.addOperand((Expression)reverseStack.pop());
+			}
+			// put the ExpressionOr on the stack
+			stack.push(e);
+		}
+	}
+}
+
+// expression (and)
+
+void ExpressionAnd() :
+{
+	// put '*' marker on stack
+	stack.push(new Character('*'));
+}
+{
+	( ExpressionNot() ( <AND> ExpressionNot() )* )
+	{
+		// get Expressions off stack and reverse their order
+		while (!(stack.peek() instanceof Character)) {
+			reverseStack.push(stack.pop());
+		}
+		// remove '*' marker
+		stack.pop();
+		// if there is only one Expression, just put it back on the stack
+		if (reverseStack.size() == 1) {
+			stack.push(reverseStack.pop());
+		}
+		// otherwise, add the Expressions to an ExpressionAnd in the correct order
+		else {
+			ExpressionAnd e = new ExpressionAnd();
+			while (!reverseStack.empty()) {
+				e.addOperand((Expression)reverseStack.pop());
+			}
+			// put the ExpressionAnd on the stack
+			stack.push(e);
+		}
+	}
+}
+
+// expression (not)
+
+void ExpressionNot() :
+{
+	Token t = null;
+}
+{
+	( (t=<NOT>)? ExpressionRelOpRange() )
+	{
+		if (t != null) {
+			// pop the Expression off the stack
+			// and put it in an ExpressionNot
+			ExpressionNot e = new ExpressionNot();
+			e.setOperand((Expression)stack.pop());
+			// then put that back on the stack
+			stack.push(e);
+		}
+	}
+}
+
+// expression: relational operators/ranges
+
+void ExpressionRelOpRange() :
+{
+	String relOp = null;
+	Expression e, e1, e2;
+	// put '*' marker on stack
+	stack.push(new Character('*'));
+}
+{
+	// relational operator using >, <, >=, <=
+	
+	( ExpressionPlusMinus() relOp=LtGt() ExpressionPlusMinus() )
+	{
+		// create ExpressionRelOp and add operands from stack
+		ExpressionRelOp ero = new ExpressionRelOp();
+		ero.setRelOp(relOp);
+		ero.setOperand2((Expression)stack.pop());
+		ero.setOperand1((Expression)stack.pop());
+		// pop marker off stack
+		stack.pop();
+		// push the ExpressionRelOp on to the stack
+		stack.push(ero);
+	}
+	
+	|
+	
+	// relational operator using =, !=
+	// (also includes ranges of expressions, e.g. "... = a..b,c,d..e")
+	
+	( ExpressionPlusMinus() relOp=EqNeq()
+	  {
+	  	// store the left hand side expression so that it
+		// doesn't get mixed up with those on the right hand side
+	  	e = (Expression)stack.pop();
+	  }
+	  ( ExpressionPlusMinus() ( <DOTS>
+	  {
+	  	// push a "2" on to the stack to indicate there are a pair of expressions here
+		// (it is sandwiched between pair in stack)
+		stack.push(new Integer(2));
+	  }
+	  ExpressionPlusMinus() )? )
+	  ( ( <COMMA> ExpressionPlusMinus() ( <DOTS>
+	  {
+	  	// push a "2" on to the stack to indicate there are a pair of expressions here
+		// (it is sandwiched between pair in stack)
+		stack.push(new Integer(2));
+	  }
+	  ExpressionPlusMinus() )? ) )*
+	)
+	{
+		// get Expressions/etc. off stack and reverse their order
+		while (!(stack.peek() instanceof Character)) {
+			reverseStack.push(stack.pop());
+		}
+		// remove '*' marker
+		stack.pop();
+		// if there is a just a single item on the stack,
+		// it's a simple case and we can use an ExpressionRelOp for efficiency
+		if (reverseStack.size() == 1) {
+			// create ExpressionRelOp and get single operand from stack
+			ExpressionRelOp ero = new ExpressionRelOp();
+			ero.setRelOp(relOp);
+			ero.setOperand1(e);
+			ero.setOperand2((Expression)reverseStack.pop());
+			// push the ExpressionRelOp on to the stack
+			stack.push(ero);
+		}
+		// otherwise use an ExpressionRange
+		else {
+			// create ExpressionRange and add operands from stack in order
+			ExpressionRange er = new ExpressionRange();
+			er.setOperand(e);
+			er.setRelOp(relOp);
+			while (!reverseStack.empty()) {
+				// get an expression
+				e1 = (Expression)reverseStack.pop();
+				// is it part of a pair?
+				if (!reverseStack.empty()) {
+					if (reverseStack.peek() instanceof Integer) {
+						// pop "2" off
+						reverseStack.pop();
+						// pop second expression off
+						e2 = (Expression)reverseStack.pop();
+						// add range
+						er.addRangeOperandPair(e1, e2);
+					}
+					else {
+						// add range
+						er.addRangeOperand(e1);
+					}
+				}
+				else {
+					// add range
+					er.addRangeOperand(e1);
+				}
+			}
+			// push the ExpressionRange on to the stack
+			stack.push(er);
+		}
+	}
+	
+	|
+	
+	// nothing - skip to next level of grammar
+	
+	( ExpressionPlusMinus() )
+	{
+		// but still pop marker off stack
+		e = (Expression)stack.pop();
+		stack.pop();
+		stack.push(e);
+	}
+}
+
+// expression: plus/minus - binary, left associative
+
+void ExpressionPlusMinus() :
+{
+	Token t;
+}
+{
+	( ExpressionTimesDivide() ( ( t=<PLUS> | t=<MINUS> ) ExpressionTimesDivide()
+	{
+		// pop expression operands off stack
+		Expression e1, e2;
+		e2 = (Expression)stack.pop();
+		e1 = (Expression)stack.pop();
+		// create new expression and push to stack
+		if (t.kind == PLUS) {
+			ExpressionPlus e = new ExpressionPlus();
+			e.setOperand1(e1);
+			e.setOperand2(e2);
+			stack.push(e);
+		}
+		else {
+			ExpressionMinus e = new ExpressionMinus();
+			e.setOperand1(e1);
+			e.setOperand2(e2);
+			stack.push(e);
+		}
+	}
+	)* )
+}
+
+// expression: times/divide - binary, left associative
+
+void ExpressionTimesDivide() :
+{
+	Token t;
+}
+{
+	( ExpressionFunc() ( ( t=<TIMES> | t=<DIVIDE> ) ExpressionFunc()
+	{
+		// pop expression operands off stack
+		Expression e1, e2;
+		e2 = (Expression)stack.pop();
+		e1 = (Expression)stack.pop();
+		// create new expression and push to stack
+		if (t.kind == TIMES) {
+			ExpressionTimes e = new ExpressionTimes();
+			e.setOperand1(e1);
+			e.setOperand2(e2);
+			stack.push(e);
+		}
+		else {
+			ExpressionDivide e = new ExpressionDivide();
+			e.setOperand1(e1);
+			e.setOperand2(e2);
+			stack.push(e);
+		}
+	}
+	)* )
+}
+
+// expression (function)
+
+void ExpressionFunc() :
+{
+	Token tFunc = null;
+	String s = null;
+	// put '*' marker on stack
+	stack.push(new Character('*'));
+}
+{
+	// functions using built in keywords
+	((((( <MIN> { s="min"; } ) | ( <MAX> { s="max"; } ) | ( <FLOOR> { s="floor"; } ) | ( <CEIL> { s="ceil"; } )) <LPARENTH> )
+	// functions using "func" notation
+	| ( tFunc=<FUNC> <LPARENTH> (( s=Identifier() ) | ( <MIN> { s="min"; } ) | ( <MAX> { s="max"; } ) | ( <FLOOR> { s="floor"; } ) | ( <CEIL> { s="ceil"; } )) <COMMA> ))
+	// arguments to function (either notation)
+	Expression() ( <COMMA> Expression() )* <RPARENTH> )
+	{
+		// get Expressions off stack and reverse their order
+		while (!(stack.peek() instanceof Character)) {
+			reverseStack.push(stack.pop());
+		}
+		// remove '*' marker
+		stack.pop();
+		// add the Expressions to an ExpressionFunc in the correct order
+		ExpressionFunc e = new ExpressionFunc();
+		while (!reverseStack.empty()) {
+			e.addOperand((Expression)reverseStack.pop());
+		}
+		// set name of function
+		e.setName(s);
+		// record which notation was used
+		e.setOldStyle(tFunc == null);
+		// put the ExpressionFunc on the stack
+		stack.push(e);
+	}
+	| ( ExpressionIdent() )
+	{
+		// remove '*' marker
+		Expression e = (Expression)stack.pop();
+		stack.pop();
+		stack.push(e);
+	}
+}
+
+// expression (identifier)
+
+void ExpressionIdent() :
+{
+	String ident;
+}
+{
+	( ident=Identifier() )
+	{
+		ExpressionIdent e = new ExpressionIdent();
+		e.setName(ident);
+		stack.push(e);
+	}
+	| ( ExpressionLiteral() )
+}
+
+// expression (literal)
+
+void ExpressionLiteral() :
+{
+	int i;
+	double d;
+}
+{
+	( i=Int() )
+	{
+		ExpressionInt e = new ExpressionInt();
+		e.setValue(i);
+		stack.push(e);
+	}
+	|
+	( d=Double() )
+	{
+		ExpressionDouble e = new ExpressionDouble();
+		e.setValue(d);
+		stack.push(e);
+	}
+	|
+	( <TRUE> )
+	{
+		ExpressionTrue e = new ExpressionTrue();
+		stack.push(e);
+	}
+	|
+	( <FALSE> )
+	{
+		ExpressionFalse e = new ExpressionFalse();
+		stack.push(e);
+	}
+	| ( ExpressionBrackets() )
+}
+
+// expression (brackets)
+
+void ExpressionBrackets() : 
+{
+}
+{
+	( <LPARENTH> Expression() <RPARENTH> )
+	{
+		ExpressionBrackets e = new ExpressionBrackets();
+		e.setOperand((Expression)stack.pop());
+		stack.push(e);
+	}
+}
+
+//-----------------------------------------------------------------------------------
+// miscellaneous stuff
+//-----------------------------------------------------------------------------------
+
+// identifier
+
+String Identifier() :
+{
+}
+{
+	<REG_IDENT>
+	{
+		return token.image;
+	}
+}
+
+// identifier with a prime
+
+String IdentifierPrime() :
+{
+}
+{
+	<REG_IDENTPRIME>
+	{
+		// remove prime and return
+		String s = token.image;
+		s = s.substring(0, s.length()-1);
+		return s;
+	}
+}
+
+// one of the relational operators: =, !=
+
+String EqNeq() :
+{
+}
+{
+	( <EQ> | <NE> )
+	{
+		return token.image;
+	}
+}
+
+// one of the relational operators: >, <, >=, <=
+
+String LtGt() :
+{
+}
+{
+	( <GT> | <LT> | <GE> | <LE> )
+	{
+		return token.image;
+	}
+}
+
+// integer
+
+int Int() :
+{
+	int i;
+}
+{
+	// basic int
+	<REG_INT>
+	{
+		i = Integer.parseInt(token.image);
+		return i;
+	}
+}
+
+// double
+
+double Double() :
+{
+	double d;
+}
+{
+	<REG_DOUBLE>
+	{
+		d = Double.valueOf(token.image).doubleValue();
+		return d;
+	}
+}
+
+//------------------------------------------------------------------------------

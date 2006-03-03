@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : GMO.dtd
+    Created on : July 8, 2003, 1:07 PM
+    Last change: November 11, 2003, 10:08 AM
+    Author     : Andrew Hinton
+    Description:
+        Document to describe the structure of a Graphic Model File
+        Last modification to accomodate new tree structure i.e. 
+        with constants and globals
+-->
+
+<!ELEMENT gmo (constants,globals,systemDescription,(module)*)>
+<!ATTLIST gmo
+    type (stochastic|probabilistic|nondeterministic|dtmc|mdp|ctmc) #REQUIRED
+    filename CDATA #IMPLIED
+    autolayout CDATA #IMPLIED
+    >
+    
+<!ELEMENT constants (integerConstant|doubleConstant|booleanConstant)*>
+<!ELEMENT integerConstant (#PCDATA)>
+<!ATTLIST integerConstant
+    name CDATA #REQUIRED
+    value CDATA #IMPLIED>
+<!ELEMENT doubleConstant (#PCDATA)>
+<!ATTLIST doubleConstant
+    name CDATA #REQUIRED
+    value CDATA #IMPLIED>
+<!ELEMENT booleanConstant (#PCDATA)>
+<!ATTLIST booleanConstant
+    name CDATA #REQUIRED
+    value CDATA #IMPLIED>
+    
+<!ELEMENT globals (variable|boolVariable)*>
+
+<!ELEMENT systemDescription (#PCDATA)>
+
+<!ELEMENT module (state|transition|variable|boolVariable|branchtrans)*>
+<!ATTLIST module
+    name CDATA #REQUIRED
+    x CDATA #IMPLIED
+    y CDATA #IMPLIED
+    width CDATA #IMPLIED
+    height CDATA #IMPLIED
+    zoom CDATA #IMPLIED
+    >
+    
+<!ELEMENT position (#PCDATA)>
+<!ATTLIST position
+    x CDATA #REQUIRED
+    y CDATA #REQUIRED>
+<!ELEMENT invariant (position)>
+<!ATTLIST invariant
+    name CDATA #REQUIRED>
+<!ELEMENT sName (position)>
+<!ATTLIST sName
+    name CDATA #REQUIRED>
+<!ELEMENT state (position,(invariant)?,(sName)?)>
+<!ATTLIST state
+    id CDATA #REQUIRED
+    initial CDATA #REQUIRED>
+
+<!ELEMENT variable (#PCDATA)>
+<!ATTLIST variable
+    name CDATA #REQUIRED
+    min CDATA #REQUIRED
+    max CDATA #REQUIRED
+    init CDATA #IMPLIED>
+    
+<!ELEMENT boolVariable (#PCDATA)>
+<!ATTLIST boolVariable
+    name CDATA #REQUIRED
+    init CDATA #IMPLIED>
+
+<!ELEMENT guard (position)>
+<!ATTLIST guard
+    value CDATA #REQUIRED>
+<!ELEMENT sync (position)>
+<!ATTLIST sync
+    value CDATA #REQUIRED>
+<!ELEMENT assign (position)>
+<!ATTLIST assign
+    value CDATA #REQUIRED>
+<!ELEMENT tranProb (position)>
+<!ATTLIST tranProb
+    value CDATA #REQUIRED>
+<!ELEMENT nail (position)>
+<!ATTLIST nail
+    from CDATA #REQUIRED
+    to CDATA #REQUIRED
+    id CDATA #REQUIRED>
+<!ELEMENT transition ((guard)?,(sync)?,(assign)?,(tranProb)?,(nail)*)>
+<!ATTLIST transition
+    from CDATA #REQUIRED
+    to CDATA #REQUIRED>
+    
+<!ELEMENT branch ((position)?,(assign)?,(tranProb)?)>
+<!ATTLIST branch
+    to CDATA #REQUIRED>
+<!ELEMENT branchtrans ((position),(branch)*,(guard)?,(sync)?,(assign)?)>
+<!ATTLIST branchtrans
+    from CDATA #REQUIRED>

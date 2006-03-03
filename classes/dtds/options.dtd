@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : options.dtd
+    Created on : July 15, 2005, 3:58 AM
+    Last change: July 15, 2005, 3:58 AM
+    Author     : Andrew Hinton
+    Description:
+        Document to describe the structure of an options file.
+	This version is current for PRISM 2.1.dev9.simapmc4
+-->
+
+<!ELEMENT options (prism, model, properties, simulator, log)>
+
+<!ELEMENT prism (#PCDATA)>
+<!ATTLIST prism
+	verbose (true|false) #REQUIRED
+	fairness (true|false) #REQUIRED
+	precomputation (true|false) #REQUIRED
+	compact (true|false) #REQUIRED
+	cuddMaxMem CDATA #REQUIRED
+	cuddEpsilon CDATA #REQUIRED
+	iterativeMethod (power|jacobi|gaussSeidel|jor|sor) #REQUIRED
+	overRelaxation CDATA #REQUIRED
+	backwards (true|false) #REQUIRED
+	pseudo (true|false) #REQUIRED
+	termination (relative|absolute) #REQUIRED
+	maxIterations CDATA #REQUIRED
+	terminationEpsilon CDATA #REQUIRED
+	engine (mtbdd|sparse|hybrid) #REQUIRED
+	hybridNumLevels CDATA #REQUIRED
+	hybridMaxMemory CDATA #REQUIRED
+	hybridSORLevels CDATA #REQUIRED
+	hybridSORMaxMemory CDATA #REQUIRED>
+
+<!ELEMENT model (editor, editor)>
+<!ATTLIST model
+	autoParse (true|false) #REQUIRED
+	autoManual (true|false) #REQUIRED
+	parseDelay CDATA #REQUIRED
+	>
+
+<!ELEMENT editor ((regEx)*)>
+<!ATTLIST editor
+	fontName CDATA #REQUIRED
+	fontStyle CDATA #REQUIRED
+	fontSize CDATA #REQUIRED
+        fontColourR CDATA #REQUIRED
+	fontColourG CDATA #REQUIRED
+	fontColourB CDATA #REQUIRED
+	bgColourR CDATA #REQUIRED
+	bgColourG CDATA #REQUIRED
+	bgColourB CDATA #REQUIRED>
+
+<!ELEMENT regEx (#PCDATA)>
+<!ATTLIST regEx
+	description CDATA #REQUIRED
+	expression CDATA #REQUIRED
+	colourR CDATA #REQUIRED
+	colourG CDATA #REQUIRED
+	colourB CDATA #REQUIRED
+	style CDATA #REQUIRED
+	>
+	
+<!ELEMENT properties (#PCDATA)>
+<!ATTLIST properties
+	fontName CDATA #REQUIRED
+	fontStyle CDATA #REQUIRED
+	fontSize CDATA #REQUIRED
+	selectionColourR CDATA #REQUIRED
+	selectionColourG CDATA #REQUIRED
+	selectionColourB CDATA #REQUIRED
+	warningColourR CDATA #REQUIRED
+	warningColourG CDATA #REQUIRED
+	warningColourB CDATA #REQUIRED
+	additionStrategy (warn|never) #REQUIRED
+	clearListOnLoad (true|false) #REQUIRED>
+
+<!ELEMENT simulator (#PCDATA)>
+<!ATTLIST simulator
+	engine (prism|apmc) #REQUIRED
+	simultaneous (true|false) #REQUIRED
+	apmcStrategy CDATA #REQUIRED
+	newPathAskDefault (true|false) #REQUIRED
+	renderAllValues (true|false) #REQUIRED>
+	
+<!ELEMENT log (#PCDATA)>
+<!ATTLIST log 
+	fontName CDATA #REQUIRED
+	fontStyle CDATA #REQUIRED
+	fontSize CDATA #REQUIRED
+	selectionColourR CDATA #REQUIRED
+	selectionColourG CDATA #REQUIRED
+	selectionColourB CDATA #REQUIRED
+	bgColourR CDATA #REQUIRED
+	bgColourG CDATA #REQUIRED
+	bgColourB CDATA #REQUIRED 
+	bufferLength CDATA #REQUIRED>

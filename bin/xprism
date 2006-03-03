@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Startup script for PRISM GUI (Linux/Solaris)
+
+# PRISM home directory
+PRISM_DIR=/data/private/luser/tmp/prismtest/prism-2.1.dev11.sim8
+
+# Launch using main PRISM script
+PRISM_MAINCLASS=userinterface.GUIPrism
+export PRISM_MAINCLASS
+$PRISM_DIR/bin/prism "$@"
