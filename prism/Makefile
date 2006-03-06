@@ -204,20 +204,6 @@ cuddpackage:
 	/bin/cp Makefile.$(OSTYPE) Makefile && \
 	$(MAKE)
 
-checks:
-	@(if [ "$(OSTYPE)" != "linux" -a "$(OSTYPE)" != "solaris" -a "$(OSTYPE)" != "cygwin" -a "$(OSTYPE)" != "darwin" ]; then \
-	  cat .ostype.txt; \
-	  exit 1; \
-	fi; \
-	if [ "$(JAVA_DIR)" = "" ]; then \
-	  cat .java_dir.txt; \
-	  exit 1; \
-	fi; \
-	if [ ! -f $(JAVA_JNI_H_DIR)/jni.h ]; then \
-	  echo "Failed to locate JNI headers jni.h and jni_md.h. Are you sure Java is installed?"; \
-	  exit 1; \
-	fi)
-
 prism: checks sortplugins make_dirs post_make
 
 sortplugins:
@@ -377,5 +363,59 @@ clean_apmc: checks
 clean_simulator: checks
 	@(cd src/simulator && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 
+checks:
+	@(if [ "$(OSTYPE)" != "linux" -a "$(OSTYPE)" != "solaris" -a "$(OSTYPE)" != "cygwin" -a "$(OSTYPE)" != "darwin" ]; then \
+	  echo "To compile PRISM, the environment variable OSTYPE"; \
+	  echo "must be set to one of: linux, solaris, cygwin or darwin,"; \
+	  echo "depending on which operating system you are using."; \
+	  echo "This is not the case on your system. Please specify"; \
+	  echo "the value of OSTYPE manually to make, e.g.:"; \
+	  echo; \
+	  echo "  make OSTYPE=linux"; \
+	  echo; \
+	  echo "Alternatively, if you wish, you can set the environment"; \
+	  echo "variable yourself (using setenv or export) or you"; \
+	  echo "can edit the value of OSTYPE directly in the Makefile."; \
+	  exit 1; \
+	fi; \
+	if [ "$(JAVA_DIR)" = "" ]; then \
+	  echo "PRISM was unable to find the directory which contains"; \
+	  echo "your Java distribution. Please specify this manually to"; \
+	  echo "make as in the following example:"; \
+	  echo; \
+	  echo "  make JAVA_DIR=/usr/java/j2sdk1.4.2"; \
+	  echo; \
+	  echo "If you do not know where your Java distribution is, try typing:"; \
+	  echo; \
+	  echo "  which javac"; \
+	  echo; \
+	  echo "If the output is of the form 'javac: Command not found' or"; \
+	  echo "'which: no javaccc in...' then either you do not have Java"; \
+	  echo "installed or your path is not set up to include Java."; \
+	  echo "If the output is something like:"; \
+	  echo; \
+	  echo "  /bham/java/packages/j2sdk1.4.2/bin/javac"; \
+	  echo; \
+	  echo "then the directory is /usr/java/j2sdk1.4.2"; \
+	  echo "(i.e. with the '/bin/javac' removed)."; \
+	  echo "One situation where this doesn't work is when javac"; \
+	  echo "has been set up as a symbolic link. In this case, type:"; \
+	  echo; \
+	  echo "  ls -l `which javac`"; \
+	  echo; \
+	  echo "which will tell you where javac actually is (the part displayed"; \
+	  echo "after the -> arrow. You can then deduce what the directory is as above."; \
+	  exit 1; \
+	fi; \
+	if [ ! -f $(JAVA_JNI_H_DIR)/jni.h ]; then \
+	  echo "Failed to locate the JNI header $(JAVA_JNI_H_DIR)/jni.h."; \
+	  echo "Are you sure Java is installed?"; \
+	  exit 1; \
+	fi; \
+	if [ ! -f $(JAVA_JNI_MD_H_DIR)/jni_md.h ]; then \
+	  echo "Failed to locate the JNI header $(JAVA_JNI_MD_H_DIR)/jni_md.h"; \
+	  echo "Are you sure Java is installed?"; \
+	  exit 1; \
+	fi)
 
 #################################################
