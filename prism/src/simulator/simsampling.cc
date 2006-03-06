@@ -697,7 +697,8 @@ void Do_Sampling(int path_length)
 	}//end sampling while
 	
 	if (!stopped_early) {
-		Sim_Print_To_Main_Log(" 100%% ]\n");
+		if (!should_stop_sampling) Sim_Print_To_Main_Log(" 100%% ]");
+		Sim_Print_To_Main_Log("\n");
 		stop = clock();
 		time_taken = (double)(stop - start)/CLOCKS_PER_SEC;
 		Sim_Print_To_Main_Log("\nSampling complete: %d iterations in %.2f seconds (average %.6f)\n", iteration_counter, time_taken, time_taken/iteration_counter);
@@ -708,6 +709,9 @@ void Do_Sampling(int path_length)
 	
 	// print a warning if deadlocks occured at any point
 	if (deadlocks_found) Sim_Print_To_Main_Log("\nWarning: Deadlocks were found during simulation: self-loops were added\n");
+	
+	// print a warning if simulation was stopped by the user
+	if (should_stop_sampling) Sim_Print_To_Main_Log("\nWarning: Simulation was terminated before completion.\n");
 	
 	//write to feedback file with true to indicate that we have finished sampling
 	Write_Feedback(iteration_counter, no_iterations, true);
