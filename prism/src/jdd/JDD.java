@@ -65,6 +65,11 @@ public class JDD
 	// dd_vars
 	private static native int DD_PermuteVariables(int dd, int old_vars, int new_vars, int num_vars);
 	private static native int DD_SwapVariables(int dd, int old_vars, int new_vars, int num_vars);
+	private static native int DD_VariablesGreaterThan(int x_vars, int y_vars, int num_vars);
+	private static native int DD_VariablesGreaterThanEquals(int x_vars, int y_vars, int num_vars);
+	private static native int DD_VariablesLessThan(int x_vars, int y_vars, int num_vars);
+	private static native int DD_VariablesLessThanEquals(int x_vars, int y_vars, int num_vars);
+	private static native int DD_VariablesEquals(int x_vars, int y_vars, int num_vars);
 	// dd_abstr
 	private static native int DD_ThereExists(int dd, int vars, int num_vars);
 	private static native int DD_ForAll(int dd, int vars, int num_vars);
@@ -374,6 +379,46 @@ public class JDD
 	public static JDDNode SwapVariables(JDDNode dd, JDDVars old_vars, JDDVars new_vars)
 	{
 		return new JDDNode(DD_SwapVariables(dd.ptr(), old_vars.array(), new_vars.array(), old_vars.n()));
+	}
+
+	// build x > y for variables x, y
+	// [ REFS: <result>, DEREFS: <none> ]
+	
+	public static JDDNode VariablesGreaterThan(JDDVars x_vars, JDDVars y_vars)
+	{
+		return new JDDNode(DD_VariablesGreaterThan(x_vars.array(), y_vars.array(), x_vars.n()));
+	}
+
+	// build x >= y for variables x, y
+	// [ REFS: <result>, DEREFS: <none> ]
+	
+	public static JDDNode VariablesGreaterThanEquals(JDDVars x_vars, JDDVars y_vars)
+	{
+		return new JDDNode(DD_VariablesGreaterThanEquals(x_vars.array(), y_vars.array(), x_vars.n()));
+	}
+
+	// build x < y for variables x, y
+	// [ REFS: <result>, DEREFS: <none> ]
+	
+	public static JDDNode VariablesLessThan(JDDVars x_vars, JDDVars y_vars)
+	{
+		return new JDDNode(DD_VariablesLessThan(x_vars.array(), y_vars.array(), x_vars.n()));
+	}
+
+	// build x <= y for variables x, y
+	// [ REFS: <result>, DEREFS: <none> ]
+	
+	public static JDDNode VariablesLessThanEquals(JDDVars x_vars, JDDVars y_vars)
+	{
+		return new JDDNode(DD_VariablesLessThanEquals(x_vars.array(), y_vars.array(), x_vars.n()));
+	}
+
+	// build x == y for variables x, y
+	// [ REFS: <result>, DEREFS: <none> ]
+	
+	public static JDDNode VariablesEquals(JDDVars x_vars, JDDVars y_vars)
+	{
+		return new JDDNode(DD_VariablesEquals(x_vars.array(), y_vars.array(), x_vars.n()));
 	}
 
 	// wrapper methods for dd_abstr

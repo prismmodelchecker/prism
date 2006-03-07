@@ -251,10 +251,44 @@ JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1PermuteVariables(JNIEnv *env, jclass cls
 
 //------------------------------------------------------------------------------
 
-
 JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1SwapVariables(JNIEnv *env, jclass cls, jint dd, jint old_vars, jint new_vars, jint num_vars)
 {
 	return (int)DD_SwapVariables(ddman, (DdNode *)dd, (DdNode **)old_vars, (DdNode **)new_vars, num_vars);
+}
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1VariablesGreaterThan(JNIEnv *env, jclass cls, jint x_vars, jint y_vars, jint num_vars)
+{
+	return (int)DD_VariablesGreaterThan(ddman, (DdNode **)x_vars, (DdNode **)y_vars, num_vars);
+}
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1VariablesGreaterThanEquals(JNIEnv *env, jclass cls, jint x_vars, jint y_vars, jint num_vars)
+{
+	return (int)DD_VariablesGreaterThanEquals(ddman, (DdNode **)x_vars, (DdNode **)y_vars, num_vars);
+}
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1VariablesLessThan(JNIEnv *env, jclass cls, jint x_vars, jint y_vars, jint num_vars)
+{
+	return (int)DD_VariablesLessThan(ddman, (DdNode **)x_vars, (DdNode **)y_vars, num_vars);
+}
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1VariablesLessThanEquals(JNIEnv *env, jclass cls, jint x_vars, jint y_vars, jint num_vars)
+{
+	return (int)DD_VariablesLessThanEquals(ddman, (DdNode **)x_vars, (DdNode **)y_vars, num_vars);
+}
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1VariablesEquals(JNIEnv *env, jclass cls, jint x_vars, jint y_vars, jint num_vars)
+{
+	return (int)DD_VariablesEquals(ddman, (DdNode **)x_vars, (DdNode **)y_vars, num_vars);
 }
 
 //==============================================================================

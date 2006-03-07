@@ -30,6 +30,7 @@
 #include <util.h>
 #include <cudd.h>
 #include "dd_vars.h"
+#include "dd_basics.h"
 
 //------------------------------------------------------------------------------
 
@@ -83,6 +84,170 @@ int num_vars
 	res = Cudd_addSwapVariables(ddman, dd, old_vars, new_vars, num_vars);
 	Cudd_Ref(res);
 	Cudd_RecursiveDeref(ddman, dd);
+	
+	return res;
+}
+
+//------------------------------------------------------------------------------
+
+// Generates BDD for the function x > y
+// where x, y are num_vars-bit numbers encoded by variables x_vars, y_vars
+
+DdNode *DD_VariablesGreaterThan
+(
+DdManager *ddman,
+DdNode **x_vars,
+DdNode **y_vars,
+int num_vars
+)
+{
+	DdNode *tmp, *res;
+	DdNode **x_bdd_vars, **y_bdd_vars;
+	int i;
+	
+	// create bdd vars from add vars
+	x_bdd_vars = new DdNode*[num_vars];
+	y_bdd_vars = new DdNode*[num_vars];
+	for (i = 0; i < num_vars; i++) {
+		x_bdd_vars[i] = Cudd_bddIthVar(ddman, x_vars[i]->index);
+		Cudd_Ref(x_bdd_vars[i]);
+		y_bdd_vars[i] = Cudd_bddIthVar(ddman, y_vars[i]->index);
+		Cudd_Ref(y_bdd_vars[i]);
+	}
+	// call main function
+	tmp = Cudd_Xgty(ddman, num_vars, NULL, x_bdd_vars, y_bdd_vars);
+	Cudd_Ref(tmp);
+	// convert bdd to add
+	res = Cudd_BddToAdd(ddman, tmp);
+	Cudd_Ref(res);
+	Cudd_RecursiveDeref(ddman, tmp);
+	// free variables
+	for (i = 0; i < num_vars; i++) {
+		Cudd_RecursiveDeref(ddman, x_bdd_vars[i]);
+		Cudd_RecursiveDeref(ddman, y_bdd_vars[i]);
+	}
+	delete x_bdd_vars;
+	delete y_bdd_vars;
+	
+	return res;
+}
+
+//------------------------------------------------------------------------------
+
+// Generates BDD for the function x >= y
+// where x, y are num_vars-bit numbers encoded by variables x_vars, y_vars
+
+DdNode *DD_VariablesGreaterThanEquals
+(
+DdManager *ddman,
+DdNode **x_vars,
+DdNode **y_vars,
+int num_vars
+)
+{
+	return DD_Not(ddman, DD_VariablesLessThan(ddman, x_vars, y_vars, num_vars));
+}
+
+//------------------------------------------------------------------------------
+
+// Generates BDD for the function x < y
+// where x, y are num_vars-bit numbers encoded by variables x_vars, y_vars
+
+DdNode *DD_VariablesLessThan
+(
+DdManager *ddman,
+DdNode **x_vars,
+DdNode **y_vars,
+int num_vars
+)
+{
+	DdNode *tmp, *res;
+	DdNode **x_bdd_vars, **y_bdd_vars;
+	int i;
+	
+	// create bdd vars from add vars
+	x_bdd_vars = new DdNode*[num_vars];
+	y_bdd_vars = new DdNode*[num_vars];
+	for (i = 0; i < num_vars; i++) {
+		x_bdd_vars[i] = Cudd_bddIthVar(ddman, x_vars[i]->index);
+		Cudd_Ref(x_bdd_vars[i]);
+		y_bdd_vars[i] = Cudd_bddIthVar(ddman, y_vars[i]->index);
+		Cudd_Ref(y_bdd_vars[i]);
+	}
+	// call main function
+	tmp = Cudd_Xgty(ddman, num_vars, NULL, y_bdd_vars, x_bdd_vars);
+	Cudd_Ref(tmp);
+	// convert bdd to add
+	res = Cudd_BddToAdd(ddman, tmp);
+	Cudd_Ref(res);
+	Cudd_RecursiveDeref(ddman, tmp);
+	// free variables
+	for (i = 0; i < num_vars; i++) {
+		Cudd_RecursiveDeref(ddman, x_bdd_vars[i]);
+		Cudd_RecursiveDeref(ddman, y_bdd_vars[i]);
+	}
+	delete x_bdd_vars;
+	delete y_bdd_vars;
+	
+	return res;
+}
+
+//------------------------------------------------------------------------------
+
+// Generates BDD for the function x <= y
+// where x, y are num_vars-bit numbers encoded by variables x_vars, y_vars
+
+DdNode *DD_VariablesLessThanEquals
+(
+DdManager *ddman,
+DdNode **x_vars,
+DdNode **y_vars,
+int num_vars
+)
+{
+	return DD_Not(ddman, DD_VariablesGreaterThan(ddman, x_vars, y_vars, num_vars));
+}
+
+//------------------------------------------------------------------------------
+
+// Generates BDD for the function x == y
+// where x, y are num_vars-bit numbers encoded by variables x_vars, y_vars
+
+DdNode *DD_VariablesEquals
+(
+DdManager *ddman,
+DdNode **x_vars,
+DdNode **y_vars,
+int num_vars
+)
+{
+	DdNode *tmp, *res;
+	DdNode **x_bdd_vars, **y_bdd_vars;
+	int i;
+	
+	// create bdd vars from add vars
+	x_bdd_vars = new DdNode*[num_vars];
+	y_bdd_vars = new DdNode*[num_vars];
+	for (i = 0; i < num_vars; i++) {
+		x_bdd_vars[i] = Cudd_bddIthVar(ddman, x_vars[i]->index);
+		Cudd_Ref(x_bdd_vars[i]);
+		y_bdd_vars[i] = Cudd_bddIthVar(ddman, y_vars[i]->index);
+		Cudd_Ref(y_bdd_vars[i]);
+	}
+	// call main function
+	tmp = Cudd_Xeqy(ddman, num_vars, x_bdd_vars, y_bdd_vars);
+	Cudd_Ref(tmp);
+	// convert bdd to add
+	res = Cudd_BddToAdd(ddman, tmp);
+	Cudd_Ref(res);
+	Cudd_RecursiveDeref(ddman, tmp);
+	// free variables
+	for (i = 0; i < num_vars; i++) {
+		Cudd_RecursiveDeref(ddman, x_bdd_vars[i]);
+		Cudd_RecursiveDeref(ddman, y_bdd_vars[i]);
+	}
+	delete x_bdd_vars;
+	delete y_bdd_vars;
 	
 	return res;
 }

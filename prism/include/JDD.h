@@ -271,6 +271,46 @@ JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1SwapVariables
 
 /*
  * Class:     jdd_JDD
+ * Method:    DD_VariablesGreaterThan
+ * Signature: (III)I
+ */
+JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1VariablesGreaterThan
+  (JNIEnv *, jclass, jint, jint, jint);
+
+/*
+ * Class:     jdd_JDD
+ * Method:    DD_VariablesGreaterThanEquals
+ * Signature: (III)I
+ */
+JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1VariablesGreaterThanEquals
+  (JNIEnv *, jclass, jint, jint, jint);
+
+/*
+ * Class:     jdd_JDD
+ * Method:    DD_VariablesLessThan
+ * Signature: (III)I
+ */
+JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1VariablesLessThan
+  (JNIEnv *, jclass, jint, jint, jint);
+
+/*
+ * Class:     jdd_JDD
+ * Method:    DD_VariablesLessThanEquals
+ * Signature: (III)I
+ */
+JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1VariablesLessThanEquals
+  (JNIEnv *, jclass, jint, jint, jint);
+
+/*
+ * Class:     jdd_JDD
+ * Method:    DD_VariablesEquals
+ * Signature: (III)I
+ */
+JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1VariablesEquals
+  (JNIEnv *, jclass, jint, jint, jint);
+
+/*
+ * Class:     jdd_JDD
  * Method:    DD_ThereExists
  * Signature: (III)I
  */

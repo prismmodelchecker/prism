@@ -34,5 +34,10 @@
 
 DdNode *DD_PermuteVariables(DdManager *ddman, DdNode *dd, DdNode **old_vars, DdNode **new_vars, int num_vars);
 DdNode *DD_SwapVariables(DdManager *ddman, DdNode *dd, DdNode **old_vars, DdNode **new_vars, int num_vars);
+DdNode *DD_VariablesGreaterThan(DdManager *ddman, DdNode **x_vars, DdNode **y_vars, int num_vars);
+DdNode *DD_VariablesGreaterThanEquals(DdManager *ddman, DdNode **x_vars, DdNode **y_vars, int num_vars);
+DdNode *DD_VariablesLessThan(DdManager *ddman, DdNode **x_vars, DdNode **y_vars, int num_vars);
+DdNode *DD_VariablesLessThanEquals(DdManager *ddman, DdNode **x_vars, DdNode **y_vars, int num_vars);
+DdNode *DD_VariablesEquals(DdManager *ddman, DdNode **x_vars, DdNode **y_vars, int num_vars);
 
 //------------------------------------------------------------------------------
