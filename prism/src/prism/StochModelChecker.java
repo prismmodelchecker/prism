@@ -1026,6 +1026,9 @@ public class StochModelChecker implements ModelChecker
 			JDD.Ref(diags);
 			emb = JDD.Apply(JDD.DIVIDE, trans, diags);
 			
+			mainLog.print("\nDiagonals vector: ");JDD.PrintInfo(diags, allDDRowVars.n());
+			mainLog.print("Embedded Markov chain: ");JDD.PrintInfo(emb, allDDRowVars.n()*2);
+			
 			// compute probabilities of reaching each bscc...
 			for (i = 0; i < n; i++) {
 				
@@ -1140,6 +1143,9 @@ public class StochModelChecker implements ModelChecker
 		JDD.Ref(diags);
 		emb = JDD.Apply(JDD.DIVIDE, trans, diags);
 		
+		mainLog.print("\nDiagonals vector: ");JDD.PrintInfo(diags, allDDRowVars.n());
+		mainLog.print("Embedded Markov chain: ");JDD.PrintInfo(emb, allDDRowVars.n()*2);
+		
 		// compute probabilities
 		probs = computeNextProbs(emb, b);
 		
@@ -1227,6 +1233,8 @@ public class StochModelChecker implements ModelChecker
 					JDD.Ref(trans);
 					JDD.Ref(diags);
 					emb = JDD.Apply(JDD.DIVIDE, trans, diags);
+					mainLog.print("\nDiagonals vector: ");JDD.PrintInfo(diags, allDDRowVars.n());
+					mainLog.print("Embedded Markov chain: ");JDD.PrintInfo(emb, allDDRowVars.n()*2);
 					// compute probs
 					probs = computeUntilProbs(emb, trans01, b1, b1);
 					JDD.Deref(diags);
@@ -1240,6 +1248,8 @@ public class StochModelChecker implements ModelChecker
 					JDD.Ref(trans);
 					JDD.Ref(diags);
 					emb = JDD.Apply(JDD.DIVIDE, trans, diags);
+					mainLog.print("\nDiagonals vector: ");JDD.PrintInfo(diags, allDDRowVars.n());
+					mainLog.print("Embedded Markov chain: ");JDD.PrintInfo(emb, allDDRowVars.n()*2);
 					// compute unbounded until probs
 					tmpProbs = computeUntilProbs(emb, trans01, b1, b2);
 					JDD.Deref(diags);
@@ -1313,6 +1323,9 @@ public class StochModelChecker implements ModelChecker
 			JDD.Ref(trans);
 			JDD.Ref(diags);
 			emb = JDD.Apply(JDD.DIVIDE, trans, diags);
+			
+			mainLog.print("\nDiagonals vector: ");JDD.PrintInfo(diags, allDDRowVars.n());
+			mainLog.print("Embedded Markov chain: ");JDD.PrintInfo(emb, allDDRowVars.n()*2);
 			
 			// compute probabilities
 			try {
@@ -1436,6 +1449,9 @@ public class StochModelChecker implements ModelChecker
 		JDD.Ref(trans);
 		JDD.Ref(diags);
 		emb = JDD.Apply(JDD.DIVIDE, trans, diags);
+		
+		mainLog.print("\nDiagonals vector: ");JDD.PrintInfo(diags, allDDRowVars.n());
+		mainLog.print("Embedded Markov chain: ");JDD.PrintInfo(emb, allDDRowVars.n()*2);
 		
 		// convert rewards
 		JDD.Ref(stateRewards);
@@ -1576,6 +1592,9 @@ public class StochModelChecker implements ModelChecker
 			JDD.Ref(trans);
 			JDD.Ref(diags);
 			emb = JDD.Apply(JDD.DIVIDE, trans, diags);
+			
+			mainLog.print("\nDiagonals vector: ");JDD.PrintInfo(diags, allDDRowVars.n());
+			mainLog.print("Embedded Markov chain: ");JDD.PrintInfo(emb, allDDRowVars.n()*2);
 			
 			// compute probabilities of reaching each bscc...
 			for (i = 0; i < n; i++) {
@@ -1763,6 +1782,9 @@ public class StochModelChecker implements ModelChecker
 			JDD.Ref(trans);
 			JDD.Ref(diags);
 			emb = JDD.Apply(JDD.DIVIDE, trans, diags);
+			
+			mainLog.print("\nDiagonals vector: ");JDD.PrintInfo(diags, allDDRowVars.n());
+			mainLog.print("Embedded Markov chain: ");JDD.PrintInfo(emb, allDDRowVars.n()*2);
 			
 			// compute prob of reaching each bscc from initial state
 			probBSCCs = new double[n];
