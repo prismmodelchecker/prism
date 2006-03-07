@@ -199,10 +199,14 @@ default: all
 all: checks cuddpackage prism
 
 cuddpackage:
-	echo Making cudd ...; \
-	cd cudd && \
-	/bin/cp Makefile.$(OSTYPE) Makefile && \
-	$(MAKE)
+	@(if [ ! -h cudd ]; then \
+	  echo Making cudd ...; \
+	  cd cudd && \
+	  /bin/cp Makefile.$(OSTYPE) Makefile && \
+	  $(MAKE); \
+	else \
+	  echo Skipping cudd make since it is a symlink...; \
+	fi)
 
 prism: checks sortplugins make_dirs post_make
 
