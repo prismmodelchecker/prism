@@ -1,0 +1,153 @@
+CUDD
+====
+
+This is a modified version of CUDD 2.4.0.
+This directory contains copies of all modified files.
+The modifications are detailed below.
+The original files are in the directory orig.
+It also contains copies of Makefiles/scripts used to build CUDD successfully on several OSs.
+The following structural changes have also been made:
+ * ddmp/nanotrav/mnemosyne/obj/sis directories have been removed
+ * lib directory added with symlinks to lib files
+
+Commands to update
+------------------
+
+cd $CUDDDIR
+/bin/cp modified/Makefile.* .
+/bin/cp Makefile.linux Makefile
+/bin/cp modified/setup.sh .
+/bin/cp modified/cudd/cuddAddAbs.c cudd
+/bin/cp modified/cudd/cuddAddApply.c cudd
+/bin/cp modified/cudd/cuddAddNeg.c cudd
+/bin/cp modified/cudd/cuddExport.c cudd
+/bin/cp modified/cudd/cuddSat.c cudd
+/bin/cp modified/cudd/cuddTable.c cudd
+/bin/cp modified/cudd/cudd.h cudd
+/bin/cp modified/cudd/cuddInt.h cudd
+/bin/cp modified/util/Makefile util
+/bin/cp modified/util/cpu_time.c util
+/bin/cp modified/util/pipefork.c util
+
+Details
+-------
+
+[Makefile.*]
+
+* Tailored for different OSs: linux, solaris, cygwin/mingwin, darwin
+
+* Disabled building of dddmp/nanotrav/mnemosyne packages (don't need)
+
+------------------
+
+[setup.sh]
+
+* Don't create links for includes we don't use
+* Create links for libs too
+
+------------------
+
+[shutdown.sh]
+
+* Delete lib directory too
+
+------------------
+
+[cudd/cuddAddAbs.c]
+
+* Added 2 more abstraction functions to do min/max, ie:
+  Cudd_addMinAbstract()
+  Cudd_addMaxAbstract()
+  cuddAddMinAbstractRecur()
+  cuddAddMaxAbstractRecur()
+
+------------------
+
+[cudd/cuddAddApply.c]
+
+* Added the following functions to be used with Cudd_addApply()
+  Cudd_addEquals() - f op g = 1 if f==g else 0
+  Cudd_addNotEquals() - f op g = 1 if f!=g else 0
+  Cudd_addGreaterThan() - f op g = 1 if f>g else 0
+  Cudd_addGreaterThanEquals() - f op g = 1 if f>=g else 0
+  Cudd_addLessThan() - f op g = 1 if f<g else 0
+  Cudd_addLessThanEquals() - f op g = 1 if f<=g else 0
+  Cudd_addPow() - power
+  Cudd_addMod() - modulo
+  
+* Added the following functions to be used with Cudd_addMonadicApply()
+  Cudd_addFloor() - floor
+  Cudd_addCeil() - ceiling
+  
+------------------
+
+[cudd/cuddAddNeg.c]
+
+* Changed Cudd_addRoundOff (actually cuddAddRoundOffRecur) so that it rounds
+  properly to N decimal places rather than always rounding up.
+
+------------------
+
+[cudd/cuddExport.c]
+
+* Changed Cudd_DumpDot:
+  - dashed lines for else arcs changed to dotted (more readable on big graphs)
+  - the constant node 0 and all arcs to it are not printed
+  - labels on nodes omitted
+
+------------------
+
+[cudd/cuddSat.c]
+
+* Added the function Cudd_EqualSupNormRel()
+  It's very similar to Cudd_EqualSupNorm() but checks for relative difference
+  i.e. (f-g/f) < e instead of (f-g) < e
+
+------------------
+
+[cudd/cuddTable.c]
+
+* Changed cuddUniqueConst so that constants differing by very small amounts
+  end up in the same hash table
+
+------------------
+
+[cudd/{cudd.h,cuddInt.h}]
+
+* Added prototypes for:
+  Cudd_addMinAbstract()
+  Cudd_addMaxAbstract()
+  Cudd_addEquals()
+  Cudd_addNotEquals()
+  Cudd_addGreaterThan()
+  Cudd_addGreaterThanEquals()
+  Cudd_addLessThan()
+  Cudd_addLessThanEquals()
+  Cudd_addPow()
+  Cudd_addMod()
+  Cudd_addFloor()
+  Cudd_addCeil()
+  Cudd_EqualSupNormRel()
+  cuddAddMinAbstractRecur()
+  cuddAddMaxAbstractRecur()
+
+------------------
+
+[util/Makefile]
+
+* Disabled -DUNIX flag so that MingW version compiles OK.
+  Don't think we need anything that this adds in.
+
+------------------
+
+[util/cpu_time.c]
+
+* Extended util_cpu_time() function to work under MingW.
+
+------------------
+
+[util/pipefork.c]
+
+* Added #ifdef around #include of <sys/wait.h> so that MingW version
+  can specify that it doesn't have it.
+
