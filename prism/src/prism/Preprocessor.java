@@ -31,6 +31,7 @@ import parser.*;
 public class Preprocessor
 {
 	private final static char DELIMITER = '#';
+	private final static boolean IGNORE_COMMENTS = false;
 	
 	// logs
 	private PrismLog mainLog;		// main log
@@ -107,7 +108,7 @@ public class Preprocessor
 			s = in.readLine(); lineNum++;
 			while (s != null) {
 				// strip any comments
-				i = s.indexOf("//");
+				i = (IGNORE_COMMENTS) ? s.indexOf("//") : -1;
 				s2 = (i != -1) ? s.substring(0, i) : s;
 				// count delimiters
 				count = 0; i = -1; while ((i = s2.indexOf(DELIMITER, i+1)) != -1) count++;
@@ -147,7 +148,7 @@ public class Preprocessor
 			s = in.readLine(); lineNum++;
 			while (s != null) {
 				// split into non-comment(s1)/comment(s2)
-				i = s.indexOf("//");
+				i = (IGNORE_COMMENTS) ? s.indexOf("//") : -1;
 				s1 = (i != -1) ? s.substring(0, i) : s;
 				s2 = (i != -1) ? s.substring(i) : "";
 				// if there are delimiters no delimiters, move on
