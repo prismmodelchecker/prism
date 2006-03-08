@@ -1428,6 +1428,11 @@ public class PrismCL
 		mainLog.println("-transient <x> (or -tr <x>) .... Compute transient probabilities for time <x> (CTMCs only)");
 		mainLog.println();
 		mainLog.println("-importpepa .................... Model description is in PEPA, not the PRISM language");
+		mainLog.println("-importtrans <file> ............ Import the transition matrix directly from a text file");
+		mainLog.println("-importstates <file>............ Import the list of states directly from a text file");
+		mainLog.println("-dtmc .......................... Force imported/built model to be a DTMC");
+		mainLog.println("-ctmc .......................... Force imported/built model to be a CTMC");
+		mainLog.println("-mdp ........................... Force imported/built model to be an MDP");
 		mainLog.println();
 		mainLog.println("-exportresults <file> .......... Export the results of model checking to a file");
 		mainLog.println("-exporttrans <file> ............ Export the transition matrix to a file");
@@ -1470,6 +1475,7 @@ public class PrismCL
 		mainLog.println("-nofair ........................ Don't use fairness (when model checking PCTL on MDPs) [default]");
 		mainLog.println("-fixdl ......................... Automatically put self-loops in deadlock states");
 		mainLog.println("-nocompact ..................... Switch off \"compact\" sparse storage schemes");
+		mainLog.println("-noprobchecks .................. Disable checks on model probabilities/rates");
 		mainLog.println();
 		mainLog.println("-sbmax <n> ..................... Set memory limit (KB) (for hybrid engine) [default 1024]");
 		mainLog.println("-sbl <n> ....................... Set number of levels (for hybrid engine) [default -1]");
