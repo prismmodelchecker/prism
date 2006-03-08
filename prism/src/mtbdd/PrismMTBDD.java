@@ -1,15 +1,6 @@
 //==============================================================================
 //	
-//	File:		PrismMTBDD.java
-//	Authors:	Dave Parker and Gethin Norman
-//	Date:		15/06/00
-//	Desc:		Main Java file for mtbdd engine
-//				(JNI wrappers for get/set methods for package wide global variables)
-//				(JNI wrappers for blocks of mtbdd code)
-//	
-//------------------------------------------------------------------------------
-//	
-//	Copyright (c) 2002-2004, Dave Parker
+//	Copyright (c) 2002-2006, Dave Parker, Gethin Norman
 //	
 //	This file is part of PRISM.
 //	
@@ -314,21 +305,33 @@ public class PrismMTBDD
 	// export methods
 	//------------------------------------------------------------------------------
 
-	// export (probabilistic/dtmc)
-	private static native int PM_ProbExport(int trans, int rv, int nrv, int cv, int ncv, int odd, int exportType, String filename);
-	public static void ProbExport(JDDNode trans, JDDVars rows, JDDVars cols, ODDNode odd, int exportType, String filename) throws FileNotFoundException
+	// export vector
+	private static native int PM_ExportVector(int vector, String name, int vars, int nv, int odd, int exportType, String filename);
+	public static void ExportVector(JDDNode vector, String name, JDDVars vars, ODDNode odd, int exportType, String filename) throws FileNotFoundException
 	{
-		int res = PM_ProbExport(trans.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), odd.ptr(), exportType, filename);
+		int res = PM_ExportVector(vector.ptr(), name, vars.array(), vars.n(), odd.ptr(), exportType, filename);
 		if (res == -1) {
 			throw new FileNotFoundException();
 		}
 	}
 	
-	// export (stochastic/ctmc)
-	private static native int PM_StochExport(int trans, int rv, int nrv, int cv, int ncv, int odd, int exportType, String filename);
-	public static void StochExport(JDDNode trans, JDDVars rows, JDDVars cols, ODDNode odd, int exportType, String filename) throws FileNotFoundException
+	// export matrix
+	private static native int PM_ExportMatrix(int matrix, String name, int rv, int nrv, int cv, int ncv, int odd, int exportType, String filename);
+	public static void ExportMatrix(JDDNode matrix, String name, JDDVars rows, JDDVars cols, ODDNode odd, int exportType, String filename) throws FileNotFoundException
 	{
-		int res = PM_StochExport(trans.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), odd.ptr(), exportType, filename);
+		int res = PM_ExportMatrix(matrix.ptr(), name, rows.array(), rows.n(), cols.array(), cols.n(), odd.ptr(), exportType, filename);
+		if (res == -1) {
+			throw new FileNotFoundException();
+		}
+	}
+	
+	// export labels
+	private static native int PM_ExportLabels(int labels[], String labelNames[], String name, int vars, int nv, int odd, int exportType, String filename);
+	public static void ExportLabels(JDDNode labels[], String labelNames[], String name, JDDVars vars, ODDNode odd, int exportType, String filename) throws FileNotFoundException
+	{
+		int ptrs[] = new int[labels.length];
+		for (int i = 0; i < labels.length; i++) ptrs[i] = labels[i].ptr();
+		int res = PM_ExportLabels(ptrs, labelNames, name, vars.array(), vars.n(), odd.ptr(), exportType, filename);
 		if (res == -1) {
 			throw new FileNotFoundException();
 		}

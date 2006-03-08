@@ -30,7 +30,7 @@
 #include "hybrid.h"
 #include "PrismHybridGlob.h"
 
-#define MAX_LOG_STRING_LEN 255
+#define MAX_LOG_STRING_LEN 1024
 #define MAX_ERR_STRING_LEN 1024
 
 //------------------------------------------------------------------------------

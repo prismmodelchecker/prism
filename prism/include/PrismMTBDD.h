@@ -217,19 +217,27 @@ JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1StochTransient
 
 /*
  * Class:     mtbdd_PrismMTBDD
- * Method:    PM_ProbExport
- * Signature: (IIIIIIILjava/lang/String;)I
+ * Method:    PM_ExportVector
+ * Signature: (ILjava/lang/String;IIIILjava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1ProbExport
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jstring);
+JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1ExportVector
+  (JNIEnv *, jclass, jint, jstring, jint, jint, jint, jint, jstring);
 
 /*
  * Class:     mtbdd_PrismMTBDD
- * Method:    PM_StochExport
- * Signature: (IIIIIIILjava/lang/String;)I
+ * Method:    PM_ExportMatrix
+ * Signature: (ILjava/lang/String;IIIIIILjava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1StochExport
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jstring);
+JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1ExportMatrix
+  (JNIEnv *, jclass, jint, jstring, jint, jint, jint, jint, jint, jint, jstring);
+
+/*
+ * Class:     mtbdd_PrismMTBDD
+ * Method:    PM_ExportLabels
+ * Signature: ([I[Ljava/lang/String;Ljava/lang/String;IIIILjava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1ExportLabels
+  (JNIEnv *, jclass, jintArray, jobjectArray, jstring, jint, jint, jint, jint, jstring);
 
 /*
  * Class:     mtbdd_PrismMTBDD

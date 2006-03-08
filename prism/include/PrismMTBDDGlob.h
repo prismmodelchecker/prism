@@ -1,13 +1,6 @@
 //==============================================================================
 //										
-//	File:		PrismMTBDDGlob.h				
-//	Author:		Dave Parker						
-//	Date:		15/06/00						
-//	Desc:		Header file for MTBDD engine
-//										
-//------------------------------------------------------------------------------
-//
-//	Copyright (c) 2002, Dave Parker
+//	Copyright (c) 2002-2006, Dave Parker
 //
 //	This file is part of PRISM.
 //
@@ -28,6 +21,7 @@
 //==============================================================================
 
 #include <stdarg.h>
+#include <jni.h>
 
 //------------------------------------------------------------------------------
 
@@ -35,6 +29,8 @@
 
 const int EXPORT_PLAIN = 1;
 const int EXPORT_MATLAB = 2;
+const int EXPORT_DOT = 3;
+const int EXPORT_MRMC = 4;
 
 const int LIN_EQ_METHOD_POWER = 1;
 const int LIN_EQ_METHOD_JACOBI = 2;
@@ -65,11 +61,18 @@ extern int term_crit;
 extern double term_crit_param;
 extern int max_iters;
 
+// export stuff
+extern int export_type;
+extern FILE *export_file;
+extern JNIEnv *export_env;
+
 //------------------------------------------------------------------------------
 
 // function prototypes
 
 void PM_PrintToMainLog(JNIEnv *env, char *str, ...);
 void PM_PrintToTechLog(JNIEnv *env, char *str, ...);
+int store_export_info(int type, jstring fn, JNIEnv *env);
+void export_string(char *str, ...);
 
 //------------------------------------------------------------------------------

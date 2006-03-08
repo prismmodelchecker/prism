@@ -1,14 +1,6 @@
 //==============================================================================
 //	
-//	File:		PrismSparse.cc
-//	Author:		Dave Parker
-//	Date:		10/04/01
-//	Desc:		Main C++ file for sparse engine
-//				(package wide global variables and JNI get/set methods for them)
-//	
-//------------------------------------------------------------------------------
-//	
-//	Copyright (c) 2002-2004, Dave Parker
+//	Copyright (c) 2002-2006, Dave Parker
 //	
 //	This file is part of PRISM.
 //	
@@ -37,7 +29,7 @@
 #include <dd.h>
 #include "PrismSparseGlob.h"
 
-#define MAX_LOG_STRING_LEN 255
+#define MAX_LOG_STRING_LEN 1024
 
 //------------------------------------------------------------------------------
 // sparse engine global variables
@@ -66,6 +58,11 @@ int max_iters;
 
 // use "compact modified" sparse matrix storage?
 bool compact;
+
+// export stuff
+int export_type;
+FILE *export_file;
+JNIEnv *export_env;
 
 //------------------------------------------------------------------------------
 // cudd manager
@@ -192,6 +189,51 @@ JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetMaxIters(JNIEnv *env, jcla
 JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetCompact(JNIEnv *env, jclass cls, jboolean b)
 {
 	compact = b;
+}
+
+//------------------------------------------------------------------------------
+// export stuff
+//------------------------------------------------------------------------------
+
+// store export info globally
+// returns 0 on failure, 1 otherwise
+
+int store_export_info(int type, jstring fn, JNIEnv *env)
+{
+	export_type = type;
+	if (fn) {
+		const char *filename = env->GetStringUTFChars(fn, 0);
+		export_file = fopen(filename, "w");
+		if (!export_file) {
+			env->ReleaseStringUTFChars(fn, filename);
+			return 0;
+		}
+		env->ReleaseStringUTFChars(fn, filename);
+	} else {
+		export_file = NULL;
+	}
+	export_env = env;
+	return 1;
+}
+
+//------------------------------------------------------------------------------
+
+// export string (either to file or main log)
+
+void export_string(char *str, ...)
+{
+	va_list argptr;
+	char full_string[MAX_LOG_STRING_LEN];
+	
+	va_start(argptr, str);
+	vsnprintf(full_string, MAX_LOG_STRING_LEN, str, argptr);
+	va_end(argptr);
+	
+	if (export_file) {
+		fprintf(export_file, full_string);
+	} else {
+		PS_PrintToMainLog(export_env, full_string);
+	}
 }
 
 //------------------------------------------------------------------------------

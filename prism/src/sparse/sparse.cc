@@ -30,6 +30,7 @@
 // local function prototypes
 
 static void split_mdp_rec(DdManager *ddman, DdNode *dd, DdNode **ndvars, int num_ndvars, int level, DdNode **matrices);
+static void split_mdp_and_sub_mdp_rec(DdManager *ddman, DdNode *dd, DdNode *subdd, DdNode **ndvars, int num_ndvars, int level, DdNode **matrices, DdNode **submatrices);
 static void traverse_mtbdd_matr_rec(DdManager *ddman, DdNode *dd, DdNode **rvars, DdNode **cvars, int num_vars, int level, ODDNode *row, ODDNode *col, int r, int c, int code, bool transpose);
 static void traverse_mtbdd_vect_rec(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, int i, int code);
 
@@ -481,6 +482,131 @@ NDSparseMatrix *build_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode **r
 	return ndsm;
 }
 
+//-----------------------------------------------------------------------------------
+
+// Build nondeterministic (MDP) sparse matrix for "sub-MDP".
+// This function basically exists to construct a sparse matrix representing the transition rewards for an MDP.
+// The complication is that we need to use the nondeterministic choice indexing of the main
+// MDP matrix, not the rewards matrix, otherwise we can't tell which reward is on which transition.
+
+NDSparseMatrix *build_sub_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode *submdp, DdNode **rvars, DdNode **cvars, int num_vars, DdNode **ndvars, int num_ndvars, ODDNode *odd)
+{
+	int i, j, n, nm, nc, nnz, max, max2;
+	DdNode *tmp, **matrices, **submatrices, **matrices_bdds;
+	NDSparseMatrix *res;
+	
+	// create new data structure
+	ndsm = new NDSparseMatrix();
+	
+	// get number of states from odd
+	n = ndsm->n = odd->eoff+odd->toff;
+	// get num of choices (prob. distributions) (USING MDP)
+	Cudd_Ref(mdp);
+	tmp = DD_ThereExists(ddman, DD_Not(ddman, DD_Equals(ddman, mdp, 0)), cvars, num_vars);
+	nc = ndsm->nc = (int)DD_GetNumMinterms(ddman, tmp, num_vars+num_ndvars);
+	// get num of transitions (USING SUB-MDP)
+	nnz = ndsm->nnz = (int)DD_GetNumMinterms(ddman, submdp, num_vars*2+num_ndvars);
+	// break the two mtbdds (MDP AND SUB-MDP) into several (nm) mtbdds
+	tmp = DD_ThereExists(ddman, tmp, rvars, num_vars);
+	nm = (int)DD_GetNumMinterms(ddman, tmp, num_ndvars);
+	Cudd_RecursiveDeref(ddman, tmp);
+	matrices = new DdNode*[nm];
+	submatrices = new DdNode*[nm];
+	count = 0;
+	split_mdp_and_sub_mdp_rec(ddman, mdp, submdp, ndvars, num_ndvars, 0, matrices, submatrices);
+	// and for each one create a bdd storing which rows/choices are non-empty (USING MDP)
+	matrices_bdds = new DdNode*[nm];
+	for (i = 0; i < nm; i++) {
+		Cudd_Ref(matrices[i]);
+		matrices_bdds[i] = DD_ThereExists(ddman, DD_Not(ddman, DD_Equals(ddman, matrices[i], 0)), cvars, num_vars);
+	}
+	
+	// create arrays
+	ndsm->non_zeros = new double[nnz];
+	ndsm->cols = new unsigned int[nnz];
+	starts = new int[n+1];
+	starts2 = new int[nc+1];
+	
+	// first traverse mtbdds to compute how many choices are in each row (USING MDP)
+	for (i = 0; i < n+1; i++) starts[i] = 0;
+	for (i = 0; i < nm; i++) {
+		traverse_mtbdd_vect_rec(ddman, matrices_bdds[i], rvars, num_vars, 0, odd, 0, 1);
+	}
+	// and use this to compute the starts information
+	// (and at same time, compute max num choices in a state)
+	max = 0;
+	for (i = 1 ; i < n+1; i++) {
+		if (starts[i] > max) max = starts[i];
+		starts[i] += starts[i-1];
+	}
+	ndsm->k = max;
+	
+	// now traverse mtbdds to compute how many transitions in each choice (USING SUB-MDP)
+	for (i = 0; i < nc+1; i++) starts2[i] = 0;
+	for (i = 0; i < nm; i++) {
+		traverse_mtbdd_matr_rec(ddman, submatrices[i], rvars, cvars, num_vars, 0, odd, odd, 0, 0, 10, false);
+		traverse_mtbdd_vect_rec(ddman, matrices_bdds[i], rvars, num_vars, 0, odd, 0, 2);
+	}
+	// and use this to compute the starts2 information
+	// (and at same time, compute max num transitions in a choice)
+	max2 = 0;
+	for (i = 1; i < nc+1; i++) {
+		if (starts2[i] > max2) max2 = starts2[i];
+		starts2[i] += starts2[i-1];
+	}
+	// recompute starts (because we altered them during last traversal)
+	for (i = n; i > 0; i--) {
+		starts[i] = starts[i-1];
+	}
+	starts[0] = 0;
+	
+	// max num choices/transitions determines whether we store counts or starts:
+	ndsm->use_counts = (max < (unsigned int)(1 << (8*sizeof(unsigned char))));
+	ndsm->use_counts &= (max2 < (unsigned int)(1 << (8*sizeof(unsigned char))));
+	
+	// now traverse the mtbdd again to get the actual matrix entries (USING SUB-MDP)
+	for (i = 0; i < nm; i++) {
+		traverse_mtbdd_matr_rec(ddman, submatrices[i], rvars, cvars, num_vars, 0, odd, odd, 0, 0, 11, false);
+		traverse_mtbdd_vect_rec(ddman, matrices_bdds[i], rvars, num_vars, 0, odd, 0, 2);
+	}
+	// recompute starts (because we altered them during last traversal)
+	for (i = n; i > 0; i--) {
+		starts[i] = starts[i-1];
+	}
+	starts[0] = 0;
+	// recompute starts2 (likewise)
+	for (i = nc; i > 0; i--) {
+		starts2[i] = starts2[i-1];
+	}
+	starts2[0] = 0;
+	
+	// if it's safe to do so, replace starts/starts2 with (smaller) arrays of counts
+	if (ndsm->use_counts) {
+		ndsm->row_counts = new unsigned char[n];
+		for (i = 0; i < n; i++) ndsm->row_counts[i] = (unsigned char)(starts[i+1] - starts[i]);
+		delete starts;
+		ndsm->choice_counts = new unsigned char[nc];
+		for (i = 0; i < nc; i++) ndsm->choice_counts[i] = (unsigned char)(starts2[i+1] - starts2[i]);
+		delete starts2;
+		ndsm->mem = (nnz * (sizeof(double) + sizeof(unsigned int)) + (n+nc) * sizeof(unsigned char)) / 1024.0;
+	} else {
+		ndsm->row_counts = (unsigned char*)starts;
+		ndsm->choice_counts = (unsigned char*)starts2;
+		ndsm->mem = (nnz * (sizeof(double) + sizeof(unsigned int)) + (n+nc) * sizeof(int)) / 1024.0;
+	}
+	
+	// clear up memory
+	for (i = 0; i < nm; i++) {
+		Cudd_RecursiveDeref(ddman, matrices_bdds[i]);
+		// nb: don't delete matrices array because that was just pointers,  not new copies
+	}
+	delete matrices;
+	delete submatrices;
+	delete matrices_bdds;
+	
+	return ndsm;
+}
+
 //------------------------------------------------------------------------------
 
 void split_mdp_rec(DdManager *ddman, DdNode *dd, DdNode **ndvars, int num_ndvars, int level, DdNode **matrices)
@@ -507,6 +633,41 @@ void split_mdp_rec(DdManager *ddman, DdNode *dd, DdNode **ndvars, int num_ndvars
 	
 	split_mdp_rec(ddman, e, ndvars, num_ndvars, level+1, matrices);
 	split_mdp_rec(ddman, t, ndvars, num_ndvars, level+1, matrices);
+}
+
+void split_mdp_and_sub_mdp_rec(DdManager *ddman, DdNode *dd, DdNode *subdd, DdNode **ndvars, int num_ndvars, int level, DdNode **matrices, DdNode **submatrices)
+{
+	DdNode *e, *t, *e2, *t2;
+	
+	// base case - empty matrix
+	if (dd == Cudd_ReadZero(ddman)) return;
+	
+	// base case - nonempty matrix
+	if (level == num_ndvars) {
+		matrices[count] = dd;
+		submatrices[count] = subdd;
+		count++;
+		return;
+	}
+	
+	// recurse
+	if (dd->index > ndvars[level]->index) {
+		e = t = dd;
+	}
+	else {
+		e = Cudd_E(dd);
+		t = Cudd_T(dd);
+	}
+	if (subdd->index > ndvars[level]->index) {
+		e2 = t2 = subdd;
+	}
+	else {
+		e2 = Cudd_E(subdd);
+		t2 = Cudd_T(subdd);
+	}
+	
+	split_mdp_and_sub_mdp_rec(ddman, e, e2, ndvars, num_ndvars, level+1, matrices, submatrices);
+	split_mdp_and_sub_mdp_rec(ddman, t, t2, ndvars, num_ndvars, level+1, matrices, submatrices);
 }
 
 //------------------------------------------------------------------------------

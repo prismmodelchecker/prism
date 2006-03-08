@@ -44,12 +44,11 @@ public class GUIMultiModelHandler extends JPanel
     public static final int PRISM_MODE = 1;
     public static final int PEPA_MODE = 2;
     
-    public static final int MATLAB_EXPORT = 0;
-    public static final int DOT_EXPORT = 1;
-    public static final int PLAIN_EXPORT  = 2;
-    public static final int STATES_EXPORT  = 3;
-    public static final int PLAIN_ORD_EXPORT  = 4;
-    public static final int MATLAB_ORD_EXPORT = 5;
+	// export entity types
+	public static final int TRANS_EXPORT  = 1;
+	public static final int STATE_REWARDS_EXPORT  = 2;
+	public static final int TRANS_REWARDS_EXPORT  = 3;
+	public static final int STATES_EXPORT  = 4;
     
     public static final int DEFAULT_WAIT = 1000;
     
@@ -101,14 +100,13 @@ public class GUIMultiModelHandler extends JPanel
     private boolean buildAfterReceiveParseNotification = false;
     private boolean exportAfterReceiveParseNotification = false;
     private boolean exportAfterReceiveBuildNotification = false;
-    private boolean viewStatesAfterReceiveParseNotification = false;
-    private boolean viewStatesAfterReceiveBuildNotification = false;
     private boolean computeSSAfterReceiveParseNotification = false;
     private boolean computeSSAfterReceiveBuildNotification = false;
     private boolean computeTransientAfterReceiveParseNotification = false;
     private boolean computeTransientAfterReceiveBuildNotification = false;
+    private int exportEntity = 0;
+	private int exportType = Prism.EXPORT_PLAIN;
     private File exportFile = null;
-    private int exportType;
 	private double transientTime;
     
     //GUI
@@ -735,10 +733,6 @@ public class GUIMultiModelHandler extends JPanel
         {
             exportAfterParse();
         }
-        else if (viewStatesAfterReceiveParseNotification)
-        {
-            viewStatesAfterParse();
-        }
         else if (computeSSAfterReceiveParseNotification)
         {
             computeSteadyStateAfterParse();
@@ -782,7 +776,6 @@ public class GUIMultiModelHandler extends JPanel
         {
             buildAfterReceiveParseNotification = false;
             exportAfterReceiveParseNotification = false;
-            viewStatesAfterReceiveParseNotification = false;
             computeSSAfterReceiveParseNotification = false;
             computeTransientAfterReceiveParseNotification = false;
         }
@@ -848,10 +841,6 @@ public class GUIMultiModelHandler extends JPanel
         {
             exportAfterBuild();
         }
-        else if(viewStatesAfterReceiveBuildNotification)
-        {
-            viewStatesAfterBuild();
-        }
         else if(computeSSAfterReceiveBuildNotification)
         {
             computeSteadyStateAfterBuild();
@@ -869,10 +858,6 @@ public class GUIMultiModelHandler extends JPanel
         if(exportAfterReceiveBuildNotification)
         {
             exportAfterReceiveBuildNotification = false;
-        }
-        else if(viewStatesAfterReceiveBuildNotification)
-        {
-            viewStatesAfterReceiveBuildNotification = false;
         }
         else if(computeSSAfterReceiveBuildNotification)
         {
@@ -913,12 +898,13 @@ public class GUIMultiModelHandler extends JPanel
     
     // Export model...
     
-    public void exportBuild(File f, int type)
+    public void exportBuild(int entity, int type, File f)
     {
         // set flags/store info
         exportAfterReceiveParseNotification = true;
-        exportFile = f;
+        exportEntity = entity;
         exportType = type;
+        exportFile = f;
         // do a parse if necessary
         requestParse(false);
     }
@@ -946,79 +932,9 @@ public class GUIMultiModelHandler extends JPanel
     private void exportAfterBuild()
     {
         exportAfterReceiveBuildNotification = false;
-        if(exportFile != null)
-        {
-            new ExportBuiltModelThread(this, builtModel, exportFile, exportType).start();
-            exportFile = null;
-        }
-    }
-    
-    // View states...
-    
-    public void requestViewStates()
-    {
-        // set flag
-        viewStatesAfterReceiveParseNotification = true;
-        // do a parse if necessary
-        requestParse(false);
-    }
-    
-    private void viewStatesAfterParse()
-    {
-        UndefinedConstants unC;
-        Values buildValues = null;
-        
-        // switch off flag
-        viewStatesAfterReceiveParseNotification = false;
-        // get values for undefined consts
-        unC = new UndefinedConstants(parsedModel, null);
-        if(unC.getMFNumUndefined() > 0)
-        {
-            int result = GUIConstantsPicker.defineConstantsWithDialog(getGUIPlugin().getGUI(), unC, lastBuildValues, null);
-            if (result != GUIConstantsPicker.VALUES_DONE) return;
-        }
-        buildValues = unC.getMFConstantValues();
-        // request build
-        viewStatesAfterReceiveBuildNotification = true;
-        requestBuild(buildValues, false);
-    }
-    
-    private void viewStatesAfterBuild()
-    {
-        viewStatesAfterReceiveBuildNotification = false;
-        Thread t = new Thread(new Runnable()
-        { public void run()
-          {
-              try
-              {
-                  // notify interface
-                  SwingUtilities.invokeAndWait(new Runnable()
-                  { public void run()
-                    {
-                        theModel.logToFront();
-                        theModel.startProgress();
-                        theModel.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_START, theModel));
-                        theModel.setTaskBarText("Showing states...");
-                    }});
-                    // print to log
-                    builtModel.getReachableStates().print(theModel.getGUI().getLog());
-                    // notify interface
-                    SwingUtilities.invokeAndWait(new Runnable()
-                    { public void run()
-                      {
-                          theModel.stopProgress();
-                          theModel.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, theModel));
-                          theModel.setTaskBarText("Showing states... done.");
-                      }});
-              }
-              // catch and ignore any thread exceptions
-              catch (java.lang.InterruptedException e)
-              {}
-              catch (java.lang.reflect.InvocationTargetException e)
-              {}
-          }});
-          t.start();
-          theModel.doEnables();
+        new ExportBuiltModelThread(this, builtModel, exportEntity, exportType, exportFile).start();
+        // if export is being done to log, switch view to log
+        if (exportFile == null) theModel.logToFront();
     }
     
     // Compute steady-state...

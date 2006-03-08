@@ -1,13 +1,6 @@
 //==============================================================================
 //										
-//	File:		PrismSparseGlob.h				
-//	Author:		Dave Parker						
-//	Date:		10/04/01					
-//	Desc:		Header file for sparse engine
-//										
-//------------------------------------------------------------------------------
-//
-//	Copyright (c) 2002, Dave Parker
+//	Copyright (c) 2002-2006, Dave Parker
 //
 //	This file is part of PRISM.
 //
@@ -36,6 +29,8 @@
 
 const int EXPORT_PLAIN = 1;
 const int EXPORT_MATLAB = 2;
+const int EXPORT_DOT = 3;
+const int EXPORT_MRMC = 4;
 
 const int LIN_EQ_METHOD_POWER = 1;
 const int LIN_EQ_METHOD_JACOBI = 2;
@@ -69,6 +64,11 @@ extern int max_iters;
 // use "compact modified" sparse matrix storage?
 extern bool compact;
 
+// export stuff
+extern int export_type;
+extern FILE *export_file;
+extern JNIEnv *export_env;
+
 //------------------------------------------------------------------------------
 
 // macros, function prototypes
@@ -76,5 +76,7 @@ extern bool compact;
 #define logtwo(X) log(X)/log(2)
 void PS_PrintToMainLog(JNIEnv *env, char *str, ...);
 void PS_PrintToTechLog(JNIEnv *env, char *str, ...);
+int store_export_info(int type, jstring fn, JNIEnv *env);
+void export_string(char *str, ...);
 
 //------------------------------------------------------------------------------

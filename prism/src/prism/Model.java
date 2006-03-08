@@ -89,6 +89,8 @@ public interface Model
 	void printTrans01();
 	void printTransInfo(PrismLog log);
 	void exportToFile(int exportType, boolean explicit, File file) throws FileNotFoundException;
+	void exportStateRewardsToFile(int exportType, File file) throws FileNotFoundException, PrismException;
+	void exportTransRewardsToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException;
 
 	void clear();
 }

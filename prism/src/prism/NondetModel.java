@@ -1,6 +1,6 @@
 //==============================================================================
 //	
-//	Copyright (c) 2002-2004, Dave Parker
+//	Copyright (c) 2002-2006, Dave Parker
 //	
 //	This file is part of PRISM.
 //	
@@ -27,6 +27,7 @@ import java.util.Vector;
 
 import jdd.*;
 import odd.*;
+import mtbdd.*;
 import parser.*;
 import sparse.*;
 
@@ -303,7 +304,7 @@ public class NondetModel implements Model
 		}
 	}
 
-	// export to a file
+	// export transition matrix to a file
 	
 	public void exportToFile(int exportType, boolean explicit, File file) throws FileNotFoundException
 	{
@@ -311,7 +312,30 @@ public class NondetModel implements Model
 			// can only do explicit (sparse matrix based) export for mdps
 		}
 		else {
-			PrismSparse.NondetExport(trans, allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType, file.getPath());
+			PrismSparse.ExportMDP(trans, "S", allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType, (file != null)?file.getPath():null);
+		}
+	}
+
+	// export state rewards vector to a file
+	
+	public void exportStateRewardsToFile(int exportType, File file) throws FileNotFoundException, PrismException
+	{
+		if (stateRewards == null || stateRewards.equals(JDD.ZERO)) throw new PrismException("There are no state rewards to export");
+		
+		PrismMTBDD.ExportVector(stateRewards, "c", allDDRowVars, odd, exportType, (file != null)?file.getPath():null);
+	}
+
+	// export transition rewards matrix to a file
+	
+	public void exportTransRewardsToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException
+	{
+		if (transRewards == null || transRewards.equals(JDD.ZERO)) throw new PrismException("There are no transition rewards to export");
+		
+		if (!explicit) {
+			// can only do explicit (sparse matrix based) export for mdps
+		}
+		else {
+			PrismSparse.ExportSubMDP(trans, transRewards, "C", allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType, (file != null)?file.getPath():null);
 		}
 	}
 

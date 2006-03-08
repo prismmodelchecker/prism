@@ -1,13 +1,6 @@
 //==============================================================================
 //	
-//	File:		PS_NondetExport.cc
-//	Date:		17/12/03
-//	Author:		Dave Parker
-//	Desc:		Export nondeterministic model (MDP) to a file
-//	
-//------------------------------------------------------------------------------
-//	
-//	Copyright (c) 2002-2004, Dave Parker
+//	Copyright (c) 2002-2006, Dave Parker
 //	
 //	This file is part of PRISM.
 //	
@@ -38,11 +31,12 @@
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1NondetExport
+JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1ExportMDP
 (
 JNIEnv *env,
 jclass cls,
-jint t,			// trans matrix
+jint m,			// mdp
+jstring na, 	// mdp name
 jint rv,		// row vars
 jint num_rvars,
 jint cv,		// col vars
@@ -54,9 +48,9 @@ jint et,		// export type
 jstring fn		// filename
 )
 {
-	DdNode *trans = (DdNode *)t;	// trans matrix
-	DdNode **rvars = (DdNode **)rv; // row vars
-	DdNode **cvars = (DdNode **)cv; // col vars
+	DdNode *mdp = (DdNode *)m;			// mdp
+	DdNode **rvars = (DdNode **)rv;		// row vars
+	DdNode **cvars = (DdNode **)cv;		// col vars
 	DdNode **ndvars = (DdNode **)ndv;	// nondet vars
 	ODDNode *odd = (ODDNode *)od;
 	// sparse matrix
@@ -64,24 +58,23 @@ jstring fn		// filename
 	// model stats
 	int i, j, k, n, nc, l1, h1, l2, h2;
 	long nnz;
+	const char *export_name;
 	
-	const char *filename = env->GetStringUTFChars(fn, 0);
-	FILE *file = fopen(filename, "w");
-	if (!file) {
-		env->ReleaseStringUTFChars(fn, filename);
-		return -1;
-	}
+	// store export info
+	if (!store_export_info(et, fn, env)) return -1;
+	export_name = na ? env->GetStringUTFChars(na, 0) : "S";
 	
 	// build sparse matrix
-	ndsm = build_nd_sparse_matrix(ddman, trans, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
+	ndsm = build_nd_sparse_matrix(ddman, mdp, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
 	n = ndsm->n;
 	nnz = ndsm->nnz;
 	nc = ndsm->nc;
 	
 	// print file header
-	switch (et) {
-	case EXPORT_PLAIN: fprintf(file, "%d %d %d\n", n, nc, nnz); break;
-	case EXPORT_MATLAB: for (i = 0; i < ndsm->k; i++) fprintf(file, "S%d = sparse(%d,%d);\n", i+1, n, n); break;
+	switch (export_type) {
+	case EXPORT_PLAIN: export_string("%d %d %d\n", n, nc, nnz); break;
+	case EXPORT_MATLAB: for (i = 0; i < ndsm->k; i++) export_string("%s%d = sparse(%d,%d);\n", export_name, i+1, n, n); break;
+	case EXPORT_DOT: export_string("digraph %s {\nsize=\"8,5\"\norientation=land;\nnode [shape = circle];\n", export_name); break;
 	}
 	
 	// print main part of file
@@ -102,16 +95,23 @@ jstring fn		// filename
 			if (!use_counts) { l2 = choice_starts[j]; h2 = choice_starts[j+1]; }
 			else { l2 = h2; h2 += choice_counts[j]; }
 			for (k = l2; k < h2; k++) {
-				switch (et) {
-				case EXPORT_PLAIN: fprintf(file, "%d %d %d %.12f\n", i, j-l1, cols[k], non_zeros[k]); break;
-				case EXPORT_MATLAB: fprintf(file, "S%d(%d,%d)=%.12f;\n", j-l1+1, i+1, cols[k]+1, non_zeros[k]); break;
+				switch (export_type) {
+				case EXPORT_PLAIN: export_string("%d %d %d %.12g\n", i, j-l1, cols[k], non_zeros[k]); break;
+				case EXPORT_MATLAB: export_string("%s%d(%d,%d)=%.12g;\n", export_name, j-l1+1, i+1, cols[k]+1, non_zeros[k]); break;
+				case EXPORT_DOT: export_string("%d -> %d [ label=\"%d: %.12g\" ];\n", i, cols[k], j-l1, non_zeros[k]); break;
 				}
 			}
 		}
 	}
 	
-	fclose(file);
-	env->ReleaseStringUTFChars(fn, filename);
+	// print file footer
+	switch (export_type) {
+	case EXPORT_DOT: export_string("}\n"); break;
+	}
+	
+	// close file, etc.
+	if (export_file) fclose(export_file);
+	env->ReleaseStringUTFChars(na, export_name);
 	
 	return 0;
 }

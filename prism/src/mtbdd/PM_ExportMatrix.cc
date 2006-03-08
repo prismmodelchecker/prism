@@ -1,13 +1,6 @@
 //==============================================================================
 //	
-//	File:		PM_ProbExport.cc
-//	Date:		17/12/03
-//	Author:		Dave Parker
-//	Desc:		Export probabilistic model (DTMC) to a file
-//	
-//------------------------------------------------------------------------------
-//	
-//	Copyright (c) 2002-2004, Dave Parker
+//	Copyright (c) 2002-2006, Dave Parker
 //	
 //	This file is part of PRISM.
 //	
@@ -38,17 +31,19 @@
 //------------------------------------------------------------------------------
 
 // local function prototypes
+static void export_rec(DdNode *dd, DdNode **rvars, DdNode **cvars, int num_vars, int level, ODDNode *row, ODDNode *col, long r, long c);
 
-static void prob_export_rec(DdNode *dd, DdNode **rvars, DdNode **cvars, int num_vars, int level, ODDNode *row, ODDNode *col, long r, long c, FILE *file);
-static int exporttype;
+// globals
+static const char *export_name;
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1ProbExport
+JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1ExportMatrix
 (
 JNIEnv *env,
 jclass cls,
-jint t,			// trans matrix
+jint m,			// matrix
+jstring na,		// matrix name
 jint rv,		// row vars
 jint num_rvars,
 jint cv,		// col vars
@@ -58,48 +53,52 @@ jint et,		// export type
 jstring fn		// filename
 )
 {
-	DdNode *trans = (DdNode *)t;	// trans matrix
+	DdNode *matrix = (DdNode *)m;	// matrix
 	DdNode **rvars = (DdNode **)rv; // row vars
 	DdNode **cvars = (DdNode **)cv; // col vars
 	ODDNode *odd = (ODDNode *)od;
 	
-	const char *filename = env->GetStringUTFChars(fn, 0);
-	FILE *file = fopen(filename, "w");
-	if (!file) {
-		env->ReleaseStringUTFChars(fn, filename);
-		return -1;
-	}
-	exporttype = et;
+	// store export info
+	if (!store_export_info(et, fn, env)) return -1;
+	export_name = na ? env->GetStringUTFChars(na, 0) : "M";
 	
 	// print file header
-	switch (exporttype) {
-	case EXPORT_PLAIN: fprintf(file, "%d %.0f\n", odd->eoff+odd->toff, DD_GetNumMinterms(ddman, trans, num_rvars+num_cvars)); break;
-	case EXPORT_MATLAB: fprintf(file, "P = sparse(%d,%d);\n", odd->eoff+odd->toff, odd->eoff+odd->toff); break;
+	switch (export_type) {
+	case EXPORT_PLAIN: export_string("%d %.0f\n", odd->eoff+odd->toff, DD_GetNumMinterms(ddman, matrix, num_rvars+num_cvars)); break;
+	case EXPORT_MATLAB: export_string("%s = sparse(%d,%d);\n", export_name, odd->eoff+odd->toff, odd->eoff+odd->toff); break;
+	case EXPORT_DOT: export_string("digraph %s {\nsize=\"8,5\"\norientation=land;\nnode [shape = circle];\n", export_name); break;
 	}
 	
 	// print main part of file
-	prob_export_rec(trans, rvars, cvars, num_rvars, 0, odd, odd, 0, 0, file);
+	export_rec(matrix, rvars, cvars, num_rvars, 0, odd, odd, 0, 0);
 	
-	fclose(file);
-	env->ReleaseStringUTFChars(fn, filename);
+	// print file footer
+	switch (export_type) {
+	case EXPORT_DOT: export_string("}\n"); break;
+	}
+	
+	// close file, etc.
+	if (export_file) fclose(export_file);
+	env->ReleaseStringUTFChars(na, export_name);
 	
 	return 0;
 }
 
 //------------------------------------------------------------------------------
 
-void prob_export_rec(DdNode *dd, DdNode **rvars, DdNode **cvars, int num_vars, int level, ODDNode *row, ODDNode *col, long r, long c, FILE *file)
+void export_rec(DdNode *dd, DdNode **rvars, DdNode **cvars, int num_vars, int level, ODDNode *row, ODDNode *col, long r, long c)
 {
 	DdNode *e, *t, *ee, *et, *te, *tt;
-
+	
 	// base case - zero terminal
 	if (dd == Cudd_ReadZero(ddman)) return;
 	
 	// base case - non zero terminal
 	if (level == num_vars) {
-		switch (exporttype) {
-			case EXPORT_PLAIN: fprintf(file, "%d %d %.12f\n", r, c, Cudd_V(dd)); break;
-			case EXPORT_MATLAB: fprintf(file, "P(%d,%d)=%.12f;\n", r+1, c+1, Cudd_V(dd)); break;
+		switch (export_type) {
+		case EXPORT_PLAIN: export_string("%d %d %.12g\n", r, c, Cudd_V(dd)); break;
+		case EXPORT_MATLAB: export_string("%s(%d,%d)=%.12g;\n", export_name, r+1, c+1, Cudd_V(dd)); break;
+		case EXPORT_DOT: export_string("%d -> %d [ label=\"%.12g\" ];\n", r, c, Cudd_V(dd)); break;
 		}
 		return;
 	}
@@ -131,10 +130,10 @@ void prob_export_rec(DdNode *dd, DdNode **rvars, DdNode **cvars, int num_vars, i
 		}
 	}
 
-	prob_export_rec(ee, rvars, cvars, num_vars, level+1, row->e, col->e, r, c, file);
-	prob_export_rec(et, rvars, cvars, num_vars, level+1, row->e, col->t, r, c+col->eoff, file);
-	prob_export_rec(te, rvars, cvars, num_vars, level+1, row->t, col->e, r+row->eoff, c, file);
-	prob_export_rec(tt, rvars, cvars, num_vars, level+1, row->t, col->t, r+row->eoff, c+col->eoff, file);
+	export_rec(ee, rvars, cvars, num_vars, level+1, row->e, col->e, r, c);
+	export_rec(et, rvars, cvars, num_vars, level+1, row->e, col->t, r, c+col->eoff);
+	export_rec(te, rvars, cvars, num_vars, level+1, row->t, col->e, r+row->eoff, c);
+	export_rec(tt, rvars, cvars, num_vars, level+1, row->t, col->t, r+row->eoff, c+col->eoff);
 }
 
 //------------------------------------------------------------------------------

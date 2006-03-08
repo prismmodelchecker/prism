@@ -1,13 +1,6 @@
 //==============================================================================
 //	
-//	File:		PS_ProbExport.cc
-//	Date:		17/12/03
-//	Author:		Dave Parker
-//	Desc:		Export probabilistic model (DTMC) to a file
-//	
-//------------------------------------------------------------------------------
-//	
-//	Copyright (c) 2002-2004, Dave Parker
+//	Copyright (c) 2002-2006, Dave Parker
 //	
 //	This file is part of PRISM.
 //	
@@ -38,11 +31,12 @@
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1ProbExport
+JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1ExportMatrix
 (
 JNIEnv *env,
 jclass cls,
-jint t,			// trans matrix
+jint m,			// matrix
+jstring na,		// matrix name
 jint rv,		// row vars
 jint num_rvars,
 jint cv,		// col vars
@@ -52,7 +46,7 @@ jint et,		// export type
 jstring fn		// filename
 )
 {
-	DdNode *trans = (DdNode *)t;	// trans matrix
+	DdNode *matrix = (DdNode *)m;	// matrix
 	DdNode **rvars = (DdNode **)rv; // row vars
 	DdNode **cvars = (DdNode **)cv; // col vars
 	ODDNode *odd = (ODDNode *)od;
@@ -64,19 +58,17 @@ jstring fn		// filename
 	// model stats
 	int n, nnz, i, j, l, h, r, c;
 	double d;
+	const char *export_name;
 	
-	const char *filename = env->GetStringUTFChars(fn, 0);
-	FILE *file = fopen(filename, "w");
-	if (!file) {
-		env->ReleaseStringUTFChars(fn, filename);
-		return -1;
-	}
+	// store export info
+	if (!store_export_info(et, fn, env)) return -1;
+	export_name = na ? env->GetStringUTFChars(na, 0) : "M";
 	
 	// build sparse matrix
 	// if requested, try and build a "compact" version
 	compact_tr = true;
 	cmsrsm = NULL;
-	if (compact) cmsrsm = build_cmsr_sparse_matrix(ddman, trans, rvars, cvars, num_rvars, odd);
+	if (compact) cmsrsm = build_cmsr_sparse_matrix(ddman, matrix, rvars, cvars, num_rvars, odd);
 	if (cmsrsm != NULL) {
 		n = cmsrsm->n;
 		nnz = cmsrsm->nnz;
@@ -84,15 +76,17 @@ jstring fn		// filename
 	// if not or if it wasn't possible, built a normal one
 	else {
 		compact_tr = false;
-		rmsm = build_rm_sparse_matrix(ddman, trans, rvars, cvars, num_rvars, odd);
+		rmsm = build_rm_sparse_matrix(ddman, matrix, rvars, cvars, num_rvars, odd);
 		n = rmsm->n;
 		nnz = rmsm->nnz;
 	}
 	
 	// print file header
-	switch (et) {
-	case EXPORT_PLAIN: fprintf(file, "%d %d\n", n, nnz); break;
-	case EXPORT_MATLAB: fprintf(file, "P = sparse(%d,%d);\n", n, n); break;
+	switch (export_type) {
+	case EXPORT_PLAIN: export_string("%d %d\n", n, nnz); break;
+	case EXPORT_MATLAB: export_string("%s = sparse(%d,%d);\n", export_name, n, n); break;
+	case EXPORT_DOT: export_string("digraph %s {\nsize=\"8,5\"\norientation=land;\nnode [shape = circle];\n", export_name); break;
+	case EXPORT_MRMC: export_string("STATES %d\nTRANSITIONS %d\n", n, nnz); break;
 	}
 	
 	// print main part of file
@@ -137,15 +131,23 @@ jstring fn		// filename
 				c = (int)(cols[j] >> dist_shift);
 				d = dist[(int)(cols[j] & dist_mask)];
 			}
-			switch (et) {
-			case EXPORT_PLAIN: fprintf(file, "%d %d %.12f\n", r, c, d); break;
-			case EXPORT_MATLAB: fprintf(file, "P(%d,%d)=%.12f;\n", r+1, c+1, d);
+			switch (export_type) {
+			case EXPORT_PLAIN: export_string("%d %d %.12g\n", r, c, d); break;
+			case EXPORT_MATLAB: export_string("%s(%d,%d)=%.12g;\n", export_name, r+1, c+1, d); break;
+			case EXPORT_DOT: export_string("%d -> %d [ label=\"%.12g\" ];\n", r, c, d); break;
+			case EXPORT_MRMC: export_string("%d %d %.12g\n", r+1, c+1, d); break;
 			}
 		}
 	}
 	
-	fclose(file);
-	env->ReleaseStringUTFChars(fn, filename);
+	// print file footer
+	switch (export_type) {
+	case EXPORT_DOT: export_string("}\n"); break;
+	}
+	
+	// close file, etc.
+	if (export_file) fclose(export_file);
+	env->ReleaseStringUTFChars(na, export_name);
 	
 	return 0;
 }

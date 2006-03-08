@@ -1,13 +1,6 @@
 //==============================================================================
 //										
-//	File:		PrismHybridGlob.h				
-//	Author:		Dave Parker						
-//	Date:		15/06/00						
-//	Desc:		Header file for hybrid engine
-//										
-//------------------------------------------------------------------------------
-//
-//	Copyright (c) 2002, Dave Parker
+//	Copyright (c) 2002-2006, Dave Parker
 //
 //	This file is part of PRISM.
 //

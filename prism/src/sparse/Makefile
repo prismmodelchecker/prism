@@ -34,7 +34,7 @@ PrismSparse.java
 CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class)
 
 CC_FILES = \
-PrismSparse.cc PS_JOR.cc PS_NondetBoundedUntil.cc PS_NondetExport.cc PS_NondetReachReward.cc PS_NondetUntil.cc PS_Power.cc PS_ProbBoundedUntil.cc PS_ProbExport.cc PS_ProbReachReward.cc PS_ProbUntil.cc PS_SOR.cc PS_StochBoundedUntil.cc PS_StochCumulReward.cc PS_StochExport.cc PS_StochSteadyState.cc PS_StochTransient.cc sparse.cc
+PrismSparse.cc PS_ExportMatrix.cc PS_ExportMDP.cc PS_ExportSubMDP.cc PS_JOR.cc PS_NondetBoundedUntil.cc PS_NondetReachReward.cc PS_NondetUntil.cc PS_Power.cc PS_ProbBoundedUntil.cc PS_ProbReachReward.cc PS_ProbUntil.cc PS_SOR.cc PS_StochBoundedUntil.cc PS_StochCumulReward.cc PS_StochSteadyState.cc PS_StochTransient.cc sparse.cc
 #echo `/bin/ls *.cc`
 #CC_FILES:sh = /bin/ls *.cc
 #CC_FILES = $(wildcard *.cc)

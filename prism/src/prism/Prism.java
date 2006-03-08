@@ -1,6 +1,6 @@
 //==============================================================================
 //
-//	Copyright (c) 2002-2005, Dave Parker, Andrew Hinton
+//	Copyright (c) 2002-2006, Dave Parker, Andrew Hinton
 //
 //	This file is part of PRISM.
 //
@@ -42,7 +42,7 @@ import simulator.*;
 public class Prism
 {
 	// prism version
-	private static final String version = "2.1.dev11.sim8";
+	private static final String version = "2.1.dev11.sim9";
 	
 	//------------------------------------------------------------------------------
 	// Constants
@@ -73,6 +73,8 @@ public class Prism
 	// options for model matrix export
 	public static final int EXPORT_PLAIN = 1;
 	public static final int EXPORT_MATLAB = 2;
+	public static final int EXPORT_DOT = 3;
+	public static final int EXPORT_MRMC = 4;
 	
 	//------------------------------------------------------------------------------
 	// Settings / flags / options
@@ -803,29 +805,193 @@ public class Prism
 		JDD.ExportDDToDotFileLabelled(model.getTrans(), file.getPath(), model.getDDVarNames());
 	}
 	
-	// export trans to a file (plain, matlab, ...)
+	// alias for export transition matrix to a file (plain, matlab, ...)
 	
 	public void exportToFile(Model model, boolean ordered, int exportType, File file) throws FileNotFoundException
+	{ exportTransToFile(model, ordered, exportType, file); }
+	
+	// export transition matrix to a file (plain, matlab, ...)
+	
+	public void exportTransToFile(Model model, boolean ordered, int exportType, File file) throws FileNotFoundException
 	{
-		// print message
-		switch (exportType)
-		{
-			case EXPORT_PLAIN: mainLog.println("\nExporting to plain text file \"" + file + "\"..."); break;
-			case EXPORT_MATLAB: mainLog.println("\nExporting to Matlab file \"" + file + "\"..."); break;
-			default: mainLog.println("\nWarning: Did not perform export (unrecognised type)"); return;
-		}
-		
-		// can only do ordered version of export for mdps
-		if (model instanceof NondetModel)
-		{
-			if (!ordered) mainLog.println("\nWarning: Performing ordered export (only choice for MDPs)");
+		// can only do ordered version of export for MDPs
+		if (model instanceof NondetModel) {
+			if (!ordered) mainLog.println("\nWarning: Cannot export unordered transition matrix for MDPs; using ordered.");
 			ordered = true;
 		}
+		// can only do ordered version of export for MRMC
+		if (exportType == EXPORT_MRMC) {
+			if (!ordered) mainLog.println("\nWarning: Cannot export unordered transition matrix in MRMC format; using ordered.");
+			ordered = true;
+		}
+		
+		// print message
+		mainLog.print("\nExporting transition matrix ");
+		switch (exportType) {
+		case EXPORT_PLAIN: mainLog.print("in plain text format "); break;
+		case EXPORT_MATLAB: mainLog.print("in Matlab format "); break;
+		case EXPORT_DOT: mainLog.print("in Dot format "); break;
+		case EXPORT_MRMC: mainLog.print("in MRMC format "); break;
+		}
+		if (file != null) mainLog.println("to file \"" + file + "\"..."); else mainLog.println("below:");
 		
 		// do export
 		model.exportToFile(exportType, ordered, file);
 	}
+
+	// export state rewards to a file (plain, matlab, ...)
 	
+	public void exportStateRewardsToFile(Model model, int exportType, File file) throws FileNotFoundException, PrismException
+	{
+		// print message
+		mainLog.print("\nExporting state rewards vector ");
+		switch (exportType) {
+		case EXPORT_PLAIN: mainLog.print("in plain text format "); break;
+		case EXPORT_MATLAB: mainLog.print("in Matlab format "); break;
+		case EXPORT_MRMC: mainLog.print("in MRMC format "); break;
+		}
+		if (file != null) mainLog.println("to file \"" + file + "\"..."); else mainLog.println("below:");
+		
+		// do export
+		model.exportStateRewardsToFile(exportType, file);
+	}
+
+	// export transition rewards to a file (plain, matlab, ...)
+	
+	public void exportTransRewardsToFile(Model model, boolean ordered, int exportType, File file) throws FileNotFoundException, PrismException
+	{
+		// can only do ordered version of export for MDPs
+		if (model instanceof NondetModel) {
+			if (!ordered) mainLog.println("\nWarning: Cannot export unordered transition reward matrix for MDPs; using ordered");
+			ordered = true;
+		}
+		// can only do ordered version of export for MRMC
+		if (exportType == EXPORT_MRMC) {
+			if (!ordered) mainLog.println("\nWarning: Cannot export unordered transition reward matrix in MRMC format; using ordered");
+			ordered = true;
+		}
+		
+		// print message
+		mainLog.print("\nExporting transition rewards matrix ");
+		switch (exportType) {
+		case EXPORT_PLAIN: mainLog.print("in plain text format "); break;
+		case EXPORT_MATLAB: mainLog.print("in Matlab format "); break;
+		case EXPORT_MRMC: mainLog.print("in MRMC format "); break;
+		}
+		if (file != null) mainLog.println("to file \"" + file + "\"..."); else mainLog.println("below:");
+		
+		// do export
+		model.exportTransRewardsToFile(exportType, ordered, file);
+	}
+
+	// export states list to a file (plain, matlab, ...)
+	// file == null mean export to log
+	
+	public void exportStatesToFile(Model model, int exportType, File file) throws FileNotFoundException
+	{
+		int i;
+		PrismLog tmpLog;
+		
+		// no specific format for MRMC
+		if (exportType == EXPORT_MRMC) exportType = EXPORT_PLAIN;
+		
+		// print message
+		mainLog.print("\nExporting list of reachable states ");
+		switch (exportType) {
+		case EXPORT_PLAIN: mainLog.print("in plain text format "); break;
+		case EXPORT_MATLAB: mainLog.print("in Matlab format "); break;
+		}
+		if (file != null) mainLog.println("to file \"" + file + "\"..."); else mainLog.println("below:");
+		
+		// create new file log or use main log
+		if (file != null) {
+			tmpLog = new PrismFileLog(file.getPath());
+			if (!tmpLog.ready()) {
+				throw new FileNotFoundException();
+			}
+		} else {
+			tmpLog = mainLog;
+		}
+		
+		// print header: list of model vars
+		if (exportType == EXPORT_MATLAB) tmpLog.print("% ");
+		tmpLog.print("(");
+		for (i = 0; i < model.getNumVars(); i++) {
+			tmpLog.print(model.getVarName(i));
+			if (i < model.getNumVars()-1) tmpLog.print(",");
+		}
+		tmpLog.println(")");
+		if (exportType == EXPORT_MATLAB) tmpLog.println("states=[");
+		
+		// print states
+		if (exportType != EXPORT_MATLAB)
+			model.getReachableStates().print(tmpLog);
+		else
+			model.getReachableStates().printMatlab(tmpLog);
+		
+		// print footer
+		if (exportType == EXPORT_MATLAB) tmpLog.println("];");
+		
+		// tidy up
+		if (file != null) tmpLog.close();
+	}
+
+	// export labels and satisfying states to a file
+	// file == null mean export to log
+	
+	public void exportLabelsToFile(Model model, PropertiesFile propertiesFile, int exportType, File file) throws FileNotFoundException, PrismException
+	{
+		int i, n;
+		LabelList ll;
+		Expression expr;
+		Values constantValues;
+		Expression2MTBDD expr2mtbdd;
+		JDDNode dd, labels[];
+		String labelNames[];
+		
+		if (propertiesFile == null) return;
+		
+		// get label list
+		ll = propertiesFile.getLabelList();
+		
+		// bail out if there are no labels
+		if (ll.size() == 0) {
+			mainLog.println("\nWarning: There were no labels to export.");
+			return;
+		}
+		
+		// print message
+		mainLog.print("\nExporting labels and satisfying states ");
+		if (file != null) mainLog.println("to file \"" + file + "\"..."); else mainLog.println("below:");
+		
+		// convert labels to bdds
+		constantValues = new Values();
+		constantValues.addValues(model.getConstantValues());
+		constantValues.addValues(propertiesFile.getConstantValues());
+		expr2mtbdd = new Expression2MTBDD(mainLog, techLog, model.getVarList(), model.getVarDDRowVars(), constantValues);
+		expr2mtbdd.setFilter(model.getReach());
+		n = ll.size();
+		labels = new JDDNode[n];
+		for (i = 0; i < n; i++) {
+			expr = ll.getLabel(i);
+			dd = expr2mtbdd.translateExpression(expr);
+			labels[i] = dd;
+		}
+		// put names for labels in an array
+		labelNames = new String[n];
+		for (i = 0; i < n; i++) {
+			labelNames[i] = ll.getLabelName(i);
+		}
+		
+		// export them to a file
+		PrismMTBDD.ExportLabels(labels, labelNames, "l", model.getAllDDRowVars(), model.getODD(), exportType, (file != null)?file.getPath():null);
+		
+		// deref dds
+		for (i = 0; i < n; i++) {
+			JDD.Deref(labels[i]);
+		}
+	}
+
 	// model checking
 	// returns result or throws an exception in case of error
 	

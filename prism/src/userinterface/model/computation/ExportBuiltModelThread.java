@@ -38,17 +38,20 @@ public class ExportBuiltModelThread extends GUIComputationThread
 {
 	private GUIMultiModelHandler handler;
 	private Model m;
-	private File f;
+	private int exportEntity;
 	private int exportType;
+	private File exportFile;
+	private Exception e;
 	
 	/** Creates a new instance of ExportBuiltModelThread */
-	public ExportBuiltModelThread(GUIMultiModelHandler handler, Model m, File f, int exportType)
+	public ExportBuiltModelThread(GUIMultiModelHandler handler, Model m, int entity, int type, File f)
 	{
 		super(handler.getGUIPlugin());
 		this.handler = handler;
 		this.m = m; 
-		this.f = f;
-		this.exportType = exportType;
+		this.exportEntity = entity;
+		this.exportType = type;
+		this.exportFile = f;
 	}
 	
 	public void run()
@@ -59,44 +62,24 @@ public class ExportBuiltModelThread extends GUIComputationThread
 			SwingUtilities.invokeAndWait(new Runnable() { public void run() {
 				plug.startProgress();
 				plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_START, plug));
-				plug.setTaskBarText("Exporting model...");
+				plug.setTaskBarText("Exporting...");
 			}});
 			
 			//Do export
 			try {
-				if(exportType == GUIMultiModelHandler.PLAIN_EXPORT)
-				{
-					prism.exportToFile(m, false, Prism.EXPORT_PLAIN, f);
-				}
-				else if(exportType == GUIMultiModelHandler.PLAIN_ORD_EXPORT)
-				{
-					prism.exportToFile(m, true, Prism.EXPORT_PLAIN, f);
-				}
-				else if(exportType == GUIMultiModelHandler.MATLAB_EXPORT)
-				{
-					prism.exportToFile(m, false, Prism.EXPORT_MATLAB, f);
-				}
-				else if(exportType == GUIMultiModelHandler.MATLAB_ORD_EXPORT)
-				{
-					prism.exportToFile(m, true, Prism.EXPORT_MATLAB, f);
-				}
-				else if(exportType == GUIMultiModelHandler.DOT_EXPORT)
-				{
-					prism.exportToDotFile(m, f);
-				}
-				else if (exportType == GUIMultiModelHandler.STATES_EXPORT) 
-				{
-					logln("\nExporting list of reachable states to file \"" + f.getPath() + "\"...");
-					PrismFileLog tmpLog = new PrismFileLog(f.getPath());
-					if (!tmpLog.ready()) throw new FileNotFoundException();
-					tmpLog.print("(");
-					for (int i = 0; i < m.getNumVars(); i++) {
-						tmpLog.print(m.getVarName(i));
-						if (i < m.getNumVars()-1) tmpLog.print(",");
-					}
-					tmpLog.println(")");
-					m.getReachableStates().print(tmpLog);
-					tmpLog.close();
+				switch (exportEntity) {
+				case GUIMultiModelHandler.STATES_EXPORT:
+					prism.exportStatesToFile(m, exportType, exportFile);
+					break;
+				case GUIMultiModelHandler.TRANS_EXPORT:
+					prism.exportTransToFile(m, true, exportType, exportFile);
+					break;
+				case GUIMultiModelHandler.STATE_REWARDS_EXPORT:
+					prism.exportStateRewardsToFile(m, exportType, exportFile);
+					break;
+				case GUIMultiModelHandler.TRANS_REWARDS_EXPORT:
+					prism.exportTransRewardsToFile(m, true, exportType, exportFile);
+					break;
 				}
 			}
 			catch(FileNotFoundException e)
@@ -104,8 +87,19 @@ public class ExportBuiltModelThread extends GUIComputationThread
 				SwingUtilities.invokeAndWait(new Runnable() { public void run() {
 					plug.stopProgress(); 
 					plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, plug));
-					plug.setTaskBarText("Exporting model... error.");
-					error("Could not export to file \"" + f + "\"");
+					plug.setTaskBarText("Exporting... error.");
+					error("Could not export to file \"" + exportFile + "\"");
+				}});
+				return;
+			}
+			catch(PrismException e2)
+			{
+				this.e = e2;
+				SwingUtilities.invokeAndWait(new Runnable() { public void run() {
+					plug.stopProgress(); 
+					plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, plug));
+					plug.setTaskBarText("Exporting... error.");
+					error(e.getMessage());
 				}});
 				return;
 			}
@@ -114,7 +108,7 @@ public class ExportBuiltModelThread extends GUIComputationThread
 			SwingUtilities.invokeAndWait(new Runnable() { public void run() {
 				plug.stopProgress(); 
 				plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, plug));
-				plug.setTaskBarText("Exporting model... done.");
+				plug.setTaskBarText("Exporting... done.");
 			}});
 		}
 		// catch and ignore any thread exceptions

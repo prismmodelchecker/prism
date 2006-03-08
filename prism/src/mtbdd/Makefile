@@ -33,7 +33,7 @@ PrismMTBDD.java
 CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class)
 
 CC_FILES = \
-PM_JOR.cc PM_NondetBoundedUntil.cc PM_NondetReachReward.cc PM_NondetUntil.cc PM_Power.cc PM_Prob0A.cc PM_Prob0.cc PM_Prob0E.cc PM_Prob1A.cc PM_Prob1.cc PM_Prob1E.cc PM_ProbBoundedUntil.cc PM_ProbExport.cc PM_ProbReachReward.cc PM_ProbUntil.cc PM_Reachability.cc PM_StochBoundedUntil.cc PM_StochCumulReward.cc PM_StochExport.cc PM_StochSteadyState.cc PM_StochTransient.cc PrismMTBDD.cc
+PM_ExportLabels.cc PM_ExportMatrix.cc PM_ExportVector.cc PM_JOR.cc PM_NondetBoundedUntil.cc PM_NondetReachReward.cc PM_NondetUntil.cc PM_Power.cc PM_Prob0A.cc PM_Prob0.cc PM_Prob0E.cc PM_Prob1A.cc PM_Prob1.cc PM_Prob1E.cc PM_ProbBoundedUntil.cc PM_ProbReachReward.cc PM_ProbUntil.cc PM_Reachability.cc PM_StochBoundedUntil.cc PM_StochCumulReward.cc PM_StochSteadyState.cc PM_StochTransient.cc PrismMTBDD.cc
 #echo `/bin/ls *.cc`
 #CC_FILES:sh = /bin/ls *.cc
 #CC_FILES = $(wildcard *.cc)

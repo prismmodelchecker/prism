@@ -55,7 +55,10 @@ public class StateListMTBDD implements StateList
 	
 	// log for output from print method
 	PrismLog outputLog;
-
+	
+	// output in Matlab format?
+	boolean matlab = false;
+	
 	// constructor
 	
 	public StateListMTBDD(JDDNode s, Model model)
@@ -102,6 +105,12 @@ public class StateListMTBDD implements StateList
 		count = 0;
 		doPrint(log);
 	}
+	public void printMatlab(PrismLog log)
+	{
+		matlab = true;
+		print(log);
+		matlab = false;
+	}
 	
 	// print first n states of list
 	
@@ -111,6 +120,12 @@ public class StateListMTBDD implements StateList
 		numToPrint = n;
 		count = 0;
 		doPrint(log);
+	}
+	public void printMatlab(PrismLog log, int n)
+	{
+		matlab = true;
+		print(log, n);
+		matlab = false;
 	}
 	
 	// printing method
@@ -150,14 +165,14 @@ public class StateListMTBDD implements StateList
 		
 		// base case - at bottom (nonzero terminal)
 		if (level == numVars) {
-		
-			outputLog.print(n + ":(");
+			
+			if (!matlab) outputLog.print(n + ":(");
 			for (i = 0; i < varList.getNumVars()-1; i++) {
 				outputLog.print((varValues[i]+varList.getLow(i)) + ",");
 			}
 			i = varList.getNumVars()-1;
 			outputLog.print((varValues[i]+varList.getLow(i)));
-			outputLog.print(") ");
+			if (!matlab) outputLog.print(")");
 			outputLog.println();
 			count++;
 			

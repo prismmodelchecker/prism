@@ -169,27 +169,27 @@ JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1StochTransient
 
 /*
  * Class:     sparse_PrismSparse
- * Method:    PS_ProbExport
- * Signature: (IIIIIIILjava/lang/String;)I
+ * Method:    PS_ExportMatrix
+ * Signature: (ILjava/lang/String;IIIIIILjava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1ProbExport
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jstring);
+JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1ExportMatrix
+  (JNIEnv *, jclass, jint, jstring, jint, jint, jint, jint, jint, jint, jstring);
 
 /*
  * Class:     sparse_PrismSparse
- * Method:    PS_StochExport
- * Signature: (IIIIIIILjava/lang/String;)I
+ * Method:    PS_ExportMDP
+ * Signature: (ILjava/lang/String;IIIIIIIILjava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1StochExport
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jstring);
+JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1ExportMDP
+  (JNIEnv *, jclass, jint, jstring, jint, jint, jint, jint, jint, jint, jint, jint, jstring);
 
 /*
  * Class:     sparse_PrismSparse
- * Method:    PS_NondetExport
- * Signature: (IIIIIIIIILjava/lang/String;)I
+ * Method:    PS_ExportSubMDP
+ * Signature: (IILjava/lang/String;IIIIIIIILjava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1NondetExport
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jint, jstring);
+JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1ExportSubMDP
+  (JNIEnv *, jclass, jint, jint, jstring, jint, jint, jint, jint, jint, jint, jint, jint, jstring);
 
 /*
  * Class:     sparse_PrismSparse

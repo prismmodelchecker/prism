@@ -3,6 +3,21 @@ including development and beta versions. For a less detailed overview
 of the main changes in each public release, see the file VERSIONS.txt.
 
 -----------------------------------------------------------------------------
+Version 2.1.dev11.sim9
+-----------------------------------------------------------------------------
+
+* Changes to export functionality
+  - transition matrix graph can be exported to a Dot file (-exporttransdot)
+  - can export state/transition rewards
+  - can export labels and their satisfying states
+  - can export to stdout/log instead of a file
+  - can export in MRMC format
+  - improved support for Matlab format export
+  - exported matrices now ordered by default (by row)
+  - new/rearranged command-line switches
+* Added new options to Model|View menu in GUI
+
+-----------------------------------------------------------------------------
 Version 2.1.dev11.sim8 (3/3/06)
 -----------------------------------------------------------------------------
 

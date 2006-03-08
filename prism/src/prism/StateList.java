@@ -32,7 +32,9 @@ public interface StateList
 	int size();
 	String sizeString();
 	void print(PrismLog log);
+	void printMatlab(PrismLog log);
 	void print(PrismLog log, int n);
+	void printMatlab(PrismLog log, int n);
 	boolean includes(JDDNode state);
 	Values getFirstAsValues() throws PrismException;
 	void clear();

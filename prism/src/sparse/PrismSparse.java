@@ -1,15 +1,6 @@
 //==============================================================================
 //	
-//	File:		PrismSparse.java
-//	Author:		Dave Parker
-//	Date:		10/04/01
-//	Desc:		Main Java file for sparse engine
-//				(JNI wrappers for get/set methods for package wide global variables)
-//				(JNI wrappers for blocks of sparse code)
-//	
-//------------------------------------------------------------------------------
-//	
-//	Copyright (c) 2002-2004, Dave Parker
+//	Copyright (c) 2002-2006, Dave Parker
 //	
 //	This file is part of PRISM.
 //	
@@ -265,31 +256,31 @@ public class PrismSparse
 	// export methods
 	//------------------------------------------------------------------------------
 
-	// export (probabilistic/dtmc)
-	private static native int PS_ProbExport(int trans, int rv, int nrv, int cv, int ncv, int odd, int exportType, String filename);
-	public static void ProbExport(JDDNode trans, JDDVars rows, JDDVars cols, ODDNode odd, int exportType, String filename) throws FileNotFoundException
+	// export matrix
+	private static native int PS_ExportMatrix(int matrix, String name, int rv, int nrv, int cv, int ncv, int odd, int exportType, String filename);
+	public static void ExportMatrix(JDDNode matrix, String name, JDDVars rows, JDDVars cols, ODDNode odd, int exportType, String filename) throws FileNotFoundException
 	{
-		int res = PS_ProbExport(trans.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), odd.ptr(), exportType, filename);
+		int res = PS_ExportMatrix(matrix.ptr(), name, rows.array(), rows.n(), cols.array(), cols.n(), odd.ptr(), exportType, filename);
 		if (res == -1) {
 			throw new FileNotFoundException();
 		}
 	}
 	
-	// export (stochastic/ctmc)
-	private static native int PS_StochExport(int trans, int rv, int nrv, int cv, int ncv, int odd, int exportType, String filename);
-	public static void StochExport(JDDNode trans, JDDVars rows, JDDVars cols, ODDNode odd, int exportType, String filename) throws FileNotFoundException
+	// export mdp
+	private static native int PS_ExportMDP(int mdp, String name, int rv, int nrv, int cv, int ncv, int ndv, int nndv, int odd, int exportType, String filename);
+	public static void ExportMDP(JDDNode mdp, String name, JDDVars rows, JDDVars cols, JDDVars nondet, ODDNode odd, int exportType, String filename) throws FileNotFoundException
 	{
-		int res = PS_StochExport(trans.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), odd.ptr(), exportType, filename);
+		int res = PS_ExportMDP(mdp.ptr(), name, rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), odd.ptr(), exportType, filename);
 		if (res == -1) {
 			throw new FileNotFoundException();
 		}
 	}
 	
-	// export (nondeterministic/mdp)
-	private static native int PS_NondetExport(int trans, int rv, int nrv, int cv, int ncv, int ndv, int nndv, int odd, int exportType, String filename);
-	public static void NondetExport(JDDNode trans, JDDVars rows, JDDVars cols, JDDVars nondet, ODDNode odd, int exportType, String filename) throws FileNotFoundException
+	// export sub-mdp, i.e. mdp transition rewards
+	private static native int PS_ExportSubMDP(int mdp, int submdp, String name, int rv, int nrv, int cv, int ncv, int ndv, int nndv, int odd, int exportType, String filename);
+	public static void ExportSubMDP(JDDNode mdp, JDDNode submdp, String name, JDDVars rows, JDDVars cols, JDDVars nondet, ODDNode odd, int exportType, String filename) throws FileNotFoundException
 	{
-		int res = PS_NondetExport(trans.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), odd.ptr(), exportType, filename);
+		int res = PS_ExportSubMDP(mdp.ptr(), submdp.ptr(), name, rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), odd.ptr(), exportType, filename);
 		if (res == -1) {
 			throw new FileNotFoundException();
 		}

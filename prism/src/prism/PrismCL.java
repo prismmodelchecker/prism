@@ -43,14 +43,18 @@ public class PrismCL
 	private boolean importstates = false;
 	private boolean steadystate = false;
 	private boolean dotransient = false;
+	private boolean exporttrans = false;
+	private boolean exportstaterewards = false;
+	private boolean exporttransrewards = false;
+	private boolean exportstates = false;
+	private boolean exportlabels = false;
 	private boolean exportspy = false;
 	private boolean exportdot = false;
-	private boolean exportmatlab = false;
-	private boolean export = false;
-	private boolean exportOrdered = false;
-	private int exportType = 0;
-	private boolean exportstates = false;
+	private boolean exporttransdot = false;
 	private boolean exportresults = false;
+	private boolean exportPlainDeprecated = false;
+	private int exportType = Prism.EXPORT_PLAIN;
+	private boolean exportordered = true;
 	private boolean simulate = false;
 	private boolean apmc = false;
 	private int typeOverride = 0;
@@ -68,11 +72,15 @@ public class PrismCL
 	private String modelFilename = null;
 	private String importStatesFilename = null;
 	private String propertiesFilename = null;
-	private String spyFilename = null;
-	private String dotFilename = null;
-	private String exportFilename = null;
-	private String statesFilename = null;
-	private String resultsFilename = null;
+	private String exportTransFilename = null;
+	private String exportStateRewardsFilename = null;
+	private String exportTransRewardsFilename = null;
+	private String exportStatesFilename = null;
+	private String exportLabelsFilename = null;
+	private String exportSpyFilename = null;
+	private String exportDotFilename = null;
+	private String exportTransDotFilename = null;
+	private String exportResultsFilename = null;
 	
 	// logs
 	private PrismLog mainLog = null;
@@ -228,6 +236,28 @@ public class PrismCL
 				}
 			}
 			
+			// export labels/states
+			if (exportlabels) {
+				if (propertiesFile == null) {
+					mainLog.print("\nWarning: Labels have not been exported because there is no properties file");
+				}
+				else {
+					try {
+						definedPFConstants = undefinedConstants.getPFConstantValues();
+						propertiesFile.setUndefinedConstants(definedPFConstants);
+						File f = (exportLabelsFilename.equals("stdout")) ? null : new File(exportLabelsFilename);
+						prism.exportLabelsToFile(model, propertiesFile, exportType, f);
+					}
+					// in case of error, report it and proceed
+					catch (FileNotFoundException e) {
+						mainLog.println("Couldn't open file \"" + exportLabelsFilename + "\" for output");
+					}
+					catch (PrismException e) {
+						mainLog.println("\nError: " + e.getMessage() + ".");
+					}
+				}
+			}
+			
 			// work through list of properties to be checked
 			for (j = 0; j < numPropertiesToCheck; j++) {
 				
@@ -315,10 +345,11 @@ public class PrismCL
 		// export results (if required)
 		if (exportresults) {
 			
-			mainLog.println("\nExporting results to file \"" + resultsFilename + "\"...");
-			PrismFileLog tmpLog = new PrismFileLog(resultsFilename);
+			mainLog.print("\nExporting results ");
+			if (!exportResultsFilename.equals("stdout")) mainLog.println("to file \"" + exportResultsFilename + "\"..."); else mainLog.println("below:");
+			PrismFileLog tmpLog = new PrismFileLog(exportResultsFilename);
 			if (!tmpLog.ready()) {
-				errorAndExit("Couldn't open file \"" + statesFilename + "\" for output");
+				errorAndExit("Couldn't open file \"" + exportResultsFilename + "\" for output");
 			}
 			for (i = 0; i < numPropertiesToCheck; i++) {
 				if (i > 0) tmpLog.println();
@@ -537,51 +568,94 @@ public class PrismCL
 	{
 		int i;
 		
-		// export to spy file
-		if (exportspy) {
+		// export transition matrix to a file
+		if (exporttrans) {
 			try {
-				prism.exportToSpyFile(model, new File(spyFilename));
+				File f = (exportTransFilename.equals("stdout")) ? null : new File(exportTransFilename);
+				prism.exportTransToFile(model, exportordered, exportType, f);
 			}
+			// in case of error, report it and proceed
 			catch (FileNotFoundException e) {
-				errorAndExit("Couldn't open file \"" + spyFilename + "\" for output");
+				error("Couldn't open file \"" + exportTransFilename + "\" for output");
+			}
+			
+			if (exportPlainDeprecated) mainLog.println("\nWarning: The -exportplain switch is now deprecated. Please use -exporttrans in future.");
+		}
+		
+		// export state rewards to a file
+		if (exportstaterewards) {
+			try {
+				File f = (exportStateRewardsFilename.equals("stdout")) ? null : new File(exportStateRewardsFilename);
+				prism.exportStateRewardsToFile(model, exportType, f);
+			}
+			// in case of error, report it and proceed
+			catch (FileNotFoundException e) {
+				error("Couldn't open file \"" + exportStateRewardsFilename + "\" for output");
+			}
+			catch (PrismException e) {
+				error(e.getMessage());
 			}
 		}
 		
-		// export to dot file
-		if (exportdot) {
+		// export transition rewards to a file
+		if (exporttransrewards) {
 			try {
-				prism.exportToDotFile(model, new File(dotFilename));
+				File f = (exportTransRewardsFilename.equals("stdout")) ? null : new File(exportTransRewardsFilename);
+				prism.exportTransRewardsToFile(model, exportordered, exportType, f);
 			}
+			// in case of error, report it and proceed
 			catch (FileNotFoundException e) {
-				errorAndExit("Couldn't open file \"" + dotFilename + "\" for output");
+				error("Couldn't open file \"" + exportTransRewardsFilename + "\" for output");
 			}
-		}
-		
-		// export to a file
-		if (export) {
-			try {
-				prism.exportToFile(model, exportOrdered, exportType, new File(exportFilename));
-			}
-			catch (FileNotFoundException e) {
-				errorAndExit("Couldn't open file \"" + exportFilename + "\" for output");
+			catch (PrismException e) {
+				error(e.getMessage());
 			}
 		}
 		
 		// export states list
 		if (exportstates) {
-			mainLog.println("\nExporting list of reachable states to file \"" + statesFilename + "\"...");
-			PrismFileLog tmpLog = new PrismFileLog(statesFilename);
-			if (!tmpLog.ready()) {
-				errorAndExit("Couldn't open file \"" + statesFilename + "\" for output");
+			try {
+				File f = (exportStatesFilename.equals("stdout")) ? null : new File(exportStatesFilename);
+				prism.exportStatesToFile(model, exportType, f);
 			}
-			tmpLog.print("(");
-			for (i = 0; i < model.getNumVars(); i++) {
-				tmpLog.print(model.getVarName(i));
-				if (i < model.getNumVars()-1) tmpLog.print(",");
+			// in case of error, report it and proceed
+			catch (FileNotFoundException e) {
+				error("Couldn't open file \"" + exportStatesFilename + "\" for output");
 			}
-			tmpLog.println(")");
-			model.getReachableStates().print(tmpLog);
-			tmpLog.close();
+		}
+		
+		// export to spy file
+		if (exportspy) {
+			try {
+				prism.exportToSpyFile(model, new File(exportSpyFilename));
+			}
+			// in case of error, report it and proceed
+			catch (FileNotFoundException e) {
+				error("Couldn't open file \"" + exportSpyFilename + "\" for output");
+			}
+		}
+		
+		// export mtbdd to dot file
+		if (exportdot) {
+			try {
+				prism.exportToDotFile(model, new File(exportDotFilename));
+			}
+			// in case of error, report it and proceed
+			catch (FileNotFoundException e) {
+				error("Couldn't open file \"" + exportDotFilename + "\" for output");
+			}
+		}
+		
+		// export transition matrix graph to dot file
+		if (exporttransdot) {
+			try {
+				File f = (exportTransDotFilename.equals("stdout")) ? null : new File(exportTransDotFilename);
+				prism.exportTransToFile(model, exportordered, Prism.EXPORT_DOT, f);
+			}
+			// in case of error, report it and proceed
+			catch (FileNotFoundException e) {
+				error("Couldn't open file \"" + exportTransDotFilename + "\" for output");
+			}
 		}
 	}
 
@@ -676,11 +750,73 @@ public class PrismCL
 						errorAndExit("No value specified for -"+sw+" switch");
 					}
 				}
+				// export transition matrix to file
+				else if (sw.equals("exporttrans")) {
+					if (i < args.length-1) {
+						exporttrans = true;
+						exportTransFilename = args[++i];
+					}
+					else {
+						errorAndExit("No file specified for -"+sw+" switch");
+					}
+				}
+				// export state rewards to file
+				else if (sw.equals("exportstaterewards")) {
+					if (i < args.length-1) {
+						exportstaterewards = true;
+						exportStateRewardsFilename = args[++i];
+					}
+					else {
+						errorAndExit("No file specified for -"+sw+" switch");
+					}
+				}
+				// export transition rewards to file
+				else if (sw.equals("exporttransrewards")) {
+					if (i < args.length-1) {
+						exporttransrewards = true;
+						exportTransRewardsFilename = args[++i];
+					}
+					else {
+						errorAndExit("No file specified for -"+sw+" switch");
+					}
+				}
+				// export both state/transition rewards to file
+				else if (sw.equals("exportrewards")) {
+					if (i < args.length-2) {
+						exportstaterewards = true;
+						exporttransrewards = true;
+						exportStateRewardsFilename = args[++i];
+						exportTransRewardsFilename = args[++i];
+					}
+					else {
+						errorAndExit("Two files must be specified for -"+sw+" switch");
+					}
+				}
+				// export states
+				else if (sw.equals("exportstates")) {
+					if (i < args.length-1) {
+						exportstates = true;
+						exportStatesFilename = args[++i];
+					}
+					else {
+						errorAndExit("No file specified for -"+sw+" switch");
+					}
+				}
+				// export labels/states
+				else if (sw.equals("exportlabels")) {
+					if (i < args.length-1) {
+						exportlabels = true;
+						exportLabelsFilename = args[++i];
+					}
+					else {
+						errorAndExit("No file specified for -"+sw+" switch");
+					}
+				}
 				// export to spy file
 				else if (sw.equals("exportspy")) {
 					if (i < args.length-1) {
 						exportspy = true;
-						spyFilename = args[++i];
+						exportSpyFilename = args[++i];
 					}
 					else {
 						errorAndExit("No file specified for -"+sw+" switch");
@@ -690,39 +826,17 @@ public class PrismCL
 				else if (sw.equals("exportdot")) {
 					if (i < args.length-1) {
 						exportdot = true;
-						dotFilename = args[++i];
+						exportDotFilename = args[++i];
 					}
 					else {
 						errorAndExit("No file specified for -"+sw+" switch");
 					}
 				}
-				// export to matlab file
-				else if (sw.equals("exportmatlab")) {
+				// export transition matrix graph to dot file
+				else if (sw.equals("exporttransdot")) {
 					if (i < args.length-1) {
-						export = true;
-						exportType = Prism.EXPORT_MATLAB;
-						exportFilename = args[++i];
-					}
-					else {
-						errorAndExit("No file specified for -"+sw+" switch");
-					}
-				}
-				// export to plain text file
-				else if (sw.equals("exportplain")) {
-					if (i < args.length-1) {
-						export = true;
-						exportType = Prism.EXPORT_PLAIN;
-						exportFilename = args[++i];
-					}
-					else {
-						errorAndExit("No file specified for -"+sw+" switch");
-					}
-				}
-				// export states
-				else if (sw.equals("exportstates")) {
-					if (i < args.length-1) {
-						exportstates = true;
-						statesFilename = args[++i];
+						exporttransdot = true;
+						exportTransDotFilename = args[++i];
 					}
 					else {
 						errorAndExit("No file specified for -"+sw+" switch");
@@ -732,15 +846,39 @@ public class PrismCL
 				else if (sw.equals("exportresults")) {
 					if (i < args.length-1) {
 						exportresults = true;
-						resultsFilename = args[++i];
+						exportResultsFilename = args[++i];
+					}
+					else {
+						errorAndExit("No file specified for -"+sw+" switch");
+					}
+				}
+				// switch export mode to "matlab"
+				else if (sw.equals("exportmatlab")) {
+					exportType = Prism.EXPORT_MATLAB;
+				}
+				// switch export mode to "mrmc"
+				else if (sw.equals("exportmrmc")) {
+					exportType = Prism.EXPORT_MRMC;
+				}
+				// export model to plain text file (deprecated)
+				else if (sw.equals("exportplain")) {
+					if (i < args.length-1) {
+						exporttrans = true;
+						exportType = Prism.EXPORT_PLAIN;
+						exportTransFilename = args[++i];
+						exportPlainDeprecated = true;
 					}
 					else {
 						errorAndExit("No file specified for -"+sw+" switch");
 					}
 				}
 				// exported matrix entries are ordered
-				else if (sw.equals("ordered")) {
-					exportOrdered = true;
+				else if (sw.equals("exportordered") || sw.equals("ordered")) {
+					exportordered = true;
+				}
+				// exported matrix entries are unordered
+				else if (sw.equals("exportunordered") || sw.equals("unordered")) {
+					exportordered = false;
 				}
 				// change model type to pepa
 				else if (sw.equals("importpepa")) {
@@ -1288,14 +1426,21 @@ public class PrismCL
 		mainLog.println("-const <vals> .................. Run an experiment using constant values <vals>");
 		mainLog.println("-steadystate (or -ss) .......... Compute steady-state probabilities (CTMCs only)");
 		mainLog.println("-transient <x> (or -tr <x>) .... Compute transient probabilities for time <x> (CTMCs only)");
+		mainLog.println();
 		mainLog.println("-importpepa .................... Model description is in PEPA, not the PRISM language");
 		mainLog.println();
-		mainLog.println("-exportstates <file> ........... Export the list of reachable states to a file");
-		mainLog.println("-exportplain <file> ............ Export the transition matrix to a plain text file");
-		mainLog.println("-exportmatlab <file> ........... Export the transition matrix to a Matlab file");
-		mainLog.println("-ordered ....................... Order exported (plain or Matlab) matrix entries (by row)");
-		mainLog.println("-exportdot <file> .............. Export the transition matrix MTBDD to a dot file");
 		mainLog.println("-exportresults <file> .......... Export the results of model checking to a file");
+		mainLog.println("-exporttrans <file> ............ Export the transition matrix to a file");
+		mainLog.println("-exportstaterewards <file> ..... Export the state rewards vector to a file");
+		mainLog.println("-exporttransreward <file> ...... Export the transition rewards matrix to a file");
+		mainLog.println("-exportstates <file> ........... Export the list of reachable states to a file");
+		mainLog.println("-exportlabels <file> ........... Export the list of labels and satisfying states to a file");
+		mainLog.println("-exportmatlab .................. When exporting matrices/vectors/labels/etc., use Matlab format");
+		mainLog.println("-exportmrmc .................... When exporting matrices/vectors/labels, use MRMC format");
+		mainLog.println("-exportordered ................. When exporting matrices, order entries (by row) [default]");
+		mainLog.println("-exportunordered ............... When exporting matrices, don't order entries");
+		mainLog.println("-exporttransdot <file> ......... Export the transition matrix graph to a dot file");
+		mainLog.println("-exportdot <file> .............. Export the transition matrix MTBDD to a dot file");
 		mainLog.println();
 		mainLog.println("-mtbdd (or -m) ................. Use the MTBDD engine");
 		mainLog.println("-sparse (or -s) ................ Use the Sparse engine");

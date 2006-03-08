@@ -38,7 +38,7 @@
 #include <dd.h>
 #include "PrismMTBDDGlob.h"
 
-#define MAX_LOG_STRING_LEN 255
+#define MAX_LOG_STRING_LEN 1024
 
 //------------------------------------------------------------------------------
 // mtbdd engine global variables
@@ -64,6 +64,11 @@ double lin_eq_method_param;
 int term_crit;
 double term_crit_param;
 int max_iters;
+
+// export stuff
+int export_type;
+FILE *export_file;
+JNIEnv *export_env;
 
 //------------------------------------------------------------------------------
 // cudd manager
@@ -181,6 +186,51 @@ JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetTermCritParam(JNIEnv *env, j
 JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetMaxIters(JNIEnv *env, jclass cls, jint i)
 {
 	max_iters = i;
+}
+
+//------------------------------------------------------------------------------
+// export stuff
+//------------------------------------------------------------------------------
+
+// store export info globally
+// returns 0 on failure, 1 otherwise
+
+int store_export_info(int type, jstring fn, JNIEnv *env)
+{
+	export_type = type;
+	if (fn) {
+		const char *filename = env->GetStringUTFChars(fn, 0);
+		export_file = fopen(filename, "w");
+		if (!export_file) {
+			env->ReleaseStringUTFChars(fn, filename);
+			return 0;
+		}
+		env->ReleaseStringUTFChars(fn, filename);
+	} else {
+		export_file = NULL;
+	}
+	export_env = env;
+	return 1;
+}
+
+//------------------------------------------------------------------------------
+
+// export string (either to file or main log)
+
+void export_string(char *str, ...)
+{
+	va_list argptr;
+	char full_string[MAX_LOG_STRING_LEN];
+	
+	va_start(argptr, str);
+	vsnprintf(full_string, MAX_LOG_STRING_LEN, str, argptr);
+	va_end(argptr);
+	
+	if (export_file) {
+		fprintf(export_file, full_string);
+	} else {
+		PM_PrintToMainLog(export_env, full_string);
+	}
 }
 
 //------------------------------------------------------------------------------
