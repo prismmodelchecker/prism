@@ -411,13 +411,17 @@ checks:
 	  echo "after the -> arrow. You can then deduce what the directory is as above."; \
 	  exit 1; \
 	fi; \
+	if [ ! -d $(JAVA_DIR) ]; then \
+	  echo "Java directory $(JAVA_DIR) does not exist."; \
+	  exit 1; \
+	fi; \
 	if [ ! -f $(JAVA_JNI_H_DIR)/jni.h ]; then \
-	  echo "Failed to locate the JNI header $(JAVA_JNI_H_DIR)/jni.h."; \
+	  echo "Failed to locate the JNI header jni.h."; \
 	  echo "Are you sure Java is installed?"; \
 	  exit 1; \
 	fi; \
 	if [ ! -f $(JAVA_JNI_MD_H_DIR)/jni_md.h ]; then \
-	  echo "Failed to locate the JNI header $(JAVA_JNI_MD_H_DIR)/jni_md.h"; \
+	  echo "Failed to locate the JNI header jni_md.h"; \
 	  echo "Are you sure Java is installed?"; \
 	  exit 1; \
 	fi)
