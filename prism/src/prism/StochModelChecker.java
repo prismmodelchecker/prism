@@ -1236,7 +1236,7 @@ public class StochModelChecker implements ModelChecker
 					mainLog.print("\nDiagonals vector: ");JDD.PrintInfo(diags, allDDRowVars.n());
 					mainLog.print("Embedded Markov chain: ");JDD.PrintInfo(emb, allDDRowVars.n()*2);
 					// compute probs
-					probs = computeUntilProbs(emb, trans01, b1, b1);
+					probs = computeUntilProbs(emb, trans01, b1, b2);
 					JDD.Deref(diags);
 					JDD.Deref(emb);
 				}
