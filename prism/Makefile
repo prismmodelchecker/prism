@@ -208,6 +208,12 @@ cuddpackage:
 	  echo Skipping cudd make since it is a symlink...; \
 	fi)
 
+cuddpackageforce: # use this to force build of cudd (even if dir is just a symlink)
+	@echo Making cudd ...; \
+	cd cudd && \
+	/bin/cp Makefile.$(OSTYPE) Makefile && \
+	$(MAKE)
+
 prism: checks sortplugins make_dirs post_make
 
 sortplugins:
