@@ -164,64 +164,64 @@ public class PrismMTBDD
 
 	// reachability
 	private static native int PM_Reachability(int trans01, int rv, int nrv, int cv, int ncv, int start);
-	public static JDDNode Reachability(JDDNode trans01, JDDVars rows, JDDVars cols, JDDNode start) throws PrismException
+	public static JDDNode Reachability(JDDNode trans01, JDDVars rows, JDDVars cols, JDDNode start)// throws PrismException
 	{
 		int ptr = PM_Reachability(trans01.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), start.ptr());
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		//if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new JDDNode(ptr);
 	}
 	
 	// pctl until probability 1 precomputation (probabilistic/dtmc)
 	private static native int PM_Prob1(int trans01, int rv, int nrv, int cv, int ncv, int b1, int b2);
-	public static JDDNode Prob1(JDDNode trans01, JDDVars rows, JDDVars cols, JDDNode b1, JDDNode b2) throws PrismException
+	public static JDDNode Prob1(JDDNode trans01, JDDVars rows, JDDVars cols, JDDNode b1, JDDNode b2)// throws PrismException
 	{
 		int ptr = PM_Prob1(trans01.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), b1.ptr(), b2.ptr());
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		//if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new JDDNode(ptr);
 	}
 	
 	// pctl until probability 0 precomputation (probabilistic/dtmc)
 	private static native int PM_Prob0(int trans01, int reach, int rv, int nrv, int cv, int ncv, int b1, int b2);
-	public static JDDNode Prob0(JDDNode trans01, JDDNode reach, JDDVars rows, JDDVars cols, JDDNode b1, JDDNode b2) throws PrismException
+	public static JDDNode Prob0(JDDNode trans01, JDDNode reach, JDDVars rows, JDDVars cols, JDDNode b1, JDDNode b2)// throws PrismException
 	{
 		int ptr = PM_Prob0(trans01.ptr(), reach.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), b1.ptr(), b2.ptr());
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		//if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new JDDNode(ptr);
 	}
 	
 	// pctl until probability 1 precomputation - there exists (nondeterministic/mdp)
 	private static native int PM_Prob1E(int trans01, int rv, int nrv, int cv, int ncv, int ndv, int nndv, int b1, int b2);
-	public static JDDNode Prob1E(JDDNode trans01, JDDVars rows, JDDVars cols, JDDVars nd, JDDNode b1, JDDNode b2) throws PrismException
+	public static JDDNode Prob1E(JDDNode trans01, JDDVars rows, JDDVars cols, JDDVars nd, JDDNode b1, JDDNode b2)// throws PrismException
 	{
 		int ptr = PM_Prob1E(trans01.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nd.array(), nd.n(), b1.ptr(), b2.ptr());
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		//if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new JDDNode(ptr);
 	}
 	
 	// pctl until probability 1 precomputation - for all (nondeterministic/mdp)
 	private static native int PM_Prob1A(int trans01, int reach, int mask, int rv, int nrv, int cv, int ncv, int ndv, int nndv, int no, int b2);
-	public static JDDNode Prob1A(JDDNode trans01, JDDNode reach, JDDNode nondetMask, JDDVars rows, JDDVars cols, JDDVars nd, JDDNode no, JDDNode b2) throws PrismException
+	public static JDDNode Prob1A(JDDNode trans01, JDDNode reach, JDDNode nondetMask, JDDVars rows, JDDVars cols, JDDVars nd, JDDNode no, JDDNode b2)// throws PrismException
 	{
 		int ptr = PM_Prob1A(trans01.ptr(), reach.ptr(), nondetMask.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nd.array(), nd.n(), no.ptr(), b2.ptr());
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		//if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new JDDNode(ptr);
 	}
 	
 	// pctl until probability 0 precomputation - there exists (nondeterministic/mdp)
 	private static native int PM_Prob0E(int trans01, int reach, int mask, int rv, int nrv, int cv, int ncv, int ndv, int nndv, int b1, int b2);
-	public static JDDNode Prob0E(JDDNode trans01, JDDNode reach, JDDNode nondetMask, JDDVars rows, JDDVars cols, JDDVars nd, JDDNode b1, JDDNode b2) throws PrismException
+	public static JDDNode Prob0E(JDDNode trans01, JDDNode reach, JDDNode nondetMask, JDDVars rows, JDDVars cols, JDDVars nd, JDDNode b1, JDDNode b2)// throws PrismException
 	{
 		int ptr = PM_Prob0E(trans01.ptr(), reach.ptr(), nondetMask.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nd.array(), nd.n(), b1.ptr(), b2.ptr());
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		//if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new JDDNode(ptr);
 	}
 	
 	// pctl until probability 0 precomputation - for all (nondeterministic/mdp)
 	private static native int PM_Prob0A(int trans01, int reach, int rv, int nrv, int cv, int ncv, int ndv, int nndv, int b1, int b2);
-	public static JDDNode Prob0A(JDDNode trans01, JDDNode reach, JDDVars rows, JDDVars cols, JDDVars nd, JDDNode b1, JDDNode b2) throws PrismException
+	public static JDDNode Prob0A(JDDNode trans01, JDDNode reach, JDDVars rows, JDDVars cols, JDDVars nd, JDDNode b1, JDDNode b2)// throws PrismException
 	{
 		int ptr = PM_Prob0A(trans01.ptr(), reach.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nd.array(), nd.n(), b1.ptr(), b2.ptr());
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		//if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new JDDNode(ptr);
 	}
 	
