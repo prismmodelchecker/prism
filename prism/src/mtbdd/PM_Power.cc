@@ -151,7 +151,7 @@ jboolean transpose	// transpose A? (i.e. solve xA=b not Ax=b?)
 	Cudd_RecursiveDeref(ddman, b);
 	
 	// if the iterative method didn't terminate, this is an error
-	if (!done) { Cudd_RecursiveDeref(ddman, sol); PM_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increase the maximum number of iterations", iters); return 0; }
+	if (!done) { Cudd_RecursiveDeref(ddman, sol); PM_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); return 0; }
 	
 	return (int)sol;
 }

@@ -250,7 +250,7 @@ jboolean min	// min or max probabilities (true = min, false = max)
 	delete soln2;
 	
 	// if the iterative method didn't terminate, this is an error
-	if (!done) { delete soln; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increase the maximum number of iterations", iters); return 0; }
+	if (!done) { delete soln; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); return 0; }
 	
 	return (int)soln;*/
 }
