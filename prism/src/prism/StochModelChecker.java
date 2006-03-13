@@ -1,6 +1,6 @@
 //==============================================================================
 //	
-//	Copyright (c) 2002-2004, Dave Parker
+//	Copyright (c) 2002-2006, Dave Parker
 //	
 //	This file is part of PRISM.
 //	
@@ -522,15 +522,21 @@ public class StochModelChecker implements ModelChecker
 		}
 		
 		// compute probabilities
-		f = pctl.getOperand();
-		if (f instanceof PCTLProbNext)
-			probs = checkPCTLProbNext((PCTLProbNext)f);
-		else if (f instanceof PCTLProbBoundedUntil)
-			probs = checkPCTLProbBoundedUntil((PCTLProbBoundedUntil)f);
-		else if (f instanceof PCTLProbUntil)
-			probs = checkPCTLProbUntil((PCTLProbUntil)f, pe, p);
-		else
-			throw new PrismException("Unrecognised path operator in P[] formula");
+		try {
+			f = pctl.getOperand();
+			if (f instanceof PCTLProbNext)
+				probs = checkPCTLProbNext((PCTLProbNext)f);
+			else if (f instanceof PCTLProbBoundedUntil)
+				probs = checkPCTLProbBoundedUntil((PCTLProbBoundedUntil)f);
+			else if (f instanceof PCTLProbUntil)
+				probs = checkPCTLProbUntil((PCTLProbUntil)f, pe, p);
+			else
+				throw new PrismException("Unrecognised path operator in P[] formula");
+		}
+		catch (PrismException e) {
+			if (filter != null) JDD.Deref(filter);
+			throw e;
+		}
 		
 		// round off probabilities
 		//probs.roundOff(getPlacesToRoundBy());
@@ -708,16 +714,22 @@ public class StochModelChecker implements ModelChecker
 		
 		// compute rewards
 		f = pctl.getOperand();
-		if (f instanceof PCTLRewardCumul)
-			rewards = checkPCTLRewardCumul((PCTLRewardCumul)f);
-		else if (f instanceof PCTLRewardInst)
-			rewards = checkPCTLRewardInst((PCTLRewardInst)f);
-		else if (f instanceof PCTLRewardReach)
-			rewards = checkPCTLRewardReach((PCTLRewardReach)f);
-		else if (f instanceof PCTLRewardSS)
-			rewards = checkPCTLRewardSS((PCTLRewardSS)f, filter, pctl.getFilter());
-		else
-			throw new PrismException("Unrecognised operator in R[] formula");
+		try {
+			if (f instanceof PCTLRewardCumul)
+				rewards = checkPCTLRewardCumul((PCTLRewardCumul)f);
+			else if (f instanceof PCTLRewardInst)
+				rewards = checkPCTLRewardInst((PCTLRewardInst)f);
+			else if (f instanceof PCTLRewardReach)
+				rewards = checkPCTLRewardReach((PCTLRewardReach)f);
+			else if (f instanceof PCTLRewardSS)
+				rewards = checkPCTLRewardSS((PCTLRewardSS)f, filter, pctl.getFilter());
+			else
+				throw new PrismException("Unrecognised operator in R[] formula");
+		}
+		catch (PrismException e) {
+			if (filter != null) JDD.Deref(filter);
+			throw e;
+		}
 		
 		// round off rewards
 		//rewards.roundOff(getPlacesToRoundBy());
@@ -926,6 +938,7 @@ public class StochModelChecker implements ModelChecker
 			}
 			catch (PrismException e) {
 				JDD.Deref(b);
+				if (filter != null) JDD.Deref(filter);
 				for (i = 0; i < n; i++) {
 					JDD.Deref((JDDNode)vectBSCCs.elementAt(i));
 				}
@@ -1044,6 +1057,13 @@ public class StochModelChecker implements ModelChecker
 				catch (PrismException e) {
 					JDD.Deref(diags);
 					JDD.Deref(emb);
+					JDD.Deref(b);
+					if (filter != null) JDD.Deref(filter);
+					for (i = 0; i < n; i++) {
+						JDD.Deref((JDDNode)vectBSCCs.elementAt(i));
+					}
+					JDD.Deref(notInBSCCs);
+					totalProbs.clear();
 					throw e;
 				}
 				
@@ -1236,7 +1256,16 @@ public class StochModelChecker implements ModelChecker
 					mainLog.print("\nDiagonals vector: ");JDD.PrintInfo(diags, allDDRowVars.n());
 					mainLog.print("Embedded Markov chain: ");JDD.PrintInfo(emb, allDDRowVars.n()*2);
 					// compute probs
-					probs = computeUntilProbs(emb, trans01, b1, b2);
+					try {
+						probs = computeUntilProbs(emb, trans01, b1, b2);
+					}
+					catch (PrismException e) {
+						JDD.Deref(diags);
+						JDD.Deref(emb);
+						JDD.Deref(b1);
+						JDD.Deref(b2);
+						throw e;
+					}
 					JDD.Deref(diags);
 					JDD.Deref(emb);
 				}
@@ -1251,11 +1280,28 @@ public class StochModelChecker implements ModelChecker
 					mainLog.print("\nDiagonals vector: ");JDD.PrintInfo(diags, allDDRowVars.n());
 					mainLog.print("Embedded Markov chain: ");JDD.PrintInfo(emb, allDDRowVars.n()*2);
 					// compute unbounded until probs
-					tmpProbs = computeUntilProbs(emb, trans01, b1, b2);
+					try {
+						tmpProbs = computeUntilProbs(emb, trans01, b1, b2);
+					}
+					catch (PrismException e) {
+						JDD.Deref(diags);
+						JDD.Deref(emb);
+						JDD.Deref(b1);
+						JDD.Deref(b2);
+						throw e;
+					}
 					JDD.Deref(diags);
 					JDD.Deref(emb);
 					// compute bounded until probs
-					probs = computeBoundedUntilProbs(trans, trans01, b1, b1, lTime, tmpProbs);
+					try {
+						probs = computeBoundedUntilProbs(trans, trans01, b1, b1, lTime, tmpProbs);
+					}
+					catch (PrismException e) {
+						tmpProbs.clear();
+						JDD.Deref(b1);
+						JDD.Deref(b2);
+						throw e;
+					}
 					tmpProbs.clear();
 				}
 			}
@@ -1265,7 +1311,15 @@ public class StochModelChecker implements ModelChecker
 				JDD.Ref(b1);
 				JDD.Ref(b2);
 				tmp = JDD.And(b1, JDD.Not(b2));
-				probs = computeBoundedUntilProbs(trans, trans01, b2, tmp, uTime, null);
+				try {
+					probs = computeBoundedUntilProbs(trans, trans01, b2, tmp, uTime, null);
+				}
+				catch (PrismException e) {
+					JDD.Deref(tmp);
+					JDD.Deref(b1);
+					JDD.Deref(b2);
+					throw e;
+				}
 				JDD.Deref(tmp);
 			}
 			// [lTime,uTime] (including where lTime == uTime)
@@ -1273,9 +1327,25 @@ public class StochModelChecker implements ModelChecker
 				JDD.Ref(b1);
 				JDD.Ref(b2);
 				tmp = JDD.And(b1, JDD.Not(b2));
-				tmpProbs = computeBoundedUntilProbs(trans, trans01, b2, tmp, uTime-lTime, null);
+				try {
+					tmpProbs = computeBoundedUntilProbs(trans, trans01, b2, tmp, uTime-lTime, null);
+				}
+				catch (PrismException e) {
+					JDD.Deref(tmp);
+					JDD.Deref(b1);
+					JDD.Deref(b2);
+					throw e;
+				}
 				JDD.Deref(tmp);
-				probs = computeBoundedUntilProbs(trans, trans01, b1, b1, lTime, tmpProbs);
+				try {
+					probs = computeBoundedUntilProbs(trans, trans01, b1, b1, lTime, tmpProbs);
+				}
+				catch (PrismException e) {
+					tmpProbs.clear();
+					JDD.Deref(b1);
+					JDD.Deref(b2);
+					throw e;
+				}
 				tmpProbs.clear();
 			}
 		}
@@ -1379,7 +1449,12 @@ public class StochModelChecker implements ModelChecker
 		}
 		else {
 			// compute rewards
-			rewards = computeCumulRewards(trans, trans01, stateRewards, transRewards, time);
+			try {
+				rewards = computeCumulRewards(trans, trans01, stateRewards, transRewards, time);
+			}
+			catch (PrismException e) {
+				throw e;
+			}
 		}
 		
 		return rewards;
@@ -1421,7 +1496,13 @@ public class StochModelChecker implements ModelChecker
 			}
 			// and for the computation, we can reuse the computation for time-bounded until formulae
 			// which is nice
-			rewards = computeBoundedUntilProbs(trans, trans01, reach, reach, time, sr);
+			try {
+				rewards = computeBoundedUntilProbs(trans, trans01, reach, reach, time, sr);
+			}
+			catch (PrismException e){
+				sr.clear();
+				throw e;
+			}
 			sr.clear();
 		}
 		
@@ -1459,7 +1540,16 @@ public class StochModelChecker implements ModelChecker
 		newStateRewards = JDD.Apply(JDD.DIVIDE, stateRewards, diags);
 		
 		// compute rewards
-		rewards = computeReachRewards(emb, trans01, newStateRewards, transRewards, b);
+		try {
+			rewards = computeReachRewards(emb, trans01, newStateRewards, transRewards, b);
+		}
+		catch (PrismException e) {
+			JDD.Deref(b);
+			JDD.Deref(emb);
+			JDD.Deref(diags);
+			JDD.Deref(newStateRewards);
+			throw e;
+		}
 		
 		// derefs
 		JDD.Deref(b);
@@ -1756,7 +1846,16 @@ public class StochModelChecker implements ModelChecker
 			bscc = (JDDNode)vectBSCCs.elementAt(whichBSCC);
 			
 			// compute steady-state probabilities for the bscc
-			solnProbs = computeSteadyStateProbs(trans, bscc);
+			try { 
+				solnProbs = computeSteadyStateProbs(trans, bscc);
+			}
+			catch (PrismException e) {
+				for (i = 0; i < n; i++) {
+					JDD.Deref((JDDNode)vectBSCCs.elementAt(i));
+				}
+				JDD.Deref(notInBSCCs);
+				throw e;
+			}
 			
 			// round off probabilities
 			//solnProbs.roundOff(getPlacesToRoundBy());
@@ -1806,6 +1905,7 @@ public class StochModelChecker implements ModelChecker
 						JDD.Deref((JDDNode)vectBSCCs.elementAt(i));
 					}
 					JDD.Deref(notInBSCCs);
+					solnProbs.clear();
 					throw e;
 				}
 				
@@ -1837,7 +1937,17 @@ public class StochModelChecker implements ModelChecker
 				bscc = (JDDNode)vectBSCCs.elementAt(i);
 				
 				// compute steady-state probabilities for the bscc
-				probs = computeSteadyStateProbs(trans, bscc);
+				try { 
+					probs = computeSteadyStateProbs(trans, bscc);
+				}
+				catch (PrismException e) {
+					for (i = 0; i < n; i++) {
+						JDD.Deref((JDDNode)vectBSCCs.elementAt(i));
+					}
+					JDD.Deref(notInBSCCs);
+					solnProbs.clear();
+					throw e;
+				}
 				
 				// round off probabilities
 				//probs.roundOff(getPlacesToRoundBy());
@@ -1935,8 +2045,10 @@ public class StochModelChecker implements ModelChecker
 	// nb: if not null, the type (StateProbsDV/MTBDD) of 'multProbs' must match the current engine
 	//     i.e. DV for sparse/hybrid, MTBDD for mtbdd
 	
-	private StateProbs computeBoundedUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b2, JDDNode nonabs, double time, StateProbs multProbs)
+	private StateProbs computeBoundedUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b2, JDDNode nonabs, double time, StateProbs multProbs) throws PrismException
 	{
+		JDDNode multProbsMTBDD, probsMTBDD;
+		DoubleVector multProbsDV, probsDV;
 		StateProbs probs = null;
 				
 		// if nonabs is empty and multProbs was null, we don't need to do any further solution
@@ -1957,28 +2069,27 @@ public class StochModelChecker implements ModelChecker
 		// otherwise explicitly compute the probabilities
 		else {
 			// compute probabilities
-			switch (engine) {
-				
-				case Prism.MTBDD: {
-					JDDNode multProbsMTBDD = (multProbs == null) ? null : ((StateProbsMTBDD)multProbs).getJDDNode();
-					JDDNode probsMTBDD = PrismMTBDD.StochBoundedUntil(tr, odd, allDDRowVars, allDDColVars, b2, nonabs, time, multProbsMTBDD);
+			try {
+				switch (engine) {
+				case Prism.MTBDD:
+					multProbsMTBDD = (multProbs == null) ? null : ((StateProbsMTBDD)multProbs).getJDDNode();
+					probsMTBDD = PrismMTBDD.StochBoundedUntil(tr, odd, allDDRowVars, allDDColVars, b2, nonabs, time, multProbsMTBDD);
 					probs = new StateProbsMTBDD(probsMTBDD, model);
 					break;
-				}
-				
-				case Prism.SPARSE: {
-					DoubleVector multProbsDV = (multProbs == null) ? null : ((StateProbsDV)multProbs).getDoubleVector();
-					DoubleVector probsDV = PrismSparse.StochBoundedUntil(tr, odd, allDDRowVars, allDDColVars, b2, nonabs, time, multProbsDV);
+				case Prism.SPARSE:
+					multProbsDV = (multProbs == null) ? null : ((StateProbsDV)multProbs).getDoubleVector();
+					probsDV = PrismSparse.StochBoundedUntil(tr, odd, allDDRowVars, allDDColVars, b2, nonabs, time, multProbsDV);
+					probs = new StateProbsDV(probsDV, model);
+					break;
+				case Prism.HYBRID:
+					multProbsDV = (multProbs == null) ? null : ((StateProbsDV)multProbs).getDoubleVector();
+					probsDV = PrismHybrid.StochBoundedUntil(tr, odd, allDDRowVars, allDDColVars, b2, nonabs, time, multProbsDV);
 					probs = new StateProbsDV(probsDV, model);
 					break;
 				}
-				
-				case Prism.HYBRID: {
-					DoubleVector multProbsDV = (multProbs == null) ? null : ((StateProbsDV)multProbs).getDoubleVector();
-					DoubleVector probsDV = PrismHybrid.StochBoundedUntil(tr, odd, allDDRowVars, allDDColVars, b2, nonabs, time, multProbsDV);
-					probs = new StateProbsDV(probsDV, model);
-					break;
-				}
+			}
+			catch (PrismException e) {
+				throw e;
 			}
 		}
 		
@@ -1987,7 +2098,7 @@ public class StochModelChecker implements ModelChecker
 
 	// compute probabilities for until (for qualitative properties)
 	
-	private StateProbs computeUntilProbsQual(JDDNode tr01, JDDNode b1, JDDNode b2, double p) throws PrismException
+	private StateProbs computeUntilProbsQual(JDDNode tr01, JDDNode b1, JDDNode b2, double p)
 	{
 		JDDNode yes, no, maybe;
 		StateProbs probs = null;
@@ -2063,6 +2174,8 @@ public class StochModelChecker implements ModelChecker
 	private StateProbs computeUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2) throws PrismException
 	{
 		JDDNode yes, no, maybe;
+		JDDNode probsMTBDD;
+		DoubleVector probsDV;
 		StateProbs probs = null;
 		
 		// compute yes/no/maybe states
@@ -2133,25 +2246,28 @@ public class StochModelChecker implements ModelChecker
 			// compute probabilities
 			mainLog.println("\nComputing remaining probabilities...");
 			
-			switch (engine) {
-				
-				case Prism.MTBDD: {
-					JDDNode probsMTBDD = PrismMTBDD.ProbUntil(tr, odd, allDDRowVars, allDDColVars, yes, maybe);
-					probs = (probsMTBDD == null) ? null : new StateProbsMTBDD(probsMTBDD, model);
+			try {
+				switch (engine) {
+				case Prism.MTBDD:
+					probsMTBDD = PrismMTBDD.ProbUntil(tr, odd, allDDRowVars, allDDColVars, yes, maybe);
+					probs = new StateProbsMTBDD(probsMTBDD, model);
 					break;
-				}
-				
-				case Prism.SPARSE: {
-					DoubleVector probsDV = PrismSparse.ProbUntil(tr, odd, allDDRowVars, allDDColVars, yes, maybe);
-					probs = (probsDV == null) ? null : new StateProbsDV(probsDV, model);
+				case Prism.SPARSE:
+					probsDV = PrismSparse.ProbUntil(tr, odd, allDDRowVars, allDDColVars, yes, maybe);
+					probs = new StateProbsDV(probsDV, model);
 					break;
-				}
-				
-				case Prism.HYBRID: {
-					DoubleVector probsDV = PrismHybrid.ProbUntil(tr, odd, allDDRowVars, allDDColVars, yes, maybe);
-					probs = (probsDV == null) ? null : new StateProbsDV(probsDV, model);
+				case Prism.HYBRID:
+					probsDV = PrismHybrid.ProbUntil(tr, odd, allDDRowVars, allDDColVars, yes, maybe);
+					probs = new StateProbsDV(probsDV, model);
 					break;
+				default: throw new PrismException("Engine does not support this numerical method");
 				}
+			}
+			catch (PrismException e) {
+				JDD.Deref(yes);
+				JDD.Deref(no);
+				JDD.Deref(maybe);
+				throw e;
 			}
 		}
 		
@@ -2160,8 +2276,6 @@ public class StochModelChecker implements ModelChecker
 		JDD.Deref(no);
 		JDD.Deref(maybe);
 		
-		if (probs == null) throw new PrismException("Engine does not support this numerical method");
-		
 		return probs;
 	}
 
@@ -2169,31 +2283,31 @@ public class StochModelChecker implements ModelChecker
 	
 	private StateProbs computeCumulRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr, double time) throws PrismException
 	{
+		JDDNode rewardsMTBDD;
+		DoubleVector rewardsDV;
 		StateProbs rewards = null;
 		
 		// compute rewards
-		switch (engine) {
-			
-			case Prism.MTBDD: {
-				JDDNode rewardsMTBDD = PrismMTBDD.StochCumulReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, time);
+		try {
+			switch (engine) {
+			case Prism.MTBDD:
+				rewardsMTBDD = PrismMTBDD.StochCumulReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, time);
 				rewards = new StateProbsMTBDD(rewardsMTBDD, model);
 				break;
-			}
-			
-			case Prism.SPARSE: {
-				DoubleVector rewardsDV = PrismSparse.StochCumulReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, time);
+			case Prism.SPARSE:
+				rewardsDV = PrismSparse.StochCumulReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, time);
 				rewards = new StateProbsDV(rewardsDV, model);
 				break;
-			}
-			
-			case Prism.HYBRID: {
-				DoubleVector rewardsDV = PrismHybrid.StochCumulReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, time);
+			case Prism.HYBRID:
+				rewardsDV = PrismHybrid.StochCumulReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, time);
 				rewards = new StateProbsDV(rewardsDV, model);
 				break;
+			default: throw new PrismException("Engine does not support this numerical method");
 			}
 		}
-		
-		if (rewards == null) throw new PrismException("Engine does not support this numerical method");
+		catch (PrismException e) {
+			throw e;
+		}
 		
 		return rewards;
 	}
@@ -2203,6 +2317,8 @@ public class StochModelChecker implements ModelChecker
 	private StateProbs computeReachRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr, JDDNode b) throws PrismException
 	{
 		JDDNode inf, maybe;
+		JDDNode rewardsMTBDD;
+		DoubleVector rewardsDV;
 		StateProbs rewards = null;
 		
 		// compute states which can't reach goal with probability 1
@@ -2240,29 +2356,29 @@ public class StochModelChecker implements ModelChecker
 			// compute the rewards
 			mainLog.println("\nComputing remaining rewards...");
 			
-			switch (engine) {
-				
-				case Prism.MTBDD: {
-					JDDNode rewardsMTBDD = PrismMTBDD.ProbReachReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, b, inf, maybe);
+			try {
+				switch (engine) {
+				case Prism.MTBDD:
+					rewardsMTBDD = PrismMTBDD.ProbReachReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, b, inf, maybe);
 					rewards = new StateProbsMTBDD(rewardsMTBDD, model);
 					break;
-				}
-				
-				case Prism.SPARSE: {
-					DoubleVector rewardsDV = PrismSparse.ProbReachReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, b, inf, maybe);
+				case Prism.SPARSE:
+					rewardsDV = PrismSparse.ProbReachReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, b, inf, maybe);
 					rewards = new StateProbsDV(rewardsDV, model);
 					break;
-				}
-				
-				case Prism.HYBRID: {
-					DoubleVector rewardsDV = PrismHybrid.ProbReachReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, b, inf, maybe);
+				case Prism.HYBRID:
+					rewardsDV = PrismHybrid.ProbReachReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, b, inf, maybe);
 					rewards = new StateProbsDV(rewardsDV, model);
 					break;
+				default: throw new PrismException("Engine does not support this numerical method");
 				}
 			}
+			catch (PrismException e) {
+				JDD.Deref(inf);
+				JDD.Deref(maybe);
+				throw e;
+			}
 		}
-		
-		if (rewards == null) throw new PrismException("Engine does not support this numerical method");
 		
 		// derefs
 		JDD.Deref(inf);
@@ -2280,6 +2396,8 @@ public class StochModelChecker implements ModelChecker
 	{
 		JDDNode trf, init;
 		long n;
+		JDDNode probsMTBDD;
+		DoubleVector probsDV;
 		StateProbs probs = null;
 		
 		// work out number of states in 'subset'
@@ -2312,33 +2430,32 @@ public class StochModelChecker implements ModelChecker
 		JDD.Ref(subset);
 		init = JDD.Apply(JDD.DIVIDE, subset, JDD.Constant(n));
 		
-		switch (engine) {
-			
-			case Prism.MTBDD: {
-				JDDNode probsMTBDD = PrismMTBDD.StochSteadyState(trf, odd, init, allDDRowVars, allDDColVars);
-				probs = (probsMTBDD == null) ? null : new StateProbsMTBDD(probsMTBDD, model);
+		try {
+			switch (engine) {
+			case Prism.MTBDD:
+				probsMTBDD = PrismMTBDD.StochSteadyState(trf, odd, init, allDDRowVars, allDDColVars);
+				probs = new StateProbsMTBDD(probsMTBDD, model);
 				break;
-			}
-			
-			case Prism.SPARSE: {
-				DoubleVector probsDV = PrismSparse.StochSteadyState(trf, odd, init, allDDRowVars, allDDColVars);
-				probs = (probsDV == null) ? null : new StateProbsDV(probsDV, model);
-				break;
-			}
-			
-			case Prism.HYBRID: {
-				DoubleVector probsDV = PrismHybrid.StochSteadyState(trf, odd, init, allDDRowVars, allDDColVars);
-				if (probsDV == null) { throw new PrismException(PrismHybrid.getErrorMessage()); }
+			case Prism.SPARSE:
+				probsDV = PrismSparse.StochSteadyState(trf, odd, init, allDDRowVars, allDDColVars);
 				probs = new StateProbsDV(probsDV, model);
 				break;
+			case Prism.HYBRID:
+				probsDV = PrismHybrid.StochSteadyState(trf, odd, init, allDDRowVars, allDDColVars);
+				probs = new StateProbsDV(probsDV, model);
+				break;
+			default: throw new PrismException("Engine does not support this numerical method");
 			}
+		}
+		catch (PrismException e) {
+			JDD.Deref(trf);
+			JDD.Deref(init);
+			throw e;
 		}
 		
 		// derefs
 		JDD.Deref(trf);
 		JDD.Deref(init);
-		
-		if (probs == null) throw new PrismException("Engine does not support this numerical method");
 		
 		return probs;
 	}
@@ -2347,33 +2464,31 @@ public class StochModelChecker implements ModelChecker
 	
 	private StateProbs computeTransientProbs(JDDNode tr, JDDNode init, double time) throws PrismException
 	{
+		JDDNode probsMTBDD;
+		DoubleVector probsDV;
 		StateProbs probs = null;
+		PrismException ex;
 		
-		switch (engine) {
-			
-			case Prism.MTBDD: {
-				JDDNode probsMTBDD;
+		try {
+			switch (engine) {
+			case Prism.MTBDD:
 				probsMTBDD = PrismMTBDD.StochTransient(tr, odd, init, allDDRowVars, allDDColVars, time);
-				probs = (probsMTBDD == null) ? null : new StateProbsMTBDD(probsMTBDD, model);
+				probs = new StateProbsMTBDD(probsMTBDD, model);
 				break;
-			}
-			
-			case Prism.SPARSE: {
-				DoubleVector probsDV;
+			case Prism.SPARSE:
 				probsDV = PrismSparse.StochTransient(tr, odd, init, allDDRowVars, allDDColVars, time);
-				probs = (probsDV == null) ? null : new StateProbsDV(probsDV, model);
+				probs = new StateProbsDV(probsDV, model);
 				break;
-			}
-			
-			case Prism.HYBRID: {
-				DoubleVector probsDV;
+			case Prism.HYBRID:
 				probsDV = PrismHybrid.StochTransient(tr, odd, init, allDDRowVars, allDDColVars, time);
-				probs = (probsDV == null) ? null : new StateProbsDV(probsDV, model);
+				probs = new StateProbsDV(probsDV, model);
 				break;
+			default: throw new PrismException("Engine does not support this numerical method");
 			}
 		}
-		
-		if (probs == null) throw new PrismException("Engine does not support this numerical method");
+		catch (PrismException e) {
+			throw e;
+		}
 		
 		return probs;
 	}

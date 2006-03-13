@@ -72,6 +72,8 @@ extern JNIEnv *export_env;
 
 void PM_PrintToMainLog(JNIEnv *env, char *str, ...);
 void PM_PrintToTechLog(JNIEnv *env, char *str, ...);
+void PM_SetErrorMessage(char *str, ...);
+char *PM_GetErrorMessage();
 int store_export_info(int type, jstring fn, JNIEnv *env);
 void export_string(char *str, ...);
 

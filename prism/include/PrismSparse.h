@@ -89,6 +89,14 @@ JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetCompact
 
 /*
  * Class:     sparse_PrismSparse
+ * Method:    PS_GetErrorMessage
+ * Signature: ()Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_sparse_PrismSparse_PS_1GetErrorMessage
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     sparse_PrismSparse
  * Method:    PS_ProbBoundedUntil
  * Signature: (IIIIIIIII)I
  */

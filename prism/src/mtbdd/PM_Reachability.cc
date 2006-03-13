@@ -1,12 +1,5 @@
 //==============================================================================
 //	
-//	File:		PM_Reachability.cc
-//	Date:		4/5/01
-//	Author:		Dave Parker
-//	Desc:		Calculates states reachable from the given subset (s)
-//	
-//------------------------------------------------------------------------------
-//	
 //	Copyright (c) 2002-2004, Dave Parker
 //	
 //	This file is part of PRISM.
@@ -36,6 +29,8 @@
 #include "PrismMTBDDGlob.h"
 
 //------------------------------------------------------------------------------
+
+// Calculates states reachable from the given subset (s)
 
 JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1Reachability
 (

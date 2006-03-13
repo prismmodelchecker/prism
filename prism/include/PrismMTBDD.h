@@ -81,6 +81,14 @@ JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetMaxIters
 
 /*
  * Class:     mtbdd_PrismMTBDD
+ * Method:    PM_GetErrorMessage
+ * Signature: ()Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_mtbdd_PrismMTBDD_PM_1GetErrorMessage
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     mtbdd_PrismMTBDD
  * Method:    PM_Reachability
  * Signature: (IIIIII)I
  */

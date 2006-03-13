@@ -1,12 +1,5 @@
 //==============================================================================
 //	
-//	File:		PM_ProbBoundedUntil.cc
-//	Date:		4/5/01
-//	Author:		Dave Parker
-//	Desc:		pctl bounded until (probabilistic/dtmc) (mtbdd)
-//	
-//------------------------------------------------------------------------------
-//	
 //	Copyright (c) 2002-2004, Dave Parker
 //	
 //	This file is part of PRISM.

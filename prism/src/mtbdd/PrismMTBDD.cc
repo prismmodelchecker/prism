@@ -1,13 +1,5 @@
 //==============================================================================
 //	
-//	File:		PrismMTBDD.cc
-//	Author:		Dave Parker
-//	Date:		15/06/00
-//	Desc:		Main C++ file for mtbdd engine
-//				(package wide global variables and JNI get/set methods for them)
-//	
-//------------------------------------------------------------------------------
-//	
 //	Copyright (c) 2002-2004, Dave Parker
 //	
 //	This file is part of PRISM.
@@ -39,6 +31,7 @@
 #include "PrismMTBDDGlob.h"
 
 #define MAX_LOG_STRING_LEN 1024
+#define MAX_ERR_STRING_LEN 1024
 
 //------------------------------------------------------------------------------
 // mtbdd engine global variables
@@ -69,6 +62,9 @@ int max_iters;
 int export_type;
 FILE *export_file;
 JNIEnv *export_env;
+
+// error message
+char error_message[MAX_ERR_STRING_LEN];
 
 //------------------------------------------------------------------------------
 // cudd manager
@@ -231,6 +227,29 @@ void export_string(char *str, ...)
 	} else {
 		PM_PrintToMainLog(export_env, full_string);
 	}
+}
+
+//------------------------------------------------------------------------------
+// error message handling
+//------------------------------------------------------------------------------
+
+void PM_SetErrorMessage(char *str, ...)
+{
+	va_list argptr;
+	
+	va_start(argptr, str);
+	vsnprintf(error_message, MAX_LOG_STRING_LEN, str, argptr);
+	va_end(argptr);
+}
+
+char *PM_GetErrorMessage()
+{
+	return error_message;
+}
+
+JNIEXPORT jstring JNICALL Java_mtbdd_PrismMTBDD_PM_1GetErrorMessage(JNIEnv *env, jclass cls)
+{
+	return env->NewStringUTF(error_message);
 }
 
 //------------------------------------------------------------------------------

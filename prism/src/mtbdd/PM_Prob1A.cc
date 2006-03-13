@@ -1,13 +1,5 @@
 //==============================================================================
 //	
-//	File:		PM_Prob1A.cc
-//	Date:		4/5/01
-//	Authors:	Dave Parker and Gethin Norman
-//	Desc:		PCTL until probability 1 precomputation (for all = min) (nondeterministic/mdp) (mtbdd)
-//				(i.e. compute states FOR which ALL probabilities are 1)
-//	
-//------------------------------------------------------------------------------
-//	
 //	Copyright (c) 2002-2004, Dave Parker
 //	
 //	This file is part of PRISM.
@@ -37,6 +29,10 @@
 #include "PrismMTBDDGlob.h"
 
 //------------------------------------------------------------------------------
+
+// PCTL until probability 1 precomputation
+// (for all = min) (nondeterministic/mdp) (mtbdd)
+// (i.e. compute states FOR which ALL probabilities are 1)
 
 JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob1A
 (

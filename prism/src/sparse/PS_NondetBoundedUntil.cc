@@ -1,12 +1,5 @@
 //==============================================================================
 //	
-//	File:		PS_NondetBoundedUntil.cc
-//	Date:		4/5/01
-//	Author:		Dave Parker
-//	Desc:		pctl bounded until (nondeterministic/mdp) (sparse)
-//	
-//------------------------------------------------------------------------------
-//	
 //	Copyright (c) 2002-2004, Dave Parker
 //	
 //	This file is part of PRISM.

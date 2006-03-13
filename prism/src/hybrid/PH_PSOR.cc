@@ -326,7 +326,6 @@ jboolean forwards	// forwards or backwards?
 	time_taken = (double)(stop - start1)/1000;
 	
 	// print iters/timing info
-	if (!done) PH_PrintToMainLog(env, "\nWarning: Iterative method stopped early at %d iterations.\n", iters);
 	PH_PrintToMainLog(env, "\n%sPseudo %s: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", forwards?"":"Backwards ", (omega == 1.0)?"Gauss-Seidel":"SOR", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
 	// free memory
@@ -337,6 +336,9 @@ jboolean forwards	// forwards or backwards?
 	if (compact_d) free_dist_vector(diags_dist); else free(diags_vec);
 	if (b != NULL) if (compact_b) free_dist_vector(b_dist); else free(b_vec);
 	free(soln2);
+	
+	// if the iterative method didn't terminate, this is an error
+	if (!done) { delete soln; PH_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increase the maximum number of iterations", iters); return 0; }
 	
 	return (int)soln;
 }

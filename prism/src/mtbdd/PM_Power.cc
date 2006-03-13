@@ -145,11 +145,13 @@ jboolean transpose	// transpose A? (i.e. solve xA=b not Ax=b?)
 	time_taken = (double)(stop - start1)/1000;
 	
 	// print iters/timing info
-	if (!done) PM_PrintToMainLog(env, "\nWarning: Iterative method stopped early at %d iterations.\n", iters);
 	PM_PrintToMainLog(env, "\nPower method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
 	// free memory
 	Cudd_RecursiveDeref(ddman, b);
+	
+	// if the iterative method didn't terminate, this is an error
+	if (!done) { Cudd_RecursiveDeref(ddman, sol); PM_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increase the maximum number of iterations", iters); return 0; }
 	
 	return (int)sol;
 }

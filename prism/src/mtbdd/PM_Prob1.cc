@@ -1,12 +1,5 @@
 //==============================================================================
 //	
-//	File:		PM_Prob1.cc
-//	Date:		4/5/01
-//	Author:		Dave Parker
-//	Desc:		PCTL until probability 1 precomputation (probabilistic/dtmc) (mtbdd)
-//	
-//------------------------------------------------------------------------------
-//	
 //	Copyright (c) 2002-2004, Dave Parker
 //	
 //	This file is part of PRISM.
@@ -36,6 +29,8 @@
 #include "PrismMTBDDGlob.h"
 
 //------------------------------------------------------------------------------
+
+// PCTL until probability 1 precomputation (probabilistic/dtmc) (mtbdd)
 
 JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob1
 (

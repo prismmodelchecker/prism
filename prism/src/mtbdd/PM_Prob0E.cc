@@ -1,14 +1,5 @@
 //==============================================================================
 //	
-//	File:		PM_ProbOA.cc
-//	Date:		4/5/01
-//	Author:		Dave Parker
-//	Desc:		PCTL until probability 0 precomputation (there exists = min) (nondeterministic/mdp) (mtbdd)
-//				(i.e. compute states where THERE EXISTS a probability 0)
-//				(NB: actually compute states FOR which ALL probabilities are >0 and then do a NOT)
-//	
-//------------------------------------------------------------------------------
-//	
 //	Copyright (c) 2002-2004, Dave Parker
 //	
 //	This file is part of PRISM.
@@ -38,6 +29,11 @@
 #include "PrismMTBDDGlob.h"
 
 //------------------------------------------------------------------------------
+
+// PCTL until probability 0 precomputation
+// (there exists = min) (nondeterministic/mdp) (mtbdd)
+// (i.e. compute states where THERE EXISTS a probability 0)
+// (NB: actually compute states FOR which ALL probabilities are >0 and then do a NOT)
 
 JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob0E
 (

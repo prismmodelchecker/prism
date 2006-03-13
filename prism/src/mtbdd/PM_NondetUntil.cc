@@ -1,12 +1,5 @@
 //==============================================================================
 //	
-//	File:		PM_NondetUntil.cc
-//	Date:		4/5/01
-//	Author:		Dave Parker
-//	Desc:		pctl until - (nondeterministic/mdp) (mtbdd)
-//	
-//------------------------------------------------------------------------------
-//	
 //	Copyright (c) 2002-2004, Dave Parker
 //	
 //	This file is part of PRISM.
@@ -166,11 +159,13 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	time_taken = (double)(stop - start1)/1000;
 
 	// print iterations/timing info
-	if (!done) PM_PrintToMainLog(env, "\nWarning: Iterative method stopped early at %d iterations.\n", iters);
 	PM_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 			
 	// free memory
 	Cudd_RecursiveDeref(ddman, a);
+	
+	// if the iterative method didn't terminate, this is an error
+	if (!done) { Cudd_RecursiveDeref(ddman, sol); PM_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increase the maximum number of iterations", iters); return 0; }
 	
 	return (int)sol;
 }

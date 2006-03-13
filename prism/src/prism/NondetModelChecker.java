@@ -1,6 +1,6 @@
 //==============================================================================
 //	
-//	Copyright (c) 2002-2004, Dave Parker
+//	Copyright (c) 2002-2006, Dave Parker
 //	
 //	This file is part of PRISM.
 //	
@@ -491,14 +491,20 @@ public class NondetModelChecker implements ModelChecker
 		
 		// compute probabilities
 		f = pctl.getOperand();
-		if (f instanceof PCTLProbNext)
-			probs = checkPCTLProbNext((PCTLProbNext)f, min);
-		else if (f instanceof PCTLProbBoundedUntil)
-			probs = checkPCTLProbBoundedUntil((PCTLProbBoundedUntil)f, min);
-		else if (f instanceof PCTLProbUntil)
-			probs = checkPCTLProbUntil((PCTLProbUntil)f, pe, p, min);
-		else
-			throw new PrismException("Unrecognised path operator in P[] formula");
+		try {
+			if (f instanceof PCTLProbNext)
+				probs = checkPCTLProbNext((PCTLProbNext)f, min);
+			else if (f instanceof PCTLProbBoundedUntil)
+				probs = checkPCTLProbBoundedUntil((PCTLProbBoundedUntil)f, min);
+			else if (f instanceof PCTLProbUntil)
+				probs = checkPCTLProbUntil((PCTLProbUntil)f, pe, p, min);
+			else
+				throw new PrismException("Unrecognised path operator in P[] formula");
+		}
+		catch (PrismException e) {
+			if (filter != null) JDD.Deref(filter);
+			throw e;
+		}
 		
 		// round off probabilities
 		//probs.roundOff(getPlacesToRoundBy());
@@ -685,10 +691,16 @@ public class NondetModelChecker implements ModelChecker
 		
 		// compute rewards
 		f = pctl.getOperand();
-		if (f instanceof PCTLRewardReach)
-			rewards = checkPCTLRewardReach((PCTLRewardReach)f, min);
-		else
-			throw new PrismException("Unrecognised operator in R[] formula");
+		try {
+			if (f instanceof PCTLRewardReach)
+				rewards = checkPCTLRewardReach((PCTLRewardReach)f, min);
+			else
+				throw new PrismException("Unrecognised operator in R[] formula");
+		}
+		catch (PrismException e) {
+			if (filter != null) JDD.Deref(filter);
+			throw e;
+		}
 		
 		// round off rewards
 		//rewards.roundOff(getPlacesToRoundBy());
@@ -863,7 +875,14 @@ public class NondetModelChecker implements ModelChecker
 			probs = new StateProbsMTBDD(b2, model);
 		}
 		else {
-			probs = computeBoundedUntilProbs(trans, trans01, b1, b2, time, min);
+			try {
+				probs = computeBoundedUntilProbs(trans, trans01, b1, b2, time, min);
+			}
+			catch (PrismException e) {
+				JDD.Deref(b1);
+				JDD.Deref(b2);
+				throw e;
+			}
 		}
 		
 		// derefs
@@ -935,7 +954,14 @@ public class NondetModelChecker implements ModelChecker
 		// otherwise actually compute probabilities
 		else {
 			// for fairness, we compute max here
-			probs = computeUntilProbs(trans, trans01, b1, b2, min&&!fairness);
+			try {
+				probs = computeUntilProbs(trans, trans01, b1, b2, min&&!fairness);
+			}
+			catch (PrismException e) {
+				JDD.Deref(b1);
+				JDD.Deref(b2);
+				throw e;
+			}
 		}
 		
 		// if we're doing min with fairness,
@@ -966,7 +992,13 @@ public class NondetModelChecker implements ModelChecker
 		//mainLog.print("\nb = " + JDD.GetNumMintermsString(b, allDDRowVars.n()) + " states\n");
 		
 		// compute rewards
-		rewards = computeReachRewards(trans, trans01, stateRewards, transRewards, b, min);
+		try {
+			rewards = computeReachRewards(trans, trans01, stateRewards, transRewards, b, min);
+		}
+		catch (PrismException e) {
+			JDD.Deref(b);
+			throw e;
+		}
 		
 		// derefs
 		JDD.Deref(b);
@@ -1040,9 +1072,11 @@ public class NondetModelChecker implements ModelChecker
 
 	// compute probabilities for bounded until
 
-	private StateProbs computeBoundedUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2, int time, boolean min)
+	private StateProbs computeBoundedUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2, int time, boolean min) throws PrismException
 	{
 		JDDNode yes, no, maybe;
+		JDDNode probsMTBDD;
+		DoubleVector probsDV;
 		StateProbs probs = null;
 		
 		// compute yes/no/maybe states
@@ -1102,25 +1136,28 @@ public class NondetModelChecker implements ModelChecker
 		// otherwise explicitly compute the remaining probabilities
 		else {		
 			// compute probabilities
-			switch (engine) {
-
-				case Prism.MTBDD: {
-					JDDNode probsMTBDD = PrismMTBDD.NondetBoundedUntil(tr, odd, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, time, min);
+			try {
+				switch (engine) {
+				case Prism.MTBDD:
+					probsMTBDD = PrismMTBDD.NondetBoundedUntil(tr, odd, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, time, min);
 					probs = new StateProbsMTBDD(probsMTBDD, model);
 					break;
-				}
-
-				case Prism.SPARSE: {
-					DoubleVector probsDV = PrismSparse.NondetBoundedUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, time, min);
+				case Prism.SPARSE:
+					probsDV = PrismSparse.NondetBoundedUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, time, min);
 					probs = new StateProbsDV(probsDV, model);
 					break;
-				}
-
-				case Prism.HYBRID: {
-					DoubleVector probsDV = PrismHybrid.NondetBoundedUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, time, min);
+				case Prism.HYBRID:
+					probsDV = PrismHybrid.NondetBoundedUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, time, min);
 					probs = new StateProbsDV(probsDV, model);
 					break;
+				default: throw new PrismException("Engine does not support this numerical method");
 				}
+			}
+			catch (PrismException e) {
+				JDD.Deref(yes);
+				JDD.Deref(no);
+				JDD.Deref(maybe);
+				throw e;
 			}
 		}
 		
@@ -1256,9 +1293,11 @@ public class NondetModelChecker implements ModelChecker
 	// note: this function doesn't need to know anything about fairness
 	//       it is just told whether to compute min or max probabilities
 	
-	private StateProbs computeUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2, boolean min)
+	private StateProbs computeUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2, boolean min) throws PrismException
 	{
 		JDDNode yes, no, maybe;
+		JDDNode probsMTBDD;
+		DoubleVector probsDV;
 		StateProbs probs = null;
 		
 		// compute yes/no/maybe states
@@ -1343,26 +1382,28 @@ public class NondetModelChecker implements ModelChecker
 			// compute probabilities
 			mainLog.println("\nComputing remaining probabilities...");
 			
-			switch (engine) {
-
-				case Prism.MTBDD: {
-					JDDNode probsMTBDD = PrismMTBDD.NondetUntil(tr, odd, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min);
+			try {
+				switch (engine) {
+				case Prism.MTBDD:
+					probsMTBDD = PrismMTBDD.NondetUntil(tr, odd, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min);
 					probs = new StateProbsMTBDD(probsMTBDD, model);
 					break;
-				}
-
-				case Prism.SPARSE: {
-					DoubleVector probsDV = PrismSparse.NondetUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min);
+				case Prism.SPARSE:
+					probsDV = PrismSparse.NondetUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min);
 					probs = new StateProbsDV(probsDV, model);
 					break;
-				}
-
-				case Prism.HYBRID: {
-					DoubleVector probsDV = PrismHybrid.NondetUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min);
+				case Prism.HYBRID:
+					probsDV = PrismHybrid.NondetUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min);
 					probs = new StateProbsDV(probsDV, model);
 					break;
-
+				default: throw new PrismException("Engine does not support this numerical method");
 				}
+			}
+			catch (PrismException e) {
+				JDD.Deref(yes);
+				JDD.Deref(no);
+				JDD.Deref(maybe);
+				throw e;
 			}
 			
 			// round off probabilities
@@ -1382,6 +1423,8 @@ public class NondetModelChecker implements ModelChecker
 	private StateProbs computeReachRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr, JDDNode b, boolean min) throws PrismException
 	{
 		JDDNode inf, maybe, prob1, no;
+		JDDNode rewardsMTBDD;
+		DoubleVector rewardsDV;
 		StateProbs rewards = null;
 		
 		// compute states which can't reach goal with probability 1
@@ -1436,27 +1479,29 @@ public class NondetModelChecker implements ModelChecker
 		// otherwise we compute the actual rewards
 		else {
 			// compute the rewards
-			switch (engine) {
-				
-				case Prism.MTBDD: {
-					JDDNode rewardsMTBDD = PrismMTBDD.NondetReachReward(tr, sr, trr, odd, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, b, inf, maybe, min);
+			try {
+				switch (engine) {
+				case Prism.MTBDD:
+					rewardsMTBDD = PrismMTBDD.NondetReachReward(tr, sr, trr, odd, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, b, inf, maybe, min);
 					rewards = new StateProbsMTBDD(rewardsMTBDD, model);
 					break;
-				}
-				
-				case Prism.SPARSE: {
+				case Prism.SPARSE:
 					throw new PrismException("This functionality is not yet supported for this engine");
-// 					DoubleVector rewardsDV = PrismSparse.NondetReachReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf, maybe, min);
+// 					rewardsDV = PrismSparse.NondetReachReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf, maybe, min);
 // 					rewards = new StateProbsDV(rewardsDV, model);
 // 					break;
-				}
-				
-				case Prism.HYBRID: {
+				case Prism.HYBRID:
 					throw new PrismException("This functionality is not yet supported for this engine");
-// 					DoubleVector rewardsDV = PrismHybrid.NondetReachReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf, maybe, min);
+// 					rewardsDV = PrismHybrid.NondetReachReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf, maybe, min);
 // 					rewards = new StateProbsDV(rewardsDV, model);
 // 					break;
+				default: throw new PrismException("Engine does not support this numerical method");
 				}
+			}
+			catch (PrismException e) {
+				JDD.Deref(inf);
+				JDD.Deref(maybe);
+				throw e;
 			}
 		}
 		

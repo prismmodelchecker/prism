@@ -76,6 +76,8 @@ extern JNIEnv *export_env;
 #define logtwo(X) log(X)/log(2)
 void PS_PrintToMainLog(JNIEnv *env, char *str, ...);
 void PS_PrintToTechLog(JNIEnv *env, char *str, ...);
+void PS_SetErrorMessage(char *str, ...);
+char *PS_GetErrorMessage();
 int store_export_info(int type, jstring fn, JNIEnv *env);
 void export_string(char *str, ...);
 

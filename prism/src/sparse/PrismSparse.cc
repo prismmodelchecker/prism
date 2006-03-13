@@ -30,6 +30,7 @@
 #include "PrismSparseGlob.h"
 
 #define MAX_LOG_STRING_LEN 1024
+#define MAX_ERR_STRING_LEN 1024
 
 //------------------------------------------------------------------------------
 // sparse engine global variables
@@ -63,6 +64,9 @@ bool compact;
 int export_type;
 FILE *export_file;
 JNIEnv *export_env;
+
+// error message
+char error_message[MAX_ERR_STRING_LEN];
 
 //------------------------------------------------------------------------------
 // cudd manager
@@ -234,6 +238,29 @@ void export_string(char *str, ...)
 	} else {
 		PS_PrintToMainLog(export_env, full_string);
 	}
+}
+
+//------------------------------------------------------------------------------
+// error message handling
+//------------------------------------------------------------------------------
+
+void PS_SetErrorMessage(char *str, ...)
+{
+	va_list argptr;
+	
+	va_start(argptr, str);
+	vsnprintf(error_message, MAX_LOG_STRING_LEN, str, argptr);
+	va_end(argptr);
+}
+
+char *PS_GetErrorMessage()
+{
+	return error_message;
+}
+
+JNIEXPORT jstring JNICALL Java_sparse_PrismSparse_PS_1GetErrorMessage(JNIEnv *env, jclass cls)
+{
+	return env->NewStringUTF(error_message);
 }
 
 //------------------------------------------------------------------------------
