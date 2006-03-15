@@ -238,23 +238,20 @@ public class PrismCL
 			
 			// export labels/states
 			if (exportlabels) {
-				if (propertiesFile == null) {
-					mainLog.print("\nWarning: Labels have not been exported because there is no properties file");
-				}
-				else {
-					try {
+				try {
+					if (propertiesFile != null) {
 						definedPFConstants = undefinedConstants.getPFConstantValues();
 						propertiesFile.setUndefinedConstants(definedPFConstants);
-						File f = (exportLabelsFilename.equals("stdout")) ? null : new File(exportLabelsFilename);
-						prism.exportLabelsToFile(model, propertiesFile, exportType, f);
 					}
-					// in case of error, report it and proceed
-					catch (FileNotFoundException e) {
-						mainLog.println("Couldn't open file \"" + exportLabelsFilename + "\" for output");
-					}
-					catch (PrismException e) {
-						mainLog.println("\nError: " + e.getMessage() + ".");
-					}
+					File f = (exportLabelsFilename.equals("stdout")) ? null : new File(exportLabelsFilename);
+					prism.exportLabelsToFile(model, propertiesFile, exportType, f);
+				}
+				// in case of error, report it and proceed
+				catch (FileNotFoundException e) {
+					mainLog.println("Couldn't open file \"" + exportLabelsFilename + "\" for output");
+				}
+				catch (PrismException e) {
+					mainLog.println("\nError: " + e.getMessage() + ".");
 				}
 			}
 			

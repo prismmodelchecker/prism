@@ -945,19 +945,17 @@ public class Prism
 		LabelList ll;
 		Expression expr;
 		Values constantValues;
-		Expression2MTBDD expr2mtbdd;
+		Expression2MTBDD expr2mtbdd = null;
 		JDDNode dd, labels[];
 		String labelNames[];
 		
-		if (propertiesFile == null) return;
-		
-		// get label list
-		ll = propertiesFile.getLabelList();
-		
-		// bail out if there are no labels
-		if (ll.size() == 0) {
-			mainLog.println("\nWarning: There were no labels to export.");
-			return;
+		// get label list and size
+		if (propertiesFile == null) {
+			ll = null;
+			n = 0;
+		} else {
+			ll = propertiesFile.getLabelList();
+			n = ll.size();
 		}
 		
 		// print message
@@ -965,22 +963,27 @@ public class Prism
 		if (file != null) mainLog.println("to file \"" + file + "\"..."); else mainLog.println("below:");
 		
 		// convert labels to bdds
-		constantValues = new Values();
-		constantValues.addValues(model.getConstantValues());
-		constantValues.addValues(propertiesFile.getConstantValues());
-		expr2mtbdd = new Expression2MTBDD(mainLog, techLog, model.getVarList(), model.getVarDDRowVars(), constantValues);
-		expr2mtbdd.setFilter(model.getReach());
-		n = ll.size();
-		labels = new JDDNode[n];
+		if (n > 0) {
+			constantValues = new Values();
+			constantValues.addValues(model.getConstantValues());
+			constantValues.addValues(propertiesFile.getConstantValues());
+			expr2mtbdd = new Expression2MTBDD(mainLog, techLog, model.getVarList(), model.getVarDDRowVars(), constantValues);
+			expr2mtbdd.setFilter(model.getReach());
+		}
+		labels = new JDDNode[n+2];
+		labels[0] = model.getStart();
+		labels[1] = model.getFixedDeadlocks();
 		for (i = 0; i < n; i++) {
 			expr = ll.getLabel(i);
 			dd = expr2mtbdd.translateExpression(expr);
-			labels[i] = dd;
+			labels[i+2] = dd;
 		}
 		// put names for labels in an array
-		labelNames = new String[n];
+		labelNames = new String[n+2];
+		labelNames[0] = "init";
+		labelNames[1] = "deadlock";
 		for (i = 0; i < n; i++) {
-			labelNames[i] = ll.getLabelName(i);
+			labelNames[i+2] = ll.getLabelName(i);
 		}
 		
 		// export them to a file
@@ -988,7 +991,7 @@ public class Prism
 		
 		// deref dds
 		for (i = 0; i < n; i++) {
-			JDD.Deref(labels[i]);
+			JDD.Deref(labels[i+2]);
 		}
 	}
 
