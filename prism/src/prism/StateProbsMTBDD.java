@@ -25,6 +25,7 @@ package prism;
 import jdd.*;
 import odd.*;
 import parser.VarList;
+import parser.Expression;
 
 // state probability vector (mtbdd)
 
@@ -330,7 +331,7 @@ public class StateProbsMTBDD implements StateProbs
 	
 	private void printRec(JDDNode dd, int level, ODDNode o, long n)
 	{
-		int i;
+		int i, j;
 		JDDNode e, t;
 
 		// zero constant - bottom out of recursion
@@ -340,11 +341,18 @@ public class StateProbsMTBDD implements StateProbs
 		if (level == numVars) {
 		
 			outputLog.print(n + ":(");
-			for (i = 0; i < varList.getNumVars()-1; i++) {
-				outputLog.print((varValues[i]+varList.getLow(i)) + ",");
+			j = varList.getNumVars();
+			for (i = 0; i < j; i++) {
+				// integer variable
+				if (varList.getType(i) == Expression.INT) {
+					outputLog.print(varValues[i]+varList.getLow(i));
+				}
+				// boolean variable
+				else {
+					outputLog.print(varValues[i] == 1);
+				}
+				if (i < j-1) outputLog.print(",");
 			}
-			i = varList.getNumVars()-1;
-			outputLog.print((varValues[i]+varList.getLow(i)));
 			outputLog.print(")=" + dd.getValue() + " ");
 			outputLog.println();
 			return;

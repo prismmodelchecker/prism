@@ -26,6 +26,7 @@ import dv.*;
 import jdd.*;
 import odd.*;
 import parser.VarList;
+import parser.Expression;
 
 // state probability vector (double vector)
 
@@ -234,7 +235,7 @@ public class StateProbsDV implements StateProbs
 	
 	private void printRec(int level, ODDNode o, int n)
 	{
-		int i;
+		int i, j;
 		double d;
 		
 		// base case - at bottom
@@ -242,11 +243,18 @@ public class StateProbsDV implements StateProbs
 			d = probs.getElement(n);
 			if (d != 0) {
 				outputLog.print(n + ":(");
-				for (i = 0; i < varList.getNumVars()-1; i++) {
-					outputLog.print((varValues[i]+varList.getLow(i)) + ",");
+				j = varList.getNumVars();
+				for (i = 0; i < j; i++) {
+					// integer variable
+					if (varList.getType(i) == Expression.INT) {
+						outputLog.print(varValues[i]+varList.getLow(i));
+					}
+					// boolean variable
+					else {
+						outputLog.print(varValues[i] == 1);
+					}
+					if (i < j-1) outputLog.print(",");
 				}
-				i = varList.getNumVars()-1;
-				outputLog.print((varValues[i]+varList.getLow(i)));
 				outputLog.print(")=" + d + " ");
 				outputLog.println();
 				return;

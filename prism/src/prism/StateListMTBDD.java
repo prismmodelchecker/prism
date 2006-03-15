@@ -22,10 +22,10 @@
 
 package prism;
 
-import parser.VarList;
 import jdd.*;
 import odd.*;
 import parser.Values;
+import parser.VarList;
 import parser.Expression;
 
 // list of states (mtbdd)
@@ -154,7 +154,7 @@ public class StateListMTBDD implements StateList
 	
 	private void printRec(JDDNode dd, int level, ODDNode o, long n)
 	{
-		int i;
+		int i, j;
 		JDDNode e, t;
 		
 		// if we've printed enough states, stop
@@ -167,11 +167,18 @@ public class StateListMTBDD implements StateList
 		if (level == numVars) {
 			
 			if (!matlab) outputLog.print(n + ":(");
-			for (i = 0; i < varList.getNumVars()-1; i++) {
-				outputLog.print((varValues[i]+varList.getLow(i)) + ",");
+			j = varList.getNumVars();
+			for (i = 0; i < j; i++) {
+				// integer variable
+				if (varList.getType(i) == Expression.INT) {
+					outputLog.print(varValues[i]+varList.getLow(i));
+				}
+				// boolean variable
+				else {
+					outputLog.print(varValues[i] == 1);
+				}
+				if (i < j-1) outputLog.print(",");
 			}
-			i = varList.getNumVars()-1;
-			outputLog.print((varValues[i]+varList.getLow(i)));
 			if (!matlab) outputLog.print(")");
 			outputLog.println();
 			count++;
