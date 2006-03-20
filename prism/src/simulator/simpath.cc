@@ -405,6 +405,8 @@ void Backtrack(int step)
 	
 	Recalculate_Path_Formulae();
 	
+	Calculate_State_Reward(state_variables);
+	
 	Calculate_Updates(state_variables);
 	
 	loop_detection->Backtrack(step);
