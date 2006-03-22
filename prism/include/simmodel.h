@@ -117,8 +117,7 @@ class CAssignment
 		 */
 		string To_String();
 
-                void CAssignment::Write_Assignment(int fd);
-		
+		void Write_Assignment(int fd);
 };
 
 /*
@@ -184,14 +183,14 @@ class CUpdate
 		/*
 		 *	Do the update on state_variables
 		 */
-		void CUpdate::Do_Update();
+		void Do_Update();
 
 		 /*
 		  *	 Do the update on vars
 		  */
-		void CUpdate::Do_Update(int*vars);
+		void Do_Update(int*vars);
 
-                void CUpdate::Write_Update(int fd);
+		void Write_Update(int fd);
 };
 
 /*
