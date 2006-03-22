@@ -739,10 +739,10 @@ public class Prism
 		return model;
 	}
 	
-	public ModulesFile parseExplicitModel(File statesFile, File transFile, int typeOverride) throws PrismException
+	public ModulesFile parseExplicitModel(File statesFile, File transFile, int typeOverride, String initString) throws PrismException
 	{
 		// create Explicit2MTBDD object
-		exp2mtbdd = new Explicit2MTBDD(mainLog, techLog, statesFile, transFile, typeOverride);
+		exp2mtbdd = new Explicit2MTBDD(mainLog, techLog, statesFile, transFile, typeOverride, initString);
 		exp2mtbdd.setOption("doreach", getDoReach());
 		
 		// build state space

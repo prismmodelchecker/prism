@@ -66,6 +66,9 @@ public class PrismCL
 	// argument to -const switch
 	private String constSwitch = null;
 	
+	// import info
+	private String importInitString = null;
+	
 	// files/filenames
 	private String mainLogFilename = "stdout";
 	private String techLogFilename = "stdout";
@@ -415,10 +418,10 @@ public class PrismCL
 				}
 				if (importstates) {
 					mainLog.print(") from files \"" + importStatesFilename + "\" and \"" + modelFilename + "\"...\n");
-					modulesFile = prism.parseExplicitModel(new File(importStatesFilename), new File(modelFilename), typeOverride);
+					modulesFile = prism.parseExplicitModel(new File(importStatesFilename), new File(modelFilename), typeOverride, importInitString);
 				} else {
 					mainLog.print(") from file \"" + modelFilename + "\"...\n");
-					modulesFile = prism.parseExplicitModel(null, new File(modelFilename), typeOverride);
+					modulesFile = prism.parseExplicitModel(null, new File(modelFilename), typeOverride, importInitString);
 				}
 			}
 			else {
@@ -890,6 +893,15 @@ public class PrismCL
 					if (i < args.length-1) {
 						importstates = true;
 						importStatesFilename = args[++i];
+					}
+					else {
+						errorAndExit("No file specified for -"+sw+" switch");
+					}
+				}
+				// import initial states info for explicit model import
+				else if (sw.equals("importinit")) {
+					if (i < args.length-1) {
+						importInitString = args[++i];
 					}
 					else {
 						errorAndExit("No file specified for -"+sw+" switch");

@@ -24,6 +24,7 @@ package prism;
 
 import java.io.*;
 import java.util.Vector;
+import java.util.HashMap;
 
 import jdd.*;
 import mtbdd.*;
@@ -44,6 +45,10 @@ public class Explicit2MTBDD
 	private File statesFile;
 	private File transFile;
 
+	// initial state info
+	private String initString;
+	private HashMap initVals;
+
 	// ModulesFile object, essentially just to store variable info
 	private ModulesFile modulesFile;
 
@@ -57,6 +62,7 @@ public class Explicit2MTBDD
 	private	int varMins[];			// min values of vars
 	private int varMaxs[];			// max values of vars
 	private int varRanges[];		// ranges of vars
+	private int varTypes[];			// types of vars
 	private VarList varList;		// VarList object to store all var info 
 	// explicit storage of states
 	private int numStates = 0;
@@ -103,7 +109,7 @@ public class Explicit2MTBDD
 
 	// constructor
 	
-	public Explicit2MTBDD(PrismLog log1, PrismLog log2, File sf, File tf, int t)
+	public Explicit2MTBDD(PrismLog log1, PrismLog log2, File sf, File tf, int t, String is)
 	{
 		mainLog = log1;
 		techLog = log2;
@@ -119,6 +125,7 @@ public class Explicit2MTBDD
 		default:
 			type = ModulesFile.NONDETERMINISTIC; break;
 		}
+		initString = is;
 	}
 	
 	// set options (generic)
@@ -150,6 +157,9 @@ public class Explicit2MTBDD
 		Module m;
 		Declaration d;
 		
+		// parse any info about initial state
+		parseInitString();
+		
 		// generate info about variables...
 		
 		// ...either reading from state list file
@@ -166,6 +176,36 @@ public class Explicit2MTBDD
 		return modulesFile;
 	}
 
+	// parse info about initial state
+	
+	public void parseInitString() throws PrismException
+	{
+		String ss[], ss2[];
+		int i, j;
+		
+		// create hash map to store var name -> var value mapping
+		initVals = new HashMap();
+		// parse string
+		if (initString == null) return;
+		ss = initString.split(",");
+		for (i = 0; i < ss.length; i++) {
+			ss2 = ss[i].split("=");
+			if (ss2.length != 2) throw new PrismException("Badly formatted initial states string");
+			if (!ss2[0].matches("[A-Za-z_][A-Za-z_0-9]*")) throw new PrismException("Badly formatted variable name in initial states string");
+			if (ss2[1].equals("true")) initVals.put(ss2[0], new Boolean(true));
+			else if (ss2[1].equals("false")) initVals.put(ss2[0], new Boolean(false));
+			else {
+				try {
+					j = Integer.parseInt(ss2[1]);
+					initVals.put(ss2[0], new Integer(j));
+				}
+				catch (NumberFormatException e) {
+					throw new PrismException("Badly formatted value in initial states string");
+				}
+			}
+		}
+	}
+
 	// create info about vars from states file and put into ModulesFile object
 	
 	public void createVarInfoFromStatesFile() throws PrismException
@@ -175,6 +215,7 @@ public class Explicit2MTBDD
 		int i, j, lineNum = 0;
 		Module m;
 		Declaration d;
+		Object o;
 		
 		try {
 			// open file for reading
@@ -189,30 +230,40 @@ public class Explicit2MTBDD
 			varMins = new int[numVars];
 			varMaxs = new int[numVars];
 			varRanges = new int[numVars];
+			varTypes = new int[numVars];
 			// read remaining lines
 			s = in.readLine(); lineNum++;
 			numStates = 0;
 			while (s != null) {
 				// increment state count
 				numStates++;
-				// check var vals for new min/max
+				// split string
 				s = s.trim();
 				s = s.substring(s.indexOf('(')+1, s.indexOf(')'));
 				ss = s.split(",");
 				if (ss.length != numVars) throw new PrismException("");
+				// for each variable...
 				for (i = 0; i < numVars; i++) {
-					j = Integer.parseInt(ss[i]);
+					// if this is the first state, establish variable type
 					if (numStates == 1) {
-						varMins[i] = varMaxs[i] = j;
-					} else {
-						if (j < varMins[i]) varMins[i] = j;
-						if (j > varMaxs[i]) varMaxs[i] = j;
+						if (ss[i].equals("true") || ss[i].equals("false")) varTypes[i] = Expression.BOOLEAN;
+						else varTypes[i] = Expression.INT;
+					}
+					// check for new min/max values (ints only)
+					if (varTypes[i] == Expression.INT) {
+						j = Integer.parseInt(ss[i]);
+						if (numStates == 1) {
+							varMins[i] = varMaxs[i] = j;
+						} else {
+							if (j < varMins[i]) varMins[i] = j;
+							if (j > varMaxs[i]) varMaxs[i] = j;
+						}
 					}
 				}
 				s = in.readLine(); lineNum++;
 			}
 			for (i = 0; i < numVars; i++) {
-				varRanges[i] = varMaxs[i] - varMins[i];
+				if (varTypes[i] == Expression.INT) varRanges[i] = varMaxs[i] - varMins[i];
 			}
 			// close file
 			in.close();
@@ -230,7 +281,20 @@ public class Explicit2MTBDD
 		modulesFile = new ModulesFile();
 		m = new Module("M");
 		for (i = 0; i < numVars; i++) {
-			d = new Declaration(varNames[i], new ExpressionInt(varMins[i]), new ExpressionInt(varMaxs[i]), new ExpressionInt(varMins[i]));
+			if (varTypes[i] == Expression.INT) {
+				o = initVals.get(varNames[i]);
+				if (o == null)
+					d = new Declaration(varNames[i], new ExpressionInt(varMins[i]), new ExpressionInt(varMaxs[i]), new ExpressionInt(varMins[i]));
+				else
+					d = new Declaration(varNames[i], new ExpressionInt(varMins[i]), new ExpressionInt(varMaxs[i]), new ExpressionInt(((Integer)o).intValue()));
+			}
+			else {
+				o = initVals.get(varNames[i]);
+				if (o == null)
+					d = new Declaration(varNames[i], new ExpressionFalse());
+				else
+					d = new Declaration(varNames[i], ((Boolean)o).booleanValue() ? new ExpressionTrue() : new ExpressionFalse());
+			}
 			m.addDeclaration(d);
 		}
 		modulesFile.addModule(m);
@@ -246,6 +310,8 @@ public class Explicit2MTBDD
 		int lineNum = 0;
 		Module m;
 		Declaration d;
+		Expression init;
+		Object o;
 		
 		try {
 			// open file for reading
@@ -267,10 +333,14 @@ public class Explicit2MTBDD
 		catch (PrismException e) {
 			throw new PrismException("Error detected " + e.getMessage() + "at line " + lineNum + " of transition matrix file \"" + transFile + "\"");
 		}
+		// determine initial value for variable
+		o = initVals.get("x");
+		if (o == null) init = new ExpressionInt(0);
+		else init = new ExpressionInt(((Integer)o).intValue());
 		// create modules file
 		modulesFile = new ModulesFile();
 		m = new Module("M");
-		d = new Declaration("x", new ExpressionInt(1), new ExpressionInt(numStates), new ExpressionInt(1));
+		d = new Declaration("x", new ExpressionInt(0), new ExpressionInt(numStates-1), init);
 		m.addDeclaration(d);
 		modulesFile.addModule(m);
 		modulesFile.tidyUp();
@@ -302,12 +372,19 @@ public class Explicit2MTBDD
 				i = Integer.parseInt(ss[0]);
 				// now split up middle bit and extract var info
 				ss = ss[1].substring(ss[1].indexOf('(')+1, ss[1].indexOf(')')).split(",");
-				if (ss.length != numVars) throw new PrismException("");
+				if (ss.length != numVars) throw new PrismException("(wrong number of variable values) ");
 				if (statesArray[i] != null) throw new PrismException("(duplicated state) ");
 				statesArray[i] = new int[numVars];
 				for (j = 0; j < numVars; j++) {
-					k = Integer.parseInt(ss[j]);
-					statesArray[i][j] = k - varMins[j];
+					if (varTypes[j] == Expression.INT) {
+						k = Integer.parseInt(ss[j]);
+						statesArray[i][j] = k - varMins[j];
+					}
+					else {
+						if (ss[j].equals("true")) statesArray[i][j] = 1;
+						else if (ss[j].equals("false")) statesArray[i][j] = 0;
+						else throw new PrismException("(invalid Boolean value \""+ss[j]+"\") ");
+					}
 				}
 				s = in.readLine(); lineNum++;
 			}
@@ -715,8 +792,8 @@ public class Explicit2MTBDD
 				else {
 					tmp = JDD.Constant(1);
 					for (i = 0; i < numVars; i++) {
-						tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], statesArray[r][i]-varMins[i], 1));
-						tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDColVars[i], statesArray[c][i]-varMins[i], 1));
+						tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], statesArray[r][i], 1));
+						tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDColVars[i], statesArray[c][i], 1));
 					}
 					if (type == ModulesFile.NONDETERMINISTIC) {
 						tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), allDDChoiceVars, k, 1));
@@ -789,7 +866,7 @@ public class Explicit2MTBDD
 					else {
 						tmp = JDD.Constant(1);
 						for (j = 0; j < numVars; j++) {
-							tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[j], statesArray[i][j]-varMins[j], 1));
+							tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[j], statesArray[i][j], 1));
 						}
 					}
 					// add it into mtbdd for state rewards
