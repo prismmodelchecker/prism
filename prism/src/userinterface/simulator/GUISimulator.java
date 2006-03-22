@@ -2597,7 +2597,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		public int getColumnCount()
 		{
 			if(pathActive)
-				return 4;
+				return 3;
 			else return 0;
 		}
 		
@@ -2606,10 +2606,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			
 			if(pathActive)
 			{
-				if(!oldUpdate)
-					return engine.getNumUpdates();
-				else
-					return engine.getNumUpdates();
+				return engine.getNumUpdates();
 			}
 			else return 0;
 			
@@ -2617,33 +2614,21 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		public Object getValueAt(int rowIndex, int columnIndex)
 		{
-			
+			String s;
 			if(pathActive)
 			{
-				if(!oldUpdate)
+				switch(columnIndex)
 				{
-					switch(columnIndex)
-					{
-						case 0: return engine.getActionLabelOfUpdate(rowIndex);
-						case 1: return engine.getModuleNameOfUpdate(rowIndex);
-						case 2: return ""+engine.getProbabilityOfUpdate(rowIndex);
-						case 3: return engine.getAssignmentDescriptionOfUpdate(rowIndex);
-						default: return null;
-					}
-				}
-				else
-				{
-					switch(columnIndex)
-					{
-						case 0: return engine.getActionLabelOfUpdate(rowIndex);
-						case 1: return engine.getModuleNameOfUpdate(rowIndex);
-						case 2: return ""+engine.getProbabilityOfUpdate(rowIndex);
-						case 3: return engine.getAssignmentDescriptionOfUpdate(rowIndex);
-						default: return null;
-					}
+					case 0:
+						s = engine.getActionLabelOfUpdate(rowIndex);
+						if (!s.equals("[]")) return s;
+						else return engine.getModuleNameOfUpdate(rowIndex);
+					case 1: return ""+engine.getProbabilityOfUpdate(rowIndex);
+					case 2: return engine.getAssignmentDescriptionOfUpdate(rowIndex);
+					default: return "";
 				}
 			}
-			else return null;
+			else return "";
 			
 		}
 		
@@ -2654,15 +2639,14 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				switch(column)
 				{
 					case 0: return "Action";
-					case 1: return "Module";
-					case 2:
+					case 1:
 					{
 						if(mf != null && mf.getType() == ModulesFile.STOCHASTIC)
 							return "Rate";
-						else return "Probability";
+						else return "Prob.";
 						
 					}
-					case 3: return "Assignment";
+					case 2: return "Updates";
 					default: return "";
 				}
 			}
@@ -2725,13 +2709,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		public int getProbabilityDistributionOf(int row)
 		{
-			if(!oldUpdate)
-				return engine.getDistributionIndexOfUpdate(row);
-			else
-				return engine.getDistributionIndexOfUpdate(row);
+			return engine.getDistributionIndexOfUpdate(row);
 		}
-		
 	}
-	
-	
 }
