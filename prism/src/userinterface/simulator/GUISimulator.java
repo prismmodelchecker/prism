@@ -2646,7 +2646,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 						else return "Prob.";
 						
 					}
-					case 2: return "Updates";
+					case 2: return "Update";
 					default: return "";
 				}
 			}
