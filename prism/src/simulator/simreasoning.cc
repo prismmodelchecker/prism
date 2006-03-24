@@ -121,7 +121,7 @@ CFinalUpdate::CFinalUpdate(int max_assignments)
 	if(&assignments == NULL)
 	{
 		Report_Error("Out of memory when allocating reasoning data structures");
-		throw "Out of memory error: simreasoning.cc 008";
+		throw string("Out of memory error: simreasoning.cc 008");
 	}
 	assignments.reserve(max_assignments);
 	
@@ -326,7 +326,7 @@ void Allocate_Reasoning()
 	if(&the_updates == NULL)
 	{
 		Report_Error("Out of memory when allocating reasoning data structures");
-		throw "Out of memory error: simreasoning.cc 001";
+		throw string("Out of memory error: simreasoning.cc 001");
 	}
 
 	the_updates.reserve(DEFAULT_MAX_NO_UPDATES);
@@ -338,7 +338,7 @@ void Allocate_Reasoning()
 		if(upd == NULL)
 		{
 			Report_Error("Out of memory when allocating reasoning data structures");
-			throw "Out of memory error: simreasoning.cc 002";
+			throw string("Out of memory error: simreasoning.cc 002");
 		}
 		the_updates.push_back(upd);
 	}
@@ -350,13 +350,13 @@ void Allocate_Reasoning()
 	if(true_commands == NULL)
 	{
 		Report_Error("Out of memory when allocating reasoning data structures");
-		throw "Out of memory error: simreasoning.cc 003";
+		throw string("Out of memory error: simreasoning.cc 003");
 	}
 	no_true_commands = new int*[no_modules+1];			//sorted out synchronised commands
 	if(no_true_commands == NULL)
 	{
 		Report_Error("Out of memory when allocating reasoning data structures");
-		throw "Out of memory error: simreasoning.cc 004";
+		throw string("Out of memory error: simreasoning.cc 004");
 	}
 	for(int i = 0; i < no_modules+1; i++) 
 	{
@@ -364,13 +364,13 @@ void Allocate_Reasoning()
 		if(true_commands[i] == NULL)
 		{
 			Report_Error("Out of memory when allocating reasoning data structures");
-		throw "Out of memory error: simreasoning.cc 005";
+		throw string("Out of memory error: simreasoning.cc 005");
 		}
 		no_true_commands[i] = new int[no_actions+1];	//module commands
 		if(no_true_commands[i] == NULL)
 		{
 			Report_Error("Out of memory when allocating reasoning data structures");
-			throw "Out of memory error: simreasoning.cc 006";
+			throw string("Out of memory error: simreasoning.cc 006");
 		}
 		for(int j = 0; j < no_actions+1; j++)
 		{
@@ -378,7 +378,7 @@ void Allocate_Reasoning()
 			if(true_commands[i][j] == NULL)
 			{
 				Report_Error("Out of memory when allocating reasoning data structures");
-				throw "Out of memory error: simreasoning.cc 007";
+				throw string("Out of memory error: simreasoning.cc 007");
 			}
 			no_true_commands[i][j] = 0;
 			for(int k = 0; k < no_commands; k++)
@@ -996,7 +996,7 @@ CFinalUpdate* Get_Update(int index)
 			if(fupd == NULL)
 			{
 				Report_Error("Out of memory when allocating reasoning data structures");
-				throw "Out of memory error: simreasoning.cc 010";
+				throw string("Out of memory error: simreasoning.cc 010");
 			}
 			the_updates.push_back(fupd);
 		}
@@ -1095,7 +1095,7 @@ inline void Product_Commands(int synch_index, int module_index)
 		if(products == NULL)
 		{
 			Report_Error("Out of memory when allocating reasoning data structures");
-			throw "Out of memory error: simreasoning.cc 011";
+			throw string("Out of memory error: simreasoning.cc 011");
 		}
 		int products_done = 0;
 
@@ -1127,7 +1127,7 @@ inline CCommand* Product_Two_Commands(CCommand* comm1, CCommand* comm2)
 	if(new_command == NULL)
 	{
 		Report_Error("Out of memory when allocating reasoning data structures");
-		throw "Out of memory error: simreasoning.cc 012";
+		throw string("Out of memory error: simreasoning.cc 012");
 	}
 	temp_commands[temp_commands_count++] = new_command;
 	
@@ -1153,14 +1153,14 @@ inline CUpdate* Merge_Two_Updates(CUpdate* upd1, CUpdate* upd2)
 	if(new_prob == NULL)
 	{
 		Report_Error("Out of memory when allocating reasoning data structures");
-		throw "Out of memory error: simreasoning.cc 013";
+		throw string("Out of memory error: simreasoning.cc 013");
 	}
 	new_prob->Set_Owns_Children(false);
 
 	CUpdate* new_update = new CUpdate(new_prob,
 		(upd1->no_assignments + upd2->no_assignments));
 	for(int i = 0; i < upd1->no_assignments; i++)
-		new_update->Add_Assignment(upd1->assignments[i]);
+		{new_update->Add_Assignment(upd1->assignments[i]);cout << upd1->assignments[i]->Get_Variable_Index();}
 	for(int i = 0; i < upd2->no_assignments; i++)
 		new_update->Add_Assignment(upd2->assignments[i]);
 	new_update->Set_Owns_Assignments(false);
