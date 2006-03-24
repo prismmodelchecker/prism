@@ -1160,7 +1160,7 @@ inline CUpdate* Merge_Two_Updates(CUpdate* upd1, CUpdate* upd2)
 	CUpdate* new_update = new CUpdate(new_prob,
 		(upd1->no_assignments + upd2->no_assignments));
 	for(int i = 0; i < upd1->no_assignments; i++)
-		{new_update->Add_Assignment(upd1->assignments[i]);cout << upd1->assignments[i]->Get_Variable_Index();}
+		new_update->Add_Assignment(upd1->assignments[i]);
 	for(int i = 0; i < upd2->no_assignments; i++)
 		new_update->Add_Assignment(upd2->assignments[i]);
 	new_update->Set_Owns_Assignments(false);
