@@ -1,0 +1,47 @@
+// properties from [HHK00]
+
+// left_operational_i : left_n>=i & Toleft_n
+// right_operational_i : right_n>=i & Toright_n
+// operational_i : (left_n+right_n)>=i & Toleft_n & line_n & Toright_n
+// minimum_k : left_operational_k | right_operational_k | operational_k
+// premium = minimum_N
+const double T;
+label "minimum" = (left_n>=k & Toleft_n) | (right_n>=k & Toright_n) | ((left_n+right_n)>=k & Toleft_n & line_n & Toright_n);
+label "premium" = (left_n>=left_mx & Toleft_n) | (right_n>=right_mx & Toright_n) | ((left_n+right_n)>=left_mx & Toleft_n & line_n & Toright_n);
+
+// in the long run, the probability that premium QOS will be delivered
+S=? [ "premium" ]
+
+// in the long run, the chance that QOS is below minimum
+S=? [ !"minimum" ]
+
+// the system will always be able to offer premium QOS at some point in the future
+P>=1 [ true U "premium" ]
+
+// the chance that QOS drops below minimum quality within T time units (from the initial state)
+P=? [ true U<=T !"minimum" ]
+
+// if facing insufficient QOS, the maximum probability of facing the same problem after T time units
+P=? [ true U[T,T] !"minimum"  {!"minimum"}{max} ]
+
+// the minimum probability of going from minimum QOS to premium QOS within T time units
+P=? [ true U<=T "premium" {"minimum"}{min} ]
+
+// the minimum probability of going from minimum QOS to premium QOS within T time units without violating the minimum QOS constraint along the way
+P=? [ "minimum" U<=T "premium" {"minimum"}{min}]
+
+// the maximum probability that it takes more than T time units to recover from insufficient QOS
+P=? [ !"minimum" U>=T "minimum" {!"minimum"}{max} ]
+
+// percentage of operational workstations at time T starting from below minimum QOS
+// (set OPERATIONAL to true, MINIMUM to 0 and REPAIR to false)
+R=?[I=T {!"minimum"}{min}]
+
+// from the inital state the expected time that the system is below minimum QOS until time T
+// (set OPERATIONAL to false, MINIMUM to 1 and REPAIR to false)
+R=?[C<=T ]
+
+// from the inital state the expected number of repairs by time T
+// (set OPERATIONAL to false, MINIMUM to 0 and REPAIR to true)
+R=?[C<=T ]
+

@@ -1,0 +1,52 @@
+// herman's self stabilising algorithm [Her90]
+// gxn/dxp 13/07/02
+
+// the procotol is synchronous with no non-determinism (a DTMC)
+probabilistic
+
+// module for process 1
+module process1
+
+	// bits in the ring (initially all the same i.e. a token in every place)
+	x1 : [0..1];
+	
+	[step] (x1=x21) -> 0.5 : (x1'=0) + 0.5 : (x1'=1);
+	[step] !x1=x21 -> (x1'=x21);
+	
+endmodule
+
+// add further processes through renaming
+module process2  = process1[x1=x2,  x21=x1 ] endmodule
+module process3  = process1[x1=x3,  x21=x2 ] endmodule
+module process4  = process1[x1=x4,  x21=x3 ] endmodule
+module process5  = process1[x1=x5,  x21=x4 ] endmodule
+module process6  = process1[x1=x6,  x21=x5 ] endmodule
+module process7  = process1[x1=x7,  x21=x6 ] endmodule
+module process8  = process1[x1=x8,  x21=x7 ] endmodule
+module process9  = process1[x1=x9,  x21=x8 ] endmodule
+module process10 = process1[x1=x10, x21=x9 ] endmodule
+module process11 = process1[x1=x11, x21=x10 ] endmodule
+module process12 = process1[x1=x12, x21=x11 ] endmodule
+module process13 = process1[x1=x13, x21=x12 ] endmodule
+module process14 = process1[x1=x14, x21=x13 ] endmodule
+module process15 = process1[x1=x15, x21=x14 ] endmodule
+module process16 = process1[x1=x16, x21=x15 ] endmodule
+module process17 = process1[x1=x17, x21=x16 ] endmodule
+module process18 = process1[x1=x18, x21=x17 ] endmodule
+module process19 = process1[x1=x19, x21=x18 ] endmodule
+module process20 = process1[x1=x20, x21=x19 ] endmodule
+module process21 = process1[x1=x21, x21=x20 ] endmodule
+
+// cost - 1 in each state (expected steps)
+rewards
+	
+	true : 1;
+	
+endrewards
+
+// initial states (at least one token i.e. all states)
+init
+	
+	true
+	
+endinit

@@ -1,0 +1,49 @@
+#!/bin/csh
+
+prism leader3_2.pm leader3.pctl -const L=1
+prism leader3_3.pm leader3.pctl -const L=1
+prism leader3_4.pm leader3.pctl -const L=1
+prism leader3_5.pm leader3.pctl -const L=1
+prism leader3_6.pm leader3.pctl -const L=1
+prism leader3_8.pm leader3.pctl -const L=1
+prism leader3_10.pm leader3.pctl -const L=1
+prism leader3_12.pm leader3.pctl -const L=1
+prism leader3_14.pm leader3.pctl -const L=1
+prism leader3_16.pm leader3.pctl -const L=1
+
+prism leader4_2.pm leader4.pctl -const L=1
+prism leader4_3.pm leader4.pctl -const L=1
+prism leader4_4.pm leader4.pctl -const L=1
+prism leader4_5.pm leader4.pctl -const L=1
+prism leader4_6.pm leader4.pctl -const L=1
+prism leader4_8.pm leader4.pctl -const L=1
+prism leader4_10.pm leader4.pctl -const L=1
+prism leader4_12.pm leader4.pctl -const L=1
+
+prism leader5_2.pm leader5.pctl -const L=1
+prism leader5_3.pm leader5.pctl -const L=1
+prism leader5_4.pm leader5.pctl -const L=1
+prism leader5_5.pm leader5.pctl -const L=1
+prism leader5_6.pm leader5.pctl -const L=1
+prism leader5_8.pm leader5.pctl -const L=1
+
+prism leader6_2.pm leader6.pctl -const L=1
+prism leader6_3.pm leader6.pctl -const L=1
+prism leader6_4.pm leader6.pctl -const L=1
+prism leader6_5.pm leader6.pctl -const L=1
+prism leader6_6.pm leader6.pctl -const L=1
+prism leader7_2.pm leader7.pctl -const L=1
+prism leader7_3.pm leader7.pctl -const L=1
+prism leader7_4.pm leader7.pctl -const L=1
+prism leader7_5.pm leader7.pctl -const L=1
+
+prism leader8_2.pm leader8.pctl -const L=1
+prism leader8_3.pm leader8.pctl -const L=1
+prism leader8_4.pm leader8.pctl -const L=1
+prism leader8_6.pm leader8.pctl -const L=1
+
+prism leader9_2.pm leader9.pctl -const L=1
+prism leader9_3.pm leader9.pctl -const L=1
+prism leader9_4.pm leader9.pctl -const L=1
+
+prism leader10_2.pm leader10.pctl -const L=1

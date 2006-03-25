@@ -1,0 +1,104 @@
+// workstation cluster [HHK00]
+// dxp/gxn 11/01/00
+
+stochastic
+
+const int N; // number of workstations in each cluster
+const int left_mx = N; // number of work stations in left cluster
+const int right_mx = N; // number of work stations in right cluster
+
+// minimum QOS requires 3/4*N connected workstations operational
+const int k=floor(0.75*N);
+formula minimum = (left_n>=k & Toleft_n) | 
+                  (right_n>=k & Toright_n) | 
+				  ((left_n+right_n)>=k & Toleft_n & line_n & Toright_n);
+
+// rates
+const double line_rate = 0.0002;
+const double Toleft_rate = 0.00025;
+const double Toright_rate = 0.00025;
+
+// left cluster
+module Left 
+	
+	left_n : [0..left_mx] init left_mx; // number of workstations operational
+	left : bool; // being repaired?
+	
+	[startLeft] !left & (left_n<left_mx) -> 1 : (left'=true);
+	[repairLeft] left & (left_n<left_mx) -> 1 : (left'=false) & (left_n'=left_n+1);
+	[] (left_n>0) -> 0.002*left_n : (left_n'=left_n-1);
+	
+endmodule
+
+// right cluster
+module Right = Left[left_n=right_n,
+	                left=right,
+	                left_mx=right_mx,
+	                startLeft=startRight,
+	                repairLeft=repairRight ]
+endmodule
+
+// repair unit
+module Repairman
+	
+	r : bool; // repairing?
+	
+	[startLeft]    !r -> 10 : (r'=true); // inspect Left 
+	[startRight]   !r -> 10 : (r'=true); // inspect Right 
+	[startToLeft]  !r -> 10 : (r'=true); // inspect ToLeft
+	[startToRight] !r -> 10 : (r'=true); // inspect ToRight 
+	[startLine]    !r -> 10 : (r'=true); // inspect Line 
+	
+	[repairLeft]    r -> 2     : (r'=false); // repair Left 
+	[repairRight]   r -> 2     : (r'=false); // repair Right
+	[repairToLeft]  r -> 0.25  : (r'=false); // repair ToLeft
+	[repairToRight] r -> 0.25  : (r'=false); // repair ToRight
+	[repairLine]    r -> 0.125 : (r'=false); // repair Line
+	
+endmodule
+
+// line/backbone
+module Line 
+	
+	line :   bool; // being repaired?
+	line_n : bool init true; // working?
+	
+	[startLine] !line & !line_n -> 1 : (line'=true);
+	[repairLine] line & !line_n -> 1 : (line'=false) & (line_n'=true);
+	[] line_n -> line_rate : (line_n'=false);
+	
+endmodule
+
+// left switch
+module ToLeft = Line[line=Toleft,
+	                 line_n=Toleft_n,
+	                 line_rate=Toleft_rate,
+	                 startLine=startToLeft,
+	                 repairLine=repairToLeft ]
+endmodule
+
+// right switch
+module ToRight = Line[line=Toright,
+	                  line_n=Toright_n,
+	                  line_rate=Toright_rate,
+	                  startLine=startToRight,
+	                  repairLine=repairToRight ]
+endmodule
+
+// rewards - see cluster.csl for info
+const bool OPERATIONAL = true;
+const double MINIMUM = 0;
+const bool REPAIR = false;
+
+rewards
+	
+	OPERATIONAL  : 100*(left_n+right_n)/(2*N); // percentage of operational workstations stations
+	!minimum : MINIMUM; // time that the system is not delivering at least minimum QOS
+	// number of repairs
+	[repairLeft]    REPAIR : 1;
+	[repairRight]   REPAIR : 1;
+	[repairToLeft]  REPAIR : 1;
+	[repairToRight] REPAIR : 1;
+	[repairLine]    REPAIR : 1;
+	
+endrewards

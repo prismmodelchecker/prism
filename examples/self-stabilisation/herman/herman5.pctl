@@ -1,0 +1,12 @@
+// constant used for time bounded until and for specifying a subset of initial states
+const int k;
+// a stable state is reached with probability 1
+P>=1 [ true U (x5=x1?1:0)+(x1=x2?1:0)+(x2=x3?1:0)+(x3=x4?1:0)+(x4=x5?1:0)=1 ]
+// minimum probability a stable state is reached within k steps
+P=? [ true U<=k (x5=x1?1:0)+(x1=x2?1:0)+(x2=x3?1:0)+(x3=x4?1:0)+(x4=x5?1:0)=1 {"init"}{min} ]
+// maximum expected time to reach a stable state
+R=? [ F (x5=x1?1:0)+(x1=x2?1:0)+(x2=x3?1:0)+(x3=x4?1:0)+(x4=x5?1:0)=1 {"init"}{max} ]
+// maximum expected time to reach a stable state
+R=? [ F (x5=x1?1:0)+(x1=x2?1:0)+(x2=x3?1:0)+(x3=x4?1:0)+(x4=x5?1:0)=1 {(x5=x1?1:0)+(x1=x2?1:0)+(x2=x3?1:0)+(x3=x4?1:0)+(x4=x5?1:0)=k}{max} ]
+// minimum expected time to reach a stable state
+R=? [ F (x5=x1?1:0)+(x1=x2?1:0)+(x2=x3?1:0)+(x3=x4?1:0)+(x4=x5?1:0)=1 {(x5=x1?1:0)+(x1=x2?1:0)+(x2=x3?1:0)+(x3=x4?1:0)+(x4=x5?1:0)=k}{min} ]

@@ -1,0 +1,11 @@
+// only one leader is elected.
+(s1=4?1:0) + (s2=4?1:0) + (s3=4?1:0) + (s4=4?1:0) + (s5=4?1:0) + (s6=4?1:0) + (s7=4?1:0) + (s8=4?1:0)<=1
+// with probability 1 eventually a leader is elected
+P>=1 [ true U (s1=4 | s2=4 | s3=4 | s4=4 | s5=4 | s6=4 | s7=4 | s8=4) ]
+// min/max probability leader is elected within K steps
+const int K;
+Pmin=?[ true U<=K (s1=4 | s2=4 | s3=4 | s4=4 | s5=4 | s6=4 | s7=4 | s8=4) ]
+Pmax=?[ true U<=K (s1=4 | s2=4 | s3=4 | s4=4 | s5=4 | s6=4 | s7=4 | s8=4) ]
+// min/max expected time to elect a leader
+Rmin=?[ F (s1=4 | s2=4 | s3=4 | s4=4 | s5=4 | s6=4 | s7=4 | s8=4) ]
+Rmax=?[ F (s1=4 | s2=4 | s3=4 | s4=4 | s5=4 | s6=4 | s7=4 | s8=4) ]

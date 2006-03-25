@@ -1,0 +1,7 @@
+// probability that a leader is eventually elected
+P=? [ true U (s1=3 & s2=3 & s3=3 & s4=3 & s5=3 & s6=3 & s7=3 & s8=3 & s9=3 & s10=3) ]
+// probability that a leader is elected within L rounds
+const int L;
+P=? [ true U<=L*(N+1) (s1=3 & s2=3 & s3=3 & s4=3 & s5=3 & s6=3 & s7=3 & s8=3 & s9=3 & s10=3) ]
+// expected time to elect a leader
+R=? [ F (s1=3 & s2=3 & s3=3 & s4=3 & s5=3 & s6=3 & s7=3 & s8=3 & s9=3 & s10=3) ]

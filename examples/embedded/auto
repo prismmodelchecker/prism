@@ -1,0 +1,20 @@
+#!/bin/csh
+
+prism embedded.sm embedded_prob.csl -prop 1 -const MAX_COUNT=2,T=0:24 -s
+prism embedded.sm embedded_prob.csl -prop 2 -const MAX_COUNT=2,T=0:24 -s
+prism embedded.sm embedded_prob.csl -prop 3 -const MAX_COUNT=2,T=0:24 -s
+prism embedded.sm embedded_prob.csl -prop 4 -const MAX_COUNT=2,T=0:24 -s
+
+prism embedded.sm embedded_prob.csl -prop 5 -const MAX_COUNT=2,T=0:2:30 -s
+prism embedded.sm embedded_prob.csl -prop 6 -const MAX_COUNT=2,T=0:2:30 -s
+prism embedded.sm embedded_prob.csl -prop 7 -const MAX_COUNT=2,T=0:2:30 -s
+prism embedded.sm embedded_prob.csl -prop 8 -const MAX_COUNT=2,T=0:2:30 -s
+
+prism embedded.sm embedded_prob.csl -prop 9 -const MAX_COUNT=2,T=0 -s
+prism embedded.sm embedded_prob.csl -prop 10 -const MAX_COUNT=2,T=0 -s
+prism embedded.sm embedded_prob.csl -prop 11 -const MAX_COUNT=2,T=0 -s
+prism embedded.sm embedded_prob.csl -prop 12 -const MAX_COUNT=2,T=0 -s
+
+prism embedded.sm embedded_exptime.csl -prop 1 -const MAX_COUNT=2,T=0:24 -s -epsilon 1e-8
+
+prism embedded.sm embedded_exptime.csl -prop 2 -const MAX_COUNT=1:7,T=0 -s -gs -epsilon 1e-10

@@ -1,0 +1,12 @@
+// constant used for time bounded until and for specifying a subset of initial states
+const int k;
+// a stable state is reached with probability 1
+P>=1 [ true U (p7=p1?1:0)+(p1=p2?1:0)+(p2=p3?1:0)+(p3=p4?1:0)+(p4=p5?1:0)+(p5=p6?1:0)+(p6=p7?1:0)=1 ]
+// minimum probability a stable state is reached within k steps
+Pmin=? [ true U<=k (p7=p1?1:0)+(p1=p2?1:0)+(p2=p3?1:0)+(p3=p4?1:0)+(p4=p5?1:0)+(p5=p6?1:0)+(p6=p7?1:0)=1 {"init"}{min} ]
+// maximum expected time to reach a stable state
+Rmax=? [ F (p7=p1?1:0)+(p1=p2?1:0)+(p2=p3?1:0)+(p3=p4?1:0)+(p4=p5?1:0)+(p5=p6?1:0)+(p6=p7?1:0)=1 {"init"}{max} ]
+// maximum expected time to reach a stable state
+Rmax=? [ F (p7=p1?1:0)+(p1=p2?1:0)+(p2=p3?1:0)+(p3=p4?1:0)+(p4=p5?1:0)+(p5=p6?1:0)+(p6=p7?1:0)=1 {(p7=p1?1:0)+(p1=p2?1:0)+(p2=p3?1:0)+(p3=p4?1:0)+(p4=p5?1:0)+(p5=p6?1:0)+(p6=p7?1:0)=k}{max} ]
+// minimum expected time to reach a stable state for a subset of initial states
+Rmin=? [ F (p7=p1?1:0)+(p1=p2?1:0)+(p2=p3?1:0)+(p3=p4?1:0)+(p4=p5?1:0)+(p5=p6?1:0)+(p6=p7?1:0)=1 {(p7=p1?1:0)+(p1=p2?1:0)+(p2=p3?1:0)+(p3=p4?1:0)+(p4=p5?1:0)+(p5=p6?1:0)+(p6=p7?1:0)=k}{min} ]

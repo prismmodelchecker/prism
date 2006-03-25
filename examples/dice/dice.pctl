@@ -1,0 +1,10 @@
+const int x = 6;
+
+// Is probability of throwing x > 0.1?
+"init" => P>0.1 [ true U s=7 & d=x ]
+
+// Probability of throwing x?
+P=? [ true U s=7 & d=x ]
+
+// Expected number of steps to complete?
+R=? [ F s=7 ]

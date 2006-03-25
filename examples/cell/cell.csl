@@ -1,0 +1,16 @@
+const double T;
+
+// what is the maximum probability that a hand off call can be dropped within t time units (assuming a guarded channel is free)
+P=?[ true U<=T (n=N) {n<N}{max} ]
+// what is the maximum probability that a call can be dropped within t time units (assuming a non-guarded channel is free)
+P=?[ true U<=T (n>=N*0.8) {n<N*0.8}{max} ]
+// what is the minimum probability that a cell will be accepted within T time units (assuming no channels are free)
+P=?[ true U<=T (n<N*0.8) {n=N}{min} ]
+// what is the expected number of calls at time T
+R=? [ I=T ]
+// what is the probability that in the long run any call can be dropped
+S=? [ n<N*0.8 ]
+// what is the probability that in the long run a hand-off call can be dropped
+R=? [ S ]
+
+

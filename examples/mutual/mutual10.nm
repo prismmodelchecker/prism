@@ -1,0 +1,60 @@
+// mutual exclusion [PZ82]
+// dxp/gxn 19/12/99
+
+nondeterministic
+
+// atomic formula
+// none in low, high, tie
+formula none_lht = p2!=4..13 & p3!=4..13 & p4!=4..13 & p5!=4..13 & p6!=4..13 & p7!=4..13 & p8!=4..13 & p9!=4..13 & p10!=4..13;
+// some in admit
+formula some_a   = p2=14..15 | p3=14..15 | p4=14..15 | p5=14..15 | p6=14..15 | p7=14..15 | p8=14..15 | p9=14..15 | p10=14..15;
+// some in high, admit
+formula some_ha  = p2=4..5,10..15 | p3=4..5,10..15 | p4=4..5,10..15 | p5=4..5,10..15 | p6=4..5,10..15 | p7=4..5,10..15 | p8=4..5,10..15 | p9=4..5,10..15 | p10=4..5,10..15;
+// none in high, tie, admit
+formula none_hta = p2=0..3,7..8 & p3=0..3,7..8 & p4=0..3,7..8 & p5=0..3,7..8 & p6=0..3,7..8 & p7=0..3,7..8 & p8=0..3,7..8 & p9=0..3,7..8 & p10=0..3,7..8;
+// none in enter
+formula none_e   = p2!=2..3 & p3!=2..3 & p4!=2..3 & p5!=2..3 & p6!=2..3 & p7!=2..3 & p8!=2..3 & p9!=2..3 & p10!=2..3;
+
+module process1
+
+	p1: [0..15];
+	
+	[] p1=0 -> (p1'=0);
+	[] p1=0 -> (p1'=1);
+	[] p1=1 -> (p1'=2);
+	[] p1=2 &  (none_lht | some_a) -> (p1'=3);
+	[] p1=2 & !(none_lht | some_a) -> (p1'=2);
+	[] p1=3 -> (p1'=4);
+	[] p1=3 -> (p1'=7);
+	[] p1=4 &  some_ha -> (p1'=5);
+	[] p1=4 & !some_ha -> (p1'=10);
+	[] p1=5 -> (p1'=6);
+	[] p1=6 &  some_ha -> (p1'=6);
+	[] p1=6 & !some_ha -> (p1'=9);
+	[] p1=7 &  none_hta -> (p1'=8);
+	[] p1=7 & !none_hta -> (p1'=7);
+	[] p1=8  -> (p1'=9);
+	[] p1=9  -> 0.5 : (p1'=4) + 0.5 : (p1'=7);
+	[] p1=10 -> (p1'=11);
+	[] p1=11 &  none_lht -> (p1'=13);
+	[] p1=11 & !none_lht -> (p1'=12);
+	[] p1=12 -> (p1'=0);
+	[] p1=13 -> (p1'=14);
+	[] p1=14 &  none_e -> (p1'=15);
+	[] p1=14 & !none_e -> (p1'=14);
+	[] p1=15 -> (p1'=0);
+	
+endmodule
+
+// construct further modules through renaming
+
+module process2  = process1 [p1=p2,  p2=p1]  endmodule
+module process3  = process1 [p1=p3,  p3=p1]  endmodule
+module process4  = process1 [p1=p4,  p4=p1]  endmodule
+module process5  = process1 [p1=p5,  p5=p1]  endmodule
+module process6  = process1 [p1=p6,  p6=p1]  endmodule
+module process7  = process1 [p1=p7,  p7=p1]  endmodule
+module process8  = process1 [p1=p8,  p8=p1]  endmodule
+module process9  = process1 [p1=p9,  p9=p1]  endmodule
+module process10 = process1 [p1=p10, p10=p1] endmodule
+

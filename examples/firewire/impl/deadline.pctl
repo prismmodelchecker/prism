@@ -1,0 +1,2 @@
+// time bound property
+Pmin=? [ true U ( (s1=8) & (s2=7) ) | ( (s1=7) & (s2=8) ) ]

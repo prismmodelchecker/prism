@@ -1,0 +1,7 @@
+#!/bin/csh
+
+prism beauquier3.nm beauquier3.pctl -prop 1 -const k=0
+prism beauquier3.nm beauquier3.pctl -prop 2 -const k=1:1:100 -m
+prism beauquier3.nm beauquier3.pctl -prop 3 -const k=0 -m
+prism beauquier3.nm beauquier3.pctl -prop 4 -const k=1:2:3 -m
+prism beauquier3.nm beauquier3.pctl -prop 5 -const k=1:2:3 -m

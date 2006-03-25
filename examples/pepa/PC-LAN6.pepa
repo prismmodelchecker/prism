@@ -1,0 +1,39 @@
+% a PC-LAN as described in lecture notes from the University of Edinburgh lecture course `Modelling and Simulation'
+
+lambda = 0.01;                            
+mu = 0.1;
+omega = 1.0;
+
+#PC10 = (arrive,lambda).PC11 + (walkon2,infty).PC10;
+#PC11 = (serve1,infty).PC10;
+
+#PC20 = (arrive,lambda).PC21 + (walkon3,infty).PC20;
+#PC21 = (serve2,infty).PC20;
+
+#PC30 = (arrive,lambda).PC31 + (walkon4,infty).PC30;
+#PC31 = (serve3,infty).PC30;
+
+#PC40 = (arrive,lambda).PC41 + (walkon5,infty).PC40;
+#PC41 = (serve4,infty).PC40;
+
+#PC50 = (arrive,lambda).PC51 + (walkon6,infty).PC50;
+#PC51 = (serve5,infty).PC50;
+
+#PC60 = (arrive,lambda).PC61 + (walkon1,infty).PC60;
+#PC61 = (serve6,infty).PC60;
+
+#S1 = (walkon2,omega).S2 + (serve1,mu).T2;
+#S2 = (walkon3,omega).S3 + (serve2,mu).T3;
+#S3 = (walkon4,omega).S4 + (serve3,mu).T4;
+#S4 = (walkon5,omega).S5 + (serve4,mu).T5;
+#S5 = (walkon6,omega).S6 + (serve5,mu).T6;
+#S6 = (walkon1,omega).S1 + (serve6,mu).T1;
+
+#T1 = (walk1,omega).S1;
+#T2 = (walk2,omega).S2;
+#T3 = (walk3,omega).S3;
+#T4 = (walk4,omega).S4;
+#T5 = (walk5,omega).S5;
+#T6 = (walk6,omega).S6;
+
+(PC10 <> PC20 <> PC30 <> PC40 <> PC50 <> PC60) <walkon1,walkon2,walkon3,walkon4,walkon5,walkon6,serve1,serve2,serve3,serve4,serve5,serve6> S1

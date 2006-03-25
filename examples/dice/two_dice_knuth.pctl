@@ -1,0 +1,7 @@
+const int x;
+
+// probability of throwing x
+P=? [ true U s=34 & d=x ]
+
+// expected cost to complete
+R=? [ F s=34 ]
