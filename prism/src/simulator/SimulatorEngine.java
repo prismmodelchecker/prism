@@ -1611,14 +1611,6 @@ public class SimulatorEngine
 			// if we have already stored an error for this property, keep it as the result
 			if (!(results[i] instanceof SimulatorException))
 				results[i] = processSamplingResult((PCTLFormula)pctls.get(i), indices[i]);
-			if (indices[i] != -1) {
-				int noMaxReached = getNumReachedMaxPath(indices[i]);
-				if(noMaxReached > 0)
-				{
-					//Eventually print this in the log
-					//System.out.println("Warning: For property, "+((PCTLFormula)pctls.get(i)).toString()+"\n"+noMaxReached+" sample paths exceeded the maximum path length.\n");
-				}
-			}
 		}
 		
 		deallocateEngine();
@@ -1705,7 +1697,6 @@ public class SimulatorEngine
 		}
 		
 		// process the results
-		boolean warningGiven = false;
 		for(int i = 0; i < n; i++)
 		{
 			// if we have already stored an error for this property, keep it as the result, otherwise process
@@ -1713,15 +1704,6 @@ public class SimulatorEngine
 				results[i] = processSamplingResult(propertyToCheck, indices[i]);
 			// store it in the ResultsCollection
 			resultsCollection.setResult(undefinedConstants.getMFConstantValues(), pfcs[i], results[i]);
-			if (indices[i] != -1) {
-				int noMaxReached = getNumReachedMaxPath(indices[i]);
-				if(noMaxReached > 0)
-				{
-					//Eventually print this in the log
-					//System.out.println("Warning: Some sample paths for this experiment exceeded the maximum path length.\n");
-					warningGiven = true;
-				}
-			}
 		}
 		
 		deallocateEngine();
