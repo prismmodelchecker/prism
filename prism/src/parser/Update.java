@@ -29,9 +29,12 @@ import apmc.*;
 
 public class Update
 {
+	// list of variable/expression pairs (and types)
 	Vector vars;
 	Vector exprs;
 	Vector types;
+	// parent Updates object
+	Updates parent;
 	
 	// constructor
 	
@@ -48,6 +51,13 @@ public class Update
 	{
 		vars.addElement(v);
 		exprs.addElement(e);
+	}
+	
+	// set parent
+	
+	public void setParent(Updates u)
+	{
+		parent = u;
 	}
 	
 	// get methods
@@ -70,6 +80,11 @@ public class Update
 	public int getType(int i)
 	{
 		return ((Integer)types.elementAt(i)).intValue();
+	}
+	
+	public Updates getParent()
+	{
+		return parent;
 	}
 	
 	// find all formulas (i.e. locate idents which are formulas)
@@ -160,16 +175,40 @@ public class Update
 	public void check() throws PrismException
 	{
 		int i, n;
+		String s;
 		Expression e;
+		Command c;
+		Module m;
+		ModulesFile mf;
+		boolean isLocal, isGlobal;
+		String var;
+		
+		c = getParent().getParent();
+		m = c.getParent();
+		mf = m.getParent();
 		
 		n = getNumElements();
 		for (i = 0; i < n; i++) {
-			e = getExpression(i);
+			// check that the update is allowed to modify this variable
+			var = getVar(i);
+			isLocal = m.isLocalVariable(var);
+			isGlobal = isLocal ? false : mf.isGlobalVariable(var);
+			if (!isLocal && !isGlobal) {
+				s = "Module " + m.getName() + " is not allowed to modify variable " + var;
+				s += " which belongs to another module";
+				throw new PrismException(s);
+			}
+			if (isGlobal && !c.getSynch().equals("")) {
+				s = "Synchronous command (" + c.getSynch() + ") in module " + m.getName();
+				s += " is not allowed to modify global variable " + var;
+				throw new PrismException(s);
+			}
 			// check expression
+			e = getExpression(i);
 			e.check();
 			// check evaluates to correct type
 			if (!Expression.canAssignTypes(getType(i), e.getType())) {
-				throw new PrismException("Type error in update \"(" + getVar(i) + "'=" + getExpression(i) + ")\"");
+				throw new PrismException("Type error in update \"(" + var + "'=" + getExpression(i) + ")\"");
 			}
 		}
 	}

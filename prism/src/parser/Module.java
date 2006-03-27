@@ -29,9 +29,15 @@ import apmc.*;
 
 public class Module
 {
+	// module name
 	private String name;
+	// local variables
 	private Vector decls;
+	// commands
 	private Vector commands;
+	// parent ModulesFile
+	private ModulesFile parent;
+	// list of all action labels used
 	private Vector allSynchs;
 
 	// constructor
@@ -63,6 +69,12 @@ public class Module
 		commands.addElement(c);
 		s = c.getSynch();
 		if (!s.equals("")) if (!allSynchs.contains(s)) allSynchs.add(s);
+		c.setParent(this);
+	}
+	
+	public void setParent(ModulesFile mf)
+	{
+		parent = mf;
 	}
 
 	// get methods
@@ -92,6 +104,11 @@ public class Module
 		return (Command)commands.elementAt(i);
 	}
 	
+	public ModulesFile getParent()
+	{
+		return parent;
+	}
+	
 	public Vector getAllSynchs()
 	{
 		return allSynchs;
@@ -100,6 +117,17 @@ public class Module
 	public boolean usesSynch(String s)
 	{
 		return allSynchs.contains(s);
+	}
+	
+	public boolean isLocalVariable(String s)
+	{
+		int i, n;
+		
+		n = getNumDeclarations();
+		for (i = 0; i < n; i++) {
+			if (getDeclaration(i).getName().equals(s)) return true;
+		}
+		return false;
 	}
 
 	// find all formulas (i.e. locate idents which are formulas)

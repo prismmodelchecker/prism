@@ -29,10 +29,16 @@ import apmc.*;
 
 public class Command
 {
+	// action label
 	String synch;
+	// reward (defunct)
 	Expression reward;
+	// guard
 	Expression guard;
+	// list of updates
 	Updates updates;
+	// parent Module
+	Module parent;
 	
 	// constructor
 	
@@ -66,6 +72,11 @@ public class Command
 		updates = u;
 		u.setParent(this);
 	}
+	
+	public void setParent(Module m)
+	{
+		parent = m;
+	}
 
 	// get methods
 
@@ -87,6 +98,11 @@ public class Command
 	public Updates getUpdates()
 	{
 		return updates;
+	}
+	
+	public Module getParent()
+	{
+		return parent;
 	}
 	
 	// find all formulas (i.e. locate idents which are formulas)

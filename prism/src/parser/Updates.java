@@ -48,6 +48,7 @@ public class Updates
 	{
 		probs.addElement(p);
 		updates.addElement(u);
+		u.setParent(this);
 	}
 
 	// set methods
@@ -55,6 +56,7 @@ public class Updates
 	public void setUpdate(int i, Update u)
 	{
 		updates.setElementAt(u, i);
+		u.setParent(this);
 	}
 	
 	public void setProbability(int i, Expression p)
@@ -132,7 +134,6 @@ public class Updates
 		for (i = 0; i < n; i++)  {
 			u.addUpdate(getProbability(i).rename(rm), getUpdate(i).rename(rm));
 		}
-		u.setParent(parent);
 		
 		return u;
 	}

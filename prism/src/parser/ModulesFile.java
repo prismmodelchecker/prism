@@ -90,7 +90,7 @@ public class ModulesFile
 	
 	public void addGlobal(Declaration d) { globals.addElement(d); }
 	
-	public void addModule(Module m) { modules.addElement(m); }
+	public void addModule(Module m) { modules.addElement(m); m.setParent(this); }
 	
 	public void addRenamedModule(RenamedModule m) { modules.addElement(m); }
 	
@@ -163,6 +163,17 @@ public class ModulesFile
 	
 	public Vector getVarTypes() { return varTypes; }
 	
+	public boolean isGlobalVariable(String s)
+	{
+		int i, n;
+		
+		n = getNumGlobals();
+		for (i = 0; i < n; i++) {
+			if (getGlobal(i).getName().equals(s)) return true;
+		}
+		return false;
+	}
+
 	// method to tidy up
 	// (called after parsing to do some checks and extract some information)
 	
@@ -297,7 +308,7 @@ public class ModulesFile
 	{
 		int i, j, n;
 		RenamedModule module;
-		Module baseModule;
+		Module baseModule, newModule;
 		String s;
 		Object o;
 		
@@ -316,7 +327,9 @@ public class ModulesFile
 			}
 			baseModule = getModule(j);
 			// then do renaming and replace with new module
-			modules.setElementAt(baseModule.rename(module), i);
+			newModule = baseModule.rename(module);
+			modules.setElementAt(newModule, i);
+			newModule.setParent(this);
 		}
 	}
 	
