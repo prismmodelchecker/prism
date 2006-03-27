@@ -376,6 +376,11 @@ public class SimulatorEngine
 		this.modulesFile = modulesFile;
 		this.constants = constants;
 		
+		// check for presence of system...endsystem
+		if (modulesFile.getSystemDefn() != null) {
+			throw new SimulatorException("Sorry - the simulator does not currently handle the system...endsystem construct");
+		}
+		
 		try
 		{
 			int result; //used to look for errors
