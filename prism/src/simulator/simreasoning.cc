@@ -199,7 +199,7 @@ void CFinalUpdate::Print_Update()
 		<< "\t";
 	for(int i = 0; i < no_assignments; i++)
 	{
-		cout << assignments.at(i)->To_String();
+		cout << assignments[i]->To_String();
 		if(i != no_assignments-1) cout << ",";
 	}
 }
@@ -711,11 +711,11 @@ bool Are_Updates_Deterministic()
 		//look at what the first update would do (compare_state)
 		for(int i = 0; i < first->no_assignments; i++)
 		{
-			first->assignments.at(i)->Do_Assign(new_state);
+			first->assignments[i]->Do_Assign(new_state);
 		}
 		for(int i = 0; i < first->no_assignments; i++)
 		{
-			first->assignments.at(i)->Complete_Assign(new_state);
+			first->assignments[i]->Complete_Assign(new_state);
 		}
 		//cout << "Are_Updates_Deterministic 3" << endl;
 		//do each of the other updates match
@@ -725,11 +725,11 @@ bool Are_Updates_Deterministic()
 			Copy_Int_Array(state_variables, compare_state, no_state_variables);
 			for(int j = 0; j < Get_Update(i)->no_assignments; j++)
 			{
-				Get_Update(i)->assignments.at(j)->Do_Assign(compare_state);
+				Get_Update(i)->assignments[j]->Do_Assign(compare_state);
 			}
 			for(int j = 0; j < Get_Update(i)->no_assignments; j++)
 			{
-				Get_Update(i)->assignments.at(j)->Complete_Assign(compare_state);
+				Get_Update(i)->assignments[j]->Complete_Assign(compare_state);
 			}
 			//if any are not the same we are not moving deterministically, return false
 			if(!Int_Arrays_Equals(compare_state, new_state, no_state_variables))
@@ -1001,7 +1001,7 @@ CFinalUpdate* Get_Update(int index)
 			the_updates.push_back(fupd);
 		}
 	}
-	return the_updates.at(index);
+	return the_updates[index];
 }
 
 
