@@ -293,7 +293,7 @@ public class Explicit2MTBDD
 				if (o == null)
 					d = new Declaration(varNames[i], new ExpressionFalse());
 				else
-					d = new Declaration(varNames[i], ((Boolean)o).booleanValue() ? new ExpressionTrue() : new ExpressionFalse());
+					d = new Declaration(varNames[i], ((Boolean)o).booleanValue() ? (Expression)new ExpressionTrue() : (Expression)new ExpressionFalse());
 			}
 			m.addDeclaration(d);
 		}
