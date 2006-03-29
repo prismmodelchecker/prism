@@ -3,7 +3,7 @@ including development and beta versions. For a less detailed overview
 of the main changes in each public release, see the file VERSIONS.txt.
 
 -----------------------------------------------------------------------------
-Version 2.1.dev11.sim9
+Version 3.0.beta1 (29/3/2006)
 -----------------------------------------------------------------------------
 
 * Changes to export functionality
@@ -16,9 +16,22 @@ Version 2.1.dev11.sim9
   - exported matrices now ordered by default (by row)
   - new/rearranged command-line switches
 * Added new options to Model|View menu in GUI
+* Additional checks when parsing models:
+  - synchronous commands modifying globals
+    (now disallowed, previously just advised against)
+  - modification of local variables by another module
+    (previously detected later at build-time)
+* Improvements/changes to explicit import functionality:
+  - -importstates understands Boolean variables now
+  - -importinit option added
+  - Default module variable (x) indexed from 0, not 1
+* Non-convergence of iterative methods is an error, not a warning
+* Changed layout of simulator transition table (4 -> 3 columns)
+* Bugfixes
+* Makefile improvements  
 
 -----------------------------------------------------------------------------
-Version 2.1.dev11.sim8 (3/3/06)
+Version 2.1.dev11.sim8 (3/3/2006)
 -----------------------------------------------------------------------------
 
 * Bug fix: computation of powers in simulator
@@ -26,20 +39,20 @@ Version 2.1.dev11.sim8 (3/3/06)
 * Bug fixes: loop detection and deadlocks in simulator
 
 -----------------------------------------------------------------------------
-Version 2.1.dev11.sim7 (5/1/06)
+Version 2.1.dev11.sim7 (5/1/2006)
 -----------------------------------------------------------------------------
 
 * Bug fixes, tidying
 
 -----------------------------------------------------------------------------
-Version 2.1.dev11.sim6 (16/12/05)
+Version 2.1.dev11.sim6 (16/12/2005)
 -----------------------------------------------------------------------------
 
 * Merged with simulator branch
 * Improved options management including saving of user settings
 
 -----------------------------------------------------------------------------
-Version 2.1.dev11 (5/12/05)
+Version 2.1.dev11 (5/12/2005)
 -----------------------------------------------------------------------------
 
 Changes:
@@ -48,7 +61,7 @@ Changes:
 * Bugfix: out-of-range initial values banned
 
 -----------------------------------------------------------------------------
-Version 2.1.dev10 (21/10/05)
+Version 2.1.dev10 (21/10/2005)
 -----------------------------------------------------------------------------
 
 Changes:
@@ -60,7 +73,7 @@ Changes:
 * Ability to disable checks of probabilities/rates
 
 -----------------------------------------------------------------------------
-Version 2.1.dev9 (27/05/05)
+Version 2.1.dev9 (27/05/2005)
 -----------------------------------------------------------------------------
 
 Changes:

@@ -1,8 +1,46 @@
+This file summarises the principal changes between each main public release of PRISM.
+For more detailed information about the various changes, see the file CHANGELOG.txt.
+
+-----------------------------------------------------------------------------
+Version 3.0 (beta 1 released 29/3/2006)
+-----------------------------------------------------------------------------
+
+* Discrete-event simulation engine added, providing:
+ - generation of approximate quantitative results via sampling
+ - debugging tool: manual model exploration and automatic trace generation
+
+* Support for costs and rewards:
+ - state-based and transition-based (impulse) costs/reward specification added to PRISM language
+ - verification (and simulation) of properties based on expected value of costs/rewards
+   (e.g. cumulated reward to reach state/time-bound, transient or steady-state reward value)
+
+* Overhaul of import/export functionality, including:
+  - export of transition matrix graph (Dot file)
+  - export of state/transition rewards
+  - export of property file labels and their satisfying states
+  - improved support for other export formats: Matlab, MRMC
+  - possibility to export to stdout/log instead of a file
+  - import of explicit model descriptions (from transition matrix and, optionally, state list)
+
+* GUI improvements, e.g.:
+  - additional graph plotting functionality 
+  - XML-based import/export of graphs
+  - export of graphs to Matlab
+
+* Improved options management including saving of user settings
+* Support for Mac OS X
+* Easier compilation process
+* Direct computation of transient probabilities
+* Support for multiple initial states
+* Improvements/additions to PRISM modelling/property languages
+* Additional error checking on PRISM models
+* Underlying data structure and efficiency improvements
+* Bug fixes
+
+
 -----------------------------------------------------------------------------
 Version 2.1 (released 8/9/2004)
 -----------------------------------------------------------------------------
-
-Changes:
 
 * Now possible to build/run PRISM on Windows
 * Compilation/installation procedures slightly simplified
@@ -12,8 +50,6 @@ Changes:
 -----------------------------------------------------------------------------
 Version 2.0 (released 17/3/2004)
 -----------------------------------------------------------------------------
-
-Changes:
 
 * Completely new graphical user interface, including:
   - Text editor for PRISM language
@@ -56,16 +92,12 @@ Changes:
 Version 1.3.1 (released 20/2/2003)
 -----------------------------------------------------------------------------
 
-Changes:
-
 * Bug fixes in model construction code
 
 
 -----------------------------------------------------------------------------
 Version 1.3 (released 10/2/2003)
 -----------------------------------------------------------------------------
-
-Changes:
 
 * Steady-state probability computation improved to include strongly connected component (SCC) computation
 * Extended support for CSL time-bounded until operator to include arbitrary intervals
@@ -89,4 +121,3 @@ Version 1.2 (released 17/9/2001)
 -----------------------------------------------------------------------------
 
 First public release
-

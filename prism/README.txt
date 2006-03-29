@@ -2,7 +2,7 @@
 README
 ======
 
-This is PRISM (Probabilistic Symbolic Model Checker), version 2.1.
+This is PRISM (Probabilistic Symbolic Model Checker), version 3.0.beta1
 
 This document contains information about installing and running PRISM.
 
@@ -87,7 +87,7 @@ Java installed, but your path may not be set up correctly.
 
 1. Enter the PRISM directory, e.g.:
    
-     cd prism-2.1-src
+     cd prism-3.0.beta1-src
    
 2. Hopefully, you can build PRISM simply by typing:
    
@@ -151,11 +151,11 @@ For Linux/Solaris/OS X:
 
  1. Unpack the PRISM distribution into a suitable location, e.g.:
     
-      tar xfz prism-2.1-linux.tar.gz
+      tar xfz prism-3.0.beta1-linux.tar.gz
     
  2. Enter the prism directory and run the installation script
     
-      cd prism-2.1-linux
+      cd prism-3.0.beta1-linux
       ./install.sh
     
     Please note that if your move or rename the PRISM directory after
@@ -208,7 +208,7 @@ For Windows:
 
  1. Run the command prompt and go into the PRISM bin directory, e.g.:
     
-      cd "c:\Program Files\prism-2.1-win\bin"
+      cd "c:\Program Files\prism-3.0.beta1-win\bin"
     
  2. Execute the prism.bat batch file, passing a PRISM example file as an argument, e.g.:
     

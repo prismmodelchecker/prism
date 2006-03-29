@@ -1439,6 +1439,7 @@ public class PrismCL
 		mainLog.println("-importpepa .................... Model description is in PEPA, not the PRISM language");
 		mainLog.println("-importtrans <file> ............ Import the transition matrix directly from a text file");
 		mainLog.println("-importstates <file>............ Import the list of states directly from a text file");
+		mainLog.println("-importinit <expr>.............. Specify the initial state for explicitly imported models");
 		mainLog.println("-dtmc .......................... Force imported/built model to be a DTMC");
 		mainLog.println("-ctmc .......................... Force imported/built model to be a CTMC");
 		mainLog.println("-mdp ........................... Force imported/built model to be an MDP");
@@ -1446,7 +1447,7 @@ public class PrismCL
 		mainLog.println("-exportresults <file> .......... Export the results of model checking to a file");
 		mainLog.println("-exporttrans <file> ............ Export the transition matrix to a file");
 		mainLog.println("-exportstaterewards <file> ..... Export the state rewards vector to a file");
-		mainLog.println("-exporttransreward <file> ...... Export the transition rewards matrix to a file");
+		mainLog.println("-exporttransrewards <file> ...... Export the transition rewards matrix to a file");
 		mainLog.println("-exportstates <file> ........... Export the list of reachable states to a file");
 		mainLog.println("-exportlabels <file> ........... Export the list of labels and satisfying states to a file");
 		mainLog.println("-exportmatlab .................. When exporting matrices/vectors/labels/etc., use Matlab format");
