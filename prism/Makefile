@@ -278,13 +278,15 @@ dist_copy:
 
 dist_bin_copy:
 	@BIN_DIST_DIR=`/bin/pwd | sed 's/-src$$//'`"-$(BINDISTSUFFIX)" && \
+	BIN_DIST_DIR_NAME=`basename $$BIN_DIST_DIR` && \
 	echo Creating binary distribution in $$BIN_DIST_DIR... && \
 	mkdir $$BIN_DIST_DIR && \
 	tar cf - * --exclude classes --exclude obj --exclude cudd --exclude src --exclude include --exclude Makefile | ( cd $$BIN_DIST_DIR; tar xfp -) && \
+	echo Zipping $$BIN_DIST_DIR_NAME... && \
 	if [ "$(BINDISTSUFFIX)" = "win" ]; then \
-		zip -rq $$BIN_DIST_DIR.zip $$BIN_DIST_DIR; \
+		(cd $$BIN_DIST_DIR/..; zip -rq $$BIN_DIST_DIR_NAME.zip $$BIN_DIST_DIR_NAME); \
 	else \
-		tar cfz $$BIN_DIST_DIR.tar.gz $$BIN_DIST_DIR; \
+		(cd $$BIN_DIST_DIR/..; tar cfz $$BIN_DIST_DIR_NAME.tar.gz $$BIN_DIST_DIR_NAME); \
 	fi
 
 dist_files:
@@ -300,8 +302,8 @@ dist_files:
 
 dist_tidy:
 	@echo Processing text files...
-	@unix2dos *.txt 2> /dev/null
-	@find examples -type f -not -name auto -exec unix2dos {} \; 2> /dev/null
+	@find . -type f -name '*.txt' -exec unix2dos {} {} \; 2> /dev/null
+	@find examples -type f ! -name auto -exec unix2dos {} {} \; 2> /dev/null
 	@echo Processing file permissions...
 	@find . -type f -exec chmod 644 {} \;
 	@find . \( -type d -o -type s \) -exec chmod 755 {} \;
