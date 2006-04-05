@@ -262,8 +262,13 @@ public class Explicit2MTBDD
 				}
 				s = in.readLine(); lineNum++;
 			}
+			// compute variable ranges
 			for (i = 0; i < numVars; i++) {
-				if (varTypes[i] == Expression.INT) varRanges[i] = varMaxs[i] - varMins[i];
+				if (varTypes[i] == Expression.INT) {
+					varRanges[i] = varMaxs[i] - varMins[i];
+					// if range = 0, increment maximum - we don't allow zero-range variables
+					if (varRanges[i] == 0) varMaxs[i]++;
+				}
 			}
 			// close file
 			in.close();

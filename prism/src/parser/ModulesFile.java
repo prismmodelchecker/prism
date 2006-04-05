@@ -679,12 +679,12 @@ public class ModulesFile
 			}
 			// check range is valid
 			if (high - low <= 0) {
-				String s = "Invalid range for variable " + name;
+				String s = "Invalid range (" + low + "-" + high + ") for variable " + name;
 				throw new PrismException(s);
 			}
 			// check start is valid
 			if (start < low || start > high) {
-				String s = "Invalid initial value for variable " + name;
+				String s = "Invalid initial value (" + start + ") for variable " + name;
 				throw new PrismException(s);
 			}
 			varList.addVar(name, low, high, start, -1, decl.getType());
@@ -717,12 +717,12 @@ public class ModulesFile
 				}
 				// check range is valid
 				if (high - low <= 0) {
-					String s = "Invalid range for variable " + name;
+					String s = "Invalid range (" + low + "-" + high + ") for variable " + name;
 					throw new PrismException(s);
 				}
 				// check start is valid
 				if (start < low || start > high) {
-					String s = "Invalid initial value for variable " + name;
+					String s = "Invalid initial value (" + start + ") for variable " + name;
 					throw new PrismException(s);
 				}
 				varList.addVar(name, low, high, start, i, decl.getType());
