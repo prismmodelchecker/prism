@@ -3,7 +3,7 @@ including development and beta versions. For a less detailed overview
 of the main changes in each public release, see the file VERSIONS.txt.
 
 -----------------------------------------------------------------------------
-Version 3.0.beta1 (29/3/2006)
+Version 3.0.beta1 (29/3/2006) (svn rev 45)
 -----------------------------------------------------------------------------
 
 * Changes to export functionality
