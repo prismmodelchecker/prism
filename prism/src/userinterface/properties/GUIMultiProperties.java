@@ -1149,7 +1149,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 			else if(me.getID() == GUIModelEvent.NEW_LOAD_NOT_RELOAD_MODEL)
 			{
-				if(isNewAfterReceiveNewOrLoadModelNotification())
+				if (getPrism().getSettings().getBoolean(PrismSettings.PROPERTIES_CLEAR_LIST_ON_LOAD))
 				{
 					a_newList();
 				}
