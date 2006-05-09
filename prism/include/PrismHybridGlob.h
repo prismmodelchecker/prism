@@ -69,6 +69,9 @@ extern int num_sor_levels;
 // use "compact modified" sparse matrix storage?
 extern bool compact;
 
+// details from numerical computation which may be queried
+extern double last_unif;
+
 //------------------------------------------------------------------------------
 
 // macros, function prototypes

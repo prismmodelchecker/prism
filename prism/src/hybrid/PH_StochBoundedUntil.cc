@@ -162,6 +162,7 @@ jint mu			// probs for multiplying
 	
 	// constant for uniformization
 	unif = 1.02*max_diag;
+	last_unif = unif;
 	
 	// modify diagonals
 	if (!compact_d) {

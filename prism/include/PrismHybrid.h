@@ -129,6 +129,14 @@ JNIEXPORT jstring JNICALL Java_hybrid_PrismHybrid_PH_1GetErrorMessage
 
 /*
  * Class:     hybrid_PrismHybrid
+ * Method:    PH_GetLastUnif
+ * Signature: ()D
+ */
+JNIEXPORT jdouble JNICALL Java_hybrid_PrismHybrid_PH_1GetLastUnif
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     hybrid_PrismHybrid
  * Method:    PH_ProbBoundedUntil
  * Signature: (IIIIIIIII)I
  */
