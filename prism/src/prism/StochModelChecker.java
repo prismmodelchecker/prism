@@ -1045,6 +1045,9 @@ public class StochModelChecker implements ModelChecker
 			// compute probabilities of reaching each bscc...
 			for (i = 0; i < n; i++) {
 				
+				// skip bsccs with zero probability
+				if (probBSCCs[i] == 0.0) continue;
+				
 				mainLog.println("\nComputing probabilities of reaching BSCC " + (i+1));
 				
 				// get bscc
