@@ -1280,12 +1280,12 @@ int CRealPow::Get_Type()
 
 double CRealPow::EvaluateDouble()
 {
-	return pow(lexpr->Evaluate(), rexpr->Evaluate());
+	return pow(lexpr->EvaluateDouble(), rexpr->EvaluateDouble());
 }
 
 double CRealPow::EvaluateDouble(int* vars)
 {
-	return pow(lexpr->Evaluate(vars), rexpr->Evaluate(vars));
+	return pow(lexpr->EvaluateDouble(vars), rexpr->EvaluateDouble(vars));
 }
 
 bool CRealPow::One_Result()
