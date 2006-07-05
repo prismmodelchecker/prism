@@ -42,7 +42,7 @@ import simulator.*;
 public class Prism
 {
 	// prism version
-	private static final String version = "3.0.beta1";
+	private static final String version = "3.0";
 	
 	//------------------------------------------------------------------------------
 	// Constants

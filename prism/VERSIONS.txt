@@ -2,7 +2,7 @@ This file summarises the principal changes between each main public release of P
 For more detailed information about the various changes, see the file CHANGELOG.txt.
 
 -----------------------------------------------------------------------------
-Version 3.0 (beta 1 released 29/3/2006)
+Version 3.0 (released 6/7/2006)
 -----------------------------------------------------------------------------
 
 * Discrete-event simulation engine added, providing:

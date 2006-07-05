@@ -2,7 +2,7 @@
 README
 ======
 
-This is PRISM (Probabilistic Symbolic Model Checker), version 3.0.beta1
+This is PRISM (Probabilistic Symbolic Model Checker), version 3.0.
 
 ------------
 INSTALLATION
@@ -12,7 +12,7 @@ For detailed installation instructions, check the online manual at:
 
   http://www.cs.bham.ac.uk/~dxp/prism/manual/InstallingPRISM/Instructions
   
-or look in the local copies included in this distribution:
+or see the local copies included in this distribution:
 
   doc/manual/InstallingPRISM/Instructions.html
   doc/manual.pdf
