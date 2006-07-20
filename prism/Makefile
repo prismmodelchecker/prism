@@ -57,21 +57,23 @@ endif
 # JAVA_DIR needs to be set to the location of your Java installation.
 # This makefile will try to detect this automatically based on the location of the javac command.
 # If this detection does not work, or you wish to override it,
-# either set the variable yourself by uncommenting and/or modifying one of the lines directly below
+# either set the variable yourself by uncommenting and/or modifying one of the lines below
 # or pass a value to make directly, e.g.: make JAVA_DIR=/usr/java
+
+# Autodetection
+JAVA_JAVAC = $(shell JAVA_JAVAC=`which javac`; JAVA_JAVAC_DIR=`dirname $$JAVA_JAVAC`; cd $$JAVA_JAVAC_DIR; while [ -h ./javac ]; do JAVA_JAVAC=`/bin/ls -l ./javac | sed 's/.* -> //'`; JAVA_JAVAC_DIR=`dirname $$JAVA_JAVAC`; cd $$JAVA_JAVAC_DIR; JAVA_JAVAC_DIR=`pwd`; done; echo $$JAVA_JAVAC_DIR/javac)
+#JAVA_JAVAC = $(shell JAVA_JAVAC=`which javac`; while [ -h $$JAVA_JAVAC ]; do JAVA_JAVAC=`/bin/ls -l $$JAVA_JAVAC | sed 's/.* -> //'`; done; echo $$JAVA_JAVAC)
+ifneq (darwin,$(OSTYPE))
+	JAVA_DIR =	$(shell dirname $(JAVA_JAVAC) | sed 's/\/bin//')
+else
+	JAVA_DIR =	$(shell dirname $(JAVA_JAVAC) | sed 's/\/Commands//')
+endif
 
 #JAVA_DIR =	/usr/java
 #JAVA_DIR =	/usr/java/j2sdk1.4.2
 #JAVA_DIR =	/bham/java/packages/j2sdk1.4.2
 #JAVA_DIR =	/cygdrive/c/java/j2sdk1.4.2
 #JAVA_DIR =	/System/Library/Frameworks/JavaVM.framework
-
-JAVA_JAVAC = $(shell JAVA_JAVAC=`which javac`; while [ -h $$JAVA_JAVAC ]; do JAVA_JAVAC=`/bin/ls -l $$JAVA_JAVAC | sed 's/.* -> //'`; done; echo $$JAVA_JAVAC)
-ifneq (darwin,$(OSTYPE))
-	JAVA_DIR =	$(shell dirname $(JAVA_JAVAC) | sed 's/\/bin//')
-else
-	JAVA_DIR =	$(shell dirname $(JAVA_JAVAC) | sed 's/\/Commands//')
-endif
 
 ##################
 # Compilers etc. #
@@ -402,7 +404,7 @@ checks:
 	  echo "  which javac"; \
 	  echo; \
 	  echo "If the output is of the form 'javac: Command not found' or"; \
-	  echo "'which: no javaccc in...' then either you do not have Java"; \
+	  echo "'which: no javac in...' then either you do not have Java"; \
 	  echo "installed or your path is not set up to include Java."; \
 	  echo "If the output is something like:"; \
 	  echo; \
