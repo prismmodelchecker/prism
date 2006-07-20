@@ -1061,14 +1061,12 @@ static protected SimpleCharStream input_stream;
 static private final int[] jjrounds = new int[17];
 static private final int[] jjstateSet = new int[34];
 static protected char curChar;
-public PrismParserTokenManager(SimpleCharStream stream)
-{
+public PrismParserTokenManager(SimpleCharStream stream){
    if (input_stream != null)
       throw new TokenMgrError("ERROR: Second call to constructor of static lexer. You must use ReInit() to initialize the static variables.", TokenMgrError.STATIC_LEXER_ERROR);
    input_stream = stream;
 }
-public PrismParserTokenManager(SimpleCharStream stream, int lexState)
-{
+public PrismParserTokenManager(SimpleCharStream stream, int lexState){
    this(stream);
    SwitchTo(lexState);
 }

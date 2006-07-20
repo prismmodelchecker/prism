@@ -441,14 +441,16 @@ TOKEN :
 ModulesFile ModulesFile() :
 {
 	int type = 0;
+	int typeSpecs = 0;
 }
 {
 	(
-	( type=ModulesFileType() )?
-	( FormulaDef() | ConstantDef() | GlobalDecl() | Module() | RenamedModule() | SystemComp() | RewardStruct() | Init() )*
+	( ( type=ModulesFileType() {typeSpecs++;} ) | FormulaDef() | ConstantDef() | GlobalDecl() | Module() | RenamedModule() | SystemComp() | RewardStruct() | Init() )*
 	<EOF>
 	)
 	{
+		if (typeSpecs > 1) throw new ParseException("There were multiple type declarations");
+		
 		// create new ModulesFile object
 		ModulesFile modulesFile = new ModulesFile();
 		
