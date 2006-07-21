@@ -983,6 +983,7 @@ public class SimulatorEngine
 	{
 		try
 		{
+			int i, j, n, m;
 			PrintWriter pw = new PrintWriter(new FileWriter(f), false);
 			
 			if(modulesFile == null)
@@ -993,40 +994,45 @@ public class SimulatorEngine
 			}
 			//Write headers
 			pw.print("step ");
-			for(int i = 0; i < getNumVariables(); i++)
+			m = getNumVariables();
+			for(j = 0; j < m; j++)
 			{
-				pw.print(varNames[i]+" ");
+				if (j>0) pw.print(" ");
+				pw.print(varNames[j]);
 			}
 			if(modulesFile.getType() == ModulesFile.STOCHASTIC)
 			{
-				pw.print("time_in_state ");
+				pw.print(" time_in_state");
 			}
-			pw.print("state_reward transition_reward");
+			pw.print(" state_reward transition_reward");
 			pw.println();
 			
 			//Write path
 			
-			for(int i = 0; i < getPathSize(); i++)
+			n = getPathSize();
+			m = getNumVariables();
+			for(i = 0; i < n; i++)
 			{
 				pw.print(i+" ");
-				for(int j = 0; j < getNumVariables(); j++)
+				for(j = 0; j < m; j++)
 				{
+					if (j>0) pw.print(" ");
 					if(varTypes[j] == Expression.BOOLEAN)
 					{
-						if(getPathData(j, i) == 0) pw.print("false ");
-						else pw.print("true ");
+						if(getPathData(j, i) == 0) pw.print("false");
+						else pw.print("true");
 					}
 					else
 					{
-						pw.print(getPathData(j, i)+" ");
+						pw.print(getPathData(j, i));
 					}
 				}
 				if(modulesFile.getType() == ModulesFile.STOCHASTIC)
 				{
-					pw.print(getTimeSpentInPathState(i)+" ");
+					pw.print(" "+((i<m-1)?getTimeSpentInPathState(i):0.0));
 				}
-				pw.print(getStateRewardOfPathState(i)+" ");
-				pw.println(getTransitionRewardOfPathState(i));
+				pw.print(" "+((i<m-1)?getStateRewardOfPathState(i):0.0));
+				pw.println(" "+((i<m-1)?getTransitionRewardOfPathState(i):0.0));
 			}
 			pw.println();
 			
