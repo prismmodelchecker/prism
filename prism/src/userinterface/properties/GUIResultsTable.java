@@ -59,6 +59,7 @@ public class GUIResultsTable extends javax.swing.JDialog
 		initComponents();
 		setResizable(true);
 		pack();
+		setLocationRelativeTo(getParent()); // centre
 	}
 
 	/** This method is called from within the constructor to initialize the form. */

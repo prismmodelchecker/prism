@@ -142,6 +142,7 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 		setResizable(false);
 		
 		pack();
+		setLocationRelativeTo(getParent()); // centre
 	}
 	
 	/** This method is called from within the constructor to

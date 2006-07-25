@@ -84,6 +84,7 @@ public class GUIPropertyEditor extends javax.swing.JDialog implements ActionList
 		this.parsedModel = parsedModel;
 		this.propertyInvalidStrategy = strategy;
 		initComponents();
+		setLocationRelativeTo(getParent()); // centre
 		//propertyList.setListData(props);
 		if(prop == null)
 		{

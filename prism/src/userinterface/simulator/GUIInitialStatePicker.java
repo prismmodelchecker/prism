@@ -76,7 +76,7 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
 	/** Creates new form GUIConstantsPicker */
 	public GUIInitialStatePicker(GUIPrism parent, Values defaultInitial, ModulesFile mf)
 	{
-		super(parent, "Simulation Parameters", true);
+		super(parent, "Initial State for Simulation", true);
         
 		this.gui = parent;
 		this.mf = mf;
@@ -105,6 +105,7 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
 		setResizable(false);
         
 		pack();
+		setLocationRelativeTo(getParent()); // centre
 	}
     
 	/** This method is called from within the constructor to

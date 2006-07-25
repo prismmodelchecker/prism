@@ -206,6 +206,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		
 		diag.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		diag.pack();
+		diag.setLocationRelativeTo(getGUI()); // centre
 		diag.show();
 	}
 	

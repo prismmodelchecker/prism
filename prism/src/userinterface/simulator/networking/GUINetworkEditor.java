@@ -72,6 +72,7 @@ public class GUINetworkEditor extends JDialog implements TreeSelectionListener, 
 		setActiveFile(null);
 		
 		initComponents();
+		setLocationRelativeTo(getParent()); // centre
 		initPopups();
 		theMenu.add(fileMenu);
 		theMenu.add(editMenu);

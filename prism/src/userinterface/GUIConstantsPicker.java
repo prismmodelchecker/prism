@@ -88,6 +88,7 @@ public class GUIConstantsPicker extends javax.swing.JDialog
 		setResizable(false);
 		
 		pack();
+		setLocationRelativeTo(getParent()); // centre
 	}
 
 	/** This method is called from within the constructor to

@@ -54,6 +54,7 @@ public class FontChooser extends javax.swing.JDialog implements ListSelectionLis
         doListModels();
         doListeners();
         shouldReturn = true;
+		setLocationRelativeTo(getParent()); // centre
     }
     
     public FontChooser(Dialog parent)

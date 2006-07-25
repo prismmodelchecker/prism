@@ -60,7 +60,7 @@ public class GUITransientTime extends javax.swing.JDialog
     public GUITransientTime(java.awt.Frame parent) {
         super(parent, "Define time", true);
         initComponents();
-		setLocation(parent.getLocation().x+(parent.getWidth()-getWidth())/2, parent.getLocation().y+(parent.getHeight()-getHeight())/2);
+		setLocationRelativeTo(getParent()); // centre
 		if (!first) timeField.setText(""+time);
     }
     

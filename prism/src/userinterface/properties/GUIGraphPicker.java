@@ -65,6 +65,7 @@ public class GUIGraphPicker extends javax.swing.JDialog
         initComponents();
         setResizable(false);
         init();
+		setLocationRelativeTo(getParent()); // centre
     }
     
     public void startGraphExperiment(GUIExperimentTable et, int experimentIndex)

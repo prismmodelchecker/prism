@@ -476,6 +476,7 @@ public class GraphListEditor extends JPanel
 	d.getContentPane().add(closePanel, BorderLayout.SOUTH);
 	
 	d.pack();
+	d.setLocationRelativeTo(parent); // centre
 	d.show();
     }
     
@@ -543,6 +544,7 @@ public class GraphListEditor extends JPanel
 	
 	
 	sd.pack();
+	sd.setLocationRelativeTo(parent); // centre
 	sd.show();
     }
     

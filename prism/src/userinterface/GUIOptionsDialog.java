@@ -54,6 +54,7 @@ public class GUIOptionsDialog extends javax.swing.JDialog implements EntityResol
         settings = parent.getPrism().getSettings();
         panels = new ArrayList();
         initComponents();
+		setLocationRelativeTo(getParent()); // centre
         //setResizable(false);
 		
 		

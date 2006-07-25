@@ -81,6 +81,7 @@ public class GUISimulatorDistributionDialog extends javax.swing.JDialog implemen
 		this.simulator = simulator;
 		
 		initComponents();
+		setLocationRelativeTo(getParent()); // centre
 		
 		
 		SummaryEditorKit kit = new SummaryEditorKit();

@@ -81,6 +81,7 @@ public class MultiGraphOptions extends JDialog
 		
 		
 		pack();
+		setLocationRelativeTo(getParent()); // centre
 		//show();
 		setDefaultCloseOperation(javax.swing.JFrame.EXIT_ON_CLOSE);
 	}
