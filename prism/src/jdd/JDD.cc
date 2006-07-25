@@ -654,6 +654,7 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportDDToDotFileLabelled(JNIEnv *env, j
 		env->ReleaseStringUTFChars(jstr, names[i]);
 	}
 	env->ReleaseStringUTFChars(filename, filenamestr);
+	delete[] names;
 }
 
 //------------------------------------------------------------------------------
