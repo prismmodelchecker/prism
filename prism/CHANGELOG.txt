@@ -2,6 +2,13 @@ This file contains details of the changes in each new version of PRISM,
 including development and beta versions. For a less detailed overview
 of the main changes in each public release, see the file VERSIONS.txt.
 
+New stuff:
+* multiple reward structures
+ - can be given names too
+ - accessed by R{i}=?[] or R{"name"}=?[ m/c
+ - simulation
+ - export
+
 -----------------------------------------------------------------------------
 Version 3.0 (6/7/2006) (svn rev 55)
 -----------------------------------------------------------------------------
