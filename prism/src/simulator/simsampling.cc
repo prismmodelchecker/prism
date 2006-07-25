@@ -565,9 +565,10 @@ void Do_Sampling(int path_length)
 	
 	//The current path
 	int current_index;
-	double path_cost;
-	double total_state_cost;
-	double total_transition_cost;
+	
+	double* path_cost = new double[no_reward_structs];
+	double* total_state_cost = new double[no_reward_structs];
+	double* total_transition_cost = new double[no_reward_structs];
 	
 	//Timers
 	clock_t start, start2, stop;
@@ -616,9 +617,11 @@ void Do_Sampling(int path_length)
 		
 		//Initialise variables for this loop
 		loop_detection->Reset();
-		path_cost = 0.0;
-		total_state_cost = 0.0;
-		total_transition_cost = 0.0;
+		for (int i = 0; i < no_reward_structs; i++) {
+			path_cost[i] = 0.0;
+			total_state_cost[i] = 0.0;
+			total_transition_cost[i] = 0.0;
+		}
 		
 		//set the current state to the correct starting state
 		for(int i = 0; i < no_state_variables; i++)
@@ -640,7 +643,9 @@ void Do_Sampling(int path_length)
 			current_index++)
 		{
 			last_state->Make_This_Current_State();
-			last_state->state_instant_cost = Get_State_Reward();
+			for (int i = 0; i < no_reward_structs; i++) {
+				last_state->state_instant_cost[i] = Get_State_Reward(i);
+			}
 			
 			//Make an automatic choice for the current state
 			double dummy = 0.0;
@@ -654,25 +659,28 @@ void Do_Sampling(int path_length)
 				double time_in_state = Get_Sampled_Time();
 				
 				last_state->time_spent_in_state = time_in_state;
-				last_state->state_cost = last_state->state_instant_cost*time_in_state;
-				last_state->transition_cost = Get_Transition_Reward();
 				
-				total_state_cost += last_state->state_instant_cost*time_in_state;
-				total_transition_cost += last_state->transition_cost;
-				path_cost = total_state_cost + total_transition_cost;
-				last_state->path_cost_so_far = path_cost;
+				for (int i = 0; i < no_reward_structs; i++) {
+					last_state->state_cost[i] = last_state->state_instant_cost[i]*time_in_state;
+					last_state->transition_cost[i] = Get_Transition_Reward(i);
+					total_state_cost[i] += last_state->state_instant_cost[i]*time_in_state;
+					total_transition_cost[i] += last_state->transition_cost[i];
+					path_cost[i] = total_state_cost[i] + total_transition_cost[i];
+					last_state->path_cost_so_far[i] = path_cost[i];
+				}
 				
 				Notify_Path_Formulae(last_state, state_variables, loop_detection);
 			}
 			else
 			{
-				last_state->state_cost = last_state->state_instant_cost;
-				last_state->transition_cost = Get_Transition_Reward();
-				
-				total_state_cost += last_state->state_instant_cost;
-				total_transition_cost += last_state->transition_cost;
-				path_cost = total_state_cost + total_transition_cost;
-				last_state->path_cost_so_far = path_cost;
+				for (int i = 0; i < no_reward_structs; i++) {
+					last_state->state_cost[i] = last_state->state_instant_cost[i];
+					last_state->transition_cost[i] = Get_Transition_Reward(i);
+					total_state_cost[i] += last_state->state_instant_cost[i];
+					total_transition_cost[i] += last_state->transition_cost[i];
+					path_cost[i] = total_state_cost[i] + total_transition_cost[i];
+					last_state->path_cost_so_far[i] = path_cost[i];
+				}
 				
 				Notify_Path_Formulae(last_state, state_variables, loop_detection); 
 			}
@@ -720,6 +728,9 @@ void Do_Sampling(int path_length)
 	delete loop_detection;
 	delete[] starting_variables;
 	delete last_state;
+	delete[] path_cost;
+	delete[] total_state_cost;
+	delete[] total_transition_cost;
 	
 	if (stopped_early) {
 		Report_Error("One or more of the properties being sampled could not be checked on a sample. Consider increasing the maximum path length");

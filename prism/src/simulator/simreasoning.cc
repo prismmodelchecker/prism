@@ -242,7 +242,7 @@ void CFinalUpdate::Perform_Update(int*variables)
 	int no_used_synchs = 0;
 
 	//Rewards
-	double state_reward = 0.0; //The reward of being in the state update_variables
+	double *state_reward = NULL; //The rewards of being in the state update_variables
 
 
 //=============================================================================
@@ -312,6 +312,10 @@ void Deallocate_Reasoning()
 		delete[] temp_commands;
 		temp_commands = NULL;
 	}
+	
+	// deallocate rewards info
+	if(state_reward == NULL) delete[] state_reward;
+	state_reward = NULL;
 }
 
 /*
@@ -401,6 +405,14 @@ void Allocate_Reasoning()
 	//commands used for synchronisation
 	//TODO Work out the actual maximum possible number of synchronised transitions
 	temp_commands = new CCommand*[no_commands*1000];
+	
+	// allocate rewards info
+	state_reward = new double[no_reward_structs];
+	if(state_reward == NULL)
+	{
+		Report_Error("Out of memory when allocating reasoning data structures");
+		throw string("Out of memory error: simreasoning.cc");
+	}
 }
 
 
@@ -502,11 +514,13 @@ void Calculate_Updates(int* variables)
  */
 void Calculate_State_Reward(int* variables)
 {
-	state_reward = 0.0;
-	for(int i = 0; i < no_state_rewards; i++)
-	{
-		CStateReward* rew = state_rewards_table[i];
-		state_reward += rew->Get_Reward_For_State(variables);
+	for(int i = 0; i < no_reward_structs; i++) {
+		state_reward[i] = 0.0;
+		for(int j = 0; j < no_state_rewards[i]; j++)
+		{
+			CStateReward* rew = state_rewards_table[i][j];
+			state_reward[i] += rew->Get_Reward_For_State(variables);
+		}
 	}
 }
 
@@ -893,9 +907,9 @@ double Calculate_Sum_Rates()
 /*
  *	Returns the reward calcualated by calling Calculate_State_Reward()
  */
-double Get_State_Reward()
+double Get_State_Reward(int i)
 {
-	return state_reward;
+	return state_reward[i];
 }
 
 //=======================================================

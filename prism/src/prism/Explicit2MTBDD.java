@@ -480,20 +480,24 @@ public class Explicit2MTBDD
 		String moduleNames[] = modulesFile.getModuleNames(); // whose name is stored here
 		Values constantValues = new Values(); // no constants
 		
+		JDDNode stateRewardsArray[] = new JDDNode[1]; stateRewardsArray[0] = stateRewards;
+		JDDNode transRewardsArray[] = new JDDNode[1]; transRewardsArray[0] = transRewards;
+		String rewardStructNames[] = new String[1]; rewardStructNames[0] = "";
+		
 		// create new Model object to be returned
 		if (type == ModulesFile.PROBABILISTIC) {
-			model = new ProbModel(trans, trans01, start, reach, deadlocks, stateRewards, transRewards, allDDRowVars, allDDColVars, ddVarNames,
+			model = new ProbModel(trans, trans01, start, reach, deadlocks, stateRewardsArray, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, ddVarNames,
 						   numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
 						   numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		}
 		else if (type == ModulesFile.NONDETERMINISTIC) {
-			model = new NondetModel(trans, trans01, start, reach, deadlocks, stateRewards, transRewards, allDDRowVars, allDDColVars,
+			model = new NondetModel(trans, trans01, start, reach, deadlocks, stateRewardsArray, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars,
 						     allDDSynchVars, allDDSchedVars, allDDChoiceVars, allDDNondetVars, ddVarNames,
 						     numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
 						     numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		}
 		else if (type == ModulesFile.STOCHASTIC) {
-			model = new StochModel(trans, trans01, start, reach, deadlocks, stateRewards, transRewards, allDDRowVars, allDDColVars, ddVarNames,
+			model = new StochModel(trans, trans01, start, reach, deadlocks, stateRewardsArray, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, ddVarNames,
 						    numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
 						    numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		}

@@ -843,6 +843,8 @@ public class Prism
 	
 	public void exportStateRewardsToFile(Model model, int exportType, File file) throws FileNotFoundException, PrismException
 	{
+		String s;
+		
 		// print message
 		mainLog.print("\nExporting state rewards vector ");
 		switch (exportType) {
@@ -853,13 +855,16 @@ public class Prism
 		if (file != null) mainLog.println("to file \"" + file + "\"..."); else mainLog.println("below:");
 		
 		// do export
-		model.exportStateRewardsToFile(exportType, file);
+		s = model.exportStateRewardsToFile(exportType, file);
+		if (s != null) mainLog.println("Rewards exported to files: "+s);
 	}
 
 	// export transition rewards to a file (plain, matlab, ...)
 	
 	public void exportTransRewardsToFile(Model model, boolean ordered, int exportType, File file) throws FileNotFoundException, PrismException
 	{
+		String s;
+		
 		// can only do ordered version of export for MDPs
 		if (model instanceof NondetModel) {
 			if (!ordered) mainLog.println("\nWarning: Cannot export unordered transition reward matrix for MDPs; using ordered");
@@ -881,7 +886,8 @@ public class Prism
 		if (file != null) mainLog.println("to file \"" + file + "\"..."); else mainLog.println("below:");
 		
 		// do export
-		model.exportTransRewardsToFile(exportType, ordered, file);
+		s = model.exportTransRewardsToFile(exportType, ordered, file);
+		if (s != null) mainLog.println("Rewards exported to files: "+s);
 	}
 
 	// export states list to a file (plain, matlab, ...)

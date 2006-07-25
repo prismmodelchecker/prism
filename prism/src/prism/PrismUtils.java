@@ -22,6 +22,8 @@
 
 package prism;
 
+import java.io.File;
+
 public class PrismUtils
 {
 	// load jni stuff from shared library
@@ -92,6 +94,17 @@ public class PrismUtils
 		}
 		
 		return s;
+	}
+	
+	public static String addCounterSuffixToFilename(String f, int i)
+	{
+		int j = f.lastIndexOf(".");
+		if (j != -1) {
+			return f.substring(0, j)+i+f.substring(j);
+		}
+		else {
+			return f+i;
+		}
 	}
 }
 

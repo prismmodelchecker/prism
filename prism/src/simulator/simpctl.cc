@@ -146,6 +146,14 @@ double CRewardFormula::Get_Answer_Double()
 }
 
 /*
+ *	Returns the reward structure index for this CRewardFormula.
+ */
+int CRewardFormula::Get_Reward_Struct_Index()
+{
+	return reward_struct_index;
+}
+
+/*
  *	Resets this CRewardFormula object for use in future calcuations.
  */
 void CRewardFormula::Reset()
@@ -563,8 +571,9 @@ void CNext::Write_Formula(int fd)
 /*
  *	Constructor for a CRewardCumulative object.
  */
-CRewardCumulative::CRewardCumulative(double time) : CRewardFormula()
+CRewardCumulative::CRewardCumulative(int rsi, double time) : CRewardFormula()
 {
+	this->reward_struct_index = rsi;
 	this->time = time;
 	this->counter = -1;
 	time_so_far = 0;
@@ -597,12 +606,20 @@ void CRewardCumulative::Notify_State(CPathState* last_state, int* current_state)
 			{
 				//time occured in last state
 				answer_known = true;
-				answer_double = last_state->path_cost_so_far - last_state->transition_cost + last_state->state_instant_cost * (time - time_so_far);
+				if (reward_struct_index >= 0 && reward_struct_index < no_reward_structs) {
+					answer_double = last_state->path_cost_so_far[reward_struct_index] - last_state->transition_cost[reward_struct_index] + last_state->state_instant_cost[reward_struct_index] * (time - time_so_far);
+				} else {
+					answer_double = 0.0;
+				}
 			}
 			else if(time_so_far == time) //unlikely, but just in case
 			{
 				answer_known = true;
-				answer_double = last_state->path_cost_so_far;
+				if (reward_struct_index >= 0 && reward_struct_index < no_reward_structs) {
+					answer_double = last_state->path_cost_so_far[reward_struct_index];
+				} else {
+					answer_double = 0.0;
+				}
 			}
 		}
 	}
@@ -613,7 +630,11 @@ void CRewardCumulative::Notify_State(CPathState* last_state, int* current_state)
 			if(counter >= time)
 			{
 				answer_known = true;
-				answer_double = last_state->path_cost_so_far;
+				if (reward_struct_index >= 0 && reward_struct_index < no_reward_structs) {
+					answer_double = last_state->path_cost_so_far[reward_struct_index];
+				} else {
+					answer_double = 0.0;
+				}
 			}
 		}
 	}
@@ -654,6 +675,9 @@ void CRewardCumulative::Write_Formula(int fd)
     int form_type = FORMULA_CUMULATIVE;
     write(fd, &form_type, sizeof(int));
 
+    //rsi
+    write(fd, &reward_struct_index, sizeof(int));
+
     //time
     write(fd, &time, sizeof(double));
 
@@ -677,8 +701,9 @@ void CRewardCumulative::Write_Formula(int fd)
  *	Constructor for a CRewardInstantaneous object...and yes it does set the
  *	time_so_far variable to 0.0 now... ooops
  */
-CRewardInstantanious::CRewardInstantanious(double time) : CRewardFormula()
+CRewardInstantanious::CRewardInstantanious(int rsi, double time) : CRewardFormula()
 {
+	this->reward_struct_index = rsi;
 	this->time = time;
 	this->counter = -1;
 	time_so_far = 0;
@@ -712,12 +737,20 @@ void CRewardInstantanious::Notify_State(CPathState* last_state, int* current_sta
 			{
 				//time occured in last state
 				answer_known = true;
-				answer_double = last_state->state_instant_cost;
+				if (reward_struct_index >= 0 && reward_struct_index < no_reward_structs) {
+					answer_double = last_state->state_instant_cost[reward_struct_index];
+				} else {
+					answer_double = 0.0;
+				}
 			}
 			else if(time_so_far == time) //unlikely, but just in case
 			{
 				answer_known = true;
-				answer_double = Get_State_Reward();
+				if (reward_struct_index >= 0 && reward_struct_index < no_reward_structs) {
+					answer_double = Get_State_Reward(reward_struct_index);
+				} else {
+					answer_double = 0.0;
+				}
 			}
 		}
 		else
@@ -725,7 +758,11 @@ void CRewardInstantanious::Notify_State(CPathState* last_state, int* current_sta
 			if(time == 0)
 			{
 				answer_known = true;
-				answer_double = Get_State_Reward();
+				if (reward_struct_index >= 0 && reward_struct_index < no_reward_structs) {
+					answer_double = Get_State_Reward(reward_struct_index);
+				} else {
+					answer_double = 0.0;
+				}
 			}
 		}
 	}
@@ -736,7 +773,11 @@ void CRewardInstantanious::Notify_State(CPathState* last_state, int* current_sta
 			if(counter >= time)
 			{
 				answer_known = true;
-				answer_double =  Get_State_Reward();
+				if (reward_struct_index >= 0 && reward_struct_index < no_reward_structs) {
+					answer_double = Get_State_Reward(reward_struct_index);
+				} else {
+					answer_double = 0.0;
+				}
 			}
 		}
 		else
@@ -744,7 +785,11 @@ void CRewardInstantanious::Notify_State(CPathState* last_state, int* current_sta
 			if(time == 0)
 			{
 				answer_known = true;
-				answer_double = Get_State_Reward();
+				if (reward_struct_index >= 0 && reward_struct_index < no_reward_structs) {
+					answer_double = Get_State_Reward(reward_struct_index);
+				} else {
+					answer_double = 0.0;
+				}
 			}
 		}
 	}
@@ -786,6 +831,9 @@ void CRewardInstantanious::Write_Formula(int fd)
     int form_type = FORMULA_INSTANTANEOUS;
     write(fd, &form_type, sizeof(int));
 
+    //rsi
+    write(fd, &reward_struct_index, sizeof(int));
+
     //time
     write(fd, &time, sizeof(double));
 
@@ -807,8 +855,9 @@ void CRewardInstantanious::Write_Formula(int fd)
 /*
  *	Constructor for a CRewardReachability object.
  */
-CRewardReachability::CRewardReachability(CExpression* expression) : CRewardFormula()
+CRewardReachability::CRewardReachability(int rsi, CExpression* expression) : CRewardFormula()
 {
+	this->reward_struct_index = rsi;
 	this->expression = expression;
 }
 
@@ -833,7 +882,11 @@ void CRewardReachability::Notify_State(CPathState* last_state, int* current_stat
 	if(expression->Evaluate(current_state))
 	{
 		answer_known = true;
-		answer_double = last_state->path_cost_so_far;//Get_Path_Cost_No_Path();									
+		if (reward_struct_index >= 0 && reward_struct_index < no_reward_structs) {
+			answer_double = last_state->path_cost_so_far[reward_struct_index];//Get_Path_Cost_No_Path();									
+		} else {
+			answer_double = 0.0;
+		}
 	}
 
 }
@@ -863,6 +916,9 @@ void CRewardReachability::Write_Formula(int fd)
     //write formula type
     int form_type = FORMULA_REACHABILITY;
     write(fd, &form_type, sizeof(int));
+
+    //rsi
+    write(fd, &reward_struct_index, sizeof(int));
 
     //Write Expression
     expression->Write_Expression(fd);
@@ -1107,6 +1163,7 @@ CPathFormula* Read_Path_Formula(int fd)
     CExpression* expr1;
     CExpression* expr2;
     double value1, value2;
+	int rsi;
     
     switch(int_buf)
     {
@@ -1142,6 +1199,7 @@ CPathFormula* Read_Path_Formula(int fd)
             }
             return new CNext(expr);
         case FORMULA_CUMULATIVE:
+            read(fd, &rsi, sizeof(int));
             read(fd, &value1, sizeof(double));
             //read off null byte
             read(fd, &buf_str, 1);
@@ -1149,8 +1207,9 @@ CPathFormula* Read_Path_Formula(int fd)
             {
                 throw "Error when importing binary file: state space not terminated correctly";
             }
-            return new CRewardCumulative(value1);
+            return new CRewardCumulative(rsi, value1);
         case FORMULA_REACHABILITY:
+            read(fd, &rsi, sizeof(int));
             expr= Read_Expression(fd);
             //read off null byte
             read(fd, &buf_str, 1);
@@ -1158,8 +1217,9 @@ CPathFormula* Read_Path_Formula(int fd)
             {
                 throw "Error when importing binary file: state space not terminated correctly";
             }
-            return new CRewardReachability(expr);
+            return new CRewardReachability(rsi, expr);
         case FORMULA_INSTANTANEOUS:
+            read(fd, &rsi, sizeof(int));
             read(fd, &value1, sizeof(double));
             //read off null byte
             read(fd, &buf_str, 1);
@@ -1167,7 +1227,7 @@ CPathFormula* Read_Path_Formula(int fd)
             {
                 throw "Error when importing binary file: state space not terminated correctly";
             }
-            return new CRewardInstantanious(value1);
+            return new CRewardInstantanious(rsi, value1);
        default:
             throw "unexpected formula type when loading pctl formula";
     }

@@ -87,8 +87,6 @@ public class StochModelChecker implements ModelChecker
 	private JDDNode trans01;
 	private JDDNode start;
 	private JDDNode reach;
-	private JDDNode stateRewards;
-	private JDDNode transRewards;
 	private ODDNode odd;
 	private JDDVars allDDRowVars;
 	private JDDVars allDDColVars;
@@ -111,8 +109,6 @@ public class StochModelChecker implements ModelChecker
 		trans01 = model.getTrans01();
 		start = model.getStart();
 		reach = model.getReach();
-		stateRewards = model.getStateRewards();
-		transRewards = model.getTransRewards();
 		odd = model.getODD();
 		allDDRowVars = model.getAllDDRowVars();
 		allDDColVars = model.getAllDDColVars();
@@ -656,23 +652,44 @@ public class StochModelChecker implements ModelChecker
 	
 	private JDDNode checkPCTLReward(PCTLReward pctl) throws PrismException
 	{
+		Object rs;		// reward struct index
 		Expression re;	// reward bound (expression)
 		double r = 0;	// reward value (actual value)
 		String relOp;	// relational operator
 		PCTLFormula f;	// path formula
 		
-		JDDNode filter, sol, tmp;
+		JDDNode stateRewards = null, transRewards = null, filter, sol, tmp;
 		StateProbs rewards = null;
 		StateList states = null;
 		double minRes = 0, maxRes = 0;
+		int i;
 		
 		// get info from reward operator
+		rs = pctl.getRewardStructIndex();
 		relOp = pctl.getRelOp();
 		re = pctl.getReward();
 		if (re != null) {
 			r = re.evaluateDouble(constantValues, null);
 			if (r < 0) throw new PrismException("Invalid reward bound " + r + " in R[] formula");
 		}
+		
+		// get reward info
+		if (model.getNumRewardStructs() == 0) throw new PrismException("Model has no rewards specified");
+		if (rs == null) {
+			stateRewards = model.getStateRewards(0);
+			transRewards = model.getTransRewards(0);
+		}
+		else if (rs instanceof Expression) {
+			i = ((Expression)rs).evaluateInt(constantValues, null);
+			rs = new Integer(i); // for better error reporting below
+			stateRewards = model.getStateRewards(i);
+			transRewards = model.getTransRewards(i);
+		}
+		else if (rs instanceof String) {
+			stateRewards = model.getStateRewards((String)rs);
+			transRewards = model.getTransRewards((String)rs);
+		}
+		if (stateRewards == null || transRewards == null) throw new PrismException("Invalid reward structure index \""+rs+"\"");
 		
 		// check for trivial (i.e. stupid) cases
 		if (re != null) {
@@ -716,13 +733,13 @@ public class StochModelChecker implements ModelChecker
 		f = pctl.getOperand();
 		try {
 			if (f instanceof PCTLRewardCumul)
-				rewards = checkPCTLRewardCumul((PCTLRewardCumul)f);
+				rewards = checkPCTLRewardCumul((PCTLRewardCumul)f, stateRewards, transRewards);
 			else if (f instanceof PCTLRewardInst)
-				rewards = checkPCTLRewardInst((PCTLRewardInst)f);
+				rewards = checkPCTLRewardInst((PCTLRewardInst)f, stateRewards, transRewards);
 			else if (f instanceof PCTLRewardReach)
-				rewards = checkPCTLRewardReach((PCTLRewardReach)f);
+				rewards = checkPCTLRewardReach((PCTLRewardReach)f, stateRewards, transRewards);
 			else if (f instanceof PCTLRewardSS)
-				rewards = checkPCTLRewardSS((PCTLRewardSS)f, filter, pctl.getFilter());
+				rewards = checkPCTLRewardSS((PCTLRewardSS)f, stateRewards, transRewards, filter, pctl.getFilter());
 			else
 				throw new PrismException("Unrecognised operator in R[] formula");
 		}
@@ -1426,7 +1443,7 @@ public class StochModelChecker implements ModelChecker
 	
 	// cumulative reward
 	
-	private StateProbs checkPCTLRewardCumul(PCTLRewardCumul pctl) throws PrismException
+	private StateProbs checkPCTLRewardCumul(PCTLRewardCumul pctl, JDDNode stateRewards, JDDNode transRewards) throws PrismException
 	{
 		double time;	// time
 		Expression expr;
@@ -1465,7 +1482,7 @@ public class StochModelChecker implements ModelChecker
 
 	// inst reward
 	
-	private StateProbs checkPCTLRewardInst(PCTLRewardInst pctl) throws PrismException
+	private StateProbs checkPCTLRewardInst(PCTLRewardInst pctl, JDDNode stateRewards, JDDNode transRewards) throws PrismException
 	{
 		double time;	// time
 		Expression expr;
@@ -1514,7 +1531,7 @@ public class StochModelChecker implements ModelChecker
 
 	// reach reward
 	
-	private StateProbs checkPCTLRewardReach(PCTLRewardReach pctl) throws PrismException
+	private StateProbs checkPCTLRewardReach(PCTLRewardReach pctl, JDDNode stateRewards, JDDNode transRewards) throws PrismException
 	{
 		JDDNode b, diags, emb, newStateRewards;
 		StateProbs rewards = null;
@@ -1565,7 +1582,7 @@ public class StochModelChecker implements ModelChecker
 
 	// steady state reward
 	
-	private StateProbs checkPCTLRewardSS(PCTLRewardSS pctl, JDDNode filter, PCTLFormula filterName) throws PrismException
+	private StateProbs checkPCTLRewardSS(PCTLRewardSS pctl, JDDNode stateRewards, JDDNode transRewards, JDDNode filter, PCTLFormula filterName) throws PrismException
 	{
 		// bscc stuff
 		Vector vectBSCCs;

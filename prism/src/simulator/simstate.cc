@@ -20,6 +20,7 @@
 //	
 //==============================================================================
 
+#include "simmodel.h"
 #include "simstate.h"
 #include "simutil.h"
 #include "simiohandler.h"
@@ -66,10 +67,10 @@ using std::endl;
  *		The index of the choice made to get out of that state
  *		The probability of the choice made to get out of that state
  *		The time spent in that state
- *		The instant state cost of that state
- *		The cost accumulated in that state (for real time models)
- *		The cost of the transition out of that state
- *		The cost of the path so far up until that state
+ *		The instant state costs of that state
+ *		The costs accumulated in that state (for real time models)
+ *		The costs of the transition out of that state
+ *		The costs of the path so far up until that state
  */
 
 /*
@@ -87,10 +88,16 @@ CPathState::CPathState()
 	}
 	this->time_spent_in_state = 0.0;
 	this->time_known = false;
-	this->state_cost = 0.0;
-	this->state_instant_cost = 0.0;
-	this->path_cost_so_far = 0.0;
-	this->transition_cost = 0.0;
+	this->state_cost = new double[no_reward_structs];
+	this->state_instant_cost = new double[no_reward_structs];
+	this->path_cost_so_far = new double[no_reward_structs];
+	this->transition_cost = new double[no_reward_structs];
+	for(int i = 0; i < no_reward_structs; i++) {
+		this->state_cost[i] = 0.0;
+		this->state_instant_cost[i] = 0.0;
+		this->path_cost_so_far[i] = 0.0;
+		this->transition_cost[i] = 0.0;
+	}
 	this->probability = 0.0;
 }
 
@@ -99,8 +106,11 @@ CPathState::CPathState()
  */
 CPathState::~CPathState()
 {
-	if(variables != NULL)
-		delete[] variables;
+	if(variables != NULL) delete[] variables;
+	if(state_cost != NULL) delete[] state_cost;
+	if(state_instant_cost != NULL) delete[] state_instant_cost;
+	if(path_cost_so_far != NULL) delete[] path_cost_so_far;
+	if(transition_cost != NULL) delete[] transition_cost;
 }
 
 /*
@@ -113,10 +123,12 @@ void CPathState::Make_This_Current_State()
 		variables[i] = state_variables[i];
 	this->time_spent_in_state = 0.0;
 	this->time_known = false;
-	this->state_cost = 0.0;
-	this->state_instant_cost = 0.0;
-	this->path_cost_so_far = 0.0;
-	this->transition_cost = 0.0;
+	for(int i = 0; i < no_reward_structs; i++) {
+		this->state_cost[i] = 0.0;
+		this->state_instant_cost[i] = 0.0;
+		this->path_cost_so_far[i] = 0.0;
+		this->transition_cost[i] = 0.0;
+	}
 	this->probability = 0.0;
 }
 
@@ -142,9 +154,13 @@ string CPathState::To_String()
 	}
 	if(time_known)
 	{
-		returner += "t = "+Double_To_String(this->time_spent_in_state)+"\t";
-		returner += "sc = "+Double_To_String(this->state_cost)+"\t";
-		returner += "tc = "+Double_To_String(this->transition_cost);
+		returner += "t = "+Double_To_String(this->time_spent_in_state);
+		returner += "\tsc = [";
+		for (int i=0; i < no_reward_structs; i++) returner += " "+Double_To_String(this->state_cost[i]);
+		returner += " ]";
+		returner += "\ttc = [";
+		for (int i=0; i < no_reward_structs; i++) returner += " "+Double_To_String(this->transition_cost[i]);
+		returner += " ]";
 	}
 	return returner;
 }

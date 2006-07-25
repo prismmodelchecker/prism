@@ -119,11 +119,11 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlNext
  * Signature: (I)I
  */
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlReachability
-  (JNIEnv *env, jclass cls, jint exprPointer)
+  (JNIEnv *env, jclass cls, jint rsi, jint exprPointer)
 {
 	CExpression* expr = To_Expr(exprPointer);
 
-	CRewardReachability* reach = new CRewardReachability(expr);
+	CRewardReachability* reach = new CRewardReachability(rsi, expr);
 
 	Register_Path_Formula(reach);
 
@@ -136,9 +136,9 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlReachability
  * Signature: (D)I
  */
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlCumulative
-  (JNIEnv *env, jclass cls, jdouble time)
+  (JNIEnv *env, jclass cls, jint rsi, jdouble time)
 {
-	CRewardCumulative* cumul = new CRewardCumulative((double)time);
+	CRewardCumulative* cumul = new CRewardCumulative(rsi, (double)time);
 
 	Register_Path_Formula(cumul);
 
@@ -151,9 +151,9 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlCumulative
  * Signature: (D)I
  */
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlInstantanious
-  (JNIEnv *env, jclass cls, jdouble time)
+  (JNIEnv *env, jclass cls, jint rsi, jdouble time)
 {
-	CRewardInstantanious* instant = new CRewardInstantanious((double)time);
+	CRewardInstantanious* instant = new CRewardInstantanious(rsi, (double)time);
 
 	Register_Path_Formula(instant);
 

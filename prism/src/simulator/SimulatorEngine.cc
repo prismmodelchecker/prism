@@ -69,6 +69,7 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_tidyUpEverything
 		Deallocate_Sampling();
 		Deallocate_PCTL_Core();
 		Deallocate_Reasoning();
+		Deallocate_Updater();
 		Deallocate_Model();
 		Deallocate_State_Space();
 	}
@@ -118,17 +119,20 @@ JNIEXPORT void JNICALL Java_simulator_SimulatorEngine_defineVariable
 //==============================================================================
 
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_allocateModel
-  (JNIEnv *env, jclass cls, jint type, jint noCommands, jint noStateRewards, 
-  jint noTransitionRewards, jint noModules, jint noActions)
+  (JNIEnv *env, jclass cls, jint type, jint noCommands, jint noRewardStructs, jintArray noStateRewards, 
+  jintArray noTransitionRewards, jint noModules, jint noActions)
 {
 	try
 	{
-		//cout << "Supposidly allocated the model." << endl;
-		Allocate_Model((int)type, (int)noCommands, (int)noStateRewards, (int)noTransitionRewards,
+		jint *nsr = env->GetIntArrayElements(noStateRewards, 0);
+		jint *ntr = env->GetIntArrayElements(noTransitionRewards, 0);
+		Allocate_Model((int)type, (int)noCommands, (int)noRewardStructs, (int*)nsr, (int*)ntr,
 			(int)noModules, (int)noActions);
-		//cout << "done allocating the model "<< endl;
+		env->ReleaseIntArrayElements(noStateRewards, nsr, 0);
+		env->ReleaseIntArrayElements(noTransitionRewards, ntr, 0);
+		
 		Allocate_Reasoning();
-		//cout << "done allocating the reasoning" <<endl;
+		Allocate_Updater();
 	}
 	catch(string str)
 	{
@@ -155,11 +159,11 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_setupAddTransition
 
 
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_setupAddStateReward
-(JNIEnv *env, jclass cls, jint rewardPointer)
+(JNIEnv *env, jclass cls, jint i, jint rewardPointer)
 {
 	try
 	{
-		Add_State_Reward_To_Model((CStateReward*)(rewardPointer));
+		Add_State_Reward_To_Model((int)i, (CStateReward*)(rewardPointer));
 	}
 	catch(string str)
 	{
@@ -171,11 +175,11 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_setupAddStateReward
 
 
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_setupAddTransitionReward
-(JNIEnv *env, jclass cls, jint rewardPointer)
+(JNIEnv *env, jclass cls, jint i, jint rewardPointer)
 {
 	try
 	{
-		Add_Transition_Reward_To_Model((CTransitionReward*)(rewardPointer));
+		Add_Transition_Reward_To_Model((int)i, (CTransitionReward*)(rewardPointer));
 	}
 	catch(string str)
 	{
@@ -246,15 +250,15 @@ JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTimeSpentInPathState
 }
 
 JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getStateRewardOfPathState
-(JNIEnv *env, jclass cls, jint stateIndex)
+(JNIEnv *env, jclass cls, jint stateIndex, jint i)
 {
-	return Get_State_Reward_Of_Path_State(stateIndex);
+	return Get_State_Reward_Of_Path_State(stateIndex, i);
 }
 
 JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTransitionRewardOfPathState
-(JNIEnv *env, jclass cls, jint stateIndex)
+(JNIEnv *env, jclass cls, jint stateIndex, jint i)
 {
-	return Get_Transition_Reward_Of_Path_State(stateIndex);
+	return Get_Transition_Reward_Of_Path_State(stateIndex, i);
 }
 
 JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTotalPathTime
@@ -264,21 +268,21 @@ JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTotalPathTime
 }
 
 JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTotalPathReward
-(JNIEnv *env, jclass cls)
+(JNIEnv *env, jclass cls, jint i)
 {
-	return Get_Path_Cost();
+	return Get_Path_Cost(i);
 }
 
 JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTotalTransitionReward
-(JNIEnv *env, jclass cls)
+(JNIEnv *env, jclass cls, jint i)
 {
-     return Get_Path_Transition_Cost();
+     return Get_Path_Transition_Cost(i);
 }
 
 JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTotalStateReward
-(JNIEnv *env, jclass cls)
+(JNIEnv *env, jclass cls, jint i)
 {
-     return Get_Path_State_Cost();
+     return Get_Path_State_Cost(i);
 }
 
 JNIEXPORT jboolean JNICALL Java_simulator_SimulatorEngine_isPathLooping

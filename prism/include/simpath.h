@@ -142,17 +142,17 @@ CPathState* Get_Path_State(int i);
 /*
  *	Returns the total cost of the path so far
  */
-double Get_Path_Cost();
+double Get_Path_Cost(int i);
 
 /*
  *	Returns the total cost of being in the states stored in the path
  */
-double Get_Path_State_Cost();
+double Get_Path_State_Cost(int i);
 
 /*
  *	Returns the total cost of all of the path transitions
  */
-double Get_Path_Transition_Cost();
+double Get_Path_Transition_Cost(int i);
 
 /*
  *	Returns the path length
@@ -174,13 +174,13 @@ double Get_Time_Spent_In_Path_State(int state_index);
  *	Returns the reward accumulated in the path state at
  *	state_index.
  */
-double Get_State_Reward_Of_Path_State(int state_index);
+double Get_State_Reward_Of_Path_State(int state_index, int i);
 
 /*
  *	Returns the reward accumulated in the transition from the
  *	state at state_index.
  */
-double Get_Transition_Reward_Of_Path_State(int state_index);
+double Get_Transition_Reward_Of_Path_State(int state_index, int i);
 
 /*
  *	Returns the total time for the path.

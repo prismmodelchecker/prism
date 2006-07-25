@@ -165,7 +165,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		modelTypeLabel.setText("Unknown");
 		totalTimeLabel.setText("0.0");
 		pathLengthParameterLabel.setText("0");
-		totalRewardLabel.setText("0.0");
+		totalRewardLabel.setText("");
 		//maximumLengthLabel.setText(""+gui.getPrism().getApmcPathLen());
 		
 		txtFilter = new GUIPrismFileFilter[1];
@@ -185,6 +185,48 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	public void setGUIProb(GUIMultiProperties guiProp)
 	{
 		this.guiProp = guiProp;
+	}
+	
+	public String getTotalRewardLabelString()
+	{
+		int i, n;
+		String s;
+		n = mf.getNumRewardStructs();
+		s = "<html>";
+		for (i = 0; i < n; i++) {
+			s += engine.getTotalPathReward(i);
+			if (i<n-1) s+= ",<br>";
+		}
+		s += "</html>";
+		return s;
+	}
+	
+	public String getTotalStateRewardLabelString()
+	{
+		int i, n;
+		String s;
+		n = mf.getNumRewardStructs();
+		s = "<html>";
+		for (i = 0; i < n; i++) {
+			s += engine.getTotalStateReward(i);
+			if (i<n-1) s+= ",<br>";
+		}
+		s += "</html>";
+		return s;
+	}
+	
+	public String getTotalTransitionRewardLabelString()
+	{
+		int i, n;
+		String s;
+		n = mf.getNumRewardStructs();
+		s = "<html>";
+		for (i = 0; i < n; i++) {
+			s += engine.getTotalTransitionReward(i);
+			if (i<n-1) s+= ",<br>";
+		}
+		s += "</html>";
+		return s;
 	}
 	
 	public void a_clearModel()
@@ -356,9 +398,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			
 			totalTimeLabel.setText(""+engine.getTotalPathTime());
 			pathLengthParameterLabel.setText(""+(engine.getPathSize()-1));
-			totalRewardLabel.setText(""+engine.getTotalPathReward());
-			stateTotalRewardsLabel.setText(""+engine.getTotalStateReward());
-			transitionTotalRewardsLabel.setText(""+engine.getTotalTransitionReward());
+			totalRewardLabel.setText(getTotalRewardLabelString());
+			stateTotalRewardsLabel.setText(getTotalStateRewardLabelString());
+			transitionTotalRewardsLabel.setText(getTotalTransitionRewardLabelString());
 			definedConstantsLabel.setText(uCon.getDefinedConstantsString());
 			
 			doEnables();
@@ -413,9 +455,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			
 			totalTimeLabel.setText(""+engine.getTotalPathTime());
 			pathLengthParameterLabel.setText(""+(engine.getPathSize()-1));
-			totalRewardLabel.setText(""+engine.getTotalPathReward());
-			stateTotalRewardsLabel.setText(""+engine.getTotalStateReward());
-			transitionTotalRewardsLabel.setText(""+engine.getTotalTransitionReward());
+			totalRewardLabel.setText(getTotalRewardLabelString());
+			stateTotalRewardsLabel.setText(getTotalStateRewardLabelString());
+			transitionTotalRewardsLabel.setText(getTotalTransitionRewardLabelString());
 			
 			stateLabelList.repaint();
 			pathFormulaeList.repaint();
@@ -462,9 +504,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		totalTimeLabel.setText(""+engine.getTotalPathTime());
 		pathLengthParameterLabel.setText(""+(engine.getPathSize()-1));
-		totalRewardLabel.setText(""+engine.getTotalPathReward());
-		stateTotalRewardsLabel.setText(""+engine.getTotalStateReward());
-		transitionTotalRewardsLabel.setText(""+engine.getTotalTransitionReward());
+		totalRewardLabel.setText(getTotalRewardLabelString());
+		stateTotalRewardsLabel.setText(getTotalStateRewardLabelString());
+		transitionTotalRewardsLabel.setText(getTotalTransitionRewardLabelString());
 		stateLabelList.repaint();
 		pathFormulaeList.repaint();
 		setComputing(false);
@@ -483,9 +525,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			
 			totalTimeLabel.setText(""+engine.getTotalPathTime());
 			pathLengthParameterLabel.setText(""+(engine.getPathSize()-1));
-			totalRewardLabel.setText(""+engine.getTotalPathReward());
-			stateTotalRewardsLabel.setText(""+engine.getTotalStateReward());
-			transitionTotalRewardsLabel.setText(""+engine.getTotalTransitionReward());
+			totalRewardLabel.setText(getTotalRewardLabelString());
+			stateTotalRewardsLabel.setText(getTotalStateRewardLabelString());
+			transitionTotalRewardsLabel.setText(getTotalTransitionRewardLabelString());
 			stateLabelList.repaint();
 			pathFormulaeList.repaint();
 			setComputing(false);
@@ -544,9 +586,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		totalTimeLabel.setText(""+engine.getTotalPathTime());
 		pathLengthParameterLabel.setText(""+(engine.getPathSize()-1));
-		totalRewardLabel.setText(""+engine.getTotalPathReward());
-		stateTotalRewardsLabel.setText(""+engine.getTotalStateReward());
-		transitionTotalRewardsLabel.setText(""+engine.getTotalTransitionReward());
+		totalRewardLabel.setText(getTotalRewardLabelString());
+		stateTotalRewardsLabel.setText(getTotalStateRewardLabelString());
+		transitionTotalRewardsLabel.setText(getTotalTransitionRewardLabelString());
 		stateLabelList.repaint();
 		pathFormulaeList.repaint();
 		setComputing(false);
@@ -589,9 +631,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				
 				totalTimeLabel.setText(""+engine.getTotalPathTime());
 				pathLengthParameterLabel.setText(""+(engine.getPathSize()-1));
-				totalRewardLabel.setText(""+engine.getTotalPathReward());
-				stateTotalRewardsLabel.setText(""+engine.getTotalStateReward());
-				transitionTotalRewardsLabel.setText(""+engine.getTotalTransitionReward());
+				totalRewardLabel.setText(getTotalRewardLabelString());
+				stateTotalRewardsLabel.setText(getTotalStateRewardLabelString());
+				transitionTotalRewardsLabel.setText(getTotalTransitionRewardLabelString());
 				
 				setComputing(false);
 				
@@ -609,7 +651,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				
 				totalTimeLabel.setText(""+engine.getTotalPathTime());
 				pathLengthParameterLabel.setText(""+(engine.getPathSize()-1));
-				totalRewardLabel.setText(""+engine.getTotalPathReward());
+				totalRewardLabel.setText(getTotalRewardLabelString());
+				stateTotalRewardsLabel.setText(getTotalStateRewardLabelString());
+				transitionTotalRewardsLabel.setText(getTotalTransitionRewardLabelString());
 				
 				pathTable.scrollRectToVisible(new Rectangle(0, (int)pathTable.getPreferredSize().getHeight() - 10, (int)pathTable.getPreferredSize().getWidth(), (int)pathTable.getPreferredSize().getHeight()) );
 				
@@ -2367,11 +2411,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			if(mf.getType() == ModulesFile.STOCHASTIC)
 				colCount +=1;
 			
-			if(mf.getRewardStruct() != null && mf.getRewardStruct().getNumItems() != 0)
-				colCount += 2;
+			colCount += (2*mf.getNumRewardStructs());
 			
 			return colCount;
-			
 		}
 		
 		public int getRowCount()
@@ -2410,31 +2452,30 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			{
 				if(pathActive)
 				{
-					if(columnIndex == 0) return ""+rowIndex;
-					else if(mf != null && mf.getType() == ModulesFile.STOCHASTIC)
+					if (columnIndex == 0) return ""+rowIndex;
+					if (mf == null) return null;
+					if(mf.getType() == ModulesFile.STOCHASTIC)
 					{
-						if(columnIndex == engine.getNumVariables()+1) //where time should be
+						int n = engine.getNumVariables();
+						if(columnIndex == n+1) //where time should be
 						{
 							return new Double(engine.getTimeSpentInPathState(rowIndex));
 						}
-						else if(columnIndex == engine.getNumVariables()+2) //where state reward should be
+						else if(columnIndex > n+1) //rewards
 						{
-							return new Double(engine.getStateRewardOfPathState(rowIndex));
-						}
-						else if(columnIndex == engine.getNumVariables()+3) //where transition reward should be
-						{
-							return new Double(engine.getTransitionRewardOfPathState(rowIndex));
+							int i = columnIndex-(n+2);
+							if (i%2 == 0) return new Double(engine.getStateRewardOfPathState(rowIndex,i/2));
+							else return new Double(engine.getTransitionRewardOfPathState(rowIndex,i/2));
 						}
 					}
 					else
 					{
-						if(columnIndex == engine.getNumVariables()+1)
+						int n = engine.getNumVariables();
+						if(columnIndex > n)
 						{
-							return new Double(engine.getStateRewardOfPathState(rowIndex));
-						}
-						else if(columnIndex == engine.getNumVariables()+2)
-						{
-							return new Double(engine.getTransitionRewardOfPathState(rowIndex));
+							int i = columnIndex-(n+1);
+							if (i%2 == 0) return new Double(engine.getStateRewardOfPathState(rowIndex,i/2));
+							else return new Double(engine.getTransitionRewardOfPathState(rowIndex,i/2));
 						}
 					}
 					int type = engine.getVariableType(columnIndex-1);
@@ -2462,31 +2503,28 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			{
 				if(pathActive)
 				{
-					if(column == 0) return "Step";
-					else if(mf != null && mf.getType() == ModulesFile.STOCHASTIC)
+					if (column == 0) return "Step";
+					if (mf == null) return null;
+					if (mf.getType() == ModulesFile.STOCHASTIC)
 					{
-						if(column == engine.getNumVariables()+1) //where time should be
+						int n = engine.getNumVariables();
+						if(column == n+1) //where time should be
 						{
 							return "Time";
 						}
-						else if(column == engine.getNumVariables()+2) //where state reward should be
+						else if(column > n+1) //rewards
 						{
-							return "State Reward";
-						}
-						else if(column == engine.getNumVariables()+3) //where transition reward should be
-						{
-							return "Transition Reward";
+							int i = column-(n+2);
+							return "" + ((i%2 == 0)?"Sta.":"Tra.") + " Rew. "+(i/2);
 						}
 					}
 					else
 					{
-						if(column == engine.getNumVariables()+1)
+						int n = engine.getNumVariables();
+						if(column > n) //rewards
 						{
-							return "State Reward";
-						}
-						else if(column == engine.getNumVariables()+2)
-						{
-							return "Transition Reward";
+							int i = column-(n+1);
+							return "" + ((i%2 == 0)?"Sta.":"Tra.") + " Rew. "+(i/2);
 						}
 					}
 					return engine.getVariableName(column-1);

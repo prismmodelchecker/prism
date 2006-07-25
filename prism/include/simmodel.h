@@ -38,9 +38,9 @@ using std::string;
  *	setup methods and the deallocation methods.
  *
  *	The model storage contains:
- *		A Command Table:			Which is an array of CCommand objects
- *		A State Rewards Table:		Which is an array of CStateReward objects
- *		A Transition Rewards Table:	Which is an array of CTransitionReward objects
+ *		A Command Table:					Which is an array of CCommand objects
+ *		A set of State Rewards Tables:		Which is an array of arrays of CStateReward objects
+ *		A set of Transition Rewards Tables:	Which is an array of arrays of CTransitionReward objects
  *
  *	These objects use the expression data structures declared in 
  *	simexpression.h and refer to and manipulate the current state space 
@@ -341,13 +341,12 @@ extern int model_type;	//NOT_LOADED, PROBABILISTIC, NONDETERMINISTIC or STOCHAST
 extern CCommand** command_table; 
 extern int no_commands;
 
- //The State Rewards Table
-extern CStateReward** state_rewards_table;
-extern int no_state_rewards;
-
-//The Transition Rewards Table
-extern CTransitionReward** transition_rewards_table; 
-extern int no_transition_rewards;
+ //The Rewards Tables
+extern int no_reward_structs;
+extern CStateReward*** state_rewards_table;
+extern int *no_state_rewards;
+extern CTransitionReward*** transition_rewards_table; 
+extern int *no_transition_rewards;
 
 //The Alphabet stores which modules contain which action labels
 extern bool** alphabet; // can be accessed by [module_index][action_index]
@@ -373,8 +372,8 @@ void Deallocate_Model();
  *
  *	throws an exception for out of memory.
  */
-void Allocate_Model(int type, int no_commands, int no_state_rewards, 
-					int no_transition_rewards, int no_modules, int no_actions);
+void Allocate_Model(int type, int no_comms, int no_rew_structs, 
+					int *no_state_rews, int *no_transition_rews, int no_mods, int no_acts);
 
 /*
  *	Adds the CCommand pointed to by comm to the command_table at the next
@@ -385,20 +384,20 @@ void Allocate_Model(int type, int no_commands, int no_state_rewards,
 void Add_Command_To_Model(CCommand* comm);
 
 /*
- *	Adds the CStateReward pointed to by sr to the state_reward_table at the next
+ *	Adds the CStateReward pointed to by sr to the ith state_reward_table at the next
  *	available position.
  *
  *	throws an exception if the table is already full.
  */
-void Add_State_Reward_To_Model(CStateReward* sr);
+void Add_State_Reward_To_Model(int i, CStateReward* sr);
 
 /*
- *	Adds the CTransitionReward pointed to by tr to the state_reward_table 
+ *	Adds the CTransitionReward pointed to by tr to the ith transition_reward_table 
  *	at the next available position.
  *
  *	throws an exception if the table is already full.
  */
-void Add_Transition_Reward_To_Model(CTransitionReward* tr);
+void Add_Transition_Reward_To_Model(int i, CTransitionReward* tr);
 
 /*
  *	Calculates the maximum number of updates that can be made for any 
@@ -433,14 +432,14 @@ string Model_Type_To_String();
 string Command_Table_To_String();
 
 /*
- *	Returns a string representation of the State Reward Table
+ *	Returns a string representation of the ith State Reward Table
  */
-string State_Reward_To_String();
+string State_Reward_To_String(int i);
 
 /*
- *	Returns a string representation of the Transition Reward Table
+ *	Returns a string representation of the ith Transition Reward Table
  */
-string Transition_Reward_To_String();
+string Transition_Reward_To_String(int i);
 
 //==============================================================================
 //      IO Functions

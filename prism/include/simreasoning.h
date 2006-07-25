@@ -211,7 +211,7 @@ double Calculate_Sum_Rates();
 /*
  *	Returns the reward calcualated by calling Calculate_State_Reward()
  */
-double Get_State_Reward();
+double Get_State_Reward(int i);
 
 
 

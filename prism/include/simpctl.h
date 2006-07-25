@@ -155,6 +155,7 @@ class CRewardFormula : public CPathFormula
 
 	protected:
 		double answer_double; //used to store the reward answer
+		int reward_struct_index; //used to store the reward strcuture index
 
 	public:
 		/*
@@ -166,6 +167,11 @@ class CRewardFormula : public CPathFormula
 		 *	Returns the calculated reward for this CRewardFormula.
 		 */
 		double Get_Answer_Double();
+
+		/*
+		 *	Returns the reward structure index for this CRewardFormula.
+		 */
+		int Get_Reward_Struct_Index();
 
 		/*
 		 *	Resets this CRewardFormula object for use in future calcuations.
@@ -369,7 +375,7 @@ class CRewardCumulative : public CRewardFormula
 		/*
 		 *	Constructor for a CRewardCumulative object.
 		 */
-		CRewardCumulative(double time);
+		CRewardCumulative(int rsi, double time);
 
 		/*
 		 *	Destructor for a CRewardCumulative object.
@@ -426,7 +432,7 @@ class CRewardInstantanious : public CRewardFormula
 		 *	Constructor for a CRewardInstantaneous object...and yes it does set the
 		 *	time_so_far variable to 0.0 now... ooops
 		 */
-		CRewardInstantanious(double time);
+		CRewardInstantanious(int rsi, double time);
 
 		/*
 		 *	Destructor for a CRewardInstantaneous object.
@@ -480,7 +486,7 @@ class CRewardReachability : public CRewardFormula
 		/*
 		 *	Constructor for a CRewardReachability object.
 		 */
-		CRewardReachability(CExpression* expression);
+		CRewardReachability(int rsi, CExpression* expression);
 
 		/*
 		 *	Destructor for a CRewardReachability object.

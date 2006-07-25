@@ -70,14 +70,14 @@ void Engine_Define_Variable(int index, int value);
 //	MODEL LOADING METHODS
 //==============================================================================
 
-int Engine_Allocate_Model(int type, int no_commands, int no_state_rewards, 
-                          int no_trans_rewards, int no_modules, int no_actions);
+int Engine_Allocate_Model(int type, int no_commands, int no_reward_structs, int *no_state_rewards, 
+                          int *no_trans_rewards, int no_modules, int no_actions);
 
 int Engine_Setup_Add_Transition(CCommand* comm);
 
-int Engine_Setup_Add_State_Reward(CStateReward* reward);
+int Engine_Setup_Add_State_Reward(int i, CStateReward* reward);
 
-int Engine_Setup_Add_Transition_Reward(CTransitionReward* reward);
+int Engine_Setup_Add_Transition_Reward(int i, CTransitionReward* reward);
 
 //==============================================================================
 //	PATH INITIALISATION AND SETUP METHODS

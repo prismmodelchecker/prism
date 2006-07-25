@@ -60,10 +60,10 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_allocateStateSpace
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    allocateModel
- * Signature: (IIIIII)I
+ * Signature: (III[I[III)I
  */
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_allocateModel
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint);
+  (JNIEnv *, jclass, jint, jint, jint, jintArray, jintArray, jint, jint);
 
 /*
  * Class:     simulator_SimulatorEngine
@@ -76,18 +76,18 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_setupAddTransition
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    setupAddStateReward
- * Signature: (I)I
+ * Signature: (II)I
  */
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_setupAddStateReward
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jint, jint);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    setupAddTransitionReward
- * Signature: (I)I
+ * Signature: (II)I
  */
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_setupAddTransitionReward
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jint, jint);
 
 /*
  * Class:     simulator_SimulatorEngine
@@ -140,18 +140,18 @@ JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTimeSpentInPathState
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    getStateRewardOfPathState
- * Signature: (I)D
+ * Signature: (II)D
  */
 JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getStateRewardOfPathState
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jint, jint);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    getTransitionRewardOfPathState
- * Signature: (I)D
+ * Signature: (II)D
  */
 JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTransitionRewardOfPathState
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jint, jint);
 
 /*
  * Class:     simulator_SimulatorEngine
@@ -164,26 +164,26 @@ JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTotalPathTime
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    getTotalPathReward
- * Signature: ()D
+ * Signature: (I)D
  */
 JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTotalPathReward
-  (JNIEnv *, jclass);
+  (JNIEnv *, jclass, jint);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    getTotalStateReward
- * Signature: ()D
+ * Signature: (I)D
  */
 JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTotalStateReward
-  (JNIEnv *, jclass);
+  (JNIEnv *, jclass, jint);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    getTotalTransitionReward
- * Signature: ()D
+ * Signature: (I)D
  */
 JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTotalTransitionReward
-  (JNIEnv *, jclass);
+  (JNIEnv *, jclass, jint);
 
 /*
  * Class:     simulator_SimulatorEngine
@@ -820,26 +820,26 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlNext
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    loadPctlReachability
- * Signature: (I)I
+ * Signature: (II)I
  */
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlReachability
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jint, jint);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    loadPctlCumulative
- * Signature: (D)I
+ * Signature: (ID)I
  */
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlCumulative
-  (JNIEnv *, jclass, jdouble);
+  (JNIEnv *, jclass, jint, jdouble);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    loadPctlInstantanious
- * Signature: (D)I
+ * Signature: (ID)I
  */
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlInstantanious
-  (JNIEnv *, jclass, jdouble);
+  (JNIEnv *, jclass, jint, jdouble);
 
 /*
  * Class:     simulator_SimulatorEngine

@@ -70,18 +70,21 @@ public class Modules2MTBDD
 	// synch info
 	private int numSynchs;			// number of synchronisations
 	private Vector synchs;			// synchronisations
+	// rewards
+	private int numRewardStructs;		// number of reward structs
+	private String[] rewardStructNames;	// reward struct names
 	
 	// mtbdd stuff
 	
 	// dds/dd vars - whole system
-	private JDDNode trans;			// transition matrix dd
-	private JDDNode range;			// dd giving range for system
-	private JDDNode trans01;		// 0-1 transition matrix dd
-	private JDDNode start;			// dd for start state
-	private JDDNode reach;			// dd of reachable states
-	private JDDNode deadlocks;		// dd of deadlock states
-	private JDDNode stateRewards;	// dd of state rewards
-	private JDDNode transRewards;	// dd of transition rewards
+	private JDDNode trans;				// transition matrix dd
+	private JDDNode range;				// dd giving range for system
+	private JDDNode trans01;			// 0-1 transition matrix dd
+	private JDDNode start;				// dd for start state
+	private JDDNode reach;				// dd of reachable states
+	private JDDNode deadlocks;			// dd of deadlock states
+	private JDDNode stateRewards[];		// dds for state rewards
+	private JDDNode transRewards[];		// dds for transition rewards
 	private JDDVars allDDRowVars;		// all dd vars (rows)
 	private JDDVars allDDColVars;		// all dd vars (cols)
 	private JDDVars allDDSynchVars;		// all dd vars (synchronising actions)
@@ -116,11 +119,15 @@ public class Modules2MTBDD
 
 	private class ComponentDDs
 	{
-		public JDDNode guards;	// bdd for guards
-		public JDDNode trans;	// mtbdd for transitions
-		public JDDNode rewards;	// mtbdd for rewards
-		public int min; 		// min index of dd vars used for local nondeterminism
-		public int max; 		// max index of dd vars used for local nondeterminism
+		public JDDNode guards;		// bdd for guards
+		public JDDNode trans;		// mtbdd for transitions
+		public JDDNode rewards[];	// mtbdd for rewards
+		public int min; 			// min index of dd vars used for local nondeterminism
+		public int max; 			// max index of dd vars used for local nondeterminism
+		public ComponentDDs()
+		{
+			rewards = new JDDNode[modulesFile.getNumRewardStructs()];
+		}
 	}
 	
 	// data structure used to store mtbdds and related info
@@ -279,20 +286,26 @@ public class Modules2MTBDD
 		// find any deadlocks
 		findDeadlocks();
 		
+		// store reward struct names
+		rewardStructNames = new String[numRewardStructs];
+		for (i = 0; i < numRewardStructs; i++) {
+			rewardStructNames[i] = modulesFile.getRewardStruct(i).getName();
+		}
+		
 		// create new Model object to be returned
 		if (type == ModulesFile.PROBABILISTIC) {
-			model = new ProbModel(trans, trans01, start, reach, deadlocks, stateRewards, transRewards, allDDRowVars, allDDColVars, ddVarNames,
+			model = new ProbModel(trans, trans01, start, reach, deadlocks, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, ddVarNames,
 						   numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
 						   numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		}
 		else if (type == ModulesFile.NONDETERMINISTIC) {
-			model = new NondetModel(trans, trans01, start, reach, deadlocks, stateRewards, transRewards, allDDRowVars, allDDColVars,
+			model = new NondetModel(trans, trans01, start, reach, deadlocks, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars,
 						     allDDSynchVars, allDDSchedVars, allDDChoiceVars, allDDNondetVars, ddVarNames,
 						     numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
 						     numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		}
 		else if (type == ModulesFile.STOCHASTIC) {
-			model = new StochModel(trans, trans01, start, reach, deadlocks, stateRewards, transRewards, allDDRowVars, allDDColVars, ddVarNames,
+			model = new StochModel(trans, trans01, start, reach, deadlocks, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, ddVarNames,
 						    numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
 						    numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		}
@@ -699,7 +712,7 @@ public class Modules2MTBDD
 	{
 		SystemDDs sysDDs;
 		JDDNode tmp, v;
-		int i, j, max;
+		int i, j, n, max;
 		int[] synchMin;
 		
 		// initialise some values for synchMin
@@ -784,19 +797,27 @@ public class Modules2MTBDD
 		
 		// now, for all model types, transition matrix can be built by summing over all actions
 		// also build transition rewards at the same time
+		n = modulesFile.getNumRewardStructs();
 		trans = sysDDs.ind.trans;
-		transRewards = sysDDs.ind.rewards;
+		for (j = 0; j < n; j++) {;
+			transRewards[j] = sysDDs.ind.rewards[j];
+		}
 		for (i = 0; i < numSynchs; i++) {
 			trans = JDD.Apply(JDD.PLUS, trans, sysDDs.synchs[i].trans);
-			transRewards = JDD.Apply(JDD.PLUS, transRewards, sysDDs.synchs[i].rewards);
+			for (j = 0; j < n; j++) {
+				transRewards[j] = JDD.Apply(JDD.PLUS, transRewards[j], sysDDs.synchs[i].rewards[j]);
+			}
 		}
 		// for dtmcs/ctmcs, final rewards are scaled by dividing by total prob/rate for each transition
 		// (this is how we compute "expected" reward for each transition)
 		// (this becomes an issue when a transition prob/rate is the sum of several component values (from different actions))
 		// (for mdps, nondeterministic choices are always kept separate so this never occurs)
 		if (type != ModulesFile.NONDETERMINISTIC) {
-			JDD.Ref(trans);
-			transRewards = JDD.Apply(JDD.DIVIDE, transRewards, trans);
+			n = modulesFile.getNumRewardStructs();
+			for (j = 0; j < n; j++) {
+				JDD.Ref(trans);
+				transRewards[j] = JDD.Apply(JDD.DIVIDE, transRewards[j], trans);
+			}
 		}
 		
 		// deref guards/identity - we don't need them any more
@@ -1868,76 +1889,86 @@ public class Modules2MTBDD
 	private void computeRewards(SystemDDs sysDDs) throws PrismException
 	{
 		RewardStruct rs;
-		int i, j, n;
+		int i, j, k, n;
 		double d;
 		String synch, s;
 		JDDNode rewards, states, item;
 		ComponentDDs compDDs;
 		
+		// how many reward structures?
+		numRewardStructs = modulesFile.getNumRewardStructs();
+		
 		// initially rewards zero
-		stateRewards = JDD.Constant(0);
-		sysDDs.ind.rewards = JDD.Constant(0);
-		for (i = 0; i < numSynchs; i++) sysDDs.synchs[i].rewards = JDD.Constant(0);
+		stateRewards = new JDDNode[numRewardStructs];
+		transRewards = new JDDNode[numRewardStructs];
+		for (j = 0; j < numRewardStructs; j++) {
+			stateRewards[j] = JDD.Constant(0);
+			sysDDs.ind.rewards[j] = JDD.Constant(0);
+			for (i = 0; i < numSynchs; i++) sysDDs.synchs[i].rewards[j] = JDD.Constant(0);
+		}
 		
-		// get info (if any) from reward struct
-		rs = modulesFile.getRewardStruct();
-		if (rs == null) return;
-		
-		// work through list of items in reward struct
-		n = rs.getNumItems();
-		for (i = 0; i < n; i++) {
-		
-			// translate states predicate and reward expression
-			states = translateExpression(rs.getStates(i));
-			rewards = translateExpression(rs.getReward(i));
+		// for each reward structure...
+		for (j = 0; j < numRewardStructs; j++) {
 			
-			// first case: item corresponds to state rewards
-			synch = rs.getSynch(i);
-			if (synch == null) {
-				// restrict rewards to relevant states
-				item = JDD.Apply(JDD.TIMES, states, rewards);
-				// check for negative rewards
-				if ((d = JDD.FindMin(item)) < 0) {
-					s = "Element " + (i+1) + " of rewards...endrewards construct contains negative rewards (" + d + ").";
-					s += "\nNote that these may correspond to states which are unreachable.";
-					s += "\nIf this is the case, try strengthening the predicate.";
-					throw new PrismException(s);
-				}
-				// add to state rewards
-				stateRewards = JDD.Apply(JDD.PLUS, stateRewards, item);
-			}
+			// get reward struct
+			rs = modulesFile.getRewardStruct(j);
 			
-			// second case: item corresponds to transition rewards
-			else {
-				// work out which (if any) action this is for
-				if ("".equals(synch)) {
-					compDDs = sysDDs.ind;
-				} else if ((j = synchs.indexOf(synch)) != -1) {
-					compDDs = sysDDs.synchs[j];
-				} else {
-					throw new PrismException("Invalid action name \"" + synch + "\" in \"rewards\" construct");
+			// work through list of items in reward struct
+			n = rs.getNumItems();
+			for (i = 0; i < n; i++) {
+				
+				// translate states predicate and reward expression
+				states = translateExpression(rs.getStates(i));
+				rewards = translateExpression(rs.getReward(i));
+				
+				// first case: item corresponds to state rewards
+				synch = rs.getSynch(i);
+				if (synch == null) {
+					// restrict rewards to relevant states
+					item = JDD.Apply(JDD.TIMES, states, rewards);
+					// check for negative rewards
+					if ((d = JDD.FindMin(item)) < 0) {
+						s = "Element " + (i+1) + " of rewards...endrewards construct contains negative rewards (" + d + ").";
+						s += "\nNote that these may correspond to states which are unreachable.";
+						s += "\nIf this is the case, try strengthening the predicate.";
+						throw new PrismException(s);
+					}
+					// add to state rewards
+					stateRewards[j] = JDD.Apply(JDD.PLUS, stateRewards[j], item);
 				}
-				// identify corresponding transitions
-				// (for dtmcs/ctmcs, keep actual values - need to weight rewards; for mdps just store 0/1)
-				JDD.Ref(compDDs.trans);
-				if (type == ModulesFile.NONDETERMINISTIC) {
-					item = JDD.GreaterThan(compDDs.trans, 0);
-				} else {
-					item = compDDs.trans;
+				
+				// second case: item corresponds to transition rewards
+				else {
+					// work out which (if any) action this is for
+					if ("".equals(synch)) {
+						compDDs = sysDDs.ind;
+					} else if ((k = synchs.indexOf(synch)) != -1) {
+						compDDs = sysDDs.synchs[k];
+					} else {
+						throw new PrismException("Invalid action name \"" + synch + "\" in \"rewards\" construct");
+					}
+					// identify corresponding transitions
+					// (for dtmcs/ctmcs, keep actual values - need to weight rewards; for mdps just store 0/1)
+					JDD.Ref(compDDs.trans);
+					if (type == ModulesFile.NONDETERMINISTIC) {
+						item = JDD.GreaterThan(compDDs.trans, 0);
+					} else {
+						item = compDDs.trans;
+					}
+					// restrict to relevant states
+					item = JDD.Apply(JDD.TIMES, item, states);
+					// multiply by reward values
+					item = JDD.Apply(JDD.TIMES, item, rewards);
+					// check for negative rewards
+					if ((d = JDD.FindMin(item)) < 0) {
+						s = "Element " + (i+1) + " of rewards...endrewards construct contains negative rewards (" + d + ").";
+						s += "\nNote that these may correspond to states which are unreachable.";
+						s += "\nIf this is the case, try strengthening the predicate.";
+						throw new PrismException(s);
+					}
+					// add result to rewards
+					compDDs.rewards[j] = JDD.Apply(JDD.PLUS, compDDs.rewards[j], item);
 				}
-				// restrict to relevant states
-				item = JDD.Apply(JDD.TIMES, item, states);
-				// multiply by reward values
-				item = JDD.Apply(JDD.TIMES, item, rewards);
-				// check for negative rewards
-				if ((d = JDD.FindMin(item)) < 0) {
-					s = "Element " + (i+1) + " of rewards...endrewards construct contains negative rewards (" + d + ").";
-					s += "\nNote that these may correspond to states which are unreachable.";
-					s += "\nIf this is the case, try strengthening the predicate.";
-					throw new PrismException(s);
-				}
-				// add result to rewards
-				compDDs.rewards = JDD.Apply(JDD.PLUS, compDDs.rewards, item);
 			}
 		}
 	}
@@ -1997,16 +2028,18 @@ public class Modules2MTBDD
 		JDD.Ref(trans);
 		trans01 = JDD.GreaterThan(trans, 0);
 		
-		// remove non-reachable states from states rewards vector
-		JDD.Ref(reach);
-		stateRewards = JDD.Apply(JDD.TIMES, reach, stateRewards);
-		
-		// remove non-reachable states from transition reward matrix
-		JDD.Ref(reach);
-		transRewards = JDD.Apply(JDD.TIMES, reach, transRewards);
-		JDD.Ref(reach);
-		tmp = JDD.PermuteVariables(reach, allDDRowVars, allDDColVars);
-		transRewards = JDD.Apply(JDD.TIMES, tmp, transRewards);
+		// remove non-reachable states from state/transition rewards
+		for (i = 0; i < modulesFile.getNumRewardStructs(); i++) {
+			// state rewards vector
+			JDD.Ref(reach);
+			stateRewards[i] = JDD.Apply(JDD.TIMES, reach, stateRewards[i]);
+			// transition reward matrix
+			JDD.Ref(reach);
+			transRewards[i] = JDD.Apply(JDD.TIMES, reach, transRewards[i]);
+			JDD.Ref(reach);
+			tmp = JDD.PermuteVariables(reach, allDDRowVars, allDDColVars);
+			transRewards[i] = JDD.Apply(JDD.TIMES, tmp, transRewards[i]);
+		}
 	}
 
 	// this method allows you to skip the reachability phase

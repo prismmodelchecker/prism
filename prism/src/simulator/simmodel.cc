@@ -51,9 +51,9 @@ using std::string;
  *	setup methods and the deallocation methods.
  *
  *	The model storage contains:
- *		A Command Table:			Which is an array of CCommand objects
- *		A State Rewards Table:		Which is an array of CStateReward objects
- *		A Transition Rewards Table:	Which is an array of CTransitionReward objects
+ *		A Command Table:					Which is an array of CCommand objects
+ *		A set of State Rewards Tables:		Which is an array of arrays of CStateReward objects
+ *		A set of Transition Rewards Tables:	Which is an array of arrays of CTransitionReward objects
  *
  *	These objects use the expression data structures declared in 
  *	simexpression.h and refer to and manipulate the current state space 
@@ -168,13 +168,13 @@ string CAssignment::To_String()
 
 void CAssignment::Write_Assignment(int fd)
 {
-        Write_Length_And_String("as", fd);
+		Write_Length_And_String("as", fd);
 
-        //write variable index
-        write(fd, &variable_index, sizeof(int));
+		//write variable index
+		write(fd, &variable_index, sizeof(int));
 
-        //Do Expression
-        rhs->Write_Expression(fd);
+		//Do Expression
+		rhs->Write_Expression(fd);
 }
 
 /*
@@ -332,22 +332,22 @@ void CUpdate::Do_Update(int*vars)
  */
 void CUpdate::Write_Update(int fd)
 {
-    Write_Length_And_String("up", fd);
+	Write_Length_And_String("up", fd);
 
-    //write action_index
-    write(fd, &action_index, sizeof(int));
+	//write action_index
+	write(fd, &action_index, sizeof(int));
 
-    //Do Probability
-    probability->Write_Expression(fd);
+	//Do Probability
+	probability->Write_Expression(fd);
 
-    //write no_assignments
-    write(fd, &no_assignments, sizeof(int));
+	//write no_assignments
+	write(fd, &no_assignments, sizeof(int));
 
-    //Do Assignments
-    for(int i = 0; i < no_assignments; i++)
-    {
-        assignments[i]->Write_Assignment(fd);
-    }
+	//Do Assignments
+	for(int i = 0; i < no_assignments; i++)
+	{
+		assignments[i]->Write_Assignment(fd);
+	}
 }
 
 
@@ -466,27 +466,27 @@ void CCommand::Set_Owns_Guard(bool own)
 
 void CCommand::Write_Command(int fd)
 {
-    Write_Length_And_String("co", fd);
-    
-    //write action index
-    write(fd, &action_index, sizeof(int));
+	Write_Length_And_String("co", fd);
+	
+	//write action index
+	write(fd, &action_index, sizeof(int));
 
-    //write module index
-    write(fd, &module_index, sizeof(int));
+	//write module index
+	write(fd, &module_index, sizeof(int));
 
-    //Do Guard
-    guard->Write_Expression(fd);
+	//Do Guard
+	guard->Write_Expression(fd);
 
-    //Do Updates
+	//Do Updates
 
-    //write no updates
-    write(fd, &no_updates, sizeof(int));
+	//write no updates
+	write(fd, &no_updates, sizeof(int));
 
-    //write the updates
-    for(int i = 0; i < no_updates; i++)
-    {
-        updates[i]->Write_Update(fd);
-    }
+	//write the updates
+	for(int i = 0; i < no_updates; i++)
+	{
+		updates[i]->Write_Update(fd);
+	}
 }
 
 
@@ -541,15 +541,15 @@ string CStateReward::To_String()
 
 void CStateReward::Write_Reward(int fd)
 {
-    Write_Length_And_String("sr", fd);
-    
+	Write_Length_And_String("sr", fd);
+	
 
-    //Do Guard
-    state_guard->Write_Expression(fd);
-    
-    //DO Reward
-    reward->Write_Expression(fd);
-    
+	//Do Guard
+	state_guard->Write_Expression(fd);
+	
+	//DO Reward
+	reward->Write_Expression(fd);
+	
 }
 
 /*
@@ -611,16 +611,16 @@ string CTransitionReward::To_String()
 
 void CTransitionReward::Write_Reward(int fd)
 {
-    Write_Length_And_String("tr", fd);
-    
-    //Do Action Index
-    write(fd, &action_index, sizeof(int));
+	Write_Length_And_String("tr", fd);
+	
+	//Do Action Index
+	write(fd, &action_index, sizeof(int));
 
-    //Do Guard
-    state_guard->Write_Expression(fd);
-    
-    //DO Reward
-    reward->Write_Expression(fd);
+	//Do Guard
+	state_guard->Write_Expression(fd);
+	
+	//DO Reward
+	reward->Write_Expression(fd);
 }
 
 
@@ -635,13 +635,12 @@ int model_type;	//NOT_LOADED, PROBABILISTIC, NONDETERMINISTIC or STOCHASTIC.
 CCommand** command_table; 
 int no_commands;
 
- //The State Rewards Table
-CStateReward** state_rewards_table;
-int no_state_rewards;
-
-//The Transition Rewards Table
-CTransitionReward** transition_rewards_table; 
-int no_transition_rewards;
+ //The Rewards Tables
+int no_reward_structs;
+CStateReward*** state_rewards_table;
+int *no_state_rewards;
+CTransitionReward*** transition_rewards_table; 
+int *no_transition_rewards;
 
 //The Alphabet stores which modules contain which action labels
 bool** alphabet; // can be accessed by [module_index][action_index]
@@ -653,8 +652,8 @@ int no_actions;
 //=============================================================================
 
 int no_commands_added; //used to keep track of populating command_table
-int no_state_rewards_added;	//used to keep track of populating state_rewards_table
-int no_transition_rewards_added; // used to keep track of populating transition_rewards_table
+int *no_state_rewards_added;	//used to keep track of populating state_rewards_table
+int *no_transition_rewards_added; // used to keep track of populating transition_rewards_table
 
 
 //==============================================================================
@@ -689,35 +688,45 @@ void Deallocate_Model()
 	no_commands = 0;
 	no_commands_added = 0;
 
-	//Delete State Rewards Table
-	if(state_rewards_table != NULL)
-	{
-		for(int i = 0; i < no_state_rewards_added; i++)
-		{
-			CStateReward* reward = state_rewards_table[i];
-			if(reward != NULL)
-				delete reward;
+	//Delete State Rewards Tables
+	if(state_rewards_table != NULL) {
+		for(int i = 0; i < no_reward_structs; i++) {
+			if(state_rewards_table[i] != NULL) {
+				for(int j = 0; j < no_state_rewards_added[i]; j++) {
+					CStateReward* reward = state_rewards_table[i][j];
+					if(reward != NULL) delete reward;
+				}
+				delete[] state_rewards_table[i];
+			}
 		}
 		delete[] state_rewards_table;
-		state_rewards_table = NULL;
 	}
-	no_state_rewards = 0;
-	no_state_rewards_added = 0;
+	state_rewards_table = NULL;
+	if (no_state_rewards != NULL) delete[] no_state_rewards;
+	no_state_rewards = NULL;
+	if (no_state_rewards_added != NULL) delete[] no_state_rewards_added;
+	no_state_rewards_added = NULL;
 
 	//Delete Transition Rewards Table
-	if(transition_rewards_table != NULL)
-	{
-		for(int i = 0; i < no_transition_rewards_added; i++)
-		{
-			CTransitionReward* reward = transition_rewards_table[i];
-			if(reward != NULL)
-				delete reward;
+	if(transition_rewards_table != NULL) {
+		for(int i = 0; i < no_reward_structs; i++){
+			if(transition_rewards_table[i] != NULL) {
+				for(int j = 0; j < no_transition_rewards_added[i]; j++) {
+					CTransitionReward* reward = transition_rewards_table[i][j];
+					if(reward != NULL) delete reward;
+				}
+				delete[] transition_rewards_table[i];
+			}
 		}
 		delete[] transition_rewards_table;
-		transition_rewards_table = NULL;
 	}
-	no_transition_rewards = 0;
-	no_transition_rewards_added = 0;
+	transition_rewards_table = NULL;
+	if (no_transition_rewards != NULL) delete[] no_transition_rewards;
+	no_transition_rewards = NULL;
+	if (no_transition_rewards_added != NULL) delete[] no_transition_rewards_added;
+	no_transition_rewards_added = NULL;
+	
+	no_reward_structs = 0;
 
 	//Delete Alphabet
 	if(alphabet != NULL)
@@ -738,14 +747,16 @@ void Deallocate_Model()
 /*
  *	Initialises the model storage.  type is one of the constants stored in 
  *	simutil.h: NOT_LOADED, PROBABILISTIC, NONDETERMINISTIC or STOCHASTIC.
- *	Memory is allocated for the command table, state reward table, transition
- *	reward table and alphabet table.
+ *	Memory is allocated for the command table, state reward tables, transition
+ *	reward tables and alphabet table.
  *
  *	throws an exception for out of memory.
  */
-void Allocate_Model(int type, int no_comms, int no_state_rews, 
-					int no_transition_rews, int no_mods, int no_acts)
+void Allocate_Model(int type, int no_comms, int no_rew_structs, 
+					int *no_state_rews, int *no_transition_rews, int no_mods, int no_acts)
 {
+	int i, j, n;
+	
 	model_type = type;
 
 	//Allocate the Command Table
@@ -756,34 +767,51 @@ void Allocate_Model(int type, int no_comms, int no_state_rews,
 		Report_Error("Simulator engine ran out of memory when allocating transition table.");
 		throw "out of memory exception simmodel.cc 001";
 	}
-	for(int i = 0; i < no_commands; i++)
+	for(i = 0; i < no_commands; i++)
 		command_table[i] = NULL;
 	no_commands_added = 0;
 
-	//Allocate the State Reward Table
-	no_state_rewards = no_state_rews;
-	state_rewards_table = new CStateReward*[no_state_rewards];
-	if(state_rewards_table == NULL) 
+	// Allocate rewards info
+	no_reward_structs = no_rew_structs;
+	no_state_rewards = new int[no_reward_structs];
+	no_transition_rewards = new int[no_reward_structs];
+	no_state_rewards_added = new int[no_reward_structs];
+	no_transition_rewards_added = new int[no_reward_structs];
+	state_rewards_table = new CStateReward**[no_reward_structs];
+	transition_rewards_table = new CTransitionReward**[no_reward_structs];
+	if(no_state_rewards == NULL || no_transition_rewards == NULL || no_state_rewards_added == NULL || no_transition_rewards_added == NULL || state_rewards_table == NULL) 
 	{
-		Report_Error("Simulator engine ran out of memory when allocating state rewards table.");
-		throw "out of memory exception simmodel.cc 002";
+		Report_Error("Simulator engine ran out of memory when allocating state rewards tables.");
+		throw "out of memory exception simmodel.cc";
 	}
-	for(int i = 0; i < no_state_rewards; i++)
-		state_rewards_table[i] = NULL;
-	no_state_rewards_added = 0;
-
-	//Allocate the Transition Reward Table
-	no_transition_rewards = no_transition_rews;
-	transition_rewards_table = new CTransitionReward*[no_transition_rewards];
-	if(transition_rewards_table == NULL)  
-	{
-		Report_Error("Simulator engine ran out of memory when allocating transition rewards table.");
-		throw "out of memory exception simmodel.cc 003";
+	
+	for (i = 0; i < no_reward_structs; i++) {
+		
+		//Allocate the State Reward Tables
+		no_state_rewards[i] = no_state_rews[i];
+		state_rewards_table[i] = new CStateReward*[no_state_rewards[i]];
+		if(state_rewards_table[i] == NULL) 
+		{
+			Report_Error("Simulator engine ran out of memory when allocating state rewards table.");
+			throw "out of memory exception simmodel.cc 002";
+		}
+		for(j = 0; j < no_state_rewards[i]; j++)
+			state_rewards_table[i][j] = NULL;
+		no_state_rewards_added[i] = 0;
+		
+		//Allocate the Transition Reward Table
+		no_transition_rewards[i] = no_transition_rews[i];
+		transition_rewards_table[i] = new CTransitionReward*[no_transition_rewards[i]];
+		if(transition_rewards_table[i] == NULL)  
+		{
+			Report_Error("Simulator engine ran out of memory when allocating transition rewards table.");
+			throw "out of memory exception simmodel.cc 003";
+		}
+		for(j = 0; j < no_transition_rewards[i]; j++)
+			transition_rewards_table[i][j] = NULL;
+		no_transition_rewards_added[i] = 0;
 	}
-	for(int i = 0; i < no_transition_rewards; i++)
-		transition_rewards_table[i] = NULL;
-	no_transition_rewards_added = 0;
-
+	
 	//Allocate Alphabet
 	no_modules = no_mods;
 	no_actions = no_acts;
@@ -794,7 +822,7 @@ void Allocate_Model(int type, int no_comms, int no_state_rews,
 		Report_Error("Simulator engine ran out of memory when allocating alphabet table.");
 		throw "out of memory exception simmodel.cc 004";
 	}
-	for(int i = 0; i < no_modules; i++)
+	for(i = 0; i < no_modules; i++)
 	{
 		alphabet[i] = new bool[no_actions];
 		if(alphabet[i] == NULL)
@@ -802,7 +830,7 @@ void Allocate_Model(int type, int no_comms, int no_state_rews,
 			Report_Error("Simulator engine ran out of memory when allocating alphabet table.");
 			throw "out of memory exception simmodel.cc 005";
 		}
-		for(int j = 0; j < no_actions; j++)
+		for(j = 0; j < no_actions; j++)
 			alphabet[i][j] = false;
 	}
 
@@ -816,7 +844,7 @@ void Allocate_Model(int type, int no_comms, int no_state_rews,
  */
 void Add_Command_To_Model(CCommand* comm)
 {
-        
+		
 	if(no_commands_added == no_commands) 
 	{
 		Report_Error("Unexpected error when loading model into Simulator engine:\n Too many transitions have been added.");
@@ -829,35 +857,35 @@ void Add_Command_To_Model(CCommand* comm)
 }
 
 /*
- *	Adds the CStateReward pointed to by sr to the state_reward_table at the next
+ *	Adds the CStateReward pointed to by sr to the ith state_reward_table at the next
  *	available position.
  *
  *	throws an exception if the table is already full.
  */
-void Add_State_Reward_To_Model(CStateReward* sr)
+void Add_State_Reward_To_Model(int i, CStateReward* sr)
 {
-	if(no_state_rewards_added == no_state_rewards) 
+	if(no_state_rewards_added[i] == no_state_rewards[i]) 
 	{
 		Report_Error("Unexpected error when loading model into Simulator engine:\n Too many state rewards have been added.");
 		throw "array access exception: simmodel.cc 007";
 	}
-	state_rewards_table[no_state_rewards_added++] = sr;
+	state_rewards_table[i][no_state_rewards_added[i]++] = sr;
 }
 
 /*
- *	Adds the CTransitionReward pointed to by tr to the state_reward_table 
+ *	Adds the CTransitionReward pointed to by tr to the ith transition_reward_table 
  *	at the next available position.
  *
  *	throws an exception if the table is already full.
  */
-void Add_Transition_Reward_To_Model(CTransitionReward* tr)
+void Add_Transition_Reward_To_Model(int i, CTransitionReward* tr)
 {
-	if(no_transition_rewards_added == no_transition_rewards) 
+	if(no_transition_rewards_added[i] == no_transition_rewards[i]) 
 	{
 		Report_Error("Unexpected error when loading model into Simulator engine:\n Too many state rewards have been added.");
 		throw "array access exception: simmodel.cc 008";
 	}
-	transition_rewards_table[no_transition_rewards_added++] = tr;
+	transition_rewards_table[i][no_transition_rewards_added[i]++] = tr;
 }
 
 
@@ -880,11 +908,11 @@ string Model_To_String()
 	model+="Command Table:\n\n";
 	model+=Command_Table_To_String()+"\n\n";
 	
-	model+="State Rewards Table:\n\n";
-	model+=State_Reward_To_String()+"\n\n";
-
-	model+="Transition Rewards Table:\n\n";
-	model+=Transition_Reward_To_String()+"\n\n";
+	model+="Rewards Tables:\n\n";
+	for(int i = 0; i < no_reward_structs; i++) {
+		model+=State_Reward_To_String(i)+"\n\n";
+		model+=Transition_Reward_To_String(i)+"\n\n";
+	}
 
 	return model;
 }
@@ -921,419 +949,408 @@ string Command_Table_To_String()
 }
 
 /*
- *	Returns a string representation of the State Reward Table
+ *	Returns a string representation of the ith State Reward Table
  */
-string State_Reward_To_String()
+string State_Reward_To_String(int i)
 {
 	string rewards_string = "guard\treward\n";
-	for(int i = 0; i < no_state_rewards; i++)
+	for(int j = 0; j < no_state_rewards[i]; j++)
 	{
-		if(state_rewards_table[i] != NULL)
+		if(state_rewards_table[i][j] != NULL)
 		{
-			rewards_string += state_rewards_table[i]->To_String();
+			rewards_string += state_rewards_table[i][j]->To_String();
 		}
 	}
 	return rewards_string;
 }
 
 /*
- *	Returns a string representation of the Transition Reward Table
+ *	Returns a string representation of the ith Transition Reward Table
  */
-string Transition_Reward_To_String()
+string Transition_Reward_To_String(int i)
 {
 	string rewards_string = "guard\treward\n";
-	for(int i = 0; i < no_transition_rewards; i++)
+	for(int j = 0; j < no_transition_rewards[i]; j++)
 	{
-		if(transition_rewards_table[i] != NULL)
+		if(transition_rewards_table[i][j] != NULL)
 		{
-			rewards_string += transition_rewards_table[i]->To_String() + "\n";
+			rewards_string += transition_rewards_table[i][j]->To_String() + "\n";
 		}
 	}
 	return rewards_string;
 }
 
 //==============================================================================
-//      IO Functions
+//	  IO Functions
 //==============================================================================
 
 void Write_Model(int fd)
 {
-    //model identifier
-    Write_Length_And_String("mo", fd);
-    
-    //write model type
-    write(fd, &model_type, sizeof(int));
+	//model identifier
+	Write_Length_And_String("mo", fd);
+	
+	//write model type
+	write(fd, &model_type, sizeof(int));
 
-    //Command table
-    //=============
-    
-    //write number of commands
-    write(fd, &no_commands, sizeof(int));
+	//Command table
+	//=============
+	
+	//write number of commands
+	write(fd, &no_commands, sizeof(int));
 
-    //Commands
-    for(int i = 0; i < no_commands; i++)
-    {
-        command_table[i]->Write_Command(fd);
-    }
+	//Commands
+	for(int i = 0; i < no_commands; i++)
+	{
+		command_table[i]->Write_Command(fd);
+	}
 
-    //State Rewards Table
-    //===================
+	//Rewards Tables
+	//===================
 
-    //write number of state rewards
-    write(fd, &no_state_rewards, sizeof(int));
+	//write number of reward structs
+	write(fd, &no_reward_structs, sizeof(int));
+	
+	for(int i = 0; i < no_reward_structs; i++) {
+		//write number of state rewards
+		write(fd, &no_state_rewards[i], sizeof(int));
+		//write rewards
+		for(int j = 0; j < no_state_rewards[i]; j++)
+		{
+			state_rewards_table[i][j]->Write_Reward(fd);
+		}
+		//write number of transition rewards
+		write(fd, &no_transition_rewards[i], sizeof(int));
+		// write rewards
+		for(int j = 0; j < no_transition_rewards[i]; j++)
+		{
+			transition_rewards_table[i][j]->Write_Reward(fd);
+		}
+	}
 
-    for(int i = 0; i < no_state_rewards; i++)
-    {
-        state_rewards_table[i]->Write_Reward(fd);
-    }
+	//Alphabet
+	//========
 
-    //Transition Rewards Table
-    //========================
+	//write number of modules
+	write(fd, &no_modules, sizeof(int));
 
-    //write number of transition rewards
-    write(fd, &no_transition_rewards, sizeof(int));
+	//write number of synchs
+	write(fd, &no_actions, sizeof(int));
 
-    for(int i = 0; i < no_transition_rewards; i++)
-    {
-        transition_rewards_table[i]->Write_Reward(fd);
-    }
-
-    //Alphabet
-    //========
-
-    //write number of modules
-    write(fd, &no_modules, sizeof(int));
-
-    //write number of synchs
-    write(fd, &no_actions, sizeof(int));
-
-    //write the contents of the alphabet 2D array
-    for(int i = 0; i<no_modules; i++)
-    {
-        for(int j = 0; j < no_actions; j++)
-        {
-            write(fd, &alphabet[i][j], sizeof(bool));
-        }
-    }
-    //write null byte
-    write(fd, "\0", 1);
+	//write the contents of the alphabet 2D array
+	for(int i = 0; i<no_modules; i++)
+	{
+		for(int j = 0; j < no_actions; j++)
+		{
+			write(fd, &alphabet[i][j], sizeof(bool));
+		}
+	}
+	//write null byte
+	write(fd, "\0", 1);
 
 }
 
 void Read_Model(int fd)
 {
-    //cout << "attempting to load model..." << endl;
-    int int_buf;
+	int int_buf;
 	char buf_str[256];
-    //read model header
-    read(fd, &int_buf, sizeof(int));
-    read(fd, &buf_str, int_buf+1);
-    if(strcmp(buf_str, "mo") != 0)
-    {
-        throw "Error when importing binary file: model header not found";
-    }
-    //cout << "reading model type..." ;
-    //read model type
-    read(fd, &int_buf, sizeof(int));
-
-    model_type = int_buf;
-    //cout << model_type << endl;
-
-    //read command table
-    //==================
-    //cout << "reading size of command table...";
-    //read size of command table
-    read(fd, &int_buf, sizeof(int));
-
-    no_commands = int_buf;
-    //cout << no_commands << endl;
-    command_table = new CCommand*[no_commands];
-    if(command_table == NULL) 
-    {
-	Report_Error("Simulator engine ran out of memory when allocating transition table.");
-	throw "out of memory exception simmodel.cc 040";
-    }
-    for(int i = 0; i < no_commands; i++)
+	
+	//read model header
+	read(fd, &int_buf, sizeof(int));
+	read(fd, &buf_str, int_buf+1);
+	if(strcmp(buf_str, "mo") != 0)
+	{
+		throw "Error when importing binary file: model header not found";
+	}
+	
+	//read model type
+	read(fd, &int_buf, sizeof(int));
+	model_type = int_buf;
+	//cout << model_type << endl;
+	
+	//read command table
+	//==================
+	//read size of command table
+	read(fd, &int_buf, sizeof(int));
+	no_commands = int_buf;
+	//cout << no_commands << endl;
+	command_table = new CCommand*[no_commands];
+	if(command_table == NULL) 
+	{
+		Report_Error("Simulator engine ran out of memory when allocating transition table.");
+		throw "out of memory exception simmodel.cc 040";
+	}
+	for(int i = 0; i < no_commands; i++)
 		command_table[i] = NULL;
-    no_commands_added = 0;
-    //cout << "command table allocated" << endl;
-    //read commands from the command table
-    for(int i = 0; i < no_commands; i++)
-    {
-        //cout << "doing next command" << endl;
-        CCommand* comm = Read_Command(fd);
-        //cout << "the command is " << endl;
-        //cout << comm->To_String() << endl;
-        command_table[i] = comm;
-	no_commands_added++;
-    }
-    //cout << "finished reading commands" << endl;
-    //read state rewards table
-    //========================
-    
-    //read size of state rewards table
-    read(fd, &int_buf, sizeof(int));
+	no_commands_added = 0;
+	//read commands from the command table
+	for(int i = 0; i < no_commands; i++)
+	{
+		CCommand* comm = Read_Command(fd);
+		//cout << comm->To_String() << endl;
+		command_table[i] = comm;
+		no_commands_added++;
+	}
+	
+	//read rewards tables
+	//===================
+	
+	//read number of reward stucts
+	read(fd, &int_buf, sizeof(int));
+	no_reward_structs = int_buf;
+	no_state_rewards = new int[no_reward_structs];
+	no_transition_rewards = new int[no_reward_structs];
+	no_state_rewards_added = new int[no_reward_structs];
+	no_transition_rewards_added = new int[no_reward_structs];
+	state_rewards_table = new CStateReward**[no_reward_structs];
+	if(no_state_rewards == NULL || no_transition_rewards == NULL || no_state_rewards_added == NULL || no_transition_rewards_added == NULL || state_rewards_table == NULL) 
+	{
+		Report_Error("Simulator engine ran out of memory when allocating state rewards tables.");
+		throw "out of memory exception simmodel.cc";
+	}
+	
+	for(int i = 0; i < no_reward_structs; i++){
+		//read size of state rewards table
+		read(fd, &int_buf, sizeof(int));
+		no_state_rewards[i] = int_buf;
+		state_rewards_table[i] = new CStateReward*[no_state_rewards[i]];
+		if(state_rewards_table[i] == NULL) 
+		{
+			Report_Error("Simulator engine ran out of memory when allocating state rewards table.");
+			throw "out of memory exception simmodel.cc 041";
+		}
+		for(int j = 0; j < no_state_rewards[i]; j++)
+			state_rewards_table[i][j] = NULL;
+		no_state_rewards_added[i] = 0;
+		for(int j = 0; j < no_state_rewards[i]; j++)
+		{
+			CStateReward* comm = Read_State_Reward(fd);
+			Add_State_Reward_To_Model(i, comm);
+		}
+		//read size of transition rewards table
+		read(fd, &int_buf, sizeof(int));
+		no_transition_rewards[i] = int_buf;
+		transition_rewards_table[i] = new CTransitionReward*[no_transition_rewards[i]];
+		if(transition_rewards_table[i] == NULL) 
+		{
+			Report_Error("Simulator engine ran out of memory when allocating transition rewards table.");
+			throw "out of memory exception simmodel.cc 042";
+		}
+		for(int j = 0; j < no_transition_rewards[i]; j++)
+			transition_rewards_table[i][j] = NULL;
+		no_transition_rewards_added[i] = 0;
+		for(int j = 0; j < no_transition_rewards[i]; j++)
+		{
+			CTransitionReward* comm = Read_Transition_Reward(fd);
+			Add_Transition_Reward_To_Model(i, comm);
+		}
+	}
+	
+	//read alphabet
+	//=============
 
-    no_state_rewards = int_buf;
-    state_rewards_table = new CStateReward*[no_state_rewards];
-    if(state_rewards_table == NULL) 
-    {
-	Report_Error("Simulator engine ran out of memory when allocating state rewards table.");
-	throw "out of memory exception simmodel.cc 041";
-    }
-    for(int i = 0; i < no_state_rewards; i++)
-		state_rewards_table[i] = NULL;
-    no_state_rewards_added = 0;
-	//cout <<"importmodel1"<<endl;
-    //read commands from the command table
-    for(int i = 0; i < no_state_rewards; i++)
-    {
-        CStateReward* comm = Read_State_Reward(fd);
-        Add_State_Reward_To_Model(comm);
-    }
-//cout <<"importmodel2"<<endl;
-    //read transition rewards table
-    //=============================
-    
-    //read size of state rewards table
-    read(fd, &int_buf, sizeof(int));
-
-    no_transition_rewards = int_buf;
-    transition_rewards_table = new CTransitionReward*[no_transition_rewards];
-    if(transition_rewards_table == NULL) 
-    {
-	Report_Error("Simulator engine ran out of memory when allocating transition rewards table.");
-	throw "out of memory exception simmodel.cc 042";
-    }
-    for(int i = 0; i < no_transition_rewards; i++)
-		transition_rewards_table[i] = NULL;
-    no_transition_rewards_added = 0;
-//	cout <<"importmodel3"<<endl;
-    //read commands from the command table
-    for(int i = 0; i < no_transition_rewards; i++)
-    {
-        CTransitionReward* comm = Read_Transition_Reward(fd);
-        Add_Transition_Reward_To_Model(comm);
-    }
-//	cout <<"importmodel4"<<endl;
-    //read alphabet
-    //=============
-
-    //read no modules
-    read(fd, &int_buf, sizeof(int));
-    no_modules = int_buf;
-    //read no synchs
-    read(fd, &int_buf, sizeof(int));
-    no_actions = int_buf;
-    //allocate storage for alphabet
-    alphabet = new bool*[no_modules];
-    if(alphabet == NULL)
-    {
+	//read no modules
+	read(fd, &int_buf, sizeof(int));
+	no_modules = int_buf;
+	//read no synchs
+	read(fd, &int_buf, sizeof(int));
+	no_actions = int_buf;
+	//allocate storage for alphabet
+	alphabet = new bool*[no_modules];
+	if(alphabet == NULL)
+	{
 	Report_Error("Simulator engine ran out of memory when allocating alphabet table.");
 	throw "out of memory exception simmodel.cc 043";
-    }
-    for(int i = 0; i < no_modules; i++)
-    {
+	}
+	for(int i = 0; i < no_modules; i++)
+	{
 	alphabet[i] = new bool[no_actions];
 	if(alphabet[i] == NULL)
 	{
 		Report_Error("Simulator engine ran out of memory when allocating alphabet table.");
 		throw "out of memory exception simmodel.cc 044";
 	}
-        for(int j = 0; j < no_actions; j++)
-            alphabet[i][j] = false;
-    }
+		for(int j = 0; j < no_actions; j++)
+			alphabet[i][j] = false;
+	}
 
 //cout <<"importmodel5"<<endl;
-    //read it in
-    bool bool_buf;
-    for(int i = 0; i<no_modules; i++)
-    {
-        for(int j = 0; j < no_actions; j++)
-        {
-            read(fd, &bool_buf, sizeof(bool));
-            alphabet[i][j] = bool_buf;
-        }
-    }
+	//read it in
+	bool bool_buf;
+	for(int i = 0; i<no_modules; i++)
+	{
+		for(int j = 0; j < no_actions; j++)
+		{
+			read(fd, &bool_buf, sizeof(bool));
+			alphabet[i][j] = bool_buf;
+		}
+	}
 	//cout <<"importmodel6"<<endl;
-    //read off null byte
-    read(fd, &buf_str, 1);
-    if(strcmp(buf_str, "") != 0)
-    {
-        throw "Error when importing binary file: model not terminated correctly";
-    }
+	//read off null byte
+	read(fd, &buf_str, 1);
+	if(strcmp(buf_str, "") != 0)
+	{
+		throw "Error when importing binary file: model not terminated correctly";
+	}
 	//cout <<"importmodel7"<<endl;
 }
 
 CCommand* Read_Command(int fd)
 {
-    //cout << "Reading a command" << endl;
-    int int_buf;
+	//cout << "Reading a command" << endl;
+	int int_buf;
 	char buf_str[256];
-    //read model header
-    read(fd, &int_buf, sizeof(int));
-    read(fd, &buf_str, int_buf+1);
-    if(strcmp(buf_str, "co") != 0)
-    {
-        throw "Error when importing binary file: command header not found";
-    }
+	//read model header
+	read(fd, &int_buf, sizeof(int));
+	read(fd, &buf_str, int_buf+1);
+	if(strcmp(buf_str, "co") != 0)
+	{
+		throw "Error when importing binary file: command header not found";
+	}
 
-    //cout << "Reading action index...";
-    //read action index
-    int action_index;
-    read(fd, &action_index, sizeof(int));
-    //cout << action_index << endl;
+	//cout << "Reading action index...";
+	//read action index
+	int action_index;
+	read(fd, &action_index, sizeof(int));
+	//cout << action_index << endl;
 
-    //cout << "Reading module index...";
-    //read module index
-    int module_index;
-    read(fd, &module_index, sizeof(int));
-    //cout << module_index << endl;
+	//cout << "Reading module index...";
+	//read module index
+	int module_index;
+	read(fd, &module_index, sizeof(int));
+	//cout << module_index << endl;
 
-    //Read guard
-    //cout << "Reading guard" << endl;
-    CNormalExpression* guard = Read_Normal_Expression(fd);
-    
-    //cout << "Guard done " << guard->To_String() << endl;
+	//Read guard
+	//cout << "Reading guard" << endl;
+	CNormalExpression* guard = Read_Normal_Expression(fd);
+	
+	//cout << "Guard done " << guard->To_String() << endl;
 
-    //Read Updates
-    
-    //cout << "Reading updates..."<< endl;
-    //read no updates
-    read(fd, &int_buf, sizeof(int));
-    int no_updates = int_buf;
-    //allocate the command
-    CCommand* command = new CCommand(guard, action_index, module_index, no_updates);
+	//Read Updates
+	
+	//cout << "Reading updates..."<< endl;
+	//read no updates
+	read(fd, &int_buf, sizeof(int));
+	int no_updates = int_buf;
+	//allocate the command
+	CCommand* command = new CCommand(guard, action_index, module_index, no_updates);
 
-    for(int i = 0; i < no_updates; i++)
-    {
-        CUpdate* upd = Read_Update(fd);
-        command->Add_Update(upd);
-    }
+	for(int i = 0; i < no_updates; i++)
+	{
+		CUpdate* upd = Read_Update(fd);
+		command->Add_Update(upd);
+	}
 
-    //cout << "done updates" << endl;
+	//cout << "done updates" << endl;
 
-    return command;
+	return command;
 }
 
 CUpdate* Read_Update(int fd)
 {
-    //cout << "reading update" << endl;
-    int int_buf;
+	//cout << "reading update" << endl;
+	int int_buf;
 	char buf_str[256];
-    //read model header
-    read(fd, &int_buf, sizeof(int));
-    //cout << "int_buf = " << int_buf << endl;
+	//read model header
+	read(fd, &int_buf, sizeof(int));
+	//cout << "int_buf = " << int_buf << endl;
 	read(fd, &buf_str, int_buf+1);
 	//cout << "buf_str = " << buf_str << endl;
-    if(strcmp(buf_str, "up") != 0)
-    {
-        throw "Error when importing binary file: update header not found";
-    }
+	if(strcmp(buf_str, "up") != 0)
+	{
+		throw "Error when importing binary file: update header not found";
+	}
 
-    //cout << "reading action index...";
-    //read the action index
-    int action_index;
-    read(fd, &int_buf, sizeof(int));
-    action_index = int_buf;
-    //cout << action_index << endl;
+	//cout << "reading action index...";
+	//read the action index
+	int action_index;
+	read(fd, &int_buf, sizeof(int));
+	action_index = int_buf;
+	//cout << action_index << endl;
 
-    //Read probability
-    //cout << "reading probability expression" << endl;
-    CExpression* probability = Read_Expression(fd);
-    //cout << "done probability: " << probability->To_String() << endl;
+	//Read probability
+	//cout << "reading probability expression" << endl;
+	CExpression* probability = Read_Expression(fd);
+	//cout << "done probability: " << probability->To_String() << endl;
 
-    //cout << "doing assignments" << endl;
-    //Read Assignments
-    int no_assignments;
-    read(fd, &int_buf, sizeof(int));
-    no_assignments = int_buf;
-    //cout << "there should be " << no_assignments << " assignments " << endl;
-    //allocate the update
-    CUpdate* upd = new CUpdate(probability, no_assignments);
-    upd->Set_Action_Index(action_index);
-    //cout << "update allocated " << endl;
-    for(int i = 0; i < no_assignments; i++)
-    {
-        //cout << "attempting to read an assignment" << endl;
-        CAssignment* assign = Read_Assignment(fd);
-        //cout << "reading assignment done " << assign->To_String() << endl;
-        upd->Add_Assignment(assign);
-    }
-    //cout << "done assignments" << endl;
-    
-    return upd;
+	//cout << "doing assignments" << endl;
+	//Read Assignments
+	int no_assignments;
+	read(fd, &int_buf, sizeof(int));
+	no_assignments = int_buf;
+	//cout << "there should be " << no_assignments << " assignments " << endl;
+	//allocate the update
+	CUpdate* upd = new CUpdate(probability, no_assignments);
+	upd->Set_Action_Index(action_index);
+	//cout << "update allocated " << endl;
+	for(int i = 0; i < no_assignments; i++)
+	{
+		//cout << "attempting to read an assignment" << endl;
+		CAssignment* assign = Read_Assignment(fd);
+		//cout << "reading assignment done " << assign->To_String() << endl;
+		upd->Add_Assignment(assign);
+	}
+	//cout << "done assignments" << endl;
+	
+	return upd;
 }
 
 
 CAssignment* Read_Assignment(int fd)
 {
-    //cout << "Reading an assignment" << endl;
+	//cout << "Reading an assignment" << endl;
    int int_buf;
    char buf_str[256];
-    //read model header
-    read(fd, &int_buf, sizeof(int));
-    read(fd, &buf_str, int_buf+1);
-    if(strcmp(buf_str, "as") != 0)
-    {
-        throw "Error when importing binary file: assignment header not found";
-    }
+	//read model header
+	read(fd, &int_buf, sizeof(int));
+	read(fd, &buf_str, int_buf+1);
+	if(strcmp(buf_str, "as") != 0)
+	{
+		throw "Error when importing binary file: assignment header not found";
+	}
 
-    //read variable index
-    int variable_index;
-    read(fd, &int_buf, sizeof(int));
-    variable_index = int_buf;
-        
-    //Read Expression
-    //cout << "reading the assignment expression " << endl;
-    CNormalExpression* expr = Read_Normal_Expression(fd);
-    //cout << "done" << endl;
-    //cout << "it is: " << expr->To_String();
-    return new CAssignment(variable_index, expr);
+	//read variable index
+	int variable_index;
+	read(fd, &int_buf, sizeof(int));
+	variable_index = int_buf;
+		
+	//Read Expression
+	//cout << "reading the assignment expression " << endl;
+	CNormalExpression* expr = Read_Normal_Expression(fd);
+	//cout << "done" << endl;
+	//cout << "it is: " << expr->To_String();
+	return new CAssignment(variable_index, expr);
 }
 
 CStateReward* Read_State_Reward(int fd)
 {
-	//cout << "reading state reward" << endl;
-    int int_buf;
+	int int_buf;
 	char buf_str[256];
-    //read model header
-    //cout << "reading state reward 1" << endl;
 	read(fd, &int_buf, sizeof(int));
-    read(fd, &buf_str, int_buf+1);
-    if(strcmp(buf_str, "sr") != 0)
-    {
-        throw "Error when importing binary file: state reward header not found";
-    }
-	//cout << "reading state reward 2" << endl;
-    CExpression* guard = Read_Expression(fd);
-	//cout << "reading state reward 3" << endl;
-    CExpression* reward = Read_Expression(fd);
-	//cout << "reading state reward 4" << endl;
-    return new CStateReward(guard, reward);
+	read(fd, &buf_str, int_buf+1);
+	if(strcmp(buf_str, "sr") != 0)
+	{
+		throw "Error when importing binary file: state reward header not found";
+	}
+	CExpression* guard = Read_Expression(fd);
+	CExpression* reward = Read_Expression(fd);
+	return new CStateReward(guard, reward);
 }
-
-
 
 CTransitionReward* Read_Transition_Reward(int fd)
 {
-    int int_buf;
+	int int_buf;
 	char buf_str[256];
-    //read model header
-    read(fd, &int_buf, sizeof(int));
-    read(fd, &buf_str, int_buf+1);
-    if(strcmp(buf_str, "tr") != 0)
-    {
-        throw "Error when importing binary file: transition reward header not found";
-    }
-
-    //read action index
-    int action_index;
-    read(fd, &action_index, sizeof(int));
-    
-    CExpression* guard = Read_Expression(fd);
-    CExpression* reward = Read_Expression(fd);
-
-    return new CTransitionReward(action_index, guard, reward);
+	read(fd, &int_buf, sizeof(int));
+	read(fd, &buf_str, int_buf+1);
+	if(strcmp(buf_str, "tr") != 0)
+	{
+		throw "Error when importing binary file: transition reward header not found";
+	}
+	//read action index
+	int action_index;
+	read(fd, &action_index, sizeof(int));
+	CExpression* guard = Read_Expression(fd);
+	CExpression* reward = Read_Expression(fd);
+	return new CTransitionReward(action_index, guard, reward);
 }
 

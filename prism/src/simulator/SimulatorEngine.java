@@ -97,8 +97,8 @@ import prism.*;
  *    <LI>    <tt>getDataSize()</tt></LI>
  *    <LI>    <tt>getPathData(int pathIndex, int variableIndex)</tt></LI>
  *    <LI>    <tt>getTimeSpentInPathState(int pathIndex)</tt></LI>
- *    <LI>    <tt>getStateRewardOfPathState(int pathIndex)</tt></LI>
- *    <LI>    <tt>getTransitionRewardOfPathState(int pathIndex)</tt></LI>
+ *    <LI>    <tt>getStateRewardOfPathState(int pathIndex, int i)</tt></LI>
+ *    <LI>    <tt>getTransitionRewardOfPathState(int pathIndex, int i)</tt></LI>
  * </UL>
  *
  * The simulator engine automatically detects loops in execution paths, and
@@ -429,6 +429,7 @@ public class SimulatorEngine
 				throw new SimulatorException(getLastErrorMessage());
 			}
 			
+			
 			//Initialise model
 			
 			actionIndices = new HashMap();
@@ -490,26 +491,33 @@ public class SimulatorEngine
 			
 			//Count Rewards
 			
-			int numStateRewards = 0, numTransitionRewards = 0;
+			int numRewardStructs = 0;
+			int numStateRewards[], numTransitionRewards[];
 			
-			RewardStruct rewards = modulesFile.getRewardStruct();
-			if(rewards != null)
-			{
+			numRewardStructs = modulesFile.getNumRewardStructs();
+			numStateRewards = new int[numRewardStructs];
+			numTransitionRewards = new int[numRewardStructs];
+			
+			for (int i = 0; i < numRewardStructs; i++) {
+				
+				numStateRewards[i] = 0;
+				numTransitionRewards[i] = 0;
+				
+				RewardStruct rewards = modulesFile.getRewardStruct(i);
 				RewardStructItem reward;
 				
 				//count the number of each type of reward
-				for(int i = 0; i < rewards.getNumItems(); i++)
+				for(int j = 0; j < rewards.getNumItems(); j++)
 				{
-					reward = rewards.getRewardStructItem(i);
-					if(reward.isTransitionReward()) numTransitionRewards++;
-					else numStateRewards++;
+					reward = rewards.getRewardStructItem(j);
+					if(reward.isTransitionReward()) numTransitionRewards[i]++;
+					else numStateRewards[i]++;
 				}
-				
 			}
 			
 			//Perform the allocation
 			
-			result = allocateModel(type, countCommands, numStateRewards, numTransitionRewards, modulesFile.getNumModules(), acind);
+			result = allocateModel(type, countCommands, numRewardStructs, numStateRewards, numTransitionRewards, modulesFile.getNumModules(), acind);
 			if(result == ERROR)
 			{
 				throw new SimulatorException(getLastErrorMessage());
@@ -601,29 +609,26 @@ public class SimulatorEngine
 			
 			//SETUP REWARDS
 			
-			
-			
-			if(rewards != null)
-			{
+			for (int i = 0; i < numRewardStructs; i++) {
 				
-				//Build rewards tables
+				RewardStruct rewards = modulesFile.getRewardStruct(i);
 				RewardStructItem reward;
-				for(int i = 0; i < rewards.getNumItems(); i++)
+				
+				//count the number of each type of reward
+				for(int j = 0; j < rewards.getNumItems(); j++)
 				{
-					reward = rewards.getRewardStructItem(i);
+					reward = rewards.getRewardStructItem(j);
 					int rewardPointer = reward.toSimulator(this);
 					if(rewardPointer == NULL)
 						throw new SimulatorException("Problem with loading model into simulator: null reward, "+reward.toString());
 					if(reward.isTransitionReward())
-						result = setupAddTransitionReward(rewardPointer);
+						result = setupAddTransitionReward(i, rewardPointer);
 					else
-						result = setupAddStateReward(rewardPointer);
+						result = setupAddStateReward(i, rewardPointer);
 					if(result == ERROR)
 						throw new SimulatorException(getLastErrorMessage());
 				}
 			}
-			
-			
 		}
 		catch(SimulatorException e)
 		{
@@ -650,8 +655,8 @@ public class SimulatorEngine
 	 *	Allocates space for a new model in the c++ engine according to the
 	 *	given parameters.
 	 */
-	private static native int allocateModel(int type, int noCommands, int noStateRewards,
-	int noTransitionRewards, int noModules, int noActions);
+	private static native int allocateModel(int type, int noCommands, int noRewardStructs, int noStateRewards[],
+	int noTransitionRewards[], int noModules, int noActions);
 	
 	/**
 	 *	Model loading helper method
@@ -664,18 +669,18 @@ public class SimulatorEngine
 	/**
 	 *	Model loading helper method
 	 *	Adds the CStateRewards object stored at the location of rewardPointer
-	 *	to the state rewards table.
+	 *	to the ith state rewards table.
 	 *	Returns ERROR if there is a problem
 	 */
-	private static native int setupAddStateReward(int rewardPointer);
+	private static native int setupAddStateReward(int i, int rewardPointer);
 	
 	/**
 	 *	Model loading helper method
 	 *	Adds the CTransitionRewards object stored at the location of rewardPointer
-	 *	to the state rewards table.
+	 *	to the ith transition rewards table.
 	 *	Returns ERROR if there is a problem
 	 */
-	private static native int setupAddTransitionReward(int rewardPointer);
+	private static native int setupAddTransitionReward(int i, int rewardPointer);
 	
 	
 	//------------------------------------------------------------------------------
@@ -910,20 +915,22 @@ public class SimulatorEngine
 	public static native double getTimeSpentInPathState(int stateIndex);
 	
 	/**
-	 * Returns the state reward of the state at the given path index.
+	 * Returns the ith state reward of the state at the given path index.
 	 * @param stateIndex the index of the path state of interest
+	 * @param i the index of the reward structure
 	 * @return the state reward of the state at the given path index.
 	 */
-	public static native double getStateRewardOfPathState(int stateIndex);
+	public static native double getStateRewardOfPathState(int stateIndex, int i);
 	
 	/**
-	 * Returns the transition reward of (moving out of) the state at
+	 * Returns the ith transition reward of (moving out of) the state at
 	 * the given path index.
 	 * @param stateIndex the index of the path state of interest
+	 * @param i the index of the reward structure
 	 * @return the transition reward of (moving out of) the state at
 	 * the given path index.
 	 */
-	public static native double getTransitionRewardOfPathState(int stateIndex);
+	public static native double getTransitionRewardOfPathState(int stateIndex, int i);
 	
 	/**
 	 * Returns the total path time.
@@ -935,19 +942,19 @@ public class SimulatorEngine
 	 * Returns the total path reward.
 	 * @return the total path reward.
 	 */
-	public static native double getTotalPathReward();
+	public static native double getTotalPathReward(int i);
 	
 	/**
 	 * Returns the total state reward for the path.
 	 * @return the total state reward for the path.
 	 */
-	public static native double getTotalStateReward();
+	public static native double getTotalStateReward(int i);
 	
 	/**
 	 * Returns the total transition reward for the path.
 	 * @return the total transition reward for the path.
 	 */
-	public static native double getTotalTransitionReward();
+	public static native double getTotalTransitionReward(int i);
 	
 	/**
 	 * Returns whether the current path is in a looping state
@@ -983,7 +990,7 @@ public class SimulatorEngine
 	{
 		try
 		{
-			int i, j, n, m;
+			int i, j, n, nv, nr;
 			PrintWriter pw = new PrintWriter(new FileWriter(f), false);
 			
 			if(modulesFile == null)
@@ -994,8 +1001,9 @@ public class SimulatorEngine
 			}
 			//Write headers
 			pw.print("step ");
-			m = getNumVariables();
-			for(j = 0; j < m; j++)
+			nv = getNumVariables();
+			nr = modulesFile.getNumRewardStructs();
+			for(j = 0; j < nv; j++)
 			{
 				if (j>0) pw.print(" ");
 				pw.print(varNames[j]);
@@ -1004,17 +1012,24 @@ public class SimulatorEngine
 			{
 				pw.print(" time_in_state");
 			}
-			pw.print(" state_reward transition_reward");
+			if (nr == 1) {
+				pw.print(" state_reward transition_reward");
+			} else {
+				for(j = 0; j < nr; j++) {
+					pw.print(" state_reward"+j+" transition_reward"+j);
+				}
+			}
 			pw.println();
 			
 			//Write path
 			
 			n = getPathSize();
-			m = getNumVariables();
+			nv = getNumVariables();
+			nr = modulesFile.getNumRewardStructs();
 			for(i = 0; i < n; i++)
 			{
 				pw.print(i+" ");
-				for(j = 0; j < m; j++)
+				for(j = 0; j < nv; j++)
 				{
 					if (j>0) pw.print(" ");
 					if(varTypes[j] == Expression.BOOLEAN)
@@ -1029,12 +1044,14 @@ public class SimulatorEngine
 				}
 				if(modulesFile.getType() == ModulesFile.STOCHASTIC)
 				{
-					pw.print(" "+((i<m-1)?getTimeSpentInPathState(i):0.0));
+					pw.print(" "+((i<n-1)?getTimeSpentInPathState(i):0.0));
 				}
-				pw.print(" "+((i<m-1)?getStateRewardOfPathState(i):0.0));
-				pw.println(" "+((i<m-1)?getTransitionRewardOfPathState(i):0.0));
+				for(j = 0; j < nr; j++) {
+					pw.print(" "+((i<n-1)?getStateRewardOfPathState(i, j):0.0));
+					pw.print(" "+((i<n-1)?getTransitionRewardOfPathState(i, j):0.0));
+				}
+				pw.println();
 			}
-			pw.println();
 			
 			pw.flush();
 			pw.close();
@@ -1729,13 +1746,32 @@ public class SimulatorEngine
 	 * @param operand the PCTLFormula to be built into the engine.
 	 * @return a pointer to the built reward formula
 	 */
-	public int addPCTLRewardFormula(PCTLFormula operand)
+	public int addPCTLRewardFormula(PCTLReward pctl)
 	{
 		Values allConstants = new Values();
+		PCTLFormula operand = pctl.getOperand();
+		Object rs = null;
+		int rsi = -1;
 		
 		allConstants.addValues(getConstants());
 		allConstants.addValues(getPropertyConstants());
 		
+		// process reward struct index
+		rs = pctl.getRewardStructIndex();
+		if (rs == null) {
+			rsi = 0;
+		}
+		else if (rs instanceof Expression) {
+			try {
+				rsi = ((Expression)rs).evaluateInt(allConstants, null);
+			} catch(PrismException e) {
+				System.err.println("Property: "+operand.toString()+" could not be used in the simulator because: \n"+ e.toString());
+				return -1;
+			}
+		}
+		else if (rs instanceof String) {
+			rsi = modulesFile.getRewardStructIndex((String)rs);
+		}
 		
 		if(operand instanceof PCTLRewardCumul)
 		{
@@ -1750,7 +1786,7 @@ public class SimulatorEngine
 					return -1;
 				
 				
-				return loadPctlCumulative(time);
+				return loadPctlCumulative(rsi, time);
 				
 			}
 			
@@ -1773,7 +1809,7 @@ public class SimulatorEngine
 					return -1;
 				
 				
-				return  loadPctlInstantanious(time);
+				return  loadPctlInstantanious(rsi, time);
 				
 			}
 			catch(PrismException e)
@@ -1790,7 +1826,7 @@ public class SimulatorEngine
 				
 				int expression = ((PCTLRewardReach)operand).getOperand().toSimulator(this);
 				
-				return loadPctlReachability(expression);
+				return loadPctlReachability(rsi, expression);
 				
 			}
 			catch(SimulatorException e)
@@ -1807,9 +1843,10 @@ public class SimulatorEngine
 	 * @param operand the PCTLFormula to be built into the engine.
 	 * @return a pointer to the built reward formula
 	 */
-	public int addPCTLProbFormula(PCTLFormula operand)
+	public int addPCTLProbFormula(PCTLProb pctl)
 	{
 		Values allConstants = new Values();
+		PCTLFormula operand = pctl.getOperand();
 		
 		allConstants.addValues(getConstants());
 		allConstants.addValues(getPropertyConstants());
@@ -1905,9 +1942,7 @@ public class SimulatorEngine
 		
 		if(pctl instanceof PCTLProb)
 		{
-			PCTLFormula operand = ((PCTLProb)pctl).getOperand();
-			
-			pathPointer = addPCTLProbFormula(operand);
+			pathPointer = addPCTLProbFormula((PCTLProb)pctl);
 			if(pathPointer == -1) return -1;
 			
 			if (((PCTLProb)pctl).getProb() == null) {
@@ -1919,9 +1954,7 @@ public class SimulatorEngine
 		}
 		else if	(pctl instanceof PCTLReward)
 		{
-			PCTLFormula operand = ((PCTLReward)pctl).getOperand();
-			
-			pathPointer = addPCTLRewardFormula(operand);
+			pathPointer = addPCTLRewardFormula((PCTLReward)pctl);
 			if(pathPointer == -1) return -1;
 			
 			if (((PCTLReward)pctl).getReward() == null) {
@@ -2315,11 +2348,11 @@ public class SimulatorEngine
 	
 	private static native int loadPctlNext(int exprPointer);
 	
-	private static native int loadPctlReachability(int expressionPointer);
+	private static native int loadPctlReachability(int rsi, int expressionPointer);
 	
-	private static native int loadPctlCumulative(double time);
+	private static native int loadPctlCumulative(int rsi, double time);
 	
-	private static native int loadPctlInstantanious(double time);
+	private static native int loadPctlInstantanious(int rsi, double time);
 	
 	//prob formulae (these return the index of the property within the engine.
 	

@@ -22,7 +22,7 @@
 
 package parser;
 
-import java.util.Vector;
+import java.util.*;
 
 import prism.PrismException;
 import apmc.*;
@@ -48,7 +48,7 @@ public class ModulesFile
 	private Vector globals;				// global variables
 	private Vector modules;				// modules (includes renamed modules)
 	private SystemDefn systemDefn;		// system definition (process algebraic)
-	private RewardStruct rewardStruct;	// rewards structure
+	private ArrayList rewardStructs;	// rewards structures
 	private Expression initStates;		// set of initial states
 	
 	// identifiers/etc.
@@ -72,7 +72,7 @@ public class ModulesFile
 		globals = new Vector();
 		modules = new Vector();
 		systemDefn = null;
-		rewardStruct = null;
+		rewardStructs = new ArrayList();
 		initStates = null;
 		allIdentsUsed = new Vector();
 		varNames = new Vector();
@@ -96,7 +96,10 @@ public class ModulesFile
 	
 	public void setSystemDefn(SystemDefn s) { systemDefn = s; }
 	
-	public void setRewardStruct(RewardStruct r) { rewardStruct = r; }
+	public void addRewardStruct(RewardStruct r) { rewardStructs.add(r); }
+	
+	// this method is included for backwards compatibility only
+	public void setRewardStruct(RewardStruct r) { rewardStructs.clear(); rewardStructs.add(r); }
 	
 	public void setInitialStates(Expression e) { initStates = e; }
 	
@@ -145,7 +148,22 @@ public class ModulesFile
 	
 	public SystemDefn getSystemDefn() { return systemDefn; }
 	
-	public RewardStruct getRewardStruct() { return rewardStruct; }
+	public int getNumRewardStructs() { return rewardStructs.size(); }
+	
+	public RewardStruct getRewardStruct(int i) { return (i<rewardStructs.size()) ? (RewardStruct)rewardStructs.get(i) : null; }
+	
+	public int getRewardStructIndex(String name)
+	{
+		int i, n;
+		n = rewardStructs.size();
+		for (i = 0; i < n; i++) {
+			if (((RewardStruct)rewardStructs.get(i)).getName().equals(name)) return i;
+		}
+		return -1;
+	}
+	
+	// this method is included for backwards compatibility only
+	public RewardStruct getRewardStruct() { return (rewardStructs.size()>0) ? (RewardStruct)rewardStructs.get(0) : null; }
 	
 	public Expression getInitialStates() { return initStates; }
 	
@@ -217,6 +235,9 @@ public class ModulesFile
 		// (i.e. locate idents which are variables)
 		findAllVars();
 		
+		// check reward struct names
+		checkRewardStructNames();
+		
 		// check everything is ok
 		// (including type checking)
 		check();
@@ -265,8 +286,11 @@ public class ModulesFile
 				module.findAllFormulas(formulaList);
 			}
 		}
-		// look in reward struct (if present)
-		if (rewardStruct != null) rewardStruct.findAllFormulas(formulaList);
+		// look in reward structs
+		n = rewardStructs.size();
+		for (i = 0; i < n; i++) {
+			((RewardStruct)rewardStructs.get(i)).findAllFormulas(formulaList);
+		}
 		// look in init states (if present)
 		if (initStates != null) initStates.findAllFormulas(formulaList);
 	}
@@ -296,8 +320,11 @@ public class ModulesFile
 				module.expandFormulas(formulaList);
 			}
 		}
-		// look in reward struct (if present)
-		if (rewardStruct != null) rewardStruct.expandFormulas(formulaList);
+		// look in reward structs
+		n = rewardStructs.size();
+		for (i = 0; i < n; i++) {
+			((RewardStruct)rewardStructs.get(i)).expandFormulas(formulaList);
+		}
 		// look in init states (if present)
 		if (initStates != null) initStates.expandFormulas(formulaList);
 	}
@@ -454,8 +481,11 @@ public class ModulesFile
 		for (i = 0; i < n; i++) {
 			getModule(i).findAllConstants(constantList);
 		}
-		// look in reward struct (if present)
-		if (rewardStruct != null) rewardStruct.findAllConstants(constantList);
+		// look in reward structs
+		n = rewardStructs.size();
+		for (i = 0; i < n; i++) {
+			((RewardStruct)rewardStructs.get(i)).findAllConstants(constantList);
+		}
 		// look in init states (if present)
 		if (initStates != null) initStates.findAllConstants(constantList);
 	}
@@ -530,10 +560,27 @@ public class ModulesFile
 		for (i = 0; i < n; i++) {
 			getModule(i).findAllVars(varNames, varTypes);
 		}
-		// look in reward struct (if present)
-		if (rewardStruct != null) rewardStruct.findAllVars(varNames, varTypes);
+		// look in reward structs
+		n = rewardStructs.size();
+		for (i = 0; i < n; i++) {
+			((RewardStruct)rewardStructs.get(i)).findAllVars(varNames, varTypes);
+		}
 		// look in init states (if present)
 		if (initStates != null) initStates.findAllVars(varNames, varTypes);
+	}
+	
+	// Check there are no duplicate names labelling reward structs
+	
+	private void checkRewardStructNames() throws PrismException
+	{
+		int i, n;
+		String s;
+		HashSet names = new HashSet();
+		n = rewardStructs.size();
+		for (i = 0; i < n; i++) {
+			s = ((RewardStruct)rewardStructs.get(i)).getName();
+			if (s != null & !"".equals(s)) if (!names.add(s)) throw new PrismException("Duplicated reward structure name \""+s+"\"");
+		}
 	}
 	
 	// check everything is ok
@@ -557,8 +604,11 @@ public class ModulesFile
 		for (i = 0; i < n; i++) {
 			getModule(i).check();
 		}
-		// check reward struct (if present)
-		if (rewardStruct != null) rewardStruct.check();
+		// look in reward structs
+		n = rewardStructs.size();
+		for (i = 0; i < n; i++) {
+			((RewardStruct)rewardStructs.get(i)).check();
+		}
 		// check init states (if present)
 		if (initStates != null) {
 			// if any of the variables also specify initial values, this is an error
@@ -784,8 +834,9 @@ public class ModulesFile
 			s += "\nsystem " + systemDefn + " endsystem\n";
 		}
 		
-		if (rewardStruct != null) {
-			s += "\n" + rewardStruct;
+		n = rewardStructs.size();
+		for (i = 0; i < n; i++) {
+			s += "\n" + rewardStructs.get(i);
 		}
 		
 		if (initStates != null) {

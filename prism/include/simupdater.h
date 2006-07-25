@@ -72,6 +72,19 @@ public:
 //=============================================================================
 
 /*
+ *	If transition_reward has been allocated previously, this function removes it
+ *	from memory.
+ */
+void Deallocate_Updater();
+
+/*
+ *	Allocates memory for transition_reward
+ *	
+ *	throws an exception for out of memory
+ */
+void Allocate_Updater();
+
+/*
  *	This function performs an update to the state stored in variables.  It 
  *	performs the indexed update calculated by the reasoning interface.
  *	For dtmcs, the value d should always be 1.0, for ctmcs, it should be time
@@ -133,7 +146,7 @@ double Get_Sampled_Time();
  *	Function which provides access to the reward accumulated for the last
  *	calculated transition.
  */
-double Get_Transition_Reward();
+double Get_Transition_Reward(int i);
 
 
 #endif

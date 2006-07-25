@@ -53,9 +53,9 @@ vector<CPathState*> stored_path; // the path itself
 CPathLoopDetectionHandler* loop_detection; //loop detection for paths
 int current_index; //refers to the current index
 double path_timer; //the time taken to execute this path
-double path_cost; //the total cost accumulated for this path
-double total_state_cost; //the total state cost for this path
-double total_transition_cost; //the total transition cost for this path
+double *path_cost; //the total costs accumulated for this path
+double *total_state_cost; //the total state costs for this path
+double *total_transition_cost; //the total transition costs for this path
 
 //=============================================================================
 //	Class Definitions
@@ -189,13 +189,16 @@ void Deallocate_Path()
 	}
 	current_index = -1;
 	path_timer = 0.0;
-	path_cost = 0.0;
-	total_state_cost = 0.0;
-	total_transition_cost = 0.0;
+	
+	if (path_cost != NULL) delete[] path_cost;
+	path_cost = NULL;
+	if (total_state_cost != NULL) delete[] total_state_cost;
+	total_state_cost = NULL;
+	if (total_transition_cost != NULL) delete[] total_transition_cost;
+	total_transition_cost = NULL;
 	
 	if(loop_detection != NULL)
 		delete loop_detection;
-
 	loop_detection = NULL;
 }
 
@@ -229,9 +232,20 @@ void Allocate_Path()
 
 	current_index = -1;
 	path_timer = 0.0;
-	path_cost = 0.0;
-	total_state_cost = 0.0;
-	total_transition_cost = 0.0;
+	
+	path_cost = new double[no_reward_structs];
+	total_state_cost = new double[no_reward_structs];
+	total_transition_cost = new double[no_reward_structs];
+	if(path_cost == NULL || total_state_cost == NULL || total_transition_cost == NULL)
+	{
+		Report_Error("Out of memory when allocating path.");
+		throw "out of memory error: simpath.cc";
+	}
+	for(int i = 0; i < no_reward_structs; i++) {
+		path_cost[i] = 0.0;
+		total_state_cost[i] = 0.0;
+		total_transition_cost[i] = 0.0;
+	}
 
 	loop_detection = new CPathLoopDetectionHandler();
 }
@@ -245,9 +259,11 @@ void Start_Path()
 
 	current_index = -1;
 	path_timer = 0.0;
-	path_cost = 0.0;
-	total_state_cost = 0.0;
-	total_transition_cost = 0.0;
+	for(int i = 0; i < no_reward_structs; i++) {
+		path_cost[i] = 0.0;
+		total_state_cost[i] = 0.0;
+		total_transition_cost[i] = 0.0;
+	}
 
 	Add_Current_State_To_Path();
 
@@ -391,17 +407,23 @@ void Backtrack(int step)
 	
 	//recalculate timer and rewards
 	path_timer = 0.0;
-	path_cost = 0.0;
-	total_state_cost = 0.0;
-	total_transition_cost = 0.0;
+	for(int i = 0; i < no_reward_structs; i++) {
+		path_cost[i] = 0.0;
+		total_state_cost[i] = 0.0;
+		total_transition_cost[i] = 0.0;
+	}
 	
 	for(int i = 0; i < current_index; i++)
 	{
 		if(stored_path[i]->time_known)path_timer += stored_path[i]->time_spent_in_state;
-		total_state_cost += stored_path[i]->state_cost;
-		total_transition_cost += stored_path[i]->transition_cost;
+		for (int j = 0; j < no_reward_structs; j++) {
+			total_state_cost[j] += stored_path[i]->state_cost[j];
+			total_transition_cost[j] += stored_path[i]->transition_cost[j];
+		}
 	}
-	path_cost = total_state_cost + total_transition_cost;
+	for (int j = 0; j < no_reward_structs; j++) {
+		path_cost[j] = total_state_cost[j] + total_transition_cost[j];
+	}
 	
 	Recalculate_Path_Formulae();
 	
@@ -435,17 +457,23 @@ void Remove_Preceding_States(int step)
 	
 	//recalculate timer and rewards
 	path_timer = 0.0;
-	path_cost = 0.0;
-	total_state_cost = 0.0;
-	total_transition_cost = 0.0;
+	for(int i = 0; i < no_reward_structs; i++) {
+		path_cost[i] = 0.0;
+		total_state_cost[i] = 0.0;
+		total_transition_cost[i] = 0.0;
+	}
 	
 	for(int i = 0; i < current_index; i++)
 	{
 		if(stored_path[i]->time_known)path_timer += stored_path[i]->time_spent_in_state;
-		total_state_cost += stored_path[i]->state_cost;
-		total_transition_cost += stored_path[i]->transition_cost;
+		for (int j = 0; j < no_reward_structs; j++) {
+			total_state_cost[j] += stored_path[i]->state_cost[j];
+			total_transition_cost[j] += stored_path[i]->transition_cost[j];
+		}
 	}
-	path_cost = total_state_cost + total_transition_cost;
+	for (int j = 0; j < no_reward_structs; j++) {
+		path_cost[j] = total_state_cost[j] + total_transition_cost[j];
+	}
 	
 	Recalculate_Path_Formulae();
 	
@@ -466,25 +494,25 @@ CPathState* Get_Path_State(int i)
 /*
 *	Returns the total cost of the path so far
 */
-double Get_Path_Cost()
+double Get_Path_Cost(int i)
 {
-	return path_cost;
+	return path_cost[i];
 }
 
 /*
 *	Returns the total cost of being in the states stored in the path
 */
-double Get_Path_State_Cost()
+double Get_Path_State_Cost(int i)
 {
-	return total_state_cost;
+	return total_state_cost[i];
 }
 
 /*
 *	Returns the total cost of all of the path transitions
 */
-double Get_Path_Transition_Cost()
+double Get_Path_Transition_Cost(int i)
 {
-	return total_transition_cost;
+	return total_transition_cost[i];
 }
 
 /*
@@ -538,24 +566,24 @@ double Get_Time_Spent_In_Path_State(int state_index)
 *	Returns the reward accumulated in the path state at
 *	state_index.
 */
-double Get_State_Reward_Of_Path_State(int state_index)
+double Get_State_Reward_Of_Path_State(int state_index, int i)
 {
 
 	if(state_index == current_index) return UNDEFINED_DOUBLE;
 	else
-		return stored_path[state_index]->state_instant_cost;
+		return stored_path[state_index]->state_instant_cost[i];
 }
 
 /*
 *	Returns the reward accumulated in the transition from the
 *	state at state_index.
 */
-double Get_Transition_Reward_Of_Path_State(int state_index)
+double Get_Transition_Reward_Of_Path_State(int state_index, int i)
 {
 
 	if(state_index == current_index) return UNDEFINED_DOUBLE;
 	else
-		return stored_path[state_index]->transition_cost;
+		return stored_path[state_index]->transition_cost[i];
 }
 
 bool Is_Proven_Looping()
@@ -655,7 +683,9 @@ inline void Add_Current_State_To_Path()
 	if(current_index > 0)
 	{
 		CPathState * last_state = stored_path[current_index-1];
-		last_state->state_instant_cost = Get_State_Reward();
+		for(int i = 0; i < no_reward_structs; i++) {
+			last_state->state_instant_cost[i] = Get_State_Reward(i);
+		}
 		if(model_type == STOCHASTIC)
 		{
 			double time_in_state = Get_Sampled_Time();
@@ -664,14 +694,16 @@ inline void Add_Current_State_To_Path()
 			last_state->time_known = true;
 			path_timer += time_in_state;
 			
-			last_state->state_cost = (last_state->state_instant_cost*time_in_state);
-			last_state->transition_cost = (Get_Transition_Reward());
+			for(int i = 0; i < no_reward_structs; i++) {
+				last_state->state_cost[i] = (last_state->state_instant_cost[i]*time_in_state);
+				last_state->transition_cost[i] = (Get_Transition_Reward(i));
+				
+				total_state_cost[i] += last_state->state_instant_cost[i]*time_in_state;
+				total_transition_cost[i] += Get_Transition_Reward(i);
+				path_cost[i] = total_state_cost[i] + total_transition_cost[i];
+				last_state->path_cost_so_far[i] = path_cost[i];
+			}
 			
-			total_state_cost += last_state->state_instant_cost*time_in_state;
-			total_transition_cost += Get_Transition_Reward();
-			path_cost = total_state_cost + total_transition_cost;
-			last_state->path_cost_so_far = path_cost;
-
 			Notify_Path_Formulae(last_state, state_variables, loop_detection);
 
 		}
@@ -679,14 +711,16 @@ inline void Add_Current_State_To_Path()
 		{
 			//current_index++;
 
-			last_state->state_cost = (last_state->state_instant_cost);
-			last_state->transition_cost = (Get_Transition_Reward());
+			for(int i = 0; i < no_reward_structs; i++) {
+				last_state->state_cost[i] = (last_state->state_instant_cost[i]);
+				last_state->transition_cost[i] = (Get_Transition_Reward(i));
 
-			total_state_cost += last_state->state_instant_cost;
-			total_transition_cost += Get_Transition_Reward();
-			path_cost = total_state_cost + total_transition_cost;
-			last_state->path_cost_so_far = path_cost;
-
+				total_state_cost[i] += last_state->state_instant_cost[i];
+				total_transition_cost[i] += Get_Transition_Reward(i);
+				path_cost[i] = total_state_cost[i] + total_transition_cost[i];
+				last_state->path_cost_so_far[i] = path_cost[i];
+			}
+			
 			Notify_Path_Formulae(last_state, state_variables, loop_detection); 
 		}
 	}

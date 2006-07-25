@@ -52,6 +52,7 @@ public interface Model
 	StateList getReachableStates();
 	StateList getDeadlockStates();
 	StateList getStartStates();
+	int getNumRewardStructs();
 	long getNumStates();
 	long getNumTransitions();
 	long getNumStartStates();
@@ -66,7 +67,11 @@ public interface Model
 	JDDNode getDeadlocks();
 	JDDNode getFixedDeadlocks();
 	JDDNode getStateRewards();
+	JDDNode getStateRewards(int i);
+	JDDNode getStateRewards(String s);
 	JDDNode getTransRewards();
+	JDDNode getTransRewards(int i);
+	JDDNode getTransRewards(String s);
 	JDDVars[] getVarDDRowVars();
 	JDDVars[] getVarDDColVars();
 	JDDVars getVarDDRowVars(int i);
@@ -89,8 +94,8 @@ public interface Model
 	void printTrans01();
 	void printTransInfo(PrismLog log);
 	void exportToFile(int exportType, boolean explicit, File file) throws FileNotFoundException;
-	void exportStateRewardsToFile(int exportType, File file) throws FileNotFoundException, PrismException;
-	void exportTransRewardsToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException;
+	String exportStateRewardsToFile(int exportType, File file) throws FileNotFoundException, PrismException;
+	String exportTransRewardsToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException;
 
 	void clear();
 }

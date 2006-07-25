@@ -81,6 +81,7 @@ int Engine_Tidy_Up_Everything()
 		Deallocate_Sampling();
 		Deallocate_PCTL_Core();
 		Deallocate_Reasoning();
+		Deallocate_Updater();
 		Deallocate_Model();
 		Deallocate_State_Space();
 		
@@ -131,14 +132,15 @@ int Engine_Get_No_Variables()
 //	MODEL LOADING METHODS
 //==============================================================================
 
-int Engine_Allocate_Model(int type, int no_commands, int no_state_rewards, 
-                          int no_trans_rewards, int no_modules, int no_actions)
+int Engine_Allocate_Model(int type, int no_commands, int no_rew_structs, int *no_state_rewards, 
+                          int *no_trans_rewards, int no_modules, int no_actions)
 {
 	try
 	{
-		Allocate_Model(type, no_commands, no_state_rewards, 
+		Allocate_Model(type, no_commands, no_rew_structs, no_state_rewards, 
                                no_trans_rewards, no_modules, no_actions);
 		Allocate_Reasoning();
+		Allocate_Updater();
 	}
 	catch(char* str)
 	{
@@ -161,11 +163,11 @@ int Engine_Setup_Add_Transition(CCommand* comm)
 }
 
 
-int Engine_Setup_Add_State_Reward(CStateReward* reward)
+int Engine_Setup_Add_State_Reward(int i, CStateReward* reward)
 {
 	try
 	{
-		Add_State_Reward_To_Model(reward);
+		Add_State_Reward_To_Model(i, reward);
 	}
 	catch(char* str)
 	{
@@ -175,11 +177,11 @@ int Engine_Setup_Add_State_Reward(CStateReward* reward)
 }
 
 
-int Engine_Setup_Add_Transition_Reward(CTransitionReward* reward)
+int Engine_Setup_Add_Transition_Reward(int i, CTransitionReward* reward)
 {
 	try
 	{
-		Add_Transition_Reward_To_Model(reward);
+		Add_Transition_Reward_To_Model(i, reward);
 	}
 	catch(char* str)
 	{
@@ -243,14 +245,14 @@ double Engine_Get_Time_Spent_In_Path_State(int state_index)
 	return Get_Time_Spent_In_Path_State(state_index);
 }
 
-double Engine_Get_State_Reward_Of_Path_State(int state_index)
+double Engine_Get_State_Reward_Of_Path_State(int state_index, int i)
 {
-	return Get_State_Reward_Of_Path_State(state_index);
+	return Get_State_Reward_Of_Path_State(state_index, i);
 }
 
-double Engine_Get_Transition_Reward_Of_Path_State(int state_index)
+double Engine_Get_Transition_Reward_Of_Path_State(int state_index, int i)
 {
-	return Get_Transition_Reward_Of_Path_State(state_index);
+	return Get_Transition_Reward_Of_Path_State(state_index, i);
 }
 
 double Engine_Get_Total_Path_Time()
@@ -258,19 +260,19 @@ double Engine_Get_Total_Path_Time()
 	return Get_Total_Path_Time();
 }
 
-double Engine_Get_Total_Path_Reward()
+double Engine_Get_Total_Path_Reward(int i)
 {
-	return Get_Path_Cost();
+	return Get_Path_Cost(i);
 }
 
-double Engine_Get_Total_Transition_Reward()
+double Engine_Get_Total_Transition_Reward(int i)
 {
-        return Get_Path_Transition_Cost();
+        return Get_Path_Transition_Cost(i);
 }
 
-double Engine_Get_Total_State_Reward()
+double Engine_Get_Total_State_Reward(int i)
 {
-     return Get_Path_State_Cost();
+     return Get_Path_State_Cost(i);
 }
 
 bool Engine_Is_Path_Looping()
@@ -801,27 +803,27 @@ CPathFormula* Engine_Load_Pctl_Next(CExpression* expr)
 	return nx;
 }
 
-CPathFormula*  Engine_load_Pctl_Reachability(CExpression* expr)
+CPathFormula*  Engine_load_Pctl_Reachability(int rsi, CExpression* expr)
 {
-	CRewardReachability* reach = new CRewardReachability(expr);
+	CRewardReachability* reach = new CRewardReachability(rsi, expr);
 
 	Register_Path_Formula(reach);
 
 	return reach;
 }
 
-CPathFormula* Engine_Load_Pctl_Cumulative(double time)
+CPathFormula* Engine_Load_Pctl_Cumulative(int rsi, double time)
 {
-	CRewardCumulative* cumul = new CRewardCumulative(time);
+	CRewardCumulative* cumul = new CRewardCumulative(rsi, time);
 
 	Register_Path_Formula(cumul);
 
 	return cumul;
 }
 
-CPathFormula* Engine_Load_Pctl_Instantanious(double time)
+CPathFormula* Engine_Load_Pctl_Instantanious(int rsi, double time)
 {
-	CRewardInstantanious* instant = new CRewardInstantanious(time);
+	CRewardInstantanious* instant = new CRewardInstantanious(rsi, time);
 
 	Register_Path_Formula(instant);
 

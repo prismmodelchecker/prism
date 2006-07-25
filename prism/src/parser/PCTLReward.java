@@ -32,6 +32,7 @@ public class PCTLReward extends PCTLFormulaUnary
 {
 	String relOp;
 	Expression reward;
+	Object rewardStructIndex;
 	PCTLFormula filter;
 	boolean filterMinReq;
 	boolean filterMaxReq;
@@ -43,9 +44,15 @@ public class PCTLReward extends PCTLFormulaUnary
 		super(f);
 		relOp = ro;
 		reward = r;
+		rewardStructIndex = null;
 		filter = null;
 		filterMinReq = false;
 		filterMaxReq = false;
+	}
+
+	public void setRewardStructIndex(Object o)
+	{
+		rewardStructIndex = o;
 	}
 
 	public void setFilter(PCTLFormula f)
@@ -71,6 +78,11 @@ public class PCTLReward extends PCTLFormulaUnary
 	public Expression getReward()
 	{
 		return reward;
+	}
+
+	public Object getRewardStructIndex()
+	{
+		return rewardStructIndex;
 	}
 
 	public PCTLFormula getFilter()
@@ -119,6 +131,8 @@ public class PCTLReward extends PCTLFormulaUnary
 		super.findAllConstants(constantList);
 		// also do reward expression
 		if (reward != null) reward = reward.findAllConstants(constantList);
+		// also do reward struct index
+		if (rewardStructIndex != null) if (rewardStructIndex instanceof Expression) rewardStructIndex = ((Expression)rewardStructIndex).findAllConstants(constantList);
 		// also do filter
 		if (filter != null) filter = filter.findAllConstants(constantList);
 		
@@ -133,6 +147,8 @@ public class PCTLReward extends PCTLFormulaUnary
 		super.findAllVars(varIdents, varTypes);
 		// also do reward expression
 		if (reward != null) reward = reward.findAllVars(varIdents, varTypes);
+		// also do reward struct index
+		if (rewardStructIndex != null) if (rewardStructIndex instanceof Expression) rewardStructIndex = ((Expression)rewardStructIndex).findAllVars(varIdents, varTypes);
 		// also do filter
 		if (filter != null) filter = filter.findAllVars(varIdents, varTypes);
 		
@@ -148,6 +164,10 @@ public class PCTLReward extends PCTLFormulaUnary
 		// check reward is double
 		if (reward != null) if (!Expression.canAssignTypes(Expression.DOUBLE, reward.getType())) {
 			throw new PrismException("Reward \"" + reward + "\" is the wrong type");
+		}
+		// check reward struct index is integer
+		if (rewardStructIndex != null) if (rewardStructIndex instanceof Expression) if (((Expression)rewardStructIndex).getType() != Expression.INT) {
+			throw new PrismException("Reward structure index \"" + rewardStructIndex + "\" must be string or integer");
 		}
 		// check filter is boolean
 		if (filter != null) if (filter.getType() != Expression.BOOLEAN) {
@@ -168,6 +188,13 @@ public class PCTLReward extends PCTLFormulaUnary
 			reward.check();
 			if (!reward.isConstant()) {
 				throw new PrismException("Reward \"" + reward + "\" is not constant");
+			}
+		}
+		// check reward struct index ok and is constant
+		if (rewardStructIndex != null) if (rewardStructIndex instanceof Expression) {
+			((Expression)rewardStructIndex).check();
+			if (!((Expression)rewardStructIndex).isConstant()) {
+				throw new PrismException("Reward structure index \"" + rewardStructIndex + "\" is not constant");
 			}
 		}
 		// check filter
@@ -206,7 +233,12 @@ public class PCTLReward extends PCTLFormulaUnary
 	{
 		String s = "";
 		
-		s += "R" + relOp;
+		s += "R";
+		if (rewardStructIndex != null) {
+			if (rewardStructIndex instanceof Expression) s += "{"+rewardStructIndex+"}";
+			else if (rewardStructIndex instanceof String) s += "{\""+rewardStructIndex+"\"}";
+		}
+		s += relOp;
 		s += (reward==null) ? "?" : reward.toString();
 		s += " [ " + operand;
 		if (filter != null) {

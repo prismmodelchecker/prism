@@ -83,8 +83,6 @@ public class ProbModelChecker implements ModelChecker
 	private JDDNode trans01;
 	private JDDNode start;
 	private JDDNode reach;
-	private JDDNode stateRewards;
-	private JDDNode transRewards;
 	private ODDNode odd;
 	private JDDVars allDDRowVars;
 	private JDDVars allDDColVars;
@@ -106,8 +104,6 @@ public class ProbModelChecker implements ModelChecker
 		trans01 = model.getTrans01();
 		start = model.getStart();
 		reach = model.getReach();
-		stateRewards = model.getStateRewards();
-		transRewards = model.getTransRewards();
 		odd = model.getODD();
 		allDDRowVars = model.getAllDDRowVars();
 		allDDColVars = model.getAllDDColVars();
@@ -637,23 +633,44 @@ public class ProbModelChecker implements ModelChecker
 	
 	private JDDNode checkPCTLReward(PCTLReward pctl) throws PrismException
 	{
+		Object rs;		// reward struct index
 		Expression re;	// reward bound (expression)
 		double r = 0;	// reward value (actual value)
 		String relOp;	// relational operator
 		PCTLFormula f;	// path formula
 		
-		JDDNode filter, sol, tmp;
+		JDDNode stateRewards = null, transRewards = null, filter, sol, tmp;
 		StateProbs rewards = null;
 		StateList states = null;
 		double minRes = 0, maxRes = 0;
+		int i;
 		
 		// get info from reward operator
+		rs = pctl.getRewardStructIndex();
 		relOp = pctl.getRelOp();
 		re = pctl.getReward();
 		if (re != null) {
 			r = re.evaluateDouble(constantValues, null);
 			if (r < 0) throw new PrismException("Invalid reward bound " + r + " in R[] formula");
 		}
+		
+		// get reward info
+		if (model.getNumRewardStructs() == 0) throw new PrismException("Model has no rewards specified");
+		if (rs == null) {
+			stateRewards = model.getStateRewards(0);
+			transRewards = model.getTransRewards(0);
+		}
+		else if (rs instanceof Expression) {
+			i = ((Expression)rs).evaluateInt(constantValues, null);
+			rs = new Integer(i); // for better error reporting below
+			stateRewards = model.getStateRewards(i);
+			transRewards = model.getTransRewards(i);
+		}
+		else if (rs instanceof String) {
+			stateRewards = model.getStateRewards((String)rs);
+			transRewards = model.getTransRewards((String)rs);
+		}
+		if (stateRewards == null || transRewards == null) throw new PrismException("Invalid reward structure index \""+rs+"\"");
 		
 		// check for trivial (i.e. stupid) cases
 		if (re != null) {
@@ -697,7 +714,7 @@ public class ProbModelChecker implements ModelChecker
 		f = pctl.getOperand();
 		try {
 			if (f instanceof PCTLRewardReach)
-				rewards = checkPCTLRewardReach((PCTLRewardReach)f);
+				rewards = checkPCTLRewardReach((PCTLRewardReach)f, stateRewards, transRewards);
 			else
 				throw new PrismException("Unrecognised operator in R[] formula");
 		}
@@ -945,7 +962,7 @@ public class ProbModelChecker implements ModelChecker
 
 	// reach reward
 	
-	private StateProbs checkPCTLRewardReach(PCTLRewardReach pctl) throws PrismException
+	private StateProbs checkPCTLRewardReach(PCTLRewardReach pctl, JDDNode stateRewards, JDDNode transRewards) throws PrismException
 	{
 		JDDNode b;
 		StateProbs rewards = null;

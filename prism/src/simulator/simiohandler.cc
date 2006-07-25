@@ -166,6 +166,7 @@ int Import_Engine_From_Binary_File(char* filename)
 		close(fd);
 		//cout << "import7" << endl;
 		Allocate_Reasoning();
+		Allocate_Updater();
 		//cout << "import8" << endl;
 	}
 	catch(char* str)

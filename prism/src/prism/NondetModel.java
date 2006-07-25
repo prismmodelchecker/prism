@@ -47,6 +47,9 @@ public class NondetModel implements Model
 	private VarList varList;			// list of module variables
 	private long[] gtol;				// numbers for use by globalToLocal
 	private Values constantValues;		// values of constants
+	// rewards
+	private int numRewardStructs;		// number of reward structs
+	private String[] rewardStructNames;	// reward struct names
 	// stats
 	private double numStates;			// number of states
 	private double numTransitions;		// number of transitions
@@ -69,8 +72,8 @@ public class NondetModel implements Model
 	private JDDNode deadlocks;		// deadlock states dd
 	private JDDNode fixdl;			// fixed deadlock states dd
 	private JDDNode nondetMask;		// mask for nondeterministic choices
-	private JDDNode stateRewards;	// state rewards dd
-	private JDDNode transRewards;	// transition rewards dd
+	private JDDNode stateRewards[];	// state rewards dds
+	private JDDNode transRewards[];	// transition rewards dds
 	// dd vars
 	private JDDVars[] varDDRowVars;		// dd vars for each module variable (rows)
 	private JDDVars[] varDDColVars;		// dd vars for each module variable (cols)
@@ -107,6 +110,8 @@ public class NondetModel implements Model
 	public int getVarHigh(int i)			{ return varList.getHigh(i); }
 	public int getVarRange(int i)			{ return varList.getRange(i); }
 	public Values getConstantValues()		{ return constantValues; }
+	// rewards
+	public int getNumRewardStructs()		{ return numRewardStructs; }
 	// stats
 	public long getNumStates()			{ return (numStates>Long.MAX_VALUE) ? -1 : (long)numStates; }
 	public long getNumTransitions()			{ return (numTransitions>Long.MAX_VALUE) ? -1 : (long)numTransitions; }
@@ -132,8 +137,12 @@ public class NondetModel implements Model
 	public JDDNode getDeadlocks()		 	{ return deadlocks; }
 	public JDDNode getFixedDeadlocks()		 	{ return fixdl; }
 	public JDDNode getNondetMask()			{ return nondetMask; }
-	public JDDNode getStateRewards()		{ return stateRewards; }
-	public JDDNode getTransRewards()		{ return transRewards; }
+	public JDDNode getStateRewards()			{ return getStateRewards(0); }
+	public JDDNode getStateRewards(int i)		{ return (i>=0&&i<numRewardStructs) ? stateRewards[i] : null; }
+	public JDDNode getStateRewards(String s)	{ for (int i=0;i<numRewardStructs;i++) if (rewardStructNames[i].equals(s)) return stateRewards[i]; return null; }
+	public JDDNode getTransRewards()			{ return getTransRewards(0); }
+	public JDDNode getTransRewards(int i)		{ return (i>=0&&i<numRewardStructs) ? transRewards[i] : null; }
+	public JDDNode getTransRewards(String s)	{ for (int i=0;i<numRewardStructs;i++) if (rewardStructNames[i].equals(s)) return transRewards[i]; return null; }
 	// dd vars
 	public JDDVars[] getVarDDRowVars()		{ return varDDRowVars; }
 	public JDDVars[] getVarDDColVars()		{ return varDDColVars; }
@@ -159,7 +168,7 @@ public class NondetModel implements Model
 	
 	// constructor
 	
-	public NondetModel(JDDNode tr, JDDNode tr01, JDDNode s, JDDNode r, JDDNode dl, JDDNode sr, JDDNode trr, JDDVars arv, JDDVars acv,
+	public NondetModel(JDDNode tr, JDDNode tr01, JDDNode s, JDDNode r, JDDNode dl, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv,
 				JDDVars asyv,  JDDVars asv, JDDVars achv, JDDVars andv, Vector ddvn,
 				int nm, String[] mn, JDDVars[] mrv, JDDVars[] mcv,
 				int nv, VarList vl, JDDVars[] vrv, JDDVars[] vcv, Values cv)
@@ -175,6 +184,8 @@ public class NondetModel implements Model
 		fixdl = JDD.Constant(0);
 		stateRewards = sr;
 		transRewards = trr;
+		numRewardStructs = stateRewards.length; // which should == transRewards.length
+		rewardStructNames = rsn;
 		allDDRowVars = arv;
 		allDDColVars = acv;
 		allDDSynchVars = asyv;
@@ -274,6 +285,8 @@ public class NondetModel implements Model
 	
 	public void printTransInfo(PrismLog log)
 	{
+		int i;
+		
 		log.print("States:      " + getNumStatesString() + " (" + getNumStartStatesString() + " initial)" + "\n");
 		log.print("Transitions: " + getNumTransitionsString() + "\n");
 		log.print("Choices:     " + getNumChoicesString() + "\n");
@@ -290,17 +303,19 @@ public class NondetModel implements Model
 		
 		//log.print("Mask: " + JDD.GetNumNodes(nondetMask) + " nodes\n");
 		
-		if (stateRewards != null && !stateRewards.equals(JDD.ZERO)) {
-			log.print("State rewards: ");
-			log.print(JDD.GetNumNodes(stateRewards) + " nodes (");
-			log.print(JDD.GetNumTerminals(stateRewards) + " terminal), ");
-			log.print(JDD.GetNumMintermsString(stateRewards, getNumDDRowVars()) + " minterms\n");
-		}
-		if (transRewards != null && !transRewards.equals(JDD.ZERO)) {
-			log.print("Transition rewards: ");
-			log.print(JDD.GetNumNodes(transRewards) + " nodes (");
-			log.print(JDD.GetNumTerminals(transRewards) + " terminal), ");
-			log.print(JDD.GetNumMintermsString(transRewards, getNumDDVarsInTrans()) + " minterms\n");
+		for (i = 0; i < numRewardStructs; i++) {
+			if (stateRewards[i] != null && !stateRewards[i].equals(JDD.ZERO)) {
+				log.print("State rewards ("+i+"): ");
+				log.print(JDD.GetNumNodes(stateRewards[i]) + " nodes (");
+				log.print(JDD.GetNumTerminals(stateRewards[i]) + " terminal), ");
+				log.print(JDD.GetNumMintermsString(stateRewards[i], getNumDDRowVars()) + " minterms\n");
+			}
+			if (transRewards[i] != null && !transRewards[i].equals(JDD.ZERO)) {
+				log.print("Transition rewards ("+i+"): ");
+				log.print(JDD.GetNumNodes(transRewards[i]) + " nodes (");
+				log.print(JDD.GetNumTerminals(transRewards[i]) + " terminal), ");
+				log.print(JDD.GetNumMintermsString(transRewards[i], getNumDDVarsInTrans()) + " minterms\n");
+			}
 		}
 	}
 
@@ -318,25 +333,47 @@ public class NondetModel implements Model
 
 	// export state rewards vector to a file
 	
-	public void exportStateRewardsToFile(int exportType, File file) throws FileNotFoundException, PrismException
+	// returns string containing files used if there were more than 1, null otherwise
+	
+	public String exportStateRewardsToFile(int exportType, File file) throws FileNotFoundException, PrismException
 	{
-		if (stateRewards == null || stateRewards.equals(JDD.ZERO)) throw new PrismException("There are no state rewards to export");
-		
-		PrismMTBDD.ExportVector(stateRewards, "c", allDDRowVars, odd, exportType, (file != null)?file.getPath():null);
+		if (numRewardStructs == 0) throw new PrismException("There are no state rewards to export");
+		int i;
+		String filename, allFilenames = "";
+		for (i = 0; i < numRewardStructs; i++) {
+			filename = (file != null) ? file.getPath() : null;
+			if (filename != null && numRewardStructs > 1) {
+				filename = PrismUtils.addCounterSuffixToFilename(filename, i);
+				allFilenames += ((i>0)?", ":"") + filename;
+			}
+			PrismMTBDD.ExportVector(stateRewards[i], "c"+i, allDDRowVars, odd, exportType, filename);
+		}
+		return (allFilenames.length()>0) ? allFilenames : null;
 	}
 
 	// export transition rewards matrix to a file
 	
-	public void exportTransRewardsToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException
+	// returns string containing files used if there were more than 1, null otherwise
+	
+	public String exportTransRewardsToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException
 	{
-		if (transRewards == null || transRewards.equals(JDD.ZERO)) throw new PrismException("There are no transition rewards to export");
-		
-		if (!explicit) {
-			// can only do explicit (sparse matrix based) export for mdps
+		if (numRewardStructs == 0) throw new PrismException("There are no transition rewards to export");
+		int i;
+		String filename, allFilenames = "";
+		for (i = 0; i < numRewardStructs; i++) {
+			filename = (file != null) ? file.getPath() : null;
+			if (filename != null && numRewardStructs > 1) {
+				filename = PrismUtils.addCounterSuffixToFilename(filename, i);
+				allFilenames += ((i>0)?", ":"") + filename;
+			}
+			if (!explicit) {
+				// can only do explicit (sparse matrix based) export for mdps
+			}
+			else {
+				PrismSparse.ExportSubMDP(trans, transRewards[i], "C"+i, allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType, filename);
+			}
 		}
-		else {
-			PrismSparse.ExportSubMDP(trans, transRewards, "C", allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType, (file != null)?file.getPath():null);
-		}
+		return (allFilenames.length()>0) ? allFilenames : null;
 	}
 
 	// convert global state index to local indices
@@ -399,8 +436,10 @@ public class NondetModel implements Model
 		JDD.Deref(deadlocks);
 		JDD.Deref(fixdl);
 		JDD.Deref(nondetMask);
-		JDD.Deref(stateRewards);
-		JDD.Deref(transRewards);
+		for (int i = 0; i < numRewardStructs; i++) {
+			JDD.Deref(stateRewards[i]);
+			JDD.Deref(transRewards[i]);
+		}
 	}
 }
 

@@ -28,13 +28,20 @@ import prism.PrismException;
 
 public class RewardStruct
 {
+	private String name;	// name (optional)
 	private Vector items;	// list of items
 	
 	// constructor
 	
 	public RewardStruct()
 	{
+		name = "";
 		items = new Vector();
+	}
+
+	public void setName(String n)
+	{
+		name = n;
 	}
 
 	// add reward info
@@ -50,6 +57,11 @@ public class RewardStruct
 	}
 
 	// get methods
+	
+	public String getName()
+	{
+		return name;
+	}
 	
 	public int getNumItems()
 	{

@@ -504,7 +504,7 @@ ModulesFile ModulesFile() :
 				modulesFile.setSystemDefn((SystemDefn)reverseStack.pop());
 			}
 			else if (reverseStack.peek() instanceof RewardStruct) {
-				modulesFile.setRewardStruct((RewardStruct)reverseStack.pop());
+				modulesFile.addRewardStruct((RewardStruct)reverseStack.pop());
 			}
 			else if (reverseStack.peek() instanceof Expression) {
 				modulesFile.setInitialStates((Expression)reverseStack.pop());
@@ -1220,12 +1220,13 @@ void SystemBrackets() :
 
 void RewardStruct() :
 {
+	String s = null;
 	// put '*' marker on stack
 	stack.push(new Character('*'));
 }
 {
 	(
-		( <REWARDS> ( RewardStructItem() )+ <ENDREWARDS> )
+		( <REWARDS> (<DQUOTE> s=Identifier() <DQUOTE>)? ( RewardStructItem() )* <ENDREWARDS> )
 	)
 	{
 		// get RewardStructItems off stack and reverse their order
@@ -1236,6 +1237,7 @@ void RewardStruct() :
 		stack.pop();
 		// add the RewardStructItems to a RewardStruct object
 		RewardStruct rs = new RewardStruct();
+		if (s != null) rs.setName(s);
 		while (!reverseStack.empty()) {
 			rs.addItem((RewardStructItem)reverseStack.pop());
 		}
@@ -1571,15 +1573,22 @@ void PCTLReward() :
 	Token tf = null; // detects if a filter is included
 	Token tfmin = null; // detects if min of filter requested
 	Token tfmax = null; // detects if max of filter requested
+	boolean b = false; // detects if a reward struct index (expression) is included
+	String s = null;
 }
 {
 	( (
-	// various options for initial part
-	( <R> relOp=LtGt() Expression() ) |
-	( <R> <EQ> <QMARK> {relOp="=";} ) |
-	( <R> <MIN> <EQ> <QMARK> {relOp="min=";} ) |
-	( <R> <MAX> <EQ> <QMARK> {relOp="max=";} ) |
+	// initial R operator
+	( <R>
+	// possible reward struct index
+	( <LBRACE> ((<DQUOTE> s=Identifier() <DQUOTE>) | (Expression(){b=true;})) <RBRACE> )?
+	// several possibilities: >r, =?, min=?, ...
+	(( relOp=LtGt() Expression() ) |
+	( <EQ> <QMARK> {relOp="=";} ) |
+	( <MIN> <EQ> <QMARK> {relOp="min=";} ) |
+	( <MAX> <EQ> <QMARK> {relOp="max=";} ))) |
 	// these two are dupes of above but allow space to be omitted
+	// (note can't include reward struct index here)
 	( <RMIN> <EQ> <QMARK> {relOp="min=";} ) |
 	( <RMAX> <EQ> <QMARK> {relOp="max=";} ) )
 	// path formula bit
@@ -1601,6 +1610,9 @@ void PCTLReward() :
 		f = (PCTLFormula)stack.pop();
 		rew = (relOp.equals("=") || relOp.equals("min=") || relOp.equals("max=")) ? null : (Expression)stack.pop();
 		pr = new PCTLReward(f, relOp, rew);
+		// get and add reward struct index if present
+		if (s != null) pr.setRewardStructIndex(s);
+		else if (b) pr.setRewardStructIndex((Expression)stack.pop());
 		// add filter if present
 		if (tf != null) {
 			pr.setFilter(filter);

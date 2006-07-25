@@ -56,10 +56,10 @@ const int PATH_NO_CHOICE_MADE = -1;
  *		The index of the choice made to get out of that state
  *		The probability of the choice made to get out of that state
  *		The time spent in that state
- *		The instant state cost of that state
- *		The cost accumulated in that state (for real time models)
- *		The cost of the transition out of that state
- *		The cost of the path so far up until that state
+ *		The instant state costs of that state
+ *		The costs accumulated in that state (for real time models)
+ *		The costs of the transition out of that state
+ *		The costs of the path so far up until that state
  */
 class CPathState
 {
@@ -70,10 +70,10 @@ class CPathState
 		double probability; //this is used to determine which choice was made, if choice_made is -1
 		double time_spent_in_state; //The time spent in that state
 		bool time_known; 
-		double state_cost; //The cost accumulated in that state (for real time models)
-		double state_instant_cost; //The instant state cost of that state
-		double path_cost_so_far; //The cost of the path so far up until that state
-		double transition_cost; //The cost of the transition out of that state
+		double *state_cost; //The costs accumulated in that state (for real time models)
+		double *state_instant_cost; //The instant state costs of that state
+		double *path_cost_so_far; //The costs of the path so far up until that state
+		double *transition_cost; //The costs of the transition out of that state
 
 	/*
 	 *	Constructs the state according with no_state_variables storage spaces 

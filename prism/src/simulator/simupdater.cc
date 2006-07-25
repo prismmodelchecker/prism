@@ -178,12 +178,47 @@ inline void Automatic_Update_Continuous(CLoopDetectionHandler* loop_handler, dou
 //=============================================================================
 
 double sampled_time; //The time taken to do the last transition
-double transition_reward;  //The reward accumulated for the last transition
+double *transition_reward;  //The rewards accumulated for the last transition
 
 
 //=============================================================================
 //	Functions
 //=============================================================================
+
+/*
+ *	If transition_reward has been allocated previously, this function removes it
+ *	from memory.
+ */
+void Deallocate_Updater()
+{
+	if(transition_reward != NULL)
+	{
+		delete[] transition_reward;
+	}
+	transition_reward = NULL;
+}
+
+/*
+ *	Allocates memory for transition_reward
+ *	
+ *	throws an exception for out of memory
+ */
+void Allocate_Updater()
+{
+	transition_reward = new double[no_reward_structs];
+	
+	if(transition_reward == NULL) 
+	{
+		Report_Error("Simulator engine ran out of memory when allocating updater.");
+		throw "out of memory exception simupdater.cc";
+	}
+	
+	//Initially all rewards are zero
+	for(int i = 0; i < no_reward_structs; i++)
+	{
+		transition_reward[i] = 0.0;
+	}
+}
 
 /*
  *	This function performs an update to the state stored in variables.  It 
@@ -213,11 +248,13 @@ void Perform_Update(int index, double d, int*variables, bool do_transition_rewar
 
 	if(do_transition_rewards)
 	{
-		transition_reward = 0.0;
-		for(int i = 0; i < no_transition_rewards; i++)
-		{
-			CTransitionReward* rew = transition_rewards_table[i];
-			transition_reward += rew->Get_Reward_For_Selected_Transition(variables, Get_Action_Index_Of_Update(index));
+		for(int i = 0; i < no_reward_structs; i++) {
+			transition_reward[i] = 0.0;
+			for(int j = 0; j < no_transition_rewards[i]; j++)
+			{
+				CTransitionReward* rew = transition_rewards_table[i][j];
+				transition_reward[i] += rew->Get_Reward_For_Selected_Transition(variables, Get_Action_Index_Of_Update(index));
+			}
 		}
 	}
 
@@ -306,9 +343,9 @@ double Get_Sampled_Time()
  *	Function which provides access to the reward accumulated for the last
  *	calculated transition.
  */
-double Get_Transition_Reward()
+double Get_Transition_Reward(int i)
 {
-	return transition_reward;
+	return transition_reward[i];
 }
 
 
@@ -337,11 +374,13 @@ inline void Automatic_Update_Discrete(CLoopDetectionHandler* loop_handler, doubl
 	}
 	// if we are not in a deadlock, move to the next state
 	if(choice != NULL) {
-		transition_reward = 0.0;
-		for(int i = 0; i < no_transition_rewards; i++)
-		{
-			CTransitionReward* rew = transition_rewards_table[i];
-			transition_reward += rew->Get_Reward_For_Selected_Transition(state_variables, choice->action_index);
+		for(int i = 0; i < no_reward_structs; i++) {
+			transition_reward[i] = 0.0;
+			for(int j = 0; j < no_transition_rewards[i]; j++)
+			{
+				CTransitionReward* rew = transition_rewards_table[i][j];
+				transition_reward[i] += rew->Get_Reward_For_Selected_Transition(state_variables, choice->action_index);
+			}
 		}
 		choice->Do_Update(state_variables);
 	}
@@ -387,11 +426,13 @@ inline void Automatic_Update_Continuous(CLoopDetectionHandler* loop_handler, dou
 	
 	// If no deadlock...
 	if (choice >= 0) {
-		transition_reward = 0.0;
-		for(int i = 0; i < no_transition_rewards; i++)
-		{
-			CTransitionReward* rew = transition_rewards_table[i];
-			transition_reward += rew->Get_Reward_For_Selected_Transition(state_variables, Get_Action_Index_Of_Update(choice));
+		for(int i = 0; i < no_reward_structs; i++) {
+			transition_reward[i] = 0.0;
+			for(int j = 0; j < no_transition_rewards[i]; j++)
+			{
+				CTransitionReward* rew = transition_rewards_table[i][j];
+				transition_reward[i] += rew->Get_Reward_For_Selected_Transition(state_variables, Get_Action_Index_Of_Update(choice));
+			}
 		}
 		selected_prob = Get_Update(choice)->probability;
 		Execute_Update(choice, state_variables);
