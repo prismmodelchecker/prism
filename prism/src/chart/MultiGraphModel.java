@@ -2602,16 +2602,16 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 		(getYAxis().getLogarithmic().getCurrentIndex() == 1);
 		out.println();
 		if(xLog && yLog)
-			out.println("axes1 = axes('Parent',figure1, 'XScale','log','YScale','log');");
+			out.println("axes1 = axes('Parent', figure1, 'FontSize', 16, 'XScale', 'log', 'YScale', 'log');");
 		else if(xLog)
-			out.println("axes1 = axes('Parent',figure1, 'XScale','log');");
+			out.println("axes1 = axes('Parent', figure1, 'FontSize', 16, 'XScale', 'log');");
 		else if(yLog)
-			out.println("axes1 = axes('Parent',figure1, 'YScale','log');");
+			out.println("axes1 = axes('Parent', figure1, 'FontSize', 16, 'YScale', 'log');");
 		else
-			out.println("axes1 = axes('Parent',figure1);");
+			out.println("axes1 = axes('Parent', figure1, 'FontSize', 16);");
 		
-		out.println("xlabel(axes1,'"+getXAxis().heading.getStringValue()+"');");
-		out.println("ylabel(axes1,'"+getYAxis().heading.getStringValue()+"');");
+		out.println("xlabel(axes1, '"+getXAxis().heading.getStringValue()+"');");
+		out.println("ylabel(axes1, '"+getYAxis().heading.getStringValue()+"');");
 		out.println("box(axes1, 'on');");
 		out.println("hold(axes1, 'all');");
 		
@@ -2667,7 +2667,7 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 				}
 			}
 			marker+="'";
-			out.println("plot"+i+" = "+scaleType+"(x"+i+", y"+i+", "+marker+", 'Parent', axes1);");
+			out.println("plot"+i+" = "+scaleType+"(x"+i+", y"+i+", "+marker+", 'Parent', axes1, 'LineWidth', 2);");
 		}
 		
 		//Create legend
