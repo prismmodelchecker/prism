@@ -271,6 +271,11 @@ public class Prism
 		settings.set(PrismSettings.PRISM_SOR_MAX_MEM, i);
 	}
 	
+	public void setDoSSDetect(boolean b) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_DO_SS_DETECTION, b);
+	}
+	
 	public void setApmcStrategy(int i) throws PrismException
 	{
 		settings.set(PrismSettings.SIMULATOR_APMC_STRATEGY, i);
@@ -350,6 +355,9 @@ public class Prism
 	
 	public int getSORMaxMem()
 	{ return settings.getInteger(PrismSettings.PRISM_SOR_MAX_MEM); }
+	
+	public boolean getDoSSDetect()
+	{ return settings.getBoolean(PrismSettings.PRISM_DO_SS_DETECTION); }
 	
 	public int getNumSORLevels()
 	{ return settings.getInteger(PrismSettings.PRISM_NUM_SOR_LEVELS); }
@@ -1051,6 +1059,7 @@ public class Prism
 		if (model instanceof StochModel)
 		{
 			mc.setOption("bscccomp", getBSCCComp());
+			mc.setOption("dossdetect", getDoSSDetect());
 		}
 		if (model instanceof NondetModel)
 		{
@@ -1329,6 +1338,7 @@ public class Prism
 		mc.setOption("maxiters", getMaxIters()); // don't really need
 		mc.setOption("verbose", getVerbose());
 		mc.setOption("bscccomp", getBSCCComp()); // don't really need
+		mc.setOption("dossdetect", getDoSSDetect());
 		if (getEngine() == HYBRID || getEngine() == SPARSE)
 		{
 			mc.setOption("compact", getCompact());

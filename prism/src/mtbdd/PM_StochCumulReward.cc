@@ -170,7 +170,7 @@ jdouble time	// time bound
 		tmp = DD_MatrixMultiply(ddman, q, tmp, cvars, num_cvars, MM_BOULDER);
 		
 		// check for steady state convergence
-		switch (term_crit) {
+		if (do_ss_detect) switch (term_crit) {
 		case TERM_CRIT_ABSOLUTE:
 			if (DD_EqualSupNorm(ddman, tmp, sol, term_crit_param)) {
 				done = true;

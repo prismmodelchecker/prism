@@ -214,7 +214,7 @@ jdouble time	// time bound
 		mult_rec(hdd, 0, 0, 0);
 		
 		// check for steady state convergence
-		switch (term_crit) {
+		if (do_ss_detect) switch (term_crit) {
 		case TERM_CRIT_ABSOLUTE:
 			done = true;
 			for (i = 0; i < n; i++) {

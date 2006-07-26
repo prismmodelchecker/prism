@@ -80,6 +80,7 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_SB_MAX_MEM						= "prism.SBMaxMem";//"prism.hybridMaxMemory";
 	public static final	String PRISM_NUM_SOR_LEVELS					= "prism.numSORLevels";//"prism.hybridSORLevels";
 	public static final	String PRISM_SOR_MAX_MEM					= "prism.SORMaxMem";//"prism.hybridSORMaxMemory";
+	public static final	String PRISM_DO_SS_DETECTION				= "prism.doSSDetect";
 	
 	//GUI Model
 	public static final	String MODEL_AUTO_PARSE						= "model.autoParse";
@@ -179,6 +180,7 @@ public class PrismSettings implements Observer
 			{ INTEGER_TYPE,		PRISM_SB_MAX_MEM,						"hybrid max memory",					new Integer(1024),															"0,",																						"Maximum memory usage when adding sparse matrices to hybrid engine data structures" },
 			{ INTEGER_TYPE,		PRISM_NUM_SOR_LEVELS,					"hybrid num. levels (GS/SOR)",			new Integer(-1),															"-1,",																						"Number of MTBDD levels descended for hybrid engine data structures block division (GS/SOR)" },
 			{ INTEGER_TYPE,		PRISM_SOR_MAX_MEM,						"hybrid max memory (GS/SOR)",			new Integer(1024),															"0,",																						"Maximum memory usage for hybrid engine data structures block division (GS/SOR)" },
+			{ BOOLEAN_TYPE,		PRISM_DO_SS_DETECTION,					"use steady-state detection?",			new Boolean(true),															"0,",																						"Use steady-state detection for CTMC transient properties?" }
 		},
 		{
 			{ BOOLEAN_TYPE,		MODEL_AUTO_PARSE,						"auto parse?",							new Boolean(true),															"",																							"When set to true, prism models are parsed automatically as they are entered into the text editor." },

@@ -184,6 +184,16 @@ public class PrismHybrid
 	{
 		PH_SetCompact(b);
 	}
+	
+	//------------------------------------------------------------------------------
+	// use steady-state detection?
+	//------------------------------------------------------------------------------
+	
+	private static native void PH_SetDoSSDetect(boolean b);
+	public static void setDoSSDetect(boolean b)
+	{
+		PH_SetDoSSDetect(b);
+	}
 
 	//------------------------------------------------------------------------------
 	// error message

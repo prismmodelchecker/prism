@@ -64,6 +64,9 @@ extern int max_iters;
 // use "compact modified" sparse matrix storage?
 extern bool compact;
 
+// use steady-state detection for transient computation?
+extern bool do_ss_detect;
+
 // export stuff
 extern int export_type;
 extern FILE *export_file;

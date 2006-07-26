@@ -1159,6 +1159,10 @@ public class PrismCL
 				else if (sw.equals("nobscc")) {
 					prism.setBSCCComp(false);
 				}
+				// no steady-state detection
+				else if (sw.equals("nossdetect")) {
+					prism.setDoSSDetect(false);
+				}
 				// sparse bits info
 				else if (sw.equals("sbmax")) {
 					if (i < args.length-1) {
@@ -1486,6 +1490,7 @@ public class PrismCL
 		mainLog.println("-fixdl ......................... Automatically put self-loops in deadlock states");
 		mainLog.println("-nocompact ..................... Switch off \"compact\" sparse storage schemes");
 		mainLog.println("-noprobchecks .................. Disable checks on model probabilities/rates");
+		mainLog.println("-nossdetect .................... Disable steady-state detection for CTMC transient computations");
 		mainLog.println();
 		mainLog.println("-sbmax <n> ..................... Set memory limit (KB) (for hybrid engine) [default 1024]");
 		mainLog.println("-sbl <n> ....................... Set number of levels (for hybrid engine) [default -1]");

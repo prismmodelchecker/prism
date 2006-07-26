@@ -164,6 +164,11 @@ public class StochModelChecker implements ModelChecker
 		else if (option.equals("bscccomp")) {
 			bsccComp = b;
 		}
+		else if (option.equals("dossdetect")) {
+			PrismMTBDD.setDoSSDetect(b);
+			PrismSparse.setDoSSDetect(b);
+			PrismHybrid.setDoSSDetect(b);
+		}
 		else if (option.equals("compact")) {
 			PrismHybrid.setCompact(b);
 			PrismSparse.setCompact(b);

@@ -121,6 +121,14 @@ JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetCompact
 
 /*
  * Class:     hybrid_PrismHybrid
+ * Method:    PH_SetDoSSDetect
+ * Signature: (Z)V
+ */
+JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetDoSSDetect
+  (JNIEnv *, jclass, jboolean);
+
+/*
+ * Class:     hybrid_PrismHybrid
  * Method:    PH_GetErrorMessage
  * Signature: ()Ljava/lang/String;
  */

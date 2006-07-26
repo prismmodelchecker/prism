@@ -81,6 +81,14 @@ JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetMaxIters
 
 /*
  * Class:     mtbdd_PrismMTBDD
+ * Method:    PM_SetDoSSDetect
+ * Signature: (Z)V
+ */
+JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetDoSSDetect
+  (JNIEnv *, jclass, jboolean);
+
+/*
+ * Class:     mtbdd_PrismMTBDD
  * Method:    PM_GetErrorMessage
  * Signature: ()Ljava/lang/String;
  */

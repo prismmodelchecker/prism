@@ -61,6 +61,9 @@ extern int term_crit;
 extern double term_crit_param;
 extern int max_iters;
 
+// use steady-state detection for transient computation?
+extern bool do_ss_detect;
+
 // export stuff
 extern int export_type;
 extern FILE *export_file;

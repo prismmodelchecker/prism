@@ -240,7 +240,7 @@ jdouble time	// time bound
 		
 		// check for steady state convergence
 		// (note: doing outside loop means may not need to check all elements)
-		switch (term_crit) {
+		if (do_ss_detect) switch (term_crit) {
 		case TERM_CRIT_ABSOLUTE:
 			done = true;
 			for (i = 0; i < n; i++) {

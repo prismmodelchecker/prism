@@ -251,7 +251,7 @@ jint mu			// probs for multiplying
 //		PM_PrintToMainLog(env, "(%d %d %.0f)\n", DD_GetNumNodes(ddman, sum), DD_GetNumTerminals(ddman, sum), DD_GetNumMinterms(ddman, sum, num_rvars));
 		
 		// check for steady state convergence
-		switch (term_crit) {
+		if (do_ss_detect) switch (term_crit) {
 		case TERM_CRIT_ABSOLUTE:
 			if (DD_EqualSupNorm(ddman, tmp, sol, term_crit_param)) {
 				done = true;

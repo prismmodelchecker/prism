@@ -63,6 +63,9 @@ int export_type;
 FILE *export_file;
 JNIEnv *export_env;
 
+// use steady-state detection for transient computation?
+bool do_ss_detect;
+
 // error message
 char error_message[MAX_ERR_STRING_LEN];
 
@@ -227,6 +230,15 @@ void export_string(char *str, ...)
 	} else {
 		PM_PrintToMainLog(export_env, full_string);
 	}
+}
+
+//------------------------------------------------------------------------------
+// use steady-state detection?
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetDoSSDetect(JNIEnv *env, jclass cls, jboolean b)
+{
+	do_ss_detect = b;
 }
 
 //------------------------------------------------------------------------------
