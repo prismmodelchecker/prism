@@ -163,6 +163,7 @@ public class DefinedConstant
 				catch (NumberFormatException e) {
 					throw new PrismException("Value \"" + ss + "\" for constant \"" + name + "\" is not a valid double");
 				}
+				if (ds > dh-dl) throw new PrismException("Step value "+ds+" is bigger than the difference between "+dl+" and "+dh);
 			}
 		}
 		// compute num steps
