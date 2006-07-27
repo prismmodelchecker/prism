@@ -1091,7 +1091,7 @@ public class SimulatorEngine
 				for (j = 0; j < varsNum; j++) {
 					if (getPathData(varsIndices[j], i) != getPathData(varsIndices[j], i-1)) changed = true;
 				}
-				if (!changed) continue;
+				if (!changed) { d = (i<n-1) ? getTimeSpentInPathState(i) : 0.0; t += d; continue; }
 			}
 			// write state index
 			log.print(i);
