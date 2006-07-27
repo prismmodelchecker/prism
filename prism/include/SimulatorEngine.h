@@ -33,6 +33,12 @@ extern "C" {
 #define simulator_SimulatorEngine_DOUBLE 2L
 #undef simulator_SimulatorEngine_BOOLEAN
 #define simulator_SimulatorEngine_BOOLEAN 3L
+#undef simulator_SimulatorEngine_SIM_PATH_NUM_STEPS
+#define simulator_SimulatorEngine_SIM_PATH_NUM_STEPS 0L
+#undef simulator_SimulatorEngine_SIM_PATH_TIME
+#define simulator_SimulatorEngine_SIM_PATH_TIME 1L
+#undef simulator_SimulatorEngine_SIM_PATH_DEADLOCK
+#define simulator_SimulatorEngine_SIM_PATH_DEADLOCK 2L
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    Set_Main_Log

@@ -36,6 +36,7 @@ import prism.*;
  *            exploration.</LI>
  *    <LI>    To perform Monte-Carlo sampling techniques for approximate property
  *            verification.</LI>
+ *    <LI>    To generate whole random paths at once.</LI>
  * </UL>
  * Each type of use only builds the relevant data structures of the simulator
  * engine.
@@ -161,6 +162,16 @@ import prism.*;
  *            of performing an experiment and storing the results in an
  *            appropriate <tt>ResultsCollection</tt> object.
  * </UL>
+ *
+ * <H3>Path Generation</H3>
+ *
+ * The following utility method is used for generating (and exporting)
+ * a single path satsifying certain criteria:
+ *
+ * <UL>
+ *    <LI> <tt>generateSimulationPath</tt>.
+ * </UL>
+ *
  * @author Andrew Hinton
  */
 public class SimulatorEngine
@@ -234,6 +245,10 @@ public class SimulatorEngine
 	 */
 	public static final int BOOLEAN = Expression.BOOLEAN;
 	
+	// Types of random path to generate
+	public static final int SIM_PATH_NUM_STEPS = 0;
+	public static final int SIM_PATH_TIME = 1;
+	public static final int SIM_PATH_DEADLOCK = 2;
 	
 	//------------------------------------------------------------------------------
 	//	CLASS MEMBERS
@@ -775,6 +790,8 @@ public class SimulatorEngine
 		
 		loadModulesFile(modulesFile, modulesFile.getConstantValues());
 		
+		if (propertiesFile == null) propertiesFile = new PropertiesFile(modulesFile);
+		
 		propertyConstants = propertiesFile.getConstantValues();
 		this.propertiesFile = propertiesFile;
 		
@@ -983,83 +1000,115 @@ public class SimulatorEngine
 	
 	/**
 	 * Exports the current path to a file in a simple space separated format.
-	 * @param f the file to which the path should be exported to.
+	 * @param file the file to which the path should be exported to (mainLog if null).
 	 * @throws SimulatorException if there is a problem with writing the file.
 	 */
-	public void exportPath(File f) throws SimulatorException
+	public void exportPath(File file) throws SimulatorException
 	{
-		try
-		{
-			int i, j, n, nv, nr;
-			PrintWriter pw = new PrintWriter(new FileWriter(f), false);
-			
-			if(modulesFile == null)
-			{
-				pw.flush();
-				pw.close();
-				return;
+		exportPath(file, false, " ");
+	}
+	
+	/**
+	 * Exports the current path to a file in a simple space separated format.
+	 * @param file the file to which the path should be exported to (mainLog if null).
+	 * @param timeCumul show time in cumulative form?
+	 * @param colSep string used to separate columns in display
+	 * @throws SimulatorException if there is a problem with writing the file.
+	 */
+	public void exportPath(File file,  boolean timeCumul, String colSep) throws SimulatorException
+	{
+		PrismLog log;
+		
+		// create new file log or use main log
+		if (file != null) {
+			log = new PrismFileLog(file.getPath());
+			if (!log.ready()) {
+				throw new SimulatorException("Could not open file \""+file+"\" for output");
 			}
-			//Write headers
-			pw.print("step ");
-			nv = getNumVariables();
-			nr = modulesFile.getNumRewardStructs();
+			mainLog.println("\nExporting path to file \""+file+"\"...");
+		} else {
+			log = mainLog;
+			log.println();
+		}
+		
+		exportPathToLog(log, timeCumul, colSep);
+	}
+
+	/**
+	 * Exports the current path to a file in a simple space separated format.
+	 * @param filename the PrismLog to which the path should be exported to
+	 * @param colSep string used to separate columns in display
+	 * @throws SimulatorException if there is a problem with writing the file.
+	 */
+	public void exportPathToLog(PrismLog log,  boolean timeCumul, String colSep) throws SimulatorException
+	{
+		int i, j, n, nv, nr;
+		double d, t;
+		boolean stochastic = (modulesFile.getType() == ModulesFile.STOCHASTIC);
+		
+		if(modulesFile == null)
+		{
+			log.flush();
+			log.close();
+			return;
+		}
+		//Write headers
+		log.print("step");
+		nv = getNumVariables();
+		nr = modulesFile.getNumRewardStructs();
+		for(j = 0; j < nv; j++)
+		{
+			log.print(colSep+varNames[j]);
+		}
+		if (stochastic)
+		{
+			log.print(colSep+(timeCumul?"time":"time_in_state"));
+		}
+		if (nr == 1) {
+			log.print(colSep+"state_reward"+colSep+"transition_reward");
+		} else {
+			for(j = 0; j < nr; j++) {
+				log.print(colSep+"state_reward"+j+colSep+"transition_reward"+j);
+			}
+		}
+		log.println();
+		
+		//Write path
+		n = getPathSize();
+		nv = getNumVariables();
+		nr = modulesFile.getNumRewardStructs();
+		t = 0.0;
+		for(i = 0; i < n; i++)
+		{
+			log.print(i);
 			for(j = 0; j < nv; j++)
 			{
-				if (j>0) pw.print(" ");
-				pw.print(varNames[j]);
-			}
-			if(modulesFile.getType() == ModulesFile.STOCHASTIC)
-			{
-				pw.print(" time_in_state");
-			}
-			if (nr == 1) {
-				pw.print(" state_reward transition_reward");
-			} else {
-				for(j = 0; j < nr; j++) {
-					pw.print(" state_reward"+j+" transition_reward"+j);
-				}
-			}
-			pw.println();
-			
-			//Write path
-			
-			n = getPathSize();
-			nv = getNumVariables();
-			nr = modulesFile.getNumRewardStructs();
-			for(i = 0; i < n; i++)
-			{
-				pw.print(i+" ");
-				for(j = 0; j < nv; j++)
+				log.print(colSep);
+				if(varTypes[j] == Expression.BOOLEAN)
 				{
-					if (j>0) pw.print(" ");
-					if(varTypes[j] == Expression.BOOLEAN)
-					{
-						if(getPathData(j, i) == 0) pw.print("false");
-						else pw.print("true");
-					}
-					else
-					{
-						pw.print(getPathData(j, i));
-					}
+					if(getPathData(j, i) == 0) log.print("false");
+					else log.print("true");
 				}
-				if(modulesFile.getType() == ModulesFile.STOCHASTIC)
+				else
 				{
-					pw.print(" "+((i<n-1)?getTimeSpentInPathState(i):0.0));
+					log.print(getPathData(j, i));
 				}
-				for(j = 0; j < nr; j++) {
-					pw.print(" "+((i<n-1)?getStateRewardOfPathState(i, j):0.0));
-					pw.print(" "+((i<n-1)?getTransitionRewardOfPathState(i, j):0.0));
-				}
-				pw.println();
 			}
-			
-			pw.flush();
-			pw.close();
+			if(stochastic)
+			{
+				d = (i<n-1) ? getTimeSpentInPathState(i) : 0.0;
+				log.print(colSep+(timeCumul?t:d));
+				t += d;
+			}
+			for(j = 0; j < nr; j++) {
+				log.print(colSep+((i<n-1)?getStateRewardOfPathState(i, j):0.0));
+				log.print(colSep+((i<n-1)?getTransitionRewardOfPathState(i, j):0.0));
+			}
+			log.println();
 		}
-		catch(IOException e)
-		{
-			throw new SimulatorException("Error when exporting path: "+e.getMessage());
-		}
+		
+		log.flush();
+		log.close();
 	}
 	
 	
@@ -1740,7 +1789,103 @@ public class SimulatorEngine
 			mainLog.print(resultsCollection.toStringPartial(undefinedConstants.getMFConstantValues(), true, " ", " : ", false));
 		}
 	}
-	
+
+	/**
+	 * Generate a random path with the simulator
+	 * @param modulesFile The ModulesFile, constants already defined
+	 * @param initialState The first state of the path
+	 * @param details Information about the path to be generated
+	 * @param file The file to output the path to (stdout if null)
+	 * @throws SimulatorException if something goes wrong
+	 */
+	public void generateSimulationPath(ModulesFile modulesFile, Values initialState, String details, int maxPathLength, File file) throws SimulatorException
+	{
+		String ss[];
+		int i, n;
+		double t;
+		boolean done;
+		boolean stochastic = (modulesFile.getType() == ModulesFile.STOCHASTIC);
+		int simPathType = -1;
+		int simPathLength = 0 ;
+		double simPathTime = 0.0 ;
+		String simPathSep = " ";
+		
+		// parse details
+		ss = details.split(",");
+		n = ss.length;
+		for (i = 0; i < n; i++) {
+			if (ss[i].indexOf("time=") == 0) {
+				// path with upper time limit
+				simPathType = SIM_PATH_TIME;
+				try {
+					simPathTime = Double.parseDouble(ss[i].substring(5));
+					if (simPathTime < 0.0) throw new NumberFormatException();
+				} catch (NumberFormatException e) {
+					throw new SimulatorException("Invalid path time limit \""+ss[i]+"\"");
+				}
+			}
+			else if (ss[i].equals("deadlock")) {
+				// path until deadlock
+				simPathType = SIM_PATH_DEADLOCK;
+			}
+			else if (ss[i].indexOf("sep=") == 0) {
+				//  specify column separator to display path
+				simPathSep = ss[i].substring(4);
+				if (simPathSep.equals("space")) { simPathSep = " "; continue; }
+				if (simPathSep.equals("tab")) { simPathSep = "\t"; continue; }
+				if (simPathSep.equals("comma")) { simPathSep = ","; continue; }
+				throw new SimulatorException("Separator must be one of: \"space\", \"tab\", \"comma\"");
+			}
+			else {
+				// path of fixed number of steps
+				simPathType = SIM_PATH_NUM_STEPS;
+				try {
+					simPathLength = Integer.parseInt(ss[i]);
+					if (simPathLength < 0) throw new NumberFormatException();
+				} catch (NumberFormatException e) {
+					throw new SimulatorException("Invalid path length \""+ss[i]+"\"");
+				}
+			}
+		}
+		if (simPathType < 0) throw new SimulatorException("Invalid path details \""+details+"\"");
+		
+		// print details
+		switch (simPathType) {
+		case SIM_PATH_NUM_STEPS: mainLog.println("\nGenerating random path of length "+simPathLength+" steps..."); break;
+		case SIM_PATH_TIME: mainLog.println("\nGenerating random path with time limit "+simPathTime+"..."); break;
+		case SIM_PATH_DEADLOCK: mainLog.println("\nGenerating random path until deadlock state..."); break;
+		}
+		
+		// generate path
+		startNewPath(modulesFile, null, initialState);
+		i = 0;
+		t = 0.0;
+		done = false;
+		while (!done) {
+			// generate a single step of path
+			automaticChoices(1, false);
+			if (stochastic) t += getTimeSpentInPathState(i++); else t = ++i;
+			// check for termination (depending on type)
+			switch (simPathType) {
+			case SIM_PATH_NUM_STEPS: if (i >= simPathLength) done = true; break;
+			case SIM_PATH_TIME: if (t >= simPathTime || i >= maxPathLength) done = true; break;
+			case SIM_PATH_DEADLOCK: if (queryIsDeadlock() == 1 || i >= maxPathLength) done = true; break;
+			}
+		}
+		
+		// export path
+		if (simPathType == SIM_PATH_DEADLOCK && queryIsDeadlock() != 1) {
+			mainLog.println("\nNo deadlock state found within "+maxPathLength+" steps.");
+		} else {
+			exportPath(file, true, simPathSep);
+		}
+		
+		// warning if stopped early
+		if (simPathType == SIM_PATH_TIME && t < simPathTime) {
+			mainLog.println("\nWarning: Path terminated before time "+simPathTime+" because maximum path length ("+maxPathLength+") reached.");
+		}
+	}
+
 	/**
 	 * Returns a pointer to the built reward formula
 	 * @param operand the PCTLFormula to be built into the engine.

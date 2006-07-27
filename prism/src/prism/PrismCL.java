@@ -56,6 +56,7 @@ public class PrismCL
 	private int exportType = Prism.EXPORT_PLAIN;
 	private boolean exportordered = true;
 	private boolean simulate = false;
+	private boolean simpath = false;
 	private boolean apmc = false;
 	private int typeOverride = 0;
 	
@@ -65,6 +66,9 @@ public class PrismCL
 	
 	// argument to -const switch
 	private String constSwitch = null;
+	
+	// argument to -simpath switch
+	private String simpathDetails = null;
 	
 	// import info
 	private String importInitString = null;
@@ -84,6 +88,7 @@ public class PrismCL
 	private String exportDotFilename = null;
 	private String exportTransDotFilename = null;
 	private String exportResultsFilename = null;
+	private String simpathFilename = null;
 	
 	// logs
 	private PrismLog mainLog = null;
@@ -186,6 +191,19 @@ public class PrismCL
 				}
 				catch (PrismException e2) {
 					error("Problem storing results");
+				}
+				undefinedConstants.iterateModel();
+				continue;
+			}
+			
+			// if requested, generate a random path with simulator (and then skip anything else)
+			if (simpath) {
+				try {
+					File f = (simpathFilename.equals("stdout")) ? null : new File(simpathFilename);
+					prism.generateSimulationPath(modulesFile, simpathDetails, simMaxPath, f);
+				}
+				catch (PrismException e) {
+					error(e.getMessage());
 				}
 				undefinedConstants.iterateModel();
 				continue;
@@ -922,6 +940,17 @@ public class PrismCL
 				// use simulator
 				else if (sw.equals("sim")) {
 					simulate = true;
+				}
+				// generate path with simulator
+				else if (sw.equals("simpath")) {
+					if (i < args.length-2) {
+						simpath = true;
+						simpathDetails = args[++i];
+						simpathFilename = args[++i];
+					}
+					else {
+						errorAndExit("The -"+sw+" switch requires two arguments (path details, filename)");
+					}
 				}
 				// use apmc techniques
 				else if (sw.equals("apmc")) {

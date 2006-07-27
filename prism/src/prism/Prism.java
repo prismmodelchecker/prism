@@ -1183,6 +1183,19 @@ public class Prism
 		}
 	}
 	
+	// generate a random path through the model using the simulator
+	
+	public void generateSimulationPath(ModulesFile modulesFile, String details, int maxPathLength, File file) throws PrismException
+	{
+		// do path generation
+		try {
+			getSimulator().generateSimulationPath(modulesFile, modulesFile.getInitialValues(), details, maxPathLength, file);
+		}
+		catch (SimulatorException e) {
+			throw new PrismException(e.getMessage());
+		}
+	}
+	
 	// model checking using APMC techniques
 	
 	public void checkPropertyForAPMC(ModulesFile modulesFile, PropertiesFile propertiesFile, PCTLFormula f) throws PrismException
