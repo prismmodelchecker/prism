@@ -1005,7 +1005,7 @@ public class SimulatorEngine
 	 */
 	public void exportPath(File file) throws SimulatorException
 	{
-		exportPath(file, false, " ");
+		exportPath(file, false, " ", null);
 	}
 	
 	/**
@@ -1013,9 +1013,10 @@ public class SimulatorEngine
 	 * @param file the file to which the path should be exported to (mainLog if null).
 	 * @param timeCumul show time in cumulative form?
 	 * @param colSep string used to separate columns in display
+	 * @param vars only print these vars (and steps which change them) (ignore if null)
 	 * @throws SimulatorException if there is a problem with writing the file.
 	 */
-	public void exportPath(File file,  boolean timeCumul, String colSep) throws SimulatorException
+	public void exportPath(File file,  boolean timeCumul, String colSep, ArrayList vars) throws SimulatorException
 	{
 		PrismLog log;
 		
@@ -1031,20 +1032,23 @@ public class SimulatorEngine
 			log.println();
 		}
 		
-		exportPathToLog(log, timeCumul, colSep);
+		exportPathToLog(log, timeCumul, colSep, vars);
 	}
 
 	/**
 	 * Exports the current path to a file in a simple space separated format.
 	 * @param filename the PrismLog to which the path should be exported to
 	 * @param colSep string used to separate columns in display
+	 * @param vars only print these vars (and steps which change them) (ignore if null)
 	 * @throws SimulatorException if there is a problem with writing the file.
 	 */
-	public void exportPathToLog(PrismLog log,  boolean timeCumul, String colSep) throws SimulatorException
+	public void exportPathToLog(PrismLog log,  boolean timeCumul, String colSep, ArrayList vars) throws SimulatorException
 	{
 		int i, j, n, nv, nr;
 		double d, t;
 		boolean stochastic = (modulesFile.getType() == ModulesFile.STOCHASTIC);
+		boolean changed;
+		int varsNum = 0, varsIndices[] = null;
 		
 		if(modulesFile == null)
 		{
@@ -1052,46 +1056,57 @@ public class SimulatorEngine
 			log.close();
 			return;
 		}
-		//Write headers
-		log.print("step");
-		nv = getNumVariables();
-		nr = modulesFile.getNumRewardStructs();
-		for(j = 0; j < nv; j++)
-		{
-			log.print(colSep+varNames[j]);
-		}
-		if (stochastic)
-		{
-			log.print(colSep+(timeCumul?"time":"time_in_state"));
-		}
-		if (nr == 1) {
-			log.print(colSep+"state_reward"+colSep+"transition_reward");
-		} else {
-			for(j = 0; j < nr; j++) {
-				log.print(colSep+"state_reward"+j+colSep+"transition_reward"+j);
-			}
-		}
-		log.println();
 		
-		//Write path
+		// Get sizes
 		n = getPathSize();
 		nv = getNumVariables();
 		nr = modulesFile.getNumRewardStructs();
+		
+		// if necessary, store info about which vars to display
+		if (vars != null) {
+			varsNum = vars.size();
+			varsIndices = new int[varsNum];
+			for (i = 0; i < varsNum; i++) varsIndices[i] = ((Integer)vars.get(i)).intValue();
+		}
+		
+		// Write header
+		log.print("step");
+		if (vars == null) for(j = 0; j < nv; j++) log.print(colSep+varNames[j]);
+		else for(j = 0; j < varsNum; j++) log.print(colSep+varNames[varsIndices[j]]);
+		if (stochastic) log.print(colSep+(timeCumul?"time":"time_in_state"));
+		if (nr == 1) {
+			log.print(colSep+"state_reward"+colSep+"transition_reward");
+		} else {
+			for(j = 0; j < nr; j++) log.print(colSep+"state_reward"+j+colSep+"transition_reward"+j);
+		}
+		log.println();
+		
+		// Write path
 		t = 0.0;
 		for(i = 0; i < n; i++)
 		{
-			log.print(i);
-			for(j = 0; j < nv; j++)
-			{
-				log.print(colSep);
-				if(varTypes[j] == Expression.BOOLEAN)
-				{
-					if(getPathData(j, i) == 0) log.print("false");
-					else log.print("true");
+			// (if required) see if relevant vars have changed
+			if (vars != null && i > 0) {
+				changed = false;
+				for (j = 0; j < varsNum; j++) {
+					if (getPathData(varsIndices[j], i) != getPathData(varsIndices[j], i-1)) changed = true;
 				}
-				else
-				{
-					log.print(getPathData(j, i));
+				if (!changed) continue;
+			}
+			// write state index
+			log.print(i);
+			// write vars
+			if (vars == null) {
+				for(j = 0; j < nv; j++) {
+					log.print(colSep);
+					if(varTypes[j] == Expression.BOOLEAN) log.print((getPathData(j, i) == 0) ? "false" : "true");
+					else log.print(getPathData(j, i));
+				}
+			} else {
+				for(j = 0; j < varsNum; j++) {
+					log.print(colSep);
+					if(varTypes[j] == Expression.BOOLEAN) log.print((getPathData(varsIndices[j], i) == 0) ? "false" : "true");
+					else log.print(getPathData(varsIndices[j], i));
 				}
 			}
 			if(stochastic)
@@ -1798,10 +1813,10 @@ public class SimulatorEngine
 	 * @param file The file to output the path to (stdout if null)
 	 * @throws SimulatorException if something goes wrong
 	 */
-	public void generateSimulationPath(ModulesFile modulesFile, Values initialState, String details, int maxPathLength, File file) throws SimulatorException
+	public void generateSimulationPath(ModulesFile modulesFile, Values initialState, String details, int maxPathLength, File file) throws SimulatorException, PrismException
 	{
-		String ss[];
-		int i, n;
+		String s, ss[];
+		int i, j, n;
 		double t;
 		boolean done;
 		boolean stochastic = (modulesFile.getType() == ModulesFile.STOCHASTIC);
@@ -1809,6 +1824,8 @@ public class SimulatorEngine
 		int simPathLength = 0 ;
 		double simPathTime = 0.0 ;
 		String simPathSep = " ";
+		ArrayList simVars = null;
+		VarList varList;
 		
 		// parse details
 		ss = details.split(",");
@@ -1835,6 +1852,26 @@ public class SimulatorEngine
 				if (simPathSep.equals("tab")) { simPathSep = "\t"; continue; }
 				if (simPathSep.equals("comma")) { simPathSep = ","; continue; }
 				throw new SimulatorException("Separator must be one of: \"space\", \"tab\", \"comma\"");
+			}
+			else if (ss[i].indexOf("vars=") == 0) {
+				varList = modulesFile.createVarList();
+				simVars = new ArrayList();
+				done = false;
+				s = ss[i].substring(5);
+				if (s.length() < 1 || s.charAt(0) != '(')
+					throw new SimulatorException("Invalid format for \"vars=(...)\"");
+				s = s.substring(1);
+				if (s.indexOf(')')>-1) { s = s.substring(0, s.length()-1); done = true; }
+				j = varList.getIndex(s);
+				if (j == -1) throw new SimulatorException("Unknown variable \""+s+"\" in \"vars=(...)\" list");
+				simVars.add(new Integer(j));
+				while (i < n && !done) {
+					s = ss[++i];
+					if (s.indexOf(')')>-1) { s = s.substring(0, s.length()-1); done = true; }
+					j = varList.getIndex(s);
+					if (j == -1) throw new SimulatorException("Unknown variable \""+s+"\" in \"vars=(...)\" list");
+					simVars.add(new Integer(j));
+				}
 			}
 			else {
 				// path of fixed number of steps
@@ -1877,7 +1914,7 @@ public class SimulatorEngine
 		if (simPathType == SIM_PATH_DEADLOCK && queryIsDeadlock() != 1) {
 			mainLog.println("\nNo deadlock state found within "+maxPathLength+" steps.");
 		} else {
-			exportPath(file, true, simPathSep);
+			exportPath(file, true, simPathSep, simVars);
 		}
 		
 		// warning if stopped early
