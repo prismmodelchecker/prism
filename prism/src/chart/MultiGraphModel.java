@@ -822,14 +822,11 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 	 */
 	public void setBordersUp(int position, double legendWidth, double legendHeight, double titleHeight) throws SettingException
 	{
-		//System.out.println("set borders up");
 		int top = (int) (titleHeight+20);
 		if(isLegendDocked() && isLegendVisible())
 		{
-			//System.out.println("sbu1");
 			if(position == LEFT)
 			{
-				//System.out.println("sbu2");
 				//		borderSizeRight = 10;
 				//		borderSizeBottom = 35;
 				//		borderSizeTop = 35;
@@ -842,7 +839,6 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 			}
 			else if(position == RIGHT)
 			{
-				//System.out.println("sbu3");
 				//		borderSizeRight = 10 + (int)legendWidth;
 				//		borderSizeTop = 35;
 				//		borderSizeBottom = 35;
@@ -855,7 +851,6 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 			}
 			else if(position == BOTTOM)
 			{
-				//System.out.println("sbu4");
 				//		borderSizeRight = 10;
 				//		borderSizeTop = 35;
 				//		borderSizeBottom = 30 + 10 + (int)legendHeight;
@@ -868,7 +863,6 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 		}
 		else
 		{
-			//System.out.println("sbu5");
 			//		borderSizeRight = 10;
 			//		borderSizeBottom = 35;
 			//		borderSizeLeft = 70;
@@ -1037,14 +1031,12 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 		((GraphList)graphs.get(graphIndex)).add(p);
 		if(sortAfter)((GraphList)graphs.get(graphIndex)).sortPoints(sortBy);
 		
-		//System.out.println("Before workOutXAndY");
 		workOutAndSetXScales();
 		workOutAndSetYScales();
-		//System.out.println("After workOutXAndY");
 		
 		setChanged();
 		notifyObservers(null);
-		//System.out.println("After notifyObservers");
+		
 		if(canvas!=null)canvas.repaint();
 	}
 	
@@ -1131,7 +1123,6 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 	 */
 	public void workOutAndSetXScales() throws SettingException
 	{
-		//System.out.println("workOutAndSetXScales called");
 		AxisOwner axis = xAxis;
 		if(axis.autoScale.getBooleanValue())
 		{
@@ -1250,7 +1241,6 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 					}
 				}
 				
-				//System.out.println("Doing logarithmic stuff");
 				//newLogBase = 10;
 				newLogBase = previousLogBase; //no change now
 				if(anyPositive)
@@ -1285,11 +1275,6 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 					newMaxPow = 1;
 					newMaxPow = 0;
 				}
-				
-				
-				// System.out.println("Getting as far as the setCHanged notifyObservers()");
-				
-				
 			}
 			
 			//System.out.println("previousMax = "+previousMax);
@@ -1317,43 +1302,36 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 			axis.activated = false;
 			if(previousMax != newMax)
 			{
-				//System.out.println("maxdiff");
 				changeMade = true;
 				axis.getMaxValue().setValue(new Double(newMax));
 			}
 			if(previousMin != newMin)
 			{
-				//System.out.println("mindiff");
 				changeMade = true;
 				axis.getMinValue().setValue(new Double(newMin));
 			}
 			if(previousMajor != newMajor)
 			{
-				//System.out.println("majordiff");
 				changeMade = true;
 				axis.getMajorGridInterval().setValue(new Double(newMajor));
 			}
 			if(previousMinor != newMinor)
 			{
-				//System.out.println("minordiff");
 				changeMade = true;
 				axis.getMinorGridInterval().setValue(new Double(newMinor));
 			}
 			if(previousLogBase != newLogBase)
 			{
-				//System.out.println("logbasediff");
 				changeMade = true;
 				axis.getLogBase().setValue(new Double(newLogBase));
 			}
 			if(previousMinPow != newMinPow)
 			{
-				//System.out.println("minpowdiff");
 				changeMade = true;
 				axis.getMinimumPower().setValue(new Integer((int)newMinPow));
 			}
 			if(previousMaxPow != newMaxPow)
 			{
-				//System.out.println("maxpowdiff");
 				changeMade = true;
 				axis.getMaximumPower().setValue(new Integer((int)newMaxPow));
 			}
@@ -1364,9 +1342,6 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 				//notifyObservers(null);
 			}
 		}
-		
-		
-		////System.out.println("workOutAndSetXScales done");
 	}
 	
 	/** This sets the value of the maximum y-coordinate according the values stored in
@@ -1496,7 +1471,6 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 					}
 				}
 				
-				//System.out.println("Doing logarithmic stuff");
 				//newLogBase = 10;
 				newLogBase = previousLogBase;
 				if(anyPositive)
@@ -1531,11 +1505,6 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 					newMaxPow = 1;
 					newMaxPow = 0;
 				}
-				
-				
-				// System.out.println("Getting as far as the setCHanged notifyObservers()");
-				
-				
 			}
 			
 			if(newMax == UNDEFINED)
@@ -1796,14 +1765,12 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
    /* public void update(Observable o, Object arg)
 	{
 //
-//		if(autoborder == null) //things haven't been assignged
+//		if(autoborder == null) //things haven't been assigned
 //			return;
-//		//System.out.println("Calling main update, should sort out the autoborder stuff");
 //		if(autoborder != null && autoborder.getBooleanValue())
 //		{
 //			//if(lastAutoBorderValue == -1 || lastAutoBorderValue == 1)
 //			{
-//				//System.out.println("telling em to disable");
 //				bottomBorder.getOffsetProperty().setEnabled(false);
 //				topBorder.getOffsetProperty().setEnabled(false);
 //				leftBorder.getOffsetProperty().setEnabled(false);
@@ -1919,7 +1886,6 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 	
 	public void doChange() throws SettingException
 	{
-		//System.out.println("Do change called");
 		workOutAndSetXScales();
 		workOutAndSetYScales();
 		setChanged();
@@ -2376,9 +2342,6 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 		
 		public void update(Observable o, Object arg)
 		{
-			//System.out.println("Axis recognised change in something");
-			
-			
 		}
 		
 		/**
@@ -3802,15 +3765,12 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 	
 	public void notifySettingChanged(Setting setting)
 	{
-		System.out.println("notifySettingChanged in MultiGraphModle");
-		if(autoborder == null) //things haven't been assignged
+		if(autoborder == null) //things haven't been assigned
 			return;
-		//System.out.println("Calling main update, should sort out the autoborder stuff");
 		if(autoborder != null && autoborder.getBooleanValue())
 		{
 			//if(lastAutoBorderValue == -1 || lastAutoBorderValue == 1)
 			{
-				//System.out.println("telling em to disable");
 				bottomBorder.getOffsetProperty().setEnabled(false);
 				topBorder.getOffsetProperty().setEnabled(false);
 				leftBorder.getOffsetProperty().setEnabled(false);
@@ -3874,7 +3834,6 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 		
 		if(setting == graphTitle)
 		{
-			//System.out.println("should be calling graphTitel stuf");
 			gop.doListTitles();
 		}
 		setChanged();
