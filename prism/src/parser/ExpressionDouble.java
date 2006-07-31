@@ -30,7 +30,8 @@ import simulator.*;
 
 public class ExpressionDouble extends Expression
 {
-	double value;
+	double value;	// value
+	String string;	// also keep original string to preserve user formatting
 	
 	// constructors
 	
@@ -43,6 +44,14 @@ public class ExpressionDouble extends Expression
 	{
 		setType(Expression.DOUBLE);
 		value = v;
+		string = ""+v;
+	}
+	
+	public ExpressionDouble(String v)
+	{
+		setType(Expression.DOUBLE);
+		string = v;
+		value = Double.valueOf(string).doubleValue();
 	}
 	
 	// set method
@@ -51,6 +60,14 @@ public class ExpressionDouble extends Expression
 	{
 		setType(Expression.DOUBLE);
 		value = v;
+		string = ""+v;
+	}
+	
+	public void setValue(String v)
+	{
+		setType(Expression.DOUBLE);
+		string = v;
+		value = Double.valueOf(string).doubleValue();
 	}
 	
 	// get method
@@ -84,7 +101,7 @@ public class ExpressionDouble extends Expression
 
 	public Expression rename(RenamedModule rm) throws PrismException
 	{
-		return new ExpressionDouble(value);
+		return new ExpressionDouble(string);
 	}
 	
 	// find all constants (i.e. locate idents which are constants)
@@ -104,7 +121,7 @@ public class ExpressionDouble extends Expression
 
 	public Expression expandConstants(ConstantList constantList) throws PrismException
 	{
-		return new ExpressionDouble(value);
+		return new ExpressionDouble(string);
 	}
 
 	// find all variables (i.e. locate idents which are variables)
@@ -169,7 +186,7 @@ public class ExpressionDouble extends Expression
 	
 	public String toString()
 	{
-		return "" + value;
+		return string;
 	}
 }
 

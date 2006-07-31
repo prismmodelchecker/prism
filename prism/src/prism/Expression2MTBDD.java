@@ -109,6 +109,10 @@ public class Expression2MTBDD
 		else if (expr instanceof ExpressionDivide) {
 			res = translateExpressionDivide((ExpressionDivide)expr);
 		}
+		// unary minus
+		else if (expr instanceof ExpressionUnaryMinus) {
+			res = translateExpressionUnaryMinus((ExpressionUnaryMinus)expr);
+		}
 		// function
 		else if (expr instanceof ExpressionFunc) {
 			res = translateExpressionFunc((ExpressionFunc)expr);
@@ -505,6 +509,18 @@ public class Expression2MTBDD
 			JDD.Deref(tmp1);
 			throw e;
 		}
+		
+		return dd;
+	}
+
+	// translate a 'unary minus'
+	
+	private JDDNode translateExpressionUnaryMinus(ExpressionUnaryMinus expr) throws PrismException
+	{
+		JDDNode dd;
+		
+		dd = translateExpression(expr.getOperand());
+		dd = JDD.Apply(JDD.MINUS, JDD.Constant(0), dd);
 		
 		return dd;
 	}
