@@ -73,7 +73,7 @@ public class DefinedConstant
 		case Expression.INT: defineInt(sl, sh, ss); break;
 		case Expression.DOUBLE: defineDouble(sl, sh, ss); break;
 		case Expression.BOOLEAN: defineBoolean(sl, sh, ss); break;
-		default: throw new PrismException("Unknown type for undefined constant \"" + name + "\"");
+		default: throw new PrismException("Unknown type for undefined constant " + name + "");
 		}
 	}
 	
@@ -86,7 +86,7 @@ public class DefinedConstant
 			il = Integer.parseInt(sl);
 		}
 		catch (NumberFormatException e) {
-			throw new PrismException("Value \"" + sl + "\" for constant \"" + name + "\" is not a valid integer");
+			throw new PrismException("Value " + sl + " for constant " + name + " is not a valid integer");
 		}
 		// if no high value given, use low value, default step is 1
 		if (sh == null) {
@@ -99,8 +99,9 @@ public class DefinedConstant
 				ih = Integer.parseInt(sh);
 			}
 			catch (NumberFormatException e) {
-				throw new PrismException("Value \"" + sh + "\" for constant \"" + name + "\" is not a valid integer");
+				throw new PrismException("Value " + sh + " for constant " + name + " is not a valid integer");
 			}
+			if (ih < il) throw new PrismException("Low value "+il+" for constant " + name + " is higher than the high value "+ih);
 			if (ss == null) {
 				// default step is 1
 				is = 1;
@@ -111,8 +112,11 @@ public class DefinedConstant
 					is = Integer.parseInt(ss);
 				}
 				catch (NumberFormatException e) {
-					throw new PrismException("Value \"" + ss + "\" for constant \"" + name + "\" is not a valid integer");
+					throw new PrismException("Value " + ss + " for constant " + name + " is not a valid integer");
 				}
+				if (is == 0) throw new PrismException("Step value for constant " + name + " cannot be zero");
+				if (is < 0) throw new PrismException("Step value for constant " + name + " must be positive");
+				if (is > ih-il) throw new PrismException("Step value "+is+" for constant " + name + " is bigger than the difference between "+il+" and "+ih);
 			}
 		}
 		// compute num steps
@@ -136,7 +140,7 @@ public class DefinedConstant
 			dl = Double.parseDouble(sl);
 		}
 		catch (NumberFormatException e) {
-			throw new PrismException("Value \"" + sl + "\" for constant \"" + name + "\" is not a valid double");
+			throw new PrismException("Value " + sl + " for constant " + name + " is not a valid double");
 		}
 		// if no high value given, use low value, default step is 1.0
 		if (sh == null) {
@@ -149,8 +153,9 @@ public class DefinedConstant
 				dh = Double.parseDouble(sh);
 			}
 			catch (NumberFormatException e) {
-				throw new PrismException("Value \"" + sh + "\" for constant \"" + name + "\" is not a valid souble");
+				throw new PrismException("Value " + sh + " for constant " + name + " is not a valid double");
 			}
+			if (dh < dl) throw new PrismException("Low value "+dl+" for constant " + name + " is higher than the high value "+dh);
 			if (ss == null) {
 				// default step is 1.0
 				ds = 1.0;
@@ -161,9 +166,11 @@ public class DefinedConstant
 					ds = Double.parseDouble(ss);
 				}
 				catch (NumberFormatException e) {
-					throw new PrismException("Value \"" + ss + "\" for constant \"" + name + "\" is not a valid double");
+					throw new PrismException("Value " + ss + " for constant " + name + " is not a valid double");
 				}
-				if (ds > dh-dl) throw new PrismException("Step value "+ds+" is bigger than the difference between "+dl+" and "+dh);
+				if (ds == 0) throw new PrismException("Step value for constant " + name + " cannot be zero");
+				if (ds < 0) throw new PrismException("Step value for constant " + name + " must be positive");
+				if (ds > dh-dl) throw new PrismException("Step value "+ds+" for constant " + name + " is bigger than the difference between "+dl+" and "+dh);
 			}
 		}
 		// compute num steps
@@ -183,7 +190,7 @@ public class DefinedConstant
 		// parse value (low)
 		if (sl.equals("true")) low = new Boolean(true);
 		else if (sl.equals("false")) low = new Boolean(false);
-		else throw new PrismException("Value \"" + sl + "\" for constant \"" + name + "\" is not a valid Boolean");
+		else throw new PrismException("Value " + sl + " for constant " + name + " is not a valid Boolean");
 		// no high or step allowed for booleans
 		if (sh != null) throw new PrismException("Cannot define ranges for Boolean constants");
 		if (ss != null) throw new PrismException("Cannot define ranges for Boolean constants");
