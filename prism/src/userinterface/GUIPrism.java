@@ -194,9 +194,19 @@ public class GUIPrism extends JFrame
         {
             throw new GUIException("Failed to Initialise:\nLook and Feel Invalid");
         }
-        choose = new JFileChooser();
-        File currentDir = new File(".");
-        choose.setCurrentDirectory(currentDir);
+		
+		// Create new file chooser which starts in current directory
+		choose = new JFileChooser();
+		File currentDir = new File(".");
+		// If current directory is the bin directory, go up one level (mainly for Windows version)
+		try {
+			currentDir = currentDir.getCanonicalFile();
+			if (currentDir.getName().equals("bin")) currentDir = currentDir.getParentFile();
+		} catch (IOException e) {
+			currentDir = new File(".");
+		}
+		choose.setCurrentDirectory(currentDir);
+		
         logPlug = null;
         eventHandle = new GUIEventHandler(this);
         
