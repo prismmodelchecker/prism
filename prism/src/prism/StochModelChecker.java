@@ -2023,7 +2023,13 @@ public class StochModelChecker implements ModelChecker
 		
 		// compute transient probabilities
 		try {
-			probs = computeTransientProbs(trans, init, time);
+			// special case: time = 0
+			if (time == 0.0) {
+				JDD.Ref(init);
+				probs = new StateProbsMTBDD(init, model);
+			} else {
+				probs = computeTransientProbs(trans, init, time);
+			}
 		}
 		catch (PrismException e) {
 			JDD.Deref(init);
