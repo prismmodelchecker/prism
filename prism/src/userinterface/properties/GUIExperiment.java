@@ -53,6 +53,10 @@ public class GUIExperiment
 	
 	private boolean isApmc;
 	
+	private Values definedMFConstants;
+	private Values definedPFConstants;
+	private Object res;
+	
 	/** Creates a new instance of GUIExperiment */
 	public GUIExperiment(GUIExperimentTable table, GUIMultiProperties guiProp, PropertiesFile prop, UndefinedConstants cons, ModulesFile mod, String modString, boolean useSimulation)
 	{
@@ -223,13 +227,15 @@ public class GUIExperiment
 		{
 			int i, k;
 			boolean clear = true;
-			Values definedMFConstants = null, definedPFConstants = null;
 			Model model = null;
-			Object res;
 			
 			PCTLFormula propertyToCheck = propertiesFile.getProperty(0);
 			SimulationInformation info = null;
 			boolean reuseInfo = false, reuseInfoAsked = false;
+			
+			definedMFConstants = null;
+			definedPFConstants = null;
+			res= null;
 			
 			try
 			{
@@ -429,12 +435,18 @@ public class GUIExperiment
 								res = e;
 							}
 							// store result of model checking
-							try {
-								setResult(definedMFConstants, definedPFConstants, res);
-							}
-							catch (PrismException e) {
-								error("Problem storing results");
-							}
+							SwingUtilities.invokeAndWait(new Runnable()
+							{
+								public void run()
+								{
+									try {
+										setResult(definedMFConstants, definedPFConstants, res);
+									}
+									catch (PrismException e) {
+										error("Problem storing results");
+									}
+								}
+							});
 							
 							table.progressChanged();
 							
