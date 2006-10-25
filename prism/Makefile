@@ -274,9 +274,9 @@ dist: dist_copy clean_all dist_files dist_tidy
 dist_bin: binary dist_tidy dist_bin_copy
 
 dist_copy:
-	@echo Adding cudd...; test -d ~dxp/public/cudd-linux && (cd ~dxp/public && tar cf - cudd-linux) | tar xf - && rm -rf cudd && mv cudd-linux cudd
-	@echo Adding doc...; test -f ~dxp/prism-dev/doc/manual.pdf && rm -rf doc && mkdir doc && cp ~dxp/prism-dev/doc/manual.pdf doc
-	@echo Adding examples...; test -d ~dxp/prism-examples && rm -rf examples prism-examples && cp -r ~dxp/prism-examples . && mv prism-examples examples
+	@echo Adding cudd...; rm -rf cudd && svn -q export https://subversion.cs.bham.ac.uk/svn/dxp/prismsvn/prism/trunk/cudd cudd
+	@echo Adding examples...; rm -rf examples && svn -q export https://subversion.cs.bham.ac.uk/svn/dxp/prismsvn/prism/trunk/prism-examples examples
+#	@echo Adding doc...; test -f ~dxp/prism-dev/doc/manual.pdf && rm -rf doc && mkdir doc && cp ~dxp/prism-dev/doc/manual.pdf doc
 
 dist_bin_copy:
 	@BIN_DIST_DIR=`/bin/pwd | sed 's/-src$$//'`"-$(BINDISTSUFFIX)" && \
