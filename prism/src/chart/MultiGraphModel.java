@@ -1,6 +1,6 @@
 //==============================================================================
 //
-//	Copyright (c) 2002-2005, Andrew Hinton
+//	Copyright (c) 2002-2006, Andrew Hinton, Dave Parker
 //
 //	This file is part of PRISM.
 //
@@ -1028,6 +1028,9 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 	 */
 	public synchronized void addPoint(int graphIndex, GraphPoint p, boolean sortAfter, boolean autoX, boolean autoY) throws SettingException
 	{
+		// Check point valid (no infinity/NaN)
+		if (!p.isValid()) return;
+		
 		((GraphList)graphs.get(graphIndex)).add(p);
 		if(sortAfter)((GraphList)graphs.get(graphIndex)).sortPoints(sortBy);
 		

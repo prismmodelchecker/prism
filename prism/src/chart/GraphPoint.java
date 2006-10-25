@@ -1,6 +1,6 @@
 //==============================================================================
 //	
-//	Copyright (c) 2002-2004, Andrew Hinton
+//	Copyright (c) 2002-2006 Andrew Hinton, Dave Parker
 //	
 //	This file is part of PRISM.
 //	
@@ -84,6 +84,22 @@ public class GraphPoint
 		//theModel.workOutAndSetYScales();
     }
     
+	// Check that point is valid (x/y not +/- infnity or NaN)
+	
+	public boolean isValid()
+	{
+		// x = +/- infinity
+		if (xCoord == Double.POSITIVE_INFINITY || xCoord == Double.NEGATIVE_INFINITY) return false;
+		// x = NaN
+		if (xCoord != xCoord) return false;
+		// y = +/- infinity
+		if (yCoord == Double.POSITIVE_INFINITY || yCoord == Double.NEGATIVE_INFINITY) return false;
+		// y = NaN
+		if (yCoord != yCoord) return false;
+		// valid
+		return true;
+	}
+	
     /** Returns a string describing this point.  This method is used to generate the
      * tooltips.
      */    

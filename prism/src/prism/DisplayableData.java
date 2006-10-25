@@ -68,13 +68,11 @@ public class DisplayableData
 	
 	public void notifyResult(Values v, Object result)
 	{
-		//System.out.println("**********************************************");
-		//System.out.println("notifying result "+v+" = "+result);
 		Object obj = shouldAddThis(v);
 		if(obj != null)
 		{
-			//System.out.println("this should be added");
 			double x,y;
+			// Get x coordinate
 			if(obj instanceof Integer)
 			{
 				x = ((Integer)obj).intValue();
@@ -83,7 +81,11 @@ public class DisplayableData
 			{
 				x = ((Double)obj).doubleValue();
 			}
+			// Cancel if non integer/double
 			else return;
+			// Cancel if +/- infinity or NaN
+			if (x == Double.POSITIVE_INFINITY || x == Double.NEGATIVE_INFINITY || x != x) return;
+			// Get y coordinate
 			if(result instanceof Integer)
 			{
 				y = ((Integer)result).intValue();
@@ -92,7 +94,11 @@ public class DisplayableData
 			{
 				y = ((Double)result).doubleValue();
 			}
+			// Cancel if non integer/double
 			else return;
+			// Cancel if +/- infinity or NaN
+			if (y == Double.POSITIVE_INFINITY || y == Double.NEGATIVE_INFINITY || y != y) return;
+			// Add point to graph
 			try
 			{
 				GraphPoint existing = getExistingGraphPoint(v);
@@ -114,10 +120,6 @@ public class DisplayableData
 			{
 				//do nothing
 			}
-		}
-		else
-		{
-			//System.out.println("should not be added");
 		}
 	}
 	
@@ -154,7 +156,6 @@ public class DisplayableData
 	 *	the value of the rangeConstant.  If not this returns null. */
 	public Object shouldAddThis(Values v)
 	{
-		boolean shouldAdd = true;
 		for(int i = 0; i < otherValues.getNumValues(); i++)
 		{
 			String name = otherValues.getName(i);
