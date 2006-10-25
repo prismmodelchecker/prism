@@ -337,7 +337,7 @@ public abstract class GUIPlugin extends JPanel implements GUIEventListener, Pris
 		// check for file overwrite
 		if(file.exists()) {
 			int selectionNo = JOptionPane.CANCEL_OPTION;
-			selectionNo = optionPane("File exists. Overwrite?", "Confirm Overwrite", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, null);
+			selectionNo = optionPane("File \""+file.getPath()+"\" exists. Overwrite?", "Confirm Overwrite", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, null);
 			if (selectionNo != JOptionPane.OK_OPTION) return JFileChooser.CANCEL_OPTION;
 		}
 		return JFileChooser.APPROVE_OPTION;
