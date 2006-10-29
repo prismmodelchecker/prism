@@ -8,12 +8,10 @@
         Describes the structure of XML files used by PRISM's
         chart package.
 
-    TODO define vocabulary identification data
     PUBLIC ID  : -//vendor//vocabulary//EN
     SYSTEM ID  : http://server/path/chartformat.dtd
 -->
 
-<!-- TODO define your own vocabulary/syntax. Example follows:  -->
 <!ELEMENT chartFormat (layout, axis, axis, (graph)*)>
 
 <!ATTLIST chartFormat

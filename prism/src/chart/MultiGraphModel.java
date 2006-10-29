@@ -37,9 +37,7 @@ import javax.xml.transform.*;
 import javax.xml.transform.dom.*;
 import javax.xml.transform.stream.*;
 import org.w3c.dom.*;
-import org.xml.sax.SAXException;
-import org.xml.sax.EntityResolver;
-import org.xml.sax.InputSource;
+import org.xml.sax.*;
 
 /*import userinterface.util.*;
 import userinterface.GUIPrism;
@@ -2664,16 +2662,43 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 	
 	// saving methods
 	
-	public MultiGraphModel load(File f) throws Exception
+	public MultiGraphModel load(File f) throws ChartException
 	{
+		DocumentBuilderFactory factory;
+		DocumentBuilder builder;
+		Document doc = null;
+		
+		// Create XML parser
+		factory = DocumentBuilderFactory.newInstance();
+		factory.setValidating(true);
+		factory.setIgnoringElementContentWhitespace(true);
+		try {
+			builder = factory.newDocumentBuilder();
+			builder.setEntityResolver(this);
+			builder.setErrorHandler(new ErrorHandler() {
+				public void fatalError(SAXParseException e) throws SAXException { throw e; }
+				public void error(SAXParseException e) throws SAXException { throw e; }
+				public void warning(SAXParseException e) {}
+			});
+		}
+		catch (ParserConfigurationException e) {
+			throw new ChartException("Couldn't create XML parser");
+		}
+		
+		// Parse
+		try {
+			doc = builder.parse(f);
+		}
+		catch (IOException e) {
+			throw new ChartException("Couldn't load file \""+f.getPath()+"\"");
+		}
+		catch (SAXException e) {
+			throw new ChartException("Invalid XML file:\n"+ e.getMessage());
+		}
+		
+		// Extract graph info from XML
 		try
 		{
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			factory.setValidating(true);
-			factory.setIgnoringElementContentWhitespace(true);
-			DocumentBuilder builder = factory.newDocumentBuilder();
-			builder.setEntityResolver(this);
-			Document doc = builder.parse(f);
 			Element chartFormat = doc.getDocumentElement();
 			
 			//graph title property
@@ -3414,7 +3439,7 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 				}
 				catch(NumberFormatException e)
 				{
-					throw new Exception(seriesHeading+" has a seriesColour property with an invalid value which should be a real number.");
+					throw new ChartException(seriesHeading+" has a seriesColour property with an invalid value which should be a real number.");
 				}
 				Color col = new Color(r,g,b);
 				String seriesShape = graph.getAttribute("seriesShape");
@@ -3439,7 +3464,7 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 				}
 				catch(NumberFormatException e)
 				{
-					throw new Exception(seriesHeading+" has a lineWidth property with an invalid value which should be a real number.");
+					throw new ChartException(seriesHeading+" has a lineWidth property with an invalid value which should be a real number.");
 				}
 				gl.setLineWidth(width);
 				String lineStyle = graph.getAttribute("lineStyle");
@@ -3452,7 +3477,7 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 				catch(SettingException e)
 				{
 					//Shouldn't ever happen
-					throw new Exception("An unexpected exception has occured when setting lineStyle of "+seriesHeading);
+					throw new ChartException("An unexpected exception has occured when setting lineStyle of "+seriesHeading);
 				}
 				
 				
@@ -3479,13 +3504,13 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 			notifyObservers();
 			return this;
 		}
-		catch(Exception e)
+		catch (SettingException e)
 		{
-			throw new Exception("Error in loading chart: "+e);
+			throw new ChartException(e.getMessage());
 		}
 	}
 	
-	public void save(File f) throws Exception
+	public void save(File f) throws ChartException
 	{
 		try
 		{
@@ -3689,23 +3714,23 @@ public class MultiGraphModel extends Observable implements SettingOwner, ListMod
 		
 		catch(DOMException e)
 		{
-			throw new Exception("Problem saving graph: DOM Exception: "+e);
+			throw new ChartException("Problem saving graph: DOM Exception: "+e);
 		}
 		catch(ParserConfigurationException e)
 		{
-			throw new Exception("Problem saving graph: Parser Exception: "+e);
+			throw new ChartException("Problem saving graph: Parser Exception: "+e);
 		}
 		catch(TransformerConfigurationException e)
 		{
-			throw new Exception("Problem saving graph: Error in creating XML: "+e);
+			throw new ChartException("Problem saving graph: Error in creating XML: "+e);
 		}
 		catch(FileNotFoundException e)
 		{
-			throw new Exception("Problem saving graph: File Not Found: "+e);
+			throw new ChartException("Problem saving graph: File Not Found: "+e);
 		}
 		catch(TransformerException e)
 		{
-			throw new Exception("Problem saving graph: Transformer Exception: "+e);
+			throw new ChartException("Problem saving graph: Transformer Exception: "+e);
 		}
 	}
 	

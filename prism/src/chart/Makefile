@@ -10,16 +10,7 @@
 THIS_DIR = chart
 PRISM_DIR_REL = ../..
 
-JAVA_FILES = \
-ChartColorChooser.java ChartObject.java FourBorders.java GraphListEditor.java GraphList.java GraphOptionsPanel.java GraphPoint.java HorizontalGraphBorder.java MultiGraphModel.java MultiGraphOptions.java MultiGraphView.java NegativeTest.java PrismColorChooserPanel.java PrismFileFilter.java Resizer.java SeriesDataEditor.java SeriesDataRenderer.java SeriesDataSetting.java SeriesList.java VerticalGraphBorder.java
-
-#echo `/bin/ls *.java`
-
-
-
-#JAVA_FILES:sh = /bin/ls *.java
-#JAVA_FILES = $(wildcard *.java)
-
+JAVA_FILES = $(wildcard *.java)
 CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class)
 
 default: all
