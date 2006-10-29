@@ -25,20 +25,10 @@ LIBRARIES = \
 -lprism \
 -lm
 
-JAVA_FILES = \
-PrismHybrid.java
-#echo `/bin/ls *.java`
-#JAVA_FILES:sh = /bin/ls *.java
-#JAVA_FILES = $(wildcard *.java)
-
+JAVA_FILES = $(wildcard *.java)
 CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class)
 
-CC_FILES = \
-hybrid.cc PH_JOR.cc PH_NondetBoundedUntil.cc PH_NondetReachReward.cc PH_NondetUntil.cc PH_Power.cc PH_ProbBoundedUntil.cc PH_ProbReachReward.cc PH_ProbUntil.cc PH_PSOR.cc PH_SOR.cc PH_StochBoundedUntil.cc PH_StochCumulReward.cc PH_StochSteadyState.cc PH_StochTransient.cc PrismHybrid.cc
-#echo `/bin/ls *.cc`
-#CC_FILES:sh = /bin/ls *.cc
-#CC_FILES = $(wildcard *.cc)
-
+CC_FILES = $(wildcard *.cc)
 O_FILES = $(CC_FILES:%.cc=$(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/%.o)
 
 default: all

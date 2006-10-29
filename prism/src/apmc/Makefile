@@ -10,12 +10,7 @@
 THIS_DIR = apmc
 PRISM_DIR_REL = ../..
 
-JAVA_FILES = \
-ApmcException.java Apmc.java
-#echo `/bin/ls *.java`
-#JAVA_FILES:sh = /bin/ls *.java
-#JAVA_FILES = $(wildcard *.java)
-
+JAVA_FILES = $(wildcard *.java)
 CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class)
 
 default: all

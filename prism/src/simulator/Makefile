@@ -21,26 +21,10 @@ LIBRARIES = \
 -L$(PRISM_DIR_REL)/$(LIB_DIR) \
 -lm
 
-JAVA_FILES = \
-./networking/FileSystem.java ./networking/RemoteHandler.java ./networking/SimulatorResultsFile.java ./networking/SimulatorNetworkHandler.java ./networking/SSHHost.java ./NetTest.java ./SimulatorEngine.java ./SimulatorException.java 
-
-#echo `find . -name '*.java'`
-#JAVA_FILES:sh = /bin/ls *.java
-#JAVA_FILES = $(wildcard *.java)
-
+JAVA_FILES = $(shell find . -name '*.java')
 CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class)
 
-CC_FILES = \
-simexpression.cc simexpressionbuilder.cc \
-simutil.cc simstate.cc simmodel.cc simreasoning.cc simupdater.cc simpctl.cc \
-simsampling.cc simpath.cc simformulae.cc \
-SimulatorEngine.cc \
-simtransitionbuilder.cc simrandom.cc simpctlbuilder.cc simengine.cc \
-simrewardsbuilder.cc simiohandler.cc simtest.cc simlog.cc
-#echo `/bin/ls *.cc`
-#CC_FILES:sh = /bin/ls *.cc
-#CC_FILES = $(wildcard *.cc)
-
+CC_FILES = $(wildcard *.cc)
 O_FILES = $(CC_FILES:%.cc=$(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/%.o)
 
 default: all

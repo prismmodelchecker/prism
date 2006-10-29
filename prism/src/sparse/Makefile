@@ -25,20 +25,10 @@ LIBRARIES = \
 -lprism \
 -lm
 
-JAVA_FILES = \
-PrismSparse.java
-#echo `/bin/ls *.java`
-#JAVA_FILES:sh = /bin/ls *.java
-#JAVA_FILES = $(wildcard *.java)
-
+JAVA_FILES = $(wildcard *.java)
 CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class)
 
-CC_FILES = \
-PrismSparse.cc PS_ExportMatrix.cc PS_ExportMDP.cc PS_ExportSubMDP.cc PS_JOR.cc PS_NondetBoundedUntil.cc PS_NondetReachReward.cc PS_NondetUntil.cc PS_Power.cc PS_ProbBoundedUntil.cc PS_ProbReachReward.cc PS_ProbUntil.cc PS_SOR.cc PS_StochBoundedUntil.cc PS_StochCumulReward.cc PS_StochSteadyState.cc PS_StochTransient.cc sparse.cc
-#echo `/bin/ls *.cc`
-#CC_FILES:sh = /bin/ls *.cc
-#CC_FILES = $(wildcard *.cc)
-
+CC_FILES = $(wildcard *.cc)
 O_FILES = $(CC_FILES:%.cc=$(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/%.o)
 
 default: all

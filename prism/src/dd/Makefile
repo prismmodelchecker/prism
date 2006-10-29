@@ -24,12 +24,7 @@ LIBRARIES = \
 -lst \
 -lepd
 
-CC_FILES = \
-dd.cc dd_abstr.cc dd_basics.cc dd_cudd.cc dd_export.cc dd_info.cc dd_matrix.cc dd_term.cc dd_test.cc dd_vars.cc
-#echo `/bin/ls *.cc`
-#CC_FILES:sh = /bin/ls *.cc
-#CC_FILES = $(wildcard *.cc)
-
+CC_FILES = $(wildcard *.cc)
 O_FILES = $(CC_FILES:%.cc=$(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/%.o)
 
 default: all

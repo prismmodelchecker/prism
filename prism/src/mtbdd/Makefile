@@ -24,20 +24,10 @@ LIBRARIES = \
 -lprism \
 -lm
 
-JAVA_FILES = \
-PrismMTBDD.java
-#echo `/bin/ls *.java`
-#JAVA_FILES:sh = /bin/ls *.java
-#JAVA_FILES = $(wildcard *.java)
-
+JAVA_FILES = $(wildcard *.java)
 CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class)
 
-CC_FILES = \
-PM_ExportLabels.cc PM_ExportMatrix.cc PM_ExportVector.cc PM_JOR.cc PM_NondetBoundedUntil.cc PM_NondetReachReward.cc PM_NondetUntil.cc PM_Power.cc PM_Prob0A.cc PM_Prob0.cc PM_Prob0E.cc PM_Prob1A.cc PM_Prob1.cc PM_Prob1E.cc PM_ProbBoundedUntil.cc PM_ProbReachReward.cc PM_ProbUntil.cc PM_Reachability.cc PM_StochBoundedUntil.cc PM_StochCumulReward.cc PM_StochSteadyState.cc PM_StochTransient.cc PrismMTBDD.cc
-#echo `/bin/ls *.cc`
-#CC_FILES:sh = /bin/ls *.cc
-#CC_FILES = $(wildcard *.cc)
-
+CC_FILES = $(wildcard *.cc)
 O_FILES = $(CC_FILES:%.cc=$(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/%.o)
 
 default: all

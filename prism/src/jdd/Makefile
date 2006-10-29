@@ -21,20 +21,10 @@ LIBRARIES = \
 -L$(PRISM_DIR_REL)/$(LIB_DIR) \
 -ldd
 
-JAVA_FILES = \
-JDD.java JDDNode.java JDDTest.java JDDVars.java JDDVectorConsumer.java
-#echo `/bin/ls *.java`
-#JAVA_FILES:sh = /bin/ls *.java
-#JAVA_FILES = $(wildcard *.java)
-
+JAVA_FILES = $(wildcard *.java)
 CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class)
 
-CC_FILES = \
-JDD.cc
-#echo `/bin/ls *.cc`
-#CC_FILES:sh = /bin/ls *.cc
-#CC_FILES = $(wildcard *.cc)
-
+CC_FILES = $(wildcard *.cc)
 O_FILES = $(CC_FILES:%.cc=$(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/%.o)
 
 default: all

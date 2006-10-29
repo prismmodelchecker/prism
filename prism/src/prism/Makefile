@@ -19,26 +19,10 @@ $(JAVA_INCLUDES) \
 LIBRARIES = \
 -lm
 
-JAVA_FILES = \
-DefinedConstant.java DisplayableData.java Explicit2MTBDD.java Expression2MTBDD.java ModelChecker.java Model.java Modules2MTBDD.java NondetModelChecker.java NondetModel.java Preprocessor.java PrismCL.java PrismException.java PrismFileLog.java Prism.java PrismLog.java PrismSettings.java PrismSettingsListener.java PrismUtils.java ProbModelChecker.java ProbModel.java PropertyConstants.java RangingConstant.java ResultsCollection.java SCCComputer.java StateList.java StateListMTBDD.java StateProbsDV.java StateProbs.java StateProbsMTBDD.java StochModelChecker.java StochModel.java UndefinedConstants.java
-#echo `/bin/ls *.java`
-
-
-#JAVA_FILES:sh = /bin/ls *.java
-
-
-
-
-#JAVA_FILES = $(wildcard *.java)
-
+JAVA_FILES = $(wildcard *.java)
 CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class)
 
-CC_FILES = \
-foxglynn.cc PrismUtils.cc
-#echo `/bin/ls *.cc`
-#CC_FILES:sh = /bin/ls *.cc
-#CC_FILES = $(wildcard *.cc)
-
+CC_FILES = $(wildcard *.cc)
 O_FILES = $(CC_FILES:%.cc=$(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/%.o)
 
 default: all
