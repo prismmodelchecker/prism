@@ -51,6 +51,8 @@ public class GUIConstantsPicker extends javax.swing.JDialog
 	private Action okAction;
 	private Action cancelAction;
 	
+	private javax.swing.JButton okayButton;
+	
 	private UndefinedConstants undef;
 	
 	private GUIPrism gui;
@@ -108,7 +110,7 @@ public class GUIConstantsPicker extends javax.swing.JDialog
 		javax.swing.JPanel jPanel4;
 		javax.swing.JPanel jPanel5;
 		javax.swing.JPanel jPanel6;
-		javax.swing.JButton okayButton;
+		
 		
 		jPanel1 = new javax.swing.JPanel();
 		jPanel2 = new javax.swing.JPanel();
