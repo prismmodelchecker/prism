@@ -10,7 +10,7 @@
 THIS_DIR = userinterface
 PRISM_DIR_REL = ../..
 
-JAVA_FILES = $(shell find . -name '*.java')
+JAVA_FILES = $(wildcard *.java model/*.java model/computation/*.java model/pepaModel/*.java model/graphicModel/*.java util/*.java simulator/*.java simulator/networking/*.java properties/*.java properties/computation/*.java log/*.java)
 CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class)
 
 default: all

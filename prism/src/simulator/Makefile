@@ -21,7 +21,7 @@ LIBRARIES = \
 -L$(PRISM_DIR_REL)/$(LIB_DIR) \
 -lm
 
-JAVA_FILES = $(shell find . -name '*.java')
+JAVA_FILES = $(wildcard *.java networking/*.java)
 CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class)
 
 CC_FILES = $(wildcard *.cc)
