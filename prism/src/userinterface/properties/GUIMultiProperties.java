@@ -39,7 +39,7 @@ import userinterface.simulator.networking.*;
 
 /**
  *  Properties panel designed to handle constants as well as properties.
- *  Also designed to handle experiements.
+ *  Also designed to handle experiments.
  *  @author  ug60axh
  */
 public class GUIMultiProperties extends GUIPlugin implements MouseListener, ListSelectionListener, PrismSettingsListener
@@ -1260,9 +1260,11 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		removeConstant.setEnabled(consTable.getSelectedRowCount() > 0);
 		removeLabel.setEnabled(labTable.getSelectedRowCount() > 0);
 		if(!computing)
-		{
+		{			
 			if(e.isPopupTrigger() && e.getSource() == propList)
 			{
+				
+				
 				int index = propList.locationToIndex(e.getPoint());
 				// if there are no properties selected, select the one under the popup
 				if(propList.isSelectionEmpty())
@@ -1301,11 +1303,17 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 						break;
 					}
 				}
+				
+				
+				
 				cutAction.setEnabled(true);
 				deleteAction.setEnabled(true);
 				verifySelected.setEnabled(propList.getValidSelectedProperties().size() > 0);
 				simulate.setEnabled(propList.getValidSimulatableSelectedProperties().size() > 0);
 				editProperty.setEnabled(true);
+				
+				newExperiment.setEnabled(propList.getNumSelectedProperties() == 1 && propList.getValidSelectedProperties().size() == 1);
+				
 				if(showDeleters == false)
 				{
 					cutAction.setEnabled(false);
@@ -1313,21 +1321,21 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 					simulate.setEnabled(false);
 					verifySelected.setEnabled(false);
 					editProperty.setEnabled(false);
+					newExperiment.setEnabled(false);
 				}
 				
 				propertiesPopup.show(e.getComponent(), e.getX(), e.getY());
 			}
 			else if(e.isPopupTrigger() && (e.getSource() == consTable || e.getSource() == constantsScroll))
-			{
-				constantsPopup.show(e.getComponent(), e.getX(), e.getY());
-				
+			{				
+				constantsPopup.show(e.getComponent(), e.getX(), e.getY());				
 			}
 			else if(e.isPopupTrigger() && ( e.getSource() == labTable || e.getSource() == labelsScroll))
-			{
+			{				
 				labelsPopup.show(e.getComponent(), e.getX(), e.getY());
 			}
 			else if(e.isPopupTrigger() && ( e.getSource() == experiments || e.getSource() == expScroller))
-			{
+			{				
 				doEnables();
 				this.experimentPopup.show(e.getComponent(), e.getX(), e.getY());
 			}
@@ -1387,6 +1395,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				verifySelected.setEnabled(propList.getValidSelectedProperties().size() > 0);
 				simulate.setEnabled(propList.getValidSimulatableSelectedProperties().size() > 0);
 				editProperty.setEnabled(true);
+				newExperiment.setEnabled(propList.getNumSelectedProperties() == 1 && propList.getValidSelectedProperties().size() == 1);
+							
 				if(showDeleters == false)
 				{
 					cutAction.setEnabled(false);
@@ -1394,6 +1404,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 					simulate.setEnabled(false);
 					verifySelected.setEnabled(false);
 					editProperty.setEnabled(false);
+					newExperiment.setEnabled(false);
 				}
 				
 				propertiesPopup.show(e.getComponent(), e.getX(), e.getY());
@@ -1633,12 +1644,14 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	{
 		propertiesPopup = new JPopupMenu();
 		
+		propertiesPopup.add(editProperty);		
 		propertiesPopup.add(newProperty);
 		propertiesPopup.add(new JSeparator());
 		propertiesPopup.add(verifySelected);
 		//propertiesPopup.add(verifyAll);
 		propertiesPopup.add(simulate);
-		propertiesPopup.add(editProperty);
+		//experiment
+		propertiesPopup.add(newExperiment);
 		propertiesPopup.add(details);
 		propertiesPopup.add(new JSeparator());
 		propertiesPopup.add(cutAction);
