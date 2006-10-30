@@ -26,6 +26,13 @@ import parser.*;
 
 public class DefinedConstant
 {
+	/* When iterating over doubles it is not unlikely that the value
+	 * of the iterators are slightly different to the expected value.
+	 * If this difference is within DOUBLE_PRECISION_CORRECTION * ds then
+	 * we presume that this is caused by the inprecision of doubles.
+	 */
+	public static final double DOUBLE_PRECISION_CORRECTION = 0.001;
+	
 	/* Basic info about constant. */
 	private String name;
 	private int type;
@@ -36,6 +43,8 @@ public class DefinedConstant
 	private int numSteps;
 	/* Storage for a (temporary) value of the constant. */
 	private Object value;
+	
+	
 
 	/** Creates a new instance of DefinedConstant
 	(which is initially undefined, bar a name and type). */
@@ -122,7 +131,13 @@ public class DefinedConstant
 		// compute num steps
 		numSteps = 0;
 		ihNew = ih;
-		for (i = il; i <= ih; i+=is) { numSteps++; ihNew = i; }
+		
+		for (i = il; i <= ih; i = il + numSteps * is)
+		{ 			
+			numSteps++; 
+			ihNew = i; 
+		}	
+		
 		// store 'actual' value for high
 		ih = ihNew;
 		// store Object versions
@@ -176,7 +191,11 @@ public class DefinedConstant
 		// compute num steps
 		numSteps = 0;
 		dhNew = dh;
-		for (d = dl; d <= dh; d+=ds) { numSteps++; dhNew = d; }
+		for (d = dl; d <= dh + DOUBLE_PRECISION_CORRECTION * ds; d = dl + numSteps * ds) 
+		{ 
+			numSteps++; 
+			dhNew = d; 
+		}
 		// store 'actual' value for high
 		dh = dhNew;
 		// store Object versions
@@ -239,8 +258,12 @@ public class DefinedConstant
 			ds = ((Double)step).doubleValue();
 			dv = ((Double)value).doubleValue();
 			// if possible, increment
-			if (dv+ds<=dh) {
-				value = new Double(dv+ds);
+			
+			int index = getValueIndex(value) + 1;			
+			dv = dl + index * ds; 
+						
+			if (dv <= dh + DOUBLE_PRECISION_CORRECTION * ds) {
+				value = new Double(dv);
 			}
 			// otherwise, reset to low value, note overflow
 			else {
@@ -290,7 +313,9 @@ public class DefinedConstant
 			dl = ((Double)low).doubleValue();
 			ds = ((Double)step).doubleValue();
 			dv = dl;
-			for (i = 0; i < j; i++) dv += ds;
+			//for (i = 0; i < j; i++) dv += ds;			
+			dv = dl + j * ds;
+			
 			return new Double(dv);
 		// boolean (case should be redundant)
 		case Expression.BOOLEAN:
@@ -360,5 +385,5 @@ public class DefinedConstant
 		if (numSteps > 1) s += ":" + step + ":" + high;
 		
 		return s;
-	}
+	}	
 }
