@@ -57,6 +57,7 @@ public class GUIResultsTable extends javax.swing.JDialog
 		
 		//initialise
 		initComponents();
+		getRootPane().setDefaultButton(closeButton);
 		setResizable(true);
 		pack();
 		setLocationRelativeTo(getParent()); // centre

@@ -63,6 +63,7 @@ public class GUIGraphPicker extends javax.swing.JDialog
         this.gh = gh;
         multiSeries = new ArrayList();
         initComponents();
+        getRootPane().setDefaultButton(lineOkayButton);
         setResizable(false);
         init();
 		setLocationRelativeTo(getParent()); // centre

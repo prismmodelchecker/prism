@@ -84,6 +84,7 @@ public class GUIPropertyEditor extends javax.swing.JDialog implements ActionList
 		this.parsedModel = parsedModel;
 		this.propertyInvalidStrategy = strategy;
 		initComponents();
+		this.getRootPane().setDefaultButton(okayButton);
 		setLocationRelativeTo(getParent()); // centre
 		//propertyList.setListData(props);
 		if(prop == null)
@@ -781,7 +782,7 @@ public class GUIPropertyEditor extends javax.swing.JDialog implements ActionList
         jPanel2.add(cancelButton);
 
         getContentPane().add(jPanel2, java.awt.BorderLayout.SOUTH);
-
+        
         pack();
     }//GEN-END:initComponents
 

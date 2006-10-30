@@ -88,6 +88,7 @@ public class GUIExperimentPicker extends javax.swing.JDialog
 		
 		//initialise
 		initComponents();
+		this.getRootPane().setDefaultButton(okayButton);
 		if (offerGraph)
 		{
 			createGraphCheck.setEnabled(true);
@@ -213,7 +214,8 @@ public class GUIExperimentPicker extends javax.swing.JDialog
 		jPanel1.add(useSimulationCheck, gridBagConstraints);
 
 		getContentPane().add(jPanel1, java.awt.BorderLayout.CENTER);
-
+		
+		
 		jPanel6.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
 
 		okayButton.setText("Okay");

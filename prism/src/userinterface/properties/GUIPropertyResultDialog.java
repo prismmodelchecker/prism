@@ -39,7 +39,7 @@ public class GUIPropertyResultDialog extends javax.swing.JDialog
 		super(parent, false);
 		
 		initComponents();
-		
+		getRootPane().setDefaultButton(jButton1);
 		setTitle("Property Details");
 		
 		propertyLabel.setText(gp.getPropString());
@@ -109,7 +109,7 @@ public class GUIPropertyResultDialog extends javax.swing.JDialog
 		jPanel2.add(jButton1);
 
 		getContentPane().add(jPanel2, java.awt.BorderLayout.SOUTH);
-
+		
 		jPanel10.setLayout(new java.awt.GridBagLayout());
 
 		jPanel1.setLayout(new java.awt.GridBagLayout());

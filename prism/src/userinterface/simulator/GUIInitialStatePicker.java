@@ -98,6 +98,7 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
 	
 		//initialise
 		initComponents();
+		this.getRootPane().setDefaultButton(okayButton);
 		initTable();
 		initValues();
 		
@@ -198,7 +199,7 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
         jPanel7.add(jPanel1, java.awt.BorderLayout.CENTER);
 
         getContentPane().add(jPanel7, java.awt.BorderLayout.CENTER);
-
+        
         pack();
     }//GEN-END:initComponents
                     

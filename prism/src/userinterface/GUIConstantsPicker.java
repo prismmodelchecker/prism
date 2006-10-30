@@ -82,6 +82,7 @@ public class GUIConstantsPicker extends javax.swing.JDialog
 		
 		//initialise
 		initComponents();
+		this.getRootPane().setDefaultButton(okayButton);
 		initTables(areModel, areProp);
 		initValues(undef, modelDefaults, propDefaults);
 		

@@ -60,6 +60,7 @@ public class GUITransientTime extends javax.swing.JDialog
     public GUITransientTime(java.awt.Frame parent) {
         super(parent, "Define time", true);
         initComponents();
+        this.getRootPane().setDefaultButton(okayButton);
 		setLocationRelativeTo(getParent()); // centre
 		if (!first) timeField.setText(""+time);
     }
@@ -142,7 +143,8 @@ public class GUITransientTime extends javax.swing.JDialog
         jPanel6.add(cancelButton);
 
         getContentPane().add(jPanel6, java.awt.BorderLayout.SOUTH);
-
+        
+        
         pack();
     }//GEN-END:initComponents
 

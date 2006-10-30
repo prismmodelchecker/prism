@@ -133,6 +133,8 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 		
 		// initialise
 		initComponents();
+		this.getRootPane().setDefaultButton(okayButton);
+		
 		initTable();
 		initValues();
 		approximationField.addKeyListener(this);

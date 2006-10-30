@@ -42,6 +42,7 @@ public class GUIOptionsDialog extends javax.swing.JDialog
 		settings = parent.getPrism().getSettings();
 		panels = new ArrayList();
 		initComponents();
+		this.getRootPane().setDefaultButton(cancelButton);
 		setLocationRelativeTo(getParent()); // centre
 		//setResizable(false);
 		
@@ -136,7 +137,7 @@ public class GUIOptionsDialog extends javax.swing.JDialog
 
 		jPanel4.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
 
-		cancelButton.setText("OK");
+		cancelButton.setText("Okay");
 		cancelButton.setMaximumSize(new java.awt.Dimension(200, 50));
 		cancelButton.setMinimumSize(new java.awt.Dimension(80, 25));
 		cancelButton.setPreferredSize(new java.awt.Dimension(80, 25));
@@ -153,7 +154,7 @@ public class GUIOptionsDialog extends javax.swing.JDialog
 		jPanel2.add(jPanel4, java.awt.BorderLayout.EAST);
 
 		getContentPane().add(jPanel2, java.awt.BorderLayout.SOUTH);
-
+		
 		pack();
 	}//GEN-END:initComponents
 	
