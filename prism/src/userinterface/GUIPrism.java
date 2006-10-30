@@ -82,8 +82,8 @@ public class GUIPrism extends JFrame
             gui = new GUIPrism();
             gui.importOptions();
             gui.show();
-            gui.passCLArgs(args);
             EventQueue.invokeLater(new GUIPrism.SplashScreenCloser());
+            gui.passCLArgs(args);
         }
         catch(GUIException e)
         {
