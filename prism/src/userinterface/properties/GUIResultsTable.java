@@ -37,6 +37,7 @@ public class GUIResultsTable extends javax.swing.JDialog
 	private GUIExperiment exp;
 	
 	private javax.swing.JPanel topPanel;
+	private javax.swing.JButton closeButton;
 	
 	private JScrollPane scroller;
 	private JTable table;
@@ -75,7 +76,6 @@ public class GUIResultsTable extends javax.swing.JDialog
 		javax.swing.JPanel jPanel4;
 		javax.swing.JPanel jPanel5;
 		javax.swing.JPanel jPanel6;
-		javax.swing.JButton closeButton;
 		
 		jPanel1 = new javax.swing.JPanel();
 		jPanel2 = new javax.swing.JPanel();
