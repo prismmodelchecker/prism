@@ -37,6 +37,7 @@ public abstract class Setting
     private boolean editableWhenMultiple;
     private boolean enabled;
     private ArrayList constraints;
+	private String version;
     
     private SettingOwner owner;
     
@@ -49,6 +50,7 @@ public abstract class Setting
         this.owner = owner;
         this.editableWhenMultiple = editableWhenMultiple;
         this.enabled = true;
+		this.version = null;
         
         constraints = new ArrayList();
         if(constraint != null) addConstraint(constraint);
@@ -89,6 +91,11 @@ public abstract class Setting
         return (SettingConstraint)constraints.get(i);
     }
     
+	public void setVersion(String s)
+	{
+		version = s;
+	}
+	
     /**
      *  Return the name of this setting
      */
@@ -227,6 +234,11 @@ public abstract class Setting
         return key;
     }
 	
+	public String getVersion()
+	{
+		return version;
+	}
+
 	/**
 	 *	Must be overridden to define what this setting should be written like to
 	 *	a file, so that it can be read in again

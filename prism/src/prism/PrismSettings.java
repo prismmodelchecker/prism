@@ -27,6 +27,7 @@ import java.io.*;
 import java.awt.*;
 import java.lang.Comparable;
 import javax.swing.*;
+import java.util.regex.*;
 
 import settings.*;
 
@@ -150,80 +151,73 @@ public class PrismSettings implements Observer
 	};
 	
 	
-	/*
-	 *
-	 *
-	 *	<li> 1 - use with ordering 1: nondet vars form a tree at the top
-	 *                                                                      <li> 3 - use with ordering 2: zero for nonexistant bits
-	 *
-	 *
-	 *
-	 */
+	// Property table
+	
 	public static final Object[][][] propertyData =
 	{
-		{	//Datatype:			Key:									Display name:							Default:																	Constraints:																				Comment:
+		{	//Datatype:			Key:									Display name:							Version:		Default:																	Constraints:																				Comment:
 			//====================================================================================================================================================================================================================================================================================================================================
-			{ CHOICE_TYPE,		PRISM_ENGINE,							"engine",								"Hybrid",																	"MTBDD,Sparse,Hybrid",																		"Model checking engine" },
-			{ BOOLEAN_TYPE,		PRISM_VERBOSE,							"verbose output?",						new Boolean(false),															"",																							"Display verbose output?" },
-			{ BOOLEAN_TYPE,		PRISM_FAIRNESS,							"use fairness?",						new Boolean(false),															"",																							"Use fairness for MDP analysis?" },
-			{ BOOLEAN_TYPE,		PRISM_PRECOMPUTATION,					"use precomputation?",					new Boolean(true),															"",																							"Use model checking precomputation algorithms?" },
-			{ BOOLEAN_TYPE,		PRISM_DO_PROB_CHECKS,					"do prob checks?",						new Boolean(true),															"",																							"Perform sanity checks on model probabilities/rates?" },
-			{ BOOLEAN_TYPE,		PRISM_COMPACT,							"use compact schemes?",					new Boolean(true),															"",																							"Use compact sparse storage schemes?" },
-			{ CHOICE_TYPE,		PRISM_LIN_EQ_METHOD,					"iterative method",						"Jacobi",																	"Power,Jacobi,Gauss-Seidel,Backwards Gauss-Seidel,Pseudo-Gauss-Seidel,Backwards Pseudo-Gauss-Seidel,JOR,SOR,Backwards SOR,Pseudo-SOR,Backwards Pseudo-SOR",		"Iterative method for linear equation system solution" },
-			{ DOUBLE_TYPE,		PRISM_LIN_EQ_METHOD_PARAM,				"over-relaxation parameter",			new Double(0.9),															"",																							"Over-relaxation parameter (for JOR/SOR/etc.)" },
-			{ CHOICE_TYPE,		PRISM_TERM_CRIT,						"termination criteria",					"Relative",																	"Absolute,Relative",																		"Termination criteria (iterative methods)" },
-			{ DOUBLE_TYPE,		PRISM_TERM_CRIT_PARAM,					"termination epsilon",					new Double(1.0E-6),															"0.0,",																						"Termination criteria epsilon (iterative methods)" },
-			{ INTEGER_TYPE,		PRISM_MAX_ITERS,						"termination max iterations",			new Integer(10000),															"0,",																						"Maximum iterations (iterative methods)" },
-			{ INTEGER_TYPE,		PRISM_CUDD_MAX_MEM,						"cudd max memory (KB)",					new Integer(204800),														"0,",																						"CUDD max memory (KB)" },
-			{ DOUBLE_TYPE,		PRISM_CUDD_EPSILON,						"cudd epsilon",							new Double(1.0E-15),														"0.0,",																						"CUDD epsilon for terminal cache comparisions" },
-			{ INTEGER_TYPE,		PRISM_NUM_SB_LEVELS,					"hybrid num. levels",					new Integer(-1),															"-1,",																						"Number of MTBDD levels ascended when adding sparse matrices to hybrid engine data structures (-1 means use default)" },
-			{ INTEGER_TYPE,		PRISM_SB_MAX_MEM,						"hybrid max memory",					new Integer(1024),															"0,",																						"Maximum memory usage when adding sparse matrices to hybrid engine data structures" },
-			{ INTEGER_TYPE,		PRISM_NUM_SOR_LEVELS,					"hybrid num. levels (GS/SOR)",			new Integer(-1),															"-1,",																						"Number of MTBDD levels descended for hybrid engine data structures block division (GS/SOR)" },
-			{ INTEGER_TYPE,		PRISM_SOR_MAX_MEM,						"hybrid max memory (GS/SOR)",			new Integer(1024),															"0,",																						"Maximum memory usage for hybrid engine data structures block division (GS/SOR)" },
-			{ BOOLEAN_TYPE,		PRISM_DO_SS_DETECTION,					"use steady-state detection?",			new Boolean(true),															"0,",																						"Use steady-state detection for CTMC transient properties?" }
+			{ CHOICE_TYPE,		PRISM_ENGINE,							"engine",								"3.0",			"Hybrid",																	"MTBDD,Sparse,Hybrid",																		"Model checking engine" },
+			{ BOOLEAN_TYPE,		PRISM_VERBOSE,							"verbose output?",						"3.0",			new Boolean(false),															"",																							"Display verbose output?" },
+			{ BOOLEAN_TYPE,		PRISM_FAIRNESS,							"use fairness?",						"3.0",			new Boolean(false),															"",																							"Use fairness for MDP analysis?" },
+			{ BOOLEAN_TYPE,		PRISM_PRECOMPUTATION,					"use precomputation?",					"3.0",			new Boolean(true),															"",																							"Use model checking precomputation algorithms?" },
+			{ BOOLEAN_TYPE,		PRISM_DO_PROB_CHECKS,					"do prob checks?",						"3.0",			new Boolean(true),															"",																							"Perform sanity checks on model probabilities/rates?" },
+			{ BOOLEAN_TYPE,		PRISM_COMPACT,							"use compact schemes?",					"3.0",			new Boolean(true),															"",																							"Use compact sparse storage schemes?" },
+			{ CHOICE_TYPE,		PRISM_LIN_EQ_METHOD,					"iterative method",						"3.0",			"Jacobi",																	"Power,Jacobi,Gauss-Seidel,Backwards Gauss-Seidel,Pseudo-Gauss-Seidel,Backwards Pseudo-Gauss-Seidel,JOR,SOR,Backwards SOR,Pseudo-SOR,Backwards Pseudo-SOR",		"Iterative method for linear equation system solution" },
+			{ DOUBLE_TYPE,		PRISM_LIN_EQ_METHOD_PARAM,				"over-relaxation parameter",			"3.0",			new Double(0.9),															"",																							"Over-relaxation parameter (for JOR/SOR/etc.)" },
+			{ CHOICE_TYPE,		PRISM_TERM_CRIT,						"termination criteria",					"3.0",			"Relative",																	"Absolute,Relative",																		"Termination criteria (iterative methods)" },
+			{ DOUBLE_TYPE,		PRISM_TERM_CRIT_PARAM,					"termination epsilon",					"3.0",			new Double(1.0E-6),															"0.0,",																						"Termination criteria epsilon (iterative methods)" },
+			{ INTEGER_TYPE,		PRISM_MAX_ITERS,						"termination max iterations",			"3.0",			new Integer(10000),															"0,",																						"Maximum iterations (iterative methods)" },
+			{ INTEGER_TYPE,		PRISM_CUDD_MAX_MEM,						"cudd max memory (KB)",					"3.0",			new Integer(204800),														"0,",																						"CUDD max memory (KB)" },
+			{ DOUBLE_TYPE,		PRISM_CUDD_EPSILON,						"cudd epsilon",							"3.0",			new Double(1.0E-15),														"0.0,",																						"CUDD epsilon for terminal cache comparisions" },
+			{ INTEGER_TYPE,		PRISM_NUM_SB_LEVELS,					"hybrid num. levels",					"3.0",			new Integer(-1),															"-1,",																						"Number of MTBDD levels ascended when adding sparse matrices to hybrid engine data structures (-1 means use default)" },
+			{ INTEGER_TYPE,		PRISM_SB_MAX_MEM,						"hybrid max memory",					"3.0",			new Integer(1024),															"0,",																						"Maximum memory usage when adding sparse matrices to hybrid engine data structures" },
+			{ INTEGER_TYPE,		PRISM_NUM_SOR_LEVELS,					"hybrid num. levels (GS/SOR)",			"3.0",			new Integer(-1),															"-1,",																						"Number of MTBDD levels descended for hybrid engine data structures block division (GS/SOR)" },
+			{ INTEGER_TYPE,		PRISM_SOR_MAX_MEM,						"hybrid max memory (GS/SOR)",			"3.0",			new Integer(1024),															"0,",																						"Maximum memory usage for hybrid engine data structures block division (GS/SOR)" },
+			{ BOOLEAN_TYPE,		PRISM_DO_SS_DETECTION,					"use steady-state detection?",			"3.0",			new Boolean(true),															"0,",																						"Use steady-state detection for CTMC transient properties?" }
 		},
 		{
-			{ BOOLEAN_TYPE,		MODEL_AUTO_PARSE,						"auto parse?",							new Boolean(true),															"",																							"When set to true, prism models are parsed automatically as they are entered into the text editor." },
-			{ BOOLEAN_TYPE,		MODEL_AUTO_MANUAL,						"manual parse for large model?",		new Boolean(true),															"",																							"When set to true, the loading of large PRISM models turns off automatic parsing." },
-			{ INTEGER_TYPE,		MODEL_PARSE_DELAY,						"parse delay (ms)",						new Integer(1000),															"0,",																						"After typing has finished, the time delay before an automatic re-parse of the model is performed." },
-			{ FONT_COLOUR_TYPE,	MODEL_PRISM_EDITOR_FONT,				"prism editor font",					new FontColorPair(new Font("monospaced", Font.PLAIN, 12), Color.black),		"",																							"The base font (without highlighting) for the text editor when editing PRISM models." },
-			{ COLOUR_TYPE,		MODEL_PRISM_EDITOR_BG_COLOUR,			"prism editor background",				new Color(255,255,255),														"",																							"The colour of the background of the text editor when editing PRISM models." },
-			{ COLOUR_TYPE,		MODEL_PRISM_EDITOR_NUMERIC_COLOUR,		"prism editor numeric colour",			new Color(0,0,255),															"",																							"The colour to highlight numeric characters of the text editor when editing PRISM models." },
-			{ CHOICE_TYPE,		MODEL_PRISM_EDITOR_NUMERIC_STYLE,		"prism editor numeric style",			"Plain",																	"Plain,Italic,Bold,Bold Italic",															"The style to highlight numeric characters of the text editor when editing PRISM models." },
-			{ COLOUR_TYPE,		MODEL_PRISM_EDITOR_IDENTIFIER_COLOUR,	"prism editor identifier colour",		new Color(255,0,0),															"",																							"The colour to highlight the characters of identifiers in the text editor when editing PRISM models." },
-			{ CHOICE_TYPE,		MODEL_PRISM_EDITOR_IDENTIFIER_STYLE,	"prism editor identifier style",		"Plain",																	"Plain,Italic,Bold,Bold Italic",															"The style to highlight the characters of identifiers in the text editor when editing PRISM models." },
-			{ COLOUR_TYPE,		MODEL_PRISM_EDITOR_KEYWORD_COLOUR,		"prism editor keyword colour",			new Color(0,0,0),															"",																							"The colour to highlight the characters of keywords in the text editor when editing PRISM models." },
-			{ CHOICE_TYPE,		MODEL_PRISM_EDITOR_KEYWORD_STYLE,		"prism editor keyword style",			"Bold",																		"Plain,Italic,Bold,Bold Italic",															"The style to highlight the characters of keywords in the text editor when editing PRISM models." },
-			{ COLOUR_TYPE,		MODEL_PRISM_EDITOR_COMMENT_COLOUR,		"prism editor comment colour",			new Color(0,99,0),															"",																							"The colour to highlight the characters of comments in the text editor when editing PRISM models." },
-			{ CHOICE_TYPE,		MODEL_PRISM_EDITOR_COMMENT_STYLE,		"prism editor comment style",			"Italic",																	"Plain,Italic,Bold,Bold Italic",															"The style to highlight the characters of comments in the text editor when editing PRISM models." },
-			{ FONT_COLOUR_TYPE,	MODEL_PEPA_EDITOR_FONT,					"pepa editor font",						new FontColorPair(new Font("monospaced", Font.PLAIN, 12), Color.black),		"",																							"The base font (without highlighting) for the text editor when editing PEPA models." },
-			{ COLOUR_TYPE,		MODEL_PEPA_EDITOR_BG_COLOUR,			"pepa editor background",				new Color(255,250,240),														"",																							"The colour of the background of the text editor when editing PEPA models." },
-			{ COLOUR_TYPE,		MODEL_PEPA_EDITOR_COMMENT_COLOUR,		"pepa editor comment colour",			new Color(0,99,0),															"",																							"The colour to highlight the characters of comments in the text editor when editing PEPA models." },
-			{ CHOICE_TYPE,		MODEL_PEPA_EDITOR_COMMENT_STYLE,		"pepa editor comment style",			"Italic",																	"Plain,Italic,Bold,Bold Italic",															"The style to highlight the characters of comments in the text editor when editing PEPA models." }
+			{ BOOLEAN_TYPE,		MODEL_AUTO_PARSE,						"auto parse?",							"3.0",			new Boolean(true),															"",																							"When set to true, prism models are parsed automatically as they are entered into the text editor." },
+			{ BOOLEAN_TYPE,		MODEL_AUTO_MANUAL,						"manual parse for large model?",		"3.0",			new Boolean(true),															"",																							"When set to true, the loading of large PRISM models turns off automatic parsing." },
+			{ INTEGER_TYPE,		MODEL_PARSE_DELAY,						"parse delay (ms)",						"3.0",			new Integer(1000),															"0,",																						"After typing has finished, the time delay before an automatic re-parse of the model is performed." },
+			{ FONT_COLOUR_TYPE,	MODEL_PRISM_EDITOR_FONT,				"prism editor font",					"3.0",			new FontColorPair(new Font("monospaced", Font.PLAIN, 12), Color.black),		"",																							"The base font (without highlighting) for the text editor when editing PRISM models." },
+			{ COLOUR_TYPE,		MODEL_PRISM_EDITOR_BG_COLOUR,			"prism editor background",				"3.0",			new Color(255,255,255),														"",																							"The colour of the background of the text editor when editing PRISM models." },
+			{ COLOUR_TYPE,		MODEL_PRISM_EDITOR_NUMERIC_COLOUR,		"prism editor numeric colour",			"3.0",			new Color(0,0,255),															"",																							"The colour to highlight numeric characters of the text editor when editing PRISM models." },
+			{ CHOICE_TYPE,		MODEL_PRISM_EDITOR_NUMERIC_STYLE,		"prism editor numeric style",			"3.0",			"Plain",																	"Plain,Italic,Bold,Bold Italic",															"The style to highlight numeric characters of the text editor when editing PRISM models." },
+			{ COLOUR_TYPE,		MODEL_PRISM_EDITOR_IDENTIFIER_COLOUR,	"prism editor identifier colour",		"3.0",			new Color(255,0,0),															"",																							"The colour to highlight the characters of identifiers in the text editor when editing PRISM models." },
+			{ CHOICE_TYPE,		MODEL_PRISM_EDITOR_IDENTIFIER_STYLE,	"prism editor identifier style",		"3.0",			"Plain",																	"Plain,Italic,Bold,Bold Italic",															"The style to highlight the characters of identifiers in the text editor when editing PRISM models." },
+			{ COLOUR_TYPE,		MODEL_PRISM_EDITOR_KEYWORD_COLOUR,		"prism editor keyword colour",			"3.0",			new Color(0,0,0),															"",																							"The colour to highlight the characters of keywords in the text editor when editing PRISM models." },
+			{ CHOICE_TYPE,		MODEL_PRISM_EDITOR_KEYWORD_STYLE,		"prism editor keyword style",			"3.0",			"Bold",																		"Plain,Italic,Bold,Bold Italic",															"The style to highlight the characters of keywords in the text editor when editing PRISM models." },
+			{ COLOUR_TYPE,		MODEL_PRISM_EDITOR_COMMENT_COLOUR,		"prism editor comment colour",			"3.0",			new Color(0,99,0),															"",																							"The colour to highlight the characters of comments in the text editor when editing PRISM models." },
+			{ CHOICE_TYPE,		MODEL_PRISM_EDITOR_COMMENT_STYLE,		"prism editor comment style",			"3.0",			"Italic",																	"Plain,Italic,Bold,Bold Italic",															"The style to highlight the characters of comments in the text editor when editing PRISM models." },
+			{ FONT_COLOUR_TYPE,	MODEL_PEPA_EDITOR_FONT,					"pepa editor font",						"3.0",			new FontColorPair(new Font("monospaced", Font.PLAIN, 12), Color.black),		"",																							"The base font (without highlighting) for the text editor when editing PEPA models." },
+			{ COLOUR_TYPE,		MODEL_PEPA_EDITOR_BG_COLOUR,			"pepa editor background",				"3.0",			new Color(255,250,240),														"",																							"The colour of the background of the text editor when editing PEPA models." },
+			{ COLOUR_TYPE,		MODEL_PEPA_EDITOR_COMMENT_COLOUR,		"pepa editor comment colour",			"3.0",			new Color(0,99,0),															"",																							"The colour to highlight the characters of comments in the text editor when editing PEPA models." },
+			{ CHOICE_TYPE,		MODEL_PEPA_EDITOR_COMMENT_STYLE,		"pepa editor comment style",			"3.0",			"Italic",																	"Plain,Italic,Bold,Bold Italic",															"The style to highlight the characters of comments in the text editor when editing PEPA models." }
 		},
 		{
-			{ FONT_COLOUR_TYPE,	PROPERTIES_FONT,						"display font",							new FontColorPair(new Font("monospaced", Font.PLAIN, 12), Color.black),		"",																							"The font for the properties list." },
-			{ COLOUR_TYPE,		PROPERTIES_WARNING_COLOUR,				"warning colour",						new Color(255,130,130),														"",																							"The colour to highlight a property when there is an error / problem." },
-			{ CHOICE_TYPE,		PROPERTIES_ADDITION_STRATEGY,			"property addition strategy",			"Warn when invalid",														"Warn when invalid,Do not allow invalid",													"How to deal with properties that are invalid." },
-			{ BOOLEAN_TYPE,		PROPERTIES_CLEAR_LIST_ON_LOAD,			"clear list when load model?",			new Boolean(true),															"",																							"When set to true, the properties list is cleared whenever a new model is loaded." }
+			{ FONT_COLOUR_TYPE,	PROPERTIES_FONT,						"display font",							"3.0",			new FontColorPair(new Font("monospaced", Font.PLAIN, 12), Color.black),		"",																							"The font for the properties list." },
+			{ COLOUR_TYPE,		PROPERTIES_WARNING_COLOUR,				"warning colour",						"3.0",			new Color(255,130,130),														"",																							"The colour to highlight a property when there is an error / problem." },
+			{ CHOICE_TYPE,		PROPERTIES_ADDITION_STRATEGY,			"property addition strategy",			"3.0",			"Warn when invalid",														"Warn when invalid,Do not allow invalid",													"How to deal with properties that are invalid." },
+			{ BOOLEAN_TYPE,		PROPERTIES_CLEAR_LIST_ON_LOAD,			"clear list when load model?",			"3.0",			new Boolean(true),															"",																							"When set to true, the properties list is cleared whenever a new model is loaded." }
 		},
 		{
-			{ CHOICE_TYPE,		SIMULATOR_ENGINE,						"simulator engine",						"PRISM simulator",															"PRISM simulator,APMC",																		"The simulator engine for use in approximate model checking.  The PRISM simulator supports DTMCs and CTMCs.  APMC supports DTMCs and only runs on UNIX platforms." },
-			{ DOUBLE_TYPE,		SIMULATOR_DEFAULT_APPROX,				"default approximation parameter",		new Double(1.0E-2),															"0,1",																							"The default approximation parameter for approximate model checking using the PRISM simulator or APMC." },
-			{ DOUBLE_TYPE,		SIMULATOR_DEFAULT_CONFIDENCE,			"default confidence parameter",			new Double(1.0E-10),														"0,1",																						"The default confidence parameter for approximate model checking using the PRISM simulator or APMC." },
-			{ INTEGER_TYPE,		SIMULATOR_DEFAULT_NUM_SAMPLES,			"default num. samples",					new Integer(402412),														"1,",																						"The default number of samples for approximate model checking using the PRISM simulator or APMC." },
-			{ INTEGER_TYPE,		SIMULATOR_DEFAULT_MAX_PATH,				"default max. path length",				new Integer(10000),															"1,",																					"The default maximum path length for approximate model checking using the PRISM simulator or APMC." },
-			{ BOOLEAN_TYPE,		SIMULATOR_SIMULTANEOUS,					"check properties simultaneously?",		new Boolean(true),															"",																							"When set to true, all relevant properties are checked over the same execution paths, meaning only one set of sample paths need be generated.  This feature is only supported by the PRISM simulator." },
-			{ CHOICE_TYPE,		SIMULATOR_FIELD_CHOICE,					"values used in dialog",				"Last used values",															"Last used values,Always use defaults",														"This setting allows the choice between whether the values used in the simulation dialog are taken from the defaults every time, or from the last used values." },
-			{ BOOLEAN_TYPE,		SIMULATOR_NEW_PATH_ASK_INITIAL,			"ask for initial state?",				new Boolean(true),															"",																							"When set to true, creating a new path in the simulator user interface prompts for an initial state rather than using default values for the model." },
-			{ CHOICE_TYPE,		SIMULATOR_RENDER_ALL_VALUES,			"path render style",					"Render changes",															"Render changes,Render all values",															"How the execution path in the simulator user interface should display the different states.  The \'render changes\' option displays a value only if it has changed." },
-			{ INTEGER_TYPE,		SIMULATOR_APMC_STRATEGY,				"apmc strategy",						new Integer(0),																"",																							"The strategy used by APMC" },	
-			{ FILE_TYPE,		SIMULATOR_NETWORK_FILE,					"network profile",						new File(""),																		"",																					"This file is used to specify the network profile which should be used by the distributed PRISM simulator." }
+			{ CHOICE_TYPE,		SIMULATOR_ENGINE,						"simulator engine",						"3.0",			"PRISM simulator",															"PRISM simulator,APMC",																		"The simulator engine for use in approximate model checking.  The PRISM simulator supports DTMCs and CTMCs.  APMC supports DTMCs and only runs on UNIX platforms." },
+			{ DOUBLE_TYPE,		SIMULATOR_DEFAULT_APPROX,				"default approximation parameter",		"3.0",			new Double(1.0E-2),															"0,1",																							"The default approximation parameter for approximate model checking using the PRISM simulator or APMC." },
+			{ DOUBLE_TYPE,		SIMULATOR_DEFAULT_CONFIDENCE,			"default confidence parameter",			"3.0",			new Double(1.0E-10),														"0,1",																						"The default confidence parameter for approximate model checking using the PRISM simulator or APMC." },
+			{ INTEGER_TYPE,		SIMULATOR_DEFAULT_NUM_SAMPLES,			"default num. samples",					"3.0",			new Integer(402412),														"1,",																						"The default number of samples for approximate model checking using the PRISM simulator or APMC." },
+			{ INTEGER_TYPE,		SIMULATOR_DEFAULT_MAX_PATH,				"default max. path length",				"3.0",			new Integer(10000),															"1,",																					"The default maximum path length for approximate model checking using the PRISM simulator or APMC." },
+			{ BOOLEAN_TYPE,		SIMULATOR_SIMULTANEOUS,					"check properties simultaneously?",		"3.0",			new Boolean(true),															"",																							"When set to true, all relevant properties are checked over the same execution paths, meaning only one set of sample paths need be generated.  This feature is only supported by the PRISM simulator." },
+			{ CHOICE_TYPE,		SIMULATOR_FIELD_CHOICE,					"values used in dialog",				"3.0",			"Last used values",															"Last used values,Always use defaults",														"This setting allows the choice between whether the values used in the simulation dialog are taken from the defaults every time, or from the last used values." },
+			{ BOOLEAN_TYPE,		SIMULATOR_NEW_PATH_ASK_INITIAL,			"ask for initial state?",				"3.0",			new Boolean(true),															"",																							"When set to true, creating a new path in the simulator user interface prompts for an initial state rather than using default values for the model." },
+			{ CHOICE_TYPE,		SIMULATOR_RENDER_ALL_VALUES,			"path render style",					"3.0",			"Render changes",															"Render changes,Render all values",															"How the execution path in the simulator user interface should display the different states.  The \'render changes\' option displays a value only if it has changed." },
+			{ INTEGER_TYPE,		SIMULATOR_APMC_STRATEGY,				"apmc strategy",						"3.0",			new Integer(0),																"",																							"The strategy used by APMC" },	
+			{ FILE_TYPE,		SIMULATOR_NETWORK_FILE,					"network profile",						"3.0",			new File(""),																		"",																					"This file is used to specify the network profile which should be used by the distributed PRISM simulator." }
 		},
 		{
-			{ FONT_COLOUR_TYPE,	LOG_FONT,								"display font",							new FontColorPair(new Font("monospaced", Font.PLAIN, 12), Color.black),		"",																							"The font for the log display." },
-			{ COLOUR_TYPE,		LOG_BG_COLOUR,							"background colour",					new Color(255,255,255),														"",																							"The colour of the background of the log display." },
-			{ INTEGER_TYPE,		LOG_BUFFER_LENGTH,						"buffer length",						new Integer(10000),															"1,",																						"The length of the buffer for the log display." }
+			{ FONT_COLOUR_TYPE,	LOG_FONT,								"display font",							"3.0",			new FontColorPair(new Font("monospaced", Font.PLAIN, 12), Color.black),		"",																							"The font for the log display." },
+			{ COLOUR_TYPE,		LOG_BG_COLOUR,							"background colour",					"3.0",			new Color(255,255,255),														"",																							"The colour of the background of the log display." },
+			{ INTEGER_TYPE,		LOG_BUFFER_LENGTH,						"buffer length",						"3.0",			new Integer(10000),															"1,",																						"The length of the buffer for the log display." }
 		}
 	};
 	
@@ -251,9 +245,10 @@ public class PrismSettings implements Observer
 				Object[] setting = propertyData[i][j];
 				String key = (String)setting[1];
 				String display = (String)setting[2];
-				Object value = setting[3];
-				String constraint = (String)setting[4];
-				String comment = (String)setting[5];
+				String version = (String)setting[3];
+				Object value = setting[4];
+				String constraint = (String)setting[5];
+				String comment = (String)setting[6];
 				
 				Setting set;
 				
@@ -264,6 +259,7 @@ public class PrismSettings implements Observer
 					else
 						set = new IntegerSetting(display, (Integer)value, comment, optionOwners[i], false, new RangeConstraint(constraint));
 					set.setKey(key);
+					set.setVersion(version);
 					optionOwners[i].addSetting(set);
 				}
 				else if(setting[0].equals(DOUBLE_TYPE))
@@ -274,6 +270,7 @@ public class PrismSettings implements Observer
 					else
 						set = new DoubleSetting(display, (Double)value, comment, optionOwners[i], false, new RangeConstraint(constraint));
 					set.setKey(key);
+					set.setVersion(version);
 					optionOwners[i].addSetting(set);
 				}
 				else if(setting[0].equals(BOOLEAN_TYPE))
@@ -281,6 +278,7 @@ public class PrismSettings implements Observer
 					//DO constraints for this boolean
 					set = new BooleanSetting(display, (Boolean)value, comment, optionOwners[i], false);
 					set.setKey(key);
+					set.setVersion(version);
 					optionOwners[i].addSetting(set);
 				}
 				else if(setting[0].equals(COLOUR_TYPE))
@@ -288,6 +286,7 @@ public class PrismSettings implements Observer
 					//DO constraints for this Color
 					set = new ColorSetting(display, (Color)value, comment, optionOwners[i], false);
 					set.setKey(key);
+					set.setVersion(version);
 					optionOwners[i].addSetting(set);
 				}
 				else if(setting[0].equals(CHOICE_TYPE))
@@ -302,6 +301,7 @@ public class PrismSettings implements Observer
 					}
 					set = new ChoiceSetting(display, choices, (String)value, comment, optionOwners[i], false);
 					set.setKey(key);
+					set.setVersion(version);
 					optionOwners[i].addSetting(set);
 				}
 				else if(setting[0].equals(FONT_COLOUR_TYPE))
@@ -309,12 +309,14 @@ public class PrismSettings implements Observer
 					//DO constraints for this FontColorPair
 					set = new FontColorSetting(display, (FontColorPair)value, comment, optionOwners[i], false);
 					set.setKey(key);
+					set.setVersion(version);
 					optionOwners[i].addSetting(set);
 				}
 				else if(setting[0].equals(FILE_TYPE))
 				{
 					set = new FileSetting(display, (File)value, comment, optionOwners[i], false);
 					set.setKey(key);
+					set.setVersion(version);
 					optionOwners[i].addSetting(set);
 				}
 				else
@@ -372,7 +374,7 @@ public class PrismSettings implements Observer
 	
 	public File getLocationForSettingsFile()
 	{
-		return new File(System.getProperty("user.home")+"/.prism");
+		return new File(System.getProperty("user.home")+File.separator+".prism");
 	}
 	
 	public synchronized void saveSettingsFile() throws PrismException
@@ -414,7 +416,6 @@ public class PrismSettings implements Observer
 		}
 		catch(IOException e)
 		{
-			e.printStackTrace();
 			throw new PrismException("Error exporting properties file: "+e.getMessage());
 		}
 		
@@ -425,16 +426,33 @@ public class PrismSettings implements Observer
 	{
 		File file = getLocationForSettingsFile();
 		
+		BufferedReader reader;
+		String line = null;
+		String key = "";
+		String value;
+		int equalsIndex;
+		StringBuffer multiline = new StringBuffer();
+		boolean inMulti = false;
+		String version;
+		boolean resaveNeeded = false;
+		
 		try
 		{
-			BufferedReader reader = new BufferedReader(new FileReader(file));
-			String line;
-			String key = "";
-			String value;
-			int equalsIndex;
-			StringBuffer multiline = new StringBuffer();
-			boolean inMulti = false;
+			// Read first two lines to extract version
+			version = null;
+			reader = new BufferedReader(new FileReader(file));
+			if (reader.ready()) line = reader.readLine();
+			if (reader.ready()) line = reader.readLine();
+			Matcher matcher =  Pattern.compile("# \\(created by version (.+)\\)").matcher(line);
+			if (matcher.find()) version = matcher.group(1);
+			reader.close();
 			
+			// Do we need to resave the file?
+			if (version == null) version = "0";
+			if (Prism.compareVersions(version, Prism.getVersion()) == -1) resaveNeeded = true;
+			
+			// Read whole file
+			reader = new BufferedReader(new FileReader(file));
 			while(reader.ready())
 			{
 				line = reader.readLine();
@@ -457,6 +475,8 @@ public class PrismSettings implements Observer
 							Setting set = settingFromHash(key);
 							if(set != null)
 							{
+								// If "version" of setting is newer than the version of the settings file, ignore
+								if (resaveNeeded && Prism.compareVersions(set.getVersion(), version) == 1) continue;
 								try
 								{
 									Object valObj = set.parseStringValue(value);
@@ -487,6 +507,8 @@ public class PrismSettings implements Observer
 						Setting set = settingFromHash(key);
 						if(set != null)
 						{
+							// If "version" of setting is newer than the version of the settings file, ignore
+							if (resaveNeeded && Prism.compareVersions(set.getVersion(), version) == 1) continue;
 							try
 							{
 								Object valObj = set.parseStringValue(multiline.toString() + line);
@@ -507,8 +529,6 @@ public class PrismSettings implements Observer
 					}
 				}
 			}
-			
-			
 		}
 		catch(IOException e)
 		{
@@ -516,6 +536,15 @@ public class PrismSettings implements Observer
 		}
 		
 		modified = false;
+		
+		// If necessary, resave the preferences file
+		if (resaveNeeded) {
+			try {
+				saveSettingsFile();
+			}
+			catch (PrismException e) {
+			}
+		}
 		
 		notifySettingsListeners();
 	}
@@ -533,7 +562,7 @@ public class PrismSettings implements Observer
 				{
 					try
 					{
-						set.setValue(propertyData[i][j][3]);
+						set.setValue(propertyData[i][j][4]);
 					}
 					catch(SettingException e)
 					{
