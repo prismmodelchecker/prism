@@ -80,7 +80,6 @@ public class GUIPrism extends JFrame
             splash.display();
             //new GUIPrismSplash().show();
             gui = new GUIPrism();
-            gui.importOptions();
             gui.show();
             EventQueue.invokeLater(new GUIPrism.SplashScreenCloser());
             gui.passCLArgs(args);
@@ -151,28 +150,6 @@ public class GUIPrism extends JFrame
         setupPrism();
         initComponents();
         
-    }
-    
-    public void importOptions()
-    {
-        //options.readFromConfigFile();
-        //options.readFromPropertiesFile();
-        try
-        {
-            prism.getSettings().loadSettingsFile();
-        }
-        catch(PrismException e)
-        {
-            try
-            {
-                prism.getSettings().saveSettingsFile();
-                setTaskBarText("No PRISM settings file found. A new file was created using default values.");
-            }
-            catch(PrismException ex)
-            {
-                setTaskBarText("Warning: Failed to create new PRISM settings file.");
-            }
-        }
     }
     
     /**

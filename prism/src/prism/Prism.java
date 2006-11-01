@@ -39,7 +39,7 @@ import simulator.*;
 // prism class - main class for model checker
 // (independent of user interface (command line or gui))
 
-public class Prism
+public class Prism implements PrismSettingsListener
 {
 	// prism version
 	private static final String version = "3.0";
@@ -143,6 +143,23 @@ public class Prism
 		
 		// set up some default options
 		settings = new PrismSettings();
+		// load user's default settings
+		try {
+			settings.loadSettingsFile();
+		}
+		catch(PrismException e) {
+			// if there were no user defaults to load, create them
+			try
+			{
+				settings.saveSettingsFile();
+			}
+			catch(PrismException ex)
+			{
+				System.err.println("Warning: Failed to create new PRISM settings file.");
+			}
+		}
+		// add this Prism object as a listener
+		settings.addSettingsListener(this);
 		
 		// default values for miscellaneous options 
 		doReach = true;
@@ -235,20 +252,11 @@ public class Prism
 	public void setCUDDMaxMem(int i) throws PrismException
 	{
 		settings.set(PrismSettings.PRISM_CUDD_MAX_MEM, i);
-		if (cuddStarted)
-		{
-			JDD.SetCUDDMaxMem(settings.getInteger(PrismSettings.PRISM_CUDD_MAX_MEM));
-		}
 	}
 	
 	public void setCUDDEpsilon(double d) throws PrismException
 	{
 		settings.set(PrismSettings.PRISM_CUDD_EPSILON, d);
-		
-		if (cuddStarted)
-		{
-			JDD.SetCUDDEpsilon(settings.getDouble(PrismSettings.PRISM_CUDD_EPSILON));
-		}
 	}
 	
 	public void setNumSBLevels(int i) throws PrismException
@@ -429,6 +437,17 @@ public class Prism
 			theSimulator.setMainLog(mainLog);
 		}
 		return theSimulator; 
+	}
+
+	// Let PrismSettings object notify us things have changed
+	
+	public void notifySettings(PrismSettings settings)
+	{
+		if (cuddStarted)
+		{
+			JDD.SetCUDDEpsilon(settings.getDouble(PrismSettings.PRISM_CUDD_EPSILON));
+			JDD.SetCUDDMaxMem(settings.getInteger(PrismSettings.PRISM_CUDD_MAX_MEM));
+		}
 	}
 
 	// initialise
