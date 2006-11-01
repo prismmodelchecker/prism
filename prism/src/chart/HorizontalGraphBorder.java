@@ -43,7 +43,7 @@ public class HorizontalGraphBorder extends ChartObject
     /** Creates a new instance of HorizontalGraphBorder */
     public HorizontalGraphBorder(MultiGraphModel theModel, int position, int offset)
     {
-        super(theModel, 0, 0, 100, 0.5);
+        super(theModel, 0, position==BOTTOM?100:0, 100, 0.5);
         this.position = position;
         switch(position)
         {
