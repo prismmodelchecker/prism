@@ -598,17 +598,18 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		saveProps.setEnabled		(!computing);
 		savePropsAs.setEnabled		(!computing);
 		verifyAll.setEnabled		(!computing && parsedModel != null && propList.getNumValidProperties() > 0);
-		simulate.setEnabled             (!computing && parsedModel != null && propList.getValidSimulatableSelectedProperties().size() > 0);
-		verifySelected.setEnabled       (!computing && parsedModel != null && propList.getValidSelectedProperties().size() > 0);
+		simulate.setEnabled			(!computing && parsedModel != null && propList.getValidSimulatableSelectedProperties().size() > 0);
+		verifySelected.setEnabled	(!computing && parsedModel != null && propList.getValidSelectedProperties().size() > 0);
+		details.setEnabled			(!computing && parsedModel != null && propList.getValidSelectedProperties().size() > 0);
 		// properties list
 		propList.setEnabled 		(!computing);
 		newProperty.setEnabled		(!computing);
-		editProperty.setEnabled 	(!computing);
+		editProperty.setEnabled 	(!computing && propList.getValidSelectedProperties().size() > 0);
 		cutAction.setEnabled		(!computing);
 		copyAction.setEnabled		(!computing);
 		pasteAction.setEnabled		(!computing);
 		deleteAction.setEnabled 	(!computing);
-		selectAllAction.setEnabled(!computing);
+		selectAllAction.setEnabled	(!computing);
 		// constants list
 		removeConstant.setEnabled(consTable.getSelectedRowCount() > 0);
 		// label list
@@ -1310,7 +1311,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				deleteAction.setEnabled(true);
 				verifySelected.setEnabled(propList.getValidSelectedProperties().size() > 0);
 				simulate.setEnabled(propList.getValidSimulatableSelectedProperties().size() > 0);
-				editProperty.setEnabled(true);
+				details.setEnabled(propList.getValidSelectedProperties().size() > 0);
+				editProperty.setEnabled(propList.getValidSelectedProperties().size() > 0);
 				
 				newExperiment.setEnabled(propList.getNumSelectedProperties() == 1 && propList.getValidSelectedProperties().size() == 1);
 				
@@ -1320,6 +1322,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 					deleteAction.setEnabled(false);
 					simulate.setEnabled(false);
 					verifySelected.setEnabled(false);
+					details.setEnabled(false);
 					editProperty.setEnabled(false);
 					newExperiment.setEnabled(false);
 				}
@@ -1394,7 +1397,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				deleteAction.setEnabled(true);
 				verifySelected.setEnabled(propList.getValidSelectedProperties().size() > 0);
 				simulate.setEnabled(propList.getValidSimulatableSelectedProperties().size() > 0);
-				editProperty.setEnabled(true);
+				details.setEnabled(propList.getValidSelectedProperties().size() > 0);
+				editProperty.setEnabled(propList.getValidSelectedProperties().size() > 0);
 				newExperiment.setEnabled(propList.getNumSelectedProperties() == 1 && propList.getValidSelectedProperties().size() == 1);
 							
 				if(showDeleters == false)
@@ -1403,6 +1407,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 					deleteAction.setEnabled(false);
 					simulate.setEnabled(false);
 					verifySelected.setEnabled(false);
+					details.setEnabled(false);
 					editProperty.setEnabled(false);
 					newExperiment.setEnabled(false);
 				}
@@ -1445,13 +1450,15 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		deleteAction.setEnabled(true);
 		verifySelected.setEnabled(propList.getValidSelectedProperties().size() > 0);
 		simulate.setEnabled(propList.getValidSimulatableSelectedProperties().size() > 0);
-		editProperty.setEnabled(true);
+		details.setEnabled(propList.getValidSelectedProperties().size() > 0);
+		editProperty.setEnabled(propList.getValidSelectedProperties().size() > 0);
 		if(showDeleters == false)
 		{
 			cutAction.setEnabled(false);
 			deleteAction.setEnabled(false);
 			simulate.setEnabled(false);
 			verifySelected.setEnabled(false);
+			details.setEnabled(false);
 			editProperty.setEnabled(false);
 		}
 		
