@@ -450,6 +450,76 @@ public class Prism implements PrismSettingsListener
 		}
 	}
 
+	// Compare two version numbers of PRISM (strings)
+	// Returns: 1 if v1>v2, -1 if v1<v2, 0 if v1=v2
+	// Example ordering: { "1", "2", "2.0", "2.1.beta", "2.1.beta4", "2.1", "2.1.dev", "2.1.dev1", "2.1.dev2", "2.1.2", "2.9", "3", "3.4"}
+	
+	public static int compareVersions(String v1, String v2)
+	{
+		String ss1[], ss2[], tmp[];
+		int s1 = 0, s2 = 0, i, n;
+		boolean s1num, s2num;
+		
+		// Exactly equal
+		if (v1.equals(v2)) return 0;
+		// Otherwise split into sections
+		ss1 = v1.split("\\.");
+		ss2 = v2.split("\\.");
+		// Pad if one is shorter
+		n = Math.max(ss1.length, ss2.length);
+		if (ss1.length < n) {
+			tmp = new String[n];
+			for (i = 0; i < ss1.length; i++) tmp[i] = ss1[i];
+			for (i = ss1.length; i < n; i++) tmp[i] = "";
+			ss1 = tmp;
+		}
+		if (ss2.length < n) {
+			tmp = new String[n];
+			for (i = 0; i < ss2.length; i++) tmp[i] = ss2[i];
+			for (i = ss2.length; i < n; i++) tmp[i] = "";
+			ss2 = tmp;
+		}
+		// Loop through sections of string
+		for (i = 0; i < n; i++) {
+			// 2.1.beta < 2.1, etc.
+			if (ss1[i].matches("beta.*")) {
+				if (ss2[i].matches("beta.*")) {
+					// 2.1.beta < 2.1.beta2 < 2.1.beta3, etc.
+					try { if (ss1[i].length() == 4) s1 = 0; else s1 = Integer.parseInt(ss1[i].substring(4)); } catch (NumberFormatException e) { return 0; }
+					try { if (ss2[i].length() == 4) s2 = 0; else s2 = Integer.parseInt(ss2[i].substring(4)); } catch (NumberFormatException e) { return 0; }
+					if (s1 == s2) return 0; else return (s1 > s2) ? 1 : -1;
+				}
+				else return -1;
+			}
+			if (ss2[i].matches("beta.*")) return 1;
+			// 2 < 2.1, etc.
+			if (ss1[i].equals("")) { if (ss2[i].equals("")) return 0; else return -1; }
+			if (ss2[i].equals("")) return 1;
+			// 2.1 < 2.1.dev, etc.
+			if (ss1[i].matches("dev.*")) {
+				if (ss2[i].matches("dev.*")) {
+					// 2.1.dev < 2.1.dev2 < 2.1.dev3, etc.
+					try { if (ss1[i].length() == 3) s1 = 0; else s1 = Integer.parseInt(ss1[i].substring(3)); } catch (NumberFormatException e) { return 0; }
+					try { if (ss2[i].length() == 3) s2 = 0; else s2 = Integer.parseInt(ss2[i].substring(3)); } catch (NumberFormatException e) { return 0; }
+					if (s1 == s2) return 0; else return (s1 > s2) ? 1 : -1;
+				}
+				else return -1;
+			}
+			if (ss2[i].matches("dev.*")) return 1;
+			// See if strings are integers
+			try { s1num = true; s1 = Integer.parseInt(ss1[i]); } catch (NumberFormatException e) { s1num = false; }
+			try { s2num = true; s2 = Integer.parseInt(ss2[i]); } catch (NumberFormatException e) { s2num = false; }
+			// 2.5 < 3.1, etc. 
+			if (s1num && s2num) {
+				if (s1 < s2) return -1;
+				if (s1 > s2) return 1;
+				if (s1 == s2) continue;
+			}
+		}
+		
+		return 0;
+	}
+
 	// initialise
 	
 	public void initialise() throws PrismException
