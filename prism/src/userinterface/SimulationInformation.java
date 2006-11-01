@@ -51,7 +51,7 @@ public class SimulationInformation
         this.noIterations = noIterations;
         this.maxPathLength = maxPathLength;
 
-		this.autoIndex = 0;
+		this.autoIndex = 1;
 		
 		this.distributed = false;
     }
