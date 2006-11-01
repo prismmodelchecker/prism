@@ -77,7 +77,7 @@ jdouble time	// time bound
 	// misc
 	bool done;
 	int i, j, l, h, iters, num_iters;
-	double d, max_diag, weight, kb, kbt, unif;
+	double d, max_diag, weight, kb, kbt, unif, term_crit_param_unif;
 	
 	// start clocks
 	start1 = start2 = util_cpu_time();
@@ -195,9 +195,12 @@ jdouble time	// time bound
 	// print total memory usage
 	PS_PrintToMainLog(env, "TOTAL: [%.1f KB]\n", kbt);
 	
+	// compute new termination criterion parameter (epsilon/8)
+	term_crit_param_unif = term_crit_param / 8.0;
+	
 	// compute poisson probabilities (fox/glynn)
 	PS_PrintToMainLog(env, "\nUniformisation: q.t = %f x %f = %f\n", unif, time, unif * time);
-	fgw = fox_glynn(unif * time, 1.0e-300, 1.0e+300, term_crit_param);
+	fgw = fox_glynn(unif * time, 1.0e-300, 1.0e+300, term_crit_param_unif);
 	for (i = fgw.left; i <= fgw.right; i++) {
 		fgw.weights[i-fgw.left] /= fgw.total_weight;
 	}
@@ -293,7 +296,7 @@ jdouble time	// time bound
 		case TERM_CRIT_ABSOLUTE:
 			done = true;
 			for (i = 0; i < n; i++) {
-				if (fabs(soln2[i] - soln[i]) > term_crit_param) {
+				if (fabs(soln2[i] - soln[i]) > term_crit_param_unif) {
 					done = false;
 					break;
 				}
@@ -302,7 +305,7 @@ jdouble time	// time bound
 		case TERM_CRIT_RELATIVE:
 			done = true;
 			for (i = 0; i < n; i++) {
-				if (fabs((soln2[i] - soln[i])/soln2[i]) > term_crit_param) {
+				if (fabs((soln2[i] - soln[i])/soln2[i]) > term_crit_param_unif) {
 					done = false;
 					break;
 				}

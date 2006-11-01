@@ -67,7 +67,7 @@ jint mu			// probs for multiplying
 	double time_taken, time_for_setup, time_for_iters;
 	// misc
 	int i, iters, num_iters;
-	double x, max_diag, weight, unif;
+	double x, max_diag, weight, unif, term_crit_param_unif;
 	bool done, combine;
 	
 	// METHOD 1 or METHOD 2? (combine rate matrix and diagonals or keep separate?)
@@ -171,9 +171,12 @@ jint mu			// probs for multiplying
 		PM_PrintToMainLog(env, "[nodes=%d] [%.1f Kb]\n", i, i*20.0/1024.0);
 	}
 	
+	// compute new termination criterion parameter (epsilon/8)
+	term_crit_param_unif = term_crit_param / 8.0;
+	
 	// compute poisson probabilities (fox/glynn)
 	PM_PrintToMainLog(env, "\nUniformisation: q.t = %f x %f = %f\n", unif, time, unif * time);
-	fgw = fox_glynn(unif * time, 1.0e-300, 1.0e+300, term_crit_param);
+	fgw = fox_glynn(unif * time, 1.0e-300, 1.0e+300, term_crit_param_unif);
 	for (i = fgw.left; i <= fgw.right; i++) {
 		fgw.weights[i-fgw.left] /= fgw.total_weight;
 	}
@@ -253,12 +256,12 @@ jint mu			// probs for multiplying
 		// check for steady state convergence
 		if (do_ss_detect) switch (term_crit) {
 		case TERM_CRIT_ABSOLUTE:
-			if (DD_EqualSupNorm(ddman, tmp, sol, term_crit_param)) {
+			if (DD_EqualSupNorm(ddman, tmp, sol, term_crit_param_unif)) {
 				done = true;
 			}
 			break;
 		case TERM_CRIT_RELATIVE:
-			if (DD_EqualSupNormRel(ddman, tmp, sol, term_crit_param)) {
+			if (DD_EqualSupNormRel(ddman, tmp, sol, term_crit_param_unif)) {
 				done = true;
 			}
 			break;

@@ -66,7 +66,7 @@ jdouble time	// time bound
 	// misc
 	bool done;
 	int i, iters, num_iters;
-	double max_diag, weight, unif;
+	double max_diag, weight, unif, term_crit_param_unif;
 	
 	// start clocks
 	start1 = start2 = util_cpu_time();
@@ -120,9 +120,12 @@ jdouble time	// time bound
 	// set up sum vector
 	sum = DD_Constant(ddman, 0);
 	
+	// compute new termination criterion parameter (epsilon/8)
+	term_crit_param_unif = term_crit_param / 8.0;
+	
 	// compute poisson probabilities (fox/glynn)
 	PM_PrintToMainLog(env, "\nUniformisation: q.t = %f x %f = %f\n", unif, time, unif * time);
-	fgw = fox_glynn(unif * time, 1.0e-300, 1.0e+300, term_crit_param);
+	fgw = fox_glynn(unif * time, 1.0e-300, 1.0e+300, term_crit_param_unif);
 	for (i = fgw.left; i <= fgw.right; i++) {
 		fgw.weights[i-fgw.left] /= fgw.total_weight;
 	}
@@ -172,12 +175,12 @@ jdouble time	// time bound
 		// check for steady state convergence
 		if (do_ss_detect) switch (term_crit) {
 		case TERM_CRIT_ABSOLUTE:
-			if (DD_EqualSupNorm(ddman, tmp, sol, term_crit_param)) {
+			if (DD_EqualSupNorm(ddman, tmp, sol, term_crit_param_unif)) {
 				done = true;
 			}
 			break;
 		case TERM_CRIT_RELATIVE:
-			if (DD_EqualSupNormRel(ddman, tmp, sol, term_crit_param)) {
+			if (DD_EqualSupNormRel(ddman, tmp, sol, term_crit_param_unif)) {
 				done = true;
 			}
 			break;
