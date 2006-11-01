@@ -1077,7 +1077,7 @@ public class SimulatorEngine
 		if (nr == 1) {
 			log.print(colSep+"state_reward"+colSep+"transition_reward");
 		} else {
-			for(j = 0; j < nr; j++) log.print(colSep+"state_reward"+j+colSep+"transition_reward"+j);
+			for(j = 0; j < nr; j++) log.print(colSep+"state_reward"+(j+1)+colSep+"transition_reward"+(j+1));
 		}
 		log.println();
 		
@@ -1945,7 +1945,7 @@ public class SimulatorEngine
 		}
 		else if (rs instanceof Expression) {
 			try {
-				rsi = ((Expression)rs).evaluateInt(allConstants, null);
+				rsi = ((Expression)rs).evaluateInt(allConstants, null) - 1;
 			} catch(PrismException e) {
 				System.err.println("Property: "+operand.toString()+" could not be used in the simulator because: \n"+ e.toString());
 				return -1;

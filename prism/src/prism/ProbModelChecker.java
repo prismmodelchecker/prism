@@ -663,8 +663,8 @@ public class ProbModelChecker implements ModelChecker
 		else if (rs instanceof Expression) {
 			i = ((Expression)rs).evaluateInt(constantValues, null);
 			rs = new Integer(i); // for better error reporting below
-			stateRewards = model.getStateRewards(i);
-			transRewards = model.getTransRewards(i);
+			stateRewards = model.getStateRewards(i - 1);
+			transRewards = model.getTransRewards(i - 1);
 		}
 		else if (rs instanceof String) {
 			stateRewards = model.getStateRewards((String)rs);

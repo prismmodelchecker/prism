@@ -150,7 +150,13 @@ public class ModulesFile
 	
 	public int getNumRewardStructs() { return rewardStructs.size(); }
 	
+	// Get a reward structure by its index
+	// (indexed from 0, not from 1 like at the user (property language) level)
+	
 	public RewardStruct getRewardStruct(int i) { return (i<rewardStructs.size()) ? (RewardStruct)rewardStructs.get(i) : null; }
+	
+	// Get the index of a module by its name
+	// (indexed from 0, not from 1 like at the user (property language) level)
 	
 	public int getRewardStructIndex(String name)
 	{

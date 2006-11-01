@@ -2515,7 +2515,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 						else if(column > n+1) //rewards
 						{
 							int i = column-(n+2);
-							return "" + ((i%2 == 0)?"Sta.":"Tra.") + " Rew. "+(i/2);
+							return "" + ((i%2 == 0)?"Sta.":"Tra.") + " Rew. "+((i/2)+1);
 						}
 					}
 					else
@@ -2524,7 +2524,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 						if(column > n) //rewards
 						{
 							int i = column-(n+1);
-							return "" + ((i%2 == 0)?"Sta.":"Tra.") + " Rew. "+(i/2);
+							return "" + ((i%2 == 0)?"Sta.":"Tra.") + " Rew. "+((i/2)+1);
 						}
 					}
 					return engine.getVariableName(column-1);
