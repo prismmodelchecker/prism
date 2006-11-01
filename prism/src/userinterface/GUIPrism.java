@@ -149,7 +149,7 @@ public class GUIPrism extends JFrame
         setupResources();
         setupPrism();
         initComponents();
-        
+        prism.getSettings().notifySettingsListeners();
     }
     
     /**
