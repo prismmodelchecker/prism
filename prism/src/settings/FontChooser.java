@@ -50,6 +50,7 @@ public class FontChooser extends javax.swing.JDialog implements ListSelectionLis
     {
         super(parent, true);
         initComponents();
+        this.getRootPane().setDefaultButton(okayButton);
         previewLabel.setBackground(Color.white);
         doListModels();
         doListeners();
@@ -409,7 +410,7 @@ public class FontChooser extends javax.swing.JDialog implements ListSelectionLis
         jPanel32.add(jPanel34);
 
         getContentPane().add(jPanel32, java.awt.BorderLayout.SOUTH);
-
+        
         pack();
     }//GEN-END:initComponents
     
