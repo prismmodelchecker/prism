@@ -1625,6 +1625,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			//ver.setIcon(GUIPrism.getIconFromImage("smallVerify.gif"));
 			propMenu.add(verifySelected);
 			propMenu.add(simulate);
+			propMenu.add(newExperiment);
 			//ver.add(verifyAll);
 			//propMenu.add(ver);
 			propMenu.setMnemonic('P');
@@ -1955,6 +1956,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		newExperiment.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_N));
 		newExperiment.putValue(Action.NAME, "New experiment");
 		newExperiment.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallNew.gif"));
+		newExperiment.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F7, 0));
 		
 		deleteExperiment = new AbstractAction()
 		{
