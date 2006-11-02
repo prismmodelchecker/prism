@@ -271,7 +271,9 @@ post_make:
 
 dist: dist_copy clean_all dist_files dist_tidy
 
+VERSION=# default value for VERSION is blank to force provision at command-line 
 dist_bin: binary dist_tidy dist_bin_copy
+	@if [ "$(VERSION)" = "" ]; then echo "Usage: make dist_bin VERSION=3.1"; exit 1; fi
 
 dist_copy:
 	@echo Adding cudd...; rm -rf cudd && svn -q export https://subversion.cs.bham.ac.uk/svn/dxp/prismsvn/prism/trunk/cudd cudd
@@ -279,17 +281,20 @@ dist_copy:
 #	@echo Adding doc...; test -f ~dxp/prism-dev/doc/manual.pdf && rm -rf doc && mkdir doc && cp ~dxp/prism-dev/doc/manual.pdf doc
 
 dist_bin_copy:
-	@BIN_DIST_DIR=`/bin/pwd | sed 's/-src$$//'`"-$(BINDISTSUFFIX)" && \
-	BIN_DIST_DIR_NAME=`basename $$BIN_DIST_DIR` && \
-	echo Creating binary distribution in $$BIN_DIST_DIR... && \
-	mkdir $$BIN_DIST_DIR && \
-	tar cf - * --exclude classes --exclude obj --exclude cudd --exclude src --exclude include --exclude Makefile | ( cd $$BIN_DIST_DIR; tar xfp -) && \
-	echo Zipping $$BIN_DIST_DIR_NAME... && \
+	@if [ "$(VERSION)" = "" ]; then echo "Usage: make dist_bin_copy VERSION=3.1"; exit 1; fi && \
 	if [ "$(BINDISTSUFFIX)" = "win" ]; then \
-		(cd $$BIN_DIST_DIR/..; zip -rq $$BIN_DIST_DIR_NAME.zip $$BIN_DIST_DIR_NAME); \
+		echo Building NSIS Windows installer...	&& \
+		makensis /DPRISM_NAME="PRISM $(VERSION)" /DPRISM_BUILD="prism-$(VERSION)" /DPRISM_DIR="" nsis_script.nsi; \
 	else \
+		BIN_DIST_DIR=`/bin/pwd | sed 's/-src$$//'`"-$(BINDISTSUFFIX)" && \
+		BIN_DIST_DIR_NAME=`basename $$BIN_DIST_DIR` && \
+		echo Creating binary distribution in $$BIN_DIST_DIR... && \
+		mkdir $$BIN_DIST_DIR && \
+		tar cf - README.txt VERSIONS.txt CHANGELOG.txt COPYING.txt install.sh bin etc lib examples doc | ( cd $$BIN_DIST_DIR; tar xfp -) && \
+		echo Zipping $$BIN_DIST_DIR_NAME... && \
 		(cd $$BIN_DIST_DIR/..; tar cfz $$BIN_DIST_DIR_NAME.tar.gz $$BIN_DIST_DIR_NAME); \
 	fi
+	# (cd $$BIN_DIST_DIR/..; zip -rq $$BIN_DIST_DIR_NAME.zip $$BIN_DIST_DIR_NAME);
 
 dist_files:
 	@echo Detecting unwanted files...
