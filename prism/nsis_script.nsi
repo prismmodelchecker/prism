@@ -78,7 +78,8 @@ Section "${PRISM_NAME}"
 	SectionIn RO ; RO=compulsory
 	
     SetOutPath "$INSTDIR"
-    File /r bin
+    File bin\prism.bat
+    File bin\xprism.bat
     File /r etc
     File /r lib
     File "CHANGELOG.txt"
