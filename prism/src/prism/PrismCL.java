@@ -1534,6 +1534,7 @@ public class PrismCL
 		mainLog.println("-simconf <x> ................... Set the confidence parameter for the simulator");
 		mainLog.println("-simsamples <n> ................ Set the number of samples for the simulator");
 		mainLog.println("-simpathlen <n> ................ Set the maximum path length for the simulator");
+		mainLog.println("-simpath <options> <file>....... Generate a random path with the simulator");
 	}
 
 	// print version
