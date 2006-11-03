@@ -1,6 +1,6 @@
 //==============================================================================
 //	
-//	Copyright (c) 2002-2004, Andrew Hinton, Dave Parker
+//	Copyright (c) 2002-2006, Andrew Hinton, Dave Parker, Mark Kattenbelt
 //	
 //	This file is part of PRISM.
 //	
@@ -27,6 +27,7 @@ import prism.*;
 import javax.swing.*;
 import java.lang.*;
 import java.net.*;
+import java.awt.datatransfer.*;
 
 /**
  *

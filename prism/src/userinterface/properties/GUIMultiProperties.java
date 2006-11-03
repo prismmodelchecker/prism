@@ -1,6 +1,6 @@
 //==============================================================================
 //
-//	Copyright (c) 2002-2005, Andrew Hinton, Dave Parker
+//	Copyright (c) 2002-2006, Andrew Hinton, Dave Parker, Mark Kattenbelt
 //
 //	This file is part of PRISM.
 //
@@ -36,7 +36,7 @@ import java.util.*;
 import userinterface.util.*;
 import userinterface.simulator.*;
 import userinterface.simulator.networking.*;
-
+import java.awt.datatransfer.*;
 /**
  *  Properties panel designed to handle constants as well as properties.
  *  Also designed to handle experiments.
@@ -888,34 +888,51 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	public void a_cut()
 	{
 		java.awt.datatransfer.Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-		java.awt.datatransfer.StringSelection selection = new java.awt.datatransfer.StringSelection(propList.getClipboardString());
-		clipboard.setContents(selection, null);
+		//java.awt.datatransfer.StringSelection selection = new java.awt.datatransfer.StringSelection(propList.getClipboardString());
+		//clipboard.setContents(selection, null);
+		clipboard.setContents(new GUIClipboardProperties(propList.getSelectedProperties()), null);
 		a_delete();
 	}
 	
 	public void a_copy()
 	{
 		java.awt.datatransfer.Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-		java.awt.datatransfer.StringSelection selection = new java.awt.datatransfer.StringSelection(propList.getClipboardString());
-		clipboard.setContents(selection, null);
+		//java.awt.datatransfer.StringSelection selection = new java.awt.datatransfer.StringSelection(propList.getClipboardString());
+		//clipboard.setContents(selection, null);
+		clipboard.setContents(new GUIClipboardProperties(propList.getSelectedProperties()), null);		
 	}
 	
 	public void a_paste()
 	{
-		java.awt.datatransfer.Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-		java.awt.datatransfer.Transferable contents = clipboard.getContents(null);
+		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		Transferable contents = clipboard.getContents(null);
+		
 		if(contents !=null)
 		{
-			try
+			if (contents.isDataFlavorSupported(getGUIClipboardPropertiesDataFlavor()))
 			{
-				String text = (String)contents.getTransferData(java.awt.datatransfer.DataFlavor.stringFlavor);
-				propList.pastePropertiesString(text);
+				try
+				{
+					GUIClipboardProperties gcp = (GUIClipboardProperties)contents.getTransferData(getGUIClipboardPropertiesDataFlavor());
+					ArrayList listOfProperties = gcp.getProperties();
+					for (int i = 0; i < listOfProperties.size(); i++)
+					{
+						GUIProperty property = (GUIProperty) listOfProperties.get(i);
+						propList.addProperty(property.getPropString(), property.getComment());
+					}
+				}
+				catch(UnsupportedFlavorException e) {}
+				catch(IOException e) {}
 			}
-			catch(java.awt.datatransfer.UnsupportedFlavorException e)
-			{
-			}
-			catch(IOException e)
-			{
+			else
+			{	
+				try
+				{					
+					String text = (String)contents.getTransferData(java.awt.datatransfer.DataFlavor.stringFlavor);
+					propList.pastePropertiesString(text);
+				}
+				catch(UnsupportedFlavorException e) {}
+				catch(IOException e) {}
 			}
 		}
 	}
@@ -1174,6 +1191,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		else if(e instanceof GUIClipboardEvent)
 		{
 			GUIClipboardEvent ce = (GUIClipboardEvent)e;
+					
 			if(ce.getComponent() == this || ce.getComponent() == propList)
 			{
 				if(!computing)
@@ -2080,5 +2098,68 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		propList.notifySettings(settings); //the GUIPropertiesList object contains all of the "fast" data
 	}
 	
+	public static DataFlavor getGUIClipboardPropertiesDataFlavor()
+	{
+		return new DataFlavor(GUIClipboardProperties.class, "PRISM Property List");
+	}
 	
+	/**
+	 * A class that allows sets of properties to be put on the clipboard.
+	 */
+	public class GUIClipboardProperties implements Transferable
+	{
+		private ArrayList listOfProperties;
+		private StringSelection stringRepresentation;
+		
+		public GUIClipboardProperties(ArrayList listOfProperties)
+		{
+			this.listOfProperties = listOfProperties;
+			String tmpString = "";
+			for(int i = 0 ; i < listOfProperties.size(); i++)
+			{
+				GUIProperty gp = (GUIProperty)listOfProperties.get(i);
+				if (gp.getComment().trim().length() > 0)
+				{					
+					tmpString += "//" + gp.getComment() + "\n";
+				}
+				tmpString += gp.getPropString();
+				if(i != listOfProperties.size() -1 ) tmpString += "\n";
+			}	
+			
+			stringRepresentation = new StringSelection(tmpString);
+		}
+		
+		
+		public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException
+		{
+			if (flavor.getRepresentationClass() == this.getClass())
+			{	return this;	}
+			else
+			{	return this.stringRepresentation.getTransferData(flavor);	}
+		}
+	    
+		public DataFlavor[] getTransferDataFlavors()
+		{	
+			DataFlavor[] stringFlavors = stringRepresentation.getTransferDataFlavors();
+					
+			DataFlavor[] allFlavors = new DataFlavor[stringFlavors.length + 1];
+			allFlavors[0] = GUIMultiProperties.getGUIClipboardPropertiesDataFlavor();
+			
+			for (int i = 0; i < stringFlavors.length; i++)
+			{	allFlavors[i+1] = stringFlavors[i];	}
+			
+			return allFlavors;
+		}
+		
+		public boolean	isDataFlavorSupported(DataFlavor flavor)
+		{
+			return (stringRepresentation.isDataFlavorSupported(flavor) || flavor.equals(GUIMultiProperties.getGUIClipboardPropertiesDataFlavor()));	
+		}		
+		
+		public ArrayList getProperties()
+		{
+			return listOfProperties;
+		}
+		
+	}
 }

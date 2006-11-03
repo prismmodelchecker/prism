@@ -70,6 +70,8 @@ public class GUIPropertiesList extends JList implements KeyListener
 		
 		addKeyListener(this);
 		setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		
+		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_MASK), "none");
 	}
 	
 	//ACCESS METHODS
@@ -227,7 +229,10 @@ public class GUIPropertiesList extends JList implements KeyListener
 		while(sto.hasMoreTokens())
 		{
 			String token = sto.nextToken();
-			addProperty(token, "");
+			
+			// Make sure it isn't comment we are pasting
+			if (token.indexOf("//") != 0)
+				addProperty(token, "");
 		}
 	}
 	
@@ -377,49 +382,30 @@ public class GUIPropertiesList extends JList implements KeyListener
 	{
 		if(e.getModifiers() == KeyEvent.CTRL_MASK)
 		{
-			if(e.getKeyCode() == KeyEvent.VK_V)
+			if(e.getKeyCode() == KeyEvent.VK_C)
+			{					
+				parent.a_copy();				
+			}			
+			else if(e.getKeyCode() == KeyEvent.VK_V)
 			{
-				java.awt.datatransfer.Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-				java.awt.datatransfer.Transferable contents = clipboard.getContents(null);
-				if(contents !=null)
-				{
-					try
-					{
-						String text = (String)contents.getTransferData(java.awt.datatransfer.DataFlavor.stringFlavor);
-						pastePropertiesString(text);
-					}
-					catch(java.awt.datatransfer.UnsupportedFlavorException ex)
-					{
-					}
-					catch(IOException ex)
-					{
-					}
-				}
+				parent.a_paste();				
 			}
 			else if(e.getKeyCode() == KeyEvent.VK_X)
 			{
-				java.awt.datatransfer.Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-				java.awt.datatransfer.StringSelection selection = new java.awt.datatransfer.StringSelection(getClipboardString());
-				clipboard.setContents(selection, null);
-				
-				deleteSelected();
-				parent.setModified(true);
+				parent.a_cut();				
 			}
 			else if(e.getKeyCode() == KeyEvent.VK_D)
 			{
-				deleteSelected();
-				parent.setModified(true);
+				parent.a_delete();				
 			}
 			else if(e.getKeyCode() == KeyEvent.VK_A)
 			{
-				selectAll();
-			}
-			
+				parent.a_selectAll();
+			}			
 		}
 		if(e.getKeyCode() == KeyEvent.VK_DELETE)
 		{
-			deleteSelected();
-			parent.setModified(true);
+			parent.a_delete();			
 		}
 	}
 	
