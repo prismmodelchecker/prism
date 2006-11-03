@@ -294,7 +294,7 @@ dist_bin_copy:
 		echo Zipping $$BIN_DIST_DIR_NAME... && \
 		(cd $$BIN_DIST_DIR/..; tar cfz $$BIN_DIST_DIR_NAME.tar.gz $$BIN_DIST_DIR_NAME); \
 	fi
-	# (cd $$BIN_DIST_DIR/..; zip -rq $$BIN_DIST_DIR_NAME.zip $$BIN_DIST_DIR_NAME);
+#	(cd $$BIN_DIST_DIR/..; zip -rq $$BIN_DIST_DIR_NAME.zip $$BIN_DIST_DIR_NAME);
 
 dist_files:
 	@echo Detecting unwanted files...
