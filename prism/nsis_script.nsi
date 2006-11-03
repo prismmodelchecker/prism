@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------- #
 
-;	Copyright (c) 2006, Mark Kattenbelt
+;	Copyright (c) 2006, Mark Kattenbelt, Dave Parker
 ;
 ;	This file is part of PRISM.
 ;
@@ -77,22 +77,28 @@ SectionEnd
 Section "${PRISM_NAME}"
 	SectionIn RO ; RO=compulsory
 	
+    SetOutPath "$INSTDIR\etc"
+    File /r etc\*.*
+    
+    SetOutPath "$INSTDIR\lib"
+    File /r lib\*.*
+    
     SetOutPath "$INSTDIR"
-    File bin\prism.bat
-    File bin\xprism.bat
-    File /r etc
-    File /r lib
     File "CHANGELOG.txt"
     File "COPYING.txt"
     FILE "install.sh"
     FILE "README.txt"
     FILE "VERSIONS.txt"
 
-    SetOutPath "$INSTDIR"
-    File /r examples
+    SetOutPath "$INSTDIR\bin"
+    File bin\prism.bat
+    File bin\xprism.bat
+    
+    SetOutPath "$INSTDIR\examples"
+    File /r examples\*.*
 
-    SetOutPath "$INSTDIR"
-    File /r doc
+    SetOutPath "$INSTDIR\doc"
+    File /r doc\*.*
 SectionEnd
 
 Section "Desktop shortcut"
@@ -102,10 +108,8 @@ Section "Desktop shortcut"
 	CreateShortCut  "$DESKTOP\${PRISM_NAME}.lnk" \
                     "$INSTDIR\bin\xprism.bat" ""                            \
                     "$INSTDIR\etc\p32.ico" 0                                \
-                    SW_SHOWNORMAL "" "Runs ${PRISM_NAME} in GUI mode"
+                    SW_SHOWMINIMIZED "" "${PRISM_NAME} (GUI mode)"
                     
-    SetOutPath "$INSTDIR\doc"
-    
 SectionEnd
 
 Section "Start menu shortcuts"
@@ -114,26 +118,36 @@ Section "Start menu shortcuts"
 
     SetOutPath "$INSTDIR\bin"
 
-    CreateShortCut  "$SMPROGRAMS\${PRISM_NAME}\${PRISM_NAME}.lnk" \
+    CreateShortCut  "$SMPROGRAMS\${PRISM_NAME}\PRISM (GUI).lnk" \
                     "$INSTDIR\bin\xprism.bat" ""                            \
                     "$INSTDIR\etc\p32.ico" 0                                \
-                    SW_SHOWMINIMIZED "" "Runs ${PRISM_NAME} in GUI mode"
+                    SW_SHOWMINIMIZED "" "Runs the PRISM GUI"
 
-    CreateShortCut  "$SMPROGRAMS\${PRISM_NAME}\${PRISM_NAME} (console).lnk" \
+    CreateShortCut  "$SMPROGRAMS\${PRISM_NAME}\PRISM (console).lnk" \
                     "$SYSDIR\cmd.exe" ""                            \
                     "$SYSDIR\cmd.exe" 0                             \
-                    SW_SHOWMINIMIZED "" "Opens a console for command-line usage of ${PRISM_NAME}"
+                    SW_SHOWNORMAL "" "Opens a console for command-line usage of PRISM"
 
     SetOutPath "$INSTDIR\doc"
 
-    CreateShortCut  "$SMPROGRAMS\${PRISM_NAME}\${PRISM_NAME} manual.lnk" \
-                    "$INSTDIR\doc\manual.pdf" ""                            \
-                    "$INSTDIR\doc\manual.pdf" 0                             \
-                    SW_SHOWNORMAL "" "The ${PRISM_NAME} manual"
+    CreateShortCut  "$SMPROGRAMS\${PRISM_NAME}\Manual (local).lnk" \
+                    "$INSTDIR\doc\manual\index.html" ""                            \
+                    "" 0                             \
+                    SW_SHOWNORMAL "" "The PRISM manual (local copy)"
+
+    CreateShortCut  "$SMPROGRAMS\${PRISM_NAME}\Manual (online).lnk" \
+                    "http://www.cs.bham.ac.uk/~dxp/prism/manual/" ""                            \
+                    "" ""                             \
+                    SW_SHOWNORMAL "" "The PRISM manual (online version)"
+
+    CreateShortCut  "$SMPROGRAMS\${PRISM_NAME}\Web site.lnk" \
+                    "http://www.cs.bham.ac.uk/~dxp/prism/" ""                            \
+                    "" 0                             \
+                    SW_SHOWNORMAL "" "The PRISM web site"
 
     SetOutPath "$INSTDIR"
 
-    CreateShortCut  "$SMPROGRAMS\${PRISM_NAME}\${PRISM_NAME} uninstall.lnk" \
+    CreateShortCut  "$SMPROGRAMS\${PRISM_NAME}\Uninstall.lnk" \
                     "$INSTDIR\uninstall.exe" ""                             \
                     "$INSTDIR\uninstall.exe" 0                              \
                     SW_SHOWNORMAL "" "Uninstalls ${PRISM_NAME} from your system"
