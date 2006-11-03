@@ -3,7 +3,7 @@ including development and beta versions. For a less detailed overview
 of the main changes in each public release, see the file VERSIONS.txt.
 
 -----------------------------------------------------------------------------
-Version 3.1.beta1 (3/11/2006) (svn rev 112)
+Version 3.1.beta1 (3/11/2006) (svn rev 114)
 -----------------------------------------------------------------------------
 
 * New installer for Windows binary
