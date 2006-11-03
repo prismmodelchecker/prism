@@ -2,16 +2,16 @@
 // gxn/dxp 13/07/02
 
 // the procotol is synchronous with no non-determinism (a DTMC)
-probabilistic
+dtmc
 
 // module for process 1
 module process1
 
-	// bits in the ring (initially all the same i.e. a token in every place)
+	// Boolean variable for process 1
 	x1 : [0..1];
 	
-	[step] (x1=x3) -> 0.5 : (x1'=0) + 0.5 : (x1'=1);
-	[step] !x1=x3 -> (x1'=x3);
+	[step]  (x1=x3) -> 0.5 : (x1'=0) + 0.5 : (x1'=1);
+	[step] !(x1=x3) -> (x1'=x3);
 	
 endmodule
 
@@ -26,12 +26,9 @@ rewards
 	
 endrewards
 
-// initial states (at least one token i.e. all states)
+// any initial state (consider any possible initial configuration of tokens)
 init
 	
 	true
 	
 endinit
-
-
-
