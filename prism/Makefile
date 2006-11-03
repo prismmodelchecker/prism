@@ -272,7 +272,9 @@ post_make:
 dist: dist_copy clean_all dist_files dist_tidy
 
 VERSION=# default value for VERSION is blank to force provision at command-line 
-dist_bin: binary dist_tidy dist_bin_copy
+dist_bin: dist_bin_check_version binary dist_tidy dist_bin_copy
+
+dist_bin_check_version:
 	@if [ "$(VERSION)" = "" ]; then echo "Usage: make dist_bin VERSION=3.1"; exit 1; fi
 
 dist_copy:
