@@ -2,6 +2,22 @@ This file summarises the principal changes between each main public release of P
 For more detailed information about the various changes, see the file CHANGELOG.txt.
 
 -----------------------------------------------------------------------------
+Version 3.1 (beta1 released 3/11/2006)
+-----------------------------------------------------------------------------
+
+* New installer for Windows binary
+* Models can now have multiple (named) reward structures
+* New -simpath switch for command-line generation of random paths with simulator
+* Minor PRISM language improvements:
+  - type keyword does not need to be first thing in model file
+  - doubles in exponential form (1.4e-9) and unary minus (-1) allowed
+* PRISM settings file now used by command-line version too
+* Small GUI improvements
+* New option to disable steady-state detection for CTMC transient analysis
+* Bug fixes
+
+
+-----------------------------------------------------------------------------
 Version 3.0 (released 6/7/2006)
 -----------------------------------------------------------------------------
 
