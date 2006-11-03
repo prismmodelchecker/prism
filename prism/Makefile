@@ -322,7 +322,7 @@ dist_tidy:
 
 binary:
 	@echo Generating jar file...
-	@cd $(CLASSES_DIR) && jar cf ../lib/prism.jar *
+	@cd $(CLASSES_DIR) && jar cmf ../src/manifest.txt ../lib/prism.jar *
 
 undist:
 	@rm -rf cudd && ln -s ../cudd cudd

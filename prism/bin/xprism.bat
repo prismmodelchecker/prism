@@ -15,5 +15,6 @@ rem Setup classpath - jar file (for binary versions) gets priority
 set CP=%PRISM_DIR%\lib\prism.jar;%PRISM_DIR%\classes;%PRISM_DIR%\lib\pepa.zip
 
 rem Run PRISM through Java
+rem start javaw -classpath %CP% userinterface/GUIPrism %*
 java -classpath %CP% userinterface/GUIPrism %*
 
