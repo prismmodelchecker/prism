@@ -103,6 +103,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		pathTable.getSelectionModel().addListSelectionListener(this);
 		
 		pathTable.addMouseListener(this);
+		pathTable.getTableHeader().addMouseListener(this);
+		pathTable.getParent().addMouseListener(this);
 		
 		pathTable.getTableHeader().setReorderingAllowed(false);
 		
@@ -1938,7 +1940,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					error(ex.getMessage());
 				}
 			}
-		};
+		};		
 		removeToHere.putValue(Action.LONG_DESCRIPTION, "Removes states preceding the selected state from the path.");
 		removeToHere.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_R));
 		removeToHere.putValue(Action.NAME, "Remove preceding steps");
@@ -2065,93 +2067,55 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	{
 		if(!computing)
 		{
-			if(e.isPopupTrigger() && e.getSource() == pathTable)
+			if(e.isPopupTrigger() && (e.getSource() == pathTable || e.getSource() == pathTable.getTableHeader() || e.getSource() == pathTable.getParent()))
 			{
+				backtrackToHere.setEnabled(!(e.getSource() == pathTable.getTableHeader() || e.getSource() == pathTable.getParent()));
+				removeToHere.setEnabled(!(e.getSource() == pathTable.getTableHeader() || e.getSource() == pathTable.getParent()));
+				
 				int index = pathTable.rowAtPoint(e.getPoint());
 				
-				pathTable.getSelectionModel().setSelectionInterval(index, index);
-				
+				pathTable.getSelectionModel().setSelectionInterval(index, index);				
 				showColumnMenu.removeAll();
+				
 				//Now populate showColumnMenu with all columns
-				for(int i = 0; i < pathTableModel.getColumnCount(); i++)
+				for(int i = 1; i < pathTableModel.getColumnCount(); i++)
 				{
-					if(pathTableModel.getColumnName(i).equals("Step")) continue;
-					JCheckBox showColumn = new JCheckBox(pathTableModel.getColumnName(i));
-					int colIndex = pathTable.convertColumnIndexToView(i);
+					// Better to use JCheckBoxMenuItems rather than JCheckBox.
+					JCheckBoxMenuItem showColumn = new JCheckBoxMenuItem(pathTableModel.getColumnName(i));
 					
-					showColumn.setSelected(colIndex >= 0);
-					showColumn.addActionListener(new ActionListener()
+					// A column is selected if it is present in the view.
+					showColumn.setSelected(pathTable.convertColumnIndexToView(i) != -1);
+					
+					showColumn.addItemListener(new ItemListener() 
 					{
-						
-						public void actionPerformed(ActionEvent e)
+						public void itemStateChanged(ItemEvent e)
 						{
-							JCheckBox check = (JCheckBox)e.getSource();
-							String text = check.getText();
+							JCheckBoxMenuItem showColumn = (JCheckBoxMenuItem)e.getSource();
 							
-							if(check.isSelected())
+							if (e.getStateChange() == ItemEvent.DESELECTED)
+							{													
+								TableColumn tc = pathTable.getColumn(showColumn.getText());								
+								hiddenColumns.add(tc);								
+								pathTable.removeColumn(tc);
+							}
+							else if (e.getStateChange() == ItemEvent.SELECTED)
 							{
-								
-								//search for this in hiddenColumns
-								
+								//search for this in hiddenColumns								
 								TableColumn tc = null;
 								
-								for(int i = 0; i < hiddenColumns.size(); i++)
+								for (int i = 0; i < hiddenColumns.size(); i++)
 								{
 									tc = (TableColumn)hiddenColumns.get(i);
-									if(tc.getHeaderValue().equals(text))
+									if(tc.getHeaderValue().equals(showColumn.getText()))
 										break;
 								}
 								if(tc == null) return;
 								
-								hiddenColumns.remove(tc);
-								
-								pathTable.addColumn(tc);
-								
-								
+								insertTableColumn(tc);
+								hiddenColumns.remove(tc);								
 							}
-							else
-							{
-								
-								TableColumn tc = pathTable.getColumn(text);
-								
-								hiddenColumns.add(tc);
-								
-								pathTable.removeColumn(tc);
-								
-							}
-							sortOutColumnSizes();
 						}
-					});
-										/*showColumn.addMouseListener(new MouseListener()
-										 {
-										 public void mouseClicked(MouseEvent e)
-										 {
-										 
-										 }
-										 
-										 public void mouseReleased(MouseEvent e)
-										 {
-										 
-										 }
-										 
-										 public void mousePressed(MouseEvent e)
-										 {
-										 
-										 }
-										 
-										 public void mouseEntered(MouseEvent e)
-										 {
-										 JCheckBox check = (JCheckBox)e.getSource();
-										 check.setBackground(Color.CYAN);
-										 
-										 }
-										 
-										 public void mouseExited(MouseEvent e)
-										 {
-										 JCheckBox check = (JCheckBox)e.getSource();
-										 check.setBackground(Color.lightGray);
-										 }
-										 });*/
+					});					
 					
 					showColumnMenu.add(showColumn);
 				}
@@ -2165,8 +2129,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					{
 						for(int i = hiddenColumns.size()-1; i>=0; i--)
 						{
-							TableColumn tc = (TableColumn)hiddenColumns.get(i);
-							pathTable.addColumn(tc);
+							TableColumn tc = (TableColumn) hiddenColumns.get(i);
+							insertTableColumn(tc);
 							hiddenColumns.remove(tc);
 						}
 						
@@ -2178,6 +2142,47 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				
 				
 				pathPopup.show(e.getComponent(), e.getX(), e.getY());
+			}
+		}
+	}
+	
+	public void insertTableColumn(TableColumn column)
+	{
+		int i = 1;
+		int j = 1;
+		
+		String text = (String) column.getHeaderValue();
+										 	
+		while (j <= pathTable.getColumnCount() && i < pathTableModel.getColumnCount())
+		{
+			if (j == pathTable.getColumnCount())
+			{
+				// Found the location
+				pathTable.addColumn(column);	
+				
+				break;
+			}
+			else
+			{									
+				String tcj = pathTable.getColumnName(j);
+				String tci = pathTableModel.getColumnName(i);
+				
+				if (tci.equals(text))
+				{
+					// Found the location
+					pathTable.addColumn(column);
+					
+					// Move to location
+					if (j != pathTable.getColumnCount()-1)
+						pathTable.moveColumn(pathTable.getColumnCount()-1, j);
+					break;
+				}
+				else
+				{
+					i++; 
+					
+					if (tci.equals(tcj)) { j++; }											
+				}
 			}
 		}
 	}
