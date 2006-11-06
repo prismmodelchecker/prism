@@ -36,8 +36,8 @@ public class GUIResultsTable extends javax.swing.JDialog
 	private GUIMultiProperties guiProps;
 	private GUIExperiment exp;
 	
-	private javax.swing.JPanel topPanel;
-	private javax.swing.JButton closeButton;
+	private JPanel topPanel;
+	private JButton closeButton;
 	
 	private JScrollPane scroller;
 	private JTable table;
@@ -68,25 +68,6 @@ public class GUIResultsTable extends javax.swing.JDialog
 	
 	private void initComponents()
 	{
-		java.awt.GridBagConstraints gridBagConstraints;
-		javax.swing.JLabel jLabel1;
-		javax.swing.JPanel jPanel1;
-		javax.swing.JPanel jPanel2;
-		javax.swing.JPanel jPanel3;
-		javax.swing.JPanel jPanel4;
-		javax.swing.JPanel jPanel5;
-		javax.swing.JPanel jPanel6;
-		
-		jPanel1 = new javax.swing.JPanel();
-		jPanel2 = new javax.swing.JPanel();
-		jPanel3 = new javax.swing.JPanel();
-		jPanel4 = new javax.swing.JPanel();
-		jPanel5 = new javax.swing.JPanel();
-		jLabel1 = new javax.swing.JLabel();
-		topPanel = new javax.swing.JPanel();
-		jPanel6 = new javax.swing.JPanel();
-		closeButton = new javax.swing.JButton();
-		
 		addWindowListener(new java.awt.event.WindowAdapter()
 		{
 			public void windowClosing(java.awt.event.WindowEvent evt)
@@ -95,46 +76,36 @@ public class GUIResultsTable extends javax.swing.JDialog
 			}
 		});
 		
-		jPanel1.setLayout(new java.awt.GridBagLayout());
+		JLabel topLabel = new JLabel("Results of \'" + exp.getPropertyString() + "\' for \'" + exp.getDefinedConstantsString() + "\'"); 
+				
+		JPanel tmpPanel = new JPanel();
+		tmpPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		
-		gridBagConstraints = new java.awt.GridBagConstraints();
-		gridBagConstraints.gridx = 0;
-		gridBagConstraints.gridy = 0;
-		jPanel1.add(jPanel2, gridBagConstraints);
+		tmpPanel.setLayout(new BorderLayout(10, 10));
+		tmpPanel.add(topLabel, BorderLayout.NORTH);
+		tmpPanel.add(topLabel, BorderLayout.NORTH);
 		
-		gridBagConstraints = new java.awt.GridBagConstraints();
-		gridBagConstraints.gridx = 2;
-		gridBagConstraints.gridy = 0;
-		jPanel1.add(jPanel3, gridBagConstraints);
+		topPanel = new JPanel();
+		topPanel.setBorder(new TitledBorder("Results"));
+		topPanel.setLayout(new BorderLayout());
 		
-		gridBagConstraints = new java.awt.GridBagConstraints();
-		gridBagConstraints.gridx = 0;
-		gridBagConstraints.gridy = 2;
-		jPanel1.add(jPanel4, gridBagConstraints);
+		JPanel borderPanel = new JPanel();
+		borderPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		borderPanel.setLayout(new BorderLayout());
 		
-		gridBagConstraints = new java.awt.GridBagConstraints();
-		gridBagConstraints.gridx = 0;
-		gridBagConstraints.gridy = 4;
-		jPanel1.add(jPanel5, gridBagConstraints);
+		JScrollPane sp = new JScrollPane();
+		sp.setViewportView(table);
+		borderPanel.add(sp, BorderLayout.CENTER);
+		topPanel.add(borderPanel);
+		topPanel.setPreferredSize(new Dimension(500,200));
 		
-		jLabel1.setText("Results of \"" + exp.getPropertyString() + "\" for " + exp.getDefinedConstantsString());
-		gridBagConstraints = new java.awt.GridBagConstraints();
-		gridBagConstraints.gridx = 1;
-		gridBagConstraints.gridy = 1;
-		gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-		jPanel1.add(jLabel1, gridBagConstraints);
+		tmpPanel.add(topPanel, BorderLayout.CENTER);
 		
-		gridBagConstraints = new java.awt.GridBagConstraints();
-		gridBagConstraints.gridx = 1;
-		gridBagConstraints.gridy = 3;
-		gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-		jPanel1.add(topPanel, gridBagConstraints);
-		
-		getContentPane().add(jPanel1, java.awt.BorderLayout.CENTER);
-		
-		jPanel6.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
-		
-		closeButton.setText("Close");
+		JPanel tmpPanel2 = new JPanel();
+		tmpPanel2.setLayout(new BorderLayout());
+			
+		closeButton = new JButton("Close");
+
 		closeButton.addActionListener(new java.awt.event.ActionListener()
 		{
 			public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -143,16 +114,10 @@ public class GUIResultsTable extends javax.swing.JDialog
 			}
 		});
 		
-		jPanel6.add(closeButton);
+		tmpPanel2.add(closeButton, BorderLayout.EAST);		
 		
-		topPanel.setBorder(new TitledBorder("Results"));
-		topPanel.setLayout(new BorderLayout());
-		JScrollPane sp = new JScrollPane();
-		sp.setViewportView(table);
-		topPanel.add(sp);
-		topPanel.setPreferredSize(new Dimension(500,200));
-		
-		getContentPane().add(jPanel6, java.awt.BorderLayout.SOUTH);
+		tmpPanel.add(tmpPanel2, BorderLayout.SOUTH);
+		this.getContentPane().add(tmpPanel);
 	}
 
 	private void closeDialog()
