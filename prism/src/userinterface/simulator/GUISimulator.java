@@ -139,7 +139,18 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		//verifyAllPropertiesAtOnce = true;
 		//options = new GUISimulatorOptions(this);
 		
-		currentUpdatesTable.setModel(updateTableModel);
+		currentUpdatesTable.setModel(updateTableModel);		
+		currentUpdatesTable.addMouseListener(new MouseAdapter() 
+		{			
+			public void mouseClicked(MouseEvent e) 
+			{
+				if (e.getClickCount() == 2 && currentUpdatesTable.isEnabled())
+				{
+					a_manualUpdate();
+				}
+			}
+		});
+		
 		pathTable.setModel(pathTableModel);
 		
 		lastConstants = null;
