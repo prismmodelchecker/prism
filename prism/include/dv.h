@@ -71,7 +71,8 @@ double sum_double_vector_over_bdd(DdManager *ddman, double *vec, DdNode *filter,
 double sum_double_vector_over_mtbdd(DdManager *ddman, double *vec, DdNode *mult, DdNode **vars, int num_vars, ODDNode *odd);
 
 DistVector *double_vector_to_dist(double *v, int n);
-void free_dist_vector(DistVector *dv);
+void free_dist_vector(DistVector *&dv);
+void free_dv_or_dist_vector(double *&v, DistVector *&dv);
 
 //------------------------------------------------------------------------------
 

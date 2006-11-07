@@ -455,11 +455,22 @@ DistVector *double_vector_to_dist(double *v, int n)
 
 // free distinct vector struct
 
-void free_dist_vector(DistVector *dv)
+void free_dist_vector(DistVector *&dv)
 {
 	free(dv->dist);
 	free(dv->ptrs);
 	free(dv);
+	dv = NULL;
+}
+
+//------------------------------------------------------------------------------
+
+// delete double array, distinct vector struct, or both
+
+void free_dv_or_dist_vector(double *&v, DistVector *&dv)
+{
+	if (v) { free(v); v = NULL; }
+	if (dv) { free_dist_vector(dv); dv = NULL; }
 }
 
 //------------------------------------------------------------------------------
