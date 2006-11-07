@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 
 public abstract class PCTLFormulaUnary extends PCTLFormula
 {
@@ -122,13 +121,6 @@ public abstract class PCTLFormulaUnary extends PCTLFormula
 	public int computeMaxNested()
 	{
 		return operand.computeMaxNested();
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		throw new ApmcException("Unknown unary operand");
 	}
 
 	// get parse tree as string

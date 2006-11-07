@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public class PCTLRewardReach extends PCTLFormulaUnary
@@ -35,13 +34,6 @@ public class PCTLRewardReach extends PCTLFormulaUnary
 	public PCTLRewardReach(PCTLFormula f)
 	{
 		super(f);
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		throw new ApmcException("Reward operators are not supported by APMC techniques");
 	}
 
 	/**

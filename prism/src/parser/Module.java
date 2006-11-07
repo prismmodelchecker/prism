@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 
 public class Module
 {
@@ -240,18 +239,6 @@ public class Module
 		n = commands.size();
 		for (i = 0; i < n; i++) {
 			getCommand(i).check();
-		}
-	}
-
-	// convert to apmc data structures
-	
-	public void toApmc(Apmc apmc) throws ApmcException
-	{
-		int mref;
-		
-		mref= apmc.createEmptyModule(name);
-		for(int i = 0; i < commands.size(); i++) {
-			apmc.addLineToModule(mref, getCommand(i).toApmc(apmc));
 		}
 	}
 

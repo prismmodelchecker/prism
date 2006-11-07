@@ -22,7 +22,6 @@
 
 package parser;
 
-import apmc.*;
 import simulator.*;
 
 public class PCTLImplies extends PCTLFormulaBinary
@@ -32,17 +31,6 @@ public class PCTLImplies extends PCTLFormulaBinary
 	public PCTLImplies(PCTLFormula f1, PCTLFormula f2)
 	{
 		super(f1, f2);
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		return
-			apmc.newBinaryOperand( apmc.OR,
-				apmc.newUnaryOperand( apmc.NOT,
-					operand1.toApmc(apmc)) ,
-					operand2.toApmc(apmc) );
 	}
 
 	/**

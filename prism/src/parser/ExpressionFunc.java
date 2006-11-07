@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public class ExpressionFunc extends ExpressionNary
@@ -383,34 +382,6 @@ public class ExpressionFunc extends ExpressionNary
 // 		else {
 // 			return new Double(((Double)o1).doubleValue() % ((Double)o2).doubleValue());
 // 		}
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		switch (code) {
-			case MIN:
-			case MAX:
-				int n = getNumOperands();
-				if (n < 1)
-					throw new ApmcException("Expression \"" + toString() + "\" has zero operands");
-				int r = getOperand(0).toApmc(apmc);
-				for(int i = 1; i < n; i++)
-					r = apmc.newBinaryOperand(apmc.MAX, r, getOperand(i).toApmc(apmc));
-				return r;
-				
-			case FLOOR:
-				return apmc.newUnaryOperand(apmc.FLOOR, getOperand(0).toApmc(apmc));
-				
-			case CEIL:
-				return apmc.newUnaryOperand(apmc.CEIL, getOperand(0).toApmc(apmc));
-				
-			case POW:
-			case MOD:
-			default:
-				throw new ApmcException("Unrecognised function \"" + name + "\"");
-		}
 	}
 
 	/**

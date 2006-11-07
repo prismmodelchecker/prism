@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public class ExpressionITE extends ExpressionNary
@@ -113,13 +112,6 @@ public class ExpressionITE extends ExpressionNary
 		} else {
 			return getOperand(2).evaluate(constantValues, varValues);
 		}
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		throw new ApmcException("The if-then-else operator is not supported by APMC techniques");
 	}
 
 	/**

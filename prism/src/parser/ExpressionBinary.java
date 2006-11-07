@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 
 public abstract class ExpressionBinary extends Expression
 {
@@ -150,13 +149,6 @@ public abstract class ExpressionBinary extends Expression
 	{
 		operand1.check();
 		operand2.check();
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-	    throw new ApmcException("Unknown binary operand");
 	}
 
 	// get expression tree as string

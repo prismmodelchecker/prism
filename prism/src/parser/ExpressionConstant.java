@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public class ExpressionConstant extends Expression
@@ -189,31 +188,6 @@ public class ExpressionConstant extends Expression
 		}
 		
 		return constantValues.getValue(i);
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		Object o;
-		Expression expr;
-		
-		// evaluate this constant
-		try {
-			o = evaluate(apmc.getConstantValues(), apmc.getVarValues());
-		}
-		catch (PrismException e) {
-			throw new ApmcException(e.getMessage());
-		}
-		// create a literal expression
-		switch (type) {
-			case Expression.INT: expr = new ExpressionInt(((Integer)o).intValue()); break;
-			case Expression.DOUBLE: expr = new ExpressionDouble(((Double)o).doubleValue()); break;
-			case Expression.BOOLEAN: expr = (((Boolean)o).booleanValue()) ? (Expression)new ExpressionTrue() : (Expression)new ExpressionFalse(); break;
-			default: expr = null;
-		}
-		// and then call toApmc on that
-		return expr.toApmc(apmc);
 	}
 
 	/**

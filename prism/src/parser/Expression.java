@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 // abstract class for prism language expressions
@@ -190,9 +189,6 @@ public abstract class Expression
 		
 		return ((Boolean)o).booleanValue();
 	}
-
-	// convert to apmc data structures
-	public abstract int toApmc(Apmc apmc) throws ApmcException;
 
 	/**
 	 *	convert and build simulator expression data structure

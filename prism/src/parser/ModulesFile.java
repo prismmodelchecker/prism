@@ -25,7 +25,6 @@ package parser;
 import java.util.*;
 
 import prism.PrismException;
-import apmc.*;
 
 // class to store representation of parsed modules file
 
@@ -786,26 +785,6 @@ public class ModulesFile
 		}
 		
 		return varList;
-	}
-
-	// convert to apmc data structures
-	
-	public void toApmc(Apmc apmc) throws ApmcException
-	{
-		int i, n;
-		
-		// check for unsupported features
-		if (type != PROBABILISTIC) throw new ApmcException("APMC techniques are only applicable to DTMC models");
-		if (systemDefn != null) throw new ApmcException("APMC techniques do not support the \"system\" construct");
-		
-		// convert each module
-		n = getNumModules();
-		for (i = 0; i < n; i++) {
-			getModule(i).toApmc(apmc);
-		}
-		
-		// store some PRISM info in the Apmc object
-		apmc.setEvaluateContext(getConstantValues(), null, null);
 	}
 
 	// convert to string

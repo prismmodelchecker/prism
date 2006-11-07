@@ -181,9 +181,7 @@ public class GUIExperimentTable extends JTable
 				}
 				case 4:
 					{
-					if(ge.isUseSimulation())
-						if(ge.isApmc())return "Simulation (APMC)";
-							else return "Simulation";
+					if(ge.isUseSimulation()) return "Simulation";
 					else return "Verification";
 				}
 				default: return "";

@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public class ExpressionRange extends Expression
@@ -488,38 +487,6 @@ public class ExpressionRange extends Expression
 		}
 		
 		return s;
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		Expression e;
-		ExpressionOr eOr;
-		ExpressionAnd eAnd;
-		int i, n;
-		
-		// convert to equivalent disjunction of conjunctions of relops
-		eOr = new ExpressionOr();
-		n = getNumRangeOperands();
-		for (i = 0; i < n; i++) {
-			if (getRangeOperandSize(i) == 1) {
-				eOr.addOperand(new ExpressionRelOp(getOperand(), "=", getRangeOperandLow(i)));
-			}
-			else {
-				eAnd = new ExpressionAnd();
-				eAnd.addOperand(new ExpressionRelOp(getOperand(), ">=", getRangeOperandLow(i)));
-				eAnd.addOperand(new ExpressionRelOp(getOperand(), "<=", getRangeOperandHigh(i)));
-				eOr.addOperand(eAnd);
-			}
-		}
-		// but we don't want a disjunction of one thing 
-		e = (n == 1) ? eOr.getOperand(0) : eOr;
-		// negate if necessary
-		if (relOp.equals("!=")) e = new ExpressionNot(e);
-		
-		// now can use existing toApmc methods...
-		return e.toApmc(apmc);
 	}
 
 	/**

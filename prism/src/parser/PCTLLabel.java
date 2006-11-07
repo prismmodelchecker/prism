@@ -1,6 +1,6 @@
 //==============================================================================
 //	
-//	Copyright (c) 2002-2004, Dave Parker, Hinton
+//	Copyright (c) 2002-2004, Dave Parker, Andrew Hinton
 //	
 //	This file is part of PRISM.
 //	
@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public class PCTLLabel extends PCTLFormula
@@ -80,38 +79,11 @@ public class PCTLLabel extends PCTLFormula
 		setType(Expression.BOOLEAN);
 	}
 
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		LabelList ll;
-		Expression expr;
-		PCTLExpression pctl;
-		int i;
-		
-		// special case
-		if (name.equals("deadlock"))
-			throw new ApmcException("APMC does not handle \"deadlock\" yet");
-		
-		// get expression associated with label
-		ll = apmc.getLabelList();
-		i = ll.getLabelIndex(getName());
-		if (i == -1)
-			throw new ApmcException("Unknown label \"" + getName() + "\" in PCTL formula");
-		expr = ll.getLabel(i);
-		
-		// create new PCTLExpression and call toApmc
-		pctl = new PCTLExpression(expr);
-		return pctl.toApmc(apmc);
-	}
-
 	/**
 	 *	Convert and build simulator data structures
 	 */
 	public int toSimulator(SimulatorEngine sim ) throws SimulatorException
 	{
-		// I got most of this from the toApmc method above... ;)
-		
 		LabelList ll;
 		Expression expr;
 		PCTLExpression pctl;

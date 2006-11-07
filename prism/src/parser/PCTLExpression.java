@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public class PCTLExpression extends PCTLFormula
@@ -100,13 +99,6 @@ public class PCTLExpression extends PCTLFormula
 	public String toString()
 	{
 		return expr.toString();
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		return expr.toApmc(apmc);
 	}
 
 	/**

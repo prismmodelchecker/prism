@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 
 public class Update
 {
@@ -227,19 +226,6 @@ public class Update
 		}
 		
 		return res;
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		int i, n, r;
-		
-		r = -1;
-		n = getNumElements();
-		for(i = 0; i < n; i++)
-		    r = apmc.createAffectation(getVar(i), getExpression(i).toApmc(apmc), r);
-		return r;
 	}
 
 	// convert to string

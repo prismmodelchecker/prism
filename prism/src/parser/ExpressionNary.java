@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 
 public abstract class ExpressionNary extends Expression
 {
@@ -180,13 +179,6 @@ public abstract class ExpressionNary extends Expression
 		for (i = 0; i < n; i++) {
 			getOperand(i).check();
 		}
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-	    throw new ApmcException("Unknown Nary operand");
 	}
 
 	// get expression tree as string

@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public class ExpressionIdent extends Expression
@@ -196,16 +195,6 @@ public class ExpressionIdent extends Expression
 		// have been converted to an ExpressionVar/ExpressionConstant/...
 		throw new PrismException("Could not evaluate identifier \"" + name +  "\"");
 	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		// this should never be called - this should
-		// have been converted to an ExpressionVar/ExpressionConstant/...
-		throw new ApmcException("Undeclared identifier \"" + name +  "\"");
-	}
-	
 
 	/**
 	 *	convert and build simulator expression data structure

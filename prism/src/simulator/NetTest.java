@@ -19,8 +19,8 @@ import userinterface.*;
 public class NetTest
 {
     
-   public static final String EXE_PATH = "/home/students/ug/ug60axh/prism-2.1.dev9.simapmc/bin";
-   public static final String BINARY_PATH = "/home/students/ug/ug60axh/prism-2.1.dev9.simapmc";
+   public static final String EXE_PATH = "/home/students/ug/ug60axh/prism/bin";
+   public static final String BINARY_PATH = "/home/students/ug/ug60axh/prism";
    public static final String RESULT_PATH = "/home/students/ug/ug60axh/nettest/results";
     
     /**

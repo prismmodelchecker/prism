@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public class PCTLRewardInst extends PCTLFormula
@@ -87,13 +86,6 @@ public class PCTLRewardInst extends PCTLFormula
 				throw new PrismException("Time \"" + time + "\" is not constant");
 			}
 		}
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		throw new ApmcException("Reward operators are not supported by APMC techniques");
 	}
 
 	/**

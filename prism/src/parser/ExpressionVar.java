@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public class ExpressionVar extends Expression
@@ -170,13 +169,6 @@ public class ExpressionVar extends Expression
 		}
 		
 		return varValues.getValue(i);
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		return apmc.newIdent(name);
 	}
 
 	/**

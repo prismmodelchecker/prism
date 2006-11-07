@@ -23,7 +23,6 @@
 package parser;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public class ExpressionUnaryMinus extends ExpressionUnary
@@ -79,13 +78,6 @@ public class ExpressionUnaryMinus extends ExpressionUnary
 		o = operand.evaluate(constantValues, varValues);
 		if (o instanceof Integer) return new Integer(-((Integer)o).intValue());
 		else return new Double(-((Double)o).doubleValue());
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		return apmc.newBinaryOperand(apmc.MINUS, new ExpressionInt(0).toApmc(apmc), operand.toApmc(apmc));
 	}
 
 	/**

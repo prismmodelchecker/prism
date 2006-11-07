@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 
 public class Updates
 {
@@ -201,33 +200,6 @@ public class Updates
 		}
 		
 		return res;
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		int i, n;
-		double p;
-		
-		// case where is a single update with probability 1
-		n = getNumUpdates();
-		if (n == 1 && getProbability(0).isConstant()) {
-			try {
-				p = getProbability(0).evaluateDouble(apmc.getConstantValues(), apmc.getVarValues());
-			}
-			catch (PrismException e) {
-				throw new ApmcException(e.getMessage());
-			}
-			if (p == 1.0) return apmc.createDetAct( getUpdate(0).toApmc(apmc) );
-		}
-		// general case
-		int pa = apmc.createEmptyProbAct();
-		for(i = 0; i < n; i++) {
-			apmc.addProbAct( pa, getProbability(i).toApmc(apmc), getUpdate(i).toApmc(apmc) );
-		}
-		
-		return pa;
 	}
 
 	// convert to string

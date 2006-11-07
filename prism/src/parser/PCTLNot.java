@@ -22,7 +22,6 @@
 
 package parser;
 
-import apmc.*;
 import simulator.*;
 
 public class PCTLNot extends PCTLFormulaUnary
@@ -32,13 +31,6 @@ public class PCTLNot extends PCTLFormulaUnary
 	public PCTLNot(PCTLFormula f)
 	{
 		super(f);
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		return apmc.newUnaryOperand( apmc.NOT, operand.toApmc(apmc));
 	}
 
 	/**

@@ -20,7 +20,7 @@
 //	
 //==============================================================================
 
-#define VERSION "2.1.dev9.simapmc3"
+#define VERSION "3.1"
 
 #include "simiohandler.h"
 #include "simstate.h"

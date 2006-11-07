@@ -75,7 +75,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	//Options
 	
 	//private boolean verifyAllPropertiesAtOnce;
-	//private boolean useAPMCForSimulation;
 	//private GUISimulatorOptions options;
 	private boolean displayStyleFast;
 	//private boolean askForInitialState;
@@ -135,7 +134,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		engineBuilt = false;
 		doEnables();
 		
-		//useAPMCForSimulation = false;
 		//verifyAllPropertiesAtOnce = true;
 		//options = new GUISimulatorOptions(this);
 		
@@ -179,7 +177,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		totalTimeLabel.setText("0.0");
 		pathLengthParameterLabel.setText("0");
 		totalRewardLabel.setText("");
-		//maximumLengthLabel.setText(""+gui.getPrism().getApmcPathLen());
 		
 		txtFilter = new GUIPrismFileFilter[1];
 		txtFilter[0] = new GUIPrismFileFilter("Text files (*.txt)");
@@ -301,7 +298,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			
 			((GUISimLabelFormulaeList)stateLabelList).clearLabels();
 			((GUISimPathFormulaeList)pathFormulaeList).clearList();
-			//maximumLengthLabel.setText(""+gui.getPrism().getApmcPathLen());
 			stateLabelList.repaint();
 			pathFormulaeList.repaint();
 			doEnables();
@@ -867,16 +863,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	//ACCESS METHODS
 	
 	/**
-	 * Getter for property useAPMCForSimulation.
-	 * @return Value of property useAPMCForSimulation.
-	 */
-	public boolean isUseAPMCForSimulation()
-	{
-		return getPrism().getSettings().getString(PrismSettings.SIMULATOR_ENGINE).equals("APMC");
-		//return useAPMCForSimulation;
-	}
-	
-	/**
 	 * Getter for property verifyAllPropertiesAtOnce.
 	 * @return Value of property verifyAllPropertiesAtOnce.
 	 */
@@ -887,16 +873,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	}
 	
 	//UPDATE METHODS
-	
-	/**
-	 * Setter for property useAPMCForSimulation.
-	 * @param useAPMCForSimulation New value of property useAPMCForSimulation.
-	 */
-	public void setUseAPMCForSimulation(boolean useAPMC) throws PrismException
-	{
-		getPrism().getSettings().set(PrismSettings.SIMULATOR_ENGINE, new Integer(useAPMC?1:0));
-		//this.useAPMCForSimulation = useAPMC;
-	}
 	
 	/**
 	 * Setter for property verifyAllPropertiesAtOnce.

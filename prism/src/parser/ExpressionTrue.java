@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public class ExpressionTrue extends Expression
@@ -125,13 +124,6 @@ public class ExpressionTrue extends Expression
 	public Object evaluate(Values constantValues, Values varValues) throws PrismException
 	{
 		return new Boolean(true);
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		return apmc.newConst(1);
 	}
 
 	/**

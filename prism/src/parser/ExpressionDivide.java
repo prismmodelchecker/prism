@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public class ExpressionDivide extends ExpressionBinary
@@ -101,13 +100,6 @@ public class ExpressionDivide extends ExpressionBinary
 		res = new Double(d);
 		
 		return res;
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{  
-	    return apmc.newBinaryOperand(apmc.DIV, operand1.toApmc(apmc), operand2.toApmc(apmc));
 	}
 
 	/**

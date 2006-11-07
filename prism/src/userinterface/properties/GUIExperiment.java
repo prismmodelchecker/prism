@@ -51,8 +51,6 @@ public class GUIExperiment
 	
 	private boolean useSimulation;
 	
-	private boolean isApmc;
-	
 	private Values definedMFConstants;
 	private Values definedPFConstants;
 	private Object res;
@@ -68,7 +66,6 @@ public class GUIExperiment
 		this.modString = modString;
 		this.useSimulation = useSimulation;
 		
-		isApmc = guiProp.getPrism().getSettings().getString(PrismSettings.SIMULATOR_ENGINE).equals("APMC");
 		results = new prism.ResultsCollection(cons, prop.getProperty(0).getResultName());
 	}
 	
@@ -124,11 +121,6 @@ public class GUIExperiment
 	public boolean isUseSimulation()
 	{
 		return useSimulation;
-	}
-	
-	public boolean isApmc()
-	{
-		return isApmc;
 	}
 	
 	public GUIExperimentTable getTable()
@@ -367,7 +359,7 @@ public class GUIExperiment
 					}
 					
 					// for simulation where "simultaneous property checking" is enabled...
-					else if(useSimulation && !isApmc && prism.getSettings().getBoolean(PrismSettings.SIMULATOR_SIMULTANEOUS) && undefinedConstants.getNumPropertyIterations() > 1)
+					else if(useSimulation && prism.getSettings().getBoolean(PrismSettings.SIMULATOR_SIMULTANEOUS) && undefinedConstants.getNumPropertyIterations() > 1)
 					{
 						try {
 							logln("\nSimulating: " + propertyToCheck);
@@ -410,7 +402,7 @@ public class GUIExperiment
 								}
 								
 								// do model checking
-								logln("\n"+(useSimulation?"Simulating":"Model checking")+((useSimulation && isApmc)?" (APMC)":"")+": " + propertyToCheck);
+								logln("\n"+(useSimulation?"Simulating":"Model checking")+": " + propertyToCheck);
 								if (definedMFConstants != null) if (definedMFConstants.getNumValues() > 0) logln("Model constants: " + definedMFConstants);
 								if (definedPFConstants != null) if (definedPFConstants.getNumValues() > 0) logln("Property constants: " + definedPFConstants);
 								if (useSimulation) log("Simulation parameters: approx = "+info.getApprox()+", conf = "+info.getConfidence()+", num samples = "+info.getNoIterations()+", max path len = "+info.getMaxPathLength()+")\n");
@@ -420,12 +412,7 @@ public class GUIExperiment
 									res = prism.modelCheck(model, propertiesFile, propertyToCheck);
 								}
 								else {
-									if(isApmc)
-										res = prism.modelCheckAPMC(modulesFile, propertiesFile, propertyToCheck, info.getInitialState(), info.getNoIterations(), info.getMaxPathLength());
-									else
-									{
-										res = prism.modelCheckSimulator(modulesFile, propertiesFile, propertyToCheck, info.getInitialState(), info.getNoIterations(), info.getMaxPathLength());
-									}
+									res = prism.modelCheckSimulator(modulesFile, propertiesFile, propertyToCheck, info.getInitialState(), info.getNoIterations(), info.getMaxPathLength());
 								}
 							}
 							catch(PrismException e)

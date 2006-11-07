@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public abstract class PCTLFormula
@@ -103,10 +102,6 @@ public abstract class PCTLFormula
 		// default is zero
 		return 0;
 	}
-
-	// convert to apmc data structures
-	
-	public abstract int toApmc(Apmc apmc) throws ApmcException;
 
 	/**
 	 *	Convert and build simulator data structures

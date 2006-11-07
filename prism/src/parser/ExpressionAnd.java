@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public class ExpressionAnd extends ExpressionNary
@@ -94,23 +93,6 @@ public class ExpressionAnd extends ExpressionNary
 		}
 		
 		return new Boolean(true);
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		int r;
-		int n = getNumOperands();
-		
-		if( n < 1 )
-			throw new ApmcException("Expression \"" + toString() + "\" has zero operands");
-		
-		r = getOperand(0).toApmc(apmc);
-		for(int i = 1; i < n; i++)
-			r = apmc.newBinaryOperand(apmc.AND, r, getOperand(i).toApmc(apmc));
-		
-		return r;
 	}
 
 	/**

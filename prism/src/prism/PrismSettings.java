@@ -112,7 +112,6 @@ public class PrismSettings implements Observer
 	public static final	String PROPERTIES_CLEAR_LIST_ON_LOAD		= "properties.clearListOnLoad";
 	
 	//GUI Simulator
-	public static final	String SIMULATOR_ENGINE						= "simulator.engine";
 	public static final String SIMULATOR_DEFAULT_APPROX				= "simulator.defaultApprox";
 	public static final String SIMULATOR_DEFAULT_CONFIDENCE			= "simulator.defaultConfidence";
 	public static final String SIMULATOR_DEFAULT_NUM_SAMPLES		= "simulator.defaultNumSamples";
@@ -121,7 +120,6 @@ public class PrismSettings implements Observer
 	public static final String SIMULATOR_FIELD_CHOICE				= "simulator.fieldChoice";
 	public static final	String SIMULATOR_NEW_PATH_ASK_INITIAL		= "simulator.newPathAskDefault";
 	public static final	String SIMULATOR_RENDER_ALL_VALUES			= "simulator.renderAllValues";
-	public static final	String SIMULATOR_APMC_STRATEGY				= "simulator.apmcStrategy";
 	public static final String SIMULATOR_NETWORK_FILE				= "simulator.networkFile";
 	
 	//GUI Log
@@ -202,16 +200,14 @@ public class PrismSettings implements Observer
 			{ BOOLEAN_TYPE,		PROPERTIES_CLEAR_LIST_ON_LOAD,			"clear list when load model?",			"3.0",			new Boolean(true),															"",																							"When set to true, the properties list is cleared whenever a new model is loaded." }
 		},
 		{
-			{ CHOICE_TYPE,		SIMULATOR_ENGINE,						"simulator engine",						"3.0",			"PRISM simulator",															"PRISM simulator,APMC",																		"The simulator engine for use in approximate model checking.  The PRISM simulator supports DTMCs and CTMCs.  APMC supports DTMCs and only runs on UNIX platforms." },
-			{ DOUBLE_TYPE,		SIMULATOR_DEFAULT_APPROX,				"default approximation parameter",		"3.0",			new Double(1.0E-2),															"0,1",																							"The default approximation parameter for approximate model checking using the PRISM simulator or APMC." },
-			{ DOUBLE_TYPE,		SIMULATOR_DEFAULT_CONFIDENCE,			"default confidence parameter",			"3.0",			new Double(1.0E-10),														"0,1",																						"The default confidence parameter for approximate model checking using the PRISM simulator or APMC." },
-			{ INTEGER_TYPE,		SIMULATOR_DEFAULT_NUM_SAMPLES,			"default num. samples",					"3.0",			new Integer(402412),														"1,",																						"The default number of samples for approximate model checking using the PRISM simulator or APMC." },
-			{ INTEGER_TYPE,		SIMULATOR_DEFAULT_MAX_PATH,				"default max. path length",				"3.0",			new Integer(10000),															"1,",																					"The default maximum path length for approximate model checking using the PRISM simulator or APMC." },
+			{ DOUBLE_TYPE,		SIMULATOR_DEFAULT_APPROX,				"default approximation parameter",		"3.0",			new Double(1.0E-2),															"0,1",																							"The default approximation parameter for approximate model checking using the PRISM simulator." },
+			{ DOUBLE_TYPE,		SIMULATOR_DEFAULT_CONFIDENCE,			"default confidence parameter",			"3.0",			new Double(1.0E-10),														"0,1",																						"The default confidence parameter for approximate model checking using the PRISM simulator." },
+			{ INTEGER_TYPE,		SIMULATOR_DEFAULT_NUM_SAMPLES,			"default num. samples",					"3.0",			new Integer(402412),														"1,",																						"The default number of samples for approximate model checking using the PRISM simulator." },
+			{ INTEGER_TYPE,		SIMULATOR_DEFAULT_MAX_PATH,				"default max. path length",				"3.0",			new Integer(10000),															"1,",																					"The default maximum path length for approximate model checking using the PRISM simulator." },
 			{ BOOLEAN_TYPE,		SIMULATOR_SIMULTANEOUS,					"check properties simultaneously?",		"3.0",			new Boolean(true),															"",																							"When set to true, all relevant properties are checked over the same execution paths, meaning only one set of sample paths need be generated.  This feature is only supported by the PRISM simulator." },
 			{ CHOICE_TYPE,		SIMULATOR_FIELD_CHOICE,					"values used in dialog",				"3.0",			"Last used values",															"Last used values,Always use defaults",														"This setting allows the choice between whether the values used in the simulation dialog are taken from the defaults every time, or from the last used values." },
 			{ BOOLEAN_TYPE,		SIMULATOR_NEW_PATH_ASK_INITIAL,			"ask for initial state?",				"3.0",			new Boolean(true),															"",																							"When set to true, creating a new path in the simulator user interface prompts for an initial state rather than using default values for the model." },
 			{ CHOICE_TYPE,		SIMULATOR_RENDER_ALL_VALUES,			"path render style",					"3.0",			"Render changes",															"Render changes,Render all values",															"How the execution path in the simulator user interface should display the different states.  The \'render changes\' option displays a value only if it has changed." },
-			{ INTEGER_TYPE,		SIMULATOR_APMC_STRATEGY,				"apmc strategy",						"3.0",			new Integer(0),																"",																							"The strategy used by APMC" },	
 			{ FILE_TYPE,		SIMULATOR_NETWORK_FILE,					"network profile",						"3.0",			new File(""),																		"",																					"This file is used to specify the network profile which should be used by the distributed PRISM simulator." }
 		},
 		{
@@ -221,8 +217,7 @@ public class PrismSettings implements Observer
 		}
 	};
 	
-	
-	
+	public static final String[] oldPropertyNames = {"simulator.apmcStrategy", "simulator.engine"};
 	
 	public DefaultSettingOwner[] optionOwners;
 	private Hashtable data;
@@ -489,7 +484,15 @@ public class PrismSettings implements Observer
 							}
 							else
 							{
-								System.err.println("Warning: PRISM setting \""+key+"\" is unknown.");
+								// Make sure this is not an old PRISM setting and if not print a warning
+								boolean isOld = false;
+								for (int i = 0; i < oldPropertyNames.length; i++) {
+									if (oldPropertyNames[i].equals(key)) {
+										isOld = true;
+										break;
+									}
+								}
+								if (!isOld) System.err.println("Warning: PRISM setting \""+key+"\" is unknown.");
 							}
 						}
 						

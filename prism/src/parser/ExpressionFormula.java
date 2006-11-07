@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public class ExpressionFormula extends Expression
@@ -180,14 +179,6 @@ public class ExpressionFormula extends Expression
 	{
 		// this should never be called
 		throw new PrismException("Could not evaluate formula \"" + name +  "\"");
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		// this should never be called - this should have been expanded by now
-		throw new ApmcException("Unexpanded formula \"" + name + "\"");
 	}
 
 	/**

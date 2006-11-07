@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 
 public abstract class PCTLFormulaNary extends PCTLFormula
 {
@@ -170,13 +169,6 @@ public abstract class PCTLFormulaNary extends PCTLFormula
 		}
 		
 		return r;
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		throw new ApmcException("Unknown Nary operand");
 	}
 
 	// get parse tree as string

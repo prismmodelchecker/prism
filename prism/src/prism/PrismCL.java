@@ -29,7 +29,6 @@ import hybrid.*;
 import jdd.*;
 import parser.*;
 import sparse.*;
-import apmc.*;
 
 // prism - command line version
 
@@ -57,7 +56,6 @@ public class PrismCL
 	private boolean exportordered = true;
 	private boolean simulate = false;
 	private boolean simpath = false;
-	private boolean apmc = false;
 	private int typeOverride = 0;
 	
 	// property info
@@ -279,8 +277,8 @@ public class PrismCL
 			// work through list of properties to be checked
 			for (j = 0; j < numPropertiesToCheck; j++) {
 				
-				// for simulation (not apmc) we can do multiple values of property constants simultaneously
-				if (simulate && !apmc && undefinedConstants.getNumPropertyIterations() > 1) {
+				// for simulation we can do multiple values of property constants simultaneously
+				if (simulate && undefinedConstants.getNumPropertyIterations() > 1) {
 					try {
 						mainLog.println("\nSimulating: " + propertiesToCheck[j]);
 						if (definedMFConstants != null) if (definedMFConstants.getNumValues() > 0) mainLog.println("Model constants: " + definedMFConstants);
@@ -316,7 +314,7 @@ public class PrismCL
 							}
 							
 							// do model checking
-							mainLog.println("\n"+(simulate?"Simulating":"Model checking")+((simulate && apmc)?" (APMC)":"")+": " + propertiesToCheck[j]);
+							mainLog.println("\n"+(simulate?"Simulating":"Model checking")+": " + propertiesToCheck[j]);
 							if (definedMFConstants != null) if (definedMFConstants.getNumValues() > 0) mainLog.println("Model constants: " + definedMFConstants);
 							if (definedPFConstants != null) if (definedPFConstants.getNumValues() > 0) mainLog.println("Property constants: " + definedPFConstants);
 							if (!simulate) {
@@ -324,11 +322,7 @@ public class PrismCL
 							}
 							else {
 								mainLog.println("Simulation parameters: approx = "+simApprox+", conf = "+simConfidence+", num samples = "+simNumSamples+", max path len = "+simMaxPath+")");
-								if (apmc) {
-									res = prism.modelCheckAPMC(modulesFile, propertiesFile, propertiesToCheck[j], simNumSamples, simMaxPath);
-								} else {
-									res = prism.modelCheckSimulator(modulesFile, propertiesFile, propertiesToCheck[j], modulesFile.getInitialValues(), simNumSamples, simMaxPath);
-								}
+								res = prism.modelCheckSimulator(modulesFile, propertiesFile, propertiesToCheck[j], modulesFile.getInitialValues(), simNumSamples, simMaxPath);
 							}
 						}
 						catch (PrismException e) {
@@ -952,16 +946,6 @@ public class PrismCL
 						errorAndExit("The -"+sw+" switch requires two arguments (path details, filename)");
 					}
 				}
-				// use apmc techniques
-				else if (sw.equals("apmc")) {
-					if (Apmc.isEnabled()) {
-						simulate = true;
-						apmc = true;
-					}
-					else {
-						errorAndExit("APMC techniques are not currently enabled");
-					}
-				}
 				// which property to check
 				else if (sw.equals("prop") || sw.equals("property")) {
 					if (i < args.length-1) {
@@ -1291,7 +1275,7 @@ public class PrismCL
 				}
 				
 				// simulation approximation parameter
-				else if (sw.equals("simapprox") || sw.equals("apmcapprox")) {
+				else if (sw.equals("simapprox")) {
 					if (i < args.length-1) {
 						try {
 							simApprox = Double.parseDouble(args[++i]);
@@ -1307,7 +1291,7 @@ public class PrismCL
 					}
 				}
 				// simulation confidence parameter
-				else if (sw.equals("simconf") || sw.equals("apmcconf")) {
+				else if (sw.equals("simconf")) {
 					if (i < args.length-1) {
 						try {
 							simConfidence = Double.parseDouble(args[++i]);
@@ -1323,7 +1307,7 @@ public class PrismCL
 					}
 				}
 				// simulation number of samples
-				else if (sw.equals("simsamples") || sw.equals("apmcsamples")) {
+				else if (sw.equals("simsamples")) {
 					if (i < args.length-1) {
 						try {
 							simNumSamples = Integer.parseInt(args[++i]);
@@ -1339,28 +1323,12 @@ public class PrismCL
 					}
 				}
 				// simulation max path length
-				else if (sw.equals("simpathlen") || sw.equals("apmcpathlen")) {
+				else if (sw.equals("simpathlen")) {
 					if (i < args.length-1) {
 						try {
 							simMaxPath = Integer.parseInt(args[++i]);
 							if (simMaxPath <= 0) throw new NumberFormatException("");
 							simMaxPathGiven = true;
-						}
-						catch (NumberFormatException e) {
-							errorAndExit("Invalid value for -"+sw+" switch");
-						}
-					}
-					else {
-						errorAndExit("No value specified for -"+sw+" switch");
-					}
-				}
-				// apmc strategy
-				else if (sw.equals("apmcstrategy")) {
-					if (i < args.length-1) {
-						try {
-							j = Integer.parseInt(args[++i]);
-							if (j < 0) throw new NumberFormatException("");
-							prism.setApmcStrategy(j);
 						}
 						catch (NumberFormatException e) {
 							errorAndExit("Invalid value for -"+sw+" switch");

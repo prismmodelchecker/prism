@@ -32,8 +32,8 @@ import userinterface.*;
 import userinterface.util.*;
 
 /**
- *  This thread handles the calling of either the APMC model checking, or the
- *  simulator model checking (sampling) with the given modules file (constants
+ *  This thread handles the calling of simulation-based
+ *  model checking (sampling) with the given modules file (constants
  *  defined), properties file (constants defined), list of properties to
  *  be (approximately) verified and initial state.
  */
@@ -78,7 +78,6 @@ public class SimulateModelCheckThread extends GUIComputationThread
     
 	public void run()
 	{
-		boolean useApmc = prism.getSettings().getString(PrismSettings.SIMULATOR_ENGINE).equals("APMC");
 		boolean allAtOnce = prism.getSettings().getBoolean(PrismSettings.SIMULATOR_SIMULTANEOUS);
 		
 		if(mf == null) return;
@@ -105,7 +104,7 @@ public class SimulateModelCheckThread extends GUIComputationThread
 		IconThread ic = new IconThread(null);
 		
 		// do all at once if requested
-		if(!useApmc && allAtOnce)
+		if(allAtOnce)
 		{
 			Object results[] = null;
 			Exception resultError = null;
@@ -123,7 +122,7 @@ public class SimulateModelCheckThread extends GUIComputationThread
 			try
 			{
 				// display info
-				log("\nSimulating"+(useApmc?" (APMC)":""));
+				log("\nSimulating");
 				if (pf.getNumProperties() == 1) {
 					logln(": " + properties.get(0));
 				} else {
@@ -158,7 +157,7 @@ public class SimulateModelCheckThread extends GUIComputationThread
 			{
 				GUIProperty gp = (GUIProperty)guiProps.get(i);
 				gp.setResult((results == null) ? resultError : results[i]);
-				gp.setMethodString("Simulation"+((useApmc)?" (APMC)":""));
+				gp.setMethodString("Simulation");
 				gp.setConstants(definedMFConstants, definedPFConstants);
 			}
 		}
@@ -176,18 +175,11 @@ public class SimulateModelCheckThread extends GUIComputationThread
 				// do model checking
 				try
 				{
-					logln("\nSimulating"+(useApmc?" (APMC)":"")+": " + pf.getProperty(i));
+					logln("\nSimulating"+": " + pf.getProperty(i));
 					if (definedMFConstants != null) if (definedMFConstants.getNumValues() > 0) logln("Model constants: " + definedMFConstants);
 					if (definedPFConstants != null) if (definedPFConstants.getNumValues() > 0) logln("Property constants: " + definedPFConstants);
 					log("Simulation parameters: approx = "+info.getApprox()+", conf = "+info.getConfidence()+", num samples = "+noIterations+", max path len = "+maxPathLength+")\n");
-					if(useApmc)
-					{
-						result = prism.modelCheckAPMC(mf, pf, pf.getProperty(i), noIterations, maxPathLength);
-					}
-					else
-					{
-						result = prism.modelCheckSimulator(mf, pf,  pf.getProperty(i), initialState, noIterations, maxPathLength);
-					}
+					result = prism.modelCheckSimulator(mf, pf,  pf.getProperty(i), initialState, noIterations, maxPathLength);
 				}
 				catch(PrismException e)
 				{
@@ -197,7 +189,7 @@ public class SimulateModelCheckThread extends GUIComputationThread
 				ic.interrupt();
 				while(!ic.canContinue) {}
 				gp.setResult(result);
-				gp.setMethodString("Simulation"+((useApmc)?" (APMC)":""));
+				gp.setMethodString("Simulation");
 				gp.setConstants(definedMFConstants, definedPFConstants);
 				
 				parent.repaintList();

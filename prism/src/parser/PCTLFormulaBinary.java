@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 
 public abstract class PCTLFormulaBinary extends PCTLFormula
 {
@@ -143,13 +142,6 @@ public abstract class PCTLFormulaBinary extends PCTLFormula
 	public int computeMaxNested()
 	{
 		return Math.max(operand1.computeMaxNested(), operand2.computeMaxNested());
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc (Apmc apmc) throws ApmcException
-	{
-		throw new ApmcException("Unknown binary operand");		
 	}
 
 	// get parse tree as string

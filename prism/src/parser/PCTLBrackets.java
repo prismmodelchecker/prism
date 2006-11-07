@@ -24,7 +24,6 @@ package parser;
 
 import java.util.Vector;
 
-import apmc.*;
 import simulator.*;
 
 // note: although this makes no difference to the meaning
@@ -42,13 +41,6 @@ public class PCTLBrackets extends PCTLFormulaUnary
 	public PCTLBrackets(PCTLFormula f)
 	{
 		super(f);
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		return operand.toApmc(apmc);
 	}
 
 	/**

@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public class ExpressionRelOp extends ExpressionBinary
@@ -171,29 +170,6 @@ public class ExpressionRelOp extends ExpressionBinary
 		}
 		
 		return new Boolean(b);
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{  
-		int op;
-		if(relOp.equals("="))
-			op = Apmc.EQUAL;
-		else if(relOp.equals("!="))
-			op = Apmc.NEQ;
-		else if(relOp.equals("<"))
-			op = Apmc.LESS;
-		else if(relOp.equals(">"))
-			op = Apmc.GREATER;
-		else if(relOp.equals("<="))
-			op = Apmc.LEQ;
-		else if(relOp.equals(">="))
-			op = Apmc.GEQ;
-		else {
-			throw new ApmcException("Invalid operator in \"" + this + "\"");
-		}
-		return apmc.newBinaryOperand(op, operand1.toApmc(apmc), operand2.toApmc(apmc));
 	}
 
 	/**

@@ -287,10 +287,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			GUIProperty guiP = (GUIProperty)validGUIProperties.get(i);
 			try
 			{
-				if(getPrism().getSettings().getString(PrismSettings.SIMULATOR_ENGINE).equals("APMC"))
-					getPrism().checkPropertyForAPMC(parsedModel, pf, guiP.getPCTLProperty());
-				else
-					getPrism().checkPropertyForSimulation(parsedModel, pf, guiP.getPCTLProperty());
+				getPrism().checkPropertyForSimulation(parsedModel, pf, guiP.getPCTLProperty());
 				simulatableGUIProperties.add(guiP);
 			}
 			catch(PrismException e)
@@ -412,10 +409,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		{
 			try
 			{
-				if(getPrism().getSettings().getString(PrismSettings.SIMULATOR_ENGINE).equals("APMC"))
-					getPrism().checkPropertyForAPMC(parsedModel, pf, gp.getPCTLProperty());
-				else
-					getPrism().checkPropertyForSimulation(parsedModel, pf, gp.getPCTLProperty());
+				getPrism().checkPropertyForSimulation(parsedModel, pf, gp.getPCTLProperty());
 			}
 			catch(PrismException e)
 			{
@@ -1802,7 +1796,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				a_simulateSelected();
 			}
 		};
-		simulate.putValue(Action.LONG_DESCRIPTION, "Calls APMC or the PRISM simulator to approximately model check the selected properties against the parsed model.");
+		simulate.putValue(Action.LONG_DESCRIPTION, "Calls the PRISM simulator to approximately model check the selected properties against the parsed model.");
 		simulate.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_S));
 		simulate.putValue(Action.NAME, "Simulate");
 		simulate.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallSimulate.gif"));

@@ -166,7 +166,7 @@ public class SSHHandler
 						"~/prismnet/progress.txt",
 						"~/prismnet/resultsProgress.txt"
 					};
-					ssh("ug60axh", "acws-3414", "~/prism-2.1.dev9.simapmc6/bin/prismsimulator", args);
+					ssh("ug60axh", "acws-3414", "~/prism/bin/prismsimulator", args);
 				}
 				catch(PrismException e)
 				{

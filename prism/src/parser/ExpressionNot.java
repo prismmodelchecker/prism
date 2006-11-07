@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public class ExpressionNot extends ExpressionUnary
@@ -74,13 +73,6 @@ public class ExpressionNot extends ExpressionUnary
 	public Object evaluate(Values constantValues, Values varValues) throws PrismException
 	{
 		return new Boolean(!operand.evaluateBoolean(constantValues, varValues));
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		return apmc.newUnaryOperand(apmc.NOT, operand.toApmc(apmc));
 	}
 
 	/**

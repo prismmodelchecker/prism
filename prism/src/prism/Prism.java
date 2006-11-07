@@ -33,7 +33,6 @@ import mtbdd.*;
 import sparse.*;
 import hybrid.*;
 import parser.*;
-import apmc.*;
 import simulator.*;
 
 // prism class - main class for model checker
@@ -121,7 +120,6 @@ public class Prism implements PrismSettingsListener
 	
 	private ModelChecker mc = null;
 	private SimulatorEngine theSimulator = null;
-	private Apmc apmc = null;
 	
 	//------------------------------------------------------------------------------
 	// flags
@@ -284,11 +282,6 @@ public class Prism implements PrismSettingsListener
 		settings.set(PrismSettings.PRISM_DO_SS_DETECTION, b);
 	}
 	
-	public void setApmcStrategy(int i) throws PrismException
-	{
-		settings.set(PrismSettings.SIMULATOR_APMC_STRATEGY, i);
-	}
-	
 	// set methods for miscellaneous options
 	
 	public void setDoReach(boolean b) throws PrismException
@@ -378,9 +371,6 @@ public class Prism implements PrismSettingsListener
 	
 	public double getCUDDEpsilon()
 	{ return settings.getDouble(PrismSettings.PRISM_CUDD_EPSILON); }
-	
-	public int getApmcStrategy()
-	{ return settings.getInteger(PrismSettings.SIMULATOR_APMC_STRATEGY); }
 	
 	// get methods for miscellaneous options
 	
@@ -1283,76 +1273,6 @@ public class Prism implements PrismSettingsListener
 		catch (SimulatorException e) {
 			throw new PrismException(e.getMessage());
 		}
-	}
-	
-	// model checking using APMC techniques
-	
-	public void checkPropertyForAPMC(ModulesFile modulesFile, PropertiesFile propertiesFile, PCTLFormula f) throws PrismException
-	{
-		// check APMC techniques are enabled
-		if (!Apmc.isEnabled()) throw new PrismException("APMC techniques are not currently enabled");
-		
-		// check model is a dtmc
-		if (modulesFile.getType() != ModulesFile.PROBABILISTIC)
-		{
-			throw new PrismException("APMC techniques can only be applied to DTMCs");
-		}
-		
-		// check that formula is valid pctl
-		f.checkValidPCTL();
-		
-		// check the formula is of the correct type for apmc
-		if (f instanceof PCTLProb)
-		{
-			if ((((PCTLProb)f).getProb() != null))
-			{
-				throw new PrismException("APMC techniques can only be applied to PCTL formulas of the form \"P=? [ ... ]\"");
-			}
-		}
-		else
-		{
-			throw new PrismException("APMC techniques can only be applied to PCTL formulas of the form \"P=? [ ... ]\"");
-		}
-		if (f.computeMaxNested() > 1)
-		{
-			throw new PrismException("APMC techniques cannot handle nested \"P=? [...]\" operators");
-		}
-		
-		// create new APMC object (if necessary)
-		if (apmc == null) apmc = new Apmc();
-	}
-	
-	public Object modelCheckAPMC(ModulesFile modulesFile, PropertiesFile propertiesFile, PCTLFormula f, int noIterations, int pathLength) throws PrismException
-	{
-		return modelCheckAPMC(modulesFile, propertiesFile, f, modulesFile.getInitialValues(), noIterations, pathLength);
-	}
-	
-	public Object modelCheckAPMC(ModulesFile modulesFile, PropertiesFile propertiesFile, PCTLFormula f, Values initialState, int noIterations, int pathLength) throws PrismException
-	{
-		Object res = null;
-		
-		checkPropertyForAPMC(modulesFile, propertiesFile, f);
-		
-		// do model checking
-		try
-		{
-			apmc.setEvaluateContext(modulesFile.getConstantValues(), initialState, propertiesFile.getLabelList());
-			modulesFile.toApmc(apmc);
-			apmc.setInitialState( initialState );
-			propertiesFile.toApmc(apmc);
-			
-			apmc.addFormula(f.toApmc(apmc));
-			res = apmc.runLocalClient(pathLength, noIterations, getApmcStrategy());
-			apmc.cleanup();
-		}
-		catch (apmc.ApmcException e)
-		{
-			apmc.cleanup();
-			throw new PrismException(e.getMessage());
-		}
-		
-		// return result
-		return res;
 	}
 	
 	// do steady state

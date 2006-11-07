@@ -22,21 +22,10 @@
 
 package parser;
 
-import apmc.*;
 import simulator.*;
 
 public class PCTLAnd extends PCTLFormulaNary
 {
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		int r = (getOperand(0)).toApmc(apmc);
-		for(int i = 1; i < getNumOperands(); i++)
-			r = apmc.newBinaryOperand( apmc.AND, r, (getOperand(i)).toApmc(apmc));
-		return r;
-	}
-
 	/**
 	 *	Convert and build simulator data structures
 	 */

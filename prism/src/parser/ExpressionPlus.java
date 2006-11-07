@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public class ExpressionPlus extends ExpressionBinary
@@ -112,13 +111,6 @@ public class ExpressionPlus extends ExpressionBinary
 		}
 		
 		return res;
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{  
-	    return apmc.newBinaryOperand(apmc.PLUS, operand1.toApmc(apmc), operand2.toApmc(apmc));
 	}
 
 	/**

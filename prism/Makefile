@@ -148,9 +148,6 @@ ifeq ($(OSTYPE),darwin)
 	BINDISTSUFFIX = osx
 endif
 
-#APMC = no
-#APMC = yes
-
 ###############
 # Directories #
 ###############
@@ -194,7 +191,7 @@ JAVA_INCLUDES = -I $(JAVA_JNI_H_DIR) -I $(JAVA_JNI_MD_H_DIR)
 # Main part of Makefile #
 #########################
 
-MAKE_DIRS = dd jdd odd dv prism mtbdd sparse hybrid parser settings chart userinterface pepa/compiler apmc simulator
+MAKE_DIRS = dd jdd odd dv prism mtbdd sparse hybrid parser settings chart userinterface pepa/compiler simulator
 
 ifeq ($(OSTYPE),linux)
 	BIN_PRISM=bin/prism
@@ -249,15 +246,7 @@ cuddpackageforce: # use this to force build of cudd (even if dir is just a symli
 	/bin/cp Makefile.$(OSTYPE) Makefile && \
 	$(MAKE)
 
-prism: checks sortplugins make_dirs bin_scripts
-
-sortplugins:
-# 	@(rm -f $(SRC_DIR)/apmc; \
-# 	if [ "$(APMC)" = "yes" ]; then \
-# 	  (ln -s plugins/apmc $(SRC_DIR)/apmc) \
-# 	else \
-# 	  (ln -s stubs/apmc $(SRC_DIR)/apmc) \
-# 	fi)
+prism: checks make_dirs bin_scripts
 
 make_dirs:
 	@for dir in $(MAKE_DIRS); do \
@@ -373,7 +362,7 @@ tarcf:
 	(cd ..; tar cfz $$TARCF_DIR".tar.gz" $$TARCF_DIR)
 
 javadoc:
-	javadoc -classpath $(SRC_DIR) -d ../prism-dev/javadoc dd jdd odd dv mtbdd sparse hybrid parser prism chart userinterface apmc
+	javadoc -classpath $(SRC_DIR) -d ../prism-dev/javadoc dd jdd odd dv mtbdd sparse hybrid parser prism chart userinterface
 
 clean: checks
 	@(for dir in $(MAKE_DIRS); do \
@@ -417,8 +406,6 @@ clean_chart: checks
 	@(cd src/chart && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_userinterface: checks
 	@(cd src/userinterface && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
-clean_apmc: checks
-	@(cd src/apmc && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_simulator: checks
 	@(cd src/simulator && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 

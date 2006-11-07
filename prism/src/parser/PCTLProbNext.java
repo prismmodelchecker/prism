@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public class PCTLProbNext extends PCTLFormulaUnary
@@ -35,13 +34,6 @@ public class PCTLProbNext extends PCTLFormulaUnary
 	public PCTLProbNext(PCTLFormula f)
 	{
 		super(f);
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		return apmc.newUnaryOperand(apmc.NEXT, operand.toApmc(apmc));
 	}
 
 	/**

@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public class PCTLProb extends PCTLFormulaUnary
@@ -179,26 +178,6 @@ public class PCTLProb extends PCTLFormulaUnary
 	public int computeMaxNested()
 	{
 		return 1 + super.computeMaxNested();
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		// register probability
-		Double p = null;
-		if(prob != null)
-		{
-			try {
-				p = new Double(prob.evaluateDouble(apmc.getConstantValues(), apmc.getVarValues()));
-			} catch (PrismException e) {
-				throw new ApmcException(e.getMessage());
-			}
-		}
-		apmc.registerProb(relOp, p);
-		
-		// do conversion of path operator
-		return operand.toApmc(apmc);
 	}
 
 	/**

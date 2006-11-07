@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 // note: although this makes no difference to the meaning
@@ -71,13 +70,6 @@ public class ExpressionBrackets extends ExpressionUnary
 	public Object evaluate(Values constantValues, Values varValues) throws PrismException
 	{
 		return operand.evaluate(constantValues, varValues);
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		return operand.toApmc(apmc);
 	}
 
 	/**

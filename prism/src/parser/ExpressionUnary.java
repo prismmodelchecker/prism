@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 
 public abstract class ExpressionUnary extends Expression
 {
@@ -127,13 +126,6 @@ public abstract class ExpressionUnary extends Expression
 	public void check() throws PrismException
 	{
 		operand.check();
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-	    throw new ApmcException("Unknown unary operand");
 	}
 
 	// get expression tree as string

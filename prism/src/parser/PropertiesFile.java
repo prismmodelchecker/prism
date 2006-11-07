@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 
 // class to store representation of parsed properties file
 
@@ -266,16 +265,6 @@ public class PropertiesFile
 	public Values getConstantValues()
 	{
 		return constantValues;
-	}
-
-	// convert to apmc data structures
-	
-	public void toApmc(Apmc apmc)
-	{
-		int i, n;
-		
-		// store some PRISM info in the Apmc object
-		apmc.setEvaluateContext(getConstantValues(), null, labelList);
 	}
 
 	// convert to string

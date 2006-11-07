@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 
 public class Command
 {
@@ -177,13 +176,6 @@ public class Command
 		}
 		// check updates
 		updates.check();
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		return apmc.createRule(synch.toString(), guard.toApmc(apmc), updates.toApmc(apmc));
 	}
 
 	// convert to string

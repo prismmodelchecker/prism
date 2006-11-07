@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public class PCTLProbBoundedUntil extends PCTLFormulaBinary
@@ -129,27 +128,6 @@ public class PCTLProbBoundedUntil extends PCTLFormulaBinary
 	public void checkValidCSL() throws PrismException
 	{
 		// ok
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		int u;
-		
-		if (uBound == null) throw new ApmcException("Could not translate bounded until operator for APMC techniques");
-		
-		try {
-			// evaluate upper bound
-			// nb: since apmc is for pctl, this is always an int and there is no lower bound
-			// nb2: in fact, apmc _can_ handle a lower bound too though (if these restrictions change at a later date)
-			u = uBound.evaluateInt(apmc.getConstantValues(), apmc.getVarValues());
-		}
-		catch (PrismException e) {
-			throw new ApmcException(e.getMessage());
-		}
-		
-		return apmc.newBoundedUntil(0, u, operand1.toApmc(apmc), operand2.toApmc(apmc));
 	}
 
 	/**

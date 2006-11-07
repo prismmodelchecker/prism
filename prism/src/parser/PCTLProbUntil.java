@@ -25,7 +25,6 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
-import apmc.*;
 import simulator.*;
 
 public class PCTLProbUntil extends PCTLFormulaBinary
@@ -35,13 +34,6 @@ public class PCTLProbUntil extends PCTLFormulaBinary
 	public PCTLProbUntil(PCTLFormula f1, PCTLFormula f2)
 	{
 		super(f1, f2);
-	}
-
-	// convert to apmc data structures
-	
-	public int toApmc(Apmc apmc) throws ApmcException
-	{
-		return apmc.newBinaryOperand(apmc.UNTIL, operand1.toApmc(apmc), operand2.toApmc(apmc));
 	}
 
 	/**
