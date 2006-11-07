@@ -196,6 +196,39 @@ JAVA_INCLUDES = -I $(JAVA_JNI_H_DIR) -I $(JAVA_JNI_MD_H_DIR)
 
 MAKE_DIRS = dd jdd odd dv prism mtbdd sparse hybrid parser settings chart userinterface pepa/compiler apmc simulator
 
+ifeq ($(OSTYPE),linux)
+	BIN_PRISM=bin/prism
+	BIN_PRISM_SRC=src/bin/prism.linux
+	BIN_XPRISM=bin/xprism
+	BIN_XPRISM_SRC=src/bin/xprism.linux
+	BIN_TARGETS=$(BIN_PRISM) $(BIN_XPRISM)
+endif
+ifeq ($(OSTYPE),solaris)
+	BIN_PRISM=bin/prism
+	BIN_PRISM_SRC=src/bin/prism.linux
+	BIN_XPRISM=bin/xprism
+	BIN_XPRISM_SRC=src/bin/xprism.linux
+	BIN_TARGETS=$(BIN_PRISM) $(BIN_XPRISM)
+endif
+ifeq ($(OSTYPE),cygwin)
+	BIN_PRISM=bin/prism
+	BIN_PRISM_SRC=src/bin/prism.cygwin
+	BIN_XPRISM=bin/xprism
+	BIN_XPRISM_SRC=src/bin/xprism.linux
+	BIN_PRISM=bin/prism.bat
+	BIN_PRISM_SRC=src/bin/prism.bat
+	BIN_XPRISM=bin/xprism.bat
+	BIN_XPRISM_SRC=src/bin/xprism.bat
+	BIN_TARGETS=$(BIN_PRISM) $(BIN_XPRISM) $(BIN_PRISM_BAT) $(BIN_XPRISM_BAT)
+endif
+ifeq ($(OSTYPE),darwin)
+	BIN_PRISM=bin/prism
+	BIN_PRISM_SRC=src/bin/prism.darwin
+	BIN_XPRISM=bin/xprism
+	BIN_XPRISM_SRC=src/bin/xprism.linux
+	BIN_TARGETS=$(BIN_PRISM) $(BIN_XPRISM)
+endif
+
 default: all
 
 all: checks cuddpackage prism
@@ -216,7 +249,7 @@ cuddpackageforce: # use this to force build of cudd (even if dir is just a symli
 	/bin/cp Makefile.$(OSTYPE) Makefile && \
 	$(MAKE)
 
-prism: checks sortplugins make_dirs post_make
+prism: checks sortplugins make_dirs bin_scripts
 
 sortplugins:
 # 	@(rm -f $(SRC_DIR)/apmc; \
@@ -251,23 +284,27 @@ make_dirs:
 	  LIBPREFIX="$(LIBPREFIX)" \
 	  LIBSUFFIX="$(LIBSUFFIX)") \
 	  || exit 1; \
-	done
-
-post_make:
-	@(if [ "$(OSTYPE)" = "darwin" ]; then \
+	done; \
+	if [ "$(OSTYPE)" = "darwin" ]; then \
 	  echo Creating shared library symlinks...; \
 	  (cd $(LIB_DIR) && \
 	  for lib in `ls *$(LIBSUFFIX)`; do ln -fs $$lib `echo $$lib | sed s/$(LIBSUFFIX)/.jnilib/`; done;); \
-	fi; \
-	echo Fixing startup scripts...; \
-	(cd bin && \
-	if [ "$(OSTYPE)" = "darwin" ]; then \
-	  sed 's/\(DY\)*LD_LIBRARY_PATH/DYLD_LIBRARY_PATH/g' prism > prism.tmp; \
-	else \
-	  sed 's/\(DY\)*LD_LIBRARY_PATH/LD_LIBRARY_PATH/g' prism > prism.tmp; \
-	fi; \
-	mv prism.tmp prism; \
-	chmod 755 prism ))
+	fi
+
+bin_scripts: $(BIN_TARGETS)
+	@./install.sh silent
+
+$(BIN_PRISM): $(BIN_PRISM_SRC)
+	@echo "$< -> $@"; cp $< $@
+
+$(BIN_XPRISM): $(BIN_XPRISM_SRC)
+	@echo "$< -> $@"; cp $< $@
+
+$(BIN_PRISM_BAT): $(BIN_PRISM_BAT_SRC)
+	@echo "$< -> $@"; cp $< $@
+
+$(BIN_XPRISM_BAT): $(BIN_XPRISM_BAT_SRC)
+	@echo "$< -> $@"; cp $< $@
 
 dist: dist_copy clean_all dist_files dist_tidy
 
@@ -318,7 +355,7 @@ dist_tidy:
 	@find . \( -type d -o -type s \) -exec chmod 755 {} \;
 	@find . -type f  \( -name '*.sh' -o -name '*.so' -o -name '*.dll' \) -exec chmod 755 {} \;
 	@find examples -type f -name 'auto' -exec chmod 755 {} \;
-	@chmod 755 bin/*
+	@chmod 755 bin/* src/bin/*
 
 binary:
 	@echo Generating jar file...
@@ -346,7 +383,8 @@ clean: checks
 	  || exit 1; \
 	done; \
 	find $(CLASSES_DIR) -name '*.class' -exec rm {} \; ; \
-	rm -f lib/*jnilib)
+	rm -f lib/*jnilib; \
+	rm $(BIN_PRISM) $(BIN_XPRISM) $(BIN_PRISM_BAT) $(BIN_XPRISM_BAT) )
 
 celan: clean
 

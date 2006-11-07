@@ -3,7 +3,7 @@
 # Startup script for PRISM GUI (Linux/Solaris)
 
 # PRISM home directory
-PRISM_DIR=/home/staff/dxp/prism
+PRISM_DIR=/home/luser/prism
 
 # Launch using main PRISM script
 PRISM_MAINCLASS=userinterface.GUIPrism

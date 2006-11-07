@@ -13,22 +13,28 @@ if [ `basename $PRISM_DIR` = bin ]; then
 fi
 
 # Now start the 'installation'
-echo "Installing PRISM (directory=$PRISM_DIR)"
+if [ ! "$1" = "silent" ] ; then
+    echo "Installing PRISM (directory=$PRISM_DIR)"
+fi
 TEMP_FILE=tmp
 for FILE_TO_CHANGE in bin/prism bin/xprism
 do
   if [ -f $PRISM_DIR/$FILE_TO_CHANGE ]; then
-    echo "Modifying script $PRISM_DIR/$FILE_TO_CHANGE..."
+    if [ ! "$1" = "silent" ] ; then
+        echo "Setting path in startup script $PRISM_DIR/$FILE_TO_CHANGE..."
+    fi
     if sed -e "s|PRISM_DIR=.*|PRISM_DIR=$PRISM_DIR|g" $PRISM_DIR/$FILE_TO_CHANGE > $PRISM_DIR/$TEMP_FILE ; then
       /bin/mv $PRISM_DIR/$TEMP_FILE $PRISM_DIR/$FILE_TO_CHANGE
       chmod 755 $PRISM_DIR/$FILE_TO_CHANGE
     else
-      echo "Installation failed."
+      echo "Error: Failed to modify startup scripts."
       exit 0
     fi
   else
-    echo "Error: Could not locate script $PRISM_DIR/$FILE_TO_CHANGE"
+    echo "Error: Could not locate startup script $PRISM_DIR/$FILE_TO_CHANGE"
     exit
   fi
 done
-echo "Installation complete."
+if [ ! "$1" = "silent" ] ; then
+    echo "Installation complete."
+fi
