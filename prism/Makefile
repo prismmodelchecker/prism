@@ -128,7 +128,7 @@ endif
 ifeq ($(OSTYPE),cygwin)
 	CFLAGS = -mno-cygwin $(DEBUG) $(OPTIMISE)
 	CPPFLAGS = -mno-cygwin $(DEBUG) $(OPTIMISE)
-	LDFLAGS = -mno-cygwin -Wl,--add-stdcall $(DEBUG) $(OPTIMISE)
+	LDFLAGS = -mno-cygwin -Wl,--add-stdcall-alias $(DEBUG) $(OPTIMISE)
 	SHARED = -shared
 	#SHARED = -G
 	EXE = .exe
