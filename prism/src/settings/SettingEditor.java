@@ -30,7 +30,7 @@ import java.awt.*;
  */
 public interface SettingEditor
 {
-    public static final String NOT_CHANGED_VALUE = "£$%^&*NOTCHANGED*&^%$£";
+    public static final String NOT_CHANGED_VALUE = "$%^&*NOTCHANGED*&^%$";
     
     public Component getTableCellEditorComponent(JTable table, Setting owner, Object value, boolean isSelected, int row, int column);
     
