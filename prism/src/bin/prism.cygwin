@@ -19,18 +19,18 @@ if [ "$PRISM_JAVAMAXMEM" != "" ]; then
 	PRISM_JAVAMAXMEM="-Xmx$PRISM_JAVAMAXMEM"
 fi
 
-# Add PRISM to LD_LIBRARY_PATH
-if [ "$LD_LIBRARY_PATH" = "" ]; then
-	LD_LIBRARY_PATH="$PRISM_DIR"/lib
+# Add PRISM to PATH
+if [ "$PATH" = "" ]; then
+	PATH="$PRISM_DIR"/lib
 else
-	LD_LIBRARY_PATH="$PRISM_DIR"/lib:$LD_LIBRARY_PATH
+	PATH="$PRISM_DIR"/lib:$PATH
 fi
 
 # Set up classpath - jar file (for binary versions) gets priority
 PRISM_CLASSPATH="$PRISM_DIR"/lib/prism.jar:"$PRISM_DIR"/classes:"$PRISM_DIR"/lib/pepa.zip
 
 # Export environment variables
-export PRISM_DIR LD_LIBRARY_PATH
+export PRISM_DIR PATH
 
 # Main Java class to launch
 if [ "$PRISM_MAINCLASS" = "" ]; then

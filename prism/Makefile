@@ -215,10 +215,10 @@ ifeq ($(OSTYPE),cygwin)
 	BIN_PRISM_SRC=src/bin/prism.cygwin
 	BIN_XPRISM=bin/xprism
 	BIN_XPRISM_SRC=src/bin/xprism.linux
-	BIN_PRISM=bin/prism.bat
-	BIN_PRISM_SRC=src/bin/prism.bat
-	BIN_XPRISM=bin/xprism.bat
-	BIN_XPRISM_SRC=src/bin/xprism.bat
+	BIN_PRISM_BAT=bin/prism.bat
+	BIN_PRISM_BAT_SRC=src/bin/prism.bat
+	BIN_XPRISM_BAT=bin/xprism.bat
+	BIN_XPRISM_BAT_SRC=src/bin/xprism.bat
 	BIN_TARGETS=$(BIN_PRISM) $(BIN_XPRISM) $(BIN_PRISM_BAT) $(BIN_XPRISM_BAT)
 endif
 ifeq ($(OSTYPE),darwin)
