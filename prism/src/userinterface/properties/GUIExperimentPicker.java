@@ -46,6 +46,7 @@ public class GUIExperimentPicker extends javax.swing.JDialog
 	
 	static ArrayList remember;
 	
+	static boolean lastGraph = true;
 	static boolean lastSimulation = false;
 	    
 	private boolean cancelled = true;
@@ -94,7 +95,7 @@ public class GUIExperimentPicker extends javax.swing.JDialog
 		if (offerGraph)
 		{
 			createGraphCheck.setEnabled(true);
-			createGraphCheck.setSelected(true);
+			createGraphCheck.setSelected(lastGraph);
 		} else
 		{
 			createGraphCheck.setEnabled(false);
@@ -467,6 +468,7 @@ public class GUIExperimentPicker extends javax.swing.JDialog
 				
 				cancelled = false;
 				rememberValues();
+				lastGraph = this.createGraphCheck.isSelected();
 				lastSimulation = this.useSimulationCheck.isSelected();
 				dispose();
 			}
