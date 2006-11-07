@@ -36,6 +36,13 @@
 #include <cudd.h>
 #include <odd.h>
 
+// Flags for building Windows DLLs
+#ifdef __MINGW32__
+	#define EXPORT __declspec(dllexport)
+#else
+	#define EXPORT
+#endif
+
 // constants
 
 #define DV_GREATER_THAN_EQUALS	1
@@ -57,22 +64,22 @@ struct DistVector
 
 // function prototypes
 
-double *mtbdd_to_double_vector(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, ODDNode *odd);
-double *mtbdd_to_double_vector(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, ODDNode *odd, double *res);
-DdNode *double_vector_to_mtbdd(DdManager *ddman, double *vec, DdNode **vars, int num_vars, ODDNode *odd);
-DdNode *double_vector_to_bdd(DdManager *ddman, double *vec, int rel_op, double bound, DdNode **vars, int num_vars, ODDNode *odd);
-DdNode *double_vector_to_bdd(DdManager *ddman, double *vec, int rel_op, double bound1, double bound2, DdNode **vars, int num_vars, ODDNode *odd);
+EXPORT double *mtbdd_to_double_vector(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, ODDNode *odd);
+EXPORT double *mtbdd_to_double_vector(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, ODDNode *odd, double *res);
+EXPORT DdNode *double_vector_to_mtbdd(DdManager *ddman, double *vec, DdNode **vars, int num_vars, ODDNode *odd);
+EXPORT DdNode *double_vector_to_bdd(DdManager *ddman, double *vec, int rel_op, double bound, DdNode **vars, int num_vars, ODDNode *odd);
+EXPORT DdNode *double_vector_to_bdd(DdManager *ddman, double *vec, int rel_op, double bound1, double bound2, DdNode **vars, int num_vars, ODDNode *odd);
 
-void filter_double_vector(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd);
-double get_first_from_bdd(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd);
-double min_double_vector_over_bdd(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd);
-double max_double_vector_over_bdd(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd);
-double sum_double_vector_over_bdd(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd);
-double sum_double_vector_over_mtbdd(DdManager *ddman, double *vec, DdNode *mult, DdNode **vars, int num_vars, ODDNode *odd);
+EXPORT void filter_double_vector(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd);
+EXPORT double get_first_from_bdd(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd);
+EXPORT double min_double_vector_over_bdd(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd);
+EXPORT double max_double_vector_over_bdd(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd);
+EXPORT double sum_double_vector_over_bdd(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd);
+EXPORT double sum_double_vector_over_mtbdd(DdManager *ddman, double *vec, DdNode *mult, DdNode **vars, int num_vars, ODDNode *odd);
 
-DistVector *double_vector_to_dist(double *v, int n);
-void free_dist_vector(DistVector *&dv);
-void free_dv_or_dist_vector(double *&v, DistVector *&dv);
+EXPORT DistVector *double_vector_to_dist(double *v, int n);
+EXPORT void free_dist_vector(DistVector *&dv);
+EXPORT void free_dv_or_dist_vector(double *&v, DistVector *&dv);
 
 //------------------------------------------------------------------------------
 

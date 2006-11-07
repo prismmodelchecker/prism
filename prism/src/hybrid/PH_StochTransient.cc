@@ -28,7 +28,7 @@
 #include <dd.h>
 #include <odd.h>
 #include <dv.h>
-#include "foxglynn.h"
+#include <prism.h>
 #include "sparse.h"
 #include "hybrid.h"
 #include "PrismHybridGlob.h"

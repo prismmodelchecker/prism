@@ -50,12 +50,12 @@ static double sum_double_vector_over_mtbdd_rec(DdManager *ddman, double *vec, Dd
 // if not, a new one is created
 // in either the case, a pointer to the array is returned
 
-double *mtbdd_to_double_vector(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, ODDNode *odd)
+EXPORT double *mtbdd_to_double_vector(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, ODDNode *odd)
 {
 	return mtbdd_to_double_vector(ddman, dd, vars, num_vars, odd, NULL);
 }
 
-double *mtbdd_to_double_vector(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, ODDNode *odd, double *res)
+EXPORT double *mtbdd_to_double_vector(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, ODDNode *odd, double *res)
 {
 	int i, n;
 	
@@ -99,7 +99,7 @@ void mtbdd_to_double_vector_rec(DdManager *ddman, DdNode *dd, DdNode **vars, int
 
 // converts an array of doubles to an mtbdd
 
-DdNode *double_vector_to_mtbdd(DdManager *ddman, double *vec, DdNode **vars, int num_vars, ODDNode *odd)
+EXPORT DdNode *double_vector_to_mtbdd(DdManager *ddman, double *vec, DdNode **vars, int num_vars, ODDNode *odd)
 {
 	return double_vector_to_mtbdd_rec(ddman, vec, vars, num_vars, 0, odd, 0);
 }
@@ -139,12 +139,12 @@ DdNode *double_vector_to_mtbdd_rec(DdManager *ddman, double *vec, DdNode **vars,
 
 // converts an array of doubles to a bdd using a relational operator and one or more bounds
 
-DdNode *double_vector_to_bdd(DdManager *ddman, double *vec, int rel_op, double bound, DdNode **vars, int num_vars, ODDNode *odd)
+EXPORT DdNode *double_vector_to_bdd(DdManager *ddman, double *vec, int rel_op, double bound, DdNode **vars, int num_vars, ODDNode *odd)
 {
 	return double_vector_to_bdd(ddman, vec, rel_op, bound, 0, vars, num_vars, odd);
 }
 
-DdNode *double_vector_to_bdd(DdManager *ddman, double *vec, int rel_op, double bound1, double bound2, DdNode **vars, int num_vars, ODDNode *odd)
+EXPORT DdNode *double_vector_to_bdd(DdManager *ddman, double *vec, int rel_op, double bound1, double bound2, DdNode **vars, int num_vars, ODDNode *odd)
 {
 	return double_vector_to_bdd_rec(ddman, vec, rel_op, bound1, bound2, vars, num_vars, 0, odd, 0);
 }
@@ -190,7 +190,7 @@ DdNode *double_vector_to_bdd_rec(DdManager *ddman, double *vec, int rel_op, doub
 
 // filter vector using a bdd (set elements not in filter to 0)
 
-void filter_double_vector(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd)
+EXPORT void filter_double_vector(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd)
 {
 	filter_double_vector_rec(ddman, vec, filter, vars, num_vars, 0, odd, 0);
 }
@@ -220,7 +220,7 @@ double filter_double_vector_rec(DdManager *ddman, double *vec, DdNode *filter, D
 
 // get value of first element in BDD filter
 
-double get_first_from_bdd(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd)
+EXPORT double get_first_from_bdd(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd)
 {
 	// should never be called with an empty filter - we trap this case and return -1
 	if (filter == Cudd_ReadZero(ddman)) return -1;
@@ -251,7 +251,7 @@ double get_first_from_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdN
 
 // compute the minimum value of those in the bdd passed in
 
-double min_double_vector_over_bdd(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd)
+EXPORT double min_double_vector_over_bdd(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd)
 {
 	return min_double_vector_over_bdd_rec(ddman, vec, filter, vars, num_vars, 0, odd, 0);
 }
@@ -287,7 +287,7 @@ double min_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *fil
 
 // compute the maximum value of those in the bdd passed in
 
-double max_double_vector_over_bdd(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd)
+EXPORT double max_double_vector_over_bdd(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd)
 {
 	return max_double_vector_over_bdd_rec(ddman, vec, filter, vars, num_vars, 0, odd, 0);
 }
@@ -323,7 +323,7 @@ double max_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *fil
 
 // sums up the elements of a double array - but only those in the bdd passed in
 
-double sum_double_vector_over_bdd(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd)
+EXPORT double sum_double_vector_over_bdd(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd)
 {
 	return sum_double_vector_over_bdd_rec(ddman, vec, filter, vars, num_vars, 0, odd, 0);
 }
@@ -359,7 +359,7 @@ double sum_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *fil
 
 // sums up the elements of a double array - multiplied by the corresponding values in the mtbdd passed in
 
-double sum_double_vector_over_mtbdd(DdManager *ddman, double *vec, DdNode *mult, DdNode **vars, int num_vars, ODDNode *odd)
+EXPORT double sum_double_vector_over_mtbdd(DdManager *ddman, double *vec, DdNode *mult, DdNode **vars, int num_vars, ODDNode *odd)
 {
 	return sum_double_vector_over_mtbdd_rec(ddman, vec, mult, vars, num_vars, 0, odd, 0);
 }
@@ -392,7 +392,7 @@ double sum_double_vector_over_mtbdd_rec(DdManager *ddman, double *vec, DdNode *m
 // and an array of short pointers to them. Fails and returns NULL if there are more distinct values
 // than can be indexed by a short or if we run out of memory.
 
-DistVector *double_vector_to_dist(double *v, int n)
+EXPORT DistVector *double_vector_to_dist(double *v, int n)
 {
 	double *buffer, *tmp;
 	int i, j, num_dist, buffer_size, buffer_inc;
@@ -455,7 +455,7 @@ DistVector *double_vector_to_dist(double *v, int n)
 
 // free distinct vector struct
 
-void free_dist_vector(DistVector *&dv)
+EXPORT void free_dist_vector(DistVector *&dv)
 {
 	free(dv->dist);
 	free(dv->ptrs);
@@ -467,7 +467,7 @@ void free_dist_vector(DistVector *&dv)
 
 // delete double array, distinct vector struct, or both
 
-void free_dv_or_dist_vector(double *&v, DistVector *&dv)
+EXPORT void free_dv_or_dist_vector(double *&v, DistVector *&dv)
 {
 	if (v) { free(v); v = NULL; }
 	if (dv) { free_dist_vector(dv); dv = NULL; }

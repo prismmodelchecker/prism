@@ -48,7 +48,7 @@ $(PRISM_DIR_REL)/$(INCLUDE_DIR)/PrismHybrid.h: $(PRISM_DIR_REL)/$(CLASSES_DIR)/$
 	($(JAVAH) -classpath $(PRISM_DIR_REL)/$(CLASSES_DIR) -jni -o $@ $(THIS_DIR).PrismHybrid; touch $@)
 
 $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)prismhybrid$(LIBSUFFIX): $(O_FILES)
-	$(LD) $(SHARED) $(LDFLAGS) -o $@ $(O_FILES) $(PRISM_DIR_REL)/$(OBJ_DIR)/prism/foxglynn.o $(PRISM_DIR_REL)/$(OBJ_DIR)/dv/dv.o $(LIBRARIES)
+	$(LD) $(SHARED) $(LDFLAGS) -o $@ $(O_FILES) $(LIBRARIES)
 
 $(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/%.o: %.cc
 	$(CPP) $(CPPFLAGS) -c $< -o $@ $(INCLUDES)

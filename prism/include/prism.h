@@ -1,13 +1,6 @@
 //==============================================================================
 //
-// 	File:		foxglynn.h
-//	Date:		14/3/02
-//	Author:		Dave Parker + Joachim Meyer-Kayser
-//	Desc:		Header for Fox Glynn Poisson probability computation
-//
-//------------------------------------------------------------------------------
-//
-//	Copyright (c) 2002, Dave Parker + Joachim Meyer-Kayser
+//	Copyright (c) 2006, Dave Parker
 //
 //	This file is part of PRISM.
 //
@@ -27,8 +20,14 @@
 //    
 //==============================================================================
 
-// struct
+// Flags for building Windows DLLs
+#ifdef __MINGW32__
+	#define EXPORT __declspec(dllexport)
+#else
+	#define EXPORT
+#endif
 
+// Fox-Glynn wieghts struct
 typedef struct FoxGlynnWeights
 {
 	int left;
@@ -37,8 +36,7 @@ typedef struct FoxGlynnWeights
 	double *weights;
 } FoxGlynnWeights;
 
-// prototype
-
-FoxGlynnWeights fox_glynn(double q_tmax, double underflow, double overflow, double accuracy);
+// Function prototypes
+EXPORT FoxGlynnWeights fox_glynn(double q_tmax, double underflow, double overflow, double accuracy);
 
 //------------------------------------------------------------------------------

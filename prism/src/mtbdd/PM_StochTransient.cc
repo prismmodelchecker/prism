@@ -27,7 +27,7 @@
 #include <cudd.h>
 #include <dd.h>
 #include <odd.h>
-#include "foxglynn.h"
+#include <prism.h>
 #include "PrismMTBDDGlob.h"
 
 //------------------------------------------------------------------------------
