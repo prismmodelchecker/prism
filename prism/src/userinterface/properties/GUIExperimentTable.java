@@ -201,7 +201,9 @@ public class GUIExperimentTable extends JTable
 		public int addExperiment(GUIExperiment e)
 		{
 			experiments.add(e);
-			fireTableRowsInserted(experiments.size()-1, experiments.size()-1);
+			int i = experiments.size()-1;
+			fireTableRowsInserted(i, i);
+			scrollRectToVisible(getCellRect(i, 0, true));
 			return experiments.indexOf(e);
 		}
 		
