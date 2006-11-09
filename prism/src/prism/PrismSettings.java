@@ -119,6 +119,7 @@ public class PrismSettings implements Observer
 	public static final	String SIMULATOR_SIMULTANEOUS				= "simulator.simultaneous";
 	public static final String SIMULATOR_FIELD_CHOICE				= "simulator.fieldChoice";
 	public static final	String SIMULATOR_NEW_PATH_ASK_INITIAL		= "simulator.newPathAskDefault";
+	public static final	String SIMULATOR_NEW_PATH_ASK_VIEW			= "simulator.newPathAskView";
 	public static final	String SIMULATOR_RENDER_ALL_VALUES			= "simulator.renderAllValues";
 	public static final String SIMULATOR_NETWORK_FILE				= "simulator.networkFile";
 	
@@ -207,6 +208,7 @@ public class PrismSettings implements Observer
 			{ BOOLEAN_TYPE,		SIMULATOR_SIMULTANEOUS,					"check properties simultaneously?",		"3.0",			new Boolean(true),															"",																							"When set to true, all relevant properties are checked over the same execution paths, meaning only one set of sample paths need be generated.  This feature is only supported by the PRISM simulator." },
 			{ CHOICE_TYPE,		SIMULATOR_FIELD_CHOICE,					"values used in dialog",				"3.0",			"Last used values",															"Last used values,Always use defaults",														"This setting allows the choice between whether the values used in the simulation dialog are taken from the defaults every time, or from the last used values." },
 			{ BOOLEAN_TYPE,		SIMULATOR_NEW_PATH_ASK_INITIAL,			"ask for initial state?",				"3.0",			new Boolean(true),															"",																							"When set to true, creating a new path in the simulator user interface prompts for an initial state rather than using default values for the model." },
+			{ BOOLEAN_TYPE,		SIMULATOR_NEW_PATH_ASK_VIEW,			"ask for view configuration?",			"3.0",			new Boolean(false),															"",																							"When set to true, creating a new path in the simulator user interface prompts for an initial state rather than using default values for the model." },
 			{ CHOICE_TYPE,		SIMULATOR_RENDER_ALL_VALUES,			"path render style",					"3.0",			"Render changes",															"Render changes,Render all values",															"How the execution path in the simulator user interface should display the different states.  The \'render changes\' option displays a value only if it has changed." },
 			{ FILE_TYPE,		SIMULATOR_NETWORK_FILE,					"network profile",						"3.0",			new File(""),																		"",																					"This file is used to specify the network profile which should be used by the distributed PRISM simulator." }
 		},

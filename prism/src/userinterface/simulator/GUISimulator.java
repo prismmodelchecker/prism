@@ -61,39 +61,21 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	private GUISimulator.UpdateTableModel updateTableModel;
 	
 	private Values lastConstants, lastPropertyConstants, lastInitialState;
-	
-	private ArrayList hiddenColumns;
-	
-	
-	//private int maxPathLength;
-	
-	//External state
-	
 	private boolean computing;
 	
-	
-	//Options
-	
-	//private boolean verifyAllPropertiesAtOnce;
-	//private GUISimulatorOptions options;
 	private boolean displayStyleFast;
-	//private boolean askForInitialState;
 	private boolean displayPathLoops;
 	
 	//Actions
-	private Action backtrackToHere, removeToHere;
-	
-	private JMenu showColumnMenu;
-	
+	private Action backtrackToHere, removeToHere, newPath, resetPath, exportPath, configureView;
 	
 	/** Creates a new instance of GUISimulator */
 	public GUISimulator(GUIPrism gui)
 	{
 		super(gui, true);
-		pathTableModel = new PathTableModel();
+		pathTableModel = new PathTableModel(this);
 		updateTableModel = new UpdateTableModel();
 		
-		hiddenColumns = new ArrayList();
 		this.gui = gui;
 		this.engine = gui.getPrism().getSimulator();
 		initComponents();
@@ -105,28 +87,17 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		pathTable.getTableHeader().addMouseListener(this);
 		pathTable.getParent().addMouseListener(this);
 		
-		pathTable.getTableHeader().setReorderingAllowed(false);
+		pathTable.getTableHeader().setReorderingAllowed(true);
 		
 		pathTable.addComponentListener(new ComponentListener()
 		{
-			public void componentHidden(ComponentEvent e)
-			{
-			}
-			
-			public void componentMoved(ComponentEvent e)
-			{
-			}
-			
-			public void componentResized(ComponentEvent e)
-			{
+			public void componentHidden(ComponentEvent e){}			
+			public void componentMoved(ComponentEvent e){}			
+			public void componentResized(ComponentEvent e)	{
 				sortOutColumnSizes();
 			}
 			
-			public void componentShown(ComponentEvent e)
-			{
-			}
-			
-			
+			public void componentShown(ComponentEvent e){}			
 		});
 		
 		
@@ -386,6 +357,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 						lastInitialState = defaultInitialState;
 					}
 				}
+				
 				initialState = GUIInitialStatePicker.defineInitalValuesWithDialog(getGUI(), lastInitialState, mf);
 				// if user clicked cancel from dialog...
 				if (initialState == null) {
@@ -421,10 +393,16 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			repopulateFormulae();
 			stateLabelList.repaint();
 			pathFormulaeList.repaint();
-			//pathTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-			
+					
 			// store inital state for next time
 			lastInitialState = initialState;
+			
+			if (getPrism().getSettings().getBoolean(PrismSettings.SIMULATOR_NEW_PATH_ASK_VIEW))
+			{
+				new GUIViewDialog(gui, pathTableModel, mf);
+			}
+			
+			
 		}
 		catch(PrismException e)
 		{
@@ -682,6 +660,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			this.error(e.getMessage());
 			setComputing(false);
 		}
+	}
+	
+	public void a_configureView()
+	{
+		new GUIViewDialog(gui, pathTableModel, mf);
 	}
 	
 	public void repopulateFormulae()
@@ -1893,7 +1876,46 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
     }//GEN-END:initComponents
 	
 	private void initPopups()
-	{
+	{				
+		newPath = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_newPath();
+			}
+		};
+		
+		newPath.putValue(Action.LONG_DESCRIPTION, "Creates a new path.");
+		newPath.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_N));
+		newPath.putValue(Action.NAME, "New Path");
+		newPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallNewPath.gif"));
+		
+		resetPath = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_restartPath();
+			}
+		};
+		
+		resetPath.putValue(Action.LONG_DESCRIPTION, "Resets the path.");
+		resetPath.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_R));
+		resetPath.putValue(Action.NAME, "Reset Path");
+		resetPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallResetPath.gif"));
+		
+		exportPath = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_exportPath();
+			}
+		};
+		
+		exportPath.putValue(Action.LONG_DESCRIPTION, "Exports the path.");
+		exportPath.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_X));
+		exportPath.putValue(Action.NAME, "Export Path");
+		exportPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.gif"));			
+		
 		backtrackToHere = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
@@ -1933,19 +1955,27 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		removeToHere.putValue(Action.NAME, "Remove preceding steps");
 		removeToHere.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallRemovePreceding.gif"));
 		
-		//item to dynamically add checkboxes for each column
-		showColumnMenu = new JMenu("Show Column");
+		configureView = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{				
+				a_configureView();				
+			}
+		};		
+		configureView.putValue(Action.LONG_DESCRIPTION, "Configures the view.");
+		configureView.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_C));
+		configureView.putValue(Action.NAME, "Configure View");
+		configureView.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFind.gif"));
 		
 		pathPopup = new JPopupMenu();
-		
-		pathPopup.add(showColumnMenu);
+		pathPopup.add(newPath);
+		pathPopup.add(resetPath);
+		pathPopup.add(exportPath);		
 		pathPopup.addSeparator();
 		pathPopup.add(backtrackToHere);
 		pathPopup.add(removeToHere);
-		
-		
-		
-		
+		pathPopup.addSeparator();
+		pathPopup.add(configureView);
 	}
 	
 	
@@ -2059,9 +2089,16 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				backtrackToHere.setEnabled(!(e.getSource() == pathTable.getTableHeader() || e.getSource() == pathTable.getParent()));
 				removeToHere.setEnabled(!(e.getSource() == pathTable.getTableHeader() || e.getSource() == pathTable.getParent()));
 				
+				newPath.setEnabled(newPathButton.isEnabled());
+				resetPath.setEnabled(resetPathButton.isEnabled());
+				exportPath.setEnabled(exportPathButton.isEnabled());
+				configureView.setEnabled(pathActive);
+				
 				int index = pathTable.rowAtPoint(e.getPoint());
 				
 				pathTable.getSelectionModel().setSelectionInterval(index, index);				
+				
+				/*
 				showColumnMenu.removeAll();
 				
 				//Now populate showColumnMenu with all columns
@@ -2106,6 +2143,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					
 					showColumnMenu.add(showColumn);
 				}
+				
+				*/
+				/*
 				showColumnMenu.addSeparator();
 				
 				JMenuItem showAll = new JMenuItem("Show all columns");
@@ -2125,7 +2165,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					}
 				});
 				showColumnMenu.add(showAll);
-				
+				*/
 				
 				
 				pathPopup.show(e.getComponent(), e.getX(), e.getY());
@@ -2389,32 +2429,120 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
     private javax.swing.JLabel transitionTotalRewardsLabel;
     // End of variables declaration//GEN-END:variables
 	
-	class PathTableModel extends AbstractTableModel
+    
+    /**
+     * @author mxk
+     * Represents a  in the model.
+     */
+    public class Variable 
 	{
+		private int index;
+		private String name;
+		private int type;
 		
-		public int getColumnCount()
+		public Variable(int index, String name, int type)
 		{
-			int colCount;
-			if(pathActive)
-				colCount = 1+engine.getNumVariables();
-			else colCount = 0;
-			
-			if(mf == null) return colCount;
-			if(mf.getType() == ModulesFile.STOCHASTIC)
-				colCount +=1;
-			
-			colCount += (2*mf.getNumRewardStructs());
-			
-			return colCount;
+			this.index = index;
+			this.name = name;
+			this.type = type;
 		}
 		
-		public int getRowCount()
+		public int getIndex() 
 		{
+			return index;
+		}
+		
+		public String getName() 
+		{
+			return name;
+		}
+		
+		public int getType() 
+		{
+			return type;
+		}
+		
+		public String toString()
+		{
+			return name;
+		}
+		
+		public boolean equals(Object o)
+		{
+			return (o instanceof Variable && ((Variable)o).getIndex() == index);
+		}
+	}	
+    
+	class PathTableModel extends AbstractTableModel
+	{		
+		private boolean SHOW_STEP = true;
+				
+		ArrayList visibleVariables;
+		ArrayList hiddenVariables;
+		
+		GUISimulator simulator;
+		
+		public PathTableModel(GUISimulator simulator)
+		{	
+			this.simulator = simulator;
+		}
+		
+		public SimulatorEngine getEngine()
+		{
+			return engine;
+		}
+		
+		public ArrayList getVisibleVariables()
+		{
+			return visibleVariables;
+		}
+		
+		public ArrayList getHiddenVariables()
+		{
+			return hiddenVariables;
+		}
+		
+		public void setVisibility(ArrayList visibleVariables, ArrayList hiddenVariables)
+		{
+			this.visibleVariables = visibleVariables;
+			this.hiddenVariables = hiddenVariables;
 			
-			if(pathActive)
-				return engine.getPathSize();
-			else return 0;
-			
+			if (pathActive) 
+			{	fireTableStructureChanged(); }
+		}
+		
+		/**
+		 * Returns the number of columns.
+		 * @see javax.swing.table.TableModel#getColumnCount()
+		 */		
+		public int getColumnCount()
+		{			
+			if (!pathActive) 
+			{	return 0;	}
+			else 
+			{
+				// At least we have the step count and s.
+				int colCount = 1 + visibleVariables.size();
+				
+				// Add state and transitions rewards for each reward structure.
+				colCount += (2*mf.getNumRewardStructs());
+				
+				// Add a column for time if CTMC.
+				if (mf.getType() == ModulesFile.STOCHASTIC) 
+				{	colCount += 1; 		}
+				
+				return colCount;
+			}					
+		}
+		
+		/**
+		 * Returns the number of rows.
+		 * @see javax.swing.table.TableModel#getRowCount()
+		 */	
+		public int getRowCount()
+		{			
+			// Return current path size if there is an active path.
+			return (pathActive ? SimulatorEngine.getPathSize() : 0);			
 		}
 		
 		public boolean shouldColourRow(int row)
@@ -2444,41 +2572,57 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			{
 				if(pathActive)
 				{
-					if (columnIndex == 0) return ""+rowIndex;
+					int stepStart = 0;
+					int varStart = (SHOW_STEP) ? stepStart + 1 : stepStart;
+					int timeStart = varStart + visibleVariables.size();
+					
+					// The step column
+					if (stepStart <= columnIndex && columnIndex < varStart)
+					{
+						return "" + rowIndex;						
+					}
+					// A variable column
+					else if (varStart <= columnIndex && columnIndex < timeStart)
+					{						
+						int varIndex = ((Variable)visibleVariables.get(columnIndex - varStart)).getIndex();
+						
+						int type = engine.getVariableType(varIndex);
+						int result = SimulatorEngine.getPathData(varIndex, rowIndex);
+						
+						if(type == Expression.BOOLEAN)
+						{	return new Boolean(result != 0); }						
+						else if (type == Expression.INT)
+						{	return new Integer(result);	}
+					}
+					
+					
+					// todo: tidy rest up.
 					if (mf == null) return null;
 					if(mf.getType() == ModulesFile.STOCHASTIC)
 					{
-						int n = engine.getNumVariables();
+						int n = visibleVariables.size();
 						if(columnIndex == n+1) //where time should be
 						{
-							return new Double(engine.getTimeSpentInPathState(rowIndex));
+							return new Double(SimulatorEngine.getTimeSpentInPathState(rowIndex));
 						}
 						else if(columnIndex > n+1) //rewards
 						{
 							int i = columnIndex-(n+2);
-							if (i%2 == 0) return new Double(engine.getStateRewardOfPathState(rowIndex,i/2));
-							else return new Double(engine.getTransitionRewardOfPathState(rowIndex,i/2));
+							if (i%2 == 0) return new Double(SimulatorEngine.getStateRewardOfPathState(rowIndex,i/2));
+							else return new Double(SimulatorEngine.getTransitionRewardOfPathState(rowIndex,i/2));
 						}
 					}
 					else
 					{
-						int n = engine.getNumVariables();
+						int n = visibleVariables.size();
 						if(columnIndex > n)
 						{
 							int i = columnIndex-(n+1);
-							if (i%2 == 0) return new Double(engine.getStateRewardOfPathState(rowIndex,i/2));
-							else return new Double(engine.getTransitionRewardOfPathState(rowIndex,i/2));
+							if (i%2 == 0) return new Double(SimulatorEngine.getStateRewardOfPathState(rowIndex,i/2));
+							else return new Double(SimulatorEngine.getTransitionRewardOfPathState(rowIndex,i/2));
 						}
 					}
-					int type = engine.getVariableType(columnIndex-1);
-					int result = engine.getPathData(columnIndex-1, rowIndex);
-					if(type == Expression.BOOLEAN)
-					{
-						if(result == 0) return new Boolean(false);
-						else return new Boolean(true);
-					}
-					else
-						return new Integer(result);
+					return null;
 				}
 				else return null;
 			}
@@ -2495,11 +2639,26 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			{
 				if(pathActive)
 				{
-					if (column == 0) return "Step";
+					int stepStart = 0;
+					int varStart = (SHOW_STEP) ? stepStart + 1 : stepStart;
+					int timeStart = varStart + visibleVariables.size();
+					
+					// The step column
+					if (column == stepStart && SHOW_STEP)
+					{
+						return "#";						
+					}
+					// A variable column
+					else if (varStart <= column && column < timeStart)
+					{						
+						return ((Variable)visibleVariables.get(column - varStart)).getName();						
+					}
+					
+					
 					if (mf == null) return null;
 					if (mf.getType() == ModulesFile.STOCHASTIC)
 					{
-						int n = engine.getNumVariables();
+						int n = visibleVariables.size();
 						if(column == n+1) //where time should be
 						{
 							return "Time";
@@ -2512,7 +2671,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					}
 					else
 					{
-						int n = engine.getNumVariables();
+						int n = visibleVariables.size();
 						if(column > n) //rewards
 						{
 							int i = column-(n+1);
@@ -2529,13 +2688,35 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		}
 		
+		/** 
+		 * Method is called when a new path is created.
+		 * The structure of the path may be for a different model etc.
+		 */
 		public void restartPathTable()
-		{
+		{						
+			visibleVariables = new ArrayList();
+			hiddenVariables = new ArrayList();
+			
+			if (pathActive)
+			{
+				try
+				{
+					for (int i = 0; i < engine.getNumVariables(); i++)
+					{
+							visibleVariables.add(new Variable(i, engine.getVariableName(i), engine.getVariableType(i))); }
+					}
+				catch (SimulatorException e) {}
+			}
+			
 			fireTableStructureChanged();
+			
 			//Sort out the minimum widths for each column
 			sortOutColumnSizes();
 		}
 		
+		/** 
+		 * Method is called whenever a path is modified.
+		 */
 		public void updatePathTable()
 		{
 			fireTableDataChanged();
@@ -2560,7 +2741,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		{
 			return displayPathLoops;
 		}
-
 	}
 	
 	public void sortOutColumnSizes()

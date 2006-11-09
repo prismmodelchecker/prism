@@ -364,7 +364,7 @@ public class GUISimulatorPathTable extends JTable
 			column = table.convertColumnIndexToModel(column);
 	    
 			bg = Color.white;
-			if(column == 0 || column > engine.getNumVariables())
+			if(column == 0 || column > ptm.getVisibleVariables().size())
 			{
 				if(value instanceof Double)
 				{
