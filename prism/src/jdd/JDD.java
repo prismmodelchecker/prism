@@ -645,6 +645,22 @@ public class JDD
 		DD_PrintInfoBrief(dd.ptr(), num_vars);
 	}
 	
+	// gets info for dd as string (nodes, terminals, minterms)
+	// [ REFS: <none>, DEREFS: <none> ]
+	
+	public static String GetInfoString(JDDNode dd, int num_vars)
+	{
+		return GetNumNodes(dd)+" nodes ("+GetNumTerminals(dd)+" terminal), "+GetNumMintermsString(dd, num_vars)+" minterms";
+	}
+	
+	// gets compact info for dd as string (nodes, terminals, minterms)
+	// [ REFS: <none>, DEREFS: <none> ]
+	
+	public static String GetInfoBriefString(JDDNode dd, int num_vars)
+	{
+		return "["+GetNumNodes(dd)+","+GetNumTerminals(dd)+","+GetNumMintermsString(dd, num_vars)+"]";
+	}
+	
 	// prints out support for dd (all dd variables present)
 	// [ REFS: <none>, DEREFS: <none> ]
 	
