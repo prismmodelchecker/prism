@@ -89,15 +89,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		pathTable.getTableHeader().setReorderingAllowed(true);
 		
-		pathTable.addComponentListener(new ComponentListener()
-		{
-			public void componentHidden(ComponentEvent e){}			
-			public void componentMoved(ComponentEvent e){}			
+		pathTable.addComponentListener(new ComponentAdapter()
+		{			
 			public void componentResized(ComponentEvent e)	{
 				sortOutColumnSizes();
 			}
-			
-			public void componentShown(ComponentEvent e){}			
 		});
 		
 		
@@ -1138,20 +1134,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel6.add(jPanel15, gridBagConstraints);
 
-        jScrollPane2.setPreferredSize(new java.awt.Dimension(100, 100));
-        currentUpdatesTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][]
-            {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
-            },
-            new String []
-            {
-                "Title 1", "Title 2", "Title 3", "Title 4"
-            }
-        ));
+        jScrollPane2.setPreferredSize(new java.awt.Dimension(100, 100));       
         jScrollPane2.setViewportView(currentUpdatesTable);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1444,65 +1427,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         jPanel2.setLayout(new java.awt.BorderLayout());
 
         jPanel2.setBorder(new javax.swing.border.TitledBorder("Simulation Path"));
-        pathTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][]
-            {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
-            },
-            new String []
-            {
-                "Title 1", "Title 2", "Title 3", "Title 4"
-            }
-        ));
+       
         jScrollPane1.setViewportView(pathTable);
 
         jPanel2.add(jScrollPane1, java.awt.BorderLayout.CENTER);
