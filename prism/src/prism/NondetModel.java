@@ -113,10 +113,10 @@ public class NondetModel implements Model
 	// rewards
 	public int getNumRewardStructs()		{ return numRewardStructs; }
 	// stats
-	public long getNumStates()			{ return (numStates>Long.MAX_VALUE) ? -1 : (long)numStates; }
-	public long getNumTransitions()			{ return (numTransitions>Long.MAX_VALUE) ? -1 : (long)numTransitions; }
-	public long getNumChoices()			{ return (numChoices>Long.MAX_VALUE) ? -1 : (long)numChoices; }
-	public long getNumStartStates()			{ return (numStartStates>Long.MAX_VALUE) ? -1 : (long)numStartStates; }
+	public long getNumStates()			{ return (numStates>Long.MAX_VALUE) ? -1 : Math.round(numStates); }
+	public long getNumTransitions()			{ return (numTransitions>Long.MAX_VALUE) ? -1 : Math.round(numTransitions); }
+	public long getNumChoices()			{ return (numChoices>Long.MAX_VALUE) ? -1 : Math.round(numChoices); }
+	public long getNumStartStates()			{ return (numStartStates>Long.MAX_VALUE) ? -1 : Math.round(numStartStates); }
 	// additional methods to get stats as strings
 	public String getNumStatesString()		{ return PrismUtils.bigIntToString(numStates); }
 	public String getNumTransitionsString()		{ return PrismUtils.bigIntToString(numTransitions); }

@@ -89,12 +89,12 @@ public class StateListMTBDD implements StateList
 	
 	public int size()
 	{
-		return (size > Integer.MAX_VALUE) ? -1 : (int)size;
+		return (size > Integer.MAX_VALUE) ? -1 : (int)Math.round(size);
 	}
 	
 	public String sizeString()
 	{
-		return (size > Long.MAX_VALUE) ? "" + size : "" + (long)size;
+		return (size > Long.MAX_VALUE) ? "" + size : "" + Math.round(size);
 	}
 
 	// print whole list

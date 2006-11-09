@@ -214,7 +214,7 @@ public class ExpressionConstant extends Expression
 		if(o instanceof Double)
 		{
 			dval = ((Double)o).doubleValue();
-			ival = (int)dval;
+			ival = (int)Math.round(dval);
 			bval = (ival==0) ? false : true;
 		}
 		else if(o instanceof Integer)

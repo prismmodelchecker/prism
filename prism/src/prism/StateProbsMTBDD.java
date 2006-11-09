@@ -138,7 +138,7 @@ public class StateProbsMTBDD implements StateProbs
 	public int getNNZ()
 	{
 		double nnz = JDD.GetNumMinterms(probs, numDDRowVars);
-		return (nnz > Integer.MAX_VALUE) ? -1 : (int)nnz;
+		return (nnz > Integer.MAX_VALUE) ? -1 : (int)Math.round(nnz);
 	}
 	
 	public String getNNZString()

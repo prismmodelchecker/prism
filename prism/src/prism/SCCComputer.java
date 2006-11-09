@@ -139,7 +139,7 @@ public class SCCComputer
 //		}
 //		mainLog.print("States not in BSCCs:\nx: ");
 //		JDD.PrintVector(notInBSCCs, allDDRowVars);
-		mainLog.println(" Transient states: " + (int)JDD.GetNumMinterms(notInBSCCs, allDDRowVars.n()));
+		mainLog.println(" Transient states: " + JDD.GetNumMintermsString(notInBSCCs, allDDRowVars.n()));
 	}
 	
 	// pick a random (actually the first) state from set (set not empty)

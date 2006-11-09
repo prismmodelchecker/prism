@@ -2436,7 +2436,7 @@ public class StochModelChecker implements ModelChecker
 			// avoid a call to GetNumMinterms in this simple (and common) case
 			n = numStates;
 		} else {
-			n = (long)JDD.GetNumMinterms(subset, allDDRowVars.n());
+			n = Math.round(JDD.GetNumMinterms(subset, allDDRowVars.n()));
 		}
 		
 		// special case - there is only one state in 'subset'

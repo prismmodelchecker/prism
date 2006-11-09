@@ -60,7 +60,7 @@ public class PrismUtils
 	public static String bigIntToString(double d)
 	{
 		if (d <= Long.MAX_VALUE) {
-			return "" + (long)d;
+			return "" + Math.round(d);
 		}
 		else {
 			return "" + d;
