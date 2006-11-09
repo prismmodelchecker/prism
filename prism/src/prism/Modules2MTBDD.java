@@ -1634,7 +1634,7 @@ public class Modules2MTBDD
 		
 		// find the max number of overlaps
 		// (i.e. max number of nondet. choices)
-		maxChoices = (int)JDD.FindMax(overlaps);
+		maxChoices = (int)Math.round(JDD.FindMax(overlaps));
 		
 		// if all the guards were false, we're done already
 		if (maxChoices == 0) {
