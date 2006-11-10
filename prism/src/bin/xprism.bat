@@ -11,8 +11,12 @@ set PRISM_DIR=..
 rem Add PRISM to path
 path=%PRISM_DIR%\lib;%path%
 
-rem Setup classpath - jar file (for binary versions) gets priority
-set CP=%PRISM_DIR%\lib\prism.jar;%PRISM_DIR%\classes;%PRISM_DIR%\lib\pepa.zip
+rem Set up CLASSPATH:
+rem  - PRISM jar file (for binary versions) (gets priority)
+rem  - classes directory (most PRISM classes)
+rem  - top-level directory (for images, dtds)
+rem  - lib/pepa.zip (PEPA stuff)
+set CP=%PRISM_DIR%\lib\prism.jar;%PRISM_DIR%\classes;%PRISM_DIR%;%PRISM_DIR%\lib\pepa.zip
 
 rem Run PRISM through Java
 rem start javaw -classpath %CP% userinterface/GUIPrism %*

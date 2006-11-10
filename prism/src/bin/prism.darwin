@@ -26,8 +26,12 @@ else
 	DYLD_LIBRARY_PATH="$PRISM_DIR"/lib:$DYLD_LIBRARY_PATH
 fi
 
-# Set up classpath - jar file (for binary versions) gets priority
-PRISM_CLASSPATH="$PRISM_DIR"/lib/prism.jar:"$PRISM_DIR"/classes:"$PRISM_DIR"/lib/pepa.zip
+# Set up CLASSPATH:
+#  - PRISM jar file (for binary versions) (gets priority)
+#  - classes directory (most PRISM classes)
+#  - top-level directory (for images, dtds)
+#  - lib/pepa.zip (PEPA stuff)
+PRISM_CLASSPATH="$PRISM_DIR"/lib/prism.jar:"$PRISM_DIR"/classes:"$PRISM_DIR":"$PRISM_DIR"/lib/pepa.zip
 
 # Export environment variables
 export PRISM_DIR DYLD_LIBRARY_PATH
