@@ -49,6 +49,7 @@ public class MultipleLineStringEditor implements SettingEditor, KeyListener, Car
     {
         area = new JTextArea();
         area.setLineWrap(true);
+        area.setWrapStyleWord(true);
         font = new Font("monospaced", Font.PLAIN, 12);
         
         area.addCaretListener(this);
