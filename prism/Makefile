@@ -231,9 +231,9 @@ default: all
 all: checks cuddpackage prism
 
 cuddpackage:
-	@(if [ ! -h cudd ]; then \
+	@(if [ ! -h $(CUDD_DIR) ]; then \
 	  echo Making cudd ...; \
-	  cd cudd && \
+	  cd $(CUDD_DIR) && \
 	  /bin/cp Makefile.$(OSTYPE) Makefile && \
 	  $(MAKE); \
 	else \
@@ -242,7 +242,7 @@ cuddpackage:
 
 cuddpackageforce: # use this to force build of cudd (even if dir is just a symlink)
 	@echo Making cudd ...; \
-	cd cudd && \
+	cd $(CUDD_DIR) && \
 	/bin/cp Makefile.$(OSTYPE) Makefile && \
 	$(MAKE)
 
@@ -380,8 +380,8 @@ celan: clean
 clean_all: checks clean_cudd clean
 
 clean_cudd:
-	@(if [ ! -h cudd ]; then \
-	  cd cudd && $(MAKE) distclean; \
+	@(if [ ! -h $(CUDD_DIR) ]; then \
+	  cd $(CUDD_DIR) && $(MAKE) distclean; \
 	fi)
 
 clean_dd: checks
