@@ -41,7 +41,7 @@ import simulator.*;
 public class Prism implements PrismSettingsListener
 {
 	// prism version
-	private static final String version = "3.1.beta1";
+	private static final String version = "3.1.dev";
 	
 	//------------------------------------------------------------------------------
 	// Constants
