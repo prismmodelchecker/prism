@@ -81,6 +81,16 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		initComponents();
 		initPopups();
 		
+		newPathButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallNewPath.gif")));
+		resetPathButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallResetPath.gif")));
+		exportPathButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallExport.gif")));
+		
+		autoUpdateButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallAutomaticUpdate.gif")));
+		manualUpdateField.setIcon(new ImageIcon(this.getClass().getResource("/images/smallManualUpdate.gif")));
+		
+		backtrackButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallBacktrack.gif")));
+		removePrecedingButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallRemovePreceding.gif")));
+		
 		pathTable.getSelectionModel().addListSelectionListener(this);
 		
 		pathTable.addMouseListener(this);
@@ -124,10 +134,10 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		lastInitialState = null;
 		
-		jScrollPane1.setRowHeaderView(((GUISimulatorPathTable)pathTable).getPathRowHeader());
-		jScrollPane2.setRowHeaderView(((GUISimulatorUpdatesTable)currentUpdatesTable).getUpdateRowHeader());
+		tableScroll.setRowHeaderView(((GUISimulatorPathTable)pathTable).getPathRowHeader());
+		updatesScroll.setRowHeaderView(((GUISimulatorUpdatesTable)currentUpdatesTable).getUpdateRowHeader());
 		
-		jScrollPane1.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		tableScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		
 		stateLabelList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
@@ -142,7 +152,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		modelTypeLabel.setText("Unknown");
 		totalTimeLabel.setText("0.0");
-		pathLengthParameterLabel.setText("0");
+		pathLengthLabel.setText("0");
 		totalRewardLabel.setText("");
 		
 		txtFilter = new GUIPrismFileFilter[1];
@@ -374,10 +384,10 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			pathActive = true;
 			
 			totalTimeLabel.setText(""+engine.getTotalPathTime());
-			pathLengthParameterLabel.setText(""+(engine.getPathSize()-1));
+			pathLengthLabel.setText(""+(engine.getPathSize()-1));
 			totalRewardLabel.setText(getTotalRewardLabelString());
-			stateTotalRewardsLabel.setText(getTotalStateRewardLabelString());
-			transitionTotalRewardsLabel.setText(getTotalTransitionRewardLabelString());
+			stateRewardsLabel.setText(getTotalStateRewardLabelString());
+			transitionRewardsLabel.setText(getTotalTransitionRewardLabelString());
 			definedConstantsLabel.setText(uCon.getDefinedConstantsString());
 			
 			doEnables();
@@ -437,10 +447,10 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			pathTable.scrollRectToVisible(new Rectangle(0, (int)pathTable.getPreferredSize().getHeight() - 10, (int)pathTable.getPreferredSize().getWidth(), (int)pathTable.getPreferredSize().getHeight()) );
 			
 			totalTimeLabel.setText(""+engine.getTotalPathTime());
-			pathLengthParameterLabel.setText(""+(engine.getPathSize()-1));
+			pathLengthLabel.setText(""+(engine.getPathSize()-1));
 			totalRewardLabel.setText(getTotalRewardLabelString());
-			stateTotalRewardsLabel.setText(getTotalStateRewardLabelString());
-			transitionTotalRewardsLabel.setText(getTotalTransitionRewardLabelString());
+			stateRewardsLabel.setText(getTotalStateRewardLabelString());
+			transitionRewardsLabel.setText(getTotalTransitionRewardLabelString());
 			
 			stateLabelList.repaint();
 			pathFormulaeList.repaint();
@@ -486,10 +496,10 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		updateTableModel.updateUpdatesTable();
 		
 		totalTimeLabel.setText(""+engine.getTotalPathTime());
-		pathLengthParameterLabel.setText(""+(engine.getPathSize()-1));
+		pathLengthLabel.setText(""+(engine.getPathSize()-1));
 		totalRewardLabel.setText(getTotalRewardLabelString());
-		stateTotalRewardsLabel.setText(getTotalStateRewardLabelString());
-		transitionTotalRewardsLabel.setText(getTotalTransitionRewardLabelString());
+		stateRewardsLabel.setText(getTotalStateRewardLabelString());
+		transitionRewardsLabel.setText(getTotalTransitionRewardLabelString());
 		stateLabelList.repaint();
 		pathFormulaeList.repaint();
 		setComputing(false);
@@ -507,10 +517,10 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			updateTableModel.updateUpdatesTable();
 			
 			totalTimeLabel.setText(""+engine.getTotalPathTime());
-			pathLengthParameterLabel.setText(""+(engine.getPathSize()-1));
+			pathLengthLabel.setText(""+(engine.getPathSize()-1));
 			totalRewardLabel.setText(getTotalRewardLabelString());
-			stateTotalRewardsLabel.setText(getTotalStateRewardLabelString());
-			transitionTotalRewardsLabel.setText(getTotalTransitionRewardLabelString());
+			stateRewardsLabel.setText(getTotalStateRewardLabelString());
+			transitionRewardsLabel.setText(getTotalTransitionRewardLabelString());
 			stateLabelList.repaint();
 			pathFormulaeList.repaint();
 			setComputing(false);
@@ -568,10 +578,10 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		updateTableModel.updateUpdatesTable();
 		
 		totalTimeLabel.setText(""+engine.getTotalPathTime());
-		pathLengthParameterLabel.setText(""+(engine.getPathSize()-1));
+		pathLengthLabel.setText(""+(engine.getPathSize()-1));
 		totalRewardLabel.setText(getTotalRewardLabelString());
-		stateTotalRewardsLabel.setText(getTotalStateRewardLabelString());
-		transitionTotalRewardsLabel.setText(getTotalTransitionRewardLabelString());
+		stateRewardsLabel.setText(getTotalStateRewardLabelString());
+		transitionRewardsLabel.setText(getTotalTransitionRewardLabelString());
 		stateLabelList.repaint();
 		pathFormulaeList.repaint();
 		setComputing(false);
@@ -613,10 +623,10 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				pathTable.scrollRectToVisible(new Rectangle(0, pathTable.getHeight() - 10, pathTable.getWidth(), pathTable.getHeight()) );
 				
 				totalTimeLabel.setText(""+engine.getTotalPathTime());
-				pathLengthParameterLabel.setText(""+(engine.getPathSize()-1));
+				pathLengthLabel.setText(""+(engine.getPathSize()-1));
 				totalRewardLabel.setText(getTotalRewardLabelString());
-				stateTotalRewardsLabel.setText(getTotalStateRewardLabelString());
-				transitionTotalRewardsLabel.setText(getTotalTransitionRewardLabelString());
+				stateRewardsLabel.setText(getTotalStateRewardLabelString());
+				transitionRewardsLabel.setText(getTotalTransitionRewardLabelString());
 				
 				setComputing(false);
 				
@@ -633,10 +643,10 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				updateTableModel.updateUpdatesTable();
 				
 				totalTimeLabel.setText(""+engine.getTotalPathTime());
-				pathLengthParameterLabel.setText(""+(engine.getPathSize()-1));
+				pathLengthLabel.setText(""+(engine.getPathSize()-1));
 				totalRewardLabel.setText(getTotalRewardLabelString());
-				stateTotalRewardsLabel.setText(getTotalStateRewardLabelString());
-				transitionTotalRewardsLabel.setText(getTotalTransitionRewardLabelString());
+				stateRewardsLabel.setText(getTotalStateRewardLabelString());
+				transitionRewardsLabel.setText(getTotalTransitionRewardLabelString());
 				
 				pathTable.scrollRectToVisible(new Rectangle(0, (int)pathTable.getPreferredSize().getHeight() - 10, (int)pathTable.getPreferredSize().getWidth(), (int)pathTable.getPreferredSize().getHeight()) );
 				
@@ -873,13 +883,12 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		removePrecedingButton.setEnabled(pathActive && !computing);
 		removePrecedingField.setEnabled(pathActive);
 		manualUpdateField.setEnabled(pathActive && !computing && !updateTableModel.oldUpdate);
-		stateTimeField.setEnabled(pathActive && mf != null && mf.getType() == ModulesFile.STOCHASTIC);
+		stateTimeField.setEnabled(pathActive && mf != null && mf.getType() == ModulesFile.STOCHASTIC && !autoTimeCheck.isSelected());
 		autoTimeCheck.setEnabled(pathActive && mf != null && mf.getType() == ModulesFile.STOCHASTIC);
 		jLabel2.setEnabled(pathActive);
 		jLabel1.setEnabled(pathActive);
 		jLabel3.setEnabled(pathActive);
 		jLabel4.setEnabled(pathActive);
-		jLabel5.setEnabled(pathActive);
 		
 		resetPathButton.setEnabled(pathActive && !computing);
 		exportPathButton.setEnabled(pathActive && !computing);
@@ -888,25 +897,25 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		currentUpdatesTable.setEnabled(pathActive);
 		
-		jLabel6.setEnabled(mf != null);
+		modelType.setEnabled(mf != null);
 		modelTypeLabel.setEnabled(mf != null);
 		
+		totalTime.setEnabled(pathActive && mf != null && mf.getType() == ModulesFile.STOCHASTIC);
 		totalTimeLabel.setEnabled(pathActive && mf != null && mf.getType() == ModulesFile.STOCHASTIC);
-		pathTimeLabel.setEnabled(pathActive && mf != null && mf.getType() == ModulesFile.STOCHASTIC);
 		
+		pathLength.setEnabled(pathActive);
 		pathLengthLabel.setEnabled(pathActive);
-		pathLengthParameterLabel.setEnabled(pathActive);
-		
-		jLabel9.setEnabled(pathActive);
+				
+		totalRewards.setEnabled(pathActive);
 		totalRewardLabel.setEnabled(pathActive);
 		
-		jLabel13.setEnabled(pathActive);
-		stateTotalRewardsLabel.setEnabled(pathActive);
+		stateRewards.setEnabled(pathActive);
+		stateRewardsLabel.setEnabled(pathActive);
 		
-		spareLabel.setEnabled(pathActive);
-		transitionTotalRewardsLabel.setEnabled(pathActive);
+		transitionRewards.setEnabled(pathActive);
+		transitionRewardsLabel.setEnabled(pathActive);
 		
-		jLabel10.setEnabled(pathActive);
+		definedConstants.setEnabled(pathActive);
 		definedConstantsLabel.setEnabled(pathActive);
 		
 	}
@@ -916,17 +925,17 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    private void initComponents()//GEN-BEGIN:initComponents
-    {
+    // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
+    private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
         buttonGroup1 = new javax.swing.ButtonGroup();
-        jSplitPane1 = new javax.swing.JSplitPane();
-        jPanel1 = new javax.swing.JPanel();
-        jSplitPane2 = new javax.swing.JSplitPane();
-        jPanel3 = new javax.swing.JPanel();
-        jPanel11 = new javax.swing.JPanel();
-        jPanel6 = new javax.swing.JPanel();
+        horizontalSplit = new javax.swing.JSplitPane();
+        leftPanel = new javax.swing.JPanel();
+        verticalSplit = new javax.swing.JSplitPane();
+        topSplit = new javax.swing.JPanel();
+        topLeftPanel = new javax.swing.JPanel();
+        pathExplorationPanel = new javax.swing.JPanel();
         jPanel7 = new javax.swing.JPanel();
         manualUpdateField = new javax.swing.JButton();
         jPanel8 = new javax.swing.JPanel();
@@ -937,13 +946,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         autoTimeCheck = new javax.swing.JCheckBox();
         jPanel13 = new javax.swing.JPanel();
         jPanel15 = new javax.swing.JPanel();
-        jScrollPane2 = new javax.swing.JScrollPane();
+        updatesScroll = new javax.swing.JScrollPane();
         currentUpdatesTable = new javax.swing.JTable();
         currentUpdatesTable = new GUISimulatorUpdatesTable(updateTableModel, this);
-        jLabel5 = new javax.swing.JLabel();
-        Font f = jLabel5.getFont();
-
-        jLabel5.setFont(new Font(f.getName(), Font.BOLD, f.getSize()));
         jPanel5 = new javax.swing.JPanel();
         jPanel23 = new javax.swing.JPanel();
         autoUpdateButton = new javax.swing.JButton();
@@ -952,7 +957,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         jPanel19 = new javax.swing.JPanel();
         autoUpdateField = new javax.swing.JTextField();
         jPanel52 = new javax.swing.JPanel();
-        jPanel12 = new javax.swing.JPanel();
+        pathModificationPanel = new javax.swing.JPanel();
         jPanel14 = new javax.swing.JPanel();
         jPanel16 = new javax.swing.JPanel();
         jPanel18 = new javax.swing.JPanel();
@@ -980,93 +985,69 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         stateLabelList = new javax.swing.JList();
         stateLabelList = new GUISimLabelFormulaeList(this);
         jLabel7 = new javax.swing.JLabel();
-        jPanel2 = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        pathTable = new javax.swing.JTable();
-        pathTable = new GUISimulatorPathTable(pathTableModel, engine);
-        jPanel24 = new javax.swing.JPanel();
+        rightPanel = new javax.swing.JPanel();
+        innerRightPanel = new javax.swing.JPanel();
+        topRightPanel = new javax.swing.JPanel();
+        informationPanel = new javax.swing.JPanel();
+        innerInformationPanel = new javax.swing.JPanel();
+        modelType = new javax.swing.JLabel();
+        pathLength = new javax.swing.JLabel();
+        totalTime = new javax.swing.JLabel();
+        modelTypeLabel = new javax.swing.JLabel();
+        pathLengthLabel = new javax.swing.JLabel();
+        totalTimeLabel = new javax.swing.JLabel();
+        stateRewards = new javax.swing.JLabel();
+        transitionRewards = new javax.swing.JLabel();
+        totalRewards = new javax.swing.JLabel();
+        stateRewardsLabel = new javax.swing.JLabel();
+        transitionRewardsLabel = new javax.swing.JLabel();
+        totalRewardLabel = new javax.swing.JLabel();
+        definedConstants = new javax.swing.JLabel();
+        dummy1 = new javax.swing.JLabel();
+        dummy2 = new javax.swing.JLabel();
+        definedConstantsLabel = new javax.swing.JLabel();
+        buttonPanel = new javax.swing.JPanel();
+        innerButtonPanel = new javax.swing.JPanel();
         newPathButton = new javax.swing.JButton();
         resetPathButton = new javax.swing.JButton();
         exportPathButton = new javax.swing.JButton();
-        jPanel29 = new javax.swing.JPanel();
-        jPanel31 = new javax.swing.JPanel();
-        jPanel32 = new javax.swing.JPanel();
-        jPanel33 = new javax.swing.JPanel();
-        jPanel34 = new javax.swing.JPanel();
-        jPanel35 = new javax.swing.JPanel();
-        jPanel36 = new javax.swing.JPanel();
-        jPanel54 = new javax.swing.JPanel();
-        jPanel30 = new javax.swing.JPanel();
-        jPanel39 = new javax.swing.JPanel();
-        jLabel6 = new javax.swing.JLabel();
-        jPanel40 = new javax.swing.JPanel();
-        modelTypeLabel = new javax.swing.JLabel();
-        jPanel41 = new javax.swing.JPanel();
-        jPanel42 = new javax.swing.JPanel();
-        stateTotalRewardsLabel = new javax.swing.JLabel();
-        jLabel13 = new javax.swing.JLabel();
-        jPanel38 = new javax.swing.JPanel();
-        jPanel43 = new javax.swing.JPanel();
-        jPanel44 = new javax.swing.JPanel();
-        jPanel45 = new javax.swing.JPanel();
-        pathLengthLabel = new javax.swing.JLabel();
-        pathLengthParameterLabel = new javax.swing.JLabel();
-        jPanel46 = new javax.swing.JPanel();
-        spareLabel = new javax.swing.JLabel();
-        transitionTotalRewardsLabel = new javax.swing.JLabel();
-        jPanel47 = new javax.swing.JPanel();
-        jPanel48 = new javax.swing.JPanel();
-        jPanel49 = new javax.swing.JPanel();
-        jPanel50 = new javax.swing.JPanel();
-        jPanel51 = new javax.swing.JPanel();
-        totalTimeLabel = new javax.swing.JLabel();
-        pathTimeLabel = new javax.swing.JLabel();
-        jLabel9 = new javax.swing.JLabel();
-        totalRewardLabel = new javax.swing.JLabel();
-        jPanel55 = new javax.swing.JPanel();
-        jPanel56 = new javax.swing.JPanel();
-        jLabel10 = new javax.swing.JLabel();
-        jPanel57 = new javax.swing.JPanel();
-        definedConstantsLabel = new javax.swing.JLabel();
-        jPanel58 = new javax.swing.JPanel();
-        jPanel37 = new javax.swing.JPanel();
-        jPanel59 = new javax.swing.JPanel();
-        jPanel60 = new javax.swing.JPanel();
+        tablePanel = new javax.swing.JPanel();
+        tableScroll = new javax.swing.JScrollPane();
+        pathTable = new javax.swing.JTable();
+        pathTable = new GUISimulatorPathTable(pathTableModel, engine);
 
         setLayout(new java.awt.BorderLayout());
 
-        jSplitPane1.setDividerLocation(302);
-        jPanel1.setLayout(new java.awt.BorderLayout());
+        horizontalSplit.setDividerLocation(302);
+        leftPanel.setLayout(new java.awt.BorderLayout());
 
-        jPanel1.setMinimumSize(new java.awt.Dimension(300, 210));
-        jPanel1.setPreferredSize(new java.awt.Dimension(302, 591));
-        jSplitPane2.setDividerLocation(400);
-        jSplitPane2.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        jSplitPane2.setResizeWeight(0.5);
-        jPanel3.setLayout(new java.awt.BorderLayout());
+        leftPanel.setMinimumSize(new java.awt.Dimension(300, 210));
+        leftPanel.setPreferredSize(new java.awt.Dimension(302, 591));
+        verticalSplit.setDividerLocation(400);
+        verticalSplit.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        verticalSplit.setResizeWeight(0.5);
+        topSplit.setLayout(new java.awt.BorderLayout());
 
-        jPanel3.setMinimumSize(new java.awt.Dimension(302, 227));
-        jPanel3.setPreferredSize(new java.awt.Dimension(302, 554));
-        jPanel11.setLayout(new java.awt.BorderLayout());
+        topSplit.setMinimumSize(new java.awt.Dimension(302, 227));
+        topSplit.setPreferredSize(new java.awt.Dimension(302, 554));
+        topLeftPanel.setLayout(new java.awt.BorderLayout());
 
-        jPanel6.setLayout(new java.awt.GridBagLayout());
+        pathExplorationPanel.setLayout(new java.awt.GridBagLayout());
 
-        jPanel6.setBorder(new javax.swing.border.TitledBorder("Exploration"));
+        pathExplorationPanel.setBorder(new javax.swing.border.TitledBorder("Exploration"));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
-        jPanel6.add(jPanel7, gridBagConstraints);
+        pathExplorationPanel.add(jPanel7, gridBagConstraints);
 
-        manualUpdateField.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/smallManualUpdate.gif")));
-        manualUpdateField.setText("Do Update");
+        manualUpdateField.setIcon(new javax.swing.ImageIcon(""));
+        manualUpdateField.setText("Manual Update");
         manualUpdateField.setToolTipText("Perform the selected update");
         manualUpdateField.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
         manualUpdateField.setMaximumSize(new java.awt.Dimension(112, 25));
         manualUpdateField.setPreferredSize(new java.awt.Dimension(112, 25));
-        manualUpdateField.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        manualUpdateField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 manualUpdateFieldActionPerformed(evt);
             }
         });
@@ -1076,27 +1057,28 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel6.add(manualUpdateField, gridBagConstraints);
+        pathExplorationPanel.add(manualUpdateField, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
-        jPanel6.add(jPanel8, gridBagConstraints);
+        pathExplorationPanel.add(jPanel8, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 0;
-        jPanel6.add(jPanel9, gridBagConstraints);
+        pathExplorationPanel.add(jPanel9, gridBagConstraints);
 
         stateTimeField.setText("1.0");
         stateTimeField.setToolTipText("Enter the time spent in the current state");
+        stateTimeField.setEnabled(false);
         stateTimeField.setPreferredSize(new java.awt.Dimension(60, 19));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel6.add(stateTimeField, gridBagConstraints);
+        pathExplorationPanel.add(stateTimeField, gridBagConstraints);
 
         jLabel1.setText("State time:");
         jLabel1.setMinimumSize(new java.awt.Dimension(57, 15));
@@ -1105,37 +1087,54 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel6.add(jLabel1, gridBagConstraints);
+        pathExplorationPanel.add(jLabel1, gridBagConstraints);
 
         jPanel10.setMinimumSize(new java.awt.Dimension(10, 5));
         jPanel10.setPreferredSize(new java.awt.Dimension(10, 5));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
-        jPanel6.add(jPanel10, gridBagConstraints);
+        pathExplorationPanel.add(jPanel10, gridBagConstraints);
 
         autoTimeCheck.setText("Auto");
         autoTimeCheck.setToolTipText("Automatically sample time from a negative exponential distribution");
+        autoTimeCheck.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                autoTimeCheckStateChanged(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 5;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel6.add(autoTimeCheck, gridBagConstraints);
+        pathExplorationPanel.add(autoTimeCheck, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 8;
-        jPanel6.add(jPanel13, gridBagConstraints);
+        pathExplorationPanel.add(jPanel13, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 6;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        jPanel6.add(jPanel15, gridBagConstraints);
+        pathExplorationPanel.add(jPanel15, gridBagConstraints);
 
-        jScrollPane2.setPreferredSize(new java.awt.Dimension(100, 100));       
-        jScrollPane2.setViewportView(currentUpdatesTable);
+        updatesScroll.setPreferredSize(new java.awt.Dimension(100, 100));
+        currentUpdatesTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        updatesScroll.setViewportView(currentUpdatesTable);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -1144,34 +1143,24 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
-        jPanel6.add(jScrollPane2, gridBagConstraints);
-
-        jLabel5.setText("Current Updates:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel6.add(jLabel5, gridBagConstraints);
+        pathExplorationPanel.add(updatesScroll, gridBagConstraints);
 
         jPanel5.setPreferredSize(new java.awt.Dimension(10, 5));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
-        jPanel6.add(jPanel5, gridBagConstraints);
+        pathExplorationPanel.add(jPanel5, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridy = 16;
-        jPanel6.add(jPanel23, gridBagConstraints);
+        pathExplorationPanel.add(jPanel23, gridBagConstraints);
 
-        autoUpdateButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/smallAutomaticUpdate.gif")));
+        autoUpdateButton.setIcon(new javax.swing.ImageIcon(""));
         autoUpdateButton.setText("Auto Update");
         autoUpdateButton.setToolTipText("Make a number of automatic updates");
         autoUpdateButton.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
-        autoUpdateButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        autoUpdateButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 autoUpdateButtonActionPerformed(evt);
             }
         });
@@ -1181,13 +1170,13 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel6.add(autoUpdateButton, gridBagConstraints);
+        pathExplorationPanel.add(autoUpdateButton, gridBagConstraints);
 
         jPanel17.setPreferredSize(new java.awt.Dimension(10, 5));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        jPanel6.add(jPanel17, gridBagConstraints);
+        pathExplorationPanel.add(jPanel17, gridBagConstraints);
 
         jLabel2.setText("No. Steps:");
         jLabel2.setPreferredSize(new java.awt.Dimension(57, 15));
@@ -1195,20 +1184,18 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel6.add(jLabel2, gridBagConstraints);
+        pathExplorationPanel.add(jLabel2, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
-        jPanel6.add(jPanel19, gridBagConstraints);
+        pathExplorationPanel.add(jPanel19, gridBagConstraints);
 
         autoUpdateField.setText("1");
         autoUpdateField.setToolTipText("Enter the number of automatic steps");
         autoUpdateField.setPreferredSize(new java.awt.Dimension(60, 19));
-        autoUpdateField.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        autoUpdateField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 autoUpdateFieldActionPerformed(evt);
             }
         });
@@ -1217,42 +1204,40 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel6.add(autoUpdateField, gridBagConstraints);
+        pathExplorationPanel.add(autoUpdateField, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 9;
         gridBagConstraints.gridy = 0;
-        jPanel6.add(jPanel52, gridBagConstraints);
+        pathExplorationPanel.add(jPanel52, gridBagConstraints);
 
-        jPanel11.add(jPanel6, java.awt.BorderLayout.CENTER);
+        topLeftPanel.add(pathExplorationPanel, java.awt.BorderLayout.CENTER);
 
-        jPanel12.setLayout(new java.awt.GridBagLayout());
+        pathModificationPanel.setLayout(new java.awt.GridBagLayout());
 
-        jPanel12.setBorder(new javax.swing.border.TitledBorder("Path Modification"));
+        pathModificationPanel.setBorder(new javax.swing.border.TitledBorder("Path Modification"));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        jPanel12.add(jPanel14, gridBagConstraints);
+        pathModificationPanel.add(jPanel14, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 10;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.weightx = 1.0;
-        jPanel12.add(jPanel16, gridBagConstraints);
+        pathModificationPanel.add(jPanel16, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
-        jPanel12.add(jPanel18, gridBagConstraints);
+        pathModificationPanel.add(jPanel18, gridBagConstraints);
 
-        backtrackButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/smallBacktrack.gif")));
+        backtrackButton.setIcon(new javax.swing.ImageIcon(""));
         backtrackButton.setText("Backtrack");
         backtrackButton.setToolTipText("Backtrack to the given step.");
         backtrackButton.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
-        backtrackButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        backtrackButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 backtrackButtonActionPerformed(evt);
             }
         });
@@ -1262,7 +1247,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel12.add(backtrackButton, gridBagConstraints);
+        pathModificationPanel.add(backtrackButton, gridBagConstraints);
 
         jLabel3.setText("To Step:");
         jLabel3.setPreferredSize(new java.awt.Dimension(57, 15));
@@ -1270,29 +1255,27 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel12.add(jLabel3, gridBagConstraints);
+        pathModificationPanel.add(jLabel3, gridBagConstraints);
 
         jPanel20.setNextFocusableComponent(jPanel9);
         jPanel20.setPreferredSize(new java.awt.Dimension(10, 5));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
-        jPanel12.add(jPanel20, gridBagConstraints);
+        pathModificationPanel.add(jPanel20, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 6;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel12.add(jPanel21, gridBagConstraints);
+        pathModificationPanel.add(jPanel21, gridBagConstraints);
 
-        removePrecedingButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/smallRemovePreceding.gif")));
+        removePrecedingButton.setIcon(new javax.swing.ImageIcon(""));
         removePrecedingButton.setText("Remove");
         removePrecedingButton.setToolTipText("Remove all before the given step");
         removePrecedingButton.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
-        removePrecedingButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        removePrecedingButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 removePrecedingButtonActionPerformed(evt);
             }
         });
@@ -1303,7 +1286,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel12.add(removePrecedingButton, gridBagConstraints);
+        pathModificationPanel.add(removePrecedingButton, gridBagConstraints);
 
         jLabel4.setText("Before:");
         jLabel4.setPreferredSize(new java.awt.Dimension(57, 15));
@@ -1311,7 +1294,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         gridBagConstraints.gridx = 7;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel12.add(jLabel4, gridBagConstraints);
+        pathModificationPanel.add(jLabel4, gridBagConstraints);
 
         backTrackStepField.setText("0");
         backTrackStepField.setToolTipText("Enter the step to backtrack to");
@@ -1320,7 +1303,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel12.add(backTrackStepField, gridBagConstraints);
+        pathModificationPanel.add(backTrackStepField, gridBagConstraints);
 
         removePrecedingField.setText("0");
         removePrecedingField.setToolTipText("Enter the step to become the first step");
@@ -1329,23 +1312,23 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         gridBagConstraints.gridx = 9;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel12.add(removePrecedingField, gridBagConstraints);
+        pathModificationPanel.add(removePrecedingField, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 8;
         gridBagConstraints.gridy = 0;
-        jPanel12.add(jPanel22, gridBagConstraints);
+        pathModificationPanel.add(jPanel22, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 8;
-        jPanel12.add(jPanel25, gridBagConstraints);
+        pathModificationPanel.add(jPanel25, gridBagConstraints);
 
-        jPanel11.add(jPanel12, java.awt.BorderLayout.SOUTH);
+        topLeftPanel.add(pathModificationPanel, java.awt.BorderLayout.SOUTH);
 
-        jPanel3.add(jPanel11, java.awt.BorderLayout.CENTER);
+        topSplit.add(topLeftPanel, java.awt.BorderLayout.CENTER);
 
-        jSplitPane2.setLeftComponent(jPanel3);
+        verticalSplit.setLeftComponent(topSplit);
 
         jPanel4.setLayout(new java.awt.GridBagLayout());
 
@@ -1418,387 +1401,169 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         gridBagConstraints.weighty = 1.0;
         jPanel4.add(jSplitPane3, gridBagConstraints);
 
-        jSplitPane2.setRightComponent(jPanel4);
+        verticalSplit.setRightComponent(jPanel4);
 
-        jPanel1.add(jSplitPane2, java.awt.BorderLayout.CENTER);
+        leftPanel.add(verticalSplit, java.awt.BorderLayout.CENTER);
 
-        jSplitPane1.setLeftComponent(jPanel1);
+        horizontalSplit.setLeftComponent(leftPanel);
 
-        jPanel2.setLayout(new java.awt.BorderLayout());
+        rightPanel.setLayout(new java.awt.BorderLayout());
 
-        jPanel2.setBorder(new javax.swing.border.TitledBorder("Simulation Path"));
-       
-        jScrollPane1.setViewportView(pathTable);
+        rightPanel.setBorder(new javax.swing.border.TitledBorder("Simulation Path"));
+        innerRightPanel.setLayout(new java.awt.BorderLayout(0, 10));
 
-        jPanel2.add(jScrollPane1, java.awt.BorderLayout.CENTER);
+        innerRightPanel.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(10, 10, 10, 10)));
+        topRightPanel.setLayout(new java.awt.BorderLayout(10, 10));
 
-        jPanel24.setLayout(new java.awt.GridBagLayout());
+        informationPanel.setLayout(new java.awt.BorderLayout());
 
-        newPathButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/smallNewPath.gif")));
+        informationPanel.setBorder(new javax.swing.border.EtchedBorder());
+        innerInformationPanel.setLayout(new java.awt.GridLayout(6, 3, 5, 5));
+
+        innerInformationPanel.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(5, 5, 5, 5)));
+        modelType.setText("Model Type:");
+        modelType.setFont(this.getFont().deriveFont(Font.BOLD));
+        innerInformationPanel.add(modelType);
+
+        pathLength.setText("Path Length:");
+        pathLength.setFont(this.getFont().deriveFont(Font.BOLD));
+        innerInformationPanel.add(pathLength);
+
+        totalTime.setText("Total Time:");
+        totalTime.setFont(this.getFont().deriveFont(Font.BOLD));
+        innerInformationPanel.add(totalTime);
+
+        modelTypeLabel.setText("Unknown");
+        modelTypeLabel.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(0, 10, 0, 0)));
+        innerInformationPanel.add(modelTypeLabel);
+
+        pathLengthLabel.setText("0");
+        pathLengthLabel.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(0, 10, 0, 0)));
+        innerInformationPanel.add(pathLengthLabel);
+
+        totalTimeLabel.setText("0.0");
+        totalTimeLabel.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(0, 10, 0, 0)));
+        innerInformationPanel.add(totalTimeLabel);
+
+        stateRewards.setText("State Rewards:");
+        stateRewards.setFont(this.getFont().deriveFont(Font.BOLD));
+        innerInformationPanel.add(stateRewards);
+
+        transitionRewards.setText("Transition Rewards:");
+        transitionRewards.setFont(this.getFont().deriveFont(Font.BOLD));
+        innerInformationPanel.add(transitionRewards);
+
+        totalRewards.setText("Total Reward:");
+        totalRewards.setFont(this.getFont().deriveFont(Font.BOLD));
+        innerInformationPanel.add(totalRewards);
+
+        stateRewardsLabel.setText("0.0");
+        stateRewardsLabel.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(0, 10, 0, 0)));
+        innerInformationPanel.add(stateRewardsLabel);
+
+        transitionRewardsLabel.setText("0.0");
+        transitionRewardsLabel.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(0, 10, 0, 0)));
+        innerInformationPanel.add(transitionRewardsLabel);
+
+        totalRewardLabel.setText("0.0");
+        totalRewardLabel.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(0, 10, 0, 0)));
+        innerInformationPanel.add(totalRewardLabel);
+
+        definedConstants.setText("Defined Constants:");
+        definedConstants.setFont(this.getFont().deriveFont(Font.BOLD));
+        innerInformationPanel.add(definedConstants);
+
+        innerInformationPanel.add(dummy1);
+
+        innerInformationPanel.add(dummy2);
+
+        definedConstantsLabel.setText("Unknown");
+        definedConstantsLabel.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(0, 10, 0, 0)));
+        innerInformationPanel.add(definedConstantsLabel);
+
+        informationPanel.add(innerInformationPanel, java.awt.BorderLayout.CENTER);
+
+        topRightPanel.add(informationPanel, java.awt.BorderLayout.CENTER);
+
+        buttonPanel.setLayout(new java.awt.BorderLayout());
+
+        innerButtonPanel.setLayout(new java.awt.GridLayout(3, 1, 5, 10));
+
+        newPathButton.setIcon(new javax.swing.ImageIcon(""));
         newPathButton.setText("New Path");
         newPathButton.setToolTipText("New Path");
         newPathButton.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
         newPathButton.setPreferredSize(new java.awt.Dimension(119, 28));
-        newPathButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        newPathButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 newPathButtonActionPerformed(evt);
             }
         });
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        jPanel24.add(newPathButton, gridBagConstraints);
+        innerButtonPanel.add(newPathButton);
 
-        resetPathButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/smallResetPath.gif")));
+        resetPathButton.setIcon(new javax.swing.ImageIcon(""));
         resetPathButton.setText("Reset Path");
         resetPathButton.setToolTipText("Reset Path");
         resetPathButton.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
         resetPathButton.setPreferredSize(new java.awt.Dimension(119, 28));
-        resetPathButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        resetPathButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 resetPathButtonActionPerformed(evt);
             }
         });
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTH;
-        jPanel24.add(resetPathButton, gridBagConstraints);
+        innerButtonPanel.add(resetPathButton);
 
-        exportPathButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/smallExport.gif")));
+        exportPathButton.setIcon(new javax.swing.ImageIcon(""));
         exportPathButton.setText("Export Path");
         exportPathButton.setToolTipText("Export Path");
         exportPathButton.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
         exportPathButton.setPreferredSize(new java.awt.Dimension(119, 28));
-        exportPathButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        exportPathButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 exportPathButtonActionPerformed(evt);
             }
         });
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        jPanel24.add(exportPathButton, gridBagConstraints);
+        innerButtonPanel.add(exportPathButton);
 
-        jPanel29.setPreferredSize(new java.awt.Dimension(10, 5));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        jPanel24.add(jPanel29, gridBagConstraints);
+        buttonPanel.add(innerButtonPanel, java.awt.BorderLayout.NORTH);
 
-        jPanel31.setPreferredSize(new java.awt.Dimension(10, 5));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        jPanel24.add(jPanel31, gridBagConstraints);
+        topRightPanel.add(buttonPanel, java.awt.BorderLayout.WEST);
 
-        jPanel32.setPreferredSize(new java.awt.Dimension(10, 5));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTH;
-        jPanel24.add(jPanel32, gridBagConstraints);
+        innerRightPanel.add(topRightPanel, java.awt.BorderLayout.NORTH);
 
-        jPanel33.setPreferredSize(new java.awt.Dimension(10, 1));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        jPanel24.add(jPanel33, gridBagConstraints);
+        tablePanel.setLayout(new java.awt.BorderLayout());
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 0;
-        jPanel24.add(jPanel34, gridBagConstraints);
+        pathTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        tableScroll.setViewportView(pathTable);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 6;
-        gridBagConstraints.gridy = 0;
-        jPanel24.add(jPanel35, gridBagConstraints);
+        tablePanel.add(tableScroll, java.awt.BorderLayout.CENTER);
 
-        jPanel36.setLayout(new javax.swing.BoxLayout(jPanel36, javax.swing.BoxLayout.Y_AXIS));
+        innerRightPanel.add(tablePanel, java.awt.BorderLayout.CENTER);
 
-        jPanel36.setBorder(new javax.swing.border.EtchedBorder());
-        jPanel54.setLayout(new java.awt.GridLayout(1, 3));
+        rightPanel.add(innerRightPanel, java.awt.BorderLayout.CENTER);
 
-        jPanel30.setLayout(new java.awt.GridBagLayout());
+        horizontalSplit.setRightComponent(rightPanel);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        jPanel30.add(jPanel39, gridBagConstraints);
+        add(horizontalSplit, java.awt.BorderLayout.CENTER);
 
-        jLabel6.setText("Model Type:");
-        f = jLabel6.getFont();
-        jLabel6.setFont(new java.awt.Font(f.getName(), Font.BOLD, f.getSize()));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel30.add(jLabel6, gridBagConstraints);
+    }
+    // </editor-fold>//GEN-END:initComponents
 
-        jPanel40.setPreferredSize(new java.awt.Dimension(10, 5));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        jPanel30.add(jPanel40, gridBagConstraints);
-
-        modelTypeLabel.setText("Unknown");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        jPanel30.add(modelTypeLabel, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        jPanel30.add(jPanel41, gridBagConstraints);
-
-        jPanel42.setPreferredSize(new java.awt.Dimension(10, 5));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        jPanel30.add(jPanel42, gridBagConstraints);
-
-        stateTotalRewardsLabel.setText("0.0");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        jPanel30.add(stateTotalRewardsLabel, gridBagConstraints);
-
-        jLabel13.setText("State Rewards:");
-        f = jLabel13.getFont();
-        jLabel13.setFont(new java.awt.Font(f.getName(), Font.BOLD, f.getSize()));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel30.add(jLabel13, gridBagConstraints);
-
-        jPanel54.add(jPanel30);
-
-        jPanel38.setLayout(new java.awt.GridBagLayout());
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        jPanel38.add(jPanel43, gridBagConstraints);
-
-        jPanel44.setPreferredSize(new java.awt.Dimension(10, 5));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        jPanel38.add(jPanel44, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        jPanel38.add(jPanel45, gridBagConstraints);
-
-        pathLengthLabel.setText("Path Length:");
-        f = pathLengthLabel.getFont();
-        pathLengthLabel.setFont(new java.awt.Font(f.getName(), Font.BOLD, f.getSize()));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel38.add(pathLengthLabel, gridBagConstraints);
-
-        pathLengthParameterLabel.setText("0");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        jPanel38.add(pathLengthParameterLabel, gridBagConstraints);
-
-        jPanel46.setPreferredSize(new java.awt.Dimension(10, 5));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        jPanel38.add(jPanel46, gridBagConstraints);
-
-        spareLabel.setText("Transition Rewards:");
-        f = spareLabel.getFont();
-        spareLabel.setFont(new java.awt.Font(f.getName(), Font.BOLD, f.getSize()));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel38.add(spareLabel, gridBagConstraints);
-
-        transitionTotalRewardsLabel.setText("0.0");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        jPanel38.add(transitionTotalRewardsLabel, gridBagConstraints);
-
-        jPanel54.add(jPanel38);
-
-        jPanel47.setLayout(new java.awt.GridBagLayout());
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        jPanel47.add(jPanel48, gridBagConstraints);
-
-        jPanel49.setPreferredSize(new java.awt.Dimension(10, 5));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        jPanel47.add(jPanel49, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        jPanel47.add(jPanel50, gridBagConstraints);
-
-        jPanel51.setPreferredSize(new java.awt.Dimension(10, 5));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        jPanel47.add(jPanel51, gridBagConstraints);
-
-        totalTimeLabel.setText("0.0");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        jPanel47.add(totalTimeLabel, gridBagConstraints);
-
-        pathTimeLabel.setText("Total Time:");
-        f = jLabel6.getFont();
-        pathTimeLabel.setFont(new java.awt.Font(f.getName(), Font.BOLD, f.getSize()));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel47.add(pathTimeLabel, gridBagConstraints);
-
-        jLabel9.setText("Total Reward:");
-        f = jLabel9.getFont();
-        jLabel9.setFont(new java.awt.Font(f.getName(), Font.BOLD, f.getSize()));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel47.add(jLabel9, gridBagConstraints);
-
-        totalRewardLabel.setText("0.0");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        jPanel47.add(totalRewardLabel, gridBagConstraints);
-
-        jPanel54.add(jPanel47);
-
-        jPanel36.add(jPanel54);
-
-        jPanel55.setLayout(new java.awt.GridBagLayout());
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        jPanel55.add(jPanel56, gridBagConstraints);
-
-        jLabel10.setText("Defined Constants:");
-        f = jLabel10.getFont();
-        jLabel10.setFont(new java.awt.Font(f.getName(), Font.BOLD, f.getSize()));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        jPanel55.add(jLabel10, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        jPanel55.add(jPanel57, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        jPanel55.add(definedConstantsLabel, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        jPanel55.add(jPanel58, gridBagConstraints);
-
-        jPanel36.add(jPanel55);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 5;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.gridheight = 7;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        jPanel24.add(jPanel36, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 8;
-        gridBagConstraints.gridy = 9;
-        jPanel24.add(jPanel37, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
-        gridBagConstraints.weighty = 0.5;
-        jPanel24.add(jPanel59, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.weighty = 0.5;
-        jPanel24.add(jPanel60, gridBagConstraints);
-
-        jPanel2.add(jPanel24, java.awt.BorderLayout.NORTH);
-
-        jSplitPane1.setRightComponent(jPanel2);
-
-        add(jSplitPane1, java.awt.BorderLayout.CENTER);
-
-    }//GEN-END:initComponents
+    private void autoTimeCheckStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_autoTimeCheckStateChanged
+        
+    	this.stateTimeField.setEnabled(!autoTimeCheck.isSelected());
+        
+    }//GEN-LAST:event_autoTimeCheckStateChanged
 	
 	private void initPopups()
 	{				
@@ -1998,6 +1763,13 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	public void mousePressed(MouseEvent e)
 	{
 		doPopupDetection(e);
+		
+		if (e.getSource() == pathTable)
+		{
+			int row = pathTable.getSelectedRow();
+			backTrackStepField.setText("" + row);
+			removePrecedingField.setText("" + row);		
+		}
 	}
 	
 	public void mouseReleased(MouseEvent e)
@@ -2253,24 +2025,25 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
     javax.swing.JTextField backTrackStepField;
     javax.swing.JButton backtrackButton;
     private javax.swing.ButtonGroup buttonGroup1;
+    private javax.swing.JPanel buttonPanel;
     javax.swing.JTable currentUpdatesTable;
+    private javax.swing.JLabel definedConstants;
     private javax.swing.JLabel definedConstantsLabel;
+    private javax.swing.JLabel dummy1;
+    private javax.swing.JLabel dummy2;
     javax.swing.JButton exportPathButton;
+    private javax.swing.JSplitPane horizontalSplit;
+    private javax.swing.JPanel informationPanel;
+    private javax.swing.JPanel innerButtonPanel;
+    private javax.swing.JPanel innerInformationPanel;
+    private javax.swing.JPanel innerRightPanel;
     javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel13;
     javax.swing.JLabel jLabel2;
     javax.swing.JLabel jLabel3;
     javax.swing.JLabel jLabel4;
-    javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel10;
-    private javax.swing.JPanel jPanel11;
-    private javax.swing.JPanel jPanel12;
     private javax.swing.JPanel jPanel13;
     private javax.swing.JPanel jPanel14;
     private javax.swing.JPanel jPanel15;
@@ -2278,80 +2051,56 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
     private javax.swing.JPanel jPanel17;
     private javax.swing.JPanel jPanel18;
     private javax.swing.JPanel jPanel19;
-    private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel20;
     private javax.swing.JPanel jPanel21;
     private javax.swing.JPanel jPanel22;
     private javax.swing.JPanel jPanel23;
-    private javax.swing.JPanel jPanel24;
     private javax.swing.JPanel jPanel25;
     private javax.swing.JPanel jPanel26;
     private javax.swing.JPanel jPanel27;
     private javax.swing.JPanel jPanel28;
-    private javax.swing.JPanel jPanel29;
-    private javax.swing.JPanel jPanel3;
-    private javax.swing.JPanel jPanel30;
-    private javax.swing.JPanel jPanel31;
-    private javax.swing.JPanel jPanel32;
-    private javax.swing.JPanel jPanel33;
-    private javax.swing.JPanel jPanel34;
-    private javax.swing.JPanel jPanel35;
-    private javax.swing.JPanel jPanel36;
-    private javax.swing.JPanel jPanel37;
-    private javax.swing.JPanel jPanel38;
-    private javax.swing.JPanel jPanel39;
     private javax.swing.JPanel jPanel4;
-    private javax.swing.JPanel jPanel40;
-    private javax.swing.JPanel jPanel41;
-    private javax.swing.JPanel jPanel42;
-    private javax.swing.JPanel jPanel43;
-    private javax.swing.JPanel jPanel44;
-    private javax.swing.JPanel jPanel45;
-    private javax.swing.JPanel jPanel46;
-    private javax.swing.JPanel jPanel47;
-    private javax.swing.JPanel jPanel48;
-    private javax.swing.JPanel jPanel49;
     private javax.swing.JPanel jPanel5;
-    private javax.swing.JPanel jPanel50;
-    private javax.swing.JPanel jPanel51;
     private javax.swing.JPanel jPanel52;
     private javax.swing.JPanel jPanel53;
-    private javax.swing.JPanel jPanel54;
-    private javax.swing.JPanel jPanel55;
-    private javax.swing.JPanel jPanel56;
-    private javax.swing.JPanel jPanel57;
-    private javax.swing.JPanel jPanel58;
-    private javax.swing.JPanel jPanel59;
-    private javax.swing.JPanel jPanel6;
-    private javax.swing.JPanel jPanel60;
     private javax.swing.JPanel jPanel7;
     private javax.swing.JPanel jPanel8;
     private javax.swing.JPanel jPanel9;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
-    private javax.swing.JSplitPane jSplitPane1;
-    private javax.swing.JSplitPane jSplitPane2;
     private javax.swing.JSplitPane jSplitPane3;
+    private javax.swing.JPanel leftPanel;
     javax.swing.JButton manualUpdateField;
+    private javax.swing.JLabel modelType;
     private javax.swing.JLabel modelTypeLabel;
     javax.swing.JButton newPathButton;
+    private javax.swing.JPanel pathExplorationPanel;
     javax.swing.JList pathFormulaeList;
+    private javax.swing.JLabel pathLength;
     private javax.swing.JLabel pathLengthLabel;
-    private javax.swing.JLabel pathLengthParameterLabel;
+    private javax.swing.JPanel pathModificationPanel;
     private javax.swing.JTable pathTable;
-    private javax.swing.JLabel pathTimeLabel;
     javax.swing.JButton removePrecedingButton;
     javax.swing.JTextField removePrecedingField;
     javax.swing.JButton resetPathButton;
-    private javax.swing.JLabel spareLabel;
+    private javax.swing.JPanel rightPanel;
     private javax.swing.JList stateLabelList;
+    private javax.swing.JLabel stateRewards;
+    private javax.swing.JLabel stateRewardsLabel;
     javax.swing.JTextField stateTimeField;
-    private javax.swing.JLabel stateTotalRewardsLabel;
+    private javax.swing.JPanel tablePanel;
+    private javax.swing.JScrollPane tableScroll;
+    private javax.swing.JPanel topLeftPanel;
+    private javax.swing.JPanel topRightPanel;
+    private javax.swing.JPanel topSplit;
     private javax.swing.JLabel totalRewardLabel;
+    private javax.swing.JLabel totalRewards;
+    private javax.swing.JLabel totalTime;
     private javax.swing.JLabel totalTimeLabel;
-    private javax.swing.JLabel transitionTotalRewardsLabel;
+    private javax.swing.JLabel transitionRewards;
+    private javax.swing.JLabel transitionRewardsLabel;
+    private javax.swing.JScrollPane updatesScroll;
+    private javax.swing.JSplitPane verticalSplit;
     // End of variables declaration//GEN-END:variables
 	
     
@@ -2558,7 +2307,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		}
 		
-		public String getColumnName(int column)
+		public String getColumnName(int columnIndex)
 		{
 			try
 			{
@@ -2569,14 +2318,14 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					int timeStart = varStart + visibleVariables.size();
 					
 					// The step column
-					if (column == stepStart && SHOW_STEP)
+					if (stepStart <= columnIndex && columnIndex < varStart)
 					{
 						return "#";						
 					}
 					// A variable column
-					else if (varStart <= column && column < timeStart)
+					else if (varStart <= columnIndex && columnIndex < timeStart)
 					{						
-						return ((Variable)visibleVariables.get(column - varStart)).getName();						
+						return ((Variable)visibleVariables.get(columnIndex - varStart)).getName();						
 					}
 					
 					
@@ -2584,26 +2333,26 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					if (mf.getType() == ModulesFile.STOCHASTIC)
 					{
 						int n = visibleVariables.size();
-						if(column == n+1) //where time should be
+						if(columnIndex == n+1) //where time should be
 						{
 							return "Time";
 						}
-						else if(column > n+1) //rewards
+						else if(columnIndex > n+1) //rewards
 						{
-							int i = column-(n+2);
+							int i = columnIndex-(n+2);
 							return "" + ((i%2 == 0)?"Sta.":"Tra.") + " Rew. "+((i/2)+1);
 						}
 					}
 					else
 					{
 						int n = visibleVariables.size();
-						if(column > n) //rewards
+						if(columnIndex > n) //rewards
 						{
-							int i = column-(n+1);
+							int i = columnIndex-(n+1);
 							return "" + ((i%2 == 0)?"Sta.":"Tra.") + " Rew. "+((i/2)+1);
 						}
 					}
-					return engine.getVariableName(column-1);
+					return engine.getVariableName(columnIndex-1);
 				}
 				else return "";
 			}
@@ -2681,7 +2430,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			tc.setMinWidth(50);
 		}
 		
-		if(50*cm.getColumnCount() > jScrollPane1.getWidth())
+		if(50*cm.getColumnCount() > tableScroll.getWidth())
 		{
 			pathTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 			
