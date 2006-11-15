@@ -295,22 +295,22 @@ $(BIN_PRISM_BAT): $(BIN_PRISM_BAT_SRC)
 $(BIN_XPRISM_BAT): $(BIN_XPRISM_BAT_SRC)
 	@echo "$< -> $@"; cp $< $@
 
-dist: dist_copy clean_all dist_files dist_tidy
-
 VERSION=# default value for VERSION is blank to force provision at command-line 
-dist_bin: dist_bin_check_version binary dist_tidy dist_bin_copy
 
-dist_bin_check_version:
-	@if [ "$(VERSION)" = "" ]; then echo "Usage: make dist_bin VERSION=3.1"; exit 1; fi
+dist: dist_check_version dist_copy clean_all dist_files dist_tidy
+
+dist_bin: dist_check_version binary dist_tidy dist_bin_copy
+
+dist_check_version:
+	@if [ "$(VERSION)" = "" ]; then echo "Usage: make dist/dist_bin VERSION=3.1"; exit 1; fi
 
 dist_copy:
-	@echo Adding cudd...; rm -rf cudd && svn -q export https://subversion.cs.bham.ac.uk/svn/dxp/prismsvn/prism/trunk/cudd cudd
-	@echo Adding examples...; rm -rf examples && svn -q export https://subversion.cs.bham.ac.uk/svn/dxp/prismsvn/prism/trunk/prism-examples examples
+	@echo Adding cudd...; rm -rf cudd && svn -q export https://subversion.cs.bham.ac.uk/svn/dxp/prismsvn/prism/tags/prism-$(VERSION)/cudd cudd
+	@echo Adding examples...; rm -rf examples && svn -q export https://subversion.cs.bham.ac.uk/svn/dxp/prismsvn/prism/tags/prism-$(VERSION)/prism-examples examples
 #	@echo Adding doc...; test -f ~dxp/prism-dev/doc/manual.pdf && rm -rf doc && mkdir doc && cp ~dxp/prism-dev/doc/manual.pdf doc
 
 dist_bin_copy:
-	@if [ "$(VERSION)" = "" ]; then echo "Usage: make dist_bin_copy VERSION=3.1"; exit 1; fi && \
-	if [ "$(BINDISTSUFFIX)" = "win" ]; then \
+	@if [ "$(BINDISTSUFFIX)" = "win" ]; then \
 		echo Building NSIS Windows installer...	&& \
 		makensis /DPRISM_NAME="PRISM $(VERSION)" /DPRISM_BUILD="prism-$(VERSION)" /DPRISM_DIR="" nsis_script.nsi; \
 	else \
