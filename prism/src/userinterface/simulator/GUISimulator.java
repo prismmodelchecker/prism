@@ -990,21 +990,25 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         topRightPanel = new javax.swing.JPanel();
         informationPanel = new javax.swing.JPanel();
         innerInformationPanel = new javax.swing.JPanel();
+        topLabels = new javax.swing.JPanel();
         modelType = new javax.swing.JLabel();
         pathLength = new javax.swing.JLabel();
         totalTime = new javax.swing.JLabel();
+        topValues = new javax.swing.JPanel();
         modelTypeLabel = new javax.swing.JLabel();
         pathLengthLabel = new javax.swing.JLabel();
         totalTimeLabel = new javax.swing.JLabel();
+        middleLabels = new javax.swing.JPanel();
         stateRewards = new javax.swing.JLabel();
         transitionRewards = new javax.swing.JLabel();
         totalRewards = new javax.swing.JLabel();
+        middleValues = new javax.swing.JPanel();
         stateRewardsLabel = new javax.swing.JLabel();
         transitionRewardsLabel = new javax.swing.JLabel();
         totalRewardLabel = new javax.swing.JLabel();
+        bottomLabels = new javax.swing.JPanel();
         definedConstants = new javax.swing.JLabel();
-        dummy1 = new javax.swing.JLabel();
-        dummy2 = new javax.swing.JLabel();
+        bottomValues = new javax.swing.JPanel();
         definedConstantsLabel = new javax.swing.JLabel();
         buttonPanel = new javax.swing.JPanel();
         innerButtonPanel = new javax.swing.JPanel();
@@ -1034,7 +1038,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
         pathExplorationPanel.setLayout(new java.awt.GridBagLayout());
 
-        pathExplorationPanel.setBorder(new javax.swing.border.TitledBorder("Exploration"));
+        pathExplorationPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Exploration"));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
@@ -1215,7 +1219,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
         pathModificationPanel.setLayout(new java.awt.GridBagLayout());
 
-        pathModificationPanel.setBorder(new javax.swing.border.TitledBorder("Path Modification"));
+        pathModificationPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Path Modification"));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -1332,7 +1336,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
         jPanel4.setLayout(new java.awt.GridBagLayout());
 
-        jPanel4.setBorder(new javax.swing.border.TitledBorder("Formulae"));
+        jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("Formulae"));
         jPanel4.setMinimumSize(new java.awt.Dimension(302, 35));
         jPanel4.setPreferredSize(new java.awt.Dimension(302, 35));
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1346,7 +1350,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         jPanel4.add(jPanel28, gridBagConstraints);
 
         jSplitPane3.setBorder(null);
-        jSplitPane3.setDividerSize(5);
         jSplitPane3.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         jSplitPane3.setResizeWeight(0.5);
         jPanel26.setLayout(new java.awt.GridBagLayout());
@@ -1409,77 +1412,103 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
         rightPanel.setLayout(new java.awt.BorderLayout());
 
-        rightPanel.setBorder(new javax.swing.border.TitledBorder("Simulation Path"));
+        rightPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Simulation Path"));
         innerRightPanel.setLayout(new java.awt.BorderLayout(0, 10));
 
-        innerRightPanel.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(10, 10, 10, 10)));
+        innerRightPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
         topRightPanel.setLayout(new java.awt.BorderLayout(10, 10));
 
         informationPanel.setLayout(new java.awt.BorderLayout());
 
-        informationPanel.setBorder(new javax.swing.border.EtchedBorder());
-        innerInformationPanel.setLayout(new java.awt.GridLayout(6, 3, 5, 5));
+        informationPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        innerInformationPanel.setLayout(new javax.swing.BoxLayout(innerInformationPanel, javax.swing.BoxLayout.Y_AXIS));
 
-        innerInformationPanel.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(5, 5, 5, 5)));
+        innerInformationPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        topLabels.setLayout(new java.awt.GridLayout(1, 3, 5, 0));
+
+        topLabels.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 0, 5));
         modelType.setText("Model Type:");
         modelType.setFont(this.getFont().deriveFont(Font.BOLD));
-        innerInformationPanel.add(modelType);
+        topLabels.add(modelType);
 
         pathLength.setText("Path Length:");
         pathLength.setFont(this.getFont().deriveFont(Font.BOLD));
-        innerInformationPanel.add(pathLength);
+        topLabels.add(pathLength);
 
         totalTime.setText("Total Time:");
         totalTime.setFont(this.getFont().deriveFont(Font.BOLD));
-        innerInformationPanel.add(totalTime);
+        topLabels.add(totalTime);
 
+        innerInformationPanel.add(topLabels);
+
+        topValues.setLayout(new java.awt.GridLayout(1, 3, 5, 0));
+
+        topValues.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 5, 5, 5));
         modelTypeLabel.setText("Unknown");
-        modelTypeLabel.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(0, 10, 0, 0)));
-        innerInformationPanel.add(modelTypeLabel);
+        modelTypeLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        topValues.add(modelTypeLabel);
 
         pathLengthLabel.setText("0");
-        pathLengthLabel.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(0, 10, 0, 0)));
-        innerInformationPanel.add(pathLengthLabel);
+        pathLengthLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        topValues.add(pathLengthLabel);
 
         totalTimeLabel.setText("0.0");
-        totalTimeLabel.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(0, 10, 0, 0)));
-        innerInformationPanel.add(totalTimeLabel);
+        totalTimeLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        topValues.add(totalTimeLabel);
 
+        innerInformationPanel.add(topValues);
+
+        middleLabels.setLayout(new java.awt.GridLayout(1, 3, 5, 0));
+
+        middleLabels.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 0, 5));
         stateRewards.setText("State Rewards:");
         stateRewards.setFont(this.getFont().deriveFont(Font.BOLD));
-        innerInformationPanel.add(stateRewards);
+        middleLabels.add(stateRewards);
 
         transitionRewards.setText("Transition Rewards:");
         transitionRewards.setFont(this.getFont().deriveFont(Font.BOLD));
-        innerInformationPanel.add(transitionRewards);
+        middleLabels.add(transitionRewards);
 
         totalRewards.setText("Total Reward:");
         totalRewards.setFont(this.getFont().deriveFont(Font.BOLD));
-        innerInformationPanel.add(totalRewards);
+        middleLabels.add(totalRewards);
 
+        innerInformationPanel.add(middleLabels);
+
+        middleValues.setLayout(new java.awt.GridLayout(1, 3, 5, 0));
+
+        middleValues.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 5, 5, 5));
         stateRewardsLabel.setText("0.0");
-        stateRewardsLabel.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(0, 10, 0, 0)));
-        innerInformationPanel.add(stateRewardsLabel);
+        stateRewardsLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        middleValues.add(stateRewardsLabel);
 
         transitionRewardsLabel.setText("0.0");
-        transitionRewardsLabel.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(0, 10, 0, 0)));
-        innerInformationPanel.add(transitionRewardsLabel);
+        transitionRewardsLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        middleValues.add(transitionRewardsLabel);
 
         totalRewardLabel.setText("0.0");
-        totalRewardLabel.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(0, 10, 0, 0)));
-        innerInformationPanel.add(totalRewardLabel);
+        totalRewardLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        middleValues.add(totalRewardLabel);
 
+        innerInformationPanel.add(middleValues);
+
+        bottomLabels.setLayout(new java.awt.GridLayout(1, 3, 5, 0));
+
+        bottomLabels.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 0, 5));
         definedConstants.setText("Defined Constants:");
         definedConstants.setFont(this.getFont().deriveFont(Font.BOLD));
-        innerInformationPanel.add(definedConstants);
+        bottomLabels.add(definedConstants);
 
-        innerInformationPanel.add(dummy1);
+        innerInformationPanel.add(bottomLabels);
 
-        innerInformationPanel.add(dummy2);
+        bottomValues.setLayout(new java.awt.GridLayout(1, 3, 5, 0));
 
+        bottomValues.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 5, 5, 5));
         definedConstantsLabel.setText("Unknown");
-        definedConstantsLabel.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(0, 10, 0, 0)));
-        innerInformationPanel.add(definedConstantsLabel);
+        definedConstantsLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        bottomValues.add(definedConstantsLabel);
+
+        innerInformationPanel.add(bottomValues);
 
         informationPanel.add(innerInformationPanel, java.awt.BorderLayout.CENTER);
 
@@ -1556,8 +1585,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
         add(horizontalSplit, java.awt.BorderLayout.CENTER);
 
-    }
-    // </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
 
     private void autoTimeCheckStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_autoTimeCheckStateChanged
         
@@ -2024,13 +2052,13 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
     javax.swing.JTextField autoUpdateField;
     javax.swing.JTextField backTrackStepField;
     javax.swing.JButton backtrackButton;
+    private javax.swing.JPanel bottomLabels;
+    private javax.swing.JPanel bottomValues;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JPanel buttonPanel;
     javax.swing.JTable currentUpdatesTable;
     private javax.swing.JLabel definedConstants;
     private javax.swing.JLabel definedConstantsLabel;
-    private javax.swing.JLabel dummy1;
-    private javax.swing.JLabel dummy2;
     javax.swing.JButton exportPathButton;
     private javax.swing.JSplitPane horizontalSplit;
     private javax.swing.JPanel informationPanel;
@@ -2071,6 +2099,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
     private javax.swing.JSplitPane jSplitPane3;
     private javax.swing.JPanel leftPanel;
     javax.swing.JButton manualUpdateField;
+    private javax.swing.JPanel middleLabels;
+    private javax.swing.JPanel middleValues;
     private javax.swing.JLabel modelType;
     private javax.swing.JLabel modelTypeLabel;
     javax.swing.JButton newPathButton;
@@ -2090,9 +2120,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
     javax.swing.JTextField stateTimeField;
     private javax.swing.JPanel tablePanel;
     private javax.swing.JScrollPane tableScroll;
+    private javax.swing.JPanel topLabels;
     private javax.swing.JPanel topLeftPanel;
     private javax.swing.JPanel topRightPanel;
     private javax.swing.JPanel topSplit;
+    private javax.swing.JPanel topValues;
     private javax.swing.JLabel totalRewardLabel;
     private javax.swing.JLabel totalRewards;
     private javax.swing.JLabel totalTime;

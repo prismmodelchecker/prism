@@ -649,7 +649,6 @@
                         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                           <Border info="null"/>
                         </Property>
-                        <Property name="dividerSize" type="int" value="5"/>
                         <Property name="orientation" type="int" value="0"/>
                         <Property name="resizeWeight" type="double" value="0.5"/>
                       </Properties>
@@ -821,143 +820,238 @@
                             </Constraint>
                           </Constraints>
 
-                          <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridLayout">
-                            <Property name="columns" type="int" value="3"/>
-                            <Property name="horizontalGap" type="int" value="5"/>
-                            <Property name="rows" type="int" value="6"/>
-                            <Property name="verticalGap" type="int" value="5"/>
+                          <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBoxLayout">
+                            <Property name="axis" type="int" value="1"/>
                           </Layout>
                           <SubComponents>
-                            <Component class="javax.swing.JLabel" name="modelType">
+                            <Container class="javax.swing.JPanel" name="topLabels">
                               <Properties>
-                                <Property name="text" type="java.lang.String" value="Model Type:"/>
-                              </Properties>
-                              <AuxValues>
-                                <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="modelType.setFont(this.getFont().deriveFont(Font.BOLD));"/>
-                              </AuxValues>
-                            </Component>
-                            <Component class="javax.swing.JLabel" name="pathLength">
-                              <Properties>
-                                <Property name="text" type="java.lang.String" value="Path Length:"/>
-                              </Properties>
-                              <AuxValues>
-                                <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="pathLength.setFont(this.getFont().deriveFont(Font.BOLD));"/>
-                              </AuxValues>
-                            </Component>
-                            <Component class="javax.swing.JLabel" name="totalTime">
-                              <Properties>
-                                <Property name="text" type="java.lang.String" value="Total Time:"/>
-                              </Properties>
-                              <AuxValues>
-                                <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="totalTime.setFont(this.getFont().deriveFont(Font.BOLD));"/>
-                              </AuxValues>
-                            </Component>
-                            <Component class="javax.swing.JLabel" name="modelTypeLabel">
-                              <Properties>
-                                <Property name="text" type="java.lang.String" value="Unknown"/>
                                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                                   <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
-                                    <EmptyBorder bottom="0" left="10" right="0" top="0"/>
+                                    <EmptyBorder bottom="0" left="5" right="5" top="5"/>
                                   </Border>
                                 </Property>
                               </Properties>
-                            </Component>
-                            <Component class="javax.swing.JLabel" name="pathLengthLabel">
+
+                              <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridLayout">
+                                <Property name="columns" type="int" value="3"/>
+                                <Property name="horizontalGap" type="int" value="5"/>
+                                <Property name="rows" type="int" value="1"/>
+                              </Layout>
+                              <SubComponents>
+                                <Component class="javax.swing.JLabel" name="modelType">
+                                  <Properties>
+                                    <Property name="text" type="java.lang.String" value="Model Type:"/>
+                                  </Properties>
+                                  <AuxValues>
+                                    <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="modelType.setFont(this.getFont().deriveFont(Font.BOLD));"/>
+                                  </AuxValues>
+                                </Component>
+                                <Component class="javax.swing.JLabel" name="pathLength">
+                                  <Properties>
+                                    <Property name="text" type="java.lang.String" value="Path Length:"/>
+                                  </Properties>
+                                  <AuxValues>
+                                    <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="pathLength.setFont(this.getFont().deriveFont(Font.BOLD));"/>
+                                  </AuxValues>
+                                </Component>
+                                <Component class="javax.swing.JLabel" name="totalTime">
+                                  <Properties>
+                                    <Property name="text" type="java.lang.String" value="Total Time:"/>
+                                  </Properties>
+                                  <AuxValues>
+                                    <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="totalTime.setFont(this.getFont().deriveFont(Font.BOLD));"/>
+                                  </AuxValues>
+                                </Component>
+                              </SubComponents>
+                            </Container>
+                            <Container class="javax.swing.JPanel" name="topValues">
                               <Properties>
-                                <Property name="text" type="java.lang.String" value="0"/>
                                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                                   <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
-                                    <EmptyBorder bottom="0" left="10" right="0" top="0"/>
+                                    <EmptyBorder bottom="5" left="5" right="5" top="0"/>
                                   </Border>
                                 </Property>
                               </Properties>
-                            </Component>
-                            <Component class="javax.swing.JLabel" name="totalTimeLabel">
+
+                              <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridLayout">
+                                <Property name="columns" type="int" value="3"/>
+                                <Property name="horizontalGap" type="int" value="5"/>
+                                <Property name="rows" type="int" value="1"/>
+                              </Layout>
+                              <SubComponents>
+                                <Component class="javax.swing.JLabel" name="modelTypeLabel">
+                                  <Properties>
+                                    <Property name="text" type="java.lang.String" value="Unknown"/>
+                                    <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+                                      <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
+                                        <EmptyBorder bottom="0" left="10" right="0" top="0"/>
+                                      </Border>
+                                    </Property>
+                                  </Properties>
+                                </Component>
+                                <Component class="javax.swing.JLabel" name="pathLengthLabel">
+                                  <Properties>
+                                    <Property name="text" type="java.lang.String" value="0"/>
+                                    <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+                                      <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
+                                        <EmptyBorder bottom="0" left="10" right="0" top="0"/>
+                                      </Border>
+                                    </Property>
+                                  </Properties>
+                                </Component>
+                                <Component class="javax.swing.JLabel" name="totalTimeLabel">
+                                  <Properties>
+                                    <Property name="text" type="java.lang.String" value="0.0"/>
+                                    <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+                                      <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
+                                        <EmptyBorder bottom="0" left="10" right="0" top="0"/>
+                                      </Border>
+                                    </Property>
+                                  </Properties>
+                                </Component>
+                              </SubComponents>
+                            </Container>
+                            <Container class="javax.swing.JPanel" name="middleLabels">
                               <Properties>
-                                <Property name="text" type="java.lang.String" value="0.0"/>
                                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                                   <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
-                                    <EmptyBorder bottom="0" left="10" right="0" top="0"/>
+                                    <EmptyBorder bottom="0" left="5" right="5" top="5"/>
                                   </Border>
                                 </Property>
                               </Properties>
-                            </Component>
-                            <Component class="javax.swing.JLabel" name="stateRewards">
+
+                              <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridLayout">
+                                <Property name="columns" type="int" value="3"/>
+                                <Property name="horizontalGap" type="int" value="5"/>
+                                <Property name="rows" type="int" value="1"/>
+                              </Layout>
+                              <SubComponents>
+                                <Component class="javax.swing.JLabel" name="stateRewards">
+                                  <Properties>
+                                    <Property name="text" type="java.lang.String" value="State Rewards:"/>
+                                  </Properties>
+                                  <AuxValues>
+                                    <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="stateRewards.setFont(this.getFont().deriveFont(Font.BOLD));"/>
+                                  </AuxValues>
+                                </Component>
+                                <Component class="javax.swing.JLabel" name="transitionRewards">
+                                  <Properties>
+                                    <Property name="text" type="java.lang.String" value="Transition Rewards:"/>
+                                  </Properties>
+                                  <AuxValues>
+                                    <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="transitionRewards.setFont(this.getFont().deriveFont(Font.BOLD));"/>
+                                  </AuxValues>
+                                </Component>
+                                <Component class="javax.swing.JLabel" name="totalRewards">
+                                  <Properties>
+                                    <Property name="text" type="java.lang.String" value="Total Reward:"/>
+                                  </Properties>
+                                  <AuxValues>
+                                    <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="totalRewards.setFont(this.getFont().deriveFont(Font.BOLD));"/>
+                                  </AuxValues>
+                                </Component>
+                              </SubComponents>
+                            </Container>
+                            <Container class="javax.swing.JPanel" name="middleValues">
                               <Properties>
-                                <Property name="text" type="java.lang.String" value="State Rewards:"/>
-                              </Properties>
-                              <AuxValues>
-                                <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="stateRewards.setFont(this.getFont().deriveFont(Font.BOLD));"/>
-                              </AuxValues>
-                            </Component>
-                            <Component class="javax.swing.JLabel" name="transitionRewards">
-                              <Properties>
-                                <Property name="text" type="java.lang.String" value="Transition Rewards:"/>
-                              </Properties>
-                              <AuxValues>
-                                <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="transitionRewards.setFont(this.getFont().deriveFont(Font.BOLD));"/>
-                              </AuxValues>
-                            </Component>
-                            <Component class="javax.swing.JLabel" name="totalRewards">
-                              <Properties>
-                                <Property name="text" type="java.lang.String" value="Total Reward:"/>
-                              </Properties>
-                              <AuxValues>
-                                <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="totalRewards.setFont(this.getFont().deriveFont(Font.BOLD));"/>
-                              </AuxValues>
-                            </Component>
-                            <Component class="javax.swing.JLabel" name="stateRewardsLabel">
-                              <Properties>
-                                <Property name="text" type="java.lang.String" value="0.0"/>
                                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                                   <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
-                                    <EmptyBorder bottom="0" left="10" right="0" top="0"/>
+                                    <EmptyBorder bottom="5" left="5" right="5" top="0"/>
                                   </Border>
                                 </Property>
                               </Properties>
-                            </Component>
-                            <Component class="javax.swing.JLabel" name="transitionRewardsLabel">
+
+                              <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridLayout">
+                                <Property name="columns" type="int" value="3"/>
+                                <Property name="horizontalGap" type="int" value="5"/>
+                                <Property name="rows" type="int" value="1"/>
+                              </Layout>
+                              <SubComponents>
+                                <Component class="javax.swing.JLabel" name="stateRewardsLabel">
+                                  <Properties>
+                                    <Property name="text" type="java.lang.String" value="0.0"/>
+                                    <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+                                      <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
+                                        <EmptyBorder bottom="0" left="10" right="0" top="0"/>
+                                      </Border>
+                                    </Property>
+                                  </Properties>
+                                </Component>
+                                <Component class="javax.swing.JLabel" name="transitionRewardsLabel">
+                                  <Properties>
+                                    <Property name="text" type="java.lang.String" value="0.0"/>
+                                    <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+                                      <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
+                                        <EmptyBorder bottom="0" left="10" right="0" top="0"/>
+                                      </Border>
+                                    </Property>
+                                  </Properties>
+                                </Component>
+                                <Component class="javax.swing.JLabel" name="totalRewardLabel">
+                                  <Properties>
+                                    <Property name="text" type="java.lang.String" value="0.0"/>
+                                    <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+                                      <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
+                                        <EmptyBorder bottom="0" left="10" right="0" top="0"/>
+                                      </Border>
+                                    </Property>
+                                  </Properties>
+                                </Component>
+                              </SubComponents>
+                            </Container>
+                            <Container class="javax.swing.JPanel" name="bottomLabels">
                               <Properties>
-                                <Property name="text" type="java.lang.String" value="0.0"/>
                                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                                   <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
-                                    <EmptyBorder bottom="0" left="10" right="0" top="0"/>
+                                    <EmptyBorder bottom="0" left="5" right="5" top="5"/>
                                   </Border>
                                 </Property>
                               </Properties>
-                            </Component>
-                            <Component class="javax.swing.JLabel" name="totalRewardLabel">
+
+                              <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridLayout">
+                                <Property name="columns" type="int" value="3"/>
+                                <Property name="horizontalGap" type="int" value="5"/>
+                                <Property name="rows" type="int" value="1"/>
+                              </Layout>
+                              <SubComponents>
+                                <Component class="javax.swing.JLabel" name="definedConstants">
+                                  <Properties>
+                                    <Property name="text" type="java.lang.String" value="Defined Constants:"/>
+                                  </Properties>
+                                  <AuxValues>
+                                    <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="definedConstants.setFont(this.getFont().deriveFont(Font.BOLD));"/>
+                                  </AuxValues>
+                                </Component>
+                              </SubComponents>
+                            </Container>
+                            <Container class="javax.swing.JPanel" name="bottomValues">
                               <Properties>
-                                <Property name="text" type="java.lang.String" value="0.0"/>
                                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                                   <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
-                                    <EmptyBorder bottom="0" left="10" right="0" top="0"/>
+                                    <EmptyBorder bottom="5" left="5" right="5" top="0"/>
                                   </Border>
                                 </Property>
                               </Properties>
-                            </Component>
-                            <Component class="javax.swing.JLabel" name="definedConstants">
-                              <Properties>
-                                <Property name="text" type="java.lang.String" value="Defined Constants:"/>
-                              </Properties>
-                              <AuxValues>
-                                <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="definedConstants.setFont(this.getFont().deriveFont(Font.BOLD));"/>
-                              </AuxValues>
-                            </Component>
-                            <Component class="javax.swing.JLabel" name="dummy1">
-                            </Component>
-                            <Component class="javax.swing.JLabel" name="dummy2">
-                            </Component>
-                            <Component class="javax.swing.JLabel" name="definedConstantsLabel">
-                              <Properties>
-                                <Property name="text" type="java.lang.String" value="Unknown"/>
-                                <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
-                                  <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
-                                    <EmptyBorder bottom="0" left="10" right="0" top="0"/>
-                                  </Border>
-                                </Property>
-                              </Properties>
-                            </Component>
+
+                              <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridLayout">
+                                <Property name="columns" type="int" value="3"/>
+                                <Property name="horizontalGap" type="int" value="5"/>
+                                <Property name="rows" type="int" value="1"/>
+                              </Layout>
+                              <SubComponents>
+                                <Component class="javax.swing.JLabel" name="definedConstantsLabel">
+                                  <Properties>
+                                    <Property name="text" type="java.lang.String" value="Unknown"/>
+                                    <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+                                      <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
+                                        <EmptyBorder bottom="0" left="10" right="0" top="0"/>
+                                      </Border>
+                                    </Property>
+                                  </Properties>
+                                </Component>
+                              </SubComponents>
+                            </Container>
                           </SubComponents>
                         </Container>
                       </SubComponents>
