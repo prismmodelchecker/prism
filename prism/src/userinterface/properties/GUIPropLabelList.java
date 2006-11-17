@@ -176,7 +176,7 @@ public class GUIPropLabelList extends JTable
 		
 		public void addLabel()
 		{
-			labels.add(new GUILabel("L"+labCount, null));
+			labels.add(new GUILabel("L"+labCount, new ExpressionTrue()));
 			parent.setModified(true);
 			fireTableRowsInserted(labels.size()-1, labels.size()-1);
 			labCount++;
