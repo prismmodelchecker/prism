@@ -2,7 +2,7 @@
 README
 ======
 
-This is PRISM (Probabilistic Symbolic Model Checker), version 3.1.beta1.
+This is PRISM (Probabilistic Symbolic Model Checker), version 3.1.
 
 ------------
 INSTALLATION

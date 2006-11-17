@@ -2,7 +2,7 @@ This file summarises the principal changes between each main public release of P
 For more detailed information about the various changes, see the file CHANGELOG.txt.
 
 -----------------------------------------------------------------------------
-Version 3.1 (beta1 released 3/11/2006)
+Version 3.1 (released 15/11/2006)
 -----------------------------------------------------------------------------
 
 * New installer for Windows binary
