@@ -341,20 +341,27 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					boolean match = true;
 					int i, n;
 					n = defaultInitialState.getNumValues();
-					for(i = 0; i < n; i++)
+					if (lastInitialState.getNumValues() != defaultInitialState.getNumValues())
 					{
-						if(!lastInitialState.contains(defaultInitialState.getName(i)))
+						match = false;
+					}
+					else
+					{
+						for(i = 0; i < n; i++)
 						{
-							match = false;
-							break;
-						}
-						else
-						{
-							int index = lastInitialState.getIndexOf(defaultInitialState.getName(i));
-							if(lastInitialState.getType(index) != defaultInitialState.getType(i))
+							if(!lastInitialState.contains(defaultInitialState.getName(i)))
 							{
 								match = false;
 								break;
+							}
+							else
+							{
+								int index = lastInitialState.getIndexOf(defaultInitialState.getName(i));
+								if(lastInitialState.getType(index) != defaultInitialState.getType(i))
+								{
+									match = false;
+									break;
+								}
 							}
 						}
 					}
