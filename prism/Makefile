@@ -228,9 +228,9 @@ endif
 
 default: all
 
-all: checks cuddpackage prism
+all: cuddpackage prism
 
-cuddpackage:
+cuddpackage: checks
 	@(if [ ! -h $(CUDD_DIR) ]; then \
 	  echo Making cudd ...; \
 	  cd $(CUDD_DIR) && \
@@ -240,7 +240,8 @@ cuddpackage:
 	  echo Skipping cudd make since it is a symlink...; \
 	fi)
 
-cuddpackageforce: # use this to force build of cudd (even if dir is just a symlink)
+# use this to force build of cudd (even if dir is just a symlink)
+cuddpackageforce: checks
 	@echo Making cudd ...; \
 	cd $(CUDD_DIR) && \
 	/bin/cp Makefile.$(OSTYPE) Makefile && \
@@ -466,6 +467,10 @@ checks:
 	  echo "Failed to locate the JNI header jni_md.h"; \
 	  echo "Are you sure Java is installed?"; \
 	  exit 1; \
-	fi)
+	fi; \
+	echo "OSTYPE: $(OSTYPE)"; \
+	echo "JAVA_DIR: $(JAVA_DIR)"; \
+	echo "JAVAC: "`which $(JAVAC)` \
+	)
 
 #################################################
