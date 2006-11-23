@@ -2179,7 +2179,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		}
 	}	
     
-	class PathTableModel extends AbstractTableModel
+	class PathTableModel extends AbstractTableModel implements GUIGroupedTableModel
 	{		
 		private boolean SHOW_STEP = true;
 				
@@ -2217,6 +2217,118 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			{	fireTableStructureChanged(); }
 		}
 		
+		public int getGroupCount() 
+		{
+			if(!pathActive)
+			{
+				return 0;				
+			}
+			else
+			{
+				int groupCount = 0;
+				
+				if (SHOW_STEP) 
+				{ groupCount++;	}
+				
+				if (this.visibleVariables.size() > 0)
+				{ groupCount++;	}
+				
+				if (mf.getType() == ModulesFile.STOCHASTIC) 
+				{ groupCount++;	} 
+				
+				// Add state and transitions rewards for each reward structure.
+				if ((2*mf.getNumRewardStructs()) > 0)
+				{ groupCount++;	} 
+				
+				return groupCount;				
+			}			
+        }
+		
+		public String getGroupName(int groupIndex) 
+		{
+			int groupCount = 0;
+			
+			if (SHOW_STEP) 
+			{ 					
+				if (groupCount == groupIndex)
+				{	return "Step";	}
+				
+				groupCount++;
+			}
+			
+			if (this.visibleVariables.size() > 0)
+			{ 
+				if (groupCount == groupIndex)
+				{	return "Variables";	}
+				
+				groupCount++;
+			}
+			
+			if (mf.getType() == ModulesFile.STOCHASTIC) 
+			{	
+				if (groupCount == groupIndex)
+				{	return "Time";	}
+				
+				groupCount++;				
+			} 
+			
+			// Add state and transitions rewards for each reward structure.
+			if ((2*mf.getNumRewardStructs()) > 0)
+			{
+				if (groupCount == groupIndex)
+				{	return "Rewards";	}
+				
+				groupCount++;				
+			}
+			
+			return "";
+        }
+
+		public int getLastColumnOfGroup(int groupIndex) 
+		{
+			int stepStart = 0;
+			int varStart = (SHOW_STEP) ? stepStart + 1 : stepStart;
+			int timeStart = varStart + visibleVariables.size();
+			int rewardStart = timeStart + 1;
+			
+			int groupCount = 0;
+			
+			if (SHOW_STEP) 
+			{ 
+				if (groupCount == groupIndex)
+				{	return stepStart;	}
+				
+				groupCount++;				
+			}
+			
+			if (this.visibleVariables.size() > 0)
+			{ 
+				if (groupCount == groupIndex)
+				{	return varStart + visibleVariables.size() -1; }
+				
+				groupCount++;				
+			}
+			
+			if (mf.getType() == ModulesFile.STOCHASTIC) 
+			{	
+				if (groupCount == groupIndex)
+				{	return timeStart;	}
+				
+				groupCount++;
+			} 
+			
+			// Add state and transitions rewards for each reward structure.
+			if ((2*mf.getNumRewardStructs()) > 0)
+			{
+				if (groupCount == groupIndex)
+				{	return rewardStart + 2*mf.getNumRewardStructs() - 1;	}
+				
+				groupCount++;
+			}	        
+			
+	        return 0;
+        }
+		
 		/**
 		 * Returns the number of columns.
 		 * @see javax.swing.table.TableModel#getColumnCount()
@@ -2228,7 +2340,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			else 
 			{
 				// At least we have the step count and s.
-				int colCount = 1 + visibleVariables.size();
+				int colCount = (SHOW_STEP) ? 1 : 0;
+				
+				colCount += this.visibleVariables.size();
 				
 				// Add state and transitions rewards for each reward structure.
 				colCount += (2*mf.getNumRewardStructs());
@@ -2307,11 +2421,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					if(mf.getType() == ModulesFile.STOCHASTIC)
 					{
 						int n = visibleVariables.size();
-						if(columnIndex == n+1) //where time should be
+						if(columnIndex == timeStart) //where time should be
 						{
 							return new Double(SimulatorEngine.getTimeSpentInPathState(rowIndex));
 						}
-						else if(columnIndex > n+1) //rewards
+						else if(columnIndex > timeStart) //rewards
 						{
 							int i = columnIndex-(n+2);
 							if (i%2 == 0) return new Double(SimulatorEngine.getStateRewardOfPathState(rowIndex,i/2));

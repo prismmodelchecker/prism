@@ -24,19 +24,23 @@ package userinterface.simulator;
 
 import javax.swing.*;
 import javax.swing.table.*;
+import userinterface.util.*;
 import java.awt.*;
 import java.awt.geom.*;
 import javax.swing.border.*;
 import java.text.*;
 import java.awt.font.*;
 import simulator.*;
+import javax.swing.plaf.basic.*;
+import javax.swing.plaf.*;
+import javax.swing.event.*;
 
 
 /**
  *
  * @author  ug60axh
  */
-public class GUISimulatorPathTable extends JTable
+public class GUISimulatorPathTable extends GUIGroupedTable
 {
 	private GUISimulator.PathTableModel ptm;
 	private PathRowHeader pathRowHeader;
@@ -71,12 +75,12 @@ public class GUISimulatorPathTable extends JTable
 		rowHeader.setCellRenderer(new RowHeaderRenderer(this));
 	
 		this.header = rowHeader;
-	
+			
 		setDefaultRenderer(Object.class, new PathChangeTableRenderer());
 	
-		//setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
+		//setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);		
 	}
-    
+	
 	public void switchToChangeRenderer()
 	{
 		setDefaultRenderer(Object.class, new PathChangeTableRenderer());
@@ -94,8 +98,7 @@ public class GUISimulatorPathTable extends JTable
 		super.paintComponent(g);
 	
 		//pathRowHeader.paintComponent(g);
-		headerModel.updateHeader();
-	
+		headerModel.updateHeader();	
 	}
     
 	/**
