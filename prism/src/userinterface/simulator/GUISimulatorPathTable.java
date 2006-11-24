@@ -393,7 +393,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 					}
 					else if (rewardValue.getStateReward() != null && rewardValue.getTransitionReward() == null)
 					{
-						field.setText("[  " + rewardValue.getStateReward().toString() + "  ]");						
+						field.setText(rewardValue.getStateReward().toString());						
 					}
 					else
 					{

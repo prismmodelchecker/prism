@@ -2177,7 +2177,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		public String toString()
 		{
-			return name;
+			return "\"" + name + "\"";
 		}
 		
 		public boolean equals(Object o)
@@ -2228,7 +2228,14 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 		public String toString()
 		{
-			return name;
+			if (name != null)
+			{
+				return "\"" + name + "\"";
+			}
+			else 
+			{
+				return "Reward " + (index + 1) + " (unnamed)"; 
+			}
 		}
 		
 		public boolean equals(Object o)
@@ -2404,7 +2411,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 						String rewardName = rewardStruct.getName();
 						
 						if (rewardName.trim().length() == 0)
-						{	rewardName = " (unnamed reward model " + (r + 1) + ")"; }
+						{	rewardName = null; }
 						visibleRewards.add(new RewardStructure(r, rewardName, mf.getRewardStruct(r).getNumStateItems() == 0,  mf.getRewardStruct(r).getNumTransItems() == 0));
 					}				
 				}
@@ -2624,7 +2631,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				// A variable column
 				else if (varStart <= columnIndex && columnIndex < timeStart)
 				{						
-					return ((Variable)view.getVisibleVariables().get(columnIndex - varStart)).getName();						
+					return ((Variable)view.getVisibleVariables().get(columnIndex - varStart)).toString();						
 				}
 				else if (timeStart <= columnIndex && columnIndex < rewardStart)
 				{
@@ -2633,7 +2640,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				else if (rewardStart <= columnIndex)
 				{	
 					String rewardStructName = ((RewardStructure)view.getVisibleRewards().get(columnIndex - rewardStart)).getName();
-					return  rewardStructName; 
+					if (rewardStructName != null)
+					{	
+						return  "\"" + rewardStructName + "\"";
+					}
+					else return "" + (((RewardStructure)view.getVisibleRewards().get(columnIndex - rewardStart)).getIndex() + 1);
 				}
 			}				
 			return "Undefined Column";			
