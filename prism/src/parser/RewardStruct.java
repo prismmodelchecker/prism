@@ -28,8 +28,10 @@ import prism.PrismException;
 
 public class RewardStruct
 {
-	private String name;	// name (optional)
-	private Vector items;	// list of items
+	private String name;		// name (optional)
+	private Vector items;		// list of items
+	private int numStateItems;	// how may of the items are state rewards
+	private int numTransItems;	// how may of the items are transition rewards
 	
 	// constructor
 	
@@ -37,6 +39,8 @@ public class RewardStruct
 	{
 		name = "";
 		items = new Vector();
+		numStateItems = 0;
+		numTransItems = 0;
 	}
 
 	public void setName(String n)
@@ -48,12 +52,13 @@ public class RewardStruct
 	
 	public void addItem(String synch, Expression states, Expression reward)
 	{
-		items.add(new RewardStructItem(synch, states, reward));
+		addItem(new RewardStructItem(synch, states, reward));
 	}
 	
 	public void addItem(RewardStructItem rsi)
 	{
 		items.add(rsi);
+		if (rsi.isTransitionReward()) numTransItems++; else numStateItems++;
 	}
 
 	// get methods
@@ -66,6 +71,16 @@ public class RewardStruct
 	public int getNumItems()
 	{
 		return items.size();
+	}
+	
+	public int getNumStateItems()
+	{
+		return numStateItems;
+	}
+	
+	public int getNumTransItems()
+	{
+		return numTransItems;
 	}
 	
 	public RewardStructItem getRewardStructItem(int i)
