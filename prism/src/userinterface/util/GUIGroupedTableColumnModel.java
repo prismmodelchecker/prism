@@ -80,6 +80,7 @@ public class GUIGroupedTableColumnModel extends DefaultTableColumnModel implemen
 		}
 		
 		lastColumn.add(new Integer(this.getColumnCount()-1));
+		updateGroups();
 	}
 		
 	/**

@@ -369,6 +369,8 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 			bg = Color.white;
 			if(column == 0 || column > ptm.getView().getVisibleVariables().size())
 			{
+				field.setToolTipText(null);
+				
 				if(value instanceof Double)
 				{
 					Double dv = (Double)value;
@@ -398,7 +400,8 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 						field.setText("no non-empty reward");
 					}
 					
-					field.setHorizontalAlignment(JTextField.CENTER);					
+					field.setHorizontalAlignment(JTextField.CENTER);	
+					field.setToolTipText("State Reward [ Transition Reward ]");
 				}
 				else 
 				{

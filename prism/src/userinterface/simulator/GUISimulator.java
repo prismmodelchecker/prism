@@ -2391,6 +2391,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				{
 					stepsVisible = true;
 					hideEmptyRewards = true;
+					showTime = mf.getType() == ModulesFile.STOCHASTIC;
 					
 					for (int i = 0; i < engine.getNumVariables(); i++)
 					{
@@ -2403,7 +2404,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 						String rewardName = rewardStruct.getName();
 						
 						if (rewardName.trim().length() == 0)
-						{	rewardName = "Reward model " + r + " (unnamed)"; }
+						{	rewardName = " (unnamed reward model " + (r + 1) + ")"; }
 						visibleRewards.add(new RewardStructure(r, rewardName, mf.getRewardStruct(r).getNumStateItems() == 0,  mf.getRewardStruct(r).getNumTransItems() == 0));
 					}				
 				}
