@@ -396,7 +396,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			totalRewardLabel.setText(getTotalRewardLabelString());
 			stateRewardsLabel.setText(getTotalStateRewardLabelString());
 			transitionRewardsLabel.setText(getTotalTransitionRewardLabelString());
-			definedConstantsLabel.setText(uCon.getDefinedConstantsString());
+			definedConstantsLabel.setText((uCon.getDefinedConstantsString().length() == 0) ? "None" : uCon.getDefinedConstantsString());
 			
 			doEnables();
 			pathTableModel.restartPathTable();
@@ -2177,7 +2177,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		public String toString()
 		{
-			return "\"" + name + "\"";
+			return name;
 		}
 		
 		public boolean equals(Object o)
