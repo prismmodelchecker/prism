@@ -1,6 +1,6 @@
 //==============================================================================
 //
-//	Copyright (c) 2004-2005, Andrew Hinton
+//	Copyright (c) 2004-2006, Andrew Hinton, Mark Kattenbelt
 //
 //	This file is part of PRISM.
 //
@@ -367,7 +367,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 			column = table.convertColumnIndexToModel(column);
 	    
 			bg = Color.white;
-			if(column == 0 || column > ptm.getVisibleVariables().size())
+			if(column == 0 || column > ptm.getView().getVisibleVariables().size())
 			{
 				if(value instanceof Double)
 				{
@@ -378,7 +378,34 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 						field.setText("");
 					else field.setText(value.toString());
 				}
-				else field.setText(value.toString());
+				else if (value instanceof GUISimulator.RewardStructureValue)
+				{
+					GUISimulator.RewardStructureValue rewardValue = (GUISimulator.RewardStructureValue)value;
+					if (rewardValue.getStateReward() != null && rewardValue.getTransitionReward() != null)
+					{
+						field.setText(rewardValue.getStateReward().toString() +  "  [  " + rewardValue.getTransitionReward().toString() + "  ]");						
+					}
+					else if (rewardValue.getStateReward() == null && rewardValue.getTransitionReward() != null)
+					{
+						field.setText("[  " + rewardValue.getTransitionReward().toString() + "  ]");						
+					}
+					else if (rewardValue.getStateReward() != null && rewardValue.getTransitionReward() == null)
+					{
+						field.setText("[  " + rewardValue.getStateReward().toString() + "  ]");						
+					}
+					else
+					{
+						field.setText("no non-empty reward");
+					}
+					
+					field.setHorizontalAlignment(JTextField.CENTER);					
+				}
+				else 
+				{
+					field.setText(value.toString());
+					field.setHorizontalAlignment(JTextField.CENTER);
+				}	
+				
 				if(isSelected)
 				{
 					Color newCol = new Color(bg.getRed()-20, bg.getGreen()-20, bg.getBlue());

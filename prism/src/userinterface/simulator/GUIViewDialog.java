@@ -46,53 +46,70 @@ public class GUIViewDialog extends JDialog implements KeyListener
 	private GUIPrism gui;
 	private GUISimulator.PathTableModel pathTableModel;
     
-	private ModulesFile mf;
-	private SimulatorEngine engine;
+	private GUISimulator.SimulationView view;
 	
-	private VariableListModel visibleListModel;
-	private VariableListModel hiddenListModel;
-    
+	private VariableListModel visibleVariableListModel;
+	private VariableListModel hiddenVariableListModel;
+
+	private RewardListModel visibleRewardListModel;
+	private RewardListModel hiddenRewardListModel;
+	
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel allPanel;
     private javax.swing.JPanel bottomPanel;
     private javax.swing.JPanel buttonPanel;
     private javax.swing.JButton cancelButton;
-    private javax.swing.JPanel centerColumn;
-    private javax.swing.JPanel centerPanel;
+    private javax.swing.JPanel centerRewardColumn;
+    private javax.swing.JPanel centerRewardPanel;
+    private javax.swing.JPanel centerVariableColumn;
+    private javax.swing.JPanel centerVariablePanel;
+    private javax.swing.JCheckBox emptyRewardVisibleCheckBox;
     private javax.swing.JLabel hiddenLabel;
-    private javax.swing.JList hiddenList;
-    private javax.swing.JScrollPane hiddenScrollList;
-    private javax.swing.JPanel leftColumn;
-    private javax.swing.JPanel leftPanel;
-    private javax.swing.JButton makeHiddenButton;
-    private javax.swing.JButton makeVisibleButton;
+    private javax.swing.JList hiddenRewardList;
+    private javax.swing.JScrollPane hiddenRewardScrollList;
+    private javax.swing.JList hiddenVariableList;
+    private javax.swing.JScrollPane hiddenVariableScrollList;
+    private javax.swing.JPanel leftRewardColumn;
+    private javax.swing.JPanel leftRewardPanel;
+    private javax.swing.JPanel leftVariableColumn;
+    private javax.swing.JPanel leftVariablePanel;
+    private javax.swing.JButton makeRewardHiddenButton;
+    private javax.swing.JButton makeRewardVisibleButton;
+    private javax.swing.JButton makeVariableHiddenButton;
+    private javax.swing.JButton makeVariableVisibleButton;
     private javax.swing.JButton okayButton;
     private javax.swing.JCheckBox optionCheckBox;
-    private javax.swing.JPanel rightColumn;
-    private javax.swing.JPanel rightPanel;
-    private javax.swing.JButton selectAllHidden;
-    private javax.swing.JButton selectAllVisibleButton;
-    private javax.swing.JTabbedPane tabPane;
+    private javax.swing.JPanel rewardOptionPanel;
+    private javax.swing.JPanel rewardPanel;
+    private javax.swing.JPanel rewardTabPanel;
+    private javax.swing.JPanel rightRewardColumn;
+    private javax.swing.JPanel rightRewardPanel;
+    private javax.swing.JPanel rightVariableColumn;
+    private javax.swing.JPanel rightVariablePanel;
+    private javax.swing.JButton selectAllHiddenRewardsButton;
+    private javax.swing.JButton selectAllHiddenVariablesButton;
+    private javax.swing.JButton selectAllVisibleRewardsButton;
+    private javax.swing.JButton selectAllVisibleVariablesButton;
     private javax.swing.JPanel variablePanel;
+    private javax.swing.JTabbedPane variableTabPane;
+    private javax.swing.JPanel variableTabPanel;
     private javax.swing.JLabel visibleLabel;
-    private javax.swing.JList visibleList;
-    private javax.swing.JScrollPane visibleScrollList;
+    private javax.swing.JList visibleRewardList;
+    private javax.swing.JScrollPane visibleRewardScrollList;
+    private javax.swing.JList visibleVariableList;
+    private javax.swing.JScrollPane visibleVariableScrollList;
     // End of variables declaration//GEN-END:variables
     
 	/** Creates new form GUIConstantsPicker */
-	public GUIViewDialog(GUIPrism parent, GUISimulator.PathTableModel pathTableModel, ModulesFile mf)
+	public GUIViewDialog(GUIPrism parent, GUISimulator.SimulationView view)
 	{
 		super(parent, "Configure View for Simulation", true);
         
 		this.gui = parent;
-		this.mf = mf;      
-		this.pathTableModel = pathTableModel;
-		this.engine = pathTableModel.getEngine();
+		this.view = view;
 		
 		//initialise
 		initComponents();
-		
-		this.tabPane.add("Variable Visibility", variablePanel);
 		
 		this.getRootPane().setDefaultButton(okayButton);
 						
@@ -103,11 +120,19 @@ public class GUIViewDialog extends JDialog implements KeyListener
 		this.askOption = ((GUIPrism)this.getParent()).getPrism().getSettings().getBoolean(PrismSettings.SIMULATOR_NEW_PATH_ASK_VIEW);
 		optionCheckBox.setSelected(this.askOption);
 		
-		visibleListModel = new VariableListModel(pathTableModel.getVisibleVariables());
-		hiddenListModel = new VariableListModel(pathTableModel.getHiddenVariables());
+		visibleVariableListModel = new VariableListModel(view.getVisibleVariables());
+		hiddenVariableListModel = new VariableListModel(view.getHiddenVariables());
 		
-		visibleList.setModel(visibleListModel);
-		hiddenList.setModel(hiddenListModel);	
+		visibleVariableList.setModel(visibleVariableListModel);
+		hiddenVariableList.setModel(hiddenVariableListModel);	
+		
+		visibleRewardListModel = new RewardListModel(view.getVisibleRewards());
+		hiddenRewardListModel = new RewardListModel(view.getHiddenRewards());
+				
+		visibleRewardList.setModel(visibleRewardListModel);
+		hiddenRewardList.setModel(hiddenRewardListModel);
+		
+		emptyRewardVisibleCheckBox.setSelected(!view.hideEmptyRewards());
 		
 		this.setVisible(true);
 	}
@@ -129,22 +154,41 @@ public class GUIViewDialog extends JDialog implements KeyListener
         okayButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
         optionCheckBox = new javax.swing.JCheckBox();
-        tabPane = new javax.swing.JTabbedPane();
+        variableTabPane = new javax.swing.JTabbedPane();
+        variableTabPanel = new javax.swing.JPanel();
         variablePanel = new javax.swing.JPanel();
-        leftColumn = new javax.swing.JPanel();
-        leftPanel = new javax.swing.JPanel();
-        visibleScrollList = new javax.swing.JScrollPane();
-        visibleList = new javax.swing.JList();
-        selectAllVisibleButton = new javax.swing.JButton();
-        centerColumn = new javax.swing.JPanel();
-        centerPanel = new javax.swing.JPanel();
-        makeVisibleButton = new javax.swing.JButton();
-        makeHiddenButton = new javax.swing.JButton();
-        rightColumn = new javax.swing.JPanel();
-        rightPanel = new javax.swing.JPanel();
-        hiddenScrollList = new javax.swing.JScrollPane();
-        hiddenList = new javax.swing.JList();
-        selectAllHidden = new javax.swing.JButton();
+        leftVariableColumn = new javax.swing.JPanel();
+        leftVariablePanel = new javax.swing.JPanel();
+        visibleVariableScrollList = new javax.swing.JScrollPane();
+        visibleVariableList = new javax.swing.JList();
+        selectAllVisibleVariablesButton = new javax.swing.JButton();
+        centerVariableColumn = new javax.swing.JPanel();
+        centerVariablePanel = new javax.swing.JPanel();
+        makeVariableVisibleButton = new javax.swing.JButton();
+        makeVariableHiddenButton = new javax.swing.JButton();
+        rightVariableColumn = new javax.swing.JPanel();
+        rightVariablePanel = new javax.swing.JPanel();
+        hiddenVariableScrollList = new javax.swing.JScrollPane();
+        hiddenVariableList = new javax.swing.JList();
+        selectAllHiddenVariablesButton = new javax.swing.JButton();
+        rewardTabPanel = new javax.swing.JPanel();
+        rewardPanel = new javax.swing.JPanel();
+        leftRewardColumn = new javax.swing.JPanel();
+        leftRewardPanel = new javax.swing.JPanel();
+        visibleRewardScrollList = new javax.swing.JScrollPane();
+        visibleRewardList = new javax.swing.JList();
+        selectAllVisibleRewardsButton = new javax.swing.JButton();
+        centerRewardColumn = new javax.swing.JPanel();
+        centerRewardPanel = new javax.swing.JPanel();
+        makeRewardVisibleButton = new javax.swing.JButton();
+        makeRewardHiddenButton = new javax.swing.JButton();
+        rightRewardColumn = new javax.swing.JPanel();
+        rightRewardPanel = new javax.swing.JPanel();
+        hiddenRewardScrollList = new javax.swing.JScrollPane();
+        hiddenRewardList = new javax.swing.JList();
+        selectAllHiddenRewardsButton = new javax.swing.JButton();
+        rewardOptionPanel = new javax.swing.JPanel();
+        emptyRewardVisibleCheckBox = new javax.swing.JCheckBox();
 
         visibleLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         visibleLabel.setText("Visible Variables");
@@ -159,7 +203,7 @@ public class GUIViewDialog extends JDialog implements KeyListener
 
         allPanel.setLayout(new java.awt.BorderLayout());
 
-        allPanel.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(5, 5, 5, 5)));
+        allPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
         bottomPanel.setLayout(new java.awt.BorderLayout());
 
         buttonPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
@@ -192,31 +236,33 @@ public class GUIViewDialog extends JDialog implements KeyListener
 
         getContentPane().add(allPanel, java.awt.BorderLayout.SOUTH);
 
-        tabPane.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(5, 5, 5, 5)));
+        variableTabPane.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        variableTabPanel.setLayout(new java.awt.BorderLayout());
+
         variablePanel.setLayout(new java.awt.GridBagLayout());
 
-        variablePanel.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(5, 5, 5, 5)));
-        leftColumn.setLayout(new java.awt.BorderLayout());
+        variablePanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        leftVariableColumn.setLayout(new java.awt.BorderLayout());
 
-        leftColumn.setBorder(new javax.swing.border.TitledBorder("Visible Variables"));
-        leftPanel.setLayout(new java.awt.BorderLayout(0, 5));
+        leftVariableColumn.setBorder(javax.swing.BorderFactory.createTitledBorder("Visible variables"));
+        leftVariablePanel.setLayout(new java.awt.BorderLayout(0, 5));
 
-        leftPanel.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(5, 5, 5, 5)));
-        visibleScrollList.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        visibleScrollList.setViewportView(visibleList);
+        leftVariablePanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        visibleVariableScrollList.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        visibleVariableScrollList.setViewportView(visibleVariableList);
 
-        leftPanel.add(visibleScrollList, java.awt.BorderLayout.CENTER);
+        leftVariablePanel.add(visibleVariableScrollList, java.awt.BorderLayout.CENTER);
 
-        selectAllVisibleButton.setText("Select All");
-        selectAllVisibleButton.addActionListener(new java.awt.event.ActionListener() {
+        selectAllVisibleVariablesButton.setText("Select All");
+        selectAllVisibleVariablesButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                selectAllVisibleButtonActionPerformed(evt);
+                selectAllVisibleVariablesButtonActionPerformed(evt);
             }
         });
 
-        leftPanel.add(selectAllVisibleButton, java.awt.BorderLayout.SOUTH);
+        leftVariablePanel.add(selectAllVisibleVariablesButton, java.awt.BorderLayout.SOUTH);
 
-        leftColumn.add(leftPanel, java.awt.BorderLayout.CENTER);
+        leftVariableColumn.add(leftVariablePanel, java.awt.BorderLayout.CENTER);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -225,16 +271,16 @@ public class GUIViewDialog extends JDialog implements KeyListener
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.weighty = 1.0;
-        variablePanel.add(leftColumn, gridBagConstraints);
+        variablePanel.add(leftVariableColumn, gridBagConstraints);
 
-        centerColumn.setLayout(new java.awt.BorderLayout());
+        centerVariableColumn.setLayout(new java.awt.BorderLayout());
 
-        centerPanel.setLayout(new java.awt.GridBagLayout());
+        centerVariablePanel.setLayout(new java.awt.GridBagLayout());
 
-        makeVisibleButton.setText("<<");
-        makeVisibleButton.addActionListener(new java.awt.event.ActionListener() {
+        makeVariableVisibleButton.setText("<<");
+        makeVariableVisibleButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                makeVisibleButtonActionPerformed(evt);
+                makeVariableVisibleButtonActionPerformed(evt);
             }
         });
 
@@ -244,12 +290,12 @@ public class GUIViewDialog extends JDialog implements KeyListener
         gridBagConstraints.ipadx = 5;
         gridBagConstraints.ipady = 5;
         gridBagConstraints.insets = new java.awt.Insets(3, 10, 3, 10);
-        centerPanel.add(makeVisibleButton, gridBagConstraints);
+        centerVariablePanel.add(makeVariableVisibleButton, gridBagConstraints);
 
-        makeHiddenButton.setText(">>");
-        makeHiddenButton.addActionListener(new java.awt.event.ActionListener() {
+        makeVariableHiddenButton.setText(">>");
+        makeVariableHiddenButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                makeHiddenButtonActionPerformed(evt);
+                makeVariableHiddenButtonActionPerformed(evt);
             }
         });
 
@@ -257,38 +303,38 @@ public class GUIViewDialog extends JDialog implements KeyListener
         gridBagConstraints.ipadx = 5;
         gridBagConstraints.ipady = 5;
         gridBagConstraints.insets = new java.awt.Insets(3, 10, 3, 10);
-        centerPanel.add(makeHiddenButton, gridBagConstraints);
+        centerVariablePanel.add(makeVariableHiddenButton, gridBagConstraints);
 
-        centerColumn.add(centerPanel, java.awt.BorderLayout.CENTER);
+        centerVariableColumn.add(centerVariablePanel, java.awt.BorderLayout.CENTER);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
         gridBagConstraints.weighty = 1.0;
-        variablePanel.add(centerColumn, gridBagConstraints);
+        variablePanel.add(centerVariableColumn, gridBagConstraints);
 
-        rightColumn.setLayout(new java.awt.BorderLayout());
+        rightVariableColumn.setLayout(new java.awt.BorderLayout());
 
-        rightColumn.setBorder(new javax.swing.border.TitledBorder("Hidden Variables"));
-        rightPanel.setLayout(new java.awt.BorderLayout(0, 5));
+        rightVariableColumn.setBorder(javax.swing.BorderFactory.createTitledBorder("Hidden variables"));
+        rightVariablePanel.setLayout(new java.awt.BorderLayout(0, 5));
 
-        rightPanel.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(5, 5, 5, 5)));
-        hiddenScrollList.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        hiddenScrollList.setViewportView(hiddenList);
+        rightVariablePanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        hiddenVariableScrollList.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        hiddenVariableScrollList.setViewportView(hiddenVariableList);
 
-        rightPanel.add(hiddenScrollList, java.awt.BorderLayout.CENTER);
+        rightVariablePanel.add(hiddenVariableScrollList, java.awt.BorderLayout.CENTER);
 
-        selectAllHidden.setText("Select All");
-        selectAllHidden.addActionListener(new java.awt.event.ActionListener() {
+        selectAllHiddenVariablesButton.setText("Select All");
+        selectAllHiddenVariablesButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                selectAllHiddenActionPerformed(evt);
+                selectAllHiddenVariablesButtonActionPerformed(evt);
             }
         });
 
-        rightPanel.add(selectAllHidden, java.awt.BorderLayout.SOUTH);
+        rightVariablePanel.add(selectAllHiddenVariablesButton, java.awt.BorderLayout.SOUTH);
 
-        rightColumn.add(rightPanel, java.awt.BorderLayout.CENTER);
+        rightVariableColumn.add(rightVariablePanel, java.awt.BorderLayout.CENTER);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
@@ -297,60 +343,228 @@ public class GUIViewDialog extends JDialog implements KeyListener
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.weighty = 1.0;
-        variablePanel.add(rightColumn, gridBagConstraints);
+        variablePanel.add(rightVariableColumn, gridBagConstraints);
 
-        tabPane.addTab("Variable Visibility", variablePanel);
+        variableTabPanel.add(variablePanel, java.awt.BorderLayout.CENTER);
 
-        getContentPane().add(tabPane, java.awt.BorderLayout.CENTER);
+        variableTabPane.addTab("Variable visibility", variableTabPanel);
 
-    }
-    // </editor-fold>//GEN-END:initComponents
+        rewardTabPanel.setLayout(new java.awt.BorderLayout());
 
-    private void selectAllVisibleButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectAllVisibleButtonActionPerformed
+        rewardPanel.setLayout(new java.awt.GridBagLayout());
+
+        rewardPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        leftRewardColumn.setLayout(new java.awt.BorderLayout());
+
+        leftRewardColumn.setBorder(javax.swing.BorderFactory.createTitledBorder("Visible reward structures"));
+        leftRewardPanel.setLayout(new java.awt.BorderLayout(0, 5));
+
+        leftRewardPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        visibleRewardScrollList.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        visibleRewardScrollList.setViewportView(visibleRewardList);
+
+        leftRewardPanel.add(visibleRewardScrollList, java.awt.BorderLayout.CENTER);
+
+        selectAllVisibleRewardsButton.setText("Select All");
+        selectAllVisibleRewardsButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                selectAllVisibleRewardsButtonActionPerformed(evt);
+            }
+        });
+
+        leftRewardPanel.add(selectAllVisibleRewardsButton, java.awt.BorderLayout.SOUTH);
+
+        leftRewardColumn.add(leftRewardPanel, java.awt.BorderLayout.CENTER);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.weighty = 1.0;
+        rewardPanel.add(leftRewardColumn, gridBagConstraints);
+
+        centerRewardColumn.setLayout(new java.awt.BorderLayout());
+
+        centerRewardPanel.setLayout(new java.awt.GridBagLayout());
+
+        makeRewardVisibleButton.setText("<<");
+        makeRewardVisibleButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                makeRewardVisibleButtonActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.ipadx = 5;
+        gridBagConstraints.ipady = 5;
+        gridBagConstraints.insets = new java.awt.Insets(3, 10, 3, 10);
+        centerRewardPanel.add(makeRewardVisibleButton, gridBagConstraints);
+
+        makeRewardHiddenButton.setText(">>");
+        makeRewardHiddenButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                makeRewardHiddenButtonActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.ipadx = 5;
+        gridBagConstraints.ipady = 5;
+        gridBagConstraints.insets = new java.awt.Insets(3, 10, 3, 10);
+        centerRewardPanel.add(makeRewardHiddenButton, gridBagConstraints);
+
+        centerRewardColumn.add(centerRewardPanel, java.awt.BorderLayout.CENTER);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
+        gridBagConstraints.weighty = 1.0;
+        rewardPanel.add(centerRewardColumn, gridBagConstraints);
+
+        rightRewardColumn.setLayout(new java.awt.BorderLayout());
+
+        rightRewardColumn.setBorder(javax.swing.BorderFactory.createTitledBorder("Hidden reward structures"));
+        rightRewardPanel.setLayout(new java.awt.BorderLayout(0, 5));
+
+        rightRewardPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        hiddenRewardScrollList.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        hiddenRewardScrollList.setViewportView(hiddenRewardList);
+
+        rightRewardPanel.add(hiddenRewardScrollList, java.awt.BorderLayout.CENTER);
+
+        selectAllHiddenRewardsButton.setText("Select All");
+        selectAllHiddenRewardsButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                selectAllHiddenRewardsButtonActionPerformed(evt);
+            }
+        });
+
+        rightRewardPanel.add(selectAllHiddenRewardsButton, java.awt.BorderLayout.SOUTH);
+
+        rightRewardColumn.add(rightRewardPanel, java.awt.BorderLayout.CENTER);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.weighty = 1.0;
+        rewardPanel.add(rightRewardColumn, gridBagConstraints);
+
+        rewardTabPanel.add(rewardPanel, java.awt.BorderLayout.CENTER);
+
+        rewardOptionPanel.setLayout(new java.awt.BorderLayout());
+
+        rewardOptionPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 5, 5, 5));
+        emptyRewardVisibleCheckBox.setText("Show empty state/transition rewards");
+        emptyRewardVisibleCheckBox.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        emptyRewardVisibleCheckBox.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        rewardOptionPanel.add(emptyRewardVisibleCheckBox, java.awt.BorderLayout.WEST);
+        emptyRewardVisibleCheckBox.getAccessibleContext().setAccessibleName("Show ");
+
+        rewardTabPanel.add(rewardOptionPanel, java.awt.BorderLayout.SOUTH);
+
+        variableTabPane.addTab("Reward visibility", rewardTabPanel);
+
+        getContentPane().add(variableTabPane, java.awt.BorderLayout.CENTER);
+
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void selectAllHiddenRewardsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectAllHiddenRewardsButtonActionPerformed
 // TODO add your handling code here:
-    	
-    	int[] indices = new int[visibleListModel.getSize()];
+    	int[] indices = new int[hiddenRewardListModel.getSize()];
     	for (int i = 0; i < indices.length; i++)
     		indices[i] = i;
     	
-    	visibleList.setSelectedIndices(indices);    	
-    }//GEN-LAST:event_selectAllVisibleButtonActionPerformed
+    	hiddenRewardList.setSelectedIndices(indices);
+    }//GEN-LAST:event_selectAllHiddenRewardsButtonActionPerformed
 
-    private void selectAllHiddenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectAllHiddenActionPerformed
+    private void makeRewardHiddenButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_makeRewardHiddenButtonActionPerformed
 // TODO add your handling code here:
-    	int[] indices = new int[hiddenListModel.getSize()];
-    	for (int i = 0; i < indices.length; i++)
-    		indices[i] = i;
-    	
-    	hiddenList.setSelectedIndices(indices);
-    	
-    }//GEN-LAST:event_selectAllHiddenActionPerformed
-
-    private void makeVisibleButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_makeVisibleButtonActionPerformed
-// TODO add your handling code here:
-    	int[] indices = hiddenList.getSelectedIndices();
+    	int[] indices = visibleRewardList.getSelectedIndices();
     	
     	for (int i = indices.length - 1; i >= 0; i--)
     	{
-    		GUISimulator.Variable var = (GUISimulator.Variable)hiddenListModel.get(indices[i]);
+    		GUISimulator.RewardStructure rew = (GUISimulator.RewardStructure)visibleRewardListModel.get(indices[i]);
     		
-    		hiddenListModel.removeVariable(var);
-    		visibleListModel.addVariable(var);
+    		visibleRewardListModel.removeReward(rew);
+    		hiddenRewardListModel.addReward(rew);
     	}   	
-    }//GEN-LAST:event_makeVisibleButtonActionPerformed
+    }//GEN-LAST:event_makeRewardHiddenButtonActionPerformed
 
-    private void makeHiddenButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_makeHiddenButtonActionPerformed
+    private void makeRewardVisibleButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_makeRewardVisibleButtonActionPerformed
 // TODO add your handling code here:
-    	int[] indices = visibleList.getSelectedIndices();
+    	int[] indices = hiddenRewardList.getSelectedIndices();
     	
     	for (int i = indices.length - 1; i >= 0; i--)
     	{
-    		GUISimulator.Variable var = (GUISimulator.Variable)visibleListModel.get(indices[i]);
+    		GUISimulator.RewardStructure rew = (GUISimulator.RewardStructure)hiddenRewardListModel.get(indices[i]);
     		
-    		visibleListModel.removeVariable(var);
-    		hiddenListModel.addVariable(var);
+    		hiddenRewardListModel.removeReward(rew);
+    		visibleRewardListModel.addReward(rew);
+    	}   	
+    }//GEN-LAST:event_makeRewardVisibleButtonActionPerformed
+
+    private void selectAllVisibleRewardsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectAllVisibleRewardsButtonActionPerformed
+// TODO add your handling code here:
+    	int[] indices = new int[visibleRewardListModel.getSize()];
+    	for (int i = 0; i < indices.length; i++)
+    		indices[i] = i;
+    	
+    	visibleRewardList.setSelectedIndices(indices);    	
+    }//GEN-LAST:event_selectAllVisibleRewardsButtonActionPerformed
+
+    private void selectAllVisibleVariablesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectAllVisibleVariablesButtonActionPerformed
+// TODO add your handling code here:
+    	
+    	int[] indices = new int[visibleVariableListModel.getSize()];
+    	for (int i = 0; i < indices.length; i++)
+    		indices[i] = i;
+    	
+    	visibleVariableList.setSelectedIndices(indices);    	
+    }//GEN-LAST:event_selectAllVisibleVariablesButtonActionPerformed
+
+    private void selectAllHiddenVariablesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectAllHiddenVariablesButtonActionPerformed
+// TODO add your handling code here:
+    	int[] indices = new int[hiddenVariableListModel.getSize()];
+    	for (int i = 0; i < indices.length; i++)
+    		indices[i] = i;
+    	
+    	hiddenVariableList.setSelectedIndices(indices);
+    	
+    }//GEN-LAST:event_selectAllHiddenVariablesButtonActionPerformed
+
+    private void makeVariableVisibleButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_makeVariableVisibleButtonActionPerformed
+// TODO add your handling code here:
+    	int[] indices = hiddenVariableList.getSelectedIndices();
+    	
+    	for (int i = indices.length - 1; i >= 0; i--)
+    	{
+    		GUISimulator.Variable var = (GUISimulator.Variable)hiddenVariableListModel.get(indices[i]);
+    		
+    		hiddenVariableListModel.removeVariable(var);
+    		visibleVariableListModel.addVariable(var);
+    	}   	
+    }//GEN-LAST:event_makeVariableVisibleButtonActionPerformed
+
+    private void makeVariableHiddenButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_makeVariableHiddenButtonActionPerformed
+// TODO add your handling code here:
+    	int[] indices = visibleVariableList.getSelectedIndices();
+    	
+    	for (int i = indices.length - 1; i >= 0; i--)
+    	{
+    		GUISimulator.Variable var = (GUISimulator.Variable)visibleVariableListModel.get(indices[i]);
+    		
+    		visibleVariableListModel.removeVariable(var);
+    		hiddenVariableListModel.addVariable(var);
     	}
-    }//GEN-LAST:event_makeHiddenButtonActionPerformed
+    }//GEN-LAST:event_makeVariableHiddenButtonActionPerformed
                     
 	
     
@@ -374,7 +588,10 @@ public class GUIViewDialog extends JDialog implements KeyListener
 			catch (PrismException e) {}
 		}	
 			
-		pathTableModel.setVisibility(visibleListModel.getVariables(), hiddenListModel.getVariables());		    
+		view.setVariableVisibility(visibleVariableListModel.getVariables(), hiddenVariableListModel.getVariables());		    
+		view.setRewardVisibility(visibleRewardListModel.getRewards(), hiddenRewardListModel.getRewards());
+		
+		view.hideEmptyRewards(!emptyRewardVisibleCheckBox.isSelected());
 		dispose();
 	}//GEN-LAST:event_okayButtonActionPerformed
         
@@ -451,7 +668,55 @@ public class GUIViewDialog extends JDialog implements KeyListener
 			
 			return list;
 		}
-	}	
+	}
+	
+	class RewardListModel extends DefaultListModel
+	{	
+		public RewardListModel(ArrayList rewards)
+		{
+			super();
+			for (int i = 0; i < rewards.size(); i++)
+			{
+				super.add(i, ((GUISimulator.RewardStructure)rewards.get(i)));
+				
+			}
+		}
+		
+		public void removeReward(GUISimulator.RewardStructure reward)
+		{
+			for (int i = 0; i < super.getSize(); i++)
+			{
+				GUISimulator.RewardStructure rew = (GUISimulator.RewardStructure)super.getElementAt(i);
+				if (rew.equals(reward))
+				{
+					super.remove(i);
+				}
+			}			
+		}
+		
+		public void addReward(GUISimulator.RewardStructure reward)
+		{
+			int i = 0;
+				
+			while (i < super.getSize() && ((GUISimulator.RewardStructure)super.getElementAt(i)).getIndex() < reward.getIndex())
+			{
+				i++;				
+			}		
+			
+			super.add(i, reward);
+		}
+		
+		public ArrayList getRewards()
+		{
+			ArrayList list = new ArrayList();
+			for (int i = 0; i < super.getSize(); i++)
+			{
+				list.add(super.getElementAt(i));
+			}
+			
+			return list;
+		}
+	}
 }
 
 
