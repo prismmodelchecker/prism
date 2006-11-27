@@ -2230,11 +2230,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		{
 			if (name != null)
 			{
-				return "\"" + name + "\"";
+				return "" + (index + 1) + ": \"" + name + "\"";
 			}
 			else 
 			{
-				return "Reward " + (index + 1) + " (unnamed)"; 
+				return "" + (index + 1) + ": (unnamed)"; 
 			}
 		}
 		
@@ -2681,7 +2681,14 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					}
 					else if (timeStart <= columnIndex && columnIndex < rewardStart)
 					{
-						return new Double(SimulatorEngine.getTimeSpentInPathState(rowIndex));
+						if (rowIndex < SimulatorEngine.getPathSize() - 1)
+						{
+							return new Double(SimulatorEngine.getTimeSpentInPathState(rowIndex));
+						}
+						else
+						{
+							return "...";
+						}
 					}
 					else if (rewardStart <= columnIndex)
 					{

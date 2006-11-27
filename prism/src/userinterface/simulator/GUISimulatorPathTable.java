@@ -295,11 +295,9 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 	    
 			if(value instanceof Double && ((Double)value).doubleValue() == SimulatorEngine.UNDEFINED_DOUBLE)
 				renderer.setText("");
-			else renderer.setText(value.toString());
+			else renderer.setText(value.toString());   
 	    
-	    
-			Color c = Color.white;
-	    
+			Color c = Color.white;    
 	    
 			if(isSelected)
 			{
@@ -397,7 +395,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 					}
 					else
 					{
-						field.setText("no non-empty reward");
+						field.setText("");
 					}
 					
 					field.setHorizontalAlignment(JTextField.CENTER);	
