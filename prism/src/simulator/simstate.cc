@@ -89,15 +89,22 @@ CPathState::CPathState()
 	this->time_spent_in_state = 0.0;
 	this->time_known = false;
 	this->state_cost = new double[no_reward_structs];
-	this->state_instant_cost = new double[no_reward_structs];
-	this->path_cost_so_far = new double[no_reward_structs];
+	this->state_instant_cost = new double[no_reward_structs];	
 	this->transition_cost = new double[no_reward_structs];
-	for(int i = 0; i < no_reward_structs; i++) {
+	
+	this->cumulative_state_cost = new double[no_reward_structs];
+	this->cumulative_transition_cost = new double[no_reward_structs];
+	
+	for(int i = 0; i < no_reward_structs; i++) 
+	{
 		this->state_cost[i] = 0.0;
-		this->state_instant_cost[i] = 0.0;
-		this->path_cost_so_far[i] = 0.0;
+		this->state_instant_cost[i] = 0.0;		
 		this->transition_cost[i] = 0.0;
+		
+		this->cumulative_state_cost[i] = 0.0;
+		this->cumulative_transition_cost[i] = 0.0;
 	}
+	
 	this->probability = 0.0;
 }
 
@@ -108,9 +115,11 @@ CPathState::~CPathState()
 {
 	if(variables != NULL) delete[] variables;
 	if(state_cost != NULL) delete[] state_cost;
-	if(state_instant_cost != NULL) delete[] state_instant_cost;
-	if(path_cost_so_far != NULL) delete[] path_cost_so_far;
+	if(state_instant_cost != NULL) delete[] state_instant_cost;	
 	if(transition_cost != NULL) delete[] transition_cost;
+	
+	if(cumulative_state_cost != NULL) delete[] cumulative_state_cost;
+	if(cumulative_transition_cost != NULL) delete[] cumulative_transition_cost;	
 }
 
 /*
@@ -123,10 +132,12 @@ void CPathState::Make_This_Current_State()
 		variables[i] = state_variables[i];
 	this->time_spent_in_state = 0.0;
 	this->time_known = false;
+	
 	for(int i = 0; i < no_reward_structs; i++) {
 		this->state_cost[i] = 0.0;
 		this->state_instant_cost[i] = 0.0;
-		this->path_cost_so_far[i] = 0.0;
+		this->cumulative_state_cost[i] = 0.0;
+		this->cumulative_transition_cost[i] = 0.0;
 		this->transition_cost[i] = 0.0;
 	}
 	this->probability = 0.0;

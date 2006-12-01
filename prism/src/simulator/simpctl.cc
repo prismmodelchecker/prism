@@ -607,7 +607,10 @@ void CRewardCumulative::Notify_State(CPathState* last_state, int* current_state)
 				//time occured in last state
 				answer_known = true;
 				if (reward_struct_index >= 0 && reward_struct_index < no_reward_structs) {
-					answer_double = last_state->path_cost_so_far[reward_struct_index] - last_state->transition_cost[reward_struct_index] + last_state->state_instant_cost[reward_struct_index] * (time - time_so_far);
+					answer_double = 
+						last_state->cumulative_state_cost[reward_struct_index] + last_state->cumulative_transition_cost[reward_struct_index] - 
+							last_state->transition_cost[reward_struct_index] + 
+							last_state->state_instant_cost[reward_struct_index] * (time - time_so_far);
 				} else {
 					answer_double = 0.0;
 				}
@@ -616,7 +619,8 @@ void CRewardCumulative::Notify_State(CPathState* last_state, int* current_state)
 			{
 				answer_known = true;
 				if (reward_struct_index >= 0 && reward_struct_index < no_reward_structs) {
-					answer_double = last_state->path_cost_so_far[reward_struct_index];
+					answer_double = 
+						last_state->cumulative_state_cost[reward_struct_index] + last_state->cumulative_transition_cost[reward_struct_index];
 				} else {
 					answer_double = 0.0;
 				}
@@ -631,7 +635,7 @@ void CRewardCumulative::Notify_State(CPathState* last_state, int* current_state)
 			{
 				answer_known = true;
 				if (reward_struct_index >= 0 && reward_struct_index < no_reward_structs) {
-					answer_double = last_state->path_cost_so_far[reward_struct_index];
+					answer_double = last_state->cumulative_state_cost[reward_struct_index] + last_state->cumulative_transition_cost[reward_struct_index];
 				} else {
 					answer_double = 0.0;
 				}
@@ -883,7 +887,7 @@ void CRewardReachability::Notify_State(CPathState* last_state, int* current_stat
 	{
 		answer_known = true;
 		if (reward_struct_index >= 0 && reward_struct_index < no_reward_structs) {
-			answer_double = last_state->path_cost_so_far[reward_struct_index];//Get_Path_Cost_No_Path();									
+			answer_double = last_state->cumulative_state_cost[reward_struct_index] + last_state->cumulative_transition_cost[reward_struct_index];//Get_Path_Cost_No_Path();									
 		} else {
 			answer_double = 0.0;
 		}

@@ -182,6 +182,10 @@ double Get_State_Reward_Of_Path_State(int state_index, int i);
  */
 double Get_Transition_Reward_Of_Path_State(int state_index, int i);
 
+double Get_Total_State_Reward_Of_Path_State(int state_index, int i);
+
+double Get_Total_Transition_Reward_Of_Path_State(int state_index, int i);
+
 /*
  *	Returns the total time for the path.
  */

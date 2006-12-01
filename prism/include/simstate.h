@@ -72,8 +72,10 @@ class CPathState
 		bool time_known; 
 		double *state_cost; //The costs accumulated in that state (for real time models)
 		double *state_instant_cost; //The instant state costs of that state
-		double *path_cost_so_far; //The costs of the path so far up until that state
 		double *transition_cost; //The costs of the transition out of that state
+		
+		double *cumulative_state_cost; // Cumulative state_cost upto now.
+		double *cumulative_transition_cost; // Cumulative transition_cost.
 
 	/*
 	 *	Constructs the state according with no_state_variables storage spaces 

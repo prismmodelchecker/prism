@@ -583,6 +583,20 @@ double Get_Transition_Reward_Of_Path_State(int state_index, int i)
 		return stored_path[state_index]->transition_cost[i];
 }
 
+double Get_Total_State_Reward_Of_Path_State(int state_index, int i)
+{
+	if(state_index > current_index) return UNDEFINED_DOUBLE;
+	else
+		return stored_path[state_index]->cumulative_state_cost[i];
+}
+
+double Get_Total_Transition_Reward_Of_Path_State(int state_index, int i)
+{
+	if(state_index > current_index) return UNDEFINED_DOUBLE;
+	else
+		return stored_path[state_index]->cumulative_transition_cost[i];
+}
+
 bool Is_Proven_Looping()
 {
 	return loop_detection->Is_Proven_Looping();
@@ -701,7 +715,9 @@ inline void Add_Current_State_To_Path()
 				total_state_cost[i] += last_state->state_instant_cost[i]*time_in_state;
 				total_transition_cost[i] += Get_Transition_Reward(i);
 				path_cost[i] = total_state_cost[i] + total_transition_cost[i];
-				last_state->path_cost_so_far[i] = path_cost[i];
+				
+				last_state->cumulative_state_cost[i] = total_state_cost[i];
+				last_state->cumulative_transition_cost[i] = total_transition_cost[i];				
 			}
 			
 			Notify_Path_Formulae(last_state, state_variables, loop_detection);
@@ -718,7 +734,9 @@ inline void Add_Current_State_To_Path()
 				total_state_cost[i] += last_state->state_instant_cost[i];
 				total_transition_cost[i] += Get_Transition_Reward(i);
 				path_cost[i] = total_state_cost[i] + total_transition_cost[i];
-				last_state->path_cost_so_far[i] = path_cost[i];
+				
+				last_state->cumulative_state_cost[i] = total_state_cost[i];
+				last_state->cumulative_transition_cost[i] = total_transition_cost[i];
 			}
 			
 			Notify_Path_Formulae(last_state, state_variables, loop_detection); 

@@ -950,6 +950,16 @@ public class SimulatorEngine
 	public static native double getTransitionRewardOfPathState(int stateIndex, int i);
 	
 	/**
+	 * Cumulative version of getStateRewardOfPathState.
+	 */
+	public static native double getTotalStateRewardOfPathState(int stateIndex, int i);
+	
+	/**
+	 * Cumulative version of getTransitionRewardOfPathState.
+	 */
+	public static native double getTotalTransitionRewardOfPathState(int stateIndex, int i);	
+	
+	/**
 	 * Returns the total path time.
 	 * @return the total path time.
 	 */

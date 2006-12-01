@@ -261,6 +261,18 @@ JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTransitionRewardOfPa
 	return Get_Transition_Reward_Of_Path_State(stateIndex, i);
 }
 
+JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTotalStateRewardOfPathState
+(JNIEnv *env, jclass cls, jint stateIndex, jint i)
+{
+	return Get_Total_State_Reward_Of_Path_State(stateIndex, i);
+}
+
+JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTotalTransitionRewardOfPathState
+(JNIEnv *env, jclass cls, jint stateIndex, jint i)
+{
+	return Get_Total_Transition_Reward_Of_Path_State(stateIndex, i);
+}
+
 JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTotalPathTime
 (JNIEnv *env, jclass cls)
 {

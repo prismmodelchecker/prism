@@ -255,6 +255,16 @@ double Engine_Get_Transition_Reward_Of_Path_State(int state_index, int i)
 	return Get_Transition_Reward_Of_Path_State(state_index, i);
 }
 
+double Engine_Get_Total_Transition_Reward_Of_Path_State(int state_index, int i)
+{
+	return Get_Total_Transition_Reward_Of_Path_State(state_index, i);
+}
+
+double Engine_Get_Total_State_Reward_Of_Path_State(int state_index, int i)
+{
+	return Get_Total_State_Reward_Of_Path_State(state_index, i);
+}
+
 double Engine_Get_Total_Path_Time()
 {
 	return Get_Total_Path_Time();

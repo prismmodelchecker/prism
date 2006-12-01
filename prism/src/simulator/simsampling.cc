@@ -666,7 +666,9 @@ void Do_Sampling(int path_length)
 					total_state_cost[i] += last_state->state_instant_cost[i]*time_in_state;
 					total_transition_cost[i] += last_state->transition_cost[i];
 					path_cost[i] = total_state_cost[i] + total_transition_cost[i];
-					last_state->path_cost_so_far[i] = path_cost[i];
+					
+					last_state->cumulative_state_cost[i] = total_state_cost[i];
+					last_state->cumulative_transition_cost[i] = total_transition_cost[i];
 				}
 				
 				Notify_Path_Formulae(last_state, state_variables, loop_detection);
@@ -679,7 +681,9 @@ void Do_Sampling(int path_length)
 					total_state_cost[i] += last_state->state_instant_cost[i];
 					total_transition_cost[i] += last_state->transition_cost[i];
 					path_cost[i] = total_state_cost[i] + total_transition_cost[i];
-					last_state->path_cost_so_far[i] = path_cost[i];
+					
+					last_state->cumulative_state_cost[i] = total_state_cost[i];
+					last_state->cumulative_transition_cost[i] = total_transition_cost[i];	
 				}
 				
 				Notify_Path_Formulae(last_state, state_variables, loop_detection); 

@@ -101,6 +101,10 @@ double Engine_Get_State_Reward_Of_Path_State(int state_index);
 
 double Engine_Get_Transition_Reward_Of_Path_State(int state_index);
 
+double Engine_Get_Total_State_Reward_Of_Path_State(int state_index);
+
+double Engine_Get_Total_Transition_Reward_Of_Path_State(int state_index);
+
 double Engine_Get_Total_Path_Time();
 
 double Engine_Get_Total_Path_Reward();

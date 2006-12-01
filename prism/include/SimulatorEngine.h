@@ -161,6 +161,22 @@ JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTransitionRewardOfPa
 
 /*
  * Class:     simulator_SimulatorEngine
+ * Method:    getTotalStateRewardOfPathState
+ * Signature: (II)D
+ */
+JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTotalStateRewardOfPathState
+  (JNIEnv *, jclass, jint, jint);
+
+/*
+ * Class:     simulator_SimulatorEngine
+ * Method:    getTotalTransitionRewardOfPathState
+ * Signature: (II)D
+ */
+JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTotalTransitionRewardOfPathState
+  (JNIEnv *, jclass, jint, jint);
+
+/*
+ * Class:     simulator_SimulatorEngine
  * Method:    getTotalPathTime
  * Signature: ()D
  */
