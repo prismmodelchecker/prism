@@ -552,7 +552,6 @@ int Get_Path_Data(int var_index, int state_index)
 */
 double Get_Time_Spent_In_Path_State(int state_index)
 {
-
 	if(state_index == current_index) return UNDEFINED_DOUBLE;
 	else
 	{
@@ -568,8 +567,7 @@ double Get_Time_Spent_In_Path_State(int state_index)
 */
 double Get_State_Reward_Of_Path_State(int state_index, int i)
 {
-
-	if(state_index == current_index) return UNDEFINED_DOUBLE;
+	if(state_index > current_index) return UNDEFINED_DOUBLE;
 	else
 		return stored_path[state_index]->state_instant_cost[i];
 }
@@ -580,8 +578,7 @@ double Get_State_Reward_Of_Path_State(int state_index, int i)
 */
 double Get_Transition_Reward_Of_Path_State(int state_index, int i)
 {
-
-	if(state_index == current_index) return UNDEFINED_DOUBLE;
+	if(state_index >= current_index) return UNDEFINED_DOUBLE;
 	else
 		return stored_path[state_index]->transition_cost[i];
 }
@@ -673,19 +670,22 @@ inline void Add_Current_State_To_Path()
 				Report_Error("Out of memory when allocating new path");
 				throw "out of memory error: simpath.cc 003";
 			}
-			stored_path.push_back(ps);
+			stored_path.push_back(ps);			
 		}
 	}
 
 	CPathState* curr_state = stored_path[current_index];
 	curr_state->Make_This_Current_State();
+	
+	Calculate_State_Reward(curr_state->variables);
+	for(int i = 0; i < no_reward_structs; i++) {
+		curr_state->state_instant_cost[i] = Get_State_Reward(i);
+	}
 
 	if(current_index > 0)
 	{
 		CPathState * last_state = stored_path[current_index-1];
-		for(int i = 0; i < no_reward_structs; i++) {
-			last_state->state_instant_cost[i] = Get_State_Reward(i);
-		}
+		
 		if(model_type == STOCHASTIC)
 		{
 			double time_in_state = Get_Sampled_Time();

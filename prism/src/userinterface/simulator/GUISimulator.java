@@ -2247,15 +2247,24 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
     public class RewardStructureValue
     {
     	private RewardStructure rewardStructure;
-    	
+    	   	
     	private Double stateReward;
     	private Double transitionReward;
-		
+    	
+    	private boolean transitionRewardUnknown;
+    	
+    	private boolean stateRewardVisible;
+    	private boolean transitionRewardVisible;    	
+    			
     	public RewardStructureValue(RewardStructure rewardStructure, Double stateReward, Double transitionReward) 
     	{	     
 	        this.rewardStructure = rewardStructure;
 	        this.stateReward = stateReward;
 	        this.transitionReward = transitionReward;
+	        this.transitionRewardUnknown = false;
+	        
+	        this.stateRewardVisible = true;
+	        this.transitionRewardVisible = true;
         }
 
 		public RewardStructure getRewardStructure() 
@@ -2277,7 +2286,37 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 		public void setTransitionReward(Double transitionReward) {
         	this.transitionReward = transitionReward;
-        }    	
+        }   
+		
+		public void setStateRewardVisible(boolean b)
+		{
+			this.stateRewardVisible = b;
+		}
+		
+		public boolean isStateRewardVisible()
+		{
+			return this.stateRewardVisible;
+		}
+		
+		public void setTransitionRewardVisible(boolean b)
+		{
+			this.transitionRewardVisible = b;
+		}
+		
+		public boolean isTransitionRewardVisible()
+		{
+			return this.transitionRewardVisible;
+		}
+		
+		public void setTransitionRewardUnknown()
+		{
+			this.transitionRewardUnknown = true;
+		}
+		
+		public boolean isTransitionRewardUnknown()
+		{
+			return this.transitionRewardUnknown;
+		}
     }
     
     public class SimulationView extends Observable
@@ -2693,22 +2732,23 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					else if (rewardStart <= columnIndex)
 					{
 						RewardStructure reward = (RewardStructure)view.getVisibleRewards().get(columnIndex - rewardStart);
-						if (rowIndex < SimulatorEngine.getPathSize() - 1)
+						if (rowIndex == SimulatorEngine.getPathSize() - 1)
 						{
 							RewardStructureValue value = new RewardStructureValue(reward, SimulatorEngine.getStateRewardOfPathState(rowIndex, reward.getIndex()), SimulatorEngine.getTransitionRewardOfPathState(rowIndex, reward.getIndex()));
-							
-							if (reward.isStateEmpty() && view.hideEmptyRewards())
-							{ value.setStateReward(null); } 
-							
-							if (reward.isTransitionEmpty() && view.hideEmptyRewards())
-							{ value.setTransitionReward(null); }	
+							value.setTransitionRewardUnknown();		
+							value.setStateRewardVisible(!(reward.isStateEmpty() && view.hideEmptyRewards()));
+							value.setTransitionRewardVisible(!(reward.isTransitionEmpty() && view.hideEmptyRewards()));
 							
 							return value;
 						}
-						else
-						{
-							return "...";
-						}						
+						else if (rowIndex < SimulatorEngine.getPathSize() - 1)
+						{						
+							RewardStructureValue value = new RewardStructureValue(reward, SimulatorEngine.getStateRewardOfPathState(rowIndex, reward.getIndex()), SimulatorEngine.getTransitionRewardOfPathState(rowIndex, reward.getIndex()));
+							value.setStateRewardVisible(!(reward.isStateEmpty() && view.hideEmptyRewards()));
+							value.setTransitionRewardVisible(!(reward.isTransitionEmpty() && view.hideEmptyRewards()));
+							
+							return value;
+						}											
 					}					
 				}				
 			}

@@ -381,25 +381,44 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 				else if (value instanceof GUISimulator.RewardStructureValue)
 				{
 					GUISimulator.RewardStructureValue rewardValue = (GUISimulator.RewardStructureValue)value;
-					if (rewardValue.getStateReward() != null && rewardValue.getTransitionReward() != null)
+					
+					//GUISimulator.RewardStructure reward = rewardValue.getRewardStructure();
+					
+					String text = "";
+					String tooltipText = "";
+					
+					if (rewardValue.isStateRewardVisible())
 					{
-						field.setText(rewardValue.getStateReward().toString() +  "  [  " + rewardValue.getTransitionReward().toString() + "  ]");						
-					}
-					else if (rewardValue.getStateReward() == null && rewardValue.getTransitionReward() != null)
-					{
-						field.setText("[  " + rewardValue.getTransitionReward().toString() + "  ]");						
-					}
-					else if (rewardValue.getStateReward() != null && rewardValue.getTransitionReward() == null)
-					{
-						field.setText(rewardValue.getStateReward().toString());						
-					}
-					else
-					{
-						field.setText("");
+						text += rewardValue.getStateReward().toString();
+						tooltipText += "State reward";
 					}
 					
+					if (rewardValue.isStateRewardVisible() && rewardValue.isTransitionRewardVisible())
+					{
+						text += " ";
+						tooltipText += " ";
+					}
+					           
+					if (rewardValue.isTransitionRewardVisible())
+					{
+						text += "[ ";						
+						text += (rewardValue.isTransitionRewardUnknown()) ? "..." : rewardValue.getTransitionReward().toString();						
+						text += " ]";
+							
+						if 	(rewardValue.isTransitionRewardUnknown())
+						{
+							tooltipText = "The transition reward is still unknown";
+						}
+						else
+						{
+							tooltipText += "[ Transition reward ]";
+						}
+					}
+					
+					field.setText(text);
+										
 					field.setHorizontalAlignment(JTextField.CENTER);	
-					field.setToolTipText("State Reward [ Transition Reward ]");
+					field.setToolTipText(tooltipText);
 				}
 				else 
 				{
