@@ -2160,7 +2160,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
     			return new String("...");
     		else
     		{    		
-    			Double value = new Double(SimulatorEngine.getTotalStateRewardOfPathState(stateIndex, super.index) + ((stateIndex == 0) ? 0.0 : SimulatorEngine.getTotalTransitionRewardOfPathState(stateIndex-1, super.index)));
+    			Double value = new Double(SimulatorEngine.getTotalStateRewardOfPathState(stateIndex, super.index) + SimulatorEngine.getTotalTransitionRewardOfPathState(stateIndex, super.index));
     			return value;
     		}
     	}
@@ -2751,7 +2751,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 						
 						if (objValue instanceof RewardStructureValue)
 						{						
-							RewardStructureValue value = (RewardStructureValue)reward.getValue(rowIndex, (rowIndex == SimulatorEngine.getPathSize() - 1));
+							RewardStructureValue value = (RewardStructureValue)objValue;
 						
 							value.setStateRewardVisible(!(reward.isStateEmpty() && view.hideEmptyRewards()));
 							value.setTransitionRewardVisible(!(reward.isTransitionEmpty() && view.hideEmptyRewards()));
