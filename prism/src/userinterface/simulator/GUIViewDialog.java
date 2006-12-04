@@ -701,7 +701,12 @@ public class GUIViewDialog extends JDialog implements KeyListener
 			while (i < super.getSize() && ((GUISimulator.RewardStructure)super.getElementAt(i)).getIndex() < reward.getIndex())
 			{
 				i++;				
-			}		
+			}
+			
+			if (i < super.getSize() && ((GUISimulator.RewardStructure)super.getElementAt(i)).getIndex() == reward.getIndex() && reward.isCumulative())
+			{
+				i++;
+			}
 			
 			super.add(i, reward);
 		}

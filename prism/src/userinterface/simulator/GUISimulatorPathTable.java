@@ -389,7 +389,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 					
 					if (rewardValue.isStateRewardVisible())
 					{
-						text += rewardValue.getStateReward().toString();
+						text += (rewardValue.isStateRewardUnknown()) ? "..." : rewardValue.getStateReward().toString();	
 						tooltipText += "State reward";
 					}
 					
@@ -405,14 +405,12 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 						text += (rewardValue.isTransitionRewardUnknown()) ? "..." : rewardValue.getTransitionReward().toString();						
 						text += " ]";
 							
-						if 	(rewardValue.isTransitionRewardUnknown())
-						{
-							tooltipText = "The transition reward is still unknown";
-						}
-						else
-						{
-							tooltipText += "[ Transition reward ]";
-						}
+						tooltipText += "[ " + (rewardValue.isStateRewardVisible() ? "t" : "T") + "ransition reward ]";
+					}
+					
+					if (rewardValue.isStateRewardUnknown() || rewardValue.isTransitionRewardUnknown())
+					{
+						tooltipText += "Some rewards values have yet to be determined ";
 					}
 					
 					field.setText(text);

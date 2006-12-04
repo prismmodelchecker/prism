@@ -85,6 +85,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		newPathButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallNewPath.gif")));
 		resetPathButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallResetPath.gif")));
 		exportPathButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallExport.gif")));
+		configureViewButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallFind.gif")));
 		
 		autoUpdateButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallAutomaticUpdate.gif")));
 		manualUpdateField.setIcon(new ImageIcon(this.getClass().getResource("/images/smallManualUpdate.gif")));
@@ -153,8 +154,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		modelTypeLabel.setText("Unknown");
 		totalTimeLabel.setText("0.0");
-		pathLengthLabel.setText("0");
-		totalRewardLabel.setText("");
+		pathLengthLabel.setText("0");		
 		
 		txtFilter = new GUIPrismFileFilter[1];
 		txtFilter[0] = new GUIPrismFileFilter("Text files (*.txt)");
@@ -393,9 +393,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			
 			totalTimeLabel.setText(""+engine.getTotalPathTime());
 			pathLengthLabel.setText(""+(engine.getPathSize()-1));
-			totalRewardLabel.setText(getTotalRewardLabelString());
-			stateRewardsLabel.setText(getTotalStateRewardLabelString());
-			transitionRewardsLabel.setText(getTotalTransitionRewardLabelString());
 			definedConstantsLabel.setText((uCon.getDefinedConstantsString().length() == 0) ? "None" : uCon.getDefinedConstantsString());
 			
 			doEnables();
@@ -456,9 +453,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			
 			totalTimeLabel.setText(""+engine.getTotalPathTime());
 			pathLengthLabel.setText(""+(engine.getPathSize()-1));
-			totalRewardLabel.setText(getTotalRewardLabelString());
-			stateRewardsLabel.setText(getTotalStateRewardLabelString());
-			transitionRewardsLabel.setText(getTotalTransitionRewardLabelString());
 			
 			stateLabelList.repaint();
 			pathFormulaeList.repaint();
@@ -505,9 +499,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		totalTimeLabel.setText(""+engine.getTotalPathTime());
 		pathLengthLabel.setText(""+(engine.getPathSize()-1));
-		totalRewardLabel.setText(getTotalRewardLabelString());
-		stateRewardsLabel.setText(getTotalStateRewardLabelString());
-		transitionRewardsLabel.setText(getTotalTransitionRewardLabelString());
 		stateLabelList.repaint();
 		pathFormulaeList.repaint();
 		setComputing(false);
@@ -526,9 +517,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			
 			totalTimeLabel.setText(""+engine.getTotalPathTime());
 			pathLengthLabel.setText(""+(engine.getPathSize()-1));
-			totalRewardLabel.setText(getTotalRewardLabelString());
-			stateRewardsLabel.setText(getTotalStateRewardLabelString());
-			transitionRewardsLabel.setText(getTotalTransitionRewardLabelString());
 			stateLabelList.repaint();
 			pathFormulaeList.repaint();
 			setComputing(false);
@@ -587,9 +575,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		totalTimeLabel.setText(""+engine.getTotalPathTime());
 		pathLengthLabel.setText(""+(engine.getPathSize()-1));
-		totalRewardLabel.setText(getTotalRewardLabelString());
-		stateRewardsLabel.setText(getTotalStateRewardLabelString());
-		transitionRewardsLabel.setText(getTotalTransitionRewardLabelString());
 		stateLabelList.repaint();
 		pathFormulaeList.repaint();
 		setComputing(false);
@@ -632,9 +617,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				
 				totalTimeLabel.setText(""+engine.getTotalPathTime());
 				pathLengthLabel.setText(""+(engine.getPathSize()-1));
-				totalRewardLabel.setText(getTotalRewardLabelString());
-				stateRewardsLabel.setText(getTotalStateRewardLabelString());
-				transitionRewardsLabel.setText(getTotalTransitionRewardLabelString());
 				
 				setComputing(false);
 				
@@ -652,9 +634,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				
 				totalTimeLabel.setText(""+engine.getTotalPathTime());
 				pathLengthLabel.setText(""+(engine.getPathSize()-1));
-				totalRewardLabel.setText(getTotalRewardLabelString());
-				stateRewardsLabel.setText(getTotalStateRewardLabelString());
-				transitionRewardsLabel.setText(getTotalTransitionRewardLabelString());
 				
 				pathTable.scrollRectToVisible(new Rectangle(0, (int)pathTable.getPreferredSize().getHeight() - 10, (int)pathTable.getPreferredSize().getWidth(), (int)pathTable.getPreferredSize().getHeight()) );
 				
@@ -900,6 +879,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		resetPathButton.setEnabled(pathActive && !computing);
 		exportPathButton.setEnabled(pathActive && !computing);
+		configureViewButton.setEnabled(pathActive && !computing);
 		
 		newPathButton.setEnabled(mf != null && !computing);
 		
@@ -913,16 +893,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		pathLength.setEnabled(pathActive);
 		pathLengthLabel.setEnabled(pathActive);
-				
-		totalRewards.setEnabled(pathActive);
-		totalRewardLabel.setEnabled(pathActive);
-		
-		stateRewards.setEnabled(pathActive);
-		stateRewardsLabel.setEnabled(pathActive);
-		
-		transitionRewards.setEnabled(pathActive);
-		transitionRewardsLabel.setEnabled(pathActive);
-		
+						
 		definedConstants.setEnabled(pathActive);
 		definedConstantsLabel.setEnabled(pathActive);
 		
@@ -1000,29 +971,22 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         innerInformationPanel = new javax.swing.JPanel();
         topLabels = new javax.swing.JPanel();
         modelType = new javax.swing.JLabel();
-        pathLength = new javax.swing.JLabel();
-        totalTime = new javax.swing.JLabel();
+        definedConstants = new javax.swing.JLabel();
         topValues = new javax.swing.JPanel();
         modelTypeLabel = new javax.swing.JLabel();
+        definedConstantsLabel = new javax.swing.JLabel();
+        bottomLabels = new javax.swing.JPanel();
+        pathLength = new javax.swing.JLabel();
+        totalTime = new javax.swing.JLabel();
+        bottomValues = new javax.swing.JPanel();
         pathLengthLabel = new javax.swing.JLabel();
         totalTimeLabel = new javax.swing.JLabel();
-        middleLabels = new javax.swing.JPanel();
-        stateRewards = new javax.swing.JLabel();
-        transitionRewards = new javax.swing.JLabel();
-        totalRewards = new javax.swing.JLabel();
-        middleValues = new javax.swing.JPanel();
-        stateRewardsLabel = new javax.swing.JLabel();
-        transitionRewardsLabel = new javax.swing.JLabel();
-        totalRewardLabel = new javax.swing.JLabel();
-        bottomLabels = new javax.swing.JPanel();
-        definedConstants = new javax.swing.JLabel();
-        bottomValues = new javax.swing.JPanel();
-        definedConstantsLabel = new javax.swing.JLabel();
         buttonPanel = new javax.swing.JPanel();
         innerButtonPanel = new javax.swing.JPanel();
         newPathButton = new javax.swing.JButton();
         resetPathButton = new javax.swing.JButton();
         exportPathButton = new javax.swing.JButton();
+        configureViewButton = new javax.swing.JButton();
         tablePanel = new javax.swing.JPanel();
         tableScroll = new javax.swing.JScrollPane();
         pathTable = new javax.swing.JTable();
@@ -1439,13 +1403,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         modelType.setFont(this.getFont().deriveFont(Font.BOLD));
         topLabels.add(modelType);
 
-        pathLength.setText("Path Length:");
-        pathLength.setFont(this.getFont().deriveFont(Font.BOLD));
-        topLabels.add(pathLength);
-
-        totalTime.setText("Total Time:");
-        totalTime.setFont(this.getFont().deriveFont(Font.BOLD));
-        topLabels.add(totalTime);
+        definedConstants.setText("Defined Constants:");
+        definedConstants.setFont(this.getFont().deriveFont(Font.BOLD));
+        topLabels.add(definedConstants);
 
         innerInformationPanel.add(topLabels);
 
@@ -1456,65 +1416,35 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         modelTypeLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0));
         topValues.add(modelTypeLabel);
 
-        pathLengthLabel.setText("0");
-        pathLengthLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0));
-        topValues.add(pathLengthLabel);
-
-        totalTimeLabel.setText("0.0");
-        totalTimeLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0));
-        topValues.add(totalTimeLabel);
+        definedConstantsLabel.setText("Unknown");
+        definedConstantsLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        topValues.add(definedConstantsLabel);
 
         innerInformationPanel.add(topValues);
-
-        middleLabels.setLayout(new java.awt.GridLayout(1, 3, 5, 0));
-
-        middleLabels.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 0, 5));
-        stateRewards.setText("State Rewards:");
-        stateRewards.setFont(this.getFont().deriveFont(Font.BOLD));
-        middleLabels.add(stateRewards);
-
-        transitionRewards.setText("Transition Rewards:");
-        transitionRewards.setFont(this.getFont().deriveFont(Font.BOLD));
-        middleLabels.add(transitionRewards);
-
-        totalRewards.setText("Total Reward:");
-        totalRewards.setFont(this.getFont().deriveFont(Font.BOLD));
-        middleLabels.add(totalRewards);
-
-        innerInformationPanel.add(middleLabels);
-
-        middleValues.setLayout(new java.awt.GridLayout(1, 3, 5, 0));
-
-        middleValues.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 5, 5, 5));
-        stateRewardsLabel.setText("0.0");
-        stateRewardsLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0));
-        middleValues.add(stateRewardsLabel);
-
-        transitionRewardsLabel.setText("0.0");
-        transitionRewardsLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0));
-        middleValues.add(transitionRewardsLabel);
-
-        totalRewardLabel.setText("0.0");
-        totalRewardLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0));
-        middleValues.add(totalRewardLabel);
-
-        innerInformationPanel.add(middleValues);
 
         bottomLabels.setLayout(new java.awt.GridLayout(1, 3, 5, 0));
 
         bottomLabels.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 0, 5));
-        definedConstants.setText("Defined Constants:");
-        definedConstants.setFont(this.getFont().deriveFont(Font.BOLD));
-        bottomLabels.add(definedConstants);
+        pathLength.setText("Path Length:");
+        pathLength.setFont(this.getFont().deriveFont(Font.BOLD));
+        bottomLabels.add(pathLength);
+
+        totalTime.setText("Total Time:");
+        totalTime.setFont(this.getFont().deriveFont(Font.BOLD));
+        bottomLabels.add(totalTime);
 
         innerInformationPanel.add(bottomLabels);
 
         bottomValues.setLayout(new java.awt.GridLayout(1, 3, 5, 0));
 
         bottomValues.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 5, 5, 5));
-        definedConstantsLabel.setText("Unknown");
-        definedConstantsLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0));
-        bottomValues.add(definedConstantsLabel);
+        pathLengthLabel.setText("0");
+        pathLengthLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        bottomValues.add(pathLengthLabel);
+
+        totalTimeLabel.setText("0.0");
+        totalTimeLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        bottomValues.add(totalTimeLabel);
 
         innerInformationPanel.add(bottomValues);
 
@@ -1524,7 +1454,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
         buttonPanel.setLayout(new java.awt.BorderLayout());
 
-        innerButtonPanel.setLayout(new java.awt.GridLayout(3, 1, 5, 10));
+        innerButtonPanel.setLayout(new java.awt.GridLayout(2, 2, 10, 10));
 
         newPathButton.setIcon(new javax.swing.ImageIcon(""));
         newPathButton.setText("New Path");
@@ -1565,6 +1495,20 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
         innerButtonPanel.add(exportPathButton);
 
+        configureViewButton.setIcon(new javax.swing.ImageIcon(""));
+        configureViewButton.setToolTipText("Configure View");
+        configureViewButton.setActionCommand("Configure View");
+        configureViewButton.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
+        configureViewButton.setLabel("Configure View");
+        configureViewButton.setPreferredSize(new java.awt.Dimension(119, 28));
+        configureViewButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                configureViewButtonActionPerformed(evt);
+            }
+        });
+
+        innerButtonPanel.add(configureViewButton);
+
         buttonPanel.add(innerButtonPanel, java.awt.BorderLayout.NORTH);
 
         topRightPanel.add(buttonPanel, java.awt.BorderLayout.WEST);
@@ -1594,6 +1538,10 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         add(horizontalSplit, java.awt.BorderLayout.CENTER);
 
     }// </editor-fold>//GEN-END:initComponents
+
+    private void configureViewButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_configureViewButtonActionPerformed
+    	a_configureView();
+    }//GEN-LAST:event_configureViewButtonActionPerformed
 
     private void autoTimeCheckStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_autoTimeCheckStateChanged
         
@@ -1825,7 +1773,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				newPath.setEnabled(newPathButton.isEnabled());
 				resetPath.setEnabled(resetPathButton.isEnabled());
 				exportPath.setEnabled(exportPathButton.isEnabled());
-				configureView.setEnabled(pathActive);
+				configureView.setEnabled(configureViewButton.isEnabled());
 				
 				int index = pathTable.rowAtPoint(e.getPoint());
 				
@@ -2064,6 +2012,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
     private javax.swing.JPanel bottomValues;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JPanel buttonPanel;
+    private javax.swing.JButton configureViewButton;
     javax.swing.JTable currentUpdatesTable;
     private javax.swing.JLabel definedConstants;
     private javax.swing.JLabel definedConstantsLabel;
@@ -2107,8 +2056,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
     private javax.swing.JSplitPane jSplitPane3;
     private javax.swing.JPanel leftPanel;
     javax.swing.JButton manualUpdateField;
-    private javax.swing.JPanel middleLabels;
-    private javax.swing.JPanel middleValues;
     private javax.swing.JLabel modelType;
     private javax.swing.JLabel modelTypeLabel;
     javax.swing.JButton newPathButton;
@@ -2123,8 +2070,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
     javax.swing.JButton resetPathButton;
     private javax.swing.JPanel rightPanel;
     private javax.swing.JList stateLabelList;
-    private javax.swing.JLabel stateRewards;
-    private javax.swing.JLabel stateRewardsLabel;
     javax.swing.JTextField stateTimeField;
     private javax.swing.JPanel tablePanel;
     private javax.swing.JScrollPane tableScroll;
@@ -2133,12 +2078,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
     private javax.swing.JPanel topRightPanel;
     private javax.swing.JPanel topSplit;
     private javax.swing.JPanel topValues;
-    private javax.swing.JLabel totalRewardLabel;
-    private javax.swing.JLabel totalRewards;
     private javax.swing.JLabel totalTime;
     private javax.swing.JLabel totalTimeLabel;
-    private javax.swing.JLabel transitionRewards;
-    private javax.swing.JLabel transitionRewardsLabel;
     private javax.swing.JScrollPane updatesScroll;
     private javax.swing.JSplitPane verticalSplit;
     // End of variables declaration//GEN-END:variables
@@ -2186,6 +2127,45 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		}
 	}
     
+    public class CumulativeRewardStructure extends RewardStructure
+    {
+    	public CumulativeRewardStructure(int index, String name, boolean stateEmpty, boolean transitionEmpty)
+    	{
+    		super(index, name, stateEmpty, transitionEmpty);    		
+    	}    	
+    	
+    	public String toString()
+		{
+			String str = super.toString();
+			str += " (cumulative)"; 
+			return str;
+		}
+    	
+    	public boolean isCumulative()
+		{
+			return true;
+		}
+    	
+    	public String getColumnName()
+		{
+    		String str = super.getColumnName();
+			str += " (+)"; 
+			return str;    		
+		}
+    	
+    	public Object getValue(int stateIndex, boolean lastState)
+    	{
+    		// The cumulative reward seems for transitions seems to be wrong.
+    		if (lastState)
+    			return new String("...");
+    		else
+    		{    		
+    			Double value = new Double(SimulatorEngine.getTotalStateRewardOfPathState(stateIndex, super.index) + ((stateIndex == 0) ? 0.0 : SimulatorEngine.getTotalTransitionRewardOfPathState(stateIndex-1, super.index)));
+    			return value;
+    		}
+    	}
+    }
+    
     /**
      * @author mxk
      * Represents a  in the model.
@@ -2216,6 +2196,18 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			return name;
 		}
 		
+		public String getColumnName()
+		{
+			if (name == null)
+			{
+					return "" + (index + 1);
+			}
+			else
+			{
+				return "\"" + name + "\"";
+			}
+		}
+		
 		public boolean isStateEmpty() 
 		{
         	return stateEmpty;
@@ -2225,6 +2217,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		{
         	return transitionEmpty;
         }
+		
+		public boolean isCumulative()
+		{
+			return false;
+		}
 
 		public String toString()
 		{
@@ -2238,11 +2235,19 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		}
 		
+		public Object getValue(int stateIndex, boolean lastState)
+		{
+			RewardStructureValue value = new RewardStructureValue(this, SimulatorEngine.getStateRewardOfPathState(stateIndex, index), SimulatorEngine.getTransitionRewardOfPathState(stateIndex, index));
+			if (lastState)
+				value.setTransitionRewardUnknown(true);			
+			return value;
+		}
+		
 		public boolean equals(Object o)
 		{
-			return (o instanceof RewardStructure && ((RewardStructure)o).getIndex() == index);
+			return (o instanceof RewardStructure && ((RewardStructure)o).getIndex() == index && ((RewardStructure)o).isCumulative() == isCumulative());
 		}		
-	}
+	}       
     
     public class RewardStructureValue
     {
@@ -2251,6 +2256,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
     	private Double stateReward;
     	private Double transitionReward;
     	
+    	private boolean stateRewardUnknown;
     	private boolean transitionRewardUnknown;
     	
     	private boolean stateRewardVisible;
@@ -2261,7 +2267,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	        this.rewardStructure = rewardStructure;
 	        this.stateReward = stateReward;
 	        this.transitionReward = transitionReward;
+	        
 	        this.transitionRewardUnknown = false;
+	        this.stateRewardUnknown = false;
 	        
 	        this.stateRewardVisible = true;
 	        this.transitionRewardVisible = true;
@@ -2308,14 +2316,24 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			return this.transitionRewardVisible;
 		}
 		
-		public void setTransitionRewardUnknown()
+		public void setStateRewardUnknown(boolean unknown)
 		{
-			this.transitionRewardUnknown = true;
+			this.stateRewardUnknown = unknown;
+		}
+		
+		public void setTransitionRewardUnknown(boolean unknown)
+		{
+			this.transitionRewardUnknown = unknown;
 		}
 		
 		public boolean isTransitionRewardUnknown()
 		{
 			return this.transitionRewardUnknown;
+		}
+		
+		public boolean isStateRewardUnknown()
+		{
+			return this.stateRewardUnknown;
 		}
     }
     
@@ -2452,6 +2470,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 						if (rewardName.trim().length() == 0)
 						{	rewardName = null; }
 						visibleRewards.add(new RewardStructure(r, rewardName, mf.getRewardStruct(r).getNumStateItems() == 0,  mf.getRewardStruct(r).getNumTransItems() == 0));
+						hiddenRewards.add(new CumulativeRewardStructure(r, rewardName, mf.getRewardStruct(r).getNumStateItems() == 0,  mf.getRewardStruct(r).getNumTransItems() == 0));
 					}				
 				}
 				catch (SimulatorException e) {}
@@ -2678,12 +2697,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				}
 				else if (rewardStart <= columnIndex)
 				{	
-					String rewardStructName = ((RewardStructure)view.getVisibleRewards().get(columnIndex - rewardStart)).getName();
-					if (rewardStructName != null)
-					{	
-						return  "\"" + rewardStructName + "\"";
-					}
-					else return "" + (((RewardStructure)view.getVisibleRewards().get(columnIndex - rewardStart)).getIndex() + 1);
+					return ((RewardStructure)view.getVisibleRewards().get(columnIndex - rewardStart)).getColumnName();					
 				}
 			}				
 			return "Undefined Column";			
@@ -2731,24 +2745,19 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					}
 					else if (rewardStart <= columnIndex)
 					{
-						RewardStructure reward = (RewardStructure)view.getVisibleRewards().get(columnIndex - rewardStart);
-						if (rowIndex == SimulatorEngine.getPathSize() - 1)
-						{
-							RewardStructureValue value = new RewardStructureValue(reward, SimulatorEngine.getStateRewardOfPathState(rowIndex, reward.getIndex()), SimulatorEngine.getTransitionRewardOfPathState(rowIndex, reward.getIndex()));
-							value.setTransitionRewardUnknown();		
-							value.setStateRewardVisible(!(reward.isStateEmpty() && view.hideEmptyRewards()));
-							value.setTransitionRewardVisible(!(reward.isTransitionEmpty() && view.hideEmptyRewards()));
-							
-							return value;
-						}
-						else if (rowIndex < SimulatorEngine.getPathSize() - 1)
+						
+						RewardStructure reward = (RewardStructure)view.getVisibleRewards().get(columnIndex - rewardStart);						
+						Object objValue = reward.getValue(rowIndex, (rowIndex == SimulatorEngine.getPathSize() - 1));
+						
+						if (objValue instanceof RewardStructureValue)
 						{						
-							RewardStructureValue value = new RewardStructureValue(reward, SimulatorEngine.getStateRewardOfPathState(rowIndex, reward.getIndex()), SimulatorEngine.getTransitionRewardOfPathState(rowIndex, reward.getIndex()));
+							RewardStructureValue value = (RewardStructureValue)reward.getValue(rowIndex, (rowIndex == SimulatorEngine.getPathSize() - 1));
+						
 							value.setStateRewardVisible(!(reward.isStateEmpty() && view.hideEmptyRewards()));
 							value.setTransitionRewardVisible(!(reward.isTransitionEmpty() && view.hideEmptyRewards()));
-							
-							return value;
-						}											
+						}
+						
+						return objValue;																	
 					}					
 				}				
 			}

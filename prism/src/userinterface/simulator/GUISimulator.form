@@ -847,20 +847,12 @@
                                     <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="modelType.setFont(this.getFont().deriveFont(Font.BOLD));"/>
                                   </AuxValues>
                                 </Component>
-                                <Component class="javax.swing.JLabel" name="pathLength">
+                                <Component class="javax.swing.JLabel" name="definedConstants">
                                   <Properties>
-                                    <Property name="text" type="java.lang.String" value="Path Length:"/>
+                                    <Property name="text" type="java.lang.String" value="Defined Constants:"/>
                                   </Properties>
                                   <AuxValues>
-                                    <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="pathLength.setFont(this.getFont().deriveFont(Font.BOLD));"/>
-                                  </AuxValues>
-                                </Component>
-                                <Component class="javax.swing.JLabel" name="totalTime">
-                                  <Properties>
-                                    <Property name="text" type="java.lang.String" value="Total Time:"/>
-                                  </Properties>
-                                  <AuxValues>
-                                    <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="totalTime.setFont(this.getFont().deriveFont(Font.BOLD));"/>
+                                    <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="definedConstants.setFont(this.getFont().deriveFont(Font.BOLD));"/>
                                   </AuxValues>
                                 </Component>
                               </SubComponents>
@@ -890,107 +882,9 @@
                                     </Property>
                                   </Properties>
                                 </Component>
-                                <Component class="javax.swing.JLabel" name="pathLengthLabel">
+                                <Component class="javax.swing.JLabel" name="definedConstantsLabel">
                                   <Properties>
-                                    <Property name="text" type="java.lang.String" value="0"/>
-                                    <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
-                                      <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
-                                        <EmptyBorder bottom="0" left="10" right="0" top="0"/>
-                                      </Border>
-                                    </Property>
-                                  </Properties>
-                                </Component>
-                                <Component class="javax.swing.JLabel" name="totalTimeLabel">
-                                  <Properties>
-                                    <Property name="text" type="java.lang.String" value="0.0"/>
-                                    <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
-                                      <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
-                                        <EmptyBorder bottom="0" left="10" right="0" top="0"/>
-                                      </Border>
-                                    </Property>
-                                  </Properties>
-                                </Component>
-                              </SubComponents>
-                            </Container>
-                            <Container class="javax.swing.JPanel" name="middleLabels">
-                              <Properties>
-                                <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
-                                  <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
-                                    <EmptyBorder bottom="0" left="5" right="5" top="5"/>
-                                  </Border>
-                                </Property>
-                              </Properties>
-
-                              <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridLayout">
-                                <Property name="columns" type="int" value="3"/>
-                                <Property name="horizontalGap" type="int" value="5"/>
-                                <Property name="rows" type="int" value="1"/>
-                              </Layout>
-                              <SubComponents>
-                                <Component class="javax.swing.JLabel" name="stateRewards">
-                                  <Properties>
-                                    <Property name="text" type="java.lang.String" value="State Rewards:"/>
-                                  </Properties>
-                                  <AuxValues>
-                                    <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="stateRewards.setFont(this.getFont().deriveFont(Font.BOLD));"/>
-                                  </AuxValues>
-                                </Component>
-                                <Component class="javax.swing.JLabel" name="transitionRewards">
-                                  <Properties>
-                                    <Property name="text" type="java.lang.String" value="Transition Rewards:"/>
-                                  </Properties>
-                                  <AuxValues>
-                                    <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="transitionRewards.setFont(this.getFont().deriveFont(Font.BOLD));"/>
-                                  </AuxValues>
-                                </Component>
-                                <Component class="javax.swing.JLabel" name="totalRewards">
-                                  <Properties>
-                                    <Property name="text" type="java.lang.String" value="Total Reward:"/>
-                                  </Properties>
-                                  <AuxValues>
-                                    <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="totalRewards.setFont(this.getFont().deriveFont(Font.BOLD));"/>
-                                  </AuxValues>
-                                </Component>
-                              </SubComponents>
-                            </Container>
-                            <Container class="javax.swing.JPanel" name="middleValues">
-                              <Properties>
-                                <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
-                                  <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
-                                    <EmptyBorder bottom="5" left="5" right="5" top="0"/>
-                                  </Border>
-                                </Property>
-                              </Properties>
-
-                              <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridLayout">
-                                <Property name="columns" type="int" value="3"/>
-                                <Property name="horizontalGap" type="int" value="5"/>
-                                <Property name="rows" type="int" value="1"/>
-                              </Layout>
-                              <SubComponents>
-                                <Component class="javax.swing.JLabel" name="stateRewardsLabel">
-                                  <Properties>
-                                    <Property name="text" type="java.lang.String" value="0.0"/>
-                                    <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
-                                      <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
-                                        <EmptyBorder bottom="0" left="10" right="0" top="0"/>
-                                      </Border>
-                                    </Property>
-                                  </Properties>
-                                </Component>
-                                <Component class="javax.swing.JLabel" name="transitionRewardsLabel">
-                                  <Properties>
-                                    <Property name="text" type="java.lang.String" value="0.0"/>
-                                    <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
-                                      <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
-                                        <EmptyBorder bottom="0" left="10" right="0" top="0"/>
-                                      </Border>
-                                    </Property>
-                                  </Properties>
-                                </Component>
-                                <Component class="javax.swing.JLabel" name="totalRewardLabel">
-                                  <Properties>
-                                    <Property name="text" type="java.lang.String" value="0.0"/>
+                                    <Property name="text" type="java.lang.String" value="Unknown"/>
                                     <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                                       <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
                                         <EmptyBorder bottom="0" left="10" right="0" top="0"/>
@@ -1015,12 +909,20 @@
                                 <Property name="rows" type="int" value="1"/>
                               </Layout>
                               <SubComponents>
-                                <Component class="javax.swing.JLabel" name="definedConstants">
+                                <Component class="javax.swing.JLabel" name="pathLength">
                                   <Properties>
-                                    <Property name="text" type="java.lang.String" value="Defined Constants:"/>
+                                    <Property name="text" type="java.lang.String" value="Path Length:"/>
                                   </Properties>
                                   <AuxValues>
-                                    <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="definedConstants.setFont(this.getFont().deriveFont(Font.BOLD));"/>
+                                    <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="pathLength.setFont(this.getFont().deriveFont(Font.BOLD));"/>
+                                  </AuxValues>
+                                </Component>
+                                <Component class="javax.swing.JLabel" name="totalTime">
+                                  <Properties>
+                                    <Property name="text" type="java.lang.String" value="Total Time:"/>
+                                  </Properties>
+                                  <AuxValues>
+                                    <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="totalTime.setFont(this.getFont().deriveFont(Font.BOLD));"/>
                                   </AuxValues>
                                 </Component>
                               </SubComponents>
@@ -1040,9 +942,19 @@
                                 <Property name="rows" type="int" value="1"/>
                               </Layout>
                               <SubComponents>
-                                <Component class="javax.swing.JLabel" name="definedConstantsLabel">
+                                <Component class="javax.swing.JLabel" name="pathLengthLabel">
                                   <Properties>
-                                    <Property name="text" type="java.lang.String" value="Unknown"/>
+                                    <Property name="text" type="java.lang.String" value="0"/>
+                                    <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+                                      <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
+                                        <EmptyBorder bottom="0" left="10" right="0" top="0"/>
+                                      </Border>
+                                    </Property>
+                                  </Properties>
+                                </Component>
+                                <Component class="javax.swing.JLabel" name="totalTimeLabel">
+                                  <Properties>
+                                    <Property name="text" type="java.lang.String" value="0.0"/>
                                     <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                                       <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
                                         <EmptyBorder bottom="0" left="10" right="0" top="0"/>
@@ -1073,9 +985,9 @@
                           </Constraints>
 
                           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridLayout">
-                            <Property name="columns" type="int" value="1"/>
-                            <Property name="horizontalGap" type="int" value="5"/>
-                            <Property name="rows" type="int" value="3"/>
+                            <Property name="columns" type="int" value="2"/>
+                            <Property name="horizontalGap" type="int" value="10"/>
+                            <Property name="rows" type="int" value="2"/>
                             <Property name="verticalGap" type="int" value="10"/>
                           </Layout>
                           <SubComponents>
@@ -1133,6 +1045,27 @@
                               </Properties>
                               <Events>
                                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="exportPathButtonActionPerformed"/>
+                              </Events>
+                              <AuxValues>
+                                <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="false"/>
+                                <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
+                              </AuxValues>
+                            </Component>
+                            <Component class="javax.swing.JButton" name="configureViewButton">
+                              <Properties>
+                                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                                  <Image iconType="2" name=""/>
+                                </Property>
+                                <Property name="toolTipText" type="java.lang.String" value="Export Path"/>
+                                <Property name="actionCommand" type="java.lang.String" value="Configure View"/>
+                                <Property name="horizontalAlignment" type="int" value="10"/>
+                                <Property name="label" type="java.lang.String" value="Configure View"/>
+                                <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                                  <Dimension value="[119, 28]"/>
+                                </Property>
+                              </Properties>
+                              <Events>
+                                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="configureViewButtonActionPerformed"/>
                               </Events>
                               <AuxValues>
                                 <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="false"/>
