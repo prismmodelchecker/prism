@@ -875,8 +875,9 @@ public class GUIPropertyEditor extends javax.swing.JDialog implements ActionList
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
-	setVisible(false);
-	dispose();
+		setVisible(false);
+		props.cancelProperty(id);
+		dispose();
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
