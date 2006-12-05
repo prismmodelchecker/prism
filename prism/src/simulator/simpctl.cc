@@ -79,6 +79,16 @@ CPathFormula::CPathFormula()
 {
 	answer_known = false;
 	answer = false;
+	negate = false;
+}
+
+
+/*
+ *	Set whether or not the value of this formula should be negated
+ */
+void CPathFormula::Set_Negate(bool b)
+{
+	negate = b;
 }
 
 /*
@@ -86,7 +96,7 @@ CPathFormula::CPathFormula()
  */
 bool CPathFormula::Get_Answer()
 {
-	return answer;
+	return (negate)?(!answer):(answer);
 }
 
 /*

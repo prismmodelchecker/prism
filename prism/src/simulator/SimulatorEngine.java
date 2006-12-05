@@ -2043,77 +2043,92 @@ public class SimulatorEngine
 		allConstants.addValues(getConstants());
 		allConstants.addValues(getPropertyConstants());
 		
-		if(operand instanceof PCTLProbBoundedUntil)
-		{
-			try
+		try {
+			
+			if (operand instanceof PCTLProbNext)
+			{
+				int expressionPointer = ((PCTLProbNext)operand).getOperand().toSimulator(this);
+				return loadPctlNext(expressionPointer);
+			}
+			else if (operand instanceof PCTLProbBoundedUntil)
 			{
 				int leftExpressionPointer = ((PCTLProbBoundedUntil)operand).getOperand1().toSimulator(this);
 				int rightExpressionPointer = ((PCTLProbBoundedUntil)operand).getOperand2().toSimulator(this);
-				
-				double upperBound;
-				
-				if(((PCTLProbBoundedUntil)operand).getUpperBound() != null)
-					upperBound = ((PCTLProbBoundedUntil)operand).getUpperBound().evaluateDouble(allConstants, null);
-				else
-					upperBound = Integer.MAX_VALUE;
-				
 				double lowerBound;
-				if(((PCTLProbBoundedUntil)operand).getLowerBound() != null)
+				if (((PCTLProbBoundedUntil)operand).getLowerBound() != null)
 					lowerBound = ((PCTLProbBoundedUntil)operand).getLowerBound().evaluateDouble(allConstants, null);
 				else
 					lowerBound = 0.0;
-				
-				return  loadPctlBoundedUntil(leftExpressionPointer, rightExpressionPointer, lowerBound, upperBound);
-				
+				double upperBound;
+				if (((PCTLProbBoundedUntil)operand).getUpperBound() != null)
+					upperBound = ((PCTLProbBoundedUntil)operand).getUpperBound().evaluateDouble(allConstants, null);
+				else
+					upperBound = Integer.MAX_VALUE;
+				return loadPctlBoundedUntil(leftExpressionPointer, rightExpressionPointer, lowerBound, upperBound);
 			}
-			catch(SimulatorException e)
-			{
-				System.err.println("Property: "+operand.toString()+" could not be used in the simulator because: \n"+ e.toString());
-				return -1;
-			}
-			catch(PrismException e)
-			{
-				System.err.println("Property: "+operand.toString()+" could not be used in the simulator because: \n"+ e.toString());
-				return -1;
-			}
-			
-			
-		}
-		else if(operand instanceof PCTLProbNext)
-		{
-			try
-			{
-				
-				int expressionPointer = ((PCTLProbNext)operand).getOperand().toSimulator(this);
-				
-				return loadPctlNext(expressionPointer);
-			}
-			catch(SimulatorException e)
-			{
-				System.err.println("Property: "+operand.toString()+" could not be used in the simulator because: \n"+ e.toString());
-				return -1;
-			}
-		}
-		else if(operand instanceof PCTLProbUntil)
-		{
-			try
+			else if (operand instanceof PCTLProbUntil)
 			{
 				int leftExpressionPointer = ((PCTLProbUntil)operand).getOperand1().toSimulator(this);
 				int rightExpressionPointer = ((PCTLProbUntil)operand).getOperand2().toSimulator(this);
-				
 				return loadPctlUntil(leftExpressionPointer, rightExpressionPointer);
-				
 			}
-			catch(SimulatorException e)
+			else if (operand instanceof PCTLProbBoundedFuture)
 			{
-				System.err.println("Property: "+operand.toString()+" could not be used in the simulator because: \n"+ e.toString());
+				int leftExpressionPointer = (new PCTLExpression(new ExpressionTrue())).toSimulator(this);
+				int rightExpressionPointer = ((PCTLProbFuture)operand).getOperand().toSimulator(this);
+				double lowerBound;
+				if (((PCTLProbBoundedFuture)operand).getLowerBound() != null)
+					lowerBound = ((PCTLProbBoundedFuture)operand).getLowerBound().evaluateDouble(allConstants, null);
+				else
+					lowerBound = 0.0;
+				double upperBound;
+				if (((PCTLProbBoundedFuture)operand).getUpperBound() != null)
+					upperBound = ((PCTLProbBoundedFuture)operand).getUpperBound().evaluateDouble(allConstants, null);
+				else
+					upperBound = Integer.MAX_VALUE;
+				return loadPctlBoundedUntil(leftExpressionPointer, rightExpressionPointer, lowerBound, upperBound);
+			}
+			else if (operand instanceof PCTLProbFuture)
+			{
+				int leftExpressionPointer = (new PCTLExpression(new ExpressionTrue())).toSimulator(this);
+				int rightExpressionPointer = ((PCTLProbFuture)operand).getOperand().toSimulator(this);
+				return loadPctlUntil(leftExpressionPointer, rightExpressionPointer);
+			}
+			else if (operand instanceof PCTLProbBoundedGlobal)
+			{
+				int leftExpressionPointer = (new PCTLExpression(new ExpressionTrue())).toSimulator(this);
+				int rightExpressionPointer = (new PCTLNot(((PCTLProbGlobal)operand).getOperand())).toSimulator(this);
+				double lowerBound;
+				if (((PCTLProbBoundedGlobal)operand).getLowerBound() != null)
+					lowerBound = ((PCTLProbBoundedGlobal)operand).getLowerBound().evaluateDouble(allConstants, null);
+				else
+					lowerBound = 0.0;
+				double upperBound;
+				if (((PCTLProbBoundedGlobal)operand).getUpperBound() != null)
+					upperBound = ((PCTLProbBoundedFuture)operand).getUpperBound().evaluateDouble(allConstants, null);
+				else
+					upperBound = Integer.MAX_VALUE;
+				return loadPctlBoundedUntilNegated(leftExpressionPointer, rightExpressionPointer, lowerBound, upperBound);
+			}
+			else if (operand instanceof PCTLProbGlobal)
+			{
+				int leftExpressionPointer = (new PCTLExpression(new ExpressionTrue())).toSimulator(this);
+				int rightExpressionPointer = (new PCTLNot(((PCTLProbGlobal)operand).getOperand())).toSimulator(this);
+				return loadPctlUntilNegated(leftExpressionPointer, rightExpressionPointer);
+			}
+			else
+			{
 				return -1;
 			}
 		}
-		else
+		catch(SimulatorException e)
 		{
-			//System.out.println("cannot be added");
-			//cannot be added
+			System.err.println("Property: "+operand.toString()+" could not be used in the simulator because: \n"+ e.toString());
+			return -1;
+		}
+		catch(PrismException e)
+		{
+			System.err.println("Property: "+operand.toString()+" could not be used in the simulator because: \n"+ e.toString());
 			return -1;
 		}
 	}
@@ -2535,8 +2550,10 @@ public class SimulatorEngine
 	//location
 	
 	private static native int loadPctlBoundedUntil(int leftExprPointer, int rightExprPointer, double lowerBound, double upperBound);
+	private static native int loadPctlBoundedUntilNegated(int leftExprPointer, int rightExprPointer, double lowerBound, double upperBound);
 	
 	private static native int loadPctlUntil(int leftExprPointer, int rightExprPointer);
+	private static native int loadPctlUntilNegated(int leftExprPointer, int rightExprPointer);
 	
 	private static native int loadPctlNext(int exprPointer);
 	

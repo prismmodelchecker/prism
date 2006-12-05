@@ -1418,7 +1418,7 @@ void PCTLProb() :
 	( <PMAX> <EQ> <QMARK> {relOp="max=";} ) )
 	// path formula bit
 	<LBRACKET>
-	( PCTLProbNext() | PCTLProbBoundedUntil() | PCTLProbUntil() )
+	( PCTLProbNext() | PCTLProbBoundedUntil() | PCTLProbUntil() | PCTLProbBoundedFutureGlobal() | PCTLProbFutureGlobal() )
 	( tf=<LBRACE> PCTLFormula() <RBRACE>
 	(( tfmin=<LBRACE> <MIN> <RBRACE> ) | ( tfmax=<LBRACE> <MAX> <RBRACE> ))*
 	)? <RBRACKET> )
@@ -1522,6 +1522,71 @@ void PCTLProbUntil() :
 		f2 = (PCTLFormula)stack.pop();
 		f1 = (PCTLFormula)stack.pop();
 		u = new PCTLProbUntil(f1, f2);
+		// push result onto stack
+		stack.push(u);
+	}
+}
+
+// pctl bounded future (eventually) or global
+
+void PCTLProbBoundedFutureGlobal() :
+{
+	Token tfuture = null; // detects if a future formula is used
+	Token tglobal = null; // detects if a global formula is used
+	Token tle = null; // detects if a <= time bound is used
+	Token tge = null; // detects if a >= time bound is used
+	Token tr = null; // detects if a range time bound is used
+}
+{
+	( (tfuture=<FUTURE>|tglobal=<GLOB>) ((tle=<LE> Expression()) | (tge=<GE> Expression()) | (tr=<LBRACKET> Expression() <COMMA> Expression() <RBRACKET>)) PCTLFormula() )
+	{
+		PCTLFormula f = null;
+		Expression lb, ub;
+		PCTLFormula u;
+		
+		// pop operand off stack
+		f = (PCTLFormula)stack.pop();
+		// U<=ub
+		if (tle != null) {
+			ub = (Expression)stack.pop();
+			if (tfuture != null) u = new PCTLProbBoundedFuture(f, null, ub);
+			else u = new PCTLProbBoundedGlobal(f, null, ub);
+		}
+		// U>=lb
+		else if (tge != null) {
+			lb = (Expression)stack.pop();
+			if (tfuture != null) u = new PCTLProbBoundedFuture(f, lb, null);
+			else u = new PCTLProbBoundedGlobal(f, lb, null);
+		}
+		// U[lb,ub]
+		else {
+			ub = (Expression)stack.pop();
+			lb = (Expression)stack.pop();
+			if (tfuture != null) u = new PCTLProbBoundedFuture(f, lb, ub);
+			else u = new PCTLProbBoundedGlobal(f, lb, ub);
+		}
+		// push result onto stack
+		stack.push(u);
+	}
+}
+
+// pctl future (eventually) or globally
+
+void PCTLProbFutureGlobal() :
+{
+	Token tfuture = null; // detects if a future formula is used
+	Token tglobal = null; // detects if a global formula is used
+}
+{
+	( (tfuture=<FUTURE>|tglobal=<GLOB>) PCTLFormula() )
+	{
+		PCTLFormula f;
+		PCTLFormula u;
+		
+		// create PCTLProbFuture/PCTLProbGlobal object
+		f = (PCTLFormula)stack.pop();
+		if (tfuture != null) u = new PCTLProbFuture(f);
+		else u = new PCTLProbGlobal(f);
 		// push result onto stack
 		stack.push(u);
 	}

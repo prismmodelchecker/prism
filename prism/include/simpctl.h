@@ -80,7 +80,8 @@ const int FORMULA_INSTANTANEOUS = 5;
 class CPathFormula
 {
 	protected:
-		bool answer;
+		bool answer; // the answer (true or false)
+		bool negate; // true if the actual result is the negation of "answer"
 
 	public:
 		bool answer_known;
@@ -95,6 +96,11 @@ class CPathFormula
 		virtual ~CPathFormula()
 		{
 		}
+
+		/*
+		 *	Set whether or not the value of this formula should be negated
+		 */
+		void Set_Negate(bool b);
 
 		/*
 		 *	Access to the calculated answer for this CPathFormula object.

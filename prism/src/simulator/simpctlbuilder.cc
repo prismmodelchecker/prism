@@ -78,6 +78,20 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlBoundedUntil
 	return Formula_To_JInt(bu);
 }
 
+JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlBoundedUntilNegated
+  (JNIEnv *env, jclass cls, jint exprPointer1, jint exprPointer2, jdouble lowerBound, jdouble upperBound, jboolean)
+{
+	CExpression* expr1 = To_Expr(exprPointer1);
+	CExpression* expr2 = To_Expr(exprPointer2);
+	
+	CBoundedUntil* bu = new CBoundedUntil(expr1, expr2, (double)lowerBound, (double)upperBound);
+	bu->Set_Negate(true);
+
+	Register_Path_Formula(bu);
+
+	return Formula_To_JInt(bu);
+}
+
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    loadPctlUntil
@@ -90,6 +104,20 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlUntil
 	CExpression* expr2 = To_Expr(exprPointer2);
 	
 	CUntil* bu = new CUntil(expr1, expr2);
+
+	Register_Path_Formula(bu);
+
+	return Formula_To_JInt(bu);
+}
+
+JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlUntilNegated
+  (JNIEnv *env, jclass cls, jint exprPointer1, jint exprPointer2)
+{
+	CExpression* expr1 = To_Expr(exprPointer1);
+	CExpression* expr2 = To_Expr(exprPointer2);
+	
+	CUntil* bu = new CUntil(expr1, expr2);
+	bu->Set_Negate(true);
 
 	Register_Path_Formula(bu);
 

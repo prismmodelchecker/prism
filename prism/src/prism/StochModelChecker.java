@@ -531,6 +531,14 @@ public class StochModelChecker implements ModelChecker
 				probs = checkPCTLProbBoundedUntil((PCTLProbBoundedUntil)f);
 			else if (f instanceof PCTLProbUntil)
 				probs = checkPCTLProbUntil((PCTLProbUntil)f, pe, p);
+			else if (f instanceof PCTLProbBoundedFuture)
+				probs = checkPCTLProbBoundedFuture((PCTLProbBoundedFuture)f);
+			else if (f instanceof PCTLProbFuture)
+				probs = checkPCTLProbFuture((PCTLProbFuture)f, pe, p);
+			else if (f instanceof PCTLProbBoundedGlobal)
+				probs = checkPCTLProbBoundedGlobal((PCTLProbBoundedGlobal)f);
+			else if (f instanceof PCTLProbGlobal)
+				probs = checkPCTLProbGlobal((PCTLProbGlobal)f, pe, p);
 			else
 				throw new PrismException("Unrecognised path operator in P[] formula");
 		}
@@ -1404,7 +1412,7 @@ public class StochModelChecker implements ModelChecker
 		mainLog.print(" states, b2 = " + JDD.GetNumMintermsString(b2, allDDRowVars.n()) + " states\n");
 		
 		// if p is 0 or 1 and precomputation algorithms are enabled, compute probabilities qualitatively
-		if (pe != null && ((p==0) || (p==1)) & precomp) {
+		if (pe != null && ((p==0) || (p==1)) && precomp) {
 			mainLog.print("\nWarning: probability bound in formula is " + p + " so exact probabilities may not be computed\n");
 			probs = computeUntilProbsQual(trans01, b1, b2, p);
 		}
@@ -1446,6 +1454,54 @@ public class StochModelChecker implements ModelChecker
 		return probs;
 	}
 	
+	// bounded future (eventually)
+	// F[t1,t2] phi == true U[t1,t2] phi
+	
+	private StateProbs checkPCTLProbBoundedFuture(PCTLProbBoundedFuture pctl) throws PrismException
+	{
+		PCTLProbBoundedUntil pctlBUntil;
+		pctlBUntil = new PCTLProbBoundedUntil(new PCTLExpression(new ExpressionTrue()), pctl.getOperand(), pctl.getLowerBound(), pctl.getUpperBound());
+		return checkPCTLProbBoundedUntil(pctlBUntil);
+	}
+	
+	// future (eventually)
+	// F phi == true U phi
+	
+	private StateProbs checkPCTLProbFuture(PCTLProbFuture pctl, Expression pe, double p) throws PrismException
+	{
+		PCTLProbUntil pctlUntil;
+		pctlUntil = new PCTLProbUntil(new PCTLExpression(new ExpressionTrue()), pctl.getOperand());
+		return checkPCTLProbUntil(pctlUntil, pe, p);
+	}
+	
+	// bounded global (always)
+	// F<=k phi == true U<=k phi
+	// P(G<=k phi) == 1-P(true U<=k !phi)
+	
+	private StateProbs checkPCTLProbBoundedGlobal(PCTLProbBoundedGlobal pctl) throws PrismException
+	{
+		PCTLProbBoundedUntil pctlBUntil;
+		StateProbs probs;
+		pctlBUntil = new PCTLProbBoundedUntil(new PCTLExpression(new ExpressionTrue()), new PCTLNot(pctl.getOperand()), pctl.getLowerBound(), pctl.getUpperBound());
+		probs = checkPCTLProbBoundedUntil(pctlBUntil);
+		probs.subtractFromOne();
+		return probs;
+	}
+	
+	// global (always)
+	// G phi == !(true U !phi)
+	// P(G phi) == 1-P(true U !phi)
+	
+	private StateProbs checkPCTLProbGlobal(PCTLProbGlobal pctl, Expression pe, double p) throws PrismException
+	{
+		PCTLProbUntil pctlUntil;
+		StateProbs probs;
+		pctlUntil = new PCTLProbUntil(new PCTLExpression(new ExpressionTrue()), new PCTLNot(pctl.getOperand()));
+		probs = checkPCTLProbUntil(pctlUntil, pe, p);
+		probs.subtractFromOne();
+		return probs;
+	}
+
 	// cumulative reward
 	
 	private StateProbs checkPCTLRewardCumul(PCTLRewardCumul pctl, JDDNode stateRewards, JDDNode transRewards) throws PrismException

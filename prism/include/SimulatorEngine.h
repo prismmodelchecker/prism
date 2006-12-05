@@ -825,10 +825,26 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlBoundedUntil
 
 /*
  * Class:     simulator_SimulatorEngine
+ * Method:    loadPctlBoundedUntilNegated
+ * Signature: (IIDD)I
+ */
+JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlBoundedUntilNegated
+  (JNIEnv *, jclass, jint, jint, jdouble, jdouble);
+
+/*
+ * Class:     simulator_SimulatorEngine
  * Method:    loadPctlUntil
  * Signature: (II)I
  */
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlUntil
+  (JNIEnv *, jclass, jint, jint);
+
+/*
+ * Class:     simulator_SimulatorEngine
+ * Method:    loadPctlUntilNegated
+ * Signature: (II)I
+ */
+JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlUntilNegated
   (JNIEnv *, jclass, jint, jint);
 
 /*

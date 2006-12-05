@@ -494,6 +494,14 @@ public class NondetModelChecker implements ModelChecker
 				probs = checkPCTLProbBoundedUntil((PCTLProbBoundedUntil)f, min);
 			else if (f instanceof PCTLProbUntil)
 				probs = checkPCTLProbUntil((PCTLProbUntil)f, pe, p, min);
+			else if (f instanceof PCTLProbBoundedFuture)
+				probs = checkPCTLProbBoundedFuture((PCTLProbBoundedFuture)f, min);
+			else if (f instanceof PCTLProbFuture)
+				probs = checkPCTLProbFuture((PCTLProbFuture)f, pe, p, min);
+			else if (f instanceof PCTLProbBoundedGlobal)
+				probs = checkPCTLProbBoundedGlobal((PCTLProbBoundedGlobal)f, min);
+			else if (f instanceof PCTLProbGlobal)
+				probs = checkPCTLProbGlobal((PCTLProbGlobal)f, pe, p, min);
 			else
 				throw new PrismException("Unrecognised path operator in P[] formula");
 		}
@@ -964,9 +972,10 @@ public class NondetModelChecker implements ModelChecker
 		}
 		
 		// if p is 0 or 1 and precomputation algorithms are enabled, compute probabilities qualitatively
-		if (pe != null && ((p==0) || (p==1)) & precomp) {
+		if (pe != null && ((p==0) || (p==1)) && precomp) {
 			mainLog.print("\nWarning: probability bound in formula is " + p + " so exact probabilities may not be computed\n");
-			probs = computeUntilProbsQual(trans01, b1, b2, p, min);
+			// for fairness, we compute max here
+			probs = computeUntilProbsQual(trans01, b1, b2, min&&!fairness);
 		}
 		// otherwise actually compute probabilities
 		else {
@@ -992,6 +1001,56 @@ public class NondetModelChecker implements ModelChecker
 		JDD.Deref(b1);
 		JDD.Deref(b2);
 		
+		return probs;
+	}
+	
+	// bounded future (eventually)
+	// F<=k phi == true U<=k phi
+	
+	private StateProbs checkPCTLProbBoundedFuture(PCTLProbBoundedFuture pctl, boolean min) throws PrismException
+	{
+		PCTLProbBoundedUntil pctlBUntil;
+		pctlBUntil = new PCTLProbBoundedUntil(new PCTLExpression(new ExpressionTrue()), pctl.getOperand(), pctl.getLowerBound(), pctl.getUpperBound());
+		return checkPCTLProbBoundedUntil(pctlBUntil, min);
+	}
+	
+	// future (eventually)
+	// F phi == true U phi
+	
+	private StateProbs checkPCTLProbFuture(PCTLProbFuture pctl, Expression pe, double p, boolean min) throws PrismException
+	{
+		PCTLProbUntil pctlUntil;
+		pctlUntil = new PCTLProbUntil(new PCTLExpression(new ExpressionTrue()), pctl.getOperand());
+		return checkPCTLProbUntil(pctlUntil, pe, p, min);
+	}
+	
+	// bounded global (always)
+	// F<=k phi == true U<=k phi
+	// P(G<=k phi) == 1-P(true U<=k !phi)
+	// Pmin(G<=k phi) == 1-Pmax(true U<=k !phi)
+	
+	private StateProbs checkPCTLProbBoundedGlobal(PCTLProbBoundedGlobal pctl, boolean min) throws PrismException
+	{
+		PCTLProbBoundedUntil pctlBUntil;
+		StateProbs probs;
+		pctlBUntil = new PCTLProbBoundedUntil(new PCTLExpression(new ExpressionTrue()), new PCTLNot(pctl.getOperand()), pctl.getLowerBound(), pctl.getUpperBound());
+		probs = checkPCTLProbBoundedUntil(pctlBUntil, !min);
+		probs.subtractFromOne();
+		return probs;
+	}
+	
+	// global (always)
+	// G phi == !(true U !phi)
+	// P(G phi) == 1-P(true U !phi)
+	// Pmin(G phi) == 1-Pmax(true U !phi)
+	
+	private StateProbs checkPCTLProbGlobal(PCTLProbGlobal pctl, Expression pe, double p, boolean min) throws PrismException
+	{
+		PCTLProbUntil pctlUntil;
+		StateProbs probs;
+		pctlUntil = new PCTLProbUntil(new PCTLExpression(new ExpressionTrue()), new PCTLNot(pctl.getOperand()));
+		probs = checkPCTLProbUntil(pctlUntil, pe, p, !min);
+		probs.subtractFromOne();
 		return probs;
 	}
 
@@ -1187,9 +1246,11 @@ public class NondetModelChecker implements ModelChecker
 	}
 
 	// compute probabilities for until (for qualitative properties)
-	// note: this func needs to know 'min', 'fairness' and 'p'
 	
-	private StateProbs computeUntilProbsQual(JDDNode tr01, JDDNode b1, JDDNode b2, double p, boolean min)
+	// note: this function doesn't need to know anything about fairness
+	//       it is just told whether to compute min or max probabilities
+	
+	private StateProbs computeUntilProbsQual(JDDNode tr01, JDDNode b1, JDDNode b2, boolean min)
 	{
 		JDDNode yes = null, no = null, maybe;
 		StateProbs probs = null;
@@ -1212,9 +1273,8 @@ public class NondetModelChecker implements ModelChecker
 			maybe = JDD.Constant(0);
 		}
 		else {
-			// note: if using fairness, we're always looking for the max probabilities
 			// min
-			if (min&&!fairness) {
+			if (min) {
 				// no: "min prob = 0" equates to "there exists an adversary prob equals 0"
 				no = PrismMTBDD.Prob0E(tr01, reach, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, b1, b2);
 				// yes: "min prob = 1" equates to "for all adversaries prob equals 1"
@@ -1260,41 +1320,15 @@ public class NondetModelChecker implements ModelChecker
 			JDD.Ref(yes);
 			probs = new StateProbsMTBDD(yes, model);
 		}
-		// p = 0
-		else if (p == 0) {
-			if (!(min && fairness)) {
-				// anything that's unknown but definitely > 0
-				// may as well be 1
-				JDD.Ref(yes);
-				JDD.Ref(maybe);
-				probs = new StateProbsMTBDD(JDD.Or(yes, maybe), model);
-			}
-			else {
-				// have to be careful here though because actually solving the dual problem
-				// solving min so must be checking for > 0
-				// for states in maybe, p is in (0,1) and 1-p > 0
-				// so just set them to 0 and will become 1 which is still > 0
-				JDD.Ref(yes);
-				probs = new StateProbsMTBDD(yes, model);
-			}
-		}
-		// p = 1
+		// otherwise we set the probabilities for maybe states to be 0.5
+		// (actual probabilities for these states are unknown but definitely >0 and <1)
+		// (this is safe because the results of this function will only be used to compare against 0/1 bounds)
+		// (this is not entirely elegant but is simpler and less error prone than
+		//  trying to work out whether to use 0/1 for all case of min/max, fairness, future/global, etc.)
 		else {
-			if (!(min && fairness)) {
-				// anything that's unknown but definitely < 1
-				// may as well be 0
-				JDD.Ref(yes);
-				probs = new StateProbsMTBDD(yes, model);
-			}
-			else {
-				// have to be careful here though because actually solving the dual problem
-				// solving min so must be checking for >= 1
-				// for states in maybe, p is in (0,1) and 1-p not >= 1
-				// so just set them to 1 and will become 0 which is still not >= 1
-				JDD.Ref(yes);
-				JDD.Ref(maybe);
-				probs = new StateProbsMTBDD(JDD.Or(yes, maybe), model);
-			}
+			JDD.Ref(yes);
+			JDD.Ref(maybe);
+			probs = new StateProbsMTBDD(JDD.Apply(JDD.PLUS, yes, JDD.Apply(JDD.TIMES, maybe, JDD.Constant(0.5))), model);
 		}
 		
 		// derefs
