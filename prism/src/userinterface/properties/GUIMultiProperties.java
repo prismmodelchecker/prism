@@ -598,7 +598,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		// properties list
 		propList.setEnabled 		(!computing);
 		newProperty.setEnabled		(!computing);
-		editProperty.setEnabled 	(!computing && propList.getValidSelectedProperties().size() > 0);
+		editProperty.setEnabled 	(!computing && propList.getSelectedProperties().size() > 0);
 		cutAction.setEnabled		(!computing);
 		copyAction.setEnabled		(!computing);
 		pasteAction.setEnabled		(!computing);
@@ -1324,7 +1324,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				verifySelected.setEnabled(propList.getValidSelectedProperties().size() > 0);
 				simulate.setEnabled(propList.getValidSimulatableSelectedProperties().size() > 0);
 				details.setEnabled(propList.getValidSelectedProperties().size() > 0);
-				editProperty.setEnabled(propList.getValidSelectedProperties().size() > 0);
+				editProperty.setEnabled(propList.getSelectedProperties().size() > 0);
 				
 				newExperiment.setEnabled(propList.getNumSelectedProperties() == 1 && propList.getValidSelectedProperties().size() == 1);
 				
@@ -1410,7 +1410,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				verifySelected.setEnabled(propList.getValidSelectedProperties().size() > 0);
 				simulate.setEnabled(propList.getValidSimulatableSelectedProperties().size() > 0);
 				details.setEnabled(propList.getValidSelectedProperties().size() > 0);
-				editProperty.setEnabled(propList.getValidSelectedProperties().size() > 0);
+				editProperty.setEnabled(propList.getSelectedProperties().size() > 0);
 				newExperiment.setEnabled(propList.getNumSelectedProperties() == 1 && propList.getValidSelectedProperties().size() == 1);
 							
 				if(showDeleters == false)
@@ -1463,7 +1463,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		verifySelected.setEnabled(propList.getValidSelectedProperties().size() > 0);
 		simulate.setEnabled(propList.getValidSimulatableSelectedProperties().size() > 0);
 		details.setEnabled(propList.getValidSelectedProperties().size() > 0);
-		editProperty.setEnabled(propList.getValidSelectedProperties().size() > 0);
+		editProperty.setEnabled(propList.getSelectedProperties().size() > 0);
 		if(showDeleters == false)
 		{
 			cutAction.setEnabled(false);
