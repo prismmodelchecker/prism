@@ -298,7 +298,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			PropertiesFile pf;
 			try
 			{
-				pf = getPrism().parsePropertiesString(mf, guiProp.getConstantsString().toString()+guiProp.getLabelString());
+				pf = getPrism().parsePropertiesString(mf, guiProp.getConstantsString().toString()+guiProp.getLabelsString());
 			}
 			catch(ParseException e)
 			{
@@ -711,8 +711,16 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			{
 				GUILabel gl = labelList.getLabel(i);
 				
-				if(mf != null)
-					((GUISimLabelFormulaeList)stateLabelList).addLabel(gl, mf);
+				if(mf != null) {
+					if (gl.isParseable()) {
+						try {
+							PropertiesFile pf = getPrism().parsePropertiesString(mf, guiProp.getConstantsString().toString()+"\n"+gl.toString());
+							((GUISimLabelFormulaeList)stateLabelList).addLabel(pf.getLabelList().getLabelName(0), pf.getLabelList().getLabel(0), mf);
+						}
+						catch (ParseException e) {}
+						catch (PrismException e) {}
+					}
+				}
 			}
 		}
 		

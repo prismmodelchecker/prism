@@ -99,6 +99,10 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	private GUIPropConstantList consTable;
 	private GUIPropLabelList labTable;
 	
+	// Cached copies of settings
+	private Font displayFontFast;
+	private Color backgroundFast, warningFast;
+	
 	//CONSTRUCTORS
 	
 	/** Creates a new instance of GUIMultiProperties */
@@ -126,14 +130,19 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	
 	//ACCESS METHODS
 	
-	public String getConstantsString()
+	public ModulesFile getParsedModel()
 	{
-		return consTable.getConstantsString();
+		return parsedModel;
 	}
 	
-	public String getLabelString()
+	public String getConstantsString()
 	{
-		return labTable.getLabelsString();
+		return consTable.getValidConstantsString();
+	}
+	
+	public String getLabelsString()
+	{
+		return labTable.getValidLabelsString();
 	}
 	
 	public int getNumConstants()
@@ -148,22 +157,17 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	
 	public Font getListFont()
 	{
-		return propList.getListFont();
-	}
-	
-	public Color getListFontColor()
-	{
-		return propList.getListFontColor();
+		return displayFontFast;
 	}
 	
 	public Color getWarningColor()
 	{
-		return propList.getWarningColor();
+		return warningFast;
 	}
 	
 	public Color getSelectionColor()
 	{
-		return propList.getSelectionColor();
+		return backgroundFast;
 	}
 	
 	public int getInvalidPropertyStrategy()
@@ -176,8 +180,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		return newAfterReceiveNewOrLoadModelNotification;
 	}
 	
-	//UPDATE METHODS
-	
+	/* UPDATE METHODS */
 	
 	public void setNewAfterReceiveNewOrLoadModelNotification(boolean b)
 	{
@@ -212,7 +215,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		UndefinedConstants uCon;
 		try
 		{
-			pf = getPrism().parsePropertiesString(parsedModel, labTable.getLabelsString()+"\n"+consTable.getConstantsString()+"\n"+propList.getValidSelectedString());
+			pf = getPrism().parsePropertiesString(parsedModel, getLabelsString()+"\n"+getConstantsString()+"\n"+propList.getValidSelectedString());
 			validGUIProperties = propList.getValidSelectedProperties();
 		}
 		catch(ParseException e)
@@ -262,7 +265,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		UndefinedConstants uCon;
 		try
 		{
-			pf = getPrism().parsePropertiesString(parsedModel, labTable.getLabelsString()+"\n"+consTable.getConstantsString()+"\n"+propList.getValidSelectedString());
+			pf = getPrism().parsePropertiesString(parsedModel, getLabelsString()+"\n"+getConstantsString()+"\n"+propList.getValidSelectedString());
 			validGUIProperties = propList.getValidSelectedProperties();
 			if (validGUIProperties.size() == 0) {
 				error("None of the selected properties are suitable for simulation");
@@ -358,7 +361,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		try
 		{
 			// parse property to be used for experiment
-			pf = getPrism().parsePropertiesString(parsedModel, labTable.getLabelsString()+"\n"+consTable.getConstantsString()+"\n"+gp.getPropString());
+			pf = getPrism().parsePropertiesString(parsedModel, getLabelsString()+"\n"+getConstantsString()+"\n"+gp.getPropString());
 			if (pf.getNumProperties() <= 0)
 			{
 				error("There are no properties selected");
@@ -452,7 +455,6 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		tabToFront();
 		setModified(false);
 		setActiveFile(f);
-		
 		notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.PROPERTIES_LIST_CHANGED));
 	}
 	
@@ -463,7 +465,6 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		labTable.addPropertiesFile(pf);
 		tabToFront();
 		setModified(true);
-		notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.PROPERTIES_LIST_CHANGED));
 	}
 	
 	public void propertySaveSuccessful(File f)
@@ -481,7 +482,6 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			{
 				propList.addProperty(pctl, comment);
 				setModified(true);
-				propList.repaint();
 			}
 		}
 		else
@@ -490,15 +490,14 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			gp.setBeingEdited(false);
 			if(pctl != null)
 			{
-				gp.setPropString(pctl, parsedModel, getConstantsString(), getLabelString());
+				gp.setPropString(pctl, parsedModel, getConstantsString(), getLabelsString());
 				gp.setComment(comment);
 				setModified(true);
-				propList.repaint();
 			}
+			// Force repaint because we modified the GUIProperty directly
+			repaintList();
 		}
 		updateCommentLabel();
-		
-		notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.PROPERTIES_LIST_CHANGED));
 	}
 	
 	public void cancelProperty(String id)
@@ -508,50 +507,36 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		{
 			GUIProperty gp = propList.getProperty(index);
 			gp.setBeingEdited(false);
+			// Force repaint because we modified the GUIProperty directly
+			repaintList();
 		}
-		propList.repaint();
 	}
 	
-	public void setListFont(Font f) throws PrismException
+	/** Called by the constant list to let us know something changed there */
+	
+	public void constantListChanged()
 	{
-		getPrism().getSettings().set(PrismSettings.PROPERTIES_FONT, f);
-		//propList.setListFont(f);
+		labTable.validateLabels();
+		propList.validateProperties();
+		setModified(true);
 	}
 	
-	public void setListFontColor(Color c)throws PrismException
-	{
-		//propList.setListFontColor(c);
-	}
+	/** Called by the label list to let us know something changed there */
 	
-	public void setWarningColor(Color c)throws PrismException
+	public void labelListChanged()
 	{
-		getPrism().getSettings().set(PrismSettings.PROPERTIES_WARNING_COLOUR, c);
-		//propList.setWarningColor(c);
-	}
-	
-	public void setSelectionColor(Color c)throws PrismException
-	{
-		getPrism().getSettings().set(PrismSettings.PROPERTIES_SELECTION_COLOUR, c);
-		//propList.setSelectionColor(c);
-	}
-	
-	public void setInvalidPropertyStrategy(int i)throws PrismException
-	{
-		getPrism().getSettings().set(PrismSettings.PROPERTIES_ADDITION_STRATEGY, i-1); //note the correction
-		//this.invalidPropertyStrategy = i;
+		propList.validateProperties();
+		setModified(true);
 	}
 	
 	protected void setModified(boolean mod)
 	{
 		modified = mod;
-		propList.reValidate();
-		doEnables();
-	}
-	
-	protected void resetResults()
-	{
-		propList.resetResults();
-		notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.PROPERTIES_LIST_CHANGED));
+		setActiveFileLabel();
+		if (modified) {
+			doEnables();
+			notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.PROPERTIES_LIST_CHANGED));
+		}
 	}
 	
 	protected void setComputing(boolean com)
@@ -563,13 +548,19 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	protected void setActiveFile(File f)
 	{
 		activeFile = f;
-		doEnables();
+		setActiveFileLabel();
+	}
+	
+	protected void setActiveFileLabel()
+	{
+		fileLabel.setText("Properties list: " + ((activeFile == null)?"<Untitled>":activeFile.getPath()) + (modified?"*":""));
 	}
 	
 	protected void setParsedModel(ModulesFile m)
 	{
 		parsedModel = m;
-		propList.setModulesFile(parsedModel);
+		consTable.validateConstants();
+		propList.validateProperties();
 		doEnables();
 	}
 	
@@ -584,7 +575,6 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		// properties panel
 		setEnabled(true);
 		setTabEnabled(true);
-		fileLabel.setText("Properties list: " + ((activeFile == null)?"<Untitled>":activeFile.getPath()) + (modified?"*":""));
 		// properties menu
 		newProps.setEnabled			(!computing);
 		openProps.setEnabled		(!computing);
@@ -696,10 +686,10 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		propList.deleteAll();
 		consTable.newList();
 		labTable.newList();
-		modified = false;
+		setModified(false);
 		modifiedSinceBuild = true;
 		setActiveFile(null);
-		
+		doEnables();
 		notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.PROPERTIES_LIST_CHANGED));
 	}
 	
@@ -777,6 +767,11 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			message("Cannot save properties list: some properties are invalid");
 			return CANCEL;
 		}
+		if (!consTable.isValid())
+		{
+			message("Cannot save properties list: some constants are invalid");
+			return CANCEL;
+		}
 		if (showSaveFileDialog(propsFilter, propsFilter[0]) == JFileChooser.APPROVE_OPTION)
 		{
 			File file = getChooserFile();
@@ -832,15 +827,15 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	{
 		consTable.correctEditors();
 		labTable.correctEditors();
-		//Bail out if there are no valid properties to simulate
-		//(probably never occurs- action is disabled in this case)
+		// Bail out if there are no valid properties to simulate
+		// (probably never occurs- action is disabled in this case)
 		ArrayList guiPropsTmp = propList.getValidSimulatableSelectedProperties();
 		if(guiPropsTmp.size() == 0)
 		{
 			error("None of the selected properties are suitable for simulation");
 			return;
 		}
-		//Request a parse
+		// Request a parse
 		simulateAfterReceiveParseNotification = true;
 		notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.REQUEST_MODEL_PARSE));
 	}
@@ -856,7 +851,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			if(!gp.isBeingEdited())
 			{
 				gp.setBeingEdited(true);
-				propList.repaint();
+				// Force repaint because we modified the GUIProperty directly
+				repaintList();
 				new GUIPropertyResultDialog(getGUI(), this, gp).show();
 			}
 		}
@@ -866,15 +862,15 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	{
 		consTable.correctEditors();
 		labTable.correctEditors();
-		//Bail out if there are no valid properties to verify
-		//(probably never occurs- action is disabled in this case)
+		// Bail out if there are no valid properties to verify
+		// (probably never occurs- action is disabled in this case)
 		ArrayList guiPropsTmp = propList.getValidSelectedProperties();
 		if(guiPropsTmp.size() == 0)
 		{
 			error("None of the selected properties are suitable for verification. The model was not built");
 			return;
 		}
-		//Request a parse
+		// Request a parse
 		verifyAfterReceiveParseNotification = true;
 		notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.REQUEST_MODEL_PARSE));
 	}
@@ -913,17 +909,19 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 					{
 						GUIProperty property = (GUIProperty) listOfProperties.get(i);
 						propList.addProperty(property.getPropString(), property.getComment());
+						setModified(true);
 					}
 				}
 				catch(UnsupportedFlavorException e) {}
 				catch(IOException e) {}
 			}
 			else
-			{	
+			{
 				try
-				{					
+				{
 					String text = (String)contents.getTransferData(java.awt.datatransfer.DataFlavor.stringFlavor);
 					propList.pastePropertiesString(text);
+					setModified(true);
 				}
 				catch(UnsupportedFlavorException e) {}
 				catch(IOException e) {}
@@ -935,21 +933,18 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	{
 		propList.deleteSelected();
 		setModified(true);
-		
-		notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.PROPERTIES_LIST_CHANGED));
 	}
 	
 	public void a_deleteAll()
 	{
 		propList.deleteAll();
 		setModified(true);
-		
-		notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.PROPERTIES_LIST_CHANGED));
 	}
 	
 	public void a_newProperty()
 	{
-		new GUIPropertyEditor(this, parsedModel, getInvalidPropertyStrategy()).show();
+		GUIPropertyEditor ed = new GUIPropertyEditor(this, parsedModel, getInvalidPropertyStrategy());
+		ed.show();
 	}
 	
 	public void a_editProperty()
@@ -962,8 +957,10 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			if(!gp.isBeingEdited())
 			{
 				gp.setBeingEdited(true);
-				propList.repaint();
-				new GUIPropertyEditor(this, parsedModel, gp, getInvalidPropertyStrategy()).show();
+				// Force repaint because we modified the GUIProperty directly
+				repaintList();
+				GUIPropertyEditor ed = new GUIPropertyEditor(this, parsedModel, gp, getInvalidPropertyStrategy());
+				ed.show();
 			}
 		}
 	}
@@ -980,6 +977,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	
 	public void a_removeSelectedConstants()
 	{
+		// Note: Unlike for prop list, this is safe because constants can always be deleted
+		//       (not the case properties - e.g. if they are being edited)
 		while(consTable.getSelectedRowCount() > 0)
 		{
 			consTable.removeConstant(consTable.getSelectedRow());//for now
@@ -993,6 +992,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	
 	public void a_removeSelectedLabels()
 	{
+		// Note: Unlike for prop list, this is safe because constants can always be deleted
+		//       (not the case properties - e.g. if they are being edited)
 		while(labTable.getSelectedRowCount() > 0)
 		{
 			labTable.removeLabel(labTable.getSelectedRow());
@@ -2089,7 +2090,11 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	
 	public void notifySettings(PrismSettings settings)
 	{
-		propList.notifySettings(settings); //the GUIPropertiesList object contains all of the "fast" data
+		displayFontFast = settings.getFontColorPair(PrismSettings.PROPERTIES_FONT).f;
+		setFont(displayFontFast);
+		backgroundFast = new Color(202, 225, 255);
+		warningFast = settings.getColor(PrismSettings.PROPERTIES_WARNING_COLOUR);
+		repaint();
 	}
 	
 	public static DataFlavor getGUIClipboardPropertiesDataFlavor()

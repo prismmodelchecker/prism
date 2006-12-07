@@ -42,14 +42,11 @@ public class GUIPropertiesList extends JList implements KeyListener
 	//ATTRIBUTES
 	
 	private Prism prism;
-	private ModulesFile parsedModel;
 	private GUIMultiProperties parent;
 	
 	private DefaultListModel listModel;
 	
 	private PictureCellRenderer rend;
-	private Font displayFontFast;
-	private Color foregroundFast, backgroundFast, warningFast;
 	
 	//CONSTRUCTORS
 	
@@ -57,7 +54,6 @@ public class GUIPropertiesList extends JList implements KeyListener
 	public GUIPropertiesList(Prism prism, GUIMultiProperties parent)
 	{
 		this.prism = prism;
-		this.parsedModel = null;
 		this.parent = parent;
 		
 		listModel = new DefaultListModel();
@@ -65,8 +61,6 @@ public class GUIPropertiesList extends JList implements KeyListener
 		
 		rend = new PictureCellRenderer();
 		setCellRenderer(rend);
-		
-		notifySettings(prism.getSettings());
 		
 		addKeyListener(this);
 		setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
@@ -129,7 +123,7 @@ public class GUIPropertiesList extends JList implements KeyListener
 	public ArrayList getValidSimulatableSelectedProperties()
 	{
 		ArrayList gps = new ArrayList();
-		if(parsedModel == null) return gps;
+		if(parent.getParsedModel() == null) return gps;
 		ArrayList prs = getSelectedProperties();
 		for(int i = 0; i < prs.size(); i++)
 		{
@@ -182,35 +176,15 @@ public class GUIPropertiesList extends JList implements KeyListener
 		}
 		return str;
 	}
-	   
-	public Font getListFont()
-	{
-		return displayFontFast;
-	}
 	
-	public Color getListFontColor()
-	{
-		return foregroundFast;
-	}
-	
-	public Color getWarningColor()
-	{
-		return warningFast;
-	}
-	
-	public Color getSelectionColor()
-	{
-		return backgroundFast;
-	}
-	
-	//UPDATE METHODS
+	/* UPDATE METHODS */
 	
 	public void addProperty(String propString, String comment)
 	{
 		counter++;
 		GUIProperty gp = new GUIProperty(prism, "PROPERTY"+counter, propString, comment);
+		gp.parse(parent.getParsedModel(), parent.getConstantsString(), parent.getLabelsString());
 		listModel.addElement(gp);
-		reValidate();
 	}
 	
 	
@@ -218,8 +192,8 @@ public class GUIPropertiesList extends JList implements KeyListener
 	{
 		counter++;
 		GUIProperty gp = new GUIProperty(prism, "PROPERTY"+counter, propString, comment);
+		gp.parse(parent.getParsedModel(), parent.getConstantsString(), parent.getLabelsString());
 		listModel.setElementAt(gp, index);
-		reValidate();
 	}
 	
 	/** Used for pasting */
@@ -295,57 +269,17 @@ public class GUIPropertiesList extends JList implements KeyListener
 		}
 	}
 	
-	public void setModulesFile(ModulesFile parsedModel)
-	{
-		this.parsedModel = parsedModel;
-		reValidate();
-	}
+	/** Validate all the properties in the list
+	    NB: Don't call it "validate()" to avoid overwriting Swing methods */
 	
-	public void reValidate()
+	public void validateProperties()
 	{
 		for(int i = 0; i < getNumProperties(); i++)
 		{
 			GUIProperty p = getProperty(i);
-			p.parse(parsedModel, parent.getConstantsString(), parent.getLabelString());
+			p.parse(parent.getParsedModel(), parent.getConstantsString(), parent.getLabelsString());
 		}
-		repaint();
-	}
-	
-	
-	/*public void setListFont(Font f)
-	{
-		super.setFont(f);
-		displayFont = f;
-		repaint();
-	}
-	
-	public void setListFontColor(Color c)
-	{
-		foreground = c;
-		repaint();
-	}
-	
-	public void setWarningColor(Color c)
-	{
-		warning = c;
-		repaint();
-	}
-	
-	public void setSelectionColor(Color c)
-	{
-		background = c;
-		repaint();
-	}*/
-	
-	public void resetResults()
-	{
-		for(int i = 0; i < this.getNumProperties(); i++)
-		{
-			GUIProperty p = (GUIProperty)listModel.get(i);
-			p.setResult(null);
-			p.setMethodString(null);
-			p.setConstants(null, null);
-		}
+		// Force repaint because we modified a GUIProperty directly
 		repaint();
 	}
 	
@@ -417,17 +351,6 @@ public class GUIPropertiesList extends JList implements KeyListener
 	{
 	}
 	
-	public void notifySettings(PrismSettings settings)
-	{
-		displayFontFast = settings.getFontColorPair(PrismSettings.PROPERTIES_FONT).f;//new Font("Monospaced", Font.PLAIN, 12);
-		super.setFont(displayFontFast);
-		foregroundFast = Color.black;
-		backgroundFast = new Color(202,225, 255);
-		
-		warningFast = settings.getColor(PrismSettings.PROPERTIES_WARNING_COLOUR);
-		repaint();
-	}
-	
 	//RENDERERS
 	
 	class PictureCellRenderer extends JLabel implements ListCellRenderer
@@ -454,7 +377,7 @@ public class GUIPropertiesList extends JList implements KeyListener
 			toolTip = p.getToolTipText();
 			
 			// text
-			setFont(displayFontFast);
+			setFont(parent.getListFont());
 			setText(p.getPropString());
 			
 			// icon
@@ -463,21 +386,20 @@ public class GUIPropertiesList extends JList implements KeyListener
 			// foreground/background colours
 			if(isSelected)
 			{
-				setBackground(backgroundFast);
-				if(!p.isValid()) setForeground(Color.red);
-				else setForeground(foregroundFast);
+				setBackground(parent.getSelectionColor());
+				setForeground(p.isValid() ? Color.black : Color.red);
 			}
 			else
 			{
 				if(!p.isValid())
 				{
-					setBackground(warningFast);
+					setBackground(parent.getWarningColor());
 					setForeground(Color.red);
 				}
 				else
 				{
 					setBackground(Color.white);
-					setForeground(foregroundFast);
+					setForeground(Color.black);
 				}
 			}
 			
@@ -486,7 +408,6 @@ public class GUIPropertiesList extends JList implements KeyListener
 				setBackground(Color.lightGray);
 			}
 			
-			repaint();
 			return this;
 		}
 	}

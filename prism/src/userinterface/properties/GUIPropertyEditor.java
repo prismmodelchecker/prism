@@ -804,12 +804,12 @@ public class GUIPropertyEditor extends javax.swing.JDialog implements ActionList
 		try
 		{
 			//Parse constants and labels
-			PropertiesFile fConLab = props.getPrism().parsePropertiesString(parsedModel,  props.getLabelString()+"\n"+props.getConstantsString());
+			PropertiesFile fConLab = props.getPrism().parsePropertiesString(parsedModel,  props.getLabelsString()+"\n"+props.getConstantsString());
 			noConstants = fConLab.getConstantList().size();
 			noLabels = fConLab.getLabelList().size();
 			
 			//Parse all together
-			String withConsLabs = props.getConstantsString()+"\n"+props.getLabelString()+"\n"+propertyText.getText();
+			String withConsLabs = props.getConstantsString()+"\n"+props.getLabelsString()+"\n"+propertyText.getText();
 			PropertiesFile ff = props.getPrism().parsePropertiesString(parsedModel, withConsLabs);
 			
 			//Validation of number of properties

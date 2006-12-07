@@ -1,23 +1,23 @@
 //==============================================================================
-//
-//	Copyright (c) 2004-2005, Andrew Hinton, Dave Parker
-//
+//	
+//	Copyright (c) 2002- Dave Parker
+//	
 //	This file is part of PRISM.
-//
+//	
 //	PRISM is free software; you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
 //	the Free Software Foundation; either version 2 of the License, or
 //	(at your option) any later version.
-//
+//	
 //	PRISM is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //	GNU General Public License for more details.
-//
+//	
 //	You should have received a copy of the GNU General Public License
 //	along with PRISM; if not, write to the Free Software Foundation,
 //	Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
+//	
 //==============================================================================
 
 package userinterface.properties;
@@ -25,18 +25,24 @@ package userinterface.properties;
 import parser.*;
 import prism.*;
 
-public class GUILabel
+class GUIConstant
 {
+	public static final int INT = Expression.INT;
+	public static final int BOOL = Expression.BOOLEAN;
+	public static final int DOUBLE = Expression.DOUBLE;
+	
 	public GUIMultiProperties parent;
 	public String name;
-	public String label;
+	public String constant;
+	public int type;
 	public Exception parseError;
 	
-	public GUILabel(GUIMultiProperties parent, String name, String label)
+	public GUIConstant(GUIMultiProperties parent, String name, String constant, int type)
 	{
 		this.parent = parent;
 		this.name = name;
-		this.label = label;
+		this.constant = constant;
+		this.type = type;
 		this.parseError = null;
 	}
 	
@@ -44,15 +50,15 @@ public class GUILabel
 	{
 		Expression expr = null;
 		this.parseError = null;
-		// See if label definition is parseable
+		// See if constant definition is parseable
 		try {
 			// Check name is a valid identifier
 			try { expr = parent.getPrism().parseSingleExpressionString(name); }
-			catch (ParseException e) { throw new PrismException("Invalid label name \""+name+"\""); }
-			if (expr == null || !(expr instanceof ExpressionIdent)) throw new PrismException("Invalid label name \""+name+"\"");
-			// Check (non-empty) label definition is valid (single) expression
-			try { if (!("".equals(label))) parent.getPrism().parseSingleExpressionString(label); }
-			catch (ParseException e) { throw new PrismException("Invalid expression \""+label+"\""); }
+			catch (ParseException e) { throw new PrismException("Invalid constant name \""+name+"\""); }
+			if (expr == null || !(expr instanceof ExpressionIdent)) throw new PrismException("Invalid constant name \""+name+"\"");
+			// Check (non-empty) constant definition is valid (single) expression
+			try { if (!("".equals(constant))) parent.getPrism().parseSingleExpressionString(constant); }
+			catch (ParseException e) { throw new PrismException("Invalid expression \""+constant+"\""); }
 		}
 		catch (PrismException e) {
 			this.parseError = e;
@@ -63,16 +69,23 @@ public class GUILabel
 	
 	public String toString()
 	{
-		return "label \""+getNameString()+"\" = "+getValueString()+";";
+		return "const "+getTypeString()+" "+name+getValueString()+";";
 	}
 	
-	public String getNameString()
+	public String getTypeString()
 	{
-		return name;
+		switch(type)
+		{
+			case(INT):	return "int";
+			case(DOUBLE): return "double";
+			case(BOOL):   return "bool";
+			default:	  return "";
+		}
 	}
 	
 	public String getValueString()
 	{
-		return label;
+		if ("".equals(constant)) return "";
+		else return " = " + constant; 
 	}
 }

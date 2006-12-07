@@ -21,41 +21,37 @@
 //==============================================================================
 
 package userinterface.properties;
-import javax.swing.*;
-import parser.*;
+
 import java.util.*;
+import java.awt.*;
+import javax.swing.*;
 import javax.swing.table.*;
 
-/**
- *
- * @author  ug60axh
- */
+import parser.*;
+import prism.*;
+
 public class GUIPropLabelList extends JTable
 {
 	
 	private PropLabelModel theModel;
 	private GUIMultiProperties parent;
 	
-	/** Creates a new instance of GUIPropConstantList */
+	/** Creates a new instance of GUIPropLabelList */
 	public GUIPropLabelList(GUIMultiProperties parent)
 	{
 		super();
 		this.parent = parent;
 		theModel = new PropLabelModel();
 		setModel(theModel);
+		try { setDefaultRenderer(Class.forName("java.lang.Object"), new TheCellRenderer()); } catch (ClassNotFoundException e) {}
 	}
 	
 	public void correctEditors()
 	{
-	if(this.getCellEditor() != null)
-	{
-		getCellEditor().stopCellEditing();
-	}
-	}
-	
-	public GUILabel getLabel(int i)
-	{
-	    return theModel.getLabel(i);
+		if(this.getCellEditor() != null)
+		{
+			getCellEditor().stopCellEditing();
+		}
 	}
 	
 	public void newList()
@@ -68,10 +64,15 @@ public class GUIPropLabelList extends JTable
 		return theModel.getNumLabels();
 	}
 	
+	public GUILabel getLabel(int i)
+	{
+	    return theModel.getLabel(i);
+	}
+	
 	public void addNewLabel()
 	{
 		theModel.addLabel();
-		parent.notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.PROPERTIES_LIST_CHANGED));
+		theModel.validateLabels();
 	}
 	
 	public void removeLabel(int index)
@@ -84,38 +85,87 @@ public class GUIPropLabelList extends JTable
 		}
 		// do the remove
 		theModel.removeLabel(index);
-		parent.notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.PROPERTIES_LIST_CHANGED));
+		theModel.validateLabels();
 	}
+	
+	public void addPropertiesFile(PropertiesFile pf)
+	{
+		LabelList ll = pf.getLabelList();
+		int i, n;
+		n = ll.size();
+		for(i = 0; i < n; i++)
+		{
+			GUILabel lab = new GUILabel(parent, ll.getLabelName(i), ll.getLabel(i).toString());
+			theModel.addLabel(lab);
+		}
+		theModel.validateLabels();
+	}
+	
+	/** Validate the label list
+	    NB: Don't call it "validate()" to avoid overwriting Swing methods */
+	
+	public void validateLabels()
+	{
+		theModel.validateLabels();
+	}
+	
+	/** Is the label list valid? */
+	
+	public boolean isValid()
+	{
+		if (theModel.error != null) return false;
+		int i, n;
+		n = theModel.getNumLabels();
+		for(i = 0; i < n; i++) {
+			if (!theModel.getLabel(i).isParseable()) return false;
+		}
+		return true;
+	}
+	
+	/** Return string representing PRISM code for all labels in this list */
 	
 	public String getLabelsString()
 	{
 		return theModel.toString();
 	}
 	
-	public void addPropertiesFile(PropertiesFile pf)
+	/** Return string representing PRISM code for all valid Labels in this list */
+	
+	public String getValidLabelsString()
 	{
-		LabelList ll = pf.getLabelList();
-		for(int i = 0; i < ll.size(); i++)
-		{
-			GUILabel lab = new GUILabel(ll.getLabelName(i), ll.getLabel(i));
-			theModel.addLabel(lab);
-		}
+		return theModel.validToString();
 	}
+	
+	/* Table model for the label list */
 	
 	class PropLabelModel extends AbstractTableModel
 	{
-		ArrayList labels;
+		ArrayList labels; // The list of labels
+		int labCount; // Counter used to generate new default names for labels
+		Exception error; // Any error that occurs when all labels are parsed together
 		
 		public PropLabelModel()
 		{
 			labels = new ArrayList();
+			labCount = 0;
+			error = null;
 		}
 		
-		//ACCESS METHODS
+		/* Acesssor methods */
+		
+		public int getNumLabels()
+		{
+			return labels.size();
+		}
 		
 		public GUILabel getLabel(int i)
 		{
 			return (GUILabel)labels.get(i);
+		}
+		
+		public Exception getError()
+		{
+			return error;
 		}
 		
 		public int getRowCount()
@@ -149,10 +199,12 @@ public class GUIPropLabelList extends JTable
 			}
 		}
 		
-		public int getNumLabels()
+		public boolean isCellEditable(int row, int column)
 		{
-			return labels.size();
+			return true;
 		}
+		
+		/** Return string representing PRISM code for all labels in this table model */
 		
 		public String toString()
 		{
@@ -166,41 +218,69 @@ public class GUIPropLabelList extends JTable
 			return str;
 		}
 		
-		//UPDATE METHODS
+		/** Return string representing PRISM code for all valid labels in this table model */
+		
+		public String validToString()
+		{
+			if (error != null) return "";
+			else return parseableToString();
+		}
+		
+		/** Return string representing PRISM code for all parseable labels in this table model */
+		
+		public String parseableToString()
+		{
+			int i, n;
+			GUILabel gl;
+			String str = "";
+			n = getNumLabels();
+			for(i = 0; i < n; i++) {
+				gl = getLabel(i);
+				if (gl.isParseable()) str+=gl.toString()+"\n";
+			}
+			return str;
+		}
+		
+		/* Methods to modify table model */
 		
 		public void newList()
 		{
 			labels = new ArrayList();
 			fireTableStructureChanged();
+			parent.labelListChanged();
 		}
+		
+		/** Add a new (default-valued) label to the list.
+		    You should call validateLabels() after calling this. */
 		
 		public void addLabel()
 		{
-			labels.add(new GUILabel("L"+labCount, new ExpressionTrue()));
-			parent.setModified(true);
-			fireTableRowsInserted(labels.size()-1, labels.size()-1);
+			addLabel(new GUILabel(parent, "L"+labCount, "true"));
 			labCount++;
 		}
-		int labCount = 0;
+		
+		/** Add a new label to the list.
+		    You should call validateLabels() after calling this. */
+		
+		public void addLabel(GUILabel lab)
+		{
+			lab.parse();
+			labels.add(lab);
+			fireTableRowsInserted(labels.size()-1, labels.size()-1);
+			parent.labelListChanged();
+		}
+		
+		/** Remove a label from the list.
+		    You should call validateLabels() after calling this. */
 		
 		public void removeLabel(int index)
 		{
 			labels.remove(index);
-			parent.setModified(true);
 			fireTableRowsDeleted(index,index);
+			parent.labelListChanged();
 		}
 		
-		public void addLabel(GUILabel lab)
-		{
-			labels.add(lab);
-			
-			fireTableRowsInserted(labels.size()-1, labels.size()-1);
-		}
-		
-		public boolean isCellEditable(int row, int column)
-		{
-			return true;
-		}
+		/** This is called directly by the GUI (when the table is edited) */
 		
 		public void setValueAt(Object aValue, int rowIndex, int columnIndex)
 		{
@@ -212,49 +292,70 @@ public class GUIPropLabelList extends JTable
 					if(!gl.name.equals((String)aValue))
 					{
 						gl.name = (String)aValue;
-						parent.setModified(true);
-						parent.resetResults();
-						fireTableCellUpdated(rowIndex, columnIndex);
+						gl.parse();
+						validateLabels();
+						parent.labelListChanged();
 					}
 					break;
 				}
 				case 1:
 				{
-					//need to parse expression
-					String old;
-					if(gl.label!=null)
-						old = gl.label.toString();
-					else old = "";
-					if(!old.equals((String)aValue))
+					if(!gl.label.equals((String)aValue))
 					{
-						try
-						{
-							if(((String)aValue).equals("")) gl.label = null;
-							else
-							{
-								Expression e = parent.getPrism().parseSingleExpressionString((String)aValue);
-								gl.label = e;
-							}
-						}
-						catch(ParseException e)
-						{
-							parent.error("Syntax error in expression");
-						}
-						catch(prism.PrismException e)
-						{
-							parent.error("Syntax error in expression");
-						}
-						
-						parent.setModified(true);
-						parent.resetResults();
-						fireTableCellUpdated(rowIndex, columnIndex);
+						gl.label = (String)aValue;
+						gl.parse();
+						validateLabels();
+						parent.labelListChanged();
 					}
 					break;
 				}
 			}
 		}
+		
+		/** Validate the label list
+		    NB: Don't call it "validate()" to avoid overwriting Swing methods */
+		
+		public void validateLabels()
+		{
+			try {
+				error = null;
+				parent.getPrism().parsePropertiesString(parent.getParsedModel(), parent.getConstantsString()+"\n"+parseableToString());
+			}
+			catch (ParseException e) {
+				error = new PrismException(e.getShortMessage());
+			}
+			catch (PrismException e) {
+				error = e;
+			}
+			fireTableDataChanged();
+		}
 	}
 	
-	
-	
+	class TheCellRenderer extends DefaultTableCellRenderer
+	{
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) 
+		{
+			Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+			GUILabel gl = theModel.getLabel(row);
+			// If the label has a parse error, show that
+			if (!gl.isParseable()) {
+				setBackground(isSelected ? parent.getSelectionColor() : parent.getWarningColor());
+				setForeground(Color.red);
+				setToolTipText(gl.parseError.toString());
+			}
+			// If not but there is a "global" error for the whole list, show that
+			else if (theModel.error != null) {
+				setBackground(isSelected ? parent.getSelectionColor() : parent.getWarningColor());
+				setForeground(Color.red);
+				setToolTipText(theModel.error.toString());
+			}
+			// Otherwise everything is fine
+			else {
+				setBackground(isSelected ? parent.getSelectionColor() : Color.white);
+				setForeground(Color.black);
+				setToolTipText(gl.toString());
+			}
+			return cell;
+		}
+	}
 }

@@ -55,32 +55,22 @@ public class GUISimLabelFormulaeList extends JList
 		setCellRenderer(new SimLabelRenderer());
 	}
     
-	public void addLabel(GUILabel label, ModulesFile mf)
+	public void addLabel(String name, Expression expr, ModulesFile mf)
 	{
-	
-	
 		//create the expression in the simulator
 		try
 		{
-	   
-			Expression expr = label.label.findAllVars(mf.getVarNames(),mf.getVarTypes());
 			int exprPointer = expr.toSimulator(engine);
 	    
 			int index = SimulatorEngine.loadProposition(exprPointer);
 	    
-			SimLabel sl = new SimLabel(label.getNameString(), index);
-			//System.out.println("adding "+label.getNameString());
+			SimLabel sl = new SimLabel(name, index);
 			listModel.addElement(sl);
-			//System.out.println("added");
 		}
 		catch(SimulatorException e)
 		{
 			//System.out.println("exception "+e);
 			e.printStackTrace();
-		}
-		catch(PrismException e)
-		{
-			//System.out.println("exception "+e);
 		}
 	}
     
