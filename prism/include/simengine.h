@@ -97,6 +97,8 @@ int Engine_Get_Path_Data(int var_index, int state_index);
 
 double Engine_Get_Time_Spent_In_Path_State(int state_index);
 
+double Engine_Get_Cumulative_Time_Spent_In_Path_State(int state_index);
+
 double Engine_Get_State_Reward_Of_Path_State(int state_index);
 
 double Engine_Get_Transition_Reward_Of_Path_State(int state_index);

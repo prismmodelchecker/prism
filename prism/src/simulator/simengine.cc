@@ -245,6 +245,11 @@ double Engine_Get_Time_Spent_In_Path_State(int state_index)
 	return Get_Time_Spent_In_Path_State(state_index);
 }
 
+double Engine_Get_Cumulative_Time_Spent_In_Path_State(int state_index)
+{
+	return Get_Cumulative_Time_Spent_In_Path_State(state_index);
+}
+
 double Engine_Get_State_Reward_Of_Path_State(int state_index, int i)
 {
 	return Get_State_Reward_Of_Path_State(state_index, i);

@@ -145,6 +145,14 @@ JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTimeSpentInPathState
 
 /*
  * Class:     simulator_SimulatorEngine
+ * Method:    getCumulativeTimeSpentInPathState
+ * Signature: (I)D
+ */
+JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getCumulativeTimeSpentInPathState
+  (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     simulator_SimulatorEngine
  * Method:    getStateRewardOfPathState
  * Signature: (II)D
  */

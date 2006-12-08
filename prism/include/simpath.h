@@ -171,6 +171,11 @@ int Get_Path_Data(int var_index, int state_index);
 double Get_Time_Spent_In_Path_State(int state_index);
 
 /*
+ *	Returns the cumulative time spent in the path_state at state_index.
+ */
+double Get_Cumulative_Time_Spent_In_Path_State(int state_index);
+
+/*
  *	Returns the reward accumulated in the path state at
  *	state_index.
  */

@@ -69,6 +69,7 @@ class CPathState
 		int choice_made; //the choice made to get out of this state
 		double probability; //this is used to determine which choice was made, if choice_made is -1
 		double time_spent_in_state; //The time spent in that state
+		double cumulative_time_spent_in_state; //Total path time upto and including current state.
 		bool time_known; 
 		double *state_cost; //The costs accumulated in that state (for real time models)
 		double *state_instant_cost; //The instant state costs of that state

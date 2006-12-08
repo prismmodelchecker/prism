@@ -249,6 +249,12 @@ JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTimeSpentInPathState
 	return Get_Time_Spent_In_Path_State(stateIndex);
 }
 
+JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getCumulativeTimeSpentInPathState
+(JNIEnv *env, jclass cls, jint stateIndex)
+{
+	return Get_Cumulative_Time_Spent_In_Path_State(stateIndex);
+}
+
 JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getStateRewardOfPathState
 (JNIEnv *env, jclass cls, jint stateIndex, jint i)
 {

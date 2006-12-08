@@ -415,7 +415,9 @@ void Backtrack(int step)
 	
 	for(int i = 0; i < current_index; i++)
 	{
-		if(stored_path[i]->time_known)path_timer += stored_path[i]->time_spent_in_state;
+		if(stored_path[i]->time_known)
+			path_timer += stored_path[i]->time_spent_in_state;
+		
 		for (int j = 0; j < no_reward_structs; j++) {
 			total_state_cost[j] += stored_path[i]->state_cost[j];
 			total_transition_cost[j] += stored_path[i]->transition_cost[j];
@@ -558,6 +560,20 @@ double Get_Time_Spent_In_Path_State(int state_index)
 		CPathState* ps = stored_path[state_index];
 		//cout << ps->To_String() << endl;
 		return ps->time_spent_in_state;
+	}
+}
+
+/*
+*	Returns the cumulative time spent in the path_state at state_index.
+*/
+double Get_Cumulative_Time_Spent_In_Path_State(int state_index)
+{
+	if(state_index == current_index) return UNDEFINED_DOUBLE;
+	else
+	{
+		CPathState* ps = stored_path[state_index];
+		//cout << ps->To_String() << endl;
+		return ps->cumulative_time_spent_in_state;
 	}
 }
 
@@ -705,6 +721,17 @@ inline void Add_Current_State_To_Path()
 			double time_in_state = Get_Sampled_Time();
 			
 			last_state->time_spent_in_state = (time_in_state);
+			
+			if (current_index > 1)
+			{
+				CPathState * state_before_last_state = stored_path[current_index-2];
+				last_state->cumulative_time_spent_in_state = last_state->cumulative_time_spent_in_state + state_before_last_state->cumulative_time_spent_in_state;
+			}
+			else
+			{
+				last_state->cumulative_time_spent_in_state = last_state->cumulative_time_spent_in_state;
+			}
+			
 			last_state->time_known = true;
 			path_timer += time_in_state;
 			

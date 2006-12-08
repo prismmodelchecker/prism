@@ -98,8 +98,11 @@ import prism.*;
  *    <LI>    <tt>getDataSize()</tt></LI>
  *    <LI>    <tt>getPathData(int pathIndex, int variableIndex)</tt></LI>
  *    <LI>    <tt>getTimeSpentInPathState(int pathIndex)</tt></LI>
+ *    <LI>    <tt>getCumulativeTimeSpentInPathState(int pathIndex)</tt></LI>
  *    <LI>    <tt>getStateRewardOfPathState(int pathIndex, int i)</tt></LI>
+ *    <LI>    <tt>getTotalStateRewardOfPathState(int pathIndex, int i)</tt> (Cumulative)</LI>
  *    <LI>    <tt>getTransitionRewardOfPathState(int pathIndex, int i)</tt></LI>
+ *    <LI>    <tt>getTotalTransitionRewardOfPathState(int pathIndex, int i)</tt> (Cumulative)</LI>
  * </UL>
  *
  * The simulator engine automatically detects loops in execution paths, and
@@ -930,6 +933,13 @@ public class SimulatorEngine
 	 * @return the time spent in the state at the given path index.
 	 */
 	public static native double getTimeSpentInPathState(int stateIndex);
+	
+	/**
+	 * Returns the cumulative time spent in the states upto a given path index.
+	 * @param stateIndex the index of the path state of interest
+	 * @return the time spent in the state at the given path index.
+	 */
+	public static native double getCumulativeTimeSpentInPathState(int stateIndex);
 	
 	/**
 	 * Returns the ith state reward of the state at the given path index.

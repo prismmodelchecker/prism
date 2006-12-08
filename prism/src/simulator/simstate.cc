@@ -87,6 +87,7 @@ CPathState::CPathState()
 		variables[i] = UNDEFINED_INT;
 	}
 	this->time_spent_in_state = 0.0;
+	this->cumulative_time_spent_in_state = 0.0;
 	this->time_known = false;
 	this->state_cost = new double[no_reward_structs];
 	this->state_instant_cost = new double[no_reward_structs];	
@@ -131,6 +132,7 @@ void CPathState::Make_This_Current_State()
 	for(int i = 0; i < no_state_variables; i++)
 		variables[i] = state_variables[i];
 	this->time_spent_in_state = 0.0;
+	this->cumulative_time_spent_in_state = 0.0;
 	this->time_known = false;
 	
 	for(int i = 0; i < no_reward_structs; i++) {
