@@ -1102,6 +1102,7 @@ void Read_Model(int fd)
 	no_state_rewards_added = new int[no_reward_structs];
 	no_transition_rewards_added = new int[no_reward_structs];
 	state_rewards_table = new CStateReward**[no_reward_structs];
+	transition_rewards_table = new CTransitionReward**[no_reward_structs];
 	if(no_state_rewards == NULL || no_transition_rewards == NULL || no_state_rewards_added == NULL || no_transition_rewards_added == NULL || state_rewards_table == NULL) 
 	{
 		Report_Error("Simulator engine ran out of memory when allocating state rewards tables.");
