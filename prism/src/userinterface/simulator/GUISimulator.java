@@ -44,8 +44,7 @@ import javax.swing.event.*;
  * @author  Andrew Hinton
  */
 public class GUISimulator extends GUIPlugin implements MouseListener, ListSelectionListener, PrismSettingsListener
-{
-	
+{	
 	//ATTRIBUTES
 	private GUIPrism gui; //reference to the gui
 	private GUIMultiProperties guiProp; //reference to the properties information
@@ -2356,7 +2355,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		private boolean stepsVisible;
 		private boolean hideEmptyRewards;
 		private boolean showTime;
-		    	
+		private boolean showCumulativeTime;
+				    	
     	public SimulationView()
     	{    		
     		this.visibleVariables = new ArrayList();
@@ -2398,10 +2398,28 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		{
         	return showTime && mf.getType() == ModulesFile.STOCHASTIC;
         }
+		
+		public boolean showCumulativeTime()
+		{
+			return showCumulativeTime && mf.getType() == ModulesFile.STOCHASTIC;
+		}
+		
+		public boolean canShowTime()
+		{
+			return mf.getType() == ModulesFile.STOCHASTIC;
+		}
 
 		public void showTime(boolean showTime) 
 		{
-        	this.showTime = stepsVisible;
+        	this.showTime = showTime;
+        	
+        	this.setChanged();
+        	this.notifyObservers();
+        }
+		
+		public void showCumulativeTime(boolean showCumulativeTime) 
+		{
+        	this.showCumulativeTime = showCumulativeTime;
         	
         	this.setChanged();
         	this.notifyObservers();
@@ -2464,6 +2482,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					stepsVisible = true;
 					hideEmptyRewards = true;
 					showTime = mf.getType() == ModulesFile.STOCHASTIC;
+					showCumulativeTime = false;
 					
 					for (int i = 0; i < engine.getNumVariables(); i++)
 					{
@@ -2515,7 +2534,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				if (view.getVisibleVariables().size() > 0)
 				{ groupCount++;	}
 				
-				if (view.showTime()) 
+				if (view.showTime() || view.showCumulativeTime()) 
 				{ groupCount++;	} 
 				
 				if (view.getVisibleRewards().size() > 0)
@@ -2562,7 +2581,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					groupCount++;
 				}
 				
-				if (view.showTime()) 
+				if (view.showTime() || view.showCumulativeTime()) 
 				{	
 					if (groupCount == groupIndex) 
 					{	return "Time";	}
@@ -2588,7 +2607,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			int stepStart = 0;
 			int varStart = stepStart + (view.showSteps() ? 1 : 0);
 			int timeStart = varStart + view.getVisibleVariables().size();
-			int rewardStart = timeStart + (view.showTime() ? 1 : 0);
+			int rewardStart = timeStart + (view.showTime() ? 1 : 0) + (view.showCumulativeTime() ? 1 : 0);
 			
 			int groupCount = 0;
 						
@@ -2608,10 +2627,15 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				groupCount++;				
 			}
 			
-			if (view.showTime()) 
+			if (view.showTime() || view.showCumulativeTime()) 
 			{	
 				if (groupCount == groupIndex)
-				{	return timeStart;	}
+				{	
+					if (view.showTime() && view.showCumulativeTime())
+						return timeStart + 1;
+					else
+						return timeStart;
+				}
 				
 				groupCount++;
 			} 
@@ -2642,7 +2666,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				
 				colCount += (view.showSteps() ? 1 : 0);
 				colCount += view.getVisibleVariables().size();
-				colCount += (view.showTime() ? 1 : 0);				
+				colCount += (view.showTime() ? 1 : 0) + (view.showCumulativeTime() ? 1 : 0);				
 				colCount += view.getVisibleRewards().size();
 								
 				return colCount;
@@ -2687,7 +2711,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				int stepStart = 0;
 				int varStart = stepStart + (view.showSteps() ? 1 : 0);
 				int timeStart = varStart + view.getVisibleVariables().size();
-				int rewardStart = timeStart + (view.showTime() ? 1 : 0);
+				int cumulativeTimeStart = timeStart + (view.showTime() ? 1 : 0);
+				int rewardStart = cumulativeTimeStart + (view.showCumulativeTime() ? 1 : 0);
 				
 				// The step column
 				if (stepStart <= columnIndex && columnIndex < varStart)
@@ -2699,9 +2724,13 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				{						
 					return ((Variable)view.getVisibleVariables().get(columnIndex - varStart)).toString();						
 				}
-				else if (timeStart <= columnIndex && columnIndex < rewardStart)
+				else if (timeStart <= columnIndex && columnIndex < cumulativeTimeStart)
 				{
 					return "Time";
+				}
+				else if (cumulativeTimeStart <= columnIndex && columnIndex < rewardStart)
+				{
+					return "Time (+)";
 				}
 				else if (rewardStart <= columnIndex)
 				{	
@@ -2720,7 +2749,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					int stepStart = 0;
 					int varStart = stepStart + (view.showSteps() ? 1 : 0);
 					int timeStart = varStart + view.getVisibleVariables().size();
-					int rewardStart = timeStart + (view.showTime() ? 1 : 0);
+					int cumulativeTimeStart = timeStart + (view.showTime() ? 1 : 0);
+					int rewardStart = cumulativeTimeStart + (view.showCumulativeTime() ? 1 : 0);
 					
 					// The step column
 					if (stepStart <= columnIndex && columnIndex < varStart)
@@ -2740,7 +2770,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 						else if (type == Expression.INT)
 						{	return new Integer(result);	}
 					}
-					else if (timeStart <= columnIndex && columnIndex < rewardStart)
+					else if (timeStart <= columnIndex && columnIndex < cumulativeTimeStart)					
 					{
 						if (rowIndex < SimulatorEngine.getPathSize() - 1)
 						{
@@ -2750,10 +2780,20 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 						{
 							return "...";
 						}
+					}					
+					else if (cumulativeTimeStart <= columnIndex && columnIndex < rewardStart)
+					{
+						if (rowIndex < SimulatorEngine.getPathSize() - 1)
+						{
+							return new Double(SimulatorEngine.getCumulativeTimeSpentInPathState(rowIndex));
+						}
+						else
+						{
+							return "...";
+						}
 					}
 					else if (rewardStart <= columnIndex)
-					{
-						
+					{						
 						RewardStructure reward = (RewardStructure)view.getVisibleRewards().get(columnIndex - rewardStart);						
 						Object objValue = reward.getValue(rowIndex, (rowIndex == SimulatorEngine.getPathSize() - 1));
 						

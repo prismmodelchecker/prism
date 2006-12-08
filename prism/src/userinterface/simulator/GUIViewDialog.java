@@ -69,6 +69,7 @@ public class GUIViewDialog extends JDialog implements KeyListener
     private javax.swing.JScrollPane hiddenRewardScrollList;
     private javax.swing.JList hiddenVariableList;
     private javax.swing.JScrollPane hiddenVariableScrollList;
+    private javax.swing.JPanel innerTimePanel;
     private javax.swing.JPanel leftRewardColumn;
     private javax.swing.JPanel leftRewardPanel;
     private javax.swing.JPanel leftVariableColumn;
@@ -90,6 +91,11 @@ public class GUIViewDialog extends JDialog implements KeyListener
     private javax.swing.JButton selectAllHiddenVariablesButton;
     private javax.swing.JButton selectAllVisibleRewardsButton;
     private javax.swing.JButton selectAllVisibleVariablesButton;
+    private javax.swing.JCheckBox showCumulativeTimeCheckBox;
+    private javax.swing.JCheckBox showTimeCheckBox;
+    private javax.swing.JPanel timePanel;
+    private javax.swing.JPanel timeTabPanel;
+    private javax.swing.JPanel topInnerTimePanel;
     private javax.swing.JPanel variablePanel;
     private javax.swing.JTabbedPane variableTabPane;
     private javax.swing.JPanel variableTabPanel;
@@ -120,6 +126,9 @@ public class GUIViewDialog extends JDialog implements KeyListener
 		this.askOption = ((GUIPrism)this.getParent()).getPrism().getSettings().getBoolean(PrismSettings.SIMULATOR_NEW_PATH_ASK_VIEW);
 		optionCheckBox.setSelected(this.askOption);
 		
+		showTimeCheckBox.setSelected(view.showTime());
+		showCumulativeTimeCheckBox.setSelected(view.showCumulativeTime());		
+		
 		visibleVariableListModel = new VariableListModel(view.getVisibleVariables());
 		hiddenVariableListModel = new VariableListModel(view.getHiddenVariables());
 		
@@ -133,6 +142,7 @@ public class GUIViewDialog extends JDialog implements KeyListener
 		hiddenRewardList.setModel(hiddenRewardListModel);
 		
 		emptyRewardVisibleCheckBox.setSelected(!view.hideEmptyRewards());
+		variableTabPane.setEnabledAt(2, view.canShowTime());
 		
 		this.setVisible(true);
 	}
@@ -189,6 +199,12 @@ public class GUIViewDialog extends JDialog implements KeyListener
         selectAllHiddenRewardsButton = new javax.swing.JButton();
         rewardOptionPanel = new javax.swing.JPanel();
         emptyRewardVisibleCheckBox = new javax.swing.JCheckBox();
+        timeTabPanel = new javax.swing.JPanel();
+        timePanel = new javax.swing.JPanel();
+        innerTimePanel = new javax.swing.JPanel();
+        topInnerTimePanel = new javax.swing.JPanel();
+        showTimeCheckBox = new javax.swing.JCheckBox();
+        showCumulativeTimeCheckBox = new javax.swing.JCheckBox();
 
         visibleLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         visibleLabel.setText("Visible Variables");
@@ -472,6 +488,42 @@ public class GUIViewDialog extends JDialog implements KeyListener
 
         variableTabPane.addTab("Reward visibility", rewardTabPanel);
 
+        timeTabPanel.setLayout(new java.awt.BorderLayout());
+
+        timePanel.setLayout(new java.awt.GridBagLayout());
+
+        timePanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        innerTimePanel.setLayout(new java.awt.BorderLayout());
+
+        innerTimePanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Time properties"));
+        topInnerTimePanel.setLayout(new java.awt.GridLayout(2, 1, 5, 5));
+
+        topInnerTimePanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        showTimeCheckBox.setText("Show the time spend in states");
+        showTimeCheckBox.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        showTimeCheckBox.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        topInnerTimePanel.add(showTimeCheckBox);
+        showTimeCheckBox.getAccessibleContext().setAccessibleName("");
+
+        showCumulativeTimeCheckBox.setText("Show the cumulative time");
+        showCumulativeTimeCheckBox.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        showCumulativeTimeCheckBox.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        topInnerTimePanel.add(showCumulativeTimeCheckBox);
+
+        innerTimePanel.add(topInnerTimePanel, java.awt.BorderLayout.NORTH);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.weighty = 1.0;
+        timePanel.add(innerTimePanel, gridBagConstraints);
+
+        timeTabPanel.add(timePanel, java.awt.BorderLayout.CENTER);
+        variableTabPane.addTab("Time", timeTabPanel);
+
         getContentPane().add(variableTabPane, java.awt.BorderLayout.CENTER);
 
     }// </editor-fold>//GEN-END:initComponents
@@ -586,7 +638,10 @@ public class GUIViewDialog extends JDialog implements KeyListener
 				((GUIPrism)this.getParent()).getPrism().getSettings().set(PrismSettings.SIMULATOR_NEW_PATH_ASK_VIEW, this.askOption);
 			}
 			catch (PrismException e) {}
-		}	
+		}
+		
+		view.showTime(showTimeCheckBox.isSelected());
+		view.showCumulativeTime(showCumulativeTimeCheckBox.isSelected());
 			
 		view.setVariableVisibility(visibleVariableListModel.getVariables(), hiddenVariableListModel.getVariables());		    
 		view.setRewardVisibility(visibleRewardListModel.getRewards(), hiddenRewardListModel.getRewards());
