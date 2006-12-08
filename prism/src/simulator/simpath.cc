@@ -725,11 +725,11 @@ inline void Add_Current_State_To_Path()
 			if (current_index > 1)
 			{
 				CPathState * state_before_last_state = stored_path[current_index-2];
-				last_state->cumulative_time_spent_in_state = last_state->cumulative_time_spent_in_state + state_before_last_state->cumulative_time_spent_in_state;
+				last_state->cumulative_time_spent_in_state = last_state->time_spent_in_state + state_before_last_state->cumulative_time_spent_in_state;
 			}
 			else
 			{
-				last_state->cumulative_time_spent_in_state = last_state->cumulative_time_spent_in_state;
+				last_state->cumulative_time_spent_in_state = last_state->time_spent_in_state;
 			}
 			
 			last_state->time_known = true;
