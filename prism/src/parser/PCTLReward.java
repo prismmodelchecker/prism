@@ -108,8 +108,16 @@ public class PCTLReward extends PCTLFormulaUnary
 	
 	public String getResultName()
 	{
-		// default is just "Result", will be overridden where necessary
-		return (reward == null) ? "Expected reward" : "Result";
+		// For R=? properties, use name of reward structure where applicable
+		if (reward == null) {
+			if (rewardStructIndex instanceof String) return "Expected "+rewardStructIndex;
+			// or just call it "Expected reward"
+			else return "Expected reward";
+		}
+		// For R>r etc., just use "Result"
+		else {
+			return "Result";
+		}
 	}
 
 	// check all labels (make sure the referred labels exist)
