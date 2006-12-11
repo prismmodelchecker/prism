@@ -35,6 +35,7 @@ import userinterface.*;
 import userinterface.util.*;
 import userinterface.model.*;
 import userinterface.properties.*;
+import userinterface.simulator.GUIViewDialog.RewardListItem;
 import userinterface.simulator.networking.*;
 import java.awt.event.*;
 import javax.swing.event.*;
@@ -2090,7 +2091,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
     private javax.swing.JScrollPane updatesScroll;
     private javax.swing.JSplitPane verticalSplit;
     // End of variables declaration//GEN-END:variables
-	
+	    
+    
     /**
      * @author mxk
      * Represents a  in the model.
@@ -2134,43 +2136,80 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		}
 	}
     
-    public class CumulativeRewardStructure extends RewardStructure
+    public class VariableValue
     {
-    	public CumulativeRewardStructure(int index, String name, boolean stateEmpty, boolean transitionEmpty)
+    	private Variable variable;
+    	private Object value;
+    	private boolean hasChanged;
+    	
+    	public VariableValue(Variable variable, Object value) 
+    	{			
+			this.variable = variable;
+			this.value = value;
+			this.hasChanged = true;
+		}
+
+		public Object getValue() 
     	{
-    		super(index, name, stateEmpty, transitionEmpty);    		
-    	}    	
-    	
-    	public String toString()
-		{
-			String str = super.toString();
-			str += " (cumulative)"; 
-			return str;
+			return value;
 		}
     	
-    	public boolean isCumulative()
+		public void setValue(Object value) 
 		{
-			return true;
+			this.value = value;			
 		}
-    	
-    	public String getColumnName()
+		
+		public Variable getVariable() 
 		{
-    		String str = super.getColumnName();
-			str += " (+)"; 
-			return str;    		
+			return variable;
 		}
+		
+		public void setVariable(Variable variable) 
+		{			
+			this.variable = variable;
+		}
+
+		public boolean hasChanged() 
+		{
+			return hasChanged;
+		}
+
+		public void setChanged(boolean hasChanged) 
+		{
+			this.hasChanged = hasChanged;
+		}	
+    }
+    
+    public class TimeValue
+    {
+    	private Double value;
+    	private boolean timeValueUnknown; 
+		
     	
-    	public Object getValue(int stateIndex, boolean lastState)
+    	public TimeValue(Double value) 
+    	{			
+			this.value = value;			
+		}
+
+		public Double getValue() 
     	{
-    		// The cumulative reward seems for transitions seems to be wrong.
-    		if (lastState)
-    			return new String("...");
-    		else
-    		{    		
-    			Double value = new Double(SimulatorEngine.getTotalStateRewardOfPathState(stateIndex, super.index) + SimulatorEngine.getTotalTransitionRewardOfPathState(stateIndex, super.index));
-    			return value;
-    		}
-    	}
+			return value;
+		}
+    	
+		public void setValue(Double value) 
+		{
+			this.value = value;			
+		}
+		
+		public void setTimeValueUnknown(boolean unknown)
+		{
+			this.timeValueUnknown = unknown;
+		}
+		
+		public boolean isTimeValueUnknown()
+		{
+			return this.timeValueUnknown;
+		}
     }
     
     /**
@@ -2178,19 +2217,19 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
      * Represents a  in the model.
      */
     public class RewardStructure 
-	{
+	{   	
 		private int index;
 		private String name;
-		private int type;
+		
 		private boolean stateEmpty;
-		private boolean transitionEmpty;
+		private boolean transitionEmpty;		
 		
 		public RewardStructure(int index, String name, boolean stateEmpty, boolean transitionEmpty)
 		{
 			this.index = index;
 			this.name = name;
 			this.stateEmpty = stateEmpty;
-			this.transitionEmpty = transitionEmpty;
+			this.transitionEmpty = transitionEmpty;			
 		}
 		
 		public int getIndex() 
@@ -2207,7 +2246,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		{
 			if (name == null)
 			{
-					return "" + (index + 1);
+				return "" + (index + 1);
 			}
 			else
 			{
@@ -2238,122 +2277,158 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 			else 
 			{
-				return "" + (index + 1) + ": (unnamed)"; 
+				return "" + (index + 1) + ": <unnamed>"; 
 			}
-		}
-		
-		public Object getValue(int stateIndex, boolean lastState)
-		{
-			RewardStructureValue value = new RewardStructureValue(this, SimulatorEngine.getStateRewardOfPathState(stateIndex, index), SimulatorEngine.getTransitionRewardOfPathState(stateIndex, index));
-			if (lastState)
-				value.setTransitionRewardUnknown(true);			
-			return value;
-		}
+		}		
 		
 		public boolean equals(Object o)
 		{
 			return (o instanceof RewardStructure && ((RewardStructure)o).getIndex() == index && ((RewardStructure)o).isCumulative() == isCumulative());
 		}		
-	}       
+    } 
     
-    public class RewardStructureValue
-    {
-    	private RewardStructure rewardStructure;
-    	   	
-    	private Double stateReward;
-    	private Double transitionReward;
+    public class RewardStructureColumn
+    {    	
+    	public static final int STATE_REWARD = 0;
+    	public static final int TRANSITION_REWARD = 1; 
+    	public static final int CUMULATIVE_REWARD = 2;
+    	    	
+    	private RewardStructure rewardStructure;    	
+    	private int type;    	    	
     	
-    	private boolean stateRewardUnknown;
-    	private boolean transitionRewardUnknown;
+    	public RewardStructureColumn(RewardStructure rewardStructure, int type) 
+    	{			
+			this.rewardStructure = rewardStructure;
+			this.type = type;
+		}
     	
-    	private boolean stateRewardVisible;
-    	private boolean transitionRewardVisible;    	
-    			
-    	public RewardStructureValue(RewardStructure rewardStructure, Double stateReward, Double transitionReward) 
-    	{	     
-	        this.rewardStructure = rewardStructure;
-	        this.stateReward = stateReward;
-	        this.transitionReward = transitionReward;
-	        
-	        this.transitionRewardUnknown = false;
-	        this.stateRewardUnknown = false;
-	        
-	        this.stateRewardVisible = true;
-	        this.transitionRewardVisible = true;
-        }
+		public String getColumnName()
+    	{
+    		switch (type)
+    		{
+    			case (STATE_REWARD) :
+    				return rewardStructure.getColumnName();
+    			case (TRANSITION_REWARD) :
+    				return "[ " + rewardStructure.getColumnName() + " ]";
+    			case (CUMULATIVE_REWARD) :
+    				return rewardStructure.getColumnName() + " (+)";    				
+    		}
+    		return "";
+    	}
 
 		public RewardStructure getRewardStructure() 
 		{
-        	return rewardStructure;
-        }
-		
-    	public Double getStateReward() {
-        	return stateReward;
-        }
-		
-    	public Double getTransitionReward() {
-        	return transitionReward;
-        }
+			return rewardStructure;
+		}
 
-		public void setStateReward(Double stateReward) {
-        	this.stateReward = stateReward;
-        }
+		public void setRewardStructure(RewardStructure rewardStructure) 
+		{
+			this.rewardStructure = rewardStructure;
+		}
 
-		public void setTransitionReward(Double transitionReward) {
-        	this.transitionReward = transitionReward;
-        }   
-		
-		public void setStateRewardVisible(boolean b)
+		public String toString()
 		{
-			this.stateRewardVisible = b;
+			return getColumnName();
 		}
 		
-		public boolean isStateRewardVisible()
+		public boolean isStateReward()
 		{
-			return this.stateRewardVisible;
+			return this.type == RewardStructureColumn.STATE_REWARD;
 		}
 		
-		public void setTransitionRewardVisible(boolean b)
+		public boolean isTransitionReward()
 		{
-			this.transitionRewardVisible = b;
+			return this.type == RewardStructureColumn.TRANSITION_REWARD;
 		}
 		
-		public boolean isTransitionRewardVisible()
+		public boolean isCumulativeReward()
 		{
-			return this.transitionRewardVisible;
+			return this.type == RewardStructureColumn.CUMULATIVE_REWARD;
 		}
 		
-		public void setStateRewardUnknown(boolean unknown)
+		public void setStateReward()
 		{
-			this.stateRewardUnknown = unknown;
+			this.type = RewardStructureColumn.STATE_REWARD;
 		}
 		
-		public void setTransitionRewardUnknown(boolean unknown)
+		public void setTransitionReward()
 		{
-			this.transitionRewardUnknown = unknown;
+			this.type = RewardStructureColumn.TRANSITION_REWARD;
 		}
 		
-		public boolean isTransitionRewardUnknown()
+		public void setCumulativeReward()
 		{
-			return this.transitionRewardUnknown;
-		}
-		
-		public boolean isStateRewardUnknown()
-		{
-			return this.stateRewardUnknown;
+			this.type = RewardStructureColumn.CUMULATIVE_REWARD;
 		}
     }
     
+    public class RewardStructureValue
+    {       	
+    	private RewardStructureColumn rewardStructureColumn;
+    	private Double rewardValue;
+    	private boolean hasChanged;
+    	
+    	private boolean rewardValueUnknown;    	
+    			
+    	public RewardStructureValue(RewardStructureColumn rewardStructureColumn, Double rewardValue) 
+    	{	     
+	        this.rewardStructureColumn = rewardStructureColumn;
+	        this.rewardValue = rewardValue;
+	        this.hasChanged = true;
+	        
+	        this.rewardValueUnknown = false;
+        }
+
+		public RewardStructureColumn getRewardStructureColumn() 
+		{
+        	return rewardStructureColumn;
+        }
+		
+		public void setRewardStructureColumn(RewardStructureColumn rewardStructureColumn) 
+		{
+        	this.rewardStructureColumn = rewardStructureColumn;
+        }
+		
+    	public Double getRewardValue() 
+    	{
+        	return rewardValue;
+        }
+		
+		public void setRewardValue(Double rewardValue) 
+		{
+        	this.rewardValue = rewardValue;
+        }
+		
+		public void setRewardValueUnknown(boolean unknown)
+		{
+			this.rewardValueUnknown = unknown;
+		}
+		
+		public boolean isRewardValueUnknown()
+		{
+			return this.rewardValueUnknown;
+		}
+		
+		public boolean hasChanged() 
+		{
+			return hasChanged;
+		}
+
+		public void setChanged(boolean hasChanged) 
+		{
+			this.hasChanged = hasChanged;
+		}	
+    }
+    
     public class SimulationView extends Observable
-    {    	
+    {       	
     	private ArrayList visibleVariables;
 		private ArrayList hiddenVariables;
 		
-		private ArrayList visibleRewards;
-		private ArrayList hiddenRewards;
+		private ArrayList visibleRewardColumns;		
+		private ArrayList rewards;
 		
 		private boolean stepsVisible;
-		private boolean hideEmptyRewards;
 		private boolean showTime;
 		private boolean showCumulativeTime;
 				    	
@@ -2362,25 +2437,12 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
     		this.visibleVariables = new ArrayList();
     		this.hiddenVariables = new ArrayList();
     		
-    		this.visibleRewards = new ArrayList();
-    		this.hiddenRewards = new ArrayList();
+    		this.visibleRewardColumns = new ArrayList();    		
+    		this.rewards = new ArrayList();
     		
     		refreshToDefaultView();
     	}
-    	    	
-    	public boolean hideEmptyRewards() 
-    	{
-        	return hideEmptyRewards;
-        }
-    	
-		public void hideEmptyRewards(boolean hideEmptyRewards) 
-		{
-        	this.hideEmptyRewards = hideEmptyRewards;
-        	
-        	this.setChanged();
-        	this.notifyObservers();
-        }
-
+    	    
 		public boolean showSteps() 
 		{
         	return stepsVisible;
@@ -2444,23 +2506,38 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			this.notifyObservers();		
 		}
 		
-		public ArrayList getVisibleRewards()
+		public ArrayList getVisibleRewardColumns()
 		{
-			return visibleRewards;
+			return visibleRewardColumns;
 		}
 		
-		public ArrayList getHiddenRewards()
+		public void setVisibleRewardListItems(ArrayList visibleRewardListItems)
 		{
-			return hiddenRewards;
-		}
-		
-		public void setRewardVisibility(ArrayList visibleRewards, ArrayList hiddenRewards)
-		{
-			this.visibleRewards = visibleRewards;
-			this.hiddenRewards = hiddenRewards;
+			ArrayList visibleRewardColumns = new ArrayList();
+			
+			for (Object obj : visibleRewardListItems)
+			{
+				GUIViewDialog.RewardListItem item = (GUIViewDialog.RewardListItem)obj;
+				if (item.isCumulative())
+					visibleRewardColumns.add(new RewardStructureColumn(item.getRewardStructure(), GUISimulator.RewardStructureColumn.CUMULATIVE_REWARD));
+				else
+				{
+					if (!item.getRewardStructure().isStateEmpty())
+						visibleRewardColumns.add(new RewardStructureColumn(item.getRewardStructure(), GUISimulator.RewardStructureColumn.STATE_REWARD));
+					if (!item.getRewardStructure().isTransitionEmpty())
+						visibleRewardColumns.add(new RewardStructureColumn(item.getRewardStructure(), GUISimulator.RewardStructureColumn.TRANSITION_REWARD));				
+				}
+			}
+			
+			this.visibleRewardColumns = visibleRewardColumns;
 			
 			this.setChanged();
 			this.notifyObservers();		
+		}
+		
+		public ArrayList getRewards()
+		{
+			return this.rewards;
 		}
 		
 		public SimulatorEngine getEngine()
@@ -2471,16 +2548,16 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		public void refreshToDefaultView()
 		{
 			visibleVariables.clear();
-			hiddenVariables.clear();
-			visibleRewards.clear();
-			hiddenRewards.clear();
+			hiddenVariables.clear();			
+			visibleRewardColumns.clear();
+			
+			rewards.clear();
 			
 			if (pathActive)
 			{
 				try
 				{
 					stepsVisible = true;
-					hideEmptyRewards = true;
 					showTime = mf.getType() == ModulesFile.STOCHASTIC;
 					showCumulativeTime = false;
 					
@@ -2496,8 +2573,17 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 						
 						if (rewardName.trim().length() == 0)
 						{	rewardName = null; }
-						visibleRewards.add(new RewardStructure(r, rewardName, mf.getRewardStruct(r).getNumStateItems() == 0,  mf.getRewardStruct(r).getNumTransItems() == 0));
-						hiddenRewards.add(new CumulativeRewardStructure(r, rewardName, mf.getRewardStruct(r).getNumStateItems() == 0,  mf.getRewardStruct(r).getNumTransItems() == 0));
+						
+						RewardStructure rewardStructure = new RewardStructure(r, rewardName, mf.getRewardStruct(r).getNumStateItems() == 0,  mf.getRewardStruct(r).getNumTransItems() == 0);
+						
+						if (!rewardStructure.isStateEmpty() || !rewardStructure.isTransitionEmpty())		
+							rewards.add(rewardStructure);
+						
+						if (!rewardStructure.isStateEmpty())
+							visibleRewardColumns.add(new RewardStructureColumn(rewardStructure, RewardStructureColumn.STATE_REWARD));
+						
+						if (!rewardStructure.isTransitionEmpty())
+							visibleRewardColumns.add(new RewardStructureColumn(rewardStructure, RewardStructureColumn.TRANSITION_REWARD));						
 					}				
 				}
 				catch (SimulatorException e) {}
@@ -2511,11 +2597,17 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	class PathTableModel extends AbstractTableModel implements GUIGroupedTableModel, Observer
 	{		
 		private SimulationView view;
+		private RewardStructureValue rewardStructureValue;
+		private VariableValue variableValue;
+		private TimeValue timeValue;
 				
 		public PathTableModel(SimulationView view)
 		{	
 			this.view = view;
 			this.view.addObserver(this);
+			
+			rewardStructureValue = new RewardStructureValue(null , null);			
+			variableValue = new VariableValue(null, null);			
 		}		
 		
 		public int getGroupCount() 
@@ -2531,13 +2623,13 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				if (view.showSteps()) 
 				{ groupCount++;	}
 				
-				if (view.getVisibleVariables().size() > 0)
-				{ groupCount++;	}
-				
 				if (view.showTime() || view.showCumulativeTime()) 
 				{ groupCount++;	} 
 				
-				if (view.getVisibleRewards().size() > 0)
+				if (view.getVisibleVariables().size() > 0)
+				{ groupCount++;	}				
+				
+				if (view.getVisibleRewardColumns().size() > 0)
 				{ groupCount++;	} 
 				
 				return groupCount;				
@@ -2573,6 +2665,14 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					groupCount++;
 				}
 				
+				if (view.showTime() || view.showCumulativeTime()) 
+				{	
+					if (groupCount == groupIndex) 
+					{	return "Time";	}
+					
+					groupCount++;				
+				}
+				
 				if (view.getVisibleVariables().size() > 0)
 				{ 
 					if (groupCount == groupIndex)
@@ -2581,16 +2681,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					groupCount++;
 				}
 				
-				if (view.showTime() || view.showCumulativeTime()) 
-				{	
-					if (groupCount == groupIndex) 
-					{	return "Time";	}
-					
-					groupCount++;				
-				} 
-				
 				// Add state and transitions rewards for each reward structure.
-				if (view.getVisibleRewards().size() > 0)
+				if (view.getVisibleRewardColumns().size() > 0)
 					{
 					if (groupCount == groupIndex)
 					{	return "Rewards";	}
@@ -2605,9 +2697,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		public int getLastColumnOfGroup(int groupIndex) 
 		{
 			int stepStart = 0;
-			int varStart = stepStart + (view.showSteps() ? 1 : 0);
-			int timeStart = varStart + view.getVisibleVariables().size();
-			int rewardStart = timeStart + (view.showTime() ? 1 : 0) + (view.showCumulativeTime() ? 1 : 0);
+			int timeStart = stepStart + (view.showSteps() ? 1 : 0); 
+			int varStart = timeStart + (view.showTime() ? 1 : 0) + (view.showCumulativeTime() ? 1 : 0);
+			int rewardStart =  varStart + view.getVisibleVariables().size();
 			
 			int groupCount = 0;
 						
@@ -2615,14 +2707,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			{ 
 				if (groupCount == groupIndex)
 				{	return stepStart;	}
-				
-				groupCount++;				
-			}
-			
-			if (view.getVisibleVariables().size() > 0)
-			{ 
-				if (groupCount == groupIndex)
-				{	return varStart + view.getVisibleVariables().size() -1; }
 				
 				groupCount++;				
 			}
@@ -2640,11 +2724,19 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				groupCount++;
 			} 
 			
+			if (view.getVisibleVariables().size() > 0)
+			{ 
+				if (groupCount == groupIndex)
+				{	return varStart + view.getVisibleVariables().size() -1; }
+				
+				groupCount++;				
+			}
+			
 			// Add state and transitions rewards for each reward structure.
-			if (view.getVisibleRewards().size() > 0)
+			if (view.getVisibleRewardColumns().size() > 0)
 			{
 				if (groupCount == groupIndex)
-				{	return rewardStart + view.getVisibleRewards().size() - 1;	}
+				{	return rewardStart + view.getVisibleRewardColumns().size() - 1;	}
 				
 				groupCount++;
 			}	        
@@ -2665,9 +2757,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				int colCount = 0;
 				
 				colCount += (view.showSteps() ? 1 : 0);
-				colCount += view.getVisibleVariables().size();
 				colCount += (view.showTime() ? 1 : 0) + (view.showCumulativeTime() ? 1 : 0);				
-				colCount += view.getVisibleRewards().size();
+				colCount += view.getVisibleVariables().size();
+				colCount += view.getVisibleRewardColumns().size();
 								
 				return colCount;
 			}					
@@ -2709,32 +2801,33 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			if(pathActive)
 			{
 				int stepStart = 0;
-				int varStart = stepStart + (view.showSteps() ? 1 : 0);
-				int timeStart = varStart + view.getVisibleVariables().size();
+				int timeStart = stepStart + (view.showSteps() ? 1 : 0);
 				int cumulativeTimeStart = timeStart + (view.showTime() ? 1 : 0);
-				int rewardStart = cumulativeTimeStart + (view.showCumulativeTime() ? 1 : 0);
+				int varStart = cumulativeTimeStart + (view.showCumulativeTime() ? 1 : 0); 
+				int rewardStart = varStart + view.getVisibleVariables().size();
 				
 				// The step column
-				if (stepStart <= columnIndex && columnIndex < varStart)
+				if (stepStart <= columnIndex && columnIndex < timeStart)
 				{
 					return "#";						
-				}
-				// A variable column
-				else if (varStart <= columnIndex && columnIndex < timeStart)
-				{						
-					return ((Variable)view.getVisibleVariables().get(columnIndex - varStart)).toString();						
 				}
 				else if (timeStart <= columnIndex && columnIndex < cumulativeTimeStart)
 				{
 					return "Time";
 				}
-				else if (cumulativeTimeStart <= columnIndex && columnIndex < rewardStart)
+				else if (cumulativeTimeStart <= columnIndex && columnIndex < varStart)
 				{
 					return "Time (+)";
 				}
+				// A variable column
+				else if (varStart <= columnIndex && columnIndex < rewardStart)
+				{						
+					return ((Variable)view.getVisibleVariables().get(columnIndex - varStart)).toString();						
+				}
+				
 				else if (rewardStart <= columnIndex)
 				{	
-					return ((RewardStructure)view.getVisibleRewards().get(columnIndex - rewardStart)).getColumnName();					
+					return ((RewardStructureColumn)view.getVisibleRewardColumns().get(columnIndex - rewardStart)).getColumnName();					
 				}
 			}				
 			return "Undefined Column";			
@@ -2742,76 +2835,84 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		public Object getValueAt(int rowIndex, int columnIndex)
 		{
-			try
+			if(pathActive)
 			{
-				if(pathActive)
+				int stepStart = 0;
+				int timeStart = stepStart + (view.showSteps() ? 1 : 0);
+				int cumulativeTimeStart = timeStart + (view.showTime() ? 1 : 0);
+				int varStart = cumulativeTimeStart + (view.showCumulativeTime() ? 1 : 0); 
+				int rewardStart = varStart + view.getVisibleVariables().size();
+				
+				// The step column
+				if (stepStart <= columnIndex && columnIndex < timeStart)
 				{
-					int stepStart = 0;
-					int varStart = stepStart + (view.showSteps() ? 1 : 0);
-					int timeStart = varStart + view.getVisibleVariables().size();
-					int cumulativeTimeStart = timeStart + (view.showTime() ? 1 : 0);
-					int rewardStart = cumulativeTimeStart + (view.showCumulativeTime() ? 1 : 0);
+					return "" + rowIndex;						
+				}
+				
+				else if (timeStart <= columnIndex && columnIndex < cumulativeTimeStart)					
+				{					
+					timeValue = new TimeValue(SimulatorEngine.getTimeSpentInPathState(rowIndex));					
+					timeValue.setTimeValueUnknown(rowIndex >= SimulatorEngine.getPathSize() - 1);
 					
-					// The step column
-					if (stepStart <= columnIndex && columnIndex < varStart)
-					{
-						return "" + rowIndex;						
+					return timeValue;
+				}					
+				else if (cumulativeTimeStart <= columnIndex && columnIndex < varStart)
+				{
+					timeValue = new TimeValue(SimulatorEngine.getCumulativeTimeSpentInPathState(rowIndex));					
+					timeValue.setTimeValueUnknown(rowIndex >= SimulatorEngine.getPathSize() - 1);
+					
+					return timeValue;					
+				}
+//					 A variable column
+				else if (varStart <= columnIndex && columnIndex < rewardStart)
+				{					
+					Variable var = ((Variable)view.getVisibleVariables().get(columnIndex - varStart));
+											
+					int type = var.getType();
+					int result = SimulatorEngine.getPathData(var.getIndex(), rowIndex);
+					
+					variableValue.setVariable(var);										
+					variableValue.setValue((type == Expression.BOOLEAN) ? (new Boolean(result != 0)) : (new Integer(result)));
+					variableValue.setChanged(rowIndex == 0 || SimulatorEngine.getPathData(var.getIndex(), rowIndex-1) != result);
+					
+					return variableValue;
+				}
+				else if (rewardStart <= columnIndex)
+				{		
+					RewardStructureColumn rewardColumn = (RewardStructureColumn)view.getVisibleRewardColumns().get(columnIndex - rewardStart);
+					
+					rewardStructureValue.setRewardStructureColumn(rewardColumn);
+					rewardStructureValue.setRewardValueUnknown(false);
+										
+					if (rewardColumn.isStateReward())
+					{					
+						double value = SimulatorEngine.getStateRewardOfPathState(rowIndex, rewardColumn.getRewardStructure().getIndex());
+						rewardStructureValue.setChanged(rowIndex == 0 || value != SimulatorEngine.getStateRewardOfPathState(rowIndex-1, rewardColumn.getRewardStructure().getIndex()));											
+						rewardStructureValue.setRewardValue(new Double(value));					
+						
+						rewardStructureValue.setRewardValueUnknown(rowIndex > SimulatorEngine.getPathSize() - 1);
 					}
-					// A variable column
-					else if (varStart <= columnIndex && columnIndex < timeStart)
-					{						
-						int varIndex = ((Variable)view.getVisibleVariables().get(columnIndex - varStart)).getIndex();
+					else if (rewardColumn.isTransitionReward())
+					{					
+						double value = SimulatorEngine.getTransitionRewardOfPathState(rowIndex, rewardColumn.getRewardStructure().getIndex());
+						rewardStructureValue.setChanged(rowIndex == 0 || value != SimulatorEngine.getTransitionRewardOfPathState(rowIndex-1, rewardColumn.getRewardStructure().getIndex()));											
+						rewardStructureValue.setRewardValue(new Double(value));	
 						
-						int type = engine.getVariableType(varIndex);
-						int result = SimulatorEngine.getPathData(varIndex, rowIndex);
-						
-						if(type == Expression.BOOLEAN)
-						{	return new Boolean(result != 0); }						
-						else if (type == Expression.INT)
-						{	return new Integer(result);	}
+						rewardStructureValue.setRewardValueUnknown(rowIndex >= SimulatorEngine.getPathSize() - 1);
 					}
-					else if (timeStart <= columnIndex && columnIndex < cumulativeTimeStart)					
-					{
-						if (rowIndex < SimulatorEngine.getPathSize() - 1)
-						{
-							return new Double(SimulatorEngine.getTimeSpentInPathState(rowIndex));
-						}
-						else
-						{
-							return "...";
-						}
-					}					
-					else if (cumulativeTimeStart <= columnIndex && columnIndex < rewardStart)
-					{
-						if (rowIndex < SimulatorEngine.getPathSize() - 1)
-						{
-							return new Double(SimulatorEngine.getCumulativeTimeSpentInPathState(rowIndex));
-						}
-						else
-						{
-							return "...";
-						}
+					else
+					{					
+						double value = SimulatorEngine.getTotalStateRewardOfPathState(rowIndex, rewardColumn.getRewardStructure().getIndex()) + SimulatorEngine.getTotalTransitionRewardOfPathState(rowIndex, rewardColumn.getRewardStructure().getIndex());
+						rewardStructureValue.setChanged(rowIndex == 0 || value != (SimulatorEngine.getTotalStateRewardOfPathState(rowIndex-1, rewardColumn.getRewardStructure().getIndex()) + SimulatorEngine.getTotalTransitionRewardOfPathState(rowIndex -1, rewardColumn.getRewardStructure().getIndex())));											
+						rewardStructureValue.setRewardValue(new Double(value));		
+						
+						rewardStructureValue.setRewardValueUnknown(rowIndex >= SimulatorEngine.getPathSize() - 1);
 					}
-					else if (rewardStart <= columnIndex)
-					{						
-						RewardStructure reward = (RewardStructure)view.getVisibleRewards().get(columnIndex - rewardStart);						
-						Object objValue = reward.getValue(rowIndex, (rowIndex == SimulatorEngine.getPathSize() - 1));
 						
-						if (objValue instanceof RewardStructureValue)
-						{						
-							RewardStructureValue value = (RewardStructureValue)objValue;
-						
-							value.setStateRewardVisible(!(reward.isStateEmpty() && view.hideEmptyRewards()));
-							value.setTransitionRewardVisible(!(reward.isTransitionEmpty() && view.hideEmptyRewards()));
-						}
-						
-						return objValue;																	
-					}					
-				}				
+					return rewardStructureValue;																	
+				}			
 			}
-			catch(SimulatorException e)
-			{				
-			}
+			
 			return "Undefined value";
 		}		
 		

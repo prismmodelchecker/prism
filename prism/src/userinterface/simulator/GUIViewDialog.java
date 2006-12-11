@@ -32,6 +32,7 @@ import javax.swing.table.*;
 import java.util.*;
 import java.awt.event.*;
 import userinterface.*;
+import userinterface.simulator.GUISimulator.RewardStructure;
 import simulator.*;
 
 public class GUIViewDialog extends JDialog implements KeyListener
@@ -63,7 +64,6 @@ public class GUIViewDialog extends JDialog implements KeyListener
     private javax.swing.JPanel centerRewardPanel;
     private javax.swing.JPanel centerVariableColumn;
     private javax.swing.JPanel centerVariablePanel;
-    private javax.swing.JCheckBox emptyRewardVisibleCheckBox;
     private javax.swing.JLabel hiddenLabel;
     private javax.swing.JList hiddenRewardList;
     private javax.swing.JScrollPane hiddenRewardScrollList;
@@ -80,7 +80,6 @@ public class GUIViewDialog extends JDialog implements KeyListener
     private javax.swing.JButton makeVariableVisibleButton;
     private javax.swing.JButton okayButton;
     private javax.swing.JCheckBox optionCheckBox;
-    private javax.swing.JPanel rewardOptionPanel;
     private javax.swing.JPanel rewardPanel;
     private javax.swing.JPanel rewardTabPanel;
     private javax.swing.JPanel rightRewardColumn;
@@ -135,13 +134,41 @@ public class GUIViewDialog extends JDialog implements KeyListener
 		visibleVariableList.setModel(visibleVariableListModel);
 		hiddenVariableList.setModel(hiddenVariableListModel);	
 		
-		visibleRewardListModel = new RewardListModel(view.getVisibleRewards());
-		hiddenRewardListModel = new RewardListModel(view.getHiddenRewards());
+		ArrayList visibleRewardColumn = new ArrayList();
+		ArrayList hiddenRewardColumn = new ArrayList();
+		
+		for (Object obj : view.getRewards())
+		{
+			GUISimulator.RewardStructure reward = (GUISimulator.RewardStructure)obj;
+			
+			hiddenRewardColumn.add(new RewardListItem(reward, false));
+			hiddenRewardColumn.add(new RewardListItem(reward, true));
+		}
+		
+		for (Object obj1 : view.getVisibleRewardColumns())
+		{
+			GUISimulator.RewardStructureColumn rewardColumn = (GUISimulator.RewardStructureColumn)obj1;
+			
+			for (Object obj2 : hiddenRewardColumn)
+			{
+				RewardListItem rewardListItem = (RewardListItem)obj2;
+				
+				if (rewardColumn.getRewardStructure().equals(rewardListItem.getRewardStructure()) && rewardColumn.isCumulativeReward() == rewardListItem.isCumulative())
+				{
+					visibleRewardColumn.add(obj2);
+					hiddenRewardColumn.remove(obj2);
+					
+					break;
+				}
+			}			
+		}
+		
+		visibleRewardListModel = new RewardListModel(visibleRewardColumn);
+		hiddenRewardListModel = new RewardListModel(hiddenRewardColumn);
 				
 		visibleRewardList.setModel(visibleRewardListModel);
 		hiddenRewardList.setModel(hiddenRewardListModel);
 		
-		emptyRewardVisibleCheckBox.setSelected(!view.hideEmptyRewards());
 		variableTabPane.setEnabledAt(2, view.canShowTime());
 		
 		this.setVisible(true);
@@ -197,8 +224,6 @@ public class GUIViewDialog extends JDialog implements KeyListener
         hiddenRewardScrollList = new javax.swing.JScrollPane();
         hiddenRewardList = new javax.swing.JList();
         selectAllHiddenRewardsButton = new javax.swing.JButton();
-        rewardOptionPanel = new javax.swing.JPanel();
-        emptyRewardVisibleCheckBox = new javax.swing.JCheckBox();
         timeTabPanel = new javax.swing.JPanel();
         timePanel = new javax.swing.JPanel();
         innerTimePanel = new javax.swing.JPanel();
@@ -475,17 +500,6 @@ public class GUIViewDialog extends JDialog implements KeyListener
 
         rewardTabPanel.add(rewardPanel, java.awt.BorderLayout.CENTER);
 
-        rewardOptionPanel.setLayout(new java.awt.BorderLayout());
-
-        rewardOptionPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 5, 5, 5));
-        emptyRewardVisibleCheckBox.setText("Show empty state/transition rewards");
-        emptyRewardVisibleCheckBox.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        emptyRewardVisibleCheckBox.setMargin(new java.awt.Insets(0, 0, 0, 0));
-        rewardOptionPanel.add(emptyRewardVisibleCheckBox, java.awt.BorderLayout.WEST);
-        emptyRewardVisibleCheckBox.getAccessibleContext().setAccessibleName("Show ");
-
-        rewardTabPanel.add(rewardOptionPanel, java.awt.BorderLayout.SOUTH);
-
         variableTabPane.addTab("Reward visibility", rewardTabPanel);
 
         timeTabPanel.setLayout(new java.awt.BorderLayout());
@@ -522,6 +536,7 @@ public class GUIViewDialog extends JDialog implements KeyListener
         timePanel.add(innerTimePanel, gridBagConstraints);
 
         timeTabPanel.add(timePanel, java.awt.BorderLayout.CENTER);
+
         variableTabPane.addTab("Time", timeTabPanel);
 
         getContentPane().add(variableTabPane, java.awt.BorderLayout.CENTER);
@@ -543,7 +558,7 @@ public class GUIViewDialog extends JDialog implements KeyListener
     	
     	for (int i = indices.length - 1; i >= 0; i--)
     	{
-    		GUISimulator.RewardStructure rew = (GUISimulator.RewardStructure)visibleRewardListModel.get(indices[i]);
+    		RewardListItem rew = (RewardListItem)visibleRewardListModel.get(indices[i]);
     		
     		visibleRewardListModel.removeReward(rew);
     		hiddenRewardListModel.addReward(rew);
@@ -556,7 +571,7 @@ public class GUIViewDialog extends JDialog implements KeyListener
     	
     	for (int i = indices.length - 1; i >= 0; i--)
     	{
-    		GUISimulator.RewardStructure rew = (GUISimulator.RewardStructure)hiddenRewardListModel.get(indices[i]);
+    		RewardListItem rew = (RewardListItem)hiddenRewardListModel.get(indices[i]);
     		
     		hiddenRewardListModel.removeReward(rew);
     		visibleRewardListModel.addReward(rew);
@@ -641,12 +656,11 @@ public class GUIViewDialog extends JDialog implements KeyListener
 		}
 		
 		view.showTime(showTimeCheckBox.isSelected());
-		view.showCumulativeTime(showCumulativeTimeCheckBox.isSelected());
-			
+		view.showCumulativeTime(showCumulativeTimeCheckBox.isSelected());			
 		view.setVariableVisibility(visibleVariableListModel.getVariables(), hiddenVariableListModel.getVariables());		    
-		view.setRewardVisibility(visibleRewardListModel.getRewards(), hiddenRewardListModel.getRewards());
-		
-		view.hideEmptyRewards(!emptyRewardVisibleCheckBox.isSelected());
+
+		view.setVisibleRewardListItems(visibleRewardListModel.getRewards());
+				
 		dispose();
 	}//GEN-LAST:event_okayButtonActionPerformed
         
@@ -675,7 +689,6 @@ public class GUIViewDialog extends JDialog implements KeyListener
 	{
 	    
 	}
-	
 	
 	class VariableListModel extends DefaultListModel
 	{	
@@ -725,23 +738,83 @@ public class GUIViewDialog extends JDialog implements KeyListener
 		}
 	}
 	
+	class RewardListItem
+	{
+		private GUISimulator.RewardStructure rewardStructure;
+		private boolean isCumulative;
+		
+		public RewardListItem(RewardStructure rewardStructure, boolean isCumulative) 
+		{			
+			this.rewardStructure = rewardStructure;
+			this.isCumulative = isCumulative;
+		}
+		
+		public String toString()
+		{
+			String res = rewardStructure.toString();
+			if (isCumulative)
+				return res + " (cumulative)";
+			else
+			{
+				if (!rewardStructure.isStateEmpty() && !rewardStructure.isTransitionEmpty())
+					return res + " (state and transition)";
+				else if (!rewardStructure.isStateEmpty())
+					return res + " (state)";	
+				else if (!rewardStructure.isTransitionEmpty())
+					return res + " (transition)";
+				else
+					return res + " (empty)";
+			}
+		}
+
+		public boolean isCumulative() 
+		{
+			return isCumulative;
+		}
+
+		public void setCumulative(boolean isCumulative) 
+		{
+			this.isCumulative = isCumulative;
+		}
+
+		public GUISimulator.RewardStructure getRewardStructure() 
+		{
+			return rewardStructure;
+		}
+
+		public void setRewardStructure(GUISimulator.RewardStructure rewardStructure) 
+		{
+			this.rewardStructure = rewardStructure;
+		}
+		
+		public boolean equals(Object obj)
+		{
+			if (obj instanceof RewardListItem)
+			{
+				RewardListItem item = (RewardListItem)obj;
+				return (item.getRewardStructure().equals(this.rewardStructure) && item.isCumulative() == isCumulative);
+			}
+			
+			return false;
+		}
+	}
+	
 	class RewardListModel extends DefaultListModel
 	{	
-		public RewardListModel(ArrayList rewards)
+		public RewardListModel(ArrayList rewardListItems)
 		{
-			super();
-			for (int i = 0; i < rewards.size(); i++)
+			for (int i = 0; i < rewardListItems.size(); i++)
 			{
-				super.add(i, ((GUISimulator.RewardStructure)rewards.get(i)));
+				super.add(i, (RewardListItem)rewardListItems.get(i));
 				
 			}
 		}
 		
-		public void removeReward(GUISimulator.RewardStructure reward)
+		public void removeReward(RewardListItem reward)
 		{
 			for (int i = 0; i < super.getSize(); i++)
 			{
-				GUISimulator.RewardStructure rew = (GUISimulator.RewardStructure)super.getElementAt(i);
+				RewardListItem rew = (RewardListItem)super.getElementAt(i);
 				if (rew.equals(reward))
 				{
 					super.remove(i);
@@ -749,16 +822,16 @@ public class GUIViewDialog extends JDialog implements KeyListener
 			}			
 		}
 		
-		public void addReward(GUISimulator.RewardStructure reward)
+		public void addReward(RewardListItem reward)
 		{
 			int i = 0;
 				
-			while (i < super.getSize() && ((GUISimulator.RewardStructure)super.getElementAt(i)).getIndex() < reward.getIndex())
+			while (i < super.getSize() && ((RewardListItem)super.getElementAt(i)).getRewardStructure().getIndex() < reward.getRewardStructure().getIndex())
 			{
 				i++;				
 			}
 			
-			if (i < super.getSize() && ((GUISimulator.RewardStructure)super.getElementAt(i)).getIndex() == reward.getIndex() && reward.isCumulative())
+			if (i < super.getSize() && ((RewardListItem)super.getElementAt(i)).getRewardStructure().getIndex() == reward.getRewardStructure().getIndex() && reward.isCumulative())
 			{
 				i++;
 			}

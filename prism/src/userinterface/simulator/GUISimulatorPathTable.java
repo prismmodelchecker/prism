@@ -76,20 +76,20 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 	
 		this.header = rowHeader;
 			
-		setDefaultRenderer(Object.class, new PathChangeTableRenderer());
+		setDefaultRenderer(Object.class, new PathChangeTableRenderer(true));
 	
 		//setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);		
 	}
 	
 	public void switchToChangeRenderer()
 	{
-		setDefaultRenderer(Object.class, new PathChangeTableRenderer());
+		setDefaultRenderer(Object.class, new PathChangeTableRenderer(true));
 		repaint();
 	}
     
 	public void switchToBoringRenderer()
 	{
-		setDefaultRenderer(Object.class, new PathTableRenderer());
+		setDefaultRenderer(Object.class, new PathChangeTableRenderer(false));
 		repaint();
 	}
     
@@ -279,224 +279,78 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 			fireContentsChanged(this, 0, ptm.getRowCount());
 		}
 	
-	}
-    
-	class PathTableRenderer implements TableCellRenderer
-	{
-		JTextField renderer;
+	}   
 	
-		public PathTableRenderer()
-		{
-			renderer = new JTextField("");
-		}
-		public Component getTableCellRendererComponent(JTable table, Object value,
-			boolean isSelected, boolean hasFocus, int row, int column)
-		{
-	    
-			if(value instanceof Double && ((Double)value).doubleValue() == SimulatorEngine.UNDEFINED_DOUBLE)
-				renderer.setText("");
-			else renderer.setText(value.toString());   
-	    
-			Color c = Color.white;    
-	    
-			if(isSelected)
-			{
-				Color newCol = new Color(c.getRed()-20, c.getGreen()-20, c.getBlue());
-				if(ptm.shouldColourRow(row))
-				{
-					newCol = new Color(newCol.getRed()-20, newCol.getGreen(), newCol.getBlue()-20);
-		    
-					renderer.setBackground(newCol);
-				}
-				else
-					renderer.setBackground(newCol);
-			}
-			else
-			{
-				if(ptm.shouldColourRow(row))
-				{
-					Color newCol = new Color(c.getRed()-100, c.getGreen(), c.getBlue()-100);
-		    
-					renderer.setBackground(newCol);
-				}
-				else
-					renderer.setBackground(c);
-			}
-	    
-	    
-	    
-			renderer.setBorder(new EmptyBorder(1, 1, 1, 1));
-			return renderer;
-		}
-	}
-    
 	class PathChangeTableRenderer extends JPanel implements TableCellRenderer
-	{
-	
-		Object value;
-		boolean top;
-		boolean mid;
-		boolean bottom;
-		boolean last;
-		boolean selected;
-		int row;
-		JTextField field;
-		Color bg;
-	
-		public PathChangeTableRenderer()
+	{		
+		private boolean onlyShowChange;
+		
+		private Object value;
+		private String tooltip;
+		
+		private boolean isLastRow;		
+		private boolean isSelected;
+		
+		private JTextField field = new JTextField();
+		
+		private int row;
+		private int column;
+		
+		private Color defaultColor;
+		private Color defaultVariableColor;
+		private Color defaultRewardColor;
+		private Color selectedColor;
+		private Color labelColor;
+		private Color selectedLabelColor;
+		
+		public PathChangeTableRenderer(boolean onlyShowChange)
 		{
 			super();
-	    
-			top = true;
-			mid = false;
-			bottom = false;
-			last = false;
-			selected = false;
-			bg = Color.white;
-	    
-			field = new JTextField();
+			
+			this.onlyShowChange = onlyShowChange;
+			
+			defaultColor = Color.white;
+			defaultVariableColor = Color.white;
+			defaultRewardColor = Color.white;
+			
+			selectedColor = new Color(defaultColor.getRed()-20, defaultColor.getGreen()-20, defaultColor.getBlue());
+			selectedLabelColor = new Color(selectedColor.getRed()-20, selectedColor.getGreen(), selectedColor.getBlue()-20);
+			labelColor = new Color(defaultColor.getRed()-50, defaultColor.getGreen(), defaultColor.getBlue()-50);					
+			
+			isSelected = false;			
 		}
+		
 		public Component getTableCellRendererComponent(JTable table, Object value,
 			boolean isSelected, boolean hasFocus, int row, int column)
 		{
-	    
-			//column = table.getColumnModel().getColumnIndex(table.getColumnName(column));
-			this.row = row;
-			column = table.convertColumnIndexToModel(column);
-	    
-			bg = Color.white;
-			if(column == 0 || column > ptm.getView().getVisibleVariables().size())
-			{
-				field.setToolTipText(null);
-				
-				if(value instanceof Double)
-				{
-					Double dv = (Double)value;
-					double dvd = dv.doubleValue();
-		    
-					if(dvd == SimulatorEngine.UNDEFINED_DOUBLE)
-						field.setText("");
-					else field.setText(value.toString());
-				}
-				else if (value instanceof GUISimulator.RewardStructureValue)
-				{
-					GUISimulator.RewardStructureValue rewardValue = (GUISimulator.RewardStructureValue)value;
-					
-					//GUISimulator.RewardStructure reward = rewardValue.getRewardStructure();
-					
-					String text = "";
-					String tooltipText = "";
-					
-					if (rewardValue.isStateRewardVisible())
-					{
-						text += (rewardValue.isStateRewardUnknown()) ? "..." : rewardValue.getStateReward().toString();	
-						tooltipText += "State reward";
-					}
-					
-					if (rewardValue.isStateRewardVisible() && rewardValue.isTransitionRewardVisible())
-					{
-						text += " ";
-						tooltipText += " ";
-					}
-					           
-					if (rewardValue.isTransitionRewardVisible())
-					{
-						text += "[ ";						
-						text += (rewardValue.isTransitionRewardUnknown()) ? "..." : rewardValue.getTransitionReward().toString();						
-						text += " ]";
+			GUISimulator.SimulationView view = ((GUISimulator.PathTableModel)table.getModel()).getView();
+			
+			int stepStart = 0;
+			int timeStart = stepStart + (view.showSteps() ? 1 : 0); 
+			int varStart = timeStart + (view.showTime() ? 1 : 0) + (view.showCumulativeTime() ? 1 : 0);
+			int rewardStart =  varStart + view.getVisibleVariables().size();
 							
-						tooltipText += "[ " + (rewardValue.isStateRewardVisible() ? "t" : "T") + "ransition reward ]";
-					}
+			this.row = row;
+			this.column = table.convertColumnIndexToModel(column);			
+							
+			this.value = value;
 					
-					if (rewardValue.isStateRewardUnknown() || rewardValue.isTransitionRewardUnknown())
-					{
-						tooltipText += "Some rewards values have yet to be determined ";
-					}
-					
-					field.setText(text);
-										
-					field.setHorizontalAlignment(JTextField.CENTER);	
-					field.setToolTipText(tooltipText);
-				}
-				else 
-				{
-					field.setText(value.toString());
-					field.setHorizontalAlignment(JTextField.CENTER);
-				}	
-				
-				if(isSelected)
-				{
-					Color newCol = new Color(bg.getRed()-20, bg.getGreen()-20, bg.getBlue());
-					if(ptm.shouldColourRow(row))
-					{
-						newCol = new Color(newCol.getRed()-20, newCol.getGreen(), newCol.getBlue()-20);
+			this.isSelected = isSelected;			
 			
-						field.setBackground(newCol);
-					}
-					else
-						field.setBackground(newCol);
-				}
-				else
-				{
-					if(ptm.shouldColourRow(row))
-					{
-						Color newCol = new Color(bg.getRed()-50, bg.getGreen(), bg.getBlue()-50);
+			boolean shouldColourRow = ptm.shouldColourRow(row);
+
+			Color backGround = defaultColor;
 			
-						field.setBackground(newCol);
-					}
-					else
-						field.setBackground(bg);
-				}
-		
-				field.setBorder(new EmptyBorder(1, 1, 1, 1));
-				return field;
-			}
-			else if(row == 0)
-			{
-				this.value = value;
-				this.top = true;
-				this.mid = false;
-				this.bottom = false;
-				this.selected = isSelected;
-				this.row = row;
-				if(row == ptm.getRowCount()-1)
-					this.last = true;
-				else
-					this.last = false;
-				return this;
-		
-			}
-			else if(ptm.getValueAt(row-1, column).equals(value))
-			{
-				this.value = value;
-				this.top = false;
-				this.mid = true;
-				this.bottom = false;
-				this.selected = isSelected;
-				this.row = row;
-				if(row == ptm.getRowCount()-1)
-					this.last = true;
-				else this.last = false;
-				return this;
-			}
-			else
-			{
-				this.value = value;
-				this.top = false;
-				this.mid = false;
-				this.bottom = true;
-				this.selected = isSelected;
-				this.row = row;
-				if(row == ptm.getRowCount()-1)
-					this.last = true;
-				else this.last = false;
-				return this;
-			}
-	    
-	    
-	    
-	    
-	    
+			if(isSelected && !shouldColourRow)
+				backGround = selectedColor;
+			else if (isSelected && shouldColourRow)
+				backGround = selectedLabelColor;
+			else if (!isSelected && shouldColourRow)
+				backGround = labelColor;
+			
+			this.setBackground(backGround);
+			
+			return this;
 		}
 	
 		public void paintComponent(Graphics g)
@@ -504,94 +358,110 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 			super.paintComponent(g);
 	    
 			Graphics2D g2 = (Graphics2D)g;
-			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-	    
-			if(selected)
+						
+			if (value instanceof String)
 			{
-				Color newCol = new Color(bg.getRed()-20, bg.getGreen()-20, bg.getBlue());
-		
-				g2.setColor(newCol);
+				String stringValue = (String)value;
+				
+				double width = getStringWidth(stringValue, g2);
+				double height = g2.getFont().getSize();
+								
+				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);	
+				
+				g2.setColor(Color.black);
+				g2.drawString(stringValue, (int)((getWidth()/2 + 0.5)- (width/2)), 12);			
 			}
-			else
+			else if (value instanceof GUISimulator.VariableValue)
 			{
-				g2.setColor(bg);
-			}
-	    
-			if(selected)
-			{
-				Color newCol = new Color(bg.getRed()-20, bg.getGreen()-20, bg.getBlue());
-				if(ptm.shouldColourRow(row))
-				{
-					newCol = new Color(newCol.getRed()-20, newCol.getGreen(), newCol.getBlue()-20);
-		    
-					g2.setColor(newCol);
-				}
-				else
-					g2.setColor(newCol);
-			}
-			else
-			{
-				if(ptm.shouldColourRow(row))
-				{
-					Color newCol = new Color(bg.getRed()-50, bg.getGreen(), bg.getBlue()-50);
-		    
-					g2.setColor(newCol);
-				}
-				else
-					g2.setColor(bg);
-			}
-	    
-			g2.fillRect(0,0,getWidth(), getHeight());
-	    
-			g2.setColor(Color.black);
-	    
-			double width = getStringWidth(value.toString(), g2);
-			double height = g2.getFont().getSize();
-	    
-			if(top || bottom || last || selected)
-			{
-				g2.drawString(value.toString(), (int)((getWidth()/2)- (width/2)), 12);
-		
+				GUISimulator.VariableValue variableValue = (GUISimulator.VariableValue)value;
+													
+				String stringValue = variableValue.getValue().toString();
+				
+				double width = getStringWidth(stringValue, g2);
+				
 				RoundRectangle2D.Double rec = new RoundRectangle2D.Double((getWidth()/2)-(width/2)-5, 1, width+10, getHeight()-3, 8, 8);
-				if(last)
+				
+				Color color = (variableValue.hasChanged()) ? (Color.black) : (Color.lightGray);
+								
+				if (onlyShowChange)
 				{
-					g2.setColor(new Color(253,255,201));
-				}
-				else if(mid)
-				{
-					g2.setColor(new Color(252,252,252));
+					g2.setColor(Color.black);
+					g2.drawLine(getWidth()/2, 0, getWidth()/2, getHeight());					
+					
+					if (isSelected || variableValue.hasChanged())
+					{		
+						g2.setColor(defaultVariableColor);
+						g2.fill(rec);					
+						
+						g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);	
+											
+						g2.setColor(color);				
+						g2.draw(rec);
+						
+						g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);	
+										
+						g2.drawString(stringValue, (int)((getWidth()/2 + 0.5)- (width/2)), 12);
+					}
 				}
 				else
 				{
-					g2.setColor(Color.white);
+					g2.setColor(color);					
+					g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);									
+					g2.drawString(stringValue, (int)((getWidth()/2 + 0.5)- (width/2)), 12);
 				}
-				g2.fill(rec);
-		
-				g2.setColor(Color.black);
-		
-				if(mid)
-					g2.setColor(Color.lightGray);
-				g2.draw(rec);
-		
-				g2.setColor(Color.black);
-				g2.drawLine(getWidth()/2, 0, getWidth()/2, 1);
-				g2.drawLine(getWidth()/2, getHeight(), getWidth()/2, getHeight()-2);
-		
-				if(mid)
-					g2.setColor(Color.lightGray);
-				g2.drawString(value.toString(), (int)((getWidth()/2)- (width/2)), 12);
 			}
-			else if(mid)
+			else if (value instanceof GUISimulator.RewardStructureValue)
 			{
-				g2.drawLine(getWidth()/2, 0, getWidth()/2, getHeight());
+				GUISimulator.RewardStructureValue rewardValue = (GUISimulator.RewardStructureValue)value;
+												
+				String stringValue = (rewardValue.isRewardValueUnknown()) ? "?" : rewardValue.getRewardValue().toString();
+				
+				double width = getStringWidth(stringValue, g2);
+				
+				RoundRectangle2D.Double rec = new RoundRectangle2D.Double((getWidth()/2)-(width/2)-5, 1, width+10, getHeight()-3, 8, 8);
+				
+				Color color = (rewardValue.hasChanged() || rewardValue.isRewardValueUnknown()) ? (Color.black) : (Color.lightGray);
+								
+				if (onlyShowChange)
+				{
+					g2.setColor(Color.black);
+					g2.drawLine(getWidth()/2, 0, getWidth()/2, getHeight());
+										
+					if ((isSelected || rewardValue.hasChanged()))
+					{
+						g2.setColor(defaultRewardColor);
+						g2.fill(rec);					
+						
+						g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);	
+											
+						g2.setColor(color);				
+						g2.draw(rec);
+						
+						g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);	
+										
+						g2.drawString(stringValue, (int)((getWidth()/2 + 0.5)- (width/2)), 12);
+					}
+				}
+				else
+				{
+					g2.setColor(color);	
+					g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);	
+					g2.drawString(stringValue, (int)((getWidth()/2 + 0.5)- (width/2)), 12);
+				}
 			}
-			/*else if(mid)
-			 {
-			 g2.drawLine(getWidth()/2, 0, getWidth()/2, getHeight()/2);
-			 g2.drawLine((getWidth()/2)-10, getHeight()/2, (getWidth()/2)+10, getHeight()/2);
-			 }*/
-	    
-	    
+			else if (value instanceof GUISimulator.TimeValue)
+			{
+				GUISimulator.TimeValue timeValue = (GUISimulator.TimeValue)value;
+				String stringValue = (timeValue.isTimeValueUnknown()) ? "?" : timeValue.getValue().toString();
+					
+				double width = getStringWidth(stringValue, g2);
+					
+				Color color = (Color.black);
+				
+				g2.setColor(color);	
+				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+				g2.drawString(stringValue, (int)((getWidth()/2 + 0.5)- (width/2)), 12);				
+			}
 		}
 	}
     
