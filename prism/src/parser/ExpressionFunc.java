@@ -60,7 +60,7 @@ public class ExpressionFunc extends ExpressionNary
 		name = s;
 		// determine and set code
 		n = names.length;
-		code = 0;
+		code = -1;
 		for (i = 0; i < n; i++) {
 			if (s.equals(names[i])) {
 				code = i;
