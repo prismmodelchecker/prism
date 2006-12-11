@@ -554,7 +554,7 @@ public class NondetModelChecker implements ModelChecker
 				// compute/print min info
 				if (pctl.filterMaxRequested()) {
 					maxRes = probs.maxOverBDD(filter);
-					mainLog.print("\nMaximum " + (min?"minimum":"maximum") + " probability for states satisfying " + pctl.getFilter() + ": " + minRes + "\n");
+					mainLog.print("\nMaximum " + (min?"minimum":"maximum") + " probability for states satisfying " + pctl.getFilter() + ": " + maxRes + "\n");
 					tmp = probs.getBDDFromInterval(maxRes-termCritParam, maxRes+termCritParam);
 					JDD.Ref(filter);
 					tmp = JDD.And(tmp, filter);
