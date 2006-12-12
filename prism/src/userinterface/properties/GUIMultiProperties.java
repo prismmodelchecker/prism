@@ -52,7 +52,6 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	public static final int NEVER_INVALID_PROPS = 2;
 	
 	//ATTRIBUTES
-	//private int invalidPropertyStrategy = WARN_INVALID_PROPS;
 	
 	// current model (gets updated only by event listening to GUIModel)
 	private ModulesFile parsedModel;
@@ -63,15 +62,13 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	private boolean modified;
 	private boolean modifiedSinceBuild;
 	private boolean computing;
-	private boolean newAfterReceiveNewOrLoadModelNotification = true;
 	private boolean verifyAfterReceiveParseNotification,
 	verifyAfterReceiveBuildNotification,
 	experimentAfterReceiveParseNotification,
 	simulateAfterReceiveParseNotification;
-	private PropertiesFile verifyThisAfter;
-	private ArrayList guiVerifyThisAfter;
+	private PropertiesFile parsedProperties;
+	private ArrayList propertiesToBeVerified;
 	private File activeFile;
-	//private GUIPropertiesOptions options;
 	private Values lastPFConstants;
 	private Values lastSimulateValues;
 	
@@ -85,8 +82,6 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	private JScrollPane expScroller;
 	private JLabel fileLabel;
 	private Vector clipboardVector;
-	
-	private GUISimulator simulator;
 	
 	private Action newProps, openProps, saveProps, savePropsAs, insertProps,
 	verifyAll, verifySelected, cutAction, copyAction, pasteAction, deleteAction,
@@ -109,8 +104,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	public GUIMultiProperties(GUIPrism pr, GUISimulator simulator)
 	{
 		super(pr);
-		this.simulator = simulator;
-		simulator.setGUIProb(this); //two way link required
+		simulator.setGUIProb(this); // link required
 		initComponents();
 		a_newList();
 		setBuiltModel(null);
@@ -175,17 +169,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		return getPrism().getSettings().getInteger(PrismSettings.PROPERTIES_ADDITION_STRATEGY)+1; //note the correction
 	}
 	
-	public boolean isNewAfterReceiveNewOrLoadModelNotification()
-	{
-		return newAfterReceiveNewOrLoadModelNotification;
-	}
-	
 	/* UPDATE METHODS */
-	
-	public void setNewAfterReceiveNewOrLoadModelNotification(boolean b)
-	{
-		newAfterReceiveNewOrLoadModelNotification = b;
-	}
 	
 	public void repaintList()
 	{
@@ -198,9 +182,9 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		propList.setEnabled(true);
 		consTable.setEnabled(true);
 		labTable.setEnabled(true);
-		if(builtModel != null && verifyThisAfter != null && guiVerifyThisAfter != null)
+		if(builtModel != null && parsedProperties != null && propertiesToBeVerified != null)
 		{
-			Thread t = new ModelCheckThread(this, builtModel, verifyThisAfter, guiVerifyThisAfter, lastBuildValues, lastPFConstants);
+			Thread t = new ModelCheckThread(this, builtModel, parsedProperties, propertiesToBeVerified, lastBuildValues, lastPFConstants);
 			t.setPriority(Thread.NORM_PRIORITY);
 			t.start();
 		}
@@ -209,13 +193,12 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	protected void verifyAfterParse()
 	{
 		verifyAfterReceiveParseNotification = false;
-		PropertiesFile pf;
 		ArrayList validGUIProperties;
 		Values buildValues;
 		UndefinedConstants uCon;
 		try
 		{
-			pf = getPrism().parsePropertiesString(parsedModel, getLabelsString()+"\n"+getConstantsString()+"\n"+propList.getValidSelectedString());
+			parsedProperties = getPrism().parsePropertiesString(parsedModel, getLabelsString()+"\n"+getConstantsString()+"\n"+propList.getValidSelectedString());
 			validGUIProperties = propList.getValidSelectedProperties();
 		}
 		catch(ParseException e)
@@ -232,7 +215,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		//find out any undefined constants
 		try
 		{
-			uCon = new UndefinedConstants(parsedModel, pf);
+			uCon = new UndefinedConstants(parsedModel, parsedProperties);
 			if(uCon.getMFNumUndefined() + uCon.getPFNumUndefined() > 0)
 			{
 				int result = GUIConstantsPicker.defineConstantsWithDialog(this.getGUI(), uCon, lastBuildValues, lastPFConstants);
@@ -241,7 +224,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 			buildValues = uCon.getMFConstantValues();
 			lastPFConstants = uCon.getPFConstantValues();
-			pf.setUndefinedConstants(lastPFConstants);
+			parsedProperties.setUndefinedConstants(lastPFConstants);
 		}
 		catch(PrismException e)
 		{
@@ -250,8 +233,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		}
 		
 		verifyAfterReceiveBuildNotification = true;
-		verifyThisAfter = pf;
-		guiVerifyThisAfter = validGUIProperties;
+		propertiesToBeVerified = validGUIProperties;
 		propList.setEnabled(false);
 		consTable.setEnabled(false);
 		notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.REQUEST_MODEL_BUILD, buildValues));
@@ -260,12 +242,11 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	public void simulateAfterParse()
 	{
 		simulateAfterReceiveParseNotification = false;
-		PropertiesFile pf;
 		ArrayList validGUIProperties, simulatableGUIProperties;
 		UndefinedConstants uCon;
 		try
 		{
-			pf = getPrism().parsePropertiesString(parsedModel, getLabelsString()+"\n"+getConstantsString()+"\n"+propList.getValidSelectedString());
+			parsedProperties = getPrism().parsePropertiesString(parsedModel, getLabelsString()+"\n"+getConstantsString()+"\n"+propList.getValidSelectedString());
 			validGUIProperties = propList.getValidSelectedProperties();
 			if (validGUIProperties.size() == 0) {
 				error("None of the selected properties are suitable for simulation");
@@ -290,7 +271,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			GUIProperty guiP = (GUIProperty)validGUIProperties.get(i);
 			try
 			{
-				getPrism().checkPropertyForSimulation(parsedModel, pf, guiP.getPCTLProperty());
+				getPrism().checkPropertyForSimulation(parsedModel, parsedProperties, guiP.getPCTLProperty());
 				simulatableGUIProperties.add(guiP);
 			}
 			catch(PrismException e)
@@ -310,7 +291,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		//find out any undefined constants
 		try
 		{
-			uCon = new UndefinedConstants(parsedModel, pf);
+			uCon = new UndefinedConstants(parsedModel, parsedProperties);
 			if(uCon.getMFNumUndefined() + uCon.getPFNumUndefined() > 0)
 			{
 				int result = GUIConstantsPicker.defineConstantsWithDialog(this.getGUI(), uCon, lastSimulateValues, lastPFConstants);
@@ -321,7 +302,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			lastSimulateValues = uCon.getMFConstantValues();
 			lastPFConstants = uCon.getPFConstantValues();
 			parsedModel.setUndefinedConstants(lastSimulateValues);
-			pf.setUndefinedConstants(lastPFConstants);
+			parsedProperties.setUndefinedConstants(lastPFConstants);
 			
 			SimulationInformation info = GUISimulationPicker.defineSimulationWithDialog(this.getGUI(), parsedModel.getInitialValues(), parsedModel);
 			if(info == null) return;
@@ -330,15 +311,15 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			int noIterations = info.getNoIterations();
 			int maxPathLength = info.getMaxPathLength();
 			
-			if(parsedModel != null && pf != null && validGUIProperties != null)
+			if(parsedModel != null && parsedProperties != null && validGUIProperties != null)
 			{
 				if(info.isDistributed())
 				{
-					new GUISimulatorDistributionDialog(getGUI(), getPrism().getSimulator(), true).show(this, parsedModel, pf, validGUIProperties,  info);
+					new GUISimulatorDistributionDialog(getGUI(), getPrism().getSimulator(), true).show(this, parsedModel, parsedProperties, validGUIProperties,  info);
 				}
 				else
 				{
-					Thread t = new SimulateModelCheckThread(this, parsedModel, pf, validGUIProperties, lastSimulateValues, lastPFConstants, initialState, noIterations, maxPathLength, info);
+					Thread t = new SimulateModelCheckThread(this, parsedModel, parsedProperties, validGUIProperties, lastSimulateValues, lastPFConstants, initialState, noIterations, maxPathLength, info);
 					t.setPriority(Thread.NORM_PRIORITY);
 					t.start();
 				}
@@ -354,27 +335,26 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	public void experimentAfterParse()
 	{
 		experimentAfterReceiveParseNotification = false;
-		PropertiesFile pf = null;
 		GUIProperty gp = propList.getProperty(propList.getSelectedIndex());
 		int type;
 		
 		try
 		{
 			// parse property to be used for experiment
-			pf = getPrism().parsePropertiesString(parsedModel, getLabelsString()+"\n"+getConstantsString()+"\n"+gp.getPropString());
-			if (pf.getNumProperties() <= 0)
+			parsedProperties = getPrism().parsePropertiesString(parsedModel, getLabelsString()+"\n"+getConstantsString()+"\n"+gp.getPropString());
+			if (parsedProperties.getNumProperties() <= 0)
 			{
 				error("There are no properties selected");
 				return;
 			}
-			if (pf.getNumProperties() > 1)
+			if (parsedProperties.getNumProperties() > 1)
 			{
 				error("Experiments can only be created for a single property");
 				return;
 			}
 			
 			// check the type of the property
-			type = pf.getProperty(0).getType();
+			type = parsedProperties.getProperty(0).getType();
 		}
 		catch(ParseException e)
 		{
@@ -388,7 +368,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		}
 		
 		// sort out undefined constants
-		UndefinedConstants uCon = new UndefinedConstants(parsedModel, pf);
+		UndefinedConstants uCon = new UndefinedConstants(parsedModel, parsedProperties);
 		boolean showGraphDialog = false;
 		boolean useSimulation = false;
 		if(uCon.getMFNumUndefined()+uCon.getPFNumUndefined() == 0)
@@ -407,12 +387,12 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			useSimulation = true;
 		}
 		
-		//if we are using simulation, make sure check the property is ok
+		//if we are using simulation, make sure the property is ok
 		if(useSimulation)
 		{
 			try
 			{
-				getPrism().checkPropertyForSimulation(parsedModel, pf, gp.getPCTLProperty());
+				getPrism().checkPropertyForSimulation(parsedModel, parsedProperties, gp.getPCTLProperty());
 			}
 			catch(PrismException e)
 			{
@@ -429,7 +409,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		}
 		
 		// Use these values to create a new experiment
-		int i = experiments.newExperiment(pf, uCon, parsedModel, useSimulation);
+		int i = experiments.newExperiment(parsedProperties, uCon, parsedModel, useSimulation);
 		
 		// start the experiment, via the graph dialog if appropriate
 		if(showGraphDialog)
@@ -2037,24 +2017,6 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		stopExperiment.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallHalt.gif"));
 		stopExperiment.setEnabled(false);
 		
-	}
-	
-	/**
-	 * Getter for property simulator.
-	 * @return Value of property simulator.
-	 */
-	public userinterface.simulator.GUISimulator getSimulator()
-	{
-		return simulator;
-	}
-	
-	/**
-	 * Setter for property simulator.
-	 * @param simulator New value of property simulator.
-	 */
-	public void setSimulator(userinterface.simulator.GUISimulator simulator)
-	{
-		this.simulator = simulator;
 	}
 	
 	/**
