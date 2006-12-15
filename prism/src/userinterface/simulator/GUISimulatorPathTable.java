@@ -22,15 +22,18 @@
 
 package userinterface.simulator;
 
+import simulator.*;
+import prism.*;
+import userinterface.util.*;
+
 import javax.swing.*;
 import javax.swing.table.*;
-import userinterface.util.*;
 import java.awt.*;
 import java.awt.geom.*;
 import javax.swing.border.*;
 import java.text.*;
 import java.awt.font.*;
-import simulator.*;
+
 import javax.swing.plaf.basic.*;
 import javax.swing.plaf.*;
 import javax.swing.event.*;
@@ -45,18 +48,20 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 	private GUISimulator.PathTableModel ptm;
 	private PathRowHeader pathRowHeader;
     
-	private SimulatorEngine engine;
+	private SimulatorEngine engine;	
+	private GUISimulator simulator;
     
 	private JList header;
 	private GUISimulatorPathTable.RowHeaderListModel headerModel;
     
 	/** Creates a new instance of GUISimulatorPathTable */
-	public GUISimulatorPathTable(GUISimulator.PathTableModel ptm, SimulatorEngine engine)
+	public GUISimulatorPathTable(GUISimulator simulator, GUISimulator.PathTableModel ptm, SimulatorEngine engine)
 	{
 		super(ptm);
 		this.ptm = ptm;
+		this.simulator = simulator;
 		this.engine = engine;
-	
+		
 		setColumnSelectionAllowed(false);
 		getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 	
@@ -78,7 +83,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 			
 		setDefaultRenderer(Object.class, new PathChangeTableRenderer(true));
 	
-		//setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);		
+		
 	}
 	
 	public void switchToChangeRenderer()
@@ -375,7 +380,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 			{
 				GUISimulator.VariableValue variableValue = (GUISimulator.VariableValue)value;
 													
-				String stringValue = variableValue.getValue().toString();
+				String stringValue = (variableValue.getValue() instanceof Double) ? (PrismUtils.formatDouble(simulator.getPrism().getSettings(), ((Double)variableValue.getValue()))) : variableValue.getValue().toString();
 				
 				double width = getStringWidth(stringValue, g2);
 				
@@ -414,7 +419,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 			{
 				GUISimulator.RewardStructureValue rewardValue = (GUISimulator.RewardStructureValue)value;
 												
-				String stringValue = (rewardValue.isRewardValueUnknown()) ? "?" : rewardValue.getRewardValue().toString();
+				String stringValue = (rewardValue.isRewardValueUnknown()) ? "?" : PrismUtils.formatDouble(simulator.getPrism().getSettings(), rewardValue.getRewardValue());
 				
 				double width = getStringWidth(stringValue, g2);
 				
@@ -452,7 +457,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 			else if (value instanceof GUISimulator.TimeValue)
 			{
 				GUISimulator.TimeValue timeValue = (GUISimulator.TimeValue)value;
-				String stringValue = (timeValue.isTimeValueUnknown()) ? "?" : timeValue.getValue().toString();
+				String stringValue = (timeValue.isTimeValueUnknown()) ? "?" : PrismUtils.formatDouble(simulator.getPrism().getSettings(), timeValue.getValue());
 					
 				double width = getStringWidth(stringValue, g2);
 					

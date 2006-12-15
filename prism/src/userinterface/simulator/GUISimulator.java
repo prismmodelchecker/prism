@@ -153,7 +153,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		
 		modelTypeLabel.setText("Unknown");
-		totalTimeLabel.setText("0.0");
+		totalTimeLabel.setText(PrismUtils.formatDouble(this.getPrism().getSettings(), 0.0));
 		pathLengthLabel.setText("0");		
 		
 		txtFilter = new GUIPrismFileFilter[1];
@@ -292,8 +292,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		Values initialState;
 		try
 		{
-			//pathTable.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
-			
 			// get properties constants/labels
 			PropertiesFile pf;
 			try
@@ -391,7 +389,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			engineBuilt = true;
 			pathActive = true;
 			
-			totalTimeLabel.setText(""+engine.getTotalPathTime());
+			totalTimeLabel.setText(PrismUtils.formatDouble(this.getPrism().getSettings(), engine.getTotalPathTime()));
 			pathLengthLabel.setText(""+(engine.getPathSize()-1));
 			definedConstantsLabel.setText((uCon.getDefinedConstantsString().length() == 0) ? "None" : uCon.getDefinedConstantsString());
 			
@@ -451,7 +449,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			updateTableModel.updateUpdatesTable();
 			pathTable.scrollRectToVisible(new Rectangle(0, (int)pathTable.getPreferredSize().getHeight() - 10, (int)pathTable.getPreferredSize().getWidth(), (int)pathTable.getPreferredSize().getHeight()) );
 			
-			totalTimeLabel.setText(""+engine.getTotalPathTime());
+			totalTimeLabel.setText(PrismUtils.formatDouble(this.getPrism().getSettings(), engine.getTotalPathTime()));
 			pathLengthLabel.setText(""+(engine.getPathSize()-1));
 			
 			stateLabelList.repaint();
@@ -497,7 +495,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		pathTableModel.updatePathTable();
 		updateTableModel.updateUpdatesTable();
 		
-		totalTimeLabel.setText(""+engine.getTotalPathTime());
+		totalTimeLabel.setText(PrismUtils.formatDouble(this.getPrism().getSettings(), engine.getTotalPathTime()));
 		pathLengthLabel.setText(""+(engine.getPathSize()-1));
 		stateLabelList.repaint();
 		pathFormulaeList.repaint();
@@ -515,7 +513,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			pathTableModel.updatePathTable();
 			updateTableModel.updateUpdatesTable();
 			
-			totalTimeLabel.setText(""+engine.getTotalPathTime());
+			totalTimeLabel.setText(PrismUtils.formatDouble(this.getPrism().getSettings(), engine.getTotalPathTime()));
 			pathLengthLabel.setText(""+(engine.getPathSize()-1));
 			stateLabelList.repaint();
 			pathFormulaeList.repaint();
@@ -573,7 +571,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		pathTableModel.updatePathTable();
 		updateTableModel.updateUpdatesTable();
 		
-		totalTimeLabel.setText(""+engine.getTotalPathTime());
+		totalTimeLabel.setText(PrismUtils.formatDouble(this.getPrism().getSettings(), engine.getTotalPathTime()));
 		pathLengthLabel.setText(""+(engine.getPathSize()-1));
 		stateLabelList.repaint();
 		pathFormulaeList.repaint();
@@ -615,7 +613,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				
 				pathTable.scrollRectToVisible(new Rectangle(0, pathTable.getHeight() - 10, pathTable.getWidth(), pathTable.getHeight()) );
 				
-				totalTimeLabel.setText(""+engine.getTotalPathTime());
+				totalTimeLabel.setText(PrismUtils.formatDouble(this.getPrism().getSettings(), engine.getTotalPathTime()));
 				pathLengthLabel.setText(""+(engine.getPathSize()-1));
 				
 				setComputing(false);
@@ -998,7 +996,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         tablePanel = new javax.swing.JPanel();
         tableScroll = new javax.swing.JScrollPane();
         pathTable = new javax.swing.JTable();
-        pathTable = new GUISimulatorPathTable(pathTableModel, engine);
+        pathTable = new GUISimulatorPathTable(this, pathTableModel, engine);
 
         setLayout(new java.awt.BorderLayout());
 

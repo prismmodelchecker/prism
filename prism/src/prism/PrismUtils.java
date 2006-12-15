@@ -23,6 +23,7 @@
 package prism;
 
 import java.io.File;
+import java.util.Formatter;
 
 public class PrismUtils
 {
@@ -105,6 +106,42 @@ public class PrismUtils
 		else {
 			return f+i;
 		}
+	}
+	
+	public static String formatDouble(PrismSettings settings, double d)
+	{
+		return formatDouble(settings, new Double(d));
+	}
+	
+	public static String formatDouble(PrismSettings settings, Double d)
+	{
+		Formatter formatter = new Formatter();
+		
+		formatter.format("%.6g",d); // [the way to format scientific notation with 6 being the precision]
+		
+		
+		String res = formatter.toString().trim();
+		System.out.print(res);
+		
+		int trailingZeroEnd = res.lastIndexOf('e');
+		if (trailingZeroEnd == -1)
+			trailingZeroEnd = res.length();
+		
+		int x = trailingZeroEnd -1;
+		
+		while (x > 0 && res.charAt(x) == '0') 
+			x--;
+		
+		if (res.charAt(x) == '.')
+			x++;
+		
+		res = res.substring(0,x + 1) + res.substring(trailingZeroEnd, res.length());	
+		System.out.println( "-> " + res);	
+		
+		//formatter.format("%.6f",d); //(just decimals)
+		//formatter.format("%1$.2e", d); // [the way to format scientific notation with 6 being the precision]
+		
+		return res;		
 	}
 }
 
