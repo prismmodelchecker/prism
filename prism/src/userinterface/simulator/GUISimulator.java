@@ -2701,7 +2701,47 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				
 				return "Undefined Group";
 			}		
-        }
+        }		
+
+		public String getGroupToolTip(int groupIndex) 
+		{
+			int groupCount = 0;
+			
+			if (view.showSteps()) 
+			{ 					
+				if (groupCount == groupIndex)
+				{	return null;	}
+				
+				groupCount++;
+			}
+			
+			if (view.showTime() || view.showCumulativeTime()) 
+			{	
+				if (groupCount == groupIndex) 
+				{	return null;	}
+				
+				groupCount++;				
+			}
+			
+			if (view.getVisibleVariables().size() > 0)
+			{ 
+				if (groupCount == groupIndex)
+				{	return "Columns in this group represent variables of this model";	}
+				
+				groupCount++;
+			}
+			
+			// Add state and transitions rewards for each reward structure.
+			if (view.getVisibleRewardColumns().size() > 0)
+				{
+				if (groupCount == groupIndex)
+				{	return "Columns in this group represent the state, transition and cumulative rewards of this model";	}
+				
+				groupCount++;				
+			}
+			
+			return null;
+		}
 
 		public int getLastColumnOfGroup(int groupIndex) 
 		{
@@ -2842,6 +2882,53 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			return "Undefined Column";			
 		}
 		
+		
+		
+		public String getColumnToolTip(int columnIndex) 
+		{			
+			if(pathActive)
+			{
+				int stepStart = 0;
+				int timeStart = stepStart + (view.showSteps() ? 1 : 0);
+				int cumulativeTimeStart = timeStart + (view.showTime() ? 1 : 0);
+				int varStart = cumulativeTimeStart + (view.showCumulativeTime() ? 1 : 0); 
+				int rewardStart = varStart + view.getVisibleVariables().size();
+				
+				// The step column
+				if (stepStart <= columnIndex && columnIndex < timeStart)
+				{
+					return "The states of this path";						
+				}
+				else if (timeStart <= columnIndex && columnIndex < cumulativeTimeStart)
+				{
+					return "The time spent in a state";
+				}
+				else if (cumulativeTimeStart <= columnIndex && columnIndex < varStart)
+				{
+					return "The cumulative time spent in states";
+				}
+				// A variable column
+				else if (varStart <= columnIndex && columnIndex < rewardStart)
+				{						
+					return "The values of variable \"" + ((Variable)view.getVisibleVariables().get(columnIndex - varStart)).toString() + "\"";						
+				}
+				
+				else if (rewardStart <= columnIndex)
+				{	
+					RewardStructureColumn column = ((RewardStructureColumn)view.getVisibleRewardColumns().get(columnIndex - rewardStart));
+					String rewardName = column.getRewardStructure().getColumnName();
+					
+					if (column.isStateReward())
+						return "The state reward of reward structure " + rewardName;
+					if (column.isTransitionReward())
+						return "The transition reward of reward structure " + rewardName;
+					if (column.isCumulativeReward())
+						return "The cumulative reward of reward structure " + rewardName;								
+				}
+			}				
+			return "Undefined Column";
+		}
+
 		public Object getValueAt(int rowIndex, int columnIndex)
 		{
 			if(pathActive)

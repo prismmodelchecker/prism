@@ -110,9 +110,9 @@ public class GUIGroupedTable extends JTable
 		
 		if (columnModel != null && columnModel instanceof GUIGroupedTableColumnModel)
 		{
-			return new GUIGroupedTableHeader((GUIGroupedTableColumnModel)columnModel);
+			return new GUIGroupedTableHeader((GUIGroupedTableColumnModel)columnModel, (GUIGroupedTableModel)this.getModel());
 		}
-	    return new GUIGroupedTableHeader(new GUIGroupedTableColumnModel());
+	    return new GUIGroupedTableHeader(new GUIGroupedTableColumnModel(), (GUIGroupedTableModel)this.getModel());
     }
 }
 

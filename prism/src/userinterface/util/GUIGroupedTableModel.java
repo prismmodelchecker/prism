@@ -22,6 +22,7 @@
 
 package userinterface.util;
 
+import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 
 /**
@@ -29,7 +30,7 @@ import javax.swing.table.TableModel;
  * An interface which extends {@link TableModel} such that also group information can 
  * be extracted automatically. Note that groups are always non-empty.
  */
-public interface GUIGroupedTableModel extends TableModel 
+public interface GUIGroupedTableModel extends TableModel
 {
 	/**
 	 * @return The number of groups in this model.
@@ -50,4 +51,18 @@ public interface GUIGroupedTableModel extends TableModel
 	 * @return The index of the last column in this group.
 	 */
 	public int getLastColumnOfGroup(int groupIndex);	
+	
+	/**
+	 * Retrieves the tooltip to be set for a group.
+	 * @param groupIndex The index of a group.
+	 * @return The tooltip text for a group, or null.
+	 */
+	public String getGroupToolTip(int groupIndex);
+
+	/**
+	 * Retrieves the tooltip to be set for a column.
+	 * @param columnIndex The index of a column.
+	 * @return The tooltip text for a column, or null.
+	 */
+	public String getColumnToolTip(int columnIndex)	;
 }

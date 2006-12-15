@@ -317,17 +317,17 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 				{	
 					stringValue = "?";
 					if (timeValue.isCumulative())
-						this.setToolTipText("The cumulative time spend in states upto and including \"" + (row) + "\" is unknown");
+						this.setToolTipText("The cumulative time spent in states upto and including \"" + (row) + "\" is unknown");
 					else
-						this.setToolTipText("The time spend in state \"" + (row) + "\" is unknown");
+						this.setToolTipText("The time spent in state \"" + (row) + "\" is unknown");
 				}
 				else
 				{
 					stringValue = (PrismUtils.formatDouble(simulator.getPrism().getSettings(), ((Double)timeValue.getValue())));
 					if (timeValue.isCumulative())
-						this.setToolTipText("The cumulative time spend in states upto and including \"" + (row) + "\" is \"" + stringValue + "\" time units");
+						this.setToolTipText("The cumulative time spent in states upto and including \"" + (row) + "\" is \"" + stringValue + "\" time units");
 					else
-						this.setToolTipText("The time spend in state \"" + (row) + "\" is \"" + stringValue + "\" time units");
+						this.setToolTipText("The time spent in state \"" + (row) + "\" is \"" + stringValue + "\" time units");
 				}
 			}
 			else if (value instanceof GUISimulator.VariableValue)

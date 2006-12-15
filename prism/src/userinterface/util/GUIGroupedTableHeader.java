@@ -39,19 +39,25 @@ public class GUIGroupedTableHeader extends JTableHeader implements TableColumnMo
 {
 	private JTableHeader bottomHeader;
 	private JTableHeader topHeader;
+	private GUIGroupedTableColumnModel model;
+	private GUIGroupedTableModel tableModel;
 			
 	/**
 	 * Creates a new GUIGroupedTableHeader.
 	 * @param model The column model that is the basis of this table header (must be grouped).
 	 */
-	public GUIGroupedTableHeader(GUIGroupedTableColumnModel model)
+	public GUIGroupedTableHeader(GUIGroupedTableColumnModel model, GUIGroupedTableModel tableModel)
 	{
 		super();
 		removeAll();
 		
+		this.model = model;
+		this.tableModel = tableModel;
+				
 		topHeader = new JTableHeader(model.getGroupTableColumnModel());
 		topHeader.setResizingAllowed(false);
 		topHeader.setReorderingAllowed(false);
+		
 		
 		final TableCellRenderer renderer = topHeader.getDefaultRenderer();
 		topHeader.setDefaultRenderer(new TableCellRenderer() {
@@ -82,6 +88,58 @@ public class GUIGroupedTableHeader extends JTableHeader implements TableColumnMo
 		{
 		    cs[i].addMouseListener(this);
 		}
+		
+		topHeader.addMouseMotionListener(new MouseMotionAdapter()
+		{
+			private TableColumn lastColumn;
+			
+			public void mouseMoved(MouseEvent e) 
+			{			
+				bottomHeader.setToolTipText(null);
+				
+				TableColumn currentColumn;
+				
+				int column = topHeader.getColumnModel().getColumnIndexAtX(e.getX());
+	    
+	            if (column >= 0) 
+	            {
+	                currentColumn = topHeader.getColumnModel().getColumn(column);
+	                
+	                if (currentColumn != lastColumn) 
+		            {	         
+	                	topHeader.setToolTipText((GUIGroupedTableHeader.this).tableModel.getGroupToolTip(column));
+		                lastColumn = currentColumn;
+		            }	               
+	            }	            
+			}
+		});
+		bottomHeader.addMouseMotionListener(new MouseMotionAdapter()
+		{
+private TableColumn lastColumn;
+			
+			public void mouseMoved(MouseEvent e) 
+			{			
+				topHeader.setToolTipText(null);
+				
+				TableColumn currentColumn;
+				
+				int column = bottomHeader.getColumnModel().getColumnIndexAtX(e.getX());
+	    
+	            if (column >= 0) 
+	            {
+	                currentColumn = bottomHeader.getColumnModel().getColumn(column);
+	                
+	                if (currentColumn != lastColumn) 
+		            {	         
+	                	bottomHeader.setToolTipText((GUIGroupedTableHeader.this).tableModel.getColumnToolTip(column));
+		                lastColumn = currentColumn;
+		            }	               
+	            }	            
+			}
+		});
+		
+		//topHeader.setToolTipText(null);
+		//bottomHeader.setToolTipText(null);
 	}
 	
 	
@@ -155,7 +213,7 @@ public class GUIGroupedTableHeader extends JTableHeader implements TableColumnMo
 	 * Overwritten to catch events of child components.
 	 */
 	public void mouseClicked(MouseEvent e) {
-	   	this.dispatchEvent(new MouseEvent(this, e.getID(), e.getWhen(), e.getModifiers(), e.getX(), e.getY() + ((Component)e.getSource()).getBounds().y, e.getClickCount(), e.isPopupTrigger()));    
+	   	this.dispatchEvent(new MouseEvent(this, e.getID(), e.getWhen(), e.getModifiers(), e.getX(), e.getY() + ((Component)e.getSource()).getBounds().y, e.getClickCount(), e.isPopupTrigger()));
     }
 
 	/** 
