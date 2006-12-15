@@ -451,28 +451,47 @@ void Remove_Preceding_States(int step)
 	// shift later states down path, move unneeded ones to end
 	int i;
 	CPathState** prefix = new CPathState*[step];
-	for(i = 0; i < step; i++) prefix[i] = stored_path[i];
-	for(i = 0; i <= current_index-step; i++) stored_path[i] = stored_path[i+step];
-	for(i = current_index-step+1; i <= current_index; i++) stored_path[i] = prefix[i-current_index+step-1];
+	
+	for(i = 0; i < step; i++) 
+		prefix[i] = stored_path[i];
+	
+	for(i = 0; i <= current_index-step; i++) 
+		stored_path[i] = stored_path[i+step];
+		
+	for(i = current_index-step+1; i <= current_index; i++) 
+		stored_path[i] = prefix[i-current_index+step-1];
+	
 	delete prefix;
+	
 	current_index -= step;
 	
 	//recalculate timer and rewards
+	
 	path_timer = 0.0;
-	for(int i = 0; i < no_reward_structs; i++) {
+	for(int i = 0; i < no_reward_structs; i++) 
+	{
 		path_cost[i] = 0.0;
 		total_state_cost[i] = 0.0;
-		total_transition_cost[i] = 0.0;
-	}
+		total_transition_cost[i] = 0.0;		
+	}	
 	
 	for(int i = 0; i < current_index; i++)
 	{
-		if(stored_path[i]->time_known)path_timer += stored_path[i]->time_spent_in_state;
-		for (int j = 0; j < no_reward_structs; j++) {
-			total_state_cost[j] += stored_path[i]->state_cost[j];
+		if(stored_path[i]->time_known)
+			path_timer += stored_path[i]->time_spent_in_state;
+					
+		for (int j = 0; j < no_reward_structs; j++) 
+		{
+			stored_path[i]->cumulative_time_spent_in_state = path_timer;
+			
+			total_state_cost[j] += stored_path[i]->state_cost[j];			
 			total_transition_cost[j] += stored_path[i]->transition_cost[j];
+			
+			stored_path[i]->cumulative_state_cost[j] =  total_state_cost[j];
+			stored_path[i]->cumulative_transition_cost[j] =  total_transition_cost[j];					
 		}
 	}
+	
 	for (int j = 0; j < no_reward_structs; j++) {
 		path_cost[j] = total_state_cost[j] + total_transition_cost[j];
 	}
