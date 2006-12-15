@@ -286,78 +286,92 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 	
 	}   
 	
-	class PathChangeTableRenderer extends JPanel implements TableCellRenderer
-	{		
-		private boolean onlyShowChange;
+	class PathChangeCellRenderer extends JPanel 
+	{
+		private PathChangeTableRenderer pctr;
 		
 		private Object value;
-		private String tooltip;
+		private String stringValue;
 		
-		private boolean isLastRow;		
 		private boolean isSelected;
-		
-		private JTextField field = new JTextField();
-		
-		private int row;
-		private int column;
-		
-		private Color defaultColor;
-		private Color defaultVariableColor;
-		private Color defaultRewardColor;
-		private Color selectedColor;
-		private Color labelColor;
-		private Color selectedLabelColor;
-		
-		public PathChangeTableRenderer(boolean onlyShowChange)
+				
+		private int row;	
+
+		public PathChangeCellRenderer(PathChangeTableRenderer pctr, Object value, boolean isSelected, int row) 
 		{
 			super();
+			this.pctr = pctr;
+			this.value = value;
+			this.isSelected = isSelected;
+			this.row = row;
 			
-			this.onlyShowChange = onlyShowChange;
+			if (value instanceof String)
+			{
+				stringValue = (String)value;
+				this.setToolTipText("State \"" + row + "\" of this path");
+			}	
+			else if (value instanceof GUISimulator.TimeValue)
+			{	
+				GUISimulator.TimeValue timeValue = (GUISimulator.TimeValue)value;
+				if (timeValue.isTimeValueUnknown())
+				{	
+					stringValue = "?";
+					if (timeValue.isCumulative())
+						this.setToolTipText("The cumulative time spend in states upto and including \"" + (row) + "\" is unknown");
+					else
+						this.setToolTipText("The time spend in state \"" + (row) + "\" is unknown");
+				}
+				else
+				{
+					stringValue = (PrismUtils.formatDouble(simulator.getPrism().getSettings(), ((Double)timeValue.getValue())));
+					if (timeValue.isCumulative())
+						this.setToolTipText("The cumulative time spend in states upto and including \"" + (row) + "\" is \"" + stringValue + "\" time units");
+					else
+						this.setToolTipText("The time spend in state \"" + (row) + "\" is \"" + stringValue + "\" time units");
+				}
+			}
+			else if (value instanceof GUISimulator.VariableValue)
+			{	
+				GUISimulator.VariableValue variableValue = (GUISimulator.VariableValue)value;
+				stringValue = (variableValue.getValue() instanceof Double) ? (PrismUtils.formatDouble(simulator.getPrism().getSettings(), ((Double)variableValue.getValue()))) : variableValue.getValue().toString();
+								
+				this.setToolTipText("Value of variable \"" + variableValue.getVariable().getName() + "\" in state \"" + (row) + "\" is \"" + stringValue + "\"");
+			}
+			else if (value instanceof GUISimulator.RewardStructureValue)
+			{	
+				GUISimulator.RewardStructureValue rewardValue = (GUISimulator.RewardStructureValue)value;
+				String rewardName = rewardValue.getRewardStructureColumn().getRewardStructure().getColumnName();
+						
+				if (rewardValue.isRewardValueUnknown())
+				{
+					stringValue = "?";				
+										
+					if (rewardValue.getRewardStructureColumn().isCumulativeReward())
+						this.setToolTipText("The cumulative reward of reward structure " + rewardName + " upto and including state \"" + (row) + "\" is unknown");
+					if (rewardValue.getRewardStructureColumn().isStateReward())
+						this.setToolTipText("The state reward of reward structure " + rewardName + " in state \"" + (row) + "\" is unknown");
+					if (rewardValue.getRewardStructureColumn().isTransitionReward())
+						this.setToolTipText("The transition reward of reward structure " + rewardName + " for the transition from state \"" + (row) + "\" to state \"" + (row + 1) + "\" is unknown");
+				}
+				else
+				{
+					stringValue = PrismUtils.formatDouble(simulator.getPrism().getSettings(), rewardValue.getRewardValue());				
+					
+					if (rewardValue.getRewardStructureColumn().isCumulativeReward())
+						this.setToolTipText("The cumulative reward of reward structure " + rewardName + " upto and including state \"" + (row) + "\" is \"" + (stringValue) + "\"");
+					if (rewardValue.getRewardStructureColumn().isStateReward())
+						this.setToolTipText("The state reward of reward structure " + rewardName + " in state \"" + (row) + "\" is \"" + (stringValue) + "\"");
+					if (rewardValue.getRewardStructureColumn().isTransitionReward())
+						this.setToolTipText("The transition reward of reward structure " + rewardName + " for the transition from state \"" + (row) + "\" to state \"" + (row + 1) + "\" is \"" + (stringValue) + "\"");
+				}
+				
+			}
 			
-			defaultColor = Color.white;
-			defaultVariableColor = Color.white;
-			defaultRewardColor = Color.white;
 			
-			selectedColor = new Color(defaultColor.getRed()-20, defaultColor.getGreen()-20, defaultColor.getBlue());
-			selectedLabelColor = new Color(selectedColor.getRed()-20, selectedColor.getGreen(), selectedColor.getBlue()-20);
-			labelColor = new Color(defaultColor.getRed()-50, defaultColor.getGreen(), defaultColor.getBlue()-50);					
 			
-			isSelected = false;			
+			
 		}
 		
-		public Component getTableCellRendererComponent(JTable table, Object value,
-			boolean isSelected, boolean hasFocus, int row, int column)
-		{
-			GUISimulator.SimulationView view = ((GUISimulator.PathTableModel)table.getModel()).getView();
-			
-			int stepStart = 0;
-			int timeStart = stepStart + (view.showSteps() ? 1 : 0); 
-			int varStart = timeStart + (view.showTime() ? 1 : 0) + (view.showCumulativeTime() ? 1 : 0);
-			int rewardStart =  varStart + view.getVisibleVariables().size();
-							
-			this.row = row;
-			this.column = table.convertColumnIndexToModel(column);			
-							
-			this.value = value;
-					
-			this.isSelected = isSelected;			
-			
-			boolean shouldColourRow = ptm.shouldColourRow(row);
-
-			Color backGround = defaultColor;
-			
-			if(isSelected && !shouldColourRow)
-				backGround = selectedColor;
-			else if (isSelected && shouldColourRow)
-				backGround = selectedLabelColor;
-			else if (!isSelected && shouldColourRow)
-				backGround = labelColor;
-			
-			this.setBackground(backGround);
-			
-			return this;
-		}
-	
 		public void paintComponent(Graphics g)
 		{
 			super.paintComponent(g);
@@ -379,8 +393,6 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 			else if (value instanceof GUISimulator.VariableValue)
 			{
 				GUISimulator.VariableValue variableValue = (GUISimulator.VariableValue)value;
-													
-				String stringValue = (variableValue.getValue() instanceof Double) ? (PrismUtils.formatDouble(simulator.getPrism().getSettings(), ((Double)variableValue.getValue()))) : variableValue.getValue().toString();
 				
 				double width = getStringWidth(stringValue, g2);
 				
@@ -388,14 +400,14 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 				
 				Color color = (variableValue.hasChanged()) ? (Color.black) : (Color.lightGray);
 								
-				if (onlyShowChange)
+				if (pctr.onlyShowChange())
 				{
 					g2.setColor(Color.black);
 					g2.drawLine(getWidth()/2, 0, getWidth()/2, getHeight());					
 					
 					if (isSelected || variableValue.hasChanged())
 					{		
-						g2.setColor(defaultVariableColor);
+						g2.setColor(Color.white);
 						g2.fill(rec);					
 						
 						g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);	
@@ -418,8 +430,6 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 			else if (value instanceof GUISimulator.RewardStructureValue)
 			{
 				GUISimulator.RewardStructureValue rewardValue = (GUISimulator.RewardStructureValue)value;
-												
-				String stringValue = (rewardValue.isRewardValueUnknown()) ? "?" : PrismUtils.formatDouble(simulator.getPrism().getSettings(), rewardValue.getRewardValue());
 				
 				double width = getStringWidth(stringValue, g2);
 				
@@ -427,14 +437,14 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 				
 				Color color = (rewardValue.hasChanged() || rewardValue.isRewardValueUnknown()) ? (Color.black) : (Color.lightGray);
 								
-				if (onlyShowChange)
+				if (pctr.onlyShowChange())
 				{
 					g2.setColor(Color.black);
 					g2.drawLine(getWidth()/2, 0, getWidth()/2, getHeight());
 										
 					if ((isSelected || rewardValue.hasChanged()))
 					{
-						g2.setColor(defaultRewardColor);
+						g2.setColor(Color.white);
 						g2.fill(rec);					
 						
 						g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);	
@@ -455,9 +465,15 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 				}
 			}
 			else if (value instanceof GUISimulator.TimeValue)
-			{
+			{				
 				GUISimulator.TimeValue timeValue = (GUISimulator.TimeValue)value;
+				
 				String stringValue = (timeValue.isTimeValueUnknown()) ? "?" : PrismUtils.formatDouble(simulator.getPrism().getSettings(), timeValue.getValue());
+				
+				if (timeValue.isTimeValueUnknown())
+					this.setToolTipText("The time spent in state " + row + " of this path is not yet known");
+				else
+					this.setToolTipText(stringValue + " time units were spent in state " + row + " of this path");
 					
 				double width = getStringWidth(stringValue, g2);
 					
@@ -468,6 +484,58 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 				g2.drawString(stringValue, (int)((getWidth()/2 + 0.5)- (width/2)), 12);				
 			}
 		}
+	}
+	
+	class PathChangeTableRenderer implements TableCellRenderer
+	{	
+		private boolean onlyShowChange;
+				
+		private Color defaultColor;
+
+		private Color selectedColor;
+		private Color labelColor;
+		private Color selectedLabelColor;
+		
+		public PathChangeTableRenderer(boolean onlyShowChange)
+		{
+			super();
+			
+			this.onlyShowChange = onlyShowChange;
+			
+			defaultColor = Color.white;
+			
+			selectedColor = new Color(defaultColor.getRed()-20, defaultColor.getGreen()-20, defaultColor.getBlue());
+			selectedLabelColor = new Color(selectedColor.getRed()-20, selectedColor.getGreen(), selectedColor.getBlue()-20);
+			labelColor = new Color(defaultColor.getRed()-50, defaultColor.getGreen(), defaultColor.getBlue()-50);				
+								
+		}
+		
+		public Component getTableCellRendererComponent(JTable table, Object value,
+			boolean isSelected, boolean hasFocus, int row, int column)
+		{	
+			PathChangeCellRenderer pctr = new PathChangeCellRenderer(this, value, isSelected, row);
+						
+			boolean shouldColourRow = ptm.shouldColourRow(row);
+			
+			Color backGround = defaultColor;
+			
+			if(isSelected && !shouldColourRow)
+				backGround = selectedColor;
+			else if (isSelected && shouldColourRow)
+				backGround = selectedLabelColor;
+			else if (!isSelected && shouldColourRow)
+				backGround = labelColor;
+			
+			pctr.setBackground(backGround);
+			
+			return pctr;
+		}	
+		
+
+		public boolean onlyShowChange() 
+		{
+			return onlyShowChange;
+		}		
 	}
     
 	/** Method which computes width of a string for a given Graphics2D object

@@ -2182,11 +2182,12 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
     {
     	private Double value;
     	private boolean timeValueUnknown; 
-		
+    	private boolean isCumulative;		
     	
-    	public TimeValue(Double value) 
+    	public TimeValue(Double value, boolean isCumulative) 
     	{			
-			this.value = value;			
+			this.value = value;	
+			this.isCumulative = isCumulative;
 		}
 
 		public Double getValue() 
@@ -2207,6 +2208,16 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		public boolean isTimeValueUnknown()
 		{
 			return this.timeValueUnknown;
+		}
+
+		public boolean isCumulative() 
+		{
+			return isCumulative;
+		}
+
+		public void setCumulative(boolean isCumulative) 
+		{
+			this.isCumulative = isCumulative;
 		}
     }
     
@@ -2658,7 +2669,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				if (view.showSteps()) 
 				{ 					
 					if (groupCount == groupIndex)
-					{	return "Step";	}
+					{	return "State";	}
 					
 					groupCount++;
 				}
@@ -2849,14 +2860,14 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				
 				else if (timeStart <= columnIndex && columnIndex < cumulativeTimeStart)					
 				{					
-					timeValue = new TimeValue(SimulatorEngine.getTimeSpentInPathState(rowIndex));					
+					timeValue = new TimeValue(SimulatorEngine.getTimeSpentInPathState(rowIndex), false);					
 					timeValue.setTimeValueUnknown(rowIndex >= SimulatorEngine.getPathSize() - 1);
 					
 					return timeValue;
 				}					
 				else if (cumulativeTimeStart <= columnIndex && columnIndex < varStart)
 				{
-					timeValue = new TimeValue(SimulatorEngine.getCumulativeTimeSpentInPathState(rowIndex));					
+					timeValue = new TimeValue(SimulatorEngine.getCumulativeTimeSpentInPathState(rowIndex), true);					
 					timeValue.setTimeValueUnknown(rowIndex >= SimulatorEngine.getPathSize() - 1);
 					
 					return timeValue;					
