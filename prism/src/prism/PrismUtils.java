@@ -121,7 +121,6 @@ public class PrismUtils
 		
 		
 		String res = formatter.toString().trim();
-		System.out.print(res);
 		
 		int trailingZeroEnd = res.lastIndexOf('e');
 		if (trailingZeroEnd == -1)
@@ -136,7 +135,6 @@ public class PrismUtils
 			x++;
 		
 		res = res.substring(0,x + 1) + res.substring(trailingZeroEnd, res.length());	
-		System.out.println( "-> " + res);	
 		
 		//formatter.format("%.6f",d); //(just decimals)
 		//formatter.format("%1$.2e", d); // [the way to format scientific notation with 6 being the precision]
