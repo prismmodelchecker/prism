@@ -231,9 +231,6 @@
                       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout"/>
                       <SubComponents>
                         <Component class="javax.swing.JButton" name="makeVariableVisibleButton">
-                          <Properties>
-                            <Property name="text" type="java.lang.String" value="&lt;&lt;"/>
-                          </Properties>
                           <Events>
                             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="makeVariableVisibleButtonActionPerformed"/>
                           </Events>
@@ -244,9 +241,6 @@
                           </Constraints>
                         </Component>
                         <Component class="javax.swing.JButton" name="makeVariableHiddenButton">
-                          <Properties>
-                            <Property name="text" type="java.lang.String" value="&gt;&gt;"/>
-                          </Properties>
                           <Events>
                             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="makeVariableHiddenButtonActionPerformed"/>
                           </Events>
@@ -444,9 +438,6 @@
                       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout"/>
                       <SubComponents>
                         <Component class="javax.swing.JButton" name="makeRewardVisibleButton">
-                          <Properties>
-                            <Property name="text" type="java.lang.String" value="&lt;&lt;"/>
-                          </Properties>
                           <Events>
                             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="makeRewardVisibleButtonActionPerformed"/>
                           </Events>
@@ -457,9 +448,6 @@
                           </Constraints>
                         </Component>
                         <Component class="javax.swing.JButton" name="makeRewardHiddenButton">
-                          <Properties>
-                            <Property name="text" type="java.lang.String" value="&gt;&gt;"/>
-                          </Properties>
                           <Events>
                             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="makeRewardHiddenButtonActionPerformed"/>
                           </Events>

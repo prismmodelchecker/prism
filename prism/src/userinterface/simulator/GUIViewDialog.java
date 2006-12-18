@@ -26,6 +26,7 @@ import parser.*;
 import prism.*;
 
 import javax.swing.*;
+
 import java.awt.*;
 import javax.swing.border.*;
 import javax.swing.table.*;
@@ -170,6 +171,12 @@ public class GUIViewDialog extends JDialog implements KeyListener
 		hiddenRewardList.setModel(hiddenRewardListModel);
 		
 		variableTabPane.setEnabledAt(2, view.canShowTime());
+		
+		makeVariableHiddenButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallRight.gif")));
+		makeRewardHiddenButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallRight.gif")));
+		
+		makeVariableVisibleButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallLeft.gif")));
+		makeRewardVisibleButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallLeft.gif")));
 		
 		this.setVisible(true);
 	}
@@ -318,7 +325,6 @@ public class GUIViewDialog extends JDialog implements KeyListener
 
         centerVariablePanel.setLayout(new java.awt.GridBagLayout());
 
-        makeVariableVisibleButton.setText("<<");
         makeVariableVisibleButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 makeVariableVisibleButtonActionPerformed(evt);
@@ -333,7 +339,6 @@ public class GUIViewDialog extends JDialog implements KeyListener
         gridBagConstraints.insets = new java.awt.Insets(3, 10, 3, 10);
         centerVariablePanel.add(makeVariableVisibleButton, gridBagConstraints);
 
-        makeVariableHiddenButton.setText(">>");
         makeVariableHiddenButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 makeVariableHiddenButtonActionPerformed(evt);
@@ -430,7 +435,6 @@ public class GUIViewDialog extends JDialog implements KeyListener
 
         centerRewardPanel.setLayout(new java.awt.GridBagLayout());
 
-        makeRewardVisibleButton.setText("<<");
         makeRewardVisibleButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 makeRewardVisibleButtonActionPerformed(evt);
@@ -445,7 +449,6 @@ public class GUIViewDialog extends JDialog implements KeyListener
         gridBagConstraints.insets = new java.awt.Insets(3, 10, 3, 10);
         centerRewardPanel.add(makeRewardVisibleButton, gridBagConstraints);
 
-        makeRewardHiddenButton.setText(">>");
         makeRewardHiddenButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 makeRewardHiddenButtonActionPerformed(evt);
