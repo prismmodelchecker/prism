@@ -38,6 +38,7 @@ import userinterface.properties.*;
 import userinterface.simulator.GUIViewDialog.RewardListItem;
 import userinterface.simulator.networking.*;
 import java.awt.event.*;
+
 import javax.swing.event.*;
 
 /**
@@ -127,7 +128,21 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				if (e.getClickCount() == 2 && currentUpdatesTable.isEnabled())
 				{
 					a_manualUpdate();
+					currentUpdatesTable.requestFocus();
 				}
+			}
+		});
+		
+		currentUpdatesTable.addKeyListener(new KeyAdapter() 
+		{						
+			public void keyPressed(KeyEvent e) 
+			{
+				if (e.getKeyCode() == KeyEvent.VK_ENTER && currentUpdatesTable.isEnabled())
+				{
+					a_manualUpdate();
+					currentUpdatesTable.requestFocus();
+				}
+					
 			}
 		});
 		
@@ -171,6 +186,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		getPrism().getSettings().setFileSelector(PrismSettings.SIMULATOR_NETWORK_FILE, netEdit );
 		
 		autoTimeCheck.setSelected(true);
+		currentUpdatesTable.requestFocus();
 	}
 	
 	public void setGUIProb(GUIMultiProperties guiProp)

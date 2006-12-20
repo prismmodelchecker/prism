@@ -55,16 +55,16 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
     /** Creates a new instance of GUISimulatorUpdatesTable */
     public GUISimulatorUpdatesTable(GUISimulator.UpdateTableModel utm, GUISimulator sim)
     {
-	super(utm);
-	this.sim = sim;
-	this.utm = utm;
-	
-	this.getSelectionModel().addListSelectionListener(this);
-	
-	setColumnSelectionAllowed(false);
-	getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION); 
-	
-	headerModel = new UpdateHeaderListModel();
+		super(utm);
+		this.sim = sim;
+		this.utm = utm;
+		
+		this.getSelectionModel().addListSelectionListener(this);
+		
+		setColumnSelectionAllowed(false);
+		getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION); 
+		
+		headerModel = new UpdateHeaderListModel();
 		JList rowHeader = new JList(headerModel);
 	
 		rowHeader.setBackground(new JPanel().getBackground());
@@ -78,10 +78,52 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 	
 		this.header = rowHeader;
 	
-	setDefaultRenderer(Object.class, new UpdateTableRenderer());
+		setDefaultRenderer(Object.class, new UpdateTableRenderer());
 	
 	
-	setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+		setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+		
+		InputMap inputMap = new ComponentInputMap(this);
+		
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "Down");
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "Up");
+		
+		ActionMap actionMap = new ActionMap();
+		
+		actionMap.put("Down", new AbstractAction() 
+		{
+			public void actionPerformed(ActionEvent e) 
+			{
+				int selectedRow = GUISimulatorUpdatesTable.this.getSelectedRow();
+				if (selectedRow != -1)
+				{
+					if (selectedRow < GUISimulatorUpdatesTable.this.getRowCount() - 1)
+						GUISimulatorUpdatesTable.this.getSelectionModel().setSelectionInterval(selectedRow + 1, selectedRow + 1);
+					else
+						GUISimulatorUpdatesTable.this.getSelectionModel().setSelectionInterval(0, 0);
+				}
+			}
+		});		
+		
+		actionMap.put("Up", new AbstractAction() 
+		{
+			public void actionPerformed(ActionEvent e) 
+			{
+				int selectedRow = GUISimulatorUpdatesTable.this.getSelectedRow();
+				if (selectedRow != -1)
+				{
+					if (selectedRow >= 1)
+						GUISimulatorUpdatesTable.this.getSelectionModel().setSelectionInterval(selectedRow - 1, selectedRow - 1);
+					else
+						GUISimulatorUpdatesTable.this.getSelectionModel().setSelectionInterval(GUISimulatorUpdatesTable.this.getRowCount()-1, GUISimulatorUpdatesTable.this.getRowCount()-1);
+				}
+			}
+		});		
+		
+		this.setInputMap(JComponent.WHEN_FOCUSED, inputMap);
+		this.setActionMap(actionMap);
+		
+	
     }
     
     public void valueChanged(ListSelectionEvent e)
