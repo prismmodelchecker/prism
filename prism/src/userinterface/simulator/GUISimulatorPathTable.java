@@ -317,15 +317,15 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 				{	
 					stringValue = "?";
 					if (timeValue.isCumulative())
-						this.setToolTipText("The cumulative time spent in states upto and including \"" + (row) + "\" is unknown");
+						this.setToolTipText("The cumulative time spent in states up to and including state \"" + (row) + "\" is not yet known");
 					else
-						this.setToolTipText("The time spent in state \"" + (row) + "\" is unknown");
+						this.setToolTipText("The time spent in state \"" + (row) + "\" is not yet known");
 				}
 				else
 				{
 					stringValue = (PrismUtils.formatDouble(simulator.getPrism().getSettings(), ((Double)timeValue.getValue())));
 					if (timeValue.isCumulative())
-						this.setToolTipText("The cumulative time spent in states upto and including \"" + (row) + "\" is \"" + stringValue + "\" time units");
+						this.setToolTipText("The cumulative time spent in states up to and including state \"" + (row) + "\" is \"" + stringValue + "\" time units");
 					else
 						this.setToolTipText("The time spent in state \"" + (row) + "\" is \"" + stringValue + "\" time units");
 				}
@@ -347,22 +347,22 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 					stringValue = "?";				
 										
 					if (rewardValue.getRewardStructureColumn().isCumulativeReward())
-						this.setToolTipText("The cumulative reward of reward structure " + rewardName + " upto and including state \"" + (row) + "\" is unknown");
+						this.setToolTipText("The cumulative reward of reward structure " + rewardName + " up to and including step \"" + (row) + "\" is not yet known");
 					if (rewardValue.getRewardStructureColumn().isStateReward())
-						this.setToolTipText("The state reward of reward structure " + rewardName + " in state \"" + (row) + "\" is unknown");
+						this.setToolTipText("The state reward of reward structure " + rewardName + " in state \"" + (row) + "\" is not yet known");
 					if (rewardValue.getRewardStructureColumn().isTransitionReward())
-						this.setToolTipText("The transition reward of reward structure " + rewardName + " for the transition from state \"" + (row) + "\" to state \"" + (row + 1) + "\" is unknown");
+						this.setToolTipText("The transition reward of reward structure " + rewardName + " for step \""+(row)+"\" (from state \"" + (row) + "\" to \"" + (row + 1) + "\") is not yet known");
 				}
 				else
 				{
 					stringValue = PrismUtils.formatDouble(simulator.getPrism().getSettings(), rewardValue.getRewardValue());				
 					
 					if (rewardValue.getRewardStructureColumn().isCumulativeReward())
-						this.setToolTipText("The cumulative reward of reward structure " + rewardName + " upto and including state \"" + (row) + "\" is \"" + (stringValue) + "\"");
+						this.setToolTipText("The cumulative reward of reward structure " + rewardName + " up to and including step \"" + (row) + "\" is \"" + (stringValue) + "\"");
 					if (rewardValue.getRewardStructureColumn().isStateReward())
 						this.setToolTipText("The state reward of reward structure " + rewardName + " in state \"" + (row) + "\" is \"" + (stringValue) + "\"");
 					if (rewardValue.getRewardStructureColumn().isTransitionReward())
-						this.setToolTipText("The transition reward of reward structure " + rewardName + " for the transition from state \"" + (row) + "\" to state \"" + (row + 1) + "\" is \"" + (stringValue) + "\"");
+						this.setToolTipText("The transition reward of reward structure " + rewardName + " for step \""+(row)+"\" (from state \"" + (row) + "\" to \"" + (row + 1) + "\") is \"" + (stringValue) + "\"");
 				}
 				
 			}
