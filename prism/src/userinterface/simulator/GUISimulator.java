@@ -304,11 +304,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			typeBacktrackCombo.addItem("Steps");
 			typeBacktrackCombo.addItem("Back to step");
 			
-			/*if (mf != null && mf.getType() == ModulesFile.STOCHASTIC)
+			if (mf != null && mf.getType() == ModulesFile.STOCHASTIC)
 			{
 				typeBacktrackCombo.addItem("Time");
 				typeBacktrackCombo.addItem("Back to time");
-			}*/
+			}
 		}
 		catch(SimulatorException e)
 		{
@@ -535,7 +535,23 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		}
 	}	
 	
-	
+	/** Backtracks to a certain time. */	
+	public void a_backTrack(double time) throws SimulatorException
+	{
+		setComputing(true);
+		
+		engine.backtrack(time);
+		
+		pathTableModel.updatePathTable();
+		updateTableModel.updateUpdatesTable();
+		
+		totalTimeLabel.setText(PrismUtils.formatDouble(this.getPrism().getSettings(), engine.getTotalPathTime()));
+		pathLengthLabel.setText(""+(engine.getPathSize()-1));
+		stateLabelList.repaint();
+		pathFormulaeList.repaint();
+		
+		setComputing(false);
+	}
 	
 	/** Backtracks to a certain step. */	
 	public void a_backTrack(int step) throws SimulatorException
@@ -1425,7 +1441,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 						noSteps = engine.getPathSize() - 1;
 					
 					if (noSteps < 0)
-						throw new SimulatorException("Cannot backtrack a negative number of steps, use explore instead");
+						throw new NumberFormatException();
 					else if (noSteps == 0)
 						return;				
 
@@ -1433,7 +1449,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				}
 				catch (NumberFormatException nfe)
 				{
-					throw new SimulatorException("The \"Num. steps\" parameter is invalid.\nThe current input (\""+inputBacktrackField.getText().trim()+"\") is not a valid positive integer");
+					throw new SimulatorException("The \"Steps\" parameter is invalid, it must be a positive integer smaller than the current path length (which is "+engine.getPathSize()+")");
 				}
 			}
 			else if (typeBacktrackCombo.getSelectedIndex() == 1)
@@ -1448,15 +1464,60 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					toState = Integer.parseInt(inputBacktrackField.getText().trim());
 					
 					if (toState < 0 || toState >= engine.getPathSize())
-						throw new SimulatorException("State with index \"" + toState + "\" does not exist in the current path");
+						throw new NumberFormatException();
 					
 					a_backTrack(toState);
 				}
 				catch (NumberFormatException nfe)
 				{
-					throw new SimulatorException("The \"Num. steps\" parameter is invalid.\nThe current input (\""+inputBacktrackField.getText().trim()+"\") is not a valid positive integer");
+					throw new SimulatorException("The \"Steps\" parameter is invalid, it must be a positive integer smaller than the current path length (which is "+engine.getPathSize()+")");
 				}
-			}			
+			}	
+			else if (typeBacktrackCombo.getSelectedIndex() == 2)
+			{		
+				double time;
+				
+				try
+				{
+					if (inputBacktrackField.getText().trim().length() == 0)
+						throw new NumberFormatException();
+					
+					time = Double.parseDouble(inputBacktrackField.getText().trim());
+										
+					if (time < 0) 
+						throw new NumberFormatException();
+					
+					if  (time >= engine.getTotalPathTime())
+						a_backTrack(0.0d);
+					else
+						a_backTrack(engine.getTotalPathTime() - time);
+				}
+				catch (NumberFormatException nfe)
+				{
+					throw new SimulatorException("The \"Time\" parameter is invalid, it must be a positive double smaller than the cumulative path time (which is "+engine.getTotalPathTime()+")");
+				}
+			}	
+			else if (typeBacktrackCombo.getSelectedIndex() == 3)
+			{
+				double time;
+				
+				try
+				{
+					if (inputBacktrackField.getText().trim().length() == 0)
+						throw new NumberFormatException();
+					
+					time = Double.parseDouble(inputBacktrackField.getText().trim());
+					
+					if (time < 0 || time >= engine.getTotalPathTime()) 
+						throw new NumberFormatException();
+					
+					a_backTrack(time);
+				}
+				catch (NumberFormatException nfe)
+				{
+					throw new SimulatorException("The \"Back to time\" parameter is invalid, it must be a positive double smaller than the cumulative path time (which is "+engine.getTotalPathTime()+")");
+				}
+			}	
     	}
     	catch (SimulatorException se)
     	{

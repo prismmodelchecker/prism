@@ -129,6 +129,12 @@ void Automatic_Choices(double time, bool detect);
 void Backtrack(int index);
 
 /*
+ *	Removes all states upto some given cumulative time
+ *	the path and sets the state_variables to that state.
+ */
+void Backtrack(double time);
+
+/*
  *	Removes all states preceding the given index from
  *	the path.
  */

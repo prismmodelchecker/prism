@@ -138,6 +138,7 @@ int Engine_Do_Automatic_Choices(double time);
 int Engine_Do_Automatic_Choices(double time, bool detect);
 
 int Engine_Do_Backtrack(int step);
+int Engine_Do_Backtrack(double time);
 
 int Engine_Do_Remove_Preceding_States(int step);
 

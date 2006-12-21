@@ -1270,10 +1270,29 @@ public class SimulatorEngine
 	}
 	
 	/**
+	 * This function backtracks the current path to a state where
+	 * the cumulative time is equal to the time parameter.
+	 * @param time the cumulative time to backtrack to.
+	 * @throws SimulatorException is something goes wrong when backtracking.
+	 */
+	public void backtrack(double time) throws SimulatorException
+	{
+		int result = doBacktrack(time);
+		if(result == ERROR)
+			throw new SimulatorException(getLastErrorMessage());
+	}
+	
+	/**
 	 *	Asks the c++ engine to backtrack to the given step.
 	 *	Returns OUTOFRANGE (=-1) if step is out of range
 	 */
 	private static native int doBacktrack(int step);
+	
+	/**
+	 *	Asks the c++ engine to backtrack to some given time of the path.
+	 *	Returns OUTOFRANGE (=-1) if time is out of range
+	 */
+	private static native int doBacktrack(double time);
 	
 	/**
 	 * This function removes states of the path that precede those of the given

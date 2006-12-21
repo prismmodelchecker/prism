@@ -393,12 +393,28 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_doAutomaticChoices__DZ
 	return 0;
 }
 
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_doBacktrack
+JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_doBacktrack__I
 (JNIEnv *env, jclass cls, jint step)
 {
 	try
 	{
-		Backtrack(step);
+		Backtrack((int)step);
+	}
+	catch(string str)
+	{
+		cout << str << endl;
+		return simulator_SimulatorEngine_ERROR;
+	}   
+	return 0;
+	
+}
+
+JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_doBacktrack__D
+(JNIEnv *env, jclass cls, jdouble time)
+{
+	try
+	{
+		Backtrack((double)time);
 	}
 	catch(string str)
 	{

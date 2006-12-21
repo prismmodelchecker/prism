@@ -284,8 +284,16 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_doAutomaticChoices__DZ
  * Method:    doBacktrack
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_doBacktrack
+JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_doBacktrack__I
   (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     simulator_SimulatorEngine
+ * Method:    doBacktrack
+ * Signature: (D)I
+ */
+JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_doBacktrack__D
+  (JNIEnv *, jclass, jdouble);
 
 /*
  * Class:     simulator_SimulatorEngine

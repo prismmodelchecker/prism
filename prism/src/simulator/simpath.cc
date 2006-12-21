@@ -503,6 +503,63 @@ void Backtrack(int step)
 }
 
 /*
+*	Removes all states upto some given cumulative time.
+*	the path and sets the state_variables to that state.
+*/
+void Backtrack(double time)
+{
+	int errorCount = 0;
+	
+	// No need to do anything.
+	if (path_timer <= time)
+		return;
+	
+	// We want to find the state to backtrack to
+	// Find state by binary search (search between upper and lower inclusive)
+		
+	int upper, lower;
+	
+	upper = current_index - 1;
+	lower = 0;
+	
+	int target_index;
+	
+	while (true && errorCount++ < 100)
+	{
+		target_index = (upper - lower)/2 + lower;
+		
+		// Termination case
+		if (upper == lower)
+			break;		
+		
+		if (stored_path[target_index]->cumulative_time_spent_in_state > time)
+		{
+			// need to search lower
+			upper = target_index - 1;
+		}
+		else
+		{
+			// this is our target unless there is a later state that also satisfies <= time
+			if (upper - lower == 1)
+			{
+				// make sure we terminate in this case.
+				target_index = (stored_path[upper]->cumulative_time_spent_in_state <= time) ? upper : lower;
+					break;
+			}
+			else
+			{
+				lower = target_index;
+			}
+		}	
+	}
+	if (errorCount < 90)
+	{
+		if (target_index + 2 < current_index)
+			Backtrack(target_index + 2);
+	}
+}
+
+/*
 *	Removes all states preceding the given index from
 *	the path.
 */
