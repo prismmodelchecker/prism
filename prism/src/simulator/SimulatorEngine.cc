@@ -363,12 +363,27 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_makeManualUpdate__ID
 	return 0;
 }
 
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_doAutomaticChoices
-(JNIEnv *env, jclass cls, jint n, jboolean detect)
+JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_doAutomaticChoices__IZ
+  (JNIEnv *, jclass, jint n, jboolean detect)
 {
 	try
 	{
 		Automatic_Choices((int)n, (bool)detect);
+	}
+	catch(string str)
+	{
+		cout << str << endl;
+		return simulator_SimulatorEngine_ERROR;
+	}  
+	return 0;
+}
+
+JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_doAutomaticChoices__DZ
+  (JNIEnv *, jclass, jdouble time, jboolean detect)
+{
+	try
+	{
+		Automatic_Choices((double)time, (bool)detect);
 	}
 	catch(string str)
 	{

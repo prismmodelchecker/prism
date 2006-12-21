@@ -268,8 +268,16 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_makeManualUpdate__ID
  * Method:    doAutomaticChoices
  * Signature: (IZ)I
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_doAutomaticChoices
+JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_doAutomaticChoices__IZ
   (JNIEnv *, jclass, jint, jboolean);
+
+/*
+ * Class:     simulator_SimulatorEngine
+ * Method:    doAutomaticChoices
+ * Signature: (DZ)I
+ */
+JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_doAutomaticChoices__DZ
+  (JNIEnv *, jclass, jdouble, jboolean);
 
 /*
  * Class:     simulator_SimulatorEngine

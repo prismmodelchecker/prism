@@ -360,6 +360,24 @@ int Engine_Do_Automatic_Choices(int n, bool detect)
 	return 0;
 }
 
+int Engine_Do_Automatic_Choices(double time)
+{
+	return Engine_Do_Automatic_Choices(time, true);
+}
+
+int Engine_Do_Automatic_Choices(double time, bool detect)
+{
+	try
+	{
+		Automatic_Choices(time, detect);
+	}
+	catch(char* str)
+	{
+		return ERROR;
+	}  
+	return 0;
+}
+
 int Engine_Do_Backtrack(int step)
 {
 	try

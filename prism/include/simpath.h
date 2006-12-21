@@ -117,6 +117,12 @@ void Automatic_Choices(int n);
 void Automatic_Choices(int n, bool detect);
 
 /*
+ *	Make automatic updates untill time is passed, and stores the path.
+ */
+void Automatic_Choices(double time);
+void Automatic_Choices(double time, bool detect);
+
+/*
  *	Removes all states following the given index from
  *	the path and sets the state_variables to that state.
  */

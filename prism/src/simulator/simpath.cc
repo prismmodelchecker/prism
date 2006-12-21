@@ -386,6 +386,71 @@ void Automatic_Choices(int n, bool detect)
 }
 
 /*
+*	Make choices untill time has passed and update the path.
+*/
+void Automatic_Choices(double time){ Automatic_Choices(time, true); }
+
+void Automatic_Choices(double time, bool detect)
+{
+	if (model_type != STOCHASTIC)
+		Automatic_Choices((int)ceil(time), detect);
+	else
+	{				
+		double startTime = path_timer;
+		double currentTime = startTime;
+			
+		while (currentTime - startTime < time)
+		{	
+			/* Break when looping. */
+			if (detect && loop_detection->Is_Proven_Looping()) 
+				break;
+				
+			/* Break when deadlocking. */
+			if (loop_detection->Is_Deadlock()) 
+				break;
+					
+			double probability = 0.0;
+			Automatic_Update(loop_detection, probability);
+			
+			// Because we cannot guarantee that we know the selected index, we have to show this.
+			stored_path[current_index]->choice_made = PATH_NO_CHOICE_MADE;
+			stored_path[current_index]->probability = probability;
+			
+			// Unless requested not to (detect==false), this function will stop exploring when a loop is detected.
+			// Because Automatic_Update() checks for loops before making a transition, we overshoot.
+			// Hence at this point if we are looping we step back a state,
+			// i.e. reset state_variables and don't add new state to the path.
+			
+			if (detect && loop_detection->Is_Proven_Looping()) 
+			{
+				stored_path[current_index]->Make_Current_State_This();
+			}
+			else 
+			{						
+				// Add state to path (unless we have stayed in the same state because of deadlock).
+				if (!loop_detection->Is_Deadlock()) 
+					Add_Current_State_To_Path();	
+				currentTime = path_timer;
+			}
+			
+			Calculate_State_Reward(state_variables);
+		}
+		
+		Calculate_Updates(state_variables);
+		
+		// check for looping
+		if(Are_Updates_Deterministic())
+		{
+			loop_detection->Notify_Deterministic_State(false);
+		}
+		else
+		{
+			loop_detection->Notify_Deterministic_Path_End();
+		}
+	}
+}
+
+/*
 *	Removes all states following the given index from
 *	the path and sets the state_variables to that state.
 */

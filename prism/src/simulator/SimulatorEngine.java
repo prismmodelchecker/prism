@@ -1206,7 +1206,7 @@ public class SimulatorEngine
 	{
 		automaticChoices(n, true);
 	}
-	
+		
 	/**
 	 * This function makes n automatic choices of updates to the global
 	 * state.
@@ -1222,9 +1222,39 @@ public class SimulatorEngine
 	}
 	
 	/**
+	 * This function makes a number of automatic choices of updates to the global
+	 * state, untill `time' has passed.
+	 * @param time is the length of time to pass.
+	 * @throws SimulatorException if something goes wrong when updating the state.
+	 */
+	public void automaticChoices(double time) throws SimulatorException
+	{
+		automaticChoices(time, true);
+	}
+		
+	/**
+	 * This function makes n automatic choices of updates to the global
+	 * state, untill `time' has passed.
+	 * @param time is the length of time to pass.
+	 * @param detect whether to employ loop detection.
+	 * @throws SimulatorException if something goes wrong when updating the state.
+	 */
+	public void automaticChoices(double time, boolean detect) throws SimulatorException
+	{
+		int result = doAutomaticChoices(time, detect);
+		if(result == ERROR)
+			throw new SimulatorException(getLastErrorMessage());
+	}
+	
+	/**
 	 *	Ask c++ engine to make n automatic updates to the global state.
 	 */
 	private static native int doAutomaticChoices(int n, boolean detect);
+	
+	/**
+	 *	Ask c++ engine to make some automatic updates to the global state, up to some time.
+	 */
+	private static native int doAutomaticChoices(double time, boolean detect);
 	
 	/**
 	 * This function backtracks the current path to the state of the

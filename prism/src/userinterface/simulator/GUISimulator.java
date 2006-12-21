@@ -292,11 +292,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			typeExploreCombo.addItem("Steps");
 			typeExploreCombo.addItem("Up to step");
 			
-			/*if (mf != null && mf.getType() == ModulesFile.STOCHASTIC)
+			if (mf != null && mf.getType() == ModulesFile.STOCHASTIC)
 			{
 				typeExploreCombo.addItem("Time");
 				typeExploreCombo.addItem("Up to time");
-			}*/
+			}
 					
 			typeBacktrackCombo.setEnabled(pathActive);
 			typeBacktrackCombo.removeAllItems();
@@ -453,7 +453,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		}
 	}
 	
-	/** Backtracks a number of steps. */
+	/** Explore a number of steps. */
 	public void a_autoStep(int noSteps)
 	{		
 		try
@@ -493,6 +493,49 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			this.error(e.getMessage());
 		}
 	}	
+	
+	/** Explore an amount of time. */
+	public void a_autoStep(double time)
+	{		
+		try
+		{										
+			if (displayPathLoops && pathTableModel.isPathLooping())
+			{
+				if (questionYesNo("A loop in the path has been detected. Do you wish to disable loop detection and extend the path?") == 0) 
+				{
+					displayPathLoops = false;
+					pathTable.repaint();
+				}
+				else return;
+			}
+				
+			setComputing(true);
+				
+			if(isOldUpdate())
+			{
+				engine.finishedWithOldUpdates();
+			}
+			
+			engine.automaticChoices(time, displayPathLoops);		
+												
+			pathTableModel.updatePathTable();
+			updateTableModel.updateUpdatesTable();
+			pathTable.scrollRectToVisible(new Rectangle(0, (int)pathTable.getPreferredSize().getHeight() - 10, (int)pathTable.getPreferredSize().getWidth(), (int)pathTable.getPreferredSize().getHeight()) );
+			
+			totalTimeLabel.setText(PrismUtils.formatDouble(this.getPrism().getSettings(), engine.getTotalPathTime()));
+			pathLengthLabel.setText(""+(engine.getPathSize()-1));
+			
+			stateLabelList.repaint();
+			pathFormulaeList.repaint();
+			setComputing(false);
+		}		
+		catch(SimulatorException e)
+		{
+			this.error(e.getMessage());
+		}
+	}	
+	
+	
 	
 	/** Backtracks to a certain step. */	
 	public void a_backTrack(int step) throws SimulatorException
@@ -1549,65 +1592,109 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		a_restartPath();
 	}//GEN-LAST:event_resetPathButtonActionPerformed
 		
-        private void inputExploreFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_inputExploreFieldActionPerformed
-		
-        }//GEN-LAST:event_inputExploreFieldActionPerformed
+    private void inputExploreFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_inputExploreFieldActionPerformed
 	
-        private void randomExplorationButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_randomExplorationButtonActionPerformed
+    }//GEN-LAST:event_inputExploreFieldActionPerformed
 
-        	try
-        	{        	
-	        	/* Update some given number of steps. */
-				if (typeExploreCombo.getSelectedIndex() == 0)
+    private void randomExplorationButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_randomExplorationButtonActionPerformed
+
+    	try
+    	{        	
+        	/* Update some given number of steps. */
+			if (typeExploreCombo.getSelectedIndex() == 0)
+			{
+				int noSteps = 1;
+				
+				try
 				{
-					int noSteps = 1;
+					if (inputExploreField.getText().trim().length() == 0)
+						throw new NumberFormatException();
 					
-					try
-					{
-						if (inputExploreField.getText().trim().length() == 0)
-							throw new SimulatorException("The \"Num. steps\" parameter is invalid.\nIt must be a positive integer, but it is currently empty");
-						
-						noSteps = Integer.parseInt(inputExploreField.getText().trim());
-						
-						if (noSteps <= 0) 
-								throw new SimulatorException("The \"Num. steps\" parameter is invalid.\nIt must be a positive integer");
-	
-						a_autoStep(noSteps);
-					}
-					catch (NumberFormatException nfe)
-					{
-						throw new SimulatorException("The \"Num. steps\" parameter is invalid.\nThe current input (\""+inputExploreField.getText().trim()+"\") is not a valid positive integer");
-					}
+					noSteps = Integer.parseInt(inputExploreField.getText().trim());
+					
+					if (noSteps <= 0) 
+						throw new NumberFormatException();
+
+					a_autoStep(noSteps);
 				}
-				/* Update upto some state. */
-				else if (typeExploreCombo.getSelectedIndex() == 1)
+				catch (NumberFormatException nfe)
 				{
-					int uptoState;
-					
-					try
-					{
-						if (inputExploreField.getText().trim().length() == 0)
-							throw new SimulatorException("The \"To state\" parameter is invalid.\nIt must be a positive integer larger than the index of the current state ("+(engine.getPathSize()-1)+"), but it is currently empty");
-						
-						uptoState = Integer.parseInt(inputExploreField.getText().trim());
-						
-						if (uptoState < engine.getPathSize()) 
-								throw new SimulatorException("The \"To state\" parameter is invalid.\nIt must be a positive integer larger than the index of the current state ("+(engine.getPathSize()-1)+")");
-	
-						a_autoStep(uptoState - engine.getPathSize() + 1);
-					}
-					catch (NumberFormatException nfe)
-					{
-						throw new SimulatorException("The \"To state\" parameter is invalid.\nThe current input (\""+inputExploreField.getText().trim()+"\") is not a valid positive integer");
-					}
+					throw new SimulatorException("The \"Steps\" parameter is invalid, it must be a positive integer.");
 				}
-        	}
-        	catch (SimulatorException se)
-        	{
-        		this.error(se.getMessage());
-        	}
-        }//GEN-LAST:event_randomExplorationButtonActionPerformed
-	
+			}
+			/* Update upto some state. */
+			else if (typeExploreCombo.getSelectedIndex() == 1)
+			{
+				int uptoState;
+				
+				try
+				{
+					if (inputExploreField.getText().trim().length() == 0)
+						throw new NumberFormatException();
+					
+					uptoState = Integer.parseInt(inputExploreField.getText().trim());
+					
+					if (uptoState < engine.getPathSize()) 
+						throw new NumberFormatException();
+
+					a_autoStep(uptoState - engine.getPathSize() + 1);
+				}
+				catch (NumberFormatException nfe)
+				{
+					throw new SimulatorException("The \"Up to state\" parameter is invalid, it must be a positive integer larger than the index of the current state (which is "+ (engine.getPathSize()-1)+")");
+				}
+			}
+			else if (typeExploreCombo.getSelectedIndex() == 2)
+			{
+				double time;
+				
+				try
+				{
+					if (inputExploreField.getText().trim().length() == 0)
+						throw new NumberFormatException();
+					
+					time = Double.parseDouble(inputExploreField.getText().trim());
+					
+					if (time < 0.0d) 
+						throw new NumberFormatException();
+
+					a_autoStep(time);
+				}
+				catch (NumberFormatException nfe)
+				{
+					throw new SimulatorException("The \"Time\" parameter is invalid, it must be a positive double");
+				}
+			}
+			else if (typeExploreCombo.getSelectedIndex() == 3)
+			{
+				double time;
+				double currentTime = engine.getTotalPathTime();
+				
+				try
+				{
+					if (inputExploreField.getText().trim().length() == 0)
+						throw new NumberFormatException();
+					
+					time = Double.parseDouble(inputExploreField.getText().trim());
+					
+					if (time <= currentTime) 
+						throw new NumberFormatException();
+
+					a_autoStep(time-currentTime);
+				}
+				catch (NumberFormatException nfe)
+				{
+					throw new SimulatorException("The \"Time\" parameter is invalid, it must be a positive double larger than the cumulative path time (which is currently " + currentTime+")");
+				}
+			}
+			
+    	}
+    	catch (SimulatorException se)
+    	{
+    		this.error(se.getMessage());
+    	}
+    }//GEN-LAST:event_randomExplorationButtonActionPerformed
+
 	private void newPathButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_newPathButtonActionPerformed
 	{//GEN-HEADEREND:event_newPathButtonActionPerformed
 		a_newPath();

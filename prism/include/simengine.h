@@ -134,6 +134,9 @@ int Engine_Make_Manual_Update(int index, double time_in_state);
 int Engine_Do_Automatic_Choices(int n);
 int Engine_Do_Automatic_Choices(int n, bool detect);
 
+int Engine_Do_Automatic_Choices(double time);
+int Engine_Do_Automatic_Choices(double time, bool detect);
+
 int Engine_Do_Backtrack(int step);
 
 int Engine_Do_Remove_Preceding_States(int step);
