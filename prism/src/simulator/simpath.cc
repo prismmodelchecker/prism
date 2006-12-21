@@ -28,6 +28,7 @@
 #include "simutil.h"
 #include <stdio.h>
 #include <iostream>
+#include <math.h>
 
 using std::cout;
 using std::endl;
