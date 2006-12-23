@@ -60,13 +60,38 @@ endif
 # either set the variable yourself by uncommenting and/or modifying one of the lines below
 # or pass a value to make directly, e.g.: make JAVA_DIR=/usr/java
 
-# Autodetection
-JAVA_JAVAC = $(shell JAVA_JAVAC=`which javac`; JAVA_JAVAC_DIR=`dirname $$JAVA_JAVAC`; cd $$JAVA_JAVAC_DIR; while [ -h ./javac ]; do JAVA_JAVAC=`/bin/ls -l ./javac | sed 's/.* -> //'`; JAVA_JAVAC_DIR=`dirname $$JAVA_JAVAC`; cd $$JAVA_JAVAC_DIR; JAVA_JAVAC_DIR=`pwd`; done; echo $$JAVA_JAVAC_DIR/javac)
-#JAVA_JAVAC = $(shell JAVA_JAVAC=`which javac`; while [ -h $$JAVA_JAVAC ]; do JAVA_JAVAC=`/bin/ls -l $$JAVA_JAVAC | sed 's/.* -> //'`; done; echo $$JAVA_JAVAC)
-ifneq (darwin,$(OSTYPE))
-	JAVA_DIR =	$(shell dirname $(JAVA_JAVAC) | sed 's/\/bin//')
+# The detection of javac below can handle cases:
+# - where javac is a symbolic link
+# - where there is actually a chain of symbolic links
+# - where there are relative symbolic links
+# - where there are directory names including spaces
+# Note: The code would be simpler if we could rely on
+#       the existence of "readlink -f" but we can't.
+
+# Find javac
+DETECT_JAVAC = $(shell \
+  (DETECT_JAVAC=`which javac`; \
+  if [ -f "$$DETECT_JAVAC" ]; then \
+    DETECT_JAVAC_DIR=`dirname "$$DETECT_JAVAC"`; \
+    cd "$$DETECT_JAVAC_DIR"; \
+    while [ -h ./javac ]; do \
+      DETECT_JAVAC=`readlink ./javac`; \
+      DETECT_JAVAC_DIR=`dirname "$$DETECT_JAVAC"`; \
+      cd "$$DETECT_JAVAC_DIR"; \
+      DETECT_JAVAC_DIR=`pwd`; \
+    done; \
+    echo $$DETECT_JAVAC_DIR/javac; \
+  fi) 2> /dev/null)
+
+# Find directory containing javac
+ifeq ("$(DETECT_JAVAC)","")
+  JAVA_DIR =
 else
-	JAVA_DIR =	$(shell dirname $(JAVA_JAVAC) | sed 's/\/Commands//')
+  ifneq (darwin,$(OSTYPE))
+    JAVA_DIR = $(shell dirname "$(DETECT_JAVAC)" | sed 's/\/bin//')
+  else
+    JAVA_DIR = $(shell dirname "$(DETECT_JAVAC)" | sed 's/\/Commands//')
+  endif
 endif
 
 #JAVA_DIR =	/usr/java
@@ -99,6 +124,7 @@ OPTIMISE = -O3
 # Flags to generate shared libraries
 # Executable/library naming conventions
 # Suffix for binary distribution directory
+# Place to look for (JNI) headers
 # (requires GNU make for conditional evaluation)
 
 # Linux
@@ -112,6 +138,7 @@ ifeq ($(OSTYPE),linux)
 	LIBPREFIX = lib
 	LIBSUFFIX = .so
 	BINDISTSUFFIX = linux
+	OSTYPE_INCLUDE = include
 endif
 # Solaris
 ifeq ($(OSTYPE),solaris)
@@ -123,6 +150,7 @@ ifeq ($(OSTYPE),solaris)
 	LIBPREFIX = lib
 	LIBSUFFIX = .so
 	BINDISTSUFFIX = solaris
+	OSTYPE_INCLUDE = include
 endif
 # Cygwin
 ifeq ($(OSTYPE),cygwin)
@@ -135,6 +163,7 @@ ifeq ($(OSTYPE),cygwin)
 	LIBPREFIX =
 	LIBSUFFIX = .dll
 	BINDISTSUFFIX = win
+	OSTYPE_INCLUDE = include
 endif
 # Darwin
 ifeq ($(OSTYPE),darwin)
@@ -146,6 +175,7 @@ ifeq ($(OSTYPE),darwin)
 	LIBPREFIX = lib
 	LIBSUFFIX = .dylib
 	BINDISTSUFFIX = osx
+	OSTYPE_INCLUDE = Headers
 endif
 
 ###############
@@ -164,27 +194,9 @@ LIB_DIR =		lib
 INCLUDE_DIR =	include
 
 # Now we locate the JNI header files jni.h and jni_md.h
-# (this is the only reason we need JAVA_DIR).
-# If this doesn't work for some reason, locate the two files
-# and set the JAVA_INCLUDES directory manually
-
-# Choose name for include directories
-ifneq (darwin,$(OSTYPE))
-	OSTYPE_INCLUDE = include
-else
-	OSTYPE_INCLUDE = Headers
-endif
-# Look in Java directory
-JAVA_JNI_H = $(shell ls $(JAVA_DIR)/$(OSTYPE_INCLUDE)/jni.h 2>/dev/null)
-JAVA_JNI_MD_H = $(shell ls $(JAVA_DIR)/$(OSTYPE_INCLUDE)/jni_md.h 2>/dev/null)
-# Then try subdirectories (for OS-specific files)
-ifeq (,$(JAVA_JNI_MD_H))
-	JAVA_JNI_MD_H = $(shell ls $(JAVA_DIR)/$(OSTYPE_INCLUDE)/*/jni_md.h 2>/dev/null)
-endif
-# Now strip off filename to leave directories
-JAVA_JNI_H_DIR = $(shell echo $(JAVA_JNI_H) | sed 's/\/jni.h//')
-JAVA_JNI_MD_H_DIR = $(shell echo $(JAVA_JNI_MD_H) | sed 's/\/jni_md.h//')
-# Store result in JAVA_INCLUDES variable
+# (in fact this is the only reason we need JAVA_DIR)
+JAVA_JNI_H_DIR = $(shell ls "$(JAVA_DIR)"/$(OSTYPE_INCLUDE)/jni.h | sed 's/\/jni.h//' 2>/dev/null)
+JAVA_JNI_MD_H_DIR = $(shell ls "$(JAVA_DIR)"/$(OSTYPE_INCLUDE)/jni_md.h "$(JAVA_DIR)"/$(OSTYPE_INCLUDE)/*/jni_md.h | sed 's/\/jni_md.h//' 2>/dev/null)
 JAVA_INCLUDES = -I $(JAVA_JNI_H_DIR) -I $(JAVA_JNI_MD_H_DIR)
 
 #########################
@@ -261,6 +273,8 @@ make_dirs:
 	  LIB_DIR="$(LIB_DIR)" \
 	  INCLUDE_DIR="$(INCLUDE_DIR)" \
 	  JAVA_INCLUDES="$(JAVA_INCLUDES)" \
+	  JAVA_JNI_H_DIR="$(JAVA_JNI_H_DIR)" \
+	  JAVA_JNI_MD_H_DIR="$(JAVA_JNI_MD_H_DIR)" \
 	  C="$(C)" \
 	  CPP="$(CPP)" \
 	  LD="$(LD)" \
@@ -374,7 +388,7 @@ clean: checks
 	done; \
 	find $(CLASSES_DIR) -name '*.class' -exec rm {} \; ; \
 	rm -f lib/*jnilib; \
-	rm $(BIN_PRISM) $(BIN_XPRISM) $(BIN_PRISM_BAT) $(BIN_XPRISM_BAT) )
+	rm -f $(BIN_PRISM) $(BIN_XPRISM) $(BIN_PRISM_BAT) $(BIN_XPRISM_BAT) )
 
 celan: clean
 
@@ -428,44 +442,30 @@ checks:
 	if [ "$(JAVA_DIR)" = "" ]; then \
 	  echo "PRISM was unable to find the directory which contains"; \
 	  echo "your Java distribution. Please specify this manually to"; \
-	  echo "make as in the following example:"; \
+	  echo "make, as in these examples:"; \
 	  echo; \
 	  echo "  make JAVA_DIR=/usr/java/j2sdk1.4.2"; \
+	  echo "  make JAVA_DIR=\"/cygdrive/c/Program Files/Java/jdk1.4.2\""; \
 	  echo; \
-	  echo "If you do not know where your Java distribution is, try typing:"; \
+	  echo "See the PRISM manual for further information."; \
 	  echo; \
-	  echo "  which javac"; \
-	  echo; \
-	  echo "If the output is of the form 'javac: Command not found' or"; \
-	  echo "'which: no javac in...' then either you do not have Java"; \
-	  echo "installed or your path is not set up to include Java."; \
-	  echo "If the output is something like:"; \
-	  echo; \
-	  echo "  /bham/java/packages/j2sdk1.4.2/bin/javac"; \
-	  echo; \
-	  echo "then the directory is /usr/java/j2sdk1.4.2"; \
-	  echo "(i.e. with the '/bin/javac' removed)."; \
-	  echo "One situation where this doesn't work is when javac"; \
-	  echo "has been set up as a symbolic link. In this case, type:"; \
-	  echo; \
-	  echo "  ls -l `which javac`"; \
-	  echo; \
-	  echo "which will tell you where javac actually is (the part displayed"; \
-	  echo "after the -> arrow. You can then deduce what the directory is as above."; \
+	  echo "Alternatively, if you wish, you can set the environment"; \
+	  echo "variable yourself (using setenv or export) or you"; \
+	  echo "can edit the value of JAVA_DIR directly in the Makefile."; \
 	  exit 1; \
 	fi; \
-	if [ ! -d $(JAVA_DIR) ]; then \
-	  echo "Java directory $(JAVA_DIR) does not exist."; \
+	if [ ! -d "$(JAVA_DIR)" ]; then \
+	  echo "Java directory \"$(JAVA_DIR)\" does not exist."; \
 	  exit 1; \
 	fi; \
-	if [ ! -f $(JAVA_JNI_H_DIR)/jni.h ]; then \
-	  echo "Failed to locate the JNI header jni.h."; \
-	  echo "Are you sure Java is installed?"; \
+	if [ ! -f "$(JAVA_DIR)"/$(OSTYPE_INCLUDE)/jni.h ]; then \
+	  echo "Could not locate JNI header jni.h in \"$(JAVA_DIR)/$(OSTYPE_INCLUDE)\"."; \
+	  echo "You may need to set JAVA_DIR by hand. See the PRISM manual for details."; \
 	  exit 1; \
 	fi; \
-	if [ ! -f $(JAVA_JNI_MD_H_DIR)/jni_md.h ]; then \
-	  echo "Failed to locate the JNI header jni_md.h"; \
-	  echo "Are you sure Java is installed?"; \
+	if [ ! -f "$(JAVA_DIR)"/$(OSTYPE_INCLUDE)/jni_md.h -a ! -f "$(JAVA_DIR)"/$(OSTYPE_INCLUDE)/*/jni_md.h ]; then \
+	  echo "Could not locate JNI header jni_md.h in \"$(JAVA_DIR)/$(OSTYPE_INCLUDE)\" or ...."; \
+	  echo "You may need to set JAVA_DIR by hand. See the PRISM manual for details."; \
 	  exit 1; \
 	fi; \
 	echo "OSTYPE: $(OSTYPE)"; \
