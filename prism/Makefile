@@ -195,8 +195,8 @@ INCLUDE_DIR =	include
 
 # Now we locate the JNI header files jni.h and jni_md.h
 # (in fact this is the only reason we need JAVA_DIR)
-JAVA_JNI_H_DIR = $(shell ls "$(JAVA_DIR)"/$(OSTYPE_INCLUDE)/jni.h | sed 's/\/jni.h//' 2>/dev/null)
-JAVA_JNI_MD_H_DIR = $(shell ls "$(JAVA_DIR)"/$(OSTYPE_INCLUDE)/jni_md.h "$(JAVA_DIR)"/$(OSTYPE_INCLUDE)/*/jni_md.h | sed 's/\/jni_md.h//' 2>/dev/null)
+JAVA_JNI_H_DIR = $(shell (ls "$(JAVA_DIR)"/$(OSTYPE_INCLUDE)/jni.h | sed 's/\/jni.h//') 2>/dev/null)
+JAVA_JNI_MD_H_DIR = $(shell (ls "$(JAVA_DIR)"/$(OSTYPE_INCLUDE)/jni_md.h "$(JAVA_DIR)"/$(OSTYPE_INCLUDE)/*/jni_md.h | sed 's/\/jni_md.h//') 2>/dev/null)
 JAVA_INCLUDES = -I $(JAVA_JNI_H_DIR) -I $(JAVA_JNI_MD_H_DIR)
 
 #########################
