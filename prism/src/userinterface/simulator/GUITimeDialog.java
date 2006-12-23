@@ -33,8 +33,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.*;
 
-import com.sun.org.apache.xerces.internal.dom3.as.DocumentAS;
-
 import java.util.*;
 import java.awt.event.*;
 
