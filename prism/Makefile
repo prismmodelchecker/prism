@@ -31,6 +31,10 @@ ifdef OSTYPE
 	ifneq (,$(findstring cygwin, $(OSTYPE)))
 	  OSTYPE = cygwin
 	endif
+	# For Cygwin , OSTYPE is sometimes set to "posix"
+	ifneq (,$(findstring posix, $(OSTYPE)))
+	  OSTYPE = cygwin
+	endif
 	ifneq (,$(findstring darwin, $(OSTYPE)))
 	  OSTYPE = darwin
 	endif
