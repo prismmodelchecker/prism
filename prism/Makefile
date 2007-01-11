@@ -1,4 +1,4 @@
-##############################################
+ ##############################################
 #  NB: This is the main Makefile for PRISM.  #
 #      It calls all the other Makefiles in   #
 #      subdirectories, passing in all the    #
@@ -186,11 +186,15 @@ endif
 # Directories #
 ###############
 
-# Note that these are all relative to the CUDD directory
+# Note that these are all relative to the PRISM directory
 # to make the distribution more 'portable'.
 # If this is a problem, the best solution is to create symlinks.
 
-CUDD_DIR =		cudd
+# For CUDD, we default either to ./cudd or, if that does not exist, ../cudd
+# To override, comment out the first line and use the second (or specify from the command-line)
+CUDD_DIR =		$(shell if [ -d cudd ]; then echo cudd; else echo ../cudd; fi )
+#CUDD_DIR =		cudd
+
 SRC_DIR =		src
 CLASSES_DIR =	classes
 OBJ_DIR =		obj
@@ -247,6 +251,8 @@ default: all
 all: cuddpackage prism
 
 cuddpackage: checks
+	@if [ "$(CUDD_DIR)" = "" ]; then echo "Error: Cannot find CUDD"; exit 1; fi
+	@if [ ! -d "$(CUDD_DIR)" ]; then echo "Error: Cannot find CUDD"; exit 1; fi
 	@(if [ ! -h $(CUDD_DIR) ]; then \
 	  echo Making cudd ...; \
 	  cd $(CUDD_DIR) && \
