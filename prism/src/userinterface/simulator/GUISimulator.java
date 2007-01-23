@@ -1139,8 +1139,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         topSplit.setOneTouchExpandable(true);
         topSplit.setPreferredSize(new java.awt.Dimension(0, 0));
         tabbedPane.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0));
-        tabbedPane.setMinimumSize(new java.awt.Dimension(226, 0));
-        tabbedPane.setPreferredSize(new java.awt.Dimension(285, 50));
+        tabbedPane.setMinimumSize(new java.awt.Dimension(0, 0));
+        tabbedPane.setPreferredSize(new java.awt.Dimension(0, 50));
         outerStateLabelPanel.setLayout(new java.awt.BorderLayout());
 
         outerStateLabelPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -1234,6 +1234,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         topLeftPanel.setLayout(new java.awt.BorderLayout());
 
         topLeftPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 10));
+        topLeftPanel.setMinimumSize(new java.awt.Dimension(0, 0));
+        topLeftPanel.setPreferredSize(new java.awt.Dimension(0, 0));
         innerTopLeftPanel.setLayout(new java.awt.BorderLayout(5, 5));
 
         innerTopLeftPanel.setMinimumSize(new java.awt.Dimension(50, 0));
@@ -1383,7 +1385,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
         autoTimeCheckPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 0, 0, 0));
         autoTimeCheck.setText("Generate time automatically");
-        autoTimeCheck.setToolTipText("When not selected, you will be promted to enter the time spent in state manually");
+        autoTimeCheck.setToolTipText("When not selected, you will be promted to manually enter the time spent in states");
         autoTimeCheck.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         autoTimeCheck.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         autoTimeCheck.setMargin(new java.awt.Insets(0, 0, 0, 0));
