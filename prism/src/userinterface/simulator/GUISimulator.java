@@ -457,17 +457,19 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	public void a_autoStep(int noSteps)
 	{		
 		try
-		{										
+		{		
+			int oldPathSize = engine.getPathSize();
+			
 			if (displayPathLoops && pathTableModel.isPathLooping())
 			{
-				if (questionYesNo("A loop in the path has been detected. Do you wish to disable loop detection and extend the path?") == 0) 
+				if (questionYesNo("The current path contains a deterministic loop. Do you wish to disable the detection of deterministic loops and extend the path anyway?") == 0) 
 				{
 					displayPathLoops = false;
 					pathTable.repaint();
 				}
 				else return;
 			}
-				
+			
 			setComputing(true);
 				
 			if(isOldUpdate())
@@ -487,6 +489,13 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			stateLabelList.repaint();
 			pathFormulaeList.repaint();
 			setComputing(false);
+			
+			int newPathSize = engine.getPathSize();
+			
+			if (displayPathLoops && pathTableModel.isPathLooping() && (newPathSize - oldPathSize) < noSteps)
+			{
+				message("Exploration has stopped early because a deterministic loop has been detected.");
+			}			
 		}		
 		catch(SimulatorException e)
 		{
@@ -498,16 +507,18 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	public void a_autoStep(double time)
 	{		
 		try
-		{										
+		{	
+			double oldPathTime = engine.getTotalPathTime();
+			
 			if (displayPathLoops && pathTableModel.isPathLooping())
 			{
-				if (questionYesNo("A loop in the path has been detected. Do you wish to disable loop detection and extend the path?") == 0) 
+				if (questionYesNo("The current path contains a deterministic loop. Do you wish to disable the detection of deterministic loops and extend the path anyway?") == 0) 
 				{
 					displayPathLoops = false;
 					pathTable.repaint();
 				}
 				else return;
-			}
+			}		
 				
 			setComputing(true);
 				
@@ -528,6 +539,13 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			stateLabelList.repaint();
 			pathFormulaeList.repaint();
 			setComputing(false);
+			
+			double newPathTime = engine.getTotalPathTime();
+			
+			if (displayPathLoops && pathTableModel.isPathLooping() && (newPathTime - oldPathTime) < time)
+			{
+				message("Exploration has stopped early because a deterministic loop has been detected.");
+			}			
 		}		
 		catch(SimulatorException e)
 		{
