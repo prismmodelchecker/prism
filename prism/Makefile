@@ -272,6 +272,7 @@ cuddpackageforce: checks
 prism: checks make_dirs bin_scripts
 
 make_dirs:
+#	@mkdir -p obj/dd obj/jdd obj/odd obj/dv obj/prism obj/mtbdd obj/sparse obj/hybrid obj/simulator
 	@for dir in $(MAKE_DIRS); do \
 	  echo Making src/$$dir ...; \
 	  (cd src/$$dir && \
