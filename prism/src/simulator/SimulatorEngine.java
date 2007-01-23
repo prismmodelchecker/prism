@@ -1270,8 +1270,8 @@ public class SimulatorEngine
 	}
 	
 	/**
-	 * This function backtracks the current path to a state where
-	 * the cumulative time is equal to the time parameter.
+	 * This function backtracks the current path to such that
+	 * the cumulative time is equal or less than the time parameter.
 	 * @param time the cumulative time to backtrack to.
 	 * @throws SimulatorException is something goes wrong when backtracking.
 	 */

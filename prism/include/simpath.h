@@ -129,8 +129,8 @@ void Automatic_Choices(double time, bool detect);
 void Backtrack(int index);
 
 /*
- *	Removes all states upto some given cumulative time
- *	the path and sets the state_variables to that state.
+ * This function backtracks the current path to such that
+ * the cumulative time is equal or less than the time parameter.
  */
 void Backtrack(double time);
 

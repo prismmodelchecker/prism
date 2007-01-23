@@ -508,55 +508,86 @@ void Backtrack(int step)
 */
 void Backtrack(double time)
 {
-	int errorCount = 0;
-	
 	// No need to do anything.
 	if (path_timer <= time)
+	{
 		return;
+	}
 	
-	// We want to find the state to backtrack to
-	// Find state by binary search (search between upper and lower inclusive)
-		
-	int upper, lower;
+	if (current_index > 0 && stored_path[0]->cumulative_time_spent_in_state > time)
+	{
+		Backtrack(0);
+		return;
+	}
 	
-	upper = current_index - 1;
-	lower = 0;
+	/* We are looking for the highest index i such that 
+	 * (stored_path[i]->cumulative_time_spent_in_state <= time) */	
 	
+	/* We can exclude current_index, as the current state doesn't know the cumulative time yet.
+	 * Both upper and lower are inclusive... */
+	int upper = current_index - 1;
+	int lower = 0;	
 	int target_index;
 	
-	while (true && errorCount++ < 100)
-	{
+	/* Our invariant is (lower <= i <= upper), thus (lower == upper) means we know i. */
+	/* Really we want this loop to always terminate with (upper == lower) */
+	while (upper > lower)
+	{	
+		/* target_index < upper */
 		target_index = (upper - lower)/2 + lower;
 		
-		// Termination case
-		if (upper == lower)
-			break;		
+		//std::cout << "lower: " << lower << ", upper: " << upper << ", target_index: " << target_index << std::endl;
 		
 		if (stored_path[target_index]->cumulative_time_spent_in_state > time)
 		{
-			// need to search lower
-			upper = target_index - 1;
+			//std::cout << "Can savely stengthen the upper bound" << std::endl;
+			
+			/* Can savely stengthen the upper bound. */
+			upper = target_index;
+			
+			//std::cout << "upper: " << upper << std::endl;		
 		}
-		else
+		else 
 		{
-			// this is our target unless there is a later state that also satisfies <= time
-			if (upper - lower == 1)
+			//std::cout << "If possible, we should stengthen lower bound" << std::endl;
+					
+			/* If possible, we should stengthen lower bound. */
+			if (target_index != lower)
 			{
-				// make sure we terminate in this case.
-				target_index = (stored_path[upper]->cumulative_time_spent_in_state <= time) ? upper : lower;
-					break;
-			}
-			else
-			{
+				//std::cout << "Stengthening possible" << std::endl;
 				lower = target_index;
+				
+				//std::cout << "lower: " << target_index << std::endl;		
 			}
-		}	
+			else 
+			{
+				//std::cout << "Stengthening impossible" << std::endl;
+				
+				/* We cannot stengthen the lower bound then (upper - lower == 1). Can't be hard to find i. */
+				if (stored_path[upper]->cumulative_time_spent_in_state <= time)
+				{
+					lower = upper;
+					
+					//std::cout << "lower = upper" << std::endl;
+				}
+				else
+				{
+					upper = lower;
+					
+					//std::cout << "upper = lower" << std::endl;
+				}
+			}
+		}			
 	}
-	if (errorCount < 90)
+	
+	//std::cout << "terminate!" << std::endl;
+	//std::cout << "lower: " << lower << ", upper: " << upper << ", target_index: " << target_index << std::endl;
+		
+	if (lower + 1 < current_index)
 	{
-		if (target_index + 2 < current_index)
-			Backtrack(target_index + 2);
-	}
+		//std::cout << "Backtrack(" << (lower + 1) << ")" << std::endl;	
+		Backtrack(lower + 1);
+	}	
 }
 
 /*
