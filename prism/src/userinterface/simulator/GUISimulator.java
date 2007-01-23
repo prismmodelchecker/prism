@@ -2608,7 +2608,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				{
 					stepsVisible = true;
 					showTime = parsedModel.getType() == ModulesFile.STOCHASTIC;
-					showCumulativeTime = false;
+					showCumulativeTime = parsedModel.getType() == ModulesFile.STOCHASTIC;;
 					
 					for (int i = 0; i < engine.getNumVariables(); i++)
 					{
