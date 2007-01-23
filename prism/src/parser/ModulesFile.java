@@ -794,6 +794,13 @@ public class ModulesFile
 		String s = "", tmp;
 		int i, n;
 		
+		switch (type) {
+		case PROBABILISTIC: s += "dtmc"; break;
+		case NONDETERMINISTIC: s += "mdp"; break;
+		case STOCHASTIC: s += "ctmc"; break;
+		}
+		s += "\n\n";
+		
 		tmp = "" + formulaList;
 		if (tmp.length() > 0) tmp += "\n";
 		s += tmp;
