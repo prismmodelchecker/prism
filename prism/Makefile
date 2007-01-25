@@ -407,9 +407,7 @@ celan: clean
 clean_all: checks clean_cudd clean
 
 clean_cudd:
-	@(if [ ! -h $(CUDD_DIR) ]; then \
-	  cd $(CUDD_DIR) && $(MAKE) distclean; \
-	fi)
+	@(cd $(CUDD_DIR) && $(MAKE) distclean)
 
 clean_dd: checks
 	@(cd src/dd && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
