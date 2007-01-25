@@ -1,40 +1,34 @@
-CUDD
-====
+This file describes the modifications that have been made to this version of CUDD.
+It is based on CUDD 2.4.0. Original files can be found in the "orig" directory.
+Below is a list of the files that have been changed.
 
-This is a modified version of CUDD 2.4.0.
-This directory contains copies of all modified files.
-The modifications are detailed below.
-The original files are in the directory orig.
-It also contains copies of Makefiles/scripts used to build CUDD successfully on several OSs.
+ * Makefile.*
+ * setup.sh .
+ * shutdown.sh .
+ * cudd/cuddAddAbs.c
+ * cudd/cuddAddApply.c
+ * cudd/cuddAddNeg.c
+ * cudd/cuddExport.c
+ * cudd/cuddSat.c
+ * cudd/cuddTable.c
+ * cudd/cudd.h
+ * cudd/cuddInt.h
+ * util/Makefile
+ * util/cpu_time.c
+ * util/pipefork.c
+
 The following structural changes have also been made:
+
  * ddmp/nanotrav/mnemosyne/obj/sis directories have been removed
  * lib directory added with symlinks to lib files
 
-Commands to update
-------------------
-
-cd $CUDDDIR
-/bin/cp modified/Makefile.* .
-/bin/cp Makefile.linux Makefile
-/bin/cp modified/setup.sh .
-/bin/cp modified/cudd/cuddAddAbs.c cudd
-/bin/cp modified/cudd/cuddAddApply.c cudd
-/bin/cp modified/cudd/cuddAddNeg.c cudd
-/bin/cp modified/cudd/cuddExport.c cudd
-/bin/cp modified/cudd/cuddSat.c cudd
-/bin/cp modified/cudd/cuddTable.c cudd
-/bin/cp modified/cudd/cudd.h cudd
-/bin/cp modified/cudd/cuddInt.h cudd
-/bin/cp modified/util/Makefile util
-/bin/cp modified/util/cpu_time.c util
-/bin/cp modified/util/pipefork.c util
 
 Details
 -------
 
 [Makefile.*]
 
-* Tailored for different OSs: linux, solaris, cygwin/mingwin, darwin
+* Tailored for different OSs: Linux (32/64), Solaris, Cygwin/MinGW, OS X/Darwin
 
 * Disabled building of dddmp/nanotrav/mnemosyne packages (don't need)
 
