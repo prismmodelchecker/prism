@@ -37,10 +37,10 @@ CC	= gcc
 # On some machines ranlib is either non-existent or redundant.
 # Use the following definition if your machine has ranlib and you think
 # it is needed.
-#RANLIB	= ranlib
+RANLIB	= ranlib
 # Use the following definition if your machine either does not have
 # ranlib (e.g., SUN running solaris) or can do without it (e.g., DEC Alpha).
-RANLIB	= :
+#RANLIB	= :
 
 # Use ICFLAGS to specify machine-independent compilation flags.
 # These three are typical settings for cc.
@@ -50,10 +50,9 @@ RANLIB	= :
 # These four are typical settings for optimized code with gcc.  The
 # last two also work with icc/ecc.
 #ICFLAGS	= -g -O6 -Wall
-#ICFLAGS	= -g -O6
+ICFLAGS	= -g -O6
 #ICFLAGS	= -g -O3 -Wall
 #ICFLAGS	= -g -O3
-ICFLAGS	=
 
 # Use XCFLAGS to specify machine-dependent compilation flags.
 # For some platforms no special flags are needed.
@@ -152,22 +151,6 @@ XCFLAGS	= -mcpu=pentiumpro -malign-double -DHAVE_IEEE_754 -DBSD
 # Recent versions of cygwin have getrlimit, but the datasize limit
 # cannot be set.
 #XCFLAGS	= -mcpu=pentiumpro -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=67108864
-#
-#==========================
-#
-#  As above but using MingW
-#
-# Just need -mno-cygwin flag to ensure that gcc uses the Mingw headers when
-# compiling and not the Cygwin API headers
-#XCFLAGS	= -mno-cygwin -mcpu=pentiumpro -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=67108864 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0
-#
-#==========================
-#
-#  Mac OS X (Darwin)
-#
-#XCFLAGS	= -DHAVE_IEEE_754 -fno-common
-#
-#==========================
 
 
 # Define the level of self-checking and verbosity of the CUDD package.
@@ -211,9 +194,8 @@ DDWDIR	= .
 IDIR	= $(DDWDIR)/include
 INCLUDE = -I$(IDIR)
 
-#BDIRS	= cudd dddmp mtr st util epd
-BDIRS	= cudd mtr st util epd
-DIRS	= $(BDIRS) #nanotrav
+BDIRS	= cudd dddmp mtr st util epd
+DIRS	= $(BDIRS) nanotrav
 
 #------------------------------------------------------------------------
 
@@ -320,14 +302,14 @@ testmtr: build
 	make CC=$(CC) RANLIB=$(RANLIB) MFLAG= MNEMLIB= ICFLAGS="$(ICFLAGS)" XCFLAGS="$(XCFLAGS)" DDDEBUG="$(DDDEBUG)" MTRDEBUG="$(MTRDEBUG)" LDFLAGS="$(LDFLAGS)" PURE="$(PURE)" EXE="$(EXE)" testmtr$(EXE) )
 
 clean:
-	@for dir in $(DIRS); do	\
+	@for dir in mnemosyne $(DIRS) obj; do	\
 	    (cd $$dir; 	\
 	     echo Cleaning $$dir ...; \
 	     make -s clean	) \
 	done
 
 distclean:
-	@for dir in $(DIRS); do	\
+	@for dir in mnemosyne $(DIRS) obj; do	\
 	    (cd $$dir; 	\
 	     echo Cleaning $$dir ...; \
 	     make -s EXE="$(EXE)" distclean	) \

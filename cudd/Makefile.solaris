@@ -60,20 +60,6 @@ ICFLAGS	=
 #XCFLAGS	= -DHAVE_IEEE_754 -DBSD
 #
 #==========================
-#  Linux
-#
-# Gcc 2.8.1 or higher on i686.
-#XCFLAGS	= -mcpu=pentiumpro -malign-double -DHAVE_IEEE_754 -DBSD
-# Gcc 3.2.2 or higher on i686.
-#XCFLAGS	= -mcpu=pentium4 -malign-double -DHAVE_IEEE_754 -DBSD
-# Icc on i686.
-#XCFLAGS	= -ansi -align -ip -DHAVE_IEEE_754 -DBSD
-# Gcc on ia64.
-#XCFLAGS	= -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8
-# Ecc on ia64.
-#XCFLAGS = -ansi -DBSD -DHAVE_IEEE_754 -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8
-#
-#==========================
 #  Solaris
 #
 # For Solaris, BSD should not be replaced by UNIX100.
@@ -95,80 +81,6 @@ XCFLAGS	= -mcpu=ultrasparc -DHAVE_IEEE_754 -DUNIX100 -DEPD_BIG_ENDIAN
 #XCFLAGS	= -DHAVE_IEEE_754 -DBSD -xO4 -dalign -DEPD_BIG_ENDIAN
 #
 #==========================
-#  DEC Alphas running Digital Unix
-#
-# For DEC Alphas either -ieee_with_inexact or -ieee_with_no_inexact is
-# needed. If you use only BDDs, -ieee_with_no_inexact is enough.
-# In the following, we consider three different compilers:
-# - the old native compiler (the one of MIPS ancestry that produces u-code);
-# - the new native compiler;
-# - gcc
-# On the Alphas, gcc (as of release 2.7.2) does not support 32-bit pointers
-# and IEEE 754 floating point arithmetic. Therefore, for this architecture
-# only, the native compilers provide a substatial advantage.
-# With the native compilers, specify -xtaso for 32-bit pointers.
-# Do not use -xtaso_short because explicit reference to stdout and stderr
-# does not work with this option. (Among other things.)
-# Notice that -taso must be included in LDFLAGS for -xtaso to work.
-# Given the number of possible choices, only some typical configurations
-# are proposed here.
-#
-# Old native compiler for the Alphas; 64-bit pointers.
-#XCFLAGS	= -DBSD -DHAVE_IEEE_754 -ieee_with_no_inexact -tune host -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8
-# Old native compiler for the Alphas; 32-bit pointers.
-#XCFLAGS	= -DBSD -DHAVE_IEEE_754 -ieee_with_no_inexact -tune host -xtaso -DSIZEOF_LONG=8
-# New native compiler for the Alphas; 64-bit pointers. 
-#XCFLAGS	= -g3 -O4 -std -DBSD -DHAVE_IEEE_754 -ieee_with_no_inexact -tune host -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8
-# New native compiler for the Alphas; 32-bit pointers.
-#XCFLAGS	= -g3 -O4 -std -DBSD -DHAVE_IEEE_754 -ieee_with_no_inexact -tune host -xtaso -DSIZEOF_LONG=8
-# gcc for the Alphas: compile without HAVE_IEEE_754.
-#XCFLAGS	= -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8
-#
-#==========================
-#
-#  IBM RS6000
-#
-# For the IBM RS6000 -qstrict is necessary when specifying -O3 with cc.
-#XCFLAGS	= -DBSD -DHAVE_IEEE_754 -DEPD_BIG_ENDIAN -O3 -qstrict
-#
-#==========================
-#
-#  HP-UX
-#
-# I haven't figured out how to enable IEEE 754 on the HPs I've tried...
-# For HP-UX using gcc.
-#XCFLAGS	= -DUNIX100 -DEPD_BIG_ENDIAN
-# For HP-UX using c89.
-#XCFLAGS	= +O3 -DUNIX100 -DEPD_BIG_ENDIAN
-#
-#==========================
-#
-#  Windows95/98/NT/XP with Cygwin tools
-#
-# For b16 it was also necessary to change setup.sh (define CREATE
-# as "cp"). This is no longer necessary since b17.1.
-# The value of RLIMIT_DATA_DEFAULT should reflect the amount of
-# available memory (expressed in bytes).
-# Recent versions of cygwin have getrlimit, but the datasize limit
-# cannot be set.
-#XCFLAGS	= -mcpu=pentiumpro -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=67108864
-#
-#==========================
-#
-#  As above but using MingW
-#
-# Just need -mno-cygwin flag to ensure that gcc uses the Mingw headers when
-# compiling and not the Cygwin API headers
-#XCFLAGS	= -mno-cygwin -mcpu=pentiumpro -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=67108864 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0
-#
-#==========================
-#
-#  Mac OS X (Darwin)
-#
-#XCFLAGS	= -DHAVE_IEEE_754 -fno-common
-#
-#==========================
-
 
 # Define the level of self-checking and verbosity of the CUDD package.
 #DDDEBUG = -DDD_DEBUG -DDD_VERBOSE -DDD_STATS -DDD_CACHE_PROFILE -DDD_UNIQUE_PROFILE -DDD_COUNT
