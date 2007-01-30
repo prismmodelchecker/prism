@@ -63,7 +63,8 @@ ICFLAGS	=
 #  Linux 64-bit
 #  (AMD64 or Itanium)
 #
-XCFLAGS = $(CFLAGS) -fPIC -DPIC -m64 -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8
+XCFLAGS = $(CFLAGS) -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8
+# Note: We omit the -m64 flag from here since it seems to be unsupported by gcc on IA64
 #
 #==========================
 
