@@ -30,7 +30,7 @@ Details
 
 * Tailored for different OSs: Linux (32/64), Solaris, Cygwin/MinGW, OS X/Darwin
 
-* Disabled building of dddmp/nanotrav/mnemosyne packages (don't need)
+* Disabled building of nanotrav/mnemosyne packages (don't need)
 
 ------------------
 
