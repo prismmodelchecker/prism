@@ -1,7 +1,7 @@
 // workstation cluster [HHK00]
 // dxp/gxn 11/01/00
 
-stochastic
+ctmc
 
 const int N; // number of workstations in each cluster
 const int left_mx = N; // number of work stations in left cluster
@@ -85,20 +85,23 @@ module ToRight = Line[line=Toright,
 	                  repairLine=repairToRight ]
 endmodule
 
-// rewards - see cluster.csl for info
-const bool OPERATIONAL = true;
-const double MINIMUM = 0;
-const bool REPAIR = false;
+// reward structures
 
-rewards
-	
-	OPERATIONAL  : 100*(left_n+right_n)/(2*N); // percentage of operational workstations stations
-	!minimum : MINIMUM; // time that the system is not delivering at least minimum QOS
-	// number of repairs
+// percentage of operational workstations stations
+rewards "per_oper"
+	true : 100*(left_n+right_n)/(2*N);
+endrewards
+
+// time spent below minimum QoS
+rewards "below_min"
+	!minimum : 1;
+endrewards
+
+// number of repairs
+rewards "repairs"
 	[repairLeft]    REPAIR : 1;
 	[repairRight]   REPAIR : 1;
 	[repairToLeft]  REPAIR : 1;
 	[repairToRight] REPAIR : 1;
 	[repairLine]    REPAIR : 1;
-	
 endrewards
