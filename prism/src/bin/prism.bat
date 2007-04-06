@@ -19,4 +19,4 @@ rem  - lib/pepa.zip (PEPA stuff)
 set CP=%PRISM_DIR%\lib\prism.jar;%PRISM_DIR%\classes;%PRISM_DIR%;%PRISM_DIR%\lib\pepa.zip
 
 rem Run PRISM through Java
-java -classpath %CP% prism.PrismCL %*
+java -Djava.library.path=%PRISM_DIR%\lib -classpath %CP% prism.PrismCL %*

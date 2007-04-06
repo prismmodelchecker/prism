@@ -19,6 +19,5 @@ rem  - lib/pepa.zip (PEPA stuff)
 set CP=%PRISM_DIR%\lib\prism.jar;%PRISM_DIR%\classes;%PRISM_DIR%;%PRISM_DIR%\lib\pepa.zip
 
 rem Run PRISM through Java
-rem start javaw -classpath %CP% userinterface/GUIPrism %*
-java -classpath %CP% userinterface/GUIPrism %*
-
+rem start javaw -Djava.library.path=%PRISM_DIR%\lib -classpath %CP% userinterface/GUIPrism %*
+java -Djava.library.path=%PRISM_DIR%\lib -classpath %CP% userinterface/GUIPrism %*
