@@ -73,11 +73,15 @@ library, see:
 ACKNOWLEDGEMENTS
 ----------------
 
-PRISM has been principally developed in the School of Computer Science at the University of Birmingham by:
+The core team behind the development of PRISM, working in the School of Computer Science at the University of Birmingham, comprises:
 
  - Dave Parker
  - Gethin Norman
  - Marta Kwiatkowska
+ - Mark Kattenbelt
+
+Much of the work on the GUI and simulator was originally done by:
+
  - Andrew Hinton
 
 We also gratefully acknowledge contributions by:
