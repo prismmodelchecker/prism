@@ -1,12 +1,10 @@
 //==============================================================================
 //	
-//	File:		JDDTest.java
-//	Date:		22/5/00
-//	Author:		Dave Parker
+//	Copyright (c) 2002-
+//	Authors:
+//	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
 //	
 //------------------------------------------------------------------------------
-//	
-//	Copyright (c) 2002-2004, Dave Parker
 //	
 //	This file is part of PRISM.
 //	

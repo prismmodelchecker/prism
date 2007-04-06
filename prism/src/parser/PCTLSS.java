@@ -1,6 +1,11 @@
 //==============================================================================
 //	
-//	Copyright (c) 2002-2004, Dave Parker, Andrew Hinton
+//	Copyright (c) 2002-
+//	Authors:
+//	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
+//	* Andrew Hinton <ug60axh@cs.bham.uc.uk> (University of Birmingham)
+//	
+//------------------------------------------------------------------------------
 //	
 //	This file is part of PRISM.
 //	
@@ -18,7 +23,7 @@
 //	along with PRISM; if not, write to the Free Software Foundation,
 //	Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //	
-//==============================================================================s
+//==============================================================================
 
 package parser;
 

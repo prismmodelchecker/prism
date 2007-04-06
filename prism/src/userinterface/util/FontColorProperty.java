@@ -1,6 +1,11 @@
 //==============================================================================
 //	
-//	Copyright (c) 2002-2004, Andrew Hinton, Dave Parker
+//	Copyright (c) 2002-
+//	Authors:
+//	* Andrew Hinton <ug60axh@cs.bham.uc.uk> (University of Birmingham)
+//	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
+//	
+//------------------------------------------------------------------------------
 //	
 //	This file is part of PRISM.
 //	
@@ -29,10 +34,7 @@ import javax.swing.event.*;
 import javax.swing.border.*;
 import userinterface.*;
 import java.util.*;
-/**
- *
- * @author  fyjava
- */
+
 public class FontColorProperty extends SingleProperty
 {
     

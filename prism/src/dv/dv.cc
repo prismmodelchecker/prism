@@ -1,13 +1,11 @@
 //==============================================================================
 //	
-//	File:		dv.cc
-//	Date:		02/04/01
-//	Author:		Dave Parker
-//	Desc:		C++ code for double vector stuff
+//	Copyright (c) 2002-
+//	Authors:
+//	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
+//	Description: C++ code for double vector stuff
 //	
 //------------------------------------------------------------------------------
-//	
-//	Copyright (c) 2002-2004, Dave Parker
 //	
 //	This file is part of PRISM.
 //	

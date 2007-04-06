@@ -1,6 +1,12 @@
 //==============================================================================
 //	
-//	Copyright (c) 2002-2006, Andrew Hinton, Dave Parker, Mark Kattenbelt
+//	Copyright (c) 2002-
+//	Authors:
+//	* Andrew Hinton <ug60axh@cs.bham.uc.uk> (University of Birmingham)
+//	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
+//	* Mark Kattenbelt <mxk@cs.bham.uc.uk> (University of Birmingham)
+//	
+//------------------------------------------------------------------------------
 //	
 //	This file is part of PRISM.
 //	

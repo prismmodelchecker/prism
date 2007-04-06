@@ -1,6 +1,11 @@
 //==============================================================================
 //	
-//	Copyright (c) 2002-2005, Dave Parker, Andrew Hinton
+//	Copyright (c) 2002-
+//	Authors:
+//	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
+//	* Andrew Hinton <ug60axh@cs.bham.uc.uk> (University of Birmingham)
+//	
+//------------------------------------------------------------------------------
 //	
 //	This file is part of PRISM.
 //	
@@ -19,6 +24,7 @@
 //	Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //	
 //==============================================================================
+
 package userinterface.log;
 
 import java.io.*;

@@ -1,6 +1,10 @@
 //==============================================================================
 //	
-//	Copyright (c) 2004-2005, Andrew Hinton
+//	Copyright (c) 2002-
+//	Authors:
+//	* Andrew Hinton <ug60axh@cs.bham.uc.uk> (University of Birmingham)
+//	
+//------------------------------------------------------------------------------
 //	
 //	This file is part of PRISM.
 //	
@@ -19,7 +23,6 @@
 //	Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //	
 //==============================================================================
-
 
 #include "simformulae.h"
 #include "simpath.h"

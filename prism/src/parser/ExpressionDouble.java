@@ -1,6 +1,11 @@
 //==============================================================================
 //	
-//	Copyright (c) 2002-2004, Dave Parker, Andrew Hinton
+//	Copyright (c) 2002-
+//	Authors:
+//	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
+//	* Andrew Hinton <ug60axh@cs.bham.uc.uk> (University of Birmingham)
+//	
+//------------------------------------------------------------------------------
 //	
 //	This file is part of PRISM.
 //	

@@ -1,6 +1,10 @@
 //==============================================================================
 //	
-//	Copyright (c) 2002-2004, Dave Parker
+//	Copyright (c) 2002-
+//	Authors:
+//	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
+//	
+//------------------------------------------------------------------------------
 //	
 //	This file is part of PRISM.
 //	

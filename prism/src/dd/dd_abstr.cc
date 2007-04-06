@@ -1,13 +1,11 @@
 //==============================================================================
 //	
-//	File:		dd_abstr.cc
-//	Date:		20/9/99
-//	Author:		Dave Parker
-//	Desc:		DD abstraction functions
+//	Copyright (c) 2002-
+//	Authors:
+//	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
+//	Description: DD abstraction functions
 //	
 //------------------------------------------------------------------------------
-//	
-//	Copyright (c) 2002-2004, Dave Parker
 //	
 //	This file is part of PRISM.
 //	

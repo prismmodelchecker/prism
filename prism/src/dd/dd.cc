@@ -1,13 +1,11 @@
 //==============================================================================
 //	
-//	File:		dd.cc
-//	Date:		16/9/99
-//	Author:		Dave Parker
-//	Desc:		Any stuff global to the dd package
+//	Copyright (c) 2002-
+//	Authors:
+//	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
+//	Description: Any stuff global to the dd package
 //	
 //------------------------------------------------------------------------------
-//	
-//	Copyright (c) 2002-2004, Dave Parker
 //	
 //	This file is part of PRISM.
 //	

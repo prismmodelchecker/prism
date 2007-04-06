@@ -1,13 +1,11 @@
 //==============================================================================
 //	
-//	File:		dd_cudd.cc
-//	Date:		16/9/99
-//	Author:		Dave Parker
-//	Desc:		CUDD functions
+//	Copyright (c) 2002-
+//	Authors:
+//	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
+//	Description: CUDD functions
 //	
 //------------------------------------------------------------------------------
-//	
-//	Copyright (c) 2002-2004, Dave Parker
 //	
 //	This file is part of PRISM.
 //	

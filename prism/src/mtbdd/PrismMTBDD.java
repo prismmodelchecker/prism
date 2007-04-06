@@ -1,6 +1,11 @@
 //==============================================================================
 //	
-//	Copyright (c) 2002-2006, Dave Parker, Gethin Norman
+//	Copyright (c) 2002-
+//	Authors:
+//	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
+//	* Gethin Norman <gxn@cs.bham.uc.uk> (University of Birmingham)
+//	
+//------------------------------------------------------------------------------
 //	
 //	This file is part of PRISM.
 //	

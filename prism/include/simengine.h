@@ -1,11 +1,12 @@
 //==============================================================================
 //	
-//	Copyright (c) 2004-2005, Andrew Hinton
+//	Copyright (c) 2002-
+//	Authors:
+//	* Andrew Hinton <ug60axh@cs.bham.uc.uk> (University of Birmingham)
 //	
-//	This file is part of PRISM and 
-//	Andrew Hinton's M60 Software Project
-//	Supervisors: David Parker and Marta Kwiatkowska
-//	The University of Birmingham
+//------------------------------------------------------------------------------
+//	
+//	This file is part of PRISM.
 //	
 //	PRISM is free software; you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
@@ -22,6 +23,7 @@
 //	Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //	
 //==============================================================================
+
 #ifndef _Included_simulator_Engineheader
 #define _Included_simulator_Engineheader
 

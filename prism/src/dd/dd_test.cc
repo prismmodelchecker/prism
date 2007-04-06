@@ -1,13 +1,11 @@
 //==============================================================================
 //	
-//	File:		dd_test.cc
-//	Date:		10/3/03
-//	Author:		Dave Parker
-//	Desc:		Small test program
+//	Copyright (c) 2002-
+//	Authors:
+//	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
+//	Description: Small test program
 //	
 //------------------------------------------------------------------------------
-//	
-//	Copyright (c) 2002-2004, Dave Parker
 //	
 //	This file is part of PRISM.
 //	

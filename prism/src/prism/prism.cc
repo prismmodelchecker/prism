@@ -1,6 +1,11 @@
 //==============================================================================
 //	
-//	Copyright (c) 2002-2006, Dave Parker, Joachim Meyer-Kayser
+//	Copyright (c) 2002-
+//	Authors:
+//	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
+//	* Joachim Meyer-Kayser <Joachim.Meyer-Kayser@informatik.uni-erlangen.de> (University of Erlangen)
+//	
+//------------------------------------------------------------------------------
 //	
 //	This file is part of PRISM.
 //	

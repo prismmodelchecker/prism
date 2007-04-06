@@ -1,6 +1,10 @@
 //==============================================================================
 //	
-//	Copyright (c) 2004-2005, Andrew Hinton
+//	Copyright (c) 2002-
+//	Authors:
+//	* Andrew Hinton <ug60axh@cs.bham.uc.uk> (University of Birmingham)
+//	
+//------------------------------------------------------------------------------
 //	
 //	This file is part of PRISM.
 //	
@@ -28,12 +32,12 @@
 
 //Helper functions
 
-inline CExpression * To_Expr(jint pointer) 
+inline CExpression * To_Expr(jint pointer)
 {
 	return (CExpression*)(pointer);
 }
 
-inline jint To_JInt(CStateReward * sr) 
+inline jint To_JInt(CStateReward * sr)
 {
 	return (jint)(sr);
 }
