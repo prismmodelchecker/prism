@@ -159,58 +159,6 @@ public class SettingTable extends JPanel implements ListSelectionListener, Table
 	//
 	//    private SettingEditor ce;
 	
-	public static void main(String[]args)
-	{
-		JFrame jf = new JFrame("Properties");
-		jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
-		
-		
-		ArrayList owners = getOwners();
-		
-		
-		
-		SettingTable pt = new SettingTable(jf);
-		pt.setOwners(owners);
-		
-		for(int i = 0; i < owners.size(); i++)
-		{
-			SettingOwner a = (SettingOwner)owners.get(i);
-			a.setDisplay(pt);
-		}
-		
-		
-		jf.getContentPane().add(pt);
-		jf.getContentPane().setSize(100, 300);
-		
-		jf.pack();
-		jf.show();
-		
-	}
-	
-	public static ArrayList getOwners()
-	{
-		ArrayList owners = new ArrayList();
-		
-		Apple a = new Apple("1", 2, "Wednesbury\nWest Midlands", "Bill", 3, true, Color.red, 0);
-		/*Apple b = new Apple("2", 3, "Wednesbury\nWest Midlands\nis vggfdg", "Bob", 4, false, Color.blue, 1);
-		Apple c = new Apple("3", 1, "West Brom\nWest Midlands",  "Bill", 6, true, Color.yellow, 2);
-		Apple d = new Apple("4", 10, "Walsall", "Derek",10, false, Color.pink, 3);
-		Orange e = new Orange("1", 55);
-		Orange f = new Orange("2", 34);
-		Orange g = new Orange("3", 44);*/
-		
-		owners.add(a);
-		/*owners.add(b);
-		owners.add(c);
-		owners.add(d);
-		owners.add(e);
-		owners.add(f);
-		owners.add(g);*/
-		
-		return owners;
-	}
-	
 	/** This method is called from within the constructor to
 	 * initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is

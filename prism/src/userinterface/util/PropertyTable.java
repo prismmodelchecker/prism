@@ -150,49 +150,6 @@ public class PropertyTable extends JPanel implements ListSelectionListener, Tabl
     
     private PropertyTable.PropertyCellEditor ce;
     
-    /*public static void main(String[]args)
-    {
-        JFrame jf = new JFrame("Properties");
-        jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-     
-        PropertyTableModel ptm = new PropertyTableModel();
-     
-        ArrayList owners = getOwners();
-     
-        ptm.setOwners(owners);
-     
-        PropertyTable pt = new PropertyTable(ptm);
-        jf.getContentPane().add(pt);
-        jf.getContentPane().setSize(100, 300);
-     
-        jf.pack();
-        jf.show();
-     
-    }
-     
-    public static ArrayList getOwners()
-    {
-        ArrayList owners = new ArrayList();
-     
-        Apple a = new Apple("1", 2, "Wednesbury\nWest Midlands", "Bill", 3);
-        Apple b = new Apple("2", 3, "Wednesbury\nWest Midlands", "Bob", 4);
-        Apple c = new Apple("3", 1, "West Brom\nWest Midlands",  "Bill", 6);
-        Apple d = new Apple("4", 10, "Walsall", "Derek",10);
-        Orange e = new Orange("1", 55, 43, 44);
-        Orange f = new Orange("2", 34, 22, 44);
-        Orange g = new Orange("3", 44, 66, 44);
-     
-        owners.add(a);
-        owners.add(b);
-        owners.add(c);
-        owners.add(d);
-        owners.add(e);
-        owners.add(f);
-        owners.add(g);
-     
-        return owners;
-    }*/
-    
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
