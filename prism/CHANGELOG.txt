@@ -3,6 +3,15 @@ including development and beta versions. For a less detailed overview
 of the main changes in each public release, see the file VERSIONS.txt.
 
 -----------------------------------------------------------------------------
+Version 3.1.1 (5/4/2007)
+-----------------------------------------------------------------------------
+
+* Minor bug fixes:
+  - bug in "New Graph" dialog which fails on Java 6
+  - threading bug which can cause graph plotting to freeze
+  - fix to possible failure of Windows launch scripts
+
+-----------------------------------------------------------------------------
 Version 3.1 (15/11/2006)
 -----------------------------------------------------------------------------
 
