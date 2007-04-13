@@ -33,6 +33,7 @@
 #include <dd.h>
 #include "hybrid.h"
 #include "PrismHybridGlob.h"
+#include "jnipointer.h"
 
 #define MAX_LOG_STRING_LEN 1024
 #define MAX_ERR_STRING_LEN 1024
@@ -86,9 +87,9 @@ double last_unif;
 // cudd manager
 //------------------------------------------------------------------------------
 
-JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetCUDDManager(JNIEnv *env, jclass cls, jint ddm)
+JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetCUDDManager(JNIEnv *env, jclass cls, jlong __pointer ddm)
 {
-	ddman = (DdManager *)ddm;
+	ddman = jlong_to_DdManager(ddm);
 }
 
 //------------------------------------------------------------------------------
@@ -113,7 +114,7 @@ JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetMainLog(JNIEnv *env, jclas
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetTechLog(JNIEnv *env, jclass cls,  jobject log)
+JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetTechLog(JNIEnv *env, jclass cls, jobject log)
 {
 	// if tech log has been set previously, we need to delete existing global refs first
 	if (tech_log_obj != NULL) {

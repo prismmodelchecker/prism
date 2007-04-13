@@ -40,6 +40,7 @@
 #include "simrandom.h"
 #include "simiohandler.h"
 #include "simlog.h"
+#include "jnipointer.h"
 
 using std::string;
 using std::cout;
@@ -148,11 +149,11 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_allocateModel
 }
 
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_setupAddTransition
-(JNIEnv *env, jclass cls, jint commPointer)
+(JNIEnv *env, jclass cls, jlong commPointer)
 {
 	try
 	{
-		Add_Command_To_Model((CCommand*)(commPointer));
+		Add_Command_To_Model(jlong_to_CCommand(commPointer));
 	}
 	catch(string str)
 	{
@@ -164,11 +165,11 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_setupAddTransition
 
 
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_setupAddStateReward
-(JNIEnv *env, jclass cls, jint i, jint rewardPointer)
+(JNIEnv *env, jclass cls, jint i, jlong rewardPointer)
 {
 	try
 	{
-		Add_State_Reward_To_Model((int)i, (CStateReward*)(rewardPointer));
+		Add_State_Reward_To_Model((int)i, jlong_to_CStateReward(rewardPointer));
 	}
 	catch(string str)
 	{
@@ -180,11 +181,11 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_setupAddStateReward
 
 
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_setupAddTransitionReward
-(JNIEnv *env, jclass cls, jint i, jint rewardPointer)
+(JNIEnv *env, jclass cls, jint i, jlong rewardPointer)
 {
 	try
 	{
-		Add_Transition_Reward_To_Model((int)i, (CTransitionReward*)(rewardPointer));
+		Add_Transition_Reward_To_Model((int)i, jlong_to_CTransitionReward(rewardPointer));
 	}
 	catch(string str)
 	{
@@ -245,7 +246,7 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_getPathSize
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_getPathData
 (JNIEnv *env, jclass cls, jint varIndex, jint stateIndex)
 {
-	return Get_Path_Data(varIndex, stateIndex);   
+	return Get_Path_Data(varIndex, stateIndex);
 }
 
 JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_getTimeSpentInPathState
@@ -588,7 +589,7 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_doSampling
 {
 	try {
 		Set_No_Iterations((int)noIterations);
-		        
+		
 		Sim_Enable_Main_Log_For_Current_Thread(env);
 		
 		Do_Sampling((int)maxPathLength);
@@ -625,16 +626,16 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_getNumReachedMaxPath
 //==============================================================================
 
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadProposition
-  (JNIEnv *env, jclass cls, jint exprPointer)
+  (JNIEnv *env, jclass cls, jlong exprPointer)
 {
-	CNormalExpression* expr = (CNormalExpression*)exprPointer;
-	return Load_Proposition(expr);   
+	CNormalExpression* expr = jlong_to_CNormalExpression(exprPointer);
+	return Load_Proposition(expr);
 }
 
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_queryProposition__I
   (JNIEnv *env, jclass cls, jint index)
 {
-	return Query_Proposition((int)index);	
+	return Query_Proposition((int)index);
 }
 
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_queryProposition__II
@@ -673,9 +674,9 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_queryIsDeadlock__I
 
 
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_findPathFormulaIndex
-  (JNIEnv *env, jclass cls, jint pathPointer)
+  (JNIEnv *env, jclass cls, jlong pathPointer)
 {
-	return Index_Of_Path_Formula((CPathFormula*)pathPointer);
+	return Index_Of_Path_Formula(jlong_to_CPathFormula(pathPointer));
 }
 
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_queryPathFormula

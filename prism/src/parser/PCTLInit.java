@@ -59,7 +59,7 @@ public class PCTLInit extends PCTLFormula
 	/**
 	 *	Convert and build simulator data structures
 	 */
-	public int toSimulator(SimulatorEngine sim ) throws SimulatorException
+	public long toSimulator(SimulatorEngine sim ) throws SimulatorException
 	{
 		throw new SimulatorException("Simulator does not currently support init in PCTL Formulae");
 	}

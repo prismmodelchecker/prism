@@ -25,6 +25,7 @@
 //	
 //==============================================================================
 
+#include <inttypes.h>
 #include <util.h>
 #include <cudd.h>
 #include <odd.h>
@@ -47,12 +48,21 @@ typedef struct HDDKids {
 struct HDDNode
 {
 	union {
-	double val;	// for terminals
-	HDDKids kids;	// for non-terminals
+		double val;		// for terminals
+		HDDKids kids;	// for non-terminals
 	} type;
-	int off;
-	int off2;
-	void *sm;
+	union {				// offset info (else edge, used most often)
+		int val;		// integer offset
+		ODDNode* ptr;	// temporary pointer storage used during construction
+	} off;
+	union {				// 2nd offset info (then edge, rarely used)
+		int val;		// integer offset
+		ODDNode* ptr;	// temporary pointer storage used during construction
+	} off2;
+	union {				// sparse matrix pointer
+		void *ptr;		// the pointer (void* because can be of different types)
+		int val;		// temporary storage for integer used during construction
+	} sm;
 	HDDNode *next;
 };
 

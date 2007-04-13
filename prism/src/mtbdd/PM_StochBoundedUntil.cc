@@ -33,33 +33,35 @@
 #include <odd.h>
 #include <prism.h>
 #include "PrismMTBDDGlob.h"
+#include "jnipointer.h"
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1StochBoundedUntil
+JNIEXPORT jlong __pointer JNICALL Java_mtbdd_PrismMTBDD_PM_1StochBoundedUntil
 (
 JNIEnv *env,
 jclass cls,
-jint tr,		// rate matrix
-jint od,		// odd
-jint rv,		// row vars
+jlong __pointer tr,	// rate matrix
+jlong __pointer od,	// odd
+jlong __pointer rv,	// row vars
 jint num_rvars,
-jint cv,		// col vars
+jlong __pointer cv,	// col vars
 jint num_cvars,
-jint ye,		// 'yes' states
-jint ma,		// 'maybe' states
+jlong __pointer ye,	// 'yes' states
+jlong __pointer ma,	// 'maybe' states
 jdouble time,		// time bound
-jint mu			// probs for multiplying
+jlong __pointer mu	// probs for multiplying
 )
 {
 	// cast function parameters
-	DdNode *trans = (DdNode *)tr;	// trans matrix
-	ODDNode *odd = (ODDNode *)od;	// odd
-	DdNode **rvars = (DdNode **)rv;	// row vars
-	DdNode **cvars = (DdNode **)cv;	// col vars
-	DdNode *yes = (DdNode *)ye;	// 'yes' states
-	DdNode *maybe = (DdNode *)ma;	// 'maybe' states
-	DdNode *mult = (DdNode *)mu;	// probs for multiplying
+	DdNode *trans = jlong_to_DdNode(tr);		// trans matrix
+	ODDNode *odd = jlong_to_ODDNode(od);		// odd
+	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
+	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
+	DdNode *yes = jlong_to_DdNode(ye);		// 'yes' states
+	DdNode *maybe = jlong_to_DdNode(ma);		// 'maybe' states
+	DdNode *mult = jlong_to_DdNode(mu);		// probs for multiplying
+
 	// model stats
 	int n;
 	// mtbdds
@@ -326,7 +328,7 @@ jint mu			// probs for multiplying
 	Cudd_RecursiveDeref(ddman, diags);
 	Cudd_RecursiveDeref(ddman, sol);
 	
-	return (int)sum;
+	return ptr_to_jlong(sum);
 }
 
 //------------------------------------------------------------------------------

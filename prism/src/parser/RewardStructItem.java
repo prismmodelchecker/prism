@@ -123,7 +123,7 @@ public class RewardStructItem
 	/**
 	 *	Convert to simulator data structures for rewards
 	 */
-	public int toSimulator(SimulatorEngine sim) throws SimulatorException
+	public long toSimulator(SimulatorEngine sim) throws SimulatorException
 	{
 		if(synch == null) //state reward
 		{

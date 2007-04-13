@@ -32,6 +32,7 @@
 #include <odd.h>
 #include "sparse.h"
 #include "PrismSparseGlob.h"
+#include "jnipointer.h"
 
 //------------------------------------------------------------------------------
 
@@ -39,26 +40,27 @@ JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1ExportSubMDP
 (
 JNIEnv *env,
 jclass cls,
-jint m,			// mdp
-jint sm,		// sub mdp
+jlong __pointer m,	// mdp
+jlong __pointer sm,	// sub mdp
 jstring na,		// sub mdp name
-jint rv,		// row vars
+jlong __pointer rv,	// row vars
 jint num_rvars,
-jint cv,		// col vars
+jlong __pointer cv,	// col vars
 jint num_cvars,
-jint ndv,		// nondet vars
+jlong __pointer ndv,	// nondet vars
 jint num_ndvars,
-jint od,		// odd
+jlong __pointer od,	// odd
 jint et,		// export type
 jstring fn		// filename
 )
 {
-	DdNode *mdp = (DdNode *)m;			// mdp
-	DdNode *submdp = (DdNode *)sm;		// sub-mdp
-	DdNode **rvars = (DdNode **)rv;		// row vars
-	DdNode **cvars = (DdNode **)cv;		// col vars
-	DdNode **ndvars = (DdNode **)ndv;	// nondet vars
-	ODDNode *odd = (ODDNode *)od;
+	DdNode *mdp = jlong_to_DdNode(m);		// mdp
+	DdNode *submdp = jlong_to_DdNode(sm);		// sub-mdp
+	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
+	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
+	DdNode **ndvars = jlong_to_DdNode_array(ndv);	// nondet vars
+	ODDNode *odd = jlong_to_ODDNode(od);
+
 	// sparse matrix
 	NDSparseMatrix *ndsm;
 	// model stats

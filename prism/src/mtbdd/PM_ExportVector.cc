@@ -31,6 +31,7 @@
 #include <dd.h>
 #include <odd.h>
 #include "PrismMTBDDGlob.h"
+#include "jnipointer.h"
 
 //------------------------------------------------------------------------------
 
@@ -46,18 +47,18 @@ JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1ExportVector
 (
 JNIEnv *env,
 jclass cls,
-jint ve,		// vector
+jlong __pointer ve,	// vector
 jstring na,		// vector name
-jint va,		// vars
+jlong __pointer va,	// vars
 jint num_vars,
-jint od,		// odd
+jlong __pointer od,	// odd
 jint et,		// export type
 jstring fn		// filename
 )
 {
-	DdNode *vector = (DdNode *)ve;	// vector
-	DdNode **vars = (DdNode **)va; // vars
-	ODDNode *odd = (ODDNode *)od;
+	DdNode *vector = jlong_to_DdNode(ve);		// vector
+	DdNode **vars = jlong_to_DdNode_array(va);	// vars
+	ODDNode *odd = jlong_to_ODDNode(od);
 	
 	// store export info
 	if (!store_export_info(et, fn, env)) return -1;
@@ -81,7 +82,7 @@ jstring fn		// filename
 
 //------------------------------------------------------------------------------
 
-void export_rec(DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, long index)
+static void export_rec(DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, long index)
 {
 	DdNode *e, *t;
 	

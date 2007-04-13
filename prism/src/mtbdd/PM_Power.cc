@@ -32,6 +32,7 @@
 #include <dd.h>
 #include <odd.h>
 #include "PrismMTBDDGlob.h"
+#include "jnipointer.h"
 
 //------------------------------------------------------------------------------
 
@@ -39,28 +40,29 @@
 // in addition, solutions may be provided for additional states in the vector b
 // these states are assumed not to have non-zero rows in the matrix A
 
-jint JNICALL Java_mtbdd_PrismMTBDD_PM_1Power
+JNIEXPORT jlong __pointer JNICALL Java_mtbdd_PrismMTBDD_PM_1Power
 (
 JNIEnv *env,
 jclass cls,
-jint _odd,			// odd
-jint rv,			// row vars
+jlong __pointer _odd,	// odd
+jlong __pointer rv,	// row vars
 jint num_rvars,
-jint cv,			// col vars
+jlong __pointer cv,	// col vars
 jint num_cvars,
-jint _a,			// matrix A
-jint _b,			// vector b (if null, assume all zero)
-jint _init,			// init soln
+jlong __pointer _a,	// matrix A
+jlong __pointer _b,	// vector b (if null, assume all zero)
+jlong __pointer _init,	// init soln
 jboolean transpose	// transpose A? (i.e. solve xA=b not Ax=b?)
 )
 {
 	// cast function parameters
-	ODDNode *odd = (ODDNode *)_odd;		// odd
-	DdNode **rvars = (DdNode **)rv; 	// row vars
-	DdNode **cvars = (DdNode **)cv; 	// col vars
-	DdNode *a = (DdNode *)_a;			// matrix A
-	DdNode *b = (DdNode *)_b;			// vector b
-	DdNode *init = (DdNode *)_init;		// init soln
+	ODDNode *odd = jlong_to_ODDNode(_odd);		// odd
+	DdNode **rvars = jlong_to_DdNode_array(rv); 	// row vars
+	DdNode **cvars = jlong_to_DdNode_array(cv); 	// col vars
+	DdNode *a = jlong_to_DdNode(_a);		// matrix A
+	DdNode *b = jlong_to_DdNode(_b);		// vector b
+	DdNode *init = jlong_to_DdNode(_init);		// init soln
+
 	// mtbdds
 	DdNode *reach, *sol, *tmp;
 	// timing stuff
@@ -157,7 +159,7 @@ jboolean transpose	// transpose A? (i.e. solve xA=b not Ax=b?)
 	// if the iterative method didn't terminate, this is an error
 	if (!done) { Cudd_RecursiveDeref(ddman, sol); PM_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); return 0; }
 	
-	return (int)sol;
+	return ptr_to_jlong(sol);
 }
 
 //------------------------------------------------------------------------------

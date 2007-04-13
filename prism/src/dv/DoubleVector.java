@@ -55,7 +55,7 @@ public class DoubleVector
 	// cudd manager
 	
 	// jni method to set cudd manager for native code
-	private static native void DV_SetCUDDManager(int ddm);
+	private static native void DV_SetCUDDManager(long ddm);
 	public static void setCUDDManager()
 	{
 		DV_SetCUDDManager(JDD.GetCUDDManager());
@@ -66,25 +66,25 @@ public class DoubleVector
 	//------------------------------------------------------------------------------
 
 	// data
-	private int v; // vector (actually a C/C++ pointer cast to an integer)
+	private long v; // vector (actually a C/C++ pointer cast to a long)
 	private int n; // size
 	
 	// constructors
 	
-	private native int DV_CreateZeroVector(int n);
+	private native long DV_CreateZeroVector(int n);
 	public DoubleVector(int size)
 	{
 		v = DV_CreateZeroVector(size);
 		n = size;
 	}
 	
-	public DoubleVector(int vector, int size)
+	public DoubleVector(long vector, int size)
 	{
 		v = vector;
 		n = size;
 	}
 	
-	private native int DV_ConvertMTBDD(int dd, int vars, int num_vars, int odd);
+	private native long DV_ConvertMTBDD(long dd, long vars, int num_vars, long odd);
 	public DoubleVector(JDDNode dd, JDDVars vars, ODDNode odd)
 	{
 		v = DV_ConvertMTBDD(dd.ptr(), vars.array(), vars.n(), odd.ptr());
@@ -93,7 +93,7 @@ public class DoubleVector
 	
 	// get methods
 	
-	public int getPtr()
+	public long getPtr()
 	{
 		return v;
 	}
@@ -104,84 +104,84 @@ public class DoubleVector
 	}
 
 	// get element
-	private native double DV_GetElement(int v, int n, int i);
+	private native double DV_GetElement(long v, int n, int i);
 	public double getElement(int i)
 	{
 		return DV_GetElement(v, n, i);
 	}
 
 	// round off
-	private native void DV_RoundOff(int v, int n, int places);
+	private native void DV_RoundOff(long v, int n, int places);
 	public void roundOff(int places)
 	{
 		DV_RoundOff(v, n, places);
 	}
 
 	// subtract all values from 1
-	private native void DV_SubtractFromOne(int v, int n);
+	private native void DV_SubtractFromOne(long v, int n);
 	public void subtractFromOne() 
 	{
 		DV_SubtractFromOne(v, n);
 	}
 
 	// add another vector to this one
-	private native void DV_Add(int v, int n, int v2);
+	private native void DV_Add(long v, int n, long v2);
 	public void add(DoubleVector dv) 
 	{
 		DV_Add(v, n, dv.v);
 	}
 
 	// multiply vector by a constant
-	private native void DV_TimesConstant(int v, int n, double d);
+	private native void DV_TimesConstant(long v, int n, double d);
 	public void timesConstant(double d) 
 	{
 		DV_TimesConstant(v, n, d);
 	}
 
 	// filter vector using a bdd (set elements not in filter to 0)
-	private native void DV_Filter(int v, int filter, int vars, int num_vars, int odd);
+	private native void DV_Filter(long v, long filter, long vars, int num_vars, long odd);
 	public void filter(JDDNode filter, JDDVars vars, ODDNode odd)
 	{
 		DV_Filter(v, filter.ptr(), vars.array(), vars.n(), odd.ptr());
 	}
 
 	// clear (free memory)
-	private native void DV_Clear(int v);
+	private native void DV_Clear(long v);
 	public void clear() 
 	{
 		DV_Clear(v);
 	}
 
 	// get number of non zeros
-	private native int DV_GetNNZ(int v, int n);
+	private native int DV_GetNNZ(long v, int n);
 	public int getNNZ()
 	{
 		return DV_GetNNZ(v, n);
 	}
 
 	// get value of first element in BDD filter
-	private native double DV_FirstFromBDD(int v, int filter, int vars, int num_vars, int odd);
+	private native double DV_FirstFromBDD(long v, long filter, long vars, int num_vars, long odd);
 	public double firstFromBDD(JDDNode filter, JDDVars vars, ODDNode odd)
 	{
 		return DV_FirstFromBDD(v, filter.ptr(), vars.array(), vars.n(), odd.ptr());
 	}
 	
 	// get min value over BDD filter
-	private native double DV_MinOverBDD(int v, int filter, int vars, int num_vars, int odd);
+	private native double DV_MinOverBDD(long v, long filter, long vars, int num_vars, long odd);
 	public double minOverBDD(JDDNode filter, JDDVars vars, ODDNode odd)
 	{
 		return DV_MinOverBDD(v, filter.ptr(), vars.array(), vars.n(), odd.ptr());
 	}
 	
 	// get max value over BDD filter
-	private native double DV_MaxOverBDD(int v, int filter, int vars, int num_vars, int odd);
+	private native double DV_MaxOverBDD(long v, long filter, long vars, int num_vars, long odd);
 	public double maxOverBDD(JDDNode filter, JDDVars vars, ODDNode odd)
 	{
 		return DV_MaxOverBDD(v, filter.ptr(), vars.array(), vars.n(), odd.ptr());
 	}
 	
 	// sum elements of vector according to a bdd (used for csl steady state operator)
-	private native double DV_SumOverBDD(int v, int filter, int vars, int num_vars, int odd);
+	private native double DV_SumOverBDD(long v, long filter, long vars, int num_vars, long odd);
 	public double sumOverBDD(JDDNode filter, JDDVars vars, ODDNode odd)
 	{
 		return DV_SumOverBDD(v, filter.ptr(), vars.array(), vars.n(), odd.ptr());
@@ -189,17 +189,17 @@ public class DoubleVector
 	
 	// do a weighted sum of the elements of a double array and the values the mtbdd passed in
 	// (used for csl reward steady state operator)
-	private native double DV_SumOverMTBDD(int v, int mult, int vars, int num_vars, int odd);
+	private native double DV_SumOverMTBDD(long v, long mult, long vars, int num_vars, long odd);
 	public double sumOverMTBDD(JDDNode mult, JDDVars vars, ODDNode odd)
 	{
 		return DV_SumOverMTBDD(v, mult.ptr(), vars.array(), vars.n(), odd.ptr());
 	}
 	
 	// generate bdd (from an interval: relative operator and bound)
-	private native int DV_BDDGreaterThanEquals(int v, double bound, int vars, int num_vars, int odd);
-	private native int DV_BDDGreaterThan(int v, double bound, int vars, int num_vars, int odd);
-	private native int DV_BDDLessThanEquals(int v, double bound, int vars, int num_vars, int odd);
-	private native int DV_BDDLessThan(int v, double bound, int vars, int num_vars, int odd);
+	private native long DV_BDDGreaterThanEquals(long v, double bound, long vars, int num_vars, long odd);
+	private native long DV_BDDGreaterThan(long v, double bound, long vars, int num_vars, long odd);
+	private native long DV_BDDLessThanEquals(long v, double bound, long vars, int num_vars, long odd);
+	private native long DV_BDDLessThan(long v, double bound, long vars, int num_vars, long odd);
 	public JDDNode getBDDFromInterval(String relOp, double bound, JDDVars vars, ODDNode odd)
 	{
 		JDDNode sol = null;
@@ -229,7 +229,7 @@ public class DoubleVector
 	}
 	
 	// generate bdd (from an interval: lower/upper bound)
-	private native int DV_BDDInterval(int v, double lo, double hi, int vars, int num_vars, int odd);
+	private native long DV_BDDInterval(long v, double lo, double hi, long vars, int num_vars, long odd);
 	public JDDNode getBDDFromInterval(double lo, double hi, JDDVars vars, ODDNode odd)
 	{
 		JDDNode sol;

@@ -34,34 +34,36 @@
 #include <dv.h>
 #include "sparse.h"
 #include "PrismSparseGlob.h"
+#include "jnipointer.h"
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1NondetUntil
+JNIEXPORT jlong __pointer JNICALL Java_sparse_PrismSparse_PS_1NondetUntil
 (
 JNIEnv *env,
 jclass cls,
-jint t,			// trans matrix
-jint od,		// odd
-jint rv,		// row vars
+jlong __pointer t,	// trans matrix
+jlong __pointer od,	// odd
+jlong __pointer rv,	// row vars
 jint num_rvars,
-jint cv,		// col vars
+jlong __pointer cv,	// col vars
 jint num_cvars,
-jint ndv,		// nondet vars
+jlong __pointer ndv,	// nondet vars
 jint num_ndvars,
-jint y,			// 'yes' states
-jint m,			// 'maybe' states
+jlong __pointer y,	// 'yes' states
+jlong __pointer m,	// 'maybe' states
 jboolean min		// min or max probabilities (true = min, false = max)
 )
 {
 	// cast function parameters
-	DdNode *trans = (DdNode *)t;		// trans matrix
-	ODDNode *odd = (ODDNode *)od; 		// reachable states
-	DdNode **rvars = (DdNode **)rv; 	// row vars
-	DdNode **cvars = (DdNode **)cv; 	// col vars
-	DdNode **ndvars = (DdNode **)ndv;	// nondet vars
-	DdNode *yes = (DdNode *)y;		// 'yes' states
-	DdNode *maybe = (DdNode *)m; 		// 'maybe' states
+	DdNode *trans = jlong_to_DdNode(t);		// trans matrix
+	ODDNode *odd = jlong_to_ODDNode(od); 		// reachable states
+	DdNode **rvars = jlong_to_DdNode_array(rv); 	// row vars
+	DdNode **cvars = jlong_to_DdNode_array(cv); 	// col vars
+	DdNode **ndvars = jlong_to_DdNode_array(ndv);	// nondet vars
+	DdNode *yes = jlong_to_DdNode(y);		// 'yes' states
+	DdNode *maybe = jlong_to_DdNode(m); 		// 'maybe' states
+
 	// mtbdds
 	DdNode *a;
 	// model stats
@@ -226,7 +228,7 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	// if the iterative method didn't terminate, this is an error
 	if (!done) { delete soln; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); return 0; }
 	
-	return (int)soln;
+	return ptr_to_jlong(soln);
 }
 
 //------------------------------------------------------------------------------

@@ -31,12 +31,12 @@ import java.util.Vector;
 public class JDDVars
 {
 	private Vector vars;
-	private int array;
+	private long array;
 	private boolean arrayBuilt;
 	
-	private native int DDV_BuildArray();
-	private native void DDV_FreeArray(int a);
-	private native int DDV_GetIndex(int dd);
+	private native long DDV_BuildArray();
+	private native void DDV_FreeArray(long a);
+	private native int DDV_GetIndex(long dd);
 
 	static
 	{
@@ -82,7 +82,7 @@ public class JDDVars
 		return (JDDNode)vars.elementAt(i);
 	}
 	
-	public int getVarPtr(int i)
+	public long getVarPtr(int i)
 	{
 		return ((JDDNode)vars.elementAt(i)).ptr();
 	}
@@ -110,7 +110,7 @@ public class JDDVars
 		}
 	}
 	
-	public int array()
+	public long array()
 	{
 		if (arrayBuilt) {
 			return array;

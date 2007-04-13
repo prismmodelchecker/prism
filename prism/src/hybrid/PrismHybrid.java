@@ -77,7 +77,7 @@ public class PrismHybrid
 	// cudd manager
 	
 	// jni method to set cudd manager for native code
-	private static native void PH_SetCUDDManager(int ddm);
+	private static native void PH_SetCUDDManager(long ddm);
 	public static void setCUDDManager()
 	{
 		PH_SetCUDDManager(JDD.GetCUDDManager());
@@ -228,28 +228,28 @@ public class PrismHybrid
 	//------------------------------------------------------------------------------
 
 	// pctl bounded until (probabilistic/dtmc)
-	private static native int PH_ProbBoundedUntil(int trans, int odd, int rv, int nrv, int cv, int ncv, int yes, int maybe, int bound);
+	private static native long PH_ProbBoundedUntil(long trans, long odd, long rv, int nrv, long cv, int ncv, long yes, long maybe, int bound);
 	public static DoubleVector ProbBoundedUntil(JDDNode trans, ODDNode odd, JDDVars rows, JDDVars cols, JDDNode yes, JDDNode maybe, int bound) throws PrismException
 	{
-		int ptr = PH_ProbBoundedUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), yes.ptr(), maybe.ptr(), bound);
+		long ptr = PH_ProbBoundedUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), yes.ptr(), maybe.ptr(), bound);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 	
 	// pctl until (probabilistic/dtmc)
-	private static native int PH_ProbUntil(int trans, int odd, int rv, int nrv, int cv, int ncv, int yes, int maybe);
+	private static native long PH_ProbUntil(long trans, long odd, long rv, int nrv, long cv, int ncv, long yes, long maybe);
 	public static DoubleVector ProbUntil(JDDNode trans, ODDNode odd, JDDVars rows, JDDVars cols, JDDNode yes, JDDNode maybe) throws PrismException
 	{
-		int ptr = PH_ProbUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), yes.ptr(), maybe.ptr());
+		long ptr = PH_ProbUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), yes.ptr(), maybe.ptr());
 		if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 	
 	// pctl reach reward (probabilistic/dtmc)
-	private static native int PH_ProbReachReward(int trans, int sr, int trr, int odd, int rv, int nrv, int cv, int ncv, int goal, int inf, int maybe);
+	private static native long PH_ProbReachReward(long trans, long sr, long trr, long odd, long rv, int nrv, long cv, int ncv, long goal, long inf, long maybe);
 	public static DoubleVector ProbReachReward(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, JDDNode goal, JDDNode inf, JDDNode maybe) throws PrismException
 	{
-		int ptr = PH_ProbReachReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), goal.ptr(), inf.ptr(), maybe.ptr());
+		long ptr = PH_ProbReachReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), goal.ptr(), inf.ptr(), maybe.ptr());
 		if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
@@ -259,28 +259,28 @@ public class PrismHybrid
 	//----------------------------------------------------------------------------------------------
 
 	// pctl bounded until (nondeterministic/mdp)
-	private static native int PH_NondetBoundedUntil(int trans, int odd, int rv, int nrv, int cv, int ncv, int ndv, int nndv, int yes, int maybe, int time, boolean minmax);
+	private static native long PH_NondetBoundedUntil(long trans, long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long yes, long maybe, int time, boolean minmax);
 	public static DoubleVector NondetBoundedUntil(JDDNode trans, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode yes, JDDNode maybe, int time, boolean minmax) throws PrismException
 	{
-		int ptr = PH_NondetBoundedUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), yes.ptr(), maybe.ptr(), time, minmax);
+		long ptr = PH_NondetBoundedUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), yes.ptr(), maybe.ptr(), time, minmax);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 	
 	// pctl until (nondeterministic/mdp)
-	private static native int PH_NondetUntil(int trans, int odd, int rv, int nrv, int cv, int ncv, int ndv, int nndv, int yes, int maybe, boolean minmax);
+	private static native long PH_NondetUntil(long trans, long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long yes, long maybe, boolean minmax);
 	public static DoubleVector NondetUntil(JDDNode trans, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode yes, JDDNode maybe, boolean minmax) throws PrismException
 	{
-		int ptr = PH_NondetUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), yes.ptr(), maybe.ptr(), minmax);
+		long ptr = PH_NondetUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), yes.ptr(), maybe.ptr(), minmax);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 	
 	// pctl reach reward (nondeterministic/mdp)
-	private static native int PH_NondetReachReward(int trans, int sr, int trr, int odd, int rv, int nrv, int cv, int ncv, int ndv, int nndv, int goal, int inf, int maybe, boolean minmax);
+	private static native long PH_NondetReachReward(long trans, long sr, long trr, long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long goal, long inf, long maybe, boolean minmax);
 	public static DoubleVector NondetReachReward(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode goal, JDDNode inf, JDDNode maybe, boolean minmax) throws PrismException
 	{
-		int ptr = PH_NondetReachReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), goal.ptr(), inf.ptr(), maybe.ptr(), minmax);
+		long ptr = PH_NondetReachReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), goal.ptr(), inf.ptr(), maybe.ptr(), minmax);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
@@ -290,38 +290,38 @@ public class PrismHybrid
 	//------------------------------------------------------------------------------
 
 	// csl bounded until (stochastic/ctmc)
-	private static native int PH_StochBoundedUntil(int trans, int od, int rv, int nrv, int cv, int ncv, int yes, int maybe, double time, int mult);
+	private static native long PH_StochBoundedUntil(long trans, long od, long rv, int nrv, long cv, int ncv, long yes, long maybe, double time, long mult);
 	public static DoubleVector StochBoundedUntil(JDDNode trans, ODDNode odd, JDDVars rows, JDDVars cols, JDDNode yes, JDDNode maybe, double time, DoubleVector multProbs) throws PrismException
 	{
-		int mult = (multProbs == null) ? 0 : multProbs.getPtr();
-		int ptr = PH_StochBoundedUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), yes.ptr(), maybe.ptr(), time, mult);
+		long mult = (multProbs == null) ? 0 : multProbs.getPtr();
+		long ptr = PH_StochBoundedUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), yes.ptr(), maybe.ptr(), time, mult);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 	
 	// csl cumulative reward (stochastic/ctmc)
-	private static native int PH_StochCumulReward(int trans, int sr, int trr, int odd, int rv, int nrv, int cv, int ncv, double time);
+	private static native long PH_StochCumulReward(long trans, long sr, long trr, long odd, long rv, int nrv, long cv, int ncv, double time);
 	public static DoubleVector StochCumulReward(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, double time) throws PrismException
 	{
-		int ptr = PH_StochCumulReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
+		long ptr = PH_StochCumulReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 	
 	// steady state (stochastic/ctmc)
-	private static native int PH_StochSteadyState(int trans, int od, int init, int rv, int nrv, int cv, int ncv);
+	private static native long PH_StochSteadyState(long trans, long od, long init, long rv, int nrv, long cv, int ncv);
 	public static DoubleVector StochSteadyState(JDDNode trans, ODDNode odd, JDDNode init, JDDVars rows, JDDVars cols) throws PrismException
 	{
-		int ptr = PH_StochSteadyState(trans.ptr(), odd.ptr(), init.ptr(), rows.array(), rows.n(), cols.array(), cols.n());
+		long ptr = PH_StochSteadyState(trans.ptr(), odd.ptr(), init.ptr(), rows.array(), rows.n(), cols.array(), cols.n());
 		if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 	
 	// transient (stochastic/ctmc)
-	private static native int PH_StochTransient(int trans, int odd, int init, int rv, int nrv, int cv, int ncv, double time);
+	private static native long PH_StochTransient(long trans, long odd, long init, long rv, int nrv, long cv, int ncv, double time);
 	public static DoubleVector StochTransient(JDDNode trans, ODDNode odd, JDDNode init, JDDVars rows, JDDVars cols, double time) throws PrismException
 	{
-		int ptr = PH_StochTransient(trans.ptr(), odd.ptr(), init.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
+		long ptr = PH_StochTransient(trans.ptr(), odd.ptr(), init.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
@@ -331,37 +331,37 @@ public class PrismHybrid
 	//------------------------------------------------------------------------------
 
 	// power method
-	private static native int PH_Power(int odd, int rv, int nrv, int cv, int ncv, int a, int b, int init, boolean transpose);
+	private static native long PH_Power(long odd, long rv, int nrv, long cv, int ncv, long a, long b, long init, boolean transpose);
 	public static DoubleVector Power(ODDNode odd, JDDVars rows, JDDVars cols, JDDNode a, JDDNode b, JDDNode init, boolean transpose) throws PrismException
 	{
-		int ptr = PH_Power(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), init.ptr(), transpose);
+		long ptr = PH_Power(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), init.ptr(), transpose);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 	
 	// jor method
-	private static native int PH_JOR(int odd, int rv, int nrv, int cv, int ncv, int a, int b, int init, boolean transpose, boolean row_sums, double omega);
+	private static native long PH_JOR(long odd, long rv, int nrv, long cv, int ncv, long a, long b, long init, boolean transpose, boolean row_sums, double omega);
 	public static DoubleVector JOR(ODDNode odd, JDDVars rows, JDDVars cols, JDDNode a, JDDNode b, JDDNode init, boolean transpose, boolean row_sums, double omega) throws PrismException
 	{
-		int ptr = PH_JOR(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), init.ptr(), transpose, row_sums, omega);
+		long ptr = PH_JOR(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), init.ptr(), transpose, row_sums, omega);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 	
 	// sor method
-	private static native int PH_SOR(int odd, int rv, int nrv, int cv, int ncv, int a, int b, int init, boolean transpose, boolean row_sums, double omega, boolean backwards);
+	private static native long PH_SOR(long odd, long rv, int nrv, long cv, int ncv, long a, long b, long init, boolean transpose, boolean row_sums, double omega, boolean backwards);
 	public static DoubleVector SOR(ODDNode odd, JDDVars rows, JDDVars cols, JDDNode a, JDDNode b, JDDNode init, boolean transpose, boolean row_sums, double omega, boolean backwards) throws PrismException
 	{
-		int ptr = PH_SOR(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), init.ptr(), transpose, row_sums, omega, backwards);
+		long ptr = PH_SOR(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), init.ptr(), transpose, row_sums, omega, backwards);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 	
 	// psor method
-	private static native int PH_PSOR(int odd, int rv, int nrv, int cv, int ncv, int a, int b, int init, boolean transpose, boolean row_sums, double omega, boolean backwards);
+	private static native long PH_PSOR(long odd, long rv, int nrv, long cv, int ncv, long a, long b, long init, boolean transpose, boolean row_sums, double omega, boolean backwards);
 	public static DoubleVector PSOR(ODDNode odd, JDDVars rows, JDDVars cols, JDDNode a, JDDNode b, JDDNode init, boolean transpose, boolean row_sums, double omega, boolean backwards) throws PrismException
 	{
-		int ptr = PH_PSOR(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), init.ptr(), transpose, row_sums, omega, backwards);
+		long ptr = PH_PSOR(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), init.ptr(), transpose, row_sums, omega, backwards);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}

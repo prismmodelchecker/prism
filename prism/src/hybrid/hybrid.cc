@@ -116,9 +116,9 @@ HDDMatrix *build_hdd_matrix(DdNode *matrix, DdNode **rvars, DdNode **cvars, int 
 	res->zero = new HDDNode();
 	res->zero->type.kids.e = NULL;
 	res->zero->type.kids.t = NULL;
-	res->zero->off = 0;
-	res->zero->off2 = 0;
-	res->zero->sm = NULL;
+	res->zero->off.val = 0;
+	res->zero->off2.val = 0;
+	res->zero->sm.ptr = NULL;
 	res->zero->next = NULL;
 	// and store global copy of pointer
 	zero = res->zero;
@@ -151,14 +151,14 @@ HDDMatrix *build_hdd_matrix(DdNode *matrix, DdNode **rvars, DdNode **cvars, int 
 	// (2) set sparse matrix pointer to null
 	for (i = 0; i < num_vars+1; i++) {
 		for (j = 0; j < res->row_sizes[i]; j++) {
-			res->row_tables[i][j]->off = ((ODDNode*)(res->row_tables[i][j]->off))->eoff;
-			res->row_tables[i][j]->sm = NULL;
+			res->row_tables[i][j]->off.val = res->row_tables[i][j]->off.ptr->eoff;
+			res->row_tables[i][j]->sm.ptr = NULL;
 		}
 	}
 	for (i = 0; i < num_vars; i++) {
 		for (j = 0; j < res->col_sizes[i]; j++) {
-			res->col_tables[i][j]->off = ((ODDNode*)(res->col_tables[i][j]->off))->eoff;
-			res->col_tables[i][j]->sm = NULL;
+			res->col_tables[i][j]->off.val = res->col_tables[i][j]->off.ptr->eoff;
+			res->col_tables[i][j]->sm.ptr = NULL;
 		}
 	}
 	
@@ -201,9 +201,9 @@ HDDNode *build_hdd_matrix_rowrec(DdNode *dd, DdNode **rvars, DdNode **cvars, int
 	// see if we already have the required node stored
 	ptr = hddm->row_lists[level];
 	while (ptr != NULL) {
-		if (((DdNode*)(ptr->sm) == dd) && ((ODDNode*)(ptr->off) == row) && ((ODDNode*)(ptr->off2) == col)) break;
+		if (((DdNode*)(ptr->sm.ptr) == dd) && (ptr->off.ptr == row) && (ptr->off2.ptr == col)) break;
 		// use this instead to check effect on node increase
-		// if (((DdNode*)(ptr->sm) == dd)) break;
+		// if (((DdNode*)(ptr->sm.ptr) == dd)) break;
 		ptr = ptr->next;
 	}
 	// if so, return it
@@ -218,9 +218,9 @@ HDDNode *build_hdd_matrix_rowrec(DdNode *dd, DdNode **rvars, DdNode **cvars, int
 		hddm->num_nodes++;
 		ptr = new HDDNode();
 		ptr->type.val = Cudd_V(dd);
-		ptr->off = (int)row;
-		ptr->off2 = (int)col;
-		ptr->sm = (void *)dd;
+		ptr->off.ptr = row;
+		ptr->off2.ptr = col;
+		ptr->sm.ptr = (void *)dd;
 		ptr->next = hddm->row_lists[num_vars];
 		hddm->row_lists[num_vars] = ptr;
 		hddm->row_sizes[num_vars]++;
@@ -241,9 +241,9 @@ HDDNode *build_hdd_matrix_rowrec(DdNode *dd, DdNode **rvars, DdNode **cvars, int
 	ptr = new HDDNode();
 	ptr->type.kids.e = hdd_e;
 	ptr->type.kids.t = hdd_t;
-	ptr->off = (int)row;
-	ptr->off2 = (int)col;
-	ptr->sm = (void *)dd;
+	ptr->off.ptr = row;
+	ptr->off2.ptr = col;
+	ptr->sm.ptr = (void *)dd;
 	ptr->next = hddm->row_lists[level];
 	hddm->row_lists[level] = ptr;
 	hddm->row_sizes[level]++;
@@ -263,9 +263,9 @@ HDDNode *build_hdd_matrix_colrec(DdNode *dd, DdNode **rvars, DdNode **cvars, int
 	// see if we already have the required node stored
 	ptr = hddm->col_lists[level];
 	while (ptr != NULL) {
-		if (((DdNode*)(ptr->sm) == dd) && ((ODDNode*)(ptr->off) == col) && ((ODDNode*)(ptr->off2) == row)) break;
+		if (((DdNode*)(ptr->sm.ptr) == dd) && (ptr->off.ptr == col) && (ptr->off2.ptr == row)) break;
 		// use this instead to check effect on node increase
-		// if (((DdNode*)(ptr->sm) == dd)) break;
+		// if (((DdNode*)(ptr->sm.ptr) == dd)) break;
 		ptr = ptr->next;
 	}
 	// if so, return it
@@ -289,9 +289,9 @@ HDDNode *build_hdd_matrix_colrec(DdNode *dd, DdNode **rvars, DdNode **cvars, int
 	ptr = new HDDNode();
 	ptr->type.kids.e = hdd_e;
 	ptr->type.kids.t = hdd_t;
-	ptr->off = (int)col;
-	ptr->off2 = (int)row;
-	ptr->sm = (void *)dd;
+	ptr->off.ptr = col;
+	ptr->off2.ptr = row;
+	ptr->sm.ptr = (void *)dd;
 	ptr->next = hddm->col_lists[level];
 	hddm->col_lists[level] = ptr;
 	hddm->col_sizes[level]++;
@@ -459,23 +459,24 @@ void add_sparse_matrices(HDDMatrix *hm, bool compact_sm, bool diags_meet, bool t
 	hddm->num_sm = 0;
 	hddm->mem_sm = 0;
 	
-	// first, we make sure that all sm/off2 fields are null
+	// first, we initialise all sm/off2
 	// (they may have been used to store other things previously)
+	// (sm is set to -1 because we need to know when we visit for the first time, off2 is set to 0)
 	for (i = 0; i < hddm->num_levels+1; i++) {
 		for (j = 0; j < hddm->row_sizes[i]; j++) {
-			hddm->row_tables[i][j]->sm = NULL;
-			hddm->row_tables[i][j]->off2 = 0;
+			hddm->row_tables[i][j]->sm.val = -1;
+			hddm->row_tables[i][j]->off2.val = 0;
 		}
 	}
 	for (i = 0; i < hddm->num_levels; i++) {
 		for (j = 0; j < hddm->col_sizes[i]; j++) {
-			hddm->col_tables[i][j]->sm = NULL;
-			hddm->col_tables[i][j]->off2 = 0;
+			hddm->col_tables[i][j]->sm.val = -1;
+			hddm->col_tables[i][j]->off2.val = 0;
 		}
 	}
 	
 	// store size (num states and nnz) of each node's matrix
-	// (putting them in the sm and off2 pointers, respectively)
+	// (putting them in the sm and off2 fields, respectively)
 	compute_n_and_nnz_rec(hddm->top, 0, hddm->num_levels, hddm->odd, hddm->odd, transpose);
 	
 	// now we choose a value for l_sm
@@ -493,8 +494,8 @@ void add_sparse_matrices(HDDMatrix *hm, bool compact_sm, bool diags_meet, bool t
 			j = hddm->num_levels - i;
 			mem_est = 0;
 			for (k = 0; k < hddm->row_sizes[j]; k++) {
-				n = (int)hddm->row_tables[j][k]->sm;
-				nnz = hddm->row_tables[j][k]->off2;
+				n = hddm->row_tables[j][k]->sm.val;
+				nnz = hddm->row_tables[j][k]->off2.val;
 				if (!compact_sm) mem_est += ((nnz*(sizeof(double)+sizeof(unsigned int))+n*sizeof(unsigned char)) / 1024.0);
 				else mem_est += ((nnz*(sizeof(unsigned int))+n*sizeof(unsigned char)) / 1024.0);
 				if (mem_est > sb_max_mem) {
@@ -531,7 +532,7 @@ void add_sparse_matrices(HDDMatrix *hm, bool compact_sm, bool diags_meet, bool t
 			j = diags_meet ? hddm->l_b : i_sm;
 			for (i = 0; i < hddm->row_sizes[j]; i++) {
 				// size is curently stored in sm pointer
-				if ((int)(hddm->row_tables[j][i]->sm) > maxsize) {
+				if (hddm->row_tables[j][i]->sm.val > maxsize) {
 					hddm->compact_sm = false;
 					break;
 				}
@@ -585,22 +586,22 @@ void add_sparse_matrices(HDDMatrix *hm, bool compact_sm, bool diags_meet, bool t
 						// if there is no sparse matrix there already, add a sparse matrix
 						// (we mark nodes we have done already by setting off2 to -1)
 						node = (!hddm->compact_b) ? b_blocks[j] : (b_nodes[(int)(b_rowscols[j] & b_dist_mask)]);
-						if (node->off2 != -1) {
+						if (node->off2.val != -1) {
 							if (!hddm->compact_sm) {
 								if (hddm->row_major) {
-									node->sm = (void *)build_rm_sparse_matrix(node, hddm->l_b, transpose);
+									node->sm.ptr = (void *)build_rm_sparse_matrix(node, hddm->l_b, transpose);
 								} else {
-									node->sm = (void *)build_cm_sparse_matrix(node, hddm->l_b, transpose);
+									node->sm.ptr = (void *)build_cm_sparse_matrix(node, hddm->l_b, transpose);
 								}
 							} else {
 								if (hddm->row_major) {
-									node->sm = (void *)build_cmsr_sparse_matrix(node, hddm->l_b, transpose);
+									node->sm.ptr = (void *)build_cmsr_sparse_matrix(node, hddm->l_b, transpose);
 								} else {
-									node->sm = (void *)build_cmsc_sparse_matrix(node, hddm->l_b, transpose);
+									node->sm.ptr = (void *)build_cmsc_sparse_matrix(node, hddm->l_b, transpose);
 								}
 							}
 							// set off2 to -1 to indicate we have added a sparse matrix here
-							node->off2 = -1;
+							node->off2.val = -1;
 							// increment matrix count
 							hddm->num_sm++;
 						}
@@ -615,19 +616,19 @@ void add_sparse_matrices(HDDMatrix *hm, bool compact_sm, bool diags_meet, bool t
 				node = hddm->row_tables[i_sm][i];
 				if (!hddm->compact_sm) {
 					if (hddm->row_major) {
-						node->sm = (void *)build_rm_sparse_matrix(node, i_sm, transpose);
+						node->sm.ptr = (void *)build_rm_sparse_matrix(node, i_sm, transpose);
 					} else {
-						node->sm = (void *)build_cm_sparse_matrix(node, i_sm, transpose);
+						node->sm.ptr = (void *)build_cm_sparse_matrix(node, i_sm, transpose);
 					}
 				} else {
 					if (hddm->row_major) {
-						node->sm = (void *)build_cmsr_sparse_matrix(node, i_sm, transpose);
+						node->sm.ptr = (void *)build_cmsr_sparse_matrix(node, i_sm, transpose);
 					} else {
-						node->sm = (void *)build_cmsc_sparse_matrix(node, i_sm, transpose);
+						node->sm.ptr = (void *)build_cmsc_sparse_matrix(node, i_sm, transpose);
 					}
 				}
 				// set off2 to -1 to indicate we have added a sparse matrix here
-				node->off2 = -1;
+				node->off2.val = -1;
 				// increment matrix count
 				hddm->num_sm++;
 			}
@@ -638,12 +639,12 @@ void add_sparse_matrices(HDDMatrix *hm, bool compact_sm, bool diags_meet, bool t
 	// (except on the nodes where we have just put sparse matrices)
 	for (i = 0; i < hddm->num_levels+1; i++) {
 		for (j = 0; j < hddm->row_sizes[i]; j++) {
-			if (hddm->row_tables[i][j]->off2 != -1) hddm->row_tables[i][j]->sm = NULL;
+			if (hddm->row_tables[i][j]->off2.val != -1) hddm->row_tables[i][j]->sm.ptr = NULL;
 		}
 	}
 	for (i = 0; i < hddm->num_levels; i++) {
 		for (j = 0; j < hddm->col_sizes[i]; j++) {
-			hddm->col_tables[i][j]->sm = NULL;
+			hddm->col_tables[i][j]->sm.ptr = NULL;
 		}
 	}
 }
@@ -792,12 +793,12 @@ void traverse_hdd_rec(HDDNode *hdd, int level, int stop, int r, int c, int code,
 	e = hdd->type.kids.e;
 	if (e != zero) {
 		traverse_hdd_rec(e->type.kids.e, level+1, stop, r, c, code, transpose);
-		traverse_hdd_rec(e->type.kids.t, level+1, stop, r, c+e->off, code, transpose);
+		traverse_hdd_rec(e->type.kids.t, level+1, stop, r, c+e->off.val, code, transpose);
 	}
 	t = hdd->type.kids.t;
 	if (t != zero) {
-		traverse_hdd_rec(t->type.kids.e, level+1, stop, r+hdd->off, c, code, transpose);
-		traverse_hdd_rec(t->type.kids.t, level+1, stop, r+hdd->off, c+t->off, code, transpose);
+		traverse_hdd_rec(t->type.kids.e, level+1, stop, r+hdd->off.val, c, code, transpose);
+		traverse_hdd_rec(t->type.kids.t, level+1, stop, r+hdd->off.val, c+t->off.val, code, transpose);
 	}
 }
 
@@ -836,7 +837,7 @@ void traverse_odd_rec(ODDNode *odd, int level, int stop, int index, int code)
 //-----------------------------------------------------------------------------------
 
 // compute the size (num states and nnz) of matrix corresponding to each offset-labelled MTBDD node
-// (and store in sm and off2 pointers, respectively)
+// (and store in sm and off2 fields, respectively)
 
 int compute_n_and_nnz_rec(HDDNode *hdd, int level, int num_levels, ODDNode *row, ODDNode *col, bool transpose)
 {
@@ -844,41 +845,41 @@ int compute_n_and_nnz_rec(HDDNode *hdd, int level, int num_levels, ODDNode *row,
 	
 	// if it's the zero node... 
 	if (hdd == zero) {
-		hdd->sm = (void *)0;
-		hdd->off2 = 0;
+		hdd->sm.val = 0;
+		hdd->off2.val = 0;
 		return 0;
 	}
 	// if it's at the bottom...
 	if (level == num_levels) {
-		hdd->sm = (void *)0;
-		hdd->off2 = 1;
+		hdd->sm.val = 0;
+		hdd->off2.val = 1;
 		return 1;
 	}
 	
 	// check if we've already done this node
-	if (hdd->sm != NULL) {
-		return hdd->off2;
+	if (hdd->sm.val != -1) {
+		return hdd->off2.val;
 	}
 	
 	// store n (note we count rows or columns depending on transpose/row_major)
 	if ((hddm->row_major && !transpose) || (!hddm->row_major && transpose)) {
-		hdd->sm = (void *)(row->eoff + row->toff);
+		hdd->sm.val = row->eoff + row->toff;
 	} else {
-		hdd->sm = (void *)(col->eoff + col->toff);
+		hdd->sm.val = col->eoff + col->toff;
 	}
 	// recurse and store nnz
-	hdd->off2 = 0;
+	hdd->off2.val = 0;
 	e = hdd->type.kids.e;
 	if (e != zero) {
-		hdd->off2 += compute_n_and_nnz_rec(e->type.kids.e, level+1, num_levels, row->e, col->e, transpose);
-		hdd->off2 += compute_n_and_nnz_rec(e->type.kids.t, level+1, num_levels, row->e, col->t, transpose);
+		hdd->off2.val += compute_n_and_nnz_rec(e->type.kids.e, level+1, num_levels, row->e, col->e, transpose);
+		hdd->off2.val += compute_n_and_nnz_rec(e->type.kids.t, level+1, num_levels, row->e, col->t, transpose);
 	}
 	t = hdd->type.kids.t;
 	if (t != zero) {
-		hdd->off2 += compute_n_and_nnz_rec(t->type.kids.e, level+1, num_levels, row->t, col->e, transpose);
-		hdd->off2 += compute_n_and_nnz_rec(t->type.kids.t, level+1, num_levels, row->t, col->t, transpose);
+		hdd->off2.val += compute_n_and_nnz_rec(t->type.kids.e, level+1, num_levels, row->t, col->e, transpose);
+		hdd->off2.val += compute_n_and_nnz_rec(t->type.kids.t, level+1, num_levels, row->t, col->t, transpose);
 	}
-	return hdd->off2;
+	return hdd->off2.val;
 }
 
 //-----------------------------------------------------------------------------------
@@ -891,8 +892,8 @@ RMSparseMatrix *build_rm_sparse_matrix(HDDNode *hdd, int level, bool transpose)
 	
 	// create the data structure
 	rmsm = new RMSparseMatrix();
-	rmsm->n = n = (int)hdd->sm;
-	rmsm->nnz = nnz = hdd->off2;
+	rmsm->n = n = hdd->sm.val;
+	rmsm->nnz = nnz = hdd->off2.val;
 	
 	// allocate temporary array to store start of each row
 	starts = (int*)calloc(n+1, sizeof(int));
@@ -950,8 +951,8 @@ CMSparseMatrix *build_cm_sparse_matrix(HDDNode *hdd, int level, bool transpose)
 	
 	// create the data structure
 	cmsm = new CMSparseMatrix();
-	cmsm->n = n = (int)hdd->sm;
-	cmsm->nnz = nnz = hdd->off2;
+	cmsm->n = n = hdd->sm.val;
+	cmsm->nnz = nnz = hdd->off2.val;
 	
 	// allocate temporary array to store start of each col
 	starts = (int*)calloc(n+1, sizeof(int));
@@ -1009,8 +1010,8 @@ CMSRSparseMatrix *build_cmsr_sparse_matrix(HDDNode *hdd, int level, bool transpo
 	
 	// create the data structure
 	cmsrsm = new CMSRSparseMatrix();
-	cmsrsm->n = n = (int)hdd->sm;
-	cmsrsm->nnz = nnz = hdd->off2;
+	cmsrsm->n = n = hdd->sm.val;
+	cmsrsm->nnz = nnz = hdd->off2.val;
 	// info about distinct vals will be shared across the sparse matrices
 	// so set this array to null to indicate that we don't use it
 	cmsrsm->dist = NULL;
@@ -1068,8 +1069,8 @@ CMSCSparseMatrix *build_cmsc_sparse_matrix(HDDNode *hdd, int level, bool transpo
 	
 	// create the data structure
 	cmscsm = new CMSCSparseMatrix();
-	cmscsm->n = n = (int)hdd->sm;
-	cmscsm->nnz = nnz = hdd->off2;
+	cmscsm->n = n = hdd->sm.val;
+	cmscsm->nnz = nnz = hdd->off2.val;
 	// info about distinct vals will be shared across the sparse matrices
 	// so set this array to null to indicate that we don't use it
 	cmscsm->dist = NULL;
@@ -1423,18 +1424,18 @@ void hdd_negative_row_sums_rec(HDDNode *hdd, int level, int row_offset, int col_
 	}
 	// or if we've reached a submatrix
 	// (check for non-null ptr but, equivalently, we could just check if level==l_sm)
-	else if (hdd->sm) {
+	else if (hdd->sm.ptr) {
 		if (row_major) {
 			if (!compact_sm) {
-				hdd_negative_row_sums_rm((RMSparseMatrix *)hdd->sm, (transpose?col_offset:row_offset), (transpose?row_offset:col_offset), diags, transpose);
+				hdd_negative_row_sums_rm((RMSparseMatrix *)hdd->sm.ptr, (transpose?col_offset:row_offset), (transpose?row_offset:col_offset), diags, transpose);
 			} else {
-				hdd_negative_row_sums_cmsr((CMSRSparseMatrix *)hdd->sm, (transpose?col_offset:row_offset), (transpose?row_offset:col_offset), diags, transpose);
+				hdd_negative_row_sums_cmsr((CMSRSparseMatrix *)hdd->sm.ptr, (transpose?col_offset:row_offset), (transpose?row_offset:col_offset), diags, transpose);
 			}
 		} else {
 			if (!compact_sm) {
-				hdd_negative_row_sums_cm((CMSparseMatrix *)hdd->sm, (transpose?col_offset:row_offset), (transpose?row_offset:col_offset), diags, transpose);
+				hdd_negative_row_sums_cm((CMSparseMatrix *)hdd->sm.ptr, (transpose?col_offset:row_offset), (transpose?row_offset:col_offset), diags, transpose);
 			} else {
-				hdd_negative_row_sums_cmsc((CMSCSparseMatrix *)hdd->sm, (transpose?col_offset:row_offset), (transpose?row_offset:col_offset), diags, transpose);
+				hdd_negative_row_sums_cmsc((CMSCSparseMatrix *)hdd->sm.ptr, (transpose?col_offset:row_offset), (transpose?row_offset:col_offset), diags, transpose);
 			}
 		}
 		return;
@@ -1449,12 +1450,12 @@ void hdd_negative_row_sums_rec(HDDNode *hdd, int level, int row_offset, int col_
 	e = hdd->type.kids.e;
 	if (e != zero) {
 		hdd_negative_row_sums_rec(e->type.kids.e, level+1, row_offset, col_offset, diags, transpose);
-		hdd_negative_row_sums_rec(e->type.kids.t, level+1, row_offset, col_offset+e->off, diags, transpose);
+		hdd_negative_row_sums_rec(e->type.kids.t, level+1, row_offset, col_offset+e->off.val, diags, transpose);
 	}
 	t = hdd->type.kids.t;
 	if (t != zero) {
-		hdd_negative_row_sums_rec(t->type.kids.e, level+1, row_offset+hdd->off, col_offset, diags, transpose);
-		hdd_negative_row_sums_rec(t->type.kids.t, level+1, row_offset+hdd->off, col_offset+t->off, diags, transpose);
+		hdd_negative_row_sums_rec(t->type.kids.e, level+1, row_offset+hdd->off.val, col_offset, diags, transpose);
+		hdd_negative_row_sums_rec(t->type.kids.t, level+1, row_offset+hdd->off.val, col_offset+t->off.val, diags, transpose);
 	}
 }
 
@@ -1564,13 +1565,13 @@ void free_hdd_matrix(HDDMatrix *hddm)
 	for (i = 0; i < hddm->num_levels; i++) {
 		for (j = 0; j < hddm->row_sizes[i]; j++) {
 			// free sparse matrix if there is one
-			if (hddm->row_tables[i][j]->sm) {
+			if (hddm->row_tables[i][j]->sm.ptr) {
 				if (hddm->row_major) {
-					if (!hddm->compact_sm) free_rmsm((RMSparseMatrix *)hddm->row_tables[i][j]->sm);
-					else free_cmsrsm((CMSRSparseMatrix *)hddm->row_tables[i][j]->sm);
+					if (!hddm->compact_sm) free_rmsm((RMSparseMatrix *)hddm->row_tables[i][j]->sm.ptr);
+					else free_cmsrsm((CMSRSparseMatrix *)hddm->row_tables[i][j]->sm.ptr);
 				} else {
-					if (!hddm->compact_sm) free_cmsm((CMSparseMatrix *)hddm->row_tables[i][j]->sm);
-					else free_cmscsm((CMSCSparseMatrix *)hddm->row_tables[i][j]->sm);
+					if (!hddm->compact_sm) free_cmsm((CMSparseMatrix *)hddm->row_tables[i][j]->sm.ptr);
+					else free_cmscsm((CMSCSparseMatrix *)hddm->row_tables[i][j]->sm.ptr);
 				}
 			}
 			// free node

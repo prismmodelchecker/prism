@@ -41,10 +41,10 @@ public class PCTLImplies extends PCTLFormulaBinary
 	/**
 	 *	Convert and build simulator data structures
 	 */
-	public int toSimulator(SimulatorEngine sim ) throws SimulatorException
+	public long toSimulator(SimulatorEngine sim ) throws SimulatorException
 	{
 		//Implies is just !operand1 || operand2
-		int[]exprPointers = new int[2];
+		long[]exprPointers = new long[2];
 		exprPointers[0] = SimulatorEngine.createNot(operand1.toSimulator(sim));
 		exprPointers[1] = operand2.toSimulator(sim);
 		return SimulatorEngine.createOr(exprPointers);

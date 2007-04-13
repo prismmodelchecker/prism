@@ -36,6 +36,7 @@
 #include "sparse.h"
 #include "hybrid.h"
 #include "PrismHybridGlob.h"
+#include "jnipointer.h"
 
 // local prototypes
 static void sor_rec(HDDNode *hdd, int level, int row_offset, int col_offset, int r, int c, bool transpose);
@@ -59,18 +60,18 @@ static bool forwards;
 
 // solve the linear equation system Ax=b with Gauss-Seidel/SOR
 
-jint JNICALL Java_hybrid_PrismHybrid_PH_1SOR
+JNIEXPORT jlong __pointer JNICALL Java_hybrid_PrismHybrid_PH_1SOR
 (
 JNIEnv *env,
 jclass cls,
-jint _odd,			// odd
-jint rv,			// row vars
+jlong __pointer _odd,	// odd
+jlong __pointer rv,	// row vars
 jint num_rvars,
-jint cv,			// col vars
+jlong __pointer cv,	// col vars
 jint num_cvars,
-jint _a,			// matrix A
-jint _b,			// vector b (if null, assume all zero)
-jint _init,			// init soln
+jlong __pointer _a,	// matrix A
+jlong __pointer _b,	// vector b (if null, assume all zero)
+jlong __pointer _init,	// init soln
 jboolean transpose,	// transpose A? (i.e. solve xA=b not Ax=b?)
 jboolean row_sums,	// use row sums for diags instead? (strictly speaking: negative sum of non-diagonal row elements)
 jdouble om,			// omega (over-relaxation parameter)
@@ -78,14 +79,16 @@ jboolean fwds		// forwards or backwards?
 )
 {
 	// cast function parameters
-	ODDNode *odd = (ODDNode *)_odd;		// odd
-	DdNode **rvars = (DdNode **)rv; 	// row vars
-	DdNode **cvars = (DdNode **)cv; 	// col vars
-	DdNode *a = (DdNode *)_a;			// matrix A
-	DdNode *b = (DdNode *)_b;			// vector b
-	DdNode *init = (DdNode *)_init;		// init soln
+	ODDNode *odd = jlong_to_ODDNode(_odd);		// odd
+	DdNode **rvars = jlong_to_DdNode_array(rv); 	// row vars
+	DdNode **cvars = jlong_to_DdNode_array(cv); 	// col vars
+	DdNode *a = jlong_to_DdNode(_a);		// matrix A
+	DdNode *b = jlong_to_DdNode(_b);		// vector b
+	DdNode *init = jlong_to_DdNode(_init);		// init soln
+
 	omega = om;
 	forwards = fwds;
+
 	// mtbdds
 	DdNode *reach, *diags, *id, *tmp;
 	// model stats
@@ -311,9 +314,9 @@ jboolean fwds		// forwards or backwards?
 				// call sparse matrix traversal directly with "is_diag" flag = true
 				else {
 					if (!compact_sm) {
-						sor_rm((RMSparseMatrix *)node->sm, row_offset, col_offset, 0, 0, true);
+						sor_rm((RMSparseMatrix *)node->sm.ptr, row_offset, col_offset, 0, 0, true);
 					} else {
-						sor_cmsr((CMSRSparseMatrix *)node->sm, row_offset, col_offset, 0, 0, true);
+						sor_cmsr((CMSRSparseMatrix *)node->sm.ptr, row_offset, col_offset, 0, 0, true);
 					}
 					continue;
 					// stuff for submatrix storage
@@ -329,7 +332,7 @@ jboolean fwds		// forwards or backwards?
 					
 					// get info about submatrix
 					if (!compact_sm) {
-						rmsm = (RMSparseMatrix *)node->sm;
+						rmsm = (RMSparseMatrix *)node->sm.ptr;
 						sm_non_zeros = rmsm->non_zeros;
 						sm_n = rmsm->n;
 						sm_nnz = rmsm->nnz;
@@ -338,7 +341,7 @@ jboolean fwds		// forwards or backwards?
 						sm_use_counts = rmsm->use_counts;
 						sm_cols = rmsm->cols;
 					} else {
-						cmsrsm = (CMSRSparseMatrix *)node->sm;
+						cmsrsm = (CMSRSparseMatrix *)node->sm.ptr;
 						sm_n = cmsrsm->n;
 						sm_nnz = cmsrsm->nnz;
 						sm_row_counts = cmsrsm->row_counts;
@@ -435,12 +438,12 @@ jboolean fwds		// forwards or backwards?
 	// if the iterative method didn't terminate, this is an error
 	if (!done) { delete soln; PH_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); return 0; }
 	
-	return (int)soln;
+	return ptr_to_jlong(soln);
 }
 
 //------------------------------------------------------------------------------
 
-void sor_rec(HDDNode *hdd, int level, int row_offset, int col_offset, int r, int c, bool transpose)
+static void sor_rec(HDDNode *hdd, int level, int row_offset, int col_offset, int r, int c, bool transpose)
 {
 	HDDNode *e, *t;
 	
@@ -450,11 +453,11 @@ void sor_rec(HDDNode *hdd, int level, int row_offset, int col_offset, int r, int
 	}
 	// or if we've reached a submatrix
 	// (check for non-null ptr but, equivalently, we could just check if level==l_sm)
-	else if (hdd->sm) {
+	else if (hdd->sm.ptr) {
 		if (!compact_sm) {
-			sor_rm((RMSparseMatrix *)hdd->sm, row_offset, col_offset, r, c, false);
+			sor_rm((RMSparseMatrix *)hdd->sm.ptr, row_offset, col_offset, r, c, false);
 		} else {
-			sor_cmsr((CMSRSparseMatrix *)hdd->sm, row_offset, col_offset, r, c, false);
+			sor_cmsr((CMSRSparseMatrix *)hdd->sm.ptr, row_offset, col_offset, r, c, false);
 		}
 		return;
 	}
@@ -469,27 +472,27 @@ void sor_rec(HDDNode *hdd, int level, int row_offset, int col_offset, int r, int
 	if (e != zero) {
 		if (!transpose) {
 			sor_rec(e->type.kids.e, level+1, row_offset, col_offset, r, c, transpose);
-			sor_rec(e->type.kids.t, level+1, row_offset, col_offset, r, c+e->off, transpose);
+			sor_rec(e->type.kids.t, level+1, row_offset, col_offset, r, c+e->off.val, transpose);
 		} else {
 			sor_rec(e->type.kids.e, level+1, row_offset, col_offset, r, c, transpose);
-			sor_rec(e->type.kids.t, level+1, row_offset, col_offset, r+e->off, c, transpose);
+			sor_rec(e->type.kids.t, level+1, row_offset, col_offset, r+e->off.val, c, transpose);
 		}
 	}
 	t = hdd->type.kids.t;
 	if (t != zero) {
 		if (!transpose) {
-			sor_rec(t->type.kids.e, level+1, row_offset, col_offset, r+hdd->off, c, transpose);
-			sor_rec(t->type.kids.t, level+1, row_offset, col_offset, r+hdd->off, c+t->off, transpose);
+			sor_rec(t->type.kids.e, level+1, row_offset, col_offset, r+hdd->off.val, c, transpose);
+			sor_rec(t->type.kids.t, level+1, row_offset, col_offset, r+hdd->off.val, c+t->off.val, transpose);
 		} else {
-			sor_rec(t->type.kids.e, level+1, row_offset, col_offset, r, c+hdd->off, transpose);
-			sor_rec(t->type.kids.t, level+1, row_offset, col_offset, r+t->off, c+hdd->off, transpose);
+			sor_rec(t->type.kids.e, level+1, row_offset, col_offset, r, c+hdd->off.val, transpose);
+			sor_rec(t->type.kids.t, level+1, row_offset, col_offset, r+t->off.val, c+hdd->off.val, transpose);
 		}
 	}
 }
 
 //-----------------------------------------------------------------------------------
 
-void sor_rm(RMSparseMatrix *rmsm, int row_offset, int col_offset, int r, int c, bool is_diag)
+static void sor_rm(RMSparseMatrix *rmsm, int row_offset, int col_offset, int r, int c, bool is_diag)
 {
 	int fb2, i2, j2, l2, h2;
 	int sm_n = rmsm->n;
@@ -541,7 +544,7 @@ void sor_rm(RMSparseMatrix *rmsm, int row_offset, int col_offset, int r, int c, 
 
 //-----------------------------------------------------------------------------------
 
-void sor_cmsr(CMSRSparseMatrix *cmsrsm, int row_offset, int col_offset, int r, int c, bool is_diag)
+static void sor_cmsr(CMSRSparseMatrix *cmsrsm, int row_offset, int col_offset, int r, int c, bool is_diag)
 {
 	int fb2, i2, j2, l2, h2;
 	int sm_n = cmsrsm->n;

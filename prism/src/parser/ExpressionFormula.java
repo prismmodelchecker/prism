@@ -189,7 +189,7 @@ public class ExpressionFormula extends Expression
 	/**
 	 *	Convert and build simulator expression data structure
 	 */
-	public int toSimulator(SimulatorEngine sim) throws SimulatorException
+	public long toSimulator(SimulatorEngine sim) throws SimulatorException
 	{
 		// this should never be called - this should have been expanded by now
 		throw new SimulatorException("Unexpanded formula \"" + name + "\"");

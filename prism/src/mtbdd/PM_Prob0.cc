@@ -31,31 +31,32 @@
 #include <cudd.h>
 #include <dd.h>
 #include "PrismMTBDDGlob.h"
+#include "jnipointer.h"
 
 //------------------------------------------------------------------------------
 
 // PCTL until probability 0 precomputation (probabilistic/dtmc) (mtbdd)
 
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob0
+JNIEXPORT jlong __pointer JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob0
 (
 JNIEnv *env,
 jclass cls,
-jint t01, 		// 0-1 trans matrix
-jint a,			// all reachable states
-jint rv,		// row vars
+jlong __pointer t01, 		// 0-1 trans matrix
+jlong __pointer a,		// all reachable states
+jlong __pointer rv,		// row vars
 jint num_rvars,
-jint cv,		// col vars
+jlong __pointer cv,		// col vars
 jint num_cvars,
-jint phi,		// phi(b1)
-jint psi		// psi(b2)
+jlong __pointer phi,		// phi(b1)
+jlong __pointer psi		// psi(b2)
 )
 {
-	DdNode *trans01 = (DdNode *)t01;	// 0-1 trans matrix
-	DdNode *b1 = (DdNode *)phi;		// b1
-	DdNode *b2 = (DdNode *)psi;		// b2
-	DdNode *all = (DdNode *)a;		// all reachable states
-	DdNode **rvars = (DdNode **)rv;		// row vars
-	DdNode **cvars = (DdNode **)cv;		// col vars	
+	DdNode *trans01 = jlong_to_DdNode(t01);		// 0-1 trans matrix
+	DdNode *b1 = jlong_to_DdNode(phi);		// b1
+	DdNode *b2 = jlong_to_DdNode(psi);		// b2
+	DdNode *all = jlong_to_DdNode(a);		// all reachable states
+	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
+	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars	
 	
 	DdNode *reach, *sol, *tmp;
 	bool done;
@@ -108,7 +109,7 @@ jint psi		// psi(b2)
 	// print iterations/timing info
 	PM_PrintToMainLog(env, "\nProb0: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 
-	return (int)sol;
+	return ptr_to_jlong(sol);
 }
 
 //------------------------------------------------------------------------------

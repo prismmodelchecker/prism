@@ -254,7 +254,7 @@ public class GUIVisualLogModel implements PrismLog
     {
     }
     
-    public int getFilePointer()
+    public long getFilePointer()
     {
         return -1;
     }

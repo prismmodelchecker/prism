@@ -28,53 +28,54 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#include "jnipointer.h"
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_prism_PrismUtils_PU_1GetStdout(JNIEnv *env, jclass cls)
+JNIEXPORT jlong __pointer JNICALL Java_prism_PrismUtils_PU_1GetStdout(JNIEnv *env, jclass cls)
 {
-	return (jint)stdout;
+	return ptr_to_jlong(stdout);
 }
 
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jint JNICALL Java_prism_PrismUtils_PU_1OpenFile(JNIEnv *env, jclass cls, jstring filename)
+JNIEXPORT jlong __pointer JNICALL Java_prism_PrismUtils_PU_1OpenFile(JNIEnv *env, jclass cls, jstring filename)
 {
 	const char *str = env->GetStringUTFChars(filename, 0);
 	FILE *fp = fopen(str, "w");
 	env->ReleaseStringUTFChars(filename, str);
-	return (jint)fp;
+	return ptr_to_jlong(fp);
 }
 
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT void JNICALL Java_prism_PrismUtils_PU_1PrintToFile(JNIEnv *env, jclass cls, jint fp, jstring s)
+JNIEXPORT void JNICALL Java_prism_PrismUtils_PU_1PrintToFile(JNIEnv *env, jclass cls, jlong __pointer fp, jstring s)
 {
 	const char *str = env->GetStringUTFChars(s, 0);
 	// note: use fwrite not fprintf here because there is no formatting to do
 	// (and in fact formatting has probably already been done so mustn't do it again,
 	//  especially if we want to print % characters reliably)
-	fwrite(str, sizeof(char), strlen(str), (FILE *)fp);
-	//fprintf((FILE *)fp, str);
+	fwrite(str, sizeof(char), strlen(str), jlong_to_FILE(fp));
+	//fprintf(jlong_to_FILE(fp), str);
 	env->ReleaseStringUTFChars(s, str);
 }
 
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT void JNICALL Java_prism_PrismUtils_PU_1FlushFile(JNIEnv *env, jclass cls, jint fp)
+JNIEXPORT void JNICALL Java_prism_PrismUtils_PU_1FlushFile(JNIEnv *env, jclass cls, jlong __pointer fp)
 {
-	fflush((FILE *)fp);
+	fflush(jlong_to_FILE(fp));
 }
 
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT void JNICALL Java_prism_PrismUtils_PU_1CloseFile(JNIEnv *env, jclass cls, jint fp)
+JNIEXPORT void JNICALL Java_prism_PrismUtils_PU_1CloseFile(JNIEnv *env, jclass cls, jlong __pointer fp)
 {
-	fclose((FILE *)fp);
+	fclose(jlong_to_FILE(fp));
 }
 
 //------------------------------------------------------------------------------

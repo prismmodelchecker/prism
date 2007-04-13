@@ -47,11 +47,11 @@ public class PrismUtils
 
 	// small utility methods implemented through jni
 
-	public static native int PU_GetStdout();
-	public static native int PU_OpenFile(String filename);
-	public static native void PU_PrintToFile(int fp, String s);
-	public static native void PU_FlushFile(int fp);
-	public static native void PU_CloseFile(int fp);
+	public static native long PU_GetStdout();
+	public static native long PU_OpenFile(String filename);
+	public static native void PU_PrintToFile(long fp, String s);
+	public static native void PU_FlushFile(long fp);
+	public static native void PU_CloseFile(long fp);
 
 //------------------------------------------------------------------------------
 

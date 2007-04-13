@@ -33,6 +33,7 @@
 #include <cudd.h>
 #include <dd.h>
 #include "PrismMTBDDGlob.h"
+#include "jnipointer.h"
 
 #define MAX_LOG_STRING_LEN 1024
 #define MAX_ERR_STRING_LEN 1024
@@ -77,9 +78,9 @@ char error_message[MAX_ERR_STRING_LEN];
 // cudd manager
 //------------------------------------------------------------------------------
 
-JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetCUDDManager(JNIEnv *env, jclass cls, jint ddm)
+JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetCUDDManager(JNIEnv *env, jclass cls, jlong __pointer ddm)
 {
-	ddman = (DdManager *)ddm;
+	ddman = jlong_to_DdManager(ddm);
 }
 
 //------------------------------------------------------------------------------

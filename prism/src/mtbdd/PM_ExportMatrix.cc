@@ -31,6 +31,7 @@
 #include <dd.h>
 #include <odd.h>
 #include "PrismMTBDDGlob.h"
+#include "jnipointer.h"
 
 //------------------------------------------------------------------------------
 
@@ -46,21 +47,21 @@ JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1ExportMatrix
 (
 JNIEnv *env,
 jclass cls,
-jint m,			// matrix
+jlong __pointer m,	// matrix
 jstring na,		// matrix name
-jint rv,		// row vars
+jlong __pointer rv,	// row vars
 jint num_rvars,
-jint cv,		// col vars
+jlong __pointer cv,	// col vars
 jint num_cvars,
-jint od,		// odd
+jlong __pointer od,	// odd
 jint et,		// export type
 jstring fn		// filename
 )
 {
-	DdNode *matrix = (DdNode *)m;	// matrix
-	DdNode **rvars = (DdNode **)rv; // row vars
-	DdNode **cvars = (DdNode **)cv; // col vars
-	ODDNode *odd = (ODDNode *)od;
+	DdNode *matrix = jlong_to_DdNode(m);		// matrix
+	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
+	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
+	ODDNode *odd = jlong_to_ODDNode(od);
 	
 	// store export info
 	if (!store_export_info(et, fn, env)) return -1;
@@ -90,7 +91,7 @@ jstring fn		// filename
 
 //------------------------------------------------------------------------------
 
-void export_rec(DdNode *dd, DdNode **rvars, DdNode **cvars, int num_vars, int level, ODDNode *row, ODDNode *col, long r, long c)
+static void export_rec(DdNode *dd, DdNode **rvars, DdNode **cvars, int num_vars, int level, ODDNode *row, ODDNode *col, long r, long c)
 {
 	DdNode *e, *t, *ee, *et, *te, *tt;
 	

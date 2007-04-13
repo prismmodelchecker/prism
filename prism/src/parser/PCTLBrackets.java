@@ -51,7 +51,7 @@ public class PCTLBrackets extends PCTLFormulaUnary
 	/**
 	 *	Convert and build simulator data structures
 	 */
-	public int toSimulator(SimulatorEngine sim ) throws SimulatorException
+	public long toSimulator(SimulatorEngine sim ) throws SimulatorException
 	{
 		return operand.toSimulator(sim);
 	}

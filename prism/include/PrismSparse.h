@@ -18,10 +18,10 @@ JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1FreeGlobalRefs
 /*
  * Class:     sparse_PrismSparse
  * Method:    PS_SetCUDDManager
- * Signature: (I)V
+ * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetCUDDManager
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     sparse_PrismSparse
@@ -106,130 +106,130 @@ JNIEXPORT jstring JNICALL Java_sparse_PrismSparse_PS_1GetErrorMessage
 /*
  * Class:     sparse_PrismSparse
  * Method:    PS_ProbBoundedUntil
- * Signature: (IIIIIIIII)I
+ * Signature: (JJJIJIJJI)J
  */
-JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1ProbBoundedUntil
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1ProbBoundedUntil
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jlong, jint);
 
 /*
  * Class:     sparse_PrismSparse
  * Method:    PS_ProbUntil
- * Signature: (IIIIIIII)I
+ * Signature: (JJJIJIJJ)J
  */
-JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1ProbUntil
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1ProbUntil
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jlong);
 
 /*
  * Class:     sparse_PrismSparse
  * Method:    PS_ProbReachReward
- * Signature: (IIIIIIIIIII)I
+ * Signature: (JJJJJIJIJJJ)J
  */
-JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1ProbReachReward
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1ProbReachReward
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong);
 
 /*
  * Class:     sparse_PrismSparse
  * Method:    PS_NondetBoundedUntil
- * Signature: (IIIIIIIIIIIZ)I
+ * Signature: (JJJIJIJIJJIZ)J
  */
-JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1NondetBoundedUntil
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jboolean);
+JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1NondetBoundedUntil
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jint, jboolean);
 
 /*
  * Class:     sparse_PrismSparse
  * Method:    PS_NondetUntil
- * Signature: (IIIIIIIIIIZ)I
+ * Signature: (JJJIJIJIJJZ)J
  */
-JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1NondetUntil
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jboolean);
+JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1NondetUntil
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jboolean);
 
 /*
  * Class:     sparse_PrismSparse
  * Method:    PS_NondetReachReward
- * Signature: (IIIIIIIIIIIIIZ)I
+ * Signature: (JJJJJIJIJIJJJZ)J
  */
-JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1NondetReachReward
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jboolean);
+JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1NondetReachReward
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jlong, jboolean);
 
 /*
  * Class:     sparse_PrismSparse
  * Method:    PS_StochBoundedUntil
- * Signature: (IIIIIIIIDI)I
+ * Signature: (JJJIJIJJDJ)J
  */
-JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1StochBoundedUntil
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jdouble, jint);
+JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1StochBoundedUntil
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jlong, jdouble, jlong);
 
 /*
  * Class:     sparse_PrismSparse
  * Method:    PS_StochCumulReward
- * Signature: (IIIIIIIID)I
+ * Signature: (JJJJJIJID)J
  */
-JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1StochCumulReward
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jdouble);
+JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1StochCumulReward
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jdouble);
 
 /*
  * Class:     sparse_PrismSparse
  * Method:    PS_StochSteadyState
- * Signature: (IIIIIII)I
+ * Signature: (JJJJIJI)J
  */
-JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1StochSteadyState
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1StochSteadyState
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jint, jlong, jint);
 
 /*
  * Class:     sparse_PrismSparse
  * Method:    PS_StochTransient
- * Signature: (IIIIIIID)I
+ * Signature: (JJJJIJID)J
  */
-JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1StochTransient
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jdouble);
+JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1StochTransient
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jint, jlong, jint, jdouble);
 
 /*
  * Class:     sparse_PrismSparse
  * Method:    PS_ExportMatrix
- * Signature: (ILjava/lang/String;IIIIIILjava/lang/String;)I
+ * Signature: (JLjava/lang/String;JIJIJILjava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1ExportMatrix
-  (JNIEnv *, jclass, jint, jstring, jint, jint, jint, jint, jint, jint, jstring);
+  (JNIEnv *, jclass, jlong, jstring, jlong, jint, jlong, jint, jlong, jint, jstring);
 
 /*
  * Class:     sparse_PrismSparse
  * Method:    PS_ExportMDP
- * Signature: (ILjava/lang/String;IIIIIIIILjava/lang/String;)I
+ * Signature: (JLjava/lang/String;JIJIJIJILjava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1ExportMDP
-  (JNIEnv *, jclass, jint, jstring, jint, jint, jint, jint, jint, jint, jint, jint, jstring);
+  (JNIEnv *, jclass, jlong, jstring, jlong, jint, jlong, jint, jlong, jint, jlong, jint, jstring);
 
 /*
  * Class:     sparse_PrismSparse
  * Method:    PS_ExportSubMDP
- * Signature: (IILjava/lang/String;IIIIIIIILjava/lang/String;)I
+ * Signature: (JJLjava/lang/String;JIJIJIJILjava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1ExportSubMDP
-  (JNIEnv *, jclass, jint, jint, jstring, jint, jint, jint, jint, jint, jint, jint, jint, jstring);
+  (JNIEnv *, jclass, jlong, jlong, jstring, jlong, jint, jlong, jint, jlong, jint, jlong, jint, jstring);
 
 /*
  * Class:     sparse_PrismSparse
  * Method:    PS_Power
- * Signature: (IIIIIIIIZ)I
+ * Signature: (JJIJIJJJZ)J
  */
-JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1Power
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jboolean);
+JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1Power
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jboolean);
 
 /*
  * Class:     sparse_PrismSparse
  * Method:    PS_JOR
- * Signature: (IIIIIIIIZZD)I
+ * Signature: (JJIJIJJJZZD)J
  */
-JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1JOR
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jboolean, jboolean, jdouble);
+JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1JOR
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jboolean, jboolean, jdouble);
 
 /*
  * Class:     sparse_PrismSparse
  * Method:    PS_SOR
- * Signature: (IIIIIIIIZZDZ)I
+ * Signature: (JJIJIJJJZZDZ)J
  */
-JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1SOR
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jboolean, jboolean, jdouble, jboolean);
+JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1SOR
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jboolean, jboolean, jdouble, jboolean);
 
 #ifdef __cplusplus
 }

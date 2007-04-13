@@ -31,7 +31,7 @@ import java.io.*;
 public class PrismFileLog implements PrismLog
 {
 	String filename;
-	int fp;
+	long fp;
 	boolean stdout;
 	
 	public PrismFileLog()
@@ -148,7 +148,7 @@ public class PrismFileLog implements PrismLog
 		printToLog(s + "\n");
 	}
 
-	public int getFilePointer()
+	public long getFilePointer()
 	{
 		return fp;
 	}

@@ -18,10 +18,10 @@ JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1FreeGlobalRefs
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_SetCUDDManager
- * Signature: (I)V
+ * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetCUDDManager
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     mtbdd_PrismMTBDD
@@ -98,178 +98,178 @@ JNIEXPORT jstring JNICALL Java_mtbdd_PrismMTBDD_PM_1GetErrorMessage
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_Reachability
- * Signature: (IIIIII)I
+ * Signature: (JJIJIJ)J
  */
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1Reachability
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1Reachability
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_Prob1
- * Signature: (IIIIIII)I
+ * Signature: (JJIJIJJ)J
  */
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob1
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob1
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_Prob0
- * Signature: (IIIIIIII)I
+ * Signature: (JJJIJIJJ)J
  */
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob0
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob0
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jlong);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_Prob1E
- * Signature: (IIIIIIIII)I
+ * Signature: (JJIJIJIJJ)J
  */
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob1E
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob1E
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_Prob1A
- * Signature: (IIIIIIIIIII)I
+ * Signature: (JJJJIJIJIJJ)J
  */
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob1A
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob1A
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_Prob0E
- * Signature: (IIIIIIIIIII)I
+ * Signature: (JJJJIJIJIJJ)J
  */
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob0E
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob0E
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_Prob0A
- * Signature: (IIIIIIIIII)I
+ * Signature: (JJJIJIJIJJ)J
  */
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob0A
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob0A
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_ProbBoundedUntil
- * Signature: (IIIIIIIII)I
+ * Signature: (JJJIJIJJI)J
  */
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1ProbBoundedUntil
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1ProbBoundedUntil
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jlong, jint);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_ProbUntil
- * Signature: (IIIIIIII)I
+ * Signature: (JJJIJIJJ)J
  */
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1ProbUntil
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1ProbUntil
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jlong);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_ProbReachReward
- * Signature: (IIIIIIIIIII)I
+ * Signature: (JJJJJIJIJJJ)J
  */
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1ProbReachReward
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1ProbReachReward
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_NondetBoundedUntil
- * Signature: (IIIIIIIIIIIIZ)I
+ * Signature: (JJJJIJIJIJJIZ)J
  */
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1NondetBoundedUntil
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jboolean);
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1NondetBoundedUntil
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jint, jboolean);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_NondetUntil
- * Signature: (IIIIIIIIIIIZ)I
+ * Signature: (JJJJIJIJIJJZ)J
  */
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1NondetUntil
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jboolean);
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1NondetUntil
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jboolean);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_NondetReachReward
- * Signature: (IIIIIIIIIIIIIIZ)I
+ * Signature: (JJJJJJIJIJIJJJZ)J
  */
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1NondetReachReward
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jboolean);
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1NondetReachReward
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jlong, jboolean);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_StochBoundedUntil
- * Signature: (IIIIIIIIDI)I
+ * Signature: (JJJIJIJJDJ)J
  */
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1StochBoundedUntil
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jdouble, jint);
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1StochBoundedUntil
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jlong, jdouble, jlong);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_StochCumulReward
- * Signature: (IIIIIIIID)I
+ * Signature: (JJJJJIJID)J
  */
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1StochCumulReward
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jdouble);
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1StochCumulReward
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jdouble);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_StochSteadyState
- * Signature: (IIIIIII)I
+ * Signature: (JJJJIJI)J
  */
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1StochSteadyState
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1StochSteadyState
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jint, jlong, jint);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_StochTransient
- * Signature: (IIIIIIID)I
+ * Signature: (JJJJIJID)J
  */
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1StochTransient
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jdouble);
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1StochTransient
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jint, jlong, jint, jdouble);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_ExportVector
- * Signature: (ILjava/lang/String;IIIILjava/lang/String;)I
+ * Signature: (JLjava/lang/String;JIJILjava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1ExportVector
-  (JNIEnv *, jclass, jint, jstring, jint, jint, jint, jint, jstring);
+  (JNIEnv *, jclass, jlong, jstring, jlong, jint, jlong, jint, jstring);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_ExportMatrix
- * Signature: (ILjava/lang/String;IIIIIILjava/lang/String;)I
+ * Signature: (JLjava/lang/String;JIJIJILjava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1ExportMatrix
-  (JNIEnv *, jclass, jint, jstring, jint, jint, jint, jint, jint, jint, jstring);
+  (JNIEnv *, jclass, jlong, jstring, jlong, jint, jlong, jint, jlong, jint, jstring);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_ExportLabels
- * Signature: ([I[Ljava/lang/String;Ljava/lang/String;IIIILjava/lang/String;)I
+ * Signature: ([J[Ljava/lang/String;Ljava/lang/String;JIJILjava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1ExportLabels
-  (JNIEnv *, jclass, jintArray, jobjectArray, jstring, jint, jint, jint, jint, jstring);
+  (JNIEnv *, jclass, jlongArray, jobjectArray, jstring, jlong, jint, jlong, jint, jstring);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_Power
- * Signature: (IIIIIIIIZ)I
+ * Signature: (JJIJIJJJZ)J
  */
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1Power
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jboolean);
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1Power
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jboolean);
 
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_JOR
- * Signature: (IIIIIIIIZD)I
+ * Signature: (JJIJIJJJZD)J
  */
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1JOR
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jboolean, jdouble);
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1JOR
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jboolean, jdouble);
 
 #ifdef __cplusplus
 }

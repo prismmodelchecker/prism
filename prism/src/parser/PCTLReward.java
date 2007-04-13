@@ -227,7 +227,7 @@ public class PCTLReward extends PCTLFormulaUnary
 	 *	Therefore, this method will only be called in error and hence throws an
 	 *	exception.
 	 */
-	public int toSimulator(SimulatorEngine sim ) throws SimulatorException
+	public long toSimulator(SimulatorEngine sim ) throws SimulatorException
 	{
 		throw new SimulatorException("The PRISM simulator does accept PCTL formulae with nested R operators");
 	}

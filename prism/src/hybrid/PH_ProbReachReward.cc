@@ -35,36 +35,38 @@
 #include "sparse.h"
 #include "hybrid.h"
 #include "PrismHybridGlob.h"
+#include "jnipointer.h"
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_hybrid_PrismHybrid_PH_1ProbReachReward
+JNIEXPORT jlong __pointer JNICALL Java_hybrid_PrismHybrid_PH_1ProbReachReward
 (
 JNIEnv *env,
 jclass cls,
-jint t,			// trans matrix
-jint sr,		// state rewards
-jint trr,		// transition rewards
-jint od,		// odd
-jint rv,		// row vars
+jlong __pointer t,	// trans matrix
+jlong __pointer sr,	// state rewards
+jlong __pointer trr,	// transition rewards
+jlong __pointer od,	// odd
+jlong __pointer rv,	// row vars
 jint num_rvars,
-jint cv,		// col vars
+jlong __pointer cv,	// col vars
 jint num_cvars,
-jint g,			// 'goal' states
-jint in,		// 'inf' states
-jint m			// 'maybe' states
+jlong __pointer g,	// 'goal' states
+jlong __pointer in,	// 'inf' states
+jlong __pointer m	// 'maybe' states
 )
 {
 	// cast function parameters
-	DdNode *trans = (DdNode *)t;	// trans matrix
-	DdNode *state_rewards = (DdNode *)sr;	// state rewards
-	DdNode *trans_rewards = (DdNode *)trr;	// transition rewards
-	ODDNode *odd = (ODDNode *)od; 	// reachable states
-	DdNode **rvars = (DdNode **)rv; // row vars
-	DdNode **cvars = (DdNode **)cv; // col vars
-	DdNode *goal = (DdNode *)g;	// 'goal' states
-	DdNode *inf = (DdNode *)in; 	// 'inf' states
-	DdNode *maybe = (DdNode *)m; 	// 'maybe' states
+	DdNode *trans = jlong_to_DdNode(t);		// trans matrix
+	DdNode *state_rewards = jlong_to_DdNode(sr);	// state rewards
+	DdNode *trans_rewards = jlong_to_DdNode(trr);	// transition rewards
+	ODDNode *odd = jlong_to_ODDNode(od); 		// reachable states
+	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
+	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
+	DdNode *goal = jlong_to_DdNode(g);		// 'goal' states
+	DdNode *inf = jlong_to_DdNode(in); 		// 'inf' states
+	DdNode *maybe = jlong_to_DdNode(m); 		// 'maybe' states
+
 	// mtbdds
 	DdNode *reach, *a, *tmp;
 	// model stats
@@ -115,27 +117,27 @@ jint m			// 'maybe' states
 	soln = NULL;
 	switch (lin_eq_method) {
 		case LIN_EQ_METHOD_POWER:
-			soln = (double *)Java_hybrid_PrismHybrid_PH_1Power(env, cls, (jint)odd, (jint)rvars, num_rvars, (jint)cvars, num_cvars, (jint)a, (jint)state_rewards, (jint)state_rewards, false); break;
+			soln = jlong_to_double(Java_hybrid_PrismHybrid_PH_1Power(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(state_rewards), false)); break;
 		case LIN_EQ_METHOD_JACOBI:
-			soln = (double *)Java_hybrid_PrismHybrid_PH_1JOR(env, cls, (jint)odd, (jint)rvars, num_rvars, (jint)cvars, num_cvars, (jint)a, (jint)state_rewards, (jint)state_rewards, false, false, 1.0); break;
+			soln = jlong_to_double(Java_hybrid_PrismHybrid_PH_1JOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(state_rewards), false, false, 1.0)); break;
 		case LIN_EQ_METHOD_GAUSSSEIDEL:
-			soln = (double *)Java_hybrid_PrismHybrid_PH_1SOR(env, cls, (jint)odd, (jint)rvars, num_rvars, (jint)cvars, num_cvars, (jint)a, (jint)state_rewards, (jint)state_rewards, false, false, 1.0, true); break;
+			soln = jlong_to_double(Java_hybrid_PrismHybrid_PH_1SOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(state_rewards), false, false, 1.0, true)); break;
 		case LIN_EQ_METHOD_BGAUSSSEIDEL:
-			soln = (double *)Java_hybrid_PrismHybrid_PH_1SOR(env, cls, (jint)odd, (jint)rvars, num_rvars, (jint)cvars, num_cvars, (jint)a, (jint)state_rewards, (jint)state_rewards, false, false, 1.0, false); break;
+			soln = jlong_to_double(Java_hybrid_PrismHybrid_PH_1SOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(state_rewards), false, false, 1.0, false)); break;
 		case LIN_EQ_METHOD_PGAUSSSEIDEL:
-			soln = (double *)Java_hybrid_PrismHybrid_PH_1PSOR(env, cls, (jint)odd, (jint)rvars, num_rvars, (jint)cvars, num_cvars, (jint)a, (jint)state_rewards, (jint)state_rewards, false, false, 1.0, true); break;
+			soln = jlong_to_double(Java_hybrid_PrismHybrid_PH_1PSOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(state_rewards), false, false, 1.0, true)); break;
 		case LIN_EQ_METHOD_BPGAUSSSEIDEL:
-			soln = (double *)Java_hybrid_PrismHybrid_PH_1PSOR(env, cls, (jint)odd, (jint)rvars, num_rvars, (jint)cvars, num_cvars, (jint)a, (jint)state_rewards, (jint)state_rewards, false, false, 1.0, false); break;
+			soln = jlong_to_double(Java_hybrid_PrismHybrid_PH_1PSOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(state_rewards), false, false, 1.0, false)); break;
 		case LIN_EQ_METHOD_JOR:
-			soln = (double *)Java_hybrid_PrismHybrid_PH_1JOR(env, cls, (jint)odd, (jint)rvars, num_rvars, (jint)cvars, num_cvars, (jint)a, (jint)state_rewards, (jint)state_rewards, false, false, lin_eq_method_param); break;
+			soln = jlong_to_double(Java_hybrid_PrismHybrid_PH_1JOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(state_rewards), false, false, lin_eq_method_param)); break;
 		case LIN_EQ_METHOD_SOR:
-			soln = (double *)Java_hybrid_PrismHybrid_PH_1SOR(env, cls, (jint)odd, (jint)rvars, num_rvars, (jint)cvars, num_cvars, (jint)a, (jint)state_rewards, (jint)state_rewards, false, false, lin_eq_method_param, true); break;
+			soln = jlong_to_double(Java_hybrid_PrismHybrid_PH_1SOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(state_rewards), false, false, lin_eq_method_param, true)); break;
 		case LIN_EQ_METHOD_BSOR:
-			soln = (double *)Java_hybrid_PrismHybrid_PH_1SOR(env, cls, (jint)odd, (jint)rvars, num_rvars, (jint)cvars, num_cvars, (jint)a, (jint)state_rewards, (jint)state_rewards, false, false, lin_eq_method_param, false); break;
+			soln = jlong_to_double(Java_hybrid_PrismHybrid_PH_1SOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(state_rewards), false, false, lin_eq_method_param, false)); break;
 		case LIN_EQ_METHOD_PSOR:
-			soln = (double *)Java_hybrid_PrismHybrid_PH_1PSOR(env, cls, (jint)odd, (jint)rvars, num_rvars, (jint)cvars, num_cvars, (jint)a, (jint)state_rewards, (jint)state_rewards, false, false, lin_eq_method_param, true); break;
+			soln = jlong_to_double(Java_hybrid_PrismHybrid_PH_1PSOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(state_rewards), false, false, lin_eq_method_param, true)); break;
 		case LIN_EQ_METHOD_BPSOR:
-			soln = (double *)Java_hybrid_PrismHybrid_PH_1PSOR(env, cls, (jint)odd, (jint)rvars, num_rvars, (jint)cvars, num_cvars, (jint)a, (jint)state_rewards, (jint)state_rewards, false, false, lin_eq_method_param, false); break;
+			soln = jlong_to_double(Java_hybrid_PrismHybrid_PH_1PSOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(state_rewards), false, false, lin_eq_method_param, false)); break;
 	}
 	
 	// set reward for infinity states to infinity
@@ -152,7 +154,7 @@ jint m			// 'maybe' states
 	Cudd_RecursiveDeref(ddman, state_rewards);
 	Cudd_RecursiveDeref(ddman, trans_rewards);
 	
-	return (int)soln;
+	return ptr_to_jlong(soln);
 }
 
 //------------------------------------------------------------------------------

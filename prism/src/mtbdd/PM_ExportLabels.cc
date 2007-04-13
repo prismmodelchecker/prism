@@ -31,6 +31,7 @@
 #include <dd.h>
 #include <odd.h>
 #include "PrismMTBDDGlob.h"
+#include "jnipointer.h"
 
 //------------------------------------------------------------------------------
 
@@ -49,26 +50,26 @@ JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1ExportLabels
 (
 JNIEnv *env,
 jclass cls,
-jintArray la,		// labels
+jlongArray __pointer la,		// labels
 jobjectArray ln,	// label names
-jstring na,			// export name
-jint v,				// (row) vars
+jstring na,		// export name
+jlong __pointer v,	// (row) vars
 jint num_vars,
-jint od,			// odd
-jint et,			// export type
-jstring fn			// filename
+jlong __pointer od,	// odd
+jint et,		// export type
+jstring fn		// filename
 )
 {
-	jint *labels;
+	jlong *labels;
 	jobject *label_names;
-	DdNode **vars = (DdNode **)v;
-	ODDNode *odd = (ODDNode *)od;
+	DdNode **vars = jlong_to_DdNode_array(v);
+	ODDNode *odd = jlong_to_ODDNode(od);
 	const char *filename;
 	int i;
 	
 	// unpack jni arrays
 	num_labels = env->GetArrayLength(la);
-	labels = env->GetIntArrayElements(la, 0);
+	labels = env->GetLongArrayElements(la, 0);
 	label_names = new jobject[num_labels];
 	for (i = 0; i < num_labels; i++) label_names[i] = env->GetObjectArrayElement(ln, i);
 	label_strings = new const char*[num_labels];
@@ -106,11 +107,11 @@ jstring fn			// filename
 		dd_array[i] = new DdNode*[num_labels];
 	}
 	for (i = 0; i < num_labels; i++) {
-		dd_array[0][i] = (DdNode*)labels[i];
+		dd_array[0][i] = jlong_to_DdNode(labels[i]);
 	}
 	
 	// print main part of file
-	export_rec((DdNode*)labels[0], vars, num_vars, 0, odd, 0);
+	export_rec(jlong_to_DdNode(labels[0]), vars, num_vars, 0, odd, 0);
 	
 	// free memory
 	for (i = 0; i < num_vars+1; i++) {
@@ -122,7 +123,7 @@ jstring fn			// filename
 	for (i = 0; i < num_labels; i++) env->ReleaseStringUTFChars((jstring)label_names[i], label_strings[i]);
 	delete label_strings;
 	delete label_names;
-	env->ReleaseIntArrayElements(la, labels, 0);
+	env->ReleaseLongArrayElements(la, labels, 0);
 	
 	// close file, etc.
 	if (export_file) fclose(export_file);
@@ -133,7 +134,7 @@ jstring fn			// filename
 
 //------------------------------------------------------------------------------
 
-void export_rec(DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, long index)
+static void export_rec(DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, long index)
 {
 	DdNode *e, *t;
 	int i;

@@ -74,26 +74,26 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_allocateModel
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    setupAddTransition
- * Signature: (I)I
+ * Signature: (J)I
  */
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_setupAddTransition
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    setupAddStateReward
- * Signature: (II)I
+ * Signature: (IJ)I
  */
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_setupAddStateReward
-  (JNIEnv *, jclass, jint, jint);
+  (JNIEnv *, jclass, jint, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    setupAddTransitionReward
- * Signature: (II)I
+ * Signature: (IJ)I
  */
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_setupAddTransitionReward
-  (JNIEnv *, jclass, jint, jint);
+  (JNIEnv *, jclass, jint, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
@@ -442,10 +442,10 @@ JNIEXPORT void JNICALL Java_simulator_SimulatorEngine_stopSampling
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    loadProposition
- * Signature: (I)I
+ * Signature: (J)I
  */
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadProposition
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
@@ -498,10 +498,10 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_queryIsDeadlock__I
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    findPathFormulaIndex
- * Signature: (I)I
+ * Signature: (J)I
  */
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_findPathFormulaIndex
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
@@ -522,466 +522,466 @@ JNIEXPORT jdouble JNICALL Java_simulator_SimulatorEngine_queryPathFormulaNumeric
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createNormalConstant
- * Signature: (II)I
+ * Signature: (II)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createNormalConstant
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createNormalConstant
   (JNIEnv *, jclass, jint, jint);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createRealConstant
- * Signature: (I)I
+ * Signature: (I)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createRealConstant
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createRealConstant
   (JNIEnv *, jclass, jint);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createIntegerVar
- * Signature: (I)I
+ * Signature: (I)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createIntegerVar
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createIntegerVar
   (JNIEnv *, jclass, jint);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createBooleanVar
- * Signature: (I)I
+ * Signature: (I)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createBooleanVar
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createBooleanVar
   (JNIEnv *, jclass, jint);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createDouble
- * Signature: (D)I
+ * Signature: (D)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createDouble
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createDouble
   (JNIEnv *, jclass, jdouble);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createInteger
- * Signature: (I)I
+ * Signature: (I)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createInteger
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createInteger
   (JNIEnv *, jclass, jint);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createBoolean
- * Signature: (Z)I
+ * Signature: (Z)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createBoolean
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createBoolean
   (JNIEnv *, jclass, jboolean);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createCeil
- * Signature: (I)I
+ * Signature: (J)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createCeil
-  (JNIEnv *, jclass, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createCeil
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createFloor
- * Signature: (I)I
+ * Signature: (J)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createFloor
-  (JNIEnv *, jclass, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createFloor
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createNormalPow
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createNormalPow
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createNormalPow
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createRealPow
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createRealPow
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createRealPow
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createMod
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createMod
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createMod
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createNot
- * Signature: (I)I
+ * Signature: (J)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createNot
-  (JNIEnv *, jclass, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createNot
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createAnd
- * Signature: ([I)I
+ * Signature: ([J)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createAnd
-  (JNIEnv *, jclass, jintArray);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createAnd
+  (JNIEnv *, jclass, jlongArray);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createOr
- * Signature: ([I)I
+ * Signature: ([J)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createOr
-  (JNIEnv *, jclass, jintArray);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createOr
+  (JNIEnv *, jclass, jlongArray);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createNormalMax
- * Signature: ([I)I
+ * Signature: ([J)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createNormalMax
-  (JNIEnv *, jclass, jintArray);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createNormalMax
+  (JNIEnv *, jclass, jlongArray);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createNormalMin
- * Signature: ([I)I
+ * Signature: ([J)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createNormalMin
-  (JNIEnv *, jclass, jintArray);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createNormalMin
+  (JNIEnv *, jclass, jlongArray);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createRealMax
- * Signature: ([I)I
+ * Signature: ([J)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createRealMax
-  (JNIEnv *, jclass, jintArray);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createRealMax
+  (JNIEnv *, jclass, jlongArray);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createRealMin
- * Signature: ([I)I
+ * Signature: ([J)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createRealMin
-  (JNIEnv *, jclass, jintArray);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createRealMin
+  (JNIEnv *, jclass, jlongArray);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createNormalTimes
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createNormalTimes
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createNormalTimes
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createNormalPlus
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createNormalPlus
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createNormalPlus
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createNormalMinus
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createNormalMinus
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createNormalMinus
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createRealTimes
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createRealTimes
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createRealTimes
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createRealPlus
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createRealPlus
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createRealPlus
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createRealMinus
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createRealMinus
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createRealMinus
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createDivide
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createDivide
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createDivide
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createIte
- * Signature: (III)I
+ * Signature: (JJJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createIte
-  (JNIEnv *, jclass, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createIte
+  (JNIEnv *, jclass, jlong, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createRealIte
- * Signature: (III)I
+ * Signature: (JJJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createRealIte
-  (JNIEnv *, jclass, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createRealIte
+  (JNIEnv *, jclass, jlong, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createNormalEquals
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createNormalEquals
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createNormalEquals
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createRealEquals
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createRealEquals
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createRealEquals
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createNormalNotEquals
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createNormalNotEquals
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createNormalNotEquals
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createRealNotEquals
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createRealNotEquals
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createRealNotEquals
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createNormalLessThan
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createNormalLessThan
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createNormalLessThan
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createRealLessThan
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createRealLessThan
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createRealLessThan
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createNormalGreaterThan
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createNormalGreaterThan
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createNormalGreaterThan
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createRealGreaterThan
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createRealGreaterThan
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createRealGreaterThan
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createNormalLessThanEqual
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createNormalLessThanEqual
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createNormalLessThanEqual
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createRealLessThanEqual
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createRealLessThanEqual
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createRealLessThanEqual
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createNormalGreaterThanEqual
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createNormalGreaterThanEqual
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createNormalGreaterThanEqual
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createRealGreaterThanEqual
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createRealGreaterThanEqual
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createRealGreaterThanEqual
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    loadPctlBoundedUntil
- * Signature: (IIDD)I
+ * Signature: (JJDD)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlBoundedUntil
-  (JNIEnv *, jclass, jint, jint, jdouble, jdouble);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_loadPctlBoundedUntil
+  (JNIEnv *, jclass, jlong, jlong, jdouble, jdouble);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    loadPctlBoundedUntilNegated
- * Signature: (IIDD)I
+ * Signature: (JJDD)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlBoundedUntilNegated
-  (JNIEnv *, jclass, jint, jint, jdouble, jdouble);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_loadPctlBoundedUntilNegated
+  (JNIEnv *, jclass, jlong, jlong, jdouble, jdouble);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    loadPctlUntil
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlUntil
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_loadPctlUntil
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    loadPctlUntilNegated
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlUntilNegated
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_loadPctlUntilNegated
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    loadPctlNext
- * Signature: (I)I
+ * Signature: (J)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlNext
-  (JNIEnv *, jclass, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_loadPctlNext
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    loadPctlReachability
- * Signature: (II)I
+ * Signature: (IJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlReachability
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_loadPctlReachability
+  (JNIEnv *, jclass, jint, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    loadPctlCumulative
- * Signature: (ID)I
+ * Signature: (ID)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlCumulative
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_loadPctlCumulative
   (JNIEnv *, jclass, jint, jdouble);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    loadPctlInstantanious
- * Signature: (ID)I
+ * Signature: (ID)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlInstantanious
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_loadPctlInstantanious
   (JNIEnv *, jclass, jint, jdouble);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    loadProbQuestion
- * Signature: (I)I
+ * Signature: (J)I
  */
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadProbQuestion
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    loadRewardQuestion
- * Signature: (I)I
+ * Signature: (J)I
  */
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadRewardQuestion
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createCommand
- * Signature: (IIII)I
+ * Signature: (JIII)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createCommand
-  (JNIEnv *, jclass, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createCommand
+  (JNIEnv *, jclass, jlong, jint, jint, jint);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    addUpdate
- * Signature: (III)I
+ * Signature: (JJI)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_addUpdate
-  (JNIEnv *, jclass, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_addUpdate
+  (JNIEnv *, jclass, jlong, jlong, jint);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    addAssignment
- * Signature: (III)I
+ * Signature: (JIJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_addAssignment
-  (JNIEnv *, jclass, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_addAssignment
+  (JNIEnv *, jclass, jlong, jint, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createStateReward
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createStateReward
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createStateReward
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    createTransitionReward
- * Signature: (III)I
+ * Signature: (IJJ)J
  */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createTransitionReward
-  (JNIEnv *, jclass, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createTransitionReward
+  (JNIEnv *, jclass, jint, jlong, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    printExpression
- * Signature: (I)V
+ * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_simulator_SimulatorEngine_printExpression
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    expressionToString
- * Signature: (I)Ljava/lang/String;
+ * Signature: (J)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_simulator_SimulatorEngine_expressionToString
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine
  * Method:    deleteExpression
- * Signature: (I)V
+ * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_simulator_SimulatorEngine_deleteExpression
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     simulator_SimulatorEngine

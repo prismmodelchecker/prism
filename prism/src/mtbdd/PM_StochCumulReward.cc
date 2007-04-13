@@ -33,31 +33,33 @@
 #include <odd.h>
 #include <prism.h>
 #include "PrismMTBDDGlob.h"
+#include "jnipointer.h"
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1StochCumulReward
+JNIEXPORT jlong __pointer JNICALL Java_mtbdd_PrismMTBDD_PM_1StochCumulReward
 (
 JNIEnv *env,
 jclass cls,
-jint tr,		// trans matrix
-jint sr,		// state rewards
-jint trr,		// transition rewards
-jint od,		// odd
-jint rv,		// row vars
+jlong __pointer tr,	// trans matrix
+jlong __pointer sr,	// state rewards
+jlong __pointer trr,	// transition rewards
+jlong __pointer od,	// odd
+jlong __pointer rv,	// row vars
 jint num_rvars,
-jint cv,		// col vars
+jlong __pointer cv,	// col vars
 jint num_cvars,
-jdouble time	// time bound
+jdouble time		// time bound
 )
 {
 	// cast function parameters
-	DdNode *trans = (DdNode *)tr;	// trans matrix
-	DdNode *state_rewards = (DdNode *)sr;	// state rewards
-	DdNode *trans_rewards = (DdNode *)trr;	// transition rewards
-	ODDNode *odd = (ODDNode *)od;	// odd
-	DdNode **rvars = (DdNode **)rv; // row vars
-	DdNode **cvars = (DdNode **)cv; // col vars
+	DdNode *trans = jlong_to_DdNode(tr);		// trans matrix
+	DdNode *state_rewards = jlong_to_DdNode(sr);	// state rewards
+	DdNode *trans_rewards = jlong_to_DdNode(trr);	// transition rewards
+	ODDNode *odd = jlong_to_ODDNode(od);		// odd
+	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
+	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
+
 	// mtbdds
 	DdNode *reach, *diags, *q, *r, *sol, *tmp, *sum;
 	// model stats
@@ -240,7 +242,7 @@ jdouble time	// time bound
 	Cudd_RecursiveDeref(ddman, diags);
 	Cudd_RecursiveDeref(ddman, sol);
 	
-	return (int)sum;
+	return ptr_to_jlong(sum);
 }
 
 //------------------------------------------------------------------------------

@@ -32,6 +32,7 @@
 #include <cudd.h>
 #include <dd.h>
 #include "PrismMTBDDGlob.h"
+#include "jnipointer.h"
 
 //------------------------------------------------------------------------------
 
@@ -39,31 +40,31 @@
 // (for all = min) (nondeterministic/mdp) (mtbdd)
 // (i.e. compute states FOR which ALL probabilities are 1)
 
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob1A
+JNIEXPORT jlong __pointer JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob1A
 (
 JNIEnv *env,
 jclass cls,
-jint t01, 		// 0-1 trans matrix
-jint r,			// reachable states
-jint ndm,		// nondeterminism mask
-jint rv,		// row vars
+jlong __pointer t01, 	// 0-1 trans matrix
+jlong __pointer r,	// reachable states
+jlong __pointer ndm,	// nondeterminism mask
+jlong __pointer rv,	// row vars
 jint num_rvars,
-jint cv,		// col vars
+jlong __pointer cv,	// col vars
 jint num_cvars,
-jint ndv,		// nondet vars
+jlong __pointer ndv,	// nondet vars
 jint num_ndvars,
-jint n,			// no
-jint psi		// psi(b2)
+jlong __pointer n,	// no
+jlong __pointer psi	// psi(b2)
 )
 {
-	DdNode *trans01 = (DdNode *)t01;	// 0-1 trans matrix
-	DdNode *all = (DdNode *)r;		// reachable states
-	DdNode *mask = (DdNode *)ndm;		// nondeterminism mask
-	DdNode *no = (DdNode *)n;		// no
-	DdNode *b2 = (DdNode *)psi;		// b2
-	DdNode **rvars = (DdNode **)rv;		// row vars
-	DdNode **cvars = (DdNode **)cv;		// col vars
-	DdNode **ndvars = (DdNode **)ndv;	// nondet vars
+	DdNode *trans01 = jlong_to_DdNode(t01);		// 0-1 trans matrix
+	DdNode *all = jlong_to_DdNode(r);		// reachable states
+	DdNode *mask = jlong_to_DdNode(ndm);		// nondeterminism mask
+	DdNode *no = jlong_to_DdNode(n);		// no
+	DdNode *b2 = jlong_to_DdNode(psi);		// b2
+	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
+	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
+	DdNode **ndvars = jlong_to_DdNode_array(ndv);	// nondet vars
 	
 	DdNode  *reach,*sol, *tmp, *notno;
 	bool done;
@@ -124,7 +125,7 @@ jint psi		// psi(b2)
 	
 	Cudd_RecursiveDeref(ddman, notno);
 	
-	return (int)sol;
+	return ptr_to_jlong(sol);
 }
 
 //------------------------------------------------------------------------------

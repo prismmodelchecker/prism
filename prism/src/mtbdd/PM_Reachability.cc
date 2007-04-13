@@ -31,27 +31,28 @@
 #include <cudd.h>
 #include <dd.h>
 #include "PrismMTBDDGlob.h"
+#include "jnipointer.h"
 
 //------------------------------------------------------------------------------
 
 // Calculates states reachable from the given subset (s)
 
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1Reachability
+JNIEXPORT jlong __pointer JNICALL Java_mtbdd_PrismMTBDD_PM_1Reachability
 (
 JNIEnv *env,
 jclass cls,
-jint t01,	// 0-1 trans matrix
-jint rv,	// row vars
+jlong __pointer t01,	// 0-1 trans matrix
+jlong __pointer rv,	// row vars
 jint num_rvars,
-jint cv,	// col vars
+jlong __pointer cv,	// col vars
 jint num_cvars,
-jint s		// start state
+jlong __pointer s	// start state
 )
 {
-	DdNode *trans01 = (DdNode *)t01;	// 0-1 trans matrix
-	DdNode *init = (DdNode *)s;		// start state
-	DdNode **rvars = (DdNode **)rv;		// row vars
-	DdNode **cvars = (DdNode **)cv;		// col vars
+	DdNode *trans01 = jlong_to_DdNode(t01);		// 0-1 trans matrix
+	DdNode *init = jlong_to_DdNode(s);		// start state
+	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
+	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
 	
 	DdNode *reach, *frontier, *tmp;
 	bool done;
@@ -190,7 +191,7 @@ jint s		// start state
 	// print iterations/timing info
 	PM_PrintToMainLog(env, "\nReachability: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 
-	return (int)reach;
+	return ptr_to_jlong(reach);
 }
 
 //------------------------------------------------------------------------------

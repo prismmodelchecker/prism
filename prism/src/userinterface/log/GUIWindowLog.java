@@ -156,7 +156,7 @@ public class GUIWindowLog implements PrismLog
 		addToBuffer(s + "\n");
 	}
 
-	public int getFilePointer()
+	public long getFilePointer()
 	{
 		return -1;
 	}

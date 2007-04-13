@@ -34,28 +34,30 @@
 #include <dv.h>
 #include "sparse.h"
 #include "PrismSparseGlob.h"
+#include "jnipointer.h"
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1StochSteadyState
+JNIEXPORT jlong __pointer JNICALL Java_sparse_PrismSparse_PS_1StochSteadyState
 (
 JNIEnv *env,
 jclass cls,
-jint tr,		// trans matrix
-jint od,		// odd
-jint in,		// init soln
-jint rv,		// row vars
+jlong __pointer tr,		// trans matrix
+jlong __pointer od,		// odd
+jlong __pointer in,		// init soln
+jlong __pointer rv,		// row vars
 jint num_rvars,
-jint cv,		// col vars
+jlong __pointer cv,		// col vars
 jint num_cvars
 )
 {
 	// cast function parameters
-	DdNode *trans = (DdNode *)tr;	// trans matrix
-	ODDNode *odd = (ODDNode *)od;	// odd
-	DdNode *init = (DdNode *)in;	// init soln
-	DdNode **rvars = (DdNode **)rv; // row vars
-	DdNode **cvars = (DdNode **)cv; // col vars
+	DdNode *trans = jlong_to_DdNode(tr);		// trans matrix
+	ODDNode *odd = jlong_to_ODDNode(od);		// odd
+	DdNode *init = jlong_to_DdNode(in);		// init soln
+	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
+	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
+
 	// mtbdds
 	DdNode *diags, *q, *a, *tmp;
 	// model stats
@@ -120,19 +122,19 @@ jint num_cvars
 	soln = NULL;
 	switch (lin_eq_method) {
 		case LIN_EQ_METHOD_POWER:
-			soln = (double *)Java_sparse_PrismSparse_PS_1Power(env, cls, (jint)odd, (jint)rvars, num_rvars, (jint)cvars, num_cvars, (jint)a, 0, (jint)init, true); break;
+			soln = jlong_to_double(Java_sparse_PrismSparse_PS_1Power(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), 0, ptr_to_jlong(init), true)); break;
 		case LIN_EQ_METHOD_JACOBI:
-			soln = (double *)Java_sparse_PrismSparse_PS_1JOR(env, cls, (jint)odd, (jint)rvars, num_rvars, (jint)cvars, num_cvars, (jint)a, 0, (jint)init, true, true, 1.0); break;
+			soln = jlong_to_double(Java_sparse_PrismSparse_PS_1JOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), 0, ptr_to_jlong(init), true, true, 1.0)); break;
 		case LIN_EQ_METHOD_GAUSSSEIDEL:
-			soln = (double *)Java_sparse_PrismSparse_PS_1SOR(env, cls, (jint)odd, (jint)rvars, num_rvars, (jint)cvars, num_cvars, (jint)a, 0, (jint)init, true, true, 1.0, true); break;
+			soln = jlong_to_double(Java_sparse_PrismSparse_PS_1SOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), 0, ptr_to_jlong(init), true, true, 1.0, true)); break;
 		case LIN_EQ_METHOD_BGAUSSSEIDEL:
-			soln = (double *)Java_sparse_PrismSparse_PS_1SOR(env, cls, (jint)odd, (jint)rvars, num_rvars, (jint)cvars, num_cvars, (jint)a, 0, (jint)init, true, true, 1.0, false); break;
+			soln = jlong_to_double(Java_sparse_PrismSparse_PS_1SOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), 0, ptr_to_jlong(init), true, true, 1.0, false)); break;
 		case LIN_EQ_METHOD_JOR:
-			soln = (double *)Java_sparse_PrismSparse_PS_1JOR(env, cls, (jint)odd, (jint)rvars, num_rvars, (jint)cvars, num_cvars, (jint)a, 0, (jint)init, true, true, lin_eq_method_param); break;
+			soln = jlong_to_double(Java_sparse_PrismSparse_PS_1JOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), 0, ptr_to_jlong(init), true, true, lin_eq_method_param)); break;
 		case LIN_EQ_METHOD_SOR:
-			soln = (double *)Java_sparse_PrismSparse_PS_1SOR(env, cls, (jint)odd, (jint)rvars, num_rvars, (jint)cvars, num_cvars, (jint)a, 0, (jint)init, true, true, lin_eq_method_param, true); break;
+			soln = jlong_to_double(Java_sparse_PrismSparse_PS_1SOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), 0, ptr_to_jlong(init), true, true, lin_eq_method_param, true)); break;
 		case LIN_EQ_METHOD_BSOR:
-			soln = (double *)Java_sparse_PrismSparse_PS_1SOR(env, cls, (jint)odd, (jint)rvars, num_rvars, (jint)cvars, num_cvars, (jint)a, 0, (jint)init, true, true, lin_eq_method_param, false); break;
+			soln = jlong_to_double(Java_sparse_PrismSparse_PS_1SOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), 0, ptr_to_jlong(init), true, true, lin_eq_method_param, false)); break;
 	}
 	
 	// normalise
@@ -149,7 +151,7 @@ jint num_cvars
 	// free memory
 	Cudd_RecursiveDeref(ddman, a);
 	
-	return (int)soln;
+	return ptr_to_jlong(soln);
 }
 
 //------------------------------------------------------------------------------

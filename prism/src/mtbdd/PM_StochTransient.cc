@@ -33,29 +33,31 @@
 #include <odd.h>
 #include <prism.h>
 #include "PrismMTBDDGlob.h"
+#include "jnipointer.h"
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1StochTransient
+JNIEXPORT jlong __pointer JNICALL Java_mtbdd_PrismMTBDD_PM_1StochTransient
 (
 JNIEnv *env,
 jclass cls,
-jint tr,		// rate matrix
-jint od,		// odd
-jint in,		// initial distribution
-jint rv,		// row vars
+jlong __pointer tr,	// rate matrix
+jlong __pointer od,	// odd
+jlong __pointer in,	// initial distribution
+jlong __pointer rv,	// row vars
 jint num_rvars,
-jint cv,		// col vars
+jlong __pointer cv,	// col vars
 jint num_cvars,
-jdouble time	// time bound
+jdouble time		// time bound
 )
 {
 	// cast function parameters
-	DdNode *trans = (DdNode *)tr;	// trans matrix
-	ODDNode *odd = (ODDNode *)od;	// odd
-	DdNode *init = (DdNode *)in;	// initial distribution
-	DdNode **rvars = (DdNode **)rv;	// row vars
-	DdNode **cvars = (DdNode **)cv;	// col vars
+	DdNode *trans = jlong_to_DdNode(tr);		// trans matrix
+	ODDNode *odd = jlong_to_ODDNode(od);		// odd
+	DdNode *init = jlong_to_DdNode(in);		// initial distribution
+	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
+	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
+
 	// model stats
 	int n;
 	// mtbdds
@@ -305,7 +307,7 @@ jdouble time	// time bound
 	Cudd_RecursiveDeref(ddman, diags);
 	Cudd_RecursiveDeref(ddman, sol);
 	
-	return (int)sum;
+	return ptr_to_jlong(sum);
 }
 
 //------------------------------------------------------------------------------

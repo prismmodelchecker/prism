@@ -65,7 +65,7 @@ public class GUISimLabelFormulaeList extends JList
 		//create the expression in the simulator
 		try
 		{
-			int exprPointer = expr.toSimulator(engine);
+			long exprPointer = expr.toSimulator(engine);
 	    
 			int index = SimulatorEngine.loadProposition(exprPointer);
 	    

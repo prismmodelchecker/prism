@@ -52,7 +52,7 @@ public class ODDUtils
 	// cudd manager
 	
 	// jni method to set cudd manager for native code
-	private static native void ODD_SetCUDDManager(int ddm);
+	private static native void ODD_SetCUDDManager(long ddm);
 	public static void setCUDDManager()
 	{
 		ODD_SetCUDDManager(JDD.GetCUDDManager());
@@ -63,7 +63,7 @@ public class ODDUtils
 	//------------------------------------------------------------------------------
 	
 	// build odd
-	private static native int ODD_BuildODD(int dd, int vars, int num_vars);
+	private static native long ODD_BuildODD(long dd, long vars, int num_vars);
 	public static ODDNode BuildODD(JDDNode dd, JDDVars vars)
 	{
 		return new ODDNode(
@@ -84,10 +84,10 @@ public class ODDUtils
 	// ODDNode methods
 	//------------------------------------------------------------------------------
 
-	public static native long ODD_GetTOff(int odd);
-	public static native long ODD_GetEOff(int odd);
-	public static native int ODD_GetThen(int odd);
-	public static native int ODD_GetElse(int odd);
+	public static native long ODD_GetTOff(long odd);
+	public static native long ODD_GetEOff(long odd);
+	public static native long ODD_GetThen(long odd);
+	public static native long ODD_GetElse(long odd);
 
 }
 

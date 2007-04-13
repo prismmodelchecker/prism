@@ -35,6 +35,7 @@
 #include "sparse.h"
 #include "hybrid.h"
 #include "PrismHybridGlob.h"
+#include "jnipointer.h"
 
 // local prototypes
 static void jor_rec(HDDNode *hdd, int level, int row_offset, int col_offset, bool transpose);
@@ -54,30 +55,31 @@ static double *soln, *soln2;
 
 // solve the linear equation system Ax=b with Jacobi/JOR
 
-jint JNICALL Java_hybrid_PrismHybrid_PH_1JOR
+JNIEXPORT jlong __pointer JNICALL Java_hybrid_PrismHybrid_PH_1JOR
 (
 JNIEnv *env,
 jclass cls,
-jint _odd,			// odd
-jint rv,			// row vars
+jlong __pointer _odd,	// odd
+jlong __pointer rv,	// row vars
 jint num_rvars,
-jint cv,			// col vars
+jlong __pointer cv,	// col vars
 jint num_cvars,
-jint _a,			// matrix A
-jint _b,			// vector b (if null, assume all zero)
-jint _init,			// init soln
+jlong __pointer _a,	// matrix A
+jlong __pointer _b,	// vector b (if null, assume all zero)
+jlong __pointer _init,	// init soln
 jboolean transpose,	// transpose A? (i.e. solve xA=b not Ax=b?)
 jboolean row_sums,	// use row sums for diags instead? (strictly speaking: negative sum of non-diagonal row elements)
 jdouble omega		// omega (over-relaxation parameter)
 )
 {
 	// cast function parameters
-	ODDNode *odd = (ODDNode *)_odd;		// odd
-	DdNode **rvars = (DdNode **)rv; 	// row vars
-	DdNode **cvars = (DdNode **)cv; 	// col vars
-	DdNode *a = (DdNode *)_a;			// matrix A
-	DdNode *b = (DdNode *)_b;			// vector b
-	DdNode *init = (DdNode *)_init;		// init soln
+	ODDNode *odd = jlong_to_ODDNode(_odd);		// odd
+	DdNode **rvars = jlong_to_DdNode_array(rv); 	// row vars
+	DdNode **cvars = jlong_to_DdNode_array(cv); 	// col vars
+	DdNode *a = jlong_to_DdNode(_a);		// matrix A
+	DdNode *b = jlong_to_DdNode(_b);		// vector b
+	DdNode *init = jlong_to_DdNode(_init);		// init soln
+
 	// mtbdds
 	DdNode *reach, *diags, *id, *tmp;
 	// model stats
@@ -306,12 +308,12 @@ jdouble omega		// omega (over-relaxation parameter)
 	// if the iterative method didn't terminate, this is an error
 	if (!done) { delete soln; PH_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); return 0; }
 	
-	return (int)soln;
+	return ptr_to_jlong(soln);
 }
 
 //------------------------------------------------------------------------------
 
-void jor_rec(HDDNode *hdd, int level, int row_offset, int col_offset, bool transpose)
+static void jor_rec(HDDNode *hdd, int level, int row_offset, int col_offset, bool transpose)
 {
 	HDDNode *e, *t;
 	
@@ -321,11 +323,11 @@ void jor_rec(HDDNode *hdd, int level, int row_offset, int col_offset, bool trans
 	}
 	// or if we've reached a submatrix
 	// (check for non-null ptr but, equivalently, we could just check if level==l_sm)
-	else if (hdd->sm) {
+	else if (hdd->sm.ptr) {
 		if (!compact_sm) {
-			jor_rm((RMSparseMatrix *)hdd->sm, row_offset, col_offset);
+			jor_rm((RMSparseMatrix *)hdd->sm.ptr, row_offset, col_offset);
 		} else {
-			jor_cmsr((CMSRSparseMatrix *)hdd->sm, row_offset, col_offset);
+			jor_cmsr((CMSRSparseMatrix *)hdd->sm.ptr, row_offset, col_offset);
 		}
 		return;
 	}
@@ -340,27 +342,27 @@ void jor_rec(HDDNode *hdd, int level, int row_offset, int col_offset, bool trans
 	if (e != zero) {
 		if (!transpose) {
 			jor_rec(e->type.kids.e, level+1, row_offset, col_offset, transpose);
-			jor_rec(e->type.kids.t, level+1, row_offset, col_offset+e->off, transpose);
+			jor_rec(e->type.kids.t, level+1, row_offset, col_offset+e->off.val, transpose);
 		} else {
 			jor_rec(e->type.kids.e, level+1, row_offset, col_offset, transpose);
-			jor_rec(e->type.kids.t, level+1, row_offset+e->off, col_offset, transpose);
+			jor_rec(e->type.kids.t, level+1, row_offset+e->off.val, col_offset, transpose);
 		}
 	}
 	t = hdd->type.kids.t;
 	if (t != zero) {
 		if (!transpose) {
-			jor_rec(t->type.kids.e, level+1, row_offset+hdd->off, col_offset, transpose);
-			jor_rec(t->type.kids.t, level+1, row_offset+hdd->off, col_offset+t->off, transpose);
+			jor_rec(t->type.kids.e, level+1, row_offset+hdd->off.val, col_offset, transpose);
+			jor_rec(t->type.kids.t, level+1, row_offset+hdd->off.val, col_offset+t->off.val, transpose);
 		} else {
-			jor_rec(t->type.kids.e, level+1, row_offset, col_offset+hdd->off, transpose);
-			jor_rec(t->type.kids.t, level+1, row_offset+t->off, col_offset+hdd->off, transpose);
+			jor_rec(t->type.kids.e, level+1, row_offset, col_offset+hdd->off.val, transpose);
+			jor_rec(t->type.kids.t, level+1, row_offset+t->off.val, col_offset+hdd->off.val, transpose);
 		}
 	}
 }
 
 //-----------------------------------------------------------------------------------
 
-void jor_rm(RMSparseMatrix *rmsm, int row_offset, int col_offset)
+static void jor_rm(RMSparseMatrix *rmsm, int row_offset, int col_offset)
 {
 	int i2, j2, l2, h2;
 	int sm_n = rmsm->n;
@@ -387,7 +389,7 @@ void jor_rm(RMSparseMatrix *rmsm, int row_offset, int col_offset)
 
 //-----------------------------------------------------------------------------------
 
-void jor_cmsr(CMSRSparseMatrix *cmsrsm, int row_offset, int col_offset)
+static void jor_cmsr(CMSRSparseMatrix *cmsrsm, int row_offset, int col_offset)
 {
 	int i2, j2, l2, h2;
 	int sm_n = cmsrsm->n;

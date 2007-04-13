@@ -88,7 +88,7 @@ public class ExpressionUnaryMinus extends ExpressionUnary
 	/**
 	 *	Convert and build simulator expression data structure
 	 */
-	public int toSimulator(SimulatorEngine sim) throws SimulatorException
+	public long toSimulator(SimulatorEngine sim) throws SimulatorException
 	{
 		int theType = 0;
 		try

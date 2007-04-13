@@ -392,7 +392,7 @@ public class ExpressionFunc extends ExpressionNary
 	/**
 	 *	Convert and build simulator expression data structure
 	 */
-	public int toSimulator(SimulatorEngine sim) throws SimulatorException
+	public long toSimulator(SimulatorEngine sim) throws SimulatorException
 	{
 		try {
 			switch(code)
@@ -403,7 +403,7 @@ public class ExpressionFunc extends ExpressionNary
 					int n = getNumOperands();
 					if( n < 1 )
 						throw new SimulatorException("Expression \"" + toString() + "\" has zero operands");
-					int[] exprs = new int[n];
+					long[] exprs = new long[n];
 					
 					//Collect operands pointers in an array
 					for (int i = 0; i < n; i++) 
@@ -421,7 +421,7 @@ public class ExpressionFunc extends ExpressionNary
 					int n = getNumOperands();
 					if( n < 1 )
 						throw new SimulatorException("Expression \"" + toString() + "\" has zero operands");
-					int[] exprs = new int[n];
+					long[] exprs = new long[n];
 					
 					//Collect operands pointers in an array
 					for (int i = 0; i < n; i++) 

@@ -87,7 +87,7 @@ public class PCTLLabel extends PCTLFormula
 	/**
 	 *	Convert and build simulator data structures
 	 */
-	public int toSimulator(SimulatorEngine sim ) throws SimulatorException
+	public long toSimulator(SimulatorEngine sim ) throws SimulatorException
 	{
 		LabelList ll;
 		Expression expr;

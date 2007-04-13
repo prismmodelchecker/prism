@@ -10,18 +10,18 @@ extern "C" {
 /*
  * Class:     odd_ODDUtils
  * Method:    ODD_SetCUDDManager
- * Signature: (I)V
+ * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_odd_ODDUtils_ODD_1SetCUDDManager
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     odd_ODDUtils
  * Method:    ODD_BuildODD
- * Signature: (III)I
+ * Signature: (JJI)J
  */
-JNIEXPORT jint JNICALL Java_odd_ODDUtils_ODD_1BuildODD
-  (JNIEnv *, jclass, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_odd_ODDUtils_ODD_1BuildODD
+  (JNIEnv *, jclass, jlong, jlong, jint);
 
 /*
  * Class:     odd_ODDUtils
@@ -34,34 +34,34 @@ JNIEXPORT jint JNICALL Java_odd_ODDUtils_ODD_1GetNumODDNodes
 /*
  * Class:     odd_ODDUtils
  * Method:    ODD_GetTOff
- * Signature: (I)J
+ * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_odd_ODDUtils_ODD_1GetTOff
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     odd_ODDUtils
  * Method:    ODD_GetEOff
- * Signature: (I)J
+ * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_odd_ODDUtils_ODD_1GetEOff
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     odd_ODDUtils
  * Method:    ODD_GetThen
- * Signature: (I)I
+ * Signature: (J)J
  */
-JNIEXPORT jint JNICALL Java_odd_ODDUtils_ODD_1GetThen
-  (JNIEnv *, jclass, jint);
+JNIEXPORT jlong JNICALL Java_odd_ODDUtils_ODD_1GetThen
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     odd_ODDUtils
  * Method:    ODD_GetElse
- * Signature: (I)I
+ * Signature: (J)J
  */
-JNIEXPORT jint JNICALL Java_odd_ODDUtils_ODD_1GetElse
-  (JNIEnv *, jclass, jint);
+JNIEXPORT jlong JNICALL Java_odd_ODDUtils_ODD_1GetElse
+  (JNIEnv *, jclass, jlong);
 
 #ifdef __cplusplus
 }

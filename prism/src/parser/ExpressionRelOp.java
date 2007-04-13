@@ -180,7 +180,7 @@ public class ExpressionRelOp extends ExpressionBinary
 	/**
 	 *	Convert and build simulator expression data structure
 	 */
-	public int toSimulator(SimulatorEngine sim) throws SimulatorException
+	public long toSimulator(SimulatorEngine sim) throws SimulatorException
 	{
 		int type1 = 0, type2 = 0;
 		try

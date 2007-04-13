@@ -32,37 +32,39 @@
 #include <dd.h>
 #include <odd.h>
 #include "PrismMTBDDGlob.h"
+#include "jnipointer.h"
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1NondetBoundedUntil
+JNIEXPORT jlong __pointer JNICALL Java_mtbdd_PrismMTBDD_PM_1NondetBoundedUntil
 (
 JNIEnv *env,
 jclass cls,
-jint t,			// trans matrix
-jint od,		// odd
-jint ndm,		// nondeterminism mask
-jint rv,		// row vars
+jlong __pointer t,	// trans matrix
+jlong __pointer od,	// odd
+jlong __pointer ndm,	// nondeterminism mask
+jlong __pointer rv,	// row vars
 jint num_rvars,
-jint cv,		// col vars
+jlong __pointer cv,	// col vars
 jint num_cvars,
-jint ndv,		// nondet vars
+jlong __pointer ndv,	// nondet vars
 jint num_ndvars,
-jint y,			// 'yes' states
-jint m,			// 'maybe' states
+jlong __pointer y,	// 'yes' states
+jlong __pointer m,	// 'maybe' states
 jint bound,		// time bound
 jboolean min		// min or max probabilities (true = min, false = max)
 )
 {
 	// cast function parameters
-	DdNode *trans = (DdNode *)t;		// trans matrix
-	ODDNode *odd = (ODDNode *)od;		// odd
-	DdNode *mask = (DdNode *)ndm;		// nondeterminism mask
-	DdNode **rvars = (DdNode **)rv;		// row vars
-	DdNode **cvars = (DdNode **)cv;		// col vars
-	DdNode **ndvars = (DdNode **)ndv;	// nondet vars
-	DdNode *yes = (DdNode *)y;		// 'yes' states
-	DdNode *maybe = (DdNode *)m;		// 'maybe' states
+	DdNode *trans = jlong_to_DdNode(t);		// trans matrix
+	ODDNode *odd = jlong_to_ODDNode(od);		// odd
+	DdNode *mask = jlong_to_DdNode(ndm);		// nondeterminism mask
+	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
+	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
+	DdNode **ndvars = jlong_to_DdNode_array(ndv);	// nondet vars
+	DdNode *yes = jlong_to_DdNode(y);		// 'yes' states
+	DdNode *maybe = jlong_to_DdNode(m);		// 'maybe' states
+
 	// mtbdds
 	DdNode *a, *sol, *tmp;
 	// timing stuff
@@ -146,7 +148,7 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	// free memory
 	Cudd_RecursiveDeref(ddman, a);
 	
-	return (int)sol;
+	return ptr_to_jlong(sol);
 }
 
 //------------------------------------------------------------------------------

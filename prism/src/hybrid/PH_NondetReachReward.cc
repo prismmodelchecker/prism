@@ -35,6 +35,7 @@
 #include "sparse.h"
 #include "hybrid.h"
 #include "PrismHybridGlob.h"
+#include "jnipointer.h"
 
 // local prototypes
 static void mult_rec(HDDNode *hdd, int level, int row_offset, int col_offset, int code);
@@ -52,37 +53,38 @@ static double *soln, *soln2, *soln3;
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_hybrid_PrismHybrid_PH_1NondetReachReward
+JNIEXPORT jlong __pointer JNICALL Java_hybrid_PrismHybrid_PH_1NondetReachReward
 (
 JNIEnv *env,
 jclass cls,
-jint t,			// trans matrix
-jint sr,		// state rewards
-jint trr,		// transition rewards
-jint od,		// odd
-jint rv,		// row vars
+jlong __pointer t,	// trans matrix
+jlong __pointer sr,	// state rewards
+jlong __pointer trr,	// transition rewards
+jlong __pointer od,	// odd
+jlong __pointer rv,	// row vars
 jint num_rvars,
-jint cv,		// col vars
+jlong __pointer cv,	// col vars
 jint num_cvars,
-jint ndv,		// nondet vars
+jlong __pointer ndv,	// nondet vars
 jint num_ndvars,
-jint g,			// 'goal' states
-jint in,		// 'inf' states
-jint m,		// 'maybe' states
-jboolean min	// min or max probabilities (true = min, false = max)
+jlong __pointer g,	// 'goal' states
+jlong __pointer in,	// 'inf' states
+jlong __pointer m,	// 'maybe' states
+jboolean min		// min or max probabilities (true = min, false = max)
 )
 {
 	// cast function parameters
-	DdNode *trans = (DdNode *)t;		// trans matrix
-	DdNode *state_rewards = (DdNode *)sr;	// state rewards
-	DdNode *trans_rewards = (DdNode *)trr;	// transition rewards
-	ODDNode *odd = (ODDNode *)od; 		// reachable states
-	DdNode **rvars = (DdNode **)rv; 	// row vars
-	DdNode **cvars = (DdNode **)cv; 	// col vars
-	DdNode **ndvars = (DdNode **)ndv;	// nondet vars
-	DdNode *goal = (DdNode *)g;	// 'goal' states
-	DdNode *inf = (DdNode *)in; 	// 'inf' states
-	DdNode *maybe = (DdNode *)m; 	// 'inf' states
+	DdNode *trans = jlong_to_DdNode(t);		// trans matrix
+	DdNode *state_rewards = jlong_to_DdNode(sr);	// state rewards
+	DdNode *trans_rewards = jlong_to_DdNode(trr);	// transition rewards
+	ODDNode *odd = jlong_to_ODDNode(od); 		// reachable states
+	DdNode **rvars = jlong_to_DdNode_array(rv); 	// row vars
+	DdNode **cvars = jlong_to_DdNode_array(cv); 	// col vars
+	DdNode **ndvars = jlong_to_DdNode_array(ndv);	// nondet vars
+	DdNode *goal = jlong_to_DdNode(g);		// 'goal' states
+	DdNode *inf = jlong_to_DdNode(in); 		// 'inf' states
+	DdNode *maybe = jlong_to_DdNode(m); 		// 'maybe' states
+
 	// mtbdds
 	DdNode *reach, *a;
 	// model stats
@@ -329,12 +331,12 @@ jboolean min	// min or max probabilities (true = min, false = max)
 	// if the iterative method didn't terminate, this is an error
 	if (!done) { delete soln; PH_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); return 0; }
 	
-	return (int)soln;
+	return ptr_to_jlong(soln);
 }
 
 //------------------------------------------------------------------------------
 
-void mult_rec(HDDNode *hdd, int level, int row_offset, int col_offset, int code)
+static void mult_rec(HDDNode *hdd, int level, int row_offset, int col_offset, int code)
 {
 	HDDNode *e, *t;
 	
@@ -344,11 +346,11 @@ void mult_rec(HDDNode *hdd, int level, int row_offset, int col_offset, int code)
 	}
 	// or if we've reached a submatrix
 	// (check for non-null ptr but, equivalently, we could just check if level==l_sm)
-	else if (hdd->sm) {
+	else if (hdd->sm.ptr) {
 		if (!compact_sm) {
-			mult_rm((RMSparseMatrix *)hdd->sm, row_offset, col_offset, code);
+			mult_rm((RMSparseMatrix *)hdd->sm.ptr, row_offset, col_offset, code);
 		} else {
-			mult_cmsr((CMSRSparseMatrix *)hdd->sm, row_offset, col_offset, code);
+			mult_cmsr((CMSRSparseMatrix *)hdd->sm.ptr, row_offset, col_offset, code);
 		}
 		return;
 	}
@@ -371,18 +373,18 @@ void mult_rec(HDDNode *hdd, int level, int row_offset, int col_offset, int code)
 	e = hdd->type.kids.e;
 	if (e != zero) {
 		mult_rec(e->type.kids.e, level+1, row_offset, col_offset, code);
-		mult_rec(e->type.kids.t, level+1, row_offset, col_offset+e->off, code);
+		mult_rec(e->type.kids.t, level+1, row_offset, col_offset+e->off.val, code);
 	}
 	t = hdd->type.kids.t;
 	if (t != zero) {
-		mult_rec(t->type.kids.e, level+1, row_offset+hdd->off, col_offset, code);
-		mult_rec(t->type.kids.t, level+1, row_offset+hdd->off, col_offset+t->off, code);
+		mult_rec(t->type.kids.e, level+1, row_offset+hdd->off.val, col_offset, code);
+		mult_rec(t->type.kids.t, level+1, row_offset+hdd->off.val, col_offset+t->off.val, code);
 	}
 }
 
 //-----------------------------------------------------------------------------------
 
-void mult_rm(RMSparseMatrix *rmsm, int row_offset, int col_offset, int code)
+static void mult_rm(RMSparseMatrix *rmsm, int row_offset, int col_offset, int code)
 {
 	int i2, j2, l2, h2, r;
 	int sm_n = rmsm->n;
@@ -420,7 +422,7 @@ void mult_rm(RMSparseMatrix *rmsm, int row_offset, int col_offset, int code)
 
 //-----------------------------------------------------------------------------------
 
-void mult_cmsr(CMSRSparseMatrix *cmsrsm, int row_offset, int col_offset, int code)
+static void mult_cmsr(CMSRSparseMatrix *cmsrsm, int row_offset, int col_offset, int code)
 {
 	int i2, j2, l2, h2, r;
 	int sm_n = cmsrsm->n;

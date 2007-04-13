@@ -110,7 +110,7 @@ public class ExpressionDivide extends ExpressionBinary
 	/**
 	 *	Convert and build simulator expression data structure
 	 */
-	public int toSimulator(SimulatorEngine sim) throws SimulatorException
+	public long toSimulator(SimulatorEngine sim) throws SimulatorException
 	{
 		return SimulatorEngine.createDivide(operand1.toSimulator(sim), operand2.toSimulator(sim));		
 	}

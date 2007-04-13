@@ -48,7 +48,7 @@ public interface PrismLog
 	void println(long l);
 	void println(Object obj);
 	void println(String s);
-	int getFilePointer();
+	long getFilePointer();
 	void flush();
 	void close();
 }

@@ -27,6 +27,8 @@
 
 #include "dv.h"
 #include "DoubleVector.h"
+#include "jnipointer.h"
+
 #include <math.h>
 
 //------------------------------------------------------------------------------
@@ -38,16 +40,21 @@ DdManager *ddman;
 // cudd manager
 //------------------------------------------------------------------------------
 
-JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1SetCUDDManager(JNIEnv *env, jclass cls, jint ddm)
+JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1SetCUDDManager
+(
+JNIEnv *env,
+jclass cls,
+jlong __pointer ddm
+)
 {
-	ddman = (DdManager *)ddm;
+	ddman = jlong_to_DdManager(ddm);
 }
 
 //------------------------------------------------------------------------------
 // DoubleVector methods
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_dv_DoubleVector_DV_1CreateZeroVector
+JNIEXPORT jlong __pointer JNICALL Java_dv_DoubleVector_DV_1CreateZeroVector
 (
 JNIEnv *env,
 jobject obj,
@@ -61,24 +68,29 @@ jint n
 		vector[i] = 0;
 	}
 	
-	return (int)vector;
+	return ptr_to_jlong(vector);
 }
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_dv_DoubleVector_DV_1ConvertMTBDD
+JNIEXPORT jlong __pointer JNICALL Java_dv_DoubleVector_DV_1ConvertMTBDD
 (
 JNIEnv *env,
 jobject obj,
-jint dd,
-jint vars,
+jlong __pointer dd,
+jlong __pointer vars,
 jint num_vars,
-jint odd
+jlong __pointer odd
 )
 {
-	double *vector = mtbdd_to_double_vector(ddman, (DdNode *)dd, (DdNode **)vars, num_vars, (ODDNode *)odd);
-	
-	return (int)vector;
+	return ptr_to_jlong(
+		mtbdd_to_double_vector(
+			ddman,
+			jlong_to_DdNode(dd),
+			jlong_to_DdNode_array(vars), num_vars,
+			jlong_to_ODDNode(odd)
+		)
+	);
 }
 
 //------------------------------------------------------------------------------
@@ -87,13 +99,12 @@ JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1GetElement
 (
 JNIEnv *env,
 jobject obj,
-jint v,
+jlong __pointer v,
 jint n,
 jint i
 )
 {
-	double *vector = (double *)v;
-	
+	double *vector = jlong_to_double(v);
 	return (jdouble)vector[i];
 }
 
@@ -103,12 +114,12 @@ JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1RoundOff
 (
 JNIEnv *env,
 jobject obj,
-jint v,
+jlong __pointer v,
 jint n,
 jint places
 )
 {
-	double *vector = (double *)v;
+	double *vector = jlong_to_double(v);
 	double trunc, d;
 	int i, j;
 
@@ -127,11 +138,11 @@ JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1SubtractFromOne
 (
 JNIEnv *env,
 jobject obj,
-jint v,
+jlong __pointer v,
 jint n
 )
 {
-	double *vector = (double *)v;
+	double *vector = jlong_to_double(v);
 	int i;
 
 	for (i = 0; i < n; i++) {
@@ -145,13 +156,13 @@ JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1Add
 (
 JNIEnv *env,
 jobject obj,
-jint v,
+jlong __pointer v,
 jint n,
-jint v2
+jlong __pointer v2
 )
 {
-	double *vector = (double *)v;
-	double *vector2 = (double *)v2;
+	double *vector = jlong_to_double(v);
+	double *vector2 = jlong_to_double(v2);
 	int i;
 
 	for (i = 0; i < n; i++) {
@@ -165,12 +176,12 @@ JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1TimesConstant
 (
 JNIEnv *env,
 jobject obj,
-jint v,
+jlong __pointer v,
 jint n,
 jdouble d
 )
 {
-	double *vector = (double *)v;
+	double *vector = jlong_to_double(v);
 	int i;
 
 	for (i = 0; i < n; i++) {
@@ -184,14 +195,20 @@ JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1Filter
 (
 JNIEnv *env,
 jobject obj,
-jint vector,
-jint filter,
-jint vars,
+jlong __pointer vector,
+jlong __pointer filter,
+jlong __pointer vars,
 jint num_vars,
-jint odd
+jlong __pointer odd
 )
 {
-	filter_double_vector(ddman, (double *)vector, (DdNode *)filter, (DdNode **)vars, num_vars, (ODDNode *)odd);
+	filter_double_vector(
+		ddman,
+		jlong_to_double(vector),
+		jlong_to_DdNode(filter),
+		jlong_to_DdNode_array(vars), num_vars,
+		jlong_to_ODDNode(odd)
+	);
 }
 
 //------------------------------------------------------------------------------
@@ -200,11 +217,11 @@ JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1Clear
 (
 JNIEnv *env,
 jobject obj,
-jint vector
+jlong __pointer vector
 )
 {
 	// note we assume that this memory was created with new
-	delete (double *)vector;
+	delete jlong_to_double(vector);
 }
 
 //------------------------------------------------------------------------------
@@ -213,11 +230,11 @@ JNIEXPORT jint JNICALL Java_dv_DoubleVector_DV_1GetNNZ
 (
 JNIEnv *env,
 jobject obj,
-jint v,
+jlong __pointer v,
 jint n
 )
 {
-	double *vector = (double *)v;
+	double *vector = jlong_to_double(v);
 	int i, count;
 	
 	count = 0;
@@ -234,14 +251,20 @@ JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1FirstFromBDD
 (
 JNIEnv *env,
 jobject obj,
-jint vector,
-jint filter,
-jint vars,
+jlong __pointer vector,
+jlong __pointer filter,
+jlong __pointer vars,
 jint num_vars,
-jint odd
+jlong __pointer odd
 )
 {
-	return (jdouble)get_first_from_bdd(ddman, (double *)vector, (DdNode *)filter, (DdNode **)vars, num_vars, (ODDNode *)odd);
+	return (jdouble)get_first_from_bdd(
+		ddman,
+		jlong_to_double(vector),
+		jlong_to_DdNode(filter),
+		jlong_to_DdNode_array(vars), num_vars,
+		jlong_to_ODDNode(odd)
+	);
 }
 
 //------------------------------------------------------------------------------
@@ -250,14 +273,20 @@ JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1MinOverBDD
 (
 JNIEnv *env,
 jobject obj,
-jint vector,
-jint filter,
-jint vars,
+jlong __pointer vector,
+jlong __pointer filter,
+jlong __pointer vars,
 jint num_vars,
-jint odd
+jlong __pointer odd
 )
 {
-	return (jdouble)min_double_vector_over_bdd(ddman, (double *)vector, (DdNode *)filter, (DdNode **)vars, num_vars, (ODDNode *)odd);
+	return (jdouble)min_double_vector_over_bdd(
+		ddman,
+		jlong_to_double(vector),
+		jlong_to_DdNode(filter),
+		jlong_to_DdNode_array(vars), num_vars,
+		jlong_to_ODDNode(odd)
+	);
 }
 
 //------------------------------------------------------------------------------
@@ -266,14 +295,20 @@ JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1MaxOverBDD
 (
 JNIEnv *env,
 jobject obj,
-jint vector,
-jint filter,
-jint vars,
+jlong __pointer vector,
+jlong __pointer filter,
+jlong __pointer vars,
 jint num_vars,
-jint odd
+jlong __pointer odd
 )
 {
-	return (jdouble)max_double_vector_over_bdd(ddman, (double *)vector, (DdNode *)filter, (DdNode **)vars, num_vars, (ODDNode *)odd);
+	return (jdouble)max_double_vector_over_bdd(
+		ddman,
+		jlong_to_double(vector),
+		jlong_to_DdNode(filter),
+		jlong_to_DdNode_array(vars), num_vars,
+		jlong_to_ODDNode(odd)
+	);
 }
 
 //------------------------------------------------------------------------------
@@ -282,14 +317,20 @@ JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1SumOverBDD
 (
 JNIEnv *env,
 jobject obj,
-jint vector,
-jint filter,
-jint vars,
+jlong __pointer vector,
+jlong __pointer filter,
+jlong __pointer vars,
 jint num_vars,
-jint odd
+jlong __pointer odd
 )
 {
-	return (jdouble)sum_double_vector_over_bdd(ddman, (double *)vector, (DdNode *)filter, (DdNode **)vars, num_vars, (ODDNode *)odd);
+	return (jdouble)sum_double_vector_over_bdd(
+		ddman,
+		jlong_to_double(vector),
+		jlong_to_DdNode(filter),
+		jlong_to_DdNode_array(vars), num_vars,
+		jlong_to_ODDNode(odd)
+	);
 }
 
 //------------------------------------------------------------------------------
@@ -298,95 +339,146 @@ JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1SumOverMTBDD
 (
 JNIEnv *env,
 jobject obj,
-jint vector,
-jint mult,
-jint vars,
+jlong __pointer vector,
+jlong __pointer mult,
+jlong __pointer vars,
 jint num_vars,
-jint odd
+jlong __pointer odd
 )
 {
-	return (jdouble)sum_double_vector_over_mtbdd(ddman, (double *)vector, (DdNode *)mult, (DdNode **)vars, num_vars, (ODDNode *)odd);
+	return (jdouble)sum_double_vector_over_mtbdd(
+		ddman,
+		jlong_to_double(vector),
+		jlong_to_DdNode(mult),
+		jlong_to_DdNode_array(vars), num_vars,
+		jlong_to_ODDNode(odd)
+	);
 }
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_dv_DoubleVector_DV_1BDDGreaterThanEquals
+JNIEXPORT jlong __pointer JNICALL Java_dv_DoubleVector_DV_1BDDGreaterThanEquals
 (
 JNIEnv *env,
 jobject obj,
-jint vector,
+jlong __pointer vector,
 jdouble bound,
-jint vars,
+jlong __pointer vars,
 jint num_vars,
-jint odd
+jlong __pointer odd
 )
 {
-	return (int)double_vector_to_bdd(ddman, (double *)vector, DV_GREATER_THAN_EQUALS, bound, (DdNode **)vars, num_vars, (ODDNode *)odd);
+	return ptr_to_jlong(
+		double_vector_to_bdd(
+			ddman,
+			jlong_to_double(vector),
+			DV_GREATER_THAN_EQUALS,
+			bound,
+			jlong_to_DdNode_array(vars), num_vars,
+			jlong_to_ODDNode(odd)
+		)
+	);
 }
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_dv_DoubleVector_DV_1BDDGreaterThan
+JNIEXPORT jlong JNICALL Java_dv_DoubleVector_DV_1BDDGreaterThan
 (
 JNIEnv *env,
 jobject obj,
-jint vector,
+jlong __pointer vector,
 jdouble bound,
-jint vars,
+jlong __pointer vars,
 jint num_vars,
-jint odd
+jlong __pointer odd
 )
 {
-	return (int)double_vector_to_bdd(ddman, (double *)vector, DV_GREATER_THAN, bound, (DdNode **)vars, num_vars, (ODDNode *)odd);
+	return ptr_to_jlong(
+		double_vector_to_bdd(
+			ddman,
+			jlong_to_double(vector),
+			DV_GREATER_THAN,
+			bound,
+			jlong_to_DdNode_array(vars), num_vars,
+			jlong_to_ODDNode(odd)
+		)
+	);
 }
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_dv_DoubleVector_DV_1BDDLessThanEquals
+JNIEXPORT jlong __pointer JNICALL Java_dv_DoubleVector_DV_1BDDLessThanEquals
 (
 JNIEnv *env,
 jobject obj,
-jint vector,
+jlong __pointer vector,
 jdouble bound,
-jint vars,
+jlong __pointer vars,
 jint num_vars,
-jint odd
+jlong __pointer odd
 )
 {
-	return (int)double_vector_to_bdd(ddman, (double *)vector, DV_LESS_THAN_EQUALS, bound, (DdNode **)vars, num_vars, (ODDNode *)odd);
+	return ptr_to_jlong(
+		double_vector_to_bdd(
+			ddman,
+			jlong_to_double(vector),
+			DV_LESS_THAN_EQUALS,
+			bound,
+			jlong_to_DdNode_array(vars), num_vars,
+			jlong_to_ODDNode(odd)
+		)
+	);
 }
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_dv_DoubleVector_DV_1BDDLessThan
+JNIEXPORT jlong __pointer JNICALL Java_dv_DoubleVector_DV_1BDDLessThan
 (
 JNIEnv *env,
 jobject obj,
-jint vector,
+jlong __pointer vector,
 jdouble bound,
-jint vars,
+jlong __pointer vars,
 jint num_vars,
-jint odd
+jlong __pointer odd
 )
 {
-	return (int)double_vector_to_bdd(ddman, (double *)vector, DV_LESS_THAN, bound, (DdNode **)vars, num_vars, (ODDNode *)odd);
+	return ptr_to_jlong(
+		double_vector_to_bdd(
+			ddman,
+			jlong_to_double(vector),
+			DV_LESS_THAN,
+			bound,
+			jlong_to_DdNode_array(vars), num_vars,
+			jlong_to_ODDNode(odd)
+		)
+	);
 }
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_dv_DoubleVector_DV_1BDDInterval
+JNIEXPORT jlong __pointer JNICALL Java_dv_DoubleVector_DV_1BDDInterval
 (
 JNIEnv *env,
 jobject obj,
-jint vector,
+jlong __pointer vector,
 jdouble lo,
 jdouble hi,
-jint vars,
+jlong __pointer vars,
 jint num_vars,
-jint odd
+jlong __pointer odd
 )
 {
-	return (int)double_vector_to_bdd(ddman, (double *)vector, DV_INTERVAL, lo, hi, (DdNode **)vars, num_vars, (ODDNode *)odd);
+	return ptr_to_jlong(
+		double_vector_to_bdd(
+			ddman,
+			jlong_to_double(vector),
+			DV_INTERVAL,
+			lo, hi,
+			jlong_to_DdNode_array(vars), num_vars,
+			jlong_to_ODDNode(odd)
+		)
+	);
 }
 
 //------------------------------------------------------------------------------

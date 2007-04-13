@@ -34,14 +34,14 @@ public class PCTLAnd extends PCTLFormulaNary
 	/**
 	 *	Convert and build simulator data structures
 	 */
-	public int toSimulator(SimulatorEngine sim ) throws SimulatorException
+	public long toSimulator(SimulatorEngine sim ) throws SimulatorException
 	{
 		int n = getNumOperands();
 		
 		if( n < 1 )
 			throw new SimulatorException("Expression \"" + toString() + "\" has zero operands");
 		
-		int[] exprPointers = new int[n];
+		long[] exprPointers = new long[n];
 		for(int i = 0; i < n; i++)
 			exprPointers[i] = getOperand(i).toSimulator(sim);
 		

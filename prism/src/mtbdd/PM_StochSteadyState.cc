@@ -32,28 +32,29 @@
 #include <dd.h>
 #include <odd.h>
 #include "PrismMTBDDGlob.h"
+#include "jnipointer.h"
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1StochSteadyState
+JNIEXPORT jlong __pointer JNICALL Java_mtbdd_PrismMTBDD_PM_1StochSteadyState
 (
 JNIEnv *env,
 jclass cls,
-jint tr,		// trans matrix
-jint od,		// odd
-jint in,		// init soln
-jint rv,		// row vars
+jlong __pointer tr,	// trans matrix
+jlong __pointer od,	// odd
+jlong __pointer in,	// init soln
+jlong __pointer rv,	// row vars
 jint num_rvars,
-jint cv,		// col vars
+jlong __pointer cv,	// col vars
 jint num_cvars
 )
 {
 	// cast function parameters
-	DdNode *trans = (DdNode *)tr;	// trans matrix
-	ODDNode *odd = (ODDNode *)od;	// odd
-	DdNode *init = (DdNode *)in;	// init soln
-	DdNode **rvars = (DdNode **)rv; // row vars
-	DdNode **cvars = (DdNode **)cv; // col vars
+	DdNode *trans = jlong_to_DdNode(tr);		// trans matrix
+	ODDNode *odd = jlong_to_ODDNode(od);		// odd
+	DdNode *init = jlong_to_DdNode(in);		// init soln
+	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
+	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
 	// mtbdds
 	DdNode *diags, *q, *a, *b, *soln, *tmp;
 	// misc
@@ -97,11 +98,11 @@ jint num_cvars
 	soln = NULL;
 	switch (lin_eq_method) {
 		case LIN_EQ_METHOD_POWER:
-			soln = (DdNode *)Java_mtbdd_PrismMTBDD_PM_1Power(env, cls, (jint)odd, (jint)rvars, num_rvars, (jint)cvars, num_cvars, (jint)a, (jint)b, (jint)init, true); break;
+			soln = jlong_to_DdNode(Java_mtbdd_PrismMTBDD_PM_1Power(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(b), ptr_to_jlong(init), true)); break;
 		case LIN_EQ_METHOD_JACOBI:
-			soln = (DdNode *)Java_mtbdd_PrismMTBDD_PM_1JOR(env, cls, (jint)odd, (jint)rvars, num_rvars, (jint)cvars, num_cvars, (jint)a, (jint)b, (jint)init, true, 1.0); break;
+			soln = jlong_to_DdNode(Java_mtbdd_PrismMTBDD_PM_1JOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(b), ptr_to_jlong(init), true, 1.0)); break;
 		case LIN_EQ_METHOD_JOR:
-			soln = (DdNode *)Java_mtbdd_PrismMTBDD_PM_1JOR(env, cls, (jint)odd, (jint)rvars, num_rvars, (jint)cvars, num_cvars, (jint)a, (jint)b, (jint)init, true, lin_eq_method_param); break;
+			soln = jlong_to_DdNode(Java_mtbdd_PrismMTBDD_PM_1JOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(b), ptr_to_jlong(init), true, lin_eq_method_param)); break;
 	}
 	
 	// normalise
@@ -116,7 +117,7 @@ jint num_cvars
 	Cudd_RecursiveDeref(ddman, a);
 	Cudd_RecursiveDeref(ddman, b);
 	
-	return (int)soln;
+	return ptr_to_jlong(soln);
 }
 
 //------------------------------------------------------------------------------

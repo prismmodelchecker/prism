@@ -47,7 +47,7 @@ public class PCTLProbFuture extends PCTLFormulaUnary
 	 *	handled by a toSimulator method.  Therefore, this method will only be called 
 	 *	in error and hence throws an exception.
 	 */
-	public int toSimulator(SimulatorEngine sim ) throws SimulatorException
+	public long toSimulator(SimulatorEngine sim ) throws SimulatorException
 	{
 		throw new SimulatorException("Unexpected error when loading PCTL formula into simulator - Future toSimulator should never be called");
 	}

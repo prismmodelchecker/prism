@@ -32,89 +32,89 @@ import java.util.Vector;
 public class JDD
 {
 	// dd library functions
-	public static native int GetCUDDManager();
+	public static native long GetCUDDManager();
 	// dd
-	private static native void DD_SetOutputStream(int fp);
-	private static native int DD_GetOutputStream();
+	private static native void DD_SetOutputStream(long fp);
+	private static native long DD_GetOutputStream();
 	// dd_cudd
 	private static native void DD_InitialiseCUDD();
 	private static native void DD_InitialiseCUDD(long max_mem, double epsilon);
 	private static native void DD_SetCUDDMaxMem(long max_mem);
 	private static native void DD_SetCUDDEpsilon(double epsilon);
 	private static native void DD_CloseDownCUDD(boolean check);
-	private static native void DD_Ref(int dd);
-	private static native void DD_Deref(int dd);
+	private static native void DD_Ref(long dd);
+	private static native void DD_Deref(long dd);
 	private static native void DD_PrintCacheInfo();
 	// dd_basics
-	private static native int DD_Create();
-	private static native int DD_Constant(double value);
-	private static native int DD_PlusInfinity();
-	private static native int DD_MinusInfinity();
-	private static native int DD_Var(int i);
-	private static native int DD_Not(int dd);
-	private static native int DD_Or(int dd1, int dd2);
-	private static native int DD_And(int dd1, int dd2);
-	private static native int DD_Xor(int dd1, int dd2);
-	private static native int DD_Implies(int dd1, int dd2);
-	private static native int DD_Apply(int op, int dd1, int dd2);
-	private static native int DD_MonadicApply(int op, int dd);
-	private static native int DD_Restrict(int dd, int cube);
-	private static native int DD_ITE(int dd1, int dd2, int dd3);
+	private static native long DD_Create();
+	private static native long DD_Constant(double value);
+	private static native long DD_PlusInfinity();
+	private static native long DD_MinusInfinity();
+	private static native long DD_Var(int i);
+	private static native long DD_Not(long dd);
+	private static native long DD_Or(long dd1, long dd2);
+	private static native long DD_And(long dd1, long dd2);
+	private static native long DD_Xor(long dd1, long dd2);
+	private static native long DD_Implies(long dd1, long dd2);
+	private static native long DD_Apply(int op, long dd1, long dd2);
+	private static native long DD_MonadicApply(int op, long dd);
+	private static native long DD_Restrict(long dd, long cube);
+	private static native long DD_ITE(long dd1, long dd2, long dd3);
 	// dd_vars
-	private static native int DD_PermuteVariables(int dd, int old_vars, int new_vars, int num_vars);
-	private static native int DD_SwapVariables(int dd, int old_vars, int new_vars, int num_vars);
-	private static native int DD_VariablesGreaterThan(int x_vars, int y_vars, int num_vars);
-	private static native int DD_VariablesGreaterThanEquals(int x_vars, int y_vars, int num_vars);
-	private static native int DD_VariablesLessThan(int x_vars, int y_vars, int num_vars);
-	private static native int DD_VariablesLessThanEquals(int x_vars, int y_vars, int num_vars);
-	private static native int DD_VariablesEquals(int x_vars, int y_vars, int num_vars);
+	private static native long DD_PermuteVariables(long dd, long old_vars, long new_vars, int num_vars);
+	private static native long DD_SwapVariables(long dd, long old_vars, long new_vars, int num_vars);
+	private static native long DD_VariablesGreaterThan(long x_vars, long y_vars, int num_vars);
+	private static native long DD_VariablesGreaterThanEquals(long x_vars, long y_vars, int num_vars);
+	private static native long DD_VariablesLessThan(long x_vars, long y_vars, int num_vars);
+	private static native long DD_VariablesLessThanEquals(long x_vars, long y_vars, int num_vars);
+	private static native long DD_VariablesEquals(long x_vars, long y_vars, int num_vars);
 	// dd_abstr
-	private static native int DD_ThereExists(int dd, int vars, int num_vars);
-	private static native int DD_ForAll(int dd, int vars, int num_vars);
-	private static native int DD_SumAbstract(int dd, int vars, int num_vars);
-	private static native int DD_ProductAbstract(int dd, int vars, int num_vars);
-	private static native int DD_MinAbstract(int dd, int vars, int num_vars);
-	private static native int DD_MaxAbstract(int dd, int vars, int num_vars);
+	private static native long DD_ThereExists(long dd, long vars, int num_vars);
+	private static native long DD_ForAll(long dd, long vars, int num_vars);
+	private static native long DD_SumAbstract(long dd, long vars, int num_vars);
+	private static native long DD_ProductAbstract(long dd, long vars, int num_vars);
+	private static native long DD_MinAbstract(long dd, long vars, int num_vars);
+	private static native long DD_MaxAbstract(long dd, long vars, int num_vars);
 	// dd_term
-	private static native int DD_GreaterThan(int dd, double threshold);
-	private static native int DD_GreaterThanEquals(int dd, double threshold);
-	private static native int DD_LessThan(int dd, double threshold);
-	private static native int DD_LessThanEquals(int dd, double threshold);
-	private static native int DD_Equals(int dd, double value);
-	private static native int DD_Interval(int dd, double lower, double upper);
-	private static native int DD_RoundOff(int dd, int places);
-	private static native boolean DD_EqualSupNorm(int dd1, int dd2, double epsilon);
-	private static native double DD_FindMin(int dd);
-	private static native double DD_FindMax(int dd);
-	private static native int DD_RestrictToFirst(int dd, int vars, int num_vars);
+	private static native long DD_GreaterThan(long dd, double threshold);
+	private static native long DD_GreaterThanEquals(long dd, double threshold);
+	private static native long DD_LessThan(long dd, double threshold);
+	private static native long DD_LessThanEquals(long dd, double threshold);
+	private static native long DD_Equals(long dd, double value);
+	private static native long DD_Interval(long dd, double lower, double upper);
+	private static native long DD_RoundOff(long dd, int places);
+	private static native boolean DD_EqualSupNorm(long dd1, long dd2, double epsilon);
+	private static native double DD_FindMin(long dd);
+	private static native double DD_FindMax(long dd);
+	private static native long DD_RestrictToFirst(long dd, long vars, int num_vars);
 	// dd_info
-	private static native int DD_GetNumNodes(int dd);
-	private static native int DD_GetNumTerminals(int dd);
-	private static native double DD_GetNumMinterms(int dd, int num_vars);
-	private static native double DD_GetNumPaths(int dd);
-	private static native void DD_PrintInfo(int dd, int num_vars);
-	private static native void DD_PrintInfoBrief(int dd, int num_vars);
-	private static native void DD_PrintSupport(int dd);
-	private static native int DD_GetSupport(int dd);
-	private static native void DD_PrintTerminals(int dd);
-	private static native void DD_PrintTerminalsAndNumbers(int dd, int num_vars);
+	private static native int DD_GetNumNodes(long dd);
+	private static native int DD_GetNumTerminals(long dd);
+	private static native double DD_GetNumMinterms(long dd, int num_vars);
+	private static native double DD_GetNumPaths(long dd);
+	private static native void DD_PrintInfo(long dd, int num_vars);
+	private static native void DD_PrintInfoBrief(long dd, int num_vars);
+	private static native void DD_PrintSupport(long dd);
+	private static native long DD_GetSupport(long dd);
+	private static native void DD_PrintTerminals(long dd);
+	private static native void DD_PrintTerminalsAndNumbers(long dd, int num_vars);
 	// dd_matrix
-	private static native int DD_SetVectorElement(int dd, int vars, int num_vars, long index, double value);
-	private static native int DD_SetMatrixElement(int dd, int rvars, int num_rvars, int cvars, int num_cvars, long rindex, long cindex, double value);
-	private static native int DD_Set3DMatrixElement(int dd, int rvars, int num_rvars, int cvars, int num_cvars, int lvars, int num_lvars, long rindex, long cindex, long lindex, double value);
-	private static native double DD_GetVectorElement(int dd, int vars, int num_vars, long index);
-	private static native int DD_Identity(int rvars, int cvars, int num_vars);
-	private static native int DD_Transpose(int dd, int rvars, int cvars, int num_vars);
-	private static native int DD_MatrixMultiply(int dd1, int dd2, int vars, int num_vars, int method);
-	private static native void DD_PrintVector(int dd, int vars, int num_vars, int accuracy);
-	private static native void DD_PrintMatrix(int dd, int rvars, int num_rvars, int cvars, int num_cvars, int accuracy);
-	private static native void DD_PrintVectorFiltered(int dd, int filter, int vars, int num_vars, int accuracy);
+	private static native long DD_SetVectorElement(long dd, long vars, int num_vars, long index, double value);
+	private static native long DD_SetMatrixElement(long dd, long rvars, int num_rvars, long cvars, int num_cvars, long rindex, long cindex, double value);
+	private static native long DD_Set3DMatrixElement(long dd, long rvars, int num_rvars, long cvars, int num_cvars, long lvars, int num_lvars, long rindex, long cindex, long lindex, double value);
+	private static native double DD_GetVectorElement(long dd, long vars, int num_vars, long index);
+	private static native long DD_Identity(long rvars, long cvars, int num_vars);
+	private static native long DD_Transpose(long dd, long rvars, long cvars, int num_vars);
+	private static native long DD_MatrixMultiply(long dd1, long dd2, long vars, int num_vars, int method);
+	private static native void DD_PrintVector(long dd, long vars, int num_vars, int accuracy);
+	private static native void DD_PrintMatrix(long dd, long rvars, int num_rvars, long cvars, int num_cvars, int accuracy);
+	private static native void DD_PrintVectorFiltered(long dd, long filter, long vars, int num_vars, int accuracy);
 	// dd_export
-	private static native void DD_ExportDDToDotFile(int dd, String filename);
-	private static native void DD_ExportDDToDotFileLabelled(int dd, String filename, Vector var_names);
-	private static native void DD_ExportMatrixToPPFile(int dd, int rvars, int num_rvars, int cvars, int num_cvars, String filename);
-	private static native void DD_ExportMatrixToMatlabFile(int dd, int rvars, int num_rvars, int cvars, int num_cvars, String name, String filename);
-	private static native void DD_ExportMatrixToSpyFile(int dd, int rvars, int num_rvars, int cvars, int num_cvars, int depth, String filename);
+	private static native void DD_ExportDDToDotFile(long dd, String filename);
+	private static native void DD_ExportDDToDotFileLabelled(long dd, String filename, Vector var_names);
+	private static native void DD_ExportMatrixToPPFile(long dd, long rvars, int num_rvars, long cvars, int num_cvars, String filename);
+	private static native void DD_ExportMatrixToMatlabFile(long dd, long rvars, int num_rvars, long cvars, int num_cvars, String name, String filename);
+	private static native void DD_ExportMatrixToSpyFile(long dd, long rvars, int num_rvars, long cvars, int num_cvars, int depth, String filename);
 	// misc
 	private static native void DD_Printf(String text);
 
@@ -164,12 +164,12 @@ public class JDD
 		
 	// wrapper methods for dd
 	
-	public static void SetOutputStream(int fp)
+	public static void SetOutputStream(long fp)
 	{
 		DD_SetOutputStream(fp);
 	}
 	
-	public static int GetOutputStream()
+	public static long GetOutputStream()
 	{
 		return DD_GetOutputStream();
 	}

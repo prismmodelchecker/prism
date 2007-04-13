@@ -28,54 +28,22 @@
 #include "SimulatorEngine.h"
 #include "simmodel.h"
 #include "simexpression.h"
+#include "jnipointer.h"
 
-
-//Helper functions
-
-inline CExpression * To_Expr(jint pointer)
+JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createStateReward
+  (JNIEnv *env, jclass cls, jlong __pointer guardPointer, jlong __pointer rewardPointer)
 {
-	return (CExpression*)(pointer);
-}
-
-inline jint To_JInt(CStateReward * sr)
-{
-	return (jint)(sr);
-}
-
-inline jint To_JInt(CTransitionReward * tr)
-{
-	return (jint)(tr);
-}
-
-
-/*
- * Class:     simulator_SimulatorEngine
- * Method:    createStateReward
- * Signature: (JJ)J
- */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createStateReward
-  (JNIEnv *env, jclass cls, jint guardPointer, jint rewardPointer)
-{
-	CExpression* guard = To_Expr(guardPointer);
-	CExpression* reward = To_Expr(rewardPointer);
-
+	CExpression* guard = jlong_to_CExpression(guardPointer);
+	CExpression* reward = jlong_to_CExpression(rewardPointer);
 	CStateReward* state_reward = new CStateReward(guard, reward);
-
-	return To_JInt(state_reward);
+	return ptr_to_jlong(state_reward);
 }
 
-/*
- * Class:     simulator_SimulatorEngine
- * Method:    createTransitionReward
- * Signature: (IJJ)J
- */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_createTransitionReward
-  (JNIEnv *env, jclass cls, jint actionIndex, jint guardPointer, jint rewardPointer)
+JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createTransitionReward
+  (JNIEnv *env, jclass cls, jint actionIndex, jlong __pointer guardPointer, jlong __pointer rewardPointer)
 {
-	CExpression* guard = To_Expr(guardPointer);
-	CExpression* reward = To_Expr(rewardPointer);
-
+	CExpression* guard = jlong_to_CExpression(guardPointer);
+	CExpression* reward = jlong_to_CExpression(rewardPointer);
 	CTransitionReward* trans_reward = new CTransitionReward((int)actionIndex, guard, reward);
-
-	return To_JInt(trans_reward);
+	return ptr_to_jlong(trans_reward);
 }

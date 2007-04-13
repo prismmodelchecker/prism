@@ -142,7 +142,7 @@ public class PCTLProbBoundedUntil extends PCTLFormulaBinary
 	 *	handled by a toSimulator method.  Therefore, this method will only be called 
 	 *	in error and hence throws an exception.
 	 */
-	public int toSimulator(SimulatorEngine sim ) throws SimulatorException
+	public long toSimulator(SimulatorEngine sim ) throws SimulatorException
 	{
 		throw new SimulatorException("Unexpected Error when loading PCTL Formula into Simulator - BoundedUntil toSimulator should never be called");
 	}

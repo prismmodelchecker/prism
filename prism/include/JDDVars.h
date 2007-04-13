@@ -10,26 +10,26 @@ extern "C" {
 /*
  * Class:     jdd_JDDVars
  * Method:    DDV_BuildArray
- * Signature: ()I
+ * Signature: ()J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDDVars_DDV_1BuildArray
+JNIEXPORT jlong JNICALL Java_jdd_JDDVars_DDV_1BuildArray
   (JNIEnv *, jobject);
 
 /*
  * Class:     jdd_JDDVars
  * Method:    DDV_FreeArray
- * Signature: (I)V
+ * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_jdd_JDDVars_DDV_1FreeArray
-  (JNIEnv *, jobject, jint);
+  (JNIEnv *, jobject, jlong);
 
 /*
  * Class:     jdd_JDDVars
  * Method:    DDV_GetIndex
- * Signature: (I)I
+ * Signature: (J)I
  */
 JNIEXPORT jint JNICALL Java_jdd_JDDVars_DDV_1GetIndex
-  (JNIEnv *, jobject, jint);
+  (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus
 }

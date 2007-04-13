@@ -80,7 +80,7 @@ public class ExpressionBrackets extends ExpressionUnary
 	/**
 	 *	Convert and build simulator expression data structure
 	 */
-	public int toSimulator(SimulatorEngine sim) throws SimulatorException
+	public long toSimulator(SimulatorEngine sim) throws SimulatorException
 	{
 		return operand.toSimulator(sim); //don't need to store any bracketing
 	}

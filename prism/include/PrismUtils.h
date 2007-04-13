@@ -10,42 +10,42 @@ extern "C" {
 /*
  * Class:     prism_PrismUtils
  * Method:    PU_GetStdout
- * Signature: ()I
+ * Signature: ()J
  */
-JNIEXPORT jint JNICALL Java_prism_PrismUtils_PU_1GetStdout
+JNIEXPORT jlong JNICALL Java_prism_PrismUtils_PU_1GetStdout
   (JNIEnv *, jclass);
 
 /*
  * Class:     prism_PrismUtils
  * Method:    PU_OpenFile
- * Signature: (Ljava/lang/String;)I
+ * Signature: (Ljava/lang/String;)J
  */
-JNIEXPORT jint JNICALL Java_prism_PrismUtils_PU_1OpenFile
+JNIEXPORT jlong JNICALL Java_prism_PrismUtils_PU_1OpenFile
   (JNIEnv *, jclass, jstring);
 
 /*
  * Class:     prism_PrismUtils
  * Method:    PU_PrintToFile
- * Signature: (ILjava/lang/String;)V
+ * Signature: (JLjava/lang/String;)V
  */
 JNIEXPORT void JNICALL Java_prism_PrismUtils_PU_1PrintToFile
-  (JNIEnv *, jclass, jint, jstring);
+  (JNIEnv *, jclass, jlong, jstring);
 
 /*
  * Class:     prism_PrismUtils
  * Method:    PU_FlushFile
- * Signature: (I)V
+ * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_prism_PrismUtils_PU_1FlushFile
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     prism_PrismUtils
  * Method:    PU_CloseFile
- * Signature: (I)V
+ * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_prism_PrismUtils_PU_1CloseFile
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 #ifdef __cplusplus
 }

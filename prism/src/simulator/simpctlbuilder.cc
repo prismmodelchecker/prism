@@ -27,6 +27,7 @@
 
 #include <jni.h>
 #include <iostream>
+#include "jnipointer.h"
 #include "simpctl.h"
 #include "simstate.h"
 #include "simsampling.h"
@@ -34,187 +35,96 @@
 #include "simexpression.h"
 #include "SimulatorEngine.h"
 
-
-//Helper functions
-
-inline jint To_JInt(CExpression * expr) 
-{
-	return (jint)(expr);
-}
-
-inline CExpression * To_Expr(jint pointer) 
-{
-	return (CExpression*)(pointer);
-}
-
-inline jint Formula_To_JInt(CPathFormula * form)
-{
-	return (jint)(form);
-}
-
-inline CPathFormula* To_Path_Formula(jint pointer)
-{
-	return (CPathFormula*)(pointer);
-}
-
-inline CRewardFormula* To_Reward_Formula(jint pointer)
-{
-	return (CRewardFormula*)(pointer);
-}
-
-
 //PCTL Expression building methods
 
-/*
- * Class:     simulator_SimulatorEngine
- * Method:    loadPctlBoundedUntil
- * Signature: (JJDD)J
- */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlBoundedUntil
-  (JNIEnv *env, jclass cls, jint exprPointer1, jint exprPointer2, jdouble lowerBound, jdouble upperBound)
+JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlBoundedUntil
+  (JNIEnv *env, jclass cls, jlong __pointer exprPointer1, jlong __pointer exprPointer2, jdouble lowerBound, jdouble upperBound)
 {
-	CExpression* expr1 = To_Expr(exprPointer1);
-	CExpression* expr2 = To_Expr(exprPointer2);
-	
+	CExpression* expr1 = jlong_to_CExpression(exprPointer1);
+	CExpression* expr2 = jlong_to_CExpression(exprPointer2);
 	CBoundedUntil* bu = new CBoundedUntil(expr1, expr2, (double)lowerBound, (double)upperBound);
-
 	Register_Path_Formula(bu);
-
-	return Formula_To_JInt(bu);
+	return ptr_to_jlong(bu);
 }
 
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlBoundedUntilNegated
-  (JNIEnv *env, jclass cls, jint exprPointer1, jint exprPointer2, jdouble lowerBound, jdouble upperBound, jboolean)
+JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlBoundedUntilNegated
+  (JNIEnv *env, jclass cls, jlong __pointer exprPointer1, jlong __pointer exprPointer2, jdouble lowerBound, jdouble upperBound, jboolean)
 {
-	CExpression* expr1 = To_Expr(exprPointer1);
-	CExpression* expr2 = To_Expr(exprPointer2);
-	
+	CExpression* expr1 = jlong_to_CExpression(exprPointer1);
+	CExpression* expr2 = jlong_to_CExpression(exprPointer2);
 	CBoundedUntil* bu = new CBoundedUntil(expr1, expr2, (double)lowerBound, (double)upperBound);
 	bu->Set_Negate(true);
-
 	Register_Path_Formula(bu);
-
-	return Formula_To_JInt(bu);
+	return ptr_to_jlong(bu);
 }
 
-/*
- * Class:     simulator_SimulatorEngine
- * Method:    loadPctlUntil
- * Signature: (JJ)J
- */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlUntil
-  (JNIEnv *env, jclass cls, jint exprPointer1, jint exprPointer2)
+JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlUntil
+  (JNIEnv *env, jclass cls, jlong __pointer exprPointer1, jlong __pointer exprPointer2)
 {
-	CExpression* expr1 = To_Expr(exprPointer1);
-	CExpression* expr2 = To_Expr(exprPointer2);
-	
+	CExpression* expr1 = jlong_to_CExpression(exprPointer1);
+	CExpression* expr2 = jlong_to_CExpression(exprPointer2);
 	CUntil* bu = new CUntil(expr1, expr2);
-
 	Register_Path_Formula(bu);
-
-	return Formula_To_JInt(bu);
+	return ptr_to_jlong(bu);
 }
 
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlUntilNegated
-  (JNIEnv *env, jclass cls, jint exprPointer1, jint exprPointer2)
+JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlUntilNegated
+  (JNIEnv *env, jclass cls, jlong __pointer exprPointer1, jlong __pointer exprPointer2)
 {
-	CExpression* expr1 = To_Expr(exprPointer1);
-	CExpression* expr2 = To_Expr(exprPointer2);
-	
+	CExpression* expr1 = jlong_to_CExpression(exprPointer1);
+	CExpression* expr2 = jlong_to_CExpression(exprPointer2);
 	CUntil* bu = new CUntil(expr1, expr2);
 	bu->Set_Negate(true);
-
 	Register_Path_Formula(bu);
-
-	return Formula_To_JInt(bu);
+	return ptr_to_jlong(bu);
 }
 
-/*
- * Class:     simulator_SimulatorEngine
- * Method:    loadPctlNext
- * Signature: (J)J
- */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlNext
-  (JNIEnv *env, jclass cls, jint exprPointer)
+JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlNext
+  (JNIEnv *env, jclass cls, jlong __pointer exprPointer)
 {
-	CExpression* expr = To_Expr(exprPointer);
-	
+	CExpression* expr = jlong_to_CExpression(exprPointer);
 	CNext* bu = new CNext(expr);
-
 	Register_Path_Formula(bu);
-
-	return Formula_To_JInt(bu);
+	return ptr_to_jlong(bu);
 }
 
-/*
- * Class:     simulator_SimulatorEngine
- * Method:    loadPctlReachability
- * Signature: (I)I
- */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlReachability
-  (JNIEnv *env, jclass cls, jint rsi, jint exprPointer)
+JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlReachability
+  (JNIEnv *env, jclass cls, jint rsi, jlong __pointer exprPointer)
 {
-	CExpression* expr = To_Expr(exprPointer);
-
+	CExpression* expr = jlong_to_CExpression(exprPointer);
 	CRewardReachability* reach = new CRewardReachability(rsi, expr);
-
 	Register_Path_Formula(reach);
-
-	return Formula_To_JInt(reach);
+	return ptr_to_jlong(reach);
 }
 
-/*
- * Class:     simulator_SimulatorEngine
- * Method:    loadPctlCumulative
- * Signature: (D)I
- */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlCumulative
+JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlCumulative
   (JNIEnv *env, jclass cls, jint rsi, jdouble time)
 {
 	CRewardCumulative* cumul = new CRewardCumulative(rsi, (double)time);
-
 	Register_Path_Formula(cumul);
-
-	return Formula_To_JInt(cumul);
+	return ptr_to_jlong(cumul);
 }
 
-/*
- * Class:     simulator_SimulatorEngine
- * Method:    loadPctlInstantanious
- * Signature: (D)I
- */
-JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadPctlInstantanious
+JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlInstantanious
   (JNIEnv *env, jclass cls, jint rsi, jdouble time)
 {
 	CRewardInstantanious* instant = new CRewardInstantanious(rsi, (double)time);
-
 	Register_Path_Formula(instant);
-
-	return Formula_To_JInt(instant);
+	return ptr_to_jlong(instant);
 }
-/*
- * Class:     simulator_SimulatorEngine
- * Method:    loadProbQuestion
- * Signature: (J)I
- */
+
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadProbQuestion
-  (JNIEnv *env, jclass cls, jint pathPointer)
+  (JNIEnv *env, jclass cls, jlong __pointer pathPointer)
 {
-	CPathFormula* formula = To_Path_Formula(pathPointer);
+	CPathFormula* formula = jlong_to_CPathFormula(pathPointer);
 	CProbEqualsQuestion* sampler = new CProbEqualsQuestion(formula);
 	return Register_Sample_Holder(sampler);
 }
 
-
-/*
- * Class:     simulator_SimulatorEngine
- * Method:    loadRewardQuestion
- * Signature: (I)I
- */
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadRewardQuestion
-  (JNIEnv *env, jclass cls, jint rewardPointer)
+  (JNIEnv *env, jclass cls, jlong __pointer rewardPointer)
 {
-	CRewardFormula* formula = To_Reward_Formula(rewardPointer);
+	CRewardFormula* formula = jlong_to_CRewardFormula(rewardPointer);
 	CRewardEqualsQuestion* sampler = new CRewardEqualsQuestion(formula);
 	return Register_Sample_Holder(sampler);
 }
@@ -222,11 +132,6 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadRewardQuestion
 
 //Utility method
 
-/*
- * Class:     simulator_SimulatorEngine
- * Method:    printRegisteredPathFormulae
- * Signature: ()V
- */
 JNIEXPORT void JNICALL Java_simulator_SimulatorEngine_printRegisteredPathFormulae
   (JNIEnv *env, jclass cls)
 {

@@ -36,6 +36,7 @@
 #include "sparse.h"
 #include "hybrid.h"
 #include "PrismHybridGlob.h"
+#include "jnipointer.h"
 
 // local prototypes
 static void mult_rec(HDDNode *hdd, int level, int row_offset, int col_offset);
@@ -54,28 +55,29 @@ static double unif;
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_hybrid_PrismHybrid_PH_1StochCumulReward
+JNIEXPORT jlong __pointer JNICALL Java_hybrid_PrismHybrid_PH_1StochCumulReward
 (
 JNIEnv *env,
 jclass cls,
-jint tr,		// trans matrix
-jint sr,		// state rewards
-jint trr,		// transition rewards
-jint od,		// odd
-jint rv,		// row vars
+jlong __pointer tr,	// trans matrix
+jlong __pointer sr,	// state rewards
+jlong __pointer trr,	// transition rewards
+jlong __pointer od,	// odd
+jlong __pointer rv,	// row vars
 jint num_rvars,
-jint cv,		// col vars
+jlong __pointer cv,	// col vars
 jint num_cvars,
-jdouble time	// time bound
+jdouble time		// time bound
 )
 {
 	// cast function parameters
-	DdNode *trans = (DdNode *)tr;	// trans matrix
-	DdNode *state_rewards = (DdNode *)sr;	// state rewards
-	DdNode *trans_rewards = (DdNode *)trr;	// transition rewards
-	ODDNode *odd = (ODDNode *)od;	// odd
-	DdNode **rvars = (DdNode **)rv; // row vars
-	DdNode **cvars = (DdNode **)cv; // col vars
+	DdNode *trans = jlong_to_DdNode(tr);	// trans matrix
+	DdNode *state_rewards = jlong_to_DdNode(sr);	// state rewards
+	DdNode *trans_rewards = jlong_to_DdNode(trr);	// transition rewards
+	ODDNode *odd = jlong_to_ODDNode(od);	// odd
+	DdNode **rvars = jlong_to_DdNode_array(rv); // row vars
+	DdNode **cvars = jlong_to_DdNode_array(cv); // col vars
+
 	// mtbdds
 	DdNode *tmp;
 	// model stats
@@ -340,12 +342,12 @@ jdouble time	// time bound
 	delete soln;
 	delete soln2;
 	
-	return (int)sum;
+	return ptr_to_jlong(sum);
 }
 
 //------------------------------------------------------------------------------
 
-void mult_rec(HDDNode *hdd, int level, int row_offset, int col_offset)
+static void mult_rec(HDDNode *hdd, int level, int row_offset, int col_offset)
 {
 	HDDNode *e, *t;
 	
@@ -355,11 +357,11 @@ void mult_rec(HDDNode *hdd, int level, int row_offset, int col_offset)
 	}
 	// or if we've reached a submatrix
 	// (check for non-null ptr but, equivalently, we could just check if level==l_sm)
-	else if (hdd->sm) {
+	else if (hdd->sm.ptr) {
 		if (!compact_sm) {
-			mult_cm((CMSparseMatrix *)hdd->sm, row_offset, col_offset);
+			mult_cm((CMSparseMatrix *)hdd->sm.ptr, row_offset, col_offset);
 		} else {
-			mult_cmsc((CMSCSparseMatrix *)hdd->sm, row_offset, col_offset);
+			mult_cmsc((CMSCSparseMatrix *)hdd->sm.ptr, row_offset, col_offset);
 		}
 		return;
 	}
@@ -373,18 +375,18 @@ void mult_rec(HDDNode *hdd, int level, int row_offset, int col_offset)
 	e = hdd->type.kids.e;
 	if (e != zero) {
 		mult_rec(e->type.kids.e, level+1, row_offset, col_offset);
-		mult_rec(e->type.kids.t, level+1, row_offset, col_offset+e->off);
+		mult_rec(e->type.kids.t, level+1, row_offset, col_offset+e->off.val);
 	}
 	t = hdd->type.kids.t;
 	if (t != zero) {
-		mult_rec(t->type.kids.e, level+1, row_offset+hdd->off, col_offset);
-		mult_rec(t->type.kids.t, level+1, row_offset+hdd->off, col_offset+t->off);
+		mult_rec(t->type.kids.e, level+1, row_offset+hdd->off.val, col_offset);
+		mult_rec(t->type.kids.t, level+1, row_offset+hdd->off.val, col_offset+t->off.val);
 	}
 }
 
 //-----------------------------------------------------------------------------------
 
-void mult_cm(CMSparseMatrix *cmsm, int row_offset, int col_offset)
+static void mult_cm(CMSparseMatrix *cmsm, int row_offset, int col_offset)
 {
 	int i2, j2, l2, h2;
 	int sm_n = cmsm->n;
@@ -411,7 +413,7 @@ void mult_cm(CMSparseMatrix *cmsm, int row_offset, int col_offset)
 
 //-----------------------------------------------------------------------------------
 
-void mult_cmsc(CMSCSparseMatrix *cmscsm, int row_offset, int col_offset)
+static void mult_cmsc(CMSCSparseMatrix *cmscsm, int row_offset, int col_offset)
 {
 	int i2, j2, l2, h2;
 	int sm_n = cmscsm->n;

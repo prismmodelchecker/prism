@@ -110,7 +110,7 @@ public abstract class PCTLFormula
 	/**
 	 *	Convert and build simulator data structures
 	 */
-	public abstract int toSimulator(SimulatorEngine sim ) throws SimulatorException;
+	public abstract long toSimulator(SimulatorEngine sim ) throws SimulatorException;
 
 	// get expression as string
 	// [does nothing to the formula itself]

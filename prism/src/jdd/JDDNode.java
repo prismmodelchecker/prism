@@ -28,14 +28,14 @@ package jdd;
 
 public class JDDNode
 {
-	private int ptr;
+	private long ptr;
 	
 	// native methods (jni)
-	private native boolean DDN_IsConstant(int dd);
-	private native int DDN_GetIndex(int dd);
-	private native double DDN_GetValue(int dd);
-	private native int DDN_GetThen(int dd);
-	private native int DDN_GetElse(int dd);
+	private native boolean DDN_IsConstant(long dd);
+	private native int DDN_GetIndex(long dd);
+	private native double DDN_GetValue(long dd);
+	private native long DDN_GetThen(long dd);
+	private native long DDN_GetElse(long dd);
 
 	static
 	{
@@ -48,7 +48,7 @@ public class JDDNode
 		}
 	}
 
-	public JDDNode(int p)
+	public JDDNode(long p)
 	{
 		ptr = p;
 	}
@@ -58,7 +58,7 @@ public class JDDNode
 		ptr = dd.ptr;
 	}
 	
-	public int ptr()
+	public long ptr()
 	{
 		return ptr;
 	}

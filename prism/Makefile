@@ -54,6 +54,19 @@ else
 	endif
 endif
 
+################
+# Architecture #
+################
+
+# To build on AMD64 or Itanium machines, ARCH should be set.
+# We attempt to auto-detect this here.
+ifneq (,$(findstring 86_64, $(shell uname -m)))
+	ARCH = amd64
+endif
+ifneq (,$(findstring ia64, $(shell uname -m)))
+	ARCH = ia64
+endif
+
 ########
 # Java #
 ########
@@ -127,15 +140,33 @@ OPTIMISE = -O3
 # Flags for compilation/linking
 # Flags to generate shared libraries
 # Executable/library naming conventions
+# Name of CUDD makefile to use
 # Suffix for binary distribution directory
 # Place to look for (JNI) headers
 # (requires GNU make for conditional evaluation)
 
 # Linux
 ifeq ($(OSTYPE),linux)
-	CFLAGS = $(DEBUG) $(OPTIMISE)
-	CPPFLAGS = $(DEBUG) $(OPTIMISE)
-	LDFLAGS = $(DEBUG) $(OPTIMISE)
+	ifeq ($(ARCH),amd64)
+		# Position Independent Code required on AMD64/Itanium
+		CFLAGS = $(DEBUG) $(OPTIMISE) -DPIC -fPIC
+		CPPFLAGS = $(DEBUG) $(OPTIMISE) -DPIC -fPIC
+		LDFLAGS = $(DEBUG) $(OPTIMISE) -DPIC -fPIC
+		CUDD_MAKEFILE = Makefile.linux-64
+	else
+	ifeq ($(ARCH),ia64)
+		# Position Independent Code required on AMD64/Itanium
+		CFLAGS = $(DEBUG) $(OPTIMISE) -DPIC -fPIC
+		CPPFLAGS = $(DEBUG) $(OPTIMISE) -DPIC -fPIC
+		LDFLAGS = $(DEBUG) $(OPTIMISE) -DPIC -fPIC
+		CUDD_MAKEFILE = Makefile.linux-64
+	else
+		CFLAGS = $(DEBUG) $(OPTIMISE)
+		CPPFLAGS = $(DEBUG) $(OPTIMISE)
+		LDFLAGS = $(DEBUG) $(OPTIMISE)
+		CUDD_MAKEFILE = Makefile.linux
+	endif
+	endif
 	SHARED = -shared
 	#SHARED = -G
 	EXE =
@@ -153,6 +184,7 @@ ifeq ($(OSTYPE),solaris)
 	EXE =
 	LIBPREFIX = lib
 	LIBSUFFIX = .so
+	CUDD_MAKEFILE = Makefile.solaris
 	BINDISTSUFFIX = solaris
 	OSTYPE_INCLUDE = include
 endif
@@ -166,6 +198,7 @@ ifeq ($(OSTYPE),cygwin)
 	EXE = .exe
 	LIBPREFIX =
 	LIBSUFFIX = .dll
+	CUDD_MAKEFILE = Makefile.cygwin
 	BINDISTSUFFIX = win
 	OSTYPE_INCLUDE = include
 endif
@@ -178,6 +211,7 @@ ifeq ($(OSTYPE),darwin)
 	EXE =
 	LIBPREFIX = lib
 	LIBSUFFIX = .dylib
+	CUDD_MAKEFILE = Makefile.darwin
 	BINDISTSUFFIX = osx
 	OSTYPE_INCLUDE = Headers
 endif
@@ -256,7 +290,7 @@ cuddpackage: checks
 	@(if [ ! -h $(CUDD_DIR) ]; then \
 	  echo Making cudd ...; \
 	  cd $(CUDD_DIR) && \
-	  /bin/cp Makefile.$(OSTYPE) Makefile && \
+	  /bin/cp $(CUDD_MAKEFILE) Makefile && \
 	  $(MAKE); \
 	else \
 	  echo Skipping cudd make since it is a symlink...; \
@@ -266,7 +300,7 @@ cuddpackage: checks
 cuddpackageforce: checks
 	@echo Making cudd ...; \
 	cd $(CUDD_DIR) && \
-	/bin/cp Makefile.$(OSTYPE) Makefile && \
+	/bin/cp $(CUDD_MAKEFILE) Makefile && \
 	$(MAKE)
 
 prism: checks make_dirs bin_scripts
@@ -478,7 +512,7 @@ checks:
 	  echo "You may need to set JAVA_DIR by hand. See the PRISM manual for details."; \
 	  exit 1; \
 	fi; \
-	echo "OSTYPE: $(OSTYPE)"; \
+	echo "OSTYPE: $(OSTYPE) $(ARCH)"; \
 	echo "JAVA_DIR: $(JAVA_DIR)"; \
 	echo "JAVAC: "`which $(JAVAC)` \
 	)

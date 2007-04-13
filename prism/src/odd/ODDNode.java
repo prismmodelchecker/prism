@@ -28,9 +28,9 @@ package odd;
 
 public class ODDNode
 {
-	private int ptr;
+	private long ptr;
 	
-	public ODDNode(int p)
+	public ODDNode(long p)
 	{
 		ptr = p;
 	}
@@ -40,7 +40,7 @@ public class ODDNode
 		ptr = odd.ptr;
 	}
 	
-	public int ptr()
+	public long ptr()
 	{
 		return ptr;
 	}

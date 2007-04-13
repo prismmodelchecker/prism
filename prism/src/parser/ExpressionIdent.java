@@ -204,7 +204,7 @@ public class ExpressionIdent extends Expression
 	/**
 	 *	convert and build simulator expression data structure
 	 */
-	public int toSimulator(SimulatorEngine sim) throws SimulatorException
+	public long toSimulator(SimulatorEngine sim) throws SimulatorException
 	{
 		throw new SimulatorException("Undeclared identifier \"" + name +  "\"");
 	}

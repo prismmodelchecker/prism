@@ -83,7 +83,7 @@ public class GUISimPathFormulaeList extends JList
 				return;//if this already is in here, do not add it
 		}
         
-		int pathPointer = engine.addPCTLRewardFormula(rew);
+		long pathPointer = engine.addPCTLRewardFormula(rew);
 		if(pathPointer <=0) return;
 		int index = engine.findPathFormulaIndex(pathPointer);
 	
@@ -102,7 +102,7 @@ public class GUISimPathFormulaeList extends JList
 				return;//if this already is in here, do not add it
 		}
 	
-		int pathPointer = engine.addPCTLProbFormula(prob);
+		long pathPointer = engine.addPCTLProbFormula(prob);
 		if(pathPointer <=0) return;
 		//System.out.println("probPointer = "+pathPointer);
 		int index = engine.findPathFormulaIndex(pathPointer);

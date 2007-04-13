@@ -26,6 +26,7 @@
 
 #include "odd.h"
 #include "ODDUtils.h"
+#include "jnipointer.h"
 
 //------------------------------------------------------------------------------
 
@@ -36,30 +37,31 @@ DdManager *ddman;
 // cudd manager
 //------------------------------------------------------------------------------
 
-JNIEXPORT void JNICALL Java_odd_ODDUtils_ODD_1SetCUDDManager(JNIEnv *env, jclass cls, jint ddm)
+JNIEXPORT void JNICALL Java_odd_ODDUtils_ODD_1SetCUDDManager(JNIEnv *env, jclass cls, jlong __pointer ddm)
 {
-	ddman = (DdManager *)ddm;
+	ddman = jlong_to_DdManager(ddm);
 }
 
 //------------------------------------------------------------------------------
 // build odd
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_odd_ODDUtils_ODD_1BuildODD
+JNIEXPORT jlong __pointer JNICALL Java_odd_ODDUtils_ODD_1BuildODD
 (
 JNIEnv *env,
 jclass cls,
-jint dd,		// trans matrix
-jint vars,		// row vars
+jlong __pointer dd,	// trans matrix
+jlong __pointer vars,	// row vars
 jint num_vars
 )
 {
-	ODDNode *odd;
-	
-	// build odd
-	odd = build_odd(ddman, (DdNode *)dd, (DdNode **)vars, num_vars);
-	
-	return (int)odd;
+	return ptr_to_jlong(
+		build_odd(
+			ddman,
+			jlong_to_DdNode(dd),
+			jlong_to_DdNode_array(vars), num_vars
+		)
+	);
 }
 
 //------------------------------------------------------------------------------
@@ -77,30 +79,30 @@ jclass cls
 // ODDNode methods
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong JNICALL Java_odd_ODDUtils_ODD_1GetTOff(JNIEnv *env, jclass cls, jint odd)
+JNIEXPORT jlong __pointer JNICALL Java_odd_ODDUtils_ODD_1GetTOff(JNIEnv *env, jclass cls, jlong __pointer odd)
 {
-	return ((ODDNode *)odd)->toff;
+	return (jlong_to_ODDNode(odd))->toff;
 }
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong JNICALL Java_odd_ODDUtils_ODD_1GetEOff(JNIEnv *env, jclass cls, jint odd)
+JNIEXPORT jlong __pointer JNICALL Java_odd_ODDUtils_ODD_1GetEOff(JNIEnv *env, jclass cls, jlong __pointer odd)
 {
-	return ((ODDNode *)odd)->eoff;
+	return (jlong_to_ODDNode(odd))->eoff;
 }
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_odd_ODDUtils_ODD_1GetThen(JNIEnv *env, jclass cls, jint odd)
+JNIEXPORT jlong __pointer JNICALL Java_odd_ODDUtils_ODD_1GetThen(JNIEnv *env, jclass cls, jlong __pointer odd)
 {
-	return (int)(((ODDNode *)odd)->t);
+	return ptr_to_jlong((jlong_to_ODDNode(odd))->t);
 }
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_odd_ODDUtils_ODD_1GetElse(JNIEnv *env, jclass cls, jint odd)
+JNIEXPORT jlong __pointer JNICALL Java_odd_ODDUtils_ODD_1GetElse(JNIEnv *env, jclass cls, jlong __pointer odd)
 {
-	return (int)(((ODDNode *)odd)->e);
+	return ptr_to_jlong((jlong_to_ODDNode(odd))->e);
 }
 
 //------------------------------------------------------------------------------

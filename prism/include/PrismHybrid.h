@@ -18,10 +18,10 @@ JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1FreeGlobalRefs
 /*
  * Class:     hybrid_PrismHybrid
  * Method:    PH_SetCUDDManager
- * Signature: (I)V
+ * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetCUDDManager
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     hybrid_PrismHybrid
@@ -146,114 +146,114 @@ JNIEXPORT jdouble JNICALL Java_hybrid_PrismHybrid_PH_1GetLastUnif
 /*
  * Class:     hybrid_PrismHybrid
  * Method:    PH_ProbBoundedUntil
- * Signature: (IIIIIIIII)I
+ * Signature: (JJJIJIJJI)J
  */
-JNIEXPORT jint JNICALL Java_hybrid_PrismHybrid_PH_1ProbBoundedUntil
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1ProbBoundedUntil
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jlong, jint);
 
 /*
  * Class:     hybrid_PrismHybrid
  * Method:    PH_ProbUntil
- * Signature: (IIIIIIII)I
+ * Signature: (JJJIJIJJ)J
  */
-JNIEXPORT jint JNICALL Java_hybrid_PrismHybrid_PH_1ProbUntil
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1ProbUntil
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jlong);
 
 /*
  * Class:     hybrid_PrismHybrid
  * Method:    PH_ProbReachReward
- * Signature: (IIIIIIIIIII)I
+ * Signature: (JJJJJIJIJJJ)J
  */
-JNIEXPORT jint JNICALL Java_hybrid_PrismHybrid_PH_1ProbReachReward
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1ProbReachReward
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong);
 
 /*
  * Class:     hybrid_PrismHybrid
  * Method:    PH_NondetBoundedUntil
- * Signature: (IIIIIIIIIIIZ)I
+ * Signature: (JJJIJIJIJJIZ)J
  */
-JNIEXPORT jint JNICALL Java_hybrid_PrismHybrid_PH_1NondetBoundedUntil
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jboolean);
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1NondetBoundedUntil
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jint, jboolean);
 
 /*
  * Class:     hybrid_PrismHybrid
  * Method:    PH_NondetUntil
- * Signature: (IIIIIIIIIIZ)I
+ * Signature: (JJJIJIJIJJZ)J
  */
-JNIEXPORT jint JNICALL Java_hybrid_PrismHybrid_PH_1NondetUntil
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jboolean);
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1NondetUntil
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jboolean);
 
 /*
  * Class:     hybrid_PrismHybrid
  * Method:    PH_NondetReachReward
- * Signature: (IIIIIIIIIIIIIZ)I
+ * Signature: (JJJJJIJIJIJJJZ)J
  */
-JNIEXPORT jint JNICALL Java_hybrid_PrismHybrid_PH_1NondetReachReward
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jint, jboolean);
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1NondetReachReward
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jlong, jboolean);
 
 /*
  * Class:     hybrid_PrismHybrid
  * Method:    PH_StochBoundedUntil
- * Signature: (IIIIIIIIDI)I
+ * Signature: (JJJIJIJJDJ)J
  */
-JNIEXPORT jint JNICALL Java_hybrid_PrismHybrid_PH_1StochBoundedUntil
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jdouble, jint);
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1StochBoundedUntil
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jlong, jdouble, jlong);
 
 /*
  * Class:     hybrid_PrismHybrid
  * Method:    PH_StochCumulReward
- * Signature: (IIIIIIIID)I
+ * Signature: (JJJJJIJID)J
  */
-JNIEXPORT jint JNICALL Java_hybrid_PrismHybrid_PH_1StochCumulReward
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jdouble);
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1StochCumulReward
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jdouble);
 
 /*
  * Class:     hybrid_PrismHybrid
  * Method:    PH_StochSteadyState
- * Signature: (IIIIIII)I
+ * Signature: (JJJJIJI)J
  */
-JNIEXPORT jint JNICALL Java_hybrid_PrismHybrid_PH_1StochSteadyState
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1StochSteadyState
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jint, jlong, jint);
 
 /*
  * Class:     hybrid_PrismHybrid
  * Method:    PH_StochTransient
- * Signature: (IIIIIIID)I
+ * Signature: (JJJJIJID)J
  */
-JNIEXPORT jint JNICALL Java_hybrid_PrismHybrid_PH_1StochTransient
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jdouble);
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1StochTransient
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jint, jlong, jint, jdouble);
 
 /*
  * Class:     hybrid_PrismHybrid
  * Method:    PH_Power
- * Signature: (IIIIIIIIZ)I
+ * Signature: (JJIJIJJJZ)J
  */
-JNIEXPORT jint JNICALL Java_hybrid_PrismHybrid_PH_1Power
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jboolean);
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1Power
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jboolean);
 
 /*
  * Class:     hybrid_PrismHybrid
  * Method:    PH_JOR
- * Signature: (IIIIIIIIZZD)I
+ * Signature: (JJIJIJJJZZD)J
  */
-JNIEXPORT jint JNICALL Java_hybrid_PrismHybrid_PH_1JOR
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jboolean, jboolean, jdouble);
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1JOR
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jboolean, jboolean, jdouble);
 
 /*
  * Class:     hybrid_PrismHybrid
  * Method:    PH_SOR
- * Signature: (IIIIIIIIZZDZ)I
+ * Signature: (JJIJIJJJZZDZ)J
  */
-JNIEXPORT jint JNICALL Java_hybrid_PrismHybrid_PH_1SOR
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jboolean, jboolean, jdouble, jboolean);
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1SOR
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jboolean, jboolean, jdouble, jboolean);
 
 /*
  * Class:     hybrid_PrismHybrid
  * Method:    PH_PSOR
- * Signature: (IIIIIIIIZZDZ)I
+ * Signature: (JJIJIJJJZZDZ)J
  */
-JNIEXPORT jint JNICALL Java_hybrid_PrismHybrid_PH_1PSOR
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jint, jboolean, jboolean, jdouble, jboolean);
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1PSOR
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jboolean, jboolean, jdouble, jboolean);
 
 #ifdef __cplusplus
 }

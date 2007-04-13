@@ -567,7 +567,7 @@ public class SimulatorEngine
 					((Integer)(moduleIndices.get(m.getName()))).intValue();
 					
 					//Create the guard expression
-					int guardPointer = c.getGuard().toSimulator(this);
+					long guardPointer = c.getGuard().toSimulator(this);
 					if(guardPointer == NULL)
 					{
 						throw new SimulatorException("Problem with loading model into simulator: null guardPointer in "+m.getName());
@@ -577,7 +577,7 @@ public class SimulatorEngine
 					int numUpdates = ups.getNumUpdates();
 					
 					//Construct the command
-					int commandPointer = createCommand(guardPointer, actionIndex, moduleIndex, numUpdates);
+					long commandPointer = createCommand(guardPointer, actionIndex, moduleIndex, numUpdates);
 					
 					if(commandPointer == NULL)
 					{
@@ -587,7 +587,7 @@ public class SimulatorEngine
 					for(int k = 0; k < numUpdates; k++)
 					{
 						//Create probability expression for this update
-						int probPointer = ups.getProbability(k).toSimulator(this);
+						long probPointer = ups.getProbability(k).toSimulator(this);
 						if(probPointer == NULL)
 						{
 							throw new SimulatorException("Problem with loading model into simulator: null probPointer in "+m.getName());
@@ -595,7 +595,7 @@ public class SimulatorEngine
 						//Construct the update
 						Update u = ups.getUpdate(k);
 						int numAssignments = u.getNumElements();
-						int updatePointer = addUpdate(commandPointer, probPointer, numAssignments);
+						long updatePointer = addUpdate(commandPointer, probPointer, numAssignments);
 						if(updatePointer == NULL)
 						{
 							throw new SimulatorException("Problem with loading model into simulator: null updatePointer in "+m.getName());
@@ -608,13 +608,13 @@ public class SimulatorEngine
 							int varIndex = ((Integer)varIndices.get(varName)).intValue();
 							
 							//construct the rhs
-							int rhsPointer = u.getExpression(ii).toSimulator(this);
+							long rhsPointer = u.getExpression(ii).toSimulator(this);
 							if(rhsPointer == NULL)
 							{
 								throw new SimulatorException("Problem with loading model into simulator: null rhs in "+m.getName());
 							}
 							//construct the assignment
-							int assign = addAssignment(updatePointer, varIndex, rhsPointer);
+							long assign = addAssignment(updatePointer, varIndex, rhsPointer);
 							if(assign == NULL)
 							{
 								throw new SimulatorException("Problem with loading model into simulator: null assignment in "+m.getName());
@@ -641,7 +641,7 @@ public class SimulatorEngine
 				for(int j = 0; j < rewards.getNumItems(); j++)
 				{
 					reward = rewards.getRewardStructItem(j);
-					int rewardPointer = reward.toSimulator(this);
+					long rewardPointer = reward.toSimulator(this);
 					if(rewardPointer == NULL)
 						throw new SimulatorException("Problem with loading model into simulator: null reward, "+reward.toString());
 					if(reward.isTransitionReward())
@@ -687,7 +687,7 @@ public class SimulatorEngine
 	 *	to the c++ engine transition table.
 	 *	Returns ERROR if there is a problem
 	 */
-	private static native int setupAddTransition(int commandPointer);
+	private static native int setupAddTransition(long commandPointer);
 	
 	/**
 	 *	Model loading helper method
@@ -695,7 +695,7 @@ public class SimulatorEngine
 	 *	to the ith state rewards table.
 	 *	Returns ERROR if there is a problem
 	 */
-	private static native int setupAddStateReward(int i, int rewardPointer);
+	private static native int setupAddStateReward(int i, long rewardPointer);
 	
 	/**
 	 *	Model loading helper method
@@ -703,7 +703,7 @@ public class SimulatorEngine
 	 *	to the ith transition rewards table.
 	 *	Returns ERROR if there is a problem
 	 */
-	private static native int setupAddTransitionReward(int i, int rewardPointer);
+	private static native int setupAddTransitionReward(int i, long rewardPointer);
 	
 	
 	//------------------------------------------------------------------------------
@@ -2002,7 +2002,7 @@ public class SimulatorEngine
 	 * @param operand the PCTLFormula to be built into the engine.
 	 * @return a pointer to the built reward formula
 	 */
-	public int addPCTLRewardFormula(PCTLReward pctl)
+	public long addPCTLRewardFormula(PCTLReward pctl)
 	{
 		Values allConstants = new Values();
 		PCTLFormula operand = pctl.getOperand();
@@ -2080,7 +2080,7 @@ public class SimulatorEngine
 			{
 				//System.out.println("Attempting to load Reachability formula");
 				
-				int expression = ((PCTLRewardReach)operand).getOperand().toSimulator(this);
+				long expression = ((PCTLRewardReach)operand).getOperand().toSimulator(this);
 				
 				return loadPctlReachability(rsi, expression);
 				
@@ -2099,7 +2099,12 @@ public class SimulatorEngine
 	 * @param operand the PCTLFormula to be built into the engine.
 	 * @return a pointer to the built reward formula
 	 */
-	public int addPCTLProbFormula(PCTLProb pctl)
+	/**
+	 * Returns a pointer to the built prob formula
+	 * @param operand the PCTLFormula to be built into the engine.
+	 * @return a pointer to the built reward formula
+	 */
+	public long addPCTLProbFormula(PCTLProb pctl)
 	{
 		Values allConstants = new Values();
 		PCTLFormula operand = pctl.getOperand();
@@ -2111,13 +2116,13 @@ public class SimulatorEngine
 			
 			if (operand instanceof PCTLProbNext)
 			{
-				int expressionPointer = ((PCTLProbNext)operand).getOperand().toSimulator(this);
+				long expressionPointer = ((PCTLProbNext)operand).getOperand().toSimulator(this);
 				return loadPctlNext(expressionPointer);
 			}
 			else if (operand instanceof PCTLProbBoundedUntil)
 			{
-				int leftExpressionPointer = ((PCTLProbBoundedUntil)operand).getOperand1().toSimulator(this);
-				int rightExpressionPointer = ((PCTLProbBoundedUntil)operand).getOperand2().toSimulator(this);
+				long leftExpressionPointer = ((PCTLProbBoundedUntil)operand).getOperand1().toSimulator(this);
+				long rightExpressionPointer = ((PCTLProbBoundedUntil)operand).getOperand2().toSimulator(this);
 				double lowerBound;
 				if (((PCTLProbBoundedUntil)operand).getLowerBound() != null)
 					lowerBound = ((PCTLProbBoundedUntil)operand).getLowerBound().evaluateDouble(allConstants, null);
@@ -2132,14 +2137,14 @@ public class SimulatorEngine
 			}
 			else if (operand instanceof PCTLProbUntil)
 			{
-				int leftExpressionPointer = ((PCTLProbUntil)operand).getOperand1().toSimulator(this);
-				int rightExpressionPointer = ((PCTLProbUntil)operand).getOperand2().toSimulator(this);
+				long leftExpressionPointer = ((PCTLProbUntil)operand).getOperand1().toSimulator(this);
+				long rightExpressionPointer = ((PCTLProbUntil)operand).getOperand2().toSimulator(this);
 				return loadPctlUntil(leftExpressionPointer, rightExpressionPointer);
 			}
 			else if (operand instanceof PCTLProbBoundedFuture)
 			{
-				int leftExpressionPointer = (new PCTLExpression(new ExpressionTrue())).toSimulator(this);
-				int rightExpressionPointer = ((PCTLProbFuture)operand).getOperand().toSimulator(this);
+				long leftExpressionPointer = (new PCTLExpression(new ExpressionTrue())).toSimulator(this);
+				long rightExpressionPointer = ((PCTLProbFuture)operand).getOperand().toSimulator(this);
 				double lowerBound;
 				if (((PCTLProbBoundedFuture)operand).getLowerBound() != null)
 					lowerBound = ((PCTLProbBoundedFuture)operand).getLowerBound().evaluateDouble(allConstants, null);
@@ -2154,14 +2159,14 @@ public class SimulatorEngine
 			}
 			else if (operand instanceof PCTLProbFuture)
 			{
-				int leftExpressionPointer = (new PCTLExpression(new ExpressionTrue())).toSimulator(this);
-				int rightExpressionPointer = ((PCTLProbFuture)operand).getOperand().toSimulator(this);
+				long leftExpressionPointer = (new PCTLExpression(new ExpressionTrue())).toSimulator(this);
+				long rightExpressionPointer = ((PCTLProbFuture)operand).getOperand().toSimulator(this);
 				return loadPctlUntil(leftExpressionPointer, rightExpressionPointer);
 			}
 			else if (operand instanceof PCTLProbBoundedGlobal)
 			{
-				int leftExpressionPointer = (new PCTLExpression(new ExpressionTrue())).toSimulator(this);
-				int rightExpressionPointer = (new PCTLNot(((PCTLProbGlobal)operand).getOperand())).toSimulator(this);
+				long leftExpressionPointer = (new PCTLExpression(new ExpressionTrue())).toSimulator(this);
+				long rightExpressionPointer = (new PCTLNot(((PCTLProbGlobal)operand).getOperand())).toSimulator(this);
 				double lowerBound;
 				if (((PCTLProbBoundedGlobal)operand).getLowerBound() != null)
 					lowerBound = ((PCTLProbBoundedGlobal)operand).getLowerBound().evaluateDouble(allConstants, null);
@@ -2176,8 +2181,8 @@ public class SimulatorEngine
 			}
 			else if (operand instanceof PCTLProbGlobal)
 			{
-				int leftExpressionPointer = (new PCTLExpression(new ExpressionTrue())).toSimulator(this);
-				int rightExpressionPointer = (new PCTLNot(((PCTLProbGlobal)operand).getOperand())).toSimulator(this);
+				long leftExpressionPointer = (new PCTLExpression(new ExpressionTrue())).toSimulator(this);
+				long rightExpressionPointer = (new PCTLNot(((PCTLProbGlobal)operand).getOperand())).toSimulator(this);
 				return loadPctlUntilNegated(leftExpressionPointer, rightExpressionPointer);
 			}
 			else
@@ -2205,7 +2210,7 @@ public class SimulatorEngine
 		allConstants.addValues(getConstants());
 		allConstants.addValues(getPropertyConstants());
 		
-		int pathPointer;
+		long pathPointer;
 		if(pctl.computeMaxNested() != 1)
 		{
 			return -1;
@@ -2329,7 +2334,7 @@ public class SimulatorEngine
 	 *	Loads the boolean expression stored at exprPointer into the simulator engine.
 	 *	Returns the index of where the proposition is being stored
 	 */
-	public static native int loadProposition(int exprPointer);
+	public static native int loadProposition(long exprPointer);
 	
 	/**
 	 *	For the state proposition stored at the given index, this returns 1 if it
@@ -2377,7 +2382,7 @@ public class SimulatorEngine
 	 *	Loads the path formula stored at pathPointer into the simulator engine.
 	 *	Returns the index of where the path is being stored
 	 */
-	public static native int findPathFormulaIndex(int pathPointer);
+	public static native int findPathFormulaIndex(long pathPointer);
 	
 	/**
 	 *	For the path formula at the given index, this returns:
@@ -2407,202 +2412,202 @@ public class SimulatorEngine
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createNormalConstant(int constIndex, int type);
+	public static native long createNormalConstant(int constIndex, int type);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createRealConstant(int constIndex);
+	public static native long createRealConstant(int constIndex);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createIntegerVar(int varIndex);
+	public static native long createIntegerVar(int varIndex);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createBooleanVar(int varIndex);
+	public static native long createBooleanVar(int varIndex);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createDouble(double value);
+	public static native long createDouble(double value);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createInteger(int value);
+	public static native long createInteger(int value);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createBoolean(boolean value);
+	public static native long createBoolean(boolean value);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createCeil(int exprPointer);
+	public static native long createCeil(long exprPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createFloor(int exprPointer);
+	public static native long createFloor(long exprPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createNormalPow(int baseExpressionPointer, int exponentExpressionPointer);
+	public static native long createNormalPow(long baseExpressionPointer, long exponentExpressionPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createRealPow(int baseExpressionPointer, int exponentExpressionPointer);
+	public static native long createRealPow(long baseExpressionPointer, long exponentExpressionPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createMod(int lexprPointer, int rexprPointer);
+	public static native long createMod(long lexprPointer, long rexprPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createNot(int exprPointer);
+	public static native long createNot(long exprPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createAnd(int[] exprPointers);
+	public static native long createAnd(long[] exprPointers);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createOr(int[] exprPointers);
+	public static native long createOr(long[] exprPointers);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createNormalMax(int[] exprPointers);
+	public static native long createNormalMax(long[] exprPointers);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createNormalMin(int[] exprPointers);
+	public static native long createNormalMin(long[] exprPointers);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createRealMax(int[] exprPointers);
+	public static native long createRealMax(long[] exprPointers);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createRealMin(int[] exprPointers);
+	public static native long createRealMin(long[] exprPointers);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createNormalTimes(int lexprPointer, int rexprPointer);
+	public static native long createNormalTimes(long lexprPointer, long rexprPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createNormalPlus(int lexprPointer, int rexprPointer);
+	public static native long createNormalPlus(long lexprPointer, long rexprPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createNormalMinus(int lexprPointer, int rexprPointer);
+	public static native long createNormalMinus(long lexprPointer, long rexprPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createRealTimes(int lexprPointer, int rexprPointer);
+	public static native long createRealTimes(long lexprPointer, long rexprPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createRealPlus(int lexprPointer, int rexprPointer);
+	public static native long createRealPlus(long lexprPointer, long rexprPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createRealMinus(int lexprPointer, int rexprPointer);
+	public static native long createRealMinus(long lexprPointer, long rexprPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createDivide(int lexprPointer, int rexprPointer);
+	public static native long createDivide(long lexprPointer, long rexprPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createIte(int conditionPointer, int truePointer, int falsePointer);
+	public static native long createIte(long conditionPointer, long truePointer, long falsePointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createRealIte(int conditionPointer, int truePointer, int falsePointer);
+	public static native long createRealIte(long conditionPointer, long truePointer, long falsePointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createNormalEquals(int lexprPointer, int rexprPointer);
+	public static native long createNormalEquals(long lexprPointer, long rexprPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createRealEquals(int lexprPointer, int rexprPointer);
+	public static native long createRealEquals(long lexprPointer, long rexprPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createNormalNotEquals(int lexprPointer, int rexprPointer);
+	public static native long createNormalNotEquals(long lexprPointer, long rexprPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createRealNotEquals(int lexprPointer, int rexprPointer);
+	public static native long createRealNotEquals(long lexprPointer, long rexprPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createNormalLessThan(int lexprPointer, int rexprPointer);
+	public static native long createNormalLessThan(long lexprPointer, long rexprPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createRealLessThan(int lexprPointer, int rexprPointer);
+	public static native long createRealLessThan(long lexprPointer, long rexprPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createNormalGreaterThan(int lexprPointer, int rexprPointer);
+	public static native long createNormalGreaterThan(long lexprPointer, long rexprPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createRealGreaterThan(int lexprPointer, int rexprPointer);
+	public static native long createRealGreaterThan(long lexprPointer, long rexprPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createNormalLessThanEqual(int lexprPointer, int rexprPointer);
+	public static native long createNormalLessThanEqual(long lexprPointer, long rexprPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createRealLessThanEqual(int lexprPointer, int rexprPointer);
+	public static native long createRealLessThanEqual(long lexprPointer, long rexprPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createNormalGreaterThanEqual(int lexprPointer, int rexprPointer);
+	public static native long createNormalGreaterThanEqual(long lexprPointer, long rexprPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createRealGreaterThanEqual(int lexprPointer, int rexprPointer);
+	public static native long createRealGreaterThanEqual(long lexprPointer, long rexprPointer);
 	
 	
 	//------------------------------------------------------------------------------
@@ -2613,28 +2618,28 @@ public class SimulatorEngine
 	//internal formulae (these methods return a pointer to the formula's memory
 	//location
 	
-	private static native int loadPctlBoundedUntil(int leftExprPointer, int rightExprPointer, double lowerBound, double upperBound);
-	private static native int loadPctlBoundedUntilNegated(int leftExprPointer, int rightExprPointer, double lowerBound, double upperBound);
+	private static native long loadPctlBoundedUntil(long leftExprPointer, long rightExprPointer, double lowerBound, double upperBound);
+	private static native long loadPctlBoundedUntilNegated(long leftExprPointer, long rightExprPointer, double lowerBound, double upperBound);
 	
-	private static native int loadPctlUntil(int leftExprPointer, int rightExprPointer);
-	private static native int loadPctlUntilNegated(int leftExprPointer, int rightExprPointer);
+	private static native long loadPctlUntil(long leftExprPointer, long rightExprPointer);
+	private static native long loadPctlUntilNegated(long leftExprPointer, long rightExprPointer);
 	
-	private static native int loadPctlNext(int exprPointer);
+	private static native long loadPctlNext(long exprPointer);
 	
-	private static native int loadPctlReachability(int rsi, int expressionPointer);
+	private static native long loadPctlReachability(int rsi, long expressionPointer);
 	
-	private static native int loadPctlCumulative(int rsi, double time);
+	private static native long loadPctlCumulative(int rsi, double time);
 	
-	private static native int loadPctlInstantanious(int rsi, double time);
+	private static native long loadPctlInstantanious(int rsi, double time);
 	
 	//prob formulae (these return the index of the property within the engine.
 	
-	private static native int loadProbQuestion(int pathPointer);
+	private static native int loadProbQuestion(long pathPointer);
 	
 	
 	//rewards formulae (these return the index of the property within the engine.
 	
-	private static native int loadRewardQuestion(int pathPointer);
+	private static native int loadRewardQuestion(long pathPointer);
 	
 	
 	//------------------------------------------------------------------------------
@@ -2648,17 +2653,17 @@ public class SimulatorEngine
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createCommand(int guardPointer, int actionIndex, int moduleIndex, int numUpdates);
+	public static native long createCommand(long guardPointer, int actionIndex, int moduleIndex, int numUpdates);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int addUpdate(int commandPointer, int probPointer, int numAssignments);
+	public static native long addUpdate(long commandPointer, long probPointer, int numAssignments);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int addAssignment(int updatePointer, int varIndex, int rhsPointer);
+	public static native long addAssignment(long updatePointer, int varIndex, long rhsPointer);
 	
 	
 	//------------------------------------------------------------------------------
@@ -2669,12 +2674,12 @@ public class SimulatorEngine
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createStateReward(int guardPointer, int rewardPointer);
+	public static native long createStateReward(long guardPointer, long rewardPointer);
 	
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
-	public static native int createTransitionReward(int actionIndex, int guardPointer, int rewardPointer);
+	public static native long createTransitionReward(int actionIndex, long guardPointer, long rewardPointer);
 	
 	//------------------------------------------------------------------------------
 	//	UTILITY METHODS
@@ -2685,21 +2690,21 @@ public class SimulatorEngine
 	 * Convienience method to print an expression at a given pointer location
 	 * @param exprPointer the expression pointer.
 	 */
-	public static native void printExpression(int exprPointer);
+	public static native void printExpression(long exprPointer);
 	
 	/**
 	 * Returns a string representation of the expression at the given pointer location.
 	 * @param exprPointer the pointer location of the expression.
 	 * @return a string representation of the expression at the given pointer location.
 	 */
-	public static native String expressionToString(int exprPointer);
+	public static native String expressionToString(long exprPointer);
 	
 	/**
 	 * Deletes an expression from memory.
 	 * @deprecated A bit drastic now.
 	 * @param exprPointer the pointer to the location of the expression
 	 */
-	public static native void deleteExpression(int exprPointer); //use with care!
+	public static native void deleteExpression(long exprPointer); //use with care!
 	
 	/**
 	 * Returns a string representation of the loaded simulator engine model.

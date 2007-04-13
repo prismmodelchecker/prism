@@ -56,25 +56,25 @@ extern "C" {
 /*
  * Class:     jdd_JDD
  * Method:    GetCUDDManager
- * Signature: ()I
+ * Signature: ()J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_GetCUDDManager
+JNIEXPORT jlong JNICALL Java_jdd_JDD_GetCUDDManager
   (JNIEnv *, jclass);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_SetOutputStream
- * Signature: (I)V
+ * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_jdd_JDD_DD_1SetOutputStream
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_GetOutputStream
- * Signature: ()I
+ * Signature: ()J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1GetOutputStream
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1GetOutputStream
   (JNIEnv *, jclass);
 
 /*
@@ -120,18 +120,18 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1CloseDownCUDD
 /*
  * Class:     jdd_JDD
  * Method:    DD_Ref
- * Signature: (I)V
+ * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_jdd_JDD_DD_1Ref
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_Deref
- * Signature: (I)V
+ * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_jdd_JDD_DD_1Deref
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     jdd_JDD
@@ -144,506 +144,506 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintCacheInfo
 /*
  * Class:     jdd_JDD
  * Method:    DD_Create
- * Signature: ()I
+ * Signature: ()J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1Create
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1Create
   (JNIEnv *, jclass);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_Constant
- * Signature: (D)I
+ * Signature: (D)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1Constant
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1Constant
   (JNIEnv *, jclass, jdouble);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_PlusInfinity
- * Signature: ()I
+ * Signature: ()J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1PlusInfinity
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1PlusInfinity
   (JNIEnv *, jclass);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_MinusInfinity
- * Signature: ()I
+ * Signature: ()J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1MinusInfinity
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1MinusInfinity
   (JNIEnv *, jclass);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_Var
- * Signature: (I)I
+ * Signature: (I)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1Var
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1Var
   (JNIEnv *, jclass, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_Not
- * Signature: (I)I
+ * Signature: (J)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1Not
-  (JNIEnv *, jclass, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1Not
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_Or
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1Or
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1Or
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_And
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1And
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1And
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_Xor
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1Xor
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1Xor
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_Implies
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1Implies
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1Implies
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_Apply
- * Signature: (III)I
+ * Signature: (IJJ)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1Apply
-  (JNIEnv *, jclass, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1Apply
+  (JNIEnv *, jclass, jint, jlong, jlong);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_MonadicApply
- * Signature: (II)I
+ * Signature: (IJ)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1MonadicApply
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1MonadicApply
+  (JNIEnv *, jclass, jint, jlong);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_Restrict
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1Restrict
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1Restrict
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_ITE
- * Signature: (III)I
+ * Signature: (JJJ)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1ITE
-  (JNIEnv *, jclass, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1ITE
+  (JNIEnv *, jclass, jlong, jlong, jlong);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_PermuteVariables
- * Signature: (IIII)I
+ * Signature: (JJJI)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1PermuteVariables
-  (JNIEnv *, jclass, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1PermuteVariables
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_SwapVariables
- * Signature: (IIII)I
+ * Signature: (JJJI)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1SwapVariables
-  (JNIEnv *, jclass, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1SwapVariables
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_VariablesGreaterThan
- * Signature: (III)I
+ * Signature: (JJI)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1VariablesGreaterThan
-  (JNIEnv *, jclass, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1VariablesGreaterThan
+  (JNIEnv *, jclass, jlong, jlong, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_VariablesGreaterThanEquals
- * Signature: (III)I
+ * Signature: (JJI)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1VariablesGreaterThanEquals
-  (JNIEnv *, jclass, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1VariablesGreaterThanEquals
+  (JNIEnv *, jclass, jlong, jlong, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_VariablesLessThan
- * Signature: (III)I
+ * Signature: (JJI)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1VariablesLessThan
-  (JNIEnv *, jclass, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1VariablesLessThan
+  (JNIEnv *, jclass, jlong, jlong, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_VariablesLessThanEquals
- * Signature: (III)I
+ * Signature: (JJI)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1VariablesLessThanEquals
-  (JNIEnv *, jclass, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1VariablesLessThanEquals
+  (JNIEnv *, jclass, jlong, jlong, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_VariablesEquals
- * Signature: (III)I
+ * Signature: (JJI)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1VariablesEquals
-  (JNIEnv *, jclass, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1VariablesEquals
+  (JNIEnv *, jclass, jlong, jlong, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_ThereExists
- * Signature: (III)I
+ * Signature: (JJI)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1ThereExists
-  (JNIEnv *, jclass, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1ThereExists
+  (JNIEnv *, jclass, jlong, jlong, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_ForAll
- * Signature: (III)I
+ * Signature: (JJI)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1ForAll
-  (JNIEnv *, jclass, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1ForAll
+  (JNIEnv *, jclass, jlong, jlong, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_SumAbstract
- * Signature: (III)I
+ * Signature: (JJI)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1SumAbstract
-  (JNIEnv *, jclass, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1SumAbstract
+  (JNIEnv *, jclass, jlong, jlong, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_ProductAbstract
- * Signature: (III)I
+ * Signature: (JJI)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1ProductAbstract
-  (JNIEnv *, jclass, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1ProductAbstract
+  (JNIEnv *, jclass, jlong, jlong, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_MinAbstract
- * Signature: (III)I
+ * Signature: (JJI)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1MinAbstract
-  (JNIEnv *, jclass, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1MinAbstract
+  (JNIEnv *, jclass, jlong, jlong, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_MaxAbstract
- * Signature: (III)I
+ * Signature: (JJI)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1MaxAbstract
-  (JNIEnv *, jclass, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1MaxAbstract
+  (JNIEnv *, jclass, jlong, jlong, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_GreaterThan
- * Signature: (ID)I
+ * Signature: (JD)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1GreaterThan
-  (JNIEnv *, jclass, jint, jdouble);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1GreaterThan
+  (JNIEnv *, jclass, jlong, jdouble);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_GreaterThanEquals
- * Signature: (ID)I
+ * Signature: (JD)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1GreaterThanEquals
-  (JNIEnv *, jclass, jint, jdouble);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1GreaterThanEquals
+  (JNIEnv *, jclass, jlong, jdouble);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_LessThan
- * Signature: (ID)I
+ * Signature: (JD)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1LessThan
-  (JNIEnv *, jclass, jint, jdouble);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1LessThan
+  (JNIEnv *, jclass, jlong, jdouble);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_LessThanEquals
- * Signature: (ID)I
+ * Signature: (JD)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1LessThanEquals
-  (JNIEnv *, jclass, jint, jdouble);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1LessThanEquals
+  (JNIEnv *, jclass, jlong, jdouble);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_Equals
- * Signature: (ID)I
+ * Signature: (JD)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1Equals
-  (JNIEnv *, jclass, jint, jdouble);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1Equals
+  (JNIEnv *, jclass, jlong, jdouble);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_Interval
- * Signature: (IDD)I
+ * Signature: (JDD)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1Interval
-  (JNIEnv *, jclass, jint, jdouble, jdouble);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1Interval
+  (JNIEnv *, jclass, jlong, jdouble, jdouble);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_RoundOff
- * Signature: (II)I
+ * Signature: (JI)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1RoundOff
-  (JNIEnv *, jclass, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1RoundOff
+  (JNIEnv *, jclass, jlong, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_EqualSupNorm
- * Signature: (IID)Z
+ * Signature: (JJD)Z
  */
 JNIEXPORT jboolean JNICALL Java_jdd_JDD_DD_1EqualSupNorm
-  (JNIEnv *, jclass, jint, jint, jdouble);
+  (JNIEnv *, jclass, jlong, jlong, jdouble);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_FindMin
- * Signature: (I)D
+ * Signature: (J)D
  */
 JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1FindMin
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_FindMax
- * Signature: (I)D
+ * Signature: (J)D
  */
 JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1FindMax
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_RestrictToFirst
- * Signature: (III)I
+ * Signature: (JJI)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1RestrictToFirst
-  (JNIEnv *, jclass, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1RestrictToFirst
+  (JNIEnv *, jclass, jlong, jlong, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_GetNumNodes
- * Signature: (I)I
+ * Signature: (J)I
  */
 JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1GetNumNodes
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_GetNumTerminals
- * Signature: (I)I
+ * Signature: (J)I
  */
 JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1GetNumTerminals
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_GetNumMinterms
- * Signature: (II)D
+ * Signature: (JI)D
  */
 JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1GetNumMinterms
-  (JNIEnv *, jclass, jint, jint);
+  (JNIEnv *, jclass, jlong, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_GetNumPaths
- * Signature: (I)D
+ * Signature: (J)D
  */
 JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1GetNumPaths
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_PrintInfo
- * Signature: (II)V
+ * Signature: (JI)V
  */
 JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintInfo
-  (JNIEnv *, jclass, jint, jint);
+  (JNIEnv *, jclass, jlong, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_PrintInfoBrief
- * Signature: (II)V
+ * Signature: (JI)V
  */
 JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintInfoBrief
-  (JNIEnv *, jclass, jint, jint);
+  (JNIEnv *, jclass, jlong, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_PrintSupport
- * Signature: (I)V
+ * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintSupport
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_GetSupport
- * Signature: (I)I
+ * Signature: (J)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1GetSupport
-  (JNIEnv *, jclass, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1GetSupport
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_PrintTerminals
- * Signature: (I)V
+ * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintTerminals
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_PrintTerminalsAndNumbers
- * Signature: (II)V
+ * Signature: (JI)V
  */
 JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintTerminalsAndNumbers
-  (JNIEnv *, jclass, jint, jint);
+  (JNIEnv *, jclass, jlong, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_SetVectorElement
- * Signature: (IIIJD)I
+ * Signature: (JJIJD)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1SetVectorElement
-  (JNIEnv *, jclass, jint, jint, jint, jlong, jdouble);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1SetVectorElement
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jdouble);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_SetMatrixElement
- * Signature: (IIIIIJJD)I
+ * Signature: (JJIJIJJD)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1SetMatrixElement
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jlong, jlong, jdouble);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1SetMatrixElement
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jdouble);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_Set3DMatrixElement
- * Signature: (IIIIIIIJJJD)I
+ * Signature: (JJIJIJIJJJD)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1Set3DMatrixElement
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jint, jlong, jlong, jlong, jdouble);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1Set3DMatrixElement
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jlong, jdouble);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_GetVectorElement
- * Signature: (IIIJ)D
+ * Signature: (JJIJ)D
  */
 JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1GetVectorElement
-  (JNIEnv *, jclass, jint, jint, jint, jlong);
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_Identity
- * Signature: (III)I
+ * Signature: (JJI)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1Identity
-  (JNIEnv *, jclass, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1Identity
+  (JNIEnv *, jclass, jlong, jlong, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_Transpose
- * Signature: (IIII)I
+ * Signature: (JJJI)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1Transpose
-  (JNIEnv *, jclass, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1Transpose
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_MatrixMultiply
- * Signature: (IIIII)I
+ * Signature: (JJJII)J
  */
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1MatrixMultiply
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1MatrixMultiply
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_PrintVector
- * Signature: (IIII)V
+ * Signature: (JJII)V
  */
 JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintVector
-  (JNIEnv *, jclass, jint, jint, jint, jint);
+  (JNIEnv *, jclass, jlong, jlong, jint, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_PrintMatrix
- * Signature: (IIIIII)V
+ * Signature: (JJIJII)V
  */
 JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintMatrix
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint);
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_PrintVectorFiltered
- * Signature: (IIIII)V
+ * Signature: (JJJII)V
  */
 JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintVectorFiltered
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint);
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jint);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_ExportDDToDotFile
- * Signature: (ILjava/lang/String;)V
+ * Signature: (JLjava/lang/String;)V
  */
 JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportDDToDotFile
-  (JNIEnv *, jclass, jint, jstring);
+  (JNIEnv *, jclass, jlong, jstring);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_ExportDDToDotFileLabelled
- * Signature: (ILjava/lang/String;Ljava/util/Vector;)V
+ * Signature: (JLjava/lang/String;Ljava/util/Vector;)V
  */
 JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportDDToDotFileLabelled
-  (JNIEnv *, jclass, jint, jstring, jobject);
+  (JNIEnv *, jclass, jlong, jstring, jobject);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_ExportMatrixToPPFile
- * Signature: (IIIIILjava/lang/String;)V
+ * Signature: (JJIJILjava/lang/String;)V
  */
 JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportMatrixToPPFile
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jstring);
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jstring);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_ExportMatrixToMatlabFile
- * Signature: (IIIIILjava/lang/String;Ljava/lang/String;)V
+ * Signature: (JJIJILjava/lang/String;Ljava/lang/String;)V
  */
 JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportMatrixToMatlabFile
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jstring, jstring);
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jstring, jstring);
 
 /*
  * Class:     jdd_JDD
  * Method:    DD_ExportMatrixToSpyFile
- * Signature: (IIIIIILjava/lang/String;)V
+ * Signature: (JJIJIILjava/lang/String;)V
  */
 JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportMatrixToSpyFile
-  (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint, jstring);
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jint, jstring);
 
 /*
  * Class:     jdd_JDD

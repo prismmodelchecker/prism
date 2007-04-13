@@ -10,170 +10,170 @@ extern "C" {
 /*
  * Class:     dv_DoubleVector
  * Method:    DV_SetCUDDManager
- * Signature: (I)V
+ * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1SetCUDDManager
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     dv_DoubleVector
  * Method:    DV_CreateZeroVector
- * Signature: (I)I
+ * Signature: (I)J
  */
-JNIEXPORT jint JNICALL Java_dv_DoubleVector_DV_1CreateZeroVector
+JNIEXPORT jlong JNICALL Java_dv_DoubleVector_DV_1CreateZeroVector
   (JNIEnv *, jobject, jint);
 
 /*
  * Class:     dv_DoubleVector
  * Method:    DV_ConvertMTBDD
- * Signature: (IIII)I
+ * Signature: (JJIJ)J
  */
-JNIEXPORT jint JNICALL Java_dv_DoubleVector_DV_1ConvertMTBDD
-  (JNIEnv *, jobject, jint, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_dv_DoubleVector_DV_1ConvertMTBDD
+  (JNIEnv *, jobject, jlong, jlong, jint, jlong);
 
 /*
  * Class:     dv_DoubleVector
  * Method:    DV_GetElement
- * Signature: (III)D
+ * Signature: (JII)D
  */
 JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1GetElement
-  (JNIEnv *, jobject, jint, jint, jint);
+  (JNIEnv *, jobject, jlong, jint, jint);
 
 /*
  * Class:     dv_DoubleVector
  * Method:    DV_RoundOff
- * Signature: (III)V
+ * Signature: (JII)V
  */
 JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1RoundOff
-  (JNIEnv *, jobject, jint, jint, jint);
+  (JNIEnv *, jobject, jlong, jint, jint);
 
 /*
  * Class:     dv_DoubleVector
  * Method:    DV_SubtractFromOne
- * Signature: (II)V
+ * Signature: (JI)V
  */
 JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1SubtractFromOne
-  (JNIEnv *, jobject, jint, jint);
+  (JNIEnv *, jobject, jlong, jint);
 
 /*
  * Class:     dv_DoubleVector
  * Method:    DV_Add
- * Signature: (III)V
+ * Signature: (JIJ)V
  */
 JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1Add
-  (JNIEnv *, jobject, jint, jint, jint);
+  (JNIEnv *, jobject, jlong, jint, jlong);
 
 /*
  * Class:     dv_DoubleVector
  * Method:    DV_TimesConstant
- * Signature: (IID)V
+ * Signature: (JID)V
  */
 JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1TimesConstant
-  (JNIEnv *, jobject, jint, jint, jdouble);
+  (JNIEnv *, jobject, jlong, jint, jdouble);
 
 /*
  * Class:     dv_DoubleVector
  * Method:    DV_Filter
- * Signature: (IIIII)V
+ * Signature: (JJJIJ)V
  */
 JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1Filter
-  (JNIEnv *, jobject, jint, jint, jint, jint, jint);
+  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jlong);
 
 /*
  * Class:     dv_DoubleVector
  * Method:    DV_Clear
- * Signature: (I)V
+ * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1Clear
-  (JNIEnv *, jobject, jint);
+  (JNIEnv *, jobject, jlong);
 
 /*
  * Class:     dv_DoubleVector
  * Method:    DV_GetNNZ
- * Signature: (II)I
+ * Signature: (JI)I
  */
 JNIEXPORT jint JNICALL Java_dv_DoubleVector_DV_1GetNNZ
-  (JNIEnv *, jobject, jint, jint);
+  (JNIEnv *, jobject, jlong, jint);
 
 /*
  * Class:     dv_DoubleVector
  * Method:    DV_FirstFromBDD
- * Signature: (IIIII)D
+ * Signature: (JJJIJ)D
  */
 JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1FirstFromBDD
-  (JNIEnv *, jobject, jint, jint, jint, jint, jint);
+  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jlong);
 
 /*
  * Class:     dv_DoubleVector
  * Method:    DV_MinOverBDD
- * Signature: (IIIII)D
+ * Signature: (JJJIJ)D
  */
 JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1MinOverBDD
-  (JNIEnv *, jobject, jint, jint, jint, jint, jint);
+  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jlong);
 
 /*
  * Class:     dv_DoubleVector
  * Method:    DV_MaxOverBDD
- * Signature: (IIIII)D
+ * Signature: (JJJIJ)D
  */
 JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1MaxOverBDD
-  (JNIEnv *, jobject, jint, jint, jint, jint, jint);
+  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jlong);
 
 /*
  * Class:     dv_DoubleVector
  * Method:    DV_SumOverBDD
- * Signature: (IIIII)D
+ * Signature: (JJJIJ)D
  */
 JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1SumOverBDD
-  (JNIEnv *, jobject, jint, jint, jint, jint, jint);
+  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jlong);
 
 /*
  * Class:     dv_DoubleVector
  * Method:    DV_SumOverMTBDD
- * Signature: (IIIII)D
+ * Signature: (JJJIJ)D
  */
 JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1SumOverMTBDD
-  (JNIEnv *, jobject, jint, jint, jint, jint, jint);
+  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jlong);
 
 /*
  * Class:     dv_DoubleVector
  * Method:    DV_BDDGreaterThanEquals
- * Signature: (IDIII)I
+ * Signature: (JDJIJ)J
  */
-JNIEXPORT jint JNICALL Java_dv_DoubleVector_DV_1BDDGreaterThanEquals
-  (JNIEnv *, jobject, jint, jdouble, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_dv_DoubleVector_DV_1BDDGreaterThanEquals
+  (JNIEnv *, jobject, jlong, jdouble, jlong, jint, jlong);
 
 /*
  * Class:     dv_DoubleVector
  * Method:    DV_BDDGreaterThan
- * Signature: (IDIII)I
+ * Signature: (JDJIJ)J
  */
-JNIEXPORT jint JNICALL Java_dv_DoubleVector_DV_1BDDGreaterThan
-  (JNIEnv *, jobject, jint, jdouble, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_dv_DoubleVector_DV_1BDDGreaterThan
+  (JNIEnv *, jobject, jlong, jdouble, jlong, jint, jlong);
 
 /*
  * Class:     dv_DoubleVector
  * Method:    DV_BDDLessThanEquals
- * Signature: (IDIII)I
+ * Signature: (JDJIJ)J
  */
-JNIEXPORT jint JNICALL Java_dv_DoubleVector_DV_1BDDLessThanEquals
-  (JNIEnv *, jobject, jint, jdouble, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_dv_DoubleVector_DV_1BDDLessThanEquals
+  (JNIEnv *, jobject, jlong, jdouble, jlong, jint, jlong);
 
 /*
  * Class:     dv_DoubleVector
  * Method:    DV_BDDLessThan
- * Signature: (IDIII)I
+ * Signature: (JDJIJ)J
  */
-JNIEXPORT jint JNICALL Java_dv_DoubleVector_DV_1BDDLessThan
-  (JNIEnv *, jobject, jint, jdouble, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_dv_DoubleVector_DV_1BDDLessThan
+  (JNIEnv *, jobject, jlong, jdouble, jlong, jint, jlong);
 
 /*
  * Class:     dv_DoubleVector
  * Method:    DV_BDDInterval
- * Signature: (IDDIII)I
+ * Signature: (JDDJIJ)J
  */
-JNIEXPORT jint JNICALL Java_dv_DoubleVector_DV_1BDDInterval
-  (JNIEnv *, jobject, jint, jdouble, jdouble, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_dv_DoubleVector_DV_1BDDInterval
+  (JNIEnv *, jobject, jlong, jdouble, jdouble, jlong, jint, jlong);
 
 #ifdef __cplusplus
 }

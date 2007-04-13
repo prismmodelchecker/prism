@@ -103,12 +103,12 @@ public class ExpressionAnd extends ExpressionNary
 	/**
 	 *	Convert and build AND expression into simulator
 	 */
-	public int toSimulator(SimulatorEngine sim) throws SimulatorException
+	public long toSimulator(SimulatorEngine sim) throws SimulatorException
 	{
 		int n = getNumOperands();
 		if( n < 1 )
 			throw new SimulatorException("Expression \"" + toString() + "\" has zero operands");
-		int[] exprs = new int[n];
+		long[] exprs = new long[n];
 		
 		//Collect operands pointers in an array
 		for (int i = 0; i < n; i++) 
