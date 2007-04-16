@@ -178,7 +178,7 @@ public class FormulaList
 		n = formulas.size();
 		for (i = 0; i < n; i++) {
 			s += "formula " + names.elementAt(i);
-			s += " = " + formulas.elementAt(i) + "\n";
+			s += " = " + formulas.elementAt(i) + ";\n";
 		}
 		
 		return s;
