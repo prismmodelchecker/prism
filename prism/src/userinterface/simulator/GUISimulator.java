@@ -1390,7 +1390,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
         autoTimeCheckPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 0, 0, 0));
         autoTimeCheck.setText("Generate time automatically");
-        autoTimeCheck.setToolTipText("When not selected, you will be promted to manually enter the time spent in states");
+        autoTimeCheck.setToolTipText("When not selected, you will be prompted to manually enter the time spent in states");
         autoTimeCheck.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         autoTimeCheck.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         autoTimeCheck.setMargin(new java.awt.Insets(0, 0, 0, 0));
