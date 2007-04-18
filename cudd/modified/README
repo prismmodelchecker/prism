@@ -19,7 +19,7 @@ Below is a list of the files that have been changed.
 
 The following structural changes have also been made:
 
- * ddmp/nanotrav/mnemosyne/obj/sis directories have been removed
+ * ddmp/nanotrav/mnemosyne/obj/sis and various doc directories have been removed
  * lib directory added with symlinks to lib files
 
 
