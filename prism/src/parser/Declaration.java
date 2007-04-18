@@ -236,10 +236,10 @@ public class Declaration
 	public String toString()
 	{
 		if (type == Expression.INT) {
-			return name + " : [" + low + ".." + high + "] init " + start;
+			return name + " : [" + low + ".." + high + "] init " + start + ";";
 		}
 		else if (type == Expression.BOOLEAN) {
-			return name + " : bool init " + start;
+			return name + " : bool init " + start + ";";
 		}
 		else return "";
 	}
