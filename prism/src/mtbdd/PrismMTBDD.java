@@ -262,6 +262,15 @@ public class PrismMTBDD
 		return new JDDNode(ptr);
 	}
 	
+	// pctl cumulative reward (probabilistic/dtmc)
+	private static native long PM_ProbCumulReward(long trans, long sr, long trr, long odd, long rv, int nrv, long cv, int ncv, int bound);
+	public static JDDNode ProbCumulReward(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, int bound) throws PrismException
+	{
+		long ptr = PM_ProbCumulReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), bound);
+		if (ptr == 0) throw new PrismException(getErrorMessage());
+		return new JDDNode(ptr);
+	}
+
 	// pctl reach reward (probabilistic/dtmc)
 	private static native long PM_ProbReachReward(long trans, long sr, long trr, long odd, long rv, int nrv, long cv, int ncv, long goal, long inf, long maybe);
 	public static JDDNode ProbReachReward(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, JDDNode goal, JDDNode inf, JDDNode maybe) throws PrismException

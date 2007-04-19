@@ -1554,15 +1554,9 @@ public class NondetModelChecker implements ModelChecker
 				}
 			}
 			catch (PrismException e) {
-				JDD.Deref(inf);
-				JDD.Deref(maybe);
 				throw e;
 			}
 		}
-		
-		// derefs
-		JDD.Deref(inf);
-		JDD.Deref(maybe);
 		
 		return rewards;
 	}

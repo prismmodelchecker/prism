@@ -161,6 +161,14 @@ JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1ProbUntil
 
 /*
  * Class:     hybrid_PrismHybrid
+ * Method:    PH_ProbCumulReward
+ * Signature: (JJJJJIJII)J
+ */
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1ProbCumulReward
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jint);
+
+/*
+ * Class:     hybrid_PrismHybrid
  * Method:    PH_ProbReachReward
  * Signature: (JJJJJIJIJJJ)J
  */

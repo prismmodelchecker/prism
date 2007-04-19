@@ -3913,17 +3913,6 @@ public class PrismParser implements PrismParserConstants {
     finally { jj_save(184, xla); }
   }
 
-  static final private boolean jj_3_34() {
-    if (jj_3R_38()) return true;
-    return false;
-  }
-
-  static final private boolean jj_3_139() {
-    if (jj_scan_token(COLON)) return true;
-    if (jj_3R_35()) return true;
-    return false;
-  }
-
   static final private boolean jj_3R_72() {
     if (jj_3R_92()) return true;
     Token xsp;
@@ -5932,6 +5921,17 @@ public class PrismParser implements PrismParserConstants {
     jj_scanpos = xsp;
     if (jj_3_70()) return true;
     }
+    return false;
+  }
+
+  static final private boolean jj_3_34() {
+    if (jj_3R_38()) return true;
+    return false;
+  }
+
+  static final private boolean jj_3_139() {
+    if (jj_scan_token(COLON)) return true;
+    if (jj_3R_35()) return true;
     return false;
   }
 

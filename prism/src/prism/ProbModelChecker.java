@@ -725,7 +725,9 @@ public class ProbModelChecker implements ModelChecker
 		// compute rewards
 		f = pctl.getOperand();
 		try {
-			if (f instanceof PCTLRewardReach)
+			if (f instanceof PCTLRewardCumul)
+				rewards = checkPCTLRewardCumul((PCTLRewardCumul)f, stateRewards, transRewards);
+			else if (f instanceof PCTLRewardReach)
 				rewards = checkPCTLRewardReach((PCTLRewardReach)f, stateRewards, transRewards);
 			else
 				throw new PrismException("Unrecognised operator in R[] formula");
@@ -1018,6 +1020,45 @@ public class ProbModelChecker implements ModelChecker
 		probs = checkPCTLProbUntil(pctlUntil, pe, p);
 		probs.subtractFromOne();
 		return probs;
+	}
+
+	// cumulative reward
+	
+	private StateProbs checkPCTLRewardCumul(PCTLRewardCumul pctl, JDDNode stateRewards, JDDNode transRewards) throws PrismException
+	{
+		int time;	// time
+		Expression expr;
+		StateProbs rewards = null;
+		
+		// get info from inst reward
+		expr = pctl.getBound();
+		if (expr != null) {
+			time = expr.evaluateInt(constantValues, null);
+			if (time < 0) {
+				throw new PrismException("Invalid time bound " + time + " in cumulative reward formula");
+			}
+		}
+		else {
+			throw new PrismException("No time bound specified in cumulative reward formula");
+		}
+		
+		// compute rewards
+		
+		// a trivial case: "<=0"
+		if (time == 0) {
+			rewards = new StateProbsMTBDD(JDD.Constant(0), model);
+		}
+		else {
+			// compute rewards
+			try {
+				rewards = computeCumulRewards(trans, trans01, stateRewards, transRewards, time);
+			}
+			catch (PrismException e) {
+				throw e;
+			}
+		}
+		
+		return rewards;
 	}
 
 	// reach reward
@@ -1363,6 +1404,39 @@ public class ProbModelChecker implements ModelChecker
 		JDD.Deref(maybe);
 		
 		return probs;
+	}
+
+	// compute cumulative rewards
+	
+	private StateProbs computeCumulRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr, int time) throws PrismException
+	{
+		JDDNode rewardsMTBDD;
+		DoubleVector rewardsDV;
+		StateProbs rewards = null;
+		
+		// compute rewards
+		try {
+			switch (engine) {
+			case Prism.MTBDD:
+				rewardsMTBDD = PrismMTBDD.ProbCumulReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, time);
+				rewards = new StateProbsMTBDD(rewardsMTBDD, model);
+				break;
+			case Prism.SPARSE:
+				rewardsDV = PrismSparse.ProbCumulReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, time);
+				rewards = new StateProbsDV(rewardsDV, model);
+				break;
+			case Prism.HYBRID:
+				rewardsDV = PrismHybrid.ProbCumulReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, time);
+				rewards = new StateProbsDV(rewardsDV, model);
+				break;
+			default: throw new PrismException("Engine does not support this numerical method");
+			}
+		}
+		catch (PrismException e) {
+			throw e;
+		}
+		
+		return rewards;
 	}
 
 	// compute rewards for reach reward

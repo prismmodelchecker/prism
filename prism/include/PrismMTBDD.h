@@ -169,6 +169,14 @@ JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1ProbUntil
 
 /*
  * Class:     mtbdd_PrismMTBDD
+ * Method:    PM_ProbCumulReward
+ * Signature: (JJJJJIJII)J
+ */
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1ProbCumulReward
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jint);
+
+/*
+ * Class:     mtbdd_PrismMTBDD
  * Method:    PM_ProbReachReward
  * Signature: (JJJJJIJIJJJ)J
  */
