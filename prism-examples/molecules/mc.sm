@@ -2,7 +2,7 @@
 // dxp/gxn 04/10/04
 
 // ctmc model
-stochastic
+ctmc
 
 // constants
 const int N1 = 10; // number of Mg molecules

@@ -2,7 +2,7 @@
 // dxp/gxn 09/06/04
 
 // ctmc model
-stochastic
+ctmc
 
 // constants
 const int N1 = 10; // number of Na molecules
@@ -40,8 +40,6 @@ const double e2rate = 10; // Na+ + Cl- -> Na + Cl
 
 // module representing the base rates of reactions
 module base_rates
-	
-	dummy : bool; // dummy variable
 	
 	[e1] true -> e1rate : true;
 	[e2] true -> e2rate : true;
