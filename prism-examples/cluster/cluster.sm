@@ -1,107 +1,107 @@
-// workstation cluster [HHK00]
+// Workstation cluster [HHK00]
 // dxp/gxn 11/01/00
 
 ctmc
 
-const int N; // number of workstations in each cluster
-const int left_mx = N; // number of work stations in left cluster
-const int right_mx = N; // number of work stations in right cluster
+const int N; // Number of workstations in each cluster
+const int left_mx = N; // Number of work stations in left cluster
+const int right_mx = N; // Number of work stations in right cluster
 
-// minimum QOS requires 3/4*N connected workstations operational
-const int k=floor(0.75*N);
-formula minimum = (left_n>=k & Toleft_n) | 
-                  (right_n>=k & Toright_n) | 
-				  ((left_n+right_n)>=k & Toleft_n & line_n & Toright_n);
+// Minimum QoS requires 3/4 connected workstations operational
+const int k = floor(0.75*N);
+formula minimum = (left_n>=k & toleft_n) | 
+                  (right_n>=k & toright_n) | 
+                  ((left_n+right_n)>=k & toleft_n & line_n & toright_n);
 
-// rates
-const double line_rate = 0.0002;
-const double Toleft_rate = 0.00025;
-const double Toright_rate = 0.00025;
+// Failure rates
+const double ws_fail = 1/500; // Single workstation: average time to fail = 500 hrs
+const double switch_fail = 1/4000; // Switch: average time to fail = 4000 hrs
+const double line_fail = 1/5000; // Backbone: average time to fail = 5000 hrs
 
-// left cluster
+// Left cluster
 module Left 
 	
-	left_n : [0..left_mx] init left_mx; // number of workstations operational
-	left : bool; // being repaired?
+	left_n : [0..left_mx] init left_mx; // Number of workstations operational
+	left : bool; // Being repaired?
 	
 	[startLeft] !left & (left_n<left_mx) -> 1 : (left'=true);
 	[repairLeft] left & (left_n<left_mx) -> 1 : (left'=false) & (left_n'=left_n+1);
-	[] (left_n>0) -> 0.002*left_n : (left_n'=left_n-1);
+	[] (left_n>0) -> ws_fail*left_n : (left_n'=left_n-1);
 	
 endmodule
 
-// right cluster
+// Right cluster
 module Right = Left[left_n=right_n,
-	                left=right,
-	                left_mx=right_mx,
-	                startLeft=startRight,
-	                repairLeft=repairRight ]
+                    left=right,
+                    left_mx=right_mx,
+                    startLeft=startRight,
+                    repairLeft=repairRight ]
 endmodule
 
-// repair unit
+// Repair unit
 module Repairman
 	
-	r : bool; // repairing?
+	r : bool; // Repairing?
 	
-	[startLeft]    !r -> 10 : (r'=true); // inspect Left 
-	[startRight]   !r -> 10 : (r'=true); // inspect Right 
-	[startToLeft]  !r -> 10 : (r'=true); // inspect ToLeft
-	[startToRight] !r -> 10 : (r'=true); // inspect ToRight 
-	[startLine]    !r -> 10 : (r'=true); // inspect Line 
+	[startLeft]    !r -> 10 : (r'=true); // Inspect Left 
+	[startRight]   !r -> 10 : (r'=true); // Inspect Right 
+	[startToLeft]  !r -> 10 : (r'=true); // Inspect ToLeft
+	[startToRight] !r -> 10 : (r'=true); // Inspect ToRight 
+	[startLine]    !r -> 10 : (r'=true); // Inspect Line 
 	
-	[repairLeft]    r -> 2     : (r'=false); // repair Left 
-	[repairRight]   r -> 2     : (r'=false); // repair Right
-	[repairToLeft]  r -> 0.25  : (r'=false); // repair ToLeft
-	[repairToRight] r -> 0.25  : (r'=false); // repair ToRight
-	[repairLine]    r -> 0.125 : (r'=false); // repair Line
+	[repairLeft]    r -> 2     : (r'=false); // Repair Left 
+	[repairRight]   r -> 2     : (r'=false); // Repair Right
+	[repairToLeft]  r -> 0.25  : (r'=false); // Repair ToLeft
+	[repairToRight] r -> 0.25  : (r'=false); // Repair ToRight
+	[repairLine]    r -> 0.125 : (r'=false); // Repair Line
 	
 endmodule
 
-// line/backbone
+// Line/backbone
 module Line 
 	
-	line :   bool; // being repaired?
-	line_n : bool init true; // working?
+	line :   bool; // Being repaired?
+	line_n : bool init true; // Working?
 	
 	[startLine] !line & !line_n -> 1 : (line'=true);
 	[repairLine] line & !line_n -> 1 : (line'=false) & (line_n'=true);
-	[] line_n -> line_rate : (line_n'=false);
+	[] line_n -> line_fail : (line_n'=false);
 	
 endmodule
 
-// left switch
-module ToLeft = Line[line=Toleft,
-	                 line_n=Toleft_n,
-	                 line_rate=Toleft_rate,
-	                 startLine=startToLeft,
-	                 repairLine=repairToLeft ]
+// Left switch
+module ToLeft = Line[line=toleft,
+                     line_n=toleft_n,
+                     line_fail=switch_fail,
+                     startLine=startToLeft,
+                     repairLine=repairToLeft ]
 endmodule
 
-// right switch
-module ToRight = Line[line=Toright,
-	                  line_n=Toright_n,
-	                  line_rate=Toright_rate,
-	                  startLine=startToRight,
-	                  repairLine=repairToRight ]
+// Right switch
+module ToRight = Line[line=toright,
+                      line_n=toright_n,
+                      line_fail=switch_fail,
+                      startLine=startToRight,
+                      repairLine=repairToRight ]
 endmodule
 
-// reward structures
+// Reward structures
 
-// percentage of operational workstations stations
-rewards "per_oper"
+// Percentage of operational workstations stations
+rewards "percent_op"
 	true : 100*(left_n+right_n)/(2*N);
 endrewards
 
-// time spent below minimum QoS
-rewards "below_min"
-	!minimum : 1;
+// Time that the system is not delivering at least minimum QoS
+rewards "time_not_min"
+	!minimum : 1; 
 endrewards
 
-// number of repairs
-rewards "repairs"
-	[repairLeft]    REPAIR : 1;
-	[repairRight]   REPAIR : 1;
-	[repairToLeft]  REPAIR : 1;
-	[repairToRight] REPAIR : 1;
-	[repairLine]    REPAIR : 1;
+// Number of repairs
+rewards "num_repairs"
+	[repairLeft]    true : 1;
+	[repairRight]   true : 1;
+	[repairToLeft]  true : 1;
+	[repairToRight] true : 1;
+	[repairLine]    true : 1;
 endrewards
