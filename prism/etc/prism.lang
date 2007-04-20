@@ -5,6 +5,8 @@
 <!-- Save this file in ~/.gnome2/gtksourceview-1.0/language-specs/ -->
 <!-- After a restart of Gnome, "PRISM" should appear as a highlight mode under "Others" -->
 
+<!-- See the file Overrides.xml for info about adding MIME types under Gnome -->
+
 <language _name="PRISM" version="1.0" _section="Others" mimetypes="text/x-prism">
 
 	<line-comment _name = "Line Comment" style= "Comment">
