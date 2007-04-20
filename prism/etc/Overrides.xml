@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<!-- This file can be used to define a MIME type for PRISM files under the Gnome desktop -->
+<!-- Save the file as ~/.local/share/mime/packages/Overrides.xml and then run: -->
+<!--   update-mime-database ~/.local/share/mime -->
+
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="text/x-prism">
+    <comment>PRISM file</comment>
+    <glob pattern="*.pm"/>
+    <glob pattern="*.sm"/>
+    <glob pattern="*.nm"/>
+    <glob pattern="*.pctl"/>
+    <glob pattern="*.csl"/>
+  </mime-type>
+</mime-info>
