@@ -4,6 +4,9 @@
 <!-- Save the file as ~/.local/share/mime/packages/Overrides.xml and then run: -->
 <!--   update-mime-database ~/.local/share/mime -->
 
+<!-- Please note that this overrides the association of .pm file with Perl files -->
+<!-- If you do not want this, then comment out the .pm line below -->
+
 <mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
   <mime-type type="text/x-prism">
     <comment>PRISM file</comment>
