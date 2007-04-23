@@ -6,7 +6,7 @@ of the main changes in each public release, see the file VERSIONS.txt.
 Latest additions (reverse chronological)
 -----------------------------------------------------------------------------
 
-* Cumulative reward properties for DTMC
+* Cumulative reward properties for DTMCs
 * Support for 64-bit architectures
 * Addition of F and G operators to property language (eventually/globally)
 * Redesign of the simulator GUI, plus new features:
