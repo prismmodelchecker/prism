@@ -161,6 +161,8 @@ public class JDD
 	// constant dds
 	public static JDDNode ZERO;
 	public static JDDNode ONE;
+	public static JDDNode PLUS_INFINITY;
+	public static JDDNode MINUS_INFINITY;
 		
 	// wrapper methods for dd
 	
@@ -184,6 +186,8 @@ public class JDD
 		DD_InitialiseCUDD();
 		ZERO = Constant(0);
 		ONE = Constant(1);
+		PLUS_INFINITY = JDD.PlusInfinity();
+		MINUS_INFINITY = JDD.MinusInfinity();
 	}
 		
 	// initialise cudd
@@ -194,6 +198,8 @@ public class JDD
 		DD_InitialiseCUDD(max_mem, epsilon);
 		ZERO = Constant(0);
 		ONE = Constant(1);
+		PLUS_INFINITY = JDD.PlusInfinity();
+		MINUS_INFINITY = JDD.MinusInfinity();
 	}
 		
 	// set cudd max memory
@@ -220,6 +226,8 @@ public class JDD
 	{
 		Deref(ZERO);
 		Deref(ONE);
+		Deref(PLUS_INFINITY);
+		Deref(MINUS_INFINITY);
 		DD_CloseDownCUDD(check);
 	}
 	
@@ -683,12 +691,67 @@ public class JDD
 		DD_PrintTerminals(dd.ptr());
 	}
 	
+	// get list of values of all terminals in dd as string (native method sends to stdout)
+	// [ REFS: <none>, DEREFS: <none> ]
+	
+	public static String GetTerminalsString(JDDNode dd)
+	{
+		return GetTerminalsString(dd, 0, false);
+	}
+	
 	// print out all values of all terminals (and number of each) in dd
 	// [ REFS: <none>, DEREFS: <none> ]
 	
 	public static void PrintTerminalsAndNumbers(JDDNode dd, int num_vars)
 	{
 		DD_PrintTerminalsAndNumbers(dd.ptr(), num_vars);
+	}
+	
+	// get list of values of all terminals (and number of each) in dd (native method sends to stdout)
+	// [ REFS: <none>, DEREFS: <none> ]
+	
+	public static String GetTerminalsAndNumbersString(JDDNode dd, int num_vars)
+	{
+		return GetTerminalsString(dd, num_vars, true);
+	}
+	
+	// Generic code for two GetTerminals...String methods above
+	
+	public static String GetTerminalsString(JDDNode dd, int num_vars, boolean and_numbers)
+	{
+		JDDNode tmp, tmp2;
+		double min, max, num, count = 0.0;
+		String s = "";
+
+		// Take a copy of dd	
+		JDD.Ref(dd);
+		tmp = dd;
+		// Check the min (will use at end)
+		min = JDD.FindMin(tmp);
+		// Loop through terminals in descending order
+		while (!tmp.equals(JDD.MINUS_INFINITY)) {
+			// Find next (max) terminal and display
+			max = JDD.FindMax(tmp);
+			s += max + " ";
+			// Remove the terminals, counting/displaying number if required
+			JDD.Ref(tmp);
+			tmp2 = JDD.Equals(tmp, max);
+			if (and_numbers) {
+				num = JDD.GetNumMinterms(tmp2, num_vars);
+				count += num;
+				s += "(" + (long)num + ") ";
+			}
+			tmp = JDD.ITE(tmp2, JDD.MinusInfinity(), tmp);
+		}
+		JDD.Deref(tmp);
+		// Finally, print if there are (and possibly how many) minus infinities
+		if (and_numbers) {
+			if (count < (1<<num_vars)) s += "-inf (" + ((1<<num_vars)-count) + ")";
+		} else {
+			if (min == -Double.POSITIVE_INFINITY) s += "-inf";
+		}
+		
+		return s;
 	}
 
 	// wrapper methods for dd_matrix
