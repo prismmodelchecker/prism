@@ -357,7 +357,7 @@ $(BIN_XPRISM_BAT): $(BIN_XPRISM_BAT_SRC)
 
 VERSION=# default value for VERSION is blank to force provision at command-line 
 
-dist: dist_check_version dist_copy clean_all dist_files dist_tidy
+dist: dist_check_version dist_copy clean_all dist_tidy
 
 dist_bin: dist_check_version binary dist_tidy dist_bin_copy
 
@@ -365,8 +365,8 @@ dist_check_version:
 	@if [ "$(VERSION)" = "" ]; then echo "Usage: make dist/dist_bin VERSION=3.1"; exit 1; fi
 
 dist_copy:
-	@echo Adding cudd...; rm -rf cudd && svn -q export https://subversion.cs.bham.ac.uk/svn/dxp/prismsvn/prism/tags/prism-$(VERSION)/cudd cudd
-	@echo Adding examples...; rm -rf examples && svn -q export https://subversion.cs.bham.ac.uk/svn/dxp/prismsvn/prism/tags/prism-$(VERSION)/prism-examples examples
+#	@echo Adding cudd...; rm -rf cudd && svn -q export https://subversion.cs.bham.ac.uk/svn/dxp/prismsvn/prism/tags/prism-$(VERSION)/cudd cudd
+#	@echo Adding examples...; rm -rf examples && svn -q export https://subversion.cs.bham.ac.uk/svn/dxp/prismsvn/prism/tags/prism-$(VERSION)/prism-examples examples
 #	@echo Adding doc...; test -f ~dxp/prism-dev/doc/manual.pdf && rm -rf doc && mkdir doc && cp ~dxp/prism-dev/doc/manual.pdf doc
 
 dist_bin_copy:
@@ -384,7 +384,7 @@ dist_bin_copy:
 	fi
 #	(cd $$BIN_DIST_DIR/..; zip -rq $$BIN_DIST_DIR_NAME.zip $$BIN_DIST_DIR_NAME);
 
-dist_files:
+dist_tidy:
 	@echo Detecting unwanted files...
 	@find . \( -name '*.o' -o -name '*.so' -o -name '*.dll' -o -name '*.exe' \)
 	@find . \( -name '*~*' -o -name '*bak*' -o -name '*CVS*' \)
@@ -394,8 +394,6 @@ dist_files:
 	@find . -name '.nbattrs'
 	@find . -name '.xv*'
 	@find . -name '*NOTES*' | grep -v src/parser/NOTES | grep -v cudd/RELEASE.NOTES || test 1
-
-dist_tidy:
 	@echo Processing text files...
 	@find . -type f -name '*.txt' -exec unix2dos {} {} \; 2> /dev/null
 	@find examples -type f ! -name auto -exec unix2dos {} {} \; 2> /dev/null
