@@ -76,6 +76,8 @@ jint bound			// time bound
 	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
 	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
 
+	// mtbdds
+	DdNode *all_rewards;
 	// model stats
 	int n;
 	long nnz;
@@ -124,18 +126,17 @@ jint bound			// time bound
 	PH_PrintToMainLog(env, "[levels=%d, num=%d%s] [%.1f KB]\n", hddm->l_sm, hddm->num_sm, compact_sm?", compact":"", kb);
 	
 	// multiply transition rewards by transition probs and sum rows
-	// (note also filters out unwanted states at the same time)
-	Cudd_Ref(trans);
-	trans_rewards = DD_Apply(ddman, APPLY_TIMES, trans_rewards, trans);
-	trans_rewards = DD_SumAbstract(ddman, trans_rewards, cvars, num_cvars);
-	
-	// combine state and transition rewards and put in a vector
+	// then combine state and transition rewards and put in a vector
 	Cudd_Ref(trans_rewards);
-	state_rewards = DD_Apply(ddman, APPLY_PLUS, state_rewards, trans_rewards);
-	
+	Cudd_Ref(trans);
+	all_rewards = DD_Apply(ddman, APPLY_TIMES, trans_rewards, trans);
+	all_rewards = DD_SumAbstract(ddman, all_rewards, cvars, num_cvars);
+	Cudd_Ref(state_rewards);
+	all_rewards = DD_Apply(ddman, APPLY_PLUS, state_rewards, all_rewards);
+
 	// get vector of rewards
 	PH_PrintToMainLog(env, "Creating vector for rewards... ");
-	rew_vec = mtbdd_to_double_vector(ddman, state_rewards, rvars, num_rvars, odd);
+	rew_vec = mtbdd_to_double_vector(ddman, all_rewards, rvars, num_rvars, odd);
 	// try and convert to compact form if required
 	compact_r = false;
 	if (compact) {
@@ -204,6 +205,7 @@ jint bound			// time bound
 	PH_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
 	// free memory
+	Cudd_RecursiveDeref(ddman, all_rewards);
 	free_hdd_matrix(hddm);
 	if (compact_r) free_dist_vector(rew_dist); else free(rew_vec);
 	delete soln2;

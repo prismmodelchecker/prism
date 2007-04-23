@@ -60,7 +60,7 @@ jint bound				// time bound
 	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
 
 	// mtbdds
-	DdNode *sol, *tmp;
+	DdNode *all_rewards, *sol, *tmp;
 	// timing stuff
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
@@ -71,15 +71,14 @@ jint bound				// time bound
 	start1 = start2 = util_cpu_time();
 
 	// multiply transition rewards by transition probs and sum rows
-	// (note also filters out unwanted states at the same time)
-	Cudd_Ref(trans);
-	trans_rewards = DD_Apply(ddman, APPLY_TIMES, trans_rewards, trans);
-	trans_rewards = DD_SumAbstract(ddman, trans_rewards, cvars, num_cvars);
-	
-	// combine state and transition rewards and put in a vector
+	// then combine state and transition rewards and put in a vector
 	Cudd_Ref(trans_rewards);
-	state_rewards = DD_Apply(ddman, APPLY_PLUS, state_rewards, trans_rewards);
-	
+	Cudd_Ref(trans);
+	all_rewards = DD_Apply(ddman, APPLY_TIMES, trans_rewards, trans);
+	all_rewards = DD_SumAbstract(ddman, all_rewards, cvars, num_cvars);
+	Cudd_Ref(state_rewards);
+	all_rewards = DD_Apply(ddman, APPLY_PLUS, state_rewards, all_rewards);
+
 	// initial solution is zero
 	sol = DD_Constant(ddman, 0);
 
@@ -103,8 +102,8 @@ jint bound				// time bound
 		Cudd_Ref(trans);
 		tmp = DD_MatrixMultiply(ddman, trans, tmp, cvars, num_cvars, MM_BOULDER);
 		// add in (combined state and transition) rewards
-		Cudd_Ref(state_rewards);
-		tmp = DD_Apply(ddman, APPLY_PLUS, tmp, state_rewards);
+		Cudd_Ref(all_rewards);
+		tmp = DD_Apply(ddman, APPLY_PLUS, tmp, all_rewards);
 		
 		// prepare for next iteration
 		Cudd_RecursiveDeref(ddman, sol);
@@ -120,6 +119,9 @@ jint bound				// time bound
 	
 	// print iterations/timing info
 	PM_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
+	
+	// free memory
+	Cudd_RecursiveDeref(ddman, all_rewards);
 	
 	return ptr_to_jlong(sol);
 }
