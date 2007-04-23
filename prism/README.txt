@@ -92,7 +92,8 @@ We also gratefully acknowledge contributions by:
  - Rashid Mehmood
  - Joachim Meyer-Kayser
  - Fabio Somenzi
-
+ - Alistair John Strachan
+ 
 For more details see:
 
   http://www.cs.bham.ac.uk/~dxp/prism/people.php
