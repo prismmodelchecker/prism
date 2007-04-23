@@ -176,7 +176,7 @@ bool and_numbers)
 	Cudd_Ref(dd);
 	tmp = dd;
 	// Check the min (will use at end)
-	min = Cudd_V(Cudd_addFindMin(ddman, dd));
+	min = Cudd_V(Cudd_addFindMin(ddman, tmp));
 	// Loop through terminals in descending order
 	while (tmp != Cudd_ReadMinusInfinity(ddman)) {
 		// Find next (max) terminal and display
@@ -195,7 +195,7 @@ bool and_numbers)
 	Cudd_RecursiveDeref(ddman, tmp);
 	// Finally, print if there are (and possibly how many) minus infinities
 	if (and_numbers) {
-		if (count < pow(2, num_vars)) fprintf(dd_out, "-inf (%.0f)", pow(2, num_vars) - count);
+		if (count < (1<<num_vars)) fprintf(dd_out, "-inf (%.0f)", pow(2, num_vars) - count);
 	} else {
 		if (min == -HUGE_VAL) fprintf(dd_out, "-inf");
 	}

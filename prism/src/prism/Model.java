@@ -96,7 +96,8 @@ public interface Model
 	void fixDeadlocks();
 	void printTrans();
 	void printTrans01();
-	void printTransInfo(PrismLog log);
+	public void printTransInfo(PrismLog log);
+	public void printTransInfo(PrismLog log, boolean extra);
 	void exportToFile(int exportType, boolean explicit, File file) throws FileNotFoundException;
 	String exportStateRewardsToFile(int exportType, File file) throws FileNotFoundException, PrismException;
 	String exportTransRewardsToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException;

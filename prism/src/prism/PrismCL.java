@@ -60,6 +60,7 @@ public class PrismCL
 	private boolean exportordered = true;
 	private boolean simulate = false;
 	private boolean simpath = false;
+	private boolean extraDDInfo = false;
 	private int typeOverride = 0;
 	
 	// property info
@@ -557,7 +558,7 @@ public class PrismCL
 				// otherwise print error and bail out
 				else {
 					mainLog.println();
-					model.printTransInfo(mainLog);
+					model.printTransInfo(mainLog, extraDDInfo);
 					mainLog.print("\nError: Model contains " + states.size() + " deadlock states");
 					if (!verbose && states.size() > 10) {
 						mainLog.print(".\nThe first 10 deadlock states are displayed below. To view them all use the -v switch.\n");
@@ -575,7 +576,7 @@ public class PrismCL
 		
 		// print more model info
 		mainLog.println();
-		model.printTransInfo(mainLog);
+		model.printTransInfo(mainLog, extraDDInfo);
 	}
 
 	// do any exporting requested
@@ -1156,6 +1157,10 @@ public class PrismCL
 					prism.setVerbose(true);
 					verbose = true;
 				}
+				// extra dd info on
+				else if (sw.equals("extraddinfo")) {
+					extraDDInfo = true;
+				}
 				// precomputation algs off
 				else if (sw.equals("nopre")) {
 					prism.setPrecomp(false);
@@ -1485,6 +1490,7 @@ public class PrismCL
 		mainLog.println("-maxiters <n> .................. Set max number of iterations [default 10000]");
 		mainLog.println();
 		mainLog.println("-verbose (or -v) ............... Verbose mode: print out state lists and probability vectors");
+		mainLog.println("-extraddinfo ................... Display extra info about some (MT)BDDs");
 		mainLog.println("-nopre ......................... Skip precomputation algorithms");
 		mainLog.println("-fair .......................... Use fairness (when model checking PCTL on MDPs)");
 		mainLog.println("-nofair ........................ Don't use fairness (when model checking PCTL on MDPs) [default]");

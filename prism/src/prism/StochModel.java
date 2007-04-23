@@ -248,7 +248,8 @@ public class StochModel implements Model
 //		JDD.PrintMatrix(trans01, allDDRowVars, allDDColVars, JDD.ZERO_ONE);
 	}
 	
-	public void printTransInfo(PrismLog log)
+	public void printTransInfo(PrismLog log) { printTransInfo(log, false); }
+	public void printTransInfo(PrismLog log, boolean extra)
 	{
 		int i;
 		
@@ -262,8 +263,10 @@ public class StochModel implements Model
 		log.print(JDD.GetNumTerminals(trans) + " terminal), ");
 		log.print(JDD.GetNumMintermsString(trans, getNumDDVarsInTrans()) + " minterms, ");
 		log.print("vars: " + getNumDDRowVars() + "r/" + getNumDDColVars() + "c\n");
+		if (extra) log.println("DD var names: " + getDDVarNames());
+		if (extra) log.print("Rate matrix terminals: " + JDD.GetTerminalsAndNumbersString(trans, getNumDDVarsInTrans())+"\n");
 		
-		//log.print("ODD: " + ODDUtils.GetNumODDNodes() + " nodes\n");
+		if (extra) log.print("ODD: " + ODDUtils.GetNumODDNodes() + " nodes\n");
 		
 		for (i = 0; i < numRewardStructs; i++) {
 			if (stateRewards[i] != null && !stateRewards[i].equals(JDD.ZERO)) {
@@ -271,12 +274,14 @@ public class StochModel implements Model
 				log.print(JDD.GetNumNodes(stateRewards[i]) + " nodes (");
 				log.print(JDD.GetNumTerminals(stateRewards[i]) + " terminal), ");
 				log.print(JDD.GetNumMintermsString(stateRewards[i], getNumDDRowVars()) + " minterms\n");
+				if (extra) log.print("State rewards ("+i+") terminals : " + JDD.GetTerminalsAndNumbersString(stateRewards[i], getNumDDRowVars())+"\n");
 			}
 			if (transRewards[i] != null && !transRewards[i].equals(JDD.ZERO)) {
 				log.print("Transition rewards ("+i+"): ");
 				log.print(JDD.GetNumNodes(transRewards[i]) + " nodes (");
 				log.print(JDD.GetNumTerminals(transRewards[i]) + " terminal), ");
 				log.print(JDD.GetNumMintermsString(transRewards[i], getNumDDVarsInTrans()) + " minterms\n");
+				if (extra) log.print("Transition rewards ("+i+") terminals : " + JDD.GetTerminalsAndNumbersString(transRewards[i], getNumDDVarsInTrans())+"\n");
 			}
 		}
 	}
