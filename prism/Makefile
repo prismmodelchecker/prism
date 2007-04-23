@@ -409,7 +409,7 @@ dist_tidy:
 
 binary:
 	@echo Generating jar file...
-	@cd $(CLASSES_DIR) && jar cmf ../src/manifest.txt ../lib/prism.jar *
+	@jar cmf src/manifest.txt lib/prism.jar -C classes . -C . images dtds
 
 undist:
 	@rm -rf cudd && ln -s ../cudd cudd
