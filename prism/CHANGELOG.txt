@@ -3,6 +3,19 @@ including development and beta versions. For a less detailed overview
 of the main changes in each public release, see the file VERSIONS.txt.
 
 -----------------------------------------------------------------------------
+Latest additions (reverse chronological)
+-----------------------------------------------------------------------------
+
+* Cumulative reward properties for DTMC
+* Support for 64-bit architectures
+* Addition of F and G operators to property language (eventually/globally)
+* Redesign of the simulator GUI, plus new features:
+  - ability to display cumulated time/rewards
+  - new "Configure view" dialog
+  - easier selection of next step (double click) 
+* Resizeable experiment results table 
+
+-----------------------------------------------------------------------------
 Version 3.1.1 (5/4/2007)
 -----------------------------------------------------------------------------
 
