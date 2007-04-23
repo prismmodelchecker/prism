@@ -348,7 +348,7 @@ public class SBML2Prism implements EntityResolver
 		}
 		
 		// Generate dummy module to store reaction rates
-		s += "\n// Reaction rates\nmodule dummy\n\n";
+		s += "\n// Reaction rates\nmodule reaction_rates\n\n";
 		n = reactionList.size();
 		for (i = 0; i < n; i++) {
 			reaction = reactionList.get(i);
