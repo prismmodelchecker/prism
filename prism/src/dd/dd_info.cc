@@ -34,6 +34,8 @@
 
 extern FILE *dd_out;
 
+extern void DD_PrintTerminals(DdManager *ddman, DdNode *dd, int num_vars, bool and_numbers);
+
 //------------------------------------------------------------------------------
 
 int DD_GetNumNodes
@@ -156,76 +158,46 @@ DdNode *dd
 
 //------------------------------------------------------------------------------
 
+void DD_PrintTerminals(DdManager *ddman, DdNode *dd) { DD_PrintTerminals(ddman, dd, 0, false); }
+
+void DD_PrintTerminalsAndNumbers(DdManager *ddman, DdNode *dd, int num_vars) { DD_PrintTerminals(ddman, dd, num_vars, true); }
+
 void DD_PrintTerminals
 (
 DdManager *ddman,
-DdNode *dd
-)
-{
-	DdNode *tmp;
-	double max;
-	int count = 0;
-	
-	Cudd_Ref(dd);
-	tmp = dd;
-
-	// remove any negative terminals (if any)
-	// and warn the user
-	if (Cudd_V(Cudd_addFindMin(ddman, tmp)) < 0) {
-		fprintf(dd_out, "Warning: DD_PrintTerminals is ignoring negative terminals.\n");
-		Cudd_Ref(tmp);
-		tmp = DD_Apply(ddman, APPLY_TIMES, DD_GreaterThan(ddman, tmp, 0), tmp);
-	}
-	
-	while (tmp != Cudd_addConst(ddman, 0)) {
-		max = Cudd_V(Cudd_addFindMax(ddman, tmp));
-		fprintf(dd_out, "%f ", max);
-		count++;
-		Cudd_Ref(tmp);
-		tmp = DD_ITE(ddman, DD_Equals(ddman, tmp, max), DD_Constant(ddman, 0), tmp);
-	}
-	Cudd_RecursiveDeref(ddman, tmp);
-	if (count < Cudd_CountLeaves(dd)) {
-		fprintf(dd_out, "%f", 0.0);
-	}
-	fprintf(dd_out, "\n");
-}
-
-//------------------------------------------------------------------------------
-
-void DD_PrintTerminalsAndNumbers
-(
-DdManager *ddman,
 DdNode *dd,
-int num_vars)
+int num_vars,
+bool and_numbers)
 {
 	DdNode *tmp, *tmp2;
-	double max, num, count = 0.0;
-	
+	double min, max, num, count = 0.0;
+
+	// Take a copy of dd	
 	Cudd_Ref(dd);
 	tmp = dd;
-
-	// remove any negative terminals (if any)
-	// and warn the user
-	if (Cudd_V(Cudd_addFindMin(ddman, tmp)) < 0) {
-		fprintf(dd_out, "Warning: DD_PrintTerminals is ignoring negative terminals.\n");
-		Cudd_Ref(tmp);
-		tmp = DD_Apply(ddman, APPLY_TIMES, DD_GreaterThan(ddman, tmp, 0), tmp);
-	}
-	
-	while (tmp != Cudd_addConst(ddman, 0)) {
+	// Check the min (will use at end)
+	min = Cudd_V(Cudd_addFindMin(ddman, dd));
+	// Loop through terminals in descending order
+	while (tmp != Cudd_ReadMinusInfinity(ddman)) {
+		// Find next (max) terminal and display
 		max = Cudd_V(Cudd_addFindMax(ddman, tmp));
 		fprintf(dd_out, "%f ", max);
+		// Remove the terminals, counting/displaying number if required
 		Cudd_Ref(tmp);
 		tmp2 = DD_Equals(ddman, tmp, max);
-		num = Cudd_CountMinterm(ddman, tmp2, num_vars);
-		count += num;
-		fprintf(dd_out, "(%.0f) ", num);
-		tmp = DD_ITE(ddman, tmp2, DD_Constant(ddman, 0), tmp);
+		if (and_numbers) {
+			num = Cudd_CountMinterm(ddman, tmp2, num_vars);
+			count += num;
+			fprintf(dd_out, "(%.0f) ", num);
+		}
+		tmp = DD_ITE(ddman, tmp2, DD_MinusInfinity(ddman), tmp);
 	}
 	Cudd_RecursiveDeref(ddman, tmp);
-	if (count < pow(2, num_vars)) {
-		fprintf(dd_out, "%f (%.0f)", 0.0, pow(2, num_vars) - count);
+	// Finally, print if there are (and possibly how many) minus infinities
+	if (and_numbers) {
+		if (count < pow(2, num_vars)) fprintf(dd_out, "-inf (%.0f)", pow(2, num_vars) - count);
+	} else {
+		if (min == -HUGE_VAL) fprintf(dd_out, "-inf");
 	}
 	fprintf(dd_out, "\n");
 }
