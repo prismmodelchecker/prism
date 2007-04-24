@@ -48,7 +48,7 @@ UninstPage instfiles
 # --------------------------------------------------------------------------- #
 
 Name            "${PRISM_NAME}"
-Icon            "${PRISM_DIR}etc\prism.ico"
+Icon            "${PRISM_DIR}etc\p32.ico"
 OutFile         "..\${PRISM_BUILD}-win-installer.exe"
 
 CRCCheck        on
