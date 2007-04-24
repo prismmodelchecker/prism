@@ -5,7 +5,8 @@ rem Startup script for PRISM (Windows)
 rem PRISM home directory
 rem Default is .. so it can be run directly from the bin directory.
 rem Change ".." to the actual PRISM directory to allow it to be run from anywhere.
-rem An example would be: set PRISM_DIR="c:\Program Files\prism-2.1-win"
+rem An example would be: set PRISM_DIR=c:\Program Files\prism-3.1.1
+rem Note: Do not put quotes ("...") around the path.
 set PRISM_DIR=..
 
 rem Add PRISM to path
@@ -19,4 +20,4 @@ rem  - lib/pepa.zip (PEPA stuff)
 set CP=%PRISM_DIR%\lib\prism.jar;%PRISM_DIR%\classes;%PRISM_DIR%;%PRISM_DIR%\lib\pepa.zip
 
 rem Run PRISM through Java
-java -Djava.library.path=%PRISM_DIR%\lib -classpath %CP% prism.PrismCL %*
+java -Djava.library.path="%PRISM_DIR%\lib" -classpath "%CP%" prism.PrismCL %*
