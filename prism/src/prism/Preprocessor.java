@@ -427,7 +427,7 @@ public class Preprocessor
 			}
 		}
 		catch (PrismException e) {
-			System.out.println("Error: " + e.getMessage());
+			System.err.println("Error: " + e.getMessage());
 		}
 	}
 }
