@@ -6,6 +6,8 @@ of the main changes in each public release, see the file VERSIONS.txt.
 Latest additions (reverse chronological)
 -----------------------------------------------------------------------------
 
+* New "rows" option for matrix exports (-exportrows switch)
+* Ability to display extra  info about MTBDDs (-extraddinfo switch)
 * Cumulative reward properties for DTMCs
 * Support for 64-bit architectures
 * Addition of F and G operators to property language (eventually/globally)
