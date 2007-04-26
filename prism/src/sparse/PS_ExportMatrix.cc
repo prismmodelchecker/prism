@@ -93,6 +93,7 @@ jstring fn		// filename
 	case EXPORT_MATLAB: export_string("%s = sparse(%d,%d);\n", export_name, n, n); break;
 	case EXPORT_DOT: export_string("digraph %s {\nsize=\"8,5\"\norientation=land;\nnode [shape = circle];\n", export_name); break;
 	case EXPORT_MRMC: export_string("STATES %d\nTRANSITIONS %d\n", n, nnz); break;
+	case EXPORT_ROWS: export_string("%d %d\n", n, nnz); break;
 	}
 	
 	// print main part of file
@@ -125,6 +126,7 @@ jstring fn		// filename
 	for (i = 0; i < n; i++) {
 		if (!use_counts) { l = row_starts[i]; h = row_starts[i+1]; }
 		else { l = h; h += row_counts[i]; }
+		if (export_type == EXPORT_ROWS) export_string("%d", i);
 		for (j = l; j < h; j++) {
 			r = i;
 			// "row major" version
@@ -142,8 +144,10 @@ jstring fn		// filename
 			case EXPORT_MATLAB: export_string("%s(%d,%d)=%.12g;\n", export_name, r+1, c+1, d); break;
 			case EXPORT_DOT: export_string("%d -> %d [ label=\"%.12g\" ];\n", r, c, d); break;
 			case EXPORT_MRMC: export_string("%d %d %.12g\n", r+1, c+1, d); break;
+			case EXPORT_ROWS: export_string(" %.12g:%d", d, c); break;
 			}
 		}
+		if (export_type == EXPORT_ROWS) export_string("\n");
 	}
 	
 	// print file footer

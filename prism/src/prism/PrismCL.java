@@ -877,6 +877,10 @@ public class PrismCL
 				else if (sw.equals("exportmrmc")) {
 					exportType = Prism.EXPORT_MRMC;
 				}
+				// switch export mode to "rows"
+				else if (sw.equals("exportrows")) {
+					exportType = Prism.EXPORT_ROWS;
+				}
 				// export model to plain text file (deprecated)
 				else if (sw.equals("exportplain")) {
 					if (i < args.length-1) {
@@ -1462,6 +1466,7 @@ public class PrismCL
 		mainLog.println("-exportlabels <file> ........... Export the list of labels and satisfying states to a file");
 		mainLog.println("-exportmatlab .................. When exporting matrices/vectors/labels/etc., use Matlab format");
 		mainLog.println("-exportmrmc .................... When exporting matrices/vectors/labels, use MRMC format");
+		mainLog.println("-exportrows .................... When exporting matrices, put a whole row on one line");
 		mainLog.println("-exportordered ................. When exporting matrices, order entries (by row) [default]");
 		mainLog.println("-exportunordered ............... When exporting matrices, don't order entries");
 		mainLog.println("-exporttransdot <file> ......... Export the transition matrix graph to a dot file");

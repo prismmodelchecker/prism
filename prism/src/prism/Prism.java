@@ -79,6 +79,7 @@ public class Prism implements PrismSettingsListener
 	public static final int EXPORT_MATLAB = 2;
 	public static final int EXPORT_DOT = 3;
 	public static final int EXPORT_MRMC = 4;
+	public static final int EXPORT_ROWS = 5;
 	
 	//------------------------------------------------------------------------------
 	// Settings / flags / options
@@ -916,6 +917,11 @@ public class Prism implements PrismSettingsListener
 			if (!ordered) mainLog.println("\nWarning: Cannot export unordered transition matrix in MRMC format; using ordered.");
 			ordered = true;
 		}
+		// can only do ordered version of export for rows format
+		if (exportType == EXPORT_ROWS) {
+			if (!ordered) mainLog.println("\nWarning: Cannot export unordered transition matrix in rows format; using ordered.");
+			ordered = true;
+		}
 		
 		// print message
 		mainLog.print("\nExporting transition matrix ");
@@ -924,6 +930,7 @@ public class Prism implements PrismSettingsListener
 		case EXPORT_MATLAB: mainLog.print("in Matlab format "); break;
 		case EXPORT_DOT: mainLog.print("in Dot format "); break;
 		case EXPORT_MRMC: mainLog.print("in MRMC format "); break;
+		case EXPORT_ROWS: mainLog.print("in rows format "); break;
 		}
 		if (file != null) mainLog.println("to file \"" + file + "\"..."); else mainLog.println("below:");
 		
@@ -936,6 +943,9 @@ public class Prism implements PrismSettingsListener
 	public void exportStateRewardsToFile(Model model, int exportType, File file) throws FileNotFoundException, PrismException
 	{
 		String s;
+		
+		// rows format does not apply to vectors
+		if (exportType == EXPORT_ROWS) exportType = EXPORT_PLAIN;
 		
 		// print message
 		mainLog.print("\nExporting state rewards vector ");
@@ -967,6 +977,11 @@ public class Prism implements PrismSettingsListener
 			if (!ordered) mainLog.println("\nWarning: Cannot export unordered transition reward matrix in MRMC format; using ordered");
 			ordered = true;
 		}
+		// can only do ordered version of export for rows format
+		if (exportType == EXPORT_ROWS) {
+			if (!ordered) mainLog.println("\nWarning: Cannot export unordered transition matrix in rows format; using ordered.");
+			ordered = true;
+		}
 		
 		// print message
 		mainLog.print("\nExporting transition rewards matrix ");
@@ -974,6 +989,7 @@ public class Prism implements PrismSettingsListener
 		case EXPORT_PLAIN: mainLog.print("in plain text format "); break;
 		case EXPORT_MATLAB: mainLog.print("in Matlab format "); break;
 		case EXPORT_MRMC: mainLog.print("in MRMC format "); break;
+		case EXPORT_ROWS: mainLog.print("in rows format "); break;
 		}
 		if (file != null) mainLog.println("to file \"" + file + "\"..."); else mainLog.println("below:");
 		
@@ -990,8 +1006,10 @@ public class Prism implements PrismSettingsListener
 		int i;
 		PrismLog tmpLog;
 		
-		// no specific format for MRMC
+		// no specific states format for MRMC
 		if (exportType == EXPORT_MRMC) exportType = EXPORT_PLAIN;
+		// rows format does not apply to states output
+		if (exportType == EXPORT_ROWS) exportType = EXPORT_PLAIN;
 		
 		// print message
 		mainLog.print("\nExporting list of reachable states ");

@@ -81,6 +81,7 @@ jstring fn		// filename
 	case EXPORT_PLAIN: export_string("%d %d %d\n", n, nc, nnz); break;
 	case EXPORT_MATLAB: for (i = 0; i < ndsm->k; i++) export_string("%s%d = sparse(%d,%d);\n", export_name, i+1, n, n); break;
 	case EXPORT_DOT: export_string("digraph %s {\nsize=\"8,5\"\norientation=land;\nnode [shape = circle];\n", export_name); break;
+	case EXPORT_ROWS: export_string("%d %d %d\n", n, nc, nnz); break;
 	}
 	
 	// print main part of file
@@ -100,13 +101,16 @@ jstring fn		// filename
 		for (j = l1; j < h1; j++) {
 			if (!use_counts) { l2 = choice_starts[j]; h2 = choice_starts[j+1]; }
 			else { l2 = h2; h2 += choice_counts[j]; }
+			if (export_type == EXPORT_ROWS) export_string("%d", i);
 			for (k = l2; k < h2; k++) {
 				switch (export_type) {
 				case EXPORT_PLAIN: export_string("%d %d %d %.12g\n", i, j-l1, cols[k], non_zeros[k]); break;
 				case EXPORT_MATLAB: export_string("%s%d(%d,%d)=%.12g;\n", export_name, j-l1+1, i+1, cols[k]+1, non_zeros[k]); break;
 				case EXPORT_DOT: export_string("%d -> %d [ label=\"%d: %.12g\" ];\n", i, cols[k], j-l1, non_zeros[k]); break;
+				case EXPORT_ROWS: export_string(" %.12g:%d", non_zeros[k], cols[k]); break;
 				}
 			}
+			if (export_type == EXPORT_ROWS) export_string("\n");
 		}
 	}
 	
