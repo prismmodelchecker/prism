@@ -35,7 +35,7 @@ import parser.*;
 public class Preprocessor
 {
 	private final static char DELIMITER = '#';
-	private final static boolean IGNORE_COMMENTS = false;
+	private final static boolean IGNORE_COMMENTS = true;
 	
 	// logs
 	private PrismLog mainLog;		// main log
