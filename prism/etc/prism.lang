@@ -13,6 +13,10 @@
 		<start-regex>//</start-regex>
 	</line-comment>
 
+	<syntax-item _name = "PRISM Preprocessor" style = "Preprocessor">
+		<start-regex>#</start-regex><end-regex>#</end-regex>
+	</syntax-item>
+
 	<pattern-item _name = "Numeric" style = "Decimal">
 		<regex>(\b([1-9][0-9]*|0)\b)|(\b([0-9]+[Ee][+-]?[0-9]+|([0-9]*\.[0-9]+|[0-9]+\.)([Ee][-]?[0-9]+)?)[fFlL]?)</regex>
 	</pattern-item>

@@ -24,5 +24,6 @@
     <glob pattern="*.nm"/>
     <glob pattern="*.pctl"/>
     <glob pattern="*.csl"/>
+    <glob pattern="*.pp"/>
   </mime-type>
 </mime-info>
