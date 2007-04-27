@@ -290,7 +290,7 @@ public class NondetModel implements Model
 	public void printTransInfo(PrismLog log) { printTransInfo(log, false); }
 	public void printTransInfo(PrismLog log, boolean extra)
 	{
-		int i;
+		int i, j, n;
 		
 		log.print("States:      " + getNumStatesString() + " (" + getNumStartStatesString() + " initial)" + "\n");
 		log.print("Transitions: " + getNumTransitionsString() + "\n");
@@ -303,13 +303,28 @@ public class NondetModel implements Model
 		log.print(JDD.GetNumTerminals(trans) + " terminal), ");
 		log.print(JDD.GetNumMintermsString(trans, getNumDDVarsInTrans()) + " minterms, ");
 		log.print("vars: " + getNumDDRowVars() + "r/" + getNumDDColVars() + "c/" + getNumDDNondetVars() + "nd\n");
-		if (extra) log.println("DD var names: " + getDDVarNames());
-		if (extra) log.print("Transition matrix terminals: " + JDD.GetTerminalsAndNumbersString(trans, getNumDDVarsInTrans())+"\n");
-		
-		if (extra) log.print("ODD: " + ODDUtils.GetNumODDNodes() + " nodes\n");
-		
-		if (extra) log.print("Mask: " + JDD.GetNumNodes(nondetMask) + " nodes, ");
-		if (extra) log.print(JDD.GetNumMintermsString(nondetMask, getNumDDRowVars()+getNumDDNondetVars()) + " minterms\n");
+		if (extra) {
+			log.print("DD vars (nd):");
+			n = allDDNondetVars.getNumVars();
+			for (i = 0; i < n; i++) {
+				j = allDDNondetVars.getVarIndex(i);
+				log.print(" "+j+":"+ddVarNames.get(j));
+			}
+			log.println();
+			log.print("DD vars (r/c):");
+			n = allDDRowVars.getNumVars();
+			for (i = 0; i < n; i++) {
+				j = allDDRowVars.getVarIndex(i);
+				log.print(" "+j+":"+ddVarNames.get(j));
+				j = allDDColVars.getVarIndex(i);
+				log.print(" "+j+":"+ddVarNames.get(j));
+			}
+			log.println();
+			log.print("Transition matrix terminals: " + JDD.GetTerminalsAndNumbersString(trans, getNumDDVarsInTrans())+"\n");
+			log.print("ODD: " + ODDUtils.GetNumODDNodes() + " nodes\n");
+			log.print("Mask: " + JDD.GetNumNodes(nondetMask) + " nodes, ");
+			log.print(JDD.GetNumMintermsString(nondetMask, getNumDDRowVars()+getNumDDNondetVars()) + " minterms\n");
+		}
 		
 		for (i = 0; i < numRewardStructs; i++) {
 			if (stateRewards[i] != null && !stateRewards[i].equals(JDD.ZERO)) {

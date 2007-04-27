@@ -251,7 +251,7 @@ public class StochModel implements Model
 	public void printTransInfo(PrismLog log) { printTransInfo(log, false); }
 	public void printTransInfo(PrismLog log, boolean extra)
 	{
-		int i;
+		int i, j, n;
 		
 		log.print("States:      " + getNumStatesString() + " (" + getNumStartStatesString() + " initial)" + "\n");
 		log.print("Transitions: " + getNumTransitionsString() + "\n");
@@ -263,10 +263,19 @@ public class StochModel implements Model
 		log.print(JDD.GetNumTerminals(trans) + " terminal), ");
 		log.print(JDD.GetNumMintermsString(trans, getNumDDVarsInTrans()) + " minterms, ");
 		log.print("vars: " + getNumDDRowVars() + "r/" + getNumDDColVars() + "c\n");
-		if (extra) log.println("DD var names: " + getDDVarNames());
-		if (extra) log.print("Rate matrix terminals: " + JDD.GetTerminalsAndNumbersString(trans, getNumDDVarsInTrans())+"\n");
-		
-		if (extra) log.print("ODD: " + ODDUtils.GetNumODDNodes() + " nodes\n");
+		if (extra) {
+			log.print("DD vars (r/c):");
+			n = allDDRowVars.getNumVars();
+			for (i = 0; i < n; i++) {
+				j = allDDRowVars.getVarIndex(i);
+				log.print(" "+j+":"+ddVarNames.get(j));
+				j = allDDColVars.getVarIndex(i);
+				log.print(" "+j+":"+ddVarNames.get(j));
+			}
+			log.println();
+			log.print("Rate matrix terminals: " + JDD.GetTerminalsAndNumbersString(trans, getNumDDVarsInTrans())+"\n");
+			log.print("ODD: " + ODDUtils.GetNumODDNodes() + " nodes\n");
+		}
 		
 		for (i = 0; i < numRewardStructs; i++) {
 			if (stateRewards[i] != null && !stateRewards[i].equals(JDD.ZERO)) {
