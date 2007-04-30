@@ -274,6 +274,7 @@ public class StochModel implements Model
 			}
 			log.println();
 			log.print("Rate matrix terminals: " + JDD.GetTerminalsAndNumbersString(trans, getNumDDVarsInTrans())+"\n");
+			log.print("Reach: " + JDD.GetNumNodes(reach) + " nodes\n");
 			log.print("ODD: " + ODDUtils.GetNumODDNodes() + " nodes\n");
 		}
 		

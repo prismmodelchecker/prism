@@ -321,6 +321,7 @@ public class NondetModel implements Model
 			}
 			log.println();
 			log.print("Transition matrix terminals: " + JDD.GetTerminalsAndNumbersString(trans, getNumDDVarsInTrans())+"\n");
+			log.print("Reach: " + JDD.GetNumNodes(reach) + " nodes\n");
 			log.print("ODD: " + ODDUtils.GetNumODDNodes() + " nodes\n");
 			log.print("Mask: " + JDD.GetNumNodes(nondetMask) + " nodes, ");
 			log.print(JDD.GetNumMintermsString(nondetMask, getNumDDRowVars()+getNumDDNondetVars()) + " minterms\n");

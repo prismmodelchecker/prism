@@ -274,6 +274,7 @@ public class ProbModel implements Model
 			}
 			log.println();
 			log.print("Transition matrix terminals: " + JDD.GetTerminalsAndNumbersString(trans, getNumDDVarsInTrans())+"\n");
+			log.print("Reach: " + JDD.GetNumNodes(reach) + " nodes\n");
 			log.print("ODD: " + ODDUtils.GetNumODDNodes() + " nodes\n");
 		}
 		for (i = 0; i < numRewardStructs; i++) {
