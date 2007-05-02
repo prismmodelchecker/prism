@@ -540,6 +540,7 @@ public class Expression2MTBDD
 			case ExpressionFunc.CEIL: return translateExpressionFuncCeil(expr);
 			case ExpressionFunc.POW: return translateExpressionFuncPow(expr);
 			case ExpressionFunc.MOD: return translateExpressionFuncMod(expr);
+			case ExpressionFunc.LOG: throw new PrismException("The log function is not yet supported in PRISM");
 			default: throw new PrismException("Unrecognised function \"" + expr.getName() + "\"");
 		}
 	}

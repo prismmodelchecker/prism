@@ -30,6 +30,7 @@ package parser;
 import java.util.Vector;
 
 import prism.PrismException;
+import prism.PrismUtils;
 import simulator.*;
 
 public class ExpressionFunc extends ExpressionNary
@@ -41,11 +42,12 @@ public class ExpressionFunc extends ExpressionNary
 	public static final int CEIL = 3;
 	public static final int POW = 4;
 	public static final int MOD = 5;
+	public static final int LOG = 6;
 	// strings for names
-	public static final String names[] = {"min", "max", "floor", "ceil", "pow", "mod"};
+	public static final String names[] = {"min", "max", "floor", "ceil", "pow", "mod", "log"};
 	// min/max function arities
-	public static final int minArities[] = {2, 2, 1, 1, 2, 2};
-	public static final int maxArities[] = {-1, -1, 1, 1, 2, 2};
+	public static final int minArities[] = {2, 2, 1, 1, 2, 2, 2};
+	public static final int maxArities[] = {-1, -1, 1, 1, 2, 2, 2};
 
 	// function name
 	private String name = "";
@@ -178,6 +180,7 @@ public class ExpressionFunc extends ExpressionNary
 			case FLOOR:
 			case CEIL:
 			case POW:
+			case LOG:
 				// all operands must be ints or doubles
 				for (i = 0; i < n; i++) {
 					if (types[i] == Expression.BOOLEAN) {
@@ -217,6 +220,7 @@ public class ExpressionFunc extends ExpressionNary
 				break;
 				
 			case POW:
+			case LOG:
 				// resulting type is always double
 				setType(Expression.DOUBLE);
 				break;
@@ -239,6 +243,7 @@ public class ExpressionFunc extends ExpressionNary
 			case CEIL: return evaluateCeil(constantValues, varValues);
 			case POW: return evaluatePow(constantValues, varValues);
 			case MOD: return evaluateMod(constantValues, varValues);
+			case LOG: return evaluateLog(constantValues, varValues);
 			default: return null;
 		}
 	}
@@ -389,6 +394,15 @@ public class ExpressionFunc extends ExpressionNary
 // 		}
 	}
 
+	public Object evaluateLog(Values constantValues, Values varValues) throws PrismException
+	{
+		double x, b;
+		
+		x = getOperand(0).evaluateDouble(constantValues, varValues);
+		b = getOperand(1).evaluateDouble(constantValues, varValues);
+		return new Double(PrismUtils.log(x, b));
+	}
+	
 	/**
 	 *	Convert and build simulator expression data structure
 	 */
@@ -460,6 +474,12 @@ public class ExpressionFunc extends ExpressionNary
 				{
 					return SimulatorEngine.createMod(getOperand(0).toSimulator(sim), getOperand(1).toSimulator(sim));
 				}
+				
+				case LOG:
+				{
+					throw new SimulatorException("The log function is not yet supported in PRISM");
+				}
+				
 				default:
 					throw new SimulatorException("Unrecognised function \"" + name + "\"");
 			}

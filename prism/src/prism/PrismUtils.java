@@ -55,8 +55,21 @@ public class PrismUtils
 
 //------------------------------------------------------------------------------
 
-	// small utility methods in java
-
+	// Small utility methods in java
+	
+	// Logarithm of x to base b
+	
+	public static double log(double x, double b)
+	{
+		// Base needs to be >0 and !=1, otherwise return NaN
+		if (b <= 0 || b == 1) return Double.NaN;
+		
+		// Otherwise, log_b (x) is log(x) / log(b)
+		return Math.log(x) / Math.log(b);
+	}
+	
+	// Logarithm of x to base 2
+	
 	public static double log2(double x)
 	{
 		return Math.log(x) / Math.log(2);
