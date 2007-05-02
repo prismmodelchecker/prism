@@ -1891,7 +1891,7 @@ public class SimulatorEngine
 	{
 		String s, ss[];
 		int i, j, n;
-		double t;
+		double t = 0.0;
 		boolean done;
 		boolean stochastic = (modulesFile.getType() == ModulesFile.STOCHASTIC);
 		int simPathType = -1;
@@ -1900,6 +1900,8 @@ public class SimulatorEngine
 		String simPathSep = " ";
 		ArrayList simVars = null;
 		VarList varList;
+		boolean simLoopCheck = true;
+		int simPathRepeat = 1;
 		
 		// parse details
 		ss = details.split(",");
@@ -1920,7 +1922,7 @@ public class SimulatorEngine
 				simPathType = SIM_PATH_DEADLOCK;
 			}
 			else if (ss[i].indexOf("sep=") == 0) {
-				//  specify column separator to display path
+				// specify column separator to display path
 				simPathSep = ss[i].substring(4);
 				if (simPathSep.equals("space")) { simPathSep = " "; continue; }
 				if (simPathSep.equals("tab")) { simPathSep = "\t"; continue; }
@@ -1928,6 +1930,7 @@ public class SimulatorEngine
 				throw new SimulatorException("Separator must be one of: \"space\", \"tab\", \"comma\"");
 			}
 			else if (ss[i].indexOf("vars=") == 0) {
+				// specify which variables to display
 				varList = modulesFile.createVarList();
 				simVars = new ArrayList();
 				done = false;
@@ -1945,6 +1948,22 @@ public class SimulatorEngine
 					j = varList.getIndex(s);
 					if (j == -1) throw new SimulatorException("Unknown variable \""+s+"\" in \"vars=(...)\" list");
 					simVars.add(new Integer(j));
+				}
+			}
+			else if (ss[i].indexOf("loopcheck=") == 0) {
+				// switch loop detection on/off (default is on)
+				s = ss[i].substring(10);
+				if (s.equals("true")) { simLoopCheck = true; continue; }
+				if (s.equals("false")) { simLoopCheck = false; continue; }
+				throw new SimulatorException("Value for \"loopcheck\" flag must be \"true\" or \"false\"");
+			}
+			else if (ss[i].indexOf("repeat=") == 0) {
+				// how many times to repeat path generation until successful (for "deadlock" option)
+				try {
+					simPathRepeat = Integer.parseInt(ss[i].substring(7));
+					if (simPathRepeat < 1) throw new NumberFormatException();
+				} catch (NumberFormatException e) {
+					throw new SimulatorException("Value for \"repeat\" option must be a positive integer");
 				}
 			}
 			else {
@@ -1967,26 +1986,51 @@ public class SimulatorEngine
 		case SIM_PATH_DEADLOCK: mainLog.println("\nGenerating random path until deadlock state..."); break;
 		}
 		
+		// display warning if attempt to use "repeat=" option and not "deadlock" option
+		if (simPathRepeat > 1 && simPathType != SIM_PATH_DEADLOCK) {
+			simPathRepeat = 1;
+			mainLog.println("\nWarning: Ignoring \"repeat\" option - it is only valid when looking for deadlocks.");					
+		}
+		
 		// generate path
 		startNewPath(modulesFile, null, initialState);
-		i = 0;
-		t = 0.0;
-		done = false;
-		while (!done) {
-			// generate a single step of path
-			automaticChoices(1, false);
-			if (stochastic) t += getTimeSpentInPathState(i++); else t = ++i;
-			// check for termination (depending on type)
-			switch (simPathType) {
-			case SIM_PATH_NUM_STEPS: if (i >= simPathLength) done = true; break;
-			case SIM_PATH_TIME: if (t >= simPathTime || i >= maxPathLength) done = true; break;
-			case SIM_PATH_DEADLOCK: if (queryIsDeadlock() == 1 || i >= maxPathLength) done = true; break;
+		for (j = 0; j < simPathRepeat; j++) {
+			if (j > 0) restartNewPath(initialState);
+			i = 0;
+			t = 0.0;
+			done = false;
+			while (!done) {
+				// generate a single step of path
+				automaticChoices(1, simLoopCheck);
+				if (stochastic) t += getTimeSpentInPathState(i++); else t = ++i;
+				// check for termination (depending on type)
+				switch (simPathType) {
+				case SIM_PATH_NUM_STEPS: if (i >= simPathLength) done = true; break;
+				case SIM_PATH_TIME: if (t >= simPathTime || i >= maxPathLength) done = true; break;
+				case SIM_PATH_DEADLOCK: if (queryIsDeadlock() == 1 || i >= maxPathLength) done = true; break;
+				}
+				// stop if a loop was found (and loop checking was not disabled)
+				if (simLoopCheck && isPathLooping()) break;
 			}
+			
+			// if we are generating multiple paths (to find a deadlock) only stop if deadlock actually found
+			if (simPathType == SIM_PATH_DEADLOCK && queryIsDeadlock() == 1) break;
 		}
+		if (j < simPathRepeat) j++;
+		
+		// display warning if a deterministic loop was detected (but not in case where multiple paths generated)
+		if (simLoopCheck && isPathLooping() && simPathRepeat == 1) {
+			mainLog.println("\nWarning: Deterministic loop detected after "+i+" steps (use loopcheck=false option to extend path).");
+		}
+		
+		// if we needed multiple paths to find a deadlock, say how many
+		if (simPathRepeat > 1 && j > 1) mainLog.println("\n"+j+" paths were generated.");
 		
 		// export path
 		if (simPathType == SIM_PATH_DEADLOCK && queryIsDeadlock() != 1) {
-			mainLog.println("\nNo deadlock state found within "+maxPathLength+" steps.");
+			mainLog.print("\nNo deadlock state found within "+maxPathLength+" steps");
+			if (simPathRepeat > 1) mainLog.print(" (generated "+simPathRepeat+" paths)");
+			mainLog.println(".");
 		} else {
 			exportPath(file, true, simPathSep, simVars);
 		}
