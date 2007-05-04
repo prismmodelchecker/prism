@@ -815,7 +815,7 @@ public class ModulesFile
 		
 		n = globals.size();
 		for (i = 0; i < n; i++) {
-			s += "global " + globals.elementAt(i) + "\n";
+			s += "global " + globals.elementAt(i) + ";\n";
 		}
 		if (n > 0) {
 			s += "\n";
