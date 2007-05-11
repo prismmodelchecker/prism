@@ -2,6 +2,7 @@
 package parser;
 import java.io.*;
 import java.util.Vector;
+import java.util.ArrayList;
 import java.util.Stack;
 import prism.PrismException;
 

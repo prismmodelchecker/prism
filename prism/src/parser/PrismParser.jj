@@ -34,6 +34,7 @@ package parser;
 
 import java.io.*;
 import java.util.Vector;
+import java.util.ArrayList;
 import java.util.Stack;
 
 import prism.PrismException;
@@ -51,6 +52,8 @@ public class PrismParser
 	private static Stack reverseStack = new Stack();
 	// temp store for modules file associated with properties file
 	private static ModulesFile modulesFile;
+	// list of keyword strings
+	private static ArrayList keywordList = new ArrayList();
 	
 	//-----------------------------------------------------------------------------------
 	// main method for testing purposes
@@ -152,7 +155,13 @@ public class PrismParser
 
 	public PrismParser()
 	{
+		// Call default constructor
 		this(System.in);
+		// Build a list of strings for keywords
+		keywordList.clear();
+		for (int i = PrismParserConstants.COMMENT+1; i < PrismParserConstants.NOT; i++) {
+			keywordList.add(PrismParserConstants.tokenImage[i].replaceAll("\"", ""));
+		}
 	}
 	
 	// parse modules file
@@ -325,6 +334,13 @@ public class PrismParser
 		// deal with any trailing characters (with no new line ending them)
 		if (comment.trim().length()>0) res += "// " + comment + "\n";
 		return res;
+	}
+	
+	// Test a string to see if it is a PRISM language keyword
+	
+	public static boolean isKeyword(String s)
+	{
+		return keywordList.contains(s);
 	}
 }
 
