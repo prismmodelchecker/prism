@@ -79,11 +79,8 @@ public class MathML2Prism
 			
 			// Identifier
 			else if (nodeName.equals("ci")) {
-				System.err.println(renameFrom);
-				System.err.println(renameTo);
 				s = node.getFirstChild().getNodeValue().trim();
 				if (renameFrom != null) if (renameFrom.contains(s)) s = (String)renameTo.get(renameFrom.indexOf(s));
-				System.err.println(s);
 				return s;
 			}
 			
