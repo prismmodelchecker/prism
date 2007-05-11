@@ -38,8 +38,11 @@ import org.xml.sax.*;
 public class MathML2Prism
 {
 	// Converts a MathML object to the corresponding PRISM expression (as a string)
+	// (optionally with a list of renames for identifiers)
 	
-	public static String convert(Node node) throws PrismException
+	public static String convert(Node node) throws PrismException { return convert(node, null, null); }
+	
+	public static String convert(Node node, ArrayList renameFrom, ArrayList renameTo) throws PrismException
 	{
 		String s, nodeName, apply;
 		int nodeType, i, n;
@@ -65,7 +68,7 @@ public class MathML2Prism
 				}
 				if (children.size() == 0) throw new PrismException("Empty MathML expression");
 				if (children.size() > 1) throw new PrismException("Too many top-level nodes in MathML expression");
-				return convert(children.get(0));
+				return convert(children.get(0), renameFrom, renameTo);
 			}
 			
 			// Literal
@@ -76,7 +79,11 @@ public class MathML2Prism
 			
 			// Identifier
 			else if (nodeName.equals("ci")) {
+				System.err.println(renameFrom);
+				System.err.println(renameTo);
 				s = node.getFirstChild().getNodeValue().trim();
+				if (renameFrom != null) if (renameFrom.contains(s)) s = (String)renameTo.get(renameFrom.indexOf(s));
+				System.err.println(s);
 				return s;
 			}
 			
@@ -96,7 +103,7 @@ public class MathML2Prism
 				translatedChildren = new ArrayList<String>();
 				n = children.size() - 1;
 				for (i = 0; i < n; i++) {
-					translatedChildren.add(convert(children.get(i+1)));
+					translatedChildren.add(convert(children.get(i+1), renameFrom, renameTo));
 				}
 				
 				// Apply "plus"
