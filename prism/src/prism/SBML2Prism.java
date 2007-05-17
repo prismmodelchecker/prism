@@ -35,9 +35,14 @@ import javax.xml.transform.stream.*;
 import org.w3c.dom.*;
 import org.xml.sax.*;
 
+import parser.PrismParser;
+import prism.Prism;
+
 public class SBML2Prism implements EntityResolver
 {
+	private static PrismParser prismParser;
 	private ArrayList<Species> speciesList;
+	private ArrayList<Parameter> parameterList;
 	private ArrayList<Reaction> reactionList;
 	private int scaleFactor;
 	
@@ -58,17 +63,34 @@ public class SBML2Prism implements EntityResolver
 		}
 	}
 	
+	
 	// Main method: load SBML file, process and sent resulting PRISM file to stdout
 	
 	public void load(File f, String scaleFactor) throws PrismException
 	{
-		try { this.scaleFactor = Integer.parseInt(scaleFactor); }
-		catch (NumberFormatException e) { throw new PrismException("Invalid scale factor \""+scaleFactor+"\""); }
-		Document doc = parseSBML(f);
-		extractModelFromSBML(doc);
-		printModel(System.err);
-		processModel();
-		printPRISMModel(f);
+		try {
+			// obtain exclusive acces to the prism parser
+			// (don't forget to release it afterwards)
+			prismParser = Prism.getPrismParser();
+
+			// translate
+			try {
+				try { this.scaleFactor = Integer.parseInt(scaleFactor); }
+				catch (NumberFormatException e) { throw new PrismException("Invalid scale factor \""+scaleFactor+"\""); }
+				Document doc = parseSBML(f);
+				extractModelFromSBML(doc);
+				//printModel(System.err);
+				processModel();
+				printPRISMModel(f);
+			}
+			finally {
+				// release prism parser
+				Prism.releasePrismParser();
+			}
+		}
+		catch (InterruptedException e) {
+			throw new PrismException("Concurrency error in parser");
+		}
 	}
 	
 	// Parse the SBML file and return an XML Document object
@@ -134,9 +156,10 @@ public class SBML2Prism implements EntityResolver
 	
 	private void extractModelFromSBML(Document doc) throws PrismException
 	{
-		Element e, e_model, e_list, e_species, e_reaction, e_kinetics, e_mathml, e_params;
+		Element e, e_model, e_list, e_species, e_parameter, e_reaction, e_kinetics, e_mathml, e_params;
 		NodeList nodes, nodes2;
 		Species species;
+		Parameter parameter;
 		Reaction reaction;
 		int i, j, n, m;
 		double d;
@@ -156,6 +179,19 @@ public class SBML2Prism implements EntityResolver
 			d = Double.parseDouble(e_species.getAttribute("initialAmount"));
 			species = new Species(e_species.getAttribute("id"), e_species.getAttribute("name"), d);
 			speciesList.add(species);
+		}
+		
+		// Process list of parameters (if present)
+		parameterList = new ArrayList<Parameter>();
+		e_list = (Element)e_model.getElementsByTagName("listOfParameters").item(0);
+		if (e_list != null) {
+			nodes = e_list.getElementsByTagName("parameter");
+			n = nodes.getLength();
+			for (i = 0; i < n; i++) {
+				e_parameter = (Element)nodes.item(i);
+				parameter = new Parameter(e_parameter.getAttribute("id"), e_parameter.getAttribute("value"));
+				parameterList.add(parameter);
+			}
 		}
 		
 		// Process list of reactions
@@ -198,11 +234,13 @@ public class SBML2Prism implements EntityResolver
 			e_mathml = (Element)e_kinetics.getElementsByTagName("math").item(0);
 			reaction.setKineticLaw(e_mathml);
 			e_list = (Element)e_kinetics.getElementsByTagName("listOfParameters").item(0);
-			nodes2 = e_list.getElementsByTagName("parameter");
-			m = nodes2.getLength();
-			for (j = 0; j < m; j++) {
-				e = (Element)nodes2.item(j);
-				reaction.addParameter(e.getAttribute("id"), e.getAttribute("value"));
+			if (e_list != null) {
+				nodes2 = e_list.getElementsByTagName("parameter");
+				m = nodes2.getLength();
+				for (j = 0; j < m; j++) {
+					e = (Element)nodes2.item(j);
+					reaction.addParameter(e.getAttribute("id"), e.getAttribute("value"));
+				}
 			}
 			
 			// Add reaction to list
@@ -218,6 +256,7 @@ public class SBML2Prism implements EntityResolver
 		Reaction reaction;
 		
 		out.println(speciesList.size() + " species: "+speciesList);
+		if (parameterList.size() > 0) out.println(parameterList.size() + " parameters: "+parameterList);
 		n = reactionList.size();
 		out.println(n + " reactions:");
 		for (i = 0; i < n; i++) {
@@ -234,6 +273,7 @@ public class SBML2Prism implements EntityResolver
 		String s, s2;
 		Species species;
 		Reaction reaction;
+		Parameter parameter;
 		HashSet<String> modulesNames;
 		HashSet<String> prismIdents;
 		
@@ -253,6 +293,23 @@ public class SBML2Prism implements EntityResolver
 				System.err.println("Warning: Converted species id \""+s+"\" to \""+s2+"\" (duplicate PRISM identifiers)");
 			}
 			species.prismName = s2;
+			prismIdents.add(s2);
+		}
+		
+		// Generate unique and valid PRISM constant name for model parameter
+		n = parameterList.size();
+		for (i = 0; i < n; i++) {
+			parameter = parameterList.get(i);
+			s = parameter.name;
+			s2 = convertToValidPrismIdent(s);
+			if (!s.equals(s2)) System.err.println("Warning: Converted parameter id \""+s+"\" to \""+s2+"\" (invalid PRISM identifier)");
+			if (!modulesNames.add(s2)) {
+				j = 2;
+				while (!prismIdents.add(s2+"_"+j)) j++;
+				s2 = s2+"_"+j;
+				System.err.println("Warning: Converted parameter id \""+s+"\" to \""+s2+"\" (duplicate PRISM identifiers)");
+			}
+			parameter.prismName = s2;
 			prismIdents.add(s2);
 		}
 		
@@ -284,7 +341,9 @@ public class SBML2Prism implements EntityResolver
 		Species species;
 		Reaction reaction;
 		Parameter parameter;
-		String s = "";
+		String s = "", s2;
+		ArrayList renameFrom = new ArrayList();
+		ArrayList renameTo = new ArrayList();
 		
 		// Header
 		s += "// File generated by automatic SBML-to-PRISM conversion\n";
@@ -294,7 +353,15 @@ public class SBML2Prism implements EntityResolver
 		// 
 		s += "\nconst int SCALE_FACTOR = " + scaleFactor + ";\n";
 		
-		// Generate constant definition for each (reaction) parameter
+		// Generate constant definition for each (model and reaction) parameter
+		n = parameterList.size();
+		if (n > 0) s += "\n// Model parameters\n";
+		for (i = 0; i < n; i++) {
+			parameter = parameterList.get(i);
+			s += "const double " + parameter.prismName;
+			if (parameter.value != null && parameter.value.length()>0) s += " = " + parameter.value;
+			s += "; // "+parameter.name+"\n";
+		}
 		n = reactionList.size();
 		for (i = 0; i < n; i++) {
 			reaction = reactionList.get(i);
@@ -302,7 +369,9 @@ public class SBML2Prism implements EntityResolver
 			if (n2 > 0) s += "\n// Parameters for reaction " + reaction.id + "\n";
 			for (i2 = 0; i2 < n2; i2++) {
 				parameter = reaction.parameters.get(i2);
-				s += "const double " + parameter.prismName + " = " + parameter.value + "; // "+parameter.name+"\n";
+				s += "const double " + parameter.prismName;
+				if (parameter.value != null && parameter.value.length()>0) s += " = " + parameter.value;
+				s += "; // "+parameter.name+"\n";
 			}
 		}
 		
@@ -352,11 +421,30 @@ public class SBML2Prism implements EntityResolver
 		n = reactionList.size();
 		for (i = 0; i < n; i++) {
 			reaction = reactionList.get(i);
+			// Build info about renames (to unique PRISM idents)
+			renameFrom.clear();
+			renameTo.clear();
+			n2 = speciesList.size();
+			for (i2 = 0; i2 < n2; i2++) {
+				species = speciesList.get(i2);
+				if (!species.id.equals(species.prismName)) { renameFrom.add(species.id); renameTo.add(species.prismName); }
+			}
+			n2 = reaction.parameters.size();
+			for (i2 = 0; i2 < n2; i2++) {
+				parameter = reaction.parameters.get(i2);
+				if (!parameter.name.equals(parameter.prismName)) { renameFrom.add(parameter.name); renameTo.add(parameter.prismName); }
+			}
+			n2 = parameterList.size();
+			for (i2 = 0; i2 < n2; i2++) {
+				parameter = parameterList.get(i2);
+				if (!parameter.name.equals(parameter.prismName)) { renameFrom.add(parameter.name); renameTo.add(parameter.prismName); }
+			}
+			// Generate code
 			s += "\t// " + reaction.id;
 			if (reaction.name.length() > 0) s += " (" + reaction.name + ")";
 			s += "\n";
-			s += "\t[" + reaction.id + "] " + MathML2Prism.convert(reaction.kineticLaw) + " > 0 -> " + MathML2Prism.convert(reaction.kineticLaw) + " : true;\n";
-			System.err.println(MathML2Prism.convert(reaction.kineticLaw));
+			s2 = MathML2Prism.convert(reaction.kineticLaw, renameFrom, renameTo);
+			s += "\t[" + reaction.id + "] " + s2 + " > 0 -> " + s2 + " : true;\n";
 		}
 		s += "\nendmodule\n";
 		
@@ -375,7 +463,9 @@ public class SBML2Prism implements EntityResolver
 	
 	private static boolean isValidPrismIdent(String s)
 	{
-		return s.matches("[_a-zA-Z_][_a-zA-Z0-9]*");
+		if (!s.matches("[_a-zA-Z_][_a-zA-Z0-9]*")) return false;
+		if (prismParser.isKeyword(s)) return false;
+		return true;
 	}
 	
 	// Convert a string to a valid PRISM language identifier (by removing invalid characters)
@@ -383,8 +473,8 @@ public class SBML2Prism implements EntityResolver
 	private static String convertToValidPrismIdent(String s)
 	{
 		String s2;
-		if (isValidPrismIdent(s)) return s;
-		s2 = s.replaceAll("[^_a-zA-Z0-9]", "");
+		if (!s.matches("[_a-zA-Z_][_a-zA-Z0-9]*")) s2 = s.replaceAll("[^_a-zA-Z0-9]", ""); else s2 = s;
+		if (prismParser.isKeyword(s2)) s2 = "_"+s2;
 		return s2;
 	}
 	
