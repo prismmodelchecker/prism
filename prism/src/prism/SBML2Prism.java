@@ -226,8 +226,15 @@ public class SBML2Prism implements EntityResolver
 				m = nodes2.getLength();
 				for (j = 0; j < m; j++) {
 					e = (Element)nodes2.item(j);
+					// Get species name of product
 					s = e.getAttribute("species");
-					reaction.addReactant(s);
+					// Get stoichiometry if present
+					s2 = e.getAttribute("stoichiometry");
+					k = 1;
+					if (s2.length() > 0) try { k = Integer.parseInt(s2); }
+					catch (NumberFormatException ex) { throw new PrismException("Invalid stoichiometry value \""+s2+"\""); }
+					// Add reactant to reaction
+					reaction.addReactant(s, k);
 				}
 			}
 			
@@ -540,6 +547,7 @@ public class SBML2Prism implements EntityResolver
 		public String id;
 		public String name;
 		public ArrayList<String> reactants;
+		public ArrayList<Integer> reactantStoichs;
 		public ArrayList<String> products;
 		public ArrayList<Integer> productStoichs;
 		public Element kineticLaw;
@@ -549,12 +557,14 @@ public class SBML2Prism implements EntityResolver
 			this.id = id;
 			this.name = name;
 			reactants = new ArrayList<String>();
+			reactantStoichs = new ArrayList<Integer>();
 			products = new ArrayList<String>();
 			productStoichs = new ArrayList<Integer>();
 			kineticLaw = null;
 			parameters = new ArrayList<Parameter>();
 		}
-		public void addReactant(String reactant) { reactants.add(reactant); }
+		public void addReactant(String reactant) { addReactant(reactant, 1); }
+		public void addReactant(String reactant, int stoich) { reactants.add(reactant); reactantStoichs.add(stoich); }
 		public void addProduct(String product) { addProduct(product, 1); }
 		public void addProduct(String product, int stoich) { products.add(product); productStoichs.add(stoich); }
 		public void setKineticLaw(Element kineticLaw) { this.kineticLaw = kineticLaw; }
@@ -564,7 +574,7 @@ public class SBML2Prism implements EntityResolver
 		{
 			int i = reactants.indexOf(species);
 			if (i == -1) return 0;
-			return 1;
+			return reactantStoichs.get(i);
 		}
 		public int after(String species)
 		{
@@ -579,6 +589,7 @@ public class SBML2Prism implements EntityResolver
 			if (name.length() > 0) s+= " ("+name+")";
 			s += ":\n";
 			s += "    Reactants: " + reactants+"\n";
+			s += "    Reactants stoichiometry: " + productStoichs+"\n";
 			s += "    Products: " + products+"\n";
 			s += "    Products stoichiometry: " + productStoichs+"\n";
 			s += "    Kinetic law: " + kineticLaw+"\n";
