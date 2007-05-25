@@ -182,6 +182,8 @@ public class SBML2Prism implements EntityResolver
 			e_species = (Element)nodes.item(i);
 			d = Double.parseDouble(e_species.getAttribute("initialAmount"));
 			species = new Species(e_species.getAttribute("id"), e_species.getAttribute("name"), d);
+			s = e_species.getAttribute("boundaryCondition");
+			if (s.equals("true")) species.boundaryCondition = true;
 			speciesList.add(species);
 		}
 		
@@ -400,10 +402,11 @@ public class SBML2Prism implements EntityResolver
 			}
 		}
 		
-		// Generate module for each species
+		// Generate module for each species (except those with boundaryCondition=true)
 		n = speciesList.size();
 		for (i = 0; i < n; i++) {
 			species = speciesList.get(i);
+			if (species.boundaryCondition) continue;
 			s += "\n// Species " + species + "\n";
 			s += "const int "+species.prismName+"_MAX = MAX_AMOUNT;\n";
 			s += "module " + species.prismName + "\n";
@@ -477,6 +480,7 @@ public class SBML2Prism implements EntityResolver
 		n = speciesList.size();
 		for (i = 0; i < n; i++) {
 			species = speciesList.get(i);
+			if (species.boundaryCondition) continue;
 			s += "// " + (i+1) + "\nrewards \"" + species.prismName + "\" true : " + species.prismName + "; endrewards\n";
 		}
 		
@@ -510,12 +514,14 @@ public class SBML2Prism implements EntityResolver
 		public String name;
 		public double init;
 		public String prismName;
+		public boolean boundaryCondition;
 		public Species(String id, String name, double init)
 		{
 			this.id = id;
 			this.name = name;
 			this.init = init;
 			this.prismName = null;
+			this.boundaryCondition = false;
 		}
 		public String toString() { return id+(name.length()>0 ? (" ("+name+")") : ""); }
 	}
