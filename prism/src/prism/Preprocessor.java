@@ -59,6 +59,7 @@ public class Preprocessor
 	private int pc; // program counter
 	private Stack stack; // control flow stack
 	private String output; // output string
+	private boolean outputEnabled; // output enabling flag
 	private Vector varNames, varTypes, varScopes; // variable info
 	private Values values; // variable values
 	private int constCounter; // how many undefined constants found so far
@@ -208,6 +209,7 @@ public class Preprocessor
 		
 		// initialise interpreter
 		output = "";
+		outputEnabled = true;
 		pc = 0;
 		stack = new Stack();
 		varNames = new Vector();
@@ -221,7 +223,7 @@ public class Preprocessor
 			while (pc < numPPExprs) {
 				
 				// add text preceding this preprocessing expression to output
-				output += ppExprStrings[pc];
+				if (outputEnabled) output += ppExprStrings[pc];
 				
 				// process current preprocessing expression
 				s = ppExprs[pc].trim();
@@ -264,7 +266,7 @@ public class Preprocessor
 				}
 			}
 			// add final piece of text to output
-			output += lastString;
+			if (outputEnabled) output += lastString;
 		}
 		catch (ParseException e) {
 			throw new PrismException("Syntax error in preprocessing expression \"" + ppExprs[pc] + "\" at line " + ppExprLines[pc]);
@@ -279,6 +281,9 @@ public class Preprocessor
 		int i;
 		String name;
 		Expression expr;
+		
+		// if not currently outputting, just skip this
+		if (!outputEnabled) { pc++; return; }
 		
 		// get constant name - terminated by "=", white space or end of expression
 		i = s.indexOf('=');
@@ -325,6 +330,9 @@ public class Preprocessor
 	{
 		ForLoop fl;
 		
+		// if not currently outputting, just stick a dummy for loop on the stack and move on
+		if (!outputEnabled) { stack.push("Dummy for loop"); pc++; return; }
+		
 		// parse for loop, do some checks
 		fl = prism.parseForLoopString(s);
 		if (varNames.contains(fl.getLHS()))
@@ -340,6 +348,11 @@ public class Preprocessor
 		varTypes.add(new Integer(Expression.INT));
 		varScopes.add(new Integer(stack.size()));
 		values.addValue(fl.getLHS(), new Integer(fl.getFrom().evaluateInt(null, values)));
+		// if for loop trivially not satisfied, set output flag to false
+		if (fl.getFrom().evaluateInt(null, values) > fl.getTo().evaluateInt(null, values)) {
+			outputEnabled = false;
+		}
+		
 		// move to next statement
 		pc++;
 	}
@@ -368,20 +381,11 @@ public class Preprocessor
 					j++;
 				}
 			}
-			// increment for loop
-			i = values.getIntValueOf(fl.getLHS());
-			i += fl.getStep().evaluateInt(null, values);
-			// if loop is not finished...
-			if (i <= fl.getTo().evaluateInt(null, values)) {
-				// update value of loop counter
-				values.setValue(fl.getLHS(), new Integer(i));
-				// add "between" character to text
-				output += fl.getBetween();
-				// go back to start of loop
-				pc = fl.getPC();
-			}
-			// if loop is finished...
-			else {
+			// if not outputting (which means that the condition for the for loop was initially false)
+			// the end for loop
+			if (!outputEnabled) {
+				// reset flag
+				outputEnabled = true;
 				// remove loop counter variable
 				j = varNames.indexOf(fl.getLHS());
 				varNames.removeElementAt(j);
@@ -393,12 +397,53 @@ public class Preprocessor
 				// move to next statement
 				pc++;
 			}
+			// otherwise increment to see if we have finished yet
+			else {
+				// increment for loop
+				i = values.getIntValueOf(fl.getLHS());
+				i += fl.getStep().evaluateInt(null, values);
+				// if loop is not finished...
+				if (i <= fl.getTo().evaluateInt(null, values)) {
+					// update value of loop counter
+					values.setValue(fl.getLHS(), new Integer(i));
+					// add "between" character to text
+					output += fl.getBetween();
+					// go back to start of loop
+					pc = fl.getPC();
+				}
+				// if loop is finished...
+				else {
+					// remove loop counter variable
+					j = varNames.indexOf(fl.getLHS());
+					varNames.removeElementAt(j);
+					varTypes.removeElementAt(j);
+					varScopes.removeElementAt(j);
+					values.removeValue(j);
+					// remove for loop from stack
+					stack.pop();
+					// move to next statement
+					pc++;
+				}
+			}
+		}
+		
+		// if not currently outputting, just pop the stack and move on
+		else if (stack.peek() instanceof String && !outputEnabled) {
+			stack.pop();
+			pc++;
+		}
+		
+		else {
+			throw new PrismException("Preprocessor stack error");
 		}
 	}
 
 	private void interpretExpression(String s) throws PrismException, ParseException
 	{
 		Expression expr;
+		
+		// if not currently outputting, just skip this
+		if (!outputEnabled) { pc++; return; }
 		
 		// parse expression, do some checks
 		expr = prism.parseSingleExpressionString(s);
