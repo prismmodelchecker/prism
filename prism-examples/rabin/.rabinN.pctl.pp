@@ -1,8 +1,8 @@
-label "one_trying" = p1=1|p2=1|p3=1|p4=1|p5=1;
-label "one_critical" = p1=2|p2=2|p3=2|p4=2|p5=2;
+#const N#
+label "one_trying" = #| i=1:N#p#i#=1#end#;label "one_critical" = #| i=1:N#p#i#=2#end#;
 
 // Mutual exclusion
-(p1=2?1:0)+(p2=2?1:0)+(p3=2?1:0)+(p4=2?1:0)+(p5=2?1:0) <= 1
+#+ i=1:N#(p#i#=2?1:0)#end# <= 1
 
 // Liveness: If a process is trying, then eventually a process enters the critical section
 "one_trying" => P>=1 [ true U "one_critical" ]
