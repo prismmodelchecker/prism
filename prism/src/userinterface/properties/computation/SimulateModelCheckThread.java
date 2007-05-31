@@ -127,6 +127,7 @@ public class SimulateModelCheckThread extends GUIComputationThread
 			try
 			{
 				// display info
+				logln("\n-------------------------------------------");
 				log("\nSimulating");
 				if (pf.getNumProperties() == 1) {
 					logln(": " + properties.get(0));
@@ -180,6 +181,7 @@ public class SimulateModelCheckThread extends GUIComputationThread
 				// do model checking
 				try
 				{
+					logln("\n-------------------------------------------");
 					logln("\nSimulating"+": " + pf.getProperty(i));
 					if (definedMFConstants != null) if (definedMFConstants.getNumValues() > 0) logln("Model constants: " + definedMFConstants);
 					if (definedPFConstants != null) if (definedPFConstants.getNumValues() > 0) logln("Property constants: " + definedPFConstants);

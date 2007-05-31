@@ -97,6 +97,7 @@ public class ModelCheckThread extends GUIComputationThread
 			// do model checking
 			try
 			{
+				logln("\n-------------------------------------------");
 				logln("\nModel checking: " + prFi.getProperty(i));
 				if (definedMFConstants != null) if (definedMFConstants.getNumValues() > 0) logln("Model constants: " + definedMFConstants);
 				if (definedPFConstants != null) if (definedPFConstants.getNumValues() > 0) logln("Property constants: " + definedPFConstants);

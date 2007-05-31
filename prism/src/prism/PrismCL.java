@@ -285,6 +285,7 @@ public class PrismCL
 				// for simulation we can do multiple values of property constants simultaneously
 				if (simulate && undefinedConstants.getNumPropertyIterations() > 1) {
 					try {
+						mainLog.println("\n-------------------------------------------");
 						mainLog.println("\nSimulating: " + propertiesToCheck[j]);
 						if (definedMFConstants != null) if (definedMFConstants.getNumValues() > 0) mainLog.println("Model constants: " + definedMFConstants);
 						mainLog.println("Property constants: " + undefinedConstants.getPFDefinedConstantsString());
@@ -319,6 +320,7 @@ public class PrismCL
 							}
 							
 							// do model checking
+							mainLog.println("\n-------------------------------------------");
 							mainLog.println("\n"+(simulate?"Simulating":"Model checking")+": " + propertiesToCheck[j]);
 							if (definedMFConstants != null) if (definedMFConstants.getNumValues() > 0) mainLog.println("Model constants: " + definedMFConstants);
 							if (definedPFConstants != null) if (definedPFConstants.getNumValues() > 0) mainLog.println("Property constants: " + definedPFConstants);
@@ -524,6 +526,8 @@ public class PrismCL
 	{
 		StateList states;
 		int i;
+		
+		mainLog.println("\n-------------------------------------------");
 		
 		// build model
 		if (importtrans) {

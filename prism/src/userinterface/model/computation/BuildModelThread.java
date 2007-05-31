@@ -198,6 +198,7 @@ public class BuildModelThread extends GUIComputationThread
 		
 		// do build
 		try {
+			logln("\n-------------------------------------------");
 			model = prism.buildModel(mod);
 		}
 		catch (PrismException e) {

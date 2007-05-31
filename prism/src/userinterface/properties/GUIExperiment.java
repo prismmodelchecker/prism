@@ -274,6 +274,7 @@ public class GUIExperiment
 					{
 						// build model
 						try {
+							logln("\n-------------------------------------------");
 							model = prism.buildModel(modulesFile);
 							clear = false;
 						}
@@ -367,6 +368,7 @@ public class GUIExperiment
 					else if(useSimulation && prism.getSettings().getBoolean(PrismSettings.SIMULATOR_SIMULTANEOUS) && undefinedConstants.getNumPropertyIterations() > 1)
 					{
 						try {
+							logln("\n-------------------------------------------");
 							logln("\nSimulating: " + propertyToCheck);
 							if (definedMFConstants != null) if (definedMFConstants.getNumValues() > 0) logln("Model constants: " + definedMFConstants);
 							logln("Property constants: " + undefinedConstants.getPFDefinedConstantsString());
@@ -407,6 +409,7 @@ public class GUIExperiment
 								}
 								
 								// do model checking
+								logln("\n-------------------------------------------");
 								logln("\n"+(useSimulation?"Simulating":"Model checking")+": " + propertyToCheck);
 								if (definedMFConstants != null) if (definedMFConstants.getNumValues() > 0) logln("Model constants: " + definedMFConstants);
 								if (definedPFConstants != null) if (definedPFConstants.getNumValues() > 0) logln("Property constants: " + definedPFConstants);
