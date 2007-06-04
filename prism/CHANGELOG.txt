@@ -6,6 +6,7 @@ of the main changes in each public release, see the file VERSIONS.txt.
 Latest additions (reverse chronological)
 -----------------------------------------------------------------------------
 
+* Prototype SBML-to-PRISM translator
 * New option for -simpath feature: can enable/disable loop checking
 * New option for -simpath feature: generation of multiple paths to find deadlock
 * New "rows" option for matrix exports (-exportrows switch)
