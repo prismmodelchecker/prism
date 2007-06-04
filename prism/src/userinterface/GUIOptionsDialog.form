@@ -25,10 +25,10 @@
         <Container class="javax.swing.JTabbedPane" name="theTabs">
           <Properties>
             <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-              <Dimension value="[300, 50]"/>
+              <Dimension value="[400, 50]"/>
             </Property>
             <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-              <Dimension value="[300, 500]"/>
+              <Dimension value="[400, 500]"/>
             </Property>
           </Properties>
           <AuxValues>
@@ -48,7 +48,7 @@
     <Container class="javax.swing.JPanel" name="jPanel2">
       <Properties>
         <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[300, 35]"/>
+          <Dimension value="[400, 35]"/>
         </Property>
       </Properties>
       <Constraints>

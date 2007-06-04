@@ -101,15 +101,15 @@ public class GUIOptionsDialog extends javax.swing.JDialog
 
 		jPanel1.setLayout(new java.awt.BorderLayout());
 
-		theTabs.setMinimumSize(new java.awt.Dimension(300, 50));
-		theTabs.setPreferredSize(new java.awt.Dimension(300, 500));
+		theTabs.setMinimumSize(new java.awt.Dimension(400, 50));
+		theTabs.setPreferredSize(new java.awt.Dimension(400, 500));
 		jPanel1.add(theTabs, java.awt.BorderLayout.CENTER);
 
 		getContentPane().add(jPanel1, java.awt.BorderLayout.CENTER);
 
 		jPanel2.setLayout(new java.awt.BorderLayout());
 
-		jPanel2.setMinimumSize(new java.awt.Dimension(300, 35));
+		jPanel2.setMinimumSize(new java.awt.Dimension(400, 35));
 		jPanel3.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
 		defaultButton.setMnemonic('D');
