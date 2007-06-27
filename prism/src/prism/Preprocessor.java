@@ -251,6 +251,9 @@ public class Preprocessor
 				else if (s.indexOf(", ") == 0) {
 					s = s.substring(2).trim(); interpretForLoop(s, ",");
 				}
+				else if (s.indexOf("; ") == 0) {
+					s = s.substring(2).trim(); interpretForLoop(s, ";");
+				}
 				// end
 				else if (s.equals("end")) {
 					interpretEnd();
