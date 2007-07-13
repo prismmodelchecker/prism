@@ -392,7 +392,7 @@ int accuracy
 		case ACCURACY_LOW: fprintf(dd_out, "%.2f ", val); break;
 		case ACCURACY_NORMAL: fprintf(dd_out, "%f ", val); break;
 		case ACCURACY_HIGH: fprintf(dd_out, "%.10f ", val); break;
-		case ACCURACY_LIST: if (val>0) fprintf(dd_out, "%d ", i); break;
+		case ACCURACY_LIST: if (val>0) fprintf(dd_out, "%d:%f ", i, val); break;
 		}
 	}
 	fprintf(dd_out, "\n");
@@ -461,7 +461,7 @@ int accuracy
 			case ACCURACY_LOW: fprintf(dd_out, "%.2f ", val); break;
 			case ACCURACY_NORMAL: fprintf(dd_out, "%f ", val); break;
 			case ACCURACY_HIGH: fprintf(dd_out, "%.10f ", val); break;
-			case ACCURACY_LIST: if (val>0) fprintf(dd_out, "%d,%d ", i, j); break;
+			case ACCURACY_LIST: if (val>0) fprintf(dd_out, "%d,%d:%f ", i, j, val); break;
 			}
 		}
 		fprintf(dd_out, "\n");
@@ -528,7 +528,7 @@ int accuracy
 			case ACCURACY_LOW: fprintf(dd_out, "%.2f ", val); break;
 			case ACCURACY_NORMAL: fprintf(dd_out, "%f ", val); break;
 			case ACCURACY_HIGH: fprintf(dd_out, "%.10f ", val); break;
-			case ACCURACY_LIST: if (val>0) fprintf(dd_out, "%d ", count); break;
+			case ACCURACY_LIST: if (val>0) fprintf(dd_out, "%d:%f ", count, val); break;
 			}
 		}
 	}
