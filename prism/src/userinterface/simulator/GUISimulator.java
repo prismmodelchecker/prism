@@ -2700,8 +2700,36 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				if (view.showTime() || view.showCumulativeTime()) 
 				{ groupCount++;	} 
 				
-				if (view.getVisibleVariables().size() > 0)
-				{ groupCount++;	}				
+				ArrayList vars = view.getVisibleVariables();
+				Set<String> varNames = new HashSet<String>();
+				
+				for (Object var : vars)
+				{
+					Variable variable = (Variable)var;
+					varNames.add(variable.getName());
+				}
+				
+				for (int g = 0; g < parsedModel.getNumGlobals(); g++)
+				{
+					if (varNames.contains(parsedModel.getGlobal(g).getName()))
+					{
+						groupCount++;
+						break;
+					}						
+				}
+				
+				for (int m = 0; m < parsedModel.getNumModules(); m++)
+				{
+					Module module = parsedModel.getModule(m);
+					for (int v = 0; v < module.getNumDeclarations(); v++)
+					{
+						if (varNames.contains(module.getDeclaration(v).getName()))
+						{	
+							groupCount++;
+							break;
+						}
+					}
+				}
 				
 				if (view.getVisibleRewardColumns().size() > 0)
 				{ groupCount++;	} 
@@ -2734,7 +2762,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				if (view.showSteps()) 
 				{ 					
 					if (groupCount == groupIndex)
-					{	return "Step";	}
+					{	return "[ Step ]";	}
 					
 					groupCount++;
 				}
@@ -2742,24 +2770,56 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				if (view.showTime() || view.showCumulativeTime()) 
 				{	
 					if (groupCount == groupIndex) 
-					{	return "Time";	}
+					{	return "[ Time ]";	}
 					
 					groupCount++;				
 				}
 				
 				if (view.getVisibleVariables().size() > 0)
-				{ 
-					if (groupCount == groupIndex)
-					{	return "Variables";	}
+				{
+					ArrayList vars = view.getVisibleVariables();
+					Set<String> varNames = new HashSet<String>();
 					
-					groupCount++;
+					for (Object var : vars)
+					{
+						Variable variable = (Variable)var;
+						varNames.add(variable.getName());
+					}
+					
+					for (int g = 0; g < parsedModel.getNumGlobals(); g++)
+					{
+						if (varNames.contains(parsedModel.getGlobal(g).getName()))
+						{
+							if (groupCount == groupIndex)
+							{	return "globals";	}
+							
+							groupCount++;
+							break;
+						}						
+					}
+					
+					for (int m = 0; m < parsedModel.getNumModules(); m++)
+					{	
+						Module module = parsedModel.getModule(m);
+						for (int v = 0; v < module.getNumDeclarations(); v++)
+						{
+							if (varNames.contains(module.getDeclaration(v).getName()))
+							{	
+								if (groupCount == groupIndex)
+								{	return "" + parsedModel.getModuleName(m) + "";	}
+								
+								groupCount++;
+								break;
+							}
+						}
+					}
 				}
 				
 				// Add state and transitions rewards for each reward structure.
 				if (view.getVisibleRewardColumns().size() > 0)
 					{
 					if (groupCount == groupIndex)
-					{	return "Rewards";	}
+					{	return "[ Rewards ]";	}
 					
 					groupCount++;				
 				}
@@ -2840,10 +2900,65 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			
 			if (view.getVisibleVariables().size() > 0)
 			{ 
-				if (groupCount == groupIndex)
-				{	return varStart + view.getVisibleVariables().size() -1; }
+				int visVarCount = 0;				
 				
-				groupCount++;				
+				ArrayList vars = view.getVisibleVariables();
+				Set<String> varNames = new HashSet<String>();
+				
+				for (Object var : vars)
+				{
+					Variable variable = (Variable)var;
+					varNames.add(variable.getName());
+				}
+				
+				boolean atLeastOneGlobal = false;					
+				
+				for (int g = 0; g < parsedModel.getNumGlobals(); g++)
+				{
+					boolean contained = varNames.contains(parsedModel.getGlobal(g).getName());
+					
+					if (!atLeastOneGlobal && contained)
+					{	
+						atLeastOneGlobal = true;
+					}
+					
+					if (contained)
+						visVarCount++;
+				}
+				
+				if (atLeastOneGlobal && groupCount == groupIndex)
+				{	return varStart + visVarCount -1; }	
+				
+				if (atLeastOneGlobal)
+				{
+					groupCount++;
+				}	
+				
+				for (int m = 0; m < parsedModel.getNumModules(); m++)
+				{
+					Module module = parsedModel.getModule(m);
+					boolean atLeastOne = false;					
+					
+					for (int v = 0; v < module.getNumDeclarations(); v++)
+					{
+						boolean contained = varNames.contains(module.getDeclaration(v).getName());
+						if (!atLeastOne && contained)
+						{	
+							atLeastOne = true;
+						}
+						
+						if (contained)
+							visVarCount++;
+					}
+					
+					if (atLeastOne && groupCount == groupIndex)
+					{	return varStart + visVarCount -1; }	
+					
+					if (atLeastOne)
+					{
+						groupCount++;
+					}	
+				}
 			}
 			
 			// Add state and transitions rewards for each reward structure.
