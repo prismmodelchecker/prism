@@ -31,7 +31,16 @@ fi
 #  - classes directory (most PRISM classes)
 #  - top-level directory (for images, dtds)
 #  - lib/pepa.zip (PEPA stuff)
-PRISM_CLASSPATH="$PRISM_DIR"/lib/prism.jar:"$PRISM_DIR"/classes:"$PRISM_DIR":"$PRISM_DIR"/lib/pepa.zip
+#  - lib/{jcommon,jfreechart}.jar (JFreeChart stuff)
+#  - lib/epsgraphics.jar (Java EPS Graphics library)
+PRISM_CLASSPATH=\
+"$PRISM_DIR"/lib/prism.jar\
+:"$PRISM_DIR"/classes\
+:"$PRISM_DIR"\
+:"$PRISM_DIR"/lib/pepa.zip\
+:"$PRISM_DIR"/lib/jcommon.jar\
+:"$PRISM_DIR"/lib/jfreechart.jar\
+:"$PRISM_DIR"/lib/epsgraphics.jar
 
 # Export environment variables
 export PRISM_DIR PATH

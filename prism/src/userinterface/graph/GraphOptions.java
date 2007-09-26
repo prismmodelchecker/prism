@@ -25,24 +25,27 @@
 //	
 //==============================================================================
 
-package chart;
+package userinterface.graph;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+
+import userinterface.*;
 
 /**
  * This class is to make the new chart package compatible with the old.
  * @author  ug60axh
  */
-public class MultiGraphOptions extends JDialog
+public class GraphOptions extends JDialog
 {
 	private GraphOptionsPanel gop;
 	/** Creates a new instance of MultiGraphOptions */
-	public MultiGraphOptions(MultiGraphModel theModel, JFrame gui, String title)
+	public GraphOptions(GUIPlugin plugin, Graph theModel, JFrame gui, String title)
 	{
 		super(gui, title);
 		
-		gop = new GraphOptionsPanel(gui, theModel); 
+		gop = new GraphOptionsPanel(plugin, gui, theModel); 
 		
 		gop.setPreferredSize(new Dimension(400,650));
 		
@@ -60,7 +63,7 @@ public class MultiGraphOptions extends JDialog
 			public void actionPerformed(ActionEvent e)
 			{
 				gop.stopEditors();
-				hide();
+				setVisible(false);
 			}
 		}
 		);

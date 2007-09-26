@@ -416,17 +416,23 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		
 		// Use these values to create a new experiment
 		int i = experiments.newExperiment(parsedProperties, uCon, parsedModel, useSimulation);
-		
+		boolean notCancelled = true;
 		// start the experiment, via the graph dialog if appropriate
 		if(showGraphDialog)
 		{
-			GUIGraphPicker ggp = new GUIGraphPicker(getGUI(), this, experiments.getExperiment(i).getResults(), graphHandler);
-			ggp.startGraphExperiment(experiments, i);
-		}
-		else
-		{
+			GUIGraphPicker ggp = new GUIGraphPicker(getGUI(), this, experiments.getExperiment(i), graphHandler, false);
+			
+			if (ggp.isGraphCancelled())
+			{
+				if (questionYesNo("Do you want to cancel the experiment completely?", 0) == 0)
+					notCancelled = false;
+			}
+		}		
+		
+		if (notCancelled)
 			experiments.startExperiment(i);
-		}
+		//else
+		//	experiments.removeExperiment(i);
 	}
 	
 	public void propertyLoadSuccessful(PropertiesFile pf, File f)
@@ -1040,9 +1046,11 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			message("Cannot create a graph since there is only a single result.");
 			return;
 		}
-		// launch dialog, plot series
-		GUIGraphPicker ggp = new GUIGraphPicker(getGUI(), this, exp.getResults(), graphHandler);
-		ggp.pickNewSeries();
+		
+		// launch dialog, plot series (modal)
+		GUIGraphPicker ggp = new GUIGraphPicker(getGUI(), this, exp, graphHandler, true);	
+		
+		
 	}
 	
 	public void a_exportResults()
@@ -1570,7 +1578,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 					}
 					JPanel bottomRight = new JPanel(new GridLayout(1,1));
 					{
-						graphHandler = new GUIGraphHandler(this.getGUI(), this);
+						graphHandler = new GUIGraphHandler(this.getGUI(), this, true);
 						bottomRight.add(graphHandler);
 						
 						bottomRight.setPreferredSize(new Dimension(300,300));

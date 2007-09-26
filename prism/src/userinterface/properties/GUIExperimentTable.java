@@ -82,12 +82,7 @@ public class GUIExperimentTable extends JTable
 	{
 		expModel.getExperiment(i).startExperiment();
 	}
-	
-	public void startExperiment(int i, chart.MultiGraphModel mgm, String ranger, ArrayList others, ArrayList seriesName)
-	{
-		expModel.getExperiment(i).startExperiment(mgm, ranger, others, seriesName);
-	}
-	
+		
 	public void progressChanged()
 	{
 		repaint();

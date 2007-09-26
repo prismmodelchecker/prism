@@ -4,6 +4,7 @@
 //	Authors:
 //	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
 //	* Andrew Hinton <ug60axh@cs.bham.uc.uk> (University of Birmingham)
+//  * Mark Kattenbelt <mark.kattenbelt@comlab.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -26,78 +27,94 @@
 //==============================================================================
 
 package prism;
+
 import java.util.*;
 import parser.*;
-import chart.*;
+import userinterface.graph.*;
+
 /**
- *
- * @author  ug60axh
+ * This class stores the results of experiments. It should be unaware what is being done with the results,
+ * for instance the plotting of the results.
+ * @author  ug60axh, mxk
  */
 public class ResultsCollection
 {
-	// info about the constants over which these results range
-	private Vector rangingConstants;
-	private int numRangingConstants;
+	// Info about the constants over which these results range
+	private Vector<DefinedConstant> rangingConstants;
 	
-	// storage of the actual results
+	// Storage of the actual results
 	private TreeNode root;
 	private int currentIteration = 0;
 	private boolean anyErrors = false;
 	
-	private ArrayList displayableData;
+	// Listeners to results of this ResultCollection
+	private Vector<ResultListener> resultListeners;	
 	
 	// the "name" of the result (used for y-axis of any graphs plotted)
 	private String resultName;
 	
 	/** Creates a new instance of ResultsCollection */
-	public ResultsCollection(UndefinedConstants uCons) { this(uCons, null); }
+	public ResultsCollection(UndefinedConstants uCons) 
+	{ 
+		this(uCons, null); 
+	}
+	
 	public ResultsCollection(UndefinedConstants uCons, String resultName)
 	{
-		rangingConstants = uCons.getRangingConstants();
-		numRangingConstants = rangingConstants.size();
-		if (numRangingConstants > 0) {
-			root = new TreeNode(0);
+		resultListeners = new Vector<ResultListener>();
+		rangingConstants = new Vector<DefinedConstant>();
+		
+		/* TODO: Fix this when/if getRangingConstants() returns Vector<DefinedConstant> */
+		Vector tmpRangingConstants = uCons.getRangingConstants();		
+		for (int i = 0; i < tmpRangingConstants.size(); i++)
+		{
+			rangingConstants.add((DefinedConstant)tmpRangingConstants.get(i));
 		}
-		else {
-			root = new TreeLeaf();
-		}
-		displayableData = new ArrayList();
+		
+		this.root = (rangingConstants.size() > 0) ? new TreeNode(0) : new TreeLeaf();		
 		this.resultName = (resultName == null) ? "Result" : resultName;
 	}
-
-	// ACCESS METHODS
-	public Vector getRangingConstants() { return rangingConstants; }
-	public int getNumRangingConstants() { return numRangingConstants; }
-	public int getCurrentIteration() { return currentIteration; }
-	public String getResultName() { return resultName; }
-
-	/** Add a result to the collection.
-	    More or less defunct - just use setResult instead. */
 	
-	public void addResult(Values mfValues, Values pfValues, Object result) throws PrismException
+	public Vector<DefinedConstant> getRangingConstants() 
+	{ 
+		return rangingConstants; 
+	}
+	
+	public int getNumRangingConstants() 
 	{
-		setResult(mfValues, pfValues, result);
+		return rangingConstants.size(); 
+	}	
+	
+	public boolean addResultListener(ResultListener resultListener) 
+	{
+		return resultListeners.add(resultListener);
 	}
 
-	/** Sets the result for a particular set of values. */
-	
-	public int setResult(Values mfValues, Values pfValues, Object result) throws PrismException
+	public boolean removeResultListener(ResultListener resultListener) 
 	{
-		// merge mfValues and pfValues
-		Values merged = new Values();
-		if (mfValues != null) merged.addValues(mfValues);
-		if (pfValues != null) merged.addValues(pfValues);
-		
+		return resultListeners.removeElement(resultListener);
+	}
+
+	public int getCurrentIteration() 
+	{ 
+		return currentIteration; 
+	}
+	
+	public String getResultName() 
+	{ 
+		return resultName; 
+	}
+	
+	/** Sets the result for a particular set of values. */	
+	public int setResult(Values values, Object result) throws PrismException
+	{		
 		// store result
-		int ret = root.setResult(merged, result);
+		int ret = root.setResult(values, result);
 		
-		// if the result is displayable, notify people
-		if(result instanceof Integer || result instanceof Double) 
-		{
-			for(int i = 0; i < displayableData.size(); i++)
-				((DisplayableData)displayableData.get(i)).notifyResult(merged, result);
-		}
-		
+		// notify listeners
+		for(int i = 0; i < resultListeners.size(); i++)
+		{	resultListeners.get(i).notifyResult(this, values, result);	}
+				
 		// modify counters/flags as appropriate
 		currentIteration += ret;
 		if (result instanceof Exception) anyErrors = true;
@@ -105,6 +122,36 @@ public class ResultsCollection
 		return ret;
 	}
 
+	/** Sets the result for a particular set of values. */	
+	public int setResult(Values mfValues, Values pfValues, Object result) throws PrismException
+	{
+		// merge mfValues and pfValues
+		Values merged = new Values();
+		if (mfValues != null) merged.addValues(mfValues);
+		if (pfValues != null) merged.addValues(pfValues);
+		
+		return setResult(merged, result);	
+	}
+
+	
+	/** Sets the result to an error for a particular set of values.
+	  * If any constants are left undefined, the same error will be set for all values of each constant.
+	  * Returns the total number of values which were set for the the first time.
+	  * Note: individual errors can be set using setResult(). That method could easily be adapted to store
+	  * multiple values but the DisplayableData aspect isn't sorted yet. */
+	
+	public int setMultipleErrors(Values values, Exception error) throws PrismException
+	{
+		// store result
+		int ret = root.setResult(values, error);
+		
+		// modify counters/flags as appropriate
+		currentIteration += ret;
+		anyErrors = true;
+		
+		return ret;
+	}
+	
 	/** Sets the result to an error for a particular set of values.
 	  * If any constants are left undefined, the same error will be set for all values of each constant.
 	  * Returns the total number of values which were set for the the first time.
@@ -118,80 +165,32 @@ public class ResultsCollection
 		if (mfValues != null) merged.addValues(mfValues);
 		if (pfValues != null) merged.addValues(pfValues);
 		
-		// store result
-		int ret = root.setResult(merged, error);
-		
-		// modify counters/flags as appropriate
-		currentIteration += ret;
-		anyErrors = true;
-		
-		return ret;
+		return setMultipleErrors(merged, error);
 	}
 
-	/** Access a stored result */
-	
+	/** Access a stored result */	
 	public Object getResult(Values val) throws PrismException
 	{
 		return root.getResult(val);
 	}
 
-	/** See if there were any errors */
-	
+	/** See if there were any errors */	
 	public boolean containsErrors()
 	{
 		return anyErrors;
 	}
-
-	public void addWholeGraph(MultiGraphModel mgm, int seriesIndex)
-	{
-		DisplayableData d = new DisplayableData(mgm, seriesIndex);
-		displayableData.add(d);
-	}
-	
-	public void create2DGraph(String xvar, Values otherValues, MultiGraphModel mgm, String seriesName)
-	{
-		DisplayableData d = new DisplayableData(mgm, xvar, otherValues, seriesName);
-		displayableData.add(d);
-		mgm.changed();
-	}
-
-	public void create2DGraph(String xvar, ArrayList others, MultiGraphModel mgm, ArrayList seriesNames)
-	{
-		for(int i = 0; i < others.size(); i++)
-		{
-			Values v = (Values)others.get(i);
-			String s = (String)seriesNames.get(i);
-			DisplayableData d = new DisplayableData(mgm, xvar, v, s);
-			displayableData.add(d);
-		}
-		mgm.changed();
-	}
-
-	public Object[] create1DArray(String xvar, Values otherValues)
-	{
-		return null;
-	}
-	
-	public void clearAllDisplays()
-	{
-		for(int i = 0; i < displayableData.size(); i++)
-		{
-			DisplayableData d = (DisplayableData)displayableData.get(i);
-			d.clear();
-		}
-	}
-
+		
 	/** Create array of headings */
 	public String[] getHeadingsArray()
 	{
 		int i;
-		String res[] = new String[numRangingConstants+1];
+		String res[] = new String[rangingConstants.size()+1];
 		
 		// create header
-		for (i = 0; i < numRangingConstants; i++) {
+		for (i = 0; i < rangingConstants.size(); i++) {
 			res[i] = ((DefinedConstant)rangingConstants.elementAt(i)).getName();
 		}
-		res[numRangingConstants] = "Result";
+		res[rangingConstants.size()] = "Result";
 		
 		return res;
 	}
@@ -225,10 +224,10 @@ public class ResultsCollection
 		String s = "";
 		
 		// if there are no variables, override eq separator
-		if (numRangingConstants == 0) eq = "";
+		if (rangingConstants.size() == 0) eq = "";
 		// create header
 		if (header) {
-			for (i = 0; i < numRangingConstants; i++) {
+			for (i = 0; i < rangingConstants.size(); i++) {
 				if (i > 0) s += sep;
 				s += ((DefinedConstant)rangingConstants.elementAt(i)).getName();
 			}
@@ -256,7 +255,7 @@ public class ResultsCollection
 		if (partial == null) partial = new Values();
 		// if there are no variables, override eq separator
 		noVars = true;
-		for (i = 0; i < numRangingConstants; i++) {
+		for (i = 0; i < rangingConstants.size(); i++) {
 			if (!partial.contains(((DefinedConstant)rangingConstants.elementAt(i)).getName())) {
 				noVars = false;
 				break;
@@ -266,7 +265,7 @@ public class ResultsCollection
 		// create header
 		if (header) {
 			first = true;
-			for (i = 0; i < numRangingConstants; i++) {
+			for (i = 0; i < rangingConstants.size(); i++) {
 				name = ((DefinedConstant)rangingConstants.elementAt(i)).getName();
 				// only print constants for which we haven't been given values
 				if (!partial.contains(name)) {
@@ -294,7 +293,7 @@ public class ResultsCollection
 		/** Empty constructor */ /* Required by subclass */
 		public TreeNode() { }
 
-		/** Actrual constructor (recursive) */
+		/** Actual constructor (recursive) */
 		public TreeNode(int l)
 		{
 			int i, n;
@@ -305,11 +304,11 @@ public class ResultsCollection
 			n = constant.getNumSteps();
 			kids = new TreeNode[n];
 			for (i = 0; i < n; i++) {
-				kids[i] = (level == numRangingConstants-1) ? new TreeLeaf() : new TreeNode(l+1);
+				kids[i] = (level == rangingConstants.size()-1) ? new TreeLeaf() : new TreeNode(l+1);
 			}
 		}
 
-		/** Sets the result for a particular set of values in the sata structure.
+		/** Sets the result for a particular set of values in the data structure.
 		  * If any constants are left undefined, the same result will be set for all values of each constant.
 		  * Returns the total number of values which were set for the the first time. */
 		public int setResult(Values setThese, Object result) throws PrismException
@@ -355,7 +354,7 @@ public class ResultsCollection
 		public ArrayList toArrayList()
 		{
 			ArrayList a = new ArrayList();
-			String line[] = new String[numRangingConstants+1];
+			String line[] = new String[rangingConstants.size()+1];
 			toArrayListRec(a, line);
 			return a;
 		}
@@ -454,6 +453,6 @@ public class ResultsCollection
 		public Object getResult(Values getThese) throws PrismException { return val; }
 		public String toStringRec(boolean pv, String sep, String eq, String head) { return head + eq + val + "\n"; }
 		public String toStringPartialRec(Values partial, boolean first, boolean pv, String sep, String eq, String head) { return head + eq + val + "\n"; }
-		public void toArrayListRec(ArrayList a, String line[]) { line[numRangingConstants]=""+val; a.add(line.clone()); }
+		public void toArrayListRec(ArrayList a, String line[]) { line[rangingConstants.size()]=""+val; a.add(line.clone()); }
 	}
 }

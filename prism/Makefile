@@ -174,6 +174,7 @@ ifeq ($(OSTYPE),linux)
 	LIBSUFFIX = .so
 	BINDISTSUFFIX = linux
 	OSTYPE_INCLUDE = include
+	CLASSPATHSEP = ":"
 endif
 # Solaris
 ifeq ($(OSTYPE),solaris)
@@ -187,6 +188,7 @@ ifeq ($(OSTYPE),solaris)
 	CUDD_MAKEFILE = Makefile.solaris
 	BINDISTSUFFIX = solaris
 	OSTYPE_INCLUDE = include
+	CLASSPATHSEP = ":"
 endif
 # Cygwin
 ifeq ($(OSTYPE),cygwin)
@@ -201,6 +203,7 @@ ifeq ($(OSTYPE),cygwin)
 	CUDD_MAKEFILE = Makefile.cygwin
 	BINDISTSUFFIX = win
 	OSTYPE_INCLUDE = include
+	CLASSPATHSEP = ";"
 endif
 # Darwin
 ifeq ($(OSTYPE),darwin)
@@ -214,6 +217,7 @@ ifeq ($(OSTYPE),darwin)
 	CUDD_MAKEFILE = Makefile.darwin
 	BINDISTSUFFIX = osx
 	OSTYPE_INCLUDE = Headers
+	CLASSPATHSEP = ":"
 endif
 
 ###############
@@ -245,7 +249,7 @@ JAVA_INCLUDES = -I $(JAVA_JNI_H_DIR) -I $(JAVA_JNI_MD_H_DIR)
 # Main part of Makefile #
 #########################
 
-MAKE_DIRS = dd jdd odd dv prism mtbdd sparse hybrid parser settings chart userinterface pepa/compiler simulator
+MAKE_DIRS = dd jdd odd dv prism mtbdd sparse hybrid parser settings userinterface pepa/compiler simulator
 
 ifeq ($(OSTYPE),linux)
 	BIN_PRISM=bin/prism
@@ -331,7 +335,8 @@ make_dirs:
 	  SHARED="$(SHARED)" \
 	  EXE="$(EXE)" \
 	  LIBPREFIX="$(LIBPREFIX)" \
-	  LIBSUFFIX="$(LIBSUFFIX)") \
+	  LIBSUFFIX="$(LIBSUFFIX)" \
+	  CLASSPATHSEP="$(CLASSPATHSEP)") \
 	  || exit 1; \
 	done; \
 	if [ "$(OSTYPE)" = "darwin" ]; then \
@@ -421,7 +426,7 @@ tarcf:
 	(cd ..; tar cfz $$TARCF_DIR".tar.gz" $$TARCF_DIR)
 
 javadoc:
-	javadoc -classpath $(SRC_DIR) -d ../prism-dev/javadoc dd jdd odd dv mtbdd sparse hybrid parser prism chart userinterface
+	javadoc -classpath $(SRC_DIR) -d ../prism-dev/javadoc dd jdd odd dv mtbdd sparse hybrid parser prism userinterface
 
 clean: checks
 	@(for dir in $(MAKE_DIRS); do \
@@ -459,8 +464,6 @@ clean_hybrid: checks
 	@(cd src/hybrid && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_parser: checks
 	@(cd src/parser && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
-clean_chart: checks
-	@(cd src/chart && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_userinterface: checks
 	@(cd src/userinterface && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_simulator: checks

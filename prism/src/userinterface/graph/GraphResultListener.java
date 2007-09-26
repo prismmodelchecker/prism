@@ -1,0 +1,143 @@
+//==============================================================================
+//	
+//	Copyright (c) 2002-
+//	Authors:
+//	* Andrew Hinton <ug60axh@cs.bham.uc.uk> (University of Birmingham)
+//	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
+//	* Mark Kattenbelt <mxk@cs.bham.uc.uk> (University of Birmingham)
+//	
+//------------------------------------------------------------------------------
+//	
+//	This file is part of PRISM.
+//	
+//	PRISM is free software; you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation; either version 2 of the License, or
+//	(at your option) any later version.
+//	
+//	PRISM is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
+//	
+//	You should have received a copy of the GNU General Public License
+//	along with PRISM; if not, write to the Free Software Foundation,
+//	Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//	
+//==============================================================================
+
+package userinterface.graph;
+
+import parser.*;
+import prism.*;
+
+import java.util.*;
+import settings.*;
+import userinterface.graph.*;
+
+import org.jfree.data.xy.*;
+
+// TODO: When either the graph or the resultset seizes to exist, then so should this listener.
+
+/**
+ * This class is responsible for mapping output of a ResultsCollection to the input of a GraphModel. Used to be called Displayable Data.
+ * @author  ug60axh, mxk
+ */
+public class GraphResultListener implements ResultListener
+{
+	// A graph.
+	private Graph graph;
+	// The name of the series.
+	private Graph.SeriesKey seriesKey;		
+	// The constant on the x-axis.
+	private String rangeConstant;
+	// The other constants.
+	private Values otherValues;	
+		
+	/** 
+	 * Creates a new instance of GraphResultListener 
+	 * It presumes that the seriesKey is returned by a call of {@link userinterface.graph.graph#addSeries graph.addSeries(...)}. 
+	 * @param graph The graph to notify when new results are found.
+	 * @param seriesKey The key of the series this listener represents.
+	 * @param rangeConstant The ranging constant (x-axis value) (required to identify the series from the results). 
+	 * @param otherValues Values of all other constants of this series (required to identify the series from the results). 
+	 */
+	public GraphResultListener(Graph graph, Graph.SeriesKey seriesKey, String rangeConstant, Values otherValues)
+	{
+		this.graph = graph;
+		this.seriesKey = seriesKey;
+		this.rangeConstant = rangeConstant;
+		this.otherValues = otherValues;		
+	}	
+	
+	
+	public void notifyResult(ResultsCollection resultsCollection, Values values, Object result)
+	{
+		Object xObj = isInSeries(values);
+		
+		/* This is a result of our series, xObj is our x-coordinate. */
+		if(xObj != null)
+		{
+			double x,y;
+			
+			// Get x coordinate
+			if(xObj instanceof Integer) {	
+				x = ((Integer)xObj).intValue(); // Use integer value.  	
+			} else if(xObj instanceof Double) {
+				x = ((Double)xObj).doubleValue(); // Use double value.
+			} else return; // Cancel if non integer/double			
+			
+			// Cancel if x = +/- infinity or NaN
+			if (x == Double.POSITIVE_INFINITY || x == Double.NEGATIVE_INFINITY || x != x) 
+				return;
+						
+			// Get y coordinate
+			if(result instanceof Integer) {	
+				y = ((Integer)result).intValue(); 
+			} else if(result instanceof Double)	{
+				y = ((Double)result).doubleValue();
+			} else return; // Cancel if non integer/double
+
+			// Add point to graph
+			graph.addPointToSeries(seriesKey, new XYDataItem(x,y));
+		}
+	}
+	
+	/**	
+	 *  Looks at the values and sees whether it matches otherValues, apart
+	 *	from one which should match 'rangeConstant'. If so this method returns
+	 *	the value of the rangeConstant (x-axis). If not this returns null. 
+	 **/
+	private Object isInSeries(Values v)
+	{
+		for(int i = 0; i < otherValues.getNumValues(); i++)
+		{
+			String name = otherValues.getName(i);
+			Object value = otherValues.getValue(i);
+			if(!name.equals(rangeConstant))
+			{
+				try
+				{
+					Object compare = v.getValueOf(name);
+					if(compare.equals(value))
+						continue;
+					else throw new PrismException("value not same");
+				}
+				catch(PrismException e)
+				{
+					return null;
+				}
+			}
+		}
+		try
+		{
+			Object value = v.getValueOf(rangeConstant);
+			return value;
+		}
+		catch(PrismException e)
+		{
+			return null;
+		}
+	}
+	
+}

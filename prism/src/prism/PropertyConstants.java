@@ -50,4 +50,6 @@ public final class PropertyConstants
 	public static final int SSHHOST = 14;
 	public static final int FILESYSTEM = 15;
 	public static final int NETWORK_PROFILE = 16;
+	public static final int GRAPH_DISPLAY = 17;
+    
 }

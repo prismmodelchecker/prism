@@ -26,233 +26,192 @@
 //==============================================================================
 
 package userinterface.properties;
-import userinterface.GUIPrism;
-import userinterface.GUIPlugin;
+
+import userinterface.*;
+import userinterface.graph.Graph;
+import userinterface.graph.GraphResultListener;
+
 import javax.swing.*;
+
+
 import java.awt.*;
 import prism.*;
 import parser.*;
 import java.util.*;
 import settings.*;
+
+import org.jfree.data.xy.*;
+
 /**
- *
+ * 
  * @author  ug60axh
  */
 public class GUIGraphPicker extends javax.swing.JDialog
-{
-    private ResultsCollection rc;
-    private GraphConstantPickerList pickerList;
-    private GUIGraphHandler gh;
+{   
     private GUIPrism gui;
     private GUIPlugin plugin;
     
-    //Values to be gotten from elsewhere
-    private String ranger;
-    private Values otherValues;
-    private ArrayList multiSeries;
+    private GUIExperiment experiment;
+    private GUIGraphHandler graphHandler;
+    private ResultsCollection resultsCollection;
     
-    private chart.MultiGraphModel mgm;
-    private DefinedConstant c;
-    private boolean shouldDo = false;
+    private GraphConstantPickerList pickerList;
+    
+    private String ranger;
+    private DefinedConstant rangingConstant;
+    
+    private Values otherValues;
+    private Vector<DefinedConstant> multiSeries;
+    
+    private userinterface.graph.Graph graphModel;
+    private boolean graphCancelled;
     
     private static final int MAX_NUM_SERIES_BEFORE_QUERY = 11;
     
-    /** Creates new form GUIGraphPicker */
-    public GUIGraphPicker(GUIPrism parent, GUIPlugin plugin, ResultsCollection rc, GUIGraphHandler gh)
+    /** Creates new form GUIGraphPicker 
+     * 
+     * @param parent The parent.
+     * @param plugin The GUIPlugin (GUIMultiProperties)
+     * @param experiment The experiment for which to plot a graph.
+     * @param graphHandler The graph handler in which to display the graph.
+     * @param useExistingResults If true, simply plot existing results (experiment has been done). 
+     * If false, attach listeners to the results such that plot is made when results become 
+     * available.
+     */
+    public GUIGraphPicker(GUIPrism parent, GUIPlugin plugin, GUIExperiment experiment, GUIGraphHandler graphHandler, boolean resultsKnown)
     {
         super(parent, true);
+        setTitle("New Graph Series");
+        
         this.gui = parent;
         this.plugin = plugin;
-        setTitle("New Graph Series");
-        this.rc = rc;
-        this.gh = gh;
-        multiSeries = new ArrayList();
-        initComponents();
-        getRootPane().setDefaultButton(lineOkayButton);
+        
+        this.experiment = experiment;
+        this.graphHandler = graphHandler;        
+        this.resultsCollection = experiment.getResults();        
+                
+        this.graphCancelled = false;
+        this.multiSeries = new Vector<DefinedConstant>();
+       
+        initComponents();        
         setResizable(false);
+        
         init();
 		setLocationRelativeTo(getParent()); // centre
-    }
-    
-    public void startGraphExperiment(GUIExperimentTable et, int experimentIndex)
-    {
-        show();
-        if(shouldDo)
-        {
-            //Determine whether multiple series are required
-            DefinedConstant[]ms = new DefinedConstant[multiSeries.size()];
-            Vector rangers = rc.getRangingConstants();
-            for(int i = 0; i < ms.length; i++)
-            {
-                String str = (String)multiSeries.get(i);
-                for(int j = 0; j < rangers.size(); j++)
-                {
-                    DefinedConstant c = (DefinedConstant)rangers.get(j);
-                    if(c.getName().equals(str))
-                    {
-                        ms[i] = c;
-                    }
-                }
-            }
-            //Collate a collection of Values objects representing each combination
-            ArrayList values = new ArrayList();
-            values.add(otherValues);
-            for(int i = 0; i < ms.length; i++)
-            {
-                ArrayList temp = (ArrayList)values.clone();
-                values.clear();
-                for(int j = 0; j <ms[i].getNumSteps(); j++)
-                {
-                    ArrayList copy = (ArrayList)temp.clone();
-                    for(int k = 0; k < copy.size(); k++)
-                    {
-                        Values v = new Values();
-                        Values cp = (Values)copy.get(k);
-                        v.addValues(cp);
-                        v.addValue(ms[i].getName(), ms[i].getValue(j));
-                        values.add(v);
-                    }
-                }
-            }
-            
-            ArrayList seriesHeaders = new ArrayList();
-            for(int i = 0; i < values.size(); i++)
-            {
-                Values v = (Values)values.get(i);
-                if(values.size() > 1)
-                {
-                    seriesHeaders.add(v.toString());
-                }
-                else
-                {
-                    seriesHeaders.add(seriesNameField.getText());
-                }
-            }
-            
-            et.startExperiment(experimentIndex,mgm,ranger,values,seriesHeaders);
-            gh.jumpToGraph(mgm);
-            gh.graphIsChanging(mgm);
-        }
-        else
-        {
-            et.startExperiment(experimentIndex);
-        }
-    }
-    
-    public void pickNewSeries()
-    {
-        show();
-        
-        if(shouldDo)
-        {
-            //Determine whether multiple series are required
-            DefinedConstant[]ms = new DefinedConstant[multiSeries.size()];
-            Vector rangers = rc.getRangingConstants();
-            for(int i = 0; i < ms.length; i++)
-            {
-                String str = (String)multiSeries.get(i);
-                for(int j = 0; j < rangers.size(); j++)
-                {
-                    DefinedConstant cc = (DefinedConstant)rangers.get(j);
-                    if(cc.getName().equals(str))
-                    {
-                        ms[i] = cc;
-                    }
-                }
-            }
-            //Collate a collection of Values objects representing each combination
-            ArrayList values = new ArrayList();
-            values.add(otherValues);
-            for(int i = 0; i < ms.length; i++)
-            {
-                ArrayList temp = (ArrayList)values.clone();
-                values.clear();
-                for(int j = 0; j <ms[i].getNumSteps(); j++)
-                {
-                    ArrayList copy = (ArrayList)temp.clone();
-                    for(int k = 0; k < copy.size(); k++)
-                    {
-                        Values v = new Values();
-                        Values cp = (Values)copy.get(k);
-                        v.addValues(cp);
-                        v.addValue(ms[i].getName(), ms[i].getValue(j));
-                        values.add(v);
-                    }
-                }
-            }
-            
-            for(int i = 0; i < values.size(); i++)
-            {
-                Values v = (Values)values.get(i);
-            }
-            //System.exit(-1);
-            
-            for(int comb = 0; comb < values.size(); comb++) //each combination of series
-            {
-                
-                Values v = (Values)values.get(comb);
-                String seriesName = seriesNameField.getText();
-                if(values.size() > 1) seriesName = v.toString();
-                int series = -1;
-                try
-                {
-                    series = mgm.addGraph(seriesName);
-                }
-                catch(SettingException e)
-                {
-                    //do nothing
-                }
-                for(int i = 0; i < c.getNumSteps(); i++)
-                {
-                    try
-                    {
-                        Object value = c.getValue(i);
-                        Values useThis = new Values();
-                        useThis.addValues(v);
-                        useThis.addValue(ranger, value);
-                        Object result = rc.getResult(useThis);
-                        double x;
-                        double y;
-                        if(value instanceof Double)
-                        {
-                            x = ((Double)value).doubleValue();
-                        }
-                        else if (value instanceof Integer)
-                        {
-                            x = ((Integer)value).intValue();
-                        }
-                        else
-                        {
-                            throw new PrismException("Not a double or an integer, tis a " + value.getClass().toString());
-                        }
-                        if(result instanceof Double)
-                        {
-                            y = ((Double)result).doubleValue();
-                        }
-                        else if(result instanceof Integer)
-                        {
-                            y = ((Integer)result).intValue();
-                        }
-                        else throw new PrismException("Not a double or an integer, tis a " + value.getClass().toString());
-                        try
-                        {
-                            mgm.addPoint(series, new chart.GraphPoint(x,y,mgm), false, true, true);
-                        }
-                        catch(SettingException e)
-                        {
-                            //do nothing
-                        }
-                        
-                    }
-                    catch(PrismException e)
-                    {
-                    }
-                }
-                rc.addWholeGraph(mgm, series);
-            }
-        }
-        gh.jumpToGraph(mgm);
-        gh.graphIsChanging(mgm);
+		getRootPane().setDefaultButton(lineOkayButton);
+		
+		/* Wait untill OK or Cancel is pressed. */	
+		setVisible(true);	
+		
+		/* If OK was pressed. */
+		if (!graphCancelled)
+		{			
+			/* Collect series keys. */
+			Vector<Graph.SeriesKey> seriesKeys = new Vector<Graph.SeriesKey>();
+							        
+	        /* Collect series Values */
+	        ArrayList<Values> seriesValues = new ArrayList<Values>();
+	        
+	        /* Add single constant values to each serie */
+	        seriesValues.add(otherValues);	        		  
+	        
+	        for(int i = 0; i < multiSeries.size(); i++)
+	        {
+	        	ArrayList<Values> temp = (ArrayList<Values>)seriesValues.clone();
+	            seriesValues.clear();
+	            
+	            // For each of the possible value in the range
+	            for(int j = 0; j < multiSeries.get(i).getNumSteps(); j++)
+	            {
+	            	// Clone the list
+	                ArrayList copy = (ArrayList<Values>)temp.clone();
+	                
+	                // For each element in the list
+	                for(int k = 0; k < copy.size(); k++)
+	                {
+	                    Values v = new Values();
+	                    Values cp = (Values)copy.get(k);
+	                    v.addValues(cp);
+	                    v.addValue(multiSeries.get(i).getName(), multiSeries.get(i).getValue(j));
+	                    seriesValues.add(v);
+	                }
+	            }
+	        }
+	        	      
+	        /* Do all series settings. */
+	        for(int serie = 0; serie < seriesValues.size(); serie++) //each combination of series
+	        {
+	        	Values values = seriesValues.get(serie);
+	        	String seriesName = (seriesValues.size() > 1) ? values.toString() : seriesNameField.getText();
+	        	
+	        	seriesKeys.add(graphModel.addSeries(seriesName));
+	        }
+	        
+	        /* If there are results already, then lets render them! */						
+			if (resultsKnown && resultsCollection.getCurrentIteration() > 0)
+			{			        	        
+		        for(int series = 0; series < seriesValues.size(); series++) //each combination of series
+		        {		            
+		            Values values = seriesValues.get(series);
+		            Graph.SeriesKey seriesKey = seriesKeys.get(series);
+		            
+		            int nrSeries = -1;
+		           
+	            	/** Range over x-axis. */
+	            	for(int i = 0; i < rangingConstant.getNumSteps(); i++)
+		            {			                
+	                    Object value = rangingConstant.getValue(i);
+	                    
+	                    /** Values used in the one experiment for this series. */
+	                    Values useThis = new Values();
+	                    useThis.addValues(values);
+	                    useThis.addValue(ranger, value);
+	                    
+	                    /** Get this particular result. **/
+	                    try
+	                    {
+		                    Object result = resultsCollection.getResult(useThis);
+		                     
+		                    double x =0, y =0;
+		                    boolean validX = true;
+		                    boolean validY = true;
+		                    
+		                    if(value instanceof Double)
+		                    {   x = ((Double)value).doubleValue();	}
+		                    else if (value instanceof Integer)
+		                    {   x = ((Integer)value).intValue();    }
+		                    else
+		                    {	validX = false;	}
+		                    
+		                    if(result instanceof Double)
+		                    {   y = ((Double)result).doubleValue();	}
+		                    else if (value instanceof Integer)
+		                    {   y = ((Integer)result).intValue();    }
+		                    else
+		                    {	validY = false;	}
+		                    
+		                    if (validX && validY)
+		                    	graphModel.addPointToSeries(seriesKey, new XYDataItem(x,y));
+	                    }
+	                    catch (PrismException pe)
+	                    {
+	                    	// No result found. 
+	                    }
+		            }
+	            }
+			}
+			else if (!resultsKnown && resultsCollection.getCurrentIteration() == 0)
+			{
+				for(int series = 0; series < seriesValues.size(); series++) //each combination of series
+			    {
+					Values values = seriesValues.get(series);
+		            Graph.SeriesKey seriesKey = seriesKeys.get(series);
+		            
+		            GraphResultListener listener = new GraphResultListener(graphModel, seriesKey, ranger, values);
+		            resultsCollection.addResultListener(listener);		            
+			    }					 
+			}
+		}
     }
     
     /** According to what is stored in 'rc', set up the table to pick the constants
@@ -273,9 +232,9 @@ public class GUIGraphPicker extends javax.swing.JDialog
         // for each ranging constant in rc, add:
         // (1) a row in the picker list
         // (2) an item in the "x axis" drop down menu
-        for(int i = 0; i < rc.getRangingConstants().size(); i++)
+        for(int i = 0; i < resultsCollection.getRangingConstants().size(); i++)
         {
-            DefinedConstant dc = (DefinedConstant)rc.getRangingConstants().get(i);
+            DefinedConstant dc = (DefinedConstant)resultsCollection.getRangingConstants().get(i);
             pickerList.addConstant(new GraphConstantLine(dc, this));
             this.selectAxisConstantCombo.addItem(dc.getName());
         }
@@ -286,7 +245,7 @@ public class GUIGraphPicker extends javax.swing.JDialog
         pickerList.disableLine(0);
         
         // if there is only one ranging constant, disable controls
-        if(rc.getRangingConstants().size() == 1)
+        if(resultsCollection.getRangingConstants().size() == 1)
         {
             selectAxisConstantCombo.setEnabled(false);
             pickerList.setEnabled(false);
@@ -299,12 +258,12 @@ public class GUIGraphPicker extends javax.swing.JDialog
         this.newGraphRadio.setSelected(true);
         
         // add existing graphs to choose from
-        for(int i = 0; i < gh.getNumModels(); i++)
+        for(int i = 0; i < graphHandler.getNumModels(); i++)
         {
-            existingGraphCombo.addItem(gh.getGraphName(i));
+            existingGraphCombo.addItem(graphHandler.getGraphName(i));
         }
         // if there are no graphs, disable control
-        if(gh.getNumModels() == 0)
+        if(graphHandler.getNumModels() == 0)
         {
             existingGraphCombo.setEnabled(false);
             this.existingGraphRadio.setEnabled(false);
@@ -339,7 +298,7 @@ public class GUIGraphPicker extends javax.swing.JDialog
         ranger = selectAxisConstantCombo.getSelectedItem().toString();
         // init arrays
         otherValues = new Values();
-        multiSeries = new ArrayList();
+        multiSeries = new Vector<DefinedConstant>();
         // go through constants in picker list
         for(int j = 0; j < pickerList.getNumConstants(); j++)
         {
@@ -602,55 +561,63 @@ public class GUIGraphPicker extends javax.swing.JDialog
         pack();
     }
     
+    public boolean isGraphCancelled()
+    {
+    	return graphCancelled;
+    }   
+    
     private void lineCancelButtonActionPerformed(java.awt.event.ActionEvent evt)
     {
-        shouldDo = false;
-        
-        hide();
+        graphCancelled = true;        
+        setVisible(false);
     }
     
     private void lineOkayButtonActionPerformed(java.awt.event.ActionEvent evt)
     {
-        DefinedConstant temp;
-        int numSeries = 1;
+    	int numSeries = 1;
         
         // see which constant is on x axis
         ranger = selectAxisConstantCombo.getSelectedItem().toString();
+       
         // init arrays
         otherValues = new Values();
-        multiSeries = new ArrayList();
+        multiSeries = new Vector<DefinedConstant>();
+        
         // go through all constants in picker list
         for(int j = 0; j < pickerList.getNumConstants(); j++)
         {
             // get constant
-            temp = pickerList.getConstantLine(j).getDC();
+        	DefinedConstant tmpConstant = pickerList.getConstantLine(j).getDC();
             // if its the constant for the x-axis, store info about the constant
-            if(temp.getName().equals(ranger))
+            if(tmpConstant.getName().equals(ranger))
             {
-                c = temp;
+                rangingConstant = tmpConstant;
             }
             // otherwise store info about the selected values
             else
             {
-                // get value
+                // Is this constant just a value, or does it have a range?
                 Object value = pickerList.getConstantLine(j).getSelectedValue();
                 if(value instanceof String)
                 {
-                    multiSeries.add(pickerList.getConstantLine(j).getName());
-                    numSeries *= temp.getNumSteps();
+                	/* Yes, calculate the numSeries. */
+                	multiSeries.add(pickerList.getConstantLine(j).getDC());
+                    numSeries *= tmpConstant.getNumSteps();
                 }
                 else
                 {
-                    otherValues.addValue(temp.getName(), value);
+                	/* No, just the one. */
+                    otherValues.addValue(tmpConstant.getName(), value);
                 }
             }
         }
+        
         //sort out which one to add it to
-        if(c == null) return;
+        if(rangingConstant == null) 
+        	return;
         
         // if there are a lot of series, check if this is what the user really wanted
-        if (numSeries > MAX_NUM_SERIES_BEFORE_QUERY)
-        {
+        if (numSeries > MAX_NUM_SERIES_BEFORE_QUERY) {
             String[] choices =
             {"Yes", "No"};
             int choice = -1;
@@ -658,36 +625,26 @@ public class GUIGraphPicker extends javax.swing.JDialog
             if (choice != 0) return;
         }
         
-        if(this.newGraphRadio.isSelected())
+        if(newGraphRadio.isSelected()) 
         {
-            try
-            {
-                int gi = gh.addGraph(rc.getResultName());
-                
-                mgm = gh.getModel(gi);
-                mgm.setXTitle(ranger);
-            }
-            catch(SettingException e)
-            {
-                //do nothing
-            }
-        }
-        else // do it to add to an existing graph
+        	/* Make new graph. */
+        	graphModel = new Graph();        	
+            graphHandler.addGraph(graphModel);
+            
+            graphModel.getYAxisSettings().setHeading(resultsCollection.getResultName());        	
+            graphModel.getXAxisSettings().setHeading(ranger);
+        } 
+        else 
         {
-            mgm = gh.getModel(existingGraphCombo.getSelectedItem().toString());
-            if(!ranger.equals(mgm.getXTitle()))//must do this better in future
-            {
-                try
-                {
-                if(!roughExists(ranger, mgm.getXTitle()))mgm.setXTitle(mgm.getXTitle()+", "+ranger);
-                }
-                catch(SettingException e)
-                {}
-            }
+        	/* Add to an existing graph. */
+            graphModel = graphHandler.getModel(existingGraphCombo.getSelectedItem().toString());
+            if(!ranger.equals(graphModel.getXAxisSettings().getHeading())) //FIXME: must do this better in future
+                if(!roughExists(ranger, graphModel.getXAxisSettings().getHeading()))
+                    graphModel.getXAxisSettings().setHeading(graphModel.getXAxisSettings().getHeading()+", "+ranger);
         }
-        shouldDo = true;
-        hide();
         
+        graphCancelled = false;
+        setVisible(false);        
     }
     
     private void existingGraphRadioActionPerformed(java.awt.event.ActionEvent evt)
@@ -756,18 +713,5 @@ public class GUIGraphPicker extends javax.swing.JDialog
         if(!((i == 0) || (inThis.charAt(i-1) == ' '))) return false;
         if(!((inThis.length() == i+1) || (inThis.charAt(i+1) == ','))) return false;
         return true;
-    }
-    
-    public static void main(String[] args)
-    {
-        System.out.println("testing: a in a: "+ roughExists("a","a"));
-        System.out.println("testing: a in a, b: "+ roughExists("a","a, b"));
-        System.out.println("testing: a in b, a: "+ roughExists("a","b, a"));
-        System.out.println("testing: a in b, a, c: "+ roughExists("a","b, a, c"));
-        System.out.println("testing: a in b: "+ roughExists("a","b"));
-        System.out.println("testing: a in b, c: "+ roughExists("a","b, c"));
-        System.out.println("testing: a in flkjda: "+ roughExists("a","flkjda"));
-        System.out.println("testing: a in asdsd: "+ roughExists("a","asdsd"));
-        System.out.println("testing: a in dfdfafdf: "+ roughExists("a","dfdfafdf"));
     }
 }

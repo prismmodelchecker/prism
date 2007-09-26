@@ -144,7 +144,11 @@ public class SettingTable extends JPanel implements ListSelectionListener, Table
 	
 	public void stopEditing()
 	{
-		if(theTable.getCellEditor() != null) theTable.removeEditor();
+		if(theTable.getCellEditor() != null) 
+		{
+			theTable.getCellEditor().stopCellEditing();
+			theTable.removeEditor();		
+		}
 		//        if(ce != null)ce.stopEditing();
 	}
 	

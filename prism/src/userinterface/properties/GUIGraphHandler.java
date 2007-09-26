@@ -28,86 +28,125 @@
 package userinterface.properties;
 
 import javax.swing.*;
-import javax.print.*;
 import javax.print.attribute.*;
+
+import org.jfree.chart.ChartPanel;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import java.io.*;
-import chart.*;
+
+import prism.*;
 import userinterface.*;
+import userinterface.graph.*;
 import userinterface.util.*;
 import settings.*;
+
 /**
  *
  * @author  ug60axh
  */
- 
 public class GUIGraphHandler extends JPanel implements MouseListener
 {
-	private static int counter = 0;
+	private int counter = 0;
+	private boolean canDelete;
+	
 	private JTabbedPane theTabs;
+	private JPopupMenu backMenu, graphMenu;
 	
-	private ArrayList models;
-	private ArrayList graphs;
-	private ArrayList options;
+	private ArrayList<Graph> models;
+	private ArrayList<GraphOptions> options;
 	
-	private int currentSelect;
-	
-	private JPopupMenu graphMenu, backMenu;
-	private JMenu exportMenu;
-	private Action graphOptions, importXML, importXMLBack, exportPNG, exportJPEG, exportXML, exportMatlab, printGraph, deleteGraph;
-	private JFrame parent;
 	private GUIPlugin plug;
 	
-	private GUIPrismFileFilter imagesFilter[], xmlFilter[], matlabFilter[];
+	private Action graphOptions;	
+	
+	private Action printGraph, deleteGraph;
+	private Action exportImageJPG, exportImagePNG, exportImageEPS, exportXML, exportMatlab;
+	private Action exportOpenDocumentChart, exportOpenDocumentSpreadsheet;
+	private Action exportCSV, exportGNUPlot, importXML;
+	
+	private JMenu exportMenu, importMenu;
+	
+	private GUIPrismFileFilter imagesFilter[], xmlFilter[], matlabFilter[],
+		OpenDocumentChartFilter[], OpenDocumentSpreadsheetFilter[],
+		CSVFilter[], GNUFilter[], DATFilter[];
+	
 	private PrintRequestAttributeSet attributes;
-
-	/** Creates a new instance of GUIGraphHandler */
-	public GUIGraphHandler(JFrame parent, GUIPlugin plug)
+	
+	public GUIGraphHandler(JFrame parent, GUIPlugin plug, boolean canDelete)
 	{
-		this.parent = parent;
 		this.plug = plug;
+		this.canDelete = canDelete;
+		
+		this.graphMenu = new JPopupMenu();
+		this.backMenu = new JPopupMenu();
+		
 		initComponents();
-
-		imagesFilter = new GUIPrismFileFilter[2];
+		
+		imagesFilter = new GUIPrismFileFilter[3];
 		imagesFilter[0] = new GUIPrismFileFilter("PNG files (*.png)");
 		imagesFilter[0].addExtension("png");
 		imagesFilter[1] = new GUIPrismFileFilter("JPEG files (*.jpg, *.jpeg)");
 		imagesFilter[1].addExtension("jpg");
+		imagesFilter[2] = new GUIPrismFileFilter("Encapsulated PostScript files (*.eps)");
+		imagesFilter[2].addExtension("eps");
 		
 		xmlFilter = new GUIPrismFileFilter[1];
 		xmlFilter[0] = new GUIPrismFileFilter("PRISM graph files (*.gra)");
 		xmlFilter[0].addExtension("gra");
-
+		
 		matlabFilter = new GUIPrismFileFilter[1];
 		matlabFilter[0] = new GUIPrismFileFilter("Matlab files (*.m)");
 		matlabFilter[0].addExtension("m");
-
+		
+		OpenDocumentChartFilter = new GUIPrismFileFilter[1];
+		OpenDocumentChartFilter[0] = new GUIPrismFileFilter("OpenDocument Chart files (*.odc)");
+		OpenDocumentChartFilter[0].addExtension("odc");
+		
+		OpenDocumentSpreadsheetFilter = new GUIPrismFileFilter[1];
+		OpenDocumentSpreadsheetFilter[0] = new GUIPrismFileFilter("OpenDocument Spreadsheet files (*.ods)");
+		OpenDocumentSpreadsheetFilter[0].addExtension("ods");
+		
+		CSVFilter = new GUIPrismFileFilter[1];
+		CSVFilter[0] = new GUIPrismFileFilter("CSV files (*.csv)");
+		CSVFilter[0].addExtension("csv");
+		
+		GNUFilter = new GUIPrismFileFilter[1];
+		GNUFilter[0] = new GUIPrismFileFilter("GNUPlot files (*.gnu)");
+		GNUFilter[0].addExtension("gnu");
+		
+		DATFilter = new GUIPrismFileFilter[1];
+		DATFilter[0] = new GUIPrismFileFilter("GNUPlot data files (*.dat)");
+		DATFilter[0].addExtension("dat");
+		
 		attributes = new HashPrintRequestAttributeSet();
-		newHandler();
+		
+		models = new ArrayList<Graph>();
+		options = new ArrayList<GraphOptions>();
+		counter = 0;
+		
 	}
 	
 	private void initComponents()
 	{
-		theTabs = new JTabbedPane();
-
+		theTabs = new JTabbedPane();		
 		theTabs.addMouseListener(this);
+		
 		setLayout(new BorderLayout());
 		add(theTabs, BorderLayout.CENTER);
-
+/*
 		importXMLBack = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				if (plug.showOpenFileDialog(xmlFilter, xmlFilter[0]) != JFileChooser.APPROVE_OPTION) return;
-				try
-				{
-					MultiGraphModel mgm = new MultiGraphModel().load(plug.getChooserFile());
+				if (plug.showOpenFileDialog(xmlFilter, xmlFilter[0]) != JFileChooser.APPROVE_OPTION)
+					return;
+				try {
+					Graph mgm = Graph.load(plug.getChooserFile());
 					addGraph(mgm);
-				}
-				catch(Exception ex)
-				{
+				} catch(ChartException ex) {
 					plug.error("Could not import PRISM graph file:\n"+ex.getMessage());
 				}
 			}
@@ -116,127 +155,234 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		importXMLBack.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_I));
 		importXMLBack.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallImport.gif"));
 		importXMLBack.putValue(Action.LONG_DESCRIPTION, "Imports a saved PRISM graph from a file.");
-		
+*/
 		graphOptions = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
-			{
-				MultiGraphOptions mgo = (MultiGraphOptions)options.get(currentSelect);
-				mgo.show();
+			{				
+				GraphOptions graphOptions = options.get(theTabs.getSelectedIndex());
+				graphOptions.setVisible(true);
 			}
 		};
+		
 		graphOptions.putValue(Action.NAME, "Graph options");
 		graphOptions.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_G));
 		graphOptions.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallOptions.gif"));
 		graphOptions.putValue(Action.LONG_DESCRIPTION, "Displays the options dialog for the graph.");
-
+		
 		importXML = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				if (plug.showOpenFileDialog(xmlFilter, xmlFilter[0]) != JFileChooser.APPROVE_OPTION) return;
-				try
-				{
-					MultiGraphModel mgm = new MultiGraphModel().load(plug.getChooserFile());
+				if (plug.showOpenFileDialog(xmlFilter, xmlFilter[0]) != JFileChooser.APPROVE_OPTION)
+					return;
+				try {
+					Graph mgm = Graph.load(plug.getChooserFile());
 					addGraph(mgm);
-				}
-				catch(Exception ex)
-				{
-					plug.error("Could not import PRISM graph file:\n"+ex.getMessage());
+				} catch(GraphException ex) {
+					plug.error("Could not import PRISM graph file:\n" + ex.getMessage());
 				}
 			}
 		};
-		importXML.putValue(Action.NAME, "Import PRISM graph");
+		importXML.putValue(Action.NAME, "PRISM graph (*.gra)");
 		importXML.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_I));
 		importXML.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallImport.gif"));
 		importXML.putValue(Action.LONG_DESCRIPTION, "Imports a saved PRISM graph from a file.");
-
+		
 		exportXML = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				if (plug.showSaveFileDialog(xmlFilter, xmlFilter[0]) != JFileChooser.APPROVE_OPTION) return;
-				MultiGraphModel mgm = (MultiGraphModel)models.get(currentSelect);
-				try
-				{
+				if (plug.showSaveFileDialog(xmlFilter, xmlFilter[0]) != JFileChooser.APPROVE_OPTION)
+					return;
+				Graph mgm = models.get(theTabs.getSelectedIndex());				
+				try {
 					mgm.save(plug.getChooserFile());
-				}
-				catch(Exception ex)
-				{
-					plug.error("Could not export PRISM graph file:\n"+ex.getMessage());
+				} catch(PrismException ex) {
+					plug.error("Could not export PRISM graph file:\n" + ex.getMessage());
 				}
 			}
 		};
-		exportXML.putValue(Action.NAME, "PRISM graph");
+		exportXML.putValue(Action.NAME, "PRISM graph (*.gra)");
 		exportXML.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_X));
 		exportXML.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.gif"));
 		exportXML.putValue(Action.LONG_DESCRIPTION, "Export graph as a PRISM graph file.");
+	
 		
-		exportPNG = new AbstractAction()
+		
+		exportImageJPG = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				if (plug.showSaveFileDialog(imagesFilter, imagesFilter[0]) != JFileChooser.APPROVE_OPTION) return;
-				MultiGraphView mgv = (MultiGraphView)graphs.get(currentSelect);
-				mgv.doExportToPNG(plug.getChooserFile());
+				GUIImageExportDialog imageDialog = new GUIImageExportDialog(plug.getGUI(), getModel(theTabs.getSelectedIndex()), GUIImageExportDialog.JPEG);
+								
+				saveImage(imageDialog);
 			}
 		};
-		exportPNG.putValue(Action.NAME, "PNG");
-		exportPNG.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
-		exportPNG.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.gif"));
-		exportPNG.putValue(Action.LONG_DESCRIPTION, "Export graph as a PNG file.");
+		exportImageJPG.putValue(Action.NAME, "JPEG Interchange Format (*.jpg, *.jpeg)");
+		exportImageJPG.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_J));
+		exportImageJPG.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.gif"));
+		exportImageJPG.putValue(Action.LONG_DESCRIPTION, "Export graph as a JPEG file.");
 		
-		exportJPEG = new AbstractAction()
+		exportImagePNG = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				if (plug.showSaveFileDialog(imagesFilter, imagesFilter[1]) != JFileChooser.APPROVE_OPTION) return;
-				MultiGraphView mgv = (MultiGraphView)graphs.get(currentSelect);
-				mgv.doExportToJPEG(plug.getChooserFile());
+				GUIImageExportDialog imageDialog = new GUIImageExportDialog(plug.getGUI(), getModel(theTabs.getSelectedIndex()), GUIImageExportDialog.PNG);
+								
+				saveImage(imageDialog);
 			}
 		};
-		exportJPEG.putValue(Action.NAME, "JPEG");
-		exportJPEG.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_J));
-		exportJPEG.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.gif"));
-		exportJPEG.putValue(Action.LONG_DESCRIPTION, "Export graph as a JPEG file.");
+		exportImagePNG.putValue(Action.NAME, "Portable Network Graphics (*.png)");
+		exportImagePNG.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
+		exportImagePNG.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.gif"));
+		exportImagePNG.putValue(Action.LONG_DESCRIPTION, "Export graph as a Portable Network Graphics file.");
+		
+		exportImageEPS = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				GUIImageExportDialog imageDialog = new GUIImageExportDialog(plug.getGUI(), getModel(theTabs.getSelectedIndex()), GUIImageExportDialog.EPS);
+								
+				saveImage(imageDialog);
+			}
+		};
+		exportImageEPS.putValue(Action.NAME, "Encapsulated PostScript (*.eps)");
+		exportImageEPS.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_E));
+		exportImageEPS.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.gif"));
+		exportImageEPS.putValue(Action.LONG_DESCRIPTION, "Export graph as an Encapsulated PostScript file.");
 		
 		exportMatlab = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				if (plug.showSaveFileDialog(matlabFilter, matlabFilter[0]) != JFileChooser.APPROVE_OPTION) return;
-				MultiGraphModel mgm = (MultiGraphModel)models.get(currentSelect);
-				try
+				if (plug.showSaveFileDialog(matlabFilter, matlabFilter[0]) != JFileChooser.APPROVE_OPTION)
+					return;
+				Graph mgm = models.get(theTabs.getSelectedIndex());
+				
+				try 
 				{
 					mgm.exportToMatlab(plug.getChooserFile());
-				}
-				catch(Exception ex)
+				} 
+				catch(IOException ex) 
 				{
-					plug.error("Could not export Matlab file:\n"+ex.getMessage());
+					plug.error("Could not export Matlab file:\n" + ex.getMessage());
 				}
 			}
 		};
-		exportMatlab.putValue(Action.NAME, "Matlab file");
+		exportMatlab.putValue(Action.NAME, "Matlab file (*.m)");
 		exportMatlab.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_M));
 		exportMatlab.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.gif"));
 		exportMatlab.putValue(Action.LONG_DESCRIPTION, "Export graph as a Matlab file.");
-
-		exportMenu = new JMenu("Export graph as");
-		exportMenu.setMnemonic('E');
-		exportMenu.setIcon(GUIPrism.getIconFromImage("smallExport.gif"));
-		exportMenu.add(exportXML);
-		exportMenu.add(exportPNG);
-		exportMenu.add(exportJPEG);
-		exportMenu.add(exportMatlab);
-
 		
+		exportOpenDocumentChart = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e) {
+			/*	if (plug.showSaveFileDialog(OpenDocumentChartFilter, OpenDocumentChartFilter[0]) != JFileChooser.APPROVE_OPTION)
+					return;
+				GraphView mgv = (GraphView)views.get(
+					theTabs.getSelectedIndex()
+				);
+				try {
+					mgv.doExportToOpenDocumentChart(plug.getChooserFile());
+				} catch(ChartException ex) {
+					plug.error("Could not export OpenDocument Chart file:\n" + ex.getMessage());
+				}*/
+			}
+		};
+		exportOpenDocumentChart.putValue(Action.NAME, "OpenDocument Chart");
+		exportOpenDocumentChart.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_O));
+		exportOpenDocumentChart.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.gif"));
+		exportOpenDocumentChart.putValue(Action.LONG_DESCRIPTION, "Export graph as a OpenDocument Chart file.");
+		
+		exportOpenDocumentSpreadsheet = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e) {
+				/*if (plug.showSaveFileDialog(OpenDocumentSpreadsheetFilter, OpenDocumentSpreadsheetFilter[0]) != JFileChooser.APPROVE_OPTION)
+					return;
+				GraphView mgv = (GraphView)views.get(
+					theTabs.getSelectedIndex()
+				);
+				try {
+					mgv.doExportToOpenDocumentSpreadsheet(plug.getChooserFile());
+				} catch(ChartException ex) {
+					plug.error("Could not export OpenDocument Spreadsheet file:\n" + ex.getMessage());
+				}*/
+			}
+		};
+		exportOpenDocumentSpreadsheet.putValue(Action.NAME, "OpenDocument Spreadsheet");
+		exportOpenDocumentSpreadsheet.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_S));
+		exportOpenDocumentSpreadsheet.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.gif"));
+		exportOpenDocumentSpreadsheet.putValue(Action.LONG_DESCRIPTION, "Export graph as a OpenDocument Spreadsheet file.");
+		
+		exportCSV = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				/*if (plug.showSaveFileDialog(CSVFilter, CSVFilter[0]) != JFileChooser.APPROVE_OPTION)
+					return;
+				GraphModel mgm = models.get(
+					theTabs.getSelectedIndex()
+				);
+				try {
+					mgm.exportToCSV(plug.getChooserFile());
+				} catch(ChartException ex) {
+					plug.error("Could not export CSV file:\n"+ex.getMessage());
+				}*/
+			}
+		};
+		exportCSV.putValue(Action.NAME, "CSV file");
+		exportCSV.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_C));
+		exportCSV.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.gif"));
+		exportCSV.putValue(Action.LONG_DESCRIPTION, "Export graph as a CSV file.");
+		
+		exportGNUPlot = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				Graph mgm = models.get(
+					theTabs.getSelectedIndex()
+				);
+				
+				if (plug.showSaveFileDialog(GNUFilter, GNUFilter[0]) != JFileChooser.APPROVE_OPTION)
+				       	return;
+				File file1 = plug.getChooserFile();
+				
+				if (plug.showSaveFileDialog(DATFilter, DATFilter[0]) != JFileChooser.APPROVE_OPTION)
+					return;
+				File file2 = plug.getChooserFile();
+				
+				/*y {	
+					//mgm.exportToGNUPlot(file1,file2);
+				} catch(ChartException ex) {
+					plug.error("Could not export GNU file:\n" + ex.getMessage());
+				}*/
+			}
+		};
+		exportGNUPlot.putValue(Action.NAME, "GNUPlot file");
+		exportGNUPlot.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_G));
+		exportGNUPlot.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.gif"));
+		exportGNUPlot.putValue(Action.LONG_DESCRIPTION, "Export graph as GNUPlot files.");
 		
 		printGraph = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				MultiGraphView mgv = (MultiGraphView)graphs.get(currentSelect);
-				mgv.doPrint(attributes);
+				Graph graph = models.get(
+						theTabs.getSelectedIndex()
+				);
+				
+				if (!graph.getDisplaySettings().getBackgroundColor().equals(Color.white))
+				{
+					if (plug.questionYesNo(
+							"Your graph has a coloured background, this background will show up on the \n"+
+							"printout. Would you like to make the current background colour white?") == 0)
+					{
+						graph.getDisplaySettings().setBackgroundColor(Color.white);
+					}
+				}
+				
+				graph.createChartPrintJob();
 			}
 		};
 		printGraph.putValue(Action.NAME, "Print graph");
@@ -248,15 +394,12 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				//will have to be more sophisticated to notify ResultsCollections and so on maybe....
-				MultiGraphOptions mgo = (MultiGraphOptions)options.get(currentSelect);
-				mgo.hide();
-				mgo.dispose();
-				options.remove(mgo);
-				MultiGraphView mgv = (MultiGraphView)graphs.get(currentSelect);
-				theTabs.remove(mgv);
-				graphs.remove(mgv);
-				models.remove(currentSelect);
+				Graph graph = models.get(theTabs.getSelectedIndex());
+				
+				models.remove(theTabs.getSelectedIndex());
+				options.remove(theTabs.getSelectedIndex());
+				theTabs.remove(graph);
+				counter--;
 			}
 		};
 		deleteGraph.putValue(Action.NAME, "Delete graph");
@@ -264,119 +407,199 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		deleteGraph.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallDelete.gif"));
 		deleteGraph.putValue(Action.LONG_DESCRIPTION, "Deletes the graph.");
 		
-		graphMenu = new JPopupMenu();
+		exportMenu = new JMenu("Export graph");
+		exportMenu.setMnemonic('E');
+		exportMenu.setIcon(GUIPrism.getIconFromImage("smallExport.gif"));
+		exportMenu.add(exportXML);
+		exportMenu.add(exportImagePNG);
+		exportMenu.add(exportImageEPS);
+		exportMenu.add(exportImageJPG);
+		
+		exportMenu.add(exportMatlab);
+		
+		importMenu = new JMenu("Import graph");
+		importMenu.setMnemonic('I');
+		importMenu.setIcon(GUIPrism.getIconFromImage("smallImport.gif"));
+		importMenu.add(importXML);
+				
+		/* Graph context menu */
 		graphMenu.add(graphOptions);
 		graphMenu.addSeparator();
 		graphMenu.add(printGraph);
-		graphMenu.add(exportMenu);
-		graphMenu.add(deleteGraph);
+		graphMenu.add(deleteGraph);		
 		graphMenu.addSeparator();
-		graphMenu.add(importXML);
-
-		backMenu = new JPopupMenu();
-		backMenu.add(importXMLBack);
-	}
-	
-	//UPDATE METHODS
-	
-	public void newHandler()
-	{
-		models = new ArrayList();
-		graphs = new ArrayList();
-		options = new ArrayList();
-		counter = 0;
-		theTabs.removeAll();
-	}
-	
-	public int addGraph(String yAxisTitle)
-	{
-		MultiGraphModel m = new MultiGraphModel();
-                int index = -1;
-                try
-                {
-		m.setYTitle(yAxisTitle);
-		m.setMaxY(1.0);
-		m.setMinorYInterval(0.1);
-		m.setMajorYInterval(0.2);
-		MultiGraphView  v = new MultiGraphView(m);
-		m.addObserver(v);
+		graphMenu.add(exportMenu);
+		graphMenu.add(importMenu);
 		
+		/* Tab context menu */		
+		backMenu.add(importXML);
+	}
+	
+	public void saveImage(GUIImageExportDialog imageDialog)
+	{
+		if (!imageDialog.isCancelled())
+		{
+			Graph graph = getModel(theTabs.getSelectedIndex());
+		
+			/* If background is not white, and it will show up, then lets warn everyone. */
+			if (!graph.getDisplaySettings().getBackgroundColor().equals(Color.white) && (imageDialog.getImageType() != GUIImageExportDialog.PNG || !imageDialog.getAlpha()))
+			{
+				if (plug.questionYesNo(
+						"Your graph has a coloured background, this background will show up on the \n"+
+						"exported image. Would you like to make the current background colour white?") == 0)
+				{
+					graph.getDisplaySettings().setBackgroundColor(Color.white);
+				}
+			}
+			
+			if (imageDialog.getImageType() == GUIImageExportDialog.JPEG)
+			{
+				if (plug.showSaveFileDialog(imagesFilter, imagesFilter[1]) != JFileChooser.APPROVE_OPTION)
+					return;						
+				
+				try 
+				{
+					graph.exportToJPEG(plug.getChooserFile(), imageDialog.getExportWidth(), imageDialog.getExportHeight());
+				} 
+				catch (GraphException ex) 
+				{
+					plug.error("Could not export JPEG file:\n" + ex.getMessage());
+				}
+				catch (IOException ex) 
+				{
+					plug.error("Could not export JPEG file:\n" + ex.getMessage());
+				}						
+			}
+			else if (imageDialog.getImageType() == GUIImageExportDialog.PNG)
+			{
+				if (plug.showSaveFileDialog(imagesFilter, imagesFilter[0]) != JFileChooser.APPROVE_OPTION)
+					return;
+				
+				try 
+				{
+					graph.exportToPNG(plug.getChooserFile(), imageDialog.getExportWidth(), imageDialog.getExportHeight(), imageDialog.getAlpha());
+				} 
+				catch (GraphException ex) 
+				{
+					plug.error("Could not export PNG file:\n" + ex.getMessage());
+				}
+				catch (IOException ex) 
+				{
+					plug.error("Could not export PNG file:\n" + ex.getMessage());
+				}						
+			}
+			else if (imageDialog.getImageType() == GUIImageExportDialog.EPS)
+			{
+				if (plug.showSaveFileDialog(imagesFilter, imagesFilter[2]) != JFileChooser.APPROVE_OPTION)
+					return;
+				
+				try 
+				{
+					graph.exportToEPS(plug.getChooserFile(), imageDialog.getExportWidth(), imageDialog.getExportHeight());
+				} 
+				catch (GraphException ex) 
+				{
+					plug.error("Could not export EPS file:\n" + ex.getMessage());
+				}
+				catch (IOException ex) 
+				{
+					plug.error("Could not export EPS file:\n" + ex.getMessage());
+				}		
+			}
+		}
+	}
+	
+	/* We can't keep using the same menu because Swing won't allow
+	 * two components on screen with the same reference. Since one
+	 * instance of GUIGraphHandler contains N graphs, it needs N
+	 * import/export menus.
+	 */
+	public JMenu getExportMenu()
+	{
+		JMenu menu = new JMenu("Import/Export..");
+		menu.setIcon(GUIPrism.getIconFromImage("Export.gif"));
+		menu.setMnemonic('I');
+		
+		menu.add(new JLabel("Import"));
+		menu.add(importXML);
+		menu.addSeparator();
+		menu.add(new JLabel("Export"));
+		menu.add(exportXML);
+		menu.add(exportImagePNG);
+		menu.add(exportImageEPS);
+		menu.add(exportImageJPG);menu.add(exportMatlab);
+		menu.add(exportOpenDocumentChart);
+		menu.add(exportOpenDocumentSpreadsheet);
+		menu.add(exportCSV);
+		menu.add(exportGNUPlot);
+		
+		return menu;
+	}
+	
+	public Action getPrintGraph()
+	{
+		return printGraph;
+	}
+	
+	public Action getDeleteGraph()
+	{
+		if (canDelete)
+			return deleteGraph;
+		return null;
+	}
+	
+	public int addGraph(Graph m)
+	{
+		return addGraph(m, "Graph " + (counter + 1));
+		
+	}
+	
+	public int addGraph(Graph m, String tabName)
+	{
+		// add the model to the list of models
 		models.add(m);
-		graphs.add(v);
+				
+		// make the graph appear as a tab
+		theTabs.add(m);
+		options.add(new GraphOptions(plug, m, plug.getGUI(), "Options for graph " + tabName));
 		
-		theTabs.add(v);
-		v.addMouseListener(this);
-		index = models.indexOf(m);
-		counter++;
-		theTabs.setTitleAt(index, "Graph"+counter);
+		// anything that happens to the graph should propagate
+		m.addMouseListener(this);
 		
-		theTabs.setSelectedIndex(theTabs.indexOfComponent(v));
-		MultiGraphOptions o = new MultiGraphOptions(m, parent, "Graph Options for "+theTabs.getTitleAt(index));
-		options.add(o);
-                }
-                catch(SettingException e)
-                {
-                    plug.error(e.getMessage(), "Chart error");
-                }
-		return index;
-	}
-
-	public int addGraph(MultiGraphModel m)
-	{
-		MultiGraphView  v = new MultiGraphView(m);
-		
-		m.setCanvas(v);
-		m.addObserver(v);
-		m.changed();
-		
-		models.add(m);
-		graphs.add(v);
-		
-		theTabs.add(v);
-		v.addMouseListener(this);
+		// get the index of this model in the model list
 		int index = models.indexOf(m);
-		counter++;
-		theTabs.setTitleAt(index, "Graph"+counter);
 		
-		theTabs.setSelectedIndex(theTabs.indexOfComponent(v));
-		MultiGraphOptions o = new MultiGraphOptions(m, parent, "Graph Options for "+theTabs.getTitleAt(index));
-		options.add(o);
+		// increase the graph count and title the tab
+		theTabs.setTitleAt(index, tabName);
+		
+		// make this new tab the default selection
+		theTabs.setSelectedIndex(theTabs.indexOfComponent(m));
+		
+		// increase the graph counter
+		counter++;
+		
+		// return the index of the component
 		return index;
 	}
 	
-	public void jumpToGraph(MultiGraphModel m)
+	public void jumpToGraph(Graph m)
 	{
 		for(int i = 0; i < models.size(); i++)
 		{
 			if(m == models.get(i))
 			{
-				theTabs.setSelectedComponent((MultiGraphView)graphs.get(i));
+				theTabs.setSelectedComponent(m);
 				break;
 			}
 		}
 	}
 	
-	public void graphIsChanging(MultiGraphModel m)//therefore hide options
+	public Graph getModel(int i)
 	{
-		for(int i = 0; i < models.size(); i++)
-		{
-			if(m == models.get(i))
-			{
-				//System.out.println("hiding "+i);
-				((MultiGraphOptions)options.get(i)).hide();
-				break;
-			}
-		}
+		return models.get(i);
 	}
 	
-	//ACCESS METHODS
-	
-	public MultiGraphModel getModel(int i)
-	{
-		return (MultiGraphModel)models.get(i);
-	}
-	
-	public MultiGraphModel getModel(String tabHeader)
+	public Graph getModel(String tabHeader)
 	{
 		for(int i = 0; i < theTabs.getComponentCount(); i++)
 		{
@@ -398,74 +621,86 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		return theTabs.getTitleAt(i);
 	}
 	
-	public void mouseClicked(MouseEvent e)
-	{
-	}
-	
-	public void mouseEntered(MouseEvent e)
-	{
-	}
-	
-	public void mouseExited(MouseEvent e)
-	{
-	}
-	
+	// User right clicked on a tab
 	public void mousePressed(MouseEvent e)
-	{
-		
+	{		
 		if(e.isPopupTrigger())
 		{
-			if(e.getSource() == theTabs)//just show the background popup
-			{
-				this.backMenu.show(theTabs, e.getX(),e.getY());
-				return;
-			}
-			MultiGraphView v = null;
-			for(int i = 0; i < graphs.size(); i++)
-			{
-				if(e.getSource() == graphs.get(i))
-				{
-					v = (MultiGraphView)graphs.get(i);
-					break;
-				}
-			}
+			popUpTriggered(e);			
+		}		
+	}
+	
+	public void mouseReleased(MouseEvent e) 
+	{ 
+		if(e.isPopupTrigger())
+		{
+			popUpTriggered(e);			
+		}	
+	}
+	
+	private void popUpTriggered(MouseEvent e)
+	{
+		if(e.getSource() == theTabs)//just show the background popup
+		{
 			
-			if(v != null)
+			
+			int index = theTabs.indexAtLocation(e.getX(),e.getY());
+			if (index != -1)
 			{
-				currentSelect = theTabs.indexOfComponent(v);
-				MultiGraphOptions mgo = (MultiGraphOptions)options.get(currentSelect);
-				graphOptions.setEnabled(!mgo.isVisible());
-				this.graphMenu.show(v, e.getX(), e.getY());
+				graphOptions.setEnabled(true);
+				
+				exportMenu.setEnabled(true);
+				importMenu.setEnabled(true);
+				
+				printGraph.setEnabled(true);
+				deleteGraph.setEnabled(true);
+				
+				theTabs.setSelectedIndex(index);
+				this.graphMenu.show(theTabs, e.getX(), e.getY());
+			}
+			else
+			{
+				graphOptions.setEnabled(false);
+				
+				exportMenu.setEnabled(false);
+				importMenu.setEnabled(true);
+				
+				printGraph.setEnabled(false);
+				deleteGraph.setEnabled(false);
+								
+				this.graphMenu.show(theTabs, e.getX(),e.getY());	
+			}			
+			return;
+		}
+					
+		for(int i = 0; i < models.size(); i++)
+		{
+			if (e.getSource() == models.get(i))
+			{
+				graphOptions.setEnabled(true);
+				
+				exportMenu.setEnabled(true);
+				importMenu.setEnabled(true);
+				
+				printGraph.setEnabled(true);
+				deleteGraph.setEnabled(true);
+				
+				theTabs.setSelectedIndex(i);	
+				this.graphMenu.show(models.get(i), e.getX(), e.getY());
+				return;
 			}
 		}
 	}
 	
-	public void mouseReleased(MouseEvent e)
+	public void paintComponent(Graphics g)
 	{
-        if(e.isPopupTrigger())
-		{
-			if(e.getSource() == theTabs)//just show the background popup
-			{
-				this.backMenu.show(theTabs, e.getX(),e.getY());
-				return;
-			}
-			MultiGraphView v = null;
-			for(int i = 0; i < graphs.size(); i++)
-			{
-				if(e.getSource() == graphs.get(i))
-				{
-					v = (MultiGraphView)graphs.get(i);
-					break;
-				}
-			}
-			
-			if(v != null)
-			{
-				currentSelect = theTabs.indexOfComponent(v);
-				MultiGraphOptions mgo = (MultiGraphOptions)options.get(currentSelect);
-				graphOptions.setEnabled(!mgo.isVisible());
-				this.graphMenu.show(v, e.getX(), e.getY());
-			}
-		}
+		super.paintComponent(g);
+		g.clearRect(0,0,this.getWidth(),this.getHeight());
 	}
+	
+	// don't implement these for tabs
+	public void mouseClicked(MouseEvent e) { }
+	public void mouseEntered(MouseEvent e) { }
+	public void mouseExited(MouseEvent e)  { }
+	
 }

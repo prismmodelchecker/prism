@@ -140,19 +140,7 @@ public class GUIExperiment
 		theThread = new ExperimentThread(guiProp,this,cons,mod,prop);
 		running = true;
 		theThread.start();
-	}
-	
-	public void startExperiment(chart.MultiGraphModel mgm, String ranger, ArrayList others, ArrayList seriesName)
-	{
-		results.create2DGraph(ranger, others, mgm, seriesName);
-		
-		theThread = new ExperimentThread(guiProp,this,cons,mod,prop);
-		running = true;
-		
-		mgm.changed();
-		
-		theThread.start();
-	}
+	}	
 	
 	public synchronized void experimentDone()
 	{
@@ -435,7 +423,7 @@ public class GUIExperiment
 								public void run()
 								{
 									try {
-										setResult(definedMFConstants, definedPFConstants, res);
+										GUIExperiment.this.setResult(definedMFConstants, definedPFConstants, res);
 									}
 									catch (PrismException e) {
 										error("Problem storing results");

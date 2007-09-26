@@ -67,7 +67,7 @@ public class ColourProperty extends SingleProperty
         {
             public void actionPerformed(ActionEvent e)
             {
-                editValue = chart.ChartColorChooser.showDialog(GUIPrism.getGUI(), "Choose Colour", editValue);
+                //editValue = chart.ChartColorChooser.showDialog(GUIPrism.getGUI(), "Choose Colour", editValue);
                 fireActionPerformed(e);
             }
             

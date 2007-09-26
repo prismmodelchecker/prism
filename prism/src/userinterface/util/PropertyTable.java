@@ -392,7 +392,6 @@ public class PropertyTable extends JPanel implements ListSelectionListener, Tabl
         FontColorProperty fcProp = null;
         ChoiceProperty chProp = null;
         ColourProperty colProp = null;
-        SeriesDataProperty seriesProp = null;
         
         public PropertyCellEditor()
         {
@@ -450,11 +449,6 @@ public class PropertyTable extends JPanel implements ListSelectionListener, Tabl
                 colProp.removeListenerFromEditor(this);
                 return colProp.getEditorValue();
             }
-            if(seriesProp != null)
-            {
-                seriesProp.removeListenerFromEditor(this);
-                return null;
-            }
             if(isMultiLine)return area.getText();
             else return field.getText();
         }
@@ -490,12 +484,6 @@ public class PropertyTable extends JPanel implements ListSelectionListener, Tabl
                 colProp = (ColourProperty)value;
                 colProp.addListenerToEditor(this);
                 return colProp.getTableCellEditorComponent(table, value, isSelected, row, column);
-            }
-            else if(value instanceof SeriesDataProperty)
-            {
-                seriesProp = (SeriesDataProperty)value;
-                seriesProp.addListenerToEditor(this);
-                return seriesProp.getTableCellEditorComponent(table, value, isSelected, row, column);
             }
             else if(value instanceof SingleProperty)
             {
@@ -597,12 +585,6 @@ public class PropertyTable extends JPanel implements ListSelectionListener, Tabl
                     colProp = (ColourProperty)sp.getProperty(0);
                     colProp.addListenerToEditor(this);
                     return colProp.getTableCellEditorComponentMulti(table, value, isSelected, row, column, sp.allTheSame());
-                }
-                else if(sp.getProperty(0) instanceof SeriesDataProperty)
-                {
-                    seriesProp = (SeriesDataProperty)sp.getProperty(0);
-                    seriesProp.addListenerToEditor(this);
-                    return seriesProp.getTableCellEditorComponentMulti(table, value, isSelected, row, column, false, sp);
                 }
                 
                 if(!sp.isMultiline())

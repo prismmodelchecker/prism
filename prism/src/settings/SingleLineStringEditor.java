@@ -154,6 +154,7 @@ public class SingleLineStringEditor implements SettingEditor, CaretListener, Foc
     
     public void stopEditing()
     {
+    	
     }
     
     public void caretUpdate(CaretEvent e)

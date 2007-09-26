@@ -24,15 +24,20 @@
 //	
 //==============================================================================
 
-package chart;
+package userinterface.graph;
 
-public class ChartException extends Exception
+public class GraphException extends Exception
 {
-	public ChartException(String s)
+	public GraphException(String s)
 	{
 		super(s);
 	}
-	
+
+	public GraphException(Exception e)
+	{
+		super(e);
+	}
+
 	public String toString()
 	{
 		return "Error: " + getMessage() + ".";
