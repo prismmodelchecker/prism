@@ -174,7 +174,7 @@ ifeq ($(OSTYPE),linux)
 	LIBSUFFIX = .so
 	BINDISTSUFFIX = linux
 	OSTYPE_INCLUDE = include
-	CLASSPATHSEP = ":"
+	CLASSPATHSEP = :
 endif
 # Solaris
 ifeq ($(OSTYPE),solaris)
@@ -188,7 +188,7 @@ ifeq ($(OSTYPE),solaris)
 	CUDD_MAKEFILE = Makefile.solaris
 	BINDISTSUFFIX = solaris
 	OSTYPE_INCLUDE = include
-	CLASSPATHSEP = ":"
+	CLASSPATHSEP = :
 endif
 # Cygwin
 ifeq ($(OSTYPE),cygwin)
@@ -203,7 +203,7 @@ ifeq ($(OSTYPE),cygwin)
 	CUDD_MAKEFILE = Makefile.cygwin
 	BINDISTSUFFIX = win
 	OSTYPE_INCLUDE = include
-	CLASSPATHSEP = ";"
+	CLASSPATHSEP = ;
 endif
 # Darwin
 ifeq ($(OSTYPE),darwin)
@@ -217,7 +217,7 @@ ifeq ($(OSTYPE),darwin)
 	CUDD_MAKEFILE = Makefile.darwin
 	BINDISTSUFFIX = osx
 	OSTYPE_INCLUDE = Headers
-	CLASSPATHSEP = ":"
+	CLASSPATHSEP = :
 endif
 
 ###############
