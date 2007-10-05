@@ -168,7 +168,7 @@ public class GUIClipboard extends GUIPlugin
         //actionCut.putValue(Action.SHORT_DESCRIPTION, "Cut");
         menuActionCut.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_C));
         menuActionCut.putValue(Action.NAME, "Cut");
-        menuActionCut.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallCut.gif"));
+        menuActionCut.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallCut.png"));
         
         toolbarActionCut = new AbstractAction()
         {
@@ -179,7 +179,7 @@ public class GUIClipboard extends GUIPlugin
         };
         toolbarActionCut.putValue(Action.LONG_DESCRIPTION, "Copys the currently selected item/text to the clipboard and then removes it.");
         toolbarActionCut.putValue(Action.NAME, "Cut");
-        toolbarActionCut.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallCut.gif"));
+        toolbarActionCut.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallCut.png"));
         
         
         
@@ -193,7 +193,7 @@ public class GUIClipboard extends GUIPlugin
         menuActionCopy.putValue(Action.LONG_DESCRIPTION, "Copys the currently selected item/text to the clipboard.");
         menuActionCopy.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_O));
         menuActionCopy.putValue(Action.NAME, "Copy");
-        menuActionCopy.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallCopy.gif"));
+        menuActionCopy.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallCopy.png"));
         
         toolbarActionCopy = new AbstractAction()
         {
@@ -204,7 +204,7 @@ public class GUIClipboard extends GUIPlugin
         };
         toolbarActionCopy.putValue(Action.LONG_DESCRIPTION, "Copys the currently selected item/text to the clipboard.");
         toolbarActionCopy.putValue(Action.NAME, "Copy");
-        toolbarActionCopy.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallCopy.gif"));
+        toolbarActionCopy.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallCopy.png"));
         
         menuActionPaste = new AbstractAction()
         {
@@ -216,7 +216,7 @@ public class GUIClipboard extends GUIPlugin
         menuActionPaste.putValue(Action.LONG_DESCRIPTION, "Pastes the contents of the clipboard.");
         menuActionPaste.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
         menuActionPaste.putValue(Action.NAME, "Paste");
-        menuActionPaste.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPaste.gif"));
+        menuActionPaste.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPaste.png"));
         
         toolbarActionPaste = new AbstractAction()
         {
@@ -227,7 +227,7 @@ public class GUIClipboard extends GUIPlugin
         };
         toolbarActionPaste.putValue(Action.LONG_DESCRIPTION, "Pastes the contents of the clipboard.");
         toolbarActionPaste.putValue(Action.NAME, "Paste");
-        toolbarActionPaste.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPaste.gif"));
+        toolbarActionPaste.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPaste.png"));
         
         menuActionDelete = new AbstractAction()
         {
@@ -239,7 +239,7 @@ public class GUIClipboard extends GUIPlugin
         menuActionDelete.putValue(Action.LONG_DESCRIPTION, "Removes the currently selected item");        
         menuActionDelete.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_D));
         menuActionDelete.putValue(Action.NAME, "Delete");
-        menuActionDelete.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallDelete.gif"));
+        menuActionDelete.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallDelete.png"));
         
         toolbarActionDelete = new AbstractAction()
         {
@@ -250,7 +250,7 @@ public class GUIClipboard extends GUIPlugin
         };
         toolbarActionDelete.putValue(Action.LONG_DESCRIPTION, "Removes the currently selected item");        
         toolbarActionDelete.putValue(Action.NAME, "Delete");
-        toolbarActionDelete.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallDelete.gif"));
+        toolbarActionDelete.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallDelete.png"));
         
         menuActionSelectAll = new AbstractAction()
         {
@@ -262,7 +262,7 @@ public class GUIClipboard extends GUIPlugin
         menuActionSelectAll.putValue(Action.LONG_DESCRIPTION, "Selects all items of the focussed component.");
         menuActionSelectAll.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_S));
         menuActionSelectAll.putValue(Action.NAME, "Select all");
-        menuActionSelectAll.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallSelectAll.gif"));
+        menuActionSelectAll.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallSelectAll.png"));
         
         toolbarActionSelectAll = new AbstractAction()
         {
@@ -273,7 +273,7 @@ public class GUIClipboard extends GUIPlugin
         };
         toolbarActionSelectAll.putValue(Action.LONG_DESCRIPTION, "Selects all items of the focussed component.");
         toolbarActionSelectAll.putValue(Action.NAME, "Select all");
-        toolbarActionSelectAll.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallSelectAll.gif"));
+        toolbarActionSelectAll.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallSelectAll.png"));
     }
     
     public OptionsPanel getOptions()

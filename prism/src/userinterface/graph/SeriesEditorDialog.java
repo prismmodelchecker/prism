@@ -118,7 +118,7 @@ public class SeriesEditorDialog extends JDialog
 		cut.putValue(Action.LONG_DESCRIPTION, "Cut the current selection to the clipboard");
 		//exitAction.putValue(Action.SHORT_DESCRIPTION, "Exit");
 		cut.putValue(Action.NAME, "Cut");
-		cut.putValue(Action.SMALL_ICON, new ImageIcon(ClassLoader.getSystemResource("images/smallCut.gif")));
+		cut.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallCut.png"));
 		//cut.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_X, InputEvent.CTRL_MASK));
 		
 		AbstractAction copy = new AbstractAction()
@@ -131,7 +131,7 @@ public class SeriesEditorDialog extends JDialog
 		copy.putValue(Action.LONG_DESCRIPTION, "Copies the current selection to the clipboard");
 		//exitAction.putValue(Action.SHORT_DESCRIPTION, "Exit");
 		copy.putValue(Action.NAME, "Copy");
-		copy.putValue(Action.SMALL_ICON, new ImageIcon(ClassLoader.getSystemResource("images/smallCopy.gif")));
+		copy.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallCopy.png"));
 		//copy.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_MASK));
 		
 		AbstractAction paste = new AbstractAction()
@@ -144,7 +144,7 @@ public class SeriesEditorDialog extends JDialog
 		paste.putValue(Action.LONG_DESCRIPTION, "Pastes the clipboard to the current selection");
 		//exitAction.putValue(Action.SHORT_DESCRIPTION, "Exit");
 		paste.putValue(Action.NAME, "Paste");
-		paste.putValue(Action.SMALL_ICON, new ImageIcon(ClassLoader.getSystemResource("images/smallPaste.gif")));
+		paste.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPaste.png"));
 		//paste.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_MASK));
 		
 		AbstractAction delete = new AbstractAction()
@@ -157,7 +157,7 @@ public class SeriesEditorDialog extends JDialog
 		delete.putValue(Action.LONG_DESCRIPTION, "Deletes the current");
 		//exitAction.putValue(Action.SHORT_DESCRIPTION, "Exit");
 		delete.putValue(Action.NAME, "Delete");
-		delete.putValue(Action.SMALL_ICON, new ImageIcon(ClassLoader.getSystemResource("images/smallDelete.gif")));
+		delete.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallDelete.png"));
 		
 		
 		for (Graph.SeriesKey key : series)

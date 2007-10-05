@@ -136,14 +136,14 @@ public class ModelCheckThread extends GUIComputationThread
 		{
 			this.gp = gp;
 			images = new ImageIcon[8];
-			images[0] = GUIPrism.getIconFromImage("smallClockAnim1.gif");
-			images[1] = GUIPrism.getIconFromImage("smallClockAnim2.gif");
-			images[2] = GUIPrism.getIconFromImage("smallClockAnim3.gif");
-			images[3] = GUIPrism.getIconFromImage("smallClockAnim4.gif");
-			images[4] = GUIPrism.getIconFromImage("smallClockAnim5.gif");
-			images[5] = GUIPrism.getIconFromImage("smallClockAnim6.gif");
-			images[6] = GUIPrism.getIconFromImage("smallClockAnim7.gif");
-			images[7] = GUIPrism.getIconFromImage("smallClockAnim8.gif");
+			images[0] = GUIPrism.getIconFromImage("smallClockAnim1.png");
+			images[1] = GUIPrism.getIconFromImage("smallClockAnim2.png");
+			images[2] = GUIPrism.getIconFromImage("smallClockAnim3.png");
+			images[3] = GUIPrism.getIconFromImage("smallClockAnim4.png");
+			images[4] = GUIPrism.getIconFromImage("smallClockAnim5.png");
+			images[5] = GUIPrism.getIconFromImage("smallClockAnim6.png");
+			images[6] = GUIPrism.getIconFromImage("smallClockAnim7.png");
+			images[7] = GUIPrism.getIconFromImage("smallClockAnim8.png");
 		}
 		public void run()
 		{

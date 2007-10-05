@@ -102,7 +102,7 @@ public class GraphicModuleContainer implements FocusListener, AdjustmentListener
         hide.putValue(Action.LONG_DESCRIPTION,  "Hides this graphical module");
         hide.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_H));
         hide.putValue(Action.NAME, "Hide");
-        //addModule.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallNewModule.gif"));
+        //addModule.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallNewModule.png"));
         
         framePopup.add(hide);
         
@@ -270,7 +270,7 @@ public class GraphicModuleContainer implements FocusListener, AdjustmentListener
                 
                 //internalFrame.pack();
                 internalFrame.setBorder(new LineBorder(Color.black, 2, false));
-                internalFrame.setFrameIcon(GUIPrism.getIconFromImage("smallModule.gif"));
+                internalFrame.setFrameIcon(GUIPrism.getIconFromImage("smallModule.png"));
                 internalFrame.addComponentListener(owner);
                 internalFrame.addFocusListener(this);
                 //internalFrame.setIconifiable(false);

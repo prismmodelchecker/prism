@@ -34,6 +34,7 @@ import javax.swing.event.*;
 import java.awt.event.*;
 
 import parser.*;
+import userinterface.GUIPrism;
 
 /**
  *
@@ -214,7 +215,7 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 			 setBackground(header.getBackground());
 			 setFont(header.getFont());*/
 		    setBorder(null);
-		    selectedIcon = new javax.swing.ImageIcon(getClass().getResource("/images/smallItemSelected.gif"));
+		    selectedIcon = GUIPrism.getIconFromImage("smallItemSelected.png");
 		}
 	
 		public Component getListCellRendererComponent( JList list,

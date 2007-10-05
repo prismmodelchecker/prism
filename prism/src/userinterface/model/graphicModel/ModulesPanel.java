@@ -364,7 +364,7 @@ public class ModulesPanel extends JPanel implements MouseListener, ComponentList
             addModule.putValue(Action.LONG_DESCRIPTION,  "Adds a new module to the model");
             addModule.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_A));
             addModule.putValue(Action.NAME, "Add Module");
-            addModule.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallNewModule.gif"));
+            addModule.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallNewModule.png"));
             show = new JMenu("Show");
             {
                 //no modules first
@@ -393,7 +393,7 @@ public class ModulesPanel extends JPanel implements MouseListener, ComponentList
                 hideAll.putValue(Action.NAME, "None");
                 show.add(hideAll);
             }
-            show.setIcon(GUIPrism.getIconFromImage("smallView.gif"));
+            show.setIcon(GUIPrism.getIconFromImage("smallView.png"));
             dock = new JMenu("Dock");
             {
                 //no modules first
@@ -422,7 +422,7 @@ public class ModulesPanel extends JPanel implements MouseListener, ComponentList
                 undockAll.putValue(Action.NAME, "None");
                 dock.add(undockAll);
             }
-            dock.setIcon(GUIPrism.getIconFromImage("smallDocking.gif"));
+            dock.setIcon(GUIPrism.getIconFromImage("smallDocking.png"));
             layout = new JMenu("Layout");
             {
                 tile = new AbstractAction()
@@ -435,7 +435,7 @@ public class ModulesPanel extends JPanel implements MouseListener, ComponentList
                 tile.putValue(Action.LONG_DESCRIPTION, "Tiles all docked graphical modules");
                 tile.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_T));
                 tile.putValue(Action.NAME, "Tile");
-                tile.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallTile.gif"));
+                tile.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallTile.png"));
                 layout.add(tile);
                 
                 cascade = new AbstractAction()
@@ -448,7 +448,7 @@ public class ModulesPanel extends JPanel implements MouseListener, ComponentList
                 cascade.putValue(Action.LONG_DESCRIPTION, "Cascades all docked graphical modules");
                 cascade.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_C));
                 cascade.putValue(Action.NAME, "Cascade");
-                cascade.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallCascade.gif"));
+                cascade.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallCascade.png"));
                 layout.add(cascade);
                 
                 layout.add(new JSeparator());
@@ -483,7 +483,7 @@ public class ModulesPanel extends JPanel implements MouseListener, ComponentList
                 autol.setSelected(true);
                 
             }
-            layout.setIcon(GUIPrism.getIconFromImage("smallLayout.gif"));
+            layout.setIcon(GUIPrism.getIconFromImage("smallLayout.png"));
         }
         popup.add(addModule);
         popup.addSeparator();

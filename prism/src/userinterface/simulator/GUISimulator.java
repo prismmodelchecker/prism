@@ -94,13 +94,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		horizontalSplit.setDividerLocation((int)leftExplorePanel.getPreferredSize().getHeight() + 11);
 		
-		//newPathButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallNewPath.gif")));
-		//resetPathButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallResetPath.gif")));
-		//exportPathButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallExport.gif")));
-		//configureViewButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallFind.gif")));
-		
-		randomExplorationButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallAutomaticUpdate.gif")));
-		backtrackButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallBacktracking.gif")));
+		randomExplorationButton.setIcon(GUIPrism.getIconFromImage("smallPlayerFwd.png"));
+		backtrackButton.setIcon(GUIPrism.getIconFromImage("smallPlayerRew.png"));
 				
 		pathTable.getSelectionModel().addListSelectionListener(this);
 		
@@ -1568,7 +1563,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		newPath.putValue(Action.LONG_DESCRIPTION, "Creates a new path.");
 		newPath.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_N));
 		newPath.putValue(Action.NAME, "New Path");
-		newPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallNewPath.gif"));
+		newPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallStates.png"));
 		
 		resetPath = new AbstractAction()
 		{
@@ -1581,7 +1576,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		resetPath.putValue(Action.LONG_DESCRIPTION, "Resets the path.");
 		resetPath.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_R));
 		resetPath.putValue(Action.NAME, "Reset Path");
-		resetPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallResetPath.gif"));
+		resetPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlayerStart.png"));
 		
 		exportPath = new AbstractAction()
 		{
@@ -1594,7 +1589,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		exportPath.putValue(Action.LONG_DESCRIPTION, "Exports the path.");
 		exportPath.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_X));
 		exportPath.putValue(Action.NAME, "Export Path");
-		exportPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.gif"));			
+		exportPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.png"));			
 		
 		backtrackToHere = new AbstractAction()
 		{
@@ -1613,7 +1608,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		backtrackToHere.putValue(Action.LONG_DESCRIPTION, "Backtracks the path to the selected state.");
 		backtrackToHere.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_B));
 		backtrackToHere.putValue(Action.NAME, "Backtrack to here");
-		backtrackToHere.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallBacktrack.gif"));
+		backtrackToHere.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlayerRew.png"));
 		
 		removeToHere = new AbstractAction()
 		{
@@ -1633,7 +1628,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		removeToHere.putValue(Action.LONG_DESCRIPTION, "Removes states preceding the selected state from the path.");
 		removeToHere.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_R));
 		removeToHere.putValue(Action.NAME, "Remove preceding steps");
-		removeToHere.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallRemovePreceding.gif"));
+		removeToHere.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallRemove.png"));
 		
 		configureView = new AbstractAction()
 		{
@@ -1645,7 +1640,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		configureView.putValue(Action.LONG_DESCRIPTION, "Configures the view.");
 		configureView.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_C));
 		configureView.putValue(Action.NAME, "Configure View");
-		configureView.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFind.gif"));
+		configureView.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallOptions.png"));
 		
 		pathPopupMenu = new JPopupMenu();
 		pathPopupMenu.add(newPath);

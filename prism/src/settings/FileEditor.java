@@ -25,6 +25,7 @@
 //==============================================================================
 
 package settings;
+
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.border.*;
@@ -32,16 +33,15 @@ import java.awt.event.*;
 import javax.swing.event.*;
 import java.util.*;
 import java.io.*;
-/**
- *
- * @author  Andrew Hinton
- */
+
+import userinterface.GUIPrism;
+
 public class FileEditor implements SettingEditor, ActionListener, FocusListener
 {
 	private JLabel renderer;
 	private JPanel panel;
 	private Font font = new Font("monospaced", Font.ITALIC, 12);
-	private ImageIcon warningIcon = new ImageIcon(ClassLoader.getSystemResource("images/smallError.gif"));
+	private ImageIcon warningIcon = GUIPrism.getIconFromImage("smallError.png");
 	private JButton button;
 	private JTable lastTable = null;
 	private int tableRow = -1;

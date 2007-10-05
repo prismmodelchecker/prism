@@ -44,19 +44,19 @@ public class GUIProperty
 	//Constants
 	
 	/** A property state constant image */
-	public static final ImageIcon IMAGE_NOT_DONE = GUIPrism.getIconFromImage("smallQuestion.gif");
+	public static final ImageIcon IMAGE_NOT_DONE = GUIPrism.getIconFromImage("smallFilePrism.png");
 	/** A property state constant image */
-	public static final ImageIcon IMAGE_DOING = GUIPrism.getIconFromImage("smallClockAnim1.gif");
+	public static final ImageIcon IMAGE_DOING = GUIPrism.getIconFromImage("smallClockAnim1.png");
 	/** A property state constant image */
-	public static final ImageIcon IMAGE_TICK = GUIPrism.getIconFromImage("smallTick.gif");
+	public static final ImageIcon IMAGE_TICK = GUIPrism.getIconFromImage("smallTick.png");
 	/** A property state constant image */
-	public static final ImageIcon IMAGE_CROSS = GUIPrism.getIconFromImage("smallCross.gif");
+	public static final ImageIcon IMAGE_CROSS = GUIPrism.getIconFromImage("smallCross.png");
 	/** A property state constant image */
-	public static final ImageIcon IMAGE_ERROR = GUIPrism.getIconFromImage("smallError.gif");
+	public static final ImageIcon IMAGE_ERROR = GUIPrism.getIconFromImage("smallError.png");
 	/** A property state constant image */
-	public static final ImageIcon IMAGE_INVALID = GUIPrism.getIconFromImage("smallWarningTriangle.gif");
+	public static final ImageIcon IMAGE_INVALID = GUIPrism.getIconFromImage("smallWarning.png");
 	/** A property state constant image */
-	public static final ImageIcon IMAGE_NUMBER = GUIPrism.getIconFromImage("smallNumbers.gif");
+	public static final ImageIcon IMAGE_NUMBER = GUIPrism.getIconFromImage("smallCompute.png");
 	
 	/** Property status */
 	public static final int STATUS_NOT_DONE = 0;

@@ -566,13 +566,13 @@ public class GUIPropertyEditor extends javax.swing.JDialog implements ActionList
         jPanel6.setLayout(new java.awt.BorderLayout());
 
         jToolBar1.setFloatable(false);
-        cut.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/smallCut.gif")));
+        cut.setIcon(GUIPrism.getIconFromImage("smallCut.png"));
         jToolBar1.add(cut);
 
-        copy.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/smallCopy.gif")));
+        copy.setIcon(GUIPrism.getIconFromImage("smallCopy.png"));
         jToolBar1.add(copy);
 
-        paste.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/smallPaste.gif")));
+        paste.setIcon(GUIPrism.getIconFromImage("smallPaste.png"));
         jToolBar1.add(paste);
 
         jPanel6.add(jToolBar1, java.awt.BorderLayout.NORTH);

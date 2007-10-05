@@ -115,7 +115,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
         theModel = new DefaultTreeModel(root);
         newTree(editable);
         initComponents();
-        animIcon = GUIPrism.getIconFromImage("smallClockAnim1.gif");
+        animIcon = GUIPrism.getIconFromImage("smallClockAnim1.png");
         isParsing = false;
         tree.addMouseListener(this);
         
@@ -4007,16 +4007,14 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
     //Node Renderer
     class PrismNodeRenderer extends DefaultTreeCellRenderer
     {
-        ImageIcon VAR = GUIPrism.getIconFromImage("smallVariable.gif");
-        ImageIcon BOOL = GUIPrism.getIconFromImage("smallBool.gif");
-        ImageIcon MOD = GUIPrism.getIconFromImage("smallModule.gif");
-        ImageIcon EXP = GUIPrism.getIconFromImage("smallExpression.gif");
-        ImageIcon VAL = GUIPrism.getIconFromImage("smallString.gif");
-        ImageIcon GOOD = GUIPrism.getIconFromImage("smallTick.gif");
-        ImageIcon BAD = GUIPrism.getIconFromImage("smallCross.gif");
-        ImageIcon OUT_OF_SYNCH = GUIPrism.getIconFromImage("smallQuestion.gif");
-        ImageIcon CLOCK = GUIPrism.getIconFromImage("smallClockAnim1.gif");
-        ImageIcon DEC = GUIPrism.getIconFromImage("smallGlobal.gif");
+        ImageIcon VAR = GUIPrism.getIconFromImage("smallVariable.png");
+        ImageIcon MOD = GUIPrism.getIconFromImage("smallModule.png");
+        //ImageIcon EXP = GUIPrism.getIconFromImage("smallExpression.png");
+        ImageIcon VAL = GUIPrism.getIconFromImage("smallValue.png");
+        ImageIcon GOOD = GUIPrism.getIconFromImage("smallTick.png");
+        ImageIcon BAD = GUIPrism.getIconFromImage("smallCross.png");
+        ImageIcon OUT_OF_SYNCH = GUIPrism.getIconFromImage("smallFilePrism.png");
+        ImageIcon CLOCK = GUIPrism.getIconFromImage("smallClockAnim1.png");
         
         public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus)
         {
@@ -4044,11 +4042,11 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
             }
             else if(node instanceof BoolNode)
             {
-                setIcon(BOOL);
+                setIcon(VAR);
             }
             else if(node instanceof DeclarationNode)
             {
-                setIcon(DEC);
+                setIcon(VAR);
             }
             else if(node instanceof ModuleNode)
             {
@@ -4056,11 +4054,11 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
             }
             else if(node instanceof ValueNode)
             {
-                if(node instanceof ExpressionNode)
-                {
-                    setIcon(EXP);
-                }
-                else
+                //if(node instanceof ExpressionNode)
+                //{
+                    //setIcon(EXP);
+                //}
+                //else
                 {
                     setIcon(VAL);
                 }
@@ -4285,14 +4283,14 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
         {
             this.index = index;
             images = new ImageIcon[8];
-            images[0] = GUIPrism.getIconFromImage("smallClockAnim1.gif");
-            images[1] = GUIPrism.getIconFromImage("smallClockAnim2.gif");
-            images[2] = GUIPrism.getIconFromImage("smallClockAnim3.gif");
-            images[3] = GUIPrism.getIconFromImage("smallClockAnim4.gif");
-            images[4] = GUIPrism.getIconFromImage("smallClockAnim5.gif");
-            images[5] = GUIPrism.getIconFromImage("smallClockAnim6.gif");
-            images[6] = GUIPrism.getIconFromImage("smallClockAnim7.gif");
-            images[7] = GUIPrism.getIconFromImage("smallClockAnim8.gif");
+            images[0] = GUIPrism.getIconFromImage("smallClockAnim1.png");
+            images[1] = GUIPrism.getIconFromImage("smallClockAnim2.png");
+            images[2] = GUIPrism.getIconFromImage("smallClockAnim3.png");
+            images[3] = GUIPrism.getIconFromImage("smallClockAnim4.png");
+            images[4] = GUIPrism.getIconFromImage("smallClockAnim5.png");
+            images[5] = GUIPrism.getIconFromImage("smallClockAnim6.png");
+            images[6] = GUIPrism.getIconFromImage("smallClockAnim7.png");
+            images[7] = GUIPrism.getIconFromImage("smallClockAnim8.png");
         }
         public void run()
         {

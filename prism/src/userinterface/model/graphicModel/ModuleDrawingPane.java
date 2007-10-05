@@ -74,12 +74,12 @@ public class ModuleDrawingPane extends JPanel implements Observer, MouseListener
     public ModuleDrawingPane(ModuleModel theModel)
     {
         // create a cursor for 'image' with the hotspot at 0, 0.
-        zoom = Toolkit.getDefaultToolkit().createCustomCursor(GUIPrism.getIconFromImage("mouseZoom.gif").getImage(), new Point(0, 0), "ZoomMouse");
-        mouse = Toolkit.getDefaultToolkit().createCustomCursor(GUIPrism.getIconFromImage("mouse.gif").getImage(), new Point(0, 0), "NormalMouse");
-        cross = Toolkit.getDefaultToolkit().createCustomCursor(GUIPrism.getIconFromImage("mouseCross.gif").getImage(), new Point(6, 6), "Cross");
-        crossZoom = Toolkit.getDefaultToolkit().createCustomCursor(GUIPrism.getIconFromImage("mouseCrossZoom.gif").getImage(), new Point(6, 6), "CrossZoom");
-        mouseAndMove = Toolkit.getDefaultToolkit().createCustomCursor(GUIPrism.getIconFromImage("mouseAndMove.gif").getImage(), new Point(0, 0), "MouseAndMove");
-        mouseAndTransition = Toolkit.getDefaultToolkit().createCustomCursor(GUIPrism.getIconFromImage("mouseAndTransition.gif").getImage(), new Point(0,0), "MouseAndTransition");
+        zoom = Toolkit.getDefaultToolkit().createCustomCursor(GUIPrism.getIconFromImage("mouseZoom.png").getImage(), new Point(0, 0), "ZoomMouse");
+        mouse = Toolkit.getDefaultToolkit().createCustomCursor(GUIPrism.getIconFromImage("mouse.png").getImage(), new Point(0, 0), "NormalMouse");
+        cross = Toolkit.getDefaultToolkit().createCustomCursor(GUIPrism.getIconFromImage("mouseCross.png").getImage(), new Point(6, 6), "Cross");
+        crossZoom = Toolkit.getDefaultToolkit().createCustomCursor(GUIPrism.getIconFromImage("mouseCrossZoom.png").getImage(), new Point(6, 6), "CrossZoom");
+        mouseAndMove = Toolkit.getDefaultToolkit().createCustomCursor(GUIPrism.getIconFromImage("mouseAndMove.png").getImage(), new Point(0, 0), "MouseAndMove");
+        mouseAndTransition = Toolkit.getDefaultToolkit().createCustomCursor(GUIPrism.getIconFromImage("mouseAndTransition.png").getImage(), new Point(0,0), "MouseAndTransition");
         // set this cursor on a component
         //comp.setCursor(curs);
         this.theModel = theModel;

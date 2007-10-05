@@ -153,7 +153,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		};
 		importXMLBack.putValue(Action.NAME, "Import PRISM graph");
 		importXMLBack.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_I));
-		importXMLBack.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallImport.gif"));
+		importXMLBack.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallImport.png"));
 		importXMLBack.putValue(Action.LONG_DESCRIPTION, "Imports a saved PRISM graph from a file.");
 */
 		graphOptions = new AbstractAction()
@@ -167,7 +167,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		
 		graphOptions.putValue(Action.NAME, "Graph options");
 		graphOptions.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_G));
-		graphOptions.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallOptions.gif"));
+		graphOptions.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallOptions.png"));
 		graphOptions.putValue(Action.LONG_DESCRIPTION, "Displays the options dialog for the graph.");
 		
 		importXML = new AbstractAction()
@@ -186,7 +186,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		};
 		importXML.putValue(Action.NAME, "PRISM graph (*.gra)");
 		importXML.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_I));
-		importXML.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallImport.gif"));
+		importXML.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileGraph.png"));
 		importXML.putValue(Action.LONG_DESCRIPTION, "Imports a saved PRISM graph from a file.");
 		
 		exportXML = new AbstractAction()
@@ -205,7 +205,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		};
 		exportXML.putValue(Action.NAME, "PRISM graph (*.gra)");
 		exportXML.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_X));
-		exportXML.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.gif"));
+		exportXML.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileGraph.png"));
 		exportXML.putValue(Action.LONG_DESCRIPTION, "Export graph as a PRISM graph file.");
 	
 		
@@ -221,7 +221,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		};
 		exportImageJPG.putValue(Action.NAME, "JPEG Interchange Format (*.jpg, *.jpeg)");
 		exportImageJPG.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_J));
-		exportImageJPG.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.gif"));
+		exportImageJPG.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileImage.png"));
 		exportImageJPG.putValue(Action.LONG_DESCRIPTION, "Export graph as a JPEG file.");
 		
 		exportImagePNG = new AbstractAction()
@@ -235,7 +235,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		};
 		exportImagePNG.putValue(Action.NAME, "Portable Network Graphics (*.png)");
 		exportImagePNG.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
-		exportImagePNG.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.gif"));
+		exportImagePNG.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileImage.png"));
 		exportImagePNG.putValue(Action.LONG_DESCRIPTION, "Export graph as a Portable Network Graphics file.");
 		
 		exportImageEPS = new AbstractAction()
@@ -249,7 +249,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		};
 		exportImageEPS.putValue(Action.NAME, "Encapsulated PostScript (*.eps)");
 		exportImageEPS.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_E));
-		exportImageEPS.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.gif"));
+		exportImageEPS.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFilePdf.png"));
 		exportImageEPS.putValue(Action.LONG_DESCRIPTION, "Export graph as an Encapsulated PostScript file.");
 		
 		exportMatlab = new AbstractAction()
@@ -272,7 +272,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		};
 		exportMatlab.putValue(Action.NAME, "Matlab file (*.m)");
 		exportMatlab.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_M));
-		exportMatlab.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.gif"));
+		exportMatlab.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileMatlab.png"));
 		exportMatlab.putValue(Action.LONG_DESCRIPTION, "Export graph as a Matlab file.");
 		
 		exportOpenDocumentChart = new AbstractAction()
@@ -292,7 +292,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		};
 		exportOpenDocumentChart.putValue(Action.NAME, "OpenDocument Chart");
 		exportOpenDocumentChart.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_O));
-		exportOpenDocumentChart.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.gif"));
+		exportOpenDocumentChart.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.png"));
 		exportOpenDocumentChart.putValue(Action.LONG_DESCRIPTION, "Export graph as a OpenDocument Chart file.");
 		
 		exportOpenDocumentSpreadsheet = new AbstractAction()
@@ -312,7 +312,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		};
 		exportOpenDocumentSpreadsheet.putValue(Action.NAME, "OpenDocument Spreadsheet");
 		exportOpenDocumentSpreadsheet.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_S));
-		exportOpenDocumentSpreadsheet.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.gif"));
+		exportOpenDocumentSpreadsheet.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.png"));
 		exportOpenDocumentSpreadsheet.putValue(Action.LONG_DESCRIPTION, "Export graph as a OpenDocument Spreadsheet file.");
 		
 		exportCSV = new AbstractAction()
@@ -333,7 +333,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		};
 		exportCSV.putValue(Action.NAME, "CSV file");
 		exportCSV.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_C));
-		exportCSV.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.gif"));
+		exportCSV.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.png"));
 		exportCSV.putValue(Action.LONG_DESCRIPTION, "Export graph as a CSV file.");
 		
 		exportGNUPlot = new AbstractAction()
@@ -361,7 +361,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		};
 		exportGNUPlot.putValue(Action.NAME, "GNUPlot file");
 		exportGNUPlot.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_G));
-		exportGNUPlot.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.gif"));
+		exportGNUPlot.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.png"));
 		exportGNUPlot.putValue(Action.LONG_DESCRIPTION, "Export graph as GNUPlot files.");
 		
 		printGraph = new AbstractAction()
@@ -387,7 +387,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		};
 		printGraph.putValue(Action.NAME, "Print graph");
 		printGraph.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
-		printGraph.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPrint.gif"));
+		printGraph.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPrint.png"));
 		printGraph.putValue(Action.LONG_DESCRIPTION, "Print the graph to a printer or file");
 		
 		deleteGraph = new AbstractAction()
@@ -404,12 +404,12 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		};
 		deleteGraph.putValue(Action.NAME, "Delete graph");
 		deleteGraph.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_D));
-		deleteGraph.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallDelete.gif"));
+		deleteGraph.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallDelete.png"));
 		deleteGraph.putValue(Action.LONG_DESCRIPTION, "Deletes the graph.");
 		
 		exportMenu = new JMenu("Export graph");
 		exportMenu.setMnemonic('E');
-		exportMenu.setIcon(GUIPrism.getIconFromImage("smallExport.gif"));
+		exportMenu.setIcon(GUIPrism.getIconFromImage("smallExport.png"));
 		exportMenu.add(exportXML);
 		exportMenu.add(exportImagePNG);
 		exportMenu.add(exportImageEPS);
@@ -419,7 +419,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		
 		importMenu = new JMenu("Import graph");
 		importMenu.setMnemonic('I');
-		importMenu.setIcon(GUIPrism.getIconFromImage("smallImport.gif"));
+		importMenu.setIcon(GUIPrism.getIconFromImage("smallImport.png"));
 		importMenu.add(importXML);
 				
 		/* Graph context menu */
@@ -517,7 +517,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 	public JMenu getExportMenu()
 	{
 		JMenu menu = new JMenu("Import/Export..");
-		menu.setIcon(GUIPrism.getIconFromImage("Export.gif"));
+		menu.setIcon(GUIPrism.getIconFromImage("Export.png"));
 		menu.setMnemonic('I');
 		
 		menu.add(new JLabel("Import"));

@@ -81,7 +81,7 @@ public class GUIPrism extends JFrame
         {
             //Show the splash screen
             
-            splash = new GUIPrismSplash("images/splash.gif");
+            splash = new GUIPrismSplash("images/splash.png");
             splash.display();
             //new GUIPrismSplash().show();
             gui = new GUIPrism();
@@ -281,7 +281,7 @@ public class GUIPrism extends JFrame
         prismOptions.putValue(Action.LONG_DESCRIPTION, "Brings up an option dialog for setting PRISM and user interface parameters.");
         prismOptions.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_O));
         prismOptions.putValue(Action.NAME, "Options");
-        prismOptions.putValue(Action.SMALL_ICON, getIconFromImage("smallOptions.gif"));
+        prismOptions.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallOptions.png"));
         
         optionsMenu.add(prismOptions);
         optionsMenu.setMnemonic('O');
@@ -311,7 +311,7 @@ public class GUIPrism extends JFrame
         getContentPane().add(toolPanel, java.awt.BorderLayout.NORTH);
         getContentPane().add(thePanel, java.awt.BorderLayout.CENTER);
         getContentPane().add(bottomPanel, java.awt.BorderLayout.SOUTH);
-        setIconImage(getIconFromImage("smallPrism.gif").getImage());
+        setIconImage(GUIPrism.getIconFromImage("smallPrism.png").getImage());
         getContentPane().setSize(new java.awt.Dimension(800,600));
         pack();
     }

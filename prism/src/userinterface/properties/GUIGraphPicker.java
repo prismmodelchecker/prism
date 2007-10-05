@@ -550,11 +550,11 @@ public class GUIGraphPicker extends javax.swing.JDialog
         
         jPanel1.add(jPanel4, java.awt.BorderLayout.SOUTH);
         
-        //jTabbedPane1.addTab("", GUIPrism.getIconFromImage("lineGraph.gif"), jPanel1);
+        //jTabbedPane1.addTab("", GUIPrism.getIconFromImage("lineGraph.png"), jPanel1);
         
         jPanel2.setBorder(new javax.swing.border.TitledBorder("Bar Graph"));
         jPanel2.setEnabled(false);
-        //jTabbedPane1.addTab("", GUIPrism.getIconFromImage("barGraph.gif"), jPanel2);
+        //jTabbedPane1.addTab("", GUIPrism.getIconFromImage("barGraph.png"), jPanel2);
         
         getContentPane().add(jPanel1, java.awt.BorderLayout.CENTER);
         

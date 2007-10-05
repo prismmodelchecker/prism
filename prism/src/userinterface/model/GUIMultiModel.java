@@ -411,7 +411,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		//newPRISMModel.putValue(Action.SHORT_DESCRIPTION, "New PRISM Text Model");
 		newPRISMModel.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
 		newPRISMModel.putValue(Action.NAME, "PRISM model");
-		newPRISMModel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallNewText.gif"));
+		newPRISMModel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFilePrism.png"));
 		newPRISMModel.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_MASK));
 		
 		newGraphicModel = new AbstractAction()
@@ -426,7 +426,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		//newGraphicModel.putValue(Action.SHORT_DESCRIPTION, "New PRISM Graphic Model");
 		newGraphicModel.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_G));
 		newGraphicModel.putValue(Action.NAME, "Graphical PRISM model");
-		newGraphicModel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallNewGraphic.gif"));
+		//newGraphicModel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileGraphic.png"));
 		
 		newPEPAModel = new AbstractAction()
 		{
@@ -440,7 +440,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		//newPEPAModel.putValue(Action.SHORT_DESCRIPTION, "New PEPA Text Model");
 		newPEPAModel.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_E));
 		newPEPAModel.putValue(Action.NAME, "PEPA model");
-		newPEPAModel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallNewPEPA.gif"));
+		newPEPAModel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFilePepa.png"));
 		
 		
 		loadModel = new AbstractAction()
@@ -458,7 +458,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		loadModel.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_O));
 		loadModel.putValue(Action.NAME, "Open model...");
 		//loadModel.putValue(Action.ACTION_COMMAND_KEY,
-		loadModel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallOpen.gif"));
+		loadModel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallOpen.png"));
 		loadModel.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_MASK));
 		
 		reloadModel = new AbstractAction()
@@ -473,7 +473,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		reloadModel.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_R));
 		reloadModel.putValue(Action.NAME, "Reload model");
 		//loadModel.putValue(Action.ACTION_COMMAND_KEY,
-		reloadModel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallReload.gif"));
+		reloadModel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallReload.png"));
 		reloadModel.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_MASK));
 		
 		saveModel = new AbstractAction()
@@ -489,7 +489,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		saveModel.putValue(Action.NAME, "Save model");
 		saveModel.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
 		//saveModel.putValue(Action.ACTION_COMMAND_KEY,
-		saveModel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallSave.gif"));
+		saveModel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallSave.png"));
 		
 		saveAsModel = new AbstractAction()
 		{
@@ -503,7 +503,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		saveAsModel.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_A));
 		saveAsModel.putValue(Action.NAME, "Save model as...");
 		//saveAsModel.putValue(Action.ACTION_COMMAND_KEY,
-		saveAsModel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallSaveAs.gif"));
+		saveAsModel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallSaveAs.png"));
 		
 		parseModel = new AbstractAction()
 		{
@@ -516,7 +516,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		//parseModel.putValue(Action.SHORT_DESCRIPTION, "Parse Model");
 		parseModel.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
 		parseModel.putValue(Action.NAME, "Parse model");
-		parseModel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallParse.gif"));
+		parseModel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallParse.png"));
 		parseModel.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
 		buildModel = new AbstractAction()
 		{
@@ -529,7 +529,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		//buildModel.putValue(Action.SHORT_DESCRIPTION, "Build Model");
 		buildModel.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_B));
 		buildModel.putValue(Action.NAME, "Build model");
-		buildModel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallBuild.gif"));
+		buildModel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallBuild.png"));
 		buildModel.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0));
 		
 		exportStatesPlain = new AbstractAction() { public void actionPerformed(ActionEvent e) {
@@ -537,84 +537,84 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		exportStatesPlain.putValue(Action.LONG_DESCRIPTION, "Exports the reachable states to a plain text file");
 		exportStatesPlain.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
 		exportStatesPlain.putValue(Action.NAME, "Plain text file");
-		exportStatesPlain.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlainText.gif"));
+		exportStatesPlain.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
 		
 		exportStatesMatlab = new AbstractAction() { public void actionPerformed(ActionEvent e) {
 			a_exportBuildAs(GUIMultiModelHandler.STATES_EXPORT, Prism.EXPORT_MATLAB); } };
 		exportStatesMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the reachable states to a Matlab file");
 		exportStatesMatlab.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_M));
 		exportStatesMatlab.putValue(Action.NAME, "Matlab file");
-		exportStatesMatlab.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallMatlab.gif"));
+		exportStatesMatlab.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileMatlab.png"));
 		
 		exportTransPlain = new AbstractAction() { public void actionPerformed(ActionEvent e) {
 			a_exportBuildAs(GUIMultiModelHandler.TRANS_EXPORT, Prism.EXPORT_PLAIN); } };
 		exportTransPlain.putValue(Action.LONG_DESCRIPTION, "Exports the transition matrix to a plain text file");
 		exportTransPlain.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
 		exportTransPlain.putValue(Action.NAME, "Plain text file");
-		exportTransPlain.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlainText.gif"));
+		exportTransPlain.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
 		
 		exportTransMatlab = new AbstractAction() { public void actionPerformed(ActionEvent e) {
 			a_exportBuildAs(GUIMultiModelHandler.TRANS_EXPORT, Prism.EXPORT_MATLAB); } };
 		exportTransMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the transition matrix to a Matlab file");
 		exportTransMatlab.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_M));
 		exportTransMatlab.putValue(Action.NAME, "Matlab file");
-		exportTransMatlab.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallMatlab.gif"));
+		exportTransMatlab.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileMatlab.png"));
 		
 		exportTransDot = new AbstractAction() { public void actionPerformed(ActionEvent e) {
 			a_exportBuildAs(GUIMultiModelHandler.TRANS_EXPORT, Prism.EXPORT_DOT); } };
 		exportTransDot.putValue(Action.LONG_DESCRIPTION, "Exports the transition matrix graph to a Dot file");
 		exportTransDot.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_D));
 		exportTransDot.putValue(Action.NAME, "Dot file");
-		exportTransDot.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallDot.gif"));
+		exportTransDot.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileDot.png"));
 		
 		exportTransMRMC = new AbstractAction() { public void actionPerformed(ActionEvent e) {
 			a_exportBuildAs(GUIMultiModelHandler.TRANS_EXPORT, Prism.EXPORT_MRMC); } };
 		exportTransMRMC.putValue(Action.LONG_DESCRIPTION, "Exports the transition matrix to a MRMC file");
 		exportTransMRMC.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_R));
 		exportTransMRMC.putValue(Action.NAME, "MRMC file");
-		exportTransMRMC.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlainText.gif"));
+		exportTransMRMC.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
 		
 		exportStateRewardsPlain = new AbstractAction() { public void actionPerformed(ActionEvent e) {
 			a_exportBuildAs(GUIMultiModelHandler.STATE_REWARDS_EXPORT, Prism.EXPORT_PLAIN); } };
 		exportStateRewardsPlain.putValue(Action.LONG_DESCRIPTION, "Exports the state rewards vector to a plain text file");
 		exportStateRewardsPlain.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
 		exportStateRewardsPlain.putValue(Action.NAME, "Plain text file");
-		exportStateRewardsPlain.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlainText.gif"));
+		exportStateRewardsPlain.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
 		
 		exportStateRewardsMatlab = new AbstractAction() { public void actionPerformed(ActionEvent e) {
 			a_exportBuildAs(GUIMultiModelHandler.STATE_REWARDS_EXPORT, Prism.EXPORT_MATLAB); } };
 		exportStateRewardsMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the state rewards vector to a Matlab file");
 		exportStateRewardsMatlab.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_M));
 		exportStateRewardsMatlab.putValue(Action.NAME, "Matlab file");
-		exportStateRewardsMatlab.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallMatlab.gif"));
+		exportStateRewardsMatlab.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileMatlab.png"));
 		
 		exportStateRewardsMRMC = new AbstractAction() { public void actionPerformed(ActionEvent e) {
 			a_exportBuildAs(GUIMultiModelHandler.STATE_REWARDS_EXPORT, Prism.EXPORT_MRMC); } };
 		exportStateRewardsMRMC.putValue(Action.LONG_DESCRIPTION, "Exports the state rewards vector graph to a MRMC file");
 		exportStateRewardsMRMC.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_R));
 		exportStateRewardsMRMC.putValue(Action.NAME, "MRMC file");
-		exportStateRewardsMRMC.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlainText.gif"));
+		exportStateRewardsMRMC.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
 		
 		exportTransRewardsPlain = new AbstractAction() { public void actionPerformed(ActionEvent e) {
 			a_exportBuildAs(GUIMultiModelHandler.TRANS_REWARDS_EXPORT, Prism.EXPORT_PLAIN); } };
 		exportTransRewardsPlain.putValue(Action.LONG_DESCRIPTION, "Exports the transition rewards matrix to a plain text file");
 		exportTransRewardsPlain.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
 		exportTransRewardsPlain.putValue(Action.NAME, "Plain text file");
-		exportTransRewardsPlain.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlainText.gif"));
+		exportTransRewardsPlain.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
 		
 		exportTransRewardsMatlab = new AbstractAction() { public void actionPerformed(ActionEvent e) {
 			a_exportBuildAs(GUIMultiModelHandler.TRANS_REWARDS_EXPORT, Prism.EXPORT_MATLAB); } };
 		exportTransRewardsMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the transition rewards matrix to a Matlab file");
 		exportTransRewardsMatlab.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_M));
 		exportTransRewardsMatlab.putValue(Action.NAME, "Matlab file");
-		exportTransRewardsMatlab.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallMatlab.gif"));
+		exportTransRewardsMatlab.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileMatlab.png"));
 		
 		exportTransRewardsMRMC = new AbstractAction() { public void actionPerformed(ActionEvent e) {
 			a_exportBuildAs(GUIMultiModelHandler.TRANS_REWARDS_EXPORT, Prism.EXPORT_MRMC); } };
 		exportTransRewardsMRMC.putValue(Action.LONG_DESCRIPTION, "Exports the transition rewards matrix to a MRMC file");
 		exportTransRewardsMRMC.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_R));
 		exportTransRewardsMRMC.putValue(Action.NAME, "MRMC file");
-		exportTransRewardsMRMC.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlainText.gif"));
+		exportTransRewardsMRMC.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
 		
 		computeSS = new AbstractAction()
 		{
@@ -627,7 +627,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		//computeSS.putValue(Action.SHORT_DESCRIPTION, "Compute steady-state probabilities");
 		computeSS.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_S));
 		computeSS.putValue(Action.NAME, "Steady-state probabilities");
-		computeSS.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallScales.gif"));
+		computeSS.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallSteadyState.png"));
 		computeSS.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0));
 		
 		computeTr = new AbstractAction()
@@ -641,7 +641,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		//computeTr.putValue(Action.SHORT_DESCRIPTION, "Compute transient probabilities");
 		computeTr.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_T));
 		computeTr.putValue(Action.NAME, "Transient probabilities");
-		computeTr.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallClockAnim1.gif"));
+		computeTr.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallClockAnim1.png"));
 		computeTr.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
 		
 		viewStates = new AbstractAction() { public void actionPerformed(ActionEvent e) {
@@ -649,28 +649,28 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		viewStates.putValue(Action.LONG_DESCRIPTION, "Print the reachable states to the log");
 		viewStates.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_S));
 		viewStates.putValue(Action.NAME, "States");
-		viewStates.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallStates.gif"));
+		viewStates.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallStates.png"));
 		
 		viewTrans = new AbstractAction() { public void actionPerformed(ActionEvent e) {
 			a_viewBuild(GUIMultiModelHandler.TRANS_EXPORT, Prism.EXPORT_PLAIN); } };
 		viewTrans.putValue(Action.LONG_DESCRIPTION, "Print the transition matrix to the log");
 		viewTrans.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_T));
 		viewTrans.putValue(Action.NAME, "Transition matrix");
-		viewTrans.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallBuilt.gif"));
+		viewTrans.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallMatrix.png"));
 		
 		viewStateRewards = new AbstractAction() { public void actionPerformed(ActionEvent e) {
 			a_viewBuild(GUIMultiModelHandler.STATE_REWARDS_EXPORT, Prism.EXPORT_PLAIN); } };
 		viewStateRewards.putValue(Action.LONG_DESCRIPTION, "Print the state rewards to the log");
 		viewStateRewards.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_R));
 		viewStateRewards.putValue(Action.NAME, "State rewards");
-		viewStateRewards.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallBuilt.gif"));
+		viewStateRewards.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallStates.png"));
 		
 		viewTransRewards = new AbstractAction() { public void actionPerformed(ActionEvent e) {
 			a_viewBuild(GUIMultiModelHandler.TRANS_REWARDS_EXPORT, Prism.EXPORT_PLAIN); } };
 		viewTransRewards.putValue(Action.LONG_DESCRIPTION, "Print the transition rewards to the log");
 		viewTransRewards.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_E));
 		viewTransRewards.putValue(Action.NAME, "Transition rewards");
-		viewTransRewards.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallBuilt.gif"));
+		viewTransRewards.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallMatrix.png"));
 		
 		viewPrismCode = new AbstractAction()
 		{
@@ -682,7 +682,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		viewPrismCode.putValue(Action.LONG_DESCRIPTION, "This shows the parsed model in a text editor.");
 		viewPrismCode.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_V));
 		viewPrismCode.putValue(Action.NAME, "Parsed PRISM model");
-		viewPrismCode.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallParsed.gif"));
+		viewPrismCode.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFilePrism.png"));
 	}
 	
 	//Required to be a GUIPlugin:
@@ -814,7 +814,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		modelMenu = new JMenu("Model");
 		newMenu = new JMenu("New");
 		newMenu.setMnemonic('N');
-		newMenu.setIcon(GUIPrism.getIconFromImage("smallNew.gif"));
+		newMenu.setIcon(GUIPrism.getIconFromImage("smallNew.png"));
 		newMenu.add(newPRISMModel);
 		if (GM_ENABLED) newMenu.add(newGraphicModel);
 		newMenu.add(newPEPAModel);
@@ -832,16 +832,16 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		modelMenu.add(new JSeparator());
 		exportMenu = new JMenu("Export");
 		exportMenu.setMnemonic('E');
-		exportMenu.setIcon(GUIPrism.getIconFromImage("smallExport.gif"));
+		exportMenu.setIcon(GUIPrism.getIconFromImage("smallExport.png"));
 		exportStatesMenu = new JMenu("States");
 		exportStatesMenu.setMnemonic('S');
-		exportStatesMenu.setIcon(GUIPrism.getIconFromImage("smallStates.gif"));
+		exportStatesMenu.setIcon(GUIPrism.getIconFromImage("smallStates.png"));
 		exportStatesMenu.add(exportStatesPlain);
 		exportStatesMenu.add(exportStatesMatlab);
 		exportMenu.add(exportStatesMenu);
 		exportTransMenu = new JMenu("Transition matrix");
 		exportTransMenu.setMnemonic('T');
-		exportTransMenu.setIcon(GUIPrism.getIconFromImage("smallBuilt.gif"));
+		exportTransMenu.setIcon(GUIPrism.getIconFromImage("smallMatrix.png"));
 		exportTransMenu.add(exportTransPlain);
 		exportTransMenu.add(exportTransMatlab);
 		exportTransMenu.add(exportTransDot);
@@ -849,14 +849,14 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		exportMenu.add(exportTransMenu);
 		exportStateRewardsMenu = new JMenu("State rewards");
 		exportStateRewardsMenu.setMnemonic('R');
-		exportStateRewardsMenu.setIcon(GUIPrism.getIconFromImage("smallBuilt.gif"));
+		exportStateRewardsMenu.setIcon(GUIPrism.getIconFromImage("smallStates.png"));
 		exportStateRewardsMenu.add(exportStateRewardsPlain);
 		exportStateRewardsMenu.add(exportStateRewardsMatlab);
 		exportStateRewardsMenu.add(exportStateRewardsMRMC);
 		exportMenu.add(exportStateRewardsMenu);
 		exportTransRewardsMenu = new JMenu("Transition rewards");
 		exportTransRewardsMenu.setMnemonic('E');
-		exportTransRewardsMenu.setIcon(GUIPrism.getIconFromImage("smallBuilt.gif"));
+		exportTransRewardsMenu.setIcon(GUIPrism.getIconFromImage("smallMatrix.png"));
 		exportTransRewardsMenu.add(exportTransRewardsPlain);
 		exportTransRewardsMenu.add(exportTransRewardsMatlab);
 		exportTransRewardsMenu.add(exportTransRewardsMRMC);
@@ -864,7 +864,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		modelMenu.add(exportMenu);
 		viewMenu = new JMenu("View");
 		viewMenu.setMnemonic('V');
-		viewMenu.setIcon(GUIPrism.getIconFromImage("smallView.gif"));
+		viewMenu.setIcon(GUIPrism.getIconFromImage("smallView.png"));
 		viewMenu.add(viewStates);
 		viewMenu.add(viewTrans);
 		viewMenu.add(viewStateRewards);
@@ -873,7 +873,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		modelMenu.add(viewMenu);
 		computeMenu = new JMenu("Compute");
 		computeMenu.setMnemonic('C');
-		computeMenu.setIcon(GUIPrism.getIconFromImage("smallCompute.gif"));
+		computeMenu.setIcon(GUIPrism.getIconFromImage("smallCompute.png"));
 		computeMenu.add(computeSS);
 		computeMenu.add(computeTr);
 		modelMenu.add(computeMenu);

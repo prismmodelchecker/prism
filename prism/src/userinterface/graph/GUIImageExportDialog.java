@@ -95,7 +95,7 @@ public class GUIImageExportDialog extends JDialog implements DocumentListener
 		
 		this.cancelled = false;
 		
-		this.warningLabel.setIcon(new ImageIcon(this.getClass().getResource("/images/smallError.gif")));				
+		this.warningLabel.setIcon(GUIPrism.getIconFromImage("smallError.png"));
 		this.warningLabel.setVisible(false);
 		
 		this.widthInputField.getDocument().addDocumentListener(this);

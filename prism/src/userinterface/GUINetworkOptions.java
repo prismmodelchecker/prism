@@ -139,7 +139,7 @@ public class GUINetworkOptions extends OptionsPanel
         gridBagConstraints.weighty = 1.0;
         jPanel1.add(jScrollPane1, gridBagConstraints);
 
-        newButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/smallNew.gif")));
+        newButton.setIcon(GUIPrism.getIconFromImage("smallNew.png"));
         newButton.setText("New");
         newButton.setPreferredSize(new java.awt.Dimension(96, 26));
         newButton.addActionListener(new java.awt.event.ActionListener()
@@ -155,7 +155,7 @@ public class GUINetworkOptions extends OptionsPanel
         gridBagConstraints.gridy = 4;
         jPanel1.add(newButton, gridBagConstraints);
 
-        importButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/smallImport.gif")));
+        importButton.setIcon(GUIPrism.getIconFromImage("smallImport.png"));
         importButton.setText("Import");
         importButton.addActionListener(new java.awt.event.ActionListener()
         {
@@ -170,7 +170,7 @@ public class GUINetworkOptions extends OptionsPanel
         gridBagConstraints.gridy = 4;
         jPanel1.add(importButton, gridBagConstraints);
 
-        editButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/smallEdit.gif")));
+        editButton.setIcon(GUIPrism.getIconFromImage("smallEdit.png"));
         editButton.setText("Edit");
         editButton.setPreferredSize(new java.awt.Dimension(96, 26));
         editButton.addActionListener(new java.awt.event.ActionListener()
@@ -186,7 +186,7 @@ public class GUINetworkOptions extends OptionsPanel
         gridBagConstraints.gridy = 4;
         jPanel1.add(editButton, gridBagConstraints);
 
-        copyButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/smallCopy.gif")));
+        copyButton.setIcon(GUIPrism.getIconFromImage("smallCopy.png"));
         copyButton.setText("Copy");
         copyButton.setPreferredSize(new java.awt.Dimension(96, 26));
         copyButton.addActionListener(new java.awt.event.ActionListener()
@@ -212,7 +212,7 @@ public class GUINetworkOptions extends OptionsPanel
         gridBagConstraints.gridy = 0;
         jPanel1.add(jPanel8, gridBagConstraints);
 
-        pasteButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/smallPaste.gif")));
+        pasteButton.setIcon(GUIPrism.getIconFromImage("smallPaste.png"));
         pasteButton.setText("Paste");
         pasteButton.setPreferredSize(new java.awt.Dimension(96, 26));
         pasteButton.addActionListener(new java.awt.event.ActionListener()
@@ -228,7 +228,7 @@ public class GUINetworkOptions extends OptionsPanel
         gridBagConstraints.gridy = 4;
         jPanel1.add(pasteButton, gridBagConstraints);
 
-        deleteButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/smallDelete.gif")));
+        deleteButton.setIcon(GUIPrism.getIconFromImage("smallDelete.png"));
         deleteButton.setText("Delete");
         deleteButton.setPreferredSize(new java.awt.Dimension(96, 26));
         deleteButton.addActionListener(new java.awt.event.ActionListener()

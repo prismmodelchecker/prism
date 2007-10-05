@@ -86,7 +86,7 @@ public class GraphicToolBar extends JToolBar
         ButtonGroup modeGroup = new ButtonGroup();
         {
             JToggleButton editMode = new JToggleButton();
-            editMode.setIcon(GUIPrism.getIconFromImage("smallEdit.gif"));
+            editMode.setIcon(GUIPrism.getIconFromImage("smallEdit.png"));
             editMode.setToolTipText("Edit Mode");
             editMode.addActionListener(new ActionListener()
             {
@@ -111,7 +111,7 @@ public class GraphicToolBar extends JToolBar
                     }
                 }
             });
-            zoomMode.setIcon(GUIPrism.getIconFromImage("smallZoom.gif"));
+            zoomMode.setIcon(GUIPrism.getIconFromImage("smallZoom.png"));
             zoomMode.setToolTipText("Zoom Mode");
             
             add(editMode);
@@ -123,10 +123,10 @@ public class GraphicToolBar extends JToolBar
         addSeparator();
         
         JToggleButton snapToggle = new JToggleButton();
-        snapToggle.setIcon(GUIPrism.getIconFromImage("gridSnapOff.gif"));
+        snapToggle.setIcon(GUIPrism.getIconFromImage("gridSnapOff.png"));
 	snapToggle.setSelected(true);
 	snapToggle.setToolTipText("Snap To Grid");
-	snapToggle.setSelectedIcon(GUIPrism.getIconFromImage("gridSnapOn.gif"));
+	snapToggle.setSelectedIcon(GUIPrism.getIconFromImage("gridSnapOn.png"));
 	snapToggle.addActionListener(new java.awt.event.ActionListener()
 	{
 	    public void actionPerformed(ActionEvent e)
@@ -138,11 +138,11 @@ public class GraphicToolBar extends JToolBar
         add(snapToggle);
         
         JToggleButton gridToggle = new JToggleButton();
-        gridToggle.setIcon(GUIPrism.getIconFromImage("redGrid.gif"));
+        gridToggle.setIcon(GUIPrism.getIconFromImage("redGrid.png"));
 	gridToggle.setSelected(true);
 	gridToggle.setToolTipText("Grid On/Off");
-	gridToggle.setDisabledSelectedIcon(GUIPrism.getIconFromImage("greenGrid.gif"));
-	gridToggle.setSelectedIcon(GUIPrism.getIconFromImage("greenGrid.gif"));
+	gridToggle.setDisabledSelectedIcon(GUIPrism.getIconFromImage("greenGrid.png"));
+	gridToggle.setSelectedIcon(GUIPrism.getIconFromImage("greenGrid.png"));
 	gridToggle.addActionListener(new java.awt.event.ActionListener()
 	{
 	   public void actionPerformed(ActionEvent e)
@@ -155,9 +155,9 @@ public class GraphicToolBar extends JToolBar
         add(gridToggle);
         
         JToggleButton longLabelsToggle = new JToggleButton();
-        longLabelsToggle.setIcon(GUIPrism.getIconFromImage("normLabel.gif"));
+        longLabelsToggle.setIcon(GUIPrism.getIconFromImage("normLabel.png"));
 	longLabelsToggle.setToolTipText("Long Labels On/Off");
-	longLabelsToggle.setSelectedIcon(GUIPrism.getIconFromImage("longLabel.gif"));
+	longLabelsToggle.setSelectedIcon(GUIPrism.getIconFromImage("longLabel.png"));
 	longLabelsToggle.addActionListener(new java.awt.event.ActionListener()
 	{
 	    public void actionPerformed(ActionEvent e)
@@ -173,7 +173,7 @@ public class GraphicToolBar extends JToolBar
         
         
         JButton lastModule = new JButton();
-        lastModule.setIcon(GUIPrism.getIconFromImage("smallBack.gif"));
+        lastModule.setIcon(GUIPrism.getIconFromImage("smallBack.png"));
 	lastModule.setToolTipText("Last Module");
 	lastModule.addActionListener(new java.awt.event.ActionListener()
 	{
@@ -186,7 +186,7 @@ public class GraphicToolBar extends JToolBar
         add(lastModule);
         
         JButton nextModule = new JButton();
-        nextModule.setIcon(GUIPrism.getIconFromImage("smallForward.gif"));
+        nextModule.setIcon(GUIPrism.getIconFromImage("smallForward.png"));
 	nextModule.setToolTipText("Next Module");
 	nextModule.addActionListener(new java.awt.event.ActionListener()
 	{

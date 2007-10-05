@@ -111,7 +111,7 @@ public class GUIFileMenu extends GUIPlugin
         //exitAction.putValue(Action.SHORT_DESCRIPTION, "Exit");
         exitAction.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_X));
         exitAction.putValue(Action.NAME, "Exit");
-        exitAction.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExit.gif"));
+        exitAction.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExit.png"));
         exitAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_MASK));
         menu.add(exitAction);
     }

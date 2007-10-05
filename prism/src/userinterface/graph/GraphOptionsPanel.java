@@ -297,7 +297,7 @@ public class GraphOptionsPanel extends JPanel implements ListSelectionListener
         addSeries.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         addSeries.setMinimumSize(new java.awt.Dimension(5, 25));
         addSeries.setPreferredSize(new java.awt.Dimension(5, 25));
-        addSeries.setIcon(new ImageIcon(ClassLoader.getSystemResource("images/smallAdd.gif")));
+        addSeries.setIcon(GUIPrism.getIconFromImage("smallAdd.png"));
         addSeries.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 addSeriesActionPerformed(evt);
@@ -310,7 +310,7 @@ public class GraphOptionsPanel extends JPanel implements ListSelectionListener
         removeSeries.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         removeSeries.setMinimumSize(new java.awt.Dimension(5, 25));
         removeSeries.setPreferredSize(new java.awt.Dimension(5, 25));
-        removeSeries.setIcon(new ImageIcon(ClassLoader.getSystemResource("images/smallDelete.gif")));
+        removeSeries.setIcon(GUIPrism.getIconFromImage("smallRemove.png"));
         removeSeries.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 removeSeriesActionPerformed(evt);
@@ -323,7 +323,7 @@ public class GraphOptionsPanel extends JPanel implements ListSelectionListener
         moveUp.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         moveUp.setMinimumSize(new java.awt.Dimension(5, 25));
         moveUp.setPreferredSize(new java.awt.Dimension(5, 25));
-        moveUp.setIcon(new ImageIcon(ClassLoader.getSystemResource("images/smallUp.gif")));
+        moveUp.setIcon(GUIPrism.getIconFromImage("smallArrowUp.png"));
         moveUp.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 moveUpActionPerformed(evt);
@@ -336,7 +336,7 @@ public class GraphOptionsPanel extends JPanel implements ListSelectionListener
         moveDown.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         moveDown.setMinimumSize(new java.awt.Dimension(5, 25));
         moveDown.setPreferredSize(new java.awt.Dimension(5, 25));
-        moveDown.setIcon(new ImageIcon(ClassLoader.getSystemResource("images/smallDown.gif")));
+        moveDown.setIcon(GUIPrism.getIconFromImage("smallArrowDown.png"));
         moveDown.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 moveDownActionPerformed(evt);
@@ -347,7 +347,7 @@ public class GraphOptionsPanel extends JPanel implements ListSelectionListener
 
         viewData.setText("Edit Data");
         viewData.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        viewData.setIcon(new ImageIcon(ClassLoader.getSystemResource("images/gridSnap.gif")));
+        viewData.setIcon(GUIPrism.getIconFromImage("smallEditData.png"));
         viewData.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 viewDataActionPerformed(evt);

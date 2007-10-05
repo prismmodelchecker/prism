@@ -176,11 +176,11 @@ public class GUIViewDialog extends JDialog implements KeyListener
 		
 		variableTabPane.setEnabledAt(2, view.canShowTime());
 		
-		makeVariableHiddenButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallRight.gif")));
-		makeRewardHiddenButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallRight.gif")));
+		makeVariableHiddenButton.setIcon(GUIPrism.getIconFromImage("smallArrowRight.png"));
+		makeRewardHiddenButton.setIcon(GUIPrism.getIconFromImage("smallArrowRight.png"));
 		
-		makeVariableVisibleButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallLeft.gif")));
-		makeRewardVisibleButton.setIcon(new ImageIcon(this.getClass().getResource("/images/smallLeft.gif")));
+		makeVariableVisibleButton.setIcon(GUIPrism.getIconFromImage("smallArrowLeft.png"));
+		makeRewardVisibleButton.setIcon(GUIPrism.getIconFromImage("smallArrowLeft.png"));
 		
 		this.setVisible(true);
 	}

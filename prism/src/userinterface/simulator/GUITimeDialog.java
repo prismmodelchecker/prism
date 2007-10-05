@@ -87,7 +87,7 @@ public class GUITimeDialog extends JDialog
 		
 		this.timeInputField.setText("" + time);
 		
-		this.warningLabel.setIcon(new ImageIcon(this.getClass().getResource("/images/smallError.gif")));				
+		this.warningLabel.setIcon(GUIPrism.getIconFromImage("smallError.png"));				
 		this.warningLabel.setVisible(false);
 		
 		this.timeInputField.getDocument().addDocumentListener(new DocumentListener()

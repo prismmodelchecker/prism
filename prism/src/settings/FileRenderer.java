@@ -25,22 +25,21 @@
 //==============================================================================
 
 package settings;
+
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.border.*;
 import java.util.*;
 import java.io.*;
 
-/**
- *
- * @author  ug60axh
- */
+import userinterface.GUIPrism;
+
 public class FileRenderer implements SettingRenderer
 {
 	private JLabel renderer;
 	private JPanel panel;
 	
-	private ImageIcon warningIcon = new ImageIcon(ClassLoader.getSystemResource("images/smallError.gif"));
+	private ImageIcon warningIcon = GUIPrism.getIconFromImage("smallError.png");
 	
 	private boolean isFileValid = false;
 	

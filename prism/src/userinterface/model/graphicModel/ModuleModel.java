@@ -225,7 +225,7 @@ public class ModuleModel extends SelectionModel implements Observer
         
         modulePopup = new JPopupMenu();
         addNailPop = new JMenuItem("Add Point");
-        addNailPop.setIcon(userinterface.GUIPrism.getIconFromImage("smallAddNail.gif"));
+        addNailPop.setIcon(userinterface.GUIPrism.getIconFromImage("smallAddNail.png"));
         addNailPop.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent e)
@@ -252,7 +252,7 @@ public class ModuleModel extends SelectionModel implements Observer
         
         
         cut = new JMenuItem("Cut");
-        cut.setIcon(userinterface.GUIPrism.getIconFromImage("smallCut.gif"));
+        cut.setIcon(userinterface.GUIPrism.getIconFromImage("smallCut.png"));
         cut.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent e)
@@ -262,7 +262,7 @@ public class ModuleModel extends SelectionModel implements Observer
         });
         
         copy = new JMenuItem("Copy");
-        copy.setIcon(userinterface.GUIPrism.getIconFromImage("smallCopy.gif"));
+        copy.setIcon(userinterface.GUIPrism.getIconFromImage("smallCopy.png"));
         copy.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent e)
@@ -272,7 +272,7 @@ public class ModuleModel extends SelectionModel implements Observer
         });
         
         paste = new JMenuItem("Paste");
-        paste.setIcon(userinterface.GUIPrism.getIconFromImage("smallPaste.gif"));
+        paste.setIcon(userinterface.GUIPrism.getIconFromImage("smallPaste.png"));
         paste.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent e)
@@ -282,7 +282,7 @@ public class ModuleModel extends SelectionModel implements Observer
         });
         
         delete = new JMenuItem("Delete");
-        delete.setIcon(userinterface.GUIPrism.getIconFromImage("smallDelete.gif"));
+        delete.setIcon(userinterface.GUIPrism.getIconFromImage("smallDelete.png"));
         delete.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent e)
@@ -292,7 +292,7 @@ public class ModuleModel extends SelectionModel implements Observer
         });
         
         zoomIn = new JMenuItem("Zoom In");
-        zoomIn.setIcon(userinterface.GUIPrism.getIconFromImage("smallZoomIn.gif"));
+        zoomIn.setIcon(userinterface.GUIPrism.getIconFromImage("smallZoomIn.png"));
         zoomIn.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent e)
@@ -307,7 +307,7 @@ public class ModuleModel extends SelectionModel implements Observer
         });
         
         zoomOut = new JMenuItem("Zoom Out");
-        zoomOut.setIcon(userinterface.GUIPrism.getIconFromImage("smallZoomOut.gif"));
+        zoomOut.setIcon(userinterface.GUIPrism.getIconFromImage("smallZoomOut.png"));
         zoomOut.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent e)
@@ -322,7 +322,7 @@ public class ModuleModel extends SelectionModel implements Observer
         });
         
         restoreZoom = new JMenuItem("Restore");
-        restoreZoom.setIcon(userinterface.GUIPrism.getIconFromImage("smallZoom.gif"));
+        restoreZoom.setIcon(userinterface.GUIPrism.getIconFromImage("smallZoom.png"));
         restoreZoom.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent e)
@@ -337,7 +337,7 @@ public class ModuleModel extends SelectionModel implements Observer
         });
         
         startTransition = new JMenuItem("Start Transition");
-        startTransition.setIcon(userinterface.GUIPrism.getIconFromImage("smallAddTransition.gif"));
+        startTransition.setIcon(userinterface.GUIPrism.getIconFromImage("smallAddTransition.png"));
         startTransition.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent e)
@@ -368,7 +368,7 @@ public class ModuleModel extends SelectionModel implements Observer
         });
         
         addState = new JMenuItem("Add State");
-        addState.setIcon(userinterface.GUIPrism.getIconFromImage("smallAddState.gif"));
+        addState.setIcon(userinterface.GUIPrism.getIconFromImage("smallAddState.png"));
         addState.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent e)
@@ -385,7 +385,7 @@ public class ModuleModel extends SelectionModel implements Observer
         });
         
         addChoice = new JMenuItem("Add Probabilistic Choice");
-        addChoice.setIcon(userinterface.GUIPrism.getIconFromImage("smallAddChoice.gif"));
+        addChoice.setIcon(userinterface.GUIPrism.getIconFromImage("smallAddChoice.png"));
         addChoice.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent e)
