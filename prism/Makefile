@@ -127,6 +127,9 @@ LD = $(CPP)
 JAVAC = javac
 JAVAH = javah
 
+# Please note that C/CPP are currently not passed to the CUDD make process
+# So if you want alternative compilers for CUDD too, change the options at the top of cudd/Makefile.$OSTYPE
+
 ##############
 # Flags etc. #
 ##############
