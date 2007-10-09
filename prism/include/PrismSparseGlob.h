@@ -81,7 +81,7 @@ extern JNIEnv *export_env;
 
 // macros, function prototypes
 
-#define logtwo(X) log(X)/log(2)
+#define logtwo(X) log((double)X)/log(2.0)
 void PS_PrintToMainLog(JNIEnv *env, char *str, ...);
 void PS_PrintToTechLog(JNIEnv *env, char *str, ...);
 void PS_SetErrorMessage(char *str, ...);

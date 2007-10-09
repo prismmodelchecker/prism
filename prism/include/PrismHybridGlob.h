@@ -83,7 +83,7 @@ extern double last_unif;
 
 // macros, function prototypes
 
-#define logtwo(X) log(X)/log(2)
+#define logtwo(X) log((double)X)/log(2.0)
 void PH_PrintToMainLog(JNIEnv *env, char *str, ...);
 void PH_PrintToTechLog(JNIEnv *env, char *str, ...);
 void PH_SetErrorMessage(char *str, ...);
