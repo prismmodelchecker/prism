@@ -1,0 +1,5 @@
+// Correctness for the case where the master pays
+(pay=0) => P>=1 [ F (s1=1&s2=1&s3=1) & func(mod,(agree1+agree2+agree3),2)=1 ]
+
+// Correctness for the case where a cryptographer pays
+(pay>0) => P>=1 [ F (s1=1&s2=1&s3=1) & func(mod,(agree1+agree2+agree3),2)=0 ]

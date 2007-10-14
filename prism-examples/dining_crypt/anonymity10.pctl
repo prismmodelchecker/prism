@@ -1,0 +1,4 @@
+const int k;
+
+Pmin=? [ F (s1=1&s2=1&s3=1&s4=1&s5=1&s6=1&s7=1&s8=1&s9=1&s10=1) & ( 512*agree1 + 256*agree2 + 128*agree3 + 64*agree4 + 32*agree5 + 16*agree6 + 8*agree7 + 4*agree8 + 2*agree9 + 1*agree10  = k) {"init"&pay>0}{min} ]
+Pmax=? [ F (s1=1&s2=1&s3=1&s4=1&s5=1&s6=1&s7=1&s8=1&s9=1&s10=1) & ( 512*agree1 + 256*agree2 + 128*agree3 + 64*agree4 + 32*agree5 + 16*agree6 + 8*agree7 + 4*agree8 + 2*agree9 + 1*agree10  = k) {"init"&pay>0}{max} ]
