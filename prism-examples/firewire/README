@@ -13,7 +13,7 @@ abst: which is represented by a single probabilistic timed automaton and is an a
 
 For both models we have used the integer semantics given in [KNS02b].
 
-For more information, see: http://www.cs.bham.ac.uk/~dxp/prism/casestudies/firewire.html
+For more information, see: http://www.prismmodelchecker.org/casestudies/firewire.html
 
 =====================================================================================
 
