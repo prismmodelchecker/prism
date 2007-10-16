@@ -61,7 +61,7 @@ public class SBML2Prism implements EntityResolver
 			new SBML2Prism().load(new File(args[0]), (args.length>1)?args[1]:"100");
 		}
 		catch (PrismException e) {
-			System.err.println("Error: "+e.getMessage());
+			System.err.println("Error: "+e.getMessage()+".");
 		}
 	}
 	
@@ -81,6 +81,7 @@ public class SBML2Prism implements EntityResolver
 				catch (NumberFormatException e) { throw new PrismException("Invalid max amount \""+maxAmount+"\""); }
 				Document doc = parseSBML(f);
 				extractModelFromSBML(doc);
+				checkSBMLVersion(doc);
 				//printModel(System.err);
 				processModel();
 				printPRISMModel(f);
@@ -154,6 +155,19 @@ public class SBML2Prism implements EntityResolver
 		return inputSource;
 	}
 
+	// Check that we can handle whatever level/version this file is
+
+	private void checkSBMLVersion(Document doc) throws PrismException
+	{
+		String level, s;
+		
+		level = doc.getDocumentElement().getAttribute("level");
+		if (!("2".equals(level))) {
+			s = "The translator only handles Level 2 SBML files - this is a Level "+level+" file";
+			throw new PrismException(s);
+		}
+	}
+	
 	// Extract the information about the model from the parsed SBML file
 	
 	private void extractModelFromSBML(Document doc) throws PrismException
