@@ -124,7 +124,6 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createAnd
 (JNIEnv * env, jclass cls, jlongArray __pointer exprPointers)
 {
 	jsize length = env->GetArrayLength(exprPointers);
-	printf("and\n");
 	jlong buf[length];
 	jint i, sum = 0;
 	env->GetLongArrayRegion(exprPointers, 0, length, buf);
