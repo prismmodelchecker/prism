@@ -6,6 +6,11 @@ of the main changes in each public release, see the file VERSIONS.txt.
 Latest additions (reverse chronological) (as of svn rev 432)
 -----------------------------------------------------------------------------
 
+* Labels (for use in properties file) can be defined in the model file
+* Properties files can use formulas from model file
+* Partially correct property files can be loaded into the GUI
+* New icon set and graphics
+* New graph plotting engine using JFreeChart
 * Prototype SBML-to-PRISM translator
 * New option for -simpath feature: can enable/disable loop checking
 * New option for -simpath feature: generation of multiple paths to find deadlock
