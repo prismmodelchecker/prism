@@ -124,7 +124,7 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createAnd
 (JNIEnv * env, jclass cls, jlongArray __pointer exprPointers)
 {
 	jsize length = env->GetArrayLength(exprPointers);
-	jlong buf[length];
+	jlong *buf = new jlong[length];
 	jint i, sum = 0;
 	env->GetLongArrayRegion(exprPointers, 0, length, buf);
 
@@ -136,6 +136,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createAnd
 	}
 
 	CExpression * expr = new CAnd(exprs, (int)length);
+	
+	delete buf;
 
 	return ptr_to_jlong(expr);
 
@@ -146,7 +148,7 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createOr
 {
 	jsize length = env->GetArrayLength(exprPointers);
 
-	jlong buf[length];
+	jlong *buf = new jlong[length];
 	jint i, sum = 0;
 	env->GetLongArrayRegion(exprPointers, 0, length, buf);
 
@@ -159,6 +161,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createOr
 
 	CExpression * expr = new COr(exprs, (int)length);
 
+	delete buf;
+
 	return ptr_to_jlong(expr);
 }
 
@@ -167,7 +171,7 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalMax
 {
 	jsize length = env->GetArrayLength(exprPointers);
 
-	jlong buf[length];
+	jlong *buf = new jlong[length];
 	jint i, sum = 0;
 	env->GetLongArrayRegion(exprPointers, 0, length, buf);
 
@@ -180,6 +184,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalMax
 
 	CExpression * expr = new CNormalMax(exprs, (int)length);
 
+	delete buf;
+
 	return ptr_to_jlong(expr);
 }
 
@@ -188,7 +194,7 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalMin
 {
 	jsize length = env->GetArrayLength(exprPointers);
 
-	jlong buf[length];
+	jlong *buf = new jlong[length];
 	jint i, sum = 0;
 	env->GetLongArrayRegion(exprPointers, 0, length, buf);
 
@@ -201,6 +207,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalMin
 
 	CExpression * expr = new CNormalMin(exprs, (int)length);
 
+	delete buf;
+
 	return ptr_to_jlong(expr);
 }
 
@@ -209,7 +217,7 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealMax
 {
 	jsize length = env->GetArrayLength(exprPointers);
 
-	jlong buf[length];
+	jlong *buf = new jlong[length];
 	jint i, sum = 0;
 	env->GetLongArrayRegion(exprPointers, 0, length, buf);
 
@@ -222,6 +230,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealMax
 
 	CExpression * expr = new CRealMax(exprs, (int)length);
 
+	delete buf;
+
 	return ptr_to_jlong(expr);
 }
 
@@ -230,7 +240,7 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealMin
 {
 	jsize length = env->GetArrayLength(exprPointers);
 
-	jlong buf[length];
+	jlong *buf = new jlong[length];
 	jint i, sum = 0;
 	env->GetLongArrayRegion(exprPointers, 0, length, buf);
 
@@ -242,6 +252,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealMin
 	}
 
 	CExpression * expr = new CRealMin(exprs, (int)length);
+
+	delete buf;
 
 	return ptr_to_jlong(expr);
 }
