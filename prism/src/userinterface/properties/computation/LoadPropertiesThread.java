@@ -80,7 +80,7 @@ public class LoadPropertiesThread extends Thread
 			
 			// do parsing
 			try {
-				props = pri.parsePropertiesFile(mf, file);
+				props = pri.parsePropertiesFile(mf, file, false);
 			}
 			//If there was a problem with the loading, notify the interface.
 			catch (FileNotFoundException e) {

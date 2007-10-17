@@ -668,6 +668,9 @@ public class Prism implements PrismSettingsListener
 	//     but if its null, we just create a blank one for you.
 	
 	public PropertiesFile parsePropertiesFile(ModulesFile mf, File file) throws FileNotFoundException, ParseException, PrismException
+	{ return parsePropertiesFile(mf, file, true); }
+	
+	public PropertiesFile parsePropertiesFile(ModulesFile mf, File file, boolean tidy) throws FileNotFoundException, ParseException, PrismException
 	{
 		FileInputStream strProperties;
 		PrismParser prismParser; 
@@ -700,7 +703,7 @@ public class Prism implements PrismSettingsListener
 			throw new ParseException("Concurrency error in parser");
 		}
 		
-		propertiesFile.tidyUp();
+		if (tidy) propertiesFile.tidyUp();
 		
 		return propertiesFile;
 	}
