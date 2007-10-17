@@ -3,7 +3,7 @@ including development and beta versions. For a less detailed overview
 of the main changes in each public release, see the file VERSIONS.txt.
 
 -----------------------------------------------------------------------------
-Latest additions (reverse chronological) (as of svn rev 432)
+Latest additions (reverse chronological) (as of svn rev 457)
 -----------------------------------------------------------------------------
 
 * Labels (for use in properties file) can be defined in the model file
