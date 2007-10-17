@@ -48,7 +48,7 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlBounded
 }
 
 JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlBoundedUntilNegated
-  (JNIEnv *env, jclass cls, jlong __pointer exprPointer1, jlong __pointer exprPointer2, jdouble lowerBound, jdouble upperBound, jboolean)
+  (JNIEnv *env, jclass cls, jlong __pointer exprPointer1, jlong __pointer exprPointer2, jdouble lowerBound, jdouble upperBound)
 {
 	CExpression* expr1 = jlong_to_CExpression(exprPointer1);
 	CExpression* expr2 = jlong_to_CExpression(exprPointer2);

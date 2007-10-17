@@ -2188,7 +2188,7 @@ public class SimulatorEngine
 			else if (operand instanceof PCTLProbBoundedFuture)
 			{
 				long leftExpressionPointer = (new PCTLExpression(new ExpressionTrue())).toSimulator(this);
-				long rightExpressionPointer = ((PCTLProbFuture)operand).getOperand().toSimulator(this);
+				long rightExpressionPointer = ((PCTLProbBoundedFuture)operand).getOperand().toSimulator(this);
 				double lowerBound;
 				if (((PCTLProbBoundedFuture)operand).getLowerBound() != null)
 					lowerBound = ((PCTLProbBoundedFuture)operand).getLowerBound().evaluateDouble(allConstants, null);
@@ -2210,7 +2210,7 @@ public class SimulatorEngine
 			else if (operand instanceof PCTLProbBoundedGlobal)
 			{
 				long leftExpressionPointer = (new PCTLExpression(new ExpressionTrue())).toSimulator(this);
-				long rightExpressionPointer = (new PCTLNot(((PCTLProbGlobal)operand).getOperand())).toSimulator(this);
+				long rightExpressionPointer = (new PCTLNot(((PCTLProbBoundedGlobal)operand).getOperand())).toSimulator(this);
 				double lowerBound;
 				if (((PCTLProbBoundedGlobal)operand).getLowerBound() != null)
 					lowerBound = ((PCTLProbBoundedGlobal)operand).getLowerBound().evaluateDouble(allConstants, null);
@@ -2218,7 +2218,7 @@ public class SimulatorEngine
 					lowerBound = 0.0;
 				double upperBound;
 				if (((PCTLProbBoundedGlobal)operand).getUpperBound() != null)
-					upperBound = ((PCTLProbBoundedFuture)operand).getUpperBound().evaluateDouble(allConstants, null);
+					upperBound = ((PCTLProbBoundedGlobal)operand).getUpperBound().evaluateDouble(allConstants, null);
 				else
 					upperBound = Integer.MAX_VALUE;
 				return loadPctlBoundedUntilNegated(leftExpressionPointer, rightExpressionPointer, lowerBound, upperBound);
