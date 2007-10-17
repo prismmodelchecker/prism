@@ -1,13 +1,13 @@
 const int k;
 
-// States with k tokens - where only k processes have the same value as the process to its left
-label "k_tokens" = (x1=x2?1:0)+(x2=x3?1:0)+(x3=x4?1:0)+(x4=x5?1:0)+(x5=x1?1:0) = k;
+// States with k tokens
+label "k_tokens" = num_tokens=k;
 
 // Stable states - where only one process has a token
-label "stable" = (x1=x2?1:0)+(x2=x3?1:0)+(x3=x4?1:0)+(x4=x5?1:0)+(x5=x1?1:0) = 1;
+label "stable" = num_tokens=1;
 
 // A stable state is reached with probability 1
-"init" => P>=1 [ true U "stable" ]
+"init" => P>=1 [ F "stable" ]
 
 // Maximum expected time to reach a stable state (for all configurations)
 R=? [ F "stable" {"init"}{max} ]
