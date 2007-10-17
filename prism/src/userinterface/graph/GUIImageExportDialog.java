@@ -154,10 +154,10 @@ public class GUIImageExportDialog extends JDialog implements DocumentListener
         allPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
         bottomPanel.setLayout(new java.awt.BorderLayout());
 
-        warningLabel.setText("Please enter positive integers");
+        warningLabel.setText("Please enter positive integers for width and height.");
         warningLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 5, 0, 0));
         bottomPanel.add(warningLabel, java.awt.BorderLayout.CENTER);
-        warningLabel.getAccessibleContext().setAccessibleName("Please enter a positive integer for both width and height");
+        warningLabel.getAccessibleContext().setAccessibleName("Please enter a positive integer for both width and height.");
 
         buttonPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
 
@@ -285,7 +285,9 @@ public class GUIImageExportDialog extends JDialog implements DocumentListener
 		try
 		{
 			exportWidth = Integer.parseInt(widthInputField.getText());
+			if (exportWidth <= 0) throw new NumberFormatException();
 			exportHeight = Integer.parseInt(heightInputField.getText());
+			if (exportHeight <= 0) throw new NumberFormatException();
 			GUIImageExportDialog.this.warningLabel.setVisible(false);
 			GUIImageExportDialog.this.okayButton.setEnabled(true);
 		}
