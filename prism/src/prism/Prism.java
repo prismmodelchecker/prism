@@ -1073,7 +1073,7 @@ public class Prism implements PrismSettingsListener
 			ll = null;
 			n = 0;
 		} else {
-			ll = propertiesFile.getLabelList();
+			ll = propertiesFile.getCombinedLabelList();
 			n = ll.size();
 		}
 		

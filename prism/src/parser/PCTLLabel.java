@@ -62,6 +62,20 @@ public class PCTLLabel extends PCTLFormula
 		}
 	}
 
+	// find all formulas (i.e. locate idents which are formulas)
+	
+	public PCTLFormula findAllFormulas(FormulaList formulaList) throws PrismException
+	{
+		return this;
+	}
+	
+	// expand any formulas
+	
+	public PCTLFormula expandFormulas(FormulaList formulaList) throws PrismException
+	{
+		return this;
+	}
+		
 	// find all constants (i.e. locate idents which are constants)
 	
 	public PCTLFormula findAllConstants(ConstantList constantList) throws PrismException
@@ -87,7 +101,7 @@ public class PCTLLabel extends PCTLFormula
 	/**
 	 *	Convert and build simulator data structures
 	 */
-	public long toSimulator(SimulatorEngine sim ) throws SimulatorException
+	public long toSimulator(SimulatorEngine sim) throws SimulatorException
 	{
 		LabelList ll;
 		Expression expr;
@@ -95,9 +109,7 @@ public class PCTLLabel extends PCTLFormula
 		int i;
 		
 		// get expression associated with label
-		
 		ll = sim.getLabelList();
-		
 		i = ll.getLabelIndex(getName());
 		if (i == -1) throw new SimulatorException("Unknown label \"" + getName() + "\" in PCTL formula");
 		expr = ll.getLabel(i);

@@ -81,6 +81,26 @@ public abstract class PCTLFormulaBinary extends PCTLFormula
 		operand2.checkLabelIdents(labelList);
 	}
 
+	// find all formulas (i.e. locate idents which are formulas)
+	
+	public PCTLFormula findAllFormulas(FormulaList formulaList) throws PrismException
+	{
+		operand1 = operand1.findAllFormulas(formulaList);
+		operand2 = operand2.findAllFormulas(formulaList);
+		
+		return this;
+	}
+	
+	// expand any formulas
+	
+	public PCTLFormula expandFormulas(FormulaList formulaList) throws PrismException
+	{
+		operand1 = operand1.expandFormulas(formulaList);
+		operand2 = operand2.expandFormulas(formulaList);
+		
+		return this;
+	}
+		
 	// find all constants (i.e. locate idents which are constants)
 	
 	public PCTLFormula findAllConstants(ConstantList constantList) throws PrismException

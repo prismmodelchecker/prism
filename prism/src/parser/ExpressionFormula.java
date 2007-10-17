@@ -98,10 +98,8 @@ public class ExpressionFormula extends Expression
 			// return replacement expression
 			return e;
 		}
-		else {
-			// error (should never happen)
-			throw new PrismException("Formula \"" + name + "\" undefined");
-		}
+		
+		return this;
 	}
 	
 	// create and return a new expression by renaming

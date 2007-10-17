@@ -1855,7 +1855,7 @@ public class StochModelChecker implements ModelChecker
 			return dd;
 		}
 		// get expression associated with label
-		ll = propertiesFile.getLabelList();
+		ll = propertiesFile.getCombinedLabelList();
 		i = ll.getLabelIndex(pctl.getName());
 		if (i == -1) throw new PrismException("Unknown label \"" + pctl.getName() + "\" in CSL formula");
 		expr = ll.getLabel(i);

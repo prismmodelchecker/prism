@@ -177,6 +177,7 @@ public class PrismParser
 		
 		// clear all vectors/stacks
 		formulaList = new FormulaList();
+		labelList = new LabelList();
 		constantList = new ConstantList();
 		stack.clear();
 		reverseStack.clear();
@@ -208,6 +209,7 @@ public class PrismParser
 		ReInit(str);
 		
 		// clear all vectors/stacks
+		formulaList = new FormulaList();
 		labelList = new LabelList();
 		constantList = new ConstantList();
 		stack.clear();
@@ -466,7 +468,7 @@ ModulesFile ModulesFile() :
 }
 {
 	(
-	( ( type=ModulesFileType() {typeSpecs++;} ) | FormulaDef() | ConstantDef() | GlobalDecl() | Module() | RenamedModule() | SystemComp() | RewardStruct() | Init() )*
+	( ( type=ModulesFileType() {typeSpecs++;} ) | FormulaDef() | LabelDef() | ConstantDef() | GlobalDecl() | Module() | RenamedModule() | SystemComp() | RewardStruct() | Init() )*
 	<EOF>
 	)
 	{
@@ -475,8 +477,9 @@ ModulesFile ModulesFile() :
 		// create new ModulesFile object
 		ModulesFile modulesFile = new ModulesFile();
 		
-		// pass lists of formulas, constants to ModulesFile
+		// pass lists of formulas, labels, constants to ModulesFile
 		modulesFile.setFormulaList(formulaList);
+		modulesFile.setLabelList(labelList);
 		modulesFile.setConstantList(constantList);
 		
 		// set type (default is nondeterministic)
@@ -543,13 +546,14 @@ PropertiesFile PropertiesFile() :
 {
 }
 {
-	( ( LabelDef() | ConstantDef() | SinglePCTLFormula() )* <EOF> ) // possibly several pctl formulas then eof
+	( ( /*FormulaDef() |*/ LabelDef() | ConstantDef() | SinglePCTLFormula() )* <EOF> ) // possibly several pctl formulas then eof
 	{
 		// create new PropertiesFile object
 		// (pass in associated ModulesFile)
 		PropertiesFile propertiesFile = new PropertiesFile(modulesFile);
 		
-		// pass lists of labels, constants to PropertiesFile
+		// pass lists of formulas, labels, constants to PropertiesFile
+		propertiesFile.setFormulaList(formulaList);
 		propertiesFile.setLabelList(labelList);
 		propertiesFile.setConstantList(constantList);
 

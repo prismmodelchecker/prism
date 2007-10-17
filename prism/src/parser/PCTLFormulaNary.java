@@ -79,6 +79,34 @@ public abstract class PCTLFormulaNary extends PCTLFormula
 		}
 	}
 
+	// find all formulas (i.e. locate idents which are formulas)
+	
+	public PCTLFormula findAllFormulas(FormulaList formulaList) throws PrismException
+	{
+		int i, n;
+		
+		n = getNumOperands();
+		for (i = 0; i < n; i++) {
+			setOperand(i, getOperand(i).findAllFormulas(formulaList));
+		}
+		
+		return this;
+	}
+	
+	// expand any formulas
+	
+	public PCTLFormula expandFormulas(FormulaList formulaList) throws PrismException
+	{
+		int i, n;
+		
+		n = getNumOperands();
+		for (i = 0; i < n; i++) {
+			setOperand(i, getOperand(i).expandFormulas(formulaList));
+		}
+		
+		return this;
+	}
+		
 	// find all constants (i.e. locate idents which are constants)
 	
 	public PCTLFormula findAllConstants(ConstantList constantList) throws PrismException

@@ -79,6 +79,35 @@ public class LabelList
 		return names.indexOf(s);
 	}
 
+	// find all formulas (i.e. locate idents which are formulas)
+	// (inside the expressions in this label list)
+	
+	public void findAllFormulas(FormulaList formulaList) throws PrismException
+	{
+		int i, n;
+		Expression e;
+		
+		n = labels.size();
+		for (i = 0; i < n; i++) {
+			e = getLabel(i);
+			labels.setElementAt(e.findAllFormulas(formulaList), i);
+		}
+	}
+
+	// expand any formulas
+	
+	public void expandFormulas(FormulaList formulaList) throws PrismException
+	{
+		int i, n;
+		Expression e;
+		
+		n = labels.size();
+		for (i = 0; i < n; i++) {
+			e = getLabel(i);
+			labels.setElementAt(e.expandFormulas(formulaList), i);
+		}
+	}
+
 	// find all constants (i.e. locate idents which are constants)
 	
 	public void findAllConstants(ConstantList constantList) throws PrismException

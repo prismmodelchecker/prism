@@ -135,6 +135,38 @@ public class PCTLReward extends PCTLFormulaUnary
 		if (filter != null) filter.checkLabelIdents(labelList);
 	}
 
+	// find all formulas (i.e. locate idents which are formulas)
+	
+	public PCTLFormula findAllFormulas(FormulaList formulaList) throws PrismException
+	{
+		// call superclass (unary)
+		super.findAllFormulas(formulaList);
+		// also do reward expression
+		if (reward != null) reward = reward.findAllFormulas(formulaList);
+		// also do reward struct index
+		if (rewardStructIndex != null) if (rewardStructIndex instanceof Expression) rewardStructIndex = ((Expression)rewardStructIndex).findAllFormulas(formulaList);
+		// also do filter
+		if (filter != null) filter = filter.findAllFormulas(formulaList);
+		
+		return this;
+	}
+	
+	// expand any formulas
+	
+	public PCTLFormula expandFormulas(FormulaList formulaList) throws PrismException
+	{
+		// call superclass (unary)
+		super.expandFormulas(formulaList);
+		// also do reward expression
+		if (reward != null) reward = reward.expandFormulas(formulaList);
+		// also do reward struct index
+		if (rewardStructIndex != null) if (rewardStructIndex instanceof Expression) rewardStructIndex = ((Expression)rewardStructIndex).expandFormulas(formulaList);
+		// also do filter
+		if (filter != null) filter = filter.expandFormulas(formulaList);
+		
+		return this;
+	}
+		
 	// find all constants (i.e. locate idents which are constants)
 	
 	public PCTLFormula findAllConstants(ConstantList constantList) throws PrismException

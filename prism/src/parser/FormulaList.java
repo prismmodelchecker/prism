@@ -83,12 +83,18 @@ public class FormulaList
 	// (inside the formulas in this formula list)
 	
 	public void findAllFormulas() throws PrismException
+	{ findAllFormulas(this); }
+
+	// find all formulas (i.e. locate idents which are formulas)
+	// (from the specified formula list)
+	
+	public void findAllFormulas(FormulaList fl) throws PrismException
 	{
 		int i, n;
 		
 		n = formulas.size();
 		for (i = 0; i < n; i++) {
-			formulas.setElementAt(getFormula(i).findAllFormulas(this), i);
+			formulas.setElementAt(getFormula(i).findAllFormulas(fl), i);
 		}
 	}
 
@@ -159,12 +165,15 @@ public class FormulaList
 	// expand any formulas
 	
 	public void expandFormulas() throws PrismException
+	{ expandFormulas(this); }
+	
+	public void expandFormulas(FormulaList fl) throws PrismException
 	{
 		int i, n;
 		
 		n = formulas.size();
 		for (i = 0; i < n; i++) {
-			formulas.setElementAt(getFormula(i).expandFormulas(this), i);
+			formulas.setElementAt(getFormula(i).expandFormulas(fl), i);
 		}
 	}
 

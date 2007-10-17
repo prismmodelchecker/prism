@@ -37,8 +37,12 @@ public class PropertiesFile
 	// associated ModulesFile (for constants, ...)
 	private ModulesFile modulesFile;
 	
+	// formulas (macros)
+	private FormulaList formulaList;
+	
 	// labels (atomic propositions)
 	private LabelList labelList;
+	private LabelList combinedLabelList;
 	
 	// constants
 	private ConstantList constantList;
@@ -49,6 +53,7 @@ public class PropertiesFile
 	private Vector comments;
 	
 	// list of all identifiers used
+	private Vector modulesFileIdents;
 	private Vector allIdentsUsed;
 	
 	// actual values of constants
@@ -60,8 +65,11 @@ public class PropertiesFile
 	{
 		// initialise
 		modulesFile = mf;
-		labelList = null;
-		constantList = null;
+		modulesFileIdents = modulesFile.getAllIdentsUsed();
+		formulaList = new FormulaList(); // empty - will be overwritten
+		labelList = new LabelList(); // empty - will be overwritten
+		combinedLabelList = new LabelList();
+		constantList = new ConstantList(); // empty - will be overwritten
 		properties = new Vector();
 		comments = new Vector();
 		allIdentsUsed = new Vector();
@@ -69,6 +77,8 @@ public class PropertiesFile
 	}
 	
 	// set up methods - these are called by the parser to create a PropertiesFile object
+	
+	public void setFormulaList(FormulaList fl) { formulaList = fl; }
 	
 	public void setLabelList(LabelList ll) { labelList = ll; }
 	
@@ -84,7 +94,11 @@ public class PropertiesFile
 	
 	// accessor methods
 
+	public FormulaList getFormulaList() { return formulaList; }
+	
 	public LabelList getLabelList() { return labelList; }
+	
+	public LabelList getCombinedLabelList() { return combinedLabelList; }
 	
 	public ConstantList getConstantList() { return constantList; }
 	
@@ -98,6 +112,16 @@ public class PropertiesFile
 	
 	public void tidyUp() throws PrismException
 	{
+		// check formula identifiers
+		checkFormulaIdents();
+		// find all instances of formulas
+		// (i.e. locate idents which are formulas)
+		findAllFormulas();
+		// check formulas for cyclic dependencies
+		formulaList.findCycles();
+		// expand any formulas
+		expandFormulas();
+		
 		// check label identifiers
 		checkLabelIdents();
 		
@@ -118,6 +142,82 @@ public class PropertiesFile
 		check();
 	}
 
+	// check formula identifiers
+	
+	private void checkFormulaIdents() throws PrismException
+	{
+		int i, n;
+		String s;
+
+		n = formulaList.size();
+		for (i = 0; i < n; i++) {
+			s = formulaList.getFormulaName(i);
+			// see if ident has been used elsewhere
+			if (modulesFileIdents.contains(s)) {
+				throw new PrismException("Identifier \"" + s + "\" already used in model file");
+			}
+			else if (allIdentsUsed.contains(s)) {
+				throw new PrismException("Duplicated identifier \"" + s + "\"");
+			}
+			else {
+				allIdentsUsed.addElement(s);
+			}
+		}
+	}
+
+	// find all formulas (i.e. locate idents which are formulas)
+	
+	private void findAllFormulas() throws PrismException
+	{
+		int i, n;
+		
+		// note: we have to look for both formulas defined here
+		//       and those defined in the modules file
+		
+		// look in formula list
+		formulaList.findAllFormulas(modulesFile.getFormulaList());
+		formulaList.findAllFormulas();
+		// look in labels
+		labelList.findAllFormulas(modulesFile.getFormulaList());
+		labelList.findAllFormulas(formulaList);
+		// look in constants
+		constantList.findAllFormulas(modulesFile.getFormulaList());
+		constantList.findAllFormulas(formulaList);
+		// look in properties
+		n = properties.size();
+		for (i = 0; i < n; i++) {
+			setProperty(i, getProperty(i).findAllFormulas(modulesFile.getFormulaList()));
+			setProperty(i, getProperty(i).findAllFormulas(formulaList));
+		}
+	}
+
+	// expand any formulas
+	
+	private void expandFormulas() throws PrismException
+	{
+		int i, n;
+		
+		// note: we have to look for both formulas defined here
+		//       and those defined in the modules file
+		
+		// look in formula list
+		// (best to do this first - sorts out any linked formulas)
+		formulaList.expandFormulas(modulesFile.getFormulaList());
+		formulaList.expandFormulas();
+		// look in labels
+		labelList.expandFormulas(modulesFile.getFormulaList());
+		labelList.expandFormulas(formulaList);
+		// look in constants
+		constantList.expandFormulas(modulesFile.getFormulaList());
+		constantList.expandFormulas(formulaList);
+		// look in properties
+		n = properties.size();
+		for (i = 0; i < n; i++) {
+			setProperty(i, getProperty(i).expandFormulas(modulesFile.getFormulaList()));
+			setProperty(i, getProperty(i).expandFormulas(formulaList));
+		}
+	}
+	
 	// check label identifiers
 	// also check reference to these identifiers in properties
 	
@@ -126,25 +226,41 @@ public class PropertiesFile
 		int i, n;
 		String s;
 		Vector labelIdents;
+		LabelList mfLabels;
 		
+		// get label list from model file
+		mfLabels = modulesFile.getLabelList();
+		// add model file lables to combined label list
+		n = mfLabels.size();
+		for (i = 0; i < n; i++) {
+			// do we need to clone these Expressions? hopefully not - they shouldn't be modified again
+			combinedLabelList.addLabel(mfLabels.getLabelName(i), mfLabels.getLabel(i));
+		}
 		// go thru labels
 		n = labelList.size();
 		labelIdents = new Vector();
 		for (i = 0; i < n; i++) {
 			s = labelList.getLabelName(i);
+			// see if ident has been used already for a label in model file
+			if (mfLabels.getLabelIndex(s) != -1) {
+				throw new PrismException("Label \"" + s + "\" already defined in model file");
+			}
 			// see if ident has been used already for a label
 			if (labelIdents.contains(s)) {
 				throw new PrismException("Duplicated label name \"" + s + "\"");
 			}
+			// store identifier
+			// and add label to combined list
 			else {
 				labelIdents.addElement(s);
+				combinedLabelList.addLabel(s, labelList.getLabel(i));
 			}
 		}
 		
 		// now go thru properties and check that any PCTLLabel objects refer only to existing labels
 		n = properties.size();
 		for (i = 0; i < n; i++) {
-			getProperty(i).checkLabelIdents(labelList);
+			getProperty(i).checkLabelIdents(combinedLabelList);
 		}
 	}
 
@@ -154,26 +270,20 @@ public class PropertiesFile
 	{
 		int i, n;
 		String s;
-		Vector mfIdents, constIdents;
-		
-		// get idents used in modules file
-		mfIdents = modulesFile.getAllIdentsUsed();
-		// create vector to store new idents
-		constIdents = new Vector();
 		
 		// go thru constants
 		n = constantList.size();
 		for (i = 0; i < n; i++) {
 			s = constantList.getConstantName(i);
 			// see if ident has been used elsewhere
-			if (mfIdents.contains(s)) {
+			if (modulesFileIdents.contains(s)) {
 				throw new PrismException("Identifier \"" + s + "\" already used in model file");
 			}
-			else if (constIdents.contains(s)) {
+			else if (allIdentsUsed.contains(s)) {
 				throw new PrismException("Duplicated identifier \"" + s + "\"");
 			}
 			else {
-				constIdents.addElement(s);
+				allIdentsUsed.addElement(s);
 			}
 		}
 	}
@@ -278,6 +388,10 @@ public class PropertiesFile
 		String s = "", tmp, tmp2;
 		int i, j, n;
 		
+		tmp = "" + formulaList;
+		if (tmp.length() > 0) tmp += "\n";
+		s += tmp;
+		
 		tmp = "" + labelList;
 		if (tmp.length() > 0) tmp += "\n";
 		s += tmp;
@@ -308,6 +422,10 @@ public class PropertiesFile
 	{
 		String s = "", tmp;
 		int i, n;
+		
+		tmp = "" + formulaList;
+		if (tmp.length() > 0) tmp += "\n";
+		s += tmp;
 		
 		tmp = "" + labelList.toTreeString();
 		if (tmp.length() > 0) tmp += "\n";

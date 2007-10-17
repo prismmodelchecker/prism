@@ -65,6 +65,14 @@ public abstract class PCTLFormula
 		// default is ok - do nothing
 	}
 	
+	// find all formulas (i.e. locate idents which are formulas)
+	
+	public abstract PCTLFormula findAllFormulas(FormulaList formulaList) throws PrismException;
+	
+	// expand any formulas
+	
+	public abstract PCTLFormula expandFormulas(FormulaList formulaList) throws PrismException;
+	
 	// find all constants (i.e. locate idents which are constants)
 	
 	public abstract PCTLFormula findAllConstants(ConstantList constantList) throws PrismException;

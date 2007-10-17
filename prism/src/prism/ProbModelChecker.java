@@ -1113,7 +1113,7 @@ public class ProbModelChecker implements ModelChecker
 			return dd;
 		}
 		// get expression associated with label
-		ll = propertiesFile.getLabelList();
+		ll = propertiesFile.getCombinedLabelList();
 		i = ll.getLabelIndex(pctl.getName());
 		if (i == -1) throw new PrismException("Unknown label \"" + pctl.getName() + "\" in PCTL formula");
 		expr = ll.getLabel(i);

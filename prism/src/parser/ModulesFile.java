@@ -43,6 +43,9 @@ public class ModulesFile
 	// formulas (macros)
 	private FormulaList formulaList;
 	
+	// labels (atomic propositions)
+	private LabelList labelList;
+	
 	// constants
 	private ConstantList constantList;
 	
@@ -70,6 +73,7 @@ public class ModulesFile
 	{
 		// initialise
 		formulaList = new FormulaList(); // empty - will be overwritten
+		labelList = new LabelList(); // empty - will be overwritten
 		constantList = new ConstantList(); // empty - will be overwritten
 		type = NONDETERMINISTIC; // default type
 		globals = new Vector();
@@ -86,6 +90,8 @@ public class ModulesFile
 	// set up methods - these are called by the parser to create a ModulesFile object
 	
 	public void setFormulaList(FormulaList fl) { formulaList = fl; }
+	
+	public void setLabelList(LabelList ll) { labelList = ll; }
 	
 	public void setConstantList(ConstantList cl) { constantList = cl; }
 	
@@ -109,6 +115,8 @@ public class ModulesFile
 	// accessor methods
 
 	public FormulaList getFormulaList() { return formulaList; }
+	
+	public LabelList getLabelList() { return labelList; }
 	
 	public ConstantList getConstantList() { return constantList; }
 	
@@ -222,6 +230,9 @@ public class ModulesFile
 		// sort out any modules defined by renaming
 		sortRenamings();
 		
+		// check label identifiers
+		checkLabelIdents();
+		
 		// check module names
 		checkModuleNames();
 		
@@ -280,6 +291,8 @@ public class ModulesFile
 		
 		// look in formula list
 		formulaList.findAllFormulas();
+		// look in labels
+		labelList.findAllFormulas(formulaList);
 		// look in constants
 		constantList.findAllFormulas(formulaList);
 		// look in globals
@@ -314,6 +327,8 @@ public class ModulesFile
 		// look in formula list
 		// (best to do this first - sorts out any linked formulas)
 		formulaList.expandFormulas();
+		// look in labels
+		labelList.expandFormulas(formulaList);
 		// look in constants
 		constantList.expandFormulas(formulaList);
 		// look in globals
@@ -369,6 +384,29 @@ public class ModulesFile
 		}
 	}
 	
+	// check label identifiers
+	
+	private void checkLabelIdents() throws PrismException
+	{
+		int i, n;
+		String s;
+		Vector labelIdents;
+		
+		// go thru labels
+		n = labelList.size();
+		labelIdents = new Vector();
+		for (i = 0; i < n; i++) {
+			s = labelList.getLabelName(i);
+			// see if ident has been used already for a label
+			if (labelIdents.contains(s)) {
+				throw new PrismException("Duplicated label name \"" + s + "\"");
+			}
+			else {
+				labelIdents.addElement(s);
+			}
+		}
+	}
+
 	// check module names
 	
 	private void checkModuleNames() throws PrismException
@@ -478,6 +516,8 @@ public class ModulesFile
 	{
 		int i, n;
 		
+		// look in labels
+		labelList.findAllConstants(constantList);
 		// look in constants
 		constantList.findAllConstants(constantList);
 		// look in globals
@@ -557,6 +597,8 @@ public class ModulesFile
 		// nb: we even check in places where there shouldn't be vars
 		//     eg. in constant definitions etc.
 		
+		// look in labels
+		labelList.findAllVars(varNames, varTypes);
 		// look in constants
 		constantList.findAllVars(varNames, varTypes);
 		// look in globals
@@ -600,6 +642,9 @@ public class ModulesFile
 		int i, j, n, n2;
 		Module module;
 		Vector v;
+		
+		// check labels
+		labelList.check();
 		
 		// check constants
 		constantList.check();
@@ -806,6 +851,10 @@ public class ModulesFile
 		s += "\n\n";
 		
 		tmp = "" + formulaList;
+		if (tmp.length() > 0) tmp += "\n";
+		s += tmp;
+		
+		tmp = "" + labelList;
 		if (tmp.length() > 0) tmp += "\n";
 		s += tmp;
 		

@@ -56,6 +56,32 @@ public class PCTLProbBoundedUntil extends PCTLFormulaBinary
 		return uBound;
 	}
 
+	// find all formulas (i.e. locate idents which are formulas)
+	
+	public PCTLFormula findAllFormulas(FormulaList formulaList) throws PrismException
+	{
+		// call superclass (binary)
+		super.findAllFormulas(formulaList);
+		// also do bound expressions
+		if (lBound != null) lBound = lBound.findAllFormulas(formulaList);
+		if (uBound != null) uBound = uBound.findAllFormulas(formulaList);
+		
+		return this;
+	}
+	
+	// expand any formulas
+	
+	public PCTLFormula expandFormulas(FormulaList formulaList) throws PrismException
+	{
+		// call superclass (binary)
+		super.expandFormulas(formulaList);
+		// also do bound expressions
+		if (lBound != null) lBound = lBound.expandFormulas(formulaList);
+		if (uBound != null) uBound = uBound.expandFormulas(formulaList);
+		
+		return this;
+	}
+		
 	// find all constants (i.e. locate idents which are constants)
 	
 	public PCTLFormula findAllConstants(ConstantList constantList) throws PrismException

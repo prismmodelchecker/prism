@@ -61,6 +61,24 @@ public class PCTLExpression extends PCTLFormula
 		return expr;
 	}
 	
+	// find all formulas (i.e. locate idents which are formulas)
+	
+	public PCTLFormula findAllFormulas(FormulaList formulaList) throws PrismException
+	{
+		expr = expr.findAllFormulas(formulaList);
+		
+		return this;
+	}
+	
+	// expand any formulas
+	
+	public PCTLFormula expandFormulas(FormulaList formulaList) throws PrismException
+	{
+		expr = expr.expandFormulas(formulaList);
+		
+		return this;
+	}
+		
 	// find all constants (i.e. locate idents which are constants)
 	
 	public PCTLFormula findAllConstants(ConstantList constantList) throws PrismException

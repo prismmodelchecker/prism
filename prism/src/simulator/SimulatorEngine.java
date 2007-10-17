@@ -2320,7 +2320,7 @@ public class SimulatorEngine
 	 */
 	public LabelList getLabelList()
 	{
-		return propertiesFile.getLabelList();
+		return propertiesFile.getCombinedLabelList();
 	}
 	
 	// Methods to compute parameters for simulation
