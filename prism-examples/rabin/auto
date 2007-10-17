@@ -1,9 +1,9 @@
 #!/bin/csh
 
-prism rabin3.nm rabin3.pctl -fair
-prism rabin4.nm rabin4.pctl -fair
-prism rabin5.nm rabin5.pctl -fair
-prism rabin6.nm rabin6.pctl -fair
-prism rabin8.nm rabin8.pctl -fair
-prism rabin10.nm rabin10.pctl -fair
-prism rabin12.nm rabin12.pctl -fair
+prism rabin3.nm rabin.pctl -fair
+prism rabin4.nm rabin.pctl -fair
+prism rabin5.nm rabin.pctl -fair
+prism rabin6.nm rabin.pctl -fair
+prism rabin8.nm rabin.pctl -fair
+prism rabin10.nm rabin.pctl -fair
+prism rabin12.nm rabin.pctl -fair

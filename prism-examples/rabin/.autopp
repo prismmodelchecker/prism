@@ -4,6 +4,4 @@ foreach N ( 3 4 5 6 8 10 12 )
 	echo "Generating for N=$N"
 	prismpp .rabinN.nm.pp $N >! rabin$N.nm
 	unix2dos rabin$N.nm
-	prismpp .rabinN.pctl.pp $N >! rabin$N.pctl
-	unix2dos rabin$N.pctl
 end

@@ -2,7 +2,7 @@
 // with global variables to remove sychronization 
 // gxn/dxp 02/02/00
 
-nondeterministic
+mdp
 
 // size of shared counter
 const int K = 7; // 4+ceil(log_2 N)
@@ -63,3 +63,14 @@ module process2 = process1 [p1=p2, b1=b2, r1=r2] endmodule
 module process3 = process1 [p1=p3, b1=b3, r1=r3] endmodule
 module process4 = process1 [p1=p4, b1=b4, r1=r4] endmodule
 module process5 = process1 [p1=p5, b1=b5, r1=r5] endmodule
+
+// formulas/labels for use in properties:
+
+// number of processes in critical section
+formula num_procs_in_crit = (p1=2?1:0)+(p2=2?1:0)+(p3=2?1:0)+(p4=2?1:0)+(p5=2?1:0);
+
+// one of the processes is trying
+label "one_trying" = p1=1|p2=1|p3=1|p4=1|p5=1;
+
+// one of the processes is in the critical section
+label "one_critical" = p1=2|p2=2|p3=2|p4=2|p5=2;
