@@ -581,7 +581,7 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_exportBinary
     const char *str = env->GetStringUTFChars(filename, 0);
     Export_Engine_To_Binary_File(str);
     env->ReleaseStringUTFChars(filename, str);
-    //env->ReleaseStringChars(filename, (const char*)filename8);
+    return 1;
 }
 
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_doSampling
@@ -736,9 +736,9 @@ JNIEXPORT jstring JNICALL Java_simulator_SimulatorEngine_modelToString
 JNIEXPORT jstring JNICALL Java_simulator_SimulatorEngine_pathToString
 (JNIEnv *env, jclass cls)
 {
-	/*std::string str = Path_To_String();
+	std::string str = Path_To_String();
 
-	return env->NewStringUTF(str.c_str());*/
+	return env->NewStringUTF(str.c_str());
 }
 
 JNIEXPORT void JNICALL Java_simulator_SimulatorEngine_printCurrentUpdates

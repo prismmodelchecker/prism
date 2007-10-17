@@ -1226,12 +1226,12 @@ int CNormalPow::Get_Type()
 
 int CNormalPow::Evaluate()
 {
-	return (int)pow(lexpr->Evaluate(), rexpr->Evaluate());
+	return (int)pow((double)lexpr->Evaluate(), rexpr->Evaluate());
 }
 
 int CNormalPow::Evaluate(int* vars)
 {
-	return (int)pow(lexpr->Evaluate(vars), rexpr->Evaluate(vars));
+	return (int)pow((double)lexpr->Evaluate(vars), rexpr->Evaluate(vars));
 }
 
 bool CNormalPow::One_Result()

@@ -189,13 +189,14 @@ int Setup_For_Feedback(char* feedback)
 {
 	feedback_file = feedback;
 	do_feedback = true;
+	return 0;
 }
 
 int Setup_For_Results_Feedback(char* results_feedback_f)
 {
 	results_feedback_file = results_feedback_f;
 	do_results_feedback = true;
-	cout << "called setup" << endl;
+	return 0;
 }
 
 
