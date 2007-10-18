@@ -1,0 +1,14 @@
+This directory contains the following.
+
+ * PRISM icons for shortcuts/etc. - p*.png, p*.ico
+
+ * MIME type and syntax highlighting config for PRISM (under Gnome) - Overrides.xml, prism.lang
+
+ * Syntax highlighting pattern for PRISM in NEdit - prism.pats
+
+ * CSS style file for PRISM-generated HTML code - prism.css
+
+ * LaTeX file for PRISM-generated LaTeX code - prism.tex
+
+Where appropriate, comments/instructions are included in the files themselves.
+
