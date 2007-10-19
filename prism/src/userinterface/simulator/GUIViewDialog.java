@@ -537,7 +537,7 @@ public class GUIViewDialog extends JDialog implements KeyListener
         topInnerTimePanel.setLayout(new java.awt.GridLayout(2, 1, 5, 5));
 
         topInnerTimePanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        showTimeCheckBox.setText("Show the time spend in states");
+        showTimeCheckBox.setText("Show the time spent in states");
         showTimeCheckBox.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         showTimeCheckBox.setMargin(new java.awt.Insets(0, 0, 0, 0));
         topInnerTimePanel.add(showTimeCheckBox);
@@ -551,7 +551,6 @@ public class GUIViewDialog extends JDialog implements KeyListener
         innerTimePanel.add(topInnerTimePanel, java.awt.BorderLayout.NORTH);
 
         boxPanel.add(innerTimePanel);
-        innerTimePanel.getAccessibleContext().setAccessibleName("Time properties");
 
         pathStylePanel.setLayout(new java.awt.BorderLayout());
 

@@ -73,6 +73,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	
 	private boolean displayStyleFast;
 	private boolean displayPathLoops;
+	private SimulationView view;
 	
 	//Actions
 	private Action backtrackToHere, removeToHere, newPath, resetPath, exportPath, configureView;
@@ -84,7 +85,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		this.gui = gui;
 		this.engine = gui.getPrism().getSimulator();
 		
-		SimulationView view = new SimulationView();		
+		view = new SimulationView();		
 		pathTableModel = new PathTableModel(view);
 				
 		updateTableModel = new UpdateTableModel();
@@ -277,6 +278,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				engineBuilt = false;				
 			}
 			pathActive = false;
+			
 			pathTableModel.restartPathTable();
 			updateTableModel.restartUpdatesTable();
 						
@@ -358,62 +360,66 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			Values defaultInitialState = new Values();
 			defaultInitialState.addValues(parsedModel.getInitialValues());
 			
-			// if required, we prompt the user for an initial state
-			if(isAskForInitialState())
+			boolean modelChanged = false;
+			
+			// we will pass in lastInitialState to the dialog
+			// but first make sure it is ok, i.e.
+			// (a) it is non-null
+			if(lastInitialState == null) {
+				lastInitialState = defaultInitialState;
+				modelChanged = true;
+			}
+			// (b) var names/types are correct
+			else
 			{
-				// we will pass in lastInitialState to the dialog
-				// but first make sure it is ok, i.e.
-				// (a) it is non-null
-				if(lastInitialState == null) {
-					lastInitialState = defaultInitialState;
+				boolean match = true;
+				int i, n;
+				n = defaultInitialState.getNumValues();
+				if (lastInitialState.getNumValues() != defaultInitialState.getNumValues())
+				{
+					match = false;
 				}
-				// (b) var names/types are correct
 				else
 				{
-					boolean match = true;
-					int i, n;
-					n = defaultInitialState.getNumValues();
-					if (lastInitialState.getNumValues() != defaultInitialState.getNumValues())
+					for(i = 0; i < n; i++)
 					{
-						match = false;
-					}
-					else
-					{
-						for(i = 0; i < n; i++)
+						if(!lastInitialState.contains(defaultInitialState.getName(i)))
 						{
-							if(!lastInitialState.contains(defaultInitialState.getName(i)))
+							match = false;
+							break;
+						}
+						else
+						{
+							int index = lastInitialState.getIndexOf(defaultInitialState.getName(i));
+							if(lastInitialState.getType(index) != defaultInitialState.getType(i))
 							{
 								match = false;
 								break;
 							}
-							else
-							{
-								int index = lastInitialState.getIndexOf(defaultInitialState.getName(i));
-								if(lastInitialState.getType(index) != defaultInitialState.getType(i))
-								{
-									match = false;
-									break;
-								}
-							}
 						}
 					}
-					if(!match) // if there's a problem, just use the default
-					{
-						lastInitialState = defaultInitialState;
-					}
 				}
-				
+				if(!match) // if there's a problem, just use the default
+				{
+					lastInitialState = defaultInitialState;
+					modelChanged = true;
+				}
+			}
+			
+			// if required, we prompt the user for an initial state
+			if(isAskForInitialState())
+			{
 				initialState = GUIInitialStatePicker.defineInitalValuesWithDialog(getGUI(), lastInitialState, parsedModel);
 				// if user clicked cancel from dialog...
+							
 				if (initialState == null) {
 					return;
 				}
 			}
-			// if we don't need to ask the user at all, just use the default
 			else
 			{
-				initialState = defaultInitialState;
-			}
+				 initialState = lastInitialState;
+			}			
 			
 			displayPathLoops = true;
 			engine.startNewPath(parsedModel, pf, initialState);
@@ -427,7 +433,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			definedConstantsLabel.setText((uCon.getDefinedConstantsString().length() == 0) ? "None" : uCon.getDefinedConstantsString());
 			
 			doEnables();
+			
 			pathTableModel.restartPathTable();
+			
 			updateTableModel.restartUpdatesTable();
 			
 			pathTable.getSelectionModel().setSelectionInterval(pathTable.getRowCount()-1, pathTable.getRowCount()-1);
@@ -2622,54 +2630,139 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		public void refreshToDefaultView()
 		{
-			visibleVariables.clear();
-			hiddenVariables.clear();			
-			visibleRewardColumns.clear();
+			// First see if we can get away with using current settings...
+			boolean canUseCurrentView = true;
 			
-			rewards.clear();
-			   
-			useChangeRenderer = (gui.getPrism().getSettings().getInteger(PrismSettings.SIMULATOR_RENDER_ALL_VALUES) == 0);
-			
-			if (useChangeRenderer != usingChangeRenderer())
+			if (!pathActive)
+				canUseCurrentView = false;
+			else
 			{
-				GUISimulator.this.setRenderer(useChangeRenderer);
-			}
-			
-			if (pathActive)
-			{
+				// Time-wise we have a problem.
+				if (parsedModel.getType() != ModulesFile.STOCHASTIC && (showTime || showCumulativeTime))
+					canUseCurrentView = false;
+				
 				try
-				{
-					stepsVisible = true;
-					showTime = false;
-					showCumulativeTime = parsedModel.getType() == ModulesFile.STOCHASTIC;
+				{				
+					// Make a set of all variable names.
+					TreeSet<String> allVarNames = new TreeSet<String>();
+					
+					for (Object var : visibleVariables)
+						allVarNames.add(((Variable)var).getName());
+					for (Object var : hiddenVariables)
+						allVarNames.add(((Variable)var).getName());
 					
 					for (int i = 0; i < engine.getNumVariables(); i++)
 					{
-						visibleVariables.add(new Variable(i, engine.getVariableName(i), engine.getVariableType(i))); 
+						if (allVarNames.contains(engine.getVariableName(i)))
+							allVarNames.remove(engine.getVariableName(i));
+						else
+							// Cannot use current view if a variable is not there.
+							canUseCurrentView = false;				
 					}
-									
+					
+					// Cannot use current view if we have too many variables.
+					if (allVarNames.size() > 0)
+						canUseCurrentView = false;
+					
+					// Make a list of all reward structures
+					ArrayList<RewardStructure> allrew = new ArrayList<RewardStructure>();
+					
+					for (Object rew : rewards)
+					{
+						allrew.add((RewardStructure)rew);
+					}
+					
 					for (int r = 0; r < parsedModel.getNumRewardStructs(); r++)
 					{
 						parser.RewardStruct rewardStruct = parsedModel.getRewardStruct(r);
 						String rewardName = rewardStruct.getName();
 						
-						if (rewardName.trim().length() == 0)
-						{	rewardName = null; }
+						boolean hasStates = parsedModel.getRewardStruct(r).getNumStateItems() != 0;
+						boolean hasTrans = parsedModel.getRewardStruct(r).getNumTransItems() != 0;
 						
-						RewardStructure rewardStructure = new RewardStructure(r, rewardName, parsedModel.getRewardStruct(r).getNumStateItems() == 0,  parsedModel.getRewardStruct(r).getNumTransItems() == 0);
+						boolean foundReward = false;
 						
-						if (!rewardStructure.isStateEmpty() || !rewardStructure.isTransitionEmpty())		
-							rewards.add(rewardStructure);
+						for (Object rewobj : rewards)
+						{
+							RewardStructure rew = (RewardStructure)rewobj;
+							
+							if (rew.isStateEmpty() == !hasStates && rew.isTransitionEmpty() == !hasTrans && (rew.getName() == null  && rewardName.equals("") || rew.getName().equals(rewardName)))
+							{
+								allrew.remove(rew);
+								foundReward = true;
+							}
+						}
 						
-						if (!rewardStructure.isStateEmpty())
-							visibleRewardColumns.add(new RewardStructureColumn(rewardStructure, RewardStructureColumn.STATE_REWARD));
+						if (!foundReward)
+							canUseCurrentView = false;					
+					}
+					
+					if (allrew.size() > 0)
+						canUseCurrentView = false;
 						
-						if (!rewardStructure.isTransitionEmpty())
-							visibleRewardColumns.add(new RewardStructureColumn(rewardStructure, RewardStructureColumn.TRANSITION_REWARD));						
-					}				
 				}
-				catch (SimulatorException e) {}
-			}		
+				catch (SimulatorException e)
+				{
+					canUseCurrentView = false;
+				}
+			}
+			
+			if (!canUseCurrentView)
+			{	
+				visibleVariables.clear();
+				hiddenVariables.clear();			
+				visibleRewardColumns.clear();
+				
+				rewards.clear();
+				   
+				useChangeRenderer = (gui.getPrism().getSettings().getInteger(PrismSettings.SIMULATOR_RENDER_ALL_VALUES) == 0);
+				
+				if (useChangeRenderer != usingChangeRenderer())
+				{
+					GUISimulator.this.setRenderer(useChangeRenderer);
+				}
+				
+				if (pathActive)
+				{
+					try
+					{
+						stepsVisible = true;
+						showTime = false;
+						showCumulativeTime = parsedModel.getType() == ModulesFile.STOCHASTIC;
+						
+						for (int i = 0; i < engine.getNumVariables(); i++)
+						{
+							visibleVariables.add(new Variable(i, engine.getVariableName(i), engine.getVariableType(i))); 
+						}
+										
+						for (int r = 0; r < parsedModel.getNumRewardStructs(); r++)
+						{
+							parser.RewardStruct rewardStruct = parsedModel.getRewardStruct(r);
+							String rewardName = rewardStruct.getName();
+							
+							if (rewardName.trim().length() == 0)
+							{	rewardName = null; }
+							
+							RewardStructure rewardStructure = new RewardStructure(r, rewardName, parsedModel.getRewardStruct(r).getNumStateItems() == 0,  parsedModel.getRewardStruct(r).getNumTransItems() == 0);
+							
+							if (!rewardStructure.isStateEmpty() || !rewardStructure.isTransitionEmpty())		
+								rewards.add(rewardStructure);
+							
+							if (!rewardStructure.isStateEmpty())
+								visibleRewardColumns.add(new RewardStructureColumn(rewardStructure, RewardStructureColumn.STATE_REWARD));
+							
+							if (!rewardStructure.isTransitionEmpty())
+								visibleRewardColumns.add(new RewardStructureColumn(rewardStructure, RewardStructureColumn.TRANSITION_REWARD));						
+						}
+						
+						System.out.println("REFRESHED VIEW " + visibleVariables.size());
+						
+					}
+					catch (SimulatorException e) {}
+				}
+			}
+			else
+				System.out.println("REUSED VIEW");
 			this.setChanged();
 			this.notifyObservers();
 			
@@ -3205,8 +3298,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		 * The structure of the path may be for a different model etc.
 		 */
 		public void restartPathTable()
-		{						
-			view.refreshToDefaultView();			
+		{			
+			view.refreshToDefaultView();
 		}
 		
 		/** 
