@@ -729,58 +729,48 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		new GUIViewDialog(gui, pathTableModel.getView());
 	}
 	
+	/* Repopulate "State labels" and "Path formulae" lists */
+
 	public void repopulateFormulae()
 	{
+		// "Path formulae" list
 		((GUISimPathFormulaeList)pathFormulaeList).clearList();
-		if(pathActive)
-		{
-			
+		if(pathActive) {
+			// Go through the property list from the Properties tab of GUI
 			GUIPropertiesList gpl = guiProp.getPropList();
-			
-			for(int i = 0; i < gpl.getNumProperties(); i++)
-			{
+			for(int i = 0; i < gpl.getNumProperties(); i++) {
 				GUIProperty gp = gpl.getProperty(i);
-				if(gp.isValidForSimulation())
-				{
+				// For properties which are simulate-able...
+				if(gp.isValidForSimulation()) {
 					PCTLFormula pctl = gp.getPCTLProperty();
-					if(pctl instanceof PCTLProb)
-					{
+					// Add them to the list
+					if(pctl instanceof PCTLProb) {
 						PCTLProb prob = (PCTLProb)pctl;
-						//System.out.println(prob.getOperand().toString());
-						
 						((GUISimPathFormulaeList)pathFormulaeList).addProbFormula(prob);
 					}
 					else if(pctl instanceof PCTLReward)
 					{
 						PCTLReward rew = (PCTLReward)pctl;
-						//System.out.println(rew.getOperand().toString());
-						//pathFormulaeList.add(prob.getOperand().toString());
 						((GUISimPathFormulaeList)pathFormulaeList).addRewardFormula(rew);
 					}
-					
 				}
 			}
 		}
-		
+		// "State labels" list
 		((GUISimLabelFormulaeList)stateLabelList).clearLabels();
-		
-		if(pathActive)
-		{
-			
+		if(pathActive) {
+			// Add the default labels: "init" and "deadlock"
 			((GUISimLabelFormulaeList)stateLabelList).addDeadlockAndInit();
-			
-			GUIPropLabelList labelList = guiProp.getLabTable();
-			
-			
-			//System.out.println("labelList = "+labelList.getLabelsString());
-			
-			//System.out.println("labelList.getNumLabels() = "+labelList.getNumLabels());
-			
-			for(int i = 0; i < labelList.getNumLabels(); i++)
-			{
-				GUILabel gl = labelList.getLabel(i);
-				
-				if(parsedModel != null) {
+			if(parsedModel != null) {
+				// Add labels from model
+				LabelList labelList1 = parsedModel.getLabelList();
+				for(int i = 0; i < labelList1.size(); i++) {
+					((GUISimLabelFormulaeList)stateLabelList).addLabel(labelList1.getLabelName(i), labelList1.getLabel(i), parsedModel);
+				}
+				// Add (correctly parsing) labels from label list in Properties tab of GUI
+				GUIPropLabelList labelList2 = guiProp.getLabTable();
+				for(int i = 0; i < labelList2.getNumLabels(); i++) {
+					GUILabel gl = labelList2.getLabel(i);
 					if (gl.isParseable()) {
 						try {
 							PropertiesFile pf = getPrism().parsePropertiesString(parsedModel, guiProp.getConstantsString().toString()+"\n"+gl.toString());
@@ -792,7 +782,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				}
 			}
 		}
-		
 	}
 	
 	
