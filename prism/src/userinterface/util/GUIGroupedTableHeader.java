@@ -50,17 +50,18 @@ public class GUIGroupedTableHeader extends JTableHeader implements TableColumnMo
 	 * Creates a new GUIGroupedTableHeader.
 	 * @param model The column model that is the basis of this table header (must be grouped).
 	 */
-	public GUIGroupedTableHeader(GUIGroupedTableColumnModel model, GUIGroupedTableModel tableModel)
+	public GUIGroupedTableHeader(GUIGroupedTableColumnModel model, GUIGroupedTableModel tableModel, GUIGroupedTable table)
 	{
 		super();
 		removeAll();
 		
 		this.model = model;
 		this.tableModel = tableModel;
-				
+						
 		topHeader = new JTableHeader(model.getGroupTableColumnModel());
 		topHeader.setResizingAllowed(false);
 		topHeader.setReorderingAllowed(false);
+		
 		
 		
 		final TableCellRenderer renderer = topHeader.getDefaultRenderer();
@@ -75,7 +76,10 @@ public class GUIGroupedTableHeader extends JTableHeader implements TableColumnMo
 		
 		bottomHeader = new JTableHeader(model);
 		bottomHeader.setReorderingAllowed(false);
-					
+		
+		topHeader.setTable(table);
+		bottomHeader.setTable(table);
+		
 		setLayout(new GridLayout(2,1));
 					
 		add(topHeader);
@@ -119,7 +123,7 @@ public class GUIGroupedTableHeader extends JTableHeader implements TableColumnMo
 		});
 		bottomHeader.addMouseMotionListener(new MouseMotionAdapter()
 		{
-private TableColumn lastColumn;
+			private TableColumn lastColumn;
 			
 			public void mouseMoved(MouseEvent e) 
 			{			
@@ -217,7 +221,7 @@ private TableColumn lastColumn;
 	 * Overwritten to catch events of child components.
 	 */
 	public void mouseClicked(MouseEvent e) {
-	   	this.dispatchEvent(new MouseEvent(this, e.getID(), e.getWhen(), e.getModifiers(), e.getX(), e.getY() + ((Component)e.getSource()).getBounds().y, e.getClickCount(), e.isPopupTrigger()));
+		this.dispatchEvent(new MouseEvent(this, e.getID(), e.getWhen(), e.getModifiers(), e.getX(), e.getY() + ((Component)e.getSource()).getBounds().y, e.getClickCount(), e.isPopupTrigger()));
     }
 
 	/** 

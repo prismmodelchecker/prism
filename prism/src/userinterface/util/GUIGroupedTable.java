@@ -112,11 +112,18 @@ public class GUIGroupedTable extends JTable
 	@Override
     protected JTableHeader createDefaultTableHeader() {
 		
+		GUIGroupedTableHeader header = null;
+		
 		if (columnModel != null && columnModel instanceof GUIGroupedTableColumnModel)
-		{
-			return new GUIGroupedTableHeader((GUIGroupedTableColumnModel)columnModel, (GUIGroupedTableModel)this.getModel());
-		}
-	    return new GUIGroupedTableHeader(new GUIGroupedTableColumnModel(), (GUIGroupedTableModel)this.getModel());
+			header =  new GUIGroupedTableHeader((GUIGroupedTableColumnModel)columnModel, (GUIGroupedTableModel)this.getModel(), this);
+		else
+			header = new GUIGroupedTableHeader(new GUIGroupedTableColumnModel(), (GUIGroupedTableModel)this.getModel(), this);
+		
+		header.setTable(this);
+		
+		return header;
     }
 }
+
+
 
