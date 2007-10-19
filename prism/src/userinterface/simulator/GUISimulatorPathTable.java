@@ -91,6 +91,11 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 		
 	}
 	
+	public boolean usingChangeRenderer()
+	{
+		return ((PathChangeTableRenderer)getDefaultRenderer(Object.class)).onlyShowChange();
+	}
+	
 	public void switchToChangeRenderer()
 	{
 		setDefaultRenderer(Object.class, new PathChangeTableRenderer(true));

@@ -59,8 +59,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	private GUIPrismFileFilter[] txtFilter;
 	private JMenu simulatorMenu;
 	private JPopupMenu pathPopupMenu;
-	
-	
+		
 	//Current State
 	private ModulesFile parsedModel;
 	private boolean pathActive;
@@ -82,11 +81,14 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	public GUISimulator(GUIPrism gui)
 	{
 		super(gui, true);
-		pathTableModel = new PathTableModel(new SimulationView());
-		updateTableModel = new UpdateTableModel();
-		
 		this.gui = gui;
 		this.engine = gui.getPrism().getSimulator();
+		
+		SimulationView view = new SimulationView();		
+		pathTableModel = new PathTableModel(view);
+				
+		updateTableModel = new UpdateTableModel();
+		
 		initComponents();
 		initPopups();
 		
@@ -112,6 +114,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		});
 		
+		view.refreshToDefaultView();
 		
 		pathActive = false;
 		engineBuilt = false;
@@ -2489,6 +2492,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		private boolean stepsVisible;
 		private boolean showTime;
 		private boolean showCumulativeTime;
+		private boolean useChangeRenderer;
 				    	
     	public SimulationView()
     	{    		
@@ -2497,8 +2501,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
     		
     		this.visibleRewardColumns = new ArrayList();    		
     		this.rewards = new ArrayList();
-    		
-    		refreshToDefaultView();
     	}
     	    
 		public boolean showSteps() 
@@ -2603,6 +2605,21 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			return engine;
 		}	
 		
+		public boolean isChangeRenderer()
+		{
+			return useChangeRenderer;
+		}
+		
+		public void setRenderer(boolean isChangeRenderer)
+		{
+			if (useChangeRenderer != isChangeRenderer)
+			{
+				useChangeRenderer = isChangeRenderer;	
+				
+				GUISimulator.this.setRenderer(useChangeRenderer);
+			}			
+		}
+		
 		public void refreshToDefaultView()
 		{
 			visibleVariables.clear();
@@ -2610,14 +2627,21 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			visibleRewardColumns.clear();
 			
 			rewards.clear();
+			   
+			useChangeRenderer = (gui.getPrism().getSettings().getInteger(PrismSettings.SIMULATOR_RENDER_ALL_VALUES) == 0);
+			
+			if (useChangeRenderer != usingChangeRenderer())
+			{
+				GUISimulator.this.setRenderer(useChangeRenderer);
+			}
 			
 			if (pathActive)
 			{
 				try
 				{
 					stepsVisible = true;
-					showTime = parsedModel.getType() == ModulesFile.STOCHASTIC;
-					showCumulativeTime = parsedModel.getType() == ModulesFile.STOCHASTIC;;
+					showTime = false;
+					showCumulativeTime = parsedModel.getType() == ModulesFile.STOCHASTIC;
 					
 					for (int i = 0; i < engine.getNumVariables(); i++)
 					{
@@ -3258,9 +3282,13 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		return updateTableModel.oldStep;
 	}
 	
-	public void notifySettings(PrismSettings settings)
+	public boolean usingChangeRenderer()
 	{
-		displayStyleFast = settings.getInteger(PrismSettings.SIMULATOR_RENDER_ALL_VALUES) == 0;
+		return ((GUISimulatorPathTable)pathTable).usingChangeRenderer();
+	}
+	
+	public void setRenderer(boolean displayStyleFast)
+	{
 		if(displayStyleFast)
 		{
 			((GUISimulatorPathTable)pathTable).switchToChangeRenderer();
@@ -3404,5 +3432,10 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		{
 			return engine.getDistributionIndexOfUpdate(row);
 		}
+	}
+
+	public void notifySettings(PrismSettings settings) {
+		// TODO Auto-generated method stub
+		
 	}
 }

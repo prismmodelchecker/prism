@@ -63,17 +63,20 @@ public class GUIViewDialog extends JDialog implements KeyListener
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel allPanel;
     private javax.swing.JPanel bottomPanel;
+    private javax.swing.JPanel boxPanel;
     private javax.swing.JPanel buttonPanel;
     private javax.swing.JButton cancelButton;
     private javax.swing.JPanel centerRewardColumn;
     private javax.swing.JPanel centerRewardPanel;
     private javax.swing.JPanel centerVariableColumn;
     private javax.swing.JPanel centerVariablePanel;
+    private javax.swing.JRadioButton changeRenderingButton;
     private javax.swing.JLabel hiddenLabel;
     private javax.swing.JList hiddenRewardList;
     private javax.swing.JScrollPane hiddenRewardScrollList;
     private javax.swing.JList hiddenVariableList;
     private javax.swing.JScrollPane hiddenVariableScrollList;
+    private javax.swing.JPanel innerPathStylePanel;
     private javax.swing.JPanel innerTimePanel;
     private javax.swing.JPanel leftRewardColumn;
     private javax.swing.JPanel leftRewardPanel;
@@ -85,6 +88,10 @@ public class GUIViewDialog extends JDialog implements KeyListener
     private javax.swing.JButton makeVariableVisibleButton;
     private javax.swing.JButton okayButton;
     private javax.swing.JCheckBox optionCheckBox;
+    private javax.swing.JPanel otherTabPanel;
+    private javax.swing.ButtonGroup pathStyle;
+    private javax.swing.JPanel pathStylePanel;
+    private javax.swing.JRadioButton renderAllButton;
     private javax.swing.JPanel rewardPanel;
     private javax.swing.JPanel rewardTabPanel;
     private javax.swing.JPanel rightRewardColumn;
@@ -97,8 +104,6 @@ public class GUIViewDialog extends JDialog implements KeyListener
     private javax.swing.JButton selectAllVisibleVariablesButton;
     private javax.swing.JCheckBox showCumulativeTimeCheckBox;
     private javax.swing.JCheckBox showTimeCheckBox;
-    private javax.swing.JPanel timePanel;
-    private javax.swing.JPanel timeTabPanel;
     private javax.swing.JPanel topInnerTimePanel;
     private javax.swing.JPanel variablePanel;
     private javax.swing.JTabbedPane variableTabPane;
@@ -173,8 +178,15 @@ public class GUIViewDialog extends JDialog implements KeyListener
 				
 		visibleRewardList.setModel(visibleRewardListModel);
 		hiddenRewardList.setModel(hiddenRewardListModel);
+				
+		showCumulativeTimeCheckBox.setEnabled(view.canShowTime());
+		showTimeCheckBox.setEnabled(view.canShowTime());
 		
-		variableTabPane.setEnabledAt(2, view.canShowTime());
+		pathStyle.add(renderAllButton);
+		pathStyle.add(changeRenderingButton);
+		
+		renderAllButton.setSelected(!view.isChangeRenderer());
+		changeRenderingButton.setSelected(view.isChangeRenderer());
 		
 		makeVariableHiddenButton.setIcon(GUIPrism.getIconFromImage("smallArrowRight.png"));
 		makeRewardHiddenButton.setIcon(GUIPrism.getIconFromImage("smallArrowRight.png"));
@@ -196,6 +208,7 @@ public class GUIViewDialog extends JDialog implements KeyListener
 
         visibleLabel = new javax.swing.JLabel();
         hiddenLabel = new javax.swing.JLabel();
+        pathStyle = new javax.swing.ButtonGroup();
         allPanel = new javax.swing.JPanel();
         bottomPanel = new javax.swing.JPanel();
         buttonPanel = new javax.swing.JPanel();
@@ -235,12 +248,16 @@ public class GUIViewDialog extends JDialog implements KeyListener
         hiddenRewardScrollList = new javax.swing.JScrollPane();
         hiddenRewardList = new javax.swing.JList();
         selectAllHiddenRewardsButton = new javax.swing.JButton();
-        timeTabPanel = new javax.swing.JPanel();
-        timePanel = new javax.swing.JPanel();
+        otherTabPanel = new javax.swing.JPanel();
+        boxPanel = new javax.swing.JPanel();
         innerTimePanel = new javax.swing.JPanel();
         topInnerTimePanel = new javax.swing.JPanel();
         showTimeCheckBox = new javax.swing.JCheckBox();
         showCumulativeTimeCheckBox = new javax.swing.JCheckBox();
+        pathStylePanel = new javax.swing.JPanel();
+        innerPathStylePanel = new javax.swing.JPanel();
+        changeRenderingButton = new javax.swing.JRadioButton();
+        renderAllButton = new javax.swing.JRadioButton();
 
         visibleLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         visibleLabel.setText("Visible Variables");
@@ -509,11 +526,11 @@ public class GUIViewDialog extends JDialog implements KeyListener
 
         variableTabPane.addTab("Reward visibility", rewardTabPanel);
 
-        timeTabPanel.setLayout(new java.awt.BorderLayout());
+        otherTabPanel.setLayout(new java.awt.BorderLayout());
 
-        timePanel.setLayout(new java.awt.GridBagLayout());
+        boxPanel.setLayout(new javax.swing.BoxLayout(boxPanel, javax.swing.BoxLayout.Y_AXIS));
 
-        timePanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        boxPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
         innerTimePanel.setLayout(new java.awt.BorderLayout());
 
         innerTimePanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Time properties"));
@@ -533,18 +550,32 @@ public class GUIViewDialog extends JDialog implements KeyListener
 
         innerTimePanel.add(topInnerTimePanel, java.awt.BorderLayout.NORTH);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.weighty = 1.0;
-        timePanel.add(innerTimePanel, gridBagConstraints);
+        boxPanel.add(innerTimePanel);
+        innerTimePanel.getAccessibleContext().setAccessibleName("Time properties");
 
-        timeTabPanel.add(timePanel, java.awt.BorderLayout.CENTER);
+        pathStylePanel.setLayout(new java.awt.BorderLayout());
 
-        variableTabPane.addTab("Time", timeTabPanel);
+        pathStylePanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Path style"));
+        innerPathStylePanel.setLayout(new java.awt.GridLayout(2, 1, 5, 5));
+
+        innerPathStylePanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        changeRenderingButton.setText("Render changes");
+        changeRenderingButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        changeRenderingButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        innerPathStylePanel.add(changeRenderingButton);
+
+        renderAllButton.setText("Render all values");
+        renderAllButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        renderAllButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        innerPathStylePanel.add(renderAllButton);
+
+        pathStylePanel.add(innerPathStylePanel, java.awt.BorderLayout.NORTH);
+
+        boxPanel.add(pathStylePanel);
+
+        otherTabPanel.add(boxPanel, java.awt.BorderLayout.NORTH);
+
+        variableTabPane.addTab("Other", otherTabPanel);
 
         getContentPane().add(variableTabPane, java.awt.BorderLayout.CENTER);
 
@@ -665,7 +696,7 @@ public class GUIViewDialog extends JDialog implements KeyListener
 		view.showTime(showTimeCheckBox.isSelected());
 		view.showCumulativeTime(showCumulativeTimeCheckBox.isSelected());			
 		view.setVariableVisibility(visibleVariableListModel.getVariables(), hiddenVariableListModel.getVariables());		    
-
+		view.setRenderer(changeRenderingButton.isSelected());
 		view.setVisibleRewardListItems(visibleRewardListModel.getRewards());
 				
 		dispose();
@@ -783,7 +814,7 @@ public class GUIViewDialog extends JDialog implements KeyListener
 		{
 			this.isCumulative = isCumulative;
 		}
-
+		
 		public GUISimulator.RewardStructure getRewardStructure() 
 		{
 			return rewardStructure;
