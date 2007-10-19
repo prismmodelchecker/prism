@@ -486,7 +486,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 				
 				g2.setColor(color);	
 				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-				g2.drawString(stringValue, (int)((getWidth()/2 + 0.5)- (width/2)), 12);				
+				g2.drawString(stringValue, 3, 12);				
 			}
 		}
 	}
