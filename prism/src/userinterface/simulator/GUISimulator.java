@@ -104,7 +104,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		pathTable.addMouseListener(this);
 		pathTable.getTableHeader().addMouseListener(this);
-		pathTable.getParent().addMouseListener(this);
+		tableScroll.addMouseListener(this);
 		
 		pathTable.getTableHeader().setReorderingAllowed(true);
 		
@@ -114,6 +114,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				sortOutColumnSizes();
 			}
 		});
+		
+		pathTablePlaceHolder.addMouseListener(this);
 		
 		view.refreshToDefaultView();
 		
@@ -162,7 +164,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		manualUpdateTableScrollPane.setRowHeaderView(((GUISimulatorUpdatesTable)currentUpdatesTable).getUpdateRowHeader());
 		
 		tableScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		
 		stateLabelList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
 		stateLabelList.addListSelectionListener(new ListSelectionListener()
@@ -191,6 +192,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		autoTimeCheck.setSelected(true);
 		currentUpdatesTable.requestFocus();
+		
+		manualUpdateTableScrollPane.setToolTipText("Double-click or right-click below to create a new path");
 	}
 	
 	public void setGUIProb(GUIMultiProperties guiProp)
@@ -244,6 +247,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	{
 		try
 		{
+			tableScroll.setViewportView(pathTablePlaceHolder);
+			
 			//System.ouy.println("guisimulator 1");
 			if(engineBuilt)
 			{
@@ -327,6 +332,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		Values initialState;
 		try
 		{
+			tableScroll.setViewportView(pathTable);
+			
 			// get properties constants/labels
 			PropertiesFile pf;
 			try
@@ -994,6 +1001,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         resetPathButton = new javax.swing.JButton();
         exportPathButton = new javax.swing.JButton();
         configureViewButton = new javax.swing.JButton();
+        pathTable = new javax.swing.JTable();
+        pathTable = new GUISimulatorPathTable(this, pathTableModel, engine);
+
         jPanel2 = new javax.swing.JPanel();
         jSplitPane1 = new javax.swing.JSplitPane();
         jPanel3 = new javax.swing.JPanel();
@@ -1052,8 +1062,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         outerBottomPanel = new javax.swing.JPanel();
         bottomPanel = new javax.swing.JPanel();
         tableScroll = new javax.swing.JScrollPane();
-        pathTable = new javax.swing.JTable();
-        pathTable = new GUISimulatorPathTable(this, pathTableModel, engine);
+        pathTablePlaceHolder = new javax.swing.JPanel();
 
         innerButtonPanel.setLayout(new java.awt.GridLayout(2, 2, 10, 10));
 
@@ -1110,6 +1119,17 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
         innerButtonPanel.add(configureViewButton);
 
+        pathTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
         jSplitPane1.setLeftComponent(jPanel3);
 
         jSplitPane1.setRightComponent(jPanel4);
@@ -1257,7 +1277,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         randomExplorationButton.setIcon(new javax.swing.ImageIcon(""));
         randomExplorationButton.setToolTipText("Make a number of random automatic updates");
         randomExplorationButton.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
-        randomExplorationButton.setLabel("Simulate");
+        randomExplorationButton.setLabel("Random Exploration");
         randomExplorationButton.setMaximumSize(new java.awt.Dimension(220, 23));
         randomExplorationButton.setMinimumSize(new java.awt.Dimension(50, 23));
         randomExplorationButton.setPreferredSize(new java.awt.Dimension(160, 23));
@@ -1415,15 +1435,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         bottomPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Path"));
         bottomPanel.setMinimumSize(new java.awt.Dimension(42, 0));
         tableScroll.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        pathTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null}
-            },
-            new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
-            }
-        ));
-        tableScroll.setViewportView(pathTable);
+        pathTablePlaceHolder.setToolTipText("Double-click or right-click to create a new path");
+        tableScroll.setViewportView(pathTablePlaceHolder);
 
         bottomPanel.add(tableScroll, java.awt.BorderLayout.CENTER);
 
@@ -1851,7 +1864,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	{
 		if(!computing)
 		{
-			if(e.isPopupTrigger() && (e.getSource() == pathTable || e.getSource() == pathTable.getTableHeader() || e.getSource() == pathTable.getParent()))
+			if(e.getClickCount() == 2 && e.getSource() == pathTablePlaceHolder)
+			{				
+				a_newPath();
+			}
+			if(e.isPopupTrigger() && (e.getSource() == pathTablePlaceHolder || e.getSource() == pathTable || e.getSource() == pathTable.getTableHeader() || e.getSource() == tableScroll))
 			{
 				backtrackToHere.setEnabled(!(e.getSource() == pathTable.getTableHeader() || e.getSource() == pathTable.getParent()));
 				removeToHere.setEnabled(!(e.getSource() == pathTable.getTableHeader() || e.getSource() == pathTable.getParent()));
@@ -2133,6 +2150,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
     private javax.swing.JLabel pathLength;
     private javax.swing.JLabel pathLengthLabel;
     private javax.swing.JTable pathTable;
+    private javax.swing.JPanel pathTablePlaceHolder;
     javax.swing.JButton randomExplorationButton;
     javax.swing.JButton resetPathButton;
     private javax.swing.JList stateLabelList;
@@ -2755,14 +2773,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 								visibleRewardColumns.add(new RewardStructureColumn(rewardStructure, RewardStructureColumn.TRANSITION_REWARD));						
 						}
 						
-						System.out.println("REFRESHED VIEW " + visibleVariables.size());
 						
 					}
 					catch (SimulatorException e) {}
 				}
 			}
-			else
-				System.out.println("REUSED VIEW");
 			this.setChanged();
 			this.notifyObservers();
 			
@@ -2931,6 +2946,15 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 		public String getGroupToolTip(int groupIndex) 
 		{
+			ArrayList vars = view.getVisibleVariables();
+			Set<String> varNames = new HashSet<String>();
+			
+			for (Object var : vars)
+			{
+				Variable variable = (Variable)var;
+				varNames.add(variable.getName());
+			}
+			
 			int groupCount = 0;
 			
 			if (view.showSteps()) 
@@ -2949,12 +2973,32 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				groupCount++;				
 			}
 			
-			if (view.getVisibleVariables().size() > 0)
-			{ 
-				if (groupCount == groupIndex)
-				{	return "Columns in this group represent variables of this model";	}
-				
-				groupCount++;
+			for (int g = 0; g < parsedModel.getNumGlobals(); g++)
+			{
+				if (varNames.contains(parsedModel.getGlobal(g).getName()))
+				{
+					if (groupCount == groupIndex)
+					{	return "Columns in this group represent global variables";	}
+					
+					groupCount++;
+					break;
+				}						
+			}
+			
+			for (int m = 0; m < parsedModel.getNumModules(); m++)
+			{	
+				Module module = parsedModel.getModule(m);
+				for (int v = 0; v < module.getNumDeclarations(); v++)
+				{
+					if (varNames.contains(module.getDeclaration(v).getName()))
+					{	
+						if (groupCount == groupIndex)
+						{	return "Columns in this group represent variables of module \"" + parsedModel.getModuleName(m) + "\"";	}
+						
+						groupCount++;
+						break;
+					}
+				}
 			}
 			
 			// Add state and transitions rewards for each reward structure.
@@ -3527,8 +3571,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		}
 	}
 
-	public void notifySettings(PrismSettings settings) {
-		// TODO Auto-generated method stub
-		
+	public void notifySettings(PrismSettings settings) 
+	{
+		 displayStyleFast = settings.getInteger(PrismSettings.SIMULATOR_RENDER_ALL_VALUES) == 0;
 	}
 }
