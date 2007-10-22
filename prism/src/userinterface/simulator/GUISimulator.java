@@ -2724,8 +2724,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					canUseCurrentView = false;
 				}
 			}
-			
-			if (!canUseCurrentView)
+						
+			if (!canUseCurrentView && pathActive)
 			{	
 				visibleVariables.clear();
 				hiddenVariables.clear();			
@@ -2740,7 +2740,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					GUISimulator.this.setRenderer(useChangeRenderer);
 				}
 				
-				if (pathActive)
+				
 				{
 					try
 					{
@@ -2775,7 +2775,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 						
 						
 					}
-					catch (SimulatorException e) {}
+					catch (SimulatorException e) {}					
 				}
 			}
 			this.setChanged();
