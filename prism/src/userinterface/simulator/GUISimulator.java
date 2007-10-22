@@ -2519,6 +2519,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		private boolean showTime;
 		private boolean showCumulativeTime;
 		private boolean useChangeRenderer;
+		
+		private boolean initialRun = true;
 				    	
     	public SimulationView()
     	{    		
@@ -2527,6 +2529,14 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
     		
     		this.visibleRewardColumns = new ArrayList();    		
     		this.rewards = new ArrayList();
+    		
+    		this.stepsVisible = true;
+			this.showTime = false;
+			this.showCumulativeTime = true;
+			
+			useChangeRenderer = (gui.getPrism().getSettings().getInteger(PrismSettings.SIMULATOR_RENDER_ALL_VALUES) == 0);
+			
+			
     	}
     	    
 		public boolean showSteps() 
@@ -2544,12 +2554,12 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		public boolean showTime() 
 		{
-        	return showTime && parsedModel.getType() == ModulesFile.STOCHASTIC;
+        	return showTime;
         }
 		
 		public boolean showCumulativeTime()
 		{
-			return showCumulativeTime && parsedModel.getType() == ModulesFile.STOCHASTIC;
+			return showCumulativeTime;
 		}
 		
 		public boolean canShowTime()
@@ -2655,6 +2665,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				canUseCurrentView = false;
 			else
 			{
+				if (useChangeRenderer != usingChangeRenderer())
+				{
+					GUISimulator.this.setRenderer(useChangeRenderer);
+				}
+				
 				// Time-wise we have a problem.
 				if (parsedModel.getType() != ModulesFile.STOCHASTIC && (showTime || showCumulativeTime))
 					canUseCurrentView = false;
@@ -2731,23 +2746,13 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				hiddenVariables.clear();			
 				visibleRewardColumns.clear();
 				
-				rewards.clear();
-				   
-				useChangeRenderer = (gui.getPrism().getSettings().getInteger(PrismSettings.SIMULATOR_RENDER_ALL_VALUES) == 0);
+				rewards.clear();				   
 				
-				if (useChangeRenderer != usingChangeRenderer())
-				{
-					GUISimulator.this.setRenderer(useChangeRenderer);
-				}
 				
 				
 				{
 					try
-					{
-						stepsVisible = true;
-						showTime = false;
-						showCumulativeTime = parsedModel.getType() == ModulesFile.STOCHASTIC;
-						
+					{						
 						for (int i = 0; i < engine.getNumVariables(); i++)
 						{
 							visibleVariables.add(new Variable(i, engine.getVariableName(i), engine.getVariableType(i))); 
@@ -2778,6 +2783,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					catch (SimulatorException e) {}					
 				}
 			}
+			initialRun = false;
 			this.setChanged();
 			this.notifyObservers();
 			
@@ -2813,7 +2819,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				if (view.showSteps()) 
 				{ groupCount++;	}
 				
-				if (view.showTime() || view.showCumulativeTime()) 
+				if (view.canShowTime() && (view.showTime() || view.showCumulativeTime())) 
 				{ groupCount++;	} 
 				
 				ArrayList vars = view.getVisibleVariables();
@@ -2883,7 +2889,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					groupCount++;
 				}
 				
-				if (view.showTime() || view.showCumulativeTime()) 
+				if (view.canShowTime() && (view.showTime() || view.showCumulativeTime())) 
 				{	
 					if (groupCount == groupIndex) 
 					{	return "[ Time ]";	}
@@ -2965,7 +2971,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				groupCount++;
 			}
 			
-			if (view.showTime() || view.showCumulativeTime()) 
+			if (view.canShowTime() &&  (view.showTime() || view.showCumulativeTime())) 
 			{	
 				if (groupCount == groupIndex) 
 				{	return null;	}
@@ -3017,7 +3023,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		{
 			int stepStart = 0;
 			int timeStart = stepStart + (view.showSteps() ? 1 : 0); 
-			int varStart = timeStart + (view.showTime() ? 1 : 0) + (view.showCumulativeTime() ? 1 : 0);
+			int varStart = timeStart + (view.canShowTime() && view.showTime() ? 1 : 0) + (view.canShowTime() && view.showCumulativeTime() ? 1 : 0);
 			int rewardStart =  varStart + view.getVisibleVariables().size();
 			
 			int groupCount = 0;
@@ -3030,7 +3036,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				groupCount++;				
 			}
 			
-			if (view.showTime() || view.showCumulativeTime()) 
+			if (view.canShowTime() && (view.showTime() || view.showCumulativeTime())) 
 			{	
 				if (groupCount == groupIndex)
 				{	
@@ -3131,7 +3137,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				int colCount = 0;
 				
 				colCount += (view.showSteps() ? 1 : 0);
-				colCount += (view.showTime() ? 1 : 0) + (view.showCumulativeTime() ? 1 : 0);				
+				colCount += (view.canShowTime() && view.showTime() ? 1 : 0) + (view.canShowTime() && view.showCumulativeTime() ? 1 : 0);				
 				colCount += view.getVisibleVariables().size();
 				colCount += view.getVisibleRewardColumns().size();
 								
@@ -3176,8 +3182,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			{
 				int stepStart = 0;
 				int timeStart = stepStart + (view.showSteps() ? 1 : 0);
-				int cumulativeTimeStart = timeStart + (view.showTime() ? 1 : 0);
-				int varStart = cumulativeTimeStart + (view.showCumulativeTime() ? 1 : 0); 
+				int cumulativeTimeStart = timeStart + (view.canShowTime() && view.showTime() ? 1 : 0);
+				int varStart = cumulativeTimeStart + (view.canShowTime() && view.showCumulativeTime() ? 1 : 0); 
 				int rewardStart = varStart + view.getVisibleVariables().size();
 				
 				// The step column
@@ -3215,8 +3221,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			{
 				int stepStart = 0;
 				int timeStart = stepStart + (view.showSteps() ? 1 : 0);
-				int cumulativeTimeStart = timeStart + (view.showTime() ? 1 : 0);
-				int varStart = cumulativeTimeStart + (view.showCumulativeTime() ? 1 : 0); 
+				int cumulativeTimeStart = timeStart + (view.canShowTime() && view.showTime() ? 1 : 0);
+				int varStart = cumulativeTimeStart + (view.canShowTime() && view.showCumulativeTime() ? 1 : 0); 
 				int rewardStart = varStart + view.getVisibleVariables().size();
 				
 				// The step column
@@ -3260,8 +3266,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			{
 				int stepStart = 0;
 				int timeStart = stepStart + (view.showSteps() ? 1 : 0);
-				int cumulativeTimeStart = timeStart + (view.showTime() ? 1 : 0);
-				int varStart = cumulativeTimeStart + (view.showCumulativeTime() ? 1 : 0); 
+				int cumulativeTimeStart = timeStart + (view.canShowTime() && view.showTime() ? 1 : 0);
+				int varStart = cumulativeTimeStart + (view.canShowTime() && view.showCumulativeTime() ? 1 : 0); 
 				int rewardStart = varStart + view.getVisibleVariables().size();
 				
 				// The step column
@@ -3573,6 +3579,15 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 	public void notifySettings(PrismSettings settings) 
 	{
-		 displayStyleFast = settings.getInteger(PrismSettings.SIMULATOR_RENDER_ALL_VALUES) == 0;
+		displayStyleFast = settings.getInteger(PrismSettings.SIMULATOR_RENDER_ALL_VALUES) == 0;
+		
+		if (displayStyleFast != view.isChangeRenderer())
+		{	
+			String[] answers = {"Yes", "No"};
+			if (GUISimulator.this.question("You have changed the default rendering style of paths. Do you wish \nto reflect this in your current trace?",answers, 0) == 0)
+			{
+				view.setRenderer(displayStyleFast);
+			}
+		}
 	}
 }
