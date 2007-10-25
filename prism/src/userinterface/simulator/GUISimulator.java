@@ -2713,7 +2713,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 						boolean hasStates = parsedModel.getRewardStruct(r).getNumStateItems() != 0;
 						boolean hasTrans = parsedModel.getRewardStruct(r).getNumTransItems() != 0;
 						
-						boolean foundRewardr = false;
+						boolean foundReward = false;
 						
 						for (Object rewobj : rewards)
 						{
