@@ -49,14 +49,14 @@ import settings.*;
  */
 public class GUIGraphHandler extends JPanel implements MouseListener
 {
-	private int counter = 0;
+	
 	private boolean canDelete;
 	
 	private JTabbedPane theTabs;
 	private JPopupMenu backMenu, graphMenu;
 	
-	private ArrayList<Graph> models;
-	private ArrayList<GraphOptions> options;
+	private java.util.List<Graph> models;
+	private java.util.List<GraphOptions> options;
 	
 	private GUIPlugin plug;
 	
@@ -124,9 +124,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		attributes = new HashPrintRequestAttributeSet();
 		
 		models = new ArrayList<Graph>();
-		options = new ArrayList<GraphOptions>();
-		counter = 0;
-		
+		options = new ArrayList<GraphOptions>();		
 	}
 	
 	private void initComponents()
@@ -369,7 +367,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 			public void actionPerformed(ActionEvent e)
 			{
 				Graph graph = models.get(
-						theTabs.getSelectedIndex()
+					theTabs.getSelectedIndex()
 				);
 				
 				if (!graph.getDisplaySettings().getBackgroundColor().equals(Color.white))
@@ -399,7 +397,6 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 				models.remove(theTabs.getSelectedIndex());
 				options.remove(theTabs.getSelectedIndex());
 				theTabs.remove(graph);
-				counter--;
 			}
 		};
 		deleteGraph.putValue(Action.NAME, "Delete graph");
@@ -550,8 +547,27 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 	
 	public int addGraph(Graph m)
 	{
-		return addGraph(m, "Graph " + (counter + 1));
+		String name = "";
 		
+		boolean nameNew;
+		int counter = 1;
+		
+		while (true)
+		{
+			name = "Graph " + (counter);
+			nameNew = true;
+			
+			for(int i = 0; i < theTabs.getComponentCount(); i++)
+			{
+				if(theTabs.getTitleAt(i).equals(name))
+					nameNew = false;
+			}
+			
+			if (nameNew)
+				return addGraph(m, name);
+			
+			counter++;
+		}		
 	}
 	
 	public int addGraph(Graph m, String tabName)
@@ -574,9 +590,6 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		
 		// make this new tab the default selection
 		theTabs.setSelectedIndex(theTabs.indexOfComponent(m));
-		
-		// increase the graph counter
-		counter++;
 		
 		// return the index of the component
 		return index;
