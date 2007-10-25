@@ -2718,8 +2718,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 						for (Object rewobj : rewards)
 						{
 							RewardStructure rew = (RewardStructure)rewobj;
-							
-							if (rew.isStateEmpty() == !hasStates && rew.isTransitionEmpty() == !hasTrans && (rew.getName() == null  && rewardName.equals("") || rew.getName().equals(rewardName)))
+							if (rew.isStateEmpty() == !hasStates && rew.isTransitionEmpty() == !hasTrans && ((rew.getName() == null  && rewardName.equals("")) || (rew.getName() != null && rew.getName().equals(rewardName))))
 							{
 								allrew.remove(rew);
 								foundReward = true;
