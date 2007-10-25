@@ -1277,7 +1277,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         randomExplorationButton.setIcon(new javax.swing.ImageIcon(""));
         randomExplorationButton.setToolTipText("Make a number of random automatic updates");
         randomExplorationButton.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
-        randomExplorationButton.setLabel("Random Exploration");
+        randomExplorationButton.setLabel("Simulate");
         randomExplorationButton.setMaximumSize(new java.awt.Dimension(220, 23));
         randomExplorationButton.setMinimumSize(new java.awt.Dimension(50, 23));
         randomExplorationButton.setPreferredSize(new java.awt.Dimension(160, 23));
@@ -2713,7 +2713,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 						boolean hasStates = parsedModel.getRewardStruct(r).getNumStateItems() != 0;
 						boolean hasTrans = parsedModel.getRewardStruct(r).getNumTransItems() != 0;
 						
-						boolean foundReward = false;
+						boolean foundRewardr = false;
 						
 						for (Object rewobj : rewards)
 						{

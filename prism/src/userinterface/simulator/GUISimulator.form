@@ -656,7 +656,7 @@
                                                     </Property>
                                                     <Property name="toolTipText" type="java.lang.String" value="Make a number of random automatic updates"/>
                                                     <Property name="horizontalAlignment" type="int" value="10"/>
-                                                    <Property name="label" type="java.lang.String" value="Random Exploration"/>
+                                                    <Property name="label" type="java.lang.String" value="Simulate"/>
                                                     <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
                                                       <Dimension value="[220, 23]"/>
                                                     </Property>
