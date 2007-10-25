@@ -136,6 +136,10 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					a_manualUpdate();
 					currentUpdatesTable.requestFocus();
 				}
+				else if (e.getClickCount() == 2 && !currentUpdatesTable.isEnabled())
+				{
+					GUISimulator.this.warning("Simulation", "You cannot continue exploration from the state that is current selected, please select \nthe most recently explored state in the path table first.");
+				}
 			}
 		});
 		
