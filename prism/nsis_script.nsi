@@ -48,7 +48,6 @@ UninstPage instfiles
 # --------------------------------------------------------------------------- #
 
 Name            "${PRISM_NAME}"
-Icon            "${PRISM_DIR}etc\p32.ico"
 OutFile         "..\${PRISM_BUILD}-win-installer.exe"
 
 CRCCheck        on
@@ -112,7 +111,7 @@ Section "Desktop shortcut"
 	
 	CreateShortCut  "$DESKTOP\${PRISM_NAME}.lnk" \
                     "$INSTDIR\bin\xprism.bat" ""                            \
-                    "$INSTDIR\etc\p32.ico" 0                                \
+                    "$INSTDIR\etc\prism.ico" 0                                \
                     SW_SHOWMINIMIZED "" "${PRISM_NAME} (GUI mode)"
                     
 SectionEnd
@@ -125,7 +124,7 @@ Section "Start menu shortcuts"
 
     CreateShortCut  "$SMPROGRAMS\${PRISM_NAME}\PRISM (GUI).lnk" \
                     "$INSTDIR\bin\xprism.bat" ""                            \
-                    "$INSTDIR\etc\p32.ico" 0                                \
+                    "$INSTDIR\etc\prism.ico" 0                                \
                     SW_SHOWMINIMIZED "" "Runs the PRISM GUI"
 
     CreateShortCut  "$SMPROGRAMS\${PRISM_NAME}\PRISM (console).lnk" \
