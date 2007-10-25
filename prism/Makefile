@@ -298,7 +298,7 @@ cuddpackage: checks
 	  echo Making cudd ...; \
 	  cd $(CUDD_DIR) && \
 	  /bin/cp $(CUDD_MAKEFILE) Makefile && \
-	  $(MAKE); \
+	  $(MAKE) C="$(C)" CC="$(C)" CPP="$(CPP)"; \
 	else \
 	  echo Skipping cudd make since it is a symlink...; \
 	fi)
