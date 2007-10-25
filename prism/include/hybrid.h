@@ -32,7 +32,7 @@
 
 //------------------------------------------------------------------------------
 
-int fatal(char *s); 
+void fatal(char *s); 
 
 // hdd data structure definitions
 

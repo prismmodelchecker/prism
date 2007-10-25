@@ -379,7 +379,7 @@ int accuracy
 		inputs[j] = 0;
 	}
 		
-	length = (long)pow(2, num_vars);
+	length = (long)pow(2.0, num_vars);
 
 	for (i = 0; i < length; i++) {
 		for (j = 0; j < num_vars; j++) {			
@@ -443,8 +443,8 @@ int accuracy
 		inputs[k] = 0;
 	}
 		
-	rows = (long)pow(2, num_rvars);
-	cols = (long)pow(2, num_cvars);
+	rows = (long)pow(2.0, num_rvars);
+	cols = (long)pow(2.0, num_cvars);
 	
 	for (i = 0; i < rows; i++) {
 		for (j = 0; j < cols; j++) {
@@ -511,7 +511,7 @@ int accuracy
 		inputs[j] = 0;
 	}
 		
-	length = (long)pow(2, num_vars);
+	length = (long)pow(2.0, num_vars);
 
 	count = -1;
 	for (i = 0; i < length; i++) {

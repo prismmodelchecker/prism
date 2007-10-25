@@ -32,7 +32,7 @@
 #include "PrismHybridGlob.h"
 #include <math.h>
 
-int fatal( char *s) { fprintf(stderr, "fatal...\n"); perror(s); exit(10); }
+void fatal( char *s) { fprintf(stderr, "fatal...\n"); perror(s); exit(10); }
 
 // globals (used by local functions)
 static HDDMatrix *hddm;
