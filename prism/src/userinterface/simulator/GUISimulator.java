@@ -138,7 +138,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				}
 				else if (e.getClickCount() == 2 && !currentUpdatesTable.isEnabled())
 				{
-					GUISimulator.this.warning("Simulation", "You cannot continue exploration from the state that is current selected, please select \nthe most recently explored state in the path table first.");
+					GUISimulator.this.warning("Simulation", "You cannot continue exploration from the state that is current selected.\nSelect the last state in the path table to continue");
 				}
 			}
 		});
@@ -2987,7 +2987,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				if (varNames.contains(parsedModel.getGlobal(g).getName()))
 				{
 					if (groupCount == groupIndex)
-					{	return "Columns in this group represent global variables";	}
+					{	return "Global variables";	}
 					
 					groupCount++;
 					break;
@@ -3002,7 +3002,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					if (varNames.contains(module.getDeclaration(v).getName()))
 					{	
 						if (groupCount == groupIndex)
-						{	return "Columns in this group represent variables of module \"" + parsedModel.getModuleName(m) + "\"";	}
+						{	return "Variables of module \"" + parsedModel.getModuleName(m) + "\"";	}
 						
 						groupCount++;
 						break;
@@ -3014,7 +3014,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			if (view.getVisibleRewardColumns().size() > 0)
 				{
 				if (groupCount == groupIndex)
-				{	return "Columns in this group represent the state, transition and cumulative rewards of this model";	}
+				{	return "State, transition and cumulative rewards";	}
 				
 				groupCount++;				
 			}
@@ -3231,20 +3231,20 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				// The step column
 				if (stepStart <= columnIndex && columnIndex < timeStart)
 				{
-					return "The states of this path";						
+					return "State indices";						
 				}
 				else if (timeStart <= columnIndex && columnIndex < cumulativeTimeStart)
 				{
-					return "The time spent in a state";
+					return "Time spent in a state";
 				}
 				else if (cumulativeTimeStart <= columnIndex && columnIndex < varStart)
 				{
-					return "The cumulative time spent in states";
+					return "Cumulative time";
 				}
 				// A variable column
 				else if (varStart <= columnIndex && columnIndex < rewardStart)
 				{						
-					return "The values of variable \"" + ((Variable)view.getVisibleVariables().get(columnIndex - varStart)).toString() + "\"";						
+					return "Values of variable \"" + ((Variable)view.getVisibleVariables().get(columnIndex - varStart)).toString() + "\"";						
 				}
 				
 				else if (rewardStart <= columnIndex)
@@ -3253,11 +3253,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					String rewardName = column.getRewardStructure().getColumnName();
 					
 					if (column.isStateReward())
-						return "The state reward of reward structure " + rewardName;
+						return "State reward of reward structure " + rewardName;
 					if (column.isTransitionReward())
-						return "The transition reward of reward structure " + rewardName;
+						return "Transition reward of reward structure " + rewardName;
 					if (column.isCumulativeReward())
-						return "The cumulative reward of reward structure " + rewardName;								
+						return "Cumulative reward of reward structure " + rewardName;								
 				}
 			}				
 			return "Undefined Column";
@@ -3278,7 +3278,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				{
 					return "" + rowIndex;						
 				}
-				
+				// Time column
 				else if (timeStart <= columnIndex && columnIndex < cumulativeTimeStart)					
 				{					
 					timeValue = new TimeValue(SimulatorEngine.getTimeSpentInPathState(rowIndex), false);					
@@ -3286,14 +3286,15 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					
 					return timeValue;
 				}					
+				// Cumulative time column
 				else if (cumulativeTimeStart <= columnIndex && columnIndex < varStart)
 				{
-					timeValue = new TimeValue(SimulatorEngine.getCumulativeTimeSpentInPathState(rowIndex), true);					
-					timeValue.setTimeValueUnknown(rowIndex >= SimulatorEngine.getPathSize() - 1);
+					timeValue = new TimeValue((rowIndex == 0) ? 0.0 : SimulatorEngine.getCumulativeTimeSpentInPathState(rowIndex - 1), true);
+					timeValue.setTimeValueUnknown(rowIndex >= SimulatorEngine.getPathSize());
 					
 					return timeValue;					
 				}
-//					 A variable column
+				// A variable column
 				else if (varStart <= columnIndex && columnIndex < rewardStart)
 				{					
 					Variable var = ((Variable)view.getVisibleVariables().get(columnIndex - varStart));
@@ -3307,6 +3308,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					
 					return variableValue;
 				}
+				// A reward column
 				else if (rewardStart <= columnIndex)
 				{		
 					RewardStructureColumn rewardColumn = (RewardStructureColumn)view.getVisibleRewardColumns().get(columnIndex - rewardStart);
@@ -3314,6 +3316,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					rewardStructureValue.setRewardStructureColumn(rewardColumn);
 					rewardStructureValue.setRewardValueUnknown(false);
 										
+					// A state reward column
 					if (rewardColumn.isStateReward())
 					{					
 						double value = SimulatorEngine.getStateRewardOfPathState(rowIndex, rewardColumn.getRewardStructure().getIndex());
@@ -3322,6 +3325,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 						
 						rewardStructureValue.setRewardValueUnknown(rowIndex > SimulatorEngine.getPathSize() - 1);
 					}
+					// A transition reward column
 					else if (rewardColumn.isTransitionReward())
 					{					
 						double value = SimulatorEngine.getTransitionRewardOfPathState(rowIndex, rewardColumn.getRewardStructure().getIndex());
@@ -3330,13 +3334,21 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 						
 						rewardStructureValue.setRewardValueUnknown(rowIndex >= SimulatorEngine.getPathSize() - 1);
 					}
+					// A cumulative reward column
 					else
-					{					
-						double value = SimulatorEngine.getTotalStateRewardOfPathState(rowIndex, rewardColumn.getRewardStructure().getIndex()) + SimulatorEngine.getTotalTransitionRewardOfPathState(rowIndex, rewardColumn.getRewardStructure().getIndex());
-						rewardStructureValue.setChanged(rowIndex == 0 || value != (SimulatorEngine.getTotalStateRewardOfPathState(rowIndex-1, rewardColumn.getRewardStructure().getIndex()) + SimulatorEngine.getTotalTransitionRewardOfPathState(rowIndex -1, rewardColumn.getRewardStructure().getIndex())));											
-						rewardStructureValue.setRewardValue(new Double(value));		
-						
-						rewardStructureValue.setRewardValueUnknown(rowIndex >= SimulatorEngine.getPathSize() - 1);
+					{
+						if (rowIndex == 0) {
+							rewardStructureValue.setChanged(true);
+							rewardStructureValue.setRewardValue(new Double(0.0));
+							rewardStructureValue.setRewardValueUnknown(false);
+						}
+						else {
+							double value = SimulatorEngine.getTotalStateRewardOfPathState(rowIndex-1, rewardColumn.getRewardStructure().getIndex()) + SimulatorEngine.getTotalTransitionRewardOfPathState(rowIndex-1, rewardColumn.getRewardStructure().getIndex());
+							if (rowIndex == 1) rewardStructureValue.setChanged(value != 0.0);
+							else rewardStructureValue.setChanged(value != (SimulatorEngine.getTotalStateRewardOfPathState(rowIndex-2, rewardColumn.getRewardStructure().getIndex()) + SimulatorEngine.getTotalTransitionRewardOfPathState(rowIndex-2, rewardColumn.getRewardStructure().getIndex())));
+							rewardStructureValue.setRewardValue(new Double(value));		
+							rewardStructureValue.setRewardValueUnknown(rowIndex >= SimulatorEngine.getPathSize());
+						}
 					}
 						
 					return rewardStructureValue;																	
