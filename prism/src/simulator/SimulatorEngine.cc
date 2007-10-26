@@ -206,6 +206,7 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_allocatePath
 	try
 	{
 		Allocate_Path();
+		return 0;
 	}
 	catch(string str)
 	{
@@ -222,7 +223,7 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_startPath
 	try
 	{
 		Start_Path();
-
+		return 0;
 	}
 	catch(string str)
 	{
