@@ -72,22 +72,6 @@ public class GUIPrism extends JFrame
     private boolean doExit;
     
     
-    public void adjustFont( int adjust )
-    {
-        Object[] objs = UIManager.getLookAndFeel().getDefaults().keySet().toArray();
-        for( int i = 0; i < objs.length; i++ )
-        {
-            if( objs[i].toString().toUpperCase().indexOf( ".FONT" ) != -1 )
-            {
-                Font font = UIManager.getFont( objs[i] );
-                font = font.deriveFont( (float)(font.getSize() + adjust ));
-                UIManager.put( objs[i], new FontUIResource(font) );
-            }
-        }
-        SwingUtilities.updateComponentTreeUI(this);
-        repaint();
-    }
-    
     //STATIC METHODS
     
     /** The entry point of the program from the command line.
@@ -378,6 +362,26 @@ public class GUIPrism extends JFrame
         }
     }
     
+    /**
+     *  Adjust the main font for the GUI (+1 = one size up, -1 = one size down)
+     */
+	public void adjustFont(int adjust)
+    {
+        Object[] objs = UIManager.getLookAndFeel().getDefaults().keySet().toArray();
+        for (int i = 0; i < objs.length; i++)
+        {
+            if (objs[i].toString().toUpperCase().indexOf(".FONT") != -1)
+            {
+                Font font = UIManager.getFont(objs[i]);
+                font = font.deriveFont((float)(font.getSize() + adjust));
+                UIManager.put(objs[i], new FontUIResource(font));
+            }
+        }
+        SwingUtilities.updateComponentTreeUI(this);
+        repaint();
+    }
+    
+
     //EXITERS
     public void exit()
     {
