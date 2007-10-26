@@ -33,6 +33,7 @@ import java.net.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.plaf.*;
 import javax.swing.plaf.metal.*;
 //Prism Packages
 import prism.*;
@@ -69,6 +70,23 @@ public class GUIPrism extends JFrame
     private static GUIPrismSplash splash;
     private static GUIPrism gui;
     private boolean doExit;
+    
+    
+    public void adjustFont( int adjust )
+    {
+        Object[] objs = UIManager.getLookAndFeel().getDefaults().keySet().toArray();
+        for( int i = 0; i < objs.length; i++ )
+        {
+            if( objs[i].toString().toUpperCase().indexOf( ".FONT" ) != -1 )
+            {
+                Font font = UIManager.getFont( objs[i] );
+                font = font.deriveFont( (float)(font.getSize() + adjust ));
+                UIManager.put( objs[i], new FontUIResource(font) );
+            }
+        }
+        SwingUtilities.updateComponentTreeUI(this);
+        repaint();
+    }
     
     //STATIC METHODS
     
@@ -141,6 +159,8 @@ public class GUIPrism extends JFrame
     private JProgressBar progress;
     private GUITaskBar taskbar;
     private Action prismOptions;
+    private Action fontIncrease;
+    private Action fontDecrease;
     
     //CONSTRUCTORS AND INITIALISATION METHODS
     
@@ -285,6 +305,38 @@ public class GUIPrism extends JFrame
         
         optionsMenu.add(prismOptions);
         optionsMenu.setMnemonic('O');
+        
+        fontIncrease = new AbstractAction()
+        {
+            public void actionPerformed(ActionEvent e)
+            {
+                adjustFont(1);
+            }
+        };
+        fontIncrease.putValue(Action.LONG_DESCRIPTION, "Increase the application font size.");
+        fontIncrease.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_I));
+        fontIncrease.putValue(Action.NAME, "Increase font size");
+        fontIncrease.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFontIncrease.png"));
+		fontIncrease.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
+        
+        optionsMenu.add(fontIncrease);
+        optionsMenu.setMnemonic('I');
+        
+        fontDecrease = new AbstractAction()
+        {
+            public void actionPerformed(ActionEvent e)
+            {
+                adjustFont(-1);
+            }
+        };
+        fontDecrease.putValue(Action.LONG_DESCRIPTION, "Decrease the application font size.");
+        fontDecrease.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_D));
+        fontDecrease.putValue(Action.NAME, "Decrease font size");
+        fontDecrease.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFontDecrease.png"));
+		fontDecrease.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, InputEvent.CTRL_MASK));
+        
+        optionsMenu.add(fontDecrease);
+        optionsMenu.setMnemonic('D');
         
         JPanel bottomPanel = new JPanel();
         {
