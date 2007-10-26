@@ -213,7 +213,7 @@ char *name,
 FILE *fp
 )
 {
-	fprintf(fp, "%s = sparse(1, %d);\n", name, (int)pow(2, num_vars));
+	fprintf(fp, "%s = sparse(1, %d);\n", name, (int)pow(2.0, num_vars));
 	DD_ExportVectorToMatlabFile(ddman, dd, vars, num_vars, name, fp, 0);
 }
 
@@ -249,7 +249,7 @@ int start
 		s = DD_Restrict(ddman, dd, vars[0]);
 		
 		DD_ExportVectorToMatlabFile(ddman, n, &vars[1], num_vars-1, name, fp, start);
-		DD_ExportVectorToMatlabFile(ddman, s, &vars[1], num_vars-1, name, fp, start+(int)pow(2, num_vars-1));
+		DD_ExportVectorToMatlabFile(ddman, s, &vars[1], num_vars-1, name, fp, start+(int)pow(2.0, num_vars-1));
 		
 		Cudd_RecursiveDeref(ddman, n);
 		Cudd_RecursiveDeref(ddman, s);
@@ -293,7 +293,7 @@ char *name,
 FILE *fp
 )
 {
-	fprintf(fp, "%s = sparse(%d, %d);\n", name, (int)pow(2, num_rvars), (int)pow(2, num_cvars));
+	fprintf(fp, "%s = sparse(%d, %d);\n", name, (int)pow(2.0, num_rvars), (int)pow(2.0, num_cvars));
 	DD_ExportMatrixToMatlabFile(ddman, dd, rvars, num_rvars, cvars, num_cvars, name, fp, 0, 0);
 }
 
@@ -344,9 +344,9 @@ int cstart
 		se = DD_Restrict(ddman, s, cvars[0]);
 		
 		DD_ExportMatrixToMatlabFile(ddman, nw, &rvars[1], num_rvars-1, &cvars[1], num_cvars-1, name, fp, rstart, cstart);
-		DD_ExportMatrixToMatlabFile(ddman, ne, &rvars[1], num_rvars-1, &cvars[1], num_cvars-1, name, fp, rstart, cstart+(int)pow(2, num_cvars-1));
-		DD_ExportMatrixToMatlabFile(ddman, sw, &rvars[1], num_rvars-1, &cvars[1], num_cvars-1, name, fp, rstart+(int)pow(2, num_rvars-1), cstart);
-		DD_ExportMatrixToMatlabFile(ddman, se, &rvars[1], num_rvars-1, &cvars[1], num_cvars-1, name, fp, rstart+(int)pow(2, num_rvars-1), cstart+(int)pow(2, num_cvars-1));
+		DD_ExportMatrixToMatlabFile(ddman, ne, &rvars[1], num_rvars-1, &cvars[1], num_cvars-1, name, fp, rstart, cstart+(int)pow(2.0, num_cvars-1));
+		DD_ExportMatrixToMatlabFile(ddman, sw, &rvars[1], num_rvars-1, &cvars[1], num_cvars-1, name, fp, rstart+(int)pow(2.0, num_rvars-1), cstart);
+		DD_ExportMatrixToMatlabFile(ddman, se, &rvars[1], num_rvars-1, &cvars[1], num_cvars-1, name, fp, rstart+(int)pow(2.0, num_rvars-1), cstart+(int)pow(2.0, num_cvars-1));
 		
 		Cudd_RecursiveDeref(ddman, n);
 		Cudd_RecursiveDeref(ddman, s);
@@ -392,7 +392,7 @@ int num_cvars,
 FILE *fp
 )
 {
-	fprintf(fp, "%d\n", (int)pow(2, num_rvars));
+	fprintf(fp, "%d\n", (int)pow(2.0, num_rvars));
 	DD_ExportMatrixToPPFile(ddman, dd, rvars, num_rvars, cvars, num_cvars, fp, 0, 0);
 }
 
@@ -445,9 +445,9 @@ int cstart
 		se = DD_Restrict(ddman, s, cvars[0]);
 		
 		DD_ExportMatrixToPPFile(ddman, nw, &rvars[1], num_rvars-1, &cvars[1], num_cvars-1, fp, rstart, cstart);
-		DD_ExportMatrixToPPFile(ddman, ne, &rvars[1], num_rvars-1, &cvars[1], num_cvars-1, fp, rstart, cstart+(int)pow(2, num_cvars-1));
-		DD_ExportMatrixToPPFile(ddman, sw, &rvars[1], num_rvars-1, &cvars[1], num_cvars-1, fp, rstart+(int)pow(2, num_rvars-1), cstart);
-		DD_ExportMatrixToPPFile(ddman, se, &rvars[1], num_rvars-1, &cvars[1], num_cvars-1, fp, rstart+(int)pow(2, num_rvars-1), cstart+(int)pow(2, num_cvars-1));
+		DD_ExportMatrixToPPFile(ddman, ne, &rvars[1], num_rvars-1, &cvars[1], num_cvars-1, fp, rstart, cstart+(int)pow(2.0, num_cvars-1));
+		DD_ExportMatrixToPPFile(ddman, sw, &rvars[1], num_rvars-1, &cvars[1], num_cvars-1, fp, rstart+(int)pow(2.0, num_rvars-1), cstart);
+		DD_ExportMatrixToPPFile(ddman, se, &rvars[1], num_rvars-1, &cvars[1], num_cvars-1, fp, rstart+(int)pow(2.0, num_rvars-1), cstart+(int)pow(2.0, num_cvars-1));
 		
 		Cudd_RecursiveDeref(ddman, n);
 		Cudd_RecursiveDeref(ddman, s);
@@ -510,7 +510,7 @@ FILE *fp
 	new_dd = DD_StrictThreshold(ddman, new_dd, 0);
 	
 	// create array to store 0-1 spy info
-	num_states = (int)pow(2, depth);
+	num_states = (int)pow(2.0, depth);
 	array = new unsigned char*[num_states];
 	for (i = 0; i < num_states; i++) {
 		array[i] = new unsigned char[num_states/8];
@@ -557,7 +557,7 @@ unsigned char **array
 	// (if i can be bothered)
 		
 	if (num_rvars == 0) {
-		array[rstart][cstart/8] |= (int)pow(2,(cstart%8));
+		array[rstart][cstart/8] |= (int)pow(2.0,(cstart%8));
 	}
 	else {
 		// split into 4 cases
@@ -581,9 +581,9 @@ unsigned char **array
 		se = DD_Restrict(ddman, s, cvars[0]);
 		
 		DD_ExportMatrixToSpyFile(ddman, nw, &rvars[1], num_rvars-1, &cvars[1], num_cvars-1, fp, rstart, cstart, array);
-		DD_ExportMatrixToSpyFile(ddman, ne, &rvars[1], num_rvars-1, &cvars[1], num_cvars-1, fp, rstart, cstart+(int)pow(2, num_cvars-1), array);
-		DD_ExportMatrixToSpyFile(ddman, sw, &rvars[1], num_rvars-1, &cvars[1], num_cvars-1, fp, rstart+(int)pow(2, num_rvars-1), cstart, array);
-		DD_ExportMatrixToSpyFile(ddman, se, &rvars[1], num_rvars-1, &cvars[1], num_cvars-1, fp, rstart+(int)pow(2, num_rvars-1), cstart+(int)pow(2, num_cvars-1), array);
+		DD_ExportMatrixToSpyFile(ddman, ne, &rvars[1], num_rvars-1, &cvars[1], num_cvars-1, fp, rstart, cstart+(int)pow(2.0, num_cvars-1), array);
+		DD_ExportMatrixToSpyFile(ddman, sw, &rvars[1], num_rvars-1, &cvars[1], num_cvars-1, fp, rstart+(int)pow(2.0, num_rvars-1), cstart, array);
+		DD_ExportMatrixToSpyFile(ddman, se, &rvars[1], num_rvars-1, &cvars[1], num_cvars-1, fp, rstart+(int)pow(2.0, num_rvars-1), cstart+(int)pow(2.0, num_cvars-1), array);
 		
 		Cudd_RecursiveDeref(ddman, n);
 		Cudd_RecursiveDeref(ddman, s);
