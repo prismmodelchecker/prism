@@ -3942,11 +3942,6 @@ public class PrismParser implements PrismParserConstants {
     finally { jj_save(185, xla); }
   }
 
-  static final private boolean jj_3_163() {
-    if (jj_scan_token(CEIL)) return true;
-    return false;
-  }
-
   static final private boolean jj_3_179() {
     if (jj_scan_token(FALSE)) return true;
     return false;
@@ -5972,6 +5967,11 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
+  static final private boolean jj_3_163() {
+    if (jj_scan_token(CEIL)) return true;
+    return false;
+  }
+
   static private boolean jj_initialized_once = false;
   static public PrismParserTokenManager token_source;
   static SimpleCharStream jj_input_stream;
@@ -6196,8 +6196,8 @@ public class PrismParser implements PrismParserConstants {
 
   static public ParseException generateParseException() {
     jj_expentries.removeAllElements();
-    boolean[] la1tokens = new boolean[79];
-    for (int i = 0; i < 79; i++) {
+    boolean[] la1tokens = new boolean[80];
+    for (int i = 0; i < 80; i++) {
       la1tokens[i] = false;
     }
     if (jj_kind >= 0) {
@@ -6219,7 +6219,7 @@ public class PrismParser implements PrismParserConstants {
         }
       }
     }
-    for (int i = 0; i < 79; i++) {
+    for (int i = 0; i < 80; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

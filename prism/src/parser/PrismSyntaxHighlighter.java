@@ -39,6 +39,7 @@ public class PrismSyntaxHighlighter
 	public static final int KEYWORD = 3;
 	public static final int NUMERIC = 4;
 	public static final int IDENTIFIER = 5;
+	public static final int PREPROC = 6;
 	public static final int EOF = 100;
 	
 	// output types
@@ -291,6 +292,8 @@ public class PrismSyntaxHighlighter
 						output(t.image, NUMERIC, oType);
 					else if (t.kind == PrismParserConstants.REG_IDENT || t.kind == PrismParserConstants.REG_IDENTPRIME)
 						output(t.image, IDENTIFIER, oType);
+					else if (t.kind == PrismParserConstants.PREPROC)
+						output(t.image, PREPROC, oType);
 					else
 						output(t.image, PUNCTUATION, oType);
 					// next token
@@ -388,6 +391,15 @@ public class PrismSyntaxHighlighter
 			case HTML: resStringBuffer.append("<span class=\"prismident\">"+s+"</span>"); break;
 			case LATEX: resStringBuffer.append("\\prismident{"+s+"}"); break;
 			case PRISMGUI: n = s.length(); for (i=0;i<n;i++) resTypeArray[resCharCount++]=IDENTIFIER; break;
+			}
+			break;
+		
+		case PREPROC:
+			switch (oType) {
+			case ECHO: resStringBuffer.append(s); break;
+			case HTML: resStringBuffer.append("<span class=\"prismpreproc\">"+s+"</span>"); break;
+			case LATEX: resStringBuffer.append("\\prismpreproc{"+s+"}"); break;
+			case PRISMGUI: n = s.length(); for (i=0;i<n;i++) resTypeArray[resCharCount++]=PREPROC; break;
 			}
 			break;
 		

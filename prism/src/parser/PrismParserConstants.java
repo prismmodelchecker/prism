@@ -82,6 +82,7 @@ public interface PrismParserConstants {
   int REG_DOUBLE = 76;
   int REG_IDENTPRIME = 77;
   int REG_IDENT = 78;
+  int PREPROC = 79;
 
   int DEFAULT = 0;
 
@@ -165,6 +166,7 @@ public interface PrismParserConstants {
     "<REG_DOUBLE>",
     "<REG_IDENTPRIME>",
     "<REG_IDENT>",
+    "<PREPROC>",
   };
 
 }
