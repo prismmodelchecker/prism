@@ -31,14 +31,14 @@ module process7 =process1[q1=q7 ,q2=q1 ,q7=q6] endmodule
 
 // cost - 1 in each state (expected steps)
 rewards
-	
 	true : 1;
-	
 endrewards
 
 // initial states (at least one token)
 init
-	
 	q1+q2+q3+q4+q5+q6+q7>=1
-	
 endinit
+
+// formula, for use in properties: number of tokens
+formula num_tokens = q1+q2+q3+q4+q5+q6+q7;
+

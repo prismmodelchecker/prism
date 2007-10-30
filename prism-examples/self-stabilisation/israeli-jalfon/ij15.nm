@@ -46,14 +46,13 @@ module process15=process1[q1=q15,q2=q1 ,q15=q14] endmodule
 
 // cost - 1 in each state (expected steps)
 rewards
-	
 	true : 1;
-	
 endrewards
 
 // initial states (at least one token)
 init
-	
 	q1+q2+q3+q4+q5+q6+q7+q8+q9+q10+q11+q12+q13+q14+q15>=1
-	
 endinit
+
+// formula, for use in properties: number of tokens
+formula num_tokens = q1+q2+q3+q4+q5+q6+q7+q8+q9+q10+q11+q12+q13+q14+q15;
