@@ -19,16 +19,15 @@ endmodule
 module process2 =process1[p1=p2 ,p3=p1, d1=d2 ,d3=d1] endmodule
 module process3 =process1[p1=p3 ,p3=p2, d1=d3 ,d3=d2] endmodule
 
-// cost in any state is 1 (expected number of steps)
+// cost - 1 in each state (expected steps)
 rewards
-	
 	true : 1;
-	
 endrewards
 
 // initial states - any state with more than 1 token, that is all states
 init
-	
 	true
-	
 endinit
+
+// formula for use in properties: number of tokens
+formula num_tokens = (p3=p1?1:0)+(p1=p2?1:0)+(p2=p3?1:0);
