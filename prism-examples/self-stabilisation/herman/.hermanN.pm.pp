@@ -23,13 +23,13 @@ module process#i# = process1 [ x1=x#i#, x#N#=x#i-1# ] endmodule
 
 // cost - 1 in each state (expected number of steps)
 rewards "steps"
-	
 	true : 1;
-	
 endrewards
 
 // set of initial states: all (i.e. any possible initial configuration of tokens)
-init true endinit
+init
+	true
+endinit
 
 // formula, for use in properties: number of tokens
 // (i.e. number of processes that have the same value as the process to their left)
