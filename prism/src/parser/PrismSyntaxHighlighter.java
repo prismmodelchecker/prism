@@ -86,7 +86,7 @@ public class PrismSyntaxHighlighter
 	
 	// resulting output
 	private static StringBuffer resStringBuffer;;
-	private static boolean resNewLine;
+	private static int resNewLine;
 	private static boolean resStart;
 	private static int resTypeArray[];
 	private static int resCharCount;
@@ -135,7 +135,7 @@ public class PrismSyntaxHighlighter
 	public static String fileToLatex(File file, boolean hf) throws FileNotFoundException, ParseException
 	{
 		resStringBuffer = new StringBuffer();
-		resNewLine = true;
+		resNewLine = 1;
 		resStart = true;
 		if (hf) resStringBuffer.append(latexFileHeader(file.getName()));
 		highlight(new FileInputStream(file), LATEX);
@@ -146,7 +146,7 @@ public class PrismSyntaxHighlighter
 	public static String fileToLatex(InputStream stream, boolean hf) throws ParseException
 	{
 		resStringBuffer = new StringBuffer();
-		resNewLine = true;
+		resNewLine = 1;
 		resStart = true;
 		if (hf) resStringBuffer.append(latexFileHeader("PRISM Code")); 
 		highlight(stream, LATEX);
@@ -200,11 +200,11 @@ public class PrismSyntaxHighlighter
 	{
 		String s = "";
 		
-		s += "\\documentclass{article}" + "\n";
-		s += "\\begin{document}" + "\n";
-		s += "\\input{prism.tex} % Input file \"prism.tex\" can be found in the \"etc\" directory of the PRISM distribution" + "\n";
-		s += "\\scriptsize" + "\n";
-		s += "\\noindent" + "\n";
+		s += "\\centering" + "\n";
+		s += "{\\scriptsize" + "\n";
+		s += "\\fbox{\\begin{minipage}{6in}" + "\n";
+		s += "\\begin{tabbing}" + "\n";
+		//s += "\\quad \\=\\quad \\=\\quad \\=\\quad \\=\\quad \\=\\quad \\=\\quad \\=\\quad \\=\\quad\\=\\quad \\=\\quad \\=\\quad \\kill" + "\n";
 		
 		return s;
 	}
@@ -213,7 +213,8 @@ public class PrismSyntaxHighlighter
 	{
 		String s = "";
 		
-		s += "\\end{document}" + "\n";
+		s += "\\end{tabbing}" + "\n";
+		s += "\\end{minipage}}}" + "\n";
 		
 		return s;
 	}
@@ -315,15 +316,24 @@ public class PrismSyntaxHighlighter
 		int i, n;
 		
 		// deal with new lines for latex
-		if (oType == LATEX) if (resNewLine) {
-			if (!resStart) {
-				resStringBuffer.append("$} \\\\\n");
+		// (beacuse we have to precede each new line with "\mbox{")
+		if (oType == LATEX) if (resNewLine > 0) {
+			// if this next token is another new line, don't output anything yet
+			if (!(tType == WHITESPACE && ("\r".equals(s) || "\n".equals(s)))) {
+				// trim trailing new lines
+				if (tType == EOF) resNewLine = 1;
+				// output code for new line(s)
+				for (i = 0; i < resNewLine; i++) {
+					if (!resStart) {
+						resStringBuffer.append("$}");
+						if (tType != EOF) resStringBuffer.append(" \\\\");
+						resStringBuffer.append("\n");
+					}
+					if (tType != EOF) resStringBuffer.append("\\mbox{$");
+					resStart = false;
+				}
+				resNewLine = 0;
 			}
-			else {
-				resStart = false;
-			}
-			if (tType != EOF) resStringBuffer.append("\\mbox{$");
-			resNewLine = false;
 		}
 		
 		// substitute any punctuation with special code as necessary
@@ -346,7 +356,7 @@ public class PrismSyntaxHighlighter
 			switch (oType) {
 			case ECHO: resStringBuffer.append(s); break;
 			case HTML: resStringBuffer.append("<span class=\"prismcomment\">"+s.substring(0,s.length()-1)+"</span>"+"\n"); break;
-			case LATEX: resStringBuffer.append("\\prismcomment{"+s.substring(0,s.length()-1)+"}"); resNewLine = true; break;
+			case LATEX: resStringBuffer.append("\\prismcomment{"+s.substring(0,s.length()-1)+"}"); resNewLine++; break;
 			case PRISMGUI: n = s.length(); for (i=0;i<n;i++) resTypeArray[resCharCount++]=COMMENT; break;
 			}
 			break;
@@ -357,7 +367,7 @@ public class PrismSyntaxHighlighter
 			switch(oType) {
 			case ECHO: resStringBuffer.append(s); break;
 			case HTML: resStringBuffer.append(s); break;
-			case LATEX: if ("\n".equals(s)) resNewLine = true;
+			case LATEX: if ("\n".equals(s)) resNewLine++;
 			            else if (" ".equals(s)) resStringBuffer.append(" \\; ");
 			            else if ("\t".equals(s)) resStringBuffer.append("\\prismtab");
 			            else resStringBuffer.append(s);
