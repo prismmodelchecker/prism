@@ -1,6 +1,6 @@
 // Constants:
-const double T;
-const int i;
+const double T; // time instant
+const int i; // number of molecules
 
 // Probability of there being i Na molecules at time T?
 P=? [ true U[T,T] na=i ]

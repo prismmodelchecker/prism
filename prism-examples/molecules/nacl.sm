@@ -5,8 +5,8 @@
 ctmc
 
 // constants
-const int N1 = 10; // number of Na molecules
-const int N2 = N1; // number of Cl molecules
+const int N1; // number of Na molecules
+const int N2; // number of Cl molecules
 
 // Na and Na+ module
 module na
@@ -47,8 +47,6 @@ module base_rates
 endmodule
 
 // rewards: "percentage of Na molecules present (out of all Na/Na+ molecules)"
-rewards
-	
+rewards "percentage_na"
 	true : 100*na/N1;
-	
 endrewards

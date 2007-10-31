@@ -1,15 +1,15 @@
 // Constants:
-const double T;
-const int i;
+const double T; // time instant
+const int i; // number of molecules
 
-// Probability of there being i Na molecules at time T?
+// Probability of there being i Na/K molecules at time T?
 P=? [ true U[T,T] na=i ]
-
-// Probability of there being i K molecules at time T?
 P=? [ true U[T,T] k=i ]
 
 // Expected percentage of Na/K molecules at time T?
-R=? [ I=T ]
+R{"percentage_na"}=? [ I=T ]
+R{"percentage_k"}=? [ I=T ]
 
 // Expected long-run percentage of Na/K molecules?
-R=? [ S ]
+R{"percentage_na"}=? [ S ]
+R{"percentage_k"}=? [ S ]

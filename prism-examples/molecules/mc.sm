@@ -5,8 +5,8 @@
 ctmc
 
 // constants
-const int N1 = 10; // number of Mg molecules
-const int N2 = N1; // number of Cl molecules
+const int N1; // number of Mg molecules
+const int N2; // number of Cl molecules
 
 
 // Cl and Cl- module
@@ -62,17 +62,17 @@ module base_rates
 	
 endmodule
 
-// rewards (percentage of Mg/Mg+/Mg+2 molecules)
+// reward structur: percentage of Mg molecules
+rewards "percentage_mg"
+	true : 100*mg/N1;
+endrewards
 
-// set these variables equal to 0 or 1 depending on reward of interest
-const int mg_reward;
-const int mgplus_reward;
-const int mgplus2_reward;
+// reward structur: percentage of Mg+ molecules
+rewards "percentage_mgplus"
+	true : 100*mg_p/N1;
+endrewards
 
-rewards
-	
-	true : mg_reward*100*mg/N1;
-	true : mgplus_reward*100*mg_p/N1;
-	true : mgplus2_reward*max(100*(N1-(mg_p+mg))/N1,0);
-	
+// reward structur: percentage of Mg+2 molecules
+rewards "percentage_mgplus2"
+	true : max(100*(N1-(mg_p+mg))/N1,0);
 endrewards

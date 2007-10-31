@@ -5,9 +5,9 @@
 ctmc
 
 // constants
-const int N1 = 10; // number of Na molecules
-const int N2=N1; // number of Cl molecules
-const int N3=N1; // number of K molecules
+const int N1; // number of Na molecules
+const int N2; // number of Cl molecules
+const int N3; // number of K molecules
 
 // Na and Na+ module
 module na
@@ -70,15 +70,12 @@ module base_rates
 	
 endmodule
 
-// rewards (percentage of Na/K molecules)
+// reward structure (percentage of Na)
+rewards "percentage_na"
+	true : 100*na/N1;	
+endrewards
 
-// set these variables equal to 0 or 1 depending on reward of interest
-const int na_reward;
-const int k_reward;
-
-rewards
-	
-	true : na_reward*100*na/N1;
-	true : k_reward*100*k/N3;
-	
+// reward structure (percentage of K)
+rewards "percentage_k"
+	true : 100*k/N3;
 endrewards
