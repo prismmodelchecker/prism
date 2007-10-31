@@ -4,20 +4,20 @@ prism nacl.sm nacl.csl -prop 1 -const T=0:0.001:0.006,i=4
 prism nacl.sm nacl.csl -prop 2 -const T=0:0.001:0.006,i=0
 prism nacl.sm nacl.csl -prop 3 -const T=0,i=0 -gs
 
-prism knacl.sm knacl.csl -prop 1 -const T=0:0.001:0.006,i=4,na_reward=0,k_reward=0
-prism knacl.sm knacl.csl -prop 2 -const T=0:0.001:0.006,i=4,na_reward=0,k_reward=0
-prism knacl.sm knacl.csl -prop 3 -const T=0:0.001:0.006,i=0,na_reward=1,k_reward=0
-prism knacl.sm knacl.csl -prop 3 -const T=0:0.001:0.006,i=0,na_reward=0,k_reward=1
-prism knacl.sm knacl.csl -prop 4 -const T=0,i=0,na_reward=1,k_reward=0 -gs
-prism knacl.sm knacl.csl -prop 4 -const T=0,i=0,na_reward=0,k_reward=1 -gs
+prism knacl.sm knacl.csl -prop 1 -const T=0:0.001:0.006,i=4,
+prism knacl.sm knacl.csl -prop 2 -const T=0:0.001:0.006,i=4,
+prism knacl.sm knacl.csl -prop 3 -const T=0:0.001:0.006,i=0,
+prism knacl.sm knacl.csl -prop 4 -const T=0:0.001:0.006,i=0,
+prism knacl.sm knacl.csl -prop 5 -const T=0,i=0 -gs
+prism knacl.sm knacl.csl -prop 6 -const T=0,i=0 -gs
 
-prism mc.sm mc.csl -prop 1 -const T=0:0.001:0.006,i=4,mg_reward=0,mgplus_reward=0,mgplus2_reward=0
-prism mc.sm mc.csl -prop 2 -const T=0:0.001:0.006,i=4,mg_reward=0,mgplus_reward=0,mgplus2_reward=0
-prism mc.sm mc.csl -prop 3 -const T=0:0.001:0.006,i=4,mg_reward=0,mgplus_reward=0,mgplus2_reward=0
-prism mc.sm mc.csl -prop 4 -const T=0:0.001:0.006,i=0,mg_reward=1,mgplus_reward=0,mgplus2_reward=0
-prism mc.sm mc.csl -prop 4 -const T=0:0.001:0.006,i=0,mg_reward=0,mgplus_reward=1,mgplus2_reward=0
-prism mc.sm mc.csl -prop 4 -const T=0:0.001:0.006,i=0,mg_reward=0,mgplus_reward=0,mgplus2_reward=1
-prism mc.sm mc.csl -prop 5 -const T=0,i=0,mg_reward=1,mgplus_reward=0,mgplus2_reward=0 -gs
-prism mc.sm mc.csl -prop 5 -const T=0,i=0,mg_reward=0,mgplus_reward=1,mgplus2_reward=0 -gs
-prism mc.sm mc.csl -prop 5 -const T=0,i=0,mg_reward=0,mgplus_reward=0,mgplus2_reward=1 -gs
+prism mc.sm mc.csl -prop 1 -const T=0:0.001:0.006,i=4
+prism mc.sm mc.csl -prop 2 -const T=0:0.001:0.006,i=4
+prism mc.sm mc.csl -prop 3 -const T=0:0.001:0.006,i=4
+prism mc.sm mc.csl -prop 4 -const T=0:0.001:0.006,i=0
+prism mc.sm mc.csl -prop 5 -const T=0:0.001:0.006,i=0
+prism mc.sm mc.csl -prop 6 -const T=0:0.001:0.006,i=0
+prism mc.sm mc.csl -prop 7 -const T=0,i=0 -gs
+prism mc.sm mc.csl -prop 8 -const T=0,i=0 -gs
+prism mc.sm mc.csl -prop 9 -const T=0,i=0 -gs
 
