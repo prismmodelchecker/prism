@@ -1,6 +1,6 @@
 #!/bin/csh
 
-foreach N ( 3 5 7 11 13 15 17 19 21 )
+foreach N ( 3 5 7 9 11 13 15 17 19 21 )
 	echo "Generating for N=$N"
 	prismpp .hermanN.pm.pp $N >! herman$N.pm
 	unix2dos herman$N.pm
