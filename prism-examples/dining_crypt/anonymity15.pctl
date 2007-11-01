@@ -1,4 +1,0 @@
-const int k;
-
-Pmin=? [ F (s1=1&s2=1&s3=1&s4=1&s5=1&s6=1&s7=1&s8=1&s9=1&s10=1&s11=1&s12=1&s13=1&s14=1&s15=1) & ( 16384*agree1 + 8192*agree2 + 4096*agree3 + 2048*agree4 + 1024*agree5 + 512*agree6 + 256*agree7 + 128*agree8 + 64*agree9 + 32*agree10 + 16*agree11 + 8*agree12 + 4*agree13 + 2*agree14 + 1*agree15  = k) {"init"&pay>0}{min} ]
-Pmax=? [ F (s1=1&s2=1&s3=1&s4=1&s5=1&s6=1&s7=1&s8=1&s9=1&s10=1&s11=1&s12=1&s13=1&s14=1&s15=1) & ( 16384*agree1 + 8192*agree2 + 4096*agree3 + 2048*agree4 + 1024*agree5 + 512*agree6 + 256*agree7 + 128*agree8 + 64*agree9 + 32*agree10 + 16*agree11 + 8*agree12 + 4*agree13 + 2*agree14 + 1*agree15  = k) {"init"&pay>0}{max} ]

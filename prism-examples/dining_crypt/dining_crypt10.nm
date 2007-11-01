@@ -3,6 +3,9 @@
 
 mdp
 
+// number of cryptographers
+const int N = 10;
+
 // constants used in renaming (identities of cryptographers)
 const int p1 = 1;
 const int p2 = 2;
@@ -17,7 +20,7 @@ const int p10 = 10;
 
 // global variable which decides who pays
 // (0 - master pays, i=1..N - cryptographer i pays)
-global pay : [0..10];
+global pay : [0..N];
 
 // module for first cryptographer
 module crypt1
@@ -58,3 +61,17 @@ module crypt10 = crypt1 [ coin1=coin10, s1=s10, agree1=agree10, p1=p10, coin2=co
 // set of initial states
 // (cryptographers in their initial state, "pay" can be anything)
 init  coin1=0&s1=0&agree1=0 & coin2=0&s2=0&agree2=0 & coin3=0&s3=0&agree3=0 & coin4=0&s4=0&agree4=0 & coin5=0&s5=0&agree5=0 & coin6=0&s6=0&agree6=0 & coin7=0&s7=0&agree7=0 & coin8=0&s8=0&agree8=0 & coin9=0&s9=0&agree9=0 & coin10=0&s10=0&agree10=0  endinit
+
+// unique integer representing outcome
+formula outcome =  512*agree1 + 256*agree2 + 128*agree3 + 64*agree4 + 32*agree5 + 16*agree6 + 8*agree7 + 4*agree8 + 2*agree9 + 1*agree10 ;
+
+// parity of number of "agree"s (0 = even, 1 = odd)
+formula parity = func(mod, agree1+agree2+agree3+agree4+agree5+agree6+agree7+agree8+agree9+agree10, 2);
+
+// label denoting states where protocol has finished
+label "done" = s1=1&s2=1&s3=1&s4=1&s5=1&s6=1&s7=1&s8=1&s9=1&s10=1;
+// label denoting states where number of "agree"s is even
+label "even" = func(mod,(agree1+agree2+agree3+agree4+agree5+agree6+agree7+agree8+agree9+agree10),2)=0;
+// label denoting states where number of "agree"s is even
+label "odd" = func(mod,(agree1+agree2+agree3+agree4+agree5+agree6+agree7+agree8+agree9+agree10),2)=1;
+

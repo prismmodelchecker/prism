@@ -1,4 +1,0 @@
-const int k;
-
-Pmin=? [ F (s1=1&s2=1&s3=1&s4=1&s5=1&s6=1&s7=1) & ( 64*agree1 + 32*agree2 + 16*agree3 + 8*agree4 + 4*agree5 + 2*agree6 + 1*agree7  = k) {"init"&pay>0}{min} ]
-Pmax=? [ F (s1=1&s2=1&s3=1&s4=1&s5=1&s6=1&s7=1) & ( 64*agree1 + 32*agree2 + 16*agree3 + 8*agree4 + 4*agree5 + 2*agree6 + 1*agree7  = k) {"init"&pay>0}{max} ]
