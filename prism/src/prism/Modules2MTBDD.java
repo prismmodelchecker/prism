@@ -438,7 +438,7 @@ public class Modules2MTBDD
 			break;
 			
 		case 2:
-		// ordering: (a ... a) (s l ... l r c ... r c) (s l ... l r c ... r c) ...
+		// ordering: (a ... a) (l ... l) (s r c ... r c) (s r c ... r c) ...
 	
 			// create arrays/etc. first
 			
@@ -492,10 +492,12 @@ public class Modules2MTBDD
 				// if at the start of a module's variables
 				// and model is an mdp...
 				if ((type == ModulesFile.NONDETERMINISTIC) && (last != varList.getModule(i))) {
-					// add scheduling dd var
-					v = JDD.Var(ddVarsUsed++);
-					ddSchedVars[varList.getModule(i)] = v;
-					ddVarNames.add(moduleNames[varList.getModule(i)] + ".s");
+					// add scheduling dd var(s) (may do multiple ones here if modules have no vars)
+					for (j = last+1; j <= varList.getModule(i); j++) {
+						v = JDD.Var(ddVarsUsed++);
+						ddSchedVars[j] = v;
+						ddVarNames.add(moduleNames[j] + ".s");
+					}
 					// change 'last'
 					last = varList.getModule(i);
 				}
@@ -512,6 +514,12 @@ public class Modules2MTBDD
 					ddVarNames.add(varList.getName(i) + "." + j);
 					ddVarNames.add(varList.getName(i) + "'." + j);
 				}
+			}
+			// add any remaining scheduling dd var(s) (happens if some modules have no vars)
+			for (j = last+1; j <numModules; j++) {
+				v = JDD.Var(ddVarsUsed++);
+				ddSchedVars[j] = v;
+				ddVarNames.add(moduleNames[j] + ".s");
 			}
 			break;
 			
