@@ -1,8 +1,7 @@
-// Israeli-Jalfon algorithm
+// Israeli-Jalfon self stabilising algorithm
 // dxp/gxn 10/06/02
-// token of size 6
 
-nondeterministic
+mdp
 
 // variables to represent whether a process has a token or not
 // note they are global because they can be updated by other processes
@@ -21,22 +20,22 @@ module process1
 endmodule
 
 // add further processes through renaming
-module process2 =process1[q1=q2 ,q2=q3, q6=q1] endmodule
-module process3 =process1[q1=q3 ,q2=q4, q6=q2] endmodule
-module process4 =process1[q1=q4 ,q2=q5, q6=q3] endmodule
-module process5 =process1[q1=q5 ,q2=q6, q6=q4] endmodule
-module process6 =process1[q1=q6 ,q2=q1, q6=q5] endmodule
+module process2 = process1 [ q1=q2, q2=q3, q6=q1 ] endmodule
+module process3 = process1 [ q1=q3, q2=q4, q6=q2 ] endmodule
+module process4 = process1 [ q1=q4, q2=q5, q6=q3 ] endmodule
+module process5 = process1 [ q1=q5, q2=q6, q6=q4 ] endmodule
+module process6 = process1 [ q1=q6, q2=q1, q6=q5 ] endmodule
 
 // cost - 1 in each state (expected steps)
-rewards
+rewards "steps"
 	true : 1;
 endrewards
 
+// formula, for use here and in properties: number of tokens
+formula num_tokens = q1+q2+q3+q4+q5+q6;
+
 // initial states (at least one token)
 init
-	q1+q2+q3+q4+q5+q6>=1
+	num_tokens >= 1
 endinit
-
-// formula, for use in properties: number of tokens
-formula num_tokens = q1+q2+q3+q4+q5+q6;
 
