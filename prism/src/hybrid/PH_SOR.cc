@@ -108,7 +108,7 @@ jboolean fwds		// forwards or backwards?
 	// misc
 	int i, j, fb, l, h, i2, j2, fb2, l2, h2, iters;
 	double d, kb, kbt;
-	bool done;
+	bool done, diag_done;
 	
 	// start clocks
 	start1 = start2 = util_cpu_time();
@@ -288,6 +288,7 @@ jboolean fwds		// forwards or backwards?
 			if (!b_use_counts) { l = b_starts[i]; h = b_starts[i+1]; }
 			else if (forwards) { l = h; h += b_counts[i]; }
 			else { h = l; l -= b_counts[i]; }
+			diag_done = false;
 			for(j = l; j < h; j++)
 			{
 				// get node for block and its col offset
@@ -307,98 +308,45 @@ jboolean fwds		// forwards or backwards?
 				}
 				
 				// non-diagonal blocks treated normally
-				if (j != h-1) {
+				// (diagonal should be the last block, unless it is absent because empty)
+				if ((j != h-1) || (j == h-1 && row_offset !=col_offset)) {
 					sor_rec(node, hddm->l_b, row_offset, col_offset, 0, 0, transpose);
 				}
 				// diagonal blocks (last blocks in row/col) are different
 				// call sparse matrix traversal directly with "is_diag" flag = true
 				else {
+					diag_done = true;
 					if (!compact_sm) {
 						sor_rm((RMSparseMatrix *)node->sm.ptr, row_offset, col_offset, 0, 0, true);
 					} else {
 						sor_cmsr((CMSRSparseMatrix *)node->sm.ptr, row_offset, col_offset, 0, 0, true);
 					}
-					continue;
-					// stuff for submatrix storage
-					RMSparseMatrix *rmsm;
-					CMSRSparseMatrix *cmsrsm;
-					int sm_n;
-					int sm_nnz;
-					double *sm_non_zeros;
-					unsigned char *sm_row_counts;
-					int *sm_row_starts;
-					bool sm_use_counts;
-					unsigned int *sm_cols;
-					
-					// get info about submatrix
-					if (!compact_sm) {
-						rmsm = (RMSparseMatrix *)node->sm.ptr;
-						sm_non_zeros = rmsm->non_zeros;
-						sm_n = rmsm->n;
-						sm_nnz = rmsm->nnz;
-						sm_row_counts = rmsm->row_counts;
-						sm_row_starts = (int *)rmsm->row_counts;
-						sm_use_counts = rmsm->use_counts;
-						sm_cols = rmsm->cols;
-					} else {
-						cmsrsm = (CMSRSparseMatrix *)node->sm.ptr;
-						sm_n = cmsrsm->n;
-						sm_nnz = cmsrsm->nnz;
-						sm_row_counts = cmsrsm->row_counts;
-						sm_row_starts = (int *)cmsrsm->row_counts;
-						sm_use_counts = cmsrsm->use_counts;
-						sm_cols = cmsrsm->cols;
-					}
-					
-					// loop through rows of submatrix
-					l2 = sm_nnz; h2 = 0;
-					for (fb2 = 0; fb2 < sm_n; fb2++) {
-						
-						// loop actually over i2 (can do forwards or backwards sor/gs)
-						i2 = (forwards) ? fb2 : sm_n-1-fb2;
-						
-						// loop through entries in this row
-						if (!sm_use_counts) { l2 = sm_row_starts[i2]; h2 = sm_row_starts[i2+1]; }
-						else if (forwards) { l2 = h2; h2 += sm_row_counts[i2]; }
-						else { h2 = l2; l2 -= sm_row_counts[i2]; }
-						
-						// this code for "row major" storage
-						if (!compact_sm) {
-							for (j2 = l2; j2 < h2; j2++) {
-								soln2[i2] -= soln[col_offset + sm_cols[j2]] * sm_non_zeros[j2];
-								//printf("(%d,%d)=%f\n", i2, col_offset+sm_cols[j2], sm_non_zeros[j2]);
-							}
-						}
-						// this code for "compact modified sparse row" storage
-						else {
-							for (j2 = l2; j2 < h2; j2++) {
-								soln2[i2] -= soln[col_offset + (int)(sm_cols[j2] >> sm_dist_shift)] * sm_dist[(int)(sm_cols[j2] & sm_dist_mask)];
-								//printf("(%d,%d)=%f\n", row_offset+i2, col_offset+(int)(sm_cols[j2] >> sm_dist_shift), sm_dist[(int)(sm_cols[j2] & sm_dist_mask)]);
-							}
-						}
-						
-						// divide by diagonal
-						if (!compact_d) {
-							soln2[i2] *= diags_vec[row_offset + i2];
-						} else {
-							soln2[i2] *= (diags_dist->dist[(int)diags_dist->ptrs[row_offset + i2]]);
-						}
-						// do over-relaxation if necessary
-						if (omega != 1) {
-							soln2[i2] = ((1-omega) * soln[row_offset + i2]) + (omega * soln2[i2]);
-						}	
-						// compute norm for convergence
-						x = fabs(soln2[i2] - soln[row_offset + i2]);
-						if (term_crit == TERM_CRIT_RELATIVE) {
-							x /= soln2[i2];
-						}
-						if (x > sup_norm) sup_norm = x;
-						// set vector element
-						soln[row_offset + i2] = soln2[i2];
-					}
 				}
 			}
 			
+			// if we never found a diagonal block (because it is empty and so not there),
+			// then we do the stuff that should have been sone after the processing of the diagonal block
+			for (i2 = 0; i2 < h2; i2++) {
+				// divide by diagonal
+				if (!compact_d) {
+					soln2[i2] *= diags_vec[row_offset + i2];
+				} else {
+					soln2[i2] *= (diags_dist->dist[(int)diags_dist->ptrs[row_offset + i2]]);
+				}
+				// do over-relaxation if necessary
+				if (omega != 1) {
+					soln2[i2] = ((1-omega) * soln[row_offset + i2]) + (omega * soln2[i2]);
+				}       
+				// compute norm for convergence
+				x = fabs(soln2[i2] - soln[row_offset + i2]);
+				if (term_crit == TERM_CRIT_RELATIVE) {
+					x /= soln2[i2];
+				}
+				if (x > sup_norm) sup_norm = x;
+				// set vector element
+				soln[row_offset + i2] = soln2[i2];
+			}
+
 			// trivial case where we are the bottom of the mtbdd already
 			if (l_b_max) {
 				soln2[0] *= ((!compact_d)?(diags_vec[row_offset]):(diags_dist->dist[(int)diags_dist->ptrs[row_offset]]));
