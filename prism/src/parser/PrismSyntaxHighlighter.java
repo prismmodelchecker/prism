@@ -54,6 +54,7 @@ public class PrismSyntaxHighlighter
 	private static final ArrayList puncReplaceTo_LATEX, puncReplaceFrom_LATEX;
 	private static final ArrayList puncReplaceTo_LATEXMATHS, puncReplaceFrom_LATEXMATHS;
 	private static final ArrayList puncReplaceTo_PRISMGUI, puncReplaceFrom_PRISMGUI;
+	private static int quoteAlternator = 1;
 	
 	static {
 		puncReplaceFrom_ECHO = new ArrayList(); puncReplaceTo_ECHO = new ArrayList();
@@ -456,6 +457,12 @@ public class PrismSyntaxHighlighter
 			s2 = (String)to.get(i);
 			snew = snew.replaceAll(s1, s2);
 		}
+		
+		if (oType == LATEX && s.contains("\"")) {
+			snew = snew.replaceAll("\"", (quoteAlternator==1)?"\\\\mbox{``}":"\\\\mbox{''}");
+			quoteAlternator = 3 - quoteAlternator;
+		}
+		
 		return snew;
 	}
 	
