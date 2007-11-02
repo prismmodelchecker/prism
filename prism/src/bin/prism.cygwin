@@ -56,4 +56,4 @@ if [ "$PRISM_HEADLESS" = "" ]; then
 fi
 
 # Run PRISM through Java
-"$PRISM_JAVA" $PRISM_JAVAMAXMEM -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path=`cygpath -wp $PRISM_DIR/lib` -classpath `cygpath -wp $"$PRISM_CLASSPATH"` $PRISM_MAINCLASS "$@"
+"$PRISM_JAVA" $PRISM_JAVA_DEBUG $PRISM_JAVAMAXMEM -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path=`cygpath -wp $PRISM_DIR/lib` -classpath `cygpath -wp $"$PRISM_CLASSPATH"` $PRISM_MAINCLASS "$@"
