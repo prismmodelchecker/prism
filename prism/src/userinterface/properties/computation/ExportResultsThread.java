@@ -43,7 +43,7 @@ import userinterface.util.*;
 public class ExportResultsThread extends Thread
 {
 	private GUIMultiProperties parent;
-	private GUIExperiment exp;
+	private GUIExperiment exps[];
 	private File f;
 	private Exception saveError;
 	
@@ -51,7 +51,16 @@ public class ExportResultsThread extends Thread
 	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exp, File f)
 	{
 		this.parent = parent;
-		this.exp = exp;
+		this.exps = new GUIExperiment[1];
+		this.exps[0] = exp;
+		this.f = f;
+	}
+	
+	/** Creates a new instance of ExportResultsThread */
+	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exps[], File f)
+	{
+		this.parent = parent;
+		this.exps = exps;
 		this.f = f;
 	}
 	
@@ -68,8 +77,14 @@ public class ExportResultsThread extends Thread
 		});
 		
 		try {
+			int i, n;
 			PrintWriter out = new PrintWriter(new FileWriter(f));
-			out.print(exp.getPropertyString() + ":\n" + exp.getResults().toString(false, " ", " "));
+			n = exps.length;
+			for (i = 0; i < n; i++) {
+				if (i > 0) out.print("\n");
+				out.print(exps[i].getPropertyString() + ":\n");
+				out.print(exps[i].getResults().toString(false, " ", " "));
+			}
 			out.flush();
 			out.close();
 		}

@@ -594,8 +594,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		newExperiment.setEnabled(propList.getNumSelectedProperties() == 1 && propList.getValidSelectedProperties().size() == 1);
 		// deleteExperiments: enabled if one or more experiments selected
 		deleteExperiment.setEnabled(experiments.getSelectedRowCount() > 0);
-		// viewResults: enabled if exactly one experiment is selected
-		viewResults.setEnabled(experiments.getSelectedRowCount() == 1);
+		// viewResults: enabled if at least one experiment is selected
+		viewResults.setEnabled(experiments.getSelectedRowCount() > 0);
 		// plotResults: enabled if exactly one experiment is selected and its type is int/double
 		if (experiments.getSelectedRowCount() == 1)
 		{
@@ -613,8 +613,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		{
 			plotResults.setEnabled(false);
 		}
-		// exportResults: enabled if exactly one experiment is selected
-		exportResults.setEnabled(experiments.getSelectedRowCount() == 1);
+		// exportResults: enabled if at least one experiment is selected
+		exportResults.setEnabled(experiments.getSelectedRowCount() > 0);
 	}
 	
 	public int doModificationCheck()
@@ -1004,11 +1004,17 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	public void a_viewResults()
 	{
 		GUIExperiment exp;
+		int i, n, inds[];
 		
-		// get experiment
-		if (experiments.getSelectedRowCount() != 1) return;
-		exp = experiments.getExperiment(experiments.getSelectedRow());
-		new GUIResultsTable(this.getGUI(), this, exp).show();
+		// get selected experiments
+		n = experiments.getSelectedRowCount();
+		if (n < 1) return;
+		inds = experiments.getSelectedRows();
+		// show results dialog for reach one
+		for (i = 0 ; i < n; i++) {
+			exp = experiments.getExperiment(inds[i]);
+			new GUIResultsTable(this.getGUI(), this, exp).show();
+		}
 	}
 	
 	public void a_plotResults()
@@ -1048,16 +1054,20 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	
 	public void a_exportResults()
 	{
-		GUIExperiment exp;
+		GUIExperiment exps[];
+		int i, n, inds[];
 		
-		// get experiment
-		if (experiments.getSelectedRowCount() != 1) return;
-		exp = experiments.getExperiment(experiments.getSelectedRow());
+		// get selected experiments
+		n = experiments.getSelectedRowCount();
+		if (n < 1) return;
+		exps = new GUIExperiment[n];
+		inds = experiments.getSelectedRows();
+		for (i = 0 ; i < n; i++) exps[i] = experiments.getExperiment(inds[i]);
 		// get filename to save
 		if (showSaveFileDialog(textFilter, textFilter[0]) == JFileChooser.APPROVE_OPTION)
 		{
 			File file = getChooserFile();
-			Thread t = new ExportResultsThread(this, exp, file);
+			Thread t = new ExportResultsThread(this, exps, file);
 			t.setPriority(Thread.NORM_PRIORITY);
 			t.start();
 		}

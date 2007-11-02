@@ -38,6 +38,8 @@ import userinterface.*;
 
 public class GUIResultsTable extends javax.swing.JDialog
 {
+	private static int noOpen = 0;
+	
 	private GUIMultiProperties guiProps;
 	private GUIExperiment exp;
 	
@@ -125,6 +127,19 @@ public class GUIResultsTable extends javax.swing.JDialog
 		this.getContentPane().add(tmpPanel);
 	}
 
+	public void show()
+	{
+		noOpen++;
+		setLocation(getX()+(noOpen*50), getY()+(noOpen*50));
+		super.show();
+	}
+	
+	public void dispose()
+	{
+		noOpen--;
+		super.dispose();
+	}
+	
 	private void closeDialog()
 	{
 		setVisible(false);
