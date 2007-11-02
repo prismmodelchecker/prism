@@ -216,10 +216,9 @@ public class BuildModelThread extends GUIComputationThread
 		// Check for Deadlocks
 		deadlocks = model.getDeadlockStates();
 		if (deadlocks != null) if (deadlocks.size() > 0) {
-			String[] options = {"Yes", "No"};
-			int choice = JOptionPane.YES_OPTION;
-			choice = plug.optionPane("Error: Model contains deadlock states.\nAdd self-loops to these states and continue?", "Error", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, options, options[0]);
-			if (choice == JOptionPane.YES_OPTION) {
+			String[] options = {"Continue", "Display deadlocks"};
+			int choice = plug.question("Error", "Error: Model contains deadlock states.\nAdd self-loops to these states and continue?\nOr stop and display deadlock states in log?", options);
+			if (choice == 0) {
 				log("\nWarning: " + deadlocks.size() + " deadlock states detected; adding self-loops in these states...\n");
 				model.fixDeadlocks();
 			}
@@ -240,6 +239,7 @@ public class BuildModelThread extends GUIComputationThread
 					plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, plug));
 					plug.setTaskBarText("Building model... error.");
 					handler.modelBuildFailed();
+					plug.logToFront();
 				}});
 				return;
 			}
