@@ -4,6 +4,7 @@
 //	Authors:
 //	* Andrew Hinton <ug60axh@cs.bham.uc.uk> (University of Birmingham)
 //	* Mark Kattenbelt <mxk@cs.bham.uc.uk> (University of Birmingham)
+//	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -43,21 +44,15 @@ import javax.swing.plaf.basic.*;
 import javax.swing.plaf.*;
 import javax.swing.event.*;
 
-
-/**
- *
- * @author  ug60axh
- */
 public class GUISimulatorPathTable extends GUIGroupedTable
 {
-	private GUISimulator.PathTableModel ptm;
-	private PathRowHeader pathRowHeader;
-    
 	private SimulatorEngine engine;	
 	private GUISimulator simulator;
-    
-	private JList header;
-	private GUISimulatorPathTable.RowHeaderListModel headerModel;
+	// Table model
+	private GUISimulator.PathTableModel ptm;
+	// Component on left hand side to show path loops
+	private JList loopIndicator;
+	private LoopIndicatorListModel loopIndicatorModel;
     
 	/** Creates a new instance of GUISimulatorPathTable */
 	public GUISimulatorPathTable(GUISimulator simulator, GUISimulator.PathTableModel ptm, SimulatorEngine engine)
@@ -67,30 +62,27 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 		this.simulator = simulator;
 		this.engine = engine;
 		
+		// Table
 		setColumnSelectionAllowed(false);
 		getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-	
-		pathRowHeader = new GUISimulatorPathTable.PathRowHeader();
-	
-		headerModel = new RowHeaderListModel();
-		JList rowHeader = new JList(headerModel);
-	
-		rowHeader.setBackground(new JPanel().getBackground());
-	
-		rowHeader.setFixedCellWidth(25);
-	
-		rowHeader.setFixedCellHeight(getRowHeight());
-		//+ getRowMargin());
-		//getIntercellSpacing().height);
-		rowHeader.setCellRenderer(new RowHeaderRenderer(this));
-	
-		this.header = rowHeader;
-			
 		setDefaultRenderer(Object.class, new PathChangeTableRenderer(true));
-	
-		
+		// Loop indicator
+		loopIndicatorModel = new LoopIndicatorListModel();
+		loopIndicator = new JList(loopIndicatorModel);
+		loopIndicator.setBackground(new JPanel().getBackground());
+		loopIndicator.setFixedCellWidth(25);
+		loopIndicator.setFixedCellHeight(getRowHeight());
+		loopIndicator.setCellRenderer(new LoopIndicatorRenderer(this));
 	}
 	
+    /** Override set font to set row height(s) */
+    public void setFont(Font font)
+    {
+		super.setFont(font);
+    	setRowHeight(getFontMetrics(font).getHeight() + 4);
+		if (loopIndicator != null) loopIndicator.setFixedCellHeight(getRowHeight());
+    }
+    
 	public boolean usingChangeRenderer()
 	{
 		return ((PathChangeTableRenderer)getDefaultRenderer(Object.class)).onlyShowChange();
@@ -111,55 +103,21 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 	public void paintComponent(Graphics g)
 	{
 		super.paintComponent(g);
-	
-		//pathRowHeader.paintComponent(g);
-		headerModel.updateHeader();	
+		loopIndicatorModel.updateIndicator();	
 	}
     
-	/**
-	 * Getter for property pathRowHeader.
-	 * @return Value of property pathRowHeader.
-	 */
-	public Component getPathRowHeader()
+	public Component getPathLoopIndicator()
 	{
-		return header; //pathRowHeader;
+		return loopIndicator;
 	}
     
-	class PathRowHeader extends JPanel
-	{
-		public PathRowHeader()
-		{
-			super();
-	    
-	    
-			setBackground(Color.yellow);
-		}
-	
-		public void paintComponent(Graphics g)
-		{
-			super.paintComponent(g);
-	    
-			Graphics2D g2 = (Graphics2D) g;
-	    
-			g2.clearRect(0,0,getWidth(), getHeight());
-	    
-			g2.setColor(Color.black);
-			double y;
-			for(int i = 0; i < ptm.getRowCount(); i++)
-			{
-				y = i * 10;
-		
-				g2.drawLine(0, (int)y, 10, (int)y);
-			}
-		}
-	}
+    // Cell renderer for list representing loop indicator (left of path table)
     
-	class RowHeaderRenderer extends JPanel implements ListCellRenderer
+	class LoopIndicatorRenderer extends JPanel implements ListCellRenderer
 	{
-	
 		boolean startLoop, midLoop, endLoop;
 	
-		RowHeaderRenderer(JTable table)
+		LoopIndicatorRenderer(JTable table)
 		{
 			/*JTableHeader header = table.getTableHeader();
 			 setOpaque(true);
@@ -170,8 +128,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 			 setFont(header.getFont());*/
 		}
 	
-		public Component getListCellRendererComponent( JList list,
-			Object value, int index, boolean isSelected, boolean cellHasFocus)
+		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
 		{
 			//setText((value == null) ? "" : value.toString());
 			//setBorder(new LineBorder(Color.black, 1));
@@ -276,7 +233,9 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 		}
 	}
     
-	class RowHeaderListModel extends AbstractListModel
+    // Model for list representing loop indicator
+    
+	class LoopIndicatorListModel extends AbstractListModel
 	{
 	
 		public Object getElementAt(int index)
@@ -289,12 +248,14 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 			return ptm.getRowCount();
 		}
 	
-		public void updateHeader()
+		public void updateIndicator()
 		{
 			fireContentsChanged(this, 0, ptm.getRowCount());
 		}
 	
 	}   
+	
+	// Renderer for cells in path table
 	
 	class PathChangeCellRenderer extends JPanel 
 	{
@@ -381,104 +342,116 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 		public void paintComponent(Graphics g)
 		{
 			super.paintComponent(g);
-	    
+		    
+		    Rectangle rect;
+		    int width, height, x, y;
+		    
+		    // Get graphics context
 			Graphics2D g2 = (Graphics2D)g;
-						
-			if (value instanceof String)
-			{
-				double width = getStringWidth(stringValue, g2);
-				double height = g2.getFont().getSize();
-								
+		    // Get some info about the string
+			rect = getStringBounds(stringValue, g2);
+			width = (int)Math.ceil(rect.getWidth());
+			height = (int)Math.ceil(rect.getHeight());
+			
+			// State index
+			if (value instanceof String) {
+				// Position (horiz centred, vert centred)
+	   			x = (getWidth()/2) - (width/2);
+	   			y = (getHeight()/2) + (height/2);
+	   			// Write value
 				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);	
-				
 				g2.setColor(Color.black);
-				g2.drawString(stringValue, (int)((getWidth()/2 + 0.5)- (width/2)), 12);			
+				g2.drawString(stringValue, x, y);
 			}
-			else if (value instanceof GUISimulator.VariableValue)
-			{
+			// Variable value
+			else if (value instanceof GUISimulator.VariableValue) {
 				GUISimulator.VariableValue variableValue = (GUISimulator.VariableValue)value;
-				
-				double width = getStringWidth(stringValue, g2);
-				
-				RoundRectangle2D.Double rec = new RoundRectangle2D.Double((getWidth()/2)-(width/2)-5, 1, width+10, getHeight()-3, 8, 8);
-				
+				// Position (horiz centred, vert centred)
+	   			x = (getWidth()/2) - (width/2);
+	   			y = (getHeight()/2) + (height/2);
+    			// Prepare box/colour
+				RoundRectangle2D.Double rec = new RoundRectangle2D.Double(x-5, 2, width+10, getHeight()-5, 8, 8);
 				Color color = (variableValue.hasChanged()) ? (Color.black) : (Color.lightGray);
-								
-				if (pctr.onlyShowChange())
-				{
+				// "Render changes" view
+				if (pctr.onlyShowChange()) {
+					// Vertical line in background
 					g2.setColor(Color.black);
 					g2.drawLine(getWidth()/2, 0, getWidth()/2, getHeight());					
-					
-					if (isSelected || variableValue.hasChanged())
-					{		
+					// Only display box/value if there was a change
+					if (isSelected || variableValue.hasChanged()) {		
 						g2.setColor(Color.white);
 						g2.fill(rec);					
-						
 						g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);	
-											
 						g2.setColor(color);				
 						g2.draw(rec);
-						
 						g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);	
-										
-						g2.drawString(stringValue, (int)((getWidth()/2 + 0.5)- (width/2)), 12);
+						g2.drawString(stringValue, x, y);
 					}
 				}
-				else
-				{
+				// "Render all values" view
+				else {
+					// Just display value
 					g2.setColor(color);					
 					g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);									
-					g2.drawString(stringValue, (int)((getWidth()/2 + 0.5)- (width/2)), 12);
+					g2.drawString(stringValue, x, y);
 				}
 			}
-			else if (value instanceof GUISimulator.RewardStructureValue)
-			{
+			// Reward value
+			else if (value instanceof GUISimulator.RewardStructureValue) {
 				GUISimulator.RewardStructureValue rewardValue = (GUISimulator.RewardStructureValue)value;
-				
-				double width = getStringWidth(stringValue, g2);
-				
-				RoundRectangle2D.Double rec = new RoundRectangle2D.Double((getWidth()/2)-(width/2)-5, 1, width+10, getHeight()-3, 8, 8);
-				
-				Color color = (rewardValue.hasChanged() || rewardValue.isRewardValueUnknown()) ? (Color.black) : (Color.lightGray);
-								
-				if (pctr.onlyShowChange())
-				{
-					g2.setColor(Color.black);
-					g2.drawLine(getWidth()/2, 0, getWidth()/2, getHeight());
-										
-					if ((isSelected || rewardValue.hasChanged()))
-					{
-						g2.setColor(Color.white);
-						g2.fill(rec);					
-						
-						g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);	
-											
-						g2.setColor(color);				
-						g2.draw(rec);
-						
+				// Default case (everything except cumulative for CTMCs)
+				if (!(ptm.getView().canShowTime() && rewardValue.getRewardStructureColumn().isCumulativeReward())) {
+					// Position (horiz centred, vert centred)
+		   			x = (getWidth()/2) - (width/2);
+		   			y = (getHeight()/2) + (height/2);
+	    			// Prepare box/colour
+					RoundRectangle2D.Double rec = new RoundRectangle2D.Double(x-5, 2, width+10, getHeight()-5, 8, 8);
+					Color color = (rewardValue.hasChanged() || rewardValue.isRewardValueUnknown()) ? (Color.black) : (Color.lightGray);
+					// "Render changes" view
+					if (pctr.onlyShowChange()) {
+						// Vertical line in background
+						g2.setColor(Color.black);
+						g2.drawLine(getWidth()/2, 0, getWidth()/2, getHeight());
+						// Only display box/value if there was a change
+						if ((isSelected || rewardValue.hasChanged())) {
+							g2.setColor(Color.white);
+							g2.fill(rec);					
+							g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);	
+							g2.setColor(color);				
+							g2.draw(rec);
+							g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);	
+							g2.drawString(stringValue, x, y);
+						}
+					}
+					// "Render all values" view
+					else {
+						// Just display value
+						g2.setColor(color);	
 						g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);	
-										
-						g2.drawString(stringValue, (int)((getWidth()/2 + 0.5)- (width/2)), 12);
+						g2.drawString(stringValue, x, y);
 					}
 				}
-				else
-				{
-					g2.setColor(color);	
-					g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);	
-					g2.drawString(stringValue, (int)((getWidth()/2 + 0.5)- (width/2)), 12);
-				}
+				// For cumulative rewards on CTMCs, we left-align (like for display of time)
+				else {
+					// Position (left aligned, vert centred)
+		   			x = 3;
+		   			y = (getHeight()/2) + (height/2);
+	   				// Write text
+					g2.setColor(Color.black);	
+					g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+					g2.drawString(stringValue, x, y);
+				}			
 			}
+			// Time value
 			else if (value instanceof GUISimulator.TimeValue)
 			{				
-				GUISimulator.TimeValue timeValue = (GUISimulator.TimeValue)value;
-				
-				double width = getStringWidth(stringValue, g2);
-					
-				Color color = (Color.black);
-				
-				g2.setColor(color);	
+				// Position (left aligned, vert centred)
+	   			x = 3;
+	   			y = (getHeight()/2) + (height/2);
+	   			// Write text
+				g2.setColor(Color.black);	
 				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-				g2.drawString(stringValue, 3, 12);				
+				g2.drawString(stringValue, x, y);				
 			}
 		}
 	}
@@ -535,17 +508,30 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 		}		
 	}
     
+	/** Method which computes rectangle bounds of a string for a given Graphics2D object
+	 */
+	public static Rectangle getStringBounds(String s, Graphics2D g2)
+	{
+		// catch special cases...
+		// ...TextLayout constructor crashes with null or zero-length string
+		if (s == null) return new Rectangle(0, 0);
+		if (s.length() == 0) return new Rectangle(0, 0);
+		TextLayout layout = new TextLayout(s, g2.getFont(), g2.getFontRenderContext());
+		return layout.getOutline(new AffineTransform()).getBounds();
+	}
+	
 	/** Method which computes width of a string for a given Graphics2D object
 	 */
 	public static double getStringWidth(String s, Graphics2D g2)
 	{
-		// catch special cases...
-		// ...TextLayout constructor crashes with null or zero-length string
-		if (s == null) return 0;
-		if (s.length() == 0) return 0;
-		TextLayout layout = new TextLayout(s, g2.getFont(), g2.getFontRenderContext());
-		Rectangle r = layout.getOutline(new AffineTransform()).getBounds();
-		return r.getWidth();
+		return getStringBounds(s, g2).getWidth();
+	}
+	
+	/** Method which computes height of a string for a given Graphics2D object
+	 */
+	public static double getStringHeight(String s, Graphics2D g2)
+	{
+		return getStringBounds(s, g2).getHeight();
 	}
     
 }

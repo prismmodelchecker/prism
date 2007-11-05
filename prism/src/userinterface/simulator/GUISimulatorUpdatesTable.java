@@ -3,6 +3,7 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Andrew Hinton <ug60axh@cs.bham.uc.uk> (University of Birmingham)
+//	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -54,6 +55,8 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
     
     private UpdateHeaderListModel headerModel;
     private JList header;
+    private UpdateHeaderRenderer updateHeaderRenderer;
+    private UpdateTableRenderer updateTableRenderer;
     
     private GUISimulator sim;
     
@@ -79,11 +82,13 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 		rowHeader.setFixedCellHeight(getRowHeight());
 		//+ getRowMargin());
 		//getIntercellSpacing().height);
-		rowHeader.setCellRenderer(new UpdateHeaderRenderer(this));
+		updateHeaderRenderer = new UpdateHeaderRenderer(this);
+		rowHeader.setCellRenderer(updateHeaderRenderer);
 	
 		this.header = rowHeader;
-	
-		setDefaultRenderer(Object.class, new UpdateTableRenderer());
+		
+		updateTableRenderer = new UpdateTableRenderer();
+		setDefaultRenderer(Object.class, updateTableRenderer);
 	
 	
 		setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
@@ -131,6 +136,15 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 	
     }
     
+    /** Override set font to pass changes onto renderer(s) and set row height */
+    public void setFont(Font font)
+    {
+    	super.setFont(font);
+    	if (updateTableRenderer != null) updateTableRenderer.setFont(font);
+    	setRowHeight(getFontMetrics(font).getHeight() + 4);
+    	if (header != null) header.setFixedCellHeight(getRowHeight());
+    }
+    
     public void valueChanged(ListSelectionEvent e)
     {
 	if(headerModel != null)
@@ -145,54 +159,58 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
     
     class UpdateTableRenderer implements TableCellRenderer 
     {
-	JTextField renderer;
-	
-	
-	public UpdateTableRenderer()
-	{
-	    renderer = new JTextField("");
-	}
-	public Component getTableCellRendererComponent(JTable table, Object value, 
-	boolean isSelected, boolean hasFocus, int row, int column)
-	{
-	    renderer.setText(value.toString());
-	    
-	    int dist;
-	    
-	    if(sim.getModulesFile().getType() == ModulesFile.STOCHASTIC)
-		dist = 0;
-	    else dist = utm.getProbabilityDistributionOf(row);
-	    
-	    Color c = DISTRIBUTION_COLOURS[dist%2];
-	    
-	   
-	    if(isSelected)
-	    {
-		Color newCol = new Color(c.getRed()-20, c.getGreen()-20, c.getBlue());
-		if(utm.oldUpdate)
+		JTextField renderer;
+		
+		public UpdateTableRenderer()
 		{
-		    newCol = new Color(newCol.getRed()-7, newCol.getGreen()-7, newCol.getBlue()-7);
-		    renderer.setBackground(newCol);
+		    renderer = new JTextField("");
 		}
-		else
+		
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
 		{
-		    renderer.setBackground(newCol);
+		    renderer.setText(value.toString());
+		    
+		    int dist;
+		    
+		    if(sim.getModulesFile().getType() == ModulesFile.STOCHASTIC)
+			dist = 0;
+		    else dist = utm.getProbabilityDistributionOf(row);
+		    
+		    Color c = DISTRIBUTION_COLOURS[dist%2];
+		    
+		   
+		    if(isSelected)
+		    {
+			Color newCol = new Color(c.getRed()-20, c.getGreen()-20, c.getBlue());
+			if(utm.oldUpdate)
+			{
+			    newCol = new Color(newCol.getRed()-7, newCol.getGreen()-7, newCol.getBlue()-7);
+			    renderer.setBackground(newCol);
+			}
+			else
+			{
+			    renderer.setBackground(newCol);
+			}
+		    }
+		    else
+		    {
+			if(utm.oldUpdate)
+			{
+			    Color newCol = new Color(c.getRed()-7, c.getGreen()-7, c.getBlue()-7);
+			    renderer.setBackground(newCol);
+			}
+			else
+			    renderer.setBackground(c);
+		    }
+		    
+		    renderer.setBorder(new EmptyBorder(1, 1, 1, 1));
+		    return renderer;
 		}
-	    }
-	    else
-	    {
-		if(utm.oldUpdate)
+		
+		public void setFont(Font font)
 		{
-		    Color newCol = new Color(c.getRed()-7, c.getGreen()-7, c.getBlue()-7);
-		    renderer.setBackground(newCol);
+			renderer.setFont(font);
 		}
-		else
-		    renderer.setBackground(c);
-	    }
-	    
-	    renderer.setBorder(new EmptyBorder(1, 1, 1, 1));
-	    return renderer;
-	}
     }
     
     
@@ -222,6 +240,7 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 			Object value, int index, boolean isSelected, boolean cellHasFocus)
 		{
 			
+		    setBorder(null);
 			selected = getSelectedRow() == index;
 			
 			if(selected)
@@ -244,7 +263,7 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 	
 		public Object getElementAt(int index)
 		{
-			return "";
+			return ""+index;
 		}
 	
 		public int getSize()

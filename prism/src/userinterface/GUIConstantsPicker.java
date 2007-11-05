@@ -86,6 +86,8 @@ public class GUIConstantsPicker extends javax.swing.JDialog
 		modelTable.setSelectionMode(DefaultListSelectionModel.SINGLE_INTERVAL_SELECTION);
 		propTable.setCellSelectionEnabled(true);
 		modelTable.setCellSelectionEnabled(true);
+		propTable.setRowHeight(getFontMetrics(propTable.getFont()).getHeight() + 4);
+		modelTable.setRowHeight(getFontMetrics(modelTable.getFont()).getHeight() + 4);
 		
 		//initialise
 		initComponents();

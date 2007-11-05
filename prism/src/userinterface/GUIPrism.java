@@ -378,6 +378,8 @@ public class GUIPrism extends JFrame
             }
         }
         SwingUtilities.updateComponentTreeUI(this);
+        SwingUtilities.updateComponentTreeUI(choose);
+        SwingUtilities.updateComponentTreeUI(options);
         repaint();
     }
     

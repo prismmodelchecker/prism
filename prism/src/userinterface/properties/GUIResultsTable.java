@@ -62,6 +62,7 @@ public class GUIResultsTable extends javax.swing.JDialog
 		table = new JTable();
 		table.setModel(tableModel);
 		table.setCellSelectionEnabled(true);
+		table.setRowHeight(getFontMetrics(table.getFont()).getHeight() + 4);
 		
 		//initialise
 		initComponents();

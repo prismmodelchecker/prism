@@ -27,6 +27,9 @@
 
 package userinterface.properties;
 
+import javax.swing.*;
+import java.awt.*;
+
 /**
  *
  * @author  ug60axh
@@ -37,7 +40,8 @@ public class ConstantHeader extends javax.swing.JPanel
     /** Creates new form ConstantLine */
     public ConstantHeader()
     {
-	initComponents();
+		initComponents();
+		setPreferredSize(new Dimension(1, 2*(getFontMetrics(getFont()).getHeight() + 4)));
     }
     
     /** This method is called from within the constructor to

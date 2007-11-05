@@ -27,6 +27,9 @@
 
 package userinterface.properties;
 
+import javax.swing.*;
+import java.awt.*;
+
 /**
  *
  * @author  ug60axh
@@ -37,7 +40,8 @@ public class GraphConstantHeader extends javax.swing.JPanel
     /** Creates new form ConstantLine */
     public GraphConstantHeader()
     {
-	initComponents();
+		initComponents();
+		setPreferredSize(new Dimension(1, getFontMetrics(getFont()).getHeight() + 4));
     }
     
     public void setEnabled(boolean b)

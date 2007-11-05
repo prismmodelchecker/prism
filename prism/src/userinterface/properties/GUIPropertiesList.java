@@ -73,6 +73,14 @@ public class GUIPropertiesList extends JList implements KeyListener
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_MASK), "none");
 	}
 	
+	/** Override set font to update row heights at same time */
+	public void setFont(Font font)
+	{
+		super.setFont(font);
+		// Note: minimum of 20 since icons are 16x16
+		if (font != null) setFixedCellHeight(Math.max(20, getFontMetrics(font).getHeight() + 4));
+	}
+
 	//ACCESS METHODS
 	
 	public int getNumProperties()
@@ -382,7 +390,6 @@ public class GUIPropertiesList extends JList implements KeyListener
 			toolTip = p.getToolTipText();
 			
 			// text
-			setFont(parent.getListFont());
 			setText(p.getPropString());
 			
 			// icon

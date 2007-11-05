@@ -55,6 +55,13 @@ public class GUIExperimentTable extends JTable
 		col.setCellRenderer(new ProgressBarRenderer());
 	}
 	
+	/** Override set font to update row heights at same time */
+	public void setFont(Font font)
+	{
+		super.setFont(font);
+		setRowHeight(getFontMetrics(font).getHeight() + 4);
+	}
+
 	//UPDATE METHODS
 	
 	public void deleteSelected()

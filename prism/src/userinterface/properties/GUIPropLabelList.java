@@ -51,6 +51,13 @@ public class GUIPropLabelList extends JTable
 		try { setDefaultRenderer(Class.forName("java.lang.Object"), new TheCellRenderer()); } catch (ClassNotFoundException e) {}
 	}
 	
+	/** Override set font to update row heights at same time */
+	public void setFont(Font font)
+	{
+		super.setFont(font);
+		setRowHeight(getFontMetrics(font).getHeight() + 4);
+	}
+
 	public void correctEditors()
 	{
 		if(this.getCellEditor() != null)

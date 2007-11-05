@@ -26,6 +26,8 @@
 
 package userinterface.util;
 
+import java.awt.*;
+import java.awt.font.*;
 import javax.swing.*;
 import javax.swing.table.*;
 
@@ -123,7 +125,13 @@ public class GUIGroupedTable extends JTable
 		
 		return header;
     }
+    
+    /** Override set font to set row height(s) */
+    @Override
+    public void setFont(Font font)
+    {
+		super.setFont(font);
+    	setRowHeight(getFontMetrics(font).getHeight() + 4);
+    }
 }
-
-
 

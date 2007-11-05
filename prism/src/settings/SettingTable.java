@@ -3,6 +3,7 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Andrew Hinton <ug60axh@cs.bham.uc.uk> (University of Birmingham)
+//	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -310,6 +311,13 @@ public class SettingTable extends JPanel implements ListSelectionListener, Table
 
     }//GEN-END:initComponents
 	
+	/** Override set font to update row heights at same time */
+	public void setFont(Font font)
+	{
+		super.setFont(font);
+		if (theTable != null) theTable.setRowHeight(getFontMetrics(font).getHeight()+4);
+	}
+
 	public void valueChanged(ListSelectionEvent e)
 	{
 		//System.out.println("list VALUE CHANGED");

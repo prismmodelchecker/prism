@@ -4,6 +4,7 @@
 //	Authors:
 //	* Andrew Hinton <ug60axh@cs.bham.uc.uk> (University of Birmingham)
 //	* Mark Kattenbelt <mxk@cs.bham.uc.uk> (University of Birmingham)
+//	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -164,7 +165,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		lastInitialState = null;
 		
-		tableScroll.setRowHeaderView(((GUISimulatorPathTable)pathTable).getPathRowHeader());
+		tableScroll.setRowHeaderView(((GUISimulatorPathTable)pathTable).getPathLoopIndicator());
 		manualUpdateTableScrollPane.setRowHeaderView(((GUISimulatorUpdatesTable)currentUpdatesTable).getUpdateRowHeader());
 		
 		tableScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -1454,6 +1455,13 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
     }// </editor-fold>//GEN-END:initComponents
 
+    /** Override set font to set pass on to path table and header (which may not be visible yet) */
+    public void setFont(Font font)
+    {
+    	super.setFont(font);
+    	if (pathTable != null) pathTable.setFont(font);
+    }
+    
     private void inputBacktrackFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_inputBacktrackFieldActionPerformed
 // TODO add your handling code here:
     }//GEN-LAST:event_inputBacktrackFieldActionPerformed

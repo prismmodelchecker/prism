@@ -86,7 +86,8 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
 		initValuesTable.setModel(initValuesModel);        
 		initValuesTable.setSelectionMode(DefaultListSelectionModel.SINGLE_INTERVAL_SELECTION);        
 		initValuesTable.setCellSelectionEnabled(true);       
-        
+		initValuesTable.setRowHeight(getFontMetrics(initValuesTable.getFont()).getHeight() + 4);
+		        
 		this.initialState = defaultInitial;	
 		
 		//initialise

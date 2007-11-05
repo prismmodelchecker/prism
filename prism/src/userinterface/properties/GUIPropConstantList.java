@@ -51,6 +51,13 @@ public class GUIPropConstantList extends JTable
 		setEditorAndRenderer();
 	}
 	
+	/** Override set font to update row heights at same time */
+	public void setFont(Font font)
+	{
+		super.setFont(font);
+		setRowHeight(getFontMetrics(font).getHeight() + 4);
+	}
+
 	protected void setEditorAndRenderer()
 	{
 		JComboBox typeChooser = new JComboBox();

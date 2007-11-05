@@ -49,6 +49,7 @@ public class ConstantLine extends javax.swing.JPanel
 	{
 	initComponents();
 	setBorder(new BottomBorder());
+	setPreferredSize(new Dimension(1, getFontMetrics(getFont()).getHeight() + 4));
 	setConstName(name);
 	setConstType(type);
 	doDefaults();
