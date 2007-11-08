@@ -2896,7 +2896,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				if (view.showSteps()) 
 				{ 					
 					if (groupCount == groupIndex)
-					{	return "[ Step ]";	}
+					{	return "Step";	}
 					
 					groupCount++;
 				}
@@ -2904,7 +2904,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				if (view.canShowTime() && (view.showTime() || view.showCumulativeTime())) 
 				{	
 					if (groupCount == groupIndex) 
-					{	return "[ Time ]";	}
+					{	return "Time";	}
 					
 					groupCount++;				
 				}
@@ -2953,7 +2953,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				if (view.getVisibleRewardColumns().size() > 0)
 					{
 					if (groupCount == groupIndex)
-					{	return "[ Rewards ]";	}
+					{	return "Rewards";	}
 					
 					groupCount++;				
 				}
