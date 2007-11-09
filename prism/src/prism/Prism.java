@@ -288,6 +288,11 @@ public class Prism implements PrismSettingsListener
 		settings.set(PrismSettings.PRISM_DO_SS_DETECTION, b);
 	}
 	
+	public void setExtraDDInfo(boolean b) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_EXTRA_DD_INFO, b);
+	}
+	
 	// set methods for miscellaneous options
 	
 	public void setDoReach(boolean b) throws PrismException
@@ -365,6 +370,9 @@ public class Prism implements PrismSettingsListener
 	
 	public boolean getDoSSDetect()
 	{ return settings.getBoolean(PrismSettings.PRISM_DO_SS_DETECTION); }
+	
+	public boolean getExtraDDInfo()
+	{ return settings.getBoolean(PrismSettings.PRISM_EXTRA_DD_INFO); }
 	
 	public int getNumSORLevels()
 	{ return settings.getInteger(PrismSettings.PRISM_NUM_SOR_LEVELS); }
@@ -824,6 +832,7 @@ public class Prism implements PrismSettingsListener
 		mod2mtbdd.setOption("construction", getConstruction());
 		mod2mtbdd.setOption("doreach", getDoReach());
 		mod2mtbdd.setOption("doprobchecks", getDoProbChecks());
+		mod2mtbdd.setOption("extraddinfo", getExtraDDInfo());
 		
 		// build model
 		l = System.currentTimeMillis();

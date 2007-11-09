@@ -49,6 +49,7 @@ public class Modules2MTBDD
 	// flags/settings
 	private boolean doReach = true;	// by default, do reachability (sometimes might want to skip it though)
 	private boolean doProbChecks;	// perform checks on probs/rates? (sum to one, etc.)
+	private boolean extraDDInfo;	// display extra info about DDs
 	// the following two settings are now surplus to requirements
 	// because of the way nondeterminism is handled in the mtbdd construction
 	private int ordering = 1;		// mtbdd variable ordering (1=top, 2=middle) (default: 1)
@@ -169,6 +170,9 @@ public class Modules2MTBDD
 		else if (option.equals("doprobchecks")) {
 			doProbChecks = b;
 		}
+		else if (option.equals("extraddinfo")) {
+			extraDDInfo = b;
+		}
 		else {
 			mainLog.println("\nWarning: option \""+option+"\" not supported by Modules2MTBDD translator.");
 		}
@@ -278,6 +282,13 @@ public class Modules2MTBDD
 // 		}
 // 		mainLog.println();
 // 		JDD.Deref(tmp);
+		
+		// Print some info (if extraddinfo flag on)
+		if (extraDDInfo) {
+			mainLog.print("Transition matrix (pre-reachability): ");
+			mainLog.print(JDD.GetNumNodes(trans) + " nodes (");
+			mainLog.print(JDD.GetNumTerminals(trans) + " terminal)\n");
+		}
 		
 		// do reachability (or not!)
 		if (doReach) {
@@ -2028,6 +2039,10 @@ public class Modules2MTBDD
 		reach = PrismMTBDD.Reachability(tmp, allDDRowVars, allDDColVars, start);
 		JDD.Deref(tmp);
 		
+		// Print some info (if extraddinfo flag on)
+		if (extraDDInfo) {
+			mainLog.print("Reach: " + JDD.GetNumNodes(reach) + " nodes\n");
+		}
 		// remove non-reachable states from transition matrix
 		JDD.Ref(reach);
 		trans = JDD.Apply(JDD.TIMES, reach, trans);

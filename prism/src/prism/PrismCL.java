@@ -60,7 +60,6 @@ public class PrismCL
 	private boolean exportordered = true;
 	private boolean simulate = false;
 	private boolean simpath = false;
-	private boolean extraDDInfo = false;
 	private int typeOverride = 0;
 	
 	// property info
@@ -562,7 +561,7 @@ public class PrismCL
 				// otherwise print error and bail out
 				else {
 					mainLog.println();
-					model.printTransInfo(mainLog, extraDDInfo);
+					model.printTransInfo(mainLog, prism.getExtraDDInfo());
 					mainLog.print("\nError: Model contains " + states.size() + " deadlock states");
 					if (!verbose && states.size() > 10) {
 						mainLog.print(".\nThe first 10 deadlock states are displayed below. To view them all use the -v switch.\n");
@@ -580,7 +579,7 @@ public class PrismCL
 		
 		// print more model info
 		mainLog.println();
-		model.printTransInfo(mainLog, extraDDInfo);
+		model.printTransInfo(mainLog, prism.getExtraDDInfo());
 	}
 
 	// do any exporting requested
@@ -1167,7 +1166,7 @@ public class PrismCL
 				}
 				// extra dd info on
 				else if (sw.equals("extraddinfo")) {
-					extraDDInfo = true;
+					prism.setExtraDDInfo(true);
 				}
 				// precomputation algs off
 				else if (sw.equals("nopre")) {
