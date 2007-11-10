@@ -527,7 +527,7 @@ public class Modules2MTBDD
 				}
 			}
 			// add any remaining scheduling dd var(s) (happens if some modules have no vars)
-			for (j = last+1; j <numModules; j++) {
+			if (type == ModulesFile.NONDETERMINISTIC) for (j = last+1; j <numModules; j++) {
 				v = JDD.Var(ddVarsUsed++);
 				ddSchedVars[j] = v;
 				ddVarNames.add(moduleNames[j] + ".s");
