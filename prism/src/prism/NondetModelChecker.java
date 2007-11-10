@@ -721,7 +721,9 @@ public class NondetModelChecker implements ModelChecker
 		// compute rewards
 		f = pctl.getOperand();
 		try {
-			if (f instanceof PCTLRewardReach)
+			if (f instanceof PCTLRewardInst)
+				rewards = checkPCTLRewardInst((PCTLRewardInst)f, stateRewards, transRewards, min);
+			else if (f instanceof PCTLRewardReach)
 				rewards = checkPCTLRewardReach((PCTLRewardReach)f, stateRewards, transRewards, min);
 			else
 				throw new PrismException("Unrecognised operator in R[] formula");
@@ -1056,6 +1058,25 @@ public class NondetModelChecker implements ModelChecker
 		probs = checkPCTLProbUntil(pctlUntil, pe, p, !min);
 		probs.subtractFromOne();
 		return probs;
+	}
+	
+	// inst reward
+	
+	private StateProbs checkPCTLRewardInst(PCTLRewardInst pctl, JDDNode stateRewards, JDDNode transRewards, boolean min) throws PrismException
+	{
+		int time; // time bound
+		StateProbs rewards = null;
+		
+		// get info from bounded until
+		time = pctl.getTime().evaluateInt(constantValues, null);
+		if (time < 0) {
+			throw new PrismException("Invalid bound " + time + " in instantaneous reward property");
+		}
+		
+		// compute rewards
+		rewards = computeInstRewards(trans, stateRewards, time, min);
+		
+		return rewards;
 	}
 
 	// reach reward
@@ -1471,6 +1492,39 @@ public class NondetModelChecker implements ModelChecker
 		JDD.Deref(maybe);
 		
 		return probs;
+	}
+	
+	// compute rewards for inst reward
+	
+	private StateProbs computeInstRewards(JDDNode tr, JDDNode sr, int time, boolean min) throws PrismException
+	{
+		JDDNode rewardsMTBDD;
+		DoubleVector rewardsDV;
+		StateProbs rewards = null;
+		
+		// a trivial case: "=0"
+		if (time == 0) {
+			JDD.Ref(sr);
+			rewards = new StateProbsMTBDD(sr, model);
+		}
+		// otherwise we compute the actual rewards
+		else {
+			// compute the rewards
+			try {
+				switch (engine) {
+				case Prism.MTBDD:
+					rewardsMTBDD = PrismMTBDD.NondetInstReward(tr, sr, odd, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, time, min);
+					rewards = new StateProbsMTBDD(rewardsMTBDD, model);
+					break;
+				default: throw new PrismException("Engine does not support this numerical method");
+				}
+			}
+			catch (PrismException e) {
+				throw e;
+			}
+		}
+		
+		return rewards;
 	}
 	
 	// compute rewards for reach reward

@@ -727,6 +727,8 @@ public class ProbModelChecker implements ModelChecker
 		try {
 			if (f instanceof PCTLRewardCumul)
 				rewards = checkPCTLRewardCumul((PCTLRewardCumul)f, stateRewards, transRewards);
+			else if (f instanceof PCTLRewardInst)
+				rewards = checkPCTLRewardInst((PCTLRewardInst)f, stateRewards, transRewards);
 			else if (f instanceof PCTLRewardReach)
 				rewards = checkPCTLRewardReach((PCTLRewardReach)f, stateRewards, transRewards);
 			else
@@ -1057,6 +1059,25 @@ public class ProbModelChecker implements ModelChecker
 				throw e;
 			}
 		}
+		
+		return rewards;
+	}
+
+	// inst reward
+	
+	private StateProbs checkPCTLRewardInst(PCTLRewardInst pctl, JDDNode stateRewards, JDDNode transRewards) throws PrismException
+	{
+		int time; // time bound
+		StateProbs rewards = null;
+		
+		// get info from bounded until
+		time = pctl.getTime().evaluateInt(constantValues, null);
+		if (time < 0) {
+			throw new PrismException("Invalid bound " + time + " in instantaneous reward property");
+		}
+		
+		// compute rewards
+		rewards = computeInstRewards(trans, stateRewards, time);
 		
 		return rewards;
 	}
@@ -1439,6 +1460,39 @@ public class ProbModelChecker implements ModelChecker
 		return rewards;
 	}
 
+	// compute rewards for inst reward
+	
+	private StateProbs computeInstRewards(JDDNode tr, JDDNode sr, int time) throws PrismException
+	{
+		JDDNode rewardsMTBDD;
+		DoubleVector rewardsDV;
+		StateProbs rewards = null;
+		
+		// a trivial case: "=0"
+		if (time == 0) {
+			JDD.Ref(sr);
+			rewards = new StateProbsMTBDD(sr, model);
+		}
+		// otherwise we compute the actual rewards
+		else {
+			// compute the rewards
+			try {
+				switch (engine) {
+				case Prism.MTBDD:
+					rewardsMTBDD = PrismMTBDD.ProbInstReward(tr, sr, odd, allDDRowVars, allDDColVars, time);
+					rewards = new StateProbsMTBDD(rewardsMTBDD, model);
+					break;
+				default: throw new PrismException("Engine does not support this numerical method");
+				}
+			}
+			catch (PrismException e) {
+				throw e;
+			}
+		}
+		
+		return rewards;
+	}
+	
 	// compute rewards for reach reward
 	
 	private StateProbs computeReachRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr, JDDNode b) throws PrismException

@@ -271,6 +271,15 @@ public class PrismMTBDD
 		return new JDDNode(ptr);
 	}
 
+	// pctl inst reward (probabilistic/dtmc)
+	private static native long PM_ProbInstReward(long trans, long sr, long odd, long rv, int nrv, long cv, int ncv, int time);
+	public static JDDNode ProbInstReward(JDDNode trans, JDDNode sr, ODDNode odd, JDDVars rows, JDDVars cols, int time) throws PrismException
+	{
+		long ptr = PM_ProbInstReward(trans.ptr(), sr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
+		if (ptr == 0) throw new PrismException(getErrorMessage());
+		return new JDDNode(ptr);
+	}
+
 	// pctl reach reward (probabilistic/dtmc)
 	private static native long PM_ProbReachReward(long trans, long sr, long trr, long odd, long rv, int nrv, long cv, int ncv, long goal, long inf, long maybe);
 	public static JDDNode ProbReachReward(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, JDDNode goal, JDDNode inf, JDDNode maybe) throws PrismException
@@ -302,6 +311,15 @@ public class PrismMTBDD
 		return new JDDNode(ptr);
 	}
 	
+	// pctl inst reward (nondeterministic/mdp)
+	private static native long PM_NondetInstReward(long trans, long sr, long odd, long mask, long rv, int nrv, long cv, int ncv, long ndv, int nndv, int time, boolean minmax);
+	public static JDDNode NondetInstReward(JDDNode trans, JDDNode sr, ODDNode odd, JDDNode nondetMask, JDDVars rows, JDDVars cols, JDDVars nondet, int time, boolean minmax) throws PrismException
+	{
+		long ptr = PM_NondetInstReward(trans.ptr(), sr.ptr(), odd.ptr(), nondetMask.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), time, minmax);
+		if (ptr == 0) throw new PrismException(getErrorMessage());
+		return new JDDNode(ptr);
+	}
+
 	// pctl reach reward (nondeterministic/mdp)
 	private static native long PM_NondetReachReward(long trans, long sr, long trr, long odd, long mask, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long goal, long inf, long maybe, boolean minmax);
 	public static JDDNode NondetReachReward(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDNode nondetMask, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode goal, JDDNode inf, JDDNode maybe, boolean minmax) throws PrismException

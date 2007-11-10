@@ -177,6 +177,14 @@ JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1ProbCumulReward
 
 /*
  * Class:     mtbdd_PrismMTBDD
+ * Method:    PM_ProbInstReward
+ * Signature: (JJJJIJII)J
+ */
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1ProbInstReward
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jint, jlong, jint, jint);
+
+/*
+ * Class:     mtbdd_PrismMTBDD
  * Method:    PM_ProbReachReward
  * Signature: (JJJJJIJIJJJ)J
  */
@@ -198,6 +206,14 @@ JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1NondetBoundedUntil
  */
 JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1NondetUntil
   (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jboolean);
+
+/*
+ * Class:     mtbdd_PrismMTBDD
+ * Method:    PM_NondetInstReward
+ * Signature: (JJJJJIJIJIIZ)J
+ */
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1NondetInstReward
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jint, jboolean);
 
 /*
  * Class:     mtbdd_PrismMTBDD
