@@ -99,7 +99,7 @@ module checker
 
 	T : bool;
 	
-	//[NewFile] (T=false) -> (T'=false);
+//	[NewFile] (T=false) -> (T'=false);
 	[NewFile] (T=false) -> (T'=true);
 	
 endmodule

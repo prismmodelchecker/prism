@@ -1,4 +1,4 @@
-// synchronous leader election protocol  (itai & Rodeh)
+// synchronous leader election protocol (itai & Rodeh)
 // dxp/gxn 25/01/01
 // N=4 and K=8
 
@@ -83,7 +83,5 @@ module process4=process1[s1=s4,p1=p4,v1=v4,u1=u4,v2=v1] endmodule
 
 // REWARDS -expected number of rounds
 rewards
-	
 	[pick] true : 1;
-	
 endrewards

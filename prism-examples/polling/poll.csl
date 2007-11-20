@@ -1,3 +1,6 @@
+// time bound
+const double T;
+
 //Probability that in the long run station 1 is awaiting service 
 S=? [ s1=1 & !(s=1 & a=1) ]
 
@@ -11,12 +14,10 @@ P=? [ true U (s=1 & a=0) {s1=1}{min} ]
 P=? [ !(s=2 & a=1) U (s=1 & a=1) ]
 
 // once a station becomes full, probability it will be polled within T time units is ...
-const int T;
 P=?[ true U<=T (s=1 & a=0) ]
 
 // expected reward accumlated by time T
-// waiting=1 and served=0 for expected time station 1 spends awaiting service
-// waiting=0 and served=1 for expected number of times station 1 is served
-R=?[C<=T]
+R{"waiting"}=?[C<=T] // time the station 1 is waiting to be served
+R{"served"}=?[C<=T] // number of times station1 is served
 
 

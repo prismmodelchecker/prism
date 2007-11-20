@@ -22,8 +22,6 @@ module cell
 endmodule
 
 // rewards - number calls in the cell
-rewards
-	
+rewards "calls"
 	true : n;
-	
 endrewards

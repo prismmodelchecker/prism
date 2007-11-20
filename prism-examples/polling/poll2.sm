@@ -38,12 +38,11 @@ endmodule
 module station2 = station1 [s1=s2, loop1a=loop2a, loop1b=loop2b, serve1=serve2] endmodule
 
 // cumulative rewards
-const int waiting = 1; // expected time the station 1 is waiting to be served
-const int served = 0; // expected number of times station1 is served 
 
-rewards
-	
-	s1=1 & !(s=1 & a=1) : waiting;
-	[serve1] true : served;
-	
+rewards "waiting" // expected time the station 1 is waiting to be served
+	s1=1 & !(s=1 & a=1) : 1;
+endrewards
+
+rewards "served" // expected number of times station1 is served
+	[serve1] true : 1;
 endrewards
