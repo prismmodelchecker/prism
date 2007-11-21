@@ -1,14 +1,13 @@
 // flexible manufacturing system [CT93]
 // gxn/dxp 11/06/01
 
-stochastic
+ctmc // model is a ctmc
 
-// number of tokens
-const int n;
+const int n; // number of tokens
 
 // rates from Pi equal #(Pi) * min(1, np/r)
 // where np = (3n)/2 and r = P1+P2+P3+P12
-const int np=floor((3*n)/2); // np = 3n/2
+const int np=floor((3*n)/2);
 formula r = P1+P2+P3+P12;
 
 module machine1
@@ -100,15 +99,28 @@ module machine12
 	
 endmodule
 
-rewards
-	
-// 	[t1]  true : 1;
-// 	[t2]  true : 1;
-// 	[t3]  true : 1;
-// 	[t12] true : 1;
+// reward structures
+
+// throughput of machine1
+rewards "throughput_m1"
+	[t1]  true : 1;	
+endrewards
+// throughput of machine2
+rewards "throughput_m2"
+	[t2]  true : 1;	
+endrewards
+// throughput of machine3
+rewards "throughput_m3"
+	[t3]  true : 1;	
+endrewards
+// throughput of machine12
+rewards "throughput_m12"
+	[t12]  true : 1;	
+endrewards
+// productivity of the system
+rewards "productivity"
 	[t1]  true : 400;
 	[t2]  true : 600;
 	[t3]  true : 100;
 	[t12] true : 1100;
-	
 endrewards
