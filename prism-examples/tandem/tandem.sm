@@ -33,8 +33,6 @@ module serverM
 endmodule
 
 // reward - number of customers in network
-rewards
-	
+rewards "customers"
 	true : sc + sm;
-	
 endrewards
