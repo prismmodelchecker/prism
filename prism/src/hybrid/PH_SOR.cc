@@ -325,8 +325,8 @@ jboolean fwds		// forwards or backwards?
 			}
 			
 			// if we never found a diagonal block (because it is empty and so not there),
-			// then we do the stuff that should have been sone after the processing of the diagonal block
-			for (i2 = 0; i2 < h2; i2++) {
+			// then we do the stuff that should have been done after the processing of the diagonal block
+			if (!l_b_max && !diag_done) for (i2 = 0; i2 < h2; i2++) {
 				// divide by diagonal
 				if (!compact_d) {
 					soln2[i2] *= diags_vec[row_offset + i2];
