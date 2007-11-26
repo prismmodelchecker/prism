@@ -1,10 +1,15 @@
-const double T;
+const double T; // time bound
 
-label "fail_sensors" = i=2&s<MIN_SENSORS;
-label "fail_actuators" = o=2&a<MIN_ACTUATORS;
-label "fail_io" = count=MAX_COUNT+1;
-label "fail_main" = m=0;
-label "down" = (i=2&s<MIN_SENSORS)|(count=MAX_COUNT+1)|(o=2&a<MIN_ACTUATORS)|(m=0);
+// causes of failues
+label "fail_sensors" = i=2&s<MIN_SENSORS; // sensors have failed
+label "fail_actuators" = o=2&a<MIN_ACTUATORS; // actuators have failed
+label "fail_io" = count=MAX_COUNT+1; // IO has failed
+label "fail_main" = m=0; // ,main processor has failed
+
+// system status
+label "down" = (i=2&s<MIN_SENSORS)|(count=MAX_COUNT+1)|(o=2&a<MIN_ACTUATORS)|(m=0); // system has shutdown
+label "danger" = !down & (i=1 | o=1); // transient fault has occured
+label "up" = !down & !danger; // system is operational
 
 // Probability of any failure occurring within T hours
 P=? [ true U<=T*3600 "down" ]
@@ -30,8 +35,11 @@ P=? [ !"down" U "fail_actuators" ]
 P=? [ !"down" U "fail_io" ]
 P=? [ !"down" U "fail_main" ]
 
-// Expected time spent in "up"/"danger"/"shutdown" by time T
-R=? [ C<=T*3600 ]
+// Expected time spent in "up"/"danger"/"down" by time T
+R{"up"}=? [ C<=T*3600 ]
+R{"danger"}=? [ C<=T*3600 ]
+R{"down"}=? [ C<=T*3600 ]
 
-// Expected time spent in "up"/"danger" before "shutdown"
-R=? [ F "down" ]
+// Expected time spent in "up"/"danger" before "down"
+R{"up"}=? [ F "down" ]
+R{"danger"}=? [ F "down" ]

@@ -6,7 +6,7 @@ stochastic
 // number of tokens 
 const int t; 
 
-// const doubles
+// rates
 const double in1      = 1.0;
 const double out4     = 0.9;
 const double synch123 = 0.4;
@@ -82,9 +82,30 @@ module k4
 
 endmodule
 
-rewards
-	
+// reward structures
+
+// tokens in cell1
+rewards "tokens_cell1"
+	true : x1+y1+z1;
+endrewards
+
+// tokens in cell2
+rewards "tokens_cell2"
+	true : x2+y2+z2;
+endrewards
+
+// tokens in cell3
+rewards "tokens_cell3"
+	true : x3+y3+z3;
+endrewards
+
+// tokens in cell4
+rewards "tokens_cell4"
+	true : x4+y4+z4;
+endrewards
+
+// throughput of the system
+rewards "throughput"
 	[in] true : 1;
-	
 endrewards
 

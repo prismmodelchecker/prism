@@ -116,16 +116,21 @@ module bus
 	
 endmodule
 
-formula fail_sensors = i=2&s<MIN_SENSORS;
-formula fail_actuators = o=2&a<MIN_ACTUATORS;
-formula fail_io = count=MAX_COUNT+1;
-formula fail_main = m=0;
+// the system is down
 formula down = (i=2&s<MIN_SENSORS)|(count=MAX_COUNT+1)|(o=2&a<MIN_ACTUATORS)|(m=0);
+// transient failure has occured but the system is not down
 formula danger = !down & (i=1 | o=1);
+// the system is operational
 formula up = !down & !danger;
 
-rewards
+// reward structures
+
+rewards "up"
 	up : 1/3600;
-// 	danger : 1/3600;
-// 	down : 1/3600;
+endrewards
+rewards "danger"
+	danger : 1/3600;
+endrewards
+rewards "down"
+	down : 1/3600;
 endrewards
