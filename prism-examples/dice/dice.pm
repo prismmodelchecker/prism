@@ -18,8 +18,6 @@ module die
 	
 endmodule
 
-rewards
-	
-	true : 1;
-	
+rewards "coin_flips"
+	[] s<7 : 1;
 endrewards

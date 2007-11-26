@@ -45,8 +45,6 @@ module sum_of_two_dice
 	
 endmodule
 
-rewards
-	
-	true : 1;
-	
+rewards "coin_flips"
+	[] s<34 : 1;
 endrewards

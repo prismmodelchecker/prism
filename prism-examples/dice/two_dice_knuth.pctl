@@ -3,5 +3,5 @@ const int x;
 // probability of throwing x
 P=? [ true U s=34 & d=x ]
 
-// expected cost to complete
+// expected coin flips
 R=? [ F s=34 ]

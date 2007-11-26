@@ -9,5 +9,5 @@ P=? [ true U s=7 & d=6 ]
 // Probability of throwing x?
 P=? [ true U s=7 & d=x ]
 
-// Expected number of steps to complete?
+// Expected number of coin flips to complete?
 R=? [ F s=7 ]
