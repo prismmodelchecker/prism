@@ -1,5 +1,10 @@
 // randomized dining philosophers [LR81]
-// dxp/gxn 12/12/99
+// dxp/gxn 23/01/02
+
+// model which does not require fairness
+// remove the possibility of loops:
+// (1) cannot stay in thinking 
+// (2) if first fork not free then cannot move (another philosopher must more)
  
 nondeterministic
 

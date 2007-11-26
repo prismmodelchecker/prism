@@ -1,10 +1,10 @@
 // randomized dining philosophers [LR81]
+// dxp/gxn 23/01/02
+
 // model which does not require fairness
 // remove the possibility of loops:
 // (1) cannot stay in thinking 
 // (2) if first fork not free then cannot move (another philosopher must more)
-
-// dxp/gxn 23/01/02
 
 nondeterministic
 
@@ -40,8 +40,6 @@ module phil2 = phil1 [p1=p2, p2=p3, p3=p1] endmodule
 module phil3 = phil1 [p1=p3, p2=p1, p3=p2] endmodule
 
 // rewards (number of steps)
-rewards
-	
+rewards "steps"
 	[] true : 1;
-	
 endrewards
