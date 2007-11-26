@@ -119,12 +119,10 @@ module phil2=phil1 [p1=p2, p2=p3, p3=p4, p4=p1, s1=s2] endmodule
 module phil3=phil1 [p1=p3, p2=p4, p3=p1, p4=p2, s1=s3] endmodule
 module phil4=phil1 [p1=p4, p2=p1, p3=p2, p4=p3, s1=s4] endmodule
 
-// rewards - expected number of steps
-rewards
-	
+// reward structure - number of steps
+rewards "steps"
 	[s1] true : 1;
 	[s2] true : 1;
 	[s3] true : 1;
 	[s4] true : 1;
-	
 endrewards
