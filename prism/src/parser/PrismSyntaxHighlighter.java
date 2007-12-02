@@ -66,22 +66,28 @@ public class PrismSyntaxHighlighter
 		puncReplaceFrom_LATEX.add("&"); puncReplaceTo_LATEX.add("\\\\&");
 		puncReplaceFrom_LATEX.add("_"); puncReplaceTo_LATEX.add("\\\\_");
 		puncReplaceFrom_LATEX.add("%"); puncReplaceTo_LATEX.add("\\\\%");
-		puncReplaceFrom_LATEX.add(">="); puncReplaceTo_LATEX.add("\\$\\\\geq\\$");
-		puncReplaceFrom_LATEX.add("<="); puncReplaceTo_LATEX.add("\\$\\\\leq\\$");
+		puncReplaceFrom_LATEX.add(">="); puncReplaceTo_LATEX.add("\\${\\\\geq}\\$");
+		puncReplaceFrom_LATEX.add("<="); puncReplaceTo_LATEX.add("\\${\\\\leq}\\$");
 		puncReplaceFrom_LATEX.add("->"); puncReplaceTo_LATEX.add("\\$\\\\rightarrow\\$");
 		puncReplaceFrom_LATEX.add("=>"); puncReplaceTo_LATEX.add("\\$\\\\Rightarrow\\$");
 		puncReplaceFrom_LATEX.add("\\{"); puncReplaceTo_LATEX.add("\\\\{");
 		puncReplaceFrom_LATEX.add("\\}"); puncReplaceTo_LATEX.add("\\\\}");
+		puncReplaceFrom_LATEX.add("="); puncReplaceTo_LATEX.add("\\${=}\\$");
+		puncReplaceFrom_LATEX.add(">"); puncReplaceTo_LATEX.add("\\${>}\\$");
+		puncReplaceFrom_LATEX.add("<"); puncReplaceTo_LATEX.add("\\${<}\\$");
 		puncReplaceFrom_LATEXMATHS = new ArrayList(); puncReplaceTo_LATEXMATHS = new ArrayList();
 		puncReplaceFrom_LATEXMATHS.add("&"); puncReplaceTo_LATEXMATHS.add("\\\\&");
 		puncReplaceFrom_LATEXMATHS.add("_"); puncReplaceTo_LATEXMATHS.add("\\\\_");
 		puncReplaceFrom_LATEXMATHS.add("%"); puncReplaceTo_LATEXMATHS.add("\\\\%");
-		puncReplaceFrom_LATEXMATHS.add(">="); puncReplaceTo_LATEXMATHS.add("\\\\geq");
-		puncReplaceFrom_LATEXMATHS.add("<="); puncReplaceTo_LATEXMATHS.add("\\\\leq");
+		puncReplaceFrom_LATEXMATHS.add(">="); puncReplaceTo_LATEXMATHS.add("{\\\\geq}");
+		puncReplaceFrom_LATEXMATHS.add("<="); puncReplaceTo_LATEXMATHS.add("{\\\\leq}");
 		puncReplaceFrom_LATEXMATHS.add("->"); puncReplaceTo_LATEXMATHS.add("\\\\rightarrow");
 		puncReplaceFrom_LATEXMATHS.add("=>"); puncReplaceTo_LATEXMATHS.add("\\\\Rightarrow");
 		puncReplaceFrom_LATEXMATHS.add("\\{"); puncReplaceTo_LATEXMATHS.add("\\\\{");
 		puncReplaceFrom_LATEXMATHS.add("\\}"); puncReplaceTo_LATEXMATHS.add("\\\\}");
+		puncReplaceFrom_LATEXMATHS.add("="); puncReplaceTo_LATEXMATHS.add("{=}");
+		puncReplaceFrom_LATEXMATHS.add(">"); puncReplaceTo_LATEXMATHS.add("{>}");
+		puncReplaceFrom_LATEXMATHS.add("<"); puncReplaceTo_LATEXMATHS.add("{<}");
 		puncReplaceFrom_PRISMGUI = new ArrayList(); puncReplaceTo_PRISMGUI = new ArrayList();
 	}
 	
