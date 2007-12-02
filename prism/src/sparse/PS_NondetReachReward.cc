@@ -71,30 +71,27 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	DdNode *maybe = jlong_to_DdNode(m); 		// 'maybe' states
 
 	// mtbdds
-	DdNode *reach, *a, *tmp;
+	DdNode *a, *tmp;
 	// model stats
-	int n, nc;
-	long nnz;
+	int n, nc, nc_r;
+	long nnz, nnz_r;
 	// sparse matrix
-	NDSparseMatrix *ndsm, *ndsmr;
+	NDSparseMatrix *ndsm, *ndsm_r;
 	// vectors
-	double *yes_vec, *soln, *soln2, *tmpsoln;
+	double *sr_vec, *soln, *soln2, *tmpsoln, *inf_vec;
 	// timing stuff
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
 	// misc
-	int i, j, k, l1, h1, l2, h2, iters;
+	int i, j, k, k_r, l1, h1, l2, h2, l2_r, h2_r, iters;
 	double d1, d2, kb, kbt;
-	bool done;
+	bool done, first;
 	
 	// start clocks	
 	start1 = start2 = util_cpu_time();
 	
 	// get number of states
 	n = odd->eoff + odd->toff;
-	
-	// get reachable states
-	reach = odd->dd;
 	
 	// filter out rows (goal states and infinity states) from matrix
 	Cudd_Ref(trans);
@@ -111,11 +108,8 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	Cudd_Ref(maybe);
 	trans_rewards = DD_Apply(ddman, APPLY_TIMES, trans_rewards, maybe);
 	
-	DD_PrintInfo(ddman, a, num_rvars+num_cvars+num_ndvars);
-	DD_PrintInfo(ddman, trans_rewards, num_rvars+num_cvars+num_ndvars);
-	
 	// build sparse matrix (probs)
-	PS_PrintToMainLog(env, "\nBuilding sparse probability matrix... ");
+	PS_PrintToMainLog(env, "\nBuilding sparse matrix (transitions)... ");
 	ndsm = build_nd_sparse_matrix(ddman, a, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
 	// get number of transitions/choices
 	nnz = ndsm->nnz;
@@ -127,26 +121,24 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	PS_PrintToMainLog(env, "[%.1f KB]\n", kb);
 	
 	// build sparse matrix (rewards)
-	PS_PrintToMainLog(env, "\nBuilding sparse reward matrix... ");
-	ndsmr = build_nd_sparse_matrix(ddman, trans_rewards, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
+	PS_PrintToMainLog(env, "Building sparse matrix (transition rewards)... ");
+	ndsm_r = build_sub_nd_sparse_matrix(ddman, a, trans_rewards, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
 	// get number of transitions/choices
-	nnz = ndsmr->nnz;
-	nc = ndsmr->nc;
+	nnz_r = ndsm_r->nnz;
+	nc_r = ndsm_r->nc;
 	// print out info
-	PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc, nnz, ndsmr->k);
-	kb = (nnz*12.0+nc*4.0+n*4.0)/1024.0;
-	kbt = kb;
+	PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc_r, nnz_r, ndsm_r->k);
+	kb = (nnz_r*12.0+nc_r*4.0+n*4.0)/1024.0;
+	kbt += kb;
 	PS_PrintToMainLog(env, "[%.1f KB]\n", kb);
 	
-	return 0;
-/*	
-	// get vector for yes
-	PS_PrintToMainLog(env, "Creating vector for yes... ");
-	yes_vec = mtbdd_to_double_vector(ddman, yes, rvars, num_rvars, odd);
+	// get vector for state rewards
+	PS_PrintToMainLog(env, "Creating vector for state rewards... ");
+	sr_vec = mtbdd_to_double_vector(ddman, state_rewards, rvars, num_rvars, odd);
 	kb = n*8.0/1024.0;
 	kbt += kb;
 	PS_PrintToMainLog(env, "[%.1f KB]\n", kb);
-
+	
 	// create solution/iteration vectors
 	PS_PrintToMainLog(env, "Allocating iteration vectors... ");
 	soln = new double[n];
@@ -158,10 +150,9 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	// print total memory usage
 	PS_PrintToMainLog(env, "TOTAL: [%.1f KB]\n", kbt);
 
-	// initial solution is yes
+	// initial solution is zero
 	for (i = 0; i < n; i++) {
-		soln[i] = yes_vec[i];
-//		if (soln[i]) printf("yes[%d] := %f;\n", i+1, yes[i]);
+		soln[i] = 0;
 	}
 
 	// get setup time
@@ -181,31 +172,64 @@ jboolean min		// min or max probabilities (true = min, false = max)
 //		PS_PrintToMainLog(env, "iter %d\n", iters);
 //		start3 = util_cpu_time();
 
-		// do matrix multiplication and min/max
+		// store local copies of stuff
+		// firstly for transition matrix
 		double *non_zeros = ndsm->non_zeros;
-		int *cols = ndsm->cols;
-		int *choice_starts = ndsm->choice_starts;
-		int *row_starts = ndsm->row_starts;
+		unsigned char *row_counts = ndsm->row_counts;
+		int *row_starts = (int *)ndsm->row_counts;
+		unsigned char *choice_counts = ndsm->choice_counts;
+		int *choice_starts = (int *)ndsm->choice_counts;
+		bool use_counts = ndsm->use_counts;
+		unsigned int *cols = ndsm->cols;
+		// and then for transition rewards matrix
+		double *non_zeros_r = ndsm_r->non_zeros;
+		unsigned char *row_counts_r = ndsm_r->row_counts;
+		int *row_starts_r = (int *)ndsm_r->row_counts;
+		unsigned char *choice_counts_r = ndsm_r->choice_counts;
+		int *choice_starts_r = (int *)ndsm_r->choice_counts;
+		bool use_counts_r = ndsm_r->use_counts;
+		unsigned int *cols_r = ndsm_r->cols;
+		
+		// do matrix multiplication and min/max
+		h1 = h2 = h2_r = 0;
+		// loop through states
 		for (i = 0; i < n; i++) {
-			d1 = min ? 2 : -1;
-			l1 = row_starts[i];
-			h1 = row_starts[i+1];
+			d1 = 0.0;
+			first = true;
+			// get pointers to nondeterministic choices for state i
+			if (!use_counts) { l1 = row_starts[i]; h1 = row_starts[i+1]; }
+			else { l1 = h1; h1 += row_counts[i]; }
+			// loop through those choices
 			for (j = l1; j < h1; j++) {
-				d2 = 0;
-				l2 = choice_starts[j];
-				h2 = choice_starts[j+1];
+				// compute the reward value for state i for this iteration
+				// start with state reward for this state
+				d2 = sr_vec[i];
+				// get pointers to transitions
+				if (!use_counts) { l2 = choice_starts[j]; h2 = choice_starts[j+1]; }
+				else { l2 = h2; h2 += choice_counts[j]; }
+				// and get pointers to transition rewards
+				if (!use_counts_r) { l2_r = choice_starts_r[j]; h2_r = choice_starts_r[j+1]; }
+				else { l2_r = h2_r; h2_r += choice_counts_r[j]; }
+				// loop through transitions
 				for (k = l2; k < h2; k++) {
+					// find corresponding transition reward if any
+					k_r = l2_r; while (k_r < h2_r && cols_r[k_r] != cols[k]) k_r++;
+					// if there is one, add reward * prob to reward value
+					if (k_r < h2_r) { d2 += non_zeros_r[k_r] * non_zeros[k]; k_r++; }
+					// add prob * corresponding reward from previous iteration
 					d2 += non_zeros[k] * soln[cols[k]];
 				}
+				// see if this value is the min/max so far
 				if (min) {
-					if (d2 < d1) d1 = d2;
+					if (first | d2 < d1) d1 = d2;
 				} else {
-					if (d2 > d1) d1 = d2;
+					if (first | d2 > d1) d1 = d2;
 				}
+				first = false;
 			}
 			// set vector element
-			// (if no choices, use value of yes)
-			soln2[i] = (h1 > l1) ? d1 : yes_vec[i];
+			// (if there were no choices from this state, reward is zero)
+			soln2[i] = (h1 > l1) ? d1 : 0;
 		}
 		
 		// check convergence
@@ -238,27 +262,38 @@ jboolean min		// min or max probabilities (true = min, false = max)
 		soln = soln2;
 		soln2 = tmpsoln;
 		
-//		Ps_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
+//		PS_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
 	}
-		
+	
 	// stop clocks
 	stop = util_cpu_time();
 	time_for_iters = (double)(stop - start2)/1000;
 	time_taken = (double)(stop - start1)/1000;
-
+	
 	// print iterations/timing info
 	PS_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
-
+	
+	// set reward for infinity states to infinity
+	if (soln != NULL) {
+		// first, generate vector for inf
+		inf_vec = mtbdd_to_double_vector(ddman, inf, rvars, num_rvars, odd);
+		// go thru setting elements of soln to infinity
+		for (i = 0; i < n; i++) if (inf_vec[i] > 0) soln[i] = HUGE_VAL;
+	}
+	
 	// free memory
 	Cudd_RecursiveDeref(ddman, a);
+	Cudd_RecursiveDeref(ddman, state_rewards);
+	Cudd_RecursiveDeref(ddman, trans_rewards);
 	free_nd_sparse_matrix(ndsm);
-	delete yes_vec;
+	free_nd_sparse_matrix(ndsm_r);
+	delete sr_vec;
 	delete soln2;
 	
 	// if the iterative method didn't terminate, this is an error
 	if (!done) { delete soln; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); return 0; }
 	
-	return ptr_to_jlong(soln);*/
+	return ptr_to_jlong(soln);
 }
 
 //------------------------------------------------------------------------------

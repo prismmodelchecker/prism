@@ -1595,10 +1595,9 @@ public class NondetModelChecker implements ModelChecker
 					rewards = new StateProbsMTBDD(rewardsMTBDD, model);
 					break;
 				case Prism.SPARSE:
-					throw new PrismException("This functionality is not yet supported for this engine");
-// 					rewardsDV = PrismSparse.NondetReachReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf, maybe, min);
-// 					rewards = new StateProbsDV(rewardsDV, model);
-// 					break;
+ 					rewardsDV = PrismSparse.NondetReachReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf, maybe, min);
+ 					rewards = new StateProbsDV(rewardsDV, model);
+ 					break;
 				case Prism.HYBRID:
 					throw new PrismException("This functionality is not yet supported for this engine");
 // 					rewardsDV = PrismHybrid.NondetReachReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf, maybe, min);
