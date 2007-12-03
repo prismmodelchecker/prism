@@ -1,7 +1,7 @@
 This case study is based on Lehmann and Rabin's solution to the well known dining philosophers problem [LR81]
 and the analysis of this algorithm by Lynch, Saias and Segala [LSS94].
 
-For more information, see: http://www.prismmodelchecker.org/casestudies/phil_lss.html
+For more information, see: http://www.prismmodelchecker.org/casestudies/phil_lss.php
 
 =====================================================================================
 

@@ -1,7 +1,7 @@
 This case study is based on Lehmann and Rabin's solution to the well known dining philosophers problem [LR81].
 It considers the version presented in [DFP04] which removes the need to consider 'fairness' assumptions on the scheduling mechanism.
 
-For more information, see: http://www.prismmodelchecker.org/casestudies/phil.html
+For more information, see: http://www.prismmodelchecker.org/casestudies/phil.php
 
 =====================================================================================
 
