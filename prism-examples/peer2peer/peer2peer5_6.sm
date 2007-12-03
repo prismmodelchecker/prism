@@ -1,0 +1,65 @@
+// Simple peer-to-peer file distribution protocol based on BitTorrent
+// gxn/dxp Jan 2006
+
+ctmc
+
+// N=5 clients, K=6 blocks to be downloaded
+// Actually there are N+1=6 clients, one of which has all blocks initially
+
+// Rate of block download for a single source
+const double mu=2;
+
+// Rate of download of block i:
+// A client can download from the single client which starts with all blocks
+// or from anyone that has subsequently downloaded it.
+// Total number of concurrent downloads for each block is 4.
+formula rate1=mu*(1+min(3,b11+b21+b31+b41+b51));
+formula rate2=mu*(1+min(3,b12+b22+b32+b42+b52));
+formula rate3=mu*(1+min(3,b13+b23+b33+b43+b53));
+formula rate4=mu*(1+min(3,b14+b24+b34+b44+b54));
+formula rate5=mu*(1+min(3,b15+b25+b35+b45+b55));
+formula rate6=mu*(1+min(3,b16+b26+b36+b46+b56));
+
+// client 1
+module client1
+	
+	// bij - has client i downloaded block j yet?
+	b11 : [0..1];
+	b12 : [0..1];
+	b13 : [0..1];
+	b14 : [0..1];
+	b15 : [0..1];
+	b16 : [0..1];
+	
+	// Downloading of each block (see rate computations above)
+	[] b11=0 -> rate1 : (b11'=1);
+	[] b12=0 -> rate2 : (b12'=1);
+	[] b13=0 -> rate3 : (b13'=1);
+	[] b14=0 -> rate4 : (b14'=1);
+	[] b15=0 -> rate5 : (b15'=1);
+	[] b16=0 -> rate6 : (b16'=1);
+	
+endmodule
+
+// construct remaining clients through renaming
+module client2=client1[b11=b21,b12=b22,b13=b23,b14=b24,b15=b25,b16=b26,b21=b11,b22=b12,b23=b13,b24=b14,b25=b15,b26=b16] endmodule
+module client3=client1[b11=b31,b12=b32,b13=b33,b14=b34,b15=b35,b16=b36,b31=b11,b32=b12,b33=b13,b34=b14,b35=b15,b36=b16] endmodule
+module client4=client1[b11=b41,b12=b42,b13=b43,b14=b44,b15=b45,b16=b46,b41=b11,b42=b12,b43=b13,b44=b14,b45=b15,b46=b16] endmodule
+module client5=client1[b11=b51,b12=b52,b13=b53,b14=b54,b15=b55,b16=b56,b51=b11,b52=b12,b53=b13,b54=b14,b55=b15,b56=b16] endmodule
+
+// labels
+label "done1" = b11+b12+b13+b14+b15+b16 = 6; // client 1 has received all blocks
+label "done2" = b21+b22+b23+b24+b25+b26 = 6; // client 2 has received all blocks
+label "done3" = b31+b32+b33+b34+b35+b36 = 6; // client 3 has received all blocks
+label "done4" = b41+b42+b43+b44+b45+b46 = 6; // client 4 has received all blocks
+label "done5" = b51+b52+b53+b54+b55+b56 = 6; // client 5 has received all blocks
+label "done" = (b11+b12+b13+b14+b15+b16)+(b21+b22+b23+b24+b25+b26)+(b31+b32+b33+b34+b35+b36)+(b41+b42+b43+b44+b45+b46)+(b51+b52+b53+b54+b55+b56) = 30; // all clients have received all blocks
+
+// reward: fraction of blocks received
+rewards "frac_rec"
+	true : ((b11+b12+b13+b14+b15+b16)/6)/5;
+	true : ((b21+b22+b23+b24+b25+b26)/6)/5;
+	true : ((b31+b32+b33+b34+b35+b36)/6)/5;
+	true : ((b41+b42+b43+b44+b45+b46)/6)/5;
+	true : ((b51+b52+b53+b54+b55+b56)/6)/5;
+endrewards
