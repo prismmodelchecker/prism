@@ -6,7 +6,7 @@ of the main changes in each public release, see the file VERSIONS.txt.
 Latest additions (reverse chronological) (as of svn rev 542)
 -----------------------------------------------------------------------------
 
-* Addition of some missing reward model check algorithms
+* Addition of some missing reward model checking algorithms
   - instantaenous reward properties (R=?[I=k]) for DTMCs/MDPs (MTBDD/sparse engines only)
   - cumulative reward properties (R=?[C<=k]) for DTMCs
   - sparse engine version of reach reward properties (R=?[F...]) for MDPs
