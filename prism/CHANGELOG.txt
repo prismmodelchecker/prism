@@ -3,9 +3,15 @@ including development and beta versions. For a less detailed overview
 of the main changes in each public release, see the file VERSIONS.txt.
 
 -----------------------------------------------------------------------------
-Latest additions (reverse chronological) (as of svn rev 480)
+Latest additions (reverse chronological) (as of svn rev 542)
 -----------------------------------------------------------------------------
 
+* Addition of some missing reward model check algorithms
+  - instantaenous reward properties (R=?[I=k]) for DTMCs/MDPs (MTBDD/sparse engines only)
+  - cumulative reward properties (R=?[C<=k]) for DTMCs
+  - sparse engine version of reach reward properties (R=?[F...]) for MDPs
+* New option for displaying extra (MT)BDD info (-extraddinfo switch)
+* Font increase/decrease feature in GUI
 * Labels (for use in properties file) can be defined in the model file
 * Properties files can use formulas from model file
 * Partially correct property files can be loaded into the GUI
@@ -16,7 +22,6 @@ Latest additions (reverse chronological) (as of svn rev 480)
 * New option for -simpath feature: generation of multiple paths to find deadlock
 * New "rows" option for matrix exports (-exportrows switch)
 * Ability to display extra  info about MTBDDs (-extraddinfo switch)
-* Cumulative reward properties for DTMCs
 * Support for 64-bit architectures
 * Addition of F and G operators to property language (eventually/globally)
 * Redesign of the simulator GUI, plus new features:
