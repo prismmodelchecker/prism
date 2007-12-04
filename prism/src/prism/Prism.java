@@ -1067,7 +1067,7 @@ public class Prism implements PrismSettingsListener
 	// export labels and satisfying states to a file
 	// file == null mean export to log
 	
-	public void exportLabelsToFile(Model model, PropertiesFile propertiesFile, int exportType, File file) throws FileNotFoundException, PrismException
+	public void exportLabelsToFile(Model model, ModulesFile modulesFile, PropertiesFile propertiesFile, int exportType, File file) throws FileNotFoundException, PrismException
 	{
 		int i, n;
 		LabelList ll;
@@ -1079,8 +1079,8 @@ public class Prism implements PrismSettingsListener
 		
 		// get label list and size
 		if (propertiesFile == null) {
-			ll = null;
-			n = 0;
+			ll = modulesFile.getLabelList();
+			n = ll.size();
 		} else {
 			ll = propertiesFile.getCombinedLabelList();
 			n = ll.size();
@@ -1094,7 +1094,7 @@ public class Prism implements PrismSettingsListener
 		if (n > 0) {
 			constantValues = new Values();
 			constantValues.addValues(model.getConstantValues());
-			constantValues.addValues(propertiesFile.getConstantValues());
+			if (propertiesFile != null) constantValues.addValues(propertiesFile.getConstantValues());
 			expr2mtbdd = new Expression2MTBDD(mainLog, techLog, model.getVarList(), model.getVarDDRowVars(), constantValues);
 			expr2mtbdd.setFilter(model.getReach());
 		}

@@ -267,7 +267,7 @@ public class PrismCL
 						propertiesFile.setUndefinedConstants(definedPFConstants);
 					}
 					File f = (exportLabelsFilename.equals("stdout")) ? null : new File(exportLabelsFilename);
-					prism.exportLabelsToFile(model, propertiesFile, exportType, f);
+					prism.exportLabelsToFile(model, modulesFile, propertiesFile, exportType, f);
 				}
 				// in case of error, report it and proceed
 				catch (FileNotFoundException e) {
