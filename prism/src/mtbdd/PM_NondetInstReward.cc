@@ -51,7 +51,8 @@ jint num_cvars,
 jlong __pointer ndv,	// nondet vars
 jint num_ndvars,
 jint bound,			// time bound
-jboolean min		// min or max probabilities (true = min, false = max)
+jboolean min,		// min or max probabilities (true = min, false = max)
+jlong __pointer in
 )
 {
 	// cast function parameters
@@ -62,6 +63,7 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
 	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
 	DdNode **ndvars = jlong_to_DdNode_array(ndv);	// nondet vars
+	DdNode *init = jlong_to_DdNode(in);
 
 	// mtbdds
 	DdNode *new_mask, *sol, *tmp;
@@ -119,6 +121,13 @@ jboolean min		// min or max probabilities (true = min, false = max)
 		// prepare for next iteration
 		Cudd_RecursiveDeref(ddman, sol);
 		sol = tmp;
+		
+//		Cudd_Ref(sol);
+//		Cudd_Ref(init);
+//		tmp = DD_Apply(ddman, APPLY_TIMES, sol, init);
+//		tmp = DD_SumAbstract(ddman, tmp, rvars, num_rvars);
+//		PM_PrintToMainLog(env, "%i: %f (%0.f, %0d)\n", iters, Cudd_V(tmp), DD_GetNumMinterms(ddman, sol, num_rvars), DD_GetNumNodes(ddman, sol));
+//		Cudd_RecursiveDeref(ddman, tmp);
 		
 //		PM_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
 	}

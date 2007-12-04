@@ -1513,9 +1513,13 @@ public class NondetModelChecker implements ModelChecker
 			try {
 				switch (engine) {
 				case Prism.MTBDD:
-					rewardsMTBDD = PrismMTBDD.NondetInstReward(tr, sr, odd, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, time, min);
+					rewardsMTBDD = PrismMTBDD.NondetInstReward(tr, sr, odd, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, time, min, start);
 					rewards = new StateProbsMTBDD(rewardsMTBDD, model);
 					break;
+				case Prism.SPARSE:
+ 					rewardsDV = PrismSparse.NondetInstReward(tr, sr, odd, allDDRowVars, allDDColVars, allDDNondetVars, time, min, start);
+ 					rewards = new StateProbsDV(rewardsDV, model);
+ 					break;
 				default: throw new PrismException("Engine does not support this numerical method");
 				}
 			}

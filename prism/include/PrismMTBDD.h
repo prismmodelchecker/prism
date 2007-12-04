@@ -210,10 +210,10 @@ JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1NondetUntil
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_NondetInstReward
- * Signature: (JJJJJIJIJIIZ)J
+ * Signature: (JJJJJIJIJIIZJ)J
  */
 JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1NondetInstReward
-  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jint, jboolean);
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jint, jboolean, jlong);
 
 /*
  * Class:     mtbdd_PrismMTBDD
