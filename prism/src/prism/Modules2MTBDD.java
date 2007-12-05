@@ -42,18 +42,12 @@ public class Modules2MTBDD
 	// constants
 	private static final double ACCEPTABLE_ROUND_OFF = 10e-6; // when checking for sums to 1
 	
+	// Prism object
+	private Prism prism;
+	
 	// logs
 	private PrismLog mainLog;		// main log
 	private PrismLog techLog;		// tech log
-
-	// flags/settings
-	private boolean doReach = true;	// by default, do reachability (sometimes might want to skip it though)
-	private boolean doProbChecks;	// perform checks on probs/rates? (sum to one, etc.)
-	private boolean extraDDInfo;	// display extra info about DDs
-	// the following two settings are now surplus to requirements
-	// because of the way nondeterminism is handled in the mtbdd construction
-	private int ordering = 1;		// mtbdd variable ordering (1=top, 2=middle) (default: 1)
-	private int construction = 3;	// mtbdd construction method (1=dup, 3=0) (default: 3)
 
 	// ModulesFile object to store syntax tree from parser
 	private ModulesFile modulesFile;
@@ -153,73 +147,14 @@ public class Modules2MTBDD
 	
 	// constructor
 	
-	public Modules2MTBDD(PrismLog log1, PrismLog log2, ModulesFile mf)
+	public Modules2MTBDD(Prism p, ModulesFile mf)
 	{
-		mainLog = log1;
-		techLog = log2;
+		prism = p;
+		mainLog = p.getMainLog();
+		techLog = p.getTechLog();
 		modulesFile = mf;
 	}
 	
-	// set options (generic)
-	
-	public void setOption(String option, boolean b)
-	{
-		if (option.equals("doreach")) {
-			doReach = b;
-		}
-		else if (option.equals("doprobchecks")) {
-			doProbChecks = b;
-		}
-		else if (option.equals("extraddinfo")) {
-			extraDDInfo = b;
-		}
-		else {
-			mainLog.println("\nWarning: option \""+option+"\" not supported by Modules2MTBDD translator.");
-		}
-	}
-	
-	public void setOption(String option, int i)
-	{
-		if (option.equals("ordering")) {
-			setOrdering(i);
-		}
-		else if (option.equals("construction")) {
-			setConstruction(i);
-		}
-		else {
-			mainLog.println("\nWarning: option \""+option+"\" not supported by Modules2MTBDD translator.");
-		}
-	}
-
-	public void setOption(String option, String s)
-	{
-		mainLog.println("\nWarning: option \""+option+"\" not supported by Modules2MTBDD translator.");
-	}
-
-	// set flags/settings
-	
-	private void setOrdering(int i)
-	{
-		if (i > 0) {
-			ordering = i;
-		}
-		else {
-			// default to 1
-			ordering = 1;
-		}
-	}
-
-	private void setConstruction(int i)
-	{
-		if (i > 0) {
-			construction = i;
-		}
-		else {
-			// default to 3
-			construction = 3;
-		}
-	}
-
 	// main method - translate
 
 	public Model translate() throws PrismException
@@ -284,14 +219,14 @@ public class Modules2MTBDD
 // 		JDD.Deref(tmp);
 		
 		// Print some info (if extraddinfo flag on)
-		if (extraDDInfo) {
+		if (prism.getExtraDDInfo()) {
 			mainLog.print("Transition matrix (pre-reachability): ");
 			mainLog.print(JDD.GetNumNodes(trans) + " nodes (");
 			mainLog.print(JDD.GetNumTerminals(trans) + " terminal)\n");
 		}
 		
 		// do reachability (or not!)
-		if (doReach) {
+		if (prism.getDoReach()) {
 			doReachability();
 		}
 		else {
@@ -363,7 +298,7 @@ public class Modules2MTBDD
 		int ddVarsUsed = 0;
 		ddVarNames = new Vector();
 
-		switch (ordering) {
+		switch (prism.getOrdering()) {
 		
 		case 1:
 		// ordering: (a ... a) (s ... s) (l ... l) (r c ... r c)
@@ -1413,7 +1348,7 @@ public class Modules2MTBDD
 						throw new PrismException(s);
 					}
 					// only do remaining checks if 'doprobchecks' flag is set
-					if (doProbChecks) {
+					if (prism.getDoProbChecks()) {
 						// sum probs/rates in updates
 						JDD.Ref(upDDs[l]);
 						tmp = JDD.SumAbstract(upDDs[l], moduleDDColVars[m]);
@@ -2036,11 +1971,11 @@ public class Modules2MTBDD
 		
 		// compute reachable states
 		mainLog.print("\nComputing reachable states...\n");
-		reach = PrismMTBDD.Reachability(tmp, allDDRowVars, allDDColVars, start);
+		reach = PrismMTBDD.Reachability(tmp, allDDRowVars, allDDColVars, start, prism.getExtraReachInfo()?1:0);
 		JDD.Deref(tmp);
 		
 		// Print some info (if extraddinfo flag on)
-		if (extraDDInfo) {
+		if (prism.getExtraDDInfo()) {
 			mainLog.print("Reach: " + JDD.GetNumNodes(reach) + " nodes\n");
 		}
 		// remove non-reachable states from transition matrix

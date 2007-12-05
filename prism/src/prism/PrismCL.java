@@ -1168,6 +1168,10 @@ public class PrismCL
 				else if (sw.equals("extraddinfo")) {
 					prism.setExtraDDInfo(true);
 				}
+				// extra reach info on
+				else if (sw.equals("extrareachinfo")) {
+					prism.setExtraReachInfo(true);
+				}
 				// precomputation algs off
 				else if (sw.equals("nopre")) {
 					prism.setPrecomp(false);
@@ -1464,7 +1468,7 @@ public class PrismCL
 		mainLog.println("-exportresults <file> .......... Export the results of model checking to a file");
 		mainLog.println("-exporttrans <file> ............ Export the transition matrix to a file");
 		mainLog.println("-exportstaterewards <file> ..... Export the state rewards vector to a file");
-		mainLog.println("-exporttransrewards <file> ...... Export the transition rewards matrix to a file");
+		mainLog.println("-exporttransrewards <file> ..... Export the transition rewards matrix to a file");
 		mainLog.println("-exportstates <file> ........... Export the list of reachable states to a file");
 		mainLog.println("-exportlabels <file> ........... Export the list of labels and satisfying states to a file");
 		mainLog.println("-exportmatlab .................. When exporting matrices/vectors/labels/etc., use Matlab format");
@@ -1499,6 +1503,7 @@ public class PrismCL
 		mainLog.println();
 		mainLog.println("-verbose (or -v) ............... Verbose mode: print out state lists and probability vectors");
 		mainLog.println("-extraddinfo ................... Display extra info about some (MT)BDDs");
+		mainLog.println("-extrareachinfo ................ Display extra info about progress of reachability");
 		mainLog.println("-nopre ......................... Skip precomputation algorithms");
 		mainLog.println("-fair .......................... Use fairness (when model checking PCTL on MDPs)");
 		mainLog.println("-nofair ........................ Don't use fairness (when model checking PCTL on MDPs) [default]");

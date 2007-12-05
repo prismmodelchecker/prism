@@ -88,6 +88,7 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_SOR_MAX_MEM					= "prism.SORMaxMem";//"prism.hybridSORMaxMemory";
 	public static final	String PRISM_DO_SS_DETECTION				= "prism.doSSDetect";
 	public static final	String PRISM_EXTRA_DD_INFO					= "prism.extraDDInfo";
+	public static final	String PRISM_EXTRA_REACH_INFO				= "prism.extraReachInfo";
 	
 	//GUI Model
 	public static final	String MODEL_AUTO_PARSE						= "model.autoParse";
@@ -180,7 +181,8 @@ public class PrismSettings implements Observer
 			{ INTEGER_TYPE,		PRISM_NUM_SOR_LEVELS,					"Hybrid GS levels",						"3.0",			new Integer(-1),															"-1,",																						"Number of MTBDD levels descended for hybrid engine data structures block division with GS/SOR." },
 			{ INTEGER_TYPE,		PRISM_SOR_MAX_MEM,						"Hybrid GS memory (KB)",				"3.0",			new Integer(1024),															"0,",																						"Maximum memory usage for hybrid engine data structures block division with GS/SOR (KB)." },
 			{ BOOLEAN_TYPE,		PRISM_DO_SS_DETECTION,					"Use steady-state detection",			"3.0",			new Boolean(true),															"0,",																						"Use steady-state detection during CTMC transient probability computation." },
-			{ BOOLEAN_TYPE,		PRISM_EXTRA_DD_INFO,					"Extra MTBDD information",				"3.0",			new Boolean(false),															"0,",																						"Display extra information about (MT)BDDs used during and after model construction." }
+			{ BOOLEAN_TYPE,		PRISM_EXTRA_DD_INFO,					"Extra MTBDD information",				"3.2",			new Boolean(false),															"0,",																						"Display extra information about (MT)BDDs used during and after model construction." },
+			{ BOOLEAN_TYPE,		PRISM_EXTRA_REACH_INFO,					"Extra reachability information",		"3.2",			new Boolean(false),															"0,",																						"Display extra information about progress of reachability during model construction." }
 		},
 		{
 			{ BOOLEAN_TYPE,		MODEL_AUTO_PARSE,						"Auto parse",							"3.0",			new Boolean(true),															"",																							"Parse PRISM models automatically as they are loaded/edited in the text editor." },

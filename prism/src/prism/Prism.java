@@ -89,17 +89,18 @@ public class Prism implements PrismSettingsListener
 	private PrismSettings settings;
 	
 	// A few miscellaneous options (i.e. defunct/hidden/undocumented/etc.)
+	// See constructor below for default values
 	
 	private boolean doReach;	// do reachability? (sometimes might want to skip it)
 	private boolean bsccComp;	// do bscc computation before steady-state?
 	
-	// mtbdd construction method
+	// MTBDD construction method (NOW DEFUNCT)
 	//  1 - use with ordering 1: nondet vars form a tree at the top
 	//  3 - use with ordering 2: zero for nonexistant bits
 	// nb: option 2 removed because it was stupid
 	private int construction;
 
-	// mtbdd variable ordering
+	// MTBDD variable ordering
 	//  1 - (s ... s) (l ... l) (r c ... r c)
 	//  2 - (s l ... l r c ... r c) (s l ... l r c ... r c) ...
 	private int ordering;
@@ -168,7 +169,7 @@ public class Prism implements PrismSettingsListener
 		// default values for miscellaneous options 
 		doReach = true;
 		bsccComp = true;
-		construction = 0;
+		construction = 3;
 		ordering = 1;
 	}
 	
@@ -293,6 +294,11 @@ public class Prism implements PrismSettingsListener
 		settings.set(PrismSettings.PRISM_EXTRA_DD_INFO, b);
 	}
 	
+	public void setExtraReachInfo(boolean b) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_EXTRA_REACH_INFO, b);
+	}
+	
 	// set methods for miscellaneous options
 	
 	public void setDoReach(boolean b) throws PrismException
@@ -373,6 +379,9 @@ public class Prism implements PrismSettingsListener
 	
 	public boolean getExtraDDInfo()
 	{ return settings.getBoolean(PrismSettings.PRISM_EXTRA_DD_INFO); }
+	
+	public boolean getExtraReachInfo()
+	{ return settings.getBoolean(PrismSettings.PRISM_EXTRA_REACH_INFO); }
 	
 	public int getNumSORLevels()
 	{ return settings.getInteger(PrismSettings.PRISM_NUM_SOR_LEVELS); }
@@ -827,12 +836,7 @@ public class Prism implements PrismSettingsListener
 		mainLog.print("...\n");
 		
 		// create translator
-		mod2mtbdd = new Modules2MTBDD(mainLog, techLog, modulesFile);
-		mod2mtbdd.setOption("ordering", getOrdering());
-		mod2mtbdd.setOption("construction", getConstruction());
-		mod2mtbdd.setOption("doreach", getDoReach());
-		mod2mtbdd.setOption("doprobchecks", getDoProbChecks());
-		mod2mtbdd.setOption("extraddinfo", getExtraDDInfo());
+		mod2mtbdd = new Modules2MTBDD(this, modulesFile);
 		
 		// build model
 		l = System.currentTimeMillis();

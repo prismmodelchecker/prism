@@ -98,10 +98,10 @@ JNIEXPORT jstring JNICALL Java_mtbdd_PrismMTBDD_PM_1GetErrorMessage
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_Reachability
- * Signature: (JJIJIJ)J
+ * Signature: (JJIJIJI)J
  */
 JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1Reachability
-  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong);
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jint);
 
 /*
  * Class:     mtbdd_PrismMTBDD

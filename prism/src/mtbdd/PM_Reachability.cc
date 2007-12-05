@@ -46,7 +46,8 @@ jlong __pointer rv,	// row vars
 jint num_rvars,
 jlong __pointer cv,	// col vars
 jint num_cvars,
-jlong __pointer s	// start state
+jlong __pointer s,	// start state
+jint info			// how much diagnostic info to display (0=none, 1=some)
 )
 {
 	DdNode *trans01 = jlong_to_DdNode(t01);		// 0-1 trans matrix
@@ -76,9 +77,14 @@ jlong __pointer s	// start state
 //	PM_PrintToMainLog(env, "Reachability:\n");
 	while (!done) {
 		iters++;
-//		PM_PrintToMainLog(env, "Iteration %d: ", iters);
-//		PM_PrintToMainLog(env, "%0.f (%d) ", DD_GetNumMinterms(ddman, reach, num_rvars), DD_GetNumNodes(ddman, reach));
-//		start2 = util_cpu_time();
+		
+		// output info on progress
+		if (info > 0) {
+			PM_PrintToMainLog(env, "Iteration %d:", iters);
+			PM_PrintToMainLog(env, " %0.f states", DD_GetNumMinterms(ddman, reach, num_rvars));
+			PM_PrintToMainLog(env, " (%d nodes)", DD_GetNumNodes(ddman, reach));
+			start2 = util_cpu_time();
+		}
 		
 //		PM_PrintToMainLog(env, "[permute(%d)", DD_GetNumNodes(ddman, reach));
 //		start3 = util_cpu_time();
@@ -112,8 +118,12 @@ jlong __pointer s	// start state
 		}
 		Cudd_RecursiveDeref(ddman, reach);
 		reach = tmp;
-//		stop = util_cpu_time();
-//		PM_PrintToMainLog(env, " = %f\n", (double)(stop - start2)/1000);
+		
+		// output info on progress
+		if (info > 0) {
+			stop = util_cpu_time();
+			PM_PrintToMainLog(env, " (%.2f seconds)\n", (double)(stop - start2)/1000);
+		}
 	}
 	reach = DD_PermuteVariables(ddman, reach, cvars, rvars, num_cvars);
 	// ...to here
