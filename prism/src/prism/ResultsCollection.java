@@ -2,9 +2,9 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
-//	* Andrew Hinton <ug60axh@cs.bham.uc.uk> (University of Birmingham)
-//  * Mark Kattenbelt <mark.kattenbelt@comlab.ox.ac.uk> (University of Oxford)
+//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Andrew Hinton <ug60axh@cs.bham.ac.uk> (University of Birmingham)
+//	* Mark Kattenbelt <mark.kattenbelt@comlab.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	

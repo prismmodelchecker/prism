@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//  * Mark Kattenbelt <mark.kattenbelt@comlab.ox.ac.uk> (University of Oxford)
+//	* Mark Kattenbelt <mark.kattenbelt@comlab.ox.ac.uk> (University of Oxford)
 //	* Alistair John Strachan <alistair@devzero.co.uk> (University of Edinburgh)
 //	* Mike Arthur <mike@mikearthur.co.uk> (University of Edinburgh)
 //	* Zak Cohen <zakcohen@gmail.com> (University of Edinburgh)

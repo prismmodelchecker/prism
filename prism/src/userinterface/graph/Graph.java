@@ -5,7 +5,7 @@
 //	* Alistair John Strachan <alistair@devzero.co.uk> (University of Edinburgh)
 //	* Mike Arthur <mike@mikearthur.co.uk> (University of Edinburgh)
 //	* Zak Cohen <zakcohen@gmail.com> (University of Edinburgh)
-//	* Mark Kattenbelt <mxk@cs.bham.uc.uk> (University of Birmingham)
+//	* Mark Kattenbelt <mark.kattenbelt@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
 //	
 //------------------------------------------------------------------------------
 //	

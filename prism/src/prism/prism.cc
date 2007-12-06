@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
+//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
 //	* Joachim Meyer-Kayser <Joachim.Meyer-Kayser@informatik.uni-erlangen.de> (University of Erlangen)
 //	
 //------------------------------------------------------------------------------

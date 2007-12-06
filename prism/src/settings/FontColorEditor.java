@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Andrew Hinton <ug60axh@cs.bham.uc.uk> (University of Birmingham)
+//	* Andrew Hinton <ug60axh@cs.bham.ac.uk> (University of Birmingham)
 //	
 //------------------------------------------------------------------------------
 //	

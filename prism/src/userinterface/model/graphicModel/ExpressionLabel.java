@@ -2,8 +2,8 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Andrew Hinton <ug60axh@cs.bham.uc.uk> (University of Birmingham)
-//	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
+//	* Andrew Hinton <ug60axh@cs.bham.ac.uk> (University of Birmingham)
+//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
 //	
 //------------------------------------------------------------------------------
 //	

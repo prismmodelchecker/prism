@@ -1,19 +1,19 @@
 //==============================================================================
 //	
-//  This file is a modification of the following JFreeChart files:
-//  * org.jfree.chart.axis.LogarithmicAxis      (version  1.0.6)
-//  * org.jfree.experimental.chart.axis.LogAxis (revision 1.1.2.2)
-//
-//  The notices of these files follow below.
-//
-//  The modification combines features of both implementations. Most notably, it
-//  is possible to select a custom base value (like LogAxis), render points 
-//  smaller than the base value more sensibly (e.g. negative powers like 
-//  10*2^(-3)), and chooses more sensible grid lines.
-//
+//	This file is a modification of the following JFreeChart files:
+//	* org.jfree.chart.axis.LogarithmicAxis      (version  1.0.6)
+//	* org.jfree.experimental.chart.axis.LogAxis (revision 1.1.2.2)
+//	
+//	The notices of these files follow below.
+//	
+//	The modification combines features of both implementations. Most notably, it
+//	is possible to select a custom base value (like LogAxis), render points 
+//	smaller than the base value more sensibly (e.g. negative powers like 
+//	10*2^(-3)), and chooses more sensible grid lines.
+//	
 //	These modifications are copyright (c) 2002-
 //	Authors:
-//  * Mark Kattenbelt <mark.kattenbelt@comlab.ox.ac.uk> (University of Oxford)
+//	* Mark Kattenbelt <mark.kattenbelt@comlab.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
