@@ -10,7 +10,7 @@ INSTALLATION
 
 For detailed installation instructions, check the online manual at:
 
-  http://www.cs.bham.ac.uk/~dxp/prism/manual/InstallingPRISM/Instructions
+  http://www.prismmodelchecker.org/manual/InstallingPRISM/Instructions
   
 or see the local copies included in this distribution:
 
@@ -40,7 +40,7 @@ DOCUMENTATION
 
 The best source of information about using PRISM is the online manual:
 
-  http://www.cs.bham.ac.uk/~dxp/prism/manual/
+  http://www.prismmodelchecker.org/manual/
 
 You can also view the local copies included in this distribution:
 
@@ -49,7 +49,7 @@ You can also view the local copies included in this distribution:
 
 For other PRISM-related information, see the website:
 
-  http://www.cs.bham.ac.uk/~dxp/prism/
+  http://www.prismmodelchecker.org/
 
 
 ---------
@@ -73,30 +73,28 @@ library, see:
 ACKNOWLEDGEMENTS
 ----------------
 
-The core team behind the development of PRISM, working in the School of Computer Science at the University of Birmingham, comprises:
+The core team behind the development of PRISM, previously working in the
+School of Computer Science at the University of Birmingham and now working
+in the Computing Laboratory at the University of Oxford, comprises:
 
- - Dave Parker
- - Gethin Norman
- - Marta Kwiatkowska
- - Mark Kattenbelt
+ * Dave Parker
+ * Gethin Norman
+ * Marta Kwiatkowska
+ * Mark Kattenbelt
+ 
+Contributions to the development of PRISM have also been gratefully received from:
 
-Much of the work on the GUI and simulator was originally done by:
-
- - Andrew Hinton
-
-We also gratefully acknowledge contributions by:
-
- - Paolo Ballarini
- - Kenneth Chan
- - Stephen Gilmore
- - Rashid Mehmood
- - Joachim Meyer-Kayser
- - Fabio Somenzi
- - Alistair John Strachan
+ * Andrew Hinton: Original versions of the GUI, Windows-port and simulator
+ * Joachim Meyer-Kayser: Implementation of the "Fox-Glynn" algorithm
+ * Alistair John Strachan: Port to 64-bit architectures
+ * Stephen Gilmore: Support for the stochastic process algebra PEPA
+ * Paolo Ballarini & Kenneth Chan: Port of PRISM to Mac OS X
+ * Rashid Mehmood: Improvements to low-level data structures and numerical solution algorithms
+ * Alistair John Strachan, Mike Arthur and Zak Cohen: Integration of JFreeChart into PRISM
  
 For more details see:
 
-  http://www.cs.bham.ac.uk/~dxp/prism/people.php
+  http://www.prismmodelchecker.org/people.php
 
 
 -------
@@ -105,15 +103,16 @@ CONTACT
 
 If you have problems or questions regarding PRISM, please use the help forum provided. See:
 
-  http://www.cs.bham.ac.uk/~dxp/prism/support.php
+  http://www.prismmodelchecker.org/support.php
 
 Other comments and feedback about any aspect of PRISM are also very welcome. Please contact:
 
   Dave Parker
-  (dxp@cs.bham.ac.uk)
-  School of Computer Science
-  University of Birmingham
-  Edgbaston
-  Birmingham
-  B15 2TT
+  (david.parker@comlab.ox.ac.uk)
+  Oxford University Computing Laboratory,
+  Wolfson Building
+  Parks Road
+  Oxford
+  OX1 3QD
   ENGLAND
+

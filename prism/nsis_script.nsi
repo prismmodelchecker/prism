@@ -2,8 +2,8 @@
 ;	
 ;	Copyright (c) 2002-
 ;	Authors:
-;	* Mark Kattenbelt <mxk@cs.bham.uc.uk> (University of Birmingham)
-;	* Dave Parker <dxp@cs.bham.uc.uk> (University of Birmingham)
+;	* Mark Kattenbelt <mark.kattenbelt@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+;	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
 ;	
 ;------------------------------------------------------------------------------
 ;	
@@ -70,7 +70,7 @@ ComponentText 	"Please select the components you wish to install."
 Section ""
     SetOutPath "$INSTDIR"
 
-    ;WriteRegStr HKEY_LOCAL_MACHINE "SOFTWARE\University of Birmingham\${PRISM_BUILD}" "" "$INSTDIR"
+    ;WriteRegStr HKEY_LOCAL_MACHINE "SOFTWARE\University of Oxford\${PRISM_BUILD}" "" "$INSTDIR"
     ;WriteRegStr HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRISM_BUILD}" "DisplayName" "${PRISM_NAME}(remove only)"
     ;WriteRegStr HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRISM_BUILD}" "UninstallString" '"$INSTDIR\uninstall.exe"'
 
@@ -140,12 +140,12 @@ Section "Start menu shortcuts"
                     SW_SHOWNORMAL "" "The PRISM manual (local copy)"
 
     CreateShortCut  "$SMPROGRAMS\${PRISM_NAME}\Manual (online).lnk" \
-                    "http://www.cs.bham.ac.uk/~dxp/prism/manual/" ""                            \
+                    "http://www.prismmodelchecker.org/manual/" ""                            \
                     "" ""                             \
                     SW_SHOWNORMAL "" "The PRISM manual (online version)"
 
     CreateShortCut  "$SMPROGRAMS\${PRISM_NAME}\Web site.lnk" \
-                    "http://www.cs.bham.ac.uk/~dxp/prism/" ""                            \
+                    "http://www.prismmodelchecker.org/" ""                            \
                     "" 0                             \
                     SW_SHOWNORMAL "" "The PRISM web site"
 
