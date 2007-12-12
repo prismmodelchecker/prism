@@ -1879,7 +1879,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		{
 			if(e.getClickCount() == 2 && e.getSource() == pathTablePlaceHolder)
 			{				
-				a_newPath();
+				if (newPath.isEnabled()) a_newPath();
 			}
 			if(e.isPopupTrigger() && (e.getSource() == pathTablePlaceHolder || e.getSource() == pathTable || e.getSource() == pathTable.getTableHeader() || e.getSource() == tableScroll))
 			{
