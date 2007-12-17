@@ -141,13 +141,18 @@ public class LabelList
 	public void check() throws PrismException
 	{
 		int i, n;
+		String s;
 		Expression e;
 		
 		// go thru all labels
 		n = labels.size();
 		for (i = 0; i < n; i++) {
-			e = getLabel(i);
+			// make sure name doesn't clash with a built-in one
+			s = getLabelName(i);
+			if ("deadlock".equals(s)) throw new PrismException("Cannot define a label called \"deadlock\" - this is a built-in label");
+			if ("init".equals(s)) throw new PrismException("Cannot define a label called \"init\" - this is a built-in label");
 			// is expression ok?
+			e = getLabel(i);
 			e.check();
 			// and does it type check ok?
 			if (e.getType() != Expression.BOOLEAN) {
