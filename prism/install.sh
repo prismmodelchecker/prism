@@ -8,7 +8,7 @@
 # You are supposed to run this from the main PRISM directory
 # but in case someone is in the bin directory, change...
 PRISM_DIR=`pwd`
-if [ `basename $PRISM_DIR` = bin ]; then
+if [ `basename "$PRISM_DIR"` = bin ]; then
   PRISM_DIR=`cd ..;pwd`
 fi
 
@@ -19,13 +19,13 @@ fi
 TEMP_FILE=tmp
 for FILE_TO_CHANGE in bin/prism bin/xprism
 do
-  if [ -f $PRISM_DIR/$FILE_TO_CHANGE ]; then
+  if [ -f "$PRISM_DIR"/$FILE_TO_CHANGE ]; then
     if [ ! "$1" = "silent" ] ; then
         echo "Setting path in startup script $PRISM_DIR/$FILE_TO_CHANGE..."
     fi
-    if sed -e "s|PRISM_DIR=.*|PRISM_DIR=$PRISM_DIR|g" $PRISM_DIR/$FILE_TO_CHANGE > $PRISM_DIR/$TEMP_FILE ; then
-      /bin/mv $PRISM_DIR/$TEMP_FILE $PRISM_DIR/$FILE_TO_CHANGE
-      chmod 755 $PRISM_DIR/$FILE_TO_CHANGE
+    if sed -e "s|PRISM_DIR=.*|PRISM_DIR=$PRISM_DIR|g" "$PRISM_DIR"/$FILE_TO_CHANGE > "$PRISM_DIR"/$TEMP_FILE ; then
+      /bin/mv "$PRISM_DIR"/$TEMP_FILE "$PRISM_DIR"/$FILE_TO_CHANGE
+      chmod 755 "$PRISM_DIR"/$FILE_TO_CHANGE
     else
       echo "Error: Failed to modify startup scripts."
       exit 0
