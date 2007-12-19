@@ -123,7 +123,7 @@ public class GUIExperimentPicker extends javax.swing.JDialog
 		initTables(areModel, areProp);
 		initValues(undef);
 		
-		setResizable(false);
+		//setResizable(false);
 		
 		pack();
 		setLocationRelativeTo(getParent()); // centre
@@ -303,11 +303,13 @@ public class GUIExperimentPicker extends javax.swing.JDialog
 	{
 		for(int i = 0; i < undef.getMFNumUndefined(); i++)
 		{
-			modelTable.addConstant(new ConstantLine(undef.getMFUndefinedName(i), undef.getMFUndefinedType(i)));
+			ConstantLine line = new ConstantLine(undef.getMFUndefinedName(i), undef.getMFUndefinedType(i));
+			modelTable.addConstant(line);
 		}
 		for(int i = 0; i < undef.getPFNumUndefined(); i++)
 		{
-			propTable.addConstant(new ConstantLine(undef.getPFUndefinedName(i), undef.getPFUndefinedType(i)));
+			ConstantLine line = new ConstantLine(undef.getPFUndefinedName(i), undef.getPFUndefinedType(i));
+			propTable.addConstant(line);
 		}
 		
 		// go through list of remembered values and see if we can use them

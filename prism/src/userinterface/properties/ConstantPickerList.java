@@ -28,6 +28,10 @@
 package userinterface.properties;
 
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+
 import java.awt.*;
 import java.util.*;
 
@@ -53,8 +57,12 @@ public class ConstantPickerList extends JPanel implements Scrollable
     public void addConstant(ConstantLine pl)
     {
 	rows.add(pl);
-	nextPanel.add(pl, BorderLayout.NORTH);
-	JPanel np = new JPanel();
+	JPanel containPl = new JPanel();
+	containPl.setLayout(new BorderLayout());
+	containPl.setBorder(new CompoundBorder(pl.new BottomBorder(), new LineBorder(Color.white, 2)));
+	containPl.add(pl, BorderLayout.CENTER);
+	nextPanel.add(containPl, BorderLayout.NORTH);
+	JPanel np = new JPanel();	
 	np.setLayout(new BorderLayout());
 	nextPanel.add(np, BorderLayout.CENTER);
 	nextPanel = np;
