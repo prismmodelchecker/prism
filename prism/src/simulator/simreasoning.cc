@@ -471,8 +471,12 @@ void Calculate_Updates(int* variables)
 				//cout << "should be actually adding it" << endl;
 				upd = comm->updates[k];
 				
-				Get_Update(no_updates++)->Set
-					(upd->probability->EvaluateDouble(variables),(count_distributions-1),-1,i,upd);
+				// Added test for positive probability
+				if (upd->probability->EvaluateDouble(variables) > 0)
+				{
+					Get_Update(no_updates++)->Set
+						(upd->probability->EvaluateDouble(variables),(count_distributions-1),-1,i,upd);
+				}
 			}
 		}
 	}
@@ -488,8 +492,12 @@ void Calculate_Updates(int* variables)
 			{
 				//cout << "should be adding a synchronous update" << endl;
 				upd = comm->updates[k];
-				Get_Update(no_updates++)->Set
-					(upd->probability->EvaluateDouble(variables),(count_distributions-1),i,-1,upd);
+				
+				if (upd->probability->EvaluateDouble(variables) > 0)
+				{
+					Get_Update(no_updates++)->Set
+						(upd->probability->EvaluateDouble(variables),(count_distributions-1),i,-1,upd);
+				}
 			}
 		}
 	}
@@ -506,7 +514,6 @@ void Calculate_Updates(int* variables)
 				Get_Update(i)->Normalise(no_distributions);
 			}
 			no_distributions = 1;
-
 		}
 	}
 
