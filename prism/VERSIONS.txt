@@ -2,11 +2,39 @@ This file summarises the principal changes between each main public release of P
 For more detailed information about the various changes, see the file CHANGELOG.txt.
 
 -----------------------------------------------------------------------------
+Version 3.2 (beta released 8/2/2008)
+-----------------------------------------------------------------------------
+
+* Support for 64-bit architectures and Mac OS X v10.5 (Leopard)
+
+* Improvements to property specification language
+  - addition of F and G operators (eventually/globally)
+  - can now use labels/formulas from model file in properties files
+
+* Redesign of the simulator GUI, plus new features:
+  - ability to display accumulated time/rewards
+  - new "Configure view" dialog
+  - easier selection of next step (double click) 
+
+* New graph plotting engine using JFreeChart
+
+* Other GUI improvements:
+  - new icon set and graphics
+  - font increase/decrease feature
+  - loading of partially correct property files
+
+* Further additional functionality:
+  - extra reward model checking algorithms for some engines
+  - prototype SBML-to-PRISM translator
+  - new -exportrows switch for matrix exports
+  - new options for -simpath switch
+  - new -extraddinfo switch for displaying extra (MT)BDD info
+
+-----------------------------------------------------------------------------
 Version 3.1.1 (released 5/4/2007)
 -----------------------------------------------------------------------------
 
-* Minor bug fixes
-
+* Minor bug fixes
 -----------------------------------------------------------------------------
 Version 3.1 (released 15/11/2006)
 -----------------------------------------------------------------------------
@@ -21,7 +49,6 @@ Version 3.1 (released 15/11/2006)
 * Small GUI improvements
 * New option to disable steady-state detection for CTMC transient analysis
 * Bug fixes
-
 
 -----------------------------------------------------------------------------
 Version 3.0 (released 6/7/2006)
@@ -59,7 +86,6 @@ Version 3.0 (released 6/7/2006)
 * Underlying data structure and efficiency improvements
 * Bug fixes
 
-
 -----------------------------------------------------------------------------
 Version 2.1 (released 8/9/2004)
 -----------------------------------------------------------------------------
@@ -67,7 +93,6 @@ Version 2.1 (released 8/9/2004)
 * Now possible to build/run PRISM on Windows
 * Compilation/installation procedures slightly simplified
 * Splash screen on load
-
 
 -----------------------------------------------------------------------------
 Version 2.0 (released 17/3/2004)
@@ -109,13 +134,11 @@ Version 2.0 (released 17/3/2004)
   - Various bug fixes
   - Fairness (for MDP model checking) now OFF by default (used to be ON)
 
-
 -----------------------------------------------------------------------------
 Version 1.3.1 (released 20/2/2003)
 -----------------------------------------------------------------------------
 
 * Bug fixes in model construction code
-
 
 -----------------------------------------------------------------------------
 Version 1.3 (released 10/2/2003)
@@ -136,8 +159,7 @@ Version 1.3 (released 10/2/2003)
 * Additional example files
 * Numerous bug fixlatest.htmles
 * Now released under the GPL license
-
-
+
 -----------------------------------------------------------------------------
 Version 1.2 (released 17/9/2001)
 -----------------------------------------------------------------------------
