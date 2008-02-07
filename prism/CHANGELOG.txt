@@ -6,6 +6,7 @@ of the main changes in each public release, see the file VERSIONS.txt.
 Latest additions (reverse chronological) (as of svn rev 545)
 -----------------------------------------------------------------------------
 
+* Fix to allow building on Mac OS X v10.5 (Leopard)
 * New option for displaying extra info during reachability (-extrareachinfo switch)
 * Addition of some missing reward model checking algorithms
   - instantaneous reward properties (R=?[I=k]) for DTMCs/MDPs (MTBDD/sparse engines only)
