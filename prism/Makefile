@@ -210,9 +210,9 @@ ifeq ($(OSTYPE),cygwin)
 endif
 # Darwin
 ifeq ($(OSTYPE),darwin)
-	CFLAGS = $(DEBUG) $(OPTIMISE)
-	CPPFLAGS = $(DEBUG) $(OPTIMISE)
-	LDFLAGS = $(DEBUG) $(OPTIMISE)
+	CFLAGS = -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
+	CPPFLAGS = -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
+	LDFLAGS = -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
 	SHARED = -dynamiclib
 	EXE =
 	LIBPREFIX = lib
