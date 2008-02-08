@@ -21,15 +21,18 @@ Very abbreviated instructions for installing/running PRISM are as follows:
 
 For Windows binary distributions:
 
- - there is no installation; just double-click bin/xprism.bat
+ - to install, run prism-XXX-win-installer.exe
+ - to run, use Desktop/Start menu shortcuts or double-click bin\xprism.bat
 
 For other binary distributions:
 
- - enter the PRISM directory, type "./install.sh" and then execute bin/xprism or bin/prism
+ - to install, enter the PRISM directory, type "./install.sh"
+ - to run, execute bin/xprism or bin/prism
 
 For source code distributions:
 
- - enter the PRISM directory, type "make", then "./install.sh" and then execute bin/xprism or bin/prism
+ - enter the PRISM directory and type "make"
+ - to run, execute bin/xprism or bin/prism
 
 If you have problems check the manual, especially the section "Common Problems And Questions".
 
