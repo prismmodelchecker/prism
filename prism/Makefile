@@ -78,7 +78,7 @@ endif
 # or pass a value to make directly, e.g.: make JAVA_DIR=/usr/java
 
 # Find javac
-DETECT_JAVAC = $(shell src/findjavac.sh 2> /dev/null)
+DETECT_JAVAC = $(shell src/scripts/findjavac.sh 2> /dev/null)
 
 # Find directory containing javac
 ifeq ("$(DETECT_JAVAC)","")
