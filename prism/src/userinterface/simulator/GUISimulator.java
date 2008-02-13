@@ -337,8 +337,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		Values initialState;
 		try
 		{
-			tableScroll.setViewportView(pathTable);
-			
 			// get properties constants/labels
 			PropertiesFile pf;
 			try
@@ -432,6 +430,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			{
 				 initialState = lastInitialState;
 			}			
+			
+			tableScroll.setViewportView(pathTable);
 			
 			displayPathLoops = true;
 			engine.startNewPath(parsedModel, pf, initialState);
