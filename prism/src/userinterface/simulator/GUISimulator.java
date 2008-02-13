@@ -1072,8 +1072,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         innerButtonPanel.setLayout(new java.awt.GridLayout(2, 2, 10, 10));
 
         newPathButton.setIcon(new javax.swing.ImageIcon(""));
-        newPathButton.setText("New Path");
-        newPathButton.setToolTipText("New Path");
+        newPathButton.setText("New path");
+        newPathButton.setToolTipText("New path");
         newPathButton.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
         newPathButton.setPreferredSize(new java.awt.Dimension(119, 28));
         newPathButton.addActionListener(new java.awt.event.ActionListener() {
@@ -1085,8 +1085,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         innerButtonPanel.add(newPathButton);
 
         resetPathButton.setIcon(new javax.swing.ImageIcon(""));
-        resetPathButton.setText("Reset Path");
-        resetPathButton.setToolTipText("Reset Path");
+        resetPathButton.setText("Reset path");
+        resetPathButton.setToolTipText("Reset path");
         resetPathButton.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
         resetPathButton.setPreferredSize(new java.awt.Dimension(119, 28));
         resetPathButton.addActionListener(new java.awt.event.ActionListener() {
@@ -1098,8 +1098,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         innerButtonPanel.add(resetPathButton);
 
         exportPathButton.setIcon(new javax.swing.ImageIcon(""));
-        exportPathButton.setText("Export Path");
-        exportPathButton.setToolTipText("Export Path");
+        exportPathButton.setText("Export path");
+        exportPathButton.setToolTipText("Export path");
         exportPathButton.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
         exportPathButton.setPreferredSize(new java.awt.Dimension(119, 28));
         exportPathButton.addActionListener(new java.awt.event.ActionListener() {
@@ -1111,10 +1111,10 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         innerButtonPanel.add(exportPathButton);
 
         configureViewButton.setIcon(new javax.swing.ImageIcon(""));
-        configureViewButton.setToolTipText("Export Path");
-        configureViewButton.setActionCommand("Configure View");
+        configureViewButton.setToolTipText("Export path");
+        configureViewButton.setActionCommand("Configure view");
         configureViewButton.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
-        configureViewButton.setLabel("Configure View");
+        configureViewButton.setLabel("Configure view");
         configureViewButton.setPreferredSize(new java.awt.Dimension(119, 28));
         configureViewButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1587,7 +1587,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		newPath.putValue(Action.LONG_DESCRIPTION, "Creates a new path.");
 		newPath.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_N));
-		newPath.putValue(Action.NAME, "New Path");
+		newPath.putValue(Action.NAME, "New path");
 		newPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallStates.png"));
 		newPath.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0));
 		
@@ -1601,7 +1601,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		resetPath.putValue(Action.LONG_DESCRIPTION, "Resets the path.");
 		resetPath.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_R));
-		resetPath.putValue(Action.NAME, "Reset Path");
+		resetPath.putValue(Action.NAME, "Reset path");
 		resetPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlayerStart.png"));
 		
 		exportPath = new AbstractAction()
@@ -1614,7 +1614,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		
 		exportPath.putValue(Action.LONG_DESCRIPTION, "Exports the path.");
 		exportPath.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_X));
-		exportPath.putValue(Action.NAME, "Export Path");
+		exportPath.putValue(Action.NAME, "Export path");
 		exportPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.png"));			
 		
 		backtrackToHere = new AbstractAction()
