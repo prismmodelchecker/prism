@@ -77,28 +77,8 @@ endif
 # either set the variable yourself by uncommenting and/or modifying one of the lines below
 # or pass a value to make directly, e.g.: make JAVA_DIR=/usr/java
 
-# The detection of javac below can handle cases:
-# - where javac is a symbolic link
-# - where there is actually a chain of symbolic links
-# - where there are relative symbolic links
-# - where there are directory names including spaces
-# Note: The code would be simpler if we could rely on
-#       the existence of "readlink -f" but we can't.
-
 # Find javac
-DETECT_JAVAC = $(shell \
-  (DETECT_JAVAC=`which javac`; \
-  if [ -f "$$DETECT_JAVAC" ]; then \
-    DETECT_JAVAC_DIR=`dirname "$$DETECT_JAVAC"`; \
-    cd "$$DETECT_JAVAC_DIR"; \
-    while [ -h ./javac ]; do \
-      DETECT_JAVAC=`readlink ./javac`; \
-      DETECT_JAVAC_DIR=`dirname "$$DETECT_JAVAC"`; \
-      cd "$$DETECT_JAVAC_DIR"; \
-      DETECT_JAVAC_DIR=`pwd`; \
-    done; \
-    echo $$DETECT_JAVAC_DIR/javac; \
-  fi) 2> /dev/null)
+DETECT_JAVAC = $(shell src/findjavac.sh 2> /dev/null)
 
 # Find directory containing javac
 ifeq ("$(DETECT_JAVAC)","")
