@@ -254,19 +254,13 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		{
 			tableScroll.setViewportView(pathTablePlaceHolder);
 			
-			//System.ouy.println("guisimulator 1");
 			if(engineBuilt)
 			{
-				//System.ouy.println("guisimulator 2");
 				engine.deallocateEngine();
 				engineBuilt = false;
-				//System.ouy.println("guisimulator 3");
 			}
-			//System.ouy.println("guisimulator 5");
 			pathActive = false;
 			pathTableModel.restartPathTable();
-			//System.ouy.println("guisimulator 6");
-			
 			
 			((GUISimLabelFormulaeList)stateLabelList).clearLabels();
 			((GUISimPathFormulaeList)pathFormulaeList).clearList();
@@ -698,12 +692,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					throw new SimulatorException("No current update is selected");
 				engine.manualUpdate(currentUpdatesTable.getSelectedRow(), time);
 				
-				//System.out.println("path table height before = "+pathTable.getHeight());
-								
 				pathTableModel.updatePathTable();
 				updateTableModel.updateUpdatesTable();
-				
-				//System.out.println("path table height after = "+pathTable.getHeight());
 				
 				pathTable.scrollRectToVisible(new Rectangle(0, pathTable.getHeight() - 10, pathTable.getWidth(), pathTable.getHeight()) );
 				
