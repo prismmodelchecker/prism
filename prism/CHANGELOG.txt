@@ -3,7 +3,7 @@ including development and beta versions. For a less detailed overview
 of the main changes in each public release, see the file VERSIONS.txt.
 
 -----------------------------------------------------------------------------
-Version 3.2.beta1 (released 8/2/2008)
+Version 3.2.beta1 (released 25/2/2008)
 -----------------------------------------------------------------------------
 
 * Fix to allow building on Mac OS X v10.5 (Leopard)

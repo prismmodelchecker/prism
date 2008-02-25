@@ -2,7 +2,7 @@ This file summarises the principal changes between each main public release of P
 For more detailed information about the various changes, see the file CHANGELOG.txt.
 
 -----------------------------------------------------------------------------
-Version 3.2 (beta released 8/2/2008)
+Version 3.2 (beta released 25/2/2008)
 -----------------------------------------------------------------------------
 
 * Support for 64-bit architectures and Mac OS X v10.5 (Leopard)
