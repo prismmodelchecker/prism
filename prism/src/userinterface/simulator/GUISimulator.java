@@ -1655,7 +1655,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		};		
 		configureView.putValue(Action.LONG_DESCRIPTION, "Configures the view.");
 		configureView.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_C));
-		configureView.putValue(Action.NAME, "Configure View");
+		configureView.putValue(Action.NAME, "Configure view");
 		configureView.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallOptions.png"));
 		
 		pathPopupMenu = new JPopupMenu();
