@@ -5,7 +5,7 @@ rem Startup script for PRISM (Windows)
 rem PRISM home directory
 rem Default is .. so it can be run directly from the bin directory.
 rem Change ".." to the actual PRISM directory to allow it to be run from anywhere.
-rem An example would be: set PRISM_DIR=c:\Program Files\prism-3.1.1
+rem An example would be: set PRISM_DIR=c:\Program Files\prism-3.2
 rem Note: Do not put quotes ("...") around the path.
 set PRISM_DIR=..
 
