@@ -112,6 +112,15 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createMod
 	return ptr_to_jlong(modExpr);
 }
 
+JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createLog
+  (JNIEnv *env, jclass cls, jlong __pointer lexprPointer, jlong __pointer rexprPointer)
+{
+	CExpression * lexpr = (jlong_to_CExpression(lexprPointer));
+	CExpression * rexpr = (jlong_to_CExpression(rexprPointer));
+	CExpression * logExpr = new CLog(lexpr, rexpr);
+	return ptr_to_jlong(logExpr);
+}
+
 JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNot
 (JNIEnv * env, jclass cls, jlong __pointer exprPointer)
 {

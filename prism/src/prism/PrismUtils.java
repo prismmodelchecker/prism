@@ -61,8 +61,8 @@ public class PrismUtils
 	
 	public static double log(double x, double b)
 	{
-		// Base needs to be >0 and !=1, otherwise return NaN
-		if (b <= 0 || b == 1) return Double.NaN;
+		// If base is <0 or ==1 (or +Inf/NaN), then result is NaN
+		if (b <= 0 || b == 1 || (Double.isInfinite(b)) || Double.isNaN(b)) return Double.NaN;
 		
 		// Otherwise, log_b (x) is log(x) / log(b)
 		return Math.log(x) / Math.log(b);

@@ -80,6 +80,7 @@ const int EXPR_NORMAL_LESS_THAN_EQUAL       = 34;
 const int EXPR_REAL_LESS_THAN_EQUAL         = 35;
 const int EXPR_NORMAL_GREATER_THAN_EQUAL    = 36;
 const int EXPR_REAL_GREATER_THAN_EQUAL      = 37;
+const int EXPR_LOG                          = 38;
 
 //Class definitions
 
@@ -517,6 +518,24 @@ class CMod: public CNormalExpression
 		bool One_Result();
 		std::string To_String();
                 void Write_Expression(int fd);
+};
+
+class CLog: public CRealExpression
+{
+	private:
+		CExpression * lexpr;
+		CExpression * rexpr;
+	public:
+		CLog(CExpression *, CExpression *);
+		~CLog();
+		int Get_Type();
+		double EvaluateDouble();
+		double EvaluateDouble(int*);
+		bool One_Result();
+		std::string To_String();
+                void Write_Expression(int fd);
+
+		  
 };
 
 class CNormalTimes: public CNormalExpression

@@ -45,6 +45,7 @@
 #define APPLY_CEIL 14
 #define APPLY_POW 15
 #define APPLY_MOD 16
+#define APPLY_LOGXY 17
 
 //------------------------------------------------------------------------------
 

@@ -146,6 +146,7 @@ public class JDD
 	public static final int CEIL = 14;
 	public static final int POW = 15;
 	public static final int MOD = 16;
+	public static final int LOGXY = 17;
 
 	// print vector/matrix accuracy
 	public static final int ZERO_ONE = 1;

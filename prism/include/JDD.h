@@ -39,6 +39,8 @@ extern "C" {
 #define jdd_JDD_POW 15L
 #undef jdd_JDD_MOD
 #define jdd_JDD_MOD 16L
+#undef jdd_JDD_LOGXY
+#define jdd_JDD_LOGXY 17L
 #undef jdd_JDD_ZERO_ONE
 #define jdd_JDD_ZERO_ONE 1L
 #undef jdd_JDD_LOW

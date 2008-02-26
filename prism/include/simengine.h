@@ -240,6 +240,8 @@ CExpression* Engine_Create_Real_Pow(CExpression* base, CExpression* exp);
 
 CExpression* Engine_Create_Mod(CNormalExpression* left, CNormalExpression* right);
 
+CExpression* Engine_Create_Log(CExpression* left, CExpression* right);
+
 CExpression*  Engine_Create_Not(CNormalExpression* expr);
 
 CExpression* Engine_Create_And(CNormalExpression** exprs, int no_expressions);

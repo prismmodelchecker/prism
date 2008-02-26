@@ -664,6 +664,11 @@ CExpression* Engine_Create_Mod(CNormalExpression* left, CNormalExpression* right
 	return new CMod(left, right);
 }
 
+CExpression* Engine_Create_Log(CExpression* left, CExpression* right)
+{
+	return new CLog(left, right);
+}
+
 CExpression*  Engine_Create_Not(CNormalExpression* expr)
 {
 	return new CNot(expr);

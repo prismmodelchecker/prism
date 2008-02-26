@@ -167,6 +167,7 @@ DdNode *DD_Apply(DdManager *ddman, int op, DdNode *dd1, DdNode *dd2)
 		case APPLY_LESSTHANEQUALS: res = Cudd_addApply(ddman, Cudd_addLessThanEquals, dd1, dd2); break;
 		case APPLY_POW: res = Cudd_addApply(ddman, Cudd_addPow, dd1, dd2); break;
 		case APPLY_MOD: res = Cudd_addApply(ddman, Cudd_addMod, dd1, dd2); break;
+		case APPLY_LOGXY: res = Cudd_addApply(ddman, Cudd_addLogXY, dd1, dd2); break;
 		default: printf("\nError: Invalid APPLY operator.\n"); exit(1);
 	}
 	Cudd_Ref(res);

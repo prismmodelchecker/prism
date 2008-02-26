@@ -617,6 +617,14 @@ JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createMod
 
 /*
  * Class:     simulator_SimulatorEngine
+ * Method:    createLog
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_simulator_SimulatorEngine_createLog
+  (JNIEnv *, jclass, jlong, jlong);
+
+/*
+ * Class:     simulator_SimulatorEngine
  * Method:    createNot
  * Signature: (J)J
  */

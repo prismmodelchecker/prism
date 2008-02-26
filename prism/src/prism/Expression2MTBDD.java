@@ -540,7 +540,7 @@ public class Expression2MTBDD
 			case ExpressionFunc.CEIL: return translateExpressionFuncCeil(expr);
 			case ExpressionFunc.POW: return translateExpressionFuncPow(expr);
 			case ExpressionFunc.MOD: return translateExpressionFuncMod(expr);
-			case ExpressionFunc.LOG: throw new PrismException("The log function is not yet supported in PRISM");
+			case ExpressionFunc.LOG: return translateExpressionFuncLog(expr);
 			default: throw new PrismException("Unrecognised function \"" + expr.getName() + "\"");
 		}
 	}
@@ -625,6 +625,17 @@ public class Expression2MTBDD
 		dd1 = translateExpression(expr.getOperand(0));
 		dd2 = translateExpression(expr.getOperand(1));
 		dd = JDD.Apply(JDD.MOD, dd1, dd2);
+		
+		return dd;
+	}
+
+	private JDDNode translateExpressionFuncLog(ExpressionFunc expr) throws PrismException
+	{
+		JDDNode dd1, dd2, dd;
+		
+		dd1 = translateExpression(expr.getOperand(0));
+		dd2 = translateExpression(expr.getOperand(1));
+		dd = JDD.Apply(JDD.LOGXY, dd1, dd2);
 		
 		return dd;
 	}

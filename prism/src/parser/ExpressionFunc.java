@@ -477,7 +477,7 @@ public class ExpressionFunc extends ExpressionNary
 				
 				case LOG:
 				{
-					throw new SimulatorException("The log function is not yet supported in PRISM");
+					return SimulatorEngine.createLog(getOperand(0).toSimulator(sim), getOperand(1).toSimulator(sim));
 				}
 				
 				default:

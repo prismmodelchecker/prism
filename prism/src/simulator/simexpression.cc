@@ -1374,6 +1374,105 @@ void CMod::Write_Expression(int fd)
 }
 
 
+//Class methods for CLog
+
+CLog::CLog(CExpression * left, CExpression * right)
+{
+	this->lexpr = left; 
+	this->rexpr = right;
+	if(lexpr->Get_Type() == BOOLEAN ||
+		rexpr->Get_Type() == BOOLEAN) 
+		throw "type error when constructing log: Boolean not accepted.";
+}
+
+CLog::~CLog()
+{
+	if(lexpr != NULL)
+	delete lexpr;
+	if(rexpr != NULL)
+	delete rexpr;
+}
+
+int CLog::Get_Type()
+{
+	return DOUBLE;
+}
+
+double CLog::EvaluateDouble()
+{
+	double val, base, res;
+	// Evaluate children
+	if(lexpr->Get_Type() == INTEGER)
+		val = lexpr->Evaluate();
+	else
+		val = lexpr->EvaluateDouble();
+	if(rexpr->Get_Type() == INTEGER)
+		base = rexpr->Evaluate();
+	else
+		base = rexpr->EvaluateDouble();
+	// If base is <0 or ==1 (or +Inf/NaN), then result is NaN
+	if (base < 0 || base == 1.0 || base == HUGE_VAL || base != base) { res = 0.0; res /= res; }
+	// If arg is <0 or NaN, then result is NaN
+	else if (val < 0 || val != val) { res = 0.0; res /= res; }
+	// If arg is +Inf, then result is +Inf
+	else if (val == HUGE_VAL) res = HUGE_VAL;
+	// If arg is (positive/negative) 0, then result is -Inf
+	else if (val == 0.0 || val == -0.0) res = -HUGE_VAL;
+	// Default case: normal log
+	else res = log(val) / log(base);
+	
+	return res;
+}
+
+double CLog::EvaluateDouble(int* vars)
+{
+	double val, base, res;
+	// Evaluate children
+	if(lexpr->Get_Type() == INTEGER)
+		val = lexpr->Evaluate(vars);
+	else
+		val = lexpr->EvaluateDouble(vars);
+	if(rexpr->Get_Type() == INTEGER)
+		base = rexpr->Evaluate(vars);
+	else
+		base = rexpr->EvaluateDouble(vars);
+	// If base is <0 or ==1 (or +Inf/NaN), then result is NaN
+	if (base < 0 || base == 1.0 || base == HUGE_VAL || base != base) { res = 0.0; res /= res; }
+	// If arg is <0 or NaN, then result is NaN
+	else if (val < 0 || val != val) { res = 0.0; res /= res; }
+	// If arg is +Inf, then result is +Inf
+	else if (val == HUGE_VAL) res = HUGE_VAL;
+	// If arg is (positive/negative) 0, then result is -Inf
+	else if (val == 0.0 || val == -0.0) res = -HUGE_VAL;
+	// Default case: normal log
+	else res = log(val) / log(base);
+	
+	return res;
+}
+
+bool CLog::One_Result()
+{
+	return lexpr->One_Result() && rexpr->One_Result();
+}
+
+std::string CLog::To_String()
+{
+	return "log{"+lexpr->To_String() + "," + rexpr->To_String()+"}";
+}
+
+void CLog::Write_Expression(int fd)
+{
+    //the type of expression
+    int expr_type = EXPR_LOG;
+    write(fd, &expr_type, sizeof(int));
+    //the information
+    lexpr->Write_Expression(fd);
+    rexpr->Write_Expression(fd);
+    //null byte to finish off expression
+    write(fd, "\0", 1);
+}
+
+
 //Class methods for CNormalTimes
 
 
@@ -2672,6 +2771,17 @@ CExpression* Read_Expression(int fd)
                 throw "Error 068 when importing binary file: expression not terminated correctly";
             }
             return new CMod(n_expr1, n_expr2);
+        case EXPR_LOG:
+            //read 2 sub-expressions
+            expr1 = Read_Expression(fd);
+            expr2 = Read_Expression(fd);
+            //read off null byte
+            read(fd, &str_buf, 1);
+            if(strcmp(str_buf, "") != 0)
+            {
+                throw "Error 068.5 when importing binary file: expression not terminated correctly";
+            }
+            return new CLog(expr1, expr2);
         case EXPR_NORMAL_TIMES:
             //read 2 sub-expressions
             n_expr1 = Read_Normal_Expression(fd);
@@ -3271,6 +3381,17 @@ CRealExpression* Read_Real_Expression(int fd)
             }
             //create the expression
             return new CRealMin(exprs, buf_int);
+        case EXPR_LOG:
+            //read 2 sub-expressions
+            expr1 = Read_Expression(fd);
+            expr2 = Read_Expression(fd);
+            //read off null byte
+            read(fd, &str_buf, 1);
+            if(strcmp(str_buf, "") != 0)
+            {
+                throw "Error 038.5 when importing binary file: expression not terminated correctly";
+            }
+            return new CLog(expr1, expr2);
         case EXPR_REAL_POW:
             //read 2 sub-expressions
             expr1 = Read_Expression(fd);

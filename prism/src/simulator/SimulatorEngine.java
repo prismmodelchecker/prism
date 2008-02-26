@@ -2516,6 +2516,11 @@ public class SimulatorEngine
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
+	public static native long createLog(long lexprPointer, long rexprPointer);
+	
+	/**
+	 * Used by the recursive model/properties loading methods (not part of the API)
+	 */
 	public static native long createNot(long exprPointer);
 	
 	/**
