@@ -68,6 +68,7 @@ Details
   Cudd_addLessThanEquals() - f op g = 1 if f<=g else 0
   Cudd_addPow() - power
   Cudd_addMod() - modulo
+  Cudd_addLogXY() - log x base y
   
 * Added the following functions to be used with Cudd_addMonadicApply()
   Cudd_addFloor() - floor
@@ -119,6 +120,7 @@ Details
   Cudd_addLessThanEquals()
   Cudd_addPow()
   Cudd_addMod()
+  Cudd_addLogXY()
   Cudd_addFloor()
   Cudd_addCeil()
   Cudd_EqualSupNormRel()

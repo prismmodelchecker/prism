@@ -750,6 +750,7 @@ extern DdNode * Cudd_addLessThan (DdManager *dd, DdNode **f, DdNode **g);
 extern DdNode * Cudd_addLessThanEquals (DdManager *dd, DdNode **f, DdNode **g);
 extern DdNode * Cudd_addPow (DdManager *dd, DdNode **f, DdNode **g);
 extern DdNode * Cudd_addMod (DdManager *dd, DdNode **f, DdNode **g);
+extern DdNode * Cudd_addLogXY (DdManager *dd, DdNode **f, DdNode **g);
 extern DdNode * Cudd_addMonadicApply (DdManager * dd, DdNode * (*op)(DdManager *, DdNode *), DdNode * f);
 extern DdNode * Cudd_addLog (DdManager * dd, DdNode * f);
 extern DdNode * Cudd_addFloor (DdManager * dd, DdNode * f);

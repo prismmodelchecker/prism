@@ -1062,6 +1062,49 @@ Cudd_addMod(
 } /* end of Cudd_addMod */
 
 
+/**Function********************************************************************
+
+  Synopsis    [log f base g.]
+
+  Description [Returns NULL if not a terminal case; f op g otherwise,
+  where f op g is log f base g.]
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_addApply]
+
+******************************************************************************/
+DdNode *
+Cudd_addLogXY(
+  DdManager * dd,
+  DdNode ** f,
+  DdNode ** g)
+{
+	DdNode *res;
+	DdNode *F, *G;
+	CUDD_VALUE_TYPE value;
+
+	F = *f; G = *g;
+	if (cuddIsConstant(F) && cuddIsConstant(G)) {
+	// If base is <0 or ==1 (or +Inf/NaN), then result is NaN
+	if (cuddV(G) < 0 || cuddV(G) == 1.0 || G==DD_PLUS_INFINITY(dd) || cuddV(G) != cuddV(G)) value = (0.0/0.0);
+	// If arg is <0 or NaN, then result is NaN
+	else if (cuddV(F) < 0 || cuddV(F) != cuddV(F)) value = (0.0/0.0);
+	// If arg is +Inf, then result is +Inf
+	else if (F==DD_PLUS_INFINITY(dd)) return DD_PLUS_INFINITY(dd);
+	// If arg is (positive/negative) 0, then result is -Inf
+	else if (cuddV(F) == 0.0 || cuddV(F) == -0.0) return DD_MINUS_INFINITY(dd);
+	// Default case: normal log
+	else value = log(cuddV(F)) / log(cuddV(G));
+	// Create/return result
+	res = cuddUniqueConst(dd,value);
+	return(res);
+	}
+	return(NULL);
+
+} /* end of Cudd_addLogXY */
+
+
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
