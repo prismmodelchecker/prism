@@ -2,7 +2,7 @@
 // dxp/gxn 25/01/01
 // N=8 and K=2
 
-probabilistic
+dtmc
 
 // CONSTANTS
 const N=8; // number of processes

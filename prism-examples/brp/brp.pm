@@ -1,7 +1,7 @@
 // bounded retransmission protocol [D'AJJL01]
 // gxn/dxp 23/05/2001
 
-probabilistic
+dtmc
 
 // number of chunks
 const int N;

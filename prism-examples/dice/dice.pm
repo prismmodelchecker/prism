@@ -1,4 +1,4 @@
-probabilistic
+dtmc
 
 module die
 

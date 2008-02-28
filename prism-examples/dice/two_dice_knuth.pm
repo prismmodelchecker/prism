@@ -1,4 +1,4 @@
-probabilistic
+dtmc
 
 module sum_of_two_dice
 	
