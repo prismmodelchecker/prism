@@ -1,7 +1,7 @@
 // tandem queueing network [HKMKS99]
 // gxn/dxp 25/01/00
 
-stochastic
+ctmc
 
 const int c; // queue capacity
 

@@ -1,7 +1,7 @@
 // single cell in wireless communication network [HMPT01]
 // gxn/dxp 5/3/01
 
-stochastic // model is a ctmc
+ctmc
 
 const int N; // N - number of channels
 const double lambda1=49; // arrival rate of new calls

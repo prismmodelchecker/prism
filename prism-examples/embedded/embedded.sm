@@ -1,4 +1,4 @@
-stochastic
+ctmc
 
 // constants
 const int MAX_COUNT;

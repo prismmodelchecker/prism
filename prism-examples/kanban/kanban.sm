@@ -1,7 +1,7 @@
 // kanban manufacturing example [CT96]
 // dxp/gxn 3/2/00
 
-stochastic
+ctmc
 
 // number of tokens 
 const int t; 
