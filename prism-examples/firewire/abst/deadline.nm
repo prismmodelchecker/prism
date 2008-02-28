@@ -1,7 +1,7 @@
 // integer semantics version of abstract firewire protocol
 // gxn 23/05/2001
 
-nondeterministic
+mdp
 
 //deadline
 const int deadline;

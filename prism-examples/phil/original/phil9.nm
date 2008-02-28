@@ -1,7 +1,7 @@
 // randomized dining philosophers [LR81]
 // dxp/gxn 12/12/99
 
-nondeterministic
+mdp
 
 // atomic formulae 
 // left fork free and right fork free resp.

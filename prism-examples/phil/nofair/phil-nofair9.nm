@@ -5,8 +5,8 @@
 // remove the possibility of loops:
 // (1) cannot stay in thinking 
 // (2) if first fork not free then cannot move (another philosopher must more)
- 
-nondeterministic
+
+mdp
 
 // atomic formulae 
 // left fork free and right fork free resp.

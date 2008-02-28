@@ -1,7 +1,7 @@
 // mutual exclusion [PZ82]
 // dxp/gxn 19/12/99
 
-nondeterministic
+mdp
 
 // atomic formula
 // none in low, high, tie

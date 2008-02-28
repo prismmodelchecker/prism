@@ -2,7 +2,7 @@
 // 5 processes
 // gxn/dxp 29/01/01
 
-nondeterministic
+mdp
 
 const N=5; // number of processes
 

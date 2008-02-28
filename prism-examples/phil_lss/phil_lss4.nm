@@ -3,7 +3,7 @@
 // an a process can wait at most K time units before making a transition
 // gxn/dxp 01/02/00
 
-nondeterministic
+mdp
 
 // CONSTANTS
 const K;
