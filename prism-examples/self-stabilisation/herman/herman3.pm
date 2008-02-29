@@ -4,13 +4,15 @@
 // the procotol is synchronous with no nondeterminism (a DTMC)
 dtmc
 
+const double p;
+
 // module for process 1
 module process1
 
 	// Boolean variable for process 1
 	x1 : [0..1];
 	
-	[step]  (x1=x3) -> 0.5 : (x1'=0) + 0.5 : (x1'=1);
+	[step]  (x1=x3) -> p : (x1'=0) + 1-p : (x1'=1);
 	[step] !(x1=x3) -> (x1'=x3);
 	
 endmodule
