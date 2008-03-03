@@ -213,6 +213,7 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_allocatePath
 		cout << str << endl;
 		return simulator_SimulatorEngine_ERROR;
 	}
+	return 0;
 }
 
 
@@ -229,7 +230,8 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_startPath
 	{
 		cout << str << endl;
 		return simulator_SimulatorEngine_ERROR;
-	}  
+	}
+	return 0;
 }
 
 
