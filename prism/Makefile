@@ -267,6 +267,8 @@ ifeq ($(OSTYPE),darwin)
 	BIN_TARGETS=$(BIN_PRISM) $(BIN_XPRISM)
 endif
 
+.PHONY: clean javadoc
+
 default: all
 
 all: cuddpackage prism
@@ -409,7 +411,7 @@ tarcf:
 	(cd ..; tar cfz $$TARCF_DIR".tar.gz" $$TARCF_DIR)
 
 javadoc:
-	javadoc -classpath $(SRC_DIR) -d ../prism-dev/javadoc dd jdd odd dv mtbdd sparse hybrid parser prism userinterface
+	@JAVADOC_DIRS=`echo $(MAKE_DIRS) | sed 's/\//./g' | sed 's/ /:/g'` && \mkdir -p javadoc; javadoc -d javadoc -classpath $(SRC_DIR) -subpackages $$JAVADOC_DIRS
 
 clean: checks
 	@(for dir in $(MAKE_DIRS); do \
