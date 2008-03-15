@@ -27,11 +27,6 @@
 
 package userinterface.model;
 import javax.swing.*;
-import java.awt.*;
-import javax.swing.border.*;
-import javax.swing.table.*;
-import java.util.*;
-import java.awt.event.*;
 import userinterface.*;
 
 public class GUITransientTime extends javax.swing.JDialog

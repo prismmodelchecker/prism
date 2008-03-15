@@ -26,7 +26,6 @@
 
 package userinterface.util;
 
-import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 
 /**

@@ -33,17 +33,11 @@ import java.awt.*;
 import java.awt.print.*;
 import java.io.*;
 import java.util.*;
-import java.awt.geom.*;
 import java.awt.image.*;
-
-import javax.print.attribute.*;
-import javax.swing.*;
-import javax.swing.event.*;
 
 import org.w3c.dom.*;
 import org.xml.sax.*;
 
-import javax.swing.event.*;
 import javax.xml.parsers.*;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.*;
@@ -62,7 +56,6 @@ import net.sf.epsgraphics.*;
 
 import prism.*;
 import settings.*;
-import userinterface.properties.*;
 
 /**
  * This class represents multiple series on a single unit graph; all series are

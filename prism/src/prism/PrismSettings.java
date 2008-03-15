@@ -30,7 +30,6 @@ package prism;
 import java.util.*;
 import java.io.*;
 import java.awt.*;
-import java.lang.Comparable;
 import javax.swing.*;
 import java.util.regex.*;
 

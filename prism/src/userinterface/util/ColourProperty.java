@@ -30,9 +30,7 @@ package userinterface.util;
 import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
-import javax.swing.event.*;
 import javax.swing.border.*;
-import userinterface.*;
 import java.util.*;
 /**
  *

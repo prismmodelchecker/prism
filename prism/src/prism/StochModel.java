@@ -29,12 +29,10 @@ package prism;
 import java.io.*;
 import java.util.Vector;
 
-import prism.*;
 import jdd.*;
 import odd.*;
 import mtbdd.*;
 import parser.*;
-import parser.ast.*;
 import sparse.*;
 
 // class to store an instance of a stochastic model (ctmc)

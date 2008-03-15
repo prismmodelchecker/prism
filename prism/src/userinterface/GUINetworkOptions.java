@@ -26,21 +26,10 @@
 
 package userinterface;
 
-import userinterface.*;
-import javax.swing.*;
-import java.awt.*;
 import userinterface.util.*;
 
-import java.io.*;
 import java.util.*;
-import javax.xml.parsers.*;
-import javax.xml.transform.*;
-import javax.xml.transform.dom.*;
-import javax.xml.transform.stream.*;
 import org.w3c.dom.*;
-import org.xml.sax.SAXException;
-import org.xml.sax.EntityResolver;
-import org.xml.sax.InputSource;
 /**
  *
  * @author  Andrew

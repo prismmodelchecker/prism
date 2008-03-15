@@ -25,10 +25,7 @@
 //==============================================================================
 
 package userinterface;
-import java.net.*;
 import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
 import prism.*;
 import java.net.URL;
 

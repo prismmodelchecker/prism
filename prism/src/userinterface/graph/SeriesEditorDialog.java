@@ -28,15 +28,10 @@
 
 package userinterface.graph;
 
-import parser.*;
-import prism.*;
-
 import javax.swing.*;
 
 import java.awt.*;
 
-import javax.swing.border.*;
-import javax.swing.event.*;
 import javax.swing.table.*;
 
 import java.util.*;
@@ -47,11 +42,6 @@ import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
 
 import userinterface.*;
-import userinterface.simulator.*;
-import settings.SettingException;
-import simulator.*;
-
-import org.jfree.data.*;
 import org.jfree.data.xy.*;
 import org.jfree.data.general.*;
 

@@ -27,7 +27,6 @@
 
 package userinterface.model.graphicModel;
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.*;
 import userinterface.GUIPrism;
 

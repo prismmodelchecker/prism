@@ -32,8 +32,6 @@ import java.awt.*;
 import javax.swing.border.*;
 import javax.swing.table.*;
 import java.util.*; 
-import parser.*;
-import prism.*;
 import userinterface.*;
 
 public class GUIResultsTable extends javax.swing.JDialog

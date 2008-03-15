@@ -27,9 +27,6 @@
 
 package userinterface;
 import javax.swing.*;
-import userinterface.util.*;
-import org.w3c.dom.*;
-import java.util.*;
 import prism.*;
 /**
  *

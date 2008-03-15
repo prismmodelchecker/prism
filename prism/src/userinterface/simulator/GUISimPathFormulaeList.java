@@ -28,11 +28,7 @@
 package userinterface.simulator;
 
 import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.event.*;
-
-import parser.*;
 import parser.ast.*;
 import userinterface.properties.*;
 import simulator.*;

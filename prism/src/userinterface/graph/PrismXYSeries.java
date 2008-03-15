@@ -28,7 +28,6 @@ package userinterface.graph;
 
 import java.util.*;
 
-import org.jfree.data.*;
 import org.jfree.data.xy.*;
 import org.jfree.data.general.*;
 

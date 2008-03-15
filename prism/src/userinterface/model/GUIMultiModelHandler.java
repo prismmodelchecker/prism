@@ -30,9 +30,6 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-
 import parser.*;
 import parser.ast.ModulesFile;
 import prism.*;

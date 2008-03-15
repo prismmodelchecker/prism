@@ -35,13 +35,11 @@ import java.util.*;
 
 import java.awt.geom.*;
 import javax.swing.*;
-import java.awt.event.*;
 import java.awt.*;
 import java.awt.datatransfer.*;
 import java.io.*;
 import userinterface.model.*;
 import userinterface.util.*;
-import prism.*;
 
 /** This class is the model for a ModuleDrawingPane.  It contains all data /
  * processing methods required for the module diagrams to be drawn.  The processing

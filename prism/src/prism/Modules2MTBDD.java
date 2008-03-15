@@ -26,7 +26,6 @@
 
 package prism;
 
-import java.io.*;
 import java.util.Vector;
 import java.util.HashSet;
 import java.util.Iterator;

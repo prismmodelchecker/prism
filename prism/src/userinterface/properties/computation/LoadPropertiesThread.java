@@ -33,7 +33,6 @@ import javax.swing.*;
 import userinterface.properties.*;
 import userinterface.util.*;
 import prism.*;
-import parser.*;
 import parser.ast.*;
 
 /**

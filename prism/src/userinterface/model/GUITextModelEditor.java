@@ -24,7 +24,6 @@ package userinterface.model;
 
 import javax.swing.*;
 import javax.swing.text.*;
-import javax.swing.text.Highlighter.Highlight;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
@@ -34,7 +33,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
 import javax.swing.event.*;
 import java.io.*;
 import java.util.HashMap;

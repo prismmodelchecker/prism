@@ -38,7 +38,6 @@ import userinterface.*;
 import userinterface.model.graphicModel.GUIGraphicModelEditor;
 import userinterface.model.graphicModel.*;
 import userinterface.model.computation.*;
-import parser.*;
 import parser.ast.*;
 import prism.*;
 

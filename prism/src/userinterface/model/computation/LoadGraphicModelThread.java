@@ -26,21 +26,16 @@
 //==============================================================================
 
 package userinterface.model.computation;
-import java.lang.*;
 import java.io.*;
 import java.util.*;
 import java.awt.*;
 import javax.swing.*;
 import javax.xml.parsers.*;
-import javax.xml.transform.*;
-import javax.xml.transform.dom.*;
-import javax.xml.transform.stream.*;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 
-import prism.*;
 import userinterface.*;
 import userinterface.model.*;
 import userinterface.model.graphicModel.*;

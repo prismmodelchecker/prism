@@ -26,8 +26,6 @@
 
 package prism;
 
-import java.io.*;
-
 public class PrismFileLog implements PrismLog
 {
 	String filename;

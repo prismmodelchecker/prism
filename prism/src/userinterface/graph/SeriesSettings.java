@@ -35,15 +35,9 @@ import java.awt.*;
 import java.awt.geom.*;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-
-import org.jfree.data.xy.*;
-
 import org.jfree.chart.*;
 import org.jfree.chart.plot.*;
 import org.jfree.chart.renderer.xy.*;
-import org.jfree.chart.title.LegendTitle;
-
 import org.jfree.util.*;
 import org.w3c.dom.Element;
 

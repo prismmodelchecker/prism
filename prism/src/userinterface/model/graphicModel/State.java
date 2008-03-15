@@ -29,7 +29,6 @@ package userinterface.model.graphicModel;
 
 //Java Packages
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.*;
 import java.util.*;

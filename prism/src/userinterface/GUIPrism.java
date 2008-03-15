@@ -37,7 +37,6 @@ import javax.swing.plaf.*;
 import javax.swing.plaf.metal.*;
 //Prism Packages
 import prism.*;
-import parser.*;
 import userinterface.util.*;
 
 /**  PRISM Graphical User Interface

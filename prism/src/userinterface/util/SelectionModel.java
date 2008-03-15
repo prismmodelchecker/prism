@@ -28,7 +28,6 @@
 package userinterface.util;
 import java.util.ArrayList;
 import java.util.*;
-import javax.swing.event.EventListenerList;
 
 /**
  * Handles the selection of PropertyOwners

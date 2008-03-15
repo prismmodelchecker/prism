@@ -26,8 +26,6 @@
 //==============================================================================
 
 package userinterface.util;
-
-import javax.swing.*;
 /**
  *
  * @author  ug60axh

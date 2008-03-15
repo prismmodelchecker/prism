@@ -30,7 +30,6 @@ package userinterface.model.computation;
 import javax.swing.*;
 
 import userinterface.model.*;
-import parser.*;
 import parser.ast.*;
 import prism.*;
 import userinterface.util.*;

@@ -33,7 +33,6 @@ import javax.swing.border.*;
 import userinterface.*;
 import java.awt.event.*;
 import java.beans.*;
-import java.util.*;
 
 
 /**

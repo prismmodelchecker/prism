@@ -28,7 +28,6 @@ package simulator.networking;
 
 import java.util.*;
 import java.io.*;
-import java.net.*;
 import javax.swing.tree.*;
 import javax.swing.*;
 

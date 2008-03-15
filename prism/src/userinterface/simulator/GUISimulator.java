@@ -44,7 +44,6 @@ import userinterface.*;
 import userinterface.util.*;
 import userinterface.model.*;
 import userinterface.properties.*;
-import userinterface.simulator.GUIViewDialog.RewardListItem;
 import userinterface.simulator.networking.*;
 
 /**

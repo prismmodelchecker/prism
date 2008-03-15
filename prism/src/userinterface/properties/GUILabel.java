@@ -27,7 +27,6 @@
 
 package userinterface.properties;
 
-import parser.*;
 import parser.ast.*;
 import prism.*;
 

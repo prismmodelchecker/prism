@@ -32,7 +32,6 @@ import java.awt.*;
 import javax.swing.*;
 import javax.swing.table.*;
 
-import parser.*;
 import parser.ast.*;
 import prism.*;
 

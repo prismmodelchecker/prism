@@ -26,7 +26,6 @@
 
 package prism;
 
-import java.io.File;
 import java.util.Formatter;
 
 public class PrismUtils

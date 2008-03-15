@@ -27,14 +27,11 @@
 
 package userinterface.properties;
 import userinterface.*;
-import parser.*;
 import parser.ast.*;
 import prism.*;
 import java.awt.event.*;
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
-import java.awt.datatransfer.*;
 /**
  *
  * @author  ug60axh

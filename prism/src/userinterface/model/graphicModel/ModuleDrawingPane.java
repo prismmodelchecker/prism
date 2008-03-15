@@ -36,8 +36,6 @@ import java.awt.*;
 import java.awt.geom.*;
 import java.awt.event.*;
 import java.awt.image.*;
-import javax.print.*;
-import javax.print.attribute.*;
 import java.awt.print.*;
 import userinterface.*;
 

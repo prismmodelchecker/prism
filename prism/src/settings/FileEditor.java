@@ -28,7 +28,6 @@ package settings;
 
 import javax.swing.*;
 import java.awt.*;
-import javax.swing.border.*;
 import java.awt.event.*;
 import javax.swing.event.*;
 import java.util.*;

@@ -38,29 +38,14 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 
-import javax.swing.text.NumberFormatter;
-
-import org.jfree.ui.*;
 import org.jfree.chart.*;
 
 import org.jfree.chart.plot.*;
-import org.jfree.chart.title.*;
 import org.jfree.chart.axis.*;
-import org.jfree.chart.renderer.xy.*;
-
 import org.jfree.data.*;
 import org.jfree.data.xy.*;
 
 import org.w3c.dom.*;
-import org.xml.sax.*;
-
-import javax.swing.event.ListDataListener;
-import javax.xml.parsers.*;
-import javax.xml.transform.*;
-import javax.xml.transform.dom.*;
-import javax.xml.transform.stream.*;
-
-import prism.PrismException;
 
 /**
  * Representation of an axis of a Graph.

@@ -36,13 +36,7 @@ import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.geom.*;
-import javax.swing.border.*;
-import java.text.*;
 import java.awt.font.*;
-
-import javax.swing.plaf.basic.*;
-import javax.swing.plaf.*;
-import javax.swing.event.*;
 
 public class GUISimulatorPathTable extends GUIGroupedTable
 {

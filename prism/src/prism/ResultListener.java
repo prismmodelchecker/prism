@@ -26,7 +26,6 @@
 
 package prism;
 
-import prism.*;
 import parser.*;
 
 /**

@@ -29,8 +29,6 @@ package userinterface.log;
 
 import javax.swing.*;
 import javax.swing.tree.*;
-import java.awt.event.*;
-import java.util.*;
 
 
 /** This is the GUI end of the strucuted log.  It contains the JTree which displays

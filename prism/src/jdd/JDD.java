@@ -26,7 +26,6 @@
 
 package jdd;
 
-import java.io.*;
 import java.util.Vector;
 
 public class JDD

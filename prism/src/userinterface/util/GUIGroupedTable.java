@@ -27,7 +27,6 @@
 package userinterface.util;
 
 import java.awt.*;
-import java.awt.font.*;
 import javax.swing.*;
 import javax.swing.table.*;
 

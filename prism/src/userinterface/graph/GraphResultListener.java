@@ -31,10 +31,6 @@ package userinterface.graph;
 import parser.*;
 import prism.*;
 
-import java.util.*;
-import settings.*;
-import userinterface.graph.*;
-
 import org.jfree.data.xy.*;
 
 // TODO: When either the graph or the resultset seizes to exist, then so should this listener.

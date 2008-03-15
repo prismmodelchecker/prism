@@ -27,11 +27,9 @@
 
 package userinterface.util;
 
-import javax.swing.table.*;
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.border.*;
-import javax.swing.event.*;
 import java.awt.event.*;
 /**
  *

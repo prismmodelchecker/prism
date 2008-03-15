@@ -28,10 +28,7 @@
 package userinterface;
 import java.util.*;
 import javax.swing.*;
-import userinterface.util.*;
 import prism.*;
-import java.io.*;
-import java.util.*;
 import settings.*;
 
 public class GUIOptionsDialog extends javax.swing.JDialog

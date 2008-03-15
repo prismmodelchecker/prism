@@ -26,7 +26,6 @@
 
 package prism;
 
-import parser.*;
 import parser.ast.*;
 
 // interface for model checker classes

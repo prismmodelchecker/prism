@@ -28,7 +28,6 @@ package prism;
 
 import jdd.*;
 import odd.*;
-import dv.*;
 import mtbdd.*;
 import sparse.*;
 import hybrid.*;

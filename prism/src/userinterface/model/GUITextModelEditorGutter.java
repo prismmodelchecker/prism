@@ -27,15 +27,10 @@ import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Rectangle;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JMenu;
@@ -49,12 +44,9 @@ import javax.swing.text.Document;
 import javax.swing.text.Element;
 import javax.swing.text.JTextComponent;
 
-import prism.PrismLangException;
 import prism.PrismSettings;
 import userinterface.GUIPrism;
 import userinterface.OptionsPanel;
-import userinterface.util.GUIComputationEvent;
-import userinterface.util.GUIEvent;
 
 /** Information gutter for the text model editor. It displays line numbers for 
  * the text in the given text pane and the location of a parsing error. The 

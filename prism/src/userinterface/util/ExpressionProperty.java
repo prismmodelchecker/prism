@@ -36,7 +36,6 @@ import javax.swing.JTextArea;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
-import parser.ast.Expression;
 import prism.Prism;
 import prism.PrismException;
 import prism.PrismLangException;

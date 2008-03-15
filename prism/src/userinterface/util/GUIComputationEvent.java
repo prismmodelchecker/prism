@@ -27,7 +27,6 @@
 
 package userinterface.util;
 
-import prism.PrismLangException;
 import userinterface.*;
 /**
  *

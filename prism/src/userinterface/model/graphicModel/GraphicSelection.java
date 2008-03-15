@@ -30,7 +30,6 @@ package userinterface.model.graphicModel;
 import java.awt.datatransfer.*;
 import java.io.*;
 import java.util.*;
-import userinterface.model.graphicModel.*;
 /**
  *
  * @author  Andrew Hinton

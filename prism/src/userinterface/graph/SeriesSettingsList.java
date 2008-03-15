@@ -29,9 +29,6 @@ package userinterface.graph;
 import java.util.*;
 
 import javax.swing.*;
-import javax.swing.event.*;
-
-import settings.*;
 
 /**
  * Representation of an axis of a Graph.

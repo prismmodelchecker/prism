@@ -32,7 +32,6 @@ import java.util.Vector;
 import jdd.*;
 import odd.*;
 import parser.*;
-import parser.ast.*;
 
 public interface Model
 {

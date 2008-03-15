@@ -27,8 +27,6 @@
 package simulator;
 
 import java.io.*;
-import javax.swing.*;
-import java.awt.*;
 import simulator.networking.*;
 import userinterface.simulator.networking.*;
 import userinterface.*;

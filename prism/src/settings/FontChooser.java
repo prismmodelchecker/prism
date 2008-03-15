@@ -28,10 +28,7 @@
 package settings;
 import java.awt.*;
 import javax.swing.*;
-import java.beans.*;
 import javax.swing.event.*;
-import java.lang.*;
-import java.util.*;
 import java.awt.event.*;
 /**
  *

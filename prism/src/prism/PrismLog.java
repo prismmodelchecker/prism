@@ -26,8 +26,6 @@
 
 package prism;
 
-import java.io.*;
-
 public interface PrismLog
 {
 	boolean ready();

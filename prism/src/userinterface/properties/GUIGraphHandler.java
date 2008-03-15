@@ -30,8 +30,6 @@ package userinterface.properties;
 import javax.swing.*;
 import javax.print.attribute.*;
 
-import org.jfree.chart.ChartPanel;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
@@ -41,7 +39,6 @@ import prism.*;
 import userinterface.*;
 import userinterface.graph.*;
 import userinterface.util.*;
-import settings.*;
 
 /**
  *

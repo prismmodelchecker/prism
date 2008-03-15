@@ -33,7 +33,6 @@ import jdd.*;
 import odd.*;
 import mtbdd.*;
 import parser.*;
-import parser.ast.*;
 import sparse.*;
 
 // class to store an instance of a concurrent probabilistic model (mtbdds)

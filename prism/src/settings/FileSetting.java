@@ -25,7 +25,6 @@
 //==============================================================================
 
 package settings;
-import java.util.*;
 import java.awt.*;
 import java.io.*;
 import javax.swing.*;

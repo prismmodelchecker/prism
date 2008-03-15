@@ -27,13 +27,7 @@
 
 package userinterface.properties.computation;
 import userinterface.properties.*;
-import userinterface.model.*;
-import userinterface.*;
-import prism.*;
-import parser.*;
 import java.io.*;
-import java.lang.*;
-import java.util.*;
 import javax.swing.*;
 import userinterface.util.*;
 /**

@@ -38,8 +38,6 @@ import java.awt.*;
 import prism.*;
 import parser.*;
 import java.util.*;
-import settings.*;
-
 import org.jfree.data.xy.*;
 
 /**
