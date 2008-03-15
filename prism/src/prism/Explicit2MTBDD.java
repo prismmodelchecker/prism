@@ -52,7 +52,7 @@ public class Explicit2MTBDD
 
 	// initial state info
 	private String initString;
-	private HashMap initVals;
+	private HashMap<String,Object> initVals;
 
 	// ModulesFile object, essentially just to store variable info
 	private ModulesFile modulesFile;
@@ -106,9 +106,7 @@ public class Explicit2MTBDD
 	private JDDNode[] ddSchedVars;		// individual dd vars for scheduling non-det.
 	private JDDNode[] ddChoiceVars;		// individual dd vars for local non-det.
 	// names for all dd vars used
-	private Vector ddVarNames;
-	// flags for keeping track of which variables have been used
-	private boolean[] varsUsed;
+	private Vector<String> ddVarNames;
 
 	private int maxNumChoices = 0;
 
@@ -159,9 +157,6 @@ public class Explicit2MTBDD
 	
 	public ModulesFile buildStates() throws PrismException
 	{
-		Module m;
-		Declaration d;
-		
 		// parse any info about initial state
 		parseInitString();
 		
@@ -189,7 +184,7 @@ public class Explicit2MTBDD
 		int i, j;
 		
 		// create hash map to store var name -> var value mapping
-		initVals = new HashMap();
+		initVals = new HashMap<String,Object>();
 		// parse string
 		if (initString == null) return;
 		ss = initString.split(",");
@@ -363,7 +358,6 @@ public class Explicit2MTBDD
 		BufferedReader in;
 		String s, ss[];
 		int i, j, k, lineNum = 0;
-		double d;
 		
 		// create arrays for explicit state storage
 		statesArray = new int[numStates][];
@@ -537,7 +531,7 @@ public class Explicit2MTBDD
 	{
 		BufferedReader in;
 		String s, ss[];
-		int i, j, lineNum = 0;
+		int j, lineNum = 0;
 		
 		try {
 			// open file for reading
@@ -575,9 +569,9 @@ public class Explicit2MTBDD
 	private void allocateDDVars()
 	{
 		JDDNode v, vr, vc;
-		int i, j, l, n, last;
+		int i, j, n;
 		int ddVarsUsed = 0;
-		ddVarNames = new Vector();
+		ddVarNames = new Vector<String>();
 		
 		// create arrays/etc. first
 		
@@ -744,7 +738,7 @@ public class Explicit2MTBDD
 	{
 		BufferedReader in;
 		String s, ss[];
-		int i, j, r, c, k = 0, lineNum = 0;
+		int i, r, c, k = 0, lineNum = 0;
 		double d, x = 0;
 		boolean foundReward;
 		JDDNode tmp;
@@ -844,7 +838,7 @@ public class Explicit2MTBDD
 	{
 		BufferedReader in;
 		String s, ss[];
-		int i, j, k, lineNum = 0;
+		int i, j, lineNum = 0;
 		double d;
 		JDDNode tmp;
 		
