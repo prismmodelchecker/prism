@@ -26,21 +26,21 @@
 //==============================================================================
 
 package userinterface.model;
-import userinterface.model.graphicModel.GUIGraphicModelEditor;
-import userinterface.model.graphicModel.*;
-import userinterface.model.computation.*;
-import userinterface.*;
+
+import java.util.*;
+import java.awt.*;
+import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.tree.*;
 import javax.swing.event.*;
-import java.io.*;
-import java.util.*;
+
+import userinterface.*;
+import userinterface.model.graphicModel.GUIGraphicModelEditor;
+import userinterface.model.graphicModel.*;
+import userinterface.model.computation.*;
 import parser.*;
-import java.awt.*;
-import java.lang.*;
-import java.awt.event.*;
+import parser.ast.*;
 import prism.*;
-import userinterface.util.*;
 
 /**
  *
@@ -461,10 +461,6 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
                 handler.getGUIPlugin().error("Invalid module name");
             }
         }
-        catch(ParseException exx)
-        {
-            handler.getGUIPlugin().error("Invalid module name");
-        }
         catch(PrismException exx)
         {
             handler.getGUIPlugin().error("Invalid module name");
@@ -501,10 +497,6 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
             {
                 handler.getGUIPlugin().error("Invalid declaration name");
             }
-        }
-        catch(ParseException exx)
-        {
-            handler.getGUIPlugin().error("Invalid module name");
         }
         catch(PrismException exx)
         {
@@ -843,7 +835,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
                     {
                         VarNode vNode = (VarNode)dNode;
                         
-                        vNode.setInitial(inTreeDec.getStart());
+                        vNode.setInitial(inTreeDec.getStart(parsedModel));
                         vNode.setMin(inTreeDec.getLow());
                         vNode.setMax(inTreeDec.getHigh());
                         theModel.nodesChanged(vNode, new int []
@@ -852,7 +844,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
                     else if(dNode instanceof BoolNode)
                     {
                         BoolNode bNode = (BoolNode)dNode;
-                        bNode.setInitial(inTreeDec.getStart());
+                        bNode.setInitial(inTreeDec.getStart(parsedModel));
                         theModel.nodesChanged(bNode, new int[]
                         {0});
                     }
@@ -865,13 +857,13 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
                     Declaration notTreeDec = (Declaration)varNotInTree.get(j);
                     if(notTreeDec.getType() == Expression.INT)
                     {
-                        VarNode newVariable = new VarNode(notTreeDec.getName(), notTreeDec.getStart(), notTreeDec.getLow(), notTreeDec.getHigh(), false);
+                        VarNode newVariable = new VarNode(notTreeDec.getName(), notTreeDec.getStart(parsedModel), notTreeDec.getLow(), notTreeDec.getHigh(), false);
                         inTreeNode.add(newVariable);
                         cIndices[j] = getVarTreeIndexOf(notTreeDec, inTreeNode);
                     }
                     else if(notTreeDec.getType() == Expression.BOOLEAN)
                     {
-                        BoolNode newVariable = new BoolNode(notTreeDec.getName(), notTreeDec.getStart(), false);
+                        BoolNode newVariable = new BoolNode(notTreeDec.getName(), notTreeDec.getStart(parsedModel), false);
                         inTreeNode.add(newVariable);
                         cIndices[j] = getVarTreeIndexOf(notTreeDec, inTreeNode);
                     }
@@ -918,12 +910,12 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
                     
                     if(aDec.getType() == Expression.INT)
                     {
-                        VarNode newVariable = new VarNode(aDec.getName(), aDec.getStart(), aDec.getLow(), aDec.getHigh(), false);
+                        VarNode newVariable = new VarNode(aDec.getName(), aDec.getStart(parsedModel), aDec.getLow(), aDec.getHigh(), false);
                         newNode.add(newVariable);
                     }
                     else if(aDec.getType() == Expression.BOOLEAN)
                     {
-                        BoolNode newVariable = new BoolNode(aDec.getName(), aDec.getStart(), false);
+                        BoolNode newVariable = new BoolNode(aDec.getName(), aDec.getStart(parsedModel), false);
                         newNode.add(newVariable);
                     }
                 }
@@ -998,7 +990,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
                 {
                     GlobalNode vNode = (GlobalNode)declarations.getChildAt(decIndex);
                     
-                    vNode.setInitial(inTreeDec.getStart());
+                    vNode.setInitial(inTreeDec.getStart(parsedModel));
                     vNode.setMin(inTreeDec.getLow());
                     vNode.setMax(inTreeDec.getHigh());
                     theModel.nodesChanged(vNode, new int []
@@ -1007,7 +999,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
                 else if(dNode instanceof BoolNode)
                 {
                     BoolNode bNode = (BoolNode)dNode;
-                    bNode.setInitial(inTreeDec.getStart());
+                    bNode.setInitial(inTreeDec.getStart(parsedModel));
                     theModel.nodesChanged(bNode, new int[]
                     {0});
                 }
@@ -1021,13 +1013,13 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
                 Declaration notTreeDec = (Declaration)decNotInTree.get(i);
                 if(notTreeDec.getType() == Expression.INT)
                 {
-                    GlobalNode newVariable = new GlobalNode(notTreeDec.getName(), notTreeDec.getStart(), notTreeDec.getLow(), notTreeDec.getHigh(), false);
+                    GlobalNode newVariable = new GlobalNode(notTreeDec.getName(), notTreeDec.getStart(parsedModel), notTreeDec.getLow(), notTreeDec.getHigh(), false);
                     declarations.add(newVariable);
                     cIndices[i] = getIndexOfDec(notTreeDec);
                 }
                 else if(notTreeDec.getType() == Expression.BOOLEAN)
                 {
-                    BoolNode newVariable = new BoolNode(notTreeDec.getName(), notTreeDec.getStart(), false);
+                    BoolNode newVariable = new BoolNode(notTreeDec.getName(), notTreeDec.getStart(parsedModel), false);
                     declarations.add(newVariable);
                     cIndices[i] = getIndexOfDec(notTreeDec);
                 }
@@ -1483,7 +1475,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
                     {
                         VarNode vNode = (VarNode)dNode;
                         
-                        vNode.setInitial(inTreeDec.getStart());
+                        vNode.setInitial(inTreeDec.getStart(parsedModel));
                         vNode.setMin(inTreeDec.getLow());
                         vNode.setMax(inTreeDec.getHigh());
                         theModel.nodesChanged(vNode, new int []
@@ -1492,7 +1484,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
                     else if(dNode instanceof BoolNode)
                     {
                         BoolNode bNode = (BoolNode)dNode;
-                        bNode.setInitial(inTreeDec.getStart());
+                        bNode.setInitial(inTreeDec.getStart(parsedModel));
                         theModel.nodesChanged(bNode, new int[]
                         {0});
                     }
@@ -1505,13 +1497,13 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
                     Declaration notTreeDec = (Declaration)varNotInTree.get(j);
                     if(notTreeDec.getType() == Expression.INT)
                     {
-                        VarNode newVariable = new VarNode(notTreeDec.getName(), notTreeDec.getStart(), notTreeDec.getLow(), notTreeDec.getHigh(), false);
+                        VarNode newVariable = new VarNode(notTreeDec.getName(), notTreeDec.getStart(parsedModel), notTreeDec.getLow(), notTreeDec.getHigh(), false);
                         inTreeNode.add(newVariable);
                         cIndices[j] = getVarTreeIndexOf(notTreeDec, inTreeNode);
                     }
                     else if(notTreeDec.getType() == Expression.BOOLEAN)
                     {
-                        BoolNode newVariable = new BoolNode(notTreeDec.getName(), notTreeDec.getStart(), false);
+                        BoolNode newVariable = new BoolNode(notTreeDec.getName(), notTreeDec.getStart(parsedModel), false);
                         inTreeNode.add(newVariable);
                         cIndices[j] = getVarTreeIndexOf(notTreeDec, inTreeNode);
                     }
@@ -1558,12 +1550,12 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
                     
                     if(aDec.getType() == Expression.INT)
                     {
-                        VarNode newVariable = new VarNode(aDec.getName(), aDec.getStart(), aDec.getLow(), aDec.getHigh(), false);
+                        VarNode newVariable = new VarNode(aDec.getName(), aDec.getStart(parsedModel), aDec.getLow(), aDec.getHigh(), false);
                         newNode.add(newVariable);
                     }
                     else if(aDec.getType() == Expression.BOOLEAN)
                     {
-                        BoolNode newVariable = new BoolNode(aDec.getName(), aDec.getStart(), false);
+                        BoolNode newVariable = new BoolNode(aDec.getName(), aDec.getStart(parsedModel), false);
                         newNode.add(newVariable);
                     }
                 }
@@ -1630,7 +1622,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
                 {
                     GlobalNode vNode = (GlobalNode)declarations.getChildAt(decIndex);
                     
-                    vNode.setInitial(inTreeDec.getStart());
+                    vNode.setInitial(inTreeDec.getStart(parsedModel));
                     vNode.setMin(inTreeDec.getLow());
                     vNode.setMax(inTreeDec.getHigh());
                     theModel.nodesChanged(vNode, new int []
@@ -1639,7 +1631,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
                 else if(dNode instanceof GlobalBoolNode)
                 {
                     GlobalBoolNode bNode = (GlobalBoolNode)dNode;
-                    bNode.setInitial(inTreeDec.getStart());
+                    bNode.setInitial(inTreeDec.getStart(parsedModel));
                     theModel.nodesChanged(bNode, new int[]
                     {0});
                 }
@@ -1653,13 +1645,13 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
                 Declaration notTreeDec = (Declaration)decNotInTree.get(i);
                 if(notTreeDec.getType() == Expression.INT)
                 {
-                    GlobalNode newVariable = new GlobalNode(notTreeDec.getName(), notTreeDec.getStart(), notTreeDec.getLow(), notTreeDec.getHigh(), false);
+                    GlobalNode newVariable = new GlobalNode(notTreeDec.getName(), notTreeDec.getStart(parsedModel), notTreeDec.getLow(), notTreeDec.getHigh(), false);
                     declarations.add(newVariable);
                     cIndices[i] = getIndexOfDec(notTreeDec);
                 }
                 else if(notTreeDec.getType() == Expression.BOOLEAN)
                 {
-                    GlobalBoolNode newVariable = new GlobalBoolNode(notTreeDec.getName(), notTreeDec.getStart(), false);
+                    GlobalBoolNode newVariable = new GlobalBoolNode(notTreeDec.getName(), notTreeDec.getStart(parsedModel), false);
                     declarations.add(newVariable);
                     cIndices[i] = getIndexOfDec(notTreeDec);
                 }
@@ -2979,35 +2971,23 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
         
         public boolean stopCellEditing()
         {
-            try
-            {
+        	 Expression exp;
                 String str = getText();
-                
-                try
-                {
-                    Expression exp = handler.getGUIPlugin().getPrism().parseSingleExpressionString(str);
+                try  {
+                    exp = handler.getGUIPlugin().getPrism().parseSingleExpressionString(str);
+                }
+                catch (PrismException e) {
+                	return false;
+                }
                     if(exp instanceof ExpressionIdent)
                     {
                         name = str;
-                        
+                        return true;
                     }
                     else
                     {
-                        throw new Exception("Invalid identifier");
+                        return false;
                     }
-                }
-                catch(ParseException exx)
-                {
-                    throw new Exception("Invalid identifier");
-                }
-                
-                
-                return true;
-            }
-            catch(Exception e)
-            {
-                return false;
-            }
         }
         
         public Object getCellEditorValue()
@@ -3168,35 +3148,23 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
         
         public boolean stopCellEditing()
         {
-            try
-            {
-                String str = getText();
-                try
-                {
-                    Expression exp = handler.getGUIPlugin().getPrism().parseSingleExpressionString(str);
-                    if(exp instanceof ExpressionIdent)
-                    {
-                        name = str;
-                        
-                    }
-                    else
-                    {
-                        throw new Exception("Invalid identifier");
-                    }
-                }
-                catch(ParseException exx)
-                {
-                    throw new Exception("Invalid identifier");
-                }
-                
-                
-                
-                return true;
-            }
-            catch(Exception e)
-            {
-                return false;
-            }
+       	 Expression exp;
+         String str = getText();
+         try  {
+             exp = handler.getGUIPlugin().getPrism().parseSingleExpressionString(str);
+         }
+         catch (PrismException e) {
+         	return false;
+         }
+             if(exp instanceof ExpressionIdent)
+             {
+                 name = str;
+                 return true;
+             }
+             else
+             {
+                 return false;
+             }
         }
         
         public Object getCellEditorValue()
@@ -3263,7 +3231,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
     class VarNode extends DeclarationNode
     {
         
-        public VarNode(String name, parser.Expression init, parser.Expression min, parser.Expression max, boolean editable)
+        public VarNode(String name, Expression init, Expression min, Expression max, boolean editable)
         {
             super(LOCAL_INTEGER, name, editable);
             super.add(new ExpressionNode("min: ", min, editable));
@@ -3351,7 +3319,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
     
     class BoolNode extends DeclarationNode
     {
-        public BoolNode(String name, parser.Expression init, boolean editable)
+        public BoolNode(String name, Expression init, boolean editable)
         {
             super(LOCAL_BOOL, name, editable);
             super.add(new ExpressionNode("init: ", init, editable));
@@ -3380,7 +3348,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
     class GlobalNode extends DeclarationNode
     {
         
-        public GlobalNode(String name, parser.Expression init, parser.Expression min, parser.Expression max, boolean editable)
+        public GlobalNode(String name, Expression init, Expression min, Expression max, boolean editable)
         {
             super(GLOBAL_INTEGER, name, editable);
             super.add(new ExpressionNode("min: ", min, editable));
@@ -3434,7 +3402,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
     
     class GlobalBoolNode extends DeclarationNode
     {
-        public GlobalBoolNode(String name, parser.Expression init, boolean editable)
+        public GlobalBoolNode(String name, Expression init, boolean editable)
         {
             super(GLOBAL_BOOL, name, editable);
             super.add(new ExpressionNode("init: ", init, editable));
@@ -3488,7 +3456,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
     
     class IntegerConstantNode extends ConstantNode
     {
-        public IntegerConstantNode(String name, parser.Expression value, boolean editable)
+        public IntegerConstantNode(String name, Expression value, boolean editable)
         {
             super(CONST_INTEGER, name, editable);
             super.add(new ExpressionNode("value: ", value, editable));
@@ -3500,7 +3468,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
             n.setUserObject(e);
         }
         
-        public parser.Expression getValue()
+        public Expression getValue()
         {
             ExpressionNode n = (ExpressionNode)getChildAt(0);
             return n.getValue();
@@ -3524,7 +3492,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
     
     class DoubleConstantNode extends ConstantNode
     {
-        public DoubleConstantNode(String name, parser.Expression value, boolean editable)
+        public DoubleConstantNode(String name, Expression value, boolean editable)
         {
             super(CONST_DOUBLE, name, editable);
             super.add(new ExpressionNode("value: ", value, editable));
@@ -3560,7 +3528,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
     
     class BoolConstantNode extends ConstantNode
     {
-        public BoolConstantNode(String name, parser.Expression value, boolean editable)
+        public BoolConstantNode(String name, Expression value, boolean editable)
         {
             super(CONST_BOOL, name, editable);
             super.add(new ExpressionNode("value: ", value, editable));
@@ -3650,7 +3618,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
     {
         private boolean editable;
         
-        public ExpressionNode(String tag, parser.Expression value, boolean editable)
+        public ExpressionNode(String tag, Expression value, boolean editable)
         {
             super(tag, value);
             this.editable = editable;

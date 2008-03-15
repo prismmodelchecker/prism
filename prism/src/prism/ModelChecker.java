@@ -27,6 +27,7 @@
 package prism;
 
 import parser.*;
+import parser.ast.*;
 
 // interface for model checker classes
 
@@ -37,7 +38,7 @@ public interface ModelChecker
 	public void setOption(String option, int i);
 	public void setOption(String option, double d);
 	public void setOption(String option, String s);
-	public Object check(PCTLFormula f) throws PrismException;
+	public Object check(Expression f) throws PrismException;
 }
 
 //------------------------------------------------------------------------------

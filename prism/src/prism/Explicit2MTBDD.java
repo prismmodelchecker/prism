@@ -33,6 +33,7 @@ import java.util.HashMap;
 import jdd.*;
 import mtbdd.*;
 import parser.*;
+import parser.ast.*;
 
 // class to translate an explicit prism model description into an MTBDD model
 
@@ -293,16 +294,16 @@ public class Explicit2MTBDD
 			if (varTypes[i] == Expression.INT) {
 				o = initVals.get(varNames[i]);
 				if (o == null)
-					d = new Declaration(varNames[i], new ExpressionInt(varMins[i]), new ExpressionInt(varMaxs[i]), new ExpressionInt(varMins[i]));
+					d = new Declaration(varNames[i], new ExpressionLiteral(Expression.INT, varMins[i]), new ExpressionLiteral(Expression.INT, varMaxs[i]), new ExpressionLiteral(Expression.INT, varMins[i]));
 				else
-					d = new Declaration(varNames[i], new ExpressionInt(varMins[i]), new ExpressionInt(varMaxs[i]), new ExpressionInt(((Integer)o).intValue()));
+					d = new Declaration(varNames[i], new ExpressionLiteral(Expression.INT, varMins[i]), new ExpressionLiteral(Expression.INT, varMaxs[i]), new ExpressionLiteral(Expression.INT, ((Integer)o).intValue()));
 			}
 			else {
 				o = initVals.get(varNames[i]);
 				if (o == null)
-					d = new Declaration(varNames[i], new ExpressionFalse());
+					d = new Declaration(varNames[i], new ExpressionLiteral(Expression.BOOLEAN, false));
 				else
-					d = new Declaration(varNames[i], ((Boolean)o).booleanValue() ? (Expression)new ExpressionTrue() : (Expression)new ExpressionFalse());
+					d = new Declaration(varNames[i], new ExpressionLiteral(Expression.BOOLEAN, ((Boolean)o).booleanValue()));
 			}
 			m.addDeclaration(d);
 		}
@@ -344,12 +345,12 @@ public class Explicit2MTBDD
 		}
 		// determine initial value for variable
 		o = initVals.get("x");
-		if (o == null) init = new ExpressionInt(0);
-		else init = new ExpressionInt(((Integer)o).intValue());
+		if (o == null) init = new ExpressionLiteral(Expression.INT, 0);
+		else init = new ExpressionLiteral(Expression.INT, ((Integer)o).intValue());
 		// create modules file
 		modulesFile = new ModulesFile();
 		m = new Module("M");
-		d = new Declaration("x", new ExpressionInt(0), new ExpressionInt(numStates-1), init);
+		d = new Declaration("x", new ExpressionLiteral(Expression.INT, 0), new ExpressionLiteral(Expression.INT, numStates-1), init);
 		m.addDeclaration(d);
 		modulesFile.addModule(m);
 		modulesFile.tidyUp();

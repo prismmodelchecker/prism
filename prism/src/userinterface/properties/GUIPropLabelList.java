@@ -33,6 +33,7 @@ import javax.swing.*;
 import javax.swing.table.*;
 
 import parser.*;
+import parser.ast.*;
 import prism.*;
 
 public class GUIPropLabelList extends JTable
@@ -332,9 +333,6 @@ public class GUIPropLabelList extends JTable
 			try {
 				error = null;
 				parent.getPrism().parsePropertiesString(parent.getParsedModel(), parent.getConstantsString()+"\n"+parseableToString());
-			}
-			catch (ParseException e) {
-				error = new PrismException(e.getShortMessage());
 			}
 			catch (PrismException e) {
 				error = e;

@@ -34,6 +34,7 @@ import java.util.Iterator;
 import jdd.*;
 import mtbdd.*;
 import parser.*;
+import parser.ast.*;
 
 // class to translate a modules description file into an MTBDD model
 
@@ -814,7 +815,7 @@ public class Modules2MTBDD
 			sysDDs = translateSystemRename((SystemRename)sys, synchMin);
 		}
 		else {
-			throw new PrismException("Unknown operator in model construction");
+			throw new PrismLangException("Unknown operator in model construction", sys);
 		}
 		
 		return sysDDs;
@@ -1097,7 +1098,7 @@ public class Modules2MTBDD
 			s = sys.getNewName((String)synchs.elementAt(i));
 			j = synchs.indexOf(s);
 			if (j == -1) {
-				throw new PrismException("Invalid action name \"" + s + "\" in \"system\" construct");
+				throw new PrismLangException("Invalid action name \"" + s + "\" in renaming", sys);
 			}
 			newSynchMin[i] = synchMin[j];
 		}
@@ -1130,7 +1131,7 @@ public class Modules2MTBDD
 			s = sys.getNewName((String)synchs.elementAt(i));
 			j = synchs.indexOf(s);
 			if (j == -1) {
-				throw new PrismException("Invalid action name \"" + s + "\" in \"system\" construct");
+				throw new PrismLangException("Invalid action name \"" + s + "\" in renaming", sys);
 			}
 			sysDDs.synchs[j] = combineComponentDDs(sysDDs.synchs[j], sysDDs1.synchs[i]);
 		}
@@ -1343,9 +1344,9 @@ public class Modules2MTBDD
 					if (dmin < 0) {
 						String s = (type == ModulesFile.STOCHASTIC) ? "Rates" : "Probabilities";
 						s += " in command " + (l+1) + " of module \"" + module.getName() + "\" are negative";
-						s += " (" + dmin + ") for some states. ";
+						s += " (" + dmin + ") for some states.\n";
 						s += "Perhaps the guard needs to be strengthened";
-						throw new PrismException(s);
+						throw new PrismLangException(s, command);
 					}
 					// only do remaining checks if 'doprobchecks' flag is set
 					if (prism.getDoProbChecks()) {
@@ -1366,7 +1367,7 @@ public class Modules2MTBDD
 							s += " in command " + (l+1) + " of module \"" + module.getName() + "\" have errors (NaN) for some states. ";
 							s += "Check for zeros in divide or modulo operations. ";
 							s += "Perhaps the guard needs to be strengthened";
-							throw new PrismException(s);
+							throw new PrismLangException(s, command);
 						}
 						// check min sums - 1 (ish) for dtmcs/mdps, 0 for ctmcs
 						if (type != ModulesFile.STOCHASTIC && dmin < 1-ACCEPTABLE_ROUND_OFF) {
@@ -1375,7 +1376,7 @@ public class Modules2MTBDD
 							s += " (e.g. " + dmin + ") for some states. ";
 							s += "Perhaps some of the updates give out-of-range values. ";
 							s += "One possible solution is to strengthen the guard";
-							throw new PrismException(s);
+							throw new PrismLangException(s, command);
 						}
 						if (type == ModulesFile.STOCHASTIC && dmin <= 0) {
 							JDD.Deref(tmp);
@@ -1383,7 +1384,7 @@ public class Modules2MTBDD
 							String s = "Rates in command " + (l+1) + " of module \"" + module.getName() + "\" sum to zero for some states. ";
 							s += "Perhaps some of the updates give out-of-range values. ";
 							s += "One possible solution is to strengthen the guard";
-							throw new PrismException(s);
+							throw new PrismLangException(s, command);
 						}
 						// check max sums - 1 (ish) for dtmcs/mdps, infinity for ctmcs
 						if (type != ModulesFile.STOCHASTIC && dmax > 1+ACCEPTABLE_ROUND_OFF) {
@@ -1391,13 +1392,13 @@ public class Modules2MTBDD
 							String s = "Probabilities in command " + (l+1) + " of module \"" + module.getName() + "\" sum to more than one";
 							s += " (e.g. " + dmax + ") for some states. ";
 							s += "Perhaps the guard needs to be strengthened";
-							throw new PrismException(s);
+							throw new PrismLangException(s, command);
 						}
 						if (type == ModulesFile.STOCHASTIC && dmax == Double.POSITIVE_INFINITY) {
 							JDD.Deref(tmp);
 							String s = "Rates in command " + (l+1) + " of module \"" + module.getName() + "\" sum to infinity for some states. ";
 							s += "Perhaps the guard needs to be strengthened";
-							throw new PrismException(s);
+							throw new PrismLangException(s, command);
 						}
 						JDD.Deref(tmp);
 					}
@@ -1736,6 +1737,7 @@ public class Modules2MTBDD
 	private JDDNode translateUpdates(int m, int l, Updates u, boolean synch, JDDNode guard) throws PrismException
 	{
 		int i, n;
+		Expression p;
 		JDDNode dd, udd, pdd;
 		boolean warned;
 		
@@ -1753,7 +1755,9 @@ public class Modules2MTBDD
 				mainLog.println(moduleNames[m] + "\" doesn't do anything");
 			}
 			// multiply by probability/rate
-			pdd = translateExpression(u.getProbability(i));
+			p = u.getProbability(i);
+			if (p == null) p = Expression.Double(1.0);
+			pdd = translateExpression(p);
 			udd = JDD.Apply(JDD.TIMES, udd, pdd);
 			// check (again) for zero update
 			if (!warned && udd.equals(JDD.ZERO)) {
@@ -1787,18 +1791,18 @@ public class Modules2MTBDD
 			s = c.getVar(i);
 			v = varList.getIndex(s);
 			if (v == -1) {
-				throw new PrismException("Unknown variable \"" + s + "\"");
+				throw new PrismLangException("Unknown variable \"" + s + "\" in update", c.getVarIdent(i));
 			}
 			varsUsed[v] = true;
 			// check if the variable to be modified is valid
 			// (i.e. belongs to this module or is global)
 			if (varList.getModule(v) != -1 && varList.getModule(v) != m) {
-				throw new PrismException("Cannot modify variable \""+s+"\" from module \""+moduleNames[m]+"\"");
+				throw new PrismLangException("Cannot modify variable \""+s+"\" from module \""+moduleNames[m]+"\"", c.getVarIdent(i));
 			}
 			// print out a warning if this update is in a command with a synchronising
 			// action AND it modifies a global variable
 			if (varList.getModule(v) == -1 && synch) {
-				mainLog.println("\nWarning: mixing synchronisation and global variables - proceed with care!");
+				throw new PrismLangException("Synchronous command cannot modify global variable", c.getVarIdent(i));
 			}
 			// get some info on the variable
 			l = varList.getLow(v);
@@ -1886,10 +1890,10 @@ public class Modules2MTBDD
 					item = JDD.Apply(JDD.TIMES, states, rewards);
 					// check for negative rewards
 					if ((d = JDD.FindMin(item)) < 0) {
-						s = "Element " + (i+1) + " of rewards...endrewards construct contains negative rewards (" + d + ").";
+						s = "Reward structure item contains negative rewards (" + d + ").";
 						s += "\nNote that these may correspond to states which are unreachable.";
 						s += "\nIf this is the case, try strengthening the predicate.";
-						throw new PrismException(s);
+						throw new PrismLangException(s, rs.getRewardStructItem(i));
 					}
 					// add to state rewards
 					stateRewards[j] = JDD.Apply(JDD.PLUS, stateRewards[j], item);
@@ -1903,7 +1907,7 @@ public class Modules2MTBDD
 					} else if ((k = synchs.indexOf(synch)) != -1) {
 						compDDs = sysDDs.synchs[k];
 					} else {
-						throw new PrismException("Invalid action name \"" + synch + "\" in \"rewards\" construct");
+						throw new PrismLangException("Invalid action name \"" + synch + "\" in reward structure item", rs.getRewardStructItem(i));
 					}
 					// identify corresponding transitions
 					// (for dtmcs/ctmcs, keep actual values - need to weight rewards; for mdps just store 0/1)
@@ -1919,10 +1923,10 @@ public class Modules2MTBDD
 					item = JDD.Apply(JDD.TIMES, item, rewards);
 					// check for negative rewards
 					if ((d = JDD.FindMin(item)) < 0) {
-						s = "Element " + (i+1) + " of rewards...endrewards construct contains negative rewards (" + d + ").";
+						s = "Reward structure item contains negative rewards (" + d + ").";
 						s += "\nNote that these may correspond to states which are unreachable.";
 						s += "\nIf this is the case, try strengthening the predicate.";
-						throw new PrismException(s);
+						throw new PrismLangException(s, rs.getRewardStructItem(i));
 					}
 					// add result to rewards
 					compDDs.rewards[j] = JDD.Apply(JDD.PLUS, compDDs.rewards[j], item);
@@ -1944,7 +1948,7 @@ public class Modules2MTBDD
 			start = translateExpression(modulesFile.getInitialStates());
 			JDD.Ref(range);
 			start = JDD.And(start, range);
-			if (start.equals(JDD.ZERO)) throw new PrismException("No initial states: \"init\" construct evaluates to false");
+			if (start.equals(JDD.ZERO)) throw new PrismLangException("No initial states: \"init\" construct evaluates to false", modulesFile.getInitialStates());
 		}
 		// second, handle case where initial state determined by init values for variables
 		else {

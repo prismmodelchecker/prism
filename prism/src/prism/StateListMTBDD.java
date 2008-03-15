@@ -30,7 +30,7 @@ import jdd.*;
 import odd.*;
 import parser.Values;
 import parser.VarList;
-import parser.Expression;
+import parser.ast.Expression;
 
 // list of states (mtbdd)
 

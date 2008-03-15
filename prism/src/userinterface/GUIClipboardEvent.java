@@ -27,6 +27,8 @@
 
 package userinterface;
 import javax.swing.*;
+import javax.swing.undo.UndoManager;
+
 import java.awt.*;
 
 import userinterface.util.*;
@@ -37,11 +39,15 @@ import userinterface.util.*;
  */
 public class GUIClipboardEvent extends GUIEvent
 {
-    public static final int COPY = 0;
+    private UndoManager undoManager;
+	
+	public static final int COPY = 0;
     public static final int CUT = 1;
     public static final int PASTE = 2;
     public static final int DELETE = 3;
     public static final int SELECT_ALL = 4;
+    public static final int UNDOMANAGER_CHANGE = 5;
+    
     static int counter =0;
     /** Creates a new instance of GUIClipboardEvent */
     public GUIClipboardEvent(int id, GUIPlugin comp)
@@ -55,5 +61,15 @@ public class GUIClipboardEvent extends GUIEvent
     {
         return (GUIPlugin)getData();
     }
+
+	public UndoManager getUndoManager() 
+	{
+		return undoManager;
+	}
+
+	public void setUndoManager(UndoManager undoManager) 
+	{
+		this.undoManager = undoManager;
+	}
     
 }

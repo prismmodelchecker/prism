@@ -27,15 +27,19 @@
 
 package userinterface.util;
 
-import parser.*;
-import java.io.ByteArrayInputStream;
-import javax.swing.table.*;
-import javax.swing.*;
-import java.awt.*;
-import javax.swing.border.*;
-import javax.swing.event.*;
-import java.awt.event.*;
-import prism.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Insets;
+
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
+
+import parser.ast.Expression;
+import prism.Prism;
+import prism.PrismException;
+import prism.PrismLangException;
 
 /**
  *  This does not store an expression, it actually maintains a string which is
@@ -78,23 +82,17 @@ public class ExpressionProperty extends SingleProperty
     
     public void setProperty(Object property) throws PropertyException
     {
-        
         String expression = property.toString();
         try
         {
-            if(pr == null) throw new ParseException();
+            if(pr == null) throw new PrismLangException("");
             if(!expression.equals(""))
             {
-                Expression e = pr.parseSingleExpressionString(expression);
+                pr.parseSingleExpressionString(expression);
             }
-            
-            
             valid = true;
-            
-            
-           
         }
-        catch(ParseException e)
+        catch(PrismLangException e)
         {
             valid = false;
             //System.out.println("Error: "+e);

@@ -29,21 +29,22 @@ package parser;
 import java.util.Vector;
 import java.text.*;
 
-import prism.PrismException;
+import parser.ast.*;
+import prism.PrismLangException;
 
 // class to store a list of typed constant/variable values
 
 public class Values //implements Comparable
 {
-	Vector names;
-	Vector values;
+	Vector<String> names;
+	Vector<Object> values;
 	
 	// constructors
 	
 	public Values()
 	{
-		names = new Vector();
-		values = new Vector();
+		names = new Vector<String>();
+		values = new Vector<Object>();
 	}
 	
 	// add value (type of value detetmined by type of Object)
@@ -130,7 +131,7 @@ public class Values //implements Comparable
 	
 	public String getName(int i)
 	{
-		return (String)names.elementAt(i);
+		return names.elementAt(i);
 	}
 
 	public int getIndexOf(String n)
@@ -157,27 +158,27 @@ public class Values //implements Comparable
 		return values.elementAt(i);
 	}
 
-	public int getIntValue(int i) throws PrismException
+	public int getIntValue(int i) throws PrismLangException
 	{
 		Object o;
 		
 		o = values.elementAt(i);
 		
 		if (!(o instanceof Integer)) {
-			throw new PrismException("Cannot get integer value for \"" + getName(i) + "\"");
+			throw new PrismLangException("Cannot get integer value for \"" + getName(i) + "\"");
 		}
 		
 		return ((Integer)o).intValue();
 	}
 
-	public double getDoubleValue(int i) throws PrismException
+	public double getDoubleValue(int i) throws PrismLangException
 	{
 		Object o;
 		
 		o = values.elementAt(i);
 		
 		if (o instanceof Boolean) {
-			throw new PrismException("Cannot get double value for \"" + getName(i) + "\"");
+			throw new PrismLangException("Cannot get double value for \"" + getName(i) + "\"");
 		}
 		if (o instanceof Integer) {
 			return ((Integer)o).intValue();
@@ -186,55 +187,55 @@ public class Values //implements Comparable
 			return ((Double)o).doubleValue();
 		}
 		
-		throw new PrismException("Cannot get double value for \"" + getName(i) + "\"");
+		throw new PrismLangException("Cannot get double value for \"" + getName(i) + "\"");
 	}
 
-	public boolean getBooleanValue(int i) throws PrismException
+	public boolean getBooleanValue(int i) throws PrismLangException
 	{
 		Object o;
 		
 		o = values.elementAt(i);
 		
 		if (!(o instanceof Boolean)) {
-			throw new PrismException("Cannot get boolean value for \"" + getName(i) + "\"");
+			throw new PrismLangException("Cannot get boolean value for \"" + getName(i) + "\"");
 		}
 		
 		return ((Boolean)o).booleanValue();
 	}
 
-	public Object getValueOf(String n) throws PrismException
+	public Object getValueOf(String n) throws PrismLangException
 	{
 		int i;
 		
 		i = getIndexOf(n);
-		if (i == -1) throw new PrismException("Couldn't get value for \"" + n + "\"");
+		if (i == -1) throw new PrismLangException("Couldn't get value for \"" + n + "\"");
 		return getValue(i);
 	}
 
-	public int getIntValueOf(String n) throws PrismException
+	public int getIntValueOf(String n) throws PrismLangException
 	{
 		int i;
 		
 		i = getIndexOf(n);
-		if (i == -1) throw new PrismException("Couldn't get value for \"" + n + "\"");
+		if (i == -1) throw new PrismLangException("Couldn't get value for \"" + n + "\"");
 		return getIntValue(i);
 	}
 
-	public double getDoubleValueOf(String n) throws PrismException
+	public double getDoubleValueOf(String n) throws PrismLangException
 	{
 		int i;
 		
 		i = getIndexOf(n);
-		if (i == -1) throw new PrismException("Couldn't get value for \"" + n + "\"");
+		if (i == -1) throw new PrismLangException("Couldn't get value for \"" + n + "\"");
 		return getDoubleValue(i);
 	}
 
-	public boolean getBooleanValueOf(String n) throws PrismException
+	public boolean getBooleanValueOf(String n) throws PrismLangException
 	{
 		int i;
 		
 		i = getIndexOf(n);
-		if (i == -1) throw new PrismException("Couldn't get value for \"" + n + "\"");
+		if (i == -1) throw new PrismLangException("Couldn't get value for \"" + n + "\"");
 		return getBooleanValue(i);
 	}
 

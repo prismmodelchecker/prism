@@ -27,6 +27,7 @@
 package userinterface.properties;
 
 import parser.*;
+import parser.ast.*;
 import prism.*;
 
 class GUIConstant
@@ -58,11 +59,11 @@ class GUIConstant
 		try {
 			// Check name is a valid identifier
 			try { expr = parent.getPrism().parseSingleExpressionString(name); }
-			catch (ParseException e) { throw new PrismException("Invalid constant name \""+name+"\""); }
+			catch (PrismLangException e) { throw new PrismException("Invalid constant name \""+name+"\""); }
 			if (expr == null || !(expr instanceof ExpressionIdent)) throw new PrismException("Invalid constant name \""+name+"\"");
 			// Check (non-empty) constant definition is valid (single) expression
 			try { if (!("".equals(constant))) parent.getPrism().parseSingleExpressionString(constant); }
-			catch (ParseException e) { throw new PrismException("Invalid expression \""+constant+"\""); }
+			catch (PrismLangException e) { throw new PrismException("Invalid expression \""+constant+"\""); }
 		}
 		catch (PrismException e) {
 			this.parseError = e;

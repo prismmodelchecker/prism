@@ -27,12 +27,9 @@
 package prism;
 
 import java.io.*;
-import java.util.Vector;
 
-import hybrid.*;
-import jdd.*;
 import parser.*;
-import sparse.*;
+import parser.ast.*;
 
 // prism - command line version
 
@@ -105,7 +102,7 @@ public class PrismCL
 	
 	// info about which properties to model check
 	private int numPropertiesToCheck = 0;
-	private PCTLFormula propertiesToCheck[] = null;
+	private Expression propertiesToCheck[] = null;
 	
 	// info about undefined constants
 	private UndefinedConstants undefinedConstants;
@@ -417,7 +414,7 @@ public class PrismCL
 	
 	private void doParsing() throws PrismException
 	{
-		int i, n;
+		int i;
 		
 		// parse model
 		
@@ -450,8 +447,8 @@ public class PrismCL
 		catch (FileNotFoundException e) {
 			errorAndExit("File \"" + modelFilename + "\" not found");
 		}
-		catch (ParseException e) {
-			errorAndExit("Could not parse model:\n" + e.getShortMessage());
+		catch (PrismException e) {
+			errorAndExit(e.getMessage());
 		}
 		
 		// parse properties
@@ -473,14 +470,14 @@ public class PrismCL
 		catch (FileNotFoundException e) {
 			errorAndExit("File \"" + propertiesFilename + "\" not found");
 		}
-		catch (ParseException e) {
-			errorAndExit("Could not parse properties:\n" + e.getShortMessage());
+		catch (PrismException e) {
+			errorAndExit(e.getMessage());
 		}
 		
 		// print out properties (if any)
 		
 		if (propertiesFile == null) return;
-		mainLog.print("\n" + propertiesFile.getNumProperties() + " " + ((model instanceof StochModel)?"CSL":"PCTL"));
+		mainLog.print("\n" + propertiesFile.getNumProperties());
 		mainLog.print(" propert" + ((propertiesFile.getNumProperties()==1)?"y":"ies") + ":\n");
 		for (i = 0; i < propertiesFile.getNumProperties(); i++) {
 			mainLog.println("(" + (i+1) + ") " + propertiesFile.getProperty(i));
@@ -501,7 +498,7 @@ public class PrismCL
 		// unless specified, verify all properties
 		else if (propertyToCheck == -1) {
 			numPropertiesToCheck = propertiesFile.getNumProperties();
-			propertiesToCheck = new PCTLFormula[numPropertiesToCheck];
+			propertiesToCheck = new Expression[numPropertiesToCheck];
 			for (i = 0; i < numPropertiesToCheck; i++) {
 				propertiesToCheck[i] =  propertiesFile.getProperty(i);
 			}
@@ -510,7 +507,7 @@ public class PrismCL
 		else {
 			if (propertyToCheck > 0 && propertyToCheck <= propertiesFile.getNumProperties()) {
 				numPropertiesToCheck = 1;
-				propertiesToCheck = new PCTLFormula[1];
+				propertiesToCheck = new Expression[1];
 				propertiesToCheck[0] =  propertiesFile.getProperty(propertyToCheck-1);
 			}
 			else {
@@ -586,8 +583,6 @@ public class PrismCL
 	
 	private void doExports()
 	{
-		int i;
-		
 		// export transition matrix to a file
 		if (exporttrans) {
 			try {
@@ -718,9 +713,9 @@ public class PrismCL
 	
 	public void parseArguments(String[] args) throws PrismException
 	{
-		int i, j, k;
+		int i, j;
 		double d;
-		String sw, s, s2[], s3[];
+		String sw;
 		PrismLog log;
 		
 		for (i = 0; i < args.length; i++) {
@@ -1505,8 +1500,8 @@ public class PrismCL
 		mainLog.println("-extraddinfo ................... Display extra info about some (MT)BDDs");
 		mainLog.println("-extrareachinfo ................ Display extra info about progress of reachability");
 		mainLog.println("-nopre ......................... Skip precomputation algorithms");
-		mainLog.println("-fair .......................... Use fairness (when model checking PCTL on MDPs)");
-		mainLog.println("-nofair ........................ Don't use fairness (when model checking PCTL on MDPs) [default]");
+		mainLog.println("-fair .......................... Use fairness (when model checking MDPs)");
+		mainLog.println("-nofair ........................ Don't use fairness (when model checking MDPs) [default]");
 		mainLog.println("-fixdl ......................... Automatically put self-loops in deadlock states");
 		mainLog.println("-nocompact ..................... Switch off \"compact\" sparse storage schemes");
 		mainLog.println("-noprobchecks .................. Disable checks on model probabilities/rates");
@@ -1532,7 +1527,7 @@ public class PrismCL
 	
 	private void printVersion()
 	{
-		mainLog.println("PRISM version " + prism.getVersion());
+		mainLog.println("PRISM version " + Prism.getVersion());
 	}
 
 	// report (non-fatal) error

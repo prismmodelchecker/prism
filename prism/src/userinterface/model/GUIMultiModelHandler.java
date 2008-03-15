@@ -30,7 +30,11 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
+
 import parser.*;
+import parser.ast.ModulesFile;
 import prism.*;
 import userinterface.model.pepaModel.*;
 import userinterface.model.graphicModel.*;
@@ -120,53 +124,82 @@ public class GUIMultiModelHandler extends JPanel
     private PropertyTable graphicalProperties;
     private PropertyTableModel graphicalPropModel;
     
-    private JLabel builtNoStates, builtNoTransitions;
+    private JLabel builtNoStates, builtNoInitStates, builtNoTransitions;
     
     /** Creates a new instance of GUIMultiModelHandler */
     public GUIMultiModelHandler(GUIMultiModel theModel)
     {
         super();
+        this.theModel = theModel;
+        
         waiter = new WaitParseThread(DEFAULT_WAIT,this);
         editor = new GUITextModelEditor("", this);
         tree = new GUIMultiModelTree(this);
         splitter = new JSplitPane();
-        this.theModel = theModel;
-        
+                
         initComponents();
         newPRISMModel();
+        //splitter.setDividerLocation(0);
+        //splitter.setLastDividerLocation(200);
         
         notifySettings(theModel.getPrism().getSettings());
+        
+        splitter.setBorder(null);
+        
+        setBorder(new EmptyBorder(5, 5, 5, 5));
     }
     
     // Initialisation of GUI components
     private void initComponents()
-    {
-        
-        
+    {        
         treeAndBuild = new JPanel();
         JPanel topLeft = new JPanel();
         topLeft.setLayout(new BorderLayout());
         topLeft.add(tree, BorderLayout.CENTER);
-        JPanel bottomLeft = new JPanel(new BorderLayout());
-        bottomLeft.setBorder(new TitledBorder("Built Model"));
+        JPanel innerBottomLeft = new JPanel(new BorderLayout());
+        innerBottomLeft.setBorder(new CompoundBorder(new EmptyBorder(5,0,0,0),new TitledBorder("Built Model")));
         //JToolBar bar = new JToolBar();
         //bar.setFloatable(false);
         //JButton but = new JButton(buildModel);
         //but.setText("Build Model");
         //bar.add(but);
         //bar.add(buildModel);
-        JPanel buildPane = new JPanel(new GridLayout(2,1));
-        builtNoStates = new JLabel("No of states: ");
-        builtNoTransitions  = new JLabel("No of transitions: ");
+        JPanel buildPane = new JPanel(new GridLayout(3,2,5,5));
+        
+        JLabel statesLabel = new JLabel("States:");
+        statesLabel.setFont(statesLabel.getFont().deriveFont(Font.BOLD));
+        statesLabel.setHorizontalAlignment(JLabel.RIGHT);
+        
+        builtNoStates = new JLabel("...");
+        
+        JLabel initStatesLabel = new JLabel("Initial states:");
+        initStatesLabel.setFont(initStatesLabel.getFont().deriveFont(Font.BOLD));
+        initStatesLabel.setHorizontalAlignment(JLabel.RIGHT);
+        
+        builtNoInitStates = new JLabel("...");
+                
+        JLabel transLabel =  new JLabel("Transitions:");
+        transLabel.setFont(transLabel.getFont().deriveFont(Font.BOLD));
+        transLabel.setHorizontalAlignment(JLabel.RIGHT);
+        
+        builtNoTransitions = new JLabel("...");
+        
+        buildPane.add(statesLabel);       
         buildPane.add(builtNoStates);
+        buildPane.add(initStatesLabel);       
+        buildPane.add(builtNoInitStates);
+        buildPane.add(transLabel);
         buildPane.add(builtNoTransitions);
-        buildPane.setPreferredSize(new Dimension(300, 40));
-        buildPane.setMaximumSize(new Dimension(2000, 40));
+        
+        //buildPane.setPreferredSize(new Dimension(250, 40));
+        //buildPane.setMaximumSize(new Dimension(2000, 40));
+        buildPane.setBorder(new EmptyBorder(5,5,5,5));
         //bottomLeft.add(bar, BorderLayout.NORTH);
-        bottomLeft.add(buildPane, BorderLayout.CENTER);
+        innerBottomLeft.add(buildPane, BorderLayout.CENTER);
         treeAndBuild.setLayout(new BorderLayout());
         treeAndBuild.add(topLeft, BorderLayout.CENTER);
-        treeAndBuild.add(bottomLeft, BorderLayout.SOUTH);
+        treeAndBuild.add(innerBottomLeft, BorderLayout.SOUTH);
+        treeAndBuild.setBorder(new EmptyBorder(0,0,0,5));
         splitter.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
         
         leftHandSide = new JPanel();
@@ -178,6 +211,7 @@ public class GUIMultiModelHandler extends JPanel
         graphicalProperties = new PropertyTable(graphicalPropModel); //not used initially
         
         splitter.setLeftComponent(leftHandSide);
+        
         splitter.setRightComponent(editor);
         splitter.setDividerLocation(0.5);
         splitter.setOneTouchExpandable(true);
@@ -273,16 +307,16 @@ public class GUIMultiModelHandler extends JPanel
         } 
         else if(currentMode == GRAPHIC_MODE)
         {
-            editor = new GUIPepaModelEditor(this);
+            //editor = new GUIPepaModelEditor(this);
             editor.newModel();
-            splitter.setRightComponent(editor);
+            //splitter.setRightComponent(editor);
             swapFromGraphic();
         }
         else
         {
-            editor = new GUIPepaModelEditor(this);
+            //editor = new GUIPepaModelEditor(this);
             editor.newModel();
-            splitter.setRightComponent(editor);
+            //splitter.setRightComponent(editor);
         }
         tree.newTree(false);
         tree.update(parsedModel);
@@ -714,6 +748,9 @@ public class GUIMultiModelHandler extends JPanel
         parsedModel = m;
         modifiedSinceParse = false;
         lastError = "Parse Successful";
+        
+        editor.modelParseSuccessful();
+                
         if(parseAfterParse)
         {
             parseAfterParse = false;
@@ -755,9 +792,12 @@ public class GUIMultiModelHandler extends JPanel
         theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.MODEL_PARSED, parsedModel));
     }
     
-    public synchronized void modelParseFailed(String error)
+    public synchronized void modelParseFailed(PrismLangException parserError)
     {
-        lastError = error;
+        lastError = parserError.getMessage();
+        
+        editor.modelParseFailed(parserError);
+        
         tree.stopParsing();
         parsing = false;
         tree.lastParseFailed();
@@ -858,8 +898,10 @@ public class GUIMultiModelHandler extends JPanel
         theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.MODEL_BUILT, builtModel, lastBuildValues));
     }
     
-    public synchronized void modelBuildFailed()
+    public synchronized void modelBuildFailed(PrismException e)
     {
+    	if (e != null && e instanceof PrismLangException) editor.modelParseFailed((PrismLangException)e);
+        
         if(exportAfterReceiveBuildNotification)
         {
             exportAfterReceiveBuildNotification = false;
@@ -892,12 +934,14 @@ public class GUIMultiModelHandler extends JPanel
         // update display
         if(builtModel != null)
         {
-            this.builtNoStates.setText("No of states: "+m.getNumStatesString());
-            this.builtNoTransitions.setText("No of transitions: "+m.getNumTransitionsString());
+            this.builtNoStates.setText(""+m.getNumStatesString());
+            this.builtNoInitStates.setText(""+m.getNumStartStates());
+            this.builtNoTransitions.setText(""+m.getNumTransitionsString());
         } else
         {
-            this.builtNoStates.setText("No of states: ");
-            this.builtNoTransitions.setText("No of transitions: ");
+            this.builtNoStates.setText("...");
+            this.builtNoInitStates.setText("...");
+            this.builtNoTransitions.setText("...");
         }
     }
     

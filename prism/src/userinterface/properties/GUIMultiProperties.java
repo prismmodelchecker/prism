@@ -27,26 +27,28 @@
 //==============================================================================
 
 package userinterface.properties;
-import userinterface.*;
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.border.*;
-import userinterface.model.*;
-import userinterface.properties.computation.*;
-import prism.*;
-import parser.*;
+
 import java.io.*;
 import java.util.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.datatransfer.*;
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.border.*;
+
+import userinterface.*;
+import userinterface.model.*;
+import userinterface.properties.computation.*;
 import userinterface.util.*;
 import userinterface.simulator.*;
 import userinterface.simulator.networking.*;
-import java.awt.datatransfer.*;
+import prism.*;
+import parser.*;
+import parser.ast.*;
+
 /**
- *  Properties panel designed to handle constants as well as properties.
- *  Also designed to handle experiments.
- *  @author  ug60axh
+ *  Properties tab of the PRISM GUI.
  */
 public class GUIMultiProperties extends GUIPlugin implements MouseListener, ListSelectionListener, PrismSettingsListener
 {
@@ -207,11 +209,6 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			parsedProperties = getPrism().parsePropertiesString(parsedModel, getLabelsString()+"\n"+getConstantsString()+"\n"+propList.getValidSelectedString());
 			validGUIProperties = propList.getValidSelectedProperties();
 		}
-		catch(ParseException e)
-		{
-			error(e.getShortMessage());
-			return;
-		}
 		catch(PrismException e)
 		{
 			error(e.getMessage());
@@ -259,11 +256,6 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				return;
 			}
 		}
-		catch(ParseException e)
-		{
-			error(e.getShortMessage());
-			return;
-		}
 		catch(PrismException e)
 		{
 			error(e.getMessage());
@@ -277,7 +269,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			GUIProperty guiP = (GUIProperty)validGUIProperties.get(i);
 			try
 			{
-				getPrism().checkPropertyForSimulation(parsedModel, parsedProperties, guiP.getPCTLProperty());
+				getPrism().checkPropertyForSimulation(guiP.getProperty(), parsedModel.getType());
 				simulatableGUIProperties.add(guiP);
 			}
 			catch(PrismException e)
@@ -362,11 +354,6 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			// check the type of the property
 			type = parsedProperties.getProperty(0).getType();
 		}
-		catch(ParseException e)
-		{
-			error(e.getShortMessage());
-			return;
-		}
 		catch(PrismException e)
 		{
 			error(e.getMessage());
@@ -398,7 +385,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		{
 			try
 			{
-				getPrism().checkPropertyForSimulation(parsedModel, parsedProperties, gp.getPCTLProperty());
+				getPrism().checkPropertyForSimulation(gp.getProperty(), parsedModel.getType());
 			}
 			catch(PrismException e)
 			{

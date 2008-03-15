@@ -28,6 +28,7 @@
 package prism;
 
 import parser.*;
+import parser.ast.*;
 
 public class DefinedConstant
 {

@@ -28,7 +28,6 @@
 package prism;
 
 import java.io.*;
-import java.util.Vector;
 import java.util.ArrayList;
 
 import jdd.*;
@@ -38,6 +37,7 @@ import mtbdd.*;
 import sparse.*;
 import hybrid.*;
 import parser.*;
+import parser.ast.*;
 import simulator.*;
 
 // prism class - main class for model checker
@@ -562,9 +562,9 @@ public class Prism implements PrismSettingsListener
 	
 	// parse model from file
 	
-	public ModulesFile parseModelFile(File file) throws FileNotFoundException, ParseException, PrismException { return parseModelFile(file, 0); }
+	public ModulesFile parseModelFile(File file) throws FileNotFoundException, PrismLangException { return parseModelFile(file, 0); }
 	
-	public ModulesFile parseModelFile(File file, int typeOverride) throws FileNotFoundException, ParseException, PrismException
+	public ModulesFile parseModelFile(File file, int typeOverride) throws FileNotFoundException, PrismLangException
 	{
 		FileInputStream strModel;
 		PrismParser prismParser; 
@@ -587,7 +587,7 @@ public class Prism implements PrismSettingsListener
 			}
 		}
 		catch(InterruptedException ie) {
-			throw new ParseException("Concurrency error in parser");
+			throw new PrismLangException("Concurrency error in parser");
 		}
 		
 		modulesFile.tidyUp();
@@ -597,9 +597,9 @@ public class Prism implements PrismSettingsListener
 
 	// parse model from string
 	
-	public ModulesFile parseModelString(String s) throws ParseException, PrismException { return parseModelString(s, 0); }
+	public ModulesFile parseModelString(String s) throws PrismLangException { return parseModelString(s, 0); }
 	
-	public ModulesFile parseModelString(String s, int typeOverride) throws ParseException, PrismException
+	public ModulesFile parseModelString(String s, int typeOverride) throws PrismLangException
 	{
 		PrismParser prismParser; 
 		ModulesFile modulesFile = null;
@@ -618,7 +618,7 @@ public class Prism implements PrismSettingsListener
 			}
 		}
 		catch(InterruptedException ie) {
-			throw new ParseException("Concurrency error in parser");
+			throw new PrismLangException("Concurrency error in parser");
 		}
 		
 		modulesFile.tidyUp();
@@ -628,9 +628,8 @@ public class Prism implements PrismSettingsListener
 
 	// import pepa from file
 	
-	public ModulesFile importPepaFile(File file) throws ParseException, PrismException
+	public ModulesFile importPepaFile(File file) throws PrismException, PrismLangException
 	{
-		ModulesFile modulesFile;
 		String modelString;
 		
 		// compile pepa file to string
@@ -647,10 +646,9 @@ public class Prism implements PrismSettingsListener
 	
 	// import pepa from string
 	
-	public ModulesFile importPepaString(String s) throws ParseException, PrismException
+	public ModulesFile importPepaString(String s) throws PrismException, PrismLangException
 	{
 		File pepaFile = null;
-		ModulesFile modulesFile;
 		String modelString;
 		
 		// create temporary file containing pepa model
@@ -680,14 +678,14 @@ public class Prism implements PrismSettingsListener
 		return parseModelString(modelString);
 	}
 
-	// parse pctl properties from file
+	// parse properties from file
 	// nb: need to pass in modules file to access its constants
 	//     but if its null, we just create a blank one for you.
 	
-	public PropertiesFile parsePropertiesFile(ModulesFile mf, File file) throws FileNotFoundException, ParseException, PrismException
+	public PropertiesFile parsePropertiesFile(ModulesFile mf, File file) throws FileNotFoundException, PrismLangException
 	{ return parsePropertiesFile(mf, file, true); }
 	
-	public PropertiesFile parsePropertiesFile(ModulesFile mf, File file, boolean tidy) throws FileNotFoundException, ParseException, PrismException
+	public PropertiesFile parsePropertiesFile(ModulesFile mf, File file, boolean tidy) throws FileNotFoundException, PrismLangException
 	{
 		FileInputStream strProperties;
 		PrismParser prismParser; 
@@ -717,7 +715,7 @@ public class Prism implements PrismSettingsListener
 			}
 		}
 		catch(InterruptedException ie) {
-			throw new ParseException("Concurrency error in parser");
+			throw new PrismLangException("Concurrency error in parser");
 		}
 		
 		if (tidy) propertiesFile.tidyUp();
@@ -725,11 +723,11 @@ public class Prism implements PrismSettingsListener
 		return propertiesFile;
 	}
 
-	// parse pctl properties from string
+	// parse properties from string
 	// nb: need to pass in modules file to access its constants
 	//     but if its null, we just create a blank one for you.
 	
-	public PropertiesFile parsePropertiesString(ModulesFile mf, String s) throws ParseException, PrismException
+	public PropertiesFile parsePropertiesString(ModulesFile mf, String s) throws PrismLangException
 	{
 		PrismParser prismParser; 
 		PropertiesFile propertiesFile = null;
@@ -755,7 +753,7 @@ public class Prism implements PrismSettingsListener
 			}
 		}
 		catch(InterruptedException ie) {
-			throw new ParseException("Concurrency error in parser");
+			throw new PrismLangException("Concurrency error in parser");
 		}
 		
 		propertiesFile.tidyUp();
@@ -765,7 +763,7 @@ public class Prism implements PrismSettingsListener
 
 	// parse single expression from string
 	
-	public Expression parseSingleExpressionString(String s) throws ParseException, PrismException
+	public Expression parseSingleExpressionString(String s) throws PrismLangException
 	{
 		PrismParser prismParser; 
 		Expression expr;
@@ -784,7 +782,7 @@ public class Prism implements PrismSettingsListener
 			}
 		}
 		catch(InterruptedException ie) {
-			throw new ParseException("Concurrency error in parser");
+			throw new PrismLangException("Concurrency error in parser");
 		}
 		
 		return expr;
@@ -792,7 +790,7 @@ public class Prism implements PrismSettingsListener
 
 	// parse for loop from string
 	
-	public ForLoop parseForLoopString(String s) throws ParseException, PrismException
+	public ForLoop parseForLoopString(String s) throws PrismLangException
 	{
 		PrismParser prismParser; 
 		ForLoop fl;
@@ -811,7 +809,7 @@ public class Prism implements PrismSettingsListener
 			}
 		}
 		catch(InterruptedException ie) {
-			throw new ParseException("Concurrency error in parser");
+			throw new PrismLangException("Concurrency error in parser");
 		}
 		
 		return fl;
@@ -1130,31 +1128,25 @@ public class Prism implements PrismSettingsListener
 	// model checking
 	// returns result or throws an exception in case of error
 	
-	public Object modelCheck(Model model, PropertiesFile propertiesFile, PCTLFormula f) throws PrismException
+	public Object modelCheck(Model model, PropertiesFile propertiesFile, Expression f) throws PrismException, PrismLangException
 	{
 		Object res;
 		
-		// check that formula is valid pctl/csl
-		if (model instanceof ProbModel || model instanceof NondetModel)
-		{
-			f.checkValidPCTL();
-		}
-		if (model instanceof StochModel)
-		{
-			f.checkValidCSL();
-		}
-		
-		// create new model checker object
+		// Check that property is valid for this model type
+		// and create new model checker object
 		if (model instanceof ProbModel)
 		{
-			mc = new ProbModelChecker(mainLog, techLog, model, propertiesFile);
+			f.checkValid(ModulesFile.PROBABILISTIC);
+			mc = new ProbModelChecker(this, model, propertiesFile);
 		}
 		else if (model instanceof NondetModel)
 		{
+			f.checkValid(ModulesFile.NONDETERMINISTIC);
 			mc = new NondetModelChecker(mainLog, techLog, model, propertiesFile);
 		}
 		else if (model instanceof StochModel)
 		{
+			f.checkValid(ModulesFile.STOCHASTIC);
 			mc = new StochModelChecker(mainLog, techLog, model, propertiesFile);
 		}
 		else
@@ -1172,7 +1164,6 @@ public class Prism implements PrismSettingsListener
 		mc.setOption("termcrit", getTermCrit());
 		mc.setOption("termcritparam", getTermCritParam());
 		mc.setOption("maxiters", getMaxIters());
-		mc.setOption("verbose", getVerbose());
 		mc.setOption("precomp", getPrecomp());
 		if (model instanceof StochModel)
 		{
@@ -1231,10 +1222,10 @@ public class Prism implements PrismSettingsListener
 
 	// check if a property is suitable for analysis with the simulator
 	
-	public void checkPropertyForSimulation(ModulesFile modulesFile, PropertiesFile propertiesFile, PCTLFormula f) throws PrismException
+	public void checkPropertyForSimulation(Expression f, int modelType) throws PrismException
 	{
 		try {
-			getSimulator().checkPropertyForSimulation(modulesFile, propertiesFile, f);
+			getSimulator().checkPropertyForSimulation(f, modelType);
 		}
 		catch (SimulatorException e) {
 			throw new PrismException(e.getMessage());
@@ -1244,7 +1235,7 @@ public class Prism implements PrismSettingsListener
 	// model check using simulator
 	// returns result or throws an exception in case of error
 	
-	public Object modelCheckSimulator(ModulesFile modulesFile, PropertiesFile propertiesFile, PCTLFormula f, Values initialState, int noIterations, int maxPathLength) throws PrismException
+	public Object modelCheckSimulator(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression f, Values initialState, int noIterations, int maxPathLength) throws PrismException
 	{
 		Object res = null;
 		
@@ -1285,7 +1276,7 @@ public class Prism implements PrismSettingsListener
 	// results are stored in the ResultsCollection, some of which may be Exception objects if there were errors
 	// in the case of an error which affects all properties, an exception is thrown
 	
-	public void modelCheckSimulatorExperiment(ModulesFile modulesFile, PropertiesFile propertiesFile, UndefinedConstants undefinedConstants, ResultsCollection results, PCTLFormula propertyToCheck, Values initialState, int noIterations, int pathLength) throws PrismException, InterruptedException
+	public void modelCheckSimulatorExperiment(ModulesFile modulesFile, PropertiesFile propertiesFile, UndefinedConstants undefinedConstants, ResultsCollection results, Expression propertyToCheck, Values initialState, int noIterations, int pathLength) throws PrismException, InterruptedException
 	{
 		try
 		{
@@ -1303,7 +1294,7 @@ public class Prism implements PrismSettingsListener
 	
 	// generate a random path through the model using the simulator
 	
-	public void generateSimulationPath(ModulesFile modulesFile, String details, int maxPathLength, File file) throws PrismException
+	public void generateSimulationPath(ModulesFile modulesFile, String details, int maxPathLength, File file) throws PrismException, PrismLangException
 	{
 		// do path generation
 		try {
@@ -1337,7 +1328,6 @@ public class Prism implements PrismSettingsListener
 		mc.setOption("termcrit", getTermCrit());
 		mc.setOption("termcritparam", getTermCritParam());
 		mc.setOption("maxiters", getMaxIters());
-		mc.setOption("verbose", getVerbose());
 		mc.setOption("bscccomp", getBSCCComp());
 		if (getEngine() == HYBRID || getEngine() == SPARSE)
 		{
@@ -1397,7 +1387,6 @@ public class Prism implements PrismSettingsListener
 		mc.setOption("termcrit", getTermCrit());
 		mc.setOption("termcritparam", getTermCritParam());
 		mc.setOption("maxiters", getMaxIters()); // don't really need
-		mc.setOption("verbose", getVerbose());
 		mc.setOption("bscccomp", getBSCCComp()); // don't really need
 		mc.setOption("dossdetect", getDoSSDetect());
 		if (getEngine() == HYBRID || getEngine() == SPARSE)

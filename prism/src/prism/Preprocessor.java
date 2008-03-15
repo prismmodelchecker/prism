@@ -31,6 +31,7 @@ import java.util.Vector;
 import java.util.Stack;
 
 import parser.*;
+import parser.ast.*;
 
 public class Preprocessor
 {
@@ -271,15 +272,12 @@ public class Preprocessor
 			// add final piece of text to output
 			if (outputEnabled) output += lastString;
 		}
-		catch (ParseException e) {
-			throw new PrismException("Syntax error in preprocessing expression \"" + ppExprs[pc] + "\" at line " + ppExprLines[pc]);
-		}
 		catch (PrismException e) {
 			throw new PrismException(e.getMessage() + " (preprocessing expression \"" + ppExprs[pc] + "\" at line " + ppExprLines[pc] + ")");
 		}
 	}
 
-	private void interpretConstant(String s) throws PrismException, ParseException
+	private void interpretConstant(String s) throws PrismException
 	{
 		int i;
 		String name;
@@ -311,8 +309,8 @@ public class Preprocessor
 			s = s.substring(1).trim();
 			// parse expression, do some checks
 			expr = prism.parseSingleExpressionString(s);
-			expr = expr.findAllVars(varNames, varTypes);
-			expr.check();
+			expr = (Expression)expr.findAllVars(varNames, varTypes);
+			expr.semanticCheck();
 		}
 		// set up new variable in interpreter
 		varNames.add(name);
@@ -329,7 +327,7 @@ public class Preprocessor
 		pc++;
 	}
 
-	private void interpretForLoop(String s, String between) throws PrismException, ParseException
+	private void interpretForLoop(String s, String between) throws PrismException
 	{
 		ForLoop fl;
 		
@@ -340,8 +338,8 @@ public class Preprocessor
 		fl = prism.parseForLoopString(s);
 		if (varNames.contains(fl.getLHS()))
 			throw new PrismException("Duplicated variable/constant \"" + fl.getLHS() + "\"");
-		fl = fl.findAllVars(varNames, varTypes);
-		fl.check();
+		fl = (ForLoop)fl.findAllVars(varNames, varTypes);
+		fl.semanticCheck();
 		// set up more info and then put on stack
 		fl.setPC(pc + 1);
 		fl.setBetween(between);
@@ -441,7 +439,7 @@ public class Preprocessor
 		}
 	}
 
-	private void interpretExpression(String s) throws PrismException, ParseException
+	private void interpretExpression(String s) throws PrismException
 	{
 		Expression expr;
 		
@@ -450,8 +448,8 @@ public class Preprocessor
 		
 		// parse expression, do some checks
 		expr = prism.parseSingleExpressionString(s);
-		expr = expr.findAllVars(varNames, varTypes);
-		expr.check();
+		expr = (Expression)expr.findAllVars(varNames, varTypes);
+		expr.semanticCheck();
 		// add 
 		output += "" + expr.evaluate(null, values);
 		// move to next statement

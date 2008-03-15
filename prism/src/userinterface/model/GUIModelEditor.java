@@ -27,6 +27,8 @@
 
 package userinterface.model;
 import javax.swing.*;
+
+import prism.PrismLangException;
 /**
  *
  * @author  ug60axh
@@ -48,4 +50,7 @@ public abstract class GUIModelEditor extends JPanel
     
     public abstract void selectAll();
     
+    public void modelParseFailed(PrismLangException parserError) {}
+
+    public void modelParseSuccessful() {}
 }

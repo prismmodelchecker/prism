@@ -27,11 +27,12 @@
 
 package userinterface.properties;
 
-import javax.swing.*;
-import java.awt.*;
-import javax.swing.table.*;
 import java.util.*; 
-import parser.*;
+import java.awt.*;
+import javax.swing.*;
+import javax.swing.table.*;
+
+import parser.ast.*;
 import prism.*;
 
 /**

@@ -95,6 +95,8 @@ public class PrismSettings implements Observer
 	public static final	String MODEL_AUTO_MANUAL					= "model.autoManual";
 	public static final	String MODEL_PARSE_DELAY					= "model.parseDelay";
 	public static final	String MODEL_PRISM_EDITOR_FONT				= "model.prismEditor.font";
+	public static final	String MODEL_SHOW_LINE_NUMBERS				= "model.prismEditor.lineNumbers";
+	
 	//public static final	String MODEL_PRISM_EDITOR_FONT_COLOUR		= "model.prismEditor.fontColour";
 	public static final	String MODEL_PRISM_EDITOR_BG_COLOUR			= "model.prismEditor.bgColour";
 	public static final	String MODEL_PRISM_EDITOR_NUMERIC_COLOUR	= "model.prismEditor.numericColour";
@@ -189,6 +191,7 @@ public class PrismSettings implements Observer
 			{ BOOLEAN_TYPE,		MODEL_AUTO_MANUAL,						"Manual parse for large models",		"3.0",			new Boolean(true),															"",																							"Disable automatic model parsing when loading large PRISM models." },
 			{ INTEGER_TYPE,		MODEL_PARSE_DELAY,						"Parse delay (ms)",						"3.0",			new Integer(1000),															"0,",																						"Time delay (after typing has finished) before an automatic re-parse of the model is performed." },
 			{ FONT_COLOUR_TYPE,	MODEL_PRISM_EDITOR_FONT,				"PRISM editor font",					"3.0",			new FontColorPair(new Font("monospaced", Font.PLAIN, 12), Color.black),		"",																							"Font used in the PRISM model text editor." },
+			{ BOOLEAN_TYPE,		MODEL_SHOW_LINE_NUMBERS,				"PRISM editor line numbers",            "3.2.beta2",    new Boolean(true),															"",																							"Enable or disable line numbers in the PRISM model text editor" },
 			{ COLOUR_TYPE,		MODEL_PRISM_EDITOR_BG_COLOUR,			"PRISM editor background",				"3.0",			new Color(255,255,255),														"",																							"Background colour for the PRISM model text editor." },
 			{ COLOUR_TYPE,		MODEL_PRISM_EDITOR_NUMERIC_COLOUR,		"PRISM editor numeric colour",			"3.0",			new Color(0,0,255),															"",																							"Syntax highlighting colour for numerical values in the PRISM model text editor." },
 			{ CHOICE_TYPE,		MODEL_PRISM_EDITOR_NUMERIC_STYLE,		"PRISM editor numeric style",			"3.0",			"Plain",																	"Plain,Italic,Bold,Bold Italic",															"Syntax highlighting style for numerical values in the PRISM model text editor." },

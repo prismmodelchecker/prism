@@ -26,17 +26,15 @@
 //==============================================================================
 
 package userinterface.properties.computation;
+
+import java.io.*;
+import javax.swing.*;
+
 import userinterface.properties.*;
-import userinterface.*;
 import userinterface.util.*;
 import prism.*;
 import parser.*;
-import java.lang.*;
-import java.io.*;
-import java.util.*;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import parser.ast.*;
 
 /**
  *
@@ -89,16 +87,6 @@ public class LoadPropertiesThread extends Thread
 					parent.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, parent));
 					parent.setTaskBarText("Loading properties... error.");
 					parent.error("Could not open file \"" + file + "\"");
-				}});
-				return;
-			}
-			catch (ParseException e) {
-				ex = e;
-				SwingUtilities.invokeAndWait(new Runnable() { public void run() {
-					parent.stopProgress(); 
-					parent.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, parent));
-					parent.setTaskBarText("Loading properties... error.");
-					parent.error("Parse error in properties: " + ((ParseException)ex).getShortMessage());
 				}});
 				return;
 			}

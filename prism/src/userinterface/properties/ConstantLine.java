@@ -28,12 +28,11 @@
 
 package userinterface.properties;
 
-import parser.Expression;
-import javax.swing.*;
 import java.awt.*;
-import javax.swing.border.*;
-import java.lang.*;
+
 import prism.*;
+import parser.ast.Expression;
+
 /**
  *
  * @author  ug60axh

@@ -27,6 +27,7 @@
 
 package userinterface.util;
 
+import prism.PrismLangException;
 import userinterface.*;
 /**
  *
@@ -52,5 +53,4 @@ public class GUIComputationEvent extends GUIEvent
     {
         return source;
     }
-    
 }

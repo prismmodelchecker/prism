@@ -31,6 +31,7 @@ import java.util.Vector;
 
 import jdd.*;
 import parser.*;
+import parser.ast.*;
 
 // class to translate an expression into an MTBDD
 
@@ -67,7 +68,7 @@ public class Expression2MTBDD
 		filter = f;
 	}
 
-	// translate an  expression
+	// Translate an  expression
 
 	public JDDNode translateExpression(Expression expr) throws PrismException
 	{
@@ -77,45 +78,13 @@ public class Expression2MTBDD
 		if (expr instanceof ExpressionITE) {
 			res = translateExpressionITE((ExpressionITE)expr);
 		}
-		// or
-		else if (expr instanceof ExpressionOr) {
-			res = translateExpressionOr((ExpressionOr)expr);
+		// binary ops
+		else if (expr instanceof ExpressionBinaryOp) {
+			res = translateExpressionBinaryOp((ExpressionBinaryOp)expr);
 		}
-		// and
-		else if (expr instanceof ExpressionAnd) {
-			res = translateExpressionAnd((ExpressionAnd)expr);
-		}
-		// not
-		else if (expr instanceof ExpressionNot) {
-			res = translateExpressionNot((ExpressionNot)expr);
-		}
-		// rel. op.
-		else if (expr instanceof ExpressionRelOp) {
-			res = translateExpressionRelOp((ExpressionRelOp)expr);
-		}
-		// range
-		else if (expr instanceof ExpressionRange) {
-			res = translateExpressionRange((ExpressionRange)expr);
-		}
-		// plus
-		else if (expr instanceof ExpressionPlus) {
-			res = translateExpressionPlus((ExpressionPlus)expr);
-		}
-		// minus
-		else if (expr instanceof ExpressionMinus) {
-			res = translateExpressionMinus((ExpressionMinus)expr);
-		}
-		// times
-		else if (expr instanceof ExpressionTimes) {
-			res = translateExpressionTimes((ExpressionTimes)expr);
-		}
-		// divide
-		else if (expr instanceof ExpressionDivide) {
-			res = translateExpressionDivide((ExpressionDivide)expr);
-		}
-		// unary minus
-		else if (expr instanceof ExpressionUnaryMinus) {
-			res = translateExpressionUnaryMinus((ExpressionUnaryMinus)expr);
+		// unary ops
+		else if (expr instanceof ExpressionUnaryOp) {
+			res = translateExpressionUnaryOp((ExpressionUnaryOp)expr);
 		}
 		// function
 		else if (expr instanceof ExpressionFunc) {
@@ -123,37 +92,25 @@ public class Expression2MTBDD
 		}
 		// ident
 		else if (expr instanceof ExpressionIdent) {
-			// ident should by now have been recognised as var/const/etc.
-			// and converted to a different expression type
+			// Should never happen
 			throw new PrismException("Unknown identifier \"" + ((ExpressionIdent)expr).getName() + "\"");
 		}
-		// var
-		else if (expr instanceof ExpressionVar) {
-			res = translateExpressionVar((ExpressionVar)expr);
+		// literal
+		else if (expr instanceof ExpressionLiteral) {
+			res = translateExpressionLiteral((ExpressionLiteral)expr);
 		}
 		// constant
 		else if (expr instanceof ExpressionConstant) {
 			res = translateExpressionConstant((ExpressionConstant)expr);
 		}
-		// int
-		else if (expr instanceof ExpressionInt) {
-			res = translateExpressionInt((ExpressionInt)expr);
+		// formula
+		else if (expr instanceof ExpressionFormula) {
+			// Should never happen
+			throw new PrismException("Unexpanded formula \"" + ((ExpressionFormula)expr).getName() + "\"");
 		}
-		// double
-		else if (expr instanceof ExpressionDouble) {
-			res = translateExpressionDouble((ExpressionDouble)expr);
-		}
-		// true
-		else if (expr instanceof ExpressionTrue) {
-			res =  JDD.Constant(1);
-		}
-		// false
-		else if (expr instanceof ExpressionFalse) {
-			res =  JDD.Constant(0);
-		}
-		// brackets
-		else if (expr instanceof ExpressionBrackets) {
-			res = translateExpression(((ExpressionBrackets)expr).getOperand());
+		// var
+		else if (expr instanceof ExpressionVar) {
+			res = translateExpressionVar((ExpressionVar)expr);
 		}
 		else {
 			throw new PrismException("Couldn't translate " + expr.getClass());
@@ -168,80 +125,60 @@ public class Expression2MTBDD
 		return res;
 	}
 	
-	// translate an 'if-then-else'
+	// Translate an 'if-then-else'
 	
 	private JDDNode translateExpressionITE(ExpressionITE expr) throws PrismException
 	{
 		JDDNode dd1, dd2, dd3;
 		
-		dd1 = translateExpression(expr.getOperand(0));
-		dd2 = translateExpression(expr.getOperand(1));
-		dd3 = translateExpression(expr.getOperand(2));
+		dd1 = translateExpression(expr.getOperand1());
+		dd2 = translateExpression(expr.getOperand2());
+		dd3 = translateExpression(expr.getOperand3());
 		
 		return JDD.ITE(dd1, dd2, dd3);
 	}
 	
-	// translate an 'or'
+	// Translate a binary operator
 	
-	private JDDNode translateExpressionOr(ExpressionOr expr) throws PrismException
+	private JDDNode translateExpressionBinaryOp(ExpressionBinaryOp expr) throws PrismException
 	{
-		int i, n;
-		JDDNode dd, tmp;
-
-		dd = JDD.Constant(0);
-		n = expr.getNumOperands();
-		for (i = 0; i < n; i++) {
-			try {
-				tmp = translateExpression(expr.getOperand(i));
-				dd = JDD.Or(dd, tmp);
-			}
-			catch (PrismException e) {
-				JDD.Deref(dd);
-				throw e;
-			}
+		JDDNode dd, tmp1, tmp2;
+		int op = expr.getOperator();
+		
+		// Optimisations are possible for relational operators
+		// (note dubious use of knowledge that op IDs are consecutive)
+		if (op >= ExpressionBinaryOp.EQ && op <= ExpressionBinaryOp.LE) {
+			return translateExpressionRelOp(op, expr.getOperand1(), expr.getOperand2());
 		}
 		
-		return dd;
-	}
-	
-	// translate an 'and'
-	
-	private JDDNode translateExpressionAnd(ExpressionAnd expr) throws PrismException
-	{
-		int i, n;
-		JDDNode dd, tmp;
-
-		dd = JDD.Constant(1);
-		n = expr.getNumOperands();
-		for (i = 0; i < n; i++) {
-			try {
-				tmp = translateExpression(expr.getOperand(i));
-				dd = JDD.And(dd, tmp);
-			}
-			catch (PrismException e) {
-				JDD.Deref(dd);
-				throw e;
-			}
+		// Translate operands
+		tmp1 = translateExpression(expr.getOperand1());
+		try {
+			tmp2 = translateExpression(expr.getOperand2());
+		}
+		catch (PrismException e) {
+			JDD.Deref(tmp1);
+			throw e;
 		}
 		
-		return dd;
-	}
-	
-	// translate a 'not'
-	
-	private JDDNode translateExpressionNot(ExpressionNot expr) throws PrismException
-	{
-		JDDNode dd;
+		// Apply operation
+		switch (op) {
+		case ExpressionBinaryOp.IMPLIES: dd = JDD.Or(JDD.Not(tmp1), tmp2); break;
+		case ExpressionBinaryOp.OR: dd = JDD.Or(tmp1, tmp2); break;
+		case ExpressionBinaryOp.AND: dd = JDD.And(tmp1, tmp2); break;
+		case ExpressionBinaryOp.PLUS: dd = JDD.Apply(JDD.PLUS, tmp1, tmp2); break;
+		case ExpressionBinaryOp.MINUS: dd = JDD.Apply(JDD.MINUS, tmp1, tmp2); break;
+		case ExpressionBinaryOp.TIMES: dd = JDD.Apply(JDD.TIMES, tmp1, tmp2); break;
+		case ExpressionBinaryOp.DIVIDE: dd = JDD.Apply(JDD.DIVIDE, tmp1, tmp2); break;
+		default: throw new PrismException("Unknown binary operator");
+		}
 
-		dd = translateExpression(expr.getOperand());
-		dd = JDD.Not(dd);
-		
 		return dd;
 	}
 	
-	// translate a relational operator
+	// Translate a relational operator (=, !=, >, >=, < <=)
 	
-	private JDDNode translateExpressionRelOp(ExpressionRelOp expr) throws PrismException
+	private JDDNode translateExpressionRelOp(int op, Expression expr1, Expression expr2) throws PrismException
 	{
 		JDDNode dd, tmp1, tmp2;
 		String s;
@@ -249,12 +186,12 @@ public class Expression2MTBDD
 		// check for some easy (and common) special cases before resorting to the general case
 		
 		// var relop int
-		if (expr.getOperand1() instanceof ExpressionVar && expr.getOperand2().isConstant() && expr.getOperand2().getType()==Expression.INT) {
+		if (expr1 instanceof ExpressionVar && expr2.isConstant() && expr2.getType()==Expression.INT) {
 			ExpressionVar e1;
 			Expression e2;
 			int i, j, l, h, v;
-			e1 = (ExpressionVar)expr.getOperand1();
-			e2 = expr.getOperand2();
+			e1 = (ExpressionVar)expr1;
+			e2 = expr2;
 			// get var's index
 			s = e1.getName();
 			v = varList.getIndex(s);
@@ -266,39 +203,38 @@ public class Expression2MTBDD
 			h = varList.getHigh(v);
 			// create dd
 			dd = JDD.Constant(0);
-			s = expr.getRelOp();
 			i = e2.evaluateInt(constantValues, null);
-			if (s.equals("=")) {
+			switch (op) {
+			case ExpressionBinaryOp.EQ:
 				if (i>=l && i <= h) dd = JDD.SetVectorElement(dd, varDDVars[v], i-l, 1);
-			}
-			else if (s.equals("!=")) {
+				break;
+			case ExpressionBinaryOp.NE:
 				if (i>=l && i <= h) dd = JDD.SetVectorElement(dd, varDDVars[v], i-l, 1);
 				dd = JDD.Not(dd);
-			}
-			else if (s.equals(">")) {
+				break;
+			case ExpressionBinaryOp.GT:
 				for (j = i+1; j <= h; j++) dd = JDD.SetVectorElement(dd, varDDVars[v], j-l, 1);
-			}
-			else if (s.equals(">=")) {
+				break;
+			case ExpressionBinaryOp.GE:
 				for (j = i; j <= h; j++) dd = JDD.SetVectorElement(dd, varDDVars[v], j-l, 1);
-			}
-			else if (s.equals("<")) {
+				break;
+			case ExpressionBinaryOp.LT:
 				for (j = i-1; j >= l; j--) dd = JDD.SetVectorElement(dd, varDDVars[v], j-l, 1);
-			}
-			else if (s.equals("<=")) {
+				break;
+			case ExpressionBinaryOp.LE:
 				for (j = i; j >= l; j--) dd = JDD.SetVectorElement(dd, varDDVars[v], j-l, 1);
-			}
-			else {
-				throw new PrismException("Unknown relational operator \"" + s + "\"");
+				break;
+			default: throw new PrismException("Unknown relational operator");
 			}
 			return dd;
 		}
 		// int relop var
-		else if (expr.getOperand1().isConstant() && expr.getOperand1().getType()==Expression.INT && expr.getOperand2() instanceof ExpressionVar) {
+		else if (expr1.isConstant() && expr1.getType()==Expression.INT && expr2 instanceof ExpressionVar) {
 			Expression e1;
 			ExpressionVar e2;
 			int i, j, l, h, v;
-			e1 = expr.getOperand1();
-			e2 = (ExpressionVar)expr.getOperand2();
+			e1 = expr1;
+			e2 = (ExpressionVar)expr2;
 			// get var's index
 			s = e2.getName();
 			v = varList.getIndex(s);
@@ -310,226 +246,82 @@ public class Expression2MTBDD
 			h = varList.getHigh(v);
 			// create dd
 			dd = JDD.Constant(0);
-			s = expr.getRelOp();
 			i = e1.evaluateInt(constantValues, null);
-			if (s.equals("=")) {
+			switch (op) {
+			case ExpressionBinaryOp.EQ:
 				if (i>=l && i <= h) dd = JDD.SetVectorElement(dd, varDDVars[v], i-l, 1);
-			}
-			else if (s.equals("!=")) {
+				break;
+			case ExpressionBinaryOp.NE:
 				if (i>=l && i <= h) dd = JDD.SetVectorElement(dd, varDDVars[v], i-l, 1);
 				dd = JDD.Not(dd);
-			}
-			else if (s.equals(">")) {
+				break;
+			case ExpressionBinaryOp.GT:
 				for (j = i-1; j >= l; j--) dd = JDD.SetVectorElement(dd, varDDVars[v], j-l, 1);
-			}
-			else if (s.equals(">=")) {
+				break;
+			case ExpressionBinaryOp.GE:
 				for (j = i; j >= l; j--) dd = JDD.SetVectorElement(dd, varDDVars[v], j-l, 1);
-			}
-			else if (s.equals("<")) {
+				break;
+			case ExpressionBinaryOp.LT:
 				for (j = i+1; j <= h; j++) dd = JDD.SetVectorElement(dd, varDDVars[v], j-l, 1);
-			}
-			else if (s.equals("<=")) {
+				break;
+			case ExpressionBinaryOp.LE:
 				for (j = i; j <= h; j++) dd = JDD.SetVectorElement(dd, varDDVars[v], j-l, 1);
-			}
-			else {
-				throw new PrismException("Unknown relational operator \"" + s + "\"");
+				break;
+			default: throw new PrismException("Unknown relational operator");
 			}
 			return dd;
 		}
 
 		// general case
-		tmp1 = translateExpression(expr.getOperand1());
-		tmp2 = translateExpression(expr.getOperand2());
-		s = expr.getRelOp();
-		if (s.equals("=")) {
-			// nb: this case actual redundant because comes under ExpressionRange
+		tmp1 = translateExpression(expr1);
+		tmp2 = translateExpression(expr2);
+		switch (op) {
+		case ExpressionBinaryOp.EQ:
 			dd = JDD.Apply(JDD.EQUALS, tmp1, tmp2);
-		}
-		else if (s.equals("!=")) {
-			// nb: this case actual redundant because comes under ExpressionRange
+			break;
+		case ExpressionBinaryOp.NE:
 			dd = JDD.Apply(JDD.NOTEQUALS, tmp1, tmp2);
-		}
-		else if (s.equals(">")) {
+			break;
+		case ExpressionBinaryOp.GT:
 			dd = JDD.Apply(JDD.GREATERTHAN, tmp1, tmp2);
-		}
-		else if (s.equals(">=")) {
+			break;
+		case ExpressionBinaryOp.GE:
 			dd = JDD.Apply(JDD.GREATERTHANEQUALS, tmp1, tmp2);
-		}
-		else if (s.equals("<")) {
+			break;
+		case ExpressionBinaryOp.LT:
 			dd = JDD.Apply(JDD.LESSTHAN, tmp1, tmp2);
-		}
-		else if (s.equals("<=")) {
+			break;
+		case ExpressionBinaryOp.LE:
 			dd = JDD.Apply(JDD.LESSTHANEQUALS, tmp1, tmp2);
-		}
-		else {
-			throw new PrismException("Unknown relational operator \"" + s + "\"");
+			break;
+		default: throw new PrismException("Unknown relational operator");
 		}
 		
 		return dd;
 	}
 	
-	// translate a 'range'
+	// Translate a unary operator
 	
-	private JDDNode translateExpressionRange(ExpressionRange expr) throws PrismException
+	private JDDNode translateExpressionUnaryOp(ExpressionUnaryOp expr) throws PrismException
 	{
-		int i, n;
-		JDDNode dd, tmp, tmp1, tmp2;
-		String s;
-
-		// check for an easy (and common) special case before resorting to the general case
+		JDDNode dd, tmp;
+		int op = expr.getOperator();
 		
- 		// operand = var and everything else constant integers
-		if (expr.getOperand() instanceof ExpressionVar && expr.rangeIsConstant() && expr.rangeIsAllInts()) {
-			ExpressionVar e1;
-			int j, v, l, h, l2, h2;
-			e1 = (ExpressionVar)expr.getOperand();
-			// get var's index
-			s = e1.getName();
-			v = varList.getIndex(s);
-			if (v == -1) {
-				throw new PrismException("Unknown variable \"" + s + "\"");
-			}
-			// get some info on the variable
-			l = varList.getLow(v);
-			h = varList.getHigh(v);
-			// create dd
-			dd = JDD.Constant(0);
-			n = expr.getNumRangeOperands();
-			for (i = 0; i < n; i++) {
-				l2 = expr.getRangeOperandLow(i).evaluateInt(constantValues, null);
-				if (l2 < l) l2 = l;
-				h2 = expr.getRangeOperandHigh(i).evaluateInt(constantValues, null);
-				if (h2 > h) h2 = l;
-				for (j = l2; j <= h2; j++) {
-					dd = JDD.SetVectorElement(dd, varDDVars[v], j-l, 1);
-				}
-			}
-			if (expr.getRelOp().equals("!=")) {
-				dd = JDD.Not(dd);
-			}
-
-			return dd;
-		}
-		
-		// general case
+		// Translate operand
 		tmp = translateExpression(expr.getOperand());
-		dd = JDD.Constant(0);
-		n = expr.getNumRangeOperands();
-		for (i = 0; i < n; i++) {
-			if (expr.getRangeOperandSize(i) == 1) {
-				tmp1 = translateExpression(expr.getRangeOperandLow(i));
-				JDD.Ref(tmp);
-				tmp1 = JDD.Apply(JDD.EQUALS, tmp, tmp1);
-				dd = JDD.Or(dd, tmp1);
-			}
-			else {
-				tmp1 = translateExpression(expr.getRangeOperandLow(i));
-				JDD.Ref(tmp);
-				tmp1 = JDD.Apply(JDD.GREATERTHANEQUALS, tmp, tmp1);
-				tmp2 = translateExpression(expr.getRangeOperandHigh(i));
-				JDD.Ref(tmp);
-				tmp2 = JDD.Apply(JDD.LESSTHANEQUALS, tmp, tmp2);
-				tmp1 = JDD.And(tmp1, tmp2);
-				dd = JDD.Or(dd, tmp1);
-			}
-		}
-		JDD.Deref(tmp);
-		if (expr.getRelOp().equals("!=")) {
-			dd = JDD.Not(dd);
-		}
 		
+		// Apply operation
+		switch (op) {
+		case ExpressionUnaryOp.NOT: dd = JDD.Not(tmp); break;
+		case ExpressionUnaryOp.MINUS: dd = JDD.Apply(JDD.MINUS, JDD.Constant(0), tmp); break;
+		case ExpressionUnaryOp.PARENTH: dd = tmp; break;
+		default: throw new PrismException("Unknown unary operator");
+		}
+
 		return dd;
 	}
 	
-	// translate a 'plus'
-	
-	private JDDNode translateExpressionPlus(ExpressionPlus expr) throws PrismException
-	{
-		JDDNode dd, tmp1, tmp2;
-
-		tmp1 = translateExpression(expr.getOperand1());
-		try {
-			tmp2 = translateExpression(expr.getOperand2());
-			dd = JDD.Apply(JDD.PLUS, tmp1, tmp2);
-		}
-		catch (PrismException e) {
-			JDD.Deref(tmp1);
-			throw e;
-		}
-		
-		return dd;
-	}
-	
-	// translate a 'minus'
-	
-	private JDDNode translateExpressionMinus(ExpressionMinus expr) throws PrismException
-	{
-		JDDNode dd, tmp1, tmp2;
-
-		tmp1 = translateExpression(expr.getOperand1());
-		try {
-			tmp2 = translateExpression(expr.getOperand2());
-			dd = JDD.Apply(JDD.MINUS, tmp1, tmp2);
-		}
-		catch (PrismException e) {
-			JDD.Deref(tmp1);
-			throw e;
-		}
-		
-		return dd;
-	}
-	
-	// translate a 'times'
-	
-	private JDDNode translateExpressionTimes(ExpressionTimes expr) throws PrismException
-	{
-		JDDNode dd, tmp1, tmp2;
-
-		tmp1 = translateExpression(expr.getOperand1());
-		try {
-			tmp2 = translateExpression(expr.getOperand2());
-			dd = JDD.Apply(JDD.TIMES, tmp1, tmp2);
-		}
-		catch (PrismException e) {
-			JDD.Deref(tmp1);
-			throw e;
-		}
-		
-		return dd;
-	}
-	
-	// translate a 'divide'
-	
-	private JDDNode translateExpressionDivide(ExpressionDivide expr) throws PrismException
-	{
-		JDDNode dd, tmp1, tmp2;
-
-		tmp1 = translateExpression(expr.getOperand1());
-		try {
-			tmp2 = translateExpression(expr.getOperand2());
-			dd = JDD.Apply(JDD.DIVIDE, tmp1, tmp2);
-		}
-		catch (PrismException e) {
-			JDD.Deref(tmp1);
-			throw e;
-		}
-		
-		return dd;
-	}
-
-	// translate a 'unary minus'
-	
-	private JDDNode translateExpressionUnaryMinus(ExpressionUnaryMinus expr) throws PrismException
-	{
-		JDDNode dd;
-		
-		dd = translateExpression(expr.getOperand());
-		dd = JDD.Apply(JDD.MINUS, JDD.Constant(0), dd);
-		
-		return dd;
-	}
-
-	// translate a 'function'
+	// Translate a 'function'
 	
 	private JDDNode translateExpressionFunc(ExpressionFunc expr) throws PrismException
 	{
@@ -640,7 +432,36 @@ public class Expression2MTBDD
 		return dd;
 	}
 
-	// translate a 'var'
+	// Translate a literal
+	
+	private JDDNode translateExpressionLiteral(ExpressionLiteral expr) throws PrismException
+	{
+		switch (expr.getType()) {
+			case Expression.BOOLEAN: return JDD.Constant(expr.evaluateBoolean(null, null) ? 1.0 : 0.0);
+			case Expression.INT: return JDD.Constant(expr.evaluateInt(null, null));
+			case Expression.DOUBLE: return JDD.Constant(expr.evaluateDouble(null, null));
+			default: throw new PrismException("Unknown literal type");
+		}
+	}
+	
+	// Translate a constant
+	
+	private JDDNode translateExpressionConstant(ExpressionConstant expr) throws PrismException
+	{
+		int i;
+		Object o;
+		
+		i = constantValues.getIndexOf(expr.getName());
+		if (i == -1) throw new PrismException("Couldn't evaluate constant \"" + expr.getName() + "\"");
+		switch (constantValues.getType(i)) {
+			case Expression.INT: return JDD.Constant(constantValues.getIntValue(i));
+			case Expression.DOUBLE: return JDD.Constant(constantValues.getDoubleValue(i));
+			case Expression.BOOLEAN: return JDD.Constant(constantValues.getBooleanValue(i) ? 1.0 : 0.0);
+			default: throw new PrismException("Unknown type for constant \"" + expr.getName() + "\"");
+		}
+	}
+	
+	// Translate a variable reference
 	
 	private JDDNode translateExpressionVar(ExpressionVar expr) throws PrismException
 	{
@@ -664,38 +485,6 @@ public class Expression2MTBDD
 		}
 				
 		return dd;
-	}
-	
-	// translate a 'constant' expression
-	
-	private JDDNode translateExpressionConstant(ExpressionConstant expr) throws PrismException
-	{
-		int i;
-		Object o;
-		
-		i = constantValues.getIndexOf(expr.getName());
-		if (i == -1) throw new PrismException("Couldn't evaluate constant \"" + expr.getName() + "\"");
-		switch (constantValues.getType(i)) {
-			case Expression.INT: return JDD.Constant(constantValues.getIntValue(i));
-			case Expression.DOUBLE: return JDD.Constant(constantValues.getDoubleValue(i));
-			case Expression.BOOLEAN: return JDD.Constant(constantValues.getBooleanValue(i) ? 1 : 0);
-		}
-		
-		throw new PrismException("Unknown type for \"" + expr.getName() + "\"");
-	}
-	
-	// translate an 'int'
-	
-	private JDDNode translateExpressionInt(ExpressionInt expr) throws PrismException
-	{
-		return JDD.Constant(expr.getValue());
-	}
-	
-	// translate a 'double'
-	
-	private JDDNode translateExpressionDouble(ExpressionDouble expr) throws PrismException
-	{
-		return JDD.Constant(expr.getValue());
 	}
 }
 

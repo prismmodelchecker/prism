@@ -28,9 +28,11 @@
 package simulator;
 
 import java.util.*;
-import java.lang.*;
 import java.io.*;
+
 import parser.*;
+import parser.ast.*;
+import parser.visitor.ASTTraverse;
 import prism.*;
 
 /**
@@ -587,7 +589,9 @@ public class SimulatorEngine
 					for(int k = 0; k < numUpdates; k++)
 					{
 						//Create probability expression for this update
-						long probPointer = ups.getProbability(k).toSimulator(this);
+						Expression p = ups.getProbability(k);
+						if (p == null) p = Expression.Double(1.0);
+						long probPointer = p.toSimulator(this);
 						if(probPointer == NULL)
 						{
 							throw new SimulatorException("Problem with loading model into simulator: null probPointer in "+m.getName());
@@ -657,6 +661,11 @@ public class SimulatorEngine
 		{
 			deallocateEngine();
 			throw e;
+		}
+		catch(PrismLangException e)
+		{
+			deallocateEngine();
+			throw new SimulatorException(e.getMessage());
 		}
 	}
 	
@@ -1518,7 +1527,7 @@ public class SimulatorEngine
 	/**
 	 * Gets (double) result from simulator for a given property/index and process result
 	  */
-	private Object processSamplingResult(PCTLFormula pctl, int index)
+	private Object processSamplingResult(Expression expr, int index)
 	{
 		if(index == -1)
 		{
@@ -1529,14 +1538,14 @@ public class SimulatorEngine
 			double result = getSamplingResult(index);
 			if(result == UNDEFINED_DOUBLE) result = Double.POSITIVE_INFINITY;
 			// only handle P=?/R=? properties (we could check against the bounds in P>p etc. but results would be a bit dubious)
-			if (pctl instanceof PCTLProb) {
-				if (((PCTLProb)pctl).getProb() == null) {
+			if (expr instanceof ExpressionProb) {
+				if (((ExpressionProb)expr).getProb() == null) {
 					return new Double(result);
 				} else {
 					return new SimulatorException("Property cannot be handled by the PRISM simulator");
 				}
-			} else if (pctl instanceof PCTLReward) {
-				if (((PCTLReward)pctl).getReward() == null) {
+			} else if (expr instanceof ExpressionReward) {
+				if (((ExpressionReward)expr).getReward() == null) {
 					return new Double(result);
 				} else {
 					return new SimulatorException("Property cannot be handled by the PRISM simulator");
@@ -1555,14 +1564,14 @@ public class SimulatorEngine
 	public void exportBinaryForSingleProperty(
 	ModulesFile modulesFile,
 	PropertiesFile propertiesFile,
-	PCTLFormula pctl,
+	Expression expr,
 	Values initialState,
 	String filename
 	) throws SimulatorException
 	{
 		setupForSampling(modulesFile, propertiesFile);
 		
-		int index = addPCTLProperty(pctl);
+		int index = addProperty(expr);
 		
 		if(index == -1)
 			throw new SimulatorException("Property cannot be handled by the PRISM simulator");
@@ -1582,14 +1591,14 @@ public class SimulatorEngine
 	public void exportBinaryForMultipleProperties(
 	ModulesFile modulesFile,
 	PropertiesFile propertiesFile,
-	ArrayList pctls,
+	ArrayList exprs,
 	Values initialState,
 	String filename
 	) throws SimulatorException
 	{
 		setupForSampling(modulesFile, propertiesFile);
 		
-		int[] indices = addPCTLProperties(pctls);
+		int[] indices = addProperties(exprs);
 		
 		boolean existsOne = false;
 		for(int i = 0; i < indices.length; i++)
@@ -1625,7 +1634,7 @@ public class SimulatorEngine
 	ModulesFile modulesFile,
 	PropertiesFile propertiesFile,
 	UndefinedConstants undefinedConstants,
-	PCTLFormula propertyToCheck,
+	Expression propertyToCheck,
 	Values initialState,
 	String filename
 	) throws PrismException, InterruptedException, SimulatorException
@@ -1648,7 +1657,7 @@ public class SimulatorEngine
 				
 				propertyConstants = propertiesFile.getConstantValues();
 			}
-			indices[i] = addPCTLProperty(propertyToCheck);
+			indices[i] = addProperty(propertyToCheck);
 			types[i] = propertyToCheck.getType();
 			
 			undefinedConstants.iterateProperty();
@@ -1669,8 +1678,8 @@ public class SimulatorEngine
 	}
 	
 	/**
-	 * This method completely encapsulates the model checking of a
-	 * pctl formula so long as:
+	 * This method completely encapsulates the model checking of a property
+	 * so long as:
 	 * prerequisites	modulesFile constants should all be defined
 	 * propertiesFile constants should all be defined
 	 *
@@ -1680,7 +1689,7 @@ public class SimulatorEngine
 	 * </UL>
 	 * @param modulesFile The ModulesFile, constants already defined.
 	 * @param propertiesFile The PropertiesFile containing the property of interest, constants defined.
-	 * @param pctl The PCTLFormula of interest
+	 * @param expr The property of interest
 	 * @param initialState The initial state for the sampling.
 	 * @param noIterations The number of iterations for the sampling algorithm
 	 * @param maxPathLength the maximum path length for the sampling algorithm.
@@ -1690,25 +1699,24 @@ public class SimulatorEngine
 	public Object modelCheckSingleProperty(
 	ModulesFile modulesFile,
 	PropertiesFile propertiesFile,
-	PCTLFormula pctl,
+	Expression expr,
 	Values initialState,
 	int noIterations,
 	int maxPathLength
 	) throws SimulatorException
 	{
-		ArrayList pctls;
+		ArrayList exprs;
 		Object res[];
 		
-		pctls = new ArrayList();
-		pctls.add(pctl);
-		res = modelCheckMultipleProperties(modulesFile, propertiesFile, pctls, initialState, noIterations, maxPathLength);
+		exprs = new ArrayList();
+		exprs.add(expr);
+		res = modelCheckMultipleProperties(modulesFile, propertiesFile, exprs, initialState, noIterations, maxPathLength);
 		
 		if (res[0] instanceof SimulatorException) throw (SimulatorException)res[0]; else return res[0];
 	}
 	
 	/**
-	 * This method completely encapsulates the model checking of multiple
-	 * pctl formulae so long as:
+	 * This method completely encapsulates the model checking of multiple properties
 	 * prerequisites	modulesFile constants should all be defined
 	 * propertiesFile constants should all be defined
 	 *
@@ -1719,7 +1727,7 @@ public class SimulatorEngine
 	 * </UL>
 	 * @param modulesFile The ModulesFile, constants already defined.
 	 * @param propertiesFile The PropertiesFile containing the property of interest, constants defined.
-	 * @param pctls The PCTLFormula objects of interest
+	 * @param exprs The properties of interest
 	 * @param initialState The initial state for the sampling.
 	 * @param noIterations The number of iterations for the sampling algorithm
 	 * @param maxPathLength the maximum path length for the sampling algorithm.
@@ -1729,7 +1737,7 @@ public class SimulatorEngine
 	public Object[] modelCheckMultipleProperties(
 	ModulesFile modulesFile,
 	PropertiesFile propertiesFile,
-	ArrayList pctls,
+	ArrayList exprs,
 	Values initialState,
 	int noIterations,
 	int maxPathLength
@@ -1737,17 +1745,15 @@ public class SimulatorEngine
 	{
 		setupForSampling(modulesFile, propertiesFile);
 		
-		Object[] results = new Object[pctls.size()];
-		int[] indices = new int[pctls.size()];
+		Object[] results = new Object[exprs.size()];
+		int[] indices = new int[exprs.size()];
 		
-		// check the properties are ok and, if so, add them to the simulator
+		// Add the properties to the simulator (after a check that they are valid)
 		int validPropsCount = 0;
-		for(int i = 0; i < pctls.size(); i++) {
+		for(int i = 0; i < exprs.size(); i++) {
 			try {
-				// check property is of the correct form
-				checkPropertyForSimulation(modulesFile, propertiesFile, (PCTLFormula)pctls.get(i));
-				// further checks but no error messages returned
-				indices[i] = addPCTLProperty((PCTLFormula)pctls.get(i));
+				checkPropertyForSimulation((Expression)exprs.get(i), modulesFile.getType());
+				indices[i] = addProperty((Expression)exprs.get(i));
 				if (indices[i] >= 0) validPropsCount++;
 			}
 			catch (SimulatorException e) {
@@ -1771,7 +1777,7 @@ public class SimulatorEngine
 		{
 			// if we have already stored an error for this property, keep it as the result
 			if (!(results[i] instanceof SimulatorException))
-				results[i] = processSamplingResult((PCTLFormula)pctls.get(i), indices[i]);
+				results[i] = processSamplingResult((Expression)exprs.get(i), indices[i]);
 		}
 		
 		deallocateEngine();
@@ -1782,7 +1788,7 @@ public class SimulatorEngine
 		}
 		else {
 			mainLog.println("\nResults:");
-			for(int i = 0; i < results.length; i++) mainLog.println(pctls.get(i) + " : " + results[i]);
+			for(int i = 0; i < results.length; i++) mainLog.println(exprs.get(i) + " : " + results[i]);
 		}
 		
 		return results;
@@ -1810,7 +1816,7 @@ public class SimulatorEngine
 	PropertiesFile propertiesFile,
 	UndefinedConstants undefinedConstants,
 	ResultsCollection resultsCollection,
-	PCTLFormula propertyToCheck,
+	Expression propertyToCheck,
 	Values initialState,
 	int maxPathLength,
 	int noIterations
@@ -1826,7 +1832,7 @@ public class SimulatorEngine
 		Values[] pfcs = new Values[n];
 		int[] indices = new int[n];
 		
-		// check the properties are ok and, if so, add them to the simulator
+		// Add the properties to the simulator (after a check that they are valid)
 		int validPropsCount = 0;
 		for(int i = 0; i < n; i++) {
 			definedPFConstants = undefinedConstants.getPFConstantValues();
@@ -1834,10 +1840,8 @@ public class SimulatorEngine
 			propertiesFile.setUndefinedConstants(definedPFConstants);
 			propertyConstants = propertiesFile.getConstantValues();
 			try {
-				// check property is of the correct form
-				checkPropertyForSimulation(modulesFile, propertiesFile, propertyToCheck);
-				// further checks but no error messages returned
-				indices[i] = addPCTLProperty(propertyToCheck);
+				checkPropertyForSimulation(propertyToCheck, modulesFile.getType());
+				indices[i] = addProperty(propertyToCheck);
 				if (indices[i] >= 0) validPropsCount++;
 			}
 			catch (SimulatorException e) {
@@ -2043,21 +2047,27 @@ public class SimulatorEngine
 
 	/**
 	 * Returns a pointer to the built reward formula
-	 * @param operand the PCTLFormula to be built into the engine.
+	 * @param expr the ExpressionReward to be built into the engine.
 	 * @return a pointer to the built reward formula
 	 */
-	public long addPCTLRewardFormula(PCTLReward pctl)
+	public long addExpressionReward(ExpressionReward expr)
 	{
 		Values allConstants = new Values();
-		PCTLFormula operand = pctl.getOperand();
+		PathExpressionTemporal pe;
+		Expression expr2;
+		long exprPtr2;
+		double time;
 		Object rs = null;
 		int rsi = -1;
 		
+		if (!(expr.getPathExpression() instanceof PathExpressionTemporal)) return -1;
+		pe = (PathExpressionTemporal)expr.getPathExpression();
+		 
 		allConstants.addValues(getConstants());
 		allConstants.addValues(getPropertyConstants());
 		
 		// process reward struct index
-		rs = pctl.getRewardStructIndex();
+		rs = expr.getRewardStructIndex();
 		if (rs == null) {
 			rsi = 0;
 		}
@@ -2065,7 +2075,7 @@ public class SimulatorEngine
 			try {
 				rsi = ((Expression)rs).evaluateInt(allConstants, null) - 1;
 			} catch(PrismException e) {
-				System.err.println("Property: "+operand.toString()+" could not be used in the simulator because: \n"+ e.toString());
+				System.err.println("Property: "+pe.toString()+" could not be used in the simulator because: \n"+ e.toString());
 				return -1;
 			}
 		}
@@ -2073,211 +2083,137 @@ public class SimulatorEngine
 			rsi = modulesFile.getRewardStructIndex((String)rs);
 		}
 		
-		if(operand instanceof PCTLRewardCumul)
-		{
-			try
-			{
-				//System.out.println("Attempting to load Cumulatative formula");
-				double time;
-				
-				if(((PCTLRewardCumul)operand).getBound() != null)
-					time = ((PCTLRewardCumul)operand).getBound().evaluateDouble(allConstants, null);
-				else
-					return -1;
-				
-				
+		try {
+			switch (pe.getOperator()) {
+			
+			case PathExpressionTemporal.R_C:
+				time = pe.getUpperBound().evaluateDouble(allConstants, null);
 				return loadPctlCumulative(rsi, time);
 				
-			}
-			
-			catch(PrismException e)
-			{
-				System.err.println("Property: "+operand.toString()+" could not be used in the simulator because: \n"+ e.toString());
-				return -1;
-			}
-		}
-		else if(operand instanceof PCTLRewardInst)
-		{
-			try
-			{
-				//System.out.println("Attempting to load Instantaneous formula");
-				double time;
+			case PathExpressionTemporal.R_I:
+				time = pe.getUpperBound().evaluateDouble(allConstants, null);
+				return loadPctlInstantanious(rsi, time);
 				
-				if(((PCTLRewardInst)operand).getTime() != null)
-					time = ((PCTLRewardInst)operand).getTime().evaluateDouble(allConstants, null);
-				else
-					return -1;
+			case PathExpressionTemporal.R_F:
+				if (!(pe.getOperand2() instanceof PathExpressionExpr)) return -1;
+				expr2 = ((PathExpressionExpr) pe.getOperand2()).getExpression();
+				exprPtr2 = expr2.toSimulator(this);
+				return loadPctlReachability(rsi, exprPtr2);
 				
-				
-				return  loadPctlInstantanious(rsi, time);
-				
-			}
-			catch(PrismException e)
-			{
-				System.err.println("Property: "+operand.toString()+" could not be used in the simulator because: \n"+ e.toString());
-				return -1;
+			default: return -1;
 			}
 		}
-		else if(operand instanceof PCTLRewardReach)
-		{
-			try
-			{
-				//System.out.println("Attempting to load Reachability formula");
-				
-				long expression = ((PCTLRewardReach)operand).getOperand().toSimulator(this);
-				
-				return loadPctlReachability(rsi, expression);
-				
-			}
-			catch(SimulatorException e)
-			{
-				System.err.println("Property: "+operand.toString()+" could not be used in the simulator because: \n"+ e.toString());
-				return -1;
-			}
+		catch(PrismException e) {
+			System.err.println("Property: "+pe.toString()+" could not be used in the simulator because: \n"+ e.toString());
+			return -1;
 		}
-		else return -1;
 	}
 	
 	/**
 	 * Returns a pointer to the built prob formula
-	 * @param operand the PCTLFormula to be built into the engine.
-	 * @return a pointer to the built reward formula
+	 * @param expr the ExpressionProb to be built into the engine.
+	 * @return a pointer to the built prob formula
 	 */
-	/**
-	 * Returns a pointer to the built prob formula
-	 * @param operand the PCTLFormula to be built into the engine.
-	 * @return a pointer to the built reward formula
-	 */
-	public long addPCTLProbFormula(PCTLProb pctl)
+	public long addExpressionProb(ExpressionProb expr)
 	{
 		Values allConstants = new Values();
-		PCTLFormula operand = pctl.getOperand();
+		PathExpressionTemporal pe;
+		Expression expr1, expr2;
+		long exprPtr1, exprPtr2;
+		double time1, time2;
 		
+		if (!(expr.getPathExpression() instanceof PathExpressionTemporal)) return -1;
+		pe = (PathExpressionTemporal)expr.getPathExpression();
+		 
 		allConstants.addValues(getConstants());
 		allConstants.addValues(getPropertyConstants());
 		
 		try {
+			switch (pe.getOperator()) {
 			
-			if (operand instanceof PCTLProbNext)
-			{
-				long expressionPointer = ((PCTLProbNext)operand).getOperand().toSimulator(this);
-				return loadPctlNext(expressionPointer);
-			}
-			else if (operand instanceof PCTLProbBoundedUntil)
-			{
-				long leftExpressionPointer = ((PCTLProbBoundedUntil)operand).getOperand1().toSimulator(this);
-				long rightExpressionPointer = ((PCTLProbBoundedUntil)operand).getOperand2().toSimulator(this);
-				double lowerBound;
-				if (((PCTLProbBoundedUntil)operand).getLowerBound() != null)
-					lowerBound = ((PCTLProbBoundedUntil)operand).getLowerBound().evaluateDouble(allConstants, null);
-				else
-					lowerBound = 0.0;
-				double upperBound;
-				if (((PCTLProbBoundedUntil)operand).getUpperBound() != null)
-					upperBound = ((PCTLProbBoundedUntil)operand).getUpperBound().evaluateDouble(allConstants, null);
-				else
-					upperBound = Integer.MAX_VALUE;
-				return loadPctlBoundedUntil(leftExpressionPointer, rightExpressionPointer, lowerBound, upperBound);
-			}
-			else if (operand instanceof PCTLProbUntil)
-			{
-				long leftExpressionPointer = ((PCTLProbUntil)operand).getOperand1().toSimulator(this);
-				long rightExpressionPointer = ((PCTLProbUntil)operand).getOperand2().toSimulator(this);
-				return loadPctlUntil(leftExpressionPointer, rightExpressionPointer);
-			}
-			else if (operand instanceof PCTLProbBoundedFuture)
-			{
-				long leftExpressionPointer = (new PCTLExpression(new ExpressionTrue())).toSimulator(this);
-				long rightExpressionPointer = ((PCTLProbBoundedFuture)operand).getOperand().toSimulator(this);
-				double lowerBound;
-				if (((PCTLProbBoundedFuture)operand).getLowerBound() != null)
-					lowerBound = ((PCTLProbBoundedFuture)operand).getLowerBound().evaluateDouble(allConstants, null);
-				else
-					lowerBound = 0.0;
-				double upperBound;
-				if (((PCTLProbBoundedFuture)operand).getUpperBound() != null)
-					upperBound = ((PCTLProbBoundedFuture)operand).getUpperBound().evaluateDouble(allConstants, null);
-				else
-					upperBound = Integer.MAX_VALUE;
-				return loadPctlBoundedUntil(leftExpressionPointer, rightExpressionPointer, lowerBound, upperBound);
-			}
-			else if (operand instanceof PCTLProbFuture)
-			{
-				long leftExpressionPointer = (new PCTLExpression(new ExpressionTrue())).toSimulator(this);
-				long rightExpressionPointer = ((PCTLProbFuture)operand).getOperand().toSimulator(this);
-				return loadPctlUntil(leftExpressionPointer, rightExpressionPointer);
-			}
-			else if (operand instanceof PCTLProbBoundedGlobal)
-			{
-				long leftExpressionPointer = (new PCTLExpression(new ExpressionTrue())).toSimulator(this);
-				long rightExpressionPointer = (new PCTLNot(((PCTLProbBoundedGlobal)operand).getOperand())).toSimulator(this);
-				double lowerBound;
-				if (((PCTLProbBoundedGlobal)operand).getLowerBound() != null)
-					lowerBound = ((PCTLProbBoundedGlobal)operand).getLowerBound().evaluateDouble(allConstants, null);
-				else
-					lowerBound = 0.0;
-				double upperBound;
-				if (((PCTLProbBoundedGlobal)operand).getUpperBound() != null)
-					upperBound = ((PCTLProbBoundedGlobal)operand).getUpperBound().evaluateDouble(allConstants, null);
-				else
-					upperBound = Integer.MAX_VALUE;
-				return loadPctlBoundedUntilNegated(leftExpressionPointer, rightExpressionPointer, lowerBound, upperBound);
-			}
-			else if (operand instanceof PCTLProbGlobal)
-			{
-				long leftExpressionPointer = (new PCTLExpression(new ExpressionTrue())).toSimulator(this);
-				long rightExpressionPointer = (new PCTLNot(((PCTLProbGlobal)operand).getOperand())).toSimulator(this);
-				return loadPctlUntilNegated(leftExpressionPointer, rightExpressionPointer);
-			}
-			else
-			{
-				return -1;
+			case PathExpressionTemporal.P_X:
+				if (!(pe.getOperand2() instanceof PathExpressionExpr)) return -1;
+				expr2 = ((PathExpressionExpr) pe.getOperand2()).getExpression();
+				exprPtr2 = expr2.toSimulator(this);
+				return loadPctlNext(exprPtr2);
+				
+			case PathExpressionTemporal.P_U:
+				if (!(pe.getOperand1() instanceof PathExpressionExpr)) return -1;
+				expr1 = ((PathExpressionExpr) pe.getOperand1()).getExpression();
+				exprPtr1 = expr1.toSimulator(this);
+				if (!(pe.getOperand2() instanceof PathExpressionExpr)) return -1;
+				expr2 = ((PathExpressionExpr) pe.getOperand2()).getExpression();
+				exprPtr2 = expr2.toSimulator(this);
+				if (pe.hasBounds()) {
+					time1 = (pe.getLowerBound() == null) ?0.0 : pe.getLowerBound().evaluateDouble(allConstants, null);
+					time2 = (pe.getUpperBound() == null) ?Integer.MAX_VALUE : pe.getUpperBound().evaluateDouble(allConstants, null);
+					return loadPctlBoundedUntil(exprPtr1, exprPtr2, time1, time2);
+				}else {
+					return loadPctlUntil(exprPtr1, exprPtr2);
+				}
+
+			case PathExpressionTemporal.P_F:
+				expr1 = Expression.True();
+				exprPtr1 = expr1.toSimulator(this);
+				if (!(pe.getOperand2() instanceof PathExpressionExpr)) return -1;
+				expr2 = ((PathExpressionExpr) pe.getOperand2()).getExpression();
+				exprPtr2 = expr2.toSimulator(this);
+				if (pe.hasBounds()) {
+					time1 = (pe.getLowerBound() == null) ?0.0 : pe.getLowerBound().evaluateDouble(allConstants, null);
+					time2 = (pe.getUpperBound() == null) ?Integer.MAX_VALUE : pe.getUpperBound().evaluateDouble(allConstants, null);
+					return loadPctlBoundedUntil(exprPtr1, exprPtr2, time1, time2);
+				}else {
+					return loadPctlUntil(exprPtr1, exprPtr2);
+				}
+				
+			case PathExpressionTemporal.P_G:
+				expr1 = Expression.True();
+				exprPtr1 = expr1.toSimulator(this);
+				if (!(pe.getOperand2() instanceof PathExpressionExpr)) return -1;
+				expr2 = Expression.Not(((PathExpressionExpr) pe.getOperand2()).getExpression());
+				exprPtr2 = expr2.toSimulator(this);
+				if (pe.hasBounds()) {
+					time1 = (pe.getLowerBound() == null) ?0.0 : pe.getLowerBound().evaluateDouble(allConstants, null);
+					time2 = (pe.getUpperBound() == null) ?Integer.MAX_VALUE : pe.getUpperBound().evaluateDouble(allConstants, null);
+					return loadPctlBoundedUntilNegated(exprPtr1, exprPtr2, time1, time2);
+				}else {
+					return loadPctlUntilNegated(exprPtr1, exprPtr2);
+				}
+				
+			default: return -1;
 			}
 		}
-		catch(SimulatorException e)
-		{
-			System.err.println("Property: "+operand.toString()+" could not be used in the simulator because: \n"+ e.toString());
-			return -1;
-		}
-		catch(PrismException e)
-		{
-			System.err.println("Property: "+operand.toString()+" could not be used in the simulator because: \n"+ e.toString());
+		catch(PrismException e) {
+			System.err.println("Property: "+pe.toString()+" could not be used in the simulator because: \n"+ e.toString());
 			return -1;
 		}
 	}
 	
-	/** Returns the index of the pctl property, if it can be added, -1 if nots
+	/** Returns the index of the property, if it can be added, -1 if nots
 	 */
-	private int addPCTLProperty(PCTLFormula pctl)
+	private int addProperty(Expression prop)
 	{
 		Values allConstants = new Values();
 		allConstants.addValues(getConstants());
 		allConstants.addValues(getPropertyConstants());
 		
 		long pathPointer;
-		if(pctl.computeMaxNested() != 1)
-		{
-			return -1;
-		}
-		
-		if(pctl instanceof PCTLProb)
-		{
-			pathPointer = addPCTLProbFormula((PCTLProb)pctl);
+		if(prop instanceof ExpressionProb) {
+			pathPointer = addExpressionProb((ExpressionProb)prop);
 			if(pathPointer == -1) return -1;
 			
-			if (((PCTLProb)pctl).getProb() == null) {
+			if (((ExpressionProb)prop).getProb() == null) {
 				return loadProbQuestion(pathPointer);
 			}
 			else {
 				return -1;
 			}
 		}
-		else if	(pctl instanceof PCTLReward)
-		{
-			pathPointer = addPCTLRewardFormula((PCTLReward)pctl);
+		else if	(prop instanceof ExpressionReward) {
+			pathPointer = addExpressionReward((ExpressionReward)prop);
 			if(pathPointer == -1) return -1;
 			
-			if (((PCTLReward)pctl).getReward() == null) {
+			if (((ExpressionReward)prop).getReward() == null) {
 				return loadRewardQuestion(pathPointer);
 			}
 			else {
@@ -2304,13 +2240,12 @@ public class SimulatorEngine
 	 *	the simulator... -1 means that the formula could not be
 	 *	loaded
 	 */
-	private int[] addPCTLProperties(ArrayList pctlProperties)
+	private int[] addProperties(ArrayList props)
 	{
-		int [] indices = new int[pctlProperties.size()];
-		for(int i = 0; i < pctlProperties.size(); i++)
+		int [] indices = new int[props.size()];
+		for(int i = 0; i < props.size(); i++)
 		{
-			PCTLFormula pctl = (PCTLFormula)pctlProperties.get(i);
-			indices[i] = addPCTLProperty(pctl);
+			indices[i] = addProperty((Expression)(props.get(i)));
 		}
 		return indices;
 	}
@@ -2345,28 +2280,39 @@ public class SimulatorEngine
 	// Method to check if a property is suitable for simulation
 	// If not, throws an exception with the reason
 	
-	public void checkPropertyForSimulation(ModulesFile modulesFile, PropertiesFile propertiesFile, PCTLFormula f) throws SimulatorException
+	public void checkPropertyForSimulation(Expression prop, int modelType) throws SimulatorException
 	{
-		// check general validity of property
+		// Check general validity of property
 		try {
-			if (modulesFile.getType() == ModulesFile.STOCHASTIC) {
-				f.checkValidCSL();
-			}
-			else {
-				f.checkValidPCTL();
-			}
-		} catch (PrismException e) {
+			prop.checkValid(modelType);
+		} catch (PrismLangException e) {
 			throw new SimulatorException(e.getMessage());
 		}
-		// check that property is correct type for PRISM simulator
+		
+		// Simulator can only be applied to P=? or R=? properties
 		boolean ok = true;
-		if (!(f instanceof PCTLProb || f instanceof PCTLReward)) ok = false;
-		else if (f instanceof PCTLProb) { if ((((PCTLProb)f).getProb() != null)) ok = false; }
-		else if (f instanceof PCTLReward) { if ((((PCTLReward)f).getReward() != null)) ok = false; }
-		if (!ok) throw new SimulatorException("Simulator techniques can only be applied to properties of the form \"P=? [ ... ]\" or \"R=? [ ... ]\"");
-		// check for nested properties
-		if(f.computeMaxNested() > 1) {
-			throw new SimulatorException("The PRISM simulator cannot handle nested P or R operators");
+		PathExpression pe = null;
+		if (!(prop instanceof ExpressionProb || prop instanceof ExpressionReward)) ok = false;
+		else if (prop instanceof ExpressionProb) {
+			if ((((ExpressionProb)prop).getProb() != null)) ok = false;
+			pe = ((ExpressionProb)prop).getPathExpression();
+		}
+		else if (prop instanceof ExpressionReward) {
+			if ((((ExpressionReward)prop).getReward() != null)) ok = false;
+			pe = ((ExpressionReward)prop).getPathExpression();
+		}
+		if (!ok) throw new SimulatorException("Simulator can only be applied to properties of the form \"P=? [ ... ]\" or \"R=? [ ... ]\"");
+		
+		// Check that there are no nested probabilistic operators
+		try {
+			pe.accept(new ASTTraverse() {
+				public void visitPre(ExpressionProb e) throws PrismLangException { throw new PrismLangException(""); }
+				public void visitPre(ExpressionReward e) throws PrismLangException { throw new PrismLangException(""); }
+				public void visitPre(ExpressionSS e) throws PrismLangException { throw new PrismLangException(""); }
+			});
+		}
+		catch (PrismLangException e) {
+			throw new SimulatorException("Simulator cannot handle nested P, R or S operators");
 		}
 	}
 

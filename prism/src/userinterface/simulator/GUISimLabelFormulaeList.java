@@ -27,14 +27,13 @@
 
 package userinterface.simulator;
 
+import java.awt.*;
 import javax.swing.*;
+
+import parser.ast.*;
+import prism.PrismLangException;
 import userinterface.properties.*;
 import simulator.*;
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.event.*;
-import parser.*;
-import prism.*;
 
 /**
  *
@@ -72,7 +71,7 @@ public class GUISimLabelFormulaeList extends JList
 			SimLabel sl = new SimLabel(name, index);
 			listModel.addElement(sl);
 		}
-		catch(SimulatorException e)
+		catch(PrismLangException e)
 		{
 			//System.out.println("exception "+e);
 			e.printStackTrace();

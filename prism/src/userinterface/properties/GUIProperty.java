@@ -29,11 +29,9 @@
 package userinterface.properties;
 import userinterface.GUIPrism;
 import parser.*;
+import parser.ast.*;
 import prism.*;
 import javax.swing.*;
-import java.lang.*;
-import java.net.*;
-import java.awt.datatransfer.*;
 
 /**
  *
@@ -84,7 +82,7 @@ public class GUIProperty
 	private boolean beingEdited;	// Is this property currently being edited?
 	
 	private String propString;		// String representing the property
-	private PCTLFormula pctl;		// The parsed property
+	private Expression expr;		// The parsed property
 	private String comment;			// The property's comment
 	
 	private Object result;			// Result of model checking etc. (if done, null if not)
@@ -108,7 +106,7 @@ public class GUIProperty
 		beingEdited = false;
 		
 		this.propString = propString;
-		pctl = null;
+		expr = null;
 		this.comment = comment;
 		
 		result = null;
@@ -156,9 +154,9 @@ public class GUIProperty
 		return propString;
 	}
 	
-	public PCTLFormula getPCTLProperty()
+	public Expression getProperty()
 	{
-		return pctl;
+		return expr;
 	}
 	
 	public String getComment()
@@ -168,26 +166,26 @@ public class GUIProperty
 	
 	public boolean isValid()
 	{
-		return pctl != null;
+		return expr != null;
 	}
 	
 	// just a basic check - see if it's a P=? or R=? property
 	
 	public boolean isValidForSimulation()
 	{
-		boolean b = isValid() && (pctl instanceof PCTLProb || pctl instanceof PCTLReward);
+		boolean b = isValid() && (expr instanceof ExpressionProb || expr instanceof ExpressionReward);
 		if(b)
 		{
-			if(pctl instanceof PCTLProb)
+			if(expr instanceof ExpressionProb)
 			{
-				if ((((PCTLProb)pctl).getProb() != null)) 
+				if ((((ExpressionProb)expr).getProb() != null)) 
 				{
 					return false;
 				}
 			}
-			else if(pctl instanceof PCTLReward)
+			else if(expr instanceof ExpressionReward)
 			{
-				if ((((PCTLReward)pctl).getReward() != null)) 
+				if ((((ExpressionReward)expr).getReward() != null)) 
 				{
 					return false;
 				}
@@ -320,12 +318,11 @@ public class GUIProperty
 	{
 		if(propString == null || constantsString == null || labelString == null)
 		{
-			pctl = null;
+			expr = null;
 			setStatus(STATUS_PARSE_ERROR);
 			parseError = "(Unexpected) Properties, constants or labels are null";
 			return;
 		}
-		boolean valid = false;
 		try
 		{
 			//Parse constants and labels
@@ -334,10 +331,6 @@ public class GUIProperty
 			try
 			{
 				fConLab = prism.parsePropertiesString(m, constantsString+"\n"+labelString);
-			}
-			catch(ParseException e)
-			{
-				couldBeNoConstantsOrLabels = true;
 			}
 			catch(PrismException e)
 			{
@@ -363,21 +356,15 @@ public class GUIProperty
 				if(ff.getLabelList().size() != 0) throw new PrismException("Contains labels");
 			}
 			//Now set the property
-			pctl = ff.getProperty(0);
+			expr = ff.getProperty(0);
 			parseError = "(Unexpected) no error!";
 			// if status was previously a parse error, reset status.
 			// otherwise, don't set status - reparse doesn't mean existing results should be lost
 			if (getStatus() == STATUS_PARSE_ERROR) setStatus(STATUS_NOT_DONE);
 		}
-		catch(ParseException ex)
-		{
-			pctl = null;
-			setStatus(STATUS_PARSE_ERROR);
-			parseError = ex.getShortMessage();
-		}
 		catch(PrismException ex)
 		{
-			pctl = null;
+			expr = null;
 			setStatus(STATUS_PARSE_ERROR);
 			parseError = ex.getMessage();
 		}

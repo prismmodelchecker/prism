@@ -25,28 +25,29 @@
 //	
 //==============================================================================
 
-
 package userinterface.simulator;
 
-import javax.swing.*;
-import userinterface.properties.*;
-import simulator.*;
 import java.awt.*;
 import java.awt.event.*;
+import javax.swing.*;
 import javax.swing.event.*;
+
 import parser.*;
+import parser.ast.*;
+import userinterface.properties.*;
+import simulator.*;
 
 /**
- *
- * @author  ug60axh
+ * 
+ * @author ug60axh
  */
 public class GUISimPathFormulaeList extends JList
 {
-    
+
 	private GUISimulator guiSim;
 	private SimulatorEngine engine;
 	private DefaultListModel listModel;
-    
+
 	/** Creates a new instance of GUISimPathFormulaeList */
 	public GUISimPathFormulaeList(GUISimulator guiSim)
 	{
@@ -54,181 +55,158 @@ public class GUISimPathFormulaeList extends JList
 		this.engine = guiSim.getPrism().getSimulator();
 		listModel = new DefaultListModel();
 		setModel(listModel);
-        
+
 		setCellRenderer(new SimPathFormulaRenderer());
 	}
-    
+
 	public void clearList()
 	{
 		listModel.clear();
 	}
-    
+
 	public void addInitial()
 	{
 		listModel.addElement("init");
 	}
-    
+
 	public void addDeadlock()
 	{
 		listModel.addElement("deadlock");
 	}
-    
-	public void addRewardFormula(PCTLReward rew)
+
+	public void addRewardFormula(ExpressionReward rew)
 	{
-		String str = rew.getOperand().toString();
-        
-		for(int i = 0; i < listModel.getSize(); i++)
-		{
-			if(listModel.getElementAt(i).toString().equals(str))
-				return;//if this already is in here, do not add it
+		String str = rew.getPathExpression().toString();
+
+		for (int i = 0; i < listModel.getSize(); i++) {
+			if (listModel.getElementAt(i).toString().equals(str))
+				return;// if this already is in here, do not add it
 		}
-        
-		long pathPointer = engine.addPCTLRewardFormula(rew);
-		if(pathPointer <=0) return;
+
+		long pathPointer = engine.addExpressionReward(rew);
+		if (pathPointer <= 0)
+			return;
 		int index = engine.findPathFormulaIndex(pathPointer);
-	
-        
-		SimPathFormula form = new SimPathFormula(rew.getOperand().toString(), index);
+
+		SimPathFormula form = new SimPathFormula(str, index);
 		listModel.addElement(form);
 	}
-    
-	public void addProbFormula(PCTLProb prob)
+
+	public void addProbFormula(ExpressionProb prob)
 	{
-		String str = prob.getOperand().toString();
-        
-		for(int i = 0; i < listModel.getSize(); i++)
-		{
-			if(listModel.getElementAt(i).toString().equals(str))
-				return;//if this already is in here, do not add it
+		String str = prob.getPathExpression().toString();
+
+		for (int i = 0; i < listModel.getSize(); i++) {
+			if (listModel.getElementAt(i).toString().equals(str))
+				return;// if this already is in here, do not add it
 		}
-	
-		long pathPointer = engine.addPCTLProbFormula(prob);
-		if(pathPointer <=0) return;
-		//System.out.println("probPointer = "+pathPointer);
+
+		long pathPointer = engine.addExpressionProb(prob);
+		if (pathPointer <= 0)
+			return;
+		// System.out.println("probPointer = "+pathPointer);
 		int index = engine.findPathFormulaIndex(pathPointer);
-		//System.out.println("probindex = "+index);
-        
-		SimPathFormula form = new SimPathFormula(prob.getOperand().toString(), index);
+		// System.out.println("probindex = "+index);
+
+		SimPathFormula form = new SimPathFormula(str, index);
 		listModel.addElement(form);
 	}
-    
-    
-    
-    
-    
-    
+
 	class SimPathFormula
 	{
 		String pathFormula;
 		int pathFormulaIndex;
-	
+
 		public SimPathFormula(String pathFormula, int pathFormulaIndex)
 		{
 			this.pathFormula = pathFormula;
 			this.pathFormulaIndex = pathFormulaIndex;
 		}
-	
+
 		public String toString()
 		{
 			return pathFormula;
 		}
-	
+
 		public int getResult()
 		{
 			return engine.queryPathFormula(pathFormulaIndex);
 		}
-	
+
 		public double getResultNumeric()
 		{
 			return engine.queryPathFormulaNumeric(pathFormulaIndex);
 		}
-        
-        
-	
-	
+
 	}
-    
-    
-	//RENDERERS
-    
+
+	// RENDERERS
+
 	class SimPathFormulaRenderer extends JLabel implements ListCellRenderer
 	{
 		String lastText;
-	
-	
+
 		public SimPathFormulaRenderer()
 		{
 			setOpaque(true);
 			lastText = "Unknown";
 		}
-	
+
 		public String getToolTipText()
 		{
 			return lastText;
 		}
-	
-		public Component getListCellRendererComponent
-			(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
+
+		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
+				boolean cellHasFocus)
 		{
 			setBorder(new BottomBorder());
-			SimPathFormula l = (SimPathFormula)value;
-	    
-	   
+			SimPathFormula l = (SimPathFormula) value;
+
 			setText(l.toString());
-	    
+
 			int result = l.getResult();
-		
-			if(result == 1)
-			{
+
+			if (result == 1) {
 				lastText = "True";
 				setIcon(GUIProperty.IMAGE_TICK);
-			}
-			else if(result == 0)
-			{
+			} else if (result == 0) {
 				lastText = "False";
 				setIcon(GUIProperty.IMAGE_CROSS);
-			}
-			else if(result == 2)
-			{
-				lastText = ""+l.getResultNumeric();
+			} else if (result == 2) {
+				lastText = "" + l.getResultNumeric();
 				setIcon(GUIProperty.IMAGE_NUMBER);
-			}
-			else
-			{
+			} else {
 				lastText = "Unknown";
 				setIcon(GUIProperty.IMAGE_NOT_DONE);
 			}
-	    
-            
+
 			setBackground(Color.white);
-            
-	    
-	    
-	    
+
 			repaint();
 			return this;
 		}
-	
+
 	}
-    
+
 	class BottomBorder implements javax.swing.border.Border
 	{
 		public Insets getBorderInsets(Component c)
 		{
-			return new Insets(0,0,0,0);
+			return new Insets(0, 0, 0, 0);
 		}
-	
+
 		public boolean isBorderOpaque()
 		{
 			return true;
 		}
-	
+
 		public void paintBorder(Component c, Graphics g, int x, int y, int width, int height)
 		{
 			g.setColor(Color.lightGray);
-			g.drawLine(x,(y+height-1), (x+width), (y+height-1));
-	    
+			g.drawLine(x, (y + height - 1), (x + width), (y + height - 1));
+
 		}
 	}
-    
+
 }

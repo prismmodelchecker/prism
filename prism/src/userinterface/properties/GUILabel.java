@@ -28,6 +28,7 @@
 package userinterface.properties;
 
 import parser.*;
+import parser.ast.*;
 import prism.*;
 
 public class GUILabel
@@ -53,11 +54,11 @@ public class GUILabel
 		try {
 			// Check name is a valid identifier
 			try { expr = parent.getPrism().parseSingleExpressionString(name); }
-			catch (ParseException e) { throw new PrismException("Invalid label name \""+name+"\""); }
+			catch (PrismLangException e) { throw new PrismException("Invalid label name \""+name+"\""); }
 			if (expr == null || !(expr instanceof ExpressionIdent)) throw new PrismException("Invalid label name \""+name+"\"");
 			// Check (non-empty) label definition is valid (single) expression
 			try { if (!("".equals(label))) parent.getPrism().parseSingleExpressionString(label); }
-			catch (ParseException e) { throw new PrismException("Invalid expression \""+label+"\""); }
+			catch (PrismLangException e) { throw new PrismException("Invalid expression \""+label+"\""); }
 		}
 		catch (PrismException e) {
 			this.parseError = e;

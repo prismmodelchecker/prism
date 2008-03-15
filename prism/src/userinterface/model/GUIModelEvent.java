@@ -26,8 +26,7 @@
 //==============================================================================
 
 package userinterface.model;
-import userinterface.*;
-import parser.ModulesFile;
+import parser.ast.ModulesFile;
 import prism.Model;
 import parser.Values;
 import userinterface.util.*;

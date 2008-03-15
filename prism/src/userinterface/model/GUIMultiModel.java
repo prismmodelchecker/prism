@@ -30,15 +30,14 @@ import userinterface.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import javax.swing.event.*;
-import java.util.*;
-import java.lang.*;
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
+
 import prism.*;
-import parser.*;
+import parser.ast.*;
 import userinterface.util.*;
 
-import userinterface.util.*;
 
 /**
  *
@@ -916,12 +915,11 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		return null;
 	}	
         
-        public void notifySettings(PrismSettings settings)
-        {
-            //System.out.println("model notifySettings called");
-            handler.notifySettings(settings);
-            
-            repaint();
-        }
+    public void notifySettings(PrismSettings settings)
+    {
+        //System.out.println("model notifySettings called");
+        handler.notifySettings(settings);
         
+        repaint();
+    }	      
 }

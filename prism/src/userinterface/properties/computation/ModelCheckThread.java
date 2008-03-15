@@ -26,14 +26,16 @@
 //==============================================================================
 
 package userinterface.properties.computation;
-import java.lang.*;
-import userinterface.properties.*;
-import parser.*;
-import prism.*;
-import javax.swing.*;
+
 import java.util.*;
+import javax.swing.*;
+
+import parser.*;
+import parser.ast.*;
+import prism.*;
 import userinterface.*;
 import userinterface.util.*;
+import userinterface.properties.*;
 
 /**
  *

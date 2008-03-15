@@ -28,11 +28,11 @@
 package userinterface.properties;
 import userinterface.*;
 import parser.*;
+import parser.ast.*;
 import prism.*;
 import java.awt.event.*;
 import javax.swing.*;
 import java.awt.*;
-import java.lang.*;
 import java.util.*;
 import java.awt.datatransfer.*;
 /**
@@ -801,7 +801,6 @@ public class GUIPropertyEditor extends javax.swing.JDialog implements ActionList
 
 	private void okayButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_okayButtonActionPerformed
 	{//GEN-HEADEREND:event_okayButtonActionPerformed
-		PCTLFormula pctl = null;
 		boolean valid = false;
 		int noLabels = 0;
 		int noConstants = 0;
@@ -825,29 +824,9 @@ public class GUIPropertyEditor extends javax.swing.JDialog implements ActionList
 			if(ff.getConstantList().size() != noConstants) throw new PrismException("Contains constants");
 			if(ff.getLabelList().size() != noLabels) throw new PrismException("Contains labels");
 			
-			pctl = ff.getProperty(0);
 			valid = true;
 		}
 		// catch and deal with exceptions
-		catch(ParseException ex)
-		{
-			switch(propertyInvalidStrategy)
-			{
-				case GUIMultiProperties.WARN_INVALID_PROPS:
-				{
-					String[] choices = {"Yes", "No"};
-					int choice = -1;
-					choice = props.optionPane("Error: "+ex.getShortMessage()+"\nAre you sure you want to continue?", "Question", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, choices, choices[0]);
-					valid = (choice == 0);
-					break;
-				}
-				case GUIMultiProperties.NEVER_INVALID_PROPS:
-				{
-					parent.errorDialog("Error: "+ex.getShortMessage());
-					valid = false;
-				}
-			}
-		}
 		catch(prism.PrismException ex)
 		{
 			switch(propertyInvalidStrategy)

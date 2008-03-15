@@ -28,7 +28,9 @@ package parser;
 
 import java.util.ArrayList;
 import java.io.*;
+
 import prism.Prism;
+import prism.PrismLangException;
 
 public class PrismSyntaxHighlighter
 {
@@ -100,28 +102,28 @@ public class PrismSyntaxHighlighter
 	
 	// public methods
 	
-	public static String echoFile(File file) throws FileNotFoundException, ParseException
+	public static String echoFile(File file) throws FileNotFoundException, PrismLangException
 	{
 		resStringBuffer = new StringBuffer();
 		highlight(new FileInputStream(file), ECHO);
 		return resStringBuffer.toString();
 	}
 	
-	public static String echoFile(InputStream stream) throws ParseException
+	public static String echoFile(InputStream stream) throws PrismLangException
 	{
 		resStringBuffer = new StringBuffer();
 		highlight(stream, ECHO);
 		return resStringBuffer.toString();
 	}
 	
-	public static String lineToHtml(String line) throws ParseException
+	public static String lineToHtml(String line) throws PrismLangException
 	{
 		resStringBuffer = new StringBuffer();
 		highlight(new ByteArrayInputStream(line.getBytes()), HTML);
 		return resStringBuffer.toString();
 	}
 	
-	public static String fileToHtml(File file, boolean hf) throws FileNotFoundException, ParseException
+	public static String fileToHtml(File file, boolean hf) throws FileNotFoundException, PrismLangException
 	{
 		resStringBuffer = new StringBuffer();
 		if (hf) resStringBuffer.append(htmlFileHeader(file.getName()));
@@ -130,7 +132,7 @@ public class PrismSyntaxHighlighter
 		return resStringBuffer.toString();
 	}
 	
-	public static String fileToHtml(InputStream stream, boolean hf) throws ParseException
+	public static String fileToHtml(InputStream stream, boolean hf) throws PrismLangException
 	{
 		resStringBuffer = new StringBuffer();
 		if (hf) resStringBuffer.append(htmlFileHeader("PRISM Code")); 
@@ -139,7 +141,7 @@ public class PrismSyntaxHighlighter
 		return resStringBuffer.toString();
 	}
 
-	public static String fileToLatex(File file, boolean hf) throws FileNotFoundException, ParseException
+	public static String fileToLatex(File file, boolean hf) throws FileNotFoundException, PrismLangException
 	{
 		resStringBuffer = new StringBuffer();
 		resNewLine = 1;
@@ -150,7 +152,7 @@ public class PrismSyntaxHighlighter
 		return resStringBuffer.toString();
 	}
 	
-	public static String fileToLatex(InputStream stream, boolean hf) throws ParseException
+	public static String fileToLatex(InputStream stream, boolean hf) throws PrismLangException
 	{
 		resStringBuffer = new StringBuffer();
 		resNewLine = 1;
@@ -161,7 +163,7 @@ public class PrismSyntaxHighlighter
 		return resStringBuffer.toString();
 	}
 	
-	public static int[] lineForPrismGUI(String line) throws ParseException
+	public static int[] lineForPrismGUI(String line) throws PrismLangException
 	{
 		resTypeArray = new int[line.length()];
 		resCharCount = 0;
@@ -228,7 +230,7 @@ public class PrismSyntaxHighlighter
 
 	// multi-purpose highlighting code
 	
-	public static void highlight(InputStream stream, int oType) throws ParseException
+	public static void highlight(InputStream stream, int oType) throws PrismLangException
 	{
 		PrismParser prismParser;
 		PrismParserTokenManager tokenManager;
@@ -245,26 +247,11 @@ public class PrismSyntaxHighlighter
 				tokenManager = prismParser.token_source;
 				
 				// get stream of tokens from token manager and put in a linked list
-				try {
-					first = t = tokenManager.getNextToken();
-					while (t != null && t.kind != PrismParserConstants.EOF) {
-						t.next = tokenManager.getNextToken();
-						t = t.next;
-					}
-				}
-				catch (TokenMgrError e) {
-					throw new ParseException(e.getMessage());
-				}
-				
-				// do a first pass through the tokens to do some preprocessing
-				// namely, sort out properties labels
-				/*t = first;
+				first = t = tokenManager.getNextToken();
 				while (t != null && t.kind != PrismParserConstants.EOF) {
-					if (t.kind == PrismParserConstants.DQUOTE) {
-						// todo (can't remember what was wrong with properties labels anyway)
-					}
+					t.next = tokenManager.getNextToken();
 					t = t.next;
-				}*/
+				}
 				
 				// go through tokens to do syntax highlighting
 				t = first;
@@ -272,6 +259,11 @@ public class PrismSyntaxHighlighter
 					// see if we're at the end
 					if (t == null) { done = true; continue; }
 					if (t.kind == PrismParserConstants.EOF) { done = true; }
+					// see if there was a lexical error
+					if (t.kind == PrismParserConstants.LEXICAL_ERROR) {
+						String s = "Lexical error (\""+t.image+"\", line "+t.beginLine+", column "+t.beginColumn+")";
+						throw new PrismLangException(s);
+					}
 					// if there are preceding special tokens
 					if (t.specialToken != null) {
 						// go back to start of special tokens
@@ -314,7 +306,7 @@ public class PrismSyntaxHighlighter
 			}
 		}
 		catch (InterruptedException e) {
-			throw new ParseException("Concurrency error in parser");
+			throw new PrismLangException("Concurrency error in parser");
 		}
 	}
 
@@ -537,8 +529,8 @@ public class PrismSyntaxHighlighter
 			System.out.println("Error: Could not load file \""+ args[1] + "\"");
 			System.exit(1);
 		}
-		catch (ParseException e) {
-			System.out.println("Error: " + e.getShortMessage());
+		catch (PrismLangException e) {
+			System.out.println("Error: " + e.getMessage());
 			System.exit(1);
 		}
 	}

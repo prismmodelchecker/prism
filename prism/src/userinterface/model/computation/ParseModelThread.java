@@ -27,16 +27,15 @@
 
 package userinterface.model.computation;
 
-import java.lang.*;
-import java.io.*;
-import java.util.*;
 import javax.swing.*;
-import userinterface.*;
+
 import userinterface.model.*;
 import parser.*;
+import parser.ast.*;
 import prism.*;
 import userinterface.util.*;
 import userinterface.GUIComputationThread;
+
 /**
  *
  * @author  ug60axh
@@ -49,6 +48,7 @@ public class ParseModelThread extends GUIComputationThread
 	private boolean background;
 	private ModulesFile mod;
 	private String errMsg;
+	private PrismLangException parseError;
 	static int counter = 0;
 	int id;
 	long before;
@@ -87,27 +87,24 @@ public class ParseModelThread extends GUIComputationThread
 				mod = prism.importPepaString(parseThis);
 			}
 		}
-		catch (ParseException e) {
-			errMsg = "Could not parse model:\n" + e.getShortMessage();
-			SwingUtilities.invokeLater(new Runnable() { public void run() {
-				if(!background) plug.stopProgress(); 
-				plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, plug));
-				if(!background) plug.setTaskBarText("Parsing model... error.");
-				if(!background) error(errMsg);
-				handler.modelParseFailed(errMsg);
-			}});
+		catch (PrismLangException err) {
+			parseError = err;
+			errMsg = err.getMessage();
+			SwingUtilities.invokeLater(new Runnable() 
+			{ 
+				public void run() 
+				{			
+					if(!background) plug.stopProgress(); 
+					plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, plug));
+					if(!background) plug.setTaskBarText("Parsing model... error.");
+					if(!background) error(errMsg);
+					handler.modelParseFailed(parseError);			
+				}
+			});
 			return;
 		}
 		catch (PrismException e) {
-			errMsg = e.getMessage();
-			SwingUtilities.invokeLater(new Runnable() { public void run() {
-				if(!background) plug.stopProgress(); 
-				plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, plug));
-				if(!background) plug.setTaskBarText("Parsing model... error.");
-				if(!background) error(errMsg);
-				handler.modelParseFailed(errMsg);
-			}});
-			return;
+			throw new RuntimeException("Unexpected PrismException: " + e.getMessage());			
 		}
 		
 		//If we get here, the parse has been successful, notify the interface and tell the handler.
@@ -116,7 +113,7 @@ public class ParseModelThread extends GUIComputationThread
 			plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, plug));
 			if(!background) plug.setTaskBarText("Parsing model... done.");
 			handler.modelParsedSuccessful(mod);
-		}});
+	   }});
 	}
 }
 

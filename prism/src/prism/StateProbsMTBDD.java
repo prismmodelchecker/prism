@@ -29,7 +29,7 @@ package prism;
 import jdd.*;
 import odd.*;
 import parser.VarList;
-import parser.Expression;
+import parser.ast.Expression;
 
 // state probability vector (mtbdd)
 

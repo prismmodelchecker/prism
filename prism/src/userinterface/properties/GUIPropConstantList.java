@@ -33,6 +33,7 @@ import javax.swing.*;
 import javax.swing.table.*;
 
 import parser.*;
+import parser.ast.*;
 import prism.*;
 
 public class GUIPropConstantList extends JTable
@@ -370,9 +371,6 @@ public class GUIPropConstantList extends JTable
 			try {
 				error = null;
 				parent.getPrism().parsePropertiesString(parent.getParsedModel(), parseableToString());
-			}
-			catch (ParseException e) {
-				error = new PrismException(e.getShortMessage());
 			}
 			catch (PrismException e) {
 				error = e;

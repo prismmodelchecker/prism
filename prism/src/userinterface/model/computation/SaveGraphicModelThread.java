@@ -27,7 +27,6 @@
 
 package userinterface.model.computation;
 
-import java.lang.*;
 import java.io.*;
 import java.util.*;
 import javax.swing.*;
@@ -36,11 +35,12 @@ import javax.xml.transform.*;
 import javax.xml.transform.dom.*;
 import javax.xml.transform.stream.*;
 import org.w3c.dom.*;
+
 import prism.*;
+import parser.ast.*;
 import userinterface.*;
 import userinterface.model.*;
 import userinterface.model.graphicModel.*;
-import parser.*;
 import userinterface.util.*;
 
 /**

@@ -27,6 +27,7 @@
 
 package userinterface.properties;
 import parser.*;
+import parser.ast.*;
 import prism.*;
 import javax.swing.*;
 import userinterface.*;
@@ -103,14 +104,12 @@ public class GUIExperiment
 	
 	public String getPropertyString()
 	{
-		PCTLFormula pctl = prop.getProperty(0);
-		return pctl.toString();
+		return prop.getProperty(0).toString();
 	}
 	
 	public int getPropertyType() throws PrismException
 	{
-		PCTLFormula pctl = prop.getProperty(0);
-		return pctl.getType();
+		return prop.getProperty(0).getType();
 	}
 	
 	public ResultsCollection getResults()
@@ -214,7 +213,7 @@ public class GUIExperiment
 			boolean clear = true;
 			Model model = null;
 			
-			PCTLFormula propertyToCheck = propertiesFile.getProperty(0);
+			Expression propertyToCheck = propertiesFile.getProperty(0);
 			SimulationInformation info = null;
 			boolean reuseInfo = false, reuseInfoAsked = false;
 			

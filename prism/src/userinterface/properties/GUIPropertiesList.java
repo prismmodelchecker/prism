@@ -26,13 +26,16 @@
 //==============================================================================
 
 package userinterface.properties;
-import parser.*;
-import prism.*;
-import javax.swing.*;
+
+import java.io.*;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.*;
+import javax.swing.*;
+
+import parser.*;
+import parser.ast.*;
+import prism.*;
 
 /**
  *

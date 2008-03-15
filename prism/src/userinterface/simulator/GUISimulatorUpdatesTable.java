@@ -27,14 +27,14 @@
 
 package userinterface.simulator;
 
+import java.awt.*;
+import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.table.*;
-import java.awt.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
-import java.awt.event.*;
 
-import parser.*;
+import parser.ast.*;
 import userinterface.GUIPrism;
 
 /**

@@ -33,13 +33,13 @@ import javax.swing.text.*;
 import javax.swing.table.*;
 import java.util.regex.*;
 import java.awt.*;
-import java.util.*;
 
 import userinterface.*;
 import userinterface.properties.*;
 import simulator.*;
 import simulator.networking.*;
 import parser.*;
+import parser.ast.*;
 import prism.*;
 import settings.*;
 
@@ -66,7 +66,7 @@ public class GUISimulatorDistributionDialog extends javax.swing.JDialog implemen
 	private GUIExperiment expr;
 	private UndefinedConstants undefinedConstants;
 	private Thread experimentThread;
-	private PCTLFormula experimentFormula;
+	private Expression experimentFormula;
 	private boolean cancelled = false;
 	
 	private ArrayList propertyValues = null;
@@ -100,7 +100,7 @@ public class GUISimulatorDistributionDialog extends javax.swing.JDialog implemen
 		
 	}
 	
-	public void show(GUIExperiment expr, Thread exprThread, ModulesFile modulesFile, PropertiesFile properties, UndefinedConstants undefinedConstants, PCTLFormula propertyToCheck, SimulationInformation info) throws PrismException
+	public void show(GUIExperiment expr, Thread exprThread, ModulesFile modulesFile, PropertiesFile properties, UndefinedConstants undefinedConstants, Expression propertyToCheck, SimulationInformation info) throws PrismException
 	{
 		this.isExperiment = true;
 		this.modulesFile = modulesFile;
@@ -182,7 +182,7 @@ public class GUISimulatorDistributionDialog extends javax.swing.JDialog implemen
 			if(props.get(i) instanceof GUIProperty)
 			{
 				GUIProperty form = (GUIProperty)props.get(i);
-				summary.append("\t"+form.getPCTLProperty().toString()+"\n");
+				summary.append("\t"+form.getProperty().toString()+"\n");
 				constantsStr = form.getConstantsString();
 			}
 			else
@@ -669,7 +669,7 @@ public class GUISimulatorDistributionDialog extends javax.swing.JDialog implemen
 				for(int i = 0 ; i < props.size(); i++)
 				{
 					GUIProperty guiProp = (GUIProperty)props.get(i);
-					propFormulae.add(guiProp.getPCTLProperty());
+					propFormulae.add(guiProp.getProperty());
 				}
 				System.out.println("doing 1");
 				if(modulesFile == null) System.out.println("modulesfile is null");

@@ -29,13 +29,16 @@
 package userinterface.simulator;
 
 import java.util.*;
-
+import java.awt.*;
+import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.table.*;
-import java.awt.*;
+import javax.swing.event.*;
+
 import simulator.*;
 import simulator.networking.*;
 import parser.*;
+import parser.ast.*;
 import prism.*;
 import userinterface.*;
 import userinterface.util.*;
@@ -43,9 +46,6 @@ import userinterface.model.*;
 import userinterface.properties.*;
 import userinterface.simulator.GUIViewDialog.RewardListItem;
 import userinterface.simulator.networking.*;
-import java.awt.event.*;
-
-import javax.swing.event.*;
 
 /**
  *
@@ -337,7 +337,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			{
 				pf = getPrism().parsePropertiesString(parsedModel, guiProp.getConstantsString().toString()+guiProp.getLabelsString());
 			}
-			catch(ParseException e)
+			catch(PrismLangException e)
 			{
 				// ignore properties if they don't parse
 				pf = null; //if any problems
@@ -755,15 +755,15 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				GUIProperty gp = gpl.getProperty(i);
 				// For properties which are simulate-able...
 				if(gp.isValidForSimulation()) {
-					PCTLFormula pctl = gp.getPCTLProperty();
+					Expression expr = gp.getProperty();
 					// Add them to the list
-					if(pctl instanceof PCTLProb) {
-						PCTLProb prob = (PCTLProb)pctl;
+					if(expr instanceof ExpressionProb) {
+						ExpressionProb prob = (ExpressionProb)expr;
 						((GUISimPathFormulaeList)pathFormulaeList).addProbFormula(prob);
 					}
-					else if(pctl instanceof PCTLReward)
+					else if(expr instanceof ExpressionReward)
 					{
-						PCTLReward rew = (PCTLReward)pctl;
+						ExpressionReward rew = (ExpressionReward)expr;
 						((GUISimPathFormulaeList)pathFormulaeList).addRewardFormula(rew);
 					}
 				}
@@ -789,7 +789,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 							PropertiesFile pf = getPrism().parsePropertiesString(parsedModel, guiProp.getConstantsString().toString()+"\n"+gl.toString());
 							((GUISimLabelFormulaeList)stateLabelList).addLabel(pf.getLabelList().getLabelName(0), pf.getLabelList().getLabel(0), parsedModel);
 						}
-						catch (ParseException e) {}
 						catch (PrismException e) {}
 					}
 				}
@@ -2710,7 +2709,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					
 					for (int r = 0; r < parsedModel.getNumRewardStructs(); r++)
 					{
-						parser.RewardStruct rewardStruct = parsedModel.getRewardStruct(r);
+						RewardStruct rewardStruct = parsedModel.getRewardStruct(r);
 						String rewardName = rewardStruct.getName();
 						
 						boolean hasStates = parsedModel.getRewardStruct(r).getNumStateItems() != 0;
@@ -2762,7 +2761,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 										
 						for (int r = 0; r < parsedModel.getNumRewardStructs(); r++)
 						{
-							parser.RewardStruct rewardStruct = parsedModel.getRewardStruct(r);
+							RewardStruct rewardStruct = parsedModel.getRewardStruct(r);
 							String rewardName = rewardStruct.getName();
 							
 							if (rewardName.trim().length() == 0)

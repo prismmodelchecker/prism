@@ -27,14 +27,15 @@
 
 package userinterface.properties.computation;
 
-import java.lang.*;
-import userinterface.properties.*;
-import parser.*;
-import prism.*;
-import javax.swing.*;
 import java.util.*;
+import javax.swing.*;
+
+import parser.*;
+import parser.ast.*;
+import prism.*;
 import userinterface.*;
 import userinterface.util.*;
+import userinterface.properties.*;
 
 /**
  *  This thread handles the calling of simulation-based
@@ -118,7 +119,7 @@ public class SimulateModelCheckThread extends GUIComputationThread
 			for(int i = 0; i < guiProps.size(); i++)
 			{
 				GUIProperty gp = (GUIProperty)guiProps.get(i);
-				properties.add(gp.getPCTLProperty());
+				properties.add(gp.getProperty());
 				ic = new IconThread(gp);
 				ic.start();
 				clkThreads.add(ic);

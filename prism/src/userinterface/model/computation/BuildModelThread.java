@@ -26,13 +26,16 @@
 //==============================================================================
 
 package userinterface.model.computation;
+
 import java.lang.*;
 import java.io.*;
 import java.util.*;
 import javax.swing.*;
+
 import userinterface.*;
 import userinterface.model.*;
 import parser.*;
+import parser.ast.*;
 import prism.*;
 import userinterface.util.*;
 
@@ -50,8 +53,10 @@ public class BuildModelThread extends GUIComputationThread
 	private Values buildValues;
 	private boolean forceShow;
 	private String errMsg;
+	private PrismLangException parseError;
+	private PrismException buildError;
 	private StateList deadlocks;
-
+    
 	/** Creates a new instance of BuildModelThread */
 // 	public BuildModelThread(GUIMultiModelHandler handler, String buildThis, boolean isPepa, Values buildValues, boolean forceShow)
 // 	{
@@ -71,6 +76,7 @@ public class BuildModelThread extends GUIComputationThread
 		this.mod = buildParse;
 		this.buildValues = buildValues;
 		this.forceShow = forceShow;
+		
 	}
 
 	public void run()
@@ -99,29 +105,20 @@ public class BuildModelThread extends GUIComputationThread
 					mod = prism.importPepaString(buildThis);
 				}
 			}
-			catch (ParseException e) {
-				errMsg = "Could not parse model:\n" + e.getShortMessage();
+			catch (PrismLangException e) {
+				parseError = e;
 				SwingUtilities.invokeLater(new Runnable() { public void run() {
 					plug.stopProgress(); 
 					plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, plug));
 					plug.setTaskBarText("Parsing model... error.");
-					error(errMsg);
-					handler.modelParseFailed(errMsg);
-					handler.modelBuildFailed();
+					error(parseError.getMessage());
+					handler.modelParseFailed(parseError);
+					handler.modelBuildFailed(null);
 				}});
 				return;
 			}
 			catch (PrismException e) {
-				errMsg = e.getMessage();
-				SwingUtilities.invokeLater(new Runnable() { public void run() {
-					plug.stopProgress(); 
-					plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, plug));
-					plug.setTaskBarText("Parsing model... error.");
-					error(errMsg);
-					handler.modelParseFailed(errMsg);
-					handler.modelBuildFailed();
-				}});
-				return;
+				throw new RuntimeException("Unexpected PrismException: " + e.getMessage());			
 			}
 			
 			//If we are here, the parse was successful, notify the interface
@@ -155,7 +152,7 @@ public class BuildModelThread extends GUIComputationThread
 						plug.stopProgress(); 
 						plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, plug));
 						plug.setTaskBarText("Building model... cancelled.");
-						handler.modelBuildFailed();
+						handler.modelBuildFailed(new PrismException(""));
 					}});
 					return;
 				}
@@ -181,13 +178,14 @@ public class BuildModelThread extends GUIComputationThread
 			mod.setUndefinedConstants(buildValues);
 		}
 		catch (PrismException e) {
+			buildError = e;
 			errMsg = e.getMessage();
 			SwingUtilities.invokeLater(new Runnable() { public void run() {
 				plug.stopProgress(); 
 				plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, plug));
 				plug.setTaskBarText("Building model... error.");
 				error(errMsg);
-				handler.modelBuildFailed();
+				handler.modelBuildFailed(buildError);
 			}});
 		}
 		
@@ -202,13 +200,14 @@ public class BuildModelThread extends GUIComputationThread
 			model = prism.buildModel(mod);
 		}
 		catch (PrismException e) {
+			buildError = e;
 			errMsg = e.getMessage();
 			SwingUtilities.invokeLater(new Runnable() { public void run() {
 				plug.stopProgress(); 
 				plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, plug));
 				plug.setTaskBarText("Building model... error.");
 				error(errMsg);
-				handler.modelBuildFailed();
+				handler.modelBuildFailed(buildError);
 			}});
 			return;
 		}
@@ -238,7 +237,7 @@ public class BuildModelThread extends GUIComputationThread
 					plug.stopProgress(); 
 					plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, plug));
 					plug.setTaskBarText("Building model... error.");
-					handler.modelBuildFailed();
+					handler.modelBuildFailed(new PrismException(""));
 					plug.logToFront();
 				}});
 				return;

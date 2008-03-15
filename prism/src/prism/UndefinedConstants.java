@@ -29,6 +29,7 @@ package prism;
 import java.util.Vector;
 
 import parser.*;
+import parser.ast.*;
 
 // class to handle the undefined constants in model/properties files
 

@@ -26,15 +26,17 @@
 //==============================================================================
 
 package userinterface.model.graphicModel;
-import userinterface.model.*;
-import javax.swing.*;
+
 import java.io.*;
-import java.awt.*;
-import prism.*;
 import java.util.*;
-import parser.*;
-import userinterface.model.computation.*;
+import java.awt.*;
+import javax.swing.*;
+
+import prism.*;
+import parser.ast.*;
 import userinterface.util.*;
+import userinterface.model.*;
+import userinterface.model.computation.*;
 
 
 /**

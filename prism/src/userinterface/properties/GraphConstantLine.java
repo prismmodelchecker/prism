@@ -27,13 +27,21 @@
 
 package userinterface.properties;
 
-import parser.Expression;
-import javax.swing.*;
-import java.awt.*;
-import javax.swing.border.*;
-import java.lang.*;
-import prism.*;
-import java.text.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Insets;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.Icon;
+import javax.swing.JList;
+import javax.swing.UIManager;
+
+import parser.ast.Expression;
+import prism.DefinedConstant;
+
 /**
  *
  * @author  ug60axh

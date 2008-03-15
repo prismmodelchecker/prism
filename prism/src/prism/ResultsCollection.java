@@ -30,7 +30,6 @@ package prism;
 
 import java.util.*;
 import parser.*;
-import userinterface.graph.*;
 
 /**
  * This class stores the results of experiments. It should be unaware what is being done with the results,

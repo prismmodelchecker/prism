@@ -27,6 +27,7 @@
 
 package userinterface;
 import parser.*;
+import parser.ast.*;
 import prism.*;
 import javax.swing.*;
 import java.awt.*;
