@@ -3,7 +3,7 @@ including development and beta versions. For a less detailed overview
 of the main changes in each public release, see the file VERSIONS.txt.
 
 -----------------------------------------------------------------------------
-Version 3.2.beta1 (released 25/2/2008)
+Version 3.2.beta1 (released 25/2/2008) (svn: trunk rev 568)
 -----------------------------------------------------------------------------
 
 * Fix to allow building on Mac OS X v10.5 (Leopard)
@@ -32,7 +32,7 @@ Version 3.2.beta1 (released 25/2/2008)
 * Resizeable experiment results table 
 
 -----------------------------------------------------------------------------
-Version 3.1.1 (5/4/2007)
+Version 3.1.1 (5/4/2007) (svn: derived from 3.1 tag)
 -----------------------------------------------------------------------------
 
 * Minor bug fixes:
@@ -41,13 +41,13 @@ Version 3.1.1 (5/4/2007)
   - fix to possible failure of Windows launch scripts
 
 -----------------------------------------------------------------------------
-Version 3.1 (15/11/2006)
+Version 3.1 (15/11/2006) (svn: derived from 3.1.beta1 tag)
 -----------------------------------------------------------------------------
 
 * No changes
 
 -----------------------------------------------------------------------------
-Version 3.1.beta1 (3/11/2006)
+Version 3.1.beta1 (3/11/2006) (svn: trunk rev 116)
 -----------------------------------------------------------------------------
 
 * New installer for Windows binary
@@ -62,13 +62,13 @@ Version 3.1.beta1 (3/11/2006)
 * Bug fixes
 
 -----------------------------------------------------------------------------
-Version 3.0 (6/7/2006) (svn rev 55)
+Version 3.0 (6/7/2006) (svn: trunk rev 55)
 -----------------------------------------------------------------------------
 
 * Bug fixes
 
 -----------------------------------------------------------------------------
-Version 3.0.beta1 (29/3/2006) (svn rev 45)
+Version 3.0.beta1 (29/3/2006) (svn: trunk rev 45)
 -----------------------------------------------------------------------------
 
 * Changes to export functionality
