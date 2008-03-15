@@ -31,7 +31,7 @@ public class PrismParser implements PrismParserConstants {
         {
                 if (args.length == 0) {
                         System.out.println("Usage: java parser.PrismParser <switch>");
-                        System.out.println("Where: <switch> = -modulesfile or -f");
+                        System.out.println("Where: <switch> = -modulesfile or -mf");
                         System.out.println("                  -propertiesfile or -pf");
                         System.out.println("                  -expression or -e");
                         System.exit(1);
@@ -40,13 +40,16 @@ public class PrismParser implements PrismParserConstants {
                         ModulesFile mf = null;
                         try {
                                 PrismParser p = new PrismParser();
-                                mf = p.parseModulesFile(System.in);
+                                if (args.length > 1) { System.out.println("Reading from "+args[1]+"...\n"); mf = p.parseModulesFile(new FileInputStream(args[1])); }
+                                else { System.out.println("Reading from stdin...\n"); mf = p.parseModulesFile(System.in); }
                                 System.out.println("Modules file:\n=============\n");
                                 System.out.print(mf);
                         }
                         catch (ParseException e) {
-                                System.out.println("Syntax error:\n" + e.getShortMessage());
-                                System.exit(0);
+                                System.out.println("Syntax error:\n" + e.getShortMessage()); System.exit(0);
+                        }
+                        catch (FileNotFoundException e) {
+                                System.out.println(e); System.exit(0);
                         }
 
                         System.out.println("\nAnd after expansion:\n====================\n");
@@ -65,20 +68,18 @@ public class PrismParser implements PrismParserConstants {
                 else if (args[0].equals("-propertiesfile") || args[0].equals("-pf")) {
                         PropertiesFile pf = null;
                         try {
-                                // create empty modules file
-                                ModulesFile mf = new ModulesFile();
-                                mf.setFormulaList(new FormulaList());
-                                mf.setConstantList(new ConstantList());
-                                // parse
                                 PrismParser p = new PrismParser();
-                                pf = p.parsePropertiesFile(mf, System.in);
+                                if (args.length > 1) { System.out.println("Reading from "+args[1]+"...\n"); pf = p.parsePropertiesFile(new ModulesFile(), new FileInputStream(args[1])); }
+                                else { System.out.println("Reading from stdin...\n"); pf = p.parsePropertiesFile(new ModulesFile(), System.in); }
                                 System.out.println("Properties file:\n===============\n");
                                 System.out.print(pf);
                                 System.out.print(pf.toTreeString());
                         }
                         catch (ParseException e) {
-                                System.out.println("Syntax error:\n" + e.getShortMessage());
-                                System.exit(0);
+                                System.out.println("Syntax error:\n" + e.getShortMessage()); System.exit(0);
+                        }
+                        catch (FileNotFoundException e) {
+                                System.out.println(e); System.exit(0);
                         }
 
                         try {
@@ -97,7 +98,8 @@ public class PrismParser implements PrismParserConstants {
                         Expression expr = null;
                         try {
                                 PrismParser p = new PrismParser();
-                                expr = p.parseSingleExpression(System.in);
+                                if (args.length > 1) { System.out.println("Reading from "+args[1]+"...\n"); expr = p.parseSingleExpression(new FileInputStream(args[1])); }
+                                else { System.out.println("Reading from stdin...\n"); expr = p.parseSingleExpression(System.in); }
                                 System.out.println("Expression: " + expr.toString());
                                 System.out.print("Tree:\n" + expr.toTreeString(0));
                                 expr.check();
@@ -105,12 +107,13 @@ public class PrismParser implements PrismParserConstants {
                                 System.out.println("Eval: " + expr.evaluate(null, null));
                         }
                         catch (ParseException e) {
-                                System.out.println("Syntax error:\n" + e.getShortMessage());
-                                System.exit(0);
+                                System.out.println("Syntax error:\n" + e.getShortMessage()); System.exit(0);
                         }
                         catch (PrismException e) {
-                                System.out.println("Error:\n" + e.getMessage());
-                                System.exit(0);
+                                System.out.println("Error:\n" + e.getMessage()); System.exit(0);
+                        }
+                        catch (FileNotFoundException e) {
+                                System.out.println(e); System.exit(0);
                         }
                 }
         }
