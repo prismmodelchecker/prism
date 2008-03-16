@@ -28,9 +28,6 @@ package prism;
 
 import jdd.*;
 import odd.*;
-import mtbdd.*;
-import sparse.*;
-import hybrid.*;
 import parser.*;
 import parser.ast.*;
 
@@ -43,26 +40,14 @@ public class StateModelChecker implements ModelChecker
 	protected PrismLog mainLog;
 	protected PrismLog techLog;
 
-	// options
-
-	// which engine to use
-	protected int engine;
-	// parameter for termination criterion
-	protected double termCritParam;
-	// flags
-	protected boolean precomp; // use 0,1 precomputation algorithms?
-
-	// properties file
+	// Properties file
 	protected PropertiesFile propertiesFile;
 
-	// constant values
+	// Constant values
 	protected Values constantValues;
 
-	// class-wide storage for any numerical result returned
-	protected double numericalRes;
-
-	// model info
-	protected ProbModel model;
+	// Model info
+	protected Model model;
 	protected VarList varList;
 	protected JDDNode trans;
 	protected JDDNode trans01;
@@ -73,19 +58,29 @@ public class StateModelChecker implements ModelChecker
 	protected JDDVars allDDColVars;
 	protected JDDVars[] varDDRowVars;
 
-	// constructor - set some defaults
+	// Options:
+	
+	// Which engine to use
+	protected int engine;
+	// Parameter for termination criterion
+	protected double termCritParam;
+	// Verbose mode?
+	protected boolean verbose;
+
+	// Constructor
 
 	public StateModelChecker(Prism prism, Model m, PropertiesFile pf) throws PrismException
 	{
-		// initialise
+		// Initialise
 		this.prism = prism;
 		mainLog = prism.getMainLog();
 		techLog = prism.getTechLog();
-		if (!(m instanceof ProbModel)) {
-			throw new PrismException("Wrong model type passed to ProbModelChecker.");
-		}
-		model = (ProbModel) m;
+		model = m;
 		propertiesFile = pf;
+		constantValues = new Values();
+		constantValues.addValues(model.getConstantValues());
+		if (pf != null)
+			constantValues.addValues(pf.getConstantValues());
 		varList = model.getVarList();
 		trans = model.getTrans();
 		trans01 = model.getTrans01();
@@ -96,86 +91,11 @@ public class StateModelChecker implements ModelChecker
 		allDDColVars = model.getAllDDColVars();
 		varDDRowVars = model.getVarDDRowVars();
 
-		// create list of all constant values needed
-		constantValues = new Values();
-		constantValues.addValues(model.getConstantValues());
-		if (pf != null)
-			constantValues.addValues(pf.getConstantValues());
-
-		// set up some default options
-		// (although all should be overridden before model checking)
-		engine = Prism.HYBRID;
-		termCritParam = 1e-6;
-		precomp = true;
-	}
-
-	// set engine
-
-	public void setEngine(int e)
-	{
-		engine = e;
-	}
-
-	// set options (generic)
-
-	public void setOption(String option, boolean b)
-	{
-		if (option.equals("precomp")) {
-			precomp = b;
-		} else if (option.equals("compact")) {
-			PrismSparse.setCompact(b);
-			PrismHybrid.setCompact(b);
-		} else {
-			mainLog.println("Warning: option \"" + option + "\" not supported by ProbModelChecker.");
-		}
-	}
-
-	public void setOption(String option, int i)
-	{
-		if (option.equals("lineqmethod")) {
-			PrismMTBDD.setLinEqMethod(i);
-			PrismSparse.setLinEqMethod(i);
-			PrismHybrid.setLinEqMethod(i);
-		} else if (option.equals("termcrit")) {
-			PrismMTBDD.setTermCrit(i);
-			PrismSparse.setTermCrit(i);
-			PrismHybrid.setTermCrit(i);
-		} else if (option.equals("maxiters")) {
-			PrismMTBDD.setMaxIters(i);
-			PrismSparse.setMaxIters(i);
-			PrismHybrid.setMaxIters(i);
-		} else if (option.equals("sbmaxmem")) {
-			PrismHybrid.setSBMaxMem(i);
-		} else if (option.equals("numsblevels")) {
-			PrismHybrid.setNumSBLevels(i);
-		} else if (option.equals("sormaxmem")) {
-			PrismHybrid.setSORMaxMem(i);
-		} else if (option.equals("numsorlevels")) {
-			PrismHybrid.setNumSORLevels(i);
-		} else {
-			mainLog.println("Warning: option \"" + option + "\" not supported by ProbModelChecker.");
-		}
-	}
-
-	public void setOption(String option, double d)
-	{
-		if (option.equals("lineqmethodparam")) {
-			PrismMTBDD.setLinEqMethodParam(d);
-			PrismSparse.setLinEqMethodParam(d);
-			PrismHybrid.setLinEqMethodParam(d);
-		} else if (option.equals("termcritparam")) {
-			termCritParam = d;
-			PrismMTBDD.setTermCritParam(d);
-			PrismSparse.setTermCritParam(d);
-			PrismHybrid.setTermCritParam(d);
-		} else {
-			mainLog.println("Warning: option \"" + option + "\" not supported by ProbModelChecker.");
-		}
-	}
-
-	public void setOption(String option, String s)
-	{
-		mainLog.println("Warning: option \"" + option + "\" not supported by ProbModelChecker.");
+		// Inherit some options from parent Prism object
+		// Store locally and/or pass onto engines
+		engine = prism.getEngine();
+		termCritParam = prism.getTermCritParam();
+		verbose = prism.getVerbose();
 	}
 
 	// -----------------------------------------------------------------------------------
@@ -184,31 +104,45 @@ public class StateModelChecker implements ModelChecker
 
 	public Object check(Expression expr) throws PrismException
 	{
+		return check(expr, null);
+	}
+
+	public Object check(Expression expr, Filter filter) throws PrismException
+	{
 		long timer = 0;
-		JDDNode dd;
+		JDDNode ddFilter, tmp;
 		StateList states;
 		boolean b;
-		StateProbs res;
-		Object singleRes;
+		StateProbs vals;
+		Object res;
+		double minRes = 0.0, maxRes = 0.0;
 
-		// start timer
+		// Translate filter (creating default one first if none present)
+		if (filter == null) {
+			filter = new Filter(new ExpressionLabel("init"));
+			if (model.getNumStartStates() > 1) {
+				mainLog
+						.print("\nWarning: There are multiple initial states; the result of model checking is for the first one: ");
+				model.getStartStates().print(mainLog, 1);
+			}
+		}
+		ddFilter = checkExpressionDD(filter.getExpression());
+		if (ddFilter.equals(JDD.ZERO)) {
+			throw new PrismException("Filter " + filter + " satisfies no states");
+		}
+
+		// Do model checking and store result
 		timer = System.currentTimeMillis();
-
-		// do model checking and store result
-		res = checkExpression(expr);
-		
-		// stop timer
+		vals = checkExpression(expr);
 		timer = System.currentTimeMillis() - timer;
-
-		// print out model checking time
 		mainLog.println("\nTime for model checking: " + timer / 1000.0 + " seconds.");
 
-		// output and result of model checking depend on return type
+		// Process results of model checking using filter
 		if (expr.getType() == Expression.BOOLEAN) {
 
-			states = new StateListMTBDD(((StateProbsMTBDD)res).getJDDNode(), model);
-			JDD.Ref(((StateProbsMTBDD)res).getJDDNode());
-			
+			states = new StateListMTBDD(((StateProbsMTBDD) vals).getJDDNode(), model);
+			JDD.Ref(((StateProbsMTBDD) vals).getJDDNode());
+
 			// print out number of satisfying states
 			mainLog.print("\nNumber of satisfying states: ");
 			mainLog.print(states.size());
@@ -224,7 +158,7 @@ public class StateModelChecker implements ModelChecker
 			mainLog.print("\n");
 
 			// if "verbose", print out satisfying states
-			if (prism.getVerbose()) {
+			if (verbose) {
 				mainLog.print("\nSatisfying states:");
 				if (states.size() > 0) {
 					mainLog.print("\n");
@@ -236,23 +170,70 @@ public class StateModelChecker implements ModelChecker
 
 			// result is true if all states satisfy, false otherwise
 			b = (states.size() == model.getNumStates());
-			singleRes = b ? new Boolean(true) : new Boolean(false);
+			res = b ? new Boolean(true) : new Boolean(false);
 			states.clear();
 
 			// print result
 			mainLog.print("\nResult: " + b + " (property " + (b ? "" : "not ") + "satisfied in all states)\n");
 		} else {
-			singleRes = new Double(res.firstFromBDD(start));
-
+			if (filter.minRequested()) {
+				minRes = vals.minOverBDD(ddFilter);
+				// TODO probability -> value?
+				// (what about min/max vals for MDPs?)
+				// (see also poss use of getresultname below)
+				mainLog.print("\nMinimum probability for states satisfying " + filter.getExpression() + ": " + minRes
+						+ "\n");
+				tmp = vals.getBDDFromInterval(minRes - termCritParam, minRes + termCritParam);
+				JDD.Ref(ddFilter);
+				tmp = JDD.And(tmp, ddFilter);
+				states = new StateListMTBDD(tmp, model);
+				mainLog.print("There are " + states.size() + " states with this minimum probability (+/- "
+						+ termCritParam + ")");
+				if (!verbose && states.size() > 10) {
+					mainLog.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
+					states.print(mainLog, 10);
+				} else {
+					mainLog.print(":\n");
+					states.print(mainLog);
+				}
+				JDD.Deref(tmp);
+			}
+			if (filter.maxRequested()) {
+				maxRes = vals.maxOverBDD(ddFilter);
+				mainLog.print("\nMaximum probability for states satisfying " + filter.getExpression() + ": " + maxRes
+						+ "\n");
+				tmp = vals.getBDDFromInterval(maxRes - termCritParam, maxRes + termCritParam);
+				JDD.Ref(ddFilter);
+				tmp = JDD.And(tmp, ddFilter);
+				states = new StateListMTBDD(tmp, model);
+				mainLog.print("There are " + states.size() + " states with this maximum probability (+/- "
+						+ termCritParam + ")");
+				if (!verbose && states.size() > 10) {
+					mainLog.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
+					states.print(mainLog, 10);
+				} else {
+					mainLog.print(":\n");
+					states.print(mainLog);
+				}
+				JDD.Deref(tmp);
+			}
+			if (filter.minRequested())
+				res = minRes;
+			else if (filter.maxRequested())
+				res = maxRes;
+			else
+				res = vals.firstFromBDD(ddFilter);
 			// print result
-			mainLog.print("\nResult: " + singleRes + "\n");
+			mainLog.print("\nResult: " + res + "\n");
+			// TODO: use expr.getresultname?
 		}
 
-		// finished with memory
-		res.clear();
+		// clean up
+		JDD.Deref(ddFilter);
+		vals.clear();
 
 		// return result
-		return singleRes;
+		return res;
 	}
 
 	// Check expression (recursive)
@@ -263,50 +244,49 @@ public class StateModelChecker implements ModelChecker
 
 		// If-then-else
 		if (expr instanceof ExpressionITE) {
-			res = checkExpressionITE((ExpressionITE)expr);
+			res = checkExpressionITE((ExpressionITE) expr);
 		}
 		// Binary ops
 		else if (expr instanceof ExpressionBinaryOp) {
-			res = checkExpressionBinaryOp((ExpressionBinaryOp)expr);
+			res = checkExpressionBinaryOp((ExpressionBinaryOp) expr);
 		}
 		// Unary ops
 		else if (expr instanceof ExpressionUnaryOp) {
-			res = checkExpressionUnaryOp((ExpressionUnaryOp)expr);
+			res = checkExpressionUnaryOp((ExpressionUnaryOp) expr);
 		}
 		// Functions
 		else if (expr instanceof ExpressionFunc) {
-			res = checkExpressionFunc((ExpressionFunc)expr);
+			res = checkExpressionFunc((ExpressionFunc) expr);
 		}
 		// Identifiers
 		else if (expr instanceof ExpressionIdent) {
 			// Should never happen
-			throw new PrismException("Unknown identifier \"" + ((ExpressionIdent)expr).getName() + "\"");
+			throw new PrismException("Unknown identifier \"" + ((ExpressionIdent) expr).getName() + "\"");
 		}
 		// Literals
 		else if (expr instanceof ExpressionLiteral) {
-			res = checkExpressionLiteral((ExpressionLiteral)expr);
+			res = checkExpressionLiteral((ExpressionLiteral) expr);
 		}
 		// Constants
 		else if (expr instanceof ExpressionConstant) {
-			res = checkExpressionConstant((ExpressionConstant)expr);
+			res = checkExpressionConstant((ExpressionConstant) expr);
 		}
 		// Formulas
 		else if (expr instanceof ExpressionFormula) {
 			// Should never happen
-			throw new PrismException("Unexpanded formula \"" + ((ExpressionFormula)expr).getName() + "\"");
+			throw new PrismException("Unexpanded formula \"" + ((ExpressionFormula) expr).getName() + "\"");
 		}
 		// Variables
 		else if (expr instanceof ExpressionVar) {
-			res = checkExpressionVar((ExpressionVar)expr);
+			res = checkExpressionVar((ExpressionVar) expr);
 		}
 		// Labels
 		else if (expr instanceof ExpressionLabel) {
 			res = checkExpressionLabel((ExpressionLabel) expr);
-		}
-		else {
+		} else {
 			throw new PrismException("Couldn't check " + expr.getClass());
 		}
-		
+
 		// Filter out non-reachable states from solution (TODO: not for dv?)
 		res.filter(reach);
 
@@ -315,80 +295,95 @@ public class StateModelChecker implements ModelChecker
 
 	public JDDNode checkExpressionDD(Expression expr) throws PrismException
 	{
-		return ((StateProbsMTBDD)checkExpression(expr)).getJDDNode();
+		return ((StateProbsMTBDD) checkExpression(expr)).getJDDNode();
 	}
-	
+
 	// -----------------------------------------------------------------------------------
 	// Check method for each operator
 	// -----------------------------------------------------------------------------------
 
 	// Check an 'if-then-else'
-	
+
 	private StateProbs checkExpressionITE(ExpressionITE expr) throws PrismException
 	{
 		JDDNode dd, dd1, dd2, dd3;
-		
+
 		dd1 = checkExpressionDD(expr.getOperand1());
 		dd2 = checkExpressionDD(expr.getOperand2());
 		dd3 = checkExpressionDD(expr.getOperand3());
 		dd = JDD.ITE(dd1, dd2, dd3);
-		
+
 		return new StateProbsMTBDD(dd, model);
 	}
-	
+
 	// Check a binary operator
-	
+
 	private StateProbs checkExpressionBinaryOp(ExpressionBinaryOp expr) throws PrismException
 	{
 		JDDNode dd, tmp1, tmp2;
 		int op = expr.getOperator();
-		
+
 		// Optimisations are possible for relational operators
 		// (note dubious use of knowledge that op IDs are consecutive)
 		if (op >= ExpressionBinaryOp.EQ && op <= ExpressionBinaryOp.LE) {
 			return checkExpressionRelOp(op, expr.getOperand1(), expr.getOperand2());
 		}
-		
+
 		// Check operands
 		tmp1 = checkExpressionDD(expr.getOperand1());
 		try {
 			tmp2 = checkExpressionDD(expr.getOperand2());
-		}
-		catch (PrismException e) {
+		} catch (PrismException e) {
 			JDD.Deref(tmp1);
 			throw e;
 		}
-		
+
 		// Apply operation
 		switch (op) {
-		case ExpressionBinaryOp.IMPLIES: dd = JDD.Or(JDD.Not(tmp1), tmp2); break;
-		case ExpressionBinaryOp.OR: dd = JDD.Or(tmp1, tmp2); break;
-		case ExpressionBinaryOp.AND: dd = JDD.And(tmp1, tmp2); break;
-		case ExpressionBinaryOp.PLUS: dd = JDD.Apply(JDD.PLUS, tmp1, tmp2); break;
-		case ExpressionBinaryOp.MINUS: dd = JDD.Apply(JDD.MINUS, tmp1, tmp2); break;
-		case ExpressionBinaryOp.TIMES: dd = JDD.Apply(JDD.TIMES, tmp1, tmp2); break;
-		case ExpressionBinaryOp.DIVIDE: dd = JDD.Apply(JDD.DIVIDE, tmp1, tmp2); break;
-		default: throw new PrismException("Unknown binary operator");
+		case ExpressionBinaryOp.IMPLIES:
+			dd = JDD.Or(JDD.Not(tmp1), tmp2);
+			break;
+		case ExpressionBinaryOp.OR:
+			dd = JDD.Or(tmp1, tmp2);
+			break;
+		case ExpressionBinaryOp.AND:
+			dd = JDD.And(tmp1, tmp2);
+			break;
+		case ExpressionBinaryOp.PLUS:
+			dd = JDD.Apply(JDD.PLUS, tmp1, tmp2);
+			break;
+		case ExpressionBinaryOp.MINUS:
+			dd = JDD.Apply(JDD.MINUS, tmp1, tmp2);
+			break;
+		case ExpressionBinaryOp.TIMES:
+			dd = JDD.Apply(JDD.TIMES, tmp1, tmp2);
+			break;
+		case ExpressionBinaryOp.DIVIDE:
+			dd = JDD.Apply(JDD.DIVIDE, tmp1, tmp2);
+			break;
+		default:
+			throw new PrismException("Unknown binary operator");
 		}
 
 		return new StateProbsMTBDD(dd, model);
 	}
-	
+
 	// Check a relational operator (=, !=, >, >=, < <=)
-	
+
 	private StateProbs checkExpressionRelOp(int op, Expression expr1, Expression expr2) throws PrismException
 	{
 		JDDNode dd, tmp1, tmp2;
 		String s;
 
-		// check for some easy (and common) special cases before resorting to the general case
-		
+		// check for some easy (and common) special cases before resorting to
+		// the general case
+
 		// var relop int
-		if (expr1 instanceof ExpressionVar && expr2.isConstant() && expr2.getType()==Expression.INT) {
+		if (expr1 instanceof ExpressionVar && expr2.isConstant() && expr2.getType() == Expression.INT) {
 			ExpressionVar e1;
 			Expression e2;
 			int i, j, l, h, v;
-			e1 = (ExpressionVar)expr1;
+			e1 = (ExpressionVar) expr1;
 			e2 = expr2;
 			// get var's index
 			s = e1.getName();
@@ -404,35 +399,42 @@ public class StateModelChecker implements ModelChecker
 			i = e2.evaluateInt(constantValues, null);
 			switch (op) {
 			case ExpressionBinaryOp.EQ:
-				if (i>=l && i <= h) dd = JDD.SetVectorElement(dd, varDDRowVars[v], i-l, 1);
+				if (i >= l && i <= h)
+					dd = JDD.SetVectorElement(dd, varDDRowVars[v], i - l, 1);
 				break;
 			case ExpressionBinaryOp.NE:
-				if (i>=l && i <= h) dd = JDD.SetVectorElement(dd, varDDRowVars[v], i-l, 1);
+				if (i >= l && i <= h)
+					dd = JDD.SetVectorElement(dd, varDDRowVars[v], i - l, 1);
 				dd = JDD.Not(dd);
 				break;
 			case ExpressionBinaryOp.GT:
-				for (j = i+1; j <= h; j++) dd = JDD.SetVectorElement(dd, varDDRowVars[v], j-l, 1);
+				for (j = i + 1; j <= h; j++)
+					dd = JDD.SetVectorElement(dd, varDDRowVars[v], j - l, 1);
 				break;
 			case ExpressionBinaryOp.GE:
-				for (j = i; j <= h; j++) dd = JDD.SetVectorElement(dd, varDDRowVars[v], j-l, 1);
+				for (j = i; j <= h; j++)
+					dd = JDD.SetVectorElement(dd, varDDRowVars[v], j - l, 1);
 				break;
 			case ExpressionBinaryOp.LT:
-				for (j = i-1; j >= l; j--) dd = JDD.SetVectorElement(dd, varDDRowVars[v], j-l, 1);
+				for (j = i - 1; j >= l; j--)
+					dd = JDD.SetVectorElement(dd, varDDRowVars[v], j - l, 1);
 				break;
 			case ExpressionBinaryOp.LE:
-				for (j = i; j >= l; j--) dd = JDD.SetVectorElement(dd, varDDRowVars[v], j-l, 1);
+				for (j = i; j >= l; j--)
+					dd = JDD.SetVectorElement(dd, varDDRowVars[v], j - l, 1);
 				break;
-			default: throw new PrismException("Unknown relational operator");
+			default:
+				throw new PrismException("Unknown relational operator");
 			}
 			return new StateProbsMTBDD(dd, model);
 		}
 		// int relop var
-		else if (expr1.isConstant() && expr1.getType()==Expression.INT && expr2 instanceof ExpressionVar) {
+		else if (expr1.isConstant() && expr1.getType() == Expression.INT && expr2 instanceof ExpressionVar) {
 			Expression e1;
 			ExpressionVar e2;
 			int i, j, l, h, v;
 			e1 = expr1;
-			e2 = (ExpressionVar)expr2;
+			e2 = (ExpressionVar) expr2;
 			// get var's index
 			s = e2.getName();
 			v = varList.getIndex(s);
@@ -447,25 +449,32 @@ public class StateModelChecker implements ModelChecker
 			i = e1.evaluateInt(constantValues, null);
 			switch (op) {
 			case ExpressionBinaryOp.EQ:
-				if (i>=l && i <= h) dd = JDD.SetVectorElement(dd, varDDRowVars[v], i-l, 1);
+				if (i >= l && i <= h)
+					dd = JDD.SetVectorElement(dd, varDDRowVars[v], i - l, 1);
 				break;
 			case ExpressionBinaryOp.NE:
-				if (i>=l && i <= h) dd = JDD.SetVectorElement(dd, varDDRowVars[v], i-l, 1);
+				if (i >= l && i <= h)
+					dd = JDD.SetVectorElement(dd, varDDRowVars[v], i - l, 1);
 				dd = JDD.Not(dd);
 				break;
 			case ExpressionBinaryOp.GT:
-				for (j = i-1; j >= l; j--) dd = JDD.SetVectorElement(dd, varDDRowVars[v], j-l, 1);
+				for (j = i - 1; j >= l; j--)
+					dd = JDD.SetVectorElement(dd, varDDRowVars[v], j - l, 1);
 				break;
 			case ExpressionBinaryOp.GE:
-				for (j = i; j >= l; j--) dd = JDD.SetVectorElement(dd, varDDRowVars[v], j-l, 1);
+				for (j = i; j >= l; j--)
+					dd = JDD.SetVectorElement(dd, varDDRowVars[v], j - l, 1);
 				break;
 			case ExpressionBinaryOp.LT:
-				for (j = i+1; j <= h; j++) dd = JDD.SetVectorElement(dd, varDDRowVars[v], j-l, 1);
+				for (j = i + 1; j <= h; j++)
+					dd = JDD.SetVectorElement(dd, varDDRowVars[v], j - l, 1);
 				break;
 			case ExpressionBinaryOp.LE:
-				for (j = i; j <= h; j++) dd = JDD.SetVectorElement(dd, varDDRowVars[v], j-l, 1);
+				for (j = i; j <= h; j++)
+					dd = JDD.SetVectorElement(dd, varDDRowVars[v], j - l, 1);
 				break;
-			default: throw new PrismException("Unknown relational operator");
+			default:
+				throw new PrismException("Unknown relational operator");
 			}
 			return new StateProbsMTBDD(dd, model);
 		}
@@ -492,185 +501,214 @@ public class StateModelChecker implements ModelChecker
 		case ExpressionBinaryOp.LE:
 			dd = JDD.Apply(JDD.LESSTHANEQUALS, tmp1, tmp2);
 			break;
-		default: throw new PrismException("Unknown relational operator");
-		}
-		
-		return new StateProbsMTBDD(dd, model);
-	}
-	
-	// Check a unary operator
-	
-	private StateProbs checkExpressionUnaryOp(ExpressionUnaryOp expr) throws PrismException
-	{
-		JDDNode dd, tmp;
-		int op = expr.getOperator();
-		
-		// Check operand
-		tmp = checkExpressionDD(expr.getOperand());
-		
-		// Apply operation
-		switch (op) {
-		case ExpressionUnaryOp.NOT: dd = JDD.Not(tmp); break;
-		case ExpressionUnaryOp.MINUS: dd = JDD.Apply(JDD.MINUS, JDD.Constant(0), tmp); break;
-		case ExpressionUnaryOp.PARENTH: dd = tmp; break;
-		default: throw new PrismException("Unknown unary operator");
+		default:
+			throw new PrismException("Unknown relational operator");
 		}
 
 		return new StateProbsMTBDD(dd, model);
 	}
-	
+
+	// Check a unary operator
+
+	private StateProbs checkExpressionUnaryOp(ExpressionUnaryOp expr) throws PrismException
+	{
+		JDDNode dd, tmp;
+		int op = expr.getOperator();
+
+		// Check operand
+		tmp = checkExpressionDD(expr.getOperand());
+
+		// Apply operation
+		switch (op) {
+		case ExpressionUnaryOp.NOT:
+			dd = JDD.Not(tmp);
+			break;
+		case ExpressionUnaryOp.MINUS:
+			dd = JDD.Apply(JDD.MINUS, JDD.Constant(0), tmp);
+			break;
+		case ExpressionUnaryOp.PARENTH:
+			dd = tmp;
+			break;
+		default:
+			throw new PrismException("Unknown unary operator");
+		}
+
+		return new StateProbsMTBDD(dd, model);
+	}
+
 	// Check a 'function'
-	
+
 	private StateProbs checkExpressionFunc(ExpressionFunc expr) throws PrismException
 	{
 		switch (expr.getNameCode()) {
-			case ExpressionFunc.MIN: return checkExpressionFuncMin(expr);
-			case ExpressionFunc.MAX: return checkExpressionFuncMax(expr);
-			case ExpressionFunc.FLOOR: return checkExpressionFuncFloor(expr);
-			case ExpressionFunc.CEIL: return checkExpressionFuncCeil(expr);
-			case ExpressionFunc.POW: return checkExpressionFuncPow(expr);
-			case ExpressionFunc.MOD: return checkExpressionFuncMod(expr);
-			case ExpressionFunc.LOG: return checkExpressionFuncLog(expr);
-			default: throw new PrismException("Unrecognised function \"" + expr.getName() + "\"");
+		case ExpressionFunc.MIN:
+			return checkExpressionFuncMin(expr);
+		case ExpressionFunc.MAX:
+			return checkExpressionFuncMax(expr);
+		case ExpressionFunc.FLOOR:
+			return checkExpressionFuncFloor(expr);
+		case ExpressionFunc.CEIL:
+			return checkExpressionFuncCeil(expr);
+		case ExpressionFunc.POW:
+			return checkExpressionFuncPow(expr);
+		case ExpressionFunc.MOD:
+			return checkExpressionFuncMod(expr);
+		case ExpressionFunc.LOG:
+			return checkExpressionFuncLog(expr);
+		default:
+			throw new PrismException("Unrecognised function \"" + expr.getName() + "\"");
 		}
 	}
-	
+
 	private StateProbs checkExpressionFuncMin(ExpressionFunc expr) throws PrismException
 	{
 		int i, n;
 		JDDNode dd, tmp;
-		
+
 		dd = checkExpressionDD(expr.getOperand(0));
 		n = expr.getNumOperands();
 		for (i = 1; i < n; i++) {
 			try {
 				tmp = checkExpressionDD(expr.getOperand(i));
 				dd = JDD.Apply(JDD.MIN, dd, tmp);
-			}
-			catch (PrismException e) {
+			} catch (PrismException e) {
 				JDD.Deref(dd);
 				throw e;
 			}
 		}
-		
+
 		return new StateProbsMTBDD(dd, model);
 	}
-	
+
 	private StateProbs checkExpressionFuncMax(ExpressionFunc expr) throws PrismException
 	{
 		int i, n;
 		JDDNode dd, tmp;
-		
+
 		dd = checkExpressionDD(expr.getOperand(0));
 		n = expr.getNumOperands();
 		for (i = 1; i < n; i++) {
 			try {
 				tmp = checkExpressionDD(expr.getOperand(i));
 				dd = JDD.Apply(JDD.MAX, dd, tmp);
-			}
-			catch (PrismException e) {
+			} catch (PrismException e) {
 				JDD.Deref(dd);
 				throw e;
 			}
 		}
-		
+
 		return new StateProbsMTBDD(dd, model);
 	}
-	
+
 	private StateProbs checkExpressionFuncFloor(ExpressionFunc expr) throws PrismException
 	{
 		JDDNode dd;
-		
+
 		dd = checkExpressionDD(expr.getOperand(0));
 		dd = JDD.MonadicApply(JDD.FLOOR, dd);
-		
+
 		return new StateProbsMTBDD(dd, model);
 	}
-	
+
 	private StateProbs checkExpressionFuncCeil(ExpressionFunc expr) throws PrismException
 	{
 		JDDNode dd;
-		
+
 		dd = checkExpressionDD(expr.getOperand(0));
 		dd = JDD.MonadicApply(JDD.CEIL, dd);
-		
+
 		return new StateProbsMTBDD(dd, model);
 	}
-	
+
 	private StateProbs checkExpressionFuncPow(ExpressionFunc expr) throws PrismException
 	{
 		JDDNode dd1, dd2, dd;
-		
+
 		dd1 = checkExpressionDD(expr.getOperand(0));
 		dd2 = checkExpressionDD(expr.getOperand(1));
 		dd = JDD.Apply(JDD.POW, dd1, dd2);
-		
+
 		return new StateProbsMTBDD(dd, model);
 	}
-	
+
 	private StateProbs checkExpressionFuncMod(ExpressionFunc expr) throws PrismException
 	{
 		JDDNode dd1, dd2, dd;
-		
+
 		dd1 = checkExpressionDD(expr.getOperand(0));
 		dd2 = checkExpressionDD(expr.getOperand(1));
 		dd = JDD.Apply(JDD.MOD, dd1, dd2);
-		
+
 		return new StateProbsMTBDD(dd, model);
 	}
 
 	private StateProbs checkExpressionFuncLog(ExpressionFunc expr) throws PrismException
 	{
 		JDDNode dd1, dd2, dd;
-		
+
 		dd1 = checkExpressionDD(expr.getOperand(0));
 		dd2 = checkExpressionDD(expr.getOperand(1));
 		dd = JDD.Apply(JDD.LOGXY, dd1, dd2);
-		
+
 		return new StateProbsMTBDD(dd, model);
 	}
 
 	// Check a literal
-	
+
 	private StateProbs checkExpressionLiteral(ExpressionLiteral expr) throws PrismException
 	{
 		JDDNode dd;
 		switch (expr.getType()) {
-			case Expression.BOOLEAN: dd = JDD.Constant(expr.evaluateBoolean(null, null) ? 1.0 : 0.0); break;
-			case Expression.INT: dd = JDD.Constant(expr.evaluateInt(null, null)); break;
-			case Expression.DOUBLE: dd = JDD.Constant(expr.evaluateDouble(null, null)); break;
-			default: throw new PrismException("Unknown literal type");
+		case Expression.BOOLEAN:
+			dd = JDD.Constant(expr.evaluateBoolean(null, null) ? 1.0 : 0.0);
+			break;
+		case Expression.INT:
+			dd = JDD.Constant(expr.evaluateInt(null, null));
+			break;
+		case Expression.DOUBLE:
+			dd = JDD.Constant(expr.evaluateDouble(null, null));
+			break;
+		default:
+			throw new PrismException("Unknown literal type");
 		}
 		return new StateProbsMTBDD(dd, model);
 	}
-	
+
 	// Check a constant
-	
+
 	private StateProbs checkExpressionConstant(ExpressionConstant expr) throws PrismException
 	{
 		int i;
 		JDDNode dd;
-		
+
 		i = constantValues.getIndexOf(expr.getName());
-		if (i == -1) throw new PrismException("Couldn't evaluate constant \"" + expr.getName() + "\"");
+		if (i == -1)
+			throw new PrismException("Couldn't evaluate constant \"" + expr.getName() + "\"");
 		switch (constantValues.getType(i)) {
-			case Expression.INT: dd = JDD.Constant(constantValues.getIntValue(i)); break;
-			case Expression.DOUBLE: dd = JDD.Constant(constantValues.getDoubleValue(i)); break;
-			case Expression.BOOLEAN: dd = JDD.Constant(constantValues.getBooleanValue(i) ? 1.0 : 0.0); break;
-			default: throw new PrismException("Unknown type for constant \"" + expr.getName() + "\"");
+		case Expression.INT:
+			dd = JDD.Constant(constantValues.getIntValue(i));
+			break;
+		case Expression.DOUBLE:
+			dd = JDD.Constant(constantValues.getDoubleValue(i));
+			break;
+		case Expression.BOOLEAN:
+			dd = JDD.Constant(constantValues.getBooleanValue(i) ? 1.0 : 0.0);
+			break;
+		default:
+			throw new PrismException("Unknown type for constant \"" + expr.getName() + "\"");
 		}
-		
+
 		return new StateProbsMTBDD(dd, model);
 	}
-	
+
 	// Check a variable reference
-	
+
 	private StateProbs checkExpressionVar(ExpressionVar expr) throws PrismException
 	{
 		String s;
 		int v, l, h, i;
 		JDDNode dd;
-		
+
 		s = expr.getName();
 		// get the variable's index
 		v = varList.getIndex(s);
@@ -683,12 +721,12 @@ public class StateModelChecker implements ModelChecker
 		// create dd
 		dd = JDD.Constant(0);
 		for (i = l; i <= h; i++) {
-			dd = JDD.SetVectorElement(dd, varDDRowVars[v], i-l, i);
+			dd = JDD.SetVectorElement(dd, varDDRowVars[v], i - l, i);
 		}
-				
+
 		return new StateProbsMTBDD(dd, model);
 	}
-	
+
 	// Check label
 
 	private StateProbs checkExpressionLabel(ExpressionLabel expr) throws PrismException
@@ -701,12 +739,10 @@ public class StateModelChecker implements ModelChecker
 		if (expr.getName().equals("deadlock")) {
 			dd = model.getFixedDeadlocks();
 			JDD.Ref(dd);
-		}
-		else if (expr.getName().equals("init")) {
+		} else if (expr.getName().equals("init")) {
 			dd = start;
 			JDD.Ref(dd);
-		}
-		else {
+		} else {
 			// get expression associated with label
 			ll = propertiesFile.getCombinedLabelList();
 			i = ll.getLabelIndex(expr.getName());
@@ -715,7 +751,7 @@ public class StateModelChecker implements ModelChecker
 			// check recursively
 			dd = checkExpressionDD(ll.getLabel(i));
 		}
-		
+
 		return new StateProbsMTBDD(dd, model);
 	}
 }

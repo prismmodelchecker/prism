@@ -39,7 +39,7 @@ public class SCCComputer
 	private PrismLog techLog;
 
 	// model info
-	private StochModel model;
+	private Model model;
 	private JDDNode trans01;
 	private JDDNode reach;
 	private JDDVars allDDRowVars;
@@ -59,10 +59,7 @@ public class SCCComputer
 		// initialise
 		mainLog = log1;
 		techLog = log2;
-		if (!(m instanceof StochModel)) {	
-			throw new PrismException("Error: Wrong model type passed to SCCComputer.");
-		}
-		model = (StochModel)m;
+		model = m;
 		trans01 = model.getTrans01();
 		reach = model.getReach();
 		allDDRowVars = model.getAllDDRowVars();

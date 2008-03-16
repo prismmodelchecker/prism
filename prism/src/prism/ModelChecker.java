@@ -32,12 +32,8 @@ import parser.ast.*;
 
 public interface ModelChecker
 {
-	public void setEngine(int e);
-	public void setOption(String option, boolean b);
-	public void setOption(String option, int i);
-	public void setOption(String option, double d);
-	public void setOption(String option, String s);
-	public Object check(Expression f) throws PrismException;
+	public Object check(Expression expr) throws PrismException;
+	public Object check(Expression expr, Filter filter) throws PrismException;
 }
 
 //------------------------------------------------------------------------------

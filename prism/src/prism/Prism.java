@@ -1128,80 +1128,41 @@ public class Prism implements PrismSettingsListener
 	// model checking
 	// returns result or throws an exception in case of error
 	
-	public Object modelCheck(Model model, PropertiesFile propertiesFile, Expression f) throws PrismException, PrismLangException
+	public Object modelCheck(Model model, PropertiesFile propertiesFile, Expression expr) throws PrismException, PrismLangException
 	{
 		Object res;
+		Filter filter;
 		
 		// Check that property is valid for this model type
 		// and create new model checker object
 		if (model instanceof ProbModel)
 		{
-			f.checkValid(ModulesFile.PROBABILISTIC);
+			expr.checkValid(ModulesFile.PROBABILISTIC);
 			mc = new ProbModelChecker(this, model, propertiesFile);
 		}
 		else if (model instanceof NondetModel)
 		{
-			f.checkValid(ModulesFile.NONDETERMINISTIC);
-			mc = new NondetModelChecker(mainLog, techLog, model, propertiesFile);
+			expr.checkValid(ModulesFile.NONDETERMINISTIC);
+			mc = new NondetModelChecker(this, model, propertiesFile);
 		}
 		else if (model instanceof StochModel)
 		{
-			f.checkValid(ModulesFile.STOCHASTIC);
-			mc = new StochModelChecker(mainLog, techLog, model, propertiesFile);
+			expr.checkValid(ModulesFile.STOCHASTIC);
+			mc = new StochModelChecker(this, model, propertiesFile);
 		}
 		else
 		{
 			throw new PrismException("Unknown model type");
 		}
 		
-		// configure model checker
-		mc.setEngine(getEngine());
-		if (!(model instanceof NondetModel))
-		{
-			mc.setOption("lineqmethod", getLinEqMethod());
-			mc.setOption("lineqmethodparam", getLinEqMethodParam());
-		}
-		mc.setOption("termcrit", getTermCrit());
-		mc.setOption("termcritparam", getTermCritParam());
-		mc.setOption("maxiters", getMaxIters());
-		mc.setOption("precomp", getPrecomp());
-		if (model instanceof StochModel)
-		{
-			mc.setOption("bscccomp", getBSCCComp());
-			mc.setOption("dossdetect", getDoSSDetect());
-		}
-		if (model instanceof NondetModel)
-		{
-			mc.setOption("fairness", getFairness());
-		}
-		if (getEngine() == HYBRID || getEngine() == SPARSE)
-		{
-			mc.setOption("compact", getCompact());
-		}
-		if (getEngine() == HYBRID)
-		{
-			mc.setOption("sbmaxmem", getSBMaxMem());
-			mc.setOption("numsblevels", getNumSBLevels());
-		}
-		if ((getEngine() == HYBRID) && !(model instanceof NondetModel))
-		{
-			mc.setOption("sormaxmem", getSORMaxMem());
-			mc.setOption("numsorlevels", getNumSORLevels());
-		}
+		// Do model checking
+		if (expr instanceof ExpressionProb)
+			filter = ((ExpressionProb)expr).getFilter();
+		else
+			filter = null;
+		res = mc.check(expr, filter);
 		
-		//		// print out which engine we are using
-		//		mainLog.print("\nEngine: ");
-		//		switch (engine) {
-		//		case MTBDD: mainLog.println("MTBDD"); break;
-		//		case SPARSE: mainLog.println("Sparse"); break;
-		//		case HYBRID: mainLog.println("Hybrid"); break;
-		//		default: mainLog.print("?????"); break;
-		//		}
-		
-		// do model checking
-		res = mc.check(f);
-		
-		// return result
+		// Return result
 		return res;
 	}
 	
@@ -1314,42 +1275,8 @@ public class Prism implements PrismSettingsListener
 		
 		mainLog.println("\nComputing steady-state probabilities...");
 		
-		// create/configure new model checker object
-		mc = new StochModelChecker(mainLog, techLog, model, null);
-		switch (getEngine())
-		{
-			case MTBDD: mc.setEngine(MTBDD); break;
-			case SPARSE: mc.setEngine(SPARSE); break;
-			case HYBRID: mc.setEngine(HYBRID); break;
-			default: break;
-		}
-		mc.setOption("lineqmethod", getLinEqMethod());
-		mc.setOption("lineqmethodparam", getLinEqMethodParam());
-		mc.setOption("termcrit", getTermCrit());
-		mc.setOption("termcritparam", getTermCritParam());
-		mc.setOption("maxiters", getMaxIters());
-		mc.setOption("bscccomp", getBSCCComp());
-		if (getEngine() == HYBRID || getEngine() == SPARSE)
-		{
-			mc.setOption("compact", getCompact());
-		}
-		if (getEngine() == HYBRID)
-		{
-			mc.setOption("sbmaxmem", getSBMaxMem());
-			mc.setOption("numsblevels", getNumSBLevels());
-			mc.setOption("sormaxmem", getSORMaxMem());
-			mc.setOption("numsorlevels", getNumSORLevels());
-		}
-		
-		//		// print out which engine we are using
-		//		mainLog.print("\nEngine: ");
-		//		switch (engine) {
-		//		case MTBDD: mainLog.println("MTBDD"); break;
-		//		case SPARSE: mainLog.println("Sparse"); break;
-		//		case HYBRID: mainLog.println("Hybrid"); break;
-		//		default: mainLog.print("?????"); break;
-		//		}
-		
+		// create new model checker object
+		mc = new StochModelChecker(this, model, null);
 		// do steady state calculation
 		l = System.currentTimeMillis();
 		probs = ((StochModelChecker)mc).doSteadyState();
@@ -1373,42 +1300,8 @@ public class Prism implements PrismSettingsListener
 		
 		mainLog.println("\nComputing transient probabilities (time = " + time + ")...");
 		
-		// create/configure new model checker object
-		mc = new StochModelChecker(mainLog, techLog, model, null);
-		switch (getEngine())
-		{
-			case MTBDD: mc.setEngine(MTBDD); break;
-			case SPARSE: mc.setEngine(SPARSE); break;
-			case HYBRID: mc.setEngine(HYBRID); break;
-			default: break;
-		}
-		mc.setOption("lineqmethod", getLinEqMethod()); // don't really need
-		mc.setOption("lineqmethodparam", getLinEqMethodParam()); // don't really need
-		mc.setOption("termcrit", getTermCrit());
-		mc.setOption("termcritparam", getTermCritParam());
-		mc.setOption("maxiters", getMaxIters()); // don't really need
-		mc.setOption("bscccomp", getBSCCComp()); // don't really need
-		mc.setOption("dossdetect", getDoSSDetect());
-		if (getEngine() == HYBRID || getEngine() == SPARSE)
-		{
-			mc.setOption("compact", getCompact());
-		}
-		if (getEngine() == HYBRID)
-		{
-			mc.setOption("sbmaxmem", getSBMaxMem());
-			mc.setOption("numsblevels", getNumSBLevels());
-			mc.setOption("sormaxmem", getSORMaxMem()); // don't really need
-			mc.setOption("numsorlevels", getNumSORLevels()); // don't really need
-		}
-		
-		//		// print out which engine we are using
-		//		mainLog.print("\nEngine: ");
-		//		switch (engine) {
-		//		case MTBDD: mainLog.println("MTBDD"); break;
-		//		case SPARSE: mainLog.println("Sparse"); break;
-		//		case HYBRID: mainLog.println("Hybrid"); break;
-		//		default: mainLog.print("?????"); break;
-		//		}
+		// create new model checker object
+		mc = new StochModelChecker(this, model, null);
 		
 		// do steady state calculation
 		l = System.currentTimeMillis();

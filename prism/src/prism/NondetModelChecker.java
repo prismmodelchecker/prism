@@ -27,263 +27,78 @@
 package prism;
 
 import jdd.*;
-import odd.*;
 import dv.*;
 import mtbdd.*;
 import sparse.*;
 import hybrid.*;
-import parser.*;
 import parser.ast.*;
 
-// Model checker for MDPs
-
-public class NondetModelChecker implements ModelChecker
+/*
+ * Model checker for MDPs
+ */
+public class NondetModelChecker extends StateModelChecker
 {
-	// logs
-	private PrismLog mainLog;
-	private PrismLog techLog;
+	// Model (MDP)
+	protected NondetModel model;
 
-	// options
+	// Extra (MDP) model info
+	protected JDDNode nondetMask;
+	protected JDDVars allDDNondetVars;
 
-	// which engine to use
-	private int engine;
-	// termination criterion (iterative methods)
-	private int termCrit;
-	// parameter for termination criterion
-	private double termCritParam;
-	// max num iterations (iterative methods)
-	private int maxIters;
-	// flags
-	private boolean verbose; // verbose output?
-	private boolean precomp; // use 0,1 precomputation algorithms?
-	private boolean fairness; // use fairness?
-	// sparse bits info
-	private int SBMaxMem;
-	private int numSBLevels;
+	// Options (in addition to those inherited from StateModelChecker):
 
-	// properties file
-	private PropertiesFile propertiesFile;
+	// Use 0,1 precomputation algorithms?
+	protected boolean precomp;
+	// Use fairness?
+	protected boolean fairness;
 
-	// constant values
-	private Values constantValues;
+	// Constructor
 
-	// Expression2MTBDD object for translating expressions
-	private Expression2MTBDD expr2mtbdd;
-
-	// class-wide storage for probability in the initial state
-	private double numericalRes;
-
-	// model info
-	private NondetModel model;
-	private JDDNode trans;
-	private JDDNode trans01;
-	private JDDNode start;
-	private JDDNode reach;
-	private ODDNode odd;
-	private JDDNode nondetMask;
-	private JDDVars allDDRowVars;
-	private JDDVars allDDColVars;
-	private JDDVars allDDNondetVars;
-	private JDDVars[] varDDRowVars;
-
-	// constructor - set some defaults
-
-	public NondetModelChecker(PrismLog log1, PrismLog log2, Model m, PropertiesFile pf) throws PrismException
+	public NondetModelChecker(Prism prism, Model m, PropertiesFile pf) throws PrismException
 	{
-		// initialise
-		mainLog = log1;
-		techLog = log2;
+		// Initialise
+		super(prism, m, pf);
 		if (!(m instanceof NondetModel)) {
-			throw new PrismException("Error: wrong model type passed to NondetModelChecker.");
+			throw new PrismException("Wrong model type passed to NondetModelChecker.");
 		}
 		model = (NondetModel) m;
-		propertiesFile = pf;
-		trans = model.getTrans();
-		trans01 = model.getTrans01();
-		start = model.getStart();
-		reach = model.getReach();
-		odd = model.getODD();
 		nondetMask = model.getNondetMask();
-		allDDRowVars = model.getAllDDRowVars();
-		allDDColVars = model.getAllDDColVars();
 		allDDNondetVars = model.getAllDDNondetVars();
-		varDDRowVars = model.getVarDDRowVars();
 
-		// create list of all constant values needed
-		constantValues = new Values();
-		constantValues.addValues(model.getConstantValues());
-		if (pf != null)
-			constantValues.addValues(pf.getConstantValues());
-
-		// create Expression2MTBDD object
-		expr2mtbdd = new Expression2MTBDD(mainLog, techLog, model.getVarList(), varDDRowVars, constantValues);
-		expr2mtbdd.setFilter(reach);
-
-		// set up some default options
-		// (although all should be overridden before model checking)
-		engine = Prism.HYBRID;
-		termCrit = Prism.RELATIVE;
-		termCritParam = 1e-6;
-		maxIters = 10000;
-		verbose = false;
-		precomp = true;
-		fairness = true;
-		SBMaxMem = 1024;
-		numSBLevels = -1;
-	}
-
-	// set engine
-
-	public void setEngine(int e)
-	{
-		engine = e;
-	}
-
-	// set options (generic)
-
-	public void setOption(String option, boolean b)
-	{
-		if (option.equals("verbose")) {
-			verbose = b;
-		} else if (option.equals("precomp")) {
-			precomp = b;
-		} else if (option.equals("fairness")) {
-			fairness = b;
-		} else if (option.equals("compact")) {
-			PrismSparse.setCompact(b);
-			PrismHybrid.setCompact(b);
-		} else {
-			mainLog.println("Warning: option \"" + option + "\" not supported by NondetModelChecker.");
+		// Inherit some options from parent Prism object.
+		// Store locally and/or pass onto engines.
+		precomp = prism.getPrecomp();
+		fairness = prism.getFairness();
+		switch (engine) {
+		case Prism.MTBDD:
+			PrismMTBDD.setTermCrit(prism.getTermCrit());
+			PrismMTBDD.setTermCritParam(prism.getTermCritParam());
+			PrismMTBDD.setMaxIters(prism.getMaxIters());
+			break;
+		case Prism.SPARSE:
+			PrismSparse.setTermCrit(prism.getTermCrit());
+			PrismSparse.setTermCritParam(prism.getTermCritParam());
+			PrismSparse.setMaxIters(prism.getMaxIters());
+			PrismSparse.setCompact(prism.getCompact());
+		case Prism.HYBRID:
+			PrismHybrid.setTermCrit(prism.getTermCrit());
+			PrismHybrid.setTermCritParam(prism.getTermCritParam());
+			PrismHybrid.setMaxIters(prism.getMaxIters());
+			PrismHybrid.setCompact(prism.getCompact());
+			PrismHybrid.setSBMaxMem(prism.getSBMaxMem());
+			PrismHybrid.setNumSBLevels(prism.getNumSBLevels());
 		}
-	}
-
-	public void setOption(String option, int i)
-	{
-		if (option.equals("termcrit")) {
-			termCrit = i;
-			PrismMTBDD.setTermCrit(i);
-			PrismSparse.setTermCrit(i);
-			PrismHybrid.setTermCrit(i);
-		} else if (option.equals("maxiters")) {
-			maxIters = i;
-			PrismMTBDD.setMaxIters(i);
-			PrismSparse.setMaxIters(i);
-			PrismHybrid.setMaxIters(i);
-		} else if (option.equals("sbmaxmem")) {
-			SBMaxMem = i;
-			PrismHybrid.setSBMaxMem(i);
-		} else if (option.equals("numsblevels")) {
-			numSBLevels = i;
-			PrismHybrid.setNumSBLevels(i);
-		} else {
-			mainLog.println("Warning: option \"" + option + "\" not supported by NondetModelChecker.");
-		}
-	}
-
-	public void setOption(String option, double d)
-	{
-		if (option.equals("termcritparam")) {
-			termCritParam = d;
-			PrismMTBDD.setTermCritParam(d);
-			PrismSparse.setTermCritParam(d);
-			PrismHybrid.setTermCritParam(d);
-		} else {
-			mainLog.println("Warning: option \"" + option + "\" not supported by NondetModelChecker.");
-		}
-	}
-
-	public void setOption(String option, String s)
-	{
-		mainLog.println("Warning: option \"" + option + "\" not supported by NondetModelChecker.");
-	}
-
-	// compute number of places to round solution vector to
-	// (given termination criteria, etc.)
-
-	public int getPlacesToRoundBy()
-	{
-		return 1 - (int) (Math.log(termCritParam) / Math.log(10));
 	}
 
 	// -----------------------------------------------------------------------------------
 	// Check a property, i.e. an expression
 	// -----------------------------------------------------------------------------------
 
-	public Object check(Expression expr) throws PrismException
-	{
-		long timer = 0;
-		JDDNode dd;
-		StateList states;
-		boolean b;
-		Object res;
-
-		// start timer
-		timer = System.currentTimeMillis();
-
-		// do model checking and store result
-		dd = checkExpression(expr);
-		states = new StateListMTBDD(dd, model);
-
-		// stop timer
-		timer = System.currentTimeMillis() - timer;
-
-		// print out model checking time
-		mainLog.println("\nTime for model checking: " + timer / 1000.0 + " seconds.");
-
-		// output and result of model checking depend on return type
-		if (expr.getType() == Expression.BOOLEAN) {
-
-			// print out number of satisfying states
-			mainLog.print("\nNumber of satisfying states: ");
-			mainLog.print(states.size());
-			if (states.size() == model.getNumStates()) {
-				mainLog.print(" (all)");
-			} else if (states.includes(model.getStart())) {
-				mainLog.print((model.getNumStartStates() == 1) ? " (including initial state)"
-						: " (including all initial states)");
-			} else {
-				mainLog.print((model.getNumStartStates() == 1) ? " (initial state not satisfied)"
-						: " (initial states not all satisfied)");
-			}
-			mainLog.print("\n");
-
-			// if "verbose", print out satisfying states
-			if (verbose) {
-				mainLog.print("\nSatisfying states:");
-				if (states.size() > 0) {
-					mainLog.print("\n");
-					states.print(mainLog);
-				} else {
-					mainLog.print(" (none)\n");
-				}
-			}
-
-			// result is true if all states satisfy, false otherwise
-			b = (states.size() == model.getNumStates());
-			res = b ? new Boolean(true) : new Boolean(false);
-
-			// print result
-			mainLog.print("\nResult: " + b + " (property " + (b ? "" : "not ") + "satisfied in all states)\n");
-		} else {
-			// result is value stored earlier
-			res = new Double(numericalRes);
-
-			// print result
-			mainLog.print("\nResult: " + res + "\n");
-		}
-
-		// finished with memory
-		states.clear();
-
-		// return result
-		return res;
-	}
-
 	// Check expression (recursive)
 
-	public JDDNode checkExpression(Expression expr) throws PrismException
+	public StateProbs checkExpression(Expression expr) throws PrismException
 	{
-		JDDNode res;
+		StateProbs res;
 
 		// P operator
 		if (expr instanceof ExpressionProb) {
@@ -293,18 +108,13 @@ public class NondetModelChecker implements ModelChecker
 		else if (expr instanceof ExpressionReward) {
 			res = checkExpressionReward((ExpressionReward) expr);
 		}
-		// Label
-		else if (expr instanceof ExpressionLabel) {
-			res = checkExpressionLabel((ExpressionLabel) expr);
-		}
-		// Otherwise, must be an ordinary expression
+		// Otherwise, use the superclass
 		else {
-			res = expr2mtbdd.translateExpression(expr);
+			res = super.checkExpression(expr);
 		}
 
-		// Filter out non-reachable states from solution
-		JDD.Ref(reach);
-		res = JDD.Apply(JDD.TIMES, res, reach);
+		// Filter out non-reachable states from solution (TODO: not for dv?)
+		res.filter(reach);
 
 		return res;
 	}
@@ -315,18 +125,16 @@ public class NondetModelChecker implements ModelChecker
 
 	// P operator
 
-	private JDDNode checkExpressionProb(ExpressionProb expr) throws PrismException
+	protected StateProbs checkExpressionProb(ExpressionProb expr) throws PrismException
 	{
 		Expression pb; // probability bound (expression)
-		double p = 0; // probability value (actual value)
+		double p = 0; // probability bound (actual value)
 		String relOp; // relational operator
 		boolean min; // are we finding min (true) or max (false) probs
 		PathExpression pe; // path expression
 
-		JDDNode filter, sol, tmp;
+		JDDNode sol;
 		StateProbs probs = null;
-		StateList states = null;
-		double minRes = 0, maxRes = 0;
 
 		// get info from prob operator
 		relOp = expr.getRelOp();
@@ -343,11 +151,11 @@ public class NondetModelChecker implements ModelChecker
 				mainLog.print("\nWarning: checking for probability " + relOp + " " + p
 						+ " - formula trivially satisfies all states\n");
 				JDD.Ref(reach);
-				return reach;
+				return new StateProbsMTBDD(reach, model);
 			} else if ((p == 0 && relOp.equals("<")) || (p == 1 && relOp.equals(">"))) {
 				mainLog.print("\nWarning: checking for probability " + relOp + " " + p
 						+ " - formula trivially satisfies no states\n");
-				return JDD.Constant(0);
+				return new StateProbsMTBDD(JDD.Constant(0), model);
 			}
 		}
 
@@ -362,71 +170,40 @@ public class NondetModelChecker implements ModelChecker
 			throw new PrismException("Can't use \"P=?\" for MDPs; use \"Pmin=?\" or \"Pmax=?\"");
 		}
 
-		// translate filter (if present)
-		filter = null;
-		if (expr.getFilter() != null) {
-			filter = checkExpression(expr.getFilter().getExpression());
-		}
-
-		// check if filter satisfies no states
-		if (filter != null)
-			if (filter.equals(JDD.ZERO)) {
-				// for P=? properties, this is an error
-				if (pb == null) {
-					throw new PrismException("Filter {" + expr.getFilter().getExpression() + "} in P=?[] property satisfies no states");
-				}
-				// otherwise just print a warning
-				else {
-					mainLog.println("\nWarning: Filter {" + expr.getFilter().getExpression()
-							+ "} satisfies no states and is being ignored");
-					JDD.Deref(filter);
-					filter = null;
-				}
-			}
-
 		// compute probabilities
 		pe = expr.getPathExpression();
-		try {
-			if (pe instanceof PathExpressionTemporal) {
-				if (((PathExpressionTemporal) pe).hasBounds()) {
-					switch (((PathExpressionTemporal) pe).getOperator()) {
-					case PathExpressionTemporal.P_U:
-						probs = checkProbBoundedUntil((PathExpressionTemporal) pe, min);
-						break;
-					case PathExpressionTemporal.P_F:
-						probs = checkProbBoundedFuture((PathExpressionTemporal) pe, min);
-						break;
-					case PathExpressionTemporal.P_G:
-						probs = checkProbBoundedGlobal((PathExpressionTemporal) pe, min);
-						break;
-					}
-				} else {
-					switch (((PathExpressionTemporal) pe).getOperator()) {
-					case PathExpressionTemporal.P_X:
-						probs = checkProbNext((PathExpressionTemporal) pe, min);
-						break;
-					case PathExpressionTemporal.P_U:
-						probs = checkProbUntil((PathExpressionTemporal) pe, pb, p, min);
-						break;
-					case PathExpressionTemporal.P_F:
-						probs = checkProbFuture((PathExpressionTemporal) pe, pb, p, min);
-						break;
-					case PathExpressionTemporal.P_G:
-						probs = checkProbGlobal((PathExpressionTemporal) pe, pb, p, min);
-						break;
-					}
+		if (pe instanceof PathExpressionTemporal) {
+			if (((PathExpressionTemporal) pe).hasBounds()) {
+				switch (((PathExpressionTemporal) pe).getOperator()) {
+				case PathExpressionTemporal.P_U:
+					probs = checkProbBoundedUntil((PathExpressionTemporal) pe, min);
+					break;
+				case PathExpressionTemporal.P_F:
+					probs = checkProbBoundedFuture((PathExpressionTemporal) pe, min);
+					break;
+				case PathExpressionTemporal.P_G:
+					probs = checkProbBoundedGlobal((PathExpressionTemporal) pe, min);
+					break;
+				}
+			} else {
+				switch (((PathExpressionTemporal) pe).getOperator()) {
+				case PathExpressionTemporal.P_X:
+					probs = checkProbNext((PathExpressionTemporal) pe, min);
+					break;
+				case PathExpressionTemporal.P_U:
+					probs = checkProbUntil((PathExpressionTemporal) pe, pb, p, min);
+					break;
+				case PathExpressionTemporal.P_F:
+					probs = checkProbFuture((PathExpressionTemporal) pe, pb, p, min);
+					break;
+				case PathExpressionTemporal.P_G:
+					probs = checkProbGlobal((PathExpressionTemporal) pe, pb, p, min);
+					break;
 				}
 			}
-			if (probs == null)
-				throw new PrismException("Unrecognised path operator in P operator");
-		} catch (PrismException e) {
-			if (filter != null)
-				JDD.Deref(filter);
-			throw e;
 		}
-
-		// round off probabilities
-		// probs.roundOff(getPlacesToRoundBy());
+		if (probs == null)
+			throw new PrismException("Unrecognised path operator in P operator");
 
 		// print out probabilities
 		if (verbose) {
@@ -434,141 +211,35 @@ public class NondetModelChecker implements ModelChecker
 			probs.print(mainLog);
 		}
 
-		// if a filter was provided, there is some additional output...
-		if (filter != null) {
-
-			// for non-"P=?"-type properties, print out some probs
-			if (pb != null) {
-				if (!expr.noFilterRequests()) {
-					mainLog
-							.println("\nWarning: \"{min}\", \"{max}\" only apply to \"P=?\" properties; they are ignored here.");
-				}
-				mainLog.print("\n" + (min ? "Minimum" : "Maximum")
-						+ " probabilities (non-zero only) for states satisfying " + expr.getFilter().getExpression() + ":\n");
-				probs.printFiltered(mainLog, filter);
-			}
-
-			// for "P=?"-type properties...
-			if (pb == null) {
-				// compute/print min info
-				if (expr.filterMinRequested()) {
-					minRes = probs.minOverBDD(filter);
-					mainLog.print("\nMinimum " + (min ? "minimum" : "maximum") + " probability for states satisfying "
-							+ expr.getFilter().getExpression() + ": " + minRes + "\n");
-					tmp = probs.getBDDFromInterval(minRes - termCritParam, minRes + termCritParam);
-					JDD.Ref(filter);
-					tmp = JDD.And(tmp, filter);
-					states = new StateListMTBDD(tmp, model);
-					mainLog.print("There are " + states.size() + " states with this minimum probability (+/- "
-							+ termCritParam + ")");
-					if (!verbose && states.size() > 10) {
-						mainLog
-								.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
-						states.print(mainLog, 10);
-					} else {
-						mainLog.print(":\n");
-						states.print(mainLog);
-					}
-					JDD.Deref(tmp);
-				}
-				// compute/print min info
-				if (expr.filterMaxRequested()) {
-					maxRes = probs.maxOverBDD(filter);
-					mainLog.print("\nMaximum " + (min ? "minimum" : "maximum") + " probability for states satisfying "
-							+ expr.getFilter().getExpression() + ": " + maxRes + "\n");
-					tmp = probs.getBDDFromInterval(maxRes - termCritParam, maxRes + termCritParam);
-					JDD.Ref(filter);
-					tmp = JDD.And(tmp, filter);
-					states = new StateListMTBDD(tmp, model);
-					mainLog.print("There are " + states.size() + " states with this maximum probability (+/- "
-							+ termCritParam + ")");
-					if (!verbose && states.size() > 10) {
-						mainLog
-								.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
-						states.print(mainLog, 10);
-					} else {
-						mainLog.print(":\n");
-						states.print(mainLog);
-					}
-					JDD.Deref(tmp);
-				}
-			}
-		}
-
-		// for P=? properties...
-		// if there are multiple initial states or if there is a filter
-		// satisfying
-		// multiple states with no {min}/{max}/etc., print a warning...
+		// For =? properties, just return values
 		if (pb == null) {
-			if (filter == null) {
-				if (model.getNumStartStates() > 1) {
-					mainLog
-							.print("\nWarning: There are multiple initial states; the result of model checking is for the first one: ");
-					model.getStartStates().print(mainLog, 1);
-				}
-			} else if (expr.noFilterRequests()) {
-				StateListMTBDD filterStates = new StateListMTBDD(filter, model);
-				if (filterStates.size() > 1) {
-					mainLog.print("\nWarning: The filter {" + expr.getFilter().getExpression() + "} is satisfied by "
-							+ filterStates.size() + " states.\n");
-					mainLog.print("The result of model checking is for the first of these: ");
-					filterStates.print(mainLog, 1);
-				}
-			}
+			return probs;
 		}
-
-		// compute result of property
-		// if there's a bound, get set of satisfying states
-		if (pb != null) {
+		// Otherwise, compare against bound to get set of satisfying states
+		else {
 			sol = probs.getBDDFromInterval(relOp, p);
 			// remove unreachable states from solution
 			JDD.Ref(reach);
 			sol = JDD.And(sol, reach);
+			// free vector
+			probs.clear();
+			return new StateProbsMTBDD(sol, model);
 		}
-		// if there's no bound, result will be a probability
-		else {
-			// just store empty set for sol
-			sol = JDD.Constant(0);
-			// use filter if present
-			if (filter != null) {
-				if (expr.filterMinRequested())
-					numericalRes = minRes;
-				else if (expr.filterMaxRequested())
-					numericalRes = maxRes;
-				else
-					numericalRes = probs.firstFromBDD(filter);
-			}
-			// otherwise use initial state
-			else {
-				numericalRes = probs.firstFromBDD(start);
-			}
-		}
-
-		// free vector
-		probs.clear();
-
-		// derefs
-		if (filter != null)
-			JDD.Deref(filter);
-
-		return sol;
 	}
 
 	// R operator
 
-	private JDDNode checkExpressionReward(ExpressionReward expr) throws PrismException
+	protected StateProbs checkExpressionReward(ExpressionReward expr) throws PrismException
 	{
 		Object rs; // reward struct index
 		Expression rb; // reward bound (expression)
-		double r = 0; // reward value (actual value)
+		double r = 0; // reward bound (actual value)
 		String relOp; // relational operator
 		boolean min; // are we finding min (true) or max (false) rewards
 		PathExpression pe; // path expression
 
-		JDDNode stateRewards = null, transRewards = null, filter, sol, tmp;
+		JDDNode stateRewards = null, transRewards = null, sol;
 		StateProbs rewards = null;
-		StateList states = null;
-		double minRes = 0, maxRes = 0;
 		int i;
 
 		// get info from reward operator
@@ -605,11 +276,11 @@ public class NondetModelChecker implements ModelChecker
 				mainLog.print("\nWarning: checking for reward " + relOp + " " + r
 						+ " - formula trivially satisfies all states\n");
 				JDD.Ref(reach);
-				return reach;
+				return new StateProbsMTBDD(reach, model);
 			} else if (r == 0 && relOp.equals("<")) {
 				mainLog.print("\nWarning: checking for reward " + relOp + " " + r
 						+ " - formula trivially satisfies no states\n");
-				return JDD.Constant(0);
+				return new StateProbsMTBDD(JDD.Constant(0), model);
 			}
 		}
 
@@ -624,51 +295,20 @@ public class NondetModelChecker implements ModelChecker
 			throw new PrismException("Can't use \"R=?\" for MDPs; use \"Rmin=?\" or \"Rmax=?\"");
 		}
 
-		// translate filter (if present)
-		filter = null;
-		if (expr.getFilter() != null) {
-			filter = checkExpression(expr.getFilter().getExpression());
-		}
-
-		// check if filter satisfies no states
-		if (filter != null)
-			if (filter.equals(JDD.ZERO)) {
-				// for R=? properties, this is an error
-				if (rb == null) {
-					throw new PrismException("Filter {" + expr.getFilter().getExpression() + "} in R=?[] property satisfies no states");
-				}
-				// otherwise just print a warning
-				else {
-					mainLog.println("\nWarning: Filter {" + expr.getFilter().getExpression()
-							+ "} satisfies no states and is being ignored");
-					JDD.Deref(filter);
-					filter = null;
-				}
-			}
-
 		// compute rewards
 		pe = expr.getPathExpression();
-		try {
-			if (pe instanceof PathExpressionTemporal) {
-				switch (((PathExpressionTemporal) pe).getOperator()) {
-				case PathExpressionTemporal.R_I:
-					rewards = checkRewardInst((PathExpressionTemporal) pe, stateRewards, transRewards, min);
-					break;
-				case PathExpressionTemporal.R_F:
-					rewards = checkRewardReach((PathExpressionTemporal) pe, stateRewards, transRewards, min);
-					break;
-				}
+		if (pe instanceof PathExpressionTemporal) {
+			switch (((PathExpressionTemporal) pe).getOperator()) {
+			case PathExpressionTemporal.R_I:
+				rewards = checkRewardInst((PathExpressionTemporal) pe, stateRewards, transRewards, min);
+				break;
+			case PathExpressionTemporal.R_F:
+				rewards = checkRewardReach((PathExpressionTemporal) pe, stateRewards, transRewards, min);
+				break;
 			}
-			if (rewards == null)
-				throw new PrismException("Unrecognised path operator in R operator");
-		} catch (PrismException e) {
-			if (filter != null)
-				JDD.Deref(filter);
-			throw e;
 		}
-
-		// round off rewards
-		// rewards.roundOff(getPlacesToRoundBy());
+		if (rewards == null)
+			throw new PrismException("Unrecognised path operator in R operator");
 
 		// print out rewards
 		if (verbose) {
@@ -676,129 +316,25 @@ public class NondetModelChecker implements ModelChecker
 			rewards.print(mainLog);
 		}
 
-		// if a filter was provided, there is some additional output...
-		if (filter != null) {
-
-			// for non-"R=?"-type properties, print out some rewards
-			if (rb != null) {
-				if (!expr.noFilterRequests()) {
-					mainLog
-							.println("\nWarning: \"{min}\", \"{max}\" only apply to \"R=?\" properties; they are ignored here.");
-				}
-				mainLog.print("\n" + (min ? "Minimum" : "Maximum") + " rewards (non-zero only) for states satisfying "
-						+ expr.getFilter().getExpression() + ":\n");
-				rewards.printFiltered(mainLog, filter);
-			}
-
-			// for "R=?"-type properties...
-			if (rb == null) {
-				// compute/print min info
-				if (expr.filterMinRequested()) {
-					minRes = rewards.minOverBDD(filter);
-					mainLog.print("\nMinimum " + (min ? "minimum" : "maximum") + " reward for states satisfying "
-							+ expr.getFilter().getExpression() + ": " + minRes + "\n");
-					tmp = rewards.getBDDFromInterval(minRes - termCritParam, minRes + termCritParam);
-					JDD.Ref(filter);
-					tmp = JDD.And(tmp, filter);
-					states = new StateListMTBDD(tmp, model);
-					mainLog.print("There are " + states.size() + " states with this minimum reward (+/- "
-							+ termCritParam + ")");
-					if (!verbose && states.size() > 10) {
-						mainLog
-								.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
-						states.print(mainLog, 10);
-					} else {
-						mainLog.print(":\n");
-						states.print(mainLog);
-					}
-					JDD.Deref(tmp);
-				}
-				// compute/print min info
-				if (expr.filterMaxRequested()) {
-					maxRes = rewards.maxOverBDD(filter);
-					mainLog.print("\nMaximum " + (min ? "minimum" : "maximum") + " reward for states satisfying "
-							+ expr.getFilter().getExpression() + ": " + maxRes + "\n");
-					tmp = rewards.getBDDFromInterval(maxRes - termCritParam, maxRes + termCritParam);
-					JDD.Ref(filter);
-					tmp = JDD.And(tmp, filter);
-					states = new StateListMTBDD(tmp, model);
-					mainLog.print("There are " + states.size() + " states with this maximum reward (+/- "
-							+ termCritParam + ")");
-					if (!verbose && states.size() > 10) {
-						mainLog
-								.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
-						states.print(mainLog, 10);
-					} else {
-						mainLog.print(":\n");
-						states.print(mainLog);
-					}
-					JDD.Deref(tmp);
-				}
-			}
-		}
-
-		// for R=? properties...
-		// if there are multiple initial states or if there is a filter
-		// satisfying
-		// multiple states with no {min}/{max}/etc., print a warning...
+		// For =? properties, just return values
 		if (rb == null) {
-			if (filter == null) {
-				if (model.getNumStartStates() > 1) {
-					mainLog
-							.print("\nWarning: There are multiple initial states; the result of model checking is for the first one: ");
-					model.getStartStates().print(mainLog, 1);
-				}
-			} else if (expr.noFilterRequests()) {
-				StateListMTBDD filterStates = new StateListMTBDD(filter, model);
-				if (filterStates.size() > 1) {
-					mainLog.print("\nWarning: The filter {" + expr.getFilter().getExpression() + "} is satisfied by "
-							+ filterStates.size() + " states.\n");
-					mainLog.print("The result of model checking is for the first of these: ");
-					filterStates.print(mainLog, 1);
-				}
-			}
+			return rewards;
 		}
-
-		// compute result of property
-		// if there's a bound, get set of satisfying states
-		if (rb != null) {
+		// Otherwise, compare against bound to get set of satisfying states
+		else {
 			sol = rewards.getBDDFromInterval(relOp, r);
 			// remove unreachable states from solution
 			JDD.Ref(reach);
 			sol = JDD.And(sol, reach);
+			// free vector
+			rewards.clear();
+			return new StateProbsMTBDD(sol, model);
 		}
-		// if there's no bound, result will be a reward
-		else {
-			// just store empty set for sol
-			sol = JDD.Constant(0);
-			// use filter if present
-			if (filter != null) {
-				if (expr.filterMinRequested())
-					numericalRes = minRes;
-				else if (expr.filterMaxRequested())
-					numericalRes = maxRes;
-				else
-					numericalRes = rewards.firstFromBDD(filter);
-			}
-			// otherwise use initial state
-			else {
-				numericalRes = rewards.firstFromBDD(start);
-			}
-		}
-
-		// free vector
-		rewards.clear();
-
-		// derefs
-		if (filter != null)
-			JDD.Deref(filter);
-
-		return sol;
 	}
 
 	// next
 
-	private StateProbs checkProbNext(PathExpressionTemporal pe, boolean min) throws PrismException
+	protected StateProbs checkProbNext(PathExpressionTemporal pe, boolean min) throws PrismException
 	{
 		Expression expr;
 		JDDNode b;
@@ -810,7 +346,7 @@ public class NondetModelChecker implements ModelChecker
 		expr = ((PathExpressionExpr) pe.getOperand2()).getExpression();
 
 		// model check operand first
-		b = checkExpression(expr);
+		b = checkExpressionDD(expr);
 
 		// print out some info about num states
 		// mainLog.print("\nb = " + JDD.GetNumMintermsString(b,
@@ -827,7 +363,7 @@ public class NondetModelChecker implements ModelChecker
 
 	// bounded until
 
-	private StateProbs checkProbBoundedUntil(PathExpressionTemporal pe, boolean min) throws PrismException
+	protected StateProbs checkProbBoundedUntil(PathExpressionTemporal pe, boolean min) throws PrismException
 	{
 		Expression expr1, expr2;
 		int time;
@@ -847,9 +383,9 @@ public class NondetModelChecker implements ModelChecker
 		}
 
 		// model check operands first
-		b1 = checkExpression(expr1);
+		b1 = checkExpressionDD(expr1);
 		try {
-			b2 = checkExpression(expr2);
+			b2 = checkExpressionDD(expr2);
 		} catch (PrismException e) {
 			JDD.Deref(b1);
 			throw e;
@@ -887,7 +423,7 @@ public class NondetModelChecker implements ModelChecker
 
 	// until (unbounded)
 
-	private StateProbs checkProbUntil(PathExpressionTemporal pe, Expression pb, double p, boolean min)
+	protected StateProbs checkProbUntil(PathExpressionTemporal pe, Expression pb, double p, boolean min)
 			throws PrismException
 	{
 		Expression expr1, expr2;
@@ -902,9 +438,9 @@ public class NondetModelChecker implements ModelChecker
 		expr2 = ((PathExpressionExpr) pe.getOperand2()).getExpression();
 
 		// model check operands first
-		b1 = checkExpression(expr1);
+		b1 = checkExpressionDD(expr1);
 		try {
-			b2 = checkExpression(expr2);
+			b2 = checkExpressionDD(expr2);
 		} catch (PrismException e) {
 			JDD.Deref(b1);
 			throw e;
@@ -987,7 +523,7 @@ public class NondetModelChecker implements ModelChecker
 	// bounded future (eventually)
 	// F<=k phi == true U<=k phi
 
-	private StateProbs checkProbBoundedFuture(PathExpressionTemporal pe, boolean min) throws PrismException
+	protected StateProbs checkProbBoundedFuture(PathExpressionTemporal pe, boolean min) throws PrismException
 	{
 		PathExpressionTemporal pe2;
 		pe2 = new PathExpressionTemporal(PathExpressionTemporal.P_U, new PathExpressionExpr(Expression.True()), pe
@@ -998,7 +534,7 @@ public class NondetModelChecker implements ModelChecker
 	// future (eventually)
 	// F phi == true U phi
 
-	private StateProbs checkProbFuture(PathExpressionTemporal pe, Expression pb, double p, boolean min)
+	protected StateProbs checkProbFuture(PathExpressionTemporal pe, Expression pb, double p, boolean min)
 			throws PrismException
 	{
 		PathExpressionTemporal pe2;
@@ -1012,12 +548,13 @@ public class NondetModelChecker implements ModelChecker
 	// P(G<=k phi) == 1-P(true U<=k !phi)
 	// Pmin(G<=k phi) == 1-Pmax(true U<=k !phi)
 
-	private StateProbs checkProbBoundedGlobal(PathExpressionTemporal pe, boolean min) throws PrismException
+	protected StateProbs checkProbBoundedGlobal(PathExpressionTemporal pe, boolean min) throws PrismException
 	{
 		PathExpressionTemporal pe2;
 		StateProbs probs;
 		pe2 = new PathExpressionTemporal(PathExpressionTemporal.P_U, new PathExpressionExpr(Expression.True()),
-				new PathExpressionExpr(Expression.Not(((PathExpressionExpr)pe.getOperand2()).getExpression())), pe.getLowerBound(), pe.getUpperBound());
+				new PathExpressionExpr(Expression.Not(((PathExpressionExpr) pe.getOperand2()).getExpression())), pe
+						.getLowerBound(), pe.getUpperBound());
 		probs = checkProbBoundedUntil(pe2, !min);
 		probs.subtractFromOne();
 		return probs;
@@ -1028,13 +565,13 @@ public class NondetModelChecker implements ModelChecker
 	// P(G phi) == 1-P(true U !phi)
 	// Pmin(G phi) == 1-Pmax(true U !phi)
 
-	private StateProbs checkProbGlobal(PathExpressionTemporal pe, Expression pb, double p, boolean min)
+	protected StateProbs checkProbGlobal(PathExpressionTemporal pe, Expression pb, double p, boolean min)
 			throws PrismException
 	{
 		PathExpressionTemporal pe2;
 		StateProbs probs;
 		pe2 = new PathExpressionTemporal(PathExpressionTemporal.P_U, new PathExpressionExpr(Expression.True()),
-				new PathExpressionExpr(Expression.Not(((PathExpressionExpr)pe.getOperand2()).getExpression())));
+				new PathExpressionExpr(Expression.Not(((PathExpressionExpr) pe.getOperand2()).getExpression())));
 		probs = checkProbUntil(pe2, pb, p, !min);
 		probs.subtractFromOne();
 		return probs;
@@ -1042,7 +579,7 @@ public class NondetModelChecker implements ModelChecker
 
 	// inst reward
 
-	private StateProbs checkRewardInst(PathExpressionTemporal pe, JDDNode stateRewards, JDDNode transRewards,
+	protected StateProbs checkRewardInst(PathExpressionTemporal pe, JDDNode stateRewards, JDDNode transRewards,
 			boolean min) throws PrismException
 	{
 		int time; // time bound
@@ -1062,7 +599,7 @@ public class NondetModelChecker implements ModelChecker
 
 	// reach reward
 
-	private StateProbs checkRewardReach(PathExpressionTemporal pe, JDDNode stateRewards, JDDNode transRewards,
+	protected StateProbs checkRewardReach(PathExpressionTemporal pe, JDDNode stateRewards, JDDNode transRewards,
 			boolean min) throws PrismException
 	{
 		Expression expr;
@@ -1075,7 +612,7 @@ public class NondetModelChecker implements ModelChecker
 		expr = ((PathExpressionExpr) pe.getOperand2()).getExpression();
 
 		// model check operand first
-		b = checkExpression(expr);
+		b = checkExpressionDD(expr);
 
 		// print out some info about num states
 		// mainLog.print("\nb = " + JDD.GetNumMintermsString(b,
@@ -1095,41 +632,13 @@ public class NondetModelChecker implements ModelChecker
 		return rewards;
 	}
 
-	// Check label
-
-	private JDDNode checkExpressionLabel(ExpressionLabel expr) throws PrismException
-	{
-		LabelList ll;
-		JDDNode dd;
-		int i;
-
-		// treat special cases
-		if (expr.getName().equals("deadlock")) {
-			dd = model.getFixedDeadlocks();
-			JDD.Ref(dd);
-			return dd;
-		}
-		else if (expr.getName().equals("init")) {
-			dd = start;
-			JDD.Ref(dd);
-			return dd;
-		}
-		// get expression associated with label
-		ll = propertiesFile.getCombinedLabelList();
-		i = ll.getLabelIndex(expr.getName());
-		if (i == -1)
-			throw new PrismException("Unknown label \"" + expr.getName() + "\" in property");
-		// check recursively
-		return checkExpression(ll.getLabel(i));
-	}
-
 	// -----------------------------------------------------------------------------------
 	// probability computation methods
 	// -----------------------------------------------------------------------------------
 
 	// compute probabilities for next
 
-	private StateProbs computeNextProbs(JDDNode tr, JDDNode b, boolean min)
+	protected StateProbs computeNextProbs(JDDNode tr, JDDNode b, boolean min)
 	{
 		JDDNode tmp;
 		StateProbs probs = null;
@@ -1156,7 +665,7 @@ public class NondetModelChecker implements ModelChecker
 
 	// compute probabilities for bounded until
 
-	private StateProbs computeBoundedUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2, int time, boolean min)
+	protected StateProbs computeBoundedUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2, int time, boolean min)
 			throws PrismException
 	{
 		JDDNode yes, no, maybe;
@@ -1260,7 +769,7 @@ public class NondetModelChecker implements ModelChecker
 	// note: this function doesn't need to know anything about fairness
 	// it is just told whether to compute min or max probabilities
 
-	private StateProbs computeUntilProbsQual(JDDNode tr01, JDDNode b1, JDDNode b2, boolean min)
+	protected StateProbs computeUntilProbsQual(JDDNode tr01, JDDNode b1, JDDNode b2, boolean min)
 	{
 		JDDNode yes = null, no = null, maybe;
 		StateProbs probs = null;
@@ -1363,7 +872,7 @@ public class NondetModelChecker implements ModelChecker
 	// note: this function doesn't need to know anything about fairness
 	// it is just told whether to compute min or max probabilities
 
-	private StateProbs computeUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2, boolean min)
+	protected StateProbs computeUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2, boolean min)
 			throws PrismException
 	{
 		JDDNode yes, no, maybe;
@@ -1484,9 +993,6 @@ public class NondetModelChecker implements ModelChecker
 				JDD.Deref(maybe);
 				throw e;
 			}
-
-			// round off probabilities
-			// probs.roundOff(getPlacesToRoundBy());
 		}
 
 		// derefs
@@ -1499,7 +1005,7 @@ public class NondetModelChecker implements ModelChecker
 
 	// compute rewards for inst reward
 
-	private StateProbs computeInstRewards(JDDNode tr, JDDNode sr, int time, boolean min) throws PrismException
+	protected StateProbs computeInstRewards(JDDNode tr, JDDNode sr, int time, boolean min) throws PrismException
 	{
 		JDDNode rewardsMTBDD;
 		DoubleVector rewardsDV;
@@ -1538,7 +1044,7 @@ public class NondetModelChecker implements ModelChecker
 
 	// compute rewards for reach reward
 
-	private StateProbs computeReachRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr, JDDNode b, boolean min)
+	protected StateProbs computeReachRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr, JDDNode b, boolean min)
 			throws PrismException
 	{
 		JDDNode inf, maybe, prob1, no;

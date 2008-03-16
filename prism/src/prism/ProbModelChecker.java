@@ -26,194 +26,74 @@
 
 package prism;
 
+import java.util.Vector;
+
 import jdd.*;
-import odd.*;
 import dv.*;
 import mtbdd.*;
 import sparse.*;
 import hybrid.*;
-import parser.*;
 import parser.ast.*;
 
-// Model checker for DTMCs
-
+/*
+ * Model checker for DTMCs.
+ */
 public class ProbModelChecker extends StateModelChecker
 {
-	// options
+	// SCC computer
+	protected SCCComputer sccComputer;
 
-	// which engine to use
-	private int engine;
-	// method for solving linear equation systems
-	private int linEqMethod;
-	// parameter for linear equation solver methods
-	private double linEqMethodParam;
-	// termination criterion (iterative methods)
-	private int termCrit;
-	// parameter for termination criterion
-	private double termCritParam;
-	// max num iterations (iterative methods)
-	private int maxIters;
-	// flags
-	private boolean precomp; // use 0,1 precomputation algorithms?
-	// sparse bits info
-	private int SBMaxMem;
-	private int numSBLevels;
-	// hybrid sor info
-	private int SORMaxMem;
-	private int numSORLevels;
+	// Options (in addition to those inherited from StateModelChecker):
 
-	// properties file
-	private PropertiesFile propertiesFile;
+	// Use 0,1 precomputation algorithms?
+	protected boolean precomp;
+	// Do BSCC computation?
+	protected boolean bsccComp;
 
-	// constant values
-	private Values constantValues;
-
-	// Expression2MTBDD object for translating expressions
-	private Expression2MTBDD expr2mtbdd;
-
-	// class-wide storage for any numerical result returned
-	private double numericalRes;
-
-	// model info
-	private ProbModel model;
-	private JDDNode trans;
-	private JDDNode trans01;
-	private JDDNode start;
-	private JDDNode reach;
-	private ODDNode odd;
-	private JDDVars allDDRowVars;
-	private JDDVars allDDColVars;
-	private JDDVars[] varDDRowVars;
-
-	// constructor - set some defaults
+	// Constructor
 
 	public ProbModelChecker(Prism prism, Model m, PropertiesFile pf) throws PrismException
 	{
+		// Initialise
 		super(prism, m, pf);
-		
-		// initialise
-		if (!(m instanceof ProbModel)) {
-			throw new PrismException("Wrong model type passed to ProbModelChecker.");
+
+		// Create SCCComputer object
+		sccComputer = new SCCComputer(mainLog, techLog, model);
+		bsccComp = prism.getBSCCComp();
+
+		// Inherit some options from parent Prism object.
+		// Store locally and/or pass onto engines.
+		precomp = prism.getPrecomp();
+		switch (engine) {
+		case Prism.MTBDD:
+			PrismMTBDD.setLinEqMethod(prism.getLinEqMethod());
+			PrismMTBDD.setLinEqMethodParam(prism.getLinEqMethodParam());
+			PrismMTBDD.setTermCrit(prism.getTermCrit());
+			PrismMTBDD.setTermCritParam(prism.getTermCritParam());
+			PrismMTBDD.setMaxIters(prism.getMaxIters());
+			PrismMTBDD.setDoSSDetect(prism.getDoSSDetect());
+			break;
+		case Prism.SPARSE:
+			PrismSparse.setLinEqMethod(prism.getLinEqMethod());
+			PrismSparse.setLinEqMethodParam(prism.getLinEqMethodParam());
+			PrismSparse.setTermCrit(prism.getTermCrit());
+			PrismSparse.setTermCritParam(prism.getTermCritParam());
+			PrismSparse.setMaxIters(prism.getMaxIters());
+			PrismSparse.setCompact(prism.getCompact());
+			PrismSparse.setDoSSDetect(prism.getDoSSDetect());
+		case Prism.HYBRID:
+			PrismHybrid.setLinEqMethod(prism.getLinEqMethod());
+			PrismHybrid.setLinEqMethodParam(prism.getLinEqMethodParam());
+			PrismHybrid.setTermCrit(prism.getTermCrit());
+			PrismHybrid.setTermCritParam(prism.getTermCritParam());
+			PrismHybrid.setMaxIters(prism.getMaxIters());
+			PrismHybrid.setCompact(prism.getCompact());
+			PrismHybrid.setSBMaxMem(prism.getSBMaxMem());
+			PrismHybrid.setNumSBLevels(prism.getNumSBLevels());
+			PrismHybrid.setSORMaxMem(prism.getSORMaxMem());
+			PrismHybrid.setNumSORLevels(prism.getNumSORLevels());
+			PrismHybrid.setDoSSDetect(prism.getDoSSDetect());
 		}
-		model = (ProbModel) m;
-		propertiesFile = pf;
-		trans = model.getTrans();
-		trans01 = model.getTrans01();
-		start = model.getStart();
-		reach = model.getReach();
-		odd = model.getODD();
-		allDDRowVars = model.getAllDDRowVars();
-		allDDColVars = model.getAllDDColVars();
-		varDDRowVars = model.getVarDDRowVars();
-
-		// create list of all constant values needed
-		constantValues = new Values();
-		constantValues.addValues(model.getConstantValues());
-		if (pf != null)
-			constantValues.addValues(pf.getConstantValues());
-
-		// create Expression2MTBDD object
-		expr2mtbdd = new Expression2MTBDD(mainLog, techLog, model.getVarList(), varDDRowVars, constantValues);
-		expr2mtbdd.setFilter(reach);
-
-		// set up some default options
-		// (although all should be overridden before model checking)
-		engine = Prism.HYBRID;
-		linEqMethod = Prism.JACOBI;
-		linEqMethodParam = 0.9;
-		termCrit = Prism.RELATIVE;
-		termCritParam = 1e-6;
-		maxIters = 10000;
-		precomp = true;
-		SBMaxMem = 1024;
-		numSBLevels = -1;
-		SORMaxMem = 1024;
-		numSORLevels = -1;
-	}
-
-	// set engine
-
-	public void setEngine(int e)
-	{
-		engine = e;
-	}
-
-	// set options (generic)
-
-	public void setOption(String option, boolean b)
-	{
-		if (option.equals("precomp")) {
-			precomp = b;
-		} else if (option.equals("compact")) {
-			PrismSparse.setCompact(b);
-			PrismHybrid.setCompact(b);
-		} else {
-			mainLog.println("Warning: option \"" + option + "\" not supported by ProbModelChecker.");
-		}
-	}
-
-	public void setOption(String option, int i)
-	{
-		if (option.equals("lineqmethod")) {
-			linEqMethod = i;
-			PrismMTBDD.setLinEqMethod(i);
-			PrismSparse.setLinEqMethod(i);
-			PrismHybrid.setLinEqMethod(i);
-		} else if (option.equals("termcrit")) {
-			termCrit = i;
-			PrismMTBDD.setTermCrit(i);
-			PrismSparse.setTermCrit(i);
-			PrismHybrid.setTermCrit(i);
-		} else if (option.equals("maxiters")) {
-			maxIters = i;
-			PrismMTBDD.setMaxIters(i);
-			PrismSparse.setMaxIters(i);
-			PrismHybrid.setMaxIters(i);
-		} else if (option.equals("sbmaxmem")) {
-			SBMaxMem = i;
-			PrismHybrid.setSBMaxMem(i);
-		} else if (option.equals("numsblevels")) {
-			numSBLevels = i;
-			PrismHybrid.setNumSBLevels(i);
-		} else if (option.equals("sormaxmem")) {
-			SORMaxMem = i;
-			PrismHybrid.setSORMaxMem(i);
-		} else if (option.equals("numsorlevels")) {
-			numSORLevels = i;
-			PrismHybrid.setNumSORLevels(i);
-		} else {
-			mainLog.println("Warning: option \"" + option + "\" not supported by ProbModelChecker.");
-		}
-	}
-
-	public void setOption(String option, double d)
-	{
-		if (option.equals("lineqmethodparam")) {
-			linEqMethodParam = d;
-			PrismMTBDD.setLinEqMethodParam(d);
-			PrismSparse.setLinEqMethodParam(d);
-			PrismHybrid.setLinEqMethodParam(d);
-		} else if (option.equals("termcritparam")) {
-			termCritParam = d;
-			PrismMTBDD.setTermCritParam(d);
-			PrismSparse.setTermCritParam(d);
-			PrismHybrid.setTermCritParam(d);
-		} else {
-			mainLog.println("Warning: option \"" + option + "\" not supported by ProbModelChecker.");
-		}
-	}
-
-	public void setOption(String option, String s)
-	{
-		mainLog.println("Warning: option \"" + option + "\" not supported by ProbModelChecker.");
-	}
-
-	// compute number of places to round solution vector to
-	// (given termination criteria, etc.)
-
-	public int getPlacesToRoundBy()
-	{
-		return 1 - (int) (Math.log(termCritParam) / Math.log(10));
 	}
 
 	// -----------------------------------------------------------------------------------
@@ -232,11 +112,11 @@ public class ProbModelChecker extends StateModelChecker
 		}
 		// R operator
 		else if (expr instanceof ExpressionReward) {
-			res = null;//checkExpressionReward((ExpressionReward) expr);
+			res = checkExpressionReward((ExpressionReward) expr);
 		}
-		// Label
-		else if (expr instanceof ExpressionLabel) {
-			res = null;//checkExpressionLabel((ExpressionLabel) expr);
+		// S operator
+		else if (expr instanceof ExpressionSS) {
+			res = checkExpressionSteadyState((ExpressionSS) expr);
 		}
 		// Otherwise, use the superclass
 		else {
@@ -255,17 +135,15 @@ public class ProbModelChecker extends StateModelChecker
 
 	// P operator
 
-	private StateProbs checkExpressionProb(ExpressionProb expr) throws PrismException
+	protected StateProbs checkExpressionProb(ExpressionProb expr) throws PrismException
 	{
 		Expression pb; // probability bound (expression)
-		double p = 0; // probability value (actual value)
+		double p = 0; // probability bound (actual value)
 		String relOp; // relational operator
 		PathExpression pe; // path expression
 
-		JDDNode filter, sol, tmp;
+		JDDNode sol;
 		StateProbs probs = null;
-		StateList states = null;
-		double minRes = 0, maxRes = 0;
 
 		// get info from prob operator
 		relOp = expr.getRelOp();
@@ -273,7 +151,7 @@ public class ProbModelChecker extends StateModelChecker
 		if (pb != null) {
 			p = pb.evaluateDouble(constantValues, null);
 			if (p < 0 || p > 1)
-				throw new PrismException("Invalid probability bound " + p + " in P[] formula");
+				throw new PrismException("Invalid probability bound " + p + " in P operator");
 		}
 
 		// check for trivial (i.e. stupid) cases
@@ -295,71 +173,40 @@ public class ProbModelChecker extends StateModelChecker
 			mainLog.print("\nWarning: \"Pmin=?\" and \"Pmax=?\" operators are identical to \"P=?\" for DTMCs\n");
 		}
 
-		// translate filter (if present)
-		filter = null;
-		if (expr.getFilter() != null) {
-			filter = checkExpressionDD(expr.getFilter().getExpression());
-		}
-
-		// check if filter satisfies no states
-		if (filter != null)
-			if (filter.equals(JDD.ZERO)) {
-				// for P=? properties, this is an error
-				if (pb == null) {
-					throw new PrismException("Filter {" + expr.getFilter().getExpression() + "} in P=?[] property satisfies no states");
-				}
-				// otherwise just print a warning
-				else {
-					mainLog.println("\nWarning: Filter {" + expr.getFilter().getExpression()
-							+ "} satisfies no states and is being ignored");
-					JDD.Deref(filter);
-					filter = null;
-				}
-			}
-
 		// compute probabilities
 		pe = expr.getPathExpression();
-		try {
-			if (pe instanceof PathExpressionTemporal) {
-				if (((PathExpressionTemporal) pe).hasBounds()) {
-					switch (((PathExpressionTemporal) pe).getOperator()) {
-					case PathExpressionTemporal.P_U:
-						probs = checkProbBoundedUntil((PathExpressionTemporal) pe);
-						break;
-					case PathExpressionTemporal.P_F:
-						probs = checkProbBoundedFuture((PathExpressionTemporal) pe);
-						break;
-					case PathExpressionTemporal.P_G:
-						probs = checkProbBoundedGlobal((PathExpressionTemporal) pe);
-						break;
-					}
-				} else {
-					switch (((PathExpressionTemporal) pe).getOperator()) {
-					case PathExpressionTemporal.P_X:
-						probs = checkProbNext((PathExpressionTemporal) pe);
-						break;
-					case PathExpressionTemporal.P_U:
-						probs = checkProbUntil((PathExpressionTemporal) pe, pb, p);
-						break;
-					case PathExpressionTemporal.P_F:
-						probs = checkProbFuture((PathExpressionTemporal) pe, pb, p);
-						break;
-					case PathExpressionTemporal.P_G:
-						probs = checkProbGlobal((PathExpressionTemporal) pe, pb, p);
-						break;
-					}
+		if (pe instanceof PathExpressionTemporal) {
+			if (((PathExpressionTemporal) pe).hasBounds()) {
+				switch (((PathExpressionTemporal) pe).getOperator()) {
+				case PathExpressionTemporal.P_U:
+					probs = checkProbBoundedUntil((PathExpressionTemporal) pe);
+					break;
+				case PathExpressionTemporal.P_F:
+					probs = checkProbBoundedFuture((PathExpressionTemporal) pe);
+					break;
+				case PathExpressionTemporal.P_G:
+					probs = checkProbBoundedGlobal((PathExpressionTemporal) pe);
+					break;
+				}
+			} else {
+				switch (((PathExpressionTemporal) pe).getOperator()) {
+				case PathExpressionTemporal.P_X:
+					probs = checkProbNext((PathExpressionTemporal) pe);
+					break;
+				case PathExpressionTemporal.P_U:
+					probs = checkProbUntil((PathExpressionTemporal) pe, pb, p);
+					break;
+				case PathExpressionTemporal.P_F:
+					probs = checkProbFuture((PathExpressionTemporal) pe, pb, p);
+					break;
+				case PathExpressionTemporal.P_G:
+					probs = checkProbGlobal((PathExpressionTemporal) pe, pb, p);
+					break;
 				}
 			}
-			if (probs == null)
-				throw new PrismException("Unrecognised path operator in P operator");
-		} catch (PrismException e) {
-			if (filter != null)
-				JDD.Deref(filter);
-			throw e;
 		}
-
-		// round off probabilities
-		// probs.roundOff(getPlacesToRoundBy());
+		if (probs == null)
+			throw new PrismException("Unrecognised path operator in P operator");
 
 		// print out probabilities
 		if (prism.getVerbose()) {
@@ -367,143 +214,34 @@ public class ProbModelChecker extends StateModelChecker
 			probs.print(mainLog);
 		}
 
-		// if a filter was provided, there is some additional output...
-		if (filter != null) {
-
-			// for non-"P=?"-type properties, print out some probs
-			if (pb != null) {
-				if (!expr.noFilterRequests()) {
-					mainLog
-							.println("\nWarning: \"{min}\", \"{max}\" only apply to \"P=?\" properties; they are ignored here.");
-				}
-				mainLog.print("\nProbabilities (non-zero only) for states satisfying " + expr.getFilter().getExpression() + ":\n");
-				probs.printFiltered(mainLog, filter);
-			}
-
-			// for "P=?"-type properties...
-			if (pb == null) {
-				// compute/print min info
-				if (expr.filterMinRequested()) {
-					minRes = probs.minOverBDD(filter);
-					mainLog.print("\nMinimum probability for states satisfying " + expr.getFilter().getExpression() + ": " + minRes
-							+ "\n");
-					tmp = probs.getBDDFromInterval(minRes - termCritParam, minRes + termCritParam);
-					JDD.Ref(filter);
-					tmp = JDD.And(tmp, filter);
-					states = new StateListMTBDD(tmp, model);
-					mainLog.print("There are " + states.size() + " states with this minimum probability (+/- "
-							+ termCritParam + ")");
-					if (!prism.getVerbose() && states.size() > 10) {
-						mainLog
-								.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
-						states.print(mainLog, 10);
-					} else {
-						mainLog.print(":\n");
-						states.print(mainLog);
-					}
-					JDD.Deref(tmp);
-				}
-				// compute/print min info
-				if (expr.filterMaxRequested()) {
-					maxRes = probs.maxOverBDD(filter);
-					mainLog.print("\nMaximum probability for states satisfying " + expr.getFilter().getExpression() + ": " + maxRes
-							+ "\n");
-					tmp = probs.getBDDFromInterval(maxRes - termCritParam, maxRes + termCritParam);
-					JDD.Ref(filter);
-					tmp = JDD.And(tmp, filter);
-					states = new StateListMTBDD(tmp, model);
-					mainLog.print("There are " + states.size() + " states with this maximum probability (+/- "
-							+ termCritParam + ")");
-					if (!prism.getVerbose() && states.size() > 10) {
-						mainLog
-								.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
-						states.print(mainLog, 10);
-					} else {
-						mainLog.print(":\n");
-						states.print(mainLog);
-					}
-					JDD.Deref(tmp);
-				}
-			}
-		}
-
-		// for P=? properties...
-		// if there are multiple initial states or if there is a filter
-		// satisfying
-		// multiple states with no {min}/{max}/etc., print a warning...
+		// For =? properties, just return values
 		if (pb == null) {
-			if (filter == null) {
-				if (model.getNumStartStates() > 1) {
-					mainLog
-							.print("\nWarning: There are multiple initial states; the result of model checking is for the first one: ");
-					model.getStartStates().print(mainLog, 1);
-				}
-			} else if (expr.noFilterRequests()) {
-				StateListMTBDD filterStates = new StateListMTBDD(filter, model);
-				if (filterStates.size() > 1) {
-					mainLog.print("\nWarning: The filter {" + expr.getFilter().getExpression() + "} is satisfied by "
-							+ filterStates.size() + " states.\n");
-					mainLog.print("The result of model checking is for the first of these: ");
-					filterStates.print(mainLog, 1);
-				}
-			}
+			return probs;
 		}
-
-		// compute result of property
-		// if there's a bound, get set of satisfying states
-		if (pb != null) {
+		// Otherwise, compare against bound to get set of satisfying states
+		else {
 			sol = probs.getBDDFromInterval(relOp, p);
 			// remove unreachable states from solution
 			JDD.Ref(reach);
 			sol = JDD.And(sol, reach);
+			// free vector
+			probs.clear();
+			return new StateProbsMTBDD(sol, model);
 		}
-		// if there's no bound, result will be a probability
-		else {
-			return probs;
-			
-			/*
-			 // just store empty set for sol
-			sol = JDD.Constant(0);
-			// use filter if present
-			if (filter != null) {
-				if (expr.filterMinRequested())
-					numericalRes = minRes;
-				else if (expr.filterMaxRequested())
-					numericalRes = maxRes;
-				else
-					numericalRes = probs.firstFromBDD(filter);
-			}
-			// otherwise use initial state
-			else {
-				numericalRes = probs.firstFromBDD(start);
-			}
-			*/
-		}
-
-		// free vector
-		probs.clear();
-
-		// derefs
-		if (filter != null)
-			JDD.Deref(filter);
-
-		return new StateProbsMTBDD(sol, model);
 	}
 
 	// R operator
 
-	private JDDNode checkExpressionReward(ExpressionReward expr) throws PrismException
+	protected StateProbs checkExpressionReward(ExpressionReward expr) throws PrismException
 	{
 		Object rs; // reward struct index
 		Expression rb; // reward bound (expression)
-		double r = 0; // reward value (actual value)
+		double r = 0; // reward bound (actual value)
 		String relOp; // relational operator
 		PathExpression pe; // path expression
 
-		JDDNode stateRewards = null, transRewards = null, filter, sol, tmp;
+		JDDNode stateRewards = null, transRewards = null, sol;
 		StateProbs rewards = null;
-		StateList states = null;
-		double minRes = 0, maxRes = 0;
 		int i;
 
 		// get info from reward operator
@@ -540,11 +278,11 @@ public class ProbModelChecker extends StateModelChecker
 				mainLog.print("\nWarning: checking for reward " + relOp + " " + r
 						+ " - formula trivially satisfies all states\n");
 				JDD.Ref(reach);
-				return reach;
+				return new StateProbsMTBDD(reach, model);
 			} else if (r == 0 && relOp.equals("<")) {
 				mainLog.print("\nWarning: checking for reward " + relOp + " " + r
 						+ " - formula trivially satisfies no states\n");
-				return JDD.Constant(0);
+				return new StateProbsMTBDD(JDD.Constant(0), model);
 			}
 		}
 
@@ -553,54 +291,26 @@ public class ProbModelChecker extends StateModelChecker
 			mainLog.print("\nWarning: \"Rmin=?\" and \"Rmax=?\" operators are identical to \"R=?\" for DTMCs\n");
 		}
 
-		// translate filter (if present)
-		filter = null;
-		if (expr.getFilter() != null) {
-			filter = checkExpressionDD(expr.getFilter().getExpression());
-		}
-
-		// check if filter satisfies no states
-		if (filter != null)
-			if (filter.equals(JDD.ZERO)) {
-				// for R=? properties, this is an error
-				if (rb == null) {
-					throw new PrismException("Filter {" + expr.getFilter().getExpression() + "} in R=?[] property satisfies no states");
-				}
-				// otherwise just print a warning
-				else {
-					mainLog.println("\nWarning: Filter {" + expr.getFilter().getExpression()
-							+ "} satisfies no states and is being ignored");
-					JDD.Deref(filter);
-					filter = null;
-				}
-			}
-
 		// compute rewards
 		pe = expr.getPathExpression();
-		try {
-			if (pe instanceof PathExpressionTemporal) {
-				switch (((PathExpressionTemporal) pe).getOperator()) {
-				case PathExpressionTemporal.R_C:
-					rewards = checkRewardCumul((PathExpressionTemporal) pe, stateRewards, transRewards);
-					break;
-				case PathExpressionTemporal.R_I:
-					rewards = checkRewardInst((PathExpressionTemporal) pe, stateRewards, transRewards);
-					break;
-				case PathExpressionTemporal.R_F:
-					rewards = checkRewardReach((PathExpressionTemporal) pe, stateRewards, transRewards);
-					break;
-				}
+		if (pe instanceof PathExpressionTemporal) {
+			switch (((PathExpressionTemporal) pe).getOperator()) {
+			case PathExpressionTemporal.R_C:
+				rewards = checkRewardCumul((PathExpressionTemporal) pe, stateRewards, transRewards);
+				break;
+			case PathExpressionTemporal.R_I:
+				rewards = checkRewardInst((PathExpressionTemporal) pe, stateRewards, transRewards);
+				break;
+			case PathExpressionTemporal.R_F:
+				rewards = checkRewardReach((PathExpressionTemporal) pe, stateRewards, transRewards);
+				break;
+			case PathExpressionTemporal.R_S:
+				rewards = checkRewardSS((PathExpressionTemporal) pe, stateRewards, transRewards);
+				break;
 			}
-			if (rewards == null)
-				throw new PrismException("Unrecognised path operator in R operator");
-		} catch (PrismException e) {
-			if (filter != null)
-				JDD.Deref(filter);
-			throw e;
 		}
-
-		// round off rewards
-		// rewards.roundOff(getPlacesToRoundBy());
+		if (rewards == null)
+			throw new PrismException("Unrecognised path operator in R operator");
 
 		// print out rewards
 		if (prism.getVerbose()) {
@@ -608,126 +318,225 @@ public class ProbModelChecker extends StateModelChecker
 			rewards.print(mainLog);
 		}
 
-		// if a filter was provided, there is some additional output...
-		if (filter != null) {
-
-			// for non-"R=?"-type properties, print out some rewards
-			if (rb != null) {
-				if (!expr.noFilterRequests()) {
-					mainLog
-							.println("\nWarning: \"{min}\", \"{max}\" only apply to \"R=?\" properties; they are ignored here.");
-				}
-				mainLog.print("\nRewards (non-zero only) for states satisfying " + expr.getFilter().getExpression() + ":\n");
-				rewards.printFiltered(mainLog, filter);
-			}
-
-			// for "R=?"-type properties...
-			if (rb == null) {
-				// compute/print min info
-				if (expr.filterMinRequested()) {
-					minRes = rewards.minOverBDD(filter);
-					mainLog.print("\nMinimum reward for states satisfying " + expr.getFilter().getExpression() + ": " + minRes + "\n");
-					tmp = rewards.getBDDFromInterval(minRes - termCritParam, minRes + termCritParam);
-					JDD.Ref(filter);
-					tmp = JDD.And(tmp, filter);
-					states = new StateListMTBDD(tmp, model);
-					mainLog.print("There are " + states.size() + " states with this minimum reward (+/- "
-							+ termCritParam + ")");
-					if (!prism.getVerbose() && states.size() > 10) {
-						mainLog
-								.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
-						states.print(mainLog, 10);
-					} else {
-						mainLog.print(":\n");
-						states.print(mainLog);
-					}
-					JDD.Deref(tmp);
-				}
-				// compute/print min info
-				if (expr.filterMaxRequested()) {
-					maxRes = rewards.maxOverBDD(filter);
-					mainLog.print("\nMaximum reward for states satisfying " + expr.getFilter().getExpression() + ": " + maxRes + "\n");
-					tmp = rewards.getBDDFromInterval(maxRes - termCritParam, maxRes + termCritParam);
-					JDD.Ref(filter);
-					tmp = JDD.And(tmp, filter);
-					states = new StateListMTBDD(tmp, model);
-					mainLog.print("There are " + states.size() + " states with this maximum reward (+/- "
-							+ termCritParam + ")");
-					if (!prism.getVerbose() && states.size() > 10) {
-						mainLog
-								.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
-						states.print(mainLog, 10);
-					} else {
-						mainLog.print(":\n");
-						states.print(mainLog);
-					}
-					JDD.Deref(tmp);
-				}
-			}
-		}
-
-		// for R=? properties...
-		// if there are multiple initial states or if there is a filter
-		// satisfying
-		// multiple states with no {min}/{max}/etc., print a warning...
+		// For =? properties, just return values
 		if (rb == null) {
-			if (filter == null) {
-				if (model.getNumStartStates() > 1) {
-					mainLog
-							.print("\nWarning: There are multiple initial states; the result of model checking is for the first one: ");
-					model.getStartStates().print(mainLog, 1);
-				}
-			} else if (expr.noFilterRequests()) {
-				StateListMTBDD filterStates = new StateListMTBDD(filter, model);
-				if (filterStates.size() > 1) {
-					mainLog.print("\nWarning: The filter {" + expr.getFilter().getExpression() + "} is satisfied by "
-							+ filterStates.size() + " states.\n");
-					mainLog.print("The result of model checking is for the first of these: ");
-					filterStates.print(mainLog, 1);
-				}
-			}
+			return rewards;
 		}
-
-		// compute result of property
-		// if there's a bound, get set of satisfying states
-		if (rb != null) {
+		// Otherwise, compare against bound to get set of satisfying states
+		else {
 			sol = rewards.getBDDFromInterval(relOp, r);
 			// remove unreachable states from solution
 			JDD.Ref(reach);
 			sol = JDD.And(sol, reach);
+			// free vector
+			rewards.clear();
+			return new StateProbsMTBDD(sol, model);
 		}
-		// if there's no bound, result will be a reward
-		else {
-			// just store empty set for sol
-			sol = JDD.Constant(0);
-			// use filter if present
-			if (filter != null) {
-				if (expr.filterMinRequested())
-					numericalRes = minRes;
-				else if (expr.filterMaxRequested())
-					numericalRes = maxRes;
-				else
-					numericalRes = rewards.firstFromBDD(filter);
-			}
-			// otherwise use initial state
-			else {
-				numericalRes = rewards.firstFromBDD(start);
+	}
+
+	// S operator
+
+	protected StateProbs checkExpressionSteadyState(ExpressionSS expr) throws PrismException
+	{
+		Expression pb; // probability bound (expression)
+		double p = 0; // probability bound (actual value)
+		String relOp; // relational operator
+
+		// bscc stuff
+		Vector vectBSCCs;
+		JDDNode notInBSCCs;
+		// mtbdd stuff
+		JDDNode b, bscc, sol, tmp;
+		// other stuff
+		StateProbs probs = null, totalProbs = null;
+		int i, n;
+		double d, probBSCCs[];
+
+		// get info from steady-state operator
+		relOp = expr.getRelOp();
+		pb = expr.getProb();
+		if (pb != null) {
+			p = pb.evaluateDouble(constantValues, null);
+			if (p < 0 || p > 1)
+				throw new PrismException("Invalid probability bound " + p + " in until formula");
+		}
+
+		// check for trivial (i.e. stupid) cases
+		if (pb != null) {
+			if ((p == 0 && relOp.equals(">=")) || (p == 1 && relOp.equals("<="))) {
+				mainLog.print("\nWarning: checking for probability " + relOp + " " + p
+						+ " - formula trivially satisfies all states\n");
+				JDD.Ref(reach);
+				return new StateProbsMTBDD(reach, model);
+			} else if ((p == 0 && relOp.equals("<")) || (p == 1 && relOp.equals(">"))) {
+				mainLog.print("\nWarning: checking for probability " + relOp + " " + p
+						+ " - formula trivially satisfies no states\n");
+				return new StateProbsMTBDD(JDD.Constant(0), model);
 			}
 		}
 
-		// free vector
-		rewards.clear();
+		// model check argument
+		b = checkExpressionDD(expr.getExpression());
+
+		// compute bottom strongly connected components (bsccs)
+		if (bsccComp) {
+			mainLog.print("\nComputing (B)SCCs...");
+			sccComputer.computeBSCCs();
+			vectBSCCs = sccComputer.getVectBSCCs();
+			notInBSCCs = sccComputer.getNotInBSCCs();
+			n = vectBSCCs.size();
+		}
+		// unless we've been told to skip it
+		else {
+			mainLog.println("\nSkipping BSCC computation...");
+			vectBSCCs = new Vector();
+			JDD.Ref(reach);
+			vectBSCCs.add(reach);
+			notInBSCCs = JDD.Constant(0);
+			n = 1;
+		}
+
+		// compute steady state for each bscc...
+		probBSCCs = new double[n];
+		for (i = 0; i < n; i++) {
+
+			mainLog.println("\nComputing steady state probabilities for BSCC " + (i + 1));
+
+			// get bscc
+			bscc = (JDDNode) vectBSCCs.elementAt(i);
+
+			// compute steady state probabilities
+			try {
+				probs = computeSteadyStateProbs(trans, bscc);
+			} catch (PrismException e) {
+				JDD.Deref(b);
+				for (i = 0; i < n; i++) {
+					JDD.Deref((JDDNode) vectBSCCs.elementAt(i));
+				}
+				JDD.Deref(notInBSCCs);
+				throw e;
+			}
+
+			// print out probabilities
+			if (verbose) {
+				mainLog.print("\nBSCC " + (i + 1) + " steady-state probabilities: \n");
+				probs.print(mainLog);
+			}
+
+			// sum probabilities over bdd b
+			d = probs.sumOverBDD(b);
+			probBSCCs[i] = d;
+			mainLog.print("\nBSCC " + (i + 1) + " probability: " + d + "\n");
+
+			// free vector
+			probs.clear();
+		}
+
+		// if every state is in a bscc, it's much easier...
+		if (notInBSCCs.equals(JDD.ZERO)) {
+
+			mainLog.println("\nAll states are in a BSCC (so no reachability probabilities computed)");
+
+			// there's more efficient ways to do this if we just create the
+			// solution bdd directly
+			// but we actually build the prob vector so it can be printed out if
+			// necessary
+			tmp = JDD.Constant(0);
+			for (i = 0; i < n; i++) {
+				bscc = (JDDNode) vectBSCCs.elementAt(i);
+				JDD.Ref(bscc);
+				tmp = JDD.Apply(JDD.PLUS, tmp, JDD.Apply(JDD.TIMES, JDD.Constant(probBSCCs[i]), bscc));
+			}
+			totalProbs = new StateProbsMTBDD(tmp, model);
+		}
+		// otherwise we have to do more work...
+		else {
+
+			// initialise total probabilities vector
+			switch (engine) {
+			case Prism.MTBDD:
+				totalProbs = new StateProbsMTBDD(JDD.Constant(0), model);
+				break;
+			case Prism.SPARSE:
+				totalProbs = new StateProbsDV(new DoubleVector((int) model.getNumStates()), model);
+				break;
+			case Prism.HYBRID:
+				totalProbs = new StateProbsDV(new DoubleVector((int) model.getNumStates()), model);
+				break;
+			}
+
+			// compute probabilities of reaching each bscc...
+			for (i = 0; i < n; i++) {
+
+				// skip bsccs with zero probability
+				if (probBSCCs[i] == 0.0)
+					continue;
+
+				mainLog.println("\nComputing probabilities of reaching BSCC " + (i + 1));
+
+				// get bscc
+				bscc = (JDDNode) vectBSCCs.elementAt(i);
+
+				// compute probabilities
+				try {
+					probs = computeUntilProbs(trans, trans01, notInBSCCs, bscc);
+				} catch (PrismException e) {
+					JDD.Deref(b);
+					for (i = 0; i < n; i++) {
+						JDD.Deref((JDDNode) vectBSCCs.elementAt(i));
+					}
+					JDD.Deref(notInBSCCs);
+					totalProbs.clear();
+					throw e;
+				}
+
+				// print out probabilities
+				if (verbose) {
+					mainLog.print("\nBSCC " + (i + 1) + " reachability probabilities: \n");
+					probs.print(mainLog);
+				}
+
+				// times by bscc prob, add to total
+				probs.timesConstant(probBSCCs[i]);
+				totalProbs.add(probs);
+
+				// free vector
+				probs.clear();
+			}
+		}
+
+		// print out probabilities
+		if (verbose) {
+			mainLog.print("\nS operator probabilities: \n");
+			totalProbs.print(mainLog);
+		}
 
 		// derefs
-		if (filter != null)
-			JDD.Deref(filter);
+		JDD.Deref(b);
+		for (i = 0; i < n; i++) {
+			JDD.Deref((JDDNode) vectBSCCs.elementAt(i));
+		}
+		JDD.Deref(notInBSCCs);
 
-		return sol;
+		// For =? properties, just return values
+		if (pb == null) {
+			return totalProbs;
+		}
+		// Otherwise, compare against bound to get set of satisfying states
+		else {
+			sol = totalProbs.getBDDFromInterval(relOp, p);
+			// remove unreachable states from solution
+			JDD.Ref(reach);
+			sol = JDD.And(sol, reach);
+			// free vector
+			totalProbs.clear();
+			return new StateProbsMTBDD(sol, model);
+		}
 	}
 
 	// next
 
-	private StateProbs checkProbNext(PathExpressionTemporal pe) throws PrismException
+	protected StateProbs checkProbNext(PathExpressionTemporal pe) throws PrismException
 	{
 		Expression expr;
 		JDDNode b;
@@ -756,7 +565,7 @@ public class ProbModelChecker extends StateModelChecker
 
 	// bounded until
 
-	private StateProbs checkProbBoundedUntil(PathExpressionTemporal pe) throws PrismException
+	protected StateProbs checkProbBoundedUntil(PathExpressionTemporal pe) throws PrismException
 	{
 		Expression expr1, expr2;
 		int time;
@@ -816,7 +625,7 @@ public class ProbModelChecker extends StateModelChecker
 
 	// until (unbounded)
 
-	private StateProbs checkProbUntil(PathExpressionTemporal pe, Expression pb, double p) throws PrismException
+	protected StateProbs checkProbUntil(PathExpressionTemporal pe, Expression pb, double p) throws PrismException
 	{
 		Expression expr1, expr2;
 		JDDNode b1, b2;
@@ -873,7 +682,7 @@ public class ProbModelChecker extends StateModelChecker
 	// bounded future (eventually)
 	// F<=k phi == true U<=k phi
 
-	private StateProbs checkProbBoundedFuture(PathExpressionTemporal pe) throws PrismException
+	protected StateProbs checkProbBoundedFuture(PathExpressionTemporal pe) throws PrismException
 	{
 		PathExpressionTemporal pe2;
 		pe2 = new PathExpressionTemporal(PathExpressionTemporal.P_U, new PathExpressionExpr(Expression.True()), pe
@@ -884,7 +693,7 @@ public class ProbModelChecker extends StateModelChecker
 	// future (eventually)
 	// F phi == true U phi
 
-	private StateProbs checkProbFuture(PathExpressionTemporal pe, Expression pb, double p) throws PrismException
+	protected StateProbs checkProbFuture(PathExpressionTemporal pe, Expression pb, double p) throws PrismException
 	{
 		PathExpressionTemporal pe2;
 		pe2 = new PathExpressionTemporal(PathExpressionTemporal.P_U, new PathExpressionExpr(Expression.True()), pe
@@ -896,7 +705,7 @@ public class ProbModelChecker extends StateModelChecker
 	// F<=k phi == true U<=k phi
 	// P(G<=k phi) == 1-P(true U<=k !phi)
 
-	private StateProbs checkProbBoundedGlobal(PathExpressionTemporal pe) throws PrismException
+	protected StateProbs checkProbBoundedGlobal(PathExpressionTemporal pe) throws PrismException
 	{
 		PathExpressionTemporal pe2;
 		StateProbs probs;
@@ -912,7 +721,7 @@ public class ProbModelChecker extends StateModelChecker
 	// G phi == !(true U !phi)
 	// P(G phi) == 1-P(true U !phi)
 
-	private StateProbs checkProbGlobal(PathExpressionTemporal pe, Expression pb, double p) throws PrismException
+	protected StateProbs checkProbGlobal(PathExpressionTemporal pe, Expression pb, double p) throws PrismException
 	{
 		PathExpressionTemporal pe2;
 		StateProbs probs;
@@ -925,7 +734,7 @@ public class ProbModelChecker extends StateModelChecker
 
 	// cumulative reward
 
-	private StateProbs checkRewardCumul(PathExpressionTemporal pe, JDDNode stateRewards, JDDNode transRewards)
+	protected StateProbs checkRewardCumul(PathExpressionTemporal pe, JDDNode stateRewards, JDDNode transRewards)
 			throws PrismException
 	{
 		int time; // time
@@ -956,10 +765,10 @@ public class ProbModelChecker extends StateModelChecker
 
 	// inst reward
 
-	private StateProbs checkRewardInst(PathExpressionTemporal pe, JDDNode stateRewards, JDDNode transRewards)
+	protected StateProbs checkRewardInst(PathExpressionTemporal pe, JDDNode stateRewards, JDDNode transRewards)
 			throws PrismException
 	{
-		int time; // time bound
+		int time; // time
 		StateProbs rewards = null;
 
 		// get info from inst reward
@@ -976,7 +785,7 @@ public class ProbModelChecker extends StateModelChecker
 
 	// reach reward
 
-	private StateProbs checkRewardReach(PathExpressionTemporal pe, JDDNode stateRewards, JDDNode transRewards)
+	protected StateProbs checkRewardReach(PathExpressionTemporal pe, JDDNode stateRewards, JDDNode transRewards)
 			throws PrismException
 	{
 		Expression expr;
@@ -1009,13 +818,339 @@ public class ProbModelChecker extends StateModelChecker
 		return rewards;
 	}
 
+	// steady state reward
+
+	protected StateProbs checkRewardSS(PathExpressionTemporal pe, JDDNode stateRewards, JDDNode transRewards)
+			throws PrismException
+	{
+		// bscc stuff
+		Vector vectBSCCs;
+		JDDNode notInBSCCs;
+		// mtbdd stuff
+		JDDNode newStateRewards, bscc, tmp;
+		// other stuff
+		StateProbs probs = null, rewards = null;
+		int i, n;
+		double d, rewBSCCs[];
+
+		// compute rewards corresponding to each state
+		JDD.Ref(trans);
+		JDD.Ref(transRewards);
+		newStateRewards = JDD.SumAbstract(JDD.Apply(JDD.TIMES, trans, transRewards), allDDColVars);
+		JDD.Ref(stateRewards);
+		newStateRewards = JDD.Apply(JDD.PLUS, newStateRewards, stateRewards);
+
+		// compute bottom strongly connected components (bsccs)
+		if (bsccComp) {
+			mainLog.print("\nComputing (B)SCCs...");
+			sccComputer.computeBSCCs();
+			vectBSCCs = sccComputer.getVectBSCCs();
+			notInBSCCs = sccComputer.getNotInBSCCs();
+			n = vectBSCCs.size();
+		}
+		// unless we've been told to skip it
+		else {
+			mainLog.println("\nSkipping BSCC computation...");
+			vectBSCCs = new Vector();
+			JDD.Ref(reach);
+			vectBSCCs.add(reach);
+			notInBSCCs = JDD.Constant(0);
+			n = 1;
+		}
+
+		// compute steady state for each bscc...
+		rewBSCCs = new double[n];
+		for (i = 0; i < n; i++) {
+
+			mainLog.println("\nComputing steady state probabilities for BSCC " + (i + 1));
+
+			// get bscc
+			bscc = (JDDNode) vectBSCCs.elementAt(i);
+
+			// compute steady state probabilities
+			try {
+				probs = computeSteadyStateProbs(trans, bscc);
+			} catch (PrismException e) {
+				JDD.Deref(newStateRewards);
+				for (i = 0; i < n; i++) {
+					JDD.Deref((JDDNode) vectBSCCs.elementAt(i));
+				}
+				JDD.Deref(notInBSCCs);
+				throw e;
+			}
+
+			// print out probabilities
+			if (verbose) {
+				mainLog.print("\nBSCC " + (i + 1) + " steady-state probabilities: \n");
+				probs.print(mainLog);
+			}
+
+			// do weighted sum of probabilities and rewards
+			JDD.Ref(bscc);
+			JDD.Ref(newStateRewards);
+			tmp = JDD.Apply(JDD.TIMES, bscc, newStateRewards);
+			d = probs.sumOverMTBDD(tmp);
+			rewBSCCs[i] = d;
+			mainLog.print("\nBSCC " + (i + 1) + " Reward: " + d + "\n");
+			JDD.Deref(tmp);
+
+			// free vector
+			probs.clear();
+		}
+
+		// if every state is in a bscc, it's much easier...
+		if (notInBSCCs.equals(JDD.ZERO)) {
+
+			mainLog.println("\nAll states are in a BSCC (so no reachability probabilities computed)");
+
+			// build the reward vector
+			tmp = JDD.Constant(0);
+			for (i = 0; i < n; i++) {
+				bscc = (JDDNode) vectBSCCs.elementAt(i);
+				JDD.Ref(bscc);
+				tmp = JDD.Apply(JDD.PLUS, tmp, JDD.Apply(JDD.TIMES, JDD.Constant(rewBSCCs[i]), bscc));
+			}
+			rewards = new StateProbsMTBDD(tmp, model);
+		}
+		// otherwise we have to do more work...
+		else {
+
+			// initialise rewards vector
+			switch (engine) {
+			case Prism.MTBDD:
+				rewards = new StateProbsMTBDD(JDD.Constant(0), model);
+				break;
+			case Prism.SPARSE:
+				rewards = new StateProbsDV(new DoubleVector((int) model.getNumStates()), model);
+				break;
+			case Prism.HYBRID:
+				rewards = new StateProbsDV(new DoubleVector((int) model.getNumStates()), model);
+				break;
+			}
+
+			// compute probabilities of reaching each bscc...
+			for (i = 0; i < n; i++) {
+
+				// skip bsccs with zero reward
+				if (rewBSCCs[i] == 0.0)
+					continue;
+
+				mainLog.println("\nComputing probabilities of reaching BSCC " + (i + 1));
+
+				// get bscc
+				bscc = (JDDNode) vectBSCCs.elementAt(i);
+
+				// compute probabilities
+				probs = computeUntilProbs(trans, trans01, notInBSCCs, bscc);
+
+				// print out probabilities
+				if (verbose) {
+					mainLog.print("\nBSCC " + (i + 1) + " reachability probabilities: \n");
+					probs.print(mainLog);
+				}
+
+				// times by bscc reward, add to total
+				probs.timesConstant(rewBSCCs[i]);
+				rewards.add(probs);
+
+				// free vector
+				probs.clear();
+			}
+		}
+
+		// derefs
+		JDD.Deref(newStateRewards);
+		for (i = 0; i < n; i++) {
+			JDD.Deref((JDDNode) vectBSCCs.elementAt(i));
+		}
+		JDD.Deref(notInBSCCs);
+
+		return rewards;
+	}
+
+	// -----------------------------------------------------------------------------------
+	// do steady state computation
+	// -----------------------------------------------------------------------------------
+
+	// steady state computation (from initial states)
+
+	public StateProbs doSteadyState() throws PrismException
+	{
+		// bscc stuff
+		Vector vectBSCCs;
+		JDDNode notInBSCCs;
+		// mtbdd stuff
+		JDDNode start, bscc, tmp;
+		// other stuff
+		StateProbs probs = null, solnProbs = null;
+		double d, probBSCCs[];
+		int i, n, whichBSCC, bsccCount;
+
+		// compute bottom strongly connected components (bsccs)
+		if (bsccComp) {
+			mainLog.print("\nComputing (B)SCCs...");
+			sccComputer.computeBSCCs();
+			vectBSCCs = sccComputer.getVectBSCCs();
+			notInBSCCs = sccComputer.getNotInBSCCs();
+			n = vectBSCCs.size();
+		}
+		// unless we've been told to skip it
+		else {
+			mainLog.println("\nSkipping BSCC computation...");
+			vectBSCCs = new Vector();
+			JDD.Ref(reach);
+			vectBSCCs.add(reach);
+			notInBSCCs = JDD.Constant(0);
+			n = 1;
+		}
+
+		// get initial states of model
+		start = model.getStart();
+
+		// see how many bsccs contain initial states and, if just one, which one
+		whichBSCC = -1;
+		bsccCount = 0;
+		for (i = 0; i < n; i++) {
+			bscc = (JDDNode) vectBSCCs.elementAt(i);
+			JDD.Ref(bscc);
+			JDD.Ref(start);
+			tmp = JDD.And(bscc, start);
+			if (!tmp.equals(JDD.ZERO)) {
+				bsccCount++;
+				if (bsccCount == 1)
+					whichBSCC = i;
+			}
+			JDD.Deref(tmp);
+		}
+
+		// if all initial states are in a single bscc, it's easy...
+		JDD.Ref(notInBSCCs);
+		JDD.Ref(start);
+		tmp = JDD.And(notInBSCCs, start);
+		if (tmp.equals(JDD.ZERO) && bsccCount == 1) {
+
+			JDD.Deref(tmp);
+
+			mainLog.println("\nInitial states all in one BSCC (so no reachability probabilities computed)");
+
+			// get bscc
+			bscc = (JDDNode) vectBSCCs.elementAt(whichBSCC);
+
+			// compute steady-state probabilities for the bscc
+			try {
+				solnProbs = computeSteadyStateProbs(trans, bscc);
+			} catch (PrismException e) {
+				for (i = 0; i < n; i++) {
+					JDD.Deref((JDDNode) vectBSCCs.elementAt(i));
+				}
+				JDD.Deref(notInBSCCs);
+				throw e;
+			}
+		}
+
+		// otherwise have to consider all the bsccs
+		else {
+
+			JDD.Deref(tmp);
+
+			// initialise total probabilities vector
+			switch (engine) {
+			case Prism.MTBDD:
+				solnProbs = new StateProbsMTBDD(JDD.Constant(0), model);
+				break;
+			case Prism.SPARSE:
+				solnProbs = new StateProbsDV(new DoubleVector((int) model.getNumStates()), model);
+				break;
+			case Prism.HYBRID:
+				solnProbs = new StateProbsDV(new DoubleVector((int) model.getNumStates()), model);
+				break;
+			}
+
+			// compute prob of reaching each bscc from initial state
+			probBSCCs = new double[n];
+			for (i = 0; i < n; i++) {
+
+				mainLog.println("\nComputing probability of reaching BSCC " + (i + 1));
+
+				// get bscc
+				bscc = (JDDNode) vectBSCCs.elementAt(i);
+
+				// compute probabilities
+				try {
+					probs = computeUntilProbs(trans, trans01, notInBSCCs, bscc);
+				} catch (PrismException e) {
+					for (i = 0; i < n; i++) {
+						JDD.Deref((JDDNode) vectBSCCs.elementAt(i));
+					}
+					JDD.Deref(notInBSCCs);
+					solnProbs.clear();
+					throw e;
+				}
+
+				// sum probabilities over bdd for initial state
+				// and then divide by number of start states
+				// (we assume an equiprobable initial probability distribution
+				// over all initial states)
+				d = probs.sumOverBDD(start);
+				d /= model.getNumStartStates();
+				probBSCCs[i] = d;
+				mainLog.print("\nBSCC " + (i + 1) + " Probability: " + d + "\n");
+
+				// free vector
+				probs.clear();
+			}
+
+			// compute steady-state for each bscc
+			for (i = 0; i < n; i++) {
+
+				mainLog.println("\nComputing steady-state probabilities for BSCC " + (i + 1));
+
+				// get bscc
+				bscc = (JDDNode) vectBSCCs.elementAt(i);
+
+				// compute steady-state probabilities for the bscc
+				try {
+					probs = computeSteadyStateProbs(trans, bscc);
+				} catch (PrismException e) {
+					for (i = 0; i < n; i++) {
+						JDD.Deref((JDDNode) vectBSCCs.elementAt(i));
+					}
+					JDD.Deref(notInBSCCs);
+					solnProbs.clear();
+					throw e;
+				}
+
+				// print out probabilities
+				if (verbose) {
+					mainLog.print("\nBSCC " + (i + 1) + " Steady-State Probabilities: \n");
+					probs.print(mainLog);
+				}
+
+				// times by bscc reach prob, add to total
+				probs.timesConstant(probBSCCs[i]);
+				solnProbs.add(probs);
+
+				// free vector
+				probs.clear();
+			}
+		}
+
+		// derefs
+		for (i = 0; i < n; i++) {
+			JDD.Deref((JDDNode) vectBSCCs.elementAt(i));
+		}
+		JDD.Deref(notInBSCCs);
+
+		return solnProbs;
+	}
+
 	// -----------------------------------------------------------------------------------
 	// probability computation methods
 	// -----------------------------------------------------------------------------------
 
 	// compute probabilities for next
 
-	private StateProbs computeNextProbs(JDDNode tr, JDDNode b)
+	protected StateProbs computeNextProbs(JDDNode tr, JDDNode b)
 	{
 		JDDNode tmp;
 		StateProbs probs = null;
@@ -1032,7 +1167,7 @@ public class ProbModelChecker extends StateModelChecker
 
 	// compute probabilities for bounded until
 
-	private StateProbs computeBoundedUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2, int time)
+	protected StateProbs computeBoundedUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2, int time)
 			throws PrismException
 	{
 		JDDNode yes, no, maybe;
@@ -1123,7 +1258,7 @@ public class ProbModelChecker extends StateModelChecker
 
 	// compute probabilities for until (for qualitative properties)
 
-	private StateProbs computeUntilProbsQual(JDDNode tr01, JDDNode b1, JDDNode b2, double p)
+	protected StateProbs computeUntilProbsQual(JDDNode tr01, JDDNode b1, JDDNode b2, double p)
 	{
 		JDDNode yes, no, maybe;
 		StateProbs probs = null;
@@ -1195,7 +1330,7 @@ public class ProbModelChecker extends StateModelChecker
 
 	// compute probabilities for until (general case)
 
-	private StateProbs computeUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2) throws PrismException
+	protected StateProbs computeUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2) throws PrismException
 	{
 		JDDNode yes, no, maybe;
 		JDDNode probsMTBDD;
@@ -1248,8 +1383,18 @@ public class ProbModelChecker extends StateModelChecker
 
 		// if maybe is empty, we have the probabilities already
 		if (maybe.equals(JDD.ZERO)) {
-			JDD.Ref(yes);
-			probs = new StateProbsMTBDD(yes, model);
+			// we make sure to return a vector of the appropriate type
+			// (doublevector for hybrid/sparse, mtbdd for mtbdd)
+			switch (engine) {
+			case Prism.MTBDD:
+				JDD.Ref(yes);
+				probs = new StateProbsMTBDD(yes, model);
+				break;
+			case Prism.SPARSE:
+			case Prism.HYBRID:
+				probs = new StateProbsDV(yes, model);
+				break;
+			}
 		}
 		// otherwise we compute the actual probabilities
 		else {
@@ -1291,7 +1436,7 @@ public class ProbModelChecker extends StateModelChecker
 
 	// compute cumulative rewards
 
-	private StateProbs computeCumulRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr, int time)
+	protected StateProbs computeCumulRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr, int time)
 			throws PrismException
 	{
 		JDDNode rewardsMTBDD;
@@ -1325,7 +1470,7 @@ public class ProbModelChecker extends StateModelChecker
 
 	// compute rewards for inst reward
 
-	private StateProbs computeInstRewards(JDDNode tr, JDDNode sr, int time) throws PrismException
+	protected StateProbs computeInstRewards(JDDNode tr, JDDNode sr, int time) throws PrismException
 	{
 		JDDNode rewardsMTBDD;
 		DoubleVector rewardsDV;
@@ -1358,7 +1503,7 @@ public class ProbModelChecker extends StateModelChecker
 
 	// compute rewards for reach reward
 
-	private StateProbs computeReachRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr, JDDNode b)
+	protected StateProbs computeReachRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr, JDDNode b)
 			throws PrismException
 	{
 		JDDNode inf, maybe;
@@ -1431,6 +1576,85 @@ public class ProbModelChecker extends StateModelChecker
 		JDD.Deref(maybe);
 
 		return rewards;
+	}
+
+	// compute steady-state probabilities
+
+	// tr = the rate matrix for the whole ctmc
+	// states = the subset of reachable states (e.g. bscc) for which
+	// steady-state is to be done
+
+	protected StateProbs computeSteadyStateProbs(JDDNode tr, JDDNode subset) throws PrismException
+	{
+		JDDNode trf, init;
+		long n;
+		JDDNode probsMTBDD;
+		DoubleVector probsDV;
+		StateProbs probs = null;
+
+		// work out number of states in 'subset'
+		if (tr.equals(reach)) {
+			// avoid a call to GetNumMinterms in this simple (and common) case
+			n = model.getNumStates();
+		} else {
+			n = Math.round(JDD.GetNumMinterms(subset, allDDRowVars.n()));
+		}
+
+		// special case - there is only one state in 'subset'
+		// (in fact, we need to check for this special case because the general
+		// solution work breaks)
+		if (n == 1) {
+			// answer is trivially one in the single state
+			switch (engine) {
+			case Prism.MTBDD:
+				JDD.Ref(subset);
+				return new StateProbsMTBDD(subset, model);
+			case Prism.SPARSE:
+				return new StateProbsDV(subset, model);
+			case Prism.HYBRID:
+				return new StateProbsDV(subset, model);
+			}
+		}
+
+		// filter out unwanted states from transition matrix
+		JDD.Ref(tr);
+		JDD.Ref(subset);
+		trf = JDD.Apply(JDD.TIMES, tr, subset);
+		JDD.Ref(subset);
+		trf = JDD.Apply(JDD.TIMES, trf, JDD.PermuteVariables(subset, allDDRowVars, allDDColVars));
+
+		// compute initial solution (equiprobable)
+		JDD.Ref(subset);
+		init = JDD.Apply(JDD.DIVIDE, subset, JDD.Constant(n));
+
+		try {
+			switch (engine) {
+			case Prism.MTBDD:
+				probsMTBDD = PrismMTBDD.StochSteadyState(trf, odd, init, allDDRowVars, allDDColVars);
+				probs = new StateProbsMTBDD(probsMTBDD, model);
+				break;
+			case Prism.SPARSE:
+				probsDV = PrismSparse.StochSteadyState(trf, odd, init, allDDRowVars, allDDColVars);
+				probs = new StateProbsDV(probsDV, model);
+				break;
+			case Prism.HYBRID:
+				probsDV = PrismHybrid.StochSteadyState(trf, odd, init, allDDRowVars, allDDColVars);
+				probs = new StateProbsDV(probsDV, model);
+				break;
+			default:
+				throw new PrismException("Engine does not support this numerical method");
+			}
+		} catch (PrismException e) {
+			JDD.Deref(trf);
+			JDD.Deref(init);
+			throw e;
+		}
+
+		// derefs
+		JDD.Deref(trf);
+		JDD.Deref(init);
+
+		return probs;
 	}
 }
 
