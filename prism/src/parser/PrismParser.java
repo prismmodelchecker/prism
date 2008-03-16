@@ -2189,7 +2189,7 @@ public class PrismParser implements PrismParserConstants {
                                                 actualOperand2.setPosition(((ExpressionFunc)tb.uBound).getOperand(0));
                                                 PathExpressionExpr pe2 = new PathExpressionExpr(actualOperand2);
                                                 pe2.setPosition(actualOperand2);
-                                                pe.setOperand2(new PathExpressionExpr(((ExpressionFunc)tb.uBound).getOperand(0)));
+                                                pe.setOperand2(pe2);
                                                 pe.setPosition(begin, getToken(0));
                                                 {if (true) return pe;}
                                         }
@@ -2205,7 +2205,7 @@ public class PrismParser implements PrismParserConstants {
                                                 actualOperand2.setPosition(((ExpressionFunc)tb.uBound).getOperand(0));
                                                 PathExpressionExpr pe2 = new PathExpressionExpr(actualOperand2);
                                                 pe2.setPosition(actualOperand2);
-                                                pe.setOperand2(new PathExpressionExpr(((ExpressionFunc)tb.lBound).getOperand(0)));
+                                                pe.setOperand2(pe2);
                                                 pe.setPosition(begin, getToken(0));
                                                 {if (true) return pe;}
                                         }
