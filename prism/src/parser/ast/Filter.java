@@ -97,7 +97,7 @@ public class Filter extends ASTElement
 	public String toString()
 	{
 		String s = "";
-		s += " {" + expr + "}";
+		s += "{" + expr + "}";
 		if (minReq) s += "{min}";
 		if (maxReq) s += "{max}";
 		return s;
