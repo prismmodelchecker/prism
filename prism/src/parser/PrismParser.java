@@ -1168,19 +1168,19 @@ public class PrismParser implements PrismParserConstants {
 // System definition component
   static final public SystemDefn SystemDefn() throws ParseException {
         SystemDefn ret;
-    ret = SystemInterleaved();
+    ret = SystemFullParallel();
           {if (true) return ret;}
     throw new Error("Missing return statement in function");
   }
 
-// System definition component (interleaved parallel)
-  static final public SystemDefn SystemInterleaved() throws ParseException {
+// System definition component (full parallel)
+  static final public SystemDefn SystemFullParallel() throws ParseException {
         SystemDefn sys1 = null, sys2 = null;
-        SystemInterleaved par = null;
+        SystemFullParallel par = null;
         Token begin;
           begin = getToken(1);
-    sys1 = SystemFullParallel();
-            par = new SystemInterleaved(); par.addOperand(sys1);
+    sys1 = SystemInterleaved();
+            par = new SystemFullParallel(); par.addOperand(sys1);
     label_12:
     while (true) {
       if (jj_2_6(2147483647)) {
@@ -1190,9 +1190,8 @@ public class PrismParser implements PrismParserConstants {
       }
       jj_consume_token(OR);
       jj_consume_token(OR);
-      jj_consume_token(OR);
-      sys2 = SystemFullParallel();
-                                                                                                                                             par.addOperand(sys2);
+      sys2 = SystemParallel();
+                                                                                                                               par.addOperand(sys2);
     }
                 if (par==null) {
                         {if (true) return sys1;}
@@ -1204,14 +1203,14 @@ public class PrismParser implements PrismParserConstants {
     throw new Error("Missing return statement in function");
   }
 
-// System definition component (full parallel)
-  static final public SystemDefn SystemFullParallel() throws ParseException {
+// System definition component (interleaved parallel)
+  static final public SystemDefn SystemInterleaved() throws ParseException {
         SystemDefn sys1 = null, sys2 = null;
-        SystemFullParallel par = null;
+        SystemInterleaved par = null;
         Token begin;
           begin = getToken(1);
     sys1 = SystemParallel();
-            par = new SystemFullParallel(); par.addOperand(sys1);
+            par = new SystemInterleaved(); par.addOperand(sys1);
     label_13:
     while (true) {
       if (jj_2_7(2147483647)) {
@@ -1221,8 +1220,9 @@ public class PrismParser implements PrismParserConstants {
       }
       jj_consume_token(OR);
       jj_consume_token(OR);
-      sys2 = SystemParallel();
-                                                                                                                               par.addOperand(sys2);
+      jj_consume_token(OR);
+      sys2 = SystemFullParallel();
+                                                                                                                                             par.addOperand(sys2);
     }
                 if (par==null) {
                         {if (true) return sys1;}
@@ -2837,12 +2837,6 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static final private boolean jj_3_7() {
-    if (jj_scan_token(OR)) return true;
-    if (jj_scan_token(OR)) return true;
-    return false;
-  }
-
   static final private boolean jj_3R_68() {
     Token xsp;
     xsp = jj_scanpos;
@@ -2862,6 +2856,13 @@ public class PrismParser implements PrismParserConstants {
     }
     }
     }
+    return false;
+  }
+
+  static final private boolean jj_3_7() {
+    if (jj_scan_token(OR)) return true;
+    if (jj_scan_token(OR)) return true;
+    if (jj_scan_token(OR)) return true;
     return false;
   }
 
@@ -3009,6 +3010,12 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
+  static final private boolean jj_3_6() {
+    if (jj_scan_token(OR)) return true;
+    if (jj_scan_token(OR)) return true;
+    return false;
+  }
+
   static final private boolean jj_3R_123() {
     if (jj_3R_53()) return true;
     if (jj_3R_33()) return true;
@@ -3019,13 +3026,6 @@ public class PrismParser implements PrismParserConstants {
     if (jj_scan_token(PMAX)) return true;
     if (jj_scan_token(EQ)) return true;
     if (jj_scan_token(QMARK)) return true;
-    return false;
-  }
-
-  static final private boolean jj_3_6() {
-    if (jj_scan_token(OR)) return true;
-    if (jj_scan_token(OR)) return true;
-    if (jj_scan_token(OR)) return true;
     return false;
   }
 

@@ -806,31 +806,8 @@ SystemDefn SystemDefn() :
 	SystemDefn ret;
 }
 {
-	ret = SystemInterleaved()
+	ret = SystemFullParallel()
 	{ return ret; }
-}
-
-// System definition component (interleaved parallel)
-
-SystemDefn SystemInterleaved() :
-{
-	SystemDefn sys1 = null, sys2 = null;
-	SystemInterleaved par = null;
-	Token begin;
-}
-{
-	{ begin = getToken(1); }
-	sys1 = SystemFullParallel()
-	( { par = new SystemInterleaved(); par.addOperand(sys1); } ( LOOKAHEAD(<OR> <OR> <OR>) <OR> <OR> <OR>  sys2 = SystemFullParallel() { par.addOperand(sys2); } )* )
-	{
-		if (par==null) {
-			return sys1;
-		}
-		else {
-			par.setPosition(begin, getToken(0));
-			return par;
-		}
-	}
 }
 
 // System definition component (full parallel)
@@ -843,8 +820,31 @@ SystemDefn SystemFullParallel() :
 }
 {
 	{ begin = getToken(1); }
-	sys1 = SystemParallel()
+	sys1 = SystemInterleaved()
 	( { par = new SystemFullParallel(); par.addOperand(sys1); } ( LOOKAHEAD(<OR> <OR>) <OR> <OR> sys2 = SystemParallel() { par.addOperand(sys2); } )* )
+	{
+		if (par==null) {
+			return sys1;
+		}
+		else {
+			par.setPosition(begin, getToken(0));
+			return par;
+		}
+	}
+}
+
+// System definition component (interleaved parallel)
+
+SystemDefn SystemInterleaved() :
+{
+	SystemDefn sys1 = null, sys2 = null;
+	SystemInterleaved par = null;
+	Token begin;
+}
+{
+	{ begin = getToken(1); }
+	sys1 = SystemParallel()
+	( { par = new SystemInterleaved(); par.addOperand(sys1); } ( LOOKAHEAD(<OR> <OR> <OR>) <OR> <OR> <OR>  sys2 = SystemFullParallel() { par.addOperand(sys2); } )* )
 	{
 		if (par==null) {
 			return sys1;
