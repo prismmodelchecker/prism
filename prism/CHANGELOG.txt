@@ -3,6 +3,15 @@ including development and beta versions. For a less detailed overview
 of the main changes in each public release, see the file VERSIONS.txt.
 
 -----------------------------------------------------------------------------
+
+Latest changes (reverse chronological):
+
+Steady-state properties for DTMCs
+GUI model editor: line numbers, undo
+Language changes: no ranges, new function notation, semicolons, update parentheses
+New parser: more efficient, better error reporting
+
+-----------------------------------------------------------------------------
 Version 3.2.beta1 (released 25/2/2008) (svn: trunk rev 568)
 -----------------------------------------------------------------------------
 
