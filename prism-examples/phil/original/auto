@@ -1,14 +1,14 @@
 #!/bin/csh
 
-prism phil3.nm  phil3.pctl  -fair -m
-prism phil4.nm  phil4.pctl  -fair -m
-prism phil5.nm  phil5.pctl  -fair -m
-prism phil6.nm  phil6.pctl  -fair -m
-prism phil7.nm  phil7.pctl  -fair -m
-prism phil8.nm  phil8.pctl  -fair -m
-prism phil9.nm  phil9.pctl  -fair -m
-prism phil10.nm phil10.pctl -fair -m
-prism phil15.nm phil15.pctl -fair -m
-prism phil20.nm phil20.pctl -fair -m
-prism phil25.nm phil25.pctl -fair -m
-prism phil30.nm phil30.pctl -fair -m
+prism phil3.nm  phil.pctl  -fair -m
+prism phil4.nm  phil.pctl  -fair -m
+prism phil5.nm  phil.pctl  -fair -m
+prism phil6.nm  phil.pctl  -fair -m
+prism phil7.nm  phil.pctl  -fair -m
+prism phil8.nm  phil.pctl  -fair -m
+prism phil9.nm  phil.pctl  -fair -m
+#prism phil10.nm phil.pctl -fair -m
+#prism phil15.nm phil.pctl -fair -m
+#prism phil20.nm phil.pctl -fair -m
+#prism phil25.nm phil.pctl -fair -m
+#prism phil30.nm phil.pctl -fair -m

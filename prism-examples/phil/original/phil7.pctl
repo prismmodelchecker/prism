@@ -1,4 +1,0 @@
-label "hungry" = ((p1>0) & (p1<8)) | ((p2>0) & (p2<8)) | ((p3>0) & (p3<8)) | ((p4>0) & (p4<8)) | ((p5>0) & (p5<8)) | ((p6>0) & (p6<8)) | ((p7>0) & (p7<8));
-label "eat"    = (p1=8..9) | (p2=8..9) | (p3=8..9) | (p4=8..9) | (p5=8..9) | (p6=8..9) | (p7=8..9);
-// liveness (if a philosopher is hungry then eventually some philosopher eats)
-"hungry" => P>=1 [ true U "eat"]

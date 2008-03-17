@@ -1,0 +1,3 @@
+// Liveness (if a philosopher is hungry then eventually some philosopher eats)
+
+"hungry" => P>=1 [ true U "eat"]
