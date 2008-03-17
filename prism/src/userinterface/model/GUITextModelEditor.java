@@ -703,6 +703,8 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 	
 	public int computeDocumentOffset(int line, int column) throws BadLocationException
 	{
+		if (line < 0 || column < 0) throw new BadLocationException("Negative line/col", -1);
+		
 		Element lineElement = editor.getDocument().getDefaultRootElement().
 		getElement(line-1);
 		
