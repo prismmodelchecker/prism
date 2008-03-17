@@ -1,3 +1,4 @@
+#const N#
 // mutual exclusion [PZ82]
 // dxp/gxn 19/12/99
 
@@ -5,15 +6,15 @@ mdp
 
 // atomic formula
 // none in low, high, tie
-formula none_lht = !(p2>=4&p2<=13)&!(p3>=4&p3<=13);
+formula none_lht = #& i=2:N#!(p#i#>=4&p#i#<=13)#end#;
 // some in admit
-formula some_a   = (p2>=14&p2<=15)|(p3>=14&p3<=15);
+formula some_a   = #| i=2:N#(p#i#>=14&p#i#<=15)#end#;
 // some in high, admit
-formula some_ha  = (p2>=4&p2<=5|p2>=10&p2<=15)|(p3>=4&p3<=5|p3>=10&p3<=15);
+formula some_ha  = #| i=2:N#(p#i#>=4&p#i#<=5|p#i#>=10&p#i#<=15)#end#;
 // none in high, tie, admit
-formula none_hta = (p2>=0&p2<=3|p2>=7&p2<=8)&(p3>=0&p3<=3|p3>=7&p3<=8);
+formula none_hta = #& i=2:N#(p#i#>=0&p#i#<=3|p#i#>=7&p#i#<=8)#end#;
 // none in enter
-formula none_e   = !(p2>=2&p2<=3)&!(p3>=2&p3<=3);
+formula none_e   = #& i=2:N#!(p#i#>=2&p#i#<=3)#end#;
 
 
 module process1
@@ -49,16 +50,17 @@ endmodule
 
 // construct further modules through renaming
 
-module process2 = process1 [ p1=p2, p2=p1 ] endmodule
-module process3 = process1 [ p1=p3, p3=p1 ] endmodule
+#for i=2:N#
+module process#i# = process1 [ p1=p#i#, p#i#=p1 ] endmodule
+#end#
 
 // formulas/labels for properties
 
 // number of procs in critical section
-formula num_crit = p1>9?1:0+p1>9?1:0+p1>9?1:0;
+formula num_crit = #+ i=1:N#p#1#>9?1:0#end#;
 // some process is between 4 and 13
-label "some_4_13"  = (p1>=4&p1<=13)|(p2>=4&p2<=13)|(p3>=4&p3<=13);
+label "some_4_13"  = #| i=1:N#(p#i#>=4&p#i#<=13)#end#;
 // some process is in 14
-label "some_14"    = (p1=14)|(p2=14)|(p3=14);
+label "some_14"    = #| i=1:N#(p#i#=14)#end#;
 
 
