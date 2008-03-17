@@ -679,11 +679,11 @@ public class PrismCL
 	private void doSteadyState() throws PrismException
 	{
 		// compute steady-state probabilities
-		if (model instanceof StochModel) {
+		if (model instanceof StochModel || model instanceof ProbModel) {
 			prism.doSteadyState(model);
 		}
 		else {
-			mainLog.println("\nWarning: Steady-state probabilities only computed for CTMC models.");
+			mainLog.println("\nWarning: Steady-state probabilities only computed for DTMCs/CTMCs.");
 		}
 	}
 

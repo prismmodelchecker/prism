@@ -136,7 +136,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		viewStateRewards.setEnabled(!computing);
 		viewTransRewards.setEnabled(!computing);
 		viewPrismCode.setEnabled(!computing && handler.getParseState() == GUIMultiModelTree.TREE_SYNCHRONIZED_GOOD);
-		computeSS.setEnabled(!computing && (handler.getParsedModelType() == ModulesFile.STOCHASTIC));
+		computeSS.setEnabled(!computing && (handler.getParsedModelType() == ModulesFile.STOCHASTIC || handler.getParsedModelType() == ModulesFile.PROBABILISTIC));
 		computeTr.setEnabled(!computing && (handler.getParsedModelType() == ModulesFile.STOCHASTIC));
 		exportStatesPlain.setEnabled(!computing);
 		exportStatesMatlab.setEnabled(!computing);

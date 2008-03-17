@@ -44,9 +44,6 @@ public class CheckValid extends ASTTraverse
 
 	public void visitPost(ExpressionSS e) throws PrismLangException
 	{
-		if (modelType == ModulesFile.PROBABILISTIC) {
-			throw new PrismLangException("The S operator cannot be used for DTMCs");
-		}
 		if (modelType == ModulesFile.NONDETERMINISTIC) {
 			throw new PrismLangException("The S operator cannot be used for MDPs");
 		}
@@ -55,9 +52,6 @@ public class CheckValid extends ASTTraverse
 	public void visitPost(PathExpressionTemporal e) throws PrismLangException
 	{
 		if (e.getOperator() == PathExpressionTemporal.R_S) {
-			if (modelType == ModulesFile.PROBABILISTIC) {
-				throw new PrismLangException("Steady-state reward properties cannot be used for DTMCs");
-			}
 			if (modelType == ModulesFile.NONDETERMINISTIC) {
 				throw new PrismLangException("Steady-state reward properties cannot be used for MDPs");
 			}
