@@ -1,28 +1,27 @@
-// synchronous leader election protocol (itai & Rodeh)
+// synchronous leader election protocol  (itai & Rodeh)
 // dxp/gxn 25/01/01
-// N=4 and K=8
 
 dtmc
 
 // CONSTANTS
-const N=4; // number of processes
-const K=8; // range of probabilistic choice
+const N = 4; // number of processes
+const K = 8; // range of probabilistic choice
 
 // counter module used to count the number of processes that have been read
 // and to know when a process has decided
 module counter
 	
-	// counter 
+	// counter (c=i  means process j reading process (i-1)+j next)
 	c : [1..N-1];
 	
 	// reading
 	[read] c<N-1 -> (c'=c+1);
 	// finished reading
 	[read] c=N-1 -> (c'=c);
-	//done
-	[done] u1 | u2 | u3 | u4 -> (c'=c);
+	//decide
+	[done] u1|u2|u3|u4 -> (c'=c);
 	// pick again reset counter 
-	[retry] !(u1 | u2 | u3 | u4) -> (c'=1);
+	[retry] !(u1|u2|u3|u4) -> (c'=1);
 	// loop (when finished to avoid deadlocks)
 	[loop] s1=3 -> (c'=c);
 	
@@ -60,13 +59,12 @@ module process1
 	             + 1/K : (s1'=1) & (p1'=6) & (v1'=6) & (u1'=true)
 	             + 1/K : (s1'=1) & (p1'=7) & (v1'=7) & (u1'=true);
 	// read
-	[read] s1=1 &  u1 & !p1=v2 & c<N-1 -> (u1'=true) & (v1'=v2);
-	[read] s1=1 &  u1 &  p1=v2 & c<N-1 -> (u1'=false) & (v1'=v2) & (p1'=0);
-	[read] s1=1 & !u1 &  c<N-1 -> (u1'=false) & (v1'=v2);
+	[read] s1=1 &  u1 & c<N-1 -> (u1'=(p1!=v2)) & (v1'=v2);
+	[read] s1=1 & !u1 & c<N-1 -> (u1'=false) & (v1'=v2) & (p1'=0);
 	// read and move to decide
-	[read] s1=1 &  u1 & !p1=v2 & c=N-1 -> (s1'=2) & (u1'=true) & (v1'=0) & (p1'=0);
-	[read] s1=1 &  u1 &  p1=v2 & c=N-1 -> (s1'=2) & (u1'=false) & (v1'=0) & (p1'=0);
-	[read] s1=1 & !u1 &  c=N-1 -> (s1'=2) & (u1'=false) & (v1'=0);
+	[read] s1=1 &  u1 & c=N-1 -> (s1'=2) & (u1'=(p1!=v2)) & (v1'=0) & (p1'=0);
+	[read] s1=1 & !u1 & c=N-1 -> (s1'=2) & (u1'=false) & (v1'=0);
+	// deciding
 	// done
 	[done] s1=2 -> (s1'=3) & (u1'=false) & (v1'=0) & (p1'=0);
 	//retry
@@ -77,11 +75,15 @@ module process1
 endmodule
 
 // construct remaining processes through renaming
-module process2=process1[s1=s2,p1=p2,v1=v2,u1=u2,v2=v3] endmodule
-module process3=process1[s1=s3,p1=p3,v1=v3,u1=u3,v2=v4] endmodule
-module process4=process1[s1=s4,p1=p4,v1=v4,u1=u4,v2=v1] endmodule
+module process2 = process1 [ s1=s2,p1=p2,v1=v2,u1=u2,v2=v3 ] endmodule
+module process3 = process1 [ s1=s3,p1=p3,v1=v3,u1=u3,v2=v4 ] endmodule
+module process4 = process1 [ s1=s4,p1=p4,v1=v4,u1=u4,v2=v1 ] endmodule
 
-// REWARDS -expected number of rounds
-rewards
+// expected number of rounds
+rewards "num_rounds"
 	[pick] true : 1;
 endrewards
+
+// labels
+label "elected" = s1=3&s2=3&s3=3&s4=3;
+
