@@ -310,6 +310,7 @@ public class Preprocessor
 			// parse expression, do some checks
 			expr = prism.parseSingleExpressionString(s);
 			expr = (Expression)expr.findAllVars(varNames, varTypes);
+			expr.typeCheck();
 			expr.semanticCheck();
 		}
 		// set up new variable in interpreter
@@ -449,6 +450,7 @@ public class Preprocessor
 		// parse expression, do some checks
 		expr = prism.parseSingleExpressionString(s);
 		expr = (Expression)expr.findAllVars(varNames, varTypes);
+		expr.typeCheck();
 		expr.semanticCheck();
 		// add 
 		output += "" + expr.evaluate(null, values);
