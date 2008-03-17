@@ -1582,16 +1582,16 @@ int LtGt() :
 ForLoop ForLoop() :
 {
 	String s;
-	Expression to = null, from = null, step = null;
+	Expression from = null, to = null, step = null;
 	ForLoop fl = new ForLoop();
 	Token begin;
 }
 {
-	( { begin = getToken(1); } s=Identifier() <EQ> to = Expression() <COLON> from = Expression() ( <COLON> step = Expression() )? <EOF> )
+	( { begin = getToken(1); } s=Identifier() <EQ> from = Expression() <COLON> to = Expression() ( <COLON> step = Expression() )? <EOF> )
 	{
 		fl.setLHS(s);
-		fl.setTo(to);
 		fl.setFrom(from);
+		fl.setTo(to);
 		if (step != null) fl.setStep(step);
 		fl.setPosition(begin, getToken(0));
 		return fl;

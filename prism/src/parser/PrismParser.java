@@ -2560,15 +2560,15 @@ public class PrismParser implements PrismParserConstants {
 // For loop
   static final public ForLoop ForLoop() throws ParseException {
         String s;
-        Expression to = null, from = null, step = null;
+        Expression from = null, to = null, step = null;
         ForLoop fl = new ForLoop();
         Token begin;
             begin = getToken(1);
     s = Identifier();
     jj_consume_token(EQ);
-    to = Expression();
-    jj_consume_token(COLON);
     from = Expression();
+    jj_consume_token(COLON);
+    to = Expression();
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case COLON:
       jj_consume_token(COLON);
@@ -2580,8 +2580,8 @@ public class PrismParser implements PrismParserConstants {
     }
     jj_consume_token(0);
                 fl.setLHS(s);
-                fl.setTo(to);
                 fl.setFrom(from);
+                fl.setTo(to);
                 if (step != null) fl.setStep(step);
                 fl.setPosition(begin, getToken(0));
                 {if (true) return fl;}
