@@ -496,7 +496,7 @@ ModulesFile ModulesFile() throws PrismLangException :
 
 // Properties file
 
-PropertiesFile PropertiesFile() :
+PropertiesFile PropertiesFile() throws PrismLangException :
 {
 	PropertiesFile pf = new PropertiesFile(modulesFile);
 	Expression expr;
@@ -517,7 +517,7 @@ PropertiesFile PropertiesFile() :
 
 // Properties file with optional semicolons - beware of potential ambiguities
 
-PropertiesFile PropertiesFileSemicolonless() :
+PropertiesFile PropertiesFileSemicolonless() throws PrismLangException :
 {
 	PropertiesFile pf = new PropertiesFile(modulesFile);
 	Expression expr;
@@ -589,13 +589,15 @@ void FormulaDef(FormulaList formulaList) :
 
 // Label definition
 
-void LabelDef(LabelList labelList) :
+void LabelDef(LabelList labelList) throws PrismLangException :
 {
 	Expression name = null, expr = null;
 }
 {
-	( <LABEL> <DQUOTE> name = ExpressionIdent() <DQUOTE> <EQ> expr = Expression() <SEMICOLON> )
+	LOOKAHEAD(<LABEL> <DQUOTE>) <LABEL> ( <DQUOTE> name = ExpressionIdent() <DQUOTE> <EQ> expr = Expression() <SEMICOLON> )
 	{ labelList.addLabel((ExpressionIdent)name, expr); }
+	// Error handling
+	| LOOKAHEAD(<LABEL>) ( <LABEL> name = ExpressionIdent() ) { throw new PrismLangException("Label names must be enclosed in double-quotes", name); }
 }
 
 // Constant definition
