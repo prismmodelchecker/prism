@@ -4,7 +4,7 @@
 // the procotol is synchronous with no nondeterminism (a DTMC)
 dtmc
 
-const double p;
+const double p = 0.5;
 
 // module for process 1
 module process1
