@@ -329,18 +329,24 @@ public class NondetModel implements Model
 		
 		for (i = 0; i < numRewardStructs; i++) {
 			if (stateRewards[i] != null && !stateRewards[i].equals(JDD.ZERO)) {
-				log.print("State rewards ("+i+"): ");
+				log.print("State rewards ("+(i+1)+(("".equals(rewardStructNames[i]))?"":(":\""+rewardStructNames[i]+"\""))+"): ");
 				log.print(JDD.GetNumNodes(stateRewards[i]) + " nodes (");
 				log.print(JDD.GetNumTerminals(stateRewards[i]) + " terminal), ");
 				log.print(JDD.GetNumMintermsString(stateRewards[i], getNumDDRowVars()) + " minterms\n");
-				if (extra) log.print("State rewards ("+i+") terminals : " + JDD.GetTerminalsAndNumbersString(stateRewards[i], getNumDDRowVars())+"\n");
+				if (extra) {
+					log.print("State rewards terminals ("+(i+1)+(("".equals(rewardStructNames[i]))?"":(":\""+rewardStructNames[i]+"\""))+"): ");
+					log.print(JDD.GetTerminalsAndNumbersString(stateRewards[i], getNumDDRowVars())+"\n");
+				}
 			}
 			if (transRewards[i] != null && !transRewards[i].equals(JDD.ZERO)) {
-				log.print("Transition rewards ("+i+"): ");
+				log.print("Transition rewards ("+(i+1)+(("".equals(rewardStructNames[i]))?"":(":\""+rewardStructNames[i]+"\""))+"): ");
 				log.print(JDD.GetNumNodes(transRewards[i]) + " nodes (");
 				log.print(JDD.GetNumTerminals(transRewards[i]) + " terminal), ");
 				log.print(JDD.GetNumMintermsString(transRewards[i], getNumDDVarsInTrans()) + " minterms\n");
-				if (extra) log.print("Transition rewards ("+i+") terminals : " + JDD.GetTerminalsAndNumbersString(transRewards[i], getNumDDVarsInTrans())+"\n");
+				if (extra) {
+					log.print("Transition rewards terminals ("+(i+1)+(("".equals(rewardStructNames[i]))?"":(":\""+rewardStructNames[i]+"\""))+"): ");
+					log.print(JDD.GetTerminalsAndNumbersString(transRewards[i], getNumDDVarsInTrans())+"\n");
+				}
 			}
 		}
 	}
