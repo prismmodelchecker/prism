@@ -59,11 +59,11 @@ public class ProbModelChecker extends StateModelChecker
 
 		// Create SCCComputer object
 		sccComputer = new SCCComputer(mainLog, techLog, model);
-		bsccComp = prism.getBSCCComp();
 
 		// Inherit some options from parent Prism object.
 		// Store locally and/or pass onto engines.
 		precomp = prism.getPrecomp();
+		bsccComp = prism.getBSCCComp();
 		switch (engine) {
 		case Prism.MTBDD:
 			PrismMTBDD.setLinEqMethod(prism.getLinEqMethod());
