@@ -411,7 +411,7 @@ public class PrismParser implements PrismParserConstants {
                 }
 
                 // Return completed ModulesFile object
-                mf.setPosition(begin, getToken(0));
+                mf.setPosition(begin != null? begin: getToken(0), getToken(0));
                 {if (true) return mf;}
     throw new Error("Missing return statement in function");
   }
@@ -1782,8 +1782,8 @@ public class PrismParser implements PrismParserConstants {
                           s = "min";
       break;
     case MAX:
-      jj_consume_token(MAX);
-                                                 s = "max";
+      begin = jj_consume_token(MAX);
+                                                         s = "max";
       break;
     default:
       jj_la1[51] = jj_gen;

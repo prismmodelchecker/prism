@@ -489,7 +489,7 @@ ModulesFile ModulesFile() throws PrismLangException :
 		}
 		
 		// Return completed ModulesFile object
-		mf.setPosition(begin, getToken(0));
+		mf.setPosition(begin != null? begin: getToken(0), getToken(0));
 		return mf;
 	}
 }
@@ -1154,7 +1154,7 @@ Expression ExpressionFuncMinMax() :
 	Token begin = null;
 }
 {
-	( begin = <MIN> { s = "min"; } | <MAX> { s = "max"; } ) 
+	( begin = <MIN> { s = "min"; } | begin = <MAX> { s = "max"; } ) 
 	{ func = new ExpressionFunc(s); } <LPARENTH>  ExpressionFuncArgs(func) <RPARENTH>
 	{ func.setPosition(begin, getToken(0)); return func; }
 }
