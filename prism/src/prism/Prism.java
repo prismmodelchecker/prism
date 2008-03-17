@@ -1158,6 +1158,10 @@ public class Prism implements PrismSettingsListener
 		// Do model checking
 		if (expr instanceof ExpressionProb)
 			filter = ((ExpressionProb)expr).getFilter();
+		else if (expr instanceof ExpressionReward)
+			filter = ((ExpressionReward)expr).getFilter();
+		else if (expr instanceof ExpressionSS)
+			filter = ((ExpressionSS)expr).getFilter();
 		else
 			filter = null;
 		res = mc.check(expr, filter);

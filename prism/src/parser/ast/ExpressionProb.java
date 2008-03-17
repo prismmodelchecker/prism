@@ -138,7 +138,10 @@ public class ExpressionProb extends Expression
 	  */
 	public String getResultName()
 	{
-		return (prob == null) ? "Probability" : "Result";
+		if (prob != null) return "Result";
+		else if (relOp.equals("min=")) return "Minimum probability";
+		else if (relOp.equals("max=")) return "Maximum probability";
+		else return "Probability";
 	}
 
 	// Methods required for ASTElement:

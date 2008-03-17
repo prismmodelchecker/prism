@@ -111,7 +111,7 @@ public class StateModelChecker implements ModelChecker
 	{
 		long timer = 0;
 		JDDNode ddFilter, tmp;
-		StateList states;
+		StateListMTBDD states;
 		boolean b;
 		StateProbs vals;
 		Object res;
@@ -142,13 +142,16 @@ public class StateModelChecker implements ModelChecker
 
 			states = new StateListMTBDD(((StateProbsMTBDD) vals).getJDDNode(), model);
 			JDD.Ref(((StateProbsMTBDD) vals).getJDDNode());
-
+			
+			boolean satAll = states.includes(reach);
+			boolean satInit = states.includes(start);
+			
 			// print out number of satisfying states
 			mainLog.print("\nNumber of satisfying states: ");
 			mainLog.print(states.size());
-			if (states.size() == model.getNumStates()) {
+			if (satAll) {
 				mainLog.print(" (all)");
-			} else if (states.includes(model.getStart())) {
+			} else if (satInit) {
 				mainLog.print((model.getNumStartStates() == 1) ? " (including initial state)"
 						: " (including all initial states)");
 			} else {
@@ -169,7 +172,7 @@ public class StateModelChecker implements ModelChecker
 			}
 
 			// result is true if all states satisfy, false otherwise
-			b = (states.size() == model.getNumStates());
+			b = satAll;
 			res = b ? new Boolean(true) : new Boolean(false);
 			states.clear();
 
@@ -178,16 +181,13 @@ public class StateModelChecker implements ModelChecker
 		} else {
 			if (filter.minRequested()) {
 				minRes = vals.minOverBDD(ddFilter);
-				// TODO probability -> value?
-				// (what about min/max vals for MDPs?)
-				// (see also poss use of getresultname below)
-				mainLog.print("\nMinimum probability for states satisfying " + filter.getExpression() + ": " + minRes
+				mainLog.print("\nMinimum value for states satisfying " + filter.getExpression() + ": " + minRes
 						+ "\n");
 				tmp = vals.getBDDFromInterval(minRes - termCritParam, minRes + termCritParam);
 				JDD.Ref(ddFilter);
 				tmp = JDD.And(tmp, ddFilter);
 				states = new StateListMTBDD(tmp, model);
-				mainLog.print("There are " + states.size() + " states with this minimum probability (+/- "
+				mainLog.print("There are " + states.size() + " states with this minimum value (+/- "
 						+ termCritParam + ")");
 				if (!verbose && states.size() > 10) {
 					mainLog.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
@@ -200,13 +200,13 @@ public class StateModelChecker implements ModelChecker
 			}
 			if (filter.maxRequested()) {
 				maxRes = vals.maxOverBDD(ddFilter);
-				mainLog.print("\nMaximum probability for states satisfying " + filter.getExpression() + ": " + maxRes
+				mainLog.print("\nMaximum value for states satisfying " + filter.getExpression() + ": " + maxRes
 						+ "\n");
 				tmp = vals.getBDDFromInterval(maxRes - termCritParam, maxRes + termCritParam);
 				JDD.Ref(ddFilter);
 				tmp = JDD.And(tmp, ddFilter);
 				states = new StateListMTBDD(tmp, model);
-				mainLog.print("There are " + states.size() + " states with this maximum probability (+/- "
+				mainLog.print("There are " + states.size() + " states with this maximum value (+/- "
 						+ termCritParam + ")");
 				if (!verbose && states.size() > 10) {
 					mainLog.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
@@ -223,9 +223,13 @@ public class StateModelChecker implements ModelChecker
 				res = maxRes;
 			else
 				res = vals.firstFromBDD(ddFilter);
+			
 			// print result
-			mainLog.print("\nResult: " + res + "\n");
-			// TODO: use expr.getresultname?
+			String resultString = "Result";
+			if (!("Result".equals(expr.getResultName())))
+				resultString += " ("+expr.getResultName().toLowerCase()+")";
+			resultString += ": " + res;
+			mainLog.print("\n"+resultString+"\n");
 		}
 
 		// clean up

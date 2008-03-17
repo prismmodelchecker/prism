@@ -151,9 +151,14 @@ public class ExpressionReward extends Expression
 	{
 		// For R=? properties, use name of reward structure where applicable
 		if (reward == null) {
-			if (rewardStructIndex instanceof String) return "Expected "+rewardStructIndex;
+			String s = "E";
+			if (relOp.equals("min=")) s = "Minimum e";
+			else if (relOp.equals("max=")) s = "Maximum e";
+			else s = "E";
+			if (rewardStructIndex instanceof String) s += "xpected "+rewardStructIndex;
 			// Or just call it "Expected reward"
-			else return "Expected reward";
+			else s += "xpected reward";
+			return s;
 		}
 		// For R>r etc., just use "Result"
 		else {
