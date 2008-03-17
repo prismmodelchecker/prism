@@ -1,3 +1,4 @@
+#const N#
 // randomized dining philosophers [LR81]
 // dxp/gxn 23/01/02
 
@@ -36,18 +37,16 @@ module phil1
 endmodule
 
 // construct further modules through renaming
-module phil2 = phil1 [ p1=p2, p2=p3, p3=p1 ] endmodule
-module phil3 = phil1 [ p1=p3, p2=p4, p3=p2 ] endmodule
-module phil4 = phil1 [ p1=p4, p2=p5, p3=p3 ] endmodule
-module phil5 = phil1 [ p1=p5, p2=p6, p3=p4 ] endmodule
-module phil6 = phil1 [ p1=p6, p2=p1, p3=p5 ] endmodule
+#for i=2:N#
+module phil#i# = phil1 [ p1=p#i#, p2=p#mod(i,N)+1#, p3=p#mod(i-2,N)+1# ] endmodule
+#end#
 
 // rewards (number of steps)
 rewards "num_steps"
 	[] true : 1;
 endrewards
 // labels
-label "hungry" = ((p1>0)&(p1<8))|((p2>0)&(p2<8))|((p3>0)&(p3<8))|((p4>0)&(p4<8))|((p5>0)&(p5<8))|((p6>0)&(p6<8));
-label "eat" = ((p1>=8)&(p1<=9))|((p2>=8)&(p2<=9))|((p3>=8)&(p3<=9))|((p4>=8)&(p4<=9))|((p5>=8)&(p5<=9))|((p6>=8)&(p6<=9));
+label "hungry" = #| i=1:N#((p#i#>0)&(p#i#<8))#end#;
+label "eat" = #| i=1:N#((p#i#>=8)&(p#i#<=9))#end#;
 
 

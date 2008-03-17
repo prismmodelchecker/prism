@@ -1,10 +1,10 @@
 #!/bin/csh
 
-prism phil-nofair3.nm  phil3.pctl  -const K=1 -m
-prism phil-nofair4.nm  phil4.pctl  -const K=1 -m
-prism phil-nofair5.nm  phil5.pctl  -const K=1 -m
-prism phil-nofair6.nm  phil6.pctl  -const K=1 -m
-prism phil-nofair7.nm  phil7.pctl  -const K=1 -m
-prism phil-nofair8.nm  phil8.pctl  -const K=1 -m
-prism phil-nofair9.nm  phil9.pctl  -const K=1 -m
-prism phil-nofair10.nm phil10.pctl -const K=1 -m
+prism phil-nofair3.nm  phil.pctl -const K=1 -m
+prism phil-nofair4.nm  phil.pctl -const K=1 -m
+prism phil-nofair5.nm  phil.pctl -const K=1 -m
+prism phil-nofair6.nm  phil.pctl -const K=1 -m
+#prism phil-nofair7.nm  phil.pctl -const K=1 -m
+#prism phil-nofair8.nm  phil.pctl -const K=1 -m
+#prism phil-nofair9.nm  phil.pctl -const K=1 -m
+#prism phil-nofair10.nm phil.pctl -const K=1 -m
