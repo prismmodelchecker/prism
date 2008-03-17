@@ -41,7 +41,7 @@ import parser.ast.*;
  *  - bounded until: time bounds are doubles and computation different
  *  - next/unbounded until: prob computation uses embedded Markov chain
  *  - cumulative/instantaneous reward: times are doubles, computation different
- *  - reach rewards: ...
+ *  - reach rewards: convert rews too (does that just work?)
  *  - doTransient
  *  
  *  TODO: finish this doc
@@ -503,7 +503,7 @@ public class StochModelChecker extends ProbModelChecker
 	protected StateProbs computeReachRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr, JDDNode b)
 			throws PrismException
 	{
-		JDDNode diags, emb;
+		JDDNode diags, emb, srNew;
 		StateProbs rewards = null;
 
 		// Compute embedded Markov chain
@@ -515,13 +515,19 @@ public class StochModelChecker extends ProbModelChecker
 		mainLog.println("\nDiagonals vector: " + JDD.GetInfoString(diags, allDDRowVars.n()));
 		mainLog.println("Embedded Markov chain: " + JDD.GetInfoString(emb, allDDRowVars.n() * 2));
 
+		// Convert rewards
+		JDD.Ref(sr);
+		JDD.Ref(diags);
+		srNew = JDD.Apply(JDD.DIVIDE, sr, diags);
+		
 		// And then use superclass (ProbModelChecker)
 		// to compute probabilities
-		rewards = super.computeReachRewards(emb, tr01, sr, trr, b);
+		rewards = super.computeReachRewards(emb, tr01, srNew, trr, b);
 
 		// derefs
 		JDD.Deref(diags);
 		JDD.Deref(emb);
+		JDD.Deref(srNew);
 
 		return rewards;
 	}
