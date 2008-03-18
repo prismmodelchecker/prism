@@ -20,14 +20,15 @@ P=? [ !"down" U<=T*3600 "fail_actuators" ]
 P=? [ !"down" U<=T*3600 "fail_io" ]
 P=? [ !"down" U<=T*3600 "fail_main" ]
 
+// Probability of any failure occurring within T days
+P=? [ true U<=T*3600*24 "down" ]
+
 // Probability of each failure type occurring first (within T days)
 P=? [ !"down" U<=T*3600*24 "fail_sensors" ]
 P=? [ !"down" U<=T*3600*24 "fail_actuators" ]
 P=? [ !"down" U<=T*3600*24 "fail_io" ]
 P=? [ !"down" U<=T*3600*24 "fail_main" ]
 
-// Probability of any failure occurring within T days
-P=? [ true U<=T*3600*24 "down" ]
 
 // Long-run probability of each failure type occurring
 P=? [ !"down" U "fail_sensors" ]
