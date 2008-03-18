@@ -43,7 +43,7 @@ public class ExpandFormulas extends ASTTraverseModify
 	
 	public Object visit(ExpressionFormula e) throws PrismLangException
 	{
-		int i;
+		int i, t;
 		Expression expr;
 		
 		// See if identifier corresponds to a formula
@@ -57,6 +57,11 @@ public class ExpandFormulas extends ASTTraverseModify
 			// Put in brackets so precedence is preserved
 			// (for display purposes only; in case of re-parse)
 			expr = Expression.Parenth(expr);
+			// This is probably being done before type-checking so
+			// don't really need to preserve type, but do so just in case
+			t = expr.getType();
+			expr = Expression.Parenth(expr);
+			expr.setType(t);
 			// Return replacement expression
 			return expr;
 		}

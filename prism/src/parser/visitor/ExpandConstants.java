@@ -43,7 +43,7 @@ public class ExpandConstants extends ASTTraverseModify
 	
 	public Object visit(ExpressionConstant e) throws PrismLangException
 	{
-		int i;
+		int i, t;
 		Expression expr;
 		
 		// See if identifier corresponds to a constant
@@ -55,7 +55,10 @@ public class ExpandConstants extends ASTTraverseModify
 			expr = (Expression)expr.expandConstants(constantList);
 			// Put in brackets so precedence is preserved
 			// (for display purposes only; in case of re-parse)
+			// This is being done after type-checking so also set type
+			t = expr.getType();
 			expr = Expression.Parenth(expr);
+			expr.setType(t);
 			// Return replacement expression
 			return expr;
 		}

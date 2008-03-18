@@ -1,23 +1,31 @@
 //==============================================================================
-//
-// Copyright (c) 2002-2006, Andrew Hinton, Dave Parker
-//
-// This file is part of PRISM.
-//
-// PRISM is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-//
-// PRISM is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with PRISM; if not, write to the Free Software Foundation,
-// Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
+//	
+//	Copyright (c) 2002-
+//	Authors:
+//	* Andrew Hinton <ug60axh@cs.bham.ac.uk> (University of Birmingham)
+//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Mark Kattenbelt <mark.kattenbelt@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Charles Harley <cd.harley@talk21.com> (University of Edinburgh)
+//	* Sebastian Vermehren <seb03@hotmail.com> (University of Edinburgh)
+//	
+//------------------------------------------------------------------------------
+//	
+//	This file is part of PRISM.
+//	
+//	PRISM is free software; you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation; either version 2 of the License, or
+//	(at your option) any later version.
+//	
+//	PRISM is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
+//	
+//	You should have received a copy of the GNU General Public License
+//	along with PRISM; if not, write to the Free Software Foundation,
+//	Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//	
 //==============================================================================
 
 package userinterface.model;
@@ -43,9 +51,6 @@ import parser.PrismSyntaxHighlighter;
 
 /** Prism model editor kit for the text model editor. Defines the syntax
  * highlighting that the model editor should use.
- * 
- * @author Andrew Hinton, Dave Parker, Charles Harley <cd.harley@talk21.com>
- * @version 1.1 20/11/2006
  */
 class PrismEditorKit extends DefaultEditorKit
 {
