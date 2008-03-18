@@ -5,5 +5,5 @@ prism rabin4.nm rabin.pctl -fair
 prism rabin5.nm rabin.pctl -fair
 prism rabin6.nm rabin.pctl -fair
 prism rabin8.nm rabin.pctl -fair
-prism rabin10.nm rabin.pctl -fair
-prism rabin12.nm rabin.pctl -fair
+#prism rabin10.nm rabin.pctl -fair
+#prism rabin12.nm rabin.pctl -fair

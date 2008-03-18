@@ -3,8 +3,8 @@
 prism leader3.nm leader3.pctl -const K=1 -m
 prism leader4.nm leader4.pctl -const K=1 -m
 prism leader5.nm leader5.pctl -const K=1 -m
-prism leader6.nm leader6.pctl -const K=1 -m
-prism leader7.nm leader7.pctl -const K=1 -m
-prism leader8.nm leader8.pctl -const K=1 -m
-prism leader9.nm leader9.pctl -const K=1 -m
-prism leader10.nm leader10.pctl -const K=1 -m
+#prism leader6.nm leader6.pctl -const K=1 -m
+#prism leader7.nm leader7.pctl -const K=1 -m
+#prism leader8.nm leader8.pctl -const K=1 -m
+#prism leader9.nm leader9.pctl -const K=1 -m
+#prism leader10.nm leader10.pctl -const K=1 -m
