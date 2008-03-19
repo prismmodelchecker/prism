@@ -3,6 +3,8 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Andrew Hinton <ug60axh@cs.bham.ac.uk> (University of Birmingham)
+//	* Mark Kattenbelt <mark.kattenbelt@comlab.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -26,14 +28,30 @@
 
 package prism;
 
-import parser.ast.*;
-
-// interface for model checker classes
-
-public interface ModelChecker
+/**
+ * This class stores the result of a single verification/simulation.
+ */
+public class Result
 {
-	public Result check(Expression expr) throws PrismException;
-	public Result check(Expression expr, Filter filter) throws PrismException;
-}
+	private Object result = null;
+	
+	public Result()
+	{
+		this.result = null;
+	}
+	
+	public Result(Object result)
+	{
+		this.result = result;
+	}
+	
+	public Object getResult()
+	{
+		return result;
+	}
 
-//------------------------------------------------------------------------------
+	public void setResult(Object result)
+	{
+		this.result = result;
+	}
+}

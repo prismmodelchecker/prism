@@ -1128,9 +1128,9 @@ public class Prism implements PrismSettingsListener
 	// model checking
 	// returns result or throws an exception in case of error
 	
-	public Object modelCheck(Model model, PropertiesFile propertiesFile, Expression expr) throws PrismException, PrismLangException
+	public Result modelCheck(Model model, PropertiesFile propertiesFile, Expression expr) throws PrismException, PrismLangException
 	{
-		Object res;
+		Result res;
 		Filter filter;
 		
 		// Check that property is valid for this model type
@@ -1200,7 +1200,7 @@ public class Prism implements PrismSettingsListener
 	// model check using simulator
 	// returns result or throws an exception in case of error
 	
-	public Object modelCheckSimulator(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression f, Values initialState, int noIterations, int maxPathLength) throws PrismException
+	public Result modelCheckSimulator(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression f, Values initialState, int noIterations, int maxPathLength) throws PrismException
 	{
 		Object res = null;
 		
@@ -1214,14 +1214,14 @@ public class Prism implements PrismSettingsListener
 			throw new PrismException(e.getMessage());
 		}
 		
-		return res;
+		return new Result(res);
 	}
 	
 	// model check using simulator (several properties simultaneously)
 	// returns an array of results, some of which may be Exception objects if there were errors
 	// in the case of an error which affects all properties, an exception is thrown
 	
-	public Object[] modelCheckSimulatorSimultaneously(ModulesFile modulesFile, PropertiesFile propertiesFile, ArrayList fs, Values initialState, int noIterations, int maxPathLength) throws PrismException
+	public Result[] modelCheckSimulatorSimultaneously(ModulesFile modulesFile, PropertiesFile propertiesFile, ArrayList fs, Values initialState, int noIterations, int maxPathLength) throws PrismException
 	{
 		Object[] res = null;
 		
@@ -1234,7 +1234,9 @@ public class Prism implements PrismSettingsListener
 			throw new PrismException(e.getMessage());
 		}
 		
-		return res;
+		Result[] resArray = new Result[res.length];
+		for (int i = 0; i < res.length; i++) resArray[i] = new Result(res[i]);
+		return resArray;
 	}
 	
 	// model check using simulator (ranging over some constants - from properties file only)

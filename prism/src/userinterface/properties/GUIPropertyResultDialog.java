@@ -46,6 +46,9 @@ public class GUIPropertyResultDialog extends javax.swing.JDialog
 		initComponents();
 		getRootPane().setDefaultButton(jButton1);
 		setTitle("Property Details");
+
+		if (!("Result".equals(gp.getProperty().getResultName())))
+			jLabel8.setText("Result ("+gp.getProperty().getResultName().toLowerCase()+"):");
 		
 		propertyLabel.setText(gp.getPropString());
 		constantsLabel.setText(gp.getConstantsString());
@@ -56,6 +59,7 @@ public class GUIPropertyResultDialog extends javax.swing.JDialog
 		this.gmp = gmp;
 		
 		pack();
+		setLocation(getParent().getX(), getParent().getY());
 	}
 	
 	/** This method is called from within the constructor to

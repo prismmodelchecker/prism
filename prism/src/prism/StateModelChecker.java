@@ -102,23 +102,30 @@ public class StateModelChecker implements ModelChecker
 	// Check a property, i.e. an expression
 	// -----------------------------------------------------------------------------------
 
-	public Object check(Expression expr) throws PrismException
+	public Result check(Expression expr) throws PrismException
 	{
 		return check(expr, null);
 	}
 
-	public Object check(Expression expr, Filter filter) throws PrismException
+	public Result check(Expression expr, Filter filter) throws PrismException
 	{
 		long timer = 0;
-		JDDNode ddFilter, tmp;
+		JDDNode ddFilter = null, tmp;
 		StateListMTBDD states;
 		boolean b;
 		StateProbs vals;
 		Object res;
+		String resultString;
 		double minRes = 0.0, maxRes = 0.0;
-
-		// Translate filter (creating default one first if none present)
-		if (filter == null) {
+		Result ret;
+		
+		// Filters are only allowed for non-Boolean properties
+		if (expr.getType() == Expression.BOOLEAN && filter != null) {
+			throw new PrismException("Filters cannot be applied to Boolean-valued properties");
+		}
+		
+		// Translate filter (if present)
+		if (filter == null) {//TODO: remove
 			filter = new Filter(new ExpressionLabel("init"));
 			if (model.getNumStartStates() > 1) {
 				mainLog
@@ -126,9 +133,11 @@ public class StateModelChecker implements ModelChecker
 				model.getStartStates().print(mainLog, 1);
 			}
 		}
-		ddFilter = checkExpressionDD(filter.getExpression());
-		if (ddFilter.equals(JDD.ZERO)) {
-			throw new PrismException("Filter " + filter + " satisfies no states");
+		if (filter != null) {
+			ddFilter = checkExpressionDD(filter.getExpression());
+			if (ddFilter.equals(JDD.ZERO)) {
+				throw new PrismException("Filter " + filter + " satisfies no states");
+			}
 		}
 
 		// Do model checking and store result
@@ -225,7 +234,7 @@ public class StateModelChecker implements ModelChecker
 				res = vals.firstFromBDD(ddFilter);
 			
 			// print result
-			String resultString = "Result";
+			resultString = "Result";
 			if (!("Result".equals(expr.getResultName())))
 				resultString += " ("+expr.getResultName().toLowerCase()+")";
 			resultString += ": " + res;
@@ -237,7 +246,8 @@ public class StateModelChecker implements ModelChecker
 		vals.clear();
 
 		// return result
-		return res;
+		ret = new Result(res);
+		return ret;
 	}
 
 	// Check expression (recursive)

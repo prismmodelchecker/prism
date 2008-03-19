@@ -1202,6 +1202,10 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			{
 				stopExperiment.setEnabled(false);
 			}
+			else if(pr.getID() == GUIPropertiesEvent.VERIFY_END)
+			{
+				a_detailSelected();
+			}
 		}
 		else if (e instanceof GUIExitEvent)
 		{

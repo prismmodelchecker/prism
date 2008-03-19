@@ -77,7 +77,7 @@ public class ModelCheckThread extends GUIComputationThread
 			}
 		});
 		
-		Object result = null;
+		Result result = null;
 		
 		//Set icon for all properties to be verified to a clock
 		for(int i = 0; i < guiProps.size(); i++)
@@ -107,7 +107,7 @@ public class ModelCheckThread extends GUIComputationThread
 			}
 			catch(PrismException e)
 			{
-				result = e;
+				result = new Result(e);
 				error(e.getMessage());
 			}
 			ic.interrupt();
@@ -118,7 +118,7 @@ public class ModelCheckThread extends GUIComputationThread
 			catch(InterruptedException e)
 			{}
 			//while(!ic.canContinue){}
-			gp.setResult(result);
+			gp.setResult(result.getResult());
 			gp.setMethodString("Verification");
 			gp.setConstants(definedMFConstants, definedPFConstants);
 			
@@ -131,6 +131,7 @@ public class ModelCheckThread extends GUIComputationThread
 				parent.stopProgress();
 				parent.setTaskBarText("Verifying properties... done.");
 				parent.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, parent));
+				parent.notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.VERIFY_END));
 			}
 		});
 	}

@@ -59,7 +59,7 @@ public class GUIExperiment
 	
 	private Values definedMFConstants;
 	private Values definedPFConstants;
-	private Object res;
+	private Result res;
 	
 	/** Creates a new instance of GUIExperiment */
 	public GUIExperiment(GUIExperimentTable table, GUIMultiProperties guiProp, PropertiesFile prop, UndefinedConstants cons, ModulesFile mod, String modString, boolean useSimulation)
@@ -219,7 +219,7 @@ public class GUIExperiment
 			
 			definedMFConstants = null;
 			definedPFConstants = null;
-			res= null;
+			res = null;
 			
 			try
 			{
@@ -414,7 +414,7 @@ public class GUIExperiment
 							{
 								// in case of error, report it (in log only), store exception as the result and proceed
 								errorLog(e.getMessage());
-								res = e;
+								res = new Result(e);
 							}
 							// store result of model checking
 							SwingUtilities.invokeAndWait(new Runnable()
@@ -422,7 +422,7 @@ public class GUIExperiment
 								public void run()
 								{
 									try {
-										GUIExperiment.this.setResult(definedMFConstants, definedPFConstants, res);
+										GUIExperiment.this.setResult(definedMFConstants, definedPFConstants, res.getResult());
 									}
 									catch (PrismException e) {
 										error("Problem storing results");

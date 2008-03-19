@@ -133,7 +133,7 @@ public class PrismCL
 	public void run(String[] args)
 	{
 		int i, j, k;
-		Object res;
+		Result res;
 		
 		// initialise
 		try {
@@ -331,12 +331,12 @@ public class PrismCL
 						catch (PrismException e) {
 							// in case of error, report it, store exception as the result and proceed
 							error(e.getMessage());
-							res = e;
+							res = new Result(e);
 						}
 						
 						// store result of model checking
 						try {
-							results[j].setResult(definedMFConstants, definedPFConstants, res);
+							results[j].setResult(definedMFConstants, definedPFConstants, res.getResult());
 						}
 						catch (PrismException e) {
 							error("Problem storing results");

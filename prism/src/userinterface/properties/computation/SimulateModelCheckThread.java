@@ -112,7 +112,7 @@ public class SimulateModelCheckThread extends GUIComputationThread
 		// do all at once if requested
 		if(allAtOnce)
 		{
-			Object results[] = null;
+			Result results[] = null;
 			Exception resultError = null;
 			ArrayList properties = new ArrayList();
 			ArrayList clkThreads = new ArrayList();
@@ -163,7 +163,7 @@ public class SimulateModelCheckThread extends GUIComputationThread
 			for(int i = 0; i < guiProps.size(); i++)
 			{
 				GUIProperty gp = (GUIProperty)guiProps.get(i);
-				gp.setResult((results == null) ? resultError : results[i]);
+				gp.setResult((results == null) ? resultError : results[i].getResult());
 				gp.setMethodString("Simulation");
 				gp.setConstants(definedMFConstants, definedPFConstants);
 			}
@@ -171,7 +171,7 @@ public class SimulateModelCheckThread extends GUIComputationThread
 		// do each property individually
 		else
 		{
-			Object result = null;
+			Result result = null;
 			for(int i = 0; i < pf.getNumProperties(); i++)
 			{
 				// get property
@@ -191,12 +191,12 @@ public class SimulateModelCheckThread extends GUIComputationThread
 				}
 				catch(PrismException e)
 				{
-					result = e;
+					result = new Result(e);
 					error(e.getMessage());
 				}
 				ic.interrupt();
 				while(!ic.canContinue) {}
-				gp.setResult(result);
+				gp.setResult(result.getResult());
 				gp.setMethodString("Simulation");
 				gp.setConstants(definedMFConstants, definedPFConstants);
 				
