@@ -59,7 +59,7 @@ public class StateModelChecker implements ModelChecker
 	protected JDDVars[] varDDRowVars;
 
 	// Options:
-	
+
 	// Which engine to use
 	protected int engine;
 	// Parameter for termination criterion
@@ -112,27 +112,17 @@ public class StateModelChecker implements ModelChecker
 		long timer = 0;
 		JDDNode ddFilter = null, tmp;
 		StateListMTBDD states;
-		boolean b;
 		StateProbs vals;
-		Object res;
 		String resultString;
 		double minRes = 0.0, maxRes = 0.0;
-		Result ret;
-		
+		Result res;
+
 		// Filters are only allowed for non-Boolean properties
 		if (expr.getType() == Expression.BOOLEAN && filter != null) {
 			throw new PrismException("Filters cannot be applied to Boolean-valued properties");
 		}
-		
+
 		// Translate filter (if present)
-		if (filter == null) {//TODO: remove
-			filter = new Filter(new ExpressionLabel("init"));
-			if (model.getNumStartStates() > 1) {
-				mainLog
-						.print("\nWarning: There are multiple initial states; the result of model checking is for the first one: ");
-				model.getStartStates().print(mainLog, 1);
-			}
-		}
 		if (filter != null) {
 			ddFilter = checkExpressionDD(filter.getExpression());
 			if (ddFilter.equals(JDD.ZERO)) {
@@ -146,16 +136,20 @@ public class StateModelChecker implements ModelChecker
 		timer = System.currentTimeMillis() - timer;
 		mainLog.println("\nTime for model checking: " + timer / 1000.0 + " seconds.");
 
-		// Process results of model checking using filter
+		// Process results of model checking - depends on type
+
+		// Boolean results
 		if (expr.getType() == Expression.BOOLEAN) {
 
+			// Convert to StateList object
 			states = new StateListMTBDD(((StateProbsMTBDD) vals).getJDDNode(), model);
 			JDD.Ref(((StateProbsMTBDD) vals).getJDDNode());
-			
-			boolean satAll = states.includes(reach);
-			boolean satInit = states.includes(start);
-			
-			// print out number of satisfying states
+
+			// See if satisfied in all/initial states
+			boolean satAll = states.includesAll(reach);
+			boolean satInit = states.includesAll(start);
+
+			// Print number of satisfying states to log
 			mainLog.print("\nNumber of satisfying states: ");
 			mainLog.print(states.size());
 			if (satAll) {
@@ -169,7 +163,7 @@ public class StateModelChecker implements ModelChecker
 			}
 			mainLog.print("\n");
 
-			// if "verbose", print out satisfying states
+			// If in "verbose" mode, print out satisfying states to log
 			if (verbose) {
 				mainLog.print("\nSatisfying states:");
 				if (states.size() > 0) {
@@ -180,74 +174,88 @@ public class StateModelChecker implements ModelChecker
 				}
 			}
 
-			// result is true if all states satisfy, false otherwise
-			b = satAll;
-			res = b ? new Boolean(true) : new Boolean(false);
-			states.clear();
+			// Result is true if all states satisfy, false otherwise
+			resultString = satAll + " (property " + (satAll ? "" : "not ") + "satisfied in all states)";
+			res = new Result(satAll ? new Boolean(true) : new Boolean(false), resultString);
 
-			// print result
-			mainLog.print("\nResult: " + b + " (property " + (b ? "" : "not ") + "satisfied in all states)\n");
-		} else {
-			if (filter.minRequested()) {
-				minRes = vals.minOverBDD(ddFilter);
-				mainLog.print("\nMinimum value for states satisfying " + filter.getExpression() + ": " + minRes
-						+ "\n");
-				tmp = vals.getBDDFromInterval(minRes - termCritParam, minRes + termCritParam);
-				JDD.Ref(ddFilter);
-				tmp = JDD.And(tmp, ddFilter);
-				states = new StateListMTBDD(tmp, model);
-				mainLog.print("There are " + states.size() + " states with this minimum value (+/- "
-						+ termCritParam + ")");
-				if (!verbose && states.size() > 10) {
-					mainLog.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
-					states.print(mainLog, 10);
-				} else {
-					mainLog.print(":\n");
-					states.print(mainLog);
-				}
-				JDD.Deref(tmp);
-			}
-			if (filter.maxRequested()) {
-				maxRes = vals.maxOverBDD(ddFilter);
-				mainLog.print("\nMaximum value for states satisfying " + filter.getExpression() + ": " + maxRes
-						+ "\n");
-				tmp = vals.getBDDFromInterval(maxRes - termCritParam, maxRes + termCritParam);
-				JDD.Ref(ddFilter);
-				tmp = JDD.And(tmp, ddFilter);
-				states = new StateListMTBDD(tmp, model);
-				mainLog.print("There are " + states.size() + " states with this maximum value (+/- "
-						+ termCritParam + ")");
-				if (!verbose && states.size() > 10) {
-					mainLog.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
-					states.print(mainLog, 10);
-				} else {
-					mainLog.print(":\n");
-					states.print(mainLog);
-				}
-				JDD.Deref(tmp);
-			}
-			if (filter.minRequested())
-				res = minRes;
-			else if (filter.maxRequested())
-				res = maxRes;
-			else
-				res = vals.firstFromBDD(ddFilter);
-			
-			// print result
-			resultString = "Result";
-			if (!("Result".equals(expr.getResultName())))
-				resultString += " ("+expr.getResultName().toLowerCase()+")";
-			resultString += ": " + res;
-			mainLog.print("\n"+resultString+"\n");
+			// Print result to log
+			mainLog.print("\nResult: " + resultString + "\n");
+
+			// Clean up
+			states.clear();
 		}
 
-		// clean up
-		JDD.Deref(ddFilter);
+		// Non-Boolean results
+		else {
+			if (filter == null) {
+				if (model.getNumStartStates() > 1) {
+					mainLog.print("\nWarning: There are multiple initial states;");
+					mainLog.print(" the result of model checking is for the first one: ");
+					model.getStartStates().print(mainLog, 1);
+				}
+			} else {
+				if (filter.minRequested()) {
+					minRes = vals.minOverBDD(ddFilter);
+					mainLog.print("\nMinimum value for states satisfying " + filter.getExpression() + ": " + minRes
+							+ "\n");
+					tmp = vals.getBDDFromInterval(minRes - termCritParam, minRes + termCritParam);
+					JDD.Ref(ddFilter);
+					tmp = JDD.And(tmp, ddFilter);
+					states = new StateListMTBDD(tmp, model);
+					mainLog.print("There are " + states.size() + " states with this minimum value (+/- "
+							+ termCritParam + ")");
+					if (!verbose && states.size() > 10) {
+						mainLog
+								.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
+						states.print(mainLog, 10);
+					} else {
+						mainLog.print(":\n");
+						states.print(mainLog);
+					}
+					JDD.Deref(tmp);
+				}
+				if (filter.maxRequested()) {
+					maxRes = vals.maxOverBDD(ddFilter);
+					mainLog.print("\nMaximum value for states satisfying " + filter.getExpression() + ": " + maxRes
+							+ "\n");
+					tmp = vals.getBDDFromInterval(maxRes - termCritParam, maxRes + termCritParam);
+					JDD.Ref(ddFilter);
+					tmp = JDD.And(tmp, ddFilter);
+					states = new StateListMTBDD(tmp, model);
+					mainLog.print("There are " + states.size() + " states with this maximum value (+/- "
+							+ termCritParam + ")");
+					if (!verbose && states.size() > 10) {
+						mainLog
+								.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
+						states.print(mainLog, 10);
+					} else {
+						mainLog.print(":\n");
+						states.print(mainLog);
+					}
+					JDD.Deref(tmp);
+				}
+			}
+			if (filter != null && filter.minRequested())
+				res = new Result(minRes);
+			else if (filter != null && filter.maxRequested())
+				res = new Result(maxRes);
+			else
+				res = new Result(vals.firstFromBDD(filter != null ? ddFilter : start));
+
+			// Print result to log
+			resultString = "Result";
+			if (!("Result".equals(expr.getResultName())))
+				resultString += " (" + expr.getResultName().toLowerCase() + ")";
+			resultString += ": " + res;
+			mainLog.print("\n" + resultString + "\n");
+		}
+
+		// Clean up
+		if (ddFilter != null) JDD.Deref(ddFilter);
 		vals.clear();
 
-		// return result
-		ret = new Result(res);
-		return ret;
+		// Return result
+		return res;
 	}
 
 	// Check expression (recursive)

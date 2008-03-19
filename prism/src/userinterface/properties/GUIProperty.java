@@ -85,8 +85,7 @@ public class GUIProperty
 	private Expression expr;		// The parsed property
 	private String comment;			// The property's comment
 	
-	private Object result;			// Result of model checking etc. (if done, null if not)
-	private String resultString;	// Result of model checking etc. (if done, null if not)
+	private Result result;			// Result of model checking etc. (if done, null if not)
 	private String parseError;		// Parse error (if property is invalid)
 	
 	private String method;			// Method used (verification, simulation)
@@ -110,7 +109,6 @@ public class GUIProperty
 		this.comment = comment;
 		
 		result = null;
-		resultString = "Unknown";
 		parseError = "";
 		method = "<none>";
 		constantsString = "<none>";
@@ -195,14 +193,14 @@ public class GUIProperty
 		else return false;
 	}
 	
-	public Object getResult()
+	public Result getResult()
 	{
 		return result;
 	}
 	
 	public String getResultString()
 	{
-		return resultString;
+		return result == null ? "Unknown" : result.getResultString();
 	}
 	
 	public String getToolTipText()
@@ -210,8 +208,8 @@ public class GUIProperty
 		switch (status) {
 		case STATUS_DOING: return "In progress...";
 		case STATUS_PARSE_ERROR: return "Invalid property: " + parseError;
-		case STATUS_RESULT_ERROR: return resultString;
-		default: return "Result: " + resultString;
+		case STATUS_RESULT_ERROR: return getResultString();
+		default: return "Result: " + getResultString();
 		}
 	}
 	
@@ -259,38 +257,29 @@ public class GUIProperty
 		this.beingEdited = beingEdited;
 	}
 	
-	public void setResult(Object obj)
+	public void setResult(Result res)
 	{
-		result = obj;
-		if (obj instanceof Boolean)
+		result = res;
+		if (result.getResult() instanceof Boolean)
 		{
-			boolean res = ((Boolean)obj).booleanValue();
-			if(res) 
-			{
+			if (((Boolean)result.getResult()).booleanValue()) {
 				setStatus(STATUS_RESULT_TRUE);
-				resultString = "True";
-			}
-			else
-			{
+			} else {
 				setStatus(STATUS_RESULT_FALSE);
-				resultString = "False";
 			}
 		}
-		else if (obj instanceof Double)
+		else if (result.getResult() instanceof Double)
 		{
 			setStatus(STATUS_RESULT_NUMBER);
-			resultString = "" + ((Double)obj).doubleValue();
 		}
-		else if (obj instanceof Exception)
+		else if (result.getResult() instanceof Exception)
 		{
 			setStatus(STATUS_RESULT_ERROR);
-			resultString = "Error: " + ((Exception)obj).getMessage();
 		}
 		else
 		{
 			setStatus(STATUS_NOT_DONE);
 			result = null;
-			resultString = "Unknown";
 		}
 	}
 	

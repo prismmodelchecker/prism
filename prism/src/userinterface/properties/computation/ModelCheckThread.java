@@ -118,7 +118,7 @@ public class ModelCheckThread extends GUIComputationThread
 			catch(InterruptedException e)
 			{}
 			//while(!ic.canContinue){}
-			gp.setResult(result.getResult());
+			gp.setResult(result);
 			gp.setMethodString("Verification");
 			gp.setConstants(definedMFConstants, definedPFConstants);
 			

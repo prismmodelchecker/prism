@@ -167,9 +167,9 @@ public class GUIExperiment
 		table.repaint();
 	}
 	
-	public synchronized void setResult(Values mfValues, Values pfValues, Object c) throws PrismException
+	public synchronized void setResult(Values mfValues, Values pfValues, Result res) throws PrismException
 	{
-		results.setResult(mfValues, pfValues, c);
+		results.setResult(mfValues, pfValues, res.getResult());
 	}
 	
 	public synchronized void setMultipleErrors(Values mfValues, Values pfValues, Exception e) throws PrismException
@@ -422,7 +422,7 @@ public class GUIExperiment
 								public void run()
 								{
 									try {
-										GUIExperiment.this.setResult(definedMFConstants, definedPFConstants, res.getResult());
+										GUIExperiment.this.setResult(definedMFConstants, definedPFConstants, res);
 									}
 									catch (PrismException e) {
 										error("Problem storing results");

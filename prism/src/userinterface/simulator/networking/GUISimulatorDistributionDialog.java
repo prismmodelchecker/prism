@@ -213,7 +213,7 @@ public class GUISimulatorDistributionDialog extends javax.swing.JDialog implemen
 				double result = network.getResultsFile().getResult(i);
 				if(result >= 0.0)
 				{
-					guiProp.setResult(new Double(result));
+					guiProp.setResult(new Result(result));
 					guiProp.setMethodString("Distributed Simulation");
 					guiProp.setConstants(undefinedConstants.getMFConstantValues(), undefinedConstants.getPFConstantValues());
 				}

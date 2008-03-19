@@ -210,8 +210,9 @@ public class StateListMTBDD implements StateList
 		varValues[currentVar] -= (1 << (varSizes[currentVar]-1-currentVarLevel));
 	}
 
-	// check for state inclusion (state given by bdd)
-	
+	/**
+	 * Check for (partial) state inclusion - state(s) given by BDD
+	 */
 	public boolean includes(JDDNode state)
 	{
 		JDDNode tmp;
@@ -221,6 +222,23 @@ public class StateListMTBDD implements StateList
 		JDD.Ref(state);
 		tmp = JDD.And(states, state);
 		incl = !tmp.equals(JDD.ZERO);
+		JDD.Deref(tmp);
+		
+		return incl;	
+	}
+
+	/**
+	 * Check for (full) state inclusion - state(s) given by BDD
+	 */
+	public boolean includesAll(JDDNode state)
+	{
+		JDDNode tmp;
+		boolean incl;
+		
+		JDD.Ref(states);
+		JDD.Ref(state);
+		tmp = JDD.And(states, state);
+		incl = tmp.equals(state);
 		JDD.Deref(tmp);
 		
 		return incl;	

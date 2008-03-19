@@ -34,15 +34,27 @@ package prism;
 public class Result
 {
 	private Object result = null;
+	private String resultString = "";
 	
 	public Result()
 	{
 		this.result = null;
+		this.resultString = "";
 	}
 	
 	public Result(Object result)
 	{
 		this.result = result;
+		if (result instanceof Exception)
+				this.resultString = "Error: "+((Exception)result).getMessage();
+		else
+				this.resultString = ""+result;
+	}
+	
+	public Result(Object result, String resultString)
+	{
+		this.result = result;
+		this.resultString = resultString;
 	}
 	
 	public Object getResult()
@@ -50,8 +62,18 @@ public class Result
 		return result;
 	}
 
-	public void setResult(Object result)
+	public String getResultString()
 	{
-		this.result = result;
+		return resultString;
+	}
+
+	public void setResultString(String resultString)
+	{
+		this.resultString = resultString;
+	}
+	
+	public String toString()
+	{
+		return resultString;
 	}
 }

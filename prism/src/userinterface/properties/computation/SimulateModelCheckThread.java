@@ -163,7 +163,7 @@ public class SimulateModelCheckThread extends GUIComputationThread
 			for(int i = 0; i < guiProps.size(); i++)
 			{
 				GUIProperty gp = (GUIProperty)guiProps.get(i);
-				gp.setResult((results == null) ? resultError : results[i].getResult());
+				gp.setResult((results == null) ? new Result(resultError) : results[i]);
 				gp.setMethodString("Simulation");
 				gp.setConstants(definedMFConstants, definedPFConstants);
 			}
@@ -196,7 +196,7 @@ public class SimulateModelCheckThread extends GUIComputationThread
 				}
 				ic.interrupt();
 				while(!ic.canContinue) {}
-				gp.setResult(result.getResult());
+				gp.setResult(result);
 				gp.setMethodString("Simulation");
 				gp.setConstants(definedMFConstants, definedPFConstants);
 				
