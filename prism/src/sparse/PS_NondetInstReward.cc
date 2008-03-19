@@ -73,7 +73,7 @@ jlong __pointer in
 	// sparse matrix
 	NDSparseMatrix *ndsm;
 	// vectors
-	double *sr_vec, *soln, *soln2, *tmpsoln;
+	double *soln, *soln2, *tmpsoln;
 	// timing stuff
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
@@ -100,16 +100,10 @@ jlong __pointer in
 	kbt = kb;
 	PS_PrintToMainLog(env, "[%.1f KB]\n", kb);
 	
-	// get vector for state rewards
-	PS_PrintToMainLog(env, "Creating vector for state rewards... ");
-	sr_vec = mtbdd_to_double_vector(ddman, state_rewards, rvars, num_rvars, odd);
-	kb = n*8.0/1024.0;
-	kbt += kb;
-	PS_PrintToMainLog(env, "[%.1f KB]\n", kb);
-	
 	// create solution/iteration vectors
+	// (solution is initialised to the state rewards)
 	PS_PrintToMainLog(env, "Allocating iteration vectors... ");
-	soln = new double[n];
+	soln = mtbdd_to_double_vector(ddman, state_rewards, rvars, num_rvars, odd);
 	soln2 = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 2*kb;
@@ -117,11 +111,6 @@ jlong __pointer in
 
 	// print total memory usage
 	PS_PrintToMainLog(env, "TOTAL: [%.1f KB]\n", kbt);
-
-	// initial solution is the state rewards
-	for (i = 0; i < n; i++) {
-		soln[i] = sr_vec[i];
-	}
 
 	// get setup time
 	stop = util_cpu_time();
@@ -201,7 +190,6 @@ jlong __pointer in
 	
 	// free memory
 	free_nd_sparse_matrix(ndsm);
-	delete sr_vec;
 	delete soln2;
 	
 	return ptr_to_jlong(soln);
