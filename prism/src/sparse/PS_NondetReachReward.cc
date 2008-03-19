@@ -71,7 +71,7 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	DdNode *maybe = jlong_to_DdNode(m); 		// 'maybe' states
 
 	// mtbdds
-	DdNode *a, *tmp;
+	DdNode *a;
 	// model stats
 	int n, nc, nc_r;
 	long nnz, nnz_r;
@@ -182,9 +182,9 @@ jboolean min		// min or max probabilities (true = min, false = max)
 		bool use_counts = ndsm->use_counts;
 		unsigned int *cols = ndsm->cols;
 		// and then for transition rewards matrix
+		// (note: we don't need row_counts/row_starts for
+		// this since choice structure mirrors transition matrix)
 		double *non_zeros_r = ndsm_r->non_zeros;
-		unsigned char *row_counts_r = ndsm_r->row_counts;
-		int *row_starts_r = (int *)ndsm_r->row_counts;
 		unsigned char *choice_counts_r = ndsm_r->choice_counts;
 		int *choice_starts_r = (int *)ndsm_r->choice_counts;
 		bool use_counts_r = ndsm_r->use_counts;

@@ -66,7 +66,7 @@ jdouble omega		// omega (over-relaxation parameter)
 	DdNode *init = jlong_to_DdNode(_init);		// init soln
 
 	// mtbdds
-	DdNode *reach, *diags, *id, *tmp;
+	DdNode *reach, *diags, *id;
 	// model stats
 	int n;
 	long nnz;

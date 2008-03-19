@@ -83,10 +83,9 @@ jboolean forwards	// forwards or backwards?
 	DdNode *init = jlong_to_DdNode(_init);		// init soln
 
 	// mtbdds
-	DdNode *reach, *diags, *id, *tmp;
+	DdNode *reach, *diags, *id;
 	// model stats
 	int n;
-	long nnz;
 	// flags
 	bool compact_d, compact_b;
 	// matrix mtbdd
@@ -99,8 +98,8 @@ jboolean forwards	// forwards or backwards?
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
 	// misc
-	int i, j, fb, l, h, i2, j2, fb2, l2, h2, iters;
-	double d, x, sup_norm, kb, kbt;
+	int i, j, fb, l, h, i2, h2, iters;
+	double x, sup_norm, kb, kbt;
 	bool done;
 	
 	// start clocks

@@ -80,7 +80,6 @@ jint bound			// time bound
 	DdNode *all_rewards;
 	// model stats
 	int n;
-	long nnz;
 	// flags
 	bool compact_r;
 	// matrix mtbdd
@@ -93,7 +92,7 @@ jint bound			// time bound
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
 	// misc
-	int i, j, iters;
+	int i, iters;
 	double kb, kbt;
 	
 	// start clocks

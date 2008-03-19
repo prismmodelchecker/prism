@@ -64,7 +64,6 @@ jstring fn		// filename
 	jobject *label_names;
 	DdNode **vars = jlong_to_DdNode_array(v);
 	ODDNode *odd = jlong_to_ODDNode(od);
-	const char *filename;
 	int i;
 	
 	// unpack jni arrays

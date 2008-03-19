@@ -179,7 +179,7 @@ RCSparseMatrix *build_rc_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode 
 
 RCSparseMatrix *build_rc_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode **rvars, DdNode **cvars, int num_vars, ODDNode *odd, bool transpose)
 {
-	int i, n, nnz;
+	int n, nnz;
 	
 	// create new data structure
 	rcsm = new RCSparseMatrix();
@@ -373,9 +373,8 @@ CMSCSparseMatrix *build_cmsc_sparse_matrix(DdManager *ddman, DdNode *matrix, DdN
 
 NDSparseMatrix *build_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode **rvars, DdNode **cvars, int num_vars, DdNode **ndvars, int num_ndvars, ODDNode *odd)
 {
-	int i, j, n, nm, nc, nnz, max, max2;
+	int i, n, nm, nc, nnz, max, max2;
 	DdNode *tmp, **matrices, **matrices_bdds;
-	NDSparseMatrix *res;
 	
 	// create new data structure
 	ndsm = new NDSparseMatrix();
@@ -496,9 +495,8 @@ NDSparseMatrix *build_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode **r
 
 NDSparseMatrix *build_sub_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode *submdp, DdNode **rvars, DdNode **cvars, int num_vars, DdNode **ndvars, int num_ndvars, ODDNode *odd)
 {
-	int i, j, n, nm, nc, nnz, max, max2;
+	int i, n, nm, nc, nnz, max, max2;
 	DdNode *tmp, **matrices, **submatrices, **matrices_bdds;
-	NDSparseMatrix *res;
 	
 	// create new data structure
 	ndsm = new NDSparseMatrix();

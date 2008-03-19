@@ -66,15 +66,6 @@ jlong __pointer m	// 'maybe' states
 
 	// mtbdds
 	DdNode *reach, *a, *sol, *tmp;
-	// timing stuff
-	long start1, start2, start3, stop;
-	double time_taken, time_for_setup, time_for_iters;
-	// misc
-	int i, iters;
-	bool done;
-	
-	// start clocks
-	start1 = start2 = util_cpu_time();
 	
 	// get reachable states
 	reach = odd->dd;

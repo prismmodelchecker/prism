@@ -96,8 +96,8 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
 	// misc
-	int i, j, k, iters;
-	double d, kb, kbt;
+	int i, j, iters;
+	double kb, kbt;
 	bool done;
 	
 	// start clocks

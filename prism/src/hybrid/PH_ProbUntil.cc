@@ -62,7 +62,7 @@ jlong __pointer m	// 'maybe' states
 	DdNode *maybe = jlong_to_DdNode(m); 		// 'maybe' states
 
 	// mtbdds
-	DdNode *reach, *transr, *a, *b, *tmp;
+	DdNode *reach, *a, *b, *tmp;
 	// vectors
 	double *soln;
 	

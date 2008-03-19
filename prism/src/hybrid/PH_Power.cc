@@ -81,7 +81,6 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 	DdNode *init = jlong_to_DdNode(_init);		// init soln
 	// model stats
 	int n;
-	long nnz;
 	// flags
 	bool compact_b;
 	// matrix mtbdd
@@ -94,8 +93,8 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
 	// misc
-	int i, j, l, h, iters;
-	double d, kb, kbt;
+	int i, iters;
+	double kb, kbt;
 	bool done;
 	
 	// start clocks

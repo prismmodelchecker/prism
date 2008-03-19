@@ -59,13 +59,11 @@ jint bound			// time bound
 	DdNode **rvars = jlong_to_DdNode_array(rv); 	// row vars
 	DdNode **cvars = jlong_to_DdNode_array(cv); 	// col vars
 	
-	// mtbdds
-	DdNode *tmp;
 	// model stats
 	int n;
 	long nnz;
 	// flags
-	bool compact_tr, compact_r;
+	bool compact_tr;
 	// sparse matrix
 	RMSparseMatrix *rmsm;
 	CMSRSparseMatrix *cmsrsm;
@@ -77,7 +75,6 @@ jint bound			// time bound
 	// misc
 	int i, j, l, h, iters;
 	double d, kb, kbt;
-	bool first;
 	
 	// start clocks	
 	start1 = start2 = util_cpu_time();

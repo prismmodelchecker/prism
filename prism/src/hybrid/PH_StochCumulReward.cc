@@ -97,8 +97,8 @@ jdouble time		// time bound
 	double time_taken, time_for_setup, time_for_iters;
 	// misc
 	bool done;
-	int i, j, l, h, iters, num_iters;
-	double d, max_diag, weight, kb, kbt, term_crit_param_unif;
+	int i, iters, num_iters;
+	double max_diag, weight, kb, kbt, term_crit_param_unif;
 	
 	// start clocks
 	start1 = start2 = util_cpu_time();

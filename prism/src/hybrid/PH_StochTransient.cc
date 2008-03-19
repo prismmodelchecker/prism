@@ -93,7 +93,7 @@ jdouble time		// time bound
 	double time_taken, time_for_setup, time_for_iters;
 	// misc
 	bool done;
-	int i, j, iters, num_iters;
+	int i, iters, num_iters;
 	double kb, kbt, max_diag, weight, term_crit_param_unif;
 	
 	// start clocks	

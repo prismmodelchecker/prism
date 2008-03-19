@@ -65,8 +65,6 @@ jlong __pointer in
 	DdNode **ndvars = jlong_to_DdNode_array(ndv);	// nondet vars
 	DdNode *init = jlong_to_DdNode(in);
 	
-	// mtbdds
-	DdNode *tmp;
 	// model stats
 	int n, nc;
 	long nnz;

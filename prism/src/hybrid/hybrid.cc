@@ -81,7 +81,7 @@ HDDMatrix *build_hdd_matrix(DdNode *matrix, DdNode **rvars, DdNode **cvars, int 
 
 HDDMatrix *build_hdd_matrix(DdNode *matrix, DdNode **rvars, DdNode **cvars, int num_vars, ODDNode *odd, bool row_major, bool transpose)
 {
-	int i, j, n;
+	int i, j;
 	HDDMatrix *res;
 	HDDNode *ptr;
 	
@@ -308,9 +308,7 @@ void split_hdd_matrix(HDDMatrix *hm, bool compact_b, bool meet)
 
 void split_hdd_matrix(HDDMatrix *hm, bool compact_b, bool meet, bool transpose)
 {
-	int i, n, nnz, max;
-	double mem_est;
-	bool mem_out;
+	int i, n, max;
 	HDDBlocks *blocks;
 	
 	// store some info globally
@@ -567,7 +565,6 @@ void add_sparse_matrices(HDDMatrix *hm, bool compact_sm, bool diags_meet, bool t
 			unsigned char *b_counts = hddm->blocks->counts;
 			int *b_starts = (int *)hddm->blocks->counts;
 			bool b_use_counts = hddm->blocks->use_counts;
-			int *b_offsets = hddm->blocks->offsets;
 			HDDNode **b_nodes = hddm->row_tables[hddm->l_b];
 			int b_dist_shift = hddm->blocks->dist_shift;
 			int b_dist_mask = hddm->blocks->dist_mask;
@@ -1131,7 +1128,7 @@ CMSCSparseMatrix *build_cmsc_sparse_matrix(HDDNode *hdd, int level, bool transpo
 
 HDDMatrices *build_hdd_matrices_mdp(DdNode *mdp, HDDMatrices *existing_mdp, DdNode **rvars, DdNode **cvars, int num_vars, DdNode **ndvars, int num_ndvars, ODDNode *odd)
 {
-	int i, j;
+	int i;
 	DdNode *tmp;
 	HDDMatrix *hddm;
 	HDDMatrices *res;
@@ -1293,7 +1290,6 @@ void rearrange_hdd_blocks(HDDMatrix *hddm, bool ooc)
 	unsigned char *b_counts = hddm->blocks->counts;
 	int *b_starts = (int *)hddm->blocks->counts;
 	bool b_use_counts = hddm->blocks->use_counts;
-	int *b_offsets = hddm->blocks->offsets;
 	int b_dist_shift = hddm->blocks->dist_shift;
 		
 	// go through each row/column of blocks
@@ -1349,7 +1345,7 @@ double *hdd_negative_row_sums(HDDMatrix *hddm, int n)
 
 double *hdd_negative_row_sums(HDDMatrix *hddm, int n, bool transpose)
 {
-	int i, j, l, h, i2, j2, l2, h2;
+	int i, j, l, h;
 	double *diags;
 	bool compact_b = hddm->compact_b;
 	compact_sm = hddm->compact_sm;
@@ -1374,7 +1370,6 @@ double *hdd_negative_row_sums(HDDMatrix *hddm, int n, bool transpose)
 	
 	// stuff for block storage
 	int b_n = hddm->blocks->n;
-	int b_nnz = hddm->blocks->nnz;
 	HDDNode **b_blocks = hddm->blocks->blocks;
 	unsigned int *b_rowscols = hddm->blocks->rowscols;
 	unsigned char *b_counts = hddm->blocks->counts;

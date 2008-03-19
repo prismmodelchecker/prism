@@ -61,7 +61,7 @@ jdouble time		// time bound
 	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
 
 	// mtbdds
-	DdNode *reach, *diags, *q, *r, *sol, *tmp, *sum;
+	DdNode *reach, *diags, *q, *sol, *tmp, *sum;
 	// model stats
 //	int n;
 	// fox glynn stuff

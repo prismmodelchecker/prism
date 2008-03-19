@@ -74,11 +74,8 @@ jint bound			// time bound
 	DdNode **rvars = jlong_to_DdNode_array(rv); 	// row vars
 	DdNode **cvars = jlong_to_DdNode_array(cv); 	// col vars
 	
-	// mtbdds
-	DdNode *tmp;
 	// model stats
 	int n;
-	long nnz;
 	// matrix mtbdd
 	HDDMatrix *hddm;
 	HDDNode *hdd;
@@ -88,7 +85,7 @@ jint bound			// time bound
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
 	// misc
-	int i, j, iters;
+	int i, iters;
 	double kb, kbt;
 	
 	// start clocks	

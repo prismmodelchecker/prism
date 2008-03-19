@@ -56,10 +56,9 @@ jint num_cvars
 	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
 	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
 	// mtbdds
-	DdNode *diags, *q, *a, *b, *soln, *tmp;
+	DdNode *diags, *q, *a, *b, *soln;
 	// misc
-	int i;
-	double deltat, d;
+	double deltat;
 	
 	// compute diagonals
 	Cudd_Ref(trans);

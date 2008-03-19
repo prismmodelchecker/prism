@@ -71,7 +71,7 @@ jlong __pointer in
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
 	// misc
-	int iters, i;
+	int iters;
 	
 	// start clocks
 	start1 = start2 = util_cpu_time();

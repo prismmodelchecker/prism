@@ -67,7 +67,7 @@ jboolean forwards	// forwards or backwards?
 	DdNode *init = jlong_to_DdNode(_init);		// init soln
 
 	// mtbdds
-	DdNode *reach, *diags, *id, *tmp;
+	DdNode *reach, *diags, *id;
 	// model stats
 	int n;
 	long nnz;
@@ -77,7 +77,7 @@ jboolean forwards	// forwards or backwards?
 	RMSparseMatrix *rmsm;
 	CMSRSparseMatrix *cmsrsm;
 	// vectors
-	double *diags_vec, *b_vec, *soln, *tmpsoln;
+	double *diags_vec, *b_vec, *soln;
 	DistVector *diags_dist, *b_dist;
 	// timing stuff
 	long start1, start2, start3, stop;
