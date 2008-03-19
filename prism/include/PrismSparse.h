@@ -129,6 +129,14 @@ JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1ProbCumulReward
 
 /*
  * Class:     sparse_PrismSparse
+ * Method:    PS_ProbInstReward
+ * Signature: (JJJJIJII)J
+ */
+JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1ProbInstReward
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jint, jlong, jint, jint);
+
+/*
+ * Class:     sparse_PrismSparse
  * Method:    PS_ProbReachReward
  * Signature: (JJJJJIJIJJJ)J
  */
