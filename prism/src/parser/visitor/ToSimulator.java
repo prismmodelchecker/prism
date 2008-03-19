@@ -29,6 +29,7 @@ package parser.visitor;
 
 import java.util.Hashtable;
 
+import parser.*;
 import parser.ast.*;
 import prism.PrismLangException;
 import simulator.SimulatorEngine;
@@ -238,15 +239,21 @@ public class ToSimulator extends ASTTraverseModify
 	public void visitPost(ExpressionConstant e) throws PrismLangException
 	{
 		long ret = -1;
+		Values v;
+		// Find Values object containing constant (either from model or properties file)
+		if (sim.getConstants().getIndexOf(e.getName()) != -1) v = sim.getConstants();
+		else if (sim.getPropertyConstants().getIndexOf(e.getName()) != -1) v = sim.getPropertyConstants();
+		else throw new PrismLangException("Could not evaluate constant", e);
+		// Create corresponding literal
 		switch (e.getType()) {
 		case Expression.BOOLEAN:
-			ret = SimulatorEngine.createBoolean(e.evaluateBoolean(sim.getConstants(), null));
+			ret = SimulatorEngine.createBoolean(e.evaluateBoolean(v, null));
 			break;
 		case Expression.INT:
-			ret = SimulatorEngine.createInteger(e.evaluateInt(sim.getConstants(), null));
+			ret = SimulatorEngine.createInteger(e.evaluateInt(v, null));
 			break;
 		case Expression.DOUBLE:
-			ret = SimulatorEngine.createDouble(e.evaluateDouble(sim.getConstants(), null));
+			ret = SimulatorEngine.createDouble(e.evaluateDouble(v, null));
 			break;
 		}
 		setPtr(e, ret);
