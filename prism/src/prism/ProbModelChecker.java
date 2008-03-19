@@ -140,12 +140,11 @@ public class ProbModelChecker extends StateModelChecker
 		Expression pb; // probability bound (expression)
 		double p = 0; // probability bound (actual value)
 		String relOp; // relational operator
-		PathExpression pe; // path expression
 
 		JDDNode sol;
 		StateProbs probs = null;
 
-		// get info from prob operator
+		// Get info from prob operator
 		relOp = expr.getRelOp();
 		pb = expr.getProb();
 		if (pb != null) {
@@ -154,7 +153,7 @@ public class ProbModelChecker extends StateModelChecker
 				throw new PrismException("Invalid probability bound " + p + " in P operator");
 		}
 
-		// check for trivial (i.e. stupid) cases
+		// Check for trivial (i.e. stupid) cases
 		if (pb != null) {
 			if ((p == 0 && relOp.equals(">=")) || (p == 1 && relOp.equals("<="))) {
 				mainLog.print("\nWarning: checking for probability " + relOp + " " + p
@@ -168,47 +167,16 @@ public class ProbModelChecker extends StateModelChecker
 			}
 		}
 
-		// print a warning if Pmin/Pmax used
+		// Print a warning if Pmin/Pmax used
 		if (relOp.equals("min=") || relOp.equals("max=")) {
 			mainLog.print("\nWarning: \"Pmin=?\" and \"Pmax=?\" operators are identical to \"P=?\" for DTMCs\n");
 		}
 
-		// compute probabilities
-		pe = expr.getPathExpression();
-		if (pe instanceof PathExpressionTemporal) {
-			if (((PathExpressionTemporal) pe).hasBounds()) {
-				switch (((PathExpressionTemporal) pe).getOperator()) {
-				case PathExpressionTemporal.P_U:
-					probs = checkProbBoundedUntil((PathExpressionTemporal) pe);
-					break;
-				case PathExpressionTemporal.P_F:
-					probs = checkProbBoundedFuture((PathExpressionTemporal) pe);
-					break;
-				case PathExpressionTemporal.P_G:
-					probs = checkProbBoundedGlobal((PathExpressionTemporal) pe);
-					break;
-				}
-			} else {
-				switch (((PathExpressionTemporal) pe).getOperator()) {
-				case PathExpressionTemporal.P_X:
-					probs = checkProbNext((PathExpressionTemporal) pe);
-					break;
-				case PathExpressionTemporal.P_U:
-					probs = checkProbUntil((PathExpressionTemporal) pe, pb, p);
-					break;
-				case PathExpressionTemporal.P_F:
-					probs = checkProbFuture((PathExpressionTemporal) pe, pb, p);
-					break;
-				case PathExpressionTemporal.P_G:
-					probs = checkProbGlobal((PathExpressionTemporal) pe, pb, p);
-					break;
-				}
-			}
-		}
-		if (probs == null)
-			throw new PrismException("Unrecognised path operator in P operator");
+		// Compute probabilities
+		boolean qual = pb != null && ((p == 0) || (p == 1)) && precomp;
+		probs = checkProbPathExpression(expr.getPathExpression(), qual);
 
-		// print out probabilities
+		// Print out probabilities
 		if (prism.getVerbose()) {
 			mainLog.print("\nProbabilities (non-zero only) for all states:\n");
 			probs.print(mainLog);
@@ -534,6 +502,49 @@ public class ProbModelChecker extends StateModelChecker
 		}
 	}
 
+	// Contents of a P operator
+
+	protected StateProbs checkProbPathExpression(PathExpression pe, boolean qual) throws PrismException
+	{
+		StateProbs probs = null;
+
+		// Logial operators
+		if (pe instanceof PathExpressionLogical) {
+			PathExpressionLogical pel = (PathExpressionLogical) pe;
+			// Negation
+			if (pel.getOperator() == PathExpressionLogical.NOT) {
+				// Compute, then subtract from 1 
+				probs = checkProbPathExpression(pel.getOperand2(), qual);
+				probs.subtractFromOne();
+			}
+		}
+		// Temporal operators
+		else if (pe instanceof PathExpressionTemporal) {
+			PathExpressionTemporal pet = (PathExpressionTemporal) pe;
+			// Next
+			if (pet.getOperator() == PathExpressionTemporal.P_X) {
+				probs = checkProbNext(pet);
+			}
+			// Until
+			else if (pet.getOperator() == PathExpressionTemporal.P_U) {
+				if (pet.hasBounds()) {
+					probs = checkProbBoundedUntil(pet);
+				} else {
+					probs = checkProbUntil(pet, qual);
+				}
+			}
+			// Anything else - convert to until and recurse
+			else {
+				probs = checkProbPathExpression(pet.convertToUntilForm(), qual);
+			}
+		}
+
+		if (probs == null)
+			throw new PrismException("Unrecognised path operator in P operator");
+
+		return probs;
+	}
+
 	// next
 
 	protected StateProbs checkProbNext(PathExpressionTemporal pe) throws PrismException
@@ -625,7 +636,7 @@ public class ProbModelChecker extends StateModelChecker
 
 	// until (unbounded)
 
-	protected StateProbs checkProbUntil(PathExpressionTemporal pe, Expression pb, double p) throws PrismException
+	protected StateProbs checkProbUntil(PathExpressionTemporal pe, boolean qual) throws PrismException
 	{
 		Expression expr1, expr2;
 		JDDNode b1, b2;
@@ -654,12 +665,12 @@ public class ProbModelChecker extends StateModelChecker
 
 		// compute probabilities
 
-		// if prob bound is 0 or 1 and precomputation algorithms are enabled,
+		// if requested (i.e. when prob bound is 0 or 1 and precomputation algorithms are enabled),
 		// compute probabilities qualitatively
-		if (pb != null && ((p == 0) || (p == 1)) && precomp) {
-			mainLog.print("\nWarning: Probability bound in formula is " + p
-					+ " so exact probabilities may not be computed\n");
-			probs = computeUntilProbsQual(trans01, b1, b2, p);
+		if (qual) {
+			mainLog.print("\nWarning: probability bound in formula is"
+					+ " 0/1 so exact probabilities may not be computed\n");
+			probs = computeUntilProbsQual(trans01, b1, b2);
 		}
 		// otherwise actually compute probabilities
 		else {
@@ -676,59 +687,6 @@ public class ProbModelChecker extends StateModelChecker
 		JDD.Deref(b1);
 		JDD.Deref(b2);
 
-		return probs;
-	}
-
-	// bounded future (eventually)
-	// F<=k phi == true U<=k phi
-
-	protected StateProbs checkProbBoundedFuture(PathExpressionTemporal pe) throws PrismException
-	{
-		PathExpressionTemporal pe2;
-		pe2 = new PathExpressionTemporal(PathExpressionTemporal.P_U, new PathExpressionExpr(Expression.True()), pe
-				.getOperand2(), pe.getLowerBound(), pe.getUpperBound());
-		return checkProbBoundedUntil(pe2);
-	}
-
-	// future (eventually)
-	// F phi == true U phi
-
-	protected StateProbs checkProbFuture(PathExpressionTemporal pe, Expression pb, double p) throws PrismException
-	{
-		PathExpressionTemporal pe2;
-		pe2 = new PathExpressionTemporal(PathExpressionTemporal.P_U, new PathExpressionExpr(Expression.True()), pe
-				.getOperand2());
-		return checkProbUntil(pe2, pb, p);
-	}
-
-	// bounded global (always)
-	// F<=k phi == true U<=k phi
-	// P(G<=k phi) == 1-P(true U<=k !phi)
-
-	protected StateProbs checkProbBoundedGlobal(PathExpressionTemporal pe) throws PrismException
-	{
-		PathExpressionTemporal pe2;
-		StateProbs probs;
-		pe2 = new PathExpressionTemporal(PathExpressionTemporal.P_U, new PathExpressionExpr(Expression.True()),
-				new PathExpressionExpr(Expression.Not(((PathExpressionExpr) pe.getOperand2()).getExpression())), pe
-						.getLowerBound(), pe.getUpperBound());
-		probs = checkProbBoundedUntil(pe2);
-		probs.subtractFromOne();
-		return probs;
-	}
-
-	// global (always)
-	// G phi == !(true U !phi)
-	// P(G phi) == 1-P(true U !phi)
-
-	protected StateProbs checkProbGlobal(PathExpressionTemporal pe, Expression pb, double p) throws PrismException
-	{
-		PathExpressionTemporal pe2;
-		StateProbs probs;
-		pe2 = new PathExpressionTemporal(PathExpressionTemporal.P_U, new PathExpressionExpr(Expression.True()),
-				new PathExpressionExpr(Expression.Not(((PathExpressionExpr) pe.getOperand2()).getExpression())));
-		probs = checkProbUntil(pe2, pb, p);
-		probs.subtractFromOne();
 		return probs;
 	}
 
@@ -1258,7 +1216,7 @@ public class ProbModelChecker extends StateModelChecker
 
 	// compute probabilities for until (for qualitative properties)
 
-	protected StateProbs computeUntilProbsQual(JDDNode tr01, JDDNode b1, JDDNode b2, double p)
+	protected StateProbs computeUntilProbsQual(JDDNode tr01, JDDNode b1, JDDNode b2)
 	{
 		JDDNode yes, no, maybe;
 		StateProbs probs = null;
@@ -1304,20 +1262,18 @@ public class ProbModelChecker extends StateModelChecker
 			JDD.Ref(yes);
 			probs = new StateProbsMTBDD(yes, model);
 		}
-		// p = 0
-		else if (p == 0) {
-			// anything that's unknown but definitely > 0
-			// may as well be 1
+		// otherwise we set the probabilities for maybe states to be 0.5
+		// (actual probabilities for these states are unknown but definitely >0
+		// and <1)
+		// (this is safe because the results of this function will only be used
+		// to compare against 0/1 bounds)
+		// (this is not entirely elegant but is simpler and less error prone
+		// than
+		// trying to work out whether to use 0/1 for all case of future/global, etc.)
+		else {
 			JDD.Ref(yes);
 			JDD.Ref(maybe);
-			probs = new StateProbsMTBDD(JDD.Or(yes, maybe), model);
-		}
-		// p = 1
-		else {
-			// anything that's unknown but definitely < 1
-			// may as well be 0
-			JDD.Ref(yes);
-			probs = new StateProbsMTBDD(yes, model);
+			probs = new StateProbsMTBDD(JDD.Apply(JDD.PLUS, yes, JDD.Apply(JDD.TIMES, maybe, JDD.Constant(0.5))), model);
 		}
 
 		// derefs
