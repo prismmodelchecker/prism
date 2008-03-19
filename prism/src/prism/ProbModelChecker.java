@@ -1450,6 +1450,10 @@ public class ProbModelChecker extends StateModelChecker
 					rewardsDV = PrismSparse.ProbInstReward(tr, sr, odd, allDDRowVars, allDDColVars, time);
 					rewards = new StateProbsDV(rewardsDV, model);
 					break;
+				case Prism.HYBRID:
+					rewardsDV = PrismHybrid.ProbInstReward(tr, sr, odd, allDDRowVars, allDDColVars, time);
+					rewards = new StateProbsDV(rewardsDV, model);
+					break;
 				default:
 					throw new PrismException("Engine does not support this numerical method");
 				}
