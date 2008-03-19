@@ -210,6 +210,7 @@ public class SimulateModelCheckThread extends GUIComputationThread
 				parent.stopProgress();
 				parent.setTaskBarText("Checking properties using simulation... done.");
 				parent.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, parent));
+				parent.notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.VERIFY_END));
 			}
 		});
 	}
