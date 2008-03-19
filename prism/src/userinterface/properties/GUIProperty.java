@@ -91,9 +91,6 @@ public class GUIProperty
 	private String method;			// Method used (verification, simulation)
 	private String constantsString;	// Constant values used
 	
-	private Values nextMFConstants;
-	private Values nextPFConstants;
-	
 	/** Creates a new instance of GUIProperty */
 	public GUIProperty(Prism prism, String id, String propString, String comment)
 	{
@@ -112,8 +109,6 @@ public class GUIProperty
 		parseError = "";
 		method = "<none>";
 		constantsString = "<none>";
-		nextMFConstants = new Values();
-		nextPFConstants = new Values();
 	}
 	
 	//ACCESS METHODS
