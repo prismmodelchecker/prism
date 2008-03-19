@@ -6,7 +6,7 @@ of the main changes in each public release, see the file VERSIONS.txt.
 
 Latest changes (reverse chronological):
 
-* Sparse engine version of instantaneous reward properties (R=?[I=k]) for DTMCs
+* Sparse/hybrid versions of instantaneous reward properties (R=?[I=k]) for DTMCs
 * Added weak until (W) and release (R) to properties language
 * Easier viewing of model checking results in GUI
 * Steady-state properties/operators for DTMCs
