@@ -36,13 +36,15 @@ public class PathExpressionTemporal extends PathExpression
 	public static final int P_U = 2; // Until (for P operator)
 	public static final int P_F = 3; // Future (for P operator)
 	public static final int P_G = 4; // Globally (for P operator)
+	public static final int P_W = 5; // Weak until (for P operator)
+	public static final int P_R = 6; // Release (for P operator)
 	public static final int R_C = 11; // Cumulative (for R operator)
 	public static final int R_I = 12; // Instantaneous (for R operator)
 	public static final int R_F = 13; // Reachability (for R operator)
 	public static final int R_S = 14; // Steady-state (for R operator)
 	// Operator symbols
 	public static final String opSymbols[] = { "",
-		"X", "U", "F", "G", "", "", "", "", "", "",
+		"X", "U", "F", "G", "W", "", "", "", "", "",
 		"C", "I", "F", "S"
 	};
 	
@@ -199,12 +201,12 @@ public class PathExpressionTemporal extends PathExpression
 	// Other useful methods
 	
 	/**
-	 * Convert (P operator) path formula to until form
-	 * (using standard equivalences: F a=true U a, G a=!(true U!a)
+	 * Convert (P operator) path formula to untils, using standard equivalences.
 	 */
 	public PathExpression convertToUntilForm() throws PrismLangException
 	{
 		PathExpression op1, op2, ret = null;
+		Expression a, b;
 		if (operand1 != null && !(operand1 instanceof PathExpressionExpr)) {
 			throw new PrismLangException("Cannot convert "+getOperatorSymbol()+" to until form");
 		}
@@ -216,12 +218,32 @@ public class PathExpressionTemporal extends PathExpression
 			ret = this;
 			break;
 		case P_F:
+			// F a == true U a
 			op1 =  new PathExpressionExpr(Expression.True());
 			ret = new PathExpressionTemporal(P_U, op1, operand2, lBound, uBound);
 			break;
 		case P_G:
+			// G a == !(true U !a)
 			op1 = new PathExpressionExpr(Expression.True());
 			op2 = new PathExpressionExpr(Expression.Not(((PathExpressionExpr)operand2).getExpression()));
+			ret = new PathExpressionTemporal(P_U, op1, op2, lBound, uBound);
+			ret = new PathExpressionLogical(PathExpressionLogical.NOT, null, ret);
+			break;
+		case P_W:
+			// a W b == !(a&!b U !a&!b)
+			a = ((PathExpressionExpr)operand1).getExpression();
+			b = ((PathExpressionExpr)operand2).getExpression();
+			op1 = new PathExpressionExpr(Expression.And(a, Expression.Not(b)));
+			op2 = new PathExpressionExpr(Expression.And(Expression.Not(a), Expression.Not(b)));
+			ret = new PathExpressionTemporal(P_U, op1, op2, lBound, uBound);
+			ret = new PathExpressionLogical(PathExpressionLogical.NOT, null, ret);
+			break;
+		case P_R:
+			// a R b == !(!a U !b)
+			a = ((PathExpressionExpr)operand1).getExpression();
+			b = ((PathExpressionExpr)operand2).getExpression();
+			op1 = new PathExpressionExpr(Expression.Not(a));
+			op2 = new PathExpressionExpr(Expression.Not(b));
 			ret = new PathExpressionTemporal(P_U, op1, op2, lBound, uBound);
 			ret = new PathExpressionLogical(PathExpressionLogical.NOT, null, ret);
 			break;

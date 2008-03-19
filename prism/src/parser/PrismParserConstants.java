@@ -47,41 +47,42 @@ public interface PrismParserConstants {
   int SYSTEM = 41;
   int TRUE = 42;
   int U = 43;
-  int NOT = 44;
-  int AND = 45;
-  int OR = 46;
-  int IMPLIES = 47;
-  int RARROW = 48;
-  int COLON = 49;
-  int SEMICOLON = 50;
-  int COMMA = 51;
-  int DOTS = 52;
-  int LPARENTH = 53;
-  int RPARENTH = 54;
-  int LBRACKET = 55;
-  int RBRACKET = 56;
-  int LBRACE = 57;
-  int RBRACE = 58;
-  int EQ = 59;
-  int NE = 60;
-  int LT = 61;
-  int GT = 62;
-  int LE = 63;
-  int GE = 64;
-  int PLUS = 65;
-  int MINUS = 66;
-  int TIMES = 67;
-  int DIVIDE = 68;
-  int PRIME = 69;
-  int RENAME = 70;
-  int QMARK = 71;
-  int DQUOTE = 72;
-  int REG_INT = 73;
-  int REG_DOUBLE = 74;
-  int REG_IDENTPRIME = 75;
-  int REG_IDENT = 76;
-  int PREPROC = 77;
-  int LEXICAL_ERROR = 78;
+  int W = 44;
+  int NOT = 45;
+  int AND = 46;
+  int OR = 47;
+  int IMPLIES = 48;
+  int RARROW = 49;
+  int COLON = 50;
+  int SEMICOLON = 51;
+  int COMMA = 52;
+  int DOTS = 53;
+  int LPARENTH = 54;
+  int RPARENTH = 55;
+  int LBRACKET = 56;
+  int RBRACKET = 57;
+  int LBRACE = 58;
+  int RBRACE = 59;
+  int EQ = 60;
+  int NE = 61;
+  int LT = 62;
+  int GT = 63;
+  int LE = 64;
+  int GE = 65;
+  int PLUS = 66;
+  int MINUS = 67;
+  int TIMES = 68;
+  int DIVIDE = 69;
+  int PRIME = 70;
+  int RENAME = 71;
+  int QMARK = 72;
+  int DQUOTE = 73;
+  int REG_INT = 74;
+  int REG_DOUBLE = 75;
+  int REG_IDENTPRIME = 76;
+  int REG_IDENT = 77;
+  int PREPROC = 78;
+  int LEXICAL_ERROR = 79;
 
   int DEFAULT = 0;
 
@@ -130,6 +131,7 @@ public interface PrismParserConstants {
     "\"system\"",
     "\"true\"",
     "\"U\"",
+    "\"W\"",
     "\"!\"",
     "\"&\"",
     "\"|\"",

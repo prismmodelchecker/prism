@@ -406,6 +406,8 @@ public class TypeCheck extends ASTTraverse
 		case PathExpressionTemporal.P_U:
 		case PathExpressionTemporal.P_F:
 		case PathExpressionTemporal.P_G:
+		case PathExpressionTemporal.P_W:
+		case PathExpressionTemporal.P_R:
 			e.setType(Expression.BOOLEAN);
 			break;
 		case PathExpressionTemporal.R_C:

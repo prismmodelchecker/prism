@@ -373,6 +373,7 @@ TOKEN :
 |	< SYSTEM:			"system" >
 |	< TRUE:				"true" >
 |	< U:				"U" >
+|	< W:				"W" >
 	// Punctuation, etc.
 	// Note that "NOT" must be the first item of punctuation in this list
 	// (PrismSyntaxHighlighter relies on this fact)
@@ -1314,7 +1315,7 @@ PathExpression ExpressionProbContents() :
 	{ return pe; }
 }
 
-// Temporal operarors (X, U, F, G)
+// Temporal operarors (X, U, F, G, W, R)
 
 PathExpression PathExpressionTemporal() :
 {
@@ -1328,7 +1329,11 @@ PathExpression PathExpressionTemporal() :
 		{ begin = getToken(0); }
 		( 
 			<X> { pe.setOperator(PathExpressionTemporal.P_X); }
-			| expr1 = Expression() <U> { pe.setOperator(PathExpressionTemporal.P_U); }
+			| ( expr1 = Expression()
+				( <U> { pe.setOperator(PathExpressionTemporal.P_U); }
+				| <W> { pe.setOperator(PathExpressionTemporal.P_W); }
+				| <R> { pe.setOperator(PathExpressionTemporal.P_R); } )
+			)
 			| <F> { pe.setOperator(PathExpressionTemporal.P_F); }
 			| <G> { pe.setOperator(PathExpressionTemporal.P_G); }
 		)

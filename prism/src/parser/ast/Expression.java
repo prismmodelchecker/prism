@@ -164,6 +164,10 @@ public abstract class Expression extends ASTElement
 	public static Expression Int(int i) { return new ExpressionLiteral(Expression.INT, i); }
 	public static Expression Double(double d) { return new ExpressionLiteral(Expression.DOUBLE, d); }
 	public static Expression Not(Expression expr) { return new ExpressionUnaryOp(ExpressionUnaryOp.NOT, expr); }
+	public static Expression And(Expression expr1, Expression expr2)
+	{ return new ExpressionBinaryOp(ExpressionBinaryOp.AND, expr1, expr2); }
+	public static Expression Or(Expression expr1, Expression expr2)
+	{ return new ExpressionBinaryOp(ExpressionBinaryOp.OR, expr1, expr2); }
 	public static Expression Parenth(Expression expr) { return new ExpressionUnaryOp(ExpressionUnaryOp.PARENTH, expr); }
 }
 
