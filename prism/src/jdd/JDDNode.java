@@ -88,9 +88,9 @@ public class JDDNode
 		return new JDDNode(DDN_GetElse(ptr));
 	}
 
-	public boolean equals(JDDNode dd)
+	public boolean equals(Object o)        
 	{
-		return ptr == dd.ptr;
+		return (o instanceof JDDNode) && (((JDDNode) o).ptr == ptr);
 	}
 	
 	public String toString()
