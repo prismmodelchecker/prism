@@ -171,7 +171,7 @@ public class NondetModelChecker extends StateModelChecker
 
 		// Compute probabilities
 		boolean qual = pb != null && ((p == 0) || (p == 1)) && precomp;
-		probs = checkProbPathExpression(expr.getPathExpression(), qual, min);
+		probs = checkProbPathExpression(expr.getExpression(), qual, min);
 
 		// Print out probabilities
 		if (verbose) {
@@ -204,7 +204,7 @@ public class NondetModelChecker extends StateModelChecker
 		double r = 0; // reward bound (actual value)
 		String relOp; // relational operator
 		boolean min; // are we finding min (true) or max (false) rewards
-		PathExpression pe; // path expression
+		Expression expr2; // expression
 
 		JDDNode stateRewards = null, transRewards = null, sol;
 		StateProbs rewards = null;
@@ -264,19 +264,19 @@ public class NondetModelChecker extends StateModelChecker
 		}
 
 		// compute rewards
-		pe = expr.getPathExpression();
-		if (pe instanceof PathExpressionTemporal) {
-			switch (((PathExpressionTemporal) pe).getOperator()) {
-			case PathExpressionTemporal.R_I:
-				rewards = checkRewardInst((PathExpressionTemporal) pe, stateRewards, transRewards, min);
+		expr2 = expr.getExpression();
+		if (expr2 instanceof ExpressionTemporal) {
+			switch (((ExpressionTemporal) expr2).getOperator()) {
+			case ExpressionTemporal.R_I:
+				rewards = checkRewardInst((ExpressionTemporal) expr2, stateRewards, transRewards, min);
 				break;
-			case PathExpressionTemporal.R_F:
-				rewards = checkRewardReach((PathExpressionTemporal) pe, stateRewards, transRewards, min);
+			case ExpressionTemporal.R_F:
+				rewards = checkRewardReach((ExpressionTemporal) expr2, stateRewards, transRewards, min);
 				break;
 			}
 		}
 		if (rewards == null)
-			throw new PrismException("Unrecognised path operator in R operator");
+			throw new PrismException("Unrecognised operator in R operator");
 
 		// print out rewards
 		if (verbose) {
@@ -302,39 +302,39 @@ public class NondetModelChecker extends StateModelChecker
 
 	// Contents of a P operator
 
-	protected StateProbs checkProbPathExpression(PathExpression pe, boolean qual, boolean min)
+	protected StateProbs checkProbPathExpression(Expression expr, boolean qual, boolean min)
 			throws PrismException
 	{
 		StateProbs probs = null;
 
-		// Logial operators
-		if (pe instanceof PathExpressionLogical) {
-			PathExpressionLogical pel = (PathExpressionLogical) pe;
+		// Logical operators
+		if (expr instanceof ExpressionUnaryOp) {
+			ExpressionUnaryOp exprUnary = (ExpressionUnaryOp) expr;
 			// Negation
-			if (pel.getOperator() == PathExpressionLogical.NOT) {
+			if (exprUnary.getOperator() == ExpressionUnaryOp.NOT) {
 				// Flip min/max, then subtract from 1 
-				probs = checkProbPathExpression(pel.getOperand2(), qual, !min);
+				probs = checkProbPathExpression(exprUnary.getOperand(), qual, !min);
 				probs.subtractFromOne();
 			}
 		}
 		// Temporal operators
-		else if (pe instanceof PathExpressionTemporal) {
-			PathExpressionTemporal pet = (PathExpressionTemporal) pe;
+		else if (expr instanceof ExpressionTemporal) {
+			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
 			// Next
-			if (pet.getOperator() == PathExpressionTemporal.P_X) {
-				probs = checkProbNext(pet, min);
+			if (exprTemp.getOperator() == ExpressionTemporal.P_X) {
+				probs = checkProbNext(exprTemp, min);
 			}
 			// Until
-			else if (pet.getOperator() == PathExpressionTemporal.P_U) {
-				if (pet.hasBounds()) {
-					probs = checkProbBoundedUntil(pet, min);
+			else if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
+				if (exprTemp.hasBounds()) {
+					probs = checkProbBoundedUntil(exprTemp, min);
 				} else {
-					probs = checkProbUntil(pet, qual, min);
+					probs = checkProbUntil(exprTemp, qual, min);
 				}
 			}
 			// Anything else - convert to until and recurse
 			else {
-				probs = checkProbPathExpression(pet.convertToUntilForm(), qual, min);
+				probs = checkProbPathExpression(exprTemp.convertToUntilForm(), qual, min);
 			}
 		}
 
@@ -346,19 +346,17 @@ public class NondetModelChecker extends StateModelChecker
 
 	// next
 
-	protected StateProbs checkProbNext(PathExpressionTemporal pe, boolean min) throws PrismException
+	protected StateProbs checkProbNext(ExpressionTemporal expr, boolean min) throws PrismException
 	{
-		Expression expr;
 		JDDNode b;
 		StateProbs probs = null;
 
-		// get operand
-		if (!(pe.getOperand2() instanceof PathExpressionExpr))
+		// check not LTL
+		if (expr.getOperand2().getType() != Expression.BOOLEAN)
 			throw new PrismException("Invalid path formula");
-		expr = ((PathExpressionExpr) pe.getOperand2()).getExpression();
 
 		// model check operand first
-		b = checkExpressionDD(expr);
+		b = checkExpressionDD(expr.getOperand2());
 
 		// print out some info about num states
 		// mainLog.print("\nb = " + JDD.GetNumMintermsString(b,
@@ -375,29 +373,28 @@ public class NondetModelChecker extends StateModelChecker
 
 	// bounded until
 
-	protected StateProbs checkProbBoundedUntil(PathExpressionTemporal pe, boolean min) throws PrismException
+	protected StateProbs checkProbBoundedUntil(ExpressionTemporal expr, boolean min) throws PrismException
 	{
-		Expression expr1, expr2;
 		int time;
 		JDDNode b1, b2;
 		StateProbs probs = null;
 
-		// get operands
-		if (!(pe.getOperand1() instanceof PathExpressionExpr) || !(pe.getOperand2() instanceof PathExpressionExpr))
+		// check not LTL
+		if (expr.getOperand1().getType() != Expression.BOOLEAN)
 			throw new PrismException("Invalid path formula");
-		expr1 = ((PathExpressionExpr) pe.getOperand1()).getExpression();
-		expr2 = ((PathExpressionExpr) pe.getOperand2()).getExpression();
+		if (expr.getOperand2().getType() != Expression.BOOLEAN)
+			throw new PrismException("Invalid path formula");
 
 		// get info from bounded until
-		time = pe.getUpperBound().evaluateInt(constantValues, null);
+		time = expr.getUpperBound().evaluateInt(constantValues, null);
 		if (time < 0) {
 			throw new PrismException("Invalid bound " + time + " in bounded until formula");
 		}
 
 		// model check operands first
-		b1 = checkExpressionDD(expr1);
+		b1 = checkExpressionDD(expr.getOperand1());
 		try {
-			b2 = checkExpressionDD(expr2);
+			b2 = checkExpressionDD(expr.getOperand2());
 		} catch (PrismException e) {
 			JDD.Deref(b1);
 			throw e;
@@ -435,23 +432,22 @@ public class NondetModelChecker extends StateModelChecker
 
 	// until (unbounded)
 
-	protected StateProbs checkProbUntil(PathExpressionTemporal pe, boolean qual, boolean min) throws PrismException
+	protected StateProbs checkProbUntil(ExpressionTemporal expr, boolean qual, boolean min) throws PrismException
 	{
-		Expression expr1, expr2;
 		JDDNode b1, b2, splus, newb1, newb2;
 		StateProbs probs = null;
 		long l;
 
-		// get operands
-		if (!(pe.getOperand1() instanceof PathExpressionExpr) || !(pe.getOperand2() instanceof PathExpressionExpr))
+		// check not LTL
+		if (expr.getOperand1().getType() != Expression.BOOLEAN)
 			throw new PrismException("Invalid path formula");
-		expr1 = ((PathExpressionExpr) pe.getOperand1()).getExpression();
-		expr2 = ((PathExpressionExpr) pe.getOperand2()).getExpression();
+		if (expr.getOperand2().getType() != Expression.BOOLEAN)
+			throw new PrismException("Invalid path formula");
 
 		// model check operands first
-		b1 = checkExpressionDD(expr1);
+		b1 = checkExpressionDD(expr.getOperand1());
 		try {
-			b2 = checkExpressionDD(expr2);
+			b2 = checkExpressionDD(expr.getOperand2());
 		} catch (PrismException e) {
 			JDD.Deref(b1);
 			throw e;
@@ -533,14 +529,14 @@ public class NondetModelChecker extends StateModelChecker
 
 	// inst reward
 
-	protected StateProbs checkRewardInst(PathExpressionTemporal pe, JDDNode stateRewards, JDDNode transRewards,
+	protected StateProbs checkRewardInst(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards,
 			boolean min) throws PrismException
 	{
 		int time; // time bound
 		StateProbs rewards = null;
 
 		// get info from bounded until
-		time = pe.getUpperBound().evaluateInt(constantValues, null);
+		time = expr.getUpperBound().evaluateInt(constantValues, null);
 		if (time < 0) {
 			throw new PrismException("Invalid bound " + time + " in instantaneous reward property");
 		}
@@ -553,20 +549,18 @@ public class NondetModelChecker extends StateModelChecker
 
 	// reach reward
 
-	protected StateProbs checkRewardReach(PathExpressionTemporal pe, JDDNode stateRewards, JDDNode transRewards,
+	protected StateProbs checkRewardReach(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards,
 			boolean min) throws PrismException
 	{
-		Expression expr;
 		JDDNode b;
 		StateProbs rewards = null;
 
-		// get operand
-		if (!(pe.getOperand2() instanceof PathExpressionExpr))
+		// check operand OK (should have detected on type check)
+		if (expr.getOperand2().getType() != Expression.BOOLEAN)
 			throw new PrismException("Invalid path formula");
-		expr = ((PathExpressionExpr) pe.getOperand2()).getExpression();
 
 		// model check operand first
-		b = checkExpressionDD(expr);
+		b = checkExpressionDD(expr.getOperand2());
 
 		// print out some info about num states
 		// mainLog.print("\nb = " + JDD.GetNumMintermsString(b,

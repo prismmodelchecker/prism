@@ -257,6 +257,44 @@ public class SemanticCheck extends ASTTraverse
 		}
 	}
 
+	public void visitPost(ExpressionTemporal e) throws PrismLangException
+	{
+		int op = e.getOperator();
+		Expression operand1 = e.getOperand1();
+		Expression operand2 = e.getOperand2();
+		Expression lBound = e.getLowerBound();
+		Expression uBound = e.getUpperBound();
+		if (lBound != null && !lBound.isConstant()) {
+			throw new PrismLangException("Lower bound in " + e.getOperatorSymbol() + " operator is not constant",
+					lBound);
+		}
+		if (uBound != null && !uBound.isConstant()) {
+			throw new PrismLangException("Upper bound in " + e.getOperatorSymbol() + " operator is not constant",
+					uBound);
+		}
+		// Other checks (which parser should never allow to occur anyway)
+		if (op == ExpressionTemporal.P_X
+				&& (operand1 != null || operand2 == null || lBound != null || uBound != null)) {
+			throw new PrismLangException("Cannot attach bounds to " + e.getOperatorSymbol() + " operator", e);
+		}
+		if (op == ExpressionTemporal.R_C
+				&& (operand1 != null || operand2 != null || lBound != null || uBound == null)) {
+			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
+		}
+		if (op == ExpressionTemporal.R_I
+				&& (operand1 != null || operand2 != null || lBound != null || uBound == null)) {
+			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
+		}
+		if (op == ExpressionTemporal.R_F
+				&& (operand1 != null || operand2 == null || lBound != null || uBound != null)) {
+			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
+		}
+		if (op == ExpressionTemporal.R_S
+				&& (operand1 != null || operand2 != null || lBound != null || uBound != null)) {
+			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
+		}
+	}
+	
 	public void visitPost(ExpressionFunc e) throws PrismLangException
 	{
 		// Check function name is valid
@@ -337,64 +375,6 @@ public class SemanticCheck extends ASTTraverse
 		// Otherwise check list
 		if (labelList == null || labelList.getLabelIndex(name) == -1) {
 			throw new PrismLangException("Undeclared label", e);
-		}
-	}
-
-	public void visitPost(PathExpressionTemporal e) throws PrismLangException
-	{
-		int op = e.getOperator();
-		PathExpression operand1 = e.getOperand1();
-		PathExpression operand2 = e.getOperand2();
-		Expression lBound = e.getLowerBound();
-		Expression uBound = e.getUpperBound();
-		if (lBound != null && !lBound.isConstant()) {
-			throw new PrismLangException("Lower bound in " + e.getOperatorSymbol() + " operator is not constant",
-					lBound);
-		}
-		if (uBound != null && !uBound.isConstant()) {
-			throw new PrismLangException("Upper bound in " + e.getOperatorSymbol() + " operator is not constant",
-					uBound);
-		}
-		// Other checks (which parser should never allow to occur anyway)
-		if (op == PathExpressionTemporal.P_X
-				&& (operand1 != null || operand2 == null || lBound != null || uBound != null)) {
-			throw new PrismLangException("Cannot attach bounds to " + e.getOperatorSymbol() + " operator", e);
-		}
-		if (op == PathExpressionTemporal.R_C
-				&& (operand1 != null || operand2 != null || lBound != null || uBound == null)) {
-			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
-		}
-		if (op == PathExpressionTemporal.R_I
-				&& (operand1 != null || operand2 != null || lBound != null || uBound == null)) {
-			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
-		}
-		if (op == PathExpressionTemporal.R_F
-				&& (operand1 != null || operand2 == null || lBound != null || uBound != null)) {
-			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
-		}
-		if (op == PathExpressionTemporal.R_S
-				&& (operand1 != null || operand2 != null || lBound != null || uBound != null)) {
-			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
-		}
-	}
-	
-	public void visitPost(PathExpressionLogical e) throws PrismLangException
-	{
-		int op = e.getOperator();
-		PathExpression operand1 = e.getOperand1();
-		PathExpression operand2 = e.getOperand2();
-		// Checks (which parser should never allow to occur anyway)
-		if (op == PathExpressionLogical.IMPLIES && (operand1 == null || operand2 == null)) {
-			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
-		}
-		if (op == PathExpressionLogical.OR && (operand1 == null || operand2 == null)) {
-			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
-		}
-		if (op == PathExpressionLogical.AND && (operand1 == null || operand2 == null)) {
-			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
-		}
-		if (op == PathExpressionLogical.NOT && (operand1 != null || operand2 == null)) {
-			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
 		}
 	}
 }

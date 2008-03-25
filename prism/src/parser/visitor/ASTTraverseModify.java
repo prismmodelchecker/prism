@@ -306,6 +306,19 @@ public class ASTTraverseModify implements ASTVisitor
 	}
 	public void visitPost(SystemBrackets e) throws PrismLangException { defaultVisitPost(e); }
 	// -----------------------------------------------------------------------------------
+	public void visitPre(ExpressionTemporal e) throws PrismLangException { defaultVisitPre(e); }
+	public Object visit(ExpressionTemporal e) throws PrismLangException
+	{
+		visitPre(e);
+		if (e.getOperand1() != null) e.setOperand1((Expression)(e.getOperand1().accept(this)));
+		if (e.getOperand2() != null) e.setOperand2((Expression)(e.getOperand2().accept(this)));
+		if (e.getLowerBound() != null) e.setLowerBound((Expression)(e.getLowerBound().accept(this)));
+		if (e.getUpperBound() != null) e.setUpperBound((Expression)(e.getUpperBound().accept(this)));
+		visitPost(e);
+		return e;
+	}
+	public void visitPost(ExpressionTemporal e) throws PrismLangException { defaultVisitPost(e); }
+	// -----------------------------------------------------------------------------------
 	public void visitPre(ExpressionITE e) throws PrismLangException { defaultVisitPre(e); }
 	public Object visit(ExpressionITE e) throws PrismLangException
 	{
@@ -402,7 +415,7 @@ public class ASTTraverseModify implements ASTVisitor
 	{
 		visitPre(e);
 		if (e.getProb() != null) e.setProb((Expression)(e.getProb().accept(this)));
-		if (e.getPathExpression() != null) e.setPathExpression((PathExpression)(e.getPathExpression().accept(this)));
+		if (e.getExpression() != null) e.setExpression((Expression)(e.getExpression().accept(this)));
 		if (e.getFilter() != null) e.setFilter((Filter)(e.getFilter().accept(this)));
 		visitPost(e);
 		return e;
@@ -416,7 +429,7 @@ public class ASTTraverseModify implements ASTVisitor
 		if (e.getRewardStructIndex() != null && e.getRewardStructIndex() instanceof Expression)
 			e.setRewardStructIndex((Expression)(((Expression)e.getRewardStructIndex()).accept(this)));
 		if (e.getReward() != null) e.setReward((Expression)(e.getReward().accept(this)));
-		if (e.getPathExpression() != null) e.setPathExpression((PathExpression)(e.getPathExpression().accept(this)));
+		if (e.getExpression() != null) e.setExpression((Expression)(e.getExpression().accept(this)));
 		if (e.getFilter() != null) e.setFilter((Filter)(e.getFilter().accept(this)));
 		visitPost(e);
 		return e;
@@ -443,40 +456,6 @@ public class ASTTraverseModify implements ASTVisitor
 		return e;
 	}
 	public void visitPost(ExpressionLabel e) throws PrismLangException { defaultVisitPost(e); }
-	// -----------------------------------------------------------------------------------
-	public void visitPre(PathExpressionTemporal e) throws PrismLangException { defaultVisitPre(e); }
-	public Object visit(PathExpressionTemporal e) throws PrismLangException
-	{
-		visitPre(e);
-		if (e.getOperand1() != null) e.setOperand1((PathExpression)(e.getOperand1().accept(this)));
-		if (e.getOperand2() != null) e.setOperand2((PathExpression)(e.getOperand2().accept(this)));
-		if (e.getLowerBound() != null) e.setLowerBound((Expression)(e.getLowerBound().accept(this)));
-		if (e.getUpperBound() != null) e.setUpperBound((Expression)(e.getUpperBound().accept(this)));
-		visitPost(e);
-		return e;
-	}
-	public void visitPost(PathExpressionTemporal e) throws PrismLangException { defaultVisitPost(e); }
-	// -----------------------------------------------------------------------------------
-	public void visitPre(PathExpressionLogical e) throws PrismLangException { defaultVisitPre(e); }
-	public Object visit(PathExpressionLogical e) throws PrismLangException
-	{
-		visitPre(e);
-		if (e.getOperand1() != null) e.setOperand1((PathExpression)(e.getOperand1().accept(this)));
-		if (e.getOperand2() != null) e.setOperand2((PathExpression)(e.getOperand2().accept(this)));
-		visitPost(e);
-		return e;
-	}
-	public void visitPost(PathExpressionLogical e) throws PrismLangException { defaultVisitPost(e); }
-	// -----------------------------------------------------------------------------------
-	public void visitPre(PathExpressionExpr e) throws PrismLangException { defaultVisitPre(e); }
-	public Object visit(PathExpressionExpr e) throws PrismLangException
-	{
-		visitPre(e);
-		if (e.getExpression() != null) e.setExpression((Expression)(e.getExpression().accept(this)));
-		visitPost(e);
-		return e;
-	}
-	public void visitPost(PathExpressionExpr e) throws PrismLangException { defaultVisitPost(e); }
 	// -----------------------------------------------------------------------------------
 	public void visitPre(ForLoop e) throws PrismLangException { defaultVisitPre(e); }
 	public Object visit(ForLoop e) throws PrismLangException

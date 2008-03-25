@@ -30,8 +30,8 @@ import parser.ast.*;
 import prism.PrismLangException;
 
 /**
- * Perform any required semantic checks. Optionally pass in parent ModulesFile
- * and PropertiesFile for some additional checks (or leave null);
+ * Check expression (property) for validity with respect to a particular model type
+ * (i.e. whether not it is a property that can be model checked for that model type).
  */
 public class CheckValid extends ASTTraverse
 {
@@ -42,16 +42,9 @@ public class CheckValid extends ASTTraverse
 		this.modelType = modelType;
 	}
 
-	public void visitPost(ExpressionSS e) throws PrismLangException
+	public void visitPost(ExpressionTemporal e) throws PrismLangException
 	{
-		if (modelType == ModulesFile.NONDETERMINISTIC) {
-			throw new PrismLangException("The S operator cannot be used for MDPs");
-		}
-	}
-
-	public void visitPost(PathExpressionTemporal e) throws PrismLangException
-	{
-		if (e.getOperator() == PathExpressionTemporal.R_S) {
+		if (e.getOperator() == ExpressionTemporal.R_S) {
 			if (modelType == ModulesFile.NONDETERMINISTIC) {
 				throw new PrismLangException("Steady-state reward properties cannot be used for MDPs");
 			}
@@ -78,8 +71,10 @@ public class CheckValid extends ASTTraverse
 		}
 	}
 	
-	public void visitPost(PathExpressionLogical e) throws PrismLangException
+	public void visitPost(ExpressionSS e) throws PrismLangException
 	{
-		throw new PrismLangException("Logical operators for paths are not yet supported");
+		if (modelType == ModulesFile.NONDETERMINISTIC) {
+			throw new PrismLangException("The S operator cannot be used for MDPs");
+		}
 	}
 }

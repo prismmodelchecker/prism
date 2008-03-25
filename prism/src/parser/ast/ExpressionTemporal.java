@@ -26,10 +26,11 @@
 
 package parser.ast;
 
+import parser.Values;
 import parser.visitor.*;
 import prism.PrismLangException;
 
-public class PathExpressionTemporal extends PathExpression
+public class ExpressionTemporal extends Expression
 {
 	// Operator constants
 	public static final int P_X = 1; // Next (for P operator)
@@ -51,26 +52,26 @@ public class PathExpressionTemporal extends PathExpression
 	// Operator
 	protected int op = 0;
 	// Up to two operands (either may be null)
-	protected PathExpression operand1 = null; // LHS of operator
-	protected PathExpression operand2 = null; // RHS of operator
+	protected Expression operand1 = null; // LHS of operator
+	protected Expression operand2 = null; // RHS of operator
 	// Optional (time) bounds
 	protected Expression lBound = null; // None if null, i.e. zero
 	protected Expression uBound = null; // None if null, i.e. infinity
 	
 	// Constructors
 	
-	public PathExpressionTemporal()
+	public ExpressionTemporal()
 	{
 	}
 	
-	public PathExpressionTemporal(int op, PathExpression operand1, PathExpression operand2)
+	public ExpressionTemporal(int op, Expression operand1, Expression operand2)
 	{
 		this.op = op;
 		this.operand1 = operand1;
 		this.operand2 = operand2;
 	}
 	
-	public PathExpressionTemporal(int op, PathExpression operand1, PathExpression operand2, Expression lBound, Expression uBound)
+	public ExpressionTemporal(int op, Expression operand1, Expression operand2, Expression lBound, Expression uBound)
 	{
 		this.op = op;
 		this.operand1 = operand1;
@@ -86,12 +87,12 @@ public class PathExpressionTemporal extends PathExpression
 		op = i;
 	}
 	
-	public void setOperand1(PathExpression e1)
+	public void setOperand1(Expression e1)
 	{
 		operand1 = e1;
 	}
 	
-	public void setOperand2(PathExpression e2)
+	public void setOperand2(Expression e2)
 	{
 		operand2 = e2;
 	}
@@ -124,12 +125,12 @@ public class PathExpressionTemporal extends PathExpression
 		return opSymbols[op];
 	}
 	
-	public PathExpression getOperand1()
+	public Expression getOperand1()
 	{
 		return operand1;
 	}
 	
-	public PathExpression getOperand2()
+	public Expression getOperand2()
 	{
 		return operand2;
 	}
@@ -147,6 +148,25 @@ public class PathExpressionTemporal extends PathExpression
 	public Expression getUpperBound()
 	{
 		return uBound;
+	}
+
+	// Methods required for Expression:
+	
+	/**
+	 * Is this expression constant?
+	 */
+	public boolean isConstant()
+	{
+		return false;
+	}
+
+	/**
+	 * Evaluate this expression, return result.
+	 * Note: assumes that type checking has been done already.
+	 */
+	public Object evaluate(Values constantValues, Values varValues) throws PrismLangException
+	{
+		throw new PrismLangException("Cannot evaluate a temporal operator without a path");
 	}
 
 	// Methods required for ASTElement:
@@ -187,9 +207,9 @@ public class PathExpressionTemporal extends PathExpression
 	/**
 	 * Perform a deep copy.
 	 */
-	public PathExpression deepCopy()
+	public Expression deepCopy()
 	{
-		PathExpressionTemporal expr = new PathExpressionTemporal();
+		ExpressionTemporal expr = new ExpressionTemporal();
 		expr.setOperator(op);
 		if (operand1 != null) expr.setOperand1(operand1.deepCopy());
 		if (operand2 != null) expr.setOperand2(operand1.deepCopy());
@@ -203,49 +223,38 @@ public class PathExpressionTemporal extends PathExpression
 	/**
 	 * Convert (P operator) path formula to untils, using standard equivalences.
 	 */
-	public PathExpression convertToUntilForm() throws PrismLangException
+	public Expression convertToUntilForm() throws PrismLangException
 	{
-		PathExpression op1, op2, ret = null;
-		Expression a, b;
-		if (operand1 != null && !(operand1 instanceof PathExpressionExpr)) {
-			throw new PrismLangException("Cannot convert "+getOperatorSymbol()+" to until form");
-		}
-		if (operand2 != null && !(operand2 instanceof PathExpressionExpr)) {
-			throw new PrismLangException("Cannot convert "+getOperatorSymbol()+" to until form");
-		}
+		Expression op1, op2, ret = null;
 		switch (op) {
 		case P_U:
 			ret = this;
 			break;
 		case P_F:
 			// F a == true U a
-			op1 =  new PathExpressionExpr(Expression.True());
-			ret = new PathExpressionTemporal(P_U, op1, operand2, lBound, uBound);
+			op1 = Expression.True();
+			ret = new ExpressionTemporal(P_U, op1, operand2, lBound, uBound);
 			break;
 		case P_G:
 			// G a == !(true U !a)
-			op1 = new PathExpressionExpr(Expression.True());
-			op2 = new PathExpressionExpr(Expression.Not(((PathExpressionExpr)operand2).getExpression()));
-			ret = new PathExpressionTemporal(P_U, op1, op2, lBound, uBound);
-			ret = new PathExpressionLogical(PathExpressionLogical.NOT, null, ret);
+			op1 = Expression.True();
+			op2 = Expression.Not(operand2);
+			ret = new ExpressionTemporal(P_U, op1, op2, lBound, uBound);
+			ret = Expression.Not(ret);
 			break;
 		case P_W:
 			// a W b == !(a&!b U !a&!b)
-			a = ((PathExpressionExpr)operand1).getExpression();
-			b = ((PathExpressionExpr)operand2).getExpression();
-			op1 = new PathExpressionExpr(Expression.And(a, Expression.Not(b)));
-			op2 = new PathExpressionExpr(Expression.And(Expression.Not(a), Expression.Not(b)));
-			ret = new PathExpressionTemporal(P_U, op1, op2, lBound, uBound);
-			ret = new PathExpressionLogical(PathExpressionLogical.NOT, null, ret);
+			op1 = Expression.And(operand1, Expression.Not(operand2));
+			op2 = Expression.And(Expression.Not(operand1), Expression.Not(operand2));
+			ret = new ExpressionTemporal(P_U, op1, op2, lBound, uBound);
+			ret = Expression.Not(ret);
 			break;
 		case P_R:
 			// a R b == !(!a U !b)
-			a = ((PathExpressionExpr)operand1).getExpression();
-			b = ((PathExpressionExpr)operand2).getExpression();
-			op1 = new PathExpressionExpr(Expression.Not(a));
-			op2 = new PathExpressionExpr(Expression.Not(b));
-			ret = new PathExpressionTemporal(P_U, op1, op2, lBound, uBound);
-			ret = new PathExpressionLogical(PathExpressionLogical.NOT, null, ret);
+			op1 = Expression.Not(operand1);
+			op2 = Expression.Not(operand2);
+			ret = new ExpressionTemporal(P_U, op1, op2, lBound, uBound);
+			ret = Expression.Not(ret);
 			break;
 		default:
 			throw new PrismLangException("Cannot convert "+getOperatorSymbol()+" to until form");

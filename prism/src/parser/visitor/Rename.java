@@ -92,6 +92,13 @@ public class Rename extends ASTTraverseModify
 		}
 	}
 
+	public void visitPost(ExpressionTemporal e) throws PrismLangException
+	{
+		// This renaming is only designed to be applied
+		// at the level of an individual module (and below)
+		throw new PrismLangException("Temporal operators should never be renamed");
+	}
+
 	public void visitPost(ExpressionFunc e) throws PrismLangException
 	{
 		// Rename function name (if necessary)

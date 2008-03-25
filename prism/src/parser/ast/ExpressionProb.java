@@ -34,7 +34,7 @@ public class ExpressionProb extends Expression
 {
 	String relOp = null;
 	Expression prob = null;
-	PathExpression pathExpression = null;
+	Expression expression = null;
 	Filter filter = null;
 	
 	// Constructors
@@ -43,9 +43,9 @@ public class ExpressionProb extends Expression
 	{
 	}
 	
-	public ExpressionProb(PathExpression e, String r, Expression p)
+	public ExpressionProb(Expression e, String r, Expression p)
 	{
-		pathExpression = e;
+		expression = e;
 		relOp = r;
 		prob = p;
 	}
@@ -62,9 +62,9 @@ public class ExpressionProb extends Expression
 		prob = p;
 	}
 
-	public void setPathExpression(PathExpression e)
+	public void setExpression(Expression e)
 	{
-		pathExpression = e;
+		expression = e;
 	}
 	
 	public void setFilter(Filter f)
@@ -84,9 +84,9 @@ public class ExpressionProb extends Expression
 		return prob;
 	}
 
-	public PathExpression getPathExpression()
+	public Expression getExpression()
 	{
-		return pathExpression;
+		return expression;
 	}
 	
 	public Filter getFilter()
@@ -130,7 +130,7 @@ public class ExpressionProb extends Expression
 	 */
 	public Object evaluate(Values constantValues, Values varValues) throws PrismLangException
 	{
-		throw new PrismLangException("Cannot evaluate a P operator without model checking");
+		throw new PrismLangException("Cannot evaluate a P operator without a model");
 	}
 
 	/**
@@ -163,7 +163,7 @@ public class ExpressionProb extends Expression
 		
 		s += "P" + relOp;
 		s += (prob==null) ? "?" : prob.toString();
-		s += " [ " + pathExpression;
+		s += " [ " + expression;
 		if (filter != null) s += " "+filter;
 		s += " ]";
 		
@@ -175,7 +175,7 @@ public class ExpressionProb extends Expression
 	 */
 	public Expression deepCopy()
 	{
-		ExpressionProb expr = new ExpressionProb(pathExpression.deepCopy(), relOp, prob.deepCopy());
+		ExpressionProb expr = new ExpressionProb(expression.deepCopy(), relOp, prob.deepCopy());
 		expr.setFilter((Filter)filter.deepCopy());
 		expr.setType(type);
 		expr.setPosition(this);

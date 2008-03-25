@@ -72,7 +72,7 @@ public class GUISimPathFormulaeList extends JList
 
 	public void addRewardFormula(ExpressionReward rew)
 	{
-		String str = rew.getPathExpression().toString();
+		String str = rew.getExpression().toString();
 
 		for (int i = 0; i < listModel.getSize(); i++) {
 			if (listModel.getElementAt(i).toString().equals(str))
@@ -90,7 +90,7 @@ public class GUISimPathFormulaeList extends JList
 
 	public void addProbFormula(ExpressionProb prob)
 	{
-		String str = prob.getPathExpression().toString();
+		String str = prob.getExpression().toString();
 
 		for (int i = 0; i < listModel.getSize(); i++) {
 			if (listModel.getElementAt(i).toString().equals(str))

@@ -134,6 +134,42 @@ public class TypeCheck extends ASTTraverse
 		}
 	}
 
+	public void visitPost(ExpressionTemporal e) throws PrismLangException
+	{
+		if (e.getOperand1() != null && e.getOperand1().getType() != Expression.BOOLEAN) {
+			throw new PrismLangException("Type error: Argument of " + e.getOperatorSymbol()
+					+ " operator is not Boolean", e.getOperand1());
+		}
+		if (e.getOperand2() != null && e.getOperand2().getType() != Expression.BOOLEAN) {
+			throw new PrismLangException("Type error: Argument of " + e.getOperatorSymbol()
+					+ " operator is not Boolean", e.getOperand2());
+		}
+		if (e.getLowerBound() != null && !Expression.canAssignTypes(Expression.DOUBLE, e.getLowerBound().getType())) {
+			throw new PrismLangException("Type error: Lower bound in " + e.getOperatorSymbol()
+					+ " operator must be an int or double", e.getLowerBound());
+		}
+		if (e.getUpperBound() != null && !Expression.canAssignTypes(Expression.DOUBLE, e.getUpperBound().getType())) {
+			throw new PrismLangException("Type error: Upper bound in " + e.getOperatorSymbol()
+					+ " operator must be an int or double", e.getUpperBound());
+		}
+		switch (e.getOperator()) {
+		case ExpressionTemporal.P_X:
+		case ExpressionTemporal.P_U:
+		case ExpressionTemporal.P_F:
+		case ExpressionTemporal.P_G:
+		case ExpressionTemporal.P_W:
+		case ExpressionTemporal.P_R:
+			e.setType(Expression.PATH_BOOLEAN);
+			break;
+		case ExpressionTemporal.R_C:
+		case ExpressionTemporal.R_I:
+		case ExpressionTemporal.R_F:
+		case ExpressionTemporal.R_S:
+			e.setType(Expression.PATH_DOUBLE);
+			break;
+		}
+	}
+
 	public void visitPost(ExpressionITE e) throws PrismLangException
 	{
 		int t1 = e.getOperand1().getType();
@@ -380,64 +416,6 @@ public class TypeCheck extends ASTTraverse
 
 	public void visitPost(ExpressionLabel e) throws PrismLangException
 	{
-		e.setType(Expression.BOOLEAN);
-	}
-
-	public void visitPost(PathExpressionTemporal e) throws PrismLangException
-	{
-		if (e.getOperand1() != null && e.getOperand1().getType() != Expression.BOOLEAN) {
-			throw new PrismLangException("Type error: Argument of " + e.getOperatorSymbol()
-					+ " operator is not Boolean", e.getOperand1());
-		}
-		if (e.getOperand2() != null && e.getOperand2().getType() != Expression.BOOLEAN) {
-			throw new PrismLangException("Type error: Argument of " + e.getOperatorSymbol()
-					+ " operator is not Boolean", e.getOperand2());
-		}
-		if (e.getLowerBound() != null && !Expression.canAssignTypes(Expression.DOUBLE, e.getLowerBound().getType())) {
-			throw new PrismLangException("Type error: Lower bound in " + e.getOperatorSymbol()
-					+ " operator must be an int or double", e.getLowerBound());
-		}
-		if (e.getUpperBound() != null && !Expression.canAssignTypes(Expression.DOUBLE, e.getUpperBound().getType())) {
-			throw new PrismLangException("Type error: Upper bound in " + e.getOperatorSymbol()
-					+ " operator must be an int or double", e.getUpperBound());
-		}
-		switch (e.getOperator()) {
-		case PathExpressionTemporal.P_X:
-		case PathExpressionTemporal.P_U:
-		case PathExpressionTemporal.P_F:
-		case PathExpressionTemporal.P_G:
-		case PathExpressionTemporal.P_W:
-		case PathExpressionTemporal.P_R:
-			e.setType(Expression.BOOLEAN);
-			break;
-		case PathExpressionTemporal.R_C:
-		case PathExpressionTemporal.R_I:
-		case PathExpressionTemporal.R_F:
-		case PathExpressionTemporal.R_S:
-			e.setType(Expression.DOUBLE);
-			break;
-		}
-	}
-
-	public void visitPost(PathExpressionLogical e) throws PrismLangException
-	{
-		if (e.getOperand1() != null && e.getOperand1().getType() != Expression.BOOLEAN) {
-			throw new PrismLangException("Type error: Argument of " + e.getOperatorSymbol()
-					+ " operator is not Boolean", e.getOperand1());
-		}
-		if (e.getOperand2() != null && e.getOperand2().getType() != Expression.BOOLEAN) {
-			throw new PrismLangException("Type error: Argument of " + e.getOperatorSymbol()
-					+ " operator is not Boolean", e.getOperand2());
-		}
-		e.setType(Expression.BOOLEAN);
-	}
-	
-	public void visitPost(PathExpressionExpr e) throws PrismLangException
-	{
-		int t = e.getExpression().getType();
-		if (t != Expression.BOOLEAN) {
-			throw new PrismLangException("Type error expressions in path operator is not Boolean", e.getExpression());
-		}
 		e.setType(Expression.BOOLEAN);
 	}
 }

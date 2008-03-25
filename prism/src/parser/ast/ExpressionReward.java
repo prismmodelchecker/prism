@@ -35,7 +35,7 @@ public class ExpressionReward extends Expression
 	Object rewardStructIndex = null;
 	String relOp = null;
 	Expression reward = null;
-	PathExpression pathExpression = null;
+	Expression expression = null;
 	Filter filter = null;
 	
 	// Constructors
@@ -44,9 +44,9 @@ public class ExpressionReward extends Expression
 	{
 	}
 	
-	public ExpressionReward(PathExpression e, String r, Expression p)
+	public ExpressionReward(Expression e, String r, Expression p)
 	{
-		pathExpression = e;
+		expression = e;
 		relOp = r;
 		reward = p;
 	}
@@ -68,9 +68,9 @@ public class ExpressionReward extends Expression
 		reward = p;
 	}
 
-	public void setPathExpression(PathExpression e)
+	public void setExpression(Expression e)
 	{
-		pathExpression = e;
+		expression = e;
 	}
 	
 	public void setFilter(Filter f)
@@ -95,9 +95,9 @@ public class ExpressionReward extends Expression
 		return reward;
 	}
 
-	public PathExpression getPathExpression()
+	public Expression getExpression()
 	{
-		return pathExpression;
+		return expression;
 	}
 	
 	public Filter getFilter()
@@ -141,7 +141,7 @@ public class ExpressionReward extends Expression
 	 */
 	public Object evaluate(Values constantValues, Values varValues) throws PrismLangException
 	{
-		throw new PrismLangException("Cannot evaluate an R operator without model checking");
+		throw new PrismLangException("Cannot evaluate an R operator without a model");
 	}
 
 	/**
@@ -190,7 +190,7 @@ public class ExpressionReward extends Expression
 		}
 		s += relOp;
 		s += (reward==null) ? "?" : reward.toString();
-		s += " [ " + pathExpression;
+		s += " [ " + expression;
 		if (filter != null) s += " "+filter;
 		s += " ]";
 		
@@ -202,7 +202,7 @@ public class ExpressionReward extends Expression
 	 */
 	public Expression deepCopy()
 	{
-		ExpressionReward expr = new ExpressionReward(pathExpression.deepCopy(), relOp, reward.deepCopy());
+		ExpressionReward expr = new ExpressionReward(expression.deepCopy(), relOp, reward.deepCopy());
 		if (rewardStructIndex != null && rewardStructIndex instanceof Expression) expr.setRewardStructIndex(((Expression)rewardStructIndex).deepCopy());
 		else expr.setRewardStructIndex(rewardStructIndex);
 		expr.setFilter((Filter)filter.deepCopy());

@@ -130,7 +130,7 @@ public class ExpressionSS extends Expression
 	 */
 	public Object evaluate(Values constantValues, Values varValues) throws PrismLangException
 	{
-		throw new PrismLangException("Cannot evaluate an S operator without model checking");
+		throw new PrismLangException("Cannot evaluate an S operator without a model");
 	}
 
 	/**

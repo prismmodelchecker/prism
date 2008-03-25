@@ -62,27 +62,26 @@ public class StochModelChecker extends ProbModelChecker
 
 	// bounded until
 
-	protected StateProbs checkProbBoundedUntil(PathExpressionTemporal pe) throws PrismException
+	protected StateProbs checkProbBoundedUntil(ExpressionTemporal expr) throws PrismException
 	{
-		Expression expr1, expr2;
 		double lTime, uTime; // time bounds
-		Expression expr;
+		Expression exprTmp;
 		JDDNode b1, b2, tmp;
 		StateProbs tmpProbs = null, probs = null;
 
-		// get operands
-		if (!(pe.getOperand1() instanceof PathExpressionExpr) || !(pe.getOperand2() instanceof PathExpressionExpr))
+		// check not LTL
+		if (expr.getOperand1().getType() != Expression.BOOLEAN)
 			throw new PrismException("Invalid path formula");
-		expr1 = ((PathExpressionExpr) pe.getOperand1()).getExpression();
-		expr2 = ((PathExpressionExpr) pe.getOperand2()).getExpression();
+		if (expr.getOperand2().getType() != Expression.BOOLEAN)
+			throw new PrismException("Invalid path formula");
 
 		// get info from bounded until
 
 		// lower bound is 0 if not specified
 		// (i.e. if until is of form U<=t)
-		expr = pe.getLowerBound();
-		if (expr != null) {
-			lTime = expr.evaluateDouble(constantValues, null);
+		exprTmp = expr.getLowerBound();
+		if (exprTmp != null) {
+			lTime = exprTmp.evaluateDouble(constantValues, null);
 			if (lTime < 0) {
 				throw new PrismException("Invalid lower bound " + lTime + " in time-bounded until formula");
 			}
@@ -91,9 +90,9 @@ public class StochModelChecker extends ProbModelChecker
 		}
 		// upper bound is -1 if not specified
 		// (i.e. if until is of form U>=t)
-		expr = pe.getUpperBound();
-		if (expr != null) {
-			uTime = expr.evaluateDouble(constantValues, null);
+		exprTmp = expr.getUpperBound();
+		if (exprTmp != null) {
+			uTime = exprTmp.evaluateDouble(constantValues, null);
 			if (uTime < 0) {
 				throw new PrismException("Invalid upper bound " + uTime + " in time-bounded until formula");
 			}
@@ -105,9 +104,9 @@ public class StochModelChecker extends ProbModelChecker
 		}
 
 		// model check operands first
-		b1 = checkExpressionDD(expr1);
+		b1 = checkExpressionDD(expr.getOperand1());
 		try {
-			b2 = checkExpressionDD(expr2);
+			b2 = checkExpressionDD(expr.getOperand2());
 		} catch (PrismException e) {
 			JDD.Deref(b1);
 			throw e;
@@ -215,14 +214,14 @@ public class StochModelChecker extends ProbModelChecker
 
 	// cumulative reward
 
-	protected StateProbs checkRewardCumul(PathExpressionTemporal pe, JDDNode stateRewards, JDDNode transRewards)
+	protected StateProbs checkRewardCumul(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards)
 			throws PrismException
 	{
 		double time; // time
 		StateProbs rewards = null;
 
 		// get info from inst reward
-		time = pe.getUpperBound().evaluateDouble(constantValues, null);
+		time = expr.getUpperBound().evaluateDouble(constantValues, null);
 		if (time < 0) {
 			throw new PrismException("Invalid time bound " + time + " in cumulative reward formula");
 		}
@@ -246,14 +245,14 @@ public class StochModelChecker extends ProbModelChecker
 
 	// inst reward
 
-	protected StateProbs checkRewardInst(PathExpressionTemporal pe, JDDNode stateRewards, JDDNode transRewards)
+	protected StateProbs checkRewardInst(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards)
 			throws PrismException
 	{
 		double time; // time
 		StateProbs sr = null, rewards = null;
 
 		// get info from inst reward
-		time = pe.getUpperBound().evaluateDouble(constantValues, null);
+		time = expr.getUpperBound().evaluateDouble(constantValues, null);
 		if (time < 0) {
 			throw new PrismException("Invalid bound " + time + " in instantaneous reward property");
 		}

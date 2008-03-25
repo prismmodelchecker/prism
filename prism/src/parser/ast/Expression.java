@@ -38,6 +38,9 @@ public abstract class Expression extends ASTElement
 	public static final int INT = 1;
 	public static final int DOUBLE = 2;
 	public static final int BOOLEAN = 3;
+	public static final int PATH_INT = 4; // Not used
+	public static final int PATH_DOUBLE = 5;
+	public static final int PATH_BOOLEAN = 6;
 	
 	// and a function to get at their names
 	public static String getTypeString(int i) {

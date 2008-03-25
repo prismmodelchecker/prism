@@ -54,6 +54,7 @@ public interface ASTVisitor
 	public Object visit(SystemModule e) throws PrismLangException;
 	public Object visit(SystemBrackets e) throws PrismLangException;
 	// ASTElement/Expression classes
+	public Object visit(ExpressionTemporal e) throws PrismLangException;
 	public Object visit(ExpressionITE e) throws PrismLangException;
 	public Object visit(ExpressionBinaryOp e) throws PrismLangException;
 	public Object visit(ExpressionUnaryOp e) throws PrismLangException;
@@ -63,15 +64,10 @@ public interface ASTVisitor
 	public Object visit(ExpressionConstant e) throws PrismLangException;
 	public Object visit(ExpressionFormula e) throws PrismLangException;
 	public Object visit(ExpressionVar e) throws PrismLangException;
-	// ASTElement/Expression (properties only) classes
 	public Object visit(ExpressionProb e) throws PrismLangException;
 	public Object visit(ExpressionReward e) throws PrismLangException;
 	public Object visit(ExpressionSS e) throws PrismLangException;
 	public Object visit(ExpressionLabel e) throws PrismLangException;
-	// ASTElement/PathExpression classes
-	public Object visit(PathExpressionTemporal e) throws PrismLangException;
-	public Object visit(PathExpressionLogical e) throws PrismLangException;
-	public Object visit(PathExpressionExpr e) throws PrismLangException;
 	// ASTElement classes (misc.)
 	public Object visit(Filter e) throws PrismLangException;
 	public Object visit(ForLoop e) throws PrismLangException;

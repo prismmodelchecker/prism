@@ -2081,16 +2081,13 @@ public class SimulatorEngine
 	public long addExpressionReward(ExpressionReward expr)
 	{
 		Values allConstants = new Values();
-		PathExpressionTemporal pe;
-		Expression expr2;
+		ExpressionTemporal exprTemp;
 		long exprPtr2;
 		double time;
 		Object rs = null;
 		int rsi = -1;
 
-		if (!(expr.getPathExpression() instanceof PathExpressionTemporal))
-			return -1;
-		pe = (PathExpressionTemporal) expr.getPathExpression();
+		exprTemp = (ExpressionTemporal) expr.getExpression();
 
 		allConstants.addValues(getConstants());
 		allConstants.addValues(getPropertyConstants());
@@ -2103,7 +2100,7 @@ public class SimulatorEngine
 			try {
 				rsi = ((Expression) rs).evaluateInt(allConstants, null) - 1;
 			} catch (PrismException e) {
-				System.err.println("Property: " + pe.toString() + " could not be used in the simulator because: \n"
+				System.err.println("Property: " + exprTemp.toString() + " could not be used in the simulator because: \n"
 						+ e.toString());
 				return -1;
 			}
@@ -2112,28 +2109,27 @@ public class SimulatorEngine
 		}
 
 		try {
-			switch (pe.getOperator()) {
+			switch (exprTemp.getOperator()) {
 
-			case PathExpressionTemporal.R_C:
-				time = pe.getUpperBound().evaluateDouble(allConstants, null);
+			case ExpressionTemporal.R_C:
+				time = exprTemp.getUpperBound().evaluateDouble(allConstants, null);
 				return loadPctlCumulative(rsi, time);
 
-			case PathExpressionTemporal.R_I:
-				time = pe.getUpperBound().evaluateDouble(allConstants, null);
+			case ExpressionTemporal.R_I:
+				time = exprTemp.getUpperBound().evaluateDouble(allConstants, null);
 				return loadPctlInstantanious(rsi, time);
 
-			case PathExpressionTemporal.R_F:
-				if (!(pe.getOperand2() instanceof PathExpressionExpr))
+			case ExpressionTemporal.R_F:
+				if (exprTemp.getOperand2().getType() != Expression.BOOLEAN)
 					return -1;
-				expr2 = ((PathExpressionExpr) pe.getOperand2()).getExpression();
-				exprPtr2 = expr2.toSimulator(this);
+				exprPtr2 = exprTemp.getOperand2().toSimulator(this);
 				return loadPctlReachability(rsi, exprPtr2);
 
 			default:
 				return -1;
 			}
 		} catch (PrismException e) {
-			System.err.println("Property: " + pe.toString() + " could not be used in the simulator because: \n"
+			System.err.println("Property: " + exprTemp.toString() + " could not be used in the simulator because: \n"
 					+ e.toString());
 			return -1;
 		}
@@ -2149,60 +2145,56 @@ public class SimulatorEngine
 	public long addExpressionProb(ExpressionProb expr)
 	{
 		Values allConstants = new Values();
-		PathExpressionTemporal pet;
-		PathExpression pe2;
-		Expression expr1, expr2;
+		ExpressionTemporal exprTemp;
+		Expression exprUntil;
 		long exprPtr1, exprPtr2;
 		double time1, time2;
 		boolean negated = false;
 
-		if (!(expr.getPathExpression() instanceof PathExpressionTemporal))
+		if (!(expr.getExpression() instanceof ExpressionTemporal))
 			return -1;
-		pet = (PathExpressionTemporal) expr.getPathExpression();
+		exprTemp = (ExpressionTemporal) expr.getExpression();
 
 		allConstants.addValues(getConstants());
 		allConstants.addValues(getPropertyConstants());
 
 		// Convert anything that is not until/next into until
-		if (!(pet.getOperator() == PathExpressionTemporal.P_X || pet.getOperator() == PathExpressionTemporal.P_U)) {
+		if (!(exprTemp.getOperator() == ExpressionTemporal.P_X || exprTemp.getOperator() == ExpressionTemporal.P_U)) {
 			try {
-				pe2 = pet.convertToUntilForm();
+				exprUntil = exprTemp.convertToUntilForm();
 			} catch (PrismException e) {
 				return -1;
 			}
-			if (pe2 instanceof PathExpressionLogical
-					&& ((PathExpressionLogical) pe2).getOperator() == PathExpressionLogical.NOT) {
-				pet = (PathExpressionTemporal) ((PathExpressionLogical) pe2).getOperand2();
+			if (exprUntil instanceof ExpressionUnaryOp
+					&& ((ExpressionUnaryOp) exprUntil).getOperator() == ExpressionUnaryOp.NOT) {
+				exprTemp = (ExpressionTemporal) ((ExpressionUnaryOp) exprUntil).getOperand();
 				negated = true;
 			} else {
-				pet = (PathExpressionTemporal) pe2;
+				exprTemp = (ExpressionTemporal) exprUntil;
 				negated = false;
 			}
 		}
 
 		try {
-			switch (pet.getOperator()) {
+			switch (exprTemp.getOperator()) {
 
-			case PathExpressionTemporal.P_X:
-				if (!(pet.getOperand2() instanceof PathExpressionExpr))
+			case ExpressionTemporal.P_X:
+				if (exprTemp.getOperand2().getType() != Expression.PATH_BOOLEAN)
 					return -1;
-				expr2 = ((PathExpressionExpr) pet.getOperand2()).getExpression();
-				exprPtr2 = expr2.toSimulator(this);
+				exprPtr2 = exprTemp.getOperand2().toSimulator(this);
 				return loadPctlNext(exprPtr2);
 
-			case PathExpressionTemporal.P_U:
-				if (!(pet.getOperand1() instanceof PathExpressionExpr))
+			case ExpressionTemporal.P_U:
+				if (exprTemp.getOperand1().getType() != Expression.PATH_BOOLEAN)
 					return -1;
-				expr1 = ((PathExpressionExpr) pet.getOperand1()).getExpression();
-				exprPtr1 = expr1.toSimulator(this);
-				if (!(pet.getOperand2() instanceof PathExpressionExpr))
+				exprPtr1 = exprTemp.getOperand1().toSimulator(this);
+				if (exprTemp.getOperand2().getType() != Expression.PATH_BOOLEAN)
 					return -1;
-				expr2 = ((PathExpressionExpr) pet.getOperand2()).getExpression();
-				exprPtr2 = expr2.toSimulator(this);
-				if (pet.hasBounds()) {
-					time1 = (pet.getLowerBound() == null) ? 0.0 : pet.getLowerBound()
+				exprPtr2 = exprTemp.getOperand2().toSimulator(this);
+				if (exprTemp.hasBounds()) {
+					time1 = (exprTemp.getLowerBound() == null) ? 0.0 : exprTemp.getLowerBound()
 							.evaluateDouble(allConstants, null);
-					time2 = (pet.getUpperBound() == null) ? Integer.MAX_VALUE : pet.getUpperBound().evaluateDouble(
+					time2 = (exprTemp.getUpperBound() == null) ? Integer.MAX_VALUE : exprTemp.getUpperBound().evaluateDouble(
 							allConstants, null);
 					if (!negated) {
 						return loadPctlBoundedUntil(exprPtr1, exprPtr2, time1, time2);
@@ -2221,7 +2213,7 @@ public class SimulatorEngine
 				return -1;
 			}
 		} catch (PrismException e) {
-			System.err.println("Property: " + pet.toString() + " could not be used in the simulator because: \n"
+			System.err.println("Property: " + expr.toString() + " could not be used in the simulator because: \n"
 					+ e.toString());
 			return -1;
 		}
@@ -2329,17 +2321,17 @@ public class SimulatorEngine
 
 		// Simulator can only be applied to P=? or R=? properties
 		boolean ok = true;
-		PathExpression pe = null;
+		Expression expr = null;
 		if (!(prop instanceof ExpressionProb || prop instanceof ExpressionReward))
 			ok = false;
 		else if (prop instanceof ExpressionProb) {
 			if ((((ExpressionProb) prop).getProb() != null))
 				ok = false;
-			pe = ((ExpressionProb) prop).getPathExpression();
+			expr = ((ExpressionProb) prop).getExpression();
 		} else if (prop instanceof ExpressionReward) {
 			if ((((ExpressionReward) prop).getReward() != null))
 				ok = false;
-			pe = ((ExpressionReward) prop).getPathExpression();
+			expr = ((ExpressionReward) prop).getExpression();
 		}
 		if (!ok)
 			throw new SimulatorException(
@@ -2347,7 +2339,7 @@ public class SimulatorEngine
 
 		// Check that there are no nested probabilistic operators
 		try {
-			pe.accept(new ASTTraverse()
+			expr.accept(new ASTTraverse()
 			{
 				public void visitPre(ExpressionProb e) throws PrismLangException
 				{
