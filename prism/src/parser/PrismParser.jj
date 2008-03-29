@@ -463,7 +463,7 @@ ModulesFile ModulesFile() throws PrismLangException :
 	FormulaDef(mf.getFormulaList()) | LabelDef(mf.getLabelList()) | ConstantDef(mf.getConstantList()) |
 	// Global variable
 	global = GlobalDecl() { mf.addGlobal(global); } |
-	// Renamed module
+	// Renamed module (lookahead to distinguish from normal module)
 	LOOKAHEAD(<MODULE> Identifier() <EQ>) rm = RenamedModule() { mf.addRenamedModule(rm); } |
 	// Module
 	m = Module() { mf.addModule(m); } | 
@@ -608,6 +608,7 @@ void LabelDef(LabelList labelList) throws PrismLangException :
 	Expression name = null, expr = null;
 }
 {
+	// Lookahead required because of the error handling clause below
 	LOOKAHEAD(<LABEL> <DQUOTE>) <LABEL> ( <DQUOTE> name = ExpressionIdent() <DQUOTE> <EQ> expr = Expression() <SEMICOLON> )
 	{ labelList.addLabel((ExpressionIdent)name, expr); }
 	// Error handling
@@ -710,6 +711,7 @@ Updates Updates() :
 	{ begin = getToken(1); }
 	(
 		// Single update with probability 1
+		// (lookahead required because update and probability can both start with "(")
 		LOOKAHEAD(Update()) update = Update()
 		{ updates.addUpdate(null, update); }
 	|
@@ -783,7 +785,9 @@ RewardStruct RewardStruct() :
 }
 {
 	begin = <REWARDS>
-	// Optional name (lookahead required so not misdetected as an ExpressionLabel)
+	// Optional name
+	// (lookahead required so not misdetected as an ExpressionLabel)
+	// (which would not be allowed to appear here anyway)
 	( LOOKAHEAD(<DQUOTE>) <DQUOTE> name = Identifier() <DQUOTE> { rs.setName(name); } )?
 	// Reward structure items
 	( { begin2 = getToken(1); } ( <LBRACKET> { s = ""; } ( s=Identifier() )? <RBRACKET> )? guard = Expression() <COLON> value = Expression() <SEMICOLON>
@@ -1330,6 +1334,18 @@ Expression ExpressionProbContents() :
 
 // Temporal operarors (X, U, F, G, W, R)
 
+// Note: the potential occurrence of two successive (unseparated) expressions
+// (e.g. "a" and "b" in "F<=a b") is a grammar flaw because the function and
+// minus operators can cause ambiguities, for example:
+// "F<=a(b)+c(d)" = "F<=a" "(b)+c(d)" = "F<=a(b)+c" "(d)" ?
+// "F<=-a-b-c" = "F<=-a" "-b-c" = "F<=-a-b" "-c" ?
+// In many cases, these could be distinguished by type checking but
+// that does not really help since this is done post-parsing.
+// To prevent (very common) cases such as "F<=t (b)", "F<=t (b)&(c)", etc.
+// being mis-parsed ("t(b)" would always be taken over "t"), we catch this case
+// separately. This means that more complex time-bounds, especially those that
+// include an identifier should be parenthesised, e.g. "F<=(t1+t2)".
+
 Expression ExpressionTemporal() :
 {
 	ExpressionTemporal expr = new ExpressionTemporal();
@@ -1340,7 +1356,7 @@ Expression ExpressionTemporal() :
 {
 	(
 		{ begin = getToken(0); }
-		( 
+		(
 			<X> { expr.setOperator(ExpressionTemporal.P_X); }
 			| ( expr1 = Expression()
 				( <U> { expr.setOperator(ExpressionTemporal.P_U); }
@@ -1351,73 +1367,27 @@ Expression ExpressionTemporal() :
 			| <G> { expr.setOperator(ExpressionTemporal.P_G); }
 		)
 		( tb = TimeBound() )?
-		( expr2 = Expression() )?
+		expr2 = Expression()
 	)
 	{
-		if (tb != null) expr.setLowerBound(tb.lBound);
-		if (tb != null) expr.setUpperBound(tb.uBound);
+		if (tb != null) { expr.setLowerBound(tb.lBound); expr.setUpperBound(tb.uBound); }
 		if (expr1 != null) expr.setOperand1(expr1);
 		if (expr2 != null) expr.setOperand2(expr2);
 		expr.setPosition(begin, getToken(0));
-		
-		// This is the usual case.
-		if (expr2 != null) {
-			return expr;
-		}
-		// And this is a bit of inelegant jiggery-pokery.
-		// The problem is that bounded path formulas sometimes need
-		// two successive expressions with no separator, e.g. t and b in "F<=t b".
-		// Parsing two successive expressions is tricky because:
-		// 1. e.g. "t (b)" gets parsed a as single expression: function "t(b)"
-		// 2. e.g. "-a -b" gets parsed as a single expression: subtraction "(-a)-b"
-		// These are the only two problem cases. The cunning plan is to make the second
-		// expression optional and then check if it is missing afterwards.
-		// Note that case 2 is genuinely ambiguous (e.g. where to split "-a-b-c"?).
-		// Fortunately this does not type check (the expression should be Boolean)
-		// so we don't really care.
-		else {
-			if (tb != null) {
-				if (tb.lBound == null) {
-					if (tb.uBound instanceof ExpressionFunc && ((ExpressionFunc)tb.uBound).getNumOperands() == 1) {
-						Expression actualBound = new ExpressionIdent(((ExpressionFunc)tb.uBound).getName());
-						actualBound.setPosition(tb.uBound);
-						actualBound.setEndColumn(actualBound.getBeginColumn()+((ExpressionFunc)tb.uBound).getName().length()-1);
-						expr.setUpperBound(actualBound);
-						Expression actualOperand2 = ((ExpressionFunc)tb.uBound).getOperand(0);
-						actualOperand2 = Expression.Parenth(actualOperand2);
-						actualOperand2.setPosition(((ExpressionFunc)tb.uBound).getOperand(0));
-						expr.setOperand2(actualOperand2);
-						return expr;
-					}
-				}
-				if (tb.uBound == null) {
-					if (tb.lBound instanceof ExpressionFunc && ((ExpressionFunc)tb.lBound).getNumOperands() == 1) {
-						Expression actualBound = new ExpressionIdent(((ExpressionFunc)tb.lBound).getName());
-						actualBound.setPosition(tb.lBound);
-						actualBound.setEndColumn(actualBound.getBeginColumn()+((ExpressionFunc)tb.lBound).getName().length()-1);
-						expr.setLowerBound(actualBound);
-						Expression actualOperand2 = ((ExpressionFunc)tb.lBound).getOperand(0);
-						actualOperand2 = Expression.Parenth(actualOperand2);
-						actualOperand2.setPosition(((ExpressionFunc)tb.uBound).getOperand(0));
-						expr.setOperand2(actualOperand2);
-						return expr;
-					}
-				}
-			}
-			throw generateParseException();
-		}
+		return expr;		
 	}
 }
 
 // Time bound for temporal operators
+// (see ExpressionTemporal production for lookahead explanation)
 
 TimeBound TimeBound() :
 {
 	TimeBound tb = new TimeBound();
 }
 {
-	( <LE> tb.uBound = Expression()
-	| <GE> tb.lBound = Expression()
+	( <LE> ( LOOKAHEAD(ExpressionIdent()) tb.uBound = ExpressionIdent() | tb.uBound = Expression() )
+	| <GE> ( LOOKAHEAD(ExpressionIdent()) tb.lBound = ExpressionIdent() | tb.uBound = Expression() )
 	| <LBRACKET> tb.lBound = Expression() <COMMA> tb.uBound = Expression() <RBRACKET> )
 	{ return tb; }
 }
