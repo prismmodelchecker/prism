@@ -1344,7 +1344,7 @@ Expression ExpressionProbContents() :
 // To prevent (very common) cases such as "F<=t (b)", "F<=t (b)&(c)", etc.
 // being mis-parsed ("t(b)" would always be taken over "t"), we catch this case
 // separately. This means that more complex time-bounds, especially those that
-// include an identifier should be parenthesised, e.g. "F<=(t1+t2)".
+// start/end with an identifier should be parenthesised, e.g. "F<=(t1+t2)".
 
 Expression ExpressionTemporal() :
 {
@@ -1386,8 +1386,8 @@ TimeBound TimeBound() :
 	TimeBound tb = new TimeBound();
 }
 {
-	( <LE> ( LOOKAHEAD(ExpressionIdent()) tb.uBound = ExpressionIdent() | tb.uBound = Expression() )
-	| <GE> ( LOOKAHEAD(ExpressionIdent()) tb.lBound = ExpressionIdent() | tb.uBound = Expression() )
+	( <LE> ( LOOKAHEAD(ExpressionIdent() <LPARENTH>) tb.uBound = ExpressionIdent() | tb.uBound = Expression() )
+	| <GE> ( LOOKAHEAD(ExpressionIdent() <LPARENTH>) tb.lBound = ExpressionIdent() | tb.lBound = Expression() )
 	| <LBRACKET> tb.lBound = Expression() <COMMA> tb.uBound = Expression() <RBRACKET> )
 	{ return tb; }
 }
