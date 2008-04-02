@@ -108,8 +108,22 @@ public abstract class ASTElement
 
 	// Get methods
 
+	/**
+	 * Get the type for this element. It should have already been computed
+	 * by calling typeCheck(). If not, it will be computed first but, in
+	 * the case of error, you will get "unknown" type, not the error.
+	 */
 	public int getType()
 	{
+		if (type != 0) return type;
+		try {
+			typeCheck();
+		}
+		catch (PrismLangException e) {
+			// Returns 0 (unknown) in case of error.
+			// If you want to check for errors, use typeCheck().
+			return 0;
+		}
 		return type;
 	}
 
