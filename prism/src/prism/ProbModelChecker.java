@@ -326,7 +326,7 @@ public class ProbModelChecker extends StateModelChecker
 		if (pb != null) {
 			p = pb.evaluateDouble(constantValues, null);
 			if (p < 0 || p > 1)
-				throw new PrismException("Invalid probability bound " + p + " in until formula");
+				throw new PrismException("Invalid probability bound " + p + " in S operator");
 		}
 
 		// check for trivial (i.e. stupid) cases
