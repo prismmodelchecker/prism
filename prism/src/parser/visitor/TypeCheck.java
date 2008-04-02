@@ -136,14 +136,7 @@ public class TypeCheck extends ASTTraverse
 
 	public void visitPost(ExpressionTemporal e) throws PrismLangException
 	{
-		if (e.getOperand1() != null && e.getOperand1().getType() != Expression.BOOLEAN) {
-			throw new PrismLangException("Type error: Argument of " + e.getOperatorSymbol()
-					+ " operator is not Boolean", e.getOperand1());
-		}
-		if (e.getOperand2() != null && e.getOperand2().getType() != Expression.BOOLEAN) {
-			throw new PrismLangException("Type error: Argument of " + e.getOperatorSymbol()
-					+ " operator is not Boolean", e.getOperand2());
-		}
+		int type;
 		if (e.getLowerBound() != null && !Expression.canAssignTypes(Expression.DOUBLE, e.getLowerBound().getType())) {
 			throw new PrismLangException("Type error: Lower bound in " + e.getOperatorSymbol()
 					+ " operator must be an int or double", e.getLowerBound());
@@ -159,11 +152,31 @@ public class TypeCheck extends ASTTraverse
 		case ExpressionTemporal.P_G:
 		case ExpressionTemporal.P_W:
 		case ExpressionTemporal.P_R:
+			if (e.getOperand1() != null) {
+				type = e.getOperand1().getType();
+				if (type != Expression.BOOLEAN && type != Expression.PATH_BOOLEAN)
+					throw new PrismLangException("Type error: Argument of " + e.getOperatorSymbol()
+							+ " operator is not Boolean", e.getOperand1());
+			}
+			if (e.getOperand2() != null) {
+				type = e.getOperand2().getType();
+				if (type != Expression.BOOLEAN && type != Expression.PATH_BOOLEAN)
+					throw new PrismLangException("Type error: Argument of " + e.getOperatorSymbol()
+							+ " operator is not Boolean", e.getOperand2());
+			}
 			e.setType(Expression.PATH_BOOLEAN);
+			break;
+		case ExpressionTemporal.R_F:
+			if (e.getOperand2() != null) {
+				type = e.getOperand2().getType();
+				if (type != Expression.BOOLEAN && type != Expression.PATH_BOOLEAN)
+					throw new PrismLangException("Type error: Argument of " + e.getOperatorSymbol()
+							+ " operator is not Boolean", e.getOperand2());
+			}
+			e.setType(Expression.PATH_DOUBLE);
 			break;
 		case ExpressionTemporal.R_C:
 		case ExpressionTemporal.R_I:
-		case ExpressionTemporal.R_F:
 		case ExpressionTemporal.R_S:
 			e.setType(Expression.PATH_DOUBLE);
 			break;
