@@ -2179,16 +2179,16 @@ public class SimulatorEngine
 			switch (exprTemp.getOperator()) {
 
 			case ExpressionTemporal.P_X:
-				if (exprTemp.getOperand2().getType() != Expression.PATH_BOOLEAN)
+				if (exprTemp.getOperand2().getType() != Expression.BOOLEAN)
 					return -1;
 				exprPtr2 = exprTemp.getOperand2().toSimulator(this);
 				return loadPctlNext(exprPtr2);
 
 			case ExpressionTemporal.P_U:
-				if (exprTemp.getOperand1().getType() != Expression.PATH_BOOLEAN)
+				if (exprTemp.getOperand1().getType() != Expression.BOOLEAN)
 					return -1;
 				exprPtr1 = exprTemp.getOperand1().toSimulator(this);
-				if (exprTemp.getOperand2().getType() != Expression.PATH_BOOLEAN)
+				if (exprTemp.getOperand2().getType() != Expression.BOOLEAN)
 					return -1;
 				exprPtr2 = exprTemp.getOperand2().toSimulator(this);
 				if (exprTemp.hasBounds()) {
