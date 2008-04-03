@@ -145,6 +145,14 @@ JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1ProbReachReward
 
 /*
  * Class:     sparse_PrismSparse
+ * Method:    PS_ProbTransient
+ * Signature: (JJJJIJII)J
+ */
+JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1ProbTransient
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jint, jlong, jint, jint);
+
+/*
+ * Class:     sparse_PrismSparse
  * Method:    PS_NondetBoundedUntil
  * Signature: (JJJIJIJIJJIZ)J
  */

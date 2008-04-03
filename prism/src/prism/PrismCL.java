@@ -116,7 +116,7 @@ public class PrismCL
 	private ResultsCollection results[] = null;
 	
 	// time for transient computation
-	private double transientTime;
+	private String transientTime;
 	
 	// simulation info
 	private double simApprox;
@@ -691,12 +691,30 @@ public class PrismCL
 	
 	private void doTransient() throws PrismException
 	{
+		double d;
+		int i;
+		
 		// compute transient probabilities
-		if (model instanceof StochModel) {
-			prism.doTransient(model, transientTime);
+		if (model instanceof StochModel || model instanceof ProbModel) {
+			try {
+				d = Double.parseDouble(transientTime);
+			}
+			catch (NumberFormatException e) {
+				throw new PrismException("Invalid value \""+transientTime+"\" for transient probability computation");
+			}
+			prism.doTransient(model, d);
+		}
+		else if (model instanceof ProbModel) {
+			try {
+				i = Integer.parseInt(transientTime);
+			}
+			catch (NumberFormatException e) {
+				throw new PrismException("Invalid value \""+transientTime+"\" for transient probability computation");
+			}
+			prism.doTransient(model, i);
 		}
 		else {
-			mainLog.println("\nWarning: Transient probabilities only computed for CTMC models.");
+			mainLog.println("\nWarning: Transient probabilities only computed for DTMCs/CTMCs.");
 		}
 	}
 
@@ -754,8 +772,10 @@ public class PrismCL
 					if (i < args.length-1) {
 						try {
 							dotransient = true;
-							transientTime = Double.parseDouble(args[++i]);
-							if (transientTime < 0) throw new NumberFormatException("");
+							transientTime = args[++i];
+							// Make sure transient time parses as a +ve double
+							d = Double.parseDouble(transientTime);
+							if (d < 0) throw new NumberFormatException("");
 						}
 						catch (NumberFormatException e) {
 							errorAndExit("Invalid value for -"+sw+" switch");

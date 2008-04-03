@@ -272,6 +272,15 @@ public class PrismHybrid
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 
+	// transient (probabilistic/dtmc)
+	private static native long PH_ProbTransient(long trans, long odd, long init, long rv, int nrv, long cv, int ncv, int time);
+	public static DoubleVector ProbTransient(JDDNode trans, ODDNode odd, JDDNode init, JDDVars rows, JDDVars cols, int time) throws PrismException
+	{
+		long ptr = PH_ProbTransient(trans.ptr(), odd.ptr(), init.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
+		if (ptr == 0) throw new PrismException(getErrorMessage());
+		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
+	}
+	
 	//----------------------------------------------------------------------------------------------
 	// nondeterministic/mdp stuff
 	//----------------------------------------------------------------------------------------------

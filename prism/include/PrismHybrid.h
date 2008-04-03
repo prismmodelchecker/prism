@@ -185,6 +185,14 @@ JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1ProbReachReward
 
 /*
  * Class:     hybrid_PrismHybrid
+ * Method:    PH_ProbTransient
+ * Signature: (JJJJIJII)J
+ */
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1ProbTransient
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jint, jlong, jint, jint);
+
+/*
+ * Class:     hybrid_PrismHybrid
  * Method:    PH_NondetBoundedUntil
  * Signature: (JJJIJIJIJJIZ)J
  */

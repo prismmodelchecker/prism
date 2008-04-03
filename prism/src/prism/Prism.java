@@ -1280,12 +1280,20 @@ public class Prism implements PrismSettingsListener
 		StateProbs probs = null;
 		
 		mainLog.println("\nComputing steady-state probabilities...");
-		
-		// create new model checker object
-		mc = new StochModelChecker(this, model, null);
-		// do steady state calculation
 		l = System.currentTimeMillis();
-		probs = ((StochModelChecker)mc).doSteadyState();
+
+		if (model instanceof ProbModel) {
+			mc = new ProbModelChecker(this, model, null);
+			probs = ((ProbModelChecker)mc).doSteadyState();
+		}
+		else if (model instanceof StochModel) {
+			mc = new StochModelChecker(this, model, null);
+			probs = ((StochModelChecker)mc).doSteadyState();
+		}
+		else {
+			throw new PrismException("Steady-state probabilities only computed for DTMCs/CTMCs");
+		}
+		
 		l = System.currentTimeMillis() - l;
 		
 		// print out probabilities
@@ -1304,14 +1312,27 @@ public class Prism implements PrismSettingsListener
 		long l = 0; // timer
 		StateProbs probs = null;
 		
-		mainLog.println("\nComputing transient probabilities (time = " + time + ")...");
+		if (time < 0) throw new PrismException("Cannot compute transient probabilities for negative time value");
 		
 		// create new model checker object
 		mc = new StochModelChecker(this, model, null);
 		
-		// do steady state calculation
 		l = System.currentTimeMillis();
-		probs = ((StochModelChecker)mc).doTransient(time);
+
+		if (model instanceof ProbModel) {
+			mainLog.println("\nComputing transient probabilities (time = " + (int)time + ")...");
+			mc = new ProbModelChecker(this, model, null);
+			probs = ((ProbModelChecker)mc).doTransient((int)time);
+		}
+		else if (model instanceof StochModel) {
+			mainLog.println("\nComputing transient probabilities (time = " + time + ")...");
+			mc = new StochModelChecker(this, model, null);
+			probs = ((StochModelChecker)mc).doTransient(time);
+		}
+		else {
+			throw new PrismException("Transient probabilities only computed for DTMCs/CTMCs");
+		}
+		
 		l = System.currentTimeMillis() - l;
 		
 		// print out probabilities

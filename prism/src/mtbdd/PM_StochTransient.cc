@@ -48,7 +48,7 @@ jlong __pointer rv,	// row vars
 jint num_rvars,
 jlong __pointer cv,	// col vars
 jint num_cvars,
-jdouble time		// time bound
+jint time		// time
 )
 {
 	// cast function parameters

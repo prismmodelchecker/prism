@@ -290,6 +290,15 @@ public class PrismMTBDD
 		return new JDDNode(ptr);
 	}
 
+	// transient (probabilistic/dtmc)
+	private static native long PM_ProbTransient(long trans, long odd, long init, long rv, int nrv, long cv, int ncv, int time);
+	public static JDDNode ProbTransient(JDDNode trans, ODDNode odd, JDDNode init, JDDVars rows, JDDVars cols, int time) throws PrismException
+	{
+		long ptr = PM_ProbTransient(trans.ptr(), odd.ptr(), init.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
+		if (ptr == 0) throw new PrismException(getErrorMessage());
+		return new JDDNode(ptr);
+	}
+
 	//------------------------------------------------------------------------------
 	// nondeterministic/mdp stuff
 	//------------------------------------------------------------------------------

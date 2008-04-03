@@ -193,6 +193,14 @@ JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1ProbReachReward
 
 /*
  * Class:     mtbdd_PrismMTBDD
+ * Method:    PM_ProbTransient
+ * Signature: (JJJJIJII)J
+ */
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1ProbTransient
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jint, jlong, jint, jint);
+
+/*
+ * Class:     mtbdd_PrismMTBDD
  * Method:    PM_NondetBoundedUntil
  * Signature: (JJJJIJIJIJJIZ)J
  */

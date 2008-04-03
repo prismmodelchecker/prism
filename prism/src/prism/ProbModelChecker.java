@@ -1097,6 +1097,47 @@ public class ProbModelChecker extends StateModelChecker
 	}
 
 	// -----------------------------------------------------------------------------------
+	// do transient computation
+	// -----------------------------------------------------------------------------------
+
+	// transient computation (from initial states)
+
+	public StateProbs doTransient(int time) throws PrismException
+	{
+		// mtbdd stuff
+		JDDNode start, init;
+		// other stuff
+		StateProbs probs = null;
+
+		// get initial states of model
+		start = model.getStart();
+
+		// and hence compute initial probability distribution (equiprobable over
+		// all start states)
+		JDD.Ref(start);
+		init = JDD.Apply(JDD.DIVIDE, start, JDD.Constant(JDD.GetNumMinterms(start, allDDRowVars.n())));
+
+		// compute transient probabilities
+		try {
+			// special case: time = 0
+			if (time == 0) {
+				JDD.Ref(init);
+				probs = new StateProbsMTBDD(init, model);
+			} else {
+				probs = computeTransientProbs(trans, init, time);
+			}
+		} catch (PrismException e) {
+			JDD.Deref(init);
+			throw e;
+		}
+
+		// derefs
+		JDD.Deref(init);
+
+		return probs;
+	}
+
+	// -----------------------------------------------------------------------------------
 	// probability computation methods
 	// -----------------------------------------------------------------------------------
 
@@ -1611,6 +1652,38 @@ public class ProbModelChecker extends StateModelChecker
 		// derefs
 		JDD.Deref(trf);
 		JDD.Deref(init);
+
+		return probs;
+	}
+
+	// compute transient probabilities
+
+	protected StateProbs computeTransientProbs(JDDNode tr, JDDNode init, int time) throws PrismException
+	{
+		JDDNode probsMTBDD;
+		DoubleVector probsDV;
+		StateProbs probs = null;
+
+		try {
+			switch (engine) {
+			case Prism.MTBDD:
+				probsMTBDD = PrismMTBDD.ProbTransient(tr, odd, init, allDDRowVars, allDDColVars, time);
+				probs = new StateProbsMTBDD(probsMTBDD, model);
+				break;
+			case Prism.SPARSE:
+				probsDV = PrismSparse.ProbTransient(tr, odd, init, allDDRowVars, allDDColVars, time);
+				probs = new StateProbsDV(probsDV, model);
+				break;
+			case Prism.HYBRID:
+				probsDV = PrismHybrid.ProbTransient(tr, odd, init, allDDRowVars, allDDColVars, time);
+				probs = new StateProbsDV(probsDV, model);
+				break;
+			default:
+				throw new PrismException("Engine does not support this numerical method");
+			}
+		} catch (PrismException e) {
+			throw e;
+		}
 
 		return probs;
 	}
