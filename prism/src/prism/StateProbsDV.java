@@ -40,6 +40,7 @@ public class StateProbsDV implements StateProbs
 	DoubleVector probs;
 	
 	// info from model
+	Model model;
 	JDDVars vars;
 	int numVars;
 	ODDNode odd;
@@ -57,7 +58,7 @@ public class StateProbsDV implements StateProbs
 
 	// CONSTRUCTORS
 	
-	public StateProbsDV(DoubleVector p, Model model)
+	public StateProbsDV(DoubleVector p, Model m)
 	{
 		int i;
 		
@@ -65,6 +66,7 @@ public class StateProbsDV implements StateProbs
 		probs = p;
 		
 		// get info from model
+		model = m;
 		vars = model.getAllDDRowVars();
 		numVars = vars.n();
 		odd = model.getODD();
@@ -83,7 +85,23 @@ public class StateProbsDV implements StateProbs
 		// construct double vector from an mtbdd
 		this(new DoubleVector(dd, model.getAllDDRowVars(), model.getODD()), model);
 	}
-
+	
+	// CONVERSION METHODS
+	
+	// convert to StateProbsDV (nothing to do)
+	public StateProbsDV convertToStateProbsDV()
+	{
+		return this;
+	}
+	
+	// convert to StateProbsMTBDD, destroy (clear) old vector
+	public StateProbsMTBDD convertToStateProbsMTBDD()
+	{
+		StateProbsMTBDD res = new StateProbsMTBDD(probs.convertToMTBDD(vars, odd), model);
+		clear();
+		return res;
+	}
+	
 	// METHODS TO MODIFY VECTOR
 	
 	// round

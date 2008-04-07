@@ -41,6 +41,14 @@ JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1GetElement
 
 /*
  * Class:     dv_DoubleVector
+ * Method:    DV_SetElement
+ * Signature: (JIID)V
+ */
+JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1SetElement
+  (JNIEnv *, jobject, jlong, jint, jint, jdouble);
+
+/*
+ * Class:     dv_DoubleVector
  * Method:    DV_RoundOff
  * Signature: (JII)V
  */
@@ -174,6 +182,14 @@ JNIEXPORT jlong JNICALL Java_dv_DoubleVector_DV_1BDDLessThan
  */
 JNIEXPORT jlong JNICALL Java_dv_DoubleVector_DV_1BDDInterval
   (JNIEnv *, jobject, jlong, jdouble, jdouble, jlong, jint, jlong);
+
+/*
+ * Class:     dv_DoubleVector
+ * Method:    DV_ConvertToMTBDD
+ * Signature: (JJIJ)J
+ */
+JNIEXPORT jlong JNICALL Java_dv_DoubleVector_DV_1ConvertToMTBDD
+  (JNIEnv *, jobject, jlong, jlong, jint, jlong);
 
 #ifdef __cplusplus
 }

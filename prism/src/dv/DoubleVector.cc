@@ -110,6 +110,22 @@ jint i
 
 //------------------------------------------------------------------------------
 
+JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1SetElement
+(
+JNIEnv *env,
+jobject obj,
+jlong __pointer v,
+jint n,
+jint i,
+jdouble d
+)
+{
+	double *vector = jlong_to_double(v);
+	vector[i] = d;
+}
+
+//------------------------------------------------------------------------------
+
 JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1RoundOff
 (
 JNIEnv *env,
@@ -475,6 +491,28 @@ jlong __pointer odd
 			jlong_to_double(vector),
 			DV_INTERVAL,
 			lo, hi,
+			jlong_to_DdNode_array(vars), num_vars,
+			jlong_to_ODDNode(odd)
+		)
+	);
+}
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT jlong __pointer JNICALL Java_dv_DoubleVector_DV_1ConvertToMTBDD
+(
+JNIEnv *env,
+jobject obj,
+jlong __pointer vector,
+jlong __pointer vars,
+jint num_vars,
+jlong __pointer odd
+)
+{
+	return ptr_to_jlong(
+		double_vector_to_mtbdd(
+			ddman,
+			jlong_to_double(vector),
 			jlong_to_DdNode_array(vars), num_vars,
 			jlong_to_ODDNode(odd)
 		)

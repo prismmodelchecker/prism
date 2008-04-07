@@ -39,6 +39,7 @@ public class StateProbsMTBDD implements StateProbs
 	JDDNode probs;
 	
 	// info from model
+	Model model;
 	JDDVars vars;
 	JDDNode reach;
 	int numDDRowVars;
@@ -57,7 +58,7 @@ public class StateProbsMTBDD implements StateProbs
 
 	// CONSTRUCTOR
 	
-	public StateProbsMTBDD(JDDNode p, Model model)
+	public StateProbsMTBDD(JDDNode p, Model m)
 	{
 		int i;
 		
@@ -65,6 +66,7 @@ public class StateProbsMTBDD implements StateProbs
 		probs = p;
 		
 		// get info from model
+		model = m;
 		vars = model.getAllDDRowVars();
 		reach = model.getReach();
 		numDDRowVars = model.getNumDDRowVars();
@@ -80,6 +82,22 @@ public class StateProbsMTBDD implements StateProbs
 		varValues = new int[varList.getNumVars()];
 	}
 
+	// CONVERSION METHODS
+	
+	// convert to StateProbsDV, destroy (clear) old vector
+	public StateProbsDV convertToStateProbsDV()
+	{
+		StateProbsDV res = new StateProbsDV(probs, model);
+		clear();
+		return res;
+	}
+	
+	// convert to StateProbsMTBDD (nothing to do)
+	public StateProbsMTBDD convertToStateProbsMTBDD()
+	{
+		return this;
+	}
+	
 	// METHODS TO MODIFY VECTOR
 	
 	// round

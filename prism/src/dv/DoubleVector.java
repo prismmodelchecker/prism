@@ -110,6 +110,13 @@ public class DoubleVector
 		return DV_GetElement(v, n, i);
 	}
 
+	// set element
+	private native void DV_SetElement(long v, int n, int i, double d);
+	public void setElement(int i, double d)
+	{
+		DV_SetElement(v, n, i, d);
+	}
+
 	// round off
 	private native void DV_RoundOff(long v, int n, int places);
 	public void roundOff(int places)
@@ -236,6 +243,18 @@ public class DoubleVector
 		
 		sol = new JDDNode(
 			DV_BDDInterval(v, lo, hi, vars.array(), vars.n(), odd.ptr())
+		);
+		
+		return sol;
+	}
+	
+	private native long DV_ConvertToMTBDD(long v, long vars, int num_vars, long odd);
+	public JDDNode convertToMTBDD(JDDVars vars, ODDNode odd)
+	{
+		JDDNode sol;
+		
+		sol = new JDDNode(
+			DV_ConvertToMTBDD(v, vars.array(), vars.n(), odd.ptr())
 		);
 		
 		return sol;

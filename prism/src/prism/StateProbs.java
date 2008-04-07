@@ -32,6 +32,8 @@ import jdd.JDDNode;
 
 public interface StateProbs
 {
+	StateProbsDV convertToStateProbsDV();
+	StateProbsMTBDD convertToStateProbsMTBDD();
 	void roundOff(int places);
 	void subtractFromOne();
 	void add(StateProbs sp);
