@@ -695,7 +695,7 @@ public class PrismCL
 		int i;
 		
 		// compute transient probabilities
-		if (model instanceof StochModel || model instanceof ProbModel) {
+		if (model instanceof StochModel) {
 			try {
 				d = Double.parseDouble(transientTime);
 			}
