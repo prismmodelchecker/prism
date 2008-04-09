@@ -252,7 +252,8 @@ public class StateModelChecker implements ModelChecker
 		}
 
 		// Clean up
-		if (ddFilter != null) JDD.Deref(ddFilter);
+		if (ddFilter != null)
+			JDD.Deref(ddFilter);
 		vals.clear();
 
 		// Return result
@@ -310,49 +311,82 @@ public class StateModelChecker implements ModelChecker
 			throw new PrismException("Couldn't check " + expr.getClass());
 		}
 
-		// Filter out non-reachable states from solution (TODO: not for dv?)
-		res.filter(reach);
+		// Filter out non-reachable states from solution
+		// (only necessary for symbolically stored vectors)
+		if (res instanceof StateProbsMTBDD)
+			res.filter(reach);
 
 		return res;
 	}
-
+	
+	// Check expression, convert to symbolic form (if not already), return BDD
+	
 	public JDDNode checkExpressionDD(Expression expr) throws PrismException
 	{
-		return ((StateProbsMTBDD) checkExpression(expr)).getJDDNode();
+		return checkExpression(expr).convertToStateProbsMTBDD().getJDDNode();
 	}
 
 	// -----------------------------------------------------------------------------------
 	// Check method for each operator
 	// -----------------------------------------------------------------------------------
 
-	// Check an 'if-then-else'
+	/*
+	 * These check methods (and similar ones in subclasses of this class) return
+	 * a StateProbs object which is a vector, over all states, of values. This can
+	 * be represented either symbolically (as an (MT)BDD, encapsulated in a StateProbsMTBDD
+	 * object) or explicitly (as an array of doubles, encapsulated in a StateProbsDV
+	 * object, containing a DoubleVector object).
+	 * 
+	 * It is always possible to convert between these two forms but this will not always be
+	 * efficient. In particular, we want to avoid creating: (a) explicit vectors for very large
+	 * models where the vector can only be feasibly stored as an MTBDD; (b) and symbolic
+	 * vectors for irregular vectors which ar small enough to be stored explicitly but would
+	 * blow up as an MTBDD.
+	 * 
+	 * Various schemes (and user preferences/configurations) are possible. Currently:
+	 * 
+	 * - simple, atomic expressions (constants, variable references, etc.) are
+	 *   created symbolically (since this is easy and usually efficient)
+	 * - for arithmetic operations, the result is stored explicitly if one or
+	 *   more of its operands is explicit and symbolic otherwise
+	 * - operators with Boolean results are always stored symbolically
+	 * 
+	 * So, currently the only time that explicit vectors are created anew is (in subclasses
+	 * of this model checker) for e.g. the result of P=?, R=?, S=?, etc. operators. And for
+	 * these operators, the result will be symbolic if the MTBDD engine is being used (or
+	 * in some cases where the answer is trivial, e.g. 1 for all states). For P>p etc.
+	 * properties, the vector will be stored symbolically since values are Booleans. 
+	 */
 
+	// Check an 'if-then-else'
 	private StateProbs checkExpressionITE(ExpressionITE expr) throws PrismException
 	{
 		StateProbs res1 = null, res2 = null, res3 = null;
 		JDDNode dd, dd1, dd2, dd3;
 		DoubleVector dv2, dv3;
-		
+
 		// Check operands recursively
 		try {
 			res1 = checkExpression(expr.getOperand1());
 			res2 = checkExpression(expr.getOperand2());
 			res3 = checkExpression(expr.getOperand3());
-		}
-		catch (PrismException e) {
-			if (res1 != null) res1.clear();
-			if (res2 != null) res2.clear();
-			if (res3 != null) res3.clear();
+		} catch (PrismException e) {
+			if (res1 != null)
+				res1.clear();
+			if (res2 != null)
+				res2.clear();
+			if (res3 != null)
+				res3.clear();
 			throw e;
 		}
-		
+
 		// Operand 1 is boolean so should be symbolic
 		dd1 = res1.convertToStateProbsMTBDD().getJDDNode();
-		
+
 		// If both operands 2/3 are symbolic, result will be symbolic
 		if (res2 instanceof StateProbsMTBDD && res3 instanceof StateProbsMTBDD) {
-			dd2 = ((StateProbsMTBDD)res2).getJDDNode();
-			dd3 = ((StateProbsMTBDD)res3).getJDDNode();
+			dd2 = ((StateProbsMTBDD) res2).getJDDNode();
+			dd3 = ((StateProbsMTBDD) res3).getJDDNode();
 			dd = JDD.ITE(dd1, dd2, dd3);
 			return new StateProbsMTBDD(dd, model);
 		}
@@ -389,17 +423,18 @@ public class StateModelChecker implements ModelChecker
 		try {
 			res1 = checkExpression(expr.getOperand1());
 			res2 = checkExpression(expr.getOperand2());
-		}
-		catch (PrismException e) {
-			if (res1 != null) res1.clear();
-			if (res2 != null) res2.clear();
+		} catch (PrismException e) {
+			if (res1 != null)
+				res1.clear();
+			if (res2 != null)
+				res2.clear();
 			throw e;
 		}
 
 		// If both operands are symbolic, result will be symbolic
 		if (res1 instanceof StateProbsMTBDD && res2 instanceof StateProbsMTBDD) {
-			dd1 = ((StateProbsMTBDD)res1).getJDDNode();
-			dd2 = ((StateProbsMTBDD)res2).getJDDNode();
+			dd1 = ((StateProbsMTBDD) res1).getJDDNode();
+			dd2 = ((StateProbsMTBDD) res2).getJDDNode();
 			// Apply operation
 			switch (op) {
 			case ExpressionBinaryOp.IMPLIES:
@@ -443,16 +478,20 @@ public class StateModelChecker implements ModelChecker
 				//for (i = 0; i < n; i++) dv1.setElement(i, ((dv1.getElement(i)>0) || (dv2.getElement(i)>0)) ? 1.0 : 0.0);
 				//for (i = 0; i < n; i++) dv1.setElement(i, ((dv1.getElement(i)>0) && (dv2.getElement(i)>0)) ? 1.0 : 0.0);
 			case ExpressionBinaryOp.PLUS:
-				for (i = 0; i < n; i++) dv1.setElement(i, dv1.getElement(i) + dv2.getElement(i));
+				for (i = 0; i < n; i++)
+					dv1.setElement(i, dv1.getElement(i) + dv2.getElement(i));
 				break;
 			case ExpressionBinaryOp.MINUS:
-				for (i = 0; i < n; i++) dv1.setElement(i, dv1.getElement(i) - dv2.getElement(i));
+				for (i = 0; i < n; i++)
+					dv1.setElement(i, dv1.getElement(i) - dv2.getElement(i));
 				break;
 			case ExpressionBinaryOp.TIMES:
-				for (i = 0; i < n; i++) dv1.setElement(i, dv1.getElement(i) * dv2.getElement(i));
+				for (i = 0; i < n; i++)
+					dv1.setElement(i, dv1.getElement(i) * dv2.getElement(i));
 				break;
 			case ExpressionBinaryOp.DIVIDE:
-				for (i = 0; i < n; i++) dv1.setElement(i, dv1.getElement(i) / dv2.getElement(i));
+				for (i = 0; i < n; i++)
+					dv1.setElement(i, dv1.getElement(i) / dv2.getElement(i));
 				break;
 			default:
 				throw new PrismException("Unknown binary operator");
@@ -469,7 +508,7 @@ public class StateModelChecker implements ModelChecker
 		StateProbs res1 = null, res2 = null;
 		JDDNode dd, dd1, dd2;
 		String s;
-		
+
 		// Check for some easy (and common) special cases before resorting to
 		// the general case
 
@@ -581,10 +620,11 @@ public class StateModelChecker implements ModelChecker
 		try {
 			res1 = checkExpression(expr1);
 			res2 = checkExpression(expr2);
-		}
-		catch (PrismException e) {
-			if (res1 != null) res1.clear();
-			if (res2 != null) res2.clear();
+		} catch (PrismException e) {
+			if (res1 != null)
+				res1.clear();
+			if (res2 != null)
+				res2.clear();
 			throw e;
 		}
 		dd1 = res1.convertToStateProbsMTBDD().getJDDNode();
@@ -626,18 +666,19 @@ public class StateModelChecker implements ModelChecker
 		// Check operand recursively
 		try {
 			res1 = checkExpression(expr.getOperand());
-		}
-		catch (PrismException e) {
-			if (res1 != null) res1.clear();
+		} catch (PrismException e) {
+			if (res1 != null)
+				res1.clear();
 			throw e;
 		}
-		
+
 		// Parentheses are easy - nothing to do:
-		if (op == ExpressionUnaryOp.PARENTH) return res1;
-		
+		if (op == ExpressionUnaryOp.PARENTH)
+			return res1;
+
 		// If operand is symbolic, result will be symbolic
 		if (res1 instanceof StateProbsMTBDD) {
-			dd1 = ((StateProbsMTBDD)res1).getJDDNode();
+			dd1 = ((StateProbsMTBDD) res1).getJDDNode();
 			// Apply operation
 			switch (op) {
 			case ExpressionUnaryOp.NOT:
@@ -661,7 +702,8 @@ public class StateModelChecker implements ModelChecker
 				throw new PrismException("Internal error: Explicit evaluation of Boolean");
 				//for (i = 0; i < n; i++) dv1.setElement(i, (dv1.getElement(i)>0) ? 0.0 : 1.0);
 			case ExpressionUnaryOp.MINUS:
-				for (i = 0; i < n; i++) dv1.setElement(i, -dv1.getElement(i));
+				for (i = 0; i < n; i++)
+					dv1.setElement(i, -dv1.getElement(i));
 				break;
 			default:
 				throw new PrismException("Unknown unary operator");
@@ -676,9 +718,9 @@ public class StateModelChecker implements ModelChecker
 	{
 		switch (expr.getNameCode()) {
 		case ExpressionFunc.MIN:
-			return checkExpressionFuncMin(expr);
+			return checkExpressionFuncMinMax(expr, true);
 		case ExpressionFunc.MAX:
-			return checkExpressionFuncMax(expr);
+			return checkExpressionFuncMinMax(expr, false);
 		case ExpressionFunc.FLOOR:
 			return checkExpressionFuncFloor(expr);
 		case ExpressionFunc.CEIL:
@@ -694,64 +736,119 @@ public class StateModelChecker implements ModelChecker
 		}
 	}
 
-	private StateProbs checkExpressionFuncMin(ExpressionFunc expr) throws PrismException
+	private StateProbs checkExpressionFuncMinMax(ExpressionFunc expr, boolean min) throws PrismException
 	{
-		int i, n;
-		JDDNode dd, tmp;
-
-		dd = checkExpressionDD(expr.getOperand(0));
+		StateProbs res1 = null, res2 = null;
+		JDDNode dd1, dd2;
+		DoubleVector dv1, dv2;
+		int i, i2, n, n2;
+		boolean symbolic;
+		
+		// Check first operand recursively
+		try {
+			res1 = checkExpression(expr.getOperand(0));
+		} catch (PrismException e) {
+			if (res1 != null)
+				res1.clear();
+			throw e;
+		}
+		// Go through remaining operands
+		// Switch to explicit as soon as an operand is explicit
 		n = expr.getNumOperands();
+		symbolic = (res1 instanceof StateProbsMTBDD);
 		for (i = 1; i < n; i++) {
 			try {
-				tmp = checkExpressionDD(expr.getOperand(i));
-				dd = JDD.Apply(JDD.MIN, dd, tmp);
+				res2 = checkExpression(expr.getOperand(i));
 			} catch (PrismException e) {
-				JDD.Deref(dd);
+				if (res2 != null)
+					res2.clear();
 				throw e;
+			}
+			// Explicit
+			if (!symbolic || !(res2 instanceof StateProbsMTBDD)) {
+				symbolic = false;
+				dv1 = res1.convertToStateProbsDV().getDoubleVector();
+				dv2 = res2.convertToStateProbsDV().getDoubleVector();
+				n2 = dv1.getSize();
+				for (i2 = 0; i2 < n2; i2++) {
+					if (min) dv1.setElement(i2, Math.min(dv1.getElement(i2), dv2.getElement(i2)));
+					else dv1.setElement(i2, Math.max(dv1.getElement(i2), dv2.getElement(i2)));
+				}
+				dv2.clear();
+				res1 = new StateProbsDV(dv1, model);
+			}
+			// Symbolic
+			else {
+				dd1 = ((StateProbsMTBDD) res1).getJDDNode();
+				dd2 = ((StateProbsMTBDD) res2).getJDDNode();
+				dd1 = JDD.Apply(min ? JDD.MIN : JDD.MAX, dd1, dd2);
+				res1 = new StateProbsMTBDD(dd1, model);
 			}
 		}
 
-		return new StateProbsMTBDD(dd, model);
-	}
-
-	private StateProbs checkExpressionFuncMax(ExpressionFunc expr) throws PrismException
-	{
-		int i, n;
-		JDDNode dd, tmp;
-
-		dd = checkExpressionDD(expr.getOperand(0));
-		n = expr.getNumOperands();
-		for (i = 1; i < n; i++) {
-			try {
-				tmp = checkExpressionDD(expr.getOperand(i));
-				dd = JDD.Apply(JDD.MAX, dd, tmp);
-			} catch (PrismException e) {
-				JDD.Deref(dd);
-				throw e;
-			}
-		}
-
-		return new StateProbsMTBDD(dd, model);
+		return res1;
 	}
 
 	private StateProbs checkExpressionFuncFloor(ExpressionFunc expr) throws PrismException
 	{
-		JDDNode dd;
+		StateProbs res1 = null;
+		JDDNode dd1;
+		DoubleVector dv1;
+		int i, n;
 
-		dd = checkExpressionDD(expr.getOperand(0));
-		dd = JDD.MonadicApply(JDD.FLOOR, dd);
-
-		return new StateProbsMTBDD(dd, model);
+		// Check operand recursively
+		try {
+			res1 = checkExpression(expr.getOperand(0));
+		} catch (PrismException e) {
+			if (res1 != null)
+				res1.clear();
+			throw e;
+		}
+		// Symbolic
+		if (res1 instanceof StateProbsMTBDD) {
+			dd1 = ((StateProbsMTBDD) res1).getJDDNode();
+			dd1 = JDD.MonadicApply(JDD.FLOOR, dd1);
+			return new StateProbsMTBDD(dd1, model);
+		}
+		// Explicit
+		else {
+			dv1 = res1.convertToStateProbsDV().getDoubleVector();
+			n = dv1.getSize();
+			for (i = 0; i < n; i++)
+				dv1.setElement(i, Math.floor(dv1.getElement(i)));
+			return new StateProbsDV(dv1, model);
+		}
 	}
 
 	private StateProbs checkExpressionFuncCeil(ExpressionFunc expr) throws PrismException
 	{
-		JDDNode dd;
+		StateProbs res1 = null;
+		JDDNode dd1;
+		DoubleVector dv1;
+		int i, n;
 
-		dd = checkExpressionDD(expr.getOperand(0));
-		dd = JDD.MonadicApply(JDD.CEIL, dd);
-
-		return new StateProbsMTBDD(dd, model);
+		// Check operand recursively
+		try {
+			res1 = checkExpression(expr.getOperand(0));
+		} catch (PrismException e) {
+			if (res1 != null)
+				res1.clear();
+			throw e;
+		}
+		// Symbolic
+		if (res1 instanceof StateProbsMTBDD) {
+			dd1 = ((StateProbsMTBDD) res1).getJDDNode();
+			dd1 = JDD.MonadicApply(JDD.CEIL, dd1);
+			return new StateProbsMTBDD(dd1, model);
+		}
+		// Explicit
+		else {
+			dv1 = res1.convertToStateProbsDV().getDoubleVector();
+			n = dv1.getSize();
+			for (i = 0; i < n; i++)
+				dv1.setElement(i, Math.ceil(dv1.getElement(i)));
+			return new StateProbsDV(dv1, model);
+		}
 	}
 
 	private StateProbs checkExpressionFuncPow(ExpressionFunc expr) throws PrismException

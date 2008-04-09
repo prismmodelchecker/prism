@@ -37,14 +37,21 @@ import parser.ast.*;
  * Model checker for CTMCs.
  * 
  * Much of StochModelChecker's functionality is inherited from the parent
- * class ProbModelChecker (for DTMCs). Main differences are: 
- *  - bounded until: time bounds are doubles and computation different
- *  - next/unbounded until: prob computation uses embedded Markov chain
- *  - cumulative/instantaneous reward: times are doubles, computation different
- *  - reach rewards: convert rews too (does that just work?)
- *  - doTransient
- *  
- *  TODO: finish this doc
+ * class ProbModelChecker (for DTMCs). Main differences are:
+ * 
+ *  - Time-bounded operators have bounds that are doubles so the processing
+ *    and computation for these is different. Methods:
+ *    + checkProbBoundedUntil/checkRewardCumul/checkRewardInst
+ *    + computeBoundedUntilProbs/computeCumulRewards
+ *    
+ *  - Likewise, transient probabilities are different. Methods:
+ *    + doTransient/computeTransientProbs
+ *    
+ *  - In various cases, before we can reuse the numerical computation
+ *    code from ProbModelChecker, we have to wrap the methods with code
+ *    that first computes the embedded DTMC for the CTMC. This includes:
+ *    + computeNextProbs/computeUntilProbs/computeReachRewards
+ *      (for computeReachRewards we also modify the rewards)
  */
 public class StochModelChecker extends ProbModelChecker
 {
@@ -518,7 +525,7 @@ public class StochModelChecker extends ProbModelChecker
 		JDD.Ref(sr);
 		JDD.Ref(diags);
 		srNew = JDD.Apply(JDD.DIVIDE, sr, diags);
-		
+
 		// And then use superclass (ProbModelChecker)
 		// to compute probabilities
 		rewards = super.computeReachRewards(emb, tr01, srNew, trr, b);

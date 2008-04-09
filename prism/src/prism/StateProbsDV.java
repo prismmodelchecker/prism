@@ -83,6 +83,8 @@ public class StateProbsDV implements StateProbs
 	public StateProbsDV(JDDNode dd, Model model)
 	{
 		// construct double vector from an mtbdd
+		// (note: dd must only be non-zero for reachable states)
+		// (otherwise bad things happen)
 		this(new DoubleVector(dd, model.getAllDDRowVars(), model.getODD()), model);
 	}
 	

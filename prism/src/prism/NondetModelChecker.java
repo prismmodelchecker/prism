@@ -113,8 +113,9 @@ public class NondetModelChecker extends StateModelChecker
 			res = super.checkExpression(expr);
 		}
 
-		// Filter out non-reachable states from solution (TODO: not for dv?)
-		res.filter(reach);
+		// Filter out non-reachable states from solution
+		// (only necessary for symbolically stored vectors)
+		if (res instanceof StateProbsMTBDD) res.filter(reach);
 
 		return res;
 	}
