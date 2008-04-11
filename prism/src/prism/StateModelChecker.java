@@ -778,6 +778,7 @@ public class StateModelChecker implements ModelChecker
 		JDDNode dd = null, dd1, dd2;
 		DoubleVector dv1, dv2;
 		int i, n, op = expr.getNameCode();
+		double d = 0.0;
 
 		// Check operands recursively
 		try {
@@ -818,8 +819,11 @@ public class StateModelChecker implements ModelChecker
 					dv1.setElement(i, Math.pow(dv1.getElement(i), dv2.getElement(i)));
 				break;
 			case ExpressionFunc.MOD:
-				for (i = 0; i < n; i++)
-					dv1.setElement(i, (int)dv1.getElement(i) % (int)dv2.getElement(i));
+				for (i = 0; i < n; i++) {
+					d = (int)dv2.getElement(i);
+					d = (d == 0) ? Double.NaN : (int)dv1.getElement(i) % (int)d;
+					dv1.setElement(i, d);
+				}
 				break;
 			case ExpressionFunc.LOG:
 				for (i = 0; i < n; i++)
