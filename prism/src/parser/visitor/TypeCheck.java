@@ -213,11 +213,11 @@ public class TypeCheck extends ASTTraverse
 		case ExpressionBinaryOp.IMPLIES:
 		case ExpressionBinaryOp.OR:
 		case ExpressionBinaryOp.AND:
-			if (t1 != Expression.BOOLEAN) {
+			if (t1 != Expression.BOOLEAN && t1 != Expression.PATH_BOOLEAN) {
 				throw new PrismLangException("Type error: " + e.getOperatorSymbol()
 						+ " applied to non-Boolean expression", e.getOperand1());
 			}
-			if (t2 != Expression.BOOLEAN) {
+			if (t2 != Expression.BOOLEAN && t2 != Expression.PATH_BOOLEAN) {
 				throw new PrismLangException("Type error: " + e.getOperatorSymbol()
 						+ " applied to non-Boolean expression", e.getOperand2());
 			}
@@ -225,6 +225,14 @@ public class TypeCheck extends ASTTraverse
 			break;
 		case ExpressionBinaryOp.EQ:
 		case ExpressionBinaryOp.NE:
+			if (!(t1 == Expression.BOOLEAN || t1 == Expression.INT || t1 == Expression.DOUBLE)) {
+				throw new PrismLangException("Type error: " + e.getOperatorSymbol()
+						+ " can only compare Boolean, ints or doubles", e.getOperand1());
+			}
+			if (!(t2 == Expression.BOOLEAN || t2 == Expression.INT || t2 == Expression.DOUBLE)) {
+				throw new PrismLangException("Type error: " + e.getOperatorSymbol()
+						+ " can only compare Boolean, ints or doubles", e.getOperand2());
+			}
 			if ((t1 == Expression.BOOLEAN && t2 != Expression.BOOLEAN)
 					|| (t2 == Expression.BOOLEAN && t1 != Expression.BOOLEAN)) {
 				throw new PrismLangException("Type error: Can't compare Booleans with ints/doubles", e);
@@ -235,33 +243,37 @@ public class TypeCheck extends ASTTraverse
 		case ExpressionBinaryOp.GE:
 		case ExpressionBinaryOp.LT:
 		case ExpressionBinaryOp.LE:
-			if (!((t1 == Expression.INT || t1 == Expression.DOUBLE) && (t2 == Expression.INT || t2 == Expression.DOUBLE))) {
+			if (!(t1 == Expression.INT || t1 == Expression.DOUBLE)) {
 				throw new PrismLangException("Type error: " + e.getOperatorSymbol()
-						+ " can only compare ints or doubles", e);
+						+ " can only compare ints or doubles", e.getOperand1());
+			}
+			if (!(t2 == Expression.INT || t2 == Expression.DOUBLE)) {
+				throw new PrismLangException("Type error: " + e.getOperatorSymbol()
+						+ " can only compare ints or doubles", e.getOperand2());
 			}
 			e.setType(Expression.BOOLEAN);
 			break;
 		case ExpressionBinaryOp.PLUS:
 		case ExpressionBinaryOp.MINUS:
 		case ExpressionBinaryOp.TIMES:
-			if (t1 == Expression.BOOLEAN) {
-				throw new PrismLangException(
-						"Type error: " + e.getOperatorSymbol() + " cannot be applied to Boolean", e.getOperand1());
+			if (!(t1 == Expression.INT || t1 == Expression.DOUBLE)) {
+				throw new PrismLangException("Type error: " + e.getOperatorSymbol()
+						+ " can only be applied to ints or doubles", e.getOperand1());
 			}
-			if (t2 == Expression.BOOLEAN) {
-				throw new PrismLangException(
-						"Type error: " + e.getOperatorSymbol() + " cannot be applied to Boolean", e.getOperand2());
+			if (!(t2 == Expression.INT || t2 == Expression.DOUBLE)) {
+				throw new PrismLangException("Type error: " + e.getOperatorSymbol()
+						+ " can only be applied to ints or doubles", e.getOperand2());
 			}
 			e.setType(t1 == Expression.DOUBLE || t2 == Expression.DOUBLE ? Expression.DOUBLE : Expression.INT);
 			break;
 		case ExpressionBinaryOp.DIVIDE:
-			if (t1 == Expression.BOOLEAN) {
-				throw new PrismLangException(
-						"Type error: " + e.getOperatorSymbol() + " cannot be applied to Boolean", e.getOperand1());
+			if (!(t1 == Expression.INT || t1 == Expression.DOUBLE)) {
+				throw new PrismLangException("Type error: " + e.getOperatorSymbol()
+						+ " can only be applied to ints or doubles", e.getOperand1());
 			}
-			if (t2 == Expression.BOOLEAN) {
-				throw new PrismLangException(
-						"Type error: " + e.getOperatorSymbol() + " cannot be applied to Boolean", e.getOperand2());
+			if (!(t2 == Expression.INT || t2 == Expression.DOUBLE)) {
+				throw new PrismLangException("Type error: " + e.getOperatorSymbol()
+						+ " can only be applied to ints or doubles", e.getOperand2());
 			}
 			e.setType(Expression.DOUBLE);
 			break;
@@ -274,7 +286,7 @@ public class TypeCheck extends ASTTraverse
 
 		switch (e.getOperator()) {
 		case ExpressionUnaryOp.NOT:
-			if (t != Expression.BOOLEAN) {
+			if (t != Expression.BOOLEAN && t != Expression.PATH_BOOLEAN) {
 				throw new PrismLangException("Type error: " + e.getOperatorSymbol()
 						+ " applied to non-Boolean expression", e.getOperand());
 			}
@@ -282,8 +294,8 @@ public class TypeCheck extends ASTTraverse
 			break;
 		case ExpressionUnaryOp.MINUS:
 			if (!(t == Expression.INT || t == Expression.DOUBLE)) {
-				throw new PrismLangException(
-						"Type error: " + e.getOperatorSymbol() + " cannot be applied to Boolean", e.getOperand());
+				throw new PrismLangException("Type error: " + e.getOperatorSymbol()
+						+ " can only be applied to ints or doubles", e.getOperand());
 			}
 			e.setType(t);
 			break;

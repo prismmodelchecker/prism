@@ -107,6 +107,42 @@ public abstract class Expression extends ASTElement
 		accept(visitor);
 	}
 	
+	/**
+	 * Determine whether expression is a valid "simple" path formula , i.e. a formula
+	 * that could occur in the P operator of a PCTL/CSL formula (not LTL, PCTL*).
+	 * This is defined as a single instance of a temporal operator (X, U, F, etc.),
+	 * possibly negated. Strictly speaking, negations are not allowed in PCTL/CSL
+	 * but they can always be converted to a dual formula which is.   
+	 */
+	public boolean isSimplePathFormula() throws PrismLangException
+	{
+		// One (or more) top-level negations is allowed.
+		// Top-level parentheses also OK.
+		if (this instanceof ExpressionUnaryOp) {
+			ExpressionUnaryOp expr = (ExpressionUnaryOp) this;
+			int op = expr.getOperator();
+			if (op == ExpressionUnaryOp.NOT || op == ExpressionUnaryOp.PARENTH) {
+				return expr.getOperand().isSimplePathFormula();
+			} else {
+				return false;
+			}
+		}
+		// Otherwise, must be a temporal operator.
+		else if (this instanceof ExpressionTemporal) {
+			ExpressionTemporal expr = (ExpressionTemporal) this;
+			// And children, if present, must be state (not path) formulas
+			if (expr.getOperand1() != null && expr.getOperand1().getType() != Expression.BOOLEAN) {
+				return false;
+			}
+			if (expr.getOperand2() != null && expr.getOperand2().getType() != Expression.BOOLEAN) {
+				return false;
+			}
+			return true;
+		}
+		// Default: false.
+		return false;
+	}
+	
 	// evaluate to an int
 	// any typing issues cause an exception
 	// [does nothing to the expression itself]

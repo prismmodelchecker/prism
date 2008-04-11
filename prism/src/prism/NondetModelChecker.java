@@ -115,7 +115,8 @@ public class NondetModelChecker extends StateModelChecker
 
 		// Filter out non-reachable states from solution
 		// (only necessary for symbolically stored vectors)
-		if (res instanceof StateProbsMTBDD) res.filter(reach);
+		if (res instanceof StateProbsMTBDD)
+			res.filter(reach);
 
 		return res;
 	}
@@ -303,18 +304,34 @@ public class NondetModelChecker extends StateModelChecker
 
 	// Contents of a P operator
 
-	protected StateProbs checkProbPathExpression(Expression expr, boolean qual, boolean min)
+	protected StateProbs checkProbPathExpression(Expression expr, boolean qual, boolean min) throws PrismException
+	{
+		// Test whether this is a simple path formula (i.e. PCTL)
+		// and then pass control to appropriate method. 
+		if (expr.isSimplePathFormula()) {
+			return checkProbPathExpressionSimple(expr, qual, min);
+		} else {
+			throw new PrismException("LTL-style path formulas are not supported");
+		}
+	}
+
+	protected StateProbs checkProbPathExpressionSimple(Expression expr, boolean qual, boolean min)
 			throws PrismException
 	{
 		StateProbs probs = null;
 
-		// Logical operators
+		// Negation/parentheses
 		if (expr instanceof ExpressionUnaryOp) {
 			ExpressionUnaryOp exprUnary = (ExpressionUnaryOp) expr;
+			// Parentheses
+			if (exprUnary.getOperator() == ExpressionUnaryOp.PARENTH) {
+				// Recurse
+				probs = checkProbPathExpressionSimple(exprUnary.getOperand(), qual, min);
+			}
 			// Negation
-			if (exprUnary.getOperator() == ExpressionUnaryOp.NOT) {
+			else if (exprUnary.getOperator() == ExpressionUnaryOp.NOT) {
 				// Flip min/max, then subtract from 1 
-				probs = checkProbPathExpression(exprUnary.getOperand(), qual, !min);
+				probs = checkProbPathExpressionSimple(exprUnary.getOperand(), qual, !min);
 				probs.subtractFromOne();
 			}
 		}
@@ -335,7 +352,7 @@ public class NondetModelChecker extends StateModelChecker
 			}
 			// Anything else - convert to until and recurse
 			else {
-				probs = checkProbPathExpression(exprTemp.convertToUntilForm(), qual, min);
+				probs = checkProbPathExpressionSimple(exprTemp.convertToUntilForm(), qual, min);
 			}
 		}
 

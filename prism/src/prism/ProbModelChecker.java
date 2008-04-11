@@ -125,7 +125,8 @@ public class ProbModelChecker extends StateModelChecker
 
 		// Filter out non-reachable states from solution
 		// (only necessary for symbolically stored vectors)
-		if (res instanceof StateProbsMTBDD) res.filter(reach);
+		if (res instanceof StateProbsMTBDD)
+			res.filter(reach);
 
 		return res;
 	}
@@ -170,7 +171,7 @@ public class ProbModelChecker extends StateModelChecker
 
 		// Print a warning if Pmin/Pmax used
 		if (relOp.equals("min=") || relOp.equals("max=")) {
-			mainLog.print("\nWarning: \"Pmin=?\" and \"Pmax=?\" operators are identical to \"P=?\" for DTMCs\n");
+			mainLog.print("\nWarning: \"Pmin=?\" and \"Pmax=?\" operators are identical to \"P=?\" for DTMCs/CTMCs\n");
 		}
 
 		// Compute probabilities
@@ -257,7 +258,7 @@ public class ProbModelChecker extends StateModelChecker
 
 		// print a warning if Rmin/Rmax used
 		if (relOp.equals("min=") || relOp.equals("max=")) {
-			mainLog.print("\nWarning: \"Rmin=?\" and \"Rmax=?\" operators are identical to \"R=?\" for DTMCs\n");
+			mainLog.print("\nWarning: \"Rmin=?\" and \"Rmax=?\" operators are identical to \"R=?\" for DTMCs/CTMCs\n");
 		}
 
 		// compute rewards
@@ -507,15 +508,31 @@ public class ProbModelChecker extends StateModelChecker
 
 	protected StateProbs checkProbPathExpression(Expression expr, boolean qual) throws PrismException
 	{
+		// Test whether this is a simple path formula (i.e. PCTL)
+		// and then pass control to appropriate method. 
+		if (expr.isSimplePathFormula()) {
+			return checkProbPathExpressionSimple(expr, qual);
+		} else {
+			throw new PrismException("LTL-style path formulas are not supported");
+		}
+	}
+
+	protected StateProbs checkProbPathExpressionSimple(Expression expr, boolean qual) throws PrismException
+	{
 		StateProbs probs = null;
 
-		// Logial operators
+		// Negation/parentheses
 		if (expr instanceof ExpressionUnaryOp) {
 			ExpressionUnaryOp exprUnary = (ExpressionUnaryOp) expr;
+			// Parentheses
+			if (exprUnary.getOperator() == ExpressionUnaryOp.PARENTH) {
+				// Recurse
+				probs = checkProbPathExpressionSimple(exprUnary.getOperand(), qual);
+			}
 			// Negation
-			if (exprUnary.getOperator() == ExpressionUnaryOp.NOT) {
+			else if (exprUnary.getOperator() == ExpressionUnaryOp.NOT) {
 				// Compute, then subtract from 1 
-				probs = checkProbPathExpression(exprUnary.getOperand(), qual);
+				probs = checkProbPathExpressionSimple(exprUnary.getOperand(), qual);
 				probs.subtractFromOne();
 			}
 		}
@@ -536,7 +553,7 @@ public class ProbModelChecker extends StateModelChecker
 			}
 			// Anything else - convert to until and recurse
 			else {
-				probs = checkProbPathExpression(exprTemp.convertToUntilForm(), qual);
+				probs = checkProbPathExpressionSimple(exprTemp.convertToUntilForm(), qual);
 			}
 		}
 
@@ -1580,7 +1597,7 @@ public class ProbModelChecker extends StateModelChecker
 
 	// compute steady-state probabilities
 
-	// tr = the rate matrix for the whole ctmc
+	// tr = the rate matrix for the whole Markov chain
 	// states = the subset of reachable states (e.g. bscc) for which
 	// steady-state is to be done
 
