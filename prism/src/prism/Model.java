@@ -35,7 +35,12 @@ import parser.*;
 
 public interface Model
 {
-	String getType();
+	public static final int DTMC = 1; 
+	public static final int CTMC = 2; 
+	public static final int MDP = 3; 
+	
+	int getType();
+	String getTypeString();
 
 	int getNumModules();
 	String[] getModuleNames();
