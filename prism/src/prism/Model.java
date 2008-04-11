@@ -98,6 +98,11 @@ public interface Model
 	
 	ODDNode getODD();
 
+	void doReachability();
+	void doReachability(boolean extraReachInfo);
+	void skipReachability();
+	void filterReachableStates();
+	void findDeadlocks();
 	void fixDeadlocks();
 	void printTrans();
 	void printTrans01();

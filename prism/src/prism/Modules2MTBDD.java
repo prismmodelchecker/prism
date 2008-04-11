@@ -31,7 +31,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 import jdd.*;
-import mtbdd.*;
 import parser.*;
 import parser.ast.*;
 
@@ -78,10 +77,7 @@ public class Modules2MTBDD
 	// dds/dd vars - whole system
 	private JDDNode trans;				// transition matrix dd
 	private JDDNode range;				// dd giving range for system
-	private JDDNode trans01;			// 0-1 transition matrix dd
 	private JDDNode start;				// dd for start state
-	private JDDNode reach;				// dd of reachable states
-	private JDDNode deadlocks;			// dd of deadlock states
 	private JDDNode stateRewards[];		// dds for state rewards
 	private JDDNode transRewards[];		// dds for transition rewards
 	private JDDVars allDDRowVars;		// all dd vars (rows)
@@ -225,16 +221,8 @@ public class Modules2MTBDD
 			mainLog.print(JDD.GetNumTerminals(trans) + " terminal)\n");
 		}
 		
-		// do reachability (or not!)
-		if (prism.getDoReach()) {
-			doReachability();
-		}
-		else {
-			skipReachability();
-		}
-		
-		// find any deadlocks
-		findDeadlocks();
+		// build bdd for initial state(s)
+		buildInitialStates();
 		
 		// store reward struct names
 		rewardStructNames = new String[numRewardStructs];
@@ -244,21 +232,41 @@ public class Modules2MTBDD
 		
 		// create new Model object to be returned
 		if (type == ModulesFile.PROBABILISTIC) {
-			model = new ProbModel(trans, trans01, start, reach, deadlocks, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, ddVarNames,
+			model = new ProbModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, ddVarNames,
 						   numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
 						   numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		}
 		else if (type == ModulesFile.NONDETERMINISTIC) {
-			model = new NondetModel(trans, trans01, start, reach, deadlocks, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars,
+			model = new NondetModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars,
 						     allDDSynchVars, allDDSchedVars, allDDChoiceVars, allDDNondetVars, ddVarNames,
 						     numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
 						     numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		}
 		else if (type == ModulesFile.STOCHASTIC) {
-			model = new StochModel(trans, trans01, start, reach, deadlocks, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, ddVarNames,
+			model = new StochModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, ddVarNames,
 						    numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
 						    numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		}
+		
+		// do reachability (or not)
+		if (prism.getDoReach()) {
+			mainLog.print("\nComputing reachable states...\n");
+			model.doReachability(prism.getExtraReachInfo());
+			model.filterReachableStates();
+		}
+		else {
+			mainLog.print("\nSkipping reachable state computation.\n");
+			model.skipReachability();
+			model.filterReachableStates();
+		}
+		
+		// Print some info (if extraddinfo flag on)
+		if (prism.getExtraDDInfo()) {
+			mainLog.print("Reach: " + JDD.GetNumNodes(model.getReach()) + " nodes\n");
+		}
+		
+		// find any deadlocks
+		model.findDeadlocks();
 		
 		// deref spare dds
 		globalDDRowVars.derefAll();
@@ -1929,15 +1937,14 @@ public class Modules2MTBDD
 			}
 		}
 	}
-
-	// do reachability
 	
-	private void doReachability() throws PrismException
+	// calculate dd for initial state(s)
+	
+	private void buildInitialStates() throws PrismException
 	{
 		int i;
 		JDDNode tmp;
 		
-		// calculate dd for initial state
 		// first, handle case where multiple initial states specified with init...endinit
 		if (modulesFile.getInitialStates() != null) {
 			start = translateExpression(modulesFile.getInitialStates());
@@ -1953,130 +1960,6 @@ public class Modules2MTBDD
 				start = JDD.And(start, tmp);
 			}
 		}
-		
-		// calculate 0-1 version of trans
-		JDD.Ref(trans);
-		trans01 = JDD.GreaterThan(trans, 0);
-		
-		// remove any nondeterminism
-		if (type == ModulesFile.NONDETERMINISTIC) {
-			JDD.Ref(trans01);
-			tmp = JDD.MaxAbstract(trans01, allDDNondetVars);
-		}
-		else {
-			JDD.Ref(trans01);
-			tmp = trans01;
-		}
-		
-		// compute reachable states
-		mainLog.print("\nComputing reachable states...\n");
-		reach = PrismMTBDD.Reachability(tmp, allDDRowVars, allDDColVars, start, prism.getExtraReachInfo()?1:0);
-		JDD.Deref(tmp);
-		
-		// Print some info (if extraddinfo flag on)
-		if (prism.getExtraDDInfo()) {
-			mainLog.print("Reach: " + JDD.GetNumNodes(reach) + " nodes\n");
-		}
-		// remove non-reachable states from transition matrix
-		JDD.Ref(reach);
-		trans = JDD.Apply(JDD.TIMES, reach, trans);
-		JDD.Ref(reach);
-		tmp = JDD.PermuteVariables(reach, allDDRowVars, allDDColVars);
-		trans = JDD.Apply(JDD.TIMES, tmp, trans);
-		
-		// recalculate 0-1 version of trans
-		JDD.Deref(trans01);
-		JDD.Ref(trans);
-		trans01 = JDD.GreaterThan(trans, 0);
-		
-		// remove non-reachable states from state/transition rewards
-		for (i = 0; i < modulesFile.getNumRewardStructs(); i++) {
-			// state rewards vector
-			JDD.Ref(reach);
-			stateRewards[i] = JDD.Apply(JDD.TIMES, reach, stateRewards[i]);
-			// transition reward matrix
-			JDD.Ref(reach);
-			transRewards[i] = JDD.Apply(JDD.TIMES, reach, transRewards[i]);
-			JDD.Ref(reach);
-			tmp = JDD.PermuteVariables(reach, allDDRowVars, allDDColVars);
-			transRewards[i] = JDD.Apply(JDD.TIMES, tmp, transRewards[i]);
-		}
-	}
-
-	// this method allows you to skip the reachability phase
-	// there are two versions - one which actually does skip it
-	// and one which does it anyway but doesn't filter out the
-	// unreachable states from the transition matrix.
-	// these are only here for experimental purposes - not general use.
-	
-	// (do reach but don't filter)
-
-//	private void skipReachability()
-//	{
-//		int i;
-//		JDDNode tmp;
-//		
-//		// calculate dd for initial state
-//		start = JDD.Constant(1);
-//		for (i = 0; i < numVars; i++) {
-//			tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], varList.getStart(i)-varList.getLow(i), 1);
-//			start = JDD.And(start, tmp);
-//		}
-//				
-//		// calculate 0-1 version of trans
-//		JDD.Ref(trans);
-//		trans01 = JDD.GreaterThan(trans, 0);
-//		
-//		// remove any nondeterminism
-//		if (type == ModulesFile.NONDETERMINISTIC) {
-//			JDD.Ref(trans01);
-//			tmp = JDD.MaxAbstract(trans01, allDDNondetVars);
-//		}
-//		else {
-//			JDD.Ref(trans01);
-//			tmp = trans01;
-//		}
-//		
-//		// compute reachable states
-//		mainLog.print("\nComputing reachable states...\n");
-//		reach = PrismMTBDD.Reachability(tmp, allDDRowVars, allDDColVars, start);
-//		JDD.Deref(tmp);
-//	}
-
-//	(no reach and no filter)
-
-	private void skipReachability()
-	{
-		int i;
-		JDDNode tmp;
-		
-		// calculate dd for initial state
-		start = JDD.Constant(1);
-		for (i = 0; i < numVars; i++) {
-			tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], varList.getStart(i)-varList.getLow(i), 1);
-			start = JDD.And(start, tmp);
-		}
-				
-		// calculate 0-1 version of trans
-		JDD.Ref(trans);
-		trans01 = JDD.GreaterThan(trans, 0);
-		
-		// don't compute reachable states - assume all reachable
-		reach = JDD.Constant(1);
-	}
-
-	private void findDeadlocks()
-	{
-		// find states with at least one transition
-		JDD.Ref(trans01);
-		deadlocks = JDD.ThereExists(trans01, allDDColVars);
-		if (type == ModulesFile.NONDETERMINISTIC) {
-			deadlocks = JDD.ThereExists(deadlocks, allDDNondetVars);
-		}
-		
-		// find reachable states with no transitions
-		JDD.Ref(reach);
-		deadlocks = JDD.And(reach, JDD.Not(deadlocks));
 	}
 }
 

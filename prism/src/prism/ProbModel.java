@@ -364,30 +364,27 @@ public class ProbModel implements Model
 	{
 		return odd;
 	}
-	
+
 	public String getTransName()
 	{
-		return "Transition matrix"; 
+		return "Transition matrix";
 	}
-	
+
 	public String getTransSymbol()
 	{
 		return "P";
 	}
-	
+
 	// constructor
 
-	public ProbModel(JDDNode tr, JDDNode tr01, JDDNode s, JDDNode r, JDDNode dl, JDDNode sr[], JDDNode trr[],
-			String rsn[], JDDVars arv, JDDVars acv, Vector<String> ddvn, int nm, String[] mn, JDDVars[] mrv, JDDVars[] mcv,
-			int nv, VarList vl, JDDVars[] vrv, JDDVars[] vcv, Values cv)
+	public ProbModel(JDDNode tr, JDDNode s, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv,
+			Vector<String> ddvn, int nm, String[] mn, JDDVars[] mrv, JDDVars[] mcv, int nv, VarList vl, JDDVars[] vrv,
+			JDDVars[] vcv, Values cv)
 	{
 		int i;
 
 		trans = tr;
-		trans01 = tr01;
 		start = s;
-		reach = r;
-		deadlocks = dl;
 		fixdl = JDD.Constant(0);
 		stateRewards = sr;
 		transRewards = trr;
@@ -415,25 +412,111 @@ public class ProbModel implements Model
 			gtol[i] = gtol[i] * gtol[i + 1];
 		}
 
-		// work out number of states
-		numStates = JDD.GetNumMinterms(reach, allDDRowVars.n());
+		// calculate 0-1 version of trans
+		JDD.Ref(trans);
+		trans01 = JDD.GreaterThan(trans, 0);
+
+		// work out number of initial states
 		numStartStates = JDD.GetNumMinterms(start, allDDRowVars.n());
 
-		// work out number of transitions
-		numTransitions = JDD.GetNumMinterms(trans01, getNumDDVarsInTrans());
+		// store initial states in a StateList
+		startStateList = new StateListMTBDD(start, this);
+	}
+
+	// do reachability
+
+	public void doReachability()
+	{
+		doReachability(false);
+	}
+
+	public void doReachability(boolean extraReachInfo)
+	{
+		// compute reachable states
+		reach = PrismMTBDD.Reachability(trans01, allDDRowVars, allDDColVars, start, extraReachInfo ? 1 : 0);
+
+		// work out number of reachable states
+		numStates = JDD.GetNumMinterms(reach, allDDRowVars.n());
 
 		// build odd
 		odd = ODDUtils.BuildODD(reach, allDDRowVars);
 
 		// store reachable states in a StateList
 		reachStateList = new StateListMTBDD(reach, this);
+	}
+
+	// this method allows you to skip the reachability phase
+	// it is only here for experimental purposes - not general use.
+
+	public void skipReachability()
+	{
+		// don't compute reachable states - assume all reachable
+		reach = JDD.Constant(1);
+
+		// work out number of reachable states
+		numStates = Math.pow(2, allDDRowVars.n());
+
+		// build odd
+		odd = ODDUtils.BuildODD(reach, allDDRowVars);
+
+		// store reachable states in a StateList
+		reachStateList = new StateListMTBDD(reach, this);
+	}
+
+	// remove non-reachable states from various dds
+	// (and calculate num transitions)
+
+	public void filterReachableStates()
+	{
+		int i;
+		JDDNode tmp;
+
+		// remove non-reachable states from transition matrix
+		JDD.Ref(reach);
+		trans = JDD.Apply(JDD.TIMES, reach, trans);
+		JDD.Ref(reach);
+		tmp = JDD.PermuteVariables(reach, allDDRowVars, allDDColVars);
+		trans = JDD.Apply(JDD.TIMES, tmp, trans);
+
+		// recalculate 0-1 version of trans
+		JDD.Deref(trans01);
+		JDD.Ref(trans);
+		trans01 = JDD.GreaterThan(trans, 0);
+
+		// remove non-reachable states from state/transition rewards
+		for (i = 0; i < stateRewards.length; i++) {
+			// state rewards vector
+			JDD.Ref(reach);
+			stateRewards[i] = JDD.Apply(JDD.TIMES, reach, stateRewards[i]);
+			// transition reward matrix
+			JDD.Ref(reach);
+			transRewards[i] = JDD.Apply(JDD.TIMES, reach, transRewards[i]);
+			JDD.Ref(reach);
+			tmp = JDD.PermuteVariables(reach, allDDRowVars, allDDColVars);
+			transRewards[i] = JDD.Apply(JDD.TIMES, tmp, transRewards[i]);
+		}
+		
+		// work out number of transitions
+		numTransitions = JDD.GetNumMinterms(trans01, getNumDDVarsInTrans());
+	}
+
+	// identify any deadlock states
+
+	public void findDeadlocks()
+	{
+		// find states with at least one transition
+		JDD.Ref(trans01);
+		deadlocks = JDD.ThereExists(trans01, allDDColVars);
+
+		// find reachable states with no transitions
+		JDD.Ref(reach);
+		deadlocks = JDD.And(reach, JDD.Not(deadlocks));
 
 		// store deadlock states in a StateList
 		deadlockStateList = new StateListMTBDD(deadlocks, this);
-
-		// store initial states in a StateList
-		startStateList = new StateListMTBDD(start, this);
 	}
+
+	// remove deadlocks by adding self-loops
 
 	public void fixDeadlocks()
 	{
@@ -530,11 +613,11 @@ public class ProbModel implements Model
 	public void exportToFile(int exportType, boolean explicit, File file) throws FileNotFoundException
 	{
 		if (!explicit) {
-			PrismMTBDD.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType, (file != null) ? file
-					.getPath() : null);
+			PrismMTBDD.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType,
+					(file != null) ? file.getPath() : null);
 		} else {
-			PrismSparse.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType, (file != null) ? file
-					.getPath() : null);
+			PrismSparse.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType,
+					(file != null) ? file.getPath() : null);
 		}
 	}
 

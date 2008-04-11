@@ -849,8 +849,7 @@ public class Prism implements PrismSettingsListener
 	public ModulesFile parseExplicitModel(File statesFile, File transFile, int typeOverride, String initString) throws PrismException
 	{
 		// create Explicit2MTBDD object
-		exp2mtbdd = new Explicit2MTBDD(mainLog, techLog, statesFile, transFile, typeOverride, initString);
-		exp2mtbdd.setOption("doreach", getDoReach());
+		exp2mtbdd = new Explicit2MTBDD(this, statesFile, transFile, typeOverride, initString);
 		
 		// build state space
 		return exp2mtbdd.buildStates();

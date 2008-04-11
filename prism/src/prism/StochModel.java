@@ -51,20 +51,20 @@ public class StochModel extends ProbModel
 
 	public String getTransName()
 	{
-		return "Rate matrix"; 
+		return "Rate matrix";
 	}
-	
+
 	public String getTransSymbol()
 	{
 		return "R";
 	}
-	
+
 	// constructor
 
-	public StochModel(JDDNode tr, JDDNode tr01, JDDNode s, JDDNode r, JDDNode dl, JDDNode sr[], JDDNode trr[],
-			String rsn[], JDDVars arv, JDDVars acv, Vector ddvn, int nm, String[] mn, JDDVars[] mrv, JDDVars[] mcv,
-			int nv, VarList vl, JDDVars[] vrv, JDDVars[] vcv, Values cv)
+	public StochModel(JDDNode tr, JDDNode s, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv,
+			Vector<String> ddvn, int nm, String[] mn, JDDVars[] mrv, JDDVars[] mcv, int nv, VarList vl, JDDVars[] vrv,
+			JDDVars[] vcv, Values cv)
 	{
-		super(tr, tr01, s, r, dl, sr, trr, rsn, arv, acv, ddvn, nm, mn, mrv, mcv, nv, vl, vrv, vcv, cv);
+		super(tr, s, sr, trr, rsn, arv, acv, ddvn, nm, mn, mrv, mcv, nv, vl, vrv, vcv, cv);
 	}
 }

@@ -112,28 +112,60 @@ public class NondetModel extends ProbModel
 
 	public String getTransName()
 	{
-		return "Transition matrix"; 
+		return "Transition matrix";
 	}
-	
+
 	public String getTransSymbol()
 	{
 		return "S";
 	}
-	
+
 	// constructor
 
-	public NondetModel(JDDNode tr, JDDNode tr01, JDDNode s, JDDNode r, JDDNode dl, JDDNode sr[], JDDNode trr[],
-			String rsn[], JDDVars arv, JDDVars acv, JDDVars asyv, JDDVars asv, JDDVars achv, JDDVars andv, Vector ddvn,
-			int nm, String[] mn, JDDVars[] mrv, JDDVars[] mcv, int nv, VarList vl, JDDVars[] vrv, JDDVars[] vcv,
-			Values cv)
+	public NondetModel(JDDNode tr, JDDNode s, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv,
+			JDDVars asyv, JDDVars asv, JDDVars achv, JDDVars andv, Vector<String> ddvn, int nm, String[] mn,
+			JDDVars[] mrv, JDDVars[] mcv, int nv, VarList vl, JDDVars[] vrv, JDDVars[] vcv, Values cv)
 	{
-		super(tr, tr01, s, r, dl, sr, trr, rsn, arv, acv, ddvn, nm, mn, mrv, mcv, nv, vl, vrv, vcv, cv);
-		
+		super(tr, s, sr, trr, rsn, arv, acv, ddvn, nm, mn, mrv, mcv, nv, vl, vrv, vcv, cv);
+
 		allDDSynchVars = asyv;
 		allDDSchedVars = asv;
 		allDDChoiceVars = achv;
 		allDDNondetVars = andv;
+	}
 
+	// do reachability
+
+	public void doReachability(boolean extraReachInfo)
+	{
+		JDDNode tmp;
+
+		// remove any nondeterminism
+		JDD.Ref(trans01);
+		tmp = JDD.MaxAbstract(trans01, allDDNondetVars);
+
+		// compute reachable states
+		reach = PrismMTBDD.Reachability(tmp, allDDRowVars, allDDColVars, start, extraReachInfo ? 1 : 0);
+		JDD.Deref(tmp);
+
+		// work out number of reachable states
+		numStates = JDD.GetNumMinterms(reach, allDDRowVars.n());
+
+		// build odd
+		odd = ODDUtils.BuildODD(reach, allDDRowVars);
+
+		// store reachable states in a StateList
+		reachStateList = new StateListMTBDD(reach, this);
+	}
+
+	// remove non-reachable states from various dds
+	// (and calculate num transitions, etc.)
+	// (and build mask)
+
+	public void filterReachableStates()
+	{
+		super.filterReachableStates();
+		
 		// build mask for nondeterminstic choices
 		JDD.Ref(trans01);
 		JDD.Ref(reach);
@@ -144,6 +176,25 @@ public class NondetModel extends ProbModel
 		double d = JDD.GetNumMinterms(nondetMask, getNumDDRowVars() + getNumDDNondetVars());
 		numChoices = ((Math.pow(2, getNumDDNondetVars())) * numStates) - d;
 	}
+	
+	// identify any deadlock states
+
+	public void findDeadlocks()
+	{
+		// find states with at least one transition
+		JDD.Ref(trans01);
+		deadlocks = JDD.ThereExists(trans01, allDDColVars);
+		deadlocks = JDD.ThereExists(deadlocks, allDDNondetVars);
+
+		// find reachable states with no transitions
+		JDD.Ref(reach);
+		deadlocks = JDD.And(reach, JDD.Not(deadlocks));
+
+		// store deadlock states in a StateList
+		deadlockStateList = new StateListMTBDD(deadlocks, this);
+	}
+
+	// remove deadlocks by adding self-loops
 
 	public void fixDeadlocks()
 	{
@@ -248,8 +299,8 @@ public class NondetModel extends ProbModel
 		if (!explicit) {
 			// can only do explicit (sparse matrix based) export for mdps
 		} else {
-			PrismSparse.ExportMDP(trans, getTransSymbol(), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType,
-					(file != null) ? file.getPath() : null);
+			PrismSparse.ExportMDP(trans, getTransSymbol(), allDDRowVars, allDDColVars, allDDNondetVars, odd,
+					exportType, (file != null) ? file.getPath() : null);
 		}
 	}
 

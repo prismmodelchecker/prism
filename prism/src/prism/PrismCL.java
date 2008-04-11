@@ -534,7 +534,7 @@ public class PrismCL
 		}
 		
 		// print model info
-		mainLog.println("\nType:        " + model.getType());
+		mainLog.println("\nType:        " + model.getTypeString());
 		mainLog.print("Modules:     ");
 		for (i = 0; i < model.getNumModules(); i++) {
 			mainLog.print(model.getModuleName(i) + " ");
