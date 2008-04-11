@@ -45,10 +45,13 @@ public abstract class Expression extends ASTElement
 	// and a function to get at their names
 	public static String getTypeString(int i) {
 		switch (i) {
-			case INT: return "int";
-			case DOUBLE: return "double";
-			case BOOLEAN: return "bool";
-			default: return "(unknown)";
+		case INT: return "int";
+		case DOUBLE: return "double";
+		case BOOLEAN: return "bool";
+		case PATH_INT: return "path-int";
+		case PATH_DOUBLE: return "path-double";
+		case PATH_BOOLEAN: return "path-bool";
+		default: return "(unknown)";
 		}
 	}
 	
