@@ -127,6 +127,14 @@ public abstract class ASTElement
 		return type;
 	}
 
+	/**
+	 * Get the type for this element, as a string.
+	 */
+	public String getTypeString()
+	{
+		return Expression.getTypeString(getType());
+	}
+
 	public boolean hasPosition()
 	{
 		return beginLine != -1;
