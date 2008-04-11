@@ -212,7 +212,7 @@ public class ExpressionTemporal extends Expression
 		ExpressionTemporal expr = new ExpressionTemporal();
 		expr.setOperator(op);
 		if (operand1 != null) expr.setOperand1(operand1.deepCopy());
-		if (operand2 != null) expr.setOperand2(operand1.deepCopy());
+		if (operand2 != null) expr.setOperand2(operand2.deepCopy());
 		expr.setType(type);
 		expr.setPosition(this);
 		return expr;
