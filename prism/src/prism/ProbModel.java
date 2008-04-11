@@ -721,8 +721,8 @@ public class ProbModel implements Model
 		JDD.Deref(trans);
 		JDD.Deref(trans01);
 		JDD.Deref(start);
-		JDD.Deref(reach);
-		JDD.Deref(deadlocks);
+		if (reach != null) JDD.Deref(reach);
+		if (deadlocks != null) JDD.Deref(deadlocks);
 		JDD.Deref(fixdl);
 		for (int i = 0; i < numRewardStructs; i++) {
 			JDD.Deref(stateRewards[i]);

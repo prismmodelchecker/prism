@@ -293,6 +293,8 @@ public class Modules2MTBDD
 			}
 		}
 		
+		expr2mtbdd.clearDummyModel();
+		
 		return model;
 	}
 	

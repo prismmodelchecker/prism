@@ -26,8 +26,6 @@
 
 package prism;
 
-import java.util.Vector;
-
 import dv.DoubleVector;
 import jdd.*;
 import odd.*;
@@ -100,12 +98,13 @@ public class StateModelChecker implements ModelChecker
 		termCritParam = prism.getTermCritParam();
 		verbose = prism.getVerbose();
 	}
-	
+
 	/**
 	 * Additional constructor for creating stripped down StateModelChecker for
 	 * expression to MTBDD conversions.
 	 */
-	public StateModelChecker(Prism prism, VarList varList, JDDVars allDDRowVars, JDDVars[] varDDRowVars, Values constantValues) throws PrismException
+	public StateModelChecker(Prism prism, VarList varList, JDDVars allDDRowVars, JDDVars[] varDDRowVars,
+			Values constantValues) throws PrismException
 	{
 		// Initialise
 		this.prism = prism;
@@ -116,8 +115,17 @@ public class StateModelChecker implements ModelChecker
 		this.constantValues = constantValues;
 		// Create dummy model
 		reach = null;
-		model = new ProbModel(JDD.Constant(0), JDD.Constant(0), new JDDNode[] {}, null, null, allDDRowVars, null,
-				null, 0, null, null, null, 0, varList, varDDRowVars, null, constantValues);
+		allDDRowVars.refAll();
+		model = new ProbModel(JDD.Constant(0), JDD.Constant(0), new JDDNode[] {}, new JDDNode[] {}, null, allDDRowVars,
+				new JDDVars(), null, 0, null, null, null, 0, varList, varDDRowVars, null, constantValues);
+	}
+
+	/**
+	 * Clean up the dummy model created when using the abbreviated constructor
+	 */
+	public void clearDummyModel()
+	{
+		model.clear();
 	}
 
 	// -----------------------------------------------------------------------------------
@@ -340,9 +348,9 @@ public class StateModelChecker implements ModelChecker
 
 		return res;
 	}
-	
+
 	// Check expression, convert to symbolic form (if not already), return BDD
-	
+
 	public JDDNode checkExpressionDD(Expression expr) throws PrismException
 	{
 		return checkExpression(expr).convertToStateProbsMTBDD().getJDDNode();
@@ -773,8 +781,12 @@ public class StateModelChecker implements ModelChecker
 		if (res1 instanceof StateProbsMTBDD) {
 			dd1 = ((StateProbsMTBDD) res1).getJDDNode();
 			switch (op) {
-			case ExpressionFunc.FLOOR: dd1 = JDD.MonadicApply(JDD.FLOOR, dd1); break;
-			case ExpressionFunc.CEIL: dd1 = JDD.MonadicApply(JDD.CEIL, dd1); break;
+			case ExpressionFunc.FLOOR:
+				dd1 = JDD.MonadicApply(JDD.FLOOR, dd1);
+				break;
+			case ExpressionFunc.CEIL:
+				dd1 = JDD.MonadicApply(JDD.CEIL, dd1);
+				break;
 			}
 			return new StateProbsMTBDD(dd1, model);
 		}
@@ -784,10 +796,12 @@ public class StateModelChecker implements ModelChecker
 			n = dv1.getSize();
 			switch (op) {
 			case ExpressionFunc.FLOOR:
-				for (i = 0; i < n; i++) dv1.setElement(i, Math.floor(dv1.getElement(i)));
+				for (i = 0; i < n; i++)
+					dv1.setElement(i, Math.floor(dv1.getElement(i)));
 				break;
 			case ExpressionFunc.CEIL:
-				for (i = 0; i < n; i++) dv1.setElement(i, Math.ceil(dv1.getElement(i)));
+				for (i = 0; i < n; i++)
+					dv1.setElement(i, Math.ceil(dv1.getElement(i)));
 				break;
 			}
 			return new StateProbsDV(dv1, model);
@@ -842,8 +856,8 @@ public class StateModelChecker implements ModelChecker
 				break;
 			case ExpressionFunc.MOD:
 				for (i = 0; i < n; i++) {
-					d = (int)dv2.getElement(i);
-					d = (d == 0) ? Double.NaN : (int)dv1.getElement(i) % (int)d;
+					d = (int) dv2.getElement(i);
+					d = (d == 0) ? Double.NaN : (int) dv1.getElement(i) % (int) d;
 					dv1.setElement(i, d);
 				}
 				break;
@@ -864,7 +878,7 @@ public class StateModelChecker implements ModelChecker
 		DoubleVector dv1, dv2;
 		int i, i2, n, n2, op = expr.getNameCode();
 		boolean symbolic;
-		
+
 		// Check first operand recursively
 		try {
 			res1 = checkExpression(expr.getOperand(0));
@@ -909,8 +923,12 @@ public class StateModelChecker implements ModelChecker
 				dd1 = ((StateProbsMTBDD) res1).getJDDNode();
 				dd2 = ((StateProbsMTBDD) res2).getJDDNode();
 				switch (op) {
-				case ExpressionFunc.MIN: dd1 = JDD.Apply(JDD.MIN, dd1, dd2); break;
-				case ExpressionFunc.MAX: dd1 = JDD.Apply(JDD.MAX, dd1, dd2); break;
+				case ExpressionFunc.MIN:
+					dd1 = JDD.Apply(JDD.MIN, dd1, dd2);
+					break;
+				case ExpressionFunc.MAX:
+					dd1 = JDD.Apply(JDD.MAX, dd1, dd2);
+					break;
 				}
 				res1 = new StateProbsMTBDD(dd1, model);
 			}
