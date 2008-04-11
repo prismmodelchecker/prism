@@ -94,7 +94,7 @@ public interface Model
 	int getNumDDRowVars();
 	int getNumDDColVars();
 	int getNumDDVarsInTrans();
-	Vector getDDVarNames();
+	Vector<String> getDDVarNames();
 	
 	ODDNode getODD();
 
