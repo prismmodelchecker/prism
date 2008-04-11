@@ -66,7 +66,8 @@ public class ComputeTransientThread extends GUIComputationThread
 
 		//Do Computation
 		try {
-			if(!(computeThis instanceof StochModel || computeThis instanceof ProbModel)) throw new PrismException("Can only compute transient probabilities for DTMCs/CTMCs");
+			if (!(computeThis.getType() == Model.CTMC || computeThis.getType() == Model.DTMC))
+				throw new PrismException("Can only compute transient probabilities for DTMCs/CTMCs");
 			plug.getPrism().doTransient(computeThis, transientTime);
 		}
 		catch(PrismException e)

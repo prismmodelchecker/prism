@@ -679,7 +679,7 @@ public class PrismCL
 	private void doSteadyState() throws PrismException
 	{
 		// compute steady-state probabilities
-		if (model instanceof StochModel || model instanceof ProbModel) {
+		if (model.getType() == Model.CTMC || model.getType() == Model.DTMC) {
 			prism.doSteadyState(model);
 		}
 		else {
@@ -695,7 +695,7 @@ public class PrismCL
 		int i;
 		
 		// compute transient probabilities
-		if (model instanceof StochModel) {
+		if (model.getType() == Model.CTMC) {
 			try {
 				d = Double.parseDouble(transientTime);
 			}
@@ -704,7 +704,7 @@ public class PrismCL
 			}
 			prism.doTransient(model, d);
 		}
-		else if (model instanceof ProbModel) {
+		else if (model.getType() == Model.DTMC) {
 			try {
 				i = Integer.parseInt(transientTime);
 			}

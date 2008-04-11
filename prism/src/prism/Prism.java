@@ -892,7 +892,7 @@ public class Prism implements PrismSettingsListener
 		// get rid of non det vars if necessary
 		tmp = model.getTrans();
 		JDD.Ref(tmp);
-		if (model instanceof NondetModel)
+		if (model.getType() == Model.MDP)
 		{
 			tmp = JDD.MaxAbstract(tmp, ((NondetModel)model).getAllDDNondetVars());
 		}
@@ -922,7 +922,7 @@ public class Prism implements PrismSettingsListener
 	public void exportTransToFile(Model model, boolean ordered, int exportType, File file) throws FileNotFoundException
 	{
 		// can only do ordered version of export for MDPs
-		if (model instanceof NondetModel) {
+		if (model.getType() == Model.MDP) {
 			if (!ordered) mainLog.println("\nWarning: Cannot export unordered transition matrix for MDPs; using ordered.");
 			ordered = true;
 		}
@@ -982,7 +982,7 @@ public class Prism implements PrismSettingsListener
 		String s;
 		
 		// can only do ordered version of export for MDPs
-		if (model instanceof NondetModel) {
+		if (model.getType() == Model.MDP) {
 			if (!ordered) mainLog.println("\nWarning: Cannot export unordered transition reward matrix for MDPs; using ordered");
 			ordered = true;
 		}
@@ -1135,24 +1135,21 @@ public class Prism implements PrismSettingsListener
 		
 		// Check that property is valid for this model type
 		// and create new model checker object
-		if (model instanceof ProbModel)
-		{
+		switch (model.getType()) {
+		case Model.DTMC:
 			expr.checkValid(ModulesFile.PROBABILISTIC);
 			mc = new ProbModelChecker(this, model, propertiesFile);
-		}
-		else if (model instanceof NondetModel)
-		{
+			break;
+		case Model.MDP:
 			expr.checkValid(ModulesFile.NONDETERMINISTIC);
 			mc = new NondetModelChecker(this, model, propertiesFile);
-		}
-		else if (model instanceof StochModel)
-		{
+			break;
+		case Model.CTMC:
 			expr.checkValid(ModulesFile.STOCHASTIC);
 			mc = new StochModelChecker(this, model, propertiesFile);
-		}
-		else
-		{
-			throw new PrismException("Unknown model type");
+			break;
+		default:
+			throw new PrismException("Unknown model type"+model.getType());
 		}
 		
 		// Do model checking
@@ -1282,11 +1279,11 @@ public class Prism implements PrismSettingsListener
 		mainLog.println("\nComputing steady-state probabilities...");
 		l = System.currentTimeMillis();
 
-		if (model instanceof ProbModel) {
+		if (model.getType() == Model.DTMC) {
 			mc = new ProbModelChecker(this, model, null);
 			probs = ((ProbModelChecker)mc).doSteadyState();
 		}
-		else if (model instanceof StochModel) {
+		else if (model.getType() == Model.DTMC) {
 			mc = new StochModelChecker(this, model, null);
 			probs = ((StochModelChecker)mc).doSteadyState();
 		}
@@ -1319,12 +1316,12 @@ public class Prism implements PrismSettingsListener
 		
 		l = System.currentTimeMillis();
 
-		if (model instanceof ProbModel) {
+		if (model.getType() == Model.DTMC) {
 			mainLog.println("\nComputing transient probabilities (time = " + (int)time + ")...");
 			mc = new ProbModelChecker(this, model, null);
 			probs = ((ProbModelChecker)mc).doTransient((int)time);
 		}
-		else if (model instanceof StochModel) {
+		else if (model.getType() == Model.CTMC) {
 			mainLog.println("\nComputing transient probabilities (time = " + time + ")...");
 			mc = new StochModelChecker(this, model, null);
 			probs = ((StochModelChecker)mc).doTransient(time);

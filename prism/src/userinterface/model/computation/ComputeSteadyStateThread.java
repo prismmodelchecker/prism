@@ -64,7 +64,8 @@ public class ComputeSteadyStateThread extends GUIComputationThread
 		
 		//Do Computation
 		try {
-			if(!(computeThis instanceof StochModel || computeThis instanceof ProbModel)) throw new PrismException("Can only compute steady-state probabilities for CTMCs");
+			if (!(computeThis.getType() == Model.CTMC || computeThis.getType() == Model.DTMC))
+				throw new PrismException("Can only compute steady-state probabilities for CTMCs");
 			prism.doSteadyState(computeThis);
 		}
 		catch(PrismException e)
