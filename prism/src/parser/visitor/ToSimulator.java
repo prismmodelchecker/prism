@@ -36,7 +36,8 @@ import simulator.SimulatorEngine;
 import simulator.SimulatorException;
 
 /**
- * Rename (according to RenamedModule definition), return result.
+ * Construct corresponding data structures in the simulator and return
+ * pointer.
  */
 public class ToSimulator extends ASTTraverseModify
 {
