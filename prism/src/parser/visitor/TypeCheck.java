@@ -41,8 +41,7 @@ public class TypeCheck extends ASTTraverse
 	public void visitPost(ModulesFile e) throws PrismLangException
 	{
 		if (e.getInitialStates() != null && e.getInitialStates().getType() != Expression.BOOLEAN) {
-			throw new PrismLangException("Type error: Initial states definition must be Boolean", e
-					.getInitialStates());
+			throw new PrismLangException("Type error: Initial states definition must be Boolean", e.getInitialStates());
 		}
 	}
 
@@ -69,9 +68,10 @@ public class TypeCheck extends ASTTraverse
 		int i, n;
 		n = e.size();
 		for (i = 0; i < n; i++) {
-			if (e.getConstant(i) != null && !Expression.canAssignTypes(e.getConstantType(i), e.getConstant(i).getType())) {
-				throw new PrismLangException("Type mismatch in definition of constant \"" + e.getConstantName(i)
-						+ "\"", e.getConstant(i));
+			if (e.getConstant(i) != null
+					&& !Expression.canAssignTypes(e.getConstantType(i), e.getConstant(i).getType())) {
+				throw new PrismLangException(
+						"Type mismatch in definition of constant \"" + e.getConstantName(i) + "\"", e.getConstant(i));
 			}
 		}
 	}
@@ -79,16 +79,16 @@ public class TypeCheck extends ASTTraverse
 	public void visitPost(Declaration e) throws PrismLangException
 	{
 		if (e.getLow() != null && !Expression.canAssignTypes(e.getType(), e.getLow().getType())) {
-			throw new PrismLangException("Type error: Minimum value of variable \"" + e.getName()
-					+ "\" does not match", e.getLow());
+			throw new PrismLangException(
+					"Type error: Minimum value of variable \"" + e.getName() + "\" does not match", e.getLow());
 		}
 		if (e.getHigh() != null && !Expression.canAssignTypes(e.getType(), e.getHigh().getType())) {
-			throw new PrismLangException("Type error: Maximum value of variable \"" + e.getName()
-					+ "\" does not match", e.getHigh());
+			throw new PrismLangException(
+					"Type error: Maximum value of variable \"" + e.getName() + "\" does not match", e.getHigh());
 		}
 		if (e.getStart() != null && !Expression.canAssignTypes(e.getType(), e.getStart().getType())) {
-			throw new PrismLangException("Type error: Initial value of variable \"" + e.getName()
-					+ "\" does not match", e.getStart());
+			throw new PrismLangException(
+					"Type error: Initial value of variable \"" + e.getName() + "\" does not match", e.getStart());
 		}
 	}
 
@@ -104,10 +104,11 @@ public class TypeCheck extends ASTTraverse
 		int i, n;
 		n = e.getNumUpdates();
 		for (i = 0; i < n; i++) {
-			if (e.getProbability(i) != null) if (e.getProbability(i).getType() == Expression.BOOLEAN) {
-				throw new PrismLangException("Type error: Update probability/rate cannot be Boolean", e
-						.getProbability(i));
-			}
+			if (e.getProbability(i) != null)
+				if (e.getProbability(i).getType() == Expression.BOOLEAN) {
+					throw new PrismLangException("Type error: Update probability/rate cannot be Boolean", e
+							.getProbability(i));
+				}
 		}
 	}
 
@@ -221,7 +222,8 @@ public class TypeCheck extends ASTTraverse
 				throw new PrismLangException("Type error: " + e.getOperatorSymbol()
 						+ " applied to non-Boolean expression", e.getOperand2());
 			}
-			e.setType(Expression.BOOLEAN);
+			e.setType(t1 == Expression.PATH_BOOLEAN || t2 == Expression.PATH_BOOLEAN ? Expression.PATH_BOOLEAN
+					: Expression.BOOLEAN);
 			break;
 		case ExpressionBinaryOp.EQ:
 		case ExpressionBinaryOp.NE:
@@ -290,7 +292,7 @@ public class TypeCheck extends ASTTraverse
 				throw new PrismLangException("Type error: " + e.getOperatorSymbol()
 						+ " applied to non-Boolean expression", e.getOperand());
 			}
-			e.setType(Expression.BOOLEAN);
+			e.setType(t);
 			break;
 		case ExpressionUnaryOp.MINUS:
 			if (!(t == Expression.INT || t == Expression.DOUBLE)) {
@@ -327,9 +329,8 @@ public class TypeCheck extends ASTTraverse
 			// All operands must be ints or doubles
 			for (i = 0; i < n; i++) {
 				if (types[i] == Expression.BOOLEAN) {
-					throw new PrismLangException(
-							"Type error: Boolean argument not allowed as argument to function \"" + e.getName() + "\"",
-							e.getOperand(i));
+					throw new PrismLangException("Type error: Boolean argument not allowed as argument to function \""
+							+ e.getName() + "\"", e.getOperand(i));
 				}
 			}
 			break;
@@ -406,7 +407,8 @@ public class TypeCheck extends ASTTraverse
 			throw new PrismLangException("Type error: P operator probability bound is not a double", e.getProb());
 		}
 		if (e.getFilter() != null && e.getFilter().getExpression().getType() != Expression.BOOLEAN) {
-			throw new PrismLangException("Type error: P operator filter is not a Boolean", e.getFilter().getExpression());
+			throw new PrismLangException("Type error: P operator filter is not a Boolean", e.getFilter()
+					.getExpression());
 		}
 		e.setType(e.getProb() == null ? Expression.DOUBLE : Expression.BOOLEAN);
 	}
@@ -423,7 +425,8 @@ public class TypeCheck extends ASTTraverse
 			throw new PrismLangException("Type error: R operator reward bound is not a double", e.getReward());
 		}
 		if (e.getFilter() != null && e.getFilter().getExpression().getType() != Expression.BOOLEAN) {
-			throw new PrismLangException("Type error: R operator filter is not a Boolean", e.getFilter().getExpression());
+			throw new PrismLangException("Type error: R operator filter is not a Boolean", e.getFilter()
+					.getExpression());
 		}
 		e.setType(e.getReward() == null ? Expression.DOUBLE : Expression.BOOLEAN);
 	}
@@ -434,7 +437,8 @@ public class TypeCheck extends ASTTraverse
 			throw new PrismLangException("Type error: S operator probability bound is not a double", e.getProb());
 		}
 		if (e.getFilter() != null && e.getFilter().getExpression().getType() != Expression.BOOLEAN) {
-			throw new PrismLangException("Type error: P operator filter is not a Boolean", e.getFilter().getExpression());
+			throw new PrismLangException("Type error: P operator filter is not a Boolean", e.getFilter()
+					.getExpression());
 		}
 		e.setType(e.getProb() == null ? Expression.DOUBLE : Expression.BOOLEAN);
 	}
