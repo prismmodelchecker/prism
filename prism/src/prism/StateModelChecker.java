@@ -32,7 +32,7 @@ import odd.*;
 import parser.*;
 import parser.ast.*;
 
-// Model checker for DTMCs
+// Base class for model checkers - does state-based evaluations (no temporal/probabilistic)
 
 public class StateModelChecker implements ModelChecker
 {
@@ -718,30 +718,125 @@ public class StateModelChecker implements ModelChecker
 	{
 		switch (expr.getNameCode()) {
 		case ExpressionFunc.MIN:
-			return checkExpressionFuncMinMax(expr, true);
 		case ExpressionFunc.MAX:
-			return checkExpressionFuncMinMax(expr, false);
+			return checkExpressionFuncNary(expr);
 		case ExpressionFunc.FLOOR:
-			return checkExpressionFuncFloor(expr);
 		case ExpressionFunc.CEIL:
-			return checkExpressionFuncCeil(expr);
+			return checkExpressionFuncUnary(expr);
 		case ExpressionFunc.POW:
-			return checkExpressionFuncPow(expr);
 		case ExpressionFunc.MOD:
-			return checkExpressionFuncMod(expr);
 		case ExpressionFunc.LOG:
-			return checkExpressionFuncLog(expr);
+			return checkExpressionFuncBinary(expr);
 		default:
 			throw new PrismException("Unrecognised function \"" + expr.getName() + "\"");
 		}
 	}
 
-	private StateProbs checkExpressionFuncMinMax(ExpressionFunc expr, boolean min) throws PrismException
+	private StateProbs checkExpressionFuncUnary(ExpressionFunc expr) throws PrismException
+	{
+		StateProbs res1 = null;
+		JDDNode dd1;
+		DoubleVector dv1;
+		int i, n, op = expr.getNameCode();
+
+		// Check operand recursively
+		try {
+			res1 = checkExpression(expr.getOperand(0));
+		} catch (PrismException e) {
+			if (res1 != null)
+				res1.clear();
+			throw e;
+		}
+		// Symbolic
+		if (res1 instanceof StateProbsMTBDD) {
+			dd1 = ((StateProbsMTBDD) res1).getJDDNode();
+			switch (op) {
+			case ExpressionFunc.FLOOR: dd1 = JDD.MonadicApply(JDD.FLOOR, dd1); break;
+			case ExpressionFunc.CEIL: dd1 = JDD.MonadicApply(JDD.CEIL, dd1); break;
+			}
+			return new StateProbsMTBDD(dd1, model);
+		}
+		// Explicit
+		else {
+			dv1 = res1.convertToStateProbsDV().getDoubleVector();
+			n = dv1.getSize();
+			switch (op) {
+			case ExpressionFunc.FLOOR:
+				for (i = 0; i < n; i++) dv1.setElement(i, Math.floor(dv1.getElement(i)));
+				break;
+			case ExpressionFunc.CEIL:
+				for (i = 0; i < n; i++) dv1.setElement(i, Math.ceil(dv1.getElement(i)));
+				break;
+			}
+			return new StateProbsDV(dv1, model);
+		}
+	}
+
+	private StateProbs checkExpressionFuncBinary(ExpressionFunc expr) throws PrismException
+	{
+		StateProbs res1 = null, res2 = null;
+		JDDNode dd = null, dd1, dd2;
+		DoubleVector dv1, dv2;
+		int i, n, op = expr.getNameCode();
+
+		// Check operands recursively
+		try {
+			res1 = checkExpression(expr.getOperand(0));
+			res2 = checkExpression(expr.getOperand(1));
+		} catch (PrismException e) {
+			if (res1 != null)
+				res1.clear();
+			if (res2 != null)
+				res2.clear();
+			throw e;
+		}
+		// If both operands are symbolic, result will be symbolic
+		if (res1 instanceof StateProbsMTBDD && res2 instanceof StateProbsMTBDD) {
+			dd1 = ((StateProbsMTBDD) res1).getJDDNode();
+			dd2 = ((StateProbsMTBDD) res2).getJDDNode();
+			switch (op) {
+			case ExpressionFunc.POW:
+				dd = JDD.Apply(JDD.POW, dd1, dd2);
+				break;
+			case ExpressionFunc.MOD:
+				dd = JDD.Apply(JDD.MOD, dd1, dd2);
+				break;
+			case ExpressionFunc.LOG:
+				dd = JDD.Apply(JDD.LOGXY, dd1, dd2);
+				break;
+			}
+			return new StateProbsMTBDD(dd, model);
+		}
+		// Otherwise result will be explicit
+		else {
+			dv1 = res1.convertToStateProbsDV().getDoubleVector();
+			dv2 = res2.convertToStateProbsDV().getDoubleVector();
+			n = dv1.getSize();
+			switch (op) {
+			case ExpressionFunc.POW:
+				for (i = 0; i < n; i++)
+					dv1.setElement(i, Math.pow(dv1.getElement(i), dv2.getElement(i)));
+				break;
+			case ExpressionFunc.MOD:
+				for (i = 0; i < n; i++)
+					dv1.setElement(i, (int)dv1.getElement(i) % (int)dv2.getElement(i));
+				break;
+			case ExpressionFunc.LOG:
+				for (i = 0; i < n; i++)
+					dv1.setElement(i, PrismUtils.log(dv1.getElement(i), dv2.getElement(i)));
+				break;
+			}
+			dv2.clear();
+			return new StateProbsDV(dv1, model);
+		}
+	}
+
+	private StateProbs checkExpressionFuncNary(ExpressionFunc expr) throws PrismException
 	{
 		StateProbs res1 = null, res2 = null;
 		JDDNode dd1, dd2;
 		DoubleVector dv1, dv2;
-		int i, i2, n, n2;
+		int i, i2, n, n2, op = expr.getNameCode();
 		boolean symbolic;
 		
 		// Check first operand recursively
@@ -770,9 +865,15 @@ public class StateModelChecker implements ModelChecker
 				dv1 = res1.convertToStateProbsDV().getDoubleVector();
 				dv2 = res2.convertToStateProbsDV().getDoubleVector();
 				n2 = dv1.getSize();
-				for (i2 = 0; i2 < n2; i2++) {
-					if (min) dv1.setElement(i2, Math.min(dv1.getElement(i2), dv2.getElement(i2)));
-					else dv1.setElement(i2, Math.max(dv1.getElement(i2), dv2.getElement(i2)));
+				switch (op) {
+				case ExpressionFunc.MIN:
+					for (i2 = 0; i2 < n2; i2++)
+						dv1.setElement(i2, Math.min(dv1.getElement(i), dv2.getElement(i)));
+					break;
+				case ExpressionFunc.MAX:
+					for (i2 = 0; i2 < n2; i2++)
+						dv1.setElement(i2, Math.max(dv1.getElement(i), dv2.getElement(i)));
+					break;
 				}
 				dv2.clear();
 				res1 = new StateProbsDV(dv1, model);
@@ -781,107 +882,15 @@ public class StateModelChecker implements ModelChecker
 			else {
 				dd1 = ((StateProbsMTBDD) res1).getJDDNode();
 				dd2 = ((StateProbsMTBDD) res2).getJDDNode();
-				dd1 = JDD.Apply(min ? JDD.MIN : JDD.MAX, dd1, dd2);
+				switch (op) {
+				case ExpressionFunc.MIN: dd1 = JDD.Apply(JDD.MIN, dd1, dd2); break;
+				case ExpressionFunc.MAX: dd1 = JDD.Apply(JDD.MAX, dd1, dd2); break;
+				}
 				res1 = new StateProbsMTBDD(dd1, model);
 			}
 		}
 
 		return res1;
-	}
-
-	private StateProbs checkExpressionFuncFloor(ExpressionFunc expr) throws PrismException
-	{
-		StateProbs res1 = null;
-		JDDNode dd1;
-		DoubleVector dv1;
-		int i, n;
-
-		// Check operand recursively
-		try {
-			res1 = checkExpression(expr.getOperand(0));
-		} catch (PrismException e) {
-			if (res1 != null)
-				res1.clear();
-			throw e;
-		}
-		// Symbolic
-		if (res1 instanceof StateProbsMTBDD) {
-			dd1 = ((StateProbsMTBDD) res1).getJDDNode();
-			dd1 = JDD.MonadicApply(JDD.FLOOR, dd1);
-			return new StateProbsMTBDD(dd1, model);
-		}
-		// Explicit
-		else {
-			dv1 = res1.convertToStateProbsDV().getDoubleVector();
-			n = dv1.getSize();
-			for (i = 0; i < n; i++)
-				dv1.setElement(i, Math.floor(dv1.getElement(i)));
-			return new StateProbsDV(dv1, model);
-		}
-	}
-
-	private StateProbs checkExpressionFuncCeil(ExpressionFunc expr) throws PrismException
-	{
-		StateProbs res1 = null;
-		JDDNode dd1;
-		DoubleVector dv1;
-		int i, n;
-
-		// Check operand recursively
-		try {
-			res1 = checkExpression(expr.getOperand(0));
-		} catch (PrismException e) {
-			if (res1 != null)
-				res1.clear();
-			throw e;
-		}
-		// Symbolic
-		if (res1 instanceof StateProbsMTBDD) {
-			dd1 = ((StateProbsMTBDD) res1).getJDDNode();
-			dd1 = JDD.MonadicApply(JDD.CEIL, dd1);
-			return new StateProbsMTBDD(dd1, model);
-		}
-		// Explicit
-		else {
-			dv1 = res1.convertToStateProbsDV().getDoubleVector();
-			n = dv1.getSize();
-			for (i = 0; i < n; i++)
-				dv1.setElement(i, Math.ceil(dv1.getElement(i)));
-			return new StateProbsDV(dv1, model);
-		}
-	}
-
-	private StateProbs checkExpressionFuncPow(ExpressionFunc expr) throws PrismException
-	{
-		JDDNode dd1, dd2, dd;
-
-		dd1 = checkExpressionDD(expr.getOperand(0));
-		dd2 = checkExpressionDD(expr.getOperand(1));
-		dd = JDD.Apply(JDD.POW, dd1, dd2);
-
-		return new StateProbsMTBDD(dd, model);
-	}
-
-	private StateProbs checkExpressionFuncMod(ExpressionFunc expr) throws PrismException
-	{
-		JDDNode dd1, dd2, dd;
-
-		dd1 = checkExpressionDD(expr.getOperand(0));
-		dd2 = checkExpressionDD(expr.getOperand(1));
-		dd = JDD.Apply(JDD.MOD, dd1, dd2);
-
-		return new StateProbsMTBDD(dd, model);
-	}
-
-	private StateProbs checkExpressionFuncLog(ExpressionFunc expr) throws PrismException
-	{
-		JDDNode dd1, dd2, dd;
-
-		dd1 = checkExpressionDD(expr.getOperand(0));
-		dd2 = checkExpressionDD(expr.getOperand(1));
-		dd = JDD.Apply(JDD.LOGXY, dd1, dd2);
-
-		return new StateProbsMTBDD(dd, model);
 	}
 
 	// Check a literal
