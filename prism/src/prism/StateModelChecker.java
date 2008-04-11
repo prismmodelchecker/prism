@@ -26,6 +26,8 @@
 
 package prism;
 
+import java.util.Vector;
+
 import dv.DoubleVector;
 import jdd.*;
 import odd.*;
@@ -97,6 +99,25 @@ public class StateModelChecker implements ModelChecker
 		engine = prism.getEngine();
 		termCritParam = prism.getTermCritParam();
 		verbose = prism.getVerbose();
+	}
+	
+	/**
+	 * Additional constructor for creating stripped down StateModelChecker for
+	 * expression to MTBDD conversions.
+	 */
+	public StateModelChecker(Prism prism, VarList varList, JDDVars allDDRowVars, JDDVars[] varDDRowVars, Values constantValues) throws PrismException
+	{
+		// Initialise
+		this.prism = prism;
+		mainLog = prism.getMainLog();
+		techLog = prism.getTechLog();
+		this.varList = varList;
+		this.varDDRowVars = varDDRowVars;
+		this.constantValues = constantValues;
+		// Create dummy model
+		reach = null;
+		model = new ProbModel(JDD.Constant(0), JDD.Constant(0), new JDDNode[] {}, null, null, allDDRowVars, null,
+				null, 0, null, null, null, 0, varList, varDDRowVars, null, constantValues);
 	}
 
 	// -----------------------------------------------------------------------------------
@@ -313,7 +334,8 @@ public class StateModelChecker implements ModelChecker
 
 		// Filter out non-reachable states from solution
 		// (only necessary for symbolically stored vectors)
-		if (res instanceof StateProbsMTBDD)
+		// (skip if reach is null, e.g. if just being used to convert arbitrary expressions)
+		if (res instanceof StateProbsMTBDD && reach != null)
 			res.filter(reach);
 
 		return res;

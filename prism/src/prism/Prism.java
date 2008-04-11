@@ -1074,7 +1074,7 @@ public class Prism implements PrismSettingsListener
 		LabelList ll;
 		Expression expr;
 		Values constantValues;
-		Expression2MTBDD expr2mtbdd = null;
+		StateModelChecker mc = null;
 		JDDNode dd, labels[];
 		String labelNames[];
 		
@@ -1096,15 +1096,14 @@ public class Prism implements PrismSettingsListener
 			constantValues = new Values();
 			constantValues.addValues(model.getConstantValues());
 			if (propertiesFile != null) constantValues.addValues(propertiesFile.getConstantValues());
-			expr2mtbdd = new Expression2MTBDD(mainLog, techLog, model.getVarList(), model.getVarDDRowVars(), constantValues);
-			expr2mtbdd.setFilter(model.getReach());
+			mc = new StateModelChecker(this, model, null);
 		}
 		labels = new JDDNode[n+2];
 		labels[0] = model.getStart();
 		labels[1] = model.getFixedDeadlocks();
 		for (i = 0; i < n; i++) {
 			expr = ll.getLabel(i);
-			dd = expr2mtbdd.translateExpression(expr);
+			dd = mc.checkExpressionDD(expr);
 			labels[i+2] = dd;
 		}
 		// put names for labels in an array

@@ -44,6 +44,9 @@ public class Modules2MTBDD
 	// Prism object
 	private Prism prism;
 	
+	// StateModelChecker for expression -> MTBDD conversion
+	private StateModelChecker expr2mtbdd;
+	
 	// logs
 	private PrismLog mainLog;		// main log
 	private PrismLog techLog;		// tech log
@@ -51,9 +54,6 @@ public class Modules2MTBDD
 	// ModulesFile object to store syntax tree from parser
 	private ModulesFile modulesFile;
 	
-	// Expression2MTBDD object for translating expressions
-	private Expression2MTBDD expr2mtbdd;
-
 	// model info
 	
 	// type
@@ -178,8 +178,8 @@ public class Modules2MTBDD
 		sortIdentities();
 		sortRanges();
 		
-		// create Expression2MTBDD object
-		expr2mtbdd = new Expression2MTBDD(mainLog, techLog, varList, varDDRowVars, constantValues);
+		// create stripped-down StateModelChecker for expression to MTBDD conversions
+		expr2mtbdd = new StateModelChecker(prism, varList, allDDRowVars, varDDRowVars, constantValues);
 		
 		// translate modules file into dd
 		translateModules();
@@ -1846,7 +1846,7 @@ public class Modules2MTBDD
 	private JDDNode translateExpression(Expression e) throws PrismException
 	{
 		// pass this work onto the Expression2MTBDD object
-		return expr2mtbdd.translateExpression(e);
+		return expr2mtbdd.checkExpressionDD(e);
 	}
 
 	// build state and transition rewards
