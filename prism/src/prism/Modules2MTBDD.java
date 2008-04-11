@@ -68,7 +68,7 @@ public class Modules2MTBDD
 	private Values constantValues;	// values of constants
 	// synch info
 	private int numSynchs;			// number of synchronisations
-	private Vector synchs;			// synchronisations
+	private Vector<String> synchs;			// synchronisations
 	// rewards
 	private int numRewardStructs;		// number of reward structs
 	private String[] rewardStructNames;	// reward struct names
@@ -109,7 +109,7 @@ public class Modules2MTBDD
 	private JDDNode[] ddSchedVars;		// individual dd vars for scheduling non-det.
 	private JDDNode[] ddChoiceVars;		// individual dd vars for local non-det.
 	// names for all dd vars used
-	private Vector ddVarNames;
+	private Vector<String> ddVarNames;
 	// flags for keeping track of which variables have been used
 	private boolean[] varsUsed;
 	
@@ -137,11 +137,11 @@ public class Modules2MTBDD
 		public ComponentDDs ind;		// for independent bit (i.e. tau action)
 		public ComponentDDs[] synchs;	// for each synchronising action
 		public JDDNode id;	 			// mtbdd for identity matrix
-		public HashSet allSynchs;		// set of all synchs used (syntactic)
+		public HashSet<String> allSynchs;		// set of all synchs used (syntactic)
 		public SystemDDs(int n)
 		{
 			synchs = new ComponentDDs[n];
-			allSynchs = new HashSet();
+			allSynchs = new HashSet<String>();
 		}
 	}
 	
@@ -294,9 +294,9 @@ public class Modules2MTBDD
 	private void allocateDDVars()
 	{
 		JDDNode v, vr, vc;
-		int i, j, l, m, n, last;
+		int i, j, m, n, last;
 		int ddVarsUsed = 0;
-		ddVarNames = new Vector();
+		ddVarNames = new Vector<String>();
 
 		switch (prism.getOrdering()) {
 		
@@ -632,10 +632,8 @@ public class Modules2MTBDD
 	private void translateModules() throws PrismException
 	{
 		SystemFullParallel sys;
-		Module module;
-		String synch;
-		JDDNode moduleDD, indDD = null, synchDD, id, dd, tmp;
-		int i, j, m, numCommands;
+		JDDNode tmp;
+		int i;
 		
 		varsUsed = new boolean[numVars];
 		
@@ -840,7 +838,7 @@ public class Modules2MTBDD
 		sysDDs.ind = translateModule(m, module, "", 0);
 		// build mtbdd for each synchronising action
 		for (i = 0; i < numSynchs; i++) {
-			synch = (String)synchs.elementAt(i);
+			synch = synchs.elementAt(i);
 			sysDDs.synchs[i] = translateModule(m, module, synch, synchMin[i]);
 		}
 		// store identity matrix
@@ -963,7 +961,7 @@ public class Modules2MTBDD
 		// go thru all synchronising actions and decide if we will synchronise on each one
 		synchBool = new boolean[numSynchs];
 		for (i = 0; i < numSynchs; i++) {
-			synchBool[i] = sys.containsAction((String)synchs.elementAt(i));
+			synchBool[i] = sys.containsAction(synchs.elementAt(i));
 		}
 		
 		// construct mtbdds for first operand
@@ -1015,15 +1013,14 @@ public class Modules2MTBDD
 	private SystemDDs translateSystemHide(SystemHide sys, int[] synchMin) throws PrismException
 	{
 		SystemDDs sysDDs1, sysDDs;
-		JDDNode v, tmp;
 		int[] newSynchMin;
-		int i, j;
+		int i;
 		
 		// reset synchMin to 0 for actions to be hidden
 		// store this in new array - old one may still be used elsewhere
 		newSynchMin = new int[numSynchs];
 		for (i = 0; i < numSynchs; i++) {
-			if (sys.containsAction((String)synchs.elementAt(i))) {
+			if (sys.containsAction(synchs.elementAt(i))) {
 				newSynchMin[i] = 0;
 			}
 			else {
@@ -1046,7 +1043,7 @@ public class Modules2MTBDD
 			// if the action is in the set to be hidden, hide it...
 			// note that it doesn't matter if an action is included more than once in the set
 			// (although this would be picked up during the syntax check anyway)
-			if (sys.containsAction((String)synchs.elementAt(i))) {
+			if (sys.containsAction(synchs.elementAt(i))) {
 				
 				// move these transitions into the independent bit
 				sysDDs.ind = combineComponentDDs(sysDDs.ind, sysDDs1.synchs[i]);
@@ -1082,11 +1079,10 @@ public class Modules2MTBDD
 	private SystemDDs translateSystemRename(SystemRename sys, int[] synchMin) throws PrismException
 	{
 		SystemDDs sysDDs1, sysDDs;
-		JDDNode v, tmp;
 		int[] newSynchMin;
 		int i, j;
 		String s;
-		Iterator iter;
+		Iterator<String> iter;
 		
 		// swap some values in synchMin due to renaming
 		// store this in new array - old one may still be used elsewhere
@@ -1094,7 +1090,7 @@ public class Modules2MTBDD
 		for (i = 0; i < numSynchs; i++) {
 			// find out what this action is renamed to
 			// (this may be itself, i.e. it's not renamed)
-			s = sys.getNewName((String)synchs.elementAt(i));
+			s = sys.getNewName(synchs.elementAt(i));
 			j = synchs.indexOf(s);
 			if (j == -1) {
 				throw new PrismLangException("Invalid action name \"" + s + "\" in renaming", sys);
@@ -1127,7 +1123,7 @@ public class Modules2MTBDD
 			// find out what this action is renamed to
 			// (this may be itself, i.e. it's not renamed)
 			// then add it to result
-			s = sys.getNewName((String)synchs.elementAt(i));
+			s = sys.getNewName(synchs.elementAt(i));
 			j = synchs.indexOf(s);
 			if (j == -1) {
 				throw new PrismLangException("Invalid action name \"" + s + "\" in renaming", sys);
@@ -1141,7 +1137,7 @@ public class Modules2MTBDD
 		// modify list of synchs
 		iter = sysDDs1.allSynchs.iterator();
 		while (iter.hasNext()) {
-			sysDDs.allSynchs.add(sys.getNewName((String)iter.next()));
+			sysDDs.allSynchs.add(sys.getNewName(iter.next()));
 		}
 		
 		return sysDDs;
@@ -1295,7 +1291,7 @@ public class Modules2MTBDD
 	private ComponentDDs translateModule(int m, Module module, String synch, int synchMin) throws PrismException
 	{
 		ComponentDDs compDDs;
-		JDDNode guardDDs[], upDDs[], rewDDs[], tmp;
+		JDDNode guardDDs[], upDDs[], tmp;
 		Command command;
 		int l, numCommands;
 		double dmin = 0, dmax = 0;
@@ -1564,7 +1560,7 @@ public class Modules2MTBDD
 	{
 		ComponentDDs compDDs;
 		int i, j, k, maxChoices, numDDChoiceVarsUsed;
-		JDDNode covered, transDD, overlaps, equalsi, tmp, tmp2, tmp3, v;
+		JDDNode covered, transDD, overlaps, equalsi, tmp, tmp2, tmp3;
 		//JDDNode rewardsDD;
 		JDDNode[] transDDbits, frees;
 		//JDDNode[] rewardsDDbits;

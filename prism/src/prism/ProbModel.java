@@ -84,7 +84,7 @@ public class ProbModel implements Model
 	protected JDDVars allDDRowVars; // all dd vars (rows)
 	protected JDDVars allDDColVars; // all dd vars (cols)
 	// names for all dd vars used
-	protected Vector ddVarNames;
+	protected Vector<String> ddVarNames;
 
 	protected ODDNode odd; // odd
 
@@ -355,7 +355,7 @@ public class ProbModel implements Model
 		return allDDRowVars.n() * 2;
 	}
 
-	public Vector getDDVarNames()
+	public Vector<String> getDDVarNames()
 	{
 		return ddVarNames;
 	}
@@ -378,7 +378,7 @@ public class ProbModel implements Model
 	// constructor
 
 	public ProbModel(JDDNode tr, JDDNode tr01, JDDNode s, JDDNode r, JDDNode dl, JDDNode sr[], JDDNode trr[],
-			String rsn[], JDDVars arv, JDDVars acv, Vector ddvn, int nm, String[] mn, JDDVars[] mrv, JDDVars[] mcv,
+			String rsn[], JDDVars arv, JDDVars acv, Vector<String> ddvn, int nm, String[] mn, JDDVars[] mrv, JDDVars[] mcv,
 			int nv, VarList vl, JDDVars[] vrv, JDDVars[] vcv, Values cv)
 	{
 		int i;

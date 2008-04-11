@@ -110,7 +110,7 @@ public class JDD
 	private static native void DD_PrintVectorFiltered(long dd, long filter, long vars, int num_vars, int accuracy);
 	// dd_export
 	private static native void DD_ExportDDToDotFile(long dd, String filename);
-	private static native void DD_ExportDDToDotFileLabelled(long dd, String filename, Vector var_names);
+	private static native void DD_ExportDDToDotFileLabelled(long dd, String filename, Vector<String> var_names);
 	private static native void DD_ExportMatrixToPPFile(long dd, long rvars, int num_rvars, long cvars, int num_cvars, String filename);
 	private static native void DD_ExportMatrixToMatlabFile(long dd, long rvars, int num_rvars, long cvars, int num_cvars, String name, String filename);
 	private static native void DD_ExportMatrixToSpyFile(long dd, long rvars, int num_rvars, long cvars, int num_cvars, int depth, String filename);
@@ -911,7 +911,7 @@ public class JDD
 	// export dd to a dot file
 	// [ REFS: <none>, DEREFS: <none> ]
 
-	public static void ExportDDToDotFileLabelled(JDDNode dd, String filename, Vector varNames)
+	public static void ExportDDToDotFileLabelled(JDDNode dd, String filename, Vector<String> varNames)
 	{
 		DD_ExportDDToDotFileLabelled(dd.ptr(), filename, varNames);
 	}
