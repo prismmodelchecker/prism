@@ -1410,8 +1410,8 @@ double CLog::EvaluateDouble()
 		base = rexpr->Evaluate();
 	else
 		base = rexpr->EvaluateDouble();
-	// If base is <0 or ==1 (or +Inf/NaN), then result is NaN
-	if (base < 0 || base == 1.0 || base == HUGE_VAL || base != base) { res = 0.0; res /= res; }
+	// If base is <=0 or ==1 (or +Inf/NaN), then result is NaN
+	if (base <= 0 || base == 1.0 || base == HUGE_VAL || base != base) { res = 0.0; res /= res; }
 	// If arg is <0 or NaN, then result is NaN
 	else if (val < 0 || val != val) { res = 0.0; res /= res; }
 	// If arg is +Inf, then result is +Inf
