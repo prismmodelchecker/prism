@@ -1086,8 +1086,8 @@ Cudd_addLogXY(
 
 	F = *f; G = *g;
 	if (cuddIsConstant(F) && cuddIsConstant(G)) {
-	// If base is <0 or ==1 (or +Inf/NaN), then result is NaN
-	if (cuddV(G) < 0 || cuddV(G) == 1.0 || G==DD_PLUS_INFINITY(dd) || cuddV(G) != cuddV(G)) value = (0.0/0.0);
+	// If base is <=0 or ==1 (or +Inf/NaN), then result is NaN
+	if (cuddV(G) <= 0 || cuddV(G) == 1.0 || G==DD_PLUS_INFINITY(dd) || cuddV(G) != cuddV(G)) value = (0.0/0.0);
 	// If arg is <0 or NaN, then result is NaN
 	else if (cuddV(F) < 0 || cuddV(F) != cuddV(F)) value = (0.0/0.0);
 	// If arg is +Inf, then result is +Inf
