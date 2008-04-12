@@ -1281,7 +1281,7 @@ public class Prism implements PrismSettingsListener
 			mc = new ProbModelChecker(this, model, null);
 			probs = ((ProbModelChecker)mc).doSteadyState();
 		}
-		else if (model.getType() == Model.DTMC) {
+		else if (model.getType() == Model.CTMC) {
 			mc = new StochModelChecker(this, model, null);
 			probs = ((StochModelChecker)mc).doSteadyState();
 		}
