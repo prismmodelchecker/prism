@@ -92,6 +92,32 @@ public class JDDVars
 		return DDV_GetIndex(((JDDNode)vars.elementAt(i)).ptr());
 	}
 	
+	public int getMinVarIndex()
+	{
+		int i, j, n, min;
+		n = vars.size();
+		if (n == 0) return -1;
+		min = getVarIndex(0);
+		for (i = 1; i < n; i++) {
+			j = getVarIndex(i);
+			if (j < min) min = j;
+		}
+		return min;
+	}
+	
+	public int getMaxVarIndex()
+	{
+		int i, j, n, max;
+		n = vars.size();
+		if (n == 0) return -1;
+		max = getVarIndex(0);
+		for (i = 1; i < n; i++) {
+			j = getVarIndex(i);
+			if (j > max) max = j;
+		}
+		return max;
+	}
+	
 	public void refAll()
 	{
 		int i;
