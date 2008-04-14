@@ -1,11 +1,6 @@
 //==============================================================================
 //	
-//	Copyright (c) 2002-
-//	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
-//	* Carlos S. Bederián (Universidad Nacional de Córdoba)
-//	
-//------------------------------------------------------------------------------
+//	Copyright (c) 2007 Carlos Bederian
 //	
 //	This file is part of PRISM.
 //	
@@ -25,24 +20,43 @@
 //	
 //==============================================================================
 
-package prism;
+package jltl2ba;
 
-import java.util.Vector;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
-import jdd.*;
-
-//	interface for SCC computing classes
-
-public interface SCCComputer
-{
-	// perform maximal SCC search
-	public void computeBSCCs();
+public class APElementIterator implements Iterator<APElement> {
 	
-	// get vector of maximal SCCs
-	// note: these BDDs aren't derefed by SCCComputer classes
-	public Vector<JDDNode> getVectBSCCs();
+	private APElement it;
+	private int _size;
 	
-	// get states not in any SCCs
-	// note: this BDD isn't derefed by SCCComputer classes
-	public JDDNode getNotInBSCCs();
+	// Iterator linked to a bitset
+	public APElementIterator(APElement ap_elem) {
+		_size = ap_elem.size();
+		it = new APElement(_size);
+	}
+	
+	// Iterator to 2^size elements
+	public APElementIterator(int size) {
+		_size = size;
+		it = new APElement(size);
+	}
+	
+	public boolean hasNext() {
+		return !it.get(_size); 
+	}
+	
+	public APElement next() throws NoSuchElementException {
+		if (hasNext()) {
+			APElement tmp = (APElement) it.clone();
+			it.increment();
+			return tmp;
+		}
+		else throw new NoSuchElementException();
+	}
+	
+	public void remove() throws UnsupportedOperationException
+	{
+		throw new UnsupportedOperationException();
+	}
 }

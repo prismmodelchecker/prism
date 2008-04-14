@@ -3,6 +3,7 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Carlos S. Bederián (Universidad Nacional de Córdoba)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -26,12 +27,15 @@
 
 package prism;
 
+import java.util.*;
+
 import jdd.*;
 import dv.*;
 import mtbdd.*;
 import sparse.*;
 import hybrid.*;
 import parser.ast.*;
+import jltl2dstar.*;
 
 /*
  * Model checker for MDPs
@@ -173,7 +177,7 @@ public class NondetModelChecker extends StateModelChecker
 
 		// Compute probabilities
 		boolean qual = pb != null && ((p == 0) || (p == 1)) && precomp;
-		probs = checkProbPathExpression(expr.getExpression(), qual, min);
+		probs = checkProbPathFormula(expr.getExpression(), qual, min);
 
 		// Print out probabilities
 		if (verbose) {
@@ -302,21 +306,22 @@ public class NondetModelChecker extends StateModelChecker
 		}
 	}
 
-	// Contents of a P operator
+	// Contents of a P operator, i.e. a path formula
 
-	protected StateProbs checkProbPathExpression(Expression expr, boolean qual, boolean min) throws PrismException
+	protected StateProbs checkProbPathFormula(Expression expr, boolean qual, boolean min) throws PrismException
 	{
 		// Test whether this is a simple path formula (i.e. PCTL)
 		// and then pass control to appropriate method. 
 		if (expr.isSimplePathFormula()) {
-			return checkProbPathExpressionSimple(expr, qual, min);
+			return checkProbPathFormulaSimple(expr, qual, min);
 		} else {
-			throw new PrismException("LTL-style path formulas are not supported");
+			return checkProbPathFormulaLTL(expr, qual, min);
 		}
 	}
 
-	protected StateProbs checkProbPathExpressionSimple(Expression expr, boolean qual, boolean min)
-			throws PrismException
+	// Simple path formula for P operator (one temporal op, possibly negated)
+
+	protected StateProbs checkProbPathFormulaSimple(Expression expr, boolean qual, boolean min) throws PrismException
 	{
 		StateProbs probs = null;
 
@@ -326,12 +331,12 @@ public class NondetModelChecker extends StateModelChecker
 			// Parentheses
 			if (exprUnary.getOperator() == ExpressionUnaryOp.PARENTH) {
 				// Recurse
-				probs = checkProbPathExpressionSimple(exprUnary.getOperand(), qual, min);
+				probs = checkProbPathFormulaSimple(exprUnary.getOperand(), qual, min);
 			}
 			// Negation
 			else if (exprUnary.getOperator() == ExpressionUnaryOp.NOT) {
 				// Flip min/max, then subtract from 1 
-				probs = checkProbPathExpressionSimple(exprUnary.getOperand(), qual, !min);
+				probs = checkProbPathFormulaSimple(exprUnary.getOperand(), qual, !min);
 				probs.subtractFromOne();
 			}
 		}
@@ -352,7 +357,7 @@ public class NondetModelChecker extends StateModelChecker
 			}
 			// Anything else - convert to until and recurse
 			else {
-				probs = checkProbPathExpressionSimple(exprTemp.convertToUntilForm(), qual, min);
+				probs = checkProbPathFormulaSimple(exprTemp.convertToUntilForm(), qual, min);
 			}
 		}
 
@@ -362,16 +367,61 @@ public class NondetModelChecker extends StateModelChecker
 		return probs;
 	}
 
+	// LTL-like path formula for P operator
+
+	protected StateProbs checkProbPathFormulaLTL(Expression expr, boolean qual, boolean min) throws PrismException
+	{
+		LTLModelChecker mcLtl;
+		StateProbs probs = null;
+		Expression ltl;
+		Vector<JDDNode> labelDDs;
+		DRA dra;
+		int i;
+		long l;
+		
+		mcLtl = new LTLModelChecker(prism, this, model);
+		
+		// Model check maximal state formulas
+		labelDDs = new Vector<JDDNode>();
+		ltl = mcLtl.checkMaximalStateFormulas(this, model, expr.deepCopy(), labelDDs);
+		
+		// Convert LTL formula to deterministic Rabin automaton (DRA)
+		mainLog.println("\nBuilding deterministic Rabin automaton (for "+ltl+")...");
+		l = System.currentTimeMillis();
+		dra = LTL2Rabin.ltl2rabin(ltl.convertForJltl2ba());
+		mainLog.println("\nDRA has " + dra.size() + " states.");
+		//dra.print(System.out);
+		l = System.currentTimeMillis() - l;
+		mainLog.println("\nTime for Rabin translation: " + l / 1000.0 + " seconds.");
+
+		// Build product of MDP and automaton
+		mainLog.println("\nConstructing Model-DRA product...");
+		NondetModel productModel = mcLtl.constructProductModel(dra, model, labelDDs);
+		mainLog.println();
+		productModel.printTransInfo(mainLog, prism.getExtraDDInfo());
+		
+		JDDNode acc = mcLtl.findAcceptingSCSSs(dra, productModel);
+		
+		NondetModelChecker mc2 = new NondetModelChecker(prism, productModel, null);
+		probs = mc2.computeUntilProbs(productModel.getTrans(), productModel.getTrans01(), productModel.getReach(), acc, min);
+		
+		productModel.clear();
+		
+		// Deref, clean up
+		for (i = 0; i < labelDDs.size(); i++) {
+			JDD.Deref(labelDDs.get(i));
+		}
+		JDD.Deref(acc);
+		
+		return probs;
+	}
+
 	// next
 
 	protected StateProbs checkProbNext(ExpressionTemporal expr, boolean min) throws PrismException
 	{
 		JDDNode b;
 		StateProbs probs = null;
-
-		// check not LTL
-		if (expr.getOperand2().getType() != Expression.BOOLEAN)
-			throw new PrismException("Invalid path formula");
 
 		// model check operand first
 		b = checkExpressionDD(expr.getOperand2());
@@ -396,12 +446,6 @@ public class NondetModelChecker extends StateModelChecker
 		int time;
 		JDDNode b1, b2;
 		StateProbs probs = null;
-
-		// check not LTL
-		if (expr.getOperand1().getType() != Expression.BOOLEAN)
-			throw new PrismException("Invalid path formula");
-		if (expr.getOperand2().getType() != Expression.BOOLEAN)
-			throw new PrismException("Invalid path formula");
 
 		// get info from bounded until
 		time = expr.getUpperBound().evaluateInt(constantValues, null);
@@ -455,12 +499,6 @@ public class NondetModelChecker extends StateModelChecker
 		JDDNode b1, b2, splus, newb1, newb2;
 		StateProbs probs = null;
 		long l;
-
-		// check not LTL
-		if (expr.getOperand1().getType() != Expression.BOOLEAN)
-			throw new PrismException("Invalid path formula");
-		if (expr.getOperand2().getType() != Expression.BOOLEAN)
-			throw new PrismException("Invalid path formula");
 
 		// model check operands first
 		b1 = checkExpressionDD(expr.getOperand1());

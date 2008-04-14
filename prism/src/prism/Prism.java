@@ -81,6 +81,11 @@ public class Prism implements PrismSettingsListener
 	public static final int EXPORT_MRMC = 4;
 	public static final int EXPORT_ROWS = 5;
 	
+	// methods for SCC decomposition
+	public static final int XIEBEEREL = 1;
+	public static final int LOCKSTEP = 2;
+	public static final int SCCFIND = 3;
+	
 	//------------------------------------------------------------------------------
 	// Settings / flags / options
 	//------------------------------------------------------------------------------
@@ -299,6 +304,11 @@ public class Prism implements PrismSettingsListener
 		settings.set(PrismSettings.PRISM_EXTRA_REACH_INFO, b);
 	}
 	
+	public void setSCCMethod(int i) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_SCC_METHOD, i-1); // note index offset correction
+	}
+	
 	// set methods for miscellaneous options
 	
 	public void setDoReach(boolean b) throws PrismException
@@ -394,6 +404,9 @@ public class Prism implements PrismSettingsListener
 	
 	public double getCUDDEpsilon()
 	{ return settings.getDouble(PrismSettings.PRISM_CUDD_EPSILON); }
+	
+	public int getSCCMethod()
+	{ return settings.getInteger(PrismSettings.PRISM_SCC_METHOD)+1; } //NOTE THE CORRECTION for the ChoiceSetting index
 	
 	// get methods for miscellaneous options
 	

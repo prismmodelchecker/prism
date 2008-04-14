@@ -146,6 +146,17 @@ public abstract class Expression extends ASTElement
 		return false;
 	}
 	
+	/*
+	 * Convert a property expression (an LTL formula) into the classes used by
+	 * the jltl2ba (and jltl2dstar) libraries.
+	 */
+	public jltl2ba.SimpleLTL convertForJltl2ba() throws PrismLangException
+	{
+		ConvertForJltl2ba visitor = new ConvertForJltl2ba();
+		accept(visitor);
+		return visitor.getFormula(this);
+	}
+	
 	// evaluate to an int
 	// any typing issues cause an exception
 	// [does nothing to the expression itself]

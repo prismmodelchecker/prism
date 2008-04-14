@@ -58,7 +58,7 @@ public class ProbModelChecker extends StateModelChecker
 		super(prism, m, pf);
 
 		// Create SCCComputer object
-		sccComputer = new SCCComputer(mainLog, techLog, model);
+		sccComputer = new SCCComputerXB(prism, reach, trans01, allDDRowVars, allDDColVars); // TODO: generalise?
 
 		// Inherit some options from parent Prism object.
 		// Store locally and/or pass onto engines.
@@ -176,7 +176,7 @@ public class ProbModelChecker extends StateModelChecker
 
 		// Compute probabilities
 		boolean qual = pb != null && ((p == 0) || (p == 1)) && precomp;
-		probs = checkProbPathExpression(expr.getExpression(), qual);
+		probs = checkProbPathFormula(expr.getExpression(), qual);
 
 		// Print out probabilities
 		if (prism.getVerbose()) {
@@ -506,18 +506,18 @@ public class ProbModelChecker extends StateModelChecker
 
 	// Contents of a P operator
 
-	protected StateProbs checkProbPathExpression(Expression expr, boolean qual) throws PrismException
+	protected StateProbs checkProbPathFormula(Expression expr, boolean qual) throws PrismException
 	{
 		// Test whether this is a simple path formula (i.e. PCTL)
 		// and then pass control to appropriate method. 
 		if (expr.isSimplePathFormula()) {
-			return checkProbPathExpressionSimple(expr, qual);
+			return checkProbPathFormulaSimple(expr, qual);
 		} else {
 			throw new PrismException("LTL-style path formulas are not supported");
 		}
 	}
 
-	protected StateProbs checkProbPathExpressionSimple(Expression expr, boolean qual) throws PrismException
+	protected StateProbs checkProbPathFormulaSimple(Expression expr, boolean qual) throws PrismException
 	{
 		StateProbs probs = null;
 
@@ -527,12 +527,12 @@ public class ProbModelChecker extends StateModelChecker
 			// Parentheses
 			if (exprUnary.getOperator() == ExpressionUnaryOp.PARENTH) {
 				// Recurse
-				probs = checkProbPathExpressionSimple(exprUnary.getOperand(), qual);
+				probs = checkProbPathFormulaSimple(exprUnary.getOperand(), qual);
 			}
 			// Negation
 			else if (exprUnary.getOperator() == ExpressionUnaryOp.NOT) {
 				// Compute, then subtract from 1 
-				probs = checkProbPathExpressionSimple(exprUnary.getOperand(), qual);
+				probs = checkProbPathFormulaSimple(exprUnary.getOperand(), qual);
 				probs.subtractFromOne();
 			}
 		}
@@ -553,7 +553,7 @@ public class ProbModelChecker extends StateModelChecker
 			}
 			// Anything else - convert to until and recurse
 			else {
-				probs = checkProbPathExpressionSimple(exprTemp.convertToUntilForm(), qual);
+				probs = checkProbPathFormulaSimple(exprTemp.convertToUntilForm(), qual);
 			}
 		}
 
@@ -569,10 +569,6 @@ public class ProbModelChecker extends StateModelChecker
 	{
 		JDDNode b;
 		StateProbs probs = null;
-
-		// check not LTL
-		if (expr.getOperand2().getType() != Expression.BOOLEAN)
-			throw new PrismException("Invalid path formula");
 
 		// model check operand first
 		b = checkExpressionDD(expr.getOperand2());
@@ -597,12 +593,6 @@ public class ProbModelChecker extends StateModelChecker
 		int time;
 		JDDNode b1, b2;
 		StateProbs probs = null;
-
-		// check not LTL
-		if (expr.getOperand1().getType() != Expression.BOOLEAN)
-			throw new PrismException("Invalid path formula");
-		if (expr.getOperand2().getType() != Expression.BOOLEAN)
-			throw new PrismException("Invalid path formula");
 
 		// get info from bounded until
 		time = expr.getUpperBound().evaluateInt(constantValues, null);
@@ -655,12 +645,6 @@ public class ProbModelChecker extends StateModelChecker
 	{
 		JDDNode b1, b2;
 		StateProbs probs = null;
-
-		// check not LTL
-		if (expr.getOperand1().getType() != Expression.BOOLEAN)
-			throw new PrismException("Invalid path formula");
-		if (expr.getOperand2().getType() != Expression.BOOLEAN)
-			throw new PrismException("Invalid path formula");
 
 		// model check operands first
 		b1 = checkExpressionDD(expr.getOperand1());

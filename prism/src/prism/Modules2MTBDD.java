@@ -370,6 +370,14 @@ public class Modules2MTBDD
 				}
 			}
 			
+			// create a gap in the dd variables
+			// this allows to prepend additionl row/col vars, e.g. for constructing
+			// a product model when doing LTL model checking
+			for (i = 0; i < 20; i++) {
+				ddVarsUsed++;
+				ddVarNames.add("");
+			}
+			
 			// allocate dd variables for module variables (i.e. rows/cols)
 			// go through all vars in order (incl. global variables)
 			// so overall ordering can be specified by ordering in the input file

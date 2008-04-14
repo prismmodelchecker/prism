@@ -26,6 +26,7 @@
 
 package prism;
 
+import jdd.JDDNode;
 import parser.ast.*;
 
 // interface for model checker classes
@@ -34,6 +35,8 @@ public interface ModelChecker
 {
 	public Result check(Expression expr) throws PrismException;
 	public Result check(Expression expr, Filter filter) throws PrismException;
+	public StateProbs checkExpression(Expression expr) throws PrismException;
+	public JDDNode checkExpressionDD(Expression expr) throws PrismException;
 }
 
 //------------------------------------------------------------------------------

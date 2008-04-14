@@ -1,11 +1,6 @@
 //==============================================================================
 //	
-//	Copyright (c) 2002-
-//	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
-//	* Carlos S. Bederián (Universidad Nacional de Córdoba)
-//	
-//------------------------------------------------------------------------------
+//	Copyright (c) 2007 Carlos Bederian
 //	
 //	This file is part of PRISM.
 //	
@@ -25,24 +20,45 @@
 //	
 //==============================================================================
 
-package prism;
+package jltl2ba;
 
-import java.util.Vector;
-
-import jdd.*;
-
-//	interface for SCC computing classes
-
-public interface SCCComputer
-{
-	// perform maximal SCC search
-	public void computeBSCCs();
+/**
+ * Class representing an element of 2^AP. 
+ */
+public class APElement extends MyBitSet {
 	
-	// get vector of maximal SCCs
-	// note: these BDDs aren't derefed by SCCComputer classes
-	public Vector<JDDNode> getVectBSCCs();
+	public APElement() {
+		super();
+	}
 	
-	// get states not in any SCCs
-	// note: this BDD isn't derefed by SCCComputer classes
-	public JDDNode getNotInBSCCs();
+	public APElement(int size) {
+		super(size);
+	}
+	
+	public APElement(MyBitSet m) {
+		super(m.size());
+		for (Integer i : m) {
+			this.set(i);
+		}
+	}
+	
+	public String toString(APSet ap_set, boolean spaces) 
+	{
+		if (ap_set.size()==0) {return "true";}
+		String r = "";
+		for (int i = 0; i < ap_set.size(); i++) {
+			if (i>=1) {
+				r += "&";
+			}
+			if (!this.get(i)) {
+				r += "!";
+			} else {
+				if (spaces) {
+					r +=" ";
+				}
+			}
+			r += ap_set.getAP(i);
+		}
+		return r;
+	}
 }
