@@ -162,8 +162,9 @@ public class JDDVars
 			s = s + getVarIndex(i) + ", ";
 		}
 		if (vars.size() > 0) {
-			s = s + getVarIndex(vars.size() - 1) + "}";
+			s = s + getVarIndex(vars.size() - 1);
 		}
+		s += "}";
 		
 		return s;
 	}
