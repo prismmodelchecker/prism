@@ -153,9 +153,6 @@ public class NondetModel extends ProbModel
 
 		// build odd
 		odd = ODDUtils.BuildODD(reach, allDDRowVars);
-
-		// store reachable states in a StateList
-		reachStateList = new StateListMTBDD(reach, this);
 	}
 
 	// remove non-reachable states from various dds
@@ -189,9 +186,6 @@ public class NondetModel extends ProbModel
 		// find reachable states with no transitions
 		JDD.Ref(reach);
 		deadlocks = JDD.And(reach, JDD.Not(deadlocks));
-
-		// store deadlock states in a StateList
-		deadlockStateList = new StateListMTBDD(deadlocks, this);
 	}
 
 	// remove deadlocks by adding self-loops
@@ -214,7 +208,6 @@ public class NondetModel extends ProbModel
 			JDD.Deref(fixdl);
 			fixdl = deadlocks;
 			deadlocks = JDD.Constant(0);
-			deadlockStateList = new StateListMTBDD(deadlocks, this);
 			// update mask
 			JDD.Deref(nondetMask);
 			JDD.Ref(trans01);

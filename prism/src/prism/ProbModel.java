@@ -57,12 +57,6 @@ public class ProbModel implements Model
 	protected double numStates; // number of states
 	protected double numTransitions; // number of transitions
 	protected double numStartStates; // number of initial states
-	// reachable state list
-	protected StateListMTBDD reachStateList = null;
-	// deadlock state list
-	protected StateListMTBDD deadlockStateList = null;
-	// initial state list
-	protected StateListMTBDD startStateList = null;
 
 	// mtbdd stuff
 
@@ -207,17 +201,17 @@ public class ProbModel implements Model
 	// lists of states
 	public StateList getReachableStates()
 	{
-		return reachStateList;
+		return new StateListMTBDD(reach, this);
 	}
 
 	public StateList getDeadlockStates()
 	{
-		return deadlockStateList;
+		return new StateListMTBDD(deadlocks, this);
 	}
 
 	public StateList getStartStates()
 	{
-		return startStateList;
+		return new StateListMTBDD(start, this);
 	}
 
 	// mtbdd stuff
@@ -418,9 +412,6 @@ public class ProbModel implements Model
 
 		// work out number of initial states
 		numStartStates = JDD.GetNumMinterms(start, allDDRowVars.n());
-
-		// store initial states in a StateList
-		startStateList = new StateListMTBDD(start, this);
 	}
 
 	// do reachability
@@ -440,9 +431,6 @@ public class ProbModel implements Model
 
 		// build odd
 		odd = ODDUtils.BuildODD(reach, allDDRowVars);
-
-		// store reachable states in a StateList
-		reachStateList = new StateListMTBDD(reach, this);
 	}
 
 	// this method allows you to skip the reachability phase
@@ -458,9 +446,6 @@ public class ProbModel implements Model
 
 		// build odd
 		odd = ODDUtils.BuildODD(reach, allDDRowVars);
-
-		// store reachable states in a StateList
-		reachStateList = new StateListMTBDD(reach, this);
 	}
 
 	// remove non-reachable states from various dds
@@ -511,9 +496,6 @@ public class ProbModel implements Model
 		// find reachable states with no transitions
 		JDD.Ref(reach);
 		deadlocks = JDD.And(reach, JDD.Not(deadlocks));
-
-		// store deadlock states in a StateList
-		deadlockStateList = new StateListMTBDD(deadlocks, this);
 	}
 
 	// remove deadlocks by adding self-loops
@@ -533,7 +515,6 @@ public class ProbModel implements Model
 			JDD.Deref(fixdl);
 			fixdl = deadlocks;
 			deadlocks = JDD.Constant(0);
-			deadlockStateList = new StateListMTBDD(deadlocks, this);
 			// update model stats
 			numTransitions = JDD.GetNumMinterms(trans01, getNumDDVarsInTrans());
 		}
