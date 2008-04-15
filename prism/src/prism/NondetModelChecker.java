@@ -409,7 +409,7 @@ public class NondetModelChecker extends StateModelChecker
 		
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = new NondetModelChecker(prism, modelProduct, null);
-		probsProduct = mcProduct.computeUntilProbs(modelProduct.getTrans(), modelProduct.getTrans01(), modelProduct.getReach(), acc, min);
+		probsProduct = mcProduct.checkProbUntil(modelProduct.getReach(), acc, qual, min);
 		
 		// Convert probability vector to original model
 		// First, filter over DRA start states
@@ -510,12 +510,13 @@ public class NondetModelChecker extends StateModelChecker
 	}
 
 	// until (unbounded)
+	
+	// this method is split into two steps so that the LTL model checker can use the second part directly 
 
 	protected StateProbs checkProbUntil(ExpressionTemporal expr, boolean qual, boolean min) throws PrismException
 	{
-		JDDNode b1, b2, splus, newb1, newb2;
+		JDDNode b1, b2;
 		StateProbs probs = null;
-		long l;
 
 		// model check operands first
 		b1 = checkExpressionDD(expr.getOperand1());
@@ -531,6 +532,30 @@ public class NondetModelChecker extends StateModelChecker
 		// allDDRowVars.n()));
 		// mainLog.print(" states, b2 = " + JDD.GetNumMintermsString(b2,
 		// allDDRowVars.n()) + " states\n");
+		
+		try {
+			probs = checkProbUntil(b1, b2, qual, min);
+		}
+		catch (PrismException e) {
+			JDD.Deref(b1);
+			JDD.Deref(b2);
+			throw e;
+		}
+		
+		// derefs
+		JDD.Deref(b1);
+		JDD.Deref(b2);
+
+		return probs;
+	}
+	
+	// until (unbounded): b1/b2 are bdds for until operands
+	
+	protected StateProbs checkProbUntil(JDDNode b1, JDDNode b2, boolean qual, boolean min) throws PrismException
+	{
+		JDDNode splus, newb1, newb2;
+		StateProbs probs = null;
+		long l;
 
 		// compute probabilities
 
@@ -549,21 +574,23 @@ public class NondetModelChecker extends StateModelChecker
 			JDD.Ref(splus);
 			JDD.Ref(b2);
 			newb1 = JDD.And(splus, JDD.Not(b2));
-			JDD.Deref(b1);
-			JDD.Deref(b2);
 			JDD.Deref(splus);
 			JDD.Ref(reach);
-			b1 = JDD.And(reach, newb1);
+			newb1 = JDD.And(reach, newb1);
 			JDD.Ref(reach);
-			b2 = JDD.And(reach, newb2);
+			newb2 = JDD.And(reach, newb2);
 			// stop timer
 			l = System.currentTimeMillis() - l;
 			// print out conversion info
 			mainLog.print("\nTime for fairness conversion: " + l / 1000.0 + " seconds.\n");
-			// mainLog.print("\nb1 = " + JDD.GetNumMintermsString(b1,
-			// allDDRowVars.n()));
-			// mainLog.print(" states, b2 = " + JDD.GetNumMintermsString(b2,
-			// allDDRowVars.n()) + " states\n");
+			// mainLog.print("\nb1 = " + JDD.GetNumMintermsString(newb1, allDDRowVars.n()));
+			// mainLog.print(" states, b2 = " + JDD.GetNumMintermsString(newb2, allDDRowVars.n()) + " states\n");
+		}
+		else {
+			JDD.Ref(b1);
+			newb1 = b1; 
+			JDD.Ref(b2);
+			newb2 = b2; 
 		}
 
 		// if requested (i.e. when prob bound is 0 or 1 and precomputation algorithms are enabled),
@@ -572,16 +599,17 @@ public class NondetModelChecker extends StateModelChecker
 			mainLog.print("\nWarning: probability bound in formula is"
 					+ " 0/1 so exact probabilities may not be computed\n");
 			// for fairness, we compute max here
-			probs = computeUntilProbsQual(trans01, b1, b2, min && !fairness);
+			probs = computeUntilProbsQual(trans01, newb1, newb2, min && !fairness);
 		}
 		// otherwise actually compute probabilities
 		else {
 			// for fairness, we compute max here
 			try {
-				probs = computeUntilProbs(trans, trans01, b1, b2, min && !fairness);
-			} catch (PrismException e) {
-				JDD.Deref(b1);
-				JDD.Deref(b2);
+				probs = computeUntilProbs(trans, trans01, newb1, newb2, min && !fairness);
+			}
+			catch (PrismException e) {
+				JDD.Deref(newb1);
+				JDD.Deref(newb2);
 				throw e;
 			}
 		}
@@ -592,11 +620,11 @@ public class NondetModelChecker extends StateModelChecker
 		if (min && fairness) {
 			probs.subtractFromOne();
 		}
-
-		// derefs
-		JDD.Deref(b1);
-		JDD.Deref(b2);
-
+		
+		// Derefs
+		JDD.Deref(newb1);
+		JDD.Deref(newb2);
+		
 		return probs;
 	}
 
