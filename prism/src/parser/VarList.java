@@ -35,42 +35,65 @@ import prism.PrismUtils;
 public class VarList
 {
 	int numVars;
-	Vector names;
-	Vector lows;
-	Vector highs;
-	Vector ranges;
-	Vector rangeLogTwos;
-	Vector starts;
-	Vector modules;
-	Vector types;
+	Vector<String> names;
+	Vector<Integer> lows;
+	Vector<Integer> highs;
+	Vector<Integer> ranges;
+	Vector<Integer> rangeLogTwos;
+	Vector<Integer> starts;
+	Vector<Integer> modules;
+	Vector<Integer> types;
 	
 	public VarList()
 	{
 		numVars = 0;
-		names = new Vector();
-		lows = new Vector();
-		highs = new Vector();
-		ranges = new Vector();
-		rangeLogTwos = new Vector();
-		starts = new Vector();
-		modules = new Vector();
-		types = new Vector();
+		names = new Vector<String>();
+		lows = new Vector<Integer>();
+		highs = new Vector<Integer>();
+		ranges = new Vector<Integer>();
+		rangeLogTwos = new Vector<Integer>();
+		starts = new Vector<Integer>();
+		modules = new Vector<Integer>();
+		types = new Vector<Integer>();
 	}
 	
+	/**
+	 * Add a new variable to the end of the VarList.
+	 */
 	public void addVar(String n, int l, int h, int s, int m, int t)
 	{
 		int r, r2;
 		
-		names.addElement(n);
-		lows.addElement(new Integer(l));
-		highs.addElement(new Integer(h));
+		names.add(n);
+		lows.add(l);
+		highs.add(h);
 		r = h - l + 1;
-		ranges.addElement(new Integer(r));
+		ranges.add(r);
 		r2 = (int)Math.ceil(PrismUtils.log2(r));
-		rangeLogTwos.addElement(new Integer(r2));
-		starts.addElement(new Integer(s));
-		modules.addElement(new Integer(m));
-		types.addElement(new Integer(t));
+		rangeLogTwos.add(r2);
+		starts.add(s);
+		modules.add(m);
+		types.add(t);
+		numVars++;
+	}
+	
+	/**
+	 * Add a new variable at position i in the VarList.
+	 */
+	public void addVar(int i, String n, int l, int h, int s, int m, int t)
+	{
+		int r, r2;
+		
+		names.add(i, n);
+		lows.add(i, l);
+		highs.add(i, h);
+		r = h - l + 1;
+		ranges.add(i, r);
+		r2 = (int)Math.ceil(PrismUtils.log2(r));
+		rangeLogTwos.add(i, r2);
+		starts.add(i, s);
+		modules.add(i, m);
+		types.add(i, t);
 		numVars++;
 	}
 	
@@ -127,6 +150,22 @@ public class VarList
 	public int getType(int i)
 	{
 		return ((Integer)types.elementAt(i)).intValue();
+	}
+	
+	public Object clone()
+	{
+		VarList rv = new VarList();
+		rv.numVars = numVars;
+		rv.names.addAll(names);
+		rv.lows.addAll(lows);
+		rv.highs.addAll(highs);
+		rv.ranges.addAll(ranges);
+		rv.rangeLogTwos.addAll(rangeLogTwos);
+		rv.starts.addAll(starts);
+		rv.modules.addAll(modules);
+		rv.types.addAll(types);
+		
+		return rv;
 	}
 }
 

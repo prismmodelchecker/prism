@@ -283,6 +283,16 @@ public class StateProbsMTBDD implements StateProbs
 		return d;
 	}
 	
+	public StateProbs sumOverDDVars(JDDVars sumVars, Model newModel)
+	{
+		JDDNode tmp;
+		
+		JDD.Ref(probs);
+		tmp = JDD.SumAbstract(probs, sumVars);
+		
+		return new StateProbsMTBDD(tmp, newModel);
+	}
+	
 	// generate bdd (from an interval: relative operator and bound)
 	
 	public JDDNode getBDDFromInterval(String relOp, double bound)

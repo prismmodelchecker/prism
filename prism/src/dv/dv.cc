@@ -39,6 +39,7 @@ static double min_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNo
 static double max_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
 static double sum_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
 static double sum_double_vector_over_mtbdd_rec(DdManager *ddman, double *vec, DdNode *mult, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
+static void sum_double_vector_over_dd_vars_rec(DdManager *ddman, double *vec, double *vec2, DdNode **vars, int num_vars, int level, int first_var, int last_var, ODDNode *odd, ODDNode *odd2, long o, long o2);
 
 //------------------------------------------------------------------------------
 
@@ -381,6 +382,40 @@ double sum_double_vector_over_mtbdd_rec(DdManager *ddman, double *vec, DdNode *m
 			d += sum_double_vector_over_mtbdd_rec(ddman, vec, dd, vars, num_vars, level+1, odd->t, o+odd->eoff);
 		}
 		return d;
+	}
+}	
+
+//------------------------------------------------------------------------------
+
+// sum up the elements of a double array, over a subset of its dd vars
+// the dd var subset must be a continuous range of vars, identified by indices: first_var, last_var
+// store the result in the vector vec2
+
+EXPORT void sum_double_vector_over_dd_vars(DdManager *ddman, double *vec, double *vec2, DdNode **vars, int num_vars, int first_var, int last_var, ODDNode *odd, ODDNode *odd2)
+{
+	return sum_double_vector_over_dd_vars_rec(ddman, vec, vec2, vars, num_vars, 0, first_var, last_var, odd, odd2, 0, 0);
+}
+
+void sum_double_vector_over_dd_vars_rec(DdManager *ddman, double *vec, double *vec2, DdNode **vars, int num_vars, int level, int first_var, int last_var, ODDNode *odd, ODDNode *odd2, long o, long o2)
+{
+	if (level == num_vars) {
+		vec2[o2] += vec[o];
+	}
+	else {
+		if (odd->eoff > 0) {
+			if (vars[level]->index >= first_var && vars[level]->index <= last_var) {
+				sum_double_vector_over_dd_vars_rec(ddman, vec, vec2, vars, num_vars, level+1, first_var, last_var, odd->e, odd2, o, o2);
+			} else {
+				sum_double_vector_over_dd_vars_rec(ddman, vec, vec2, vars, num_vars, level+1, first_var, last_var, odd->e, odd2->e, o, o2);
+			}
+		}
+		if (odd->toff > 0) {
+			if (vars[level]->index >= first_var && vars[level]->index <= last_var) {
+				sum_double_vector_over_dd_vars_rec(ddman, vec, vec2, vars, num_vars, level+1, first_var, last_var, odd->t, odd2, o+odd->eoff, o2);
+			} else {
+				sum_double_vector_over_dd_vars_rec(ddman, vec, vec2, vars, num_vars, level+1, first_var, last_var, odd->t, odd2->t, o+odd->eoff, o2+odd2->eoff);
+			}
+		}
 	}
 }	
 

@@ -312,7 +312,7 @@ public class NondetModelChecker extends StateModelChecker
 	{
 		// Test whether this is a simple path formula (i.e. PCTL)
 		// and then pass control to appropriate method. 
-		if (expr.isSimplePathFormula()) {
+		if (1==2){//expr.isSimplePathFormula()) {
 			return checkProbPathFormulaSimple(expr, qual, min);
 		} else {
 			return checkProbPathFormulaLTL(expr, qual, min);
@@ -372,18 +372,22 @@ public class NondetModelChecker extends StateModelChecker
 	protected StateProbs checkProbPathFormulaLTL(Expression expr, boolean qual, boolean min) throws PrismException
 	{
 		LTLModelChecker mcLtl;
-		StateProbs probs = null;
+		StateProbs probsProduct = null, probs = null;
 		Expression ltl;
 		Vector<JDDNode> labelDDs;
 		DRA dra;
+		NondetModel modelProduct;
+		NondetModelChecker mcProduct;
+		JDDNode startMask;
+		JDDVars draDDRowVars;
 		int i;
 		long l;
 		
-		mcLtl = new LTLModelChecker(prism, this, model);
+		mcLtl = new LTLModelChecker(prism, this);
 		
 		// Model check maximal state formulas
 		labelDDs = new Vector<JDDNode>();
-		ltl = mcLtl.checkMaximalStateFormulas(this, model, expr.deepCopy(), labelDDs);
+		ltl = mcLtl.checkMaximalStateFormulas(model, expr.deepCopy(), labelDDs);
 		
 		// Convert LTL formula to deterministic Rabin automaton (DRA)
 		mainLog.println("\nBuilding deterministic Rabin automaton (for "+ltl+")...");
@@ -396,18 +400,31 @@ public class NondetModelChecker extends StateModelChecker
 
 		// Build product of MDP and automaton
 		mainLog.println("\nConstructing Model-DRA product...");
-		NondetModel productModel = mcLtl.constructProductModel(dra, model, labelDDs);
+		modelProduct = mcLtl.constructProductModel(dra, model, labelDDs);
 		mainLog.println();
-		productModel.printTransInfo(mainLog, prism.getExtraDDInfo());
+		modelProduct.printTransInfo(mainLog, prism.getExtraDDInfo());
 		
-		JDDNode acc = mcLtl.findAcceptingSCSSs(dra, productModel);
+		mainLog.println("\nFinding accepting SCCs...");
+		JDDNode acc = mcLtl.findAcceptingSCSSs(dra, modelProduct);
 		
-		NondetModelChecker mc2 = new NondetModelChecker(prism, productModel, null);
-		probs = mc2.computeUntilProbs(productModel.getTrans(), productModel.getTrans01(), productModel.getReach(), acc, min);
+		mainLog.println("\nComputing reachability probabilities...");
+		mcProduct = new NondetModelChecker(prism, modelProduct, null);
+		probsProduct = mcProduct.computeUntilProbs(modelProduct.getTrans(), modelProduct.getTrans01(), modelProduct.getReach(), acc, min);
 		
-		productModel.clear();
+		// Convert probability vector to original model
+		// First, filter over DRA start states
+		startMask = mcLtl.buildStartMask(dra, labelDDs);
+		probsProduct.filter(startMask);
+		JDD.Deref(startMask);
+		// Then sum over DD vars for the DRA state
+		draDDRowVars = new JDDVars();
+		draDDRowVars.addVars(modelProduct.getAllDDRowVars());
+		draDDRowVars.removeVars(allDDRowVars);
+		probs = probsProduct.sumOverDDVars(draDDRowVars, model);
 		
 		// Deref, clean up
+		probsProduct.clear();
+		modelProduct.clear();
 		for (i = 0; i < labelDDs.size(); i++) {
 			JDD.Deref(labelDDs.get(i));
 		}

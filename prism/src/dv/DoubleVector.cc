@@ -373,6 +373,33 @@ jlong __pointer odd
 
 //------------------------------------------------------------------------------
 
+JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1SumOverDDVars
+(
+JNIEnv *env,
+jobject obj,
+jlong __pointer vector,
+jlong __pointer vector2,
+jlong __pointer vars,
+jint num_vars,
+jint first_var,
+jint last_var,
+jlong __pointer odd,
+jlong __pointer odd2
+)
+{
+	sum_double_vector_over_dd_vars(
+		ddman,
+		jlong_to_double(vector),
+		jlong_to_double(vector2),
+		jlong_to_DdNode_array(vars), num_vars,
+		first_var, last_var,
+		jlong_to_ODDNode(odd),
+		jlong_to_ODDNode(odd2)
+	);
+}
+
+//------------------------------------------------------------------------------
+
 JNIEXPORT jlong __pointer JNICALL Java_dv_DoubleVector_DV_1BDDGreaterThanEquals
 (
 JNIEnv *env,

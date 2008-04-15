@@ -30,10 +30,6 @@ package prism;
 import java.util.*;
 
 import jdd.*;
-import dv.*;
-import mtbdd.*;
-import sparse.*;
-import hybrid.*;
 import parser.*;
 import parser.ast.*;
 import jltl2ba.APElement;
@@ -51,7 +47,7 @@ public class LTLModelChecker
 	protected JDDVars draDDRowVars;
 	protected JDDVars draDDColVars;
 
-	public LTLModelChecker(Prism prism, ModelChecker parent, Model model) throws PrismException
+	public LTLModelChecker(Prism prism, ModelChecker parent) throws PrismException
 	{
 		this.prism = prism;
 		mainLog = prism.getMainLog();
@@ -63,13 +59,13 @@ public class LTLModelChecker
 	 * As an optimisation, model checking that results in true/false for all states is
 	 * converted to an actual true/false, and duplicate results are given the same label.
 	 */
-	public Expression checkMaximalStateFormulas(ModelChecker mc, Model model, Expression expr, Vector<JDDNode> labelDDs)
+	public Expression checkMaximalStateFormulas(Model model, Expression expr, Vector<JDDNode> labelDDs)
 			throws PrismException
 	{
 		// A state formula
 		if (expr.getType() == Expression.BOOLEAN) {
 			// Model check
-			JDDNode dd = mc.checkExpressionDD(expr);
+			JDDNode dd = parent.checkExpressionDD(expr);
 			// Detect special cases (true, false) for optimisation
 			if (dd.equals(JDD.ZERO)) {
 				JDD.Deref(dd);
@@ -94,66 +90,66 @@ public class LTLModelChecker
 		else if (expr.getType() == Expression.PATH_BOOLEAN) {
 			if (expr instanceof ExpressionBinaryOp) {
 				ExpressionBinaryOp exprBinOp = (ExpressionBinaryOp) expr;
-				exprBinOp.setOperand1(checkMaximalStateFormulas(mc, model, exprBinOp.getOperand1(), labelDDs));
-				exprBinOp.setOperand2(checkMaximalStateFormulas(mc, model, exprBinOp.getOperand2(), labelDDs));
+				exprBinOp.setOperand1(checkMaximalStateFormulas(model, exprBinOp.getOperand1(), labelDDs));
+				exprBinOp.setOperand2(checkMaximalStateFormulas(model, exprBinOp.getOperand2(), labelDDs));
 			} else if (expr instanceof ExpressionUnaryOp) {
 				ExpressionUnaryOp exprUnOp = (ExpressionUnaryOp) expr;
-				exprUnOp.setOperand(checkMaximalStateFormulas(mc, model, exprUnOp.getOperand(), labelDDs));
+				exprUnOp.setOperand(checkMaximalStateFormulas(model, exprUnOp.getOperand(), labelDDs));
 			} else if (expr instanceof ExpressionTemporal) {
 				ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
 				if (exprTemp.getOperand1() != null) {
-					exprTemp.setOperand1(checkMaximalStateFormulas(mc, model, exprTemp.getOperand1(), labelDDs));
+					exprTemp.setOperand1(checkMaximalStateFormulas(model, exprTemp.getOperand1(), labelDDs));
 				}
 				if (exprTemp.getOperand2() != null) {
-					exprTemp.setOperand2(checkMaximalStateFormulas(mc, model, exprTemp.getOperand2(), labelDDs));
+					exprTemp.setOperand2(checkMaximalStateFormulas(model, exprTemp.getOperand2(), labelDDs));
 				}
 			}
 		}
 		return expr;
 	}
 
-	public NondetModel constructProductModel(DRA dra, Model model, Vector<JDDNode> labelDDs)
+	public NondetModel constructProductModel(DRA dra, Model model, Vector<JDDNode> labelDDs) throws PrismException
 	{
-		// Old model stuff
-		VarList varList;
+		// Existing model - dds, vars, etc.
 		JDDVars varDDRowVars[];
 		JDDVars varDDColVars[];
 		JDDVars allDDRowVars;
 		JDDVars allDDColVars;
-		JDDVars allDDNondetVars;
 		Vector<String> ddVarNames;
-		
-		JDDNode draDD, newTrans, newStart;
+		VarList varList;
+		// New (product) model - dds, vars, etc.
+		JDDNode newTrans, newStart;
 		JDDVars newVarDDRowVars[], newVarDDColVars[];
 		JDDVars newAllDDRowVars, newAllDDColVars;
 		Vector<String> newDDVarNames;
+		VarList newVarList;
 		String draVar;
+		// Misc
 		int i, j, n;
 		boolean before;
 
-		varList = model.getVarList();
+		// Get details of old model
 		varDDRowVars = model.getVarDDRowVars();
 		varDDColVars = model.getVarDDColVars();
 		allDDRowVars = model.getAllDDRowVars();
 		allDDColVars = model.getAllDDColVars();
-		allDDNondetVars = ((NondetModel) model).getAllDDNondetVars();
 		ddVarNames = model.getDDVarNames();
-		
-		// Build new variables and lists
+		varList = model.getVarList();
 
-		// Create a (new, unique) name for the new variable that represents DRA states
+		// Create a (new, unique) name for the variable that will represent DRA states
 		draVar = "_dra";
 		while (varList.getIndex(draVar) != -1) {
 			draVar = "_" + draVar;
 		}
+
 		// See how many new dd vars will be needed for DRA
 		// and whether there is room to put them before rather than after the existing vars  
 		n = (int) Math.ceil(PrismUtils.log2(dra.size()));
 		before = true;
-		if (allDDRowVars.getMinVarIndex() - allDDNondetVars.getMaxVarIndex() < 2 * n) {
+		if (allDDRowVars.getMinVarIndex() - ((NondetModel) model).getAllDDNondetVars().getMaxVarIndex() < 2 * n) {
 			before = false;
 		}
-		before = false;
+
 		// Create the new dd variables
 		draDDRowVars = new JDDVars();
 		draDDColVars = new JDDVars();
@@ -163,10 +159,14 @@ public class LTLModelChecker
 		for (i = 0; i < n; i++) {
 			draDDRowVars.addVar(JDD.Var(j++));
 			draDDColVars.addVar(JDD.Var(j++));
-			if (!before) { newDDVarNames.add(""); newDDVarNames.add(""); }
-			newDDVarNames.set(j - 2, draVar+"."+i);
-			newDDVarNames.set(j - 1, draVar+"'."+i);
+			if (!before) {
+				newDDVarNames.add("");
+				newDDVarNames.add("");
+			}
+			newDDVarNames.set(j - 2, draVar + "." + i);
+			newDDVarNames.set(j - 1, draVar + "'." + i);
 		}
+
 		// Create/populate new lists
 		newVarDDRowVars = new JDDVars[varDDRowVars.length + 1];
 		newVarDDColVars = new JDDVars[varDDRowVars.length + 1];
@@ -191,38 +191,62 @@ public class LTLModelChecker
 			newAllDDRowVars.addVars(draDDRowVars);
 			newAllDDColVars.addVars(draDDColVars);
 		}
+		newVarList = (VarList)varList.clone();
+		newVarList.addVar(before ? 0 : varList.getNumVars(), draVar, 0, dra.size() - 1, 0, 1, Expression.INT);
+		
 		// Extra references (because will get derefed when new model is done with)
-		allDDRowVars.refAll();
+		// TODO: tidy this up, make it corresond to model.clear()
 		allDDRowVars.refAll();
 		allDDRowVars.refAll();
 		allDDColVars.refAll();
 		allDDColVars.refAll();
-		allDDColVars.refAll();
+		for (i = 0; i < model.getNumModules(); i++) {
+			model.getModuleDDRowVars(i).refAll();
+			model.getModuleDDColVars(i).refAll();
+		}
 		draDDRowVars.refAll();
 		draDDColVars.refAll();
 		((NondetModel) model).getAllDDSchedVars().refAll();
 		((NondetModel) model).getAllDDSynchVars().refAll();
 		((NondetModel) model).getAllDDChoiceVars().refAll();
-		allDDNondetVars.refAll();
-		
-		draDD = buildTransMask(model, dra, labelDDs, draDDRowVars, draDDColVars);
+		((NondetModel) model).getAllDDNondetVars().refAll();
+
+		newTrans = buildTransMask(dra, labelDDs, allDDRowVars, allDDColVars, draDDRowVars, draDDColVars);
 		JDD.Ref(model.getTrans());
-		newTrans = JDD.Apply(JDD.TIMES, model.getTrans(), draDD);
+		newTrans = JDD.Apply(JDD.TIMES, model.getTrans(), newTrans);
 
 		newStart = buildStartMask(dra, labelDDs);
 		JDD.Ref(model.getStart());
 		newStart = JDD.And(model.getStart(), newStart);
-		
-		//TODO: new varlist
-		NondetModel modelProd = new NondetModel(newTrans, newStart, new JDDNode[0], new JDDNode[0], new String[0],
-				newAllDDRowVars, newAllDDColVars, ((NondetModel) model).getAllDDSchedVars(), ((NondetModel) model)
-						.getAllDDSynchVars(), ((NondetModel) model).getAllDDChoiceVars(), allDDNondetVars, newDDVarNames, model.getNumModules(), model.getModuleNames(),
-				model.getModuleDDRowVars(), model.getModuleDDColVars(), model.getNumVars()+1, model.getVarList(),
-				newVarDDRowVars, newVarDDColVars, model.getConstantValues());
+
+		// Create a new model model object to store the product model
+		NondetModel modelProd = new NondetModel(
+				// New transition matrix/start state
+				newTrans, newStart,
+				// Don't pass in any rewards info
+				new JDDNode[0], new JDDNode[0], new String[0],
+				// New list of all row/col vars
+				newAllDDRowVars, newAllDDColVars,
+				// Nondet variables (unchanged)
+				((NondetModel) model).getAllDDSchedVars(), ((NondetModel) model).getAllDDSynchVars(),
+				((NondetModel) model).getAllDDChoiceVars(), ((NondetModel) model).getAllDDNondetVars(),
+				// New list of var names
+				newDDVarNames,
+				// Module info (unchanged)
+				model.getNumModules(), model.getModuleNames(), model.getModuleDDRowVars(), model.getModuleDDColVars(),
+				// New var info
+				model.getNumVars() + 1, newVarList, newVarDDRowVars, newVarDDColVars,
+				// Constants (no change)
+				model.getConstantValues());
+
+		// Do reachability/etc. for the new model
 		modelProd.doReachability(prism.getExtraReachInfo());
 		modelProd.filterReachableStates();
 		modelProd.findDeadlocks();
-		
+		if (modelProd.getDeadlockStates().size() > 0) {
+			throw new PrismException("Model-DRA product has deadlock states");
+		}
+
 		return modelProd;
 	}
 
@@ -232,13 +256,12 @@ public class LTLModelChecker
 	 * that exist in the DRA.
 	 * @return		a referenced mask BDD over trans
 	 */
-	private JDDNode buildTransMask(Model model, DRA dra, Vector<JDDNode> labelDDs, JDDVars draDDRowVars,
-			JDDVars draDDColVars)
+	public JDDNode buildTransMask(DRA dra, Vector<JDDNode> labelDDs, JDDVars allDDRowVars, JDDVars allDDColVars,
+			JDDVars draDDRowVars, JDDVars draDDColVars)
 	{
-		JDDNode draMask;
 		Iterator<DA_State> it;
 		DA_State state;
-		JDDNode label, exprBDD, transition;
+		JDDNode draMask, label, exprBDD, transition;
 		int i, n;
 
 		draMask = JDD.Constant(0);
@@ -260,7 +283,7 @@ public class LTLModelChecker
 					label = JDD.And(label, exprBDD);
 				}
 				// Switch label BDD to col vars
-				label = JDD.PermuteVariables(label, model.getAllDDRowVars(), model.getAllDDColVars());
+				label = JDD.PermuteVariables(label, allDDRowVars, allDDColVars);
 				// Build a BDD for the edge
 				transition = JDD.SetMatrixElement(JDD.Constant(0), draDDRowVars, draDDColVars, state.getName(), edge
 						.getValue().getName(), 1);
@@ -273,26 +296,24 @@ public class LTLModelChecker
 
 		return draMask;
 	}
-	
+
 	/** 
 	 * Builds a mask BDD for start (which contains start nodes for every
 	 * DRA state after adding draRow/ColVars) that includes only the start states
 	 * (s, q) such that q = delta(q_in, label(s)) in the DRA.
 	 * @return		a referenced mask BDD over start
 	 */
-	private JDDNode buildStartMask(DRA dra, Vector<JDDNode> labelDDs) {
-		JDDNode startMask;
-		JDDNode label;
-		JDDNode dest;
-		JDDNode tmp;
+	public JDDNode buildStartMask(DRA dra, Vector<JDDNode> labelDDs)
+	{
+		JDDNode startMask, label, exprBDD, dest, tmp;
 
 		startMask = JDD.Constant(0);
 		for (Map.Entry<APElement, DA_State> edge : dra.getStartState().edges().entrySet()) {
 			// Build a transition label BDD for each edge
-			//System.out.println(state.getName() + " to " + edge.getValue().getName() + " through " + edge.getKey().toString(dra.getAPSet(), false));
+			//System.out.println("To " + edge.getValue().getName() + " through " + edge.getKey().toString(dra.getAPSet(), false));
 			label = JDD.Constant(1);
 			for (int i = 0; i < dra.getAPSize(); i++) {
-				JDDNode exprBDD = labelDDs.get(Integer.parseInt(dra.getAPSet().getAP(i).substring(1)));
+				exprBDD = labelDDs.get(Integer.parseInt(dra.getAPSet().getAP(i).substring(1)));
 				JDD.Ref(exprBDD);
 				if (!edge.getKey().get(i)) {
 					exprBDD = JDD.Not(exprBDD);
@@ -309,21 +330,20 @@ public class LTLModelChecker
 			// Add this destination to our start mask
 			startMask = JDD.Or(startMask, tmp);
 		}
-		// mainLog.println("Start state mask BDD:");
-		// JDD.PrintVector(startMask, allDDRowVars);
 
 		return startMask;
 	}
-	
+
 	/**
 	 * computes maximal accepting SCSSs for each Rabin acceptance pair
 	 * 
 	 * @returns a referenced BDD of the union of all the accepting SCSSs
-	 */ 
-	public JDDNode findAcceptingSCSSs(DRA dra, NondetModel model) throws PrismException {
+	 */
+	public JDDNode findAcceptingSCSSs(DRA dra, NondetModel model) throws PrismException
+	{
 
 		JDDNode allAcceptingSCSSs = JDD.Constant(0);
-		
+
 		// for each acceptance pair (H_i, L_i) in the DRA, build H'_i = S x H_i
 		// and compute the SCSS maximals in H'_i
 		for (int i = 0; i < dra.acceptance().size(); i++) {
@@ -356,10 +376,10 @@ public class LTLModelChecker
 			acceptingStates = JDD.Apply(JDD.TIMES, acceptingStates, acceptanceVector_H);
 			acceptingStates = JDD.ThereExists(acceptingStates, model.getAllDDColVars());
 			acceptingStates = JDD.ThereExists(acceptingStates, model.getAllDDNondetVars());
-			
+
 			// find SCSSs in acceptingStates that are accepting under L_i
 			JDDNode acceptingSCSSs = filteredUnion(findMaximalSCSSs(model, acceptingStates), acceptanceVector_L);
-			
+
 			// Add SCSSs to our destination bdd
 			allAcceptingSCSSs = JDD.Or(allAcceptingSCSSs, acceptingSCSSs);
 		}
@@ -371,20 +391,21 @@ public class LTLModelChecker
 	 * @param states	BDD of a set of states (dereferenced after calling this function)
 	 * @return			a vector of referenced BDDs containing all the maximal SCSSs in states
 	 */
-	private Vector<JDDNode> findMaximalSCSSs(NondetModel model, JDDNode states) throws PrismException {
-		
+	private Vector<JDDNode> findMaximalSCSSs(NondetModel model, JDDNode states) throws PrismException
+	{
+
 		boolean initialCandidate = true;
 		Stack<JDDNode> candidates = new Stack<JDDNode>();
 		candidates.push(states);
 		Vector<JDDNode> scsss = new Vector<JDDNode>();
-		
+
 		while (!candidates.isEmpty()) {
 			JDDNode candidate = candidates.pop();
-			
+
 			// Compute the stable set
 			JDD.Ref(candidate);
 			JDDNode stableSet = findMaxStableSet(model, candidate);
-			
+
 			if (!initialCandidate) {
 				// candidate is an SCC, check if it's stable
 				if (stableSet.equals(candidate)) {
@@ -392,29 +413,33 @@ public class LTLModelChecker
 					JDD.Deref(stableSet);
 					continue;
 				}
-			}
-			else initialCandidate = false;
+			} else
+				initialCandidate = false;
 			JDD.Deref(candidate);
-			
+
 			// Filter bad transitions
 			JDD.Ref(stableSet);
 			JDDNode stableSetTrans = maxStableSetTrans(model, stableSet);
-			
+
 			// now find the maximal SCCs in (stableSet, stableSetTrans)
 			Vector<JDDNode> sccs;
 			SCCComputer sccComputer;
 			switch (prism.getSCCMethod()) {
 			case Prism.LOCKSTEP:
-				sccComputer = new SCCComputerLockstep(prism, stableSet, stableSetTrans, model.getAllDDRowVars(), model.getAllDDColVars());
+				sccComputer = new SCCComputerLockstep(prism, stableSet, stableSetTrans, model.getAllDDRowVars(), model
+						.getAllDDColVars());
 				break;
 			case Prism.SCCFIND:
-				sccComputer = new SCCComputerSCCFind(prism, stableSet, stableSetTrans, model.getAllDDRowVars(), model.getAllDDColVars());
+				sccComputer = new SCCComputerSCCFind(prism, stableSet, stableSetTrans, model.getAllDDRowVars(), model
+						.getAllDDColVars());
 				break;
 			case Prism.XIEBEEREL:
-				sccComputer = new SCCComputerXB(prism, stableSet, stableSetTrans, model.getAllDDRowVars(), model.getAllDDColVars());
+				sccComputer = new SCCComputerXB(prism, stableSet, stableSetTrans, model.getAllDDRowVars(), model
+						.getAllDDColVars());
 				break;
 			default:
-				sccComputer = new SCCComputerLockstep(prism, stableSet, stableSetTrans, model.getAllDDRowVars(), model.getAllDDColVars());
+				sccComputer = new SCCComputerLockstep(prism, stableSet, stableSetTrans, model.getAllDDRowVars(), model
+						.getAllDDColVars());
 			}
 			sccComputer.computeBSCCs();
 			JDD.Deref(stableSet);
@@ -425,25 +450,26 @@ public class LTLModelChecker
 		}
 		return scsss;
 	}
-	
+
 	/** 
 	 * Returns the maximal stable set in c
 	 * @param c		a set of nodes where we want to find a stable set 
 	 * 				(dereferenced after calling this function)
 	 * @return		a referenced BDD with the maximal stable set in c
 	 */
-	private JDDNode findMaxStableSet(NondetModel model, JDDNode c) {
+	private JDDNode findMaxStableSet(NondetModel model, JDDNode c)
+	{
 		JDDNode old;
 		JDDNode current;
 		JDDNode mask;
-		
+
 		JDD.Ref(c);
 		current = c;
 
 		do {
 			/* if (verbose) {
-				mainLog.println("Stable set pass " + i + ":");
-			} */
+			 mainLog.println("Stable set pass " + i + ":");
+			 } */
 			old = current;
 			// states that aren't in B (column vector)
 			JDD.Ref(current);
@@ -460,11 +486,11 @@ public class LTLModelChecker
 			// states in B that have an action that always transitions to other states in B
 			current = JDD.Apply(JDD.TIMES, current, mask);
 			/* if (verbose) {
-				mainLog.println("Stable set search pass " + i);
-				JDD.PrintVector(current, allDDRowVars);
-				mainLog.println();
-				i++;
-			} */
+			 mainLog.println("Stable set search pass " + i);
+			 JDD.PrintVector(current, allDDRowVars);
+			 mainLog.println();
+			 i++;
+			 } */
 		} while (!current.equals(old));
 		JDD.Deref(c);
 		return current;
@@ -475,7 +501,8 @@ public class LTLModelChecker
 	 * @param b		BDD of a stable set (dereferenced after calling this function)
 	 * @return		referenced BDD of the transition relation restricted to the stable set
 	 */
-	private JDDNode maxStableSetTrans(NondetModel model, JDDNode b) {
+	private JDDNode maxStableSetTrans(NondetModel model, JDDNode b)
+	{
 
 		JDDNode ssTrans;
 		JDDNode mask;
@@ -500,7 +527,7 @@ public class LTLModelChecker
 
 		return ssTrans;
 	}
-	
+
 	/**
 	 * Returns the union of each set in the vector that has nonempty intersection
 	 * with the filter BDD.
@@ -508,10 +535,11 @@ public class LTLModelChecker
 	 * @param filter	filter BDD against which each set is checked for nonempty intersection
 	 * 					also dereferenced after calling this function
 	 * @return		Referenced BDD with the filtered union
-	 */ 
-	private JDDNode filteredUnion(Vector<JDDNode> sets, JDDNode filter) {
+	 */
+	private JDDNode filteredUnion(Vector<JDDNode> sets, JDDNode filter)
+	{
 		JDDNode union = JDD.Constant(0);
-		for (JDDNode set: sets) {
+		for (JDDNode set : sets) {
 			JDD.Ref(filter);
 			union = JDD.Or(union, JDD.And(set, filter));
 		}

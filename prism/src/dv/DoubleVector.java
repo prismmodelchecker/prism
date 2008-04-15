@@ -202,6 +202,17 @@ public class DoubleVector
 		return DV_SumOverMTBDD(v, mult.ptr(), vars.array(), vars.n(), odd.ptr());
 	}
 	
+	// sum up the elements of a double array, over a subset of its dd vars
+	// the dd var subset must be a continuous range of vars, identified by indices: first_var, last_var
+	// store the result in a new DoubleVector (whose indices are given by odd2)
+	private native void DV_SumOverDDVars(long vec, long vec2, long vars, int num_vars, int first_var, int last_var, long odd, long odd2);
+	public DoubleVector sumOverDDVars(JDDVars vars, ODDNode odd, ODDNode odd2, int first_var, int last_var)
+	{
+		DoubleVector dv2 = new DoubleVector((int)(odd2.getEOff() + odd2.getTOff()));
+		DV_SumOverDDVars(v, dv2.v, vars.array(), vars.n(), first_var, last_var, odd.ptr(), odd2.ptr());
+		return dv2;
+	}
+	
 	// generate bdd (from an interval: relative operator and bound)
 	private native long DV_BDDGreaterThanEquals(long v, double bound, long vars, int num_vars, long odd);
 	private native long DV_BDDGreaterThan(long v, double bound, long vars, int num_vars, long odd);

@@ -197,12 +197,24 @@ public class StateProbsDV implements StateProbs
 		return probs.sumOverBDD(filter, vars, odd);
 	}
 	
-	// do a weighted sum of the elements of a double array and the values the mtbdd passed in
+	// do a weighted sum of the elements of the vector and the values the mtbdd passed in
 	// (used for csl reward steady state operator)
 	
 	public double sumOverMTBDD(JDDNode mult)
 	{
 		return probs.sumOverMTBDD(mult, vars, odd);
+	}
+	
+	// sum up the elements of the vector, over a subset of its dd vars
+	// store the result in a new StateProbsDV (for newModel)
+
+	public StateProbs sumOverDDVars(JDDVars sumVars, Model newModel)
+	{
+		DoubleVector tmp;
+		
+		tmp = probs.sumOverDDVars(model.getAllDDRowVars(), odd, newModel.getODD(), sumVars.getMinVarIndex(), sumVars.getMaxVarIndex());
+		
+		return new StateProbsDV(tmp, newModel);
 	}
 	
 	// generate bdd from an interval (relative operator and bound)

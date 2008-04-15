@@ -145,6 +145,14 @@ JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1SumOverMTBDD
 
 /*
  * Class:     dv_DoubleVector
+ * Method:    DV_SumOverDDVars
+ * Signature: (JJJIIIJJ)V
+ */
+JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1SumOverDDVars
+  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jint, jint, jlong, jlong);
+
+/*
+ * Class:     dv_DoubleVector
  * Method:    DV_BDDGreaterThanEquals
  * Signature: (JDJIJ)J
  */
