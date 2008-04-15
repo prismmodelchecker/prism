@@ -72,6 +72,15 @@ public class JDDVars
 		arrayBuilt = false;
 	}
 	
+	public void removeVars(JDDVars ddv)
+	{
+		int i;
+		
+		vars.removeAll(ddv.vars);
+		DDV_FreeArray(array);
+		arrayBuilt = false;
+	}
+	
 	public int getNumVars()
 	{
 		return vars.size();
