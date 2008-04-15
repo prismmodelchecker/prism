@@ -146,7 +146,7 @@ public class LTLModelChecker
 		// and whether there is room to put them before rather than after the existing vars  
 		n = (int) Math.ceil(PrismUtils.log2(dra.size()));
 		before = true;
-		if (allDDRowVars.getMinVarIndex() - ((NondetModel) model).getAllDDNondetVars().getMaxVarIndex() < 2 * n) {
+		if ((allDDRowVars.getMinVarIndex() - ((NondetModel) model).getAllDDNondetVars().getMaxVarIndex()) - 1 < 2 * n) {
 			before = false;
 		}
 
@@ -191,9 +191,9 @@ public class LTLModelChecker
 			newAllDDRowVars.addVars(draDDRowVars);
 			newAllDDColVars.addVars(draDDColVars);
 		}
-		newVarList = (VarList)varList.clone();
+		newVarList = (VarList) varList.clone();
 		newVarList.addVar(before ? 0 : varList.getNumVars(), draVar, 0, dra.size() - 1, 0, 1, Expression.INT);
-		
+
 		// Extra references (because will get derefed when new model is done with)
 		// TODO: tidy this up, make it corresond to model.clear()
 		allDDRowVars.refAll();
