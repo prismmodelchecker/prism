@@ -312,7 +312,7 @@ public class NondetModelChecker extends StateModelChecker
 	{
 		// Test whether this is a simple path formula (i.e. PCTL)
 		// and then pass control to appropriate method. 
-		if (1==2){//expr.isSimplePathFormula()) {
+		if (1==2){//TODO: replace after regression testing: expr.isSimplePathFormula()) {
 			return checkProbPathFormulaSimple(expr, qual, min);
 		} else {
 			return checkProbPathFormulaLTL(expr, qual, min);
@@ -403,6 +403,8 @@ public class NondetModelChecker extends StateModelChecker
 		modelProduct = mcLtl.constructProductModel(dra, model, labelDDs);
 		mainLog.println();
 		modelProduct.printTransInfo(mainLog, prism.getExtraDDInfo());
+		//prism.exportStatesToFile(modelProduct, Prism.EXPORT_PLAIN, null);
+		//prism.exportTransToFile(modelProduct, true, Prism.EXPORT_PLAIN, null);
 		
 		mainLog.println("\nFinding accepting SCCs...");
 		JDDNode acc = mcLtl.findAcceptingSCSSs(dra, modelProduct);
