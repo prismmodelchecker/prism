@@ -383,6 +383,16 @@ public class NondetModelChecker extends StateModelChecker
 		int i;
 		long l;
 		
+		// Can't do LTL and fairness.
+		// Note: the basic techniques, i.e. DRA product and BSCC reachability work
+		// (see e.g. Christel's habilitation); the problem is that the current computation
+		// of satisfying BSCCs is optimised to remove unwanted parts of the product MDP
+		// which can break fairness (e.g. add new BSCCs).
+		if (fairness) {
+			throw new PrismException("Fairness is not supported for LTL properties");
+		}
+		
+		// For LTL model checking routines 
 		mcLtl = new LTLModelChecker(prism, this);
 		
 		// Model check maximal state formulas
