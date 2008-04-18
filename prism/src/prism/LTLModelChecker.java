@@ -214,10 +214,11 @@ public class LTLModelChecker
 		newTrans = buildTransMask(dra, labelDDs, allDDRowVars, allDDColVars, draDDRowVars, draDDColVars);
 		JDD.Ref(model.getTrans());
 		newTrans = JDD.Apply(JDD.TIMES, model.getTrans(), newTrans);
-
+		
+		// Note: ... TODO
 		newStart = buildStartMask(dra, labelDDs);
-		JDD.Ref(model.getStart());
-		newStart = JDD.And(model.getStart(), newStart);
+		JDD.Ref(model.getReach());
+		newStart = JDD.And(model.getReach(), newStart);
 
 		// Create a new model model object to store the product model
 		NondetModel modelProd = new NondetModel(
