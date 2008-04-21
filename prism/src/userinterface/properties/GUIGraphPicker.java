@@ -87,8 +87,11 @@ public class GUIGraphPicker extends javax.swing.JDialog
         this.experiment = experiment;
         this.graphHandler = graphHandler;        
         this.resultsCollection = experiment.getResults();        
-                
-        this.graphCancelled = false;
+        
+        // graphCancelled will be set explictly to false when the OK button is pressed
+        // (this means if the user closes the dialog, this counts as a cancel)
+        this.graphCancelled = true;
+        
         this.multiSeries = new Vector<DefinedConstant>();
        
         initComponents();        
