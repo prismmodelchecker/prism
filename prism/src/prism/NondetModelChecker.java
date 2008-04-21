@@ -32,7 +32,6 @@ import java.util.*;
 import jdd.*;
 import dv.*;
 import mtbdd.*;
-import simulator.SimulatorException;
 import sparse.*;
 import hybrid.*;
 import parser.ast.*;
