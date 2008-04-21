@@ -492,7 +492,7 @@ public class Scheduler {
 						union_trueloop,
 						_options.detailed_states);
 			} else {
-			 */
+			*/			
 			_automaton = children.get(0)._automaton.calculateUnion(children.get(1)._automaton,	union_trueloop,	_options.detailed_states);
 			/*      _automaton=DRAOperations::dra_union(*children[0]->_automaton, 
 			 *children[1]->_automaton,
@@ -660,13 +660,12 @@ public class Scheduler {
 	 * Generate a DRA/DSA for the LTL formula 
 	 */
 	public DRA calculate(SimpleLTL ltl, APSet apset, Options_LTL2DRA ltl_opt) throws PrismException {
-		SimpleLTL ltl_p = ltl.simplify();
 
 		if (ltl_opt.verbose_scheduler) {
-			System.err.println(ltl_p);
+			System.err.println(ltl);
 		}
 
-		Tree root = new Tree_Start(ltl_p, apset, ltl_opt, this);
+		Tree root = new Tree_Start(ltl, apset, ltl_opt, this);
 
 		if (ltl_opt.verbose_scheduler) {
 			root.printTree(System.err, 0);

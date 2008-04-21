@@ -90,9 +90,9 @@ public class LTL2DRA {
 
 	}
 
-	public DRA LTLtoDRA(SimpleLTL ltl, Options_LTL2DRA options) throws PrismException {
+	/* public DRA LTLtoDRA(SimpleLTL ltl, Options_LTL2DRA options) throws PrismException {
 		return LTLtoDRA_rec(ltl, ltl.getAPs(), options);
-	}
+	} */
 	
 	public DRA LTLtoDRA(SimpleLTL ltl, APSet apset, Options_LTL2DRA options) throws PrismException {
 		return LTLtoDRA_rec(ltl, apset, options);

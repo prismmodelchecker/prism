@@ -41,7 +41,10 @@ public class APMonom2APElements implements Iterator<APElement> {
 	private APMonom _m;       
 
 	/** The current APElement. */
-	private APElement _cur_e;        
+	private APElement _cur_e;
+	
+	/** Bits that are set */
+	private MyBitSet set_mask;
 
 	/** Marker, true if end was reached */
 	private boolean _end_marker;
@@ -52,18 +55,22 @@ public class APMonom2APElements implements Iterator<APElement> {
 		_ap_set = s;
 		_cur_e = new APElement(m.getValueBits());
 		_end_marker = m.isFalse();
+		
+		if (m.isTrue()) {
+			set_mask = new MyBitSet(_ap_set.size());
+		}
+		else {
+			set_mask = _m.getSetBits();
+		}
 	}
 	
 	private void increment() {
-		MyBitSet set_mask = (MyBitSet) _m.getSetBits();
-	    int i = set_mask.nextClearBit(0);
-	    while (i < _ap_set.size()) {
+	    for (int i = set_mask.nextClearBit(0); i < _ap_set.size(); i = set_mask.nextClearBit(i+1)) {
 	    	if (_cur_e.get(i) == false) {
 	    		_cur_e.set(i, true);
 	    		return;
 	    	} else {
 	    		_cur_e.set(i, false);
-	    		i = set_mask.nextClearBit(i+1);
 	    	}
 	    }
 	    // overflow -> end

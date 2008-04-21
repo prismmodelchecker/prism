@@ -146,6 +146,7 @@ public class SimpleLTL {
 			rv = left.getAPs();
 			for (String s : right.getAPs())
 				rv.addAP(s);
+			break;
 			// terminals
 		case FALSE:case TRUE:
 			rv = new APSet();

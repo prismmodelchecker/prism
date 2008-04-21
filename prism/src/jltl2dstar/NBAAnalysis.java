@@ -172,15 +172,15 @@ public class NBAAnalysis {
 
 		MyBitSet scc_all_final = new MyBitSet(sccs.countSCCs());
 
-		for (int i = sccs.countSCCs(); i > 0;	--i) {
+		for (int sccIndex = sccs.countSCCs(); sccIndex > 0; --sccIndex) {
 			// go backward in topological order...
-			int scc = (sccs.topologicalOrder()).get(i-1);
+			int scc = sccs.topologicalOrder().get(sccIndex-1);
 
 			MyBitSet states_in_scc = sccs.get(scc);
 
 			// check to see if all states in this SCC are final
 			scc_all_final.set(scc);
-			for (int it = states_in_scc.nextSetBit(0); it >= 0; it = states_in_scc.nextSetBit(i+1)) {
+			for (int it = states_in_scc.nextSetBit(0); it >= 0; it = states_in_scc.nextSetBit(it+1)) {
 				if (!_nba.get(it).isFinal()) {
 					scc_all_final.clear(scc);
 					break;
@@ -189,12 +189,11 @@ public class NBAAnalysis {
 
 			boolean might_be_final = false;
 			if (!scc_all_final.get(scc)) {
-				// FIXME: This should be cardinality, bug in ltl2dstar?
-				if (states_in_scc.length() == 1) {
+				if (states_in_scc.cardinality() == 1) {
 					// there is only one state in this scc ...
 					int state = states_in_scc.nextSetBit(0);
 
-					if (sccs.stateIsReachable(state,state) == false) {
+					if (!sccs.stateIsReachable(state,state)) {
 						// ... and it doesn't loop to itself
 						might_be_final = true;
 					}
@@ -205,7 +204,7 @@ public class NBAAnalysis {
 				// Check to see if all successors are final...
 				boolean all_successors_are_final = true;
 				MyBitSet scc_succ = sccs.successors(scc);
-				for (int it = scc_succ.nextSetBit(0); it >= 0; it = scc_succ.nextSetBit(i+1)) {
+				for (int it = scc_succ.nextSetBit(0); it >= 0; it = scc_succ.nextSetBit(it+1)) {
 					if (!scc_all_final.get(it)) {
 						all_successors_are_final = false;
 						break;

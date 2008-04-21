@@ -26,13 +26,13 @@ import prism.PrismException;
 
 public class LTL2Rabin {
 	
-	public static DRA ltl2rabin(SimpleLTL ltlformula) throws PrismException {
-		return ltl2rabin(ltlformula, new APSet());
+	public static DRA ltl2rabin(SimpleLTL ltlFormula) throws PrismException {
+		SimpleLTL ltl = ltlFormula.simplify();
+		return ltl2rabin(ltl, ltl.getAPs());
 	}
-	public static DRA ltl2rabin(SimpleLTL ltlformula, APSet apset) throws PrismException {
+	
+	private static DRA ltl2rabin(SimpleLTL ltl, APSet apset) throws PrismException {
 		DRA dra = null;
-		SimpleLTL ltl = ltlformula.clone();
-		ltl = ltl.simplify();
 		Options_LTL2DRA opt_ltl2rabin = new Options_LTL2DRA();
 		
 		// boolean flag_dra2nba=false;

@@ -135,4 +135,15 @@ public class APSet implements Iterable<String> {
 			out.println(i + ": " + getAP(i));
 		}
 	}
+	
+	public String toString() {
+		String rv = "{";
+		for (Iterator<String> it = this.iterator(); it.hasNext(); ) {
+			rv = rv + it.next();
+			if (it.hasNext()) {
+				rv = rv + ",";
+			}
+		}
+		return rv + "}";
+	}
 }
