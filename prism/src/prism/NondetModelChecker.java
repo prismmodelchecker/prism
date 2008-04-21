@@ -32,9 +32,11 @@ import java.util.*;
 import jdd.*;
 import dv.*;
 import mtbdd.*;
+import simulator.SimulatorException;
 import sparse.*;
 import hybrid.*;
 import parser.ast.*;
+import parser.visitor.ASTTraverse;
 import jltl2dstar.*;
 
 /*
@@ -390,6 +392,22 @@ public class NondetModelChecker extends StateModelChecker
 		// which can break fairness (e.g. add new BSCCs).
 		if (fairness) {
 			throw new PrismException("Fairness is not supported for LTL properties");
+		}
+		
+		// Can't do LTL with time-bounded variants of the temporal operators
+		try {
+			expr.accept(new ASTTraverse()
+			{
+				public void visitPre(ExpressionTemporal e) throws PrismLangException
+				{
+					if (e.getLowerBound() != null) throw new PrismLangException(e.getOperatorSymbol());
+					if (e.getUpperBound() != null) throw new PrismLangException(e.getOperatorSymbol());
+				}
+			});
+		} catch (PrismLangException e) {
+			String s = "Temporal operators (like "+e.getMessage()+")";
+			s += " cannot have time bounds for LTL properties";
+			throw new PrismException(s);
 		}
 		
 		// For LTL model checking routines 
