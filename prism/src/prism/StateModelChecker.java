@@ -217,6 +217,17 @@ public class StateModelChecker implements ModelChecker
 
 		// Non-Boolean results
 		else {
+			// If in "verbose" mode, print out results vector to log
+			if (verbose) {
+				mainLog.print("\nResults (non-zero only) for all states:");
+				if (vals.getNNZ() > 0) {
+					mainLog.print("\n");
+					vals.print(mainLog);
+				} else {
+					mainLog.print(" (none)\n");
+				}
+			}
+
 			if (filter == null) {
 				if (model.getNumStartStates() > 1) {
 					mainLog.print("\nWarning: There are multiple initial states;");
