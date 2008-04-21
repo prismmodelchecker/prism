@@ -314,7 +314,7 @@ public class NondetModelChecker extends StateModelChecker
 	{
 		// Test whether this is a simple path formula (i.e. PCTL)
 		// and then pass control to appropriate method. 
-		if (1==2){//TODO: replace after regression testing: expr.isSimplePathFormula()) {
+		if (expr.isSimplePathFormula()) {
 			return checkProbPathFormulaSimple(expr, qual, min);
 		} else {
 			return checkProbPathFormulaLTL(expr, qual, min);
