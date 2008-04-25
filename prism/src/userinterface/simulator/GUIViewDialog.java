@@ -293,7 +293,7 @@ public class GUIViewDialog extends JDialog implements KeyListener
 
         bottomPanel.add(buttonPanel, java.awt.BorderLayout.EAST);
 
-        optionCheckBox.setLabel("Always prompt for view configuration on path creation");
+        optionCheckBox.setText("Always prompt for view configuration on path creation");
         bottomPanel.add(optionCheckBox, java.awt.BorderLayout.WEST);
         optionCheckBox.getAccessibleContext().setAccessibleName("optionCheckBox");
 
@@ -577,7 +577,6 @@ public class GUIViewDialog extends JDialog implements KeyListener
     }// </editor-fold>//GEN-END:initComponents
 
     private void selectAllHiddenRewardsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectAllHiddenRewardsButtonActionPerformed
-// TODO add your handling code here:
     	int[] indices = new int[hiddenRewardListModel.getSize()];
     	for (int i = 0; i < indices.length; i++)
     		indices[i] = i;
@@ -586,7 +585,6 @@ public class GUIViewDialog extends JDialog implements KeyListener
     }//GEN-LAST:event_selectAllHiddenRewardsButtonActionPerformed
 
     private void makeRewardHiddenButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_makeRewardHiddenButtonActionPerformed
-// TODO add your handling code here:
     	int[] indices = visibleRewardList.getSelectedIndices();
     	
     	for (int i = indices.length - 1; i >= 0; i--)
@@ -599,7 +597,6 @@ public class GUIViewDialog extends JDialog implements KeyListener
     }//GEN-LAST:event_makeRewardHiddenButtonActionPerformed
 
     private void makeRewardVisibleButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_makeRewardVisibleButtonActionPerformed
-// TODO add your handling code here:
     	int[] indices = hiddenRewardList.getSelectedIndices();
     	
     	for (int i = indices.length - 1; i >= 0; i--)
@@ -612,7 +609,6 @@ public class GUIViewDialog extends JDialog implements KeyListener
     }//GEN-LAST:event_makeRewardVisibleButtonActionPerformed
 
     private void selectAllVisibleRewardsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectAllVisibleRewardsButtonActionPerformed
-// TODO add your handling code here:
     	int[] indices = new int[visibleRewardListModel.getSize()];
     	for (int i = 0; i < indices.length; i++)
     		indices[i] = i;
@@ -621,8 +617,6 @@ public class GUIViewDialog extends JDialog implements KeyListener
     }//GEN-LAST:event_selectAllVisibleRewardsButtonActionPerformed
 
     private void selectAllVisibleVariablesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectAllVisibleVariablesButtonActionPerformed
-// TODO add your handling code here:
-    	
     	int[] indices = new int[visibleVariableListModel.getSize()];
     	for (int i = 0; i < indices.length; i++)
     		indices[i] = i;
@@ -631,7 +625,6 @@ public class GUIViewDialog extends JDialog implements KeyListener
     }//GEN-LAST:event_selectAllVisibleVariablesButtonActionPerformed
 
     private void selectAllHiddenVariablesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectAllHiddenVariablesButtonActionPerformed
-// TODO add your handling code here:
     	int[] indices = new int[hiddenVariableListModel.getSize()];
     	for (int i = 0; i < indices.length; i++)
     		indices[i] = i;
@@ -641,7 +634,6 @@ public class GUIViewDialog extends JDialog implements KeyListener
     }//GEN-LAST:event_selectAllHiddenVariablesButtonActionPerformed
 
     private void makeVariableVisibleButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_makeVariableVisibleButtonActionPerformed
-// TODO add your handling code here:
     	int[] indices = hiddenVariableList.getSelectedIndices();
     	
     	for (int i = indices.length - 1; i >= 0; i--)
@@ -654,7 +646,6 @@ public class GUIViewDialog extends JDialog implements KeyListener
     }//GEN-LAST:event_makeVariableVisibleButtonActionPerformed
 
     private void makeVariableHiddenButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_makeVariableHiddenButtonActionPerformed
-// TODO add your handling code here:
     	int[] indices = visibleVariableList.getSelectedIndices();
     	
     	for (int i = indices.length - 1; i >= 0; i--)

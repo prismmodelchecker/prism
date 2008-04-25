@@ -154,7 +154,7 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
 
         bottomPanel.add(buttonPanel, java.awt.BorderLayout.EAST);
 
-        optionCheckBox.setLabel("Always prompt for initial state on path creation");
+        optionCheckBox.setText("Always prompt for initial state on path creation");
         optionCheckBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 optionCheckBoxActionPerformed(evt);
