@@ -46,10 +46,6 @@ import userinterface.model.*;
 import userinterface.properties.*;
 import userinterface.simulator.networking.*;
 
-/**
- *
- * @author  Andrew Hinton
- */
 public class GUISimulator extends GUIPlugin implements MouseListener, ListSelectionListener, PrismSettingsListener
 {	
 	//ATTRIBUTES
@@ -76,7 +72,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	private SimulationView view;
 	
 	//Actions
-	private Action backtrackToHere, removeToHere, newPath, resetPath, exportPath, configureView;
+	private Action randomExploration, backtrack, backtrackToHere, removeToHere, newPath, resetPath, exportPath, configureView;
 	
 	/** Creates a new instance of GUISimulator */
 	public GUISimulator(GUIPrism gui)
@@ -942,6 +938,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		newPath.setEnabled(parsedModel != null && !computing);
 		resetPath.setEnabled(pathActive && !computing);
 		exportPath.setEnabled(pathActive && !computing);
+		randomExploration.setEnabled(pathActive && !computing);
+		backtrack.setEnabled(pathActive && !computing);
 		configureView.setEnabled(pathActive && !computing);
 		
 		randomExplorationButton.setEnabled(pathActive && !computing);
@@ -1102,7 +1100,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         configureViewButton.setToolTipText("Export path");
         configureViewButton.setActionCommand("Configure view");
         configureViewButton.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
-        configureViewButton.setLabel("Configure view");
+        configureViewButton.setText("Configure view");
         configureViewButton.setPreferredSize(new java.awt.Dimension(119, 28));
         configureViewButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1270,7 +1268,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
         randomExplorationButton.setIcon(new javax.swing.ImageIcon(""));
         randomExplorationButton.setToolTipText("Make a number of random automatic updates");
         randomExplorationButton.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
-        randomExplorationButton.setLabel("Simulate");
+        randomExplorationButton.setText("Simulate");
         randomExplorationButton.setMaximumSize(new java.awt.Dimension(220, 23));
         randomExplorationButton.setMinimumSize(new java.awt.Dimension(50, 23));
         randomExplorationButton.setPreferredSize(new java.awt.Dimension(160, 23));
@@ -1591,6 +1589,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		resetPath.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_R));
 		resetPath.putValue(Action.NAME, "Reset path");
 		resetPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlayerStart.png"));
+		resetPath.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F8, InputEvent.SHIFT_DOWN_MASK));
 		
 		exportPath = new AbstractAction()
 		{
@@ -1604,6 +1603,32 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		exportPath.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_X));
 		exportPath.putValue(Action.NAME, "Export path");
 		exportPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.png"));			
+		
+		randomExploration = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				randomExplorationButtonActionPerformed(e);
+			}
+		};
+		randomExploration.putValue(Action.LONG_DESCRIPTION, "Extends the path by simulating.");
+		randomExploration.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_S));
+		randomExploration.putValue(Action.NAME, "Simulate");
+		randomExploration.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlayerFwd.png"));
+		randomExploration.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F9, 0));
+		
+		backtrack = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				backtrackButtonActionPerformed(e);
+			}
+		};
+		backtrack.putValue(Action.LONG_DESCRIPTION, "Backtracks the path.");
+		backtrack.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_K));
+		backtrack.putValue(Action.NAME, "Backtrack");
+		backtrack.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlayerRew.png"));
+		backtrack.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F9, InputEvent.SHIFT_DOWN_MASK));
 		
 		backtrackToHere = new AbstractAction()
 		{
@@ -1661,6 +1686,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		pathPopupMenu.add(resetPath);
 		pathPopupMenu.add(exportPath);		
 		pathPopupMenu.addSeparator();
+		pathPopupMenu.add(randomExploration);
+		pathPopupMenu.add(backtrack);
 		pathPopupMenu.add(backtrackToHere);
 		pathPopupMenu.add(removeToHere);
 		pathPopupMenu.addSeparator();
@@ -1670,6 +1697,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		simulatorMenu.add(newPath);
 		simulatorMenu.add(resetPath);
 		simulatorMenu.add(exportPath);
+		simulatorMenu.addSeparator();
+		simulatorMenu.add(randomExploration);
+		simulatorMenu.add(backtrack);
 		simulatorMenu.addSeparator();
 		simulatorMenu.add(configureView);
 		
@@ -1871,6 +1901,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 			if(e.isPopupTrigger() && (e.getSource() == pathTablePlaceHolder || e.getSource() == pathTable || e.getSource() == pathTable.getTableHeader() || e.getSource() == tableScroll))
 			{
+				randomExploration.setEnabled(!(e.getSource() == pathTable.getTableHeader() || e.getSource() == pathTablePlaceHolder|| e.getSource() == tableScroll));
+				backtrack.setEnabled(!(e.getSource() == pathTable.getTableHeader() || e.getSource() == pathTablePlaceHolder|| e.getSource() == tableScroll));
 				backtrackToHere.setEnabled(!(e.getSource() == pathTable.getTableHeader() || e.getSource() == pathTablePlaceHolder|| e.getSource() == tableScroll));
 				removeToHere.setEnabled(!(e.getSource() == pathTable.getTableHeader() || e.getSource() == pathTablePlaceHolder|| e.getSource() == tableScroll));
 				
