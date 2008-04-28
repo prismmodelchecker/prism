@@ -4,7 +4,7 @@ module die
 
 	// local state
 	s : [0..7] init 0;
-	// value of the dice
+	// value of the die
 	d : [0..6] init 0;
 	
 	[] s=0 -> 0.5 : (s'=1) + 0.5 : (s'=2);
