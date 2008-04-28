@@ -1780,7 +1780,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		};
 		details.putValue(Action.LONG_DESCRIPTION, "Shows the details for the currently selected properties in a dialog box.");
 		details.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_D));
-		details.putValue(Action.NAME, "Show Details");
+		details.putValue(Action.NAME, "Show details");
 		details.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallDetails.png"));
 		
 		verifySelected = new AbstractAction()
