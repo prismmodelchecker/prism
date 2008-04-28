@@ -76,7 +76,7 @@ public class ToSimulator extends ASTTraverseModify
 				ret = SimulatorEngine.createTransitionReward(-1, ptrS, ptrR);
 			} else {
 				try {
-					synchIndex = sim.getIndexOfVar(e.getSynch());
+					synchIndex = sim.getIndexOfAction(e.getSynch());
 				} catch (SimulatorException ex) {
 					throw new PrismLangException("Action label \"" + e.getSynch() + "\" not found in simulator", e);
 				}
