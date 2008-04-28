@@ -572,6 +572,8 @@ public class GUIMultiModelHandler extends JPanel
         modified =false;
         parsedModel = null;
         modifiedSinceParse = false;
+        setBuiltModel(null,null);
+        modifiedSinceBuild = false;
         currentMode = PRISM_MODE;
         checkSwitchAutoParse();
         if(!parsing)
@@ -598,6 +600,8 @@ public class GUIMultiModelHandler extends JPanel
         modified =false;
         parsedModel = null;
         modifiedSinceParse = false;
+        setBuiltModel(null,null);
+        modifiedSinceBuild = false;
         currentMode = PEPA_MODE;
         checkSwitchAutoParse();
         if(!parsing)
@@ -624,6 +628,8 @@ public class GUIMultiModelHandler extends JPanel
         modified = false;
         parsedModel = null;
         modifiedSinceParse =false;
+        setBuiltModel(null,null);
+        modifiedSinceBuild = false;
         currentMode = GRAPHIC_MODE;
         checkSwitchAutoParse();
         if(!parsing)
