@@ -286,7 +286,7 @@ public class GUIMultiModelHandler extends JPanel
         currentMode = PRISM_MODE;
         theModel.doEnables();
         lastError = "";
-        getGUIPlugin().notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_MODEL));
+        theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_MODEL));
         theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_LOAD_NOT_RELOAD_MODEL));
     }
     
@@ -320,7 +320,7 @@ public class GUIMultiModelHandler extends JPanel
         currentMode = PEPA_MODE;
         theModel.doEnables();
         lastError = "";
-        getGUIPlugin().notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_MODEL));
+        theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_MODEL));
         theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_LOAD_NOT_RELOAD_MODEL));
     }
     
@@ -349,7 +349,7 @@ public class GUIMultiModelHandler extends JPanel
         currentMode = GRAPHIC_MODE;
         theModel.doEnables();
         lastError = "";
-        getGUIPlugin().notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_MODEL));
+        theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_MODEL));
         theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_LOAD_NOT_RELOAD_MODEL));
     }
     
@@ -401,8 +401,8 @@ public class GUIMultiModelHandler extends JPanel
     
     public synchronized void prismModelLoaded(GUITextModelEditor edit, File f, boolean replaceEditor)
     {
-        getGUIPlugin().notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_MODEL));
-        theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_LOAD_NOT_RELOAD_MODEL));
+    	theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_MODEL));
+    	theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_LOAD_NOT_RELOAD_MODEL));
         activeFile = f;
         modified = false;
         modifiedSinceBuild = false;
@@ -449,8 +449,8 @@ public class GUIMultiModelHandler extends JPanel
     
     public synchronized void pepaModelLoaded(GUIPepaModelEditor edit, File f, boolean replaceEditor)
     {
-        getGUIPlugin().notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_MODEL));
-        theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_LOAD_NOT_RELOAD_MODEL));
+    	theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_MODEL));
+    	theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_LOAD_NOT_RELOAD_MODEL));
         activeFile = f;
         modified = false;
         modifiedSinceBuild = false;
@@ -495,8 +495,8 @@ public class GUIMultiModelHandler extends JPanel
     
     public synchronized void graphicModelLoaded(GUIGraphicModelEditor edit, File f)
     {
-        getGUIPlugin().notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_MODEL));
-        theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_LOAD_NOT_RELOAD_MODEL));
+    	theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_MODEL));
+    	theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_LOAD_NOT_RELOAD_MODEL));
         activeFile = f;
         modified = false;
         modifiedSinceBuild = false;
@@ -567,7 +567,7 @@ public class GUIMultiModelHandler extends JPanel
     
     public synchronized void prismModelReLoaded(File f)
     {
-        getGUIPlugin().notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_MODEL));
+    	theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_MODEL));
         activeFile = f;
         modified =false;
         parsedModel = null;
@@ -593,7 +593,7 @@ public class GUIMultiModelHandler extends JPanel
     
     public synchronized void pepaModelReLoaded(File f)
     {
-        getGUIPlugin().notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_MODEL));
+    	theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_MODEL));
         activeFile = f;
         modified =false;
         parsedModel = null;
@@ -619,7 +619,7 @@ public class GUIMultiModelHandler extends JPanel
     
     public synchronized void graphicModelReLoaded(File f)
     {
-        getGUIPlugin().notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_MODEL));
+    	theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_MODEL));
         activeFile = f;
         modified = false;
         parsedModel = null;
@@ -847,7 +847,7 @@ public class GUIMultiModelHandler extends JPanel
         unC = new UndefinedConstants(parsedModel, null);
         if(unC.getMFNumUndefined() > 0)
         {
-            int result = GUIConstantsPicker.defineConstantsWithDialog(getGUIPlugin().getGUI(), unC, lastBuildValues, null);
+            int result = GUIConstantsPicker.defineConstantsWithDialog(theModel.getGUI(), unC, lastBuildValues, null);
             if (result != GUIConstantsPicker.VALUES_DONE) return;
         }
         buildValues = unC.getMFConstantValues();
@@ -966,7 +966,7 @@ public class GUIMultiModelHandler extends JPanel
         unC = new UndefinedConstants(parsedModel, null);
         if(unC.getMFNumUndefined() > 0)
         {
-            int result = GUIConstantsPicker.defineConstantsWithDialog(getGUIPlugin().getGUI(), unC, lastBuildValues, null);
+            int result = GUIConstantsPicker.defineConstantsWithDialog(theModel.getGUI(), unC, lastBuildValues, null);
             if (result != GUIConstantsPicker.VALUES_DONE) return;
         }
         buildValues = unC.getMFConstantValues();
@@ -1004,7 +1004,7 @@ public class GUIMultiModelHandler extends JPanel
         unC = new UndefinedConstants(parsedModel, null);
         if(unC.getMFNumUndefined() > 0)
         {
-            int result = GUIConstantsPicker.defineConstantsWithDialog(getGUIPlugin().getGUI(), unC, lastBuildValues, null);
+            int result = GUIConstantsPicker.defineConstantsWithDialog(theModel.getGUI(), unC, lastBuildValues, null);
             if (result != GUIConstantsPicker.VALUES_DONE) return;
         }
         buildValues = unC.getMFConstantValues();
@@ -1042,7 +1042,7 @@ public class GUIMultiModelHandler extends JPanel
         unC = new UndefinedConstants(parsedModel, null);
         if(unC.getMFNumUndefined() > 0)
         {
-            int result = GUIConstantsPicker.defineConstantsWithDialog(getGUIPlugin().getGUI(), unC, lastBuildValues, null);
+            int result = GUIConstantsPicker.defineConstantsWithDialog(theModel.getGUI(), unC, lastBuildValues, null);
             if (result != GUIConstantsPicker.VALUES_DONE) return;
         }
         buildValues = unC.getMFConstantValues();
