@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# Startup script for PRISM to LaTeX converter (Linux/Solaris)
+
+# Launch using main PRISM script
+PRISM_MAINCLASS="parser.PrismSyntaxHighlighter latex"
+export PRISM_MAINCLASS
+prism "$@"

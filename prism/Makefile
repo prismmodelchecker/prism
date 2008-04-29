@@ -394,6 +394,7 @@ dist_tidy:
 	@find examples -type f -name 'auto' -exec chmod 755 {} \;
 	@find bin -type f -exec chmod 755 {} \;
 	@find src/bin -type f -exec chmod 755 {} \;
+	@find etc/scripts -type f -exec chmod 755 {} \;
 
 binary:
 	@echo Generating jar file...
