@@ -176,8 +176,8 @@ public class PrismSyntaxHighlighter
 	private static String htmlFileHeader(String title)
 	{
 		String s = "";
-		
-		s += "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 //EN\" \"http://www.w3.org/TR/html4/loose.dtd\">" + "\n";
+		s += "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"\n";
+		s += "\"http://www.w3.org/TR/html4/loose.dtd\">\n";
 		
 		s += "<html>" + "\n";
 		s += "<head>" + "\n";
@@ -188,7 +188,7 @@ public class PrismSyntaxHighlighter
 		s += "<!-- Style sheet \"prism.css\" can be found in the \"etc\" directory of the PRISM distribution -->" + "\n";
 		s += "<link type=\"text/css\" rel=\"stylesheet\" href=\"prism.css\">" + "\n";
 		s += "</head>" + "\n";
-		s += "<body text=\"#000000\" bgcolor=\"#ffffff\" link=\"0000ff\" alink=\"ff0000\" vlink=\"000099\">" + "\n";
+		s += "<body text=\"#000000\" bgcolor=\"#ffffff\">" + "\n";
 		s += "<pre>" + "\n";
 		
 		return s;
