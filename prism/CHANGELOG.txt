@@ -4,6 +4,11 @@ of the main changes in each public release, see the file VERSIONS.txt.
 
 -----------------------------------------------------------------------------
 
+Ongoing changes:
+
+* Expanded property specification language
+* LTL model checking
+
 Latest changes (reverse chronological):
 
 * Transient probabilities computation for DTMCs
