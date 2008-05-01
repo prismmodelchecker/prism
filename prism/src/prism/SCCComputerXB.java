@@ -35,7 +35,6 @@ import jdd.*;
 
 public class SCCComputerXB implements SCCComputer
 {
-	private Prism prism;
 	private PrismLog mainLog;
 
 	// model info
@@ -45,16 +44,15 @@ public class SCCComputerXB implements SCCComputer
 	private JDDVars allDDColVars;
 	
 	// stuff for SCCs
-	private Vector vectSCCs;
+	private Vector<JDDNode> vectSCCs;
 	private JDDNode notInSCCs;
 	// stuff for BSCCs
-	private Vector vectBSCCs;
+	private Vector<JDDNode> vectBSCCs;
 	private JDDNode notInBSCCs;
 
 	public SCCComputerXB(Prism prism, JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars) throws PrismException
 	{
 		// initialise
-		this.prism = prism;
 		mainLog = prism.getMainLog();
 		this.trans01 = trans01;
 		this.reach = reach;
@@ -64,7 +62,7 @@ public class SCCComputerXB implements SCCComputer
 
 	// get methods
 	
-	public Vector getVectBSCCs() { return vectBSCCs; }
+	public Vector<JDDNode> getVectBSCCs() { return vectBSCCs; }
 	
 	public JDDNode getNotInBSCCs() { return notInBSCCs; }
 
@@ -76,8 +74,10 @@ public class SCCComputerXB implements SCCComputer
 		JDDNode v, s, back, scc, out;
 		int i, n;
 		
+		mainLog.println("\nComputing (B)SCCs...");
+		
 		// vector to be filled with SCCs
-		vectSCCs = new Vector();
+		vectSCCs = new Vector<JDDNode>();
 		// BDD of non-SCC states (initially zero BDD)
 		notInSCCs = JDD.Constant(0);
 		
@@ -94,22 +94,12 @@ public class SCCComputerXB implements SCCComputer
 		}
 		JDD.Deref(v);
 		
-		// print out sccs
-		n = vectSCCs.size();
-		mainLog.print(" SCCs: " + n);
-//		for (i = 0; i < n; i++) {
-//			mainLog.print(i + ": ");
-//			JDD.PrintVector((JDDNode)vectSCCs.elementAt(i), allDDRowVars);
-//		}
-//		mainLog.print("States not in SCCs:\nx: ");
-//		JDD.PrintVector(notInSCCs, allDDRowVars);
-		
 		// now check which ones are bsccs and keep them
-		vectBSCCs = new Vector();
+		vectBSCCs = new Vector<JDDNode>();
 		notInBSCCs = notInSCCs;
 		n = vectSCCs.size();
 		for (i = 0; i < n; i++) {
-			scc = (JDDNode)vectSCCs.elementAt(i);
+			scc = vectSCCs.elementAt(i);
 			JDD.Ref(trans01);
 			JDD.Ref(scc);
 			out = JDD.And(trans01, scc);
@@ -126,16 +116,15 @@ public class SCCComputerXB implements SCCComputer
 			JDD.Deref(out);
 		}
 		
-		// print out bsccs
-		n = vectBSCCs.size();
-		mainLog.print(" BSCCs: " + n);
-//		for (i = 0; i < n; i++) {
-//			mainLog.print(i + ": ");
-//			JDD.PrintVector((JDDNode)vectBSCCs.elementAt(i), allDDRowVars);
-//		}
-//		mainLog.print("States not in BSCCs:\nx: ");
-//		JDD.PrintVector(notInBSCCs, allDDRowVars);
+		// print out some info
+		mainLog.print("\nSCCs: " + vectSCCs.size());
+		mainLog.print(" BSCCs: " + vectBSCCs.size());
 		mainLog.println(" Transient states: " + JDD.GetNumMintermsString(notInBSCCs, allDDRowVars.n()));
+		mainLog.print("BSCC sizes:");
+		for (i = 0; i < n; i++) {
+			mainLog.print(" " + (i+1) + ": " + JDD.GetNumMintermsString(vectBSCCs.elementAt(i), allDDRowVars.n()));
+		}
+		mainLog.println();
 	}
 	
 	// pick a random (actually the first) state from set (set not empty)
