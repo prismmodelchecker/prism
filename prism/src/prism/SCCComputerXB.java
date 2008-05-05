@@ -121,7 +121,7 @@ public class SCCComputerXB implements SCCComputer
 		mainLog.print(" BSCCs: " + vectBSCCs.size());
 		mainLog.println(" Transient states: " + JDD.GetNumMintermsString(notInBSCCs, allDDRowVars.n()));
 		mainLog.print("BSCC sizes:");
-		for (i = 0; i < n; i++) {
+		for (i = 0; i < vectBSCCs.size(); i++) {
 			mainLog.print(" " + (i+1) + ": " + JDD.GetNumMintermsString(vectBSCCs.elementAt(i), allDDRowVars.n()));
 		}
 		mainLog.println();
