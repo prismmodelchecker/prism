@@ -75,10 +75,10 @@ public class SCCComputerLockstep implements SCCComputer
 		JDD.Ref(initialNodes);
 		JDD.Ref(initialEdges);
 		tasks.push(new DecompTask(initialNodes, initialEdges));
-		JDD.Ref(initialNodes);
 		while (!tasks.isEmpty()) {
 			lockstep(tasks.pop());
 		}
+		JDD.Ref(initialNodes);
 		notInSCCs = JDD.And(initialNodes, JDD.Not(allSCCs));
 		log.print(" BSCCs: " + sccs.size());
 		log.println(" Transient states: " + JDD.GetNumMintermsString(notInSCCs, rows.n()));
@@ -191,13 +191,12 @@ public class SCCComputerLockstep implements SCCComputer
 		} */
 
 		// trim nodes
-		/* JDD.Ref(edges);
+		JDD.Ref(edges);
 		nodes = trim(nodes, edges);
 		JDD.Ref(nodes);
 		edges = JDD.Apply(JDD.TIMES, edges, nodes);
 		JDD.Ref(nodes);
 		edges = JDD.Apply(JDD.TIMES, edges, JDD.PermuteVariables(nodes, rows, cols));
-		*/
 		
 		// pick a starting node
 		JDD.Ref(nodes);

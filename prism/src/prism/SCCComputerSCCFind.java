@@ -71,11 +71,13 @@ public class SCCComputerSCCFind implements SCCComputer
 		tasks = new Stack<DecompTask>();
 		JDD.Ref(initialNodes);
 		JDD.Ref(initialEdges);
-		tasks.push(new DecompTask(initialNodes, initialEdges, JDD.Constant(0), JDD.Constant(0)));
-		JDD.Ref(initialNodes);
+		JDDNode trimmedNodes = trim(initialNodes, initialEdges); 
+		JDD.Ref(initialEdges);
+		tasks.push(new DecompTask(trimmedNodes, initialEdges, JDD.Constant(0), JDD.Constant(0)));
 		while (!tasks.isEmpty()) {
 			sccFind(tasks.pop());
 		}
+		JDD.Ref(initialNodes);
 		notInSCCs = JDD.And(initialNodes, JDD.Not(allSCCs));
 		log.print(" BSCCs: " + sccs.size());
 		log.println(" Transient states: " + JDD.GetNumMintermsString(notInSCCs, rows.n()));
@@ -110,6 +112,40 @@ public class SCCComputerSCCFind implements SCCComputer
 		// Get the pre(nodes)
 		tmp = JDD.ThereExists(tmp, cols);
 		return tmp;
+	}
+	
+	// Trim nodes that have no path to a node in a nontrivial SCC
+	// or have no path from a node in a nontrivial SCC
+	// Refs: result
+	// Derefs: nodes, edges
+	private JDDNode trim(JDDNode nodes, JDDNode edges) {
+		JDDNode old;
+		JDDNode current; 
+		JDDNode img;
+		JDDNode pre;
+		int i = 1;
+
+		JDD.Ref(nodes);
+		current = nodes;
+		do {
+			old = current;
+			JDD.Ref(current);
+			JDD.Ref(edges);
+			img = image(current, edges);
+			JDD.Ref(current);
+			JDD.Ref(edges);
+			pre = preimage(current, edges);
+			current = JDD.And(current, JDD.And(img, pre));
+			if (prism.getVerbose()) {
+				log.println("Trimming pass " + i + ":");
+				JDD.PrintVector(current, rows);
+				i++;
+			}
+		} while (!current.equals(old));
+		JDD.Deref(nodes);
+		JDD.Deref(edges);
+
+		return current;
 	}
 	
 	// Report a SCC found by SCC-Find
