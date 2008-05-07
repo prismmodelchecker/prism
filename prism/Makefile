@@ -386,12 +386,12 @@ dist_tidy:
 	@find . -name '*NOTES*' | grep -v src/parser/NOTES | grep -v cudd/RELEASE.NOTES || test 1
 	@echo Processing text files...
 	@find . -type f -name '*.txt' -exec unix2dos {} {} \; 2> /dev/null
-	@find examples -type f ! -name auto -exec unix2dos {} {} \; 2> /dev/null
+	@find examples -type f ! -name auto -exec unix2dos {} {} \; 2> /dev/null || test 1
 	@echo Processing file permissions...
 	@find . -type f -exec chmod 644 {} \;
 	@find . \( -type d -o -type s \) -exec chmod 755 {} \;
 	@find . -type f  \( -name '*.sh' -o -name '*.so' -o -name '*.dll' \) -exec chmod 755 {} \;
-	@find examples -type f -name 'auto' -exec chmod 755 {} \;
+	@find examples -type f -name 'auto' -exec chmod 755 {} \; || test 1
 	@find bin -type f -exec chmod 755 {} \;
 	@find src/bin -type f -exec chmod 755 {} \;
 	@find etc/scripts -type f -exec chmod 755 {} \;
