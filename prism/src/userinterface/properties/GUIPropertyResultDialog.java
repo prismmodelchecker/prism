@@ -103,7 +103,12 @@ public class GUIPropertyResultDialog extends javax.swing.JDialog
 		jPanel12 = new javax.swing.JPanel();
 		jPanel13 = new javax.swing.JPanel();
 
-		setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                closeDialog();
+            }
+        });
+        
 		jPanel2.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
 
 		jButton1.setText("Okay");
@@ -257,20 +262,23 @@ public class GUIPropertyResultDialog extends javax.swing.JDialog
 
 	private void jButton1ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jButton1ActionPerformed
 	{//GEN-HEADEREND:event_jButton1ActionPerformed
-	gp.setBeingEdited(false);
-	gmp.repaintList();
-	setVisible(false);
-	dispose();
+		closeDialog();
 	}//GEN-LAST:event_jButton1ActionPerformed
 	
-  
-	public void show()
+	/** Closes the dialog */
+	private void closeDialog()
+	{
+		gp.setBeingEdited(false);
+		gmp.repaintList();
+		setVisible(false);
+		dispose();
+	}
+
+	public void display()
 	{
 		noOpen++;
 		setLocation(getX()+(noOpen*50), getY()+(noOpen*50));
-		
-		super.show();
-		
+		super.setVisible(true);
 	}
 	
 	public void dispose()

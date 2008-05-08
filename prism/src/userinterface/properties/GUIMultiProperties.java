@@ -825,7 +825,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				gp.setBeingEdited(true);
 				// Force repaint because we modified the GUIProperty directly
 				repaintList();
-				new GUIPropertyResultDialog(getGUI(), this, gp).show();
+				new GUIPropertyResultDialog(getGUI(), this, gp).display();
 			}
 		}
 	}
