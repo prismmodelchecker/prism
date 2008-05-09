@@ -464,7 +464,7 @@ int accuracy
 			case ACCURACY_LIST: if (val>0) fprintf(dd_out, "%d,%d:%f ", i, j, val); break;
 			}
 		}
-		fprintf(dd_out, "\n");
+		if (accuracy != ACCURACY_LIST) fprintf(dd_out, "\n");
 	}
 	
 	if (inputs != NULL) {
