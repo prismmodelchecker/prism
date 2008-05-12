@@ -104,7 +104,9 @@ public class ToSimulator extends ASTTraverseModify
 		long ret = -1;
 		long ptr1 = getPtr(e.getOperand1());
 		long ptr2 = getPtr(e.getOperand2());
-		boolean dbl = e.getType() == Expression.DOUBLE;
+		// See if one of the operands is a double (need to know for choosing a sim createXXX method below).
+		// Note: can't just look at type of e since that may be always Boolean for some ops 
+		boolean dbl = (e.getOperand1().getType() == Expression.DOUBLE || e.getOperand2().getType() == Expression.DOUBLE);
 		switch (e.getOperator()) {
 		case ExpressionBinaryOp.IMPLIES:
 			ret = SimulatorEngine.createOr(new long[] { SimulatorEngine.createNot(ptr1), ptr2 });
@@ -158,7 +160,7 @@ public class ToSimulator extends ASTTraverseModify
 	{
 		long ret = -1;
 		long ptr = getPtr(e.getOperand());
-		boolean dbl = e.getType() == Expression.DOUBLE;
+		boolean dbl = (e.getOperand().getType() == Expression.DOUBLE);
 		switch (e.getOperator()) {
 		case ExpressionUnaryOp.NOT:
 			ret = SimulatorEngine.createNot(ptr);
@@ -185,7 +187,7 @@ public class ToSimulator extends ASTTraverseModify
 		for (i = 0; i < n; i++) {
 			ptr[i] = getPtr(e.getOperand(i));
 		}
-		boolean dbl = e.getType() == Expression.DOUBLE;
+		boolean dbl = (e.getType() == Expression.DOUBLE);
 		switch (e.getNameCode()) {
 		case ExpressionFunc.MIN:
 			ret = dbl ? SimulatorEngine.createRealMin(ptr) : SimulatorEngine.createNormalMin(ptr);
