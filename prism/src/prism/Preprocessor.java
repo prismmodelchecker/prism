@@ -38,10 +38,6 @@ public class Preprocessor
 	private final static char DELIMITER = '#';
 	private final static boolean IGNORE_COMMENTS = true;
 	
-	// logs
-	private PrismLog mainLog;		// main log
-	private PrismLog techLog;		// tech log
-	
 	// prism
 	private Prism prism;
 	
@@ -53,7 +49,6 @@ public class Preprocessor
 	private String ppExprStrings[];
 	private String ppExprs[];
 	private int ppExprLines[];
-	private int ppExprCols[];
 	private String lastString;
 	
 	// interpreter stuff
@@ -63,23 +58,21 @@ public class Preprocessor
 	private boolean outputEnabled; // output enabling flag
 	private Vector varNames, varTypes, varScopes; // variable info
 	private Values values; // variable values
-	private int constCounter; // how many undefined constants found so far
+	private int paramCounter; // how many paramaters found so far
 	
-	private String consts[];
+	private String params[];
 
 	// constructor
 	
-	public Preprocessor(PrismLog log1, PrismLog log2, Prism p, File mf)
+	public Preprocessor(Prism p, File mf)
 	{
-		mainLog = log1;
-		techLog = log2;
 		prism = p;
 		modelFile = mf;
 	}
 
-	public void setConstants(String args[])
+	public void setParameters(String args[])
 	{
-		consts = args;
+		params = args;
 	}
 
 	// main method: do preprocessing
@@ -137,13 +130,12 @@ public class Preprocessor
 	{
 		BufferedReader in;
 		String s, s1, s2, s3, text, ss[];
-		int i, j, n, count, lineNum = 0, colNum = 0;
+		int i, j, n, count, lineNum = 0;
 		
 		// allocate arrays
 		ppExprStrings = new String[numPPExprs];
 		ppExprs = new String[numPPExprs];
 		ppExprLines = new int[numPPExprs];
-		ppExprCols = new int[numPPExprs];
 		
 		try {
 			count = 0;
@@ -217,7 +209,7 @@ public class Preprocessor
 		varTypes = new Vector();
 		varScopes = new Vector();
 		values = new Values();
-		constCounter = 0;
+		paramCounter = 0;
 		
 		// main control flow loop
 		try{
@@ -229,8 +221,12 @@ public class Preprocessor
 				// process current preprocessing expression
 				s = ppExprs[pc].trim();
 				
-				// constant
-				if (s.indexOf("const ") == 0) {
+				// parameter
+				if (s.indexOf("param int ") == 0) {
+					s = s.substring(10).trim(); interpretConstant(s);
+				}
+				else if (s.indexOf("const ") == 0) {
+					// old notation - backwards compatability
 					s = s.substring(6).trim(); interpretConstant(s);
 				}
 				// for loops
@@ -320,9 +316,9 @@ public class Preprocessor
 		if (expr != null) {
 			values.addValue(name, new Integer(expr.evaluateInt(null, values)));
 		} else {
-			if (consts.length <= constCounter+1)
+			if (params.length <= paramCounter+1)
 				throw new PrismException("No value provided for undefined preprocessor constant \"" + name + "\"");
-			values.addValue(name, new Integer(Integer.parseInt(consts[++constCounter])));
+			values.addValue(name, new Integer(Integer.parseInt(params[++paramCounter])));
 		}
 		// move to next statement
 		pc++;
@@ -340,6 +336,7 @@ public class Preprocessor
 		if (varNames.contains(fl.getLHS()))
 			throw new PrismException("Duplicated variable/constant \"" + fl.getLHS() + "\"");
 		fl = (ForLoop)fl.findAllVars(varNames, varTypes);
+		fl.typeCheck();
 		fl.semanticCheck();
 		// set up more info and then put on stack
 		fl.setPC(pc + 1);
@@ -465,8 +462,8 @@ public class Preprocessor
 		PrismLog pl2 = new PrismFileLog("stdout");
 		Prism p = new Prism(pl1, pl2);
 		try {
-			Preprocessor pp = new Preprocessor(pl1, pl2, p, new File(args[0]));
-			pp.setConstants(args);
+			Preprocessor pp = new Preprocessor(p, new File(args[0]));
+			pp.setParameters(args);
 			String s = pp.preprocess();
 			if (s == null) {
 				System.out.println("Error: No preprocessing information.");
