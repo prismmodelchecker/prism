@@ -60,8 +60,7 @@ public class NondetModel extends ProbModel
 
 	public String getTypeString()
 	{
-		return "Nondeterministic (MDP)"; // TODO: Change this after regression testing
-		//return "MDP";
+		return "MDP";
 	}
 
 	public long getNumChoices()

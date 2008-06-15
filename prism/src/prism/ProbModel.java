@@ -94,8 +94,7 @@ public class ProbModel implements Model
 
 	public String getTypeString()
 	{
-		return "Probabilistic (DTMC)"; // TODO: Change this after regression testing
-		//return "DTMC";
+		return "DTMC";
 	}
 
 	// modules

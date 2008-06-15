@@ -45,8 +45,7 @@ public class StochModel extends ProbModel
 
 	public String getTypeString()
 	{
-		return "Stochastic (CTMC)"; // TODO: Change this after regression testing
-		//return "CTMC";
+		return "CTMC";
 	}
 
 	public String getTransName()
