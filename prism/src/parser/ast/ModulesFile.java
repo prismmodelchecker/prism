@@ -687,6 +687,10 @@ public class ModulesFile extends ASTElement
 				String s = "Invalid range (" + low + "-" + high + ") for variable \"" + name + "\"";
 				throw new PrismLangException(s, decl);
 			}
+			if ((long)high - (long)low >= Integer.MAX_VALUE) {
+				String s = "Range for variable \"" + name + "\" (" + low + "-" + high + ") is too big";
+				throw new PrismLangException(s, decl);
+			}
 			// check start is valid
 			if (start < low || start > high) {
 				String s = "Invalid initial value (" + start + ") for variable \"" + name + "\"";
@@ -718,6 +722,10 @@ public class ModulesFile extends ASTElement
 				// check range is valid
 				if (high - low <= 0) {
 					String s = "Invalid range (" + low + "-" + high + ") for variable \"" + name + "\"";
+					throw new PrismLangException(s, decl);
+				}
+				if ((long)high - (long)low >= Integer.MAX_VALUE) {
+					String s = "Range for variable \"" + name + "\" (" + low + "-" + high + ") is too big";
 					throw new PrismLangException(s, decl);
 				}
 				// check start is valid
