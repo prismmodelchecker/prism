@@ -1304,13 +1304,29 @@ void ExpressionFuncArgs(boolean prop, boolean pathprop, ExpressionFunc func) :
 
 Expression ExpressionLiteral(boolean prop, boolean pathprop) :
 {
-	Expression ret;
+	Expression ret = null;
 }
 {
 	(
-	<REG_INT> { ret = new ExpressionLiteral(Expression.INT, new Integer(getToken(0).image)); }
+	<REG_INT> {
+		try {
+			int i = Integer.parseInt(getToken(0).image);
+			ret = new ExpressionLiteral(Expression.INT, new Integer(i));
+		} catch (NumberFormatException e) {
+			// Need to catch this because some matches for regexp REG_INT
+			// are not valid integers (e.g. too big).
+			throw generateParseException();
+		}}
 	|
-	<REG_DOUBLE> { ret = new ExpressionLiteral(Expression.DOUBLE, new Double(getToken(0).image), getToken(0).image); }
+	<REG_DOUBLE> {
+		try {
+			double d = Double.parseDouble(getToken(0).image);
+			ret = new ExpressionLiteral(Expression.DOUBLE, new Double(d), getToken(0).image);
+		} catch (NumberFormatException e) {
+			// Need to catch this because some matches for regexp REG_DOUBLE
+			// may not be valid doubles.
+			throw generateParseException();
+		}}
 	|
 	<TRUE> { ret = new ExpressionLiteral(Expression.BOOLEAN, new Boolean(true)); }
 	|
