@@ -48,6 +48,7 @@ public class Explicit2MTBDD
 	// files to read in from
 	private File statesFile;
 	private File transFile;
+	private File labelsFile;
 
 	// initial state info
 	private String initString;
@@ -108,13 +109,14 @@ public class Explicit2MTBDD
 
 	// constructor
 	
-	public Explicit2MTBDD(Prism prism, File sf, File tf, int t, String is)
+	public Explicit2MTBDD(Prism prism, File sf, File tf, File lf, int t, String is)
 	{
 		this.prism = prism;
 		mainLog = prism.getMainLog();
 		techLog = prism.getTechLog();
 		statesFile = sf;
 		transFile = tf;
+		labelsFile = lf;
 		// set type at this point
 		// if no preference stated, assume default of mdp
 		switch (t) {
@@ -437,11 +439,7 @@ public class Explicit2MTBDD
 // 		JDD.Deref(tmp);
 		
 		// calculate dd for initial state
-		start = JDD.Constant(1);
-		for (i = 0; i < numVars; i++) {
-			tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], varList.getStart(i)-varList.getLow(i), 1);
-			start = JDD.And(start, tmp);
-		}
+		buildInit();
 				
 		// compute state rewards
 		computeStateRewards();
@@ -822,7 +820,84 @@ public class Explicit2MTBDD
 			throw new PrismException("Error detected " + e.getMessage() + "at line " + lineNum + " of transition matrix file \"" + transFile + "\"");
 		}
 	}
-
+	
+	// calculate dd for initial state
+	
+	private void buildInit() throws PrismException
+	{
+		BufferedReader in;
+		String s, s1, s2, ss[];
+		int i, r, lineNum = 0, count = 0;
+		JDDNode tmp;
+		
+		// If no labels file provided, just use state 0 (i.e. min value for each var) 
+		if (labelsFile == null) {
+			start = JDD.Constant(1);
+			for (i = 0; i < numVars; i++) {
+				tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], 0, 1);
+				start = JDD.And(start, tmp);
+			}
+		}
+		// Otherwise, construct from labels file 
+		else {
+			start = JDD.Constant(0);
+			try {
+				// open file for reading
+				in = new BufferedReader(new FileReader(labelsFile));
+				// read first line (label names) and ignore
+				in.readLine(); lineNum = 1;
+				// read remaining lines
+				s = in.readLine(); lineNum++;
+				numStates = 0;
+				while (s != null) {
+					// split string
+					s = s.trim();
+					ss = s.split(":");
+					s1 = ss[0].trim();
+					s2 = ss[1].trim();
+					// search right hand part for 0 (which is index of "init" label)
+					ss = s2.split(" ");
+					for (i = 0; i < ss.length; i++) {
+						if (ss[i].trim().equals("0")) {
+							count++;
+							r = Integer.parseInt(s1);
+							System.out.println("XXX" + r);
+							// set element in init states bdd
+							// case where we don't have a state list...
+							if (statesFile == null) {
+								tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[0], r, 1);
+							}
+							// case where we do have a state list...
+							else {
+								tmp = JDD.Constant(1);
+								for (i = 0; i < numVars; i++) {
+									tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], statesArray[r][i], 1));
+								}
+							}
+							// add it into bdd
+							JDD.Ref(tmp);
+							start = JDD.Or(start, tmp);
+							JDD.Deref(tmp);
+						}
+					}
+					// read next line
+					s = in.readLine(); lineNum++;
+				}
+				// close file
+				in.close();
+			}
+			catch (IOException e) {
+				throw new PrismException("File I/O error reading from \"" + statesFile + "\"");
+			}
+			catch (NumberFormatException e) {
+				throw new PrismException("Error detected at line " + lineNum + " of states file \"" + statesFile + "\"");
+			}
+			if (count < 1) {
+				throw new PrismException("No initial states found in labels file");
+			}
+		}
+	}
+	
 	// read info about state rewards from states file
 	
 	public void computeStateRewards() throws PrismException

@@ -41,6 +41,7 @@ public class PrismCL
 	private boolean importpepa = false;
 	private boolean importtrans = false;
 	private boolean importstates = false;
+	private boolean importlabels = false;
 	private boolean steadystate = false;
 	private boolean dotransient = false;
 	private boolean exporttrans = false;
@@ -77,6 +78,7 @@ public class PrismCL
 	private String techLogFilename = "stdout";
 	private String modelFilename = null;
 	private String importStatesFilename = null;
+	private String importLabelsFilename = null;
 	private String propertiesFilename = null;
 	private String exportTransFilename = null;
 	private String exportStateRewardsFilename = null;
@@ -415,6 +417,7 @@ public class PrismCL
 	private void doParsing() throws PrismException
 	{
 		int i;
+		File sf = null, lf = null; 
 		
 		// parse model
 		
@@ -431,13 +434,17 @@ public class PrismCL
 				case ModulesFile.STOCHASTIC: mainLog.print("CTMC"); break;
 				default: mainLog.print("MDP"); break;
 				}
+				mainLog.print(") from \"" + modelFilename + "\"");
 				if (importstates) {
-					mainLog.print(") from files \"" + importStatesFilename + "\" and \"" + modelFilename + "\"...\n");
-					modulesFile = prism.parseExplicitModel(new File(importStatesFilename), new File(modelFilename), typeOverride, importInitString);
-				} else {
-					mainLog.print(") from file \"" + modelFilename + "\"...\n");
-					modulesFile = prism.parseExplicitModel(null, new File(modelFilename), typeOverride, importInitString);
+					mainLog.print(", \"" + importStatesFilename + "\"");
+					sf = new File(importStatesFilename);
 				}
+				if (importlabels) {
+					mainLog.print(", \"" + importLabelsFilename + "\"");
+					lf = new File(importLabelsFilename);
+				}
+				mainLog.println("...");
+				modulesFile = prism.parseExplicitModel(sf, new File(modelFilename), lf, typeOverride, importInitString);
 			}
 			else {
 				mainLog.print("\nParsing model file \"" + modelFilename + "\"...\n");
@@ -932,6 +939,16 @@ public class PrismCL
 					if (i < args.length-1) {
 						importstates = true;
 						importStatesFilename = args[++i];
+					}
+					else {
+						errorAndExit("No file specified for -"+sw+" switch");
+					}
+				}
+				// import labels for explicit model import
+				else if (sw.equals("importlabels")) {
+					if (i < args.length-1) {
+						importlabels = true;
+						importLabelsFilename = args[++i];
 					}
 					else {
 						errorAndExit("No file specified for -"+sw+" switch");
@@ -1475,6 +1492,7 @@ public class PrismCL
 		mainLog.println("-importpepa .................... Model description is in PEPA, not the PRISM language");
 		mainLog.println("-importtrans <file> ............ Import the transition matrix directly from a text file");
 		mainLog.println("-importstates <file>............ Import the list of states directly from a text file");
+		mainLog.println("-importlabels <file>............ Import the list of labels directly from a text file");
 		mainLog.println("-importinit <expr>.............. Specify the initial state for explicitly imported models");
 		mainLog.println("-dtmc .......................... Force imported/built model to be a DTMC");
 		mainLog.println("-ctmc .......................... Force imported/built model to be a CTMC");
