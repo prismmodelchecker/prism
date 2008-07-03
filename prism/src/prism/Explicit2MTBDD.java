@@ -807,7 +807,6 @@ public class Explicit2MTBDD
 						if (ss[i].trim().equals("0")) {
 							count++;
 							r = Integer.parseInt(s1);
-							System.out.println("XXX" + r);
 							// set element in init states bdd
 							// case where we don't have a state list...
 							if (statesFile == null) {
