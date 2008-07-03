@@ -865,13 +865,12 @@ public class Prism implements PrismSettingsListener
 	 * @param statesFile File containing the list of states (optional, can be null)
 	 * @param transFile File containing the list of transitions (required)
 	 * @param typeOverride Type of model to be built (see ModulesFile) (optional, use 0 if not required)
-	 * @param initString Specification of initial state (optional, can be null)
 	 * @throws PrismException
 	 */
-	public ModulesFile parseExplicitModel(File statesFile, File transFile, File labelsFile, int typeOverride, String initString) throws PrismException
+	public ModulesFile parseExplicitModel(File statesFile, File transFile, File labelsFile, int typeOverride) throws PrismException
 	{
 		// create Explicit2MTBDD object
-		exp2mtbdd = new Explicit2MTBDD(this, statesFile, transFile, labelsFile, typeOverride, initString);
+		exp2mtbdd = new Explicit2MTBDD(this, statesFile, transFile, labelsFile, typeOverride);
 		
 		// build state space
 		return exp2mtbdd.buildStates();

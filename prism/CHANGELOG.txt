@@ -11,6 +11,7 @@ Ongoing changes:
 
 Latest changes (reverse chronological):
 
+* Initial state info for explicit import is now via -importlabels
 * Transient probabilities computation for DTMCs
 * Sparse/hybrid versions of instantaneous reward properties (R=?[I=k]) for DTMCs
 * Added weak until (W) and release (R) to properties language

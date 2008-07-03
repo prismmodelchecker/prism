@@ -70,9 +70,6 @@ public class PrismCL
 	// argument to -simpath switch
 	private String simpathDetails = null;
 	
-	// import info
-	private String importInitString = null;
-	
 	// files/filenames
 	private String mainLogFilename = "stdout";
 	private String techLogFilename = "stdout";
@@ -444,7 +441,7 @@ public class PrismCL
 					lf = new File(importLabelsFilename);
 				}
 				mainLog.println("...");
-				modulesFile = prism.parseExplicitModel(sf, new File(modelFilename), lf, typeOverride, importInitString);
+				modulesFile = prism.parseExplicitModel(sf, new File(modelFilename), lf, typeOverride);
 			}
 			else {
 				mainLog.print("\nParsing model file \"" + modelFilename + "\"...\n");
@@ -949,15 +946,6 @@ public class PrismCL
 					if (i < args.length-1) {
 						importlabels = true;
 						importLabelsFilename = args[++i];
-					}
-					else {
-						errorAndExit("No file specified for -"+sw+" switch");
-					}
-				}
-				// import initial states info for explicit model import
-				else if (sw.equals("importinit")) {
-					if (i < args.length-1) {
-						importInitString = args[++i];
 					}
 					else {
 						errorAndExit("No file specified for -"+sw+" switch");

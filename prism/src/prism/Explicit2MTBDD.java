@@ -28,7 +28,6 @@ package prism;
 
 import java.io.*;
 import java.util.Vector;
-import java.util.HashMap;
 
 import jdd.*;
 import parser.*;
@@ -49,10 +48,6 @@ public class Explicit2MTBDD
 	private File statesFile;
 	private File transFile;
 	private File labelsFile;
-
-	// initial state info
-	private String initString;
-	private HashMap<String,Object> initVals;
 
 	// ModulesFile object, essentially just to store variable info
 	private ModulesFile modulesFile;
@@ -109,7 +104,7 @@ public class Explicit2MTBDD
 
 	// constructor
 	
-	public Explicit2MTBDD(Prism prism, File sf, File tf, File lf, int t, String is)
+	public Explicit2MTBDD(Prism prism, File sf, File tf, File lf, int t)
 	{
 		this.prism = prism;
 		mainLog = prism.getMainLog();
@@ -127,16 +122,12 @@ public class Explicit2MTBDD
 		default:
 			type = ModulesFile.NONDETERMINISTIC; break;
 		}
-		initString = is;
 	}
 	
 	// build state space
 	
 	public ModulesFile buildStates() throws PrismException
 	{
-		// parse any info about initial state
-		parseInitString();
-		
 		// generate info about variables...
 		
 		// ...either reading from state list file
@@ -153,36 +144,6 @@ public class Explicit2MTBDD
 		return modulesFile;
 	}
 
-	// parse info about initial state
-	
-	public void parseInitString() throws PrismException
-	{
-		String ss[], ss2[];
-		int i, j;
-		
-		// create hash map to store var name -> var value mapping
-		initVals = new HashMap<String,Object>();
-		// parse string
-		if (initString == null) return;
-		ss = initString.split(",");
-		for (i = 0; i < ss.length; i++) {
-			ss2 = ss[i].split("=");
-			if (ss2.length != 2) throw new PrismException("Badly formatted initial states string");
-			if (!ss2[0].matches("[A-Za-z_][A-Za-z_0-9]*")) throw new PrismException("Badly formatted variable name in initial states string");
-			if (ss2[1].equals("true")) initVals.put(ss2[0], new Boolean(true));
-			else if (ss2[1].equals("false")) initVals.put(ss2[0], new Boolean(false));
-			else {
-				try {
-					j = Integer.parseInt(ss2[1]);
-					initVals.put(ss2[0], new Integer(j));
-				}
-				catch (NumberFormatException e) {
-					throw new PrismException("Badly formatted value in initial states string");
-				}
-			}
-		}
-	}
-
 	// create info about vars from states file and put into ModulesFile object
 	
 	public void createVarInfoFromStatesFile() throws PrismException
@@ -192,7 +153,6 @@ public class Explicit2MTBDD
 		int i, j, lineNum = 0;
 		Module m;
 		Declaration d;
-		Object o;
 		
 		try {
 			// open file for reading
@@ -264,18 +224,10 @@ public class Explicit2MTBDD
 		m = new Module("M");
 		for (i = 0; i < numVars; i++) {
 			if (varTypes[i] == Expression.INT) {
-				o = initVals.get(varNames[i]);
-				if (o == null)
-					d = new Declaration(varNames[i], new ExpressionLiteral(Expression.INT, varMins[i]), new ExpressionLiteral(Expression.INT, varMaxs[i]), new ExpressionLiteral(Expression.INT, varMins[i]));
-				else
-					d = new Declaration(varNames[i], new ExpressionLiteral(Expression.INT, varMins[i]), new ExpressionLiteral(Expression.INT, varMaxs[i]), new ExpressionLiteral(Expression.INT, ((Integer)o).intValue()));
+				d = new Declaration(varNames[i], new ExpressionLiteral(Expression.INT, varMins[i]), new ExpressionLiteral(Expression.INT, varMaxs[i]), new ExpressionLiteral(Expression.INT, varMins[i]));
 			}
 			else {
-				o = initVals.get(varNames[i]);
-				if (o == null)
-					d = new Declaration(varNames[i], new ExpressionLiteral(Expression.BOOLEAN, false));
-				else
-					d = new Declaration(varNames[i], new ExpressionLiteral(Expression.BOOLEAN, ((Boolean)o).booleanValue()));
+				d = new Declaration(varNames[i], new ExpressionLiteral(Expression.BOOLEAN, false));
 			}
 			m.addDeclaration(d);
 		}
@@ -292,8 +244,6 @@ public class Explicit2MTBDD
 		int lineNum = 0;
 		Module m;
 		Declaration d;
-		Expression init;
-		Object o;
 		
 		try {
 			// open file for reading
@@ -315,14 +265,10 @@ public class Explicit2MTBDD
 		catch (PrismException e) {
 			throw new PrismException("Error detected " + e.getMessage() + "at line " + lineNum + " of transition matrix file \"" + transFile + "\"");
 		}
-		// determine initial value for variable
-		o = initVals.get("x");
-		if (o == null) init = new ExpressionLiteral(Expression.INT, 0);
-		else init = new ExpressionLiteral(Expression.INT, ((Integer)o).intValue());
 		// create modules file
 		modulesFile = new ModulesFile();
 		m = new Module("M");
-		d = new Declaration("x", new ExpressionLiteral(Expression.INT, 0), new ExpressionLiteral(Expression.INT, numStates-1), init);
+		d = new Declaration("x", new ExpressionLiteral(Expression.INT, 0), new ExpressionLiteral(Expression.INT, numStates-1), new ExpressionLiteral(Expression.INT, 0));
 		m.addDeclaration(d);
 		modulesFile.addModule(m);
 		modulesFile.tidyUp();
