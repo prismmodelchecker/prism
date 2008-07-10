@@ -1380,7 +1380,7 @@ public class Modules2MTBDD
 							throw new PrismLangException(s, command);
 						}
 						// check min sums - 1 (ish) for dtmcs/mdps, 0 for ctmcs
-						if (type != ModulesFile.STOCHASTIC && dmin < 1-prism.getUpdateSumRoundOff()) {
+						if (type != ModulesFile.STOCHASTIC && dmin < 1-prism.getSumRoundOff()) {
 							JDD.Deref(tmp);
 							String s = "Probabilities in command " + (l+1) + " of module \"" + module.getName() + "\" sum to less than one";
 							s += " (e.g. " + dmin + ") for some states. ";
@@ -1397,7 +1397,7 @@ public class Modules2MTBDD
 							throw new PrismLangException(s, command);
 						}
 						// check max sums - 1 (ish) for dtmcs/mdps, infinity for ctmcs
-						if (type != ModulesFile.STOCHASTIC && dmax > 1+prism.getUpdateSumRoundOff()) {
+						if (type != ModulesFile.STOCHASTIC && dmax > 1+prism.getSumRoundOff()) {
 							JDD.Deref(tmp);
 							String s = "Probabilities in command " + (l+1) + " of module \"" + module.getName() + "\" sum to more than one";
 							s += " (e.g. " + dmax + ") for some states. ";

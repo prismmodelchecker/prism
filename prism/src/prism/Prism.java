@@ -110,6 +110,10 @@ public class Prism implements PrismSettingsListener
 	//  2 - (s l ... l r c ... r c) (s l ... l r c ... r c) ...
 	private int ordering;
 	
+	// Round-off threshold for places where doubles are summed and compared to integers
+	// (e.g. checking that probabilities sum to 1 in an update).
+	private double sumRoundOff;
+	
 	//------------------------------------------------------------------------------
 	// Logs
 	//------------------------------------------------------------------------------
@@ -309,12 +313,6 @@ public class Prism implements PrismSettingsListener
 		settings.set(PrismSettings.PRISM_SCC_METHOD, i-1); // note index offset correction
 	}
 	
-	public void setUpdateSumRoundOff(double d) throws PrismException
-	{
-		settings.set(PrismSettings.PRISM_UPDATE_SUM_ROUND_OFF, d);
-	}
-	
-	
 	// set methods for miscellaneous options
 	
 	public void setDoReach(boolean b) throws PrismException
@@ -335,6 +333,11 @@ public class Prism implements PrismSettingsListener
 	public void setOrdering(int i) throws PrismException
 	{
 		ordering = i;
+	}
+	
+	public void setSumRoundOff(double d) throws PrismException
+	{
+		sumRoundOff = d;
 	}
 	
 	// get methods
@@ -414,9 +417,6 @@ public class Prism implements PrismSettingsListener
 	public int getSCCMethod()
 	{ return settings.getInteger(PrismSettings.PRISM_SCC_METHOD)+1; } //NOTE THE CORRECTION for the ChoiceSetting index
 	
-	public double getUpdateSumRoundOff()
-	{ return settings.getDouble(PrismSettings.PRISM_UPDATE_SUM_ROUND_OFF); }
-	
 	// get methods for miscellaneous options
 	
 	public boolean getDoReach()
@@ -430,6 +430,9 @@ public class Prism implements PrismSettingsListener
 	
 	public int getOrdering()
 	{ return ordering; }
+	
+	public double getSumRoundOff()
+	{ return sumRoundOff; }
 	
 	// get/release (exclusive) access to the prism parser
 	

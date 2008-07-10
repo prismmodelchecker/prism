@@ -577,7 +577,7 @@ public class LTLModelChecker
 			tmp = JDD.SumAbstract(tmp, model.getAllDDColVars());
 			// If the sum for a (state,action) tuple is 1,
 			// there is an action that remains in the stable set with prob 1
-			tmp = JDD.GreaterThan(tmp, 1 - prism.getUpdateSumRoundOff());
+			tmp = JDD.GreaterThan(tmp, 1 - prism.getSumRoundOff());
 			// Without fairness, we just need one action per state
 			current = JDD.ThereExists(tmp, model.getAllDDNondetVars());
 		}
@@ -603,7 +603,7 @@ public class LTLModelChecker
 		mask = JDD.SumAbstract(mask, model.getAllDDColVars());
 		// If the sum for a (state,action) tuple is 1,
 		// there is an action that remains in the stable set with prob 1
-		mask = JDD.GreaterThan(mask, 1 - prism.getUpdateSumRoundOff());
+		mask = JDD.GreaterThan(mask, 1 - prism.getSumRoundOff());
 		// select the transitions starting in these tuples
 		JDD.Ref(model.getTrans01());
 		JDDNode stableTrans01 = JDD.And(model.getTrans01(), mask);
