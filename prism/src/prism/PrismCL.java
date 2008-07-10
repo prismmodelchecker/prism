@@ -1474,8 +1474,8 @@ public class PrismCL
 		mainLog.println("-pctl <prop> (or -csl <prop>) .. Model check the PCTL/CSL property <prop>");
 		mainLog.println("-property <n> (or -prop <n>) ... Only model check property <n> from the properties file");
 		mainLog.println("-const <vals> .................. Run an experiment using constant values <vals>");
-		mainLog.println("-steadystate (or -ss) .......... Compute steady-state probabilities (CTMCs only)");
-		mainLog.println("-transient <x> (or -tr <x>) .... Compute transient probabilities for time <x> (CTMCs only)");
+		mainLog.println("-steadystate (or -ss) .......... Compute steady-state probabilities (D/CTMCs only)");
+		mainLog.println("-transient <x> (or -tr <x>) .... Compute transient probabilities for time <x> (D/CTMCs only)");
 		mainLog.println();
 		mainLog.println("-importpepa .................... Model description is in PEPA, not the PRISM language");
 		mainLog.println("-importtrans <file> ............ Import the transition matrix directly from a text file");
