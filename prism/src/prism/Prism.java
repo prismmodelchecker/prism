@@ -180,6 +180,7 @@ public class Prism implements PrismSettingsListener
 		bsccComp = true;
 		construction = 3;
 		ordering = 1;
+		sumRoundOff = 1e-5;
 	}
 	
 	// set methods
