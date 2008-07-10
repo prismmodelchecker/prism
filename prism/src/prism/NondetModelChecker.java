@@ -384,15 +384,6 @@ public class NondetModelChecker extends StateModelChecker
 		int i;
 		long l;
 		
-		// Can't do LTL and fairness.
-		// Note: the basic techniques, i.e. DRA product and BSCC reachability work
-		// (see e.g. Christel's habilitation); the problem is that the current computation
-		// of satisfying BSCCs is optimised to remove unwanted parts of the product MDP
-		// which can break fairness (e.g. add new BSCCs).
-		if (fairness) {
-			throw new PrismException("Fairness is not supported for LTL properties");
-		}
-		
 		// Can't do LTL with time-bounded variants of the temporal operators
 		try {
 			expr.accept(new ASTTraverse()
@@ -417,9 +408,14 @@ public class NondetModelChecker extends StateModelChecker
 		ltl = mcLtl.checkMaximalStateFormulas(model, expr.deepCopy(), labelDDs);
 		
 		// Convert LTL formula to deterministic Rabin automaton (DRA)
-		mainLog.println("\nBuilding deterministic Rabin automaton (for "+ltl+")...");
+		mainLog.println("\nBuilding deterministic Rabin automaton (for "+(min&&!fairness?"!":"")+ltl+")...");
 		l = System.currentTimeMillis();
-		dra = LTL2Rabin.ltl2rabin(ltl.convertForJltl2ba());
+		if (min && !fairness) {
+			dra = LTL2Rabin.ltl2rabin(ltl.convertForJltl2ba().negate());
+		}
+		else {
+			dra = LTL2Rabin.ltl2rabin(ltl.convertForJltl2ba());
+		}
 		mainLog.println("\nDRA has " + dra.size() + " states.");
 		//dra.print(System.out);
 		l = System.currentTimeMillis() - l;
@@ -433,12 +429,17 @@ public class NondetModelChecker extends StateModelChecker
 		//prism.exportStatesToFile(modelProduct, Prism.EXPORT_PLAIN, null);
 		//prism.exportTransToFile(modelProduct, true, Prism.EXPORT_PLAIN, null);
 		
-		mainLog.println("\nFinding accepting SCCs...");
-		JDDNode acc = mcLtl.findAcceptingSCSSs(dra, modelProduct);
+		mainLog.println("\nFinding accepting end components...");
+		JDDNode acc = mcLtl.findAcceptingStates(dra, modelProduct, fairness);
 		
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = new NondetModelChecker(prism, modelProduct, null);
-		probsProduct = mcProduct.checkProbUntil(modelProduct.getReach(), acc, qual, min);
+		probsProduct = mcProduct.checkProbUntil(modelProduct.getReach(), acc, qual, min && fairness);
+		
+		// subtract from 1 if we're model checking a negated formula for regular Pmin
+		if (min && !fairness) {
+			probsProduct.subtractFromOne();
+		}
 		
 		// Convert probability vector to original model
 		// First, filter over DRA start states

@@ -481,7 +481,8 @@ public class SafraTreeNode implements Iterable<SafraTreeNode> {
 	 * Print node to output stream
 	 */
 	public void print(PrintStream out) {
-		out.print(_id + " " + _labeling);
+		out.print(_id + " ");
+		_labeling.print(out);
 		if (_final_flag) {out.print(" !");}
 	}
 

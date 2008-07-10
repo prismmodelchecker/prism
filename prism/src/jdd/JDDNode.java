@@ -93,6 +93,11 @@ public class JDDNode
 		return (o instanceof JDDNode) && (((JDDNode) o).ptr == ptr);
 	}
 	
+	public int hashCode()
+	{
+		return (int)ptr; 
+	}
+	
 	public String toString()
 	{
 		return "" + ptr;

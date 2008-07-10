@@ -309,6 +309,12 @@ public class Prism implements PrismSettingsListener
 		settings.set(PrismSettings.PRISM_SCC_METHOD, i-1); // note index offset correction
 	}
 	
+	public void setUpdateSumRoundOff(double d) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_UPDATE_SUM_ROUND_OFF, d);
+	}
+	
+	
 	// set methods for miscellaneous options
 	
 	public void setDoReach(boolean b) throws PrismException
@@ -407,6 +413,9 @@ public class Prism implements PrismSettingsListener
 	
 	public int getSCCMethod()
 	{ return settings.getInteger(PrismSettings.PRISM_SCC_METHOD)+1; } //NOTE THE CORRECTION for the ChoiceSetting index
+	
+	public double getUpdateSumRoundOff()
+	{ return settings.getDouble(PrismSettings.PRISM_UPDATE_SUM_ROUND_OFF); }
 	
 	// get methods for miscellaneous options
 	

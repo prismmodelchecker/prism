@@ -334,19 +334,18 @@ public class LTLModelChecker
 
 		return startMask;
 	}
-
+	
 	/**
-	 * computes maximal accepting SCSSs for each Rabin acceptance pair
+	 * computes sets of accepting states for each Rabin acceptance pair
 	 * 
-	 * @returns a referenced BDD of the union of all the accepting SCSSs
-	 */
-	public JDDNode findAcceptingSCSSs(DRA dra, NondetModel model) throws PrismException
-	{
+	 * @returns a referenced BDD of the union of all the accepting sets
+	 */ 
+	public JDDNode findAcceptingStates(DRA dra, NondetModel model, boolean fairness) throws PrismException {
 
-		JDDNode allAcceptingSCSSs = JDD.Constant(0);
+		JDDNode allAcceptingStates = JDD.Constant(0);
 
 		// for each acceptance pair (H_i, L_i) in the DRA, build H'_i = S x H_i
-		// and compute the SCSS maximals in H'_i
+		// and compute the maximal ECs in H'_i
 		for (int i = 0; i < dra.acceptance().size(); i++) {
 
 			// build the acceptance vectors H_i and L_i
@@ -368,60 +367,159 @@ public class LTLModelChecker
 					acceptanceVector_L = JDD.SetVectorElement(acceptanceVector_L, draDDRowVars, j, 1.0);
 				}
 			}
-
+			
 			// build bdd of accepting states (under H_i) in the product model
 			JDD.Ref(model.getTrans01());
 			JDD.Ref(acceptanceVector_H);
-			JDDNode acceptingStates = JDD.Apply(JDD.TIMES, model.getTrans01(), acceptanceVector_H);
+			JDDNode candidateStates = JDD.Apply(JDD.TIMES, model.getTrans01(), acceptanceVector_H);
 			acceptanceVector_H = JDD.PermuteVariables(acceptanceVector_H, draDDRowVars, draDDColVars);
-			acceptingStates = JDD.Apply(JDD.TIMES, acceptingStates, acceptanceVector_H);
-			acceptingStates = JDD.ThereExists(acceptingStates, model.getAllDDColVars());
-			acceptingStates = JDD.ThereExists(acceptingStates, model.getAllDDNondetVars());
-
-			// find SCSSs in acceptingStates that are accepting under L_i
-			JDDNode acceptingSCSSs = filteredUnion(findMaximalSCSSs(model, acceptingStates), acceptanceVector_L);
-
-			// Add SCSSs to our destination bdd
-			allAcceptingSCSSs = JDD.Or(allAcceptingSCSSs, acceptingSCSSs);
+			candidateStates = JDD.Apply(JDD.TIMES, candidateStates, acceptanceVector_H);
+			candidateStates = JDD.ThereExists(candidateStates, model.getAllDDColVars());
+			candidateStates = JDD.ThereExists(candidateStates, model.getAllDDNondetVars());
+		
+			JDDNode acceptingStates;
+			if (fairness) {
+				// compute the backward set of S x L_i
+				JDD.Ref(candidateStates);
+				JDDNode tmp = JDD.And(candidateStates, acceptanceVector_L);
+				JDD.Ref(model.getTrans01());
+				JDDNode edges = JDD.ThereExists(model.getTrans01(), model.getAllDDNondetVars());
+				JDDNode filterStates = backwardSet(model, tmp, edges);
+								
+				// Filter out states that can't reach a state in L'_i
+				candidateStates = JDD.And(candidateStates, filterStates);
+				
+				// Find accepting states in S x H_i
+				acceptingStates = findFairECs(model, candidateStates);	
+			}
+			else {
+				// find ECs in acceptingStates that are accepting under L_i
+				acceptingStates = filteredUnion(findEndComponents(model, candidateStates), acceptanceVector_L);
+			}
+			
+			// Add states to our destination BDD
+			allAcceptingStates = JDD.Or(allAcceptingStates, acceptingStates);
 		}
-		return allAcceptingSCSSs;
+		return allAcceptingStates;
 	}
-
-	/**
-	 * Computes maximal accepting SCSSs in states
-	 * @param states	BDD of a set of states (dereferenced after calling this function)
-	 * @return			a vector of referenced BDDs containing all the maximal SCSSs in states
+	
+	/** 
+	 * Returns all end components in candidateStates under fairness assumptions
+	 * @param candidateStates		set of candidate states S x H_i 
+	 * 								(dereferenced after calling this function)
+	 * @return		a referenced BDD with the maximal stable set in c
 	 */
-	private Vector<JDDNode> findMaximalSCSSs(NondetModel model, JDDNode states) throws PrismException
+	private JDDNode findFairECs(NondetModel model, JDDNode candidateStates) {
+		
+		JDDNode old = JDD.Constant(0);
+		JDDNode current = candidateStates;
+		
+		while (!current.equals(old)) {
+			JDD.Deref(old);
+			JDD.Ref(current);
+			old = current;
+						
+			JDD.Ref(current);
+			JDD.Ref(model.getTrans01());
+			// Select transitions starting in current
+			JDDNode currTrans01 = JDD.And(model.getTrans01(), current);
+			JDD.Ref(current);
+			// mask of transitions that end outside current
+			JDDNode mask = JDD.Not(JDD.PermuteVariables(current, model.getAllDDRowVars(), model.getAllDDColVars()));
+			mask = JDD.And(currTrans01, mask);
+			// mask of states that have bad transitions
+			mask = JDD.ThereExists(mask, model.getAllDDColVars());
+			mask = JDD.ThereExists(mask, model.getAllDDNondetVars());
+			// Filter states with bad transitions
+			current = JDD.And(current, JDD.Not(mask));
+		}
+		JDD.Deref(old);
+		return current;
+	}
+	
+	/** 
+	 * Return the set of states that reach nodes through edges
+	 * Refs: result
+	 * Derefs: nodes, edges
+	 */
+	private JDDNode backwardSet(NondetModel model, JDDNode nodes, JDDNode edges)
 	{
+		JDDNode old = JDD.Constant(0);
+		JDDNode current = nodes;
+		while (!current.equals(old)) {
+			JDD.Deref(old);
+			JDD.Ref(current);
+			old = current;
+			JDD.Ref(current);
+			JDD.Ref(edges);
+			current = JDD.Or(current, preimage(model, current, edges));
+		}
+		JDD.Deref(edges);
+		JDD.Deref(old);
+		return current;
+	}
+	
+	/** 
+	 * Return the preimage of nodes in edges
+	 * Refs: result
+	 * Derefs: edges, nodes
+	 */
+	// FIXME: Refactor this out (duplicated in SCCComputers)
+	private JDDNode preimage(NondetModel model, JDDNode nodes, JDDNode edges)
+	{
+		JDDNode tmp;
 
+		// Get transitions that end at nodes
+		tmp = JDD.PermuteVariables(nodes, model.getAllDDRowVars(), model.getAllDDColVars());
+		tmp = JDD.And(edges, tmp);
+		// Get pre(nodes)
+		tmp = JDD.ThereExists(tmp, model.getAllDDColVars());
+		return tmp;
+	}
+	
+	/**
+	 * Computes maximal accepting end components in states
+	 * @param states	BDD of a set of states (dereferenced after calling this function)
+	 * @return			a vector of referenced BDDs containing all the ECs in states
+	 */
+	private Vector<JDDNode> findEndComponents(NondetModel model, JDDNode states) throws PrismException {
+		
 		boolean initialCandidate = true;
 		Stack<JDDNode> candidates = new Stack<JDDNode>();
 		candidates.push(states);
-		Vector<JDDNode> scsss = new Vector<JDDNode>();
-
+		Vector<JDDNode> ecs = new Vector<JDDNode>();
+		
 		while (!candidates.isEmpty()) {
 			JDDNode candidate = candidates.pop();
-
+			
 			// Compute the stable set
 			JDD.Ref(candidate);
-			JDDNode stableSet = findMaxStableSet(model, candidate);
-
+			JDDNode stableSet = findMaximalStableSet(model, candidate);
+			
+			// Drop empty sets
+			if (stableSet.equals(JDD.ZERO)) {
+				JDD.Deref(stableSet);
+				JDD.Deref(candidate);
+				continue;
+			}
+			
 			if (!initialCandidate) {
 				// candidate is an SCC, check if it's stable
 				if (stableSet.equals(candidate)) {
-					scsss.add(candidate);
+					ecs.add(candidate);
 					JDD.Deref(stableSet);
 					continue;
 				}
-			} else
+			}
+			else {
 				initialCandidate = false;
+			}
 			JDD.Deref(candidate);
-
+			
 			// Filter bad transitions
 			JDD.Ref(stableSet);
 			JDDNode stableSetTrans = maxStableSetTrans(model, stableSet);
-
+			
 			// now find the maximal SCCs in (stableSet, stableSetTrans)
 			Vector<JDDNode> sccs;
 			SCCComputer sccComputer;
@@ -449,84 +547,68 @@ public class LTLModelChecker
 			JDD.Deref(sccComputer.getNotInBSCCs());
 			candidates.addAll(sccs);
 		}
-		return scsss;
+		return ecs;
 	}
-
+	
 	/** 
-	 * Returns the maximal stable set in c
-	 * @param c		a set of nodes where we want to find a stable set 
-	 * 				(dereferenced after calling this function)
+	 * Returns a stable set of states contained in candidateStates
+	 * @param candidateStates		set of candidate states S x H_i 
+	 * 								(dereferenced after calling this function)
 	 * @return		a referenced BDD with the maximal stable set in c
 	 */
-	private JDDNode findMaxStableSet(NondetModel model, JDDNode c)
-	{
-		JDDNode old;
-		JDDNode current;
-		JDDNode mask;
-
-		JDD.Ref(c);
-		current = c;
-
-		do {
-			/* if (verbose) {
-			 mainLog.println("Stable set pass " + i + ":");
-			 } */
-			old = current;
-			// states that aren't in B (column vector)
+	private JDDNode findMaximalStableSet(NondetModel model, JDDNode candidateStates) {
+		
+		JDDNode old = JDD.Constant(0);
+		JDDNode current = candidateStates;
+		
+		while (!current.equals(old)) {
+			JDD.Deref(old);
 			JDD.Ref(current);
-			mask = JDD.Not(JDD.PermuteVariables(current, model.getAllDDRowVars(), model.getAllDDColVars()));
-			JDD.Ref(model.getTrans01());
-			// transitions that end outside of B
-			mask = JDD.Apply(JDD.TIMES, model.getTrans01(), mask);
-			// mask of transitions that end in B
-			mask = JDD.Not(mask);
-			// mask of states that always transition to other states in B through a certain action
-			mask = JDD.ForAll(mask, model.getAllDDColVars());
-			// mask of states that have an action that always transitions to other states in B
-			mask = JDD.ThereExists(mask, model.getAllDDNondetVars());
-			// states in B that have an action that always transitions to other states in B
-			current = JDD.Apply(JDD.TIMES, current, mask);
-			/* if (verbose) {
-			 mainLog.println("Stable set search pass " + i);
-			 JDD.PrintVector(current, allDDRowVars);
-			 mainLog.println();
-			 i++;
-			 } */
-		} while (!current.equals(old));
-		JDD.Deref(c);
+			old = current;
+						
+			JDD.Ref(current);
+			JDD.Ref(model.getTrans());
+			// Select transitions starting in current
+			JDDNode currTrans = JDD.Apply(JDD.TIMES, model.getTrans(), current);
+			// Select transitions starting in current and ending in current
+			JDDNode tmp = JDD.PermuteVariables(current, model.getAllDDRowVars(), model.getAllDDColVars());
+			tmp = JDD.Apply(JDD.TIMES, currTrans, tmp);
+			// Sum all successor probabilities for each (state, action) tuple
+			tmp = JDD.SumAbstract(tmp, model.getAllDDColVars());
+			// If the sum for a (state,action) tuple is 1,
+			// there is an action that remains in the stable set with prob 1
+			tmp = JDD.GreaterThan(tmp, 1 - prism.getUpdateSumRoundOff());
+			// Without fairness, we just need one action per state
+			current = JDD.ThereExists(tmp, model.getAllDDNondetVars());
+		}
+		JDD.Deref(old);
 		return current;
 	}
-
+	
 	/**
 	 * Returns the transition relation of a stable set
 	 * @param b		BDD of a stable set (dereferenced after calling this function)
 	 * @return		referenced BDD of the transition relation restricted to the stable set
 	 */
-	private JDDNode maxStableSetTrans(NondetModel model, JDDNode b)
-	{
+	private JDDNode maxStableSetTrans(NondetModel model, JDDNode b) {
 
-		JDDNode ssTrans;
-		JDDNode mask;
-
-		// Restrict threshold to transitions that start in the stable set
-		JDD.Ref(model.getTrans01());
 		JDD.Ref(b);
-		ssTrans = JDD.Apply(JDD.TIMES, model.getTrans01(), b);
-		// states that aren't in B (column vector)
-		mask = JDD.Not(JDD.PermuteVariables(b, model.getAllDDRowVars(), model.getAllDDColVars()));
-		JDD.Ref(ssTrans);
-		// transitions that land outside of B
-		mask = JDD.Apply(JDD.TIMES, ssTrans, mask);
-		// mask of transitions that land in B
-		mask = JDD.Not(mask);
-		// mask of states that always transition to other states in B through a certain action
-		mask = JDD.ForAll(mask, model.getAllDDColVars());
-		// transitions that always land in B through a certain action
-		ssTrans = JDD.Apply(JDD.TIMES, ssTrans, mask);
-		// valid transitions in the stable set regardless of action 
-		ssTrans = JDD.ThereExists(ssTrans, model.getAllDDNondetVars());
-
-		return ssTrans;
+		JDD.Ref(model.getTrans());
+		// Select transitions starting in b
+		JDDNode currTrans = JDD.Apply(JDD.TIMES, model.getTrans(), b);
+		JDDNode mask = JDD.PermuteVariables(b, model.getAllDDRowVars(), model.getAllDDColVars());
+		// Select transitions starting in current and ending in current
+		mask = JDD.Apply(JDD.TIMES, currTrans, mask);
+		// Sum all successor probabilities for each (state, action) tuple
+		mask = JDD.SumAbstract(mask, model.getAllDDColVars());
+		// If the sum for a (state,action) tuple is 1,
+		// there is an action that remains in the stable set with prob 1
+		mask = JDD.GreaterThan(mask, 1 - prism.getUpdateSumRoundOff());
+		// select the transitions starting in these tuples
+		JDD.Ref(model.getTrans01());
+		JDDNode stableTrans01 = JDD.And(model.getTrans01(), mask);
+		// Abstract over actions
+		return JDD.ThereExists(stableTrans01, model.getAllDDNondetVars());
 	}
 
 	/**

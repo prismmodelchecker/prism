@@ -287,9 +287,10 @@ public class DA {
 			out.println();
 
 			_acceptance.outputAcceptanceForState(out, i_state);
-
-			for (DA_State to_state : cur_state.edges().values()) {
-				out.println(to_state.getName());
+			
+			// the entry set isn't sorted so we need to print the transition label too
+			for (Map.Entry<APElement, DA_State> transition : cur_state.edges().entrySet()) {
+				out.println(transition.getKey().toString(_ap_set, true) + " -> " + transition.getValue().getName());
 			}
 		}
 	}

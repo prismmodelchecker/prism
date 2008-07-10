@@ -194,6 +194,13 @@ public class SimpleLTL {
 	{
 		SimpleLTL tmp, tmp2, a, b;
 		SimpleLTL rv = this;
+		
+		switch (kind) {
+		case AND: case OR: case IMPLIES: case EQUIV: case UNTIL: case RELEASE:
+			right = right.simplify();
+		case NOT: case NEXT: case FINALLY: case GLOBALLY:
+			left = left.simplify();
+		}
 
 		switch (kind) {
 		case NOT:
@@ -202,8 +209,8 @@ public class SimpleLTL {
 				rv = tmp.simplify();
 			else rv = tmp;
 			break;
+			
 		case FINALLY:
-			left = left.simplify();
 			if (left.kind == LTLType.TRUE || left.kind == LTLType.FALSE) {
 				rv = left;
 				break;
@@ -221,7 +228,6 @@ public class SimpleLTL {
 			break;
 
 		case GLOBALLY:
-			left = left.simplify();
 			if (left.kind == LTLType.FALSE || left.kind == LTLType.TRUE) {
 				rv = left;
 				break;
@@ -239,9 +245,6 @@ public class SimpleLTL {
 			break;
 
 		case UNTIL:
-			left = left.simplify();
-			right = right.simplify();
-
 			if (right.kind == LTLType.TRUE
 					|| right.kind == LTLType.FALSE
 					|| left.kind == LTLType.FALSE) {
@@ -294,9 +297,6 @@ public class SimpleLTL {
 			break;
 
 		case RELEASE:
-			left = left.simplify();
-			right = right.simplify();
-
 			if (right.kind == LTLType.FALSE
 					|| right.kind == LTLType.TRUE
 					|| left.kind == LTLType.TRUE) {
@@ -346,8 +346,6 @@ public class SimpleLTL {
 			break;
 
 		case NEXT:
-			left = left.simplify();
-
 			if (left.kind == LTLType.TRUE || left.kind == LTLType.FALSE) {
 				rv = left;
 				break;
@@ -371,9 +369,6 @@ public class SimpleLTL {
 			}
 			break;
 		case IMPLIES:
-			left = left.simplify();
-			right = right.simplify();
-
 			if (left.implies(right)) {
 				rv = new SimpleLTL(true);
 				break;
@@ -385,9 +380,6 @@ public class SimpleLTL {
 			break;
 
 		case EQUIV:
-			left = left.simplify();
-			right = right.simplify();
-
 			if (left.implies(right) &&
 					right.implies(left)) {
 				rv = new SimpleLTL(true);
@@ -403,9 +395,6 @@ public class SimpleLTL {
 			break;
 
 		case AND:
-			left = left.simplify();
-			right = right.simplify();
-
 			/* p && (q U p) = p */
 			if (right.kind == LTLType.UNTIL
 					&& right.right.equals(left)) {
@@ -511,9 +500,6 @@ public class SimpleLTL {
 			break;
 
 		case OR:
-			left = left.simplify();
-			right = right.simplify();
-
 			/* p || (q U p) == q U p */
 			if (right.kind == LTLType.UNTIL
 					&& right.right.equals(left)) {
@@ -651,6 +637,20 @@ public class SimpleLTL {
 		case OR:
 			kind = LTLType.AND;
 			pushBothOperands = true;
+			break;
+		case IMPLIES:
+			kind = LTLType.AND;
+			m = new SimpleLTL(LTLType.NOT, left.right);
+			right = m.pushNegation();
+			left = left.left;
+			break;
+		case EQUIV:
+			kind = LTLType.OR;
+			m = new SimpleLTL(LTLType.NOT, left.left.clone());
+			right = new SimpleLTL(LTLType.AND, m.pushNegation(), left.right.clone());
+			left.kind = LTLType.AND;
+			m = new SimpleLTL(LTLType.NOT, left.right);
+			left.right = m.pushNegation();
 			break;
 		case FINALLY:
 			kind = LTLType.GLOBALLY;

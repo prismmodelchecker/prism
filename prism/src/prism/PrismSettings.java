@@ -89,6 +89,7 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_EXTRA_DD_INFO					= "prism.extraDDInfo";
 	public static final	String PRISM_EXTRA_REACH_INFO				= "prism.extraReachInfo";
 	public static final String PRISM_SCC_METHOD						= "prism.sccMethod";
+	public static final String PRISM_UPDATE_SUM_ROUND_OFF			= "prism.updateSumRoundOff";
 	
 	//GUI Model
 	public static final	String MODEL_AUTO_PARSE						= "model.autoParse";
@@ -185,7 +186,8 @@ public class PrismSettings implements Observer
 			{ BOOLEAN_TYPE,		PRISM_DO_SS_DETECTION,					"Use steady-state detection",			"3.0",			new Boolean(true),															"0,",																						"Use steady-state detection during CTMC transient probability computation." },
 			{ BOOLEAN_TYPE,		PRISM_EXTRA_DD_INFO,					"Extra MTBDD information",				"3.2",			new Boolean(false),															"0,",																						"Display extra information about (MT)BDDs used during and after model construction." },
 			{ BOOLEAN_TYPE,		PRISM_EXTRA_REACH_INFO,					"Extra reachability information",		"3.2",			new Boolean(false),															"0,",																						"Display extra information about progress of reachability during model construction." },
-			{ CHOICE_TYPE,		PRISM_SCC_METHOD,						"SCC decomposition method",				"3.2",			"Lockstep",																	"Xie-Beerel,Lockstep,SCC-Find",																"Which algorithm to use for decomposing a graph into strongly connected components (SCCs)." }
+			{ CHOICE_TYPE,		PRISM_SCC_METHOD,						"SCC decomposition method",				"3.2",			"Lockstep",																	"Xie-Beerel,Lockstep,SCC-Find",																"Which algorithm to use for decomposing a graph into strongly connected components (SCCs)." },
+			{ DOUBLE_TYPE,		PRISM_UPDATE_SUM_ROUND_OFF,				"Update probability sum round off",		"3.2.dev",		new Double(10e-6),															"0.0,",																						"Epsilon value used by PRISM for update probabilities that should sum to 1" }
 		},
 		{
 			{ BOOLEAN_TYPE,		MODEL_AUTO_PARSE,						"Auto parse",							"3.0",			new Boolean(true),															"",																							"Parse PRISM models automatically as they are loaded/edited in the text editor." },
