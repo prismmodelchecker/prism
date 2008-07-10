@@ -6,11 +6,11 @@ of the main changes in each public release, see the file VERSIONS.txt.
 
 Ongoing changes:
 
-* Expanded property specification language
-* LTL model checking
+* LTL model checking for MDPs
 
 Latest changes (reverse chronological):
 
+* Expanded property specification language
 * Initial state info for explicit import is now via -importlabels
 * Transient probabilities computation for DTMCs
 * Sparse/hybrid versions of instantaneous reward properties (R=?[I=k]) for DTMCs
