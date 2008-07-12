@@ -50,7 +50,7 @@ public class SCCComputerXB implements SCCComputer
 	private Vector<JDDNode> vectBSCCs;
 	private JDDNode notInBSCCs;
 
-	public SCCComputerXB(Prism prism, JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars) throws PrismException
+	public SCCComputerXB(Prism prism, JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars)
 	{
 		// initialise
 		mainLog = prism.getMainLog();

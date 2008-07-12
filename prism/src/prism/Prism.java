@@ -29,6 +29,7 @@ package prism;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Vector;
 
 import jdd.*;
 import dv.*;
@@ -477,7 +478,31 @@ public class Prism implements PrismSettingsListener
 		}
 		return theSimulator; 
 	}
-
+	
+	/**
+	 * Get an SCCComputer object.
+	 * Type (i.e. algorithm) depends on SCCMethod PRISM option.
+	 * @return
+	 */
+	public SCCComputer getSCCComputer(JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars)
+	{
+		SCCComputer sccComputer;
+		switch (getSCCMethod()) {
+		case Prism.LOCKSTEP:
+			sccComputer = new SCCComputerLockstep(this, reach, trans01, allDDRowVars, allDDColVars);
+			break;
+		case Prism.SCCFIND:
+			sccComputer = new SCCComputerSCCFind(this, reach, trans01, allDDRowVars, allDDColVars);
+			break;
+		case Prism.XIEBEEREL:
+			sccComputer = new SCCComputerXB(this, reach, trans01, allDDRowVars, allDDColVars);
+			break;
+		default:
+			sccComputer = new SCCComputerLockstep(this, reach, trans01, allDDRowVars, allDDColVars);
+		}
+		return sccComputer;
+	}
+	
 	// Let PrismSettings object notify us things have changed
 	
 	public void notifySettings(PrismSettings settings)
@@ -1052,18 +1077,28 @@ public class Prism implements PrismSettingsListener
 	// export states list to a file (plain, matlab, ...)
 	// file == null mean export to log
 	
-	public void exportStatesToFile(Model model, int exportType, File file) throws FileNotFoundException
+	public void exportBSCCsToFile(Model model, int exportType, File file) throws FileNotFoundException
 	{
-		int i;
+		int i, n;
 		PrismLog tmpLog;
+		SCCComputer sccComputer;
+		Vector<JDDNode> bsccs;
+		JDDNode not, bscc;
 		
 		// no specific states format for MRMC
 		if (exportType == EXPORT_MRMC) exportType = EXPORT_PLAIN;
 		// rows format does not apply to states output
 		if (exportType == EXPORT_ROWS) exportType = EXPORT_PLAIN;
 		
+		// Compute BSCCs
+		mainLog.println("\nComputing BSCCs...");
+		sccComputer = getSCCComputer(model.getReach(), model.getTrans01(), model.getAllDDRowVars(), model.getAllDDColVars());
+		sccComputer.computeBSCCs();
+		bsccs = sccComputer.getVectBSCCs();
+		not = sccComputer.getNotInBSCCs();
+		
 		// print message
-		mainLog.print("\nExporting list of reachable states ");
+		mainLog.print("\nExporting BSCCs ");
 		switch (exportType) {
 		case EXPORT_PLAIN: mainLog.print("in plain text format "); break;
 		case EXPORT_MATLAB: mainLog.print("in Matlab format "); break;
@@ -1082,22 +1117,30 @@ public class Prism implements PrismSettingsListener
 		
 		// print header: list of model vars
 		if (exportType == EXPORT_MATLAB) tmpLog.print("% ");
-		tmpLog.print("(");
+		tmpLog.print("Variables: (");
 		for (i = 0; i < model.getNumVars(); i++) {
 			tmpLog.print(model.getVarName(i));
 			if (i < model.getNumVars()-1) tmpLog.print(",");
 		}
 		tmpLog.println(")");
-		if (exportType == EXPORT_MATLAB) tmpLog.println("states=[");
 		
-		// print states
-		if (exportType != EXPORT_MATLAB)
-			model.getReachableStates().print(tmpLog);
-		else
-			model.getReachableStates().printMatlab(tmpLog);
+		// print states for each bscc
+		n = bsccs.size();
+		for (i = 0; i < n; i++) {
+			tmpLog.println();
+			if (exportType == EXPORT_MATLAB) tmpLog.print("% ");
+			tmpLog.println("BSCC "+(i+1)+"/"+n+":");
+			if (exportType == EXPORT_MATLAB) tmpLog.println("bscc"+(i+1)+"=[");
+			bscc = bsccs.get(i);
+			if (exportType != EXPORT_MATLAB)
+				new StateListMTBDD(bscc, model).print(tmpLog);
+			else
+				new StateListMTBDD(bscc, model).printMatlab(tmpLog);
+			if (exportType == EXPORT_MATLAB) tmpLog.println("];");
+			JDD.Deref(bscc);
+		}
 		
-		// print footer
-		if (exportType == EXPORT_MATLAB) tmpLog.println("];");
+		JDD.Deref(not);
 		
 		// tidy up
 		if (file != null) tmpLog.close();
@@ -1161,6 +1204,57 @@ public class Prism implements PrismSettingsListener
 		}
 	}
 
+	public void exportStatesToFile(Model model, int exportType, File file) throws FileNotFoundException
+	{
+		int i;
+		PrismLog tmpLog;
+		
+		// no specific states format for MRMC
+		if (exportType == EXPORT_MRMC) exportType = EXPORT_PLAIN;
+		// rows format does not apply to states output
+		if (exportType == EXPORT_ROWS) exportType = EXPORT_PLAIN;
+		
+		// print message
+		mainLog.print("\nExporting list of reachable states ");
+		switch (exportType) {
+		case EXPORT_PLAIN: mainLog.print("in plain text format "); break;
+		case EXPORT_MATLAB: mainLog.print("in Matlab format "); break;
+		}
+		if (file != null) mainLog.println("to file \"" + file + "\"..."); else mainLog.println("below:");
+		
+		// create new file log or use main log
+		if (file != null) {
+			tmpLog = new PrismFileLog(file.getPath());
+			if (!tmpLog.ready()) {
+				throw new FileNotFoundException();
+			}
+		} else {
+			tmpLog = mainLog;
+		}
+		
+		// print header: list of model vars
+		if (exportType == EXPORT_MATLAB) tmpLog.print("% ");
+		tmpLog.print("(");
+		for (i = 0; i < model.getNumVars(); i++) {
+			tmpLog.print(model.getVarName(i));
+			if (i < model.getNumVars()-1) tmpLog.print(",");
+		}
+		tmpLog.println(")");
+		if (exportType == EXPORT_MATLAB) tmpLog.println("states=[");
+		
+		// print states
+		if (exportType != EXPORT_MATLAB)
+			model.getReachableStates().print(tmpLog);
+		else
+			model.getReachableStates().printMatlab(tmpLog);
+		
+		// print footer
+		if (exportType == EXPORT_MATLAB) tmpLog.println("];");
+		
+		// tidy up
+		if (file != null) tmpLog.close();
+	}
+	
 	// model checking
 	// returns result or throws an exception in case of error
 	

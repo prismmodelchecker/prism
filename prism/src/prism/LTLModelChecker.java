@@ -488,6 +488,7 @@ public class LTLModelChecker
 		Stack<JDDNode> candidates = new Stack<JDDNode>();
 		candidates.push(states);
 		Vector<JDDNode> ecs = new Vector<JDDNode>();
+		SCCComputer sccComputer;
 		
 		while (!candidates.isEmpty()) {
 			JDDNode candidate = candidates.pop();
@@ -522,24 +523,7 @@ public class LTLModelChecker
 			
 			// now find the maximal SCCs in (stableSet, stableSetTrans)
 			Vector<JDDNode> sccs;
-			SCCComputer sccComputer;
-			switch (prism.getSCCMethod()) {
-			case Prism.LOCKSTEP:
-				sccComputer = new SCCComputerLockstep(prism, stableSet, stableSetTrans, model.getAllDDRowVars(), model
-						.getAllDDColVars());
-				break;
-			case Prism.SCCFIND:
-				sccComputer = new SCCComputerSCCFind(prism, stableSet, stableSetTrans, model.getAllDDRowVars(), model
-						.getAllDDColVars());
-				break;
-			case Prism.XIEBEEREL:
-				sccComputer = new SCCComputerXB(prism, stableSet, stableSetTrans, model.getAllDDRowVars(), model
-						.getAllDDColVars());
-				break;
-			default:
-				sccComputer = new SCCComputerLockstep(prism, stableSet, stableSetTrans, model.getAllDDRowVars(), model
-						.getAllDDColVars());
-			}
+			sccComputer = prism.getSCCComputer(stableSet, stableSetTrans, model.getAllDDRowVars(), model.getAllDDColVars());
 			sccComputer.computeBSCCs();
 			JDD.Deref(stableSet);
 			JDD.Deref(stableSetTrans);

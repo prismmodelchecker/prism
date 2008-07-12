@@ -52,6 +52,7 @@ public class PrismCL
 	private boolean exportspy = false;
 	private boolean exportdot = false;
 	private boolean exporttransdot = false;
+	private boolean exportbsccs = false;
 	private boolean exportresults = false;
 	private boolean exportPlainDeprecated = false;
 	private int exportType = Prism.EXPORT_PLAIN;
@@ -85,6 +86,7 @@ public class PrismCL
 	private String exportSpyFilename = null;
 	private String exportDotFilename = null;
 	private String exportTransDotFilename = null;
+	private String exportBSCCsFilename = null;
 	private String exportResultsFilename = null;
 	private String simpathFilename = null;
 	
@@ -676,6 +678,18 @@ public class PrismCL
 				error("Couldn't open file \"" + exportTransDotFilename + "\" for output");
 			}
 		}
+		
+		// export BSCCs to a file
+		if (exportbsccs) {
+			try {
+				File f = (exportBSCCsFilename.equals("stdout")) ? null : new File(exportBSCCsFilename);
+				prism.exportBSCCsToFile(model, exportType, f);
+			}
+			// in case of error, report it and proceed
+			catch (FileNotFoundException e) {
+				error("Couldn't open file \"" + exportBSCCsFilename + "\" for output");
+			}
+		}
 	}
 
 	// do steady state computation (if required)
@@ -876,6 +890,16 @@ public class PrismCL
 					if (i < args.length-1) {
 						exporttransdot = true;
 						exportTransDotFilename = args[++i];
+					}
+					else {
+						errorAndExit("No file specified for -"+sw+" switch");
+					}
+				}
+				// export bsccs to file
+				else if (sw.equals("exportbsccs")) {
+					if (i < args.length-1) {
+						exportbsccs = true;
+						exportBSCCsFilename = args[++i];
 					}
 					else {
 						errorAndExit("No file specified for -"+sw+" switch");
@@ -1499,6 +1523,7 @@ public class PrismCL
 		mainLog.println("-exportunordered ............... When exporting matrices, don't order entries");
 		mainLog.println("-exporttransdot <file> ......... Export the transition matrix graph to a dot file");
 		mainLog.println("-exportdot <file> .............. Export the transition matrix MTBDD to a dot file");
+		mainLog.println("-exportbsccs <file> ............ Compute and export all BSCCs of the model");
 		mainLog.println();
 		mainLog.println("-mtbdd (or -m) ................. Use the MTBDD engine");
 		mainLog.println("-sparse (or -s) ................ Use the Sparse engine");
