@@ -1,23 +1,24 @@
-// time bound
+// Time bound
 const double T;
 
-//Probability that in the long run station 1 is awaiting service 
+// Probability that in the long run station 1 is awaiting service 
 S=? [ s1=1 & !(s=1 & a=1) ]
 
 // Probability that in the long run station 1 is idle 
 S=? [ s1=0 ] 
 
-// once a station becomes full, the minimum probability it will eventually be polled is ...
+// Once a station becomes full, the minimum probability it will eventually be polled
 P=? [ true U (s=1 & a=0) {s1=1}{min} ]
 
-// probability that from the inital state station 1 is served before station 2 is ...
+// Probability, from the inital state, that station 1 is served before station 2
 P=? [ !(s=2 & a=1) U (s=1 & a=1) ]
 
-// once a station becomes full, probability it will be polled within T time units is ...
+// Probability that station 1 will be polled within T time units
 P=?[ true U<=T (s=1 & a=0) ]
 
-// expected reward accumlated by time T
-R{"waiting"}=?[C<=T] // time the station 1 is waiting to be served
-R{"served"}=?[C<=T] // number of times station1 is served
+// Expected time station 1 is waiting to be served
+R{"waiting"}=?[C<=T] 
 
+// Expected number of times station1 is served
+R{"served"}=?[C<=T]
 
