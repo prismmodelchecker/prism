@@ -78,7 +78,7 @@ char error_message[MAX_ERR_STRING_LEN];
 // cudd manager
 //------------------------------------------------------------------------------
 
-JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetCUDDManager(JNIEnv *env, jclass cls, jlong __pointer ddm)
+JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetCUDDManager(JNIEnv *env, jclass cls, jlong __jlongpointer ddm)
 {
 	ddman = jlong_to_DdManager(ddm);
 }

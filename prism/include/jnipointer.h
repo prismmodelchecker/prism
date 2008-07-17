@@ -34,7 +34,7 @@
  * Currently does nothing, used to annotate jlong's that are pointers
  */
 
-#define __pointer
+#define __jlongpointer
 
 /*
  * C++ doesn't support implicit conversion from void*
@@ -67,12 +67,12 @@
 
 // void* <-> jlong conversions functions
 
-static inline jlong __pointer ptr_to_jlong(void *ptr)
+static inline jlong __jlongpointer ptr_to_jlong(void *ptr)
 {
 	return (jlong)((intptr_t)ptr);
 }
 
-static inline void *jlong_to_ptr(jlong __pointer ptr)
+static inline void *jlong_to_ptr(jlong __jlongpointer ptr)
 {
 	return (void*)((intptr_t)ptr);
 }

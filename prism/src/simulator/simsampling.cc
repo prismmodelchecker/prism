@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <vector>
+#include <cstring>
 
 using std::cout;
 using std::endl;

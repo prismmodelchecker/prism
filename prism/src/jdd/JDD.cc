@@ -41,7 +41,7 @@ static DdManager *ddman;
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_GetCUDDManager(JNIEnv *env, jclass cls)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_GetCUDDManager(JNIEnv *env, jclass cls)
 {
 	return ptr_to_jlong(ddman);
 }
@@ -52,7 +52,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_GetCUDDManager(JNIEnv *env, jclas
 //	
 //==============================================================================
 
-JNIEXPORT void JNICALL Java_jdd_JDD_DD_1SetOutputStream(JNIEnv *env, jclass cls, jlong __pointer fp)
+JNIEXPORT void JNICALL Java_jdd_JDD_DD_1SetOutputStream(JNIEnv *env, jclass cls, jlong __jlongpointer fp)
 {
 	DD_SetOutputStream(jlong_to_FILE(fp));
 }
@@ -60,7 +60,7 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1SetOutputStream(JNIEnv *env, jclass cls,
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1GetOutputStream(JNIEnv *env, jclass cls)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1GetOutputStream(JNIEnv *env, jclass cls)
 {
 	return ptr_to_jlong(DD_GetOutputStream());
 }
@@ -107,7 +107,7 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1CloseDownCUDD(JNIEnv *env, jclass cls, j
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT void JNICALL Java_jdd_JDD_DD_1Ref(JNIEnv *env, jclass cls, jlong __pointer dd)
+JNIEXPORT void JNICALL Java_jdd_JDD_DD_1Ref(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
 	Cudd_Ref(jlong_to_DdNode(dd));
 }
@@ -115,7 +115,7 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1Ref(JNIEnv *env, jclass cls, jlong __poi
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT void JNICALL Java_jdd_JDD_DD_1Deref(JNIEnv *env, jclass cls, jlong __pointer dd)
+JNIEXPORT void JNICALL Java_jdd_JDD_DD_1Deref(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
 	Cudd_RecursiveDeref(ddman, jlong_to_DdNode(dd));
 }
@@ -134,7 +134,7 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintCacheInfo(JNIEnv *env, jclass cls)
 //	
 //==============================================================================
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Create(JNIEnv *env, jclass cls)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1Create(JNIEnv *env, jclass cls)
 {
 	return ptr_to_jlong(DD_Create(ddman));
 }
@@ -142,7 +142,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Create(JNIEnv *env, jclass cl
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Constant(JNIEnv *env, jclass cls, jdouble value)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1Constant(JNIEnv *env, jclass cls, jdouble value)
 {
 	return ptr_to_jlong(DD_Constant(ddman, value));
 }
@@ -150,7 +150,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Constant(JNIEnv *env, jclass 
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1PlusInfinity(JNIEnv *env, jclass cls)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1PlusInfinity(JNIEnv *env, jclass cls)
 {
 	return ptr_to_jlong(DD_PlusInfinity(ddman));
 }
@@ -158,7 +158,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1PlusInfinity(JNIEnv *env, jcl
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1MinusInfinity(JNIEnv *env, jclass cls)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1MinusInfinity(JNIEnv *env, jclass cls)
 {
 	return ptr_to_jlong(DD_MinusInfinity(ddman));
 }
@@ -166,7 +166,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1MinusInfinity(JNIEnv *env, jc
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Var(JNIEnv *env, jclass cls, jint i)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1Var(JNIEnv *env, jclass cls, jint i)
 {
 	return ptr_to_jlong(DD_Var(ddman, i));
 }
@@ -174,7 +174,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Var(JNIEnv *env, jclass cls, 
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Not(JNIEnv *env, jclass cls, jlong __pointer dd)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1Not(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
 	return ptr_to_jlong(DD_Not(ddman, jlong_to_DdNode(dd)));
 }
@@ -182,7 +182,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Not(JNIEnv *env, jclass cls, 
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Or(JNIEnv *env, jclass cls, jlong __pointer dd1, jlong __pointer dd2)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1Or(JNIEnv *env, jclass cls, jlong __jlongpointer dd1, jlong __jlongpointer dd2)
 {
 	return ptr_to_jlong(DD_Or(ddman, jlong_to_DdNode(dd1), jlong_to_DdNode(dd2)));
 }
@@ -190,7 +190,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Or(JNIEnv *env, jclass cls, j
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1And(JNIEnv *env, jclass cls, jlong __pointer dd1, jlong __pointer dd2)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1And(JNIEnv *env, jclass cls, jlong __jlongpointer dd1, jlong __jlongpointer dd2)
 {
 	return ptr_to_jlong(DD_And(ddman, jlong_to_DdNode(dd1), jlong_to_DdNode(dd2)));
 }
@@ -198,7 +198,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1And(JNIEnv *env, jclass cls, 
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Xor(JNIEnv *env, jclass cls, jlong __pointer dd1, jlong __pointer dd2)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1Xor(JNIEnv *env, jclass cls, jlong __jlongpointer dd1, jlong __jlongpointer dd2)
 {
 	return ptr_to_jlong(DD_Xor(ddman, jlong_to_DdNode(dd1), jlong_to_DdNode(dd2)));
 }
@@ -206,7 +206,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Xor(JNIEnv *env, jclass cls, 
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Implies(JNIEnv *env, jclass cls, jlong __pointer dd1, jlong __pointer dd2)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1Implies(JNIEnv *env, jclass cls, jlong __jlongpointer dd1, jlong __jlongpointer dd2)
 {
 	return ptr_to_jlong(DD_Implies(ddman, jlong_to_DdNode(dd1), jlong_to_DdNode(dd2)));
 }
@@ -214,7 +214,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Implies(JNIEnv *env, jclass c
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Apply(JNIEnv *env, jclass cls, jint op, jlong __pointer dd1, jlong __pointer dd2)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1Apply(JNIEnv *env, jclass cls, jint op, jlong __jlongpointer dd1, jlong __jlongpointer dd2)
 {
 	return ptr_to_jlong(DD_Apply(ddman, op, jlong_to_DdNode(dd1), jlong_to_DdNode(dd2)));
 }
@@ -222,7 +222,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Apply(JNIEnv *env, jclass cls
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1MonadicApply(JNIEnv *env, jclass cls, jint op, jlong __pointer dd)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1MonadicApply(JNIEnv *env, jclass cls, jint op, jlong __jlongpointer dd)
 {
 	return ptr_to_jlong(DD_MonadicApply(ddman, op, jlong_to_DdNode(dd)));
 }
@@ -230,7 +230,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1MonadicApply(JNIEnv *env, jcl
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Restrict(JNIEnv *env, jclass cls, jlong __pointer dd, jlong __pointer cube)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1Restrict(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer cube)
 {
 	return ptr_to_jlong(DD_Restrict(ddman, jlong_to_DdNode(dd), jlong_to_DdNode(cube)));
 }
@@ -238,7 +238,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Restrict(JNIEnv *env, jclass 
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1ITE(JNIEnv *env, jclass cls, jlong __pointer dd1, jlong __pointer dd2, jlong __pointer dd3)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1ITE(JNIEnv *env, jclass cls, jlong __jlongpointer dd1, jlong __jlongpointer dd2, jlong __jlongpointer dd3)
 {
 	return ptr_to_jlong(DD_ITE(ddman, jlong_to_DdNode(dd1), jlong_to_DdNode(dd2), jlong_to_DdNode(dd3)));
 }
@@ -249,49 +249,49 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1ITE(JNIEnv *env, jclass cls, 
 //	
 //==============================================================================
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1PermuteVariables(JNIEnv *env, jclass cls, jlong __pointer dd, jlong __pointer old_vars, jlong __pointer new_vars, jint num_vars)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1PermuteVariables(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer old_vars, jlong __jlongpointer new_vars, jint num_vars)
 {
 	return ptr_to_jlong(DD_PermuteVariables(ddman, jlong_to_DdNode(dd), jlong_to_DdNode_array(old_vars), jlong_to_DdNode_array(new_vars), num_vars));
 }
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1SwapVariables(JNIEnv *env, jclass cls, jlong __pointer dd, jlong __pointer old_vars, jlong __pointer new_vars, jint num_vars)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1SwapVariables(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer old_vars, jlong __jlongpointer new_vars, jint num_vars)
 {
 	return ptr_to_jlong(DD_SwapVariables(ddman, jlong_to_DdNode(dd), jlong_to_DdNode_array(old_vars), jlong_to_DdNode_array(new_vars), num_vars));
 }
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1VariablesGreaterThan(JNIEnv *env, jclass cls, jlong __pointer x_vars, jlong __pointer y_vars, jint num_vars)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1VariablesGreaterThan(JNIEnv *env, jclass cls, jlong __jlongpointer x_vars, jlong __jlongpointer y_vars, jint num_vars)
 {
 	return ptr_to_jlong(DD_VariablesGreaterThan(ddman, jlong_to_DdNode_array(x_vars), jlong_to_DdNode_array(y_vars), num_vars));
 }
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1VariablesGreaterThanEquals(JNIEnv *env, jclass cls, jlong __pointer x_vars, jlong __pointer y_vars, jint num_vars)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1VariablesGreaterThanEquals(JNIEnv *env, jclass cls, jlong __jlongpointer x_vars, jlong __jlongpointer y_vars, jint num_vars)
 {
 	return ptr_to_jlong(DD_VariablesGreaterThanEquals(ddman, jlong_to_DdNode_array(x_vars), jlong_to_DdNode_array(y_vars), num_vars));
 }
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1VariablesLessThan(JNIEnv *env, jclass cls, jlong __pointer x_vars, jlong __pointer y_vars, jint num_vars)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1VariablesLessThan(JNIEnv *env, jclass cls, jlong __jlongpointer x_vars, jlong __jlongpointer y_vars, jint num_vars)
 {
 	return ptr_to_jlong(DD_VariablesLessThan(ddman, jlong_to_DdNode_array(x_vars), jlong_to_DdNode_array(y_vars), num_vars));
 }
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1VariablesLessThanEquals(JNIEnv *env, jclass cls, jlong __pointer x_vars, jlong __pointer y_vars, jint num_vars)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1VariablesLessThanEquals(JNIEnv *env, jclass cls, jlong __jlongpointer x_vars, jlong __jlongpointer y_vars, jint num_vars)
 {
 	return ptr_to_jlong(DD_VariablesLessThanEquals(ddman, jlong_to_DdNode_array(x_vars), jlong_to_DdNode_array(y_vars), num_vars));
 }
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1VariablesEquals(JNIEnv *env, jclass cls, jlong __pointer x_vars, jlong __pointer y_vars, jint num_vars)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1VariablesEquals(JNIEnv *env, jclass cls, jlong __jlongpointer x_vars, jlong __jlongpointer y_vars, jint num_vars)
 {
 	return ptr_to_jlong(DD_VariablesEquals(ddman, jlong_to_DdNode_array(x_vars), jlong_to_DdNode_array(y_vars), num_vars));
 }
@@ -302,7 +302,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1VariablesEquals(JNIEnv *env, 
 //	
 //==============================================================================
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1ThereExists(JNIEnv *env, jclass cls, jlong __pointer dd, jlong __pointer vars, jint num_vars)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1ThereExists(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer vars, jint num_vars)
 {
 	return ptr_to_jlong(DD_ThereExists(ddman, jlong_to_DdNode(dd), jlong_to_DdNode_array(vars), num_vars));
 }
@@ -310,7 +310,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1ThereExists(JNIEnv *env, jcla
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1ForAll(JNIEnv *env, jclass cls, jlong __pointer dd, jlong __pointer vars, jint num_vars)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1ForAll(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer vars, jint num_vars)
 {
 	return ptr_to_jlong(DD_ForAll(ddman, jlong_to_DdNode(dd), jlong_to_DdNode_array(vars), num_vars));
 }
@@ -318,7 +318,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1ForAll(JNIEnv *env, jclass cl
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1SumAbstract(JNIEnv *env, jclass cls, jlong __pointer dd, jlong __pointer vars, jint num_vars)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1SumAbstract(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer vars, jint num_vars)
 {
 	return ptr_to_jlong(DD_SumAbstract(ddman, jlong_to_DdNode(dd), jlong_to_DdNode_array(vars), num_vars));
 }
@@ -326,7 +326,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1SumAbstract(JNIEnv *env, jcla
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1ProductAbstract(JNIEnv *env, jclass cls, jlong __pointer dd, jlong __pointer vars, jint num_vars)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1ProductAbstract(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer vars, jint num_vars)
 {
 	return ptr_to_jlong(DD_ProductAbstract(ddman, jlong_to_DdNode(dd), jlong_to_DdNode_array(vars), num_vars));
 }
@@ -334,7 +334,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1ProductAbstract(JNIEnv *env, 
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1MinAbstract(JNIEnv *env, jclass cls, jlong __pointer dd, jlong __pointer vars, jint num_vars)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1MinAbstract(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer vars, jint num_vars)
 {
 	return ptr_to_jlong(DD_MinAbstract(ddman, jlong_to_DdNode(dd), jlong_to_DdNode_array(vars), num_vars));
 }
@@ -342,7 +342,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1MinAbstract(JNIEnv *env, jcla
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1MaxAbstract(JNIEnv *env, jclass cls, jlong __pointer dd, jlong __pointer vars, jint num_vars)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1MaxAbstract(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer vars, jint num_vars)
 {
 	return ptr_to_jlong(DD_MaxAbstract(ddman, jlong_to_DdNode(dd), jlong_to_DdNode_array(vars), num_vars));
 }
@@ -353,7 +353,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1MaxAbstract(JNIEnv *env, jcla
 //	
 //==============================================================================
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1GreaterThan(JNIEnv *env, jclass cls, jlong __pointer dd, jdouble threshold)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1GreaterThan(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jdouble threshold)
 {
 	return ptr_to_jlong(DD_GreaterThan(ddman, jlong_to_DdNode(dd), threshold));
 }
@@ -361,7 +361,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1GreaterThan(JNIEnv *env, jcla
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1GreaterThanEquals(JNIEnv *env, jclass cls, jlong __pointer dd, jdouble threshold)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1GreaterThanEquals(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jdouble threshold)
 {
 	return ptr_to_jlong(DD_GreaterThanEquals(ddman, jlong_to_DdNode(dd), threshold));
 }
@@ -369,7 +369,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1GreaterThanEquals(JNIEnv *env
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1LessThan(JNIEnv *env, jclass cls, jlong __pointer dd, jdouble threshold)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1LessThan(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jdouble threshold)
 {
 	return ptr_to_jlong(DD_LessThan(ddman, jlong_to_DdNode(dd), threshold));
 }
@@ -377,7 +377,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1LessThan(JNIEnv *env, jclass 
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1LessThanEquals(JNIEnv *env, jclass cls, jlong __pointer dd, jdouble threshold)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1LessThanEquals(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jdouble threshold)
 {
 	return ptr_to_jlong(DD_LessThanEquals(ddman, jlong_to_DdNode(dd), threshold));
 }
@@ -385,7 +385,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1LessThanEquals(JNIEnv *env, j
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Equals(JNIEnv *env, jclass cls, jlong __pointer dd, jdouble value)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1Equals(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jdouble value)
 {
 	return ptr_to_jlong(DD_Equals(ddman, jlong_to_DdNode(dd), value));
 }
@@ -393,7 +393,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Equals(JNIEnv *env, jclass cl
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Interval(JNIEnv *env, jclass cls, jlong __pointer dd, jdouble lower, jdouble upper)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1Interval(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jdouble lower, jdouble upper)
 {
 	return ptr_to_jlong(DD_Interval(ddman, jlong_to_DdNode(dd), lower, upper));
 }
@@ -401,7 +401,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Interval(JNIEnv *env, jclass 
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1RoundOff(JNIEnv *env, jclass cls, jlong __pointer dd, jint places)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1RoundOff(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jint places)
 {
 	return ptr_to_jlong(DD_RoundOff(ddman, jlong_to_DdNode(dd), places));
 }
@@ -409,7 +409,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1RoundOff(JNIEnv *env, jclass 
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jboolean JNICALL Java_jdd_JDD_DD_1EqualSupNorm(JNIEnv *env, jclass cls, jlong __pointer dd1, jlong __pointer dd2, jdouble epsilon)
+JNIEXPORT jboolean JNICALL Java_jdd_JDD_DD_1EqualSupNorm(JNIEnv *env, jclass cls, jlong __jlongpointer dd1, jlong __jlongpointer dd2, jdouble epsilon)
 {
 	return DD_EqualSupNorm(ddman, jlong_to_DdNode(dd1), jlong_to_DdNode(dd2), epsilon);
 }
@@ -417,7 +417,7 @@ JNIEXPORT jboolean JNICALL Java_jdd_JDD_DD_1EqualSupNorm(JNIEnv *env, jclass cls
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1FindMin(JNIEnv *env, jclass cls, jlong __pointer dd)
+JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1FindMin(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
 	return DD_FindMin(ddman, jlong_to_DdNode(dd));
 }
@@ -425,7 +425,7 @@ JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1FindMin(JNIEnv *env, jclass cls, jlon
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1FindMax(JNIEnv *env, jclass cls, jlong __pointer dd)
+JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1FindMax(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
 	return DD_FindMax(ddman, jlong_to_DdNode(dd));
 }
@@ -433,7 +433,7 @@ JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1FindMax(JNIEnv *env, jclass cls, jlon
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1RestrictToFirst(JNIEnv *env, jclass cls, jlong __pointer dd, jlong __pointer vars, jint num_vars)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1RestrictToFirst(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer vars, jint num_vars)
 {
 	return ptr_to_jlong(DD_RestrictToFirst(ddman, jlong_to_DdNode(dd), jlong_to_DdNode_array(vars), num_vars));
 }
@@ -444,7 +444,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1RestrictToFirst(JNIEnv *env, 
 //	
 //==============================================================================
 
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1GetNumNodes(JNIEnv *env, jclass cls, jlong __pointer dd)
+JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1GetNumNodes(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
 	return DD_GetNumNodes(ddman, jlong_to_DdNode(dd));
 }
@@ -452,7 +452,7 @@ JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1GetNumNodes(JNIEnv *env, jclass cls, jlo
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1GetNumTerminals(JNIEnv *env, jclass cls, jlong __pointer dd)
+JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1GetNumTerminals(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
 	return DD_GetNumTerminals(ddman, jlong_to_DdNode(dd));
 }
@@ -460,7 +460,7 @@ JNIEXPORT jint JNICALL Java_jdd_JDD_DD_1GetNumTerminals(JNIEnv *env, jclass cls,
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1GetNumMinterms(JNIEnv *env, jclass cls, jlong __pointer dd, jint num_vars)
+JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1GetNumMinterms(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jint num_vars)
 {
 	return DD_GetNumMinterms(ddman, jlong_to_DdNode(dd), num_vars);
 }
@@ -468,7 +468,7 @@ JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1GetNumMinterms(JNIEnv *env, jclass cl
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1GetNumPaths(JNIEnv *env, jclass cls, jlong __pointer dd)
+JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1GetNumPaths(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
 	return DD_GetNumPaths(ddman, jlong_to_DdNode(dd));
 }
@@ -476,7 +476,7 @@ JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1GetNumPaths(JNIEnv *env, jclass cls, 
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintInfo(JNIEnv *env, jclass cls, jlong __pointer dd, jint num_vars)
+JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintInfo(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jint num_vars)
 {
 	DD_PrintInfo(ddman, jlong_to_DdNode(dd), num_vars);
 }
@@ -484,7 +484,7 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintInfo(JNIEnv *env, jclass cls, jlong
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintInfoBrief(JNIEnv *env, jclass cls, jlong __pointer dd, jint num_vars)
+JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintInfoBrief(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jint num_vars)
 {
 	DD_PrintInfoBrief(ddman, jlong_to_DdNode(dd), num_vars);
 }
@@ -492,7 +492,7 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintInfoBrief(JNIEnv *env, jclass cls, 
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintSupport(JNIEnv *env, jclass cls, jlong __pointer dd)
+JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintSupport(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
 	DD_PrintSupport(ddman, jlong_to_DdNode(dd));
 }
@@ -500,7 +500,7 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintSupport(JNIEnv *env, jclass cls, jl
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1GetSupport(JNIEnv *env, jclass cls, jlong __pointer dd)
+JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1GetSupport(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
 	return ptr_to_jlong(DD_GetSupport(ddman, jlong_to_DdNode(dd)));
 }
@@ -508,7 +508,7 @@ JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1GetSupport(JNIEnv *env, jclass cls, jlo
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintTerminals(JNIEnv *env, jclass cls, jlong __pointer dd)
+JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintTerminals(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
 	DD_PrintTerminals(ddman, jlong_to_DdNode(dd));
 }
@@ -516,7 +516,7 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintTerminals(JNIEnv *env, jclass cls, 
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintTerminalsAndNumbers(JNIEnv *env, jclass cls, jlong __pointer dd, jint num_vars)
+JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintTerminalsAndNumbers(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jint num_vars)
 {
 	DD_PrintTerminalsAndNumbers(ddman, jlong_to_DdNode(dd), num_vars);
 }
@@ -527,7 +527,7 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintTerminalsAndNumbers(JNIEnv *env, jc
 //	
 //==============================================================================
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1SetVectorElement(JNIEnv *env, jclass cls, jlong __pointer dd, jlong __pointer vars, jint num_vars, jlong index, jdouble value)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1SetVectorElement(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer vars, jint num_vars, jlong index, jdouble value)
 {
 	return ptr_to_jlong(DD_SetVectorElement(ddman, jlong_to_DdNode(dd), jlong_to_DdNode_array(vars), num_vars, index, value));
 }
@@ -535,7 +535,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1SetVectorElement(JNIEnv *env,
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1SetMatrixElement(JNIEnv *env, jclass cls, jlong __pointer dd, jlong __pointer rvars, jint num_rvars, jlong __pointer cvars, jint num_cvars, jlong rindex, jlong cindex, jdouble value)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1SetMatrixElement(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer rvars, jint num_rvars, jlong __jlongpointer cvars, jint num_cvars, jlong rindex, jlong cindex, jdouble value)
 {
 	return ptr_to_jlong(DD_SetMatrixElement(ddman, jlong_to_DdNode(dd), jlong_to_DdNode_array(rvars), num_rvars, jlong_to_DdNode_array(cvars), num_cvars, rindex, cindex, value));
 }
@@ -543,7 +543,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1SetMatrixElement(JNIEnv *env,
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Set3DMatrixElement(JNIEnv *env, jclass cls, jlong __pointer dd, jlong __pointer rvars, jint num_rvars, jlong __pointer cvars, jint num_cvars, jlong __pointer lvars, jint num_lvars, jlong rindex, jlong cindex, jlong lindex, jdouble value)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1Set3DMatrixElement(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer rvars, jint num_rvars, jlong __jlongpointer cvars, jint num_cvars, jlong __jlongpointer lvars, jint num_lvars, jlong rindex, jlong cindex, jlong lindex, jdouble value)
 {
 	return ptr_to_jlong(DD_Set3DMatrixElement(ddman, jlong_to_DdNode(dd), jlong_to_DdNode_array(rvars), num_rvars, jlong_to_DdNode_array(cvars), num_cvars, jlong_to_DdNode_array(lvars), num_lvars, rindex, cindex, lindex, value));
 }
@@ -551,7 +551,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Set3DMatrixElement(JNIEnv *en
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1GetVectorElement(JNIEnv *env, jclass cls, jlong __pointer dd, jlong __pointer vars, jint num_vars, jlong index)
+JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1GetVectorElement(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer vars, jint num_vars, jlong index)
 {
 	return DD_GetVectorElement(ddman, jlong_to_DdNode(dd), jlong_to_DdNode_array(vars), num_vars, index);
 }
@@ -559,7 +559,7 @@ JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1GetVectorElement(JNIEnv *env, jclass 
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Identity(JNIEnv *env, jclass cls, jlong __pointer rvars, jlong __pointer cvars, jint num_vars)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1Identity(JNIEnv *env, jclass cls, jlong __jlongpointer rvars, jlong __jlongpointer cvars, jint num_vars)
 {
 	return ptr_to_jlong(DD_Identity(ddman, jlong_to_DdNode_array(rvars), jlong_to_DdNode_array(cvars), num_vars));
 }
@@ -567,7 +567,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Identity(JNIEnv *env, jclass 
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Transpose(JNIEnv *env, jclass cls, jlong __pointer dd, jlong __pointer rvars, jlong __pointer cvars, jint num_vars, jint lvars, jint num_lvars)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1Transpose(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer rvars, jlong __jlongpointer cvars, jint num_vars, jint lvars, jint num_lvars)
 {
 	return ptr_to_jlong(DD_Transpose(ddman, jlong_to_DdNode(dd), jlong_to_DdNode_array(rvars), jlong_to_DdNode_array(cvars), num_vars));
 }
@@ -575,7 +575,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1Transpose(JNIEnv *env, jclass
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1MatrixMultiply(JNIEnv *env, jclass cls, jlong __pointer dd1, jlong __pointer dd2, jlong __pointer vars, jint num_vars, jint method)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1MatrixMultiply(JNIEnv *env, jclass cls, jlong __jlongpointer dd1, jlong __jlongpointer dd2, jlong __jlongpointer vars, jint num_vars, jint method)
 {
 	return ptr_to_jlong(DD_MatrixMultiply(ddman, jlong_to_DdNode(dd1), jlong_to_DdNode(dd2), jlong_to_DdNode_array(vars), num_vars, method));
 }
@@ -583,7 +583,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDD_DD_1MatrixMultiply(JNIEnv *env, j
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintVector(JNIEnv *env, jclass cls, jlong __pointer dd, jlong __pointer vars, jint num_vars, jint acc)
+JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintVector(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer vars, jint num_vars, jint acc)
 {
 	DD_PrintVector(ddman, jlong_to_DdNode(dd), jlong_to_DdNode_array(vars), num_vars, acc);
 }
@@ -591,7 +591,7 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintVector(JNIEnv *env, jclass cls, jlo
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintMatrix(JNIEnv *env, jclass cls, jlong __pointer dd, jlong __pointer rvars, jint num_rvars, jlong __pointer cvars, jint num_cvars, jint acc)
+JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintMatrix(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer rvars, jint num_rvars, jlong __jlongpointer cvars, jint num_cvars, jint acc)
 {
 	DD_PrintMatrix(ddman, jlong_to_DdNode(dd), jlong_to_DdNode_array(rvars), num_rvars, jlong_to_DdNode_array(cvars), num_cvars, acc);
 }
@@ -599,7 +599,7 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintMatrix(JNIEnv *env, jclass cls, jlo
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintVectorFiltered(JNIEnv *env, jclass cls, jlong __pointer dd, jlong __pointer filter, jlong __pointer vars, jint num_vars, jint acc)
+JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintVectorFiltered(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer filter, jlong __jlongpointer vars, jint num_vars, jint acc)
 {
 	DD_PrintVectorFiltered(ddman, jlong_to_DdNode(dd), jlong_to_DdNode(filter), jlong_to_DdNode_array(vars), num_vars, acc);
 }
@@ -610,7 +610,7 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintVectorFiltered(JNIEnv *env, jclass 
 //	
 //==============================================================================
 
-JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportDDToDotFile(JNIEnv *env, jclass cls, jlong __pointer dd, jstring filename)
+JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportDDToDotFile(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jstring filename)
 {
 	const char *str = env->GetStringUTFChars(filename, 0);
 	DD_ExportDDToDotFile(ddman, jlong_to_DdNode(dd), (char *)str);
@@ -620,7 +620,7 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportDDToDotFile(JNIEnv *env, jclass cl
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportDDToDotFileLabelled(JNIEnv *env, jclass cls, jlong __pointer dd, jstring filename, jobject var_names)
+JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportDDToDotFileLabelled(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jstring filename, jobject var_names)
 {
 	int i, j;
 	jint size;
@@ -665,7 +665,7 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportDDToDotFileLabelled(JNIEnv *env, j
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportMatrixToPPFile(JNIEnv *env, jclass cls, jlong __pointer dd, jlong __pointer rvars, jint num_rvars, jlong __pointer cvars, jint num_cvars, jstring filename)
+JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportMatrixToPPFile(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer rvars, jint num_rvars, jlong __jlongpointer cvars, jint num_cvars, jstring filename)
 {
 	const char *str = env->GetStringUTFChars(filename, 0);
 	DD_ExportMatrixToPPFile(
@@ -680,7 +680,7 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportMatrixToPPFile(JNIEnv *env, jclass
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportMatrixToMatlabFile(JNIEnv *env, jclass cls, jlong __pointer dd, jlong __pointer rvars, jint num_rvars, jlong __pointer cvars, jint num_cvars, jstring name, jstring filename)
+JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportMatrixToMatlabFile(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer rvars, jint num_rvars, jlong __jlongpointer cvars, jint num_cvars, jstring name, jstring filename)
 {
 	const char *str1 = env->GetStringUTFChars(name, 0);
 	const char *str2 = env->GetStringUTFChars(filename, 0);
@@ -697,7 +697,7 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportMatrixToMatlabFile(JNIEnv *env, jc
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportMatrixToSpyFile(JNIEnv *env, jclass cls, jlong __pointer dd, jlong __pointer rvars, jint num_rvars, jlong __pointer cvars, jint num_cvars, jint depth, jstring filename)
+JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportMatrixToSpyFile(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer rvars, jint num_rvars, jlong __jlongpointer cvars, jint num_cvars, jint depth, jstring filename)
 {
 	const char *str = env->GetStringUTFChars(filename, 0);
 	DD_ExportMatrixToSpyFile(
@@ -715,7 +715,7 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportMatrixToSpyFile(JNIEnv *env, jclas
 //	
 //==============================================================================
 
-JNIEXPORT jboolean JNICALL Java_jdd_JDDNode_DDN_1IsConstant(JNIEnv *env, jobject obj, jlong __pointer dd)
+JNIEXPORT jboolean JNICALL Java_jdd_JDDNode_DDN_1IsConstant(JNIEnv *env, jobject obj, jlong __jlongpointer dd)
 {
 	return Cudd_IsConstant(jlong_to_DdNode(dd));
 }
@@ -723,7 +723,7 @@ JNIEXPORT jboolean JNICALL Java_jdd_JDDNode_DDN_1IsConstant(JNIEnv *env, jobject
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jint JNICALL Java_jdd_JDDNode_DDN_1GetIndex(JNIEnv *env, jobject obj, jlong __pointer dd)
+JNIEXPORT jint JNICALL Java_jdd_JDDNode_DDN_1GetIndex(JNIEnv *env, jobject obj, jlong __jlongpointer dd)
 {
 	return (jlong_to_DdNode(dd))->index;
 }
@@ -731,7 +731,7 @@ JNIEXPORT jint JNICALL Java_jdd_JDDNode_DDN_1GetIndex(JNIEnv *env, jobject obj, 
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jdouble JNICALL Java_jdd_JDDNode_DDN_1GetValue(JNIEnv *env, jobject obj, jlong __pointer dd)
+JNIEXPORT jdouble JNICALL Java_jdd_JDDNode_DDN_1GetValue(JNIEnv *env, jobject obj, jlong __jlongpointer dd)
 {
 	return Cudd_V(jlong_to_DdNode(dd));
 }
@@ -739,7 +739,7 @@ JNIEXPORT jdouble JNICALL Java_jdd_JDDNode_DDN_1GetValue(JNIEnv *env, jobject ob
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDDNode_DDN_1GetThen(JNIEnv *env, jobject obj, jlong __pointer dd)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDDNode_DDN_1GetThen(JNIEnv *env, jobject obj, jlong __jlongpointer dd)
 {
 	return ptr_to_jlong(Cudd_T(jlong_to_DdNode(dd)));
 }
@@ -747,7 +747,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDDNode_DDN_1GetThen(JNIEnv *env, job
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDDNode_DDN_1GetElse(JNIEnv *env, jobject obj, jlong __pointer dd)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDDNode_DDN_1GetElse(JNIEnv *env, jobject obj, jlong __jlongpointer dd)
 {
 	return ptr_to_jlong(Cudd_E(jlong_to_DdNode(dd)));
 }
@@ -758,7 +758,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDDNode_DDN_1GetElse(JNIEnv *env, job
 //	
 //==============================================================================
 
-JNIEXPORT jlong __pointer JNICALL Java_jdd_JDDVars_DDV_1BuildArray(JNIEnv *env, jobject obj)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDDVars_DDV_1BuildArray(JNIEnv *env, jobject obj)
 {
 	jclass cls;
 	jmethodID mid;
@@ -787,7 +787,7 @@ JNIEXPORT jlong __pointer JNICALL Java_jdd_JDDVars_DDV_1BuildArray(JNIEnv *env, 
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT void JNICALL Java_jdd_JDDVars_DDV_1FreeArray(JNIEnv *env, jobject obj, jlong __pointer arr)
+JNIEXPORT void JNICALL Java_jdd_JDDVars_DDV_1FreeArray(JNIEnv *env, jobject obj, jlong __jlongpointer arr)
 {
 	delete jlong_to_DdNode_array(arr);
 }
@@ -795,7 +795,7 @@ JNIEXPORT void JNICALL Java_jdd_JDDVars_DDV_1FreeArray(JNIEnv *env, jobject obj,
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jint JNICALL Java_jdd_JDDVars_DDV_1GetIndex(JNIEnv *env, jobject obj, jlong __pointer dd)
+JNIEXPORT jint JNICALL Java_jdd_JDDVars_DDV_1GetIndex(JNIEnv *env, jobject obj, jlong __jlongpointer dd)
 {
 	return (jlong_to_DdNode(dd))->index;
 }

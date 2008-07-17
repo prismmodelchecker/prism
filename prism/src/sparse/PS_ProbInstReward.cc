@@ -38,16 +38,16 @@
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_sparse_PrismSparse_PS_1ProbInstReward
+JNIEXPORT jlong __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1ProbInstReward
 (
 JNIEnv *env,
 jclass cls,
-jlong __pointer t,	// trans matrix
-jlong __pointer sr,	// state rewards
-jlong __pointer od,	// odd
-jlong __pointer rv,	// row vars
+jlong __jlongpointer t,	// trans matrix
+jlong __jlongpointer sr,	// state rewards
+jlong __jlongpointer od,	// odd
+jlong __jlongpointer rv,	// row vars
 jint num_rvars,
-jlong __pointer cv,	// col vars
+jlong __jlongpointer cv,	// col vars
 jint num_cvars,
 jint bound			// time bound
 )

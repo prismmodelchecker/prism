@@ -33,6 +33,7 @@
 #include "simpctl.h"
 #include "simsampling.h"
 #include "simengine.h"
+#include <cstring>
 #ifdef _WIN32
 #include <io.h>
 #else

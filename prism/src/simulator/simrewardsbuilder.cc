@@ -30,8 +30,8 @@
 #include "simexpression.h"
 #include "jnipointer.h"
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createStateReward
-  (JNIEnv *env, jclass cls, jlong __pointer guardPointer, jlong __pointer rewardPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createStateReward
+  (JNIEnv *env, jclass cls, jlong __jlongpointer guardPointer, jlong __jlongpointer rewardPointer)
 {
 	CExpression* guard = jlong_to_CExpression(guardPointer);
 	CExpression* reward = jlong_to_CExpression(rewardPointer);
@@ -39,8 +39,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createStateRewa
 	return ptr_to_jlong(state_reward);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createTransitionReward
-  (JNIEnv *env, jclass cls, jint actionIndex, jlong __pointer guardPointer, jlong __pointer rewardPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createTransitionReward
+  (JNIEnv *env, jclass cls, jint actionIndex, jlong __jlongpointer guardPointer, jlong __jlongpointer rewardPointer)
 {
 	CExpression* guard = jlong_to_CExpression(guardPointer);
 	CExpression* reward = jlong_to_CExpression(rewardPointer);

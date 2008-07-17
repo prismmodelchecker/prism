@@ -87,7 +87,7 @@ double last_unif;
 // cudd manager
 //------------------------------------------------------------------------------
 
-JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetCUDDManager(JNIEnv *env, jclass cls, jlong __pointer ddm)
+JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetCUDDManager(JNIEnv *env, jclass cls, jlong __jlongpointer ddm)
 {
 	ddman = jlong_to_DdManager(ddm);
 }

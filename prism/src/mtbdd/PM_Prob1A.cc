@@ -40,21 +40,21 @@
 // (for all = min) (nondeterministic/mdp) (mtbdd)
 // (i.e. compute states FOR which ALL probabilities are 1)
 
-JNIEXPORT jlong __pointer JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob1A
+JNIEXPORT jlong __jlongpointer JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob1A
 (
 JNIEnv *env,
 jclass cls,
-jlong __pointer t01, 	// 0-1 trans matrix
-jlong __pointer r,	// reachable states
-jlong __pointer ndm,	// nondeterminism mask
-jlong __pointer rv,	// row vars
+jlong __jlongpointer t01, 	// 0-1 trans matrix
+jlong __jlongpointer r,	// reachable states
+jlong __jlongpointer ndm,	// nondeterminism mask
+jlong __jlongpointer rv,	// row vars
 jint num_rvars,
-jlong __pointer cv,	// col vars
+jlong __jlongpointer cv,	// col vars
 jint num_cvars,
-jlong __pointer ndv,	// nondet vars
+jlong __jlongpointer ndv,	// nondet vars
 jint num_ndvars,
-jlong __pointer n,	// no
-jlong __pointer psi	// psi(b2)
+jlong __jlongpointer n,	// no
+jlong __jlongpointer psi	// psi(b2)
 )
 {
 	DdNode *trans01 = jlong_to_DdNode(t01);		// 0-1 trans matrix

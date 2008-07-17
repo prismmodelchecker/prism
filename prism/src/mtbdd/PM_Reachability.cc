@@ -37,16 +37,16 @@
 
 // Calculates states reachable from the given subset (s)
 
-JNIEXPORT jlong __pointer JNICALL Java_mtbdd_PrismMTBDD_PM_1Reachability
+JNIEXPORT jlong __jlongpointer JNICALL Java_mtbdd_PrismMTBDD_PM_1Reachability
 (
 JNIEnv *env,
 jclass cls,
-jlong __pointer t01,	// 0-1 trans matrix
-jlong __pointer rv,	// row vars
+jlong __jlongpointer t01,	// 0-1 trans matrix
+jlong __jlongpointer rv,	// row vars
 jint num_rvars,
-jlong __pointer cv,	// col vars
+jlong __jlongpointer cv,	// col vars
 jint num_cvars,
-jlong __pointer s,	// start state
+jlong __jlongpointer s,	// start state
 jint info			// how much diagnostic info to display (0=none, 1=some)
 )
 {

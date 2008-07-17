@@ -38,18 +38,18 @@
 
 // solve the linear equation system Ax=b with Jacobi/JOR
 
-JNIEXPORT jlong __pointer JNICALL Java_mtbdd_PrismMTBDD_PM_1JOR
+JNIEXPORT jlong __jlongpointer JNICALL Java_mtbdd_PrismMTBDD_PM_1JOR
 (
 JNIEnv *env,
 jclass cls,
-jlong __pointer _odd,	// odd
-jlong __pointer rv,	// row vars
+jlong __jlongpointer _odd,	// odd
+jlong __jlongpointer rv,	// row vars
 jint num_rvars,
-jlong __pointer cv,	// col vars
+jlong __jlongpointer cv,	// col vars
 jint num_cvars,
-jlong __pointer _a,	// matrix A
-jlong __pointer _b,	// vector b (if null, assume all zero)
-jlong __pointer _init,	// init soln
+jlong __jlongpointer _a,	// matrix A
+jlong __jlongpointer _b,	// vector b (if null, assume all zero)
+jlong __jlongpointer _init,	// init soln
 jboolean transpose,	// transpose A? (i.e. solve xA=b not Ax=b?)
 jdouble omega		// omega (jor parameter)
 )

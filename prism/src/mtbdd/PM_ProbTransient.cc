@@ -37,16 +37,16 @@
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_mtbdd_PrismMTBDD_PM_1ProbTransient
+JNIEXPORT jlong __jlongpointer JNICALL Java_mtbdd_PrismMTBDD_PM_1ProbTransient
 (
 JNIEnv *env,
 jclass cls,
-jlong __pointer tr,	// rate matrix
-jlong __pointer od,	// odd
-jlong __pointer in,	// initial distribution
-jlong __pointer rv,	// row vars
+jlong __jlongpointer tr,	// rate matrix
+jlong __jlongpointer od,	// odd
+jlong __jlongpointer in,	// initial distribution
+jlong __jlongpointer rv,	// row vars
 jint num_rvars,
-jlong __pointer cv,	// col vars
+jlong __jlongpointer cv,	// col vars
 jint num_cvars,
 jint time		// time
 )

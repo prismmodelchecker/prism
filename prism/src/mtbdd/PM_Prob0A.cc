@@ -40,20 +40,20 @@
 // (i.e. compute states FOR which ALL probabilities are 0)
 // (NB: actually compute states where THERE EXISTS a probability >0 and then do a NOT)
 
-JNIEXPORT jlong __pointer JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob0A
+JNIEXPORT jlong __jlongpointer JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob0A
 (
 JNIEnv *env,
 jclass cls,
-jlong __pointer t01,	// 0-1 trans matrix
-jlong __pointer r,	// reachable states
-jlong __pointer rv,	// row vars
+jlong __jlongpointer t01,	// 0-1 trans matrix
+jlong __jlongpointer r,	// reachable states
+jlong __jlongpointer rv,	// row vars
 jint num_rvars,
-jlong __pointer cv,	// col vars
+jlong __jlongpointer cv,	// col vars
 jint num_cvars,
-jlong __pointer ndv,	// nondet vars
+jlong __jlongpointer ndv,	// nondet vars
 jint num_ndvars,
-jlong __pointer phi,	// phi(b1)
-jlong __pointer psi	// psi(b2)
+jlong __jlongpointer phi,	// phi(b1)
+jlong __jlongpointer psi	// psi(b2)
 )
 {
 	DdNode *trans01 = jlong_to_DdNode(t01);		// 0-1 trans matrix

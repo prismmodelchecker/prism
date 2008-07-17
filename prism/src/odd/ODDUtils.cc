@@ -37,7 +37,7 @@ DdManager *ddman;
 // cudd manager
 //------------------------------------------------------------------------------
 
-JNIEXPORT void JNICALL Java_odd_ODDUtils_ODD_1SetCUDDManager(JNIEnv *env, jclass cls, jlong __pointer ddm)
+JNIEXPORT void JNICALL Java_odd_ODDUtils_ODD_1SetCUDDManager(JNIEnv *env, jclass cls, jlong __jlongpointer ddm)
 {
 	ddman = jlong_to_DdManager(ddm);
 }
@@ -46,12 +46,12 @@ JNIEXPORT void JNICALL Java_odd_ODDUtils_ODD_1SetCUDDManager(JNIEnv *env, jclass
 // build odd
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_odd_ODDUtils_ODD_1BuildODD
+JNIEXPORT jlong __jlongpointer JNICALL Java_odd_ODDUtils_ODD_1BuildODD
 (
 JNIEnv *env,
 jclass cls,
-jlong __pointer dd,	// trans matrix
-jlong __pointer vars,	// row vars
+jlong __jlongpointer dd,	// trans matrix
+jlong __jlongpointer vars,	// row vars
 jint num_vars
 )
 {
@@ -79,28 +79,28 @@ jclass cls
 // ODDNode methods
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_odd_ODDUtils_ODD_1GetTOff(JNIEnv *env, jclass cls, jlong __pointer odd)
+JNIEXPORT jlong __jlongpointer JNICALL Java_odd_ODDUtils_ODD_1GetTOff(JNIEnv *env, jclass cls, jlong __jlongpointer odd)
 {
 	return (jlong_to_ODDNode(odd))->toff;
 }
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_odd_ODDUtils_ODD_1GetEOff(JNIEnv *env, jclass cls, jlong __pointer odd)
+JNIEXPORT jlong __jlongpointer JNICALL Java_odd_ODDUtils_ODD_1GetEOff(JNIEnv *env, jclass cls, jlong __jlongpointer odd)
 {
 	return (jlong_to_ODDNode(odd))->eoff;
 }
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_odd_ODDUtils_ODD_1GetThen(JNIEnv *env, jclass cls, jlong __pointer odd)
+JNIEXPORT jlong __jlongpointer JNICALL Java_odd_ODDUtils_ODD_1GetThen(JNIEnv *env, jclass cls, jlong __jlongpointer odd)
 {
 	return ptr_to_jlong((jlong_to_ODDNode(odd))->t);
 }
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_odd_ODDUtils_ODD_1GetElse(JNIEnv *env, jclass cls, jlong __pointer odd)
+JNIEXPORT jlong __jlongpointer JNICALL Java_odd_ODDUtils_ODD_1GetElse(JNIEnv *env, jclass cls, jlong __jlongpointer odd)
 {
 	return ptr_to_jlong((jlong_to_ODDNode(odd))->e);
 }

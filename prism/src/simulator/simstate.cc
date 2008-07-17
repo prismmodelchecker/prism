@@ -31,6 +31,7 @@
 #include "simiohandler.h"
 #include <cstdio>
 #include <string>
+#include <cstring>
 #ifdef _WIN32
 #include <io.h>
 #else

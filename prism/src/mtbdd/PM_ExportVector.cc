@@ -47,11 +47,11 @@ JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1ExportVector
 (
 JNIEnv *env,
 jclass cls,
-jlong __pointer ve,	// vector
+jlong __jlongpointer ve,	// vector
 jstring na,		// vector name
-jlong __pointer va,	// vars
+jlong __jlongpointer va,	// vars
 jint num_vars,
-jlong __pointer od,	// odd
+jlong __jlongpointer od,	// odd
 jint et,		// export type
 jstring fn		// filename
 )

@@ -30,16 +30,16 @@
 #include "simstate.h"
 #include "jnipointer.h"
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createCommand
-  (JNIEnv * env, jclass cls, jlong __pointer guardPointer, jint actionIndex, jint moduleIndex, jint numUpdates)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createCommand
+  (JNIEnv * env, jclass cls, jlong __jlongpointer guardPointer, jint actionIndex, jint moduleIndex, jint numUpdates)
 {
 	CNormalExpression * guard = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(guardPointer));
 	CCommand * command = new CCommand(guard, (int)actionIndex, (int)moduleIndex, (int)numUpdates);
 	return ptr_to_jlong(command);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_addUpdate
-  (JNIEnv *env, jclass cls, jlong __pointer commandPointer, jlong __pointer probPointer, jint numAssignments)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_addUpdate
+  (JNIEnv *env, jclass cls, jlong __jlongpointer commandPointer, jlong __jlongpointer probPointer, jint numAssignments)
 {
 	CRealExpression * prob = jlong_to_CRealExpression(probPointer);
 	CCommand * command = jlong_to_CCommand(commandPointer);
@@ -48,8 +48,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_addUpdate
 	return ptr_to_jlong(update);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_addAssignment
-  (JNIEnv *env, jclass cls, jlong __pointer updatePointer, jint varIndex, jlong __pointer rhsPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_addAssignment
+  (JNIEnv *env, jclass cls, jlong __jlongpointer updatePointer, jint varIndex, jlong __jlongpointer rhsPointer)
 {
 	CNormalExpression * rhs = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(rhsPointer));
 	CUpdate * update = jlong_to_CUpdate(updatePointer);

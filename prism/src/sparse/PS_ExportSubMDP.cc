@@ -40,16 +40,16 @@ JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1ExportSubMDP
 (
 JNIEnv *env,
 jclass cls,
-jlong __pointer m,	// mdp
-jlong __pointer sm,	// sub mdp
+jlong __jlongpointer m,	// mdp
+jlong __jlongpointer sm,	// sub mdp
 jstring na,		// sub mdp name
-jlong __pointer rv,	// row vars
+jlong __jlongpointer rv,	// row vars
 jint num_rvars,
-jlong __pointer cv,	// col vars
+jlong __jlongpointer cv,	// col vars
 jint num_cvars,
-jlong __pointer ndv,	// nondet vars
+jlong __jlongpointer ndv,	// nondet vars
 jint num_ndvars,
-jlong __pointer od,	// odd
+jlong __jlongpointer od,	// odd
 jint et,		// export type
 jstring fn		// filename
 )

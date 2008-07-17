@@ -32,6 +32,7 @@
 #include "simiohandler.h"
 #include <cstdio>
 #include <string>
+#include <cstring>
 #include <iostream>
 #ifdef _WIN32
 #include <io.h>

@@ -44,7 +44,7 @@ JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1SetCUDDManager
 (
 JNIEnv *env,
 jclass cls,
-jlong __pointer ddm
+jlong __jlongpointer ddm
 )
 {
 	ddman = jlong_to_DdManager(ddm);
@@ -54,7 +54,7 @@ jlong __pointer ddm
 // DoubleVector methods
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_dv_DoubleVector_DV_1CreateZeroVector
+JNIEXPORT jlong __jlongpointer JNICALL Java_dv_DoubleVector_DV_1CreateZeroVector
 (
 JNIEnv *env,
 jobject obj,
@@ -73,14 +73,14 @@ jint n
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_dv_DoubleVector_DV_1ConvertMTBDD
+JNIEXPORT jlong __jlongpointer JNICALL Java_dv_DoubleVector_DV_1ConvertMTBDD
 (
 JNIEnv *env,
 jobject obj,
-jlong __pointer dd,
-jlong __pointer vars,
+jlong __jlongpointer dd,
+jlong __jlongpointer vars,
 jint num_vars,
-jlong __pointer odd
+jlong __jlongpointer odd
 )
 {
 	return ptr_to_jlong(
@@ -99,7 +99,7 @@ JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1GetElement
 (
 JNIEnv *env,
 jobject obj,
-jlong __pointer v,
+jlong __jlongpointer v,
 jint n,
 jint i
 )
@@ -114,7 +114,7 @@ JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1SetElement
 (
 JNIEnv *env,
 jobject obj,
-jlong __pointer v,
+jlong __jlongpointer v,
 jint n,
 jint i,
 jdouble d
@@ -130,7 +130,7 @@ JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1RoundOff
 (
 JNIEnv *env,
 jobject obj,
-jlong __pointer v,
+jlong __jlongpointer v,
 jint n,
 jint places
 )
@@ -154,7 +154,7 @@ JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1SubtractFromOne
 (
 JNIEnv *env,
 jobject obj,
-jlong __pointer v,
+jlong __jlongpointer v,
 jint n
 )
 {
@@ -172,9 +172,9 @@ JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1Add
 (
 JNIEnv *env,
 jobject obj,
-jlong __pointer v,
+jlong __jlongpointer v,
 jint n,
-jlong __pointer v2
+jlong __jlongpointer v2
 )
 {
 	double *vector = jlong_to_double(v);
@@ -192,7 +192,7 @@ JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1TimesConstant
 (
 JNIEnv *env,
 jobject obj,
-jlong __pointer v,
+jlong __jlongpointer v,
 jint n,
 jdouble d
 )
@@ -211,11 +211,11 @@ JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1Filter
 (
 JNIEnv *env,
 jobject obj,
-jlong __pointer vector,
-jlong __pointer filter,
-jlong __pointer vars,
+jlong __jlongpointer vector,
+jlong __jlongpointer filter,
+jlong __jlongpointer vars,
 jint num_vars,
-jlong __pointer odd
+jlong __jlongpointer odd
 )
 {
 	filter_double_vector(
@@ -233,7 +233,7 @@ JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1Clear
 (
 JNIEnv *env,
 jobject obj,
-jlong __pointer vector
+jlong __jlongpointer vector
 )
 {
 	// note we assume that this memory was created with new
@@ -246,7 +246,7 @@ JNIEXPORT jint JNICALL Java_dv_DoubleVector_DV_1GetNNZ
 (
 JNIEnv *env,
 jobject obj,
-jlong __pointer v,
+jlong __jlongpointer v,
 jint n
 )
 {
@@ -267,11 +267,11 @@ JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1FirstFromBDD
 (
 JNIEnv *env,
 jobject obj,
-jlong __pointer vector,
-jlong __pointer filter,
-jlong __pointer vars,
+jlong __jlongpointer vector,
+jlong __jlongpointer filter,
+jlong __jlongpointer vars,
 jint num_vars,
-jlong __pointer odd
+jlong __jlongpointer odd
 )
 {
 	return (jdouble)get_first_from_bdd(
@@ -289,11 +289,11 @@ JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1MinOverBDD
 (
 JNIEnv *env,
 jobject obj,
-jlong __pointer vector,
-jlong __pointer filter,
-jlong __pointer vars,
+jlong __jlongpointer vector,
+jlong __jlongpointer filter,
+jlong __jlongpointer vars,
 jint num_vars,
-jlong __pointer odd
+jlong __jlongpointer odd
 )
 {
 	return (jdouble)min_double_vector_over_bdd(
@@ -311,11 +311,11 @@ JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1MaxOverBDD
 (
 JNIEnv *env,
 jobject obj,
-jlong __pointer vector,
-jlong __pointer filter,
-jlong __pointer vars,
+jlong __jlongpointer vector,
+jlong __jlongpointer filter,
+jlong __jlongpointer vars,
 jint num_vars,
-jlong __pointer odd
+jlong __jlongpointer odd
 )
 {
 	return (jdouble)max_double_vector_over_bdd(
@@ -333,11 +333,11 @@ JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1SumOverBDD
 (
 JNIEnv *env,
 jobject obj,
-jlong __pointer vector,
-jlong __pointer filter,
-jlong __pointer vars,
+jlong __jlongpointer vector,
+jlong __jlongpointer filter,
+jlong __jlongpointer vars,
 jint num_vars,
-jlong __pointer odd
+jlong __jlongpointer odd
 )
 {
 	return (jdouble)sum_double_vector_over_bdd(
@@ -355,11 +355,11 @@ JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1SumOverMTBDD
 (
 JNIEnv *env,
 jobject obj,
-jlong __pointer vector,
-jlong __pointer mult,
-jlong __pointer vars,
+jlong __jlongpointer vector,
+jlong __jlongpointer mult,
+jlong __jlongpointer vars,
 jint num_vars,
-jlong __pointer odd
+jlong __jlongpointer odd
 )
 {
 	return (jdouble)sum_double_vector_over_mtbdd(
@@ -377,14 +377,14 @@ JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1SumOverDDVars
 (
 JNIEnv *env,
 jobject obj,
-jlong __pointer vector,
-jlong __pointer vector2,
-jlong __pointer vars,
+jlong __jlongpointer vector,
+jlong __jlongpointer vector2,
+jlong __jlongpointer vars,
 jint num_vars,
 jint first_var,
 jint last_var,
-jlong __pointer odd,
-jlong __pointer odd2
+jlong __jlongpointer odd,
+jlong __jlongpointer odd2
 )
 {
 	sum_double_vector_over_dd_vars(
@@ -400,15 +400,15 @@ jlong __pointer odd2
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_dv_DoubleVector_DV_1BDDGreaterThanEquals
+JNIEXPORT jlong __jlongpointer JNICALL Java_dv_DoubleVector_DV_1BDDGreaterThanEquals
 (
 JNIEnv *env,
 jobject obj,
-jlong __pointer vector,
+jlong __jlongpointer vector,
 jdouble bound,
-jlong __pointer vars,
+jlong __jlongpointer vars,
 jint num_vars,
-jlong __pointer odd
+jlong __jlongpointer odd
 )
 {
 	return ptr_to_jlong(
@@ -429,11 +429,11 @@ JNIEXPORT jlong JNICALL Java_dv_DoubleVector_DV_1BDDGreaterThan
 (
 JNIEnv *env,
 jobject obj,
-jlong __pointer vector,
+jlong __jlongpointer vector,
 jdouble bound,
-jlong __pointer vars,
+jlong __jlongpointer vars,
 jint num_vars,
-jlong __pointer odd
+jlong __jlongpointer odd
 )
 {
 	return ptr_to_jlong(
@@ -450,15 +450,15 @@ jlong __pointer odd
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_dv_DoubleVector_DV_1BDDLessThanEquals
+JNIEXPORT jlong __jlongpointer JNICALL Java_dv_DoubleVector_DV_1BDDLessThanEquals
 (
 JNIEnv *env,
 jobject obj,
-jlong __pointer vector,
+jlong __jlongpointer vector,
 jdouble bound,
-jlong __pointer vars,
+jlong __jlongpointer vars,
 jint num_vars,
-jlong __pointer odd
+jlong __jlongpointer odd
 )
 {
 	return ptr_to_jlong(
@@ -475,15 +475,15 @@ jlong __pointer odd
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_dv_DoubleVector_DV_1BDDLessThan
+JNIEXPORT jlong __jlongpointer JNICALL Java_dv_DoubleVector_DV_1BDDLessThan
 (
 JNIEnv *env,
 jobject obj,
-jlong __pointer vector,
+jlong __jlongpointer vector,
 jdouble bound,
-jlong __pointer vars,
+jlong __jlongpointer vars,
 jint num_vars,
-jlong __pointer odd
+jlong __jlongpointer odd
 )
 {
 	return ptr_to_jlong(
@@ -500,16 +500,16 @@ jlong __pointer odd
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_dv_DoubleVector_DV_1BDDInterval
+JNIEXPORT jlong __jlongpointer JNICALL Java_dv_DoubleVector_DV_1BDDInterval
 (
 JNIEnv *env,
 jobject obj,
-jlong __pointer vector,
+jlong __jlongpointer vector,
 jdouble lo,
 jdouble hi,
-jlong __pointer vars,
+jlong __jlongpointer vars,
 jint num_vars,
-jlong __pointer odd
+jlong __jlongpointer odd
 )
 {
 	return ptr_to_jlong(
@@ -526,14 +526,14 @@ jlong __pointer odd
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_dv_DoubleVector_DV_1ConvertToMTBDD
+JNIEXPORT jlong __jlongpointer JNICALL Java_dv_DoubleVector_DV_1ConvertToMTBDD
 (
 JNIEnv *env,
 jobject obj,
-jlong __pointer vector,
-jlong __pointer vars,
+jlong __jlongpointer vector,
+jlong __jlongpointer vars,
 jint num_vars,
-jlong __pointer odd
+jlong __jlongpointer odd
 )
 {
 	return ptr_to_jlong(

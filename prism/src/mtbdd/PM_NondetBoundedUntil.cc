@@ -36,21 +36,21 @@
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_mtbdd_PrismMTBDD_PM_1NondetBoundedUntil
+JNIEXPORT jlong __jlongpointer JNICALL Java_mtbdd_PrismMTBDD_PM_1NondetBoundedUntil
 (
 JNIEnv *env,
 jclass cls,
-jlong __pointer t,	// trans matrix
-jlong __pointer od,	// odd
-jlong __pointer ndm,	// nondeterminism mask
-jlong __pointer rv,	// row vars
+jlong __jlongpointer t,	// trans matrix
+jlong __jlongpointer od,	// odd
+jlong __jlongpointer ndm,	// nondeterminism mask
+jlong __jlongpointer rv,	// row vars
 jint num_rvars,
-jlong __pointer cv,	// col vars
+jlong __jlongpointer cv,	// col vars
 jint num_cvars,
-jlong __pointer ndv,	// nondet vars
+jlong __jlongpointer ndv,	// nondet vars
 jint num_ndvars,
-jlong __pointer y,	// 'yes' states
-jlong __pointer m,	// 'maybe' states
+jlong __jlongpointer y,	// 'yes' states
+jlong __jlongpointer m,	// 'maybe' states
 jint bound,		// time bound
 jboolean min		// min or max probabilities (true = min, false = max)
 )

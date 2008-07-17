@@ -55,20 +55,20 @@ static double unif;
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_hybrid_PrismHybrid_PH_1StochBoundedUntil
+JNIEXPORT jlong __jlongpointer JNICALL Java_hybrid_PrismHybrid_PH_1StochBoundedUntil
 (
 JNIEnv *env,
 jclass cls,
-jlong __pointer tr,	// trans matrix
-jlong __pointer od,	// odd
-jlong __pointer rv,	// row vars
+jlong __jlongpointer tr,	// trans matrix
+jlong __jlongpointer od,	// odd
+jlong __jlongpointer rv,	// row vars
 jint num_rvars,
-jlong __pointer cv,	// col vars
+jlong __jlongpointer cv,	// col vars
 jint num_cvars,
-jlong __pointer ye,	// 'yes' states
-jlong __pointer ma,	// 'maybe' states
+jlong __jlongpointer ye,	// 'yes' states
+jlong __jlongpointer ma,	// 'maybe' states
 jdouble time,		// time bound
-jlong __pointer mu	// probs for multiplying
+jlong __jlongpointer mu	// probs for multiplying
 )
 {
 	// cast function parameters

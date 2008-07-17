@@ -37,8 +37,8 @@
 
 //PCTL Expression building methods
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlBoundedUntil
-  (JNIEnv *env, jclass cls, jlong __pointer exprPointer1, jlong __pointer exprPointer2, jdouble lowerBound, jdouble upperBound)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_loadPctlBoundedUntil
+  (JNIEnv *env, jclass cls, jlong __jlongpointer exprPointer1, jlong __jlongpointer exprPointer2, jdouble lowerBound, jdouble upperBound)
 {
 	CExpression* expr1 = jlong_to_CExpression(exprPointer1);
 	CExpression* expr2 = jlong_to_CExpression(exprPointer2);
@@ -47,8 +47,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlBounded
 	return ptr_to_jlong(bu);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlBoundedUntilNegated
-  (JNIEnv *env, jclass cls, jlong __pointer exprPointer1, jlong __pointer exprPointer2, jdouble lowerBound, jdouble upperBound)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_loadPctlBoundedUntilNegated
+  (JNIEnv *env, jclass cls, jlong __jlongpointer exprPointer1, jlong __jlongpointer exprPointer2, jdouble lowerBound, jdouble upperBound)
 {
 	CExpression* expr1 = jlong_to_CExpression(exprPointer1);
 	CExpression* expr2 = jlong_to_CExpression(exprPointer2);
@@ -58,8 +58,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlBounded
 	return ptr_to_jlong(bu);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlUntil
-  (JNIEnv *env, jclass cls, jlong __pointer exprPointer1, jlong __pointer exprPointer2)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_loadPctlUntil
+  (JNIEnv *env, jclass cls, jlong __jlongpointer exprPointer1, jlong __jlongpointer exprPointer2)
 {
 	CExpression* expr1 = jlong_to_CExpression(exprPointer1);
 	CExpression* expr2 = jlong_to_CExpression(exprPointer2);
@@ -68,8 +68,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlUntil
 	return ptr_to_jlong(bu);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlUntilNegated
-  (JNIEnv *env, jclass cls, jlong __pointer exprPointer1, jlong __pointer exprPointer2)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_loadPctlUntilNegated
+  (JNIEnv *env, jclass cls, jlong __jlongpointer exprPointer1, jlong __jlongpointer exprPointer2)
 {
 	CExpression* expr1 = jlong_to_CExpression(exprPointer1);
 	CExpression* expr2 = jlong_to_CExpression(exprPointer2);
@@ -79,8 +79,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlUntilNe
 	return ptr_to_jlong(bu);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlNext
-  (JNIEnv *env, jclass cls, jlong __pointer exprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_loadPctlNext
+  (JNIEnv *env, jclass cls, jlong __jlongpointer exprPointer)
 {
 	CExpression* expr = jlong_to_CExpression(exprPointer);
 	CNext* bu = new CNext(expr);
@@ -88,8 +88,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlNext
 	return ptr_to_jlong(bu);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlReachability
-  (JNIEnv *env, jclass cls, jint rsi, jlong __pointer exprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_loadPctlReachability
+  (JNIEnv *env, jclass cls, jint rsi, jlong __jlongpointer exprPointer)
 {
 	CExpression* expr = jlong_to_CExpression(exprPointer);
 	CRewardReachability* reach = new CRewardReachability(rsi, expr);
@@ -97,7 +97,7 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlReachab
 	return ptr_to_jlong(reach);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlCumulative
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_loadPctlCumulative
   (JNIEnv *env, jclass cls, jint rsi, jdouble time)
 {
 	CRewardCumulative* cumul = new CRewardCumulative(rsi, (double)time);
@@ -105,7 +105,7 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlCumulat
 	return ptr_to_jlong(cumul);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlInstantanious
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_loadPctlInstantanious
   (JNIEnv *env, jclass cls, jint rsi, jdouble time)
 {
 	CRewardInstantanious* instant = new CRewardInstantanious(rsi, (double)time);
@@ -114,7 +114,7 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_loadPctlInstant
 }
 
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadProbQuestion
-  (JNIEnv *env, jclass cls, jlong __pointer pathPointer)
+  (JNIEnv *env, jclass cls, jlong __jlongpointer pathPointer)
 {
 	CPathFormula* formula = jlong_to_CPathFormula(pathPointer);
 	CProbEqualsQuestion* sampler = new CProbEqualsQuestion(formula);
@@ -122,7 +122,7 @@ JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadProbQuestion
 }
 
 JNIEXPORT jint JNICALL Java_simulator_SimulatorEngine_loadRewardQuestion
-  (JNIEnv *env, jclass cls, jlong __pointer rewardPointer)
+  (JNIEnv *env, jclass cls, jlong __jlongpointer rewardPointer)
 {
 	CRewardFormula* formula = jlong_to_CRewardFormula(rewardPointer);
 	CRewardEqualsQuestion* sampler = new CRewardEqualsQuestion(formula);

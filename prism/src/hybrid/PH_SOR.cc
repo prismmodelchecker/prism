@@ -60,18 +60,18 @@ static bool forwards;
 
 // solve the linear equation system Ax=b with Gauss-Seidel/SOR
 
-JNIEXPORT jlong __pointer JNICALL Java_hybrid_PrismHybrid_PH_1SOR
+JNIEXPORT jlong __jlongpointer JNICALL Java_hybrid_PrismHybrid_PH_1SOR
 (
 JNIEnv *env,
 jclass cls,
-jlong __pointer _odd,	// odd
-jlong __pointer rv,	// row vars
+jlong __jlongpointer _odd,	// odd
+jlong __jlongpointer rv,	// row vars
 jint num_rvars,
-jlong __pointer cv,	// col vars
+jlong __jlongpointer cv,	// col vars
 jint num_cvars,
-jlong __pointer _a,	// matrix A
-jlong __pointer _b,	// vector b (if null, assume all zero)
-jlong __pointer _init,	// init soln
+jlong __jlongpointer _a,	// matrix A
+jlong __jlongpointer _b,	// vector b (if null, assume all zero)
+jlong __jlongpointer _init,	// init soln
 jboolean transpose,	// transpose A? (i.e. solve xA=b not Ax=b?)
 jboolean row_sums,	// use row sums for diags instead? (strictly speaking: negative sum of non-diagonal row elements)
 jdouble om,			// omega (over-relaxation parameter)

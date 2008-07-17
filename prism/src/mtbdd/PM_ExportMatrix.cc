@@ -47,13 +47,13 @@ JNIEXPORT jint JNICALL Java_mtbdd_PrismMTBDD_PM_1ExportMatrix
 (
 JNIEnv *env,
 jclass cls,
-jlong __pointer m,	// matrix
+jlong __jlongpointer m,	// matrix
 jstring na,		// matrix name
-jlong __pointer rv,	// row vars
+jlong __jlongpointer rv,	// row vars
 jint num_rvars,
-jlong __pointer cv,	// col vars
+jlong __jlongpointer cv,	// col vars
 jint num_cvars,
-jlong __pointer od,	// odd
+jlong __jlongpointer od,	// odd
 jint et,		// export type
 jstring fn		// filename
 )

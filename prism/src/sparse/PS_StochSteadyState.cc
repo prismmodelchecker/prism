@@ -38,16 +38,16 @@
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_sparse_PrismSparse_PS_1StochSteadyState
+JNIEXPORT jlong __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1StochSteadyState
 (
 JNIEnv *env,
 jclass cls,
-jlong __pointer tr,		// trans matrix
-jlong __pointer od,		// odd
-jlong __pointer in,		// init soln
-jlong __pointer rv,		// row vars
+jlong __jlongpointer tr,		// trans matrix
+jlong __jlongpointer od,		// odd
+jlong __jlongpointer in,		// init soln
+jlong __jlongpointer rv,		// row vars
 jint num_rvars,
-jlong __pointer cv,		// col vars
+jlong __jlongpointer cv,		// col vars
 jint num_cvars
 )
 {

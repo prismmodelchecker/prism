@@ -32,7 +32,7 @@
 #include "SimulatorEngine.h"
 #include "jnipointer.h"
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createIntegerVar
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createIntegerVar
 (JNIEnv * env, jclass cls, jint varIndex)
 {
 	int * location = &(state_variables[(int)varIndex]);
@@ -40,7 +40,7 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createIntegerVa
 	return ptr_to_jlong(var);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createBooleanVar
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createBooleanVar
 (JNIEnv * env, jclass cls, jint varIndex)
 {
 	int * location = &(state_variables[(int)varIndex]);
@@ -48,45 +48,45 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createBooleanVa
 	return ptr_to_jlong(var);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createDouble
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createDouble
 (JNIEnv * env, jclass cls, jdouble value)
 {
 	CExpression * val = new CDouble((double)value);
 	return ptr_to_jlong(val);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createInteger
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createInteger
 (JNIEnv * env, jclass cls, jint value)
 {
 	CExpression * val = new CInteger((int)value);
 	return ptr_to_jlong(val);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createBoolean
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createBoolean
 (JNIEnv * env, jclass cls, jboolean value)
 {
 	CExpression * val = new CBoolean((bool)value);
 	return ptr_to_jlong(val);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createCeil
-(JNIEnv * env, jclass cls, jlong __pointer exprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createCeil
+(JNIEnv * env, jclass cls, jlong __jlongpointer exprPointer)
 {
 	CExpression * expr = jlong_to_CExpression(exprPointer);
 	CExpression * ceil = new CCeil(expr);
 	return ptr_to_jlong(ceil);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createFloor
-(JNIEnv * env, jclass cls, jlong __pointer exprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createFloor
+(JNIEnv * env, jclass cls, jlong __jlongpointer exprPointer)
 {
 	CExpression * expr = jlong_to_CExpression(exprPointer);
 	CExpression * floor = new CFloor(expr);
 	return ptr_to_jlong(floor);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalPow
-  (JNIEnv * env, jclass cls, jlong __pointer baseExprPointer, jlong __pointer expExprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createNormalPow
+  (JNIEnv * env, jclass cls, jlong __jlongpointer baseExprPointer, jlong __jlongpointer expExprPointer)
 {
 	CNormalExpression * base = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(baseExprPointer));
 	CNormalExpression * exp = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(expExprPointer));
@@ -94,8 +94,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalPow
 	return ptr_to_jlong(pow);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealPow
-  (JNIEnv *env, jclass cls, jlong __pointer baseExprPointer, jlong __pointer expExprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createRealPow
+  (JNIEnv *env, jclass cls, jlong __jlongpointer baseExprPointer, jlong __jlongpointer expExprPointer)
 {
 	CExpression * base = jlong_to_CExpression(baseExprPointer);
 	CExpression * exp = jlong_to_CExpression(expExprPointer);
@@ -103,8 +103,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealPow
 	return ptr_to_jlong(pow);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createMod
-  (JNIEnv *env, jclass cls, jlong __pointer leftExprPointer, jlong __pointer rightExprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createMod
+  (JNIEnv *env, jclass cls, jlong __jlongpointer leftExprPointer, jlong __jlongpointer rightExprPointer)
 {
 	CNormalExpression * left = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(leftExprPointer));
 	CNormalExpression * right = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(rightExprPointer));
@@ -112,8 +112,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createMod
 	return ptr_to_jlong(modExpr);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createLog
-  (JNIEnv *env, jclass cls, jlong __pointer lexprPointer, jlong __pointer rexprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createLog
+  (JNIEnv *env, jclass cls, jlong __jlongpointer lexprPointer, jlong __jlongpointer rexprPointer)
 {
 	CExpression * lexpr = (jlong_to_CExpression(lexprPointer));
 	CExpression * rexpr = (jlong_to_CExpression(rexprPointer));
@@ -121,16 +121,16 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createLog
 	return ptr_to_jlong(logExpr);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNot
-(JNIEnv * env, jclass cls, jlong __pointer exprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createNot
+(JNIEnv * env, jclass cls, jlong __jlongpointer exprPointer)
 {
 	CNormalExpression * expr = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(exprPointer));
 	CExpression * notrr = new CNot(expr);
 	return ptr_to_jlong(notrr);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createAnd
-(JNIEnv * env, jclass cls, jlongArray __pointer exprPointers)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createAnd
+(JNIEnv * env, jclass cls, jlongArray __jlongpointer exprPointers)
 {
 	jsize length = env->GetArrayLength(exprPointers);
 	jlong *buf = new jlong[length];
@@ -152,8 +152,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createAnd
 
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createOr
-(JNIEnv * env, jclass cls, jlongArray __pointer exprPointers)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createOr
+(JNIEnv * env, jclass cls, jlongArray __jlongpointer exprPointers)
 {
 	jsize length = env->GetArrayLength(exprPointers);
 
@@ -175,8 +175,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createOr
 	return ptr_to_jlong(expr);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalMax
-(JNIEnv * env, jclass cls, jlongArray __pointer exprPointers)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createNormalMax
+(JNIEnv * env, jclass cls, jlongArray __jlongpointer exprPointers)
 {
 	jsize length = env->GetArrayLength(exprPointers);
 
@@ -198,8 +198,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalMax
 	return ptr_to_jlong(expr);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalMin
-(JNIEnv * env, jclass cls, jlongArray __pointer exprPointers)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createNormalMin
+(JNIEnv * env, jclass cls, jlongArray __jlongpointer exprPointers)
 {
 	jsize length = env->GetArrayLength(exprPointers);
 
@@ -221,8 +221,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalMin
 	return ptr_to_jlong(expr);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealMax
-(JNIEnv * env, jclass cls, jlongArray __pointer exprPointers)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createRealMax
+(JNIEnv * env, jclass cls, jlongArray __jlongpointer exprPointers)
 {
 	jsize length = env->GetArrayLength(exprPointers);
 
@@ -244,8 +244,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealMax
 	return ptr_to_jlong(expr);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealMin
-(JNIEnv * env, jclass cls, jlongArray __pointer exprPointers)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createRealMin
+(JNIEnv * env, jclass cls, jlongArray __jlongpointer exprPointers)
 {
 	jsize length = env->GetArrayLength(exprPointers);
 
@@ -267,8 +267,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealMin
 	return ptr_to_jlong(expr);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalTimes
-(JNIEnv * env, jclass cls, jlong __pointer lexprPointer, jlong __pointer rexprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createNormalTimes
+(JNIEnv * env, jclass cls, jlong __jlongpointer lexprPointer, jlong __jlongpointer rexprPointer)
 {
 	CNormalExpression * lexpr = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(lexprPointer));
 	CNormalExpression * rexpr = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(rexprPointer));
@@ -276,8 +276,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalTim
 	return ptr_to_jlong(binary);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalPlus
-(JNIEnv * env, jclass cls, jlong __pointer lexprPointer, jlong __pointer rexprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createNormalPlus
+(JNIEnv * env, jclass cls, jlong __jlongpointer lexprPointer, jlong __jlongpointer rexprPointer)
 {
 	CNormalExpression * lexpr = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(lexprPointer));
 	CNormalExpression * rexpr = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(rexprPointer));
@@ -285,8 +285,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalPlu
 	return ptr_to_jlong(binary);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalMinus
-(JNIEnv * env, jclass cls, jlong __pointer lexprPointer, jlong __pointer rexprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createNormalMinus
+(JNIEnv * env, jclass cls, jlong __jlongpointer lexprPointer, jlong __jlongpointer rexprPointer)
 {
 	CNormalExpression * lexpr = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(lexprPointer));
 	CNormalExpression * rexpr = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(rexprPointer));
@@ -294,8 +294,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalMin
 	return ptr_to_jlong(binary);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealTimes
-(JNIEnv * env, jclass cls, jlong __pointer lexprPointer, jlong __pointer rexprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createRealTimes
+(JNIEnv * env, jclass cls, jlong __jlongpointer lexprPointer, jlong __jlongpointer rexprPointer)
 {
 	CExpression * lexpr = (jlong_to_CExpression(lexprPointer));
 	CExpression * rexpr = (jlong_to_CExpression(rexprPointer));
@@ -303,8 +303,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealTimes
 	return ptr_to_jlong(binary);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createDivide
-(JNIEnv * env, jclass cls, jlong __pointer lexprPointer, jlong __pointer rexprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createDivide
+(JNIEnv * env, jclass cls, jlong __jlongpointer lexprPointer, jlong __jlongpointer rexprPointer)
 {
 	CExpression * lexpr = (jlong_to_CExpression(lexprPointer));
 	CExpression * rexpr = (jlong_to_CExpression(rexprPointer));
@@ -312,8 +312,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createDivide
 	return ptr_to_jlong(binary);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealPlus
-(JNIEnv * env, jclass cls, jlong __pointer lexprPointer, jlong __pointer rexprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createRealPlus
+(JNIEnv * env, jclass cls, jlong __jlongpointer lexprPointer, jlong __jlongpointer rexprPointer)
 {
 	CExpression * lexpr = (jlong_to_CExpression(lexprPointer));
 	CExpression * rexpr = (jlong_to_CExpression(rexprPointer));
@@ -321,8 +321,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealPlus
 	return ptr_to_jlong(binary);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealMinus
-(JNIEnv * env, jclass cls, jlong __pointer lexprPointer, jlong __pointer rexprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createRealMinus
+(JNIEnv * env, jclass cls, jlong __jlongpointer lexprPointer, jlong __jlongpointer rexprPointer)
 {
 	CExpression * lexpr = (jlong_to_CExpression(lexprPointer));
 	CExpression * rexpr = (jlong_to_CExpression(rexprPointer));
@@ -330,8 +330,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealMinus
 	return ptr_to_jlong(binary);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealIte
-(JNIEnv * env, jclass cls , jlong __pointer conditionPointer, jlong __pointer truePointer, jlong __pointer falsePointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createRealIte
+(JNIEnv * env, jclass cls , jlong __jlongpointer conditionPointer, jlong __jlongpointer truePointer, jlong __jlongpointer falsePointer)
 {
 	CNormalExpression * condition = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(conditionPointer));
 	CExpression * trueExpr = (jlong_to_CExpression(truePointer));
@@ -340,8 +340,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealIte
 	return ptr_to_jlong(ite);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createIte
-(JNIEnv * env, jclass cls , jlong __pointer conditionPointer, jlong __pointer truePointer, jlong __pointer falsePointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createIte
+(JNIEnv * env, jclass cls , jlong __jlongpointer conditionPointer, jlong __jlongpointer truePointer, jlong __jlongpointer falsePointer)
 {
 	CNormalExpression * condition = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(conditionPointer));
 	CExpression * trueExpr = (jlong_to_CExpression(truePointer));
@@ -350,8 +350,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createIte
 	return ptr_to_jlong(ite);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalEquals
-(JNIEnv * env, jclass cls, jlong __pointer lexprPointer, jlong __pointer rexprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createNormalEquals
+(JNIEnv * env, jclass cls, jlong __jlongpointer lexprPointer, jlong __jlongpointer rexprPointer)
 {
 	CNormalExpression * lexpr = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(lexprPointer));
 	CNormalExpression * rexpr = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(rexprPointer));
@@ -359,8 +359,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalEqu
 	return ptr_to_jlong(binary);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealEquals
-(JNIEnv * env, jclass cls, jlong __pointer lexprPointer, jlong __pointer rexprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createRealEquals
+(JNIEnv * env, jclass cls, jlong __jlongpointer lexprPointer, jlong __jlongpointer rexprPointer)
 {
 	CExpression * lexpr = (jlong_to_CExpression(lexprPointer));
 	CExpression * rexpr = (jlong_to_CExpression(rexprPointer));
@@ -368,8 +368,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealEqual
 	return ptr_to_jlong(binary);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalNotEquals
-(JNIEnv * env, jclass cls, jlong __pointer lexprPointer, jlong __pointer rexprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createNormalNotEquals
+(JNIEnv * env, jclass cls, jlong __jlongpointer lexprPointer, jlong __jlongpointer rexprPointer)
 {
 	CNormalExpression * lexpr = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(lexprPointer));
 	CNormalExpression * rexpr = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(rexprPointer));
@@ -377,8 +377,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalNot
 	return ptr_to_jlong(binary);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealNotEquals
-(JNIEnv * env, jclass cls, jlong __pointer lexprPointer, jlong __pointer rexprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createRealNotEquals
+(JNIEnv * env, jclass cls, jlong __jlongpointer lexprPointer, jlong __jlongpointer rexprPointer)
 {
 	CExpression * lexpr = (jlong_to_CExpression(lexprPointer));
 	CExpression * rexpr = (jlong_to_CExpression(rexprPointer));
@@ -386,8 +386,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealNotEq
 	return ptr_to_jlong(binary);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalLessThan
-(JNIEnv * env, jclass cls, jlong __pointer lexprPointer, jlong __pointer rexprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createNormalLessThan
+(JNIEnv * env, jclass cls, jlong __jlongpointer lexprPointer, jlong __jlongpointer rexprPointer)
 {
 	CNormalExpression * lexpr = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(lexprPointer));
 	CNormalExpression * rexpr = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(rexprPointer));
@@ -395,8 +395,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalLes
 	return ptr_to_jlong(binary);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealLessThan
-(JNIEnv * env, jclass cls, jlong __pointer lexprPointer, jlong __pointer rexprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createRealLessThan
+(JNIEnv * env, jclass cls, jlong __jlongpointer lexprPointer, jlong __jlongpointer rexprPointer)
 {
 	CExpression * lexpr = (jlong_to_CExpression(lexprPointer));
 	CExpression * rexpr = (jlong_to_CExpression(rexprPointer));
@@ -404,8 +404,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealLessT
 	return ptr_to_jlong(binary);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalGreaterThan
-(JNIEnv * env, jclass cls, jlong __pointer lexprPointer, jlong __pointer rexprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createNormalGreaterThan
+(JNIEnv * env, jclass cls, jlong __jlongpointer lexprPointer, jlong __jlongpointer rexprPointer)
 {
 	CNormalExpression * lexpr = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(lexprPointer));
 	CNormalExpression * rexpr = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(rexprPointer));
@@ -413,8 +413,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalGre
 	return ptr_to_jlong(binary);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealGreaterThan
-(JNIEnv * env, jclass cls, jlong __pointer lexprPointer, jlong __pointer rexprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createRealGreaterThan
+(JNIEnv * env, jclass cls, jlong __jlongpointer lexprPointer, jlong __jlongpointer rexprPointer)
 {
 	CExpression * lexpr = (jlong_to_CExpression(lexprPointer));
 	CExpression * rexpr = (jlong_to_CExpression(rexprPointer));
@@ -422,8 +422,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealGreat
 	return ptr_to_jlong(binary);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalLessThanEqual
-(JNIEnv * env, jclass cls, jlong __pointer lexprPointer, jlong __pointer rexprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createNormalLessThanEqual
+(JNIEnv * env, jclass cls, jlong __jlongpointer lexprPointer, jlong __jlongpointer rexprPointer)
 {
 	CNormalExpression * lexpr = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(lexprPointer));
 	CNormalExpression * rexpr = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(rexprPointer));
@@ -431,8 +431,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalLes
 	return ptr_to_jlong(binary);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealLessThanEqual
-(JNIEnv * env, jclass cls, jlong __pointer lexprPointer, jlong __pointer rexprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createRealLessThanEqual
+(JNIEnv * env, jclass cls, jlong __jlongpointer lexprPointer, jlong __jlongpointer rexprPointer)
 {
 	CExpression * lexpr = (jlong_to_CExpression(lexprPointer));
 	CExpression * rexpr = (jlong_to_CExpression(rexprPointer));
@@ -440,8 +440,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealLessT
 	return ptr_to_jlong(binary);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalGreaterThanEqual
-(JNIEnv * env, jclass cls, jlong __pointer lexprPointer, jlong __pointer rexprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createNormalGreaterThanEqual
+(JNIEnv * env, jclass cls, jlong __jlongpointer lexprPointer, jlong __jlongpointer rexprPointer)
 {
 	CNormalExpression * lexpr = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(lexprPointer));
 	CNormalExpression * rexpr = dynamic_cast<CNormalExpression*>(jlong_to_CExpression(rexprPointer));
@@ -449,8 +449,8 @@ JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createNormalGre
 	return ptr_to_jlong(binary);
 }
 
-JNIEXPORT jlong __pointer JNICALL Java_simulator_SimulatorEngine_createRealGreaterThanEqual
-(JNIEnv * env, jclass cls, jlong __pointer lexprPointer, jlong __pointer rexprPointer)
+JNIEXPORT jlong __jlongpointer JNICALL Java_simulator_SimulatorEngine_createRealGreaterThanEqual
+(JNIEnv * env, jclass cls, jlong __jlongpointer lexprPointer, jlong __jlongpointer rexprPointer)
 {
 	CExpression * lexpr = (jlong_to_CExpression(lexprPointer));
 	CExpression * rexpr = (jlong_to_CExpression(rexprPointer));

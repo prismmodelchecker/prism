@@ -53,23 +53,23 @@ static double *soln, *soln2, *soln3;
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __pointer JNICALL Java_hybrid_PrismHybrid_PH_1NondetReachReward
+JNIEXPORT jlong __jlongpointer JNICALL Java_hybrid_PrismHybrid_PH_1NondetReachReward
 (
 JNIEnv *env,
 jclass cls,
-jlong __pointer t,	// trans matrix
-jlong __pointer sr,	// state rewards
-jlong __pointer trr,	// transition rewards
-jlong __pointer od,	// odd
-jlong __pointer rv,	// row vars
+jlong __jlongpointer t,	// trans matrix
+jlong __jlongpointer sr,	// state rewards
+jlong __jlongpointer trr,	// transition rewards
+jlong __jlongpointer od,	// odd
+jlong __jlongpointer rv,	// row vars
 jint num_rvars,
-jlong __pointer cv,	// col vars
+jlong __jlongpointer cv,	// col vars
 jint num_cvars,
-jlong __pointer ndv,	// nondet vars
+jlong __jlongpointer ndv,	// nondet vars
 jint num_ndvars,
-jlong __pointer g,	// 'goal' states
-jlong __pointer in,	// 'inf' states
-jlong __pointer m,	// 'maybe' states
+jlong __jlongpointer g,	// 'goal' states
+jlong __jlongpointer in,	// 'inf' states
+jlong __jlongpointer m,	// 'maybe' states
 jboolean min		// min or max probabilities (true = min, false = max)
 )
 {
