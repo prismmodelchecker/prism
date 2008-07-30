@@ -58,7 +58,7 @@ int num_vars
 	Cudd_RecursiveDeref(ddman, dd);
 
 	if (permut != NULL) {
-		delete permut;
+		delete[] permut;
 	}
 	
 	return res;
@@ -124,8 +124,8 @@ int num_vars
 		Cudd_RecursiveDeref(ddman, x_bdd_vars[i]);
 		Cudd_RecursiveDeref(ddman, y_bdd_vars[i]);
 	}
-	delete x_bdd_vars;
-	delete y_bdd_vars;
+	delete[] x_bdd_vars;
+	delete[] y_bdd_vars;
 	
 	return res;
 }
@@ -184,8 +184,8 @@ int num_vars
 		Cudd_RecursiveDeref(ddman, x_bdd_vars[i]);
 		Cudd_RecursiveDeref(ddman, y_bdd_vars[i]);
 	}
-	delete x_bdd_vars;
-	delete y_bdd_vars;
+	delete[] x_bdd_vars;
+	delete[] y_bdd_vars;
 	
 	return res;
 }
@@ -244,8 +244,8 @@ int num_vars
 		Cudd_RecursiveDeref(ddman, x_bdd_vars[i]);
 		Cudd_RecursiveDeref(ddman, y_bdd_vars[i]);
 	}
-	delete x_bdd_vars;
-	delete y_bdd_vars;
+	delete[] x_bdd_vars;
+	delete[] y_bdd_vars;
 	
 	return res;
 }

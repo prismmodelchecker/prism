@@ -249,7 +249,7 @@ long x
 	val = Cudd_V(node);
 	
 	if (inputs != NULL) {
-		delete inputs;
+		delete[] inputs;
 	}
 	
 	return val;
@@ -336,7 +336,7 @@ int num_vars
 	Cudd_RecursiveDeref(ddman, dd);
 
 	if (permut != NULL) {
-		delete permut;
+		delete[] permut;
 	}
 	
 	return res;
@@ -398,7 +398,7 @@ int accuracy
 	fprintf(dd_out, "\n");
 	
 	if (inputs != NULL) {
-		delete inputs;
+		delete[] inputs;
 	}
 }
 
@@ -468,7 +468,7 @@ int accuracy
 	}
 	
 	if (inputs != NULL) {
-		delete inputs;
+		delete[] inputs;
 	}
 }
 
@@ -535,7 +535,7 @@ int accuracy
 	fprintf(dd_out, "\n");
 	
 	if (inputs != NULL) {
-		delete inputs;
+		delete[] inputs;
 	}
 }
 
