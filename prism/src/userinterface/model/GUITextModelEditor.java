@@ -393,7 +393,7 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 		
 		if (editor.getContentType().equals("text/prism"))
 		{
-			contextPopup.add(new JSeparator());
+			
 			JMenu insertMenu = new JMenu("Insert elements");
 			JMenu insertModelTypeMenu = new JMenu("Model type");
 			insertMenu.add(insertModelTypeMenu);
@@ -405,7 +405,8 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 			insertModelTypeMenu.add(insertDTMC);
 			insertModelTypeMenu.add(insertCTMC);
 			insertModelTypeMenu.add(insertMDP);
-			contextPopup.add(insertMenu);
+			//contextPopup.add(new JSeparator());
+			//contextPopup.add(insertMenu);
 		}
 	}
 	
