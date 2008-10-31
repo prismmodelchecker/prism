@@ -82,7 +82,7 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 	private JPopupMenu contextPopup;
 	
 	/** Actions for the context menu. */
-	private Action actionCut, actionCopy, actionPaste, actionUndo, actionRedo, actionSearch;
+	private Action actionCut, actionCopy, actionPaste, actionUndo, actionRedo, actionSearch, actionJumpToError;
 	
 	/** More actions */
 	private Action insertDTMC, insertCTMC, insertMDP;
@@ -289,9 +289,20 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 				}
 			}
 		};
+		
+		
 		actionRedo.putValue(Action.LONG_DESCRIPTION, "Redos the most recent undo");
 		actionRedo.putValue(Action.NAME, "Redo");
 		actionRedo.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallRedo.png"));
+		
+		actionJumpToError = new AbstractAction() {
+			public void actionPerformed(ActionEvent ae) {
+				jumpToError();
+			}
+		};
+		
+		actionJumpToError.putValue(Action.NAME, "Jump to error");
+		actionJumpToError.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("tinyError.png"));
 		
 		
 		// search and replace action
@@ -389,7 +400,8 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 		contextPopup.add(actionCopy);
 		contextPopup.add(actionPaste);
 		contextPopup.add(new JSeparator());
-		contextPopup.add(actionSearch);
+		contextPopup.add(actionJumpToError);
+		//contextPopup.add(actionSearch);
 		
 		
 		if (editor.getContentType().equals("text/prism"))
@@ -650,6 +662,8 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 			else {
 				actionRedo.setEnabled(false);
 			}
+			
+			actionJumpToError.setEnabled(parseError != null && parseError.hasLineNumbers());
 			
 			contextPopup.show(me.getComponent(), me.getX(), me.getY());
 			
