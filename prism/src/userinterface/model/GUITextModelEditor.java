@@ -297,9 +297,9 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 		// search and replace action
         actionSearch = new AbstractAction() {
         	public void actionPerformed(ActionEvent ae) {
-        		
+        		/*
         		// System.out.println("search button pressed");
-        		/*	if (GUIMultiModelHandler.isDoingSearch()) {
+        		if (GUIMultiModelHandler.isDoingSearch()) {
 					
 				} else {
 					try {
@@ -309,13 +309,14 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 						GUIPrism.getGUI().getMultiLogger().logMessage(prism.log.PrismLogLevel.PRISM_ERROR,
 								pnfe.getMessage());
 					}
-				}*/
+				}
+				*/
         	}
         };
         actionSearch.putValue(Action.LONG_DESCRIPTION, "Opens a find and replace dialog.");
         //actionSearch.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("find.png"));
         actionSearch.putValue(Action.NAME, "Find/Replace");
-        //actionSearch.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK));
+        //actionSearch.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_MASK));
         
         insertDTMC = new AbstractAction() {
         	public void actionPerformed(ActionEvent ae) {
@@ -664,6 +665,21 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 		
 	}
 	
+	public void jumpToError()
+	{
+		if (parseError != null && parseError.hasLineNumbers() )
+		{
+			try
+			{
+				editor.setCaretPosition(computeDocumentOffset(parseError.getBeginLine(), parseError.getBeginColumn()));
+			}
+			catch (BadLocationException e)
+			{
+				
+			}
+		}
+	}
+	
 	public void refreshErrorDisplay()
 	{
 		if (parseErrorHighlightKey != null)
@@ -675,13 +691,18 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 		if (parseError != null && parseError.hasLineNumbers() )
 		{
 			String error = parseError.getMessage();
+		
+			// Just the first line.
+			errorLines.put(parseError.getBeginLine(), error);
 			
-			for (int line = parseError.getBeginLine();
+			// If error spans multiple lines, this code will put
+			// an error in every line of the gutter.
+			/*for (int line = parseError.getBeginLine();
 			     line <= parseError.getEndLine();
 			     line++)
 			{
 				errorLines.put(line, error);
-			}
+			}*/
 		}
 		
 		gutter.setParseErrors(errorLines);
@@ -699,10 +720,8 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 			catch (BadLocationException e)
 			{
 				
-			}
-			
-		}
-		
+			}			
+		}		
 	}
 	
 	public int computeDocumentOffset(int line, int column) throws BadLocationException
@@ -737,16 +756,19 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 		return beginLineOffset+documentChar;		
 	}
 	
-	public void modelParseFailed(PrismLangException parserError) 
+	public void modelParseFailed(PrismLangException parserError, boolean background) 
 	{	
 		this.parseError = parserError;		
-		refreshErrorDisplay();
+		refreshErrorDisplay();	
+		if (!background)
+			jumpToError();		
 	}
 
 	@Override
 	public void modelParseSuccessful() 
 	{
 		this.parseError = null;
+		// get rid of any error highlighting
 		refreshErrorDisplay();
 	} 
 	

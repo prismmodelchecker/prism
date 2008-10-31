@@ -795,11 +795,11 @@ public class GUIMultiModelHandler extends JPanel
         theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.MODEL_PARSED, parsedModel));
     }
     
-    public synchronized void modelParseFailed(PrismLangException parserError)
+    public synchronized void modelParseFailed(PrismLangException parserError, boolean background)
     {
         lastError = parserError.getMessage();
         
-        editor.modelParseFailed(parserError);
+        editor.modelParseFailed(parserError, background);
         
         tree.stopParsing();
         parsing = false;
@@ -903,7 +903,7 @@ public class GUIMultiModelHandler extends JPanel
     
     public synchronized void modelBuildFailed(PrismException e)
     {
-    	if (e != null && e instanceof PrismLangException) editor.modelParseFailed((PrismLangException)e);
+    	if (e != null && e instanceof PrismLangException) editor.modelParseFailed((PrismLangException)e, false);
         
         if(exportAfterReceiveBuildNotification)
         {

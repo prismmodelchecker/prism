@@ -109,7 +109,7 @@ public class BuildModelThread extends GUIComputationThread
 					plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, plug));
 					plug.setTaskBarText("Parsing model... error.");
 					error(parseError.getMessage());
-					handler.modelParseFailed(parseError);
+					handler.modelParseFailed(parseError, false);
 					handler.modelBuildFailed(null);
 				}});
 				return;

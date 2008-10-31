@@ -50,7 +50,7 @@ public abstract class GUIModelEditor extends JPanel
     
     public abstract void selectAll();
     
-    public void modelParseFailed(PrismLangException parserError) {}
+    public void modelParseFailed(PrismLangException parserError, boolean background) {}
 
     public void modelParseSuccessful() {}
 }

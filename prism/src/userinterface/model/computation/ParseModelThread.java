@@ -97,7 +97,7 @@ public class ParseModelThread extends GUIComputationThread
 					plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, plug));
 					if(!background) plug.setTaskBarText("Parsing model... error.");
 					if(!background) error(errMsg);
-					handler.modelParseFailed(parseError);			
+					handler.modelParseFailed(parseError, background);			
 				}
 			});
 			return;
