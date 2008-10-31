@@ -235,6 +235,7 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 		};
 		actionCut.putValue(Action.LONG_DESCRIPTION, "Cuts the highlighted text to the clipboard.");
 		actionCut.putValue(Action.NAME, "Cut");
+		//actionCut.putValue(Action.ACCELERATOR_KEY, KeyStroke.
 		//actionCut.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("editcut.png"));
 		
 		actionCopy = new AbstractAction() {
@@ -270,7 +271,7 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 				}
 			}
 		};
-		actionUndo.putValue(Action.LONG_DESCRIPTION, "Undos the most recent action.");
+		actionUndo.putValue(Action.LONG_DESCRIPTION, "Undo the most recent action.");
 		actionUndo.putValue(Action.NAME, "Undo");
 		actionUndo.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallUndo.png"));
 		
@@ -621,7 +622,8 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 	 * spv
 	 */
 	public void mouseClicked(MouseEvent me) {
-	
+		// trying to fix context menu bug under windows.
+	    mousePressed(me);
 	}
 	public void mousePressed(MouseEvent me) {
 		
