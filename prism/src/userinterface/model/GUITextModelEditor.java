@@ -682,7 +682,14 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 		{
 			try
 			{
-				editor.setCaretPosition(computeDocumentOffset(parseError.getBeginLine(), parseError.getBeginColumn()));
+				int offset = computeDocumentOffset(parseError.getBeginLine(), parseError.getBeginColumn());
+				
+				// scroll to center as much as possible.
+				editor.setCaretPosition(offset);
+				Rectangle r1 = editor.modelToView(offset);
+				int dy = (editor.getVisibleRect().height - r1.height) / 2;
+				Rectangle r2 = new Rectangle(0, r1.y - dy,editor.getVisibleRect().width, r1.height + 2*dy);
+				editor.scrollRectToVisible(r2);
 			}
 			catch (BadLocationException e)
 			{
