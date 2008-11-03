@@ -626,54 +626,25 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 	 * 
 	 * spv
 	 */
-	public void mouseClicked(MouseEvent me) {
-		// trying to fix context menu bug under windows.
-	    mousePressed(me);
-	}
-	public void mousePressed(MouseEvent me) {
-		
+	public void mouseTriggered(MouseEvent me)
+	{
 		if (me.isPopupTrigger()) {
-			/*
-			
-			// check if to have paste enabled or not
-			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-			if (clipboard.getContents(null) != null) {
-				actionPaste.setEnabled(false);
-			}			
-			else {
-				actionPaste.setEnabled(true);
-			}
-			
-			// check if text highlighted or not
-			if (editor.getSelectedText() == null) {
-				actionCut.setEnabled(false);
-				actionCopy.setEnabled(false);
-			}
-			else {
-				actionCut.setEnabled(true);
-				actionCopy.setEnabled(true);
-			}
-			*/
-			// check undo
-			
-			//GUIPrism.getClipboardPlugin().getUndoAction().setEnabled(undoManager.canUndo());
-			//GUIPrism.getClipboardPlugin().getRedoAction().setEnabled(undoManager.canRedo());
-						
 			actionJumpToError.setEnabled(parseError != null && parseError.hasLineNumbers());
 			((GUIMultiModel)handler.getGUIPlugin()).doEnables();
 			
 			contextPopup.show(me.getComponent(), me.getX(), me.getY());
 			
 		}
+	} 
+	 
+	public void mouseClicked(MouseEvent me) {}
+	public void mousePressed(MouseEvent me) {
+		mouseTriggered(me);		
 	}
-	public void mouseEntered(MouseEvent me) {
-		
-	}
-	public void mouseExited(MouseEvent me) {
-		
-	}
+	public void mouseEntered(MouseEvent me) {}
+	public void mouseExited(MouseEvent me) {}
 	public void mouseReleased(MouseEvent me) {
-		
+		mouseTriggered(me);	
 	}
 	
 	public void jumpToError()
