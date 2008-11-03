@@ -29,6 +29,10 @@ package userinterface.model.pepaModel;
 
 import javax.swing.*;
 import javax.swing.text.*;
+import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoManager;
+
 import java.util.regex.*;
 import java.awt.*;
 import javax.swing.event.*;
@@ -40,9 +44,9 @@ import userinterface.model.*;
  * @author  ug60axh
  */
 public class GUIPepaModelEditor extends GUIModelEditor implements DocumentListener
-{
-	
+{	
 	private JEditorPane editor;
+	private UndoManager undoManager;
 	private PlainDocument d;
 	private GUIMultiModelHandler handler;
 	
@@ -53,6 +57,8 @@ public class GUIPepaModelEditor extends GUIModelEditor implements DocumentListen
 		PepaEditorKit kit = new PepaEditorKit();
 		editor.setEditorKitForContentType("text/pepa", kit);
 		editor.setContentType("text/pepa");
+		undoManager = new UndoManager();
+		undoManager.setLimit(200);
 		//editor.setForeground(FOREGROUND_COLOR);
 		this.handler = handler;
 		d = (PlainDocument)editor.getDocument();
@@ -106,6 +112,27 @@ public class GUIPepaModelEditor extends GUIModelEditor implements DocumentListen
 	public void write(Writer s) throws IOException
 	{
 		editor.write(s);
+	}
+	
+	/** Performs an undo operation on the text in the model editor.
+     */
+	public void undo() {
+		try {
+			undoManager.undo();
+		} catch (CannotUndoException ex) {
+			
+			//GUIPrism.getGUI().getMultiLogger().logMessage(PrismLogLevel.PRISM_ERROR, ex.getMessage());
+		}
+	}
+	
+	/** Performs a redo operation on the text in the model editor.
+     */
+	public void redo() {
+		try {
+			undoManager.redo();
+		} catch (CannotRedoException ex) {
+			//GUIPrism.getGUI().getMultiLogger().logMessage(PrismLogLevel.PRISM_ERROR, ex.getMessage());
+		}
 	}
 	
 	public void copy()

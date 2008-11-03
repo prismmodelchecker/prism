@@ -28,9 +28,13 @@
 package userinterface.log;
 
 import javax.swing.*;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
 import javax.swing.text.BadLocationException;
 
 import prism.*;
+import userinterface.GUIPlugin;
+import userinterface.util.GUIEvent;
 
 public class GUIWindowLog implements PrismLog
 {
@@ -42,25 +46,35 @@ public class GUIWindowLog implements PrismLog
 	private String buffer;
 	// clear flag
 	private boolean clearFlag;
+	private GUILog logPlugin;
 
 	public GUIWindowLog()
 	{
+		
 		buffer = "";
 		clearFlag = false;
 		textArea = null;
 		updater = null;
 	}
 
-	public GUIWindowLog(JTextArea ta)
+	public GUIWindowLog(JTextArea ta, GUILog logPlugin)
 	{
 		buffer = "";
 		clearFlag = false;
-		open(ta);
+		open(ta, logPlugin);
 	}
 
-	public void open(JTextArea ta)
+	public void open(JTextArea ta, GUILog logPlugin)
 	{
+		this.logPlugin = logPlugin;
 		textArea = ta;
+		textArea.addCaretListener(new CaretListener() {
+			@Override
+			public void caretUpdate(CaretEvent e) {
+				if (GUIWindowLog.this.logPlugin != null)
+					GUIWindowLog.this.logPlugin.getSelectionChangeHandler().notifyListeners(new GUIEvent(1));
+			}			
+		});
 		updater = new GUIWindowLogUpdater(this, textArea);
 		updater.start();
 	}
@@ -322,6 +336,23 @@ public class GUIWindowLog implements PrismLog
 		//textArea.setSelectionColor(settings.getColor(PrismSettings.LOG_SELECTION_COLOUR));
 		textArea.setBackground(settings.getColor(PrismSettings.LOG_BG_COLOUR));
 		setMaxTextLength(settings.getInteger(PrismSettings.LOG_BUFFER_LENGTH));
+	}
+
+	public boolean hasSelectedText() 
+	{		
+		return (textArea != null && textArea.getSelectedText() != null);
+	}
+	
+	public void copy() 
+	{		
+		if (textArea != null)
+			textArea.copy();
+	}
+
+	public void selectAll() 
+	{
+		if (textArea != null)
+			textArea.selectAll();		
 	}
 }
 

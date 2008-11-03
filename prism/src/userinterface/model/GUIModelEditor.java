@@ -29,17 +29,21 @@ package userinterface.model;
 import javax.swing.*;
 
 import prism.PrismLangException;
+import userinterface.util.GUIUndoManager;
 /**
  *
  * @author  ug60axh
  */
 public abstract class GUIModelEditor extends JPanel
-{
-    
+{    
     public abstract String getParseText();
     
     public abstract void newModel();
     
+    public abstract void undo();
+    
+    public abstract void redo();
+        
     public abstract void cut();
     
     public abstract void copy();
@@ -53,4 +57,14 @@ public abstract class GUIModelEditor extends JPanel
     public void modelParseFailed(PrismLangException parserError, boolean background) {}
 
     public void modelParseSuccessful() {}
+    
+    public GUIUndoManager getUndoManager()
+    {
+    	return null;
+    }
+    
+    public boolean canDoClipBoardAction(Action action)
+	{
+		return false;
+	}
 }

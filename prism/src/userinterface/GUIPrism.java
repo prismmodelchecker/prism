@@ -33,6 +33,8 @@ import java.net.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.plaf.*;
 import javax.swing.plaf.metal.*;
 //Prism Packages
@@ -69,7 +71,7 @@ public class GUIPrism extends JFrame
     private static GUIPrismSplash splash;
     private static GUIPrism gui;
     private boolean doExit;
-    
+    private static GUIClipboard clipboardPlugin;
     
     //STATIC METHODS
     
@@ -112,7 +114,8 @@ public class GUIPrism extends JFrame
         ArrayList plugs = new ArrayList();
         //Define Plugins here
         plugs.add(new userinterface.GUIFileMenu(g)); // File menu
-        plugs.add(new userinterface.GUIClipboard(g)); // Clipboard
+        clipboardPlugin = new GUIClipboard(g);
+        plugs.add(clipboardPlugin); // Clipboard
         plugs.add(new userinterface.model.GUIMultiModel(g));
         userinterface.simulator.GUISimulator sim = new userinterface.simulator.GUISimulator(g);
         plugs.add(new userinterface.properties.GUIMultiProperties(g, sim));
@@ -227,7 +230,12 @@ public class GUIPrism extends JFrame
         //options.addPanel(new GUIPrismOptionsPanel(prism));
         JPanel thePanel = new JPanel(); // panel to store tabs
         theTabs = new JTabbedPane();
-        
+        theTabs.addChangeListener(new ChangeListener() {
+        	@Override
+        	public void stateChanged(ChangeEvent e) {
+        		clipboardPlugin.pluginChanged(getFocussedPlugin()); 		
+        	}
+        });
         //Setup pluggable screens in here
         plugs = getPluginArray(this);
         for(int i = 0; i < plugs.size(); i++)
@@ -540,13 +548,14 @@ public class GUIPrism extends JFrame
             if(c instanceof GUIPlugin)
             {
                 GUIPlugin pl = (GUIPlugin)c;
+                
                 if(pl == tab)
                 {
-                    theTabs.setEnabledAt(i, enable);
-                    break;
+                	theTabs.setEnabledAt(i, enable);
+                	break;
                 }
             }
-        }
+        }        
     }
     
     /** Moves the view to the next GUIPlugin component which has a tab.  If the last one
@@ -633,4 +642,8 @@ public class GUIPrism extends JFrame
             splash.dispose();
         }
     }
+
+	public static GUIClipboard getClipboardPlugin() {
+		return clipboardPlugin;
+	}
 }

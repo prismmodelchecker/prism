@@ -33,6 +33,7 @@ import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.datatransfer.*;
+
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
@@ -50,7 +51,7 @@ import parser.ast.*;
 /**
  *  Properties tab of the PRISM GUI.
  */
-public class GUIMultiProperties extends GUIPlugin implements MouseListener, ListSelectionListener, PrismSettingsListener
+public class GUIMultiProperties extends GUIPlugin implements MouseListener, ListSelectionListener, PrismSettingsListener, ContainerListener
 {
 	//CONSTANTS
 	public static final int CONTINUE = 0;
@@ -92,8 +93,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	private Vector clipboardVector;
 	
 	private Action newProps, openProps, saveProps, savePropsAs, insertProps,
-	verifySelected, cutAction, copyAction, pasteAction, deleteAction,
-	newProperty, editProperty, selectAllAction, newConstant,
+	verifySelected,
+	newProperty, editProperty, newConstant,
 	removeConstant, newLabel, removeLabel, newExperiment, deleteExperiment, stopExperiment,
 	viewResults, plotResults, exportResults, simulate, details;
 	
@@ -476,6 +477,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			// Force repaint because we modified the GUIProperty directly
 			repaintList();
 		}
+		selectionChangeHandler.notifyListeners(new GUIEvent(1));
 		updateCommentLabel();
 	}
 	
@@ -522,6 +524,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	{
 		computing = com;
 		doEnables();
+		selectionChangeHandler.notifyListeners(new GUIEvent(1));
 	}
 	
 	protected void setActiveFile(File f)
@@ -567,11 +570,6 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		propList.setEnabled 		(!computing);
 		newProperty.setEnabled		(!computing);
 		editProperty.setEnabled 	(!computing && propList.getSelectedProperties().size() > 0);
-		cutAction.setEnabled		(!computing);
-		copyAction.setEnabled		(!computing);
-		pasteAction.setEnabled		(!computing);
-		deleteAction.setEnabled 	(!computing);
-		selectAllAction.setEnabled	(!computing);
 		// constants list
 		removeConstant.setEnabled(consTable.getSelectedRowCount() > 0);
 		// label list
@@ -935,6 +933,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				ed.show();
 			}
 		}
+		
+		selectionChangeHandler.notifyListeners(new GUIEvent(1));		
 	}
 	
 	public void a_selectAll()
@@ -1264,9 +1264,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		if(!computing)
 		{			
 			if(e.isPopupTrigger() && e.getSource() == propList)
-			{
-				
-				
+			{				
 				int index = propList.locationToIndex(e.getPoint());
 				// if there are no properties selected, select the one under the popup
 				if(propList.isSelectionEmpty())
@@ -1294,6 +1292,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 						propList.setSelectedIndex(index);
 					}
 				}
+				
 				// disable certain actions if any of the selected propeties are currently being edited
 				int[] sel = propList.getSelectedIndices();
 				boolean showDeleters = true;
@@ -1304,12 +1303,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 						showDeleters = false;
 						break;
 					}
-				}
+				}					
 				
-				
-				
-				cutAction.setEnabled(true);
-				deleteAction.setEnabled(true);
 				verifySelected.setEnabled(propList.getValidSelectedProperties().size() > 0);
 				simulate.setEnabled(propList.getValidSimulatableSelectedProperties().size() > 0);
 				details.setEnabled(propList.getValidSelectedProperties().size() > 0);
@@ -1319,8 +1314,6 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				
 				if(showDeleters == false)
 				{
-					cutAction.setEnabled(false);
-					deleteAction.setEnabled(false);
 					simulate.setEnabled(false);
 					verifySelected.setEnabled(false);
 					details.setEnabled(false);
@@ -1343,11 +1336,50 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				doEnables();
 				this.experimentPopup.show(e.getComponent(), e.getX(), e.getY());
 			}
-		}
-		
-		
+		}		
 	}
 	
+	@Override
+	public boolean canDoClipBoardAction(Action action) 
+	{
+		if (computing)
+			return false;
+		
+		// disable certain actions if any of the selected propeties are currently being edited
+		int[] sel = propList.getSelectedIndices();
+		boolean showDeleters = true;
+		for(int i = 0; i < sel.length; i++)
+		{
+			if(propList.getProperty(sel[i]).isBeingEdited())
+			{
+				showDeleters = false;
+				break;
+			}
+		}		
+		
+		if (action == GUIPrism.getClipboardPlugin().getPasteAction())
+		{
+			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+			return (clipboard.getContents(null) != null);
+		}
+		else if (action == GUIPrism.getClipboardPlugin().getCutAction() ||
+				 action == GUIPrism.getClipboardPlugin().getDeleteAction())
+		{
+			if (!showDeleters) return false;
+			return (propList.getSelectedProperties().size() > 0);
+		}
+		else if (action == GUIPrism.getClipboardPlugin().getCopyAction())
+		{
+			return (propList.getSelectedProperties().size() > 0);
+		}		
+		else if (action == GUIPrism.getClipboardPlugin().getSelectAllAction())
+		{
+			return true;
+		}
+		
+		return false;
+	}
+
 	public void mouseReleased(MouseEvent e)
 	{
 		removeConstant.setEnabled(consTable.getSelectedRowCount() > 0);
@@ -1394,8 +1426,6 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 						break;
 					}
 				}
-				cutAction.setEnabled(true);
-				deleteAction.setEnabled(true);
 				verifySelected.setEnabled(propList.getValidSelectedProperties().size() > 0);
 				simulate.setEnabled(propList.getValidSimulatableSelectedProperties().size() > 0);
 				details.setEnabled(propList.getValidSelectedProperties().size() > 0);
@@ -1404,8 +1434,6 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 							
 				if(showDeleters == false)
 				{
-					cutAction.setEnabled(false);
-					deleteAction.setEnabled(false);
 					simulate.setEnabled(false);
 					verifySelected.setEnabled(false);
 					details.setEnabled(false);
@@ -1432,6 +1460,21 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		}
 	}
 	
+	
+	
+	@Override
+	public void componentAdded(ContainerEvent e) 
+	{
+		// notify GUIClipboard
+		selectionChangeHandler.notifyListeners(new GUIEvent(1));		
+	}
+
+	@Override
+	public void componentRemoved(ContainerEvent e) {
+		// notify GUIClipboard
+		selectionChangeHandler.notifyListeners(new GUIEvent(1));		
+	}
+
 	//METHODS TO IMPLEMENT ListSelectionListener INTERFACE
 	public void valueChanged(ListSelectionEvent e)
 	{
@@ -1447,16 +1490,14 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				break;
 			}
 		}
-		cutAction.setEnabled(true);
-		deleteAction.setEnabled(true);
+		
 		verifySelected.setEnabled(propList.getValidSelectedProperties().size() > 0);
 		simulate.setEnabled(propList.getValidSimulatableSelectedProperties().size() > 0);
 		details.setEnabled(propList.getValidSelectedProperties().size() > 0);
 		editProperty.setEnabled(propList.getSelectedProperties().size() > 0);
+		
 		if(showDeleters == false)
 		{
-			cutAction.setEnabled(false);
-			deleteAction.setEnabled(false);
 			simulate.setEnabled(false);
 			verifySelected.setEnabled(false);
 			details.setEnabled(false);
@@ -1469,6 +1510,9 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		
 		removeConstant.setEnabled(consTable.getSelectedRowCount() > 0);
 		removeLabel.setEnabled(labTable.getSelectedRowCount() > 0);
+		
+		// notify GUIClipboard
+		selectionChangeHandler.notifyListeners(new GUIEvent(1));
 	}
 	
 	//CONSTRUCTOR HELPER METHODS
@@ -1491,6 +1535,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 						{
 							propList = new GUIPropertiesList(getPrism(), this);
 							propList.addListSelectionListener(this);
+							propList.addContainerListener(this);
 							propScroll.setViewportView(propList);
 						}
 						JScrollPane comScroll = new JScrollPane();
@@ -1657,12 +1702,12 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		propertiesPopup.add(newExperiment);
 		propertiesPopup.add(details);
 		propertiesPopup.add(new JSeparator());
-		propertiesPopup.add(cutAction);
-		propertiesPopup.add(copyAction);
-		propertiesPopup.add(pasteAction);
-		propertiesPopup.add(deleteAction);
+		propertiesPopup.add(GUIPrism.getClipboardPlugin().getCutAction());
+		propertiesPopup.add(GUIPrism.getClipboardPlugin().getCopyAction());
+		propertiesPopup.add(GUIPrism.getClipboardPlugin().getPasteAction());
+		propertiesPopup.add(GUIPrism.getClipboardPlugin().getDeleteAction());
 		propertiesPopup.add(new JSeparator());
-		propertiesPopup.add(selectAllAction);
+		propertiesPopup.add(GUIPrism.getClipboardPlugin().getSelectAllAction());
 		
 		constantsPopup = new JPopupMenu();
 		
@@ -1797,56 +1842,6 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		verifySelected.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallTick.png"));
 		verifySelected.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
 		
-		cutAction = new AbstractAction()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				a_cut();
-			}
-		};
-		cutAction.putValue(Action.LONG_DESCRIPTION, "Copys the selected properties to the clipboard and then deletes them.");
-		//cutAction.putValue(Action.SHORT_DESCRIPTION, "Cut");
-		cutAction.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_T));
-		cutAction.putValue(Action.NAME, "Cut");
-		cutAction.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallCut.png"));
-		//cutAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_X, InputEvent.CTRL_MASK));
-		
-		copyAction = new AbstractAction()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				a_copy();
-			}
-		};
-		copyAction.putValue(Action.LONG_DESCRIPTION, "Copys the selected properties to the clipboard.");
-		copyAction.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_C));
-		copyAction.putValue(Action.NAME, "Copy");
-		copyAction.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallCopy.png"));
-		
-		pasteAction = new AbstractAction()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				a_paste();
-			}
-		};
-		pasteAction.putValue(Action.LONG_DESCRIPTION, "Pastes the properties on the clipboard to the properties list");
-		pasteAction.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
-		pasteAction.putValue(Action.NAME, "Paste");
-		pasteAction.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPaste.png"));
-		
-		deleteAction = new AbstractAction()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				a_delete();
-			}
-		};
-		deleteAction.putValue(Action.LONG_DESCRIPTION, "Deletes the selected properties.");
-		deleteAction.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_D));
-		deleteAction.putValue(Action.NAME, "Delete");
-		deleteAction.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallDelete.png"));
-		
 		newProperty = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
@@ -1870,19 +1865,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		editProperty.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_E));
 		editProperty.putValue(Action.NAME, "Edit");
 		editProperty.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallEdit.png"));
-		
-		selectAllAction = new AbstractAction()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				a_selectAll();
-			}
-		};
-		selectAllAction.putValue(Action.LONG_DESCRIPTION, "Selects all properties in the properties list");
-		selectAllAction.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_A));
-		selectAllAction.putValue(Action.NAME, "Select all");
-		selectAllAction.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallSelectAll.png"));
-		
+			
 		newConstant = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
@@ -2076,8 +2059,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}	
 			
 			stringRepresentation = new StringSelection(tmpString);
-		}
-		
+		}		
 		
 		public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException
 		{
@@ -2108,7 +2090,6 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		public ArrayList getProperties()
 		{
 			return listOfProperties;
-		}
-		
+		}		
 	}
 }

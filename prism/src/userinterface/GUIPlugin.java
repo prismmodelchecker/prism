@@ -72,6 +72,12 @@ public abstract class GUIPlugin extends JPanel implements GUIEventListener, Pris
 	private GUIPrism gui;
 	private Prism prism;
 	
+	/** Whenever the state of the cut/copy/delete/selectall buttons should change
+	 * notify this handler. This will in turn call the canDoClipBoardAction to
+	 * determine which buttons should be enabled.
+	 */
+	protected GUIEventHandler selectionChangeHandler;
+	
 	//CONSTRUCTORS
 	
 	/** This is the super constructor that all implementing subclasses should call, it
@@ -85,10 +91,19 @@ public abstract class GUIPlugin extends JPanel implements GUIEventListener, Pris
 	{
 		this.gui = gui;
 		this.prism = gui.getPrism();
+		selectionChangeHandler = new GUIEventHandler(gui);
 		if(listens)gui.getEventHandler().addListener(this);
 		setPreferredSize(new Dimension(800,600));
 	}
 	
+	
+	public GUIEventHandler getSelectionChangeHandler() 
+	{	
+		return selectionChangeHandler;
+	}
+
+
+
 	/** This is the super constructor that all implementing subclasses should call, it
 	 * sets up the interaction with the top level GUI, and also sets up the
 	 * interaction with the event
@@ -163,6 +178,22 @@ public abstract class GUIPlugin extends JPanel implements GUIEventListener, Pris
 	{
 		return gui;
 	}
+	
+	/** Returns the top level user interface
+	 * @return the GUI.
+	 */	
+	public GUIUndoManager getUndoManager()
+	{
+		return null;
+	}
+		
+	/** Determine whether or not this action should be enabled.
+	 * @param: action An action in GUIClipboard (but not undo/redo).
+	 */	
+	public boolean canDoClipBoardAction(Action action)
+	{
+		return false;
+	}	
 	
 	/** Utility access method to access which component is focussed in the top level
 	 * GUI.

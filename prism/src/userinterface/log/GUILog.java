@@ -30,6 +30,7 @@ import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+
 import userinterface.*;
 import prism.PrismLog;
 import userinterface.util.*;
@@ -44,9 +45,11 @@ public class GUILog extends GUIPlugin implements MouseListener, PrismSettingsLis
 	private PrismLog theLog;
 	private JTextArea text;
 	private JPopupMenu popupMenu;
+	private JMenu logMenu;
+	
 	//private GUILogOptions options;
 	private GUIPrismFileFilter textFilter[];
-	
+	private Action clearAction, saveAction;
 	private int maxTextLengthFast;
 	
 	/** Creates a new instance of GUILog */
@@ -81,7 +84,7 @@ public class GUILog extends GUIPlugin implements MouseListener, PrismSettingsLis
 	
 	public javax.swing.JMenu getMenu()
 	{
-		return null;
+		return logMenu;
 	}
 	
 	public String getTabText()
@@ -122,9 +125,37 @@ public class GUILog extends GUIPlugin implements MouseListener, PrismSettingsLis
 				theLog.print(le.getData());
 			}
 		}
+		else if (e instanceof GUIClipboardEvent)
+		{
+			GUIClipboardEvent ce = (GUIClipboardEvent)e;
+			if(ce.getID() == GUIClipboardEvent.COPY)
+			{
+				((GUIWindowLog)theLog).copy();
+				return true;
+			}
+			else if(ce.getID() == GUIClipboardEvent.SELECT_ALL)
+			{
+				((GUIWindowLog)theLog).selectAll();
+				return true;
+			}
+		}
 		return false;
 	}
 	
+	@Override
+	public boolean canDoClipBoardAction(Action action) 
+	{
+		if (action == GUIPrism.getClipboardPlugin().getCopyAction())
+		{
+			return ((GUIWindowLog)theLog).hasSelectedText();
+		}
+		else if (action == GUIPrism.getClipboardPlugin().getSelectAllAction())
+		{
+			return true;
+		}
+		return false;
+	}
+
 	private void initComponentsAsWindowLog(GUIWindowLog log)
 	{
 		JScrollPane logScroller = new JScrollPane();
@@ -133,7 +164,7 @@ public class GUILog extends GUIPlugin implements MouseListener, PrismSettingsLis
 			text.addMouseListener(this);
 			text.setFont(new Font("monospaced", Font.PLAIN, 12));
 			text.setBackground(Color.lightGray);
-			log.open(text);
+			log.open(text, this);
 			text.addMouseListener(this);
 			text.setEditable(false);
 			text.setBorder(new javax.swing.border.TitledBorder("Log Output"));
@@ -145,8 +176,10 @@ public class GUILog extends GUIPlugin implements MouseListener, PrismSettingsLis
 		add(logScroller, BorderLayout.CENTER);
 		
 		popupMenu = new JPopupMenu();
+		logMenu = new JMenu("Log");
 		
-		Action clearAction = new AbstractAction()
+		
+		clearAction = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
@@ -156,8 +189,9 @@ public class GUILog extends GUIPlugin implements MouseListener, PrismSettingsLis
 		clearAction.putValue(Action.SHORT_DESCRIPTION, "Clear log");
 		clearAction.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_C));
 		clearAction.putValue(Action.NAME, "Clear log");
+		clearAction.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallDelete.png"));
 		
-		Action saveAction = new AbstractAction()
+		saveAction = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
@@ -180,12 +214,25 @@ public class GUILog extends GUIPlugin implements MouseListener, PrismSettingsLis
 				}
 			}
 		};
-		saveAction.putValue(Action.SHORT_DESCRIPTION, "Save log");
+		saveAction.putValue(Action.SHORT_DESCRIPTION, "Save log as...");
 		saveAction.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_S));
-		saveAction.putValue(Action.NAME, "Save log");
+		saveAction.putValue(Action.NAME, "Save log as...");
+		saveAction.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallSave.png"));
 		
-		popupMenu.add(clearAction);
+		
+		//popupMenu.add(new JSeparator());
 		popupMenu.add(saveAction);
+		popupMenu.add(new JSeparator());
+		popupMenu.add(GUIPrism.getClipboardPlugin().getCopyAction());
+		popupMenu.add(clearAction);
+		popupMenu.add(new JSeparator());
+		popupMenu.add(GUIPrism.getClipboardPlugin().getSelectAllAction());
+		
+		
+		logMenu.setMnemonic('L');
+		logMenu.add(saveAction);
+		logMenu.add(new JSeparator());
+		logMenu.add(clearAction);
 		
 		textFilter = new GUIPrismFileFilter[1];
 		textFilter[0] = new GUIPrismFileFilter("Plain text files (*.txt)");

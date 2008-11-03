@@ -103,6 +103,16 @@ public class GUIGraphicModelEditor extends GUIModelEditor implements SelectionLi
         return "GUIGRAPHICMODELEDITOR IS ME";
     }
     
+    public void undo()
+    {        
+               
+    }
+    
+    public void redo()
+    {
+    	
+    }
+    
     public void copy()
     {
         

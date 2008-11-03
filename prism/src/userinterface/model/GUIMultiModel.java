@@ -27,7 +27,9 @@
 
 package userinterface.model;
 import userinterface.*;
+
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -638,7 +640,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		computeTr.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_T));
 		computeTr.putValue(Action.NAME, "Transient probabilities");
 		computeTr.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallClockAnim1.png"));
-		computeTr.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
+		computeTr.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F4, KeyEvent.CTRL_DOWN_MASK));
 		
 		viewStates = new AbstractAction() { public void actionPerformed(ActionEvent e) {
 			a_viewBuild(GUIMultiModelHandler.STATES_EXPORT, Prism.EXPORT_PLAIN); } };
@@ -749,6 +751,11 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 					handler.delete();
 				else if(id == GUIClipboardEvent.SELECT_ALL)
 					handler.selectAll();
+				else if(id == GUIClipboardEvent.UNDO)
+					handler.undo();
+				else if(id == GUIClipboardEvent.REDO)
+					handler.redo();
+				
 			}
 		}
 		else if(e instanceof GUIComputationEvent)
@@ -757,17 +764,19 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 			{
 				computing = true;
 				doEnables();
+				selectionChangeHandler.notifyListeners(new GUIEvent(1));
 			}
 			else if(e.getID() == GUIComputationEvent.COMPUTATION_DONE)
 			{
 				computing = false;
 				doEnables();
+				selectionChangeHandler.notifyListeners(new GUIEvent(1));
 			}
 			else if(e.getID() == GUIComputationEvent.COMPUTATION_ERROR)
 			{
-			
 				computing = false;
 				doEnables();
+				selectionChangeHandler.notifyListeners(new GUIEvent(1));
 			}
 		}
 		else if (e instanceof GUIExitEvent)
@@ -783,50 +792,9 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		return false;
 	}
 	
-	private void initComponents()
+	private JMenu initExportMenu()
 	{
-		setupActions();
-		
-		JPanel topPanel = new JPanel();
-		{
-			fileLabel = new JLabel();
-			{
-				fileLabel.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-				fileLabel.setBorder(new javax.swing.border.EtchedBorder());
-				fileLabel.setMinimumSize(new java.awt.Dimension(40, 25));
-			}
-			
-			//progress = new JProgressBar(0, 100);
-			topPanel.setLayout(new BorderLayout());
-			handler = new GUIMultiModelHandler(this);
-			//topPanel.add(progress, BorderLayout.WEST);
-			topPanel.add(fileLabel,BorderLayout.NORTH);
-			topPanel.add(handler,BorderLayout.CENTER);
-		}
-		
-		setLayout(new BorderLayout());
-		add(topPanel, BorderLayout.CENTER);
-		
-		modelMenu = new JMenu("Model");
-		newMenu = new JMenu("New");
-		newMenu.setMnemonic('N');
-		newMenu.setIcon(GUIPrism.getIconFromImage("smallNew.png"));
-		newMenu.add(newPRISMModel);
-		if (GM_ENABLED) newMenu.add(newGraphicModel);
-		newMenu.add(newPEPAModel);
-		modelMenu.add(newMenu);
-		modelMenu.add(new JSeparator());
-		modelMenu.add(loadModel);
-		modelMenu.add(reloadModel);
-		modelMenu.add(new JSeparator());
-		modelMenu.add(saveModel);
-		modelMenu.add(saveAsModel);
-		modelMenu.add(new JSeparator());
-		modelMenu.setMnemonic(KeyEvent.VK_M);
-		modelMenu.add(parseModel);
-		modelMenu.add(buildModel);
-		modelMenu.add(new JSeparator());
-		exportMenu = new JMenu("Export");
+		JMenu exportMenu = new JMenu("Export");
 		exportMenu.setMnemonic('E');
 		exportMenu.setIcon(GUIPrism.getIconFromImage("smallExport.png"));
 		exportStatesMenu = new JMenu("States");
@@ -857,8 +825,12 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		exportTransRewardsMenu.add(exportTransRewardsMatlab);
 		exportTransRewardsMenu.add(exportTransRewardsMRMC);
 		exportMenu.add(exportTransRewardsMenu);
-		modelMenu.add(exportMenu);
-		viewMenu = new JMenu("View");
+		return exportMenu;
+	}
+	
+	private JMenu initViewMenu()
+	{
+		JMenu viewMenu = new JMenu("View");
 		viewMenu.setMnemonic('V');
 		viewMenu.setIcon(GUIPrism.getIconFromImage("smallView.png"));
 		viewMenu.add(viewStates);
@@ -866,12 +838,68 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		viewMenu.add(viewStateRewards);
 		viewMenu.add(viewTransRewards);
 		viewMenu.add(viewPrismCode);
-		modelMenu.add(viewMenu);
-		computeMenu = new JMenu("Compute");
+		return viewMenu;
+	}
+	
+	private JMenu initComputeMenu()
+	{
+		JMenu computeMenu = new JMenu("Compute");
 		computeMenu.setMnemonic('C');
 		computeMenu.setIcon(GUIPrism.getIconFromImage("smallCompute.png"));
 		computeMenu.add(computeSS);
 		computeMenu.add(computeTr);
+		return computeMenu;
+	}
+	
+	private void initComponents()
+	{
+		setupActions();
+		
+		modelMenu = new JMenu("Model");
+		exportMenu = initExportMenu();
+		viewMenu = initViewMenu();
+		computeMenu = initComputeMenu();		
+		
+		JPanel topPanel = new JPanel();
+		{
+			fileLabel = new JLabel();
+			{
+				fileLabel.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+				fileLabel.setBorder(new javax.swing.border.EtchedBorder());
+				fileLabel.setMinimumSize(new java.awt.Dimension(40, 25));
+			}
+			
+			//progress = new JProgressBar(0, 100);
+			topPanel.setLayout(new BorderLayout());
+			handler = new GUIMultiModelHandler(this);
+			//topPanel.add(progress, BorderLayout.WEST);
+			topPanel.add(fileLabel,BorderLayout.NORTH);
+			topPanel.add(handler,BorderLayout.CENTER);
+		}
+		
+		newMenu = new JMenu("New");
+		newMenu.setMnemonic('N');
+		newMenu.setIcon(GUIPrism.getIconFromImage("smallNew.png"));
+		newMenu.add(newPRISMModel);
+		if (GM_ENABLED) newMenu.add(newGraphicModel);
+		newMenu.add(newPEPAModel);
+		modelMenu.add(newMenu);
+		modelMenu.add(new JSeparator());
+		modelMenu.add(loadModel);
+		modelMenu.add(reloadModel);
+		modelMenu.add(new JSeparator());
+		modelMenu.add(saveModel);
+		modelMenu.add(saveAsModel);
+		modelMenu.add(new JSeparator());
+		modelMenu.setMnemonic(KeyEvent.VK_M);
+		modelMenu.add(parseModel);
+		modelMenu.add(buildModel);
+		modelMenu.add(new JSeparator());
+		
+		modelMenu.add(exportMenu);
+		
+		modelMenu.add(viewMenu);
+		
 		modelMenu.add(computeMenu);
 		
 		popup = new JPopupMenu();
@@ -904,6 +932,11 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		dotFilter[0] = new GUIPrismFileFilter("Dot files (*.dot)");
 		dotFilter[0].addExtension("dot");
 		
+		
+		
+		setLayout(new BorderLayout());
+		add(topPanel, BorderLayout.CENTER);
+		
 		doEnables();
 	}
 	
@@ -918,5 +951,40 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
         handler.notifySettings(settings);
         
         repaint();
-    }	      
+    }
+
+	@Override
+	public GUIUndoManager getUndoManager() 
+	{
+		return handler.getUndoManager();
+	}
+
+	@Override
+	public boolean canDoClipBoardAction(Action action) {
+		// TODO Auto-generated method stub
+		if (computing)
+			return false;
+		
+		return handler.canDoClipBoardAction(action);
+	}
+
+	public AbstractAction getParseModel() {
+		return parseModel;
+	}
+
+	public AbstractAction getBuildModel() {
+		return buildModel;
+	}
+
+	public JMenu getViewMenu() {
+		return initViewMenu();
+	}
+
+	public JMenu getExportMenu() {
+		return initExportMenu();
+	}
+
+	public JMenu getComputeMenu() {
+		return initComputeMenu();
+	}	
 }

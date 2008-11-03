@@ -60,7 +60,16 @@ public class GUIEventHandler
 			if (res) break;
 		}
 		// notify gui itself
-		if (!res) gui.processGUIEvent(e);
+		if (gui != null && !res) gui.processGUIEvent(e);
 	}
 	
+	public boolean removeListener(GUIEventListener listen)
+	{
+		return listeners.remove(listen);
+	}
+	
+	public void clear()
+	{
+		listeners.clear();
+	}
 }

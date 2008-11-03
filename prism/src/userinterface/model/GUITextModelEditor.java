@@ -37,20 +37,27 @@ import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.datatransfer.Clipboard;
 import javax.swing.event.*;
+
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import prism.PrismLangException;
 import prism.PrismSettings;
 import prism.PrismSettingsListener;
 import userinterface.GUIClipboardEvent;
+import userinterface.GUIPlugin;
 import userinterface.GUIPrism;
+import userinterface.util.GUIEvent;
+import userinterface.util.GUIUndoManager;
 
 /** Editing pane with syntax highlighting and line numbers etc for text 
  * model files. Currently supports Prism and Pepa models. It also tells 
@@ -58,7 +65,6 @@ import userinterface.GUIPrism;
  */
 public class GUITextModelEditor extends GUIModelEditor implements DocumentListener, MouseListener
 {
-
 	private GUIMultiModelHandler handler;
 	/** Standard java editor component for editing the model files. A custom
 	 * editor kit is used to provide syntax highlighting and line numbers.
@@ -68,7 +74,7 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 	
 	/** Allows undo/redo operations to be performed on the model editor.
 	 */
-	private UndoManager undoManager;
+	private GUIUndoManager undoManager;
 	private JScrollPane editorScrollPane;
 	/** The line numbers etc. gutter for the model editor. */
 	private GUITextModelEditorGutter gutter;
@@ -82,7 +88,7 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 	private JPopupMenu contextPopup;
 	
 	/** Actions for the context menu. */
-	private Action actionCut, actionCopy, actionPaste, actionUndo, actionRedo, actionSearch, actionJumpToError;
+	private Action actionSearch, actionJumpToError;
 	
 	/** More actions */
 	private Action insertDTMC, insertCTMC, insertMDP;
@@ -168,12 +174,17 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 		editor.setEditable(true);
 		editor.setText(initialText);
 		editor.getDocument().addDocumentListener(this);
-		editor.getDocument().addUndoableEditListener(new EditorUndoableEditListener());
+		editor.addCaretListener(new CaretListener() {
+			@Override
+			public void caretUpdate(CaretEvent e) {
+				GUITextModelEditor.this.handler.getGUIPlugin().getSelectionChangeHandler().notifyListeners(new GUIEvent(1));				
+			}
+		}); 
 		editor.getDocument().putProperty( PlainDocument.tabSizeAttribute, new Integer(4) );
 		
 		editor.addMouseListener(this);
 		errorHighlightPainter = new DefaultHighlighter.DefaultHighlightPainter(new Color(255,192,192));
-		undoManager = new UndoManager();
+		undoManager = new GUIUndoManager(GUIPrism.getGUI());
 		undoManager.setLimit(200);		
 		
 		// Setup the scrollpane
@@ -211,52 +222,49 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 		
 		// method to initialize the context menu popup
 		initContextMenu();
-		
-	    InputMap inputMap = editor.getInputMap();
-	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, java.awt.event.InputEvent.CTRL_MASK), "undo");
-	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, java.awt.event.InputEvent.CTRL_MASK), "redo");
-	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, java.awt.event.InputEvent.CTRL_MASK | java.awt.event.InputEvent.SHIFT_MASK), "redo");
+			
+	    InputMap inputMap = editor.getInputMap();	
+	    inputMap.clear();
+	
+	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, java.awt.event.InputEvent.CTRL_MASK), "prism_undo");
+	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, java.awt.event.InputEvent.CTRL_MASK), "prism_undo");
+	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, java.awt.event.InputEvent.CTRL_MASK), "prism_redo");
+	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, java.awt.event.InputEvent.CTRL_MASK), "prism_selectall");
+	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, java.awt.event.InputEvent.CTRL_MASK), "prism_delete");
+	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, java.awt.event.InputEvent.CTRL_MASK), "prism_cut");
+	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, java.awt.event.InputEvent.CTRL_MASK), "prism_paste");
+	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_E, java.awt.event.InputEvent.CTRL_MASK), "prism_jumperr");
+	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, java.awt.event.InputEvent.CTRL_MASK | java.awt.event.InputEvent.SHIFT_MASK), "prism_redo");
 	    
 		ActionMap actionMap = editor.getActionMap();
-		actionMap.put("undo", actionUndo);
-		actionMap.put("redo", actionRedo);
+		actionMap.put("prism_undo", GUIPrism.getClipboardPlugin().getUndoAction());
+		actionMap.put("prism_redo", GUIPrism.getClipboardPlugin().getRedoAction());
+		actionMap.put("prism_selectall", GUIPrism.getClipboardPlugin().getSelectAllAction());
+		actionMap.put("prism_cut", GUIPrism.getClipboardPlugin().getCutAction());
+		actionMap.put("prism_copy", GUIPrism.getClipboardPlugin().getCopyAction());
+		actionMap.put("prism_paste", GUIPrism.getClipboardPlugin().getPasteAction());
+		actionMap.put("prism_delete", GUIPrism.getClipboardPlugin().getDeleteAction());
+		actionMap.put("prism_jumperr", actionJumpToError);
 		
 		
+		
+		editor.getDocument().addUndoableEditListener(undoManager);
+		editor.getDocument().addUndoableEditListener(new UndoableEditListener() 
+		{
+			@Override
+			public void undoableEditHappened(UndoableEditEvent e) 
+			{
+				System.out.println("adding undo edit");				
+			}
+		});
 	}
 	
 	/**
 	 * Helper method to initialize the actions used for the buttons.
 	 */
 	private void initActions() {
-		actionCut = new AbstractAction() {
-			public void actionPerformed(ActionEvent ae) {
-				editor.cut();
-			}
-		};
-		actionCut.putValue(Action.LONG_DESCRIPTION, "Cuts the highlighted text to the clipboard.");
-		actionCut.putValue(Action.NAME, "Cut");
-		//actionCut.putValue(Action.ACCELERATOR_KEY, KeyStroke.
-		//actionCut.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("editcut.png"));
 		
-		actionCopy = new AbstractAction() {
-			public void actionPerformed(ActionEvent ae) {
-				editor.copy();
-			}
-		};
-		actionCopy.putValue(Action.LONG_DESCRIPTION, "Copies the highlighted text to the clipboard.");
-		actionCopy.putValue(Action.NAME, "Copy");
-		//actionCopy.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("editcopy.png"));
-		
-		actionPaste = new AbstractAction() {
-			public void actionPerformed(ActionEvent ae) {
-				editor.paste();
-			}
-		};
-		actionPaste.putValue(Action.LONG_DESCRIPTION, "Pastes the text stored in the clipboard.");
-		actionPaste.putValue(Action.NAME, "Paste");
-		//actionPaste.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("editpaste.png"));
-	
-		actionUndo = new AbstractAction() {
+		/*actionUndo = new AbstractAction() {
 			public void actionPerformed(ActionEvent ae) {
 				try {
 					// do redo
@@ -295,7 +303,7 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 		actionRedo.putValue(Action.LONG_DESCRIPTION, "Redos the most recent undo");
 		actionRedo.putValue(Action.NAME, "Redo");
 		actionRedo.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallRedo.png"));
-		
+		*/
 		actionJumpToError = new AbstractAction() {
 			public void actionPerformed(ActionEvent ae) {
 				jumpToError();
@@ -304,6 +312,7 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 		
 		actionJumpToError.putValue(Action.NAME, "Jump to error");
 		actionJumpToError.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("tinyError.png"));
+		actionJumpToError.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_MASK));
 		
 		
 		// search and replace action
@@ -393,15 +402,25 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 	 *
 	 */
 	private void initContextMenu() {
+		
 		contextPopup = new JPopupMenu();		
-		contextPopup.add(actionUndo);
-		contextPopup.add(actionRedo);
+		contextPopup.add(GUIPrism.getClipboardPlugin().getUndoAction());
+		contextPopup.add(GUIPrism.getClipboardPlugin().getRedoAction());
 		contextPopup.add(new JSeparator());
-		contextPopup.add(actionCut);
-		contextPopup.add(actionCopy);
-		contextPopup.add(actionPaste);
+		contextPopup.add(((GUIMultiModel)handler.getGUIPlugin()).getParseModel());
+		contextPopup.add(((GUIMultiModel)handler.getGUIPlugin()).getBuildModel());
 		contextPopup.add(new JSeparator());
-		contextPopup.add(actionJumpToError);
+		contextPopup.add(((GUIMultiModel)handler.getGUIPlugin()).getExportMenu());
+		contextPopup.add(((GUIMultiModel)handler.getGUIPlugin()).getViewMenu());
+		contextPopup.add(((GUIMultiModel)handler.getGUIPlugin()).getComputeMenu());
+		contextPopup.add(new JSeparator());
+		contextPopup.add(GUIPrism.getClipboardPlugin().getCutAction());
+		contextPopup.add(GUIPrism.getClipboardPlugin().getCopyAction());
+		contextPopup.add(GUIPrism.getClipboardPlugin().getPasteAction());
+		contextPopup.add(GUIPrism.getClipboardPlugin().getDeleteAction());
+		contextPopup.add(new JSeparator());
+		contextPopup.add(GUIPrism.getClipboardPlugin().getSelectAllAction());
+		//contextPopup.add(actionJumpToError);
 		//contextPopup.add(actionSearch);
 		
 		
@@ -445,13 +464,15 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 	 */
 	public void read(Reader reader, Object object) throws IOException
 	{
+		editor.getDocument().removeUndoableEditListener(undoManager);
+		
 		editor.read(reader, object);
 		
 		// For some unknown reason the listeners have to be added both here
 		// and in the constructor, if they're not added here the editor won't
 		// be listening.
-		editor.getDocument().addDocumentListener(this);
-		editor.getDocument().addUndoableEditListener(new EditorUndoableEditListener());
+		editor.getDocument().addDocumentListener(this);	
+		editor.getDocument().addUndoableEditListener(undoManager);	
 	}
 	
 	public void setText(String text)
@@ -502,7 +523,8 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 	 */
 	public void insertUpdate(DocumentEvent event)
 	{
-		if (handler != null) handler.hasModified(true);
+		if (handler != null) 
+			handler.hasModified(true);
 	}
 	
 	
@@ -512,7 +534,8 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 	 */
 	public void removeUpdate(DocumentEvent event)
 	{
-		if (handler != null) handler.hasModified(true);
+		if (handler != null) 
+			handler.hasModified(true);
 	}
 	
 	public String getParseText()
@@ -526,6 +549,7 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 		try {
 			undoManager.undo();
 		} catch (CannotUndoException ex) {
+			
 			//GUIPrism.getGUI().getMultiLogger().logMessage(PrismLogLevel.PRISM_ERROR, ex.getMessage());
 		}
 	}
@@ -591,26 +615,7 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 	{
 		editor.setBackground(c);
 	}
-	
-	/** Listens for changes made to the model editor and updates the UndoManager,
-	 * allowing undo/redo operations to be performed.
-	 */
-	protected class EditorUndoableEditListener implements UndoableEditListener
-	{
-		public void undoableEditHappened(UndoableEditEvent e)
-		{
-			// Remember the edit and raise a listener event for any
-			// other interested objects.
-			undoManager.addEdit(e.getEdit());
-			GUIClipboardEvent clipboardEvent = new GUIClipboardEvent(GUIClipboardEvent.UNDOMANAGER_CHANGE, 
-					handler.getGUIPlugin().getFocussedComponent());
-			// Send the undo manager with the event so that interested
-			// objects can determine the state of the undo manager.
-			clipboardEvent.setUndoManager(undoManager);
-			GUIPrism.getGUI().notifyEventListeners(clipboardEvent);
-		}
-	}
-	
+		
 	// rajk
 	public JEditorPane getEditorPane(){
 		return this.editor;
@@ -628,7 +633,7 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 	public void mousePressed(MouseEvent me) {
 		
 		if (me.isPopupTrigger()) {
-			
+			/*
 			
 			// check if to have paste enabled or not
 			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -648,24 +653,14 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 				actionCut.setEnabled(true);
 				actionCopy.setEnabled(true);
 			}
-			
+			*/
 			// check undo
-			if (undoManager.canUndo()) {
-				actionUndo.setEnabled(true);
-			}
-			else {
-				actionUndo.setEnabled(false);
-			}
 			
-			// check redo
-			if (undoManager.canRedo()) {
-				actionRedo.setEnabled(true);
-			}
-			else {
-				actionRedo.setEnabled(false);
-			}
-			
+			//GUIPrism.getClipboardPlugin().getUndoAction().setEnabled(undoManager.canUndo());
+			//GUIPrism.getClipboardPlugin().getRedoAction().setEnabled(undoManager.canRedo());
+						
 			actionJumpToError.setEnabled(parseError != null && parseError.hasLineNumbers());
+			((GUIMultiModel)handler.getGUIPlugin()).doEnables();
 			
 			contextPopup.show(me.getComponent(), me.getX(), me.getY());
 			
@@ -757,7 +752,7 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 		
 		while (parserChar < column)
 		{
-			if (text.charAt(documentChar) == '\t')
+			if (documentChar < text.length() && text.charAt(documentChar) == '\t')
 			{
 				parserChar += 8;
 				documentChar += 1;
@@ -786,7 +781,31 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 		this.parseError = null;
 		// get rid of any error highlighting
 		refreshErrorDisplay();
-	} 
+	}
+
+	public GUIUndoManager getUndoManager() 
+	{
+		return undoManager;
+	} 	
 	
-	
+	public boolean canDoClipBoardAction(Action action) {
+		if (action == GUIPrism.getClipboardPlugin().getPasteAction())
+		{
+			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+			return (clipboard.getContents(null) != null);
+		}
+		else if (
+		  action == GUIPrism.getClipboardPlugin().getCutAction() ||
+		  action == GUIPrism.getClipboardPlugin().getCopyAction() ||
+		  action == GUIPrism.getClipboardPlugin().getDeleteAction())
+		{
+			return (editor.getSelectedText() != null);
+		}
+		else if (action == GUIPrism.getClipboardPlugin().getSelectAllAction())
+		{
+			return true;
+		}
+		
+		return handler.canDoClipBoardAction(action);
+	}
 }

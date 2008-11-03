@@ -1075,7 +1075,6 @@ public class GUIMultiModelHandler extends JPanel
     
     public void hasModified(boolean attemptReparse)
     {
-        
         modified = true;
         if(isBusy()) 
         {
@@ -1108,6 +1107,16 @@ public class GUIMultiModelHandler extends JPanel
             parseAfterParse = true;
         }
         theModel.doEnables();
+    }
+    
+    public void undo()
+    {
+        editor.undo();
+    }
+    
+    public void redo()
+    {
+        editor.redo();
     }
     
     public void cut()
@@ -1522,4 +1531,21 @@ public class GUIMultiModelHandler extends JPanel
             }
         }
     }
+    
+    public GUIUndoManager getUndoManager()
+    {
+    	return editor.getUndoManager();
+    }
+    
+   	public boolean canDoClipBoardAction(Action action) {
+		// TODO Auto-generated method stub
+		return editor.canDoClipBoardAction(action);
+	}
+
+	public void jumpToError() {
+		if (editor != null && editor instanceof GUITextModelEditor)
+			((GUITextModelEditor)editor).jumpToError();
+	}
+	
+	
 }
