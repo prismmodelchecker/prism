@@ -2,8 +2,8 @@
 // dxp/gxn 12/12/99
 // atomic formulae 
 // left fork free and right fork free resp.
-formula lfree = p2>=0&p2<=4|p2=6|p2=10;
-formula rfree = p3>=0&p3<=3|p3=5|p3=7|p3=11;
+formula lfree = (p2>=0&p2<=4)|p2=6|p2=10;
+formula rfree = (p7>=0&p7<=3)|p7=5|p7=7|p7=11;
 
 module phil1
 
@@ -31,12 +31,12 @@ module phil1
 endmodule
 
 // construct further modules through renaming
-module phil2 = phil1 [ p1=p2, p2=p3, p3=p1 ] endmodule
-module phil3 = phil1 [ p1=p3, p2=p4, p3=p2 ] endmodule
-module phil4 = phil1 [ p1=p4, p2=p5, p3=p3 ] endmodule
-module phil5 = phil1 [ p1=p5, p2=p6, p3=p4 ] endmodule
-module phil6 = phil1 [ p1=p6, p2=p7, p3=p5 ] endmodule
-module phil7 = phil1 [ p1=p7, p2=p1, p3=p6 ] endmodule
+module phil2 = phil1 [ p1=p2, p2=p3, p7=p1 ] endmodule
+module phil3 = phil1 [ p1=p3, p2=p4, p7=p2 ] endmodule
+module phil4 = phil1 [ p1=p4, p2=p5, p7=p3 ] endmodule
+module phil5 = phil1 [ p1=p5, p2=p6, p7=p4 ] endmodule
+module phil6 = phil1 [ p1=p6, p2=p7, p7=p5 ] endmodule
+module phil7 = phil1 [ p1=p7, p2=p1, p7=p6 ] endmodule
 
 // labels
 label "hungry" = ((p1>0)&(p1<8))|((p2>0)&(p2<8))|((p3>0)&(p3<8))|((p4>0)&(p4<8))|((p5>0)&(p5<8))|((p6>0)&(p6<8))|((p7>0)&(p7<8));

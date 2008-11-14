@@ -11,8 +11,8 @@ mdp
 
 // atomic formulae 
 // left fork free and right fork free resp.
-formula lfree = p2>=0&p2<=4|p2=6|p2=10;
-formula rfree = p3>=0&p3<=3|p3=5|p3=7|p3=11;
+formula lfree = (p2>=0&p2<=4)|p2=6|p2=10;
+formula rfree = (p#N#>=0&p#N#<=3)|p#N#=5|p#N#=7|p#N#=11;
 
 module phil1
 
@@ -38,7 +38,7 @@ endmodule
 
 // construct further modules through renaming
 #for i=2:N#
-module phil#i# = phil1 [ p1=p#i#, p2=p#mod(i,N)+1#, p3=p#mod(i-2,N)+1# ] endmodule
+module phil#i# = phil1 [ p1=p#i#, p2=p#mod(i,N)+1#, p#N#=p#mod(i-2,N)+1# ] endmodule
 #end#
 
 // rewards (number of steps)

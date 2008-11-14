@@ -10,8 +10,8 @@ mdp
 
 // atomic formulae 
 // left fork free and right fork free resp.
-formula lfree = p2>=0&p2<=4|p2=6|p2=10;
-formula rfree = p3>=0&p3<=3|p3=5|p3=7|p3=11;
+formula lfree = (p2>=0&p2<=4)|p2=6|p2=10;
+formula rfree = (p4>=0&p4<=3)|p4=5|p4=7|p4=11;
 
 module phil1
 
@@ -36,9 +36,9 @@ module phil1
 endmodule
 
 // construct further modules through renaming
-module phil2 = phil1 [ p1=p2, p2=p3, p3=p1 ] endmodule
-module phil3 = phil1 [ p1=p3, p2=p4, p3=p2 ] endmodule
-module phil4 = phil1 [ p1=p4, p2=p1, p3=p3 ] endmodule
+module phil2 = phil1 [ p1=p2, p2=p3, p4=p1 ] endmodule
+module phil3 = phil1 [ p1=p3, p2=p4, p4=p2 ] endmodule
+module phil4 = phil1 [ p1=p4, p2=p1, p4=p3 ] endmodule
 
 // rewards (number of steps)
 rewards "num_steps"
