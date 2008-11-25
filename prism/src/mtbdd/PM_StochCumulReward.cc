@@ -115,11 +115,10 @@ jdouble time		// time bound
 	PM_PrintToMainLog(env, "[nodes=%d] [%.1f Kb]\n", i, i*20.0/1024.0);
 	
 	// combine state/transition rewards into a single vector - this is the initial solution vector
-	Cudd_Ref(q);
+	Cudd_Ref(trans);
 	Cudd_Ref(trans_rewards);
-	sol = DD_Apply(ddman, APPLY_TIMES, q, trans_rewards);
+	sol = DD_Apply(ddman, APPLY_TIMES, trans, trans_rewards);
 	sol = DD_SumAbstract(ddman, sol, cvars, num_cvars);
-	sol = DD_Apply(ddman, APPLY_TIMES, sol, DD_Constant(ddman, unif));
 	Cudd_Ref(state_rewards);
 	sol = DD_Apply(ddman, APPLY_PLUS, sol, state_rewards);
 	
