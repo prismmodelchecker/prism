@@ -82,6 +82,10 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	// timing stuff
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
+	// adversary stuff
+	bool adv = true, adv_loop = false;
+	FILE *fp_adv = NULL;
+	int adv_l, adv_h;
 	// misc
 	int i, j, k, k_r, l1, h1, l2, h2, l2_r, h2_r, iters;
 	double d1, d2, kb, kbt;
@@ -165,7 +169,13 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	done = false;
 	PS_PrintToMainLog(env, "\nStarting iterations...\n");
 
-	while (!done && iters < max_iters) {
+	// open file to store adversary (if required)
+	if (adv) {
+		fp_adv = fopen("adv.tra", "w");
+		fprintf(fp_adv, "%d ?\n", n);
+	}
+	
+	while ((!done && iters < max_iters) || adv_loop) {
 	
 		iters++;
 
@@ -220,16 +230,18 @@ jboolean min		// min or max probabilities (true = min, false = max)
 					d2 += non_zeros[k] * soln[cols[k]];
 				}
 				// see if this value is the min/max so far
-				if (min) {
-					if (first | d2 < d1) d1 = d2;
-				} else {
-					if (first | d2 > d1) d1 = d2;
+				if (first || min&&(d2<d1) || !min&&(d2>d1)) {
+					d1 = d2;
+					if (adv_loop) { adv_l = l2; adv_h = h2; }
 				}
 				first = false;
 			}
 			// set vector element
 			// (if there were no choices from this state, reward is zero)
 			soln2[i] = (h1 > l1) ? d1 : 0;
+			// store adversary info (if required)
+			if (adv_loop) if (h1 > l1)
+				for (k = adv_l; k < adv_h; k++) fprintf(fp_adv, "%d %d %g\n", i, cols[k], non_zeros[k]);
 		}
 		
 		// check convergence
@@ -262,6 +274,9 @@ jboolean min		// min or max probabilities (true = min, false = max)
 		soln = soln2;
 		soln2 = tmpsoln;
 		
+		// if we're done, but adversary generation is required, go round once more
+		if (done && adv) adv_loop = !adv_loop;
+		
 //		PS_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
 	}
 	
@@ -279,6 +294,11 @@ jboolean min		// min or max probabilities (true = min, false = max)
 		inf_vec = mtbdd_to_double_vector(ddman, inf, rvars, num_rvars, odd);
 		// go thru setting elements of soln to infinity
 		for (i = 0; i < n; i++) if (inf_vec[i] > 0) soln[i] = HUGE_VAL;
+	}
+	
+	// close file to store adversary (if required)
+	if (adv) {
+		fclose(fp_adv);
 	}
 	
 	// free memory

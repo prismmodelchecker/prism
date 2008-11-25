@@ -76,10 +76,14 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	// timing stuff
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
+	// adversary stuff
+	bool adv = true, adv_loop = false;
+	FILE *fp_adv = NULL;
+	int adv_l, adv_h;
 	// misc
 	int i, j, k, l1, h1, l2, h2, iters;
 	double d1, d2, kb, kbt;
-	bool done;
+	bool done, first;
 	
 	// start clocks	
 	start1 = start2 = util_cpu_time();
@@ -138,7 +142,13 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	done = false;
 	PS_PrintToMainLog(env, "\nStarting iterations...\n");
 	
-	while (!done && iters < max_iters) {
+	// open file to store adversary (if required)
+	if (adv) {
+		fp_adv = fopen("adv.tra", "w");
+		fprintf(fp_adv, "%d ?\n", n);
+	}
+	
+	while ((!done && iters < max_iters) || adv_loop) {
 		
 		iters++;
 		
@@ -158,6 +168,7 @@ jboolean min		// min or max probabilities (true = min, false = max)
 		h1 = h2 = 0;
 		for (i = 0; i < n; i++) {
 			d1 = min ? 2 : -1;
+			first = true;
 			if (!use_counts) { l1 = row_starts[i]; h1 = row_starts[i+1]; }
 			else { l1 = h1; h1 += row_counts[i]; }
 			for (j = l1; j < h1; j++) {
@@ -167,15 +178,18 @@ jboolean min		// min or max probabilities (true = min, false = max)
 				for (k = l2; k < h2; k++) {
 					d2 += non_zeros[k] * soln[cols[k]];
 				}
-				if (min) {
-					if (d2 < d1) d1 = d2;
-				} else {
-					if (d2 > d1) d1 = d2;
+				if (first || min&&(d2<d1) || !min&&(d2>d1)) {
+					d1 = d2;
+					if (adv_loop) { adv_l = l2; adv_h = h2; }
 				}
+				first = false;
 			}
 			// set vector element
 			// (if no choices, use value of yes)
 			soln2[i] = (h1 > l1) ? d1 : yes_vec[i];
+			// store adversary info (if required)
+			if (adv_loop) if (h1 > l1)
+				for (k = adv_l; k < adv_h; k++) fprintf(fp_adv, "%d %d %g\n", i, cols[k], non_zeros[k]);
 		}
 		
 		// check convergence
@@ -208,6 +222,9 @@ jboolean min		// min or max probabilities (true = min, false = max)
 		soln = soln2;
 		soln2 = tmpsoln;
 		
+		// if we're done, but adversary generation is required, go round once more
+		if (done && adv) adv_loop = !adv_loop;
+		
 //		PS_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
 	}
 	
@@ -218,6 +235,11 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	
 	// print iterations/timing info
 	PS_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
+	
+	// close file to store adversary (if required)
+	if (adv) {
+		fclose(fp_adv);
+	}
 	
 	// free memory
 	Cudd_RecursiveDeref(ddman, a);
