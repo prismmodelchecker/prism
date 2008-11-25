@@ -167,8 +167,6 @@ jdouble time		// time bound
 	}
 	
 	// combine state/transition rewards into a single vector
-	// for efficiency, we keep diagonal stuff separately as an array
-	// maths is as follows, where: c=state costs, q=unif const, P=unif matrix, C=trans costs, 1=vect of 1sm, Q/R = gen/rate matrix, D=row sums of R
 	// new state rewards = c + (R.C)1
 	// first, multiply transition rates by transition rewards and sum rows
 	// = (R.C)1
