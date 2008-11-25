@@ -169,11 +169,7 @@ jdouble time		// time bound
 	// combine state/transition rewards into a single vector
 	// for efficiency, we keep diagonal stuff separately as an array
 	// maths is as follows, where: c=state costs, q=unif const, P=unif matrix, C=trans costs, 1=vect of 1sm, Q/R = gen/rate matrix, D=row sums of R
-	// new state rewards = c + q(P.C)1
-	// = c + q((I+Q/q).C)1
-	// = c + q((I+(R-D)/q).C)1
-	// = c + q((I-D/q).C+(R/q.C))1
-	// = c + (q(I-D/q).C)1 + (R.C)1
+	// new state rewards = c + (R.C)1
 	// first, multiply transition rates by transition rewards and sum rows
 	// = (R.C)1
 	Cudd_Ref(trans);
@@ -184,25 +180,14 @@ jdouble time		// time bound
 	// = c + (R.C)1
 	Cudd_Ref(state_rewards);
 	tmp = DD_Apply(ddman, APPLY_PLUS, tmp, state_rewards);
-	soln2 = mtbdd_to_double_vector(ddman, tmp, rvars, num_rvars, odd);
-	Cudd_RecursiveDeref(ddman, tmp);
-	// now get diagonal transition costs
-	Cudd_Ref(trans_rewards);
-	tmp = DD_Apply(ddman, APPLY_TIMES, trans_rewards, DD_Identity(ddman, rvars, cvars, num_rvars));
-	tmp = DD_SumAbstract(ddman, tmp, cvars, num_cvars);
 	soln = mtbdd_to_double_vector(ddman, tmp, rvars, num_rvars, odd);
 	Cudd_RecursiveDeref(ddman, tmp);
-	// and then multiply by q and modified diagonals
-	// = (q(I-D/q).C)1
-	for (i = 0; i < n; i++) soln[i] *= (unif * ((!compact_d)?diags[i]:diags_dist->dist[diags_dist->ptrs[i]]));
-	// finally sum two arrays
-	// = c + (q(I-D/q).C)1 + (R.C)1
-	for (i = 0; i < n; i++) soln[i] += soln2[i];
 	
 	// create solution/iteration vectors
 	PH_PrintToMainLog(env, "Allocating iteration vectors... ");
 	// soln has already been created and initialised to rewards vector as required
-	// soln2 has also already been created; initial values unimportant
+	// need to create soln2 and sum
+	soln2 = new double[n];
 	sum = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 3*kb;
