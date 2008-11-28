@@ -443,6 +443,16 @@ public class TypeCheck extends ASTTraverse
 		e.setType(e.getProb() == null ? Expression.DOUBLE : Expression.BOOLEAN);
 	}
 
+	public void visitPost(ExpressionExists e) throws PrismLangException
+	{
+		e.setType(Expression.BOOLEAN);
+	}
+
+	public void visitPost(ExpressionForAll e) throws PrismLangException
+	{
+		e.setType(Expression.BOOLEAN);
+	}
+
 	public void visitPost(ExpressionLabel e) throws PrismLangException
 	{
 		e.setType(Expression.BOOLEAN);

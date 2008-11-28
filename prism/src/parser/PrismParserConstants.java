@@ -6,83 +6,85 @@ public interface PrismParserConstants {
   int EOF = 0;
   int WHITESPACE = 1;
   int COMMENT = 2;
-  int BOOL = 3;
-  int CONST = 4;
-  int CTMC = 5;
-  int C = 6;
-  int DOUBLE = 7;
-  int DTMC = 8;
-  int ENDINIT = 9;
-  int ENDMODULE = 10;
-  int ENDREWARDS = 11;
-  int ENDSYSTEM = 12;
-  int FALSE = 13;
-  int FORMULA = 14;
-  int FUNC = 15;
-  int F = 16;
-  int GLOBAL = 17;
-  int G = 18;
-  int INIT = 19;
-  int I = 20;
-  int INT = 21;
-  int LABEL = 22;
-  int MAX = 23;
-  int MDP = 24;
-  int MIN = 25;
-  int MODULE = 26;
-  int X = 27;
-  int NONDETERMINISTIC = 28;
-  int PMAX = 29;
-  int PMIN = 30;
-  int P = 31;
-  int PROBABILISTIC = 32;
-  int PROB = 33;
-  int RATE = 34;
-  int REWARDS = 35;
-  int RMAX = 36;
-  int RMIN = 37;
-  int R = 38;
-  int S = 39;
-  int STOCHASTIC = 40;
-  int SYSTEM = 41;
-  int TRUE = 42;
-  int U = 43;
-  int W = 44;
-  int NOT = 45;
-  int AND = 46;
-  int OR = 47;
-  int IMPLIES = 48;
-  int RARROW = 49;
-  int COLON = 50;
-  int SEMICOLON = 51;
-  int COMMA = 52;
-  int DOTS = 53;
-  int LPARENTH = 54;
-  int RPARENTH = 55;
-  int LBRACKET = 56;
-  int RBRACKET = 57;
-  int LBRACE = 58;
-  int RBRACE = 59;
-  int EQ = 60;
-  int NE = 61;
-  int LT = 62;
-  int GT = 63;
-  int LE = 64;
-  int GE = 65;
-  int PLUS = 66;
-  int MINUS = 67;
-  int TIMES = 68;
-  int DIVIDE = 69;
-  int PRIME = 70;
-  int RENAME = 71;
-  int QMARK = 72;
-  int DQUOTE = 73;
-  int REG_INT = 74;
-  int REG_DOUBLE = 75;
-  int REG_IDENTPRIME = 76;
-  int REG_IDENT = 77;
-  int PREPROC = 78;
-  int LEXICAL_ERROR = 79;
+  int A = 3;
+  int BOOL = 4;
+  int CONST = 5;
+  int CTMC = 6;
+  int C = 7;
+  int DOUBLE = 8;
+  int DTMC = 9;
+  int E = 10;
+  int ENDINIT = 11;
+  int ENDMODULE = 12;
+  int ENDREWARDS = 13;
+  int ENDSYSTEM = 14;
+  int FALSE = 15;
+  int FORMULA = 16;
+  int FUNC = 17;
+  int F = 18;
+  int GLOBAL = 19;
+  int G = 20;
+  int INIT = 21;
+  int I = 22;
+  int INT = 23;
+  int LABEL = 24;
+  int MAX = 25;
+  int MDP = 26;
+  int MIN = 27;
+  int MODULE = 28;
+  int X = 29;
+  int NONDETERMINISTIC = 30;
+  int PMAX = 31;
+  int PMIN = 32;
+  int P = 33;
+  int PROBABILISTIC = 34;
+  int PROB = 35;
+  int RATE = 36;
+  int REWARDS = 37;
+  int RMAX = 38;
+  int RMIN = 39;
+  int R = 40;
+  int S = 41;
+  int STOCHASTIC = 42;
+  int SYSTEM = 43;
+  int TRUE = 44;
+  int U = 45;
+  int W = 46;
+  int NOT = 47;
+  int AND = 48;
+  int OR = 49;
+  int IMPLIES = 50;
+  int RARROW = 51;
+  int COLON = 52;
+  int SEMICOLON = 53;
+  int COMMA = 54;
+  int DOTS = 55;
+  int LPARENTH = 56;
+  int RPARENTH = 57;
+  int LBRACKET = 58;
+  int RBRACKET = 59;
+  int LBRACE = 60;
+  int RBRACE = 61;
+  int EQ = 62;
+  int NE = 63;
+  int LT = 64;
+  int GT = 65;
+  int LE = 66;
+  int GE = 67;
+  int PLUS = 68;
+  int MINUS = 69;
+  int TIMES = 70;
+  int DIVIDE = 71;
+  int PRIME = 72;
+  int RENAME = 73;
+  int QMARK = 74;
+  int DQUOTE = 75;
+  int REG_INT = 76;
+  int REG_DOUBLE = 77;
+  int REG_IDENTPRIME = 78;
+  int REG_IDENT = 79;
+  int PREPROC = 80;
+  int LEXICAL_ERROR = 81;
 
   int DEFAULT = 0;
 
@@ -90,12 +92,14 @@ public interface PrismParserConstants {
     "<EOF>",
     "<WHITESPACE>",
     "<COMMENT>",
+    "\"A\"",
     "\"bool\"",
     "\"const\"",
     "\"ctmc\"",
     "\"C\"",
     "\"double\"",
     "\"dtmc\"",
+    "\"E\"",
     "\"endinit\"",
     "\"endmodule\"",
     "\"endrewards\"",

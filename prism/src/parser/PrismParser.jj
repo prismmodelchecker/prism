@@ -352,12 +352,14 @@ SPECIAL_TOKEN :
 TOKEN :
 {
 	// Keywords
-	< BOOL:				"bool" >
+	< A:				"A" >
+|	< BOOL:				"bool" >
 |	< CONST:			"const" >
 |	< CTMC:				"ctmc" >
 |	< C:				"C" >
 |	< DOUBLE:			"double" >
 |	< DTMC:				"dtmc" >
+|	< E:				"E" >
 |	< ENDINIT:			"endinit" >
 |	< ENDMODULE:		"endmodule" >
 |	< ENDREWARDS:		"endrewards" >
@@ -1234,6 +1236,10 @@ Expression ExpressionBasic(boolean prop, boolean pathprop) :
 	|
 		ret = ExpressionReward(prop, pathprop)
 	|
+		ret = ExpressionExists(prop, pathprop)
+	|
+		ret = ExpressionForAll(prop, pathprop)
+	|
 		ret = ExpressionLabel(prop, pathprop)
 	)
 	{ return ret; }
@@ -1499,6 +1505,44 @@ Expression ExpressionRewardContents(boolean prop, boolean pathprop) :
 	| begin = <F> expr = Expression(prop, pathprop) { ret = new ExpressionTemporal(ExpressionTemporal.R_F, null, expr); }
 	| begin = <S> { ret = new ExpressionTemporal(ExpressionTemporal.R_S, null, null); } )
 	{ ret.setPosition(begin, getToken(0)); return ret; }
+}
+
+// (Property) expression: CTL existential operator E
+
+Expression ExpressionExists(boolean prop, boolean pathprop) :
+{
+	ExpressionExists ret = new ExpressionExists();
+	Expression expr;
+	Token begin = null;
+}
+{
+	// This production is only allowed in expressions if the "prop" parameter is true
+	{ if (!prop) throw generateParseException(); }
+	( begin = <E> <LBRACKET> expr = Expression(prop, true) <RBRACKET> )
+	{
+		ret.setExpression(expr);
+		ret.setPosition(begin, getToken(0));
+		return ret;
+	}
+}
+
+// (Property) expression: CTL universal operator A
+
+Expression ExpressionForAll(boolean prop, boolean pathprop) :
+{
+	ExpressionForAll ret = new ExpressionForAll();
+	Expression expr;
+	Token begin = null;
+}
+{
+	// This production is only allowed in expressions if the "prop" parameter is true
+	{ if (!prop) throw generateParseException(); }
+	( begin = <A> <LBRACKET> expr = Expression(prop, true) <RBRACKET> )
+	{
+		ret.setExpression(expr);
+		ret.setPosition(begin, getToken(0));
+		return ret;
+	}
 }
 
 // (Property) expression: label (including "init")
