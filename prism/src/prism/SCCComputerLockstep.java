@@ -145,7 +145,7 @@ public class SCCComputerLockstep implements SCCComputer
 		JDDNode current; 
 		JDDNode img;
 		JDDNode pre;
-		int i = 1;
+		//int i = 1;
 
 		JDD.Ref(nodes);
 		current = nodes;
@@ -158,11 +158,11 @@ public class SCCComputerLockstep implements SCCComputer
 			JDD.Ref(edges);
 			pre = preimage(current, edges);
 			current = JDD.And(current, JDD.And(img, pre));
-			if (prism.getVerbose()) {
+			/*if (prism.getVerbose()) {
 				log.println("Trimming pass " + i + ":");
 				JDD.PrintVector(current, rows);
 				i++;
-			}
+			}*/
 		} while (!current.equals(old));
 		JDD.Deref(nodes);
 		JDD.Deref(edges);
