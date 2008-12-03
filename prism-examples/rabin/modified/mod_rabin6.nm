@@ -92,5 +92,5 @@ label "one_trying" = p1=1|p2=1|p3=1|p4=1|p5=1|p6=1;
 label "one_critical" = p1=2|p2=2|p3=2|p4=2|p5=2|p6=2;
 
 // maximum value of the bi's
-formula maxb = max(b1,b2 ,b3 ,b4 ,b5 ,b6 );
+formula maxb = max(b1,b2,b3,b4,b5,b6);
 
