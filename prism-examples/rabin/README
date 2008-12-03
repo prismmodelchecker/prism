@@ -2,6 +2,10 @@ This case study is based on Rabin's solution to the well known mutual exclusion 
 
 For more information, see: http://www.prismmodelchecker.org/casestudies/rabin.php
 
+In the subdirectory "modified" there is a modified version of the protocol used for
+verifying, given a process tries in the current round, the probability it
+enters in the current round
+
 =====================================================================================
 
 [Rab82]
