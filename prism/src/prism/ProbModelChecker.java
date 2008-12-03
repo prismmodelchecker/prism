@@ -38,7 +38,7 @@ import parser.ast.*;
 /*
  * Model checker for DTMCs.
  */
-public class ProbModelChecker extends StateModelChecker
+public class ProbModelChecker extends NonProbModelChecker
 {
 	// SCC computer
 	protected SCCComputer sccComputer;
