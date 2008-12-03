@@ -86,4 +86,4 @@ label "one_trying" = #| i=1:N#p#i#=1#end#;
 label "one_critical" = #| i=1:N#p#i#=2#end#;
 
 // maximum value of the bi's
-formula maxb = max(b1#for i=2:N#,b#i# #end#);
+formula maxb = max(b1#for i=2:N#,b#i##end#);
