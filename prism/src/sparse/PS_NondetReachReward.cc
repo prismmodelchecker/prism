@@ -83,7 +83,7 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
 	// adversary stuff
-	bool adv = true, adv_loop = false;
+	bool adv = false, adv_loop = false;
 	FILE *fp_adv = NULL;
 	int adv_l, adv_h;
 	// misc
