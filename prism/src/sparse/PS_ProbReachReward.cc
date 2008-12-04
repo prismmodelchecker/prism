@@ -71,7 +71,7 @@ jlong __jlongpointer m	// 'maybe' states
 	// model stats
 	int n;
 	// vectors
-	double *soln, *inf_vec;
+	double *soln, *inf_vec = NULL;
 	// misc
 	int i;
 	
@@ -143,7 +143,7 @@ jlong __jlongpointer m	// 'maybe' states
 	Cudd_RecursiveDeref(ddman, a);
 	Cudd_RecursiveDeref(ddman, state_rewards);
 	Cudd_RecursiveDeref(ddman, trans_rewards);
-	free(inf_vec);
+	if (inf_vec != NULL) free(inf_vec);
 	
 	return ptr_to_jlong(soln);
 }
