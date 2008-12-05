@@ -1561,8 +1561,8 @@ public class PrismCL
 		mainLog.println("-extraddinfo ................... Display extra info about some (MT)BDDs");
 		mainLog.println("-extrareachinfo ................ Display extra info about progress of reachability");
 		mainLog.println("-nopre ......................... Skip precomputation algorithms");
-		mainLog.println("-fair .......................... Use fairness (when model checking MDPs)");
-		mainLog.println("-nofair ........................ Don't use fairness (when model checking MDPs) [default]");
+		mainLog.println("-fair .......................... Use fairness (for probabilistic reachability in MDPs)");
+		mainLog.println("-nofair ........................ Don't use fairness (for probabilistic reachability in MDPs) [default]");
 		mainLog.println("-fixdl ......................... Automatically put self-loops in deadlock states");
 		mainLog.println("-nocompact ..................... Switch off \"compact\" sparse storage schemes");
 		mainLog.println("-noprobchecks .................. Disable checks on model probabilities/rates");
