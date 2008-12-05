@@ -2,14 +2,16 @@
 // with global variables to remove sychronization 
 // gxn/dxp 03/12/08
 
-// modified version to verify a variant of the bounded waiting property
-// namely the probability a process entries the critical sectiongiven it tries
+// version to verify a variant of the bounded waiting property
+// namely the probability a process entries the critical section given it tries
+// to acheive this we have split the drawing phase into two steps, so we know
+// a process will draw before it actual makes the probabilistic choice
+// we have however kept the two steps atomic(no other process can move one
+// the first step has been made) since otherwise the adversary can prevent the
+// process from actually trying in the current round by never shcedling it again
 
-// note we have removed the self loops to allow the fairness constraints 
-// to be ignored during verification
+// note we have removed the self loops to eliminate the need for fairness constraints 
 
-// split the drawing phase into two steps but is still atomic as no
-// other process can move one the first step has been made
 
 mdp
 
@@ -39,7 +41,7 @@ formula draw = p1=1 & (b<b1 | r!=r1);
 
 // formula to keep drawing phase atomic
 // (can onlymove if no process is drawing
-formula go = (draw2=0&draw3=0&draw4=0&draw5=0&draw6=0&draw7=0&draw8=0&draw9=0&draw10=0);
+formula go = (draw2=0&draw3=0&draw4=0&draw5=0&draw6=0&draw7=0&draw8=0&draw9=0);
 
 module process1
 
@@ -83,19 +85,18 @@ module process6 = process1 [p1=p6, b1=b6, r1=r6, draw1=draw6, draw6=draw1 ] endm
 module process7 = process1 [p1=p7, b1=b7, r1=r7, draw1=draw7, draw7=draw1 ] endmodule
 module process8 = process1 [p1=p8, b1=b8, r1=r8, draw1=draw8, draw8=draw1 ] endmodule
 module process9 = process1 [p1=p9, b1=b9, r1=r9, draw1=draw9, draw9=draw1 ] endmodule
-module process10 = process1 [p1=p10, b1=b10, r1=r10, draw1=draw10, draw10=draw1 ] endmodule
 
 // formulas/labels for use in properties:
 
 // number of processes in critical section
-formula num_procs_in_crit = (p1=2?1:0)+(p2=2?1:0)+(p3=2?1:0)+(p4=2?1:0)+(p5=2?1:0)+(p6=2?1:0)+(p7=2?1:0)+(p8=2?1:0)+(p9=2?1:0)+(p10=2?1:0);
+formula num_procs_in_crit = (p1=2?1:0)+(p2=2?1:0)+(p3=2?1:0)+(p4=2?1:0)+(p5=2?1:0)+(p6=2?1:0)+(p7=2?1:0)+(p8=2?1:0)+(p9=2?1:0);
 
 // one of the processes is trying
-label "one_trying" = p1=1|p2=1|p3=1|p4=1|p5=1|p6=1|p7=1|p8=1|p9=1|p10=1;
+label "one_trying" = p1=1|p2=1|p3=1|p4=1|p5=1|p6=1|p7=1|p8=1|p9=1;
 
 // one of the processes is in the critical section
-label "one_critical" = p1=2|p2=2|p3=2|p4=2|p5=2|p6=2|p7=2|p8=2|p9=2|p10=2;
+label "one_critical" = p1=2|p2=2|p3=2|p4=2|p5=2|p6=2|p7=2|p8=2|p9=2;
 
 // maximum value of the bi's
-formula maxb = max(b1,b2,b3,b4,b5,b6,b7,b8,b9,b10);
+formula maxb = max(b1,b2,b3,b4,b5,b6,b7,b8,b9);
 
