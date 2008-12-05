@@ -5,6 +5,6 @@ foreach K ( 2 4 6 )
 	prismpp .csmaK.pctl.pp $K >! csma$K.pctl
 	foreach N ( 2 3 4 )
 		echo " and N=$N"
-		prismpp .csmaNK.nm.pp $N $K >! csma$K"_"$N.nm
+		prismpp .csmaK_N.nm.pp $N $K >! csma$K"_"$N.nm
 	end
 end

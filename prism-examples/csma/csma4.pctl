@@ -8,27 +8,27 @@ Rmin=?[ F "one_delivered" ]
 Rmax=?[ F "one_delivered" ]
 
 // message of any station eventually delivered before i backoffs
-Pmin=?[true U "succes_with_backoff_under_1" ]
-Pmax=?[true U "succes_with_backoff_under_1" ]
-Pmin=?[true U "succes_with_backoff_under_2" ]
-Pmax=?[true U "succes_with_backoff_under_2" ]
-Pmin=?[true U "succes_with_backoff_under_3" ]
-Pmax=?[true U "succes_with_backoff_under_3" ]
-Pmin=?[true U "succes_with_backoff_under_4" ]
-Pmax=?[true U "succes_with_backoff_under_4" ]
+Pmin=?[ F "success_with_backoff_under_1" ]
+Pmax=?[ F "success_with_backoff_under_1" ]
+Pmin=?[ F "success_with_backoff_under_2" ]
+Pmax=?[ F "success_with_backoff_under_2" ]
+Pmin=?[ F "success_with_backoff_under_3" ]
+Pmax=?[ F "success_with_backoff_under_3" ]
+Pmin=?[ F "success_with_backoff_under_4" ]
+Pmax=?[ F "success_with_backoff_under_4" ]
 
 // probability all sent successfully before a collision with max backoff 
 Pmin=?[ !"collision_max_backoff" U "all_delivered" ]
 Pmax=?[ !"collision_max_backoff" U "all_delivered" ]
 
 // probability a station suffers i collisions
-Pmin=?[true U "collisions_equal_1" ]
-Pmax=?[true U "collisions_equal_1" ]
-Pmin=?[true U "collisions_equal_2" ]
-Pmax=?[true U "collisions_equal_2" ]
-Pmin=?[true U "collisions_equal_3" ]
-Pmax=?[true U "collisions_equal_3" ]
-Pmin=?[true U "collisions_equal_4" ]
-Pmax=?[true U "collisions_equal_4" ]
+Pmin=?[ F "collisions_equal_1" ]
+Pmax=?[ F "collisions_equal_1" ]
+Pmin=?[ F "collisions_equal_2" ]
+Pmax=?[ F "collisions_equal_2" ]
+Pmin=?[ F "collisions_equal_3" ]
+Pmax=?[ F "collisions_equal_3" ]
+Pmin=?[ F "collisions_equal_4" ]
+Pmax=?[ F "collisions_equal_4" ]
 
 

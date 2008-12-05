@@ -1,7 +1,7 @@
 // CSMA/CD protocol - probabilistic version of kronos model (3 stations)
 // gxn/dxp 04/12/01
 
-nondeterministic
+mdp
 
 // note made changes since cannot have strict inequalities
 // in digital clocks approach and suppose a station only sends one message
@@ -135,12 +135,12 @@ endrewards
 label "all_delivered" = s1=4&s2=4&s3=4&s4=4;
 label "one_delivered" = s1=4|s2=4|s3=4|s4=4;
 label "collision_max_backoff" = (cd1=K & s1=1 & b=2)|(cd2=K & s2=1 & b=2)|(cd3=K & s3=1 & b=2)|(cd4=K & s4=1 & b=2);
-label "succes_with_backoff_under_1" = (cd1<=1 & s1=4)|(cd2<=1 & s2=4)|(cd3<=1 & s3=4)|(cd4<=1 & s4=4);
-label "succes_with_backoff_under_2" = (cd1<=2 & s1=4)|(cd2<=2 & s2=4)|(cd3<=2 & s3=4)|(cd4<=2 & s4=4);
-label "succes_with_backoff_under_3" = (cd1<=3 & s1=4)|(cd2<=3 & s2=4)|(cd3<=3 & s3=4)|(cd4<=3 & s4=4);
-label "succes_with_backoff_under_4" = (cd1<=4 & s1=4)|(cd2<=4 & s2=4)|(cd3<=4 & s3=4)|(cd4<=4 & s4=4);
-label "succes_with_backoff_under_5" = (cd1<=5 & s1=4)|(cd2<=5 & s2=4)|(cd3<=5 & s3=4)|(cd4<=5 & s4=4);
-label "succes_with_backoff_under_6" = (cd1<=6 & s1=4)|(cd2<=6 & s2=4)|(cd3<=6 & s3=4)|(cd4<=6 & s4=4);
+label "success_with_backoff_under_1" = (cd1<=1 & s1=4)|(cd2<=1 & s2=4)|(cd3<=1 & s3=4)|(cd4<=1 & s4=4);
+label "success_with_backoff_under_2" = (cd1<=2 & s1=4)|(cd2<=2 & s2=4)|(cd3<=2 & s3=4)|(cd4<=2 & s4=4);
+label "success_with_backoff_under_3" = (cd1<=3 & s1=4)|(cd2<=3 & s2=4)|(cd3<=3 & s3=4)|(cd4<=3 & s4=4);
+label "success_with_backoff_under_4" = (cd1<=4 & s1=4)|(cd2<=4 & s2=4)|(cd3<=4 & s3=4)|(cd4<=4 & s4=4);
+label "success_with_backoff_under_5" = (cd1<=5 & s1=4)|(cd2<=5 & s2=4)|(cd3<=5 & s3=4)|(cd4<=5 & s4=4);
+label "success_with_backoff_under_6" = (cd1<=6 & s1=4)|(cd2<=6 & s2=4)|(cd3<=6 & s3=4)|(cd4<=6 & s4=4);
 label "collisions_equal_1" = (cd1=1)|(cd2=1)|(cd3=1)|(cd4=1);
 label "collisions_equal_2" = (cd1=2)|(cd2=2)|(cd3=2)|(cd4=2);
 label "collisions_equal_3" = (cd1=3)|(cd2=3)|(cd3=3)|(cd4=3);

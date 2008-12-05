@@ -1,7 +1,7 @@
 // CSMA/CD protocol - probabilistic version of kronos model (3 stations)
 // gxn/dxp 04/12/01
 
-nondeterministic
+mdp
 
 // note made changes since cannot have strict inequalities
 // in digital clocks approach and suppose a station only sends one message
@@ -132,7 +132,7 @@ label "all_delivered" = #& i=1:N#s#i#=4#end#;
 label "one_delivered" = #| i=1:N#s#i#=4#end#;
 label "collision_max_backoff" = #| i=1:N#(cd#i#=K & s#i#=1 & b=2)#end#;
 #for i=1:K#
-label "succes_with_backoff_under_#i#" = #| j=1:N#(cd#j#<=#i# & s#j#=4)#end#;
+label "success_with_backoff_under_#i#" = #| j=1:N#(cd#j#<=#i# & s#j#=4)#end#;
 #end#
 #for i=1:K#
 label "collisions_equal_#i#" = #| j=1:N#(cd#j#=#i#)#end#;
