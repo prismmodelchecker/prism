@@ -1,0 +1,252 @@
+// WLAN PROTOCOL (two stations)
+// discrete time model
+// gxn/jzs 20/02/02
+
+// TIMING CONSTRAINTS
+// we have used the FHSS parameters
+// then scaled by the value of ASLOTTIME
+const ASLOTTIME = 1;
+const DIFS = 3; // due to scaling can be either 2 or 3 which is modelled by a non-deterministic choice
+const VULN = 1; // due to scaling can be either 0 or 1 which is modelled by a non-deterministic choice
+const TRANS_TIME_MAX; // scaling up
+const TRANS_TIME_MIN = 4; // scaling down
+const ACK_TO = 6; 
+const ACK = 4; // due to scaling can be either 3 or 4 which is modelled by a non-deterministic choice
+const SIFS = 1; // due to scaling can be either 0 or 1 which is modelled by a non-deterministic choice
+// maximum constant used in timing constraints + 1
+const TIME_MAX = max(ACK_TO,TRANS_TIME_MAX)+1;
+
+// CONTENTION WINDOW
+// CWMIN =15 & CWMAX =255
+// this means that MAX_BACKOFF IS 4
+const MAX_BACKOFF = 4;
+
+//-----------------------------------------------------------------//
+// THE MEDIUM/CHANNEL
+
+// FORMULAE FOR THE CHANNEL
+// channel is busy
+formula busy = c1>0 | c2>0;
+// channel is free
+formula free = c1=0 & c2=0;
+
+module medium
+	
+	// medium status 
+	c1 : [0..2];
+	c2 : [0..2];
+	// ci corresponds to messages associated with station i
+	// 0 nothing being sent
+	// 1 being sent correctly
+	// 2 being sent garbled	  
+	
+	// begin sending message and nothing else currently being sent
+	[send1] c1=0 & c2=0 -> (c1'=1);
+	[send2] c2=0 & c1=0 -> (c2'=1);
+	
+	// begin sending message and  something is already being sent
+	// in this case both messages become garbled
+	[send1] c1=0 & c2>0 -> (c1'=2) & (c2'=2);
+	[send2] c2=0 & c1>0 -> (c1'=2) & (c2'=2);
+	
+	// finish sending message
+	[finish1] c1>0 -> (c1'=0);
+	[finish2] c2>0 -> (c2'=0);
+
+endmodule
+
+//-----------------------------------------------------------------//
+// STATION 1
+module station1
+	// clock for station 1
+	x1 : [0..TIME_MAX];
+	
+	// local state
+	s1 : [1..12];
+	// 1 sense
+	// 2 wait until free before setting backoff
+	// 3 wait for DIFS then set slot
+	// 4 set backoff 
+	// 5 backoff
+	// 6 wait until free in backoff
+	// 7 wait for DIFS then resume backoff
+	// 8 vulnerable 
+	// 9 transmit
+	// 11 wait for SIFS and then ACK
+	// 10 wait for ACT_TO 
+	// 12 done
+	// BACKOFF
+	// separate into slots
+	slot1 : [0..15]; 
+	backoff1 : [0..15];
+	
+	// BACKOFF COUNTER
+	bc1 : [0..MAX_BACKOFF];
+	// SENSE
+	// let time pass
+	[time] s1=1 & x1<DIFS & free -> (x1'=min(x1+1,TIME_MAX));
+	// ready to transmit
+	[] s1=1 & (x1=DIFS | x1=DIFS-1) -> (s1'=8) & (x1'=0);
+	// found channel busy so wait until free
+	[] s1=1 & busy -> (s1'=2) & (x1'=0);
+	// WAIT UNTIL FREE BEFORE SETTING BACKOFF
+	// let time pass (no need for the clock x1 to change)
+	[time] s1=2 & busy -> (s1'=2);
+	// find that channel is free so check its free for DIFS before setting backoff
+	[] s1=2 & free -> (s1'=3);
+	// WAIT FOR DIFS THEN SET BACKOFF
+	// let time pass
+	[time] s1=3 & x1<DIFS & free -> (x1'=min(x1+1,TIME_MAX));
+	// found channel busy so wait until free
+	[] s1=3 & busy -> (s1'=2) & (x1'=0);
+	// start backoff  first uniformly choose slot
+	// backoff counter 0
+	[] s1=3 & (x1=DIFS | x1=DIFS-1) & bc1=0 -> (s1'=4) & (x1'=0) & (slot1'=0) & (bc1'=min(bc1+1,MAX_BACKOFF));
+	// backoff counter 1
+	[] s1=3 & (x1=DIFS | x1=DIFS-1) & bc1=1 -> 1/2 : (s1'=4) & (x1'=0) & (slot1'=0) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/2 : (s1'=4) & (x1'=0) & (slot1'=1) & (bc1'=min(bc1+1,MAX_BACKOFF));
+	// backoff counter 2
+	[] s1=3 & (x1=DIFS | x1=DIFS-1) & bc1=2 -> 1/4 : (s1'=4) & (x1'=0) & (slot1'=0) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/4 : (s1'=4) & (x1'=0) & (slot1'=1) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/4 : (s1'=4) & (x1'=0) & (slot1'=2) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/4 : (s1'=4) & (x1'=0) & (slot1'=3) & (bc1'=min(bc1+1,MAX_BACKOFF));
+	// backoff counter 3
+	[] s1=3 & (x1=DIFS | x1=DIFS-1) & bc1=3 -> 1/8 : (s1'=4) & (x1'=0) & (slot1'=0) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/8 : (s1'=4) & (x1'=0) & (slot1'=1) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/8 : (s1'=4) & (x1'=0) & (slot1'=2) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/8 : (s1'=4) & (x1'=0) & (slot1'=3) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/8 : (s1'=4) & (x1'=0) & (slot1'=4) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/8 : (s1'=4) & (x1'=0) & (slot1'=5) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/8 : (s1'=4) & (x1'=0) & (slot1'=6) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/8 : (s1'=4) & (x1'=0) & (slot1'=7) & (bc1'=min(bc1+1,MAX_BACKOFF));
+	// backoff counter 4
+	[] s1=3 & (x1=DIFS | x1=DIFS-1) & bc1=4 -> 1/16 : (s1'=4) & (x1'=0) & (slot1'=0 ) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/16 : (s1'=4) & (x1'=0) & (slot1'=1 ) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/16 : (s1'=4) & (x1'=0) & (slot1'=2 ) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/16 : (s1'=4) & (x1'=0) & (slot1'=3 ) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/16 : (s1'=4) & (x1'=0) & (slot1'=4 ) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/16 : (s1'=4) & (x1'=0) & (slot1'=5 ) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/16 : (s1'=4) & (x1'=0) & (slot1'=6 ) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/16 : (s1'=4) & (x1'=0) & (slot1'=7 ) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/16 : (s1'=4) & (x1'=0) & (slot1'=8 ) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/16 : (s1'=4) & (x1'=0) & (slot1'=9 ) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/16 : (s1'=4) & (x1'=0) & (slot1'=10) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/16 : (s1'=4) & (x1'=0) & (slot1'=11) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/16 : (s1'=4) & (x1'=0) & (slot1'=12) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/16 : (s1'=4) & (x1'=0) & (slot1'=13) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/16 : (s1'=4) & (x1'=0) & (slot1'=14) & (bc1'=min(bc1+1,MAX_BACKOFF))
+	                                         + 1/16 : (s1'=4) & (x1'=0) & (slot1'=15) & (bc1'=min(bc1+1,MAX_BACKOFF));
+	// SET BACKOFF (no time can pass)
+	// chosen slot now set backoff
+	[] s1=4 -> 1/16 : (s1'=5) & (backoff1'=0 )
+	         + 1/16 : (s1'=5) & (backoff1'=1 )
+	         + 1/16 : (s1'=5) & (backoff1'=2 )
+	         + 1/16 : (s1'=5) & (backoff1'=3 )
+	         + 1/16 : (s1'=5) & (backoff1'=4 )
+	         + 1/16 : (s1'=5) & (backoff1'=5 )
+	         + 1/16 : (s1'=5) & (backoff1'=6 )
+	         + 1/16 : (s1'=5) & (backoff1'=7 )
+	         + 1/16 : (s1'=5) & (backoff1'=8 )
+	         + 1/16 : (s1'=5) & (backoff1'=9 )
+	         + 1/16 : (s1'=5) & (backoff1'=10)
+	         + 1/16 : (s1'=5) & (backoff1'=11)
+	         + 1/16 : (s1'=5) & (backoff1'=12)
+	         + 1/16 : (s1'=5) & (backoff1'=13)
+	         + 1/16 : (s1'=5) & (backoff1'=14)
+	         + 1/16 : (s1'=5) & (backoff1'=15);
+	// BACKOFF
+	// let time pass
+	[time] s1=5 & x1<ASLOTTIME & free -> (x1'=min(x1+1,TIME_MAX));
+	// decrement backoff
+	[] s1=5 & x1=ASLOTTIME & backoff1>0 -> (s1'=5) & (x1'=0) & (backoff1'=backoff1-1);	
+	[] s1=5 & x1=ASLOTTIME & backoff1=0 & slot1>0 -> (s1'=5) & (x1'=0) & (backoff1'=15) & (slot1'=slot1-1);	
+	// finish backoff 
+	[] s1=5 & x1=ASLOTTIME & backoff1=0 & slot1=0 -> (s1'=8) & (x1'=0);
+	// found channel busy
+	[] s1=5 & busy -> (s1'=6) & (x1'=0);
+	// WAIT UNTIL FREE IN BACKOFF
+	// let time pass (no need for the clock x1 to change)
+	[time] s1=6 & busy -> (s1'=6);
+	// find that channel is free
+	[] s1=6 & free -> (s1'=7);
+	
+	// WAIT FOR DIFS THEN RESUME BACKOFF
+	// let time pass
+	[time] s1=7 & x1<DIFS & free -> (x1'=min(x1+1,TIME_MAX));
+	// resume backoff (start again from previous backoff)
+	[] s1=7 & (x1=DIFS | x1=DIFS-1) -> (s1'=5) & (x1'=0);
+	// found channel busy
+	[] s1=7 & busy -> (s1'=6) & (x1'=0);
+	
+	// VULNERABLE
+	// let time pass
+	[time] s1=8 & x1<VULN -> (x1'=min(x1+1,TIME_MAX));
+	// move to transmit
+	[send1] s1=8 & (x1=VULN | x1=VULN-1) -> (s1'=9) & (x1'=0);
+	// TRANSMIT
+	// let time pass
+	[time] s1=9 & x1<TRANS_TIME_MAX -> (x1'=min(x1+1,TIME_MAX));
+	// finish transmission successful	
+	[finish1] s1=9 & x1>=TRANS_TIME_MIN & c1=1 -> (s1'=10) & (x1'=0);
+	// finish transmission garbled
+	[finish1] s1=9 & x1>=TRANS_TIME_MIN & c1=2 -> (s1'=11) & (x1'=0);
+	// WAIT FOR SIFS THEN WAIT FOR ACK
+	
+	// WAIT FOR SIFS i.e. c1=0
+	// check channel and busy: go into backoff
+	[] s1=10 & c1=0 & x1=0 & busy -> (s1'=2);
+	// check channel and free: let time pass
+	[time] s1=10 & c1=0 & x1=0 & free -> (x1'=min(x1+1,TIME_MAX));
+	// let time pass
+	// following guard is always false as SIFS=1
+	// [time] s1=10 & c1=0 & x1>0 & x1<SIFS -> (x1'=min(x1+1,TIME_MAX));
+	// ack is sent after SIFS (since SIFS-1=0 add condition that channel is free)
+	[send1] s1=10 & c1=0 & (x1=SIFS | (x1=SIFS-1 & free)) -> (s1'=10) & (x1'=0);
+	
+	// WAIT FOR ACK i.e. c1=1
+	// let time pass
+	[time] s1=10 & c1=1 & x1<ACK -> (x1'=min(x1+1,TIME_MAX));
+	// get acknowledgement so packet sent correctly and move to done
+	[finish1] s1=10 & c1=1 & (x1=ACK | x1=ACK-1) -> (s1'=12) & (x1'=0) & (bc1'=0);
+	
+	// WAIT FOR ACK_TO
+	// check channel and busy: go into backoff
+	[] s1=11 & x1=0 & busy -> (s1'=2);
+	// check channel and free: let time pass
+	[time] s1=11 & x1=0 & free -> (x1'=min(x1+1,TIME_MAX));
+	// let time pass
+	[time] s1=11 & x1>0 & x1<ACK_TO -> (x1'=min(x1+1,TIME_MAX));
+	// no acknowledgement (go to backoff waiting DIFS first)
+	[] s1=11 & x1=ACK_TO -> (s1'=3) & (x1'=0);
+		
+	// DONE
+	[time] s1=12 -> (s1'=12);
+endmodule	
+
+// ---------------------------------------------------------------------------- //
+// STATION 2 (rename STATION 1)
+module 
+station2=station1[x1=x2, 
+                  s1=s2,
+				  s2=s1,
+				  c1=c2,
+				  c2=c1, 
+				  slot1=slot2, 
+				  backoff1=backoff2, 
+				  bc1=bc2, 
+				  send1=send2, 
+				  finish1=finish2] 
+endmodule
+// ---------------------------------------------------------------------------- //
+const int DEADLINE;
+
+// timer
+module timer
+	// global time
+	t : [0..DEADLINE];
+	
+	[time] (t<DEADLINE) -> (t'=min(t+1,DEADLINE));
+	// loop when time passes DEADLINE to prevent further transitions
+	[] (t>=DEADLINE) -> (t'=t);
+	
+endmodule

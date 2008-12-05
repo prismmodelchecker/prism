@@ -1,0 +1,20 @@
+// with probability 1, eventually both stations have sent their packet correctly
+P>=1 [ true U s1=12 & s2=12 ];
+
+// maximum probability that either station's backoff counter reaches k
+const int k;
+Pmax=? [ true U bc1=k | bc2=k ];
+
+// maximum expected number of collisions
+R{"collisions"}max=? [ F s1=12 & s2=12 ]; // both send correctly
+
+// maximum expected time 
+R{"time"}max=? [ F s1=12 & s2=12 ]; // both send correctly
+R{"time"}max=? [ F s1=12 | s2=12 ]; // either sends correctly
+R{"time"}max=? [ F s1=12 ]; // station 1 sends correctly
+
+// maximum expected cost
+R{"cost"}max=? [ F s1=12 & s2=12 ]; // both send correctly
+R{"cost"}max=? [ F s1=12 | s2=12 ]; // either sends
+R{"cost"}max=? [ F s1=12 ]; // station 1 sends correctly
+
