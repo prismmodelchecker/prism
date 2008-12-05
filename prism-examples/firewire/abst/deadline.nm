@@ -1,74 +1,79 @@
 // integer semantics version of abstract firewire protocol
+// with clock for deadline properties
 // gxn 23/05/2001
 
 mdp
 
-//deadline
+// deadline
 const int deadline;
+const int ky = deadline;
+// wire delay (based on max length of wire)
+const int delay;
+// probability of choosing fast
+const double fast;
+const double slow = 1-fast;
 
-// largest constant the deadline clock is compared to
-const int ky = deadline; 
-
-// largest constant the clock of the system is compared to
-const int kx = 167; 
+// maximal constant
+const int kx = 167;
 
 module abstract_firewire
-
+	
 	// deadline clock
 	y : [0..ky+1];
-
-	// clock of the system
+	
+	// model clock 
 	x : [0..kx+1];
-
+	
 	// local state
 	s : [0..10];
-	// 0  - start_start
-	// 1  - fast_start
-	// 2  - start_fast
-	// 3  - start_slow
-	// 4  - slow_start
-	// 5  - fast_fast
-	// 6  - fast_slow
-	// 7  - slow_fast
-	// 8  - slow_slow
-	// 9  - done
-	// 10 - deadline exceeded
+	// 0 -start_start
+	// 1 -fast_start
+	// 2 -start_fast
+	// 3 -start_slow
+	// 4 -slow_start
+	// 5 -fast_fast
+	// 6 -fast_slow
+	// 7 -slow_fast
+	// 8 -slow_slow
+	// 9 -done
+	// 10 - passed deadline
 	
 	// initial state
-	[] (s=0) & (x<36) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));	
-	[] (s=0) & (y<=deadline) -> 0.5 : (s'=1) + 0.5 : (s'=4);	
-	[] (s=0) & (y<=deadline) -> 0.5 : (s'=2) + 0.5 : (s'=3);	
+	[] (s=0) & (x<delay) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
+	[] (s=0) & (y<=deadline) -> fast : (s'=1) + slow : (s'=4);
+	[] (s=0) & (y<=deadline) -> fast : (s'=2) + slow : (s'=3);
 	// fast_start
-	[] (s=1) & (x<36) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));	
-	[] (s=1) & (y<=deadline) -> 0.5 : (s'=5) & (x'=0) + 0.5 : (s'=6) & (x'=0);	
+	[] (s=1) & (x<delay) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
+	[] (s=1) & (y<=deadline) -> fast : (s'=5) & (x'=0) + slow : (s'=6) & (x'=0);
 	// start_fast
-	[] (s=2) & (x<36) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));	
-	[] (s=2) & (y<=deadline) -> 0.5 : (s'=5) & (x'=0) + 0.5 : (s'=7) & (x'=0);	
+	[] (s=2) & (x<delay) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
+	[] (s=2) & (y<=deadline) -> fast : (s'=5) & (x'=0) + slow : (s'=7) & (x'=0);
 	// start_slow
-	[] (s=3) & (x<36) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));	
-	[] (s=3) & (y<=deadline) -> 0.5 : (s'=6) & (x'=0) + 0.5 : (s'=8) & (x'=0);	
+	[] (s=3) & (x<delay) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
+	[] (s=3) & (y<=deadline) -> fast : (s'=6) & (x'=0) + slow : (s'=8) & (x'=0);
 	// slow_start
-	[] (s=4) & (x<36) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));	
-	[] (s=4) & (y<=deadline) -> 0.5 : (s'=7) & (x'=0) + 0.5 : (s'=8) & (x'=0);	
+	[] (s=4) & (x<delay) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
+	[] (s=4) & (y<=deadline) -> fast : (s'=7) & (x'=0) + slow : (s'=8) & (x'=0);
 	// fast_fast
-	[] (s=5) & (x<85) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));	
-	[] (s=5) & (x>=76) & (y<=deadline) -> (s'=0) & (x'=0);	
-	[] (s=5) & (x>=40) & (y<=deadline) -> (s'=9) & (x'=0);	
+	[] (s=5) & (x<85) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
+	[] (s=5) & (x>=76) & (y<=deadline) -> (s'=0) & (x'=0);
+	[] (s=5) & (x>=76-delay) & (y<=deadline) -> (s'=9) & (x'=0);
 	// fast_slow
-	[] (s=6) & (x<167) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));	
-	[] (s=6) & (x>=123) & (y<=deadline) -> (s'=9) & (x'=0);	
+	[] (s=6) & (x<167) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
+	[] (s=6) & (x>=159-delay) & (y<=deadline) -> (s'=9) & (x'=0);
 	// slow_fast
-	[] (s=7) & (x<167) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));	
-	[] (s=7) & (x>=123) & (y<=deadline) -> (s'=9) & (x'=0);	
+	[] (s=7) & (x<167) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
+	[] (s=7) & (x>=159-delay) & (y<=deadline) -> (s'=9) & (x'=0);
 	// slow_slow
-	[] (s=8) & (x<167) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));	
-	[] (s=8) & (x>=159) & (y<=deadline) -> (s'=0) & (x'=0);	
-	[] (s=8) & (x>=123) & (y<=deadline) -> (s'=9) & (x'=0);	
+	[] (s=8) & (x<167) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
+	[] (s=8) & (x>=159) & (y<=deadline) -> (s'=0) & (x'=0);
+	[] (s=8) & (x>=159-delay) & (y<=deadline) -> (s'=9) & (x'=0);
+	
 	// move to deadline exceeded when y>=deadline
-	[] (y>=deadline) -> (s'=10);
+	[] (y>deadline) & (s<9) -> (s'=10) & (y'=0);
 	// done
 	[] (s=9) -> (s'=9);
 	// deadline exceeded
 	[] (s=10) -> (s'=10);
-
+	
 endmodule
