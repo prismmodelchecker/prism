@@ -165,6 +165,7 @@ public class NondetModel extends ProbModel
 		// build mask for nondeterminstic choices
 		JDD.Ref(trans01);
 		JDD.Ref(reach);
+		if (this.nondetMask != null) JDD.Deref(this.nondetMask);
 		// nb: this assumes that there are no deadlock states
 		nondetMask = JDD.And(JDD.Not(JDD.ThereExists(trans01, allDDColVars)), reach);
 

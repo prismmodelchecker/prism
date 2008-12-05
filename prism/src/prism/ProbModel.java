@@ -413,6 +413,28 @@ public class ProbModel implements Model
 		numStartStates = JDD.GetNumMinterms(start, allDDRowVars.n());
 	}
 
+	/**
+	 * Reset transition matrix DD
+	 */
+	
+	public void resetTrans(JDDNode trans)
+	{
+		if (this.trans != null) JDD.Deref(this.trans);
+		this.trans = trans;
+	}
+
+	/**
+	 * Reset transition rewards DDs
+	 */
+	
+	public void resetTransRewards(int i, JDDNode transRewards)
+	{
+		if (this.transRewards[i] != null) {
+				JDD.Deref(this.transRewards[i]);
+		}
+		this.transRewards[i] = transRewards;
+	}
+
 	// do reachability
 
 	public void doReachability()
@@ -423,13 +445,7 @@ public class ProbModel implements Model
 	public void doReachability(boolean extraReachInfo)
 	{
 		// compute reachable states
-		reach = PrismMTBDD.Reachability(trans01, allDDRowVars, allDDColVars, start, extraReachInfo ? 1 : 0);
-
-		// work out number of reachable states
-		numStates = JDD.GetNumMinterms(reach, allDDRowVars.n());
-
-		// build odd
-		odd = ODDUtils.BuildODD(reach, allDDRowVars);
+		setReach(PrismMTBDD.Reachability(trans01, allDDRowVars, allDDColVars, start, extraReachInfo ? 1 : 0));
 	}
 
 	// this method allows you to skip the reachability phase
@@ -442,6 +458,22 @@ public class ProbModel implements Model
 
 		// work out number of reachable states
 		numStates = Math.pow(2, allDDRowVars.n());
+
+		// build odd
+		odd = ODDUtils.BuildODD(reach, allDDRowVars);
+	}
+
+	/**
+	 * Set reachable states BDD (and compute number of states and ODD)
+	 */
+	
+	public void setReach(JDDNode reach)
+	{
+		if (this.reach != null) JDD.Deref(this.reach);
+		this.reach = reach;
+		
+		// work out number of reachable states
+		numStates = JDD.GetNumMinterms(reach, allDDRowVars.n());
 
 		// build odd
 		odd = ODDUtils.BuildODD(reach, allDDRowVars);
@@ -479,6 +511,11 @@ public class ProbModel implements Model
 			tmp = JDD.PermuteVariables(reach, allDDRowVars, allDDColVars);
 			transRewards[i] = JDD.Apply(JDD.TIMES, tmp, transRewards[i]);
 		}
+		
+		// filter start states, work out number of initial states
+		JDD.Ref(reach);
+		start = JDD.Apply(JDD.TIMES, reach, start);
+		numStartStates = JDD.GetNumMinterms(start, allDDRowVars.n());
 		
 		// work out number of transitions
 		numTransitions = JDD.GetNumMinterms(trans01, getNumDDVarsInTrans());

@@ -1403,6 +1403,16 @@ public class PrismCL
 					}
 				}
 				
+				// enable symmetry reduction
+				else if (sw.equals("symm")) {
+					if (i < args.length-2) {
+						prism.getSettings().set(PrismSettings.PRISM_SYMM_RED_PARAMS, args[++i]+" "+args[++i]);
+					}
+					else {
+						errorAndExit("-symm switch requires two parameters (num. modules before/after symmetric ones)");
+					}
+				}
+				
 				// unknown switch - error
 				else {
 					errorAndExit("Invalid switch -" + sw + " (type \"prism -help\" for full list)");

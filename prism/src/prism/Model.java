@@ -98,9 +98,12 @@ public interface Model
 	
 	ODDNode getODD();
 
+	void resetTrans(JDDNode trans);
+	void resetTransRewards(int i, JDDNode transRewards);
 	void doReachability();
 	void doReachability(boolean extraReachInfo);
 	void skipReachability();
+	void setReach(JDDNode reach);
 	void filterReachableStates();
 	void findDeadlocks();
 	void fixDeadlocks();

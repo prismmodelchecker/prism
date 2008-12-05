@@ -89,6 +89,7 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_EXTRA_DD_INFO					= "prism.extraDDInfo";
 	public static final	String PRISM_EXTRA_REACH_INFO				= "prism.extraReachInfo";
 	public static final String PRISM_SCC_METHOD						= "prism.sccMethod";
+	public static final String PRISM_SYMM_RED_PARAMS					= "prism.symmRedParams";
 	
 	//GUI Model
 	public static final	String MODEL_AUTO_PARSE						= "model.autoParse";
@@ -185,7 +186,8 @@ public class PrismSettings implements Observer
 			{ BOOLEAN_TYPE,		PRISM_DO_SS_DETECTION,					"Use steady-state detection",			"3.0",			new Boolean(true),															"0,",																						"Use steady-state detection during CTMC transient probability computation." },
 			{ BOOLEAN_TYPE,		PRISM_EXTRA_DD_INFO,					"Extra MTBDD information",				"3.2",			new Boolean(false),															"0,",																						"Display extra information about (MT)BDDs used during and after model construction." },
 			{ BOOLEAN_TYPE,		PRISM_EXTRA_REACH_INFO,					"Extra reachability information",		"3.2",			new Boolean(false),															"0,",																						"Display extra information about progress of reachability during model construction." },
-			{ CHOICE_TYPE,		PRISM_SCC_METHOD,						"SCC decomposition method",				"3.2",			"Lockstep",																	"Xie-Beerel,Lockstep,SCC-Find",																"Which algorithm to use for decomposing a graph into strongly connected components (SCCs)." }
+			{ CHOICE_TYPE,		PRISM_SCC_METHOD,						"SCC decomposition method",				"3.2",			"Lockstep",																	"Xie-Beerel,Lockstep,SCC-Find",																"Which algorithm to use for decomposing a graph into strongly connected components (SCCs)." },
+			{ STRING_TYPE,		PRISM_SYMM_RED_PARAMS,						"Symmetry reduction parameters",				"3.2",			"",																	"",																"Parameters for symmetry reduction (format: \"i j\" where i and j are the number of modules before and after the symmetric ones; empty string means symmetry reduction disabled)." }
 		},
 		{
 			{ BOOLEAN_TYPE,		MODEL_AUTO_PARSE,						"Auto parse",							"3.0",			new Boolean(true),															"",																							"Parse PRISM models automatically as they are loaded/edited in the text editor." },
@@ -262,7 +264,14 @@ public class PrismSettings implements Observer
 				
 				Setting set;
 				
-				if(setting[0].equals(INTEGER_TYPE))
+				if(setting[0].equals(STRING_TYPE))
+				{
+					set = new SingleLineStringSetting(display, (String)value, comment, optionOwners[i], false);
+					set.setKey(key);
+					set.setVersion(version);
+					optionOwners[i].addSetting(set);
+				}
+				else if(setting[0].equals(INTEGER_TYPE))
 				{
 					if(constraint.equals(""))
 						set = new IntegerSetting(display, (Integer)value, comment, optionOwners[i], false);
