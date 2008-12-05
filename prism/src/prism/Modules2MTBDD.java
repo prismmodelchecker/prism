@@ -2042,22 +2042,25 @@ public class Modules2MTBDD
 		//ODDNode odd = ODDUtils.BuildODD(reach, allDDRowVars);
 		//try {sparse.PrismSparse.NondetExport(trans, allDDRowVars, allDDColVars, allDDNondetVars, odd, Prism.EXPORT_PLAIN, "trans-full.tra"); } catch (FileNotFoundException e) {}
 		
+		mainLog.println("\nNumber of states before before symmetry reduction: " + model.getNumStatesString());
+		mainLog.println("DD sizes before symmetry reduction:");
+		
 		// trans - rows
-		mainLog.print("trans (full): ");
+		mainLog.print("trans: ");
 		mainLog.println(JDD.GetInfoString(trans, (type==ModulesFile.NONDETERMINISTIC)?(allDDRowVars.n()*2+allDDNondetVars.n()):(allDDRowVars.n()*2)));
 		JDD.Ref(symm);
 		trans = JDD.Apply(JDD.TIMES, trans, symm);
-		mainLog.print("trans (symm): ");
-		mainLog.println(JDD.GetInfoString(trans, (type==ModulesFile.NONDETERMINISTIC)?(allDDRowVars.n()*2+allDDNondetVars.n()):(allDDRowVars.n()*2)));
+		//mainLog.print("trans (symm): ");
+		//mainLog.println(JDD.GetInfoString(trans, (type==ModulesFile.NONDETERMINISTIC)?(allDDRowVars.n()*2+allDDNondetVars.n()):(allDDRowVars.n()*2)));
 		
 		// trans rewards - rows
 		for (k = 0; k < numRewardStructs; k++) {
-			mainLog.print("transrew["+k+"] (full): ");
+			mainLog.print("transrew["+k+"]: ");
 			mainLog.println(JDD.GetInfoString(transRewards[k], (type==ModulesFile.NONDETERMINISTIC)?(allDDRowVars.n()*2+allDDNondetVars.n()):(allDDRowVars.n()*2)));
 			JDD.Ref(symm);
 			transRewards[k] = JDD.Apply(JDD.TIMES, transRewards[k], symm);
-			mainLog.print("transrew["+k+"] (symm): ");
-			mainLog.println(JDD.GetInfoString(transRewards[k], (type==ModulesFile.NONDETERMINISTIC)?(allDDRowVars.n()*2+allDDNondetVars.n()):(allDDRowVars.n()*2)));
+			//mainLog.print("transrew["+k+"] (symm): ");
+			//mainLog.println(JDD.GetInfoString(transRewards[k], (type==ModulesFile.NONDETERMINISTIC)?(allDDRowVars.n()*2+allDDNondetVars.n()):(allDDRowVars.n()*2)));
 		}
 		
 		mainLog.println("Starting quicksort...");
