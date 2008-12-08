@@ -178,10 +178,11 @@ public class StateModelChecker implements ModelChecker
 			// See if satisfied in all/initial states
 			boolean satAll = states.includesAll(reach);
 			boolean satInit = states.includesAll(start);
+			int numSat = states.size();
 
 			// Print number of satisfying states to log
 			mainLog.print("\nNumber of satisfying states: ");
-			mainLog.print(states.size());
+			mainLog.print(numSat == -1 ? ">"+Integer.MAX_VALUE : ""+numSat);
 			if (satAll) {
 				mainLog.print(" (all)");
 			} else if (satInit) {
@@ -243,9 +244,11 @@ public class StateModelChecker implements ModelChecker
 					JDD.Ref(ddFilter);
 					tmp = JDD.And(tmp, ddFilter);
 					states = new StateListMTBDD(tmp, model);
-					mainLog.print("There are " + states.size() + " states with this minimum value (+/- "
-							+ termCritParam + ")");
-					if (!verbose && states.size() > 10) {
+					int numSat = states.size();
+					mainLog.print("There are ");
+					mainLog.print(numSat == -1 ? ">"+Integer.MAX_VALUE : ""+numSat);
+					mainLog.print(" states with this minimum value (+/- " + termCritParam + ")");
+					if (!verbose && (numSat == -1 || numSat > 10)) {
 						mainLog
 								.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
 						states.print(mainLog, 10);
@@ -263,9 +266,11 @@ public class StateModelChecker implements ModelChecker
 					JDD.Ref(ddFilter);
 					tmp = JDD.And(tmp, ddFilter);
 					states = new StateListMTBDD(tmp, model);
-					mainLog.print("There are " + states.size() + " states with this maximum value (+/- "
-							+ termCritParam + ")");
-					if (!verbose && states.size() > 10) {
+					int numSat = states.size();
+					mainLog.print("There are ");
+					mainLog.print(numSat == -1 ? ">"+Integer.MAX_VALUE : ""+numSat);
+					mainLog.print(" states with this maximum value (+/- " + termCritParam + ")");
+					if (!verbose && (numSat == -1 || numSat > 10)) {
 						mainLog
 								.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
 						states.print(mainLog, 10);
