@@ -125,7 +125,7 @@ JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetTechLog(JNIEnv *env, jclas
 
 //------------------------------------------------------------------------------
 
-void PS_PrintToMainLog(JNIEnv *env, char *str, ...)
+void PS_PrintToMainLog(JNIEnv *env, const char *str, ...)
 {
 	va_list argptr;
 	char full_string[MAX_LOG_STRING_LEN];
@@ -142,7 +142,7 @@ void PS_PrintToMainLog(JNIEnv *env, char *str, ...)
 
 //------------------------------------------------------------------------------
 
-void PS_PrintToTechLog(JNIEnv *env, char *str, ...)
+void PS_PrintToTechLog(JNIEnv *env, const char *str, ...)
 {
 	va_list argptr;
 	char full_string[MAX_LOG_STRING_LEN];
@@ -232,7 +232,7 @@ int store_export_info(int type, jstring fn, JNIEnv *env)
 
 // export string (either to file or main log)
 
-void export_string(char *str, ...)
+void export_string(const char *str, ...)
 {
 	va_list argptr;
 	char full_string[MAX_LOG_STRING_LEN];
@@ -261,7 +261,7 @@ JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetDoSSDetect(JNIEnv *env, jc
 // error message handling
 //------------------------------------------------------------------------------
 
-void PS_SetErrorMessage(char *str, ...)
+void PS_SetErrorMessage(const char *str, ...)
 {
 	va_list argptr;
 	

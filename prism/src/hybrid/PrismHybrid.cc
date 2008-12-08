@@ -132,7 +132,7 @@ JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetTechLog(JNIEnv *env, jclas
 
 //------------------------------------------------------------------------------
 
-void PH_PrintToMainLog(JNIEnv *env, char *str, ...)
+void PH_PrintToMainLog(JNIEnv *env, const char *str, ...)
 {
 	va_list argptr;
 	char full_string[MAX_LOG_STRING_LEN];
@@ -149,7 +149,7 @@ void PH_PrintToMainLog(JNIEnv *env, char *str, ...)
 
 //------------------------------------------------------------------------------
 
-void PH_PrintToTechLog(JNIEnv *env, char *str, ...)
+void PH_PrintToTechLog(JNIEnv *env, const char *str, ...)
 {
 	va_list argptr;
 	char full_string[MAX_LOG_STRING_LEN];
@@ -255,7 +255,7 @@ JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetDoSSDetect(JNIEnv *env, jc
 // error message handling
 //------------------------------------------------------------------------------
 
-void PH_SetErrorMessage(char *str, ...)
+void PH_SetErrorMessage(const char *str, ...)
 {
 	va_list argptr;
 	

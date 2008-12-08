@@ -82,11 +82,11 @@ extern JNIEnv *export_env;
 // macros, function prototypes
 
 #define logtwo(X) log((double)X)/log(2.0)
-void PS_PrintToMainLog(JNIEnv *env, char *str, ...);
-void PS_PrintToTechLog(JNIEnv *env, char *str, ...);
-void PS_SetErrorMessage(char *str, ...);
+void PS_PrintToMainLog(JNIEnv *env, const char *str, ...);
+void PS_PrintToTechLog(JNIEnv *env, const char *str, ...);
+void PS_SetErrorMessage(const char *str, ...);
 char *PS_GetErrorMessage();
 int store_export_info(int type, jstring fn, JNIEnv *env);
-void export_string(char *str, ...);
+void export_string(const char *str, ...);
 
 //------------------------------------------------------------------------------
