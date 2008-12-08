@@ -154,13 +154,11 @@ public class NondetModelChecker extends StateModelChecker
 		// Check for trivial (i.e. stupid) cases
 		if (pb != null) {
 			if ((p == 0 && relOp.equals(">=")) || (p == 1 && relOp.equals("<="))) {
-				mainLog.print("\nWarning: checking for probability " + relOp + " " + p
-						+ " - formula trivially satisfies all states\n");
+				mainLog.print("\nWarning: checking for probability " + relOp + " " + p + " - formula trivially satisfies all states\n");
 				JDD.Ref(reach);
 				return new StateProbsMTBDD(reach, model);
 			} else if ((p == 0 && relOp.equals("<")) || (p == 1 && relOp.equals(">"))) {
-				mainLog.print("\nWarning: checking for probability " + relOp + " " + p
-						+ " - formula trivially satisfies no states\n");
+				mainLog.print("\nWarning: checking for probability " + relOp + " " + p + " - formula trivially satisfies no states\n");
 				return new StateProbsMTBDD(JDD.Constant(0), model);
 			}
 		}
@@ -248,13 +246,11 @@ public class NondetModelChecker extends StateModelChecker
 		// check for trivial (i.e. stupid) cases
 		if (rb != null) {
 			if (r == 0 && relOp.equals(">=")) {
-				mainLog.print("\nWarning: checking for reward " + relOp + " " + r
-						+ " - formula trivially satisfies all states\n");
+				mainLog.print("\nWarning: checking for reward " + relOp + " " + r + " - formula trivially satisfies all states\n");
 				JDD.Ref(reach);
 				return new StateProbsMTBDD(reach, model);
 			} else if (r == 0 && relOp.equals("<")) {
-				mainLog.print("\nWarning: checking for reward " + relOp + " " + r
-						+ " - formula trivially satisfies no states\n");
+				mainLog.print("\nWarning: checking for reward " + relOp + " " + r + " - formula trivially satisfies no states\n");
 				return new StateProbsMTBDD(JDD.Constant(0), model);
 			}
 		}
@@ -312,7 +308,7 @@ public class NondetModelChecker extends StateModelChecker
 	protected StateProbs checkProbPathFormula(Expression expr, boolean qual, boolean min) throws PrismException
 	{
 		// Test whether this is a simple path formula (i.e. PCTL)
-		// and then pass control to appropriate method. 
+		// and then pass control to appropriate method.
 		if (expr.isSimplePathFormula()) {
 			return checkProbPathFormulaSimple(expr, qual, min);
 		} else {
@@ -336,7 +332,7 @@ public class NondetModelChecker extends StateModelChecker
 			}
 			// Negation
 			else if (exprUnary.getOperator() == ExpressionUnaryOp.NOT) {
-				// Flip min/max, then subtract from 1 
+				// Flip min/max, then subtract from 1
 				probs = checkProbPathFormulaSimple(exprUnary.getOperand(), qual, !min);
 				probs.subtractFromOne();
 			}
@@ -383,41 +379,42 @@ public class NondetModelChecker extends StateModelChecker
 		JDDVars draDDRowVars;
 		int i;
 		long l;
-		
+
 		// Can't do LTL with time-bounded variants of the temporal operators
 		try {
 			expr.accept(new ASTTraverse()
 			{
 				public void visitPre(ExpressionTemporal e) throws PrismLangException
 				{
-					if (e.getLowerBound() != null) throw new PrismLangException(e.getOperatorSymbol());
-					if (e.getUpperBound() != null) throw new PrismLangException(e.getOperatorSymbol());
+					if (e.getLowerBound() != null)
+						throw new PrismLangException(e.getOperatorSymbol());
+					if (e.getUpperBound() != null)
+						throw new PrismLangException(e.getOperatorSymbol());
 				}
 			});
 		} catch (PrismLangException e) {
-			String s = "Temporal operators (like "+e.getMessage()+")";
+			String s = "Temporal operators (like " + e.getMessage() + ")";
 			s += " cannot have time bounds for LTL properties";
 			throw new PrismException(s);
 		}
-		
-		// For LTL model checking routines 
+
+		// For LTL model checking routines
 		mcLtl = new LTLModelChecker(prism, this);
-		
+
 		// Model check maximal state formulas
 		labelDDs = new Vector<JDDNode>();
 		ltl = mcLtl.checkMaximalStateFormulas(model, expr.deepCopy(), labelDDs);
-		
+
 		// Convert LTL formula to deterministic Rabin automaton (DRA)
-		mainLog.println("\nBuilding deterministic Rabin automaton (for "+(min&&!fairness?"!":"")+ltl+")...");
+		mainLog.println("\nBuilding deterministic Rabin automaton (for " + (min && !fairness ? "!" : "") + ltl + ")...");
 		l = System.currentTimeMillis();
 		if (min && !fairness) {
 			dra = LTL2Rabin.ltl2rabin(ltl.convertForJltl2ba().negate());
-		}
-		else {
+		} else {
 			dra = LTL2Rabin.ltl2rabin(ltl.convertForJltl2ba());
 		}
 		mainLog.println("\nDRA has " + dra.size() + " states.");
-		//dra.print(System.out);
+		// dra.print(System.out);
 		l = System.currentTimeMillis() - l;
 		mainLog.println("\nTime for Rabin translation: " + l / 1000.0 + " seconds.");
 
@@ -426,21 +423,21 @@ public class NondetModelChecker extends StateModelChecker
 		modelProduct = mcLtl.constructProductModel(dra, model, labelDDs);
 		mainLog.println();
 		modelProduct.printTransInfo(mainLog, prism.getExtraDDInfo());
-		//prism.exportStatesToFile(modelProduct, Prism.EXPORT_PLAIN, null);
-		//prism.exportTransToFile(modelProduct, true, Prism.EXPORT_PLAIN, null);
-		
+		// prism.exportStatesToFile(modelProduct, Prism.EXPORT_PLAIN, null);
+		// prism.exportTransToFile(modelProduct, true, Prism.EXPORT_PLAIN, null);
+
 		mainLog.println("\nFinding accepting end components...");
 		JDDNode acc = mcLtl.findAcceptingStates(dra, modelProduct, fairness);
-		
+
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = new NondetModelChecker(prism, modelProduct, null);
 		probsProduct = mcProduct.checkProbUntil(modelProduct.getReach(), acc, qual, min && fairness);
-		
+
 		// subtract from 1 if we're model checking a negated formula for regular Pmin
 		if (min && !fairness) {
 			probsProduct.subtractFromOne();
 		}
-		
+
 		// Convert probability vector to original model
 		// First, filter over DRA start states
 		startMask = mcLtl.buildStartMask(dra, labelDDs);
@@ -451,7 +448,7 @@ public class NondetModelChecker extends StateModelChecker
 		draDDRowVars.addVars(modelProduct.getAllDDRowVars());
 		draDDRowVars.removeVars(allDDRowVars);
 		probs = probsProduct.sumOverDDVars(draDDRowVars, model);
-		
+
 		// Deref, clean up
 		probsProduct.clear();
 		modelProduct.clear();
@@ -459,7 +456,7 @@ public class NondetModelChecker extends StateModelChecker
 			JDD.Deref(labelDDs.get(i));
 		}
 		JDD.Deref(acc);
-		
+
 		return probs;
 	}
 
@@ -540,8 +537,8 @@ public class NondetModelChecker extends StateModelChecker
 	}
 
 	// until (unbounded)
-	
-	// this method is split into two steps so that the LTL model checker can use the second part directly 
+
+	// this method is split into two steps so that the LTL model checker can use the second part directly
 
 	protected StateProbs checkProbUntil(ExpressionTemporal expr, boolean qual, boolean min) throws PrismException
 	{
@@ -562,25 +559,24 @@ public class NondetModelChecker extends StateModelChecker
 		// allDDRowVars.n()));
 		// mainLog.print(" states, b2 = " + JDD.GetNumMintermsString(b2,
 		// allDDRowVars.n()) + " states\n");
-		
+
 		try {
 			probs = checkProbUntil(b1, b2, qual, min);
-		}
-		catch (PrismException e) {
+		} catch (PrismException e) {
 			JDD.Deref(b1);
 			JDD.Deref(b2);
 			throw e;
 		}
-		
+
 		// derefs
 		JDD.Deref(b1);
 		JDD.Deref(b2);
 
 		return probs;
 	}
-	
+
 	// until (unbounded): b1/b2 are bdds for until operands
-	
+
 	protected StateProbs checkProbUntil(JDDNode b1, JDDNode b2, boolean qual, boolean min) throws PrismException
 	{
 		JDDNode splus, newb1, newb2;
@@ -615,19 +611,17 @@ public class NondetModelChecker extends StateModelChecker
 			mainLog.print("\nTime for fairness conversion: " + l / 1000.0 + " seconds.\n");
 			// mainLog.print("\nb1 = " + JDD.GetNumMintermsString(newb1, allDDRowVars.n()));
 			// mainLog.print(" states, b2 = " + JDD.GetNumMintermsString(newb2, allDDRowVars.n()) + " states\n");
-		}
-		else {
+		} else {
 			JDD.Ref(b1);
-			newb1 = b1; 
+			newb1 = b1;
 			JDD.Ref(b2);
-			newb2 = b2; 
+			newb2 = b2;
 		}
 
 		// if requested (i.e. when prob bound is 0 or 1 and precomputation algorithms are enabled),
 		// compute probabilities qualitatively
 		if (qual) {
-			mainLog.print("\nWarning: probability bound in formula is"
-					+ " 0/1 so exact probabilities may not be computed\n");
+			mainLog.print("\nWarning: probability bound in formula is" + " 0/1 so exact probabilities may not be computed\n");
 			// for fairness, we compute max here
 			probs = computeUntilProbsQual(trans01, newb1, newb2, min && !fairness);
 		}
@@ -636,8 +630,7 @@ public class NondetModelChecker extends StateModelChecker
 			// for fairness, we compute max here
 			try {
 				probs = computeUntilProbs(trans, trans01, newb1, newb2, min && !fairness);
-			}
-			catch (PrismException e) {
+			} catch (PrismException e) {
 				JDD.Deref(newb1);
 				JDD.Deref(newb2);
 				throw e;
@@ -650,18 +643,18 @@ public class NondetModelChecker extends StateModelChecker
 		if (min && fairness) {
 			probs.subtractFromOne();
 		}
-		
+
 		// Derefs
 		JDD.Deref(newb1);
 		JDD.Deref(newb2);
-		
+
 		return probs;
 	}
 
 	// inst reward
 
-	protected StateProbs checkRewardInst(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards,
-			boolean min) throws PrismException
+	protected StateProbs checkRewardInst(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards, boolean min)
+			throws PrismException
 	{
 		int time; // time bound
 		StateProbs rewards = null;
@@ -680,8 +673,8 @@ public class NondetModelChecker extends StateModelChecker
 
 	// reach reward
 
-	protected StateProbs checkRewardReach(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards,
-			boolean min) throws PrismException
+	protected StateProbs checkRewardReach(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards, boolean min)
+			throws PrismException
 	{
 		JDDNode b;
 		StateProbs rewards = null;
@@ -744,8 +737,8 @@ public class NondetModelChecker extends StateModelChecker
 
 	// compute probabilities for bounded until
 
-	protected StateProbs computeBoundedUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2, int time,
-			boolean min) throws PrismException
+	protected StateProbs computeBoundedUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2, int time, boolean min)
+			throws PrismException
 	{
 		JDDNode yes, no, maybe;
 		JDDNode probsMTBDD;
@@ -775,8 +768,7 @@ public class NondetModelChecker extends StateModelChecker
 			} else if (precomp) {
 				if (min) {
 					// "min prob = 0" equates to "there exists a prob 0"
-					no = PrismMTBDD.Prob0E(tr01, reach, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, b1,
-							yes);
+					no = PrismMTBDD.Prob0E(tr01, reach, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, b1, yes);
 				} else {
 					// "max prob = 0" equates to "all probs 0"
 					no = PrismMTBDD.Prob0A(tr01, reach, allDDRowVars, allDDColVars, allDDNondetVars, b1, yes);
@@ -810,18 +802,16 @@ public class NondetModelChecker extends StateModelChecker
 			try {
 				switch (engine) {
 				case Prism.MTBDD:
-					probsMTBDD = PrismMTBDD.NondetBoundedUntil(tr, odd, nondetMask, allDDRowVars, allDDColVars,
-							allDDNondetVars, yes, maybe, time, min);
+					probsMTBDD = PrismMTBDD.NondetBoundedUntil(tr, odd, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, yes,
+							maybe, time, min);
 					probs = new StateProbsMTBDD(probsMTBDD, model);
 					break;
 				case Prism.SPARSE:
-					probsDV = PrismSparse.NondetBoundedUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes,
-							maybe, time, min);
+					probsDV = PrismSparse.NondetBoundedUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, time, min);
 					probs = new StateProbsDV(probsDV, model);
 					break;
 				case Prism.HYBRID:
-					probsDV = PrismHybrid.NondetBoundedUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes,
-							maybe, time, min);
+					probsDV = PrismHybrid.NondetBoundedUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, time, min);
 					probs = new StateProbsDV(probsDV, model);
 					break;
 				default:
@@ -872,39 +862,17 @@ public class NondetModelChecker extends StateModelChecker
 		} else {
 			// min
 			if (min) {
-				// no: "min prob = 0" equates to "there exists an adversary prob
-				// equals 0"
+				// no: "min prob = 0" equates to "there exists an adversary prob equals 0"
 				no = PrismMTBDD.Prob0E(tr01, reach, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, b1, b2);
-				// yes: "min prob = 1" equates to "for all adversaries prob
-				// equals 1"
-				if (no.equals(JDD.ZERO)) {
-					// if there are no "no" states, all states must have min
-					// prob 1
-					JDD.Ref(reach);
-					yes = reach;
-				} else {
-					// use precomp alg
-					// note that prob1a (unlike prob1e) requires no/b2, not
-					// b1/b2
-					yes = PrismMTBDD.Prob1A(tr01, reach, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, no,
-							b2);
-				}
+				// yes: "min prob = 1" equates to "for all adversaries prob equals 1"
+				yes = PrismMTBDD.Prob1A(tr01, reach, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, no, b2);
 			}
 			// max
 			else {
-				// yes: "max prob = 1" equates to "there exists an adversary
-				// prob equals 1"
-				yes = PrismMTBDD.Prob1E(tr01, allDDRowVars, allDDColVars, allDDNondetVars, b1, b2);
-				// no: "max prob = 0" equates to "for all adversaries prob
-				// equals 0"
-				if (yes.equals(reach)) {
-					// trivial case - because yes+no+maybe=all, so yes=all =>
-					// no,maybe=empty
-					no = JDD.Constant(0);
-				} else {
-					// use precomp alg
-					no = PrismMTBDD.Prob0A(tr01, reach, allDDRowVars, allDDColVars, allDDNondetVars, b1, yes);
-				}
+				// no: "max prob = 0" equates to "for all adversaries prob equals 0"
+				no = PrismMTBDD.Prob0A(tr01, reach, allDDRowVars, allDDColVars, allDDNondetVars, b1, b2);
+				// yes: "max prob = 1" equates to "there exists an adversary prob equals 1"
+				yes = PrismMTBDD.Prob1E(tr01, reach, allDDRowVars, allDDColVars, allDDNondetVars, b1, b2, no);
 			}
 			// maybe
 			JDD.Ref(reach);
@@ -951,8 +919,7 @@ public class NondetModelChecker extends StateModelChecker
 	// note: this function doesn't need to know anything about fairness
 	// it is just told whether to compute min or max probabilities
 
-	protected StateProbs computeUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2, boolean min)
-			throws PrismException
+	protected StateProbs computeUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2, boolean min) throws PrismException
 	{
 		JDDNode yes, no, maybe;
 		JDDNode probsMTBDD;
@@ -977,40 +944,17 @@ public class NondetModelChecker extends StateModelChecker
 			if (precomp) {
 				// min
 				if (min) {
-					// no: "min prob = 0" equates to "there exists an adversary
-					// prob equals 0"
-					no = PrismMTBDD
-							.Prob0E(tr01, reach, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, b1, b2);
-					// yes: "min prob = 1" equates to "for all adversaries prob
-					// equals 1"
-					if (no.equals(JDD.ZERO)) {
-						// if there are no "no" states, all states must have min
-						// prob 1
-						JDD.Ref(reach);
-						yes = reach;
-					} else {
-						// use precomp alg
-						// note that prob1a (unlike prob1e) requires no/b2, not
-						// b1/b2
-						yes = PrismMTBDD.Prob1A(tr01, reach, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars,
-								no, b2);
-					}
+					// no: "min prob = 0" equates to "there exists an adversary prob equals 0"
+					no = PrismMTBDD.Prob0E(tr01, reach, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, b1, b2);
+					// yes: "min prob = 1" equates to "for all adversaries prob equals 1"
+					yes = PrismMTBDD.Prob1A(tr01, reach, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, no, b2);
 				}
 				// max
 				else {
-					// yes: "max prob = 1" equates to "there exists an adversary
-					// prob equals 1"
-					yes = PrismMTBDD.Prob1E(tr01, allDDRowVars, allDDColVars, allDDNondetVars, b1, b2);
-					// no: "max prob = 0" equates to "for all adversaries prob
-					// equals 0"
-					if (yes.equals(reach)) {
-						// trivial case - because yes+no+maybe=all, so yes=all
-						// => no,maybe=empty
-						no = JDD.Constant(0);
-					} else {
-						// use precomp alg
-						no = PrismMTBDD.Prob0A(tr01, reach, allDDRowVars, allDDColVars, allDDNondetVars, b1, yes);
-					}
+					// no: "max prob = 0" equates to "for all adversaries prob equals 0"
+					no = PrismMTBDD.Prob0A(tr01, reach, allDDRowVars, allDDColVars, allDDNondetVars, b1, b2);
+					// yes: "max prob = 1" equates to "there exists an adversary prob equals 1"
+					yes = PrismMTBDD.Prob1E(tr01, reach, allDDRowVars, allDDColVars, allDDNondetVars, b1, b2, no);
 				}
 			}
 			// if precomputation not enabled
@@ -1049,18 +993,15 @@ public class NondetModelChecker extends StateModelChecker
 			try {
 				switch (engine) {
 				case Prism.MTBDD:
-					probsMTBDD = PrismMTBDD.NondetUntil(tr, odd, nondetMask, allDDRowVars, allDDColVars,
-							allDDNondetVars, yes, maybe, min);
+					probsMTBDD = PrismMTBDD.NondetUntil(tr, odd, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min);
 					probs = new StateProbsMTBDD(probsMTBDD, model);
 					break;
 				case Prism.SPARSE:
-					probsDV = PrismSparse.NondetUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe,
-							min);
+					probsDV = PrismSparse.NondetUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min);
 					probs = new StateProbsDV(probsDV, model);
 					break;
 				case Prism.HYBRID:
-					probsDV = PrismHybrid.NondetUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe,
-							min);
+					probsDV = PrismHybrid.NondetUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min);
 					probs = new StateProbsDV(probsDV, model);
 					break;
 				default:
@@ -1101,13 +1042,12 @@ public class NondetModelChecker extends StateModelChecker
 			try {
 				switch (engine) {
 				case Prism.MTBDD:
-					rewardsMTBDD = PrismMTBDD.NondetInstReward(tr, sr, odd, nondetMask, allDDRowVars, allDDColVars,
-							allDDNondetVars, time, min, start);
+					rewardsMTBDD = PrismMTBDD.NondetInstReward(tr, sr, odd, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, time,
+							min, start);
 					rewards = new StateProbsMTBDD(rewardsMTBDD, model);
 					break;
 				case Prism.SPARSE:
-					rewardsDV = PrismSparse.NondetInstReward(tr, sr, odd, allDDRowVars, allDDColVars, allDDNondetVars,
-							time, min, start);
+					rewardsDV = PrismSparse.NondetInstReward(tr, sr, odd, allDDRowVars, allDDColVars, allDDNondetVars, time, min, start);
 					rewards = new StateProbsDV(rewardsDV, model);
 					break;
 				default:
@@ -1141,20 +1081,19 @@ public class NondetModelChecker extends StateModelChecker
 			maybe = JDD.Constant(0);
 		} else {
 			if (!min) {
-				// compute states for which some adversaries don't reach goal
-				// with probability 1
+				// compute states for which some adversaries don't reach goal with probability 1
 				// note that prob1a (unlike prob1e) requires no/b2, not b1/b2
 				// hence we have to call prob0e first
-				no = PrismMTBDD
-						.Prob0E(tr01, reach, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, JDD.ONE, b);
+				no = PrismMTBDD.Prob0E(tr01, reach, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, reach, b);
 				prob1 = PrismMTBDD.Prob1A(tr01, reach, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, no, b);
 				JDD.Deref(no);
 				JDD.Ref(reach);
 				inf = JDD.And(reach, JDD.Not(prob1));
 			} else {
-				// compute states for which all adversaries don't reach goal
-				// with probability 1
-				prob1 = PrismMTBDD.Prob1E(tr01, allDDRowVars, allDDColVars, allDDNondetVars, reach, b);
+				// compute states for which all adversaries don't reach goal with probability 1
+				no = PrismMTBDD.Prob0A(tr01, reach, allDDRowVars, allDDColVars, allDDNondetVars, reach, b);
+				prob1 = PrismMTBDD.Prob1E(tr01, reach, allDDRowVars, allDDColVars, allDDNondetVars, reach, b, no);
+				JDD.Deref(no);
 				JDD.Ref(reach);
 				inf = JDD.And(reach, JDD.Not(prob1));
 			}
@@ -1186,13 +1125,13 @@ public class NondetModelChecker extends StateModelChecker
 			try {
 				switch (engine) {
 				case Prism.MTBDD:
-					rewardsMTBDD = PrismMTBDD.NondetReachReward(tr, sr, trr, odd, nondetMask, allDDRowVars,
-							allDDColVars, allDDNondetVars, b, inf, maybe, min);
+					rewardsMTBDD = PrismMTBDD.NondetReachReward(tr, sr, trr, odd, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars,
+							b, inf, maybe, min);
 					rewards = new StateProbsMTBDD(rewardsMTBDD, model);
 					break;
 				case Prism.SPARSE:
-					rewardsDV = PrismSparse.NondetReachReward(tr, sr, trr, odd, allDDRowVars, allDDColVars,
-							allDDNondetVars, b, inf, maybe, min);
+					rewardsDV = PrismSparse.NondetReachReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf, maybe,
+							min);
 					rewards = new StateProbsDV(rewardsDV, model);
 					break;
 				case Prism.HYBRID:

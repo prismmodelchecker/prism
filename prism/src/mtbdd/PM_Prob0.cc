@@ -41,24 +41,24 @@ JNIEXPORT jlong __jlongpointer JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob0
 (
 JNIEnv *env,
 jclass cls,
-jlong __jlongpointer t01, 		// 0-1 trans matrix
-jlong __jlongpointer a,		// all reachable states
-jlong __jlongpointer rv,		// row vars
+jlong __jlongpointer t01, 	// 0-1 trans matrix
+jlong __jlongpointer r,		// all reachable states
+jlong __jlongpointer rv,	// row vars
 jint num_rvars,
-jlong __jlongpointer cv,		// col vars
+jlong __jlongpointer cv,	// col vars
 jint num_cvars,
-jlong __jlongpointer phi,		// phi(b1)
-jlong __jlongpointer psi		// psi(b2)
+jlong __jlongpointer phi,	// phi(b1)
+jlong __jlongpointer psi	// psi(b2)
 )
 {
 	DdNode *trans01 = jlong_to_DdNode(t01);		// 0-1 trans matrix
-	DdNode *b1 = jlong_to_DdNode(phi);		// b1
-	DdNode *b2 = jlong_to_DdNode(psi);		// b2
-	DdNode *all = jlong_to_DdNode(a);		// all reachable states
+	DdNode *reach = jlong_to_DdNode(r);			// all reachable states
+	DdNode *b1 = jlong_to_DdNode(phi);			// b1
+	DdNode *b2 = jlong_to_DdNode(psi);			// b2
 	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
-	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars	
+	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
 	
-	DdNode *reach, *sol, *tmp;
+	DdNode *sol, *tmp;
 	bool done;
 	int iters;
 
@@ -71,15 +71,15 @@ jlong __jlongpointer psi		// psi(b2)
 	
 	// reachability fixpoint loop
 	Cudd_Ref(b2);
-	reach = b2;
+	sol = b2;
 	done = false;
 	iters = 0;
 	while (!done) {
 	
 		iters++;
 		
-		Cudd_Ref(reach);
-		tmp = DD_PermuteVariables(ddman, reach, rvars, cvars, num_cvars);
+		Cudd_Ref(sol);
+		tmp = DD_PermuteVariables(ddman, sol, rvars, cvars, num_cvars);
 		Cudd_Ref(trans01);
 		tmp = DD_And(ddman, tmp, trans01);
 		tmp = DD_ThereExists(ddman, tmp, cvars, num_cvars);
@@ -89,17 +89,17 @@ jlong __jlongpointer psi		// psi(b2)
 		Cudd_Ref(b2);
 		tmp = DD_Or(ddman, b2, tmp);
 		
-		if (tmp == reach) {
+		if (tmp == sol) {
 			done = true;
 		}
-		Cudd_RecursiveDeref(ddman, reach);
-		reach = tmp;
+		Cudd_RecursiveDeref(ddman, sol);
+		sol = tmp;
 	}
-	reach = DD_PermuteVariables(ddman, reach, cvars, rvars, num_cvars);
+	sol = DD_PermuteVariables(ddman, sol, cvars, rvars, num_cvars);
 	
 	// actual answer is states NOT reachable
-	Cudd_Ref(all);
-	sol = DD_And(ddman, all, DD_Not(ddman, reach));
+	Cudd_Ref(reach);
+	sol = DD_And(ddman, reach, DD_Not(ddman, sol));
 
 	// stop clock
 	time_taken = (double)(util_cpu_time() - start1)/1000;

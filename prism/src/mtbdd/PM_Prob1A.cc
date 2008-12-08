@@ -58,7 +58,7 @@ jlong __jlongpointer psi	// psi(b2)
 )
 {
 	DdNode *trans01 = jlong_to_DdNode(t01);		// 0-1 trans matrix
-	DdNode *all = jlong_to_DdNode(r);		// reachable states
+	DdNode *reach = jlong_to_DdNode(r);		// reachable states
 	DdNode *mask = jlong_to_DdNode(ndm);		// nondeterminism mask
 	DdNode *no = jlong_to_DdNode(n);		// no
 	DdNode *b2 = jlong_to_DdNode(psi);		// b2
@@ -66,7 +66,7 @@ jlong __jlongpointer psi	// psi(b2)
 	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
 	DdNode **ndvars = jlong_to_DdNode_array(ndv);	// nondet vars
 	
-	DdNode  *reach,*sol, *tmp, *notno;
+	DdNode  *sol, *tmp, *notno;
 	bool done;
 	int iters;
 	
@@ -78,9 +78,9 @@ jlong __jlongpointer psi	// psi(b2)
 	start = util_cpu_time();
 	
 	// negate set "no" ("there exists an adversary with prob=0") to get set "for all adversaries prob>0"
-	Cudd_Ref(all);
+	Cudd_Ref(reach);
 	Cudd_Ref(no);
-	notno = DD_And(ddman, all, DD_Not(ddman, no));
+	notno = DD_And(ddman, reach, DD_Not(ddman, no));
 	
 	// greatest fixed point loop
 	Cudd_Ref(b2);

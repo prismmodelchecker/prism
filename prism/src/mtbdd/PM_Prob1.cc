@@ -42,22 +42,26 @@ JNIEXPORT jlong __jlongpointer JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob1
 JNIEnv *env,
 jclass cls,
 jlong __jlongpointer t01, 	// 0-1 trans matrix
+jlong __jlongpointer r,		// all reachable states
 jlong __jlongpointer rv,	// row vars
 jint num_rvars,
 jlong __jlongpointer cv,	// col vars
 jint num_cvars,
 jlong __jlongpointer phi,	// phi(b1)
-jlong __jlongpointer psi	// psi(b2)
+jlong __jlongpointer psi,	// psi(b2)
+jlong __jlongpointer _no	// no
 )
 {
 	DdNode *trans01 = jlong_to_DdNode(t01);		// 0-1 trans matrix
-	DdNode *b1 = jlong_to_DdNode(phi);		// b1
-	DdNode *b2 = jlong_to_DdNode(psi);		// b2
+	DdNode *reach = jlong_to_DdNode(r);			// all reachable states
+	DdNode *b1 = jlong_to_DdNode(phi);			// b1
+	DdNode *b2 = jlong_to_DdNode(psi);			// b2
+	DdNode *no = jlong_to_DdNode(_no);			// no
 	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
 	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
 	
-	DdNode *u, *v, *tmp, *tmp2;
-	bool u_done, v_done;
+	DdNode *sol, *tmp;
+	bool done;
 	int iters;
 
 	// timing stuff
@@ -67,51 +71,40 @@ jlong __jlongpointer psi	// psi(b2)
 	// start clock
 	start1 = util_cpu_time();
 	
-	// greatest fixed point - start from true
-	u = DD_Constant(ddman, 1);
-	u_done = false;
+	// reachability fixpoint loop
+	Cudd_Ref(no);
+	sol = no;
+	done = false;
 	iters = 0;
+	while (!done) {
 	
-	while (!u_done) {
-	
-		// least fixed point - start from false
-		v = DD_Constant(ddman, 0);
-		v_done = false;
+		iters++;
 		
-		while (!v_done) {
-				
-			iters++;
-				
-			Cudd_Ref(u);
-			tmp = DD_SwapVariables(ddman, u, rvars, cvars, num_rvars);
-			Cudd_Ref(trans01);
-			tmp = DD_ForAll(ddman, DD_Implies(ddman, trans01, tmp), cvars, num_cvars);
-
-			Cudd_Ref(v);
-			tmp2 = DD_SwapVariables(ddman, v, rvars, cvars, num_rvars);
-			Cudd_Ref(trans01);
-			tmp2 = DD_ThereExists(ddman, DD_And(ddman, tmp2, trans01), cvars, num_cvars);
-
-			tmp = DD_And(ddman, tmp, tmp2);
-
-			Cudd_Ref(b1);
-			tmp = DD_And(ddman, b1, tmp);		
-			Cudd_Ref(b2);
-			tmp = DD_Or(ddman, b2, tmp);
-			
-			if (tmp == v) {
-				v_done = true;
-			}
-			Cudd_RecursiveDeref(ddman, v);
-			v = tmp;
+		Cudd_Ref(sol);
+		tmp = DD_PermuteVariables(ddman, sol, rvars, cvars, num_cvars);
+		Cudd_Ref(trans01);
+		tmp = DD_And(ddman, tmp, trans01);
+		tmp = DD_ThereExists(ddman, tmp, cvars, num_cvars);
+		
+		Cudd_Ref(b1);
+		tmp = DD_And(ddman, b1, tmp);		
+		Cudd_Ref(b2);
+		tmp = DD_And(ddman, DD_Not(ddman, b2), tmp);
+		Cudd_Ref(no);
+		tmp = DD_Or(ddman, no, tmp);
+		
+		if (tmp == sol) {
+			done = true;
 		}
-		if (v == u) {
-			u_done = true;
-		}
-		Cudd_RecursiveDeref(ddman, u);
-		u = v;
+		Cudd_RecursiveDeref(ddman, sol);
+		sol = tmp;
 	}
+	sol = DD_PermuteVariables(ddman, sol, cvars, rvars, num_cvars);
 	
+	// actual answer is states NOT reachable
+	Cudd_Ref(reach);
+	sol = DD_And(ddman, reach, DD_Not(ddman, sol));
+
 	// stop clock
 	time_taken = (double)(util_cpu_time() - start1)/1000;
 	time_for_setup = 0;
@@ -120,7 +113,7 @@ jlong __jlongpointer psi	// psi(b2)
 	// print iterations/timing info
 	PM_PrintToMainLog(env, "\nProb1: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 
-	return ptr_to_jlong(u);
+	return ptr_to_jlong(sol);
 }
 
 //------------------------------------------------------------------------------

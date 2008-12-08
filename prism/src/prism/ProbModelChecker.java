@@ -1272,13 +1272,9 @@ public class ProbModelChecker extends NonProbModelChecker
 			no = JDD.And(reach, JDD.Not(b2));
 			maybe = JDD.Constant(0);
 		} else {
-			// yes
-			yes = PrismMTBDD.Prob1(tr01, allDDRowVars, allDDColVars, b1, b2);
-			if (yes.equals(reach)) {
-				no = JDD.Constant(0);
-			} else {
-				no = PrismMTBDD.Prob0(tr01, reach, allDDRowVars, allDDColVars, b1, yes);
-			}
+			// no/yes
+			no = PrismMTBDD.Prob0(tr01, reach, allDDRowVars, allDDColVars, b1, b2);
+			yes = PrismMTBDD.Prob1(tr01, reach, allDDRowVars, allDDColVars, b1, b2, no);
 			// maybe
 			JDD.Ref(reach);
 			JDD.Ref(yes);
@@ -1341,19 +1337,13 @@ public class ProbModelChecker extends NonProbModelChecker
 			no = JDD.And(reach, JDD.Not(b2));
 			maybe = JDD.Constant(0);
 		} else {
-			// yes
+			// no/yes
 			if (precomp) {
-				yes = PrismMTBDD.Prob1(tr01, allDDRowVars, allDDColVars, b1, b2);
+				no = PrismMTBDD.Prob0(tr01, reach, allDDRowVars, allDDColVars, b1, b2);
+				yes = PrismMTBDD.Prob1(tr01, reach, allDDRowVars, allDDColVars, b1, b2, no);
 			} else {
 				JDD.Ref(b2);
 				yes = b2;
-			}
-			// no
-			if (yes.equals(reach)) {
-				no = JDD.Constant(0);
-			} else if (precomp) {
-				no = PrismMTBDD.Prob0(tr01, reach, allDDRowVars, allDDColVars, b1, yes);
-			} else {
 				JDD.Ref(reach);
 				JDD.Ref(b1);
 				JDD.Ref(b2);
@@ -1518,7 +1508,9 @@ public class ProbModelChecker extends NonProbModelChecker
 			inf = JDD.Constant(0);
 			maybe = JDD.Constant(0);
 		} else {
-			JDDNode prob1 = PrismMTBDD.Prob1(tr01, allDDRowVars, allDDColVars, reach, b);
+			JDDNode no = PrismMTBDD.Prob0(tr01, reach, allDDRowVars, allDDColVars, reach, b);
+			JDDNode prob1 = PrismMTBDD.Prob1(tr01, reach, allDDRowVars, allDDColVars, reach, b, no);
+			JDD.Deref(no);
 			JDD.Ref(reach);
 			inf = JDD.And(reach, JDD.Not(prob1));
 			JDD.Ref(reach);

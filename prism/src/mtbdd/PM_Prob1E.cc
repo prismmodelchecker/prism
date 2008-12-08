@@ -44,6 +44,7 @@ JNIEXPORT jlong __jlongpointer JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob1E
 JNIEnv *env,
 jclass cls,
 jlong __jlongpointer t01, 	// 0-1 trans matrix
+jlong __jlongpointer r,	// reachable states
 jlong __jlongpointer rv,	// row vars
 jint num_rvars,
 jlong __jlongpointer cv,	// col vars
@@ -51,15 +52,18 @@ jint num_cvars,
 jlong __jlongpointer ndv,	// nondet vars
 jint num_ndvars,
 jlong __jlongpointer phi,	// phi(b1)
-jlong __jlongpointer psi	// psi(b2)
+jlong __jlongpointer psi,	// psi(b2)
+jlong __jlongpointer _no	// no
 )
 {
 	DdNode *trans01 = jlong_to_DdNode(t01);		// 0-1 trans matrix
+	DdNode *reach = jlong_to_DdNode(r);		// reachable states
 	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
 	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
 	DdNode **ndvars = jlong_to_DdNode_array(ndv);	// nondet vars
 	DdNode *b1 = jlong_to_DdNode(phi);		// b1
 	DdNode *b2 = jlong_to_DdNode(psi);		// b2
+	DdNode *no = jlong_to_DdNode(_no);			// no
 	
 	DdNode *u, *v, *tmp, *tmp2;
 	bool u_done, v_done;
@@ -72,8 +76,13 @@ jlong __jlongpointer psi	// psi(b2)
 	// start clock
 	start1 = util_cpu_time();
 	
-	// greatest fixed point - start from true
-	u = DD_Constant(ddman, 1);
+	// greatest fixed point so should start from true,
+	// but for efficiency we use the passed in "no", which will
+	// be the result of the first (outer) iteration
+	Cudd_Ref(reach);
+	Cudd_Ref(no);
+	u = DD_And(ddman, reach, DD_Not(ddman, no));
+	//u = DD_Constant(ddman, 1);
 	u_done = false;
 	iters = 0;
 	

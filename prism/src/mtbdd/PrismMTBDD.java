@@ -188,10 +188,10 @@ public class PrismMTBDD
 	}
 	
 	// pctl until probability 1 precomputation (probabilistic/dtmc)
-	private static native long PM_Prob1(long trans01, long rv, int nrv, long cv, int ncv, long b1, long b2);
-	public static JDDNode Prob1(JDDNode trans01, JDDVars rows, JDDVars cols, JDDNode b1, JDDNode b2)// throws PrismException
+	private static native long PM_Prob1(long trans01, long reach, long rv, int nrv, long cv, int ncv, long b1, long b2, long no);
+	public static JDDNode Prob1(JDDNode trans01, JDDNode reach,JDDVars rows, JDDVars cols, JDDNode b1, JDDNode b2, JDDNode no)// throws PrismException
 	{
-		long ptr = PM_Prob1(trans01.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), b1.ptr(), b2.ptr());
+		long ptr = PM_Prob1(trans01.ptr(), reach.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), b1.ptr(), b2.ptr(), no.ptr());
 		//if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new JDDNode(ptr);
 	}
@@ -206,10 +206,10 @@ public class PrismMTBDD
 	}
 	
 	// pctl until probability 1 precomputation - there exists (nondeterministic/mdp)
-	private static native long PM_Prob1E(long trans01, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long b1, long b2);
-	public static JDDNode Prob1E(JDDNode trans01, JDDVars rows, JDDVars cols, JDDVars nd, JDDNode b1, JDDNode b2)// throws PrismException
+	private static native long PM_Prob1E(long trans01, long reach, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long b1, long b2, long no);
+	public static JDDNode Prob1E(JDDNode trans01, JDDNode reach, JDDVars rows, JDDVars cols, JDDVars nd, JDDNode b1, JDDNode b2, JDDNode no)// throws PrismException
 	{
-		long ptr = PM_Prob1E(trans01.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nd.array(), nd.n(), b1.ptr(), b2.ptr());
+		long ptr = PM_Prob1E(trans01.ptr(), reach.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nd.array(), nd.n(), b1.ptr(), b2.ptr(), no.ptr());
 		//if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new JDDNode(ptr);
 	}

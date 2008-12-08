@@ -106,10 +106,10 @@ JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1Reachability
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_Prob1
- * Signature: (JJIJIJJ)J
+ * Signature: (JJJIJIJJJ)J
  */
 JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob1
-  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong);
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong);
 
 /*
  * Class:     mtbdd_PrismMTBDD
@@ -122,10 +122,10 @@ JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob0
 /*
  * Class:     mtbdd_PrismMTBDD
  * Method:    PM_Prob1E
- * Signature: (JJIJIJIJJ)J
+ * Signature: (JJJIJIJIJJJ)J
  */
 JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1Prob1E
-  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong);
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jlong);
 
 /*
  * Class:     mtbdd_PrismMTBDD
