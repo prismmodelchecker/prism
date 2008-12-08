@@ -1,18 +1,16 @@
 // N-processor mutual exclusion [Rab82]
 // gxn/dxp 03/12/08
 
-// modified version to analyse the bounded waiting property
-// more precisely we analyse the waeker property:
-// "the minimum probability a process enters the critical section given the process tries"
+// to remove the need for fairness constraints for this model it is sufficent
+// to remove the self loops from the model 
 
-// we modify the model by dividing the step corresponding to a process making a draw into two steps
-// this allows one to identify states where a process will draw without knowing
-// what value the process will randomly pick
-// these two steps are atomic (i.e. no other process can move one the first step has been made)
-// as otherwise the adversary can prevent the process from actually drawing in the current round
-// by not scheduling it after it has performed the first step
-
-// to remove the need for fairness constraints we have also removed the self loops from the model 
+// the step corresponding to a process making a draw has been split into two steps
+// to allow us to identify states where a process will draw without knowing the value
+// randomly drawn
+// to correctly model the protocol and prevent erroneous behaviour, the two steps are atomic
+// (i.e. no other process can move one the first step has been made)
+// as for example otherwise an adversary can prevent the process from actually drawing
+// in the current round by not scheduling it after it has performed the first step
 
 mdp
 
@@ -20,13 +18,9 @@ mdp
 const int K = 8; // 4+ceil(log_2 N)
 
 // global variables (all modules can read and write)
-
- 
-
 global c : [0..1]; // 0/1 critical section free/taken
 global b : [0..K]; // current highest draw
 global r : [1..2]; // current round
-
 
 // formula for process 1 drawing
 formula draw = p1=1 & (b<b1 | r!=r1);

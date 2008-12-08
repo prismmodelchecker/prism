@@ -3,7 +3,8 @@
 // N-processor mutual exclusion [Rab82]
 // gxn/dxp 03/12/08
 
-// to remove the need for fairness constraints we have also removed the self loops from the model 
+// to remove the need for fairness constraints for this model it is sufficent
+// to remove the self loops from the model 
 
 // the step corresponding to a process making a draw has been split into two steps
 // to allow us to identify states where a process will draw without knowing the value
@@ -19,12 +20,10 @@ mdp
 const int K = #K#; // 4+ceil(log_2 N)
 
 // global variables (all modules can read and write)
-
- 
 global c : [0..1]; // 0/1 critical section free/taken
 global b : [0..K]; // current highest draw
 global r : [1..2]; // current round
-
+
 // formula for process 1 drawing
 formula draw = p1=1 & (b<b1 | r!=r1);
 
