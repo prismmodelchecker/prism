@@ -22,5 +22,6 @@ Pmin=?[ !"one_critical" U (p1=2) {draw1=1 & !"one_critical"}{min} ]
 //must have already randomly picked a high value for its bi)
 
 // to demonstrate this fact we restrict attention to states where these values
-// are restricted,i.e. where the values of the bi variables are boundedPmin=?[ !"one_critical" U (p1=2) {draw1=1 & !"one_critical" & maxb<6}{min} ]Pmin=?[ !"one_critical" U (p1=2) {draw1=1 & !"one_critical" & maxb<5}{min} ]Pmin=?[ !"one_critical" U (p1=2) {draw1=1 & !"one_critical" & maxb<4}{min} ]Pmin=?[ !"one_critical" U (p1=2) {draw1=1 & !"one_critical" & maxb<3}{min} ]Pmin=?[ !"one_critical" U (p1=2) {draw1=1 & !"one_critical" & maxb<2}{min} ]Pmin=?[ !"one_critical" U (p1=2) {draw1=1 & !"one_critical" & maxb<1}{min} ]
-
+// are restricted,i.e. where the values of the bi variables are bounded
+const int k;
+Pmin=?[ !"one_critical" U (p1=2) {draw1=1 & !"one_critical" & maxb<=k}{min} ]
