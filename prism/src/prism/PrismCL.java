@@ -754,6 +754,8 @@ public class PrismCL
 		String sw;
 		PrismLog log;
 		
+		constSwitch = "";
+		
 		for (i = 0; i < args.length; i++) {
 		
 			// if is a switch...
@@ -1021,8 +1023,9 @@ public class PrismCL
 				// definition of undefined constants
 				else if (sw.equals("const")) {
 					if (i < args.length-1) {
-						// store argument for later use
-						constSwitch = args[++i];
+						// store argument for later use (append if already partially specified)
+						if ("".equals(constSwitch)) constSwitch = args[++i].trim();
+						else constSwitch += ","+args[++i].trim();
 					}
 					else {
 						errorAndExit("Incomplete -"+sw+" switch");
