@@ -8,5 +8,5 @@ prism csma4_3.nm csma4.pctl -s
 prism csma4_4.nm csma4.pctl -s
 prism csma6_2.nm csma6.pctl -s
 prism csma6_3.nm csma6.pctl -s
-prism csma6_4.nm csma6.pctl -s
+#prism csma6_4.nm csma6.pctl -s
 
