@@ -1,23 +1,26 @@
-// mention that Rabin property is not well defined (see Saias thesis)
+// Mutual exclusion: at any time t there is at most one process in its critical section phase
+num_procs_in_crit <= 1
 
-// minimum probability process enters the criticial section
-// only interested in the probability in states for which
-// - process is going to make a draw (draw1=1)
-// - no process is in the critical section (otherwise probability is clearly 0
-// and we take the minimum value over this set of states
+// Liveness: if a process is trying, then eventually a process enters the critical section
+"one_trying" => P>=1 [ F "one_critical" ]
+
+
+// weaker version of k-bounded waiting: minimum probability process enters the criticial section given it draws
 Pmin=?[ !"one_critical" U (p1=2) {draw1=1 & !"one_critical"}{min} ]
+// filter expresses the fact that we are only interested in the probability for states in which
+// - process is going to make a draw (draw1=1)
+// - no process is in the critical section (otherwise probability is clearly 0)
+// and we take the minimum value over this set of states
 
-// probability above is zero which is due to the fact that the adversary can use the values
-// of the state variables of the other processes
+// probability above is zero which is due to the fact that in certain states the adversary can
+// use the values of the draw variables of other processes to prevent the process from entering
+// the criticial section
 // this does not quite disprove Rabin's bounded waiting property as one is starting
-// from the state the process decides to enter the round and one doesnot take into account
+// from the state the process decides to enter the round and one does not take into account
 // the probability of reaching this state (this does have an influence as the results
 // for the properties below show that to get the probability 0 one of the other processes
 //must have already randomly picked a high value for its bi)
 
 // to demonstrate this fact we restrict attention to states where these values
 // are restricted,i.e. where the values of the bi variables are boundedPmin=?[ !"one_critical" U (p1=2) {draw1=1 & !"one_critical" & maxb<6}{min} ]Pmin=?[ !"one_critical" U (p1=2) {draw1=1 & !"one_critical" & maxb<5}{min} ]Pmin=?[ !"one_critical" U (p1=2) {draw1=1 & !"one_critical" & maxb<4}{min} ]Pmin=?[ !"one_critical" U (p1=2) {draw1=1 & !"one_critical" & maxb<3}{min} ]Pmin=?[ !"one_critical" U (p1=2) {draw1=1 & !"one_critical" & maxb<2}{min} ]Pmin=?[ !"one_critical" U (p1=2) {draw1=1 & !"one_critical" & maxb<1}{min} ]
-// liveness (eventially a process enters its critical section
-// since we have removed the loops this holds with probability 1 even without fairness
-Pmin=?[F p1=2 | p2=2 | p3=2 ]
 
