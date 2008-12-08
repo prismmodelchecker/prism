@@ -123,7 +123,7 @@ JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetTechLog(JNIEnv *env, jclass 
 
 //------------------------------------------------------------------------------
 
-void PM_PrintToMainLog(JNIEnv *env, char *str, ...)
+void PM_PrintToMainLog(JNIEnv *env, const char *str, ...)
 {
 	va_list argptr;
 	char full_string[MAX_LOG_STRING_LEN];
@@ -140,7 +140,7 @@ void PM_PrintToMainLog(JNIEnv *env, char *str, ...)
 
 //------------------------------------------------------------------------------
 
-void PM_PrintToTechLog(JNIEnv *env, char *str, ...)
+void PM_PrintToTechLog(JNIEnv *env, const char *str, ...)
 {
 	va_list argptr;
 	char full_string[MAX_LOG_STRING_LEN];
@@ -221,7 +221,7 @@ int store_export_info(int type, jstring fn, JNIEnv *env)
 
 // export string (either to file or main log)
 
-void export_string(char *str, ...)
+void export_string(const char *str, ...)
 {
 	va_list argptr;
 	char full_string[MAX_LOG_STRING_LEN];
@@ -250,7 +250,7 @@ JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetDoSSDetect(JNIEnv *env, jcla
 // error message handling
 //------------------------------------------------------------------------------
 
-void PM_SetErrorMessage(char *str, ...)
+void PM_SetErrorMessage(const char *str, ...)
 {
 	va_list argptr;
 	

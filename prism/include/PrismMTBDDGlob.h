@@ -78,11 +78,11 @@ extern JNIEnv *export_env;
 
 // function prototypes
 
-void PM_PrintToMainLog(JNIEnv *env, char *str, ...);
-void PM_PrintToTechLog(JNIEnv *env, char *str, ...);
-void PM_SetErrorMessage(char *str, ...);
+void PM_PrintToMainLog(JNIEnv *env, const char *str, ...);
+void PM_PrintToTechLog(JNIEnv *env, const char *str, ...);
+void PM_SetErrorMessage(const char *str, ...);
 char *PM_GetErrorMessage();
 int store_export_info(int type, jstring fn, JNIEnv *env);
-void export_string(char *str, ...);
+void export_string(const char *str, ...);
 
 //------------------------------------------------------------------------------
