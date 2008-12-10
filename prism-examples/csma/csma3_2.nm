@@ -128,6 +128,6 @@ label "all_delivered" = s1=4&s2=4&s3=4;
 label "one_delivered" = s1=4|s2=4|s3=4;
 label "collision_max_backoff" = (cd1=K & s1=1 & b=2)|(cd2=K & s2=1 & b=2)|(cd3=K & s3=1 & b=2);
 formula min_backoff_after_success = min(s1=4?cd1:K+1,s2=4?cd2:K+1,s3=4?cd3:K+1);
-formula min_collisions = min(cd1,cd2,cd3,cd4);
-formula max_collisions = max(cd1,cd2,cd3,cd4);
+formula min_collisions = min(cd1,cd2,cd3);
+formula max_collisions = max(cd1,cd2,cd3);
 

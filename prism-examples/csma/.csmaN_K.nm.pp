@@ -133,6 +133,6 @@ label "all_delivered" = #& i=1:N#s#i#=4#end#;
 label "one_delivered" = #| i=1:N#s#i#=4#end#;
 label "collision_max_backoff" = #| i=1:N#(cd#i#=K & s#i#=1 & b=2)#end#;
 formula min_backoff_after_success = min(#, i=1:N#s#i#=4?cd#i#:K+1#end#);
-formula min_collisions = min(cd1,cd2,cd3,cd4);
-formula max_collisions = max(cd1,cd2,cd3,cd4);
+formula min_collisions = min(#, i=1:N#cd#i##end#);
+formula max_collisions = max(#, i=1:N#cd#i##end#);
 
