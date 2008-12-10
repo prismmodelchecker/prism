@@ -7,8 +7,10 @@ mdp
 // in digital clocks approach and suppose a station only sends one message
 
 // actual parameters
-const int N = 3; // number of processes
-const int K = 2; // exponential backoff limit
+#const N#
+const int N = #N#; // number of processes
+#const K#
+const int K = #K#; // exponential backoff limit
 const int slot = 2*sigma; // length of slot
 const int M = floor(pow(2, K))-1 ; // max number of slots to wait
 //const int lambda=782;
@@ -32,24 +34,24 @@ module bus
 	y2 : [0..sigma+1]; // time since second send (used to find time until collision detected)
 	
 	// a sender sends (ok - no other message being sent)
-	[send1] (b=0) -> (b'=1);
-	[send2] (b=0) -> (b'=1);
-	[send3] (b=0) -> (b'=1);
+	#for i=1:N#
+	[send#i#] (b=0) -> (b'=1);
+	#end#
 	
 	// a sender sends (bus busy - collision)
-	[send1] (b=1|b=2) & (y1<sigma) -> (b'=2);
-	[send2] (b=1|b=2) & (y1<sigma) -> (b'=2);
-	[send3] (b=1|b=2) & (y1<sigma) -> (b'=2);
+	#for i=1:N#
+	[send#i#] (b=1|b=2) & (y1<sigma) -> (b'=2);
+	#end#
 	
 	// finish sending
-	[end1] (b=1) -> (b'=0) & (y1'=0);
-	[end2] (b=1) -> (b'=0) & (y1'=0);
-	[end3] (b=1) -> (b'=0) & (y1'=0);
+	#for i=1:N#
+	[end#i#] (b=1) -> (b'=0) & (y1'=0);
+	#end#
 	
 	// bus busy
-	[busy1] (b=1|b=2) & (y1>=sigma) -> (b'=b);  
-	[busy2] (b=1|b=2) & (y1>=sigma) -> (b'=b);  
-	[busy3] (b=1|b=2) & (y1>=sigma) -> (b'=b);  
+	#for i=1:N#
+	[busy#i#] (b=1|b=2) & (y1>=sigma) -> (b'=b);  
+	#end#
 	
 	// collision detected
 	[cd] (b=2) & (y2<=sigma) -> (b'=0) & (y1'=0) & (y2'=0);
@@ -94,8 +96,10 @@ module station1
 	
 	// set backoff (no time can pass in this state)
 	// probability depends on which transmission this is (cd1)
-	[] s1=2 & cd1=1 ->  1/2 : (s1'=3) & (bc1'=0) + 1/2 : (s1'=3) & (bc1'=1) ;
-	[] s1=2 & cd1=2 ->  1/4 : (s1'=3) & (bc1'=0) + 1/4 : (s1'=3) & (bc1'=1) + 1/4 : (s1'=3) & (bc1'=2) + 1/4 : (s1'=3) & (bc1'=3) ;
+	#for i=1:K#
+	#const i2=floor(pow(2,i))#
+	[] s1=2 & cd1=#i# -> #+ j=0:i2-1# 1/#i2# : (s1'=3) & (bc1'=#j#) #end#;
+	#end#
 	
 	// wait until backoff counter reaches 0 then send again
 	[time] (s1=3) & (x1<slot) -> (x1'=x1+1); // let time pass (in slot)
@@ -111,8 +115,9 @@ endmodule
 //----------------------------------------------------------------------------------------------------------------------------
 
 // construct further stations through renaming
-module station2=station1[s1=s2,x1=x2,cd1=cd2,bc1=bc2,send1=send2,busy1=busy2,end1=end2] endmodule
-module station3=station1[s1=s3,x1=x3,cd1=cd3,bc1=bc3,send1=send3,busy1=busy3,end1=end3] endmodule
+#for i=2:N#
+module station#i#=station1[s1=s#i#,x1=x#i#,cd1=cd#i#,bc1=bc#i#,send1=send#i#,busy1=busy#i#,end1=end#i#] endmodule
+#end#
 
 //----------------------------------------------------------------------------------------------------------------------------
 
@@ -123,12 +128,11 @@ endrewards
 
 //----------------------------------------------------------------------------------------------------------------------------
 
-label "all_delivered" = s1=4&s2=4&s3=4;
-label "one_delivered" = s1=4|s2=4|s3=4;
-label "collision_max_backoff" = (cd1=K & s1=1 & b=2)|(cd2=K & s2=1 & b=2)|(cd3=K & s3=1 & b=2);
-label "success_with_backoff_under_1" = (cd1<=1 & s1=4)|(cd2<=1 & s2=4)|(cd3<=1 & s3=4);
-label "success_with_backoff_under_2" = (cd1<=2 & s1=4)|(cd2<=2 & s2=4)|(cd3<=2 & s3=4);
-label "collisions_equal_1" = (cd1=1)|(cd2=1)|(cd3=1);
-label "collisions_equal_2" = (cd1=2)|(cd2=2)|(cd3=2);
-
+// labels/formulae
+label "all_delivered" = #& i=1:N#s#i#=4#end#;
+label "one_delivered" = #| i=1:N#s#i#=4#end#;
+label "collision_max_backoff" = #| i=1:N#(cd#i#=K & s#i#=1 & b=2)#end#;
+formula min_backoff_after_success = min(#, i=1:N#s#i#=4?cd#i#:K+1#end#);
+formula min_collisions = min(cd1,cd2,cd3,cd4);
+formula max_collisions = max(cd1,cd2,cd3,cd4);
 

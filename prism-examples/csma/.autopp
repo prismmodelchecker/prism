@@ -1,10 +1,9 @@
 #!/bin/csh
 
-foreach K ( 2 4 6 )
-	echo "Generating for K=$K"
-	prismpp .csmaK.pctl.pp $K >! csma$K.pctl
-	foreach N ( 2 3 4 )
-		echo " and N=$N"
-		prismpp .csmaK_N.nm.pp $N $K >! csma$K"_"$N.nm
-	end
+foreach N ( 2 3 4 )
+  foreach K ( 2 4 6 )
+    echo "Generating for N=$N and K=$K"
+    prismpp .csmaN_K.nm.pp $N $K >! csma$N"_"$K.nm
+  end
 end
+
