@@ -95,7 +95,7 @@ public class GUIImageExportDialog extends JDialog implements DocumentListener
 		
 		this.imageTypeInputField.setSelectedIndex(defaultImageType);
 		
-		this.alphaInputField.setSelected(defaultImageType == PNG);
+		this.alphaInputField.setSelected(false);
 		this.alphaInputField.setEnabled(defaultImageType == PNG);
 		this.alphaInputLabel.setEnabled(defaultImageType == PNG);
 				
