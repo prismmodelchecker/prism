@@ -59,7 +59,7 @@ public class GUIGraphPicker extends javax.swing.JDialog
     private DefinedConstant rangingConstant;
     
     private Values otherValues;
-    private Vector<DefinedConstant> multiSeries;
+    private java.util.Vector<DefinedConstant> multiSeries;
     
     private userinterface.graph.Graph graphModel;
     private boolean graphCancelled;
@@ -92,7 +92,7 @@ public class GUIGraphPicker extends javax.swing.JDialog
         // (this means if the user closes the dialog, this counts as a cancel)
         this.graphCancelled = true;
         
-        this.multiSeries = new Vector<DefinedConstant>();
+        this.multiSeries = new java.util.Vector<DefinedConstant>();
        
         initComponents();        
         setResizable(false);
@@ -108,7 +108,7 @@ public class GUIGraphPicker extends javax.swing.JDialog
 		if (!graphCancelled)
 		{			
 			/* Collect series keys. */
-			Vector<Graph.SeriesKey> seriesKeys = new Vector<Graph.SeriesKey>();
+			java.util.Vector<Graph.SeriesKey> seriesKeys = new java.util.Vector<Graph.SeriesKey>();
 							        
 	        /* Collect series Values */
 	        ArrayList<Values> seriesValues = new ArrayList<Values>();
@@ -299,7 +299,7 @@ public class GUIGraphPicker extends javax.swing.JDialog
         ranger = selectAxisConstantCombo.getSelectedItem().toString();
         // init arrays
         otherValues = new Values();
-        multiSeries = new Vector<DefinedConstant>();
+        multiSeries = new java.util.Vector<DefinedConstant>();
         // go through constants in picker list
         for(int j = 0; j < pickerList.getNumConstants(); j++)
         {
@@ -582,7 +582,7 @@ public class GUIGraphPicker extends javax.swing.JDialog
        
         // init arrays
         otherValues = new Values();
-        multiSeries = new Vector<DefinedConstant>();
+        multiSeries = new java.util.Vector<DefinedConstant>();
         
         // go through all constants in picker list
         for(int j = 0; j < pickerList.getNumConstants(); j++)

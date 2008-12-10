@@ -174,6 +174,7 @@ public class Graph extends ChartPanel implements SettingOwner, EntityResolver, O
 		// Some easy references
 		chart = super.getChart();
 		plot = chart.getXYPlot();
+		plot.setBackgroundPaint((Paint)Color.white);
 		seriesCollection = (XYSeriesCollection) plot.getDataset();
 		
 		xAxisSettings = new AxisSettings("X", true, this);
@@ -195,15 +196,17 @@ public class Graph extends ChartPanel implements SettingOwner, EntityResolver, O
 			renderer.setBaseShapesVisible(true);
 			renderer.setBaseShapesFilled(true);
 			renderer.setDrawSeriesLineAsPath(true);
+			renderer.setAutoPopulateSeriesPaint(true);
+			renderer.setAutoPopulateSeriesShape(true);
 		}
 		
 		plot.setDrawingSupplier(new DefaultDrawingSupplier(
-				DefaultDrawingSupplier.DEFAULT_PAINT_SEQUENCE,
+				SeriesSettings.DEFAULT_PAINTS,
 				DefaultDrawingSupplier.DEFAULT_OUTLINE_PAINT_SEQUENCE,
 				DefaultDrawingSupplier.DEFAULT_STROKE_SEQUENCE,
 				DefaultDrawingSupplier.DEFAULT_OUTLINE_STROKE_SEQUENCE,
-				SeriesSettings.DEFAULT_SHAPE_SEQUENCE		
-		));
+				SeriesSettings.DEFAULT_SHAPES
+		));	
 
 		super.setPopupMenu(null);
 
@@ -377,11 +380,11 @@ public class Graph extends ChartPanel implements SettingOwner, EntityResolver, O
 		return seriesCollection;
 	}
 	
-	public Vector<SeriesKey> getAllSeriesKeys()
+	public java.util.Vector<SeriesKey> getAllSeriesKeys()
 	{
 		synchronized (seriesCollection)
 		{
-			Vector<SeriesKey> result = new Vector<SeriesKey>();
+			java.util.Vector<SeriesKey> result = new java.util.Vector<SeriesKey>();
 			
 			for (Map.Entry<SeriesKey, XYSeries> entries : keyToSeries.entrySet())
 			{
@@ -652,12 +655,12 @@ public class Graph extends ChartPanel implements SettingOwner, EntityResolver, O
 		}	
 	}
 	
-	public void moveUp(Vector<SeriesKey> keys)
+	public void moveUp(java.util.Vector<SeriesKey> keys)
 	{
 		synchronized (seriesCollection)
 		{
 			XYSeries[] newOrder = new XYSeries[seriesCollection.getSeriesCount()];
-			Vector<XYSeries> moveUpSet = new Vector<XYSeries>();
+			java.util.Vector<XYSeries> moveUpSet = new java.util.Vector<XYSeries>();
 			
 			for (int i = 0; i < newOrder.length; i++)
 				newOrder[i] = seriesCollection.getSeries(i);
@@ -690,12 +693,12 @@ public class Graph extends ChartPanel implements SettingOwner, EntityResolver, O
 		}
 	}
 	
-	public void moveDown(Vector<SeriesKey> keys)
+	public void moveDown(java.util.Vector<SeriesKey> keys)
 	{
 		synchronized (seriesCollection)
 		{
 			XYSeries[] newOrder = new XYSeries[seriesCollection.getSeriesCount()];
-			Vector<XYSeries> moveDownSet = new Vector<XYSeries>();
+			java.util.Vector<XYSeries> moveDownSet = new java.util.Vector<XYSeries>();
 			
 			for (int i = 0; i < newOrder.length; i++)
 				newOrder[i] = seriesCollection.getSeries(i);

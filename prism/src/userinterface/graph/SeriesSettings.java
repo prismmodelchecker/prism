@@ -61,7 +61,14 @@ public class SeriesSettings extends Observable implements SettingOwner
     public static final int SOLID       = 0;
     public static final int DASHED 		= 1;
     public static final int DOT_DASHED 	= 2;
-	
+    
+    public static final int BLUE 		= 0;
+    public static final int GREEN 		= 1;
+    public static final int RED	     	= 2;
+    public static final int CYAN        = 3;
+    public static final int PURPLE      = 4;
+    public static final int YELLOW 		= 5;
+    public static final int BROWN 		= 5;
     
     public static final Shape[] DEFAULT_SHAPE_SEQUENCE = {
     	DefaultDrawingSupplier.DEFAULT_SHAPE_SEQUENCE[1], // CIRCLE
@@ -71,25 +78,36 @@ public class SeriesSettings extends Observable implements SettingOwner
     	DefaultDrawingSupplier.DEFAULT_SHAPE_SEQUENCE[8], // RECTANGLE_V
     };
     
-    /*protected static final Shape[] SHAPES = {
-    	DEFAULT_SHAPE_SEQUENCE[CIRCLE],
-    	DEFAULT_SHAPE_SEQUENCE[SQUARE],
-    	DEFAULT_SHAPE_SEQUENCE[TRIANGLE],
-    	DEFAULT_SHAPE_SEQUENCE[RECTANGLE_H],
-    	DEFAULT_SHAPE_SEQUENCE[RECTANGLE_V],
-    	new Rectangle2D.Double(0,0,0,0) // NONE    	
-    };*/
-	
 	// Use slightly smaller point shapes than the JFreeChart standards
 	protected static int triPointsX[] = {-2,2,0};
 	protected static int triPointsY[] = {-2,-2,2};
-    protected static final Shape[] SHAPES = {
+	
+	/* List of all shapes, including empty shape */
+	protected static final Shape[] SHAPES = {
     	new Ellipse2D.Double(-2,-2,4,4),
     	new Rectangle2D.Double(-2,-2,4,4),
     	new Polygon(triPointsX, triPointsY, 3),
     	new Rectangle2D.Double(-2,-1,4,2),
     	new Rectangle2D.Double(-1,-2,2,4),
     	new Rectangle2D.Double(0,0,0,0) // NONE    	
+    };	
+	
+	protected static final Shape[] DEFAULT_SHAPES = {
+		SHAPES[CIRCLE],
+		SHAPES[SQUARE],
+		SHAPES[TRIANGLE],
+		SHAPES[RECTANGLE_H],
+		SHAPES[RECTANGLE_V] 	
+    };   
+    
+    protected static final Paint[] DEFAULT_PAINTS = {
+    	    Color.blue,
+    	    new Color(0, 127, 0),
+    	    Color.red,
+    	    new Color(0, 191, 191),
+    	    new Color(191, 0, 191),
+    	    new Color(191, 191, 0),
+    	    new Color(0.6f, 0.2f, 0f)
     };
     
 	/** Graph object. */
@@ -150,7 +168,7 @@ public class SeriesSettings extends Observable implements SettingOwner
 			if (seriesIndex >= 0)
 			{		
 				/* Set series colour. */
-				if (renderer.getSeriesPaint(seriesIndex) instanceof Color)
+				if (renderer.lookupSeriesPaint(seriesIndex) instanceof Color)
 				{
 					try
 					{ 
@@ -172,7 +190,8 @@ public class SeriesSettings extends Observable implements SettingOwner
 				/* Set showPoints. */
 				try
 				{ 
-					Boolean pointsVisibleFlag = renderer.getSeriesShapesVisible(seriesIndex);
+					// just do it.
+					Boolean pointsVisibleFlag = true;
 					showPoints.setValue(new Boolean(pointsVisibleFlag == null || pointsVisibleFlag.booleanValue())); 
 				}
 				catch (SettingException e)
@@ -180,7 +199,7 @@ public class SeriesSettings extends Observable implements SettingOwner
 				}
 				
 				/* Set seriesShape. */				
-				Shape shape = renderer.getSeriesShape(seriesIndex);
+				Shape shape = renderer.lookupSeriesShape(seriesIndex);
 				
 				try
 				{
@@ -188,7 +207,7 @@ public class SeriesSettings extends Observable implements SettingOwner
 					
 					for (int i = CIRCLE; i < NONE; i++)
 					{
-						if (ShapeUtilities.equal(shape, DEFAULT_SHAPE_SEQUENCE[i]))
+						if (ShapeUtilities.equal(shape, SHAPES[i]))
 						{
 							seriesShape.setSelectedIndex(i);
 							foundShape = true;
@@ -207,7 +226,7 @@ public class SeriesSettings extends Observable implements SettingOwner
 				/* Set showLines. */
 				try
 				{ 
-					Boolean linesVisibleFlag = renderer.getSeriesLinesVisible(seriesIndex);
+					Boolean linesVisibleFlag = true;
 					showLines.setValue(new Boolean(linesVisibleFlag == null || linesVisibleFlag.booleanValue())); 
 				}
 				catch (SettingException e)
@@ -469,7 +488,8 @@ public class SeriesSettings extends Observable implements SettingOwner
 			if (seriesIndex >= 0)
 			{
 				/* Set series colour. */
-				if (!renderer.getSeriesPaint(seriesIndex).equals(seriesColour))
+				if (renderer.getSeriesPaint(seriesIndex) == null || 
+				   !renderer.getSeriesPaint(seriesIndex).equals(seriesColour))
 				{
 					renderer.setSeriesPaint(seriesIndex, seriesColour.getColorValue());
 				}				

@@ -49,6 +49,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Stack;
 
 import prism.PrismLangException;
 import prism.PrismSettings;
@@ -232,9 +233,9 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, java.awt.event.InputEvent.CTRL_MASK), "prism_selectall");
 	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, java.awt.event.InputEvent.CTRL_MASK), "prism_delete");
 	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, java.awt.event.InputEvent.CTRL_MASK), "prism_cut");
+	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, java.awt.event.InputEvent.CTRL_MASK | java.awt.event.InputEvent.SHIFT_MASK), "prism_redo");
 	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, java.awt.event.InputEvent.CTRL_MASK), "prism_paste");
 	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_E, java.awt.event.InputEvent.CTRL_MASK), "prism_jumperr");
-	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, java.awt.event.InputEvent.CTRL_MASK | java.awt.event.InputEvent.SHIFT_MASK), "prism_redo");
 	    
 		ActionMap actionMap = editor.getActionMap();
 		actionMap.put("prism_undo", GUIPrism.getClipboardPlugin().getUndoAction());
@@ -245,6 +246,49 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 		actionMap.put("prism_paste", GUIPrism.getClipboardPlugin().getPasteAction());
 		actionMap.put("prism_delete", GUIPrism.getClipboardPlugin().getDeleteAction());
 		actionMap.put("prism_jumperr", actionJumpToError);
+		
+		// Attempt to programmatically allow all accelerators
+		/*ArrayList plugins = ((GUIMultiModel)handler.getGUIPlugin()).getGUI().getPlugins();
+		Iterator it = plugins.iterator();
+		
+		while (it.hasNext())
+		{
+			GUIPlugin plugin = ((GUIPlugin)it.next());
+			System.out.println(plugin.getName());
+			JMenu firstMenu = plugin.getMenu();
+			
+			Stack<MenuElement> menuStack = new Stack<MenuElement>();
+			
+			menuStack.add(firstMenu);
+			
+			while (!menuStack.empty())
+			{
+				MenuElement menu = menuStack.pop();
+				
+				if (menu instanceof JMenuItem)
+				{
+					JMenuItem menuItem = ((JMenuItem)menu);
+					
+					KeyStroke accelerator = menuItem.getAccelerator();
+					Action action = menuItem.getAction();
+					
+					if (action != null && accelerator != null && menuItem.getText() != null)
+					{
+						System.out.println(menuItem.getText() + " " + menuItem.getName());
+						inputMap.put(accelerator, "prism_" + menuItem.getText());
+						actionMap.put("prism_" + menuItem.getText(), action);
+					}
+				}
+				
+				MenuElement[] subelements = menu.getSubElements();
+				
+				if (subelements != null)
+				{
+					for (int i = 0; i < subelements.length; i++)
+						menuStack.push(subelements[i]);
+				}					
+			}
+		}*/
 		
 		
 		
