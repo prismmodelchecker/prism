@@ -95,11 +95,10 @@ module receiver
 	
 endmodule
 	
-module checker
+module checker // prevents more than one frame being set
 
 	T : bool;
 	
-//	[NewFile] (T=false) -> (T'=false);
 	[NewFile] (T=false) -> (T'=true);
 	
 endmodule
@@ -129,3 +128,7 @@ module	channelL
 	[TO_Ack] (l=2) -> (l'=0);
 	
 endmodule
+
+rewards
+	[aF] i=1 : 1;
+endrewards
