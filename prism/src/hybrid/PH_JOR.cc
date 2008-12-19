@@ -160,7 +160,6 @@ jdouble omega		// omega (over-relaxation parameter)
 	} else {
 		diags_vec = hdd_negative_row_sums(hddm, n, transpose);
 	}
-	if (!diags_vec) { PH_PrintToMainLog(env, "\n"); PH_SetErrorMessage("Out of memory when creating diagonals vector"); return 0; }
 	// if any of the diagonals are zero, set them to one - avoids division by zero errors later
 	// strictly speaking, such matrices shouldn't work for this iterative method
 	// but they do occur, e.g. for steady-state computation of a bscc, this fixes it
@@ -208,7 +207,6 @@ jdouble omega		// omega (over-relaxation parameter)
 	soln = mtbdd_to_double_vector(ddman, init, rvars, num_rvars, odd);
 	
 	soln2 = new double[n];
-	if (!soln2) { PH_SetErrorMessage("Out of memory"); return 0; }
 	kb = n*8.0/1024.0;
 	kbt += 2*kb;
 	PH_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
