@@ -187,6 +187,7 @@ jdouble time		// time bound
 	// compute poisson probabilities (fox/glynn)
 	PH_PrintToMainLog(env, "\nUniformisation: q.t = %f x %f = %f\n", unif, time, unif * time);
 	fgw = fox_glynn(unif * time, 1.0e-300, 1.0e+300, term_crit_param_unif);
+	if (fgw.right < 0) throw "Overflow in Fox-Glynn computation (time bound too big?)";
 	for (i = fgw.left; i <= fgw.right; i++) {
 		fgw.weights[i-fgw.left] /= fgw.total_weight;
 	}
@@ -294,6 +295,10 @@ jdouble time		// time bound
 	} catch (std::bad_alloc e) {
 		PH_SetErrorMessage("Out of memory");
 		if (sum) delete[] sum;
+		sum = 0;
+	} catch (const char *err) {
+		PH_SetErrorMessage(err);
+		if (sum) delete sum;
 		sum = 0;
 	}
 	

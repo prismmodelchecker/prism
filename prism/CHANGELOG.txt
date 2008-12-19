@@ -7,11 +7,20 @@ of the main changes in each public release, see the file VERSIONS.txt.
 Ongoing changes:
 
 * LTL model checking for MDPs
+* CTL model checking
 
 Latest changes (reverse chronological):
+[correct wrt svn rev 901]
 
+* Improvements to memory handling, especially in sparse/hybrid engines
+* Updated JFreeChart library
+* Multiple -const switches allowed at command-line
+* Efficiency improvements to precomputation algorithms
+* Added symmetry reduction functionality
+* New -exportbsccs option 
 * Expanded property specification language
 * Initial state info for explicit import is now via -importlabels
+* Added prism2html/prism2latex scripts
 * Transient probabilities computation for DTMCs
 * Sparse/hybrid versions of instantaneous reward properties (R=?[I=k]) for DTMCs
 * Added weak until (W) and release (R) to properties language

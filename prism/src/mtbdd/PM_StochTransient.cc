@@ -164,6 +164,7 @@ jint time		// time
 	// compute poisson probabilities (fox/glynn)
 	PM_PrintToMainLog(env, "\nUniformisation: q.t = %f x %f = %f\n", unif, time, unif * time);
 	fgw = fox_glynn(unif * time, 1.0e-300, 1.0e+300, term_crit_param_unif);
+	if (fgw.right < 0) { PM_SetErrorMessage("Overflow in Fox-Glynn computation (time bound too big?)"); return 0; }
 	for (i = fgw.left; i <= fgw.right; i++) {
 		fgw.weights[i-fgw.left] /= fgw.total_weight;
 	}
