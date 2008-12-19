@@ -1,6 +1,11 @@
 //==============================================================================
 //	
-//	Copyright (c) 2007, Carlos S. Bederián
+//	Copyright (c) 2002-
+//	Authors:
+//	* Carlos S. Bederian (Universidad Nacional de Cordoba)
+//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	
+//------------------------------------------------------------------------------
 //	
 //	This file is part of PRISM.
 //	
@@ -30,7 +35,7 @@ import java.util.*;
 // SCC (strongly connected component) decomposition using SCC-Find search
 // (from Gentilini/Piazza/Policriti 2003)
 
-public class SCCComputerSCCFind implements SCCComputer
+public class SCCComputerSCCFind extends SCCComputer
 {
 	private class DecompTask {
 		JDDNode nodes;
@@ -42,49 +47,36 @@ public class SCCComputerSCCFind implements SCCComputer
 		}
 	}
 	
-	private Prism prism;
-	private PrismLog log;
-	
-	private JDDNode initialNodes;
-	private JDDNode initialEdges;
-	private JDDVars rows;
-	private JDDVars cols;
-	private Vector<JDDNode> sccs;
 	private JDDNode allSCCs;
-	private JDDNode notInSCCs;
 	private Stack<DecompTask> tasks; 
 	
-	public SCCComputerSCCFind(Prism prism, JDDNode nodes, JDDNode edges, JDDVars rows_, JDDVars cols_)
+	// Constructor
+	
+	public SCCComputerSCCFind(Prism prism, JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars)
 	{
-		this.prism = prism;
-		log = prism.getMainLog();
-		rows = rows_;
-		cols = cols_;
-		initialNodes = nodes;
-		initialEdges = edges;
+		super(prism, reach, trans01, allDDRowVars, allDDColVars);
 	}
 
-	public void computeBSCCs()
+	// Strongly connected components (SCC) computation
+	// NB: This creates BDDs, obtainable from getVectSCCs() and getNotInSCCs(),
+	// which  the calling code is responsible for dereferencing.
+
+	public void computeSCCs()
 	{
-		sccs = new Vector<JDDNode>();
+		vectSCCs = new Vector<JDDNode>();
 		allSCCs = JDD.Constant(0);
 		tasks = new Stack<DecompTask>();
-		JDD.Ref(initialNodes);
-		JDD.Ref(initialEdges);
-		JDDNode trimmedNodes = trim(initialNodes, initialEdges); 
-		JDD.Ref(initialEdges);
-		tasks.push(new DecompTask(trimmedNodes, initialEdges, JDD.Constant(0), JDD.Constant(0)));
+		JDD.Ref(reach);
+		JDD.Ref(trans01);
+		JDDNode trimmedNodes = trim(reach, trans01); 
+		JDD.Ref(trans01);
+		tasks.push(new DecompTask(trimmedNodes, trans01, JDD.Constant(0), JDD.Constant(0)));
 		while (!tasks.isEmpty()) {
 			sccFind(tasks.pop());
 		}
-		JDD.Ref(initialNodes);
-		notInSCCs = JDD.And(initialNodes, JDD.Not(allSCCs));
-		log.print(" BSCCs: " + sccs.size());
-		log.println(" Transient states: " + JDD.GetNumMintermsString(notInSCCs, rows.n()));
+		JDD.Ref(reach);
+		notInSCCs = JDD.And(reach, JDD.Not(allSCCs));
 	}
-	
-	public Vector<JDDNode> getVectBSCCs() { return sccs; }
-	public JDDNode getNotInBSCCs() { return notInSCCs; }
 	
 	// Return the image of nodes in edges
 	// Refs: result
@@ -95,8 +87,8 @@ public class SCCComputerSCCFind implements SCCComputer
 		// Get transitions that start at nodes
 		tmp = JDD.Apply(JDD.TIMES, edges, nodes);
 		// Get the img(nodes)
-		tmp = JDD.ThereExists(tmp, rows);
-		tmp = JDD.PermuteVariables(tmp, cols, rows);
+		tmp = JDD.ThereExists(tmp, allDDRowVars);
+		tmp = JDD.PermuteVariables(tmp, allDDColVars, allDDRowVars);
 		return tmp;
 	}
 
@@ -107,10 +99,10 @@ public class SCCComputerSCCFind implements SCCComputer
 		JDDNode tmp;
 
 		// Get transitions that end at nodes
-		tmp = JDD.PermuteVariables(nodes, rows, cols);
+		tmp = JDD.PermuteVariables(nodes, allDDRowVars, allDDColVars);
 		tmp = JDD.Apply(JDD.TIMES, edges, tmp);
 		// Get the pre(nodes)
-		tmp = JDD.ThereExists(tmp, cols);
+		tmp = JDD.ThereExists(tmp, allDDColVars);
 		return tmp;
 	}
 	
@@ -137,8 +129,8 @@ public class SCCComputerSCCFind implements SCCComputer
 			pre = preimage(current, edges);
 			current = JDD.And(current, JDD.And(img, pre));
 			if (prism.getVerbose()) {
-				log.println("Trimming pass " + i + ":");
-				JDD.PrintVector(current, rows);
+				mainLog.println("Trimming pass " + i + ":");
+				JDD.PrintVector(current, allDDRowVars);
 				i++;
 			}
 		} while (!current.equals(old));
@@ -156,13 +148,13 @@ public class SCCComputerSCCFind implements SCCComputer
 			return;
 		}
 		// Sanity check, partitioning of the state space should prevent this
-		assert !sccs.contains(nodes);
+		assert !vectSCCs.contains(nodes);
 		
 		/* if (prism.getVerbose()) {
-			log.println("Found SCC:");
+			mainLog.println("Found SCC:");
 			JDD.PrintVector(nodes, rows);
 		} */
-		sccs.addElement(nodes);
+		vectSCCs.addElement(nodes);
 		JDD.Ref(nodes);
 		allSCCs = JDD.Or(allSCCs, nodes);
 	}
@@ -198,14 +190,14 @@ public class SCCComputerSCCFind implements SCCComputer
 		JDD.Deref(level);
 		
 		level = stack.pop();
-		JDDNode newNode = JDD.RestrictToFirst(level, rows);
+		JDDNode newNode = JDD.RestrictToFirst(level, allDDRowVars);
 		JDD.Ref(newNode);
 		JDDNode newPath = newNode;
 		while (!stack.isEmpty()) {
 			level = stack.pop();
 			JDD.Ref(newPath);
 			JDD.Ref(edges);
-			newPath = JDD.Or(newPath, JDD.RestrictToFirst(JDD.And(preimage(newPath, edges), level), rows));
+			newPath = JDD.Or(newPath, JDD.RestrictToFirst(JDD.And(preimage(newPath, edges), level), allDDRowVars));
 		}
 		return new SkelForwardResult(forwardSet, newPath, newNode);
 	}
@@ -230,7 +222,7 @@ public class SCCComputerSCCFind implements SCCComputer
 		}
 		
 		/* if (prism.getVerbose()) {
-			log.println("SCC-Find pass on nodes: ");
+			mainLog.println("SCC-Find pass on nodes: ");
 			JDD.PrintVector(nodes, rows);
 		} */
 		
@@ -238,7 +230,7 @@ public class SCCComputerSCCFind implements SCCComputer
 			JDD.Deref(spineSetNode);
 			// Pick a node
 			JDD.Ref(nodes);
-			spineSetNode = JDD.RestrictToFirst(nodes, rows);
+			spineSetNode = JDD.RestrictToFirst(nodes, allDDRowVars);
 		}
 		
 		SkelForwardResult skelFw = skelForward(nodes, edges, spineSetNode);
@@ -270,7 +262,7 @@ public class SCCComputerSCCFind implements SCCComputer
 		
 		// check if SCC is nontrivial and report
 		JDD.Ref(scc);
-		tmp = JDD.PermuteVariables(scc, rows, cols);
+		tmp = JDD.PermuteVariables(scc, allDDRowVars, allDDColVars);
 		JDD.Ref(edges);
 		tmp = JDD.And(tmp, edges);
 		JDD.Ref(scc);
@@ -292,7 +284,7 @@ public class SCCComputerSCCFind implements SCCComputer
 		JDD.Ref(newNodes1);
 		JDDNode newEdges1 = JDD.Apply(JDD.TIMES, edges, newNodes1);
 		JDD.Ref(newNodes1);
-		newEdges1 = JDD.Apply(JDD.TIMES, newEdges1, JDD.PermuteVariables(newNodes1, rows, cols));
+		newEdges1 = JDD.Apply(JDD.TIMES, newEdges1, JDD.PermuteVariables(newNodes1, allDDRowVars, allDDColVars));
 		// newS1 = spineSetPath \ scc
 		JDD.Ref(spineSetPath);
 		JDD.Ref(scc);
@@ -313,7 +305,7 @@ public class SCCComputerSCCFind implements SCCComputer
 		JDD.Ref(newNodes2);
 		JDDNode newEdges2 = JDD.Apply(JDD.TIMES, edges, newNodes2);
 		JDD.Ref(newNodes2);
-		newEdges2 = JDD.Apply(JDD.TIMES, newEdges2, JDD.PermuteVariables(newNodes2, rows, cols));
+		newEdges2 = JDD.Apply(JDD.TIMES, newEdges2, JDD.PermuteVariables(newNodes2, allDDRowVars, allDDColVars));
 		// newS2 = newS \ scc
 		JDD.Ref(scc);
 		JDDNode newSpineSetPath2 = JDD.And(newSpineSetPath, JDD.Not(scc));

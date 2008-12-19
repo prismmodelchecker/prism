@@ -484,6 +484,16 @@ public class Prism implements PrismSettingsListener
 	 * Type (i.e. algorithm) depends on SCCMethod PRISM option.
 	 * @return
 	 */
+	public SCCComputer getSCCComputer(Model model)
+	{
+		return getSCCComputer(model.getReach(), model.getTrans01(), model.getAllDDRowVars(), model.getAllDDColVars());
+	}
+	
+	/**
+	 * Get an SCCComputer object.
+	 * Type (i.e. algorithm) depends on SCCMethod PRISM option.
+	 * @return
+	 */
 	public SCCComputer getSCCComputer(JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars)
 	{
 		SCCComputer sccComputer;
@@ -1080,6 +1090,7 @@ public class Prism implements PrismSettingsListener
 	public void exportBSCCsToFile(Model model, int exportType, File file) throws FileNotFoundException
 	{
 		int i, n;
+		long l; // timer
 		PrismLog tmpLog;
 		SCCComputer sccComputer;
 		Vector<JDDNode> bsccs;
@@ -1092,10 +1103,13 @@ public class Prism implements PrismSettingsListener
 		
 		// Compute BSCCs
 		mainLog.println("\nComputing BSCCs...");
-		sccComputer = getSCCComputer(model.getReach(), model.getTrans01(), model.getAllDDRowVars(), model.getAllDDColVars());
+		sccComputer = getSCCComputer(model);
+		l = System.currentTimeMillis();
 		sccComputer.computeBSCCs();
+		l = System.currentTimeMillis() - l;
 		bsccs = sccComputer.getVectBSCCs();
 		not = sccComputer.getNotInBSCCs();
+		mainLog.println("\nTime for BSCC computation: " + l/1000.0 + " seconds.");
 		
 		// print message
 		mainLog.print("\nExporting BSCCs ");

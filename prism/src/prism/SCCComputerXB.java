@@ -33,46 +33,22 @@ import jdd.*;
 // SCC (strongly connected component) decomposition
 // (from Xie/Beerel 1999)
 
-public class SCCComputerXB implements SCCComputer
+public class SCCComputerXB extends SCCComputer
 {
-	private PrismLog mainLog;
-
-	// model info
-	private JDDNode trans01;
-	private JDDNode reach;
-	private JDDVars allDDRowVars;
-	private JDDVars allDDColVars;
+	// Constructor
 	
-	// stuff for SCCs
-	private Vector<JDDNode> vectSCCs;
-	private JDDNode notInSCCs;
-	// stuff for BSCCs
-	private Vector<JDDNode> vectBSCCs;
-	private JDDNode notInBSCCs;
-
 	public SCCComputerXB(Prism prism, JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars)
 	{
-		// initialise
-		mainLog = prism.getMainLog();
-		this.trans01 = trans01;
-		this.reach = reach;
-		this.allDDRowVars = allDDRowVars;
-		this.allDDColVars = allDDColVars;
+		super(prism, reach, trans01, allDDRowVars, allDDColVars);
 	}
+	
+	// Strongly connected components (SCC) computation
+	// NB: This creates BDDs, obtainable from getVectSCCs() and getNotInSCCs(),
+	// which  the calling code is responsible for dereferencing.
 
-	// get methods
-	
-	public Vector<JDDNode> getVectBSCCs() { return vectBSCCs; }
-	
-	public JDDNode getNotInBSCCs() { return notInBSCCs; }
-
-	// bottom strongly connected components (bscc) computation
-	// (using algorithm of xie/beerel'99)
-	
-	public void computeBSCCs()
+	public void computeSCCs()
 	{
-		JDDNode v, s, back, scc, out;
-		int i, n;
+		JDDNode v, s, back;
 		
 		mainLog.println("\nComputing (B)SCCs...");
 		
@@ -81,7 +57,7 @@ public class SCCComputerXB implements SCCComputer
 		// BDD of non-SCC states (initially zero BDD)
 		notInSCCs = JDD.Constant(0);
 		
-		// first compute all sccs
+		// Compute all SCCs
 		// (using algorithm of xie/beerel'99)
 		JDD.Ref(reach);
 		v = reach;
@@ -93,43 +69,11 @@ public class SCCComputerXB implements SCCComputer
 			v = JDD.And(v, JDD.And(reach, JDD.Not(JDD.Or(s, back))));
 		}
 		JDD.Deref(v);
-		
-		// now check which ones are bsccs and keep them
-		vectBSCCs = new Vector<JDDNode>();
-		notInBSCCs = notInSCCs;
-		n = vectSCCs.size();
-		for (i = 0; i < n; i++) {
-			scc = vectSCCs.elementAt(i);
-			JDD.Ref(trans01);
-			JDD.Ref(scc);
-			out = JDD.And(trans01, scc);
-			JDD.Ref(scc);
-			out = JDD.And(out, JDD.Not(JDD.PermuteVariables(scc, allDDRowVars, allDDColVars)));
-			if (out.equals(JDD.ZERO)) {
-				vectBSCCs.addElement(scc);
-			}
-			else {
-				JDD.Ref(scc);
-				notInBSCCs = JDD.Or(scc, notInBSCCs);
-				JDD.Deref(scc);
-			}
-			JDD.Deref(out);
-		}
-		
-		// print out some info
-		mainLog.print("\nSCCs: " + vectSCCs.size());
-		mainLog.print(" BSCCs: " + vectBSCCs.size());
-		mainLog.println(" Transient states: " + JDD.GetNumMintermsString(notInBSCCs, allDDRowVars.n()));
-		mainLog.print("BSCC sizes:");
-		for (i = 0; i < vectBSCCs.size(); i++) {
-			mainLog.print(" " + (i+1) + ": " + JDD.GetNumMintermsString(vectBSCCs.elementAt(i), allDDRowVars.n()));
-		}
-		mainLog.println();
 	}
 	
 	// pick a random (actually the first) state from set (set not empty)
 	
-	public JDDNode pickRandomState(JDDNode set)
+	protected JDDNode pickRandomState(JDDNode set)
 	{
 		int i, n;
 		JDDNode tmp, tmp2, res, var;
@@ -167,7 +111,7 @@ public class SCCComputerXB implements SCCComputer
 	
 	// find backward set of state s restricted to set v
 	
-	public JDDNode computeBackwardSet(JDDNode s, JDDNode v)
+	protected JDDNode computeBackwardSet(JDDNode s, JDDNode v)
 	{
 		JDDNode back, tmp;
 		boolean done = false;
@@ -202,7 +146,7 @@ public class SCCComputerXB implements SCCComputer
 	
 	// find forward set of state s restricted to set v
 	
-	public JDDNode computeForwardSet(JDDNode s, JDDNode v)
+	protected JDDNode computeForwardSet(JDDNode s, JDDNode v)
 	{
 		JDDNode forw, v2, tmp;
 		boolean done = false;
@@ -244,7 +188,7 @@ public class SCCComputerXB implements SCCComputer
 	
 	// compute fmd (finite maximum distance) predecessors of set w
 	
-	public JDDNode computeFMDPred(JDDNode w, JDDNode u)
+	protected JDDNode computeFMDPred(JDDNode w, JDDNode u)
 	{
 		JDDNode pred, front, bound, x, y;
 		
@@ -281,7 +225,7 @@ public class SCCComputerXB implements SCCComputer
 	// (store SCCs in first vector,
 	//  store states not in an SCC in first element of second vector)
 	
-	public void computeSCCsRec(JDDNode s, JDDNode back)
+	protected void computeSCCsRec(JDDNode s, JDDNode back)
 	{
 		JDDNode forw, x, r, y, ip, s2, back2, tmp;
 		

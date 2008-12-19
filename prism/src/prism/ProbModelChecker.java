@@ -58,7 +58,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		super(prism, m, pf);
 
 		// Create SCCComputer object
-		sccComputer = new SCCComputerXB(prism, reach, trans01, allDDRowVars, allDDColVars); // TODO: generalise?
+		sccComputer = prism.getSCCComputer(m);
 
 		// Inherit some options from parent Prism object.
 		// Store locally and/or pass onto engines.
