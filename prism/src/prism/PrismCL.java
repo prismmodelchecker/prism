@@ -757,7 +757,7 @@ public class PrismCL
 	{
 		int i, j;
 		double d;
-		String sw;
+		String sw, s;
 		PrismLog log;
 		
 		constSwitch = "";
@@ -911,6 +911,19 @@ public class PrismCL
 					}
 					else {
 						errorAndExit("No file specified for -"+sw+" switch");
+					}
+				}
+				// set scc computation algorithm
+				else if (sw.equals("sccmethod") || sw.equals("bsccmethod")) {
+					if (i < args.length-1) {
+						s = args[++i];
+						if (s.equals("xiebeerel")) prism.getSettings().set(PrismSettings.PRISM_SCC_METHOD, "Xie-Beerel");
+						else if (s.equals("lockstep")) prism.getSettings().set(PrismSettings.PRISM_SCC_METHOD, "Lockstep");
+						else if (s.equals("sccfind")) prism.getSettings().set(PrismSettings.PRISM_SCC_METHOD, "SCC-Find");
+						else  errorAndExit("Unrecognised option for -"+sw+" switch (options are: xiebeerel, lockstep, sccfind)");
+					}
+					else {
+						errorAndExit("No parameter specified for -"+sw+" switch");
 					}
 				}
 				// export results
@@ -1576,6 +1589,7 @@ public class PrismCL
 		mainLog.println("-nocompact ..................... Switch off \"compact\" sparse storage schemes");
 		mainLog.println("-noprobchecks .................. Disable checks on model probabilities/rates");
 		mainLog.println("-nossdetect .................... Disable steady-state detection for CTMC transient computations");
+		mainLog.println("-sccmethod <name> .............. Specify SCC computation method (xiebeerel, lockstep, sccfind)");
 		mainLog.println();
 		mainLog.println("-sbmax <n> ..................... Set memory limit (KB) (for hybrid engine) [default 1024]");
 		mainLog.println("-sbl <n> ....................... Set number of levels (for hybrid engine) [default -1]");
