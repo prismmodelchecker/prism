@@ -54,7 +54,7 @@ static NDSparseMatrix *ndsm;
 // Data structure constructors/deconstructors
 //------------------------------------------------------------------------------
 
-RMSparseMatrix::RMSparseMatrix()
+EXPORT RMSparseMatrix::RMSparseMatrix()
 {
 	n = 0;
 	nnz = 0;
@@ -65,7 +65,7 @@ RMSparseMatrix::RMSparseMatrix()
 	row_counts = NULL;
 }
 
-RMSparseMatrix::~RMSparseMatrix()
+EXPORT RMSparseMatrix::~RMSparseMatrix()
 {
 	if (non_zeros) delete[] non_zeros;
 	if (cols) delete[] cols;
@@ -74,7 +74,7 @@ RMSparseMatrix::~RMSparseMatrix()
 
 //------------------------------------------------------------------------------
 
-CMSparseMatrix::CMSparseMatrix()
+EXPORT CMSparseMatrix::CMSparseMatrix()
 {
 	n = 0;
 	nnz = 0;
@@ -85,7 +85,7 @@ CMSparseMatrix::CMSparseMatrix()
 	col_counts = NULL;
 }
 
-CMSparseMatrix::~CMSparseMatrix()
+EXPORT CMSparseMatrix::~CMSparseMatrix()
 {
 	if (non_zeros) delete[] non_zeros;
 	if (rows) delete[] rows;
@@ -94,7 +94,7 @@ CMSparseMatrix::~CMSparseMatrix()
 
 //------------------------------------------------------------------------------
 
-RCSparseMatrix::RCSparseMatrix()
+EXPORT RCSparseMatrix::RCSparseMatrix()
 {
 	n = 0;
 	nnz = 0;
@@ -105,7 +105,7 @@ RCSparseMatrix::RCSparseMatrix()
 	cols = NULL;
 }
 
-RCSparseMatrix::~RCSparseMatrix()
+EXPORT RCSparseMatrix::~RCSparseMatrix()
 {
 	if (non_zeros) delete[] non_zeros;
 	if (rows) delete[] rows;
@@ -114,7 +114,7 @@ RCSparseMatrix::~RCSparseMatrix()
 
 //------------------------------------------------------------------------------
 
-CMSRSparseMatrix::CMSRSparseMatrix()
+EXPORT CMSRSparseMatrix::CMSRSparseMatrix()
 {
 	n = 0;
 	nnz = 0;
@@ -128,7 +128,7 @@ CMSRSparseMatrix::CMSRSparseMatrix()
 	row_counts = NULL;
 }
 
-CMSRSparseMatrix::~CMSRSparseMatrix()
+EXPORT CMSRSparseMatrix::~CMSRSparseMatrix()
 {
 	if (dist) delete[] dist;
 	if (cols) delete[] cols;
@@ -137,7 +137,7 @@ CMSRSparseMatrix::~CMSRSparseMatrix()
 
 //------------------------------------------------------------------------------
 
-CMSCSparseMatrix::CMSCSparseMatrix()
+EXPORT CMSCSparseMatrix::CMSCSparseMatrix()
 {
 	n = 0;
 	nnz = 0;
@@ -151,7 +151,7 @@ CMSCSparseMatrix::CMSCSparseMatrix()
 	col_counts = NULL;
 }
 
-CMSCSparseMatrix::~CMSCSparseMatrix()
+EXPORT CMSCSparseMatrix::~CMSCSparseMatrix()
 {
 	if (dist) delete[] dist;
 	if (rows) delete[] rows;
@@ -160,7 +160,7 @@ CMSCSparseMatrix::~CMSCSparseMatrix()
 
 //------------------------------------------------------------------------------
 
-NDSparseMatrix::NDSparseMatrix()
+EXPORT NDSparseMatrix::NDSparseMatrix()
 {
 	n = 0;
 	nc = 0;
@@ -174,7 +174,7 @@ NDSparseMatrix::NDSparseMatrix()
 	choice_counts = NULL;
 }
 
-NDSparseMatrix::~NDSparseMatrix()
+EXPORT NDSparseMatrix::~NDSparseMatrix()
 {
 	if (non_zeros) delete[] non_zeros;
 	if (cols) delete[] cols;

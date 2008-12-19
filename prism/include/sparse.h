@@ -28,6 +28,13 @@
 #include <cudd.h>
 #include <odd.h>
 
+// Flags for building Windows DLLs
+#ifdef __MINGW32__
+	#define EXPORT __declspec(dllexport)
+#else
+	#define EXPORT
+#endif
+
 // data structures
 
 // "row major" sparse matrix
@@ -45,8 +52,8 @@ struct RMSparseMatrix
 	unsigned int *cols;
 	unsigned char *row_counts;
 	
-	RMSparseMatrix();
-	~RMSparseMatrix();
+	EXPORT RMSparseMatrix();
+	EXPORT ~RMSparseMatrix();
 };
 
 // "column major" sparse matrix
@@ -64,8 +71,8 @@ struct CMSparseMatrix
 	unsigned int *rows;
 	unsigned char *col_counts;
 	
-	CMSparseMatrix();
-	~CMSparseMatrix();
+	EXPORT CMSparseMatrix();
+	EXPORT ~CMSparseMatrix();
 };
 
 // "row/column" sparse matrix
@@ -83,8 +90,8 @@ struct RCSparseMatrix
 	unsigned int *rows;
 	unsigned int *cols;
 	
-	RCSparseMatrix();
-	~RCSparseMatrix();
+	EXPORT RCSparseMatrix();
+	EXPORT ~RCSparseMatrix();
 };
 
 // "compact modified sparse row" sparse matrix
@@ -106,8 +113,8 @@ struct CMSRSparseMatrix
 	unsigned int *cols;
 	unsigned char *row_counts;
 	
-	CMSRSparseMatrix();
-	~CMSRSparseMatrix();
+	EXPORT CMSRSparseMatrix();
+	EXPORT ~CMSRSparseMatrix();
 };
 
 // "compact modified sparse column" sparse matrix
@@ -129,8 +136,8 @@ struct CMSCSparseMatrix
 	unsigned int *rows;
 	unsigned char *col_counts;
 	
-	CMSCSparseMatrix();
-	~CMSCSparseMatrix();
+	EXPORT CMSCSparseMatrix();
+	EXPORT ~CMSCSparseMatrix();
 };
 
 // nondeterministic (mdp) sparse matrix
@@ -152,8 +159,8 @@ struct NDSparseMatrix
 	unsigned char *row_counts;
 	unsigned char *choice_counts;
 	
-	NDSparseMatrix();
-	~NDSparseMatrix();
+	EXPORT NDSparseMatrix();
+	EXPORT ~NDSparseMatrix();
 };
 
 // function prototypes

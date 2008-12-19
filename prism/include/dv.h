@@ -58,8 +58,8 @@ struct DistVector
 	int num_dist;
 	unsigned short *ptrs;
 	
-	DistVector();
-	~DistVector();
+	EXPORT DistVector();
+	EXPORT ~DistVector();
 };
 
 // function prototypes
