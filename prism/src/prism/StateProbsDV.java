@@ -207,8 +207,9 @@ public class StateProbsDV implements StateProbs
 	
 	// sum up the elements of the vector, over a subset of its dd vars
 	// store the result in a new StateProbsDV (for newModel)
+	// throws PrismException on out-of-memory
 
-	public StateProbs sumOverDDVars(JDDVars sumVars, Model newModel)
+	public StateProbs sumOverDDVars(JDDVars sumVars, Model newModel) throws PrismException
 	{
 		DoubleVector tmp;
 		

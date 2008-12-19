@@ -44,6 +44,9 @@ struct RMSparseMatrix
 	double *non_zeros;
 	unsigned int *cols;
 	unsigned char *row_counts;
+	
+	RMSparseMatrix();
+	~RMSparseMatrix();
 };
 
 // "column major" sparse matrix
@@ -60,6 +63,9 @@ struct CMSparseMatrix
 	double *non_zeros;
 	unsigned int *rows;
 	unsigned char *col_counts;
+	
+	CMSparseMatrix();
+	~CMSparseMatrix();
 };
 
 // "row/column" sparse matrix
@@ -76,6 +82,9 @@ struct RCSparseMatrix
 	double *non_zeros;
 	unsigned int *rows;
 	unsigned int *cols;
+	
+	RCSparseMatrix();
+	~RCSparseMatrix();
 };
 
 // "compact modified sparse row" sparse matrix
@@ -96,6 +105,9 @@ struct CMSRSparseMatrix
 	
 	unsigned int *cols;
 	unsigned char *row_counts;
+	
+	CMSRSparseMatrix();
+	~CMSRSparseMatrix();
 };
 
 // "compact modified sparse column" sparse matrix
@@ -116,6 +128,9 @@ struct CMSCSparseMatrix
 	
 	unsigned int *rows;
 	unsigned char *col_counts;
+	
+	CMSCSparseMatrix();
+	~CMSCSparseMatrix();
 };
 
 // nondeterministic (mdp) sparse matrix
@@ -136,6 +151,9 @@ struct NDSparseMatrix
 	unsigned int *cols;
 	unsigned char *row_counts;
 	unsigned char *choice_counts;
+	
+	NDSparseMatrix();
+	~NDSparseMatrix();
 };
 
 // function prototypes
@@ -163,12 +181,5 @@ double *rm_negative_row_sums(RMSparseMatrix *rmsm, bool transpose);
 double *cm_negative_row_sums(CMSparseMatrix *cmsm, bool transpose);
 double *cmsr_negative_row_sums(CMSRSparseMatrix *cmsrsm, bool transpose);
 double *cmsc_negative_row_sums(CMSCSparseMatrix *cmscsm, bool transpose);
-
-void free_rm_sparse_matrix(RMSparseMatrix *rmsm);
-void free_cm_sparse_matrix(CMSparseMatrix *cmsm);
-void free_cmsr_sparse_matrix(CMSRSparseMatrix *cmsrsm);
-void free_cmsc_sparse_matrix(CMSCSparseMatrix *cmscsm);
-void free_rc_sparse_matrix(RCSparseMatrix *rcsm);
-void free_nd_sparse_matrix(NDSparseMatrix *ndsm);
 
 //------------------------------------------------------------------------------

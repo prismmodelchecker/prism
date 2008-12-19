@@ -35,6 +35,7 @@
 #include "sparse.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
+#include <new>
 
 //------------------------------------------------------------------------------
 
@@ -62,24 +63,27 @@ jint bound			// time bound
 	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
 
 	// mtbdds
-	DdNode *all_rewards;
+	DdNode *all_rewards = NULL;
 	// model stats
 	int n;
 	long nnz;
 	// flags
 	bool compact_tr, compact_r;
 	// sparse matrix
-	RMSparseMatrix *rmsm;
-	CMSRSparseMatrix *cmsrsm;
+	RMSparseMatrix *rmsm = NULL;
+	CMSRSparseMatrix *cmsrsm = NULL;
 	// vectors
-	double *rew_vec, *soln, *soln2, *tmpsoln;
-	DistVector *rew_dist;
+	double *rew_vec = NULL, *soln = NULL, *soln2 = NULL, *tmpsoln = NULL;
+	DistVector *rew_dist = NULL;
 	// timing stuff
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
 	// misc
 	int i, j, l, h, iters;
 	double d, kb, kbt;
+	
+	// exception handling around whole function
+	try {
 	
 	// start clocks	
 	start1 = start2 = util_cpu_time();
@@ -104,10 +108,10 @@ jint bound			// time bound
 		nnz = rmsm->nnz;
 		kb = rmsm->mem;
 	}
+	kbt = kb;
 	// print some info
 	PS_PrintToMainLog(env, "[n=%d, nnz=%d%s] ", n, nnz, compact_tr?", compact":"");
-	kbt = kb;
-	PS_PrintToMainLog(env, "[%.1f KB]\n", kb);
+	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// multiply transition rewards by transition probs and sum rows
 	// then combine state and transition rewards and put in a vector
@@ -126,13 +130,13 @@ jint bound			// time bound
 	if (compact) {
 		if (rew_dist = double_vector_to_dist(rew_vec, n)) {
 			compact_r = true;
-			free(rew_vec);
+			delete[] rew_vec; rew_vec = NULL;
 		}
 	}
 	kb = (!compact_r) ? n*8.0/1024.0 : (rew_dist->num_dist*8.0+n*2.0)/1024.0;
 	kbt += kb;
-	if (!compact_r) PS_PrintToMainLog(env, "[%.1f KB]\n", kb);
-	else PS_PrintToMainLog(env, "[dist=%d, compact] [%.1f KB]\n", rew_dist->num_dist, kb);
+	if (compact_r) PS_PrintToMainLog(env, "[dist=%d, compact] ", rew_dist->num_dist);
+	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// create solution/iteration vectors
 	PS_PrintToMainLog(env, "Allocating iteration vectors... ");
@@ -140,10 +144,10 @@ jint bound			// time bound
 	soln2 = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 2*kb;
-	PS_PrintToMainLog(env, "[2 x %.1f KB]\n", kb);
+	PS_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
 	
 	// print total memory usage
-	PS_PrintToMainLog(env, "TOTAL: [%.1f KB]\n", kbt);
+	PS_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 	
 	// initial solution is zero
 	for (i = 0; i < n; i++) {
@@ -226,11 +230,20 @@ jint bound			// time bound
 	// print iterations/timing info
 	PS_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
+	// catch exceptions: register error, free memory
+	} catch (std::bad_alloc e) {
+		PS_SetErrorMessage("Out of memory");
+		if (soln) delete[] soln;
+		soln = 0;
+	}
+	
 	// free memory
-	Cudd_RecursiveDeref(ddman, all_rewards);
-	if (compact_tr) free_cmsr_sparse_matrix(cmsrsm); else free_rm_sparse_matrix(rmsm);
-	if (compact_r) free_dist_vector(rew_dist); else free(rew_vec);
-	delete soln2;
+	if (all_rewards) Cudd_RecursiveDeref(ddman, all_rewards);
+	if (rmsm) delete rmsm;
+	if (cmsrsm) delete cmsrsm;
+	if (rew_vec) delete[] rew_vec;
+	if (rew_dist) delete rew_dist;
+	if (soln2) delete[] soln2;
 	
 	return ptr_to_jlong(soln);
 }

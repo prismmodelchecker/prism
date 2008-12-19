@@ -36,6 +36,7 @@
 #include "hybrid.h"
 #include "PrismHybridGlob.h"
 #include "jnipointer.h"
+#include <new>
 
 // local prototypes
 static void mult_rec(HDDNode *hdd, int level, int row_offset, int col_offset, int code);
@@ -49,7 +50,7 @@ static bool compact_sm;
 static double *sm_dist;
 static int sm_dist_shift;
 static int sm_dist_mask;
-static double *soln, *soln2, *soln3;
+static double *soln = NULL, *soln2 = NULL, *soln3 = NULL;
 
 //------------------------------------------------------------------------------
 
@@ -86,18 +87,18 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	DdNode *maybe = jlong_to_DdNode(m); 		// 'maybe' states
 
 	// mtbdds
-	DdNode *reach, *a;
+	DdNode *reach = NULL, *a = NULL;
 	// model stats
 	int n, nm;
 	// flags
 	bool compact_r;
 	// hybrid stuff	
-	HDDMatrices *hddms, *hddms2;
-	HDDMatrix *hddm;
-	HDDNode *hdd;
+	HDDMatrices *hddms = NULL, *hddms2 = NULL;
+	HDDMatrix *hddm = NULL;
+	HDDNode *hdd = NULL;
 	// vectors
-	double *rew_vec, *tmpsoln;
-	DistVector *rew_dist;
+	double *rew_vec = NULL, *tmpsoln = NULL;
+	DistVector *rew_dist = NULL;
 	// timing stuff
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
@@ -105,6 +106,9 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	int i, j, k, iters;
 	double d, kb, kbt;
 	bool done;
+	
+	// exception handling around whole function
+	try {
 	
 	// start clocks
 	start1 = start2 = util_cpu_time();
@@ -126,14 +130,16 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	nm = hddms->nm;
 	kb = hddms->mem_nodes;
 	kbt = kb;
-	PH_PrintToMainLog(env, "[nm=%d, levels=%d, nodes=%d] [%.1f KB]\n", hddms->nm, hddms->num_levels, hddms->num_nodes, kb);
+	PH_PrintToMainLog(env, "[nm=%d, levels=%d, nodes=%d] ", hddms->nm, hddms->num_levels, hddms->num_nodes);
+	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// add sparse bits
 	PH_PrintToMainLog(env, "Adding sparse bits... ");
 	add_sparse_matrices_mdp(hddms, compact);
 	kb = hddms->mem_sm;
 	kbt += kb;
-	PH_PrintToMainLog(env, "[levels=%d-%d, num=%d, compact=%d/%d] [%.1f KB]\n", hddms->l_sm_min, hddms->l_sm_max, hddms->num_sm, hddms->compact_sm, hddms->nm, kb);
+	PH_PrintToMainLog(env, "[levels=%d-%d, num=%d, compact=%d/%d] ", hddms->l_sm_min, hddms->l_sm_max, hddms->num_sm, hddms->compact_sm, hddms->nm);
+	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// multiply transition rewards by transition probs and sum rows
 	// (note also filters out unwanted states at the same time)
@@ -148,14 +154,16 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	hddms2 = build_hdd_matrices_mdp(trans_rewards, hddms, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
 	kb = hddms2->mem_nodes;
 	kbt = kb;
-	PH_PrintToMainLog(env, "[nm=%d, levels=%d, nodes=%d] [%.1f KB]\n", hddms2->nm, hddms2->num_levels, hddms2->num_nodes, kb);
+	PH_PrintToMainLog(env, "[nm=%d, levels=%d, nodes=%d] ", hddms2->nm, hddms2->num_levels, hddms2->num_nodes);
+	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// add sparse bits
 	PH_PrintToMainLog(env, "Adding sparse bits... ");
 	add_sparse_matrices_mdp(hddms2, compact);
 	kb = hddms2->mem_sm;
 	kbt += kb;
-	PH_PrintToMainLog(env, "[levels=%d-%d, num=%d, compact=%d/%d] [%.1f KB]\n", hddms2->l_sm_min, hddms2->l_sm_max, hddms2->num_sm, hddms2->compact_sm, hddms2->nm, kb);
+	PH_PrintToMainLog(env, "[levels=%d-%d, num=%d, compact=%d/%d] ", hddms2->l_sm_min, hddms2->l_sm_max, hddms2->num_sm, hddms2->compact_sm, hddms2->nm);
+	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// remove goal and infinity states from state rewards vector
 	Cudd_Ref(state_rewards);
@@ -170,13 +178,13 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	if (compact) {
 		if (rew_dist = double_vector_to_dist(rew_vec, n)) {
 			compact_r = true;
-			free(rew_vec);
+			delete rew_vec; rew_vec = NULL;
 		}
 	}
 	kb = (!compact_r) ? n*8.0/1024.0 : (rew_dist->num_dist*8.0+n*2.0)/1024.0;
 	kbt += kb;
-	if (!compact_r) PH_PrintToMainLog(env, "[%.1f KB]\n", kb);
-	else PH_PrintToMainLog(env, "[dist=%d, compact] [%.1f KB]\n", rew_dist->num_dist, kb);
+	if (compact_r) PH_PrintToMainLog(env, "[dist=%d, compact] ", rew_dist->num_dist);
+	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// create solution/iteration vectors
 	PH_PrintToMainLog(env, "Allocating iteration vectors... ");
@@ -185,10 +193,10 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	soln3 = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 3*kb;
-	PH_PrintToMainLog(env, "[3 x %.1f KB]\n", kb);
+	PH_PrintMemoryToMainLog(env, "[3 x ", kb, "]\n");
 	
 	// print total memory usage
-	PH_PrintToMainLog(env, "TOTAL: [%.1f KB]\n", kbt);
+	PH_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 	
 	// initial solution is zero
 	for (i = 0; i < n; i++) {
@@ -318,18 +326,26 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	// print iterations/timing info
 	PH_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
-	// free memory
-	Cudd_RecursiveDeref(ddman, a);
-	Cudd_RecursiveDeref(ddman, state_rewards);
-	Cudd_RecursiveDeref(ddman, trans_rewards);
-	free_hdd_matrices_mdp(hddms);
-	free_hdd_matrices_mdp(hddms2);
-	if (compact_r) free_dist_vector(rew_dist); else free(rew_vec);
-	delete soln2;
-	delete soln3;
-	
 	// if the iterative method didn't terminate, this is an error
-	if (!done) { delete soln; PH_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); return 0; }
+	if (!done) { delete soln; soln = NULL; PH_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
+	
+	// catch exceptions: register error, free memory
+	} catch (std::bad_alloc e) {
+		PH_SetErrorMessage("Out of memory");
+		if (soln) delete[] soln;
+		soln = 0;
+	}
+	
+	// free memory
+	if (a) Cudd_RecursiveDeref(ddman, a);
+	if (state_rewards) Cudd_RecursiveDeref(ddman, state_rewards);
+	if (trans_rewards) Cudd_RecursiveDeref(ddman, trans_rewards);
+	if (hddms) delete hddms;
+	if (hddms2) delete hddms2;
+	if (rew_vec) delete[] rew_vec;
+	if (rew_dist) delete rew_dist;
+	if (soln2) delete soln2;
+	if (soln3) delete soln3;
 	
 	return ptr_to_jlong(soln);
 }

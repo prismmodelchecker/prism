@@ -36,6 +36,7 @@
 #include "hybrid.h"
 #include "PrismHybridGlob.h"
 #include "jnipointer.h"
+#include <new>
 
 // local prototypes
 static void power_rec(HDDNode *hdd, int level, int row_offset, int col_offset, bool transpose);
@@ -49,7 +50,7 @@ static bool compact_sm;
 static double *sm_dist;
 static int sm_dist_shift;
 static int sm_dist_mask;
-static double *soln, *soln2;
+static double *soln = NULL, *soln2 = NULL;
 
 //------------------------------------------------------------------------------
 
@@ -84,11 +85,11 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 	// flags
 	bool compact_b;
 	// matrix mtbdd
-	HDDMatrix *hddm;
-	HDDNode *hdd;
+	HDDMatrix *hddm = NULL;
+	HDDNode *hdd = NULL;
 	// vectors
-	double *b_vec, *tmpsoln;
-	DistVector *b_dist;
+	double *b_vec = NULL, *tmpsoln = NULL;
+	DistVector *b_dist = NULL;
 	// timing stuff
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
@@ -96,6 +97,9 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 	int i, iters;
 	double kb, kbt;
 	bool done;
+	
+	// exception handling around whole function
+	try {
 	
 	// start clocks
 	start1 = start2 = util_cpu_time();
@@ -114,7 +118,8 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 	num_levels = hddm->num_levels;
 	kb = hddm->mem_nodes;
 	kbt = kb;
-	PH_PrintToMainLog(env, "[levels=%d, nodes=%d] [%.1f KB]\n", hddm->num_levels, hddm->num_nodes, kb);
+	PH_PrintToMainLog(env, "[levels=%d, nodes=%d] ", hddm->num_levels, hddm->num_nodes);
+	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// add sparse matrices
 	PH_PrintToMainLog(env, "Adding explicit sparse matrices... ");
@@ -127,7 +132,8 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 	}
 	kb = hddm->mem_sm;
 	kbt += kb;
-	PH_PrintToMainLog(env, "[levels=%d, num=%d%s] [%.1f KB]\n", hddm->l_sm, hddm->num_sm, compact_sm?", compact":"", kb);
+	PH_PrintToMainLog(env, "[levels=%d, num=%d%s] ", hddm->l_sm, hddm->num_sm, compact_sm?", compact":"");
+	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// build b vector (if present)
 	if (b != NULL) {
@@ -138,13 +144,13 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 		if (compact) {
 			if (b_dist = double_vector_to_dist(b_vec, n)) {
 				compact_b = true;
-				free(b_vec);
+				delete[] b_vec; b_vec = NULL;
 			}
 		}
 		kb = (!compact_b) ? n*8.0/1024.0 : (b_dist->num_dist*8.0+n*2.0)/1024.0;
 		kbt += kb;
-		if (!compact_b) PH_PrintToMainLog(env, "[%.1f KB]\n", kb);
-		else PH_PrintToMainLog(env, "[dist=%d, compact] [%.1f KB]\n", b_dist->num_dist, kb);
+		if (compact_b) PH_PrintToMainLog(env, "[dist=%d, compact] ", b_dist->num_dist);
+		PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	}
 	
 	// create solution/iteration vectors
@@ -153,10 +159,10 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 	soln2 = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 2*kb;
-	PH_PrintToMainLog(env, "[2 x %.1f KB]\n", kb);
+	PH_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
 	
 	// print total memory usage
-	PH_PrintToMainLog(env, "TOTAL: [%.1f KB]\n", kbt);
+	PH_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 	
 	// get setup time
 	stop = util_cpu_time();
@@ -230,14 +236,22 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 	// print iters/timing info
 	PH_PrintToMainLog(env, "\nPower method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
-	// free memory
-	Cudd_RecursiveDeref(ddman, a);
-	free_hdd_matrix(hddm);
-	if (b != NULL) if (compact_b) free_dist_vector(b_dist); else free(b_vec);
-	delete soln2;
-	
 	// if the iterative method didn't terminate, this is an error
-	if (!done) { delete soln; PH_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); return 0; }
+	if (!done) { delete soln; soln = NULL; PH_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
+	
+	// catch exceptions: register error, free memory
+	} catch (std::bad_alloc e) {
+		PH_SetErrorMessage("Out of memory");
+		if (soln) delete[] soln;
+		soln = 0;
+	}
+	
+	// free memory
+	if (a) Cudd_RecursiveDeref(ddman, a);
+	if (hddm) delete hddm;
+	if (b_vec) delete[] b_vec;
+	if (b_dist) delete b_dist;
+	if (soln2) delete soln2;
 	
 	return ptr_to_jlong(soln);
 }

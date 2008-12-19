@@ -35,6 +35,7 @@
 #include "sparse.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
+#include <new>
 
 //------------------------------------------------------------------------------
 
@@ -67,18 +68,18 @@ jboolean forwards	// forwards or backwards?
 	DdNode *init = jlong_to_DdNode(_init);		// init soln
 
 	// mtbdds
-	DdNode *reach, *diags, *id;
+	DdNode *reach = NULL, *diags = NULL, *id = NULL;
 	// model stats
 	int n;
 	long nnz;
 	// flags
 	bool compact_a, compact_d, compact_b;
 	// sparse matrix
-	RMSparseMatrix *rmsm;
-	CMSRSparseMatrix *cmsrsm;
+	RMSparseMatrix *rmsm = NULL;
+	CMSRSparseMatrix *cmsrsm = NULL;
 	// vectors
-	double *diags_vec, *b_vec, *soln;
-	DistVector *diags_dist, *b_dist;
+	double *diags_vec = NULL, *b_vec = NULL, *soln = NULL;
+	DistVector *diags_dist = NULL, *b_dist = NULL;
 	// timing stuff
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
@@ -86,6 +87,9 @@ jboolean forwards	// forwards or backwards?
 	int i, j, fb, l, h, iters;
 	double d, x, sup_norm, kb, kbt;
 	bool done;
+	
+	// exception handling around whole function
+	try {
 	
 	// start clocks
 	start1 = start2 = util_cpu_time();
@@ -126,10 +130,10 @@ jboolean forwards	// forwards or backwards?
 		nnz = rmsm->nnz;
 		kb = rmsm->mem;
 	}
+	kbt = kb;
 	// print some info
 	PS_PrintToMainLog(env, "[n=%d, nnz=%d%s] ", n, nnz, compact_a?", compact":"");
-	kbt = kb;
-	PS_PrintToMainLog(env, "[%.1f KB]\n", kb);
+	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// get vector of diags, either by extracting from mtbdd or
 	// by doing (negative, non-diagonal) row sums of original A matrix
@@ -149,13 +153,13 @@ jboolean forwards	// forwards or backwards?
 	if (compact) {
 		if (diags_dist = double_vector_to_dist(diags_vec, n)) {
 			compact_d = true;
-			free(diags_vec);
+			delete diags_vec; diags_vec = NULL;
 		}
 	}
 	kb = (!compact_d) ? n*8.0/1024.0 : (diags_dist->num_dist*8.0+n*2.0)/1024.0;
 	kbt += kb;
-	if (!compact_d) PS_PrintToMainLog(env, "[%.1f KB]\n", kb);
-	else PS_PrintToMainLog(env, "[dist=%d, compact] [%.1f KB]\n", diags_dist->num_dist, kb);
+	if (compact_d) PS_PrintToMainLog(env, "[dist=%d, compact] ", diags_dist->num_dist);
+	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// invert diagonal
 	if (!compact_d) {
@@ -173,13 +177,13 @@ jboolean forwards	// forwards or backwards?
 		if (compact) {
 			if (b_dist = double_vector_to_dist(b_vec, n)) {
 				compact_b = true;
-				free(b_vec);
+				delete b_vec; b_vec = NULL;
 			}
 		}
 		kb = (!compact_b) ? n*8.0/1024.0 : (b_dist->num_dist*8.0+n*2.0)/1024.0;
 		kbt += kb;
-		if (!compact_b) PS_PrintToMainLog(env, "[%.1f KB]\n", kb);
-		else PS_PrintToMainLog(env, "[dist=%d, compact] [%.1f KB]\n", b_dist->num_dist, kb);
+		if (compact_b) PS_PrintToMainLog(env, "[dist=%d, compact] ", b_dist->num_dist);
+		PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	}
 	
 	// create solution/iteration vectors
@@ -187,10 +191,10 @@ jboolean forwards	// forwards or backwards?
 	soln = mtbdd_to_double_vector(ddman, init, rvars, num_rvars, odd);
 	kb = n*8.0/1024.0;
 	kbt += kb;
-	PS_PrintToMainLog(env, "[%.1f KB]\n", kb);
+	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// print total memory usage
-	PS_PrintToMainLog(env, "TOTAL: [%.1f KB]\n", kbt);
+	PS_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 	
 	// get setup time
 	stop = util_cpu_time();
@@ -292,16 +296,26 @@ jboolean forwards	// forwards or backwards?
 	// print iters/timing info
 	PS_PrintToMainLog(env, "\n%s%s: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", forwards?"":"Backwards ", (omega == 1.0)?"Gauss-Seidel":"SOR", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
-	// free memory
-	Cudd_RecursiveDeref(ddman, a);
-	Cudd_RecursiveDeref(ddman, id);
-	Cudd_RecursiveDeref(ddman, diags);
-	if (compact_a) free_cmsr_sparse_matrix(cmsrsm); else free_rm_sparse_matrix(rmsm);
-	if (compact_d) free_dist_vector(diags_dist); else free(diags_vec);
-	if (b != NULL) if (compact_b) free_dist_vector(b_dist); else free(b_vec);
-	
 	// if the iterative method didn't terminate, this is an error
-	if (!done) { delete soln; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); return 0; }
+	if (!done) { delete soln; soln = NULL; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
+	
+	// catch exceptions: register error, free memory
+	} catch (std::bad_alloc e) {
+		PS_SetErrorMessage("Out of memory");
+		if (soln) delete[] soln;
+		soln = 0;
+	}
+	
+	// free memory
+	if (a) Cudd_RecursiveDeref(ddman, a);
+	if (id) Cudd_RecursiveDeref(ddman, id);
+	if (diags) Cudd_RecursiveDeref(ddman, diags);
+	if (rmsm) delete rmsm;
+	if (cmsrsm) delete cmsrsm;
+	if (diags_vec) delete[] diags_vec;
+	if (diags_dist) delete diags_dist;
+	if (b_vec) delete[] b_vec;
+	if (b_dist) delete b_dist;
 	
 	return ptr_to_jlong(soln);
 }

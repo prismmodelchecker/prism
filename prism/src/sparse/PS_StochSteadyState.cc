@@ -35,6 +35,7 @@
 #include "sparse.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
+#include <new>
 
 //------------------------------------------------------------------------------
 
@@ -59,14 +60,17 @@ jint num_cvars
 	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
 
 	// mtbdds
-	DdNode *diags, *q, *a, *tmp;
+	DdNode *diags = NULL, *q = NULL, *a = NULL, *tmp = NULL;
 	// model stats
 	int n;
 	// vectors
-	double *soln;
+	double *soln = NULL;
 	// misc
 	int i;
 	double deltat, d;
+	
+	// exception handling around whole function
+	try {
 	
 	// get number of states
 	n = odd->eoff + odd->toff;
@@ -148,8 +152,15 @@ jint num_cvars
 		}
 	}
 	
+	// catch exceptions: register error, free memory
+	} catch (std::bad_alloc e) {
+		PS_SetErrorMessage("Out of memory");
+		if (soln) delete[] soln;
+		soln = 0;
+	}
+	
 	// free memory
-	Cudd_RecursiveDeref(ddman, a);
+	if (a) Cudd_RecursiveDeref(ddman, a);
 	
 	return ptr_to_jlong(soln);
 }

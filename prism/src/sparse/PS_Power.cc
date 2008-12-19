@@ -35,6 +35,7 @@
 #include "sparse.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
+#include <new>
 
 //------------------------------------------------------------------------------
 
@@ -71,11 +72,11 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 	// flags
 	bool compact_a, compact_b;
 	// sparse matrix
-	RMSparseMatrix *rmsm;
-	CMSRSparseMatrix *cmsrsm;
+	RMSparseMatrix *rmsm = NULL;
+	CMSRSparseMatrix *cmsrsm = NULL;
 	// vectors
-	double *b_vec, *soln, *soln2, *tmpsoln;
-	DistVector *b_dist;
+	double *b_vec = NULL, *soln = NULL, *soln2 = NULL, *tmpsoln = NULL;
+	DistVector *b_dist = NULL;
 	// timing stuff
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
@@ -83,6 +84,9 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 	int i, j, l, h, iters;
 	double d, kb, kbt;
 	bool done;
+	
+	// exception handling around whole function
+	try {
 	
 	// start clocks
 	start1 = start2 = util_cpu_time();
@@ -110,10 +114,10 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 		nnz = rmsm->nnz;
 		kb = rmsm->mem;
 	}
+	kbt = kb;
 	// print some info
 	PS_PrintToMainLog(env, "[n=%d, nnz=%d%s] ", n, nnz, compact_a?", compact":"");
-	kbt = kb;
-	PS_PrintToMainLog(env, "[%.1f KB]\n", kb);
+	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// build b vector (if present)
 	if (b != NULL) {
@@ -124,13 +128,13 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 		if (compact) {
 			if (b_dist = double_vector_to_dist(b_vec, n)) {
 				compact_b = true;
-				free(b_vec);
+				delete b_vec; b_vec = NULL;
 			}
 		}
 		kb = (!compact_b) ? n*8.0/1024.0 : (b_dist->num_dist*8.0+n*2.0)/1024.0;
 		kbt += kb;
-		if (!compact_b) PS_PrintToMainLog(env, "[%.1f KB]\n", kb);
-		else PS_PrintToMainLog(env, "[dist=%d, compact] [%.1f KB]\n", b_dist->num_dist, kb);
+		if (compact_b) PS_PrintToMainLog(env, "[dist=%d, compact] ", b_dist->num_dist);
+		PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	}
 	
 	// create solution/iteration vectors
@@ -139,10 +143,10 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 	soln2 = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 2*kb;
-	PS_PrintToMainLog(env, "[2 x %.1f KB]\n", kb);
+	PS_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
 	
 	// print total memory usage
-	PS_PrintToMainLog(env, "TOTAL: [%.1f KB]\n", kbt);
+	PS_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 	
 	// get setup time
 	stop = util_cpu_time();
@@ -249,14 +253,23 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 	// print iters/timing info
 	PS_PrintToMainLog(env, "\nPower method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
-	// free memory
-	Cudd_RecursiveDeref(ddman, a);
-	if (compact_a) free_cmsr_sparse_matrix(cmsrsm); else free_rm_sparse_matrix(rmsm);
-	if (b != NULL) if (compact_b) free_dist_vector(b_dist); else free(b_vec);
-	delete soln2;
-	
 	// if the iterative method didn't terminate, this is an error
-	if (!done) { delete soln; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); return 0; }
+	if (!done) { delete soln; soln = NULL; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
+	
+	// catch exceptions: register error, free memory
+	} catch (std::bad_alloc e) {
+		PS_SetErrorMessage("Out of memory");
+		if (soln) delete[] soln;
+		soln = 0;
+	}
+	
+	// free memory
+	if (a) Cudd_RecursiveDeref(ddman, a);
+	if (rmsm) delete rmsm;
+	if (cmsrsm) delete cmsrsm;
+	if (b_vec) delete[] b_vec;
+	if (b_dist) delete b_dist;
+	if (soln2) delete[] soln2;
 	
 	return ptr_to_jlong(soln);
 }

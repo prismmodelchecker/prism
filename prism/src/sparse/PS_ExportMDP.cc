@@ -33,6 +33,7 @@
 #include "sparse.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
+#include <new>
 
 //------------------------------------------------------------------------------
 
@@ -60,11 +61,14 @@ jstring fn		// filename
 	ODDNode *odd = jlong_to_ODDNode(od);
 
 	// sparse matrix
-	NDSparseMatrix *ndsm;
+	NDSparseMatrix *ndsm = NULL;
 	// model stats
 	int i, j, k, n, nc, l1, h1, l2, h2;
 	long nnz;
 	const char *export_name;
+	
+	// exception handling around whole function
+	try {
 	
 	// store export info
 	if (!store_export_info(et, fn, env)) return -1;
@@ -122,6 +126,14 @@ jstring fn		// filename
 	// close file, etc.
 	if (export_file) fclose(export_file);
 	env->ReleaseStringUTFChars(na, export_name);
+	
+	// catch exceptions: return (undocumented) error code for memout
+	} catch (std::bad_alloc e) {
+		return -2;
+	}
+	
+	// free memory
+	if (ndsm) delete ndsm;
 	
 	return 0;
 }

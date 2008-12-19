@@ -627,7 +627,7 @@ public class ProbModel implements Model
 
 	// export transition matrix to a file
 
-	public void exportToFile(int exportType, boolean explicit, File file) throws FileNotFoundException
+	public void exportToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException
 	{
 		if (!explicit) {
 			PrismMTBDD.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType,

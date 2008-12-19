@@ -35,6 +35,7 @@
 #include "sparse.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
+#include <new>
 
 //------------------------------------------------------------------------------
 
@@ -76,9 +77,9 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	int n, nc, nc_r;
 	long nnz, nnz_r;
 	// sparse matrix
-	NDSparseMatrix *ndsm, *ndsm_r;
+	NDSparseMatrix *ndsm = NULL, *ndsm_r = NULL;
 	// vectors
-	double *sr_vec, *soln, *soln2, *tmpsoln, *inf_vec;
+	double *sr_vec = NULL, *soln = NULL, *soln2 = NULL, *tmpsoln = NULL, *inf_vec = NULL;
 	// timing stuff
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
@@ -90,6 +91,9 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	int i, j, k, k_r, l1, h1, l2, h2, l2_r, h2_r, iters;
 	double d1, d2, kb, kbt;
 	bool done, first;
+	
+	// exception handling around whole function
+	try {
 	
 	// start clocks	
 	start1 = start2 = util_cpu_time();
@@ -118,11 +122,11 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	// get number of transitions/choices
 	nnz = ndsm->nnz;
 	nc = ndsm->nc;
-	// print out info
-	PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc, nnz, ndsm->k);
 	kb = (nnz*12.0+nc*4.0+n*4.0)/1024.0;
 	kbt = kb;
-	PS_PrintToMainLog(env, "[%.1f KB]\n", kb);
+	// print out info
+	PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc, nnz, ndsm->k);
+	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// build sparse matrix (rewards)
 	PS_PrintToMainLog(env, "Building sparse matrix (transition rewards)... ");
@@ -134,14 +138,14 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc_r, nnz_r, ndsm_r->k);
 	kb = (nnz_r*12.0+nc_r*4.0+n*4.0)/1024.0;
 	kbt += kb;
-	PS_PrintToMainLog(env, "[%.1f KB]\n", kb);
+	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// get vector for state rewards
 	PS_PrintToMainLog(env, "Creating vector for state rewards... ");
 	sr_vec = mtbdd_to_double_vector(ddman, state_rewards, rvars, num_rvars, odd);
 	kb = n*8.0/1024.0;
 	kbt += kb;
-	PS_PrintToMainLog(env, "[%.1f KB]\n", kb);
+	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// create solution/iteration vectors
 	PS_PrintToMainLog(env, "Allocating iteration vectors... ");
@@ -149,10 +153,10 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	soln2 = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 2*kb;
-	PS_PrintToMainLog(env, "[2 x %.1f KB]\n", kb);
+	PS_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
 
 	// print total memory usage
-	PS_PrintToMainLog(env, "TOTAL: [%.1f KB]\n", kbt);
+	PS_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 
 	// initial solution is zero
 	for (i = 0; i < n; i++) {
@@ -288,6 +292,9 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	// print iterations/timing info
 	PS_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
+	// if the iterative method didn't terminate, this is an error
+	if (!done) { delete soln; soln = NULL; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
+	
 	// set reward for infinity states to infinity
 	if (soln != NULL) {
 		// first, generate vector for inf
@@ -301,17 +308,21 @@ jboolean min		// min or max probabilities (true = min, false = max)
 		fclose(fp_adv);
 	}
 	
-	// free memory
-	Cudd_RecursiveDeref(ddman, a);
-	Cudd_RecursiveDeref(ddman, state_rewards);
-	Cudd_RecursiveDeref(ddman, trans_rewards);
-	free_nd_sparse_matrix(ndsm);
-	free_nd_sparse_matrix(ndsm_r);
-	delete sr_vec;
-	delete soln2;
+	// catch exceptions: register error, free memory
+	} catch (std::bad_alloc e) {
+		PS_SetErrorMessage("Out of memory");
+		if (soln) delete[] soln;
+		soln = 0;
+	}
 	
-	// if the iterative method didn't terminate, this is an error
-	if (!done) { delete soln; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); return 0; }
+	// free memory
+	if (a) Cudd_RecursiveDeref(ddman, a);
+	if (state_rewards) Cudd_RecursiveDeref(ddman, state_rewards);
+	if (trans_rewards) Cudd_RecursiveDeref(ddman, trans_rewards);
+	if (ndsm) delete ndsm;
+	if (ndsm_r) delete ndsm_r;
+	if (sr_vec) delete[] sr_vec;
+	if (soln2) delete[] soln2;
 	
 	return ptr_to_jlong(soln);
 }

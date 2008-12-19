@@ -32,8 +32,6 @@
 
 //------------------------------------------------------------------------------
 
-void fatal(char *s); 
-
 // hdd data structure definitions
 
 // hybrid mtbdd node (based on structure of CUDD nodes)
@@ -89,6 +87,9 @@ struct HDDBlocks
 	int dist_num;
 	int dist_shift;
 	int dist_mask;
+	
+	HDDBlocks();
+	~HDDBlocks();
 };
 
 // hybrid mtbdd matrix
@@ -132,6 +133,9 @@ struct HDDMatrix
 	int dist_num;
 	int dist_shift;
 	int dist_mask;
+	
+	HDDMatrix();
+	~HDDMatrix();
 };
 
 // hybrid mtbdd matrices
@@ -156,6 +160,9 @@ struct HDDMatrices
 	HDDMatrix **choices;
 	// and their bdd cubes
 	DdNode **cubes;
+	
+	HDDMatrices();
+	~HDDMatrices();
 };
 
 //------------------------------------------------------------------------------
@@ -177,8 +184,5 @@ void rearrange_hdd_blocks(HDDMatrix *hddm, bool ooc);
 double *hdd_negative_row_sums(HDDMatrix *hddm, int n);
 
 double *hdd_negative_row_sums(HDDMatrix *hddm, int n, bool transpose);
-
-void free_hdd_matrix(HDDMatrix *hddm);
-void free_hdd_matrices_mdp(HDDMatrices *hddms);
 
 //------------------------------------------------------------------------------

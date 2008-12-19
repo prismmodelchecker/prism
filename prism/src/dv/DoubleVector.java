@@ -72,9 +72,10 @@ public class DoubleVector
 	// constructors
 	
 	private native long DV_CreateZeroVector(int n);
-	public DoubleVector(int size)
+	public DoubleVector(int size) throws PrismException
 	{
 		v = DV_CreateZeroVector(size);
+		if (v == 0) throw new PrismException("Out of memory");
 		n = size;
 	}
 	
@@ -206,7 +207,8 @@ public class DoubleVector
 	// the dd var subset must be a continuous range of vars, identified by indices: first_var, last_var
 	// store the result in a new DoubleVector (whose indices are given by odd2)
 	private native void DV_SumOverDDVars(long vec, long vec2, long vars, int num_vars, int first_var, int last_var, long odd, long odd2);
-	public DoubleVector sumOverDDVars(JDDVars vars, ODDNode odd, ODDNode odd2, int first_var, int last_var)
+	// throws PrismException on out-of-memory
+	public DoubleVector sumOverDDVars(JDDVars vars, ODDNode odd, ODDNode odd2, int first_var, int last_var) throws PrismException
 	{
 		DoubleVector dv2 = new DoubleVector((int)(odd2.getEOff() + odd2.getTOff()));
 		DV_SumOverDDVars(v, dv2.v, vars.array(), vars.n(), first_var, last_var, odd.ptr(), odd2.ptr());

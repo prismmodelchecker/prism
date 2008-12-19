@@ -35,6 +35,7 @@
 #include "sparse.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
+#include <new>
 
 //------------------------------------------------------------------------------
 
@@ -67,13 +68,16 @@ jlong __jlongpointer m	// 'maybe' states
 	DdNode *maybe = jlong_to_DdNode(m); 		// 'maybe' states
 
 	// mtbdds
-	DdNode *reach, *a, *tmp;
+	DdNode *reach = NULL, *a = NULL, *tmp = NULL;
 	// model stats
 	int n;
 	// vectors
-	double *soln, *inf_vec;
+	double *soln = NULL, *inf_vec = NULL;
 	// misc
 	int i;
+	
+	// exception handling around whole function
+	try {
 	
 	// get number of states
 	n = odd->eoff + odd->toff;
@@ -137,13 +141,20 @@ jlong __jlongpointer m	// 'maybe' states
 		inf_vec = mtbdd_to_double_vector(ddman, inf, rvars, num_rvars, odd);
 		// go thru setting elements of soln to infinity
 		for (i = 0; i < n; i++) if (inf_vec[i] > 0) soln[i] = HUGE_VAL;
-		free(inf_vec);
+		delete[] inf_vec;
+	}
+	
+	// catch exceptions: register error, free memory
+	} catch (std::bad_alloc e) {
+		PS_SetErrorMessage("Out of memory");
+		if (soln) delete[] soln;
+		soln = 0;
 	}
 	
 	// free remaining memory
-	Cudd_RecursiveDeref(ddman, a);
-	Cudd_RecursiveDeref(ddman, state_rewards);
-	Cudd_RecursiveDeref(ddman, trans_rewards);
+	if (a) Cudd_RecursiveDeref(ddman, a);
+	if (state_rewards) Cudd_RecursiveDeref(ddman, state_rewards);
+	if (trans_rewards) Cudd_RecursiveDeref(ddman, trans_rewards);
 	
 	return ptr_to_jlong(soln);
 }

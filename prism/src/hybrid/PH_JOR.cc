@@ -36,6 +36,7 @@
 #include "hybrid.h"
 #include "PrismHybridGlob.h"
 #include "jnipointer.h"
+#include <new>
 
 // local prototypes
 static void jor_rec(HDDNode *hdd, int level, int row_offset, int col_offset, bool transpose);
@@ -49,7 +50,7 @@ static bool compact_sm;
 static double *sm_dist;
 static int sm_dist_shift;
 static int sm_dist_mask;
-static double *soln, *soln2;
+static double *soln = NULL, *soln2 = NULL;
 
 //------------------------------------------------------------------------------
 
@@ -81,17 +82,17 @@ jdouble omega		// omega (over-relaxation parameter)
 	DdNode *init = jlong_to_DdNode(_init);		// init soln
 
 	// mtbdds
-	DdNode *reach, *diags, *id;
+	DdNode *reach = NULL, *diags = NULL, *id = NULL;
 	// model stats
 	int n;
 	// flags
 	bool compact_d, compact_b;
 	// matrix mtbdd
-	HDDMatrix *hddm;
-	HDDNode *hdd;
+	HDDMatrix *hddm = NULL;
+	HDDNode *hdd = NULL;
 	// vectors
-	double *diags_vec, *b_vec, *tmpsoln;
-	DistVector *diags_dist, *b_dist;
+	double *diags_vec = NULL, *b_vec = NULL, *tmpsoln = NULL;
+	DistVector *diags_dist = NULL, *b_dist = NULL;
 	// timing stuff
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
@@ -99,6 +100,9 @@ jdouble omega		// omega (over-relaxation parameter)
 	int i, iters;
 	double kb, kbt;
 	bool done;
+	
+	// exception handling around whole function
+	try {
 	
 	// start clocks
 	start1 = start2 = util_cpu_time();
@@ -130,7 +134,8 @@ jdouble omega		// omega (over-relaxation parameter)
 	num_levels = hddm->num_levels;
 	kb = hddm->mem_nodes;
 	kbt = kb;
-	PH_PrintToMainLog(env, "[levels=%d, nodes=%d] [%.1f KB]\n", hddm->num_levels, hddm->num_nodes, kb);
+	PH_PrintToMainLog(env, "[levels=%d, nodes=%d] ", hddm->num_levels, hddm->num_nodes);
+	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// add sparse matrices
 	PH_PrintToMainLog(env, "Adding explicit sparse matrices... ");
@@ -143,7 +148,8 @@ jdouble omega		// omega (over-relaxation parameter)
 	}
 	kb = hddm->mem_sm;
 	kbt += kb;
-	PH_PrintToMainLog(env, "[levels=%d, num=%d%s] [%.1f KB]\n", hddm->l_sm, hddm->num_sm, compact_sm?", compact":"", kb);
+	PH_PrintToMainLog(env, "[levels=%d, num=%d%s] ", hddm->l_sm, hddm->num_sm, compact_sm?", compact":"");
+	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// get vector of diags, either by extracting from mtbdd or
 	// by doing (negative, non-diagonal) row sums of original A matrix (and then setting to 1 if sum is 0)
@@ -164,13 +170,13 @@ jdouble omega		// omega (over-relaxation parameter)
 	if (compact) {
 		if (diags_dist = double_vector_to_dist(diags_vec, n)) {
 			compact_d = true;
-			free(diags_vec);
+			delete[] diags_vec; diags_vec = NULL;
 		}
 	}
 	kb = (!compact_d) ? n*8.0/1024.0 : (diags_dist->num_dist*8.0+n*2.0)/1024.0;
 	kbt += kb;
-	if (!compact_d) PH_PrintToMainLog(env, "[%.1f KB]\n", kb);
-	else PH_PrintToMainLog(env, "[dist=%d, compact] [%.1f KB]\n", diags_dist->num_dist, kb);
+	if (compact_d) PH_PrintToMainLog(env, "[dist=%d, compact] ", diags_dist->num_dist);
+	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// invert diagonal
 	if (!compact_d) {
@@ -188,26 +194,27 @@ jdouble omega		// omega (over-relaxation parameter)
 		if (compact) {
 			if (b_dist = double_vector_to_dist(b_vec, n)) {
 				compact_b = true;
-				free(b_vec);
+				delete[] b_vec; b_vec = NULL;
 			}
 		}
 		kb = (!compact_b) ? n*8.0/1024.0 : (b_dist->num_dist*8.0+n*2.0)/1024.0;
 		kbt += kb;
-		if (!compact_b) PH_PrintToMainLog(env, "[%.1f KB]\n", kb);
-		else PH_PrintToMainLog(env, "[dist=%d, compact] [%.1f KB]\n", b_dist->num_dist, kb);
+		if (compact_b) PH_PrintToMainLog(env, "[dist=%d, compact] ", b_dist->num_dist);
+		PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	}
 	
 	// create solution/iteration vectors
 	PH_PrintToMainLog(env, "Allocating iteration vectors... ");
 	soln = mtbdd_to_double_vector(ddman, init, rvars, num_rvars, odd);
+	
 	soln2 = new double[n];
 	if (!soln2) { PH_SetErrorMessage("Out of memory"); return 0; }
 	kb = n*8.0/1024.0;
 	kbt += 2*kb;
-	PH_PrintToMainLog(env, "[2 x %.1f KB]\n", kb);
+	PH_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
 	
 	// print total memory usage
-	PH_PrintToMainLog(env, "TOTAL: [%.1f KB]\n", kbt);
+	PH_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 	
 	// get setup time
 	stop = util_cpu_time();
@@ -295,17 +302,26 @@ jdouble omega		// omega (over-relaxation parameter)
 	// print iters/timing info
 	PH_PrintToMainLog(env, "\n%s: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", (omega == 1.0)?"Jacobi":"JOR", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
-	// free memory
-	Cudd_RecursiveDeref(ddman, a);
-	Cudd_RecursiveDeref(ddman, id);
-	Cudd_RecursiveDeref(ddman, diags);
-	free_hdd_matrix(hddm);
-	if (compact_d) free_dist_vector(diags_dist); else free(diags_vec);
-	if (b != NULL) if (compact_b) free_dist_vector(b_dist); else free(b_vec);
-	delete soln2;
-	
 	// if the iterative method didn't terminate, this is an error
-	if (!done) { delete soln; PH_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); return 0; }
+	if (!done) { delete soln; soln = NULL; PH_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
+	
+	// catch exceptions: register error, free memory
+	} catch (std::bad_alloc e) {
+		PH_SetErrorMessage("Out of memory");
+		if (soln) delete[] soln;
+		soln = 0;
+	}
+	
+	// free memory
+	if (a) Cudd_RecursiveDeref(ddman, a);
+	if (id) Cudd_RecursiveDeref(ddman, id);
+	if (diags) Cudd_RecursiveDeref(ddman, diags);
+	if (hddm) delete hddm;
+	if (diags_vec) delete[] diags_vec;
+	if (diags_dist) delete diags_dist;
+	if (b_vec) delete[] b_vec;
+	if (b_dist) delete b_dist;
+	if (soln2) delete soln2;
 	
 	return ptr_to_jlong(soln);
 }

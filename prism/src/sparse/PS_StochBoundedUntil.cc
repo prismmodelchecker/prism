@@ -36,6 +36,7 @@
 #include "sparse.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
+#include <new>
 
 //------------------------------------------------------------------------------
 
@@ -68,15 +69,15 @@ jlong __jlongpointer mu	// probs for multiplying
 	int n;
 	long nnz;
 	// mtbdds	
-	DdNode *r;
+	DdNode *r = NULL;
 	// flags
 	bool compact_tr, compact_d;
 	// sparse matrix
-	RMSparseMatrix *rmsm;
-	CMSRSparseMatrix *cmsrsm;
+	RMSparseMatrix *rmsm = NULL;
+	CMSRSparseMatrix *cmsrsm = NULL;
 	// vectors
-	double *diags, *soln, *soln2, *tmpsoln, *sum;
-	DistVector *diags_dist;
+	double *diags = NULL, *soln = NULL, *soln2 = NULL, *tmpsoln = NULL, *sum = NULL;
+	DistVector *diags_dist = NULL;
 	// fox glynn stuff
 	FoxGlynnWeights fgw;
 	// timing stuff
@@ -86,6 +87,9 @@ jlong __jlongpointer mu	// probs for multiplying
 	bool done;
 	int i, j, l, h, iters, num_iters;
 	double d, x, max_diag, weight, kb, kbt, unif, term_crit_param_unif;
+	
+	// exception handling around whole function
+	try {
 	
 	// start clocks	
 	start1 = start2 = util_cpu_time();
@@ -119,10 +123,10 @@ jlong __jlongpointer mu	// probs for multiplying
 		nnz = rmsm->nnz;
 		kb = rmsm->mem;
 	}
+	kbt = kb;
 	// print some info
 	PS_PrintToMainLog(env, "[n=%d, nnz=%d%s] ", n, nnz, compact_tr?", compact":"");
-	kbt = kb;
-	PS_PrintToMainLog(env, "[%.1f KB]\n", kb);
+	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// get vector of diagonals
 	PS_PrintToMainLog(env, "Creating vector for diagonals... ");
@@ -132,13 +136,13 @@ jlong __jlongpointer mu	// probs for multiplying
 	if (compact) {
 		if (diags_dist = double_vector_to_dist(diags, n)) {
 			compact_d = true;
-			free(diags);
+			delete diags; diags = NULL;
 		}
 	}
 	kb = (!compact_d) ? n*8.0/1024.0 : (diags_dist->num_dist*8.0+n*2.0)/1024.0;
 	kbt += kb;
-	if (!compact_d) PS_PrintToMainLog(env, "[%.1f KB]\n", kb);
-	else PS_PrintToMainLog(env, "[dist=%d, compact] [%.1f KB]\n", diags_dist->num_dist, kb);
+	if (compact_d) PS_PrintToMainLog(env, "[dist=%d, compact] ", diags_dist->num_dist);
+	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// find max diagonal element
 	if (!compact_d) {
@@ -174,7 +178,7 @@ jlong __jlongpointer mu	// probs for multiplying
 	sum = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 3*kb;
-	PS_PrintToMainLog(env, "[3 x %.1f KB]\n", kb);
+	PS_PrintMemoryToMainLog(env, "[3 x ", kb, "]\n");
 	
 	// multiply initial solution by 'mult' probs
 	if (mult != NULL) {
@@ -184,7 +188,7 @@ jlong __jlongpointer mu	// probs for multiplying
 	}
 	
 	// print total memory usage
-	PS_PrintToMainLog(env, "TOTAL: [%.1f KB]\n", kbt);
+	PS_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 	
 	// compute new termination criterion parameter (epsilon/8)
 	term_crit_param_unif = term_crit_param / 8.0;
@@ -332,12 +336,21 @@ jlong __jlongpointer mu	// probs for multiplying
 	if (num_iters == -1) num_iters = fgw.right;
 	PS_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", num_iters, time_taken, time_for_iters/num_iters, time_for_setup);
 	
+	// catch exceptions: register error, free memory
+	} catch (std::bad_alloc e) {
+		PS_SetErrorMessage("Out of memory");
+		if (sum) delete sum;
+		sum = 0;
+	}
+	
 	// free memory
-	Cudd_RecursiveDeref(ddman, r);
-	if (compact_tr) free_cmsr_sparse_matrix(cmsrsm); else free_rm_sparse_matrix(rmsm);
-	if (compact_d) free_dist_vector(diags_dist); else free(diags);
-	delete soln;
-	delete soln2;
+	if (r) Cudd_RecursiveDeref(ddman, r);
+	if (rmsm) delete rmsm;
+	if (cmsrsm) delete cmsrsm;
+	if (diags) delete[] diags;
+	if (diags_dist) delete diags_dist;
+	if (soln) delete[] soln;
+	if (soln2) delete[] soln2;
 	
 	return ptr_to_jlong(sum);
 }

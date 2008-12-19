@@ -36,6 +36,7 @@
 #include "hybrid.h"
 #include "PrismHybridGlob.h"
 #include "jnipointer.h"
+#include <new>
 
 //------------------------------------------------------------------------------
 
@@ -62,9 +63,12 @@ jlong __jlongpointer m	// 'maybe' states
 	DdNode *maybe = jlong_to_DdNode(m); 		// 'maybe' states
 
 	// mtbdds
-	DdNode *reach, *a, *b, *tmp;
+	DdNode *reach = NULL, *a = NULL, *b = NULL, *tmp = NULL;
 	// vectors
-	double *soln;
+	double *soln = NULL;
+	
+	// exception handling around whole function
+	try {
 	
 	// get reachable states
 	reach = odd->dd;
@@ -113,9 +117,16 @@ jlong __jlongpointer m	// 'maybe' states
 			soln = jlong_to_double(Java_hybrid_PrismHybrid_PH_1PSOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(b), ptr_to_jlong(b), false, false, lin_eq_method_param, false)); break;
 	}
 	
+	// catch exceptions: register error, free memory
+	} catch (std::bad_alloc e) {
+		PH_SetErrorMessage("Out of memory");
+		if (soln) delete[] soln;
+		soln = 0;
+	}
+	
 	// free memory
-	Cudd_RecursiveDeref(ddman, a);
-	Cudd_RecursiveDeref(ddman, b);
+	if (a) Cudd_RecursiveDeref(ddman, a);
+	if (b) Cudd_RecursiveDeref(ddman, b);
 	
 	return ptr_to_jlong(soln);
 }

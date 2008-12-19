@@ -27,6 +27,7 @@
 
 #include "dv.h"
 #include <math.h>
+#include <new>
 
 // local function prototypes
 
@@ -48,6 +49,7 @@ static void sum_double_vector_over_dd_vars_rec(DdManager *ddman, double *vec, do
 // if so, it should be the right size (as determined by row->eoff+row->toff)
 // if not, a new one is created
 // in either the case, a pointer to the array is returned
+// throws std::bad_alloc on out-of-memory
 
 EXPORT double *mtbdd_to_double_vector(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, ODDNode *odd)
 {
@@ -427,20 +429,21 @@ void sum_double_vector_over_dd_vars_rec(DdManager *ddman, double *vec, double *v
 
 EXPORT DistVector *double_vector_to_dist(double *v, int n)
 {
-	double *buffer, *tmp;
+	double *buffer = NULL, *tmp = NULL;
 	int i, j, num_dist, buffer_size, buffer_inc;
 	unsigned int max_size;
-	unsigned short s, *ptrs;
-	DistVector *dv;
+	unsigned short s, *ptrs = NULL;
+	DistVector *dv = NULL;
+	
+	// try/catch for memory allocation/deallocation
+	try {
 	
 	// create buffer to store distinct values
 	buffer_inc = 256;
 	buffer_size = 256;
 	max_size = 1 << (8*sizeof(short));
-	buffer = (double *)calloc(buffer_size, sizeof(double));
-	if (!buffer) { return NULL; }
-	ptrs = (unsigned short*)malloc(n * sizeof(unsigned short));
-	if (!ptrs) { free(buffer); return NULL; }
+	buffer = new double[buffer_size];
+	ptrs = new unsigned short[n];
 	
 	num_dist = 0;
 	// go thru vector
@@ -454,16 +457,13 @@ EXPORT DistVector *double_vector_to_dist(double *v, int n)
 			if (num_dist >= buffer_size) {
 				// ...and bailing out if there are too many
 				if (buffer_size+buffer_inc > max_size) {
-					free(buffer);
-					free(ptrs);
-					return NULL;
+					throw std::bad_alloc();
 				}
-				tmp = (double *)calloc(buffer_size+buffer_inc, sizeof(double));
-				if (!tmp) { free(buffer); free(ptrs); return NULL; }
+				tmp = new double[buffer_size+buffer_inc];
 				for (j = 0; j < buffer_size; j++) {
 					tmp[j] = buffer[j];
 				}
-				free(buffer);
+				delete[] buffer;
 				buffer = tmp;
 				buffer_size += buffer_inc;
 			}
@@ -475,11 +475,19 @@ EXPORT DistVector *double_vector_to_dist(double *v, int n)
 	}
 	
 	// create data str to store result
-	dv = (DistVector *)calloc(1, sizeof(DistVector));
-	if (!dv) { free(buffer); free(ptrs); return NULL; }
+	dv = new DistVector();
 	dv->dist = buffer;
 	dv->num_dist = num_dist;
 	dv->ptrs = ptrs;
+	
+	// try/catch for memory allocation/deallocation
+	} catch(std::bad_alloc e) {
+		if (buffer) delete[] buffer;
+		if (tmp) delete[] tmp;
+		if (ptrs) delete[] ptrs;
+		if (dv) delete dv;
+		return NULL;
+	}
 	
 	return dv;
 }
@@ -488,22 +496,18 @@ EXPORT DistVector *double_vector_to_dist(double *v, int n)
 
 // free distinct vector struct
 
-EXPORT void free_dist_vector(DistVector *&dv)
+EXPORT DistVector::DistVector()
 {
-	free(dv->dist);
-	free(dv->ptrs);
-	free(dv);
-	dv = NULL;
+	dist = NULL;
+	num_dist = 0;
+	ptrs = NULL;
+}
+
+EXPORT DistVector::~DistVector()
+{
+	if (dist) delete[] dist;
+	if (ptrs) delete[] ptrs;
 }
 
 //------------------------------------------------------------------------------
 
-// delete double array, distinct vector struct, or both
-
-EXPORT void free_dv_or_dist_vector(double *&v, DistVector *&dv)
-{
-	if (v) { free(v); v = NULL; }
-	if (dv) { free_dist_vector(dv); dv = NULL; }
-}
-
-//------------------------------------------------------------------------------

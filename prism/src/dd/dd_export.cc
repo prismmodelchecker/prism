@@ -145,7 +145,7 @@ FILE *fp
 	
 	DD_ExportDDToDDFile(ddman, dd, stored, 0, fp);
 	
-	delete stored;
+	delete[] stored;
 }
 
 //------------------------------------------------------------------------------
@@ -528,7 +528,8 @@ FILE *fp
 	}
 	
 	Cudd_RecursiveDeref(ddman, new_dd);
-	delete array;
+	for (i = 0; i < num_states; i++) delete[] array[i];
+	delete[] array;
 }
 
 //------------------------------------------------------------------------------

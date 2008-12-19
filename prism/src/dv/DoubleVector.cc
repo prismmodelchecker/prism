@@ -30,6 +30,7 @@
 #include "jnipointer.h"
 
 #include <math.h>
+#include <new>
 
 //------------------------------------------------------------------------------
 
@@ -61,9 +62,13 @@ jobject obj,
 jint n
 )
 {
-	double *vector = new double[n];
+	double *vector;
 	int i;
-	
+	try {
+		vector = new double[n];
+	} catch (std::bad_alloc e) {
+		return 0;
+	}
 	for (i = 0; i < n; i++) {
 		vector[i] = 0;
 	}

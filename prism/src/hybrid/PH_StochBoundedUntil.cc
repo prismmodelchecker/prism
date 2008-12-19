@@ -37,6 +37,7 @@
 #include "hybrid.h"
 #include "PrismHybridGlob.h"
 #include "jnipointer.h"
+#include <new>
 
 // local prototypes
 static void mult_rec(HDDNode *hdd, int level, int row_offset, int col_offset);
@@ -50,7 +51,7 @@ static bool compact_sm;
 static double *sm_dist;
 static int sm_dist_shift;
 static int sm_dist_mask;
-static double *soln, *soln2;
+static double *soln = NULL, *soln2 = NULL;
 static double unif;
 
 //------------------------------------------------------------------------------
@@ -85,12 +86,12 @@ jlong __jlongpointer mu	// probs for multiplying
 	// flags
 	bool compact_d;
 	// matrix mtbdd
-	DdNode *r;
-	HDDMatrix *hddm;
-	HDDNode *hdd;
+	DdNode *r = NULL;
+	HDDMatrix *hddm = NULL;
+	HDDNode *hdd = NULL;
 	// vectors
-	double *diags, *tmpsoln, *sum;
-	DistVector *diags_dist;
+	double *diags = NULL, *tmpsoln = NULL, *sum = NULL;
+	DistVector *diags_dist = NULL;
 	// fox glynn stuff
 	FoxGlynnWeights fgw;
 	// timing stuff
@@ -100,6 +101,9 @@ jlong __jlongpointer mu	// probs for multiplying
 	bool done;
 	int i, iters, num_iters;
 	double x, kb, kbt, max_diag, weight, term_crit_param_unif;
+	
+	// exception handling around whole function
+	try {
 	
 	// start clocks	
 	start1 = start2 = util_cpu_time();
@@ -124,7 +128,8 @@ jlong __jlongpointer mu	// probs for multiplying
 	num_levels = hddm->num_levels;
 	kb = hddm->mem_nodes;
 	kbt = kb;
-	PH_PrintToMainLog(env, "[levels=%d, nodes=%d] [%.1f KB]\n", hddm->num_levels, hddm->num_nodes, kb);
+	PH_PrintToMainLog(env, "[levels=%d, nodes=%d] ", hddm->num_levels, hddm->num_nodes);
+	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// add sparse matrices
 	PH_PrintToMainLog(env, "Adding explicit sparse matrices... ");
@@ -137,7 +142,8 @@ jlong __jlongpointer mu	// probs for multiplying
 	}
 	kb = hddm->mem_sm;
 	kbt += kb;
-	PH_PrintToMainLog(env, "[levels=%d, num=%d%s] [%.1f KB]\n", hddm->l_sm, hddm->num_sm, compact_sm?", compact":"", kb);
+	PH_PrintToMainLog(env, "[levels=%d, num=%d%s] ", hddm->l_sm, hddm->num_sm, compact_sm?", compact":"");
+	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// get vector of diagonals
 	PH_PrintToMainLog(env, "Creating vector for diagonals... ");
@@ -147,13 +153,13 @@ jlong __jlongpointer mu	// probs for multiplying
 	if (compact) {
 		if (diags_dist = double_vector_to_dist(diags, n)) {
 			compact_d = true;
-			free(diags);
+			delete[] diags; diags = NULL;
 		}
 	}
 	kb = (!compact_d) ? n*8.0/1024.0 : (diags_dist->num_dist*8.0+n*2.0)/1024.0;
 	kbt += kb;
-	if (!compact_d) PH_PrintToMainLog(env, "[%.1f KB]\n", kb);
-	else PH_PrintToMainLog(env, "[dist=%d, compact] [%.1f KB]\n", diags_dist->num_dist, kb);
+	if (compact_d) PH_PrintToMainLog(env, "[dist=%d, compact] ", diags_dist->num_dist);
+	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	//for(i = 0; i < n; i++) printf("%f ", (!compact_d)?(diags[i]):(diags_dist->dist[diags_dist->ptrs[i]])); printf("\n");
 	
 	// find max diagonal element
@@ -184,7 +190,7 @@ jlong __jlongpointer mu	// probs for multiplying
 	sum = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 3*kb;
-	PH_PrintToMainLog(env, "[3 x %.1f KB]\n", kb);
+	PH_PrintMemoryToMainLog(env, "[3 x ", kb, "]\n");
 	
 	// multiply initial solution by 'mult' probs
 	if (mult != NULL) {
@@ -194,7 +200,7 @@ jlong __jlongpointer mu	// probs for multiplying
 	}
 	
 	// print total memory usage
-	PH_PrintToMainLog(env, "TOTAL: [%.1f KB]\n", kbt);
+	PH_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 	
 	// compute new termination criterion parameter (epsilon/8)
 	term_crit_param_unif = term_crit_param / 8.0;
@@ -305,12 +311,20 @@ jlong __jlongpointer mu	// probs for multiplying
 	if (num_iters == -1) num_iters = fgw.right;
 	PH_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", num_iters, time_taken, time_for_iters/num_iters, time_for_setup);
 	
+	// catch exceptions: register error, free memory
+	} catch (std::bad_alloc e) {
+		PH_SetErrorMessage("Out of memory");
+		if (sum) delete[] sum;
+		sum = 0;
+	}
+	
 	// free memory
-	Cudd_RecursiveDeref(ddman, r);
-	free_hdd_matrix(hddm);
-	if (compact_d) free_dist_vector(diags_dist); else free(diags);
-	delete soln;
-	delete soln2;
+	if (r) Cudd_RecursiveDeref(ddman, r);
+	if (hddm) delete hddm;
+	if (diags) delete[] diags;
+	if (diags_dist) delete diags_dist;
+	if (soln) delete[] soln;
+	if (soln2) delete[] soln2;
 	
 	return ptr_to_jlong(sum);
 }

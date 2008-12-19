@@ -35,6 +35,7 @@
 #include "sparse.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
+#include <new>
 
 //------------------------------------------------------------------------------
 
@@ -66,20 +67,23 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	DdNode *maybe = jlong_to_DdNode(m); 		// 'maybe' states
 
 	// mtbdds
-	DdNode *a;
+	DdNode *a = NULL;
 	// model stats
 	int n, nc;
 	long nnz;
 	// sparse matrix
-	NDSparseMatrix *ndsm;
+	NDSparseMatrix *ndsm = NULL;
 	// vectors
-	double *yes_vec, *soln, *soln2, *tmpsoln;
+	double *yes_vec = NULL, *soln = NULL, *soln2 = NULL, *tmpsoln = NULL;
 	// timing stuff
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
 	// misc
 	int i, j, k, l1, h1, l2, h2, iters;
 	double d1, d2, kb, kbt;
+	
+	// exception handling around whole function
+	try {
 	
 	// start clocks	
 	start1 = start2 = util_cpu_time();
@@ -98,18 +102,18 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	// get number of transitions/choices
 	nnz = ndsm->nnz;
 	nc = ndsm->nc;
-	// print out info
-	PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc, nnz, ndsm->k);
 	kb = ndsm->mem;
 	kbt = kb;
-	PS_PrintToMainLog(env, "[%.1f KB]\n", kb);
+	// print out info
+	PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc, nnz, ndsm->k);
+	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// get vector for yes
 	PS_PrintToMainLog(env, "Creating vector for yes... ");
 	yes_vec = mtbdd_to_double_vector(ddman, yes, rvars, num_rvars, odd);
 	kb = n*8.0/1024.0;
 	kbt += kb;
-	PS_PrintToMainLog(env, "[%.1f KB]\n", kb);
+	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// create solution/iteration vectors
 	PS_PrintToMainLog(env, "Allocating iteration vectors... ");
@@ -117,10 +121,10 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	soln2 = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 2*kb;
-	PS_PrintToMainLog(env, "[2 x %.1f KB]\n", kb);
+	PS_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
 	
 	// print total memory usage
-	PS_PrintToMainLog(env, "TOTAL: [%.1f KB]\n", kbt);
+	PS_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 	
 	// initial solution is yes
 	for (i = 0; i < n; i++) {
@@ -190,11 +194,18 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	// print iterations/timing info
 	PS_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
+	// catch exceptions: register error, free memory
+	} catch (std::bad_alloc e) {
+		PS_SetErrorMessage("Out of memory");
+		if (soln) delete[] soln;
+		soln = 0;
+	}
+	
 	// free memory
-	Cudd_RecursiveDeref(ddman, a);
-	free_nd_sparse_matrix(ndsm);
-	delete yes_vec;
-	delete soln2;
+	if (a) Cudd_RecursiveDeref(ddman, a);
+	if (ndsm) delete ndsm;
+	if (yes_vec) delete[] yes_vec;
+	if (soln2) delete[] soln2;
 	
 	return ptr_to_jlong(soln);
 }

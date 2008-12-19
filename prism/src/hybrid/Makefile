@@ -20,6 +20,7 @@ INCLUDES = \
 
 LIBRARIES = \
 -L$(PRISM_DIR_REL)/$(LIB_DIR) \
+-lprismsparse \
 -lodd \
 -ldd \
 -ldv \

@@ -599,6 +599,9 @@ public class PrismCL
 			catch (FileNotFoundException e) {
 				error("Couldn't open file \"" + exportTransFilename + "\" for output");
 			}
+			catch (PrismException e) {
+				error(e.getMessage());
+			}
 			
 			if (exportPlainDeprecated) mainLog.println("\nWarning: The -exportplain switch is now deprecated. Please use -exporttrans in future.");
 		}
@@ -676,6 +679,9 @@ public class PrismCL
 			// in case of error, report it and proceed
 			catch (FileNotFoundException e) {
 				error("Couldn't open file \"" + exportTransDotFilename + "\" for output");
+			}
+			catch (PrismException e) {
+				error(e.getMessage());
 			}
 		}
 		

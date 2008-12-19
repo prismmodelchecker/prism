@@ -37,6 +37,7 @@
 #include "hybrid.h"
 #include "PrismHybridGlob.h"
 #include "jnipointer.h"
+#include <new>
 
 // local prototypes
 static void mult_rec(HDDNode *hdd, int level, int row_offset, int col_offset);
@@ -50,7 +51,7 @@ static bool compact_sm;
 static double *sm_dist;
 static int sm_dist_shift;
 static int sm_dist_mask;
-static double *soln, *soln2;
+static double *soln = NULL, *soln2 = NULL;
 
 //------------------------------------------------------------------------------
 
@@ -78,10 +79,10 @@ jint time		// time
 	// model stats
 	int n;
 	// matrix mtbdd
-	HDDMatrix *hddm;
-	HDDNode *hdd;
+	HDDMatrix *hddm = NULL;
+	HDDNode *hdd = NULL;
 	// vectors
-	double *tmpsoln, *sum;
+	double *tmpsoln = NULL, *sum = NULL;
 	// timing stuff
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
@@ -89,6 +90,9 @@ jint time		// time
 	bool done;
 	int i, iters;
 	double kb, kbt;
+	
+	// exception handling around whole function
+	try {
 	
 	// start clocks	
 	start1 = start2 = util_cpu_time();
@@ -104,7 +108,8 @@ jint time		// time
 	num_levels = hddm->num_levels;
 	kb = hddm->mem_nodes;
 	kbt = kb;
-	PH_PrintToMainLog(env, "[levels=%d, nodes=%d] [%.1f KB]\n", hddm->num_levels, hddm->num_nodes, kb);
+	PH_PrintToMainLog(env, "[levels=%d, nodes=%d] ", hddm->num_levels, hddm->num_nodes);
+	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// add sparse matrices
 	PH_PrintToMainLog(env, "Adding explicit sparse matrices... ");
@@ -117,7 +122,8 @@ jint time		// time
 	}
 	kb = hddm->mem_sm;
 	kbt += kb;
-	PH_PrintToMainLog(env, "[levels=%d, num=%d%s] [%.1f KB]\n", hddm->l_sm, hddm->num_sm, compact_sm?", compact":"", kb);
+	PH_PrintToMainLog(env, "[levels=%d, num=%d%s] ", hddm->l_sm, hddm->num_sm, compact_sm?", compact":"");
+	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// create solution/iteration vectors
 	PH_PrintToMainLog(env, "Allocating iteration vectors... ");
@@ -126,10 +132,10 @@ jint time		// time
 	sum = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 3*kb;
-	PH_PrintToMainLog(env, "[3 x %.1f KB]\n", kb);
+	PH_PrintMemoryToMainLog(env, "[3 x ", kb, "]\n");
 	
 	// print total memory usage
-	PH_PrintToMainLog(env, "TOTAL: [%.1f KB]\n", kbt);
+	PH_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 	
 	// get setup time
 	stop = util_cpu_time();
@@ -192,9 +198,16 @@ jint time		// time
 	if (done) PH_PrintToMainLog(env, "\nSteady state detected at iteration %d\n", iters);
 	PH_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
+	// catch exceptions: register error, free memory
+	} catch (std::bad_alloc e) {
+		PH_SetErrorMessage("Out of memory");
+		if (soln) delete[] soln;
+		soln = 0;
+	}
+	
 	// free memory
-	free_hdd_matrix(hddm);
-	delete soln2;
+	if (hddm) delete hddm;
+	if (soln2) delete soln2;
 	
 	return ptr_to_jlong(soln);
 }

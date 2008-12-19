@@ -29,6 +29,7 @@
 #include "dv.h"
 #include "sparse.h"
 #include "PrismSparseGlob.h"
+#include <new>
 
 //------------------------------------------------------------------------------
 
@@ -50,11 +51,144 @@ static CMSCSparseMatrix *cmscsm;
 static NDSparseMatrix *ndsm;
 
 //------------------------------------------------------------------------------
+// Data structure constructors/deconstructors
+//------------------------------------------------------------------------------
+
+RMSparseMatrix::RMSparseMatrix()
+{
+	n = 0;
+	nnz = 0;
+	use_counts = false;
+	mem = 0.0;
+	non_zeros = NULL;
+	cols = NULL;
+	row_counts = NULL;
+}
+
+RMSparseMatrix::~RMSparseMatrix()
+{
+	if (non_zeros) delete[] non_zeros;
+	if (cols) delete[] cols;
+	if (row_counts) delete[] row_counts;
+}
+
+//------------------------------------------------------------------------------
+
+CMSparseMatrix::CMSparseMatrix()
+{
+	n = 0;
+	nnz = 0;
+	use_counts = false;
+	mem = 0.0;
+	non_zeros = NULL;
+	rows = NULL;
+	col_counts = NULL;
+}
+
+CMSparseMatrix::~CMSparseMatrix()
+{
+	if (non_zeros) delete[] non_zeros;
+	if (rows) delete[] rows;
+	if (col_counts) delete[] col_counts;
+}
+
+//------------------------------------------------------------------------------
+
+RCSparseMatrix::RCSparseMatrix()
+{
+	n = 0;
+	nnz = 0;
+	use_counts = false;
+	mem = 0.0;
+	non_zeros = NULL;
+	rows = NULL;
+	cols = NULL;
+}
+
+RCSparseMatrix::~RCSparseMatrix()
+{
+	if (non_zeros) delete[] non_zeros;
+	if (rows) delete[] rows;
+	if (cols) delete[] cols;
+}
+
+//------------------------------------------------------------------------------
+
+CMSRSparseMatrix::CMSRSparseMatrix()
+{
+	n = 0;
+	nnz = 0;
+	use_counts = false;
+	mem = 0.0;
+	dist = NULL;
+	dist_num = 0;
+	dist_shift = 0;
+	dist_mask = 0;
+	cols = NULL;
+	row_counts = NULL;
+}
+
+CMSRSparseMatrix::~CMSRSparseMatrix()
+{
+	if (dist) delete[] dist;
+	if (cols) delete[] cols;
+	use_counts ? delete[] row_counts : delete[] (int*)row_counts;
+}
+
+//------------------------------------------------------------------------------
+
+CMSCSparseMatrix::CMSCSparseMatrix()
+{
+	n = 0;
+	nnz = 0;
+	use_counts = false;
+	mem = 0.0;
+	dist = NULL;
+	dist_num = 0;
+	dist_shift = 0;
+	dist_mask = 0;
+	rows = NULL;
+	col_counts = NULL;
+}
+
+CMSCSparseMatrix::~CMSCSparseMatrix()
+{
+	if (dist) delete[] dist;
+	if (rows) delete[] rows;
+	use_counts ? delete[] col_counts : delete[] (int*)col_counts;
+}
+
+//------------------------------------------------------------------------------
+
+NDSparseMatrix::NDSparseMatrix()
+{
+	n = 0;
+	nc = 0;
+	nnz = 0;
+	k = 0;
+	use_counts = false;
+	mem = 0.0;
+	non_zeros = NULL;
+	cols = NULL;
+	row_counts = NULL;
+	choice_counts = NULL;
+}
+
+NDSparseMatrix::~NDSparseMatrix()
+{
+	if (non_zeros) delete[] non_zeros;
+	if (cols) delete[] cols;
+	if (row_counts) delete[] row_counts;
+	if (choice_counts) delete[] choice_counts;
+}
+
+//------------------------------------------------------------------------------
 // sparse utility functions
 //------------------------------------------------------------------------------
 
 // build row major (rm) sparse matrix
 // if tranpose flag is true, actually construct for tranpose
+// throws std::bad_alloc on out-of-memory
 
 RMSparseMatrix *build_rm_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode **rvars, DdNode **cvars, int num_vars, ODDNode *odd)
 { return build_rm_sparse_matrix(ddman, matrix, rvars, cvars, num_vars, odd, false); }
@@ -63,8 +197,11 @@ RMSparseMatrix *build_rm_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode 
 {
 	int i, n, nnz, max;
 	
+	// try/catch for memory allocation/deallocation
+	try {
+	
 	// create new data structure
-	rmsm = new RMSparseMatrix();
+	rmsm = NULL; rmsm = new RMSparseMatrix();
 	
 	// get number of states from odd
 	n = rmsm->n = odd->eoff+odd->toff;
@@ -74,7 +211,7 @@ RMSparseMatrix *build_rm_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode 
 	// create arrays
 	rmsm->non_zeros = new double[nnz];
 	rmsm->cols = new unsigned int[nnz];
-	starts = new int[n+1];
+	starts = NULL; starts = new int[n+1];
 	
 	// first traverse the mtbdd to compute how many entries are in each row
 	for (i = 0; i < n+1; i++) starts[i] = 0;
@@ -100,11 +237,18 @@ RMSparseMatrix *build_rm_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode 
 	if (rmsm->use_counts) {
 		rmsm->row_counts = new unsigned char[n];
 		for (i = 0; i < n; i++) rmsm->row_counts[i] = (unsigned char)(starts[i+1] - starts[i]);
-		delete starts;
+		delete[] starts; starts = NULL;
 		rmsm->mem = (nnz * (sizeof(double) + sizeof(unsigned int)) + n * sizeof(unsigned char)) / 1024.0;
 	} else {
 		rmsm->row_counts = (unsigned char*)starts;
 		rmsm->mem = (nnz * (sizeof(double) + sizeof(unsigned int)) + n * sizeof(int)) / 1024.0;
+	}
+	
+	// try/catch for memory allocation/deallocation
+	} catch(std::bad_alloc e) {
+		if (rmsm) delete rmsm;
+		if (starts) delete[] starts;
+		throw e;
 	}
 	
 	return rmsm;
@@ -114,6 +258,7 @@ RMSparseMatrix *build_rm_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode 
 
 // build column major (cm) sparse matrix
 // if tranpose flag is true, actually construct for tranpose
+// throws std::bad_alloc on out-of-memory
 
 CMSparseMatrix *build_cm_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode **rvars, DdNode **cvars, int num_vars, ODDNode *odd)
 { return build_cm_sparse_matrix(ddman, matrix, rvars, cvars, num_vars, odd, false); }
@@ -122,8 +267,11 @@ CMSparseMatrix *build_cm_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode 
 {
 	int i, n, nnz, max;
 	
+	// try/catch for memory allocation/deallocation
+	try {
+	
 	// create new data structure
-	cmsm = new CMSparseMatrix();
+	cmsm = NULL; cmsm = new CMSparseMatrix();
 	
 	// get number of states from odd
 	n = cmsm->n = odd->eoff+odd->toff;
@@ -133,7 +281,7 @@ CMSparseMatrix *build_cm_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode 
 	// create arrays
 	cmsm->non_zeros = new double[nnz];
 	cmsm->rows = new unsigned int[nnz];
-	starts = new int[n+1];
+	starts = NULL; starts = new int[n+1];
 	
 	// first traverse the mtbdd to compute how many entries are in each column
 	for (i = 0; i < n+1; i++) starts[i] = 0;
@@ -159,11 +307,18 @@ CMSparseMatrix *build_cm_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode 
 	if (cmsm->use_counts) {
 		cmsm->col_counts = new unsigned char[n];
 		for (i = 0; i < n; i++) cmsm->col_counts[i] = (unsigned char)(starts[i+1] - starts[i]);
-		delete starts;
+		delete[] starts; starts = NULL;
 		cmsm->mem = (nnz * (sizeof(double) + sizeof(unsigned int)) + n * sizeof(unsigned char)) / 1024.0;
 	} else {
 		cmsm->col_counts = (unsigned char*)starts;
 		cmsm->mem = (nnz * (sizeof(double) + sizeof(unsigned int)) + n * sizeof(int)) / 1024.0;
+	}
+	
+	// try/catch for memory allocation/deallocation
+	} catch(std::bad_alloc e) {
+		if (cmsm) delete cmsm;
+		if (starts) delete[] starts;
+		throw e;
 	}
 	
 	return cmsm;
@@ -173,6 +328,7 @@ CMSparseMatrix *build_cm_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode 
 
 // build row/column (rc) sparse matrix
 // if tranpose flag is true, actually construct for tranpose
+// throws std::bad_alloc on out-of-memory
 
 RCSparseMatrix *build_rc_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode **rvars, DdNode **cvars, int num_vars, ODDNode *odd)
 { return build_rc_sparse_matrix(ddman, matrix, rvars, cvars, num_vars, odd, false); }
@@ -181,8 +337,11 @@ RCSparseMatrix *build_rc_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode 
 {
 	int n, nnz;
 	
+	// try/catch for memory allocation/deallocation
+	try {
+	
 	// create new data structure
-	rcsm = new RCSparseMatrix();
+	rcsm = NULL; rcsm = new RCSparseMatrix();
 	
 	// get number of states from odd
 	n = rcsm->n = odd->eoff+odd->toff;
@@ -198,6 +357,12 @@ RCSparseMatrix *build_rc_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode 
 	count = 0;
 	traverse_mtbdd_matr_rec(ddman, matrix, rvars, cvars, num_vars, 0, odd, odd, 0, 0, 5, transpose);
 	
+	// try/catch for memory allocation/deallocation
+	} catch(std::bad_alloc e) {
+		if (rcsm) delete rcsm;
+		throw e;
+	}
+	
 	return rcsm;
 }
 
@@ -205,6 +370,7 @@ RCSparseMatrix *build_rc_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode 
 
 // build compact modified sparse row (cmsr) sparse matrix
 // if tranpose flag is true, actually construct for tranpose
+// throws std::bad_alloc on out-of-memory
 
 CMSRSparseMatrix *build_cmsr_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode **rvars, DdNode **cvars, int num_vars, ODDNode *odd)
 { return build_cmsr_sparse_matrix(ddman, matrix, rvars, cvars, num_vars, odd, false); }
@@ -214,8 +380,11 @@ CMSRSparseMatrix *build_cmsr_sparse_matrix(DdManager *ddman, DdNode *matrix, DdN
 	int i, n, nnz, max, sparebits;
 	unsigned int maxsize;
 	
+	// try/catch for memory allocation/deallocation
+	try {
+	
 	// create new data structure
-	cmsrsm = new CMSRSparseMatrix();
+	cmsrsm = NULL; cmsrsm = new CMSRSparseMatrix();
 	
 	// get number of states from odd
 	n = cmsrsm->n = odd->eoff+odd->toff;
@@ -245,7 +414,7 @@ CMSRSparseMatrix *build_cmsr_sparse_matrix(DdManager *ddman, DdNode *matrix, DdN
 	nnz = cmsrsm->nnz = (int)DD_GetNumMinterms(ddman, matrix, num_vars*2);
 	
 	// allocate temporary array to store start of each row
-	starts = new int[n+1];
+	starts = NULL; starts = new int[n+1];
 	
 	// first traverse the mtbdd to compute how many entries are in each row
 	for (i = 0; i < n+1; i++) starts[i] = 0;
@@ -274,11 +443,18 @@ CMSRSparseMatrix *build_cmsr_sparse_matrix(DdManager *ddman, DdNode *matrix, DdN
 	if (cmsrsm->use_counts) {
 		cmsrsm->row_counts = new unsigned char[n];
 		for (i = 0; i < n; i++) cmsrsm->row_counts[i] = (unsigned char)(starts[i+1] - starts[i]);
-		delete starts;
+		delete[] starts; starts = NULL;
 		cmsrsm->mem = (cmsrsm->dist_num * sizeof(double) + nnz * sizeof(unsigned int) + n * sizeof(unsigned char)) / 1024.0;
 	} else {
 		cmsrsm->row_counts = (unsigned char*)starts;
 		cmsrsm->mem = (cmsrsm->dist_num * sizeof(double) + nnz * sizeof(unsigned int) + n * sizeof(int)) / 1024.0;
+	}
+	
+	// try/catch for memory allocation/deallocation
+	} catch(std::bad_alloc e) {
+		if (cmsrsm) delete cmsrsm;
+		if (starts) delete[] starts;
+		throw e;
 	}
 	
 	return cmsrsm;
@@ -288,6 +464,7 @@ CMSRSparseMatrix *build_cmsr_sparse_matrix(DdManager *ddman, DdNode *matrix, DdN
 
 // build compact modified sparse column (cmsc) sparse matrix
 // if tranpose flag is true, actually construct for tranpose
+// throws std::bad_alloc on out-of-memory
 
 CMSCSparseMatrix *build_cmsc_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode **rvars, DdNode **cvars, int num_vars, ODDNode *odd)
 { return build_cmsc_sparse_matrix(ddman, matrix, rvars, cvars, num_vars, odd, false); }
@@ -297,8 +474,11 @@ CMSCSparseMatrix *build_cmsc_sparse_matrix(DdManager *ddman, DdNode *matrix, DdN
 	int i, n, nnz, max, sparebits;
 	unsigned int maxsize;
 	
+	// try/catch for memory allocation/deallocation
+	try {
+	
 	// create new data structure
-	cmscsm = new CMSCSparseMatrix();
+	cmscsm = NULL; cmscsm = new CMSCSparseMatrix();
 	
 	// get number of states from odd
 	n = cmscsm->n = odd->eoff+odd->toff;
@@ -328,7 +508,7 @@ CMSCSparseMatrix *build_cmsc_sparse_matrix(DdManager *ddman, DdNode *matrix, DdN
 	nnz = cmscsm->nnz = (int)DD_GetNumMinterms(ddman, matrix, num_vars*2);
 	
 	// allocate temporary array to store start of each row
-	starts = new int[n+1];
+	starts = NULL; starts = new int[n+1];
 	
 	// first traverse the mtbdd to compute how many entries are in each column
 	for (i = 0; i < n+1; i++) starts[i] = 0;
@@ -357,11 +537,18 @@ CMSCSparseMatrix *build_cmsc_sparse_matrix(DdManager *ddman, DdNode *matrix, DdN
 	if (cmscsm->use_counts) {
 		cmscsm->col_counts = new unsigned char[n];
 		for (i = 0; i < n; i++) cmscsm->col_counts[i] = (unsigned char)(starts[i+1] - starts[i]);
-		delete starts;
+		delete[] starts; starts = NULL;
 		cmscsm->mem = (cmscsm->dist_num * sizeof(double) + nnz * sizeof(unsigned int) + n * sizeof(unsigned char)) / 1024.0;
 	} else {
 		cmscsm->col_counts = (unsigned char*)starts;
 		cmscsm->mem = (cmscsm->dist_num * sizeof(double) + nnz * sizeof(unsigned int) + n * sizeof(int)) / 1024.0;
+	}
+	
+	// try/catch for memory allocation/deallocation
+	} catch(std::bad_alloc e) {
+		if (cmscsm) delete cmscsm;
+		if (starts) delete[] starts;
+		throw e;
 	}
 	
 	return cmscsm;
@@ -370,14 +557,18 @@ CMSCSparseMatrix *build_cmsc_sparse_matrix(DdManager *ddman, DdNode *matrix, DdN
 //-----------------------------------------------------------------------------------
 
 // build nondeterministic (mdp) sparse matrix
+// throws std::bad_alloc on out-of-memory
 
 NDSparseMatrix *build_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode **rvars, DdNode **cvars, int num_vars, DdNode **ndvars, int num_ndvars, ODDNode *odd)
 {
 	int i, n, nm, nc, nnz, max, max2;
-	DdNode *tmp, **matrices, **matrices_bdds;
+	DdNode *tmp = NULL, **matrices = NULL, **matrices_bdds = NULL;
+	
+	// try/catch for memory allocation/deallocation
+	try {
 	
 	// create new data structure
-	ndsm = new NDSparseMatrix();
+	ndsm = NULL; ndsm = new NDSparseMatrix();
 	
 	// get number of states from odd
 	n = ndsm->n = odd->eoff+odd->toff;
@@ -404,8 +595,8 @@ NDSparseMatrix *build_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode **r
 	// create arrays
 	ndsm->non_zeros = new double[nnz];
 	ndsm->cols = new unsigned int[nnz];
-	starts = new int[n+1];
-	starts2 = new int[nc+1];
+	starts = NULL; starts = new int[n+1];
+	starts2 = NULL; starts2 = new int[nc+1];
 	
 	// first traverse mtbdds to compute how many choices are in each row
 	for (i = 0; i < n+1; i++) starts[i] = 0;
@@ -464,10 +655,10 @@ NDSparseMatrix *build_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode **r
 	if (ndsm->use_counts) {
 		ndsm->row_counts = new unsigned char[n];
 		for (i = 0; i < n; i++) ndsm->row_counts[i] = (unsigned char)(starts[i+1] - starts[i]);
-		delete starts;
+		delete[] starts; starts = NULL;
 		ndsm->choice_counts = new unsigned char[nc];
 		for (i = 0; i < nc; i++) ndsm->choice_counts[i] = (unsigned char)(starts2[i+1] - starts2[i]);
-		delete starts2;
+		delete[] starts2; starts2 = NULL;
 		ndsm->mem = (nnz * (sizeof(double) + sizeof(unsigned int)) + (n+nc) * sizeof(unsigned char)) / 1024.0;
 	} else {
 		ndsm->row_counts = (unsigned char*)starts;
@@ -475,13 +666,26 @@ NDSparseMatrix *build_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode **r
 		ndsm->mem = (nnz * (sizeof(double) + sizeof(unsigned int)) + (n+nc) * sizeof(int)) / 1024.0;
 	}
 	
+	// try/catch for memory allocation/deallocation
+	} catch(std::bad_alloc e) {
+		if (ndsm) delete cmscsm;
+		if (matrices) delete[] matrices;
+		if (matrices_bdds) {
+			for (i = 0; i < nm; i++) Cudd_RecursiveDeref(ddman, matrices_bdds[i]);
+			delete[] matrices_bdds;
+		}
+		if (starts) delete[] starts;
+		if (starts2) delete[] starts2;
+		throw e;
+	}
+	
 	// clear up memory
 	for (i = 0; i < nm; i++) {
 		Cudd_RecursiveDeref(ddman, matrices_bdds[i]);
-		// nb: don't delete matrices array because that was just pointers,  not new copies
+		// nb: don't deref matrices array because that was just pointers, not new copies
 	}
-	delete matrices;
-	delete matrices_bdds;
+	delete[] matrices;
+	delete[] matrices_bdds;
 	
 	return ndsm;
 }
@@ -492,14 +696,18 @@ NDSparseMatrix *build_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode **r
 // This function basically exists to construct a sparse matrix representing the transition rewards for an MDP.
 // The complication is that we need to use the nondeterministic choice indexing of the main
 // MDP matrix, not the rewards matrix, otherwise we can't tell which reward is on which transition.
+// throws std::bad_alloc on out-of-memory
 
 NDSparseMatrix *build_sub_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode *submdp, DdNode **rvars, DdNode **cvars, int num_vars, DdNode **ndvars, int num_ndvars, ODDNode *odd)
 {
 	int i, n, nm, nc, nnz, max, max2;
-	DdNode *tmp, **matrices, **submatrices, **matrices_bdds;
+	DdNode *tmp = NULL, **matrices = NULL, **submatrices = NULL, **matrices_bdds = NULL;
+	
+	// try/catch for memory allocation/deallocation
+	try {
 	
 	// create new data structure
-	ndsm = new NDSparseMatrix();
+	ndsm = NULL; ndsm = new NDSparseMatrix();
 	
 	// get number of states from odd
 	n = ndsm->n = odd->eoff+odd->toff;
@@ -527,8 +735,8 @@ NDSparseMatrix *build_sub_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode
 	// create arrays
 	ndsm->non_zeros = new double[nnz];
 	ndsm->cols = new unsigned int[nnz];
-	starts = new int[n+1];
-	starts2 = new int[nc+1];
+	starts = NULL; starts = new int[n+1];
+	starts2 = NULL; starts2 = new int[nc+1];
 	
 	// first traverse mtbdds to compute how many choices are in each row (USING MDP)
 	for (i = 0; i < n+1; i++) starts[i] = 0;
@@ -587,10 +795,10 @@ NDSparseMatrix *build_sub_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode
 	if (ndsm->use_counts) {
 		ndsm->row_counts = new unsigned char[n];
 		for (i = 0; i < n; i++) ndsm->row_counts[i] = (unsigned char)(starts[i+1] - starts[i]);
-		delete starts;
+		delete[] starts; starts = NULL;
 		ndsm->choice_counts = new unsigned char[nc];
 		for (i = 0; i < nc; i++) ndsm->choice_counts[i] = (unsigned char)(starts2[i+1] - starts2[i]);
-		delete starts2;
+		delete[] starts2; starts2 = NULL;
 		ndsm->mem = (nnz * (sizeof(double) + sizeof(unsigned int)) + (n+nc) * sizeof(unsigned char)) / 1024.0;
 	} else {
 		ndsm->row_counts = (unsigned char*)starts;
@@ -598,14 +806,27 @@ NDSparseMatrix *build_sub_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode
 		ndsm->mem = (nnz * (sizeof(double) + sizeof(unsigned int)) + (n+nc) * sizeof(int)) / 1024.0;
 	}
 	
+	// try/catch for memory allocation/deallocation
+	} catch(std::bad_alloc e) {
+		if (ndsm) delete cmscsm;
+		if (matrices) delete[] matrices;
+		if (matrices_bdds) {
+			for (i = 0; i < nm; i++) Cudd_RecursiveDeref(ddman, matrices_bdds[i]);
+			delete[] matrices_bdds;
+		}
+		if (starts) delete[] starts;
+		if (starts2) delete[] starts2;
+		throw e;
+	}
+	
 	// clear up memory
 	for (i = 0; i < nm; i++) {
 		Cudd_RecursiveDeref(ddman, matrices_bdds[i]);
-		// nb: don't delete matrices array because that was just pointers,  not new copies
+		// nb: don't deref matrices array because that was just pointers, not new copies
 	}
-	delete matrices;
-	delete submatrices;
-	delete matrices_bdds;
+	delete[] matrices;
+	delete[] submatrices;
+	delete[] matrices_bdds;
 	
 	return ndsm;
 }
@@ -862,6 +1083,7 @@ void traverse_mtbdd_vect_rec(DdManager *ddman, DdNode *dd, DdNode **vars, int nu
 
 // compute negative sum of elements in each row
 // if transpose flag is true, matrix was previously transposed so sum for columns instead
+// throws std::bad_alloc on out-of-memory
 
 double *rm_negative_row_sums(RMSparseMatrix *rmsm) { return rm_negative_row_sums(rmsm, false); }
 double *cm_negative_row_sums(CMSparseMatrix *cmsm) { return cm_negative_row_sums(cmsm, false); }
@@ -871,7 +1093,7 @@ double *cmsc_negative_row_sums(CMSCSparseMatrix *cmscsm) { return cmsc_negative_
 double *rm_negative_row_sums(RMSparseMatrix *rmsm, bool transpose)
 {
 	int i, j, l, h;
-	double *diags;
+	double *diags = NULL;
 	int n = rmsm->n;
 	double *non_zeros = rmsm->non_zeros;
 	unsigned char *row_counts = rmsm->row_counts;
@@ -901,7 +1123,7 @@ double *rm_negative_row_sums(RMSparseMatrix *rmsm, bool transpose)
 double *cm_negative_row_sums(CMSparseMatrix *cmsm, bool transpose)
 {
 	int i, j, l, h;
-	double *diags;
+	double *diags = NULL;
 	int n = cmsm->n;
 	double *non_zeros = cmsm->non_zeros;
 	unsigned char *col_counts = cmsm->col_counts;
@@ -931,7 +1153,7 @@ double *cm_negative_row_sums(CMSparseMatrix *cmsm, bool transpose)
 double *cmsr_negative_row_sums(CMSRSparseMatrix *cmsrsm, bool transpose)
 {
 	int i, j, l, h;
-	double *diags;
+	double *diags = NULL;
 	int n = cmsrsm->n;
 	unsigned char *row_counts = cmsrsm->row_counts;
 	int *row_starts = (int *)cmsrsm->row_counts;
@@ -963,7 +1185,7 @@ double *cmsr_negative_row_sums(CMSRSparseMatrix *cmsrsm, bool transpose)
 double *cmsc_negative_row_sums(CMSCSparseMatrix *cmscsm, bool transpose)
 {
 	int i, j, l, h;
-	double *diags;
+	double *diags = NULL;
 	int n = cmscsm->n;
 	unsigned char *col_counts = cmscsm->col_counts;
 	int *col_starts = (int *)cmscsm->col_counts;
@@ -990,67 +1212,6 @@ double *cmsc_negative_row_sums(CMSCSparseMatrix *cmscsm, bool transpose)
 	}
 	
 	return diags;
-}
-
-//------------------------------------------------------------------------------
-
-void free_rm_sparse_matrix(RMSparseMatrix *rmsm)
-{
-	delete rmsm->non_zeros;
-	delete rmsm->cols;
-	delete rmsm->row_counts;
-	delete rmsm;
-}
-
-//------------------------------------------------------------------------------
-
-void free_cm_sparse_matrix(CMSparseMatrix *cmsm)
-{
-	delete cmsm->non_zeros;
-	delete cmsm->rows;
-	delete cmsm->col_counts;
-	delete cmsm;
-}
-
-//------------------------------------------------------------------------------
-
-void free_rc_sparse_matrix(RCSparseMatrix *rcsm)
-{
-	delete rcsm->non_zeros;
-	delete rcsm->rows;
-	delete rcsm->cols;
-	delete rcsm;
-}
-
-//------------------------------------------------------------------------------
-
-void free_cmsr_sparse_matrix(CMSRSparseMatrix *cmsrsm)
-{
-	if (cmsrsm->dist != NULL) free(cmsrsm->dist);
-	delete cmsrsm->cols;
-	cmsrsm->use_counts ? delete cmsrsm->row_counts : delete (int*)cmsrsm->row_counts;
-	delete cmsrsm;
-}
-
-//------------------------------------------------------------------------------
-
-void free_cmsc_sparse_matrix(CMSCSparseMatrix *cmscsm)
-{
-	if (cmscsm->dist != NULL) free(cmscsm->dist);
-	delete cmscsm->rows;
-	cmscsm->use_counts ? delete cmscsm->col_counts : delete (int*)cmscsm->col_counts;
-	delete cmscsm;
-}
-
-//------------------------------------------------------------------------------
-
-void free_nd_sparse_matrix(NDSparseMatrix *ndsm)
-{
-	delete ndsm->non_zeros;
-	delete ndsm->cols;
-	ndsm->use_counts ? delete ndsm->row_counts : delete (int*)ndsm->row_counts;
-	ndsm->use_counts ? delete ndsm->choice_counts : delete (int*)ndsm->choice_counts;
-	delete ndsm;
 }
 
 //------------------------------------------------------------------------------

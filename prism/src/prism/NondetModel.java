@@ -287,7 +287,7 @@ public class NondetModel extends ProbModel
 
 	// export transition matrix to a file
 
-	public void exportToFile(int exportType, boolean explicit, File file) throws FileNotFoundException
+	public void exportToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException
 	{
 		if (!explicit) {
 			// can only do explicit (sparse matrix based) export for mdps

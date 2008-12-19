@@ -31,8 +31,7 @@
 #include "PrismHybrid.h"
 #include "PrismHybridGlob.h"
 #include <math.h>
-
-void fatal( char *s) { fprintf(stderr, "fatal...\n"); perror(s); exit(10); }
+#include <new>
 
 // globals (used by local functions)
 static HDDMatrix *hddm;
@@ -65,16 +64,128 @@ static void hdd_negative_row_sums_rm(RMSparseMatrix *rmsm, int row_offset, int c
 static void hdd_negative_row_sums_cm(CMSparseMatrix *cmsm, int row_offset, int col_offset, double *diags, bool transpose);
 static void hdd_negative_row_sums_cmsr(CMSRSparseMatrix *cmsrsm, int row_offset, int col_offset, double *diags, bool transpose);
 static void hdd_negative_row_sums_cmsc(CMSCSparseMatrix *cmscsm, int row_offset, int col_offset, double *diags, bool transpose);
-static void free_rmsm(RMSparseMatrix *rmsm);
-static void free_cmsm(CMSparseMatrix *cmsm);
-static void free_cmsrsm(CMSRSparseMatrix *cmsrsm);
-static void free_cmscsm(CMSCSparseMatrix *cmscsm);
+
+//------------------------------------------------------------------------------
+// Data structure constructors/deconstructors
+//------------------------------------------------------------------------------
+
+HDDMatrix::HDDMatrix()
+{
+	num_levels = 0;
+	// make sure pointers are init'ed to null
+	row_lists = NULL;
+	col_lists = NULL;
+	row_tables = NULL;
+	col_tables = NULL;
+	row_sizes = NULL;
+	col_sizes = NULL;
+	top = NULL;
+	zero = NULL;
+	odd = NULL;
+	blocks = NULL;
+	dist = NULL;
+}
+
+HDDMatrix::~HDDMatrix()
+{
+	int i, j;
+	
+	// free all row nodes
+	if (row_sizes && row_tables) {
+		for (i = 0; i < num_levels; i++) {
+			if (!row_tables[i]) continue;
+			for (j = 0; j < row_sizes[i]; j++) {
+				// free sparse matrix if there is one
+				if (row_tables[i][j] && row_tables[i][j]->sm.ptr) {
+					if (row_major) {
+						if (!compact_sm) delete (RMSparseMatrix *)row_tables[i][j]->sm.ptr;
+						else delete (CMSRSparseMatrix *)row_tables[i][j]->sm.ptr;
+					} else {
+						if (!compact_sm) delete (CMSparseMatrix *)row_tables[i][j]->sm.ptr;
+						else delete (CMSCSparseMatrix *)row_tables[i][j]->sm.ptr;
+					}
+				}
+				// free node
+				if (row_tables[i][j]) delete row_tables[i][j];
+			}
+			// free node table
+			if (row_tables[i]) delete[] row_tables[i];
+		}
+		// free all terminal nodes
+		i = num_levels;
+		for (j = 0; j < row_sizes[i]; j++) {
+			if (row_tables[i][j]) delete row_tables[i][j];
+		}
+		if (row_tables[i]) delete[] row_tables[i];
+	}
+	// free all column nodes
+	if (col_sizes && col_tables) {
+		for (i = 0; i < num_levels; i++) {
+			if (!col_tables[i]) continue;
+			for (j = 0; j < col_sizes[i]; j++) {
+				if (col_tables[i][j]) delete col_tables[i][j];
+			}
+			if (col_tables[i]) delete[] col_tables[i];
+		}
+	}
+	// free other tables
+	if (row_lists) delete[] row_lists;
+	if (col_lists) delete[] col_lists;
+	if (row_tables) delete[] row_tables;
+	if (col_tables) delete[] col_tables;
+	if (row_sizes) delete[] row_sizes;
+	if (col_sizes) delete[] col_sizes;
+	// free block storage
+	if (blocks) delete blocks;
+	// free distinct matrix values
+	if (dist) delete[] dist;
+}
+
+HDDBlocks::HDDBlocks()
+{
+	// make sure pointers are init'ed to null
+	blocks = NULL;
+	rowscols = NULL;
+	counts = NULL;
+	offsets = NULL;
+}
+
+HDDBlocks::~HDDBlocks()
+{
+	if (blocks) delete blocks;
+	if (rowscols) delete rowscols;
+	if (counts) if (use_counts) delete counts; else delete (int*)counts;
+	if (offsets) delete offsets;
+}
+
+HDDMatrices::HDDMatrices()
+{
+	nm = 0;
+	// make sure pointers are init'ed to null
+	choices = NULL;
+	cubes = NULL;
+}
+
+HDDMatrices::~HDDMatrices()
+{
+	int i;
+	
+	// go thru all choices
+	for (i = 0; i < nm; i++) {
+		if (choices[i]) delete choices[i];
+		if (cubes[i]) Cudd_RecursiveDeref(ddman, cubes[i]);
+	}
+	// free arrays
+	if (choices) delete[] choices;
+	if (cubes) delete[] cubes;
+}
 
 //-----------------------------------------------------------------------------------
 // Methods for constructing offset-labelled MTBBDs
 //-----------------------------------------------------------------------------------
 
 // builds an offset-labelled mtbbd for a matrix (from an mtbdd)
+// throws std::bad_alloc on out-of-memory
 
 HDDMatrix *build_hdd_matrix(DdNode *matrix, DdNode **rvars, DdNode **cvars, int num_vars, ODDNode *odd, bool row_major)
 { return build_hdd_matrix(matrix, rvars, cvars, num_vars, odd, row_major, false); }
@@ -82,8 +193,11 @@ HDDMatrix *build_hdd_matrix(DdNode *matrix, DdNode **rvars, DdNode **cvars, int 
 HDDMatrix *build_hdd_matrix(DdNode *matrix, DdNode **rvars, DdNode **cvars, int num_vars, ODDNode *odd, bool row_major, bool transpose)
 {
 	int i, j;
-	HDDMatrix *res;
-	HDDNode *ptr;
+	HDDMatrix *res = NULL;
+	HDDNode *ptr = NULL;
+	
+	// try/catch for memory allocation/deallocation
+	try {
 	
 	// create data structure and store global pointer to it
 	res = new HDDMatrix();
@@ -91,23 +205,17 @@ HDDMatrix *build_hdd_matrix(DdNode *matrix, DdNode **rvars, DdNode **cvars, int 
 	
 	// build lists to store hdd nodes
 	res->row_lists = new HDDNode*[num_vars+1];
+	for (i = 0; i < num_vars+1; i++) res->row_lists[i] = NULL;
 	res->col_lists = new HDDNode*[num_vars];
+	for (i = 0; i < num_vars; i++) res->col_lists[i] = NULL;
 	res->row_tables = new HDDNode**[num_vars+1];
+	for (i = 0; i < num_vars+1; i++) res->row_tables[i] = NULL;
 	res->col_tables = new HDDNode**[num_vars];
+	for (i = 0; i < num_vars; i++) res->col_tables[i] = NULL;
 	res->row_sizes = new int[num_vars+1];
+	for (i = 0; i < num_vars+1; i++) res->row_sizes[i] = 0;
 	res->col_sizes = new int[num_vars];
-	for (i = 0; i < num_vars; i++) {
-		res->row_lists[i] = NULL;
-		res->col_lists[i] = NULL;
-		res->row_tables[i] = NULL;
-		res->col_tables[i] = NULL;
-		res->row_sizes[i] = 0;
-		res->col_sizes[i] = 0;
-	}
-	// extra list for constants
-	res->row_lists[num_vars] = NULL;
-	res->row_tables[num_vars] = NULL;
-	res->row_sizes[num_vars] = 0;
+	for (i = 0; i < num_vars; i++) res->col_sizes[i] = 0;
 	// reset node counter
 	res->num_nodes = 0;
 	
@@ -180,6 +288,12 @@ HDDMatrix *build_hdd_matrix(DdNode *matrix, DdNode **rvars, DdNode **cvars, int 
 	res->dist_num = 0;
 	res->dist_shift = 0;
 	res->dist_mask = 0;
+	
+	// try/catch for memory allocation/deallocation
+	} catch(std::bad_alloc e) {
+		if (res) delete res;
+		throw e;
+	}
 	
 	return res;
 }
@@ -309,7 +423,10 @@ void split_hdd_matrix(HDDMatrix *hm, bool compact_b, bool meet)
 void split_hdd_matrix(HDDMatrix *hm, bool compact_b, bool meet, bool transpose)
 {
 	int i, n, max;
-	HDDBlocks *blocks;
+	HDDBlocks *blocks = NULL;
+	
+	// try/catch for memory allocation/deallocation
+	try {
 	
 	// store some info globally
 	hddm = hm;
@@ -362,9 +479,9 @@ void split_hdd_matrix(HDDMatrix *hm, bool compact_b, bool meet, bool transpose)
 	}
 	
 	// compute block offsets
-	blocks->offsets = (int*)calloc(n+1, sizeof(int));
-	if (!blocks->offsets) fatal(" error returned while allocating memory for blocks->offsets");
+	blocks->offsets = new int[n+1];
 	hddm->mem_b += (((n+1) * sizeof(int)) / 1024.0);
+	for (i = 0; i < n+1; i++) blocks->offsets[i] = 0;
 	// last offset will always be num states
 	blocks->offsets[n] = hddm->odd->eoff+hddm->odd->toff;
 	// compute offsets recursively
@@ -380,9 +497,9 @@ void split_hdd_matrix(HDDMatrix *hm, bool compact_b, bool meet, bool transpose)
 	}
 	
 	// allocate temporary array to store start of each row/col
-	starts = (int*)calloc(n+1, sizeof(int));
-	if (!starts) fatal(" error returned while allocating memory for starts");
+	starts = NULL; starts = new int[n+1];
 	// see how many nonzeros are in each row/column (depending on row_major flag)
+	for (i = 0; i < n+1; i++) starts[i] = 0;
 	blocks->nnz = 0;
 	traverse_hdd_rec(hddm->top, 0, hddm->l_b, 0, 0, hddm->row_major?1:2, transpose);
 	// and use this to compute the starts information
@@ -396,13 +513,13 @@ void split_hdd_matrix(HDDMatrix *hm, bool compact_b, bool meet, bool transpose)
 	blocks->use_counts = (max < (unsigned int)(1 << (8*sizeof(unsigned char))));
 	
 	// traversal above also computed nnz so now allocate arrays
-	blocks->rowscols = (unsigned int*)calloc(blocks->nnz, sizeof(unsigned int));
-	if (!blocks->rowscols) fatal(" error returned while allocating memory for blocks->rowscols");
+	blocks->rowscols = new unsigned int[blocks->nnz];
 	hddm->mem_b += ((blocks->nnz * sizeof(unsigned int)) / 1024.0);
+	for (i = 0; i < blocks->nnz; i++) blocks->rowscols[i] = 0;
 	if (!hddm->compact_b) {
-		blocks->blocks = (HDDNode **)calloc(blocks->nnz, sizeof(HDDNode *));
-		if (!blocks->blocks) fatal(" error returned while allocating memory for blocks->blocks");
+		blocks->blocks = new HDDNode*[blocks->nnz];
 		hddm->mem_b += ((blocks->nnz * sizeof(HDDNode *)) / 1024.0);
+		for (i = 0; i < blocks->nnz; i++) blocks->blocks[i] = NULL;
 	}
 	
 	// then fill it up
@@ -420,17 +537,24 @@ void split_hdd_matrix(HDDMatrix *hm, bool compact_b, bool meet, bool transpose)
 	// assuming it's safe to do so, replace starts with (smaller) array of counts
 	// if not, we keep the starts array and use that
 	if (blocks->use_counts) {
-		blocks->counts = (unsigned char*)calloc(blocks->n, sizeof(unsigned char));
-		if (!blocks->counts) fatal(" error returned while allocating memory for blocks->counts");
+		blocks->counts = new unsigned char[blocks->n];
 		hddm->mem_b += ((n * sizeof(unsigned char)) / 1024.0);
 		for (i = 0; i < n; i++) {
 			blocks->counts[i] = (unsigned char)(starts[i+1] - starts[i]);
 		}
-		free(starts);
+		delete[] starts; starts = NULL;
 	}
 	else {
 		blocks->counts = (unsigned char*)starts;
 		hddm->mem_b += ((n * sizeof(int)) / 1024.0);
+	}
+	
+	// try/catch for memory allocation/deallocation
+	} catch(std::bad_alloc e) {
+		if (blocks) delete blocks;
+		hddm->blocks = NULL;
+		if (starts) delete[] starts;
+		throw e;
 	}
 }
 
@@ -446,7 +570,10 @@ void add_sparse_matrices(HDDMatrix *hm, bool compact_sm, bool diags_meet, bool t
 	int i, j, k, n, nnz, l, h, i_sm, rowcol;
 	double mem_est;
 	bool mem_out;
-	HDDNode *node;
+	HDDNode *node = NULL;
+	
+	// try/catch for memory allocation/deallocation
+	try {
 	
 	// store some info globally
 	hddm = hm;
@@ -545,8 +672,7 @@ void add_sparse_matrices(HDDMatrix *hm, bool compact_sm, bool diags_meet, bool t
 			if (hddm->dist_shift == 0) hddm->dist_shift++;
 			hddm->dist_mask = (1 << hddm->dist_shift) - 1;
 			// store all the distinct values in the matrix
-			hddm->dist = (double*)calloc(hddm->dist_num, sizeof(double));
-			if (!hddm->dist) fatal(" error returned while allocating memory for hddm->dist ");
+			hddm->dist = new double[hddm->dist_num];
 			hddm->mem_sm += ((hddm->dist_num * sizeof(double)) / 1024.0);
 			for (j = 0; j < hddm->row_sizes[hddm->num_levels]; j++) {
 				hddm->dist[j] = hddm->row_tables[hddm->num_levels][j]->type.val;
@@ -643,6 +769,16 @@ void add_sparse_matrices(HDDMatrix *hm, bool compact_sm, bool diags_meet, bool t
 		for (j = 0; j < hddm->col_sizes[i]; j++) {
 			hddm->col_tables[i][j]->sm.ptr = NULL;
 		}
+	}
+	
+	// try/catch for memory allocation/deallocation
+	} catch(std::bad_alloc e) {
+		// if we run out of memory during this function, it is going to be
+		// very difficult to deallocate memory cleanly (mainly because we
+		// have abused various pointer variables by temporarily storing
+		// integers in them). So, at the expense of a small memory leak...
+		hddm->row_tables = NULL;
+		throw e;
 	}
 }
 
@@ -887,15 +1023,18 @@ RMSparseMatrix *build_rm_sparse_matrix(HDDNode *hdd, int level, bool transpose)
 {
 	int i, n, nnz, max;
 	
+	// try/catch for memory allocation/deallocation
+	try {
+	
 	// create the data structure
-	rmsm = new RMSparseMatrix();
+	rmsm = NULL; rmsm = new RMSparseMatrix();
 	rmsm->n = n = hdd->sm.val;
 	rmsm->nnz = nnz = hdd->off2.val;
 	
 	// allocate temporary array to store start of each row
-	starts = (int*)calloc(n+1, sizeof(int));
-	if (!starts) fatal(" error returned while allocating memory for starts");
+	starts = NULL; starts = new int[n+1];
 	// see how many nonzeros are in each row
+	for (i = 0; i < n+1; i++) starts[i] = 0;
 	traverse_hdd_rec(hdd, level, hddm->num_levels, 0, 0, 7, transpose);
 	// and use this to compute the starts information
 	// (and at same time, compute max num entries in a row)
@@ -908,11 +1047,9 @@ RMSparseMatrix *build_rm_sparse_matrix(HDDNode *hdd, int level, bool transpose)
 	rmsm->use_counts = (max < (unsigned int)(1 << (8*sizeof(unsigned char))));
 	
 	// allocate arrays
-	rmsm->non_zeros = (double*)calloc(nnz, sizeof(double));
-	if (!rmsm->non_zeros) fatal(" error returned while allocating memory for sm->non_zeros ");
+	rmsm->non_zeros = new double[nnz];
 	hddm->mem_sm += ((nnz * sizeof(double)) / 1024.0);
-	rmsm->cols = (unsigned int*)calloc(nnz, sizeof(unsigned int));
-	if (!rmsm->cols) fatal(" error returned while allocating memory for sm->cols ");
+	rmsm->cols = new unsigned int[nnz];
 	hddm->mem_sm += ((nnz * sizeof(unsigned int)) / 1024.0);
 	
 	// fill up arrays
@@ -926,17 +1063,23 @@ RMSparseMatrix *build_rm_sparse_matrix(HDDNode *hdd, int level, bool transpose)
 	// assuming it's safe to do so, replace starts with (smaller) array of counts
 	// if not, we keep the starts array and use that
 	if (rmsm->use_counts) {
-		rmsm->row_counts = (unsigned char*)calloc(n, sizeof(unsigned char));
-		if (!rmsm->row_counts) fatal(" error returned while allocating memory for sm->row_counts");
+		rmsm->row_counts = new unsigned char[n];
 		hddm->mem_sm += ((n * sizeof(unsigned char)) / 1024.0);
 		for (i = 0; i < n; i++) {
 			rmsm->row_counts[i] = (unsigned char)(starts[i+1] - starts[i]);
 		}
-		free(starts);
+		delete[] starts; starts = NULL;
 	}
 	else {
 		rmsm->row_counts = (unsigned char*)starts;
 		hddm->mem_sm += ((n * sizeof(int)) / 1024.0);
+	}
+	
+	// try/catch for memory allocation/deallocation
+	} catch(std::bad_alloc e) {
+		if (rmsm) delete rmsm;
+		if (starts) delete[] starts;
+		throw e;
 	}
 	
 	return rmsm;
@@ -946,15 +1089,18 @@ CMSparseMatrix *build_cm_sparse_matrix(HDDNode *hdd, int level, bool transpose)
 {
 	int i, n, nnz, max;
 	
+	// try/catch for memory allocation/deallocation
+	try {
+	
 	// create the data structure
-	cmsm = new CMSparseMatrix();
+	cmsm = NULL; cmsm = new CMSparseMatrix();
 	cmsm->n = n = hdd->sm.val;
 	cmsm->nnz = nnz = hdd->off2.val;
 	
 	// allocate temporary array to store start of each col
-	starts = (int*)calloc(n+1, sizeof(int));
-	if (!starts) fatal(" error returned while allocating memory for starts");
+	starts = NULL; starts = new int[n+1];
 	// see how many nonzeros are in each column
+	for (i = 0; i < n+1; i++) starts[i] = 0;
 	traverse_hdd_rec(hdd, level, hddm->num_levels, 0, 0, 8, transpose);
 	// and use this to compute the starts information
 	// (and at same time, compute max num entries in a col)
@@ -967,11 +1113,9 @@ CMSparseMatrix *build_cm_sparse_matrix(HDDNode *hdd, int level, bool transpose)
 	cmsm->use_counts = (max < (unsigned int)(1 << (8*sizeof(unsigned char))));
 	
 	// allocate arrays
-	cmsm->non_zeros = (double*)calloc(nnz, sizeof(double));
-	if (!cmsm->non_zeros) fatal(" error returned while allocating memory for sm->non_zeros ");
+	cmsm->non_zeros = new double[nnz];
 	hddm->mem_sm += ((nnz * sizeof(double)) / 1024.0);
-	cmsm->rows = (unsigned int*)calloc(nnz, sizeof(unsigned int));
-	if (!cmsm->rows) fatal(" error returned while allocating memory for sm->rows ");
+	cmsm->rows = new unsigned int[nnz];
 	hddm->mem_sm += ((nnz * sizeof(unsigned int)) / 1024.0);
 	
 	// fill up arrays
@@ -985,17 +1129,23 @@ CMSparseMatrix *build_cm_sparse_matrix(HDDNode *hdd, int level, bool transpose)
 	// assuming it's safe to do so, replace starts with (smaller) array of counts
 	// if not, we keep the starts array and use that
 	if (cmsm->use_counts) {
-		cmsm->col_counts = (unsigned char*)calloc(n, sizeof(unsigned char));
-		if (!cmsm->col_counts) fatal(" error returned while allocating memory for sm->col_counts");
+		cmsm->col_counts = new unsigned char[n];
 		hddm->mem_sm += ((n * sizeof(unsigned char)) / 1024.0);
 		for (i = 0; i < n; i++) {
 			cmsm->col_counts[i] = (unsigned char)(starts[i+1] - starts[i]);
 		}
-		free(starts);
+		delete[] starts; starts = NULL;
 	}
 	else {
 		cmsm->col_counts = (unsigned char*)starts;
 		hddm->mem_sm += ((n * sizeof(int)) / 1024.0);
+	}
+	
+	// try/catch for memory allocation/deallocation
+	} catch(std::bad_alloc e) {
+		if (cmsm) delete cmsm;
+		if (starts) delete[] starts;
+		throw e;
 	}
 	
 	return cmsm;
@@ -1005,8 +1155,11 @@ CMSRSparseMatrix *build_cmsr_sparse_matrix(HDDNode *hdd, int level, bool transpo
 {
 	int i, n, nnz, max;
 	
+	// try/catch for memory allocation/deallocation
+	try {
+	
 	// create the data structure
-	cmsrsm = new CMSRSparseMatrix();
+	cmsrsm = NULL; cmsrsm = new CMSRSparseMatrix();
 	cmsrsm->n = n = hdd->sm.val;
 	cmsrsm->nnz = nnz = hdd->off2.val;
 	// info about distinct vals will be shared across the sparse matrices
@@ -1014,9 +1167,9 @@ CMSRSparseMatrix *build_cmsr_sparse_matrix(HDDNode *hdd, int level, bool transpo
 	cmsrsm->dist = NULL;
 	
 	// allocate temporary array to store start of each row
-	starts = (int*)calloc(n+1, sizeof(int));
-	if (!starts) fatal(" error returned while allocating memory for starts");
+	starts = NULL; starts = new int[n+1];
 	// see how many nonzeros are in each row
+	for (i = 0; i < n+1; i++) starts[i] = 0;
 	traverse_hdd_rec(hdd, level, hddm->num_levels, 0, 0, 7, transpose);
 	// and use this to compute the starts information
 	// (and at same time, compute max num entries in a row)
@@ -1029,8 +1182,7 @@ CMSRSparseMatrix *build_cmsr_sparse_matrix(HDDNode *hdd, int level, bool transpo
 	cmsrsm->use_counts = (max < (unsigned int)(1 << (8*sizeof(unsigned char))));
 	
 	// allocate arrays
-	cmsrsm->cols = (unsigned int*)calloc(nnz, sizeof(unsigned int));
-	if (!cmsrsm->cols) fatal(" error returned while allocating memory for sm->cols ");
+	cmsrsm->cols = new unsigned int[nnz];
 	hddm->mem_sm += ((nnz * sizeof(unsigned int)) / 1024.0);
 	
 	// fill up arrays
@@ -1044,17 +1196,23 @@ CMSRSparseMatrix *build_cmsr_sparse_matrix(HDDNode *hdd, int level, bool transpo
 	// assuming it's safe to do so, replace starts with (smaller) array of counts
 	// if not, we keep the starts array and use that
 	if (cmsrsm->use_counts) {
-		cmsrsm->row_counts = (unsigned char*)calloc(n, sizeof(unsigned char));
-		if (!cmsrsm->row_counts) fatal(" error returned while allocating memory for sm->row_counts");
+		cmsrsm->row_counts = new unsigned char[n];
 		hddm->mem_sm += ((n * sizeof(unsigned char)) / 1024.0);
 		for (i = 0; i < n; i++) {
 			cmsrsm->row_counts[i] = (unsigned char)(starts[i+1] - starts[i]);
 		}
-		free(starts);
+		delete[] starts; starts = NULL;
 	}
 	else {
 		cmsrsm->row_counts = (unsigned char*)starts;
 		hddm->mem_sm += ((n * sizeof(int)) / 1024.0);
+	}
+	
+	// try/catch for memory allocation/deallocation
+	} catch(std::bad_alloc e) {
+		if (cmsrsm) delete cmsrsm;
+		if (starts) delete[] starts;
+		throw e;
 	}
 	
 	return cmsrsm;
@@ -1064,8 +1222,11 @@ CMSCSparseMatrix *build_cmsc_sparse_matrix(HDDNode *hdd, int level, bool transpo
 {
 	int i, n, nnz, max;
 	
+	// try/catch for memory allocation/deallocation
+	try {
+	
 	// create the data structure
-	cmscsm = new CMSCSparseMatrix();
+	cmscsm = NULL; cmscsm = new CMSCSparseMatrix();
 	cmscsm->n = n = hdd->sm.val;
 	cmscsm->nnz = nnz = hdd->off2.val;
 	// info about distinct vals will be shared across the sparse matrices
@@ -1073,9 +1234,9 @@ CMSCSparseMatrix *build_cmsc_sparse_matrix(HDDNode *hdd, int level, bool transpo
 	cmscsm->dist = NULL;
 	
 	// allocate temporary array to store start of each col
-	starts = (int*)calloc(n+1, sizeof(int));
-	if (!starts) fatal(" error returned while allocating memory for starts");
+	starts = NULL; starts = new int[n+1];
 	// see how many nonzeros are in each column
+	for (i = 0; i < n+1; i++) starts[i] = 0;
 	traverse_hdd_rec(hdd, level, hddm->num_levels, 0, 0, 8, transpose);
 	// and use this to compute the starts information
 	// (and at same time, compute max num entries in a col)
@@ -1088,8 +1249,7 @@ CMSCSparseMatrix *build_cmsc_sparse_matrix(HDDNode *hdd, int level, bool transpo
 	cmscsm->use_counts = (max < (unsigned int)(1 << (8*sizeof(unsigned char))));
 	
 	// allocate arrays
-	cmscsm->rows = (unsigned int*)calloc(nnz, sizeof(unsigned int));
-	if (!cmscsm->rows) fatal(" error returned while allocating memory for sm->rows ");
+	cmscsm->rows = new unsigned int[nnz];
 	hddm->mem_sm += ((nnz * sizeof(unsigned int)) / 1024.0);
 	
 	// fill up arrays
@@ -1103,17 +1263,23 @@ CMSCSparseMatrix *build_cmsc_sparse_matrix(HDDNode *hdd, int level, bool transpo
 	// assuming it's safe to do so, replace starts with (smaller) array of counts
 	// if not, we keep the starts array and use that
 	if (cmscsm->use_counts) {
-		cmscsm->col_counts = (unsigned char*)calloc(n, sizeof(unsigned char));
-		if (!cmscsm->col_counts) fatal(" error returned while allocating memory for sm->col_counts");
+		cmscsm->col_counts = new unsigned char[n];
 		hddm->mem_sm += ((n * sizeof(unsigned char)) / 1024.0);
 		for (i = 0; i < n; i++) {
 			cmscsm->col_counts[i] = (unsigned char)(starts[i+1] - starts[i]);
 		}
-		free(starts);
+		delete[] starts; starts = NULL;
 	}
 	else {
 		cmscsm->col_counts = (unsigned char*)starts;
 		hddm->mem_sm += ((n * sizeof(int)) / 1024.0);
+	}
+	
+	// try/catch for memory allocation/deallocation
+	} catch(std::bad_alloc e) {
+		if (cmscsm) delete cmscsm;
+		if (starts) delete[] starts;
+		throw e;
 	}
 	
 	return cmscsm;
@@ -1130,8 +1296,11 @@ HDDMatrices *build_hdd_matrices_mdp(DdNode *mdp, HDDMatrices *existing_mdp, DdNo
 {
 	int i;
 	DdNode *tmp;
-	HDDMatrix *hddm;
-	HDDMatrices *res;
+	HDDMatrix *hddm = NULL;
+	HDDMatrices *res = NULL;
+	
+	// try/catch for memory allocation/deallocation
+	try {
 	
 	// create new data structure
 	res = new HDDMatrices();
@@ -1150,9 +1319,13 @@ HDDMatrices *build_hdd_matrices_mdp(DdNode *mdp, HDDMatrices *existing_mdp, DdNo
 		Cudd_RecursiveDeref(ddman, tmp);
 	}
 	
-	// allocate arrays
+	// allocate/init arrays
 	res->choices = new HDDMatrix*[res->nm];
 	res->cubes = new DdNode*[res->nm];
+	for (i = 0; i < res->nm; i++) {
+		res->choices[i] = NULL;
+		res->cubes[i] = NULL;
+	}
 	
 	// initialise other fields/stats
 	res->compact_sm = false;
@@ -1197,6 +1370,12 @@ HDDMatrices *build_hdd_matrices_mdp(DdNode *mdp, HDDMatrices *existing_mdp, DdNo
 	
 	// compute memory for nodes
 	res->mem_nodes = (res->num_nodes * sizeof(HDDNode)) / 1024.0;
+	
+	// try/catch for memory allocation/deallocation
+	} catch(std::bad_alloc e) {
+		if (res) delete res;
+		throw e;
+	}
 	
 	return res;
 }
@@ -1340,13 +1519,15 @@ void rearrange_hdd_blocks(HDDMatrix *hddm, bool ooc)
 // where sparse matrix based storage used (top-level block storage
 // and bottom-level submatrix storage), sum for columns instead
 
+// throws std::bad_alloc on out-of-memory
+
 double *hdd_negative_row_sums(HDDMatrix *hddm, int n)
 { return hdd_negative_row_sums(hddm, n, false); }
 
 double *hdd_negative_row_sums(HDDMatrix *hddm, int n, bool transpose)
 {
 	int i, j, l, h;
-	double *diags;
+	double *diags = NULL;
 	bool compact_b = hddm->compact_b;
 	compact_sm = hddm->compact_sm;
 	row_major = hddm->row_major;
@@ -1359,8 +1540,8 @@ double *hdd_negative_row_sums(HDDMatrix *hddm, int n, bool transpose)
 	num_levels = hddm->num_levels;
 	
 	// allocate/initialise array
-	diags = (double*)calloc(n, sizeof(double));
-	if (!diags) return NULL;
+	diags = new double[n];
+	for (int i = 0; i < n; i++) diags[i] = 0;
 	
 	// if the matrix hasn't been split into blocks, jump straight to traversal
 	if (!hddm->blocks) {
@@ -1546,127 +1727,6 @@ void hdd_negative_row_sums_cmsc(CMSCSparseMatrix *cmscsm, int row_offset, int co
 			diags[(transpose?col_offset + i2:row_offset + ((int)(sm_rows[j2] >> sm_dist_shift)))] -= sm_dist[(int)(sm_rows[j2] & sm_dist_mask)];
 		}
 	}
-}
-
-//-----------------------------------------------------------------------------------
-// Methods to free memory
-//-----------------------------------------------------------------------------------
-
-void free_hdd_matrix(HDDMatrix *hddm)
-{
-	int i, j;
-	
-	// free all row nodes
-	for (i = 0; i < hddm->num_levels; i++) {
-		for (j = 0; j < hddm->row_sizes[i]; j++) {
-			// free sparse matrix if there is one
-			if (hddm->row_tables[i][j]->sm.ptr) {
-				if (hddm->row_major) {
-					if (!hddm->compact_sm) free_rmsm((RMSparseMatrix *)hddm->row_tables[i][j]->sm.ptr);
-					else free_cmsrsm((CMSRSparseMatrix *)hddm->row_tables[i][j]->sm.ptr);
-				} else {
-					if (!hddm->compact_sm) free_cmsm((CMSparseMatrix *)hddm->row_tables[i][j]->sm.ptr);
-					else free_cmscsm((CMSCSparseMatrix *)hddm->row_tables[i][j]->sm.ptr);
-				}
-			}
-			// free node
-			delete hddm->row_tables[i][j];
-		}
-		// free node table
-		delete hddm->row_tables[i];
-	}
-	// free all column nodes
-	for (i = 0; i < hddm->num_levels; i++) {
-		for (j = 0; j < hddm->col_sizes[i]; j++) {
-			delete hddm->col_tables[i][j];
-		}
-		delete hddm->col_tables[i];
-	}
-	// free all terminal nodes
-	i = hddm->num_levels;
-	for (j = 0; j < hddm->row_sizes[i]; j++) {
-		delete hddm->row_tables[i][j];
-	}
-	delete hddm->row_tables[i];
-	// free other tables
-	delete hddm->row_lists;
-	delete hddm->col_lists;
-	delete hddm->row_tables;
-	delete hddm->col_tables;
-	delete hddm->row_sizes;
-	delete hddm->col_sizes;
-	// free block storage
-	if (hddm->blocks) {
-		free(hddm->blocks->offsets);
-		free(hddm->blocks->rowscols);
-		if (!hddm->compact_b) free(hddm->blocks->blocks);
-		if (hddm->blocks->use_counts) free(hddm->blocks->counts);
-		else free((int*)hddm->blocks->counts);
-		delete hddm->blocks;
-	}
-	// free distinct matrix values
-	if (hddm->compact_sm) {
-		free(hddm->dist);
-	}
-	// free whole data structure
-	delete hddm;
-}
-
-void free_hdd_matrices_mdp(HDDMatrices *hddms)
-{
-	int i;
-	
-	// go thru all choices
-	for (i = 0; i < hddms->nm; i++) {
-		free_hdd_matrix(hddms->choices[i]);
-		Cudd_RecursiveDeref(ddman, hddms->cubes[i]);
-	}
-	
-	// free arrays
-	delete hddms->choices;
-	delete hddms->cubes;
-	
-	// free data structure
-	delete hddms;
-}
-
-// nb: once we allocate memory consistently (c vs. c++),
-// we can remove these funcs and use the ones in sparse.cc
-
-void free_rmsm(RMSparseMatrix *rmsm)
-{
-	free(rmsm->non_zeros);
-	free(rmsm->cols);
-	if (rmsm->use_counts) free(rmsm->row_counts);
-	else free((int*)rmsm->row_counts);
-	delete rmsm;
-}
-
-void free_cmsm(CMSparseMatrix *cmsm)
-{
-	free(cmsm->non_zeros);
-	free(cmsm->rows);
-	if (cmsm->use_counts) free(cmsm->col_counts);
-	else free((int*)cmsm->col_counts);
-	delete cmsm;
-}
-
-void free_cmsrsm(CMSRSparseMatrix *cmsrsm)
-{
-	// note: don't need to free distinct val stuff since we don't use it here
-	free(cmsrsm->cols);
-	if (cmsrsm->use_counts) free(cmsrsm->row_counts);
-	else free((int*)cmsrsm->row_counts);
-	delete cmsrsm;
-}
-
-void free_cmscsm(CMSCSparseMatrix *cmscsm)
-{
-	// note: don't need to free distinct val stuff since we don't use it here
-	free(cmscsm->rows);
-	if (cmscsm->use_counts) free(cmscsm->col_counts);
-	else free((int*)cmscsm->col_counts);
-	delete cmscsm;
 }
 
 //-----------------------------------------------------------------------------------

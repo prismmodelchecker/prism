@@ -57,6 +57,9 @@ struct DistVector
 	double *dist;
 	int num_dist;
 	unsigned short *ptrs;
+	
+	DistVector();
+	~DistVector();
 };
 
 // function prototypes
@@ -76,8 +79,6 @@ EXPORT double sum_double_vector_over_mtbdd(DdManager *ddman, double *vec, DdNode
 EXPORT void sum_double_vector_over_dd_vars(DdManager *ddman, double *vec, double *vec2, DdNode **vars, int num_vars, int first_var, int last_var, ODDNode *odd, ODDNode *odd2);
 
 EXPORT DistVector *double_vector_to_dist(double *v, int n);
-EXPORT void free_dist_vector(DistVector *&dv);
-EXPORT void free_dv_or_dist_vector(double *&v, DistVector *&dv);
 
 //------------------------------------------------------------------------------
 

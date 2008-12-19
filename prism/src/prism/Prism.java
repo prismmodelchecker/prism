@@ -976,12 +976,12 @@ public class Prism implements PrismSettingsListener
 	
 	// alias for export transition matrix to a file (plain, matlab, ...)
 	
-	public void exportToFile(Model model, boolean ordered, int exportType, File file) throws FileNotFoundException
+	public void exportToFile(Model model, boolean ordered, int exportType, File file) throws FileNotFoundException, PrismException
 	{ exportTransToFile(model, ordered, exportType, file); }
 	
 	// export transition matrix to a file (plain, matlab, ...)
 	
-	public void exportTransToFile(Model model, boolean ordered, int exportType, File file) throws FileNotFoundException
+	public void exportTransToFile(Model model, boolean ordered, int exportType, File file) throws FileNotFoundException, PrismException
 	{
 		// can only do ordered version of export for MDPs
 		if (model.getType() == Model.MDP) {

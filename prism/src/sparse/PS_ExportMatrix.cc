@@ -33,6 +33,7 @@
 #include "sparse.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
+#include <new>
 
 //------------------------------------------------------------------------------
 
@@ -59,12 +60,15 @@ jstring fn		// filename
 	// flags
 	bool compact_tr;
 	// sparse matrix
-	RMSparseMatrix *rmsm;
-	CMSRSparseMatrix *cmsrsm;
+	RMSparseMatrix *rmsm = NULL;
+	CMSRSparseMatrix *cmsrsm = NULL;
 	// model stats
 	int n, nnz, i, j, l, h, r, c;
 	double d;
 	const char *export_name;
+	
+	// exception handling around whole function
+	try {
 	
 	// store export info
 	if (!store_export_info(et, fn, env)) return -1;
@@ -158,6 +162,15 @@ jstring fn		// filename
 	// close file, etc.
 	if (export_file) fclose(export_file);
 	env->ReleaseStringUTFChars(na, export_name);
+	
+	// catch exceptions: return (undocumented) error code for memout
+	} catch (std::bad_alloc e) {
+		return -2;
+	}
+	
+	// free memory
+	if (rmsm) delete rmsm;
+	if (cmsrsm) delete cmsrsm;
 	
 	return 0;
 }

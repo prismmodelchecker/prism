@@ -36,6 +36,7 @@
 #include "hybrid.h"
 #include "PrismHybridGlob.h"
 #include "jnipointer.h"
+#include <new>
 
 // local prototypes
 static void mult_rec(HDDNode *hdd, int level, int row_offset, int col_offset);
@@ -49,7 +50,7 @@ static bool compact_sm;
 static double *sm_dist;
 static int sm_dist_shift;
 static int sm_dist_mask;
-static double *soln, *soln2, *soln3;
+static double *soln = NULL, *soln2 = NULL, *soln3 = NULL;
 
 //------------------------------------------------------------------------------
 
@@ -81,24 +82,27 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	DdNode *maybe = jlong_to_DdNode(m); 		// 'maybe' states
 
 	// mtbdds
-	DdNode *a;
+	DdNode *a = NULL;
 	// model stats
 	int n, nm;
 	// flags
 	bool compact_y;
 	// matrix mtbdds
-	HDDMatrices *hddms;
-	HDDMatrix *hddm;
-	HDDNode *hdd;
+	HDDMatrices *hddms = NULL;
+	HDDMatrix *hddm = NULL;
+	HDDNode *hdd = NULL;
 	// vectors
-	double *yes_vec, *tmpsoln;
-	DistVector *yes_dist;
+	double *yes_vec = NULL, *tmpsoln = NULL;
+	DistVector *yes_dist = NULL;
 	// timing stuff
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
 	// misc
 	int i, j, iters;
 	double kb, kbt;
+	
+	// exception handling around whole function
+	try {
 	
 	// start clocks
 	start1 = start2 = util_cpu_time();
@@ -117,14 +121,16 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	nm = hddms->nm;
 	kb = hddms->mem_nodes;
 	kbt = kb;
-	PH_PrintToMainLog(env, "[nm=%d, levels=%d, nodes=%d] [%.1f KB]\n", hddms->nm, hddms->num_levels, hddms->num_nodes, kb);
+	PH_PrintToMainLog(env, "[nm=%d, levels=%d, nodes=%d] ", hddms->nm, hddms->num_levels, hddms->num_nodes);
+	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// add sparse bits
 	PH_PrintToMainLog(env, "Adding sparse bits... ");
 	add_sparse_matrices_mdp(hddms, compact);
 	kb = hddms->mem_sm;
 	kbt += kb;
-	PH_PrintToMainLog(env, "[levels=%d-%d, num=%d, compact=%d/%d] [%.1f KB]\n", hddms->l_sm_min, hddms->l_sm_max, hddms->num_sm, hddms->compact_sm, hddms->nm, kb);
+	PH_PrintToMainLog(env, "[levels=%d-%d, num=%d, compact=%d/%d] ", hddms->l_sm_min, hddms->l_sm_max, hddms->num_sm, hddms->compact_sm, hddms->nm);
+	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// get vector of yes
 	PH_PrintToMainLog(env, "Creating vector for yes... ");
@@ -134,13 +140,13 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	if (compact) {
 		if (yes_dist = double_vector_to_dist(yes_vec, n)) {
 			compact_y = true;
-			free(yes_vec);
+			delete[] yes_vec; yes_vec = NULL;
 		}
 	}
 	kb = (!compact_y) ? n*8.0/1024.0 : (yes_dist->num_dist*8.0+n*2.0)/1024.0;
 	kbt += kb;
-	if (!compact_y) PH_PrintToMainLog(env, "[%.1f KB]\n", kb);
-	else PH_PrintToMainLog(env, "[dist=%d, compact] [%.1f KB]\n", yes_dist->num_dist, kb);
+	if (compact_y) PH_PrintToMainLog(env, "[dist=%d, compact] ", yes_dist->num_dist);
+	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	//for(i = 0; i < n; i++) printf("%f ", (!compact_y)?(yes_vec[i]):(yes_dist->dist[yes_dist->ptrs[i]])); printf("\n");
 	
 	// create solution/iteration vectors
@@ -150,10 +156,10 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	soln3 = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 3*kb;
-	PH_PrintToMainLog(env, "[3 x %.1f KB]\n", kb);
+	PH_PrintMemoryToMainLog(env, "[3 x ", kb, "]\n");
 	
 	// print total memory usage
-	PH_PrintToMainLog(env, "TOTAL: [%.1f KB]\n", kbt);
+	PH_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 	
 	// initial solution is yes
 	if (!compact_y) {
@@ -244,12 +250,20 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	// print iterations/timing info
 	PH_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
+	// catch exceptions: register error, free memory
+	} catch (std::bad_alloc e) {
+		PH_SetErrorMessage("Out of memory");
+		if (soln) delete[] soln;
+		soln = 0;
+	}
+	
 	// free memory
-	Cudd_RecursiveDeref(ddman, a);
-	free_hdd_matrices_mdp(hddms);
-	if (compact_y) free_dist_vector(yes_dist); else free(yes_vec);
-	delete soln2;
-	delete soln3;
+	if (a) Cudd_RecursiveDeref(ddman, a);
+	if (hddms) delete hddms;
+	if (yes_vec) delete[] yes_vec;
+	if (yes_dist) delete yes_dist;
+	if (soln2) delete soln2;
+	if (soln3) delete soln3;
 	
 	return ptr_to_jlong(soln);
 }

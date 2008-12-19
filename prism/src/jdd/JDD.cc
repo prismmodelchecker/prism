@@ -774,7 +774,7 @@ JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDDVars_DDV_1BuildArray(JNIEnv *
 	arr = new DdNode*[n];
 	mid = env->GetMethodID(cls, "getVarPtr", "(I)J");
 	if (mid == 0) {
-		delete arr;
+		delete[] arr;
 		return 0;
 	}
 	for (i = 0; i < n; i++) {
@@ -789,7 +789,7 @@ JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDDVars_DDV_1BuildArray(JNIEnv *
 
 JNIEXPORT void JNICALL Java_jdd_JDDVars_DDV_1FreeArray(JNIEnv *env, jobject obj, jlong __jlongpointer arr)
 {
-	delete jlong_to_DdNode_array(arr);
+	delete[] jlong_to_DdNode_array(arr);
 }
 
 //------------------------------------------------------------------------------

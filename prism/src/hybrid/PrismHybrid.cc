@@ -165,6 +165,29 @@ void PH_PrintToTechLog(JNIEnv *env, const char *str, ...)
 }
 
 //------------------------------------------------------------------------------
+
+// Print formatted memory info to main log
+
+void PH_PrintMemoryToMainLog(JNIEnv *env, const char *before, double mem, const char *after)
+{
+	char full_string[MAX_LOG_STRING_LEN];
+	
+	if (mem > 1048576)
+		snprintf(full_string, MAX_LOG_STRING_LEN, "%s%.1f GB%s", before, mem/1048576.0, after);
+	else if (mem > 1024)
+		snprintf(full_string, MAX_LOG_STRING_LEN, "%s%.1f MB%s", before, mem/1024.0, after);
+	else
+		snprintf(full_string, MAX_LOG_STRING_LEN, "%s%.1f KB%s", before, mem, after);
+	
+	if (env) {
+		env->CallVoidMethod(main_log_obj, main_log_mid, env->NewStringUTF(full_string));
+	}
+	else {
+		printf("%s", full_string);
+	}
+}
+
+//------------------------------------------------------------------------------
 // numerical method stuff
 //------------------------------------------------------------------------------
 

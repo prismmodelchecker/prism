@@ -36,6 +36,7 @@
 #include "hybrid.h"
 #include "PrismHybridGlob.h"
 #include "jnipointer.h"
+#include <new>
 
 // local prototypes
 static void mult_rec(HDDNode *hdd, int level, int row_offset, int col_offset);
@@ -49,7 +50,7 @@ static bool compact_sm;
 static double *sm_dist;
 static int sm_dist_shift;
 static int sm_dist_mask;
-static double *soln, *soln2;
+static double *soln = NULL, *soln2 = NULL;
 
 //------------------------------------------------------------------------------
 
@@ -77,23 +78,26 @@ jint bound			// time bound
 	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
 
 	// mtbdds
-	DdNode *all_rewards;
+	DdNode *all_rewards = NULL;
 	// model stats
 	int n;
 	// flags
 	bool compact_r;
 	// matrix mtbdd
-	HDDMatrix *hddm;
-	HDDNode *hdd;
+	HDDMatrix *hddm = NULL;
+	HDDNode *hdd = NULL;
 	// vectors
-	double *rew_vec, *tmpsoln;
-	DistVector *rew_dist;
+	double *rew_vec = NULL, *tmpsoln = NULL;
+	DistVector *rew_dist = NULL;
 	// timing stuff
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
 	// misc
 	int i, iters;
 	double kb, kbt;
+	
+	// exception handling around whole function
+	try {
 	
 	// start clocks
 	start1 = start2 = util_cpu_time();
@@ -109,7 +113,8 @@ jint bound			// time bound
 	num_levels = hddm->num_levels;
 	kb = hddm->mem_nodes;
 	kbt = kb;
-	PH_PrintToMainLog(env, "[levels=%d, nodes=%d] [%.1f KB]\n", hddm->num_levels, hddm->num_nodes, kb);
+	PH_PrintToMainLog(env, "[levels=%d, nodes=%d] ", hddm->num_levels, hddm->num_nodes);
+	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// add sparse matrices
 	PH_PrintToMainLog(env, "Adding explicit sparse matrices... ");
@@ -122,7 +127,8 @@ jint bound			// time bound
 	}
 	kb = hddm->mem_sm;
 	kbt += kb;
-	PH_PrintToMainLog(env, "[levels=%d, num=%d%s] [%.1f KB]\n", hddm->l_sm, hddm->num_sm, compact_sm?", compact":"", kb);
+	PH_PrintToMainLog(env, "[levels=%d, num=%d%s] ", hddm->l_sm, hddm->num_sm, compact_sm?", compact":"");
+	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// multiply transition rewards by transition probs and sum rows
 	// then combine state and transition rewards and put in a vector
@@ -141,13 +147,13 @@ jint bound			// time bound
 	if (compact) {
 		if (rew_dist = double_vector_to_dist(rew_vec, n)) {
 			compact_r = true;
-			free(rew_vec);
+			delete[] rew_vec; rew_vec = NULL;
 		}
 	}
 	kb = (!compact_r) ? n*8.0/1024.0 : (rew_dist->num_dist*8.0+n*2.0)/1024.0;
 	kbt += kb;
-	if (!compact_r) PH_PrintToMainLog(env, "[%.1f KB]\n", kb);
-	else PH_PrintToMainLog(env, "[dist=%d, compact] [%.1f KB]\n", rew_dist->num_dist, kb);
+	if (compact_r) PH_PrintToMainLog(env, "[dist=%d, compact] ", rew_dist->num_dist);
+	PH_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// create solution/iteration vectors
 	PH_PrintToMainLog(env, "Allocating iteration vectors... ");
@@ -155,10 +161,10 @@ jint bound			// time bound
 	soln2 = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 2*kb;
-	PH_PrintToMainLog(env, "[2 x %.1f KB]\n", kb);
+	PH_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
 	
 	// print total memory usage
-	PH_PrintToMainLog(env, "TOTAL: [%.1f KB]\n", kbt);
+	PH_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 	
 	// initial solution is zero
 	for (i = 0; i < n; i++) {
@@ -203,11 +209,19 @@ jint bound			// time bound
 	// print iterations/timing info
 	PH_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
+	// catch exceptions: register error, free memory
+	} catch (std::bad_alloc e) {
+		PH_SetErrorMessage("Out of memory");
+		if (soln) delete[] soln;
+		soln = 0;
+	}
+	
 	// free memory
-	Cudd_RecursiveDeref(ddman, all_rewards);
-	free_hdd_matrix(hddm);
-	if (compact_r) free_dist_vector(rew_dist); else free(rew_vec);
-	delete soln2;
+	if (all_rewards) Cudd_RecursiveDeref(ddman, all_rewards);
+	if (hddm) delete hddm;
+	if (rew_vec) delete[] rew_vec;
+	if (rew_dist) delete rew_dist;
+	if (soln2) delete soln2;
 	
 	return ptr_to_jlong(soln);
 }

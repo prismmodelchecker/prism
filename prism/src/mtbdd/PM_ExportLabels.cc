@@ -114,14 +114,14 @@ jstring fn		// filename
 	
 	// free memory
 	for (i = 0; i < num_vars+1; i++) {
-		delete dd_array[i];
+		delete[] dd_array[i];
 	}
-	delete dd_array;
+	delete[] dd_array;
 	
 	// clean up jni stuff
 	for (i = 0; i < num_labels; i++) env->ReleaseStringUTFChars((jstring)label_names[i], label_strings[i]);
-	delete label_strings;
-	delete label_names;
+	delete[] label_strings;
+	delete[] label_names;
 	env->ReleaseLongArrayElements(la, labels, 0);
 	
 	// close file, etc.

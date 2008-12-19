@@ -48,7 +48,7 @@ public interface StateProbs
 	double maxOverBDD(JDDNode filter);
 	double sumOverBDD(JDDNode filter);
 	double sumOverMTBDD(JDDNode mult);
-	StateProbs sumOverDDVars(JDDVars sumVars, Model newModel);
+	StateProbs sumOverDDVars(JDDVars sumVars, Model newModel) throws PrismException;
 	JDDNode getBDDFromInterval(String relOp, double bound);
 	JDDNode getBDDFromInterval(double lo, double hi);
 	void print(PrismLog log);
