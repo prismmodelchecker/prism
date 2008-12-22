@@ -401,6 +401,7 @@ public class ModulesFile extends ASTElement
 	{
 		int i, j, n, i2, n2;
 		RenamedModule module;
+		Module newModule;
 		String s;
 		Object o;
 
@@ -416,7 +417,7 @@ public class ModulesFile extends ASTElement
 			if (j == -1) {
 				s = "No such module " + module.getBaseModule();
 				s += " in renamed module \"" + module.getName() + "\"";
-				throw new PrismLangException(s, module);
+				throw new PrismLangException(s, module.getBaseModuleASTElement());
 			}
 			// Check for invalid renames
 			n2 = module.getNumRenames();
@@ -427,7 +428,9 @@ public class ModulesFile extends ASTElement
 				}
 			}
 			// Then rename (a copy of) base module and replace
-			setModule(i, (Module) getModule(j).deepCopy().rename(module));
+			newModule = (Module) getModule(j).deepCopy().rename(module);
+			newModule.setNameASTElement(module.getNameASTElement());
+			setModule(i, newModule);
 		}
 	}
 
@@ -473,7 +476,7 @@ public class ModulesFile extends ASTElement
 			s = getModule(i).getName();
 			for (j = 0; j < i; j++) {
 				if (s.equals(moduleNames[j])) {
-					throw new PrismLangException("Duplicated module name \"" + s + "\"", getModule(i));
+					throw new PrismLangException("Duplicated module name \"" + s + "\"", getModule(i).getNameASTElement());
 				}
 			}
 			moduleNames[i] = s;

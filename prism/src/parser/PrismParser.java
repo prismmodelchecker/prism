@@ -852,14 +852,14 @@ public class PrismParser implements PrismParserConstants {
 
 // Module
   static final public Module Module() throws ParseException {
-        String name = null;
+        ExpressionIdent name = null;
         Declaration var = null;
         Command comm = null;
         Module module = null;
         Token begin = null;
     begin = jj_consume_token(MODULE);
-    name = Identifier();
-                                               module = new Module(name);
+    name = IdentifierExpression();
+                                                         module = new Module(name.getName());
     label_6:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -887,7 +887,7 @@ public class PrismParser implements PrismParserConstants {
                              module.addCommand(comm);
     }
     jj_consume_token(ENDMODULE);
-          module.setPosition(begin, getToken(0)); {if (true) return module;}
+          module.setPosition(begin, getToken(0)); module.setNameASTElement(name); {if (true) return module;}
     throw new Error("Missing return statement in function");
   }
 
@@ -1034,14 +1034,14 @@ public class PrismParser implements PrismParserConstants {
 
 // Module renaming
   static final public RenamedModule RenamedModule() throws ParseException {
-        String name = null, base = null;
+        ExpressionIdent name = null, base = null;
         RenamedModule rm = null;
         Token begin = null;
     begin = jj_consume_token(MODULE);
-    name = Identifier();
+    name = IdentifierExpression();
     jj_consume_token(EQ);
-    base = Identifier();
-                                                                        rm = new RenamedModule(name, base);
+    base = IdentifierExpression();
+                                                                                            rm = new RenamedModule(name.getName(), base.getName());
     jj_consume_token(LBRACKET);
     Rename(rm);
     label_10:
@@ -1059,7 +1059,7 @@ public class PrismParser implements PrismParserConstants {
     }
     jj_consume_token(RBRACKET);
     jj_consume_token(ENDMODULE);
-          rm.setPosition(begin, getToken(0)); {if (true) return rm;}
+          rm.setPosition(begin, getToken(0)); rm.setNameASTElement(name); rm.setBaseModuleASTElement(base); {if (true) return rm;}
     throw new Error("Missing return statement in function");
   }
 

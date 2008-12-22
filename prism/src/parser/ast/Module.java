@@ -36,6 +36,7 @@ public class Module extends ASTElement
 {
 	// Module name
 	private String name;
+	private ExpressionIdent nameASTElement;
 	// Local variables
 	private ArrayList<Declaration> decls;
 	// Commands
@@ -57,6 +58,11 @@ public class Module extends ASTElement
 	public void setName(String n)
 	{
 		name = n;
+	}
+	
+	public void setNameASTElement(ExpressionIdent e)
+	{
+		nameASTElement = e;
 	}
 	
 	public void addDeclaration(Declaration d)
@@ -91,6 +97,11 @@ public class Module extends ASTElement
 	public String getName()
 	{
 		return name;
+	}
+	
+	public ExpressionIdent getNameASTElement()
+	{
+		return nameASTElement;
 	}
 	
 	public int getNumDeclarations()
@@ -187,6 +198,7 @@ public class Module extends ASTElement
 	{
 		int i, n;
 		Module ret = new Module(name);
+		ret.setNameASTElement((ExpressionIdent)nameASTElement.deepCopy());
 		n = getNumDeclarations();
 		for (i = 0; i < n; i++) {
 			ret.addDeclaration((Declaration)getDeclaration(i).deepCopy());

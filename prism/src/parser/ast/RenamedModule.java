@@ -34,7 +34,9 @@ import prism.PrismLangException;
 public class RenamedModule extends ASTElement
 {
 	private String name;
+	private ExpressionIdent nameASTElement;
 	private String baseModule;
+	private ExpressionIdent baseModuleASTElement;
 	private ArrayList<String> oldNames;
 	private ArrayList<String> newNames;
 	
@@ -55,9 +57,19 @@ public class RenamedModule extends ASTElement
 		name = n;
 	}
 
+	public void setNameASTElement(ExpressionIdent e)
+	{
+		nameASTElement = e;
+	}
+	
 	public void setBaseModule(String b)
 	{
 		baseModule = b;
+	}
+	
+	public void setBaseModuleASTElement(ExpressionIdent e)
+	{
+		baseModuleASTElement = e;
 	}
 	
 	public void addRename(String s1, String s2)
@@ -73,11 +85,21 @@ public class RenamedModule extends ASTElement
 		return name;
 	}
 	
+	public ExpressionIdent getNameASTElement()
+	{
+		return nameASTElement;
+	}
+	
 	public String getBaseModule()
 	{
 		return baseModule;
 	}
 
+	public ExpressionIdent getBaseModuleASTElement()
+	{
+		return baseModuleASTElement;
+	}
+	
 	public String getNewName(String s)
 	{
 		int i = oldNames.indexOf(s);
@@ -146,6 +168,8 @@ public class RenamedModule extends ASTElement
 	{
 		int i, n;
 		RenamedModule ret = new RenamedModule(name, baseModule);
+		ret.setNameASTElement((ExpressionIdent)nameASTElement.deepCopy());
+		ret.setBaseModuleASTElement((ExpressionIdent)baseModuleASTElement.deepCopy());
 		n = oldNames.size();
 		for (i = 0; i < n; i++) {
 			ret.addRename(oldNames.get(i), newNames.get(i));

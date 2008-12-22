@@ -659,7 +659,7 @@ Declaration Declaration() :
 	Token begin = null;
 }
 {
-	( { begin = getToken(1);} name = Identifier() <COLON>
+	( { begin = getToken(1); } name = Identifier() <COLON>
 	// Integer-range variable declaration
 	(( <LBRACKET> low = Expression(false, false) <DOTS> high = Expression(false, false) <RBRACKET> ( <INIT> init = Expression(false, false) )? <SEMICOLON>
 	{ decl = new Declaration(name, low, high, init); } )
@@ -672,18 +672,18 @@ Declaration Declaration() :
 
 Module Module() :
 {
-	String name = null;
+	ExpressionIdent name = null;
 	Declaration var = null;
 	Command comm = null;
 	Module module = null;
 	Token begin = null;
 }
 {
-	begin = <MODULE> name = Identifier() { module = new Module(name); }
+	begin = <MODULE> name = IdentifierExpression() { module = new Module(name.getName()); }
 	( var = Declaration() { module.addDeclaration(var); } )*
 	( comm = Command() { module.addCommand(comm); } )*
 	<ENDMODULE>
-	{ module.setPosition(begin, getToken(0)); return module; }
+	{ module.setPosition(begin, getToken(0)); module.setNameASTElement(name); return module; }
 }
 
 // Command
@@ -755,14 +755,14 @@ void UpdateElement(Update update) :
 
 RenamedModule RenamedModule() :
 {
-	String name = null, base = null;
+	ExpressionIdent name = null, base = null;
 	RenamedModule rm = null;
 	Token begin = null;
 }
 {
-	begin = <MODULE> name = Identifier() <EQ> base = Identifier() { rm = new RenamedModule(name, base); }
+	begin = <MODULE> name = IdentifierExpression() <EQ> base = IdentifierExpression() { rm = new RenamedModule(name.getName(), base.getName()); }
 	<LBRACKET> Rename(rm) ( <COMMA> Rename(rm) )* <RBRACKET> <ENDMODULE>
-	{ rm.setPosition(begin, getToken(0)); return rm; }
+	{ rm.setPosition(begin, getToken(0)); rm.setNameASTElement(name); rm.setBaseModuleASTElement(base); return rm; }
 }
 
 void Rename(RenamedModule rm) :
