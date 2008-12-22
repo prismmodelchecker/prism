@@ -767,15 +767,15 @@ RenamedModule RenamedModule() :
 
 void Rename(RenamedModule rm) :
 {
-	String id1 = null, id2 = null;
+	ExpressionIdent id1 = null, id2 = null;
 }
 {
 	// NB: have to explicitly include keywords for functions because they can be renamed
-	(( id1=Identifier() | <MIN> { id1="min"; } | <MAX> { id1="max"; } )
+	id1=IdentifierExpressionMinMax()
 	<EQ>
-	( id2=Identifier() | <MIN> { id2="min"; } | <MAX> { id2="max"; } ))
+	id2=IdentifierExpressionMinMax()
 	{
-		rm.addRename(id1, id2);
+		rm.addRename(id1.getName(), id2.getName(), id1, id2);
 	}
 }
 
@@ -1583,6 +1583,18 @@ ExpressionIdent IdentifierExpression() :
 }
 {
 	ident = Identifier()
+	{ ret = new ExpressionIdent(ident); ret.setPosition(getToken(0)); return ret; }
+}
+
+// Identifier or min/max keyword (returns ExpressionIdent, storing position info)
+
+ExpressionIdent IdentifierExpressionMinMax() :
+{
+	String ident;
+	ExpressionIdent ret;
+}
+{
+	( ident = Identifier() | <MIN> { ident="min"; } | <MAX> { ident="max"; } )
 	{ ret = new ExpressionIdent(ident); ret.setPosition(getToken(0)); return ret; }
 }
 

@@ -404,6 +404,7 @@ public class ModulesFile extends ASTElement
 		Module newModule;
 		String s;
 		Object o;
+		HashSet<String> renamedSoFar;
 
 		// Go through modules and find ones which are defined by renaming
 		n = modules.size();
@@ -421,10 +422,14 @@ public class ModulesFile extends ASTElement
 			}
 			// Check for invalid renames
 			n2 = module.getNumRenames();
+			renamedSoFar = new HashSet<String>();
 			for (i2 = 0; i2 < n2; i2++) {
 				s = module.getOldName(i2);
+				if (!renamedSoFar.add(s)) {
+					throw new PrismLangException("Identifier \""+s+"\" is renamed more than once in module \""+module.getName()+"\"", module.getOldNameASTElement(i2));
+				}
 				if (formulaList.getFormulaIndex(s) != -1) {
-					throw new PrismLangException("Formula \""+s+"\" cannot be renamed since formulas are expanded before module renaming", module);
+					throw new PrismLangException("Formula \""+s+"\" cannot be renamed since formulas are expanded before module renaming", module.getOldNameASTElement(i2));
 				}
 			}
 			// Then rename (a copy of) base module and replace

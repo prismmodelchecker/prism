@@ -33,12 +33,16 @@ import prism.PrismLangException;
 
 public class RenamedModule extends ASTElement
 {
+	// Rename info
 	private String name;
-	private ExpressionIdent nameASTElement;
 	private String baseModule;
-	private ExpressionIdent baseModuleASTElement;
 	private ArrayList<String> oldNames;
 	private ArrayList<String> newNames;
+	// AST elements (for positional info)
+	private ExpressionIdent nameASTElement;
+	private ExpressionIdent baseModuleASTElement;
+	private ArrayList<ExpressionIdent> oldNameASTElements;
+	private ArrayList<ExpressionIdent> newNameASTElements;
 	
 	// Constructor
 	
@@ -48,6 +52,8 @@ public class RenamedModule extends ASTElement
 		baseModule = b;
 		oldNames = new ArrayList<String>();
 		newNames = new ArrayList<String>();
+		oldNameASTElements = new ArrayList<ExpressionIdent>();
+		newNameASTElements = new ArrayList<ExpressionIdent>();
 	}
 	
 	// Set methods
@@ -57,14 +63,14 @@ public class RenamedModule extends ASTElement
 		name = n;
 	}
 
-	public void setNameASTElement(ExpressionIdent e)
-	{
-		nameASTElement = e;
-	}
-	
 	public void setBaseModule(String b)
 	{
 		baseModule = b;
+	}
+	
+	public void setNameASTElement(ExpressionIdent e)
+	{
+		nameASTElement = e;
 	}
 	
 	public void setBaseModuleASTElement(ExpressionIdent e)
@@ -74,8 +80,15 @@ public class RenamedModule extends ASTElement
 	
 	public void addRename(String s1, String s2)
 	{
+		addRename(s1, s2, null, null);
+	}
+		
+	public void addRename(String s1, String s2, ExpressionIdent e1, ExpressionIdent e2)
+	{
 		oldNames.add(s1);
 		newNames.add(s2);
+		oldNameASTElements.add(e1);
+		newNameASTElements.add(e2);
 	}
 		
 	// Get methods
@@ -85,21 +98,11 @@ public class RenamedModule extends ASTElement
 		return name;
 	}
 	
-	public ExpressionIdent getNameASTElement()
-	{
-		return nameASTElement;
-	}
-	
 	public String getBaseModule()
 	{
 		return baseModule;
 	}
 
-	public ExpressionIdent getBaseModuleASTElement()
-	{
-		return baseModuleASTElement;
-	}
-	
 	public String getNewName(String s)
 	{
 		int i = oldNames.indexOf(s);
@@ -131,6 +134,26 @@ public class RenamedModule extends ASTElement
 	public String getNewName(int i)
 	{
 		return newNames.get(i); 
+	}
+	
+	public ExpressionIdent getNameASTElement()
+	{
+		return nameASTElement;
+	}
+	
+	public ExpressionIdent getBaseModuleASTElement()
+	{
+		return baseModuleASTElement;
+	}
+	
+	public ExpressionIdent getOldNameASTElement(int i)
+	{
+		return oldNameASTElements.get(i);
+	}
+	
+	public ExpressionIdent getNewNameASTElement(int i)
+	{
+		return newNameASTElements.get(i);
 	}
 	
 	// Methods required for ASTElement:
