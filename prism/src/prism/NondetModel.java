@@ -310,10 +310,10 @@ public class NondetModel extends ProbModel
 		for (i = 0; i < numRewardStructs; i++) {
 			filename = (file != null) ? file.getPath() : null;
 			if (filename != null && numRewardStructs > 1) {
-				filename = PrismUtils.addCounterSuffixToFilename(filename, i);
+				filename = PrismUtils.addCounterSuffixToFilename(filename, i+1);
 				allFilenames += ((i > 0) ? ", " : "") + filename;
 			}
-			PrismMTBDD.ExportVector(stateRewards[i], "c" + i, allDDRowVars, odd, exportType, filename);
+			PrismMTBDD.ExportVector(stateRewards[i], "c" + (i+1), allDDRowVars, odd, exportType, filename);
 		}
 		return (allFilenames.length() > 0) ? allFilenames : null;
 	}
@@ -332,13 +332,13 @@ public class NondetModel extends ProbModel
 		for (i = 0; i < numRewardStructs; i++) {
 			filename = (file != null) ? file.getPath() : null;
 			if (filename != null && numRewardStructs > 1) {
-				filename = PrismUtils.addCounterSuffixToFilename(filename, i);
+				filename = PrismUtils.addCounterSuffixToFilename(filename, i+1);
 				allFilenames += ((i > 0) ? ", " : "") + filename;
 			}
 			if (!explicit) {
 				// can only do explicit (sparse matrix based) export for mdps
 			} else {
-				PrismSparse.ExportSubMDP(trans, transRewards[i], "C" + i, allDDRowVars, allDDColVars, allDDNondetVars,
+				PrismSparse.ExportSubMDP(trans, transRewards[i], "C" + (i+1), allDDRowVars, allDDColVars, allDDNondetVars,
 						odd, exportType, filename);
 			}
 		}

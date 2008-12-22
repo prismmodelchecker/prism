@@ -651,10 +651,10 @@ public class ProbModel implements Model
 		for (i = 0; i < numRewardStructs; i++) {
 			filename = (file != null) ? file.getPath() : null;
 			if (filename != null && numRewardStructs > 1) {
-				filename = PrismUtils.addCounterSuffixToFilename(filename, i);
+				filename = PrismUtils.addCounterSuffixToFilename(filename, i+1);
 				allFilenames += ((i > 0) ? ", " : "") + filename;
 			}
-			PrismMTBDD.ExportVector(stateRewards[i], "c" + i, allDDRowVars, odd, exportType, filename);
+			PrismMTBDD.ExportVector(stateRewards[i], "c" + (i+1), allDDRowVars, odd, exportType, filename);
 		}
 		return (allFilenames.length() > 0) ? allFilenames : null;
 	}
@@ -673,14 +673,14 @@ public class ProbModel implements Model
 		for (i = 0; i < numRewardStructs; i++) {
 			filename = (file != null) ? file.getPath() : null;
 			if (filename != null && numRewardStructs > 1) {
-				filename = PrismUtils.addCounterSuffixToFilename(filename, i);
+				filename = PrismUtils.addCounterSuffixToFilename(filename, i+1);
 				allFilenames += ((i > 0) ? ", " : "") + filename;
 			}
 			if (!explicit) {
 				PrismMTBDD
-						.ExportMatrix(transRewards[i], "C" + i, allDDRowVars, allDDColVars, odd, exportType, filename);
+						.ExportMatrix(transRewards[i], "C" + (i+1), allDDRowVars, allDDColVars, odd, exportType, filename);
 			} else {
-				PrismSparse.ExportMatrix(transRewards[i], "C" + i, allDDRowVars, allDDColVars, odd, exportType,
+				PrismSparse.ExportMatrix(transRewards[i], "C" + (i+1), allDDRowVars, allDDColVars, odd, exportType,
 						filename);
 			}
 		}
