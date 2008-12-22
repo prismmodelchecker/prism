@@ -18,18 +18,38 @@ Latest changes (reverse chronological):
 * Efficiency improvements to precomputation algorithms
 * Added symmetry reduction functionality
 * New -exportbsccs option 
-* Expanded property specification language
 * Initial state info for explicit import is now via -importlabels
-* Added prism2html/prism2latex scripts
+* Added prism2html/prism2latex tools (in etc/scripts)
 * Transient probabilities computation for DTMCs
 * Sparse/hybrid versions of instantaneous reward properties (R=?[I=k]) for DTMCs
-* Added weak until (W) and release (R) to properties language
 * Easier viewing of model checking results in GUI
 * Steady-state properties/operators for DTMCs
-* GUI model editor: line numbers, undo
-* Language changes: no ranges, new function notation, semicolons, update parentheses
-* New parser: more efficient, better error reporting
 
+* New language parser:
+  - improved efficiency, especially on large/complex models
+  - more accurate error reporting
+* GUI model editor improvements:
+  - error highlighting
+  - line numbers
+  - undo/redo feature
+* Modelling language changes:
+  - cleaner notation for functions, e.g. mod(i,n), not func(mod,i,n)
+  - function names can be renamed in module renaming
+  - language strictness: updates (x'=...) must be parenthesised
+  - ranges (x=1..3,5) no longer supported
+  - added conversion tool for old models (etc/scripts/prism3to4)
+* Expanded property specification language
+  - arbitrary expressions allowed, e.g. 1-P=?[...]
+  - support got weak until (W) and release (R) added
+  - optional semicolons to terminate properties in properties files
+  - steady-state operators (S=?[...], R=?[S]) allowed for DTMCs
+* Other minor technical changes to language:
+  - implication allowed in any expression (not just properties)
+  - floor/ceil are now identifiers, not keywords
+  - equality and relational operators separated in priority
+  - precedence: >, <, >=, <= now have priority over =, !=
+  - better but slightly different parsing of problem cases like "F<=a b"
+  
 -----------------------------------------------------------------------------
 Version 3.2.beta1 (released 25/2/2008) (svn: trunk rev 568)
 -----------------------------------------------------------------------------
