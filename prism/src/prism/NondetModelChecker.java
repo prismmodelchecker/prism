@@ -312,8 +312,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		if (expr.isSimplePathFormula()) {
 			return checkProbPathFormulaSimple(expr, qual, min);
 		} else {
-			//return checkProbPathFormulaLTL(expr, qual, min);
-			throw new PrismException("LTL-style path formulas are not yet supported");
+			return checkProbPathFormulaLTL(expr, qual, min);
+			//throw new PrismException("LTL-style path formulas are not yet supported");
 		}
 	}
 
