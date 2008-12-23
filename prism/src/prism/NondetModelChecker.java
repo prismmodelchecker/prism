@@ -41,7 +41,7 @@ import jltl2dstar.*;
 /*
  * Model checker for MDPs
  */
-public class NondetModelChecker extends StateModelChecker
+public class NondetModelChecker extends NonProbModelChecker
 {
 	// Model (MDP)
 	protected NondetModel model;
