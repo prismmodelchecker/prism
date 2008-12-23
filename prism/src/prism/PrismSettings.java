@@ -504,8 +504,9 @@ public class PrismSettings implements Observer
 							Setting set = settingFromHash(key);
 							if(set != null)
 							{
-								// If "version" of setting is newer than the version of the settings file, ignore
-								if (resaveNeeded && Prism.compareVersions(set.getVersion(), version) >= 0) continue;
+								// If the version of the settings file is not newer than the "version" of the setting,
+								// and we are re-saving the file, overwrite the setting with the default value 
+								if (resaveNeeded && Prism.compareVersions(version, set.getVersion()) <= 0) continue;
 								try
 								{
 									Object valObj = set.parseStringValue(value);
@@ -543,8 +544,9 @@ public class PrismSettings implements Observer
 						Setting set = settingFromHash(key);
 						if(set != null)
 						{
-							// If "version" of setting is newer than the version of the settings file, ignore
-							if (resaveNeeded && Prism.compareVersions(set.getVersion(), version) >= 0) continue;
+							// If the version of the settings file is not newer than the "version" of the setting,
+							// and we are re-saving the file, overwrite the setting with the default value 
+							if (resaveNeeded && Prism.compareVersions(version, set.getVersion()) <= 0) continue;
 							try
 							{
 								Object valObj = set.parseStringValue(multiline.toString() + line);
