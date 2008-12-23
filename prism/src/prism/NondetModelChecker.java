@@ -312,7 +312,8 @@ public class NondetModelChecker extends StateModelChecker
 		if (expr.isSimplePathFormula()) {
 			return checkProbPathFormulaSimple(expr, qual, min);
 		} else {
-			return checkProbPathFormulaLTL(expr, qual, min);
+			//return checkProbPathFormulaLTL(expr, qual, min);
+			throw new PrismException("LTL-style path formulas are not yet supported");
 		}
 	}
 
