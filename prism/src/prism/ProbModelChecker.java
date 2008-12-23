@@ -29,19 +29,22 @@ package prism;
 import java.util.Vector;
 
 import jdd.*;
+import jltl2dstar.DRA;
+import jltl2dstar.LTL2Rabin;
 import dv.*;
 import mtbdd.*;
 import sparse.*;
 import hybrid.*;
 import parser.ast.*;
+import parser.visitor.ASTTraverse;
 
 /*
  * Model checker for DTMCs.
  */
 public class ProbModelChecker extends NonProbModelChecker
 {
-	// SCC computer
-	protected SCCComputer sccComputer;
+	// Model (DTMC or CTMC)
+	protected ProbModel model;
 
 	// Options (in addition to those inherited from StateModelChecker):
 
@@ -56,9 +59,10 @@ public class ProbModelChecker extends NonProbModelChecker
 	{
 		// Initialise
 		super(prism, m, pf);
-
-		// Create SCCComputer object
-		sccComputer = prism.getSCCComputer(m);
+		if (!(m instanceof ProbModel)) {
+			throw new PrismException("Wrong model type passed to ProbModelChecker.");
+		}
+		model = (ProbModel) m;
 
 		// Inherit some options from parent Prism object.
 		// Store locally and/or pass onto engines.
@@ -94,6 +98,13 @@ public class ProbModelChecker extends NonProbModelChecker
 			PrismHybrid.setNumSORLevels(prism.getNumSORLevels());
 			PrismHybrid.setDoSSDetect(prism.getDoSSDetect());
 		}
+	}
+
+	// Override-able "Constructor"
+
+	public ProbModelChecker createNewModelChecker(Prism prism, Model m, PropertiesFile pf) throws PrismException
+	{
+		return new ProbModelChecker(prism, m, pf);
 	}
 
 	// -----------------------------------------------------------------------------------
@@ -350,6 +361,7 @@ public class ProbModelChecker extends NonProbModelChecker
 
 		// compute bottom strongly connected components (bsccs)
 		if (bsccComp) {
+			SCCComputer sccComputer = prism.getSCCComputer(model);
 			sccComputer.computeBSCCs();
 			vectBSCCs = sccComputer.getVectBSCCs();
 			notInBSCCs = sccComputer.getNotInBSCCs();
@@ -512,7 +524,8 @@ public class ProbModelChecker extends NonProbModelChecker
 		if (expr.isSimplePathFormula()) {
 			return checkProbPathFormulaSimple(expr, qual);
 		} else {
-			throw new PrismException("LTL-style path formulas are not yet supported");
+			return checkProbPathFormulaLTL(expr, qual);
+			//throw new PrismException("LTL-style path formulas are not yet supported");
 		}
 	}
 
@@ -558,6 +571,97 @@ public class ProbModelChecker extends NonProbModelChecker
 
 		if (probs == null)
 			throw new PrismException("Unrecognised path operator in P operator");
+
+		return probs;
+	}
+
+	// LTL-like path formula for P operator
+
+	protected StateProbs checkProbPathFormulaLTL(Expression expr, boolean qual) throws PrismException
+	{
+		LTLModelChecker mcLtl;
+		StateProbs probsProduct = null, probs = null;
+		Expression ltl;
+		Vector<JDDNode> labelDDs;
+		DRA dra;
+		ProbModel modelProduct;
+		ProbModelChecker mcProduct;
+		JDDNode startMask;
+		JDDVars draDDRowVars;
+		int i;
+		long l;
+
+		// Can't do LTL with time-bounded variants of the temporal operators
+		try {
+			expr.accept(new ASTTraverse()
+			{
+				public void visitPre(ExpressionTemporal e) throws PrismLangException
+				{
+					if (e.getLowerBound() != null)
+						throw new PrismLangException(e.getOperatorSymbol());
+					if (e.getUpperBound() != null)
+						throw new PrismLangException(e.getOperatorSymbol());
+				}
+			});
+		} catch (PrismLangException e) {
+			String s = "Temporal operators (like " + e.getMessage() + ")";
+			s += " cannot have time bounds for LTL properties";
+			throw new PrismException(s);
+		}
+
+		// For LTL model checking routines
+		mcLtl = new LTLModelChecker(prism);
+
+		// Model check maximal state formulas
+		labelDDs = new Vector<JDDNode>();
+		ltl = mcLtl.checkMaximalStateFormulas(this, model, expr.deepCopy(), labelDDs);
+
+		// Convert LTL formula to deterministic Rabin automaton (DRA)
+		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
+		l = System.currentTimeMillis();
+		dra = LTL2Rabin.ltl2rabin(ltl.convertForJltl2ba());
+		mainLog.println("\nDRA has " + dra.size() + " states, " + dra.acceptance().size() + " pairs.");
+		// dra.print(System.out);
+		l = System.currentTimeMillis() - l;
+		mainLog.println("\nTime for Rabin translation: " + l / 1000.0 + " seconds.");
+
+		// Build product of Markov chain and automaton
+		// (note: might be a CTMC - StochModelChecker extends this class)
+		mainLog.println("\nConstructing MC-DRA product...");
+		modelProduct = mcLtl.constructProductMC(dra, model, labelDDs);
+		mainLog.println();
+		modelProduct.printTransInfo(mainLog, prism.getExtraDDInfo());
+		// prism.exportStatesToFile(modelProduct, Prism.EXPORT_PLAIN, null);
+		// prism.exportTransToFile(modelProduct, true, Prism.EXPORT_PLAIN, null);
+		
+		// Find accepting maximum end BSCC
+		mainLog.println("\nFinding accepting BSCCs...");
+		JDDNode acc = mcLtl.findAcceptingBSCCs(dra, modelProduct);
+
+		// Compute reachability probabilities
+		mainLog.println("\nComputing reachability probabilities...");
+		mcProduct = createNewModelChecker(prism, modelProduct, null);
+		probsProduct = mcProduct.checkProbUntil(modelProduct.getReach(), acc, qual);
+		
+		// Convert probability vector to original model
+		// First, filter over DRA start states
+		// (which we can get from initial states of product model,
+		// because of the way it is constructed)
+		startMask = modelProduct.getStart();
+		probsProduct.filter(startMask);
+		// Then sum over DD vars for the DRA state
+		draDDRowVars = new JDDVars();
+		draDDRowVars.addVars(modelProduct.getAllDDRowVars());
+		draDDRowVars.removeVars(allDDRowVars);
+		probs = probsProduct.sumOverDDVars(draDDRowVars, model);
+
+		// Deref, clean up
+		probsProduct.clear();
+		modelProduct.clear();
+		for (i = 0; i < labelDDs.size(); i++) {
+			JDD.Deref(labelDDs.get(i));
+		}
+		JDD.Deref(acc);
 
 		return probs;
 	}
@@ -640,6 +744,8 @@ public class ProbModelChecker extends NonProbModelChecker
 
 	// until (unbounded)
 
+	// this method is split into two steps so that the LTL model checker can use the second part directly
+
 	protected StateProbs checkProbUntil(ExpressionTemporal expr, boolean qual) throws PrismException
 	{
 		JDDNode b1, b2;
@@ -660,6 +766,27 @@ public class ProbModelChecker extends NonProbModelChecker
 		// mainLog.print(" states, b2 = " + JDD.GetNumMintermsString(b2,
 		// allDDRowVars.n()) + " states\n");
 
+		try {
+			probs = checkProbUntil(b1, b2, qual);
+		} catch (PrismException e) {
+			JDD.Deref(b1);
+			JDD.Deref(b2);
+			throw e;
+		}
+
+		// derefs
+		JDD.Deref(b1);
+		JDD.Deref(b2);
+
+		return probs;
+	}
+
+	// until (unbounded): b1/b2 are bdds for until operands
+
+	protected StateProbs checkProbUntil(JDDNode b1, JDDNode b2, boolean qual) throws PrismException
+	{
+		StateProbs probs = null;
+
 		// compute probabilities
 
 		// if requested (i.e. when prob bound is 0 or 1 and precomputation algorithms are enabled),
@@ -671,18 +798,8 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 		// otherwise actually compute probabilities
 		else {
-			try {
-				probs = computeUntilProbs(trans, trans01, b1, b2);
-			} catch (PrismException e) {
-				JDD.Deref(b1);
-				JDD.Deref(b2);
-				throw e;
-			}
+			probs = computeUntilProbs(trans, trans01, b1, b2);
 		}
-
-		// derefs
-		JDD.Deref(b1);
-		JDD.Deref(b2);
 
 		return probs;
 	}
@@ -795,6 +912,7 @@ public class ProbModelChecker extends NonProbModelChecker
 
 		// compute bottom strongly connected components (bsccs)
 		if (bsccComp) {
+			SCCComputer sccComputer = prism.getSCCComputer(model);
 			sccComputer.computeBSCCs();
 			vectBSCCs = sccComputer.getVectBSCCs();
 			notInBSCCs = sccComputer.getNotInBSCCs();
@@ -940,6 +1058,7 @@ public class ProbModelChecker extends NonProbModelChecker
 
 		// compute bottom strongly connected components (bsccs)
 		if (bsccComp) {
+			SCCComputer sccComputer = prism.getSCCComputer(model);
 			sccComputer.computeBSCCs();
 			vectBSCCs = sccComputer.getVectBSCCs();
 			notInBSCCs = sccComputer.getNotInBSCCs();

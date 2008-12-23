@@ -63,6 +63,13 @@ public class StochModelChecker extends ProbModelChecker
 		super(prism, m, pf);
 	}
 
+	// Override-able "Constructor"
+
+	public ProbModelChecker createNewModelChecker(Prism prism, Model m, PropertiesFile pf) throws PrismException
+	{
+		return new StochModelChecker(prism, m, pf);
+	}
+
 	// -----------------------------------------------------------------------------------
 	// Check method for each operator
 	// -----------------------------------------------------------------------------------

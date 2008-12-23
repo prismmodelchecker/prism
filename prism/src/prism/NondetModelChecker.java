@@ -400,13 +400,15 @@ public class NondetModelChecker extends NonProbModelChecker
 		}
 
 		// For LTL model checking routines
-		mcLtl = new LTLModelChecker(prism, this);
+		mcLtl = new LTLModelChecker(prism);
 
 		// Model check maximal state formulas
 		labelDDs = new Vector<JDDNode>();
-		ltl = mcLtl.checkMaximalStateFormulas(model, expr.deepCopy(), labelDDs);
+		ltl = mcLtl.checkMaximalStateFormulas(this, model, expr.deepCopy(), labelDDs);
 
 		// Convert LTL formula to deterministic Rabin automaton (DRA)
+		// For min probabilities, need to negate the formula
+		// (But check fairness setting since this may affect min/max)
 		mainLog.println("\nBuilding deterministic Rabin automaton (for " + (min && !fairness ? "!" : "") + ltl + ")...");
 		l = System.currentTimeMillis();
 		if (min && !fairness) {
@@ -414,22 +416,24 @@ public class NondetModelChecker extends NonProbModelChecker
 		} else {
 			dra = LTL2Rabin.ltl2rabin(ltl.convertForJltl2ba());
 		}
-		mainLog.println("\nDRA has " + dra.size() + " states.");
+		mainLog.println("\nDRA has " + dra.size() + " states, " + dra.acceptance().size() + " pairs.");
 		// dra.print(System.out);
 		l = System.currentTimeMillis() - l;
 		mainLog.println("\nTime for Rabin translation: " + l / 1000.0 + " seconds.");
 
 		// Build product of MDP and automaton
-		mainLog.println("\nConstructing Model-DRA product...");
-		modelProduct = mcLtl.constructProductModel(dra, model, labelDDs);
+		mainLog.println("\nConstructing MDP-DRA product...");
+		modelProduct = mcLtl.constructProductMDP(dra, model, labelDDs);
 		mainLog.println();
 		modelProduct.printTransInfo(mainLog, prism.getExtraDDInfo());
 		// prism.exportStatesToFile(modelProduct, Prism.EXPORT_PLAIN, null);
 		// prism.exportTransToFile(modelProduct, true, Prism.EXPORT_PLAIN, null);
 
+		// Find accepting maximum end components
 		mainLog.println("\nFinding accepting end components...");
 		JDDNode acc = mcLtl.findAcceptingStates(dra, modelProduct, fairness);
 
+		// Compute reachability probabilities
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = new NondetModelChecker(prism, modelProduct, null);
 		probsProduct = mcProduct.checkProbUntil(modelProduct.getReach(), acc, qual, min && fairness);
@@ -441,9 +445,10 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// Convert probability vector to original model
 		// First, filter over DRA start states
-		startMask = mcLtl.buildStartMask(dra, labelDDs);
+		// (which we can get from initial states of product model,
+		// because of the way it is constructed)
+		startMask = modelProduct.getStart();
 		probsProduct.filter(startMask);
-		JDD.Deref(startMask);
 		// Then sum over DD vars for the DRA state
 		draDDRowVars = new JDDVars();
 		draDDRowVars.addVars(modelProduct.getAllDDRowVars());
