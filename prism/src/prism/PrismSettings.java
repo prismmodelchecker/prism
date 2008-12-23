@@ -196,7 +196,7 @@ public class PrismSettings implements Observer
 			{ BOOLEAN_TYPE,		PRISM_EXTRA_DD_INFO,					"Extra MTBDD information",				"3.1.1",			new Boolean(false),															"0,",																						"Display extra information about (MT)BDDs used during and after model construction." },
 			{ BOOLEAN_TYPE,		PRISM_EXTRA_REACH_INFO,					"Extra reachability information",		"3.1.1",			new Boolean(false),															"0,",																						"Display extra information about progress of reachability during model construction." },
 			{ CHOICE_TYPE,		PRISM_SCC_METHOD,						"SCC decomposition method",				"3.2",			"Lockstep",																	"Xie-Beerel,Lockstep,SCC-Find",																"Which algorithm to use for decomposing a graph into strongly connected components (SCCs)." },
-			{ STRING_TYPE,		PRISM_SYMM_RED_PARAMS,						"Symmetry reduction parameters",				"3.3",			"",																	"",																"Parameters for symmetry reduction (format: \"i j\" where i and j are the number of modules before and after the symmetric ones; empty string means symmetry reduction disabled)." }
+			{ STRING_TYPE,		PRISM_SYMM_RED_PARAMS,						"Symmetry reduction parameters",				"3.2",			"",																	"",																"Parameters for symmetry reduction (format: \"i j\" where i and j are the number of modules before and after the symmetric ones; empty string means symmetry reduction disabled)." }
 		},
 		{
 			{ BOOLEAN_TYPE,		MODEL_AUTO_PARSE,						"Auto parse",							"2.1",			new Boolean(true),															"",																							"Parse PRISM models automatically as they are loaded/edited in the text editor." },
