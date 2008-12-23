@@ -448,15 +448,9 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 	private void initContextMenu() {
 		
 		contextPopup = new JPopupMenu();		
+		// Edit menu stuff
 		contextPopup.add(GUIPrism.getClipboardPlugin().getUndoAction());
 		contextPopup.add(GUIPrism.getClipboardPlugin().getRedoAction());
-		contextPopup.add(new JSeparator());
-		contextPopup.add(((GUIMultiModel)handler.getGUIPlugin()).getParseModel());
-		contextPopup.add(((GUIMultiModel)handler.getGUIPlugin()).getBuildModel());
-		contextPopup.add(new JSeparator());
-		contextPopup.add(((GUIMultiModel)handler.getGUIPlugin()).getExportMenu());
-		contextPopup.add(((GUIMultiModel)handler.getGUIPlugin()).getViewMenu());
-		contextPopup.add(((GUIMultiModel)handler.getGUIPlugin()).getComputeMenu());
 		contextPopup.add(new JSeparator());
 		contextPopup.add(GUIPrism.getClipboardPlugin().getCutAction());
 		contextPopup.add(GUIPrism.getClipboardPlugin().getCopyAction());
@@ -464,6 +458,14 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 		contextPopup.add(GUIPrism.getClipboardPlugin().getDeleteAction());
 		contextPopup.add(new JSeparator());
 		contextPopup.add(GUIPrism.getClipboardPlugin().getSelectAllAction());
+		contextPopup.add(new JSeparator());
+		// Model menu stuff
+		contextPopup.add(((GUIMultiModel)handler.getGUIPlugin()).getParseModel());
+		contextPopup.add(((GUIMultiModel)handler.getGUIPlugin()).getBuildModel());
+		contextPopup.add(new JSeparator());
+		contextPopup.add(((GUIMultiModel)handler.getGUIPlugin()).getExportMenu());
+		contextPopup.add(((GUIMultiModel)handler.getGUIPlugin()).getViewMenu());
+		contextPopup.add(((GUIMultiModel)handler.getGUIPlugin()).getComputeMenu());
 		//contextPopup.add(actionJumpToError);
 		//contextPopup.add(actionSearch);
 		
