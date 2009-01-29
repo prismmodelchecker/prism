@@ -55,6 +55,9 @@ Details
   cuddAddMinAbstractRecur()
   cuddAddMaxAbstractRecur()
 
+* Added another abstraction functions to do "first", ie:
+  Cudd_addFirstAbstract()
+  cuddAddFirstAbstractRecur()
 ------------------
 
 [cudd/cuddAddApply.c]
@@ -112,6 +115,7 @@ Details
 * Added prototypes for:
   Cudd_addMinAbstract()
   Cudd_addMaxAbstract()
+  Cudd_addFirstAbstract()
   Cudd_addEquals()
   Cudd_addNotEquals()
   Cudd_addGreaterThan()
@@ -126,6 +130,7 @@ Details
   Cudd_EqualSupNormRel()
   cuddAddMinAbstractRecur()
   cuddAddMaxAbstractRecur()
+  cuddAddFirstAbstractRecur()
 
 ------------------
 

@@ -993,6 +993,7 @@ extern DdNode * cuddAddUnivAbstractRecur (DdManager *manager, DdNode *f, DdNode 
 extern DdNode * cuddAddOrAbstractRecur (DdManager *manager, DdNode *f, DdNode *cube);
 extern DdNode * cuddAddMinAbstractRecur (DdManager *manager, DdNode *f, DdNode *cube);
 extern DdNode * cuddAddMaxAbstractRecur (DdManager *manager, DdNode *f, DdNode *cube);
+extern DdNode * cuddAddFirstFilterRecur (DdManager *manager, DdNode *f, DdNode *cube);
 extern DdNode * cuddAddApplyRecur (DdManager *dd, DdNode * (*)(DdManager *, DdNode **, DdNode **), DdNode *f, DdNode *g);
 extern DdNode * cuddAddMonadicApplyRecur (DdManager * dd, DdNode * (*op)(DdManager *, DdNode *), DdNode * f);
 extern DdNode * cuddAddScalarInverseRecur (DdManager *dd, DdNode *f, DdNode *epsilon);
