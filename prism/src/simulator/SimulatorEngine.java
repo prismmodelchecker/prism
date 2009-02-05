@@ -256,7 +256,7 @@ public class SimulatorEngine
 	 * Load jni stuff from shared library
 	 */
 	static {
-		try {
+		try {			
 			System.loadLibrary("simengine");
 		} catch (UnsatisfiedLinkError e) {
 			System.out.println(e);
@@ -2020,11 +2020,11 @@ public class SimulatorEngine
 				// check for termination (depending on type)
 				switch (simPathType) {
 				case SIM_PATH_NUM_STEPS:
-					if (i >= simPathLength)
+					if (i >= simPathLength || queryIsDeadlock() == 1)
 						done = true;
 					break;
 				case SIM_PATH_TIME:
-					if (t >= simPathTime || i >= maxPathLength)
+					if (t >= simPathTime || i >= maxPathLength || queryIsDeadlock() == 1)
 						done = true;
 					break;
 				case SIM_PATH_DEADLOCK:
