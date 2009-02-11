@@ -131,9 +131,9 @@ public class GUIPropConstantList extends JTable
 		theModel.validateConstants();
 	}
 	
-	/** Is the constant list valid? */
-	
-	public boolean isValid()
+	/** Is the constant list valid? */	
+	// Changed: isValid is a method of java.awt.Component
+	public boolean isConstantListValid()
 	{
 		if (theModel.error != null) return false;
 		int i, n;
