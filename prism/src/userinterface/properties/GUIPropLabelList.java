@@ -123,7 +123,7 @@ public class GUIPropLabelList extends JTable
 	
 	/** Is the label list valid? */
 	
-	public boolean isValid()
+	public boolean isPropLabelListValid()
 	{
 		if (theModel.error != null) return false;
 		int i, n;
