@@ -743,7 +743,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			message("Cannot save properties list: some properties are invalid");
 			return CANCEL;
 		}
-		if (!consTable.isValid())
+		if (!consTable.isConstantListValid())
 		{
 			message("Cannot save properties list: some constants are invalid");
 			return CANCEL;
