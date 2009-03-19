@@ -222,7 +222,7 @@ public class PrismSettings implements Observer
 			{ FONT_COLOUR_TYPE,	PROPERTIES_FONT,						"Display font",							"2.1",			new FontColorPair(new Font("monospaced", Font.PLAIN, 12), Color.black),		"",																							"Font used for the properties list." },
 			{ COLOUR_TYPE,		PROPERTIES_WARNING_COLOUR,				"Warning colour",						"2.1",			new Color(255,130,130),														"",																							"Colour used to indicate that a property is invalid." },
 			{ CHOICE_TYPE,		PROPERTIES_ADDITION_STRATEGY,			"Property addition strategy",			"2.1",			"Warn when invalid",														"Warn when invalid,Do not allow invalid",													"How to deal with properties that are invalid." },
-			{ BOOLEAN_TYPE,		PROPERTIES_CLEAR_LIST_ON_LOAD,			"Clear list when load model",			"2.1",			new Boolean(true),															"",																							"Clear the properties list whenever a new model is loaded." }
+			{ BOOLEAN_TYPE,		PROPERTIES_CLEAR_LIST_ON_LOAD,			"Clear list when load model",			"2.1",			new Boolean(true),															"",																							"Clear the properties list whenever a new model is loaded." }Render
 		},
 		{
 			{ DOUBLE_TYPE,		SIMULATOR_DEFAULT_APPROX,				"Default approximation parameter",		"2.1",			new Double(1.0E-2),															"0,1",																						"Default approximation parameter for approximate model checking using the PRISM simulator." },
@@ -233,7 +233,7 @@ public class PrismSettings implements Observer
 			{ CHOICE_TYPE,		SIMULATOR_FIELD_CHOICE,					"Values used in dialog",				"2.1",			"Last used values",															"Last used values,Always use defaults",														"How to choose values for the simulation dialog: remember previously used values or revert to the defaults each time." },
 			{ BOOLEAN_TYPE,		SIMULATOR_NEW_PATH_ASK_INITIAL,			"Ask for initial state",				"2.1",			new Boolean(true),															"",																							"Prompt for details of initial state when creating a new simulation path." },
 			{ BOOLEAN_TYPE,		SIMULATOR_NEW_PATH_ASK_VIEW,			"Ask for view configuration",			"2.1",			new Boolean(false),															"",																							"Display dialog with display options when creating a new simulation path." },
-			{ CHOICE_TYPE,		SIMULATOR_RENDER_ALL_VALUES,			"Path render style",					"2.1",			"Render changes",															"Render changes,Render all values",															"Display style for paths in the simulator user interface: only show variable values when they change, or show all values regardless." },
+			{ CHOICE_TYPE,		SIMULATOR_RENDER_ALL_VALUES,			"Path render style",					"3.2",			"Render all values",															"Render changes,Render all values",															"Display style for paths in the simulator user interface: only show variable values when they change, or show all values regardless." },
 			{ FILE_TYPE,		SIMULATOR_NETWORK_FILE,					"Network profile",						"2.1",			new File(""),																		"",																					"File specifying the network profile used by the distributed PRISM simulator." }
 		},
 		{
