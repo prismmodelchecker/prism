@@ -42,6 +42,7 @@ public class NondetModel extends ProbModel
 {
 	// Extra stats
 	protected double numChoices; // number of choices
+	protected double numSynchs; // number of synchronising actions
 
 	// Extra dd stuff
 	protected JDDNode nondetMask; // mask for nondeterministic choices
@@ -49,6 +50,8 @@ public class NondetModel extends ProbModel
 	protected JDDVars allDDSchedVars; // scheduler dd vars
 	protected JDDVars allDDChoiceVars; // local nondet choice dd vars
 	protected JDDVars allDDNondetVars; // all nondet dd vars (union of two above)
+	protected JDDNode transInd; // BDD for independent part of trans
+	protected JDDNode transSynch[]; // BDD for parts of trans from each action
 
 	// accessor methods
 
@@ -118,7 +121,24 @@ public class NondetModel extends ProbModel
 	{
 		return "S";
 	}
-
+	
+	// set methods for things not set up in constructor
+	
+	public void setNumSynchs(int numSynchs)
+	{
+		this.numSynchs = numSynchs;
+	}
+	
+	public void setTransInd(JDDNode transInd)
+	{
+		this.transInd = transInd;
+	}
+	
+	public void setTransSynch(JDDNode[] transSynch)
+	{
+		this.transSynch = transSynch;
+	}
+	
 	// constructor
 
 	public NondetModel(JDDNode tr, JDDNode s, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv,
@@ -131,6 +151,9 @@ public class NondetModel extends ProbModel
 		allDDSchedVars = asv;
 		allDDChoiceVars = achv;
 		allDDNondetVars = andv;
+
+		transInd = null;
+		transSynch = null;
 	}
 
 	// do reachability
@@ -161,11 +184,22 @@ public class NondetModel extends ProbModel
 	public void filterReachableStates()
 	{
 		super.filterReachableStates();
-		
+
+		// also filter transInd/tranSynch DDs (if necessary)
+		if (transInd != null) {
+			JDD.Ref(reach);
+			transInd = JDD.Apply(JDD.TIMES, reach, transInd);
+			for (int i = 0; i < numSynchs; i++) {
+				JDD.Ref(reach);
+				transSynch[i] = JDD.Apply(JDD.TIMES, reach, transSynch[i]);
+			}
+		}
+
 		// build mask for nondeterminstic choices
 		JDD.Ref(trans01);
 		JDD.Ref(reach);
-		if (this.nondetMask != null) JDD.Deref(this.nondetMask);
+		if (this.nondetMask != null)
+			JDD.Deref(this.nondetMask);
 		// nb: this assumes that there are no deadlock states
 		nondetMask = JDD.And(JDD.Not(JDD.ThereExists(trans01, allDDColVars)), reach);
 
@@ -173,7 +207,7 @@ public class NondetModel extends ProbModel
 		double d = JDD.GetNumMinterms(nondetMask, getNumDDRowVars() + getNumDDNondetVars());
 		numChoices = ((Math.pow(2, getNumDDNondetVars())) * numStates) - d;
 	}
-	
+
 	// identify any deadlock states
 
 	public void findDeadlocks()
@@ -196,14 +230,21 @@ public class NondetModel extends ProbModel
 		double d;
 
 		if (!deadlocks.equals(JDD.ZERO)) {
-			// remove deadlocks by adding self-loops
+			// remove deadlocks by adding self-loops to trans
+			// (also update transInd (if necessary) at same time)
 			JDD.Ref(deadlocks);
 			tmp = JDD.SetVectorElement(JDD.Constant(0), allDDNondetVars, 0, 1);
 			tmp = JDD.And(tmp, JDD.Identity(allDDRowVars, allDDColVars));
 			tmp = JDD.And(deadlocks, tmp);
 			JDD.Ref(tmp);
 			trans = JDD.Apply(JDD.PLUS, trans, tmp);
+			JDD.Ref(tmp);
 			trans01 = JDD.Apply(JDD.PLUS, trans01, tmp);
+			if (transInd != null) {
+				JDD.Ref(tmp);
+				transInd = JDD.Or(transInd, JDD.ThereExists(tmp, allDDColVars));
+			}
+			JDD.Deref(tmp);
 			// update lists of deadlocks
 			JDD.Deref(fixdl);
 			fixdl = deadlocks;
@@ -223,7 +264,15 @@ public class NondetModel extends ProbModel
 	public void printTransInfo(PrismLog log, boolean extra)
 	{
 		int i, j, n;
-
+		
+		JDD.PrintMatrix(transInd, allDDRowVars, allDDNondetVars, JDD.LIST);
+		for (i = 0; i < numSynchs; i++) {
+			System.out.println(i);
+			JDD.PrintSupport(transSynch[i]);
+			JDD.PrintMatrix(transSynch[i], allDDRowVars, allDDNondetVars, JDD.LIST);
+			System.out.println();
+		}
+		
 		log.print("States:      " + getNumStatesString() + " (" + getNumStartStatesString() + " initial)" + "\n");
 		log.print("Transitions: " + getNumTransitionsString() + "\n");
 		log.print("Choices:     " + getNumChoicesString() + "\n");
@@ -310,10 +359,10 @@ public class NondetModel extends ProbModel
 		for (i = 0; i < numRewardStructs; i++) {
 			filename = (file != null) ? file.getPath() : null;
 			if (filename != null && numRewardStructs > 1) {
-				filename = PrismUtils.addCounterSuffixToFilename(filename, i+1);
+				filename = PrismUtils.addCounterSuffixToFilename(filename, i + 1);
 				allFilenames += ((i > 0) ? ", " : "") + filename;
 			}
-			PrismMTBDD.ExportVector(stateRewards[i], "c" + (i+1), allDDRowVars, odd, exportType, filename);
+			PrismMTBDD.ExportVector(stateRewards[i], "c" + (i + 1), allDDRowVars, odd, exportType, filename);
 		}
 		return (allFilenames.length() > 0) ? allFilenames : null;
 	}
@@ -332,14 +381,14 @@ public class NondetModel extends ProbModel
 		for (i = 0; i < numRewardStructs; i++) {
 			filename = (file != null) ? file.getPath() : null;
 			if (filename != null && numRewardStructs > 1) {
-				filename = PrismUtils.addCounterSuffixToFilename(filename, i+1);
+				filename = PrismUtils.addCounterSuffixToFilename(filename, i + 1);
 				allFilenames += ((i > 0) ? ", " : "") + filename;
 			}
 			if (!explicit) {
 				// can only do explicit (sparse matrix based) export for mdps
 			} else {
-				PrismSparse.ExportSubMDP(trans, transRewards[i], "C" + (i+1), allDDRowVars, allDDColVars, allDDNondetVars,
-						odd, exportType, filename);
+				PrismSparse.ExportSubMDP(trans, transRewards[i], "C" + (i + 1), allDDRowVars, allDDColVars,
+						allDDNondetVars, odd, exportType, filename);
 			}
 		}
 		return (allFilenames.length() > 0) ? allFilenames : null;
@@ -355,6 +404,10 @@ public class NondetModel extends ProbModel
 		allDDChoiceVars.derefAll();
 		allDDNondetVars.derefAll();
 		JDD.Deref(nondetMask);
+		if (transInd != null) JDD.Deref(transInd);
+		if (transSynch != null) for (int i = 0; i < numSynchs; i++) {
+			JDD.Deref(transSynch[i]);
+		}
 	}
 }
 

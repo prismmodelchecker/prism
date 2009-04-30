@@ -77,6 +77,8 @@ public class Modules2MTBDD
 	private JDDNode start;				// dd for start state
 	private JDDNode stateRewards[];		// dds for state rewards
 	private JDDNode transRewards[];		// dds for transition rewards
+	private JDDNode transInd;	// dds for independent bits of trans
+	private JDDNode transSynch[];	// dds for synch action parts of trans
 	private JDDVars allDDRowVars;		// all dd vars (rows)
 	private JDDVars allDDColVars;		// all dd vars (cols)
 	private JDDVars allDDSynchVars;		// all dd vars (synchronising actions)
@@ -113,6 +115,9 @@ public class Modules2MTBDD
 	private int numModulesBeforeSymm;	// number of modules in the PRISM file before the symmetric ones
 	private int numModulesAfterSymm;	// number of modules in the PRISM file after the symmetric ones
 	private int numSymmModules;			// number of symmetric components
+	
+	// hidden option - do we also store each part of the transition matrix separately?
+	private boolean storeTransParts = false; 
 	
 	// data structure used to store mtbdds and related info
 	// for some component of the whole model
@@ -254,6 +259,14 @@ public class Modules2MTBDD
 			model = new StochModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, ddVarNames,
 						    numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
 						    numVars, varList, varDDRowVars, varDDColVars, constantValues);
+		}
+		
+		// For MDPs, we also store the DDs used to construct the part
+		// of the transition matrix that corresponds to each action
+		if (type == ModulesFile.NONDETERMINISTIC && storeTransParts) {
+			((NondetModel)model).setNumSynchs(numSynchs);
+			((NondetModel)model).setTransInd(transInd);
+			((NondetModel)model).setTransSynch(transSynch);
 		}
 		
 		// do reachability (or not)
@@ -789,11 +802,13 @@ public class Modules2MTBDD
 		// now, for all model types, transition matrix can be built by summing over all actions
 		// also build transition rewards at the same time
 		n = modulesFile.getNumRewardStructs();
+		JDD.Ref(sysDDs.ind.trans);
 		trans = sysDDs.ind.trans;
-		for (j = 0; j < n; j++) {;
+		for (j = 0; j < n; j++) {
 			transRewards[j] = sysDDs.ind.rewards[j];
 		}
 		for (i = 0; i < numSynchs; i++) {
+			JDD.Ref(sysDDs.synchs[i].trans);
 			trans = JDD.Apply(JDD.PLUS, trans, sysDDs.synchs[i].trans);
 			for (j = 0; j < n; j++) {
 				transRewards[j] = JDD.Apply(JDD.PLUS, transRewards[j], sysDDs.synchs[i].rewards[j]);
@@ -811,9 +826,25 @@ public class Modules2MTBDD
 			}
 		}
 		
-		// deref guards/identity - we don't need them any more
+		// For MDPs, we take a copy of the DDs used to construct the part
+		// of the transition matrix that corresponds to each action
+		if (type == ModulesFile.NONDETERMINISTIC && storeTransParts) {
+			JDD.Ref(sysDDs.ind.trans);
+			transInd = JDD.ThereExists(JDD.GreaterThan(sysDDs.ind.trans, 0), allDDColVars);
+			transSynch = new JDDNode[numSynchs];
+			for (i = 0; i < numSynchs; i++) {
+				JDD.Ref(sysDDs.synchs[i].trans);
+				transSynch[i] = JDD.ThereExists(JDD.GreaterThan(sysDDs.synchs[i].trans, 0), allDDColVars);
+			}
+		}
+		
+		// deref bits of ComponentDD objects - we don't need them any more
 		JDD.Deref(sysDDs.ind.guards);
-		for (i = 0; i < numSynchs; i++) JDD.Deref(sysDDs.synchs[i].guards);
+		JDD.Deref(sysDDs.ind.trans);
+		for (i = 0; i < numSynchs; i++) {
+			JDD.Deref(sysDDs.synchs[i].guards);
+			JDD.Deref(sysDDs.synchs[i].trans);
+		}
 		JDD.Deref(sysDDs.id);
 	}
 
