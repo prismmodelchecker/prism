@@ -26,136 +26,114 @@
 
 package prism;
 
+import java.text.DecimalFormat;
 import java.util.Formatter;
 
+/**
+ * Various general-purpose utility methods in Java
+ */
 public class PrismUtils
 {
-	// load jni stuff from shared library
-	static
-	{
-		try {
-			System.loadLibrary("prism");
-		}
-		catch (UnsatisfiedLinkError e) {
-			System.out.println(e);
-			System.exit(1);
-		}
-	}
-	
-//------------------------------------------------------------------------------
-
-	// small utility methods implemented through jni
-
-	public static native long PU_GetStdout();
-	public static native long PU_OpenFile(String filename);
-	public static native void PU_PrintToFile(long fp, String s);
-	public static native void PU_FlushFile(long fp);
-	public static native void PU_CloseFile(long fp);
-
-//------------------------------------------------------------------------------
-
-	// Small utility methods in java
-	
-	// Logarithm of x to base b
-	
+	/**
+	 * Compute logarithm of x to base b.
+	 */
 	public static double log(double x, double b)
 	{
 		// If base is <=0 or ==1 (or +Inf/NaN), then result is NaN
-		if (b <= 0 || b == 1 || (Double.isInfinite(b)) || Double.isNaN(b)) return Double.NaN;
-		
+		if (b <= 0 || b == 1 || (Double.isInfinite(b)) || Double.isNaN(b))
+			return Double.NaN;
+
 		// Otherwise, log_b (x) is log(x) / log(b)
 		return Math.log(x) / Math.log(b);
 	}
-	
-	// Logarithm of x to base 2
-	
+
+	/**
+	 * Compute logarithm of x to base 2.
+	 */
 	public static double log2(double x)
 	{
 		return Math.log(x) / Math.log(2);
 	}
-	
+
+	/**
+	 * Format a large integer, represented by a double, as a string. 
+	 */
 	public static String bigIntToString(double d)
 	{
 		if (d <= Long.MAX_VALUE) {
 			return "" + Math.round(d);
-		}
-		else {
+		} else {
 			return "" + d;
 		}
 	}
-	
-	public static String commaSeparateBigInt(String s)
-	{	
-		int l = s.length();
-		if (l <= 3) {
-			return s;
-		}
-		else {
-			return commaSeparateBigInt(s.substring(0,l-3)) + "," + s.substring(l-3);
-		}
-	}
-	
-	public static String bigIntToHTML(double d)
-	{
-		int n;
-		String s;
 
-		if (d < 10000000) {
-			s = PrismUtils.bigIntToString(d);
-			s = PrismUtils.commaSeparateBigInt(s);
-		}
-		else {
-			n = (int)Math.floor((Math.log(d)/Math.log(10)));
-			d = (Math.round(100.0*(d/Math.pow(10, n))))/100.0;
-			s = d + "x10<sup>" + n + "</sup>";
-		}
-		
-		return s;
-	}
-	
+	/**
+	 * Modify a filename f, appending a counter i just before the filetype extension. 
+	 */
 	public static String addCounterSuffixToFilename(String f, int i)
 	{
 		int j = f.lastIndexOf(".");
 		if (j != -1) {
-			return f.substring(0, j)+i+f.substring(j);
-		}
-		else {
-			return f+i;
+			return f.substring(0, j) + i + f.substring(j);
+		} else {
+			return f + i;
 		}
 	}
+
+	/**
+	 * Format a fraction as a percentage to 1 decimal place.
+	 */
+	public static String formatPercent1dp(double frac)
+	{
+		return formatterPercent1dp.format(frac);
+	}
+
+	private static DecimalFormat formatterPercent1dp = new DecimalFormat("#0.0%");
+
+	/**
+	 * Format a double to 2 decimal places.
+	 */
+	public static String formatDouble2dp(double d)
+	{
+		return formatterDouble2dp.format(d);
+	}
 	
+	private static DecimalFormat formatterDouble2dp = new DecimalFormat("#0.00 secs");
+	
+	/**
+	 * Format a double, using PRISM settings.
+	 */
 	public static String formatDouble(PrismSettings settings, double d)
 	{
 		return formatDouble(settings, new Double(d));
 	}
-	
+
 	public static String formatDouble(PrismSettings settings, Double d)
 	{
 		Formatter formatter = new Formatter();
-		
-		formatter.format("%.6g",d); // [the way to format scientific notation with 6 being the precision]
-		
-		
+
+		formatter.format("%.6g", d); // [the way to format scientific notation with 6 being the precision]
+
 		String res = formatter.toString().trim();
-		
+
 		int trailingZeroEnd = res.lastIndexOf('e');
 		if (trailingZeroEnd == -1)
 			trailingZeroEnd = res.length();
-		
-		int x = trailingZeroEnd -1;
-		
-		while (x > 0 && res.charAt(x) == '0') 
+
+		int x = trailingZeroEnd - 1;
+
+		while (x > 0 && res.charAt(x) == '0')
 			x--;
-		
+
 		if (res.charAt(x) == '.')
 			x++;
-		
-		res = res.substring(0,x + 1) + res.substring(trailingZeroEnd, res.length());	
-		
+
+		res = res.substring(0, x + 1) + res.substring(trailingZeroEnd, res.length());
+
 		//formatter.format("%.6f",d); //(just decimals)
 		//formatter.format("%1$.2e", d); // [the way to format scientific notation with 6 being the precision]
-		
-		return res;		
+
+		return res;
 	}
 }
 

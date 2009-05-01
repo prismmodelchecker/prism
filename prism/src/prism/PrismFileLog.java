@@ -47,11 +47,11 @@ public class PrismFileLog implements PrismLog
 	{
 		filename = s;
 		if (s.equals("stdout")) {
-			fp = PrismUtils.PU_GetStdout();
+			fp = PrismNative.PN_GetStdout();
 			stdout = true;
 		}
 		else {
-			fp = PrismUtils.PU_OpenFile(s);
+			fp = PrismNative.PN_OpenFile(s);
 			stdout = false;
 		}
 	}
@@ -153,17 +153,17 @@ public class PrismFileLog implements PrismLog
 
 	public void flush()
 	{
-		PrismUtils.PU_FlushFile(fp);
+		PrismNative.PN_FlushFile(fp);
 	}
 
 	public void close()
 	{
-		if (!stdout) PrismUtils.PU_CloseFile(fp);
+		if (!stdout) PrismNative.PN_CloseFile(fp);
 	}
 	
 	private void printToLog(String s)
 	{
-		PrismUtils.PU_PrintToFile(fp, s);
+		PrismNative.PN_PrintToFile(fp, s);
 	}
 }
 

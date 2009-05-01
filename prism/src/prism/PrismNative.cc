@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -24,7 +24,7 @@
 //	
 //==============================================================================
 
-#include "PrismUtils.h"
+#include "PrismNative.h"
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
@@ -32,7 +32,7 @@
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __jlongpointer JNICALL Java_prism_PrismUtils_PU_1GetStdout(JNIEnv *env, jclass cls)
+JNIEXPORT jlong __jlongpointer JNICALL Java_prism_PrismNative_PN_1GetStdout(JNIEnv *env, jclass cls)
 {
 	return ptr_to_jlong(stdout);
 }
@@ -40,7 +40,7 @@ JNIEXPORT jlong __jlongpointer JNICALL Java_prism_PrismUtils_PU_1GetStdout(JNIEn
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __jlongpointer JNICALL Java_prism_PrismUtils_PU_1OpenFile(JNIEnv *env, jclass cls, jstring filename)
+JNIEXPORT jlong __jlongpointer JNICALL Java_prism_PrismNative_PN_1OpenFile(JNIEnv *env, jclass cls, jstring filename)
 {
 	const char *str = env->GetStringUTFChars(filename, 0);
 	FILE *fp = fopen(str, "w");
@@ -51,7 +51,7 @@ JNIEXPORT jlong __jlongpointer JNICALL Java_prism_PrismUtils_PU_1OpenFile(JNIEnv
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT void JNICALL Java_prism_PrismUtils_PU_1PrintToFile(JNIEnv *env, jclass cls, jlong __jlongpointer fp, jstring s)
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1PrintToFile(JNIEnv *env, jclass cls, jlong __jlongpointer fp, jstring s)
 {
 	const char *str = env->GetStringUTFChars(s, 0);
 	// note: use fwrite not fprintf here because there is no formatting to do
@@ -65,7 +65,7 @@ JNIEXPORT void JNICALL Java_prism_PrismUtils_PU_1PrintToFile(JNIEnv *env, jclass
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT void JNICALL Java_prism_PrismUtils_PU_1FlushFile(JNIEnv *env, jclass cls, jlong __jlongpointer fp)
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1FlushFile(JNIEnv *env, jclass cls, jlong __jlongpointer fp)
 {
 	fflush(jlong_to_FILE(fp));
 }
@@ -73,7 +73,7 @@ JNIEXPORT void JNICALL Java_prism_PrismUtils_PU_1FlushFile(JNIEnv *env, jclass c
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT void JNICALL Java_prism_PrismUtils_PU_1CloseFile(JNIEnv *env, jclass cls, jlong __jlongpointer fp)
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1CloseFile(JNIEnv *env, jclass cls, jlong __jlongpointer fp)
 {
 	fclose(jlong_to_FILE(fp));
 }
