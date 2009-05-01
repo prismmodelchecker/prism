@@ -265,17 +265,6 @@ public class NondetModel extends ProbModel
 	{
 		int i, j, n;
 		
-		if (transInd != null)		 	
-		JDD.PrintMatrix(transInd, allDDRowVars, allDDNondetVars, JDD.LIST);
-		
-		if (transSynch != null)
-		for (i = 0; i < numSynchs; i++) {
-			System.out.println(i);
-			JDD.PrintSupport(transSynch[i]);
-			JDD.PrintMatrix(transSynch[i], allDDRowVars, allDDNondetVars, JDD.LIST);
-			System.out.println();
-		}
-		
 		log.print("States:      " + getNumStatesString() + " (" + getNumStartStatesString() + " initial)" + "\n");
 		log.print("Transitions: " + getNumTransitionsString() + "\n");
 		log.print("Choices:     " + getNumChoicesString() + "\n");
