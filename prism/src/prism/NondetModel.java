@@ -265,7 +265,10 @@ public class NondetModel extends ProbModel
 	{
 		int i, j, n;
 		
+		if (transInd != null)		 	
 		JDD.PrintMatrix(transInd, allDDRowVars, allDDNondetVars, JDD.LIST);
+		
+		if (transSynch != null)
 		for (i = 0; i < numSynchs; i++) {
 			System.out.println(i);
 			JDD.PrintSupport(transSynch[i]);
