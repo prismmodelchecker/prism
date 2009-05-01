@@ -98,7 +98,7 @@ public class PrismUtils
 		return formatterDouble2dp.format(d);
 	}
 	
-	private static DecimalFormat formatterDouble2dp = new DecimalFormat("#0.00 secs");
+	private static DecimalFormat formatterDouble2dp = new DecimalFormat("#0.00");
 	
 	/**
 	 * Format a double, using PRISM settings.
