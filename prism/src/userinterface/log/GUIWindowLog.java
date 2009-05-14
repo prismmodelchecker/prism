@@ -69,7 +69,6 @@ public class GUIWindowLog implements PrismLog
 		this.logPlugin = logPlugin;
 		textArea = ta;
 		textArea.addCaretListener(new CaretListener() {
-			@Override
 			public void caretUpdate(CaretEvent e) {
 				if (GUIWindowLog.this.logPlugin != null)
 					GUIWindowLog.this.logPlugin.getSelectionChangeHandler().notifyListeners(new GUIEvent(1));

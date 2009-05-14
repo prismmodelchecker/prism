@@ -75,7 +75,6 @@ public class GUIClipboard extends GUIPlugin
         /* Listen to clipboard events. */
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         clipboard.addFlavorListener(new FlavorListener() {
-        	@Override
         	public void flavorsChanged(FlavorEvent e) {
         		doClipboardEnables();
         	}
@@ -101,7 +100,6 @@ public class GUIClipboard extends GUIPlugin
     		this.plugin = plugin;
     		/* get notified when enabledness of clipboard actions may change */
     		this.plugin.getSelectionChangeHandler().addListener(new GUIEventListener() {
-    			@Override
     			public boolean processGUIEvent(GUIEvent e) {
     				doClipboardEnables();
     				return true;
@@ -114,7 +112,6 @@ public class GUIClipboard extends GUIPlugin
 	    		
 	    		/* get notified when undo history may change */
 	    		undoManager.addListener(new GUIEventListener() {
-	    			@Override
 	    			public boolean processGUIEvent(GUIEvent e) {
 	    				if (e instanceof GUIUndoManagerEvent)
 	    				{

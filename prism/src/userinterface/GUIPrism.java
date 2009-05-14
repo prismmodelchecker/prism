@@ -231,7 +231,6 @@ public class GUIPrism extends JFrame
         JPanel thePanel = new JPanel(); // panel to store tabs
         theTabs = new JTabbedPane();
         theTabs.addChangeListener(new ChangeListener() {
-        	@Override
         	public void stateChanged(ChangeEvent e) {
         		clipboardPlugin.pluginChanged(getFocussedPlugin()); 		
         	}

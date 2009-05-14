@@ -1460,16 +1460,12 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		}
 	}
 	
-	
-	
-	@Override
 	public void componentAdded(ContainerEvent e) 
 	{
 		// notify GUIClipboard
 		selectionChangeHandler.notifyListeners(new GUIEvent(1));		
 	}
 
-	@Override
 	public void componentRemoved(ContainerEvent e) {
 		// notify GUIClipboard
 		selectionChangeHandler.notifyListeners(new GUIEvent(1));		

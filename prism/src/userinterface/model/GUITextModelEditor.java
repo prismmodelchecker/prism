@@ -176,7 +176,6 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 		editor.setText(initialText);
 		editor.getDocument().addDocumentListener(this);
 		editor.addCaretListener(new CaretListener() {
-			@Override
 			public void caretUpdate(CaretEvent e) {
 				GUITextModelEditor.this.handler.getGUIPlugin().getSelectionChangeHandler().notifyListeners(new GUIEvent(1));				
 			}
@@ -295,7 +294,6 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 		editor.getDocument().addUndoableEditListener(undoManager);
 		editor.getDocument().addUndoableEditListener(new UndoableEditListener() 
 		{
-			@Override
 			public void undoableEditHappened(UndoableEditEvent e) 
 			{
 				System.out.println("adding undo edit");				
