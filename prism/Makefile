@@ -190,14 +190,21 @@ ifeq ($(OSTYPE),cygwin)
 endif
 # Darwin
 ifeq ($(OSTYPE),darwin)
-	CFLAGS = -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
-	CPPFLAGS = -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
-	LDFLAGS = -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
+	ifeq ($(ARCH),x86_64)
+		CFLAGS = -arch x86_64 -fPIC -DPIC -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
+		CPPFLAGS = -arch x86_64 -fPIC -DPIC -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
+		LDFLAGS = -arch x86_64 -fPIC -DPIC -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
+		CUDD_MAKEFILE = Makefile.darwin-64
+	else
+		CFLAGS = -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
+		CPPFLAGS = -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
+		LDFLAGS = -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
+		CUDD_MAKEFILE = Makefile.darwin
+	endif
 	SHARED = -dynamiclib
 	EXE =
 	LIBPREFIX = lib
 	LIBSUFFIX = .dylib
-	CUDD_MAKEFILE = Makefile.darwin
 	BINDISTSUFFIX = osx
 	OSTYPE_INCLUDE = Headers
 	CLASSPATHSEP = :
