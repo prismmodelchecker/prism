@@ -255,26 +255,27 @@ public class PrismCL
 						error(e.getMessage());
 					}
 				}
+				
+				// export labels/states
+				if (exportlabels) {
+					try {
+						if (propertiesFile != null) {
+							definedPFConstants = undefinedConstants.getPFConstantValues();
+							propertiesFile.setUndefinedConstants(definedPFConstants);
+						}
+						File f = (exportLabelsFilename.equals("stdout")) ? null : new File(exportLabelsFilename);
+						prism.exportLabelsToFile(model, modulesFile, propertiesFile, exportType, f);
+					}
+					// in case of error, report it and proceed
+					catch (FileNotFoundException e) {
+						mainLog.println("Couldn't open file \"" + exportLabelsFilename + "\" for output");
+					}
+					catch (PrismException e) {
+						mainLog.println("\nError: " + e.getMessage() + ".");
+					}
+				}
 			}
 			
-			// export labels/states
-			if (exportlabels) {
-				try {
-					if (propertiesFile != null) {
-						definedPFConstants = undefinedConstants.getPFConstantValues();
-						propertiesFile.setUndefinedConstants(definedPFConstants);
-					}
-					File f = (exportLabelsFilename.equals("stdout")) ? null : new File(exportLabelsFilename);
-					prism.exportLabelsToFile(model, modulesFile, propertiesFile, exportType, f);
-				}
-				// in case of error, report it and proceed
-				catch (FileNotFoundException e) {
-					mainLog.println("Couldn't open file \"" + exportLabelsFilename + "\" for output");
-				}
-				catch (PrismException e) {
-					mainLog.println("\nError: " + e.getMessage() + ".");
-				}
-			}
 			
 			// work through list of properties to be checked
 			for (j = 0; j < numPropertiesToCheck; j++) {
