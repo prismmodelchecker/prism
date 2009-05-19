@@ -768,14 +768,10 @@ public class StateModelChecker implements ModelChecker
 			return checkExpressionFuncNary(expr);
 		case ExpressionFunc.FLOOR:
 		case ExpressionFunc.CEIL:
-		case ExpressionFunc.BIT_INV:
 			return checkExpressionFuncUnary(expr);
 		case ExpressionFunc.POW:
 		case ExpressionFunc.MOD:
 		case ExpressionFunc.LOG:
-		case ExpressionFunc.BIT_AND:
-		case ExpressionFunc.BIT_OR:
-		case ExpressionFunc.BIT_XOR:
 			return checkExpressionFuncBinary(expr);
 		default:
 			throw new PrismException("Unrecognised function \"" + expr.getName() + "\"");
@@ -807,9 +803,6 @@ public class StateModelChecker implements ModelChecker
 			case ExpressionFunc.CEIL:
 				dd1 = JDD.MonadicApply(JDD.CEIL, dd1);
 				break;
-			case ExpressionFunc.BIT_INV:
-				dd1 = JDD.MonadicApply(JDD.BIT_INV, dd1);
-				break;
 			}
 			return new StateProbsMTBDD(dd1, model);
 		}
@@ -825,10 +818,6 @@ public class StateModelChecker implements ModelChecker
 			case ExpressionFunc.CEIL:
 				for (i = 0; i < n; i++)
 					dv1.setElement(i, Math.ceil(dv1.getElement(i)));
-				break;
-			case ExpressionFunc.BIT_INV:
-				for (i = 0; i < n; i++)
-					dv1.setElement(i, ~((int)dv1.getElement(i)));
 				break;
 			}
 			return new StateProbsDV(dv1, model);
@@ -855,8 +844,7 @@ public class StateModelChecker implements ModelChecker
 			throw e;
 		}
 		// If both operands are symbolic, result will be symbolic
-		if (res1 instanceof StateProbsMTBDD && res2 instanceof StateProbsMTBDD)
-		{
+		if (res1 instanceof StateProbsMTBDD && res2 instanceof StateProbsMTBDD) {
 			dd1 = ((StateProbsMTBDD) res1).getJDDNode();
 			dd2 = ((StateProbsMTBDD) res2).getJDDNode();
 			switch (op) {
@@ -869,15 +857,6 @@ public class StateModelChecker implements ModelChecker
 			case ExpressionFunc.LOG:
 				dd = JDD.Apply(JDD.LOGXY, dd1, dd2);
 				break;
-			case ExpressionFunc.BIT_AND:
-				dd = JDD.Apply(JDD.BIT_AND, dd1, dd2);
-				break;
-			case ExpressionFunc.BIT_OR:
-				dd = JDD.Apply(JDD.BIT_OR, dd1, dd2);
-				break;
-			case ExpressionFunc.BIT_XOR:
-				dd = JDD.Apply(JDD.BIT_XOR, dd1, dd2);
-				break;					
 			}
 			return new StateProbsMTBDD(dd, model);
 		}
@@ -901,18 +880,6 @@ public class StateModelChecker implements ModelChecker
 			case ExpressionFunc.LOG:
 				for (i = 0; i < n; i++)
 					dv1.setElement(i, PrismUtils.log(dv1.getElement(i), dv2.getElement(i)));
-				break;
-			case ExpressionFunc.BIT_AND:
-				for (i = 0; i < n; i++)
-					dv1.setElement(i, ((int)dv1.getElement(i)) & ((int)dv2.getElement(i)));
-				break;
-			case ExpressionFunc.BIT_OR:
-				for (i = 0; i < n; i++)
-					dv1.setElement(i, ((int)dv1.getElement(i)) | ((int)dv2.getElement(i)));
-				break;
-			case ExpressionFunc.BIT_XOR:
-				for (i = 0; i < n; i++)
-					dv1.setElement(i, ((int)dv1.getElement(i)) ^ ((int)dv2.getElement(i)));
 				break;
 			}
 			dv2.clear();
