@@ -2,6 +2,38 @@ This file summarises the principal changes between each main public release of P
 For more detailed information about the various changes, see the file CHANGELOG.txt.
 
 -----------------------------------------------------------------------------
+Version 3.3 (beta1 released 20/5/2009)
+-----------------------------------------------------------------------------
+
+* New language parser:
+  - improved efficiency, especially on large/complex models
+  - more accurate error reporting
+* GUI model editor improvements:
+  - error highlighting
+  - line numbers
+  - undo/redo feature
+* Expanded property specification language
+  - LTL (and PCTL*) now supported
+  - arbitrary expressions allowed, e.g. 1-P=?[...]
+  - support for weak until (W) and release (R) added
+  - steady-state operators (S=?[...], R=?[S]) allowed for DTMCs
+  - optional semicolons to terminate properties in properties files
+* Modelling language changes:
+  - cleaner notation for functions, e.g. mod(i,n), not func(mod,i,n)
+  - function names can be renamed in module renaming
+  - language strictness: updates (x'=...) must be parenthesised
+  - ranges (x=1..3,5) no longer supported
+  - added conversion tool for old models (etc/scripts/prism3to4)
+* New tool features:
+  - added symmetry reduction functionality
+  - steady-state/transient probability computation for DTMCs
+  - expanded cost/reward-property model checking support
+  - PRISM-to-html and PRISM-to-Latex conversion scripts
+  - efficiency improvements to precomputation algorithms
+  - BSCC export functionality (-exportbsccs switch)
+  - improvements to memory handling, especially in sparse/hybrid engines
+
+-----------------------------------------------------------------------------
 Version 3.2 (beta released 25/2/2008)
 -----------------------------------------------------------------------------
 

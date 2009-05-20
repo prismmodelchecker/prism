@@ -2,7 +2,7 @@
 README
 ======
 
-This is PRISM (Probabilistic Symbolic Model Checker), version 3.2.
+This is PRISM (Probabilistic Symbolic Model Checker), version 3.3.
 
 ------------
 INSTALLATION
@@ -94,6 +94,7 @@ Contributions to the development of PRISM have also been gratefully received fro
  * Paolo Ballarini & Kenneth Chan: Port of PRISM to Mac OS X
  * Rashid Mehmood: Improvements to low-level data structures and numerical solution algorithms
  * Alistair John Strachan, Mike Arthur and Zak Cohen: Integration of JFreeChart into PRISM
+ * Carlos Bederian (working with Pedro D'Argenio): Addition of LTL model checking for MDPs to PRISM
  
 For more details see:
 
