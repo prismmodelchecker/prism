@@ -59,7 +59,7 @@ public class JDDVars
 	public void addVar(JDDNode var)
 	{
 		vars.addElement(var);
-		if (arraybuilt) DDV_FreeArray(array);
+		if (arrayBuilt) DDV_FreeArray(array);
 		arrayBuilt = false;
 	}
 	
@@ -68,7 +68,7 @@ public class JDDVars
 		int i;
 		
 		vars.addAll(ddv.vars);
-		if (arraybuilt) DDV_FreeArray(array);
+		if (arrayBuilt) DDV_FreeArray(array);
 		arrayBuilt = false;
 	}
 	
@@ -77,7 +77,7 @@ public class JDDVars
 		int i;
 		
 		vars.removeAll(ddv.vars);
-		if (arraybuilt) DDV_FreeArray(array);
+		if (arrayBuilt) DDV_FreeArray(array);
 		arrayBuilt = false;
 	}
 	
