@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Startup script for PRISM (Linux/Solaris)
+# Startup script for PRISM (Mac OS X)
 
 # PRISM home directory
 PRISM_DIR=/home/luser/prism
@@ -55,5 +55,7 @@ if [ "$PRISM_HEADLESS" = "" ]; then
 	PRISM_HEADLESS=true
 fi
 
+ICON_OPTION="-Xdock:name=PRISM -Xdock:icon=$PRISM_DIR/etc/p64.png"
+
 # Run PRISM through Java
-"$PRISM_JAVA" $PRISM_JAVA_DEBUG $PRISM_JAVAMAXMEM -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path=$PRISM_DIR/lib -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"
+"$PRISM_JAVA" $PRISM_JAVA_DEBUG $PRISM_JAVAMAXMEM $ICON_OPTION -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path=$PRISM_DIR/lib -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"
