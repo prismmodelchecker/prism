@@ -2,6 +2,16 @@ This file contains details of the changes in each new version of PRISM,
 including development and beta versions. For a less detailed overview
 of the main changes in each public release, see the file VERSIONS.txt.
 
+Ongoing changes:
+
+* 64-bit Macs?
+* CTL model checking
+
+Latest changes (reverse chronological):
+[correct wrt svn rev ???]
+
+* ...
+
 -----------------------------------------------------------------------------
 Version 3.3.beta1 (released 20/5/2009) (svn: trunk rev 1066)
 -----------------------------------------------------------------------------
