@@ -1077,6 +1077,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		DoubleVector rewardsDV;
 		StateProbs rewards = null;
 
+		Vector<JDDNode> zeroCostEndComponents = null;
+		
 		// compute states which can't reach goal with probability 1
 		if (b.equals(JDD.ZERO)) {
 			JDD.Ref(reach);
@@ -1096,6 +1098,33 @@ public class NondetModelChecker extends NonProbModelChecker
 				JDD.Ref(reach);
 				inf = JDD.And(reach, JDD.Not(prob1));
 			} else {
+				
+				if (prism.getCheckZeroLoops())
+				{
+					// find states transitions that have no cost
+					JDD.Ref(sr);
+					JDD.Ref(reach);
+					JDDNode zeroReach = JDD.And(reach, JDD.Apply(JDD.EQUALS, sr, JDD.Constant(0)));
+					JDD.Ref(b);
+					zeroReach = JDD.And(zeroReach, JDD.Not(b));
+					JDD.Ref(trr);
+					JDDNode zeroTrr = JDD.Apply(JDD.EQUALS, trr, JDD.Constant(0));
+					JDD.Ref(trans);
+					JDD.Ref(zeroTrr);
+					JDDNode zeroTrans = JDD.And(trans, zeroTrr);
+					JDD.Ref(trans01);
+					JDDNode zeroTrans01 = JDD.And(trans01, zeroTrr);
+						
+					ECComputer ecComp = new ECComputerDefault(prism, zeroReach, zeroTrans, zeroTrans01, model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars());
+					ecComp.computeECs();
+					
+					zeroCostEndComponents =  ecComp.getVectECs();
+									
+					JDD.Deref(zeroReach);
+					JDD.Deref(zeroTrans);				
+					JDD.Deref(zeroTrans01);				
+				}
+				
 				// compute states for which all adversaries don't reach goal with probability 1
 				no = PrismMTBDD.Prob0A(tr01, reach, allDDRowVars, allDDColVars, allDDNondetVars, reach, b);
 				prob1 = PrismMTBDD.Prob1E(tr01, reach, allDDRowVars, allDDColVars, allDDNondetVars, reach, b, no);
@@ -1109,8 +1138,15 @@ public class NondetModelChecker extends NonProbModelChecker
 			maybe = JDD.And(reach, JDD.Not(JDD.Or(inf, b)));
 		}
 
-		// need to deal with zero loops yet
-		if (min) {
+		if (prism.getCheckZeroLoops())
+		{
+			// need to deal with zero loops yet
+			if (min && zeroCostEndComponents != null && zeroCostEndComponents.size() > 0) {
+				mainLog.println("\nWarning: PRISM detected your model contains " +  zeroCostEndComponents.size() + " zero-reward " + ((zeroCostEndComponents.size() == 1) ? "loop." : "loops."));
+				mainLog.println("Your minimum rewards may be too low...");
+			}
+		}
+		else if (min) {
 			mainLog.println("\nWarning: PRISM hasn't checked for zero-reward loops.");
 			mainLog.println("Your minimum rewards may be too low...");
 		}
@@ -1156,6 +1192,11 @@ public class NondetModelChecker extends NonProbModelChecker
 				throw e;
 			}
 		}
+		
+		if (zeroCostEndComponents != null) 
+			for (JDDNode zcec : zeroCostEndComponents)
+				JDD.Deref(zcec);
+		
 
 		// derefs
 		JDD.Deref(inf);

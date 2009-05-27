@@ -99,6 +99,7 @@ public class Prism implements PrismSettingsListener
 	
 	private boolean doReach;	// do reachability? (sometimes might want to skip it)
 	private boolean bsccComp;	// do bscc computation before steady-state?
+	private boolean checkZeroLoops;
 	
 	// MTBDD construction method (NOW DEFUNCT)
 	//  1 - use with ordering 1: nondet vars form a tree at the top
@@ -143,6 +144,8 @@ public class Prism implements PrismSettingsListener
 	//------------------------------------------------------------------------------
 	
 	private boolean cuddStarted = false;
+
+	
 	
 	//------------------------------------------------------------------------------
 	// methods
@@ -179,6 +182,7 @@ public class Prism implements PrismSettingsListener
 		// default values for miscellaneous options 
 		doReach = true;
 		bsccComp = true;
+		checkZeroLoops = false;
 		construction = 3;
 		ordering = 1;
 		sumRoundOff = 1e-5;
@@ -1508,6 +1512,16 @@ public class Prism implements PrismSettingsListener
 	{
 		return settings;
 	}
+
+	public void setCheckZeroLoops(boolean checkZeroLoops)
+	{
+		this.checkZeroLoops  = checkZeroLoops;		
+	}
+
+	public boolean getCheckZeroLoops()
+	{
+		return this.checkZeroLoops;
+	}		
 }
 
 //------------------------------------------------------------------------------

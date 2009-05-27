@@ -255,27 +255,26 @@ public class PrismCL
 						error(e.getMessage());
 					}
 				}
-				
-				// export labels/states
-				if (exportlabels) {
-					try {
-						if (propertiesFile != null) {
-							definedPFConstants = undefinedConstants.getPFConstantValues();
-							propertiesFile.setUndefinedConstants(definedPFConstants);
-						}
-						File f = (exportLabelsFilename.equals("stdout")) ? null : new File(exportLabelsFilename);
-						prism.exportLabelsToFile(model, modulesFile, propertiesFile, exportType, f);
-					}
-					// in case of error, report it and proceed
-					catch (FileNotFoundException e) {
-						mainLog.println("Couldn't open file \"" + exportLabelsFilename + "\" for output");
-					}
-					catch (PrismException e) {
-						mainLog.println("\nError: " + e.getMessage() + ".");
-					}
-				}
 			}
 			
+			// export labels/states
+			if (exportlabels) {
+				try {
+					if (propertiesFile != null) {
+						definedPFConstants = undefinedConstants.getPFConstantValues();
+						propertiesFile.setUndefinedConstants(definedPFConstants);
+					}
+					File f = (exportLabelsFilename.equals("stdout")) ? null : new File(exportLabelsFilename);
+					prism.exportLabelsToFile(model, modulesFile, propertiesFile, exportType, f);
+				}
+				// in case of error, report it and proceed
+				catch (FileNotFoundException e) {
+					mainLog.println("Couldn't open file \"" + exportLabelsFilename + "\" for output");
+				}
+				catch (PrismException e) {
+					mainLog.println("\nError: " + e.getMessage() + ".");
+				}
+			}
 			
 			// work through list of properties to be checked
 			for (j = 0; j < numPropertiesToCheck; j++) {
@@ -1122,6 +1121,10 @@ public class PrismCL
 				else if (sw.equals("o2")) {
 					prism.setOrdering(2);
 				}
+				// zero-reward loops check on
+				else if (sw.equals("zerorewardcheck")) {
+					prism.setCheckZeroLoops(true);
+				}
 				// reachability off
 				else if (sw.equals("noreach")) {
 					prism.setDoReach(false);
@@ -1589,6 +1592,7 @@ public class PrismCL
 		mainLog.println("-fixdl ......................... Automatically put self-loops in deadlock states");
 		mainLog.println("-nocompact ..................... Switch off \"compact\" sparse storage schemes");
 		mainLog.println("-noprobchecks .................. Disable checks on model probabilities/rates");
+		mainLog.println("-zerorewardchecks .............. Check for absence of zero-reward loops");
 		mainLog.println("-nossdetect .................... Disable steady-state detection for CTMC transient computations");
 		mainLog.println("-sccmethod <name> .............. Specify SCC computation method (xiebeerel, lockstep, sccfind)");
 		mainLog.println();
