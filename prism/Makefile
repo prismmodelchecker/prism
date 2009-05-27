@@ -66,6 +66,11 @@ endif
 ifneq (,$(findstring ia64, $(shell uname -m)))
 	ARCH = ia64
 endif
+ifeq ($(OSTYPE),darwin)
+	ifneq (,$(findstring 64-bit, $(shell java -version 2>&1)))
+		ARCH = x86_64
+	endif
+endif
 
 ########
 # Java #
@@ -510,7 +515,7 @@ checks:
 	  echo "You may need to set JAVA_DIR by hand. See the PRISM manual for details."; \
 	  exit 1; \
 	fi; \
-	echo "OSTYPE: $(OSTYPE) $(ARCH)"; \
+	echo "OSTYPE/ARCH: $(OSTYPE) $(ARCH)"; \
 	echo "JAVA_DIR: $(JAVA_DIR)"; \
 	echo "JAVAC: "`which $(JAVAC)` \
 	)
