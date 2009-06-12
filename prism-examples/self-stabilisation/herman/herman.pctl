@@ -3,7 +3,6 @@ const int K; // number of steps
 
 // labels
 label "k_tokens" = num_tokens=k; // configurations with k tokens
-label "stable" = num_tokens=1;   // stable configurations (1 token)
 
 // From any configuration, a stable configuration is reached with probability 1
 "init" => P>=1 [ F "stable" ]

@@ -5,7 +5,7 @@
 // the procotol is synchronous with no nondeterminism (a DTMC)
 dtmc
 
-const double p;
+const double p = 0.5;
 
 // module for process 1
 module process1
@@ -36,3 +36,7 @@ endinit
 // formula, for use in properties: number of tokens
 // (i.e. number of processes that have the same value as the process to their left)
 formula num_tokens = #+ i=1:N#(x#i#=x#func(mod, i, N)+1#?1:0)#end#;
+
+// label - stable configurations (1 token)
+label "stable" = num_tokens=1;
+
