@@ -172,8 +172,8 @@ public class ExpressionSS extends Expression
 	 */
 	public Expression deepCopy()
 	{
-		ExpressionSS expr = new ExpressionSS(expression.deepCopy(), relOp, prob.deepCopy());
-		expr.setFilter((Filter)filter.deepCopy());
+		ExpressionSS expr = new ExpressionSS(expression.deepCopy(), relOp, prob == null ? null : prob.deepCopy());
+		if (filter != null) expr.setFilter((Filter) filter.deepCopy());
 		expr.setType(type);
 		expr.setPosition(this);
 		return expr;

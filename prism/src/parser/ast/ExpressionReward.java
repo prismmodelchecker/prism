@@ -202,10 +202,10 @@ public class ExpressionReward extends Expression
 	 */
 	public Expression deepCopy()
 	{
-		ExpressionReward expr = new ExpressionReward(expression.deepCopy(), relOp, reward.deepCopy());
+		ExpressionReward expr = new ExpressionReward(expression.deepCopy(), relOp, reward == null ? null : reward.deepCopy());
 		if (rewardStructIndex != null && rewardStructIndex instanceof Expression) expr.setRewardStructIndex(((Expression)rewardStructIndex).deepCopy());
 		else expr.setRewardStructIndex(rewardStructIndex);
-		expr.setFilter((Filter)filter.deepCopy());
+		if (filter != null) expr.setFilter((Filter) filter.deepCopy());
 		expr.setType(type);
 		expr.setPosition(this);
 		return expr;

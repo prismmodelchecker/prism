@@ -36,13 +36,13 @@ public class ExpressionProb extends Expression
 	Expression prob = null;
 	Expression expression = null;
 	Filter filter = null;
-	
+
 	// Constructors
-	
+
 	public ExpressionProb()
 	{
 	}
-	
+
 	public ExpressionProb(Expression e, String r, Expression p)
 	{
 		expression = e;
@@ -51,10 +51,10 @@ public class ExpressionProb extends Expression
 	}
 
 	// Set methods
-	
+
 	public void setRelOp(String r)
 	{
-		relOp =r;
+		relOp = r;
 	}
 
 	public void setProb(Expression p)
@@ -66,19 +66,19 @@ public class ExpressionProb extends Expression
 	{
 		expression = e;
 	}
-	
+
 	public void setFilter(Filter f)
 	{
 		filter = f;
 	}
 
 	// Get methods
-	
+
 	public String getRelOp()
 	{
 		return relOp;
 	}
-	
+
 	public Expression getProb()
 	{
 		return prob;
@@ -88,7 +88,7 @@ public class ExpressionProb extends Expression
 	{
 		return expression;
 	}
-	
+
 	public Filter getFilter()
 	{
 		return filter;
@@ -115,7 +115,7 @@ public class ExpressionProb extends Expression
 	}
 
 	// Methods required for Expression:
-	
+
 	/**
 	 * Is this expression constant?
 	 */
@@ -138,14 +138,18 @@ public class ExpressionProb extends Expression
 	  */
 	public String getResultName()
 	{
-		if (prob != null) return "Result";
-		else if (relOp.equals("min=")) return "Minimum probability";
-		else if (relOp.equals("max=")) return "Maximum probability";
-		else return "Probability";
+		if (prob != null)
+			return "Result";
+		else if (relOp.equals("min="))
+			return "Minimum probability";
+		else if (relOp.equals("max="))
+			return "Maximum probability";
+		else
+			return "Probability";
 	}
 
 	// Methods required for ASTElement:
-	
+
 	/**
 	 * Visitor method.
 	 */
@@ -153,20 +157,21 @@ public class ExpressionProb extends Expression
 	{
 		return v.visit(this);
 	}
-	
+
 	/**
 	 * Convert to string.
 	 */
 	public String toString()
 	{
 		String s = "";
-		
+
 		s += "P" + relOp;
-		s += (prob==null) ? "?" : prob.toString();
+		s += (prob == null) ? "?" : prob.toString();
 		s += " [ " + expression;
-		if (filter != null) s += " "+filter;
+		if (filter != null)
+			s += " " + filter;
 		s += " ]";
-		
+
 		return s;
 	}
 
@@ -175,8 +180,8 @@ public class ExpressionProb extends Expression
 	 */
 	public Expression deepCopy()
 	{
-		ExpressionProb expr = new ExpressionProb(expression.deepCopy(), relOp, prob.deepCopy());
-		expr.setFilter((Filter)filter.deepCopy());
+		ExpressionProb expr = new ExpressionProb(expression.deepCopy(), relOp, prob == null ? null : prob.deepCopy());
+		if (filter != null) expr.setFilter((Filter) filter.deepCopy());
 		expr.setType(type);
 		expr.setPosition(this);
 		return expr;
