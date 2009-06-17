@@ -43,6 +43,8 @@ public class Module extends ASTElement
 	private ArrayList<Command> commands;
 	// Parent ModulesFile
 	private ModulesFile parent;
+	// Base module (if was constructed through renaming)
+	private String baseModule;
 
 	// Constructor
 	
@@ -51,6 +53,8 @@ public class Module extends ASTElement
 		name = n;
 		decls = new ArrayList<Declaration>();
 		commands = new ArrayList<Command>();
+		parent = null;
+		baseModule = null;
 	}
 
 	// Set methods
@@ -92,6 +96,11 @@ public class Module extends ASTElement
 		parent = mf;
 	}
 
+	public void setBaseModule(String b)
+	{
+		baseModule = b;
+	}
+	
 	// Get methods
 	
 	public String getName()
@@ -129,6 +138,11 @@ public class Module extends ASTElement
 		return parent;
 	}
 	
+	public String getBaseModule()
+	{
+		return baseModule;
+	}
+
 	public Vector<String> getAllSynchs()
 	{
 		int i, n;

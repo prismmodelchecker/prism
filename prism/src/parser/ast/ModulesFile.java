@@ -433,8 +433,10 @@ public class ModulesFile extends ASTElement
 				}
 			}
 			// Then rename (a copy of) base module and replace
+			// (note: also store name of base module for later reference)
 			newModule = (Module) getModule(j).deepCopy().rename(module);
 			newModule.setNameASTElement(module.getNameASTElement());
+			newModule.setBaseModule(module.getBaseModule());
 			setModule(i, newModule);
 		}
 	}
