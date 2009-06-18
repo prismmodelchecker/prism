@@ -43,7 +43,7 @@ public class Module extends ASTElement
 	private ArrayList<Command> commands;
 	// Parent ModulesFile
 	private ModulesFile parent;
-	// Base module (if was constructed through renaming)
+	// Base module (if was constructed through renaming; null if not)
 	private String baseModule;
 
 	// Constructor
