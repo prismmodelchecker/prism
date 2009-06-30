@@ -497,7 +497,7 @@ public class LTLModelChecker
 		SCCComputer sccComputer ;
 		JDDNode acceptingStates, allAcceptingStates;
 		Vector<JDDNode> vectBSCCs, newVectBSCCs;
-		JDDNode tmp;
+		JDDNode tmp, tmp2;
 		int i, j, n;
 		
 		// Compute BSCCs for model
@@ -531,15 +531,22 @@ public class LTLModelChecker
 				}
 			}
 			
-			// Restrict each BSCC to H_i states
+			// Check each BSCC for inclusion in H_i states
+			// i.e. restrict each BSCC to H_i states and test if unchanged
 			n = vectBSCCs.size();
 			newVectBSCCs = new Vector<JDDNode>();
 			for (j = 0; j < n; j++) {
 				tmp = vectBSCCs.get(j);
 				JDD.Ref(tmp);
+				JDD.Ref(tmp);
 				JDD.Ref(acceptanceVector_H);
-				tmp = JDD.And(tmp, acceptanceVector_H);
-				newVectBSCCs.add(tmp);
+				tmp2 = JDD.And(tmp, acceptanceVector_H);
+				if (tmp.equals(tmp2)) {
+					newVectBSCCs.add(tmp);
+				} else {
+					JDD.Deref(tmp);
+				}
+				JDD.Deref(tmp2);
 			}
 			JDD.Deref(acceptanceVector_H);
 			
