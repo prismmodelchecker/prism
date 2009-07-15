@@ -349,12 +349,11 @@ void CBoundedUntil::Notify_State(CPathState* last_state, int* current_state)
 
 /*
  *	Determines whether the answer is already known for this path formula.  This
- *	will either be if the answer has been proven, or if the answer has not been
- *	determined but the path is looping.
+ *	will *only* be if the answer has been proven, *not* if the path is looping.
  */
 bool CBoundedUntil::Is_Answer_Known(CLoopDetectionHandler* loop_detection)
 {
-	return answer_known || loop_detection->Is_Proven_Looping() || loop_detection->Is_Deadlock();
+	return answer_known;
 }
 
 /*
