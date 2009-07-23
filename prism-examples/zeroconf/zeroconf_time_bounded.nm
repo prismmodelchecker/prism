@@ -55,7 +55,7 @@ mdp
 // VARIABLES
 const int N; // number of abstract hosts
 const int K; // number of probes to send
-const double loss; // probability of message loss
+const double loss = 0.1; // probability of message loss
 
 // PROBABILITIES
 const double old = N/65024; // probability pick an ip address being used
