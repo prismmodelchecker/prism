@@ -46,19 +46,27 @@ public class FileSetting extends Setting
 	
 	private static FileSelector defaultSelector()
 	{
-		return new FileSelector()
-		{
-			JFileChooser choose = new JFileChooser();
-			
-			public File getFile(Frame parent, File defaultFile)
+		try {
+			return new FileSelector()
 			{
-				choose.setSelectedFile(defaultFile);
-				int choice = choose.showOpenDialog(parent);
-				if(choice == JFileChooser.CANCEL_OPTION) return null;
-				else return choose.getSelectedFile();
+				JFileChooser choose = new JFileChooser();
 				
-			}
-		};
+				public File getFile(Frame parent, File defaultFile)
+				{
+					choose.setSelectedFile(defaultFile);
+					int choice = choose.showOpenDialog(parent);
+					if(choice == JFileChooser.CANCEL_OPTION) return null;
+					else return choose.getSelectedFile();
+					
+				}
+			};
+		}
+		// Catch any problems that occur when running in headless mode
+		// (e.g. the command-line version of PRISM)
+		// (in this case, you don't need this object anyway)
+		catch (HeadlessException e) {
+			return null;
+		}
 	}
     
 	private boolean validFile;
