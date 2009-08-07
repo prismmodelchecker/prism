@@ -26,19 +26,19 @@
 
 package parser.ast;
 
-import java.util.Vector;
+import java.util.*;
 
-import parser.Token;
+import parser.*;
+import parser.type.*;
 import parser.visitor.*;
-import prism.PrismLangException;
-import simulator.SimulatorEngine;
+import prism.*;
 
 // Abstract class for PRISM language AST elements
 
 public abstract class ASTElement
 {
-	// Type - default to 0 (unknown)
-	protected int type = 0;
+	// Type - default to null (unknown)
+	protected Type type = null;
 	// Position in the file - default to -1s (unknown)
 	protected int beginLine = -1;
 	protected int beginColumn = -1;
@@ -47,7 +47,7 @@ public abstract class ASTElement
 
 	// Set methods
 
-	public void setType(int t)
+	public void setType(Type t)
 	{
 		type = t;
 	}
@@ -113,16 +113,16 @@ public abstract class ASTElement
 	 * by calling typeCheck(). If not, it will be computed first but, in
 	 * the case of error, you will get "unknown" type, not the error.
 	 */
-	public int getType()
+	public Type getType()
 	{
-		if (type != 0) return type;
+		if (type != null) return type;
 		try {
 			typeCheck();
 		}
 		catch (PrismLangException e) {
-			// Returns 0 (unknown) in case of error.
+			// Returns null (unknown) in case of error.
 			// If you want to check for errors, use typeCheck().
-			return 0;
+			return null;
 		}
 		return type;
 	}
@@ -132,7 +132,7 @@ public abstract class ASTElement
 	 */
 	public String getTypeString()
 	{
-		return Expression.getTypeString(getType());
+		return type.getTypeString();
 	}
 
 	public boolean hasPosition()
@@ -265,11 +265,19 @@ public abstract class ASTElement
 	}
 
 	/**
-	 * Find all idents which are variables, replace with ExpressionVar, return
-	 * result. Also make sure all variable references (e.g. in updates) are
-	 * valid.
+	 * Replace some constants with values.
+	 * Note: This is the same as evaluatePartially(constantValues, null).
 	 */
-	public ASTElement findAllVars(Vector varIdents, Vector varTypes) throws PrismLangException
+	public ASTElement replaceConstants(Values constantValues) throws PrismLangException
+	{
+		return evaluatePartially(new EvaluateContextValues(constantValues, null));
+	}
+
+	/**
+	 * Find all references to variables, replace any identifier objects with variable objects,
+	 * check variables exist and store their index (as defined by the containing ModuleFile).
+	 */
+	public ASTElement findAllVars(Vector<String> varIdents, Vector<Type> varTypes) throws PrismLangException
 	{
 		FindAllVars visitor = new FindAllVars(varIdents, varTypes);
 		return (ASTElement) accept(visitor);
@@ -284,6 +292,15 @@ public abstract class ASTElement
 		GetAllVars visitor = new GetAllVars(v);
 		accept(visitor);
 		return v;
+	}
+
+	/**
+	 * Replace some variables with values.
+	 * Note: This is the same as evaluatePartially(null, varValues).
+	 */
+	public ASTElement replaceVars(Values varValues) throws PrismLangException
+	{
+		return evaluatePartially(new EvaluateContextValues(null, varValues));
 	}
 
 	/**
@@ -323,6 +340,43 @@ public abstract class ASTElement
 	}
 
 	/**
+	 * Evaluate partially: replace some constants and variables with actual values. 
+	 */
+	public ASTElement evaluatePartially(EvaluateContext ec) throws PrismLangException
+	{
+		EvaluatePartially visitor = new EvaluatePartially(ec);
+		return (ASTElement) accept(visitor);
+	}
+
+	/**
+	 * Evaluate partially: replace some constants and variables with actual values. 
+	 * Constants/variables are specified as Values objects; either can be left null.
+	 */
+	public ASTElement evaluatePartially(Values constantValues, Values varValues) throws PrismLangException
+	{
+		return evaluatePartially(new EvaluateContextValues(constantValues, varValues));
+	}
+
+	/**
+	 * Evaluate partially: replace some variables with actual values. 
+	 * Variables are specified as a State object, indexed over a subset of all variables,
+	 * and a mapping from indices (over all variables) to this subset (-1 if not in subset). 
+	 */
+	public ASTElement evaluatePartially(State substate, int[] varMap) throws PrismLangException
+	{
+		return evaluatePartially(new EvaluateContextSubstate(substate, varMap));
+	}
+
+	/**
+	 * Simplify expressions (constant propagation, ...)
+	 */
+	public ASTElement simplify() throws PrismLangException
+	{
+		Simplify visitor = new Simplify();
+		return (ASTElement) accept(visitor);
+	}
+
+	/**
 	 * Convert to string showing tree representation.
 	 */
 	public String toTreeString()
@@ -334,17 +388,6 @@ public abstract class ASTElement
 			return e.toString();
 		}
 		return visitor.getString();
-	}
-
-	/**
-	 * Construct corresponding data structures in the simulator and return
-	 * pointer.
-	 */
-	public long toSimulator(SimulatorEngine sim) throws PrismLangException
-	{
-		ToSimulator visitor = new ToSimulator(sim);
-		accept(visitor);
-		return visitor.getPtr(this);
 	}
 }
 

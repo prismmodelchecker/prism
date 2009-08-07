@@ -32,7 +32,7 @@ import java.util.Hashtable;
 import parser.ast.*;
 import prism.PrismLangException;
 import jltl2ba.*;
-
+import parser.type.*;
 /*
  * Convert a property expression (an LTL formula) into the classes used by
  * the jltl2ba (and jltl2dstar) libraries.
@@ -127,10 +127,10 @@ public class ConvertForJltl2ba extends ASTTraverseModify
 	
 	public void visitPost(ExpressionLiteral e) throws PrismLangException
 	{
-		if (e.getType() != Expression.BOOLEAN) {
+		if (e.getType() instanceof TypeBool) {
 			throw new PrismLangException("Cannot convert expression to jltl2ba form", e);
 		}
-		setFormula(e, new SimpleLTL(e.evaluateBoolean(null, null)));
+		setFormula(e, new SimpleLTL(e.evaluateBoolean()));
 	}
 	
 	public void visitPost(ExpressionLabel e) throws PrismLangException

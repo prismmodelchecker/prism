@@ -33,6 +33,7 @@ import javax.swing.*;
 import javax.swing.table.*;
 
 import parser.ast.*;
+import parser.type.*;
 import prism.*;
 
 public class GUIPropConstantList extends JTable
@@ -206,20 +207,8 @@ public class GUIPropConstantList extends JTable
 			switch(column)
 			{
 				case 0: return con.name;
-				case 1:
-				{
-					switch(con.type)
-					{
-						case GUIConstant.INT: return "int";
-						case GUIConstant.BOOL: return "bool";
-						case GUIConstant.DOUBLE: return "double";
-						default: return "";
-					}
-				}
-				case 2:
-				{
-					return con.constant;
-				}
+				case 1: return con.type.getTypeString();
+				case 2: return con.constant;
 				default: return "";
 			}
 		}
@@ -291,7 +280,7 @@ public class GUIPropConstantList extends JTable
 		
 		public void addConstant()
 		{
-			addConstant(new GUIConstant(parent, "C"+conCount, "", GUIConstant.INT));
+			addConstant(new GUIConstant(parent, "C"+conCount, "", TypeInt.getInstance()));
 			conCount++;
 		}
 		
@@ -336,9 +325,9 @@ public class GUIPropConstantList extends JTable
 				}
 				case 1:
 				{
-					int newType = GUIConstant.INT;
-					if(((String)aValue).equals("double"))newType = GUIConstant.DOUBLE;
-					else if(((String)aValue).equals("bool"))newType = GUIConstant.BOOL;
+					Type newType = TypeInt.getInstance();
+					if(((String)aValue).equals("double"))newType = TypeDouble.getInstance();
+					else if(((String)aValue).equals("bool"))newType = TypeBool.getInstance();
 					if(newType != gc.type) // if there was a change
 					{
 						gc.type = newType;

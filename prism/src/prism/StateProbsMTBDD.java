@@ -29,7 +29,7 @@ package prism;
 import jdd.*;
 import odd.*;
 import parser.VarList;
-import parser.ast.Expression;
+import parser.type.*;
 
 // state probability vector (mtbdd)
 
@@ -376,7 +376,7 @@ public class StateProbsMTBDD implements StateProbs
 			j = varList.getNumVars();
 			for (i = 0; i < j; i++) {
 				// integer variable
-				if (varList.getType(i) == Expression.INT) {
+				if (varList.getType(i) instanceof TypeInt) {
 					outputLog.print(varValues[i]+varList.getLow(i));
 				}
 				// boolean variable

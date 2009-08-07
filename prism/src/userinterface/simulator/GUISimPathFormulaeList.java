@@ -79,7 +79,8 @@ public class GUISimPathFormulaeList extends JList
 				return;// if this already is in here, do not add it
 		}
 
-		long pathPointer = engine.addExpressionReward(rew);
+		// TODO: re-enable
+		long pathPointer = -1;//engine.addExpressionReward(rew);
 		if (pathPointer <= 0)
 			return;
 		int index = engine.findPathFormulaIndex(pathPointer);
@@ -96,8 +97,9 @@ public class GUISimPathFormulaeList extends JList
 			if (listModel.getElementAt(i).toString().equals(str))
 				return;// if this already is in here, do not add it
 		}
-
-		long pathPointer = engine.addExpressionProb(prob);
+		
+		// TODO: re-enable
+		long pathPointer = -1; //engine.addExpressionProb(prob);
 		if (pathPointer <= 0)
 			return;
 		// System.out.println("probPointer = "+pathPointer);

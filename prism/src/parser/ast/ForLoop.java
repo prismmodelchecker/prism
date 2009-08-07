@@ -28,7 +28,7 @@ package parser.ast;
 
 import parser.visitor.*;
 import prism.PrismLangException;
-
+import parser.type.*;
 public class ForLoop extends ASTElement
 {
 	// For loop info
@@ -105,7 +105,7 @@ public class ForLoop extends ASTElement
 	
 	public Expression getStep()
 	{
-		return (step != null) ? step : new ExpressionLiteral(Expression.INT, 1);
+		return (step != null) ? step : new ExpressionLiteral(TypeInt.getInstance(), 1);
 	}
 	
 	public int getPC()

@@ -123,6 +123,17 @@ public class GUIWindowLog implements PrismLog
 		addToBuffer(s);
 	}
 
+	public void print(double d[])
+	{
+		int i, n;
+		n = d.length;
+		for (i = 0; i < n; i++) {
+			if (i > 0)
+				addToBuffer(" ");
+			addToBuffer("" + d[i]);
+		}
+	}
+
 	public void println()
 	{
 		addToBuffer("\n");
@@ -166,6 +177,12 @@ public class GUIWindowLog implements PrismLog
 	public void println(String s)
 	{
 		addToBuffer(s + "\n");
+	}
+
+	public void println(double d[])
+	{
+		print(d);
+		println();
 	}
 
 	public long getFilePointer()

@@ -1,0 +1,69 @@
+#no update for variables
+{
+init
+	node ini; x<=0
+	[ 
+	send2||tran  transmit1; x>=0; x=0; 1
+	]
+	[
+	busy2||tran  collision1; x>=0; x=0; 1
+	 ] 
+}
+{
+	node transmit1; x<=808
+	[ 
+	end2||tran  finish; x>=808; x=0; 1
+	 ] 
+	[ 
+	cd||tran  collision1; true; x=0; 1
+	 ] 
+}
+{
+	node transmit2; x<=808
+	[ 
+	end2||tran  finish; x>=808; x=0; 1
+	 ] 
+	[ 
+	cd||tran  collision2; true; x=0; 1
+	 ] 
+}
+{
+	node collision1; x<=0
+	[ 
+	tran  wait1; x>=0; x=0; 0.5
+	tran  wait1; x>=0; x=52; 0.5
+	 ] 
+}
+{
+	node collision2; x<=0
+	[ 
+	tran  wait2; x>=0; x=0;   0.25
+	tran  wait2; x>=0; x=52;  0.25
+	tran  wait2; x>=0; x=104; 0.25
+	tran  wait2; x>=0; x=156; 0.25
+	 ] 
+}
+{
+	node wait1; x<=104
+	[ 
+	send2||tran  transmit2; x>=104; x=0; 1
+	]
+	[
+	busy2||tran  collision2; x>=104; x=0; 1
+	 ] 
+}
+{
+	node wait2; x<=208
+	[ 
+	send2||tran  transmit2; x>=208; x=0; 1
+	]
+	[
+	busy2||tran  collision2; x>=208; x=0; 1
+	 ] 
+}
+{
+	node finish; true
+	[ 
+	done||tran finish; true; null; 1
+	 ]
+*

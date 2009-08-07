@@ -29,6 +29,7 @@ package parser.ast;
 import parser.*;
 import parser.visitor.*;
 import prism.PrismLangException;
+import parser.type.*;
 
 public class ExpressionUnaryOp extends Expression
 {
@@ -99,19 +100,19 @@ public class ExpressionUnaryOp extends Expression
 	 * Evaluate this expression, return result. Note: assumes that type checking
 	 * has been done already.
 	 */
-	public Object evaluate(Values constantValues, Values varValues) throws PrismLangException
+	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
 		switch (op) {
 		case NOT:
-			return new Boolean(!operand.evaluateBoolean(constantValues, varValues));
+			return new Boolean(!operand.evaluateBoolean(ec));
 		case MINUS:
-			if (type == Expression.INT) {
-				return new Integer(-operand.evaluateInt(constantValues, varValues));
+			if (type instanceof TypeInt) {
+				return new Integer(-operand.evaluateInt(ec));
 			} else {
-				return new Double(-operand.evaluateDouble(constantValues, varValues));
+				return new Double(-operand.evaluateDouble(ec));
 			}
 		case PARENTH:
-			return operand.evaluate(constantValues, varValues);
+			return operand.evaluate(ec);
 		}
 		throw new PrismLangException("Unknown unary operator", this);
 	}

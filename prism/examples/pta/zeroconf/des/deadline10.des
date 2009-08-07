@@ -1,0 +1,29 @@
+#no update for variables
+{
+init
+	node first; true
+	[ 
+	fresh||tran after; z>100; z=0; 1.0
+	]
+	[ 
+	used||tran after; z>100; z=0; 1.0
+	]
+	[
+	fresh||tran before; z<=100; z=0; 1.0
+	] 
+	[
+	used||tran before; z<=100; z=0; 1.0
+	] 
+}
+{
+	node after; true
+	[
+	tran after;true;null;1
+	]
+}
+{
+	node before; true
+	[
+	tran before;true;null;1
+	]
+*

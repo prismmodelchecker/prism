@@ -35,12 +35,7 @@ import parser.*;
 
 public interface Model
 {
-	public static final int DTMC = 1; 
-	public static final int CTMC = 2; 
-	public static final int MDP = 3; 
-	
-	int getType();
-	String getTypeString();
+	ModelType getModelType();
 
 	int getNumModules();
 	String[] getModuleNames();
@@ -57,7 +52,9 @@ public interface Model
 	Values getConstantValues();
 	String globalToLocal(long x);
 	int globalToLocal(long x, int l);
-	
+	State convertBddToState(JDDNode dd);
+	int convertBddToIndex(JDDNode dd);
+
 	StateList getReachableStates();
 	StateList getDeadlockStates();
 	StateList getStartStates();

@@ -26,8 +26,10 @@
 //==============================================================================
 
 package userinterface.properties;
+
 import parser.*;
 import parser.ast.*;
+import parser.type.*;
 import prism.*;
 import javax.swing.*;
 import userinterface.*;
@@ -107,7 +109,7 @@ public class GUIExperiment
 		return prop.getProperty(0).toString();
 	}
 	
-	public int getPropertyType() throws PrismException
+	public Type getPropertyType()
 	{
 		return prop.getProperty(0).getType();
 	}

@@ -38,6 +38,7 @@ import org.w3c.dom.*;
 
 import prism.*;
 import parser.ast.*;
+import parser.type.*;
 import userinterface.*;
 import userinterface.model.*;
 import userinterface.model.graphicModel.*;
@@ -86,14 +87,7 @@ public class SaveGraphicModelThread extends Thread
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document doc = builder.newDocument();
             Element gmoRoot = doc.createElement("gmo");
-            int modType = editor.getTypeNumber();
-            String modTypeStr = "probabilistic";
-            switch(modType)
-            {
-                case ModulesFile.STOCHASTIC: modTypeStr = "stochastic"; break;
-                case ModulesFile.PROBABILISTIC: modTypeStr= "probabilistic"; break;
-                case ModulesFile.NONDETERMINISTIC: modTypeStr = "nondeterministic"; break;
-            }
+            String modTypeStr = editor.getModelType().toString().toLowerCase();
             gmoRoot.setAttribute("type", modTypeStr);
             gmoRoot.setAttribute("filename", f.getPath());
             gmoRoot.setAttribute("autolayout", ""+editor.isAutolayout());
@@ -104,34 +98,18 @@ public class SaveGraphicModelThread extends Thread
                 Element cons = doc.createElement("constants");
                 ArrayList consNames = editor.getEditableConstantNames();
                 ArrayList consValues = editor.getEditableConstantValues();
-                ArrayList consTypes = editor.getEditableConstantTypes();
+                ArrayList<Type> consTypes = editor.getEditableConstantTypes();
                 
                 for(int i = 0; i < consTypes.size(); i++)
                 {
-                    int type = ((Integer)consTypes.get(i)).intValue();
                     Object value = consValues.get(i);
                     String name = (String)consNames.get(i);
                     Element newCons = null;
-                    switch(type)
-                    {
-                        case Expression.INT:
-                            newCons = doc.createElement("integerConstant");
-                            newCons.setAttribute("name", name);
-                            if(value != null)
-                                newCons.setAttribute("value", (String)value);
-                            break;
-                        case Expression.BOOLEAN:
-                            newCons = doc.createElement("booleanConstant");
-                            newCons.setAttribute("name", name);
-                            if(value != null)
-                                newCons.setAttribute("value", (String)value);
-                            break;
-                        case Expression.DOUBLE:
-                            newCons = doc.createElement("doubleConstant");
-                            newCons.setAttribute("name", name);
-                            if(value != null)
-                                newCons.setAttribute("value", (String)value);
-                            break;
+                    
+                    newCons = doc.createElement(consTypes.get(i).getTypeString() + "Constant");
+                    newCons.setAttribute("name", name);
+                    if(value != null) {
+                        newCons.setAttribute("value", (String)value);
                     }
                     if(newCons != null) cons.appendChild(newCons);
                 }
@@ -144,17 +122,15 @@ public class SaveGraphicModelThread extends Thread
                 ArrayList declMins  = editor.getEditableGlobalMins();
                 ArrayList declMaxs  = editor.getEditableGlobalMaxs();
                 ArrayList declInits = editor.getEditableGlobalInits();
-                ArrayList declTypes = editor.getEditableGlobalTypes();
+                ArrayList<Type> declTypes = editor.getEditableGlobalTypes();
                 
                 for(int i = 0; i < declTypes.size(); i++)
                 {
-                    int type = ((Integer)declTypes.get(i)).intValue();
+                    Type type = declTypes.get(i);
                     String name = (String)declNames.get(i);
                     Element newDecl = null;
                     Object init;
-                    switch(type)
-                    {
-                        case Expression.INT:
+                    if (type instanceof TypeInt) {
                             newDecl = doc.createElement("variable");
                             newDecl.setAttribute("name", name);
                             newDecl.setAttribute("min", (String)declMins.get(i));
@@ -162,14 +138,13 @@ public class SaveGraphicModelThread extends Thread
                             init = declInits.get(i);
                             if(init != null)
                                 newDecl.setAttribute("init", (String)declInits.get(i));
-                            break;
-                        case Expression.BOOLEAN:
+                    }
+                    else if (type instanceof TypeBool) {
                             newDecl = doc.createElement("boolVariable");
                             newDecl.setAttribute("name", name);
                             init = declInits.get(i);
                             if(init != null)
                                 newDecl.setAttribute("init", (String)declInits.get(i));
-                            break;
                     }
                     if(newDecl != null) decl.appendChild(newDecl);
                 }
@@ -380,20 +355,18 @@ public class SaveGraphicModelThread extends Thread
                     }
                     //Variables
                     ArrayList variableNames = editor.getVariableNames(theModules[i]);
-                    ArrayList variableTypes = editor.getVariableTypes(theModules[i]);
+                    ArrayList<Type> variableTypes = editor.getVariableTypes(theModules[i]);
                     ArrayList variableInits = editor.getVariableInits(theModules[i]);
                     ArrayList variableMins  = editor.getVariableMins(theModules[i]);
                     ArrayList variableMaxs  = editor.getVariableMaxs(theModules[i]);
                     for(int j = 0; j < variableTypes.size(); j++)
                     {
-                        int type = ((Integer)variableTypes.get(j)).intValue();
+                        Type type = variableTypes.get(j);
                         
                         Element var = null;
                         String name = (String)variableNames.get(j);
                         Object init = variableInits.get(j);
-                        switch(type)
-                        {
-                            case Expression.INT:
+                        if (type instanceof TypeInt) {
                                 var = doc.createElement("variable");
                                 var.setAttribute("name", name);
                                 var.setAttribute("min", (String)variableMins.get(j));
@@ -402,16 +375,14 @@ public class SaveGraphicModelThread extends Thread
                                 {
                                     var.setAttribute("init", (String)init);
                                 }
-                                break;
-                            case Expression.BOOLEAN:
+                        }
+                        else if (type instanceof TypeBool) {
                                 var = doc.createElement("boolVariable");
                                 var.setAttribute("name", name);
                                 if(init != null)
                                 {
                                     var.setAttribute("init", (String)init);
                                 }
-                                break;
-                                
                         }
                         if(var != null)module.appendChild(var);
                     }

@@ -90,6 +90,8 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_EXTRA_REACH_INFO				= "prism.extraReachInfo";
 	public static final String PRISM_SCC_METHOD						= "prism.sccMethod";
 	public static final String PRISM_SYMM_RED_PARAMS					= "prism.symmRedParams";
+	public static final String PRISM_PTA_METHOD					= "prism.ptaMethod";
+	public static final String PRISM_AR_OPTIONS					= "prism.arOptions";
 	
 	//GUI Model
 	public static final	String MODEL_AUTO_PARSE						= "model.autoParse";
@@ -196,7 +198,9 @@ public class PrismSettings implements Observer
 			{ BOOLEAN_TYPE,		PRISM_EXTRA_DD_INFO,					"Extra MTBDD information",				"3.1.1",			new Boolean(false),															"0,",																						"Display extra information about (MT)BDDs used during and after model construction." },
 			{ BOOLEAN_TYPE,		PRISM_EXTRA_REACH_INFO,					"Extra reachability information",		"3.1.1",			new Boolean(false),															"0,",																						"Display extra information about progress of reachability during model construction." },
 			{ CHOICE_TYPE,		PRISM_SCC_METHOD,						"SCC decomposition method",				"3.2",			"Lockstep",																	"Xie-Beerel,Lockstep,SCC-Find",																"Which algorithm to use for decomposing a graph into strongly connected components (SCCs)." },
-			{ STRING_TYPE,		PRISM_SYMM_RED_PARAMS,						"Symmetry reduction parameters",				"3.2",			"",																	"",																"Parameters for symmetry reduction (format: \"i j\" where i and j are the number of modules before and after the symmetric ones; empty string means symmetry reduction disabled)." }
+			{ STRING_TYPE,		PRISM_SYMM_RED_PARAMS,						"Symmetry reduction parameters",				"3.2",			"",																	"",																"Parameters for symmetry reduction (format: \"i j\" where i and j are the number of modules before and after the symmetric ones; empty string means symmetry reduction disabled)." },
+			{ CHOICE_TYPE,		PRISM_PTA_METHOD,						"PTA model checking method",				"3.3",			"Stochastic games",																	"Digital clocks,Stochastic games,Bisimulation minimisation",																"Which method to use for model checking of PTAs." },
+			{ STRING_TYPE,		PRISM_AR_OPTIONS,						"Abstraction refinement options",				"3.3",			"",																	"",																"Various options passed to the asbtraction-refinement engine (e.g. for PTA model checking)." },
 		},
 		{
 			{ BOOLEAN_TYPE,		MODEL_AUTO_PARSE,						"Auto parse",							"2.1",			new Boolean(true),															"",																							"Parse PRISM models automatically as they are loaded/edited in the text editor." },
@@ -246,10 +250,10 @@ public class PrismSettings implements Observer
 	public static final String[] oldPropertyNames = {"simulator.apmcStrategy", "simulator.engine"};
 	
 	public DefaultSettingOwner[] optionOwners;
-	private Hashtable data;
+	private Hashtable<String,Setting> data;
 	private boolean modified;
 	
-	private ArrayList settingsListeners;
+	private ArrayList<PrismSettingsListener> settingsListeners;
 	
 	public PrismSettings()
 	{
@@ -359,13 +363,13 @@ public class PrismSettings implements Observer
 		
 		//populate a hash table with the keys
 		populateHashTable(counter);
-		settingsListeners = new ArrayList();
+		settingsListeners = new ArrayList<PrismSettingsListener>();
 		
 	}
 	
 	private void populateHashTable(int size)
 	{
-		data = new Hashtable(size);
+		data = new Hashtable<String,Setting>(size);
 		
 		for(int i = 0; i < optionOwners.length; i++)
 		{
@@ -378,7 +382,7 @@ public class PrismSettings implements Observer
 	
 	private Setting settingFromHash(String key)
 	{
-		return (Setting)data.get(key);
+		return data.get(key);
 	}
 	
 	public void addSettingsListener(PrismSettingsListener listener)
@@ -395,7 +399,7 @@ public class PrismSettings implements Observer
 	{
 		for(int i = 0; i < settingsListeners.size(); i++)
 		{
-			PrismSettingsListener listener = (PrismSettingsListener)settingsListeners.get(i);
+			PrismSettingsListener listener = settingsListeners.get(i);
 			listener.notifySettings(this);
 		}
 	}
@@ -794,7 +798,7 @@ public class PrismSettings implements Observer
 		JFrame jf = new JFrame("Prism Settings");
 		jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
-		ArrayList owners = new ArrayList();
+		ArrayList<DefaultSettingOwner> owners = new ArrayList<DefaultSettingOwner>();
 		for(int i = 0; i < set.optionOwners.length; i++)
 		{
 			owners.add(set.optionOwners[i]);
@@ -813,6 +817,6 @@ public class PrismSettings implements Observer
 		jf.getContentPane().setSize(100, 300);
 		
 		jf.pack();
-		jf.show();
+		jf.setVisible(true);
 	}
 }

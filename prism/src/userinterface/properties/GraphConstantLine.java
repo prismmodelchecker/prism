@@ -40,6 +40,7 @@ import javax.swing.JList;
 import javax.swing.UIManager;
 
 import parser.ast.Expression;
+import parser.type.*;
 import prism.DefinedConstant;
 
 /**
@@ -55,6 +56,7 @@ public class GraphConstantLine extends javax.swing.JPanel
     
     private DefinedConstant dc;
     private GUIGraphPicker parent;
+    private Type type;
     
     /** Creates new form ConstantLine */
     public GraphConstantLine(DefinedConstant dc, GUIGraphPicker parent)
@@ -133,28 +135,16 @@ public class GraphConstantLine extends javax.swing.JPanel
         nameLabel.setText(str);
     }
     
-    public void setConstType(int type)
+    public void setConstType(Type type)
     {
-        switch(type)
-        {
-            
-            case Expression.DOUBLE:
-            {
-                typeLabel.setText("double");
-                break;
-            }
-            case Expression.INT:
-            {
-                typeLabel.setText("int");
-                break;
-            }
-            default:
-            {
-                typeLabel.setText("unknown");
-                
-            }
+    	this.type = type;
+    	if (type instanceof TypeDouble) {
+    		typeLabel.setText("double");
+    	} else if (type instanceof TypeInt) {
+    		typeLabel.setText("int");
+    	} else {
+    		typeLabel.setText("unknown");
         }
-        
     }
     
     public void setEnabled(boolean b)

@@ -32,6 +32,7 @@ import mtbdd.*;
 import sparse.*;
 import hybrid.*;
 import parser.ast.*;
+import parser.type.*;
 
 /*
  * Model checker for CTMCs.
@@ -84,9 +85,9 @@ public class StochModelChecker extends ProbModelChecker
 		StateProbs tmpProbs = null, probs = null;
 
 		// check not LTL
-		if (expr.getOperand1().getType() != Expression.BOOLEAN)
+		if (!(expr.getOperand1().getType() instanceof TypeBool))
 			throw new PrismException("Invalid path formula");
-		if (expr.getOperand2().getType() != Expression.BOOLEAN)
+		if (!(expr.getOperand2().getType() instanceof TypeBool))
 			throw new PrismException("Invalid path formula");
 
 		// get info from bounded until
@@ -502,7 +503,7 @@ public class StochModelChecker extends ProbModelChecker
 				rewards = new StateProbsDV(rewardsDV, model);
 				break;
 			default:
-				throw new PrismException("Engine does not support this numerical method");
+				throw new PrismException("Unknown engine");
 			}
 		} catch (PrismException e) {
 			throw e;
@@ -568,7 +569,7 @@ public class StochModelChecker extends ProbModelChecker
 				probs = new StateProbsDV(probsDV, model);
 				break;
 			default:
-				throw new PrismException("Engine does not support this numerical method");
+				throw new PrismException("Unknown engine");
 			}
 		} catch (PrismException e) {
 			throw e;

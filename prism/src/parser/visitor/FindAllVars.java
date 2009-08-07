@@ -29,18 +29,19 @@ package parser.visitor;
 import java.util.Vector;
 
 import parser.ast.*;
+import parser.type.*;
 import prism.PrismLangException;
 
 /**
- * Find all idents which are variables, replace with ExpressionVar, return result.
- * Also make sure all variable references (e.g. in updates) are valid.
+ * Find all references to variables, replace any identifier objects with variable objects,
+ * check variables exist and store their index (as defined by the containing ModuleFile).
  */
 public class FindAllVars extends ASTTraverseModify
 {
-	private Vector varIdents;
-	private Vector varTypes;
+	private Vector<String> varIdents;
+	private Vector<Type> varTypes;
 	
-	public FindAllVars(Vector varIdents, Vector varTypes)
+	public FindAllVars(Vector<String> varIdents, Vector<Type> varTypes)
 	{
 		this.varIdents = varIdents;
 		this.varTypes = varTypes;
@@ -50,16 +51,19 @@ public class FindAllVars extends ASTTraverseModify
 	{
 		int i, j, n;
 		String s;
-		// Check all variables in this update exist.
-		// Also store their types for later use.
+		// For each element of update
 		n = e.getNumElements();
 		for (i = 0; i < n; i++) {
+			// Check variable exists
 			j = varIdents.indexOf(e.getVar(i));
 			if (j == -1) {
 				s = "Unknown variable \"" + e.getVar(i) + "\" in update";
 				throw new PrismLangException(s, e.getVarIdent(i));
 			}
-			e.setType(i, ((Integer)(varTypes.elementAt(j))).intValue());
+			// Store the type
+			e.setType(i, varTypes.elementAt(j));
+			// And store the variable index
+			e.setVarIndex(i, j);
 		}
 	}
 	
@@ -70,12 +74,30 @@ public class FindAllVars extends ASTTraverseModify
 		i = varIdents.indexOf(e.getName());
 		if (i != -1) {
 			// If so, replace it with an ExpressionVar object
-			ExpressionVar expr = new ExpressionVar(e.getName(), ((Integer)varTypes.elementAt(i)).intValue());
+			ExpressionVar expr = new ExpressionVar(e.getName(), varTypes.elementAt(i));
 			expr.setPosition(e);
+			// Store variable index
+			expr.setIndex(i);
 			return expr;
 		}
 		// Otherwise, leave it unchanged
 		return e;
+	}
+	
+	// Also re-compute info for ExpressionVar objects in case variable indices have changed
+	public Object visit(ExpressionVar e) throws PrismLangException
+	{
+		int i;
+		// See if identifier corresponds to a variable
+		i = varIdents.indexOf(e.getName());
+		if (i != -1) {
+			// If so, set the index
+			e.setIndex(i);
+			return e;
+		}
+		// Otherwise, there is a problem
+		// TODO: reinstate this..
+		return e; // throw new PrismLangException("Unknown variable " + e.getName() + " in ExpressionVar object", e);
 	}
 }
 

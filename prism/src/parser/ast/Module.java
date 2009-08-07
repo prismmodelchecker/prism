@@ -26,8 +26,7 @@
 
 package parser.ast;
 
-import java.util.Vector;
-import java.util.ArrayList;
+import java.util.*;
 
 import parser.visitor.*;
 import prism.PrismLangException;
@@ -41,6 +40,8 @@ public class Module extends ASTElement
 	private ArrayList<Declaration> decls;
 	// Commands
 	private ArrayList<Command> commands;
+	// Invariant (PTA models only; optionoal)
+	private Expression invariant;
 	// Parent ModulesFile
 	private ModulesFile parent;
 	// Base module (if was constructed through renaming; null if not)
@@ -53,6 +54,7 @@ public class Module extends ASTElement
 		name = n;
 		decls = new ArrayList<Declaration>();
 		commands = new ArrayList<Command>();
+		invariant = null;
 		parent = null;
 		baseModule = null;
 	}
@@ -91,6 +93,11 @@ public class Module extends ASTElement
 		c.setParent(this);
 	}
 	
+	public void setInvariant(Expression e)
+	{
+		invariant = e;
+	}
+	
 	public void setParent(ModulesFile mf)
 	{
 		parent = mf;
@@ -113,9 +120,28 @@ public class Module extends ASTElement
 		return nameASTElement;
 	}
 	
+	/**
+	 * Get the number of local variable declarations. 
+	 */
 	public int getNumDeclarations()
 	{
 		return decls.size();
+	}
+	
+	/**
+	 * Get the ith local variable declaration. 
+	 */
+	public Declaration getDeclaration(int i)
+	{
+		return decls.get(i);
+	}
+	
+	/**
+	 * Get the list of all local variable declarations. 
+	 */
+	public List<Declaration> getDeclarations()
+	{
+		return decls;
 	}
 	
 	public int getNumCommands()
@@ -123,14 +149,19 @@ public class Module extends ASTElement
 		return commands.size();
 	}
 	
-	public Declaration getDeclaration(int i)
-	{
-		return decls.get(i);
-	}
-	
 	public Command getCommand(int i)
 	{
 		return commands.get(i);
+	}
+	
+	public List<Command> getCommands()
+	{
+		return commands;
+	}
+	
+	public Expression getInvariant()
+	{
+		return invariant;
 	}
 	
 	public ModulesFile getParent()
@@ -196,6 +227,9 @@ public class Module extends ASTElement
 			s = s + "\t" + getDeclaration(i) + ";\n";
 		}
 		if (n > 0) s = s + "\n";
+		if (invariant != null) {
+			s += "\tinvariant " + invariant + " endinvariant\n\n";
+		}
 		n = getNumCommands();
 		for (i = 0; i < n; i++) {
 			s = s + "\t" + getCommand(i) + ";\n";
@@ -221,6 +255,8 @@ public class Module extends ASTElement
 		for (i = 0; i < n; i++) {
 			ret.addCommand((Command)getCommand(i).deepCopy());
 		}
+		if (invariant != null)
+			ret.setInvariant(invariant.deepCopy());
 		ret.setPosition(this);
 		return ret;
 	}

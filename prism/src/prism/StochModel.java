@@ -32,20 +32,15 @@ import jdd.*;
 import parser.*;
 
 /*
- * Class to store a PRISM model which is a CTMC
+ * Class for MTBDD-based storage of a PRISM model that is a CTMC.
  */
 public class StochModel extends ProbModel
 {
 	// accessor methods
 
-	public int getType()
+	public ModelType getModelType()
 	{
-		return Model.CTMC;
-	}
-
-	public String getTypeString()
-	{
-		return "CTMC";
+		return ModelType.CTMC;
 	}
 
 	public String getTransName()

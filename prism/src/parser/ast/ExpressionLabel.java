@@ -63,7 +63,7 @@ public class ExpressionLabel extends Expression
 	 * Evaluate this expression, return result.
 	 * Note: assumes that type checking has been done already.
 	 */
-	public Object evaluate(Values constantValues, Values varValues) throws PrismLangException
+	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
 		throw new PrismLangException("Cannot evaluate labels", this);
 	}

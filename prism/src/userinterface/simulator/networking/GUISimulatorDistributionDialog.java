@@ -679,15 +679,12 @@ public class GUISimulatorDistributionDialog extends javax.swing.JDialog implemen
 				
 				File binfile = File.createTempFile("binary"+System.currentTimeMillis(),".bin");
 				System.out.println("This is the file path: "+binfile.getPath());
-				simulator.exportBinaryForMultipleProperties(modulesFile, propertiesFile, propFormulae, info.getInitialState(), binfile.getPath());
+				//TODO: re-enable?
+				//simulator.exportBinaryForMultipleProperties(modulesFile, propertiesFile, propFormulae, info.getInitialState(), binfile.getPath());
 				System.out.println("doing 2");
 				
 				network.doNetworking(info.getNoIterations(), info.getMaxPathLength(), binfile, feedbackIterationsProgressRadio.isSelected(), feedbackResultsProgressRadio.isSelected());
 				
-			}
-			catch(SimulatorException e)
-			{
-				System.out.println("ERROR ERROR ERROR "+e.getMessage());//TODO show dialog
 			}
 			catch(Exception e)
 			{
@@ -702,15 +699,11 @@ public class GUISimulatorDistributionDialog extends javax.swing.JDialog implemen
 				File binfile = File.createTempFile("binary"+System.currentTimeMillis(),".bin");
 				
 				System.out.println("This is the file path: "+binfile.getPath());
-				propertyValues = simulator.exportBinaryForExperiment(expr, experimentThread, modulesFile, propertiesFile, undefinedConstants, experimentFormula, info.getInitialState(), binfile.getPath());
+				//TODO: re-enable?
+				//propertyValues = simulator.exportBinaryForExperiment(expr, experimentThread, modulesFile, propertiesFile, undefinedConstants, experimentFormula, info.getInitialState(), binfile.getPath());
 				
 				network.doNetworking(info.getNoIterations(), info.getMaxPathLength(), binfile, feedbackIterationsProgressRadio.isSelected(), feedbackResultsProgressRadio.isSelected(), undefinedConstants.getMFConstantValues(), propertyValues, expr.getResults());
 				
-			}
-			catch(SimulatorException e)
-			{
-				System.out.println("ERROR ERROR "+e.getMessage());
-				//TODO show dialog
 			}
 			catch(Exception e)
 			{

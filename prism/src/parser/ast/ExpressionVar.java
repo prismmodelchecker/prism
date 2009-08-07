@@ -29,21 +29,22 @@ package parser.ast;
 import parser.*;
 import parser.visitor.*;
 import prism.PrismLangException;
+import parser.type.*;
 
 public class ExpressionVar extends Expression
 {
-	String name;
+	// Variable name
+	private String name;
+	// The index of the variable in the model to which it belongs
+	private int index;
 	
 	// Constructors
 	
-	public ExpressionVar()
-	{
-	}
-	
-	public ExpressionVar(String n, int t)
+	public ExpressionVar(String n, Type t)
 	{
 		setType(t);
 		name = n;
+		index = -1;
 	}
 			
 	// Set method
@@ -53,13 +54,23 @@ public class ExpressionVar extends Expression
 		name = n;
 	}
 	
+	public void setIndex(int i) 
+	{
+		index = i;
+	}
+	
 	// Get method
 	
 	public String getName()
 	{
 		return name;
 	}
-		
+	
+	public int getIndex()
+	{
+		return index;
+	}
+	
 	// Methods required for Expression:
 	
 	/**
@@ -74,19 +85,14 @@ public class ExpressionVar extends Expression
 	 * Evaluate this expression, return result.
 	 * Note: assumes that type checking has been done already.
 	 */
-	public Object evaluate(Values constantValues, Values varValues) throws PrismLangException
+	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
-		int i;
-		if (varValues == null) {
+		Object res = ec.getVarValue(name, index);
+		if (res == null)
 			throw new PrismLangException("Could not evaluate variable", this);
-		}
-		i = varValues.getIndexOf(name);
-		if (i == -1) {
-			throw new PrismLangException("Could not evaluate variable", this);
-		}
-		return varValues.getValue(i);
+		return res;
 	}
-
+	
 	// Methods required for ASTElement:
 	
 	/**
@@ -110,7 +116,8 @@ public class ExpressionVar extends Expression
 	 */
 	public Expression deepCopy()
 	{
-		Expression expr = new ExpressionVar(name, type);
+		ExpressionVar expr = new ExpressionVar(name, type);
+		expr.setIndex(index);
 		expr.setPosition(this);
 		return expr;
 	}

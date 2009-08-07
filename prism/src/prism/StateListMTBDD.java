@@ -31,6 +31,7 @@ import odd.*;
 import parser.Values;
 import parser.VarList;
 import parser.ast.Expression;
+import parser.type.*;
 
 // list of states (mtbdd)
 
@@ -174,7 +175,7 @@ public class StateListMTBDD implements StateList
 			j = varList.getNumVars();
 			for (i = 0; i < j; i++) {
 				// integer variable
-				if (varList.getType(i) == Expression.INT) {
+				if (varList.getType(i) instanceof TypeInt) {
 					outputLog.print(varValues[i]+varList.getLow(i));
 				}
 				// boolean variable
@@ -276,7 +277,7 @@ public class StateListMTBDD implements StateList
 				}
 			}
 			v += varList.getLow(i);
-			if (varList.getType(i) == Expression.INT) {
+			if (varList.getType(i) instanceof TypeInt) {
 				o = new Integer(v);
 			} else {
 				o = new Boolean(v == 1);

@@ -48,7 +48,7 @@ public class SimulateModelCheckThread extends GUIComputationThread
 	private GUIMultiProperties parent;
 	private ModulesFile mf;
 	private PropertiesFile pf;
-	private ArrayList guiProps;
+	private ArrayList<GUIProperty> guiProps;
 	private Values definedMFConstants;
 	private Values definedPFConstants;
 	private Values initialState;
@@ -61,7 +61,7 @@ public class SimulateModelCheckThread extends GUIComputationThread
 		(GUIMultiProperties parent,
 		ModulesFile m,
 		PropertiesFile prFi,
-		ArrayList guiProps,
+		ArrayList<GUIProperty> guiProps,
 		Values definedMFConstants,
 		Values definedPFConstants,
 		Values initialState,
@@ -102,7 +102,7 @@ public class SimulateModelCheckThread extends GUIComputationThread
 		//Set icon for all properties to be verified to a clock
 		for(int i = 0; i < guiProps.size(); i++)
 		{
-			GUIProperty gp = (GUIProperty)guiProps.get(i);
+			GUIProperty gp = guiProps.get(i);
 			gp.setStatus(GUIProperty.STATUS_DOING);
 			parent.repaintList();
 		}
@@ -114,11 +114,11 @@ public class SimulateModelCheckThread extends GUIComputationThread
 		{
 			Result results[] = null;
 			Exception resultError = null;
-			ArrayList properties = new ArrayList();
-			ArrayList clkThreads = new ArrayList();
+			ArrayList<Expression> properties = new ArrayList<Expression> ();
+			ArrayList<IconThread> clkThreads = new ArrayList<IconThread>();
 			for(int i = 0; i < guiProps.size(); i++)
 			{
-				GUIProperty gp = (GUIProperty)guiProps.get(i);
+				GUIProperty gp = guiProps.get(i);
 				properties.add(gp.getProperty());
 				ic = new IconThread(gp);
 				ic.start();
@@ -162,7 +162,7 @@ public class SimulateModelCheckThread extends GUIComputationThread
 			// store results
 			for(int i = 0; i < guiProps.size(); i++)
 			{
-				GUIProperty gp = (GUIProperty)guiProps.get(i);
+				GUIProperty gp = guiProps.get(i);
 				gp.setResult((results == null) ? new Result(resultError) : results[i]);
 				gp.setMethodString("Simulation");
 				gp.setConstants(definedMFConstants, definedPFConstants);
@@ -175,7 +175,7 @@ public class SimulateModelCheckThread extends GUIComputationThread
 			for(int i = 0; i < pf.getNumProperties(); i++)
 			{
 				// get property
-				GUIProperty gp = (GUIProperty)guiProps.get(i);
+				GUIProperty gp = guiProps.get(i);
 				// animate it's clock icon
 				ic = new IconThread(gp);
 				ic.start();

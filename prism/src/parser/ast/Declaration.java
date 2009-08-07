@@ -2,7 +2,8 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//	* Mark Kattenbelt <mark.kattenbelt@comlab.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -29,66 +30,44 @@ package parser.ast;
 import parser.visitor.*;
 import prism.PrismLangException;
 
+/**
+ * Variable declaration details
+ */
 public class Declaration extends ASTElement
 {
-	// Variable declaration details
-	String name; // Name
-	Expression low; // Min value - not for bools
-	Expression high; // Max value - not for bools
-	Expression start; // Initial value - null if none specified
-
-	// Pointless constructor
-
-	public Declaration()
+	// Name
+	protected String name;
+	// Type of declaration
+	protected DeclarationType declType;
+	// Initial value - null if none specified
+	protected Expression start;
+		
+	public Declaration(String name, DeclarationType declType)
 	{
-		name = "";
-		low = null;
-		high = null;
-		start = null;
+		setName(name);
+		setDeclType(declType);
+		setStart(null);
 	}
-
-	// Integer variable constructor
-
-	public Declaration(String n, Expression l, Expression h, Expression s)
-	{
-		name = n;
-		low = l;
-		high = h;
-		start = s;
-		setType(Expression.INT);
-	}
-
-	// Boolean variable constructor
-
-	public Declaration(String n, Expression s)
-	{
-		name = n;
-		low = null;
-		high = null;
-		start = s;
-		setType(Expression.BOOLEAN);
-	}
-
+	
 	// Set methods
-
-	public void setName(String n)
+	
+	public void setName(String name)
 	{
-		name = n;
-	}
+		this.name = name;
+	}	
 
-	public void setLow(Expression l)
+	public void setDeclType(DeclarationType declType)
 	{
-		low = l;
-	}
+		this.declType = declType;
+		// The type stored for a Declaration/DeclarationType object
+		// is static - it is not computed during type checking.
+		// (But we re-use the existing "type" field for this purpose)
+		setType(declType.getType());
+	}	
 
-	public void setHigh(Expression h)
+	public void setStart(Expression start)
 	{
-		high = h;
-	}
-
-	public void setStart(Expression s)
-	{
-		start = s;
+		this.start = start;
 	}
 
 	// Get methods
@@ -98,41 +77,38 @@ public class Declaration extends ASTElement
 		return name;
 	}
 
-	public Expression getLow()
+	public DeclarationType getDeclType()
 	{
-		return low;
-	}
-
-	public Expression getHigh()
-	{
-		return high;
-	}
+		return declType;
+	}	
 
 	/**
 	 * Get the specified initial value of this variable (null if it was not specified).
 	 * To get the actual value (defaults to lower bound if appropriate),
-	 * use {@link #getStart(ModulesFile)}.
+	 * use {@link #getStartOrDefault()}.
 	 */
 	public Expression getStart()
 	{
 		return start;
 	}
-
+	
+	/**
+	 * Get the specified initial value of this variable,
+	* using the default value for its type if not specified.
+	 */
+	public Expression getStartOrDefault()
+	{
+		return isStartSpecified() ? start : declType.getDefaultStart();
+	}
+	
 	/**
 	 * Get the initial value of this variable, within a ModulesFile.
 	 * Will be null if parent ModulesFile passed in has an init...endinit.
 	 * Otherwise defaults to lower bound.
 	 * Can force lower bound to returned by passing in null. 
 	 */
-	public Expression getStart(ModulesFile parent)
-	{
-		if (parent != null && parent.getInitialStates() != null) return null;
-		switch (type) {
-		case Expression.INT: return start != null ? start : low;
-		case Expression.BOOLEAN: return start != null ? start : Expression.False();
-		}
-		return null;
-	}
+	
+	/** TODO public abstract Expression getStart(ModulesFile parent); */
 
 	public boolean isStartSpecified()
 	{
@@ -140,7 +116,7 @@ public class Declaration extends ASTElement
 	}
 
 	// Methods required for ASTElement:
-
+	
 	/**
 	 * Visitor method.
 	 */
@@ -152,14 +128,12 @@ public class Declaration extends ASTElement
 	/**
 	 * Convert to string.
 	 */
+	@Override
 	public String toString()
 	{
 		String s  = "";
-		if (type == Expression.INT) {
-			s = name + " : [" + low + ".." + high + "]";
-		} else if (type == Expression.BOOLEAN) {
-			s = name + " : bool";
-		}
+		s += name + " : ";
+		s += declType;
 		if (start != null) s += " init " + start;
 		return s;
 	}
@@ -167,17 +141,12 @@ public class Declaration extends ASTElement
 	/**
 	 * Perform a deep copy.
 	 */
+	@Override
 	public ASTElement deepCopy()
 	{
-		Declaration ret = new Declaration();
-		ret.setName(getName());
-		if (getLow() != null)
-			ret.setLow(getLow().deepCopy());
-		if (getHigh() != null)
-			ret.setHigh(getHigh().deepCopy());
+		Declaration ret = new Declaration(getName(), (DeclarationType)getDeclType().deepCopy());
 		if (getStart() != null)
 			ret.setStart(getStart().deepCopy());
-		ret.setType(getType());
 		ret.setPosition(this);
 		return ret;
 	}

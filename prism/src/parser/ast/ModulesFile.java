@@ -31,18 +31,15 @@ import java.util.*;
 import parser.*;
 import parser.visitor.*;
 import prism.PrismLangException;
+import prism.ModelType;
+import parser.type.*;
 
 // Class representing parsed model file
 
 public class ModulesFile extends ASTElement
 {
-	// constants for types of system
-	public static final int PROBABILISTIC = 1;
-	public static final int NONDETERMINISTIC = 2;
-	public static final int STOCHASTIC = 3;
-	public static final String typeStrings[] = { "?", "Probabilistic (DTMC)", "Nondeterministic (MDP)",
-			"Stochastic (CTMC)" };
-	private int type; // type: prob/nondet/stoch
+	// Model type (enum)
+	private ModelType modelType;
 
 	// Model components
 	private FormulaList formulaList;
@@ -50,17 +47,22 @@ public class ModulesFile extends ASTElement
 	private ConstantList constantList;
 	private Vector<Declaration> globals; // Global variables
 	private Vector<Object> modules; // Modules (includes renamed modules)
-	private SystemDefn systemDefn; // System definition (system...endsystem
-	// construct)
+	private SystemDefn systemDefn; // System definition (system...endsystem construct)
 	private ArrayList<RewardStruct> rewardStructs; // Rewards structures
 	private Expression initStates; // Initial states specification
 
-	// identifiers/etc.
-	private Vector<String> allIdentsUsed;
+	// Lists of all identifiers used
+	private Vector<String> formulaIdents;
+	private Vector<String> constantIdents;
+	private Vector<String> varIdents; // TODO: don't need?
+	// List of all module names
 	private String[] moduleNames;
+	// List of synchronising actions
 	private Vector<String> synchs;
+	// Lists of variable info (declaration, name, type)
+	private Vector<Declaration> varDecls;
 	private Vector<String> varNames;
-	private Vector<Integer> varTypes;
+	private Vector<Type> varTypes;
 
 	// actual values of constants
 	private Values constantValues;
@@ -72,15 +74,18 @@ public class ModulesFile extends ASTElement
 		formulaList = new FormulaList();
 		labelList = new LabelList();
 		constantList = new ConstantList();
-		type = NONDETERMINISTIC; // default type
+		modelType = ModelType.MDP; // default type
 		globals = new Vector<Declaration>();
 		modules = new Vector<Object>();
 		systemDefn = null;
 		rewardStructs = new ArrayList<RewardStruct>();
 		initStates = null;
-		allIdentsUsed = new Vector<String>();
+		formulaIdents = new Vector<String>();
+		constantIdents = new Vector<String>();
+		varIdents = new Vector<String>();
+		varDecls = new Vector<Declaration>();
 		varNames = new Vector<String>();
-		varTypes = new Vector<Integer>();
+		varTypes = new Vector<Type>();
 		constantValues = null;
 	}
 
@@ -101,14 +106,14 @@ public class ModulesFile extends ASTElement
 		constantList = cl;
 	}
 
-	public void setType(int t)
+	public void setModelType(ModelType t)
 	{
-		type = t;
+		modelType = t;
 	}
 
 	public void addGlobal(Declaration d)
 	{
-		globals.addElement(d);
+		globals.add(d);
 	}
 
 	public void setGlobal(int i, Declaration d)
@@ -118,7 +123,7 @@ public class ModulesFile extends ASTElement
 
 	public void addModule(Module m)
 	{
-		modules.addElement(m);
+		modules.add(m);
 		m.setParent(this);
 	}
 
@@ -130,7 +135,7 @@ public class ModulesFile extends ASTElement
 
 	public void addRenamedModule(RenamedModule m)
 	{
-		modules.addElement(m);
+		modules.add(m);
 	}
 
 	public void setSystemDefn(SystemDefn s)
@@ -177,14 +182,19 @@ public class ModulesFile extends ASTElement
 		return constantList;
 	}
 
-	public int getType()
+	public ModelType getModelType()
 	{
-		return type;
+		return modelType;
 	}
 
 	public String getTypeString()
 	{
-		return typeStrings[type];
+		return "" + modelType;
+	}
+
+	public String getTypeFullString()
+	{
+		return modelType.fullName();
 	}
 
 	public int getNumGlobals()
@@ -235,22 +245,35 @@ public class ModulesFile extends ASTElement
 		return systemDefn;
 	}
 
+	/**
+	 * Get the number of reward structures in the model.
+	 */
 	public int getNumRewardStructs()
 	{
 		return rewardStructs.size();
 	}
 
-	// Get a reward structure by its index
-	// (indexed from 0, not from 1 like at the user (property language) level)
-
+	/**
+	 * Get a reward structure by its index.
+	 * (indexed from 0, not from 1 like at the user (property language) level)
+	 */
 	public RewardStruct getRewardStruct(int i)
 	{
 		return (i < rewardStructs.size()) ? rewardStructs.get(i) : null;
 	}
 
-	// Get the index of a module by its name
-	// (indexed from 0, not from 1 like at the user (property language) level)
+	/**
+	 * Get access to the list of reward structures
+	 */
+	public List<RewardStruct> getRewardStructs()
+	{
+		return rewardStructs;
+	}
 
+	/**
+	 * Get the index of a module by its name
+	 * 	(indexed from 0, not from 1 like at the user (property language) level)
+	 */
 	public int getRewardStructIndex(String name)
 	{
 		int i, n;
@@ -262,7 +285,9 @@ public class ModulesFile extends ASTElement
 		return -1;
 	}
 
-	// this method is included for backwards compatibility only
+	/**
+	 * Get the first reward structure (exists for backwards compatibility only).
+	 */
 	public RewardStruct getRewardStruct()
 	{
 		return getRewardStruct(0);
@@ -273,9 +298,13 @@ public class ModulesFile extends ASTElement
 		return initStates;
 	}
 
-	public Vector<String> getAllIdentsUsed()
+	/**
+	 * Check if an identifier is used by this model
+	 * (as a formula, constant, or variable)
+	 */
+	public boolean isIdentUsed(String ident)
 	{
-		return allIdentsUsed;
+		return formulaIdents.contains(ident) || constantIdents.contains(ident) || varIdents.contains(ident);
 	}
 
 	// get individual module name
@@ -303,12 +332,55 @@ public class ModulesFile extends ASTElement
 			return synchs.contains(s);
 	}
 
+	// Variable query methods
+
+	/**
+	 * Get the total number of variables (global and local).
+	 */
+	public int getNumVars()
+	{
+		return varNames.size();
+	}
+
+	/**
+	 * Look up the index of a variable in the model by name.
+	 * Returns -1 if there is no such variable. 
+	 */
+	public int getVarIndex(String name)
+	{
+		return varNames.indexOf(name);
+	}
+
+	/**
+	 * Get the declaration of the ith variable.
+	 */
+	public Declaration getVarDeclaration(int i)
+	{
+		return varDecls.get(i);
+	}
+
+	/**
+	 * Get the name of the ith variable.
+	 */
+	public String getVarName(int i)
+	{
+		return varNames.get(i);
+	}
+
+	/**
+	 * Get the type of the ith variable.
+	 */
+	public Type getVarType(int i)
+	{
+		return varTypes.get(i);
+	}
+
 	public Vector<String> getVarNames()
 	{
 		return varNames;
 	}
 
-	public Vector<Integer> getVarTypes()
+	public Vector<Type> getVarTypes()
 	{
 		return varTypes;
 	}
@@ -325,18 +397,19 @@ public class ModulesFile extends ASTElement
 		return false;
 	}
 
-	// Method to tidy up
-	// (called after parsing to do some checks and extract some information)
-
+	/**
+	 * Method to "tidy up" after parsing (must be called)
+	 * (do some checks and extract some information)
+	 */
 	public void tidyUp() throws PrismLangException
 	{
 		// Expansion of formulas and renaming
 
 		// Check formula identifiers
 		checkFormulaIdents();
-		// Find all formulas (i.e. locate idents which are formulas).
+		// Find all formulas (i.e. locate identifiers which are formulas).
 		// Note: This should all be done before replacing any other identifiers
-		// (e.g. with vars) because this relies on module renaming which in turn
+		// (e.g. with variables) because this relies on module renaming which in turn
 		// must be done after formula expansion. Then, check for any cyclic
 		// dependencies in the formula list and then expand all formulas.
 		findAllFormulas(formulaList);
@@ -345,30 +418,30 @@ public class ModulesFile extends ASTElement
 		// Perform module renaming
 		sortRenamings();
 
-		// check label identifiers
+		// Check label identifiers
 		checkLabelIdents();
 
-		// check module names
+		// Check module names
 		checkModuleNames();
 
-		// get synch names
+		// Get synchronising action names
 		getSynchNames();
 
-		// check constant identifiers
+		// Check constant identifiers
 		checkConstantIdents();
-		// find all instances of constants
-		// (i.e. locate idents which are constants)
+		// Find all instances of constants
+		// (i.e. locate identifiers which are constants)
 		findAllConstants(constantList);
-		// check constants for cyclic dependencies
+		// Check constants for cyclic dependencies
 		constantList.findCycles();
 
-		// Check variable names
+		// Check variable names, etc.
 		checkVarNames();
-		// Find all instances of variables (i.e. locate idents which are
-		// variables).
+		// Find all instances of variables, replace identifiers with variables.
+		// Also check variables valid, store indices, etc.
 		findAllVars(varNames, varTypes);
 
-		// check reward struct names
+		// Check reward structure names
 		checkRewardStructNames();
 
 		// Various semantic checks 
@@ -387,10 +460,10 @@ public class ModulesFile extends ASTElement
 		n = formulaList.size();
 		for (i = 0; i < n; i++) {
 			s = formulaList.getFormulaName(i);
-			if (allIdentsUsed.contains(s)) {
+			if (isIdentUsed(s)) {
 				throw new PrismLangException("Duplicated identifier \"" + s + "\"", formulaList.getFormulaNameIdent(i));
 			} else {
-				allIdentsUsed.addElement(s);
+				formulaIdents.add(s);
 			}
 		}
 	}
@@ -426,10 +499,13 @@ public class ModulesFile extends ASTElement
 			for (i2 = 0; i2 < n2; i2++) {
 				s = module.getOldName(i2);
 				if (!renamedSoFar.add(s)) {
-					throw new PrismLangException("Identifier \""+s+"\" is renamed more than once in module \""+module.getName()+"\"", module.getOldNameASTElement(i2));
+					throw new PrismLangException("Identifier \"" + s + "\" is renamed more than once in module \""
+							+ module.getName() + "\"", module.getOldNameASTElement(i2));
 				}
 				if (formulaList.getFormulaIndex(s) != -1) {
-					throw new PrismLangException("Formula \""+s+"\" cannot be renamed since formulas are expanded before module renaming", module.getOldNameASTElement(i2));
+					throw new PrismLangException("Formula \"" + s
+							+ "\" cannot be renamed since formulas are expanded before module renaming", module
+							.getOldNameASTElement(i2));
 				}
 			}
 			// Then rename (a copy of) base module and replace
@@ -458,7 +534,7 @@ public class ModulesFile extends ASTElement
 			if (labelIdents.contains(s)) {
 				throw new PrismLangException("Duplicated label name \"" + s + "\"", labelList.getLabelNameIdent(i));
 			} else {
-				labelIdents.addElement(s);
+				labelIdents.add(s);
 			}
 		}
 	}
@@ -483,7 +559,8 @@ public class ModulesFile extends ASTElement
 			s = getModule(i).getName();
 			for (j = 0; j < i; j++) {
 				if (s.equals(moduleNames[j])) {
-					throw new PrismLangException("Duplicated module name \"" + s + "\"", getModule(i).getNameASTElement());
+					throw new PrismLangException("Duplicated module name \"" + s + "\"", getModule(i)
+							.getNameASTElement());
 				}
 			}
 			moduleNames[i] = s;
@@ -509,7 +586,7 @@ public class ModulesFile extends ASTElement
 			for (j = 0; j < m; j++) {
 				s = v.elementAt(j);
 				if (!synchs.contains(s)) {
-					synchs.addElement(s);
+					synchs.add(s);
 				}
 			}
 		}
@@ -531,10 +608,11 @@ public class ModulesFile extends ASTElement
 		n = constantList.size();
 		for (i = 0; i < n; i++) {
 			s = constantList.getConstantName(i);
-			if (allIdentsUsed.contains(s)) {
-				throw new PrismLangException("Duplicated identifier \"" + s + "\"", constantList.getConstantNameIdent(i));
+			if (isIdentUsed(s)) {
+				throw new PrismLangException("Duplicated identifier \"" + s + "\"", constantList
+						.getConstantNameIdent(i));
 			} else {
-				allIdentsUsed.addElement(s);
+				constantIdents.add(s);
 			}
 		}
 	}
@@ -554,12 +632,13 @@ public class ModulesFile extends ASTElement
 		n = getNumGlobals();
 		for (i = 0; i < n; i++) {
 			s = getGlobal(i).getName();
-			if (allIdentsUsed.contains(s)) {
+			if (isIdentUsed(s)) {
 				throw new PrismLangException("Duplicated identifier \"" + s + "\"", getGlobal(i));
 			} else {
-				allIdentsUsed.addElement(s);
-				varNames.addElement(s);
-				varTypes.addElement(getGlobal(i).getType());
+				varIdents.add(s);
+				varDecls.add(getGlobal(i));
+				varNames.add(s);
+				varTypes.add(getGlobal(i).getType());
 			}
 		}
 
@@ -570,12 +649,13 @@ public class ModulesFile extends ASTElement
 			m = module.getNumDeclarations();
 			for (j = 0; j < m; j++) {
 				s = module.getDeclaration(j).getName();
-				if (allIdentsUsed.contains(s)) {
-					throw new PrismLangException("Duplicated identifier \"" + s + "\"",module.getDeclaration(j));
+				if (isIdentUsed(s)) {
+					throw new PrismLangException("Duplicated identifier \"" + s + "\"", module.getDeclaration(j));
 				} else {
-					allIdentsUsed.addElement(s);
-					varNames.addElement(s);
-					varTypes.addElement(module.getDeclaration(j).getType());
+					varIdents.add(s);
+					varDecls.add(module.getDeclaration(j));
+					varNames.add(s);
+					varTypes.add(module.getDeclaration(j).getType());
 				}
 			}
 		}
@@ -604,7 +684,7 @@ public class ModulesFile extends ASTElement
 
 	// get undefined constants
 
-	public Vector getUndefinedConstants()
+	public Vector<String> getUndefinedConstants()
 	{
 		return constantList.getUndefinedConstants();
 	}
@@ -645,7 +725,7 @@ public class ModulesFile extends ASTElement
 		n = getNumGlobals();
 		for (i = 0; i < n; i++) {
 			decl = getGlobal(i);
-			values.addValue(decl.getName(), decl.getStart(this).evaluate(constantValues, null));
+			values.addValue(decl.getName(), decl.getStartOrDefault().evaluate(constantValues, null));
 		}
 		// then add all module variables
 		n = getNumModules();
@@ -654,100 +734,54 @@ public class ModulesFile extends ASTElement
 			n2 = module.getNumDeclarations();
 			for (j = 0; j < n2; j++) {
 				decl = module.getDeclaration(j);
-				values.addValue(decl.getName(), decl.getStart(this).evaluate(constantValues, null));
+				values.addValue(decl.getName(), decl.getStartOrDefault().evaluate(constantValues, null));
 			}
 		}
 
 		return values;
 	}
 
-	// Extract information about all variables and return in a VarList object.
-	// Note: various checks, e.g. for duplicate var names, have already been done. 
+	/**
+	 * Recompute all information about variables.
+	 * More precisely... TODO
+	 * Note: This does not re-compute the list of all identifiers used. 
+	 */
+	public void recomputeVariableinformation() throws PrismLangException
+	{
+		int i, n;
 
+		// Recompute lists of all variables and types
+		varDecls = new Vector<Declaration>();
+		varNames = new Vector<String>();
+		varTypes = new Vector<Type>();
+		// Globals
+		for (Declaration decl : globals) {
+			varDecls.add(decl);
+			varNames.add(decl.getName());
+			varTypes.add(decl.getType());
+		}
+		// Locals
+		n = modules.size();
+		for (i = 0; i < n; i++) {
+			for (Declaration decl : getModule(i).getDeclarations()) {
+				varDecls.add(decl);
+				varNames.add(decl.getName());
+				varTypes.add(decl.getType());
+			}
+		}
+		// Find all instances of variables, replace identifiers with variables.
+		// Also check variables valid, store indices, etc.
+		findAllVars(varNames, varTypes);
+	}
+
+	/**
+	 * Create a VarList object storing information about all variables in this model.
+	 * Assumes that values for constants have been provided for the model,.
+	 * Also performs various syntactic checks on the variables.   
+	 */
 	public VarList createVarList() throws PrismLangException
 	{
-		int i, j, n, n2, low, high, start;
-		String name;
-		Module module;
-		Declaration decl;
-		VarList varList;
-
-		// set up variable list
-		varList = new VarList();
-
-		// first add all globals to the list
-		n = getNumGlobals();
-		for (i = 0; i < n; i++) {
-			decl = getGlobal(i);
-			name = decl.getName();
-			// variable is integer
-			if (decl.getType() == Expression.INT) {
-				low = decl.getLow().evaluateInt(constantValues, null);
-				high = decl.getHigh().evaluateInt(constantValues, null);
-				start = decl.getStart(null).evaluateInt(constantValues, null);
-			}
-			// variable is boolean
-			else {
-				low = 0;
-				high = 1;
-				start = (decl.getStart(null).evaluateBoolean(constantValues, null)) ? 1 : 0;
-			}
-			// check range is valid
-			if (high - low <= 0) {
-				String s = "Invalid range (" + low + "-" + high + ") for variable \"" + name + "\"";
-				throw new PrismLangException(s, decl);
-			}
-			if ((long)high - (long)low >= Integer.MAX_VALUE) {
-				String s = "Range for variable \"" + name + "\" (" + low + "-" + high + ") is too big";
-				throw new PrismLangException(s, decl);
-			}
-			// check start is valid
-			if (start < low || start > high) {
-				String s = "Invalid initial value (" + start + ") for variable \"" + name + "\"";
-				throw new PrismLangException(s, decl);
-			}
-			varList.addVar(name, low, high, start, -1, decl.getType());
-		}
-
-		// then add all module variables to the list
-		n = getNumModules();
-		for (i = 0; i < n; i++) {
-			module = getModule(i);
-			n2 = module.getNumDeclarations();
-			for (j = 0; j < n2; j++) {
-				decl = module.getDeclaration(j);
-				name = decl.getName();
-				// variable is integer
-				if (decl.getType() == Expression.INT) {
-					low = decl.getLow().evaluateInt(constantValues, null);
-					high = decl.getHigh().evaluateInt(constantValues, null);
-					start = decl.getStart(null).evaluateInt(constantValues, null);
-				}
-				// variable is boolean
-				else {
-					low = 0;
-					high = 1;
-					start = (decl.getStart(null).evaluateBoolean(constantValues, null)) ? 1 : 0;
-				}
-				// check range is valid
-				if (high - low <= 0) {
-					String s = "Invalid range (" + low + "-" + high + ") for variable \"" + name + "\"";
-					throw new PrismLangException(s, decl);
-				}
-				if ((long)high - (long)low >= Integer.MAX_VALUE) {
-					String s = "Range for variable \"" + name + "\" (" + low + "-" + high + ") is too big";
-					throw new PrismLangException(s, decl);
-				}
-				// check start is valid
-				if (start < low || start > high) {
-					String s = "Invalid initial value (" + start + ") for variable \"" + name + "\"";
-					throw new PrismLangException(s, decl);
-				}
-				varList.addVar(name, low, high, start, i, decl.getType());
-			}
-		}
-
-		return varList;
+		return new VarList(this);
 	}
 
 	// Methods required for ASTElement:
@@ -768,18 +802,7 @@ public class ModulesFile extends ASTElement
 		String s = "", tmp;
 		int i, n;
 
-		switch (type) {
-		case PROBABILISTIC:
-			s += "dtmc";
-			break;
-		case NONDETERMINISTIC:
-			s += "mdp";
-			break;
-		case STOCHASTIC:
-			s += "ctmc";
-			break;
-		}
-		s += "\n\n";
+		s += modelType.toString().toLowerCase() + "\n\n";
 
 		tmp = "" + formulaList;
 		if (tmp.length() > 0)
@@ -815,7 +838,7 @@ public class ModulesFile extends ASTElement
 
 		n = getNumRewardStructs();
 		for (i = 0; i < n; i++) {
-			s += "\n" +getRewardStruct(i);
+			s += "\n" + getRewardStruct(i);
 		}
 
 		if (initStates != null) {
@@ -830,8 +853,29 @@ public class ModulesFile extends ASTElement
 	 */
 	public ASTElement deepCopy()
 	{
-		// Deep copy not required for whole model file
-		return null;
+		int i, n;
+		ModulesFile ret = new ModulesFile();
+		ret.setFormulaList((FormulaList) formulaList.deepCopy());
+		ret.setLabelList((LabelList) labelList.deepCopy());
+		ret.setConstantList((ConstantList) constantList.deepCopy());
+		n = getNumGlobals();
+		for (i = 0; i < n; i++) {
+			ret.addGlobal((Declaration) getGlobal(i).deepCopy());
+		}
+		n = getNumModules();
+		for (i = 0; i < n; i++) {
+			ret.addModule((Module) getModule(i).deepCopy());
+		}
+		if (systemDefn != null)
+			ret.setSystemDefn(systemDefn.deepCopy());
+		n = getNumRewardStructs();
+		for (i = 0; i < n; i++) {
+			ret.addRewardStruct((RewardStruct) getRewardStruct(i).deepCopy());
+		}
+		if (initStates != null)
+			ret.setInitialStates(initStates.deepCopy());
+		ret.setPosition(this);
+		return ret;
 	}
 }
 

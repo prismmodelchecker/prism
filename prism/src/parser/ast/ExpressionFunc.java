@@ -32,6 +32,7 @@ import parser.*;
 import parser.visitor.*;
 import prism.PrismLangException;
 import prism.PrismUtils;
+import parser.type.*;
 
 public class ExpressionFunc extends Expression
 {
@@ -160,105 +161,112 @@ public class ExpressionFunc extends Expression
 	 * Evaluate this expression, return result. Note: assumes that type checking
 	 * has been done already.
 	 */
-	public Object evaluate(Values constantValues, Values varValues) throws PrismLangException
+	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
 		switch (code) {
 		case MIN:
-			return evaluateMin(constantValues, varValues);
+			return evaluateMin(ec);
 		case MAX:
-			return evaluateMax(constantValues, varValues);
+			return evaluateMax(ec);
 		case FLOOR:
-			return evaluateFloor(constantValues, varValues);
+			return evaluateFloor(ec);
 		case CEIL:
-			return evaluateCeil(constantValues, varValues);
+			return evaluateCeil(ec);
 		case POW:
-			return evaluatePow(constantValues, varValues);
+			return evaluatePow(ec);
 		case MOD:
-			return evaluateMod(constantValues, varValues);
+			return evaluateMod(ec);
 		case LOG:
-			return evaluateLog(constantValues, varValues);
+			return evaluateLog(ec);
 		}
 		throw new PrismLangException("Unknown function \"" + name + "\"", this);
 	}
 
-	private Object evaluateMin(Values constantValues, Values varValues) throws PrismLangException
+	private Object evaluateMin(EvaluateContext ec) throws PrismLangException
 	{
 		int i, j, n, iMin;
 		double d, dMin;
 
-		if (type == Expression.INT) {
-			iMin = getOperand(0).evaluateInt(constantValues, varValues);
+		if (type instanceof TypeInt) {
+			iMin = getOperand(0).evaluateInt(ec);
 			n = getNumOperands();
 			for (i = 1; i < n; i++) {
-				j = getOperand(i).evaluateInt(constantValues, varValues);
+				j = getOperand(i).evaluateInt(ec);
 				iMin = (j < iMin) ? j : iMin;
 			}
 			return new Integer(iMin);
 		} else {
-			dMin = getOperand(0).evaluateDouble(constantValues, varValues);
+			dMin = getOperand(0).evaluateDouble(ec);
 			n = getNumOperands();
 			for (i = 1; i < n; i++) {
-				d = getOperand(i).evaluateDouble(constantValues, varValues);
+				d = getOperand(i).evaluateDouble(ec);
 				dMin = (d < dMin) ? d : dMin;
 			}
 			return new Double(dMin);
 		}
 	}
 
-	private Object evaluateMax(Values constantValues, Values varValues) throws PrismLangException
+	private Object evaluateMax(EvaluateContext ec) throws PrismLangException
 	{
 		int i, j, n, iMax;
 		double d, dMax;
 
-		if (type == Expression.INT) {
-			iMax = getOperand(0).evaluateInt(constantValues, varValues);
+		if (type instanceof TypeInt) {
+			iMax = getOperand(0).evaluateInt(ec);
 			n = getNumOperands();
 			for (i = 1; i < n; i++) {
-				j = getOperand(i).evaluateInt(constantValues, varValues);
+				j = getOperand(i).evaluateInt(ec);
 				iMax = (j > iMax) ? j : iMax;
 			}
 			return new Integer(iMax);
 		} else {
-			dMax = getOperand(0).evaluateDouble(constantValues, varValues);
+			dMax = getOperand(0).evaluateDouble(ec);
 			n = getNumOperands();
 			for (i = 1; i < n; i++) {
-				d = getOperand(i).evaluateDouble(constantValues, varValues);
+				d = getOperand(i).evaluateDouble(ec);
 				dMax = (d > dMax) ? d : dMax;
 			}
 			return new Double(dMax);
 		}
 	}
 
-	public Object evaluateFloor(Values constantValues, Values varValues) throws PrismLangException
+	public Object evaluateFloor(EvaluateContext ec) throws PrismLangException
 	{
-		return new Integer((int) Math.floor(getOperand(0).evaluateDouble(constantValues, varValues)));
+		return new Integer((int) Math.floor(getOperand(0).evaluateDouble(ec)));
 	}
 
-	public Object evaluateCeil(Values constantValues, Values varValues) throws PrismLangException
+	public Object evaluateCeil(EvaluateContext ec) throws PrismLangException
 	{
-		return new Integer((int) Math.ceil(getOperand(0).evaluateDouble(constantValues, varValues)));
+		return new Integer((int) Math.ceil(getOperand(0).evaluateDouble(ec)));
 	}
 
-	public Object evaluatePow(Values constantValues, Values varValues) throws PrismLangException
+	public Object evaluatePow(EvaluateContext ec) throws PrismLangException
 	{
-		return new Double(Math.pow(getOperand(0).evaluateDouble(constantValues, varValues), getOperand(1)
-				.evaluateDouble(constantValues, varValues)));
+		double res = Math.pow(getOperand(0).evaluateDouble(ec), getOperand(1).evaluateDouble(ec));
+		if (type instanceof TypeInt) {
+			if (res > Integer.MAX_VALUE)
+				throw new PrismLangException("Overflow evaluating integer power", this);
+			return new Integer((int)res);
+		}
+		else {
+			return new Double(res);
+		}
 	}
 
-	public Object evaluateMod(Values constantValues, Values varValues) throws PrismLangException
+	public Object evaluateMod(EvaluateContext ec) throws PrismLangException
 	{
-		int i = getOperand(0).evaluateInt(constantValues, varValues);
-		int j = getOperand(1).evaluateInt(constantValues, varValues);
+		int i = getOperand(0).evaluateInt(ec);
+		int j = getOperand(1).evaluateInt(ec);
 		if (j == 0)
 			throw new PrismLangException("Attempt to compute modulo zero", this);
 		return new Integer(i % j);
 	}
 
-	public Object evaluateLog(Values constantValues, Values varValues) throws PrismLangException
+	public Object evaluateLog(EvaluateContext ec) throws PrismLangException
 	{
 		double x, b;
-		x = getOperand(0).evaluateDouble(constantValues, varValues);
-		b = getOperand(1).evaluateDouble(constantValues, varValues);
+		x = getOperand(0).evaluateDouble(ec);
+		b = getOperand(1).evaluateDouble(ec);
 		return new Double(PrismUtils.log(x, b));
 	}
 

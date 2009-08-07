@@ -28,6 +28,7 @@
 package prism;
 
 import parser.ast.*;
+import parser.type.*;
 
 public class DefinedConstant
 {
@@ -40,7 +41,7 @@ public class DefinedConstant
 	
 	/* Basic info about constant. */
 	private String name;
-	private int type;
+	private Type type;
 	/* Definition for constant. */
 	private Object low;
 	private Object high;
@@ -54,7 +55,7 @@ public class DefinedConstant
 	/** Creates a new instance of DefinedConstant
 	(which is initially undefined, bar a name and type). */
 	
-	public DefinedConstant(String n, int t)
+	public DefinedConstant(String n, Type t)
 	{
 		name = n;
 		type = t;
@@ -83,11 +84,14 @@ public class DefinedConstant
 	
 	public void define(String sl, String sh, String ss) throws PrismException
 	{
-		switch (type) {
-		case Expression.INT: defineInt(sl, sh, ss); break;
-		case Expression.DOUBLE: defineDouble(sl, sh, ss); break;
-		case Expression.BOOLEAN: defineBoolean(sl, sh, ss); break;
-		default: throw new PrismException("Unknown type for undefined constant " + name + "");
+		if (type instanceof TypeInt) {
+			defineInt(sl, sh, ss);
+		}else if (type instanceof TypeDouble) {
+			defineDouble(sl, sh, ss);
+		} else if (type instanceof TypeBool) { 
+			defineBoolean(sl, sh, ss);
+		} else {
+			throw new PrismException("Unknown type for undefined constant " + name + "");
 		}
 	}
 	
@@ -239,9 +243,8 @@ public class DefinedConstant
 		double dl, dh, ds, dv;
 		boolean overflow = false;
 		
-		switch (type) {
 		// int
-		case Expression.INT:
+		if (type instanceof TypeInt) {
 			il = ((Integer)low).intValue();
 			ih = ((Integer)high).intValue();
 			is = ((Integer)step).intValue();
@@ -255,18 +258,16 @@ public class DefinedConstant
 				value = low;
 				overflow = true;
 			}
-			break;
+		}
 		// double
-		case Expression.DOUBLE:
+		else if (type instanceof TypeDouble) {
 			dl = ((Double)low).doubleValue();
 			dh = ((Double)high).doubleValue();
 			ds = ((Double)step).doubleValue();
 			dv = ((Double)value).doubleValue();
 			// if possible, increment
-			
 			int index = getValueIndex(value) + 1;			
 			dv = dl + index * ds; 
-						
 			if (dv <= dh + DOUBLE_PRECISION_CORRECTION * ds) {
 				value = new Double(dv);
 			}
@@ -275,13 +276,12 @@ public class DefinedConstant
 				value = low;
 				overflow = true;
 			}
-			break;
+		}
 		// boolean
-		case Expression.BOOLEAN:
+		else if (type instanceof TypeBool) { 
 			// booleans can't be incremented
 			value = low;
 			overflow = true;
-			break;
 		}
 		
 		return overflow;
@@ -305,28 +305,27 @@ public class DefinedConstant
 		int il, is, iv;
 		double dl, ds, dv;
 		
-		switch (type) {
 		// int
-		case Expression.INT:
+		if (type instanceof TypeInt) {
 			il = ((Integer)low).intValue();
 			is = ((Integer)step).intValue();
 			iv = il;
 			for (i = 0; i < j; i++) iv += is;
 			return new Integer(iv);
+		}
 		// double
-		case Expression.DOUBLE:
+		else if (type instanceof TypeDouble) {
 			dl = ((Double)low).doubleValue();
 			ds = ((Double)step).doubleValue();
 			dv = dl;
 			//for (i = 0; i < j; i++) dv += ds;			
 			dv = dl + j * ds;
-			
 			return new Double(dv);
+		} 
 		// boolean (case should be redundant)
-		case Expression.BOOLEAN:
+		else if (type instanceof TypeBool) { 
 			if (j == 0) return new Boolean(false);
 			else if (j == 1) return new Boolean(true);
-			break;
 		}
 		
 		// should never get here
@@ -342,21 +341,23 @@ public class DefinedConstant
 		int il, is, iv;
 		double dl, ds, dv;
 		
-		switch (type) {
 		// int
-		case Expression.INT:
+		if (type instanceof TypeInt) {
 			il = ((Integer)low).intValue();
 			is = ((Integer)step).intValue();
 			iv = ((Integer)v).intValue();
 			return (iv-il)/is;
+		}
 		// double
-		case Expression.DOUBLE:
+		else if (type instanceof TypeDouble) {
 			dl = ((Double)low).doubleValue();
 			ds = ((Double)step).doubleValue();
 			dv = ((Double)v).doubleValue();
 			return (int)Math.round((dv-dl)/ds);
+		} 
 		// boolean (case should be redundant)
-		case Expression.BOOLEAN:
+		else if (type instanceof TypeBool) { 
+		} else {
 			if (((Boolean)v).booleanValue()) return 1; else return 0;
 		}
 		
@@ -368,7 +369,7 @@ public class DefinedConstant
 	
 	public String getName() {  return name; }
 	
-	public int getType() { return type; }
+	public Type getType() { return type; }
 	
 	public Object getLow() { return low; }
 	

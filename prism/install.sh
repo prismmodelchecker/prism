@@ -17,7 +17,8 @@ if [ ! "$1" = "silent" ] ; then
     echo "Installing PRISM (directory=$PRISM_DIR)"
 fi
 TEMP_FILE=tmp
-for FILE_TO_CHANGE in bin/prism bin/xprism
+FILES_TO_CHANGE=`find bin -maxdepth 1 ! -type d ! -name '*.bat'`
+for FILE_TO_CHANGE in $FILES_TO_CHANGE
 do
   if [ -f "$PRISM_DIR"/$FILE_TO_CHANGE ]; then
     if [ ! "$1" = "silent" ] ; then

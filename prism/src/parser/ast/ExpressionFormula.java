@@ -74,7 +74,7 @@ public class ExpressionFormula extends Expression
 	 * Evaluate this expression, return result.
 	 * Note: assumes that type checking has been done already.
 	 */
-	public Object evaluate(Values constantValues, Values varValues) throws PrismLangException
+	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
 		// Should never be called
 		throw new PrismLangException("Could not evaluate formula", this);

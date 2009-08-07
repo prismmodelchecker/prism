@@ -26,7 +26,7 @@
 
 package jdd;
 
-import java.util.Vector;
+import java.util.*;
 
 public class JDD
 {
@@ -94,6 +94,7 @@ public class JDD
 	private static native void DD_PrintInfo(long dd, int num_vars);
 	private static native void DD_PrintInfoBrief(long dd, int num_vars);
 	private static native void DD_PrintSupport(long dd);
+	private static native void DD_PrintSupportNames(long dd, List<String> var_names);
 	private static native long DD_GetSupport(long dd);
 	private static native void DD_PrintTerminals(long dd);
 	private static native void DD_PrintTerminalsAndNumbers(long dd, int num_vars);
@@ -110,7 +111,7 @@ public class JDD
 	private static native void DD_PrintVectorFiltered(long dd, long filter, long vars, int num_vars, int accuracy);
 	// dd_export
 	private static native void DD_ExportDDToDotFile(long dd, String filename);
-	private static native void DD_ExportDDToDotFileLabelled(long dd, String filename, Vector<String> var_names);
+	private static native void DD_ExportDDToDotFileLabelled(long dd, String filename, List<String> var_names);
 	private static native void DD_ExportMatrixToPPFile(long dd, long rvars, int num_rvars, long cvars, int num_cvars, String filename);
 	private static native void DD_ExportMatrixToMatlabFile(long dd, long rvars, int num_rvars, long cvars, int num_cvars, String name, String filename);
 	private static native void DD_ExportMatrixToSpyFile(long dd, long rvars, int num_rvars, long cvars, int num_cvars, int depth, String filename);
@@ -327,6 +328,22 @@ public class JDD
 	public static JDDNode Xor(JDDNode dd1, JDDNode dd2)
 	{
 		return new JDDNode(DD_Xor(dd1.ptr(), dd2.ptr()));
+	}
+	
+	/**
+	 * Returns true if the two BDDs intersect (i.e. conjunction is non-empty)
+	 * [ REFS: <none>, DEREFS: <none> ]
+	 */
+	public static boolean AreInterecting(JDDNode dd1, JDDNode dd2)
+	{
+		JDDNode tmp;
+		boolean res;
+		JDD.Ref(dd1);
+		JDD.Ref(dd2);
+		tmp = JDD.And(dd1, dd2);
+		res = !tmp.equals(JDD.ZERO);
+		JDD.Deref(tmp);
+		return res;
 	}
 	
 	// implies of dd1, dd2
@@ -667,12 +684,23 @@ public class JDD
 		return "["+GetNumNodes(dd)+","+GetNumTerminals(dd)+","+GetNumMintermsString(dd, num_vars)+"]";
 	}
 	
-	// prints out support for dd (all dd variables present)
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * Prints out the support of a DD (i.e. all DD variables that are actually present).
+	 * [ REFS: <none>, DEREFS: <none> ]
+	 */
 	public static void PrintSupport(JDDNode dd)
 	{
 		DD_PrintSupport(dd.ptr());
+	}
+	
+	/**
+	 * Prints out the support of a DD (i.e. all DD variables that are actually present),
+	 * using the passed in list of DD variable names.
+	 * [ REFS: <none>, DEREFS: <none> ]
+	 */
+	public static void PrintSupportNames(JDDNode dd, List<String> varNames)
+	{
+		DD_PrintSupportNames(dd.ptr(), varNames);
 	}
 	
 	// returns support for dd (all dd variables present) as a cube of the dd vars
@@ -911,7 +939,7 @@ public class JDD
 	// export dd to a dot file
 	// [ REFS: <none>, DEREFS: <none> ]
 
-	public static void ExportDDToDotFileLabelled(JDDNode dd, String filename, Vector<String> varNames)
+	public static void ExportDDToDotFileLabelled(JDDNode dd, String filename, List<String> varNames)
 	{
 		DD_ExportDDToDotFileLabelled(dd.ptr(), filename, varNames);
 	}

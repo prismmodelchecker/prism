@@ -29,6 +29,7 @@ package parser.ast;
 import parser.*;
 import parser.visitor.*;
 import prism.PrismLangException;
+import parser.type.*;
 
 public class ExpressionConstant extends Expression
 {
@@ -40,7 +41,7 @@ public class ExpressionConstant extends Expression
 	{
 	}
 	
-	public ExpressionConstant(String n, int t)
+	public ExpressionConstant(String n, Type t)
 	{
 		setType(t);
 		name = n;
@@ -74,19 +75,14 @@ public class ExpressionConstant extends Expression
 	 * Evaluate this expression, return result.
 	 * Note: assumes that type checking has been done already.
 	 */
-	public Object evaluate(Values constantValues, Values varValues) throws PrismLangException
+	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
-		int i;
-		if (constantValues == null) {
+		Object res = ec.getConstantValue(name);
+		if (res == null)
 			throw new PrismLangException("Could not evaluate constant", this);
-		}
-		i = constantValues.getIndexOf(name);
-		if (i == -1) {
-			throw new PrismLangException("Could not evaluate constant", this);
-		}
-		return constantValues.getValue(i);
+		return res;
 	}
-
+	
 	// Methods required for ASTElement:
 	
 	/**

@@ -51,20 +51,20 @@ public class PrismSyntaxHighlighter
 	private static final int PRISMGUI = 3;
 	
 	// punctation replacements
-	private static final ArrayList puncReplaceTo_ECHO , puncReplaceFrom_ECHO;
-	private static final ArrayList puncReplaceTo_HTML, puncReplaceFrom_HTML;
-	private static final ArrayList puncReplaceTo_LATEX, puncReplaceFrom_LATEX;
-	private static final ArrayList puncReplaceTo_LATEXMATHS, puncReplaceFrom_LATEXMATHS;
-	private static final ArrayList puncReplaceTo_PRISMGUI, puncReplaceFrom_PRISMGUI;
+	private static final ArrayList<String> puncReplaceTo_ECHO , puncReplaceFrom_ECHO;
+	private static final ArrayList<String> puncReplaceTo_HTML, puncReplaceFrom_HTML;
+	private static final ArrayList<String> puncReplaceTo_LATEX, puncReplaceFrom_LATEX;
+	private static final ArrayList<String> puncReplaceTo_LATEXMATHS, puncReplaceFrom_LATEXMATHS;
+	private static final ArrayList<String> puncReplaceTo_PRISMGUI, puncReplaceFrom_PRISMGUI;
 	private static int quoteAlternator = 1;
 	
 	static {
-		puncReplaceFrom_ECHO = new ArrayList(); puncReplaceTo_ECHO = new ArrayList();
-		puncReplaceFrom_HTML = new ArrayList(); puncReplaceTo_HTML = new ArrayList();
+		puncReplaceFrom_ECHO = new ArrayList<String>(); puncReplaceTo_ECHO = new ArrayList<String>();
+		puncReplaceFrom_HTML = new ArrayList<String>(); puncReplaceTo_HTML = new ArrayList<String>();
 		puncReplaceFrom_HTML.add("&"); puncReplaceTo_HTML.add("&amp;");
 		puncReplaceFrom_HTML.add("<"); puncReplaceTo_HTML.add("&lt;");
 		puncReplaceFrom_HTML.add(">"); puncReplaceTo_HTML.add("&gt;");
-		puncReplaceFrom_LATEX = new ArrayList(); puncReplaceTo_LATEX = new ArrayList();
+		puncReplaceFrom_LATEX = new ArrayList<String>(); puncReplaceTo_LATEX = new ArrayList<String>();
 		puncReplaceFrom_LATEX.add("&"); puncReplaceTo_LATEX.add("\\\\&");
 		puncReplaceFrom_LATEX.add("_"); puncReplaceTo_LATEX.add("\\\\_");
 		puncReplaceFrom_LATEX.add("%"); puncReplaceTo_LATEX.add("\\\\%");
@@ -77,7 +77,7 @@ public class PrismSyntaxHighlighter
 		puncReplaceFrom_LATEX.add("="); puncReplaceTo_LATEX.add("\\${=}\\$");
 		puncReplaceFrom_LATEX.add(">"); puncReplaceTo_LATEX.add("\\${>}\\$");
 		puncReplaceFrom_LATEX.add("<"); puncReplaceTo_LATEX.add("\\${<}\\$");
-		puncReplaceFrom_LATEXMATHS = new ArrayList(); puncReplaceTo_LATEXMATHS = new ArrayList();
+		puncReplaceFrom_LATEXMATHS = new ArrayList<String>(); puncReplaceTo_LATEXMATHS = new ArrayList<String>();
 		puncReplaceFrom_LATEXMATHS.add("&"); puncReplaceTo_LATEXMATHS.add("\\\\&");
 		puncReplaceFrom_LATEXMATHS.add("_"); puncReplaceTo_LATEXMATHS.add("\\\\_");
 		puncReplaceFrom_LATEXMATHS.add("%"); puncReplaceTo_LATEXMATHS.add("\\\\%");
@@ -90,7 +90,7 @@ public class PrismSyntaxHighlighter
 		puncReplaceFrom_LATEXMATHS.add("="); puncReplaceTo_LATEXMATHS.add("{=}");
 		puncReplaceFrom_LATEXMATHS.add(">"); puncReplaceTo_LATEXMATHS.add("{>}");
 		puncReplaceFrom_LATEXMATHS.add("<"); puncReplaceTo_LATEXMATHS.add("{<}");
-		puncReplaceFrom_PRISMGUI = new ArrayList(); puncReplaceTo_PRISMGUI = new ArrayList();
+		puncReplaceFrom_PRISMGUI = new ArrayList<String>(); puncReplaceTo_PRISMGUI = new ArrayList<String>();
 	}
 	
 	// resulting output
@@ -432,9 +432,9 @@ public class PrismSyntaxHighlighter
 	
 	public static String replacePunc(String s, int tType, int oType)
 	{
-		int i, j, n;
+		int i, n;
 		String s1, s2, snew;
-		ArrayList to, from;
+		ArrayList<String> to, from;
 		
 		switch (oType) {
 			case ECHO: to = puncReplaceTo_ECHO; from = puncReplaceFrom_ECHO; break;
@@ -451,8 +451,8 @@ public class PrismSyntaxHighlighter
 		snew = s;
 		n = from.size();
 		for (i = 0; i < n; i++) {
-			s1 = (String)from.get(i);
-			s2 = (String)to.get(i);
+			s1 = from.get(i);
+			s2 = to.get(i);
 			snew = snew.replaceAll(s1, s2);
 		}
 		
@@ -472,12 +472,12 @@ public class PrismSyntaxHighlighter
 		
 		n = puncReplaceFrom[oType].size();
 		for (i = 0; i < n; i++) {
-			s1 = (String)puncReplaceFrom[oType].get(i);
+			s1 = puncReplaceFrom[oType].get(i);
 			j = 0;
 			while (j != -1) {
 				j = sb.indexOf(s1, j);
 				if (j != -1) {
-					s2 = (String)puncReplaceTo[oType].get(i);
+					s2 = puncReplaceTo[oType].get(i);
 					sb.replace(j, j+s1.length(), s2);
 					j = j+s2.length();
 				}
@@ -495,8 +495,6 @@ public class PrismSyntaxHighlighter
 	
 	public static void main(String args[])
 	{
-		int type;
-		
 		if (args.length == 0) {
 			System.out.println("Error: First argument must be output type");
 			System.exit(1);

@@ -32,6 +32,7 @@ import java.util.*;
 import jdd.*;
 import parser.*;
 import parser.ast.*;
+import parser.type.*;
 import jltl2ba.APElement;
 import jltl2dstar.*;
 
@@ -62,7 +63,7 @@ public class LTLModelChecker
 			throws PrismException
 	{
 		// A state formula
-		if (expr.getType() == Expression.BOOLEAN) {
+		if (expr.getType() instanceof TypeBool) {
 			// Model check
 			JDDNode dd = mc.checkExpressionDD(expr);
 			// Detect special cases (true, false) for optimisation
@@ -86,7 +87,7 @@ public class LTLModelChecker
 			return new ExpressionLabel("L" + (labelDDs.size() - 1));
 		}
 		// A path formula (recurse, modify, return)
-		else if (expr.getType() == Expression.PATH_BOOLEAN) {
+		else if (expr.getType() instanceof TypePathBool) {
 			if (expr instanceof ExpressionBinaryOp) {
 				ExpressionBinaryOp exprBinOp = (ExpressionBinaryOp) expr;
 				exprBinOp.setOperand1(checkMaximalStateFormulas(mc, model, exprBinOp.getOperand1(), labelDDs));
@@ -194,7 +195,8 @@ public class LTLModelChecker
 			newAllDDColVars.addVars(draDDColVars);
 		}
 		newVarList = (VarList) varList.clone();
-		newVarList.addVar(before ? 0 : varList.getNumVars(), draVar, 0, dra.size() - 1, 0, 1, Expression.INT);
+		Declaration decl = new Declaration(draVar, new DeclarationInt(Expression.Int(0), Expression.Int(dra.size() - 1)));
+		newVarList.addVar(before ? 0 : varList.getNumVars(), decl, 1, model.getConstantValues());
 
 		// Extra references (because will get derefed when new model is done with)
 		allDDRowVars.refAll();
@@ -338,7 +340,8 @@ public class LTLModelChecker
 			newAllDDColVars.addVars(draDDColVars);
 		}
 		newVarList = (VarList) varList.clone();
-		newVarList.addVar(before ? 0 : varList.getNumVars(), draVar, 0, dra.size() - 1, 0, 1, Expression.INT);
+		Declaration decl = new Declaration(draVar, new DeclarationInt(Expression.Int(0), Expression.Int(dra.size() - 1)));
+		newVarList.addVar(before ? 0 : varList.getNumVars(), decl, 1, model.getConstantValues());
 
 		// Extra references (because will get derefed when new model is done with)
 		allDDRowVars.refAll();

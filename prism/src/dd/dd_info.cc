@@ -123,6 +123,19 @@ DdManager *ddman,
 DdNode *dd
 )
 {
+	DD_PrintSupportNames(ddman, dd, NULL);
+}
+
+//------------------------------------------------------------------------------
+
+void DD_PrintSupportNames
+(
+DdManager *ddman,
+DdNode *dd,
+char **var_names
+)
+{
+	int i;
 	DdNode *supp, *tmp;
 	
 	fprintf(dd_out, "(");
@@ -130,7 +143,9 @@ DdNode *dd
 	Cudd_Ref(supp);
 	tmp = supp;
 	while (!Cudd_IsConstant(tmp)) {
-		fprintf(dd_out, " %d", Cudd_NodeReadIndex(tmp));
+		i = Cudd_NodeReadIndex(tmp);
+		if (var_names) fprintf(dd_out, " %s", var_names[i]);
+		else fprintf(dd_out, " %d", i);
 		tmp = Cudd_T(tmp);
 	}
 	fprintf(dd_out, " )\n");

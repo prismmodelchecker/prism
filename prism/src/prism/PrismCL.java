@@ -30,6 +30,7 @@ import java.io.*;
 
 import parser.*;
 import parser.ast.*;
+import pta.*;
 
 // prism - command line version
 
@@ -54,12 +55,13 @@ public class PrismCL
 	private boolean exporttransdot = false;
 	private boolean exportbsccs = false;
 	private boolean exportresults = false;
+	private boolean exportprism = false;
 	private boolean exportPlainDeprecated = false;
 	private int exportType = Prism.EXPORT_PLAIN;
 	private boolean exportordered = true;
 	private boolean simulate = false;
 	private boolean simpath = false;
-	private int typeOverride = 0;
+	private ModelType typeOverride = null;
 	
 	// property info
 	private int propertyToCheck = -1;
@@ -88,6 +90,7 @@ public class PrismCL
 	private String exportTransDotFilename = null;
 	private String exportBSCCsFilename = null;
 	private String exportResultsFilename = null;
+	private String exportPrismFilename = null;
 	private String simpathFilename = null;
 	
 	// logs
@@ -209,9 +212,45 @@ public class PrismCL
 				continue;
 			}
 			
-			// only do explicit model construction if necessary
-			if (!simulate) {
-				
+			// for pta model checking using digital clocks, we do a model translation here
+			if (modulesFile.getModelType() == ModelType.PTA && prism.getSettings().getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks")) {
+				try {
+					DigitalClocks dc = new DigitalClocks(prism);
+					dc.translate(modulesFile, propertiesFile);
+					ModulesFile mfMdp = dc.getNewModulesFile();
+					mfMdp.setUndefinedConstants(modulesFile.getConstantValues());
+					modulesFile = mfMdp;
+				}
+				catch (PrismLangException e) {
+					errorAndExit(e.getMessage());
+				}
+			}
+			
+			// output final prism model here if required
+			if (exportprism) {
+				try
+				{
+					FileWriter writer = new FileWriter(exportPrismFilename);
+					writer.write(modulesFile.toString());
+					writer.close();
+				}
+				catch(IOException e)
+				{
+					error("Could not export PRISM model to file \"" + exportPrismFilename + "\"");
+				}
+			}
+			
+			// decide if model construction is necessary
+			boolean doBuild = true;
+			// e.g. no need if using approximate (simulation-based) model checking
+			if (simulate)
+				doBuild = false;
+			// e.g. no need for PTA model checking (when not using digital clocks)
+			else if (modulesFile.getModelType() == ModelType.PTA && !prism.getSettings().getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks"))
+				doBuild = false;
+			
+			// do model construction (if necessary)
+			if (doBuild) {	
 				// build model
 				try {
 					buildModel();
@@ -255,24 +294,24 @@ public class PrismCL
 						error(e.getMessage());
 					}
 				}
-			}
 			
-			// export labels/states
-			if (exportlabels) {
-				try {
-					if (propertiesFile != null) {
-						definedPFConstants = undefinedConstants.getPFConstantValues();
-						propertiesFile.setUndefinedConstants(definedPFConstants);
+				// export labels/states
+				if (exportlabels) {
+					try {
+						if (propertiesFile != null) {
+							definedPFConstants = undefinedConstants.getPFConstantValues();
+							propertiesFile.setUndefinedConstants(definedPFConstants);
+						}
+						File f = (exportLabelsFilename.equals("stdout")) ? null : new File(exportLabelsFilename);
+						prism.exportLabelsToFile(model, modulesFile, propertiesFile, exportType, f);
 					}
-					File f = (exportLabelsFilename.equals("stdout")) ? null : new File(exportLabelsFilename);
-					prism.exportLabelsToFile(model, modulesFile, propertiesFile, exportType, f);
-				}
-				// in case of error, report it and proceed
-				catch (FileNotFoundException e) {
-					mainLog.println("Couldn't open file \"" + exportLabelsFilename + "\" for output");
-				}
-				catch (PrismException e) {
-					mainLog.println("\nError: " + e.getMessage() + ".");
+					// in case of error, report it and proceed
+					catch (FileNotFoundException e) {
+						mainLog.println("Couldn't open file \"" + exportLabelsFilename + "\" for output");
+					}
+					catch (PrismException e) {
+						mainLog.println("\nError: " + e.getMessage() + ".");
+					}
 				}
 			}
 			
@@ -321,9 +360,18 @@ public class PrismCL
 							mainLog.println("\n"+(simulate?"Simulating":"Model checking")+": " + propertiesToCheck[j]);
 							if (definedMFConstants != null) if (definedMFConstants.getNumValues() > 0) mainLog.println("Model constants: " + definedMFConstants);
 							if (definedPFConstants != null) if (definedPFConstants.getNumValues() > 0) mainLog.println("Property constants: " + definedPFConstants);
+							// exact (non-appoximate) model checking
 							if (!simulate) {
-								res = prism.modelCheck(model, propertiesFile, propertiesToCheck[j]);
+								// PTA model checking
+								if (modulesFile.getModelType() == ModelType.PTA && !prism.getSettings().getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks")) {
+									res = prism.modelCheckPTA(modulesFile, propertiesFile, propertiesToCheck[j]);
+								}
+								// non-PTA model checking
+								else {
+									res = prism.modelCheck(model, propertiesFile, propertiesToCheck[j]);
+								}
 							}
+							// approximate (simulation-based) model checking
 							else {
 								mainLog.println("Simulation parameters: approx = "+simApprox+", conf = "+simConfidence+", num samples = "+simNumSamples+", max path len = "+simMaxPath+")");
 								res = prism.modelCheckSimulator(modulesFile, propertiesFile, propertiesToCheck[j], modulesFile.getInitialValues(), simNumSamples, simMaxPath);
@@ -350,7 +398,7 @@ public class PrismCL
 			}
 			
 			// clear model
-			if (!simulate) {
+			if (model != null) {
 				model.clear();
 			}
 			
@@ -382,8 +430,6 @@ public class PrismCL
 	
 	private void initialise(String[] args) throws PrismException
 	{
-		int i;
-		
 		// default to logs going to stdout
 		// this means all errors etc. can be safely sent to the log
 		// even if a new log is created shortly
@@ -403,9 +449,7 @@ public class PrismCL
 		prism.initialise();
 		
 		// print command line for reference
-		mainLog.print("Command line: prism");
-		for (i = 0; i < args.length; i++) mainLog.print(" " + args[i]);
-		mainLog.println();
+		printArguments(args);
 		
 		// do some processing of the options
 		processOptions();
@@ -427,12 +471,7 @@ public class PrismCL
 			}
 			else if (importtrans) {
 				mainLog.print("\nImporting model (");
-				switch (typeOverride) {
-				case ModulesFile.PROBABILISTIC: mainLog.print("DTMC"); break;
-				case ModulesFile.NONDETERMINISTIC: mainLog.print("MDP"); break;
-				case ModulesFile.STOCHASTIC: mainLog.print("CTMC"); break;
-				default: mainLog.print("MDP"); break;
-				}
+				mainLog.print(typeOverride == null ? "MDP" : typeOverride);
 				mainLog.print(") from \"" + modelFilename + "\"");
 				if (importstates) {
 					mainLog.print(", \"" + importStatesFilename + "\"");
@@ -540,7 +579,7 @@ public class PrismCL
 		}
 		
 		// print model info
-		mainLog.println("\nType:        " + model.getTypeString());
+		mainLog.println("\nType:        " + model.getModelType());
 		mainLog.print("Modules:     ");
 		for (i = 0; i < model.getNumModules(); i++) {
 			mainLog.print(model.getModuleName(i) + " ");
@@ -703,7 +742,7 @@ public class PrismCL
 	private void doSteadyState() throws PrismException
 	{
 		// compute steady-state probabilities
-		if (model.getType() == Model.CTMC || model.getType() == Model.DTMC) {
+		if (model.getModelType() == ModelType.CTMC || model.getModelType() == ModelType.DTMC) {
 			prism.doSteadyState(model);
 		}
 		else {
@@ -719,7 +758,7 @@ public class PrismCL
 		int i;
 		
 		// compute transient probabilities
-		if (model.getType() == Model.CTMC) {
+		if (model.getModelType() == ModelType.CTMC) {
 			try {
 				d = Double.parseDouble(transientTime);
 			}
@@ -728,7 +767,7 @@ public class PrismCL
 			}
 			prism.doTransient(model, d);
 		}
-		else if (model.getType() == Model.DTMC) {
+		else if (model.getModelType() == ModelType.DTMC) {
 			try {
 				i = Integer.parseInt(transientTime);
 			}
@@ -913,6 +952,16 @@ public class PrismCL
 						errorAndExit("No file specified for -"+sw+" switch");
 					}
 				}
+				// export prism model to file
+				else if (sw.equals("exportprism")) {
+					if (i < args.length-1) {
+						exportprism = true;
+						exportPrismFilename = args[++i];
+					}
+					else {
+						errorAndExit("No file specified for -"+sw+" switch");
+					}
+				}
 				// set scc computation algorithm
 				else if (sw.equals("sccmethod") || sw.equals("bsccmethod")) {
 					if (i < args.length-1) {
@@ -998,15 +1047,15 @@ public class PrismCL
 				}
 				// override model type to dtmc
 				else if (sw.equals("dtmc")) {
-					typeOverride = ModulesFile.PROBABILISTIC;
+					typeOverride = ModelType.DTMC;
 				}
 				// override model type to mdp
 				else if (sw.equals("mdp")) {
-					typeOverride = ModulesFile.NONDETERMINISTIC;
+					typeOverride = ModelType.MDP;
 				}
 				// override model type to ctmc
 				else if (sw.equals("ctmc")) {
-					typeOverride = ModulesFile.STOCHASTIC;
+					typeOverride = ModelType.CTMC;
 				}
 				// use simulator
 				else if (sw.equals("sim")) {
@@ -1439,6 +1488,33 @@ public class PrismCL
 					}
 				}
 				
+				// pta model checking methods
+				else if (sw.equals("ptamethod")) {
+					if (i < args.length-1) {
+						s = args[++i];
+						if (s.equals("digital")) prism.getSettings().set(PrismSettings.PRISM_PTA_METHOD, "Digital clocks");
+						else if (s.equals("games")) prism.getSettings().set(PrismSettings.PRISM_PTA_METHOD, "Stochastic games");
+						else if (s.equals("bisim")) prism.getSettings().set(PrismSettings.PRISM_PTA_METHOD, "Bisimulation minimisation");
+						else  errorAndExit("Unrecognised option for -"+sw+" switch (options are: digital, games)");
+					}
+					else {
+						errorAndExit("No parameter specified for -"+sw+" switch");
+					}
+				}
+				
+				// abstraction-refinement engine options string (append if already partially specified)
+				else if (sw.equals("aroptions")) {
+					if (i < args.length-1) {
+						String arOptions = prism.getSettings().getString(PrismSettings.PRISM_AR_OPTIONS);
+						if ("".equals(arOptions)) arOptions = args[++i].trim();
+						else arOptions += ","+args[++i].trim();
+						prism.getSettings().set(PrismSettings.PRISM_AR_OPTIONS, arOptions);
+					}
+					else {
+						errorAndExit("No parameter specified for -"+sw+" switch");
+					}
+				}
+				
 				// unknown switch - error
 				else {
 					errorAndExit("Invalid switch -" + sw + " (type \"prism -help\" for full list)");
@@ -1458,6 +1534,26 @@ public class PrismCL
 		}
 	}
 
+	// print command line arguments
+	
+	public void printArguments(String[] args)
+	{
+		String s;
+		int i;
+		mainLog.print("Command line: prism");
+		// Print out the command-line arguments
+		for (i = 0; i < args.length; i++) {
+			s = args[i];
+			// If necessary add quotes so can be pasted back into a shell
+			// (where "necessary" means contains any non-safe characters)
+			if (s.matches(".*[^_a-zA-Z0-9\\./\\-=].*")) {
+				s = "'" + s + "'";
+			}
+			mainLog.print(" " + s);
+		}
+		mainLog.println();
+	}
+	
 	// do some processing of the options
 		
 	private void processOptions()
@@ -1560,6 +1656,7 @@ public class PrismCL
 		mainLog.println("-exporttransdot <file> ......... Export the transition matrix graph to a dot file");
 		mainLog.println("-exportdot <file> .............. Export the transition matrix MTBDD to a dot file");
 		mainLog.println("-exportbsccs <file> ............ Compute and export all BSCCs of the model");
+		mainLog.println("-exportprism <file> ............ Export final PRISM model to a file");
 		mainLog.println();
 		mainLog.println("-mtbdd (or -m) ................. Use the MTBDD engine");
 		mainLog.println("-sparse (or -s) ................ Use the Sparse engine");

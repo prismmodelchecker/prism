@@ -1,0 +1,109 @@
+#no update for variables
+{
+init
+	node ini; true # start protocol
+	[ 
+	req||tran  send; true; x=0; 1.0
+	 ] 
+}
+{
+	node send; x<=0 #send first message immediate
+	[ 
+	message||tran  wait; x=0; null ; 1.0
+	] 
+}
+{
+	# node wait; x<=AD+1 # wait for an ack (added invariant so transition must be taken)
+	node wait; x<=5 
+	[ 
+	#ack||tran  send; x>=ad,x<=AD; x=0 ; 0.9 # receive ack (and send another message)
+	#ack||tran  last; x>=ad,x<=AD; x=0 ; 0.1 # receive ack (and finish)
+	ack||tran  send; x>=1,x<=4; x=0 ; 0.9 
+	ack||tran  last; x>=1,x<=4; x=0 ; 0.1
+	] 
+	[ # do not receive an ack so end protocol
+	#tran  early; x>AD; x=0 ; 0.9 # sent random message so no information lost
+	#tran  error; x>AD; x=0 ; 0.1 # sent last message so security compromised
+	tran  early; x>4; x=0 ; 0.9
+	tran  error; x>4; x=0 ; 0.1
+	] 
+	[ # recipient manages to decode message
+	# decode||tran  sent_random; true; null ; 0.9 # sent random message
+	# decode||tran  sent_last; true; null ; 0.1 # sent last message
+	decode||tran  sent_random; true; null ; 0.9
+	decode||tran  sent_last; true; null ; 0.1
+	] 
+}
+{
+	node last; x=0 # tell recipient have finished
+	[
+	finished||tran done; x=0; null ; 1.0
+	 ] 
+}
+{
+	node done; true # finished correctly
+	[
+	tran done;true;null;1
+	 ]
+}
+{
+	node done_early; true # finished early
+	[
+	tran done_early;true;null;1
+	 ]
+}
+{
+	node done_error; true # finished and lost information
+	[
+	tran done_error;true;null;1
+	 ]
+}
+{
+	node early; x=0 # no information lost
+	[
+	stop||tran done_early;true;null;1
+	 ]
+}
+{
+	node error; x=0 # error
+	[
+	error||tran done_error;true;null;1
+	 ] 
+}
+{
+	node sent_random; true # need to tell recipient the message was random
+	[
+	decoded_random||tran wait_random; true; null; 1.0
+	 ]
+}
+{
+	node sent_last; true # need to tell recipient the message was the last
+	[
+	decoded_last||tran wait_last; true; null; 1.0
+	 ] 
+}
+{
+	# node wait_random; x<=AD+1 # wait for an ack (message random)
+	node wait_random; x<=5 
+	[ 
+	#ack||tran  send; x>=ad,x<=AD; x=0 ; 1.0 # receive ack (and send another message)
+	ack||tran  send; x>=1,x<=4; x=0 ; 1.0 
+	] 
+	[ # do not receive an ack so end protocol
+	#stop||tran  done_early; x>AD; x=0 ; 1.0 # sent random message so no information lost
+	stop||tran  done_early; x>4; x=0 ; 1.0
+	]
+}
+{
+	# node wait_last; x<=AD+1 # wait for an ack message is last message)
+	node wait_last; x<=5 
+	[ 
+	#ack||tran  last; x>=ad,x<=AD; x=0 ; 1.0 # receive ack (and finish)
+	ack||tran  last; x>=1,x<=4; x=0 ; 1.0
+	] 
+	[ # do not receive an ack so end protocol
+	#error||tran  done_error; x>AD; x=0 ; 1.0 # sent last message so security compromised
+	error||tran  done_error; x>4; x=0 ; 1.0
+	] 
+*
+

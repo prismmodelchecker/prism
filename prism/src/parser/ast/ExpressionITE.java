@@ -94,10 +94,9 @@ public class ExpressionITE extends Expression
 	 * Evaluate this expression, return result. Note: assumes that type checking
 	 * has been done already.
 	 */
-	public Object evaluate(Values constantValues, Values varValues) throws PrismLangException
+	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
-		return operand1.evaluateBoolean(constantValues, varValues) ? operand2.evaluate(constantValues, varValues)
-				: operand3.evaluate(constantValues, varValues);
+		return operand1.evaluateBoolean(ec) ? operand2.evaluate(ec) : operand3.evaluate(ec);
 	}
 
 	// Methods required for ASTElement:

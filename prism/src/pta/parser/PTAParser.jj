@@ -1,0 +1,459 @@
+//==============================================================================
+//	
+//	Copyright (c) 2002-
+//	Authors:
+//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//	
+//------------------------------------------------------------------------------
+//	
+//	This file is part of PRISM.
+//	
+//	PRISM is free software; you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation; either version 2 of the License, or
+//	(at your option) any later version.
+//	
+//	PRISM is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
+//	
+//	You should have received a copy of the GNU General Public License
+//	along with PRISM; if not, write to the Free Software Foundation,
+//	Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//	
+//==============================================================================
+
+options {
+	LOOKAHEAD = 1;
+}
+
+PARSER_BEGIN(PTAParser)
+
+package pta.parser;
+
+import java.io.*;
+import java.util.*;
+
+import pta.*;
+import prism.PrismLangException;
+
+public class PTAParser
+{
+	//-----------------------------------------------------------------------------------
+	// Main method for testing purposes
+	//-----------------------------------------------------------------------------------
+
+	public static void main(String[] args)
+	{
+		PTAParser p = null;
+		InputStream str = null;
+		String src = null;
+		
+		try {
+			p = new PTAParser();
+			str = (args.length > 0) ? new FileInputStream(args[0]) : System.in;
+			src = (args.length > 0) ? "file "+args[0] : "stdin";
+			System.out.println("Reading from "+src+"...\n");
+			
+			PTA pta = p.parsePTA(str);
+			System.out.print(pta);
+		}
+		catch (PrismLangException e) {
+			System.out.println("Error in "+src+": " + e.getMessage()+"."); System.exit(1);
+		}
+		catch (FileNotFoundException e) {
+			System.out.println(e); System.exit(1);
+		}
+	}
+
+	//-----------------------------------------------------------------------------------
+	// Methods called by Prism
+	//-----------------------------------------------------------------------------------
+
+	// Constructor
+
+	public PTAParser()
+	{
+		// Call default constructor
+		this(System.in);
+	}
+	
+	// Parse PTA
+	
+	public PTA parsePTA(InputStream str) throws PrismLangException
+	{
+		astPTA pta = null;
+		
+		// (Re)start parser
+		ReInit(str);
+		// Parse
+		try {
+			pta = PTA();
+		}
+		catch (ParseException e) {
+			throw new PrismLangException(e.getMessage());
+		}
+		
+		return pta.createDataStructures();
+	}
+	
+	//------------------------------------------------------------------------------
+	// Abstract syntax tree classes
+	//------------------------------------------------------------------------------
+	
+	// Classes used to build AST representing PTA.
+	// Note: locations are indexed by name here, not integer as in the normal PTA class
+	// (this is the main reason for needing separate AST classes here).
+	// For clocks, this approach is not needed: we just take the ordering of the clocks
+	// to be as they appear in the file (unlike locations, which have an explicit ordering
+	// combined with possible forward references).
+	
+	static class astPTA
+	{
+		// Data
+		public ArrayList<String> clockNames;
+		public ArrayList<String> locationNames;
+		public HashMap<String,LinkedHashSet<Constraint>> invariants;
+		public HashMap<String,ArrayList<astTransition>> transitions;
+		// Methods
+        public astPTA() {
+        	clockNames = new ArrayList<String>();
+        	locationNames = new ArrayList<String>();
+			invariants = new HashMap<String,LinkedHashSet<Constraint>>();
+        	transitions = new HashMap<String,ArrayList<astTransition>>();
+        }
+		public int getOrAddClock(String name) {
+			int i = clockNames.indexOf(name);
+			if (i == -1) { clockNames.add(name); return clockNames.size(); }
+			else return i+1;
+		}
+		public void addLocation(String name) {
+			locationNames.add(name);
+			invariants.put(name, new LinkedHashSet<Constraint>());
+			transitions.put(name, new ArrayList<astTransition>());
+		}
+		public void addInvariantCondition(String locName, Constraint c) {
+			invariants.get(locName).add(c);
+		}
+		public void setInvariantConditions(String locName, LinkedHashSet<Constraint> cs) {
+			invariants.put(locName, cs);
+		}
+		public astTransition addTransition(String locName) {
+			astTransition t = new astTransition();
+			transitions.get(locName).add(t);
+			return t;
+		}
+		public int getLocationIndex(String name) {
+			return locationNames.indexOf(name);
+		}
+		// Conversion to pta classes
+		public PTA createDataStructures()
+		{
+			int i, n;
+			String name;
+			PTA pta;
+			Transition trans;
+			pta = new PTA();
+			// Add all clocks
+			n = clockNames.size();
+			for (i = 0; i < n; i++)
+				pta.addClock(clockNames.get(i));
+			// Add all locations
+			n = locationNames.size();
+			for (i = 0; i < n; i++)
+				pta.addLocation(locationNames.get(i));
+			// Add invariants/transitions to locations
+			n = locationNames.size();
+			for (i = 0; i < n; i++) {
+				name = locationNames.get(i);
+				pta.setInvariantConditions(i, invariants.get(name));
+				ArrayList<astTransition> tt = transitions.get(name);
+				if (tt == null || tt.isEmpty()) continue;
+				for (astTransition t : tt) {
+					if (!(t.edges.isEmpty())) {
+						trans = pta.addTransition(i, t.action);
+						t.createDataStructures(this, trans);
+					}
+				}
+			}
+			return pta;
+		}
+	}
+
+	static class astTransition
+	{
+		// Data
+		private String action = null;
+		private ArrayList<Constraint> guard;
+		public ArrayList<astEdge> edges;
+		// Methods
+		public astTransition() { guard = new ArrayList<Constraint>(); edges = new ArrayList<astEdge>(); }
+		public void setAction(String action) { this.action = action; }
+		public void addGuardConstraint(Constraint c) { guard.add(c); }
+		public astEdge addEdge(double prob, String dest) { astEdge e = new astEdge(prob, dest); edges.add(e); return e; }
+		// Conversion to pta classes
+		public void createDataStructures(astPTA pta, Transition trans)
+		{
+			for (Constraint c : guard)
+				trans.addGuardConstraint(c);
+			for (astEdge e : edges)
+				e.createDataStructures(pta, trans);
+		}
+	}
+	
+	static class astEdge
+	{
+		// Data
+		public double prob;
+		public String dest;
+		public HashMap<Integer,Integer> resets;
+		// Methods
+		public astEdge(double prob, String dest) { this.prob = prob; this.dest = dest; resets = new HashMap<Integer,Integer>(); }
+		public void addReset(int clock, int val) { resets.put(clock, val); }
+		// Conversion to pta classes
+		public void createDataStructures(astPTA pta, Transition trans)
+		{
+			int d = pta.getLocationIndex(dest);
+			if (d == -1) { System.err.println("Error: Location \""+dest+"\" does not exist"); System.exit(1); }
+			Edge edge = trans.addEdge(prob, d);
+			for (Map.Entry<Integer,Integer> e : resets.entrySet()) edge.addReset(e.getKey(), e.getValue());
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------------
+
+PARSER_END(PTAParser)
+
+// Skip (but store) all other white space
+
+SPECIAL_TOKEN :
+{
+	<WHITESPACE: (" "|"\t"|"\n"|"\r")>
+}
+
+// Skip (but store) comments
+
+SPECIAL_TOKEN :
+{
+	<COMMENT: "#" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+}
+
+// Tokens
+
+TOKEN :
+{
+	// Keywords
+	< INIT:				"init" >
+|	< NODE:				"node" >
+|	< NULL:				"null" >
+|	< TRAN:				"tran" >
+|	< TRUE:				"true" >
+	// Punctuation, etc.
+|	< NOT:			"!" >
+|	< AND:			"&" >
+|	< OR:			"|" >
+|	< IMPLIES:		"=>" >
+|	< RARROW:		"->" >
+|	< COLON:		":" >
+|	< SEMICOLON:	";" >
+|	< COMMA:		"," >
+|	< DOTS:			".." >
+|	< LPARENTH:		"(" >
+|	< RPARENTH:		")" >
+|	< LBRACKET: 	"[" >
+|	< RBRACKET:		"]" >
+|	< LBRACE:		"{" >
+|	< RBRACE:		"}" >
+|	< EQ:			"=" >
+|	< NE:			"!=" >
+|	< LT:			"<" >
+|	< GT:			">" >
+|	< LE:			"<=" >
+|	< GE:			">=" >
+|	< PLUS:			"+" >
+|	< MINUS:		"-" >
+|	< TIMES:		"*" >
+|	< DIVIDE:		"/" >
+|	< PRIME:		"'" >
+|	< RENAME:		"<-" >
+|	< QMARK:		"?" >
+|	< DQUOTE:		"\"" >
+	// Regular expressions
+|	< REG_INT:			(["1"-"9"](["0"-"9"])*)|("0") >
+|	< REG_DOUBLE:		(["0"-"9"])*(".")?(["0"-"9"])+(["e","E"](["-","+"])?(["0"-"9"])+)? >
+|	< REG_IDENTPRIME:	["_","a"-"z","A"-"Z"](["_","a"-"z","A"-"Z","0"-"9"])*"'" >
+|	< REG_IDENT:		["_","a"-"z","A"-"Z"](["_","a"-"z","A"-"Z","0"-"9"])* >
+	// Special catch-all token for lexical errors
+	// (this allows us to throw our usual exceptions in this case)
+|	< LEXICAL_ERROR: ~[] >
+}
+
+//-----------------------------------------------------------------------------------
+// Top-level production
+//-----------------------------------------------------------------------------------
+
+// PTA
+
+astPTA PTA() :
+{
+	astPTA pta = new astPTA();
+}
+{
+	( (Location(pta))* <EOF> )
+	{
+		return pta;
+	}
+}
+
+void Location(astPTA pta) :
+{
+	String name;
+	LinkedHashSet<Constraint> constrs;
+}
+{
+	<LBRACE>
+	(<INIT>)?
+	<NODE> name=Identifier() { pta.addLocation(name); }
+	<SEMICOLON> constrs=ConstraintList(pta) { pta.setInvariantConditions(name, constrs); }
+	(Transition(pta, name))*
+	(<RBRACE>|<TIMES>)
+}
+
+void Transition(astPTA pta, String locName) :
+{
+	astTransition tr;
+}
+{
+	<LBRACKET> { tr = pta.addTransition(locName); }
+	(Edge(pta, tr))*
+	<RBRACKET>
+}
+
+void Edge(astPTA pta, astTransition tr) :
+{
+	LinkedHashSet<Constraint> constrs;
+	String action = null, dest;
+	double p;
+	astEdge edge;
+	HashMap<Integer,Integer> resets;
+}
+{
+	(action=Identifier() <OR><OR>)? <TRAN> dest=Identifier() <SEMICOLON> constrs=ConstraintList(pta) <SEMICOLON> resets=Resets(pta) <SEMICOLON> p=Probability()
+	{
+		tr.setAction(action);
+		edge = tr.addEdge(p, dest);
+		for (Map.Entry<Integer,Integer> e : resets.entrySet()) edge.addReset(e.getKey(), e.getValue());
+		for (Constraint c : constrs) tr.addGuardConstraint(c);
+	}
+}
+
+LinkedHashSet<Constraint> ConstraintList(astPTA pta) :
+{
+	LinkedHashSet<Constraint> constrs = new LinkedHashSet<Constraint>();
+}
+{
+	((Constraint(pta, constrs) ( <COMMA> Constraint(pta, constrs) )* )
+	|
+	(<TRUE>))
+	{ return constrs; }
+}
+
+void Constraint(astPTA pta, LinkedHashSet<Constraint> constrs) :
+{
+	String clock1Name, clock2Name;
+	int clock1, clock2, val;
+	Token t;
+}
+{
+	(clock1Name=Identifier() (t=<LT>|t=<LE>|t=<GT>|t=<GE>|t=<EQ>) (val=Integer()
+	{
+		clock1 = pta.getOrAddClock(clock1Name);
+		switch (t.kind) {
+		case PTAParserConstants.LT:
+			constrs.add(Constraint.buildLt(clock1, val)); break;
+		case PTAParserConstants.LE:
+			constrs.add(Constraint.buildLeq(clock1, val)); break;
+		case PTAParserConstants.GT:
+			constrs.add(Constraint.buildGt(clock1, val)); break;
+		case PTAParserConstants.GE:
+			constrs.add(Constraint.buildGeq(clock1, val)); break;
+		case PTAParserConstants.EQ:
+			constrs.add(Constraint.buildLeq(clock1, val));
+			constrs.add(Constraint.buildGeq(clock1, val)); break;
+		}
+	}
+	| clock2Name=Identifier()
+	{
+		clock1 = pta.getOrAddClock(clock1Name);
+		clock2 = pta.getOrAddClock(clock2Name);
+		switch (t.kind) {
+		case PTAParserConstants.LT:
+			constrs.add(Constraint.buildLt(clock1, clock2)); break;
+		default:
+			System.err.println("Error: Unsupported constraint type"); System.exit(1);
+		}
+	}
+	))
+}
+
+HashMap<Integer,Integer> Resets(astPTA pta) :
+{
+	HashMap<Integer,Integer> resets = new HashMap<Integer,Integer>();
+}
+{
+	((Reset(pta, resets) (<COMMA> Reset(pta, resets))*)
+	|
+	(<NULL>))
+	{ return resets; }
+}
+
+void Reset(astPTA pta, HashMap<Integer,Integer> resets) :
+{
+	String clockName;
+	int clock;
+	int val;
+}
+{
+	(clockName=Identifier() <EQ> val=Integer())
+	{
+		clock = pta.getOrAddClock(clockName);
+		resets.put(clock, val);
+	}
+}
+
+double Probability() :
+{
+	Token t;
+	double d;
+}
+{
+	(t=<REG_DOUBLE> | t=<REG_INT>)
+	{ return Double.parseDouble(t.image); }
+}
+
+//-----------------------------------------------------------------------------------
+// Miscellaneous stuff
+//-----------------------------------------------------------------------------------
+
+// Identifier (returns String)
+
+String Identifier() :
+{
+}
+{
+	<REG_IDENT> { return getToken(0).image; }
+}
+
+// Integer
+
+int Integer() :
+{
+}
+{
+	<REG_INT> { return Integer.parseInt(getToken(0).image); }
+}
+
+//------------------------------------------------------------------------------
+

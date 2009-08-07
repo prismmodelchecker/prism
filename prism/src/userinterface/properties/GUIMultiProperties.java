@@ -47,6 +47,7 @@ import userinterface.simulator.networking.*;
 import prism.*;
 import parser.*;
 import parser.ast.*;
+import parser.type.*;
 
 /**
  *  Properties tab of the PRISM GUI.
@@ -270,7 +271,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			GUIProperty guiP = (GUIProperty)validGUIProperties.get(i);
 			try
 			{
-				getPrism().checkPropertyForSimulation(guiP.getProperty(), parsedModel.getType());
+				getPrism().checkPropertyForSimulation(guiP.getProperty(), parsedModel.getModelType());
 				simulatableGUIProperties.add(guiP);
 			}
 			catch(PrismException e)
@@ -335,7 +336,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	{
 		experimentAfterReceiveParseNotification = false;
 		GUIProperty gp = propList.getProperty(propList.getSelectedIndex());
-		int type;
+		Type type;
 		
 		try
 		{
@@ -370,7 +371,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			error("Cannot create an experiment because there are no constants with undefined values");
 			return;
 		}
-		int result = GUIExperimentPicker.defineConstantsWithDialog(this.getGUI(), uCon, type==Expression.INT || type==Expression.DOUBLE, gp.isValidForSimulation());
+		int result = GUIExperimentPicker.defineConstantsWithDialog(this.getGUI(), uCon, type instanceof TypeBool || type instanceof TypeDouble, gp.isValidForSimulation());
 		if(result == GUIExperimentPicker.VALUES_DONE_SHOW_GRAPH || result == GUIExperimentPicker.VALUES_DONE_SHOW_GRAPH_AND_SIMULATE)
 		{
 			showGraphDialog = true;
@@ -386,7 +387,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		{
 			try
 			{
-				getPrism().checkPropertyForSimulation(gp.getProperty(), parsedModel.getType());
+				getPrism().checkPropertyForSimulation(gp.getProperty(), parsedModel.getModelType());
 			}
 			catch(PrismException e)
 			{
@@ -585,14 +586,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		if (experiments.getSelectedRowCount() == 1)
 		{
 			GUIExperiment exp = experiments.getExperiment(experiments.getSelectedRow());
-			int t=0;
-			try
-			{
-				t = exp.getPropertyType();
-				plotResults.setEnabled(t == Expression.INT || t == Expression.DOUBLE);
-			}
-			catch (PrismException e)
-			{ plotResults.setEnabled(false); }
+			Type type = exp.getPropertyType();
+			plotResults.setEnabled(type instanceof TypeInt || type instanceof TypeDouble);
 		}
 		else
 		{
@@ -1007,21 +1002,14 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	public void a_plotResults()
 	{
 		GUIExperiment exp;
-		int t;
+		Type type;
 		
 		// get experiment
 		if (experiments.getSelectedRowCount() != 1) return;
 		exp = experiments.getExperiment(experiments.getSelectedRow());
 		// check its type
-		try
-		{
-			t = exp.getPropertyType();
-		}
-		catch (PrismException e)
-		{
-			t = 0;
-		}
-		if (!(t == Expression.INT || t == Expression.DOUBLE))
+		type = exp.getPropertyType();
+		if (!(type instanceof TypeInt || type instanceof TypeDouble))
 		{
 			message("Can only plot results if the property is of type int or double");
 			return;

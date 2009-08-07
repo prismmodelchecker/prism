@@ -74,7 +74,7 @@ public class ExpressionIdent extends Expression
 	 * Evaluate this expression, return result.
 	 * Note: assumes that type checking has been done already.
 	 */
-	public Object evaluate(Values constantValues, Values varValues) throws PrismLangException
+	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
 		// This should never be called.
 		// The ExpressionIdent should have been converted to an ExpressionVar/ExpressionConstant/...

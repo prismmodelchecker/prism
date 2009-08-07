@@ -1,0 +1,27 @@
+
+-----------------------------------------------------
+
+bin/ptamc examples/pta/simple/iandc.des sr 'z<6'
+
+bin/ptamc examples/pta/simple/tcs.des l3 true
+
+bin/ptamc examples/pta/simple/gethin1.des l2 true
+
+bin/ptamc examples/pta/simple/gethin2.des l2 true
+
+bin/ptamc examples/pta/simple/formats.des l3 true -refine=first -v 
+
+-----------------------------------------------------
+
+bin/mdpmc coin2_10.tra coin2_10.lab finished 
+
+-----------------------------------------------------
+
+bin/ptamc-prof ...
+
+java -jar ~/usr/packages/jip-1.1.1/client/client.jar finish localhost 15599
+
+java -jar ~/usr/packages/jip-1.1.1/client/jipViewer.jar profile.xtx.xml 
+
+-----------------------------------------------------
+

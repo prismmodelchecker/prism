@@ -27,6 +27,7 @@
 package prism;
 
 import java.io.*;
+import java.util.BitSet;
 import java.util.Vector;
 
 import jdd.*;
@@ -36,7 +37,7 @@ import parser.*;
 import sparse.*;
 
 /*
- * Class to store a PRISM model which is a DTMC
+ * Class for MTBDD-based storage of a PRISM model that is a DTMC.
  */
 public class ProbModel implements Model
 {
@@ -87,14 +88,9 @@ public class ProbModel implements Model
 	// model info
 
 	// type
-	public int getType()
+	public ModelType getModelType()
 	{
-		return Model.DTMC;
-	}
-
-	public String getTypeString()
-	{
-		return "DTMC";
+		return ModelType.DTMC;
 	}
 
 	// modules
@@ -721,6 +717,60 @@ public class ProbModel implements Model
 		return (int) (x + varList.getLow(numVars - 1));
 	}
 
+	/**
+	 * Convert a BDD (over model row variables) representing a single state to a State object. 
+	 */
+	public State convertBddToState(JDDNode dd)
+	{
+		JDDNode ptr;
+		int i, n;
+		BitSet bits;
+		// First convert path through BDD to a bit vector
+		ptr = dd;
+		n = allDDRowVars.n();
+		bits = new BitSet(n);
+		for (i = 0; i < n; i++) {
+			if (ptr.getIndex() > allDDRowVars.getVarIndex(i)) {
+			} else if (!ptr.getElse().equals(JDD.ZERO)) {
+				ptr = ptr.getElse();
+			} else {
+				bits.set(i, true);
+				ptr = ptr.getThen();
+			}
+		}
+		// Then convert to State object
+		return varList.convertBitSetToState(bits);
+	}
+	
+	/**
+	 * Convert a BDD (over model row variables) representing a single state
+	 * to a (reachable) state index. 
+	 */
+	public int convertBddToIndex(JDDNode dd)
+	{
+		JDDNode ptr;
+		ODDNode oddPtr;
+		int i, n, index;
+		// Traverse BDD and ODD simultaneously to compute index
+		ptr = dd;
+		oddPtr = odd;
+		n = allDDRowVars.n();
+		index = 0;
+		for (i = 0; i < n; i++) {
+			if (ptr.getIndex() > allDDRowVars.getVarIndex(i)) {
+				oddPtr = oddPtr.getElse();
+			} else if (!ptr.getElse().equals(JDD.ZERO)) {
+				ptr = ptr.getElse();
+				oddPtr = oddPtr.getElse();
+			} else {
+				ptr = ptr.getThen();
+				index += oddPtr.getEOff(); 
+				oddPtr = oddPtr.getThen();
+			}
+		}
+		return index;
+	}
+	
 	// clear up (deref all dds, dd vars)
 
 	public void clear()

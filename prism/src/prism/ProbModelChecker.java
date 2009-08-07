@@ -699,8 +699,11 @@ public class ProbModelChecker extends NonProbModelChecker
 
 		// get info from bounded until
 		time = expr.getUpperBound().evaluateInt(constantValues, null);
+		if (expr.upperBoundIsStrict())
+			time--;
 		if (time < 0) {
-			throw new PrismException("Invalid bound " + time + " in bounded until formula");
+			String bound = expr.upperBoundIsStrict() ? "<" + (time + 1) : "<=" + time;
+			throw new PrismException("Invalid bound " + bound + " in bounded until formula");
 		}
 
 		// model check operands first
@@ -862,10 +865,6 @@ public class ProbModelChecker extends NonProbModelChecker
 	{
 		JDDNode b;
 		StateProbs rewards = null;
-
-		// check operand OK (should have detected on type check)
-		if (expr.getOperand2().getType() != Expression.BOOLEAN)
-			throw new PrismException("Invalid path formula");
 
 		// model check operand first
 		b = checkExpressionDD(expr.getOperand2());
@@ -1349,7 +1348,7 @@ public class ProbModelChecker extends NonProbModelChecker
 					probs = new StateProbsDV(probsDV, model);
 					break;
 				default:
-					throw new PrismException("Engine does not support this numerical method");
+					throw new PrismException("Unknown engine");
 				}
 			} catch (PrismException e) {
 				JDD.Deref(yes);
@@ -1515,7 +1514,7 @@ public class ProbModelChecker extends NonProbModelChecker
 					probs = new StateProbsDV(probsDV, model);
 					break;
 				default:
-					throw new PrismException("Engine does not support this numerical method");
+					throw new PrismException("Unknown engine");
 				}
 			} catch (PrismException e) {
 				JDD.Deref(yes);
@@ -1558,7 +1557,7 @@ public class ProbModelChecker extends NonProbModelChecker
 				rewards = new StateProbsDV(rewardsDV, model);
 				break;
 			default:
-				throw new PrismException("Engine does not support this numerical method");
+				throw new PrismException("Unknown engine");
 			}
 		} catch (PrismException e) {
 			throw e;
@@ -1598,7 +1597,7 @@ public class ProbModelChecker extends NonProbModelChecker
 					rewards = new StateProbsDV(rewardsDV, model);
 					break;
 				default:
-					throw new PrismException("Engine does not support this numerical method");
+					throw new PrismException("Unknown engine");
 				}
 			} catch (PrismException e) {
 				throw e;
@@ -1671,7 +1670,7 @@ public class ProbModelChecker extends NonProbModelChecker
 					rewards = new StateProbsDV(rewardsDV, model);
 					break;
 				default:
-					throw new PrismException("Engine does not support this numerical method");
+					throw new PrismException("Unknown engine");
 				}
 			} catch (PrismException e) {
 				JDD.Deref(inf);
@@ -1751,7 +1750,7 @@ public class ProbModelChecker extends NonProbModelChecker
 				probs = new StateProbsDV(probsDV, model);
 				break;
 			default:
-				throw new PrismException("Engine does not support this numerical method");
+				throw new PrismException("Unknown engine");
 			}
 		} catch (PrismException e) {
 			JDD.Deref(trf);
@@ -1789,7 +1788,7 @@ public class ProbModelChecker extends NonProbModelChecker
 				probs = new StateProbsDV(probsDV, model);
 				break;
 			default:
-				throw new PrismException("Engine does not support this numerical method");
+				throw new PrismException("Unknown engine");
 			}
 		} catch (PrismException e) {
 			throw e;

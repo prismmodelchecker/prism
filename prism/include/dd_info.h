@@ -36,6 +36,7 @@ double DD_GetNumPaths(DdManager *ddman, DdNode *dd);
 void DD_PrintInfo(DdManager *ddman, DdNode *dd, int num_vars);
 void DD_PrintInfoBrief(DdManager *ddman, DdNode *dd, int num_vars);
 void DD_PrintSupport(DdManager *ddman, DdNode *dd);
+void DD_PrintSupportNames(DdManager *ddman, DdNode *dd, char **var_names);
 DdNode *DD_GetSupport(DdManager *ddman, DdNode *dd);
 void DD_PrintTerminals(DdManager *ddman, DdNode *dd);
 void DD_PrintTerminalsAndNumbers(DdManager *ddman, DdNode *dd, int num_vars);

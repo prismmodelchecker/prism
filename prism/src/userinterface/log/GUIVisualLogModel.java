@@ -303,6 +303,11 @@ public class GUIVisualLogModel implements PrismLog
         print(NORMAL, s);
     }
     
+    public void print(double d[])
+    {
+         print(NORMAL,""+d);
+    }
+    
     public void println()
     {
         println(NORMAL, "");
@@ -341,6 +346,11 @@ public class GUIVisualLogModel implements PrismLog
     public void println(String s)
     {
          println(NORMAL,""+s);
+    }
+    
+    public void println(double d[])
+    {
+         println(NORMAL,""+d);
     }
     
     public void println(long l)

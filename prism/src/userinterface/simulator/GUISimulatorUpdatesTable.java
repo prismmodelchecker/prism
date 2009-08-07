@@ -34,7 +34,7 @@ import javax.swing.table.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 
-import parser.ast.*;
+import prism.ModelType;
 import userinterface.GUIPrism;
 
 /**
@@ -172,7 +172,7 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 		    
 		    int dist;
 		    
-		    if(sim.getModulesFile().getType() == ModulesFile.STOCHASTIC)
+		    if(sim.getModulesFile().getModelType() == ModelType.CTMC)
 			dist = 0;
 		    else dist = utm.getProbabilityDistributionOf(row);
 		    

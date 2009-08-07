@@ -32,6 +32,7 @@ import java.awt.*;
 
 import prism.*;
 import parser.ast.Expression;
+import parser.type.*;
 
 /**
  *
@@ -44,8 +45,10 @@ public class ConstantLine extends javax.swing.JPanel
 	public static final String RANGE_END_DEFAULT = "1";
 	public static final String STEP_DEFAULT = "1";
 	
+	private Type type;
+	
 	/** Creates new form ConstantLine */
-	public ConstantLine(String name, int type)
+	public ConstantLine(String name, Type type)
 	{
 	initComponents();
 	//setBorder(new BottomBorder());
@@ -60,82 +63,71 @@ public class ConstantLine extends javax.swing.JPanel
 	nameLabel.setText(str);
 	}
 	
-	public void setConstType(int type)
+	public void setConstType(Type type)
 	{
-	switch(type)
-	{
-		case Expression.BOOLEAN:
-		{
-		typeLabel.setText("bool");
-		rangeCombo.setEnabled(false);
-		singleValueCombo.setSelected(true);
-		
-		remove(singleValueField);
-		remove(boolSingleValueCombo);
-		remove(sizerPanel);
-		java.awt.GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
-		gridBagConstraints.gridx = 3;
-		gridBagConstraints.gridy = 0;
-		gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-		gridBagConstraints.weightx = 0.2;
-		gridBagConstraints.ipadx = 5;
-		add(boolSingleValueCombo, gridBagConstraints);
-		//add(sizerPanel, gridBagConstraints);
-		
-		break;
+		this.type = type;
+		if (type instanceof TypeBool) {
+			typeLabel.setText("bool");
+			rangeCombo.setEnabled(false);
+			singleValueCombo.setSelected(true);
+			
+			remove(singleValueField);
+			remove(boolSingleValueCombo);
+			remove(sizerPanel);
+			java.awt.GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
+			gridBagConstraints.gridx = 3;
+			gridBagConstraints.gridy = 0;
+			gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+			gridBagConstraints.weightx = 0.2;
+			gridBagConstraints.ipadx = 5;
+			add(boolSingleValueCombo, gridBagConstraints);
+			//add(sizerPanel, gridBagConstraints);
 		}
-		case Expression.DOUBLE:
-		{
-		typeLabel.setText("double");
-		rangeCombo.setEnabled(true);
-		singleValueCombo.setSelected(true);
-		
-		remove(singleValueField);
-		remove(boolSingleValueCombo);
-		remove(sizerPanel);
-		java.awt.GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
-		gridBagConstraints.gridx = 3;
-		gridBagConstraints.gridy = 0;
-		gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-		gridBagConstraints.weightx = 0.2;
-		gridBagConstraints.ipadx = 5;
-		add(singleValueField, gridBagConstraints);
-		break;
+		else if (type instanceof TypeDouble) {
+			typeLabel.setText("double");
+			rangeCombo.setEnabled(true);
+			singleValueCombo.setSelected(true);
+			
+			remove(singleValueField);
+			remove(boolSingleValueCombo);
+			remove(sizerPanel);
+			java.awt.GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
+			gridBagConstraints.gridx = 3;
+			gridBagConstraints.gridy = 0;
+			gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+			gridBagConstraints.weightx = 0.2;
+			gridBagConstraints.ipadx = 5;
+			add(singleValueField, gridBagConstraints);
 		}
-		case Expression.INT:
-		{
-		typeLabel.setText("int");
-		rangeCombo.setEnabled(true);
-		singleValueCombo.setSelected(true);
-		remove(singleValueField);
-		remove(boolSingleValueCombo);
-		remove(sizerPanel);
-		java.awt.GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
-		gridBagConstraints.gridx = 3;
-		gridBagConstraints.gridy = 0;
-		gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-		gridBagConstraints.weightx = 0.2;
-		gridBagConstraints.ipadx = 5;
-		add(singleValueField, gridBagConstraints);
-		break;
+		else if (type instanceof TypeInt) {
+			typeLabel.setText("int");
+			rangeCombo.setEnabled(true);
+			singleValueCombo.setSelected(true);
+			remove(singleValueField);
+			remove(boolSingleValueCombo);
+			remove(sizerPanel);
+			java.awt.GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
+			gridBagConstraints.gridx = 3;
+			gridBagConstraints.gridy = 0;
+			gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+			gridBagConstraints.weightx = 0.2;
+			gridBagConstraints.ipadx = 5;
+			add(singleValueField, gridBagConstraints);
 		}
-		default:
-		{
-		typeLabel.setText("unknown");
-		rangeCombo.setEnabled(true);
-		singleValueCombo.setSelected(true);
-		remove(singleValueField);
-		remove(boolSingleValueCombo);
-		remove(sizerPanel);
-		java.awt.GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
-		gridBagConstraints.gridx = 3;
-		gridBagConstraints.gridy = 0;
-		gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-		gridBagConstraints.weightx = 0.2;
-		add(singleValueField, gridBagConstraints);
+		else {
+			typeLabel.setText("unknown");
+			rangeCombo.setEnabled(true);
+			singleValueCombo.setSelected(true);
+			remove(singleValueField);
+			remove(boolSingleValueCombo);
+			remove(sizerPanel);
+			java.awt.GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
+			gridBagConstraints.gridx = 3;
+			gridBagConstraints.gridy = 0;
+			gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+			gridBagConstraints.weightx = 0.2;
+			add(singleValueField, gridBagConstraints);
 		}
-	}
-	
 	}
 	
 	public void doDefaults()
@@ -171,11 +163,9 @@ public class ConstantLine extends javax.swing.JPanel
 	
 	//ACCESS METHODS
 	
-	public int getType()
+	public Type getType()
 	{
-		if(typeLabel.getText().equals("bool")) return Expression.BOOLEAN;
-		else if(typeLabel.getText().equals("int")) return Expression.INT;
-		else return Expression.DOUBLE;
+		return type;
 	}
 	
 	public boolean isRange()
@@ -192,7 +182,7 @@ public class ConstantLine extends javax.swing.JPanel
 	
 	public String getSingleValue()
 	{
-		if(typeLabel.getText().equals("bool"))
+		if(type instanceof TypeBool)
 		{
 			return boolSingleValueCombo.getSelectedItem().toString();
 		}
@@ -204,7 +194,7 @@ public class ConstantLine extends javax.swing.JPanel
 	
 	public void setSingleValue(String str)
 	{
-		if(typeLabel.getText().equals("bool"))
+		if(type instanceof TypeBool)
 		{
 			if (str != null) boolSingleValueCombo.setSelectedIndex(str.equals("true") ? 0 : 1);
 			else boolSingleValueCombo.setSelectedIndex(0); // default
@@ -255,14 +245,14 @@ public class ConstantLine extends javax.swing.JPanel
 	{
 		String s = "";
 		
-		if(typeLabel.getText().equals("bool"))
+		if(type instanceof TypeBool)
 		{
 			s = boolSingleValueCombo.getSelectedItem().toString();
 			if (!(s.equals("true") | s.equals("false"))) {
 				throw new PrismException("Invalid value \""+s+"\" for Boolean constant \""+getName()+"\"");
 			}
 		}
-		else if(typeLabel.getText().equals("int"))
+		else if(type instanceof TypeInt)
 		{
 			try {
 				s = singleValueField.getText(); Integer.parseInt(s);
@@ -275,7 +265,7 @@ public class ConstantLine extends javax.swing.JPanel
 				throw new PrismException("Invalid value \""+s+"\" for integer constant \""+getName()+"\"");
 			}
 		}
-		else if(typeLabel.getText().equals("double"))
+		else if(type instanceof TypeDouble)
 		{
 			try {
 				s = singleValueField.getText(); Double.parseDouble(s);

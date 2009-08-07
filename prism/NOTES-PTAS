@@ -1,0 +1,40 @@
+
+More Type checking, semantic checks ???
+
+Creation of new names (adding extra _s) doesn't take into account prop file ot consts etc.
+
+Sort VarList (two types - before and after constants evaluated). Need for simulator too.
+
+
+Digital clocks
+--------------
+
+Translation done sep for erach property (e.g. for cmax)
+
+Debugging on case studies
+Optimisations?
+Urgency?
+
+
+Stochastic games
+----------------
+
+Optimise number of states in time-bounded PTAs (extras added in old target states) using until in forwards reach?
+
+
+
+
+
+Documentation
+-------------
+
+Where can clocks be used
+* clock constraints (just (some) binops)
+  - in guards
+  - in invariants
+* resets (normal updates, but to ints only)
+* var decl.s
+* generally must be convex (i.e. just conj of constraints) (can be relaxed a bit for digital clocks)
+
+Must have single initial state (is this true for digital clocks too?)
+

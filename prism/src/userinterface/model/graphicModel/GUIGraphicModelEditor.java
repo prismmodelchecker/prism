@@ -34,6 +34,7 @@ import javax.swing.*;
 
 import prism.*;
 import parser.ast.*;
+import parser.type.*;
 import userinterface.util.*;
 import userinterface.model.*;
 import userinterface.model.computation.*;
@@ -291,12 +292,12 @@ public class GUIGraphicModelEditor extends GUIModelEditor implements SelectionLi
         //System.out.println("loadAllExceptModules called "+type);
         
         textEditor.setText(systemInformation);
-        if(type.equals("nondeterministic"))
-            tree.a_setModelType(ModulesFile.NONDETERMINISTIC);
-        else if(type.equals("probabilistic"))
-            tree.a_setModelType(ModulesFile.PROBABILISTIC);
-        else if(type.equals("stochastic"))
-            tree.a_setModelType(ModulesFile.STOCHASTIC);
+        if(type.equals("mdp"))
+            tree.a_setModelType(ModelType.MDP);
+        else if(type.equals("dtmc"))
+            tree.a_setModelType(ModelType.DTMC);
+        else if(type.equals("ctmc"))
+            tree.a_setModelType(ModelType.CTMC);
         
         for(int i = 0; i < constants.size(); i++)
         {
@@ -382,7 +383,7 @@ public class GUIGraphicModelEditor extends GUIModelEditor implements SelectionLi
     //Access
     
     
-    public int getTypeNumber()
+    public ModelType getModelType()
     {
         return tree.getModelType();
     }
@@ -397,7 +398,7 @@ public class GUIGraphicModelEditor extends GUIModelEditor implements SelectionLi
         return tree.getEditableConstantValues();
     }
     
-    public ArrayList getEditableConstantTypes()
+    public ArrayList<Type> getEditableConstantTypes()
     {
         return tree.getEditableConstantTypes();
     }
@@ -422,7 +423,7 @@ public class GUIGraphicModelEditor extends GUIModelEditor implements SelectionLi
         return tree.getEditableGlobalInits();
     }
     
-    public ArrayList getEditableGlobalTypes()
+    public ArrayList<Type> getEditableGlobalTypes()
     {
         return tree.getEditableGlobalTypes();
     }
@@ -445,7 +446,7 @@ public class GUIGraphicModelEditor extends GUIModelEditor implements SelectionLi
         return tree.getVariableNames(m.getCorrespondingModuleNode());
     }
     
-    public ArrayList getVariableTypes(ModuleModel m)
+    public ArrayList<Type> getVariableTypes(ModuleModel m)
     {
         return tree.getVariableTypes(m.getCorrespondingModuleNode());
     }

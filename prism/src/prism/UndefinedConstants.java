@@ -30,6 +30,7 @@ import java.util.Vector;
 
 import parser.*;
 import parser.ast.*;
+import parser.type.*;
 
 // class to handle the undefined constants in model/properties files
 
@@ -61,7 +62,7 @@ public class UndefinedConstants
 	public UndefinedConstants(ModulesFile mf, PropertiesFile pf)
 	{
 		int i;
-		Vector mfv, pfv;
+		Vector<String> mfv, pfv;
 		String s;
 		
 		// store model/properties files
@@ -69,7 +70,7 @@ public class UndefinedConstants
 		propertiesFile = pf;
 		// determine which constants are undefined
 		mfv = modulesFile.getUndefinedConstants();
-		pfv = (propertiesFile == null) ? new Vector() : propertiesFile.getUndefinedConstants();
+		pfv = (propertiesFile == null) ? new Vector<String>() : propertiesFile.getUndefinedConstants();
 		// determine how many constants there are
 		mfNumConsts = mfv.size();
 		pfNumConsts = pfv.size();
@@ -98,9 +99,9 @@ public class UndefinedConstants
 	
 	public String getPFUndefinedName(int i) { return pfConsts[i].getName(); }
 	
-	public int getMFUndefinedType(int i) { return mfConsts[i].getType(); }
+	public Type getMFUndefinedType(int i) { return mfConsts[i].getType(); }
 	
-	public int getPFUndefinedType(int i) { return pfConsts[i].getType(); }
+	public Type getPFUndefinedType(int i) { return pfConsts[i].getType(); }
 	
 	public int getMFConstIndex(String s) { for (int i = 0; i < mfNumConsts; i++) { if (mfConsts[i].getName().equals(s)) return i; } return -1; }
 	

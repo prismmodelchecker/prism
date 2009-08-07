@@ -122,7 +122,7 @@ public class LabelList extends ASTElement
 		n = size();
 		for (i = 0; i < n; i++) {
 			s += "label \"" + getLabelName(i);
-			s += "\" = " + getLabel(i) + "\n";
+			s += "\" = " + getLabel(i) + ";\n";
 		}
 		
 		return s;

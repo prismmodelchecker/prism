@@ -505,6 +505,14 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintSupport
 
 /*
  * Class:     jdd_JDD
+ * Method:    DD_PrintSupportNames
+ * Signature: (JLjava/util/List;)V
+ */
+JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintSupportNames
+  (JNIEnv *, jclass, jlong, jobject);
+
+/*
+ * Class:     jdd_JDD
  * Method:    DD_GetSupport
  * Signature: (J)J
  */
@@ -618,7 +626,7 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportDDToDotFile
 /*
  * Class:     jdd_JDD
  * Method:    DD_ExportDDToDotFileLabelled
- * Signature: (JLjava/lang/String;Ljava/util/Vector;)V
+ * Signature: (JLjava/lang/String;Ljava/util/List;)V
  */
 JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportDDToDotFileLabelled
   (JNIEnv *, jclass, jlong, jstring, jobject);

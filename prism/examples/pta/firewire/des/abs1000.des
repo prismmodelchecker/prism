@@ -1,0 +1,113 @@
+#no update for variables
+{
+#0
+init
+	node startstart; x<= 360
+	[ 
+	tran  faststart; true;null;0.5
+	tran  slowstart; true;null;0.5
+	 ] 
+	[ 
+	tran  startfast; true;null;0.5
+	tran  startslow; true;null;0.5
+	 ] 
+}
+#1
+{
+	node faststart; x<= 360
+	[
+	tran   fastfast;true;x=0;0.5
+	tran   fastslow;true;x=0;0.5
+	]
+}
+
+#2
+{
+	node slowstart; x<= 360
+	[
+	tran   slowfast;true;x=0;0.5
+	tran   slowslow;true;x=0;0.5
+	]
+}
+#3
+{
+	node startfast; x<= 360
+	[
+	tran   fastfast;true;x=0;0.5
+	tran   slowfast;true;x=0;0.5
+	]
+}
+#4
+{
+	node startslow; x<= 360
+	[
+	tran   fastslow;true;x=0;0.5
+	tran   slowslow;true;x=0;0.5
+	]
+}
+
+#5
+{
+	node fastfast; x<= 850
+	[
+	tran   startstart;x>=760;x=0;1
+	]
+	[
+	tran   before;z<=10000,x>=400;x=0;1
+	]
+	[
+	tran   after;z>10000,x>=400;x=0;1
+	]
+}
+#6
+{
+	node fastslow; x<= 1670
+	[
+	tran   before;z<=10000,x>=1230;x=0;1
+	]
+	[
+	tran   after;z>10000,x>=1230;x=0;1
+	]
+}
+#7
+{
+	node slowfast; x<= 1670
+	[
+	tran   before;z<=10000,x>=1230;x=0;1
+	]
+	[
+	tran   after;z>10000,x>=1230;x=0;1
+	]
+}
+#8
+{
+	node slowslow; x<= 1670
+	[
+	tran   startstart;x>=1590;x=0;1
+	]
+	[
+	tran   before;z<=10000,x>=1230;x=0;1
+	]
+	[
+	tran   after;z>10000,x>=1230;x=0;1
+	]
+}
+#9
+{
+	node before; true
+	[
+	tran before;true;null;1
+	]
+}
+#10
+{
+	node after; true
+	[
+	tran after;true;null;1
+	]
+*
+
+
+
+
+

@@ -26,32 +26,38 @@
 
 package parser.ast;
 
-import java.util.Vector;
-import java.util.ArrayList;
+import java.util.*;
 
-import parser.*;
 import parser.visitor.*;
 import prism.PrismLangException;
 
+/**
+ * Class to store a list of updates with associated probabilities (or rates).
+ * e.g. 0.5:(s'=1)&(x'=x+1) + 0.5:(s'=2)&(x'=x-1)
+ */
 public class Updates extends ASTElement
 {
 	// Pairs of probabilities/updates
-	ArrayList<Expression> probs;
-	ArrayList<Update> updates;
+	private ArrayList<Expression> probs;
+	private ArrayList<Update> updates;
 	// Parent command
-	Command parent;
-	
-	// Constructor
-	
+	private Command parent;
+
+	/**
+	 * Construct an empty Updates object.
+	 */
 	public Updates()
 	{
 		probs = new ArrayList<Expression>();
 		updates = new ArrayList<Update>();
-		parent= null;
+		parent = null;
 	}
-	
-	// Add a probability/update pair (probability can be null, which equates to 1.0)
-	
+
+	// Set methods
+
+	/**
+	 * Add a probability/update pair (probability can be null, which equates to 1.0).
+	 */
 	public void addUpdate(Expression p, Update u)
 	{
 		probs.add(p);
@@ -59,37 +65,58 @@ public class Updates extends ASTElement
 		u.setParent(this);
 	}
 
-	// Set methods
-	
+	/**
+	 * Set the ith update.
+	 */
 	public void setUpdate(int i, Update u)
 	{
 		updates.set(i, u);
 		u.setParent(this);
 	}
-	
+
+	/**
+	 * Set the probability of the ith update (can be null; denotes default of 1.0)
+	 */
 	public void setProbability(int i, Expression p)
 	{
 		// Note: probability can be null, which equates to 1.0
 		probs.set(i, p);
 	}
-	
+
+	/**
+	 * Set the parent Command.
+	 */
 	public void setParent(Command c)
 	{
 		parent = c;
 	}
 
 	// Get methods
-	
+
+	/**
+	 * Get the number of updates.
+	 */
 	public int getNumUpdates()
 	{
 		return updates.size();
 	}
-	
+
+	/**
+	 * Get the ith update.
+	 */
 	public Update getUpdate(int i)
 	{
 		return updates.get(i);
 	}
-	
+
+	/**
+	 * Get access to the whole list of the updates
+	 */
+	public List<Update> getUpdates()
+	{
+		return updates;
+	}
+
 	/**
 	 *  Get the probability of the ith update (may be null, which should be interpreted as constant 1.0)
 	 */
@@ -97,32 +124,17 @@ public class Updates extends ASTElement
 	{
 		return probs.get(i);
 	}
-	
+
+	/**
+	 * Get the Command to which this Updates object belongs.
+	 */
 	public Command getParent()
 	{
 		return parent;
 	}
 
-	/**
-	 * Create an array of Values objects, one for each update, using oldValues as a basis.
-	 */
-	
-	public Vector<Values> update(Values constantValues, Values oldValues) throws PrismLangException
-	{
-		int i, n;
-		Vector<Values> res;
-		
-		n = getNumUpdates();
-		res = new Vector<Values>(n);
-		for (i = 0; i < n; i++) {
-			res.add(getUpdate(i).update(constantValues, oldValues));
-		}
-		
-		return res;
-	}
-
 	// Methods required for ASTElement:
-	
+
 	/**
 	 * Visitor method.
 	 */
@@ -130,7 +142,7 @@ public class Updates extends ASTElement
 	{
 		return v.visit(this);
 	}
-	
+
 	/**
 	 * Convert to string.
 	 */
@@ -138,18 +150,20 @@ public class Updates extends ASTElement
 	{
 		String s = "";
 		int i, n;
-		
+
 		n = getNumUpdates();
-		for (i = 0; i < n-1; i++) {
-			if (getProbability(i) != null) s += getProbability(i) + " : ";
+		for (i = 0; i < n - 1; i++) {
+			if (getProbability(i) != null)
+				s += getProbability(i) + " : ";
 			s += getUpdate(i) + " + ";
 		}
-		if (getProbability(n-1) != null) s += getProbability(n-1) + " : ";
-		s += getUpdate(n-1);
-		
+		if (getProbability(n - 1) != null)
+			s += getProbability(n - 1) + " : ";
+		s += getUpdate(n - 1);
+
 		return s;
 	}
-	
+
 	/**
 	 * Perform a deep copy.
 	 */
@@ -161,8 +175,9 @@ public class Updates extends ASTElement
 		n = getNumUpdates();
 		for (i = 0; i < n; i++) {
 			p = getProbability(i);
-			if (p != null) p = p.deepCopy();
-			ret.addUpdate(p, (Update)getUpdate(i).deepCopy());
+			if (p != null)
+				p = p.deepCopy();
+			ret.addUpdate(p, (Update) getUpdate(i).deepCopy());
 		}
 		ret.setPosition(this);
 		return ret;

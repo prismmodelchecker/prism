@@ -1,0 +1,23 @@
+#no update for variables
+{
+init
+	node first; true
+	[ 
+	finished||tran after; z>=80; z=0; 1.0
+	]
+	[
+	finished||tran before; z<80; z=0; 1.0
+	] 
+}
+{
+	node after; true
+	[
+	tran after;true;null;1
+	]
+}
+{
+	node before; true
+	[
+	tran before;true;null;1
+	]
+*

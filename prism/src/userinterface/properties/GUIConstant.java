@@ -27,21 +27,18 @@
 package userinterface.properties;
 
 import parser.ast.*;
+import parser.type.*;
 import prism.*;
 
 class GUIConstant
 {
-	public static final int INT = Expression.INT;
-	public static final int BOOL = Expression.BOOLEAN;
-	public static final int DOUBLE = Expression.DOUBLE;
-	
 	public GUIMultiProperties parent;
 	public String name;
 	public String constant;
-	public int type;
+	public Type type;
 	public Exception parseError;
 	
-	public GUIConstant(GUIMultiProperties parent, String name, String constant, int type)
+	public GUIConstant(GUIMultiProperties parent, String name, String constant, Type type)
 	{
 		this.parent = parent;
 		this.name = name;
@@ -73,18 +70,7 @@ class GUIConstant
 	
 	public String toString()
 	{
-		return "const "+getTypeString()+" "+name+getValueString()+";";
-	}
-	
-	public String getTypeString()
-	{
-		switch(type)
-		{
-			case(INT):	return "int";
-			case(DOUBLE): return "double";
-			case(BOOL):   return "bool";
-			default:	  return "";
-		}
+		return "const "+type.getTypeString()+" "+name+getValueString()+";";
 	}
 	
 	public String getValueString()

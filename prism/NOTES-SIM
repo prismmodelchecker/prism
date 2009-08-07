@@ -1,0 +1,9 @@
+
+Copied prism-arrays typing stuff
+Disabled .jj stuff so cannot actually create arrays
+Completed update of type system
+
+Moved simulator to simulator-old
+Started to build coarse Java-version of SimulatorEngine.
+Currently, just a few statements in automaticChoices...
+

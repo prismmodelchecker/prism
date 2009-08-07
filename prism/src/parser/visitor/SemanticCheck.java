@@ -29,6 +29,8 @@ package parser.visitor;
 import java.util.Vector;
 
 import parser.ast.*;
+import parser.type.*;
+import prism.ModelType;
 import prism.PrismLangException;
 
 /**
@@ -39,6 +41,8 @@ public class SemanticCheck extends ASTTraverse
 {
 	private ModulesFile modulesFile;
 	private PropertiesFile propertiesFile;
+	// Sometimes we need to keep track of parent (ancestor) objects
+	private Update update = null;
 
 	public SemanticCheck()
 	{
@@ -138,23 +142,55 @@ public class SemanticCheck extends ASTTraverse
 			}
 		}
 	}
-
+	
 	public void visitPost(Declaration e) throws PrismLangException
 	{
-		if (e.getLow() != null && !e.getLow().isConstant()) {
-			throw new PrismLangException("Minimum value of variable \"" + e.getName() + "\" is not constant", e
-					.getLow());
-		}
-		if (e.getHigh() != null && !e.getHigh().isConstant()) {
-			throw new PrismLangException("Maximum value of variable \"" + e.getName() + "\" is not constant", e
-					.getHigh());
-		}
 		if (e.getStart() != null && !e.getStart().isConstant()) {
-			throw new PrismLangException("Initial value of variable \"" + e.getName() + "\" is not constant", e
+			throw new PrismLangException("Initial variable value of variable \"" + e.getName() + "\" is not constant", e
 					.getStart());
 		}
+		// Clocks cannot be given initial variables
+		// (Note: it is safe to use getType() here because the type of a Declaration
+		// is set on construction, not during type checking).
+		if (e.getStart() != null && e.getType() instanceof TypeClock) {
+			throw new PrismLangException("Cannot specify initial value for a clock", e);
+		}
 	}
-
+	
+	public void visitPost(DeclarationInt e) throws PrismLangException
+	{
+		if (e.getLow() != null && !e.getLow().isConstant()) {
+			throw new PrismLangException("Integer range lower bound \"" + e.getLow() + "\" is not constant", e.getLow());
+		}
+		if (e.getHigh() != null && !e.getHigh().isConstant()) {
+			throw new PrismLangException("Integer range upper bound \"" + e.getLow() + "\" is not constant", e.getLow());
+		}
+	}
+	
+	public void visitPost(DeclarationArray e) throws PrismLangException
+	{
+		if (e.getLow() != null && !e.getLow().isConstant()) {
+			throw new PrismLangException("Array lower bound \"" + e.getLow() + "\" is not constant", e.getLow());
+		}
+		if (e.getHigh() != null && !e.getHigh().isConstant()) {
+			throw new PrismLangException("Array upper bound \"" + e.getLow() + "\" is not constant", e.getLow());
+		}
+	}
+	
+	public void visitPost(DeclarationClock e) throws PrismLangException
+	{
+		// Clocks are only allowed in PTA models
+		if (modulesFile.getModelType() != ModelType.PTA) {
+			throw new PrismLangException("Clock variables are only allowed in PTA models", e);
+		}
+	}
+	
+	public void visitPre(Update e) throws PrismLangException
+	{
+		// Register the fact we are entering an update
+		update = e;
+	}
+	
 	public void visitPost(Update e) throws PrismLangException
 	{
 		int i, n;
@@ -164,6 +200,9 @@ public class SemanticCheck extends ASTTraverse
 		ModulesFile mf;
 		boolean isLocal, isGlobal;
 
+		// Register the fact we are leaving an update
+		update = null;
+		
 		// Determine containing command/module/model
 		// (mf should coincide with the stored modulesFile)
 		c = e.getParent().getParent();
@@ -322,6 +361,15 @@ public class SemanticCheck extends ASTTraverse
 	{
 		// This should have been expanded by now
 		throw new PrismLangException("Unexpanded formula", e);
+	}
+
+	public void visitPost(ExpressionVar e) throws PrismLangException
+	{
+		// Clocks cannot be used in expressions on RHS of updates
+		// (Note: type checking has not been done, but we know types for ExpressionVars)
+		if (update != null && e.getType() instanceof TypeClock) {
+			throw new PrismLangException("Cannot use clocks to update other variables", e);
+		}
 	}
 
 	public void visitPost(ExpressionProb e) throws PrismLangException

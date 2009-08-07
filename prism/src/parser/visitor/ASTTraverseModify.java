@@ -130,13 +130,53 @@ public class ASTTraverseModify implements ASTVisitor
 	public Object visit(Declaration e) throws PrismLangException
 	{
 		visitPre(e);
-		if (e.getLow() != null) e.setLow((Expression)(e.getLow().accept(this)));
-		if (e.getHigh() != null) e.setHigh((Expression)(e.getHigh().accept(this)));
-		if (e.getStart() != null) e.setStart((Expression)(e.getStart().accept(this)));
+		if (e.getDeclType() != null) e.setDeclType((DeclarationType)e.getDeclType().accept(this));
+		if (e.getStart() != null) e.setStart((Expression)e.getStart().accept(this));
 		visitPost(e);
 		return e;
 	}
 	public void visitPost(Declaration e) throws PrismLangException { defaultVisitPost(e); }
+	// -----------------------------------------------------------------------------------
+	public void visitPre(DeclarationInt e) throws PrismLangException { defaultVisitPre(e); }
+	public Object visit(DeclarationInt e) throws PrismLangException
+	{
+		visitPre(e);
+		if (e.getLow() != null) e.setLow((Expression)e.getLow().accept(this));
+		if (e.getHigh() != null) e.setHigh((Expression)e.getHigh().accept(this));
+		visitPost(e);
+		return e;
+	}
+	public void visitPost(DeclarationInt e) throws PrismLangException { defaultVisitPost(e); }
+	// -----------------------------------------------------------------------------------
+	public void visitPre(DeclarationBool e) throws PrismLangException { defaultVisitPre(e); }
+	public Object visit(DeclarationBool e) throws PrismLangException
+	{
+		visitPre(e);
+		visitPost(e);
+		return e;
+	}
+	public void visitPost(DeclarationBool e) throws PrismLangException { defaultVisitPost(e); }
+	// -----------------------------------------------------------------------------------
+	public void visitPre(DeclarationArray e) throws PrismLangException { defaultVisitPre(e); }
+	public Object visit(DeclarationArray e) throws PrismLangException
+	{
+		visitPre(e);
+		if (e.getLow() != null) e.setLow((Expression)e.getLow().accept(this));
+		if (e.getHigh() != null) e.setHigh((Expression)e.getHigh().accept(this));
+		if (e.getSubtype() != null) e.setSubtype((DeclarationType)e.getSubtype().accept(this));
+		visitPost(e);
+		return e;
+	}
+	public void visitPost(DeclarationArray e) throws PrismLangException { defaultVisitPost(e); }
+	// -----------------------------------------------------------------------------------
+	public void visitPre(DeclarationClock e) throws PrismLangException { defaultVisitPre(e); }
+	public Object visit(DeclarationClock e) throws PrismLangException
+	{
+		visitPre(e);
+		visitPost(e);
+		return e;
+	}
+	public void visitPost(DeclarationClock e) throws PrismLangException { defaultVisitPost(e); }
 	// -----------------------------------------------------------------------------------
 	public void visitPre(Module e) throws PrismLangException { defaultVisitPre(e); }
 	public Object visit(Module e) throws PrismLangException
@@ -147,6 +187,8 @@ public class ASTTraverseModify implements ASTVisitor
 		for (i = 0; i < n; i++) {
 			if (e.getDeclaration(i) != null) e.setDeclaration(i, (Declaration)(e.getDeclaration(i).accept(this)));
 		}
+		if (e.getInvariant() != null)
+			e.setInvariant((Expression)(e.getInvariant().accept(this)));
 		n = e.getNumCommands();
 		for (i = 0; i < n; i++) {
 			if (e.getCommand(i) != null) e.setCommand(i, (Command)(e.getCommand(i).accept(this)));
@@ -312,8 +354,8 @@ public class ASTTraverseModify implements ASTVisitor
 		visitPre(e);
 		if (e.getOperand1() != null) e.setOperand1((Expression)(e.getOperand1().accept(this)));
 		if (e.getOperand2() != null) e.setOperand2((Expression)(e.getOperand2().accept(this)));
-		if (e.getLowerBound() != null) e.setLowerBound((Expression)(e.getLowerBound().accept(this)));
-		if (e.getUpperBound() != null) e.setUpperBound((Expression)(e.getUpperBound().accept(this)));
+		if (e.getLowerBound() != null) e.setLowerBound((Expression)(e.getLowerBound().accept(this)), e.lowerBoundIsStrict());
+		if (e.getUpperBound() != null) e.setUpperBound((Expression)(e.getUpperBound().accept(this)), e.upperBoundIsStrict());
 		visitPost(e);
 		return e;
 	}

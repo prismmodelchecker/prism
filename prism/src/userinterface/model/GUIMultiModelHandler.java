@@ -1275,13 +1275,13 @@ public class GUIMultiModelHandler extends JPanel
         }
     }
     
-    public synchronized int getParsedModelType()
+    public synchronized ModelType getParsedModelType()
     {
         if(parsedModel != null)
         {
-            return parsedModel.getType();
+            return parsedModel.getModelType();
         }
-        else return parsedModel.NONDETERMINISTIC;
+        else return ModelType.MDP;
     }
     
     public synchronized String getParseErrorMessage()

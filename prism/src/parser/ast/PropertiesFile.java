@@ -26,7 +26,7 @@
 
 package parser.ast;
 
-import java.util.Vector;
+import java.util.*;
 
 import parser.*;
 import parser.visitor.*;
@@ -48,8 +48,7 @@ public class PropertiesFile extends ASTElement
 	private Vector<String> comments; // Property comments
 	
 	// list of all identifiers used
-	private Vector<String> modulesFileIdents;
-	private Vector<String> allIdentsUsed;
+	private List<String> allIdentsUsed;
 	
 	// actual values of constants
 	private Values constantValues;
@@ -59,7 +58,6 @@ public class PropertiesFile extends ASTElement
 	public PropertiesFile(ModulesFile mf)
 	{
 		modulesFile = mf;
-		modulesFileIdents = modulesFile.getAllIdentsUsed();
 		formulaList = new FormulaList();
 		labelList = new LabelList();
 		combinedLabelList = new LabelList();
@@ -102,6 +100,15 @@ public class PropertiesFile extends ASTElement
 	
 	public String getPropertyComment(int i) { return comments.elementAt(i); }
 	
+	/**
+	 * Check if an identifier is used by this properties file 
+	 * (as a formula or constant)
+	 */
+	public boolean isIdentUsed(String ident)
+	{
+		return allIdentsUsed.contains(ident);
+	}
+
 	// method to tidy up (called after parsing)
 	
 	public void tidyUp() throws PrismLangException
@@ -150,14 +157,14 @@ public class PropertiesFile extends ASTElement
 		for (i = 0; i < n; i++) {
 			s = formulaList.getFormulaName(i);
 			// see if ident has been used elsewhere
-			if (modulesFileIdents.contains(s)) {
+			if (modulesFile.isIdentUsed(s)) {
 				throw new PrismLangException("Identifier \"" + s + "\" already used in model file", formulaList.getFormulaNameIdent(i));
 			}
-			else if (allIdentsUsed.contains(s)) {
+			else if (isIdentUsed(s)) {
 				throw new PrismLangException("Duplicated identifier \"" + s + "\"", formulaList.getFormulaNameIdent(i));
 			}
 			else {
-				allIdentsUsed.addElement(s);
+				allIdentsUsed.add(s);
 			}
 		}
 	}
@@ -213,14 +220,14 @@ public class PropertiesFile extends ASTElement
 		for (i = 0; i < n; i++) {
 			s = constantList.getConstantName(i);
 			// see if ident has been used elsewhere
-			if (modulesFileIdents.contains(s)) {
+			if (modulesFile.isIdentUsed(s)) {
 				throw new PrismLangException("Identifier \"" + s + "\" already used in model file", constantList.getConstantNameIdent(i));
 			}
-			else if (allIdentsUsed.contains(s)) {
+			else if (isIdentUsed(s)) {
 				throw new PrismLangException("Duplicated identifier \"" + s + "\"", constantList.getConstantNameIdent(i));
 			}
 			else {
-				allIdentsUsed.addElement(s);
+				allIdentsUsed.add(s);
 			}
 		}
 	}

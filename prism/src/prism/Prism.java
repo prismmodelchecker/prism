@@ -40,6 +40,7 @@ import hybrid.*;
 import parser.*;
 import parser.ast.*;
 import simulator.*;
+import pta.*;
 
 // prism class - main class for model checker
 // (independent of user interface (command line or gui))
@@ -627,9 +628,9 @@ public class Prism implements PrismSettingsListener
 	
 	// parse model from file
 	
-	public ModulesFile parseModelFile(File file) throws FileNotFoundException, PrismLangException { return parseModelFile(file, 0); }
+	public ModulesFile parseModelFile(File file) throws FileNotFoundException, PrismLangException { return parseModelFile(file, null); }
 	
-	public ModulesFile parseModelFile(File file, int typeOverride) throws FileNotFoundException, PrismLangException
+	public ModulesFile parseModelFile(File file, ModelType typeOverride) throws FileNotFoundException, PrismLangException
 	{
 		FileInputStream strModel;
 		PrismParser prismParser; 
@@ -662,9 +663,9 @@ public class Prism implements PrismSettingsListener
 
 	// parse model from string
 	
-	public ModulesFile parseModelString(String s) throws PrismLangException { return parseModelString(s, 0); }
+	public ModulesFile parseModelString(String s) throws PrismLangException { return parseModelString(s, null); }
 	
-	public ModulesFile parseModelString(String s, int typeOverride) throws PrismLangException
+	public ModulesFile parseModelString(String s, ModelType typeOverride) throws PrismLangException
 	{
 		PrismParser prismParser; 
 		ModulesFile modulesFile = null;
@@ -916,10 +917,10 @@ public class Prism implements PrismSettingsListener
 	 * This is step 1 of the process; buildExplicitModel(...) should be called subsequently.
 	 * @param statesFile File containing the list of states (optional, can be null)
 	 * @param transFile File containing the list of transitions (required)
-	 * @param typeOverride Type of model to be built (see ModulesFile) (optional, use 0 if not required)
+	 * @param typeOverride Type of model to be built (optional, use null if not required)
 	 * @throws PrismException
 	 */
-	public ModulesFile parseExplicitModel(File statesFile, File transFile, File labelsFile, int typeOverride) throws PrismException
+	public ModulesFile parseExplicitModel(File statesFile, File transFile, File labelsFile, ModelType typeOverride) throws PrismException
 	{
 		// create Explicit2MTBDD object
 		exp2mtbdd = new Explicit2MTBDD(this, statesFile, transFile, labelsFile, typeOverride);
@@ -968,7 +969,7 @@ public class Prism implements PrismSettingsListener
 		// get rid of non det vars if necessary
 		tmp = model.getTrans();
 		JDD.Ref(tmp);
-		if (model.getType() == Model.MDP)
+		if (model.getModelType() == ModelType.MDP)
 		{
 			tmp = JDD.MaxAbstract(tmp, ((NondetModel)model).getAllDDNondetVars());
 		}
@@ -998,7 +999,7 @@ public class Prism implements PrismSettingsListener
 	public void exportTransToFile(Model model, boolean ordered, int exportType, File file) throws FileNotFoundException, PrismException
 	{
 		// can only do ordered version of export for MDPs
-		if (model.getType() == Model.MDP) {
+		if (model.getModelType() == ModelType.MDP) {
 			if (!ordered) mainLog.println("\nWarning: Cannot export unordered transition matrix for MDPs; using ordered.");
 			ordered = true;
 		}
@@ -1058,7 +1059,7 @@ public class Prism implements PrismSettingsListener
 		String s;
 		
 		// can only do ordered version of export for MDPs
-		if (model.getType() == Model.MDP) {
+		if (model.getModelType() == ModelType.MDP) {
 			if (!ordered) mainLog.println("\nWarning: Cannot export unordered transition reward matrix for MDPs; using ordered");
 			ordered = true;
 		}
@@ -1283,21 +1284,19 @@ public class Prism implements PrismSettingsListener
 		
 		// Check that property is valid for this model type
 		// and create new model checker object
-		switch (model.getType()) {
-		case Model.DTMC:
-			expr.checkValid(ModulesFile.PROBABILISTIC);
+		expr.checkValid(model.getModelType());
+		switch (model.getModelType()) {
+		case DTMC:
 			mc = new ProbModelChecker(this, model, propertiesFile);
 			break;
-		case Model.MDP:
-			expr.checkValid(ModulesFile.NONDETERMINISTIC);
+		case MDP:
 			mc = new NondetModelChecker(this, model, propertiesFile);
 			break;
-		case Model.CTMC:
-			expr.checkValid(ModulesFile.STOCHASTIC);
+		case CTMC:
 			mc = new StochModelChecker(this, model, propertiesFile);
 			break;
 		default:
-			throw new PrismException("Unknown model type"+model.getType());
+			throw new PrismException("Unknown model type"+model.getModelType());
 		}
 		
 		// Do model checking
@@ -1312,6 +1311,24 @@ public class Prism implements PrismSettingsListener
 		res = mc.check(expr, filter);
 		
 		// Return result
+		return res;
+	}
+	
+	// model checking for PTAs
+	// returns result or throws an exception in case of error
+	
+	public Result modelCheckPTA(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression expr) throws PrismException, PrismLangException
+	{
+		PTAModelChecker mcPta;
+		Result res;
+		
+		// Check that property is valid for this model type
+		// and create new model checker object
+		expr.checkValid(modulesFile.getModelType());
+		mcPta = new PTAModelChecker(this, modulesFile, propertiesFile);
+		// Do model checking
+		res = mcPta.check(expr);
+		
 		return res;
 	}
 	
@@ -1332,14 +1349,9 @@ public class Prism implements PrismSettingsListener
 
 	// check if a property is suitable for analysis with the simulator
 	
-	public void checkPropertyForSimulation(Expression f, int modelType) throws PrismException
+	public void checkPropertyForSimulation(Expression f, ModelType modelType) throws PrismException
 	{
-		try {
-			getSimulator().checkPropertyForSimulation(f, modelType);
-		}
-		catch (SimulatorException e) {
-			throw new PrismException(e.getMessage());
-		}
+		getSimulator().checkPropertyForSimulation(f, modelType);
 	}
 	
 	// model check using simulator
@@ -1350,14 +1362,7 @@ public class Prism implements PrismSettingsListener
 		Object res = null;
 		
 		//do model checking
-		try
-		{
-			res = getSimulator().modelCheckSingleProperty(modulesFile, propertiesFile, f, initialState, noIterations, maxPathLength);
-		}
-		catch(SimulatorException e)
-		{
-			throw new PrismException(e.getMessage());
-		}
+		res = getSimulator().modelCheckSingleProperty(modulesFile, propertiesFile, f, initialState, noIterations, maxPathLength);
 		
 		return new Result(res);
 	}
@@ -1366,18 +1371,11 @@ public class Prism implements PrismSettingsListener
 	// returns an array of results, some of which may be Exception objects if there were errors
 	// in the case of an error which affects all properties, an exception is thrown
 	
-	public Result[] modelCheckSimulatorSimultaneously(ModulesFile modulesFile, PropertiesFile propertiesFile, ArrayList fs, Values initialState, int noIterations, int maxPathLength) throws PrismException
+	public Result[] modelCheckSimulatorSimultaneously(ModulesFile modulesFile, PropertiesFile propertiesFile, ArrayList<Expression> fs, Values initialState, int noIterations, int maxPathLength) throws PrismException
 	{
 		Object[] res = null;
 		
-		try
-		{
-			res = getSimulator().modelCheckMultipleProperties(modulesFile, propertiesFile, fs, initialState, noIterations, maxPathLength);
-		}
-		catch(SimulatorException e)
-		{
-			throw new PrismException(e.getMessage());
-		}
+		res = getSimulator().modelCheckMultipleProperties(modulesFile, propertiesFile, fs, initialState, noIterations, maxPathLength);
 		
 		Result[] resArray = new Result[res.length];
 		for (int i = 0; i < res.length; i++) resArray[i] = new Result(res[i]);
@@ -1390,18 +1388,7 @@ public class Prism implements PrismSettingsListener
 	
 	public void modelCheckSimulatorExperiment(ModulesFile modulesFile, PropertiesFile propertiesFile, UndefinedConstants undefinedConstants, ResultsCollection results, Expression propertyToCheck, Values initialState, int noIterations, int pathLength) throws PrismException, InterruptedException
 	{
-		try
-		{
-			getSimulator().modelCheckExperiment(modulesFile, propertiesFile, undefinedConstants, results, propertyToCheck, initialState, pathLength, noIterations);
-		}
-		catch(SimulatorException e)
-		{
-			throw new PrismException(e.getMessage());
-		}
-		catch(PrismException e)
-		{
-			throw e;
-		}
+		getSimulator().modelCheckExperiment(modulesFile, propertiesFile, undefinedConstants, results, propertyToCheck, initialState, pathLength, noIterations);
 	}
 	
 	// generate a random path through the model using the simulator
@@ -1409,12 +1396,8 @@ public class Prism implements PrismSettingsListener
 	public void generateSimulationPath(ModulesFile modulesFile, String details, int maxPathLength, File file) throws PrismException, PrismLangException
 	{
 		// do path generation
-		try {
-			getSimulator().generateSimulationPath(modulesFile, modulesFile.getInitialValues(), details, maxPathLength, file);
-		}
-		catch (SimulatorException e) {
-			throw new PrismException(e.getMessage());
-		}
+		GenerateSimulationPath genPath = new GenerateSimulationPath(getSimulator(), mainLog);
+		genPath.generateSimulationPath(modulesFile, modulesFile.getInitialValues(), details, maxPathLength, file);
 	}
 	
 	// do steady state
@@ -1427,11 +1410,11 @@ public class Prism implements PrismSettingsListener
 		mainLog.println("\nComputing steady-state probabilities...");
 		l = System.currentTimeMillis();
 
-		if (model.getType() == Model.DTMC) {
+		if (model.getModelType() == ModelType.DTMC) {
 			mc = new ProbModelChecker(this, model, null);
 			probs = ((ProbModelChecker)mc).doSteadyState();
 		}
-		else if (model.getType() == Model.CTMC) {
+		else if (model.getModelType() == ModelType.CTMC) {
 			mc = new StochModelChecker(this, model, null);
 			probs = ((StochModelChecker)mc).doSteadyState();
 		}
@@ -1464,12 +1447,12 @@ public class Prism implements PrismSettingsListener
 		
 		l = System.currentTimeMillis();
 
-		if (model.getType() == Model.DTMC) {
+		if (model.getModelType() == ModelType.DTMC) {
 			mainLog.println("\nComputing transient probabilities (time = " + (int)time + ")...");
 			mc = new ProbModelChecker(this, model, null);
 			probs = ((ProbModelChecker)mc).doTransient((int)time);
 		}
-		else if (model.getType() == Model.CTMC) {
+		else if (model.getModelType() == ModelType.CTMC) {
 			mainLog.println("\nComputing transient probabilities (time = " + time + ")...");
 			mc = new StochModelChecker(this, model, null);
 			probs = ((StochModelChecker)mc).doTransient(time);

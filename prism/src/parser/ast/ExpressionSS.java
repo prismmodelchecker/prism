@@ -128,7 +128,7 @@ public class ExpressionSS extends Expression
 	 * Evaluate this expression, return result.
 	 * Note: assumes that type checking has been done already.
 	 */
-	public Object evaluate(Values constantValues, Values varValues) throws PrismLangException
+	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
 		throw new PrismLangException("Cannot evaluate an S operator without a model");
 	}
@@ -172,8 +172,11 @@ public class ExpressionSS extends Expression
 	 */
 	public Expression deepCopy()
 	{
-		ExpressionSS expr = new ExpressionSS(expression.deepCopy(), relOp, prob == null ? null : prob.deepCopy());
-		if (filter != null) expr.setFilter((Filter) filter.deepCopy());
+		ExpressionSS expr = new ExpressionSS();
+		expr.setExpression(expression == null ? null : expression.deepCopy());
+		expr.setRelOp(relOp);
+		expr.setProb(prob == null ? null : prob.deepCopy());
+		expr.setFilter(filter == null ? null : (Filter)filter.deepCopy());
 		expr.setType(type);
 		expr.setPosition(this);
 		return expr;

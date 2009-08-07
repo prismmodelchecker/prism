@@ -26,14 +26,17 @@
 //==============================================================================
 
 package userinterface;
-import parser.*;
-import parser.ast.*;
-import prism.*;
+
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.table.*;
 import java.util.*;
 import java.awt.event.*;
+
+import parser.*;
+import parser.ast.*;
+import parser.type.*;
+import prism.*;
 
 /**
  *  GUISimulationPicker is a dialog to collect the initial state, approximation,
@@ -587,11 +590,7 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 			{
 				try
 				{
-					if(information.getInitialState().getType(i) == Expression.BOOLEAN)
-						v = new Value(information.getInitialState().getName(i), Expression.BOOLEAN, new Boolean(information.getInitialState().getBooleanValue(i)));
-					else
-						v = new Value(information.getInitialState().getName(i), Expression.INT, new Integer(information.getInitialState().getIntValue(i)));
-					
+					v = new Value(information.getInitialState().getName(i), information.getInitialState().getType(i), information.getInitialState().getValue(i));
 					initValuesModel.addValue(v);
 				}
 				catch(Exception e)
@@ -659,10 +658,7 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 			for(i = 0; i < initValuesModel.getNumValues(); i++)
 			{
 				parameter = initValuesModel.getValue(i).name;
-				if(initValuesModel.getValue(i).type == Expression.INT)
-					newInitState.addValue(initValuesModel.getValue(i).name, new Integer(initValuesModel.getValue(i).value.toString()));
-				else
-					newInitState.addValue(initValuesModel.getValue(i).name, new Boolean(initValuesModel.getValue(i).value.toString()));
+				newInitState.addValue(initValuesModel.getValue(i).name, initValuesModel.getValue(i));
 			}
 			information.setInitialState(newInitState);
 			
@@ -753,16 +749,7 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 			switch(columnIndex)
 			{
 				case 0: return v.name;
-				case 1:
-					{
-					switch(v.type)
-					{
-						case Expression.INT: return "int";
-						case Expression.DOUBLE: return "double";
-						case Expression.BOOLEAN: return "boolean";
-						default: return "";
-					}
-				}
+				case 1: return v.type.getTypeString();
 				case 2: return v.value.toString();
 				default: return "";
 			}
@@ -813,10 +800,10 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 	class Value
 	{
 		String name;
-		int type;
+		Type type;
 		Object value;
 		
-		public Value(String name, int type, Object value)
+		public Value(String name, Type type, Object value)
 		{
 			this.name = name;
 			this.type = type;

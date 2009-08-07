@@ -36,13 +36,14 @@ import parser.*;
 import sparse.*;
 
 /*
- * Class to store a PRISM model which is an MDP
+ * Class for MTBDD-based storage of a PRISM model that is an MDP.
  */
 public class NondetModel extends ProbModel
 {
-	// Extra stats
-	protected double numChoices; // number of choices
+	// Extra info
+	protected Vector<String> synchs; // synchronising action labels
 	protected double numSynchs; // number of synchronising actions
+	protected double numChoices; // number of choices
 
 	// Extra dd stuff
 	protected JDDNode nondetMask; // mask for nondeterministic choices
@@ -56,14 +57,9 @@ public class NondetModel extends ProbModel
 	// accessor methods
 
 	// type
-	public int getType()
+	public ModelType getModelType()
 	{
-		return Model.MDP;
-	}
-
-	public String getTypeString()
-	{
-		return "MDP";
+		return ModelType.MDP;
 	}
 
 	public long getNumChoices()
@@ -101,6 +97,21 @@ public class NondetModel extends ProbModel
 		return allDDNondetVars;
 	}
 
+	public Vector<String> getSynchs()
+	{
+		return synchs;
+	}
+	
+	public JDDNode getTransInd()
+	{
+		return transInd;
+	}
+	
+	public JDDNode[] getTransSynch()
+	{
+		return transSynch;
+	}
+	
 	// additional useful methods to do with dd vars
 	public int getNumDDNondetVars()
 	{
@@ -124,9 +135,10 @@ public class NondetModel extends ProbModel
 	
 	// set methods for things not set up in constructor
 	
-	public void setNumSynchs(int numSynchs)
+	public void setSynchs(Vector<String> synchs)
 	{
-		this.numSynchs = numSynchs;
+		this.synchs = synchs;
+		this.numSynchs = synchs.size();
 	}
 	
 	public void setTransInd(JDDNode transInd)

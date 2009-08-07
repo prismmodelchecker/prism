@@ -34,6 +34,9 @@ import java.util.Formatter;
  */
 public class PrismUtils
 {
+	// Threshold for comparison of doubles
+	public static double epsilonDouble = 1e-12;
+	
 	/**
 	 * Compute logarithm of x to base b.
 	 */
@@ -53,6 +56,83 @@ public class PrismUtils
 	public static double log2(double x)
 	{
 		return Math.log(x) / Math.log(2);
+	}
+
+	/**
+	 * See if two doubles are within epsilon of each other (absolute error).
+	 */
+	public static boolean doublesAreCloseAbs(double d1, double d2, double epsilon)
+	{
+		// Deal with infinite cases
+		if (Double.isInfinite(d1)) {
+			return Double.isInfinite(d2) && (d1 > 0) == (d2 > 0);
+		} else if (Double.isInfinite(d2)) {
+			return false;
+		}
+		// Compute/check error
+		return (Math.abs(d1 - d2) < epsilon);
+	}
+
+	/**
+	 * See if two doubles are within epsilon of each other (relative error).
+	 */
+	public static boolean doublesAreCloseRel(double d1, double d2, double epsilon)
+	{
+		// Deal with infinite cases
+		if (Double.isInfinite(d1)) {
+			return Double.isInfinite(d2) && (d1 > 0) == (d2 > 0);
+		} else if (Double.isInfinite(d2)) {
+			return false;
+		}
+		// Compute/check error
+		d1 = Math.abs(d1);
+		d2 = Math.abs(d2);
+		// For two (near) zero values, return true, for just one, return false
+		if (d1 < epsilonDouble)
+			return (d2 < epsilonDouble);
+		return ( Math.abs(d1 - d2) / d1 < epsilon);
+	}
+
+	/**
+	 * See if two doubles are within epsilon of each other (relative or absolute error).
+	 * @param abs: Absolute if true, relative if false
+	 */
+	public static boolean doublesAreClose(double d1, double d2, double epsilon, boolean abs)
+	{
+		if (abs) {
+			return doublesAreCloseAbs(d1, d2, epsilon);
+		} else {
+			return doublesAreCloseRel(d1, d2, epsilon);
+		}
+	}
+
+	/**
+	 * See if two arrays of doubles are all within epsilon of each other (relative or absolute error).
+	 */
+	public static boolean doublesAreClose(double d1[], double d2[], double epsilon, boolean abs)
+	{
+		int i, n;
+		n = Math.min(d1.length, d2.length);
+		if (abs) {
+			for (i = 0; i < n; i++) {
+				if (!PrismUtils.doublesAreCloseAbs(d1[i], d2[i], epsilon))
+					return false;
+			}
+		} else {
+			for (i = 0; i < n; i++) {
+				if (!PrismUtils.doublesAreCloseRel(d1[i], d2[i], epsilon))
+					return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * See if two doubles are (nearly) equal.
+	 */
+	public static boolean doublesAreEqual(double d1, double d2)
+	{
+		return doublesAreCloseAbs(d1, d2, epsilonDouble);
 	}
 
 	/**
@@ -97,9 +177,9 @@ public class PrismUtils
 	{
 		return formatterDouble2dp.format(d);
 	}
-	
+
 	private static DecimalFormat formatterDouble2dp = new DecimalFormat("#0.00");
-	
+
 	/**
 	 * Format a double, using PRISM settings.
 	 */

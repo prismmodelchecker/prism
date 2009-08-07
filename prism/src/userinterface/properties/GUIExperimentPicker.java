@@ -26,11 +26,14 @@
 //==============================================================================
 
 package userinterface.properties;
-import prism.*;
+
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.border.*;
 import java.util.*;
+
+import prism.*;
+import parser.type.*;
 import userinterface.*;
 
 /**
@@ -499,13 +502,13 @@ public class GUIExperimentPicker extends javax.swing.JDialog
 		static class Rememberance
 		{
 			String varName;
-			int type;
+			Type type;
 			boolean isRange;
 			String singleValue;
 			String start;
 			String end;
 			String step;
 			public String toString()
-			{ return varName+"("+type+") : "+isRange+","+singleValue; }
+			{ return varName+"("+type.getTypeString()+") : "+isRange+","+singleValue; }
 		}
 }

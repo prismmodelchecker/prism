@@ -26,7 +26,7 @@
 
 package parser.ast;
 
-import parser.Values;
+import parser.EvaluateContext;
 import parser.visitor.*;
 import prism.PrismLangException;
 
@@ -44,11 +44,8 @@ public class ExpressionTemporal extends Expression
 	public static final int R_F = 13; // Reachability (for R operator)
 	public static final int R_S = 14; // Steady-state (for R operator)
 	// Operator symbols
-	public static final String opSymbols[] = { "",
-		"X", "U", "F", "G", "W", "", "", "", "", "",
-		"C", "I", "F", "S"
-	};
-	
+	public static final String opSymbols[] = { "", "X", "U", "F", "G", "W", "", "", "", "", "", "C", "I", "F", "S" };
+
 	// Operator
 	protected int op = 0;
 	// Up to two operands (either may be null)
@@ -57,87 +54,111 @@ public class ExpressionTemporal extends Expression
 	// Optional (time) bounds
 	protected Expression lBound = null; // None if null, i.e. zero
 	protected Expression uBound = null; // None if null, i.e. infinity
-	
+	// Strictness of (time) bounds
+	protected boolean lBoundStrict = false; // true: >, false: >= 
+	protected boolean uBoundStrict = false; // true: <, false: <=
+
 	// Constructors
-	
+
 	public ExpressionTemporal()
 	{
 	}
-	
+
 	public ExpressionTemporal(int op, Expression operand1, Expression operand2)
 	{
 		this.op = op;
 		this.operand1 = operand1;
 		this.operand2 = operand2;
 	}
-	
-	public ExpressionTemporal(int op, Expression operand1, Expression operand2, Expression lBound, Expression uBound)
-	{
-		this.op = op;
-		this.operand1 = operand1;
-		this.operand2 = operand2;
-		this.lBound = lBound;
-		this.uBound = uBound;
-	}
-	
+
 	// Set methods
-	
+
 	public void setOperator(int i)
 	{
 		op = i;
 	}
-	
+
 	public void setOperand1(Expression e1)
 	{
 		operand1 = e1;
 	}
-	
+
 	public void setOperand2(Expression e2)
 	{
 		operand2 = e2;
 	}
-	
+
 	public int getNumOperands()
 	{
-		if (operand1 == null) return 0;
-		else return (operand2 == null) ? 1 : 2;
-	}
-	
-	public void setLowerBound(Expression e)
-	{
-		lBound = e;
+		if (operand1 == null)
+			return 0;
+		else
+			return (operand2 == null) ? 1 : 2;
 	}
 
+	/**
+	 * Set lower timer bound to be of form >= e
+	 * (null denotes no lower bound, i.e. zero)
+	 */
+	public void setLowerBound(Expression e)
+	{
+		setLowerBound(e, false);
+	}
+
+	/**
+	 * Set lower timer bound to be of form >= e or > e
+	 * (null denotes no lower bound, i.e. zero)
+	 */
+	public void setLowerBound(Expression e, boolean strict)
+	{
+		lBound = e;
+		lBoundStrict = strict;
+	}
+
+	/**
+	 * Set upper timer bound to be of form <= e
+	 * (null denotes no upper bound, i.e. infinity)
+	 */
 	public void setUpperBound(Expression e)
 	{
+		setUpperBound(e, false);
+	}
+
+	/**
+	 * Set upper timer bound to be of form <= e or < e
+	 * (null denotes no upper bound, i.e. infinity)
+	 */
+	public void setUpperBound(Expression e, boolean strict)
+	{
 		uBound = e;
+		uBoundStrict = strict;
 	}
 
 	// Get methods
-	
+
 	public int getOperator()
 	{
 		return op;
 	}
-	
+
 	public String getOperatorSymbol()
 	{
 		return opSymbols[op];
 	}
-	
+
 	public Expression getOperand1()
 	{
 		return operand1;
 	}
-	
+
 	public Expression getOperand2()
 	{
 		return operand2;
 	}
-	
+
 	public boolean hasBounds()
 	{
-		return lBound!=null || uBound!=null;
+		return lBound != null || uBound != null;
 	}
 
 	public Expression getLowerBound()
@@ -145,13 +166,23 @@ public class ExpressionTemporal extends Expression
 		return lBound;
 	}
 
+	public boolean lowerBoundIsStrict()
+	{
+		return lBoundStrict;
+	}
+
 	public Expression getUpperBound()
 	{
 		return uBound;
 	}
 
+	public boolean upperBoundIsStrict()
+	{
+		return uBoundStrict;
+	}
+
 	// Methods required for Expression:
-	
+
 	/**
 	 * Is this expression constant?
 	 */
@@ -164,13 +195,13 @@ public class ExpressionTemporal extends Expression
 	 * Evaluate this expression, return result.
 	 * Note: assumes that type checking has been done already.
 	 */
-	public Object evaluate(Values constantValues, Values varValues) throws PrismLangException
+	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
 		throw new PrismLangException("Cannot evaluate a temporal operator without a path");
 	}
 
 	// Methods required for ASTElement:
-	
+
 	/**
 	 * Visitor method.
 	 */
@@ -178,29 +209,32 @@ public class ExpressionTemporal extends Expression
 	{
 		return v.visit(this);
 	}
-	
+
 	/**
 	 * Convert to string.
 	 */
 	public String toString()
 	{
 		String s = "";
-		if (operand1 != null) s += operand1 + " ";
+		if (operand1 != null)
+			s += operand1 + " ";
 		s += opSymbols[op];
 		if (lBound == null) {
 			if (uBound != null) {
-				if (op != R_I) s += "<=" + uBound;
-				else s += "=" + uBound;
+				if (op != R_I)
+					s += "<" + (uBoundStrict ? "" : "=") + uBound;
+				else
+					s += "=" + uBound;
 			}
-		}
-		else {
+		} else {
 			if (uBound == null) {
-				s += ">=" + lBound;
+				s += ">" + (lBoundStrict ? "" : "=") + lBound;
 			} else {
 				s += "[" + lBound + "," + uBound + "]";
 			}
 		}
-		if (operand2 != null) s += " " + operand2;
+		if (operand2 != null)
+			s += " " + operand2;
 		return s;
 	}
 
@@ -211,55 +245,62 @@ public class ExpressionTemporal extends Expression
 	{
 		ExpressionTemporal expr = new ExpressionTemporal();
 		expr.setOperator(op);
-		if (operand1 != null) expr.setOperand1(operand1.deepCopy());
-		if (operand2 != null) expr.setOperand2(operand2.deepCopy());
+		if (operand1 != null)
+			expr.setOperand1(operand1.deepCopy());
+		if (operand2 != null)
+			expr.setOperand2(operand2.deepCopy());
+		expr.setLowerBound(lBound == null ? null : lBound.deepCopy(), lBoundStrict);
+		expr.setUpperBound(uBound == null ? null : uBound.deepCopy(), uBoundStrict);
 		expr.setType(type);
 		expr.setPosition(this);
 		return expr;
 	}
-	
+
 	// Other useful methods
-	
+
 	/**
 	 * Convert (P operator) path formula to untils, using standard equivalences.
 	 */
 	public Expression convertToUntilForm() throws PrismLangException
 	{
-		Expression op1, op2, ret = null;
+		Expression op1, op2;
+		ExpressionTemporal exprTemp = null;
 		switch (op) {
 		case P_U:
-			ret = this;
-			break;
+			return this;
 		case P_F:
 			// F a == true U a
 			op1 = Expression.True();
-			ret = new ExpressionTemporal(P_U, op1, operand2, lBound, uBound);
-			break;
+			exprTemp = new ExpressionTemporal(P_U, op1, operand2);
+			exprTemp.setLowerBound(lBound, lBoundStrict);
+			exprTemp.setUpperBound(uBound, uBoundStrict);
+			return exprTemp;
 		case P_G:
 			// G a == !(true U !a)
 			op1 = Expression.True();
 			op2 = Expression.Not(operand2);
-			ret = new ExpressionTemporal(P_U, op1, op2, lBound, uBound);
-			ret = Expression.Not(ret);
-			break;
+			exprTemp = new ExpressionTemporal(P_U, op1, op2);
+			exprTemp.setLowerBound(lBound, lBoundStrict);
+			exprTemp.setUpperBound(uBound, uBoundStrict);
+			return Expression.Not(exprTemp);
 		case P_W:
 			// a W b == !(a&!b U !a&!b)
 			op1 = Expression.And(operand1, Expression.Not(operand2));
 			op2 = Expression.And(Expression.Not(operand1), Expression.Not(operand2));
-			ret = new ExpressionTemporal(P_U, op1, op2, lBound, uBound);
-			ret = Expression.Not(ret);
-			break;
+			exprTemp = new ExpressionTemporal(P_U, op1, op2);
+			exprTemp.setLowerBound(lBound, lBoundStrict);
+			exprTemp.setUpperBound(uBound, uBoundStrict);
+			return Expression.Not(exprTemp);
 		case P_R:
 			// a R b == !(!a U !b)
 			op1 = Expression.Not(operand1);
 			op2 = Expression.Not(operand2);
-			ret = new ExpressionTemporal(P_U, op1, op2, lBound, uBound);
-			ret = Expression.Not(ret);
-			break;
-		default:
-			throw new PrismLangException("Cannot convert "+getOperatorSymbol()+" to until form");
+			exprTemp = new ExpressionTemporal(P_U, op1, op2);
+			exprTemp.setLowerBound(lBound, lBoundStrict);
+			exprTemp.setUpperBound(uBound, uBoundStrict);
+			return Expression.Not(exprTemp);
 		}
-		return ret;
+		throw new PrismLangException("Cannot convert " + getOperatorSymbol() + " to until form");
 	}
 }
 

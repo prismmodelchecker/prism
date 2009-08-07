@@ -1,0 +1,53 @@
+#no update for variables
+{
+init
+	node ini; true
+	[ 
+	send1||tran  transmit; true; y1=0; 1
+	]
+	[
+	send2||tran  transmit; true; y2=0; 1
+	 ] 
+}
+{
+	node transmit; true
+	[ 
+	end1||tran  ini; true; y1=0; 1
+	 ] 
+	[ 
+	end2||tran  ini; true; y2=0; 1
+	 ] 
+	[ 
+	busy1||tran  transmit; y2>26; null; 1
+	 ] 
+	[ 
+	busy2||tran  transmit; y1>26; null; 1
+	 ] 
+	[ 
+	csend1||tran  collide; y2<=26; y1=0; 1
+	 ] 
+	[ 
+	csend2||tran  collide; y1<=26; y2=0; 1
+	 ] 
+}
+{
+	node collide; y1<=26,y2<=26
+	[ 
+	cd1||tran  collide2; y1>=26; y1=0; 1
+	 ] 
+	[ 
+	cd2||tran  collide1; y2>=26; y2=0; 1
+	 ] 
+}
+{
+	node collide1; y1<=26
+	[ 
+	cd1||tran  ini; y1>=26; y1=0,y2=0; 1
+	 ] 
+}
+{
+	node collide2; y2<=26
+	[ 
+	cd2||tran  ini; y2>=26; y1=0,y2=0; 1
+	 ] 
+*

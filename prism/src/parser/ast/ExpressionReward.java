@@ -139,7 +139,7 @@ public class ExpressionReward extends Expression
 	 * Evaluate this expression, return result.
 	 * Note: assumes that type checking has been done already.
 	 */
-	public Object evaluate(Values constantValues, Values varValues) throws PrismLangException
+	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
 		throw new PrismLangException("Cannot evaluate an R operator without a model");
 	}
@@ -202,10 +202,13 @@ public class ExpressionReward extends Expression
 	 */
 	public Expression deepCopy()
 	{
-		ExpressionReward expr = new ExpressionReward(expression.deepCopy(), relOp, reward == null ? null : reward.deepCopy());
+		ExpressionReward expr = new ExpressionReward();
+		expr.setExpression(expression == null ? null : expression.deepCopy());
+		expr.setRelOp(relOp);
+		expr.setReward(reward == null ? null : reward.deepCopy());
 		if (rewardStructIndex != null && rewardStructIndex instanceof Expression) expr.setRewardStructIndex(((Expression)rewardStructIndex).deepCopy());
 		else expr.setRewardStructIndex(rewardStructIndex);
-		if (filter != null) expr.setFilter((Filter) filter.deepCopy());
+		expr.setFilter(filter == null ? null : (Filter)filter.deepCopy());
 		expr.setType(type);
 		expr.setPosition(this);
 		return expr;

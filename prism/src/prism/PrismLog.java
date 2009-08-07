@@ -37,6 +37,7 @@ public interface PrismLog
 	void print(long l);
 	void print(Object obj);
 	void print(String s);
+	void print(double d[]);
 	void println();
 	void println(boolean b);
 	void println(char c);
@@ -46,6 +47,7 @@ public interface PrismLog
 	void println(long l);
 	void println(Object obj);
 	void println(String s);
+	void println(double d[]);
 	long getFilePointer();
 	void flush();
 	void close();

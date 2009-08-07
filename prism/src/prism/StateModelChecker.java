@@ -31,6 +31,7 @@ import jdd.*;
 import odd.*;
 import parser.*;
 import parser.ast.*;
+import parser.type.*;
 
 // Base class for model checkers - does state-based evaluations (no temporal/probabilistic)
 
@@ -59,6 +60,9 @@ public class StateModelChecker implements ModelChecker
 	protected JDDVars allDDColVars;
 	protected JDDVars[] varDDRowVars;
 
+	// The result of model checking will be stored here
+	protected Result result;
+	
 	// Options:
 
 	// Which engine to use
@@ -145,10 +149,12 @@ public class StateModelChecker implements ModelChecker
 		StateProbs vals;
 		String resultString;
 		double minRes = 0.0, maxRes = 0.0;
-		Result res;
 
+		// Create storage for result
+		result = new Result();
+		
 		// Filters are only allowed for non-Boolean properties
-		if (expr.getType() == Expression.BOOLEAN && filter != null) {
+		if (expr.getType() instanceof TypeBool && filter != null) {
 			throw new PrismException("Filters cannot be applied to Boolean-valued properties");
 		}
 
@@ -169,7 +175,7 @@ public class StateModelChecker implements ModelChecker
 		// Process results of model checking - depends on type
 
 		// Boolean results
-		if (expr.getType() == Expression.BOOLEAN) {
+		if (expr.getType() instanceof TypeBool) {
 
 			// Convert to StateList object
 			states = new StateListMTBDD(((StateProbsMTBDD) vals).getJDDNode(), model);
@@ -207,7 +213,7 @@ public class StateModelChecker implements ModelChecker
 
 			// Result is true if all states satisfy, false otherwise
 			resultString = satAll + " (property " + (satAll ? "" : "not ") + "satisfied in all states)";
-			res = new Result(satAll ? new Boolean(true) : new Boolean(false), resultString);
+			result.setResultAndString(satAll ? new Boolean(true) : new Boolean(false), resultString);
 
 			// Print result to log
 			mainLog.print("\nResult: " + resultString + "\n");
@@ -282,17 +288,17 @@ public class StateModelChecker implements ModelChecker
 				}
 			}
 			if (filter != null && filter.minRequested())
-				res = new Result(minRes);
+				result.setResult(minRes);
 			else if (filter != null && filter.maxRequested())
-				res = new Result(maxRes);
+				result.setResult(maxRes);
 			else
-				res = new Result(vals.firstFromBDD(filter != null ? ddFilter : start));
+				result.setResult(vals.firstFromBDD(filter != null ? ddFilter : start));
 
 			// Print result to log
 			resultString = "Result";
 			if (!("Result".equals(expr.getResultName())))
 				resultString += " (" + expr.getResultName().toLowerCase() + ")";
-			resultString += ": " + res;
+			resultString += ": " + result;
 			mainLog.print("\n" + resultString + "\n");
 		}
 
@@ -302,7 +308,7 @@ public class StateModelChecker implements ModelChecker
 		vals.clear();
 
 		// Return result
-		return res;
+		return result;
 	}
 
 	// Check expression (recursive)
@@ -559,7 +565,7 @@ public class StateModelChecker implements ModelChecker
 		// the general case
 
 		// var relop int
-		if (expr1 instanceof ExpressionVar && expr2.isConstant() && expr2.getType() == Expression.INT) {
+		if (expr1 instanceof ExpressionVar && expr2.isConstant() && expr2.getType() instanceof TypeInt) {
 			ExpressionVar e1;
 			Expression e2;
 			int i, j, l, h, v;
@@ -609,7 +615,7 @@ public class StateModelChecker implements ModelChecker
 			return new StateProbsMTBDD(dd, model);
 		}
 		// int relop var
-		else if (expr1.isConstant() && expr1.getType() == Expression.INT && expr2 instanceof ExpressionVar) {
+		else if (expr1.isConstant() && expr1.getType() instanceof TypeInt && expr2 instanceof ExpressionVar) {
 			Expression e1;
 			ExpressionVar e2;
 			int i, j, l, h, v;
@@ -958,17 +964,10 @@ public class StateModelChecker implements ModelChecker
 	private StateProbs checkExpressionLiteral(ExpressionLiteral expr) throws PrismException
 	{
 		JDDNode dd;
-		switch (expr.getType()) {
-		case Expression.BOOLEAN:
-			dd = JDD.Constant(expr.evaluateBoolean(null, null) ? 1.0 : 0.0);
-			break;
-		case Expression.INT:
-			dd = JDD.Constant(expr.evaluateInt(null, null));
-			break;
-		case Expression.DOUBLE:
-			dd = JDD.Constant(expr.evaluateDouble(null, null));
-			break;
-		default:
+		try {
+			dd = JDD.Constant(expr.evaluateDouble());
+		}
+		catch (PrismLangException e) {
 			throw new PrismException("Unknown literal type");
 		}
 		return new StateProbsMTBDD(dd, model);
@@ -984,20 +983,13 @@ public class StateModelChecker implements ModelChecker
 		i = constantValues.getIndexOf(expr.getName());
 		if (i == -1)
 			throw new PrismException("Couldn't evaluate constant \"" + expr.getName() + "\"");
-		switch (constantValues.getType(i)) {
-		case Expression.INT:
-			dd = JDD.Constant(constantValues.getIntValue(i));
-			break;
-		case Expression.DOUBLE:
+		try {
 			dd = JDD.Constant(constantValues.getDoubleValue(i));
-			break;
-		case Expression.BOOLEAN:
-			dd = JDD.Constant(constantValues.getBooleanValue(i) ? 1.0 : 0.0);
-			break;
-		default:
+		}
+		catch (PrismLangException e) {
 			throw new PrismException("Unknown type for constant \"" + expr.getName() + "\"");
 		}
-
+		
 		return new StateProbsMTBDD(dd, model);
 	}
 

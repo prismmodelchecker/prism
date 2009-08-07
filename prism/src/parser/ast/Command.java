@@ -26,6 +26,9 @@
 
 package parser.ast;
 
+import java.util.ArrayList;
+
+import parser.Values;
 import parser.visitor.*;
 import prism.PrismLangException;
 

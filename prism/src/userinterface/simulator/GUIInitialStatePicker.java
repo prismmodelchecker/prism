@@ -35,6 +35,7 @@ import javax.swing.table.*;
 
 import parser.*;
 import parser.ast.*;
+import parser.type.*;
 import prism.*;
 import userinterface.*;
 
@@ -240,21 +241,10 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
 		{
 			for(int i = 0; i < initialState.getNumValues(); i++)
 			{
-				try
-				{
-					if(initialState.getType(i) == Expression.BOOLEAN)
-						v = new Value(initialState.getName(i), Expression.BOOLEAN, new Boolean(initialState.getBooleanValue(i)));
-					else
-						v = new Value(initialState.getName(i), Expression.INT, new Integer(initialState.getIntValue(i)));
-                    
-					initValuesModel.addValue(v);
-				}
-				catch(Exception e)
-				{}
+				v = new Value(initialState.getName(i), initialState.getType(i), initialState.getValue(i));
+				initValuesModel.addValue(v);
 			}
 		}
-
-		
 	}
     
 	/** Call this static method to construct a new GUIValuesPicker to define
@@ -305,10 +295,7 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
 			for(i = 0; i < initValuesModel.getNumValues(); i++)
 			{
 				parameter = initValuesModel.getValue(i).name;
-				if(initValuesModel.getValue(i).type == Expression.INT)
-					newInitState.addValue(initValuesModel.getValue(i).name, new Integer(initValuesModel.getValue(i).value.toString()));
-				else
-					newInitState.addValue(initValuesModel.getValue(i).name, new Boolean(initValuesModel.getValue(i).value.toString()));
+				newInitState.addValue(initValuesModel.getValue(i).name, initValuesModel.getValue(i).value);
 			}
 			initialState = newInitState;
                 
@@ -392,16 +379,7 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
 			switch(columnIndex)
 			{
 				case 0: return v.name;
-				case 1:
-					{
-					switch(v.type)
-					{
-						case Expression.INT: return "int";
-						case Expression.DOUBLE: return "double";
-						case Expression.BOOLEAN: return "boolean";
-						default: return "";
-					}
-				}
+				case 1: return v.type.getTypeString();
 				case 2: return v.value.toString();
 				default: return "";
 			}
@@ -452,10 +430,10 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
 	class Value
 	{
 		String name;
-		int type;
+		Type type;
 		Object value;
             
-		public Value(String name, int type, Object value)
+		public Value(String name, Type type, Object value)
 		{
 			this.name = name;
 			this.type = type;

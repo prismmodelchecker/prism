@@ -27,6 +27,7 @@
 package parser.visitor;
 
 import parser.ast.*;
+import parser.type.*;
 import prism.PrismLangException;
 
 /**
@@ -43,7 +44,8 @@ public class ExpandConstants extends ASTTraverseModify
 	
 	public Object visit(ExpressionConstant e) throws PrismLangException
 	{
-		int i, t;
+		int i;
+		Type t;
 		Expression expr;
 		
 		// See if identifier corresponds to a constant

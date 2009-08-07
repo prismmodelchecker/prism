@@ -27,7 +27,9 @@
 package parser.visitor;
 
 import parser.ast.*;
+import parser.type.*;
 import prism.PrismLangException;
+import prism.ModelType;
 
 /**
  * Check expression (property) for validity with respect to a particular model type
@@ -35,9 +37,9 @@ import prism.PrismLangException;
  */
 public class CheckValid extends ASTTraverse
 {
-	private int modelType = 0;
+	private ModelType modelType = null;
 
-	public CheckValid(int modelType)
+	public CheckValid(ModelType modelType)
 	{
 		this.modelType = modelType;
 	}
@@ -45,35 +47,45 @@ public class CheckValid extends ASTTraverse
 	public void visitPost(ExpressionTemporal e) throws PrismLangException
 	{
 		if (e.getOperator() == ExpressionTemporal.R_S) {
-			if (modelType == ModulesFile.NONDETERMINISTIC) {
+			if (modelType == ModelType.MDP) {
 				throw new PrismLangException("Steady-state reward properties cannot be used for MDPs");
 			}
 		}
+		// Apart from CTMCs, we only support upper time bounds
 		if (e.getLowerBound() != null) {
-			if (modelType == ModulesFile.PROBABILISTIC) {
-				throw new PrismLangException("Time bounds on the " + e.getOperatorSymbol()
-						+ " operator must be of the form \"<=k\" for DTMCs");
+			if (modelType == ModelType.DTMC) {
+				throw new PrismLangException("Only upper time bounds are allowed on the " + e.getOperatorSymbol()
+						+ " operator for DTMCs");
 			}
-			if (modelType == ModulesFile.NONDETERMINISTIC) {
-				throw new PrismLangException("Time bounds on the " + e.getOperatorSymbol()
-						+ " operator must be of the form \"<=k\" for MDPs");
+			if (modelType == ModelType.MDP) {
+				throw new PrismLangException("Only upper time bounds are allowed on the " + e.getOperatorSymbol()
+						+ " operator for MDPs");
+			}
+			if (modelType == ModelType.PTA) {
+				throw new PrismLangException("Only upper time bounds are allowed on the " + e.getOperatorSymbol()
+						+ " operator for PTAs");
 			}
 		}
-		if (e.getUpperBound() != null && e.getUpperBound().getType() != Expression.INT) {
-			if (modelType == ModulesFile.PROBABILISTIC) {
+		// Apart from CTMCs, we only support integer time bounds
+		if (e.getUpperBound() != null && !(e.getUpperBound().getType() instanceof TypeInt)) {
+			if (modelType == ModelType.DTMC) {
 				throw new PrismLangException("Time bounds on the " + e.getOperatorSymbol()
 						+ " operator must be integers for DTMCs");
 			}
-			if (modelType == ModulesFile.NONDETERMINISTIC) {
+			if (modelType == ModelType.MDP) {
 				throw new PrismLangException("Time bounds on the " + e.getOperatorSymbol()
 						+ " operator must be integers for MDPs");
 			}
+			if (modelType == ModelType.PTA) {
+				throw new PrismLangException("Time bounds on the " + e.getOperatorSymbol()
+						+ " operator must be integers for PTAs");
+			}
 		}
 	}
-	
+
 	public void visitPost(ExpressionSS e) throws PrismLangException
 	{
-		if (modelType == ModulesFile.NONDETERMINISTIC) {
+		if (modelType == ModelType.MDP) {
 			throw new PrismLangException("The S operator cannot be used for MDPs");
 		}
 	}

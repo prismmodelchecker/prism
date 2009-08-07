@@ -26,25 +26,37 @@
 
 package parser;
 
-import java.util.Vector;
+import java.util.*;
 import java.text.*;
 
-import parser.ast.*;
+import parser.type.*;
 import prism.PrismLangException;
 
 // class to store a list of typed constant/variable values
 
 public class Values //implements Comparable
 {
-	Vector<String> names;
-	Vector<Object> values;
+	ArrayList<String> names;
+	ArrayList<Object> values;
 	
 	// constructors
 	
+	/**
+	 * Construct a new, empty Values object
+	 */
 	public Values()
 	{
-		names = new Vector<String>();
-		values = new Vector<Object>();
+		names = new ArrayList<String>();
+		values = new ArrayList<Object>();
+	}
+	
+	/**
+	 * Construct a new Values object by copying an existing one
+	 */
+	public Values(Values v)
+	{
+		names = (ArrayList<String>)v.names.clone();
+		values = (ArrayList<Object>)v.values.clone();
 	}
 	
 	// add value (type of value detetmined by type of Object)
@@ -52,8 +64,8 @@ public class Values //implements Comparable
 	
 	public void addValue(String n, Object o)
 	{
-		names.addElement(n);
-		values.addElement(o);
+		names.add(n);
+		values.add(o);
 	}
 	
 	// add multiple values
@@ -81,7 +93,7 @@ public class Values //implements Comparable
 			return 0;
 		}
 		else {
-			values.setElementAt(o, i);
+			values.set(i, o);
 			return -1;
 		}
 	}
@@ -107,8 +119,8 @@ public class Values //implements Comparable
 	public void removeValue(int i)
 	{
 		if (i >= 0 && i < getNumValues()) {
-			names.removeElementAt(i);
-			values.removeElementAt(i);
+			names.remove(i);
+			values.remove(i);
 		}
 	}
 	
@@ -131,7 +143,7 @@ public class Values //implements Comparable
 	
 	public String getName(int i)
 	{
-		return names.elementAt(i);
+		return names.get(i);
 	}
 
 	public int getIndexOf(String n)
@@ -144,41 +156,52 @@ public class Values //implements Comparable
 		return names.contains(n);
 	}
 	
-	public int getType(int i)
+	public Type getType(int i)
 	{
-		Object o = values.elementAt(i);
-		if (o instanceof Integer) return Expression.INT;
-		if (o instanceof Double) return Expression.DOUBLE;
-		if (o instanceof Boolean) return Expression.BOOLEAN;
-		else return 0;
+		Object o = values.get(i);
+		if (o instanceof Integer) return TypeInt.getInstance();
+		if (o instanceof Double)  return TypeDouble.getInstance();
+		if (o instanceof Boolean) return TypeBool.getInstance();
+		else return null;
 	}
 
 	public Object getValue(int i)
 	{
-		return values.elementAt(i);
+		return values.get(i);
 	}
-
+	
+	/**
+	 * Evaluate ith value as an int.
+	 * (Note: Booleans get mapped to 0/1)
+	 */
 	public int getIntValue(int i) throws PrismLangException
 	{
 		Object o;
 		
-		o = values.elementAt(i);
+		o = values.get(i);
 		
-		if (!(o instanceof Integer)) {
-			throw new PrismLangException("Cannot get integer value for \"" + getName(i) + "\"");
+		if (o instanceof Boolean) {
+			return ((Boolean)o).booleanValue() ? 1 : 0;
+		}
+		if (o instanceof Integer) {
+			return ((Integer)o).intValue();
 		}
 		
-		return ((Integer)o).intValue();
+		throw new PrismLangException("Cannot get integer value for \"" + getName(i) + "\"");
 	}
 
+	/**
+	 * Evaluate ith value as a double.
+	 * (Note: Booleans get mapped to 0.0/1.0)
+	 */
 	public double getDoubleValue(int i) throws PrismLangException
 	{
 		Object o;
 		
-		o = values.elementAt(i);
+		o = values.get(i);
 		
 		if (o instanceof Boolean) {
-			throw new PrismLangException("Cannot get double value for \"" + getName(i) + "\"");
+			return ((Boolean)o).booleanValue() ? 1.0 : 0.0;
 		}
 		if (o instanceof Integer) {
 			return ((Integer)o).intValue();
@@ -190,11 +213,14 @@ public class Values //implements Comparable
 		throw new PrismLangException("Cannot get double value for \"" + getName(i) + "\"");
 	}
 
+	/**
+	 * Evaluate ith value as a Boolean.
+	 */
 	public boolean getBooleanValue(int i) throws PrismLangException
 	{
 		Object o;
 		
-		o = values.elementAt(i);
+		o = values.get(i);
 		
 		if (!(o instanceof Boolean)) {
 			throw new PrismLangException("Cannot get boolean value for \"" + getName(i) + "\"");
@@ -334,7 +360,7 @@ public class Values //implements Comparable
 		s = "";
 		for (i = 0; i < n; i++) {
 			s += getName(i) + "=" + valToString(getValue(i));
-			if (i < n-1) s += ", ";
+			if (i < n-1) s += ",";
 		}
 		
 		return s;

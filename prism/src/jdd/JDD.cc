@@ -500,6 +500,51 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintSupport(JNIEnv *env, jclass cls, jl
 //------------------------------------------------------------------------------
 
 
+JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintSupportNames(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jobject var_names)
+{
+	// If no var names passed in, don't use them
+	if (!var_names) {
+		DD_PrintSupport(ddman, jlong_to_DdNode(dd));
+	}
+	// Otherwise, need to convert Java array to C array first
+	else {
+		int i, j;
+		jint size;
+		jclass vn_cls;
+		jmethodID vn_mid;
+		jstring jstr;
+		const char **names;
+		const char *filenamestr;
+		// get size of vector of names
+		vn_cls = env->GetObjectClass(var_names);
+		    vn_mid = env->GetMethodID(vn_cls, "size", "()I");
+		    if (vn_mid == 0) {
+		        return;
+		    }
+		    size = env->CallIntMethod(var_names,vn_mid);
+		// put names from vector into array
+		names = new const char*[size];
+		    vn_mid = env->GetMethodID(vn_cls, "get", "(I)Ljava/lang/Object;");
+		    if (vn_mid == 0) {
+		        return;
+		    }
+		for (i = 0; i < size; i++) {
+			jstr = (jstring)env->CallObjectMethod(var_names, vn_mid, i);
+			names[i] = env->GetStringUTFChars(jstr, 0);
+		}
+		// call the function
+		DD_PrintSupportNames(ddman, jlong_to_DdNode(dd), (char **)names);
+		// release memory
+		for (i = 0; i < size; i++) {
+			env->ReleaseStringUTFChars(jstr, names[i]);
+		}
+		delete[] names;
+	}
+}
+
+//------------------------------------------------------------------------------
+
+
 JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1GetSupport(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
 	return ptr_to_jlong(DD_GetSupport(ddman, jlong_to_DdNode(dd)));

@@ -33,16 +33,47 @@ package prism;
  */
 public class Result
 {
-	private Object result = null;
-	private String resultString = "";
+	// The result of model checking
+	private Object result;
+	// Explanatory text for result (optional)
+	private String resultString;
+	// Counterexample (optional)
+	private Object cex;
 	
+	/**
+	 * Construct an empty Result object.
+	 */
 	public Result()
 	{
 		this.result = null;
 		this.resultString = "";
+		this.cex = null;
 	}
 	
+	/**
+	 * Create a Result object based on a result.
+	 * (Result string will be set automatically in some cases.)
+	 */
 	public Result(Object result)
+	{
+		this();
+		setResult(result);
+	}
+	
+	/**
+	 * Create a Result object based on a result and a string of explanatory text.
+	 */
+	public Result(Object result, String resultString)
+	{
+		this();
+		setResultAndString(result, resultString);
+	}
+	
+	/**
+	 * Set the result.
+	 * (Result string will be set automatically in some cases.)
+	 */
+	public void setResult(Object result)
 	{
 		this.result = result;
 		if (result instanceof Exception)
@@ -51,27 +82,56 @@ public class Result
 				this.resultString = ""+result;
 	}
 	
-	public Result(Object result, String resultString)
+	/**
+	 * Set the result and the string of explanatory text.
+	 */
+	public void setResultAndString(Object result, String resultString)
 	{
 		this.result = result;
 		this.resultString = resultString;
 	}
 	
-	public Object getResult()
-	{
-		return result;
-	}
-
-	public String getResultString()
-	{
-		return resultString;
-	}
-
+	/**
+	 * Set the string of explanatory text.
+	 */
 	public void setResultString(String resultString)
 	{
 		this.resultString = resultString;
 	}
 	
+	/**
+	 * Set the counterexample (null denotes n/a).
+	 */
+	public void setCounterexample(Object cex)
+	{
+		this.cex = cex;
+	}
+	
+	/**
+	 * Get the result.
+	 */
+	public Object getResult()
+	{
+		return result;
+	}
+
+	/**
+	 * Get the result string (explanatory text).
+	 */
+	public String getResultString()
+	{
+		return resultString;
+	}
+
+	/**
+	 * Get the counterexample (null denotes n/a).
+	 */
+	public Object getCounterexample()
+	{
+		return cex;
+	}
+	
+	@Override
 	public String toString()
 	{
 		return resultString;

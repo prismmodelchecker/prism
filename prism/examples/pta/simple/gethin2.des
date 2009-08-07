@@ -1,0 +1,42 @@
+#no update for variables
+{
+#0
+init
+	node l0; x<=2
+	[ 
+	tran  l1; true;null;0.5
+	tran  l2; true;null;0.5
+	] 
+}
+#1
+{
+	node l1; x<=3
+	[
+	tran l3;x=0;null;1.0
+	]
+	[
+	tran l4;x>=2;null;1.0
+	]
+}
+#2
+{
+	node l2; x<=4
+	[
+	tran   l3;x>=1;x=0;1.0
+	]
+}
+#3
+{
+	node l3; true
+	[
+	tran l3;true;null;1
+	]
+}
+#4
+{
+	node l4; true
+	[
+	tran l4;true;null;1
+	]
+*
+

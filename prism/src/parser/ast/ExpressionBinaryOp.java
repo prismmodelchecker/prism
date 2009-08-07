@@ -29,6 +29,7 @@ package parser.ast;
 import parser.*;
 import parser.visitor.*;
 import prism.PrismLangException;
+import parser.type.*;
 
 public class ExpressionBinaryOp extends Expression
 {
@@ -48,7 +49,11 @@ public class ExpressionBinaryOp extends Expression
 	public static final int DIVIDE = 13;
 	// Operator symbols
 	public static final String opSymbols[] = { "", "=>", "|", "&", "=", "!=", ">", ">=", "<", "<=", "+", "-", "*", "/" };
-
+	// Operator type testers
+	public static boolean isLogical(int op) { return op==IMPLIES || op==OR || op==AND; }
+	public static boolean isRelOp(int op) { return op==EQ || op==NE || op==GT ||  op==GE || op==LT || op==LE; }
+	public static boolean isArithmetic(int op) { return op==PLUS || op==MINUS || op==TIMES ||  op==DIVIDE; }
+	
 	// Operator
 	protected int op = 0;
 	// Pair of operands
@@ -118,96 +123,74 @@ public class ExpressionBinaryOp extends Expression
 	}
 
 	/**
-	 * Evaluate this expression, return result. Note: assumes that type checking
-	 * has been done already.
+	 * Evaluate this expression, return result.
+	 * Note: assumes that type checking has been done already.
 	 */
-	public Object evaluate(Values constantValues, Values varValues) throws PrismLangException
+	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
 		switch (op) {
 		case IMPLIES:
-			return new Boolean(!operand1.evaluateBoolean(constantValues, varValues)
-					|| operand2.evaluateBoolean(constantValues, varValues));
+			return new Boolean(!operand1.evaluateBoolean(ec) || operand2.evaluateBoolean(ec));
 		case OR:
-			return new Boolean(operand1.evaluateBoolean(constantValues, varValues)
-					|| operand2.evaluateBoolean(constantValues, varValues));
+			return new Boolean(operand1.evaluateBoolean(ec) || operand2.evaluateBoolean(ec));
 		case AND:
-			return new Boolean(operand1.evaluateBoolean(constantValues, varValues)
-					&& operand2.evaluateBoolean(constantValues, varValues));
+			return new Boolean(operand1.evaluateBoolean(ec) && operand2.evaluateBoolean(ec));
 		case EQ:
-			if (operand1.getType() == Expression.INT && operand2.getType() == Expression.INT) {
-				return new Boolean(operand1.evaluateInt(constantValues, varValues) == operand2.evaluateInt(
-						constantValues, varValues));
+			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
+				return new Boolean(operand1.evaluateInt(ec) == operand2.evaluateInt(ec));
 			} else {
-				return new Boolean(operand1.evaluateDouble(constantValues, varValues) == operand2.evaluateDouble(
-						constantValues, varValues));
+				return new Boolean(operand1.evaluateDouble(ec) == operand2.evaluateDouble(ec));
 			}
 		case NE:
-			if (operand1.getType() == Expression.INT && operand2.getType() == Expression.INT) {
-				return new Boolean(operand1.evaluateInt(constantValues, varValues) != operand2.evaluateInt(
-						constantValues, varValues));
+			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
+				return new Boolean(operand1.evaluateInt(ec) != operand2.evaluateInt(ec));
 			} else {
-				return new Boolean(operand1.evaluateDouble(constantValues, varValues) != operand2.evaluateDouble(
-						constantValues, varValues));
+				return new Boolean(operand1.evaluateDouble(ec) != operand2.evaluateDouble(ec));
 			}
 		case GT:
-			if (operand1.getType() == Expression.INT && operand2.getType() == Expression.INT) {
-				return new Boolean(operand1.evaluateInt(constantValues, varValues) > operand2.evaluateInt(
-						constantValues, varValues));
+			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
+				return new Boolean(operand1.evaluateInt(ec) > operand2.evaluateInt(ec));
 			} else {
-				return new Boolean(operand1.evaluateDouble(constantValues, varValues) > operand2.evaluateDouble(
-						constantValues, varValues));
+				return new Boolean(operand1.evaluateDouble(ec) > operand2.evaluateDouble(ec));
 			}
 		case GE:
-			if (operand1.getType() == Expression.INT && operand2.getType() == Expression.INT) {
-				return new Boolean(operand1.evaluateInt(constantValues, varValues) >= operand2.evaluateInt(
-						constantValues, varValues));
+			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
+				return new Boolean(operand1.evaluateInt(ec) >= operand2.evaluateInt(ec));
 			} else {
-				return new Boolean(operand1.evaluateDouble(constantValues, varValues) >= operand2.evaluateDouble(
-						constantValues, varValues));
+				return new Boolean(operand1.evaluateDouble(ec) >= operand2.evaluateDouble(ec));
 			}
 		case LT:
-			if (operand1.getType() == Expression.INT && operand2.getType() == Expression.INT) {
-				return new Boolean(operand1.evaluateInt(constantValues, varValues) < operand2.evaluateInt(
-						constantValues, varValues));
+			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
+				return new Boolean(operand1.evaluateInt(ec) < operand2.evaluateInt(ec));
 			} else {
-				return new Boolean(operand1.evaluateDouble(constantValues, varValues) < operand2.evaluateDouble(
-						constantValues, varValues));
+				return new Boolean(operand1.evaluateDouble(ec) < operand2.evaluateDouble(ec));
 			}
 		case LE:
-			if (operand1.getType() == Expression.INT && operand2.getType() == Expression.INT) {
-				return new Boolean(operand1.evaluateInt(constantValues, varValues) <= operand2.evaluateInt(
-						constantValues, varValues));
+			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
+				return new Boolean(operand1.evaluateInt(ec) <= operand2.evaluateInt(ec));
 			} else {
-				return new Boolean(operand1.evaluateDouble(constantValues, varValues) <= operand2.evaluateDouble(
-						constantValues, varValues));
+				return new Boolean(operand1.evaluateDouble(ec) <= operand2.evaluateDouble(ec));
 			}
 		case PLUS:
-			if (operand1.getType() == Expression.INT && operand2.getType() == Expression.INT) {
-				return new Integer(operand1.evaluateInt(constantValues, varValues)
-						+ operand2.evaluateInt(constantValues, varValues));
+			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
+				return new Integer(operand1.evaluateInt(ec) + operand2.evaluateInt(ec));
 			} else {
-				return new Double(operand1.evaluateDouble(constantValues, varValues)
-						+ operand2.evaluateDouble(constantValues, varValues));
+				return new Double(operand1.evaluateDouble(ec) + operand2.evaluateDouble(ec));
 			}
 		case MINUS:
-			if (operand1.getType() == Expression.INT && operand2.getType() == Expression.INT) {
-				return new Integer(operand1.evaluateInt(constantValues, varValues)
-						- operand2.evaluateInt(constantValues, varValues));
+			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
+				return new Integer(operand1.evaluateInt(ec) - operand2.evaluateInt(ec));
 			} else {
-				return new Double(operand1.evaluateDouble(constantValues, varValues)
-						- operand2.evaluateDouble(constantValues, varValues));
+				return new Double(operand1.evaluateDouble(ec) - operand2.evaluateDouble(ec));
 			}
 		case TIMES:
-			if (operand1.getType() == Expression.INT && operand2.getType() == Expression.INT) {
-				return new Integer(operand1.evaluateInt(constantValues, varValues)
-						* operand2.evaluateInt(constantValues, varValues));
+			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
+				return new Integer(operand1.evaluateInt(ec) * operand2.evaluateInt(ec));
 			} else {
-				return new Double(operand1.evaluateDouble(constantValues, varValues)
-						* operand2.evaluateDouble(constantValues, varValues));
+				return new Double(operand1.evaluateDouble(ec) * operand2.evaluateDouble(ec));
 			}
 		case DIVIDE:
-			return new Double(operand1.evaluateDouble(constantValues, varValues)
-					/ operand2.evaluateDouble(constantValues, varValues));
+			return new Double(operand1.evaluateDouble(ec) / operand2.evaluateDouble(ec));
 		}
 		throw new PrismLangException("Unknown binary operator", this);
 	}

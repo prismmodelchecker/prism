@@ -29,7 +29,7 @@ package parser.ast;
 import parser.*;
 import parser.visitor.*;
 import prism.PrismLangException;
-
+import parser.type.*;
 public class ExpressionLiteral extends Expression
 {
 	Object value; // Value
@@ -37,12 +37,12 @@ public class ExpressionLiteral extends Expression
 
 	// Constructor
 	
-	public ExpressionLiteral(int type, Object value)
+	public ExpressionLiteral(Type type, Object value)
 	{
 		this(type, value, ""+value);
 	}
 
-	public ExpressionLiteral(int type, Object value, String string)
+	public ExpressionLiteral(Type type, Object value, String string)
 	{
 		this.type = type;
 		this.value = value;
@@ -88,7 +88,7 @@ public class ExpressionLiteral extends Expression
 	 * Evaluate this expression, return result.
 	 * Note: assumes that type checking has been done already.
 	 */
-	public Object evaluate(Values constantValues, Values varValues) throws PrismLangException
+	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
 		return value;
 	}

@@ -28,50 +28,14 @@ package parser.ast;
 
 import parser.*;
 import parser.visitor.*;
+import prism.ModelType;
 import prism.PrismLangException;
+import parser.type.*;
 
 // Abstract class for PRISM language expressions
 
 public abstract class Expression extends ASTElement
 {
-	// type constants
-	public static final int INT = 1;
-	public static final int DOUBLE = 2;
-	public static final int BOOLEAN = 3;
-	public static final int PATH_INT = 4; // Not used
-	public static final int PATH_DOUBLE = 5;
-	public static final int PATH_BOOLEAN = 6;
-	
-	// and a function to get at their names
-	public static String getTypeString(int i) {
-		switch (i) {
-		case INT: return "int";
-		case DOUBLE: return "double";
-		case BOOLEAN: return "bool";
-		case PATH_INT: return "path-int";
-		case PATH_DOUBLE: return "path-double";
-		case PATH_BOOLEAN: return "path-bool";
-		default: return "(unknown)";
-		}
-	}
-	
-	// another useful function telling you which types can be assigned to which others
-	public static boolean canAssignTypes(int tl, int tr)
-	{
-		switch (tl) {
-			// boolean can only be assigned boolean
-			case Expression.BOOLEAN: return (tr == Expression.BOOLEAN);
-			// int can only be assigned int
-			case Expression.INT: return (tr == Expression.INT);
-			// double can be assigned int or double
-			case Expression.DOUBLE: return (tr == Expression.INT || tr == Expression.DOUBLE);
-			// should never happen...
-			default: return false;
-		}
-	}
-	
-	// Methods required for Expression (all subclasses should implement/override):
-	
 	/**
 	 * Is this expression constant?
 	 */
@@ -81,8 +45,8 @@ public abstract class Expression extends ASTElement
 	 * Evaluate this expression, return result.
 	 * Note: assumes that type checking has been done already.
 	 */
-	public abstract Object evaluate(Values constantValues, Values varValues) throws PrismLangException;
-	
+	public abstract Object evaluate(EvaluateContext ec) throws PrismLangException;
+
 	/**
 	  * Get "name" of the result of this expression (used for y-axis of any graphs plotted)
 	  */
@@ -91,25 +55,25 @@ public abstract class Expression extends ASTElement
 		return "Result";
 	}
 
-	 // Overrided version of deepCopy() from superclass ASTElement (to reduce casting).
-	 
+	// Overrided version of deepCopy() from superclass ASTElement (to reduce casting).
+
 	/**
 	 * Perform a deep copy.
 	 */
 	public abstract Expression deepCopy();
-	
+
 	// Utility methods:
-	
+
 	/**
 	 * Check expression (property) for validity with respect to a particular model type
 	 * (i.e. whether not it is a property that can be model checked for that model type).
 	 */
-	public void checkValid(int modelType) throws PrismLangException
+	public void checkValid(ModelType modelType) throws PrismLangException
 	{
 		CheckValid visitor = new CheckValid(modelType);
 		accept(visitor);
 	}
-	
+
 	/**
 	 * Determine whether expression is a valid "simple" path formula , i.e. a formula
 	 * that could occur in the P operator of a PCTL/CSL formula (not LTL, PCTL*).
@@ -134,10 +98,10 @@ public abstract class Expression extends ASTElement
 		else if (this instanceof ExpressionTemporal) {
 			ExpressionTemporal expr = (ExpressionTemporal) this;
 			// And children, if present, must be state (not path) formulas
-			if (expr.getOperand1() != null && expr.getOperand1().getType() != Expression.BOOLEAN) {
+			if (expr.getOperand1() != null && !(expr.getOperand1().getType() instanceof TypeBool)) {
 				return false;
 			}
-			if (expr.getOperand2() != null && expr.getOperand2().getType() != Expression.BOOLEAN) {
+			if (expr.getOperand2() != null && !(expr.getOperand2().getType() instanceof TypeBool)) {
 				return false;
 			}
 			return true;
@@ -145,8 +109,8 @@ public abstract class Expression extends ASTElement
 		// Default: false.
 		return false;
 	}
-	
-	/*
+
+	/**
 	 * Convert a property expression (an LTL formula) into the classes used by
 	 * the jltl2ba (and jltl2dstar) libraries.
 	 */
@@ -156,72 +120,334 @@ public abstract class Expression extends ASTElement
 		accept(visitor);
 		return visitor.getFormula(this);
 	}
-	
-	// evaluate to an int
-	// any typing issues cause an exception
-	// [does nothing to the expression itself]
-	public int evaluateInt(Values constantValues, Values varValues) throws PrismLangException
+
+	/**
+	 * Evaluate this expression, based on Values for constants/variables; return result.
+	 * Note: assumes that type checking has been done already.
+	 */
+	public Object evaluate(Values constantValues, Values varValues) throws PrismLangException
 	{
-		Object o;
-		
-		o = evaluate(constantValues, varValues);
-		
-		if (!(o instanceof Integer)) {
-			throw new PrismLangException("Cannot evaluate to an integer", this);
-		}
-		
-		return ((Integer)o).intValue();
+		return evaluate(new EvaluateContextValues(constantValues, varValues));
 	}
 
-	// evaluate to a double
-	// any typing issues cause an exception
-	// [does nothing to the expression itself]
-	public double evaluateDouble(Values constantValues, Values varValues) throws PrismLangException
+	/**
+	 * Evaluate this expression, based on a State object, i.e. array of variable values; return result.
+	 * Note: assumes that constants have been evaluated and type checking has been done.
+	 */
+	public Object evaluate(State state) throws PrismLangException
 	{
-		Object o;
-		
-		o = evaluate(constantValues, varValues);
-		
-		if (o instanceof Boolean) {
-			throw new PrismLangException("Cannot evaluate to a double", this);
-		}
+		return evaluate(new EvaluateContextState(state));
+	}
+
+	/**
+	 * Evaluate this expression, based on a State object, indexed over a subset of all variables,
+	 * and a mapping from indices (over all variables) to this subset (-1 if not in subset).
+	 * If any variables required for evaluation are missing, this will fail with an exception.
+	 */
+	public Object evaluate(State substate, int[] varMap) throws PrismLangException
+	{
+		return evaluate(new EvaluateContextSubstate(substate, varMap));
+	}
+
+	/**
+	 * Evaluate this expression, using no constant or variable values.
+	 */
+	public Object evaluate() throws PrismLangException
+	{
+		return evaluate(new EvaluateContextValues(null, null));
+	}
+
+	/**
+	 * Evaluate this expression as an integer.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
+	 */
+	public int evaluateInt(EvaluateContext ec) throws PrismLangException
+	{
+		Object o = evaluate(ec);
 		if (o instanceof Integer) {
-			return ((Integer)o).intValue();
+			return ((Integer) o).intValue();
+		}
+		if (o instanceof Boolean) {
+			return ((Boolean) o).booleanValue() ? 1 : 0;
+		}
+		throw new PrismLangException("Cannot evaluate to an integer", this);
+	}
+
+	/**
+	 * Evaluate this expression as an integer.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
+	 */
+	public int evaluateInt(Values constantValues, Values varValues) throws PrismLangException
+	{
+		return evaluateInt(new EvaluateContextValues(constantValues, varValues));
+	}
+
+	/**
+	 * Evaluate this expression as an integer.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
+	 */
+	public int evaluateInt(State state) throws PrismLangException
+	{
+		return evaluateInt(new EvaluateContextState(state));
+	}
+
+	/**
+	 * Evaluate this expression as an integer.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
+	 */
+	public int evaluateInt(State substate, int[] varMap) throws PrismLangException
+	{
+		return evaluateInt(new EvaluateContextSubstate(substate, varMap));
+	}
+
+	/**
+	 * Evaluate this expression as an integer.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
+	 */
+	public int evaluateInt() throws PrismLangException
+	{
+		return evaluateInt(new EvaluateContextValues(null, null));
+	}
+
+	/**
+	 * Evaluate this expression as a double.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0.0/1.0).
+	 */
+	public double evaluateDouble(EvaluateContext ec) throws PrismLangException
+	{
+		Object o = evaluate(ec);
+		if (o instanceof Integer) {
+			return ((Integer) o).intValue();
 		}
 		if (o instanceof Double) {
-			return ((Double)o).doubleValue();
+			return ((Double) o).doubleValue();
 		}
-		
+		if (o instanceof Boolean) {
+			return ((Boolean) o).booleanValue() ? 1.0 : 0.0;
+		}
 		throw new PrismLangException("Cannot evaluate to a double", this);
 	}
 
-	// evaluate to a boolean
-	// any typing issues cause an exception
-	// [does nothing to the expression itself]
-	public boolean evaluateBoolean(Values constantValues, Values varValues) throws PrismLangException
+	/**
+	 * Evaluate this expression as a double.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0.0/1.0).
+	 */
+	public double evaluateDouble(Values constantValues, Values varValues) throws PrismLangException
 	{
-		Object o;
-		
-		o = evaluate(constantValues, varValues);
-		
+		return evaluateDouble(new EvaluateContextValues(constantValues, varValues));
+	}
+
+	/**
+	 * Evaluate this expression as a double.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0.0/1.0).
+	 */
+	public double evaluateDouble(State state) throws PrismLangException
+	{
+		return evaluateDouble(new EvaluateContextState(state));
+	}
+
+	/**
+	 * Evaluate this expression as a double.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0.0/1.0).
+	 */
+	public double evaluateDouble(State substate, int[] varMap) throws PrismLangException
+	{
+		return evaluateDouble(new EvaluateContextSubstate(substate, varMap));
+	}
+
+	/**
+	 * Evaluate this expression as a double.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0.0/1.0).
+	 */
+	public double evaluateDouble() throws PrismLangException
+	{
+		return evaluateDouble(new EvaluateContextValues(null, null));
+	}
+
+	/**
+	 * Evaluate this expression as a boolean.
+	 * Any typing issues cause an exception.
+	 */
+	public boolean evaluateBoolean(EvaluateContext ec) throws PrismLangException
+	{
+		Object o = evaluate(ec);
 		if (!(o instanceof Boolean)) {
 			throw new PrismLangException("Cannot evaluate to a boolean", this);
 		}
-		
-		return ((Boolean)o).booleanValue();
+		return ((Boolean) o).booleanValue();
 	}
-	
+
+	/**
+	 * Evaluate this expression as a boolean.
+	 * Any typing issues cause an exception.
+	 */
+	public boolean evaluateBoolean(Values constantValues, Values varValues) throws PrismLangException
+	{
+		return evaluateBoolean(new EvaluateContextValues(constantValues, varValues));
+	}
+
+	/**
+	 * Evaluate this expression as a boolean.
+	 * Any typing issues cause an exception.
+	 */
+	public boolean evaluateBoolean(State state) throws PrismLangException
+	{
+		return evaluateBoolean(new EvaluateContextState(state));
+	}
+
+	/**
+	 * Evaluate this expression as a boolean.
+	 * Any typing issues cause an exception.
+	 */
+	public boolean evaluateBoolean(State substate, int[] varMap) throws PrismLangException
+	{
+		return evaluateBoolean(new EvaluateContextSubstate(substate, varMap));
+	}
+
+	/**
+	 * Evaluate this expression as a boolean.
+	 * Any typing issues cause an exception.
+	 */
+	public boolean evaluateBoolean() throws PrismLangException
+	{
+		return evaluateBoolean(new EvaluateContextValues(null, null));
+	}
+
 	// Static constructors for convenience
-	public static Expression True() { return new ExpressionLiteral(Expression.BOOLEAN, true); }
-	public static Expression False() { return new ExpressionLiteral(Expression.BOOLEAN, false); }
-	public static Expression Int(int i) { return new ExpressionLiteral(Expression.INT, i); }
-	public static Expression Double(double d) { return new ExpressionLiteral(Expression.DOUBLE, d); }
-	public static Expression Not(Expression expr) { return new ExpressionUnaryOp(ExpressionUnaryOp.NOT, expr); }
+
+	public static Expression True()
+	{
+		return new ExpressionLiteral(TypeBool.getInstance(), true);
+	}
+
+	public static Expression False()
+	{
+		return new ExpressionLiteral(TypeBool.getInstance(), false);
+	}
+
+	public static Expression Int(int i)
+	{
+		return new ExpressionLiteral(TypeInt.getInstance(), i);
+	}
+
+	public static Expression Double(double d)
+	{
+		return new ExpressionLiteral(TypeDouble.getInstance(), d);
+	}
+
+	public static Expression Literal(Object o) throws PrismLangException
+	{
+		if (o instanceof Integer) {
+			return Int(((Integer) o).intValue());
+		} else if (o instanceof Double) {
+			return Double(((Double) o).doubleValue());
+		} else if (o instanceof Boolean) {
+			return (((Boolean) o).booleanValue() ? True() : False());
+		} else {
+			throw new PrismLangException("Unknown object type " + o.getClass());
+		}
+	}
+
+	public static Expression Not(Expression expr)
+	{
+		return new ExpressionUnaryOp(ExpressionUnaryOp.NOT, expr);
+	}
+
 	public static Expression And(Expression expr1, Expression expr2)
-	{ return new ExpressionBinaryOp(ExpressionBinaryOp.AND, expr1, expr2); }
+	{
+		return new ExpressionBinaryOp(ExpressionBinaryOp.AND, expr1, expr2);
+	}
+
 	public static Expression Or(Expression expr1, Expression expr2)
-	{ return new ExpressionBinaryOp(ExpressionBinaryOp.OR, expr1, expr2); }
-	public static Expression Parenth(Expression expr) { return new ExpressionUnaryOp(ExpressionUnaryOp.PARENTH, expr); }
+	{
+		return new ExpressionBinaryOp(ExpressionBinaryOp.OR, expr1, expr2);
+	}
+
+	public static Expression Implies(Expression expr1, Expression expr2)
+	{
+		return new ExpressionBinaryOp(ExpressionBinaryOp.IMPLIES, expr1, expr2);
+	}
+
+	public static Expression Plus(Expression expr1, Expression expr2)
+	{
+		return new ExpressionBinaryOp(ExpressionBinaryOp.PLUS, expr1, expr2);
+	}
+
+	public static Expression Minus(Expression expr1, Expression expr2)
+	{
+		return new ExpressionBinaryOp(ExpressionBinaryOp.MINUS, expr1, expr2);
+	}
+
+	public static Expression Times(Expression expr1, Expression expr2)
+	{
+		return new ExpressionBinaryOp(ExpressionBinaryOp.TIMES, expr1, expr2);
+	}
+
+	public static Expression Divide(Expression expr1, Expression expr2)
+	{
+		return new ExpressionBinaryOp(ExpressionBinaryOp.DIVIDE, expr1, expr2);
+	}
+
+	public static Expression Parenth(Expression expr)
+	{
+		return new ExpressionUnaryOp(ExpressionUnaryOp.PARENTH, expr);
+	}
+
+	// Static testers for convenience
+
+	public static boolean isTrue(Expression expr)
+	{
+		return expr instanceof ExpressionLiteral && ((ExpressionLiteral) expr).getValue().equals(true);
+	}
+
+	public static boolean isFalse(Expression expr)
+	{
+		return expr instanceof ExpressionLiteral && ((ExpressionLiteral) expr).getValue().equals(false);
+	}
+
+	public static boolean isInt(Expression expr)
+	{
+		return expr instanceof ExpressionLiteral && expr.getType() instanceof TypeInt;
+	}
+
+	public static boolean isDouble(Expression expr)
+	{
+		return expr instanceof ExpressionLiteral && expr.getType() instanceof TypeDouble;
+	}
+
+	public static boolean isNot(Expression expr)
+	{
+		return expr instanceof ExpressionUnaryOp && ((ExpressionUnaryOp) expr).getOperator() == ExpressionUnaryOp.NOT;
+	}
+
+	public static boolean isAnd(Expression expr)
+	{
+		return expr instanceof ExpressionBinaryOp
+				&& ((ExpressionBinaryOp) expr).getOperator() == ExpressionBinaryOp.AND;
+	}
+
+	public static boolean isOr(Expression expr)
+	{
+		return expr instanceof ExpressionBinaryOp && ((ExpressionBinaryOp) expr).getOperator() == ExpressionBinaryOp.OR;
+	}
+
+	public static boolean isImplies(Expression expr)
+	{
+		return expr instanceof ExpressionBinaryOp
+				&& ((ExpressionBinaryOp) expr).getOperator() == ExpressionBinaryOp.IMPLIES;
+	}
+
+	public static boolean isParenth(Expression expr)
+	{
+		return expr instanceof ExpressionUnaryOp
+				&& ((ExpressionUnaryOp) expr).getOperator() == ExpressionUnaryOp.PARENTH;
+	}
+
+	public static boolean isRelOp(Expression expr)
+	{
+		return expr instanceof ExpressionBinaryOp
+				&& ExpressionBinaryOp.isRelOp(((ExpressionBinaryOp) expr).getOperator());
+	}
 }
 
 //------------------------------------------------------------------------------

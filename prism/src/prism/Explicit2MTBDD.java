@@ -32,6 +32,7 @@ import java.util.Vector;
 import jdd.*;
 import parser.*;
 import parser.ast.*;
+import parser.type.*;
 
 // class to translate an explicit prism model description into an MTBDD model
 
@@ -55,14 +56,14 @@ public class Explicit2MTBDD
 	// model info
 	
 	// type
-	private int type;				// model type (prob./nondet./stoch.)
+	private ModelType modelType;				// model type (dtmc/mdp/ctmc.)
 	// vars info
 	private int numVars;			// total number of variables
 	private String varNames[];		// names of vars
 	private	int varMins[];			// min values of vars
 	private int varMaxs[];			// max values of vars
 	private int varRanges[];		// ranges of vars
-	private int varTypes[];			// types of vars
+	private Type varTypes[];			// types of vars
 	private VarList varList;		// VarList object to store all var info 
 	// explicit storage of states
 	private int numStates = 0;
@@ -104,7 +105,7 @@ public class Explicit2MTBDD
 
 	// constructor
 	
-	public Explicit2MTBDD(Prism prism, File sf, File tf, File lf, int t)
+	public Explicit2MTBDD(Prism prism, File sf, File tf, File lf, ModelType t)
 	{
 		this.prism = prism;
 		mainLog = prism.getMainLog();
@@ -114,14 +115,7 @@ public class Explicit2MTBDD
 		labelsFile = lf;
 		// set type at this point
 		// if no preference stated, assume default of mdp
-		switch (t) {
-		case ModulesFile.PROBABILISTIC:
-		case ModulesFile.NONDETERMINISTIC:
-		case ModulesFile.STOCHASTIC:
-			type = t; break;
-		default:
-			type = ModulesFile.NONDETERMINISTIC; break;
-		}
+		modelType = (t == null) ? ModelType.MDP : t;
 	}
 	
 	// build state space
@@ -153,13 +147,17 @@ public class Explicit2MTBDD
 		int i, j, lineNum = 0;
 		Module m;
 		Declaration d;
+		DeclarationType dt;
 		
 		try {
 			// open file for reading
 			in = new BufferedReader(new FileReader(statesFile));
 			// read first line and extract var names
-			s = in.readLine().trim(); lineNum = 1;
-			if (s.charAt(0) != '(' || s.charAt(s.length()-1) != ')') throw new PrismException("");
+			s = in.readLine(); lineNum = 1;
+			if (s == null)
+				throw new PrismException("empty states file");
+			s = s.trim();
+			if (s.charAt(0) != '(' || s.charAt(s.length()-1) != ')') throw new PrismException("badly formatted state");
 			s = s.substring(1, s.length()-1);
 			varNames = s.split(",");
 			numVars = varNames.length;
@@ -167,7 +165,7 @@ public class Explicit2MTBDD
 			varMins = new int[numVars];
 			varMaxs = new int[numVars];
 			varRanges = new int[numVars];
-			varTypes = new int[numVars];
+			varTypes = new Type[numVars];
 			// read remaining lines
 			s = in.readLine(); lineNum++;
 			numStates = 0;
@@ -178,16 +176,16 @@ public class Explicit2MTBDD
 				s = s.trim();
 				s = s.substring(s.indexOf('(')+1, s.indexOf(')'));
 				ss = s.split(",");
-				if (ss.length != numVars) throw new PrismException("");
+				if (ss.length != numVars) throw new PrismException("wrong number of variables");
 				// for each variable...
 				for (i = 0; i < numVars; i++) {
 					// if this is the first state, establish variable type
 					if (numStates == 1) {
-						if (ss[i].equals("true") || ss[i].equals("false")) varTypes[i] = Expression.BOOLEAN;
-						else varTypes[i] = Expression.INT;
+						if (ss[i].equals("true") || ss[i].equals("false")) varTypes[i] = TypeBool.getInstance();
+						else varTypes[i] = TypeInt.getInstance();
 					}
 					// check for new min/max values (ints only)
-					if (varTypes[i] == Expression.INT) {
+					if (varTypes[i] instanceof TypeInt) {
 						j = Integer.parseInt(ss[i]);
 						if (numStates == 1) {
 							varMins[i] = varMaxs[i] = j;
@@ -201,7 +199,7 @@ public class Explicit2MTBDD
 			}
 			// compute variable ranges
 			for (i = 0; i < numVars; i++) {
-				if (varTypes[i] == Expression.INT) {
+				if (varTypes[i] instanceof TypeInt) {
 					varRanges[i] = varMaxs[i] - varMins[i];
 					// if range = 0, increment maximum - we don't allow zero-range variables
 					if (varRanges[i] == 0) varMaxs[i]++;
@@ -217,17 +215,21 @@ public class Explicit2MTBDD
 			throw new PrismException("Error detected at line " + lineNum + " of states file \"" + statesFile + "\"");
 		}
 		catch (PrismException e) {
-			throw new PrismException("Error detected " + e.getMessage() + "at line " + lineNum + " of states file \"" + statesFile + "\"");
+			throw new PrismException("Error detected (" + e.getMessage() + ") at line " + lineNum + " of states file \"" + statesFile + "\"");
 		}
 		// create modules file
 		modulesFile = new ModulesFile();
 		m = new Module("M");
 		for (i = 0; i < numVars; i++) {
-			if (varTypes[i] == Expression.INT) {
-				d = new Declaration(varNames[i], new ExpressionLiteral(Expression.INT, varMins[i]), new ExpressionLiteral(Expression.INT, varMaxs[i]), new ExpressionLiteral(Expression.INT, varMins[i]));
+			if (varTypes[i] instanceof TypeInt) {
+				dt = new DeclarationInt(Expression.Int(varMins[i]), Expression.Int(varMaxs[i]));
+				d = new Declaration(varNames[i], dt);
+				d.setStart(Expression.Int(varMins[i]));
 			}
 			else {
-				d = new Declaration(varNames[i], new ExpressionLiteral(Expression.BOOLEAN, false));
+				dt = new DeclarationBool();
+				d = new Declaration(varNames[i], dt);
+				d.setStart(Expression.False());
 			}
 			m.addDeclaration(d);
 		}
@@ -244,12 +246,16 @@ public class Explicit2MTBDD
 		int lineNum = 0;
 		Module m;
 		Declaration d;
+		DeclarationType dt;
 		
 		try {
 			// open file for reading
 			in = new BufferedReader(new FileReader(transFile));
 			// read first line and extract num states
-			s = in.readLine().trim(); lineNum = 1;
+			s = in.readLine(); lineNum = 1;
+			if (s == null)
+				throw new PrismException("empty transitions file");
+			s = s.trim();
 			ss = s.split(" ");
 			if (ss.length < 2) throw new PrismException("");
 			numStates = Integer.parseInt(ss[0]);
@@ -263,12 +269,14 @@ public class Explicit2MTBDD
 			throw new PrismException("Error detected at line " + lineNum + " of transition matrix file \"" + transFile + "\"");
 		}
 		catch (PrismException e) {
-			throw new PrismException("Error detected " + e.getMessage() + "at line " + lineNum + " of transition matrix file \"" + transFile + "\"");
+			throw new PrismException("Error detected (" + e.getMessage() + ") at line " + lineNum + " of transition matrix file \"" + transFile + "\"");
 		}
 		// create modules file
 		modulesFile = new ModulesFile();
 		m = new Module("M");
-		d = new Declaration("x", new ExpressionLiteral(Expression.INT, 0), new ExpressionLiteral(Expression.INT, numStates-1), new ExpressionLiteral(Expression.INT, 0));
+		dt = new DeclarationInt(Expression.Int(0), Expression.Int(numStates-1));
+		d = new Declaration("x", dt);
+		d.setStart(Expression.Int(0));
 		m.addDeclaration(d);
 		modulesFile.addModule(m);
 		modulesFile.tidyUp();
@@ -303,7 +311,7 @@ public class Explicit2MTBDD
 				if (statesArray[i] != null) throw new PrismException("(duplicated state) ");
 				statesArray[i] = new int[numVars];
 				for (j = 0; j < numVars; j++) {
-					if (varTypes[j] == Expression.INT) {
+					if (varTypes[j] instanceof TypeInt) {
 						k = Integer.parseInt(ss[j]);
 						statesArray[i][j] = k - varMins[j];
 					}
@@ -343,7 +351,7 @@ public class Explicit2MTBDD
 		numVars = varList.getNumVars();
 		
 		// for an mdp, compute the max number of choices in a state
-		if (type == ModulesFile.NONDETERMINISTIC) computeMaxChoicesFromFile();
+		if (modelType == ModelType.MDP) computeMaxChoicesFromFile();
 		
 		// allocate dd variables
 		allocateDDVars();
@@ -355,7 +363,7 @@ public class Explicit2MTBDD
 		buildTrans();
 		
 		// get rid of any nondet dd variables not needed
-		if (type == ModulesFile.NONDETERMINISTIC) {
+		if (modelType == ModelType.MDP) {
 			tmp = JDD.GetSupport(trans);
 			tmp = JDD.ThereExists(tmp, allDDRowVars);
 			tmp = JDD.ThereExists(tmp, allDDColVars);
@@ -372,7 +380,7 @@ public class Explicit2MTBDD
 		
 // 		// print dd variables actually used (support of trans)
 // 		mainLog.print("\nMTBDD variables used (" + allDDRowVars.n() + "r, " + allDDRowVars.n() + "c");
-// 		if (type == ModulesFile.NONDETERMINISTIC) mainLog.print(", " + allDDNondetVars.n() + "nd");
+// 		if (modelType == ModelType.MDP) mainLog.print(", " + allDDNondetVars.n() + "nd");
 // 		mainLog.print("):");
 // 		tmp = JDD.GetSupport(trans);
 // 		tmp2 = tmp;
@@ -399,18 +407,18 @@ public class Explicit2MTBDD
 		String rewardStructNames[] = new String[1]; rewardStructNames[0] = "";
 		
 		// create new Model object to be returned
-		if (type == ModulesFile.PROBABILISTIC) {
+		if (modelType == ModelType.DTMC) {
 			model = new ProbModel(trans, start, stateRewardsArray, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, ddVarNames,
 						   numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
 						   numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		}
-		else if (type == ModulesFile.NONDETERMINISTIC) {
+		else if (modelType == ModelType.MDP) {
 			model = new NondetModel(trans, start, stateRewardsArray, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars,
 						     allDDSynchVars, allDDSchedVars, allDDChoiceVars, allDDNondetVars, ddVarNames,
 						     numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
 						     numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		}
-		else if (type == ModulesFile.STOCHASTIC) {
+		else if (modelType == ModelType.CTMC) {
 			model = new StochModel(trans, start, stateRewardsArray, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, ddVarNames,
 						    numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
 						    numVars, varList, varDDRowVars, varDDColVars, constantValues);
@@ -445,7 +453,7 @@ public class Explicit2MTBDD
 			JDD.Deref(varColRangeDDs[i]);
 		}
 		JDD.Deref(range);
-		if (type == ModulesFile.NONDETERMINISTIC) {
+		if (modelType == ModelType.MDP) {
 			for (i = 0; i < ddSynchVars.length; i++) {
 				JDD.Deref(ddSynchVars[i]);
 			}
@@ -511,7 +519,7 @@ public class Explicit2MTBDD
 		// create arrays/etc. first
 		
 		// nondeterministic variables
-		if (type == ModulesFile.NONDETERMINISTIC) {
+		if (modelType == ModelType.MDP) {
 			ddSynchVars = new JDDNode[0];
 			ddSchedVars = new JDDNode[0];
 			ddChoiceVars = new JDDNode[maxNumChoices];
@@ -527,7 +535,7 @@ public class Explicit2MTBDD
 		// now allocate variables
 		
 		// allocate nondeterministic variables
-		if (type == ModulesFile.NONDETERMINISTIC) {
+		if (modelType == ModelType.MDP) {
 			for (i = 0; i < maxNumChoices; i++) {
 				v = JDD.Var(ddVarsUsed++);
 				ddChoiceVars[i] = v;
@@ -582,7 +590,7 @@ public class Explicit2MTBDD
 		// create arrays
 		allDDRowVars = new JDDVars();
 		allDDColVars = new JDDVars();
-		if (type == ModulesFile.NONDETERMINISTIC) {
+		if (modelType == ModelType.MDP) {
 			allDDSynchVars = new JDDVars();
 			allDDSchedVars = new JDDVars();
 			allDDChoiceVars = new JDDVars();
@@ -596,7 +604,7 @@ public class Explicit2MTBDD
 			allDDRowVars.addVars(varDDRowVars[i]);
 			allDDColVars.addVars(varDDColVars[i]);
 		}
-		if (type == ModulesFile.NONDETERMINISTIC) {
+		if (modelType == ModelType.MDP) {
 			for (i = 0; i < ddChoiceVars.length; i++) {
 				// add to list
 				JDD.Ref(ddChoiceVars[i]);
@@ -695,7 +703,7 @@ public class Explicit2MTBDD
 				s = s.trim();
 				ss = s.split(" ");
 				// case for dtmcs/ctmcs...
-				if (type != ModulesFile.NONDETERMINISTIC) {
+				if (modelType != ModelType.MDP) {
 					if (ss.length < 3 || ss.length > 4) throw new PrismException("");
 					r = Integer.parseInt(ss[0]);
 					c = Integer.parseInt(ss[1]);
@@ -723,7 +731,7 @@ public class Explicit2MTBDD
 				// case where we don't have a state list...
 				if (statesFile == null) {
 					/// ...for dtmcs/ctmcs...
-					if (type != ModulesFile.NONDETERMINISTIC) {
+					if (modelType != ModelType.MDP) {
 						tmp = JDD.SetMatrixElement(JDD.Constant(0), varDDRowVars[0], varDDColVars[0], r, c, 1.0);
 					}
 					/// ...for mdps...
@@ -738,7 +746,7 @@ public class Explicit2MTBDD
 						tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], statesArray[r][i], 1));
 						tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDColVars[i], statesArray[c][i], 1));
 					}
-					if (type == ModulesFile.NONDETERMINISTIC) {
+					if (modelType == ModelType.MDP) {
 						tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), allDDChoiceVars, k, 1));
 					}
 				}

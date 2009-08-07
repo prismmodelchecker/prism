@@ -1,0 +1,56 @@
+#no update for variables
+{
+init
+	node first; true
+	[ 
+	rec_ack12||tran second; true; null; 1.0
+	]
+	[ 
+	snd_ack12||tran second; true; null; 1.0
+	]
+	[ 
+	rec_ack21||tran second; true; null; 1.0
+	]
+	[ 
+	snd_ack21||tran second; true; null; 1.0
+	]
+}
+{
+	node second; true
+	[ 
+	rec_ack12||tran after; z>2000; z=0; 1.0
+	]
+	[ 
+	snd_ack12||tran after; z>2000; z=0; 1.0
+	]
+	[
+	rec_ack12||tran before; z<=2000; z=0; 1.0
+	] 
+	[
+	snd_ack12||tran before; z<=2000; z=0; 1.0
+	] 
+	[ 
+	rec_ack21||tran after; z>2000; z=0; 1.0
+	]
+	[ 
+	snd_ack21||tran after; z>2000; z=0; 1.0
+	]
+	[
+	rec_ack21||tran before; z<=2000; z=0; 1.0
+	] 
+	[
+	snd_ack21||tran before; z<=2000; z=0; 1.0
+	] 
+}
+{
+	node after; true
+	[ 
+	tran after;true;null;1
+	]
+}
+{
+	node before; true
+	[
+	tran before;true;null;1
+	]
+*

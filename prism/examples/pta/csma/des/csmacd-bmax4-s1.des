@@ -1,0 +1,151 @@
+#no update for variables
+{
+init
+	node ini; w<=26
+	[ 
+	send1||tran  transmit1; w>=0; w=0; 1
+	]
+	[ 
+	csend1||tran  transmit1; w>=0; w=0; 1
+	]
+}
+{
+	node transmit1; w<=808
+	[ 
+	end1||tran  done; w>=808; w=0; 1
+	 ] 
+	[ 
+	cd1||tran  collide1; true; w=0; 1
+	 ] 
+}
+{
+	node transmit2; w<=808
+	[ 
+	end1||tran  done; w>=808; w=0; 1
+	 ] 
+	[ 
+	cd1||tran  collide2; true; w=0; 1
+	 ] 
+}
+{
+	node transmit3; w<=808
+	[ 
+	end1||tran  done; w>=808; w=0; 1
+	 ] 
+	[ 
+	cd1||tran  collide3; true; w=0; 1
+	 ] 
+}
+{
+	node transmit4; w<=808
+	[ 
+	end1||tran  done; w>=808; w=0; 1
+	 ] 
+	[ 
+	cd1||tran  collide4; true; w=0; 1
+	 ] 
+}
+{
+	node collide1; w<=0
+	[ 
+	tran  wait1; w>=0; w=0; 0.5
+	tran  wait1; w>=0; w=52; 0.5
+	 ] 
+}
+{
+	node collide2; w<=0
+	[ 
+	tran  wait2; w>=0; w=0;   0.25
+	tran  wait2; w>=0; w=52;  0.25
+	tran  wait2; w>=0; w=104; 0.25
+	tran  wait2; w>=0; w=156; 0.25
+	 ] 
+}
+{
+	node collide3; w<=0
+	[ 
+	tran  wait3; w>=0; w=0;   0.125
+	tran  wait3; w>=0; w=52;  0.125
+	tran  wait3; w>=0; w=104; 0.125
+	tran  wait3; w>=0; w=156; 0.125
+	tran  wait3; w>=0; w=208; 0.125
+	tran  wait3; w>=0; w=260; 0.125
+	tran  wait3; w>=0; w=312; 0.125
+	tran  wait3; w>=0; w=364; 0.125
+	 ] 
+}
+{
+	node collide4; w<=0
+	[ 
+	tran  wait4; w>=0; w=0;   0.0625
+	tran  wait4; w>=0; w=52;  0.0625
+	tran  wait4; w>=0; w=104; 0.0625
+	tran  wait4; w>=0; w=156; 0.0625
+	tran  wait4; w>=0; w=208; 0.0625
+	tran  wait4; w>=0; w=260; 0.0625
+	tran  wait4; w>=0; w=312; 0.0625
+	tran  wait4; w>=0; w=364; 0.0625
+	tran  wait4; w>=0; w=416; 0.0625
+	tran  wait4; w>=0; w=468; 0.0625
+	tran  wait4; w>=0; w=520; 0.0625
+	tran  wait4; w>=0; w=572; 0.0625
+	tran  wait4; w>=0; w=624; 0.0625
+	tran  wait4; w>=0; w=676; 0.0625
+	tran  wait4; w>=0; w=728; 0.0625
+	tran  wait4; w>=0; w=780; 0.0625
+	 ] 
+}
+{
+	node wait1; w<=104
+	[ 
+	send1||tran  transmit2; w>=104; w=0; 1
+	]
+	[ 
+	csend1||tran  transmit2; w>=104; w=0; 1
+	]
+	[
+	busy1||tran  collide2; w>=104; w=0; 1
+	 ] 
+}
+{
+	node wait2; w<=208
+	[ 
+	send1||tran  transmit3; w>=208; w=0; 1
+	]
+	[ 
+	csend1||tran  transmit3; w>=208; w=0; 1
+	]
+	[
+	busy1||tran  collide3; w>=208; w=0; 1
+	 ] 
+}
+{
+	node wait3; w<=416
+	[ 
+	send1||tran  transmit4; w>=416; w=0; 1
+	]
+	[ 
+	csend1||tran  transmit4; w>=416; w=0; 1
+	]
+	[
+	busy1||tran  collide4; w>=416; w=0; 1
+	 ] 
+}
+{
+	node wait4; w<=832
+	[ 
+	send1||tran  transmit4; w>=832; w=0; 1
+	]
+	[ 
+	csend1||tran  transmit4; w>=832; w=0; 1
+	]
+	[
+	busy1||tran  collide4; w>=832; w=0; 1
+	 ] 
+}
+{
+	node done; true
+	[
+	done||tran done;true;null;1
+	 ]
+*

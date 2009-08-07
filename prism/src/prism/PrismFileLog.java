@@ -101,6 +101,17 @@ public class PrismFileLog implements PrismLog
 		printToLog(s);
 	}
 
+	public void print(double d[])
+	{
+		int i, n;
+		n = d.length;
+		for (i = 0; i < n; i++) {
+			if (i > 0)
+				printToLog(" ");
+			printToLog("" + d[i]);
+		}
+	}
+
 	public void println()
 	{
 		printToLog("\n");
@@ -144,6 +155,12 @@ public class PrismFileLog implements PrismLog
 	public void println(String s)
 	{
 		printToLog(s + "\n");
+	}
+
+	public void println(double d[])
+	{
+		print(d);
+		println();
 	}
 
 	public long getFilePointer()

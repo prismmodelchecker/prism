@@ -1,0 +1,3 @@
+// Minimum probability that a leader is eventually elected
+Pmin=? [ F "done" ]
+

@@ -1,0 +1,80 @@
+##no update for variables
+{
+init
+	node s0; x2<=0
+	[ 
+	snd_idle21||tran  s2; x2=0; null ; 0.5
+	snd_idle21||tran  s3; x2=0; null ; 0.5
+	 ] 
+	[ 
+	rec_idle12||tran  s1; x2=0; null ; 1
+	 ] 
+}
+{
+	node s1; x2<=0
+	[ 
+	snd_idle21||tran  s4; x2=0; null ; 0.5
+	snd_idle21||tran  s5; x2=0; null ; 0.5
+	 ] 
+	[ 
+	rec_req12||tran  s0; x2=0; null ; 1
+	 ] 
+}
+{
+	node s2; x2<=850
+	[ 
+	rec_idle12||tran  s4; true; null ; 1
+	 ] 
+	[ 
+	snd_ack21||tran  s7; x2>=760; x2=0 ; 1
+	 ] 
+}
+{
+	node s3; x2<=1670
+	[ 
+	rec_idle12||tran  s5; true; null ; 1
+	 ] 
+	[ 
+	snd_ack21||tran  s7; x2>=1590; x2=0 ; 1
+	 ] 
+}
+{
+	node s4; x2<=850
+	[ 
+	rec_req12||tran  s2; true; null ; 1
+	 ] 
+	[ 
+	snd_req21||tran  s6; x2>=760; x2=0 ; 1
+	 ] 
+}
+{
+	node s5; x2<=1670
+	[ 
+	rec_req12||tran  s3; true; null ; 1
+	 ] 
+	[ 
+	snd_req21||tran  s6; x2>=1590; x2=0 ; 1
+	 ] 
+}
+{
+	node s6; true
+	[ 
+	rec_req12||tran  s0; true; x2=0 ; 1
+	 ] 
+	[ 
+	rec_ack12||tran s8; true; x2=0 ; 1
+	 ] 
+}
+{
+	node s7; true
+	[ 
+	loop||tran s7; true; null; 1.0
+	 ] 
+}
+{
+	node s8; true
+	[
+	loop||tran s8; true; null; 1.0
+	]
+*
+ 

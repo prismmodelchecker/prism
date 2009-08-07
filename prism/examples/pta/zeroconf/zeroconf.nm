@@ -1,0 +1,56 @@
+// prism model of pta version of zeroconf
+// using digitial clocks
+
+pta
+
+module sender
+
+	s : [0..2]; //local state
+	probes : [0..4]; // probes sent
+	ip : [0..2]; // ip address not chosen, fresh or in use
+	x : clock; // local clock
+
+	invariant
+	(s=0 => x<=0) &
+	(s=1 => x<=20) &
+	(s=2 => true)
+	endinvariant
+
+	// selct probe	
+	// [] s=0 -> 0.99969242125984251969 : (s'=1) & (ip'=0) + 0.00030757874015748031 : (s'=1) & (ip'=1);
+	[] s=0 -> 0.5 : (s'=1) & (ip'=1) + 0.5 : (s'=1) & (ip'=2);
+	// send probes
+	[send_used]  s=1 & x=20 & ip=2 & probes<4 -> (probes'=probes+1) & (x'=0);	
+	[send_fresh] s=1 & x=20 & ip=1 & probes<4 -> (probes'=probes+1) & (x'=0);
+	[] s=1 & x=20 & probes=4 -> (s'=2) & (x'=0);
+	[recv] s=1 -> (s'=0) & (x'=0) & (ip'=0) & (probes'=0);
+	[] s=2 -> true;
+
+endmodule
+
+module environment
+	
+	e : [0..2]; // ready, send reply
+	y : clock;
+
+	invariant
+	(e=0 => true) &
+	(e>=1 => y<=5)
+	endinvariant
+
+	[send_fresh] e=0 -> true;
+	[send_used]  e=0 -> 0.1 : (e'=0) & (y'=0) + 0.9 : (e'=1) & (y'=0);
+	[] e=1 & y>=1 -> 0.1 : (e'=0) & (y'=0) + 0.9 : (e'=2) & (y'=0);
+	[recv] e=2 & y>=1 -> (e'=0) & (y'=0);
+
+endmodule
+
+
+// time
+rewards "time"
+	true : 1;
+endrewards
+
+label "incorrect" = s=2 & ip=2;
+label "done" = s=2;
+

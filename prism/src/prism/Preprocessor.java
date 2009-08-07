@@ -32,6 +32,7 @@ import java.util.Stack;
 
 import parser.*;
 import parser.ast.*;
+import parser.type.*;
 
 public class Preprocessor
 {
@@ -56,7 +57,9 @@ public class Preprocessor
 	private Stack stack; // control flow stack
 	private String output; // output string
 	private boolean outputEnabled; // output enabling flag
-	private Vector varNames, varTypes, varScopes; // variable info
+	private Vector<String> varNames; // variable names
+	private Vector<Type> varTypes; // variable types
+	private Vector<Integer> varScopes; // variable scopes
 	private Values values; // variable values
 	private int paramCounter; // how many paramaters found so far
 	
@@ -205,9 +208,9 @@ public class Preprocessor
 		outputEnabled = true;
 		pc = 0;
 		stack = new Stack();
-		varNames = new Vector();
-		varTypes = new Vector();
-		varScopes = new Vector();
+		varNames = new Vector<String>();
+		varTypes = new Vector<Type>();
+		varScopes = new Vector<Integer>();
 		values = new Values();
 		paramCounter = 0;
 		
@@ -311,8 +314,8 @@ public class Preprocessor
 		}
 		// set up new variable in interpreter
 		varNames.add(name);
-		varTypes.add(new Integer(Expression.INT));
-		varScopes.add(new Integer(stack.size()));
+		varTypes.add(TypeInt.getInstance());
+		varScopes.add(stack.size());
 		if (expr != null) {
 			values.addValue(name, new Integer(expr.evaluateInt(null, values)));
 		} else {
@@ -344,8 +347,8 @@ public class Preprocessor
 		stack.push(fl);
 		// set up new variable in interpreter
 		varNames.add(fl.getLHS());
-		varTypes.add(new Integer(Expression.INT));
-		varScopes.add(new Integer(stack.size()));
+		varTypes.add(TypeInt.getInstance());
+		varScopes.add(stack.size());
 		values.addValue(fl.getLHS(), new Integer(fl.getFrom().evaluateInt(null, values)));
 		// if for loop trivially not satisfied, set output flag to false
 		if (fl.getFrom().evaluateInt(null, values) > fl.getTo().evaluateInt(null, values)) {
@@ -370,7 +373,7 @@ public class Preprocessor
 			// remove variables that will become out of scope (except loop counter)
 			i = stack.size();
 			j = 0; while (j < varNames.size()) {
-				if (((Integer)varScopes.get(j)).intValue() >= i && !((String)varNames.get(j)).equals(fl.getLHS())) {
+				if (varScopes.get(j) >= i && !varNames.get(j).equals(fl.getLHS())) {
 					varNames.removeElementAt(j);
 					varTypes.removeElementAt(j);
 					varScopes.removeElementAt(j);

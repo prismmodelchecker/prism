@@ -31,7 +31,7 @@ import java.util.Vector;
 import parser.*;
 import parser.visitor.*;
 import prism.PrismLangException;
-
+import parser.type.*;
 // class to store list of constants
 
 public class ConstantList extends ASTElement
@@ -39,7 +39,7 @@ public class ConstantList extends ASTElement
 	// Name/expression/type triples to define constants
 	private Vector<String> names;
 	private Vector<Expression> constants; // these can be null, i.e. undefined
-	private Vector<Integer> types;
+	private Vector<Type> types;
 	// We also store an ExpressionIdent to match each name.
 	// This is to just to provide positional info.
 	private Vector<ExpressionIdent> nameIdents;
@@ -51,13 +51,13 @@ public class ConstantList extends ASTElement
 		// initialise
 		names = new Vector<String>();
 		constants = new Vector<Expression>();
-		types = new Vector<Integer>();
+		types = new Vector<Type>();
 		nameIdents = new Vector<ExpressionIdent>();
 	}
 	
 	// Set methods
 	
-	public void addConstant(ExpressionIdent n, Expression c, int t)
+	public void addConstant(ExpressionIdent n, Expression c, Type t)
 	{
 		names.addElement(n.getName());
 		constants.addElement(c);
@@ -87,7 +87,7 @@ public class ConstantList extends ASTElement
 		return constants.elementAt(i);
 	}
 	
-	public int getConstantType(int i)
+	public Type getConstantType(int i)
 	{
 		return types.elementAt(i);
 	}
@@ -221,7 +221,8 @@ public class ConstantList extends ASTElement
 		ConstantList cl;
 		Expression e;
 		Values allValues;
-		int i, j, n, t;
+		int i, j, n;
+		Type t = null;
 		ExpressionIdent s;
 		
 		// create new copy of this ConstantList
@@ -235,18 +236,21 @@ public class ConstantList extends ASTElement
 			if (e != null) {
 				cl.addConstant((ExpressionIdent)s.deepCopy(), e.deepCopy(), t);
 			}
-			else {
+			else 
+			{
 				// create new literal expression using values passed in
 				j = someValues.getIndexOf(s.getName());
 				if (j == -1) {
 					throw new PrismLangException("No value specified for constant", s);
 				}
-				else {
-					switch (t) {
-						case Expression.INT: cl.addConstant((ExpressionIdent)s.deepCopy(), new ExpressionLiteral(Expression.INT, someValues.getIntValue(j)), Expression.INT); break;
-						case Expression.DOUBLE: cl.addConstant((ExpressionIdent)s.deepCopy(), new ExpressionLiteral(Expression.DOUBLE, someValues.getDoubleValue(j)), Expression.DOUBLE); break;
-						case Expression.BOOLEAN: cl.addConstant((ExpressionIdent)s.deepCopy(), new ExpressionLiteral(Expression.BOOLEAN, someValues.getBooleanValue(j)), Expression.BOOLEAN); break;
-					}
+				else 
+				{
+					if (t instanceof TypeInt)
+						cl.addConstant((ExpressionIdent)s.deepCopy(), new ExpressionLiteral(TypeInt.getInstance(), someValues.getIntValue(j)), TypeInt.getInstance()); 
+					else if (t instanceof TypeDouble)
+						cl.addConstant((ExpressionIdent)s.deepCopy(), new ExpressionLiteral(TypeDouble.getInstance(), someValues.getDoubleValue(j)), TypeDouble.getInstance()); 
+					else if (t instanceof TypeBool)
+						cl.addConstant((ExpressionIdent)s.deepCopy(), new ExpressionLiteral(TypeBool.getInstance(), someValues.getBooleanValue(j)), TypeBool.getInstance());
 				}
 			}
 		}
@@ -255,11 +259,13 @@ public class ConstantList extends ASTElement
 		if (otherValues != null) {
 			n = otherValues.getNumValues();
 			for (i = 0; i < n; i++) {
-				switch (otherValues.getType(i)) {
-					case Expression.INT: cl.addConstant(new ExpressionIdent(otherValues.getName(i)), new ExpressionLiteral(Expression.INT, otherValues.getIntValue(i)), Expression.INT); break;
-					case Expression.DOUBLE: cl.addConstant(new ExpressionIdent(otherValues.getName(i)), new ExpressionLiteral(Expression.DOUBLE, otherValues.getDoubleValue(i)), Expression.DOUBLE); break;
-					case Expression.BOOLEAN: cl.addConstant(new ExpressionIdent(otherValues.getName(i)), new ExpressionLiteral(Expression.BOOLEAN, otherValues.getBooleanValue(i)), Expression.BOOLEAN); break;
-				}
+				Type iType = otherValues.getType(i);
+				if (iType instanceof TypeInt)
+					cl.addConstant(new ExpressionIdent(otherValues.getName(i)), new ExpressionLiteral(TypeInt.getInstance(), otherValues.getIntValue(i)), TypeInt.getInstance());
+				else if (iType instanceof TypeDouble)
+					cl.addConstant(new ExpressionIdent(otherValues.getName(i)), new ExpressionLiteral(TypeDouble.getInstance(), otherValues.getDoubleValue(i)), TypeDouble.getInstance()); 
+				else if (iType instanceof TypeBool)
+					cl.addConstant(new ExpressionIdent(otherValues.getName(i)), new ExpressionLiteral(TypeBool.getInstance(), otherValues.getBooleanValue(i)), TypeBool.getInstance());
 			}
 		}
 		
@@ -305,7 +311,7 @@ public class ConstantList extends ASTElement
 		n = constants.size();
 		for (i = 0; i < n; i++) {
 			s += "const ";
-			s += Expression.getTypeString(getConstantType(i)) + " ";
+			s += getConstantType(i).getTypeString() + " ";
 			s += getConstantName(i);
 			e = getConstant(i);
 			if (e != null) {
@@ -326,7 +332,8 @@ public class ConstantList extends ASTElement
 		ConstantList ret = new ConstantList();
 		n = size();
 		for (i = 0; i < n; i++) {
-			ret.addConstant((ExpressionIdent)getConstantNameIdent(i).deepCopy(), getConstant(i).deepCopy(), getConstantType(i));
+			Expression constantNew = (getConstant(i) == null) ? null : getConstant(i).deepCopy();
+			ret.addConstant((ExpressionIdent)getConstantNameIdent(i).deepCopy(), constantNew, getConstantType(i));
 		}
 		ret.setPosition(this);
 		return ret;

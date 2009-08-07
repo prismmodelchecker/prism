@@ -38,6 +38,10 @@ public interface ASTVisitor
 	public Object visit(LabelList e) throws PrismLangException;
 	public Object visit(ConstantList e) throws PrismLangException;
 	public Object visit(Declaration e) throws PrismLangException;
+	public Object visit(DeclarationInt e) throws PrismLangException;
+	public Object visit(DeclarationBool e) throws PrismLangException;
+	public Object visit(DeclarationArray e) throws PrismLangException;
+	public Object visit(DeclarationClock e) throws PrismLangException;
 	public Object visit(Module e) throws PrismLangException;
 	public Object visit(Command e) throws PrismLangException;
 	public Object visit(Updates e) throws PrismLangException;

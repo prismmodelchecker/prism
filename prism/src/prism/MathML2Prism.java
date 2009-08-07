@@ -39,7 +39,7 @@ public class MathML2Prism
 	
 	public static String convert(Node node) throws PrismException { return convert(node, null, null); }
 	
-	public static String convert(Node node, ArrayList renameFrom, ArrayList renameTo) throws PrismException
+	public static String convert(Node node, ArrayList<String> renameFrom, ArrayList<String> renameTo) throws PrismException
 	{
 		String s, nodeName, apply;
 		int nodeType, i, n;
@@ -77,7 +77,7 @@ public class MathML2Prism
 			// Identifier
 			else if (nodeName.equals("ci")) {
 				s = node.getFirstChild().getNodeValue().trim();
-				if (renameFrom != null) if (renameFrom.contains(s)) s = (String)renameTo.get(renameFrom.indexOf(s));
+				if (renameFrom != null) if (renameFrom.contains(s)) s = renameTo.get(renameFrom.indexOf(s));
 				return s;
 			}
 			

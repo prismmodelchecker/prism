@@ -26,18 +26,18 @@
 //==============================================================================
 
 package userinterface;
-import parser.*;
-import parser.ast.*;
-import prism.*;
+
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.border.*;
 import javax.swing.table.*;
 import java.util.*;
-/**
- *
- * @author  ug60axh
- */
+
+import parser.*;
+import parser.ast.*;
+import parser.type.*;
+import prism.*;
+
 public class GUIConstantsPicker extends javax.swing.JDialog
 {
 	public static final int NO_VALUES = 0;
@@ -392,16 +392,7 @@ public class GUIConstantsPicker extends javax.swing.JDialog
 		switch(columnIndex)
 		{
 		case 0: return c.name;
-		case 1:
-		{
-			switch(c.type)
-			{
-			case Expression.INT: return "int";
-			case Expression.DOUBLE: return "double";
-			case Expression.BOOLEAN: return "boolean";
-			default: return "";
-			}
-		}
+		case 1: return c.type.getTypeString();
 		case 2: return c.value.toString();
 		default: return "";
 		}
@@ -452,10 +443,10 @@ public class GUIConstantsPicker extends javax.swing.JDialog
 	class Constant
 	{
 	String name;
-	int type;
+	Type type;
 	Object value;
 	
-	public Constant(String name, int type, Object value)
+	public Constant(String name, Type type, Object value)
 	{
 		this.name = name;
 		this.type = type;

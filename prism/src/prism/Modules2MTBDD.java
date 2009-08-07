@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -54,7 +54,7 @@ public class Modules2MTBDD
 	// model info
 	
 	// type
-	private int type;				// model type (prob./nondet./stoch.)
+	private ModelType modelType;				// model type (dtmc/mdp/ctmc)
 	// modules
 	private int numModules;			// number of modules
 	private String[] moduleNames;	// module names
@@ -117,7 +117,7 @@ public class Modules2MTBDD
 	private int numSymmModules;			// number of symmetric components
 	
 	// hidden option - do we also store each part of the transition matrix separately?
-	private boolean storeTransParts = false; 
+	private boolean storeTransParts = true; 
 	
 	// data structure used to store mtbdds and related info
 	// for some component of the whole model
@@ -179,7 +179,7 @@ public class Modules2MTBDD
 		constantValues = modulesFile.getConstantValues();
 		
 		// get basic system info
-		type = modulesFile.getType();
+		modelType = modulesFile.getModelType();
 		moduleNames = modulesFile.getModuleNames();
 		numModules = modulesFile.getNumModules();
 		synchs = modulesFile.getSynchs();
@@ -198,7 +198,7 @@ public class Modules2MTBDD
 		translateModules();
 		
 		// get rid of any nondet dd variables not needed
-		if (type == ModulesFile.NONDETERMINISTIC) {
+		if (modelType == ModelType.MDP) {
 			tmp = JDD.GetSupport(trans);
 			tmp = JDD.ThereExists(tmp, allDDRowVars);
 			tmp = JDD.ThereExists(tmp, allDDColVars);
@@ -244,18 +244,18 @@ public class Modules2MTBDD
 		}
 		
 		// create new Model object to be returned
-		if (type == ModulesFile.PROBABILISTIC) {
+		if (modelType == ModelType.DTMC) {
 			model = new ProbModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, ddVarNames,
 						   numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
 						   numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		}
-		else if (type == ModulesFile.NONDETERMINISTIC) {
+		else if (modelType == ModelType.MDP) {
 			model = new NondetModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars,
 						     allDDSynchVars, allDDSchedVars, allDDChoiceVars, allDDNondetVars, ddVarNames,
 						     numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
 						     numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		}
-		else if (type == ModulesFile.STOCHASTIC) {
+		else if (modelType == ModelType.CTMC) {
 			model = new StochModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, ddVarNames,
 						    numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
 						    numVars, varList, varDDRowVars, varDDColVars, constantValues);
@@ -263,8 +263,8 @@ public class Modules2MTBDD
 		
 		// For MDPs, we also store the DDs used to construct the part
 		// of the transition matrix that corresponds to each action
-		if (type == ModulesFile.NONDETERMINISTIC && storeTransParts) {
-			((NondetModel)model).setNumSynchs(numSynchs);
+		if (modelType == ModelType.MDP && storeTransParts) {
+			((NondetModel)model).setSynchs((Vector<String>)synchs.clone());
 			((NondetModel)model).setTransInd(transInd);
 			((NondetModel)model).setTransSynch(transSynch);
 		}
@@ -305,7 +305,7 @@ public class Modules2MTBDD
 			JDD.Deref(varColRangeDDs[i]);
 		}
 		JDD.Deref(range);
-		if (type == ModulesFile.NONDETERMINISTIC) {
+		if (modelType == ModelType.MDP) {
 			for (i = 0; i < ddSynchVars.length; i++) {
 				JDD.Deref(ddSynchVars[i]);
 			}
@@ -346,7 +346,7 @@ public class Modules2MTBDD
 			// create arrays/etc. first
 			
 			// nondeterministic variables
-			if (type == ModulesFile.NONDETERMINISTIC) {
+			if (modelType == ModelType.MDP) {
 				// synchronizing action variables
 				ddSynchVars = new JDDNode[numSynchs];
 				// sched nondet vars
@@ -371,7 +371,7 @@ public class Modules2MTBDD
 			// now allocate variables
 
 			// allocate synchronizing action variables
-			if (type == ModulesFile.NONDETERMINISTIC) {
+			if (modelType == ModelType.MDP) {
 				// allocate vars
 				for (i = 0; i < numSynchs; i++) {
 					v = JDD.Var(ddVarsUsed++);
@@ -381,7 +381,7 @@ public class Modules2MTBDD
 			}
 		
 			// allocate scheduling nondet dd variables
-			if (type == ModulesFile.NONDETERMINISTIC) {
+			if (modelType == ModelType.MDP) {
 				// allocate vars
 				for (i = 0; i < numModules; i++) {
 					v = JDD.Var(ddVarsUsed++);
@@ -391,7 +391,7 @@ public class Modules2MTBDD
 			}
 			
 			// allocate internal nondet choice dd variables
-			if (type == ModulesFile.NONDETERMINISTIC) {
+			if (modelType == ModelType.MDP) {
 				m = ddChoiceVars.length;
 				for (i = 0; i < m; i++) {
 					v = JDD.Var(ddVarsUsed++);
@@ -437,7 +437,7 @@ public class Modules2MTBDD
 			// create arrays/etc. first
 			
 			// nondeterministic variables
-			if (type == ModulesFile.NONDETERMINISTIC) {
+			if (modelType == ModelType.MDP) {
 				// synchronizing action variables
 				ddSynchVars = new JDDNode[numSynchs];
 				// sched nondet vars
@@ -460,7 +460,7 @@ public class Modules2MTBDD
 			// now allocate variables
 			
 			// allocate synchronizing action variables
-			if (type == ModulesFile.NONDETERMINISTIC) {
+			if (modelType == ModelType.MDP) {
 				for (i = 0; i < numSynchs; i++) {
 					v = JDD.Var(ddVarsUsed++);
 					ddSynchVars[i] = v;
@@ -469,7 +469,7 @@ public class Modules2MTBDD
 			}
 
 			// allocate internal nondet choice dd variables
-			if (type == ModulesFile.NONDETERMINISTIC) {
+			if (modelType == ModelType.MDP) {
 				m = ddChoiceVars.length;
 				for (i = 0; i < m; i++) {
 					v = JDD.Var(ddVarsUsed++);
@@ -485,7 +485,7 @@ public class Modules2MTBDD
 			for (i = 0; i < numVars; i++) {
 				// if at the start of a module's variables
 				// and model is an mdp...
-				if ((type == ModulesFile.NONDETERMINISTIC) && (last != varList.getModule(i))) {
+				if ((modelType == ModelType.MDP) && (last != varList.getModule(i))) {
 					// add scheduling dd var(s) (may do multiple ones here if modules have no vars)
 					for (j = last+1; j <= varList.getModule(i); j++) {
 						v = JDD.Var(ddVarsUsed++);
@@ -510,7 +510,7 @@ public class Modules2MTBDD
 				}
 			}
 			// add any remaining scheduling dd var(s) (happens if some modules have no vars)
-			if (type == ModulesFile.NONDETERMINISTIC) for (j = last+1; j <numModules; j++) {
+			if (modelType == ModelType.MDP) for (j = last+1; j <numModules; j++) {
 				v = JDD.Var(ddVarsUsed++);
 				ddSchedVars[j] = v;
 				ddVarNames.add(moduleNames[j] + ".s");
@@ -569,7 +569,7 @@ public class Modules2MTBDD
 		// create arrays
 		allDDRowVars = new JDDVars();
 		allDDColVars = new JDDVars();
-		if (type == ModulesFile.NONDETERMINISTIC) {
+		if (modelType == ModelType.MDP) {
 			allDDSynchVars = new JDDVars();
 			allDDSchedVars = new JDDVars();
 			allDDChoiceVars = new JDDVars();
@@ -583,7 +583,7 @@ public class Modules2MTBDD
 			allDDRowVars.addVars(varDDRowVars[i]);
 			allDDColVars.addVars(varDDColVars[i]);
 		}
-		if (type == ModulesFile.NONDETERMINISTIC) {
+		if (modelType == ModelType.MDP) {
 			// go thru all syncronising action vars
 			for (i = 0; i < ddSynchVars.length; i++) {
 				// add to list
@@ -702,7 +702,7 @@ public class Modules2MTBDD
 //		}
 		
 		// for dtmcs, need to normalise each row to remove local nondeterminism
-		if (type == ModulesFile.PROBABILISTIC) {
+		if (modelType == ModelType.DTMC) {
 			// divide each row by row sum
 			JDD.Ref(trans);
 			tmp = JDD.SumAbstract(trans, allDDColVars);
@@ -730,7 +730,7 @@ public class Modules2MTBDD
 		sysDDs = translateSystemDefnRec(sys, synchMin);
 		
 		// for the nondeterministic case, add extra mtbdd variables to encode nondeterminism
-		if (type == ModulesFile.NONDETERMINISTIC) {
+		if (modelType == ModelType.MDP) {
 			// need to make sure all parts have the same number of dd variables for nondeterminism
 			// so we don't generate lots of extra nondeterministic choices
 			// first compute max number of variables used
@@ -818,7 +818,7 @@ public class Modules2MTBDD
 		// (this is how we compute "expected" reward for each transition)
 		// (this becomes an issue when a transition prob/rate is the sum of several component values (from different actions))
 		// (for mdps, nondeterministic choices are always kept separate so this never occurs)
-		if (type != ModulesFile.NONDETERMINISTIC) {
+		if (modelType != ModelType.MDP) {
 			n = modulesFile.getNumRewardStructs();
 			for (j = 0; j < n; j++) {
 				JDD.Ref(trans);
@@ -828,7 +828,7 @@ public class Modules2MTBDD
 		
 		// For MDPs, we take a copy of the DDs used to construct the part
 		// of the transition matrix that corresponds to each action
-		if (type == ModulesFile.NONDETERMINISTIC && storeTransParts) {
+		if (modelType == ModelType.MDP && storeTransParts) {
 			JDD.Ref(sysDDs.ind.trans);
 			transInd = JDD.ThereExists(JDD.GreaterThan(sysDDs.ind.trans, 0), allDDColVars);
 			transSynch = new JDDNode[numSynchs];
@@ -1279,7 +1279,7 @@ public class Modules2MTBDD
 		compDDs = new ComponentDDs();
 		
 		// if no nondeterminism - just add
-		if (type != ModulesFile.NONDETERMINISTIC) {
+		if (modelType != ModelType.MDP) {
 			compDDs.guards = JDD.Or(compDDs1.guards, compDDs2.guards);
 			compDDs.trans = JDD.Apply(JDD.PLUS, compDDs1.trans, compDDs2.trans);
 			//compDDs.rewards = JDD.Apply(JDD.PLUS, compDDs1.rewards, compDDs2.rewards);
@@ -1403,7 +1403,7 @@ public class Modules2MTBDD
 					// are all probs/rates non-negative?
 					dmin = JDD.FindMin(upDDs[l]);
 					if (dmin < 0) {
-						String s = (type == ModulesFile.STOCHASTIC) ? "Rates" : "Probabilities";
+						String s = (modelType == ModelType.CTMC) ? "Rates" : "Probabilities";
 						s += " in command " + (l+1) + " of module \"" + module.getName() + "\" are negative";
 						s += " (" + dmin + ") for some states.\n";
 						s += "Perhaps the guard needs to be strengthened";
@@ -1424,14 +1424,14 @@ public class Modules2MTBDD
 						// check sums for NaNs (note how to check if x=NaN i.e. x!=x)
 						if (dmin != dmin || dmax != dmax) {
 							JDD.Deref(tmp);
-							String s = (type == ModulesFile.STOCHASTIC) ? "Rates" : "Probabilities";
+							String s = (modelType == ModelType.CTMC) ? "Rates" : "Probabilities";
 							s += " in command " + (l+1) + " of module \"" + module.getName() + "\" have errors (NaN) for some states. ";
 							s += "Check for zeros in divide or modulo operations. ";
 							s += "Perhaps the guard needs to be strengthened";
 							throw new PrismLangException(s, command);
 						}
 						// check min sums - 1 (ish) for dtmcs/mdps, 0 for ctmcs
-						if (type != ModulesFile.STOCHASTIC && dmin < 1-prism.getSumRoundOff()) {
+						if (modelType != ModelType.CTMC && dmin < 1-prism.getSumRoundOff()) {
 							JDD.Deref(tmp);
 							String s = "Probabilities in command " + (l+1) + " of module \"" + module.getName() + "\" sum to less than one";
 							s += " (e.g. " + dmin + ") for some states. ";
@@ -1439,7 +1439,7 @@ public class Modules2MTBDD
 							s += "One possible solution is to strengthen the guard";
 							throw new PrismLangException(s, command);
 						}
-						if (type == ModulesFile.STOCHASTIC && dmin <= 0) {
+						if (modelType == ModelType.CTMC && dmin <= 0) {
 							JDD.Deref(tmp);
 							// note can't sum to less than zero - already checked for negative rates above
 							String s = "Rates in command " + (l+1) + " of module \"" + module.getName() + "\" sum to zero for some states. ";
@@ -1448,14 +1448,14 @@ public class Modules2MTBDD
 							throw new PrismLangException(s, command);
 						}
 						// check max sums - 1 (ish) for dtmcs/mdps, infinity for ctmcs
-						if (type != ModulesFile.STOCHASTIC && dmax > 1+prism.getSumRoundOff()) {
+						if (modelType != ModelType.CTMC && dmax > 1+prism.getSumRoundOff()) {
 							JDD.Deref(tmp);
 							String s = "Probabilities in command " + (l+1) + " of module \"" + module.getName() + "\" sum to more than one";
 							s += " (e.g. " + dmax + ") for some states. ";
 							s += "Perhaps the guard needs to be strengthened";
 							throw new PrismLangException(s, command);
 						}
-						if (type == ModulesFile.STOCHASTIC && dmax == Double.POSITIVE_INFINITY) {
+						if (modelType == ModelType.CTMC && dmax == Double.POSITIVE_INFINITY) {
 							JDD.Deref(tmp);
 							String s = "Rates in command " + (l+1) + " of module \"" + module.getName() + "\" sum to infinity for some states. ";
 							s += "Perhaps the guard needs to be strengthened";
@@ -1489,13 +1489,13 @@ public class Modules2MTBDD
 		}
 		
 		// combine guard/updates dds for each command
-		if (type == ModulesFile.PROBABILISTIC) {
+		if (modelType == ModelType.DTMC) {
 			compDDs = combineCommandsProb(m, numCommands, guardDDs, upDDs);
 		}
-		else if (type == ModulesFile.NONDETERMINISTIC) {
+		else if (modelType == ModelType.MDP) {
 			compDDs = combineCommandsNondet(m, numCommands, guardDDs, upDDs, synchMin);
 		}
-		else if (type == ModulesFile.STOCHASTIC) {
+		else if (modelType == ModelType.CTMC) {
 			compDDs = combineCommandsStoch(m, numCommands, guardDDs, upDDs);
 		}
 		else {
@@ -1801,6 +1801,7 @@ public class Modules2MTBDD
 		Expression p;
 		JDDNode dd, udd, pdd;
 		boolean warned;
+		String msg;
 		
 		// sum up over possible updates
 		dd = JDD.Constant(0);
@@ -1812,8 +1813,10 @@ public class Modules2MTBDD
 			warned = false;
 			if (udd.equals(JDD.ZERO)) {
 				warned = true;
-				mainLog.print("\nWarning: Update " + (i+1) + " of command " + (l+1) + " of module \"");
-				mainLog.println(moduleNames[m] + "\" doesn't do anything");
+				// Use a PrismLangException to get line numbers displayed
+				msg = "Update " + (i+1) + " of command " + (l+1);
+				msg += " of module \"" + moduleNames[m] + "\" doesn't do anything";
+				mainLog.println("\nWarning: " + new PrismLangException(msg, u.getUpdate(i)).getMessage());
 			}
 			// multiply by probability/rate
 			p = u.getProbability(i);
@@ -1822,8 +1825,10 @@ public class Modules2MTBDD
 			udd = JDD.Apply(JDD.TIMES, udd, pdd);
 			// check (again) for zero update
 			if (!warned && udd.equals(JDD.ZERO)) {
-				mainLog.print("\nWarning: Update " + (i+1) + " of command " + (l+1) + " of module \"");
-				mainLog.println(moduleNames[m] + "\" doesn't do anything");
+				// Use a PrismLangException to get line numbers displayed
+				msg = "Update " + (i+1) + " of command " + (l+1);
+				msg += " of module \"" + moduleNames[m] + "\" doesn't do anything";
+				mainLog.println("\nWarning: " + new PrismLangException(msg, u.getUpdate(i)).getMessage());
 			}
 			dd = JDD.Apply(JDD.PLUS, dd, udd);
 		}
@@ -1973,7 +1978,7 @@ public class Modules2MTBDD
 					// identify corresponding transitions
 					// (for dtmcs/ctmcs, keep actual values - need to weight rewards; for mdps just store 0/1)
 					JDD.Ref(compDDs.trans);
-					if (type == ModulesFile.NONDETERMINISTIC) {
+					if (modelType == ModelType.MDP) {
 						item = JDD.GreaterThan(compDDs.trans, 0);
 					} else {
 						item = compDDs.trans;
@@ -2078,7 +2083,7 @@ public class Modules2MTBDD
 		
 		// trans - rows
 		mainLog.print("trans: ");
-		mainLog.println(JDD.GetInfoString(trans, (type==ModulesFile.NONDETERMINISTIC)?(allDDRowVars.n()*2+allDDNondetVars.n()):(allDDRowVars.n()*2)));
+		mainLog.println(JDD.GetInfoString(trans, (modelType==ModelType.MDP)?(allDDRowVars.n()*2+allDDNondetVars.n()):(allDDRowVars.n()*2)));
 		JDD.Ref(symm);
 		trans = JDD.Apply(JDD.TIMES, trans, symm);
 		//mainLog.print("trans (symm): ");
@@ -2087,7 +2092,7 @@ public class Modules2MTBDD
 		// trans rewards - rows
 		for (k = 0; k < numRewardStructs; k++) {
 			mainLog.print("transrew["+k+"]: ");
-			mainLog.println(JDD.GetInfoString(transRewards[k], (type==ModulesFile.NONDETERMINISTIC)?(allDDRowVars.n()*2+allDDNondetVars.n()):(allDDRowVars.n()*2)));
+			mainLog.println(JDD.GetInfoString(transRewards[k], (modelType==ModelType.MDP)?(allDDRowVars.n()*2+allDDNondetVars.n()):(allDDRowVars.n()*2)));
 			JDD.Ref(symm);
 			transRewards[k] = JDD.Apply(JDD.TIMES, transRewards[k], symm);
 			//mainLog.print("transrew["+k+"] (symm): ");
