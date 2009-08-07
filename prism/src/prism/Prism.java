@@ -48,7 +48,7 @@ import pta.*;
 public class Prism implements PrismSettingsListener
 {
 	// prism version
-	private static String version = "3.3.beta1";
+	private static String version = "3.3.dev";
 	
 	//------------------------------------------------------------------------------
 	// Constants
