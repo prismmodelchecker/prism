@@ -51,6 +51,7 @@ struct ODDNode
 // function prototypes
 
 ODDNode *build_odd(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars);
+int get_index_of_first_from_bdd(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, ODDNode *odd);
 int get_num_odd_nodes();
 
 //------------------------------------------------------------------------------

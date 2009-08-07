@@ -135,6 +135,36 @@ long add_offsets(DdManager *ddman, ODDNode *odd, int level, int num_vars)
 
 //------------------------------------------------------------------------------
 
+// Get the index (according to an ODD) of the first non-zero enetry of a BDD
+
+int get_index_of_first_from_bdd(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, ODDNode *odd)
+{
+	DdNode *ptr, *ptr_next;;
+	ODDNode *odd_ptr;
+	int i, index;
+	
+	// Go down dd along first non-zero path
+	index = 0;
+	ptr = dd;
+	odd_ptr = odd;
+	for (i = 0; i < num_vars; i++) {
+		ptr_next = (ptr->index > vars[i]->index) ? ptr : Cudd_E(ptr);
+		if (ptr_next != Cudd_ReadZero(ddman)) {
+			odd_ptr = odd_ptr->e;
+		}
+		else {
+			ptr_next = (ptr->index > vars[i]->index) ? ptr : Cudd_T(ptr);
+			index += odd_ptr->eoff;
+			odd_ptr = odd_ptr->t;
+		}
+		ptr = ptr_next;
+	}
+
+	return index;
+}
+
+//------------------------------------------------------------------------------
+
 int get_num_odd_nodes()
 {
 	return num_odd_nodes;
