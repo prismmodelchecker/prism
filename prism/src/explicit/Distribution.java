@@ -31,29 +31,45 @@ import java.util.Map.Entry;
 
 import prism.PrismUtils;
 
+/**
+ * Explicit representation of a probability distribution.
+ * Basically, a mapping from (integer-valued) state indices to (non-zero, double-valued) probabilities. 
+ */
 public class Distribution implements Iterable<Entry<Integer,Double>>
 {
 	private HashMap<Integer,Double> map;
 
+	/**
+	 * Create an empty distribution.
+	 */
 	public Distribution()
 	{
 		clear();
 	}
 	
+	/**
+	 * Clear all entries of the distribution.
+	 */
 	public void clear()
 	{
 		map = new HashMap<Integer,Double>();
 	}
 	
+	/**
+	 * Add 'prob' to the probability for state 'j'.
+	 */
 	public void add(int j, double prob)
 	{
 		Double d = (Double) map.get(j);
 		if (d == null)
 			map.put(j, prob);
 		else
-			map.put(j, d + prob);
+			set(j, d + prob);
 	}
 
+	/**
+	 * Set the probability for state 'j' to 'prob'.
+	 */
 	public void set(int j, double prob)
 	{
 		if (prob == 0.0)
@@ -61,6 +77,9 @@ public class Distribution implements Iterable<Entry<Integer,Double>>
 		map.put(j, prob);
 	}
 
+	/**
+	 * Get the probability for state j. 
+	 */
 	public double get(int j)
 	{
 		Double d;
@@ -90,21 +109,33 @@ public class Distribution implements Iterable<Entry<Integer,Double>>
 		return true;
 	}
 	
+	/**
+	 * Get an iterator over the entries of the map defining the distribution.
+	 */
 	public Iterator<Entry<Integer,Double>> iterator()
 	{
 		return map.entrySet().iterator();
 	}
 
+	/**
+	 * Returns true if the distribution is empty.
+	 */
 	public boolean isEmpty()
 	{
 		return map.isEmpty();
 	}
 	
+	/**
+	 * Get the size of the support of the distribution.
+	 */
 	public int size()
 	{
 		return map.size();
 	}
 	
+	/**
+	 * Get the sum of the probabilities in the distribution.
+	 */
 	public double sum()
 	{
 		double d = 0.0;
@@ -116,6 +147,9 @@ public class Distribution implements Iterable<Entry<Integer,Double>>
 		return d;
 	}
 	
+	/**
+	 * Get the sum of all the probabilities in the distribution except for state j.
+	 */
 	public double sumAllBut(int j)
 	{
 		double d = 0.0;
@@ -128,6 +162,22 @@ public class Distribution implements Iterable<Entry<Integer,Double>>
 		return d;
 	}
 	
+	/**
+	 * Create a new distribution, based on a mapping from the state indices
+	 * used in this distribution to a different set  of state indices.
+	 */
+	public Distribution map(int map[])
+	{
+		Distribution distrNew = new Distribution();
+		Iterator<Entry<Integer,Double>> i = iterator();
+		while (i.hasNext()) {
+			Map.Entry<Integer,Double> e = i.next();
+			distrNew.add(map[e.getKey()], e.getValue());
+		}
+		return distrNew;
+	}
+	
+	@Override
 	public boolean equals(Object o)
 	{
 		Double d1, d2;
@@ -143,12 +193,14 @@ public class Distribution implements Iterable<Entry<Integer,Double>>
 		return true;
 	}
 
+	@Override
 	public int hashCode()
 	{
 		// Simple hash code
 		return map.size();
 	}
 
+	@Override
 	public String toString()
 	{
 		return "" + map;
