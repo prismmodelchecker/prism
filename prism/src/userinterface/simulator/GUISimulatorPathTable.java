@@ -288,7 +288,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 				}
 				else
 				{
-					stringValue = (PrismUtils.formatDouble(simulator.getPrism().getSettings(), ((Double)timeValue.getValue())));
+					stringValue = (simulator.formatDouble((Double)timeValue.getValue()));
 					if (timeValue.isCumulative())
 						this.setToolTipText("Cumulative time up until state " + (row));
 					else
@@ -298,7 +298,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 			else if (value instanceof GUISimulator.VariableValue)
 			{	
 				GUISimulator.VariableValue variableValue = (GUISimulator.VariableValue)value;
-				stringValue = (variableValue.getValue() instanceof Double) ? (PrismUtils.formatDouble(simulator.getPrism().getSettings(), ((Double)variableValue.getValue()))) : variableValue.getValue().toString();
+				stringValue = (variableValue.getValue() instanceof Double) ? (simulator.formatDouble(((Double)variableValue.getValue()))) : variableValue.getValue().toString();
 								
 				this.setToolTipText("Value of variable \"" + variableValue.getVariable().getName() + "\" in state " + (row));
 			}
@@ -320,7 +320,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 				}
 				else
 				{
-					stringValue = PrismUtils.formatDouble(simulator.getPrism().getSettings(), rewardValue.getRewardValue());				
+					stringValue = simulator.formatDouble(rewardValue.getRewardValue());				
 					
 					if (rewardValue.getRewardStructureColumn().isCumulativeReward())
 						this.setToolTipText("Cumulative reward of reward structure " + rewardName + " up until state " + (row));

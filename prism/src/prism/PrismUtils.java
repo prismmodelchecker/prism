@@ -181,14 +181,9 @@ public class PrismUtils
 	private static DecimalFormat formatterDouble2dp = new DecimalFormat("#0.00");
 
 	/**
-	 * Format a double, using PRISM settings.
+	 * Format a double.
 	 */
-	public static String formatDouble(PrismSettings settings, double d)
-	{
-		return formatDouble(settings, new Double(d));
-	}
-
-	public static String formatDouble(PrismSettings settings, Double d)
+	public static String formatDouble(int precision, double d)
 	{
 		Formatter formatter = new Formatter();
 

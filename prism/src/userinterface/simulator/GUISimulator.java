@@ -176,7 +176,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		});
 
 		modelTypeLabel.setText("Unknown");
-		totalTimeLabel.setText(PrismUtils.formatDouble(this.getPrism().getSettings(), 0.0));
+		totalTimeLabel.setText(formatDouble(0.0));
 		pathLengthLabel.setText("0");
 
 		txtFilter = new GUIPrismFileFilter[1];
@@ -391,7 +391,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 			pathActive = true;
 
-			totalTimeLabel.setText(PrismUtils.formatDouble(this.getPrism().getSettings(), engine.getTotalPathTime()));
+			totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
 			pathLengthLabel.setText("" + (engine.getPathSize() - 1));
 			definedConstantsLabel.setText((uCon.getDefinedConstantsString().length() == 0) ? "None" : uCon
 					.getDefinedConstantsString());
@@ -448,7 +448,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			pathTable.scrollRectToVisible(new Rectangle(0, (int) pathTable.getPreferredSize().getHeight() - 10,
 					(int) pathTable.getPreferredSize().getWidth(), (int) pathTable.getPreferredSize().getHeight()));
 
-			totalTimeLabel.setText(PrismUtils.formatDouble(this.getPrism().getSettings(), engine.getTotalPathTime()));
+			totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
 			pathLengthLabel.setText("" + (engine.getPathSize() - 1));
 
 			stateLabelList.repaint();
@@ -492,7 +492,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			pathTable.scrollRectToVisible(new Rectangle(0, (int) pathTable.getPreferredSize().getHeight() - 10,
 					(int) pathTable.getPreferredSize().getWidth(), (int) pathTable.getPreferredSize().getHeight()));
 
-			totalTimeLabel.setText(PrismUtils.formatDouble(this.getPrism().getSettings(), engine.getTotalPathTime()));
+			totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
 			pathLengthLabel.setText("" + (engine.getPathSize() - 1));
 
 			stateLabelList.repaint();
@@ -519,7 +519,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		pathTableModel.updatePathTable();
 		updateTableModel.updateUpdatesTable();
 
-		totalTimeLabel.setText(PrismUtils.formatDouble(this.getPrism().getSettings(), engine.getTotalPathTime()));
+		totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
 		pathLengthLabel.setText("" + (engine.getPathSize() - 1));
 		stateLabelList.repaint();
 		pathFormulaeList.repaint();
@@ -537,7 +537,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		pathTableModel.updatePathTable();
 		updateTableModel.updateUpdatesTable();
 
-		totalTimeLabel.setText(PrismUtils.formatDouble(this.getPrism().getSettings(), engine.getTotalPathTime()));
+		totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
 		pathLengthLabel.setText("" + (engine.getPathSize() - 1));
 		stateLabelList.repaint();
 		pathFormulaeList.repaint();
@@ -555,7 +555,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			pathTableModel.updatePathTable();
 			updateTableModel.updateUpdatesTable();
 
-			totalTimeLabel.setText(PrismUtils.formatDouble(this.getPrism().getSettings(), engine.getTotalPathTime()));
+			totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
 			pathLengthLabel.setText("" + (engine.getPathSize() - 1));
 			stateLabelList.repaint();
 			pathFormulaeList.repaint();
@@ -589,7 +589,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		pathTableModel.updatePathTable();
 		updateTableModel.updateUpdatesTable();
 
-		totalTimeLabel.setText(PrismUtils.formatDouble(this.getPrism().getSettings(), engine.getTotalPathTime()));
+		totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
 		pathLengthLabel.setText("" + (engine.getPathSize() - 1));
 		stateLabelList.repaint();
 		pathFormulaeList.repaint();
@@ -629,8 +629,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				pathTable.scrollRectToVisible(new Rectangle(0, pathTable.getHeight() - 10, pathTable.getWidth(),
 						pathTable.getHeight()));
 
-				totalTimeLabel.setText(PrismUtils
-						.formatDouble(this.getPrism().getSettings(), engine.getTotalPathTime()));
+				totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
 				pathLengthLabel.setText("" + (engine.getPathSize() - 1));
 
 				setComputing(false);
@@ -3440,5 +3439,14 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				view.setRenderer(displayStyleFast);
 			}
 		}
+	}
+	
+	/**
+	 * Utility function to format floating point numbers.
+	 */
+	public String formatDouble(double d)
+	{
+		// getPrism().getSettings().
+		return PrismUtils.formatDouble(6, d);
 	}
 }
