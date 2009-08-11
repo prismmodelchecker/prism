@@ -181,18 +181,7 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 	 */
 	protected Distribution buildAbstractDistribution(int c, DTMC dtmc)
 	{
-		Distribution distrNew;
-		int k;
-		double prob;
-
-		distrNew = new Distribution();
-		for (Map.Entry<Integer, Double> e : dtmc.trans.get(c)) {
-			k = (Integer) e.getKey();
-			prob = (Double) e.getValue();
-			distrNew.add(concreteToAbstract[k], prob);
-		}
-
-		return distrNew;
+		return dtmc.trans.get(c).map(concreteToAbstract);
 	}
 
 	/**
@@ -200,22 +189,10 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 	 */
 	protected DistributionSet buildAbstractDistributionSet(int c, MDP mdp, STPG stpg)
 	{
-		Distribution distrNew;
-		DistributionSet set;
-		int k;
-		double prob;
-
-		set = ((STPG) stpg).newDistributionSet(null);
+		DistributionSet set = ((STPG) stpg).newDistributionSet(null);
 		for (Distribution distr : mdp.steps.get(c)) {
-			distrNew = new Distribution();
-			for (Map.Entry<Integer, Double> e : distr) {
-				k = (Integer) e.getKey();
-				prob = (Double) e.getValue();
-				distrNew.add(concreteToAbstract[k], prob);
-			}
-			set.add(distrNew);
+			set.add(distr.map(concreteToAbstract));
 		}
-
 		return set;
 	}
 
