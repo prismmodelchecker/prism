@@ -111,8 +111,11 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	Cudd_Ref(mask);
 	new_mask = DD_ITE(ddman, mask, DD_PlusInfinity(ddman), DD_Constant(ddman, 0));
 	
-	// initial solution is zero
-	sol = DD_Constant(ddman, 0);
+	// initial solution is infinity in 'inf' states, zero elsewhere
+	// note: ok to do this because cudd matrix-multiply (and other ops)
+	// treat 0 * inf as 0, unlike in IEEE 754 rules
+	Cudd_Ref(inf);
+	sol = DD_ITE(ddman, inf, DD_PlusInfinity(ddman), DD_Constant(ddman, 0));
 	
 	// print memory usage
 	i = DD_GetNumNodes(ddman, a);
@@ -158,6 +161,10 @@ jboolean min		// min or max probabilities (true = min, false = max)
 			tmp = DD_MaxAbstract(ddman, tmp, ndvars, num_ndvars);
 		}
 		
+		// put infinities (for 'inf' states) back into into solution vector		
+		Cudd_Ref(inf);
+		tmp = DD_ITE(ddman, inf, DD_PlusInfinity(ddman), tmp);
+		
 		// check convergence
 		switch (term_crit) {
 		case TERM_CRIT_ABSOLUTE:
@@ -178,10 +185,6 @@ jboolean min		// min or max probabilities (true = min, false = max)
 		
 //		PM_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
 	}
-	
-	// set reward for infinity states to infinity
-	Cudd_Ref(inf);
-	sol = DD_ITE(ddman, inf, DD_PlusInfinity(ddman), sol);
 	
 	// stop clocks
 	stop = util_cpu_time();

@@ -147,6 +147,13 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	kbt += kb;
 	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
+	// get vector for yes
+	PS_PrintToMainLog(env, "Creating vector for inf... ");
+	inf_vec = mtbdd_to_double_vector(ddman, inf, rvars, num_rvars, odd);
+	kb = n*8.0/1024.0;
+	kbt += kb;
+	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	
 	// create solution/iteration vectors
 	PS_PrintToMainLog(env, "Allocating iteration vectors... ");
 	soln = new double[n];
@@ -158,9 +165,9 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	// print total memory usage
 	PS_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 
-	// initial solution is zero
+	// initial solution is infinity in 'inf' states, zero elsewhere
 	for (i = 0; i < n; i++) {
-		soln[i] = 0;
+		soln[i] = (inf_vec[i] > 0) ? HUGE_VAL : 0.0;
 	}
 
 	// get setup time
@@ -241,8 +248,8 @@ jboolean min		// min or max probabilities (true = min, false = max)
 				first = false;
 			}
 			// set vector element
-			// (if there were no choices from this state, reward is zero)
-			soln2[i] = (h1 > l1) ? d1 : 0;
+			// (if there were no choices from this state, reward is zero/infinity)
+			soln2[i] = (h1 > l1) ? d1 : inf_vec[i] > 0 ? HUGE_VAL : 0;
 			// store adversary info (if required)
 			if (adv_loop) if (h1 > l1)
 				for (k = adv_l; k < adv_h; k++) fprintf(fp_adv, "%d %d %g\n", i, cols[k], non_zeros[k]);
@@ -295,14 +302,6 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	// if the iterative method didn't terminate, this is an error
 	if (!done) { delete soln; soln = NULL; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
 	
-	// set reward for infinity states to infinity
-	if (soln != NULL) {
-		// first, generate vector for inf
-		inf_vec = mtbdd_to_double_vector(ddman, inf, rvars, num_rvars, odd);
-		// go thru setting elements of soln to infinity
-		for (i = 0; i < n; i++) if (inf_vec[i] > 0) soln[i] = HUGE_VAL;
-	}
-	
 	// close file to store adversary (if required)
 	if (adv) {
 		fclose(fp_adv);
@@ -321,6 +320,7 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	if (trans_rewards) Cudd_RecursiveDeref(ddman, trans_rewards);
 	if (ndsm) delete ndsm;
 	if (ndsm_r) delete ndsm_r;
+	if (inf_vec) delete[] inf_vec;
 	if (sr_vec) delete[] sr_vec;
 	if (soln2) delete[] soln2;
 	
