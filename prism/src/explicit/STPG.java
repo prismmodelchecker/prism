@@ -41,22 +41,22 @@ public class STPG extends Model
 	// Model type
 	public static ModelType modelType = ModelType.STPG;
 
-	// Transitions function (Steps)
-	public List<ArrayList<DistributionSet>> steps;
+	// Transition function (Steps)
+	protected List<ArrayList<DistributionSet>> trans;
 
 	// Rewards
-	private List<List<Double>> transRewards;
-	private Double transRewardsConstant;
+	protected List<List<Double>> transRewards;
+	protected Double transRewardsConstant;
 
 	// Flag: allow dupes in distribution sets?
 	public boolean allowDupes = false;
 
 	// Other statistics
-	public int numDistrSets;
-	public int numDistrs;
-	public int numTransitions;
-	public int maxNumDistrSets;
-	public int maxNumDistrs;
+	protected int numDistrSets;
+	protected int numDistrs;
+	protected int numTransitions;
+	protected int maxNumDistrSets;
+	protected int maxNumDistrs;
 
 	/**
 	 * Constructor: empty STPG.
@@ -82,12 +82,10 @@ public class STPG extends Model
 		DistributionSet set;
 		int i;
 		initialise(m.numStates);
-		i = 0;
-		for (ArrayList<Distribution> distrs : m.steps) {
+		for (i = 0; i < numStates; i++) {
 			set = newDistributionSet(null);
-			set.addAll(distrs);
+			set.addAll(m.getChoices(i));
 			addDistributionSet(i, set);
-			i++;
 		}
 	}
 
@@ -99,9 +97,9 @@ public class STPG extends Model
 		super.initialise(numStates);
 		numDistrSets = numDistrs = numTransitions = 0;
 		maxNumDistrSets = maxNumDistrs = 0;
-		steps = new ArrayList<ArrayList<DistributionSet>>(numStates);
+		trans = new ArrayList<ArrayList<DistributionSet>>(numStates);
 		for (int i = 0; i < numStates; i++) {
-			steps.add(new ArrayList<DistributionSet>());
+			trans.add(new ArrayList<DistributionSet>());
 		}
 		clearAllRewards();
 	}
@@ -115,7 +113,7 @@ public class STPG extends Model
 		if (i >= numStates || i < 0)
 			return;
 		// Clear data structures and update stats
-		List<DistributionSet> list = steps.get(i);
+		List<DistributionSet> list = trans.get(i);
 		numDistrSets -= list.size();
 		for (DistributionSet set : list) {
 			numDistrs -= set.size();
@@ -125,7 +123,7 @@ public class STPG extends Model
 		//TODO: recompute maxNumDistrSets
 		//TODO: recompute maxNumDistrs
 		// Remove all distribution sets
-		steps.set(i, new ArrayList<DistributionSet>(0));
+		trans.set(i, new ArrayList<DistributionSet>(0));
 	}
 
 	/**
@@ -143,7 +141,7 @@ public class STPG extends Model
 	public void addStates(int numToAdd)
 	{
 		for (int i = 0; i < numToAdd; i++) {
-			steps.add(new ArrayList<DistributionSet>());
+			trans.add(new ArrayList<DistributionSet>());
 		}
 		numStates += numToAdd;
 	}
@@ -172,7 +170,7 @@ public class STPG extends Model
 		if (s >= numStates || s < 0)
 			return -1;
 		// Add distribution set (if new)
-		set = steps.get(s);
+		set = trans.get(s);
 		if (!allowDupes) {
 			int i = set.indexOf(newSet);
 			if (i != -1)
@@ -224,7 +222,7 @@ public class STPG extends Model
 		}
 		// If no rewards for state i yet, create list
 		if (transRewards.get(s) == null) {
-			int n = steps.get(s).size();
+			int n = trans.get(s).size();
 			List<Double> list = new ArrayList<Double>(n);
 			for (int j = 0; j < n; j++) {
 				list.add(0.0);
@@ -240,9 +238,25 @@ public class STPG extends Model
 	 */
 	public int getNumChoices(int s)
 	{
-		return steps.get(s).size();
+		return trans.get(s).size();
 	}
 
+	/**
+	 * Get the list of choices (distribution sets) for state s.
+	 */
+	public List<DistributionSet> getChoices(int s)
+	{
+		return trans.get(s);
+	}
+	
+	/**
+	 * Get the ith choice (distribution set) for state s.
+	 */
+	public DistributionSet getChoice(int s, int i)
+	{
+		return trans.get(s).get(i);
+	}
+	
 	/**
 	 * Get the transition reward (if any) for choice i of state s.
 	 */
@@ -261,7 +275,7 @@ public class STPG extends Model
 	 */
 	public boolean isSuccessor(int s1, int s2)
 	{
-		for (DistributionSet distrs : steps.get(s1)) {
+		for (DistributionSet distrs : trans.get(s1)) {
 			for (Distribution distr : distrs) {
 				if (distr.contains(s2))
 					return true;
@@ -277,7 +291,7 @@ public class STPG extends Model
 	 */
 	public boolean allSuccessorsInSet(int s, BitSet set)
 	{
-		for (DistributionSet distrs : steps.get(s)) {
+		for (DistributionSet distrs : trans.get(s)) {
 			for (Distribution distr : distrs) {
 				if (!distr.isSubsetOf(set))
 					return false;
@@ -287,13 +301,55 @@ public class STPG extends Model
 	}
 
 	/**
+	 * Get the total number of player 1 choices (distribution sets) over all states.
+	 */
+	public int getNumP1Choices()
+	{
+		return numDistrSets;
+	}
+	
+	/**
+	 * Get the total number of player 2 choices (distributions) over all states.
+	 */
+	public int getNumP2Choices()
+	{
+		return numDistrs;
+	}
+	
+	/**
+	 * Get the total number of transitions in the model.
+	 */
+	public int getNumTransitions()
+	{
+		return numTransitions;
+	}
+	
+	/**
+	 * Get the maximum number of player 1 choices (distribution sets) in any state.
+	 */
+	public int getMaxNumP1Choices()
+	{
+		// TODO: Recompute if necessary
+		return maxNumDistrSets;
+	}
+	
+	/**
+	 * Get the maximum number of player 2 choices (distributions) in any state.
+	 */
+	public int getMaxNumP2Choices()
+	{
+		// TODO: Recompute if necessary
+		return maxNumDistrs;
+	}
+	
+	/**
 	 * Checks for deadlocks (states with no choices) and throws an exception if any exist.
 	 * States in 'except' (If non-null) are excluded from the check.
 	 */
 	public void checkForDeadlocks(BitSet except) throws PrismException
 	{
 		for (int i = 0; i < numStates; i++) {
-			if (steps.get(i).isEmpty() && (except == null || !except.get(i)))
+			if (trans.get(i).isEmpty() && (except == null || !except.get(i)))
 				throw new PrismException("STPG has a deadlock in state " + i);
 		}
 		// TODO: Check for empty distributions sets too?
@@ -347,7 +403,7 @@ public class STPG extends Model
 
 		minmax1 = 0;
 		first1 = true;
-		step = steps.get(s);
+		step = trans.get(s);
 		for (DistributionSet distrs : step) {
 			minmax2 = 0;
 			first2 = true;
@@ -393,7 +449,7 @@ public class STPG extends Model
 		res = new ArrayList<Integer>();
 		// One row of matrix-vector operation 
 		j = -1;
-		step = steps.get(s);
+		step = trans.get(s);
 		for (DistributionSet distrs : step) {
 			j++;
 			minmax2 = 0;
@@ -451,7 +507,7 @@ public class STPG extends Model
 				if (mark != null && mark.get(i))
 					out.write(i + " [style=filled  fillcolor=\"#cccccc\"]\n");
 				j = -1;
-				for (DistributionSet distrs : steps.get(i)) {
+				for (DistributionSet distrs : trans.get(i)) {
 					j++;
 					k = -1;
 					for (Distribution distr : distrs) {
@@ -500,7 +556,7 @@ public class STPG extends Model
 				first = false;
 			else
 				s += ", ";
-			s += i + ": " + steps.get(i);
+			s += i + ": " + trans.get(i);
 		}
 		s += " ]";
 		return s;
@@ -518,7 +574,7 @@ public class STPG extends Model
 			return false;
 		if (!initialStates.equals(stpg.initialStates))
 			return false;
-		if (!steps.equals(stpg.steps))
+		if (!trans.equals(stpg.trans))
 			return false;
 		return true;
 	}

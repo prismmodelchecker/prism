@@ -80,7 +80,7 @@ public class MDPModelChecker extends ModelChecker
 					b2 = target.get(i);
 					if (!b2) {
 						b2 = min; // there exists or for all choices
-						for (Distribution distr : mdp.steps.get(i)) {
+						for (Distribution distr : mdp.getChoices(i)) {
 							b3 = true; // all transitions are to u states
 							b4 = false; // some transition goes to v
 							for (Map.Entry<Integer, Double> e : distr) {

@@ -77,7 +77,7 @@ public class STPGModelChecker extends ModelChecker
 				b1 = target.get(i);
 				if (!b1) {
 					b1 = min1; // there exists or for all player 1 choices
-					for (DistributionSet distrs : stpg.steps.get(i)) {
+					for (DistributionSet distrs : stpg.getChoices(i)) {
 						b2 = min2; // there exists or for all player 2 choices
 						for (Distribution distr : distrs) {
 							b3 = false; // some transition goes to u
@@ -170,7 +170,7 @@ public class STPGModelChecker extends ModelChecker
 					b1 = target.get(i);
 					if (!b1) {
 						b1 = min1; // there exists or for all player 1 choices
-						for (DistributionSet distrs : stpg.steps.get(i)) {
+						for (DistributionSet distrs : stpg.getChoices(i)) {
 							b2 = min2; // there exists or for all player 2 choices
 							for (Distribution distr : distrs) {
 								b3 = true; // all transitions are to u states

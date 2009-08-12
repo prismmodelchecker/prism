@@ -42,22 +42,20 @@ public class MDP extends Model
 	public static ModelType modelType = ModelType.MDP;
 
 	// Transition function (Steps)
-	public List<ArrayList<Distribution>> steps;
+	protected List<List<Distribution>> trans;
 
 	// Rewards
-	private List<List<Double>> transRewards;
-	private Double transRewardsConstant;
+	protected List<List<Double>> transRewards;
+	protected Double transRewardsConstant;
 
-	// Flag: allow dupes in distribution sets?
-	public boolean allowDupes = false;
+	// Flag: allow duplicates in distribution sets?
+	protected boolean allowDupes = false;
 
 	// Other statistics
-	public int numDistrs;
-	public int numTransitions;
-	public int maxNumDistrs;
-	public boolean maxNumDistrsOk;
-
-	// TODO: add accessor for maxNumDistrs that recomputes if necessary 
+	protected int numDistrs;
+	protected int numTransitions;
+	protected int maxNumDistrs;
+	protected boolean maxNumDistrsOk;
 
 	/**
 	 * Constructor: empty MDP.
@@ -83,9 +81,9 @@ public class MDP extends Model
 		super.initialise(numStates);
 		numDistrs = numTransitions = maxNumDistrs = 0;
 		maxNumDistrsOk = true;
-		steps = new ArrayList<ArrayList<Distribution>>(numStates);
+		trans = new ArrayList<List<Distribution>>(numStates);
 		for (int i = 0; i < numStates; i++) {
-			steps.add(new ArrayList<Distribution>());
+			trans.add(new ArrayList<Distribution>());
 		}
 		clearAllRewards();
 	}
@@ -99,13 +97,13 @@ public class MDP extends Model
 		if (s >= numStates || s < 0)
 			return;
 		// Clear data structures and update stats
-		List<Distribution> list = steps.get(s);
+		List<Distribution> list = trans.get(s);
 		numDistrs -= list.size();
 		for (Distribution distr : list) {
 			numTransitions -= distr.size();
 		}
-		//TODO: recompute maxNumDistrs (reset maxNumDistrsOk flag)
-		steps.get(s).clear();
+		maxNumDistrsOk = false;
+		trans.get(s).clear();
 		if (transRewards != null && transRewards.get(s) != null)
 			transRewards.get(s).clear();
 	}
@@ -125,7 +123,7 @@ public class MDP extends Model
 	public void addStates(int numToAdd)
 	{
 		for (int i = 0; i < numToAdd; i++) {
-			steps.add(new ArrayList<Distribution>());
+			trans.add(new ArrayList<Distribution>());
 			if (transRewards != null)
 				transRewards.add(null);
 			numStates++;
@@ -133,20 +131,20 @@ public class MDP extends Model
 	}
 
 	/**
-	 * Add distribution 'distr' to state s (which must exist).
+	 * Add a choice (distribution 'distr') to state s (which must exist).
 	 * Distribution is only actually added if it does not already exists for state s.
 	 * (Assuming 'allowDupes' flag is not enabled.)
 	 * Returns the index of the (existing or newly added) distribution.
 	 * Returns -1 in case of error.
 	 */
-	public int addDistribution(int s, Distribution distr) throws PrismException
+	public int addChoice(int s, Distribution distr)
 	{
-		ArrayList<Distribution> set;
+		List<Distribution> set;
 		// Check state exists
 		if (s >= numStates || s < 0)
 			return -1;
 		// Add distribution (if new)
-		set = steps.get(s);
+		set = trans.get(s);
 		if (!allowDupes) {
 			int i = set.indexOf(distr);
 			if (i != -1)
@@ -198,7 +196,7 @@ public class MDP extends Model
 		}
 		// If no rewards for state i yet, create list
 		if (transRewards.get(s) == null) {
-			int n = steps.get(s).size();
+			int n = trans.get(s).size();
 			List<Double> list = new ArrayList<Double>(n);
 			for (int j = 0; j < n; j++) {
 				list.add(0.0);
@@ -214,9 +212,25 @@ public class MDP extends Model
 	 */
 	public int getNumChoices(int s)
 	{
-		return steps.get(s).size();
+		return trans.get(s).size();
 	}
-
+	
+	/**
+	 * Get the list of choices (distributions) for state s.
+	 */
+	public List<Distribution> getChoices(int s)
+	{
+		return trans.get(s);
+	}
+	
+	/**
+	 * Get the ith choice (distribution) for state s.
+	 */
+	public Distribution getChoice(int s, int i)
+	{
+		return trans.get(s).get(i);
+	}
+	
 	/**
 	 * Get the transition reward (if any) for choice i of state s.
 	 */
@@ -235,11 +249,41 @@ public class MDP extends Model
 	 */
 	public boolean isSuccessor(int s1, int s2)
 	{
-		for (Distribution distr : steps.get(s1)) {
+		for (Distribution distr : trans.get(s1)) {
 			if (distr.contains(s2))
 				return true;
 		}
 		return false;
+	}
+	
+	/**
+	 * Get the total number of choices (distributions) over all states.
+	 */
+	public int getNumChoices()
+	{
+		return numDistrs;
+	}
+	
+	/**
+	 * Get the total number of transitions in the model.
+	 */
+	public int getNumTransitions()
+	{
+		return numTransitions;
+	}
+	
+	/**
+	 * Get the maximum number of choices (distributions) in any state.
+	 */
+	public int getMaxNumChoices()
+	{
+		// Recompute if necessary
+		if (!maxNumDistrsOk) {
+			maxNumDistrs = 0;
+			for (int s = 0; s < numStates; s++)
+				maxNumDistrs = Math.max(maxNumDistrs, getNumChoices(s));
+		}
+		return maxNumDistrs;
 	}
 	
 	/**
@@ -249,7 +293,7 @@ public class MDP extends Model
 	public void checkForDeadlocks(BitSet except) throws PrismException
 	{
 		for (int i = 0; i < numStates; i++) {
-			if (steps.get(i).isEmpty() && (except == null || !except.get(i)))
+			if (trans.get(i).isEmpty() && (except == null || !except.get(i)))
 				throw new PrismException("MDP has a deadlock in state " + i);
 		}
 		// TODO: Check for empty distributions too?
@@ -292,7 +336,7 @@ public class MDP extends Model
 				if (i != iLast || k != kLast) {
 					// Add any previous distribution to the last state, create new one
 					if (distr != null) {
-						addDistribution(iLast, distr);
+						addChoice(iLast, distr);
 					}
 					distr = new Distribution();
 				}
@@ -304,7 +348,7 @@ public class MDP extends Model
 				s = in.readLine();
 			}
 			// Add previous distribution to the last state
-			addDistribution(iLast, distr);
+			addChoice(iLast, distr);
 			// Close file
 			in.close();
 		} catch (IOException e) {
@@ -349,11 +393,11 @@ public class MDP extends Model
 		int k;
 		double d, prob, minmax;
 		boolean first;
-		ArrayList<Distribution> step;
+		List<Distribution> step;
 
 		minmax = 0;
 		first = true;
-		step = steps.get(s);
+		step = trans.get(s);
 		for (Distribution distr : step) {
 			// Compute sum for this distribution
 			d = 0.0;
@@ -383,13 +427,13 @@ public class MDP extends Model
 		int j, k;
 		double d, prob;
 		List<Integer> res;
-		ArrayList<Distribution> step;
+		List<Distribution> step;
 
 		// Create data structures to store strategy
 		res = new ArrayList<Integer>();
 		// One row of matrix-vector operation 
 		j = -1;
-		step = steps.get(s);
+		step = trans.get(s);
 		for (Distribution distr : step) {
 			j++;
 			// Compute sum for this distribution
@@ -442,12 +486,12 @@ public class MDP extends Model
 		int j, k;
 		double d, prob, minmax;
 		boolean first;
-		ArrayList<Distribution> step;
+		List<Distribution> step;
 
 		minmax = 0;
 		first = true;
 		j = -1;
-		step = steps.get(s);
+		step = trans.get(s);
 		for (Distribution distr : step) {
 			j++;
 			// Compute sum for this distribution
@@ -478,13 +522,13 @@ public class MDP extends Model
 		int j, k;
 		double d, prob;
 		List<Integer> res;
-		ArrayList<Distribution> step;
+		List<Distribution> step;
 
 		// Create data structures to store strategy
 		res = new ArrayList<Integer>();
 		// One row of matrix-vector operation 
 		j = -1;
-		step = steps.get(s);
+		step = trans.get(s);
 		for (Distribution distr : step) {
 			j++;
 			// Compute sum for this distribution
@@ -528,7 +572,7 @@ public class MDP extends Model
 			out.write(numStates + " " + numDistrs + " " + numTransitions + "\n");
 			for (i = 0; i < numStates; i++) {
 				j = -1;
-				for (Distribution distr : steps.get(i)) {
+				for (Distribution distr : trans.get(i)) {
 					j++;
 					for (Map.Entry<Integer, Double> e : distr) {
 						out.write(i + " " + j + " " + e.getKey() + " " + e.getValue() + "\n");
@@ -543,7 +587,7 @@ public class MDP extends Model
 			out.write(numStates + " " + "?" + " " + "?" + "\n");
 			for (i = 0; i < numStates; i++) {
 				j = -1;
-				for (Distribution distr : steps.get(i)) {
+				for (Distribution distr : trans.get(i)) {
 					j++;
 					for (Map.Entry<Integer, Double> e : distr) {
 						out.write(i + " " + j + " " + e.getKey() + " " + "1.0" + "\n");
@@ -569,7 +613,7 @@ public class MDP extends Model
 				if (mark != null && mark.get(i))
 					out.write(i + " [style=filled  fillcolor=\"#cccccc\"]\n");
 				j = -1;
-				for (Distribution distr : steps.get(i)) {
+				for (Distribution distr : trans.get(i)) {
 					j++;
 					for (Map.Entry<Integer, Double> e : distr) {
 						out.write(i + " -> " + e.getKey() + " [ label=\"");
@@ -593,7 +637,7 @@ public class MDP extends Model
 		s += numStates + " states";
 		s += ", " + numDistrs + " distributions";
 		s += ", " + numTransitions + " transitions";
-		s += ", dist max/avg = " + maxNumDistrs + "/" + PrismUtils.formatDouble2dp(((double) numDistrs) / numStates);
+		s += ", dist max/avg = " + getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) numDistrs) / numStates);
 		return s;
 	}
 
@@ -612,7 +656,7 @@ public class MDP extends Model
 				first = false;
 			else
 				s += ", ";
-			s += i + ": " + steps.get(i) + transRewards.get(i);
+			s += i + ": " + trans.get(i) + transRewards.get(i);
 		}
 		s += " ]";
 		return s;
@@ -630,7 +674,7 @@ public class MDP extends Model
 			return false;
 		if (!initialStates.equals(mdp.initialStates))
 			return false;
-		if (!steps.equals(mdp.steps))
+		if (!trans.equals(mdp.trans))
 			return false;
 		// TODO: compare rewards (complicated: null = 0,0,0,0)
 		return true;

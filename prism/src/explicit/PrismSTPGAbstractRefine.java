@@ -154,12 +154,12 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 			switch (modelType) {
 			case DTMC:
 				distr = buildAbstractDistribution(c, (DTMC) modelConcrete);
-				j = ((MDP) abstraction).addDistribution(a, distr);
+				j = ((MDP) abstraction).addChoice(a, distr);
 				((MDP) abstraction).setTransitionReward(a, j, ((DTMC) modelConcrete).getTransitionReward(c));
 				break;
 			case CTMC:
 				distr = buildAbstractDistribution(c, (CTMC) modelConcrete);
-				j = ((CTMDP) abstraction).addDistribution(a, distr);
+				j = ((CTMDP) abstraction).addChoice(a, distr);
 				break;
 			case MDP:
 				set = buildAbstractDistributionSet(c, (MDP) modelConcrete, (STPG) abstraction);
@@ -181,7 +181,7 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 	 */
 	protected Distribution buildAbstractDistribution(int c, DTMC dtmc)
 	{
-		return dtmc.trans.get(c).map(concreteToAbstract);
+		return dtmc.getTransitions(c).map(concreteToAbstract);
 	}
 
 	/**
@@ -190,7 +190,7 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 	protected DistributionSet buildAbstractDistributionSet(int c, MDP mdp, STPG stpg)
 	{
 		DistributionSet set = ((STPG) stpg).newDistributionSet(null);
-		for (Distribution distr : mdp.steps.get(c)) {
+		for (Distribution distr : mdp.getChoices(c)) {
 			set.add(distr.map(concreteToAbstract));
 		}
 		return set;
@@ -305,12 +305,12 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 				switch (modelType) {
 				case DTMC:
 					distr = buildAbstractDistribution(c, (DTMC) modelConcrete);
-					j = ((MDP) abstraction).addDistribution(a, distr);
+					j = ((MDP) abstraction).addChoice(a, distr);
 					((MDP) abstraction).setTransitionReward(a, j, ((DTMC) modelConcrete).getTransitionReward(c));
 					break;
 				case CTMC:
 					distr = buildAbstractDistribution(c, (CTMC) modelConcrete);
-					j = ((CTMDP) abstraction).addDistribution(a, distr);
+					j = ((CTMDP) abstraction).addChoice(a, distr);
 					// TODO: recompute unif?
 					break;
 				case MDP:

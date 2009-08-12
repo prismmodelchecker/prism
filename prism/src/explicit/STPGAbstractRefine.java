@@ -473,7 +473,7 @@ public abstract class STPGAbstractRefine
 				// Compute... note lbsoln for both is ok sinec = ubsoln
 				lb = ((STPG) abstraction).mvMultMinMaxSingle(i, lbSoln, true, min);
 				ub = ((STPG) abstraction).mvMultMinMaxSingle(i, lbSoln, false, min);
-				mainLog.println(((STPG) abstraction).steps.get(i));
+				mainLog.println(((STPG) abstraction).getChoices(i));
 				mainLog.println("XX " + i + ": old=[" + lbSoln[i] + "," + ubSoln[i] + "], new=[" + lb + "," + ub + "]");
 				if (PrismUtils.doublesAreClose(ub, lb, refineTermCritParam, refineTermCrit == RefineTermCrit.ABSOLUTE)) {
 					lbSoln[i] = ubSoln[i] = lb;
@@ -1177,7 +1177,7 @@ public abstract class STPGAbstractRefine
 				//out.write(i + " [label=\"" + i + " [" + (ubSoln[i]) + "-" + (lbSoln[i]) + "=" + (ubSoln[i] - lbSoln[i]) + "]" + "\"");
 				out.write("]\n");
 				j = 0;
-				for (DistributionSet distrs : stpg.steps.get(i)) {
+				for (DistributionSet distrs : stpg.getChoices(i)) {
 					k = 0;
 					for (Distribution distr : distrs) {
 						for (Map.Entry<Integer, Double> e : distr) {

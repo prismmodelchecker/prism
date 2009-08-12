@@ -41,14 +41,14 @@ public class DTMC extends Model
 	public static ModelType modelType = ModelType.DTMC;
 
 	// Transition matrix (distribution list) 
-	public List<Distribution> trans;
+	protected List<Distribution> trans;
 
 	// Rewards
-	private List<Double> transRewards;
-	private Double transRewardsConstant;
+	protected List<Double> transRewards;
+	protected Double transRewardsConstant;
 
 	// Other statistics
-	public int numTransitions;
+	protected int numTransitions;
 
 	/**
 	 * Constructor: empty DTMC.
@@ -172,6 +172,14 @@ public class DTMC extends Model
 	}
 
 	/**
+	 * Get the transitions (a distribution) for state s.
+	 */
+	public Distribution getTransitions(int s)
+	{
+		return trans.get(s);
+	}
+	
+	/**
 	 * Get the transition reward (if any) for the transitions in state s.
 	 */
 	public double getTransitionReward(int s)
@@ -189,6 +197,14 @@ public class DTMC extends Model
 	public boolean isSuccessor(int s1, int s2)
 	{
 		return trans.get(s1).contains(s2);
+	}
+	
+	/**
+	 * Get the total number of transitions in the model.
+	 */
+	public int getNumTransitions()
+	{
+		return numTransitions;
 	}
 	
 	/**
