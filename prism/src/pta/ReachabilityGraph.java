@@ -198,7 +198,7 @@ public class ReachabilityGraph
 					distr.add(dest, edge.getProbability());
 				}
 				if (!distr.isEmpty())
-					mdp.addDistribution(src, distr);
+					mdp.addChoice(src, distr);
 			}
 		}
 

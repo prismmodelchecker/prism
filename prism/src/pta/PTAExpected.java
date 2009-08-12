@@ -332,7 +332,7 @@ public class PTAExpected
 				if (distr.isEmpty())
 					continue;
 				// Add distribution
-				choice = mdp.addDistribution(src, distr);
+				choice = mdp.addChoice(src, distr);
 				// Compute reward
 				if (min) {
 					rewSum = 0.0;
@@ -406,7 +406,7 @@ public class PTAExpected
 		// Add transition + reward
 		distr = new Distribution();
 		distr.add(initialStates.get(0), 1.0);
-		mdp.addDistribution(src, distr);
+		mdp.addChoice(src, distr);
 		if (!min)
 			mdp.setTransitionReward(src, 0, getMinMaxForZone(graph.states.get(initialStates.get(0)).zone, someClock,
 					min));

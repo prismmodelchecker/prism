@@ -166,7 +166,7 @@ public class PTAAbstractRefine extends STPGAbstractRefine
 
 		// Check for deadlocks in the constructed STPG
 		// (should never occur because of the restrictions we impose on PTAs)
-		if (((STPG) abstraction).steps.get(src).size() == 0) {
+		if (abstraction.getNumChoices(src) == 0) {
 			throw new PrismException("STPG has deadlock in state #" + src + ":" + graph.states.get(src));
 		}
 	}
@@ -298,7 +298,7 @@ public class PTAAbstractRefine extends STPGAbstractRefine
 			for (int in : choiceList) {
 				// If using BitSets for action labels (i.e. have not cached zones for reuse)
 				// need to build the corresponding zone
-				action = ((STPG) abstraction).steps.get(splitState).get(in).action;
+				action = ((STPG) abstraction).getChoice(splitState, in).action;
 				if (!storeValidZones) {
 					actionBitSet = (BitSet) action;
 					List<SymbolicTransition> sts = graph.trans.get(splitState);
