@@ -656,7 +656,9 @@ public class MDP extends Model
 				first = false;
 			else
 				s += ", ";
-			s += i + ": " + trans.get(i) + transRewards.get(i);
+			s += i + ": " + trans.get(i);
+			if (transRewards != null)
+				s += transRewards.get(i);
 		}
 		s += " ]";
 		return s;
