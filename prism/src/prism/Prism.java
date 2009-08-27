@@ -82,6 +82,7 @@ public class Prism implements PrismSettingsListener
 	public static final int EXPORT_DOT = 3;
 	public static final int EXPORT_MRMC = 4;
 	public static final int EXPORT_ROWS = 5;
+	public static final int EXPORT_DOT_STATES = 6;
 	
 	// methods for SCC decomposition
 	public static final int XIEBEEREL = 1;
@@ -1022,11 +1023,32 @@ public class Prism implements PrismSettingsListener
 		case EXPORT_DOT: mainLog.print("in Dot format "); break;
 		case EXPORT_MRMC: mainLog.print("in MRMC format "); break;
 		case EXPORT_ROWS: mainLog.print("in rows format "); break;
+		case EXPORT_DOT_STATES: mainLog.print("in Dot format (with states) "); break;
 		}
 		if (file != null) mainLog.println("to file \"" + file + "\"..."); else mainLog.println("below:");
 		
 		// do export
 		model.exportToFile(exportType, ordered, file);
+		
+		// for export to dotm with states, need to do a bit more
+		if (exportType == EXPORT_DOT_STATES) {
+			// open (appending to) existing new file log or use main log
+			PrismLog tmpLog;
+			if (file != null) {
+				tmpLog = new PrismFileLog(file.getPath(), true);
+				if (!tmpLog.ready()) {
+					throw new FileNotFoundException();
+				}
+			} else {
+				tmpLog = mainLog;
+			}
+			// insert states info into dot file
+			model.getReachableStates().printDot(tmpLog);
+			// print footer
+			tmpLog.println("}");
+			// tidy up
+			if (file != null) tmpLog.close();
+		}
 	}
 
 	// export state rewards to a file (plain, matlab, ...)

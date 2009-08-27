@@ -51,6 +51,17 @@ JNIEXPORT jlong __jlongpointer JNICALL Java_prism_PrismNative_PN_1OpenFile(JNIEn
 //------------------------------------------------------------------------------
 
 
+JNIEXPORT jlong __jlongpointer JNICALL Java_prism_PrismNative_PN_1OpenFileAppend(JNIEnv *env, jclass cls, jstring filename)
+{
+	const char *str = env->GetStringUTFChars(filename, 0);
+	FILE *fp = fopen(str, "a");
+	env->ReleaseStringUTFChars(filename, str);
+	return ptr_to_jlong(fp);
+}
+
+//------------------------------------------------------------------------------
+
+
 JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1PrintToFile(JNIEnv *env, jclass cls, jlong __jlongpointer fp, jstring s)
 {
 	const char *str = env->GetStringUTFChars(s, 0);

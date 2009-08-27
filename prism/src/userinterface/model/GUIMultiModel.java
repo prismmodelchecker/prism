@@ -61,7 +61,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 	private AbstractAction viewStates, viewTrans, viewStateRewards, viewTransRewards, viewPrismCode,
 	computeSS, computeTr, newPRISMModel, newGraphicModel,
 	newPEPAModel, loadModel, reloadModel, saveModel, saveAsModel, parseModel, buildModel,
-	exportStatesPlain, exportStatesMatlab, exportTransPlain, exportTransMatlab, exportTransDot, exportTransMRMC,
+	exportStatesPlain, exportStatesMatlab, exportTransPlain, exportTransMatlab, exportTransDot, exportTransDotStates, exportTransMRMC,
 	exportStateRewardsPlain, exportStateRewardsMatlab, exportStateRewardsMRMC,
 	exportTransRewardsPlain, exportTransRewardsMatlab, exportTransRewardsMRMC;
 	private JPopupMenu popup;
@@ -145,6 +145,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		exportTransPlain.setEnabled(!computing);
 		exportTransMatlab.setEnabled(!computing);
 		exportTransDot.setEnabled(!computing);
+		exportTransDotStates.setEnabled(!computing);
 		exportTransMRMC.setEnabled(!computing);
 		exportStateRewardsPlain.setEnabled(!computing);
 		exportStateRewardsMatlab.setEnabled(!computing);
@@ -315,6 +316,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		// pop up dialog to select file
 		switch (exportType) {
 		case Prism.EXPORT_DOT: res = showSaveFileDialog(dotFilter, dotFilter[0]); break;
+		case Prism.EXPORT_DOT_STATES: res = showSaveFileDialog(dotFilter, dotFilter[0]); break;
 		case Prism.EXPORT_MATLAB: res = showSaveFileDialog(matlabFilter, matlabFilter[0]); break;
 		default: res = showSaveFileDialog(textFilter, textFilter[0]); break;
 		}
@@ -565,6 +567,13 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		exportTransDot.putValue(Action.NAME, "Dot file");
 		exportTransDot.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileDot.png"));
 		
+		exportTransDotStates = new AbstractAction() { public void actionPerformed(ActionEvent e) {
+			a_exportBuildAs(GUIMultiModelHandler.TRANS_EXPORT, Prism.EXPORT_DOT_STATES); } };
+		exportTransDotStates.putValue(Action.LONG_DESCRIPTION, "Exports the transition matrix graph to a Dot file (with states)");
+		exportTransDotStates.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_S));
+		exportTransDotStates.putValue(Action.NAME, "Dot file (with states)");
+		exportTransDotStates.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileDot.png"));
+		
 		exportTransMRMC = new AbstractAction() { public void actionPerformed(ActionEvent e) {
 			a_exportBuildAs(GUIMultiModelHandler.TRANS_EXPORT, Prism.EXPORT_MRMC); } };
 		exportTransMRMC.putValue(Action.LONG_DESCRIPTION, "Exports the transition matrix to a MRMC file");
@@ -809,6 +818,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		exportTransMenu.add(exportTransPlain);
 		exportTransMenu.add(exportTransMatlab);
 		exportTransMenu.add(exportTransDot);
+		exportTransMenu.add(exportTransDotStates);
 		exportTransMenu.add(exportTransMRMC);
 		exportMenu.add(exportTransMenu);
 		exportStateRewardsMenu = new JMenu("State rewards");

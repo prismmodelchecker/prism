@@ -25,6 +25,14 @@ JNIEXPORT jlong JNICALL Java_prism_PrismNative_PN_1OpenFile
 
 /*
  * Class:     prism_PrismNative
+ * Method:    PN_OpenFileAppend
+ * Signature: (Ljava/lang/String;)J
+ */
+JNIEXPORT jlong JNICALL Java_prism_PrismNative_PN_1OpenFileAppend
+  (JNIEnv *, jclass, jstring);
+
+/*
+ * Class:     prism_PrismNative
  * Method:    PN_PrintToFile
  * Signature: (JLjava/lang/String;)V
  */

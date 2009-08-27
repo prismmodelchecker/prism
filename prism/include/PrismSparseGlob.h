@@ -36,6 +36,7 @@ const int EXPORT_MATLAB = 2;
 const int EXPORT_DOT = 3;
 const int EXPORT_MRMC = 4;
 const int EXPORT_ROWS = 5;
+const int EXPORT_DOT_STATES = 6;
 
 const int LIN_EQ_METHOD_POWER = 1;
 const int LIN_EQ_METHOD_JACOBI = 2;

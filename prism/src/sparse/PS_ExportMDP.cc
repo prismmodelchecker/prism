@@ -84,7 +84,7 @@ jstring fn		// filename
 	switch (export_type) {
 	case EXPORT_PLAIN: export_string("%d %d %d\n", n, nc, nnz); break;
 	case EXPORT_MATLAB: for (i = 0; i < ndsm->k; i++) export_string("%s%d = sparse(%d,%d);\n", export_name, i+1, n, n); break;
-	case EXPORT_DOT: export_string("digraph %s {\nsize=\"8,5\"\norientation=land;\nnode [shape = circle];\n", export_name); break;
+	case EXPORT_DOT: case EXPORT_DOT_STATES: export_string("digraph %s {\nsize=\"8,5\"\nnode [shape = circle];\n", export_name); break;
 	case EXPORT_ROWS: export_string("%d %d %d\n", n, nc, nnz); break;
 	}
 	
@@ -106,7 +106,7 @@ jstring fn		// filename
 			if (!use_counts) { l2 = choice_starts[j]; h2 = choice_starts[j+1]; }
 			else { l2 = h2; h2 += choice_counts[j]; }
 			if (export_type == EXPORT_ROWS) export_string("%d", i);
-			else if (export_type == EXPORT_DOT) {
+			else if (export_type == EXPORT_DOT || export_type == EXPORT_DOT_STATES) {
 				export_string("%d -> %d.%d [ arrowhead=none,label=\"%d\" ];\n", i, i, j-l1, j-l1);
 				export_string("%d.%d [ shape=circle,width=0.1,height=0.1,label=\"\" ];\n", i, j-l1);
 			}
@@ -114,7 +114,7 @@ jstring fn		// filename
 				switch (export_type) {
 				case EXPORT_PLAIN: export_string("%d %d %d %.12g\n", i, j-l1, cols[k], non_zeros[k]); break;
 				case EXPORT_MATLAB: export_string("%s%d(%d,%d)=%.12g;\n", export_name, j-l1+1, i+1, cols[k]+1, non_zeros[k]); break;
-				case EXPORT_DOT: export_string("%d.%d -> %d [ label=\"%.12g\" ];\n", i, j-l1, cols[k], non_zeros[k]); break;
+				case EXPORT_DOT: case EXPORT_DOT_STATES: export_string("%d.%d -> %d [ label=\"%.12g\" ];\n", i, j-l1, cols[k], non_zeros[k]); break;
 				case EXPORT_ROWS: export_string(" %.12g:%d", non_zeros[k], cols[k]); break;
 				}
 			}
@@ -124,6 +124,7 @@ jstring fn		// filename
 	
 	// print file footer
 	switch (export_type) {
+	// Note: no footer for EXPORT_DOT_STATES
 	case EXPORT_DOT: export_string("}\n"); break;
 	}
 	

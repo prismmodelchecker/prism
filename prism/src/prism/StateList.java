@@ -37,6 +37,7 @@ public interface StateList
 	String sizeString();
 	void print(PrismLog log);
 	void printMatlab(PrismLog log);
+	void printDot(PrismLog log);
 	void print(PrismLog log, int n);
 	void printMatlab(PrismLog log, int n);
 	boolean includes(JDDNode state);

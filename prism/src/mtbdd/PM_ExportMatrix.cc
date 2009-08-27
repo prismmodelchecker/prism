@@ -71,7 +71,7 @@ jstring fn		// filename
 	switch (export_type) {
 	case EXPORT_PLAIN: export_string("%d %.0f\n", odd->eoff+odd->toff, DD_GetNumMinterms(ddman, matrix, num_rvars+num_cvars)); break;
 	case EXPORT_MATLAB: export_string("%s = sparse(%d,%d);\n", export_name, odd->eoff+odd->toff, odd->eoff+odd->toff); break;
-	case EXPORT_DOT: export_string("digraph %s {\nsize=\"8,5\"\norientation=land;\nnode [shape = circle];\n", export_name); break;
+	case EXPORT_DOT: case EXPORT_DOT_STATES: export_string("digraph %s {\nsize=\"8,5\"\nnode [shape = circle];\n", export_name); break;
 	}
 	
 	// print main part of file
@@ -79,6 +79,7 @@ jstring fn		// filename
 	
 	// print file footer
 	switch (export_type) {
+	// Note: no footer for EXPORT_DOT_STATES
 	case EXPORT_DOT: export_string("}\n"); break;
 	}
 	
@@ -103,7 +104,7 @@ static void export_rec(DdNode *dd, DdNode **rvars, DdNode **cvars, int num_vars,
 		switch (export_type) {
 		case EXPORT_PLAIN: export_string("%d %d %.12g\n", r, c, Cudd_V(dd)); break;
 		case EXPORT_MATLAB: export_string("%s(%d,%d)=%.12g;\n", export_name, r+1, c+1, Cudd_V(dd)); break;
-		case EXPORT_DOT: export_string("%d -> %d [ label=\"%.12g\" ];\n", r, c, Cudd_V(dd)); break;
+		case EXPORT_DOT: case EXPORT_DOT_STATES: export_string("%d -> %d [ label=\"%.12g\" ];\n", r, c, Cudd_V(dd)); break;
 		}
 		return;
 	}

@@ -95,7 +95,7 @@ jstring fn		// filename
 	switch (export_type) {
 	case EXPORT_PLAIN: export_string("%d %d\n", n, nnz); break;
 	case EXPORT_MATLAB: export_string("%s = sparse(%d,%d);\n", export_name, n, n); break;
-	case EXPORT_DOT: export_string("digraph %s {\nsize=\"8,5\"\norientation=land;\nnode [shape = circle];\n", export_name); break;
+	case EXPORT_DOT: case EXPORT_DOT_STATES: export_string("digraph %s {\nsize=\"8,5\"\nnode [shape = circle];\n", export_name); break;
 	case EXPORT_MRMC: export_string("STATES %d\nTRANSITIONS %d\n", n, nnz); break;
 	case EXPORT_ROWS: export_string("%d %d\n", n, nnz); break;
 	}
@@ -146,7 +146,7 @@ jstring fn		// filename
 			switch (export_type) {
 			case EXPORT_PLAIN: export_string("%d %d %.12g\n", r, c, d); break;
 			case EXPORT_MATLAB: export_string("%s(%d,%d)=%.12g;\n", export_name, r+1, c+1, d); break;
-			case EXPORT_DOT: export_string("%d -> %d [ label=\"%.12g\" ];\n", r, c, d); break;
+			case EXPORT_DOT: case EXPORT_DOT_STATES: export_string("%d -> %d [ label=\"%.12g\" ];\n", r, c, d); break;
 			case EXPORT_MRMC: export_string("%d %d %.12g\n", r+1, c+1, d); break;
 			case EXPORT_ROWS: export_string(" %.12g:%d", d, c); break;
 			}
@@ -156,6 +156,7 @@ jstring fn		// filename
 	
 	// print file footer
 	switch (export_type) {
+	// Note: no footer for EXPORT_DOT_STATES
 	case EXPORT_DOT: export_string("}\n"); break;
 	}
 	

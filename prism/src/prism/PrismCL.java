@@ -53,6 +53,7 @@ public class PrismCL
 	private boolean exportspy = false;
 	private boolean exportdot = false;
 	private boolean exporttransdot = false;
+	private boolean exporttransdotstates = false;
 	private boolean exportbsccs = false;
 	private boolean exportresults = false;
 	private boolean exportprism = false;
@@ -88,6 +89,7 @@ public class PrismCL
 	private String exportSpyFilename = null;
 	private String exportDotFilename = null;
 	private String exportTransDotFilename = null;
+	private String exportTransDotStatesFilename = null;
 	private String exportBSCCsFilename = null;
 	private String exportResultsFilename = null;
 	private String exportPrismFilename = null;
@@ -724,6 +726,21 @@ public class PrismCL
 			}
 		}
 		
+		// export transition matrix graph to dot file (with states)
+		if (exporttransdotstates) {
+			try {
+				File f = (exportTransDotStatesFilename.equals("stdout")) ? null : new File(exportTransDotStatesFilename);
+				prism.exportTransToFile(model, exportordered, Prism.EXPORT_DOT_STATES, f);
+			}
+			// in case of error, report it and proceed
+			catch (FileNotFoundException e) {
+				error("Couldn't open file \"" + exportTransDotStatesFilename + "\" for output");
+			}
+			catch (PrismException e) {
+				error(e.getMessage());
+			}
+		}
+		
 		// export BSCCs to a file
 		if (exportbsccs) {
 			try {
@@ -937,6 +954,16 @@ public class PrismCL
 					if (i < args.length-1) {
 						exporttransdot = true;
 						exportTransDotFilename = args[++i];
+					}
+					else {
+						errorAndExit("No file specified for -"+sw+" switch");
+					}
+				}
+				// export transition matrix graph to dot file (with states)
+				else if (sw.equals("exporttransdotstates")) {
+					if (i < args.length-1) {
+						exporttransdotstates = true;
+						exportTransDotStatesFilename = args[++i];
 					}
 					else {
 						errorAndExit("No file specified for -"+sw+" switch");
@@ -1654,6 +1681,7 @@ public class PrismCL
 		mainLog.println("-exportordered ................. When exporting matrices, order entries (by row) [default]");
 		mainLog.println("-exportunordered ............... When exporting matrices, don't order entries");
 		mainLog.println("-exporttransdot <file> ......... Export the transition matrix graph to a dot file");
+		mainLog.println("-exporttransdotstates <file> ... Export the transition matrix graph to a dot file, with state info");
 		mainLog.println("-exportdot <file> .............. Export the transition matrix MTBDD to a dot file");
 		mainLog.println("-exportbsccs <file> ............ Compute and export all BSCCs of the model");
 		mainLog.println("-exportprism <file> ............ Export final PRISM model to a file");

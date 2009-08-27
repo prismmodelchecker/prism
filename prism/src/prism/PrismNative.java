@@ -45,6 +45,7 @@ public class PrismNative
 	
 	public static native long PN_GetStdout();
 	public static native long PN_OpenFile(String filename);
+	public static native long PN_OpenFileAppend(String filename);
 	public static native void PN_PrintToFile(long fp, String s);
 	public static native void PN_FlushFile(long fp);
 	public static native void PN_CloseFile(long fp);

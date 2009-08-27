@@ -61,8 +61,9 @@ public class StateListMTBDD implements StateList
 	// log for output from print method
 	PrismLog outputLog;
 	
-	// output in Matlab format?
-	boolean matlab = false;
+	// output format
+	enum OutputFormat { NORMAL, MATLAB, DOT };
+	OutputFormat outputFormat = OutputFormat.NORMAL;
 	
 	// constructor
 	
@@ -112,9 +113,15 @@ public class StateListMTBDD implements StateList
 	}
 	public void printMatlab(PrismLog log)
 	{
-		matlab = true;
+		outputFormat = OutputFormat.MATLAB;
 		print(log);
-		matlab = false;
+		outputFormat = OutputFormat.NORMAL;
+	}
+	public void printDot(PrismLog log)
+	{
+		outputFormat = OutputFormat.DOT;
+		print(log);
+		outputFormat = OutputFormat.NORMAL;
 	}
 	
 	// print first n states of list
@@ -128,9 +135,9 @@ public class StateListMTBDD implements StateList
 	}
 	public void printMatlab(PrismLog log, int n)
 	{
-		matlab = true;
+		outputFormat = OutputFormat.MATLAB;
 		print(log, n);
-		matlab = false;
+		outputFormat = OutputFormat.NORMAL;
 	}
 	
 	// printing method
@@ -171,7 +178,12 @@ public class StateListMTBDD implements StateList
 		// base case - at bottom (nonzero terminal)
 		if (level == numVars) {
 			
-			if (!matlab) outputLog.print(n + ":(");
+			switch (outputFormat) {
+			case NORMAL: outputLog.print(n + ":("); break;
+			case MATLAB: break;
+			case DOT: outputLog.print(n + " [label=\"" + n + "\\n("); break;
+			}
+			if (outputFormat == OutputFormat.NORMAL) outputLog.print(n + ":(");
 			j = varList.getNumVars();
 			for (i = 0; i < j; i++) {
 				// integer variable
@@ -184,7 +196,11 @@ public class StateListMTBDD implements StateList
 				}
 				if (i < j-1) outputLog.print(",");
 			}
-			if (!matlab) outputLog.print(")");
+			switch (outputFormat) {
+			case NORMAL: outputLog.print(")"); break;
+			case MATLAB: break;
+			case DOT: outputLog.print(")\"];"); break;
+			}
 			outputLog.println();
 			count++;
 			

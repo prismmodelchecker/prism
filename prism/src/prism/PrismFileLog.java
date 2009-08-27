@@ -43,7 +43,17 @@ public class PrismFileLog implements PrismLog
 		open(s);
 	}
 
+	public PrismFileLog(String s, boolean append)
+	{
+		open(s, append);
+	}
+
 	public void open(String s)
+	{
+		open (s, false);
+	}
+	
+	public void open(String s, boolean append)
 	{
 		filename = s;
 		if (s.equals("stdout")) {
@@ -51,7 +61,7 @@ public class PrismFileLog implements PrismLog
 			stdout = true;
 		}
 		else {
-			fp = PrismNative.PN_OpenFile(s);
+			fp = append ? PrismNative.PN_OpenFileAppend(s) : PrismNative.PN_OpenFile(s);
 			stdout = false;
 		}
 	}
