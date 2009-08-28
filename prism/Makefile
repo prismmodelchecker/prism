@@ -102,6 +102,8 @@ endif
 #JAVA_DIR =	/cygdrive/c/java/j2sdk1.4.2
 #JAVA_DIR =	/System/Library/Frameworks/JavaVM.framework
 
+JAVA_DIR = /usr/lib/jvm/java-6-sun-1.6.0.14
+
 ##################
 # Compilers etc. #
 ##################
@@ -374,7 +376,7 @@ dist_copy:
 dist_bin_copy:
 	@if [ "$(BINDISTSUFFIX)" = "win" ]; then \
 		echo Building NSIS Windows installer...	&& \
-		makensis /DPRISM_NAME="PRISM $(VERSION)" /DPRISM_BUILD="prism-$(VERSION)" /DPRISM_DIR="" nsis_script.nsi; \
+		makensis /DPRISM_NAME="PRISM $(VERSION)" /DPRISM_BUILD="prism-$(VERSION)" /DPRISM_DIR="" src/nsis_script.nsi; \
 	else \
 		BIN_DIST_DIR=`/bin/pwd | sed 's/-src$$//'`"-$(BINDISTSUFFIX)" && \
 		BIN_DIST_DIR_NAME=`basename $$BIN_DIST_DIR` && \
