@@ -147,8 +147,8 @@ public class NonProbModelChecker extends StateModelChecker
 		JDDNode b1, b2, transRel, tmp, tmp2, tmp3, tmp4, init = null;
 		ArrayList<JDDNode> cexDDs = null;
 		boolean done, cexDone = false;
-		List<State> cexStates = null;
-		Vector<String> cexActions = null;
+		List<State> cexStates;
+		Vector<String> cexActions;
 		int iters, i;
 		long l;
 
@@ -280,10 +280,7 @@ public class NonProbModelChecker extends StateModelChecker
 
 		// Print iterations/timing info
 		mainLog.println("\nCTL EU fixpoint: " + iters + " iterations in " + (l / 1000.0) + " seconds");
-		
-		mainLog.println(cexStates);
-		mainLog.println(cexActions);
-		
+
 		return new StateProbsMTBDD(tmp, model);
 	}
 
