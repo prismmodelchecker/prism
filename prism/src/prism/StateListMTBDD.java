@@ -183,7 +183,6 @@ public class StateListMTBDD implements StateList
 			case MATLAB: break;
 			case DOT: outputLog.print(n + " [label=\"" + n + "\\n("); break;
 			}
-			if (outputFormat == OutputFormat.NORMAL) outputLog.print(n + ":(");
 			j = varList.getNumVars();
 			for (i = 0; i < j; i++) {
 				// integer variable
