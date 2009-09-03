@@ -26,11 +26,12 @@
 
 package prism;
 
+import java.util.*;
+
 import jdd.*;
 import odd.*;
 import parser.Values;
 import parser.VarList;
-import parser.ast.Expression;
 import parser.type.*;
 
 // list of states (mtbdd)
@@ -61,8 +62,11 @@ public class StateListMTBDD implements StateList
 	// log for output from print method
 	PrismLog outputLog;
 	
+	// string array when exporting
+	List<String> strList;
+	
 	// output format
-	enum OutputFormat { NORMAL, MATLAB, DOT };
+	enum OutputFormat { NORMAL, MATLAB, DOT, STRINGS };
 	OutputFormat outputFormat = OutputFormat.NORMAL;
 	
 	// constructor
@@ -103,50 +107,64 @@ public class StateListMTBDD implements StateList
 		return (size > Long.MAX_VALUE) ? "" + size : "" + Math.round(size);
 	}
 
-	// print whole list
+	// print/export whole list
 	
 	public void print(PrismLog log)
 	{
+		outputFormat = OutputFormat.NORMAL;
 		limit = false;
-		count = 0;
-		doPrint(log);
+		outputLog = log;
+		doPrint();
 	}
 	public void printMatlab(PrismLog log)
 	{
 		outputFormat = OutputFormat.MATLAB;
-		print(log);
-		outputFormat = OutputFormat.NORMAL;
+		limit = false;
+		outputLog = log;
+		doPrint();
 	}
 	public void printDot(PrismLog log)
 	{
 		outputFormat = OutputFormat.DOT;
-		print(log);
-		outputFormat = OutputFormat.NORMAL;
+		limit = false;
+		outputLog = log;
+		doPrint();
+	}
+	public List<String> exportToStringList()
+	{
+		strList = new ArrayList<String>((int)size);
+		outputFormat = OutputFormat.STRINGS;
+		limit = false;
+		doPrint();
+		return strList;
 	}
 	
 	// print first n states of list
 	
 	public void print(PrismLog log, int n)
 	{
+		outputFormat = OutputFormat.NORMAL;
 		limit = true;
 		numToPrint = n;
-		count = 0;
-		doPrint(log);
+		outputLog = log;
+		doPrint();
 	}
 	public void printMatlab(PrismLog log, int n)
 	{
 		outputFormat = OutputFormat.MATLAB;
-		print(log, n);
-		outputFormat = OutputFormat.NORMAL;
+		limit = true;
+		numToPrint = n;
+		outputLog = log;
+		doPrint();
 	}
 	
 	// printing method
 	
-	public void doPrint(PrismLog log)
+	public void doPrint()
 	{
 		int i;
 		
-		outputLog = log;
+		count = 0;
 		for (i = 0; i < varList.getNumVars(); i++) {
 			varValues[i] = 0;
 		}
@@ -168,6 +186,7 @@ public class StateListMTBDD implements StateList
 	{
 		int i, j;
 		JDDNode e, t;
+		String varsString;
 		
 		// if we've printed enough states, stop
 		if (limit) if (count >= numToPrint) return;
@@ -184,23 +203,24 @@ public class StateListMTBDD implements StateList
 			case DOT: outputLog.print(n + " [label=\"" + n + "\\n("); break;
 			}
 			j = varList.getNumVars();
+			varsString = "";
 			for (i = 0; i < j; i++) {
 				// integer variable
 				if (varList.getType(i) instanceof TypeInt) {
-					outputLog.print(varValues[i]+varList.getLow(i));
+					varsString += varValues[i]+varList.getLow(i);
 				}
 				// boolean variable
 				else {
-					outputLog.print(varValues[i] == 1);
+					varsString += (varValues[i] == 1);
 				}
-				if (i < j-1) outputLog.print(",");
+				if (i < j-1) varsString += ",";
 			}
 			switch (outputFormat) {
-			case NORMAL: outputLog.print(")"); break;
-			case MATLAB: break;
-			case DOT: outputLog.print(")\"];"); break;
+			case NORMAL: outputLog.println(varsString + ")"); break;
+			case MATLAB: outputLog.println(varsString); break;
+			case DOT: outputLog.println(varsString + ")\"];"); break;
+			case STRINGS: strList.add(varsString);
 			}
-			outputLog.println();
 			count++;
 			
 			return;

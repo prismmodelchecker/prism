@@ -26,6 +26,8 @@
 
 package prism;
 
+import java.util.List;
+
 import jdd.*;
 import parser.Values;
 
@@ -38,6 +40,7 @@ public interface StateList
 	void print(PrismLog log);
 	void printMatlab(PrismLog log);
 	void printDot(PrismLog log);
+	public List<String> exportToStringList();
 	void print(PrismLog log, int n);
 	void printMatlab(PrismLog log, int n);
 	boolean includes(JDDNode state);
