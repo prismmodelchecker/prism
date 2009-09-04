@@ -102,8 +102,6 @@ endif
 #JAVA_DIR =	/cygdrive/c/java/j2sdk1.4.2
 #JAVA_DIR =	/System/Library/Frameworks/JavaVM.framework
 
-JAVA_DIR = /usr/lib/jvm/java-6-sun-1.6.0.14
-
 ##################
 # Compilers etc. #
 ##################
