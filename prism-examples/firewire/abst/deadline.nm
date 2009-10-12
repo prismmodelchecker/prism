@@ -25,7 +25,7 @@ module abstract_firewire
 	x : [0..kx+1];
 	
 	// local state
-	s : [0..10];
+	s : [0..11];
 	// 0 -start_start
 	// 1 -fast_start
 	// 2 -start_fast
@@ -35,45 +35,45 @@ module abstract_firewire
 	// 6 -fast_slow
 	// 7 -slow_fast
 	// 8 -slow_slow
-	// 9 -done
-	// 10 - passed deadline
+	// 9 -seldone
+	// 10 -done_before
+	// 11 -done_after
 	
 	// initial state
 	[] (s=0) & (x<delay) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
-	[] (s=0) & (y<=deadline) -> fast : (s'=1) + slow : (s'=4);
-	[] (s=0) & (y<=deadline) -> fast : (s'=2) + slow : (s'=3);
+	[] (s=0) -> fast : (s'=1) + slow : (s'=4);
+	[] (s=0) -> fast : (s'=2) + slow : (s'=3);
 	// fast_start
 	[] (s=1) & (x<delay) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
-	[] (s=1) & (y<=deadline) -> fast : (s'=5) & (x'=0) + slow : (s'=6) & (x'=0);
+	[] (s=1) -> fast : (s'=5) & (x'=0) + slow : (s'=6) & (x'=0);
 	// start_fast
 	[] (s=2) & (x<delay) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
-	[] (s=2) & (y<=deadline) -> fast : (s'=5) & (x'=0) + slow : (s'=7) & (x'=0);
+	[] (s=2) -> fast : (s'=5) & (x'=0) + slow : (s'=7) & (x'=0);
 	// start_slow
 	[] (s=3) & (x<delay) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
-	[] (s=3) & (y<=deadline) -> fast : (s'=6) & (x'=0) + slow : (s'=8) & (x'=0);
+	[] (s=3) -> fast : (s'=6) & (x'=0) + slow : (s'=8) & (x'=0);
 	// slow_start
 	[] (s=4) & (x<delay) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
-	[] (s=4) & (y<=deadline) -> fast : (s'=7) & (x'=0) + slow : (s'=8) & (x'=0);
+	[] (s=4) -> fast : (s'=7) & (x'=0) + slow : (s'=8) & (x'=0);
 	// fast_fast
 	[] (s=5) & (x<85) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
-	[] (s=5) & (x>=76) & (y<=deadline) -> (s'=0) & (x'=0);
-	[] (s=5) & (x>=76-delay) & (y<=deadline) -> (s'=9) & (x'=0);
+	[] (s=5) & (x>=76) -> (s'=0) & (x'=0);
+	[] (s=5) & (x>=76-delay) -> (s'=9) & (x'=0);
 	// fast_slow
 	[] (s=6) & (x<167) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
-	[] (s=6) & (x>=159-delay) & (y<=deadline) -> (s'=9) & (x'=0);
+	[] (s=6) & (x>=159-delay) -> (s'=9) & (x'=0);
 	// slow_fast
 	[] (s=7) & (x<167) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
-	[] (s=7) & (x>=159-delay) & (y<=deadline) -> (s'=9) & (x'=0);
+	[] (s=7) & (x>=159-delay) -> (s'=9) & (x'=0);
 	// slow_slow
 	[] (s=8) & (x<167) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
-	[] (s=8) & (x>=159) & (y<=deadline) -> (s'=0) & (x'=0);
-	[] (s=8) & (x>=159-delay) & (y<=deadline) -> (s'=9) & (x'=0);
+	[] (s=8) & (x>=159) -> (s'=0) & (x'=0);
+	[] (s=8) & (x>=159-delay) -> (s'=9) & (x'=0);
 	
 	// move to deadline exceeded when y>=deadline
-	[] (y>deadline) & (s<9) -> (s'=10) & (y'=0);
+	[] (y<=deadline) & (s=9) -> (s'=10) & (y'=0);
+	[] (y>deadline) & (s=9) -> (s'=11) & (y'=0);
 	// done
-	[] (s=9) -> (s'=9);
-	// deadline exceeded
-	[] (s=10) -> (s'=10);
+	[] (s>=10) -> true;
 	
 endmodule
