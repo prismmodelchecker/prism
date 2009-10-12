@@ -11,7 +11,7 @@ impl: which consists of the parallel composition of two nodes (Node1 and Node2),
 abst: which is represented by a single probabilistic timed automaton and is an abstraction of Impl 
       based on the the probabilistic I/O automaton I1 of [SV99].
 
-For both models we have used the integer semantics given in [KNS02b].
+For both models we have used the integer semantics given in [KNPS06].
 
 For more information, see: http://www.prismmodelchecker.org/casestudies/firewire.php
 
@@ -23,8 +23,7 @@ Root Contention in IEEE 1394
 In Proc.  5th AMAST Workshop on Real-Time and Probabilistic Systems (ARTS'99), pp. 53-74, 1999
 (Available as Volume 1601 of LNCS, (c) Springer Verlag)
 
-[KNS02b]
-M. Kwiatkowska, G. Norman and J. Sproston
-Probabilistic Model Checking of Deadline Properties in the IEEE1394 FireWire Root Contention Protocol
-Special Issue of Formal Aspects of Computing, To appear
-
+[KNPS06]
+M. Kwiatkowska, G. Norman, D. Parker and J. Sproston
+Performance Analysis of Probabilistic Timed Automata using Digital Clocks
+Formal Methods in System Design, 29:33-78, 2006
