@@ -63,7 +63,7 @@ ICFLAGS	=
 #
 #  Mac OS X (Darwin)
 #
-XCFLAGS	= -DHAVE_IEEE_754 -fno-common
+XCFLAGS	= -arch i386 -DHAVE_IEEE_754 -fno-common
 #
 #==========================
 
