@@ -201,9 +201,9 @@ ifeq ($(OSTYPE),darwin)
 		LDFLAGS = -arch x86_64 -fPIC -DPIC -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
 		CUDD_MAKEFILE = Makefile.darwin-64
 	else
-		CFLAGS = -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
-		CPPFLAGS = -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
-		LDFLAGS = -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
+		CFLAGS = -arch i386 -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
+		CPPFLAGS = -arch i386 -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
+		LDFLAGS = -arch i386 -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
 		CUDD_MAKEFILE = Makefile.darwin
 	endif
 	SHARED = -dynamiclib
