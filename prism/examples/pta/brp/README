@@ -1,0 +1,26 @@
+This case study is based on the bounded retransmission protocol (BRP) [HSV94], a variant of the alternating bit protocol.
+
+Its parameters are:
+
+  N = number of chunks in a file
+  MAX = maximum number of retransmissions
+  TD = the transition delay
+  TIME_OUT = the time the sender waits before timing out
+
+TIME_OUT should be greater than the time to send and receive an ack (i.e. greater than 2*TD)
+
+For more information, see the untimed version: http://www.prismmodelchecker.org/casestudies/brp.php
+
+The PTA extension is based on that used in [HH09]
+
+=====================================================================================
+
+[HSV94]
+L. Helmink, M. Sellink and F Vaandrager
+Proof checking a data link protocol
+In Proc. Types for Proofs and Programs (TYPES'93), LNCS 806, pp 127-165, Springer-Verlag, 1994
+[HH09]
+A. Hartmanns and H. Hermanns
+A Modest Approach to Checking Probabilistic Timed Automata
+Proc. 6th International Conference on Quantitative Evaluation of Systems (QEST'09), IEEE, 2009
+
