@@ -1155,7 +1155,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				setComputing(false);
 			}
 		}
-		else if(e instanceof GUIClipboardEvent)
+		else if(e instanceof GUIClipboardEvent  && super.getGUI().getFocussedPlugin() == this)
 		{
 			GUIClipboardEvent ce = (GUIClipboardEvent)e;
 					

@@ -744,7 +744,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 				handler.requestParse(false);
 			}
 		}
-		else if(e instanceof GUIClipboardEvent)
+		else if(e instanceof GUIClipboardEvent  && super.getGUI().getFocussedPlugin() == this)
 		{
 			GUIClipboardEvent ce = (GUIClipboardEvent)e;
 			if(ce.getComponent() == this)
