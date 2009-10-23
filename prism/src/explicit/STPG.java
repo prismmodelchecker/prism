@@ -75,12 +75,14 @@ public class STPG extends Model
 	}
 
 	/**
-	 * Constructor: build an STPG from an MDP
+	 * Constructor: build an STPG from an MDP.
+	 * Data is copied directly from the MDP so take a copy first if you plan to keep/modify the MDP.
 	 */
 	public STPG(MDP m)
 	{
 		DistributionSet set;
 		int i;
+		// TODO: actions? rewards?
 		initialise(m.numStates);
 		for (i = 0; i < numStates; i++) {
 			set = newDistributionSet(null);
