@@ -115,11 +115,10 @@ public class DTMC extends Model
 	/**
 	 * Set the probability for a transition. 
 	 */
-
 	public void setProbability(int i, int j, double prob)
 	{
 		Distribution distr = trans.get(i);
-		if (distr.get(i) == 0.0)
+		if (distr.get(i) != 0.0)
 			numTransitions--;
 		if (prob != 0.0)
 			numTransitions++;
