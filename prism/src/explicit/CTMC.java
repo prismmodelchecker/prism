@@ -26,6 +26,8 @@
 
 package explicit;
 
+import java.util.Map;
+
 import prism.ModelType;
 
 /**
@@ -35,10 +37,34 @@ public class CTMC extends DTMC
 {
 	// Model type
 	public static ModelType modelType = ModelType.CTMC;
-	
+
 	// Uniformisation rate used to build CTMC/CTMDP
 	public double unif;
-	
+
+	/**
+	 * Build the embedded DTMC for this CTMC
+	 */
+	public DTMC buildEmbeddedDTMC()
+	{
+		DTMC dtmc;
+		Distribution distr;
+		int i;
+		double d;
+		dtmc = new DTMC(numStates);
+		for (i = 0; i < numStates; i++) {
+			distr = trans.get(i);
+			d = distr.sum();
+			if (d == 0) {
+				dtmc.setProbability(i, i, 1.0);
+			} else {
+				for (Map.Entry<Integer, Double> e : distr) {
+					dtmc.setProbability(i, e.getKey(), e.getValue() / d);
+				}
+			}
+		}
+		return dtmc;
+	}
+
 	/**
 	 * Uniformise.
 	 * @param unif: Unifomisation rate
@@ -53,7 +79,7 @@ public class CTMC extends DTMC
 		}
 		this.unif = unif;
 	}
-	
+
 	/**
 	 * Uniformise with an appropriate rate.
 	 */
@@ -61,7 +87,7 @@ public class CTMC extends DTMC
 	{
 		uniformise(1.02 * maxExitRate());
 	}
-	
+
 	/**
 	 * Compute the maximum exit rate.
 	 */
