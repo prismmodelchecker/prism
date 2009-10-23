@@ -67,10 +67,10 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 		int c, a, j, nAbstract;
 
 		// Build concrete model
-		mainLog.println("Building concrete " + modelType + "...");
+		mainLog.println("Building concrete " + (buildEmbeddedDtmc ? "(embedded) " : "") + modelType + "...");
 		switch (modelType) {
 		case DTMC:
-			modelConcrete = new DTMC();
+			modelConcrete = buildEmbeddedDtmc ? new CTMC() : new DTMC();
 			break;
 		case CTMC:
 			modelConcrete = new CTMC();
@@ -82,15 +82,22 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 			throw new PrismException("Cannot handle model type " + modelType);
 		}
 		modelConcrete.buildFromPrismExplicit(traFile);
+		if (buildEmbeddedDtmc) {
+			//mainLog.println(modelConcrete);
+			modelConcrete = ((CTMC) modelConcrete).buildEmbeddedDTMC();
+			//mainLog.println(modelConcrete);
+		}
 		//if (propertyType == PropertyType.EXP_REACH)
 		//modelConcrete.buildTransitionRewardsFromFile(rewtFile);
 		modelConcrete.setConstantTransitionReward(1.0);
 		mainLog.println("Concrete " + modelType + ": " + modelConcrete.infoString());
 		nConcrete = modelConcrete.getNumStates();
 
-		// For a CTMC, we need to uniformise
+		// For a CTMC and time-bounded properties, we need to uniformise
 		if (modelType == ModelType.CTMC) {
-			((CTMC) modelConcrete).uniformise();
+			if (propertyType != PropertyType.PROB_REACH) {
+				((CTMC) modelConcrete).uniformise();
+			}
 		}
 
 		// Get initial/target (concrete) states

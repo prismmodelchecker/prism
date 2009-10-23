@@ -97,6 +97,7 @@ public abstract class STPGAbstractRefine
 	protected BitSet target;
 	// Other parameters
 	protected boolean min;
+	protected boolean buildEmbeddedDtmc = false; // Construct DTMC from CTMC?
 	// Stuff for refinement loop
 	protected ModelType abstractionType;
 	protected double[] lbSoln;
@@ -377,6 +378,13 @@ public abstract class STPGAbstractRefine
 		// Store whether min/max
 		this.min = min;
 
+		// For some models, properties, we might need to change
+		// what the model/abstraction type is
+		if (modelType == ModelType.CTMC && propertyType == PropertyType.PROB_REACH) {
+			buildEmbeddedDtmc = true;
+			modelType = ModelType.DTMC;
+		}
+
 		// Store what abstract model type is
 		// and create appropriate model checker
 		// (which inherits log/options from mcOptions)
@@ -629,6 +637,7 @@ public abstract class STPGAbstractRefine
 		timeCheckProb0 += res.timeProb0;
 		timeCheckPre += res.timePre;
 		itersTotal += res.numIters;
+		//mainLog.println(lbSoln);
 
 		// Compute upper bounds
 		switch (abstractionType) {
@@ -669,6 +678,7 @@ public abstract class STPGAbstractRefine
 		timeCheckProb0 += res.timeProb0;
 		timeCheckPre += res.timePre;
 		itersTotal += res.numIters;
+		//mainLog.println(ubSoln);
 	}
 
 	/*
@@ -1051,7 +1061,7 @@ public abstract class STPGAbstractRefine
 
 		// Get (old) number of states
 		numStates = abstraction.getNumStates();
-		
+
 		// Split the state, based on nondet choices selected above
 		numNewStates = splitState(refineState, choiceLists, rebuildStates);
 
@@ -1078,7 +1088,7 @@ public abstract class STPGAbstractRefine
 		BitSet included;
 		ArrayList<Integer> otherChoices;
 		int i;
-		
+
 		nChoices = abstraction.getNumChoices(splitState);
 		included = new BitSet(nChoices);
 		for (List<Integer> choiceList : choiceLists) {
@@ -1095,7 +1105,7 @@ public abstract class STPGAbstractRefine
 		if (otherChoices.size() > 0)
 			choiceLists.add(otherChoices);
 	}
-	
+
 	/**
 	 * Display final summary about the abstraction-refinement loop.
 	 */
