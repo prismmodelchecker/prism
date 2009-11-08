@@ -63,7 +63,7 @@ ICFLAGS	=
 #
 #  Mac OS X (Darwin) (64-bit)
 #
-XCFLAGS	= -arch x86_64 -fPIC -DPIC -DHAVE_IEEE_754 -fno-common
+XCFLAGS	= -arch x86_64 -fPIC -DPIC -DHAVE_IEEE_754 -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 -fno-common
 #
 #==========================
 
