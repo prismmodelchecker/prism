@@ -405,13 +405,13 @@ public class TypeCheck extends ASTTraverse
 		case ExpressionFunc.MIN:
 		case ExpressionFunc.MAX:
 			// int if all ints, double otherwise
+			e.setType(TypeInt.getInstance());
 			for (i = 0; i < n; i++) {
 				if (types[i] instanceof TypeDouble) {
 					e.setType(TypeDouble.getInstance());
 					break;
 				}
 			}
-			e.setType(TypeInt.getInstance());
 			break;
 		case ExpressionFunc.FLOOR:
 		case ExpressionFunc.CEIL:
