@@ -89,9 +89,9 @@ public class GUIPrismSplash extends Frame
 				graphics.drawImage(fImage,0,0,this);
 				Font theFont = new Font ("monospaced", Font.BOLD, 10);
 				graphics.setFont(theFont);
-				int x = (int)(getBounds().width - theFont.getSize2D()*Prism.getVersion().length()*(5.0/8.0) - 10);
+				int x = (int)(getBounds().width - theFont.getSize2D()*(Prism.getVersion().length()+1)*(5.0/8.0) - 10);
 				int y = (int)(getBounds().height - theFont.getSize2D() - 10);
-				graphics.drawString(Prism.getVersion(), x, y);
+				graphics.drawString(Prism.getVersion() + " ", x, y);
 			}
 		}
 		private Image fImage;
