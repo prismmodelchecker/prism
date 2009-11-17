@@ -512,33 +512,34 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintSupportNames(JNIEnv *env, jclass cl
 		jint size;
 		jclass vn_cls;
 		jmethodID vn_mid;
-		jstring jstr;
 		const char **names;
-		const char *filenamestr;
+		jstring *names_jstrings;
 		// get size of vector of names
 		vn_cls = env->GetObjectClass(var_names);
-		    vn_mid = env->GetMethodID(vn_cls, "size", "()I");
-		    if (vn_mid == 0) {
-		        return;
-		    }
-		    size = env->CallIntMethod(var_names,vn_mid);
+		vn_mid = env->GetMethodID(vn_cls, "size", "()I");
+		if (vn_mid == 0) {
+			return;
+		}
+		size = env->CallIntMethod(var_names,vn_mid);
 		// put names from vector into array
 		names = new const char*[size];
-		    vn_mid = env->GetMethodID(vn_cls, "get", "(I)Ljava/lang/Object;");
-		    if (vn_mid == 0) {
-		        return;
-		    }
+		names_jstrings = new jstring[size];
+		vn_mid = env->GetMethodID(vn_cls, "get", "(I)Ljava/lang/Object;");
+		if (vn_mid == 0) {
+			return;
+		}
 		for (i = 0; i < size; i++) {
-			jstr = (jstring)env->CallObjectMethod(var_names, vn_mid, i);
-			names[i] = env->GetStringUTFChars(jstr, 0);
+			names_jstrings[i] = (jstring)env->CallObjectMethod(var_names, vn_mid, i);
+			names[i] = env->GetStringUTFChars(names_jstrings[i], 0);
 		}
 		// call the function
 		DD_PrintSupportNames(ddman, jlong_to_DdNode(dd), (char **)names);
 		// release memory
 		for (i = 0; i < size; i++) {
-			env->ReleaseStringUTFChars(jstr, names[i]);
+			env->ReleaseStringUTFChars(names_jstrings[i], names[i]);
 		}
 		delete[] names;
+		delete[] names_jstrings;
 	}
 }
 
@@ -671,26 +672,27 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportDDToDotFileLabelled(JNIEnv *env, j
 	jint size;
 	jclass vn_cls;
 	jmethodID vn_mid;
-	jstring jstr;
 	const char **names;
+	jstring *names_strings;
 	const char *filenamestr;
 
 	// get size of vector of names
 	vn_cls = env->GetObjectClass(var_names);
-        vn_mid = env->GetMethodID(vn_cls, "size", "()I");
-        if (vn_mid == 0) {
-            return;
-        }
-        size = env->CallIntMethod(var_names,vn_mid);
+	vn_mid = env->GetMethodID(vn_cls, "size", "()I");
+	if (vn_mid == 0) {
+		return;
+	}
+	size = env->CallIntMethod(var_names,vn_mid);
 	// put names from vector into array
 	names = new const char*[size];
-        vn_mid = env->GetMethodID(vn_cls, "elementAt", "(I)Ljava/lang/Object;");
-        if (vn_mid == 0) {
-            return;
-        }
+	names_strings = new jstring[size];
+	vn_mid = env->GetMethodID(vn_cls, "elementAt", "(I)Ljava/lang/Object;");
+	if (vn_mid == 0) {
+		return;
+	}
 	for (i = 0; i < size; i++) {
-		jstr = (jstring)env->CallObjectMethod(var_names, vn_mid, i);
-		names[i] = env->GetStringUTFChars(jstr, 0);
+		names_strings[i] = (jstring)env->CallObjectMethod(var_names, vn_mid, i);
+		names[i] = env->GetStringUTFChars(names_strings[i], 0);
 	}
 
 	// get filename string
@@ -701,10 +703,11 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportDDToDotFileLabelled(JNIEnv *env, j
 
 	// release memory
 	for (i = 0; i < size; i++) {
-		env->ReleaseStringUTFChars(jstr, names[i]);
+		env->ReleaseStringUTFChars(names_strings[i], names[i]);
 	}
 	env->ReleaseStringUTFChars(filename, filenamestr);
 	delete[] names;
+	delete[] names_strings;
 }
 
 //------------------------------------------------------------------------------
