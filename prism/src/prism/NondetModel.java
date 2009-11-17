@@ -41,8 +41,6 @@ import sparse.*;
 public class NondetModel extends ProbModel
 {
 	// Extra info
-	protected Vector<String> synchs; // synchronising action labels
-	protected double numSynchs; // number of synchronising actions
 	protected double numChoices; // number of choices
 
 	// Extra dd stuff
@@ -97,11 +95,6 @@ public class NondetModel extends ProbModel
 		return allDDNondetVars;
 	}
 
-	public Vector<String> getSynchs()
-	{
-		return synchs;
-	}
-	
 	public JDDNode getTransInd()
 	{
 		return transInd;
@@ -134,12 +127,6 @@ public class NondetModel extends ProbModel
 	}
 	
 	// set methods for things not set up in constructor
-	
-	public void setSynchs(Vector<String> synchs)
-	{
-		this.synchs = synchs;
-		this.numSynchs = synchs.size();
-	}
 	
 	public void setTransInd(JDDNode transInd)
 	{
@@ -335,6 +322,11 @@ public class NondetModel extends ProbModel
 					log.print(JDD.GetTerminalsAndNumbersString(transRewards[i], getNumDDVarsInTrans()) + "\n");
 				}
 			}
+		}
+		if (transActions != null && !transActions.equals(JDD.ZERO)) {
+			log.print("Action label indices: ");
+			log.print(JDD.GetNumNodes(transActions) + " nodes (");
+			log.print(JDD.GetNumTerminals(transActions) + " terminal)\n");
 		}
 	}
 

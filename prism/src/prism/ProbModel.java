@@ -27,8 +27,7 @@
 package prism;
 
 import java.io.*;
-import java.util.BitSet;
-import java.util.Vector;
+import java.util.*;
 
 import jdd.*;
 import odd.*;
@@ -51,6 +50,9 @@ public class ProbModel implements Model
 	protected VarList varList; // list of module variables
 	protected long[] gtol; // numbers for use by globalToLocal
 	protected Values constantValues; // values of constants
+	// actions
+	protected int numSynchs; // number of synchronising actions
+	protected Vector<String> synchs; // synchronising action labels
 	// rewards
 	protected int numRewardStructs; // number of reward structs
 	protected String[] rewardStructNames; // reward struct names
@@ -71,6 +73,8 @@ public class ProbModel implements Model
 	protected JDDNode fixdl; // fixed deadlock states dd
 	protected JDDNode stateRewards[]; // state rewards dds
 	protected JDDNode transRewards[]; // transition rewards dds
+	protected JDDNode transActions; // dd for transition action labels
+	
 	// dd vars
 	protected JDDVars[] varDDRowVars; // dd vars for each module variable (rows)
 	protected JDDVars[] varDDColVars; // dd vars for each module variable (cols)
@@ -155,6 +159,14 @@ public class ProbModel implements Model
 		return constantValues;
 	}
 
+	/**
+	 * Get vector of action label names. 
+	 */
+	public List<String> getSynchs()
+	{
+		return synchs;
+	}
+	
 	// rewards
 	public int getNumRewardStructs()
 	{
@@ -277,6 +289,11 @@ public class ProbModel implements Model
 		return null;
 	}
 
+	public JDDNode getTransActions()
+	{
+		return transActions;
+	}
+	
 	// dd vars
 	public JDDVars[] getVarDDRowVars()
 	{
@@ -391,7 +408,10 @@ public class ProbModel implements Model
 		varDDRowVars = vrv;
 		varDDColVars = vcv;
 		constantValues = cv;
-
+		
+		// action label info (optional) is initially null
+		transActions = null;
+		
 		// compute numbers for globalToLocal converter
 		gtol = new long[numVars];
 		for (i = 0; i < numVars; i++) {
@@ -409,6 +429,15 @@ public class ProbModel implements Model
 		numStartStates = JDD.GetNumMinterms(start, allDDRowVars.n());
 	}
 
+	/**
+	 * Set vector of action label names. 
+	 */
+	public void setSynchs(Vector<String> synchs)
+	{
+		this.synchs = synchs;
+		this.numSynchs = synchs.size();
+	}
+	
 	/**
 	 * Reset transition matrix DD
 	 */
@@ -474,7 +503,15 @@ public class ProbModel implements Model
 		// build odd
 		odd = ODDUtils.BuildODD(reach, allDDRowVars);
 	}
-
+	
+	/**
+	 * Set the DD used to store transitoin action label indices.
+	 */
+	public void setTransActions(JDDNode transActions)
+	{
+		this.transActions = transActions;
+	}
+	
 	// remove non-reachable states from various dds
 	// (and calculate num transitions)
 
@@ -506,6 +543,13 @@ public class ProbModel implements Model
 			JDD.Ref(reach);
 			tmp = JDD.PermuteVariables(reach, allDDRowVars, allDDColVars);
 			transRewards[i] = JDD.Apply(JDD.TIMES, tmp, transRewards[i]);
+		}
+		
+		// Action label indices matrix
+		// (just filter rows here; subclasses, e.g. CTMCs, may do more subsequently)
+		if (transActions != null) {
+			JDD.Ref(reach);
+			transActions = JDD.Apply(JDD.TIMES, reach, transActions);
 		}
 		
 		// filter start states, work out number of initial states
@@ -618,6 +662,11 @@ public class ProbModel implements Model
 					log.print(JDD.GetTerminalsAndNumbersString(transRewards[i], getNumDDVarsInTrans()) + "\n");
 				}
 			}
+		}
+		if (transActions != null && !transActions.equals(JDD.ZERO)) {
+			log.print("Action label indices: ");
+			log.print(JDD.GetNumNodes(transActions) + " nodes (");
+			log.print(JDD.GetNumTerminals(transActions) + " terminal)\n");
 		}
 	}
 
@@ -795,5 +844,6 @@ public class ProbModel implements Model
 			JDD.Deref(stateRewards[i]);
 			JDD.Deref(transRewards[i]);
 		}
+		if (transActions != null) JDD.Deref(transActions);
 	}
 }

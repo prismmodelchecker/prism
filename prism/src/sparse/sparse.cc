@@ -43,6 +43,7 @@ static void traverse_mtbdd_vect_rec(DdManager *ddman, DdNode *dd, DdNode **vars,
 // global variables (used by local functions)
 static int count;
 static int *starts, *starts2;
+static int *actions;
 static RMSparseMatrix *rmsm;
 static CMSparseMatrix *cmsm;
 static RCSparseMatrix *rcsm;
@@ -668,7 +669,7 @@ NDSparseMatrix *build_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode **r
 	
 	// try/catch for memory allocation/deallocation
 	} catch(std::bad_alloc e) {
-		if (ndsm) delete cmscsm;
+		if (ndsm) delete ndsm;
 		if (matrices) delete[] matrices;
 		if (matrices_bdds) {
 			for (i = 0; i < nm; i++) Cudd_RecursiveDeref(ddman, matrices_bdds[i]);
@@ -808,7 +809,7 @@ NDSparseMatrix *build_sub_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode
 	
 	// try/catch for memory allocation/deallocation
 	} catch(std::bad_alloc e) {
-		if (ndsm) delete cmscsm;
+		if (ndsm) delete ndsm;
 		if (matrices) delete[] matrices;
 		if (matrices_bdds) {
 			for (i = 0; i < nm; i++) Cudd_RecursiveDeref(ddman, matrices_bdds[i]);
@@ -829,6 +830,88 @@ NDSparseMatrix *build_sub_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode
 	delete[] matrices_bdds;
 	
 	return ndsm;
+}
+
+//------------------------------------------------------------------------------
+
+// build nondeterministic (mdp) action vector to accompany a sparse matrix
+// (i.e. a vector containing for every state and nondet choice, an index
+//  into the list of all action labels)
+// throws std::bad_alloc on out-of-memory
+
+int *build_nd_action_vector(DdManager *ddman, DdNode *trans_actions, NDSparseMatrix *mdp_ndsm, DdNode **rvars, int num_vars, DdNode **ndvars, int num_ndvars, ODDNode *odd)
+{
+	int i, n, nm, nc;
+	DdNode *tmp = NULL, **matrices = NULL, **matrices_bdds = NULL;
+	
+	// try/catch for memory allocation/deallocation
+	try {
+	
+	// get stats from mdp sparse storage (num states/choices)
+	n = mdp_ndsm->n;
+	nc = mdp_ndsm->nc;
+	// break the mtbdd storing the action info into several (nm) mtbdds
+	// (this number nm should match the figure for the corresponding mdp;
+	//  but we can't do this sanity check because that statistic is not retained.)
+	Cudd_Ref(trans_actions);
+	tmp = DD_Not(ddman, DD_Equals(ddman, trans_actions, 0));
+	tmp = DD_ThereExists(ddman, tmp, rvars, num_vars);
+	nm = (int)DD_GetNumMinterms(ddman, tmp, num_ndvars);
+	Cudd_RecursiveDeref(ddman, tmp);
+	matrices = new DdNode*[nm];
+	count = 0;
+	split_mdp_rec(ddman, trans_actions, ndvars, num_ndvars, 0, matrices);
+	// and for each one create a bdd storing which rows are non-empty
+	matrices_bdds = new DdNode*[nm];
+	for (i = 0; i < nm; i++) {
+		Cudd_Ref(matrices[i]);
+		matrices_bdds[i] = DD_Not(ddman, DD_Equals(ddman, matrices[i], 0));
+	}
+	
+	// create arrays
+	actions = NULL; actions = new int[nc];
+	starts = NULL; starts = new int[n+1];
+	
+	// build the (temporary) array 'starts' (like was done when building the sparse matrix for the mdp).
+	// in fact, this information is retrievable from the sparse matrix, but it may have
+	// been converted to counts, rather than offsets, so its easier to rebuild it.
+	// first traverse mtbdds to compute how many choices are in each row
+	for (i = 0; i < n+1; i++) starts[i] = 0;
+	for (i = 0; i < nm; i++) {
+		traverse_mtbdd_vect_rec(ddman, matrices_bdds[i], rvars, num_vars, 0, odd, 0, 1);
+	}
+	// and use this to compute the starts information
+	for (i = 1 ; i < n+1; i++) {
+		starts[i] += starts[i-1];
+	}
+	
+	// now traverse the mtbdd to get the actual entries (action indices)
+	for (i = 0; i < nm; i++) {
+		traverse_mtbdd_vect_rec(ddman, matrices[i], rvars, num_vars, 0, odd, 0, 3);
+	}
+	
+	// try/catch for memory allocation/deallocation
+	} catch(std::bad_alloc e) {
+		if (actions) delete[] actions;
+		if (matrices) delete[] matrices;
+		if (matrices_bdds) {
+			for (i = 0; i < nm; i++) Cudd_RecursiveDeref(ddman, matrices_bdds[i]);
+			delete[] matrices_bdds;
+		}
+		if (starts) delete[] starts;
+		throw e;
+	}
+	
+	// clear up memory
+	for (i = 0; i < nm; i++) {
+		Cudd_RecursiveDeref(ddman, matrices_bdds[i]);
+		// nb: don't deref matrices array because that was just pointers, not new copies
+	}
+	delete[] starts;
+	delete[] matrices;
+	delete[] matrices_bdds;
+	
+	return actions;
 }
 
 //------------------------------------------------------------------------------
@@ -1062,7 +1145,14 @@ void traverse_mtbdd_vect_rec(DdManager *ddman, DdNode *dd, DdNode **vars, int nu
 		case 2:
 			starts[i]++;
 			break;
+			
+		// mdp action vector - single pass
+		case 3:
+			actions[starts[i]] = (int)Cudd_V(dd);
+			starts[i]++;
+			break;
 		}
+		
 		return;
 	}
 	

@@ -24,6 +24,8 @@
 //	
 //==============================================================================
 
+#include <jni.h>
+
 // Flags for building Windows DLLs
 #ifdef __MINGW32__
 	#define EXPORT __declspec(dllexport)
@@ -41,6 +43,8 @@ typedef struct FoxGlynnWeights
 } FoxGlynnWeights;
 
 // Function prototypes
+EXPORT void get_string_array_from_java(JNIEnv *env, jobject strings_list, jstring *&strings_jstrings, const char **&strings, jint &size);
+EXPORT void release_string_array_from_java(JNIEnv *env, jstring *strings_jstrings, const char **strings, jint size);
 EXPORT FoxGlynnWeights fox_glynn(double q_tmax, double underflow, double overflow, double accuracy);
 
 //------------------------------------------------------------------------------

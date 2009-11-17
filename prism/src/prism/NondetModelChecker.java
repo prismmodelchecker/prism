@@ -645,7 +645,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		else {
 			// for fairness, we compute max here
 			try {
-				probs = computeUntilProbs(trans, trans01, newb1, newb2, min && !fairness);
+				probs = computeUntilProbs(trans, transActions, trans01, newb1, newb2, min && !fairness);
 			} catch (PrismException e) {
 				JDD.Deref(newb1);
 				JDD.Deref(newb2);
@@ -934,7 +934,7 @@ public class NondetModelChecker extends NonProbModelChecker
 	// note: this function doesn't need to know anything about fairness
 	// it is just told whether to compute min or max probabilities
 
-	protected StateProbs computeUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2, boolean min)
+	protected StateProbs computeUntilProbs(JDDNode tr, JDDNode tra, JDDNode tr01, JDDNode b1, JDDNode b2, boolean min)
 			throws PrismException
 	{
 		JDDNode yes, no, maybe;
@@ -1016,7 +1016,7 @@ public class NondetModelChecker extends NonProbModelChecker
 					probs = new StateProbsMTBDD(probsMTBDD, model);
 					break;
 				case Prism.SPARSE:
-					probsDV = PrismSparse.NondetUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe,
+					probsDV = PrismSparse.NondetUntil(tr, tra, model.getSynchs(), odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe,
 							min);
 					probs = new StateProbsDV(probsDV, model);
 					break;

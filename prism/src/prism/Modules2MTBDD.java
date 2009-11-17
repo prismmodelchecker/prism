@@ -77,6 +77,7 @@ public class Modules2MTBDD
 	private JDDNode start;				// dd for start state
 	private JDDNode stateRewards[];		// dds for state rewards
 	private JDDNode transRewards[];		// dds for transition rewards
+	private JDDNode transActions;	// dd for transition action labels
 	private JDDNode transInd;	// dds for independent bits of trans
 	private JDDNode transSynch[];	// dds for synch action parts of trans
 	private JDDVars allDDRowVars;		// all dd vars (rows)
@@ -116,8 +117,10 @@ public class Modules2MTBDD
 	private int numModulesAfterSymm;	// number of modules in the PRISM file after the symmetric ones
 	private int numSymmModules;			// number of symmetric components
 	
-	// hidden option - do we also store each part of the transition matrix separately?
-	private boolean storeTransParts = true; 
+	// hidden option - do we also store each part of the transition matrix separately? (now defunct)
+	private boolean storeTransParts = false; 
+	// hidden option - do we also store action info for the transition matrix? (supersedes the above)
+	private boolean storeTransActions = true; 
 	
 	// data structure used to store mtbdds and related info
 	// for some component of the whole model
@@ -164,8 +167,9 @@ public class Modules2MTBDD
 		doSymmetry = !(s == null || s == "");
 	}
 	
-	// main method - translate
+	@SuppressWarnings("unchecked") // for clone of vector in translate()
 
+	// main method - translate
 	public Model translate() throws PrismException
 	{
 		Model model = null;
@@ -261,12 +265,19 @@ public class Modules2MTBDD
 						    numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		}
 		
+		// We also store a copy of the list of action label names
+		model.setSynchs((Vector<String>)synchs.clone());
+		
 		// For MDPs, we also store the DDs used to construct the part
 		// of the transition matrix that corresponds to each action
 		if (modelType == ModelType.MDP && storeTransParts) {
-			((NondetModel)model).setSynchs((Vector<String>)synchs.clone());
 			((NondetModel)model).setTransInd(transInd);
 			((NondetModel)model).setTransSynch(transSynch);
+		}
+		
+		// if required, we also store info about action labels
+		if (storeTransActions) {
+			model.setTransActions(transActions);
 		}
 		
 		// do reachability (or not)
@@ -835,6 +846,21 @@ public class Modules2MTBDD
 			for (i = 0; i < numSynchs; i++) {
 				JDD.Ref(sysDDs.synchs[i].trans);
 				transSynch[i] = JDD.ThereExists(JDD.GreaterThan(sysDDs.synchs[i].trans, 0), allDDColVars);
+			}
+		}
+		
+		// If required, we also build an MTBDD to store the action labels for each transition
+		if (storeTransActions) {
+			if (modelType == ModelType.MDP) {
+				transActions = JDD.Constant(0);
+				JDD.Ref(sysDDs.ind.trans);
+				tmp = JDD.ThereExists(JDD.GreaterThan(sysDDs.ind.trans, 0), allDDColVars);
+				transActions = JDD.Apply(JDD.PLUS, transActions, JDD.Apply(JDD.TIMES, tmp, JDD.Constant(1)));
+				for (i = 0; i < numSynchs; i++) {
+					JDD.Ref(sysDDs.synchs[i].trans);
+					tmp = JDD.ThereExists(JDD.GreaterThan(sysDDs.synchs[i].trans, 0), allDDColVars);
+					transActions = JDD.Apply(JDD.PLUS, transActions, JDD.Apply(JDD.TIMES, tmp, JDD.Constant(2+i)));
+				}
 			}
 		}
 		

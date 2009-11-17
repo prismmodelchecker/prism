@@ -27,7 +27,7 @@
 package prism;
 
 import java.io.*;
-import java.util.Vector;
+import java.util.*;
 
 import jdd.*;
 import odd.*;
@@ -50,6 +50,7 @@ public interface Model
 	int getVarHigh(int i);
 	int getVarRange(int i);
 	Values getConstantValues();
+	List<String> getSynchs();
 	String globalToLocal(long x);
 	int globalToLocal(long x, int l);
 	State convertBddToState(JDDNode dd);
@@ -78,6 +79,7 @@ public interface Model
 	JDDNode getTransRewards();
 	JDDNode getTransRewards(int i);
 	JDDNode getTransRewards(String s);
+	JDDNode getTransActions();
 	JDDVars[] getVarDDRowVars();
 	JDDVars[] getVarDDColVars();
 	JDDVars getVarDDRowVars(int i);
@@ -95,12 +97,14 @@ public interface Model
 	
 	ODDNode getODD();
 
+	void setSynchs(Vector<String> synchs);
 	void resetTrans(JDDNode trans);
 	void resetTransRewards(int i, JDDNode transRewards);
 	void doReachability();
 	void doReachability(boolean extraReachInfo);
 	void skipReachability();
 	void setReach(JDDNode reach);
+	void setTransActions(JDDNode transActions);
 	void filterReachableStates();
 	void findDeadlocks();
 	void fixDeadlocks();

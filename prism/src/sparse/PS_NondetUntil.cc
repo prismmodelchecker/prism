@@ -33,6 +33,7 @@
 #include <odd.h>
 #include <dv.h>
 #include "sparse.h"
+#include "prism.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
 #include <new>
@@ -43,7 +44,9 @@ JNIEXPORT jlong __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetUntil
 (
 JNIEnv *env,
 jclass cls,
-jlong __jlongpointer t,	// trans matrix
+jlong __jlongpointer t,		// trans matrix
+jlong __jlongpointer ta,	// trans action labels
+jobject synchs,
 jlong __jlongpointer od,	// odd
 jlong __jlongpointer rv,	// row vars
 jint num_rvars,
@@ -51,22 +54,23 @@ jlong __jlongpointer cv,	// col vars
 jint num_cvars,
 jlong __jlongpointer ndv,	// nondet vars
 jint num_ndvars,
-jlong __jlongpointer y,	// 'yes' states
-jlong __jlongpointer m,	// 'maybe' states
-jboolean min		// min or max probabilities (true = min, false = max)
+jlong __jlongpointer y,		// 'yes' states
+jlong __jlongpointer m,		// 'maybe' states
+jboolean min				// min or max probabilities (true = min, false = max)
 )
 {
 	// cast function parameters
-	DdNode *trans = jlong_to_DdNode(t);		// trans matrix
-	ODDNode *odd = jlong_to_ODDNode(od); 		// reachable states
+	DdNode *trans = jlong_to_DdNode(t);				// trans matrix
+	DdNode *trans_actions = jlong_to_DdNode(ta);	// trans action labels
+	ODDNode *odd = jlong_to_ODDNode(od); 			// reachable states
 	DdNode **rvars = jlong_to_DdNode_array(rv); 	// row vars
 	DdNode **cvars = jlong_to_DdNode_array(cv); 	// col vars
 	DdNode **ndvars = jlong_to_DdNode_array(ndv);	// nondet vars
-	DdNode *yes = jlong_to_DdNode(y);		// 'yes' states
-	DdNode *maybe = jlong_to_DdNode(m); 		// 'maybe' states
+	DdNode *yes = jlong_to_DdNode(y);				// 'yes' states
+	DdNode *maybe = jlong_to_DdNode(m); 			// 'maybe' states
 
 	// mtbdds
-	DdNode *a = NULL;
+	DdNode *a = NULL, *tmp = NULL;
 	// model stats
 	int n, nc;
 	long nnz;
@@ -81,6 +85,10 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	bool adv = false, adv_loop = false;
 	FILE *fp_adv = NULL;
 	int adv_l, adv_h;
+	int *actions;
+	jstring *action_names_jstrings;
+	const char** action_names;
+	int num_actions;
 	// misc
 	int i, j, k, l1, h1, l2, h2, iters;
 	double d1, d2, kb, kbt;
@@ -111,6 +119,25 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	// print out info
 	PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc, nnz, ndsm->k);
 	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	
+	// if needed, and if info is available, build a vector of action indices for the mdp
+	if (adv && trans_actions != NULL) {
+		PS_PrintToMainLog(env, "Building action information... ");
+		// first need to filter out unwanted rows
+		Cudd_Ref(trans_actions);
+		Cudd_Ref(maybe);
+		tmp = DD_Apply(ddman, APPLY_TIMES, trans_actions, maybe);
+		// then convert to a vector of integer indices
+		actions = build_nd_action_vector(ddman, tmp, ndsm, rvars, num_rvars, ndvars, num_ndvars, odd);
+		Cudd_RecursiveDeref(ddman, tmp);
+		kb = n*4.0/1024.0;
+		kbt += kb;
+		PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+	} else {
+		actions = NULL;
+	}
+	// also extract list of action name
+	get_string_array_from_java(env, synchs, action_names_jstrings, action_names, num_actions);
 	
 	// get vector for yes
 	PS_PrintToMainLog(env, "Creating vector for yes... ");
@@ -193,7 +220,11 @@ jboolean min		// min or max probabilities (true = min, false = max)
 			soln2[i] = (h1 > l1) ? d1 : yes_vec[i];
 			// store adversary info (if required)
 			if (adv_loop) if (h1 > l1)
-				for (k = adv_l; k < adv_h; k++) fprintf(fp_adv, "%d %d %g\n", i, cols[k], non_zeros[k]);
+				for (k = adv_l; k < adv_h; k++) {
+					fprintf(fp_adv, "%d %d %g", i, cols[k], non_zeros[k]);
+					if (actions != NULL) fprintf(fp_adv, " %s", actions[l1]>1?action_names[actions[l1]-2]:"");
+					fprintf(fp_adv, "\n");
+				}
 		}
 		
 		// check convergence
@@ -260,8 +291,10 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	if (ndsm) delete ndsm;
 	if (yes_vec) delete[] yes_vec;
 	if (soln2) delete[] soln2;
+	release_string_array_from_java(env, action_names_jstrings, action_names, num_actions);
 	
 	return ptr_to_jlong(soln);
 }
 
 //------------------------------------------------------------------------------
+

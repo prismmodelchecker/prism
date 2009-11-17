@@ -29,6 +29,52 @@
 #include "prism.h"
 #include <stdio.h>
 #include <math.h>
+#include <new>
+
+//------------------------------------------------------------------------------
+
+// convert a list of strings (from java/jni) to an array of c strings.
+// actually stores arrays of both jstring objects and c strings, and also size
+// (because need these to free memory afterwards).
+
+void get_string_array_from_java(JNIEnv *env, jobject strings_list, jstring *&strings_jstrings, const char **&strings, jint &size)
+{
+	int i, j;
+	jclass vn_cls;
+	jmethodID vn_mid;
+	// get size of vector of strings
+	vn_cls = env->GetObjectClass(strings_list);
+	vn_mid = env->GetMethodID(vn_cls, "size", "()I");
+	if (vn_mid == 0) {
+		return;
+	}
+	size = env->CallIntMethod(strings_list,vn_mid);
+	// put strings from vector into array
+	strings_jstrings = new jstring[size];
+	strings = new const char*[size];
+	vn_mid = env->GetMethodID(vn_cls, "get", "(I)Ljava/lang/Object;");
+	if (vn_mid == 0) {
+		return;
+	}
+	for (i = 0; i < size; i++) {
+		strings_jstrings[i] = (jstring)env->CallObjectMethod(strings_list, vn_mid, i);
+		strings[i] = env->GetStringUTFChars(strings_jstrings[i], 0);
+	}
+}
+
+//------------------------------------------------------------------------------
+
+// release the memory from a list of strings created by get_string_array_from_java
+
+void release_string_array_from_java(JNIEnv *env, jstring *strings_jstrings, const char **strings, jint size)
+{
+	// release memory
+	for (int i = 0; i < size; i++) {
+		env->ReleaseStringUTFChars(strings_jstrings[i], strings[i]);
+	}
+	delete[] strings_jstrings;
+	delete[] strings;
+}
 
 //------------------------------------------------------------------------------
 

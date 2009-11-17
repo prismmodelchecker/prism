@@ -53,6 +53,7 @@ public class StateModelChecker implements ModelChecker
 	protected VarList varList;
 	protected JDDNode trans;
 	protected JDDNode trans01;
+	protected JDDNode transActions;
 	protected JDDNode start;
 	protected JDDNode reach;
 	protected ODDNode odd;
@@ -89,6 +90,7 @@ public class StateModelChecker implements ModelChecker
 		varList = model.getVarList();
 		trans = model.getTrans();
 		trans01 = model.getTrans01();
+		transActions = model.getTransActions();
 		start = model.getStart();
 		reach = model.getReach();
 		odd = model.getODD();
