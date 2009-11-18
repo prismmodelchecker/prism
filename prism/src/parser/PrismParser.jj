@@ -835,7 +835,7 @@ RewardStruct RewardStruct() :
 	// (which would not be allowed to appear here anyway)
 	( LOOKAHEAD(<DQUOTE>) <DQUOTE> name = Identifier() <DQUOTE> { rs.setName(name); } )?
 	// Reward structure items
-	( { begin2 = getToken(1); } ( <LBRACKET> { s = ""; } ( s=Identifier() )? <RBRACKET> )?
+	( { begin2 = getToken(1); s = null; } ( <LBRACKET> { s = ""; } ( s=Identifier() )? <RBRACKET> )?
 	guard = Expression(false, false) <COLON> value = Expression(false, false) <SEMICOLON>
 	{ rsi = new RewardStructItem(s, guard, value); rsi.setPosition(begin2, getToken(0)); rs.addItem(rsi); } )*
 	<ENDREWARDS>

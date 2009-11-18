@@ -1150,11 +1150,11 @@ public class PrismParser implements PrismParserConstants {
         jj_la1[26] = jj_gen;
         break label_11;
       }
-            begin2 = getToken(1);
+            begin2 = getToken(1); s = null;
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case LBRACKET:
         jj_consume_token(LBRACKET);
-                                                   s = "";
+                                                             s = "";
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case REG_IDENT:
           s = Identifier();

@@ -31,8 +31,14 @@ import prism.PrismLangException;
 
 public class RewardStructItem extends ASTElement
 {
+	// Synchronising action:
+	// * null = none (i.e. state reward)
+	// * "" = empty/tau/asynchronous action (i.e. transition reward)
+	// * "act" = "act"-labelled action (i.e. transition reward)
 	private String synch;
+	// Guard expression
 	private Expression states;
+	// Reward expression
 	private Expression reward;
 	
 	// constructor
