@@ -1,5 +1,7 @@
 
 More Type checking, semantic checks ???
+Make sure checks match Digital clocks, Stochastic games
+Time divergence?
 
 Creation of new names (adding extra _s) doesn't take into account prop file ot consts etc.
 
