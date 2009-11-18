@@ -12,6 +12,25 @@ Latest changes (reverse chronological):
 
 * ...
 
+CHECK 3.3.1 details are up-to-date...
+
+-----------------------------------------------------------------------------
+Version 3.3.1 (released ???)
+-----------------------------------------------------------------------------
+
+Bug fixes:
+- Building on new 64-bit Macs
+- Simulator bug (crashes on min/max function)
+- CTMC transient probs with MTBDD engine crash
+
+-----------------------------------------------------------------------------
+Version 3.3 (released 29/10/2009)
+-----------------------------------------------------------------------------
+
+Bug fixes:
+- Building on new Macs
+- Copy+paste bug in GUI
+
 -----------------------------------------------------------------------------
 Version 3.3.beta2 (released 29/7/2009)
 -----------------------------------------------------------------------------
