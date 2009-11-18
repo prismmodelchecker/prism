@@ -22,6 +22,7 @@ Bug fixes:
 - Building on new 64-bit Macs
 - Simulator bug (crashes on min/max function)
 - CTMC transient probs with MTBDD engine crash
+- State/transition reward mix-up in parser
 
 -----------------------------------------------------------------------------
 Version 3.3 (released 29/10/2009)
