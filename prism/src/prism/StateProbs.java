@@ -26,6 +26,8 @@
 
 package prism;
 
+import java.io.File;
+
 import jdd.JDDNode;
 import jdd.JDDVars;
 
@@ -35,6 +37,7 @@ public interface StateProbs
 {
 	StateProbsDV convertToStateProbsDV();
 	StateProbsMTBDD convertToStateProbsMTBDD();
+	void readFromFile(File file) throws PrismException;
 	void roundOff(int places);
 	void subtractFromOne();
 	void add(StateProbs sp);

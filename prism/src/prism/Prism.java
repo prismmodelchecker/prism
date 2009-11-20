@@ -1461,15 +1461,16 @@ public class Prism implements PrismSettingsListener
 	 */
 	public void doTransient(Model model, double time) throws PrismException
 	{
-		doTransient(model, time, EXPORT_PLAIN, null);
+		doTransient(model, time, EXPORT_PLAIN, null, null);
 	}
 	
 	/**
 	 * Compute transient probabilities (for DTMC or CTMC).
 	 * Output probability distribution to a file (or, if file is null, to log). 
 	 * The exportType should be EXPORT_PLAIN or EXPORT_MATLAB.
+	 * Optionally (if non-null), read in the initial probability distribution from a file.
 	 */
-	public void doTransient(Model model, double time, int exportType, File file) throws PrismException
+	public void doTransient(Model model, double time, int exportType, File fileOut, File fileIn) throws PrismException
 	{
 		long l = 0; // timer
 		StateProbs probs = null;
@@ -1477,7 +1478,7 @@ public class Prism implements PrismSettingsListener
 		
 		if (time < 0) throw new PrismException("Cannot compute transient probabilities for negative time value");
 		
-		if (file != null && getEngine() == MTBDD)
+		if (fileOut != null && getEngine() == MTBDD)
 			throw new PrismException("Transient probability export only supported for sparse/hybrid engines");
 		
 		// no specific states format for MRMC
@@ -1498,7 +1499,7 @@ public class Prism implements PrismSettingsListener
 		else if (model.getModelType() == ModelType.CTMC) {
 			mainLog.println("\nComputing transient probabilities (time = " + time + ")...");
 			mc = new StochModelChecker(this, model, null);
-			probs = ((StochModelChecker)mc).doTransient(time);
+			probs = ((StochModelChecker)mc).doTransient(time, fileIn);
 		}
 		else {
 			throw new PrismException("Transient probabilities only computed for DTMCs/CTMCs");
@@ -1512,27 +1513,27 @@ public class Prism implements PrismSettingsListener
 		case EXPORT_PLAIN: mainLog.print("in plain text format "); break;
 		case EXPORT_MATLAB: mainLog.print("in Matlab format "); break;
 		}
-		if (file != null) mainLog.println("to file \"" + file + "\"..."); else mainLog.println("below:");
+		if (fileOut != null) mainLog.println("to file \"" + fileOut + "\"..."); else mainLog.println("below:");
 		
 		// create new file log or use main log
-		if (file != null) {
-			tmpLog = new PrismFileLog(file.getPath());
+		if (fileOut != null) {
+			tmpLog = new PrismFileLog(fileOut.getPath());
 			if (!tmpLog.ready()) {
-				throw new PrismException("Could not open file \"" + file + "\" for output");
+				throw new PrismException("Could not open file \"" + fileOut + "\" for output");
 			}
 		} else {
 			tmpLog = mainLog;
 		}
 		
 		// print out or export probabilities
-		probs.print(tmpLog, file == null, exportType == EXPORT_MATLAB, file == null);
+		probs.print(tmpLog, fileOut == null, exportType == EXPORT_MATLAB, fileOut == null);
 		
 		// print out model checking time
 		mainLog.println("\nTime for transient probability computation: " + l/1000.0 + " seconds.");
 
 		// tidy up
 		probs.clear();
-		if (file != null) tmpLog.close();
+		if (fileOut != null) tmpLog.close();
 	}
 	
 	// clear up and close down

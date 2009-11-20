@@ -26,6 +26,8 @@
 
 package prism;
 
+import java.io.*;
+
 import jdd.*;
 import dv.*;
 import mtbdd.*;
@@ -318,9 +320,33 @@ public class StochModelChecker extends ProbModelChecker
 	 */
 	public StateProbs doTransient(double time) throws PrismException
 	{
-		return doTransient(time, null);
+		return doTransient(time, (StateProbs) null);
 	}
 	
+	/**
+	 * Compute transient probability distribution (forwards).
+	 * Optionally, use the passed in file initDistFile to give the initial probability distribution (time 0).
+	 * If null, start from initial state (or uniform distribution over multiple initial states).
+	 */
+	public StateProbs doTransient(double time, File initDistFile) throws PrismException
+	{
+		StateProbs initDist = null;
+
+		if (initDistFile != null) {
+			mainLog.println("\nImporting initial probability distribution from file \"" + initDistFile + "\"...");
+			// Build an empty vector of the appropriate type 
+			if (engine == Prism.MTBDD) {
+				initDist = new StateProbsMTBDD(JDD.Constant(0), model);
+			} else {
+				initDist = new StateProbsDV(new DoubleVector((int) model.getNumStates()), model);
+			}
+			// Populate vector from file
+			initDist.readFromFile(initDistFile);
+		}
+		
+		return doTransient(time, initDist);
+	}
+
 	/**
 	 * Compute transient probability distribution (forwards).
 	 * Optionally, use the passed in vector initDist as the initial probability distribution (time 0).

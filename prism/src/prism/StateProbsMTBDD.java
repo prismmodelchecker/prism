@@ -26,6 +26,11 @@
 
 package prism;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+
 import jdd.*;
 import odd.*;
 import parser.VarList;
@@ -99,6 +104,74 @@ public class StateProbsMTBDD implements StateProbs
 	}
 	
 	// METHODS TO MODIFY VECTOR
+	
+	/**
+	 * Set element i of this vector to value d. 
+	 */
+	public void setElement(int i, double d)
+	{
+		ODDNode ptr;
+		JDDNode dd;
+		int j, k;
+		
+		// Use ODD to build BDD for state index i
+		dd = JDD.Constant(1);
+		ptr = odd;
+		j = i;
+		for (k = 0; k < numVars; k++) {
+			JDD.Ref(vars.getVar(k));
+			if (j >= ptr.getEOff()) {
+				j -= ptr.getEOff();
+				dd = JDD.And(dd, vars.getVar(k));
+				ptr = ptr.getThen();
+			} else {
+				dd = JDD.And(dd, JDD.Not(vars.getVar(k)));
+				ptr = ptr.getElse();
+			}
+		}
+		
+		// Add element to vector MTBDD
+		probs = JDD.ITE(dd, JDD.Constant(d), probs);
+	}
+	
+	// read from file
+	
+	public void readFromFile(File file) throws PrismException
+	{
+		BufferedReader in;
+		String s;
+		int lineNum = 0, count = 0;
+		double d;
+		
+		try {
+			// open file for reading
+			in = new BufferedReader(new FileReader(file));
+			// read remaining lines
+			s = in.readLine(); lineNum++;
+			while (s != null) {
+				s = s.trim();
+				if (!("".equals(s))) {
+					if (count + 1> model.getNumStates())
+						throw new PrismException("Too many values in initial distribution (" + (count + 1) + ", not " + model.getNumStates() + ")");
+					d = Double.parseDouble(s);
+					setElement(count, d);
+					count++;
+				}
+				s = in.readLine(); lineNum++;
+			}
+			// close file
+			in.close();
+			// check size
+			if (count < model.getNumStates())
+				throw new PrismException("Too few values in initial distribution (" + count + ", not " + model.getNumStates() + ")");
+		}
+		catch (IOException e) {
+			throw new PrismException("File I/O error reading from \"" + file + "\"");
+		}
+		catch (NumberFormatException e) {
+			throw new PrismException("Error detected at line " + lineNum + " of file \"" + file + "\"");
+		}
+	}
 	
 	// round
 	

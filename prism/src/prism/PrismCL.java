@@ -43,6 +43,7 @@ public class PrismCL
 	private boolean importtrans = false;
 	private boolean importstates = false;
 	private boolean importlabels = false;
+	private boolean importinitdist = false;
 	private boolean steadystate = false;
 	private boolean dotransient = false;
 	private boolean exporttrans = false;
@@ -80,6 +81,7 @@ public class PrismCL
 	private String modelFilename = null;
 	private String importStatesFilename = null;
 	private String importLabelsFilename = null;
+	private String importInitDistFilename = null;
 	private String propertiesFilename = null;
 	private String exportTransFilename = null;
 	private String exportStateRewardsFilename = null;
@@ -790,7 +792,7 @@ public class PrismCL
 			catch (NumberFormatException e) {
 				throw new PrismException("Invalid value \""+transientTime+"\" for transient probability computation");
 			}
-			prism.doTransient(model, d, exportType, exportTransientFile);
+			prism.doTransient(model, d, exportType, exportTransientFile, importinitdist ? new File(importInitDistFilename) : null);
 		}
 		else if (model.getModelType() == ModelType.DTMC) {
 			try {
@@ -799,7 +801,7 @@ public class PrismCL
 			catch (NumberFormatException e) {
 				throw new PrismException("Invalid value \""+transientTime+"\" for transient probability computation");
 			}
-			prism.doTransient(model, i, exportType, exportTransientFile);
+			prism.doTransient(model, i, exportType, exportTransientFile, importinitdist ? new File(importInitDistFilename) : null);
 		}
 		else {
 			mainLog.println("\nWarning: Transient probabilities only computed for DTMCs/CTMCs.");
@@ -1084,6 +1086,16 @@ public class PrismCL
 					if (i < args.length-1) {
 						importlabels = true;
 						importLabelsFilename = args[++i];
+					}
+					else {
+						errorAndExit("No file specified for -"+sw+" switch");
+					}
+				}
+				// import initial distribution e.g. for transient probability distribution
+				else if (sw.equals("importinitdist")) {
+					if (i < args.length-1) {
+						importinitdist = true;
+						importInitDistFilename = args[++i];
 					}
 					else {
 						errorAndExit("No file specified for -"+sw+" switch");
@@ -1682,6 +1694,7 @@ public class PrismCL
 		mainLog.println("-importstates <file>............ Import the list of states directly from a text file");
 		mainLog.println("-importlabels <file>............ Import the list of labels directly from a text file");
 		mainLog.println("-importinit <expr>.............. Specify the initial state for explicitly imported models");
+		mainLog.println("-importinitdist <expr>.......... Specify the initial probability distribution for transient analysis");
 		mainLog.println("-dtmc .......................... Force imported/built model to be a DTMC");
 		mainLog.println("-ctmc .......................... Force imported/built model to be a CTMC");
 		mainLog.println("-mdp ........................... Force imported/built model to be an MDP");
@@ -1701,7 +1714,7 @@ public class PrismCL
 		mainLog.println("-exporttransdotstates <file> ... Export the transition matrix graph to a dot file, with state info");
 		mainLog.println("-exportdot <file> .............. Export the transition matrix MTBDD to a dot file");
 		mainLog.println("-exportbsccs <file> ............ Compute and export all BSCCs of the model");
-		mainLog.println("-exporttransient <file> ......... Export transient probabilities to a file");
+		mainLog.println("-exporttransient <file> ........ Export transient probabilities to a file");
 		mainLog.println("-exportprism <file> ............ Export final PRISM model to a file");
 		mainLog.println();
 		mainLog.println("-mtbdd (or -m) ................. Use the MTBDD engine");
