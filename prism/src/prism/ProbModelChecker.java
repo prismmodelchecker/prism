@@ -26,6 +26,7 @@
 
 package prism;
 
+import java.io.File;
 import java.util.Vector;
 
 import jdd.*;
@@ -1217,39 +1218,76 @@ public class ProbModelChecker extends NonProbModelChecker
 	// do transient computation
 	// -----------------------------------------------------------------------------------
 
-	// transient computation (from initial states)
-
+	/**
+	 * Compute transient probability distribution (forwards).
+	 * Start from initial state (or uniform distribution over multiple initial states).
+	 */
 	public StateProbs doTransient(int time) throws PrismException
+	{
+		return doTransient(time, (StateProbs) null);
+	}
+	
+	/**
+	 * Compute transient probability distribution (forwards).
+	 * Optionally, use the passed in file initDistFile to give the initial probability distribution (time 0).
+	 * If null, start from initial state (or uniform distribution over multiple initial states).
+	 */
+	public StateProbs doTransient(int time, File initDistFile) throws PrismException
+	{
+		StateProbs initDist = null;
+
+		if (initDistFile != null) {
+			mainLog.println("\nImporting initial probability distribution from file \"" + initDistFile + "\"...");
+			// Build an empty vector of the appropriate type 
+			if (engine == Prism.MTBDD) {
+				initDist = new StateProbsMTBDD(JDD.Constant(0), model);
+			} else {
+				initDist = new StateProbsDV(new DoubleVector((int) model.getNumStates()), model);
+			}
+			// Populate vector from file
+			initDist.readFromFile(initDistFile);
+		}
+		
+		return doTransient(time, initDist);
+	}
+
+	/**
+	 * Compute transient probability distribution (forwards).
+	 * Optionally, use the passed in vector initDist as the initial probability distribution (time 0).
+	 * If null, start from initial state (or uniform distribution over multiple initial states).
+	 * For reasons of efficiency, when a vector is passed in, it will be trampled over and
+	 * then deleted afterwards, so if you wanted it, take a copy. 
+	 */
+	public StateProbs doTransient(int time, StateProbs initDist) throws PrismException
 	{
 		// mtbdd stuff
 		JDDNode start, init;
 		// other stuff
-		StateProbs probs = null;
+		StateProbs initDistNew = null, probs = null;
 
-		// get initial states of model
-		start = model.getStart();
-
-		// and hence compute initial probability distribution (equiprobable over
-		// all start states)
-		JDD.Ref(start);
-		init = JDD.Apply(JDD.DIVIDE, start, JDD.Constant(JDD.GetNumMinterms(start, allDDRowVars.n())));
-
-		// compute transient probabilities
-		try {
-			// special case: time = 0
-			if (time == 0) {
-				JDD.Ref(init);
-				probs = new StateProbsMTBDD(init, model);
-			} else {
-				probs = computeTransientProbs(trans, init, time);
+		// build initial distribution (if not specified)
+		if (initDist == null) {
+			// first construct as MTBDD
+			// get initial states of model
+			start = model.getStart();
+			// compute initial probability distribution (equiprobable over all start states)
+			JDD.Ref(start);
+			init = JDD.Apply(JDD.DIVIDE, start, JDD.Constant(JDD.GetNumMinterms(start, allDDRowVars.n())));
+			// if using MTBDD engine, distribution needs to be an MTBDD
+			if (engine == Prism.MTBDD) {
+				initDistNew = new StateProbsMTBDD(init, model);
 			}
-		} catch (PrismException e) {
-			JDD.Deref(init);
-			throw e;
+			// for sparse/hybrid engines, distribution needs to be a double vector
+			else {
+				initDistNew = new StateProbsDV(init, model);
+				JDD.Deref(init);
+			}
+		} else {
+			initDistNew = initDist;
 		}
-
-		// derefs
-		JDD.Deref(init);
+		
+		// compute transient probabilities
+		probs = computeTransientProbs(trans, initDistNew, time);
 
 		return probs;
 	}
@@ -1765,26 +1803,39 @@ public class ProbModelChecker extends NonProbModelChecker
 		return probs;
 	}
 
-	// compute transient probabilities
-
-	protected StateProbs computeTransientProbs(JDDNode tr, JDDNode init, int time) throws PrismException
+	/**
+	 * Compute transient probability distribution (forwards).
+	 * Use the passed in vector initDist as the initial probability distribution (time 0).
+	 * The type of this should match the current engine
+	 * (i.e. StateProbsMTBDD for MTBDD, StateProbsDV for sparse/hybrid). 
+	 * For reasons of efficiency, this vector will be trampled over and
+	 * then deleted afterwards, so if you wanted it, take a copy. 
+	 */
+	protected StateProbs computeTransientProbs(JDDNode tr, StateProbs initDist, int time) throws PrismException
 	{
 		JDDNode probsMTBDD;
 		DoubleVector probsDV;
 		StateProbs probs = null;
 
+		// special case: time = 0
+		if (time == 0) {
+			// we are allowed to keep the init vector, so no need to clone
+			return initDist;
+		}
+		
+		// general case
 		try {
 			switch (engine) {
 			case Prism.MTBDD:
-				probsMTBDD = PrismMTBDD.ProbTransient(tr, odd, init, allDDRowVars, allDDColVars, time);
+				probsMTBDD = PrismMTBDD.ProbTransient(tr, odd, ((StateProbsMTBDD) initDist).getJDDNode(), allDDRowVars, allDDColVars, time);
 				probs = new StateProbsMTBDD(probsMTBDD, model);
 				break;
 			case Prism.SPARSE:
-				probsDV = PrismSparse.ProbTransient(tr, odd, init, allDDRowVars, allDDColVars, time);
+				probsDV = PrismSparse.ProbTransient(tr, odd, ((StateProbsDV) initDist).getDoubleVector(), allDDRowVars, allDDColVars, time);
 				probs = new StateProbsDV(probsDV, model);
 				break;
 			case Prism.HYBRID:
-				probsDV = PrismHybrid.ProbTransient(tr, odd, init, allDDRowVars, allDDColVars, time);
+				probsDV = PrismHybrid.ProbTransient(tr, odd, ((StateProbsDV) initDist).getDoubleVector(), allDDRowVars, allDDColVars, time);
 				probs = new StateProbsDV(probsDV, model);
 				break;
 			default:

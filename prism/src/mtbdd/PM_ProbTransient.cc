@@ -43,7 +43,7 @@ JNIEnv *env,
 jclass cls,
 jlong __jlongpointer tr,	// rate matrix
 jlong __jlongpointer od,	// odd
-jlong __jlongpointer in,	// initial distribution
+jlong __jlongpointer in,	// initial distribution (note: this will be derefed afterwards)
 jlong __jlongpointer rv,	// row vars
 jint num_rvars,
 jlong __jlongpointer cv,	// col vars
@@ -129,6 +129,10 @@ jint time		// time
 	// print iterations/timing info
 	if (done) PM_PrintToMainLog(env, "\nSteady state detected at iteration %d\n", iters);
 	PM_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
+	
+	// derefs
+	// nb: we deref init, even though it is passed in as a param
+	Cudd_RecursiveDeref(ddman, init);
 	
 	return ptr_to_jlong(sol);
 }

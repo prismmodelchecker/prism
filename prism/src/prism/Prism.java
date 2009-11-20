@@ -1494,7 +1494,7 @@ public class Prism implements PrismSettingsListener
 		if (model.getModelType() == ModelType.DTMC) {
 			mainLog.println("\nComputing transient probabilities (time = " + (int)time + ")...");
 			mc = new ProbModelChecker(this, model, null);
-			probs = ((ProbModelChecker)mc).doTransient((int)time);
+			probs = ((ProbModelChecker)mc).doTransient((int)time, fileIn);
 		}
 		else if (model.getModelType() == ModelType.CTMC) {
 			mainLog.println("\nComputing transient probabilities (time = " + time + ")...");

@@ -46,7 +46,7 @@ JNIEnv *env,
 jclass cls,
 jlong __jlongpointer tr,	// trans matrix
 jlong __jlongpointer od,	// odd
-jlong __jlongpointer in,	// initial distribution
+jlong __jlongpointer in,	// initial distribution (note: this will be deleted afterwards)
 jlong __jlongpointer rv,	// row vars
 jint num_rvars,
 jlong __jlongpointer cv,	// col vars
@@ -57,7 +57,7 @@ jint time		// time
 	// cast function parameters
 	DdNode *trans = jlong_to_DdNode(tr);		// trans matrix
 	ODDNode *odd = jlong_to_ODDNode(od);		// odd
-	DdNode *init = jlong_to_DdNode(in);		// initial distribution
+	double *init = jlong_to_double(in);			// initial distribution
 	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
 	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
 
@@ -112,7 +112,9 @@ jint time		// time
 	
 	// create solution/iteration vectors
 	PS_PrintToMainLog(env, "Allocating iteration vectors... ");
-	soln = mtbdd_to_double_vector(ddman, init, rvars, num_rvars, odd);
+	// for soln, we just use init (since we are free to modify/delete this vector)
+	// we also report the memory usage of this vector here, even though it has already been created
+	soln = init;
 	soln2 = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 2*kb;
