@@ -330,9 +330,10 @@ public class StateProbsMTBDD implements StateProbs
 
 	// PRINTING STUFF
 	
-	// print vector (non zeros only)
-	
-	public void print(PrismLog log)
+	/**
+	 * Print vector to a log/file (non-zero entries only)
+	 */
+	public void print(PrismLog log) throws PrismException
 	{
 		int i;
 		
@@ -353,14 +354,36 @@ public class StateProbsMTBDD implements StateProbs
 		//log.println();
 	}
 	
-	// recursive bit of print
-	// (nb: traversal of mtbdd/odd is quite simple,
-	//  tricky bit is keeping track of variable values
-	//  throughout traversal - we want to be efficient
-	//  and not compute the values from scratch each
-	//  time, but we also want to avoid passing arrays
-	//  into the resursive method)
+	/**
+	 * Print vector to a log/file.
+	 * @param log: The log
+	 * @param printSparse: Print non-zero elements only? 
+	 * @param printMatlab: Print in Matlab format?
+	 * @param printStates: Print states (variable values) for each element? 
+	 */
+	public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
+	{
+		// Because non-sparse output from MTBDD requires a bit more effort...
+		if (printSparse) print(log);
+		else throw new PrismException("Not supported");
+		// Note we also ignore printMatlab/printStates due to laziness
+	}
 	
+	/**
+	 * Recursive part of print method.
+	 * 
+	 * (NB: this would be very easy - i.e. not even
+	 *  any recursion - if we didn't want to print
+	 *  out the values of the module variables as well
+	 *  which requires traversal of the odd as well
+	 *  as the vector)
+	 * (NB2: traversal of vector/odd is still quite simple;
+	 *  tricky bit is keeping track of variable values
+	 *  throughout traversal - we want to be efficient
+	 *  and not compute the values from scratch each
+	 *  time, but we also want to avoid passing arrays
+	 *  into the recursive method)
+	 */
 	private void printRec(JDDNode dd, int level, ODDNode o, long n)
 	{
 		int i, j;
@@ -410,10 +433,13 @@ public class StateProbsMTBDD implements StateProbs
 		varValues[currentVar] -= (1 << (varSizes[currentVar]-1-currentVarLevel));
 	}
 
-	// print filtered vector (non zeros only)
-	
-	public void printFiltered(PrismLog log, JDDNode filter)
-	{
+	/**
+	 * Print part of a vector to a log/file (non-zero entries only).
+	 * @param log: The log
+	 * @param filter: A BDD specifying which states to print for.
+	 */
+	public void printFiltered(PrismLog log, JDDNode filter) throws PrismException
+		{
 		int i;
 		JDDNode tmp;
 		
@@ -439,5 +465,30 @@ public class StateProbsMTBDD implements StateProbs
 		printRec(tmp, 0, odd, 0);
 		//log.println();
 		JDD.Deref(tmp);
+	}
+	
+	/**
+	 * Print part of a vector to a log/file (non-zero entries only).
+	 * @param log: The log
+	 * @param filter: A BDD specifying which states to print for.
+	 * @param printSparse: Print non-zero elements only? 
+	 * @param printMatlab: Print in Matlab format?
+	 * @param printStates: Print states (variable values) for each element? 
+	 */
+	public void printFiltered(PrismLog log, JDDNode filter, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
+	{
+		// Because non-sparse output from MTBDD requires a bit more effort... 
+		if (printSparse) printFiltered(log, filter);
+		else throw new PrismException("Not supported");
+		// Note we also ignore printMatlab/printStates due to laziness
+	}
+	
+	/**
+	 * Make a (deep) copy of this vector
+	 */
+	public StateProbsMTBDD deepCopy() throws PrismException
+	{
+		JDD.Ref(probs);
+		return new StateProbsMTBDD(probs, model);
 	}
 }

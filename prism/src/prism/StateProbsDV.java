@@ -34,6 +34,10 @@ import parser.type.*;;
 
 // state probability vector (double vector)
 
+/**
+ * @author dxp
+ *
+ */
 public class StateProbsDV implements StateProbs
 {
 	// prob vector
@@ -55,6 +59,11 @@ public class StateProbsDV implements StateProbs
 	
 	// log for output from print method
 	PrismLog outputLog;
+	
+	// flags
+	boolean printSparse = true;
+	boolean printMatlab = false;
+	boolean printStates = true;
 
 	// CONSTRUCTORS
 	
@@ -234,14 +243,36 @@ public class StateProbsDV implements StateProbs
 
 	// PRINTING STUFF
 	
-	// print vector (non zeros only)
+	/**
+	 * Print vector to a log/file (non-zero entries only)
+	 */
+	public void print(PrismLog log) throws PrismException
+	{
+		print(log, true, false, true);
+	}
 	
-	public void print(PrismLog log)
+	/**
+	 * Print vector to a log/file.
+	 * @param log: The log
+	 * @param printSparse: Print non-zero elements only? 
+	 * @param printMatlab: Print in Matlab format?
+	 * @param printStates: Print states (variable values) for each element? 
+	 */
+public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
 	{
 		int i;
 		
+		// store flags
+		this.printSparse = printSparse;
+		this.printMatlab = printMatlab;
+		this.printStates = printStates;
+		
+		// header for matlab format
+		if (printMatlab)
+			log.println(!printSparse ? "v = [" : "v = sparse(" + probs.getSize() + ",1);");
+		
 		// check if all zero
-		if (probs.getNNZ() == 0) {
+		if (printSparse && !printMatlab && probs.getNNZ() == 0) {
 			log.println("(all zero)");
 			return;
 		}
@@ -254,48 +285,36 @@ public class StateProbsDV implements StateProbs
 		currentVar = 0;
 		currentVarLevel = 0;
 		printRec(0, odd, 0);
-	}
+
+		// footer for matlab format
+		if (printMatlab && !printSparse)
+			log.println("];");
+}
 	
-	// recursive bit of print
-	
-	// (nb: this would be very easy - i.e. not even
-	//  any recursion - if we didn't want to print
-	//  out the values of the module variables as well
-	//  which requires traversal of the odd as well
-	//  as the vector)
-	// (nb2: traversal of vector/odd is still quite simple,
-	//  tricky bit is keeping track of variable values
-	//  throughout traversal - we want to be efficient
-	//  and not compute the values from scratch each
-	//  time, but we also want to avoid passing arrays
-	//  into the resursive method)
-	
+	/**
+	 * Recursive part of print method.
+	 * 
+	 * (NB: this would be very easy - i.e. not even
+	 *  any recursion - if we didn't want to print
+	 *  out the values of the module variables as well
+	 *  which requires traversal of the odd as well
+	 *  as the vector)
+	 * (NB2: traversal of vector/odd is still quite simple;
+	 *  tricky bit is keeping track of variable values
+	 *  throughout traversal - we want to be efficient
+	 *  and not compute the values from scratch each
+	 *  time, but we also want to avoid passing arrays
+	 *  into the recursive method)
+	 */
 	private void printRec(int level, ODDNode o, int n)
 	{
-		int i, j;
 		double d;
 		
 		// base case - at bottom
 		if (level == numVars) {
 			d = probs.getElement(n);
-			if (d != 0) {
-				outputLog.print(n + ":(");
-				j = varList.getNumVars();
-				for (i = 0; i < j; i++) {
-					// integer variable
-					if (varList.getType(i) instanceof TypeInt) {
-						outputLog.print(varValues[i]+varList.getLow(i));
-					}
-					// boolean variable
-					else {
-						outputLog.print(varValues[i] == 1);
-					}
-					if (i < j-1) outputLog.print(",");
-				}
-				outputLog.print(")=" + d + " ");
-				outputLog.println();
-				return;
-			}
+			printLine(n, d);
+			return;
 		}
 		// recurse
 		else {
@@ -313,20 +332,39 @@ public class StateProbsDV implements StateProbs
 			}
 		}
 	}
-
-	// print filtered vector (non zeros only)
 	
-	public void printFiltered(PrismLog log, JDDNode filter)
+	/**
+	 * Print part of a vector to a log/file (non-zero entries only).
+	 * @param log: The log
+	 * @param filter: A BDD specifying which states to print for.
+	 */
+	public void printFiltered(PrismLog log, JDDNode filter) throws PrismException
+	{
+		printFiltered(log, filter, true, false, true);
+	}
+	
+	/**
+	 * Print part of a vector to a log/file (non-zero entries only).
+	 * @param log: The log
+	 * @param filter: A BDD specifying which states to print for.
+	 * @param printSparse: Print non-zero elements only? 
+	 * @param printMatlab: Print in Matlab format?
+	 * @param printStates: Print states (variable values) for each element? 
+	 */
+	public void printFiltered(PrismLog log, JDDNode filter, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
 	{
 		int i;
 		
-		// check if all zero
-		if (probs.getNNZ() == 0) {
-			log.println("(all zero)");
-			return;
-		}
-		// still might be though, depending on filter
-		// so we kep an explicit counter
+		// store flags
+		this.printSparse = printSparse;
+		this.printMatlab = printMatlab;
+		this.printStates = printStates;
+		
+		// header for matlab format
+		if (printMatlab)
+			log.println(!printSparse ? "v = [" : "v = sparse(" + probs.getSize() + ",1);");
+		
+		// set up a counter so we can check if there were no non-zero elements
 		counter = 0;
 		
 		// set up and call recursive print
@@ -338,21 +376,25 @@ public class StateProbsDV implements StateProbs
 		currentVarLevel = 0;
 		printFilteredRec(0, odd, 0, filter);
 		
-		// check again if all zero
-		if (counter == 0) {
+		// check  if all zero
+		if (printSparse && !printMatlab && counter == 0) {
 			log.println("(all zero)");
 			return;
 		}
+		
+		// footer for matlab format
+		if (printMatlab && !printSparse)
+			log.println("];");
 	}
 	
-	// recursive bit of printFiltered
-	
-	// same as recursive bit of print (above)
-	// but we also traverse filter
-	
+	/**
+	 * Recursive part of printFiltered method.
+	 *
+	 * So we need to traverse filter too.
+	 * See also notes above for printRec. 
+	 */ 
 	private void printFilteredRec(int level, ODDNode o, int n, JDDNode filter)
 	{
-		int i;
 		double d;
 		JDDNode newFilter;
 		
@@ -364,18 +406,8 @@ public class StateProbsDV implements StateProbs
 		// base case - at bottom
 		if (level == numVars) {
 			d = probs.getElement(n);
-			if (d != 0) {
-				outputLog.print(n + ":(");
-				for (i = 0; i < varList.getNumVars()-1; i++) {
-					outputLog.print((varValues[i]+varList.getLow(i)) + ",");
-				}
-				i = varList.getNumVars()-1;
-				outputLog.print((varValues[i]+varList.getLow(i)));
-				outputLog.print(")=" + d + " ");
-				outputLog.println();
-				counter++;
-				return;
-			}
+			printLine(n, d);
+			return;
 		}
 		// recurse
 		else {
@@ -398,5 +430,48 @@ public class StateProbsDV implements StateProbs
 				varValues[currentVar] -= (1 << (varSizes[currentVar]-1-currentVarLevel));
 			}
 		}
+	}
+	
+	private void printLine(int n, double d)
+	{
+		int i, j;
+		if (!printSparse || d != 0) {
+			if (printSparse)
+				outputLog.print(printMatlab ? "v(" + (n + 1) + ")" : n);
+			if (printStates && !printMatlab) {
+				outputLog.print(":(");
+				j = varList.getNumVars();
+				for (i = 0; i < j; i++) {
+					// integer variable
+					if (varList.getType(i) instanceof TypeInt) {
+						outputLog.print(varValues[i]+varList.getLow(i));
+					}
+					// boolean variable
+					else {
+						outputLog.print(varValues[i] == 1);
+					}
+					if (i < j-1) outputLog.print(",");
+				}
+				outputLog.print(")");
+			}
+			if (printSparse)
+				outputLog.print("=");
+			outputLog.print(d);
+			if (printMatlab && printSparse)
+				outputLog.print(";");
+			outputLog.println();
+		}
+	}
+	
+	/**
+	 * Make a (deep) copy of this vector
+	 */
+	public StateProbsDV deepCopy() throws PrismException
+	{
+		// Clone vector
+		DoubleVector dv = new DoubleVector(probs.getSize());
+		dv.add(probs);
+		// Return copy
+		return new StateProbsDV(dv, model);
 	}
 }
