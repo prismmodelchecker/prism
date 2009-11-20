@@ -4,6 +4,9 @@ exp reach for games
 Prob0 for MDPs
 remove src/abstraction dir
 
+other notes/ideas:
+
+refine opt: don't add ubsets of player1 choices
 
 #================================================
 # Self-stabilisation (Israeli-Jalfon)
