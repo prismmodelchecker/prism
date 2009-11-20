@@ -293,6 +293,10 @@ public abstract class STPGAbstractRefine
 			getModelChecker().setProb0(false);
 		} else if (opt.equals("noprob1")) {
 			getModelChecker().setProb1(false);
+		} else if (opt.equals("epsilon")) {
+			if (optVal != null) {
+				getModelChecker().setTermCritParam(Double.parseDouble(optVal));
+			}
 		} else if (opt.equals("maxrefs")) {
 			if (optVal != null) {
 				setMaxRefinements(Integer.parseInt(optVal));
@@ -597,10 +601,6 @@ public abstract class STPGAbstractRefine
 	{
 		ModelCheckerResult res = null;
 		int i, n;
-
-		// Pass settings to model checker
-		mc.setTermCrit(TermCrit.RELATIVE);
-		mc.setTermCritParam(1e-8);
 
 		// Compute lower bounds
 		switch (abstractionType) {
