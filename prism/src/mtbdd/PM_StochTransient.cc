@@ -43,7 +43,7 @@ JNIEnv *env,
 jclass cls,
 jlong __jlongpointer tr,	// rate matrix
 jlong __jlongpointer od,	// odd
-jlong __jlongpointer in,	// initial distribution
+jlong __jlongpointer in,	// initial distribution (note: this will be derefed afterwards)
 jlong __jlongpointer rv,	// row vars
 jint num_rvars,
 jlong __jlongpointer cv,	// col vars
@@ -307,6 +307,8 @@ jdouble time				// time
 	}
 	Cudd_RecursiveDeref(ddman, diags);
 	Cudd_RecursiveDeref(ddman, sol);
+	// nb: we deref init, even though it is passed in as a param
+	Cudd_RecursiveDeref(ddman, init);
 	
 	return ptr_to_jlong(sum);
 }

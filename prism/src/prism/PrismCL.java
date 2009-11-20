@@ -92,6 +92,7 @@ public class PrismCL
 	private String exportTransDotStatesFilename = null;
 	private String exportBSCCsFilename = null;
 	private String exportResultsFilename = null;
+	private String exportTransientFilename = null;
 	private String exportPrismFilename = null;
 	private String simpathFilename = null;
 	
@@ -291,8 +292,8 @@ public class PrismCL
 					try {
 						doTransient();
 					}
+					// in case of error, report it and proceed
 					catch (PrismException e) {
-						// in case of error, report it and proceed
 						error(e.getMessage());
 					}
 				}
@@ -773,6 +774,13 @@ public class PrismCL
 	{
 		double d;
 		int i;
+		File exportTransientFile = null;
+		
+		// choose destination for output (file or log)
+		if (exportTransientFilename == null || exportTransientFilename.equals("stdout"))
+			exportTransientFile = null;
+		else
+			exportTransientFile =new File(exportTransientFilename);
 		
 		// compute transient probabilities
 		if (model.getModelType() == ModelType.CTMC) {
@@ -782,7 +790,7 @@ public class PrismCL
 			catch (NumberFormatException e) {
 				throw new PrismException("Invalid value \""+transientTime+"\" for transient probability computation");
 			}
-			prism.doTransient(model, d);
+			prism.doTransient(model, d, exportType, exportTransientFile);
 		}
 		else if (model.getModelType() == ModelType.DTMC) {
 			try {
@@ -791,7 +799,7 @@ public class PrismCL
 			catch (NumberFormatException e) {
 				throw new PrismException("Invalid value \""+transientTime+"\" for transient probability computation");
 			}
-			prism.doTransient(model, i);
+			prism.doTransient(model, i, exportType, exportTransientFile);
 		}
 		else {
 			mainLog.println("\nWarning: Transient probabilities only computed for DTMCs/CTMCs.");
@@ -1007,6 +1015,15 @@ public class PrismCL
 					if (i < args.length-1) {
 						exportresults = true;
 						exportResultsFilename = args[++i];
+					}
+					else {
+						errorAndExit("No file specified for -"+sw+" switch");
+					}
+				}
+				// export transient probs (as opposed to displaying on screen) 
+				else if (sw.equals("exporttransient") || sw.equals("exporttr")) {
+					if (i < args.length-1) {
+						exportTransientFilename = args[++i];
 					}
 					else {
 						errorAndExit("No file specified for -"+sw+" switch");
@@ -1684,6 +1701,7 @@ public class PrismCL
 		mainLog.println("-exporttransdotstates <file> ... Export the transition matrix graph to a dot file, with state info");
 		mainLog.println("-exportdot <file> .............. Export the transition matrix MTBDD to a dot file");
 		mainLog.println("-exportbsccs <file> ............ Compute and export all BSCCs of the model");
+		mainLog.println("-exporttransient <file> ......... Export transient probabilities to a file");
 		mainLog.println("-exportprism <file> ............ Export final PRISM model to a file");
 		mainLog.println();
 		mainLog.println("-mtbdd (or -m) ................. Use the MTBDD engine");
