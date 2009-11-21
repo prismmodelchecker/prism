@@ -4,13 +4,27 @@ of the main changes in each public release, see the file VERSIONS.txt.
 
 Ongoing changes:
 
-* 64-bit Macs?
+* Explicit state libraries
+* PTA model checking
 * CTL model checking
+* New simulator
+* Adversary generation
 
 Latest changes (reverse chronological):
 [correct wrt svn rev ???]
 
-* ...
+* Option to specify initial distribution for transient analysis
+* Option to export transient probabilities to a file
+* New -exporttransdotstates option
+* Improved dot file export for MDPs
+* Strict upper time-bounds allowed in properties
+* New -exportprism switch
+* Check for existence of zero-reward loops
+
+Temporary files:
+
+* NOTES-*
+* examples/
 
 CHECK 3.3.1 details are up-to-date...
 
@@ -37,7 +51,7 @@ Version 3.3.beta2 (released 29/7/2009)
 -----------------------------------------------------------------------------
 
 Bug fixes:
-- LTL model checking (svn: 112, 1132)
+- LTL model checking (svn: 1112, 1132)
 - Approximate model checking (svn: 1214)
 - Building on new Macs (svn: 1103, 1105, 1349)
 
