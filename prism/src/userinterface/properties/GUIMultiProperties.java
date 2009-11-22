@@ -371,7 +371,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			error("Cannot create an experiment because there are no constants with undefined values");
 			return;
 		}
-		int result = GUIExperimentPicker.defineConstantsWithDialog(this.getGUI(), uCon, type instanceof TypeBool || type instanceof TypeDouble, gp.isValidForSimulation());
+		int result = GUIExperimentPicker.defineConstantsWithDialog(this.getGUI(), uCon, type instanceof TypeInt || type instanceof TypeDouble, gp.isValidForSimulation());
 		if(result == GUIExperimentPicker.VALUES_DONE_SHOW_GRAPH || result == GUIExperimentPicker.VALUES_DONE_SHOW_GRAPH_AND_SIMULATE)
 		{
 			showGraphDialog = true;
