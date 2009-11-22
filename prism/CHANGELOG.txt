@@ -37,6 +37,7 @@ Bug fixes:
 - Simulator bug (crashes on min/max function)
 - CTMC transient probs with MTBDD engine crash
 - State/transition reward mix-up in parser
+- Approximate verification of lower time-bounded properties for CTMCs
 
 -----------------------------------------------------------------------------
 Version 3.3 (released 29/10/2009)
