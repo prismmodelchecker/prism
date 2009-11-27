@@ -508,7 +508,7 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintSupportNames(JNIEnv *env, jclass cl
 	}
 	// Otherwise, need to convert Java array to C array first
 	else {
-		int i, j;
+		int i;
 		jint size;
 		jclass vn_cls;
 		jmethodID vn_mid;
@@ -668,7 +668,7 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportDDToDotFile(JNIEnv *env, jclass cl
 
 JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportDDToDotFileLabelled(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jstring filename, jobject var_names)
 {
-	int i, j;
+	int i;
 	jint size;
 	jclass vn_cls;
 	jmethodID vn_mid;

@@ -151,7 +151,7 @@ jlong __jlongpointer mu	// probs for multiplying
 	compact_d = false;
 	// try and convert to compact form if required
 	if (compact) {
-		if (diags_dist = double_vector_to_dist(diags, n)) {
+		if ((diags_dist = double_vector_to_dist(diags, n))) {
 			compact_d = true;
 			delete[] diags; diags = NULL;
 		}

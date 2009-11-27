@@ -161,9 +161,9 @@ jlong __jlongpointer in
 				}
 				// see if this value is the min/max so far
 				if (min) {
-					if (first | d2 < d1) d1 = d2;
+					if (first | (d2 < d1)) d1 = d2;
 				} else {
-					if (first | d2 > d1) d1 = d2;
+					if (first | (d2 > d1)) d1 = d2;
 				}
 				first = false;
 			}

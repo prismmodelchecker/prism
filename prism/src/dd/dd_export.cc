@@ -60,7 +60,7 @@ char *filename
 		// crash out
 		return;
 	}
-	DD_ExportDDToDotFileLabelled(ddman, dd, fp, "DD", NULL);
+	DD_ExportDDToDotFileLabelled(ddman, dd, fp, (char*)"DD", NULL);
 	fclose(fp);
 }
 
@@ -79,7 +79,7 @@ char **var_names
 		// crash out
 		return;
 	}
-	DD_ExportDDToDotFileLabelled(ddman, dd, fp, "DD", var_names);
+	DD_ExportDDToDotFileLabelled(ddman, dd, fp, (char*)"DD", var_names);
 	fclose(fp);
 }
 
@@ -92,7 +92,7 @@ DdNode *dd,
 FILE *fp
 )
 {
-	DD_ExportDDToDotFileLabelled(ddman, dd, fp, "DD", NULL);
+	DD_ExportDDToDotFileLabelled(ddman, dd, fp, (char*)"DD", NULL);
 }
 
 //------------------------------------------------------------------------------
@@ -176,7 +176,7 @@ FILE *fp
 		stored[count++] = dd;
 	}
 	
-	fprintf(fp, "%z\n", (size_t)dd);
+	fprintf(fp, "%d\n", (size_t)dd);
 	return 0;
 }
 

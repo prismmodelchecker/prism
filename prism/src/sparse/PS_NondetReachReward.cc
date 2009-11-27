@@ -241,7 +241,7 @@ jboolean min		// min or max probabilities (true = min, false = max)
 					d2 += non_zeros[k] * soln[cols[k]];
 				}
 				// see if this value is the min/max so far
-				if (first || min&&(d2<d1) || !min&&(d2>d1)) {
+				if (first || (min&&(d2<d1)) || (!min&&(d2>d1))) {
 					d1 = d2;
 					if (adv_loop) { adv_l = l2; adv_h = h2; }
 				}

@@ -266,7 +266,6 @@ int num_vars
 )
 {
 	DdNode *tmp;
-	int i, size;
 	
 	tmp = Cudd_addXeqy(ddman, num_vars, rvars, cvars);
 	Cudd_Ref(tmp);
@@ -392,7 +391,7 @@ int accuracy
 		case ACCURACY_LOW: fprintf(dd_out, "%.2f ", val); break;
 		case ACCURACY_NORMAL: fprintf(dd_out, "%f ", val); break;
 		case ACCURACY_HIGH: fprintf(dd_out, "%.10f ", val); break;
-		case ACCURACY_LIST: if (val>0) fprintf(dd_out, "%d:%f ", i, val); break;
+		case ACCURACY_LIST: if (val>0) fprintf(dd_out, "%ld:%f ", i, val); break;
 		}
 	}
 	fprintf(dd_out, "\n");
@@ -528,7 +527,7 @@ int accuracy
 			case ACCURACY_LOW: fprintf(dd_out, "%.2f ", val); break;
 			case ACCURACY_NORMAL: fprintf(dd_out, "%f ", val); break;
 			case ACCURACY_HIGH: fprintf(dd_out, "%.10f ", val); break;
-			case ACCURACY_LIST: if (val>0) fprintf(dd_out, "%d:%f ", count, val); break;
+			case ACCURACY_LIST: if (val>0) fprintf(dd_out, "%ld:%f ", count, val); break;
 			}
 		}
 	}

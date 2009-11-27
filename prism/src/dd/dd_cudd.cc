@@ -211,7 +211,7 @@ int Cudd_CheckZeroRefVerbose(DdManager *manager)
 			count++;
 		 	}
 		} else {
-			printf("* constant found (index %d)\n", node->type.value);
+			printf("* constant found (index %g)\n", node->type.value);
 		 	count++;
 		}
 	 	}

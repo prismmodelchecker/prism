@@ -176,7 +176,7 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	// try and convert to compact form if required
 	compact_r = false;
 	if (compact) {
-		if (rew_dist = double_vector_to_dist(rew_vec, n)) {
+		if ((rew_dist = double_vector_to_dist(rew_vec, n))) {
 			compact_r = true;
 			delete rew_vec; rew_vec = NULL;
 		}

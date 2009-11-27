@@ -209,7 +209,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 				for (k = l2; k < h2; k++) {
 					d2 += non_zeros[k] * soln[cols[k]];
 				}
-				if (first || min&&(d2<d1) || !min&&(d2>d1)) {
+				if (first || (min&&(d2<d1)) || (!min&&(d2>d1))) {
 					d1 = d2;
 					if (adv_loop) { adv_l = l2; adv_h = h2; }
 				}

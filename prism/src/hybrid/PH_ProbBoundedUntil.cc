@@ -141,7 +141,7 @@ jint bound		// time bound
 	compact_y = false;
 	// try and convert to compact form if required
 	if (compact) {
-		if (yes_dist = double_vector_to_dist(yes_vec, n)) {
+		if ((yes_dist = double_vector_to_dist(yes_vec, n))) {
 			compact_y = true;
 			delete[] yes_vec; yes_vec = NULL;
 		}

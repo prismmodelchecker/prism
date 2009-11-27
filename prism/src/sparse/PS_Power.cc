@@ -126,7 +126,7 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 		// try and convert to compact form if required
 		compact_b = false;
 		if (compact) {
-			if (b_dist = double_vector_to_dist(b_vec, n)) {
+			if ((b_dist = double_vector_to_dist(b_vec, n))) {
 				compact_b = true;
 				delete b_vec; b_vec = NULL;
 			}

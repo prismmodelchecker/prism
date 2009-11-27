@@ -185,6 +185,8 @@ DdNode *double_vector_to_bdd_rec(DdManager *ddman, double *vec, int rel_op, doub
 			return DD_ITE(ddman, vars[level], t, e);
 		}
 	}
+	// Never get here:
+	return NULL;
 }	
 
 //------------------------------------------------------------------------------

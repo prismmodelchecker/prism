@@ -66,7 +66,6 @@ ODDNode *build_odd(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars)
 
 static ODDNode *build_odd_rec(DdManager *ddman, DdNode *dd, int level, DdNode **vars, int num_vars, ODDNode **tables)
 {
-	int i;
 	ODDNode *ptr;
 	
 	// see if we already have odd in the tables
