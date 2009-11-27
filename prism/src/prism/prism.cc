@@ -37,7 +37,7 @@
 // actually stores arrays of both jstring objects and c strings, and also size
 // (because need these to free memory afterwards).
 
-void get_string_array_from_java(JNIEnv *env, jobject strings_list, jstring *&strings_jstrings, const char **&strings, jint &size)
+void get_string_array_from_java(JNIEnv *env, jobject strings_list, jstring *&strings_jstrings, const char **&strings, int &size)
 {
 	int i, j;
 	jclass vn_cls;
@@ -48,7 +48,7 @@ void get_string_array_from_java(JNIEnv *env, jobject strings_list, jstring *&str
 	if (vn_mid == 0) {
 		return;
 	}
-	size = env->CallIntMethod(strings_list,vn_mid);
+	size = (int)env->CallIntMethod(strings_list,vn_mid);
 	// put strings from vector into array
 	strings_jstrings = new jstring[size];
 	strings = new const char*[size];
