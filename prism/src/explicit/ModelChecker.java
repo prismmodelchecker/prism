@@ -295,6 +295,8 @@ public class ModelChecker
 				i = Integer.parseInt(ss[0].trim());
 				ss = ss[1].trim().split(" ");
 				for (j = 0; j < ss.length; j++) {
+					if (ss[j].length() == 0)
+						continue;
 					k = Integer.parseInt(ss[j]);
 					// Store label info
 					bitsets[k].set(i);
