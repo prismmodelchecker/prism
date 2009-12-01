@@ -38,6 +38,86 @@ public class MDPModelChecker extends ModelChecker
 	// Model checking functions
 
 	/**
+	 * Prob0 precomputation algorithm.
+	 */
+	public BitSet prob0(MDP mdp, BitSet target, boolean min)
+	{
+		int i, k, n, iters;
+		boolean b2, b3;
+		BitSet u, soln;
+		boolean u_done;
+		long timer;
+
+		// Start precomputation
+		timer = System.currentTimeMillis();
+		mainLog.println("Starting Prob0 (" + (min ? "min" : "max") + ")...");
+
+		// Special case: no target states
+		if (target.cardinality() == 0) {
+			soln = new BitSet(mdp.numStates);
+			soln.set(0, mdp.numStates);
+			return soln;
+		}
+
+		// Initialise vectors
+		n = mdp.numStates;
+		u = (BitSet) target.clone();
+		soln = new BitSet(n);
+
+		// Fixed point loop
+		iters = 0;
+		u_done = false;
+		// Least fixed point - should start from 0 but we optimise by
+		// starting from 'target' (see above) thus bypassing first iteration 
+		while (!u_done) {
+			iters++;
+			for (i = 0; i < n; i++) {
+				// First see if this state is a target state
+				// (in which case, can skip rest of fixed point function evaluation)
+				b2 = target.get(i);
+				if (!b2) {
+					b2 = min; // there exists or for all nondet choices
+					for (Distribution distr : mdp.getChoices(i)) {
+						b3 = false; // some transition goes to u
+						for (Map.Entry<Integer, Double> e : distr) {
+							k = (Integer) e.getKey();
+							if (u.get(k)) {
+								b3 = true;
+								continue;
+							}
+						}
+						if (min) {
+							if (!b3)
+								b2 = false;
+						} else {
+							if (b3)
+								b2 = true;
+						}
+					}
+				}
+				soln.set(i, b2);
+			}
+
+			// Check termination
+			u_done = soln.equals(u);
+
+			// u = soln
+			u.clear();
+			u.or(soln);
+		}
+
+		// Negate
+		u.flip(0, n);
+
+		// Finished precomputation
+		timer = System.currentTimeMillis() - timer;
+		mainLog.print("Prob0 (" + (min ? "min" : "max") + ")");
+		mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
+
+		return u;
+	}
+
+	/**
 	 * Prob1 precomputation algorithm.
 	 */
 	public BitSet prob1(MDP mdp, BitSet target, boolean min)
@@ -152,7 +232,7 @@ public class MDPModelChecker extends ModelChecker
 	{
 		ModelCheckerResult res = null;
 		BitSet no, yes;
-		int n, numYes, numNo;
+		int i, n, numYes, numNo;
 		long timer, timerProb0, timerProb1;
 
 		// Start probabilistic reachability
@@ -165,15 +245,24 @@ public class MDPModelChecker extends ModelChecker
 		// Store num states
 		n = mdp.numStates;
 
-		// Recompute target (if we have more info available)
-		// TODO
+		// Optimise by enlarging target set (if more info is available)
+		if (init != null && known != null) {
+			BitSet targetNew = new BitSet(n);
+			for (i = 0; i < n; i++) {
+				targetNew.set(i, target.get(i) || (known.get(i) && init[i] == 1.0));
+			}
+			target = targetNew;
+		}
 
 		// Precomputation
-		//TODO: prob0
 		timerProb0 = System.currentTimeMillis();
+		if (precomp && prob0) {
+			no = prob0(mdp, target, min);
+		} else {
+			no = new BitSet();
+		}
 		timerProb0 = System.currentTimeMillis() - timerProb0;
 		timerProb1 = System.currentTimeMillis();
-		no = new BitSet();
 		if (precomp && prob1) {
 			yes = prob1(mdp, target, min);
 		} else {
@@ -419,7 +508,7 @@ public class MDPModelChecker extends ModelChecker
 	{
 		ModelCheckerResult res = null;
 		BitSet inf;
-		int n, numTarget, numInf;
+		int i, n, numTarget, numInf;
 		long timer, timerProb1;
 
 		// Start expected reachability
@@ -432,8 +521,14 @@ public class MDPModelChecker extends ModelChecker
 		// Store num states
 		n = mdp.numStates;
 
-		// Recompute target (if we have more info available)
-		// TODO ?
+		// Optimise by enlarging target set (if more info is available)
+		if (init != null && known != null) {
+			BitSet targetNew = new BitSet(n);
+			for (i = 0; i < n; i++) {
+				targetNew.set(i, target.get(i) || (known.get(i) && init[i] == 0.0));
+			}
+			target = targetNew;
+		}
 
 		// Precomputation (not optional)
 		timerProb1 = System.currentTimeMillis();
@@ -577,6 +672,7 @@ public class MDPModelChecker extends ModelChecker
 		ModelCheckerResult res;
 		BitSet target;
 		Map<String, BitSet> labels;
+		boolean min = true;
 		try {
 			mc = new MDPModelChecker();
 			mdp = new MDP();
@@ -587,7 +683,13 @@ public class MDPModelChecker extends ModelChecker
 			target = labels.get(args[2]);
 			if (target == null)
 				throw new PrismException("Unknown label \"" + args[2] + "\"");
-			res = mc.probReach(mdp, target, true);
+			for (int i  =3; i < args.length; i++) {
+				if (args[i].equals("-min"))
+					min =true;
+				else if (args[i].equals("-max"))
+					min = false;
+			}
+			res = mc.probReach(mdp, target, min);
 			System.out.println(res.soln[0]);
 		} catch (PrismException e) {
 			System.out.println(e);
