@@ -38,7 +38,7 @@ public class STPGModelChecker extends ModelChecker
 	// Model checking functions
 
 	/**
-	 * Prob1 precomputation algorithm.
+	 * Prob0 precomputation algorithm.
 	 */
 	public BitSet prob0(STPG stpg, BitSet target, boolean min1, boolean min2)
 	{
@@ -64,7 +64,7 @@ public class STPGModelChecker extends ModelChecker
 		u = new BitSet(n);
 		soln = new BitSet(n);
 
-		// Nested fixed point loop
+		// Fixed point loop
 		iters = 0;
 		u_done = false;
 		// Least fixed point
@@ -272,15 +272,12 @@ public class STPGModelChecker extends ModelChecker
 		// Store num states
 		n = stpg.numStates;
 		
-		// Recompute target (if we have more info available)
-		// TODO: check this
+		// Optimise by enlarging target set (if more info is available)
 		if (init != null && known != null) {
 			BitSet targetNew = new BitSet(n);
 			for (i = 0; i < n; i++) {
 				targetNew.set(i, target.get(i) || (known.get(i) && init[i] == 1.0));
 			}
-			mainLog.println("### " + targetNew.cardinality() + "-" + target.cardinality() + "="
-					+ (targetNew.cardinality() - target.cardinality()));
 			target = targetNew;
 		}
 
@@ -382,7 +379,7 @@ public class STPGModelChecker extends ModelChecker
 		unknown.andNot(no);
 		if (known != null)
 			unknown.andNot(known);
-		
+
 		// Start iterations
 		iters = 0;
 		i = -1;
