@@ -46,7 +46,7 @@ public class MDP extends Model
 
 	// Action labels
 	protected List<List<Object>> actions;
-	
+
 	// Rewards
 	protected List<List<Double>> transRewards;
 	protected Double transRewardsConstant;
@@ -249,7 +249,7 @@ public class MDP extends Model
 	{
 		return trans.get(s).size();
 	}
-	
+
 	/**
 	 * Get the list of choices (distributions) for state s.
 	 */
@@ -257,7 +257,7 @@ public class MDP extends Model
 	{
 		return trans.get(s);
 	}
-	
+
 	/**
 	 * Get the ith choice (distribution) for state s.
 	 */
@@ -265,7 +265,7 @@ public class MDP extends Model
 	{
 		return trans.get(s).get(i);
 	}
-	
+
 	/**
 	 * Get the action (if any) for choice i of state s.
 	 */
@@ -301,7 +301,7 @@ public class MDP extends Model
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Get the total number of choices (distributions) over all states.
 	 */
@@ -309,7 +309,7 @@ public class MDP extends Model
 	{
 		return numDistrs;
 	}
-	
+
 	/**
 	 * Get the total number of transitions in the model.
 	 */
@@ -317,7 +317,7 @@ public class MDP extends Model
 	{
 		return numTransitions;
 	}
-	
+
 	/**
 	 * Get the maximum number of choices (distributions) in any state.
 	 */
@@ -331,7 +331,7 @@ public class MDP extends Model
 		}
 		return maxNumDistrs;
 	}
-	
+
 	/**
 	 * Checks for deadlocks (states with no choices) and throws an exception if any exist.
 	 * States in 'except' (If non-null) are excluded from the check.
@@ -344,7 +344,7 @@ public class MDP extends Model
 		}
 		// TODO: Check for empty distributions too?
 	}
-	
+
 	/**
 	 * Build (anew) from a list of transitions exported explicitly by PRISM (i.e. a .tra file).
 	 */
@@ -353,7 +353,7 @@ public class MDP extends Model
 		BufferedReader in;
 		Distribution distr;
 		String s, ss[];
-		int i, j, k, iLast, kLast, n;
+		int i, j, k, iLast, kLast, n, lineNum = 0;
 		double prob;
 
 		try {
@@ -361,6 +361,7 @@ public class MDP extends Model
 			in = new BufferedReader(new FileReader(new File(filename)));
 			// Parse first line to get num states
 			s = in.readLine();
+			lineNum = 1;
 			if (s == null)
 				throw new PrismException("Missing first line of .tra file");
 			ss = s.split(" ");
@@ -372,26 +373,31 @@ public class MDP extends Model
 			kLast = -1;
 			distr = null;
 			s = in.readLine();
+			lineNum++;
 			while (s != null) {
-				ss = s.split(" ");
-				i = Integer.parseInt(ss[0]);
-				k = Integer.parseInt(ss[1]);
-				j = Integer.parseInt(ss[2]);
-				prob = Double.parseDouble(ss[3]);
-				// For a new state or distribution
-				if (i != iLast || k != kLast) {
-					// Add any previous distribution to the last state, create new one
-					if (distr != null) {
-						addChoice(iLast, distr);
+				s = s.trim();
+				if (s.length() > 0) {
+					ss = s.split(" ");
+					i = Integer.parseInt(ss[0]);
+					k = Integer.parseInt(ss[1]);
+					j = Integer.parseInt(ss[2]);
+					prob = Double.parseDouble(ss[3]);
+					// For a new state or distribution
+					if (i != iLast || k != kLast) {
+						// Add any previous distribution to the last state, create new one
+						if (distr != null) {
+							addChoice(iLast, distr);
+						}
+						distr = new Distribution();
 					}
-					distr = new Distribution();
+					// Add transition to the current distribution
+					distr.add(j, prob);
+					// Prepare for next iter
+					iLast = i;
+					kLast = k;
 				}
-				// Add transition to the current distribution
-				distr.add(j, prob);
-				// Prepare for next iter
-				iLast = i;
-				kLast = k;
 				s = in.readLine();
+				lineNum++;
 			}
 			// Add previous distribution to the last state
 			addChoice(iLast, distr);
@@ -401,7 +407,7 @@ public class MDP extends Model
 			System.out.println(e);
 			System.exit(1);
 		} catch (NumberFormatException e) {
-			throw new PrismException("Problem in .tra file for " + modelType);
+			throw new PrismException("Problem in .tra file (line " + lineNum + ") for " + modelType);
 		}
 		// Set initial state (assume 0)
 		initialStates.add(0);
@@ -645,7 +651,7 @@ public class MDP extends Model
 			throw new PrismException("Could not export " + modelType + " to file \"" + filename + "\"" + e);
 		}
 	}
-	
+
 	/**
 	 * Export to a dot file, highlighting states in 'mark'.
 	 */
@@ -684,7 +690,8 @@ public class MDP extends Model
 		s += numStates + " states";
 		s += ", " + numDistrs + " distributions";
 		s += ", " + numTransitions + " transitions";
-		s += ", dist max/avg = " + getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) numDistrs) / numStates);
+		s += ", dist max/avg = " + getMaxNumChoices() + "/"
+				+ PrismUtils.formatDouble2dp(((double) numDistrs) / numStates);
 		return s;
 	}
 

@@ -133,7 +133,7 @@ public class DTMC extends Model
 		transRewards = null;
 		transRewardsConstant = null;
 	}
-	
+
 	/**
 	 * Set a constant reward for all transitions
 	 */
@@ -144,7 +144,7 @@ public class DTMC extends Model
 		// Store as a Double (because we use null to check for its existence)
 		transRewardsConstant = new Double(r);
 	}
-	
+
 	/**
 	 * Set the reward for (all) transitions in state s to r.
 	 */
@@ -161,7 +161,7 @@ public class DTMC extends Model
 		// Set reward
 		transRewards.set(s, r);
 	}
-	
+
 	/**
 	 * Get the number of nondeterministic choices in state s (always 1 for a DTMC).
 	 */
@@ -177,7 +177,7 @@ public class DTMC extends Model
 	{
 		return trans.get(s);
 	}
-	
+
 	/**
 	 * Get the transition reward (if any) for the transitions in state s.
 	 */
@@ -189,7 +189,7 @@ public class DTMC extends Model
 			return 0.0;
 		return transRewards.get(s);
 	}
-	
+
 	/**
 	 * Returns true if state s2 is a successor of state s1.
 	 */
@@ -197,7 +197,7 @@ public class DTMC extends Model
 	{
 		return trans.get(s1).contains(s2);
 	}
-	
+
 	/**
 	 * Get the total number of transitions in the model.
 	 */
@@ -205,7 +205,7 @@ public class DTMC extends Model
 	{
 		return numTransitions;
 	}
-	
+
 	/**
 	 * Checks for deadlocks (states with no transitions) and throws an exception if any exist.
 	 * States in 'except' (If non-null) are excluded from the check.
@@ -217,7 +217,7 @@ public class DTMC extends Model
 				throw new PrismException("DTMC has a deadlock in state " + i);
 		}
 	}
-	
+
 	/**
 	 * Build (anew) from a list of transitions exported explicitly by PRISM (i.e. a .tra file).
 	 */
@@ -225,7 +225,7 @@ public class DTMC extends Model
 	{
 		BufferedReader in;
 		String s, ss[];
-		int i, j, n;
+		int i, j, n, lineNum = 0;
 		double prob;
 
 		try {
@@ -233,6 +233,7 @@ public class DTMC extends Model
 			in = new BufferedReader(new FileReader(new File(filename)));
 			// Parse first line to get num states
 			s = in.readLine();
+			lineNum = 1;
 			if (s == null)
 				throw new PrismException("Missing first line of .tra file");
 			ss = s.split(" ");
@@ -241,13 +242,18 @@ public class DTMC extends Model
 			initialise(n);
 			// Go though list of transitions in file
 			s = in.readLine();
+			lineNum++;
 			while (s != null) {
-				ss = s.split(" ");
-				i = Integer.parseInt(ss[0]);
-				j = Integer.parseInt(ss[1]);
-				prob = Double.parseDouble(ss[2]);
-				setProbability(i, j, prob);
+				s = s.trim();
+				if (s.length() > 0) {
+					ss = s.split(" ");
+					i = Integer.parseInt(ss[0]);
+					j = Integer.parseInt(ss[1]);
+					prob = Double.parseDouble(ss[2]);
+					setProbability(i, j, prob);
+				}
 				s = in.readLine();
+				lineNum++;
 			}
 			// Close file
 			in.close();
@@ -255,7 +261,7 @@ public class DTMC extends Model
 			System.out.println(e);
 			System.exit(1);
 		} catch (NumberFormatException e) {
-			throw new PrismException("Problem in .tra file for " + modelType);
+			throw new PrismException("Problem in .tra file (line " + lineNum + ") for " + modelType);
 		}
 		// Set initial state (assume 0)
 		initialStates.add(0);
@@ -276,7 +282,7 @@ public class DTMC extends Model
 	{
 		throw new PrismException("Export not yet supported");
 	}
-	
+
 	/**
 	 * Export to a dot file, highlighting states in 'mark'.
 	 */
