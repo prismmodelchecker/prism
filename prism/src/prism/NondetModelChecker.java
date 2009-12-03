@@ -27,6 +27,7 @@
 
 package prism;
 
+import java.io.FileNotFoundException;
 import java.util.*;
 
 import jdd.*;
@@ -941,7 +942,19 @@ public class NondetModelChecker extends NonProbModelChecker
 		JDDNode probsMTBDD;
 		DoubleVector probsDV;
 		StateProbs probs = null;
-
+		
+		// If required, export info about target states 
+		if (prism.getExportTarget()) {
+			JDDNode labels[] = { model.getStart(), b2 };
+			String labelNames[] = { "init", "target" };
+			try {
+				mainLog.print("\nExporting target states info to file \"" + prism.getExportTargetFilename() + "\"...");
+				PrismMTBDD.ExportLabels(labels, labelNames, "l", model.getAllDDRowVars(), model.getODD(), Prism.EXPORT_PLAIN, prism.getExportTargetFilename());
+			} catch (FileNotFoundException e) {
+				mainLog.println("\nWarning: Could not export target to file \"" + prism.getExportTargetFilename() + "\"");
+			}
+		}
+		
 		// compute yes/no/maybe states
 		if (b2.equals(JDD.ZERO)) {
 			yes = JDD.Constant(0);

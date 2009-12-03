@@ -96,6 +96,11 @@ public class Prism implements PrismSettingsListener
 	// Main PRISM settings
 	private PrismSettings settings;
 	
+	// Some additional settings (here because not available from main options panel in GUI) 
+	// Export target state info?
+	protected boolean exportTarget;
+	protected String exportTargetFilename;
+	
 	// A few miscellaneous options (i.e. defunct/hidden/undocumented/etc.)
 	// See constructor below for default values
 	
@@ -182,6 +187,8 @@ public class Prism implements PrismSettingsListener
 		settings.addSettingsListener(this);
 		
 		// default values for miscellaneous options 
+		exportTarget = false;
+		exportTargetFilename = null;
 		doReach = true;
 		bsccComp = true;
 		checkZeroLoops = false;
@@ -323,6 +330,16 @@ public class Prism implements PrismSettingsListener
 	
 	// set methods for miscellaneous options
 	
+	public void setExportTarget(boolean b) throws PrismException
+	{
+		exportTarget = b;
+	}
+	
+	public void setExportTargetFilename(String s) throws PrismException
+	{
+		exportTargetFilename = s;
+	}
+	
 	public void setDoReach(boolean b) throws PrismException
 	{
 		doReach = b;
@@ -426,6 +443,12 @@ public class Prism implements PrismSettingsListener
 	{ return settings.getInteger(PrismSettings.PRISM_SCC_METHOD)+1; } //NOTE THE CORRECTION for the ChoiceSetting index
 	
 	// get methods for miscellaneous options
+	
+	public boolean getExportTarget()
+	{return exportTarget; }
+	
+	public String getExportTargetFilename()
+	{ return exportTargetFilename; }
 	
 	public boolean getDoReach()
 	{ return doReach; }
