@@ -245,15 +245,10 @@ public class NonProbModelChecker extends StateModelChecker
 					JDD.Ref(cexDDs.get(i - 1));
 					tmp3 = JDD.And(tmp3, JDD.PermuteVariables(cexDDs.get(i - 1), allDDRowVars, allDDColVars));
 					tmp3 = JDD.ThereExists(tmp3, allDDColVars);
-					int j, n;
-					JDDNode[] transSynch = ((NondetModel) model).getTransSynch();
-					n = transSynch.length;
-					for (j = 0; j < n; j++) {
-						if (JDD.AreInterecting(tmp3, transSynch[j])) {
-							cexActions.add(((NondetModel) model).getSynchs().get(j));
-							break;
-						}
-					}
+					JDD.Ref(transActions);
+					tmp3 = JDD.Apply(JDD.TIMES, tmp3, transActions);
+					int action = (int)JDD.FindMax(tmp3);
+					cexActions.add(action > 1 ? model.getSynchs().get(action - 2) : "");
 					JDD.Deref(tmp3);
 					JDD.Deref(cexDDs.get(i));
 				}
