@@ -7,3 +7,12 @@ Moved simulator to simulator-old
 Started to build coarse Java-version of SimulatorEngine.
 Currently, just a few statements in automaticChoices...
 
+
+TEST CASES
+
+[t,t'] examples sent as MRMC bug fix?
+
+DTMC with local nondet and actions (~/prism-models/dave-test.nm)
+
+
+
