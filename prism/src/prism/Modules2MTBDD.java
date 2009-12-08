@@ -879,8 +879,8 @@ public class Modules2MTBDD
 				break;
 			case DTMC:
 			case CTMC:
+				// not implemented yet
 				// TODO: base on code for transInd and transSynch above
-				throw new PrismException("Not implemented yet");
 			}
 		}
 		
