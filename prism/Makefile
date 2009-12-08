@@ -1,4 +1,4 @@
- ##############################################
+##############################################
 #  NB: This is the main Makefile for PRISM.  #
 #      It calls all the other Makefiles in   #
 #      subdirectories, passing in all the    #
