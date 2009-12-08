@@ -127,7 +127,7 @@ public class ConvertForJltl2ba extends ASTTraverseModify
 	
 	public void visitPost(ExpressionLiteral e) throws PrismLangException
 	{
-		if (e.getType() instanceof TypeBool) {
+		if (!(e.getType() instanceof TypeBool)) {
 			throw new PrismLangException("Cannot convert expression to jltl2ba form", e);
 		}
 		setFormula(e, new SimpleLTL(e.evaluateBoolean()));
