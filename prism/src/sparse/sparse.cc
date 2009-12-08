@@ -811,6 +811,7 @@ NDSparseMatrix *build_sub_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode
 	} catch(std::bad_alloc e) {
 		if (ndsm) delete ndsm;
 		if (matrices) delete[] matrices;
+		if (submatrices) delete[] submatrices;
 		if (matrices_bdds) {
 			for (i = 0; i < nm; i++) Cudd_RecursiveDeref(ddman, matrices_bdds[i]);
 			delete[] matrices_bdds;
@@ -823,7 +824,7 @@ NDSparseMatrix *build_sub_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode
 	// clear up memory
 	for (i = 0; i < nm; i++) {
 		Cudd_RecursiveDeref(ddman, matrices_bdds[i]);
-		// nb: don't deref matrices array because that was just pointers, not new copies
+		// nb: don't deref matrices/submatrices array because that was just pointers, not new copies
 	}
 	delete[] matrices;
 	delete[] submatrices;
@@ -839,10 +840,10 @@ NDSparseMatrix *build_sub_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode
 //  into the list of all action labels)
 // throws std::bad_alloc on out-of-memory
 
-int *build_nd_action_vector(DdManager *ddman, DdNode *trans_actions, NDSparseMatrix *mdp_ndsm, DdNode **rvars, int num_vars, DdNode **ndvars, int num_ndvars, ODDNode *odd)
+int *build_nd_action_vector(DdManager *ddman, DdNode *mdp, DdNode *trans_actions, NDSparseMatrix *mdp_ndsm, DdNode **rvars, DdNode **cvars, int num_vars, DdNode **ndvars, int num_ndvars, ODDNode *odd)
 {
 	int i, n, nm, nc;
-	DdNode *tmp = NULL, **matrices = NULL, **matrices_bdds = NULL;
+	DdNode *tmp = NULL, **matrices = NULL, **submatrices = NULL, **matrices_bdds = NULL;
 	
 	// try/catch for memory allocation/deallocation
 	try {
@@ -851,16 +852,19 @@ int *build_nd_action_vector(DdManager *ddman, DdNode *trans_actions, NDSparseMat
 	n = mdp_ndsm->n;
 	nc = mdp_ndsm->nc;
 	// break the mtbdd storing the action info into several (nm) mtbdds
-	// (this number nm should match the figure for the corresponding mdp;
-	//  but we can't do this sanity check because that statistic is not retained.)
-	Cudd_Ref(trans_actions);
-	tmp = DD_Not(ddman, DD_Equals(ddman, trans_actions, 0));
+	// like for build_sub_nd_sparse_matrix above, we have to simultaneously traverse and
+	// split the mtbdd for the mdp itself - this to make sure that all our indices match up
+	// (more precisely, things go wrong where mtbdd storing the action info has a zero - meaning
+	// there is no action label - where there is a non-zero probability in the mdp)
+	Cudd_Ref(mdp);
+	tmp = DD_ThereExists(ddman, DD_Not(ddman, DD_Equals(ddman, mdp, 0)), cvars, num_vars);
 	tmp = DD_ThereExists(ddman, tmp, rvars, num_vars);
 	nm = (int)DD_GetNumMinterms(ddman, tmp, num_ndvars);
 	Cudd_RecursiveDeref(ddman, tmp);
 	matrices = new DdNode*[nm];
+	submatrices = new DdNode*[nm];
 	count = 0;
-	split_mdp_rec(ddman, trans_actions, ndvars, num_ndvars, 0, matrices);
+	split_mdp_and_sub_mdp_rec(ddman, mdp, trans_actions, ndvars, num_ndvars, 0, matrices, submatrices);
 	// and for each one create a bdd storing which rows are non-empty
 	matrices_bdds = new DdNode*[nm];
 	for (i = 0; i < nm; i++) {
@@ -885,15 +889,18 @@ int *build_nd_action_vector(DdManager *ddman, DdNode *trans_actions, NDSparseMat
 		starts[i] += starts[i-1];
 	}
 	
+	// initialise (unnecessarily) the 'actions'	array
+	for (i = 0; i < nc; i++) actions[i] = 0;
 	// now traverse the mtbdd to get the actual entries (action indices)
 	for (i = 0; i < nm; i++) {
-		traverse_mtbdd_vect_rec(ddman, matrices[i], rvars, num_vars, 0, odd, 0, 3);
+		traverse_mtbdd_vect_rec(ddman, submatrices[i], rvars, num_vars, 0, odd, 0, 3);
 	}
 	
 	// try/catch for memory allocation/deallocation
 	} catch(std::bad_alloc e) {
 		if (actions) delete[] actions;
 		if (matrices) delete[] matrices;
+		if (submatrices) delete[] submatrices;
 		if (matrices_bdds) {
 			for (i = 0; i < nm; i++) Cudd_RecursiveDeref(ddman, matrices_bdds[i]);
 			delete[] matrices_bdds;
@@ -905,10 +912,11 @@ int *build_nd_action_vector(DdManager *ddman, DdNode *trans_actions, NDSparseMat
 	// clear up memory
 	for (i = 0; i < nm; i++) {
 		Cudd_RecursiveDeref(ddman, matrices_bdds[i]);
-		// nb: don't deref matrices array because that was just pointers, not new copies
+		// nb: don't deref matrices/submatrices array because that was just pointers, not new copies
 	}
 	delete[] starts;
 	delete[] matrices;
+	delete[] submatrices;
 	delete[] matrices_bdds;
 	
 	return actions;
