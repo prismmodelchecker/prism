@@ -147,7 +147,9 @@ public class LTLModelChecker
 
 		// See how many new dd vars will be needed for DRA
 		// and whether there is room to put them before rather than after the existing vars
+		// (if DRA only has one state, we add an extra dummy state)
 		n = (int) Math.ceil(PrismUtils.log2(dra.size()));
+		n = Math.max(n, 1);
 		before = true;
 		if (allDDRowVars.getMinVarIndex() - 1 < 2 * n) {
 			before = false;
@@ -195,7 +197,8 @@ public class LTLModelChecker
 			newAllDDColVars.addVars(draDDColVars);
 		}
 		newVarList = (VarList) varList.clone();
-		Declaration decl = new Declaration(draVar, new DeclarationInt(Expression.Int(0), Expression.Int(dra.size() - 1)));
+		// NB: if DRA only has one state, we add an extra dummy state
+		Declaration decl = new Declaration(draVar, new DeclarationInt(Expression.Int(0), Expression.Int(Math.max(dra.size() - 1, 1))));
 		newVarList.addVar(before ? 0 : varList.getNumVars(), decl, 1, model.getConstantValues());
 
 		// Extra references (because will get derefed when new model is done with)
@@ -292,7 +295,9 @@ public class LTLModelChecker
 
 		// See how many new dd vars will be needed for DRA
 		// and whether there is room to put them before rather than after the existing vars
+		// (if DRA only has one state, we add an extra dummy state)
 		n = (int) Math.ceil(PrismUtils.log2(dra.size()));
+		n = Math.max(n, 1);
 		before = true;
 		if ((allDDRowVars.getMinVarIndex() - model.getAllDDNondetVars().getMaxVarIndex()) - 1 < 2 * n) {
 			before = false;
@@ -340,7 +345,8 @@ public class LTLModelChecker
 			newAllDDColVars.addVars(draDDColVars);
 		}
 		newVarList = (VarList) varList.clone();
-		Declaration decl = new Declaration(draVar, new DeclarationInt(Expression.Int(0), Expression.Int(dra.size() - 1)));
+		// NB: if DRA only has one state, we add an extra dummy state
+		Declaration decl = new Declaration(draVar, new DeclarationInt(Expression.Int(0), Expression.Int(Math.max(dra.size() - 1, 1))));
 		newVarList.addVar(before ? 0 : varList.getNumVars(), decl, 1, model.getConstantValues());
 
 		// Extra references (because will get derefed when new model is done with)
