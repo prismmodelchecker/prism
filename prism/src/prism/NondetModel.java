@@ -231,6 +231,8 @@ public class NondetModel extends ProbModel
 		if (!deadlocks.equals(JDD.ZERO)) {
 			// remove deadlocks by adding self-loops to trans
 			// (also update transInd (if necessary) at same time)
+			// (note: we don't need to update transActions since
+			//  action-less transitions are encoded as 0 anyway)
 			JDD.Ref(deadlocks);
 			tmp = JDD.SetVectorElement(JDD.Constant(0), allDDNondetVars, 0, 1);
 			tmp = JDD.And(tmp, JDD.Identity(allDDRowVars, allDDColVars));
