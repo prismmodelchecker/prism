@@ -248,11 +248,12 @@ public class NonProbModelChecker extends StateModelChecker
 					JDD.Ref(transActions);
 					tmp3 = JDD.Apply(JDD.TIMES, tmp3, transActions);
 					int action = (int)JDD.FindMax(tmp3);
-					cexActions.add(action > 1 ? model.getSynchs().get(action - 2) : "");
+					cexActions.add(action > 0 ? model.getSynchs().get(action - 1) : "");
 					JDD.Deref(tmp3);
 					JDD.Deref(cexDDs.get(i));
 				}
 				JDD.Deref(cexDDs.get(0));
+				mainLog.println("Counterexample (action sequence): " + cexActions);
 				result.setCounterexample(cexActions);
 			}
 			// Otherwise, convert list of BDDs to list of states

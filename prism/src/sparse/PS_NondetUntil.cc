@@ -82,7 +82,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
 	// adversary stuff
-	bool adv = false, adv_loop = false;
+	bool adv = true, adv_loop = false;
 	FILE *fp_adv = NULL;
 	int adv_l, adv_h;
 	int *actions;
@@ -128,7 +128,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 		Cudd_Ref(maybe);
 		tmp = DD_Apply(ddman, APPLY_TIMES, trans_actions, maybe);
 		// then convert to a vector of integer indices
-		actions = build_nd_action_vector(ddman, tmp, ndsm, rvars, num_rvars, ndvars, num_ndvars, odd);
+		actions = build_nd_action_vector(ddman, trans, tmp, ndsm, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
 		Cudd_RecursiveDeref(ddman, tmp);
 		kb = n*4.0/1024.0;
 		kbt += kb;
@@ -222,7 +222,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 			if (adv_loop) if (h1 > l1)
 				for (k = adv_l; k < adv_h; k++) {
 					fprintf(fp_adv, "%d %d %g", i, cols[k], non_zeros[k]);
-					if (actions != NULL) fprintf(fp_adv, " %s", actions[l1]>1?action_names[actions[l1]-2]:"");
+					if (actions != NULL) fprintf(fp_adv, " %s", actions[l1]>0?action_names[actions[l1]-1]:"");
 					fprintf(fp_adv, "\n");
 				}
 		}

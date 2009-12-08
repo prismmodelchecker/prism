@@ -77,7 +77,8 @@ public class Modules2MTBDD
 	private JDDNode start;				// dd for start state
 	private JDDNode stateRewards[];		// dds for state rewards
 	private JDDNode transRewards[];		// dds for transition rewards
-	private JDDNode transActions;	// dd for transition action labels
+	private JDDNode transActions;	// dd for transition action labels (MDPs)
+	private JDDNode transPerAction[];	// dds for transitions for each action (D/CTMCs)
 	private JDDNode transInd;	// dds for independent bits of trans
 	private JDDNode transSynch[];	// dds for synch action parts of trans
 	private JDDVars allDDRowVars;		// all dd vars (rows)
@@ -825,10 +826,11 @@ public class Modules2MTBDD
 				transRewards[j] = JDD.Apply(JDD.PLUS, transRewards[j], sysDDs.synchs[i].rewards[j]);
 			}
 		}
-		// for dtmcs/ctmcs, final rewards are scaled by dividing by total prob/rate for each transition
-		// (this is how we compute "expected" reward for each transition)
-		// (this becomes an issue when a transition prob/rate is the sum of several component values (from different actions))
-		// (for mdps, nondeterministic choices are always kept separate so this never occurs)
+		// For D/CTMCs, final rewards are scaled by dividing by total prob/rate for each transition
+		// (when individual transition rewards are computed, they are multiplied by individual probs/rates).
+		// Need to do this (for D/CTMCs) because transition prob/rate can be the sum of values from
+		// several different actions; this gives us the "expected" reward for each transition.
+		// (Note, for MDPs, nondeterministic choices are always kept separate so this never occurs.)
 		if (modelType != ModelType.MDP) {
 			n = modulesFile.getNumRewardStructs();
 			for (j = 0; j < n; j++) {
@@ -849,18 +851,36 @@ public class Modules2MTBDD
 			}
 		}
 		
-		// If required, we also build an MTBDD to store the action labels for each transition
+		// If required, we also build MTBDD(s) to store the action labels for each transition.
+		// The indexing of actions is as follows:
+		// independent ("tau", non-action-labelled) transitions have index 0;
+		// action-labelled transitions are 1-indexed using the ordering from the model file,
+		// i.e. adding 1 to the list of actions from modulesFile.getSynchs().
+		// What is actually stored differs for each model type.
+		// For MDPs, we just store the action (index) for each state and nondet choice
+		// (as an MTBDD 'transActions' over allDDRowVars and allDDNondetVars, with terminals giving index).  
+		// For D/CTMCs, we have store to store a copy of the transition matrix for each action
+		// (as numSynchs+1 MTBDDs 'transPerAction' over allDDRowVars/allDDColVars, with terminals giving prob/rate)  
+		// because one global transition can come from several different actions.
 		if (storeTransActions) {
-			if (modelType == ModelType.MDP) {
+			switch (modelType) {
+			case MDP:
 				transActions = JDD.Constant(0);
-				JDD.Ref(sysDDs.ind.trans);
-				tmp = JDD.ThereExists(JDD.GreaterThan(sysDDs.ind.trans, 0), allDDColVars);
-				transActions = JDD.Apply(JDD.PLUS, transActions, JDD.Apply(JDD.TIMES, tmp, JDD.Constant(1)));
+				// Don't need to store info for  independent (action-less) transitions
+				// as they are encoded as 0 anyway
+				//JDD.Ref(sysDDs.ind.trans);
+				//tmp = JDD.ThereExists(JDD.GreaterThan(sysDDs.ind.trans, 0), allDDColVars);
+				//transActions = JDD.Apply(JDD.PLUS, transActions, JDD.Apply(JDD.TIMES, tmp, JDD.Constant(1)));
 				for (i = 0; i < numSynchs; i++) {
 					JDD.Ref(sysDDs.synchs[i].trans);
 					tmp = JDD.ThereExists(JDD.GreaterThan(sysDDs.synchs[i].trans, 0), allDDColVars);
-					transActions = JDD.Apply(JDD.PLUS, transActions, JDD.Apply(JDD.TIMES, tmp, JDD.Constant(2+i)));
+					transActions = JDD.Apply(JDD.PLUS, transActions, JDD.Apply(JDD.TIMES, tmp, JDD.Constant(1+i)));
 				}
+				break;
+			case DTMC:
+			case CTMC:
+				// TODO: base on code for transInd and transSynch above
+				throw new PrismException("Not implemented yet");
 			}
 		}
 		
