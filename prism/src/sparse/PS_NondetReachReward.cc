@@ -183,7 +183,12 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	// open file to store adversary (if required)
 	if (adv) {
 		fp_adv = fopen("adv.tra", "w");
-		fprintf(fp_adv, "%d ?\n", n);
+		if (fp_adv) {
+			fprintf(fp_adv, "%d ?\n", n);
+		} else {
+			PS_PrintToMainLog(env, "\nWarning: Adversary generation cancelled (could not open file \"%s\").\n", "adv.tra");
+			adv = false;
+		}
 	}
 	
 	while ((!done && iters < max_iters) || adv_loop) {
@@ -305,6 +310,7 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	// close file to store adversary (if required)
 	if (adv) {
 		fclose(fp_adv);
+		PS_PrintToMainLog(env, "\nAdversary written to file \"%s\".\n", "adv.tra");
 	}
 	
 	// catch exceptions: register error, free memory
