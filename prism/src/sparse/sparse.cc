@@ -869,7 +869,7 @@ int *build_nd_action_vector(DdManager *ddman, DdNode *mdp, DdNode *trans_actions
 	matrices_bdds = new DdNode*[nm];
 	for (i = 0; i < nm; i++) {
 		Cudd_Ref(matrices[i]);
-		matrices_bdds[i] = DD_Not(ddman, DD_Equals(ddman, matrices[i], 0));
+		matrices_bdds[i] = DD_ThereExists(ddman, DD_Not(ddman, DD_Equals(ddman, matrices[i], 0)), cvars, num_vars);
 	}
 	
 	// create arrays

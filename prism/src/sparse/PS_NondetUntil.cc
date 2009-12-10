@@ -128,7 +128,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 		Cudd_Ref(maybe);
 		tmp = DD_Apply(ddman, APPLY_TIMES, trans_actions, maybe);
 		// then convert to a vector of integer indices
-		actions = build_nd_action_vector(ddman, trans, tmp, ndsm, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
+		actions = build_nd_action_vector(ddman, a, tmp, ndsm, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
 		Cudd_RecursiveDeref(ddman, tmp);
 		kb = n*4.0/1024.0;
 		kbt += kb;
