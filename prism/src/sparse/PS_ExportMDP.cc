@@ -31,6 +31,7 @@
 #include <dd.h>
 #include <odd.h>
 #include "sparse.h"
+#include "prism.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
 #include <new>
@@ -42,6 +43,8 @@ JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1ExportMDP
 JNIEnv *env,
 jclass cls,
 jlong __jlongpointer m,	// mdp
+jlong __jlongpointer ta,	// trans action labels
+jobject synchs,
 jstring na, 		// mdp name
 jlong __jlongpointer rv,	// row vars
 jint num_rvars,
@@ -54,14 +57,20 @@ jint et,		// export type
 jstring fn		// filename
 )
 {
-	DdNode *mdp = jlong_to_DdNode(m);		// mdp
-	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
-	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
+	DdNode *mdp = jlong_to_DdNode(m);				// mdp
+	DdNode *trans_actions = jlong_to_DdNode(ta);	// trans action labels
+	DdNode **rvars = jlong_to_DdNode_array(rv);		// row vars
+	DdNode **cvars = jlong_to_DdNode_array(cv);		// col vars
 	DdNode **ndvars = jlong_to_DdNode_array(ndv);	// nondet vars
 	ODDNode *odd = jlong_to_ODDNode(od);
 
 	// sparse matrix
 	NDSparseMatrix *ndsm = NULL;
+	// action info
+	int *actions = NULL;
+	jstring *action_names_jstrings = NULL;
+	const char** action_names = NULL;
+	int num_actions;
 	// model stats
 	int i, j, k, n, nc, l1, h1, l2, h2;
 	long nnz;
@@ -79,6 +88,13 @@ jstring fn		// filename
 	n = ndsm->n;
 	nnz = ndsm->nnz;
 	nc = ndsm->nc;
+	
+	// if needed, and if info is available, build a vector of action indices for the mdp
+	// also extract list of action names
+	if (true && trans_actions != NULL) {
+		actions = build_nd_action_vector(ddman, mdp, trans_actions, ndsm, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
+		get_string_array_from_java(env, synchs, action_names_jstrings, action_names, num_actions);
+	}
 	
 	// print file header
 	switch (export_type) {
@@ -107,17 +123,24 @@ jstring fn		// filename
 			else { l2 = h2; h2 += choice_counts[j]; }
 			if (export_type == EXPORT_ROWS) export_string("%d", i);
 			else if (export_type == EXPORT_DOT || export_type == EXPORT_DOT_STATES) {
-				export_string("%d -> %d.%d [ arrowhead=none,label=\"%d\" ];\n", i, i, j-l1, j-l1);
+				export_string("%d -> %d.%d [ arrowhead=none,label=\"%d", i, i, j-l1, j-l1);
+				if (actions != NULL) export_string(":%s", (actions[j]>0?action_names[actions[j]-1]:""));
+				export_string("\" ];\n");
 				export_string("%d.%d [ shape=circle,width=0.1,height=0.1,label=\"\" ];\n", i, j-l1);
 			}
 			for (k = l2; k < h2; k++) {
 				switch (export_type) {
-				case EXPORT_PLAIN: export_string("%d %d %d %.12g\n", i, j-l1, cols[k], non_zeros[k]); break;
+				case EXPORT_PLAIN:
+					export_string("%d %d %d %.12g", i, j-l1, cols[k], non_zeros[k]);
+					if (actions != NULL) export_string(" %s", (actions[j]>0?action_names[actions[j]-1]:""));
+					export_string("\n");
+					break;
 				case EXPORT_MATLAB: export_string("%s%d(%d,%d)=%.12g;\n", export_name, j-l1+1, i+1, cols[k]+1, non_zeros[k]); break;
 				case EXPORT_DOT: case EXPORT_DOT_STATES: export_string("%d.%d -> %d [ label=\"%.12g\" ];\n", i, j-l1, cols[k], non_zeros[k]); break;
 				case EXPORT_ROWS: export_string(" %.12g:%d", non_zeros[k], cols[k]); break;
 				}
 			}
+			if (export_type == EXPORT_ROWS && actions != NULL) export_string(" %s", (actions[j]>0?action_names[actions[j]-1]:""));
 			if (export_type == EXPORT_ROWS) export_string("\n");
 		}
 	}
@@ -139,6 +162,7 @@ jstring fn		// filename
 	
 	// free memory
 	if (ndsm) delete ndsm;
+	//if (action_names != NULL) release_string_array_from_java(env, action_names_jstrings, action_names, num_actions);
 	
 	return 0;
 }

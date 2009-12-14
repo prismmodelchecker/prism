@@ -226,10 +226,10 @@ JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1ExportMatrix
 /*
  * Class:     sparse_PrismSparse
  * Method:    PS_ExportMDP
- * Signature: (JLjava/lang/String;JIJIJIJILjava/lang/String;)I
+ * Signature: (JJLjava/util/List;Ljava/lang/String;JIJIJIJILjava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_sparse_PrismSparse_PS_1ExportMDP
-  (JNIEnv *, jclass, jlong, jstring, jlong, jint, jlong, jint, jlong, jint, jlong, jint, jstring);
+  (JNIEnv *, jclass, jlong, jlong, jobject, jstring, jlong, jint, jlong, jint, jlong, jint, jlong, jint, jstring);
 
 /*
  * Class:     sparse_PrismSparse

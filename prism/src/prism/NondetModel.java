@@ -339,7 +339,7 @@ public class NondetModel extends ProbModel
 		if (!explicit) {
 			// can only do explicit (sparse matrix based) export for mdps
 		} else {
-			PrismSparse.ExportMDP(trans, getTransSymbol(), allDDRowVars, allDDColVars, allDDNondetVars, odd,
+			PrismSparse.ExportMDP(trans, transActions, getSynchs(), getTransSymbol(), allDDRowVars, allDDColVars, allDDNondetVars, odd,
 					exportType, (file != null) ? file.getPath() : null);
 		}
 	}
