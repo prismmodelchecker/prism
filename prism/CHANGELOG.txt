@@ -9,7 +9,7 @@ Ongoing changes:
 * CTL model checking
 * New simulator
 * Adversary generation
-* Access to action labels
+* Access to action labels. inclusion in export, etc.
 
 Latest changes (reverse chronological):
 [correct wrt svn rev 1610]
