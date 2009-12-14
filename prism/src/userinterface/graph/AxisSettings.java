@@ -908,6 +908,11 @@ public class AxisSettings extends Observable implements SettingOwner
 				{
 					// FIXME: With i.e. interval 0.01 it rounds "0.10" to "0.1"
 					numAxis.setTickUnit(new NumberTickUnit(gridInterval.getDoubleValue()));
+					// Some experimental code to make axis display only odd numbers:
+					/*if (axisShouldOnlyShowOdd) numAxis.setNumberFormatOverride(new DecimalFormat()
+					{ public StringBuffer format(double number, StringBuffer toAppendTo, FieldPosition pos) {
+							return ((int)number % 2 == 0) ? new StringBuffer("") : super.format(number, toAppendTo, pos);
+					} });*/
 				}
 			}
 		}
