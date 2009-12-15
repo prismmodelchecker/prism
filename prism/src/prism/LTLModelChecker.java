@@ -110,8 +110,24 @@ public class LTLModelChecker
 
 	/**
 	 * Construct product of DRA and DTMC/CTMC.
+	 * @param dra: The DRA
+	 * @param model: The  DTMC/CTMC
+	 * @param labelDDs: BDDs giving the set of states for each AP in the DRA
+	 * @param allInit: Do we assume that all states of the original model are initial states (see below)
 	 */
 	public ProbModel constructProductMC(DRA dra,ProbModel model, Vector<JDDNode> labelDDs) throws PrismException
+	{
+		return constructProductMC(dra, model, labelDDs, true);
+	}
+	
+	/**
+	 * Construct product of DRA and DTMC/CTMC.
+	 * @param dra: The DRA
+	 * @param model: The  DTMC/CTMC
+	 * @param labelDDs: BDDs giving the set of states for each AP in the DRA
+	 * @param allInit: Do we assume that all states of the original model are initial states (see below)
+	 */
+	public ProbModel constructProductMC(DRA dra,ProbModel model, Vector<JDDNode> labelDDs, boolean allInit) throws PrismException
 	{
 		// Existing model - dds, vars, etc.
 		JDDVars varDDRowVars[];
@@ -219,14 +235,15 @@ public class LTLModelChecker
 		newTrans = JDD.Apply(JDD.TIMES, model.getTrans(), newTrans);
 
 		// Build set of initial states for product
-		// Note that we take product of *all* states of the original MDP, not just its initial states.
+		// Note, by default, we take product of *all* states of the original model, not just its initial states.
 		// Initial states are only used for reachability in this instance.
 		// We need to ensure that the product model includes states corresponding to all
-		// states of the original MDP (because we compute probabilities for all of them)
+		// states of the original model (because we compute probabilities for all of them)
 		// but some of these may not be reachable from the initial state of the product model.
+		// Optionally (if allInit is false), we don't do this - maybe because we only care about result for the initial state
 		newStart = buildStartMask(dra, labelDDs, draDDRowVars);
-		JDD.Ref(model.getReach());
-		newStart = JDD.And(model.getReach(), newStart);
+		JDD.Ref(allInit ? model.getReach() : model.getStart());
+		newStart = JDD.And(allInit ? model.getReach() : model.getStart(), newStart);
 
 		// Create a new model model object to store the product model
 		ProbModel modelProd = new ProbModel(
@@ -258,8 +275,23 @@ public class LTLModelChecker
 
 	/**
 	 * Construct product of DRA and MDP.
+	 * @param dra: The DRA
+	 * @param model: The MDP
+	 * @param labelDDs: BDDs giving the set of states for each AP in the DRA
 	 */
 	public NondetModel constructProductMDP(DRA dra, NondetModel model, Vector<JDDNode> labelDDs) throws PrismException
+	{
+		return constructProductMDP(dra, model, labelDDs, true);
+	}
+
+	/**
+	 * Construct product of DRA and MDP.
+	 * @param dra: The DRA
+	 * @param model: The MDP
+	 * @param labelDDs: BDDs giving the set of states for each AP in the DRA
+	 * @param allInit: Do we assume that all states of the original model are initial states (see below)
+	 */
+	public NondetModel constructProductMDP(DRA dra, NondetModel model, Vector<JDDNode> labelDDs, boolean allInit) throws PrismException
 	{
 		// Existing model - dds, vars, etc.
 		JDDVars varDDRowVars[];
@@ -371,14 +403,15 @@ public class LTLModelChecker
 		newTrans = JDD.Apply(JDD.TIMES, model.getTrans(), newTrans);
 
 		// Build set of initial states for product
-		// Note that we take product of *all* states of the original MDP, not just its initial states.
+		// Note, by default, we take product of *all* states of the original model, not just its initial states.
 		// Initial states are only used for reachability in this instance.
 		// We need to ensure that the product model includes states corresponding to all
-		// states of the original MDP (because we compute probabilities for all of them)
+		// states of the original model (because we compute probabilities for all of them)
 		// but some of these may not be reachable from the initial state of the product model.
+		// Optionally (if allInit is false), we don't do this - maybe because we only care about result for the initial state
 		newStart = buildStartMask(dra, labelDDs, draDDRowVars);
-		JDD.Ref(model.getReach());
-		newStart = JDD.And(model.getReach(), newStart);
+		JDD.Ref(allInit ? model.getReach() : model.getStart());
+		newStart = JDD.And(allInit ? model.getReach() : model.getStart(), newStart);
 
 		// Create a new model model object to store the product model
 		NondetModel modelProd = new NondetModel(
@@ -769,6 +802,7 @@ public class LTLModelChecker
 			JDD.Deref(stableSet);
 			JDD.Deref(stableSetTrans);
 			sccs = sccComputer.getVectSCCs();
+			mainLog.println("SCC computer found " + sccs.size() + " SCCs");
 			JDD.Deref(sccComputer.getNotInSCCs());
 			candidates.addAll(sccs);
 		}
