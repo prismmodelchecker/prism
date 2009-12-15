@@ -382,7 +382,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		NondetModel modelProduct;
 		NondetModelChecker mcProduct;
 		JDDNode startMask;
-		JDDVars draDDRowVars;
+		JDDVars draDDRowVars, draDDColVars;
 		int i;
 		long l;
 
@@ -430,7 +430,9 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// Build product of MDP and automaton
 		mainLog.println("\nConstructing MDP-DRA product...");
-		modelProduct = mcLtl.constructProductMDP(dra, model, labelDDs);
+		draDDRowVars = new JDDVars();
+		draDDColVars = new JDDVars();
+		modelProduct = mcLtl.constructProductMDP(dra, model, labelDDs, draDDRowVars, draDDColVars);
 		mainLog.println();
 		modelProduct.printTransInfo(mainLog, prism.getExtraDDInfo());
 		// prism.exportStatesToFile(modelProduct, Prism.EXPORT_PLAIN, null);
@@ -438,7 +440,7 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// Find accepting maximum end components
 		mainLog.println("\nFinding accepting end components...");
-		JDDNode acc = mcLtl.findAcceptingStates(dra, modelProduct, fairness);
+		JDDNode acc = mcLtl.findAcceptingStates(dra, modelProduct, draDDRowVars, draDDColVars, fairness);
 
 		// Compute reachability probabilities
 		mainLog.println("\nComputing reachability probabilities...");
@@ -457,9 +459,6 @@ public class NondetModelChecker extends NonProbModelChecker
 		startMask = modelProduct.getStart();
 		probsProduct.filter(startMask);
 		// Then sum over DD vars for the DRA state
-		draDDRowVars = new JDDVars();
-		draDDRowVars.addVars(modelProduct.getAllDDRowVars());
-		draDDRowVars.removeVars(allDDRowVars);
 		probs = probsProduct.sumOverDDVars(draDDRowVars, model);
 
 		// Deref, clean up
@@ -469,6 +468,8 @@ public class NondetModelChecker extends NonProbModelChecker
 			JDD.Deref(labelDDs.get(i));
 		}
 		JDD.Deref(acc);
+		draDDRowVars.derefAll();
+		draDDColVars.derefAll();
 
 		return probs;
 	}

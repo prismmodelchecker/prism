@@ -589,7 +589,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		ProbModel modelProduct;
 		ProbModelChecker mcProduct;
 		JDDNode startMask;
-		JDDVars draDDRowVars;
+		JDDVars draDDRowVars, draDDColVars;
 		int i;
 		long l;
 
@@ -630,7 +630,9 @@ public class ProbModelChecker extends NonProbModelChecker
 		// Build product of Markov chain and automaton
 		// (note: might be a CTMC - StochModelChecker extends this class)
 		mainLog.println("\nConstructing MC-DRA product...");
-		modelProduct = mcLtl.constructProductMC(dra, model, labelDDs);
+		draDDRowVars = new JDDVars();
+		draDDColVars = new JDDVars();
+		modelProduct = mcLtl.constructProductMC(dra, model, labelDDs, draDDRowVars, draDDColVars);
 		mainLog.println();
 		modelProduct.printTransInfo(mainLog, prism.getExtraDDInfo());
 		// prism.exportStatesToFile(modelProduct, Prism.EXPORT_PLAIN, null);
@@ -638,7 +640,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		
 		// Find accepting maximum end BSCC
 		mainLog.println("\nFinding accepting BSCCs...");
-		JDDNode acc = mcLtl.findAcceptingBSCCs(dra, modelProduct);
+		JDDNode acc = mcLtl.findAcceptingBSCCs(dra, draDDRowVars, draDDColVars, modelProduct);
 
 		// Compute reachability probabilities
 		mainLog.println("\nComputing reachability probabilities...");
@@ -652,9 +654,6 @@ public class ProbModelChecker extends NonProbModelChecker
 		startMask = modelProduct.getStart();
 		probsProduct.filter(startMask);
 		// Then sum over DD vars for the DRA state
-		draDDRowVars = new JDDVars();
-		draDDRowVars.addVars(modelProduct.getAllDDRowVars());
-		draDDRowVars.removeVars(allDDRowVars);
 		probs = probsProduct.sumOverDDVars(draDDRowVars, model);
 
 		// Deref, clean up
@@ -664,6 +663,8 @@ public class ProbModelChecker extends NonProbModelChecker
 			JDD.Deref(labelDDs.get(i));
 		}
 		JDD.Deref(acc);
+		draDDRowVars.derefAll();
+		draDDColVars.derefAll();
 
 		return probs;
 	}

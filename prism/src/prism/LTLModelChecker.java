@@ -43,9 +43,6 @@ public class LTLModelChecker
 {
 	protected Prism prism;
 	protected PrismLog mainLog;
-	// DRA/product stuff
-	protected JDDVars draDDRowVars;
-	protected JDDVars draDDColVars;
 
 	public LTLModelChecker(Prism prism) throws PrismException
 	{
@@ -57,7 +54,8 @@ public class LTLModelChecker
 	 * Extract maximal state formula from an LTL path formula, model check them (with passed in model checker) and
 	 * replace them with ExpressionLabel objects L0, L1, etc. Expression passed in is modified directly, but the result
 	 * is also returned. As an optimisation, model checking that results in true/false for all states is converted to an
-	 * actual true/false, and duplicate results are given the same label.
+	 * actual true/false, and duplicate results are given the same label. BDDs giving the states which satisfy each label
+	 * are put into the vector  labelDDs, which should be empty when this function is called.
 	 */
 	public Expression checkMaximalStateFormulas(ModelChecker mc, Model model, Expression expr, Vector<JDDNode> labelDDs)
 			throws PrismException
@@ -113,21 +111,37 @@ public class LTLModelChecker
 	 * @param dra: The DRA
 	 * @param model: The  DTMC/CTMC
 	 * @param labelDDs: BDDs giving the set of states for each AP in the DRA
-	 * @param allInit: Do we assume that all states of the original model are initial states (see below)
 	 */
-	public ProbModel constructProductMC(DRA dra,ProbModel model, Vector<JDDNode> labelDDs) throws PrismException
+	public ProbModel constructProductMC(DRA dra, ProbModel model, Vector<JDDNode> labelDDs) throws PrismException
 	{
-		return constructProductMC(dra, model, labelDDs, true);
+		return constructProductMC(dra, model, labelDDs, null, null, true);
 	}
-	
+
 	/**
 	 * Construct product of DRA and DTMC/CTMC.
 	 * @param dra: The DRA
 	 * @param model: The  DTMC/CTMC
 	 * @param labelDDs: BDDs giving the set of states for each AP in the DRA
-	 * @param allInit: Do we assume that all states of the original model are initial states (see below)
+	 * @param draDDRowVarsCopy: (Optionally) empty JDDVars object to obtain copy of DD row vars for DRA
+	 * @param draDDColVarsCopy: (Optionally) empty JDDVars object to obtain copy of DD col vars for DRA
 	 */
-	public ProbModel constructProductMC(DRA dra,ProbModel model, Vector<JDDNode> labelDDs, boolean allInit) throws PrismException
+	public ProbModel constructProductMC(DRA dra, ProbModel model, Vector<JDDNode> labelDDs, JDDVars draDDRowVarsCopy,
+			JDDVars draDDColVarsCopy) throws PrismException
+	{
+		return constructProductMC(dra, model, labelDDs, draDDRowVarsCopy, draDDColVarsCopy, true);
+	}
+
+	/**
+	 * Construct product of DRA and DTMC/CTMC.
+	 * @param dra: The DRA
+	 * @param model: The  DTMC/CTMC
+	 * @param labelDDs: BDDs giving the set of states for each AP in the DRA
+	 * @param draDDRowVarsCopy: (Optionally) empty JDDVars object to obtain copy of DD row vars for DRA
+	 * @param draDDColVarsCopy: (Optionally) empty JDDVars object to obtain copy of DD col vars for DRA
+	 * @param allInit: Do we assume that all states of the original model are initial states? (see below)
+	 */
+	public ProbModel constructProductMC(DRA dra, ProbModel model, Vector<JDDNode> labelDDs, JDDVars draDDRowVarsCopy,
+			JDDVars draDDColVarsCopy, boolean allInit) throws PrismException
 	{
 		// Existing model - dds, vars, etc.
 		JDDVars varDDRowVars[];
@@ -143,6 +157,8 @@ public class LTLModelChecker
 		Vector<String> newDDVarNames;
 		VarList newVarList;
 		String draVar;
+		// DRA stuff
+		JDDVars draDDRowVars, draDDColVars;
 		// Misc
 		int i, j, n;
 		boolean before;
@@ -171,9 +187,11 @@ public class LTLModelChecker
 			before = false;
 		}
 
+		// If passed in var lists are null, create new lists
+		// (which won't be accessible later in this case)
+		draDDRowVars = (draDDRowVarsCopy == null) ? new JDDVars() : draDDRowVarsCopy;
+		draDDColVars = (draDDColVarsCopy == null) ? new JDDVars() : draDDColVarsCopy;
 		// Create the new dd variables
-		draDDRowVars = new JDDVars();
-		draDDColVars = new JDDVars();
 		newDDVarNames = new Vector<String>();
 		newDDVarNames.addAll(ddVarNames);
 		j = before ? allDDRowVars.getMinVarIndex() - 2 * n : model.getAllDDColVars().getMaxVarIndex() + 1;
@@ -214,7 +232,8 @@ public class LTLModelChecker
 		}
 		newVarList = (VarList) varList.clone();
 		// NB: if DRA only has one state, we add an extra dummy state
-		Declaration decl = new Declaration(draVar, new DeclarationInt(Expression.Int(0), Expression.Int(Math.max(dra.size() - 1, 1))));
+		Declaration decl = new Declaration(draVar, new DeclarationInt(Expression.Int(0), Expression.Int(Math.max(dra
+				.size() - 1, 1))));
 		newVarList.addVar(before ? 0 : varList.getNumVars(), decl, 1, model.getConstantValues());
 
 		// Extra references (because will get derefed when new model is done with)
@@ -247,7 +266,7 @@ public class LTLModelChecker
 
 		// Create a new model model object to store the product model
 		ProbModel modelProd = new ProbModel(
-				// New transition matrix/start state
+		// New transition matrix/start state
 				newTrans, newStart,
 				// Don't pass in any rewards info
 				new JDDNode[0], new JDDNode[0], new String[0],
@@ -270,6 +289,12 @@ public class LTLModelChecker
 			throw new PrismException("Model-DRA product has deadlock states");
 		}
 
+		// Reference DRA DD vars (if being returned)
+		if (draDDRowVarsCopy != null)
+			draDDRowVarsCopy.refAll();
+		if (draDDColVarsCopy != null)
+			draDDColVarsCopy.refAll();
+		
 		return modelProd;
 	}
 
@@ -281,7 +306,7 @@ public class LTLModelChecker
 	 */
 	public NondetModel constructProductMDP(DRA dra, NondetModel model, Vector<JDDNode> labelDDs) throws PrismException
 	{
-		return constructProductMDP(dra, model, labelDDs, true);
+		return constructProductMDP(dra, model, labelDDs, null, null, true);
 	}
 
 	/**
@@ -289,9 +314,26 @@ public class LTLModelChecker
 	 * @param dra: The DRA
 	 * @param model: The MDP
 	 * @param labelDDs: BDDs giving the set of states for each AP in the DRA
-	 * @param allInit: Do we assume that all states of the original model are initial states (see below)
+	 * @param draDDRowVarsCopy: (Optionally) empty JDDVars object to obtain copy of DD row vars for DRA
+	 * @param draDDColVarsCopy: (Optionally) empty JDDVars object to obtain copy of DD col vars for DRA
 	 */
-	public NondetModel constructProductMDP(DRA dra, NondetModel model, Vector<JDDNode> labelDDs, boolean allInit) throws PrismException
+	public NondetModel constructProductMDP(DRA dra, NondetModel model, Vector<JDDNode> labelDDs, JDDVars draDDRowVarsCopy,
+			JDDVars draDDColVarsCopy) throws PrismException
+	{
+		return constructProductMDP(dra, model, labelDDs, draDDRowVarsCopy, draDDColVarsCopy, true);
+	}
+
+	/**
+	 * Construct product of DRA and MDP.
+	 * @param dra: The DRA
+	 * @param model: The MDP
+	 * @param labelDDs: BDDs giving the set of states for each AP in the DRA
+	 * @param draDDRowVarsCopy: (Optionally) empty JDDVars object to obtain copy of DD row vars for DRA
+	 * @param draDDColVarsCopy: (Optionally) empty JDDVars object to obtain copy of DD col vars for DRA
+	 * @param allInit: Do we assume that all states of the original model are initial states? (see below)
+	 */
+	public NondetModel constructProductMDP(DRA dra, NondetModel model, Vector<JDDNode> labelDDs, JDDVars draDDRowVarsCopy,
+			JDDVars draDDColVarsCopy, boolean allInit) throws PrismException
 	{
 		// Existing model - dds, vars, etc.
 		JDDVars varDDRowVars[];
@@ -307,6 +349,8 @@ public class LTLModelChecker
 		Vector<String> newDDVarNames;
 		VarList newVarList;
 		String draVar;
+		// DRA stuff
+		JDDVars draDDRowVars, draDDColVars;
 		// Misc
 		int i, j, n;
 		boolean before;
@@ -335,9 +379,11 @@ public class LTLModelChecker
 			before = false;
 		}
 
+		// If passed in var lists are null, create new lists
+		// (which won't be accessible later in this case)
+		draDDRowVars = (draDDRowVarsCopy == null) ? new JDDVars() : draDDRowVarsCopy;
+		draDDColVars = (draDDColVarsCopy == null) ? new JDDVars() : draDDColVarsCopy;
 		// Create the new dd variables
-		draDDRowVars = new JDDVars();
-		draDDColVars = new JDDVars();
 		newDDVarNames = new Vector<String>();
 		newDDVarNames.addAll(ddVarNames);
 		j = before ? allDDRowVars.getMinVarIndex() - 2 * n : model.getAllDDColVars().getMaxVarIndex() + 1;
@@ -378,7 +424,8 @@ public class LTLModelChecker
 		}
 		newVarList = (VarList) varList.clone();
 		// NB: if DRA only has one state, we add an extra dummy state
-		Declaration decl = new Declaration(draVar, new DeclarationInt(Expression.Int(0), Expression.Int(Math.max(dra.size() - 1, 1))));
+		Declaration decl = new Declaration(draVar, new DeclarationInt(Expression.Int(0), Expression.Int(Math.max(dra
+				.size() - 1, 1))));
 		newVarList.addVar(before ? 0 : varList.getNumVars(), decl, 1, model.getConstantValues());
 
 		// Extra references (because will get derefed when new model is done with)
@@ -415,14 +462,15 @@ public class LTLModelChecker
 
 		// Create a new model model object to store the product model
 		NondetModel modelProd = new NondetModel(
-				// New transition matrix/start state
+		// New transition matrix/start state
 				newTrans, newStart,
 				// Don't pass in any rewards info
 				new JDDNode[0], new JDDNode[0], new String[0],
 				// New list of all row/col vars
 				newAllDDRowVars, newAllDDColVars,
 				// Nondet variables (unchanged)
-				model.getAllDDSchedVars(), model.getAllDDSynchVars(), model.getAllDDChoiceVars(), model.getAllDDNondetVars(),
+				model.getAllDDSchedVars(), model.getAllDDSynchVars(), model.getAllDDChoiceVars(), model
+						.getAllDDNondetVars(),
 				// New list of var names
 				newDDVarNames,
 				// Module info (unchanged)
@@ -440,6 +488,12 @@ public class LTLModelChecker
 			throw new PrismException("Model-DRA product has deadlock states");
 		}
 
+		// Reference DRA DD vars (if being returned)
+		if (draDDRowVarsCopy != null)
+			draDDRowVarsCopy.refAll();
+		if (draDDColVarsCopy != null)
+			draDDColVarsCopy.refAll();
+		
 		return modelProd;
 	}
 
@@ -449,8 +503,8 @@ public class LTLModelChecker
 	 * 
 	 * @return a referenced mask BDD over trans
 	 */
-	public JDDNode buildTransMask(DRA dra, Vector<JDDNode> labelDDs, JDDVars allDDRowVars, JDDVars allDDColVars, JDDVars draDDRowVars,
-			JDDVars draDDColVars)
+	public JDDNode buildTransMask(DRA dra, Vector<JDDNode> labelDDs, JDDVars allDDRowVars, JDDVars allDDColVars,
+			JDDVars draDDRowVars, JDDVars draDDColVars)
 	{
 		Iterator<DA_State> it;
 		DA_State state;
@@ -479,8 +533,8 @@ public class LTLModelChecker
 				// Switch label BDD to col vars
 				label = JDD.PermuteVariables(label, allDDRowVars, allDDColVars);
 				// Build a BDD for the edge
-				transition = JDD.SetMatrixElement(JDD.Constant(0), draDDRowVars, draDDColVars, state.getName(), edge.getValue().getName(),
-						1);
+				transition = JDD.SetMatrixElement(JDD.Constant(0), draDDRowVars, draDDColVars, state.getName(), edge
+						.getValue().getName(), 1);
 				// Now get the conjunction of the two
 				transition = JDD.And(transition, label);
 				// Add edge BDD to the DRA transition mask
@@ -534,20 +588,21 @@ public class LTLModelChecker
 	 * 
 	 * @returns a referenced BDD of the union of all the accepting sets
 	 */
-	public JDDNode findAcceptingBSCCs(DRA dra, ProbModel model) throws PrismException
+	public JDDNode findAcceptingBSCCs(DRA dra, JDDVars draDDRowVars, JDDVars draDDColVars, ProbModel model)
+			throws PrismException
 	{
-		SCCComputer sccComputer ;
+		SCCComputer sccComputer;
 		JDDNode acceptingStates, allAcceptingStates;
 		Vector<JDDNode> vectBSCCs, newVectBSCCs;
 		JDDNode tmp, tmp2;
 		int i, j, n;
-		
+
 		// Compute BSCCs for model
 		sccComputer = prism.getSCCComputer(model);
 		sccComputer.computeBSCCs();
 		vectBSCCs = sccComputer.getVectBSCCs();
 		JDD.Deref(sccComputer.getNotInBSCCs());
-		
+
 		allAcceptingStates = JDD.Constant(0);
 
 		// for each acceptance pair (H_i, L_i) in the DRA, build H'_i = S x H_i
@@ -572,7 +627,7 @@ public class LTLModelChecker
 					acceptanceVector_L = JDD.SetVectorElement(acceptanceVector_L, draDDRowVars, j, 1.0);
 				}
 			}
-			
+
 			// Check each BSCC for inclusion in H_i states
 			// i.e. restrict each BSCC to H_i states and test if unchanged
 			n = vectBSCCs.size();
@@ -591,20 +646,20 @@ public class LTLModelChecker
 				JDD.Deref(tmp2);
 			}
 			JDD.Deref(acceptanceVector_H);
-			
+
 			// Compute union of BSCCs which overlap with acceptanceVector_L
 			acceptingStates = filteredUnion(newVectBSCCs, acceptanceVector_L);
-			
+
 			// Add states to our destination BDD
 			allAcceptingStates = JDD.Or(allAcceptingStates, acceptingStates);
 		}
-		
+
 		// Deref BSCCs 
 		n = vectBSCCs.size();
 		for (j = 0; j < n; j++) {
 			JDD.Deref(vectBSCCs.get(j));
 		}
-		
+
 		return allAcceptingStates;
 	}
 
@@ -613,11 +668,12 @@ public class LTLModelChecker
 	 * 
 	 * @returns a referenced BDD of the union of all the accepting sets
 	 */
-	public JDDNode findAcceptingStates(DRA dra, NondetModel model, boolean fairness) throws PrismException
+	public JDDNode findAcceptingStates(DRA dra, NondetModel model, JDDVars draDDRowVars, JDDVars draDDColVars,
+			boolean fairness) throws PrismException
 	{
 		JDDNode acceptingStates, allAcceptingStates;
 		int i, j;
-		
+
 		allAcceptingStates = JDD.Constant(0);
 
 		// for each acceptance pair (H_i, L_i) in the DRA, build H'_i = S x H_i
@@ -673,7 +729,7 @@ public class LTLModelChecker
 			// Add states to our destination BDD
 			allAcceptingStates = JDD.Or(allAcceptingStates, acceptingStates);
 		}
-		
+
 		return allAcceptingStates;
 	}
 
@@ -797,7 +853,8 @@ public class LTLModelChecker
 
 			// now find the maximal SCCs in (stableSet, stableSetTrans)
 			Vector<JDDNode> sccs;
-			sccComputer = prism.getSCCComputer(stableSet, stableSetTrans, model.getAllDDRowVars(), model.getAllDDColVars());
+			sccComputer = prism.getSCCComputer(stableSet, stableSetTrans, model.getAllDDRowVars(), model
+					.getAllDDColVars());
 			sccComputer.computeSCCs();
 			JDD.Deref(stableSet);
 			JDD.Deref(stableSetTrans);
