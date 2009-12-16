@@ -292,16 +292,6 @@ public class PrismParser
 	}
 	
 	/**
-	 * Split a single argument ExpressionFunc object into two expressions.
-	 */
-	protected ExpressionPair splitExpressionFunc(ExpressionFunc func)
-	{
-		ExpressionPair expr = new ExpressionPair();
-		
-		return expr;
-	}
-	
-	/**
 	 * Generate a syntax error (PrismLangException) from a ParseException.
 	 */
 	protected PrismLangException generateSyntaxError(ParseException e)
@@ -370,6 +360,7 @@ TOKEN :
 |	< ENDSYSTEM:		"endsystem" >
 |	< FALSE:			"false" >
 |	< FORMULA:			"formula" >
+|	< FILTER:			"filter" >
 |	< FUNC:				"func" >
 |	< F:				"F" >
 |	< GLOBAL:			"global" >
@@ -1281,6 +1272,8 @@ Expression ExpressionBasic(boolean prop, boolean pathprop) :
 		ret = ExpressionForAll(prop, pathprop)
 	|
 		ret = ExpressionLabel(prop, pathprop)
+	|
+		ret = ExpressionFilter(prop, pathprop)
 	)
 	{ return ret; }
 }
@@ -1599,6 +1592,23 @@ Expression ExpressionLabel(boolean prop, boolean pathprop) :
 	// Label can be arbitary string or the "init" keyword
 	( begin = <DQUOTE> ( s=Identifier() | <INIT> { s = "init"; } ) <DQUOTE> )
 	{ ret = new ExpressionLabel(s); ret.setPosition(begin, getToken(0)); return ret; }
+}
+
+// (Property) expression: filter (using "filter" keyword)
+
+Expression ExpressionFilter(boolean prop, boolean pathprop) :
+{
+	String s = null;
+	ExpressionFunc func = null;
+	Token begin = null;
+}
+{
+	// This production is only allowed in expressions if the "prop" parameter is true
+	{ if (!prop) throw generateParseException(); }
+	
+	( begin = <FILTER> { s = "min"; } | begin = <MAX> { s = "max"; } ) 
+	{ func = new ExpressionFunc(s); } <LPARENTH>  ExpressionFuncArgs(prop, pathprop, func) <RPARENTH>
+	{ func.setPosition(begin, getToken(0)); return func; }
 }
 
 //-----------------------------------------------------------------------------------
