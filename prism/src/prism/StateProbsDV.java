@@ -480,6 +480,10 @@ public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolea
 	private void printLine(int n, double d)
 	{
 		int i, j;
+		// increment counter (used in printFiltered)
+		if (d > 0)
+			counter++;
+		// do printing
 		if (!printSparse || d != 0) {
 			if (printSparse)
 				outputLog.print(printMatlab ? "v(" + (n + 1) + ")" : n);
