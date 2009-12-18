@@ -14,6 +14,7 @@ Ongoing changes:
 Latest changes (reverse chronological):
 [correct wrt svn rev 1610]
 
+* Formulas used in properties are left unexpanded for legibility
 * New versions of jcommon (1.0.16) and jfreechart (1.0.13)
 * Option to specify initial distribution for transient analysis
 * Option to export transient probabilities to a file
