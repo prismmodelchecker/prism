@@ -223,29 +223,33 @@ public class StateProbsDV implements StateProbs
 		return "" + getNNZ();
 	}
 	
-	// get value of first element in BDD filter
-	
+	/**
+	 * Get the value of first vector element that is in the (BDD) filter.
+	 */
 	public double firstFromBDD(JDDNode filter)
 	{
 		return probs.firstFromBDD(filter, vars, odd);
 	}
 	
-	// get min value over BDD filter
-	
+	/**
+	 * Get the minimum value of those that are in the (BDD) filter.
+	 */
 	public double minOverBDD(JDDNode filter)
 	{
 		return probs.minOverBDD(filter, vars, odd);
 	}
 	
-	// get max value over BDD filter
-	
+	/**
+	 * Get the minimum value of those that are in the (BDD) filter.
+	 */
 	public double maxOverBDD(JDDNode filter)
 	{
 		return probs.maxOverBDD(filter, vars, odd);
 	}
 	
-	// sum elements of vector according to a bdd (used for csl steady state operator)
-	
+	/**
+	 * Get the sum of those elements that are in the (BDD) filter.
+	 */
 	public double sumOverBDD(JDDNode filter)
 	{
 		return probs.sumOverBDD(filter, vars, odd);

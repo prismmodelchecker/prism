@@ -1227,6 +1227,7 @@ public class StateModelChecker implements ModelChecker
 		Expression filter;
 		StateProbs vals = null, res = null;
 		JDDNode ddFilter;
+		boolean empty = false;
 		double d = 0.0;
 
 		// Check operand recursively
@@ -1237,9 +1238,12 @@ public class StateModelChecker implements ModelChecker
 			filter = Expression.True();
 		ddFilter = checkExpressionDD(filter);
 		// Check if filter state set is empty
+		// (display warning and optimise/catch below)
 		if (ddFilter.equals(JDD.ZERO)) {
+			empty = true;
 			mainLog.println("\nWarning: Filter " + filter + " satisfies no states");
 		}
+		
 		// Compute result according to filter type
 		switch (expr.getOperatorType()) {
 		case PRINT:
@@ -1248,18 +1252,42 @@ public class StateModelChecker implements ModelChecker
 			res = vals;
 			break;
 		case MIN:
-			d = vals.minOverBDD(ddFilter);
+			d = empty ? Double.POSITIVE_INFINITY : vals.minOverBDD(ddFilter);
 			mainLog.println("\nFilter: minimum value for states satisfying " + filter + ": " + d);
 			res = new StateProbsMTBDD(JDD.Constant(d), model);
 			break;
 		case MAX:
-			d = vals.maxOverBDD(ddFilter);
+			d = empty ? Double.NEGATIVE_INFINITY : vals.maxOverBDD(ddFilter);
 			mainLog.println("\nFilter: maximum value for states satisfying " + filter + ": " + d);
 			res = new StateProbsMTBDD(JDD.Constant(d), model);
 			break;
 		case COUNT:
-			d = vals.getNNZ();
+			if (empty)
+				d = 0;
+			else {
+				vals.filter(ddFilter);
+				d = vals.getNNZ();
+			}
 			mainLog.println("\nFilter: count of states satisfying " + filter + ": " + (int)d);
+			res = new StateProbsMTBDD(JDD.Constant(d), model);
+			break;
+		case SUM:
+			d = empty ? 0 : vals.sumOverBDD(ddFilter);
+			mainLog.println("\nFilter: sum over states satisfying " + filter + ": " + (int)d);
+			res = new StateProbsMTBDD(JDD.Constant(d), model);
+			break;
+		case AVG:
+			if (empty)
+				throw new PrismException("Can't take an average over an empty filter");
+			d = vals.sumOverBDD(ddFilter) / JDD.GetNumMinterms(ddFilter, allDDRowVars.n());
+			mainLog.println("\nFilter: average over states satisfying " + filter + ": " + d);
+			res = new StateProbsMTBDD(JDD.Constant(d), model);
+			break;
+		case FIRST:
+			if (empty)
+				throw new PrismException("Can't select the first value from an empty filter");
+			d = vals.sumOverBDD(ddFilter) / JDD.GetNumMinterms(ddFilter, allDDRowVars.n());
+			mainLog.println("\nFilter: value for first state satisfying " + filter + ": " + d);
 			res = new StateProbsMTBDD(JDD.Constant(d), model);
 			break;
 		default:

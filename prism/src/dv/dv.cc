@@ -225,8 +225,12 @@ void filter_double_vector_rec(DdManager *ddman, double *vec, DdNode *filter, DdN
 
 EXPORT double get_first_from_bdd(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd)
 {
-	// should never be called with an empty filter - we trap this case and return -1
-	if (filter == Cudd_ReadZero(ddman)) return -1;
+	// This shouldn't really be called with an empty filter.
+	// But we check for this anyway and return NaN.
+	// This is unfortunately indistinguishable from the case
+	// where the vector does actually contain NaN. Ho hum.
+	if (filter == Cudd_ReadZero(ddman)) return NAN;
+	// Recurse...
 	else return get_first_from_bdd_rec(ddman, vec, filter, vars, num_vars, 0, odd, 0);
 }
 

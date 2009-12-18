@@ -241,8 +241,11 @@ public class StateProbsMTBDD implements StateProbs
 		return "" + getNNZ();
 	}
 	
-	// get value of first element in BDD filter
+	// Filter operations
 	
+	/**
+	 * Get the value of first vector element that is in the (BDD) filter.
+	 */
 	public double firstFromBDD(JDDNode filter)
 	{
 		JDDNode tmp;
@@ -253,9 +256,12 @@ public class StateProbsMTBDD implements StateProbs
 		JDD.Ref(reach);
 		tmp = JDD.And(filter, reach);
 		
-		// should never be called with empty filter, but trap and return -1
-		if (tmp.equals(JDD.ZERO)) return -1;
-		
+		// This shouldn't really be called with an empty filter.
+		// But we check for this anyway and return NaN.
+		// This is unfortunately indistinguishable from the case
+		// where the vector does actually contain NaN. Ho hum.
+		if (tmp.equals(JDD.ZERO)) return Double.NaN;
+				
 		// remove all but first element of filter
 		tmp = JDD.RestrictToFirst(tmp, vars);
 		
@@ -271,8 +277,9 @@ public class StateProbsMTBDD implements StateProbs
 		return d;
 	}
 	
-	// get min value over BDD filter
-	
+	/**
+	 * Get the minimum value of those that are in the (BDD) filter.
+	 */
 	public double minOverBDD(JDDNode filter)
 	{
 		JDDNode tmp;
@@ -308,7 +315,7 @@ public class StateProbsMTBDD implements StateProbs
 		JDD.Ref(reach);
 		tmp = JDD.And(filter, reach);
 		
-		// max of an empty set is +infinity
+		// max of an empty set is -infinity
 		if (tmp.equals(JDD.ZERO)) return Double.NEGATIVE_INFINITY;
 		
 		// set non-reach states to infinity
@@ -321,8 +328,9 @@ public class StateProbsMTBDD implements StateProbs
 		return d;
 	}
 	
-	// sum elements of vector according to a bdd (used for csl steady state operator)
-	
+	/**
+	 * Get the sum of those elements that are in the (BDD) filter.
+	 */
 	public double sumOverBDD(JDDNode filter)
 	{
 		JDDNode tmp;
