@@ -1271,7 +1271,6 @@ public class StateModelChecker implements ModelChecker
 		JDD.Deref(ddFilter);
 		vals.clear();
 		
-		res.print(mainLog);
 		return res;
 	}
 }

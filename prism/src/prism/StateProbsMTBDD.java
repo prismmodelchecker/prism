@@ -416,8 +416,6 @@ public class StateProbsMTBDD implements StateProbs
 			return;
 		}
 		
-		JDD.PrintVector(probs, vars);
-		
 		// set up and call recursive print
 		outputLog = log;
 		for (i = 0; i < varList.getNumVars(); i++) {
