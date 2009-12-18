@@ -271,7 +271,10 @@ public class JDD
 
 	public static JDDNode Constant(double value)
 	{
-		return new JDDNode(DD_Constant(value));
+		if (Double.isInfinite(value))
+			return value > 0 ? JDD.PlusInfinity() : JDD.MinusInfinity();
+		else
+			return new JDDNode(DD_Constant(value));
 	}
 		
 	// create new constant (plus infinity)
