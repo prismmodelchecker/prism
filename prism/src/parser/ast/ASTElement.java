@@ -202,10 +202,23 @@ public abstract class ASTElement
 
 	/**
 	 * Expand all formulas, return result.
+	 * @param formulaList: The FormulaList for formula definitions
 	 */
 	public ASTElement expandFormulas(FormulaList formulaList) throws PrismLangException
 	{
-		ExpandFormulas visitor = new ExpandFormulas(formulaList);
+		return expandFormulas(formulaList, true);
+	}
+
+	/**
+	 * Expand all formulas, return result.
+	 * @param formulaList: The FormulaList for formula definitions
+	 * @param replace: Whether to replace formulas outright with their definition
+	 * (true for use in models since they may be subjected to renaming afterwards;
+	 * false for properties since it is cleaner just to have the name there when displayed)
+	 */
+	public ASTElement expandFormulas(FormulaList formulaList, boolean replace) throws PrismLangException
+	{
+		ExpandFormulas visitor = new ExpandFormulas(formulaList, replace);
 		return (ASTElement) accept(visitor);
 	}
 

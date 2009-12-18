@@ -234,6 +234,8 @@ public class TypeCheck extends ASTTraverse
 	public void visitPost(ExpressionBinaryOp e) throws PrismLangException
 	{
 		Type t1 = e.getOperand1().getType();
+		if (t1 == null)
+			e.getOperand1().getType();
 		Type t2 = e.getOperand2().getType();
 		boolean ok;
 
@@ -449,8 +451,12 @@ public class TypeCheck extends ASTTraverse
 
 	public void visitPost(ExpressionFormula e) throws PrismLangException
 	{
-		// Should never happpen
-		throw new PrismLangException("Cannot determine type of formulas", e);
+		// This should have been defined or expanded by now.
+		// If so, just set type to that of the definition; otherwise error
+		if (e.getDefinition() != null)
+			e.setType(e.getDefinition().getType());
+		else
+			throw new PrismLangException("Cannot determine type of formula", e);
 	}
 
 	public void visitPost(ExpressionVar e) throws PrismLangException

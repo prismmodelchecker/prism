@@ -516,8 +516,11 @@ public class StateModelChecker implements ModelChecker
 		}
 		// Formulas
 		else if (expr instanceof ExpressionFormula) {
-			// Should never happen
-			throw new PrismException("Unexpanded formula \"" + ((ExpressionFormula) expr).getName() + "\"");
+			// This should have been defined or expanded by now.
+			if (((ExpressionFormula) expr).getDefinition() != null)
+				return checkExpression(((ExpressionFormula) expr).getDefinition());
+			else
+				throw new PrismException("Unexpanded formula \"" + ((ExpressionFormula) expr).getName() + "\"");
 		}
 		// Variables
 		else if (expr instanceof ExpressionVar) {

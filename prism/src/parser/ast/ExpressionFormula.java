@@ -33,6 +33,7 @@ import prism.PrismLangException;
 public class ExpressionFormula extends Expression
 {
 	String name;
+	Expression definition;
 	
 	// Constructors
 	
@@ -43,6 +44,7 @@ public class ExpressionFormula extends Expression
 	public ExpressionFormula(String n)
 	{
 		name = n;
+		definition = null;
 	}
 			
 	// Set method
@@ -52,11 +54,21 @@ public class ExpressionFormula extends Expression
 		name = n;
 	}
 	
+	public void setDefinition(Expression definition) 
+	{
+		this.definition = definition;
+	}
+	
 	// Get method
 	
 	public String getName()
 	{
 		return name;
+	}
+	
+	public Expression getDefinition()
+	{
+		return definition;
 	}
 	
 	// Methods required for Expression:
@@ -66,8 +78,8 @@ public class ExpressionFormula extends Expression
 	 */
 	public boolean isConstant()
 	{
-		// Don't know - err on the side of caution
-		return false;
+		// Unless defined, don't know so err on the side of caution
+		return definition == null ? false : definition.isConstant();
 	}
 
 	/**
@@ -76,8 +88,11 @@ public class ExpressionFormula extends Expression
 	 */
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
-		// Should never be called
-		throw new PrismLangException("Could not evaluate formula", this);
+		// Should only be called (if at all) after definition has been set
+		if (definition == null)
+			throw new PrismLangException("Could not evaluate formula", this);
+		else
+			return definition.evaluate(ec);
 	}
 
 	// Methods required for ASTElement:
@@ -103,7 +118,8 @@ public class ExpressionFormula extends Expression
 	 */
 	public Expression deepCopy()
 	{
-		Expression ret = new ExpressionFormula(name);
+		ExpressionFormula ret = new ExpressionFormula(name);
+		ret.setDefinition(definition == null ? null : definition.deepCopy());
 		ret.setPosition(this);
 		return ret;
 	}

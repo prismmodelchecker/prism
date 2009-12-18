@@ -118,11 +118,13 @@ public class PropertiesFile extends ASTElement
 		// Find all instances of formulas (i.e. locate idents which are formulas),
 		// check for any cyclic dependencies in the formula list and then expand all formulas.
 		// Note: We have to look for formulas defined both here and in the model.
+		// Note also that we opt not to do actual replacement of formulas in calls to exandFormulas
+		// (to improve legebility of properties)
 		findAllFormulas(modulesFile.getFormulaList());
 		findAllFormulas(formulaList);
 		formulaList.findCycles();
-		expandFormulas(modulesFile.getFormulaList());
-		expandFormulas(formulaList);
+		expandFormulas(modulesFile.getFormulaList(), false);
+		expandFormulas(formulaList, false);
 		
 		// Check label identifiers
 		checkLabelIdents();

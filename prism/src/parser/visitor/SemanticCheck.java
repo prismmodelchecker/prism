@@ -359,8 +359,9 @@ public class SemanticCheck extends ASTTraverse
 
 	public void visitPost(ExpressionFormula e) throws PrismLangException
 	{
-		// This should have been expanded by now
-		throw new PrismLangException("Unexpanded formula", e);
+		// This should have been defined or expanded by now
+		if (e.getDefinition() == null)
+			throw new PrismLangException("Unexpanded formula", e);
 	}
 
 	public void visitPost(ExpressionVar e) throws PrismLangException

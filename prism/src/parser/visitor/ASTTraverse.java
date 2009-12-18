@@ -437,6 +437,7 @@ public class ASTTraverse implements ASTVisitor
 	public Object visit(ExpressionFormula e) throws PrismLangException
 	{
 		visitPre(e);
+		if (e.getDefinition() != null) e.getDefinition().accept(this);
 		visitPost(e);
 		return null;
 	}
