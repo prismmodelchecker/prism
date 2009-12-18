@@ -514,4 +514,52 @@ public class TypeCheck extends ASTTraverse
 	{
 		e.setType(TypeBool.getInstance());
 	}
+
+	public void visitPost(ExpressionFilter e) throws PrismLangException
+	{
+		// Get type of operand
+		Type t = e.getOperand().getType();
+
+		// Check filter is ok
+		if (e.getFilter() != null && !(e.getFilter().getType() instanceof TypeBool)) {
+			throw new PrismLangException("Type error: First argument of filter is not a Boolean", e.getFilter());
+		}
+
+		// Check type of operands is ok
+		switch (e.getOperatorType()) {
+		case MIN:
+		case MAX:
+			if (t instanceof TypeBool) {
+				throw new PrismLangException(
+						"Type error: Boolean argument not allowed as operand for filter of type \""
+								+ e.getOperatorName() + "\"", e.getOperand());
+			}
+			break;
+		case COUNT:
+			if (!(t instanceof TypeBool)) {
+				throw new PrismLangException("Type error: Operand for filter of type \"" + e.getOperatorName()
+						+ "\" must be Boolean", e.getOperand());
+			}
+			break;
+		case PRINT:
+			// Anything goes
+			break;
+		default:
+			throw new PrismLangException("Cannot type check filter of unknown type", e);
+		}
+
+		// Determine type of this filter
+		switch (e.getOperatorType()) {
+		case MIN:
+		case MAX:
+			e.setType(t);
+			break;
+		case COUNT:
+			e.setType(TypeInt.getInstance());
+			break;
+		case PRINT:
+			e.setType(t);
+			break;
+		}
+	}
 }

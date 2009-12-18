@@ -283,8 +283,8 @@ public class StateProbsMTBDD implements StateProbs
 		JDD.Ref(reach);
 		tmp = JDD.And(filter, reach);
 		
-		// should never be called with empty filter, but trap and return infinity
-		if (tmp.equals(JDD.ZERO)) return 1.0/0.0;
+		// min of an empty set is +infinity
+		if (tmp.equals(JDD.ZERO)) return Double.POSITIVE_INFINITY;
 		
 		// set non-reach states to infinity
 		JDD.Ref(probs);
@@ -308,8 +308,8 @@ public class StateProbsMTBDD implements StateProbs
 		JDD.Ref(reach);
 		tmp = JDD.And(filter, reach);
 		
-		// should never be called with empty filter, but trap and return -infinity
-		if (tmp.equals(JDD.ZERO)) return -1.0/0.0;
+		// max of an empty set is +infinity
+		if (tmp.equals(JDD.ZERO)) return Double.NEGATIVE_INFINITY;
 		
 		// set non-reach states to infinity
 		JDD.Ref(probs);
@@ -415,6 +415,8 @@ public class StateProbsMTBDD implements StateProbs
 			log.println("(all zero)");
 			return;
 		}
+		
+		JDD.PrintVector(probs, vars);
 		
 		// set up and call recursive print
 		outputLog = log;

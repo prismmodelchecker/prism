@@ -29,10 +29,15 @@ package parser.ast;
 import parser.visitor.*;
 import prism.PrismLangException;
 
+/**
+ * Old-style filter, as embedded in P/R/S operator.
+ */
 public class Filter extends ASTElement
 {
 	private Expression expr = null;
-	private boolean minReq = false;
+	// Either "min" or "max" ("both" no longer supported)
+	// (and "min" is nominal default) 
+	private boolean minReq = true;
 	private boolean maxReq = false;
 
 	// Constructor
@@ -52,11 +57,13 @@ public class Filter extends ASTElement
 	public void setMinRequested(boolean b)
 	{
 		minReq = b;
+		maxReq = !b;
 	}
 
 	public void setMaxRequested(boolean b)
 	{
 		maxReq = b;
+		minReq = !b;
 	}
 	
 	// Get methods
@@ -74,11 +81,6 @@ public class Filter extends ASTElement
 	public boolean maxRequested()
 	{
 		return maxReq;
-	}
-
-	public boolean noRequests()
-	{
-		return !(minReq | maxReq);
 	}
 
 	// Methods required for ASTElement:

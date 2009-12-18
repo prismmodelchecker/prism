@@ -360,6 +360,7 @@ TOKEN :
 |	< ENDSYSTEM:		"endsystem" >
 |	< FALSE:			"false" >
 |	< FORMULA:			"formula" >
+|	< FILTER:			"filter" >
 |	< FUNC:				"func" >
 |	< F:				"F" >
 |	< GLOBAL:			"global" >
@@ -1271,6 +1272,8 @@ Expression ExpressionBasic(boolean prop, boolean pathprop) :
 		ret = ExpressionForAll(prop, pathprop)
 	|
 		ret = ExpressionLabel(prop, pathprop)
+	|
+		ret = ExpressionFilter(prop, pathprop)
 	)
 	{ return ret; }
 }
@@ -1418,7 +1421,14 @@ Expression ExpressionProb(boolean prop, boolean pathprop) :
 		ret.setExpression(expr);
 		ret.setFilter(filter);
 		ret.setPosition(begin, getToken(0));
-		return ret;
+		// Filter is actually dealt with by wrapping this expression in
+		// an (invisible) ExpressionFilter expression
+		if (filter != null) {
+			ExpressionFilter ef = new ExpressionFilter(filter.minRequested() ? "min" : "max", ret, filter.getExpression());
+			ef.setInvisible(true);
+			return ef;
+		}
+		else return ret;
 	}
 }
 
@@ -1467,7 +1477,14 @@ Expression ExpressionSS(boolean prop, boolean pathprop) :
 		ret.setExpression(expr);
 		ret.setFilter(filter);
 		ret.setPosition(begin, getToken(0));
-		return ret;
+		// Filter is actually dealt with by wrapping this expression in
+		// an (invisible) ExpressionFilter expression
+		if (filter != null) {
+			ExpressionFilter ef = new ExpressionFilter(filter.minRequested() ? "min" : "max", ret, filter.getExpression());
+			ef.setInvisible(true);
+			return ef;
+		}
+		else return ret;
 	}
 }
 
@@ -1505,7 +1522,14 @@ Expression ExpressionReward(boolean prop, boolean pathprop) :
 		ret.setExpression(expr);
 		ret.setFilter(filter);
 		ret.setPosition(begin, getToken(0));
-		return ret;
+		// Filter is actually dealt with by wrapping this expression in
+		// an (invisible) ExpressionFilter expression
+		if (filter != null) {
+			ExpressionFilter ef = new ExpressionFilter(filter.minRequested() ? "min" : "max", ret, filter.getExpression());
+			ef.setInvisible(true);
+			return ef;
+		}
+		else return ret;
 	}
 }
 
@@ -1589,6 +1613,33 @@ Expression ExpressionLabel(boolean prop, boolean pathprop) :
 	// Label can be arbitary string or the "init" keyword
 	( begin = <DQUOTE> ( s=Identifier() | <INIT> { s = "init"; } ) <DQUOTE> )
 	{ ret = new ExpressionLabel(s); ret.setPosition(begin, getToken(0)); return ret; }
+}
+
+// (Property) expression: filter (using "filter" keyword)
+
+Expression ExpressionFilter(boolean prop, boolean pathprop) :
+{
+	ExpressionFilter expr = null;
+	String op = null;
+	Expression filter = null;
+	Expression expr2 = null;
+	Token begin = null;
+}
+{
+	// This production is only allowed in expressions if the "prop" parameter is true
+	{ if (!prop) throw generateParseException(); }
+	
+	// filter(
+	begin = <FILTER> <LPARENTH>
+	// filter type
+	( <MIN> { op = "min"; } | <MAX> { op = "max"; } | op = Identifier() )
+	// operand
+	<COMMA> expr2 = Expression(prop, pathprop)
+	// (optional filter expression)
+	[ <COMMA> filter = Expression(prop, pathprop) ]
+	// )
+	<RPARENTH>
+	{ expr = new ExpressionFilter(op, expr2, filter); expr.setPosition(begin, getToken(0)); return expr; }
 }
 
 //-----------------------------------------------------------------------------------

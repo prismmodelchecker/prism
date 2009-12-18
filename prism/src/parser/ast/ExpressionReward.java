@@ -36,6 +36,8 @@ public class ExpressionReward extends Expression
 	String relOp = null;
 	Expression reward = null;
 	Expression expression = null;
+	// Note: this "old-style" filter is just for display purposes
+	// The parser creates an (invisible) new-style filter around this expression
 	Filter filter = null;
 	
 	// Constructors
@@ -103,26 +105,6 @@ public class ExpressionReward extends Expression
 	public Filter getFilter()
 	{
 		return filter;
-	}
-
-	public Expression getFilterExpression()
-	{
-		return filter.getExpression();
-	}
-
-	public boolean filterMinRequested()
-	{
-		return filter.minRequested();
-	}
-
-	public boolean filterMaxRequested()
-	{
-		return filter.maxRequested();
-	}
-
-	public boolean noFilterRequests()
-	{
-		return filter.noRequests();
 	}
 
 	// Methods required for Expression:

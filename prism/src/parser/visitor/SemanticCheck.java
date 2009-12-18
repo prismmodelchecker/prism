@@ -425,4 +425,12 @@ public class SemanticCheck extends ASTTraverse
 			throw new PrismLangException("Undeclared label", e);
 		}
 	}
+	
+	public void visitPost(ExpressionFilter e) throws PrismLangException
+	{
+		// Check filter type is valid
+		if (e.getOperatorType() == null) {
+			throw new PrismLangException("Unknown filter type \"" + e.getOperatorName() + "\"", e);
+		}
+	}
 }

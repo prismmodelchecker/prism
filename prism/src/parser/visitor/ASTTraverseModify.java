@@ -519,6 +519,17 @@ public class ASTTraverseModify implements ASTVisitor
 	}
 	public void visitPost(ExpressionLabel e) throws PrismLangException { defaultVisitPost(e); }
 	// -----------------------------------------------------------------------------------
+	public void visitPre(ExpressionFilter e) throws PrismLangException { defaultVisitPre(e); }
+	public Object visit(ExpressionFilter e) throws PrismLangException
+	{
+		visitPre(e);
+		if (e.getFilter() != null) e.setFilter((Expression)(e.getFilter().accept(this)));
+		if (e.getOperand() != null) e.setOperand((Expression)(e.getOperand().accept(this)));
+		visitPost(e);
+		return e;
+	}
+	public void visitPost(ExpressionFilter e) throws PrismLangException { defaultVisitPost(e); }
+	// -----------------------------------------------------------------------------------
 	public void visitPre(ForLoop e) throws PrismLangException { defaultVisitPre(e); }
 	public Object visit(ForLoop e) throws PrismLangException
 	{

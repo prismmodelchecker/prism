@@ -63,7 +63,7 @@ public class StateModelChecker implements ModelChecker
 
 	// The result of model checking will be stored here
 	protected Result result;
-	
+
 	// Options:
 
 	// Which engine to use
@@ -154,11 +154,6 @@ public class StateModelChecker implements ModelChecker
 
 		// Create storage for result
 		result = new Result();
-		
-		// Filters are only allowed for non-Boolean properties
-		if (expr.getType() instanceof TypeBool && filter != null) {
-			throw new PrismException("Filters cannot be applied to Boolean-valued properties");
-		}
 
 		// Translate filter (if present)
 		if (filter != null) {
@@ -190,7 +185,7 @@ public class StateModelChecker implements ModelChecker
 
 			// Print number of satisfying states to log
 			mainLog.print("\nNumber of satisfying states: ");
-			mainLog.print(numSat == -1 ? ">"+Integer.MAX_VALUE : ""+numSat);
+			mainLog.print(numSat == -1 ? ">" + Integer.MAX_VALUE : "" + numSat);
 			if (satAll) {
 				mainLog.print(" (all)");
 			} else if (satInit) {
@@ -254,7 +249,7 @@ public class StateModelChecker implements ModelChecker
 					states = new StateListMTBDD(tmp, model);
 					int numSat = states.size();
 					mainLog.print("There are ");
-					mainLog.print(numSat == -1 ? ">"+Integer.MAX_VALUE : ""+numSat);
+					mainLog.print(numSat == -1 ? ">" + Integer.MAX_VALUE : "" + numSat);
 					mainLog.print(" states with this minimum value (+/- " + termCritParam + ")");
 					if (!verbose && (numSat == -1 || numSat > 10)) {
 						mainLog
@@ -276,7 +271,178 @@ public class StateModelChecker implements ModelChecker
 					states = new StateListMTBDD(tmp, model);
 					int numSat = states.size();
 					mainLog.print("There are ");
-					mainLog.print(numSat == -1 ? ">"+Integer.MAX_VALUE : ""+numSat);
+					mainLog.print(numSat == -1 ? ">" + Integer.MAX_VALUE : "" + numSat);
+					mainLog.print(" states with this maximum value (+/- " + termCritParam + ")");
+					if (!verbose && (numSat == -1 || numSat > 10)) {
+						mainLog
+								.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
+						states.print(mainLog, 10);
+					} else {
+						mainLog.print(":\n");
+						states.print(mainLog);
+					}
+					JDD.Deref(tmp);
+				}
+			}
+			if (filter != null && filter.minRequested())
+				result.setResult(minRes);
+			else if (filter != null && filter.maxRequested())
+				result.setResult(maxRes);
+			else
+				result.setResult(vals.firstFromBDD(filter != null ? ddFilter : start));
+
+			// Print result to log
+			resultString = "Result";
+			if (!("Result".equals(expr.getResultName())))
+				resultString += " (" + expr.getResultName().toLowerCase() + ")";
+			resultString += ": " + result;
+			mainLog.print("\n" + resultString + "\n");
+		}
+
+		// Clean up
+		if (ddFilter != null)
+			JDD.Deref(ddFilter);
+		vals.clear();
+
+		// Return result
+		return result;
+	}
+
+	
+	public Result checkOld(Expression expr, Filter filter) throws PrismException
+	{
+		long timer = 0;
+		JDDNode ddFilter = null, tmp;
+		StateListMTBDD states;
+		StateProbs vals;
+		String resultString;
+		double minRes = 0.0, maxRes = 0.0;
+
+		// Create storage for result
+		result = new Result();
+
+		// Filters are only allowed for non-Boolean properties
+		if (expr.getType() instanceof TypeBool && filter != null) {
+			throw new PrismException("Filters cannot be applied to Boolean-valued properties");
+		}
+
+		// Translate filter (if present)
+		if (filter != null) {
+			ddFilter = checkExpressionDD(filter.getExpression());
+			if (ddFilter.equals(JDD.ZERO)) {
+				throw new PrismException("Filter " + filter + " satisfies no states");
+			}
+		}
+
+		// Do model checking and store result
+		timer = System.currentTimeMillis();
+		vals = checkExpression(expr);
+		timer = System.currentTimeMillis() - timer;
+		mainLog.println("\nTime for model checking: " + timer / 1000.0 + " seconds.");
+
+		// Process results of model checking - depends on type
+
+		// Boolean results
+		if (expr.getType() instanceof TypeBool) {
+
+			// Convert to StateList object
+			states = new StateListMTBDD(((StateProbsMTBDD) vals).getJDDNode(), model);
+			JDD.Ref(((StateProbsMTBDD) vals).getJDDNode());
+
+			// See if satisfied in all/initial states
+			boolean satAll = states.includesAll(reach);
+			boolean satInit = states.includesAll(start);
+			int numSat = states.size();
+
+			// Print number of satisfying states to log
+			mainLog.print("\nNumber of satisfying states: ");
+			mainLog.print(numSat == -1 ? ">" + Integer.MAX_VALUE : "" + numSat);
+			if (satAll) {
+				mainLog.print(" (all)");
+			} else if (satInit) {
+				mainLog.print((model.getNumStartStates() == 1) ? " (including initial state)"
+						: " (including all initial states)");
+			} else {
+				mainLog.print((model.getNumStartStates() == 1) ? " (initial state not satisfied)"
+						: " (initial states not all satisfied)");
+			}
+			mainLog.print("\n");
+
+			// If in "verbose" mode, print out satisfying states to log
+			if (verbose) {
+				mainLog.print("\nSatisfying states:");
+				if (states.size() > 0) {
+					mainLog.print("\n");
+					states.print(mainLog);
+				} else {
+					mainLog.print(" (none)\n");
+				}
+			}
+
+			// Result is true if all states satisfy, false otherwise
+			resultString = satAll + " (property " + (satAll ? "" : "not ") + "satisfied in all states)";
+			result.setResultAndString(satAll ? new Boolean(true) : new Boolean(false), resultString);
+
+			// Print result to log
+			mainLog.print("\nResult: " + resultString + "\n");
+
+			// Clean up
+			states.clear();
+		}
+
+		// Non-Boolean results
+		else {
+			// If in "verbose" mode, print out results vector to log
+			if (verbose) {
+				mainLog.print("\nResults (non-zero only) for all states:");
+				if (vals.getNNZ() > 0) {
+					mainLog.print("\n");
+					vals.print(mainLog);
+				} else {
+					mainLog.print(" (none)\n");
+				}
+			}
+
+			if (filter == null) {
+				if (model.getNumStartStates() > 1) {
+					mainLog.print("\nWarning: There are multiple initial states;");
+					mainLog.print(" the result of model checking is for the first one: ");
+					model.getStartStates().print(mainLog, 1);
+				}
+			} else {
+				if (filter.minRequested()) {
+					minRes = vals.minOverBDD(ddFilter);
+					mainLog.print("\nMinimum value for states satisfying " + filter.getExpression() + ": " + minRes
+							+ "\n");
+					tmp = vals.getBDDFromInterval(minRes - termCritParam, minRes + termCritParam);
+					JDD.Ref(ddFilter);
+					tmp = JDD.And(tmp, ddFilter);
+					states = new StateListMTBDD(tmp, model);
+					int numSat = states.size();
+					mainLog.print("There are ");
+					mainLog.print(numSat == -1 ? ">" + Integer.MAX_VALUE : "" + numSat);
+					mainLog.print(" states with this minimum value (+/- " + termCritParam + ")");
+					if (!verbose && (numSat == -1 || numSat > 10)) {
+						mainLog
+								.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
+						states.print(mainLog, 10);
+					} else {
+						mainLog.print(":\n");
+						states.print(mainLog);
+					}
+					JDD.Deref(tmp);
+				}
+				if (filter.maxRequested()) {
+					maxRes = vals.maxOverBDD(ddFilter);
+					mainLog.print("\nMaximum value for states satisfying " + filter.getExpression() + ": " + maxRes
+							+ "\n");
+					tmp = vals.getBDDFromInterval(maxRes - termCritParam, maxRes + termCritParam);
+					JDD.Ref(ddFilter);
+					tmp = JDD.And(tmp, ddFilter);
+					states = new StateListMTBDD(tmp, model);
+					int numSat = states.size();
+					mainLog.print("There are ");
+					mainLog.print(numSat == -1 ? ">" + Integer.MAX_VALUE : "" + numSat);
 					mainLog.print(" states with this maximum value (+/- " + termCritParam + ")");
 					if (!verbose && (numSat == -1 || numSat > 10)) {
 						mainLog
@@ -360,7 +526,13 @@ public class StateModelChecker implements ModelChecker
 		// Labels
 		else if (expr instanceof ExpressionLabel) {
 			res = checkExpressionLabel((ExpressionLabel) expr);
-		} else {
+		}
+		// Filter
+		else if (expr instanceof ExpressionFilter) {
+			res = checkExpressionFilter((ExpressionFilter) expr);
+		}
+		// Anything else - error
+		else {
 			throw new PrismException("Couldn't check " + expr.getClass());
 		}
 
@@ -413,7 +585,7 @@ public class StateModelChecker implements ModelChecker
 	 */
 
 	// Check an 'if-then-else'
-	private StateProbs checkExpressionITE(ExpressionITE expr) throws PrismException
+	protected StateProbs checkExpressionITE(ExpressionITE expr) throws PrismException
 	{
 		StateProbs res1 = null, res2 = null, res3 = null;
 		JDDNode dd, dd1, dd2, dd3;
@@ -460,7 +632,7 @@ public class StateModelChecker implements ModelChecker
 
 	// Check a binary operator
 
-	private StateProbs checkExpressionBinaryOp(ExpressionBinaryOp expr) throws PrismException
+	protected StateProbs checkExpressionBinaryOp(ExpressionBinaryOp expr) throws PrismException
 	{
 		StateProbs res1 = null, res2 = null;
 		JDDNode dd, dd1, dd2;
@@ -557,7 +729,7 @@ public class StateModelChecker implements ModelChecker
 
 	// Check a relational operator (=, !=, >, >=, < <=)
 
-	private StateProbs checkExpressionRelOp(int op, Expression expr1, Expression expr2) throws PrismException
+	protected StateProbs checkExpressionRelOp(int op, Expression expr1, Expression expr2) throws PrismException
 	{
 		StateProbs res1 = null, res2 = null;
 		JDDNode dd, dd1, dd2;
@@ -710,7 +882,7 @@ public class StateModelChecker implements ModelChecker
 
 	// Check a unary operator
 
-	private StateProbs checkExpressionUnaryOp(ExpressionUnaryOp expr) throws PrismException
+	protected StateProbs checkExpressionUnaryOp(ExpressionUnaryOp expr) throws PrismException
 	{
 		StateProbs res1 = null;
 		JDDNode dd, dd1;
@@ -768,7 +940,7 @@ public class StateModelChecker implements ModelChecker
 
 	// Check a 'function'
 
-	private StateProbs checkExpressionFunc(ExpressionFunc expr) throws PrismException
+	protected StateProbs checkExpressionFunc(ExpressionFunc expr) throws PrismException
 	{
 		switch (expr.getNameCode()) {
 		case ExpressionFunc.MIN:
@@ -786,7 +958,7 @@ public class StateModelChecker implements ModelChecker
 		}
 	}
 
-	private StateProbs checkExpressionFuncUnary(ExpressionFunc expr) throws PrismException
+	protected StateProbs checkExpressionFuncUnary(ExpressionFunc expr) throws PrismException
 	{
 		StateProbs res1 = null;
 		JDDNode dd1;
@@ -832,7 +1004,7 @@ public class StateModelChecker implements ModelChecker
 		}
 	}
 
-	private StateProbs checkExpressionFuncBinary(ExpressionFunc expr) throws PrismException
+	protected StateProbs checkExpressionFuncBinary(ExpressionFunc expr) throws PrismException
 	{
 		StateProbs res1 = null, res2 = null;
 		JDDNode dd = null, dd1, dd2;
@@ -895,7 +1067,7 @@ public class StateModelChecker implements ModelChecker
 		}
 	}
 
-	private StateProbs checkExpressionFuncNary(ExpressionFunc expr) throws PrismException
+	protected StateProbs checkExpressionFuncNary(ExpressionFunc expr) throws PrismException
 	{
 		StateProbs res1 = null, res2 = null;
 		JDDNode dd1, dd2;
@@ -963,13 +1135,12 @@ public class StateModelChecker implements ModelChecker
 
 	// Check a literal
 
-	private StateProbs checkExpressionLiteral(ExpressionLiteral expr) throws PrismException
+	protected StateProbs checkExpressionLiteral(ExpressionLiteral expr) throws PrismException
 	{
 		JDDNode dd;
 		try {
 			dd = JDD.Constant(expr.evaluateDouble());
-		}
-		catch (PrismLangException e) {
+		} catch (PrismLangException e) {
 			throw new PrismException("Unknown literal type");
 		}
 		return new StateProbsMTBDD(dd, model);
@@ -977,7 +1148,7 @@ public class StateModelChecker implements ModelChecker
 
 	// Check a constant
 
-	private StateProbs checkExpressionConstant(ExpressionConstant expr) throws PrismException
+	protected StateProbs checkExpressionConstant(ExpressionConstant expr) throws PrismException
 	{
 		int i;
 		JDDNode dd;
@@ -987,17 +1158,16 @@ public class StateModelChecker implements ModelChecker
 			throw new PrismException("Couldn't evaluate constant \"" + expr.getName() + "\"");
 		try {
 			dd = JDD.Constant(constantValues.getDoubleValue(i));
-		}
-		catch (PrismLangException e) {
+		} catch (PrismLangException e) {
 			throw new PrismException("Unknown type for constant \"" + expr.getName() + "\"");
 		}
-		
+
 		return new StateProbsMTBDD(dd, model);
 	}
 
 	// Check a variable reference
 
-	private StateProbs checkExpressionVar(ExpressionVar expr) throws PrismException
+	protected StateProbs checkExpressionVar(ExpressionVar expr) throws PrismException
 	{
 		String s;
 		int v, l, h, i;
@@ -1023,7 +1193,7 @@ public class StateModelChecker implements ModelChecker
 
 	// Check label
 
-	private StateProbs checkExpressionLabel(ExpressionLabel expr) throws PrismException
+	protected StateProbs checkExpressionLabel(ExpressionLabel expr) throws PrismException
 	{
 		LabelList ll;
 		JDDNode dd;
@@ -1047,6 +1217,62 @@ public class StateModelChecker implements ModelChecker
 			// check recursively
 			return checkExpression(ll.getLabel(i));
 		}
+	}
+
+	// Check filter
+
+	protected StateProbs checkExpressionFilter(ExpressionFilter expr) throws PrismException
+	{
+
+		Expression filter;
+		StateProbs vals = null, res = null;
+		JDDNode ddFilter;
+		double d = 0.0;
+
+		// Check operand recursively
+		vals = checkExpression(expr.getOperand());
+		// Translate filter
+		filter = expr.getFilter();
+		if (filter == null)
+			filter = Expression.True();
+		ddFilter = checkExpressionDD(filter);
+		// Check if filter state set is empty
+		if (ddFilter.equals(JDD.ZERO)) {
+			mainLog.println("\nWarning: Filter " + filter + " satisfies no states");
+		}
+		// Compute result according to filter type
+		switch (expr.getOperatorType()) {
+		case PRINT:
+			mainLog.print("\nResults (non-zero only) for filter " + filter + ":");
+			vals.printFiltered(mainLog, ddFilter);
+			res = vals;
+			break;
+		case MIN:
+			d = vals.minOverBDD(ddFilter);
+			mainLog.println("\nFilter: minimum value for states satisfying " + filter + ": " + d);
+			res = new StateProbsMTBDD(JDD.Constant(d), model);
+			break;
+		case MAX:
+			d = vals.maxOverBDD(ddFilter);
+			mainLog.println("\nFilter: maximum value for states satisfying " + filter + ": " + d);
+			res = new StateProbsMTBDD(JDD.Constant(d), model);
+			break;
+		case COUNT:
+			d = vals.getNNZ();
+			mainLog.println("\nFilter: count of states satisfying " + filter + ": " + (int)d);
+			res = new StateProbsMTBDD(JDD.Constant(d), model);
+			break;
+		default:
+			JDD.Deref(ddFilter);
+			throw new PrismException("Unrecognised filter type \"" + expr.getOperatorName() + "\"");
+		}
+		
+		// Derefs, clears
+		JDD.Deref(ddFilter);
+		vals.clear();
+		
+		res.print(mainLog);
+		return res;
 	}
 }
 
