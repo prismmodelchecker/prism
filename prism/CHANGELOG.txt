@@ -10,6 +10,7 @@ Ongoing changes:
 * New simulator
 * Adversary generation
 * Access to action labels. inclusion in export, etc.
+* Filters and propert semantics changes/additions
 
 Latest changes (reverse chronological):
 [correct wrt svn rev 1610]
