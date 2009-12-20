@@ -2,6 +2,12 @@ This file summarises the principal changes between each main public release of P
 For more detailed information about the various changes, see the file CHANGELOG.txt.
 
 -----------------------------------------------------------------------------
+Version 3.3.1 (released 22/11/2009)
+-----------------------------------------------------------------------------
+
+* Minor bug fixes
+
+-----------------------------------------------------------------------------
 Version 3.3 (beta1 released 20/5/2009)
 -----------------------------------------------------------------------------
 
