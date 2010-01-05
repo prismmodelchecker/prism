@@ -67,7 +67,8 @@ ifneq (,$(findstring ia64, $(shell uname -m)))
 	ARCH = ia64
 endif
 ifeq ($(OSTYPE),darwin)
-	ifneq (,$(findstring 64-bit, $(shell java -version 2>&1)))
+	JAVA_VERSION_STRING = $(shell java -version 2>&1)
+	ifneq (, $(or $(findstring 64-bit, $(JAVA_VERSION_STRING)), $(findstring 64-Bit, $(JAVA_VERSION_STRING)) ))
 		ARCH = x86_64
 	endif
 endif
