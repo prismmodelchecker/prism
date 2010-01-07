@@ -43,10 +43,12 @@
 // constants
 
 #define DV_GREATER_THAN_EQUALS	1
-#define DV_GREATER_THAN		2
-#define DV_LESS_THAN_EQUALS	3
-#define DV_LESS_THAN		4
-#define DV_INTERVAL		5
+#define DV_GREATER_THAN			2
+#define DV_LESS_THAN_EQUALS		3
+#define DV_LESS_THAN			4
+#define DV_INTERVAL				5
+#define DV_CLOSE_ABS			6
+#define DV_CLOSE_REL			7
 
 // distinct vectors
 
@@ -67,8 +69,8 @@ struct DistVector
 EXPORT double *mtbdd_to_double_vector(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, ODDNode *odd);
 EXPORT double *mtbdd_to_double_vector(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, ODDNode *odd, double *res);
 EXPORT DdNode *double_vector_to_mtbdd(DdManager *ddman, double *vec, DdNode **vars, int num_vars, ODDNode *odd);
-EXPORT DdNode *double_vector_to_bdd(DdManager *ddman, double *vec, int rel_op, double bound, DdNode **vars, int num_vars, ODDNode *odd);
-EXPORT DdNode *double_vector_to_bdd(DdManager *ddman, double *vec, int rel_op, double bound1, double bound2, DdNode **vars, int num_vars, ODDNode *odd);
+EXPORT DdNode *double_vector_to_bdd(DdManager *ddman, double *vec, int rel_op, double value, DdNode **vars, int num_vars, ODDNode *odd);
+EXPORT DdNode *double_vector_to_bdd(DdManager *ddman, double *vec, int rel_op, double value1, double value2, DdNode **vars, int num_vars, ODDNode *odd);
 
 EXPORT void filter_double_vector(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd);
 EXPORT double get_first_from_bdd(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd);
@@ -79,6 +81,9 @@ EXPORT double sum_double_vector_over_mtbdd(DdManager *ddman, double *vec, DdNode
 EXPORT void sum_double_vector_over_dd_vars(DdManager *ddman, double *vec, double *vec2, DdNode **vars, int num_vars, int first_var, int last_var, ODDNode *odd, ODDNode *odd2);
 
 EXPORT DistVector *double_vector_to_dist(double *v, int n);
+
+EXPORT bool doubles_are_close_abs(double d1, double d2, double epsilon);
+EXPORT bool doubles_are_close_rel(double d1, double d2, double epsilon);
 
 //------------------------------------------------------------------------------
 

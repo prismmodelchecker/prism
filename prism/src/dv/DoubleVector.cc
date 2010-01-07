@@ -531,6 +531,58 @@ jlong __jlongpointer odd
 
 //------------------------------------------------------------------------------
 
+JNIEXPORT jlong __jlongpointer JNICALL Java_dv_DoubleVector_DV_1BDDCloseValueAbs
+(
+JNIEnv *env,
+jobject obj,
+jlong __jlongpointer vector,
+jdouble value,
+jdouble epsilon,
+jlong __jlongpointer vars,
+jint num_vars,
+jlong __jlongpointer odd
+)
+{
+	return ptr_to_jlong(
+		double_vector_to_bdd(
+			ddman,
+			jlong_to_double(vector),
+			DV_CLOSE_ABS,
+			value, epsilon,
+			jlong_to_DdNode_array(vars), num_vars,
+			jlong_to_ODDNode(odd)
+		)
+	);
+}
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT jlong __jlongpointer JNICALL Java_dv_DoubleVector_DV_1BDDCloseValueRel
+(
+JNIEnv *env,
+jobject obj,
+jlong __jlongpointer vector,
+jdouble value,
+jdouble epsilon,
+jlong __jlongpointer vars,
+jint num_vars,
+jlong __jlongpointer odd
+)
+{
+	return ptr_to_jlong(
+		double_vector_to_bdd(
+			ddman,
+			jlong_to_double(vector),
+			DV_CLOSE_REL,
+			value, epsilon,
+			jlong_to_DdNode_array(vars), num_vars,
+			jlong_to_ODDNode(odd)
+		)
+	);
+}
+
+//------------------------------------------------------------------------------
+
 JNIEXPORT jlong __jlongpointer JNICALL Java_dv_DoubleVector_DV_1ConvertToMTBDD
 (
 JNIEnv *env,

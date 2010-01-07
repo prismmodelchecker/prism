@@ -193,6 +193,22 @@ JNIEXPORT jlong JNICALL Java_dv_DoubleVector_DV_1BDDInterval
 
 /*
  * Class:     dv_DoubleVector
+ * Method:    DV_BDDCloseValueAbs
+ * Signature: (JDDJIJ)J
+ */
+JNIEXPORT jlong JNICALL Java_dv_DoubleVector_DV_1BDDCloseValueAbs
+  (JNIEnv *, jobject, jlong, jdouble, jdouble, jlong, jint, jlong);
+
+/*
+ * Class:     dv_DoubleVector
+ * Method:    DV_BDDCloseValueRel
+ * Signature: (JDDJIJ)J
+ */
+JNIEXPORT jlong JNICALL Java_dv_DoubleVector_DV_1BDDCloseValueRel
+  (JNIEnv *, jobject, jlong, jdouble, jdouble, jlong, jint, jlong);
+
+/*
+ * Class:     dv_DoubleVector
  * Method:    DV_ConvertToMTBDD
  * Signature: (JJIJ)J
  */

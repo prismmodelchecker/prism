@@ -215,11 +215,10 @@ public class DoubleVector
 		return dv2;
 	}
 	
-	// generate bdd (from an interval: relative operator and bound)
-	private native long DV_BDDGreaterThanEquals(long v, double bound, long vars, int num_vars, long odd);
-	private native long DV_BDDGreaterThan(long v, double bound, long vars, int num_vars, long odd);
-	private native long DV_BDDLessThanEquals(long v, double bound, long vars, int num_vars, long odd);
-	private native long DV_BDDLessThan(long v, double bound, long vars, int num_vars, long odd);
+	/**
+	 * 	Generate BDD for states in the given interval
+	 * (interval specified as relational operator and bound)
+	 */
 	public JDDNode getBDDFromInterval(String relOp, double bound, JDDVars vars, ODDNode odd)
 	{
 		JDDNode sol = null;
@@ -247,9 +246,15 @@ public class DoubleVector
 		
 		return sol;
 	}
+	private native long DV_BDDGreaterThanEquals(long v, double bound, long vars, int num_vars, long odd);
+	private native long DV_BDDGreaterThan(long v, double bound, long vars, int num_vars, long odd);
+	private native long DV_BDDLessThanEquals(long v, double bound, long vars, int num_vars, long odd);
+	private native long DV_BDDLessThan(long v, double bound, long vars, int num_vars, long odd);
 	
-	// generate bdd (from an interval: lower/upper bound)
-	private native long DV_BDDInterval(long v, double lo, double hi, long vars, int num_vars, long odd);
+	/**
+	 * 	Generate BDD for states in the given interval
+	 * (interval specified as lower/upper bound)
+	 */
 	public JDDNode getBDDFromInterval(double lo, double hi, JDDVars vars, ODDNode odd)
 	{
 		JDDNode sol;
@@ -260,7 +265,43 @@ public class DoubleVector
 		
 		return sol;
 	}
+	private native long DV_BDDInterval(long v, double lo, double hi, long vars, int num_vars, long odd);
 	
+	/**
+	 * 	Generate BDD for states whose value is close to 'value'
+	 * (within absolute error 'epsilon')
+	 */
+	public JDDNode getBDDFromCloseValueAbs(double value, double epsilon, JDDVars vars, ODDNode odd)
+	{
+		JDDNode sol;
+		
+		sol = new JDDNode(
+			DV_BDDCloseValueAbs(v, value, epsilon, vars.array(), vars.n(), odd.ptr())
+		);
+		
+		return sol;
+	}
+	private native long DV_BDDCloseValueAbs(long v, double value, double epsilon, long vars, int num_vars, long odd);
+	
+	/**
+	 * 	Generate BDD for states whose value is close to 'value'
+	 * (within relative error 'epsilon')
+	 */
+	public JDDNode getBDDFromCloseValueRel(double value, double epsilon, JDDVars vars, ODDNode odd)
+	{
+		JDDNode sol;
+		
+		sol = new JDDNode(
+			DV_BDDCloseValueRel(v, value, epsilon, vars.array(), vars.n(), odd.ptr())
+		);
+		
+		return sol;
+	}
+	private native long DV_BDDCloseValueRel(long v, double value, double epsilon, long vars, int num_vars, long odd);
+	
+	/**
+	 * Convert to an MTBDD representation.
+	 */
 	private native long DV_ConvertToMTBDD(long v, long vars, int num_vars, long odd);
 	public JDDNode convertToMTBDD(JDDVars vars, ODDNode odd)
 	{

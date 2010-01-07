@@ -33,7 +33,7 @@
 
 static void mtbdd_to_double_vector_rec(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, long o, double *res);
 static DdNode *double_vector_to_mtbdd_rec(DdManager *ddman, double *vec, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
-static DdNode *double_vector_to_bdd_rec(DdManager *ddman, double *vec, int rel_op, double bound1, double bound2, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
+static DdNode *double_vector_to_bdd_rec(DdManager *ddman, double *vec, int rel_op, double value1, double value2, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
 static void filter_double_vector_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
 static double get_first_from_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
 static double min_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
@@ -41,6 +41,9 @@ static double max_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNo
 static double sum_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
 static double sum_double_vector_over_mtbdd_rec(DdManager *ddman, double *vec, DdNode *mult, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
 static void sum_double_vector_over_dd_vars_rec(DdManager *ddman, double *vec, double *vec2, DdNode **vars, int num_vars, int level, int first_var, int last_var, ODDNode *odd, ODDNode *odd2, long o, long o2);
+
+// Threshold for comparison of doubles
+static double epsilon_double = 1e-12;
 
 //------------------------------------------------------------------------------
 
@@ -138,40 +141,53 @@ DdNode *double_vector_to_mtbdd_rec(DdManager *ddman, double *vec, DdNode **vars,
 
 //------------------------------------------------------------------------------
 
-// converts an array of doubles to a bdd using a relational operator and one or more bounds
+// Converts an array of doubles to a BDD using a relational operator and a value (or values)
+// Options for rel_op:
+// * DV_GREATER_THAN_EQUALS: >= value
+// * DV_GREATER_THAN: > value
+// * DV_LESS_THAN_EQUALS <= value
+// * DV_LESS_THAN: < value
+// * DV_INTERVAL: in [value1,value2]
+// * DV_CLOSE_ABS: =value1 (with absolute error <= value2)
+// * DV_CLOSE_REL: =value1 (with relative error <= value2)
 
-EXPORT DdNode *double_vector_to_bdd(DdManager *ddman, double *vec, int rel_op, double bound, DdNode **vars, int num_vars, ODDNode *odd)
+
+EXPORT DdNode *double_vector_to_bdd(DdManager *ddman, double *vec, int rel_op, double value, DdNode **vars, int num_vars, ODDNode *odd)
 {
-	return double_vector_to_bdd(ddman, vec, rel_op, bound, 0, vars, num_vars, odd);
+	return double_vector_to_bdd(ddman, vec, rel_op, value, 0, vars, num_vars, odd);
 }
 
-EXPORT DdNode *double_vector_to_bdd(DdManager *ddman, double *vec, int rel_op, double bound1, double bound2, DdNode **vars, int num_vars, ODDNode *odd)
+EXPORT DdNode *double_vector_to_bdd(DdManager *ddman, double *vec, int rel_op, double value1, double value2, DdNode **vars, int num_vars, ODDNode *odd)
 {
-	return double_vector_to_bdd_rec(ddman, vec, rel_op, bound1, bound2, vars, num_vars, 0, odd, 0);
+	return double_vector_to_bdd_rec(ddman, vec, rel_op, value1, value2, vars, num_vars, 0, odd, 0);
 }
 
-DdNode *double_vector_to_bdd_rec(DdManager *ddman, double *vec, int rel_op, double bound1, double bound2, DdNode **vars, int num_vars, int level, ODDNode *odd, long o)
+// Recursive call for double_vector_to_bdd methods
+
+DdNode *double_vector_to_bdd_rec(DdManager *ddman, double *vec, int rel_op, double value1, double value2, DdNode **vars, int num_vars, int level, ODDNode *odd, long o)
 {
 	DdNode *e, *t;
 
 	if (level == num_vars) {
 		switch (rel_op) {
-		case DV_GREATER_THAN_EQUALS: return (vec[o] >= bound1) ? DD_Constant(ddman, 1) : DD_Constant(ddman, 0); break;
-		case DV_GREATER_THAN: return (vec[o] > bound1) ? DD_Constant(ddman, 1) : DD_Constant(ddman, 0); break;
-		case DV_LESS_THAN_EQUALS: return (vec[o] <= bound1) ? DD_Constant(ddman, 1) : DD_Constant(ddman, 0); break;
-		case DV_LESS_THAN: return (vec[o] < bound1) ? DD_Constant(ddman, 1) : DD_Constant(ddman, 0); break;
-		case DV_INTERVAL: return (vec[o] >= bound1 && vec[o] <= bound2) ? DD_Constant(ddman, 1) : DD_Constant(ddman, 0); break;
+		case DV_GREATER_THAN_EQUALS: return (vec[o] >= value1) ? DD_Constant(ddman, 1) : DD_Constant(ddman, 0); break;
+		case DV_GREATER_THAN: return (vec[o] > value1) ? DD_Constant(ddman, 1) : DD_Constant(ddman, 0); break;
+		case DV_LESS_THAN_EQUALS: return (vec[o] <= value1) ? DD_Constant(ddman, 1) : DD_Constant(ddman, 0); break;
+		case DV_LESS_THAN: return (vec[o] < value1) ? DD_Constant(ddman, 1) : DD_Constant(ddman, 0); break;
+		case DV_INTERVAL: return (vec[o] >= value1 && vec[o] <= value2) ? DD_Constant(ddman, 1) : DD_Constant(ddman, 0); break;
+		case DV_CLOSE_ABS: return doubles_are_close_abs(vec[o], value1, value2) ? DD_Constant(ddman, 1) : DD_Constant(ddman, 0); break;
+		case DV_CLOSE_REL: return doubles_are_close_rel(vec[o], value1, value2) ? DD_Constant(ddman, 1) : DD_Constant(ddman, 0); break;
 		}
 	}
 	else {
 		if (odd->eoff > 0) {
-			e = double_vector_to_bdd_rec(ddman, vec, rel_op, bound1, bound2, vars, num_vars, level+1, odd->e, o);
+			e = double_vector_to_bdd_rec(ddman, vec, rel_op, value1, value2, vars, num_vars, level+1, odd->e, o);
 		}
 		else {
 			e = DD_Constant(ddman, 0);
 		}
 		if (odd->toff > 0) {
-			t = double_vector_to_bdd_rec(ddman, vec, rel_op, bound1, bound2, vars, num_vars, level+1, odd->t, o+odd->eoff);
+			t = double_vector_to_bdd_rec(ddman, vec, rel_op, value1, value2, vars, num_vars, level+1, odd->t, o+odd->eoff);
 		}
 		else {
 			t = DD_Constant(ddman, 0);
@@ -513,6 +529,40 @@ EXPORT DistVector::~DistVector()
 {
 	if (dist) delete[] dist;
 	if (ptrs) delete[] ptrs;
+}
+
+//------------------------------------------------------------------------------
+
+// Utililty methods for checking whether two doubles are close
+// (based on code in prism.PrismUtils.java)
+
+EXPORT bool doubles_are_close_abs(double d1, double d2, double epsilon)
+{
+	// Deal with infinite cases
+	if (isinf(d1)) {
+		return isinf(d2) && (d1 > 0) == (d2 > 0);
+	} else if (isinf(d2)) {
+		return false;
+	}
+	// Compute/check error
+	return (fabs(d1 - d2) < epsilon);
+}
+
+EXPORT bool doubles_are_close_rel(double d1, double d2, double epsilon)
+{
+	// Deal with infinite cases
+	if (isinf(d1)) {
+		return isinf(d2) && (d1 > 0) == (d2 > 0);
+	} else if (isinf(d2)) {
+		return false;
+	}
+	// Compute/check error
+	d1 = fabs(d1);
+	d2 = fabs(d2);
+	// For two (near) zero values, return true, for just one, return false
+	if (d1 < epsilon_double)
+		return (d2 < epsilon_double);
+	return (fabs(d1 - d2) / d1 < epsilon);
 }
 
 //------------------------------------------------------------------------------
