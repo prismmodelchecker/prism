@@ -658,6 +658,7 @@ public class MDP extends Model
 	public void exportToDotFile(String filename, BitSet mark) throws PrismException
 	{
 		int i, j;
+		String nij;
 		try {
 			FileWriter out = new FileWriter(filename);
 			out.write("digraph " + modelType + " {\nsize=\"8,5\"\nnode [shape=box];\n");
@@ -667,10 +668,11 @@ public class MDP extends Model
 				j = -1;
 				for (Distribution distr : trans.get(i)) {
 					j++;
-					out.write(i + " -> " + i + "." + j + " [ arrowhead=none,label=\"" + j + "\" ];\n");
-					out.write(i + "." + j + " [ shape=circle,width=0.1,height=0.1,label=\"\" ];\n");
+					nij = "n" + i + "_" + j;
+					out.write(i + " -> " + nij + " [ arrowhead=none,label=\"" + j + "\" ];\n");
+					out.write(nij + " [ shape=point,width=0.1,height=0.1,label=\"\" ];\n");
 					for (Map.Entry<Integer, Double> e : distr) {
-						out.write(i + "." + j + " -> " + e.getKey() + " [ label=\"" + e.getValue() + "\" ];\n");
+						out.write(nij + " -> " + e.getKey() + " [ label=\"" + e.getValue() + "\" ];\n");
 					}
 				}
 			}
