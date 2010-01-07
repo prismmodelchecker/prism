@@ -359,11 +359,85 @@ public class STPG extends Model
 
 	/**
 	 * Build (anew) from a list of transitions exported explicitly by PRISM (i.e. a .tra file).
-	 * [Not supported for STPGs]
 	 */
 	public void buildFromPrismExplicit(String filename) throws PrismException
 	{
-		throw new PrismException("Building from PRISM explicit output not supported for STPGs");
+		BufferedReader in;
+		Distribution distr;
+		DistributionSet distrs;
+		String s, ss[];
+		int i, j, k1, k2, iLast, k1Last, k2Last, n, lineNum = 0;
+		double prob;
+
+		try {
+			// Open file
+			in = new BufferedReader(new FileReader(new File(filename)));
+			// Parse first line to get num states
+			s = in.readLine();
+			lineNum = 1;
+			if (s == null)
+				throw new PrismException("Missing first line of .tra file");
+			ss = s.split(" ");
+			n = Integer.parseInt(ss[0]);
+			// Initialise
+			initialise(n);
+			// Go though list of transitions in file
+			iLast = -1;
+			k1Last = -1;
+			k2Last = -1;
+			distrs = null;
+			distr = null;
+			s = in.readLine();
+			lineNum++;
+			while (s != null) {
+				s = s.trim();
+				if (s.length() > 0) {
+					ss = s.split(" ");
+					i = Integer.parseInt(ss[0]);
+					k1 = Integer.parseInt(ss[1]);
+					k2 = Integer.parseInt(ss[2]);
+					j = Integer.parseInt(ss[3]);
+					prob = Double.parseDouble(ss[4]);
+					// For a new state or distribution set or distribution
+					if (i != iLast || k1 != k1Last || k2 != k2Last) {
+						// Add any previous distribution to the last set, create new one
+						if (distrs != null) {
+							distrs.add(distr);
+						}
+						distr = new Distribution();
+						// Only for a new state or distribution set...
+						if (i != iLast || k1 != k1Last) {
+							// Add any previous distribution set to the last state, create new one
+							if (distrs != null) {
+								addDistributionSet(iLast, distrs);
+							}
+							distrs = newDistributionSet(null);
+						}
+					}
+					// Add transition to the current distribution
+					distr.add(j, prob);
+					// Prepare for next iter
+					iLast = i;
+					k1Last = k1;
+					k2Last = k2;
+				}
+				s = in.readLine();
+				lineNum++;
+			}
+			// Add previous distribution to the last set
+			distrs.add(distr);
+			// Add previous distribution set to the last state
+			addDistributionSet(iLast, distrs);
+			// Close file
+			in.close();
+		} catch (IOException e) {
+			System.out.println(e);
+			System.exit(1);
+		} catch (NumberFormatException e) {
+			throw new PrismException("Problem in .tra file (line " + lineNum + ") for " + modelType);
+		}
+		// Set initial state (assume 0)
+		initialStates.add(0);
 	}
 
 	/**
@@ -493,7 +567,32 @@ public class STPG extends Model
 	 */
 	public void exportToPrismExplicit(String baseFilename) throws PrismException
 	{
-		throw new PrismException("Export not yet supported");
+		int i, j, k;
+		String filename = null;
+		FileWriter out;
+		try {
+			// Output transitions to .tra file
+			filename = baseFilename + ".tra";
+			out = new FileWriter(filename);
+			out.write(numStates + " " + numDistrSets + " " + numDistrs + " " + numTransitions + "\n");
+			for (i = 0; i < numStates; i++) {
+				j = -1;
+				for (DistributionSet distrs : trans.get(i)) {
+					j++;
+					k = -1;
+					for (Distribution distr : distrs) {
+						k++;
+						for (Map.Entry<Integer, Double> e : distr) {
+							out.write(i + " " + j + " " + k + " " + e.getKey() + " " + e.getValue() + "\n");
+						}
+					}
+				}
+			}
+			out.close();
+			// TODO: rewards
+		} catch (IOException e) {
+			throw new PrismException("Could not export " + modelType + " to file \"" + filename + "\"" + e);
+		}
 	}
 
 	/**
@@ -502,6 +601,7 @@ public class STPG extends Model
 	public void exportToDotFile(String filename, BitSet mark) throws PrismException
 	{
 		int i, j, k;
+		String nij, nijk;
 		try {
 			FileWriter out = new FileWriter(filename);
 			out.write("digraph " + modelType + " {\nsize=\"8,5\"\nnode [shape=box];\n");
@@ -511,12 +611,17 @@ public class STPG extends Model
 				j = -1;
 				for (DistributionSet distrs : trans.get(i)) {
 					j++;
+					nij = "n" + i + "_" + j;
+					out.write(i + " -> " + nij + " [ arrowhead=none,label=\"" + j + "\" ];\n");
+					out.write(nij + " [ shape=circle,width=0.1,height=0.1,label=\"\" ];\n");
 					k = -1;
 					for (Distribution distr : distrs) {
 						k++;
+						nijk = "n" + i + "_" + j + "_" + k;
+						out.write(nij + " -> " + nijk + " [ arrowhead=none,label=\"" + k + "\" ];\n");
+						out.write(nijk + " [ shape=point,label=\"\" ];\n");
 						for (Map.Entry<Integer, Double> e : distr) {
-							out.write(i + " -> " + e.getKey() + " [ label=\"");
-							out.write(j + "," + k + ":" + e.getValue() + "\" ];\n");
+							out.write(nijk + " -> " + e.getKey() + " [ label=\"" + e.getValue() + "\" ];\n");
 						}
 					}
 				}
