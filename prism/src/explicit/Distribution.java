@@ -182,6 +182,8 @@ public class Distribution implements Iterable<Entry<Integer,Double>>
 	{
 		Double d1, d2;
 		Distribution d = (Distribution) o;
+		if (d.size() != size())
+			return false;
 		Iterator<Entry<Integer,Double>> i = iterator();
 		while (i.hasNext()) {
 			Map.Entry<Integer,Double> e = i.next();
