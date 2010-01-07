@@ -170,31 +170,35 @@ public class Explicit2MTBDD
 			s = in.readLine(); lineNum++;
 			numStates = 0;
 			while (s != null) {
-				// increment state count
-				numStates++;
-				// split string
+				// skip blank lines
 				s = s.trim();
-				s = s.substring(s.indexOf('(')+1, s.indexOf(')'));
-				ss = s.split(",");
-				if (ss.length != numVars) throw new PrismException("wrong number of variables");
-				// for each variable...
-				for (i = 0; i < numVars; i++) {
-					// if this is the first state, establish variable type
-					if (numStates == 1) {
-						if (ss[i].equals("true") || ss[i].equals("false")) varTypes[i] = TypeBool.getInstance();
-						else varTypes[i] = TypeInt.getInstance();
-					}
-					// check for new min/max values (ints only)
-					if (varTypes[i] instanceof TypeInt) {
-						j = Integer.parseInt(ss[i]);
+				if (s.length() > 0) {
+					// increment state count
+					numStates++;
+					// split string
+					s = s.substring(s.indexOf('(')+1, s.indexOf(')'));
+					ss = s.split(",");
+					if (ss.length != numVars) throw new PrismException("wrong number of variables");
+					// for each variable...
+					for (i = 0; i < numVars; i++) {
+						// if this is the first state, establish variable type
 						if (numStates == 1) {
-							varMins[i] = varMaxs[i] = j;
-						} else {
-							if (j < varMins[i]) varMins[i] = j;
-							if (j > varMaxs[i]) varMaxs[i] = j;
+							if (ss[i].equals("true") || ss[i].equals("false")) varTypes[i] = TypeBool.getInstance();
+							else varTypes[i] = TypeInt.getInstance();
+						}
+						// check for new min/max values (ints only)
+						if (varTypes[i] instanceof TypeInt) {
+							j = Integer.parseInt(ss[i]);
+							if (numStates == 1) {
+								varMins[i] = varMaxs[i] = j;
+							} else {
+								if (j < varMins[i]) varMins[i] = j;
+								if (j > varMaxs[i]) varMaxs[i] = j;
+							}
 						}
 					}
 				}
+				// read next line
 				s = in.readLine(); lineNum++;
 			}
 			// compute variable ranges
@@ -300,27 +304,31 @@ public class Explicit2MTBDD
 			// read remaining lines
 			s = in.readLine(); lineNum++;
 			while (s != null) {
+				// skip blank lines
 				s = s.trim();
-				// split into two parts
-				ss = s.split(":");
-				// determine which state this line describes
-				i = Integer.parseInt(ss[0]);
-				// now split up middle bit and extract var info
-				ss = ss[1].substring(ss[1].indexOf('(')+1, ss[1].indexOf(')')).split(",");
-				if (ss.length != numVars) throw new PrismException("(wrong number of variable values) ");
-				if (statesArray[i] != null) throw new PrismException("(duplicated state) ");
-				statesArray[i] = new int[numVars];
-				for (j = 0; j < numVars; j++) {
-					if (varTypes[j] instanceof TypeInt) {
-						k = Integer.parseInt(ss[j]);
-						statesArray[i][j] = k - varMins[j];
-					}
-					else {
-						if (ss[j].equals("true")) statesArray[i][j] = 1;
-						else if (ss[j].equals("false")) statesArray[i][j] = 0;
-						else throw new PrismException("(invalid Boolean value \""+ss[j]+"\") ");
+				if (s.length() > 0) {
+					// split into two parts
+					ss = s.split(":");
+					// determine which state this line describes
+					i = Integer.parseInt(ss[0]);
+					// now split up middle bit and extract var info
+					ss = ss[1].substring(ss[1].indexOf('(')+1, ss[1].indexOf(')')).split(",");
+					if (ss.length != numVars) throw new PrismException("(wrong number of variable values) ");
+					if (statesArray[i] != null) throw new PrismException("(duplicated state) ");
+					statesArray[i] = new int[numVars];
+					for (j = 0; j < numVars; j++) {
+						if (varTypes[j] instanceof TypeInt) {
+							k = Integer.parseInt(ss[j]);
+							statesArray[i][j] = k - varMins[j];
+						}
+						else {
+							if (ss[j].equals("true")) statesArray[i][j] = 1;
+							else if (ss[j].equals("false")) statesArray[i][j] = 0;
+							else throw new PrismException("(invalid Boolean value \""+ss[j]+"\") ");
+						}
 					}
 				}
+				// read next line
 				s = in.readLine(); lineNum++;
 			}
 			// close file
@@ -486,10 +494,12 @@ public class Explicit2MTBDD
 			maxNumChoices = 0;
 			while (s != null) {
 				s = s.trim();
-				ss = s.split(" ");
-				if (ss.length < 4 || ss.length > 5) throw new PrismException("");
-				j = Integer.parseInt(ss[1]);
-				if (j+1 > maxNumChoices) maxNumChoices = j+1;
+				if (s.length() > 0) {
+					ss = s.split(" ");
+					if (ss.length < 4 || ss.length > 5) throw new PrismException("");
+					j = Integer.parseInt(ss[1]);
+					if (j+1 > maxNumChoices) maxNumChoices = j+1;
+				}
 				s = in.readLine(); lineNum++;
 			}
 			// close file
@@ -698,66 +708,69 @@ public class Explicit2MTBDD
 			// read remaining lines
 			s = in.readLine(); lineNum++;
 			while (s != null) {
-				foundReward = false;
-				// parse line, split into parts
+				// skip blank lines
 				s = s.trim();
-				ss = s.split(" ");
-				// case for dtmcs/ctmcs...
-				if (modelType != ModelType.MDP) {
-					if (ss.length < 3 || ss.length > 4) throw new PrismException("");
-					r = Integer.parseInt(ss[0]);
-					c = Integer.parseInt(ss[1]);
-					d = Double.parseDouble(ss[2]);
-					if (ss.length == 4) {
-						foundReward = true;
-						x = Double.parseDouble(ss[3]);
-					}
-					//System.out.println("("+r+","+c+") = "+d);
-				}
-				// case for mdps...
-				else {
-					if (ss.length < 4 || ss.length > 5) throw new PrismException("");
-					r = Integer.parseInt(ss[0]);
-					k = Integer.parseInt(ss[1]);
-					c = Integer.parseInt(ss[2]);
-					d = Double.parseDouble(ss[3]);
-					if (ss.length == 5) {
-						foundReward = true;
-						x = Double.parseDouble(ss[4]);
-					}
-					//System.out.println("("+r+","+k+","+c+") = "+d);
-				}
-				// construct element of matrix mtbdd
-				// case where we don't have a state list...
-				if (statesFile == null) {
-					/// ...for dtmcs/ctmcs...
+				if (s.length() > 0) {
+					foundReward = false;
+					// parse line, split into parts
+					ss = s.split(" ");
+					// case for dtmcs/ctmcs...
 					if (modelType != ModelType.MDP) {
-						tmp = JDD.SetMatrixElement(JDD.Constant(0), varDDRowVars[0], varDDColVars[0], r, c, 1.0);
+						if (ss.length < 3 || ss.length > 4) throw new PrismException("");
+						r = Integer.parseInt(ss[0]);
+						c = Integer.parseInt(ss[1]);
+						d = Double.parseDouble(ss[2]);
+						if (ss.length == 4) {
+							foundReward = true;
+							x = Double.parseDouble(ss[3]);
+						}
+						//System.out.println("("+r+","+c+") = "+d);
 					}
-					/// ...for mdps...
+					// case for mdps...
 					else {
-						tmp = JDD.Set3DMatrixElement(JDD.Constant(0), varDDRowVars[0], varDDColVars[0], allDDChoiceVars, r, c, k, 1.0);
+						if (ss.length < 4 || ss.length > 5) throw new PrismException("");
+						r = Integer.parseInt(ss[0]);
+						k = Integer.parseInt(ss[1]);
+						c = Integer.parseInt(ss[2]);
+						d = Double.parseDouble(ss[3]);
+						if (ss.length == 5) {
+							foundReward = true;
+							x = Double.parseDouble(ss[4]);
+						}
+						//System.out.println("("+r+","+k+","+c+") = "+d);
 					}
-				}
-				// case where we do have a state list...
-				else {
-					tmp = JDD.Constant(1);
-					for (i = 0; i < numVars; i++) {
-						tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], statesArray[r][i], 1));
-						tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDColVars[i], statesArray[c][i], 1));
+					// construct element of matrix mtbdd
+					// case where we don't have a state list...
+					if (statesFile == null) {
+						/// ...for dtmcs/ctmcs...
+						if (modelType != ModelType.MDP) {
+							tmp = JDD.SetMatrixElement(JDD.Constant(0), varDDRowVars[0], varDDColVars[0], r, c, 1.0);
+						}
+						/// ...for mdps...
+						else {
+							tmp = JDD.Set3DMatrixElement(JDD.Constant(0), varDDRowVars[0], varDDColVars[0], allDDChoiceVars, r, c, k, 1.0);
+						}
 					}
-					if (modelType == ModelType.MDP) {
-						tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), allDDChoiceVars, k, 1));
+					// case where we do have a state list...
+					else {
+						tmp = JDD.Constant(1);
+						for (i = 0; i < numVars; i++) {
+							tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], statesArray[r][i], 1));
+							tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDColVars[i], statesArray[c][i], 1));
+						}
+						if (modelType == ModelType.MDP) {
+							tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), allDDChoiceVars, k, 1));
+						}
 					}
-				}
-				// add it into mtbdds for transition matrix and transition rewards
-				JDD.Ref(tmp);
-				trans = JDD.Apply(JDD.PLUS, trans, JDD.Apply(JDD.TIMES, JDD.Constant(d), tmp));
-				if (foundReward) {
+					// add it into mtbdds for transition matrix and transition rewards
 					JDD.Ref(tmp);
-					transRewards = JDD.Apply(JDD.PLUS, transRewards, JDD.Apply(JDD.TIMES, JDD.Constant(x), tmp));
+					trans = JDD.Apply(JDD.PLUS, trans, JDD.Apply(JDD.TIMES, JDD.Constant(d), tmp));
+					if (foundReward) {
+						JDD.Ref(tmp);
+						transRewards = JDD.Apply(JDD.PLUS, transRewards, JDD.Apply(JDD.TIMES, JDD.Constant(x), tmp));
+					}
+					JDD.Deref(tmp);
 				}
-				JDD.Deref(tmp);
 				// read next line
 				s = in.readLine(); lineNum++;
 			}
@@ -804,33 +817,36 @@ public class Explicit2MTBDD
 				s = in.readLine(); lineNum++;
 				numStates = 0;
 				while (s != null) {
-					// split string
+					// skip blank lines
 					s = s.trim();
-					ss = s.split(":");
-					s1 = ss[0].trim();
-					s2 = ss[1].trim();
-					// search right hand part for 0 (which is index of "init" label)
-					ss = s2.split(" ");
-					for (i = 0; i < ss.length; i++) {
-						if (ss[i].trim().equals("0")) {
-							count++;
-							r = Integer.parseInt(s1);
-							// set element in init states bdd
-							// case where we don't have a state list...
-							if (statesFile == null) {
-								tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[0], r, 1);
-							}
-							// case where we do have a state list...
-							else {
-								tmp = JDD.Constant(1);
-								for (i = 0; i < numVars; i++) {
-									tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], statesArray[r][i], 1));
+					if (s.length() > 0) {
+						// split string
+						ss = s.split(":");
+						s1 = ss[0].trim();
+						s2 = ss[1].trim();
+						// search right hand part for 0 (which is index of "init" label)
+						ss = s2.split(" ");
+						for (i = 0; i < ss.length; i++) {
+							if (ss[i].trim().equals("0")) {
+								count++;
+								r = Integer.parseInt(s1);
+								// set element in init states bdd
+								// case where we don't have a state list...
+								if (statesFile == null) {
+									tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[0], r, 1);
 								}
+								// case where we do have a state list...
+								else {
+									tmp = JDD.Constant(1);
+									for (i = 0; i < numVars; i++) {
+										tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], statesArray[r][i], 1));
+									}
+								}
+								// add it into bdd
+								JDD.Ref(tmp);
+								start = JDD.Or(start, tmp);
+								JDD.Deref(tmp);
 							}
-							// add it into bdd
-							JDD.Ref(tmp);
-							start = JDD.Or(start, tmp);
-							JDD.Deref(tmp);
 						}
 					}
 					// read next line
@@ -874,30 +890,33 @@ public class Explicit2MTBDD
 			// read remaining lines
 			s = in.readLine(); lineNum++;
 			while (s != null) {
+				// skip blank lines
 				s = s.trim();
-				// split into two/three parts
-				ss = s.split(":");
-				// determine which state this line describes
-				i = Integer.parseInt(ss[0]);
-				// if there is a state reward...
-				ss = ss[1].split("=");
-				if (ss.length == 2) {
-					// determine value
-					d = Double.parseDouble(ss[1]);
-					// construct element of vector mtbdd
-					// case where we don't have a state list...
-					if (statesFile == null) {
-						tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[0], i, 1.0);
-					}
-					// case where we do have a state list...
-					else {
-						tmp = JDD.Constant(1);
-						for (j = 0; j < numVars; j++) {
-							tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[j], statesArray[i][j], 1));
+				if (s.length() > 0) {
+					// split into two/three parts
+					ss = s.split(":");
+					// determine which state this line describes
+					i = Integer.parseInt(ss[0]);
+					// if there is a state reward...
+					ss = ss[1].split("=");
+					if (ss.length == 2) {
+						// determine value
+						d = Double.parseDouble(ss[1]);
+						// construct element of vector mtbdd
+						// case where we don't have a state list...
+						if (statesFile == null) {
+							tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[0], i, 1.0);
 						}
+						// case where we do have a state list...
+						else {
+							tmp = JDD.Constant(1);
+							for (j = 0; j < numVars; j++) {
+								tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[j], statesArray[i][j], 1));
+							}
+						}
+						// add it into mtbdd for state rewards
+						stateRewards = JDD.Apply(JDD.PLUS, stateRewards, JDD.Apply(JDD.TIMES, JDD.Constant(d), tmp));
 					}
-					// add it into mtbdd for state rewards
-					stateRewards = JDD.Apply(JDD.PLUS, stateRewards, JDD.Apply(JDD.TIMES, JDD.Constant(d), tmp));
 				}
 				// read next line
 				s = in.readLine(); lineNum++;
