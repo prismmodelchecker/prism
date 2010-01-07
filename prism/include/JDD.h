@@ -655,14 +655,6 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportMatrixToMatlabFile
 JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportMatrixToSpyFile
   (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jint, jstring);
 
-/*
- * Class:     jdd_JDD
- * Method:    DD_Printf
- * Signature: (Ljava/lang/String;)V
- */
-JNIEXPORT void JNICALL Java_jdd_JDD_DD_1Printf
-  (JNIEnv *, jclass, jstring);
-
 #ifdef __cplusplus
 }
 #endif
