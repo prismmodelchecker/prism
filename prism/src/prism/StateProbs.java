@@ -54,6 +54,9 @@ public interface StateProbs
 	StateProbs sumOverDDVars(JDDVars sumVars, Model newModel) throws PrismException;
 	JDDNode getBDDFromInterval(String relOp, double bound);
 	JDDNode getBDDFromInterval(double lo, double hi);
+	JDDNode getBDDFromCloseValue(double val, double epsilon, boolean abs);
+	JDDNode getBDDFromCloseValueAbs(double val, double epsilon);
+	JDDNode getBDDFromCloseValueRel(double val, double epsilon);
 	void print(PrismLog log) throws PrismException;
 	void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException;
 	void printFiltered(PrismLog log, JDDNode filter) throws PrismException;

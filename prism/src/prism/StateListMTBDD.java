@@ -115,6 +115,8 @@ public class StateListMTBDD implements StateList
 		limit = false;
 		outputLog = log;
 		doPrint();
+		if (count == 0)
+			outputLog.println("(none)");
 	}
 	public void printMatlab(PrismLog log)
 	{
@@ -148,7 +150,10 @@ public class StateListMTBDD implements StateList
 		numToPrint = n;
 		outputLog = log;
 		doPrint();
+		if (count == 0)
+			outputLog.println("(none)");
 	}
+	
 	public void printMatlab(PrismLog log, int n)
 	{
 		outputFormat = OutputFormat.MATLAB;

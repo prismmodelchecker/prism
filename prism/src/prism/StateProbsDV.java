@@ -223,6 +223,8 @@ public class StateProbsDV implements StateProbs
 		return "" + getNNZ();
 	}
 	
+	// Filter operations
+	
 	/**
 	 * Get the value of first vector element that is in the (BDD) filter.
 	 */
@@ -255,18 +257,20 @@ public class StateProbsDV implements StateProbs
 		return probs.sumOverBDD(filter, vars, odd);
 	}
 	
-	// do a weighted sum of the elements of the vector and the values the mtbdd passed in
-	// (used for csl reward steady state operator)
-	
+	/**
+	 * Do a weighted sum of the elements of the vector and the values the mtbdd passed in
+	 * (used for CSL reward steady state operator).
+	 */
 	public double sumOverMTBDD(JDDNode mult)
 	{
 		return probs.sumOverMTBDD(mult, vars, odd);
 	}
 	
-	// sum up the elements of the vector, over a subset of its dd vars
-	// store the result in a new StateProbsDV (for newModel)
-	// throws PrismException on out-of-memory
-
+	/**
+	* Sum up the elements of the vector, over a subset of its DD vars
+	* store the result in a new StateProbs (for newModel)
+	* @throws PrismException (on out-of-memory)
+	*/
 	public StateProbs sumOverDDVars(JDDVars sumVars, Model newModel) throws PrismException
 	{
 		DoubleVector tmp;
@@ -276,20 +280,54 @@ public class StateProbsDV implements StateProbs
 		return new StateProbsDV(tmp, newModel);
 	}
 	
-	// generate bdd from an interval (relative operator and bound)
-	
+	/**
+	 * 	Generate BDD for states in the given interval
+	 * (interval specified as relational operator and bound)
+	 */
 	public JDDNode getBDDFromInterval(String relOp, double bound)
 	{
 		return probs.getBDDFromInterval(relOp, bound, vars, odd);
 	}
 	
-	// generate bdd from an interval (lower/upper bound)
-	
+	/**
+	 * 	Generate BDD for states in the given interval
+	 * (interval specified as lower/upper bound)
+	 */
 	public JDDNode getBDDFromInterval(double lo, double hi)
 	{
 		return probs.getBDDFromInterval(lo, hi, vars, odd);
 	}
 
+	/**
+	 * 	Generate BDD for states whose value is close to 'value'
+	 * (within either absolute or relative error 'epsilon')
+	 */
+	public JDDNode getBDDFromCloseValue(double value, double epsilon, boolean abs)
+	{
+		if (abs)
+			return probs.getBDDFromCloseValueAbs(value, epsilon, vars, odd);
+		else
+			return probs.getBDDFromCloseValueRel(value, epsilon, vars, odd);
+	}
+	
+	/**
+	 * 	Generate BDD for states whose value is close to 'value'
+	 * (within absolute error 'epsilon')
+	 */
+	public JDDNode getBDDFromCloseValueAbs(double value, double epsilon)
+	{
+		return probs.getBDDFromCloseValueAbs(value, epsilon, vars, odd);
+	}
+	
+	/**
+	 * 	Generate BDD for states whose value is close to 'value'
+	 * (within relative error 'epsilon')
+	 */
+	public JDDNode getBDDFromCloseValueRel(double value, double epsilon)
+	{
+		return probs.getBDDFromCloseValueRel(value, epsilon, vars, odd);
+	}
+	
 	// PRINTING STUFF
 	
 	/**

@@ -346,9 +346,10 @@ public class StateProbsMTBDD implements StateProbs
 		return d;
 	}
 	
-	// do a weighted sum of the elements of a double array and the values the mtbdd passed in
-	// (used for csl reward steady state operator)
-	
+	/**
+	 * Do a weighted sum of the elements of the vector and the values the mtbdd passed in
+	 * (used for CSL reward steady state operator).
+	 */
 	public double sumOverMTBDD(JDDNode mult)
 	{
 		JDDNode tmp;
@@ -364,6 +365,11 @@ public class StateProbsMTBDD implements StateProbs
 		return d;
 	}
 	
+	/**
+	* Sum up the elements of the vector, over a subset of its DD vars
+	* store the result in a new StateProbs (for newModel)
+	* @throws PrismException (on out-of-memory)
+	*/
 	public StateProbs sumOverDDVars(JDDVars sumVars, Model newModel)
 	{
 		JDDNode tmp;
@@ -374,8 +380,10 @@ public class StateProbsMTBDD implements StateProbs
 		return new StateProbsMTBDD(tmp, newModel);
 	}
 	
-	// generate bdd (from an interval: relative operator and bound)
-	
+	/**
+	 * 	Generate BDD for states in the given interval
+	 * (interval specified as relational operator and bound)
+	 */
 	public JDDNode getBDDFromInterval(String relOp, double bound)
 	{
 		JDDNode sol = null;
@@ -397,8 +405,10 @@ public class StateProbsMTBDD implements StateProbs
 		return sol;
 	}
 	
-	// generate bdd from an interval (lower/upper bound)
-	
+	/**
+	 * 	Generate BDD for states in the given interval
+	 * (interval specified as lower/upper bound)
+	 */
 	public JDDNode getBDDFromInterval(double lo, double hi)
 	{
 		JDDNode sol;
@@ -409,6 +419,50 @@ public class StateProbsMTBDD implements StateProbs
 		return sol;
 	}
 
+	/**
+	 * 	Generate BDD for states whose value is close to 'value'
+	 * (within either absolute or relative error 'epsilon')
+	 */
+	public JDDNode getBDDFromCloseValue(double value, double epsilon, boolean abs)
+	{
+		if (abs)
+			return getBDDFromCloseValueAbs(value, epsilon);
+		else
+			return getBDDFromCloseValueRel(value, epsilon);
+	}
+	
+	/**
+	 * 	Generate BDD for states whose value is close to 'value'
+	 * (within absolute error 'epsilon')
+	 */
+	public JDDNode getBDDFromCloseValueAbs(double value, double epsilon)
+	{
+		JDDNode sol;
+		
+		// TODO: infinite cases
+		
+		JDD.Ref(probs);
+		sol = JDD.Interval(probs, value - epsilon, value + epsilon);
+		
+		return sol;
+	}
+	
+	/**
+	 * 	Generate BDD for states whose value is close to 'value'
+	 * (within relative error 'epsilon')
+	 */
+	public JDDNode getBDDFromCloseValueRel(double value, double epsilon)
+	{
+		JDDNode sol;
+		
+		// TODO: wrong
+		
+		JDD.Ref(probs);
+		sol = JDD.Interval(probs, value - epsilon, value + epsilon);
+		
+		return sol;
+	}
+	
 	// PRINTING STUFF
 	
 	/**
