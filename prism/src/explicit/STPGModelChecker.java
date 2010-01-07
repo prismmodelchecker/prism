@@ -662,4 +662,50 @@ public class STPGModelChecker extends ModelChecker
 			ubSoln2 = soln2;
 		}
 	}*/
+
+
+	/**
+	 * Simple test program.
+	 */
+	public static void main(String args[])
+	{
+		STPGModelChecker mc;
+		STPG stpg;
+		ModelCheckerResult res;
+		BitSet target;
+		Map<String, BitSet> labels;
+		boolean min1 = true, min2 = true;
+		try {
+			mc = new STPGModelChecker();
+			stpg = new STPG();
+			stpg.buildFromPrismExplicit(args[0]);
+			//System.out.println(stpg);
+			labels = mc.loadLabelsFile(args[1]);
+			//System.out.println(labels);
+			target = labels.get(args[2]);
+			if (target == null)
+				throw new PrismException("Unknown label \"" + args[2] + "\"");
+			for (int i  =3; i < args.length; i++) {
+				if (args[i].equals("-minmin")) {
+					min1 =true;
+					min2 = true;
+				} else if (args[i].equals("-maxmin")) {
+					min1 =false;
+					min2 = true;
+				} else if (args[i].equals("-minmax")) {
+					min1 =true;
+					min2 = false;
+				} else if (args[i].equals("-maxmax")) {
+					min1 =false;
+					min2 = false;
+				}
+			}
+			//stpg.exportToDotFile("stpg.dot", target);
+			//stpg.exportToPrismExplicit("stpg");
+			res = mc.probReach(stpg, target, min1, min2);
+			System.out.println(res.soln[0]);
+		} catch (PrismException e) {
+			System.out.println(e);
+		}
+	}
 }
