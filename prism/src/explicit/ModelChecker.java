@@ -291,15 +291,20 @@ public class ModelChecker
 			// Parse remaining lines
 			s = in.readLine();
 			while (s != null) {
-				ss = s.split(":");
-				i = Integer.parseInt(ss[0].trim());
-				ss = ss[1].trim().split(" ");
-				for (j = 0; j < ss.length; j++) {
-					if (ss[j].length() == 0)
-						continue;
-					k = Integer.parseInt(ss[j]);
-					// Store label info
-					bitsets[k].set(i);
+				// Skip blank lines
+				s = s.trim();
+				if (s.length() > 0) {
+					// Split line
+					ss = s.split(":");
+					i = Integer.parseInt(ss[0].trim());
+					ss = ss[1].trim().split(" ");
+					for (j = 0; j < ss.length; j++) {
+						if (ss[j].length() == 0)
+							continue;
+						k = Integer.parseInt(ss[j]);
+						// Store label info
+						bitsets[k].set(i);
+					}
 				}
 				// Prepare for next iter
 				s = in.readLine();
