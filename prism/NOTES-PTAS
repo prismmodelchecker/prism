@@ -1,3 +1,12 @@
+-----------------------------------------------------
+
+bin/ptamc examples/pta/simple/iandc.des sr 'z<6'
+bin/ptamc examples/pta/simple/tcs.des l3 true
+bin/ptamc examples/pta/simple/gethin1.des l2 true
+bin/ptamc examples/pta/simple/gethin2.des l2 true
+bin/ptamc examples/pta/simple/formats.des l3 true -refine=first -v 
+
+-----------------------------------------------------
 
 More Type checking, semantic checks ???
 Make sure checks match Digital clocks, Stochastic games
