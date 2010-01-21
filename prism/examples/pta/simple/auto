@@ -1,0 +1,3 @@
+#!/bin/csh
+
+prism formats09.nm formats09.pctl -prop 1 -aroptions refine=first
