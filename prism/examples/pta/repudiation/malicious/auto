@@ -1,0 +1,7 @@
+#!/bin/csh
+
+prism repudiation.nm eventually.pctl -aroptions refine=all,opt
+
+prism repudiation.nm deadline.pctl -aroptions refine=all,opt -const T=5
+prism repudiation.nm deadline.pctl -aroptions refine=all,opt -const T=10
+prism repudiation.nm deadline.pctl -aroptions refine=all,opt -const T=20
