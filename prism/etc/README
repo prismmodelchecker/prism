@@ -1,11 +1,12 @@
 This directory contains the following.
 
- * PRISM icons for shortcuts/etc. - p*.png, p*.ico
+ * PRISM icons for shortcuts/etc. - p*.png, prism.ico
 
  * Various useful scripts in scripts/
    - prism2html - converts PRISM models/properties to HTML
    - prism2latex - converts PRISM models/properties to LaTex
    - prism3to4 - fixes some common problems in old (3.x and earlier) PRISM models
+   - prism-statra - combines a PRISM .sta and .tra file into one file
    (these scripts run on Linux/Unix/OS X and require prism to be in your path)
 
  * MIME type and syntax highlighting config for PRISM (under Gnome) - Overrides.xml, prism.lang
@@ -15,6 +16,8 @@ This directory contains the following.
  * CSS style file for PRISM-generated HTML code - prism.css
 
  * LaTeX file for PRISM-generated LaTeX code - prism.tex
+ 
+ * Eclipse Java code formatting definitions - prism-eclipse-formatter.xml
 
 Where appropriate, comments/instructions are included in the files themselves.
 
