@@ -836,7 +836,7 @@ public class PrismCL
 				sw = args[i].substring(1);
 				
 				// print help
-				if (sw.equals("help") || sw.equals("?")) {
+				if (sw.equals("help") || sw.equals("-help") || sw.equals("?")) {
 					printHelp();
 					exit();
 				}
