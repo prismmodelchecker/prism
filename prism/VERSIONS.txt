@@ -1,205 +1,414 @@
 This file summarises the principal changes between each main public release of PRISM.
+
 For more detailed information about the various changes, see the file CHANGELOG.txt.
 
+
+
 -----------------------------------------------------------------------------
+
 Version 3.3.1 (released 22/11/2009)
+
 -----------------------------------------------------------------------------
+
+
 
 * Minor bug fixes
 
+
+
 -----------------------------------------------------------------------------
+
 Version 3.3 (beta1 released 20/5/2009)
+
 -----------------------------------------------------------------------------
+
+
 
 * New language parser:
+
   - improved efficiency, especially on large/complex models
+
   - more accurate error reporting
+
 * GUI model editor improvements:
+
   - error highlighting
+
   - line numbers
+
   - undo/redo feature
+
 * Expanded property specification language
+
   - LTL (and PCTL*) now supported
+
   - arbitrary expressions allowed, e.g. 1-P=?[...]
+
   - support for weak until (W) and release (R) added
+
   - steady-state operators (S=?[...], R=?[S]) allowed for DTMCs
+
   - optional semicolons to terminate properties in properties files
+
 * Modelling language changes:
+
   - cleaner notation for functions, e.g. mod(i,n), not func(mod,i,n)
+
   - function names can be renamed in module renaming
+
   - language strictness: updates (x'=...) must be parenthesised
+
   - ranges (x=1..3,5) no longer supported
+
   - added conversion tool for old models (etc/scripts/prism3to4)
+
 * New tool features:
+
   - added symmetry reduction functionality
+
   - steady-state/transient probability computation for DTMCs
+
   - expanded cost/reward-property model checking support
+
   - PRISM-to-html and PRISM-to-Latex conversion scripts
+
   - efficiency improvements to precomputation algorithms
+
   - BSCC export functionality (-exportbsccs switch)
+
   - improvements to memory handling, especially in sparse/hybrid engines
 
+
+
 -----------------------------------------------------------------------------
+
 Version 3.2 (beta released 25/2/2008)
+
 -----------------------------------------------------------------------------
+
+
 
 * Support for 64-bit architectures and Mac OS X v10.5 (Leopard)
 
+
+
 * Improvements to property specification language
+
   - addition of F and G operators (eventually/globally)
+
   - can now use labels/formulas from model file in properties files
 
+
+
 * Redesign of the simulator GUI, plus new features:
+
   - ability to display accumulated time/rewards
+
   - new "Configure view" dialog
+
   - easier selection of next step (double click) 
+
+
 
 * New graph plotting engine using JFreeChart
 
+
+
 * Other GUI improvements:
+
   - new icon set and graphics
+
   - font increase/decrease feature
+
   - loading of partially correct property files
 
+
+
 * Further additional functionality:
+
   - extra reward model checking algorithms for some engines
+
   - prototype SBML-to-PRISM translator
+
   - new -exportrows switch for matrix exports
+
   - new options for -simpath switch
+
   - new -extraddinfo switch for displaying extra (MT)BDD info
 
------------------------------------------------------------------------------
-Version 3.1.1 (released 5/4/2007)
+
+
 -----------------------------------------------------------------------------
 
-* Minor bug fixes
+Version 3.1.1 (released 5/4/2007)
+
 -----------------------------------------------------------------------------
+
+
+
+* Minor bug fixes
+
+
+
+-----------------------------------------------------------------------------
+
 Version 3.1 (released 15/11/2006)
+
 -----------------------------------------------------------------------------
+
+
 
 * New installer for Windows binary
+
 * Models can now have multiple (named) reward structures
+
 * New -simpath switch for command-line generation of random paths with simulator
+
 * Minor PRISM language improvements:
+
   - type keyword does not need to be first thing in model file
+
   - doubles in exponential form (1.4e-9) and unary minus (-1) allowed
+
 * PRISM settings file now used by command-line version too
+
 * Small GUI improvements
+
 * New option to disable steady-state detection for CTMC transient analysis
+
 * Bug fixes
 
+
+
 -----------------------------------------------------------------------------
+
 Version 3.0 (released 6/7/2006)
+
 -----------------------------------------------------------------------------
+
+
 
 * Discrete-event simulation engine added, providing:
+
  - generation of approximate quantitative results via sampling
+
  - debugging tool: manual model exploration and automatic trace generation
 
+
+
 * Support for costs and rewards:
+
  - state-based and transition-based (impulse) costs/reward specification added to PRISM language
+
  - verification (and simulation) of properties based on expected value of costs/rewards
+
    (e.g. cumulated reward to reach state/time-bound, transient or steady-state reward value)
 
+
+
 * Overhaul of import/export functionality, including:
+
   - export of transition matrix graph (Dot file)
+
   - export of state/transition rewards
+
   - export of property file labels and their satisfying states
+
   - improved support for other export formats: Matlab, MRMC
+
   - possibility to export to stdout/log instead of a file
+
   - import of explicit model descriptions (from transition matrix and, optionally, state list)
 
+
+
 * GUI improvements, e.g.:
+
   - additional graph plotting functionality 
+
   - XML-based import/export of graphs
+
   - export of graphs to Matlab
 
+
+
 * Improved options management including saving of user settings
+
 * Support for Mac OS X
+
 * Easier compilation process
+
 * Direct computation of transient probabilities
+
 * Support for multiple initial states
+
 * Improvements/additions to PRISM modelling/property languages
+
 * Additional error checking on PRISM models
+
 * Underlying data structure and efficiency improvements
+
 * Bug fixes
 
+
+
 -----------------------------------------------------------------------------
+
 Version 2.1 (released 8/9/2004)
+
 -----------------------------------------------------------------------------
+
+
 
 * Now possible to build/run PRISM on Windows
+
 * Compilation/installation procedures slightly simplified
+
 * Splash screen on load
 
+
+
 -----------------------------------------------------------------------------
+
 Version 2.0 (released 17/3/2004)
+
 -----------------------------------------------------------------------------
+
+
 
 * Completely new graphical user interface, including:
+
   - Text editor for PRISM language
+
   - Automated results collection/graph plotting
+
   
+
 * Enhancements to PRISM language:
+
   - Types (ints, doubles and booleans) and type checking added
+
   - Probabilities/rates can now be expressions
+
   - Variable ranges/initial values can now be expressions
+
   - Constant/formula definitions can be expressions (including in terms of each other)
+
   - Process algebra style definitions allowed for MDPs too (via "system" construct)
+
   
+
 * Enhancements to property specifications:
+
   - Probability/time bounds in PCTL/CSL properties can now be expressions
+
   - Use of constants now permitted: both those from the model and newly declared ones
+
   - Added "init" keyword to PCTL/CSL (atomic proposition true only in initial state)
+
   - Can define and reuse "labels" (atomic propositions) (like formulas in model files)
+
   - Can write properties of the form "P=?[...]" which return the actual probability
+
   
+
  * Additional features:
+
   - Automatic handling of multiple model checking computations,
+
     e.g. check "P~p[true U<=k error]" for k=1..100
+
   - Added -exportstates switch, exports reachable states to text file
+
   - Added -nobscc switch for optional bypass of BSCC computation
+
   - Added explicit versions of export options (including first export option for MDPs)
+
   - Export options can now be used in conjunction with each other and with model checking
+
   - Added -version switch to display version
+
   
+
 * Efficiency improvements
+
   - Improved heuristics for hybrid engine (sb/sbmax/gsl switches -> sbmax/sbl/gsmax/gsl)
+
   - More efficient construction process for unstructured models
+
   - General restructuring/improvements to model construction process implementation
+
   
+
 * Miscellaneous
+
   - Various bug fixes
+
   - Fairness (for MDP model checking) now OFF by default (used to be ON)
 
+
+
 -----------------------------------------------------------------------------
+
 Version 1.3.1 (released 20/2/2003)
+
 -----------------------------------------------------------------------------
+
+
 
 * Bug fixes in model construction code
 
+
+
 -----------------------------------------------------------------------------
+
 Version 1.3 (released 10/2/2003)
+
 -----------------------------------------------------------------------------
+
+
 
 * Steady-state probability computation improved to include strongly connected component (SCC) computation
+
 * Extended support for CSL time-bounded until operator to include arbitrary intervals
+
 * More flexible parallel composition options in the PRISM language (for DTMCs and CTMCs)
+
 * Added option to import PEPA process algebra descriptions as models
+
 * Improved range of numerical methods: (Backwards) Gauss-Seidel and (Backwards) SOR (plus variants for hybrid engine)
+
 * Added -pctl/-csl switches to allow command line specification of properties
+
 * Improved handling of deadlock states: can add self-loops to these states automatically (e.g. -fixdl switch)
+
 * Steady-state probabilities are no longer automatically computed for CTMCs: use the -ss switch
+
 * Addition of {} operator to PCTL/CSL formulas to support printing of probabilities
+
 * Resolved problem with PRISM language syntax: updates must now be parenthesised
+
 * Default value for maximum number of iterations reduced from 500,000 to (more sensible) 10,000
+
 * Added switches to control CUDD behaviour (-cuddmaxmem, -cuddepsilon)
+
 * Additional example files
+
 * Numerous bug fixlatest.htmles
+
 * Now released under the GPL license
-
------------------------------------------------------------------------------
-Version 1.2 (released 17/9/2001)
+
+
+
+
+
 -----------------------------------------------------------------------------
 
+Version 1.2 (released 17/9/2001)
+
+-----------------------------------------------------------------------------
+
+
+
 First public release
+
