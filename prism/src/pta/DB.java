@@ -30,7 +30,7 @@ package pta;
  * Helper class for encapsulation of difference bound as an integer.
  * We use the least significant bit to encode strictness in the bound
  * (1 = non-strict, 0 = strict); the rest is for the (integer) bound.
- * Upper bound of if infinity is encoded as Integer.MAX_VALUE.
+ * Upper bound of infinity is encoded as Integer.MAX_VALUE.
  */
 public class DB
 {
@@ -60,13 +60,6 @@ public class DB
 		return (DIFF_MASK & d) >> 1;
 	}
 
-	// Is the (value of the) bound non-negative?
-	// TODO: get rid of this?
-	protected static boolean isNonNegative(int d)
-	{
-		return d > 0;
-	}
-
 	// Is bound strict?
 	protected static boolean isStrict(int d)
 	{
@@ -89,20 +82,6 @@ public class DB
 		return d1 + d2 - ((d1 & NON_STRICT) | (d2 & NON_STRICT));
 	}
 
-	// Compare two bounds: d1 < d2?
-	protected static boolean lessThan(int d1, int d2)
-	{
-		// TODO: get rid of this?
-		return d1 < d2;
-	}
-
-	// Compare two bounds: d1 == d2?
-	protected static boolean equals(int d1, int d2)
-	{
-		// TODO: get rid of this?
-		return (d1 == d2);
-	}
-
 	// Compute dual bound: flip both strictness and sign
 	protected static int dual(int d)
 	{
@@ -119,15 +98,6 @@ public class DB
 			return "<inf";
 		return (isStrict(d) ? "<" : "<=") + getSignedDiff(d);
 	}
-
-	// Get as string, multiplied by -1 and so converted to upper bound, e.g. "<v" -> ">-v" 
-	/*protected static String toStringUpperBound(int d)
-	{
-		if (d == INFTY)
-			return ">-inf";
-		return (((RELOP_MASK & d) != 0) ? ">" : ">=") + (-getSignedDiff(d));
-	}*/
-	//TODO:need?
 
 	// Get bound as a string, multiplied by -1 and flipped, e.g. "<v" -> "-v<" 
 	protected static String toStringFlipped(int d)
