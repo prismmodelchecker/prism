@@ -1,31 +1,36 @@
------------------------------------------------------
-
-More Type checking, semantic checks ???
-Make sure checks match Digital clocks, Stochastic games
-Time divergence?
-
-Creation of new names (adding extra _s) doesn't take into account prop file ot consts etc.
-
-Sort VarList (two types - before and after constants evaluated). Need for simulator too.
+Bugs
+----
 
 
-Digital clocks
---------------
+Todo
+----
 
-Translation done sep for erach property (e.g. for cmax)
+* Clarify semantic/type checks (consistency with games/digital)
 
-Debugging on case studies
-Optimisations?
-Urgency?
+* Clarify time divergence issues
 
-
-Stochastic games
-----------------
-
-Optimise number of states in time-bounded PTAs (extras added in old target states) using until in forwards reach?
+* Sort VarList (two types - before and after constants evaluated). Need for simulator too.
 
 
-* Email Holger/Arndt some models
+Maybe todo
+----------
+
+* Games: Optimise number of states in time-bounded PTAs
+  (extras added in old target states) using until in forwards reach?
+
+* Fix: Creation of new names (adding extra _s) doesn't take into account prop file ot consts etc.
+
+* Digital clocks: Translation done sep for each property (e.g. for cmax)?
+
+* Digital clocks: urgency?
+
+* Digital clocks: optimisations?
+
+
+Tidy
+----
+
+* Remove unneeded files from examples (prism-benchmark, rewards stuff)
 
 
 Documentation

@@ -1,5 +1,9 @@
 TODO:
 
+* Get PrismSTPGAsbtractRefine working better on more examples
+* When PrismSTPGAsbtractRefine can reproduce QEST results, delete abstraction package
+
+
 exp reach for games
 remove src/abstraction dir
 

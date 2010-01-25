@@ -1,27 +1,69 @@
 
------------------------------------------------------
+Last stable version of PRISM on svn (3.3 plus some fixes) is rev 1405
+(there is a copy of this, e.g. to get working simulator, in ~/prism-old)
 
-bin/ptamc examples/pta/simple/iandc.des sr 'z<6'
+-----------------------------------------------------------------------
 
-bin/ptamc examples/pta/simple/tcs.des l3 true
+Stuff to remove when distributing early copies to people:
+* NOTES*
+* examples/des
+* examples/explicit
+* src/explicit/PrismSTPGAsbtractRefine
+* {src,classes}/abstraction
 
-bin/ptamc examples/pta/simple/gethin1.des l2 true
+-----------------------------------------------------------------------
 
-bin/ptamc examples/pta/simple/gethin2.des l2 true
+See also:
+* NOTES-PTAS
+* NOTES-SIM
+* NOTES-ABSTR
 
-bin/ptamc examples/pta/simple/formats.des l3 true -refine=first -v 
+-----------------------------------------------------------------------
 
------------------------------------------------------
+Fixes/tidying needed before release to Kim:
 
-bin/mdpmc coin2_10.tra coin2_10.lab finished 
+Processing TODOs:
+Check STPGAR carefully (and then PTAAR subclass)
+CTL stuff (even if only disable?) in NonProbMC
+Tidy up, disable and/or remove PTA rewards stuff
 
------------------------------------------------------
+disable simulator neatly?
 
-bin/ptamc-prof ...
+and to Holger et al.:
 
-java -jar ~/usr/packages/jip-1.1.1/client/client.jar finish localhost 15599
+CTMDP stuff
 
-java -jar ~/usr/packages/jip-1.1.1/client/jipViewer.jar profile.xtx.xml 
+-----------------------------------------------------------------------
 
------------------------------------------------------
+Filters, property semantics, etc.
+
+TODO:
+* Integer-valued props displayed as doubles - need to give types to StateProbs?
+  - lots of other places too e.g. GUI results)
+* Intervals for multiple initial states
+  - Need classes for Result
+  - Graph plotting?
+* Restructure Result class? e.g. separate bracketed comment? (done I think)
+  - Errors (Exceptions) formatted properly?
+
+Doc:
+* Filters - no longer allowed minmax
+* P>=p[...{filter}] means & not print
+
+-----------------------------------------------------------------------
+
+TODO:
+
+- make adv gen switchable
+- make action storage optional (when required)
+- action storage for D/CTMCs
+- lp stuff - plugin support for eclipse/lpsolve (in prism-multi?)
+- also look up lrs?
+
+-----------------------------------------------------------------------
+
+LTL...
+bscc stuff
+- regression testing on ltl stuff with 3 diff options
+
 
