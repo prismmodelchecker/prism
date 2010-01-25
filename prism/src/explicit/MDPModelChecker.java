@@ -683,11 +683,13 @@ public class MDPModelChecker extends ModelChecker
 			target = labels.get(args[2]);
 			if (target == null)
 				throw new PrismException("Unknown label \"" + args[2] + "\"");
-			for (int i  =3; i < args.length; i++) {
+			for (int i = 3; i < args.length; i++) {
 				if (args[i].equals("-min"))
 					min =true;
 				else if (args[i].equals("-max"))
 					min = false;
+				else if (args[i].equals("-nopre"))
+					mc.setPrecomp(false);
 			}
 			res = mc.probReach(mdp, target, min);
 			System.out.println(res.soln[0]);
