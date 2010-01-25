@@ -148,6 +148,12 @@ public class ExpressionReward extends Expression
 		}
 	}
 
+	@Override
+	public boolean returnsSingleValue()
+	{
+		return false;
+	}
+
 	// Methods required for ASTElement:
 	
 	/**

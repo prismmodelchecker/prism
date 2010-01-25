@@ -195,6 +195,12 @@ public class ExpressionBinaryOp extends Expression
 		throw new PrismLangException("Unknown binary operator", this);
 	}
 
+	@Override
+	public boolean returnsSingleValue()
+	{
+		return operand1.returnsSingleValue() && operand2.returnsSingleValue();
+	}
+
 	// Methods required for ASTElement:
 
 	/**

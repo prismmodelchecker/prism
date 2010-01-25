@@ -200,6 +200,12 @@ public class ExpressionTemporal extends Expression
 		throw new PrismLangException("Cannot evaluate a temporal operator without a path");
 	}
 
+	@Override
+	public boolean returnsSingleValue()
+	{
+		return false;
+	}
+
 	// Methods required for ASTElement:
 
 	/**

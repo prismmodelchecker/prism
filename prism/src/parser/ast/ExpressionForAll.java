@@ -78,6 +78,12 @@ public class ExpressionForAll extends Expression
 		throw new PrismLangException("Cannot evaluate an E operator without a model");
 	}
 
+	@Override
+	public boolean returnsSingleValue()
+	{
+		return false;
+	}
+
 	// Methods required for ASTElement:
 	
 	/**

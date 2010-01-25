@@ -36,12 +36,12 @@ import odd.*;
 import parser.VarList;
 import parser.type.*;
 
-// state probability vector (mtbdd)
+// Class for state-indexed vectors of (integer or double) values, represented by an MTBDD
 
-public class StateProbsMTBDD implements StateProbs
+public class StateValuesMTBDD implements StateValues
 {
-	// prob vector mtbdd
-	JDDNode probs;
+	// MTBDD storing vector of values
+	JDDNode values;
 	
 	// info from model
 	Model model;
@@ -63,12 +63,12 @@ public class StateProbsMTBDD implements StateProbs
 
 	// CONSTRUCTOR
 	
-	public StateProbsMTBDD(JDDNode p, Model m)
+	public StateValuesMTBDD(JDDNode p, Model m)
 	{
 		int i;
 		
-		// store prob vector mtbdd
-		probs = p;
+		// store values vector mtbdd
+		values = p;
 		
 		// get info from model
 		model = m;
@@ -89,16 +89,16 @@ public class StateProbsMTBDD implements StateProbs
 
 	// CONVERSION METHODS
 	
-	// convert to StateProbsDV, destroy (clear) old vector
-	public StateProbsDV convertToStateProbsDV()
+	// convert to StateValuesDV, destroy (clear) old vector
+	public StateValuesDV convertToStateValuesDV()
 	{
-		StateProbsDV res = new StateProbsDV(probs, model);
+		StateValuesDV res = new StateValuesDV(values, model);
 		clear();
 		return res;
 	}
 	
-	// convert to StateProbsMTBDD (nothing to do)
-	public StateProbsMTBDD convertToStateProbsMTBDD()
+	// convert to StateValuesMTBDD (nothing to do)
+	public StateValuesMTBDD convertToStateValuesMTBDD()
 	{
 		return this;
 	}
@@ -131,7 +131,7 @@ public class StateProbsMTBDD implements StateProbs
 		}
 		
 		// Add element to vector MTBDD
-		probs = JDD.ITE(dd, JDD.Constant(d), probs);
+		values = JDD.ITE(dd, JDD.Constant(d), values);
 	}
 	
 	// read from file
@@ -177,31 +177,31 @@ public class StateProbsMTBDD implements StateProbs
 	
 	public void roundOff(int places)
 	{
-		probs = JDD.RoundOff(probs, places);
+		values = JDD.RoundOff(values, places);
 	}
 	
-	// subtract all probabilities from 1
+	// subtract all values from 1
 	
 	public void subtractFromOne() 
 	{
 		JDD.Ref(reach);
-		probs = JDD.Apply(JDD.MINUS, reach, probs);
+		values = JDD.Apply(JDD.MINUS, reach, values);
 	}
 	
 	// add another vector to this one
 	
-	public void add(StateProbs sp) 
+	public void add(StateValues sp) 
 	{
-		StateProbsMTBDD spm = (StateProbsMTBDD) sp;
-		JDD.Ref(spm.probs);
-		probs = JDD.Apply(JDD.PLUS, probs, spm.probs);
+		StateValuesMTBDD spm = (StateValuesMTBDD) sp;
+		JDD.Ref(spm.values);
+		values = JDD.Apply(JDD.PLUS, values, spm.values);
 	}
 	
 	// multiply vector by a constant
 	
 	public void timesConstant(double d) 
 	{
-		probs = JDD.Apply(JDD.TIMES, probs, JDD.Constant(d));
+		values = JDD.Apply(JDD.TIMES, values, JDD.Constant(d));
 	}
 	
 	// filter vector using a bdd (set elements not in filter to 0)
@@ -209,14 +209,14 @@ public class StateProbsMTBDD implements StateProbs
 	public void filter(JDDNode filter)
 	{
 		JDD.Ref(filter);
-		probs = JDD.Apply(JDD.TIMES, probs, filter);
+		values = JDD.Apply(JDD.TIMES, values, filter);
 	}
 	
 	// clear
 	
 	public void clear()
 	{
-		JDD.Deref(probs);
+		JDD.Deref(values);
 	}
 
 	// METHODS TO ACCESS VECTOR DATA
@@ -225,14 +225,14 @@ public class StateProbsMTBDD implements StateProbs
 	
 	public JDDNode getJDDNode()
 	{
-		return probs;
+		return values;
 	}
 	
 	// get num non zeros
 	
 	public int getNNZ()
 	{
-		double nnz = JDD.GetNumMinterms(probs, numDDRowVars);
+		double nnz = JDD.GetNumMinterms(values, numDDRowVars);
 		return (nnz > Integer.MAX_VALUE) ? -1 : (int)Math.round(nnz);
 	}
 	
@@ -265,9 +265,9 @@ public class StateProbsMTBDD implements StateProbs
 		// remove all but first element of filter
 		tmp = JDD.RestrictToFirst(tmp, vars);
 		
-		// then apply filter to probs
-		JDD.Ref(probs);
-		tmp = JDD.Apply(JDD.TIMES, probs, tmp);
+		// then apply filter to values
+		JDD.Ref(values);
+		tmp = JDD.Apply(JDD.TIMES, values, tmp);
 		
 		// extract single value (we use SumAbstract could use e.g. MaxAbstract, etc.)
 		tmp = JDD.SumAbstract(tmp, vars);
@@ -294,8 +294,8 @@ public class StateProbsMTBDD implements StateProbs
 		if (tmp.equals(JDD.ZERO)) return Double.POSITIVE_INFINITY;
 		
 		// set non-reach states to infinity
-		JDD.Ref(probs);
-		tmp = JDD.ITE(tmp, probs, JDD.PlusInfinity());
+		JDD.Ref(values);
+		tmp = JDD.ITE(tmp, values, JDD.PlusInfinity());
 		
 		d = JDD.FindMin(tmp);
 		JDD.Deref(tmp);
@@ -319,8 +319,8 @@ public class StateProbsMTBDD implements StateProbs
 		if (tmp.equals(JDD.ZERO)) return Double.NEGATIVE_INFINITY;
 		
 		// set non-reach states to infinity
-		JDD.Ref(probs);
-		tmp = JDD.ITE(tmp, probs, JDD.MinusInfinity());
+		JDD.Ref(values);
+		tmp = JDD.ITE(tmp, values, JDD.MinusInfinity());
 		
 		d = JDD.FindMax(tmp);
 		JDD.Deref(tmp);
@@ -336,9 +336,9 @@ public class StateProbsMTBDD implements StateProbs
 		JDDNode tmp;
 		double d;
 		
-		JDD.Ref(probs);
+		JDD.Ref(values);
 		JDD.Ref(filter);
-		tmp = JDD.Apply(JDD.TIMES, probs, filter);
+		tmp = JDD.Apply(JDD.TIMES, values, filter);
 		tmp = JDD.SumAbstract(tmp, vars);
 		d = tmp.getValue();
 		JDD.Deref(tmp);
@@ -355,9 +355,9 @@ public class StateProbsMTBDD implements StateProbs
 		JDDNode tmp;
 		double d;
 		
-		JDD.Ref(probs);
+		JDD.Ref(values);
 		JDD.Ref(mult);
-		tmp = JDD.Apply(JDD.TIMES, probs, mult);
+		tmp = JDD.Apply(JDD.TIMES, values, mult);
 		tmp = JDD.SumAbstract(tmp, vars);
 		d = tmp.getValue();
 		JDD.Deref(tmp);
@@ -367,17 +367,17 @@ public class StateProbsMTBDD implements StateProbs
 	
 	/**
 	* Sum up the elements of the vector, over a subset of its DD vars
-	* store the result in a new StateProbs (for newModel)
+	* store the result in a new StateValues (for newModel)
 	* @throws PrismException (on out-of-memory)
 	*/
-	public StateProbs sumOverDDVars(JDDVars sumVars, Model newModel)
+	public StateValues sumOverDDVars(JDDVars sumVars, Model newModel)
 	{
 		JDDNode tmp;
 		
-		JDD.Ref(probs);
-		tmp = JDD.SumAbstract(probs, sumVars);
+		JDD.Ref(values);
+		tmp = JDD.SumAbstract(values, sumVars);
 		
-		return new StateProbsMTBDD(tmp, newModel);
+		return new StateValuesMTBDD(tmp, newModel);
 	}
 	
 	/**
@@ -388,18 +388,18 @@ public class StateProbsMTBDD implements StateProbs
 	{
 		JDDNode sol = null;
 		
-		JDD.Ref(probs);
+		JDD.Ref(values);
 		if (relOp.equals(">=")) {
-			sol = JDD.GreaterThanEquals(probs, bound);
+			sol = JDD.GreaterThanEquals(values, bound);
 		}
 		else if (relOp.equals(">")) {
-			sol = JDD.GreaterThan(probs, bound);
+			sol = JDD.GreaterThan(values, bound);
 		}
 		else if (relOp.equals("<=")) {
-			sol = JDD.LessThanEquals(probs, bound);
+			sol = JDD.LessThanEquals(values, bound);
 		}
 		else if (relOp.equals("<")) {
-			sol = JDD.LessThan(probs, bound);
+			sol = JDD.LessThan(values, bound);
 		}
 		
 		return sol;
@@ -413,8 +413,8 @@ public class StateProbsMTBDD implements StateProbs
 	{
 		JDDNode sol;
 		
-		JDD.Ref(probs);
-		sol = JDD.Interval(probs, lo, hi);
+		JDD.Ref(values);
+		sol = JDD.Interval(values, lo, hi);
 		
 		return sol;
 	}
@@ -432,7 +432,7 @@ public class StateProbsMTBDD implements StateProbs
 	}
 	
 	/**
-	 * 	Generate BDD for states whose value is close to 'value'
+	 * Generate BDD for states whose value is close to 'value'
 	 * (within absolute error 'epsilon')
 	 */
 	public JDDNode getBDDFromCloseValueAbs(double value, double epsilon)
@@ -440,9 +440,11 @@ public class StateProbsMTBDD implements StateProbs
 		JDDNode sol;
 		
 		// TODO: infinite cases
+		// if (isinf(values[i])) return (isinf(value) && (values[i] > 0) == (value > 0)) ? 1 : 0
+		// else (fabs(values[i] - value) < epsilon);
 		
-		JDD.Ref(probs);
-		sol = JDD.Interval(probs, value - epsilon, value + epsilon);
+		JDD.Ref(values);
+		sol = JDD.Interval(values, value - epsilon, value + epsilon);
 		
 		return sol;
 	}
@@ -455,10 +457,14 @@ public class StateProbsMTBDD implements StateProbs
 	{
 		JDDNode sol;
 		
-		// TODO: wrong
-		
-		JDD.Ref(probs);
-		sol = JDD.Interval(probs, value - epsilon, value + epsilon);
+		// TODO: infinite cases
+		// if (isinf(values[i])) return (isinf(value) && (values[i] > 0) == (value > 0)) ? 1 : 0
+		// else (fabs(values[i] - value) < epsilon);
+
+		// TODO: this should be relative, not absolute error
+		// (see doubles_are_close_rel in dv.cc for reference)
+		JDD.Ref(values);
+		sol = JDD.Interval(values, value - epsilon, value + epsilon);
 		
 		return sol;
 	}
@@ -473,7 +479,7 @@ public class StateProbsMTBDD implements StateProbs
 		int i;
 		
 		// check if all zero
-		if (probs.equals(JDD.ZERO)) {
+		if (values.equals(JDD.ZERO)) {
 			log.println("(all zero)");
 			return;
 		}
@@ -485,7 +491,7 @@ public class StateProbsMTBDD implements StateProbs
 		}
 		currentVar = 0;
 		currentVarLevel = 0;
-		printRec(probs, 0, odd, 0);
+		printRec(values, 0, odd, 0);
 		//log.println();
 	}
 	
@@ -579,9 +585,9 @@ public class StateProbsMTBDD implements StateProbs
 		JDDNode tmp;
 		
 		// filter out
-		JDD.Ref(probs);
+		JDD.Ref(values);
 		JDD.Ref(filter);
-		tmp = JDD.Apply(JDD.TIMES, probs, filter);
+		tmp = JDD.Apply(JDD.TIMES, values, filter);
 		
 		// check if all zero
 		if (tmp.equals(JDD.ZERO)) {
@@ -621,9 +627,9 @@ public class StateProbsMTBDD implements StateProbs
 	/**
 	 * Make a (deep) copy of this vector
 	 */
-	public StateProbsMTBDD deepCopy() throws PrismException
+	public StateValuesMTBDD deepCopy() throws PrismException
 	{
-		JDD.Ref(probs);
-		return new StateProbsMTBDD(probs, model);
+		JDD.Ref(values);
+		return new StateValuesMTBDD(values, model);
 	}
 }

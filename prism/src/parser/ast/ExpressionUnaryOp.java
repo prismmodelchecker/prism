@@ -117,6 +117,12 @@ public class ExpressionUnaryOp extends Expression
 		throw new PrismLangException("Unknown unary operator", this);
 	}
 
+	@Override
+	public boolean returnsSingleValue()
+	{
+		return operand.returnsSingleValue();
+	}
+
 	// Methods required for ASTElement:
 
 	/**

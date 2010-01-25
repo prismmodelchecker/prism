@@ -93,6 +93,12 @@ public class ExpressionLiteral extends Expression
 		return value;
 	}
 
+	@Override
+	public boolean returnsSingleValue()
+	{
+		return true;
+	}
+
 	// Methods required for ASTElement:
 	
 	/**

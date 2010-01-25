@@ -31,6 +31,7 @@ import jdd.*;
 import odd.*;
 import parser.*;
 import parser.ast.*;
+import parser.ast.ExpressionFilter.FilterOperator;
 import parser.type.*;
 
 // Base class for model checkers - does state-based evaluations (no temporal/probabilistic)
@@ -134,356 +135,155 @@ public class StateModelChecker implements ModelChecker
 		model.clear();
 	}
 
-	// -----------------------------------------------------------------------------------
-	// Check a property, i.e. an expression
-	// -----------------------------------------------------------------------------------
-
+	/**
+	 * Model check an expression, process and return the result.
+	 */
 	public Result check(Expression expr) throws PrismException
 	{
-		return check(expr, null);
-	}
-
-	public Result check(Expression expr, Filter filter) throws PrismException
-	{
 		long timer = 0;
-		JDDNode ddFilter = null, tmp;
 		StateListMTBDD states;
-		StateProbs vals;
-		String resultString;
-		double minRes = 0.0, maxRes = 0.0;
+		StateValues vals;
+		String resultExpl, resultString;
+		double res = 0.0, minRes = 0.0, maxRes = 0.0;
+		boolean satInit = false;
+		int numSat = 0;
 
 		// Create storage for result
 		result = new Result();
 
-		// Translate filter (if present)
-		if (filter != null) {
-			ddFilter = checkExpressionDD(filter.getExpression());
-			if (ddFilter.equals(JDD.ZERO)) {
-				throw new PrismException("Filter " + filter + " satisfies no states");
-			}
-		}
-
-		// Do model checking and store result
+		// Do model checking and store result vector
 		timer = System.currentTimeMillis();
 		vals = checkExpression(expr);
 		timer = System.currentTimeMillis() - timer;
 		mainLog.println("\nTime for model checking: " + timer / 1000.0 + " seconds.");
 
-		// Process results of model checking - depends on type
-
 		// Boolean results
 		if (expr.getType() instanceof TypeBool) {
 
 			// Convert to StateList object
-			states = new StateListMTBDD(((StateProbsMTBDD) vals).getJDDNode(), model);
-			JDD.Ref(((StateProbsMTBDD) vals).getJDDNode());
+			vals = vals.convertToStateValuesMTBDD();
+			states = new StateListMTBDD(((StateValuesMTBDD) vals).getJDDNode(), model);
+			JDD.Ref(((StateValuesMTBDD) vals).getJDDNode());
+			// And check how many states are satisfying
+			numSat = states.size();
 
-			// See if satisfied in all/initial states
-			boolean satAll = states.includesAll(reach);
-			boolean satInit = states.includesAll(start);
-			int numSat = states.size();
+			// Result returned depends on the number of initial states
+			// and whether it is just a single value (e.g. if the top-level operator is a filter)
 
-			// Print number of satisfying states to log
-			mainLog.print("\nNumber of satisfying states: ");
-			mainLog.print(numSat == -1 ? ">" + Integer.MAX_VALUE : "" + numSat);
-			if (satAll) {
-				mainLog.print(" (all)");
-			} else if (satInit) {
-				mainLog.print((model.getNumStartStates() == 1) ? " (including initial state)"
-						: " (including all initial states)");
-			} else {
-				mainLog.print((model.getNumStartStates() == 1) ? " (initial state not satisfied)"
-						: " (initial states not all satisfied)");
+			// Case where this is a single value (e.g. filter)
+			if (expr.returnsSingleValue()) {
+				// Get result for initial state (although it is the same for all states)
+				satInit = states.includesAll(start);
+				result.setResult(new Boolean(satInit));
+				result.setExplanation(null);
 			}
-			mainLog.print("\n");
+			// Case where there is a single initial state
+			else if (model.getNumStartStates() == 1) {
+				// Result is true iff satisfied in single initial state
+				satInit = states.includesAll(start);
+				resultExpl = "property " + (satInit ? "" : "not ") + "satisfied in the initial state";
+				result.setResult(new Boolean(satInit));
+				result.setExplanation(resultExpl);
+			}
+			// Case where there are multiple initial states
+			else {
+				// Result is true iff satisfied in all initial states
+				satInit = states.includesAll(start);
+				resultExpl = "property ";
+				if (satInit)
+					resultExpl += "satisfied in all " + model.getNumStartStatesString();
+				else
+					resultExpl += "only satisifed in " + numSat + " of " + model.getNumStartStatesString();
+				resultExpl += " initial states";
+				result.setResult(new Boolean(satInit));
+				result.setExplanation(resultExpl);
+			}
 
-			// If in "verbose" mode, print out satisfying states to log
-			if (verbose) {
-				mainLog.print("\nSatisfying states:");
-				if (states.size() > 0) {
-					mainLog.print("\n");
+			// Print extra info to log
+			if (!expr.returnsSingleValue()) {
+				// Print number of satisfying states to log
+				mainLog.print("\nNumber of satisfying states: ");
+				mainLog.print(numSat == -1 ? ">" + Integer.MAX_VALUE : "" + numSat);
+				mainLog.println(states.includesAll(reach) ? " (all)" : "");
+				// If in "verbose" mode, print out satisfying states to log
+				if (verbose) {
+					mainLog.println("\nSatisfying states:");
 					states.print(mainLog);
-				} else {
-					mainLog.print(" (none)\n");
 				}
 			}
-
-			// Result is true if all states satisfy, false otherwise
-			resultString = satAll + " (property " + (satAll ? "" : "not ") + "satisfied in all states)";
-			result.setResultAndString(satAll ? new Boolean(true) : new Boolean(false), resultString);
-
-			// Print result to log
-			mainLog.print("\nResult: " + resultString + "\n");
 
 			// Clean up
 			states.clear();
 		}
 
-		// Non-Boolean results
+		// Non-Boolean (double or integer) results
 		else {
-			// If in "verbose" mode, print out results vector to log
-			if (verbose) {
-				mainLog.print("\nResults (non-zero only) for all states:");
-				if (vals.getNNZ() > 0) {
-					mainLog.print("\n");
+			// Result returned depends on the number of initial states
+			// and whether it is just a single value (e.g. from if the top-level operator is a filter)
+
+			// Case where this is a single value (e.g. filter)
+			if (expr.returnsSingleValue()) {
+				// Get result for initial state (although it is the same for all states)
+				res = vals.firstFromBDD(start);
+				result.setResult(new Double(res));
+				result.setExplanation(null);
+			}
+			// Case where there is a single initial state
+			else if (model.getNumStartStates() == 1) {
+				// Result is the value for the single initial state
+				res = vals.firstFromBDD(start);
+				// TODO: Object resX = (expr.getType() instanceof TypeInt) ? new Integer((int) res) 
+				resultExpl = "value in the initial state";
+				result.setResult(new Double(res));
+				result.setExplanation(resultExpl);
+			}
+			// Case where there are multiple initial states
+			else {
+				// Result is the interval of values from all initial states
+				minRes = vals.minOverBDD(start);
+				maxRes = vals.maxOverBDD(start);
+				// TODO: This will be a range, eventually
+				// (for now just do first val, as before)
+				// TODO: also need to handle integer-typed case
+				// resultExpl = "range over " + model.getNumStartStatesString() + " initial states";
+				res = vals.firstFromBDD(start);
+				resultExpl = "value for first of " + model.getNumStartStatesString() + " initial states";
+				result.setResult(new Double(res));
+				result.setExplanation(resultExpl);
+			}
+
+			// Print extra info to log
+			if (!expr.returnsSingleValue()) {
+				// If in "verbose" mode, print out result values to log
+				if (verbose) {
+					mainLog.println("\nResults (non-zero only) for all states:");
 					vals.print(mainLog);
-				} else {
-					mainLog.print(" (none)\n");
 				}
 			}
-
-			if (filter == null) {
-				if (model.getNumStartStates() > 1) {
-					mainLog.print("\nWarning: There are multiple initial states;");
-					mainLog.print(" the result of model checking is for the first one: ");
-					model.getStartStates().print(mainLog, 1);
-				}
-			} else {
-				if (filter.minRequested()) {
-					minRes = vals.minOverBDD(ddFilter);
-					mainLog.print("\nMinimum value for states satisfying " + filter.getExpression() + ": " + minRes
-							+ "\n");
-					tmp = vals.getBDDFromInterval(minRes - termCritParam, minRes + termCritParam);
-					JDD.Ref(ddFilter);
-					tmp = JDD.And(tmp, ddFilter);
-					states = new StateListMTBDD(tmp, model);
-					int numSat = states.size();
-					mainLog.print("There are ");
-					mainLog.print(numSat == -1 ? ">" + Integer.MAX_VALUE : "" + numSat);
-					mainLog.print(" states with this minimum value (+/- " + termCritParam + ")");
-					if (!verbose && (numSat == -1 || numSat > 10)) {
-						mainLog
-								.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
-						states.print(mainLog, 10);
-					} else {
-						mainLog.print(":\n");
-						states.print(mainLog);
-					}
-					JDD.Deref(tmp);
-				}
-				if (filter.maxRequested()) {
-					maxRes = vals.maxOverBDD(ddFilter);
-					mainLog.print("\nMaximum value for states satisfying " + filter.getExpression() + ": " + maxRes
-							+ "\n");
-					tmp = vals.getBDDFromInterval(maxRes - termCritParam, maxRes + termCritParam);
-					JDD.Ref(ddFilter);
-					tmp = JDD.And(tmp, ddFilter);
-					states = new StateListMTBDD(tmp, model);
-					int numSat = states.size();
-					mainLog.print("There are ");
-					mainLog.print(numSat == -1 ? ">" + Integer.MAX_VALUE : "" + numSat);
-					mainLog.print(" states with this maximum value (+/- " + termCritParam + ")");
-					if (!verbose && (numSat == -1 || numSat > 10)) {
-						mainLog
-								.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
-						states.print(mainLog, 10);
-					} else {
-						mainLog.print(":\n");
-						states.print(mainLog);
-					}
-					JDD.Deref(tmp);
-				}
-			}
-			if (filter != null && filter.minRequested())
-				result.setResult(minRes);
-			else if (filter != null && filter.maxRequested())
-				result.setResult(maxRes);
-			else
-				result.setResult(vals.firstFromBDD(filter != null ? ddFilter : start));
-
-			// Print result to log
-			resultString = "Result";
-			if (!("Result".equals(expr.getResultName())))
-				resultString += " (" + expr.getResultName().toLowerCase() + ")";
-			resultString += ": " + result;
-			mainLog.print("\n" + resultString + "\n");
 		}
 
+		// Print result to log
+		resultString = "Result";
+		if (!("Result".equals(expr.getResultName())))
+			resultString += " (" + expr.getResultName().toLowerCase() + ")";
+		resultString += ": " + result;
+		if (result.getExplanation() != null)
+			resultString += " (" + result.getExplanation() + ")";
+		mainLog.print("\n" + resultString + "\n");
+
 		// Clean up
-		if (ddFilter != null)
-			JDD.Deref(ddFilter);
 		vals.clear();
 
 		// Return result
 		return result;
 	}
 
-	
-	public Result checkOld(Expression expr, Filter filter) throws PrismException
+	/**
+	 * Model check an expression and return a vector result values over all states.
+	 */
+	public StateValues checkExpression(Expression expr) throws PrismException
 	{
-		long timer = 0;
-		JDDNode ddFilter = null, tmp;
-		StateListMTBDD states;
-		StateProbs vals;
-		String resultString;
-		double minRes = 0.0, maxRes = 0.0;
-
-		// Create storage for result
-		result = new Result();
-
-		// Filters are only allowed for non-Boolean properties
-		if (expr.getType() instanceof TypeBool && filter != null) {
-			throw new PrismException("Filters cannot be applied to Boolean-valued properties");
-		}
-
-		// Translate filter (if present)
-		if (filter != null) {
-			ddFilter = checkExpressionDD(filter.getExpression());
-			if (ddFilter.equals(JDD.ZERO)) {
-				throw new PrismException("Filter " + filter + " satisfies no states");
-			}
-		}
-
-		// Do model checking and store result
-		timer = System.currentTimeMillis();
-		vals = checkExpression(expr);
-		timer = System.currentTimeMillis() - timer;
-		mainLog.println("\nTime for model checking: " + timer / 1000.0 + " seconds.");
-
-		// Process results of model checking - depends on type
-
-		// Boolean results
-		if (expr.getType() instanceof TypeBool) {
-
-			// Convert to StateList object
-			states = new StateListMTBDD(((StateProbsMTBDD) vals).getJDDNode(), model);
-			JDD.Ref(((StateProbsMTBDD) vals).getJDDNode());
-
-			// See if satisfied in all/initial states
-			boolean satAll = states.includesAll(reach);
-			boolean satInit = states.includesAll(start);
-			int numSat = states.size();
-
-			// Print number of satisfying states to log
-			mainLog.print("\nNumber of satisfying states: ");
-			mainLog.print(numSat == -1 ? ">" + Integer.MAX_VALUE : "" + numSat);
-			if (satAll) {
-				mainLog.print(" (all)");
-			} else if (satInit) {
-				mainLog.print((model.getNumStartStates() == 1) ? " (including initial state)"
-						: " (including all initial states)");
-			} else {
-				mainLog.print((model.getNumStartStates() == 1) ? " (initial state not satisfied)"
-						: " (initial states not all satisfied)");
-			}
-			mainLog.print("\n");
-
-			// If in "verbose" mode, print out satisfying states to log
-			if (verbose) {
-				mainLog.print("\nSatisfying states:");
-				if (states.size() > 0) {
-					mainLog.print("\n");
-					states.print(mainLog);
-				} else {
-					mainLog.print(" (none)\n");
-				}
-			}
-
-			// Result is true if all states satisfy, false otherwise
-			resultString = satAll + " (property " + (satAll ? "" : "not ") + "satisfied in all states)";
-			result.setResultAndString(satAll ? new Boolean(true) : new Boolean(false), resultString);
-
-			// Print result to log
-			mainLog.print("\nResult: " + resultString + "\n");
-
-			// Clean up
-			states.clear();
-		}
-
-		// Non-Boolean results
-		else {
-			// If in "verbose" mode, print out results vector to log
-			if (verbose) {
-				mainLog.print("\nResults (non-zero only) for all states:");
-				if (vals.getNNZ() > 0) {
-					mainLog.print("\n");
-					vals.print(mainLog);
-				} else {
-					mainLog.print(" (none)\n");
-				}
-			}
-
-			if (filter == null) {
-				if (model.getNumStartStates() > 1) {
-					mainLog.print("\nWarning: There are multiple initial states;");
-					mainLog.print(" the result of model checking is for the first one: ");
-					model.getStartStates().print(mainLog, 1);
-				}
-			} else {
-				if (filter.minRequested()) {
-					minRes = vals.minOverBDD(ddFilter);
-					mainLog.print("\nMinimum value for states satisfying " + filter.getExpression() + ": " + minRes
-							+ "\n");
-					tmp = vals.getBDDFromInterval(minRes - termCritParam, minRes + termCritParam);
-					JDD.Ref(ddFilter);
-					tmp = JDD.And(tmp, ddFilter);
-					states = new StateListMTBDD(tmp, model);
-					int numSat = states.size();
-					mainLog.print("There are ");
-					mainLog.print(numSat == -1 ? ">" + Integer.MAX_VALUE : "" + numSat);
-					mainLog.print(" states with this minimum value (+/- " + termCritParam + ")");
-					if (!verbose && (numSat == -1 || numSat > 10)) {
-						mainLog
-								.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
-						states.print(mainLog, 10);
-					} else {
-						mainLog.print(":\n");
-						states.print(mainLog);
-					}
-					JDD.Deref(tmp);
-				}
-				if (filter.maxRequested()) {
-					maxRes = vals.maxOverBDD(ddFilter);
-					mainLog.print("\nMaximum value for states satisfying " + filter.getExpression() + ": " + maxRes
-							+ "\n");
-					tmp = vals.getBDDFromInterval(maxRes - termCritParam, maxRes + termCritParam);
-					JDD.Ref(ddFilter);
-					tmp = JDD.And(tmp, ddFilter);
-					states = new StateListMTBDD(tmp, model);
-					int numSat = states.size();
-					mainLog.print("There are ");
-					mainLog.print(numSat == -1 ? ">" + Integer.MAX_VALUE : "" + numSat);
-					mainLog.print(" states with this maximum value (+/- " + termCritParam + ")");
-					if (!verbose && (numSat == -1 || numSat > 10)) {
-						mainLog
-								.print(".\nThe first 10 states are displayed below. To view them all, use verbose mode.\n");
-						states.print(mainLog, 10);
-					} else {
-						mainLog.print(":\n");
-						states.print(mainLog);
-					}
-					JDD.Deref(tmp);
-				}
-			}
-			if (filter != null && filter.minRequested())
-				result.setResult(minRes);
-			else if (filter != null && filter.maxRequested())
-				result.setResult(maxRes);
-			else
-				result.setResult(vals.firstFromBDD(filter != null ? ddFilter : start));
-
-			// Print result to log
-			resultString = "Result";
-			if (!("Result".equals(expr.getResultName())))
-				resultString += " (" + expr.getResultName().toLowerCase() + ")";
-			resultString += ": " + result;
-			mainLog.print("\n" + resultString + "\n");
-		}
-
-		// Clean up
-		if (ddFilter != null)
-			JDD.Deref(ddFilter);
-		vals.clear();
-
-		// Return result
-		return result;
-	}
-
-	// Check expression (recursive)
-
-	public StateProbs checkExpression(Expression expr) throws PrismException
-	{
-		StateProbs res;
+		StateValues res;
 
 		// If-then-else
 		if (expr instanceof ExpressionITE) {
@@ -542,7 +342,7 @@ public class StateModelChecker implements ModelChecker
 		// Filter out non-reachable states from solution
 		// (only necessary for symbolically stored vectors)
 		// (skip if reach is null, e.g. if just being used to convert arbitrary expressions)
-		if (res instanceof StateProbsMTBDD && reach != null)
+		if (res instanceof StateValuesMTBDD && reach != null)
 			res.filter(reach);
 
 		return res;
@@ -552,7 +352,7 @@ public class StateModelChecker implements ModelChecker
 
 	public JDDNode checkExpressionDD(Expression expr) throws PrismException
 	{
-		return checkExpression(expr).convertToStateProbsMTBDD().getJDDNode();
+		return checkExpression(expr).convertToStateValuesMTBDD().getJDDNode();
 	}
 
 	// -----------------------------------------------------------------------------------
@@ -561,9 +361,9 @@ public class StateModelChecker implements ModelChecker
 
 	/*
 	 * These check methods (and similar ones in subclasses of this class) return
-	 * a StateProbs object which is a vector, over all states, of values. This can
-	 * be represented either symbolically (as an (MT)BDD, encapsulated in a StateProbsMTBDD
-	 * object) or explicitly (as an array of doubles, encapsulated in a StateProbsDV
+	 * a StateValues object which is a vector, over all states, of values. This can
+	 * be represented either symbolically (as an (MT)BDD, encapsulated in a StateValuesMTBDD
+	 * object) or explicitly (as an array of doubles, encapsulated in a StateValuesDV
 	 * object, containing a DoubleVector object).
 	 * 
 	 * It is always possible to convert between these two forms but this will not always be
@@ -588,9 +388,9 @@ public class StateModelChecker implements ModelChecker
 	 */
 
 	// Check an 'if-then-else'
-	protected StateProbs checkExpressionITE(ExpressionITE expr) throws PrismException
+	protected StateValues checkExpressionITE(ExpressionITE expr) throws PrismException
 	{
-		StateProbs res1 = null, res2 = null, res3 = null;
+		StateValues res1 = null, res2 = null, res3 = null;
 		JDDNode dd, dd1, dd2, dd3;
 		DoubleVector dv2, dv3;
 
@@ -610,34 +410,34 @@ public class StateModelChecker implements ModelChecker
 		}
 
 		// Operand 1 is boolean so should be symbolic
-		dd1 = res1.convertToStateProbsMTBDD().getJDDNode();
+		dd1 = res1.convertToStateValuesMTBDD().getJDDNode();
 
 		// If both operands 2/3 are symbolic, result will be symbolic
-		if (res2 instanceof StateProbsMTBDD && res3 instanceof StateProbsMTBDD) {
-			dd2 = ((StateProbsMTBDD) res2).getJDDNode();
-			dd3 = ((StateProbsMTBDD) res3).getJDDNode();
+		if (res2 instanceof StateValuesMTBDD && res3 instanceof StateValuesMTBDD) {
+			dd2 = ((StateValuesMTBDD) res2).getJDDNode();
+			dd3 = ((StateValuesMTBDD) res3).getJDDNode();
 			dd = JDD.ITE(dd1, dd2, dd3);
-			return new StateProbsMTBDD(dd, model);
+			return new StateValuesMTBDD(dd, model);
 		}
 		// Otherwise result will be explicit
 		else {
-			dv2 = res2.convertToStateProbsDV().getDoubleVector();
+			dv2 = res2.convertToStateValuesDV().getDoubleVector();
 			dv2.filter(dd1, allDDRowVars, odd);
-			dv3 = res3.convertToStateProbsDV().getDoubleVector();
+			dv3 = res3.convertToStateValuesDV().getDoubleVector();
 			dd1 = JDD.Not(dd1);
 			dv3.filter(dd1, allDDRowVars, odd);
 			dv2.add(dv3);
 			dv3.clear();
 			JDD.Deref(dd1);
-			return new StateProbsDV(dv2, model);
+			return new StateValuesDV(dv2, model);
 		}
 	}
 
 	// Check a binary operator
 
-	protected StateProbs checkExpressionBinaryOp(ExpressionBinaryOp expr) throws PrismException
+	protected StateValues checkExpressionBinaryOp(ExpressionBinaryOp expr) throws PrismException
 	{
-		StateProbs res1 = null, res2 = null;
+		StateValues res1 = null, res2 = null;
 		JDDNode dd, dd1, dd2;
 		DoubleVector dv1, dv2;
 		int i, n, op = expr.getOperator();
@@ -661,9 +461,9 @@ public class StateModelChecker implements ModelChecker
 		}
 
 		// If both operands are symbolic, result will be symbolic
-		if (res1 instanceof StateProbsMTBDD && res2 instanceof StateProbsMTBDD) {
-			dd1 = ((StateProbsMTBDD) res1).getJDDNode();
-			dd2 = ((StateProbsMTBDD) res2).getJDDNode();
+		if (res1 instanceof StateValuesMTBDD && res2 instanceof StateValuesMTBDD) {
+			dd1 = ((StateValuesMTBDD) res1).getJDDNode();
+			dd2 = ((StateValuesMTBDD) res2).getJDDNode();
 			// Apply operation
 			switch (op) {
 			case ExpressionBinaryOp.IMPLIES:
@@ -690,12 +490,12 @@ public class StateModelChecker implements ModelChecker
 			default:
 				throw new PrismException("Unknown binary operator");
 			}
-			return new StateProbsMTBDD(dd, model);
+			return new StateValuesMTBDD(dd, model);
 		}
 		// Otherwise result will be explicit
 		else {
-			dv1 = res1.convertToStateProbsDV().getDoubleVector();
-			dv2 = res2.convertToStateProbsDV().getDoubleVector();
+			dv1 = res1.convertToStateValuesDV().getDoubleVector();
+			dv2 = res2.convertToStateValuesDV().getDoubleVector();
 			n = dv1.getSize();
 			// Apply operation
 			switch (op) {
@@ -726,15 +526,15 @@ public class StateModelChecker implements ModelChecker
 				throw new PrismException("Unknown binary operator");
 			}
 			dv2.clear();
-			return new StateProbsDV(dv1, model);
+			return new StateValuesDV(dv1, model);
 		}
 	}
 
 	// Check a relational operator (=, !=, >, >=, < <=)
 
-	protected StateProbs checkExpressionRelOp(int op, Expression expr1, Expression expr2) throws PrismException
+	protected StateValues checkExpressionRelOp(int op, Expression expr1, Expression expr2) throws PrismException
 	{
-		StateProbs res1 = null, res2 = null;
+		StateValues res1 = null, res2 = null;
 		JDDNode dd, dd1, dd2;
 		String s;
 
@@ -789,7 +589,7 @@ public class StateModelChecker implements ModelChecker
 			default:
 				throw new PrismException("Unknown relational operator");
 			}
-			return new StateProbsMTBDD(dd, model);
+			return new StateValuesMTBDD(dd, model);
 		}
 		// int relop var
 		else if (expr1.isConstant() && expr1.getType() instanceof TypeInt && expr2 instanceof ExpressionVar) {
@@ -839,7 +639,7 @@ public class StateModelChecker implements ModelChecker
 			default:
 				throw new PrismException("Unknown relational operator");
 			}
-			return new StateProbsMTBDD(dd, model);
+			return new StateValuesMTBDD(dd, model);
 		}
 
 		// General case.
@@ -856,8 +656,8 @@ public class StateModelChecker implements ModelChecker
 				res2.clear();
 			throw e;
 		}
-		dd1 = res1.convertToStateProbsMTBDD().getJDDNode();
-		dd2 = res2.convertToStateProbsMTBDD().getJDDNode();
+		dd1 = res1.convertToStateValuesMTBDD().getJDDNode();
+		dd2 = res2.convertToStateValuesMTBDD().getJDDNode();
 		switch (op) {
 		case ExpressionBinaryOp.EQ:
 			dd = JDD.Apply(JDD.EQUALS, dd1, dd2);
@@ -880,14 +680,14 @@ public class StateModelChecker implements ModelChecker
 		default:
 			throw new PrismException("Unknown relational operator");
 		}
-		return new StateProbsMTBDD(dd, model);
+		return new StateValuesMTBDD(dd, model);
 	}
 
 	// Check a unary operator
 
-	protected StateProbs checkExpressionUnaryOp(ExpressionUnaryOp expr) throws PrismException
+	protected StateValues checkExpressionUnaryOp(ExpressionUnaryOp expr) throws PrismException
 	{
-		StateProbs res1 = null;
+		StateValues res1 = null;
 		JDDNode dd, dd1;
 		DoubleVector dv1;
 		int i, n, op = expr.getOperator();
@@ -906,8 +706,8 @@ public class StateModelChecker implements ModelChecker
 			return res1;
 
 		// If operand is symbolic, result will be symbolic
-		if (res1 instanceof StateProbsMTBDD) {
-			dd1 = ((StateProbsMTBDD) res1).getJDDNode();
+		if (res1 instanceof StateValuesMTBDD) {
+			dd1 = ((StateValuesMTBDD) res1).getJDDNode();
 			// Apply operation
 			switch (op) {
 			case ExpressionUnaryOp.NOT:
@@ -919,11 +719,11 @@ public class StateModelChecker implements ModelChecker
 			default:
 				throw new PrismException("Unknown unary operator");
 			}
-			return new StateProbsMTBDD(dd, model);
+			return new StateValuesMTBDD(dd, model);
 		}
 		// Otherwise result will be explicit
 		else {
-			dv1 = res1.convertToStateProbsDV().getDoubleVector();
+			dv1 = res1.convertToStateValuesDV().getDoubleVector();
 			n = dv1.getSize();
 			// Apply operation
 			switch (op) {
@@ -937,13 +737,13 @@ public class StateModelChecker implements ModelChecker
 			default:
 				throw new PrismException("Unknown unary operator");
 			}
-			return new StateProbsDV(dv1, model);
+			return new StateValuesDV(dv1, model);
 		}
 	}
 
 	// Check a 'function'
 
-	protected StateProbs checkExpressionFunc(ExpressionFunc expr) throws PrismException
+	protected StateValues checkExpressionFunc(ExpressionFunc expr) throws PrismException
 	{
 		switch (expr.getNameCode()) {
 		case ExpressionFunc.MIN:
@@ -961,9 +761,9 @@ public class StateModelChecker implements ModelChecker
 		}
 	}
 
-	protected StateProbs checkExpressionFuncUnary(ExpressionFunc expr) throws PrismException
+	protected StateValues checkExpressionFuncUnary(ExpressionFunc expr) throws PrismException
 	{
-		StateProbs res1 = null;
+		StateValues res1 = null;
 		JDDNode dd1;
 		DoubleVector dv1;
 		int i, n, op = expr.getNameCode();
@@ -977,8 +777,8 @@ public class StateModelChecker implements ModelChecker
 			throw e;
 		}
 		// Symbolic
-		if (res1 instanceof StateProbsMTBDD) {
-			dd1 = ((StateProbsMTBDD) res1).getJDDNode();
+		if (res1 instanceof StateValuesMTBDD) {
+			dd1 = ((StateValuesMTBDD) res1).getJDDNode();
 			switch (op) {
 			case ExpressionFunc.FLOOR:
 				dd1 = JDD.MonadicApply(JDD.FLOOR, dd1);
@@ -987,11 +787,11 @@ public class StateModelChecker implements ModelChecker
 				dd1 = JDD.MonadicApply(JDD.CEIL, dd1);
 				break;
 			}
-			return new StateProbsMTBDD(dd1, model);
+			return new StateValuesMTBDD(dd1, model);
 		}
 		// Explicit
 		else {
-			dv1 = res1.convertToStateProbsDV().getDoubleVector();
+			dv1 = res1.convertToStateValuesDV().getDoubleVector();
 			n = dv1.getSize();
 			switch (op) {
 			case ExpressionFunc.FLOOR:
@@ -1003,13 +803,13 @@ public class StateModelChecker implements ModelChecker
 					dv1.setElement(i, Math.ceil(dv1.getElement(i)));
 				break;
 			}
-			return new StateProbsDV(dv1, model);
+			return new StateValuesDV(dv1, model);
 		}
 	}
 
-	protected StateProbs checkExpressionFuncBinary(ExpressionFunc expr) throws PrismException
+	protected StateValues checkExpressionFuncBinary(ExpressionFunc expr) throws PrismException
 	{
-		StateProbs res1 = null, res2 = null;
+		StateValues res1 = null, res2 = null;
 		JDDNode dd = null, dd1, dd2;
 		DoubleVector dv1, dv2;
 		int i, n, op = expr.getNameCode();
@@ -1027,9 +827,9 @@ public class StateModelChecker implements ModelChecker
 			throw e;
 		}
 		// If both operands are symbolic, result will be symbolic
-		if (res1 instanceof StateProbsMTBDD && res2 instanceof StateProbsMTBDD) {
-			dd1 = ((StateProbsMTBDD) res1).getJDDNode();
-			dd2 = ((StateProbsMTBDD) res2).getJDDNode();
+		if (res1 instanceof StateValuesMTBDD && res2 instanceof StateValuesMTBDD) {
+			dd1 = ((StateValuesMTBDD) res1).getJDDNode();
+			dd2 = ((StateValuesMTBDD) res2).getJDDNode();
 			switch (op) {
 			case ExpressionFunc.POW:
 				dd = JDD.Apply(JDD.POW, dd1, dd2);
@@ -1041,12 +841,12 @@ public class StateModelChecker implements ModelChecker
 				dd = JDD.Apply(JDD.LOGXY, dd1, dd2);
 				break;
 			}
-			return new StateProbsMTBDD(dd, model);
+			return new StateValuesMTBDD(dd, model);
 		}
 		// Otherwise result will be explicit
 		else {
-			dv1 = res1.convertToStateProbsDV().getDoubleVector();
-			dv2 = res2.convertToStateProbsDV().getDoubleVector();
+			dv1 = res1.convertToStateValuesDV().getDoubleVector();
+			dv2 = res2.convertToStateValuesDV().getDoubleVector();
 			n = dv1.getSize();
 			switch (op) {
 			case ExpressionFunc.POW:
@@ -1066,13 +866,13 @@ public class StateModelChecker implements ModelChecker
 				break;
 			}
 			dv2.clear();
-			return new StateProbsDV(dv1, model);
+			return new StateValuesDV(dv1, model);
 		}
 	}
 
-	protected StateProbs checkExpressionFuncNary(ExpressionFunc expr) throws PrismException
+	protected StateValues checkExpressionFuncNary(ExpressionFunc expr) throws PrismException
 	{
-		StateProbs res1 = null, res2 = null;
+		StateValues res1 = null, res2 = null;
 		JDDNode dd1, dd2;
 		DoubleVector dv1, dv2;
 		int i, i2, n, n2, op = expr.getNameCode();
@@ -1089,7 +889,7 @@ public class StateModelChecker implements ModelChecker
 		// Go through remaining operands
 		// Switch to explicit as soon as an operand is explicit
 		n = expr.getNumOperands();
-		symbolic = (res1 instanceof StateProbsMTBDD);
+		symbolic = (res1 instanceof StateValuesMTBDD);
 		for (i = 1; i < n; i++) {
 			try {
 				res2 = checkExpression(expr.getOperand(i));
@@ -1099,10 +899,10 @@ public class StateModelChecker implements ModelChecker
 				throw e;
 			}
 			// Explicit
-			if (!symbolic || !(res2 instanceof StateProbsMTBDD)) {
+			if (!symbolic || !(res2 instanceof StateValuesMTBDD)) {
 				symbolic = false;
-				dv1 = res1.convertToStateProbsDV().getDoubleVector();
-				dv2 = res2.convertToStateProbsDV().getDoubleVector();
+				dv1 = res1.convertToStateValuesDV().getDoubleVector();
+				dv2 = res2.convertToStateValuesDV().getDoubleVector();
 				n2 = dv1.getSize();
 				switch (op) {
 				case ExpressionFunc.MIN:
@@ -1115,12 +915,12 @@ public class StateModelChecker implements ModelChecker
 					break;
 				}
 				dv2.clear();
-				res1 = new StateProbsDV(dv1, model);
+				res1 = new StateValuesDV(dv1, model);
 			}
 			// Symbolic
 			else {
-				dd1 = ((StateProbsMTBDD) res1).getJDDNode();
-				dd2 = ((StateProbsMTBDD) res2).getJDDNode();
+				dd1 = ((StateValuesMTBDD) res1).getJDDNode();
+				dd2 = ((StateValuesMTBDD) res2).getJDDNode();
 				switch (op) {
 				case ExpressionFunc.MIN:
 					dd1 = JDD.Apply(JDD.MIN, dd1, dd2);
@@ -1129,7 +929,7 @@ public class StateModelChecker implements ModelChecker
 					dd1 = JDD.Apply(JDD.MAX, dd1, dd2);
 					break;
 				}
-				res1 = new StateProbsMTBDD(dd1, model);
+				res1 = new StateValuesMTBDD(dd1, model);
 			}
 		}
 
@@ -1138,7 +938,7 @@ public class StateModelChecker implements ModelChecker
 
 	// Check a literal
 
-	protected StateProbs checkExpressionLiteral(ExpressionLiteral expr) throws PrismException
+	protected StateValues checkExpressionLiteral(ExpressionLiteral expr) throws PrismException
 	{
 		JDDNode dd;
 		try {
@@ -1146,12 +946,12 @@ public class StateModelChecker implements ModelChecker
 		} catch (PrismLangException e) {
 			throw new PrismException("Unknown literal type");
 		}
-		return new StateProbsMTBDD(dd, model);
+		return new StateValuesMTBDD(dd, model);
 	}
 
 	// Check a constant
 
-	protected StateProbs checkExpressionConstant(ExpressionConstant expr) throws PrismException
+	protected StateValues checkExpressionConstant(ExpressionConstant expr) throws PrismException
 	{
 		int i;
 		JDDNode dd;
@@ -1165,12 +965,12 @@ public class StateModelChecker implements ModelChecker
 			throw new PrismException("Unknown type for constant \"" + expr.getName() + "\"");
 		}
 
-		return new StateProbsMTBDD(dd, model);
+		return new StateValuesMTBDD(dd, model);
 	}
 
 	// Check a variable reference
 
-	protected StateProbs checkExpressionVar(ExpressionVar expr) throws PrismException
+	protected StateValues checkExpressionVar(ExpressionVar expr) throws PrismException
 	{
 		String s;
 		int v, l, h, i;
@@ -1191,12 +991,12 @@ public class StateModelChecker implements ModelChecker
 			dd = JDD.SetVectorElement(dd, varDDRowVars[v], i - l, i);
 		}
 
-		return new StateProbsMTBDD(dd, model);
+		return new StateValuesMTBDD(dd, model);
 	}
 
 	// Check label
 
-	protected StateProbs checkExpressionLabel(ExpressionLabel expr) throws PrismException
+	protected StateValues checkExpressionLabel(ExpressionLabel expr) throws PrismException
 	{
 		LabelList ll;
 		JDDNode dd;
@@ -1206,11 +1006,11 @@ public class StateModelChecker implements ModelChecker
 		if (expr.getName().equals("deadlock")) {
 			dd = model.getFixedDeadlocks();
 			JDD.Ref(dd);
-			return new StateProbsMTBDD(dd, model);
+			return new StateValuesMTBDD(dd, model);
 		} else if (expr.getName().equals("init")) {
 			dd = start;
 			JDD.Ref(dd);
-			return new StateProbsMTBDD(dd, model);
+			return new StateValuesMTBDD(dd, model);
 		} else {
 			// get expression associated with label
 			ll = propertiesFile.getCombinedLabelList();
@@ -1224,14 +1024,16 @@ public class StateModelChecker implements ModelChecker
 
 	// Check filter
 
-	protected StateProbs checkExpressionFilter(ExpressionFilter expr) throws PrismException
+	protected StateValues checkExpressionFilter(ExpressionFilter expr) throws PrismException
 	{
-
+		FilterOperator op;
 		Expression filter;
-		StateProbs vals = null, res = null;
-		JDDNode ddFilter;
+		StateValues vals = null, res = null;
+		JDDNode ddFilter = null, ddMatch = null, dd;
+		StateListMTBDD states;
 		boolean empty = false;
 		double d = 0.0;
+		boolean b = false;
 
 		// Check operand recursively
 		vals = checkExpression(expr.getOperand());
@@ -1246,23 +1048,65 @@ public class StateModelChecker implements ModelChecker
 			empty = true;
 			mainLog.println("\nWarning: Filter " + filter + " satisfies no states");
 		}
-		
+
 		// Compute result according to filter type
-		switch (expr.getOperatorType()) {
+		op = expr.getOperatorType();
+		switch (op) {
 		case PRINT:
-			mainLog.print("\nResults (non-zero only) for filter " + filter + ":");
-			vals.printFiltered(mainLog, ddFilter);
+			// Format of print-out depends on type
+			if (expr.getType() instanceof TypeBool) {
+				// NB: 'usual' case for filter(print,...) on Booleans is to use no filter
+				mainLog.print("\nSatisfying states");
+				mainLog.println(Expression.isTrue(filter) ? ":" : " that are also in filter " + filter + ":");
+				dd = vals.deepCopy().convertToStateValuesMTBDD().getJDDNode();
+				new StateListMTBDD(dd, model).print(mainLog);
+				JDD.Deref(dd);
+			} else { // TODO: integer-typed case
+				mainLog.println("\nResults (non-zero only) for filter " + filter + ":");
+				vals.printFiltered(mainLog, ddFilter);
+			}
+			// Result is unchanged
 			res = vals;
+			// Set vals to null to stop it being cleared below
+			vals = null;
 			break;
 		case MIN:
 			d = empty ? Double.POSITIVE_INFINITY : vals.minOverBDD(ddFilter);
 			mainLog.println("\nFilter: minimum value for states satisfying " + filter + ": " + d);
-			res = new StateProbsMTBDD(JDD.Constant(d), model);
+			res = new StateValuesMTBDD(JDD.Constant(d), model);
+			// Also find states that (are close to) selected value for display to log
+			ddMatch = vals.getBDDFromCloseValue(d, prism.getTermCritParam(), prism.getTermCrit() == Prism.ABSOLUTE);
+			JDD.Ref(ddFilter);
+			ddMatch = JDD.And(ddMatch, ddFilter);
 			break;
 		case MAX:
 			d = empty ? Double.NEGATIVE_INFINITY : vals.maxOverBDD(ddFilter);
 			mainLog.println("\nFilter: maximum value for states satisfying " + filter + ": " + d);
-			res = new StateProbsMTBDD(JDD.Constant(d), model);
+			res = new StateValuesMTBDD(JDD.Constant(d), model);
+			// Also find states that (are close to) selected value for display to log
+			ddMatch = vals.getBDDFromCloseValue(d, prism.getTermCritParam(), prism.getTermCrit() == Prism.ABSOLUTE);
+			JDD.Ref(ddFilter);
+			ddMatch = JDD.And(ddMatch, ddFilter);
+			break;
+		case ARGMIN:
+			d = empty ? Double.POSITIVE_INFINITY : vals.minOverBDD(ddFilter);
+			mainLog.println("\nFilter: minimum value for states satisfying " + filter + ": " + d);
+			ddMatch = vals.getBDDFromCloseValue(d, prism.getTermCritParam(), prism.getTermCrit() == Prism.ABSOLUTE);
+			JDD.Ref(ddFilter);
+			ddMatch = JDD.And(ddMatch, ddFilter);
+			res = new StateValuesMTBDD(ddMatch, model);
+			mainLog.println("Filter: number of states with minimum value: " + res.getNNZString());
+			ddMatch = null;
+			break;
+		case ARGMAX:
+			d = empty ? Double.NEGATIVE_INFINITY : vals.maxOverBDD(ddFilter);
+			mainLog.println("\nFilter: maximum value for states satisfying " + filter + ": " + d);
+			ddMatch = vals.getBDDFromCloseValue(d, prism.getTermCritParam(), prism.getTermCrit() == Prism.ABSOLUTE);
+			JDD.Ref(ddFilter);
+			ddMatch = JDD.And(ddMatch, ddFilter);
+			res = new StateValuesMTBDD(ddMatch, model);
+			mainLog.println("Filter: number of states with maximum value: " + res.getNNZString());
+			ddMatch = null;
 			break;
 		case COUNT:
 			if (empty)
@@ -1271,37 +1115,79 @@ public class StateModelChecker implements ModelChecker
 				vals.filter(ddFilter);
 				d = vals.getNNZ();
 			}
-			mainLog.println("\nFilter: count of states satisfying " + filter + ": " + (int)d);
-			res = new StateProbsMTBDD(JDD.Constant(d), model);
+			mainLog.println("\nFilter: count of states satisfying " + filter + ": " + (int) d);
+			res = new StateValuesMTBDD(JDD.Constant(d), model);
 			break;
 		case SUM:
 			d = empty ? 0 : vals.sumOverBDD(ddFilter);
-			mainLog.println("\nFilter: sum over states satisfying " + filter + ": " + (int)d);
-			res = new StateProbsMTBDD(JDD.Constant(d), model);
+			mainLog.println("\nFilter: sum over states satisfying " + filter + ": " + (int) d);
+			res = new StateValuesMTBDD(JDD.Constant(d), model);
 			break;
 		case AVG:
 			if (empty)
 				throw new PrismException("Can't take an average over an empty filter");
 			d = vals.sumOverBDD(ddFilter) / JDD.GetNumMinterms(ddFilter, allDDRowVars.n());
 			mainLog.println("\nFilter: average over states satisfying " + filter + ": " + d);
-			res = new StateProbsMTBDD(JDD.Constant(d), model);
+			res = new StateValuesMTBDD(JDD.Constant(d), model);
 			break;
 		case FIRST:
 			if (empty)
 				throw new PrismException("Can't select the first value from an empty filter");
 			d = vals.sumOverBDD(ddFilter) / JDD.GetNumMinterms(ddFilter, allDDRowVars.n());
 			mainLog.println("\nFilter: value for first state satisfying " + filter + ": " + d);
-			res = new StateProbsMTBDD(JDD.Constant(d), model);
+			res = new StateValuesMTBDD(JDD.Constant(d), model);
+			break;
+		case FORALL:
+			// Get access to BDD for this
+			dd = vals.convertToStateValuesMTBDD().getJDDNode();
+			// Set vals to null so that is not clear()-ed twice
+			vals = null;
+			// Check "for all" over filter
+			JDD.Ref(ddFilter);
+			dd = JDD.And(dd, ddFilter);
+			b = dd.equals(ddFilter);
+			JDD.Deref(dd);
+			res = new StateValuesMTBDD(JDD.Constant(b ? 1.0 : 0.0), model);
+			break;
+		case EXISTS:
+			// Get access to BDD for this
+			dd = vals.convertToStateValuesMTBDD().getJDDNode();
+			// Set vals to null so that is not clear()-ed twice
+			vals = null;
+			// Check "there exists" over filter
+			JDD.Ref(ddFilter);
+			dd = JDD.And(dd, ddFilter);
+			b = !dd.equals(JDD.ZERO);
+			JDD.Deref(dd);
+			res = new StateValuesMTBDD(JDD.Constant(b ? 1.0 : 0.0), model);
 			break;
 		default:
 			JDD.Deref(ddFilter);
 			throw new PrismException("Unrecognised filter type \"" + expr.getOperatorName() + "\"");
 		}
-		
+
+		// For some operators, print out some matching states
+		if (ddMatch != null) {
+			states = new StateListMTBDD(ddMatch, model);
+			int numSat = states.size();
+			mainLog.print("\nThere are ");
+			mainLog.print(numSat == -1 ? ">" + Integer.MAX_VALUE : "" + numSat);
+			mainLog.print(" states with (approximately) this value");
+			if (!verbose && (numSat == -1 || numSat > 10)) {
+				mainLog.print(".\nThe first 10 states are displayed below. To view them all, enable verbose mode or use filters.\n");
+				states.print(mainLog, 10);
+			} else {
+				mainLog.print(":\n");
+				states.print(mainLog);
+			}
+			JDD.Deref(ddMatch);
+		}
+
 		// Derefs, clears
 		JDD.Deref(ddFilter);
-		vals.clear();
-		
+		if (vals != null)
+			vals.clear();
+
 		return res;
 	}
 }

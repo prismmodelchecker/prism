@@ -54,9 +54,9 @@ public class NonProbModelChecker extends StateModelChecker
 
 	// Check expression (recursive)
 
-	public StateProbs checkExpression(Expression expr) throws PrismException
+	public StateValues checkExpression(Expression expr) throws PrismException
 	{
-		StateProbs res;
+		StateValues res;
 
 		// E operator
 		if (expr instanceof ExpressionExists) {
@@ -73,7 +73,7 @@ public class NonProbModelChecker extends StateModelChecker
 
 		// Filter out non-reachable states from solution
 		// (only necessary for symbolically stored vectors)
-		if (res instanceof StateProbsMTBDD)
+		if (res instanceof StateValuesMTBDD)
 			res.filter(reach);
 
 		return res;
@@ -86,9 +86,9 @@ public class NonProbModelChecker extends StateModelChecker
 	/**
 	 * Model check a CTL exists (E) operator.
 	 */
-	protected StateProbs checkExpressionExists(Expression expr) throws PrismException
+	protected StateValues checkExpressionExists(Expression expr) throws PrismException
 	{
-		StateProbs res = null;
+		StateValues res = null;
 
 		// Check whether this is a simple path formula (i.e. CTL, not LTL)
 		if (!expr.isSimplePathFormula()) {
@@ -142,7 +142,7 @@ public class NonProbModelChecker extends StateModelChecker
 	/**
 	 * Model check a CTL exists until (EU) operator.
 	 */
-	protected StateProbs checkExistsUntil(ExpressionTemporal expr) throws PrismException
+	protected StateValues checkExistsUntil(ExpressionTemporal expr) throws PrismException
 	{
 		JDDNode b1, b2, transRel, tmp, tmp2, tmp3, tmp4, init = null;
 		ArrayList<JDDNode> cexDDs = null;
@@ -277,13 +277,13 @@ public class NonProbModelChecker extends StateModelChecker
 		// Print iterations/timing info
 		mainLog.println("\nCTL EU fixpoint: " + iters + " iterations in " + (l / 1000.0) + " seconds");
 
-		return new StateProbsMTBDD(tmp, model);
+		return new StateValuesMTBDD(tmp, model);
 	}
 
 	/**
 	 * Model check a CTL forall (A) operator.
 	 */
-	protected StateProbs checkExpressionForAll(Expression expr) throws PrismException
+	protected StateValues checkExpressionForAll(Expression expr) throws PrismException
 	{
 		throw new PrismException("CTL model checking of this operator is not yet supported");
 	}

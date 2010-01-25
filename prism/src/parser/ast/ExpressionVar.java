@@ -93,6 +93,12 @@ public class ExpressionVar extends Expression
 		return res;
 	}
 	
+	@Override
+	public boolean returnsSingleValue()
+	{
+		return false;
+	}
+
 	// Methods required for ASTElement:
 	
 	/**

@@ -34,7 +34,7 @@ public class ExpressionFilter extends Expression
 {
 	// Enums for  types of filter
 	public enum FilterOperator {
-		MIN, MAX, COUNT, SUM, AVG, FIRST, PRINT;
+		MIN, MAX, ARGMIN, ARGMAX, COUNT, SUM, AVG, FIRST, FORALL, EXISTS, PRINT;
 	};
 
 	// Operator used in filter
@@ -75,14 +75,22 @@ public class ExpressionFilter extends Expression
 			opType = FilterOperator.MIN;
 		else if (opName.equals("max"))
 			opType = FilterOperator.MAX;
+		else if (opName.equals("argmin"))
+			opType = FilterOperator.ARGMIN;
+		else if (opName.equals("argmax"))
+			opType = FilterOperator.ARGMAX;
 		else if (opName.equals("count"))
 			opType = FilterOperator.COUNT;
-		else if (opName.equals("sum"))
+		else if (opName.equals("sum") || opName.equals("+"))
 			opType = FilterOperator.SUM;
 		else if (opName.equals("avg"))
 			opType = FilterOperator.AVG;
 		else if (opName.equals("first"))
 			opType = FilterOperator.FIRST;
+		else if (opName.equals("forall") || opName.equals("&"))
+			opType = FilterOperator.FORALL;
+		else if (opName.equals("exists") || opName.equals("|"))
+			opType = FilterOperator.EXISTS;
 		else if (opName.equals("print"))
 			opType = FilterOperator.PRINT;
 		else opType = null;
@@ -130,12 +138,6 @@ public class ExpressionFilter extends Expression
 		return invisible;
 	}
 
-	public boolean returnsSingleValue()
-	{
-		if (opType == FilterOperator.PRINT) return false;
-		else return true;
-	}
-	
 	// Methods required for Expression:
 
 	/**
@@ -158,6 +160,15 @@ public class ExpressionFilter extends Expression
 		throw new PrismLangException("Cannot evaluate a filter without a model");
 	}
 
+	public boolean returnsSingleValue()
+	{
+		// Most filters return a single value, but there are some exceptions...
+		if (opType == FilterOperator.PRINT) return false;
+		else if (opType == FilterOperator.ARGMIN) return false;
+		else if (opType == FilterOperator.ARGMAX) return false;
+		else return true;
+	}
+	
 	// Methods required for ASTElement:
 
 	/**

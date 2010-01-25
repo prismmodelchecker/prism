@@ -123,6 +123,12 @@ public class ExpressionSS extends Expression
 		return (prob == null) ? "Probability" : "Result";
 	}
 
+	@Override
+	public boolean returnsSingleValue()
+	{
+		return false;
+	}
+
 	// Methods required for ASTElement:
 	
 	/**

@@ -535,6 +535,8 @@ public class TypeCheck extends ASTTraverse
 		switch (e.getOperatorType()) {
 		case MIN:
 		case MAX:
+		case ARGMIN:
+		case ARGMAX:
 		case SUM:
 		case AVG:
 			if (t instanceof TypeBool) {
@@ -544,6 +546,8 @@ public class TypeCheck extends ASTTraverse
 			}
 			break;
 		case COUNT:
+		case FORALL:
+		case EXISTS:
 			if (!(t instanceof TypeBool)) {
 				throw new PrismLangException("Type error: Operand for filter of type \"" + e.getOperatorName()
 						+ "\" must be Boolean", e.getOperand());
@@ -571,6 +575,12 @@ public class TypeCheck extends ASTTraverse
 			break;
 		case AVG:
 			e.setType(TypeDouble.getInstance());
+			break;
+		case ARGMIN:
+		case ARGMAX:
+		case FORALL:
+		case EXISTS:
+			e.setType(TypeBool.getInstance());
 			break;
 		}
 	}

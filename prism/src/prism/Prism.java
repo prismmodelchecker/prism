@@ -1325,7 +1325,6 @@ public class Prism implements PrismSettingsListener
 	public Result modelCheck(Model model, PropertiesFile propertiesFile, Expression expr) throws PrismException, PrismLangException
 	{
 		Result res;
-		Filter filter;
 		
 		// Check that property is valid for this model type
 		// and create new model checker object
@@ -1345,15 +1344,7 @@ public class Prism implements PrismSettingsListener
 		}
 		
 		// Do model checking
-		if (expr instanceof ExpressionProb)
-			filter = ((ExpressionProb)expr).getFilter();
-		else if (expr instanceof ExpressionReward)
-			filter = ((ExpressionReward)expr).getFilter();
-		else if (expr instanceof ExpressionSS)
-			filter = ((ExpressionSS)expr).getFilter();
-		else
-			filter = null;
-		res = mc.check(expr, filter);
+		res = mc.check(expr);
 		
 		// Return result
 		return res;
@@ -1450,7 +1441,7 @@ public class Prism implements PrismSettingsListener
 	public void doSteadyState(Model model) throws PrismException
 	{
 		long l = 0; // timer
-		StateProbs probs = null;
+		StateValues probs = null;
 		
 		mainLog.println("\nComputing steady-state probabilities...");
 		l = System.currentTimeMillis();
@@ -1496,7 +1487,7 @@ public class Prism implements PrismSettingsListener
 	public void doTransient(Model model, double time, int exportType, File fileOut, File fileIn) throws PrismException
 	{
 		long l = 0; // timer
-		StateProbs probs = null;
+		StateValues probs = null;
 		PrismLog tmpLog;
 		
 		if (time < 0) throw new PrismException("Cannot compute transient probabilities for negative time value");

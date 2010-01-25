@@ -1401,18 +1401,19 @@ Expression ExpressionProb(boolean prop, boolean pathprop) :
 	Filter filter = null;
 	ExpressionProb ret = new ExpressionProb();
 	Token begin = null;
+	boolean isBool;
 }
 {
 	// This production is only allowed in expressions if the "prop" parameter is true
 	{ if (!prop) throw generateParseException(); }
 	// Various options for "P" keyword and attached symbols
-	(( begin = <P> (( r = LtGt() prob = Expression(false, false) { relOp = ExpressionBinaryOp.opSymbols[r]; } )
-	       |( <EQ> <QMARK> { relOp = "="; } )
-	       |( <MIN> <EQ> <QMARK> { relOp = "min="; } )
-	       |( <MAX> <EQ> <QMARK> { relOp = "max="; } )))
+	(( begin = <P> (( r = LtGt() prob = Expression(false, false) { relOp = ExpressionBinaryOp.opSymbols[r]; isBool = true; } )
+	       |( <EQ> <QMARK> { relOp = "="; isBool = false; } )
+	       |( <MIN> <EQ> <QMARK> { relOp = "min="; isBool = false; } )
+	       |( <MAX> <EQ> <QMARK> { relOp = "max="; isBool = false; } )))
 	// These two are dupes of above but allow space to be omitted
-	|( begin = <PMIN> <EQ> <QMARK> { relOp = "min="; } )
-	|( begin = <PMAX> <EQ> <QMARK> { relOp = "max="; } ))
+	|( begin = <PMIN> <EQ> <QMARK> { relOp = "min="; isBool = false; } )
+	|( begin = <PMAX> <EQ> <QMARK> { relOp = "max="; isBool = false; } ))
 	// Path formula, optional filter
 	<LBRACKET> expr = Expression(prop, true) (filter = Filter())? <RBRACKET>
 	{
@@ -1424,7 +1425,8 @@ Expression ExpressionProb(boolean prop, boolean pathprop) :
 		// Filter is actually dealt with by wrapping this expression in
 		// an (invisible) ExpressionFilter expression
 		if (filter != null) {
-			ExpressionFilter ef = new ExpressionFilter(filter.minRequested() ? "min" : "max", ret, filter.getExpression());
+			String filterOp = isBool ? "&" : filter.minRequested() ? "min" : "max";
+			ExpressionFilter ef = new ExpressionFilter(filterOp, ret, filter.getExpression());
 			ef.setInvisible(true);
 			return ef;
 		}
@@ -1632,7 +1634,9 @@ Expression ExpressionFilter(boolean prop, boolean pathprop) :
 	// filter(
 	begin = <FILTER> <LPARENTH>
 	// filter type
-	( <MIN> { op = "min"; } | <MAX> { op = "max"; } | op = Identifier() )
+	( <MIN> { op = "min"; } | <MAX> { op = "max"; }
+	| <PLUS> { op = "+"; } | <AND> { op = "&"; } | <OR> { op = "|"; }
+	| op = Identifier() )
 	// operand
 	<COMMA> expr2 = Expression(prop, pathprop)
 	// (optional filter expression)

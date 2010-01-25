@@ -31,16 +31,16 @@ import java.io.File;
 import jdd.JDDNode;
 import jdd.JDDVars;
 
-// interface for state probability vector classes
+// Interface for classes for state-indexed vectors of (integer or double) values
 
-public interface StateProbs
+public interface StateValues
 {
-	StateProbsDV convertToStateProbsDV();
-	StateProbsMTBDD convertToStateProbsMTBDD();
+	StateValuesDV convertToStateValuesDV();
+	StateValuesMTBDD convertToStateValuesMTBDD();
 	void readFromFile(File file) throws PrismException;
 	void roundOff(int places);
 	void subtractFromOne();
-	void add(StateProbs sp);
+	void add(StateValues sp);
 	void timesConstant(double d);
 	void filter(JDDNode filter);
 	void clear();
@@ -51,7 +51,7 @@ public interface StateProbs
 	double maxOverBDD(JDDNode filter);
 	double sumOverBDD(JDDNode filter);
 	double sumOverMTBDD(JDDNode mult);
-	StateProbs sumOverDDVars(JDDVars sumVars, Model newModel) throws PrismException;
+	StateValues sumOverDDVars(JDDVars sumVars, Model newModel) throws PrismException;
 	JDDNode getBDDFromInterval(String relOp, double bound);
 	JDDNode getBDDFromInterval(double lo, double hi);
 	JDDNode getBDDFromCloseValue(double val, double epsilon, boolean abs);
@@ -61,5 +61,5 @@ public interface StateProbs
 	void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException;
 	void printFiltered(PrismLog log, JDDNode filter) throws PrismException;
 	void printFiltered(PrismLog log, JDDNode filter, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException;
-	StateProbs deepCopy() throws PrismException; 
+	StateValues deepCopy() throws PrismException; 
 }

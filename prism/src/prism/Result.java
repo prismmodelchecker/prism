@@ -36,7 +36,7 @@ public class Result
 	// The result of model checking
 	private Object result;
 	// Explanatory text for result (optional)
-	private String resultString;
+	private String explanation;
 	// Counterexample (optional)
 	private Object cex;
 	
@@ -46,13 +46,13 @@ public class Result
 	public Result()
 	{
 		this.result = null;
-		this.resultString = "";
+		this.explanation = null;
 		this.cex = null;
 	}
 	
 	/**
 	 * Create a Result object based on a result.
-	 * (Result string will be set automatically in some cases.)
+	 * (If result is an Exception, explanatory text is also set.)
 	 */
 	public Result(Object result)
 	{
@@ -61,42 +61,24 @@ public class Result
 	}
 	
 	/**
-	 * Create a Result object based on a result and a string of explanatory text.
-	 */
-	public Result(Object result, String resultString)
-	{
-		this();
-		setResultAndString(result, resultString);
-	}
-	
-	/**
 	 * Set the result.
-	 * (Result string will be set automatically in some cases.)
+	 * (If result is an Exception, explanatory text is also set.)
 	 */
 	public void setResult(Object result)
 	{
 		this.result = result;
 		if (result instanceof Exception)
-				this.resultString = "Error: "+((Exception)result).getMessage();
+			this.explanation = ((Exception)result).getMessage();
 		else
-				this.resultString = ""+result;
+			this.explanation = null;
 	}
 	
 	/**
-	 * Set the result and the string of explanatory text.
+	 * Set the string of explanatory text (null denotes absent).
 	 */
-	public void setResultAndString(Object result, String resultString)
+	public void setExplanation(String explanation)
 	{
-		this.result = result;
-		this.resultString = resultString;
-	}
-	
-	/**
-	 * Set the string of explanatory text.
-	 */
-	public void setResultString(String resultString)
-	{
-		this.resultString = resultString;
+		this.explanation = explanation;
 	}
 	
 	/**
@@ -116,11 +98,11 @@ public class Result
 	}
 
 	/**
-	 * Get the result string (explanatory text).
+	 * Get the explanatory text string (null denotes absent).
 	 */
-	public String getResultString()
+	public String getExplanation()
 	{
-		return resultString;
+		return explanation;
 	}
 
 	/**
@@ -131,9 +113,22 @@ public class Result
 		return cex;
 	}
 	
-	@Override
+	/**
+	 * Get a string of the result and (if present) explanatory text
+	 */
+	public String getResultString()
+	{
+		String s = result.toString();
+		if (explanation != null)
+			s += " (" + explanation +")";
+		return s;
+	}
+	
+	/**
+	 * Get the string representation of the actual result value.
+	 */
 	public String toString()
 	{
-		return resultString;
+		return result.toString();
 	}
 }

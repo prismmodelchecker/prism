@@ -95,6 +95,13 @@ public class ExpressionFormula extends Expression
 			return definition.evaluate(ec);
 	}
 
+	@Override
+	public boolean returnsSingleValue()
+	{
+		// Unless defined, don't know so err on the side of caution
+		return definition == null ? false : definition.returnsSingleValue();
+	}
+
 	// Methods required for ASTElement:
 	
 	/**

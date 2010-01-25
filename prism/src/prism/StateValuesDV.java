@@ -34,12 +34,12 @@ import odd.*;
 import parser.VarList;
 import parser.type.*;;
 
-// state probability vector (double vector)
+// Class for state-indexed vectors of (integer or double) values, represented by a vector of doubles
 
-public class StateProbsDV implements StateProbs
+public class StateValuesDV implements StateValues
 {
-	// prob vector
-	DoubleVector probs;
+	// Double vector storing values
+	DoubleVector values;
 	
 	// info from model
 	Model model;
@@ -65,12 +65,12 @@ public class StateProbsDV implements StateProbs
 
 	// CONSTRUCTORS
 	
-	public StateProbsDV(DoubleVector p, Model m)
+	public StateValuesDV(DoubleVector p, Model m)
 	{
 		int i;
 		
-		// store prob vector
-		probs = p;
+		// store values vector
+		values = p;
 		
 		// get info from model
 		model = m;
@@ -87,7 +87,7 @@ public class StateProbsDV implements StateProbs
 		varValues = new int[varList.getNumVars()];
 	}
 	
-	public StateProbsDV(JDDNode dd, Model model)
+	public StateValuesDV(JDDNode dd, Model model)
 	{
 		// construct double vector from an mtbdd
 		// (note: dd must only be non-zero for reachable states)
@@ -97,16 +97,16 @@ public class StateProbsDV implements StateProbs
 	
 	// CONVERSION METHODS
 	
-	// convert to StateProbsDV (nothing to do)
-	public StateProbsDV convertToStateProbsDV()
+	// convert to StateValuesDV (nothing to do)
+	public StateValuesDV convertToStateValuesDV()
 	{
 		return this;
 	}
 	
-	// convert to StateProbsMTBDD, destroy (clear) old vector
-	public StateProbsMTBDD convertToStateProbsMTBDD()
+	// convert to StateValuesMTBDD, destroy (clear) old vector
+	public StateValuesMTBDD convertToStateValuesMTBDD()
 	{
-		StateProbsMTBDD res = new StateProbsMTBDD(probs.convertToMTBDD(vars, odd), model);
+		StateValuesMTBDD res = new StateValuesMTBDD(values.convertToMTBDD(vars, odd), model);
 		clear();
 		return res;
 	}
@@ -118,7 +118,7 @@ public class StateProbsDV implements StateProbs
 	 */
 	private void setElement(int i, double d)
 	{
-		probs.setElement(i, d);
+		values.setElement(i, d);
 	}
 	
 	// read from file
@@ -138,8 +138,9 @@ public class StateProbsDV implements StateProbs
 			while (s != null) {
 				s = s.trim();
 				if (!("".equals(s))) {
-					if (count + 1 > probs.getSize())
-						throw new PrismException("Too many values in initial distribution (" + (count + 1) + ", not " + probs.getSize() + ")");
+					if (count + 1 > values.getSize())
+						// TODO: move these error messages elsewhere?
+						throw new PrismException("Too many values in initial distribution (" + (count + 1) + ", not " + values.getSize() + ")");
 					d = Double.parseDouble(s);
 					setElement(count, d);
 					count++;
@@ -149,8 +150,8 @@ public class StateProbsDV implements StateProbs
 			// close file
 			in.close();
 			// check size
-			if (count < probs.getSize())
-				throw new PrismException("Too few values in initial distribution (" + count + ", not " + probs.getSize() + ")");
+			if (count < values.getSize())
+				throw new PrismException("Too few values in initial distribution (" + count + ", not " + values.getSize() + ")");
 		}
 		catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + file + "\"");
@@ -164,42 +165,42 @@ public class StateProbsDV implements StateProbs
 	
 	public void roundOff(int places)
 	{
-		probs.roundOff(places);
+		values.roundOff(places);
 	}
 	
-	// subtract all probabilities from 1
+	// subtract all values from 1
 	
 	public void subtractFromOne() 
 	{
-		probs.subtractFromOne();
+		values.subtractFromOne();
 	}
 	
 	// add another vector to this one
 	
-	public void add(StateProbs sp) 
+	public void add(StateValues sp) 
 	{
-		probs.add(((StateProbsDV)sp).probs);
+		values.add(((StateValuesDV)sp).values);
 	}
 	
 	// multiply vector by a constant
 	
 	public void timesConstant(double d) 
 	{
-		probs.timesConstant(d);
+		values.timesConstant(d);
 	}
 	
 	// filter vector using a bdd (set elements not in filter to 0)
 	
 	public void filter(JDDNode filter)
 	{
-		probs.filter(filter, vars, odd);
+		values.filter(filter, vars, odd);
 	}
 	
 	// clear (free memory)
 	
 	public void clear()
 	{
-		probs.clear();
+		values.clear();
 	}
 
 	// METHODS TO ACCESS VECTOR DATA
@@ -208,14 +209,14 @@ public class StateProbsDV implements StateProbs
 	
 	public DoubleVector getDoubleVector()
 	{
-		return probs;
+		return values;
 	}
 	
 	// get num non zeros
 	
 	public int getNNZ()
 	{
-		return probs.getNNZ();
+		return values.getNNZ();
 	}
 	
 	public String getNNZString()
@@ -230,7 +231,7 @@ public class StateProbsDV implements StateProbs
 	 */
 	public double firstFromBDD(JDDNode filter)
 	{
-		return probs.firstFromBDD(filter, vars, odd);
+		return values.firstFromBDD(filter, vars, odd);
 	}
 	
 	/**
@@ -238,7 +239,7 @@ public class StateProbsDV implements StateProbs
 	 */
 	public double minOverBDD(JDDNode filter)
 	{
-		return probs.minOverBDD(filter, vars, odd);
+		return values.minOverBDD(filter, vars, odd);
 	}
 	
 	/**
@@ -246,7 +247,7 @@ public class StateProbsDV implements StateProbs
 	 */
 	public double maxOverBDD(JDDNode filter)
 	{
-		return probs.maxOverBDD(filter, vars, odd);
+		return values.maxOverBDD(filter, vars, odd);
 	}
 	
 	/**
@@ -254,7 +255,7 @@ public class StateProbsDV implements StateProbs
 	 */
 	public double sumOverBDD(JDDNode filter)
 	{
-		return probs.sumOverBDD(filter, vars, odd);
+		return values.sumOverBDD(filter, vars, odd);
 	}
 	
 	/**
@@ -263,21 +264,21 @@ public class StateProbsDV implements StateProbs
 	 */
 	public double sumOverMTBDD(JDDNode mult)
 	{
-		return probs.sumOverMTBDD(mult, vars, odd);
+		return values.sumOverMTBDD(mult, vars, odd);
 	}
 	
 	/**
 	* Sum up the elements of the vector, over a subset of its DD vars
-	* store the result in a new StateProbs (for newModel)
+	* store the result in a new StateValues (for newModel)
 	* @throws PrismException (on out-of-memory)
 	*/
-	public StateProbs sumOverDDVars(JDDVars sumVars, Model newModel) throws PrismException
+	public StateValues sumOverDDVars(JDDVars sumVars, Model newModel) throws PrismException
 	{
 		DoubleVector tmp;
 		
-		tmp = probs.sumOverDDVars(model.getAllDDRowVars(), odd, newModel.getODD(), sumVars.getMinVarIndex(), sumVars.getMaxVarIndex());
+		tmp = values.sumOverDDVars(model.getAllDDRowVars(), odd, newModel.getODD(), sumVars.getMinVarIndex(), sumVars.getMaxVarIndex());
 		
-		return new StateProbsDV(tmp, newModel);
+		return (StateValues)new StateValuesDV(tmp, newModel);
 	}
 	
 	/**
@@ -286,7 +287,7 @@ public class StateProbsDV implements StateProbs
 	 */
 	public JDDNode getBDDFromInterval(String relOp, double bound)
 	{
-		return probs.getBDDFromInterval(relOp, bound, vars, odd);
+		return values.getBDDFromInterval(relOp, bound, vars, odd);
 	}
 	
 	/**
@@ -295,7 +296,7 @@ public class StateProbsDV implements StateProbs
 	 */
 	public JDDNode getBDDFromInterval(double lo, double hi)
 	{
-		return probs.getBDDFromInterval(lo, hi, vars, odd);
+		return values.getBDDFromInterval(lo, hi, vars, odd);
 	}
 
 	/**
@@ -305,9 +306,9 @@ public class StateProbsDV implements StateProbs
 	public JDDNode getBDDFromCloseValue(double value, double epsilon, boolean abs)
 	{
 		if (abs)
-			return probs.getBDDFromCloseValueAbs(value, epsilon, vars, odd);
+			return values.getBDDFromCloseValueAbs(value, epsilon, vars, odd);
 		else
-			return probs.getBDDFromCloseValueRel(value, epsilon, vars, odd);
+			return values.getBDDFromCloseValueRel(value, epsilon, vars, odd);
 	}
 	
 	/**
@@ -316,7 +317,7 @@ public class StateProbsDV implements StateProbs
 	 */
 	public JDDNode getBDDFromCloseValueAbs(double value, double epsilon)
 	{
-		return probs.getBDDFromCloseValueAbs(value, epsilon, vars, odd);
+		return values.getBDDFromCloseValueAbs(value, epsilon, vars, odd);
 	}
 	
 	/**
@@ -325,7 +326,7 @@ public class StateProbsDV implements StateProbs
 	 */
 	public JDDNode getBDDFromCloseValueRel(double value, double epsilon)
 	{
-		return probs.getBDDFromCloseValueRel(value, epsilon, vars, odd);
+		return values.getBDDFromCloseValueRel(value, epsilon, vars, odd);
 	}
 	
 	// PRINTING STUFF
@@ -356,10 +357,10 @@ public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolea
 		
 		// header for matlab format
 		if (printMatlab)
-			log.println(!printSparse ? "v = [" : "v = sparse(" + probs.getSize() + ",1);");
+			log.println(!printSparse ? "v = [" : "v = sparse(" + values.getSize() + ",1);");
 		
 		// check if all zero
-		if (printSparse && !printMatlab && probs.getNNZ() == 0) {
+		if (printSparse && !printMatlab && values.getNNZ() == 0) {
 			log.println("(all zero)");
 			return;
 		}
@@ -399,7 +400,7 @@ public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolea
 		
 		// base case - at bottom
 		if (level == numVars) {
-			d = probs.getElement(n);
+			d = values.getElement(n);
 			printLine(n, d);
 			return;
 		}
@@ -449,7 +450,7 @@ public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolea
 		
 		// header for matlab format
 		if (printMatlab)
-			log.println(!printSparse ? "v = [" : "v = sparse(" + probs.getSize() + ",1);");
+			log.println(!printSparse ? "v = [" : "v = sparse(" + values.getSize() + ",1);");
 		
 		// set up a counter so we can check if there were no non-zero elements
 		counter = 0;
@@ -492,7 +493,7 @@ public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolea
 		
 		// base case - at bottom
 		if (level == numVars) {
-			d = probs.getElement(n);
+			d = values.getElement(n);
 			printLine(n, d);
 			return;
 		}
@@ -557,12 +558,12 @@ public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolea
 	/**
 	 * Make a (deep) copy of this vector
 	 */
-	public StateProbsDV deepCopy() throws PrismException
+	public StateValuesDV deepCopy() throws PrismException
 	{
 		// Clone vector
-		DoubleVector dv = new DoubleVector(probs.getSize());
-		dv.add(probs);
+		DoubleVector dv = new DoubleVector(values.getSize());
+		dv.add(values);
 		// Return copy
-		return new StateProbsDV(dv, model);
+		return new StateValuesDV(dv, model);
 	}
 }

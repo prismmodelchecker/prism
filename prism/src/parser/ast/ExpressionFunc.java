@@ -270,6 +270,18 @@ public class ExpressionFunc extends Expression
 		return new Double(PrismUtils.log(x, b));
 	}
 
+	@Override
+	public boolean returnsSingleValue()
+	{
+		int i, n;
+		n = getNumOperands();
+		for (i = 0; i < n; i++) {
+			if (!getOperand(i).returnsSingleValue())
+				return false;
+		}
+		return true;
+	}
+
 	// Methods required for ASTElement:
 
 	/**

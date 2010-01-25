@@ -55,6 +55,12 @@ public abstract class Expression extends ASTElement
 		return "Result";
 	}
 
+	/**
+	 * Does this expression equate to a single value, rather than a different value for all states,
+	 * when evaluated during model checking?
+	 */
+	public abstract boolean returnsSingleValue();
+	
 	// Overrided version of deepCopy() from superclass ASTElement (to reduce casting).
 
 	/**

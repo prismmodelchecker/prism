@@ -99,6 +99,12 @@ public class ExpressionITE extends Expression
 		return operand1.evaluateBoolean(ec) ? operand2.evaluate(ec) : operand3.evaluate(ec);
 	}
 
+	@Override
+	public boolean returnsSingleValue()
+	{
+		return operand1.returnsSingleValue() && operand2.returnsSingleValue() && operand3.returnsSingleValue();
+	}
+
 	// Methods required for ASTElement:
 
 	/**

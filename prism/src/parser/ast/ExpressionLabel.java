@@ -68,6 +68,12 @@ public class ExpressionLabel extends Expression
 		throw new PrismLangException("Cannot evaluate labels", this);
 	}
 
+	@Override
+	public boolean returnsSingleValue()
+	{
+		return false;
+	}
+
 	// Methods required for ASTElement:
 	
 	/**

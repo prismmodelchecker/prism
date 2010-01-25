@@ -81,6 +81,13 @@ public class ExpressionIdent extends Expression
 		throw new PrismLangException("Could not evaluate identifier", this);
 	}
 
+	@Override
+	public boolean returnsSingleValue()
+	{
+		// Don't know - err on the side of caution
+		return false;
+	}
+
 	// Methods required for ASTElement:
 	
 	/**

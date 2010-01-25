@@ -79,12 +79,12 @@ public class StochModelChecker extends ProbModelChecker
 
 	// bounded until
 
-	protected StateProbs checkProbBoundedUntil(ExpressionTemporal expr) throws PrismException
+	protected StateValues checkProbBoundedUntil(ExpressionTemporal expr) throws PrismException
 	{
 		double lTime, uTime; // time bounds
 		Expression exprTmp;
 		JDDNode b1, b2, tmp;
-		StateProbs tmpProbs = null, probs = null;
+		StateValues tmpProbs = null, probs = null;
 
 		// check not LTL
 		if (!(expr.getOperand1().getType() instanceof TypeBool))
@@ -141,7 +141,7 @@ public class StochModelChecker extends ProbModelChecker
 		if (lTime == 0 && uTime == 0) {
 			// prob is 1 in b2 states, 0 otherwise
 			JDD.Ref(b2);
-			probs = new StateProbsMTBDD(b2, model);
+			probs = new StateValuesMTBDD(b2, model);
 		} else {
 
 			// break down into different cases to compute probabilities
@@ -231,11 +231,11 @@ public class StochModelChecker extends ProbModelChecker
 
 	// cumulative reward
 
-	protected StateProbs checkRewardCumul(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards)
+	protected StateValues checkRewardCumul(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards)
 			throws PrismException
 	{
 		double time; // time
-		StateProbs rewards = null;
+		StateValues rewards = null;
 
 		// get info from inst reward
 		time = expr.getUpperBound().evaluateDouble(constantValues, null);
@@ -247,7 +247,7 @@ public class StochModelChecker extends ProbModelChecker
 
 		// a trivial case: "<=0"
 		if (time == 0) {
-			rewards = new StateProbsMTBDD(JDD.Constant(0), model);
+			rewards = new StateValuesMTBDD(JDD.Constant(0), model);
 		} else {
 			// compute rewards
 			try {
@@ -262,11 +262,11 @@ public class StochModelChecker extends ProbModelChecker
 
 	// inst reward
 
-	protected StateProbs checkRewardInst(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards)
+	protected StateValues checkRewardInst(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards)
 			throws PrismException
 	{
 		double time; // time
-		StateProbs sr = null, rewards = null;
+		StateValues sr = null, rewards = null;
 
 		// get info from inst reward
 		time = expr.getUpperBound().evaluateDouble(constantValues, null);
@@ -279,20 +279,20 @@ public class StochModelChecker extends ProbModelChecker
 		// a trivial case: "=0"
 		if (time == 0) {
 			JDD.Ref(stateRewards);
-			rewards = new StateProbsMTBDD(stateRewards, model);
+			rewards = new StateValuesMTBDD(stateRewards, model);
 		} else {
 			// convert state rewards vector to appropriate type (depending on
 			// engine)
 			switch (engine) {
 			case Prism.MTBDD:
 				JDD.Ref(stateRewards);
-				sr = new StateProbsMTBDD(stateRewards, model);
+				sr = new StateValuesMTBDD(stateRewards, model);
 				break;
 			case Prism.SPARSE:
-				sr = new StateProbsDV(stateRewards, model);
+				sr = new StateValuesDV(stateRewards, model);
 				break;
 			case Prism.HYBRID:
-				sr = new StateProbsDV(stateRewards, model);
+				sr = new StateValuesDV(stateRewards, model);
 				break;
 			}
 			// and for the computation, we can reuse the computation for
@@ -318,9 +318,9 @@ public class StochModelChecker extends ProbModelChecker
 	 * Compute transient probability distribution (forwards).
 	 * Start from initial state (or uniform distribution over multiple initial states).
 	 */
-	public StateProbs doTransient(double time) throws PrismException
+	public StateValues doTransient(double time) throws PrismException
 	{
-		return doTransient(time, (StateProbs) null);
+		return doTransient(time, (StateValues) null);
 	}
 	
 	/**
@@ -328,17 +328,17 @@ public class StochModelChecker extends ProbModelChecker
 	 * Optionally, use the passed in file initDistFile to give the initial probability distribution (time 0).
 	 * If null, start from initial state (or uniform distribution over multiple initial states).
 	 */
-	public StateProbs doTransient(double time, File initDistFile) throws PrismException
+	public StateValues doTransient(double time, File initDistFile) throws PrismException
 	{
-		StateProbs initDist = null;
+		StateValues initDist = null;
 
 		if (initDistFile != null) {
 			mainLog.println("\nImporting initial probability distribution from file \"" + initDistFile + "\"...");
 			// Build an empty vector of the appropriate type 
 			if (engine == Prism.MTBDD) {
-				initDist = new StateProbsMTBDD(JDD.Constant(0), model);
+				initDist = new StateValuesMTBDD(JDD.Constant(0), model);
 			} else {
-				initDist = new StateProbsDV(new DoubleVector((int) model.getNumStates()), model);
+				initDist = new StateValuesDV(new DoubleVector((int) model.getNumStates()), model);
 			}
 			// Populate vector from file
 			initDist.readFromFile(initDistFile);
@@ -354,12 +354,12 @@ public class StochModelChecker extends ProbModelChecker
 	 * For reasons of efficiency, when a vector is passed in, it will be trampled over and
 	 * then deleted afterwards, so if you wanted it, take a copy. 
 	 */
-	public StateProbs doTransient(double time, StateProbs initDist) throws PrismException
+	public StateValues doTransient(double time, StateValues initDist) throws PrismException
 	{
 		// mtbdd stuff
 		JDDNode start, init;
 		// other stuff
-		StateProbs initDistNew = null, probs = null;
+		StateValues initDistNew = null, probs = null;
 
 		// build initial distribution (if not specified)
 		if (initDist == null) {
@@ -371,11 +371,11 @@ public class StochModelChecker extends ProbModelChecker
 			init = JDD.Apply(JDD.DIVIDE, start, JDD.Constant(JDD.GetNumMinterms(start, allDDRowVars.n())));
 			// if using MTBDD engine, distribution needs to be an MTBDD
 			if (engine == Prism.MTBDD) {
-				initDistNew = new StateProbsMTBDD(init, model);
+				initDistNew = new StateValuesMTBDD(init, model);
 			}
 			// for sparse/hybrid engines, distribution needs to be a double vector
 			else {
-				initDistNew = new StateProbsDV(init, model);
+				initDistNew = new StateValuesDV(init, model);
 				JDD.Deref(init);
 			}
 		} else {
@@ -394,10 +394,10 @@ public class StochModelChecker extends ProbModelChecker
 
 	// compute probabilities for next
 
-	protected StateProbs computeNextProbs(JDDNode tr, JDDNode b)
+	protected StateValues computeNextProbs(JDDNode tr, JDDNode b)
 	{
 		JDDNode diags, emb;
-		StateProbs probs = null;
+		StateValues probs = null;
 
 		// Compute embedded Markov chain
 		JDD.Ref(tr);
@@ -430,16 +430,16 @@ public class StochModelChecker extends ProbModelChecker
 	// probability in the vector 'multProbs', assuming that all states not in
 	// 'nonabs' are absorbing
 	// nb: if 'multProbs' is null it is assumed to be all 1s
-	// nb: if not null, the type (StateProbsDV/MTBDD) of 'multProbs' must match
+	// nb: if not null, the type (StateValuesDV/MTBDD) of 'multProbs' must match
 	// the current engine
 	// i.e. DV for sparse/hybrid, MTBDD for mtbdd
 
-	protected StateProbs computeBoundedUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b2, JDDNode nonabs, double time,
-			StateProbs multProbs) throws PrismException
+	protected StateValues computeBoundedUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b2, JDDNode nonabs, double time,
+			StateValues multProbs) throws PrismException
 	{
 		JDDNode multProbsMTBDD, probsMTBDD;
 		DoubleVector multProbsDV, probsDV;
-		StateProbs probs = null;
+		StateValues probs = null;
 
 		// if nonabs is empty and multProbs was null, we don't need to do any
 		// further solution
@@ -450,11 +450,11 @@ public class StochModelChecker extends ProbModelChecker
 			switch (engine) {
 			case Prism.MTBDD:
 				JDD.Ref(b2);
-				probs = new StateProbsMTBDD(b2, model);
+				probs = new StateValuesMTBDD(b2, model);
 				break;
 			case Prism.SPARSE:
 			case Prism.HYBRID:
-				probs = new StateProbsDV(b2, model);
+				probs = new StateValuesDV(b2, model);
 				break;
 			}
 		}
@@ -464,22 +464,22 @@ public class StochModelChecker extends ProbModelChecker
 			try {
 				switch (engine) {
 				case Prism.MTBDD:
-					multProbsMTBDD = (multProbs == null) ? null : ((StateProbsMTBDD) multProbs).getJDDNode();
+					multProbsMTBDD = (multProbs == null) ? null : ((StateValuesMTBDD) multProbs).getJDDNode();
 					probsMTBDD = PrismMTBDD.StochBoundedUntil(tr, odd, allDDRowVars, allDDColVars, b2, nonabs, time,
 							multProbsMTBDD);
-					probs = new StateProbsMTBDD(probsMTBDD, model);
+					probs = new StateValuesMTBDD(probsMTBDD, model);
 					break;
 				case Prism.SPARSE:
-					multProbsDV = (multProbs == null) ? null : ((StateProbsDV) multProbs).getDoubleVector();
+					multProbsDV = (multProbs == null) ? null : ((StateValuesDV) multProbs).getDoubleVector();
 					probsDV = PrismSparse.StochBoundedUntil(tr, odd, allDDRowVars, allDDColVars, b2, nonabs, time,
 							multProbsDV);
-					probs = new StateProbsDV(probsDV, model);
+					probs = new StateValuesDV(probsDV, model);
 					break;
 				case Prism.HYBRID:
-					multProbsDV = (multProbs == null) ? null : ((StateProbsDV) multProbs).getDoubleVector();
+					multProbsDV = (multProbs == null) ? null : ((StateValuesDV) multProbs).getDoubleVector();
 					probsDV = PrismHybrid.StochBoundedUntil(tr, odd, allDDRowVars, allDDColVars, b2, nonabs, time,
 							multProbsDV);
-					probs = new StateProbsDV(probsDV, model);
+					probs = new StateValuesDV(probsDV, model);
 					break;
 				}
 			} catch (PrismException e) {
@@ -492,10 +492,10 @@ public class StochModelChecker extends ProbModelChecker
 
 	// compute probabilities for until (general case)
 
-	protected StateProbs computeUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2) throws PrismException
+	protected StateValues computeUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2) throws PrismException
 	{
 		JDDNode diags, emb;
-		StateProbs probs = null;
+		StateValues probs = null;
 
 		// Compute embedded Markov chain
 		JDD.Ref(tr);
@@ -519,27 +519,27 @@ public class StochModelChecker extends ProbModelChecker
 
 	// compute cumulative rewards
 
-	protected StateProbs computeCumulRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr, double time)
+	protected StateValues computeCumulRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr, double time)
 			throws PrismException
 	{
 		JDDNode rewardsMTBDD;
 		DoubleVector rewardsDV;
-		StateProbs rewards = null;
+		StateValues rewards = null;
 
 		// compute rewards
 		try {
 			switch (engine) {
 			case Prism.MTBDD:
 				rewardsMTBDD = PrismMTBDD.StochCumulReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, time);
-				rewards = new StateProbsMTBDD(rewardsMTBDD, model);
+				rewards = new StateValuesMTBDD(rewardsMTBDD, model);
 				break;
 			case Prism.SPARSE:
 				rewardsDV = PrismSparse.StochCumulReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, time);
-				rewards = new StateProbsDV(rewardsDV, model);
+				rewards = new StateValuesDV(rewardsDV, model);
 				break;
 			case Prism.HYBRID:
 				rewardsDV = PrismHybrid.StochCumulReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, time);
-				rewards = new StateProbsDV(rewardsDV, model);
+				rewards = new StateValuesDV(rewardsDV, model);
 				break;
 			default:
 				throw new PrismException("Unknown engine");
@@ -553,11 +553,11 @@ public class StochModelChecker extends ProbModelChecker
 
 	// compute rewards for reach reward
 
-	protected StateProbs computeReachRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr, JDDNode b)
+	protected StateValues computeReachRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr, JDDNode b)
 			throws PrismException
 	{
 		JDDNode diags, emb, srNew;
-		StateProbs rewards = null;
+		StateValues rewards = null;
 
 		// Compute embedded Markov chain
 		JDD.Ref(tr);
@@ -589,15 +589,15 @@ public class StochModelChecker extends ProbModelChecker
 	 * Compute transient probability distribution (forwards).
 	 * Use the passed in vector initDist as the initial probability distribution (time 0).
 	 * The type of this should match the current engine
-	 * (i.e. StateProbsMTBDD for MTBDD, StateProbsDV for sparse/hybrid). 
+	 * (i.e. StateValuesMTBDD for MTBDD, StateValuesDV for sparse/hybrid). 
 	 * For reasons of efficiency, this vector will be trampled over and
 	 * then deleted afterwards, so if you wanted it, take a copy. 
 	 */
-	protected StateProbs computeTransientProbs(JDDNode tr, StateProbs initDist, double time) throws PrismException
+	protected StateValues computeTransientProbs(JDDNode tr, StateValues initDist, double time) throws PrismException
 	{
 		JDDNode probsMTBDD;
 		DoubleVector probsDV;
-		StateProbs probs = null;
+		StateValues probs = null;
 
 		// special case: time = 0
 		if (time == 0.0) {
@@ -609,16 +609,16 @@ public class StochModelChecker extends ProbModelChecker
 		try {
 			switch (engine) {
 			case Prism.MTBDD:
-				probsMTBDD = PrismMTBDD.StochTransient(tr, odd, ((StateProbsMTBDD) initDist).getJDDNode(), allDDRowVars, allDDColVars, time);
-				probs = new StateProbsMTBDD(probsMTBDD, model);
+				probsMTBDD = PrismMTBDD.StochTransient(tr, odd, ((StateValuesMTBDD) initDist).getJDDNode(), allDDRowVars, allDDColVars, time);
+				probs = new StateValuesMTBDD(probsMTBDD, model);
 				break;
 			case Prism.SPARSE:
-				probsDV = PrismSparse.StochTransient(tr, odd, ((StateProbsDV) initDist).getDoubleVector(), allDDRowVars, allDDColVars, time);
-				probs = new StateProbsDV(probsDV, model);
+				probsDV = PrismSparse.StochTransient(tr, odd, ((StateValuesDV) initDist).getDoubleVector(), allDDRowVars, allDDColVars, time);
+				probs = new StateValuesDV(probsDV, model);
 				break;
 			case Prism.HYBRID:
-				probsDV = PrismHybrid.StochTransient(tr, odd, ((StateProbsDV) initDist).getDoubleVector(), allDDRowVars, allDDColVars, time);
-				probs = new StateProbsDV(probsDV, model);
+				probsDV = PrismHybrid.StochTransient(tr, odd, ((StateValuesDV) initDist).getDoubleVector(), allDDRowVars, allDDColVars, time);
+				probs = new StateValuesDV(probsDV, model);
 				break;
 			default:
 				throw new PrismException("Unknown engine");

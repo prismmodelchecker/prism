@@ -130,6 +130,12 @@ public class ExpressionProb extends Expression
 			return "Probability";
 	}
 
+	@Override
+	public boolean returnsSingleValue()
+	{
+		return false;
+	}
+
 	// Methods required for ASTElement:
 
 	/**
