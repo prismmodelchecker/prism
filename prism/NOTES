@@ -38,7 +38,7 @@ CTMDP stuff
 Filters, property semantics, etc.
 
 TODO:
-* Integer-valued props displayed as doubles - need to give types to StateProbs?
+* Integer-valued props displayed as doubles - need to give types to StateValues?
   - lots of other places too e.g. GUI results)
 * Intervals for multiple initial states
   - Need classes for Result
