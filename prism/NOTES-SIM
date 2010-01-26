@@ -14,5 +14,6 @@ TEST CASES
 
 DTMC with local nondet and actions (~/prism-models/dave-test.nm)
 
+GUI transition box: "true" updates don't display correctly
 
 
