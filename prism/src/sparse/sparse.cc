@@ -889,11 +889,14 @@ int *build_nd_action_vector(DdManager *ddman, DdNode *mdp, DdNode *trans_actions
 		starts[i] += starts[i-1];
 	}
 	
-	// initialise (unnecessarily) the 'actions'	array
+	// initialise the 'actions' array
+	// (necessary because tau actions, with index 0, are not discovered
+	//  by the call to traverse_mtbdd_vect_rec(..., 3) below)
 	for (i = 0; i < nc; i++) actions[i] = 0;
 	// now traverse the mtbdd to get the actual entries (action indices)
 	for (i = 0; i < nm; i++) {
 		traverse_mtbdd_vect_rec(ddman, submatrices[i], rvars, num_vars, 0, odd, 0, 3);
+		traverse_mtbdd_vect_rec(ddman, matrices_bdds[i], rvars, num_vars, 0, odd, 0, 2);
 	}
 	
 	// try/catch for memory allocation/deallocation
@@ -1157,7 +1160,6 @@ void traverse_mtbdd_vect_rec(DdManager *ddman, DdNode *dd, DdNode **vars, int nu
 		// mdp action vector - single pass
 		case 3:
 			actions[starts[i]] = (int)Cudd_V(dd);
-			starts[i]++;
 			break;
 		}
 		
