@@ -197,13 +197,13 @@ endif
 # Darwin
 ifeq ($(OSTYPE),darwin)
 	ifeq ($(ARCH),x86_64)
-		CFLAGS = -arch x86_64 -fPIC -DPIC -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
-		CPPFLAGS = -arch x86_64 -fPIC -DPIC -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
+		CFLAGS = -arch x86_64 -fPIC -DPIC $(DEBUG) $(OPTIMISE)
+		CPPFLAGS = -arch x86_64 -fPIC -DPIC $(DEBUG) $(OPTIMISE)
 		LDFLAGS = -arch x86_64 -fPIC -DPIC -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
 		CUDD_MAKEFILE = Makefile.darwin-64
 	else
-		CFLAGS = -arch i386 -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
-		CPPFLAGS = -arch i386 -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
+		CFLAGS = -arch i386 $(DEBUG) $(OPTIMISE)
+		CPPFLAGS = -arch i386 $(DEBUG) $(OPTIMISE)
 		LDFLAGS = -arch i386 -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
 		CUDD_MAKEFILE = Makefile.darwin
 	endif
