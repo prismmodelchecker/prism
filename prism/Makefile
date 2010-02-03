@@ -150,9 +150,9 @@ ifeq ($(OSTYPE),linux)
 		LDFLAGS = $(DEBUG) $(OPTIMISE) -DPIC -fPIC
 		CUDD_MAKEFILE = Makefile.linux-64
 	else
-		CFLAGS = $(DEBUG) $(OPTIMISE)
-		CPPFLAGS = $(DEBUG) $(OPTIMISE)
-		LDFLAGS = $(DEBUG) $(OPTIMISE)
+		CFLAGS = -m32 $(DEBUG) $(OPTIMISE)
+		CPPFLAGS = -m32 $(DEBUG) $(OPTIMISE)
+		LDFLAGS = -m32 $(DEBUG) $(OPTIMISE)
 		CUDD_MAKEFILE = Makefile.linux
 	endif
 	endif
