@@ -82,9 +82,9 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
 	// adversary stuff
-	bool adv = false, adv_loop = false;
+	bool adv = true, adv_loop = false;
 	FILE *fp_adv = NULL;
-	int adv_l, adv_h;
+	int adv_j, adv_l2, adv_h2;
 	int *actions;
 	jstring *action_names_jstrings;
 	const char** action_names;
@@ -216,7 +216,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 				}
 				if (first || (min&&(d2<d1)) || (!min&&(d2>d1))) {
 					d1 = d2;
-					if (adv_loop) { adv_l = l2; adv_h = h2; }
+					if (adv_loop) { adv_j = j; adv_l2 = l2; adv_h2 = h2; }
 				}
 				first = false;
 			}
@@ -225,9 +225,9 @@ jboolean min				// min or max probabilities (true = min, false = max)
 			soln2[i] = (h1 > l1) ? d1 : yes_vec[i];
 			// store adversary info (if required)
 			if (adv_loop) if (h1 > l1)
-				for (k = adv_l; k < adv_h; k++) {
+				for (k = adv_l2; k < adv_h2; k++) {
 					fprintf(fp_adv, "%d %d %g", i, cols[k], non_zeros[k]);
-					if (actions != NULL) fprintf(fp_adv, " %s", actions[l1]>0?action_names[actions[l1]-1]:"");
+					if (actions != NULL) fprintf(fp_adv, " %s", actions[adv_j]>0?action_names[actions[adv_j]-1]:"");
 					fprintf(fp_adv, "\n");
 				}
 		}
