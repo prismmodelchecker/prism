@@ -153,7 +153,7 @@ jstring fn		// filename
 	
 	// close file, etc.
 	if (export_file) fclose(export_file);
-	env->ReleaseStringUTFChars(na, export_name);
+	if (na) env->ReleaseStringUTFChars(na, export_name);
 	
 	// catch exceptions: return (undocumented) error code for memout
 	} catch (std::bad_alloc e) {
