@@ -54,7 +54,8 @@ Doc:
 
 TODO:
 
-- make adv gen switchable
+- fix adversary generation (de alfaro thesis)
+- add adversary generation for other engines
 - make action storage optional (when required)
 - action storage for D/CTMCs
 - lp stuff - plugin support for eclipse/lpsolve (in prism-multi?)
