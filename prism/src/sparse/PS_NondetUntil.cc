@@ -34,6 +34,7 @@
 #include <dv.h>
 #include "sparse.h"
 #include "prism.h"
+#include "PrismNativeGlob.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
 #include <new>
@@ -82,7 +83,8 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
 	// adversary stuff
-	bool adv = true, adv_loop = false;
+	int export_adv_enabled = export_adv;
+	bool adv_loop = false;
 	FILE *fp_adv = NULL;
 	int adv_j, adv_l2, adv_h2;
 	int *actions;
@@ -121,7 +123,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// if needed, and if info is available, build a vector of action indices for the mdp
-	if (adv && trans_actions != NULL) {
+	if (export_adv_enabled > 0 && trans_actions != NULL) {
 		PS_PrintToMainLog(env, "Building action information... ");
 		// first need to filter out unwanted rows
 		Cudd_Ref(trans_actions);
@@ -174,13 +176,13 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	PS_PrintToMainLog(env, "\nStarting iterations...\n");
 	
 	// open file to store adversary (if required)
-	if (adv) {
-		fp_adv = fopen("adv.tra", "w");
+	if (export_adv_enabled > 0) {
+		fp_adv = fopen(export_adv_filename, "w");
 		if (fp_adv) {
 			fprintf(fp_adv, "%d ?\n", n);
 		} else {
-			PS_PrintToMainLog(env, "\nWarning: Adversary generation cancelled (could not open file \"%s\").\n", "adv.tra");
-			adv = false;
+			PS_PrintToMainLog(env, "\nWarning: Adversary generation cancelled (could not open file \"%s\").\n", export_adv_filename);
+			export_adv_enabled = false;
 		}
 	}
 	
@@ -263,7 +265,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 		soln2 = tmpsoln;
 		
 		// if we're done, but adversary generation is required, go round once more
-		if (done && adv) adv_loop = !adv_loop;
+		if (done && export_adv_enabled > 0) adv_loop = !adv_loop;
 		
 //		PS_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
 	}
@@ -280,9 +282,9 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	if (!done) { delete soln; soln = NULL; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
 	
 	// close file to store adversary (if required)
-	if (adv) {
+	if (export_adv_enabled) {
 		fclose(fp_adv);
-		PS_PrintToMainLog(env, "\nAdversary written to file \"%s\".\n", "adv.tra");
+		PS_PrintToMainLog(env, "\nAdversary written to file \"%s\".\n", export_adv_filename);
 	}
 	
 	// catch exceptions: register error, free memory

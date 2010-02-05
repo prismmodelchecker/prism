@@ -92,6 +92,8 @@ public class PrismSettings implements Observer
 	public static final String PRISM_SYMM_RED_PARAMS					= "prism.symmRedParams";
 	public static final String PRISM_PTA_METHOD					= "prism.ptaMethod";
 	public static final String PRISM_AR_OPTIONS					= "prism.arOptions";
+	public static final String PRISM_EXPORT_ADV					= "prism.exportAdv";
+	public static final String PRISM_EXPORT_ADV_FILENAME			= "prism.exportAdvFilename";
 	
 	//GUI Model
 	public static final	String MODEL_AUTO_PARSE						= "model.autoParse";
@@ -195,12 +197,14 @@ public class PrismSettings implements Observer
 			{ INTEGER_TYPE,		PRISM_NUM_SOR_LEVELS,					"Hybrid GS levels",						"2.1",			new Integer(-1),															"-1,",																						"Number of MTBDD levels descended for hybrid engine data structures block division with GS/SOR." },
 			{ INTEGER_TYPE,		PRISM_SOR_MAX_MEM,						"Hybrid GS memory (KB)",				"2.1",			new Integer(1024),															"0,",																						"Maximum memory usage for hybrid engine data structures block division with GS/SOR (KB)." },
 			{ BOOLEAN_TYPE,		PRISM_DO_SS_DETECTION,					"Use steady-state detection",			"2.1",			new Boolean(true),															"0,",																						"Use steady-state detection during CTMC transient probability computation." },
-			{ BOOLEAN_TYPE,		PRISM_EXTRA_DD_INFO,					"Extra MTBDD information",				"3.1.1",			new Boolean(false),															"0,",																						"Display extra information about (MT)BDDs used during and after model construction." },
-			{ BOOLEAN_TYPE,		PRISM_EXTRA_REACH_INFO,					"Extra reachability information",		"3.1.1",			new Boolean(false),															"0,",																						"Display extra information about progress of reachability during model construction." },
+			{ BOOLEAN_TYPE,		PRISM_EXTRA_DD_INFO,					"Extra MTBDD information",				"3.1.1",		new Boolean(false),															"0,",																						"Display extra information about (MT)BDDs used during and after model construction." },
+			{ BOOLEAN_TYPE,		PRISM_EXTRA_REACH_INFO,					"Extra reachability information",		"3.1.1",		new Boolean(false),															"0,",																						"Display extra information about progress of reachability during model construction." },
 			{ CHOICE_TYPE,		PRISM_SCC_METHOD,						"SCC decomposition method",				"3.2",			"Lockstep",																	"Xie-Beerel,Lockstep,SCC-Find",																"Which algorithm to use for decomposing a graph into strongly connected components (SCCs)." },
-			{ STRING_TYPE,		PRISM_SYMM_RED_PARAMS,						"Symmetry reduction parameters",				"3.2",			"",																	"",																"Parameters for symmetry reduction (format: \"i j\" where i and j are the number of modules before and after the symmetric ones; empty string means symmetry reduction disabled)." },
-			{ CHOICE_TYPE,		PRISM_PTA_METHOD,						"PTA model checking method",				"3.3",			"Stochastic games",																	"Digital clocks,Stochastic games,Bisimulation minimisation",																"Which method to use for model checking of PTAs." },
-			{ STRING_TYPE,		PRISM_AR_OPTIONS,						"Abstraction refinement options",				"3.3",			"",																	"",																"Various options passed to the asbtraction-refinement engine (e.g. for PTA model checking)." },
+			{ STRING_TYPE,		PRISM_SYMM_RED_PARAMS,					"Symmetry reduction parameters",		"3.2",			"",																	"",																"Parameters for symmetry reduction (format: \"i j\" where i and j are the number of modules before and after the symmetric ones; empty string means symmetry reduction disabled)." },
+			{ CHOICE_TYPE,		PRISM_PTA_METHOD,						"PTA model checking method",			"3.3",			"Stochastic games",																	"Digital clocks,Stochastic games,Bisimulation minimisation",																"Which method to use for model checking of PTAs." },
+			{ STRING_TYPE,		PRISM_AR_OPTIONS,						"Abstraction refinement options",		"3.3",			"",																	"",																"Various options passed to the asbtraction-refinement engine (e.g. for PTA model checking)." },
+			{ CHOICE_TYPE,		PRISM_EXPORT_ADV,						"Adversary export",						"3.3",			"None",																	"None,DTMC,MDP",																"Type of adversary to generate and export during MDP model checking" },
+			{ STRING_TYPE,		PRISM_EXPORT_ADV_FILENAME,				"Adversary export filename",			"3.3",			"adv.tra",																	"",																"Name of file for MDP adversary export (if enabled)" },
 		},
 		{
 			{ BOOLEAN_TYPE,		MODEL_AUTO_PARSE,						"Auto parse",							"2.1",			new Boolean(true),															"",																							"Parse PRISM models automatically as they are loaded/edited in the text editor." },

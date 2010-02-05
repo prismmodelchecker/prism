@@ -24,46 +24,23 @@
 //	
 //==============================================================================
 
-package prism;
+#include <jni.h>
 
-/**
- * Set methods to pass options to native code.
- * And a few utility methods, relying on native methods in the "prism" shared library.
- */ 
-public class PrismNative
-{
-	// Load "prism" shared library
-	static
-	{
-		try {
-			System.loadLibrary("prism");
-		}
-		catch (UnsatisfiedLinkError e) {
-			System.out.println(e);
-			System.exit(1);
-		}
-	}
-	
-	// Mode/filename for export of adversaries
-	private static native void PN_SetExportAdv(int i);
-	public static void setExportAdv(int i)
-	{
-		PN_SetExportAdv(i);
-	}
-	
-	private static native void PN_SetExportAdvFilename(String filename);
-	public static void setExportAdvFilename(String filename)
-	{
-		PN_SetExportAdvFilename(filename);
-	}
-	
-	// Some miscellaneous native methods
-	public static native long PN_GetStdout();
-	public static native long PN_OpenFile(String filename);
-	public static native long PN_OpenFileAppend(String filename);
-	public static native void PN_PrintToFile(long fp, String s);
-	public static native void PN_FlushFile(long fp);
-	public static native void PN_CloseFile(long fp);
-}
+//------------------------------------------------------------------------------
+
+// Constants - these need to match the definitions in prism/Prism.java
+
+const int EXPORT_ADV_NONE = 0;
+const int EXPORT_ADV_DTMC = 1;
+const int EXPORT_ADV_MDP = 2;
+
+//------------------------------------------------------------------------------
+
+// External refs to global variables
+
+// adversary export mode
+extern int export_adv;
+// adversary export filename
+extern const char *export_adv_filename;
 
 //------------------------------------------------------------------------------

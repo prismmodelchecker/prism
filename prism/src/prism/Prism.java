@@ -84,6 +84,11 @@ public class Prism implements PrismSettingsListener
 	public static final int EXPORT_ROWS = 5;
 	public static final int EXPORT_DOT_STATES = 6;
 	
+	// options for adversary export
+	public static final int EXPORT_ADV_NONE = 0;
+	public static final int EXPORT_ADV_DTMC = 1;
+	public static final int EXPORT_ADV_MDP = 2;
+	
 	// methods for SCC decomposition
 	public static final int XIEBEEREL = 1;
 	public static final int LOCKSTEP = 2;
@@ -328,6 +333,16 @@ public class Prism implements PrismSettingsListener
 		settings.set(PrismSettings.PRISM_SCC_METHOD, i-1); // note index offset correction
 	}
 	
+	public void setExportAdv(int i) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_EXPORT_ADV, i-1); // note index offset correction
+	}
+
+	public void setExportAdvFilename(String s) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_EXPORT_ADV_FILENAME, s);
+	}
+	
 	// set methods for miscellaneous options
 	
 	public void setExportTarget(boolean b) throws PrismException
@@ -441,6 +456,12 @@ public class Prism implements PrismSettingsListener
 	
 	public int getSCCMethod()
 	{ return settings.getInteger(PrismSettings.PRISM_SCC_METHOD)+1; } //NOTE THE CORRECTION for the ChoiceSetting index
+	
+	public int getExportAdv()
+	{ return settings.getInteger(PrismSettings.PRISM_EXPORT_ADV)+1; } //NOTE THE CORRECTION for the ChoiceSetting index
+	
+	public String getExportAdvFilename()
+	{ return settings.getString(PrismSettings.PRISM_EXPORT_ADV_FILENAME); }
 	
 	// get methods for miscellaneous options
 	

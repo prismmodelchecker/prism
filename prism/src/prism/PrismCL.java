@@ -999,6 +999,16 @@ public class PrismCL
 						errorAndExit("No file specified for -"+sw+" switch");
 					}
 				}
+				// export prism model to file
+				else if (sw.equals("exportadv")) {
+					if (i < args.length-1) {
+						prism.setExportAdv(Prism.EXPORT_ADV_DTMC);
+						prism.setExportAdvFilename(args[++i]);
+					}
+					else {
+						errorAndExit("No file specified for -"+sw+" switch");
+					}
+				}
 				// set scc computation algorithm
 				else if (sw.equals("sccmethod") || sw.equals("bsccmethod")) {
 					if (i < args.length-1) {

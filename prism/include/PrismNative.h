@@ -9,6 +9,22 @@ extern "C" {
 #endif
 /*
  * Class:     prism_PrismNative
+ * Method:    PN_SetExportAdv
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetExportAdv
+  (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     prism_PrismNative
+ * Method:    PN_SetExportAdvFilename
+ * Signature: (Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetExportAdvFilename
+  (JNIEnv *, jclass, jstring);
+
+/*
+ * Class:     prism_PrismNative
  * Method:    PN_GetStdout
  * Signature: ()J
  */

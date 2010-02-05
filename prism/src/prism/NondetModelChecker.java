@@ -70,11 +70,18 @@ public class NondetModelChecker extends NonProbModelChecker
 		model = (NondetModel) m;
 		nondetMask = model.getNondetMask();
 		allDDNondetVars = model.getAllDDNondetVars();
-
+		
+		// Display warning for some option combinations
+		if (prism.getExportAdv() > 0 && engine != Prism.SPARSE) {
+			mainLog.println("Warning: Adversary generation is only implemented for the sparse engine");
+		}
+		
 		// Inherit some options from parent Prism object.
-		// Store locally and/or pass onto engines.
+		// Store locally and/or pass onto engines/native code.
 		precomp = prism.getPrecomp();
 		fairness = prism.getFairness();
+		PrismNative.setExportAdv(prism.getExportAdv());
+		PrismNative.setExportAdvFilename(prism.getExportAdvFilename());
 		switch (engine) {
 		case Prism.MTBDD:
 			PrismMTBDD.setTermCrit(prism.getTermCrit());

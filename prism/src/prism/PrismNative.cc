@@ -30,6 +30,33 @@
 #include <limits.h>
 #include "jnipointer.h"
 
+// adversary export mode
+int export_adv;
+// adversary export filename
+const char *export_adv_filename;
+
+//------------------------------------------------------------------------------
+// Set methods for options in native code
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetExportAdv(JNIEnv *env, jclass cls, jint i)
+{
+	export_adv = i;
+}
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetExportAdvFilename(JNIEnv *env, jclass cls, jstring fn)
+{
+	if (fn) {
+		export_adv_filename = env->GetStringUTFChars(fn, 0);
+		// This never gets released. Oops.
+	} else {
+		export_adv_filename = NULL;
+	}
+}
+//------------------------------------------------------------------------------
+// Some miscellaneous native methods
 //------------------------------------------------------------------------------
 
 JNIEXPORT jlong __jlongpointer JNICALL Java_prism_PrismNative_PN_1GetStdout(JNIEnv *env, jclass cls)
