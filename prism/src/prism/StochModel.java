@@ -61,22 +61,4 @@ public class StochModel extends ProbModel
 	{
 		super(tr, s, sr, trr, rsn, arv, acv, ddvn, nm, mn, mrv, mcv, nv, vl, vrv, vcv, cv);
 	}
-	
-	/**
-	 * Remove non-reachable states from various DDs.
-	 * Most of the work is done in the superclass (ProbModel);
-	 * just a few extra things to do here.
-	 */
-	public void filterReachableStates()
-	{
-		super.filterReachableStates();
-		
-		// If required, also filter columns of action label indices matrix
-		// (for the superclass - DTMCs - we only store info per state).
-		if (transActions != null) {
-			JDD.Ref(reach);
-			JDDNode tmp = JDD.PermuteVariables(reach, allDDRowVars, allDDColVars);
-			transActions = JDD.Apply(JDD.TIMES, tmp, transActions);
-		}
-	}
 }

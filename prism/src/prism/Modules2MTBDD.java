@@ -276,9 +276,12 @@ public class Modules2MTBDD
 			((NondetModel)model).setTransSynch(transSynch);
 		}
 		
-		// if required, we also store info about action labels
+		// If required, we also store info about action labels
 		if (storeTransActions) {
+			// Note: one of these will be null, depending on model type
+			// but this is fine: null = none stored.
 			model.setTransActions(transActions);
+			model.setTransPerAction(transPerAction);
 		}
 		
 		// do reachability (or not)
@@ -863,10 +866,13 @@ public class Modules2MTBDD
 		// (as numSynchs+1 MTBDDs 'transPerAction' over allDDRowVars/allDDColVars, with terminals giving prob/rate)  
 		// because one global transition can come from several different actions.
 		if (storeTransActions) {
+			// Initialise storage to null so we know what we have used
+			transActions = null;
+			transPerAction = null;
 			switch (modelType) {
 			case MDP:
 				transActions = JDD.Constant(0);
-				// Don't need to store info for  independent (action-less) transitions
+				// Don't need to store info for independent (action-less) transitions
 				// as they are encoded as 0 anyway
 				//JDD.Ref(sysDDs.ind.trans);
 				//tmp = JDD.ThereExists(JDD.GreaterThan(sysDDs.ind.trans, 0), allDDColVars);
@@ -879,8 +885,15 @@ public class Modules2MTBDD
 				break;
 			case DTMC:
 			case CTMC:
-				// not implemented yet
-				// TODO: base on code for transInd and transSynch above
+				// Just reference DDs and copy them to new array
+				transPerAction = new JDDNode[numSynchs + 1];
+				JDD.Ref(sysDDs.ind.trans);
+				transPerAction[0] = sysDDs.ind.trans;
+				for (i = 0; i < numSynchs; i++) {
+					JDD.Ref(sysDDs.synchs[i].trans);
+					transPerAction[i + 1] = sysDDs.synchs[i].trans;
+				}
+				break;
 			}
 		}
 		

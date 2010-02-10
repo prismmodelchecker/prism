@@ -73,7 +73,8 @@ public class ProbModel implements Model
 	protected JDDNode fixdl; // fixed deadlock states dd
 	protected JDDNode stateRewards[]; // state rewards dds
 	protected JDDNode transRewards[]; // transition rewards dds
-	protected JDDNode transActions; // dd for transition action labels
+	protected JDDNode transActions; // dd for transition action labels (MDPs)
+	protected JDDNode transPerAction[]; // dds for transition action labels (D/CTMCs)
 	
 	// dd vars
 	protected JDDVars[] varDDRowVars; // dd vars for each module variable (rows)
@@ -294,6 +295,11 @@ public class ProbModel implements Model
 		return transActions;
 	}
 	
+	public JDDNode[] getTransPerAction()
+	{
+		return transPerAction;
+	}
+	
 	// dd vars
 	public JDDVars[] getVarDDRowVars()
 	{
@@ -411,6 +417,7 @@ public class ProbModel implements Model
 		
 		// action label info (optional) is initially null
 		transActions = null;
+		transPerAction = null;
 		
 		// compute numbers for globalToLocal converter
 		gtol = new long[numVars];
@@ -505,11 +512,19 @@ public class ProbModel implements Model
 	}
 	
 	/**
-	 * Set the DD used to store transitoin action label indices.
+	 * Set the DD used to store transition action label indices (MDPs).
 	 */
 	public void setTransActions(JDDNode transActions)
 	{
 		this.transActions = transActions;
+	}
+	
+	/**
+	 * Set the DDs used to store transition action label indices (D/CTMCs).
+	 */
+	public void setTransPerAction(JDDNode[] transPerAction)
+	{
+		this.transPerAction = transPerAction;
 	}
 	
 	// remove non-reachable states from various dds
@@ -545,11 +560,21 @@ public class ProbModel implements Model
 			transRewards[i] = JDD.Apply(JDD.TIMES, tmp, transRewards[i]);
 		}
 		
-		// Action label indices matrix
-		// (just filter rows here; subclasses, e.g. CTMCs, may do more subsequently)
+		// Action label index info
 		if (transActions != null) {
+			// transActions just stored per state so only filter rows
 			JDD.Ref(reach);
 			transActions = JDD.Apply(JDD.TIMES, reach, transActions);
+		}
+		if (transPerAction != null) {
+			// transPerAction stored as matrix so filter both rows/cols
+			for (i = 0; i < numSynchs + 1; i++) {
+				JDD.Ref(reach);
+				transPerAction[i] = JDD.Apply(JDD.TIMES, reach, transPerAction[i]);
+				JDD.Ref(reach);
+				tmp = JDD.PermuteVariables(reach, allDDRowVars, allDDColVars);
+				transPerAction[i] = JDD.Apply(JDD.TIMES, tmp, transPerAction[i]);
+			}
 		}
 		
 		// filter start states, work out number of initial states
@@ -582,11 +607,18 @@ public class ProbModel implements Model
 
 		if (!deadlocks.equals(JDD.ZERO)) {
 			// remove deadlocks by adding self-loops
+			// also update transPerAction info, if present
 			JDD.Ref(deadlocks);
 			tmp = JDD.And(deadlocks, JDD.Identity(allDDRowVars, allDDColVars));
 			JDD.Ref(tmp);
 			trans = JDD.Apply(JDD.PLUS, trans, tmp);
+			JDD.Ref(tmp);
 			trans01 = JDD.Apply(JDD.PLUS, trans01, tmp);
+			if (transPerAction != null) {
+				JDD.Ref(tmp);
+				transPerAction[0] = JDD.Apply(JDD.PLUS, transPerAction[0], tmp);
+			}
+			JDD.Deref(tmp);
 			// update lists of deadlocks
 			JDD.Deref(fixdl);
 			fixdl = deadlocks;
@@ -667,6 +699,14 @@ public class ProbModel implements Model
 			log.print("Action label indices: ");
 			log.print(JDD.GetNumNodes(transActions) + " nodes (");
 			log.print(JDD.GetNumTerminals(transActions) + " terminal)\n");
+		}
+		if (transPerAction != null) {
+			for (i = 0; i < numSynchs + 1; i++) {
+				log.print("Action label info (");
+				log.print((i == 0 ? "" : synchs.get(i - 1)) + "): ");
+				log.print(JDD.GetNumNodes(transPerAction[i]) + " nodes (");
+				log.print(JDD.GetNumTerminals(transPerAction[i]) + " terminal)\n");
+			}
 		}
 	}
 
@@ -845,5 +885,10 @@ public class ProbModel implements Model
 			JDD.Deref(transRewards[i]);
 		}
 		if (transActions != null) JDD.Deref(transActions);
+		if (transPerAction != null) {
+			for (int i = 0; i < numSynchs + 1; i++) {
+				JDD.Deref(transPerAction[i]);
+			}
+		}
 	}
 }

@@ -80,6 +80,7 @@ public interface Model
 	JDDNode getTransRewards(int i);
 	JDDNode getTransRewards(String s);
 	JDDNode getTransActions();
+	JDDNode[] getTransPerAction();
 	JDDVars[] getVarDDRowVars();
 	JDDVars[] getVarDDColVars();
 	JDDVars getVarDDRowVars(int i);
@@ -104,7 +105,8 @@ public interface Model
 	void doReachability(boolean extraReachInfo);
 	void skipReachability();
 	void setReach(JDDNode reach);
-	void setTransActions(JDDNode transActions);
+	void setTransActions(JDDNode transActions); // MDPs only
+	void setTransPerAction(JDDNode[] transPerAction); // D/CTMCs only
 	void filterReachableStates();
 	void findDeadlocks();
 	void fixDeadlocks();

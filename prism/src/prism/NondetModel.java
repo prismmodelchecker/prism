@@ -233,6 +233,8 @@ public class NondetModel extends ProbModel
 			// (also update transInd (if necessary) at same time)
 			// (note: we don't need to update transActions since
 			//  action-less transitions are encoded as 0 anyway)
+			// (note: would need to update transPerAction[0]
+			//  but this is not stored for MDPs)
 			JDD.Ref(deadlocks);
 			tmp = JDD.SetVectorElement(JDD.Constant(0), allDDNondetVars, 0, 1);
 			tmp = JDD.And(tmp, JDD.Identity(allDDRowVars, allDDColVars));
@@ -330,6 +332,7 @@ public class NondetModel extends ProbModel
 			log.print(JDD.GetNumNodes(transActions) + " nodes (");
 			log.print(JDD.GetNumTerminals(transActions) + " terminal)\n");
 		}
+		// Don't need to print info for transPerAction (not stored for MDPs)
 	}
 
 	// export transition matrix to a file
