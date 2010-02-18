@@ -26,6 +26,13 @@
 
 #include <jni.h>
 
+// Flags for building Windows DLLs
+#ifdef __MINGW32__
+	#define EXPORT __declspec(dllexport)
+#else
+	#define EXPORT
+#endif
+
 //------------------------------------------------------------------------------
 
 // Constants - these need to match the definitions in prism/Prism.java
@@ -39,8 +46,8 @@ const int EXPORT_ADV_MDP = 2;
 // External refs to global variables
 
 // adversary export mode
-extern int export_adv;
+EXPORT extern int export_adv;
 // adversary export filename
-extern const char *export_adv_filename;
+EXPORT extern const char *export_adv_filename;
 
 //------------------------------------------------------------------------------

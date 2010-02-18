@@ -28,12 +28,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#include "PrismNativeGlob.h"
 #include "jnipointer.h"
 
 // adversary export mode
-int export_adv;
+EXPORT int export_adv;
 // adversary export filename
-const char *export_adv_filename;
+EXPORT const char *export_adv_filename;
 
 //------------------------------------------------------------------------------
 // Set methods for options in native code
