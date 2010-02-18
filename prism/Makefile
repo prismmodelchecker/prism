@@ -66,6 +66,8 @@ endif
 ifneq (,$(findstring ia64, $(shell uname -m)))
 	ARCH = ia64
 endif
+# For Macs, we decide whether to build in 64-bit mode based on
+# whether java is 32/64-bit (since these need to match)
 ifeq ($(OSTYPE),darwin)
 	JAVA_VERSION_STRING = $(shell java -version 2>&1)
 	ifneq (, $(or $(findstring 64-bit, $(JAVA_VERSION_STRING)), $(findstring 64-Bit, $(JAVA_VERSION_STRING)) ))
@@ -113,15 +115,12 @@ LD = $(CPP)
 JAVAC = javac
 JAVAH = javah
 
-# Please note that C/CPP are currently not passed to the CUDD make process
-# So if you want alternative compilers for CUDD too, change the options at the top of cudd/Makefile.$OSTYPE
-
 ##############
 # Flags etc. #
 ##############
 
-DEBUG = 
-#DEBUG = -g
+#DEBUG = 
+DEBUG = -g
 
 OPTIMISE = -O3
 #OPTIMISE =
@@ -129,7 +128,7 @@ OPTIMISE = -O3
 # Flags for compilation/linking
 # Flags to generate shared libraries
 # Executable/library naming conventions
-# Name of CUDD makefile to use
+# Option to pass to CUDD makefile
 # Suffix for binary distribution directory
 # Place to look for (JNI) headers
 # (requires GNU make for conditional evaluation)
@@ -141,19 +140,20 @@ ifeq ($(OSTYPE),linux)
 		CFLAGS = $(DEBUG) $(OPTIMISE) -DPIC -fPIC
 		CPPFLAGS = $(DEBUG) $(OPTIMISE) -DPIC -fPIC
 		LDFLAGS = $(DEBUG) $(OPTIMISE) -DPIC -fPIC
-		CUDD_MAKEFILE = Makefile.linux-64
+		CUDD_XCFLAGS = -m64 -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8
 	else
 	ifeq ($(ARCH),ia64)
 		# Position Independent Code required on AMD64/Itanium
 		CFLAGS = $(DEBUG) $(OPTIMISE) -DPIC -fPIC
 		CPPFLAGS = $(DEBUG) $(OPTIMISE) -DPIC -fPIC
 		LDFLAGS = $(DEBUG) $(OPTIMISE) -DPIC -fPIC
-		CUDD_MAKEFILE = Makefile.linux-64
+		# Note: We omit the -m64 flag from here since it seems to be unsupported by gcc on IA64
+		CUDD_XCFLAGS = -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8
 	else
 		CFLAGS = -m32 $(DEBUG) $(OPTIMISE)
 		CPPFLAGS = -m32 $(DEBUG) $(OPTIMISE)
 		LDFLAGS = -m32 $(DEBUG) $(OPTIMISE)
-		CUDD_MAKEFILE = Makefile.linux
+		CUDD_XCFLAGS = -m32 -mtune=native -malign-double -DHAVE_IEEE_754 -DBSD
 	endif
 	endif
 	SHARED = -shared
@@ -170,11 +170,11 @@ ifeq ($(OSTYPE),solaris)
 	CFLAGS = $(DEBUG) $(OPTIMISE)
 	CPPFLAGS = $(DEBUG) $(OPTIMISE)
 	LDFLAGS = $(DEBUG) $(OPTIMISE)
+	CUDD_XCFLAGS = -march=i686 -m32 -malign-double -DHAVE_IEEE_754 -DBSD
 	SHARED = -shared -mimpure-text
 	EXE =
 	LIBPREFIX = lib
 	LIBSUFFIX = .so
-	CUDD_MAKEFILE = Makefile.solaris
 	BINDISTSUFFIX = solaris
 	OSTYPE_INCLUDE = include
 	CLASSPATHSEP = :
@@ -184,12 +184,12 @@ ifeq ($(OSTYPE),cygwin)
 	CFLAGS = -mno-cygwin $(DEBUG) $(OPTIMISE)
 	CPPFLAGS = -mno-cygwin $(DEBUG) $(OPTIMISE)
 	LDFLAGS = -mno-cygwin -Wl,--add-stdcall-alias $(DEBUG) $(OPTIMISE)
+	CUDD_XCFLAGS = -mno-cygwin -march=i686 -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=67108864 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0
 	SHARED = -shared
 	#SHARED = -G
 	EXE = .exe
 	LIBPREFIX =
 	LIBSUFFIX = .dll
-	CUDD_MAKEFILE = Makefile.cygwin
 	BINDISTSUFFIX = win
 	OSTYPE_INCLUDE = include
 	CLASSPATHSEP = ;
@@ -200,12 +200,12 @@ ifeq ($(OSTYPE),darwin)
 		CFLAGS = -arch x86_64 -fPIC -DPIC $(DEBUG) $(OPTIMISE)
 		CPPFLAGS = -arch x86_64 -fPIC -DPIC $(DEBUG) $(OPTIMISE)
 		LDFLAGS = -arch x86_64 -fPIC -DPIC -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
-		CUDD_MAKEFILE = Makefile.darwin-64
+		CUDD_XCFLAGS = -arch x86_64 -fPIC -DPIC -DHAVE_IEEE_754 -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 -fno-common
 	else
 		CFLAGS = -arch i386 $(DEBUG) $(OPTIMISE)
 		CPPFLAGS = -arch i386 $(DEBUG) $(OPTIMISE)
 		LDFLAGS = -arch i386 -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
-		CUDD_MAKEFILE = Makefile.darwin
+		CUDD_XCFLAGS = -arch i386 -DHAVE_IEEE_754 -fno-common
 	endif
 	SHARED = -dynamiclib
 	EXE =
@@ -292,18 +292,18 @@ cuddpackage: checks
 	@(if [ ! -h $(CUDD_DIR) ]; then \
 	  echo Making cudd ...; \
 	  cd $(CUDD_DIR) && \
-	  /bin/cp $(CUDD_MAKEFILE) Makefile && \
-	  $(MAKE) C="$(C)" CC="$(C)" CPP="$(CPP)"; \
+	  $(MAKE) C="$(C)" CC="$(C)" CPP="$(CPP)" \
+	  XCFLAGS="$(CUDD_XCFLAGS)"; \
 	else \
 	  echo Skipping cudd make since it is a symlink...; \
 	fi)
 
 # use this to force build of cudd (even if dir is just a symlink)
 cuddpackageforce: checks
-	@echo Making cudd ...; \
-	cd $(CUDD_DIR) && \
-	/bin/cp $(CUDD_MAKEFILE) Makefile && \
-	$(MAKE)
+	  @echo Making cudd ...; \
+	  cd $(CUDD_DIR) && \
+	  $(MAKE) C="$(C)" CC="$(C)" CPP="$(CPP)" \
+	  XCFLAGS="$(CUDD_XCFLAGS)";
 
 prism: checks make_dirs bin_scripts
 
