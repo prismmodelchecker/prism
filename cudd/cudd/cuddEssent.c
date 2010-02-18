@@ -37,10 +37,37 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright   [This file was created at the University of Colorado at
-  Boulder.  The University of Colorado at Boulder makes no warranty
-  about the suitability of this software for any purpose.  It is
-  presented on an AS IS basis.]
+  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  Neither the name of the University of Colorado nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.]
 
 ******************************************************************************/
 
@@ -116,7 +143,7 @@ typedef struct TlClause TlClause;
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddEssent.c,v 1.20 2004/02/18 02:04:20 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddEssent.c,v 1.24 2009/02/21 18:24:10 fabio Exp $";
 #endif
 
 static BitVector *Tolv;
@@ -137,7 +164,7 @@ static BitVector *Eolp;
 static DdNode * ddFindEssentialRecur (DdManager *dd, DdNode *f);
 static DdTlcInfo * ddFindTwoLiteralClausesRecur (DdManager * dd, DdNode * f, st_table *table);
 static DdTlcInfo * computeClauses (DdTlcInfo *Tres, DdTlcInfo *Eres, DdHalfWord label, int size);
-static DdTlcInfo * computeClausesWithUniverse (DdTlcInfo *Cres, DdHalfWord label, short phase, int size);
+static DdTlcInfo * computeClausesWithUniverse (DdTlcInfo *Cres, DdHalfWord label, short phase);
 static DdTlcInfo * emptyClauseSet (void);
 static int sentinelp (DdHalfWord var1, DdHalfWord var2);
 static int equalp (DdHalfWord var1a, short phase1a, DdHalfWord var1b, short phase1b, DdHalfWord var2a, short phase2a, DdHalfWord var2b, short phase2b);
@@ -269,14 +296,14 @@ Cudd_FindTwoLiteralClauses(
     if (Tolp == NULL) {
 	st_free_table(table);
 	bitVectorFree(Tolv);
-        return(NULL);
+	return(NULL);
     }
     Eolv = bitVectorAlloc(size);
     if (Eolv == NULL) {
 	st_free_table(table);
 	bitVectorFree(Tolv);
 	bitVectorFree(Tolp);
-        return(NULL);
+	return(NULL);
     }
     Eolp = bitVectorAlloc(size);
     if (Eolp == NULL) {
@@ -284,7 +311,7 @@ Cudd_FindTwoLiteralClauses(
 	bitVectorFree(Tolv);
 	bitVectorFree(Tolp);
 	bitVectorFree(Eolv);
-        return(NULL);
+	return(NULL);
     }
 
     res = ddFindTwoLiteralClausesRecur(dd,f,table);
@@ -335,7 +362,7 @@ Cudd_ReadIthClause(
 {
     if (tlc == NULL) return(0);
     if (tlc->vars == NULL || tlc->phases == NULL) return(0);
-    if (i >= tlc->cnt) return(0);
+    if (i < 0 || (unsigned) i >= tlc->cnt) return(0);
     *var1 = tlc->vars[2*i];
     *var2 = tlc->vars[2*i+1];
     *phase1 = (int) bitVectorRead(tlc->phases, 2*i);
@@ -370,7 +397,7 @@ Cudd_PrintTwoLiteralClauses(
     int i;
     DdTlcInfo *res = Cudd_FindTwoLiteralClauses(dd, f);
     FILE *ifp = fp == NULL ? dd->out : fp;
-    
+
     if (res == NULL) return(0);
     vars = res->vars;
     phases = res->phases;
@@ -404,7 +431,7 @@ Cudd_PrintTwoLiteralClauses(
     Cudd_tlcInfoFree(res);
 
     return(1);
-    
+
 } /* end of Cudd_PrintTwoLiteralClauses */
 
 
@@ -620,7 +647,7 @@ ddFindTwoLiteralClausesRecur(
 
     if (Cudd_IsConstant(T) && T != lzero && T != azero) {
 	/* T is a non-zero constant.  If E is zero, then this node's index
-        ** is a one-literal clause.  Otherwise, if E is a non-zero
+	** is a one-literal clause.  Otherwise, if E is a non-zero
 	** constant, there are no clauses for this node.  Finally,
 	** if E is not constant, we recursively compute its clauses, and then
 	** merge using the empty set for T. */
@@ -654,17 +681,17 @@ ddFindTwoLiteralClausesRecur(
 	    if (Tres == NULL) return(NULL);
 	    Eres = ddFindTwoLiteralClausesRecur(dd, E, table);
 	    if (Eres == NULL) {
-	        Cudd_tlcInfoFree(Tres);
-	        return(NULL);
+		Cudd_tlcInfoFree(Tres);
+		return(NULL);
 	    }
 	    res = computeClauses(Tres, Eres, index, dd->size);
 	    Cudd_tlcInfoFree(Tres);
 	}
     } else if (T == lzero || T == azero) {
 	/* T is zero.  If E is a non-zero constant, then the
-        ** complement of this node's index is a one-literal clause.
-        ** Otherwise, if E is not constant, we recursively compute its
-        ** clauses, and then merge using the universal set for T. */
+	** complement of this node's index is a one-literal clause.
+	** Otherwise, if E is not constant, we recursively compute its
+	** clauses, and then merge using the universal set for T. */
 	if (Cudd_IsConstant(E)) { /* E cannot be zero here */
 	    /* Create the clause (!index + 0). */
 	    res = tlcInfoAlloc();
@@ -689,14 +716,14 @@ ddFindTwoLiteralClausesRecur(
 	} else { /* E == non-constant */
 	    Eres = ddFindTwoLiteralClausesRecur(dd, E, table);
 	    if (Eres == NULL) return(NULL);
-	    res = computeClausesWithUniverse(Eres, index, 1, dd->size);
+	    res = computeClausesWithUniverse(Eres, index, 1);
 	}
     } else { /* T == non-const */
 	Tres = ddFindTwoLiteralClausesRecur(dd, T, table);
 	if (Tres == NULL) return(NULL);
 	if (Cudd_IsConstant(E)) {
 	    if (E == lzero || E == azero) {
-		res = computeClausesWithUniverse(Tres, index, 0, dd->size);
+		res = computeClausesWithUniverse(Tres, index, 0);
 	    } else {
 		Eres = emptyClauseSet();
 		if (Eres == NULL) return(NULL);
@@ -1037,8 +1064,7 @@ static DdTlcInfo *
 computeClausesWithUniverse(
   DdTlcInfo *Cres /* list of clauses for child */,
   DdHalfWord label /* variable labeling the current node */,
-  short phase /* 0 if E child is zero; 1 if T child is zero */,
-  int size /* number of variables in the manager */)
+  short phase /* 0 if E child is zero; 1 if T child is zero */)
 {
     DdHalfWord *Ccv = Cres->vars; /* variables of clauses for child */
     BitVector *Ccp = Cres->phases; /* phases of clauses for child */
@@ -1084,8 +1110,8 @@ computeClausesWithUniverse(
     return(res);
 
  cleanup:
+    /* Vcp is guaranteed to be NULL here.  Hence, we do not try to free it. */
     if (Vcv != NULL) FREE(Vcv);
-    if (Vcp != NULL) bitVectorFree(Vcp);
     if (res != NULL) Cudd_tlcInfoFree(res);
 
     return(NULL);
@@ -1302,7 +1328,7 @@ bitVectorAlloc(
     /* Clear the whole array. */
     (void) memset(vector, 0, allocSize * sizeof(BitVector));
     return(vector);
-    
+
 } /* end of bitVectorAlloc */
 
 
@@ -1334,7 +1360,7 @@ bitVectorClear(
     /* Clear the whole array. */
     (void) memset(vector, 0, allocSize * sizeof(BitVector));
     return;
-    
+
 } /* end of bitVectorClear */
 
 

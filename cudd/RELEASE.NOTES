@@ -1,73 +1,38 @@
-These are the main changes from release 2.3.1 to release 2.4.0 of Cudd:
+Release 2.4.2 of Cudd features several bug fixes.  The most important
+are those that prevented Cudd from making full use of up to 4 GB of
+memory when using 32-bit pointers.  A handful of bugs were discovered by
+Coverity.  (Thanks to Christian Stangier!)
 
+This release can be compiled with either 64-bit pointers or 32-bit
+pointers on x86_64 platforms if sizeof(long) = sizeof(void *) = 8 and
+sizeof(int) = 4.  This is known as the LP64 model.  For 32-bit pointers,
+one usually needs supplementary libraries.  On Ubuntu and Debian Linux,
+one needs g++-multilib, which can be installed with
+"apt-get install g++-multilib."
 
-Improved:
-    - The package can now be compiled with a few C++ compilers in standard
-      mode (as opposed to compatibility mode).  This has required changes
-      to most files both in CUDD and in the supporting packages.
-    - The package compiles with gcc 3.3.1 without type-punning warnings.
-    - Garbage collection speed has been improved.  Note that now each
-      garbage collection sweeps both the BDD/ADD table and the ZDD
-      table.
-    - Sizing of tables during variable reordering has been improved.
-    - Improved efficiency of Cudd_bddIsVarEssential.
-    - Node enumeration now is un reverse topological order.
-    - The C++ interface will not crash when the maximum live number of
-      nodes is exceeded.
-    - The distribution includes now version 2.0.2 of the dddmp package.
+Added functions 
 
+DdNode *Cudd_Inequality (DdManager * dd, int  N, int c, DdNode ** x,
+DdNode ** y);
 
-Fixed bugs in:
-    cuddAddOrAbstractRecur
-    cuddLocalCacheResize
-    cuddSwapInPlace
-    hashResize (in cuddLevelQ.c)
-    cuddBddClosestCube
-    cuddShrinkDeathRow
-    Cudd_ShortestPath
-    Cudd_LargestCube
-    Cudd_bddCompose
-    Cudd_addCompose
-    Cudd_zddFirstPath
-    Cudd_zddNextPath
-    ddEpdCountMintermAux
-    ddLCHash
-    st.c
-    Makefiles
+DdNode * Cudd_Disequality (DdManager * dd, int  N, int c, DdNode ** x,
+DdNode ** y);
 
-Changed:
-    - memory in use is now an unsigned long instead of a long.  This
-      affects:
-        unsigned long Cudd_ReadMemoryInUse(DdManager *dd)
-        unsigned long Cudd_ReadMaxMemory(DdManager *dd)
-        void Cudd_SetMaxMemory(DdManager *dd, unsigned long maxMemory)
-    - Reversed the parameter order to ApaCountMinterm in the C++
-      interface.
+DdNode * Cudd_bddInterval (DdManager * dd, int  N, DdNode ** x,
+unsigned int lowerB, unsigned int upperB);
 
-Added:
-    - functions for and and and-exist that take a limit on the number of
-      new nodes they can generate
-    - iterator on the prime implicants of a function
-    - functions to extract two-literal clauses from a BDD or ADD.
-    - several API functions to the C++ interface
+Changed prototypes:
 
-New functions:
+int Cudd_DumpBlif (DdManager *dd, int n, DdNode **f, char
+**inames, char **onames, char *mname, FILE *fp, int mv);
 
-DdNode * Cudd_bddAndAbstractLimit(DdManager *manager, DdNode *f, DdNode *g, DdNode *cube, unsigned int limit)
-DdNode * Cudd_bddAndLimit(DdManager *dd, DdNode *f, DdNode *g, unsigned int limit)
-DdTlcInfo * Cudd_FindTwoLiteralClauses(DdManager * dd, DdNode * f)
-int Cudd_PrintTwoLiteralClauses(DdManager * dd, DdNode * f, char **names, FILE *fp)
-int Cudd_ReadIthClause(DdTlcInfo * tlc, int i, DdHalfWord *var1, DdHalfWord *var2, int *phase1, int *phase2)
-void Cudd_tlcInfoFree(DdTlcInfo * t)
-DdNode * Cudd_bddNPAnd(DdManager *dd, DdNode *f, DdNode *c)
-DdGen * Cudd_FirstPrime(DdManager *dd, DdNode *l, DdNode *u, int **cube)
-int Cudd_NextPrime(DdGen *gen, int **cube)
+int Cudd_DumpBlifBody (DdManager *dd, int n, DdNode **f, char
+**inames, char **onames, FILE *fp, int mv);
 
-Thanks to:
+The additional parameter allows the caller to choose between plain blif
+and blif-MV.
 
-Will Adams
-Kavel Buyuksahin
-Goerschwin Fey
-Victor Kravets
-Guoqiang Pan
-Ralf Wimmer
+----------------------------------------------------------------------
+
+Release 2.4.1 of Cudd features one major change with respect to previous
+releases.  The licensing terms are now explicitly stated.

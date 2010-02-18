@@ -1,4 +1,4 @@
-/* $Id: datalimit.c,v 1.4 2003/08/01 16:25:20 fabio Exp fabio $ */
+/* $Id: datalimit.c,v 1.5 2007/08/24 18:17:31 fabio Exp fabio $ */
 
 #ifndef HAVE_SYS_RESOURCE_H
 #define HAVE_SYS_RESOURCE_H 1
@@ -29,9 +29,9 @@
 #   endif
 #endif
 
-EXTERN long getSoftDataLimit(void);
+EXTERN unsigned long getSoftDataLimit(void);
 
-long
+unsigned long
 getSoftDataLimit(void)
 {
 #if HAVE_SYS_RESOURCE_H == 1 && HAVE_GETRLIMIT == 1 && defined(RLIMIT_DATA)
@@ -40,11 +40,11 @@ getSoftDataLimit(void)
 
     result = getrlimit(RLIMIT_DATA, &rl);
     if (result != 0 || rl.rlim_cur == RLIM_INFINITY)
-	return((long) RLIMIT_DATA_DEFAULT);
+	return((unsigned long) RLIMIT_DATA_DEFAULT);
     else
-	return((long) rl.rlim_cur);
+	return((unsigned long) rl.rlim_cur);
 #else
-    return((long) RLIMIT_DATA_DEFAULT);
+    return((unsigned long) RLIMIT_DATA_DEFAULT);
 #endif
 
 } /* end of getSoftDataLimit */

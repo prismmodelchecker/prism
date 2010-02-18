@@ -42,10 +42,37 @@
 
   Author      [Shipra Panda, Fabio Somenzi]
 
-  Copyright   [This file was created at the University of Colorado at
-  Boulder.  The University of Colorado at Boulder makes no warranty
-  about the suitability of this software for any purpose.  It is
-  presented on an AS IS basis.]
+  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  Neither the name of the University of Colorado nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.]
 
 ******************************************************************************/
 
@@ -85,7 +112,7 @@ extern "C" {
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddGroup.c,v 1.41 2004/01/01 06:56:44 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddGroup.c,v 1.44 2009/02/21 18:24:10 fabio Exp $";
 #endif
 
 static	int	*entry;
@@ -283,7 +310,7 @@ cuddTreeSifting(
     ** structure in postorder fashion.
     */
     for (i = 0; i < nvars; i++)
-        table->subtables[i].next = i;
+	table->subtables[i].next = i;
 
 
     /* Reorder. */
@@ -754,7 +781,7 @@ ddGroupSifting(
 	xindex = var[i];
 	if (sifted[xindex] == 1) /* variable already sifted as part of group */
 	    continue;
-        x = table->perm[xindex]; /* find current level of this variable */
+	x = table->perm[xindex]; /* find current level of this variable */
 
 	if (x < lower || x > upper || table->subtables[x].bindVar == 1)
 	    continue;
@@ -763,12 +790,12 @@ ddGroupSifting(
 #endif
 #ifdef DD_DEBUG
 	/* x is bottom of group */
-        assert((unsigned) x >= table->subtables[x].next);
+	assert((unsigned) x >= table->subtables[x].next);
 #endif
 	if ((unsigned) x == table->subtables[x].next) {
 	    dissolve = 1;
 	    result = ddGroupSiftingAux(table,x,lower,upper,checkFunction,
-	    				lazyFlag);
+					lazyFlag);
 	} else {
 	    dissolve = 0;
 	    result = ddGroupSiftingAux(table,x,lower,upper,ddNoCheck,lazyFlag);
@@ -994,8 +1021,8 @@ ddGroupSiftingAux(
 #endif
 	if (x == xHigh) return(1);	/* just one variable */
 
-        if (!ddGroupSiftingDown(table,x,xHigh,checkFunction,&moves))
-            goto ddGroupSiftingAuxOutOfMem;
+	if (!ddGroupSiftingDown(table,x,xHigh,checkFunction,&moves))
+	    goto ddGroupSiftingAuxOutOfMem;
 	/* at this point x == xHigh, unless early term */
 
 	/* move backward and stop at best position */
@@ -1004,18 +1031,18 @@ ddGroupSiftingAux(
 #ifdef DD_DEBUG
 	assert(table->keys - table->isolated <= (unsigned) initialSize);
 #endif
-        if (!result) goto ddGroupSiftingAuxOutOfMem;
+	if (!result) goto ddGroupSiftingAuxOutOfMem;
 
     } else if (cuddNextHigh(table,x) > xHigh) { /* Sift up */
 #ifdef DD_DEBUG
 	/* x is bottom of group */
-        assert((unsigned) x >= table->subtables[x].next);
+	assert((unsigned) x >= table->subtables[x].next);
 #endif
-        /* Find top of x's group */
-        x = table->subtables[x].next;
+	/* Find top of x's group */
+	x = table->subtables[x].next;
 
-        if (!ddGroupSiftingUp(table,x,xLow,checkFunction,&moves))
-            goto ddGroupSiftingAuxOutOfMem;
+	if (!ddGroupSiftingUp(table,x,xLow,checkFunction,&moves))
+	    goto ddGroupSiftingAuxOutOfMem;
 	/* at this point x == xLow, unless early term */
 
 	/* move backward and stop at best position */
@@ -1024,14 +1051,14 @@ ddGroupSiftingAux(
 #ifdef DD_DEBUG
 	assert(table->keys - table->isolated <= (unsigned) initialSize);
 #endif
-        if (!result) goto ddGroupSiftingAuxOutOfMem;
+	if (!result) goto ddGroupSiftingAuxOutOfMem;
 
     } else if (x - xLow > xHigh - x) { /* must go down first: shorter */
-        if (!ddGroupSiftingDown(table,x,xHigh,checkFunction,&moves))
-            goto ddGroupSiftingAuxOutOfMem;
+	if (!ddGroupSiftingDown(table,x,xHigh,checkFunction,&moves))
+	    goto ddGroupSiftingAuxOutOfMem;
 	/* at this point x == xHigh, unless early term */
 
-        /* Find top of group */
+	/* Find top of group */
 	if (moves) {
 	    x = moves->y;
 	}
@@ -1039,12 +1066,12 @@ ddGroupSiftingAux(
 	    x = table->subtables[x].next;
 	x = table->subtables[x].next;
 #ifdef DD_DEBUG
-        /* x should be the top of a group */
-        assert((unsigned) x <= table->subtables[x].next);
+	/* x should be the top of a group */
+	assert((unsigned) x <= table->subtables[x].next);
 #endif
 
-        if (!ddGroupSiftingUp(table,x,xLow,checkFunction,&moves))
-            goto ddGroupSiftingAuxOutOfMem;
+	if (!ddGroupSiftingUp(table,x,xLow,checkFunction,&moves))
+	    goto ddGroupSiftingAuxOutOfMem;
 
 	/* move backward and stop at best position */
 	result = ddGroupSiftingBackward(table,moves,initialSize,
@@ -1052,28 +1079,28 @@ ddGroupSiftingAux(
 #ifdef DD_DEBUG
 	assert(table->keys - table->isolated <= (unsigned) initialSize);
 #endif
-        if (!result) goto ddGroupSiftingAuxOutOfMem;
+	if (!result) goto ddGroupSiftingAuxOutOfMem;
 
     } else { /* moving up first: shorter */
-        /* Find top of x's group */
-        x = table->subtables[x].next;
+	/* Find top of x's group */
+	x = table->subtables[x].next;
 
-        if (!ddGroupSiftingUp(table,x,xLow,checkFunction,&moves))
-            goto ddGroupSiftingAuxOutOfMem;
+	if (!ddGroupSiftingUp(table,x,xLow,checkFunction,&moves))
+	    goto ddGroupSiftingAuxOutOfMem;
 	/* at this point x == xHigh, unless early term */
 
-        if (moves) {
+	if (moves) {
 	    x = moves->x;
 	}
 	while ((unsigned) x < table->subtables[x].next)
 	    x = table->subtables[x].next;
 #ifdef DD_DEBUG
-        /* x is bottom of a group */
-        assert((unsigned) x >= table->subtables[x].next);
+	/* x is bottom of a group */
+	assert((unsigned) x >= table->subtables[x].next);
 #endif
 
-        if (!ddGroupSiftingDown(table,x,xHigh,checkFunction,&moves))
-            goto ddGroupSiftingAuxOutOfMem;
+	if (!ddGroupSiftingDown(table,x,xHigh,checkFunction,&moves))
+	    goto ddGroupSiftingAuxOutOfMem;
 
 	/* move backward and stop at best position */
 	result = ddGroupSiftingBackward(table,moves,initialSize,
@@ -1081,22 +1108,22 @@ ddGroupSiftingAux(
 #ifdef DD_DEBUG
 	assert(table->keys - table->isolated <= (unsigned) initialSize);
 #endif
-        if (!result) goto ddGroupSiftingAuxOutOfMem;
+	if (!result) goto ddGroupSiftingAuxOutOfMem;
     }
 
     while (moves != NULL) {
-        move = moves->next;
-        cuddDeallocMove(table, moves);
-        moves = move;
+	move = moves->next;
+	cuddDeallocMove(table, moves);
+	moves = move;
     }
 
     return(1);
 
 ddGroupSiftingAuxOutOfMem:
     while (moves != NULL) {
-        move = moves->next;
-        cuddDeallocMove(table, moves);
-        moves = move;
+	move = moves->next;
+	cuddDeallocMove(table, moves);
+	moves = move;
     }
 
     return(0);
@@ -1185,8 +1212,8 @@ ddGroupSiftingUp(
 			   L, checkL);
 	}
 #endif
-        gxtop = table->subtables[x].next;
-        if (checkFunction(table,x,y)) {
+	gxtop = table->subtables[x].next;
+	if (checkFunction(table,x,y)) {
 	    /* Group found, attach groups */
 	    table->subtables[x].next = y;
 	    i = table->subtables[y].next;
@@ -1201,39 +1228,39 @@ ddGroupSiftingUp(
 	    move->size = table->keys - table->isolated;
 	    move->next = *moves;
 	    *moves = move;
-        } else if (table->subtables[x].next == (unsigned) x &&
+	} else if (table->subtables[x].next == (unsigned) x &&
 		   table->subtables[y].next == (unsigned) y) {
-            /* x and y are self groups */
+	    /* x and y are self groups */
 	    xindex = table->invperm[x];
-            size = cuddSwapInPlace(table,x,y);
+	    size = cuddSwapInPlace(table,x,y);
 #ifdef DD_DEBUG
-            assert(table->subtables[x].next == (unsigned) x);
-            assert(table->subtables[y].next == (unsigned) y);
+	    assert(table->subtables[x].next == (unsigned) x);
+	    assert(table->subtables[y].next == (unsigned) y);
 #endif
-            if (size == 0) goto ddGroupSiftingUpOutOfMem;
+	    if (size == 0) goto ddGroupSiftingUpOutOfMem;
 	    /* Update the lower bound. */
 	    if (cuddTestInteract(table,xindex,yindex)) {
 		isolated = table->vars[xindex]->ref == 1;
 		L += table->subtables[y].keys - isolated;
 	    }
-            move = (Move *)cuddDynamicAllocNode(table);
-            if (move == NULL) goto ddGroupSiftingUpOutOfMem;
-            move->x = x;
-            move->y = y;
+	    move = (Move *)cuddDynamicAllocNode(table);
+	    if (move == NULL) goto ddGroupSiftingUpOutOfMem;
+	    move->x = x;
+	    move->y = y;
 	    move->flags = MTR_DEFAULT;
-            move->size = size;
-            move->next = *moves;
-            *moves = move;
+	    move->size = size;
+	    move->next = *moves;
+	    *moves = move;
 
 #ifdef DD_DEBUG
 	    if (pr > 0) (void) fprintf(table->out,
 				       "ddGroupSiftingUp (2 single groups):\n");
 #endif
-            if ((double) size > (double) limitSize * table->maxGrowth)
+	    if ((double) size > (double) limitSize * table->maxGrowth)
 		return(1);
-            if (size < limitSize) limitSize = size;
-        } else { /* Group move */
-            size = ddGroupMove(table,x,y,moves);
+	    if (size < limitSize) limitSize = size;
+	} else { /* Group move */
+	    size = ddGroupMove(table,x,y,moves);
 	    if (size == 0) goto ddGroupSiftingUpOutOfMem;
 	    /* Update the lower bound. */
 	    z = (*moves)->y;
@@ -1245,21 +1272,21 @@ ddGroupSiftingUp(
 		}
 		z = table->subtables[z].next;
 	    } while (z != (int) (*moves)->y);
-            if ((double) size > (double) limitSize * table->maxGrowth)
+	    if ((double) size > (double) limitSize * table->maxGrowth)
 		return(1);
-            if (size < limitSize) limitSize = size;
-        }
-        y = gxtop;
-        x = cuddNextLow(table,y);
+	    if (size < limitSize) limitSize = size;
+	}
+	y = gxtop;
+	x = cuddNextLow(table,y);
     }
 
     return(1);
 
 ddGroupSiftingUpOutOfMem:
     while (*moves != NULL) {
-        move = (*moves)->next;
-        cuddDeallocMove(table, *moves);
-        *moves = move;
+	move = (*moves)->next;
+	cuddDeallocMove(table, *moves);
+	*moves = move;
     }
     return(0);
 
@@ -1315,7 +1342,7 @@ ddGroupSiftingDown(
     } while (table->subtables[y].next != (unsigned) x);
     if (allVars)
 	return(1);
-    
+
     /* Initialize R. */
     xindex = table->invperm[x];
     gxtop = table->subtables[x].next;
@@ -1344,11 +1371,11 @@ ddGroupSiftingDown(
 	assert(R >= checkR);
 #endif
 	/* Find bottom of y group. */
-        gybot = table->subtables[y].next;
-        while (table->subtables[gybot].next != (unsigned) y)
-            gybot = table->subtables[gybot].next;
+	gybot = table->subtables[y].next;
+	while (table->subtables[gybot].next != (unsigned) y)
+	    gybot = table->subtables[gybot].next;
 
-        if (checkFunction(table,x,y)) {
+	if (checkFunction(table,x,y)) {
 	    /* Group found: attach groups and record move. */
 	    gxtop = table->subtables[x].next;
 	    table->subtables[x].next = y;
@@ -1361,43 +1388,43 @@ ddGroupSiftingDown(
 	    move->size = table->keys - table->isolated;
 	    move->next = *moves;
 	    *moves = move;
-        } else if (table->subtables[x].next == (unsigned) x &&
+	} else if (table->subtables[x].next == (unsigned) x &&
 		   table->subtables[y].next == (unsigned) y) {
-            /* x and y are self groups */
+	    /* x and y are self groups */
 	    /* Update upper bound on node decrease. */
 	    yindex = table->invperm[y];
 	    if (cuddTestInteract(table,xindex,yindex)) {
 		isolated = table->vars[yindex]->ref == 1;
 		R -= table->subtables[y].keys - isolated;
 	    }
-            size = cuddSwapInPlace(table,x,y);
+	    size = cuddSwapInPlace(table,x,y);
 #ifdef DD_DEBUG
-            assert(table->subtables[x].next == (unsigned) x);
-            assert(table->subtables[y].next == (unsigned) y);
+	    assert(table->subtables[x].next == (unsigned) x);
+	    assert(table->subtables[y].next == (unsigned) y);
 #endif
-            if (size == 0) goto ddGroupSiftingDownOutOfMem;
+	    if (size == 0) goto ddGroupSiftingDownOutOfMem;
 
 	    /* Record move. */
-            move = (Move *) cuddDynamicAllocNode(table);
-            if (move == NULL) goto ddGroupSiftingDownOutOfMem;
-            move->x = x;
-            move->y = y;
+	    move = (Move *) cuddDynamicAllocNode(table);
+	    if (move == NULL) goto ddGroupSiftingDownOutOfMem;
+	    move->x = x;
+	    move->y = y;
 	    move->flags = MTR_DEFAULT;
-            move->size = size;
-            move->next = *moves;
-            *moves = move;
+	    move->size = size;
+	    move->next = *moves;
+	    *moves = move;
 
 #ifdef DD_DEBUG
-            if (pr > 0) (void) fprintf(table->out,
+	    if (pr > 0) (void) fprintf(table->out,
 				       "ddGroupSiftingDown (2 single groups):\n");
 #endif
-            if ((double) size > (double) limitSize * table->maxGrowth)
-                return(1);
-            if (size < limitSize) limitSize = size;
+	    if ((double) size > (double) limitSize * table->maxGrowth)
+		return(1);
+	    if (size < limitSize) limitSize = size;
 
-            x = y;
-            y = cuddNextHigh(table,x);
-        } else { /* Group move */
+	    x = y;
+	    y = cuddNextHigh(table,x);
+	} else { /* Group move */
 	    /* Update upper bound on node decrease: first phase. */
 	    gxtop = table->subtables[x].next;
 	    z = gxtop + 1;
@@ -1409,11 +1436,11 @@ ddGroupSiftingDown(
 		}
 		z++;
 	    } while (z <= gybot);
-            size = ddGroupMove(table,x,y,moves);
-            if (size == 0) goto ddGroupSiftingDownOutOfMem;
-            if ((double) size > (double) limitSize * table->maxGrowth)
+	    size = ddGroupMove(table,x,y,moves);
+	    if (size == 0) goto ddGroupSiftingDownOutOfMem;
+	    if ((double) size > (double) limitSize * table->maxGrowth)
 		return(1);
-            if (size < limitSize) limitSize = size;
+	    if (size < limitSize) limitSize = size;
 
 	    /* Update upper bound on node decrease: second phase. */
 	    gxtop = table->subtables[gybot].next;
@@ -1424,18 +1451,18 @@ ddGroupSiftingDown(
 		    R += table->subtables[z].keys - isolated;
 		}
 	    }
-        }
-        x = gybot;
-        y = cuddNextHigh(table,x);
+	}
+	x = gybot;
+	y = cuddNextHigh(table,x);
     }
 
     return(1);
 
 ddGroupSiftingDownOutOfMem:
     while (*moves != NULL) {
-        move = (*moves)->next;
-        cuddDeallocMove(table, *moves);
-        *moves = move;
+	move = (*moves)->next;
+	cuddDeallocMove(table, *moves);
+	*moves = move;
     }
 
     return(0);
@@ -1468,7 +1495,7 @@ ddGroupMove(
     int  initialSize,bestSize;
 #endif
 
-#if DD_DEBUG
+#ifdef DD_DEBUG
     /* We assume that x < y */
     assert(x < y);
 #endif
@@ -1478,7 +1505,7 @@ ddGroupMove(
     xsize = xbot - xtop + 1;
     ybot = y;
     while ((unsigned) ybot < table->subtables[ybot].next)
-        ybot = table->subtables[ybot].next;
+	ybot = table->subtables[ybot].next;
     ytop = y;
     ysize = ybot - ytop + 1;
 
@@ -1487,19 +1514,19 @@ ddGroupMove(
 #endif
     /* Sift the variables of the second group up through the first group */
     for (i = 1; i <= ysize; i++) {
-        for (j = 1; j <= xsize; j++) {
-            size = cuddSwapInPlace(table,x,y);
-            if (size == 0) goto ddGroupMoveOutOfMem;
+	for (j = 1; j <= xsize; j++) {
+	    size = cuddSwapInPlace(table,x,y);
+	    if (size == 0) goto ddGroupMoveOutOfMem;
 #if defined(DD_DEBUG) && defined(DD_VERBOSE)
 	    if (size < bestSize)
 		bestSize = size;
 #endif
-            swapx = x; swapy = y;
-            y = x;
-            x = cuddNextLow(table,y);
-        }
-        y = ytop + i;
-        x = cuddNextLow(table,y);
+	    swapx = x; swapy = y;
+	    y = x;
+	    x = cuddNextLow(table,y);
+	}
+	y = ytop + i;
+	x = cuddNextLow(table,y);
     }
 #if defined(DD_DEBUG) && defined(DD_VERBOSE)
     if ((bestSize < initialSize) && (bestSize < size))
@@ -1509,19 +1536,19 @@ ddGroupMove(
     /* fix groups */
     y = xtop; /* ytop is now where xtop used to be */
     for (i = 0; i < ysize - 1; i++) {
-        table->subtables[y].next = cuddNextHigh(table,y);
-        y = cuddNextHigh(table,y);
+	table->subtables[y].next = cuddNextHigh(table,y);
+	y = cuddNextHigh(table,y);
     }
     table->subtables[y].next = xtop; /* y is bottom of its group, join */
-                                    /* it to top of its group */
+				    /* it to top of its group */
     x = cuddNextHigh(table,y);
     newxtop = x;
     for (i = 0; i < xsize - 1; i++) {
-        table->subtables[x].next = cuddNextHigh(table,x);
-        x = cuddNextHigh(table,x);
+	table->subtables[x].next = cuddNextHigh(table,x);
+	x = cuddNextHigh(table,x);
     }
     table->subtables[x].next = newxtop; /* x is bottom of its group, join */
-                                    /* it to top of its group */
+				    /* it to top of its group */
 #ifdef DD_DEBUG
     if (pr > 0) (void) fprintf(table->out,"ddGroupMove:\n");
 #endif
@@ -1540,9 +1567,9 @@ ddGroupMove(
 
 ddGroupMoveOutOfMem:
     while (*moves != NULL) {
-        move = (*moves)->next;
-        cuddDeallocMove(table, *moves);
-        *moves = move;
+	move = (*moves)->next;
+	cuddDeallocMove(table, *moves);
+	*moves = move;
     }
     return(0);
 
@@ -1569,7 +1596,7 @@ ddGroupMoveBackward(
     int i,j,xtop,xbot,xsize,ytop,ybot,ysize,newxtop;
 
 
-#if DD_DEBUG
+#ifdef DD_DEBUG
     /* We assume that x < y */
     assert(x < y);
 #endif
@@ -1580,39 +1607,39 @@ ddGroupMoveBackward(
     xsize = xbot - xtop + 1;
     ybot = y;
     while ((unsigned) ybot < table->subtables[ybot].next)
-        ybot = table->subtables[ybot].next;
+	ybot = table->subtables[ybot].next;
     ytop = y;
     ysize = ybot - ytop + 1;
 
     /* Sift the variables of the second group up through the first group */
     for (i = 1; i <= ysize; i++) {
-        for (j = 1; j <= xsize; j++) {
-            size = cuddSwapInPlace(table,x,y);
-            if (size == 0)
-                return(0);
-            y = x;
-            x = cuddNextLow(table,y);
-        }
-        y = ytop + i;
-        x = cuddNextLow(table,y);
+	for (j = 1; j <= xsize; j++) {
+	    size = cuddSwapInPlace(table,x,y);
+	    if (size == 0)
+		return(0);
+	    y = x;
+	    x = cuddNextLow(table,y);
+	}
+	y = ytop + i;
+	x = cuddNextLow(table,y);
     }
 
     /* fix groups */
     y = xtop;
     for (i = 0; i < ysize - 1; i++) {
-        table->subtables[y].next = cuddNextHigh(table,y);
-        y = cuddNextHigh(table,y);
+	table->subtables[y].next = cuddNextHigh(table,y);
+	y = cuddNextHigh(table,y);
     }
     table->subtables[y].next = xtop; /* y is bottom of its group, join */
-                                    /* to its top */
+				    /* to its top */
     x = cuddNextHigh(table,y);
     newxtop = x;
     for (i = 0; i < xsize - 1; i++) {
-        table->subtables[x].next = cuddNextHigh(table,x);
-        x = cuddNextHigh(table,x);
+	table->subtables[x].next = cuddNextHigh(table,x);
+	x = cuddNextHigh(table,x);
     }
     table->subtables[x].next = newxtop; /* x is bottom of its group, join */
-                                    /* to its top */
+				    /* to its top */
 #ifdef DD_DEBUG
     if (pr > 0) (void) fprintf(table->out,"ddGroupMoveBackward:\n");
 #endif
@@ -1638,41 +1665,43 @@ ddGroupSiftingBackward(
   DdManager * table,
   Move * moves,
   int  size,
-  int  upFlag, 
+  int  upFlag,
   int  lazyFlag)
 {
     Move *move;
     int  res;
     Move *end_move;
     int diff, tmp_diff;
-    int index, pairlev;
+    int index;
+    unsigned int pairlev;
 
     if (lazyFlag) {
 	end_move = NULL;
 
 	/* Find the minimum size, and the earliest position at which it
-        ** was achieved. */
+	** was achieved. */
 	for (move = moves; move != NULL; move = move->next) {
 	    if (move->size < size) {
 		size = move->size;
 		end_move = move;
 	    } else if (move->size == size) {
 		if (end_move == NULL) end_move = move;
-	    } 
+	    }
 	}
 
 	/* Find among the moves that give minimum size the one that
-        ** minimizes the distance from the corresponding variable. */
+	** minimizes the distance from the corresponding variable. */
 	if (moves != NULL) {
 	    diff = Cudd_ReadSize(table) + 1;
-	    index = (upFlag == 1) ? 
+	    index = (upFlag == 1) ?
 		    table->invperm[moves->x] : table->invperm[moves->y];
-	    pairlev = table->perm[Cudd_bddReadPairIndex(table, index)];
+	    pairlev =
+		(unsigned) table->perm[Cudd_bddReadPairIndex(table, index)];
 
 	    for (move = moves; move != NULL; move = move->next) {
 		if (move->size == size) {
 		    if (upFlag == 1) {
-			tmp_diff = (move->x > pairlev) ? 
+			tmp_diff = (move->x > pairlev) ?
 				    move->x - pairlev : pairlev - move->x;
 		    } else {
 			tmp_diff = (move->y > pairlev) ?
@@ -1681,7 +1710,7 @@ ddGroupSiftingBackward(
 		    if (tmp_diff < diff) {
 			diff = tmp_diff;
 			end_move = move;
-		    } 
+		    }
 		}
 	    }
 	}
@@ -1690,7 +1719,7 @@ ddGroupSiftingBackward(
 	for (move = moves; move != NULL; move = move->next) {
 	    if (move->size < size) {
 		size = move->size;
-	    } 
+	    }
 	}
     }
 
@@ -1703,23 +1732,23 @@ ddGroupSiftingBackward(
 	} else {
 	    if (move->size == size) return(1);
 	}
-        if ((table->subtables[move->x].next == move->x) &&
+	if ((table->subtables[move->x].next == move->x) &&
 	(table->subtables[move->y].next == move->y)) {
-            res = cuddSwapInPlace(table,(int)move->x,(int)move->y);
-            if (!res) return(0);
+	    res = cuddSwapInPlace(table,(int)move->x,(int)move->y);
+	    if (!res) return(0);
 #ifdef DD_DEBUG
-            if (pr > 0) (void) fprintf(table->out,"ddGroupSiftingBackward:\n");
-            assert(table->subtables[move->x].next == move->x);
-            assert(table->subtables[move->y].next == move->y);
+	    if (pr > 0) (void) fprintf(table->out,"ddGroupSiftingBackward:\n");
+	    assert(table->subtables[move->x].next == move->x);
+	    assert(table->subtables[move->y].next == move->y);
 #endif
-        } else { /* Group move necessary */
+	} else { /* Group move necessary */
 	    if (move->flags == MTR_NEWNODE) {
 		ddDissolveGroup(table,(int)move->x,(int)move->y);
 	    } else {
 		res = ddGroupMoveBackward(table,(int)move->x,(int)move->y);
 		if (!res) return(0);
 	    }
-        }
+	}
 
     }
 
@@ -1799,7 +1828,7 @@ ddDissolveGroup(
     boty = y;
     while ((unsigned) boty < table->subtables[boty].next)
 	boty = table->subtables[boty].next;
-    
+
     topx = table->subtables[boty].next;
 
     table->subtables[boty].next = y;
@@ -1909,12 +1938,12 @@ ddExtSymmCheck(
 {
     DdNode *f,*f0,*f1,*f01,*f00,*f11,*f10;
     DdNode *one;
-    int comple;		/* f0 is complemented */
+    unsigned comple;	/* f0 is complemented */
     int notproj;	/* f is not a projection function */
     int arccount;	/* number of arcs from layer x to layer y */
     int TotalRefCount;	/* total reference count of layer y minus 1 */
     int counter;	/* number of nodes of layer x that are allowed */
-    			/* to violate extended symmetry conditions */
+			/* to violate extended symmetry conditions */
     int arccounter;	/* number of arcs into layer y that are allowed */
 			/* to come from layers other than x */
     int i;
@@ -1965,7 +1994,7 @@ ddExtSymmCheck(
 	    f0 = Cudd_Regular(cuddE(f));
 	    comple = Cudd_IsComplement(cuddE(f));
 	    notproj = f1 != one || f0 != one || f->ref != (DdHalfWord) 1;
-	    if (f1->index == yindex) {
+	    if (f1->index == (unsigned) yindex) {
 		arccount++;
 		f11 = cuddT(f1); f10 = cuddE(f1);
 	    } else {

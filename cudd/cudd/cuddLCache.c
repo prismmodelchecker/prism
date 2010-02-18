@@ -38,15 +38,42 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright [ This file was created at the University of Colorado at
-  Boulder.  The University of Colorado at Boulder makes no warranty
-  about the suitability of this software for any purpose.  It is
-  presented on an AS IS basis.]
+  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  Neither the name of the University of Colorado nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.]
 
 ******************************************************************************/
 
-#include    "util.h"
-#include    "cuddInt.h"
+#include "util.h"
+#include "cuddInt.h"
 
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
@@ -69,7 +96,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddLCache.c,v 1.20 2004/02/06 01:17:26 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddLCache.c,v 1.24 2009/03/08 02:49:02 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -89,8 +116,8 @@ static char rcsid[] DD_UNUSED = "$Id: cuddLCache.c,v 1.20 2004/02/06 01:17:26 fa
 ******************************************************************************/
 #if SIZEOF_VOID_P == 8 && SIZEOF_INT == 4
 #define ddLCHash2(f,g,shift) \
-((((unsigned)(unsigned long)(f) * DD_P1 + \
-   (unsigned)(unsigned long)(g)) * DD_P2) >> (shift))
+((((unsigned)(ptruint)(f) * DD_P1 + \
+   (unsigned)(ptruint)(g)) * DD_P2) >> (shift))
 #else
 #define ddLCHash2(f,g,shift) \
 ((((unsigned)(f) * DD_P1 + (unsigned)(g)) * DD_P2) >> (shift))
@@ -335,14 +362,16 @@ cuddLocalCacheClearDead(
 	slots = cache->slots;
 	item = cache->item;
 	for (i = 0; i < slots; i++) {
-	    if (item->value != NULL && Cudd_Regular(item->value)->ref == 0) {
-		item->value = NULL;
-	    } else {
-		key = item->key;
-		for (j = 0; j < keysize; j++) {
-		    if (Cudd_Regular(key[j])->ref == 0) {
-			item->value = NULL;
-			break;
+	    if (item->value != NULL) {
+		if (Cudd_Regular(item->value)->ref == 0) {
+		    item->value = NULL;
+		} else {
+		    key = item->key;
+		    for (j = 0; j < keysize; j++) {
+			if (Cudd_Regular(key[j])->ref == 0) {
+			    item->value = NULL;
+			    break;
+			}
 		    }
 		}
 	    }
@@ -1117,7 +1146,7 @@ cuddLocalCacheResize(
 	    entry = (DdLocalCacheItem *) ((char *) item +
 					  posn * cache->itemsize);
 	    memcpy(entry->key,old->key,cache->keysize*sizeof(DdNode *));
-	    entry->value = old->value;	
+	    entry->value = old->value;
 	}
     }
 
@@ -1384,7 +1413,7 @@ cuddHashTableAlloc(
 		hash->manager->stash = NULL;
 		/* Inhibit resizing of tables. */
 		hash->manager->maxCacheHard = hash->manager->cacheSlots - 1;
-		hash->manager->cacheSlack = -(hash->manager->cacheSlots + 1);
+		hash->manager->cacheSlack = - (int) (hash->manager->cacheSlots + 1);
 		for (i = 0; i < hash->manager->size; i++) {
 		    hash->manager->subtables[i].maxKeys <<= 2;
 		}

@@ -78,7 +78,7 @@
 		<li> Cudd_ReadZddTree()
 		<li> Cudd_SetZddTree()
 		<li> Cudd_FreeZddTree()
-                <li> Cudd_NodeReadIndex()
+		<li> Cudd_NodeReadIndex()
 		<li> Cudd_ReadPerm()
 		<li> Cudd_ReadInvPerm()
 		<li> Cudd_ReadVars()
@@ -157,15 +157,42 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright   [This file was created at the University of Colorado at
-  Boulder.  The University of Colorado at Boulder makes no warranty
-  about the suitability of this software for any purpose.  It is
-  presented on an AS IS basis.]
+  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  Neither the name of the University of Colorado nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.]
 
 ******************************************************************************/
 
-#include    "util.h"
-#include    "cuddInt.h"
+#include "util.h"
+#include "cuddInt.h"
 
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
@@ -184,7 +211,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddAPI.c,v 1.56 2004/01/01 06:56:41 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddAPI.c,v 1.59 2009/02/19 16:14:14 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -1316,7 +1343,7 @@ Cudd_SetLooseUpTo(
   unsigned int lut)
 {
     if (lut == 0) {
-	long datalimit = getSoftDataLimit();
+	unsigned long datalimit = getSoftDataLimit();
 	lut = (unsigned int) (datalimit / (sizeof(DdNode) *
 					   DD_MAX_LOOSE_FRACTION));
     }
@@ -1386,7 +1413,7 @@ Cudd_SetMaxCacheHard(
   unsigned int mc)
 {
     if (mc == 0) {
-	long datalimit = getSoftDataLimit();
+	unsigned long datalimit = getSoftDataLimit();
 	mc = (unsigned int) (datalimit / (sizeof(DdCache) *
 					  DD_MAX_CACHE_FRACTION));
     }
@@ -1548,7 +1575,7 @@ Cudd_ExpectedUsedSlots(
 
     /* To each subtable we apply the corollary to Theorem 8.5 (occupancy
     ** distribution) from Sedgewick and Flajolet's Analysis of Algorithms.
-    ** The corollary says that for a a table with M buckets and a load ratio
+    ** The corollary says that for a table with M buckets and a load ratio
     ** of r, the expected number of empty buckets is asymptotically given
     ** by M * exp(-r).
     */
@@ -2939,12 +2966,14 @@ Cudd_PrintInfo(
     retval = fprintf(fp,"Dynamic reordering of BDDs enabled: %s\n",
 		     Cudd_ReorderingStatus(dd,&autoMethod) ? "yes" : "no");
     if (retval == EOF) return(0);
-    retval = fprintf(fp,"Default BDD reordering method: %d\n", autoMethod);
+    retval = fprintf(fp,"Default BDD reordering method: %d\n",
+		     (int) autoMethod);
     if (retval == EOF) return(0);
     retval = fprintf(fp,"Dynamic reordering of ZDDs enabled: %s\n",
 		     Cudd_ReorderingStatusZdd(dd,&autoMethodZ) ? "yes" : "no");
     if (retval == EOF) return(0);
-    retval = fprintf(fp,"Default ZDD reordering method: %d\n", autoMethodZ);
+    retval = fprintf(fp,"Default ZDD reordering method: %d\n",
+		     (int) autoMethodZ);
     if (retval == EOF) return(0);
     retval = fprintf(fp,"Realignment of ZDDs to BDDs enabled: %s\n",
 		     Cudd_zddRealignmentEnabled(dd) ? "yes" : "no");
@@ -2956,7 +2985,7 @@ Cudd_PrintInfo(
 		     Cudd_DeadAreCounted(dd) ? "yes" : "no");
     if (retval == EOF) return(0);
     retval = fprintf(fp,"Group checking criterion: %d\n",
-		     Cudd_ReadGroupcheck(dd));
+		     (int) Cudd_ReadGroupcheck(dd));
     if (retval == EOF) return(0);
     retval = fprintf(fp,"Recombination threshold: %d\n", Cudd_ReadRecomb(dd));
     if (retval == EOF) return(0);
@@ -3040,13 +3069,13 @@ Cudd_PrintInfo(
     retval = fprintf(fp,"Total number of nodes reclaimed: %.0f\n",
 		     dd->reclaimed);
     if (retval == EOF) return(0);
-#if DD_STATS
+#ifdef DD_STATS
     retval = fprintf(fp,"Nodes freed: %.0f\n", dd->nodesFreed);
     if (retval == EOF) return(0);
     retval = fprintf(fp,"Nodes dropped: %.0f\n", dd->nodesDropped);
     if (retval == EOF) return(0);
 #endif
-#if DD_COUNT
+#ifdef DD_COUNT
     retval = fprintf(fp,"Number of recursive calls: %.0f\n",
 		     Cudd_ReadRecursiveCalls(dd));
     if (retval == EOF) return(0);
@@ -3062,7 +3091,7 @@ Cudd_PrintInfo(
     retval = fprintf(fp,"Time for reordering: %.2f sec\n",
 		     ((double)Cudd_ReadReorderingTime(dd)/1000.0));
     if (retval == EOF) return(0);
-#if DD_COUNT
+#ifdef DD_COUNT
     retval = fprintf(fp,"Node swaps in reordering: %.0f\n",
 	Cudd_ReadSwapSteps(dd));
     if (retval == EOF) return(0);
@@ -4406,4 +4435,3 @@ addMultiplicityGroups(
     return(1);
 
 } /* end of addMultiplicityGroups */
-

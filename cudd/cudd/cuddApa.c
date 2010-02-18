@@ -8,23 +8,65 @@
 
   Description [External procedures included in this module:
 		<ul>
-		<li> 
-		</ul>
-	Internal procedures included in this module:
-		<ul>
-		<li> ()
+		<li> Cudd_ApaNumberOfDigits()
+		<li> Cudd_NewApaNumber()
+		<li> Cudd_ApaCopy()
+		<li> Cudd_ApaAdd()
+		<li> Cudd_ApaSubtract()
+		<li> Cudd_ApaShortDivision()
+		<li> Cudd_ApaIntDivision()
+		<li> Cudd_ApaShiftRight()
+		<li> Cudd_ApaSetToLiteral()
+		<li> Cudd_ApaPowerOfTwo()
+		<li> Cudd_ApaCompare()
+		<li> Cudd_ApaCompareRatios()
+		<li> Cudd_ApaPrintHex()
+		<li> Cudd_ApaPrintDecimal()
+		<li> Cudd_ApaPrintExponential()
+		<li> Cudd_ApaCountMinterm()
+		<li> Cudd_ApaPrintMinterm()
+		<li> Cudd_ApaPrintMintermExp()
+		<li> Cudd_ApaPrintDensity()
 		</ul>
 	Static procedures included in this module:
 		<ul>
-		<li> ()
+		<li> cuddApaCountMintermAux()
+		<li> cuddApaStCountfree()
 		</ul>]
 
   Author      [Fabio Somenzi]
 
-  Copyright   [This file was created at the University of Colorado at
-  Boulder.  The University of Colorado at Boulder makes no warranty
-  about the suitability of this software for any purpose.  It is
-  presented on an AS IS basis.]
+  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  Neither the name of the University of Colorado nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.]
 
 ******************************************************************************/
 
@@ -48,7 +90,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddApa.c,v 1.15 2004/01/01 06:56:42 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddApa.c,v 1.19 2009/03/08 01:27:50 fabio Exp $";
 #endif
 
 static	DdNode	*background, *zero;
@@ -109,7 +151,7 @@ Cudd_ApaNumberOfDigits(
     return(digits);
 
 } /* end of Cudd_ApaNumberOfDigits */
-	   
+
 
 /**Function********************************************************************
 
@@ -214,7 +256,7 @@ Cudd_ApaSubtract(
     DdApaDoubleDigit partial = DD_APA_BASE;
 
     for (i = digits - 1; i >= 0; i--) {
-	partial = a[i] - b[i] + DD_MSDIGIT(partial) + DD_APA_MASK;
+	partial = DD_MSDIGIT(partial) + DD_APA_MASK + a[i] - b[i];
 	diff[i] = (DdApaDigit) DD_LSDIGIT(partial);
     }
     return((DdApaDigit) DD_MSDIGIT(partial) - 1);
@@ -457,6 +499,8 @@ Cudd_ApaCompareRatios(
     second = Cudd_NewApaNumber(digitsSecond);
     secondRem = Cudd_ApaIntDivision(digitsSecond,secondNum,secondDen,second);
     result = Cudd_ApaCompare(digitsFirst,first,digitsSecond,second);
+    FREE(first);
+    FREE(second);
     if (result == 0) {
 	if ((double)firstRem/firstDen > (double)secondRem/secondDen)
 	    return(1);
@@ -522,7 +566,7 @@ Cudd_ApaPrintDecimal(
     unsigned char *decimal;
     int leadingzero;
     int decimalDigits = (int) (digits * log10((double) DD_APA_BASE)) + 1;
-    
+
     work = Cudd_NewApaNumber(digits);
     if (work == NULL)
 	return(0);
@@ -534,7 +578,7 @@ Cudd_ApaPrintDecimal(
     Cudd_ApaCopy(digits,number,work);
     for (i = decimalDigits - 1; i >= 0; i--) {
 	remainder = Cudd_ApaShortDivision(digits,work,(DdApaDigit) 10,work);
-	decimal[i] = remainder;
+	decimal[i] = (unsigned char) remainder;
     }
     FREE(work);
 
@@ -579,7 +623,7 @@ Cudd_ApaPrintExponential(
     DdApaNumber work;
     unsigned char *decimal;
     int decimalDigits = (int) (digits * log10((double) DD_APA_BASE)) + 1;
-    
+
     work = Cudd_NewApaNumber(digits);
     if (work == NULL)
 	return(0);
@@ -592,7 +636,7 @@ Cudd_ApaPrintExponential(
     first = decimalDigits - 1;
     for (i = decimalDigits - 1; i >= 0; i--) {
 	remainder = Cudd_ApaShortDivision(digits,work,(DdApaDigit) 10,work);
-	decimal[i] = remainder;
+	decimal[i] = (unsigned char) remainder;
 	if (remainder != 0) first = i; /* keep track of MS non-zero */
     }
     FREE(work);
@@ -641,7 +685,7 @@ Cudd_ApaCountMinterm(
 {
     DdApaNumber	max, min;
     st_table	*table;
-    DdApaNumber	i,count;	
+    DdApaNumber	i,count;
 
     background = manager->background;
     zero = Cudd_Not(manager->one);
@@ -897,7 +941,7 @@ cuddApaCountMintermAux(
     ** freed here. */
     if (Nt->ref == 1) FREE(mint1);
     if (Cudd_Regular(Ne)->ref == 1) FREE(mint2);
-    
+
     if (node->ref > 1) {
 	if (st_insert(table, (char *)node, (char *)mint) == ST_OUT_OF_MEM) {
 	    FREE(mint);
@@ -933,5 +977,3 @@ cuddApaStCountfree(
     return(ST_CONTINUE);
 
 } /* end of cuddApaStCountfree */
-
-

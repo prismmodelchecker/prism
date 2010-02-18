@@ -41,8 +41,8 @@ void
 MMout_of_memory(long size)
 {
     (void) fflush(stdout);
-    (void) fprintf(stderr, "\nout of memory allocating %u bytes\n",
-		   (unsigned) size);
+    (void) fprintf(stderr, "\nout of memory allocating %lu bytes\n",
+		   (unsigned long) size);
     exit(1);
 }
 
@@ -59,7 +59,7 @@ MMalloc(long size)
     }
 #endif
     if (size == 0) size = sizeof(long);
-    if ((p = (char *) malloc((unsigned) size)) == NIL(char)) {
+    if ((p = (char *) malloc((unsigned long) size)) == NIL(char)) {
 	if (MMoutOfMemory != 0 ) (*MMoutOfMemory)(size);
 	return NIL(char);
     }
@@ -80,7 +80,7 @@ MMrealloc(char *obj, long size)
 #endif
     if (obj == NIL(char)) return MMalloc(size);
     if (size <= 0) size = sizeof(long);
-    if ((p = (char *) realloc(obj, (unsigned) size)) == NIL(char)) {
+    if ((p = (char *) realloc(obj, (unsigned long) size)) == NIL(char)) {
 	if (MMoutOfMemory != 0 ) (*MMoutOfMemory)(size);
 	return NIL(char);
     }

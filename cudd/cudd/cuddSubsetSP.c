@@ -5,7 +5,7 @@
   PackageName [cudd]
 
   Synopsis [Procedure to subset the given BDD choosing the shortest paths
-            (largest cubes) in the BDD.]
+	    (largest cubes) in the BDD.]
 
 
   Description  [External procedures included in this module:
@@ -16,7 +16,7 @@
 		Internal procedures included in this module:
 		<ul>
 		<li> cuddSubsetShortPaths()
-		</ul> 
+		</ul>
 		Static procedures included in this module:
 		<ul>
 		<li> BuildSubsetBdd()
@@ -34,10 +34,37 @@
 
   Author      [Kavita Ravi]
 
-  Copyright   [This file was created at the University of Colorado at
-  Boulder.  The University of Colorado at Boulder makes no warranty
-  about the suitability of this software for any purpose.  It is
-  presented on an AS IS basis.]
+  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  Neither the name of the University of Colorado nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.]
 
 ******************************************************************************/
 
@@ -50,7 +77,7 @@
 
 #define DEFAULT_PAGE_SIZE 2048 /* page size to store the BFS queue element type */
 #define DEFAULT_NODE_DIST_PAGE_SIZE 2048 /*  page sizesto store NodeDist_t type */
-#define MAXSHORTINT    	((DdHalfWord) ~0) /* constant defined to store
+#define MAXSHORTINT	((DdHalfWord) ~0) /* constant defined to store
 					   * maximum distance of a node
 					   * from the root or the
 					   * constant
@@ -62,7 +89,7 @@
 /* Stucture declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-/* structure created to store subset results for each node and distances with 
+/* structure created to store subset results for each node and distances with
  * odd and even parity of the node from the root and sink. Main data structure
  * in this procedure.
  */
@@ -95,7 +122,7 @@ typedef struct NodeDist NodeDist_t;
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddSubsetSP.c,v 1.31 2004/01/01 06:56:47 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddSubsetSP.c,v 1.34 2009/02/19 16:23:19 fabio Exp $";
 #endif
 
 #ifdef DD_DEBUG
@@ -105,7 +132,7 @@ static int thishit;
 #endif
 
 
-static 	int 		memOut; /* flag to indicate out of memory */
+static	int		memOut; /* flag to indicate out of memory */
 static  DdNode          *zero, *one; /* constant functions */
 
 static  NodeDist_t      **nodeDistPages; /* pointers to the pages */
@@ -295,7 +322,7 @@ cuddSubsetShortPaths(
     unsigned int  *pathLengthArray;
     unsigned int maxpath, oddLen, evenLen, pathLength, *excess;
     int i;
-    NodeDist_t 	*nodeStat;
+    NodeDist_t	*nodeStat;
     struct AssortedInfo *info;
     st_table *subsetNodeTable;
 
@@ -306,7 +333,7 @@ cuddSubsetShortPaths(
       /* set default value */
       numVars = Cudd_ReadSize(dd);
     }
-    
+
     if (threshold > numVars) {
 	threshold = threshold - numVars;
     }
@@ -369,6 +396,8 @@ cuddSubsetShortPaths(
 	if (!st_lookup(pathTable, N, &nodeStat)) {
 	    fprintf(dd->err, "Something wrong, root node must be in table\n");
 	    dd->errorCode = CUDD_INTERNAL_ERROR;
+	    FREE(excess);
+	    FREE(info);
 	    return(NULL);
 	} else {
 	    if ((nodeStat->oddTopDist != MAXSHORTINT) &&
@@ -385,7 +414,7 @@ cuddSubsetShortPaths(
 
 	    pathLength = (oddLen <= evenLen) ? oddLen : evenLen;
 	    if (pathLength > maxpath) {
-		(void) fprintf(dd->err, "All computations are bogus, since root has path length greater than max path length within threshold %d, %d\n", maxpath, pathLength);
+		(void) fprintf(dd->err, "All computations are bogus, since root has path length greater than max path length within threshold %u, %u\n", maxpath, pathLength);
 		dd->errorCode = CUDD_INTERNAL_ERROR;
 		return(NULL);
 	    }
@@ -469,7 +498,7 @@ cuddSubsetShortPaths(
   next page when the end of the page is reached and allocates new
   pages when necessary. ]
 
-  SideEffects [Changes the size of  pages, page, page index, maximum 
+  SideEffects [Changes the size of  pages, page, page index, maximum
   number of pages freeing stuff in case of memory out. ]
 
   SeeAlso     []
@@ -485,7 +514,7 @@ ResizeNodeDistPages(void)
     nodeDistPage++;
 
     /* If the current page index is larger than the number of pages
-     * allocated, allocate a new page array. Page numbers are incremented by 
+     * allocated, allocate a new page array. Page numbers are incremented by
      * INITIAL_PAGES
      */
     if (nodeDistPage == maxNodeDistPages) {
@@ -523,15 +552,15 @@ ResizeNodeDistPages(void)
 
 /**Function********************************************************************
 
-  Synopsis    [Resize the number of pages allocated to store nodes in the BFS 
+  Synopsis    [Resize the number of pages allocated to store nodes in the BFS
   traversal of the Bdd  .]
 
-  Description [Resize the number of pages allocated to store nodes in the BFS 
+  Description [Resize the number of pages allocated to store nodes in the BFS
   traversal of the Bdd. The procedure  moves the counter to the
   next page when the end of the page is reached and allocates new
   pages when necessary.]
 
-  SideEffects [Changes the size of pages, page, page index, maximum 
+  SideEffects [Changes the size of pages, page, page index, maximum
   number of pages freeing stuff in case of memory out. ]
 
   SeeAlso     []
@@ -545,7 +574,7 @@ ResizeQueuePages(void)
 
     queuePage++;
     /* If the current page index is larger than the number of pages
-     * allocated, allocate a new page array. Page numbers are incremented by 
+     * allocated, allocate a new page array. Page numbers are incremented by
      * INITIAL_PAGES
      */
     if (queuePage == maxQueuePages) {
@@ -628,7 +657,7 @@ CreateTopDist(
     assert(currentQueuePage == childPage);
 #endif
     /* number children added to queue is initialized , needed for
-     * numParents in the next call 
+     * numParents in the next call
      */
     childrenCount = 0;
     /* process all the nodes in this level */
@@ -864,7 +893,7 @@ CreateBotDist(
 		nodeStat->oddBotDist = 1;
 	    else
 		nodeStat->evenBotDist = 1;
-	} else { 
+	} else {
 	    /* If node not in table, recur. */
 	    if (!st_lookup(pathTable, regChild, &nodeStatChild)) {
 		fprintf(fp, "Something wrong, node in table should have been created in top dist proc.\n");
@@ -1338,7 +1367,7 @@ BuildSubsetBdd(
 
 	NvPathLength = (oddLen <= evenLen) ? oddLen : evenLen;
 	NvBotDist = (oddLen <= evenLen) ? nodeStatNv->oddBotDist:
-	                                           nodeStatNv->evenBotDist;
+						   nodeStatNv->evenBotDist;
     }
     /* if else child constant, branch is the child */
     if (Cudd_IsConstant(Nnv)) {
@@ -1382,7 +1411,7 @@ BuildSubsetBdd(
 
 	NnvPathLength = (oddLen <= evenLen) ? oddLen : evenLen;
 	NnvBotDist = (oddLen <= evenLen) ? nodeStatNnv->oddBotDist :
-	                                           nodeStatNnv->evenBotDist;
+						   nodeStatNnv->evenBotDist;
     }
 
     tiebreakChild = (NvBotDist <= NnvBotDist) ? 1 : 0;
@@ -1511,7 +1540,7 @@ BuildSubsetBdd(
 	}
 	processingDone++;
 
-    } /*end of while processing Nv, Nnv */  	
+    } /*end of while processing Nv, Nnv */
 
     info->findShortestPath = 0;
     topid = Cudd_NodeReadIndex(N);
@@ -1587,7 +1616,7 @@ BuildSubsetBdd(
 		nodeStat->compResult = Cudd_Not(neW);
 		cuddRef(nodeStat->compResult);
 	    }
-	} 
+	}
 
 	cuddDeref(neW);
 	return(neW);

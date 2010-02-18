@@ -163,7 +163,7 @@ nanotrav that uses mnemosyne may work.
 
 DOCUMENTATION
 
-Directory cudd-2.4.0/cudd/doc contains HTML documentation for the CUDD
+Directory cudd-2.4.1/cudd/doc contains HTML documentation for the CUDD
 package. The recommended starting point is cuddIntro.html. Documentation
 in both postscript(tm) format and plain text format is also provided.
 Documentation for the auxiliary libraries (except for the util library)

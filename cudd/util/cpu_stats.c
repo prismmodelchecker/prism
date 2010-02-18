@@ -1,6 +1,5 @@
 /* LINTLIBRARY */
 
-#include <stdio.h>
 #include "util.h"
 
 
@@ -25,7 +24,7 @@ util_print_cpu_stats(FILE *fp)
 #ifdef BSD
     struct rusage rusage;
     struct rlimit rlp;
-    int text, data, vm_limit, vm_soft_limit;
+    long text, data, vm_limit, vm_soft_limit;
     double user, system, scale;
     char hostname[257];
     long vm_text, vm_init_data, vm_uninit_data, vm_sbrk_data;
@@ -42,8 +41,8 @@ util_print_cpu_stats(FILE *fp)
 
     /* Get virtual memory limits */
     (void) getrlimit(RLIMIT_DATA, &rlp);
-    vm_limit = (int) (rlp.rlim_max / 1024.0 + 0.5);
-    vm_soft_limit = (int) (rlp.rlim_cur / 1024.0 + 0.5);
+    vm_limit = (long) (rlp.rlim_max / 1024.0 + 0.5);
+    vm_soft_limit = (long) (rlp.rlim_cur / 1024.0 + 0.5);
 
     /* Get usage stats */
     (void) getrusage(RUSAGE_SELF, &rusage);
@@ -60,21 +59,21 @@ util_print_cpu_stats(FILE *fp)
 
     text = (int) (rusage.ru_ixrss / scale + 0.5);
     data = (int) ((rusage.ru_idrss + rusage.ru_isrss) / scale + 0.5);
-    (void) fprintf(fp, "Average resident text size       = %5dK\n", text);
-    (void) fprintf(fp, "Average resident data+stack size = %5dK\n", data);
-    (void) fprintf(fp, "Maximum resident size            = %5ldK\n\n", 
+    (void) fprintf(fp, "Average resident text size       = %5ldK\n", text);
+    (void) fprintf(fp, "Average resident data+stack size = %5ldK\n", data);
+    (void) fprintf(fp, "Maximum resident size            = %5ldK\n\n",
 	rusage.ru_maxrss/2);
-    (void) fprintf(fp, "Virtual text size                = %5ldK\n", 
+    (void) fprintf(fp, "Virtual text size                = %5ldK\n",
 	vm_text);
-    (void) fprintf(fp, "Virtual data size                = %5ldK\n", 
+    (void) fprintf(fp, "Virtual data size                = %5ldK\n",
 	vm_init_data + vm_uninit_data + vm_sbrk_data);
-    (void) fprintf(fp, "    data size initialized        = %5ldK\n", 
+    (void) fprintf(fp, "    data size initialized        = %5ldK\n",
 	vm_init_data);
-    (void) fprintf(fp, "    data size uninitialized      = %5ldK\n", 
+    (void) fprintf(fp, "    data size uninitialized      = %5ldK\n",
 	vm_uninit_data);
-    (void) fprintf(fp, "    data size sbrk               = %5ldK\n", 
+    (void) fprintf(fp, "    data size sbrk               = %5ldK\n",
 	vm_sbrk_data);
-    (void) fprintf(fp, "Virtual memory limit             = %5dK (%dK)\n\n", 
+    (void) fprintf(fp, "Virtual memory limit             = %5ldK (%ldK)\n\n",
 	vm_soft_limit, vm_limit);
 
     (void) fprintf(fp, "Major page faults = %ld\n", rusage.ru_majflt);

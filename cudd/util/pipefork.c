@@ -1,10 +1,7 @@
 /*
  * Revision Control Information
  *
- * $Source: /home/staff/fabio/src/util/RCS/pipefork.c,v $
- * $Author: fabio $
- * $Revision: 1.5 $
- * $Date: 2003/12/30 16:59:31 $
+ * $Id: pipefork.c,v 1.6 2004/08/18 00:06:42 fabio Exp fabio $
  *
  */
 /* LINTLIBRARY */
@@ -13,10 +10,11 @@
 #define HAVE_SYS_WAIT_H 1
 #endif
 
+#include "util.h"
+
 #if HAVE_SYS_WAIT_H == 1
 #include <sys/wait.h>
 #endif
-#include "util.h"
 
 /*
  * util_pipefork - fork a command and set up pipes to and from
@@ -33,7 +31,7 @@
 /* ARGSUSED */
 int
 util_pipefork(
-  char **argv,		/* normal argv argument list */
+  char * const *argv,		/* normal argv argument list */
   FILE **toCommand,	/* pointer to the sending stream */
   FILE **fromCommand,	/* pointer to the reading stream */
   int *pid)
@@ -42,11 +40,7 @@ util_pipefork(
     int forkpid, waitPid;
     int topipe[2], frompipe[2];
     char buffer[1024];
-#if (defined __hpux) || (defined __osf__) || (defined _IBMR2) || (defined __SVR4) || (defined __CYGWIN32__)
     int status;
-#else
-    union wait status;
-#endif
 
     /* create the PIPES...
      * fildes[0] for reading from command

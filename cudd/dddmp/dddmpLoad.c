@@ -1313,10 +1313,12 @@ DddmpBddReadHeader (
       continue;
     }
 
-    if (matchkeywd(buf, ".varinfo")) {    
-      retValue = fscanf (fp, "%d", ((int *) &(Hdr->varinfo)));
+    if (matchkeywd(buf, ".varinfo")) {
+      int readMe;
+      retValue = fscanf (fp, "%d", &readMe);
       Dddmp_CheckAndGotoLabel (retValue==EOF, "Error reading file.",
         failure);
+      Hdr->varinfo = (Dddmp_VarInfoType) readMe;
 
       continue;
     }

@@ -14,6 +14,9 @@
 	    <li> Cudd_addXeqy()
 	    <li> Cudd_Dxygtdxz()
 	    <li> Cudd_Dxygtdyz()
+	    <li> Cudd_Inequality()
+	    <li> Cudd_Disequality()
+	    <li> Cudd_bddInterval()
 	    <li> Cudd_CProjection()
 	    <li> Cudd_addHamming()
 	    <li> Cudd_MinHammingDist()
@@ -36,10 +39,37 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright [ This file was created at the University of Colorado at
-  Boulder.  The University of Colorado at Boulder makes no warranty
-  about the suitability of this software for any purpose.  It is
-  presented on an AS IS basis.]
+  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  Neither the name of the University of Colorado nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.]
 
 ******************************************************************************/
 
@@ -68,7 +98,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddPriority.c,v 1.25 2004/01/01 06:56:45 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddPriority.c,v 1.33 2009/02/20 02:14:58 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -232,7 +262,7 @@ endgame:
   Both x and y are N-bit numbers, x\[0\] x\[1\] ... x\[N-1\] and
   y\[0\] y\[1\] ...  y\[N-1\], with 0 the most significant bit.
   The BDD is built bottom-up.
-  It has 3*N-1 internal nodes, if the variables are ordered as follows: 
+  It has 3*N-1 internal nodes, if the variables are ordered as follows:
   x\[0\] y\[0\] x\[1\] y\[1\] ... x\[N-1\] y\[N-1\].
   Argument z is not used by Cudd_Xgty: it is included to make it
   call-compatible to Cudd_Dxygtdxz and Cudd_Dxygtdyz.]
@@ -299,7 +329,7 @@ Cudd_Xgty(
   Both x and y are N-bit numbers, x\[0\] x\[1\] ... x\[N-1\] and
   y\[0\] y\[1\] ...  y\[N-1\], with 0 the most significant bit.
   The BDD is built bottom-up.
-  It has 3*N-1 internal nodes, if the variables are ordered as follows: 
+  It has 3*N-1 internal nodes, if the variables are ordered as follows:
   x\[0\] y\[0\] x\[1\] y\[1\] ... x\[N-1\] y\[N-1\]. ]
 
   SideEffects [None]
@@ -362,7 +392,7 @@ Cudd_Xeqy(
   Both x and y are N-bit numbers, x\[0\] x\[1\] ... x\[N-1\] and
   y\[0\] y\[1\] ...  y\[N-1\], with 0 the most significant bit.
   The ADD is built bottom-up.
-  It has 3*N-1 internal nodes, if the variables are ordered as follows: 
+  It has 3*N-1 internal nodes, if the variables are ordered as follows:
   x\[0\] y\[0\] x\[1\] y\[1\] ... x\[N-1\] y\[N-1\]. ]
 
   SideEffects [None]
@@ -395,7 +425,7 @@ Cudd_addXeqy(
     }
     cuddRef(w);
     u = Cudd_addIte(dd, x[N-1], v, w);
-    if (w == NULL) {
+    if (u == NULL) {
 	Cudd_RecursiveDeref(dd, v);
 	Cudd_RecursiveDeref(dd, w);
 	return(NULL);
@@ -448,7 +478,7 @@ Cudd_addXeqy(
   The distance d(x,y) is defined as:
 	\sum_{i=0}^{N-1}(|x_i - y_i| \cdot 2^{N-i-1}).
   The BDD is built bottom-up.
-  It has 7*N-3 internal nodes, if the variables are ordered as follows: 
+  It has 7*N-3 internal nodes, if the variables are ordered as follows:
   x\[0\] y\[0\] z\[0\] x\[1\] y\[1\] z\[1\] ... x\[N-1\] y\[N-1\] z\[N-1\]. ]
 
   SideEffects [None]
@@ -575,7 +605,7 @@ Cudd_Dxygtdxz(
   The distance d(x,y) is defined as:
 	\sum_{i=0}^{N-1}(|x_i - y_i| \cdot 2^{N-i-1}).
   The BDD is built bottom-up.
-  It has 7*N-3 internal nodes, if the variables are ordered as follows: 
+  It has 7*N-3 internal nodes, if the variables are ordered as follows:
   x\[0\] y\[0\] z\[0\] x\[1\] y\[1\] z\[1\] ... x\[N-1\] y\[N-1\] z\[N-1\]. ]
 
   SideEffects [None]
@@ -688,6 +718,464 @@ Cudd_Dxygtdyz(
     return(Cudd_Not(x1));
 
 } /* end of Cudd_Dxygtdyz */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Generates a BDD for the function x - y &ge; c.]
+
+  Description [This function generates a BDD for the function x -y &ge; c.
+  Both x and y are N-bit numbers, x\[0\] x\[1\] ... x\[N-1\] and
+  y\[0\] y\[1\] ...  y\[N-1\], with 0 the most significant bit.
+  The BDD is built bottom-up.
+  It has a linear number of nodes if the variables are ordered as follows:
+  x\[0\] y\[0\] x\[1\] y\[1\] ... x\[N-1\] y\[N-1\].]
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_Xgty]
+
+******************************************************************************/
+DdNode *
+Cudd_Inequality(
+  DdManager * dd /* DD manager */,
+  int  N /* number of x and y variables */,
+  int c /* right-hand side constant */,
+  DdNode ** x /* array of x variables */,
+  DdNode ** y /* array of y variables */)
+{
+    /* The nodes at level i represent values of the difference that are
+    ** multiples of 2^i.  We use variables with names starting with k
+    ** to denote the multipliers of 2^i in such multiples. */
+    int kTrue = c;
+    int kFalse = c - 1;
+    /* Mask used to compute the ceiling function.  Since we divide by 2^i,
+    ** we want to know whether the dividend is a multiple of 2^i.  If it is,
+    ** then ceiling and floor coincide; otherwise, they differ by one. */
+    int mask = 1;
+    int i;
+
+    DdNode *f = NULL;		/* the eventual result */
+    DdNode *one = DD_ONE(dd);
+    DdNode *zero = Cudd_Not(one);
+
+    /* Two x-labeled nodes are created at most at each iteration.  They are
+    ** stored, along with their k values, in these variables.  At each level,
+    ** the old nodes are freed and the new nodes are copied into the old map.
+    */
+    DdNode *map[2];
+    int invalidIndex = 1 << (N-1);
+    int index[2] = {invalidIndex, invalidIndex};
+
+    /* This should never happen. */
+    if (N < 0) return(NULL);
+
+    /* If there are no bits, both operands are 0.  The result depends on c. */
+    if (N == 0) {
+	if (c >= 0) return(one);
+	else return(zero);
+    }
+
+    /* The maximum or the minimum difference comparing to c can generate the terminal case */
+    if ((1 << N) - 1 < c) return(zero);
+    else if ((-(1 << N) + 1) >= c) return(one);
+
+    /* Build the result bottom up. */
+    for (i = 1; i <= N; i++) {
+	int kTrueLower, kFalseLower;
+	int leftChild, middleChild, rightChild;
+	DdNode *g0, *g1, *fplus, *fequal, *fminus;
+	int j;
+	DdNode *newMap[2];
+	int newIndex[2];
+
+	kTrueLower = kTrue;
+	kFalseLower = kFalse;
+	/* kTrue = ceiling((c-1)/2^i) + 1 */
+	kTrue = ((c-1) >> i) + ((c & mask) != 1) + 1;
+	mask = (mask << 1) | 1;
+	/* kFalse = floor(c/2^i) - 1 */
+	kFalse = (c >> i) - 1;
+	newIndex[0] = invalidIndex;
+	newIndex[1] = invalidIndex;
+
+	for (j = kFalse + 1; j < kTrue; j++) {
+	    /* Skip if node is not reachable from top of BDD. */
+	    if ((j >= (1 << (N - i))) || (j <= -(1 << (N -i)))) continue;
+
+	    /* Find f- */
+	    leftChild = (j << 1) - 1;
+	    if (leftChild >= kTrueLower) {
+		fminus = one;
+	    } else if (leftChild <= kFalseLower) {
+		fminus = zero;
+	    } else {
+		assert(leftChild == index[0] || leftChild == index[1]);
+		if (leftChild == index[0]) {
+		    fminus = map[0];
+		} else {
+		    fminus = map[1];
+		}
+	    }
+
+	    /* Find f= */
+	    middleChild = j << 1;
+	    if (middleChild >= kTrueLower) {
+		fequal = one;
+	    } else if (middleChild <= kFalseLower) {
+		fequal = zero;
+	    } else {
+		assert(middleChild == index[0] || middleChild == index[1]);
+		if (middleChild == index[0]) {
+		    fequal = map[0];
+		} else {
+		    fequal = map[1];
+		}
+	    }
+
+	    /* Find f+ */
+	    rightChild = (j << 1) + 1;
+	    if (rightChild >= kTrueLower) {
+		fplus = one;
+	    } else if (rightChild <= kFalseLower) {
+		fplus = zero;
+	    } else {
+		assert(rightChild == index[0] || rightChild == index[1]);
+		if (rightChild == index[0]) {
+		    fplus = map[0];
+		} else {
+		    fplus = map[1];
+		}
+	    }
+
+	    /* Build new nodes. */
+	    g1 = Cudd_bddIte(dd, y[N - i], fequal, fplus);
+	    if (g1 == NULL) {
+		if (index[0] != invalidIndex) Cudd_IterDerefBdd(dd, map[0]);
+		if (index[1] != invalidIndex) Cudd_IterDerefBdd(dd, map[1]);
+		if (newIndex[0] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[0]);
+		if (newIndex[1] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[1]);
+		return(NULL);
+	    }
+	    cuddRef(g1);
+	    g0 = Cudd_bddIte(dd, y[N - i], fminus, fequal);
+	    if (g0 == NULL) {
+		Cudd_IterDerefBdd(dd, g1);
+		if (index[0] != invalidIndex) Cudd_IterDerefBdd(dd, map[0]);
+		if (index[1] != invalidIndex) Cudd_IterDerefBdd(dd, map[1]);
+		if (newIndex[0] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[0]);
+		if (newIndex[1] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[1]);
+		return(NULL);
+	    }
+	    cuddRef(g0);
+	    f = Cudd_bddIte(dd, x[N - i], g1, g0);
+	    if (f == NULL) {
+		Cudd_IterDerefBdd(dd, g1);
+		Cudd_IterDerefBdd(dd, g0);
+		if (index[0] != invalidIndex) Cudd_IterDerefBdd(dd, map[0]);
+		if (index[1] != invalidIndex) Cudd_IterDerefBdd(dd, map[1]);
+		if (newIndex[0] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[0]);
+		if (newIndex[1] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[1]);
+		return(NULL);
+	    }
+	    cuddRef(f);
+	    Cudd_IterDerefBdd(dd, g1);
+	    Cudd_IterDerefBdd(dd, g0);
+
+	    /* Save newly computed node in map. */
+	    assert(newIndex[0] == invalidIndex || newIndex[1] == invalidIndex);
+	    if (newIndex[0] == invalidIndex) {
+		newIndex[0] = j;
+		newMap[0] = f;
+	    } else {
+		newIndex[1] = j;
+		newMap[1] = f;
+	    }
+	}
+
+	/* Copy new map to map. */
+	if (index[0] != invalidIndex) Cudd_IterDerefBdd(dd, map[0]);
+	if (index[1] != invalidIndex) Cudd_IterDerefBdd(dd, map[1]);
+	map[0] = newMap[0];
+	map[1] = newMap[1];
+	index[0] = newIndex[0];
+	index[1] = newIndex[1];
+    }
+
+    cuddDeref(f);
+    return(f);
+
+} /* end of Cudd_Inequality */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Generates a BDD for the function x - y != c.]
+
+  Description [This function generates a BDD for the function x -y != c.
+  Both x and y are N-bit numbers, x\[0\] x\[1\] ... x\[N-1\] and
+  y\[0\] y\[1\] ...  y\[N-1\], with 0 the most significant bit.
+  The BDD is built bottom-up.
+  It has a linear number of nodes if the variables are ordered as follows:
+  x\[0\] y\[0\] x\[1\] y\[1\] ... x\[N-1\] y\[N-1\].]
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_Xgty]
+
+******************************************************************************/
+DdNode *
+Cudd_Disequality(
+  DdManager * dd /* DD manager */,
+  int  N /* number of x and y variables */,
+  int c /* right-hand side constant */,
+  DdNode ** x /* array of x variables */,
+  DdNode ** y /* array of y variables */)
+{
+    /* The nodes at level i represent values of the difference that are
+    ** multiples of 2^i.  We use variables with names starting with k
+    ** to denote the multipliers of 2^i in such multiples. */
+    int kTrueLb = c + 1;
+    int kTrueUb = c - 1;
+    int kFalse = c;
+    /* Mask used to compute the ceiling function.  Since we divide by 2^i,
+    ** we want to know whether the dividend is a multiple of 2^i.  If it is,
+    ** then ceiling and floor coincide; otherwise, they differ by one. */
+    int mask = 1;
+    int i;
+
+    DdNode *f = NULL;		/* the eventual result */
+    DdNode *one = DD_ONE(dd);
+    DdNode *zero = Cudd_Not(one);
+
+    /* Two x-labeled nodes are created at most at each iteration.  They are
+    ** stored, along with their k values, in these variables.  At each level,
+    ** the old nodes are freed and the new nodes are copied into the old map.
+    */
+    DdNode *map[2];
+    int invalidIndex = 1 << (N-1);
+    int index[2] = {invalidIndex, invalidIndex};
+
+    /* This should never happen. */
+    if (N < 0) return(NULL);
+
+    /* If there are no bits, both operands are 0.  The result depends on c. */
+    if (N == 0) {
+	if (c != 0) return(one);
+	else return(zero);
+    }
+
+    /* The maximum or the minimum difference comparing to c can generate the terminal case */
+    if ((1 << N) - 1 < c || (-(1 << N) + 1) > c) return(one);
+
+    /* Build the result bottom up. */
+    for (i = 1; i <= N; i++) {
+	int kTrueLbLower, kTrueUbLower;
+	int leftChild, middleChild, rightChild;
+	DdNode *g0, *g1, *fplus, *fequal, *fminus;
+	int j;
+	DdNode *newMap[2];
+	int newIndex[2];
+
+	kTrueLbLower = kTrueLb;
+	kTrueUbLower = kTrueUb;
+	/* kTrueLb = floor((c-1)/2^i) + 2 */
+	kTrueLb = ((c-1) >> i) + 2;
+	/* kTrueUb = ceiling((c+1)/2^i) - 2 */
+	kTrueUb = ((c+1) >> i) + (((c+2) & mask) != 1) - 2;
+	mask = (mask << 1) | 1;
+	newIndex[0] = invalidIndex;
+	newIndex[1] = invalidIndex;
+
+	for (j = kTrueUb + 1; j < kTrueLb; j++) {
+	    /* Skip if node is not reachable from top of BDD. */
+	    if ((j >= (1 << (N - i))) || (j <= -(1 << (N -i)))) continue;
+
+	    /* Find f- */
+	    leftChild = (j << 1) - 1;
+	    if (leftChild >= kTrueLbLower || leftChild <= kTrueUbLower) {
+		fminus = one;
+	    } else if (i == 1 && leftChild == kFalse) {
+		fminus = zero;
+	    } else {
+		assert(leftChild == index[0] || leftChild == index[1]);
+		if (leftChild == index[0]) {
+		    fminus = map[0];
+		} else {
+		    fminus = map[1];
+		}
+	    }
+
+	    /* Find f= */
+	    middleChild = j << 1;
+	    if (middleChild >= kTrueLbLower || middleChild <= kTrueUbLower) {
+		fequal = one;
+	    } else if (i == 1 && middleChild == kFalse) {
+		fequal = zero;
+	    } else {
+		assert(middleChild == index[0] || middleChild == index[1]);
+		if (middleChild == index[0]) {
+		    fequal = map[0];
+		} else {
+		    fequal = map[1];
+		}
+	    }
+
+	    /* Find f+ */
+	    rightChild = (j << 1) + 1;
+	    if (rightChild >= kTrueLbLower || rightChild <= kTrueUbLower) {
+		fplus = one;
+	    } else if (i == 1 && rightChild == kFalse) {
+		fplus = zero;
+	    } else {
+		assert(rightChild == index[0] || rightChild == index[1]);
+		if (rightChild == index[0]) {
+		    fplus = map[0];
+		} else {
+		    fplus = map[1];
+		}
+	    }
+
+	    /* Build new nodes. */
+	    g1 = Cudd_bddIte(dd, y[N - i], fequal, fplus);
+	    if (g1 == NULL) {
+		if (index[0] != invalidIndex) Cudd_IterDerefBdd(dd, map[0]);
+		if (index[1] != invalidIndex) Cudd_IterDerefBdd(dd, map[1]);
+		if (newIndex[0] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[0]);
+		if (newIndex[1] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[1]);
+		return(NULL);
+	    }
+	    cuddRef(g1);
+	    g0 = Cudd_bddIte(dd, y[N - i], fminus, fequal);
+	    if (g0 == NULL) {
+		Cudd_IterDerefBdd(dd, g1);
+		if (index[0] != invalidIndex) Cudd_IterDerefBdd(dd, map[0]);
+		if (index[1] != invalidIndex) Cudd_IterDerefBdd(dd, map[1]);
+		if (newIndex[0] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[0]);
+		if (newIndex[1] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[1]);
+		return(NULL);
+	    }
+	    cuddRef(g0);
+	    f = Cudd_bddIte(dd, x[N - i], g1, g0);
+	    if (f == NULL) {
+		Cudd_IterDerefBdd(dd, g1);
+		Cudd_IterDerefBdd(dd, g0);
+		if (index[0] != invalidIndex) Cudd_IterDerefBdd(dd, map[0]);
+		if (index[1] != invalidIndex) Cudd_IterDerefBdd(dd, map[1]);
+		if (newIndex[0] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[0]);
+		if (newIndex[1] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[1]);
+		return(NULL);
+	    }
+	    cuddRef(f);
+	    Cudd_IterDerefBdd(dd, g1);
+	    Cudd_IterDerefBdd(dd, g0);
+
+	    /* Save newly computed node in map. */
+	    assert(newIndex[0] == invalidIndex || newIndex[1] == invalidIndex);
+	    if (newIndex[0] == invalidIndex) {
+		newIndex[0] = j;
+		newMap[0] = f;
+	    } else {
+		newIndex[1] = j;
+		newMap[1] = f;
+	    }
+	}
+
+	/* Copy new map to map. */
+	if (index[0] != invalidIndex) Cudd_IterDerefBdd(dd, map[0]);
+	if (index[1] != invalidIndex) Cudd_IterDerefBdd(dd, map[1]);
+	map[0] = newMap[0];
+	map[1] = newMap[1];
+	index[0] = newIndex[0];
+	index[1] = newIndex[1];
+    }
+
+    cuddDeref(f);
+    return(f);
+
+} /* end of Cudd_Disequality */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Generates a BDD for the function lowerB &le; x &le; upperB.]
+
+  Description [This function generates a BDD for the function
+  lowerB &le; x &le; upperB, where x is an N-bit number,
+  x\[0\] x\[1\] ... x\[N-1\], with 0 the most significant bit (important!).
+  The number of variables N should be sufficient to represent the bounds;
+  otherwise, the bounds are truncated to their N least significant bits.
+  Two BDDs are built bottom-up for lowerB &le; x and x &le; upperB, and they
+  are finally conjoined.]
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_Xgty]
+
+******************************************************************************/
+DdNode *
+Cudd_bddInterval(
+  DdManager * dd /* DD manager */,
+  int  N /* number of x variables */,
+  DdNode ** x /* array of x variables */,
+  unsigned int lowerB /* lower bound */,
+  unsigned int upperB /* upper bound */)
+{
+    DdNode *one, *zero;
+    DdNode *r, *rl, *ru;
+    int     i;
+
+    one = DD_ONE(dd);
+    zero = Cudd_Not(one);
+
+    rl = one;
+    cuddRef(rl);
+    ru = one;
+    cuddRef(ru);
+
+    /* Loop to build the rest of the BDDs. */
+    for (i = N-1; i >= 0; i--) {
+	DdNode *vl, *vu;
+	vl = Cudd_bddIte(dd, x[i],
+			 lowerB&1 ? rl : one,
+			 lowerB&1 ? zero : rl);
+	if (vl == NULL) {
+	    Cudd_IterDerefBdd(dd, rl);
+	    Cudd_IterDerefBdd(dd, ru);
+	    return(NULL);
+	}
+	cuddRef(vl);
+	Cudd_IterDerefBdd(dd, rl);
+	rl = vl;
+	lowerB >>= 1;
+	vu = Cudd_bddIte(dd, x[i],
+			 upperB&1 ? ru : zero,
+			 upperB&1 ? one : ru);
+	if (vu == NULL) {
+	    Cudd_IterDerefBdd(dd, rl);
+	    Cudd_IterDerefBdd(dd, ru);
+	    return(NULL);
+	}
+	cuddRef(vu);
+	Cudd_IterDerefBdd(dd, ru);
+	ru = vu;
+	upperB >>= 1;
+    }
+
+    /* Conjoin the two bounds. */
+    r = Cudd_bddAnd(dd, rl, ru);
+    if (r == NULL) {
+	Cudd_IterDerefBdd(dd, rl);
+	Cudd_IterDerefBdd(dd, ru);
+	return(NULL);
+    }
+    cuddRef(r);
+    Cudd_IterDerefBdd(dd, rl);
+    Cudd_IterDerefBdd(dd, ru);
+    cuddDeref(r);
+    return(r);
+
+} /* end of Cudd_bddInterval */
 
 
 /**Function********************************************************************
@@ -844,7 +1332,7 @@ Cudd_MinHammingDist(
     Cudd_SetEpsilon(dd,epsilon);
 
     return(res);
-    
+
 } /* end of Cudd_MinHammingDist */
 
 
@@ -1132,7 +1620,7 @@ cuddCProjectionRecur(
   not depend on the top variable.)  Then
   <pre>
     H(f,g) = min(H(ft,g), H(fe,g), H(ft,g)+1, H(fe,g)+1)
-           = min(H(ft,g), H(fe,g)) .
+	   = min(H(ft,g), H(fe,g)) .
   </pre>
   Therefore, under these circumstances, we skip the two "cross" cases.<p>
 

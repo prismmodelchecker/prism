@@ -2,8 +2,8 @@ CUDD
 ====
 
 This is the version of CUDD distributed with PRISM. It is a modified
-version of CUDD 2.4.0. You can find details of the modifications made
-(and original copies of the modified files) in the "modified" directory.
+version of CUDD 2.4.2. You can find details of the modifications made
+in the file MODIFICATIONS.
 
 CUDD was written by Fabio Somenzi and the copyright is owned by the
 University of Colorado. You can find unmodified copies and the latest

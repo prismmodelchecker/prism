@@ -35,10 +35,37 @@
 
   Author      [Seh-Woong Jeong, Fabio Somenzi]
 
-  Copyright   [This file was created at the University of Colorado at
-  Boulder.  The University of Colorado at Boulder makes no warranty
-  about the suitability of this software for any purpose.  It is
-  presented on an AS IS basis.]
+  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  Neither the name of the University of Colorado nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.]
 
 ******************************************************************************/
 
@@ -69,7 +96,7 @@ typedef struct cuddPathPair {
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddSat.c,v 1.33 2004/02/06 01:17:26 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddSat.c,v 1.36 2009/03/08 02:49:02 fabio Exp $";
 #endif
 
 static	DdNode	*one, *zero;
@@ -212,7 +239,7 @@ Cudd_ShortestPath(
 
 	F = Cudd_Regular(f);
 
-	st_lookup(visited, F, &rootPair);
+	if (!st_lookup(visited, F, &rootPair)) return(NULL);
 
 	if (complement) {
 	  cost = rootPair->neg;
@@ -284,7 +311,7 @@ Cudd_LargestCube(
 
 	F = Cudd_Regular(f);
 
-	st_lookup(visited, F, &rootPair);
+	if (!st_lookup(visited, F, &rootPair)) return(NULL);
 
 	if (complement) {
 	  cost = rootPair->neg;
@@ -314,7 +341,8 @@ Cudd_LargestCube(
   the DD we want to get the shortest path for; weight\[i\] is the
   weight of the THEN edge coming from the node whose index is i. All
   ELSE edges have 0 weight. Returns the length of the shortest
-  path(s) if successful; CUDD_OUT_OF_MEM otherwise.]
+  path(s) if such a path is found; a large number if the function is
+  identically 0, and CUDD_OUT_OF_MEM in case of failure.]
 
   SideEffects [None]
 
@@ -350,7 +378,7 @@ Cudd_ShortestLength(
 
     F = Cudd_Regular(f);
 
-    st_lookup(visited, F, &my_pair);
+    if (!st_lookup(visited, F, &my_pair)) return(CUDD_OUT_OF_MEM);
     
     if (complement) {
 	cost = my_pair->neg;
@@ -780,21 +808,12 @@ Cudd_EqualSupNorm(
 	} else {
 	    if (pr>0) {
 		(void) fprintf(dd->out,"Offending nodes:\n");
-#if SIZEOF_VOID_P == 8
 		(void) fprintf(dd->out,
-			       "f: address = %lx\t value = %40.30f\n",
-			       (unsigned long) f, cuddV(f));
+			       "f: address = %p\t value = %40.30f\n",
+			       (void *) f, cuddV(f));
 		(void) fprintf(dd->out,
-			       "g: address = %lx\t value = %40.30f\n",
-			       (unsigned long) g, cuddV(g));
-#else
-		(void) fprintf(dd->out,
-			       "f: address = %x\t value = %40.30f\n",
-			       (unsigned) f, cuddV(f));
-		(void) fprintf(dd->out,
-			       "g: address = %x\t value = %40.30f\n",
-			       (unsigned) g, cuddV(g));
-#endif
+			       "g: address = %p\t value = %40.30f\n",
+			       (void *) g, cuddV(g));
 	    }
 	    return(0);
 	}
@@ -856,21 +875,12 @@ Cudd_EqualSupNormRel(
 	} else {
 	    if (pr>0) {
 		(void) fprintf(dd->out,"Offending nodes:\n");
-#if SIZEOF_VOID_P == 8
 		(void) fprintf(dd->out,
-			       "f: address = %lx\t value = %40.30f\n",
-			       (unsigned long) f, cuddV(f));
+			       "f: address = %p\t value = %40.30f\n",
+			       (void *) f, cuddV(f));
 		(void) fprintf(dd->out,
-			       "g: address = %lx\t value = %40.30f\n",
-			       (unsigned long) g, cuddV(g));
-#else
-		(void) fprintf(dd->out,
-			       "f: address = %x\t value = %40.30f\n",
-			       (unsigned) f, cuddV(f));
-		(void) fprintf(dd->out,
-			       "g: address = %x\t value = %40.30f\n",
-			       (unsigned) g, cuddV(g));
-#endif
+			       "g: address = %p\t value = %40.30f\n",
+			       (void *) g, cuddV(g));
 	    }
 	    return(0);
 	}
@@ -1291,6 +1301,7 @@ getLargest(
     my_pair->pos = res_pair.pos;
     my_pair->neg = res_pair.neg;
 
+    /* Caching may fail without affecting correctness. */
     st_insert(visited, (char *)my_root, (char *)my_pair);
     if (Cudd_IsComplement(root)) {
 	res_pair.pos = my_pair->neg;
@@ -1350,7 +1361,7 @@ getCube(
 
 	if (complement) {T = Cudd_Not(T); E = Cudd_Not(E);}
 
-	st_lookup(visited, Cudd_Regular(T), &T_pair);
+	if (!st_lookup(visited, Cudd_Regular(T), &T_pair)) return(NULL);
 	if ((Cudd_IsComplement(T) && T_pair->neg == Tcost) ||
 	(!Cudd_IsComplement(T) && T_pair->pos == Tcost)) {
 	    tmp = cuddBddAndRecur(manager,manager->vars[my_dd->index],sol);
@@ -1367,7 +1378,7 @@ getCube(
 	    cost = Tcost;
 	    continue;
 	}
-	st_lookup(visited, Cudd_Regular(E), &E_pair);
+	if (!st_lookup(visited, Cudd_Regular(E), &E_pair)) return(NULL);
 	if ((Cudd_IsComplement(E) && E_pair->neg == Ecost) ||
 	(!Cudd_IsComplement(E) && E_pair->pos == Ecost)) {
 	    tmp = cuddBddAndRecur(manager,Cudd_Not(manager->vars[my_dd->index]),sol);

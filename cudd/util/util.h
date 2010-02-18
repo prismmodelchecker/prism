@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.7 2004/02/06 01:14:54 fabio Exp fabio $ */
+/* $Id: util.h,v 1.8 2007/08/24 18:17:31 fabio Exp fabio $ */
 
 #ifndef UTIL_H
 #define UTIL_H
@@ -186,24 +186,24 @@ extern char *MMrealloc (char *, long);
 #endif
 
 extern long util_cpu_time (void);
-extern int util_getopt (int, char **, char *);
+extern int util_getopt (int, char * const *, char const *);
 extern void util_getopt_reset (void);
-extern char *util_path_search (char *);
-extern char *util_file_search (char *, char *, char *);
-extern int util_pipefork (char **, FILE **, FILE **, int *);
+extern char *util_path_search (char const *);
+extern char *util_file_search (char const *, char *, char const *);
+extern int util_pipefork (char * const *, FILE **, FILE **, int *);
 extern void util_print_cpu_stats (FILE *);
 extern char *util_print_time (unsigned long);
-extern int util_save_image (char *, char *);
-extern char *util_strsav (char *);
-extern char *util_tilde_expand (char *);
-extern void util_restart (char *, char *, int);
+extern int util_save_image (char const *, char const *);
+extern char *util_strsav (char const *);
+extern char *util_tilde_expand (char const *);
+extern void util_restart (char const *, char const *, int);
 
 
 /* util_getopt() global variables (ack !) */
 extern int util_optind;
 extern char *util_optarg;
 
-extern long getSoftDataLimit (void);
+extern unsigned long getSoftDataLimit (void);
 
 #ifdef __cplusplus
 }

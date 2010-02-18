@@ -31,10 +31,37 @@
 
   Author      [Shipra Panda, Fabio Somenzi]
 
-  Copyright   [This file was created at the University of Colorado at
-  Boulder.  The University of Colorado at Boulder makes no warranty
-  about the suitability of this software for any purpose.  It is
-  presented on an AS IS basis.]
+  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  Neither the name of the University of Colorado nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.]
 
 ******************************************************************************/
 
@@ -60,7 +87,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddSymmetry.c,v 1.24 2004/01/01 06:56:47 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddSymmetry.c,v 1.26 2009/02/19 16:23:54 fabio Exp $";
 #endif
 
 static	int	*entry;
@@ -487,7 +514,7 @@ cuddSymmSiftingConv(
 #ifdef DD_STATS
 	(void) fprintf(table->out,"\n");
 #endif
-        /* Here we consider only one representative for each symmetry class. */
+	/* Here we consider only one representative for each symmetry class. */
 	for (x = lower, classes = 0; x <= upper; x++, classes++) {
 	    while ((unsigned) x < table->subtables[x].next) {
 		x = table->subtables[x].next;
@@ -754,7 +781,7 @@ ddSymmSiftingAux(
 	    x = table->subtables[i].next;
 	}
 #ifdef DD_DEBUG
-        /* x should be the top of the symmetry group and i the bottom */
+	/* x should be the top of the symmetry group and i the bottom */
 	assert((unsigned) i >= table->subtables[i].next);
 	assert((unsigned) x == table->subtables[i].next);
 #endif
@@ -794,7 +821,7 @@ ddSymmSiftingAux(
 	if (!result) goto ddSymmSiftingAuxOutOfMem;
 
     } else { /* moving up first: shorter */
-        /* Find top of x's symmetry group */
+	/* Find top of x's symmetry group */
 	x = table->subtables[x].next;
 
 	moveUp = ddSymmSiftingUp(table,x,xLow);
@@ -810,7 +837,7 @@ ddSymmSiftingAux(
 	    i = table->subtables[x].next;
 	}
 #ifdef DD_DEBUG
-        /* x is bottom of the symmetry group and i is top */
+	/* x is bottom of the symmetry group and i is top */
 	assert((unsigned) x >= table->subtables[x].next);
 	assert((unsigned) i == table->subtables[x].next);
 #endif
@@ -926,7 +953,7 @@ ddSymmSiftingConvAux(
 	/* x is bottom of symmetry group */
 	assert((unsigned) x >= table->subtables[x].next);
 #endif
-        i = table->subtables[x].next;
+	i = table->subtables[x].next;
 	initGroupSize = x - i + 1;
 
 	moveDown = ddSymmSiftingDown(table,x,xHigh);
@@ -1010,7 +1037,7 @@ ddSymmSiftingConvAux(
 	    x = table->subtables[x].next;
 	}
 #ifdef DD_DEBUG
-        /* x should be the top of the symmetry group and i the bottom */
+	/* x should be the top of the symmetry group and i the bottom */
 	assert((unsigned) i >= table->subtables[i].next);
 	assert((unsigned) x == table->subtables[i].next);
 #endif
@@ -1066,11 +1093,11 @@ ddSymmSiftingConvAux(
 		x = table->subtables[x].next;
 	}
 #ifdef DD_DEBUG
-        /* x is bottom of the symmetry group and i is top */
-        assert((unsigned) x >= table->subtables[x].next);
-        assert((unsigned) i == table->subtables[x].next);
+	/* x is bottom of the symmetry group and i is top */
+	assert((unsigned) x >= table->subtables[x].next);
+	assert((unsigned) i == table->subtables[x].next);
 #endif
-        initGroupSize = x - i + 1;
+	initGroupSize = x - i + 1;
 
 	moveDown = ddSymmSiftingDown(table,x,xHigh);
 	if (moveDown == MV_OOM) goto ddSymmSiftingConvAuxOutOfMem;
@@ -1450,7 +1477,7 @@ ddSymmGroupMove(
     int  xtop,xbot,xsize,ytop,ybot,ysize,newxtop;
     int  swapx,swapy;
 
-#if DD_DEBUG
+#ifdef DD_DEBUG
     assert(x < y);	/* we assume that x < y */
 #endif
     /* Find top, bottom, and size for the two groups. */
@@ -1465,7 +1492,7 @@ ddSymmGroupMove(
 
     /* Sift the variables of the second group up through the first group. */
     for (i = 1; i <= ysize; i++) {
-        for (j = 1; j <= xsize; j++) {
+	for (j = 1; j <= xsize; j++) {
 	    size = cuddSwapInPlace(table,x,y);
 	    if (size == 0) return(0);
 	    swapx = x; swapy = y;
@@ -1483,7 +1510,7 @@ ddSymmGroupMove(
 	y = y + 1;
     }
     table->subtables[y].next = xtop; /* y is bottom of its group, join */
-    				     /* its symmetry to top of its group */
+				     /* its symmetry to top of its group */
     x = y + 1;
     newxtop = x;
     for (i = 0; i < xsize - 1 ; i++) {
@@ -1491,7 +1518,7 @@ ddSymmGroupMove(
 	x = x + 1;
     }
     table->subtables[x].next = newxtop; /* x is bottom of its group, join */
-    					/* its symmetry to top of its group */
+					/* its symmetry to top of its group */
     /* Store group move */
     move = (Move *) cuddDynamicAllocNode(table);
     if (move == NULL) return(0);
@@ -1528,7 +1555,7 @@ ddSymmGroupMoveBackward(
     int i,j;
     int	xtop,xbot,xsize,ytop,ybot,ysize,newxtop;
 
-#if DD_DEBUG
+#ifdef DD_DEBUG
     assert(x < y); /* We assume that x < y */
 #endif
 
@@ -1544,7 +1571,7 @@ ddSymmGroupMoveBackward(
 
     /* Sift the variables of the second group up through the first group. */
     for (i = 1; i <= ysize; i++) {
-        for (j = 1; j <= xsize; j++) {
+	for (j = 1; j <= xsize; j++) {
 	    size = cuddSwapInPlace(table,x,y);
 	    if (size == 0) return(0);
 	    y = x;
@@ -1561,7 +1588,7 @@ ddSymmGroupMoveBackward(
 	y = y + 1;
     }
     table->subtables[y].next = xtop; /* y is bottom of its group, join */
-    				     /* its symmetry to top of its group */
+				     /* its symmetry to top of its group */
     x = y + 1;
     newxtop = x;
     for (i = 0; i < xsize-1 ; i++) {

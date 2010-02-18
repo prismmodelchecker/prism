@@ -32,15 +32,42 @@
 
   Author      [Hyong-Kyoon Shin, In-Ho Moon, Fabio Somenzi]
 
-  Copyright [ This file was created at the University of Colorado at
-  Boulder.  The University of Colorado at Boulder makes no warranty
-  about the suitability of this software for any purpose.  It is
-  presented on an AS IS basis.]
+  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  Neither the name of the University of Colorado nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.]
 
 ******************************************************************************/
 
-#include    "util.h"
-#include    "cuddInt.h"
+#include "util.h"
+#include "cuddInt.h"
 
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
@@ -62,7 +89,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddZddUtil.c,v 1.23 2004/02/06 01:17:27 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddZddUtil.c,v 1.27 2009/03/08 02:49:02 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -611,14 +638,14 @@ Cudd_zddDumpDot(
     retval = fprintf(fp,"  \"CONST NODES\" [style = invis];\n");
     if (retval == EOF) goto failure;
     for (i = 0; i < nvars; i++) {
-        if (sorted[dd->invpermZ[i]]) {
+	if (sorted[dd->invpermZ[i]]) {
 	    if (inames == NULL) {
 		retval = fprintf(fp,"\" %d \" -> ", dd->invpermZ[i]);
 	    } else {
 		retval = fprintf(fp,"\" %s \" -> ", inames[dd->invpermZ[i]]);
 	    }
-            if (retval == EOF) goto failure;
-        }
+	    if (retval == EOF) goto failure;
+	}
     }
     retval = fprintf(fp,"\"CONST NODES\"; \n}\n");
     if (retval == EOF) goto failure;
@@ -643,7 +670,7 @@ Cudd_zddDumpDot(
 
     /* Write rank info: All nodes with the same index have the same rank. */
     for (i = 0; i < nvars; i++) {
-        if (sorted[dd->invpermZ[i]]) {
+	if (sorted[dd->invpermZ[i]]) {
 	    retval = fprintf(fp,"{ rank = same; ");
 	    if (retval == EOF) goto failure;
 	    if (inames == NULL) {
@@ -651,15 +678,15 @@ Cudd_zddDumpDot(
 	    } else {
 		retval = fprintf(fp,"\" %s \";\n", inames[dd->invpermZ[i]]);
 	    }
-            if (retval == EOF) goto failure;
+	    if (retval == EOF) goto failure;
 	    nodelist = dd->subtableZ[i].nodelist;
 	    slots = dd->subtableZ[i].slots;
 	    for (j = 0; j < slots; j++) {
 		scan = nodelist[j];
 		while (scan != NULL) {
 		    if (st_is_member(visited,(char *) scan)) {
-			retval = fprintf(fp,"\"%lx\";\n", (unsigned long)
-					 ((mask & (long) scan) /
+			retval = fprintf(fp,"\"%p\";\n", (void *)
+					 ((mask & (ptrint) scan) /
 					  sizeof(DdNode)));
 			if (retval == EOF) goto failure;
 		    }
@@ -681,8 +708,8 @@ Cudd_zddDumpDot(
 	scan = nodelist[j];
 	while (scan != NULL) {
 	    if (st_is_member(visited,(char *) scan)) {
-		retval = fprintf(fp,"\"%lx\";\n", (unsigned long)
-				 ((mask & (long) scan) / sizeof(DdNode)));
+		retval = fprintf(fp,"\"%p\";\n", (void *)
+				 ((mask & (ptrint) scan) / sizeof(DdNode)));
 		if (retval == EOF) goto failure;
 	    }
 	    scan = scan->next;
@@ -700,15 +727,15 @@ Cudd_zddDumpDot(
 	    retval = fprintf(fp,"\"  %s  \"", onames[i]);
 	}
 	if (retval == EOF) goto failure;
-	retval = fprintf(fp," -> \"%lx\" [style = solid];\n",
-			 (unsigned long) ((mask & (long) f[i]) /
+	retval = fprintf(fp," -> \"%p\" [style = solid];\n",
+			 (void *) ((mask & (ptrint) f[i]) /
 					  sizeof(DdNode)));
 	if (retval == EOF) goto failure;
     }
 
     /* Edges from internal nodes. */
     for (i = 0; i < nvars; i++) {
-        if (sorted[dd->invpermZ[i]]) {
+	if (sorted[dd->invpermZ[i]]) {
 	    nodelist = dd->subtableZ[i].nodelist;
 	    slots = dd->subtableZ[i].slots;
 	    for (j = 0; j < slots; j++) {
@@ -716,19 +743,18 @@ Cudd_zddDumpDot(
 		while (scan != NULL) {
 		    if (st_is_member(visited,(char *) scan)) {
 			retval = fprintf(fp,
-			    "\"%lx\" -> \"%lx\";\n",
-			    (unsigned long) ((mask & (long) scan) /
-					     sizeof(DdNode)),
-			    (unsigned long) ((mask & (long) cuddT(scan)) /
-					     sizeof(DdNode)));
+			    "\"%p\" -> \"%p\";\n",
+			    (void *) ((mask & (ptrint) scan) / sizeof(DdNode)),
+			    (void *) ((mask & (ptrint) cuddT(scan)) /
+				      sizeof(DdNode)));
 			if (retval == EOF) goto failure;
 			retval = fprintf(fp,
-					 "\"%lx\" -> \"%lx\" [style = dashed];\n",
-					 (unsigned long) ((mask & (long) scan)
-							  / sizeof(DdNode)),
-					 (unsigned long) ((mask & (long)
-							   cuddE(scan)) /
-							  sizeof(DdNode)));
+					 "\"%p\" -> \"%p\" [style = dashed];\n",
+					 (void *) ((mask & (ptrint) scan)
+						   / sizeof(DdNode)),
+					 (void *) ((mask & (ptrint)
+						    cuddE(scan)) /
+						   sizeof(DdNode)));
 			if (retval == EOF) goto failure;
 		    }
 		    scan = scan->next;
@@ -744,9 +770,9 @@ Cudd_zddDumpDot(
 	scan = nodelist[j];
 	while (scan != NULL) {
 	    if (st_is_member(visited,(char *) scan)) {
-		retval = fprintf(fp,"\"%lx\" [label = \"%g\"];\n",
-				 (unsigned long) ((mask & (long) scan) /
-						  sizeof(DdNode)),
+		retval = fprintf(fp,"\"%p\" [label = \"%g\"];\n",
+				 (void *) ((mask & (ptrint) scan) /
+					   sizeof(DdNode)),
 				 cuddV(scan));
 		if (retval == EOF) goto failure;
 	    }
@@ -764,7 +790,6 @@ Cudd_zddDumpDot(
 
 failure:
     if (sorted != NULL) FREE(sorted);
-    if (support != NULL) Cudd_RecursiveDeref(dd,support);
     if (visited != NULL) st_free_table(visited);
     return(0);
 
@@ -781,7 +806,7 @@ failure:
   Synopsis [Prints a ZDD to the standard output. One line per node is
   printed.]
 
-  Description [Prints a ZDD to the standard output. One line per node is 
+  Description [Prints a ZDD to the standard output. One line per node is
   printed. Returns 1 if successful; 0 otherwise.]
 
   SideEffects [None]
@@ -833,12 +858,12 @@ zp2(
     DdNode	*n;
     int		T, E;
     DdNode	*base = DD_ONE(zdd);
-    
+
     if (f == NULL)
 	return(0);
 
     if (Cudd_IsConstant(f)) {
-        (void)fprintf(zdd->out, "ID = %d\n", (f == base));
+	(void)fprintf(zdd->out, "ID = %d\n", (f == base));
 	return(1);
     }
     if (st_is_member(t, (char *)f) == 1)
@@ -848,37 +873,39 @@ zp2(
 	return(0);
 
 #if SIZEOF_VOID_P == 8
-    (void) fprintf(zdd->out, "ID = 0x%lx\tindex = %d\tr = %d\t",
-	(unsigned long)f / (unsigned long) sizeof(DdNode), f->index, f->ref);
+    (void) fprintf(zdd->out, "ID = 0x%lx\tindex = %u\tr = %u\t",
+	(ptruint)f / (ptruint) sizeof(DdNode), f->index, f->ref);
 #else
-    (void) fprintf(zdd->out, "ID = 0x%x\tindex = %d\tr = %d\t",
-	(unsigned)f / (unsigned) sizeof(DdNode), f->index, f->ref);
+    (void) fprintf(zdd->out, "ID = 0x%x\tindex = %hu\tr = %hu\t",
+	(ptruint)f / (ptruint) sizeof(DdNode), f->index, f->ref);
 #endif
 
     n = cuddT(f);
     if (Cudd_IsConstant(n)) {
-        (void) fprintf(zdd->out, "T = %d\t\t", (n == base));
+	(void) fprintf(zdd->out, "T = %d\t\t", (n == base));
 	T = 1;
     } else {
 #if SIZEOF_VOID_P == 8
-        (void) fprintf(zdd->out, "T = 0x%lx\t", (unsigned long) n /
-		       (unsigned long) sizeof(DdNode));
+	(void) fprintf(zdd->out, "T = 0x%lx\t", (ptruint) n /
+		       (ptruint) sizeof(DdNode));
 #else
-        (void) fprintf(zdd->out, "T = 0x%x\t", (unsigned) n / (unsigned) sizeof(DdNode));
+	(void) fprintf(zdd->out, "T = 0x%x\t", (ptruint) n /
+		       (ptruint) sizeof(DdNode));
 #endif
 	T = 0;
     }
 
     n = cuddE(f);
     if (Cudd_IsConstant(n)) {
-        (void) fprintf(zdd->out, "E = %d\n", (n == base));
+	(void) fprintf(zdd->out, "E = %d\n", (n == base));
 	E = 1;
     } else {
 #if SIZEOF_VOID_P == 8
-        (void) fprintf(zdd->out, "E = 0x%lx\n", (unsigned long) n /
-		      (unsigned long) sizeof(DdNode));
+	(void) fprintf(zdd->out, "E = 0x%lx\n", (ptruint) n /
+		      (ptruint) sizeof(DdNode));
 #else
-        (void) fprintf(zdd->out, "E = 0x%x\n", (unsigned) n / (unsigned) sizeof(DdNode));
+	(void) fprintf(zdd->out, "E = 0x%x\n", (ptruint) n /
+		       (ptruint) sizeof(DdNode));
 #endif
 	E = 0;
     }

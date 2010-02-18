@@ -31,7 +31,7 @@ util_getopt_reset()
 
 
 int 
-util_getopt(int argc, char *argv[], char *optstring)
+util_getopt(int argc, char * const argv[], char const *optstring)
 {
     register int c;
     register char *place;

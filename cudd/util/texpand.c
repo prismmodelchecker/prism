@@ -9,14 +9,11 @@
 
 
 char *
-util_tilde_expand(char *fname)
+util_tilde_expand(char const *fname)
 {
 #ifdef BSD
     struct passwd *userRecord;
     char username[256], *filename;
-#ifndef _IBMR2
-    char *strcat (char *, const char *);
-#endif
     register int i, j;
 
     filename = ALLOC(char, strlen(fname) + 256);

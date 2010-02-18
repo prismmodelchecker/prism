@@ -27,10 +27,37 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright   [This file was created at the University of Colorado at
-  Boulder.  The University of Colorado at Boulder makes no warranty
-  about the suitability of this software for any purpose.  It is
-  presented on an AS IS basis.]
+  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  Neither the name of the University of Colorado nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.]
 
 ******************************************************************************/
 
@@ -65,7 +92,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddLinear.c,v 1.25 2004/01/01 06:56:45 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddLinear.c,v 1.28 2009/02/19 16:21:03 fabio Exp $";
 #endif
 
 static	int	*entry;
@@ -107,7 +134,7 @@ static void cuddXorLinear (DdManager *table, int x, int y);
 
 
 /**Function********************************************************************
- 
+
   Synopsis    [Prints the linear transform matrix.]
 
   Description [Prints the linear transform matrix. Returns 1 in case of
@@ -146,7 +173,7 @@ Cudd_PrintLinear(
 
 
 /**Function********************************************************************
- 
+
   Synopsis    [Reads an entry of the linear transform matrix.]
 
   Description [Reads an entry of the linear transform matrix.]
@@ -230,19 +257,19 @@ cuddLinearAndSifting(
     entry = NULL;
     if (table->linear == NULL) {
 	result = cuddInitLinear(table);
-	if (result == 0) goto cuddLinearAndSiftingOutOfMem; 
+	if (result == 0) goto cuddLinearAndSiftingOutOfMem;
 #if 0
 	(void) fprintf(table->out,"\n");
 	result = Cudd_PrintLinear(table);
-	if (result == 0) goto cuddLinearAndSiftingOutOfMem; 
+	if (result == 0) goto cuddLinearAndSiftingOutOfMem;
 #endif
     } else if (table->size != table->linearSize) {
 	result = cuddResizeLinear(table);
-	if (result == 0) goto cuddLinearAndSiftingOutOfMem; 
+	if (result == 0) goto cuddLinearAndSiftingOutOfMem;
 #if 0
 	(void) fprintf(table->out,"\n");
 	result = Cudd_PrintLinear(table);
-	if (result == 0) goto cuddLinearAndSiftingOutOfMem; 
+	if (result == 0) goto cuddLinearAndSiftingOutOfMem;
 #endif
     }
 
@@ -274,7 +301,7 @@ cuddLinearAndSifting(
 	previousSize = table->keys - table->isolated;
 #endif
 	result = ddLinearAndSiftingAux(table,x,lower,upper);
-	if (!result) goto cuddLinearAndSiftingOutOfMem; 
+	if (!result) goto cuddLinearAndSiftingOutOfMem;
 #ifdef DD_STATS
 	if (table->keys < (unsigned) previousSize + table->isolated) {
 	    (void) fprintf(table->out,"-");
@@ -306,13 +333,13 @@ cuddLinearAndSiftingOutOfMem:
     if (entry != NULL) FREE(entry);
     if (var != NULL) FREE(var);
 
-    return(0); 
+    return(0);
 
 } /* end of cuddLinearAndSifting */
 
 
 /**Function********************************************************************
- 
+
   Synopsis    [Linearly combines two adjacent variables.]
 
   Description [Linearly combines two adjacent variables. Specifically,
@@ -350,7 +377,7 @@ cuddLinearInPlace(
     DdNodePtr *previousP;
     DdNode *tmp;
     DdNode *sentinel = &(table->sentinel);
-#if DD_DEBUG
+#ifdef DD_DEBUG
     int    count, idcheck;
 #endif
 
@@ -371,7 +398,7 @@ cuddLinearInPlace(
 	ddTotalNumberLinearTr++;
 #endif
 	/* Get parameters of x subtable. */
-	xlist = table->subtables[x].nodelist; 
+	xlist = table->subtables[x].nodelist;
 	oldxkeys = table->subtables[x].keys;
 	xslots = table->subtables[x].slots;
 	xshift = table->subtables[x].shift;
@@ -399,6 +426,9 @@ cuddLinearInPlace(
 	** last points to the end.
 	*/
 	g = NULL;
+#ifdef DD_DEBUG
+	last = NULL;
+#endif
 	for (i = 0; i < xslots; i++) {
 	    f = xlist[i];
 	    if (f == sentinel) continue;
@@ -413,6 +443,11 @@ cuddLinearInPlace(
 	    } /* while there are elements in the collision chain */
 	    last = f;
 	} /* for each slot of the x subtable */
+#ifdef DD_DEBUG
+	/* last is always assigned in the for loop because there is at
+	** least one key */
+	assert(last != NULL);
+#endif
 	last->next = NULL;
 
 #ifdef DD_COUNT
@@ -502,7 +537,7 @@ cuddLinearInPlace(
 	    if (f01 == f10) {
 		newf0 = f01;
 		tmp = Cudd_Regular(newf0);
-		cuddSatInc(tmp->ref); 
+		cuddSatInc(tmp->ref);
 	    } else {
 		/* make sure f01 is regular */
 		newcomplement = Cudd_IsComplement(f01);
@@ -524,7 +559,7 @@ cuddLinearInPlace(
 		    newf0 = *previousP;
 		}
 		if (cuddT(newf0) == f01 && cuddE(newf0) == f10) {
-		    cuddSatInc(newf0->ref); 
+		    cuddSatInc(newf0->ref);
 		} else { /* no match */
 		    newf0 = cuddDynamicAllocNode(table);
 		    if (newf0 == NULL)
@@ -593,7 +628,7 @@ cuddLinearInPlace(
 	    *previousP = sentinel;
 	} /* for every collision list */
 
-#if DD_DEBUG
+#ifdef DD_DEBUG
 #if 0
 	(void) fprintf(table->out,"Linearly combining %d and %d\n",x,y);
 #endif
@@ -665,7 +700,7 @@ cuddLinearOutOfMem:
 
 
 /**Function********************************************************************
- 
+
   Synopsis    [Updates the interaction matrix.]
 
   Description []
@@ -705,7 +740,7 @@ cuddUpdateInteractionMatrix(
 
 
 /**Function********************************************************************
- 
+
   Synopsis    [Initializes the linear transform matrix.]
 
   Description [Initializes the linear transform matrix.  Returns 1 if
@@ -750,7 +785,7 @@ cuddInitLinear(
 
 
 /**Function********************************************************************
- 
+
   Synopsis    [Resizes the linear transform matrix.]
 
   Description [Resizes the linear transform matrix.  Returns 1 if
@@ -880,7 +915,7 @@ ddLinearAndSiftingAux(
 	moveDown = ddLinearAndSiftingDown(table,x,xHigh,NULL);
 	/* At this point x --> xHigh unless bounding occurred. */
 	if (moveDown == (Move *) CUDD_OUT_OF_MEM) goto ddLinearAndSiftingAuxOutOfMem;
-	/* Move backward and stop at best position. */	
+	/* Move backward and stop at best position. */
 	result = ddLinearAndSiftingBackward(table,initialSize,moveDown);
 	if (!result) goto ddLinearAndSiftingAuxOutOfMem;
 
@@ -902,7 +937,7 @@ ddLinearAndSiftingAux(
 #endif
 	moveUp = ddLinearAndSiftingUp(table,x,xLow,moveUp);
 	if (moveUp == (Move *) CUDD_OUT_OF_MEM) goto ddLinearAndSiftingAuxOutOfMem;
-	/* Move backward and stop at best position. */	
+	/* Move backward and stop at best position. */
 	result = ddLinearAndSiftingBackward(table,initialSize,moveUp);
 	if (!result) goto ddLinearAndSiftingAuxOutOfMem;
 
@@ -916,7 +951,7 @@ ddLinearAndSiftingAux(
 #endif
 	moveDown = ddLinearAndSiftingDown(table,x,xHigh,moveDown);
 	if (moveDown == (Move *) CUDD_OUT_OF_MEM) goto ddLinearAndSiftingAuxOutOfMem;
-	/* Move backward and stop at best position. */	
+	/* Move backward and stop at best position. */
 	result = ddLinearAndSiftingBackward(table,initialSize,moveDown);
 	if (!result) goto ddLinearAndSiftingAuxOutOfMem;
     }
@@ -1072,7 +1107,7 @@ ddLinearAndSiftingUpOutOfMem:
     return((Move *) CUDD_OUT_OF_MEM);
 
 } /* end of ddLinearAndSiftingUp */
-    
+
 
 /**Function********************************************************************
 
@@ -1142,7 +1177,7 @@ ddLinearAndSiftingDown(
 	    R -= table->subtables[y].keys - isolated;
 	}
 	size = cuddSwapInPlace(table,x,y);
-	if (size == 0) goto ddLinearAndSiftingDownOutOfMem; 
+	if (size == 0) goto ddLinearAndSiftingDownOutOfMem;
 	newsize = cuddLinearInPlace(table,x,y);
 	if (newsize == 0) goto ddLinearAndSiftingDownOutOfMem;
 	move = (Move *) cuddDynamicAllocNode(table);
@@ -1299,7 +1334,7 @@ ddUndoMovesOutOfMem:
 
 
 /**Function********************************************************************
- 
+
   Synopsis    [XORs two rows of the linear transform matrix.]
 
   Description [XORs two rows of the linear transform matrix and replaces
@@ -1328,4 +1363,3 @@ cuddXorLinear(
     }
 
 } /* end of cuddXorLinear */
-

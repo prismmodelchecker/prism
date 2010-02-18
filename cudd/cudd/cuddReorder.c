@@ -38,10 +38,37 @@
 
   Author      [Shipra Panda, Bernard Plessier, Fabio Somenzi]
 
-  Copyright   [This file was created at the University of Colorado at
-  Boulder.  The University of Colorado at Boulder makes no warranty
-  about the suitability of this software for any purpose.  It is
-  presented on an AS IS basis.]
+  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  Neither the name of the University of Colorado nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.]
 
 ******************************************************************************/
 
@@ -68,7 +95,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddReorder.c,v 1.66 2004/01/01 06:56:46 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddReorder.c,v 1.69 2009/02/21 18:24:10 fabio Exp $";
 #endif
 
 static	int	*entry;
@@ -184,7 +211,7 @@ Cudd_ReduceHeap(
 
     if (!ddReorderPreprocess(table)) return(0);
     ddTotalNumberSwapping = 0;
-    
+
     if (table->keys > table->peakLiveNodes) {
 	table->peakLiveNodes = table->keys;
     }
@@ -229,7 +256,7 @@ Cudd_ReduceHeap(
     default:
 	return(0);
     }
-    (void) fprintf(table->out,"%8d: initial size",initialSize); 
+    (void) fprintf(table->out,"%8d: initial size",initialSize);
 #endif
 
     /* See if we should use alternate threshold for maximum growth. */
@@ -245,9 +272,9 @@ Cudd_ReduceHeap(
 #ifdef DD_STATS
     (void) fprintf(table->out,"\n");
     finalSize = table->keys - table->isolated;
-    (void) fprintf(table->out,"#:F_REORDER %8d: final size\n",finalSize); 
+    (void) fprintf(table->out,"#:F_REORDER %8d: final size\n",finalSize);
     (void) fprintf(table->out,"#:T_REORDER %8g: total time (sec)\n",
-		   ((double)(util_cpu_time() - localTime)/1000.0)); 
+		   ((double)(util_cpu_time() - localTime)/1000.0));
     (void) fprintf(table->out,"#:N_REORDER %8d: total swaps\n",
 		   ddTotalNumberSwapping);
     (void) fprintf(table->out,"#:M_REORDER %8d: NI swaps\n",ddTotalNISwaps);
@@ -392,7 +419,7 @@ cuddDynamicAllocNode(
 	    table->stash = NULL;
 	    /* Inhibit resizing of tables. */
 	    table->maxCacheHard = table->cacheSlots - 1;
-	    table->cacheSlack = -(table->cacheSlots + 1);
+	    table->cacheSlack = - (int) (table->cacheSlots + 1);
 	    for (i = 0; i < table->size; i++) {
 		table->subtables[i].maxKeys <<= 2;
 	    }
@@ -431,7 +458,7 @@ cuddDynamicAllocNode(
 
 	    i = 1;
 	    do {
-	        list[i - 1].ref = 0;
+		list[i - 1].ref = 0;
 		list[i - 1].next = &list[i];
 	    } while (++i < DD_MEM_CHUNK);
 
@@ -512,7 +539,7 @@ cuddSifting(
 	    break;
 	x = table->perm[var[i]];
 
-	if (x < lower || x > upper || table->subtables[x].bindVar == 1) 
+	if (x < lower || x > upper || table->subtables[x].bindVar == 1)
 	    continue;
 #ifdef DD_STATS
 	previousSize = table->keys - table->isolated;
@@ -542,7 +569,7 @@ cuddSiftingOutOfMem:
     if (entry != NULL) FREE(entry);
     if (var != NULL) FREE(var);
 
-    return(0); 
+    return(0);
 
 } /* end of cuddSifting */
 
@@ -646,7 +673,7 @@ cuddSwapping(
 #endif
 #if 0
 	(void) fprintf(table->out,"#:t_SWAPPING %8d: tmp size\n",
-		       table->keys - table->isolated); 
+		       table->keys - table->isolated);
 #endif
     }
 
@@ -684,7 +711,7 @@ cuddNextHigh(
     return(x+1);
 
 } /* end of cuddNextHigh */
-    
+
 
 /**Function********************************************************************
 
@@ -747,7 +774,7 @@ cuddSwapInPlace(
     extern DD_OOMFP MMoutOfMemory;
     DD_OOMFP saveHandler;
 
-#if DD_DEBUG
+#ifdef DD_DEBUG
     int    count,idcheck;
 #endif
 
@@ -764,7 +791,7 @@ cuddSwapInPlace(
 
     /* Get parameters of x subtable. */
     xindex = table->invperm[x];
-    xlist = table->subtables[x].nodelist; 
+    xlist = table->subtables[x].nodelist;
     oldxkeys = table->subtables[x].keys;
     xslots = table->subtables[x].slots;
     xshift = table->subtables[x].shift;
@@ -1002,7 +1029,7 @@ cuddSwapInPlace(
 	    if (f10 == f00) {
 		newf0 = f00;
 		tmp = Cudd_Regular(newf0);
-		cuddSatInc(tmp->ref); 
+		cuddSatInc(tmp->ref);
 	    } else {
 		/* make sure f10 is regular */
 		newcomplement = Cudd_IsComplement(f10);
@@ -1024,7 +1051,7 @@ cuddSwapInPlace(
 		    newf0 = *previousP;
 		}
 		if (cuddT(newf0) == f10 && cuddE(newf0) == f00) {
-		    cuddSatInc(newf0->ref); 
+		    cuddSatInc(newf0->ref);
 		} else { /* no match */
 		    newf0 = cuddDynamicAllocNode(table);
 		    if (newf0 == NULL)
@@ -1093,7 +1120,7 @@ cuddSwapInPlace(
 	    *previousP = sentinel;
 	} /* for i */
 
-#if DD_DEBUG
+#ifdef DD_DEBUG
 #if 0
 	(void) fprintf(table->out,"Swapping %d and %d\n",x,y);
 #endif
@@ -1335,11 +1362,11 @@ ddSwapAny(
 	if ( xNext == yNext) {
 	    size = cuddSwapInPlace(table,x,xNext);
 	    if (size == 0) goto ddSwapAnyOutOfMem;
-	    move = (Move *) cuddDynamicAllocNode(table);			
+	    move = (Move *) cuddDynamicAllocNode(table);
 	    if (move == NULL) goto ddSwapAnyOutOfMem;
 	    move->x = x;
 	    move->y = xNext;
-	    move->size = size; 
+	    move->size = size;
 	    move->next = moves;
 	    moves = move;
 
@@ -1349,7 +1376,7 @@ ddSwapAny(
 	    if (move == NULL) goto ddSwapAnyOutOfMem;
 	    move->x = yNext;
 	    move->y = y;
-	    move->size = size; 
+	    move->size = size;
 	    move->next = moves;
 	    moves = move;
 
@@ -1366,7 +1393,7 @@ ddSwapAny(
 	    tmp = x; x = y; y = tmp;
 
 	} else if (x == yNext) {
-	    
+
 	    size = cuddSwapInPlace(table,x,xNext);
 	    if (size == 0) goto ddSwapAnyOutOfMem;
 	    move = (Move *) cuddDynamicAllocNode(table);
@@ -1386,7 +1413,7 @@ ddSwapAny(
 	    if (move == NULL) goto ddSwapAnyOutOfMem;
 	    move->x = x;
 	    move->y = xNext;
-	    move->size = size; 
+	    move->size = size;
 	    move->next = moves;
 	    moves = move;
 
@@ -1418,13 +1445,13 @@ ddSwapAny(
 	if (move == NULL) goto ddSwapAnyOutOfMem;
 	move->x = yNext;
 	move->y = y;
-	move->size = size; 
+	move->size = size;
 	move->next = moves;
 	moves = move;
     }
 
     return(moves);
-    
+
 ddSwapAnyOutOfMem:
     while (moves != NULL) {
 	move = moves->next;
@@ -1471,7 +1498,7 @@ ddSiftingAux(
 	moveDown = ddSiftingDown(table,x,xHigh);
 	/* At this point x --> xHigh unless bounding occurred. */
 	if (moveDown == (Move *) CUDD_OUT_OF_MEM) goto ddSiftingAuxOutOfMem;
-	/* Move backward and stop at best position. */	
+	/* Move backward and stop at best position. */
 	result = ddSiftingBackward(table,initialSize,moveDown);
 	if (!result) goto ddSiftingAuxOutOfMem;
 
@@ -1492,7 +1519,7 @@ ddSiftingAux(
 	}
 	moveUp = ddSiftingUp(table,x,xLow);
 	if (moveUp == (Move *) CUDD_OUT_OF_MEM) goto ddSiftingAuxOutOfMem;
-	/* Move backward and stop at best position */	
+	/* Move backward and stop at best position */
 	result = ddSiftingBackward(table,initialSize,moveUp);
 	if (!result) goto ddSiftingAuxOutOfMem;
 
@@ -1505,7 +1532,7 @@ ddSiftingAux(
 	}
 	moveDown = ddSiftingDown(table,x,xHigh);
 	if (moveDown == (Move *) CUDD_OUT_OF_MEM) goto ddSiftingAuxOutOfMem;
-	/* Move backward and stop at best position. */	
+	/* Move backward and stop at best position. */
 	result = ddSiftingBackward(table,initialSize,moveDown);
 	if (!result) goto ddSiftingAuxOutOfMem;
     }
@@ -1641,7 +1668,7 @@ ddSiftingUpOutOfMem:
     return((Move *) CUDD_OUT_OF_MEM);
 
 } /* end of ddSiftingUp */
-    
+
 
 /**Function********************************************************************
 
@@ -1708,7 +1735,7 @@ ddSiftingDown(
 	    R -= table->subtables[y].keys - isolated;
 	}
 	size = cuddSwapInPlace(table,x,y);
-	if (size == 0) goto ddSiftingDownOutOfMem; 
+	if (size == 0) goto ddSiftingDownOutOfMem;
 	move = (Move *) cuddDynamicAllocNode(table);
 	if (move == NULL) goto ddSiftingDownOutOfMem;
 	move->x = x;
@@ -1765,7 +1792,7 @@ ddSiftingBackward(
     for (move = moves; move != NULL; move = move->next) {
 	if (move->size == size) return(1);
 	res = cuddSwapInPlace(table,(int)move->x,(int)move->y);
-	if (!res) return(0);	
+	if (!res) return(0);
     }
 
     return(1);
@@ -1879,7 +1906,7 @@ ddShuffle(
     localTime = util_cpu_time();
     initialSize = table->keys - table->isolated;
     (void) fprintf(table->out,"#:I_SHUFFLE %8d: initial size\n",
-		   initialSize); 
+		   initialSize);
     ddTotalNISwaps = 0;
 #endif
 
@@ -1908,9 +1935,9 @@ ddShuffle(
 #ifdef DD_STATS
     (void) fprintf(table->out,"\n");
     finalSize = table->keys - table->isolated;
-    (void) fprintf(table->out,"#:F_SHUFFLE %8d: final size\n",finalSize); 
+    (void) fprintf(table->out,"#:F_SHUFFLE %8d: final size\n",finalSize);
     (void) fprintf(table->out,"#:T_SHUFFLE %8g: total time (sec)\n",
-	((double)(util_cpu_time() - localTime)/1000.0)); 
+	((double)(util_cpu_time() - localTime)/1000.0));
     (void) fprintf(table->out,"#:N_SHUFFLE %8d: total swaps\n",
 		   ddTotalNumberSwapping);
     (void) fprintf(table->out,"#:M_SHUFFLE %8d: NI swaps\n",ddTotalNISwaps);
@@ -2011,8 +2038,8 @@ ddUpdateMtrTree(
   int * perm,
   int * invperm)
 {
-    int	i, size, index, level;
-    int	minLevel, maxLevel, minIndex;
+    unsigned int i, size;
+    int index, level, minLevel, maxLevel, minIndex;
 
     if (treenode == NULL) return(1);
 
@@ -2070,8 +2097,8 @@ ddCheckPermuation(
   int * perm,
   int * invperm)
 {
-    int	i, size, index, level;
-    int	minLevel, maxLevel;
+    unsigned int i, size;
+    int index, level, minLevel, maxLevel;
 
     if (treenode == NULL) return(1);
 

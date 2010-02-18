@@ -27,15 +27,42 @@
 
   Author      [In-Ho Moon]
 
-  Copyright [ This file was created at the University of Colorado at
-  Boulder.  The University of Colorado at Boulder makes no warranty
-  about the suitability of this software for any purpose.  It is
-  presented on an AS IS basis.]
+  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  Neither the name of the University of Colorado nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.]
 
 ******************************************************************************/
 
-#include	"util.h"
-#include	"cuddInt.h"
+#include "util.h"
+#include "cuddInt.h"
 
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
@@ -57,7 +84,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddZddIsop.c,v 1.16 2004/01/01 06:56:48 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddZddIsop.c,v 1.20 2009/02/19 16:26:12 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -225,11 +252,11 @@ cuddZddIsop(
     statLine(dd);
     if (L == zero) {
 	*zdd_I = zdd_zero;
-    	return(zero);
+	return(zero);
     }
     if (U == one) {
 	*zdd_I = zdd_one;
-    	return(one);
+	return(one);
     }
 
     if (U == zero || L == one) {
@@ -264,28 +291,28 @@ cuddZddIsop(
     /* Compute cofactors. */
     if (top_l == v) {
 	index = Cudd_Regular(L)->index;
-    	Lv = Cudd_T(L);
-    	Lnv = Cudd_E(L);
-    	if (Cudd_IsComplement(L)) {
-    	    Lv = Cudd_Not(Lv);
-    	    Lnv = Cudd_Not(Lnv);
-    	}
+	Lv = Cudd_T(L);
+	Lnv = Cudd_E(L);
+	if (Cudd_IsComplement(L)) {
+	    Lv = Cudd_Not(Lv);
+	    Lnv = Cudd_Not(Lnv);
+	}
     }
     else {
 	index = Cudd_Regular(U)->index;
-        Lv = Lnv = L;
+	Lv = Lnv = L;
     }
 
     if (top_u == v) {
-    	Uv = Cudd_T(U);
-    	Unv = Cudd_E(U);
-    	if (Cudd_IsComplement(U)) {
-    	    Uv = Cudd_Not(Uv);
-    	    Unv = Cudd_Not(Unv);
-    	}
+	Uv = Cudd_T(U);
+	Unv = Cudd_E(U);
+	if (Cudd_IsComplement(U)) {
+	    Uv = Cudd_Not(Uv);
+	    Unv = Cudd_Not(Unv);
+	}
     }
     else {
-        Uv = Unv = U;
+	Uv = Unv = U;
     }
 
     Lsub0 = cuddBddAndRecur(dd, Lnv, Cudd_Not(Uv));
@@ -560,14 +587,14 @@ cuddBddIsop(
 
     statLine(dd);
     if (L == zero)
-    	return(zero);
+	return(zero);
     if (U == one)
-    	return(one);
+	return(one);
 
     /* Check cache */
     r = cuddCacheLookup2(dd, cuddBddIsop, L, U);
     if (r)
-    	return(r);
+	return(r);
 
     top_l = dd->perm[Cudd_Regular(L)->index];
     top_u = dd->perm[Cudd_Regular(U)->index];
@@ -576,28 +603,28 @@ cuddBddIsop(
     /* Compute cofactors */
     if (top_l == v) {
 	index = Cudd_Regular(L)->index;
-    	Lv = Cudd_T(L);
-    	Lnv = Cudd_E(L);
-    	if (Cudd_IsComplement(L)) {
-    	    Lv = Cudd_Not(Lv);
-    	    Lnv = Cudd_Not(Lnv);
-    	}
+	Lv = Cudd_T(L);
+	Lnv = Cudd_E(L);
+	if (Cudd_IsComplement(L)) {
+	    Lv = Cudd_Not(Lv);
+	    Lnv = Cudd_Not(Lnv);
+	}
     }
     else {
 	index = Cudd_Regular(U)->index;
-        Lv = Lnv = L;
+	Lv = Lnv = L;
     }
 
     if (top_u == v) {
-    	Uv = Cudd_T(U);
-    	Unv = Cudd_E(U);
-    	if (Cudd_IsComplement(U)) {
-    	    Uv = Cudd_Not(Uv);
-    	    Unv = Cudd_Not(Unv);
-    	}
+	Uv = Cudd_T(U);
+	Unv = Cudd_E(U);
+	if (Cudd_IsComplement(U)) {
+	    Uv = Cudd_Not(Uv);
+	    Unv = Cudd_Not(Unv);
+	}
     }
     else {
-        Uv = Unv = U;
+	Uv = Unv = U;
     }
 
     Lsub0 = cuddBddAndRecur(dd, Lnv, Cudd_Not(Uv));
@@ -788,7 +815,7 @@ cuddMakeBddFromZddCover(
 	return(neW);
 
     v = Cudd_Regular(node)->index;	/* either yi or zi */
-    cuddZddGetCofactors3(dd, node, v, &f1, &f0, &fd);
+    if (cuddZddGetCofactors3(dd, node, v, &f1, &f0, &fd)) return(NULL);
     Cudd_Ref(f1);
     Cudd_Ref(f0);
     Cudd_Ref(fd);
@@ -802,7 +829,7 @@ cuddMakeBddFromZddCover(
     }
     Cudd_Ref(b1);
     b0 = cuddMakeBddFromZddCover(dd, f0);
-    if (!b1) {
+    if (!b0) {
 	Cudd_RecursiveDerefZdd(dd, f1);
 	Cudd_RecursiveDerefZdd(dd, f0);
 	Cudd_RecursiveDerefZdd(dd, fd);
@@ -882,4 +909,3 @@ cuddMakeBddFromZddCover(
 /*---------------------------------------------------------------------------*/
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
-

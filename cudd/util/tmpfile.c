@@ -14,15 +14,13 @@
 
 #ifdef UNIX
 
-extern char *mktemp (char *);
-
 FILE *
 tmpfile()
 {
     FILE *fp;
     char *filename, *junk;
 
-    junk = strsav((char *)"/usr/tmp/misIIXXXXXX");
+    junk = strsav((char *)"/usr/tmp/cudd-XXXXXX");
     filename = mktemp(junk);
     if ((fp = fopen(filename, "w+")) == NULL) {
 	FREE(junk);

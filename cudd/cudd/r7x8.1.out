@@ -1,5 +1,5 @@
 # TestCudd Version #1.0, Release date 3/17/01
-# testcudd -p 2 r7x8.1.mat
+# ./testcudd -p 2 r7x8.1.mat
 :name: r7x8.1.mat: 7 rows 9 columns
 :1: M: 63 nodes 5 leaves 52 minterms
 000000--  1
@@ -48,7 +48,7 @@
 110010-0  4
 111000-0  2
 
-:2: time to read the matrix = 0.01 sec
+:2: time to read the matrix = 0.00 sec
 :3: C: 22 nodes 1 leaves 52 minterms
 0000----  1
 0001-0--  1
@@ -132,7 +132,17 @@ Testing prime expansion of cubes:
 -0--00-1 1
 00-01--1 1
 
-Cache used slots = 48.58% (expected 49.02%)
+Testing iterator on primes (CNF):
+-0-0---- 1
+-0---0-- 1
+0-0-0--- 1
+-0-----0 1
+---0-0-0 1
+0101-1-1 1
+--0-00-1 1
+1-0-10-0 1
+
+Cache used slots = 58.06% (expected 58.92%)
 xor1: 14 nodes 1 leaves 28 minterms
 000--1-1  1
 001-11-1  1
@@ -155,6 +165,25 @@ CP: 11 nodes 1 leaves 7 minterms
 1000-0-0  1
 101000-1  1
 
+:4: ineq: 10 nodes 1 leaves 42 minterms
+001000--  1
+00101---  1
+1000----  1
+100100--  1
+10011---  1
+101-----  1
+111000--  1
+11101---  1
+
+10------ 1
+-01----- 1
+1-1----- 1
+-0-0---- 1
+1--0---- 1
+-0--10-- 1
+--1010-- 1
+1---10-- 1
+
 :4: ess: 1 nodes 1 leaves 128 minterms
 --------  1
 
@@ -168,9 +197,9 @@ The value of M along the chosen shortest path is 1
 :6: shortP: 5 nodes 1 leaves 8 minterms
 0000----  1
 
-Average distance: 7893.21
+Average distance: 4133.34
 Number of variables =      8	Number of slots     =   2304
-Number of keys      =    867	Number of min dead  =   9216
+Number of keys      =    995	Number of min dead  =   9216
 walsh1: 16 nodes 2 leaves 256 minterms
 -0--0--0--0-  1
 -0--0--0--10  1
@@ -274,10 +303,10 @@ wtw: 14 nodes 2 leaves 16 minterms
 
 Average length of non-empty lists = 1
 **** CUDD modifiable parameters ****
-Hard limit for cache size: 2271914
+Hard limit for cache size: 7645866
 Cache hit threshold for resizing: 30%
 Garbage collection enabled: yes
-Limit for fast unique table growth: 1363148
+Limit for fast unique table growth: 4587520
 Maximum number of variables sifted per reordering: 1000
 Maximum number of variable swaps per reordering: 2000000
 Maximum growth while sifting a variable: 1.2
@@ -296,39 +325,35 @@ GA population size: 0
 Number of crossovers for GA: 0
 Next reordering threshold: 4004
 **** CUDD non-modifiable parameters ****
-Memory in use: 1112420
-Peak number of nodes: 1022
-Peak number of live nodes: 116
+Memory in use: 4274484
+Peak number of nodes: 2044
+Peak number of live nodes: 119
 Number of BDD variables: 9
 Number of ZDD variables: 0
 Number of cache entries: 2048
-Number of cache look-ups: 2102
-Number of cache hits: 557
-Number of cache insertions: 1634
-Number of cache collisions: 512
-Number of cache deletions: 1118
-Cache used slots = 54.79% (expected 54.97%)
+Number of cache look-ups: 2846
+Number of cache hits: 715
+Number of cache insertions: 2289
+Number of cache collisions: 937
+Number of cache deletions: 1348
+Cache used slots = 66.02% (expected 67.30%)
 Soft limit for cache size: 13312
 Number of buckets in unique table: 2560
 Used buckets in unique table: 0.51% (expected 0.51%)
-Unique lookups: 1262
-Unique links: 158 (0.125198 per lookup)
 Number of BDD and ADD nodes: 13
 Number of ZDD nodes: 0
 Number of dead BDD and ADD nodes: 0
 Number of dead ZDD nodes: 0
-Total number of nodes allocated: 963
-Total number of nodes reclaimed: 808
-Number of recursive calls: 4463
+Total number of nodes allocated: 1091
+Total number of nodes reclaimed: 950
 Garbage collections so far: 1
 Time for garbage collection: 0.00 sec
 Reorderings so far: 0
 Time for reordering: 0.00 sec
-Node swaps in reordering: 0
-total time = 0.01 sec
+total time = 0.00 sec
 Runtime Statistics
 ------------------
-Machine name: joplin.Colorado.EDU
+Machine name: jobim.colorado.edu
 User time      0.0 seconds
 System time    0.0 seconds
 
@@ -336,17 +361,17 @@ Average resident text size       =     0K
 Average resident data+stack size =     0K
 Maximum resident size            =     0K
 
-Virtual text size                = 131593K
-Virtual data size                =   124K
-    data size initialized        =    24K
-    data size uninitialized      =     1K
-    data size sbrk               =    99K
-Virtual memory limit             = 106496K (2097152K)
+Virtual text size                = 131644K
+Virtual data size                =   151K
+    data size initialized        =    17K
+    data size uninitialized      =     0K
+    data size sbrk               =   134K
+Virtual memory limit             = 358400K (4194304K)
 
-Major page faults = 152
-Minor page faults = 309
+Major page faults = 0
+Minor page faults = 1318
 Swaps = 0
 Input blocks = 0
 Output blocks = 0
-Context switch (voluntary) = 0
-Context switch (involuntary) = 0
+Context switch (voluntary) = 1
+Context switch (involuntary) = 1

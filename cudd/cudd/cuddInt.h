@@ -12,12 +12,39 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright [This file was created at the University of Colorado at
-  Boulder.  The University of Colorado at Boulder makes no warranty
-  about the suitability of this software for any purpose.  It is
-  presented on an AS IS basis.]
+  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
 
-  Revision    [$Id: cuddInt.h,v 1.137 2004/02/06 20:06:28 fabio Exp $]
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  Neither the name of the University of Colorado nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.]
+
+  Revision    [$Id: cuddInt.h,v 1.139 2009/03/08 02:49:02 fabio Exp $]
 
 ******************************************************************************/
 
@@ -681,8 +708,8 @@ typedef struct DdLevelQueue {
 ******************************************************************************/
 #if SIZEOF_VOID_P == 8 && SIZEOF_INT == 4
 #define ddHash(f,g,s) \
-((((unsigned)(unsigned long)(f) * DD_P1 + \
-   (unsigned)(unsigned long)(g)) * DD_P2) >> (s))
+((((unsigned)(ptruint)(f) * DD_P1 + \
+   (unsigned)(ptruint)(g)) * DD_P2) >> (s))
 #else
 #define ddHash(f,g,s) \
 ((((unsigned)(f) * DD_P1 + (unsigned)(g)) * DD_P2) >> (s))
@@ -702,9 +729,9 @@ typedef struct DdLevelQueue {
 ******************************************************************************/
 #if SIZEOF_VOID_P == 8 && SIZEOF_INT == 4
 #define ddCHash(o,f,g,h,s) \
-((((((unsigned)(unsigned long)(f) + (unsigned)(unsigned long)(o)) * DD_P1 + \
-    (unsigned)(unsigned long)(g)) * DD_P2 + \
-   (unsigned)(unsigned long)(h)) * DD_P3) >> (s))
+((((((unsigned)(ptruint)(f) + (unsigned)(ptruint)(o)) * DD_P1 + \
+    (unsigned)(ptruint)(g)) * DD_P2 + \
+   (unsigned)(ptruint)(h)) * DD_P3) >> (s))
 #else
 #define ddCHash(o,f,g,h,s) \
 ((((((unsigned)(f) + (unsigned)(o)) * DD_P1 + (unsigned)(g)) * DD_P2 + \
@@ -726,8 +753,8 @@ typedef struct DdLevelQueue {
 ******************************************************************************/
 #if SIZEOF_VOID_P == 8 && SIZEOF_INT == 4
 #define ddCHash2(o,f,g,s) \
-(((((unsigned)(unsigned long)(f) + (unsigned)(unsigned long)(o)) * DD_P1 + \
-   (unsigned)(unsigned long)(g)) * DD_P2) >> (s))
+(((((unsigned)(ptruint)(f) + (unsigned)(ptruint)(o)) * DD_P1 + \
+   (unsigned)(ptruint)(g)) * DD_P2) >> (s))
 #else
 #define ddCHash2(o,f,g,s) \
 (((((unsigned)(f) + (unsigned)(o)) * DD_P1 + (unsigned)(g)) * DD_P2) >> (s))

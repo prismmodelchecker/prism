@@ -31,9 +31,7 @@ static int pad_file();
 
 
 int
-util_save_image(orig_file_name, save_file_name)
-char *orig_file_name;
-char *save_file_name;
+util_save_image(char const *orig_file_name, char const *save_file_name)
 {
     int origFd = -1, saveFd = -1;
     char *start_data, *end_data, *start_text, *end_round;
@@ -221,9 +219,7 @@ int nbytes;
 
 /* ARGSUSED */
 int
-util_save_image(orig_file_name, save_file_name)
-char *orig_file_name;
-char *save_file_name;
+util_save_image(char const *orig_file_name, char const *save_file_name)
 {
     (void) fprintf(stderr, 
 	"util_save_image: not implemented on your operating system\n");

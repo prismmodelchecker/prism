@@ -46,15 +46,42 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright   [This file was created at the University of Colorado at
-  Boulder.  The University of Colorado at Boulder makes no warranty
-  about the suitability of this software for any purpose.  It is
-  presented on an AS IS basis.]
+  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  Neither the name of the University of Colorado nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.]
 
 ******************************************************************************/
 
-#include    "util.h"
-#include    "cuddInt.h"
+#include "util.h"
+#include "cuddInt.h"
 
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
@@ -90,7 +117,7 @@ typedef union hack {
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddTable.c,v 1.117 2004/01/01 06:56:47 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddTable.c,v 1.122 2009/02/19 16:24:28 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -161,8 +188,8 @@ Cudd_Prime(
 
     p--;
     do {
-        p++;
-        if (p&1) {
+	p++;
+	if (p&1) {
 	    pn = 1;
 	    i = 3;
 	    while ((unsigned) (i * i) <= p) {
@@ -364,39 +391,60 @@ cuddInitTable(
     unique->reclaimed = 0;
     unique->subtables = ALLOC(DdSubtable,unique->maxSize);
     if (unique->subtables == NULL) {
-	unique->errorCode = CUDD_MEMORY_OUT;
-	return(0);
+	FREE(unique);
+	return(NULL);
     }
     unique->subtableZ = ALLOC(DdSubtable,unique->maxSizeZ);
     if (unique->subtableZ == NULL) {
-	unique->errorCode = CUDD_MEMORY_OUT;
-	return(0);
+	FREE(unique->subtables);
+	FREE(unique);
+	return(NULL);
     }
     unique->perm = ALLOC(int,unique->maxSize);
     if (unique->perm == NULL) {
-	unique->errorCode = CUDD_MEMORY_OUT;
-	return(0);
+	FREE(unique->subtables);
+	FREE(unique->subtableZ);
+	FREE(unique);
+	return(NULL);
     }
     unique->invperm = ALLOC(int,unique->maxSize);
     if (unique->invperm == NULL) {
-	unique->errorCode = CUDD_MEMORY_OUT;
-	return(0);
+	FREE(unique->subtables);
+	FREE(unique->subtableZ);
+	FREE(unique->perm);
+	FREE(unique);
+	return(NULL);
     }
     unique->permZ = ALLOC(int,unique->maxSizeZ);
     if (unique->permZ == NULL) {
-	unique->errorCode = CUDD_MEMORY_OUT;
-	return(0);
+	FREE(unique->subtables);
+	FREE(unique->subtableZ);
+	FREE(unique->perm);
+	FREE(unique->invperm);
+	FREE(unique);
+	return(NULL);
     }
     unique->invpermZ = ALLOC(int,unique->maxSizeZ);
     if (unique->invpermZ == NULL) {
-	unique->errorCode = CUDD_MEMORY_OUT;
-	return(0);
+	FREE(unique->subtables);
+	FREE(unique->subtableZ);
+	FREE(unique->perm);
+	FREE(unique->invperm);
+	FREE(unique->permZ);
+	FREE(unique);
+	return(NULL);
     }
     unique->map = NULL;
     unique->stack = ALLOC(DdNodePtr,ddMax(unique->maxSize,unique->maxSizeZ)+1);
     if (unique->stack == NULL) {
-	unique->errorCode = CUDD_MEMORY_OUT;
-	return(0);
+	FREE(unique->subtables);
+	FREE(unique->subtableZ);
+	FREE(unique->perm);
+	FREE(unique->invperm);
+	FREE(unique->permZ);
+	FREE(unique->invpermZ);
+	FREE(unique);
+	return(NULL);
     }
     unique->stack[0] = NULL; /* to suppress harmless UMR */
 
@@ -404,8 +452,15 @@ cuddInitTable(
     unique->deathRowDepth = 1 << cuddComputeFloorLog2(unique->looseUpTo >> 2);
     unique->deathRow = ALLOC(DdNodePtr,unique->deathRowDepth);
     if (unique->deathRow == NULL) {
-	unique->errorCode = CUDD_MEMORY_OUT;
-	return(0);
+	FREE(unique->subtables);
+	FREE(unique->subtableZ);
+	FREE(unique->perm);
+	FREE(unique->invperm);
+	FREE(unique->permZ);
+	FREE(unique->invpermZ);
+	FREE(unique->stack);
+	FREE(unique);
+	return(NULL);
     }
     for (i = 0; i < unique->deathRowDepth; i++) {
 	unique->deathRow[i] = NULL;
@@ -428,7 +483,17 @@ cuddInitTable(
 
 	nodelist = unique->subtables[i].nodelist = ALLOC(DdNodePtr,slots);
 	if (nodelist == NULL) {
-	    unique->errorCode = CUDD_MEMORY_OUT;
+	    for (j = 0; j < i; j++) {
+		FREE(unique->subtables[j].nodelist);
+	    }
+	    FREE(unique->subtables);
+	    FREE(unique->subtableZ);
+	    FREE(unique->perm);
+	    FREE(unique->invperm);
+	    FREE(unique->permZ);
+	    FREE(unique->invpermZ);
+	    FREE(unique->stack);
+	    FREE(unique);
 	    return(NULL);
 	}
 	for (j = 0; (unsigned) j < slots; j++) {
@@ -445,7 +510,20 @@ cuddInitTable(
 	unique->subtableZ[i].maxKeys = slots * DD_MAX_SUBTABLE_DENSITY;
 	nodelist = unique->subtableZ[i].nodelist = ALLOC(DdNodePtr,slots);
 	if (nodelist == NULL) {
-	    unique->errorCode = CUDD_MEMORY_OUT;
+	    for (j = 0; (unsigned) j < numVars; j++) {
+		FREE(unique->subtables[j].nodelist);
+	    }
+	    FREE(unique->subtables);
+	    for (j = 0; j < i; j++) {
+		FREE(unique->subtableZ[j].nodelist);
+	    }
+	    FREE(unique->subtableZ);
+	    FREE(unique->perm);
+	    FREE(unique->invperm);
+	    FREE(unique->permZ);
+	    FREE(unique->invpermZ);
+	    FREE(unique->stack);
+	    FREE(unique);
 	    return(NULL);
 	}
 	for (j = 0; (unsigned) j < slots; j++) {
@@ -461,7 +539,20 @@ cuddInitTable(
     unique->constants.maxKeys = slots * DD_MAX_SUBTABLE_DENSITY;
     nodelist = unique->constants.nodelist = ALLOC(DdNodePtr,slots);
     if (nodelist == NULL) {
-	unique->errorCode = CUDD_MEMORY_OUT;
+	for (j = 0; (unsigned) j < numVars; j++) {
+	    FREE(unique->subtables[j].nodelist);
+	}
+	FREE(unique->subtables);
+	for (j = 0; (unsigned) j < numVarsZ; j++) {
+	    FREE(unique->subtableZ[j].nodelist);
+	}
+	FREE(unique->subtableZ);
+	FREE(unique->perm);
+	FREE(unique->invperm);
+	FREE(unique->permZ);
+	FREE(unique->invpermZ);
+	FREE(unique->stack);
+	FREE(unique);
 	return(NULL);
     }
     for (j = 0; (unsigned) j < slots; j++) {
@@ -517,7 +608,7 @@ cuddInitTable(
     unique->errorCode = CUDD_NO_ERROR;
 
     /* Initialize statistical counters. */
-    unique->maxmemhard = (unsigned long) ((~ (unsigned long) 0) >> 1);
+    unique->maxmemhard = ~ 0UL;
     unique->garbageCollections = 0;
     unique->GCTime = 0;
     unique->reordTime = 0;
@@ -564,7 +655,7 @@ cuddFreeTable(
 
     if (unique->univ != NULL) cuddZddFreeUniv(unique);
     while (memlist != NULL) {
-        next = (DdNodePtr *) memlist[0];	/* link to next block */
+	next = (DdNodePtr *) memlist[0];	/* link to next block */
 	FREE(memlist);
 	memlist = next;
     }
@@ -667,7 +758,7 @@ cuddGarbageCollect(
 	    if (res == 0) return(0);
 	    hook = hook->next;
 	}
-        return(0);
+	return(0);
     }
 
     /* If many nodes are being reclaimed, we want to resize the tables
@@ -690,10 +781,10 @@ cuddGarbageCollect(
 #ifdef DD_VERBOSE
     (void) fprintf(unique->err,
 		   "garbage collecting (%d dead BDD nodes out of %d, min %d)...",
-    		   unique->dead, unique->keys, unique->minDead);
+		   unique->dead, unique->keys, unique->minDead);
     (void) fprintf(unique->err,
 		   "                   (%d dead ZDD nodes out of %d)...",
-    		   unique->deadZ, unique->keysZ);
+		   unique->deadZ, unique->keysZ);
 #endif
 
     /* Remove references to garbage collected nodes from the cache. */
@@ -793,7 +884,7 @@ cuddGarbageCollect(
 		} else {
 		    *lastP = node;
 		    lastP = &(node->next);
-		}	    
+		}
 		node = next;
 	    }
 	    *lastP = NULL;
@@ -815,11 +906,6 @@ cuddGarbageCollect(
 #endif
 
     totalDeletedZ = 0;
-#ifndef DD_UNSORTED_FREE_LIST
-#ifdef DD_RED_BLACK_FREE_LIST
-    tree = NULL;
-#endif
-#endif
 
     for (i = 0; i < unique->sizeZ; i++) {
 	if (unique->subtableZ[i].dead == 0) continue;
@@ -851,7 +937,7 @@ cuddGarbageCollect(
 		} else {
 		    *lastP = node;
 		    lastP = &(node->next);
-		}	    
+		}
 		node = next;
 	    }
 	    *lastP = NULL;
@@ -884,15 +970,15 @@ cuddGarbageCollect(
     memListTrav = unique->memoryList;
     sentry = NULL;
     while (memListTrav != NULL) {
-        ptruint offset;
-        nxtNode = (DdNodePtr *)memListTrav[0];
+	ptruint offset;
+	nxtNode = (DdNodePtr *)memListTrav[0];
 	offset = (ptruint) memListTrav & (sizeof(DdNode) - 1);
 	memListTrav += (sizeof(DdNode) - offset) / sizeof(DdNodePtr);
 	downTrav = (DdNode *)memListTrav;
 	k = 0;
 	do {
 	    if (downTrav[k].ref == 0) {
-	        if (sentry == NULL) {
+		if (sentry == NULL) {
 		    unique->nextFree = sentry = &downTrav[k];
 		} else {
 		    /* First hook sentry->next to the dead node and then
@@ -1104,7 +1190,7 @@ cuddUniqueInter(
     }
 
     if (subtable->keys > subtable->maxKeys) {
-        if (unique->gcEnabled &&
+	if (unique->gcEnabled &&
 	    ((unique->dead > unique->minDead) ||
 	    ((unique->dead > unique->minDead / 2) &&
 	    (subtable->dead > subtable->keys * 0.95)))) { /* too many dead */
@@ -1269,8 +1355,8 @@ cuddUniqueInterZdd(
 #endif
 
     if (subtable->keys > subtable->maxKeys) {
-        if (unique->gcEnabled && ((unique->deadZ > unique->minDead) ||
-	(10 * subtable->dead > 9 * subtable->keys))) { 	/* too many dead */
+	if (unique->gcEnabled && ((unique->deadZ > unique->minDead) ||
+	(10 * subtable->dead > 9 * subtable->keys))) {	/* too many dead */
 	    (void) cuddGarbageCollect(unique,1);
 	} else {
 	    ddRehashZdd(unique,(int)level);
@@ -1282,7 +1368,7 @@ cuddUniqueInterZdd(
     looking = nodelist[pos];
 
     while (looking != NULL) {
-        if (cuddT(looking) == T && cuddE(looking) == E) {
+	if (cuddT(looking) == T && cuddE(looking) == E) {
 	    if (looking->ref == 0) {
 		cuddReclaimZdd(unique,looking);
 	    }
@@ -1361,8 +1447,8 @@ cuddUniqueConst(
 #endif
 
     if (unique->constants.keys > unique->constants.maxKeys) {
-        if (unique->gcEnabled && ((unique->dead > unique->minDead) ||
-	(10 * unique->constants.dead > 9 * unique->constants.keys))) { 	/* too many dead */
+	if (unique->gcEnabled && ((unique->dead > unique->minDead) ||
+	(10 * unique->constants.dead > 9 * unique->constants.keys))) {	/* too many dead */
 	    (void) cuddGarbageCollect(unique,1);
 	} else {
 	    cuddRehash(unique,CUDD_CONST_INDEX);
@@ -1398,7 +1484,7 @@ cuddUniqueConst(
      * every X.
      */
     while (looking != NULL) {
-        if (looking->type.value == value ||
+	if (looking->type.value == value ||
 	ddEqualVal(looking->type.value,value,unique->epsilon)) {
 	    if (looking->ref == 0) {
 		cuddReclaim(unique,looking);
@@ -1554,7 +1640,6 @@ cuddRehash(
 	nodelist = ALLOC(DdNodePtr, slots);
 	MMoutOfMemory = saveHandler;
 	if (nodelist == NULL) {
-	    int j;
 	    (void) fprintf(unique->err,
 			   "Unable to resize constant subtable for lack of memory\n");
 	    (void) cuddGarbageCollect(unique,1);
@@ -2301,7 +2386,7 @@ cuddSlowTableGrowth(
     int i;
 
     unique->maxCacheHard = unique->cacheSlots - 1;
-    unique->cacheSlack = -(unique->cacheSlots + 1);
+    unique->cacheSlack = - (int) (unique->cacheSlots + 1);
     for (i = 0; i < unique->size; i++) {
 	unique->subtables[i].maxKeys <<= 2;
     }
@@ -2310,7 +2395,7 @@ cuddSlowTableGrowth(
     cuddShrinkDeathRow(unique);
     (void) fprintf(unique->err,"Slowing down table growth: ");
     (void) fprintf(unique->err,"GC fraction = %.2f\t", unique->gcFrac);
-    (void) fprintf(unique->err,"minDead = %d\n", unique->minDead);
+    (void) fprintf(unique->err,"minDead = %u\n", unique->minDead);
 
 } /* end of cuddSlowTableGrowth */
 
@@ -2376,7 +2461,6 @@ ddRehashZdd(
     nodelist = ALLOC(DdNodePtr, slots);
     MMoutOfMemory = saveHandler;
     if (nodelist == NULL) {
-	int j;
 	(void) fprintf(unique->err,
 		       "Unable to resize ZDD subtable %d for lack of memory.\n",
 		       i);

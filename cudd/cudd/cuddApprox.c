@@ -39,10 +39,37 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright   [This file was created at the University of Colorado at
-               Boulder.  The University of Colorado at Boulder makes no
-	       warranty about the suitability of this software for any
-	       purpose.  It is presented on an AS IS basis.]
+  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  Neither the name of the University of Colorado nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.]
 
 ******************************************************************************/
 
@@ -137,7 +164,7 @@ typedef struct LocalQueueItem {
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddApprox.c,v 1.24 2004/01/01 06:56:42 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddApprox.c,v 1.27 2009/02/19 16:16:51 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -664,7 +691,7 @@ cuddBiasedUnderApprox(
   int numVars /* maximum number of variables */,
   int threshold /* threshold under which approximation stops */,
   double quality1 /* minimum improvement for accepted changes when b=1 */,
-  double quality0 /* minimum improvement for accepted changes when b=1 */)
+  double quality0 /* minimum improvement for accepted changes when b=0 */)
 {
     ApproxInfo *info;
     DdNode *subset;
@@ -771,7 +798,7 @@ updateParity(
 
     if (!st_lookup(info->table, node, &infoN)) return;
     if ((infoN->parity & newparity) != 0) return;
-    infoN->parity |= newparity;
+    infoN->parity |= (short) newparity;
     if (Cudd_IsConstant(node)) return;
     updateParity(cuddT(node),info,newparity);
     E = cuddE(node);
@@ -836,7 +863,7 @@ gatherInfoAux(
 
     /* Point to the correct location in the page. */
     infoN = &(info->page[info->index++]);
-    infoN->parity |= 1 + (short) Cudd_IsComplement(node);
+    infoN->parity |= (short) (1 + Cudd_IsComplement(node));
 
     infoN->mintermsP = infoT->mintermsP/2;
     infoN->mintermsN = infoT->mintermsN/2;
@@ -1547,7 +1574,7 @@ RAmarkNodes(
 #endif
 	if ((1 - numOnset / info->minterms) >
 	    quality * (1 - (double) savings / info->size)) {
-	    infoN->replace = replace;
+	    infoN->replace = (char) replace;
 	    info->size -= savings;
 	    info->minterms -=numOnset;
 #if 0
@@ -1610,21 +1637,11 @@ RAmarkNodes(
 	    item = (GlobalQueueItem *) cuddLevelQueueEnqueue(queue,Cudd_Regular(shared),
 					 cuddI(dd,Cudd_Regular(shared)->index));
 	    if (Cudd_IsComplement(shared)) {
-		if (replace == REPLACE_T) {
-		    item->impactP += impactN;
-		    item->impactN += impactP;
-		} else {
-		    item->impactP += impactN/2.0;
-		    item->impactN += impactP/2.0;
-		}
+	        item->impactP += impactN;
+		item->impactN += impactP;
 	    } else {
-		if (replace == REPLACE_T) {
-		    item->impactP += impactP;
-		    item->impactN += impactN;
-		} else {
-		    item->impactP += impactP/2.0;
-		    item->impactN += impactN/2.0;
-		}
+	        item->impactP += impactP;
+		item->impactN += impactN;
 	    }
 	}
     }
@@ -1862,7 +1879,7 @@ BAmarkNodes(
 #endif
 	if ((1 - numOnset / info->minterms) >
 	    quality * (1 - (double) savings / info->size)) {
-	    infoN->replace = replace;
+	    infoN->replace = (char) replace;
 	    info->size -= savings;
 	    info->minterms -=numOnset;
 #if 0
@@ -2004,8 +2021,8 @@ RAbuildSubset(
 	    DdNode *Ntt = Cudd_NotCond(cuddT(cuddT(N)),
 				       Cudd_IsComplement(node));
 	    int index = cuddT(N)->index;
-	    DdNode *e = info->zero;
-	    DdNode *t = RAbuildSubset(dd, Ntt, info);
+	    e = info->zero;
+	    t = RAbuildSubset(dd, Ntt, info);
 	    if (t == NULL) {
 		return(NULL);
 	    }
@@ -2032,8 +2049,8 @@ RAbuildSubset(
 	    DdNode *Nte = Cudd_NotCond(cuddE(cuddT(N)),
 				       Cudd_IsComplement(node));
 	    int index = cuddT(N)->index;
-	    DdNode *t = info->one;
-	    DdNode *e = RAbuildSubset(dd, Nte, info);
+	    t = info->one;
+	    e = RAbuildSubset(dd, Nte, info);
 	    if (e == NULL) {
 		return(NULL);
 	    }

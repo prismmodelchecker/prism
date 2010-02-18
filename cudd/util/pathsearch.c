@@ -3,10 +3,10 @@
 #include <stdio.h>
 #include "util.h"
 
-static int check_file (char *, char *);
+static int check_file (char const *, char const *);
 
 char *
-util_path_search(char *prog)
+util_path_search(char const *prog)
 {
 #ifdef UNIX
     return util_file_search(prog, getenv("PATH"), (char *) "x");
@@ -18,9 +18,9 @@ util_path_search(char *prog)
 
 char *
 util_file_search(
-  char *file,			/* file we're looking for */
+  char const *file,		/* file we're looking for */
   char *path,			/* search path, colon separated */
-  char *mode			/* "r", "w", or "x" */)
+  char const *mode		/* "r", "w", or "x" */)
 {
     int quit;
     char *buffer, *filename, *save_path, *cp;
@@ -64,7 +64,7 @@ util_file_search(
 
 
 static int
-check_file(char *filename, char *mode)
+check_file(char const *filename, char const *mode)
 {
 #ifdef UNIX
     int access_mode = /*F_OK*/ 0;

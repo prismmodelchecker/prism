@@ -29,15 +29,42 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright [ This file was created at the University of Colorado at
-  Boulder.  The University of Colorado at Boulder makes no warranty
-  about the suitability of this software for any purpose.  It is
-  presented on an AS IS basis.]
+  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  Neither the name of the University of Colorado nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.]
 
 ******************************************************************************/
 
-#include    "util.h"
-#include    "cuddInt.h"
+#include "util.h"
+#include "cuddInt.h"
 
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
@@ -62,7 +89,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddCache.c,v 1.32 2004/01/01 06:56:43 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddCache.c,v 1.34 2009/02/19 16:17:50 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -244,7 +271,7 @@ cuddCacheInsert2(
     entry = &table->cache[posn];
 
     if (entry->data != NULL) {
-        table->cachecollisions++;
+	table->cachecollisions++;
     }
     table->cacheinserts++;
 
@@ -285,7 +312,7 @@ cuddCacheInsert1(
     entry = &table->cache[posn];
 
     if (entry->data != NULL) {
-        table->cachecollisions++;
+	table->cachecollisions++;
     }
     table->cacheinserts++;
 
@@ -333,7 +360,7 @@ cuddCacheLookup(
     cache = table->cache;
 #ifdef DD_DEBUG
     if (cache == NULL) {
-        return(NULL);
+	return(NULL);
     }
 #endif
 
@@ -395,7 +422,7 @@ cuddCacheLookupZdd(
     cache = table->cache;
 #ifdef DD_DEBUG
     if (cache == NULL) {
-        return(NULL);
+	return(NULL);
     }
 #endif
 
@@ -451,7 +478,7 @@ cuddCacheLookup2(
     cache = table->cache;
 #ifdef DD_DEBUG
     if (cache == NULL) {
-        return(NULL);
+	return(NULL);
     }
 #endif
 
@@ -504,7 +531,7 @@ cuddCacheLookup1(
     cache = table->cache;
 #ifdef DD_DEBUG
     if (cache == NULL) {
-        return(NULL);
+	return(NULL);
     }
 #endif
 
@@ -559,7 +586,7 @@ cuddCacheLookup2Zdd(
     cache = table->cache;
 #ifdef DD_DEBUG
     if (cache == NULL) {
-        return(NULL);
+	return(NULL);
     }
 #endif
 
@@ -612,7 +639,7 @@ cuddCacheLookup1Zdd(
     cache = table->cache;
 #ifdef DD_DEBUG
     if (cache == NULL) {
-        return(NULL);
+	return(NULL);
     }
 #endif
 
@@ -675,7 +702,7 @@ cuddConstantLookup(
     cache = table->cache;
 #ifdef DD_DEBUG
     if (cache == NULL) {
-        return(NULL);
+	return(NULL);
     }
 #endif
     posn = ddCHash2(uh,uf,ug,table->cacheShift);
@@ -687,7 +714,7 @@ cuddConstantLookup(
     if (en->data != NULL &&
 	en->f == (DdNodePtr)uf && en->g == (DdNodePtr)ug && en->h == uh) {
 	table->cacheHits++;
-        return(en->data);
+	return(en->data);
     }
 
     /* Cache miss: decide whether to resize. */
@@ -782,7 +809,7 @@ cuddCacheProfile(
     }
     mean /= (double) slots;
     meansq /= (double) slots;
-    
+
     /* Compute the standard deviation from both the data and the
     ** theoretical model for a random distribution. */
     stddev = sqrt(meansq - mean*mean);
@@ -899,7 +926,7 @@ cuddCacheResize(
 	table->acache = oldacache;
 	/* Do not try to resize again. */
 	table->maxCacheHard = oldslots - 1;
-	table->cacheSlack = - (oldslots + 1);
+	table->cacheSlack = - (int) (oldslots + 1);
 	return;
     }
     /* If the size of the cache entry is a power of 2, we want to
@@ -936,7 +963,7 @@ cuddCacheResize(
 	    entry->f = old->f;
 	    entry->g = old->g;
 	    entry->h = old->h;
-	    entry->data = old->data;	
+	    entry->data = old->data;
 #ifdef DD_CACHE_PROFILE
 	    entry->count = 1;
 #endif
