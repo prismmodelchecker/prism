@@ -19,6 +19,7 @@ The PTA extension is based on that used in [HH09]
 L. Helmink, M. Sellink and F Vaandrager
 Proof checking a data link protocol
 In Proc. Types for Proofs and Programs (TYPES'93), LNCS 806, pp 127-165, Springer-Verlag, 1994
+
 [HH09]
 A. Hartmanns and H. Hermanns
 A Modest Approach to Checking Probabilistic Timed Automata
