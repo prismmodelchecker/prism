@@ -170,7 +170,7 @@ ifeq ($(OSTYPE),solaris)
 	CFLAGS = $(DEBUG) $(OPTIMISE)
 	CPPFLAGS = $(DEBUG) $(OPTIMISE)
 	LDFLAGS = $(DEBUG) $(OPTIMISE)
-	CUDD_XCFLAGS = -march=i686 -m32 -malign-double -DHAVE_IEEE_754 -DBSD
+	CUDD_XCFLAGS = -mcpu=ultrasparc -DHAVE_IEEE_754 -DUNIX100 -DEPD_BIG_ENDIAN
 	SHARED = -shared -mimpure-text
 	EXE =
 	LIBPREFIX = lib
