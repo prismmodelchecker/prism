@@ -17,5 +17,6 @@ P=? [ true U s=5 & srep=1 & i>8 ];
 
 // property 4
 P=? [ true U !(srep=0) & !recv ];
+
 // rewards
 R=? [ F "deadlock" ];
