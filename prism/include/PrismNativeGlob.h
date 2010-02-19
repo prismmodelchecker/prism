@@ -37,9 +37,9 @@
 
 // Constants - these need to match the definitions in prism/Prism.java
 
-const int EXPORT_ADV_NONE = 0;
-const int EXPORT_ADV_DTMC = 1;
-const int EXPORT_ADV_MDP = 2;
+const int EXPORT_ADV_NONE = 1;
+const int EXPORT_ADV_DTMC = 2;
+const int EXPORT_ADV_MDP = 3;
 
 //------------------------------------------------------------------------------
 

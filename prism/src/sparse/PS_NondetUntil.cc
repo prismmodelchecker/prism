@@ -122,24 +122,27 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc, nnz, ndsm->k);
 	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
-	// if needed, and if info is available, build a vector of action indices for the mdp
-	if (export_adv_enabled > 0 && trans_actions != NULL) {
-		PS_PrintToMainLog(env, "Building action information... ");
-		// first need to filter out unwanted rows
-		Cudd_Ref(trans_actions);
-		Cudd_Ref(maybe);
-		tmp = DD_Apply(ddman, APPLY_TIMES, trans_actions, maybe);
-		// then convert to a vector of integer indices
-		actions = build_nd_action_vector(ddman, a, tmp, ndsm, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
-		Cudd_RecursiveDeref(ddman, tmp);
-		kb = n*4.0/1024.0;
-		kbt += kb;
-		PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
-	} else {
-		actions = NULL;
+	// if needed, and if info is available, build a vector of action indices for the MDP
+	actions = NULL;
+	if (export_adv_enabled != EXPORT_ADV_NONE) {
+		if (trans_actions != NULL) {
+			PS_PrintToMainLog(env, "Building action information... ");
+			// first need to filter out unwanted rows
+			Cudd_Ref(trans_actions);
+			Cudd_Ref(maybe);
+			tmp = DD_Apply(ddman, APPLY_TIMES, trans_actions, maybe);
+			// then convert to a vector of integer indices
+			actions = build_nd_action_vector(ddman, a, tmp, ndsm, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
+			Cudd_RecursiveDeref(ddman, tmp);
+			kb = n*4.0/1024.0;
+			kbt += kb;
+			PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+			// also extract list of action names from 'synchs'
+			get_string_array_from_java(env, synchs, action_names_jstrings, action_names, num_actions);
+		} else {
+			PS_PrintToMainLog(env, "Warning: Action labels are not available for adversary generation.\n", export_adv_filename);
+		}
 	}
-	// also extract list of action name
-	get_string_array_from_java(env, synchs, action_names_jstrings, action_names, num_actions);
 	
 	// get vector for yes
 	PS_PrintToMainLog(env, "Creating vector for yes... ");
@@ -176,13 +179,13 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	PS_PrintToMainLog(env, "\nStarting iterations...\n");
 	
 	// open file to store adversary (if required)
-	if (export_adv_enabled > 0) {
+	if (export_adv_enabled != EXPORT_ADV_NONE) {
 		fp_adv = fopen(export_adv_filename, "w");
 		if (fp_adv) {
 			fprintf(fp_adv, "%d ?\n", n);
 		} else {
 			PS_PrintToMainLog(env, "\nWarning: Adversary generation cancelled (could not open file \"%s\").\n", export_adv_filename);
-			export_adv_enabled = false;
+			export_adv_enabled = EXPORT_ADV_NONE;
 		}
 	}
 	
@@ -265,7 +268,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 		soln2 = tmpsoln;
 		
 		// if we're done, but adversary generation is required, go round once more
-		if (done && export_adv_enabled > 0) adv_loop = !adv_loop;
+		if (done && export_adv_enabled != EXPORT_ADV_NONE) adv_loop = !adv_loop;
 		
 //		PS_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
 	}
@@ -282,7 +285,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	if (!done) { delete soln; soln = NULL; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
 	
 	// close file to store adversary (if required)
-	if (export_adv_enabled) {
+	if (export_adv_enabled != EXPORT_ADV_NONE) {
 		fclose(fp_adv);
 		PS_PrintToMainLog(env, "\nAdversary written to file \"%s\".\n", export_adv_filename);
 	}
@@ -299,7 +302,10 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	if (ndsm) delete ndsm;
 	if (yes_vec) delete[] yes_vec;
 	if (soln2) delete[] soln2;
-	release_string_array_from_java(env, action_names_jstrings, action_names, num_actions);
+	if (actions != NULL) {
+		delete[] actions;
+		release_string_array_from_java(env, action_names_jstrings, action_names, num_actions);
+	}
 	
 	return ptr_to_jlong(soln);
 }

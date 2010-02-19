@@ -72,8 +72,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		allDDNondetVars = model.getAllDDNondetVars();
 		
 		// Display warning for some option combinations
-		if (prism.getExportAdv() > 0 && engine != Prism.SPARSE) {
-			mainLog.println("Warning: Adversary generation is only implemented for the sparse engine");
+		if (prism.getExportAdv() != Prism.EXPORT_ADV_NONE && engine != Prism.SPARSE) {
+			mainLog.println("\nWarning: Adversary generation is only implemented for the sparse engine");
 		}
 		
 		// Inherit some options from parent Prism object.

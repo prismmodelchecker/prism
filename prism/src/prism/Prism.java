@@ -85,9 +85,9 @@ public class Prism implements PrismSettingsListener
 	public static final int EXPORT_DOT_STATES = 6;
 	
 	// options for adversary export
-	public static final int EXPORT_ADV_NONE = 0;
-	public static final int EXPORT_ADV_DTMC = 1;
-	public static final int EXPORT_ADV_MDP = 2;
+	public static final int EXPORT_ADV_NONE = 1;
+	public static final int EXPORT_ADV_DTMC = 2;
+	public static final int EXPORT_ADV_MDP = 3;
 	
 	// methods for SCC decomposition
 	public static final int XIEBEEREL = 1;
