@@ -223,8 +223,8 @@ public class MDPModelChecker extends ModelChecker
 	 * @param mdp: The MDP
 	 * @param target: Target states
 	 * @param min: Min or max probabilities (true=min, false=max)
-	 * @param: init: Optionally, an initial solution vector for value iteration 
-	 * @param: known: Optionally, a set of states for which the exact answer is known
+	 * @param init: Optionally, an initial solution vector for value iteration 
+	 * @param known: Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
 	public ModelCheckerResult probReach(MDP mdp, BitSet target, boolean min, double init[], BitSet known)
@@ -302,8 +302,8 @@ public class MDPModelChecker extends ModelChecker
 	 * @param no: Probability 0 states
 	 * @param yes: Probability 1 states
 	 * @param min: Min or max probabilities (true=min, false=max)
-	 * @param: init: Optionally, an initial solution vector for value iteration 
-	 * @param: known: Optionally, a set of states for which the exact answer is known
+	 * @param init: Optionally, an initial solution vector for value iteration 
+	 * @param known: Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
 	protected ModelCheckerResult probReachValIter(MDP mdp, BitSet no, BitSet yes, boolean min, double init[],
@@ -485,8 +485,8 @@ public class MDPModelChecker extends ModelChecker
 	 * @param mdp: The MDP
 	 * @param target: Target states
 	 * @param min: Min or max rewards (true=min, false=max)
-	 * @param: init: Optionally, an initial solution vector for value iteration 
-	 * @param: known: Optionally, a set of states for which the exact answer is known
+	 * @param init: Optionally, an initial solution vector for value iteration 
+	 * @param known: Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
 	public ModelCheckerResult expReach(MDP mdp, BitSet target, boolean min) throws PrismException
@@ -499,8 +499,8 @@ public class MDPModelChecker extends ModelChecker
 	 * @param mdp: The MDP
 	 * @param target: Target states
 	 * @param min: Min or max rewards (true=min, false=max)
-	 * @param: init: Optionally, an initial solution vector for value iteration 
-	 * @param: known: Optionally, a set of states for which the exact answer is known
+	 * @param init: Optionally, an initial solution vector for value iteration 
+	 * @param known: Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
 	public ModelCheckerResult expReach(MDP mdp, BitSet target, boolean min, double init[], BitSet known)
@@ -567,8 +567,8 @@ public class MDPModelChecker extends ModelChecker
 	 * @param target: Target states
 	 * @param inf: States for which reward is infinite
 	 * @param min: Min or max rewards (true=min, false=max)
-	 * @param: init: Optionally, an initial solution vector for value iteration 
-	 * @param: known: Optionally, a set of states for which the exact answer is known
+	 * @param init: Optionally, an initial solution vector for value iteration 
+	 * @param known: Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.
 	 */
 	protected ModelCheckerResult expReachValIter(MDP mdp, BitSet target, BitSet inf, boolean min, double init[],
