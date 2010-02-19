@@ -52,7 +52,8 @@ RANLIB	= ranlib
 #ICFLAGS	= -g -O6 -Wall
 #ICFLAGS	= -g -O6
 #ICFLAGS	= -g -O3 -Wall
-ICFLAGS	= -g -O3
+#ICFLAGS	= -g -O3
+ICFLAGS	= -O3
 
 # Use XCFLAGS to specify machine-dependent compilation flags.
 # For some platforms no special flags are needed.
