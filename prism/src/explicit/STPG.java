@@ -640,6 +640,7 @@ public class STPG extends Model
 	{
 		String s = "";
 		s += numStates + " states";
+		s += " (" + getNumInitialStates() + " initial)";
 		s += ", " + numDistrSets + " distribution sets";
 		s += ", " + numDistrs + " distributions";
 		s += ", " + numTransitions + " transitions";
