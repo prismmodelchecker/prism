@@ -452,14 +452,17 @@ public class STPG extends Model
 	public void mvMultMinMax(double vect[], boolean min1, boolean min2, double result[], BitSet subset,
 			boolean complement)
 	{
-		int s = -1;
-		while (s < numStates) {
-			// Pick next state
-			s = (subset == null) ? s + 1 : complement ? subset.nextClearBit(s + 1) : subset.nextSetBit(s + 1);
-			if (s < 0)
-				break;
-			// Do operation
-			result[s] = mvMultMinMaxSingle(s, vect, min1, min2);
+		int s;
+		// Loop depends on subset/complement arguments
+		if (subset == null) {
+			for (s = 0; s < numStates; s++)
+				result[s] = mvMultMinMaxSingle(s, vect, min1, min2);
+		} else if (complement) {
+			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1))
+				result[s] = mvMultMinMaxSingle(s, vect, min1, min2);
+		} else {
+			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1))
+				result[s] = mvMultMinMaxSingle(s, vect, min1, min2);
 		}
 	}
 
