@@ -119,8 +119,8 @@ JAVAH = javah
 # Flags etc. #
 ##############
 
-#DEBUG = 
-DEBUG = -g
+DEBUG = 
+#DEBUG = -g
 
 OPTIMISE = -O3
 #OPTIMISE =
