@@ -690,6 +690,7 @@ public class MDP extends Model
 	{
 		String s = "";
 		s += numStates + " states";
+		s += " (" + getNumInitialStates() + " initial)";
 		s += ", " + numDistrs + " distributions";
 		s += ", " + numTransitions + " transitions";
 		s += ", dist max/avg = " + getMaxNumChoices() + "/"

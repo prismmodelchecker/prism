@@ -314,6 +314,7 @@ public class DTMC extends Model
 	{
 		String s = "";
 		s += numStates + " states";
+		s += " (" + getNumInitialStates() + " initial)";
 		s += ", " + numTransitions + " transitions";
 		return s;
 	}
