@@ -52,7 +52,7 @@ public class ProbModel implements Model
 	protected Values constantValues; // values of constants
 	// actions
 	protected int numSynchs; // number of synchronising actions
-	protected Vector<String> synchs; // synchronising action labels
+	protected List<String> synchs; // synchronising action labels
 	// rewards
 	protected int numRewardStructs; // number of reward structs
 	protected String[] rewardStructNames; // reward struct names
@@ -161,7 +161,7 @@ public class ProbModel implements Model
 	}
 
 	/**
-	 * Get vector of action label names. 
+	 * Get list of action label names. 
 	 */
 	public List<String> getSynchs()
 	{
@@ -439,7 +439,7 @@ public class ProbModel implements Model
 	/**
 	 * Set vector of action label names. 
 	 */
-	public void setSynchs(Vector<String> synchs)
+	public void setSynchs(List<String> synchs)
 	{
 		this.synchs = synchs;
 		this.numSynchs = synchs.size();

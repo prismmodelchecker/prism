@@ -479,7 +479,17 @@ public class LTLModelChecker
 				model.getNumVars() + 1, newVarList, newVarDDRowVars, newVarDDColVars,
 				// Constants (no change)
 				model.getConstantValues());
-
+		
+		// Copy action info MTBDD across directly
+		// If present, just needs filtering to reachable states,
+		// which will get done below.
+		if (model.getTransActions() != null) {
+			JDD.Ref(model.getTransActions());
+			modelProd.setTransActions(model.getTransActions());
+		}
+		// Also need to copy set of action label strings
+		modelProd.setSynchs(new Vector<String>(model.getSynchs()));
+		
 		// Do reachability/etc. for the new model
 		modelProd.doReachability(prism.getExtraReachInfo());
 		modelProd.filterReachableStates();
@@ -487,7 +497,10 @@ public class LTLModelChecker
 		if (modelProd.getDeadlockStates().size() > 0) {
 			throw new PrismException("Model-DRA product has deadlock states");
 		}
-
+		
+		//try { prism.exportStatesToFile(modelProd, Prism.EXPORT_PLAIN, new java.io.File("prod.sta")); }
+		//catch (java.io.FileNotFoundException e) {}
+		
 		// Reference DRA DD vars (if being returned)
 		if (draDDRowVarsCopy != null)
 			draDDRowVarsCopy.refAll();

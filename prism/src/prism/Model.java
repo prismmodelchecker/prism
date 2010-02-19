@@ -98,7 +98,7 @@ public interface Model
 	
 	ODDNode getODD();
 
-	void setSynchs(Vector<String> synchs);
+	void setSynchs(List<String> synchs);
 	void resetTrans(JDDNode trans);
 	void resetTransRewards(int i, JDDNode transRewards);
 	void doReachability();
