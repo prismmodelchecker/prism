@@ -60,6 +60,8 @@ TODO:
 - make action storage optional (when required e.g. for export) (especially for MCs)
 - lp stuff - plugin support for eclipse/lpsolve (in prism-multi?)
 - also look up lrs?
+- finalise tra format with actions (needs to work with actions too)
+  - so also fix e.g. importtrans, prism-statra
 
 -----------------------------------------------------------------------
 
