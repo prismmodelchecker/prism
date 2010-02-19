@@ -184,7 +184,7 @@ ifeq ($(OSTYPE),cygwin)
 	CFLAGS = -mno-cygwin $(DEBUG) $(OPTIMISE)
 	CPPFLAGS = -mno-cygwin $(DEBUG) $(OPTIMISE)
 	LDFLAGS = -mno-cygwin -Wl,--add-stdcall-alias $(DEBUG) $(OPTIMISE)
-	CUDD_XCFLAGS = -mno-cygwin -march=i686 -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=67108864 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0
+	CUDD_XCFLAGS = -mno-cygwin -march=i686 -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=268435456 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0
 	SHARED = -shared
 	#SHARED = -G
 	EXE = .exe
