@@ -969,6 +969,12 @@ public abstract class STPGAbstractRefine
 					ubStrat = ((MDPModelChecker) mc).probReachStrategy((MDP) abstraction, refineState, target, false,
 							ubLastSoln);
 					break;
+				case PROB_REACH_BOUNDED:
+					lbStrat = ((MDPModelChecker) mc).probReachStrategy((MDP) abstraction, refineState, target, true,
+							lbLastSoln);
+					ubStrat = ((MDPModelChecker) mc).probReachStrategy((MDP) abstraction, refineState, target, false,
+							ubLastSoln);
+					break;
 				case EXP_REACH:
 					lbStrat = ((MDPModelChecker) mc).expReachStrategy((MDP) abstraction, refineState, target, true,
 							lbLastSoln);
