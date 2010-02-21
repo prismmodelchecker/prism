@@ -342,8 +342,21 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 	 */
 	public void doExactModelChecking() throws PrismException
 	{
+		ModelCheckerResult res = null;
 		switch (modelType) {
 		case DTMC:
+			switch (propertyType) {
+			case PROB_REACH:
+				break;
+			case PROB_REACH_BOUNDED:
+				res = ((MDPModelChecker) mc).probReachBounded(new MDP((DTMC)modelConcrete), targetConcrete, reachBound, false);
+//				res = ((MDPModelChecker) mc).probReach((MDP) abstraction, target, true);
+				break;
+			case EXP_REACH:
+				break;
+			default:
+				throw new PrismException("Property type " + propertyType + " not supported");
+			}
 			break;
 		case CTMC:
 			break;
@@ -354,6 +367,13 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 			s += " model type " + modelType + " and property type " + propertyType;
 			throw new PrismException(s);
 		}
+		
+		// Display results for all initial states
+		mainLog.print("Results for initial state(s):");
+		for (int j : modelConcrete.getInitialStates()) {
+			mainLog.print(" " + res.soln[j]);
+		}
+		mainLog.println();
 	}
 
 	public static void main(String args[])
@@ -412,6 +432,8 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 						if (sOpt != null) {
 							abstractRefine.setReachBound(Integer.parseInt(sOpt));
 						}
+					} else if (sw.equals("exact")) {
+						abstractRefine.exact = true;
 					}
 
 					// Otherwise, try passing to abstraction-refinement engine
