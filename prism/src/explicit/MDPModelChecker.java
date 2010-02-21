@@ -406,6 +406,20 @@ public class MDPModelChecker extends ModelChecker
 	 * @param init: Initial solution vector - pass null for default
 	 * @param results: Optional array of size b+1 to store (init state) results for each step (null if unused)
 	 */
+	public ModelCheckerResult probReachBounded(MDP mdp, BitSet target, int k, boolean min) throws PrismException
+	{
+		return probReachBounded(mdp, target, k, min, null, null);
+	}
+
+	/**
+	 * Compute bounded probabilistic reachability.
+	 * @param mdp: The MDP
+	 * @param target: Target states
+	 * @param k: Bound
+	 * @param min: Min or max probabilities for (true=min, false=max)
+	 * @param init: Initial solution vector - pass null for default
+	 * @param results: Optional array of size b+1 to store (init state) results for each step (null if unused)
+	 */
 	public ModelCheckerResult probReachBounded(MDP mdp, BitSet target, int k, boolean min, double init[],
 			double results[]) throws PrismException
 	{
