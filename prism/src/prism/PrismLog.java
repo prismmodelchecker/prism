@@ -43,7 +43,7 @@ public abstract class PrismLog
 	public abstract void print(String s);
 	public abstract void println();
 	
-	public void print(Object arr[])
+	public void print(double arr[])
 	{
 		int i, n = arr.length;
 		print("[");
