@@ -77,6 +77,21 @@ public class MDP extends Model
 	}
 
 	/**
+	 * Constructor: new MDP copied from an existing DTMC.
+	 */
+	public MDP(DTMC dtmc)
+	{
+		this(dtmc.numStates);
+		for (int s : dtmc.getInitialStates()) {
+			addInitialState(s);
+		}
+		for (int s = 0; s < numStates; s++) {
+			addChoice(s, new Distribution(dtmc.getTransitions(s)));
+		}
+		// TODO: copy rewards, etc.
+	}
+
+	/**
 	 * Initialise: new model with fixed number of states.
 	 */
 	public void initialise(int numStates)

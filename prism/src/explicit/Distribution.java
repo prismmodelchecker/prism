@@ -48,6 +48,19 @@ public class Distribution implements Iterable<Entry<Integer,Double>>
 	}
 	
 	/**
+	 * Copy constructor.
+	 */
+	public Distribution(Distribution distr)
+	{
+		this();
+		Iterator<Entry<Integer,Double>> i = distr.iterator();
+		while (i.hasNext()) {
+			Map.Entry<Integer,Double> e = i.next();
+			add(e.getKey(), e.getValue());
+		}
+	}
+	
+	/**
 	 * Clear all entries of the distribution.
 	 */
 	public void clear()
