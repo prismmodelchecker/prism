@@ -31,7 +31,7 @@ import java.io.*;
 /**
  * Implementation of the PrismLog interface that passed all output to a PrintStream object.
  */
-public class PrismPrintStreamLog implements PrismLog
+public class PrismPrintStreamLog extends PrismLog
 {
 	PrintStream out = null;
 	
@@ -55,6 +55,24 @@ public class PrismPrintStreamLog implements PrismLog
 		return out != null;
 	}
 
+	public long getFilePointer()
+	{
+		// This implementation is Java only so does not return a file pointer.
+		return -1;
+	}
+	
+	public void flush()
+	{
+		out.flush();
+	}
+
+	public void close()
+	{
+		out.close();
+	}
+	
+	// Basic print methods
+	
 	public void print(boolean b)
 	{
 		out.print(b);
@@ -95,82 +113,9 @@ public class PrismPrintStreamLog implements PrismLog
 		out.print(s);
 	}
 
-	public void print(double d[])
-	{
-		int i, n;
-		n = d.length;
-		for (i = 0; i < n; i++) {
-			if (i > 0)
-				out.print(" ");
-			out.print(d[i]);
-		}
-	}
-
 	public void println()
 	{
 		out.println();
-	}
-
-	public void println(boolean b)
-	{
-		out.println(b);
-	}
-
-	public void println(char c)
-	{
-		out.println(c);
-	}
-
-	public void println(double d)
-	{
-		out.println(d);
-	}
-
-	public void println(float f)
-	{
-		out.println(f);
-	}
-
-	public void println(int i)
-	{
-		out.println(i);
-	}
-
-	public void println(long l)
-	{
-		out.println(l);
-	}
-
-	public void println(Object obj)
-	{
-		out.println(obj);
-	}
-
-	public void println(String s)
-	{
-		out.println(s);
-	}
-
-	public void println(double d[])
-	{
-		print(d);
-		println();
-	}
-
-	public long getFilePointer()
-	{
-		// This implementation is Java only so does not return a file pointer.
-		return -1;
-	}
-	
-	public void flush()
-	{
-		out.flush();
-	}
-
-	public void close()
-	{
-		out.close();
 	}
 }
 

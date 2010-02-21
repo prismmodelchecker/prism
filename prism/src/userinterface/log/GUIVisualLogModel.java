@@ -66,7 +66,7 @@ import prism.PrismLog;
  *        </code>
  * </ul>
  */
-public class GUIVisualLogModel implements PrismLog
+public class GUIVisualLogModel extends PrismLog
 {
     
     //Attributes
@@ -248,12 +248,12 @@ public class GUIVisualLogModel implements PrismLog
 	return theModel;
     }
 
-    /*These methods are so that this can implement the PrismLog interface
-     */
-    public void close()
-    {
-    }
+    // Methods required by PrismLog abstract class
     
+    public boolean ready()
+    {
+        return true;
+    }
     public long getFilePointer()
     {
         return -1;
@@ -263,6 +263,10 @@ public class GUIVisualLogModel implements PrismLog
 	{
 	}
 
+    public void close()
+    {
+    }
+    
     public void print(long l)
     {
         print(NORMAL, ""+l);
@@ -312,57 +316,7 @@ public class GUIVisualLogModel implements PrismLog
     {
         println(NORMAL, "");
     }
-    
-    public void println(float f)
-    {
-        println(NORMAL,""+f);
-    }
-    
-    public void println(double d)
-    {
-         println(NORMAL,""+d);
-    }
-    
-    public void println(Object obj)
-    {
-         println(NORMAL,""+obj);
-    }
-    
-    public void println(int i)
-    {
-         println(NORMAL,""+i);
-    }
-    
-    public void println(char c)
-    {
-         println(NORMAL,""+c);
-    }
-    
-    public void println(boolean b)
-    {
-         println(NORMAL,""+b);
-    }
-    
-    public void println(String s)
-    {
-         println(NORMAL,""+s);
-    }
-    
-    public void println(double d[])
-    {
-         println(NORMAL,""+d);
-    }
-    
-    public void println(long l)
-    {
-         println(NORMAL,""+l);
-    }
-    
-    public boolean ready()
-    {
-        return true;
-    }
-    
+        
     /** Because the entries have to be called from Threads, the invokeLater method is
      * used to add entries using this Thread.
      */    

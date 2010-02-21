@@ -26,31 +26,104 @@
 
 package prism;
 
-public interface PrismLog
+public abstract class PrismLog
 {
-	boolean ready();
-	void print(boolean b);
-	void print(char c);
-	void print(double d);
-	void print(float f);
-	void print(int i);
-	void print(long l);
-	void print(Object obj);
-	void print(String s);
-	void print(double d[]);
-	void println();
-	void println(boolean b);
-	void println(char c);
-	void println(double d);
-	void println(float f);
-	void println(int i);
-	void println(long l);
-	void println(Object obj);
-	void println(String s);
-	void println(double d[]);
-	long getFilePointer();
-	void flush();
-	void close();
+	public abstract boolean ready();
+	public abstract long getFilePointer();
+	public abstract void flush();
+	public abstract void close();
+	
+	public abstract void print(boolean b);
+	public abstract void print(char c);
+	public abstract void print(double d);
+	public abstract void print(float f);
+	public abstract void print(int i);
+	public abstract void print(long l);
+	public abstract void print(Object obj);
+	public abstract void print(String s);
+	public abstract void println();
+	
+	public void print(Object arr[])
+	{
+		int i, n = arr.length;
+		print("[");
+		for (i = 0; i < n; i++) {
+			print(i > 0 ? ", " : "");
+			print(arr[i]);
+		}
+		print("]");
+	}
+
+	public void print(int arr[])
+	{
+		int i, n = arr.length;
+		print("[");
+		for (i = 0; i < n; i++) {
+			print(i > 0 ? ", " : "");
+			print(arr[i]);
+		}
+		print("]");
+	}
+
+	public void println(boolean b)
+	{
+		print(b);
+		println();
+	}
+
+	public void println(char c)
+	{
+		print(c);
+		println();
+	}
+
+	public void println(double d)
+	{
+		print(d);
+		println();
+	}
+
+	public void println(float f)
+	{
+		print(f);
+		println();
+	}
+
+	public void println(int i)
+	{
+		print(i);
+		println();
+	}
+
+	public void println(long l)
+	{
+		print(l);
+		println();
+	}
+
+	public void println(Object o)
+	{
+		print(o);
+		println();
+	}
+
+	public void println(String s)
+	{
+		print(s);
+		println();
+	}
+
+	public void println(double arr[])
+	{
+		print(arr);
+		println();
+	}
+
+	public void println(int arr[])
+	{
+		print(arr);
+		println();
+	}
 }
 
 //------------------------------------------------------------------------------

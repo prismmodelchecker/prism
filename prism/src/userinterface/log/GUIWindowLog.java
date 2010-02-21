@@ -33,10 +33,9 @@ import javax.swing.event.CaretListener;
 import javax.swing.text.BadLocationException;
 
 import prism.*;
-import userinterface.GUIPlugin;
 import userinterface.util.GUIEvent;
 
-public class GUIWindowLog implements PrismLog
+public class GUIWindowLog extends PrismLog
 {
 	// text area swing object where all text will be echoed
 	private JTextArea textArea;
@@ -83,6 +82,21 @@ public class GUIWindowLog implements PrismLog
 		return (textArea != null);
 	}
 
+	public long getFilePointer()
+	{
+		return -1;
+	}
+
+	public void flush()
+	{
+	}
+
+	public void close()
+	{
+	}
+
+	// Basic print methods
+	
 	public void print(boolean b)
 	{
 		addToBuffer("" + b);
@@ -123,84 +137,14 @@ public class GUIWindowLog implements PrismLog
 		addToBuffer(s);
 	}
 
-	public void print(double d[])
-	{
-		int i, n;
-		n = d.length;
-		for (i = 0; i < n; i++) {
-			if (i > 0)
-				addToBuffer(" ");
-			addToBuffer("" + d[i]);
-		}
-	}
-
 	public void println()
 	{
 		addToBuffer("\n");
 	}
 
-	public void println(boolean b)
-	{
-		addToBuffer("" + b + "\n");
-	}
-
-	public void println(char c)
-	{
-		addToBuffer("" + c + "\n");
-	}
-
-	public void println(double d)
-	{
-		addToBuffer("" + d + "\n");
-	}
-
-	public void println(float f)
-	{
-		addToBuffer("" + f + "\n");
-	}
-
-	public void println(int i)
-	{
-		addToBuffer("" + i + "\n");
-	}
-
-	public void println(long l)
-	{
-		addToBuffer("" + l + "\n");
-	}
-
-	public void println(Object obj)
-	{
-		addToBuffer("" + obj + "\n");
-	}
-
-	public void println(String s)
-	{
-		addToBuffer(s + "\n");
-	}
-
-	public void println(double d[])
-	{
-		print(d);
-		println();
-	}
-
-	public long getFilePointer()
-	{
-		return -1;
-	}
-
-	public void flush()
-	{
-	}
-
 	public void clear()
 	{
 		setClearFlag();
-	}
-
-	public void close()
-	{
 	}
 
 	public int getMaxTextLength()

@@ -26,7 +26,7 @@
 
 package prism;
 
-public class PrismFileLog implements PrismLog
+public class PrismFileLog extends PrismLog
 {
 	String filename;
 	long fp;
@@ -71,6 +71,23 @@ public class PrismFileLog implements PrismLog
 		return (fp != 0);
 	}
 
+	public long getFilePointer()
+	{
+		return fp;
+	}
+
+	public void flush()
+	{
+		PrismNative.PN_FlushFile(fp);
+	}
+
+	public void close()
+	{
+		if (!stdout) PrismNative.PN_CloseFile(fp);
+	}
+	
+	// Basic print methods
+	
 	public void print(boolean b)
 	{
 		printToLog("" + b);
@@ -111,83 +128,11 @@ public class PrismFileLog implements PrismLog
 		printToLog(s);
 	}
 
-	public void print(double d[])
-	{
-		int i, n;
-		n = d.length;
-		for (i = 0; i < n; i++) {
-			if (i > 0)
-				printToLog(" ");
-			printToLog("" + d[i]);
-		}
-	}
-
 	public void println()
 	{
 		printToLog("\n");
 	}
 
-	public void println(boolean b)
-	{
-		printToLog(b + "\n");
-	}
-
-	public void println(char c)
-	{
-		printToLog(c + "\n");
-	}
-
-	public void println(double d)
-	{
-		printToLog(d + "\n");
-	}
-
-	public void println(float f)
-	{
-		printToLog(f + "\n");
-	}
-
-	public void println(int i)
-	{
-		printToLog(i + "\n");
-	}
-
-	public void println(long l)
-	{
-		printToLog(l + "\n");
-	}
-
-	public void println(Object obj)
-	{
-		printToLog(obj + "\n");
-	}
-
-	public void println(String s)
-	{
-		printToLog(s + "\n");
-	}
-
-	public void println(double d[])
-	{
-		print(d);
-		println();
-	}
-
-	public long getFilePointer()
-	{
-		return fp;
-	}
-
-	public void flush()
-	{
-		PrismNative.PN_FlushFile(fp);
-	}
-
-	public void close()
-	{
-		if (!stdout) PrismNative.PN_CloseFile(fp);
-	}
-	
 	private void printToLog(String s)
 	{
 		PrismNative.PN_PrintToFile(fp, s);
