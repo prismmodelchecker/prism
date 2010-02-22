@@ -126,6 +126,11 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 		if (!existsInitial)
 			throw new PrismException("No non-target initial states");
 
+		if (verbosity >= 10) {
+			mainLog.print("Initial concreteToAbstract: ");
+			mainLog.println(concreteToAbstract);
+		}
+		
 		// Create (empty) abstraction and store initial states info
 		nAbstract = existsRest ? 3 : 2;
 		switch (modelType) {
@@ -180,7 +185,6 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 				list.add(new HashSet<Integer>(1));
 			list.get(j).add(c);
 		}
-		//mainLog.println(abstraction);
 	}
 
 	/**
@@ -255,10 +259,11 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 			}
 			i++;
 		}
-		/*log.print("concreteToAbstract:");
-		for (i = 0; i < nConcrete; i++)
-			log.print(" " + i + "=" + concreteToAbstract[i]);
-		log.println();*/
+		
+		if (verbosity >= 10) {
+			mainLog.print("New concreteToAbstract: ");
+			mainLog.println(concreteToAbstract);
+		}
 
 		// TODO: who should do this?
 		// Add new states to the abstraction
@@ -272,7 +277,7 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 		}
 
 		for (i = 0; i < nAbstract; i++) {
-			if (i == splitState || abstraction.isSuccessor(splitState, i))
+			if (i == splitState || abstraction.isSuccessor(i, splitState))
 				rebuildAbstractionState(i);
 		}
 		for (i = 1; i < numNewStates; i++) {
@@ -309,6 +314,7 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 			for (int c : concreteStates) {
 				a = concreteToAbstract[c];
 				// ASSERT: a = i ???
+				if (a != i) throw new PrismException("Oops");
 				switch (modelType) {
 				case DTMC:
 					distr = buildAbstractDistribution(c, (DTMC) modelConcrete);

@@ -425,7 +425,7 @@ public abstract class STPGAbstractRefine
 		mainLog.println(abstractionType + " constructed in " + (timer / 1000.0) + " secs.");
 		timeBuild += timer / 1000.0;
 		mainLog.println(abstractionType + ": " + abstraction.infoString());
-		if (verbosity >= 5) {
+		if (verbosity >= 10) {
 			mainLog.println(abstractionType + ": " + abstraction);
 		}
 
@@ -451,6 +451,9 @@ public abstract class STPGAbstractRefine
 				break;
 			refinementNum++;
 			refine(refineStates);
+			if (verbosity >= 10) {
+				mainLog.println(abstractionType + ": " + abstraction);
+			}
 		}
 
 		// Finish up
@@ -477,6 +480,7 @@ public abstract class STPGAbstractRefine
 		while (i < n) {
 			// Pick next state
 			i = (known == null) ? i + 1 : known.nextClearBit(i + 1);
+			// TODO: check use of nextClearBit here
 			if (i < 0)
 				break;
 
@@ -563,12 +567,11 @@ public abstract class STPGAbstractRefine
 			known.set(i, PrismUtils.doublesAreClose(ubSoln[i], lbSoln[i], refineTermCritParam,
 					refineTermCrit == RefineTermCrit.ABSOLUTE));
 		}
-		mainLog.println(known.cardinality() + "/" + n + " states converged.");
 
 		// Compute bounds for initial states
 		lbInit = ubInit = min ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
 		for (int j : abstraction.getInitialStates()) {
-			if (verbosity >= 5)
+			if (verbosity >= 10)
 				mainLog.println("Init " + j + ": " + lbSoln[j] + "-" + ubSoln[j]);
 			if (min) {
 				lbInit = Math.min(lbInit, lbSoln[j]);
@@ -585,6 +588,7 @@ public abstract class STPGAbstractRefine
 		mainLog.println(abstractionType + " model checked in " + (timer / 1000.0) + " secs.");
 
 		// Display results
+		mainLog.println(known.cardinality() + "/" + n + " states converged.");
 		numInitialStates = abstraction.getNumInitialStates();
 		mainLog.print("Diff across ");
 		mainLog.print(numInitialStates + " initial state" + (numInitialStates == 1 ? "" : "s") + ": ");
@@ -845,6 +849,7 @@ public abstract class STPGAbstractRefine
 			if (ubSoln[i] - lbSoln[i] >= bound && abstraction.getNumChoices(i) > 1)
 				refinableStates.add(i);
 		}
+		mainLog.println(refinableStates.size() + " refineable states.");
 		if (verbosity >= 1) {
 			mainLog.println("Refinable states: " + refinableStates);
 		}
