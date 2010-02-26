@@ -108,8 +108,10 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 			throw new PrismException("Unknown label \"" + targetLabel + "\"");
 
 		// If the 'exact' flag is set, just do model checking on the concrete model (no abstraction)
-		if (exact)
+		if (exact) {
 			doExactModelChecking();
+			throw new PrismException("Terminated early after exact verification");
+		}
 
 		// Build a mapping between concrete/abstract states
 		// Initial abstract states: 0: initial, 1: target, 2:rest
@@ -367,6 +369,19 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 		case CTMC:
 			break;
 		case MDP:
+			MDPModelChecker mcTmp = new MDPModelChecker();
+			mcTmp.inheritSettings(mcOptions);
+			switch (propertyType) {
+			case PROB_REACH:
+				res = mcTmp.probReach((MDP) modelConcrete, targetConcrete, min);
+				break;
+			case PROB_REACH_BOUNDED:
+				break;
+			case EXP_REACH:
+				break;
+			default:
+				throw new PrismException("Property type " + propertyType + " not supported");
+			}
 			break;
 		default:
 			String s = "Cannot do exact model checking for";
@@ -382,6 +397,15 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 		mainLog.println();
 	}
 
+	// Override this to also print out concrete model details at the end
+	
+	@Override
+	protected void printFinalSummary(String initAbstractionInfo, boolean canRefine)
+	{
+		mainLog.println("\nConcrete " + modelType + ": " + modelConcrete.infoString());
+		super.printFinalSummary(initAbstractionInfo, canRefine);
+	}
+	
 	public static void main(String args[])
 	{
 		PrismSTPGAbstractRefine abstractRefine;

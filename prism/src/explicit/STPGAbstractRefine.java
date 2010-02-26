@@ -1010,10 +1010,10 @@ public abstract class STPGAbstractRefine
 			if (sanityChecks && (lbStrat.isEmpty() || ubStrat.isEmpty()))
 				throw new PrismException("Empty strategy generated for state " + refineState);
 			// Check if lb/ub are identical (just use equals() since lists are sorted)
-			if (lbStrat.equals(ubStrat)) {
+			if (lbStrat.equals(ubStrat) && lbStrat.size() == abstraction.getNumChoices(refineState)) {
 				if (verbosity >= 1)
 					mainLog.println("Warning: Skipping refinement of #" + refineState
-							+ " for which lb/ub strategy sets are equal.");
+							+ " for which lb/ub strategy sets are equal and covering.");
 				return 1;
 			}
 			if (verbosity >= 1)
@@ -1028,8 +1028,10 @@ public abstract class STPGAbstractRefine
 				} else {
 					ubStrat.removeAll(lbStrat);
 				}
-				choiceLists.add(lbStrat);
-				choiceLists.add(ubStrat);
+				if (!lbStrat.isEmpty())
+					choiceLists.add(lbStrat);
+				if (!ubStrat.isEmpty())
+					choiceLists.add(ubStrat);
 				break;
 			case 2:
 				// Remove intersection of lb/ub from both
