@@ -354,13 +354,14 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 		ModelCheckerResult res = null;
 		switch (modelType) {
 		case DTMC:
+			DTMCModelChecker mcDtmc = new DTMCModelChecker();
+			mcDtmc.inheritSettings(mcOptions);
 			switch (propertyType) {
 			case PROB_REACH:
+				res = mcDtmc.probReach((DTMC) modelConcrete, targetConcrete);
 				break;
 			case PROB_REACH_BOUNDED:
-				res = ((MDPModelChecker) mc).probReachBounded(new MDP((DTMC) modelConcrete), targetConcrete,
-						reachBound, false);
-				//				res = ((MDPModelChecker) mc).probReach((MDP) abstraction, target, true);
+				res = mcDtmc.probReachBounded((DTMC) modelConcrete, targetConcrete, reachBound);
 				break;
 			case EXP_REACH:
 				break;
@@ -369,14 +370,14 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 		case CTMC:
 			break;
 		case MDP:
-			MDPModelChecker mcTmp = new MDPModelChecker();
-			mcTmp.inheritSettings(mcOptions);
+			MDPModelChecker mcMdp = new MDPModelChecker();
+			mcMdp.inheritSettings(mcOptions);
 			switch (propertyType) {
 			case PROB_REACH:
-				res = mcTmp.probReach((MDP) modelConcrete, targetConcrete, min);
+				res = mcMdp.probReach((MDP) modelConcrete, targetConcrete, min);
 				break;
 			case PROB_REACH_BOUNDED:
-				res = mcTmp.probReachBounded((MDP) modelConcrete, targetConcrete, reachBound, min);
+				res = mcMdp.probReachBounded((MDP) modelConcrete, targetConcrete, reachBound, min);
 				break;
 			case EXP_REACH:
 				break;

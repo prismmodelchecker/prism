@@ -268,6 +268,96 @@ public class DTMC extends Model
 	}
 
 	/**
+	 * Do a matrix-vector multiplication.
+	 * @param vect: Vector to multiply by
+	 * @param result: Vector to store result in
+	 * @param subset: Only do multiplication for these rows
+	 * @param complement: If true, 'subset' is taken to be its complement
+	 */
+	public void mvMult(double vect[], double result[], BitSet subset, boolean complement)
+	{
+		int s;
+		// Loop depends on subset/complement arguments
+		if (subset == null) {
+			for (s = 0; s < numStates; s++)
+				result[s] = mvMultSingle(s, vect);
+		} else if (complement) {
+			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1))
+				result[s] = mvMultSingle(s, vect);
+		} else {
+			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1))
+				result[s] = mvMultSingle(s, vect);
+		}
+	}
+
+	/**
+	 * Do a single row of matrix-vector multiplication.
+	 * @param s: Row index
+	 * @param vect: Vector to multiply by
+	 */
+	public double mvMultSingle(int s, double vect[])
+	{
+		int k;
+		double d, prob;
+		Distribution distr;
+
+		distr = trans.get(s);
+		d = 0.0;
+		for (Map.Entry<Integer, Double> e : distr) {
+			k = (Integer) e.getKey();
+			prob = (Double) e.getValue();
+			d += prob * vect[k];
+		}
+
+		return d;
+	}
+
+	/**
+	 * Do a matrix-vector multiplication and sum of action reward.
+	 * @param vect: Vector to multiply by
+	 * @param result: Vector to store result in
+	 * @param subset: Only do multiplication for these rows
+	 * @param complement: If true, 'subset' is taken to be its complement
+	 */
+	public void mvMultRew(double vect[], double result[], BitSet subset, boolean complement)
+	{
+		int s;
+		// Loop depends on subset/complement arguments
+		if (subset == null) {
+			for (s = 0; s < numStates; s++)
+				result[s] = mvMultRewSingle(s, vect);
+		} else if (complement) {
+			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1))
+				result[s] = mvMultRewSingle(s, vect);
+		} else {
+			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1))
+				result[s] = mvMultRewSingle(s, vect);
+		}
+	}
+
+	/**
+	 * Do a single row of matrix-vector multiplication and sum of action reward.
+	 * @param s: Row index
+	 * @param vect: Vector to multiply by
+	 */
+	public double mvMultRewSingle(int s, double vect[])
+	{
+		int k;
+		double d, prob;
+		Distribution distr;
+
+		distr = trans.get(s);
+		d = getTransitionReward(s);
+		for (Map.Entry<Integer, Double> e : distr) {
+			k = (Integer) e.getKey();
+			prob = (Double) e.getValue();
+			d += prob * vect[k];
+		}
+
+		return d;
+	}
+
+	/**
 	 * Export to a dot file.
 	 */
 	public void exportToDotFile(String filename) throws PrismException
