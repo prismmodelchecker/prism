@@ -132,7 +132,7 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 			mainLog.print("Initial concreteToAbstract: ");
 			mainLog.println(concreteToAbstract);
 		}
-		
+
 		// Create (empty) abstraction and store initial states info
 		nAbstract = existsRest ? 3 : 2;
 		switch (modelType) {
@@ -261,7 +261,7 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 			}
 			i++;
 		}
-		
+
 		if (verbosity >= 10) {
 			mainLog.print("New concreteToAbstract: ");
 			mainLog.println(concreteToAbstract);
@@ -316,7 +316,8 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 			for (int c : concreteStates) {
 				a = concreteToAbstract[c];
 				// ASSERT: a = i ???
-				if (a != i) throw new PrismException("Oops");
+				if (a != i)
+					throw new PrismException("Oops");
 				switch (modelType) {
 				case DTMC:
 					distr = buildAbstractDistribution(c, (DTMC) modelConcrete);
@@ -357,13 +358,12 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 			case PROB_REACH:
 				break;
 			case PROB_REACH_BOUNDED:
-				res = ((MDPModelChecker) mc).probReachBounded(new MDP((DTMC)modelConcrete), targetConcrete, reachBound, false);
-//				res = ((MDPModelChecker) mc).probReach((MDP) abstraction, target, true);
+				res = ((MDPModelChecker) mc).probReachBounded(new MDP((DTMC) modelConcrete), targetConcrete,
+						reachBound, false);
+				//				res = ((MDPModelChecker) mc).probReach((MDP) abstraction, target, true);
 				break;
 			case EXP_REACH:
 				break;
-			default:
-				throw new PrismException("Property type " + propertyType + " not supported");
 			}
 			break;
 		case CTMC:
@@ -376,19 +376,21 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 				res = mcTmp.probReach((MDP) modelConcrete, targetConcrete, min);
 				break;
 			case PROB_REACH_BOUNDED:
+				res = mcTmp.probReachBounded((MDP) modelConcrete, targetConcrete, reachBound, min);
 				break;
 			case EXP_REACH:
 				break;
-			default:
-				throw new PrismException("Property type " + propertyType + " not supported");
 			}
 			break;
-		default:
+		}
+
+		// Unhandled cases
+		if (res == null) {
 			String s = "Cannot do exact model checking for";
 			s += " model type " + modelType + " and property type " + propertyType;
 			throw new PrismException(s);
 		}
-		
+
 		// Display results for all initial states
 		mainLog.print("Results for initial state(s):");
 		for (int j : modelConcrete.getInitialStates()) {
@@ -398,14 +400,13 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 	}
 
 	// Override this to also print out concrete model details at the end
-	
 	@Override
 	protected void printFinalSummary(String initAbstractionInfo, boolean canRefine)
 	{
 		mainLog.println("\nConcrete " + modelType + ": " + modelConcrete.infoString());
 		super.printFinalSummary(initAbstractionInfo, canRefine);
 	}
-	
+
 	public static void main(String args[])
 	{
 		PrismSTPGAbstractRefine abstractRefine;
