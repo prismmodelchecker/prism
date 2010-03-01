@@ -200,12 +200,12 @@ ifeq ($(OSTYPE),darwin)
 		CFLAGS = -arch x86_64 -fPIC -DPIC $(DEBUG) $(OPTIMISE)
 		CPPFLAGS = -arch x86_64 -fPIC -DPIC $(DEBUG) $(OPTIMISE)
 		LDFLAGS = -arch x86_64 -fPIC -DPIC -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
-		CUDD_XCFLAGS = -arch x86_64 -fPIC -DPIC -DHAVE_IEEE_754 -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 -fno-common
+		CUDD_XCFLAGS = -arch x86_64 -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 -fno-common
 	else
 		CFLAGS = -arch i386 $(DEBUG) $(OPTIMISE)
 		CPPFLAGS = -arch i386 $(DEBUG) $(OPTIMISE)
 		LDFLAGS = -arch i386 -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
-		CUDD_XCFLAGS = -arch i386 -DHAVE_IEEE_754 -fno-common
+		CUDD_XCFLAGS = -arch i386 -DHAVE_IEEE_754 -DBSD -fno-common
 	endif
 	SHARED = -dynamiclib
 	EXE =
