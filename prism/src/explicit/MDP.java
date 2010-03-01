@@ -45,11 +45,14 @@ public class MDP extends Model
 	protected List<List<Distribution>> trans;
 
 	// Action labels
+	// (null in element s means no actions for that state)
 	protected List<List<Object>> actions;
 
 	// Rewards
-	protected List<List<Double>> transRewards;
+	// (if transRewardsConstant non-null, use this for all transitions; otherwise, use transRewards list)
+	// (for transRewards, null in element s means no rewards for that state)
 	protected Double transRewardsConstant;
+	protected List<List<Double>> transRewards;
 
 	// Flag: allow duplicates in distribution sets?
 	protected boolean allowDupes = false;

@@ -457,10 +457,6 @@ public class MDPModelChecker extends ModelChecker
 		// Start iterations
 		iters = 0;
 		while (iters < k) {
-
-			// Print vector (for debugging)
-			mainLog.println(soln);
-
 			iters++;
 			// Matrix-vector multiply and min/max ops
 			mdp.mvMultMinMax(soln, min, soln2, target, true);
