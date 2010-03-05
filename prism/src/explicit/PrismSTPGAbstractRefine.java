@@ -482,7 +482,7 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 					} else if (sw.equals("exactcheck")) {
 						abstractRefine.exact = true;
 						abstractRefine.exactCheck = true;
-					} else if (sw.equals("rebuild=immed")) {
+					} else if (sw.equals("rebuild") && sOpt.equals("immed")) {
 						abstractRefine.rebuildImmed = true;
 					}
 
