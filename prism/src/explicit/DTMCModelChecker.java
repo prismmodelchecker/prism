@@ -414,9 +414,6 @@ public class DTMCModelChecker extends ModelChecker
 		iters = 0;
 		while (iters < k) {
 
-			// Print vector (for debugging)
-			mainLog.println(soln);
-
 			iters++;
 			// Matrix-vector multiply
 			dtmc.mvMult(soln, soln2, target, true);
@@ -431,9 +428,6 @@ public class DTMCModelChecker extends ModelChecker
 			soln = soln2;
 			soln2 = tmpsoln;
 		}
-
-		// Print vector (for debugging)
-		mainLog.println(soln);
 
 		// Finished bounded probabilistic reachability
 		timer = System.currentTimeMillis() - timer;
