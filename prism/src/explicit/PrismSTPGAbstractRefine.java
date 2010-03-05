@@ -41,13 +41,16 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 	protected String targetLabel; // PRISM label denoting target stares
 
 	// Flags/settings
-	protected boolean exact = false; // Just do model checking on the full concrete model
-
+	protected boolean exact = false; // Do model checking on the full concrete model?
+	protected boolean exactCheck = false; // Use exact result to check A-R result? (or just skip A-R?)
+	protected boolean rebuildImmed = false; // Rebuild split states immediately
+	
 	// Concrete model
 	protected Model modelConcrete;
 	protected int nConcrete; // Number of (concrete) states
 	protected BitSet initialConcrete; // Initial (concrete) states
 	protected BitSet targetConcrete; // Target (concrete) states
+	protected double exactInit; // Exact result for concrete model
 
 	// Abstraction info
 	// Map from concrete to abstract states
@@ -110,7 +113,8 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 		// If the 'exact' flag is set, just do model checking on the concrete model (no abstraction)
 		if (exact) {
 			doExactModelChecking();
-			throw new PrismException("Terminated early after exact verification");
+			if (!exactCheck)
+				throw new PrismException("Terminated early after exact verification");
 		}
 
 		// Build a mapping between concrete/abstract states
@@ -211,8 +215,8 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 
 	// Implementation of splitState(...) for abstraction-refinement loop; see superclass for details 
 
-	protected int splitState(int splitState, List<List<Integer>> choiceLists, Set<Integer> rebuildStates)
-			throws PrismException
+	protected int splitState(int splitState, List<List<Integer>> choiceLists, Set<Integer> rebuiltStates,
+			Set<Integer> rebuildStates) throws PrismException
 	{
 		List<Set<Integer>> list, listNew;
 		Set<Integer> concreteStates, concreteStatesNew;
@@ -220,9 +224,6 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 
 		if (verbosity >= 1)
 			mainLog.println("Splitting: #" + splitState);
-
-		// TODO: this is tmp
-		Set<Integer> rebuildStatesTmp = new HashSet<Integer>();
 
 		// Add an element to the list of choices
 		// corresponding to all remaining choices
@@ -248,8 +249,6 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 				a = nAbstract + i - 1;
 				abstractToConcrete.add(listNew);
 			}
-			rebuildStates.add(a); // TODO; and more!
-			rebuildStatesTmp.add(a);
 			//log.println(choiceList);
 			for (int j : choiceList) {
 				concreteStates = list.get(j);
@@ -267,7 +266,6 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 			mainLog.println(concreteToAbstract);
 		}
 
-		// TODO: who should do this?
 		// Add new states to the abstraction
 		abstraction.addStates(numNewStates - 1);
 		// Add new states to initial state set if needed
@@ -279,11 +277,18 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 		}
 
 		for (i = 0; i < nAbstract; i++) {
-			if (i == splitState || abstraction.isSuccessor(i, splitState))
-				rebuildAbstractionState(i);
+			if (i == splitState || abstraction.isSuccessor(i, splitState)) {
+				if (rebuildImmed)
+					rebuildAbstractionState(i);
+				else
+					rebuildStates.add(i);
+			}
 		}
 		for (i = 1; i < numNewStates; i++) {
-			rebuildAbstractionState(nAbstract + i - 1);
+			if (rebuildImmed)
+				rebuildAbstractionState(nAbstract + i - 1);
+			else
+				rebuildStates.add(nAbstract + i - 1);
 		}
 
 		return numNewStates;
@@ -293,12 +298,8 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 
 	protected void rebuildAbstraction(Set<Integer> rebuildStates) throws PrismException
 	{
-		int i;
-
-		//TODO: just rebuildStates?
-		//		for (int a : rebuildStates) {
-		for (i = 0; i < abstraction.getNumStates(); i++) {
-			rebuildAbstractionState(i);
+		for (int a : rebuildStates) {
+			rebuildAbstractionState(a);
 		}
 	}
 
@@ -398,6 +399,16 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 			mainLog.print(" " + res.soln[j]);
 		}
 		mainLog.println();
+
+		// Pick min/max value over all initial states
+		exactInit = min ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
+		for (int j : modelConcrete.getInitialStates()) {
+			if (min) {
+				exactInit = Math.min(exactInit, res.soln[j]);
+			} else {
+				exactInit = Math.max(exactInit, res.soln[j]);
+			}
+		}
 	}
 
 	// Override this to also print out concrete model details at the end
@@ -406,6 +417,8 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 	{
 		mainLog.println("\nConcrete " + modelType + ": " + modelConcrete.infoString());
 		super.printFinalSummary(initAbstractionInfo, canRefine);
+		mainLog.print("Exact (concrete) result: " + exactInit);
+		mainLog.println(" (diff = " + Math.abs(exactInit - ((lbInit + ubInit) / 2)) + ")");
 	}
 
 	public static void main(String args[])
@@ -466,6 +479,11 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 						}
 					} else if (sw.equals("exact")) {
 						abstractRefine.exact = true;
+					} else if (sw.equals("exactcheck")) {
+						abstractRefine.exact = true;
+						abstractRefine.exactCheck = true;
+					} else if (sw.equals("rebuild=immed")) {
+						abstractRefine.rebuildImmed = true;
 					}
 
 					// Otherwise, try passing to abstraction-refinement engine

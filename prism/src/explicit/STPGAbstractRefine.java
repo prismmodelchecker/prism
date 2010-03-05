@@ -338,26 +338,25 @@ public abstract class STPGAbstractRefine
 
 	/**
 	 * Split an abstract state for refinement, based on sets of nondeterministic choices.
-	 * This function should update any information stored locally about abstract state space etc.
-	 * and then rebuild the abstraction and set of target states appropriately.
+	 * This function should update any information stored locally about abstract state space etc.,
+	 * add new states to the abstraction and update the set of initial/target states appropriately.
 	 * One of the new states should replace the state being split;
 	 * the rest should be appended to the list of abstract states.
-	 * 
+	 * Abstract states that need to be rebuilt (either because they are new, or because
+	 * one of their successors has been split) can either be rebuilt at this point,
+	 * or left until later. If the former, the state should be added to the list rebuiltStates;
+	 * if the latter, it should be added to rebuildStates.
 	 * The total number of new states should be returned.
 	 * Notes:
-	 *  # The union of all these sets may not cover all choices in the state to be split.
-	 *      This is because there may be more efficient ways to compute the remainder of the abstract state.
-	 *      If not, use the utility function addRemainderIntoChoiceLists(...).
-	 * 
-	 * TODO: what about:
-	 * (ii) work out which states of the abstraction will need rebuilding as a result
-	 * 
+	 *  # The union of all the sets in choiceLists may not cover all choices in the state to be split.
+	 *    This is because there may be more efficient ways to compute the remainder of the abstract state.
+	 *    If not, use the utility function addRemainderIntoChoiceLists(...).
 	 * @param splitState: State to split.
 	 * @param choiceLists: Lists of nondeterministic choices defining split.
 	 * @param rebuildStates: States that need rebuilding as a result should be added here.
 	 * @return: Number of states into which split (i.e. 1 denotes split failed).
 	 */
-	protected abstract int splitState(int splitState, List<List<Integer>> choiceLists, Set<Integer> rebuildStates)
+	protected abstract int splitState(int splitState, List<List<Integer>> choiceLists, Set<Integer> rebuiltStates, Set<Integer> rebuildStates)
 			throws PrismException;
 
 	/**
@@ -500,7 +499,7 @@ public abstract class STPGAbstractRefine
 				else {
 					HashSet<Integer> rebuildStates = new HashSet<Integer>();
 					timer = System.currentTimeMillis();
-					numNewStates = refineState(i, rebuildStates);
+					numNewStates = refineState(i, null, rebuildStates);
 					timer = System.currentTimeMillis() - timer;
 					timeRefine += timer / 1000.0;
 					if (numNewStates > 1) {
@@ -886,14 +885,15 @@ public abstract class STPGAbstractRefine
 	 */
 	protected void refine(List<Integer> refineStates) throws PrismException
 	{
-		Set<Integer> rebuildStates;
+		Set<Integer> rebuiltStates, rebuildStates;
 		int i, n, refineState, numNewStates, numSuccRefines;
 		long timer;
 
 		mainLog.println("\nRefinement " + refinementNum + "...");
 		timer = System.currentTimeMillis();
 
-		// Store list of game states that will need rebuilding
+		// Store lists of game states that have been or will need to be rebuilt
+		rebuiltStates = new LinkedHashSet<Integer>();
 		rebuildStates = new LinkedHashSet<Integer>();
 
 		numSuccRefines = 0;
@@ -903,7 +903,7 @@ public abstract class STPGAbstractRefine
 			if (verbosity >= 1)
 				mainLog.println("Refinement " + refinementNum + "." + (n - i) + "...");
 			refineState = refineStates.get(i);
-			numNewStates = refineState(refineState, rebuildStates);
+			numNewStates = refineState(refineState, rebuiltStates, rebuildStates);
 			if (numNewStates > 1)
 				numSuccRefines++;
 		}
@@ -913,10 +913,11 @@ public abstract class STPGAbstractRefine
 		mainLog.print(numSuccRefines + " states successfully refined");
 		mainLog.println(" in " + (timer / 1000.0) + " secs.");
 
+		// Rebuild any states as necessary
 		timer = System.currentTimeMillis();
 		if (verbosity >= 1)
 			mainLog.println("Rebuilding states: " + rebuildStates);
-		//rebuildAbstraction(rebuildStates);
+		rebuildAbstraction(rebuildStates);
 		timer = System.currentTimeMillis() - timer;
 		timeRebuild += timer / 1000.0;
 		mainLog.println(rebuildStates.size() + " states of " + abstractionType + " rebuilt in " + (timer / 1000.0)
@@ -928,12 +929,13 @@ public abstract class STPGAbstractRefine
 	 * Refine a single state, by splitting using the current refinement strategy.
 	 * Adds new states to abstraction (and updates initial states), updates target states,
 	 * and resizes/updates lb/ub solution vectors and 'known' set.
-	 * Also keeps track of which states of the abstraction will need rebuilding as a result.
+	 * Also keeps track of which states have been or will need to be rebuilt as a result.
 	 * @param refineState: State to refine.
-	 * @param rebuildStates: States that need rebuilding as a result should be added here.
+	 * @param rebuiltStates: States that have been rebuilt as a result will be added here.
+	 * @param rebuildStates: States that need rebuilding as a result will be added here.
 	 * @return: Number of states into which split (i.e. 1 denotes refinement failed).
 	 */
-	protected int refineState(int refineState, Set<Integer> rebuildStates) throws PrismException
+	protected int refineState(int refineState, Set<Integer> rebuiltStates, Set<Integer> rebuildStates) throws PrismException
 	{
 		List<List<Integer>> choiceLists;
 		List<Integer> lbStrat = null, ubStrat = null;
@@ -953,7 +955,7 @@ public abstract class STPGAbstractRefine
 		}
 
 		// Don't refine a state that we have already modified through refinement
-		if (rebuildStates.contains(refineState)) {
+		if (rebuiltStates.contains(refineState)) {
 			if (verbosity >= 1)
 				mainLog.println("Warning: Skipping refinement of #" + refineState
 						+ " which has already been modified by refinement.");
@@ -1076,7 +1078,7 @@ public abstract class STPGAbstractRefine
 		numStates = abstraction.getNumStates();
 
 		// Split the state, based on nondet choices selected above
-		numNewStates = splitState(refineState, choiceLists, rebuildStates);
+		numNewStates = splitState(refineState, choiceLists, rebuiltStates, rebuildStates);
 
 		// Update existing solution vectors (if any)
 		lbSoln = Utils.extendDoubleArray(lbSoln, numStates, numStates + numNewStates - 1, lbSoln[refineState]);
