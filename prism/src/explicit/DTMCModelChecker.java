@@ -431,7 +431,7 @@ public class DTMCModelChecker extends ModelChecker
 
 		// Finished bounded probabilistic reachability
 		timer = System.currentTimeMillis() - timer;
-		mainLog.print("Probabilistic bounded reachability");
+		mainLog.print("Bounded probabilistic reachability");
 		mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
 
 		// Return results

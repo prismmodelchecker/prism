@@ -495,7 +495,7 @@ public class STPGModelChecker extends ModelChecker
 
 		// Finished bounded probabilistic reachability
 		timer = System.currentTimeMillis() - timer;
-		mainLog.print("Probabilistic bounded reachability (" + (min1 ? "min" : "max") + (min2 ? "min" : "max") + ")");
+		mainLog.print("Bounded probabilistic reachability (" + (min1 ? "min" : "max") + (min2 ? "min" : "max") + ")");
 		mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
 
 		// Return results

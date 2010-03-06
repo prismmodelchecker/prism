@@ -477,7 +477,7 @@ public class MDPModelChecker extends ModelChecker
 
 		// Finished bounded probabilistic reachability
 		timer = System.currentTimeMillis() - timer;
-		mainLog.print("Probabilistic bounded reachability (" + (min ? "min" : "max") + ")");
+		mainLog.print("Bounded probabilistic reachability (" + (min ? "min" : "max") + ")");
 		mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
 
 		// Return results
