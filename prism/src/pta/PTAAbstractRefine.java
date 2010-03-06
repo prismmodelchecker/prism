@@ -80,7 +80,7 @@ public class PTAAbstractRefine extends STPGAbstractRefine
 		// Store the set of target/initial states from forwards reachability
 		target = forwardsReach.getTarget();
 		initialStates = forwardsReach.getInitialStates();
-		
+
 		// Compute validities for all symbolic transitions in the graph
 		graph.computeAllValidities();
 
@@ -272,8 +272,8 @@ public class PTAAbstractRefine extends STPGAbstractRefine
 	//  - abstraction (new states, initial states and transitions)
 	//  - target set 
 
-	protected int splitState(int splitState, List<List<Integer>> choiceLists, Set<Integer> rebuildStates)
-			throws PrismException
+	protected int splitState(int splitState, List<List<Integer>> choiceLists, Set<Integer> rebuiltStates,
+			Set<Integer> rebuildStates) throws PrismException
 	{
 		LocZone lzSplit;
 		DBMList z, valid1;
@@ -444,14 +444,13 @@ public class PTAAbstractRefine extends STPGAbstractRefine
 			// Rebuild this state of the abstraction
 			abstraction.clearState(i);
 			buildSTPGState(i);
-			rebuildStates.add(i);
+			rebuiltStates.add(i);
 		}
 
 		if (verbosity >= 5) {
 			mainLog.println("New graph: " + graph);
 		}
 
-		// TODO: need to return this?
 		return numNewStates;
 	}
 
