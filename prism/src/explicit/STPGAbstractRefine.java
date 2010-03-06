@@ -356,8 +356,8 @@ public abstract class STPGAbstractRefine
 	 * @param rebuildStates: States that need rebuilding as a result should be added here.
 	 * @return: Number of states into which split (i.e. 1 denotes split failed).
 	 */
-	protected abstract int splitState(int splitState, List<List<Integer>> choiceLists, Set<Integer> rebuiltStates, Set<Integer> rebuildStates)
-			throws PrismException;
+	protected abstract int splitState(int splitState, List<List<Integer>> choiceLists, Set<Integer> rebuiltStates,
+			Set<Integer> rebuildStates) throws PrismException;
 
 	/**
 	 * Rebuild the abstraction after a refinement.
@@ -920,8 +920,9 @@ public abstract class STPGAbstractRefine
 		rebuildAbstraction(rebuildStates);
 		timer = System.currentTimeMillis() - timer;
 		timeRebuild += timer / 1000.0;
-		mainLog.println(rebuildStates.size() + " states of " + abstractionType + " rebuilt in " + (timer / 1000.0)
-				+ " secs.");
+		mainLog.print(rebuiltStates.size() + "+" + rebuildStates.size() + "=");
+		mainLog.print((rebuiltStates.size() + rebuildStates.size()));
+		mainLog.println(" states of " + abstractionType + " rebuilt in " + (timer / 1000.0) + " secs.");
 		mainLog.println("New " + abstractionType + " has " + abstraction.getNumStates() + " states.");
 	}
 
@@ -935,7 +936,8 @@ public abstract class STPGAbstractRefine
 	 * @param rebuildStates: States that need rebuilding as a result will be added here.
 	 * @return: Number of states into which split (i.e. 1 denotes refinement failed).
 	 */
-	protected int refineState(int refineState, Set<Integer> rebuiltStates, Set<Integer> rebuildStates) throws PrismException
+	protected int refineState(int refineState, Set<Integer> rebuiltStates, Set<Integer> rebuildStates)
+			throws PrismException
 	{
 		List<List<Integer>> choiceLists;
 		List<Integer> lbStrat = null, ubStrat = null;
