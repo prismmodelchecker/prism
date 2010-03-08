@@ -93,7 +93,7 @@ public abstract class STPGAbstractRefine
 
 	// Objects needed for abstraction refinement
 	// (abstract model, target states)
-	protected Model abstraction;
+	protected ModelSimple abstraction;
 	protected BitSet target;
 	// Other parameters
 	protected boolean min;

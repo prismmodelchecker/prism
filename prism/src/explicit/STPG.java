@@ -36,9 +36,9 @@ import prism.PrismUtils;
 /**
  * Explicit representation of stochastic two-player game (STPG)
  */
-public class STPG extends Model
+public class STPG extends ModelSimple
 {
-	// Model type
+	// Model type (TODO: move to interface)
 	public static ModelType modelType = ModelType.STPG;
 
 	// Transition function (Steps)
@@ -286,11 +286,6 @@ public class STPG extends Model
 		return false;
 	}
 
-	/**
-	 * Check if all the successors states of a state are in a set.
-	 * @param s: The state to check
-	 * @param set: The set to test for inclusion
-	 */
 	public boolean allSuccessorsInSet(int s, BitSet set)
 	{
 		for (DistributionSet distrs : trans.get(s)) {
@@ -300,6 +295,17 @@ public class STPG extends Model
 			}
 		}
 		return true;
+	}
+
+	public boolean someSuccessorsInSet(int s, BitSet set)
+	{
+		for (DistributionSet distrs : trans.get(s)) {
+			for (Distribution distr : distrs) {
+				if (distr.isSubsetOf(set))
+					return true;
+			}
+		}
+		return false;
 	}
 
 	/**

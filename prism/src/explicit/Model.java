@@ -26,126 +26,101 @@
 
 package explicit;
 
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.List;
+import java.util.*;
 
 import prism.PrismException;
 
-public abstract class Model
+/**
+ * Interface for (abstract) classes that provide (read-only) access to an explicit-state model.
+ */
+public interface Model
 {
-	// Number of states
-	public int numStates;
-	// Initial states
-	public List<Integer> initialStates; // TODO: should be a (linkedhash?) set really
-	
-	/**
-	 * Initialise (set up any data structures used by all models).
-	 */
-	public void initialise(int numStates)
-	{
-		this.numStates = numStates;
-		initialStates = new ArrayList<Integer>();
-	}
-	
+	// Accessors
+
 	/**
 	 * Get the number of states.
 	 */
-	public int getNumStates()
-	{
-		return numStates;
-	}
-	
+	public int getNumStates();
+
 	/**
 	 * Get the number of initial states.
 	 */
-	public int getNumInitialStates()
-	{
-		return initialStates.size();
-	}
-	
+	public int getNumInitialStates();
+
 	/**
 	 * Get iterator over initial state list.
 	 */
-	public Iterable<Integer> getInitialStates()
-	{
-		return initialStates;
-	}
-	
+	public Iterable<Integer> getInitialStates();
+
 	/**
 	 * Get the index of the first initial state
 	 * (i.e. the one with the lowest index).
 	 * Returns -1 if there are no initial states.
 	 */
-	public int getFirstInitialState()
-	{
-		return initialStates.isEmpty() ? -1 : initialStates.get(0);
-	}
-	
+	public int getFirstInitialState();
+
 	/**
 	 * Check whether a state is an initial state.
 	 */
-	public boolean isInitialState(int i)
-	{
-		return initialStates.contains(i);
-	}
-	
-	public abstract String infoString();
-
-	public abstract void clearState(int i);
-	
-	public abstract int addState();
-
-	public abstract void addStates(int numToAdd);
+	public boolean isInitialState(int i);
 
 	/**
-	 * Add a state to the list of initial states.
+	 * Get the total number of transitions in the model.
 	 */
-	public void addInitialState(int i)
-	{
-		initialStates.add(i);
-	}
-	
-	/**
-	 * Set a constant reward for all transitions
-	 */
-	public abstract void setConstantTransitionReward(double r);
-	
-	/**
-	 * Get the number of nondeterministic choices in state s.
-	 */
-	public abstract int getNumChoices(int s);
-	
+	public int getNumTransitions();
+
 	/**
 	 * Returns true if state s2 is a successor of state s1.
 	 */
-	public abstract boolean isSuccessor(int s1, int s2);
-	
+	public boolean isSuccessor(int s1, int s2);
+
+	/**
+	 * Check if all the successor states of a state are in a set.
+	 * @param s: The state to check
+	 * @param set: The set to test for inclusion
+	 */
+	public boolean allSuccessorsInSet(int s, BitSet set);
+
+	/**
+	 * Check if any successor states of a state are in a set.
+	 * @param s: The state to check
+	 * @param set: The set to test for inclusion
+	 */
+	public boolean someSuccessorsInSet(int s, BitSet set);
+
+	/**
+	 * Get the number of nondeterministic choices in state s.
+	 */
+	public int getNumChoices(int s);
+
 	/**
 	 * Checks for deadlocks and throws an exception if any exist.
 	 */
-	public void checkForDeadlocks() throws PrismException
-	{
-		checkForDeadlocks(null);
-	}
-	
+	public void checkForDeadlocks() throws PrismException;
+
 	/**
 	 * Checks for deadlocks and throws an exception if any exist.
 	 * States in 'except' (If non-null) are excluded from the check.
 	 */
-	public abstract void checkForDeadlocks(BitSet except) throws PrismException;
-	
-	/**
-	 * Build (anew) from a list of transitions exported explicitly by PRISM (i.e. a .tra file).
-	 */
-	public abstract void buildFromPrismExplicit(String filename) throws PrismException;
+	public void checkForDeadlocks(BitSet except) throws PrismException;
 
 	/**
 	 * Export to explicit format readable by PRISM (i.e. a .tra file, etc.).
 	 */
-	public abstract void exportToPrismExplicit(String baseFilename) throws PrismException;
+	public void exportToPrismExplicit(String baseFilename) throws PrismException;
 
-	public abstract void exportToDotFile(String filename) throws PrismException;
+	/**
+	 * Export to a dot file.
+	 */
+	public void exportToDotFile(String filename) throws PrismException;
 
-	public abstract void exportToDotFile(String filename, BitSet mark) throws PrismException;
+	/**
+	 * Export to a dot file, highlighting states in 'mark'.
+	 */
+	public void exportToDotFile(String filename, BitSet mark) throws PrismException;
+
+	/**
+	 * Report info/stats about the model as a string.
+	 */
+	public String infoString();
 }

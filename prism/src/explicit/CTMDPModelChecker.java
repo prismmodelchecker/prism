@@ -53,19 +53,19 @@ public class CTMDPModelChecker extends MDPModelChecker
 		// Fox-Glynn stuff
 		FoxGlynn fg;
 		int left, right;
-		double unif, qt, weights[], totalWeight;
+		double q, qt, weights[], totalWeight;
 
 		// Start bounded probabilistic reachability
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting bounded probabilistic reachability...");
+		mainLog.println("Starting time-bounded probabilistic reachability...");
 
 		// Store num states
 		n = ctmdp.numStates;
 
 		// Get uniformisation rate; do Fox-Glynn
-		unif = ctmdp.unif;
-		qt = unif * t;
-		mainLog.println("\nUniformisation: q.t = " + unif + " x " + t + " = " + unif * t);
+		q = ctmdp.unif;
+		qt = q * t;
+		mainLog.println("\nUniformisation: q.t = " + q + " x " + t + " = " + qt);
 		fg = new FoxGlynn(qt, 1e-300, 1e+300, termCritParam / 8.0);
 		left = fg.getLeftTruncationPoint();
 		right = fg.getRightTruncationPoint();
@@ -107,7 +107,7 @@ public class CTMDPModelChecker extends MDPModelChecker
 			ctmdp.mvMultMinMax(soln, min, soln2, target, true);
 			// Since is globally uniform, can do this? and more?
 			for (i = 0; i < n; i++)
-				soln2[i] /= unif;
+				soln2[i] /= q;
 			// Store intermediate results if required
 			// TODO?
 			// Swap vectors for next iter
@@ -127,7 +127,7 @@ public class CTMDPModelChecker extends MDPModelChecker
 
 		// Finished bounded probabilistic reachability
 		timer = System.currentTimeMillis() - timer;
-		mainLog.print("Probabilistic bounded reachability (" + (min ? "min" : "max") + ")");
+		mainLog.print("Time-bounded probabilistic reachability (" + (min ? "min" : "max") + ")");
 		mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
 
 		// Return results

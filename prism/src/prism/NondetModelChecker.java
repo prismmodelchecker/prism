@@ -431,7 +431,7 @@ public class NondetModelChecker extends NonProbModelChecker
 			dra = LTL2Rabin.ltl2rabin(ltl.convertForJltl2ba());
 		}
 		mainLog.println("\nDRA has " + dra.size() + " states, " + dra.acceptance().size() + " pairs.");
-		// dra.print(System.out);
+		 dra.print(System.out);
 		l = System.currentTimeMillis() - l;
 		mainLog.println("\nTime for Rabin translation: " + l / 1000.0 + " seconds.");
 
@@ -442,13 +442,15 @@ public class NondetModelChecker extends NonProbModelChecker
 		modelProduct = mcLtl.constructProductMDP(dra, model, labelDDs, draDDRowVars, draDDColVars);
 		mainLog.println();
 		modelProduct.printTransInfo(mainLog, prism.getExtraDDInfo());
-		// prism.exportStatesToFile(modelProduct, Prism.EXPORT_PLAIN, null);
-		// prism.exportTransToFile(modelProduct, true, Prism.EXPORT_PLAIN, null);
-
+		try{ 
+		prism.exportStatesToFile(modelProduct, Prism.EXPORT_PLAIN, new java.io.File("product.sta"));
+		 prism.exportTransToFile(modelProduct, true, Prism.EXPORT_PLAIN, new java.io.File("product.tra"));
+		} catch (Exception e) {}
 		// Find accepting maximum end components
 		mainLog.println("\nFinding accepting end components...");
 		JDDNode acc = mcLtl.findAcceptingStates(dra, modelProduct, draDDRowVars, draDDColVars, fairness);
-
+		new StateListMTBDD(acc, modelProduct).print(mainLog);
+		
 		// Compute reachability probabilities
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = new NondetModelChecker(prism, modelProduct, null);

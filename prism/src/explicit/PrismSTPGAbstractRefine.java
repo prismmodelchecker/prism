@@ -44,9 +44,9 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 	protected boolean exact = false; // Do model checking on the full concrete model?
 	protected boolean exactCheck = false; // Use exact result to check A-R result? (or just skip A-R?)
 	protected boolean rebuildImmed = false; // Rebuild split states immediately
-	
+
 	// Concrete model
-	protected Model modelConcrete;
+	protected ModelSimple modelConcrete;
 	protected int nConcrete; // Number of (concrete) states
 	protected BitSet initialConcrete; // Initial (concrete) states
 	protected BitSet targetConcrete; // Target (concrete) states
@@ -73,10 +73,10 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 		mainLog.println("Building concrete " + (buildEmbeddedDtmc ? "(embedded) " : "") + modelType + "...");
 		switch (modelType) {
 		case DTMC:
-			modelConcrete = buildEmbeddedDtmc ? new CTMC() : new DTMC();
+			modelConcrete = buildEmbeddedDtmc ? new CTMCSimple() : new DTMCSimple();
 			break;
 		case CTMC:
-			modelConcrete = new CTMC();
+			modelConcrete = new CTMCSimple();
 			break;
 		case MDP:
 			modelConcrete = new MDP();
@@ -86,20 +86,22 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 		}
 		modelConcrete.buildFromPrismExplicit(traFile);
 		if (buildEmbeddedDtmc) {
+			// TODO: do more efficiently (straight from tra file?)
+			mainLog.println("Concrete " + "CTMC" + ": " + modelConcrete.infoString());
 			//mainLog.println(modelConcrete);
-			modelConcrete = ((CTMC) modelConcrete).buildEmbeddedDTMC();
+			modelConcrete = ((CTMCSimple) modelConcrete).buildEmbeddedDTMC();
 			//mainLog.println(modelConcrete);
 		}
 		//if (propertyType == PropertyType.EXP_REACH)
 		//modelConcrete.buildTransitionRewardsFromFile(rewtFile);
-		modelConcrete.setConstantTransitionReward(1.0);
+		//modelConcrete.setConstantTransitionReward(1.0);
 		mainLog.println("Concrete " + modelType + ": " + modelConcrete.infoString());
 		nConcrete = modelConcrete.getNumStates();
 
 		// For a CTMC and time-bounded properties, we need to uniformise
 		if (modelType == ModelType.CTMC) {
 			if (propertyType != PropertyType.PROB_REACH) {
-				((CTMC) modelConcrete).uniformise();
+				((CTMCSimple) modelConcrete).uniformise(((CTMCSimple) modelConcrete).getDefaultUniformisationRate());
 			}
 		}
 
@@ -145,7 +147,7 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 			break;
 		case CTMC:
 			abstraction = new CTMDP(nAbstract);
-			((CTMDP) abstraction).unif = ((CTMC) modelConcrete).unif;
+			// TODO: ((CTMDP) abstraction).unif = ((CTMCSimple) modelConcrete).unif;
 			break;
 		case MDP:
 			abstraction = new STPG(nAbstract);
@@ -171,12 +173,12 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 			a = concreteToAbstract[c];
 			switch (modelType) {
 			case DTMC:
-				distr = buildAbstractDistribution(c, (DTMC) modelConcrete);
+				distr = buildAbstractDistribution(c, (DTMCSimple) modelConcrete);
 				j = ((MDP) abstraction).addChoice(a, distr);
 				((MDP) abstraction).setTransitionReward(a, j, ((DTMC) modelConcrete).getTransitionReward(c));
 				break;
 			case CTMC:
-				distr = buildAbstractDistribution(c, (CTMC) modelConcrete);
+				distr = buildAbstractDistribution(c, (CTMCSimple) modelConcrete);
 				j = ((CTMDP) abstraction).addChoice(a, distr);
 				break;
 			case MDP:
@@ -196,7 +198,7 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 	/**
 	 * Abstract a concrete state c of a DTMC ready to add to an MDP state.
 	 */
-	protected Distribution buildAbstractDistribution(int c, DTMC dtmc)
+	protected Distribution buildAbstractDistribution(int c, DTMCSimple dtmc)
 	{
 		return dtmc.getTransitions(c).map(concreteToAbstract);
 	}
@@ -278,17 +280,21 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 
 		for (i = 0; i < nAbstract; i++) {
 			if (i == splitState || abstraction.isSuccessor(i, splitState)) {
-				if (rebuildImmed)
+				if (rebuildImmed) {
 					rebuildAbstractionState(i);
-				else
+					rebuiltStates.add(i);
+				} else {
 					rebuildStates.add(i);
+				}
 			}
 		}
 		for (i = 1; i < numNewStates; i++) {
-			if (rebuildImmed)
+			if (rebuildImmed) {
 				rebuildAbstractionState(nAbstract + i - 1);
-			else
+				rebuiltStates.add(i);
+			} else {
 				rebuildStates.add(nAbstract + i - 1);
+			}
 		}
 
 		return numNewStates;
@@ -321,12 +327,12 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 					throw new PrismException("Oops");
 				switch (modelType) {
 				case DTMC:
-					distr = buildAbstractDistribution(c, (DTMC) modelConcrete);
+					distr = buildAbstractDistribution(c, (DTMCSimple) modelConcrete);
 					j = ((MDP) abstraction).addChoice(a, distr);
 					((MDP) abstraction).setTransitionReward(a, j, ((DTMC) modelConcrete).getTransitionReward(c));
 					break;
 				case CTMC:
-					distr = buildAbstractDistribution(c, (CTMC) modelConcrete);
+					distr = buildAbstractDistribution(c, (CTMCSimple) modelConcrete);
 					j = ((CTMDP) abstraction).addChoice(a, distr);
 					// TODO: recompute unif?
 					break;
@@ -369,6 +375,18 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 			}
 			break;
 		case CTMC:
+			CTMCModelChecker mcCtmc = new CTMCModelChecker();
+			mcCtmc.inheritSettings(mcOptions);
+			switch (propertyType) {
+			/*case PROB_REACH:
+				res = mcDtmc.probReach((DTMC) modelConcrete, targetConcrete);
+				break;
+			case PROB_REACH_BOUNDED:
+				res = mcDtmc.probReachBounded((DTMC) modelConcrete, targetConcrete, reachBound);
+				break;
+			case EXP_REACH:
+				break;*/
+			}
 			break;
 		case MDP:
 			MDPModelChecker mcMdp = new MDPModelChecker();

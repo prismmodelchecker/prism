@@ -36,9 +36,9 @@ import prism.PrismUtils;
 /**
  * Explicit representation of Markov decision process (MDP).
  */
-public class MDP extends Model
+public class MDP extends ModelSimple
 {
-	// Model type
+	// Model type (TODO: move to interface)
 	public static ModelType modelType = ModelType.MDP;
 
 	// Transition function (Steps)
@@ -82,9 +82,9 @@ public class MDP extends Model
 	/**
 	 * Constructor: new MDP copied from an existing DTMC.
 	 */
-	public MDP(DTMC dtmc)
+	public MDP(DTMCSimple dtmc)
 	{
-		this(dtmc.numStates);
+		this(dtmc.getNumStates());
 		for (int s : dtmc.getInitialStates()) {
 			addInitialState(s);
 		}
@@ -258,6 +258,24 @@ public class MDP extends Model
 		}
 		// Set reward
 		transRewards.get(s).set(i, r);
+	}
+
+	public boolean allSuccessorsInSet(int s, BitSet set)
+	{
+		for (Distribution distr : trans.get(s)) {
+			if (!distr.isSubsetOf(set))
+				return false;
+		}
+		return true;
+	}
+
+	public boolean someSuccessorsInSet(int s, BitSet set)
+	{
+		for (Distribution distr : trans.get(s)) {
+			if (distr.isSubsetOf(set))
+				return true;
+		}
+		return false;
 	}
 
 	/**

@@ -123,6 +123,20 @@ public class Distribution implements Iterable<Entry<Integer,Double>>
 	}
 	
 	/**
+	 * Returns true if all at least one index in the support of the distribution is in the set. 
+	 */
+	public boolean containsOneOf(BitSet set)
+	{
+		Iterator<Entry<Integer,Double>> i = iterator();
+		while (i.hasNext()) {
+			Map.Entry<Integer,Double> e = i.next();
+			if (set.get((Integer) e.getKey()))
+				return true;
+		}
+		return false;
+	}
+	
+	/**
 	 * Get an iterator over the entries of the map defining the distribution.
 	 */
 	public Iterator<Entry<Integer,Double>> iterator()

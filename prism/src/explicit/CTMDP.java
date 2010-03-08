@@ -33,7 +33,7 @@ import prism.ModelType;
  */
 public class CTMDP extends MDP
 {
-	// Model type
+	// Model type (TODO: move to interface)
 	public static ModelType modelType = ModelType.CTMDP;
 	
 	// Uniformisation rate used to build CTMC/CTMDP

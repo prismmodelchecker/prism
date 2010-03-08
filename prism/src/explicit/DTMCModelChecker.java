@@ -42,7 +42,7 @@ public class DTMCModelChecker extends ModelChecker
 	 */
 	public BitSet prob0(DTMC dtmc, BitSet target)
 	{
-		int i, k, n, iters;
+		int i, n, iters;
 		boolean b2;
 		BitSet u, soln;
 		boolean u_done;
@@ -54,13 +54,13 @@ public class DTMCModelChecker extends ModelChecker
 
 		// Special case: no target states
 		if (target.cardinality() == 0) {
-			soln = new BitSet(dtmc.numStates);
-			soln.set(0, dtmc.numStates);
+			soln = new BitSet(dtmc.getNumStates());
+			soln.set(0, dtmc.getNumStates());
 			return soln;
 		}
 
 		// Initialise vectors
-		n = dtmc.numStates;
+		n = dtmc.getNumStates();
 		u = (BitSet) target.clone();
 		soln = new BitSet(n);
 
@@ -72,18 +72,9 @@ public class DTMCModelChecker extends ModelChecker
 		while (!u_done) {
 			iters++;
 			for (i = 0; i < n; i++) {
-				// First see if this state is a target state
-				// (in which case, can skip rest of fixed point function evaluation)
-				b2 = target.get(i);
-				if (!b2) {
-					for (Map.Entry<Integer, Double> e : dtmc.getTransitions(i)) {
-						k = (Integer) e.getKey();
-						if (u.get(k)) {
-							b2 = true;
-							continue;
-						}
-					}
-				}
+				// Need either that i is a target state
+				// or some transition goes to u
+				b2 = target.get(i) || dtmc.someSuccessorsInSet(i, u);
 				soln.set(i, b2);
 			}
 
@@ -111,8 +102,8 @@ public class DTMCModelChecker extends ModelChecker
 	 */
 	public BitSet prob1(DTMC dtmc, BitSet target)
 	{
-		int i, k, n, iters;
-		boolean b2, b3, b4;
+		int i, n, iters;
+		boolean b2;
 		BitSet u, v, soln;
 		boolean u_done, v_done;
 		long timer;
@@ -123,11 +114,11 @@ public class DTMCModelChecker extends ModelChecker
 
 		// Special case: no target states
 		if (target.cardinality() == 0) {
-			return new BitSet(dtmc.numStates);
+			return new BitSet(dtmc.getNumStates());
 		}
 
 		// Initialise vectors
-		n = dtmc.numStates;
+		n = dtmc.getNumStates();
 		u = new BitSet(n);
 		v = new BitSet(n);
 		soln = new BitSet(n);
@@ -144,21 +135,9 @@ public class DTMCModelChecker extends ModelChecker
 			while (!v_done) {
 				iters++;
 				for (i = 0; i < n; i++) {
-					// First see if this state is a target state
-					// (in which case, can skip rest of fixed point function evaluation)
-					b2 = target.get(i);
-					if (!b2) {
-						b3 = true; // all transitions are to u states
-						b4 = false; // some transition goes to v
-						for (Map.Entry<Integer, Double> e : dtmc.getTransitions(i)) {
-							k = (Integer) e.getKey();
-							if (!u.get(k))
-								b3 = false;
-							if (v.get(k))
-								b4 = true;
-						}
-						b2 = (b3 && b4);
-					}
+					// Need either that i is a target state
+					// or all transitions are to u states and some transition goes to v
+					b2 = target.get(i) || (dtmc.allSuccessorsInSet(i, u) && dtmc.someSuccessorsInSet(i, v));
 					soln.set(i, b2);
 				}
 
@@ -219,7 +198,7 @@ public class DTMCModelChecker extends ModelChecker
 		dtmc.checkForDeadlocks(target);
 
 		// Store num states
-		n = dtmc.numStates;
+		n = dtmc.getNumStates();
 
 		// Optimise by enlarging target set (if more info is available)
 		if (init != null && known != null) {
@@ -296,7 +275,7 @@ public class DTMCModelChecker extends ModelChecker
 		mainLog.println("Starting value iteration...");
 
 		// Store num states
-		n = dtmc.numStates;
+		n = dtmc.getNumStates();
 
 		// Create solution vector(s)
 		soln = new double[n];
@@ -389,7 +368,7 @@ public class DTMCModelChecker extends ModelChecker
 		mainLog.println("Starting bounded probabilistic reachability...");
 
 		// Store num states
-		n = dtmc.numStates;
+		n = dtmc.getNumStates();
 
 		// Create solution vector(s)
 		soln = new double[n];
@@ -480,7 +459,7 @@ public class DTMCModelChecker extends ModelChecker
 		dtmc.checkForDeadlocks(target);
 
 		// Store num states
-		n = dtmc.numStates;
+		n = dtmc.getNumStates();
 
 		// Optimise by enlarging target set (if more info is available)
 		if (init != null && known != null) {
@@ -546,7 +525,7 @@ public class DTMCModelChecker extends ModelChecker
 		mainLog.println("Starting value iteration...");
 
 		// Store num states
-		n = dtmc.numStates;
+		n = dtmc.getNumStates();
 
 		// Create solution vector(s)
 		soln = new double[n];
@@ -611,13 +590,13 @@ public class DTMCModelChecker extends ModelChecker
 	public static void main(String args[])
 	{
 		DTMCModelChecker mc;
-		DTMC dtmc;
+		DTMCSimple dtmc;
 		ModelCheckerResult res;
 		BitSet target;
 		Map<String, BitSet> labels;
 		try {
 			mc = new DTMCModelChecker();
-			dtmc = new DTMC();
+			dtmc = new DTMCSimple();
 			dtmc.buildFromPrismExplicit(args[0]);
 			//System.out.println(dtmc);
 			labels = mc.loadLabelsFile(args[1]);
