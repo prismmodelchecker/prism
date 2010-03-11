@@ -473,6 +473,13 @@ public class TypeCheck extends ASTTraverse
 			throw new PrismLangException("Type error: P operator filter is not a Boolean", e.getFilter()
 					.getExpression());
 		}
+		// Need to to do this type check here because some info has been lost when converted to ExpressionFilter
+		if (e.getProb() != null && e.getFilter() != null) {
+			if (e.getFilter().minRequested() || e.getFilter().maxRequested()) {
+				throw new PrismLangException("Type error: Cannot use min/max filters in Boolean-valued properties");
+			}
+		}
+		// Set type
 		e.setType(e.getProb() == null ? TypeDouble.getInstance() : TypeBool.getInstance());
 	}
 
@@ -491,6 +498,13 @@ public class TypeCheck extends ASTTraverse
 			throw new PrismLangException("Type error: R operator filter is not a Boolean", e.getFilter()
 					.getExpression());
 		}
+		// Need to to do this type check here because some info has been lost when converted to ExpressionFilter
+		if (e.getReward() != null && e.getFilter() != null) {
+			if (e.getFilter().minRequested() || e.getFilter().maxRequested()) {
+				throw new PrismLangException("Type error: Cannot use min/max filters in Boolean-valued properties");
+			}
+		}
+		// Set type
 		e.setType(e.getReward() == null ? TypeDouble.getInstance() : TypeBool.getInstance());
 	}
 
@@ -503,6 +517,13 @@ public class TypeCheck extends ASTTraverse
 			throw new PrismLangException("Type error: P operator filter is not a Boolean", e.getFilter()
 					.getExpression());
 		}
+		// Need to to do this type check here because some info has been lost when converted to ExpressionFilter
+		if (e.getProb() != null && e.getFilter() != null) {
+			if (e.getFilter().minRequested() || e.getFilter().maxRequested()) {
+				throw new PrismLangException("Type error: Cannot use min/max filters in Boolean-valued properties");
+			}
+		}
+		// Set type
 		e.setType(e.getProb() == null ? TypeDouble.getInstance() : TypeBool.getInstance());
 	}
 
@@ -539,6 +560,7 @@ public class TypeCheck extends ASTTraverse
 		case ARGMAX:
 		case SUM:
 		case AVG:
+		case RANGE:
 			if (t instanceof TypeBool) {
 				throw new PrismLangException(
 						"Type error: Boolean argument not allowed as operand for filter of type \""
@@ -567,6 +589,7 @@ public class TypeCheck extends ASTTraverse
 		case MAX:
 		case SUM:
 		case FIRST:
+		case RANGE:
 		case PRINT:
 			e.setType(t);
 			break;

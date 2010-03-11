@@ -35,9 +35,9 @@ import prism.PrismLangException;
 public class Filter extends ASTElement
 {
 	private Expression expr = null;
-	// Either "min" or "max" ("both" no longer supported)
-	// (and "min" is nominal default) 
-	private boolean minReq = true;
+	// Either "min" or "max", or neither or both.
+	// In the latter case, this means "range"
+	private boolean minReq = false;
 	private boolean maxReq = false;
 
 	// Constructor
@@ -83,6 +83,20 @@ public class Filter extends ASTElement
 		return maxReq;
 	}
 
+	/**
+	 * Get (as a string) the operator for this filter
+	 * (as need to construct an ExpressionFilter object)
+	 * @return
+	 */
+	public String getFilterOpString()
+	{
+		if (minReq) {
+			return maxReq ? "range" : "min";
+		} else {
+			return maxReq ? "max" : "range";
+		}
+	}
+	
 	// Methods required for ASTElement:
 	
 	/**

@@ -1425,7 +1425,7 @@ Expression ExpressionProb(boolean prop, boolean pathprop) :
 		// Filter is actually dealt with by wrapping this expression in
 		// an (invisible) ExpressionFilter expression
 		if (filter != null) {
-			String filterOp = isBool ? "&" : filter.minRequested() ? "min" : "max";
+			String filterOp = isBool ? "&" : filter.getFilterOpString();
 			ExpressionFilter ef = new ExpressionFilter(filterOp, ret, filter.getExpression());
 			ef.setInvisible(true);
 			return ef;
@@ -1462,14 +1462,15 @@ Expression ExpressionSS(boolean prop, boolean pathprop) :
 	Filter filter = null;
 	ExpressionSS ret = new ExpressionSS();
 	Token begin;
+	boolean isBool;
 }
 {
 	// This production is only allowed in expressions if the "prop" parameter is true
 	{ if (!prop) throw generateParseException(); }
 	// Various options for "S" keyword and attached symbols
 	begin = <S> (
-		( r = LtGt() prob = Expression(false, false) { relOp = ExpressionBinaryOp.opSymbols[r]; } ) |
-		( <EQ> <QMARK> { relOp = "="; } )
+		( r = LtGt() prob = Expression(false, false) { relOp = ExpressionBinaryOp.opSymbols[r]; isBool = true; } ) |
+		( <EQ> <QMARK> { relOp = "="; isBool = false; } )
 	)
 	// Expression, optional filter
 	<LBRACKET> expr = Expression(prop, pathprop) (filter = Filter())? <RBRACKET>
@@ -1482,7 +1483,8 @@ Expression ExpressionSS(boolean prop, boolean pathprop) :
 		// Filter is actually dealt with by wrapping this expression in
 		// an (invisible) ExpressionFilter expression
 		if (filter != null) {
-			ExpressionFilter ef = new ExpressionFilter(filter.minRequested() ? "min" : "max", ret, filter.getExpression());
+			String filterOp = isBool ? "&" : filter.getFilterOpString();
+			ExpressionFilter ef = new ExpressionFilter(filterOp, ret, filter.getExpression());
 			ef.setInvisible(true);
 			return ef;
 		}
@@ -1502,19 +1504,20 @@ Expression ExpressionReward(boolean prop, boolean pathprop) :
 	Filter filter = null;
 	ExpressionReward ret = new ExpressionReward();
 	Token begin;
+	boolean isBool;
 }
 {
 	// This production is only allowed in expressions if the "prop" parameter is true
 	{ if (!prop) throw generateParseException(); }
 	// Various options for "R" keyword and attached symbols
 	(( begin = <R> (index = RewardIndex())?
-	(( r = LtGt() rew = Expression(false, false) { relOp = ExpressionBinaryOp.opSymbols[r]; } )
-	   |( <EQ> <QMARK> { relOp = "="; } )
-	   |( <MIN> <EQ> <QMARK> { relOp = "min="; } )
-	   |( <MAX> <EQ> <QMARK> { relOp = "max="; } )))
+	(( r = LtGt() rew = Expression(false, false) { relOp = ExpressionBinaryOp.opSymbols[r]; isBool = true; } )
+	   |( <EQ> <QMARK> { relOp = "="; isBool = false; } )
+	   |( <MIN> <EQ> <QMARK> { relOp = "min="; isBool = false; } )
+	   |( <MAX> <EQ> <QMARK> { relOp = "max="; isBool = false; } )))
 	// These two are dupes of above but allow space to be omitted
-	|( begin = <RMIN> <EQ> <QMARK> { relOp = "min="; } )
-	|( begin = <RMAX> <EQ> <QMARK> { relOp = "max="; } ))
+	|( begin = <RMIN> <EQ> <QMARK> { relOp = "min="; isBool = false; } )
+	|( begin = <RMAX> <EQ> <QMARK> { relOp = "max="; isBool = false; } ))
 	// Path formula, optional filter
 	<LBRACKET> expr = ExpressionRewardContents(prop, pathprop) (filter = Filter())? <RBRACKET>
 	{
@@ -1527,7 +1530,8 @@ Expression ExpressionReward(boolean prop, boolean pathprop) :
 		// Filter is actually dealt with by wrapping this expression in
 		// an (invisible) ExpressionFilter expression
 		if (filter != null) {
-			ExpressionFilter ef = new ExpressionFilter(filter.minRequested() ? "min" : "max", ret, filter.getExpression());
+			String filterOp = isBool ? "&" : filter.getFilterOpString();
+			ExpressionFilter ef = new ExpressionFilter(filterOp, ret, filter.getExpression());
 			ef.setInvisible(true);
 			return ef;
 		}

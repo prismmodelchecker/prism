@@ -34,7 +34,7 @@ public class ExpressionFilter extends Expression
 {
 	// Enums for  types of filter
 	public enum FilterOperator {
-		MIN, MAX, ARGMIN, ARGMAX, COUNT, SUM, AVG, FIRST, FORALL, EXISTS, PRINT;
+		MIN, MAX, ARGMIN, ARGMAX, COUNT, SUM, AVG, FIRST, RANGE, FORALL, EXISTS, PRINT;
 	};
 
 	// Operator used in filter
@@ -87,6 +87,8 @@ public class ExpressionFilter extends Expression
 			opType = FilterOperator.AVG;
 		else if (opName.equals("first"))
 			opType = FilterOperator.FIRST;
+		else if (opName.equals("range"))
+			opType = FilterOperator.RANGE;
 		else if (opName.equals("forall") || opName.equals("&"))
 			opType = FilterOperator.FORALL;
 		else if (opName.equals("exists") || opName.equals("|"))
@@ -145,7 +147,7 @@ public class ExpressionFilter extends Expression
 	 */
 	public boolean isConstant()
 	{
-		// Note: In some sense, ExpressionFilters are constant since they return the same
+		// Note: In some sense, ExpressionFilters are (often) constant since they return the same
 		// value for every state. But the actual value is model dependent, so they are not
 		// considered to be constants.
 		return false;

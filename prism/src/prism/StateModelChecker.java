@@ -1131,6 +1131,8 @@ public class StateModelChecker implements ModelChecker
 			res = new StateValuesMTBDD(JDD.Constant(d), model);
 			break;
 		case FIRST:
+		case RANGE:
+			// TODO: Treat ranges properly
 			if (empty)
 				throw new PrismException("Can't select the first value from an empty filter");
 			d = vals.sumOverBDD(ddFilter) / JDD.GetNumMinterms(ddFilter, allDDRowVars.n());
