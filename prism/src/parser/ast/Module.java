@@ -174,6 +174,11 @@ public class Module extends ASTElement
 		return baseModule;
 	}
 
+	/**
+	 * Get the set of synchronising actions of this module, i.e. its alphabet.
+	 * Note that the definition of alphabet is syntactic: existence of an a-labelled command in this
+	 * module ensures that a is in the alphabet, regardless of whether the guard is true.
+	 */
 	public Vector<String> getAllSynchs()
 	{
 		int i, n;
@@ -187,6 +192,9 @@ public class Module extends ASTElement
 		return allSynchs;
 	}
 	
+	/**
+	 * Check if action label 's' is in the alphabet of this module.
+	 */
 	public boolean usesSynch(String s)
 	{
 		return getAllSynchs().contains(s);
