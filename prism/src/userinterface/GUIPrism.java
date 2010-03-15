@@ -49,8 +49,6 @@ import userinterface.util.*;
  *  As a top level class, GUIPrism contains some utility methods, that can be used
  *  via the GUIPlugin class.  This class is also a container of a Prism object,
  *  which acts as the link between the user interface and the underlying PRISM code.
- *  @author Andrew Hinton
- *  @since 20/10/03
  */
 public class GUIPrism extends JFrame
 {
@@ -67,7 +65,6 @@ public class GUIPrism extends JFrame
     
     //STATIC MEMBERS
     
-    
     private static GUIPrismSplash splash;
     private static GUIPrism gui;
     private boolean doExit;
@@ -83,12 +80,10 @@ public class GUIPrism extends JFrame
         try
         {
             //Show the splash screen
-            
             splash = new GUIPrismSplash("images/splash.png");
             splash.display();
-            //new GUIPrismSplash().show();
             gui = new GUIPrism();
-            gui.show();
+            gui.setVisible(true);
             EventQueue.invokeLater(new GUIPrism.SplashScreenCloser());
             gui.passCLArgs(args);
         }
@@ -104,24 +99,40 @@ public class GUIPrism extends JFrame
         }
     }
     
-    /**  Define this method to add plugins to the GUI.  Returns an ArrayList of
-     *  Plugin objects.
+    /**
+     * Define this method to add plugins to the GUI. Returns an ArrayList of Plugin objects.
      * @param g The instance of GUIPrism to associate with the GUIPlugin objects.
      * @return An ArrayList of GUIPlugins to be included in the user interface
      */
-    public static ArrayList getPluginArray(GUIPrism g)
+    public static ArrayList<GUIPlugin> getPluginArray(GUIPrism g)
     {
-        ArrayList plugs = new ArrayList();
-        //Define Plugins here
-        plugs.add(new userinterface.GUIFileMenu(g)); // File menu
+    	// Plugins
+    	userinterface.GUIFileMenu fileMenu;
+    	userinterface.model.GUIMultiModel model;
+    	userinterface.properties.GUIMultiProperties props;
+    	userinterface.simulator.GUISimulator sim;
+    	userinterface.log.GUILog log;
+    	userinterface.GUINetwork nw;
+    	// Create
+    	fileMenu = new userinterface.GUIFileMenu(g);
         clipboardPlugin = new GUIClipboard(g);
-        plugs.add(clipboardPlugin); // Clipboard
-        plugs.add(new userinterface.model.GUIMultiModel(g));
-        userinterface.simulator.GUISimulator sim = new userinterface.simulator.GUISimulator(g);
-        plugs.add(new userinterface.properties.GUIMultiProperties(g, sim));
+        model = new userinterface.model.GUIMultiModel(g);
+        sim = new userinterface.simulator.GUISimulator(g);
+    	props = new userinterface.properties.GUIMultiProperties(g, sim);
+    	log = new userinterface.log.GUILog(g);
+    	nw = new userinterface.GUINetwork(g);
+    	// Add to list
+        ArrayList<GUIPlugin> plugs = new ArrayList<GUIPlugin>();
+        plugs.add(fileMenu);
+        plugs.add(clipboardPlugin);
+        plugs.add(model);
+        plugs.add(props);
         plugs.add(sim);
-        plugs.add(new userinterface.log.GUILog(g));
-        plugs.add(new userinterface.GUINetwork(g));
+        plugs.add(log);
+        plugs.add(nw);
+        // Make some plugins aware of others
+        sim.setGUIMultiModel(model);
+        // Return list
         return plugs;
     }
     

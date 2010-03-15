@@ -50,6 +50,7 @@ public class Path
 		public double stateRewards[];
 		public double time;
 		public int choice;
+		public String action;
 		public double transitionRewards[];
 	}
 
@@ -77,14 +78,14 @@ public class Path
 		return size;
 	}
 
-	public State getState(int i)
+	public State getState(int step)
 	{
-		return path.get(i).state;
+		return path.get(step).state;
 	}
 
-	public double getStateReward(int i, int j)
+	public double getStateReward(int step, int i)
 	{
-		return path.get(i).stateRewards[j];
+		return path.get(step).stateRewards[i];
 	}
 
 	public State getCurrentState()
@@ -102,14 +103,19 @@ public class Path
 		return path.get(i).choice;
 	}
 
+	public String getAction(int i)
+	{
+		return path.get(i).action;
+	}
+
 	public double getTransitionReward(int i, int j)
 	{
 		return path.get(i).transitionRewards[j];
 	}
 
 	/**
-	* Constructor: creates a new (empty) Path object for a specific model.
-	*/
+	 * Constructor: creates a new (empty) Path object for a specific model.
+	 */
 	public Path(SimulatorEngine engine, ModulesFile modulesFile)
 	{
 		// Store ptr to engine
@@ -159,12 +165,13 @@ public class Path
 	/**
 	 * Add step...
 	 */
-	public void addStep(int choice, double[] transRewards, State newState, double[] newStateRewards)
+	public void addStep(int choice, String action, double[] transRewards, State newState, double[] newStateRewards)
 	{
 		Step step;
 		// Add info to last existing step
 		step = path.get(path.size() - 1);
 		step.choice = choice;
+		step.action = action;
 		step.transitionRewards = transRewards.clone();
 		// Add new step item to the path
 		step = new Step();

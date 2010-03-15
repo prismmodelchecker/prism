@@ -48,12 +48,14 @@ TODO:
   - Errors (Exceptions) formatted properly?
 
 Doc:
-* Filters - no longer allowed minmax
-* P>=p[...{filter}] means & not print
+* Filters - no longer allowed minmax (or encode as range?)
+* P>=p[...{filter}] means & not print (didn't print in 3.3 anyway, despite manual)
 
 -----------------------------------------------------------------------
 
 TODO:
+
+- remove colons from @params
 
 - fix adversary generation (de alfaro thesis)
 - add adversary generation for other engines

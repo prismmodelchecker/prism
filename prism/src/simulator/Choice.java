@@ -28,18 +28,22 @@ package simulator;
 
 import parser.*;
 import parser.ast.*;
+import prism.*;
+
+import java.util.*;
 
 public interface Choice
 {
-	public void setAction(String action);
+//	public void setAction(String action);
 	public String getAction();
 	public int size();
-	public State getTarget();
-	public State getTarget(int i);
 	public double getProbability();
 	public double getProbability(int i);
 	public double getProbabilitySum();
-	public Command getCommand();
-	public Command getCommand(int i);
+	public String getUpdateString(int i);
+	public State computeTarget(State oldState) throws PrismLangException;
+	public void computeTarget(State oldState, State newState) throws PrismLangException;
+	public State computeTarget(int i, State oldState) throws PrismLangException;
+	public void computeTarget(int i, State oldState, State newState) throws PrismLangException;
 	public int getIndexByProbSum(double x);
 }

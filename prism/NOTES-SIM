@@ -7,6 +7,9 @@ Moved simulator to simulator-old
 Started to build coarse Java-version of SimulatorEngine.
 Currently, just a few statements in automaticChoices...
 
+TODO:
+
+seed issues (currently twice in one second = same seed)
 
 TEST CASES
 

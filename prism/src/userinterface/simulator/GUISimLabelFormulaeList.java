@@ -59,9 +59,7 @@ public class GUISimLabelFormulaeList extends JList
 
 	public void addLabel(String name, Expression expr, ModulesFile mf)
 	{
-		long exprPointer = 0;//TODO CUT expr.toSimulator(engine);
-		int index = SimulatorEngine.loadProposition(exprPointer);
-
+		int index = engine.addLabel(expr);
 		SimLabel sl = new SimLabel(name, index);
 		listModel.addElement(sl);
 	}
@@ -95,12 +93,22 @@ public class GUISimLabelFormulaeList extends JList
 
 		public int getResult()
 		{
-			return SimulatorEngine.queryProposition(formulaIndex);
+			try {
+				boolean b = engine.queryLabel(formulaIndex);
+				return b ? 1 : 0;
+			} catch (PrismLangException e) {
+				return -1;
+			}
 		}
 
 		public int getResult(int step)
 		{
-			return SimulatorEngine.queryProposition(formulaIndex, step);
+			try {
+				boolean b = engine.queryLabel(formulaIndex, step);
+				return b ? 1 : 0;
+			} catch (PrismLangException e) {
+				return -1;
+			}
 		}
 	}
 

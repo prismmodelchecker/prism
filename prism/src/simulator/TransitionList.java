@@ -26,9 +26,10 @@
 
 package simulator;
 
-import java.util.*
-;
+import java.util.*;
+
 import parser.*;
+import prism.*;
 
 public class TransitionList
 {
@@ -93,10 +94,20 @@ public class TransitionList
 		return getChoiceOfTransition(i).getProbability(transitionOffsets.get(i));
 	}
 	
-	// get target of ith transition
-	public State getTransitionTarget(int i)
+	public String getTransitionActionString(int i)
 	{
-		return getChoiceOfTransition(i).getTarget(transitionOffsets.get(i));
+		return getChoiceOfTransition(i).getAction();
+	}
+	
+	public String getTransitionUpdateString(int i)
+	{
+		return getChoiceOfTransition(i).getUpdateString(transitionOffsets.get(i));
+	}
+	
+	// compute target of ith transition
+	public State computeTransitionTarget(int i, State oldState) throws PrismLangException
+	{
+		return getChoiceOfTransition(i).computeTarget(transitionOffsets.get(i), oldState);
 	}
 	
 	@Override

@@ -102,6 +102,11 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		}
 	}
     
+	public GUIMultiModelHandler getHandler()
+	{
+		return handler;
+	}
+	
 	public JPopupMenu getPopup()
 	{
 		return popup;

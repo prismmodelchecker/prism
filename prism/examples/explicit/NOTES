@@ -26,7 +26,8 @@ for N in 4 8; do for M in 32 64 128; do
   prism zeroconf/zeroconf$N$_$M$_4.nm zeroconf/zeroconf.pctl
 done; done
 
-# Abstraction-refinement
+export PRISM_JAVAMAXMEM=2000m
+# Abstraction refinement
 export N=4 M=32
 for N in 4 8; do for M in 32 64 128; do
   prism-ar zeroconf/zeroconf"$N"_"$M"_4 done_correct -refine=all
@@ -49,7 +50,7 @@ prism wlan/wlan3.nm wlan/backoff.pctl -const TRANS_TIME_MAX=10 -m >! wlan/wlan3_
 prism wlan/wlan4.nm wlan/backoff.pctl -const TRANS_TIME_MAX=10 -m >! wlan/wlan4_10.-1.exactm.log
 prism wlan/wlan5.nm wlan/backoff.pctl -const TRANS_TIME_MAX=10 -m >! wlan/wlan5_10.-1.-exactm.log
 
-# Abstraction-refinement
+# Abstraction refinement
 prism-ar wlan/wlan2_10 bcmax -nopre -opt -refine=all
 prism-ar wlan/wlan3_10 bcmax -nopre -opt -refine=all
 prism-ar wlan/wlan4_10 bcmax -nopre -opt -refine=all
@@ -78,23 +79,22 @@ end
 #================================================
 
 # Generate model files
-foreach N (3 5 7 9 11 13 15 17 19)
-  prism herman/herman$N.pm -exporttrans herman/herman$N.tra -exportlabels herman/herman$N.lab
-end
+export N=3 k=5
+for N in 3 5 7 9 11 13 15 17 19; do
+  prism herman/herman"$N".pm -exporttrans herman/herman$N.tra -exportlabels herman/herman$N.lab
+done; done
 
 # Model check in PRISM
-foreach N (3 5 7 9 11 13 15 17 19)
+for N in 3 5 7 9 11 13 15 17 19; do
   # time-bounded
   prism herman/herman$N.pm -pctl 'const int k; P=?[F<=k "stable"]' -const k=5
-end
+done; done
 
 # Abstraction refinement
-  # time-bounded
-    prism-ar herman/herman5 stable -dtmc -probreachbnd=5 -nopre -noopt
-
-prism herman/herman5.pm herman/herman.pctl -prop 2
-
-  prism-ar herman/herman5 stable -dtmc -nopre -noopt
+export N=3 k=5
+for N in 3 5 7 9 11 13 15 17 19; do
+  prism-ar herman/herman"$N" stable -dtmc -probreachbnd="$k" -nopre -noopt
+done; done
 
 
 #================================================
@@ -120,9 +120,9 @@ prism fgf/sprouty.sm fgf/deg.ss.csl -s -bgs -epsilon 1e-12 -maxiters 10000000 -f
 
 prism fgf/sprouty.sm -fixdl -exporttrans fgf/sprouty.tra -exportstates fgf/sprouty.sta -exportlabels fgf/sprouty.lab
 
-  prism-ar fgf/sprouty cause1 -ctmc -nopre -noopt
+PRISM_JAVAMAXMEM=2000m prism-ar fgf/sprouty cause1 -ctmc -nopre -noopt
 
-  prism-ar fgf/sprouty cause1 -ctmc -noopt -refine=all -epsilon=1e-2
+PRISM_JAVAMAXMEM=2000m prism-ar -Xmx2000m fgf/sprouty cause1 -ctmc -noopt -refine=all -epsilon=1e-2
 
 #================================================
 # Self-stabilisation (Beauquier)

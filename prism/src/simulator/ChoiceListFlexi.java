@@ -32,76 +32,94 @@ import parser.*;
 import parser.ast.*;
 import prism.PrismLangException;
 
-public class ChoiceList implements Choice
+public class ChoiceListFlexi implements Choice
 {
+	// TODO: need mult actions
 	protected String action;
 	// List of multiple targets and associated info
-	// Size of list is stored implicitly in target.length // TODO: no
+	// Size of list is stored implicitly in target.length
 	// TODO: convert to arrays?
 	protected List<List<Update>> updates;
 	protected List<Double> probability;
 	protected List<Command> command;
-	
-	public ChoiceList(int n)
+
+	public ChoiceListFlexi()
 	{
-		updates = new ArrayList<List<Update>>(n);
-		probability = new ArrayList<Double>(n);
-		command = new ArrayList<Command>(n);
+		updates = new ArrayList<List<Update>>();
+		probability = new ArrayList<Double>();
+		command = new ArrayList<Command>();
 	}
-	
+
 	// Set methods
-	
-	public void setAction(String action)
+
+	public void add(String action, double probability, List<Update> ups, Command command)
 	{
 		this.action = action;
-	}
-
-	public void setProbability(double probability)
-	{
-		setProbability(0, probability);
-	}
-
-	public void addProbability(double probability)
-	{
+		this.updates.add(ups);
 		this.probability.add(probability);
-	}
-
-	public void setProbability(int i, double probability)
-	{
-		if (i < 0 || i >= size())
-			return;
-		this.probability.set(i, probability);
-	}
-
-	public void setCommand(Command command)
-	{
-		setCommand(0, command);
-	}
-
-	public void addCommand(Command command)
-	{
 		this.command.add(command);
 	}
 
-	public void setCommand(int i, Command command)
+	public void scaleProbabilitiesBy(double d)
 	{
-		if (i < 0 || i >= size())
-			return;
-		this.command.set(i, command);
+		int i, n;
+		n = size();
+		for (i = 0; i < n; i++) {
+			probability.set(i, probability.get(i) * d);
+		}
 	}
-	
+
+	public void productWith(ChoiceListFlexi ch)
+	{
+		List<Update> list;
+		int i, j, n, n2;
+		double pi;
+		
+		n = ch.size();
+		n2 = size();
+		// Loop through each (ith) element of new choice (skipping first)
+		for (i = 1; i < n; i++) {
+			pi = ch.getProbability(i);
+			// Loop through each (jth) element of existing choice
+			for (j = 0; j < n2; j++) {
+				// Create new element (i,j) of product 
+				list = new ArrayList<Update>(updates.get(j).size() + ch.updates.get(i).size());
+				for (Update u : updates.get(j)) {
+					list.add(u);
+				}
+				for (Update u : ch.updates.get(i)) {
+					list.add(u);
+				}
+				add("?", pi * getProbability(j), list, null);
+			}
+		}
+		// Modify elements of current choice to get (0,j) elements of product
+		pi = ch.getProbability(0);
+		for (j = 0; j < n2; j++) {
+			for (Update u : ch.updates.get(0)) {
+				updates.get(j).add(u);
+			}
+			probability.set(j, pi * probability.get(j));
+		}
+	}
+
 	// Get methods
-	
+
 	public String getAction()
 	{
-		return action;
+		Update u = updates.get(0).get(0);
+		Command c = u.getParent().getParent();
+		if ("".equals(c.getSynch()))
+			return c.getParent().getName();
+		else
+			return "[" + c.getSynch() + "]";
 	}
 
 	public int size()
 	{
 		return probability.size();
 	}
-	
+
 	public String getUpdateString(int i)
 	{
 		String s = "(";
@@ -111,16 +129,6 @@ public class ChoiceList implements Choice
 		return s;
 	}
 	
-	public State computeTarget(State oldState) throws PrismLangException
-	{
-		return computeTarget(0, oldState);
-	}
-
-	public void computeTarget(State oldState, State newState) throws PrismLangException
-	{
-		computeTarget(0, oldState, newState);
-	}
-
 	public State computeTarget(int i, State oldState) throws PrismLangException
 	{
 		if (i < 0 || i >= size())
@@ -139,6 +147,16 @@ public class ChoiceList implements Choice
 			up.update(oldState, newState);
 	}
 	
+	public State computeTarget(State oldState) throws PrismLangException
+	{
+		return computeTarget(0, oldState);
+	}
+
+	public void computeTarget(State oldState, State newState) throws PrismLangException
+	{
+		computeTarget(0, oldState, newState);
+	}
+
 	public double getProbability()
 	{
 		return getProbability(0);
@@ -148,7 +166,7 @@ public class ChoiceList implements Choice
 	{
 		if (i < 0 || i >= size())
 			return -1;
-			//throw new PrismLangException("Invalid grouped transition index " + i);
+		//throw new PrismLangException("Invalid grouped transition index " + i);
 		return probability.get(i);
 	}
 
@@ -169,7 +187,7 @@ public class ChoiceList implements Choice
 	{
 		if (i < 0 || i >= size())
 			return null;
-			//throw new PrismLangException("Invalid grouped transition index " + i);
+		//throw new PrismLangException("Invalid grouped transition index " + i);
 		return command.get(i);
 	}
 
@@ -185,7 +203,7 @@ public class ChoiceList implements Choice
 		}
 		return i - 1;
 	}
-	
+
 	public String toString()
 	{
 		int i, n;
@@ -196,8 +214,8 @@ public class ChoiceList implements Choice
 			if (first)
 				first = false;
 			else
-				s+= " + ";
-			s += getProbability(i)+":"+updates.get(i);
+				s += " + ";
+			s += getProbability(i) + ":" + updates.get(i);
 		}
 		return s;
 	}

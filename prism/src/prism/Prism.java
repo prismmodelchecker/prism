@@ -523,8 +523,7 @@ public class Prism implements PrismSettingsListener
 	public SimulatorEngine getSimulator()
 	{
 		if (theSimulator == null) {
-			theSimulator = new SimulatorEngine();
-			theSimulator.setMainLog(mainLog);
+			theSimulator = new SimulatorEngine(this);
 		}
 		return theSimulator; 
 	}

@@ -157,12 +157,13 @@ import prism.*;
 
 public class SimulatorEngine
 {
-	// Log
+	// PRISM stuff
+	protected Prism prism;
 	protected PrismLog mainLog;
-	
+
 	// Random number generator
 	private RandomNumberGenerator rng;
-	
+
 	// The current parsed model + info
 	private ModulesFile modulesFile;
 	private ModelType modelType;
@@ -172,24 +173,25 @@ public class SimulatorEngine
 	// Synchronising action info
 	private Vector<String> synchs;
 	private int numSynchs;
-	
-	// TODO: ... more from below
 
+	// TODO: ... more from below
 
 	// NEW STUFF:
 	protected boolean onTheFly;
 	// Updater object for model
 	protected Updater updater;
-	
+
 	protected State lastState;
 	protected State currentState;
 	protected double currentStateRewards[];
-	
+
 	// PATH:
 	protected Path path = null;
 	// TRANSITIONS:
-	
+
 	protected TransitionList transitionList;
+
+	protected List<Expression> labels;
 	
 	// ------------------------------------------------------------------------------
 	// CONSTANTS
@@ -236,8 +238,8 @@ public class SimulatorEngine
 	// CLASS MEMBERS
 	// ------------------------------------------------------------------------------
 
-	private Map<String,Integer> varIndices;
-	
+	private Map<String, Integer> varIndices;
+
 	// Current model
 	private Values constants;
 
@@ -255,8 +257,10 @@ public class SimulatorEngine
 	/**
 	 * Constructor for the simulator engine.
 	 */
-	public SimulatorEngine()
+	public SimulatorEngine(Prism prism)
 	{
+		this.prism = prism;
+		setMainLog(prism.getMainLog());
 		// TODO
 		rng = new RandomNumberGenerator();
 		varIndices = null;
@@ -275,6 +279,14 @@ public class SimulatorEngine
 		mainLog = log;
 	}
 
+	/**
+	 * Get access to the parent Prism object
+	 */
+	public Prism getPrism()
+	{
+		return prism;
+	}
+
 	// ------------------------------------------------------------------------------
 	// Path creation and modification
 	// ------------------------------------------------------------------------------
@@ -282,8 +294,8 @@ public class SimulatorEngine
 	/**
 	 * Create a new path for a model and (possibly) some properties.
 	 * Note: All constants in the model must have already been defined.
-	 * @param modulesFile: Model for simulation
-	 * @param propertiesFile: Properties to check during simulation TODO: change?
+	 * @param modulesFile Model for simulation
+	 * @param propertiesFile Properties to check during simulation TODO: change?
 	 */
 	public void createNewPath(ModulesFile modulesFile, PropertiesFile propertiesFile) throws PrismException
 	{
@@ -300,8 +312,8 @@ public class SimulatorEngine
 	/**
 	 * Create a new on-the-fly path for a model and (possibly) some properties.
 	 * Note: All constants in the model must have already been defined.
-	 * @param modulesFile: Model for simulation
-	 * @param propertiesFile: Properties to check during simulation TODO: change?
+	 * @param modulesFile Model for simulation
+	 * @param propertiesFile Properties to check during simulation TODO: change?
 	 */
 	public void createNewOnTheFlyPath(ModulesFile modulesFile, PropertiesFile propertiesFile) throws PrismException
 	{
@@ -315,7 +327,7 @@ public class SimulatorEngine
 
 	/**
 	 * Initialise (or re-initialise) the simulation path, starting with a specific (or random) initial state.
-	 * @param initialState: Initial state (if null, is selected randomly)
+	 * @param initialState Initial state (if null, is selected randomly)
 	 */
 	public void initialisePath(Values initialState) throws PrismException
 	{
@@ -337,30 +349,14 @@ public class SimulatorEngine
 	}
 
 	/**
-	 * Execute a particular transition, specified by its index.
-	 * This function applies the indexed update of the current list of updates to the model. This method is specific to
-	 * DTMCs and MDPs.
-	 * 
+	 * Execute a transition from the current transition list, specified by its index
+	 * within the (whole) list.
 	 */
 	public void manualUpdate(int index) throws PrismException
 	{
 		int choice = transitionList.getChoiceIndexOfTransition(index);
-		int index2 = transitionList.getChoiceOffsetOfTransition(index);
-		applyUpdate(choice, index2);
-	}
-
-	// TODO: make so that  this is general  
-	private void applyUpdate(int choice, int index) throws PrismException
-	{
-		
-		State state = transitionList.getChoice(choice).getTarget(index);
-		lastState.copy(currentState);
-		currentState.copy(state);
-		mainLog.println(state);
-		updater.calculateStateRewards(currentState, currentStateRewards);
-		// TODO: first currentStateRewards should be new Trans rewards!
-		path.addStep(index, currentStateRewards, currentState, currentStateRewards);
-		updater.calculateTransitions(currentState, transitionList);
+		int offset = transitionList.getChoiceOffsetOfTransition(index);
+		executeTransition(choice, offset);
 	}
 
 	/**
@@ -393,37 +389,35 @@ public class SimulatorEngine
 		automaticChoices(n, true);
 	}
 
-	/**
-	 * This function makes n automatic choices of updates to the global state.
-	 * 
-	 * @param n
-	 *            the number of automatic choices to be made.
-	 * @param detect
-	 *            whether to employ loop detection.
-	 * @throws PrismException
-	 *             if something goes wrong when updating the state.
-	 */
 	public void automaticChoices(int n, boolean detect) throws PrismException
 	{
+		int i;
+		for (i = 0; i < n; i++)
+			automaticChoice(detect);
+	}
+	
+	public void automaticChoice(boolean detect) throws PrismException
+	{
 		// just one for now...
-		
-		int numChoices, i;
-		double d;
+
 		Choice ch;
-		
+		int numChoices, i, j;
+		double d;
+
 		switch (modelType) {
 		case DTMC:
 		case MDP:
+			// Check for deadlock
 			numChoices = transitionList.numChoices;
 			if (numChoices == 0)
 				throw new PrismException("Deadlock found at state " + currentState.toString(modulesFile));
-			// Pick a random (nondeterministic choice)
+			// Pick a random choice
 			i = rng.randomInt(numChoices);
 			ch = transitionList.getChoice(i);
-			// Pick a random 
-			double x = rng.randomDouble();
-			int j = ch.getIndexByProbSum(x);
-			applyUpdate(i, j);
+			// Pick a random transition from this choice
+			d = rng.randomDouble();
+			j = ch.getIndexByProbSum(d);
+			executeTransition(i, j);
 			break;
 		case CTMC:
 			// TODO: automaticUpdateContinuous();
@@ -461,6 +455,26 @@ public class SimulatorEngine
 		/*int result = doAutomaticChoices(time, detect);
 		if (result == ERROR)
 			throw new PrismException(getLastErrorMessage());*/
+	}
+
+	/**
+	 * Execute a transition from the current transition list, specified by index
+	 * of choice and offset within that choice. Also update path info (if required).
+	 */
+	private void executeTransition(int choice, int offset) throws PrismException
+	{
+		Choice ch;
+		// Remember last state and compute next one (and its state rewards)
+		lastState.copy(currentState);
+		ch = transitionList.getChoice(choice); 
+		ch.computeTarget(offset, lastState, currentState);
+		updater.calculateStateRewards(currentState, currentStateRewards);
+		// Stored path info (if necessary)
+		if (!onTheFly)
+			// TODO: first currentStateRewards should be new Trans rewards!
+			path.addStep(offset, ch.getAction(), currentStateRewards, currentState, currentStateRewards);
+		// Generate updates for next state 
+		updater.calculateTransitions(currentState, transitionList);
 	}
 
 	/**
@@ -527,31 +541,20 @@ public class SimulatorEngine
 	private static native int doRemovePrecedingStates(int step);
 
 	/**
-	 * Asks the c++ engine to calculate the updates again for an old state in the model, so that they can be queried at
-	 * any time.
-	 * 
-	 * @param step
-	 *            the old step of interest.
+	 * Compute the transition table for an earlier step in the path.
 	 */
-	public void calculateOldUpdates(int step)
-	{
-		moveToStep(step);
-	}
-
-	/**
-	 * like backtrack but don't actually modify path 
-	 */
-	public void moveToStep(int step)
+	public void computeTransitionsForStep(int step) throws PrismException
 	{
 		updater.calculateTransitions(path.getState(step), transitionList);
 	}
 
 	/**
-	 * Tells the c++ engine that it can recalculate the current update set because we are finished with the old one.
-	 * 
-	 * @return a number
+	 * Re-compute the transition table for the current state.
 	 */
-	public static native int finishedWithOldUpdates();
+	public void computeTransitionsForCurrentState() throws PrismException
+	{
+		updater.calculateTransitions(currentState, transitionList);
+	}
 
 	// ------------------------------------------------------------------------------
 	// Private methods for path creation and modification
@@ -559,7 +562,7 @@ public class SimulatorEngine
 
 	/**
 	 * Loads a new PRISM model into the simulator.
-	 * @param modulesFile: The parsed PRISM model
+	 * @param modulesFile The parsed PRISM model
 	 */
 	private void loadModulesFile(ModulesFile modulesFile) throws PrismException
 	{
@@ -567,12 +570,12 @@ public class SimulatorEngine
 		this.modulesFile = modulesFile;
 		modelType = modulesFile.getModelType();
 		this.constants = modulesFile.getConstantValues();
-		
+
 		// Check for presence of system...endsystem
 		if (modulesFile.getSystemDefn() != null) {
 			throw new PrismException("Sorry - the simulator does not currently handle the system...endsystem construct");
 		}
-		
+
 		// Get variable list (symbol table) for model 
 		varList = modulesFile.createVarList();
 		numVars = varList.getNumVars();
@@ -583,24 +586,27 @@ public class SimulatorEngine
 		for (int i = 0; i < numVars; i++) {
 			varIndices.put(varList.getName(i), i);
 		}
-		
+
 		// Get list of synchronising actions
 		synchs = modulesFile.getSynchs();
 		numSynchs = synchs.size();
-		
+
 		// Evaluate constants and optimise modules file for simulation
 		modulesFile = (ModulesFile) modulesFile.replaceConstants(constants).simplify();
-		
+
 		// Create state/transition storage
 		lastState = new State(numVars);
 		currentState = new State(numVars);
 		currentStateRewards = new double[modulesFile.getNumRewardStructs()];
 		transitionList = new TransitionList();
-		
+
 		// Create updater for model
-		updater = new Updater(modulesFile);
+		updater = new Updater(this, modulesFile);
+		
+		// Create storage for labels
+		labels = new ArrayList<Expression>();
 	}
-	
+
 	// ------------------------------------------------------------------------------
 	// Queries regarding model
 	// ------------------------------------------------------------------------------
@@ -663,7 +669,7 @@ public class SimulatorEngine
 	}
 
 	// ------------------------------------------------------------------------------
-	// Path querying
+	// State/Transitions querying
 	// ------------------------------------------------------------------------------
 
 	/**
@@ -673,6 +679,95 @@ public class SimulatorEngine
 	{
 		return currentState;
 	}
+
+	/**
+	 * Returns the current number of available transitions.
+	 */
+	public int getNumTransitions()
+	{
+		return transitionList.numTransitions;
+	}
+
+	/**
+	 * Returns the action label of a transition in the list of those currently available.
+	 * An empty string denotes an unlabelled (asynchronous) transition.
+	 * @param i: The index of the transition being queried
+	 */
+	public String getTransitionAction(int index) throws PrismException
+	{
+		if (index < 0 || index >= transitionList.numTransitions)
+			throw new PrismException("Invalid transition index " + index);
+		return transitionList.getChoiceOfTransition(index).getAction();
+	}
+
+	/**
+	 * TODO
+	 * Returns the module name of the udpate at the given index.
+	 * 
+	 * @param i
+	 *            the index of the update of interest.
+	 * @return the module name of the udpate at the given index.
+	 */
+	public String getTransitionModuleOrAction(int index)
+	{
+		return transitionList.getTransitionActionString(index);
+	}
+
+	/**
+	 * Returns the probability/rate of the update at the given index
+	 * 
+	 * @param i
+	 *            the index of the update of interest.
+	 * @return the probability/rate of the update at the given index.
+	 */
+	public double getTransitionProbability(int index) throws PrismException
+	{
+		double p = transitionList.getTransitionProbability(index);
+		return (modelType == ModelType.DTMC ? p / transitionList.numChoices : p);
+	}
+
+	public State computeTransitionTarget(int index) throws PrismLangException
+	{
+		// TODO
+		if (index < 0 || index >= transitionList.numTransitions)
+			return null;
+		//throw new PrismException("Invalid transition index " + index);
+		return transitionList.computeTransitionTarget(index, currentState);
+	}
+
+	/**
+	 * Returns a string representation of the assignments for the current update at the given index.
+	 * 
+	 * @param index
+	 *            the index of the update of interest.
+	 * @return a string representation of the assignments for the current update at the given index.
+	 */
+	public String getAssignmentDescriptionOfUpdate(int index)
+	{
+		return transitionList.getTransitionUpdateString(index);
+		/*
+		int i, n;
+		boolean first = true;
+		State v = path.getCurrentState();
+		State v2 = getTransitionTarget(index);
+		String s = "";
+		n = getNumVariables();
+		for (i = 0; i < n; i++) {
+			if (!v.varValues[i].equals(v2.varValues[i])) {
+				if (first)
+					first = false;
+				else
+					s += "&";
+				s += "(" + getVariableName(i) + "'=" + v2.varValues[i] + ")";
+			}
+		}
+		return s;
+		*/
+	}
+
+	// ------------------------------------------------------------------------------
+	// Path querying
+	// ------------------------------------------------------------------------------
 
 	/**
 	 * Returns the number of states stored in the current path table.
@@ -696,6 +791,11 @@ public class SimulatorEngine
 	public Object getPathData(int varIndex, int stateIndex)
 	{
 		return path.getState(stateIndex).varValues[varIndex];
+	}
+
+	public String getActionOfPathStep(int step)
+	{
+		return path.getAction(step);
 	}
 
 	/**
@@ -731,9 +831,9 @@ public class SimulatorEngine
 	 *            the index of the reward structure
 	 * @return the state reward of the state at the given path index.
 	 */
-	public double getStateRewardOfPathState(int stateIndex, int i)
+	public double getStateRewardOfPathState(int step, int stateIndex)
 	{
-		return 99;
+		return path.getStateReward(step, stateIndex);
 	}
 
 	/**
@@ -883,107 +983,6 @@ public class SimulatorEngine
 	// ------------------------------------------------------------------------------
 	// UPDATE HANDLER UPDATE METHODS
 	// ------------------------------------------------------------------------------
-
-	/**
-	 * Returns the current number of available transitionss.
-	 */
-	public int getNumTransitions()
-	{
-		return transitionList.numTransitions;
-	}
-
-	/**
-	 * Returns the action label of a transition in the list of those currently available.
-	 * An empty string denotes an unlabelled (asynchronous) transition.
-	 * @param i: The index of the transition being queried
-	 */
-	public String getTransitionAction(int index) throws PrismException
-	{
-		if (index < 0 || index >= transitionList.numTransitions)
-			throw new PrismException("Invalid transition index " + index);
-		return transitionList.getChoiceOfTransition(index).getAction();
-	}
-
-	/**
-	 * Returns the module name of the udpate at the given index.
-	 * 
-	 * @param i
-	 *            the index of the update of interest.
-	 * @return the module name of the udpate at the given index.
-	 */
-	public String getTransitionModuleOrAction(int index) throws PrismException
-	{
-		String action = getTransitionAction(index);
-		if ("".equals(index)) {
-			return transitionList.getChoiceOfTransition(index).getCommand().getParent().getName();
-		} else {
-			return "[" + action + "]";
-		}
-	}
-
-	/**
-	 * Asks the c++ engine for the index of the module of the current update at the given index
-	 * 
-	 * @param i
-	 *            the index of the update of interest.
-	 * @return the index of the module of the current update at the given index
-	 */
-	public int getModuleIndexOfUpdate(int i)
-	{
-		// TODO
-		return 0;
-	}
-
-	/**
-	 * Returns the probability/rate of the update at the given index
-	 * 
-	 * @param i
-	 *            the index of the update of interest.
-	 * @return the probability/rate of the update at the given index.
-	 */
-	public double getTransitionProbability(int index) throws PrismException
-	{
-		// TODO
-		if (index < 0 || index >= transitionList.numTransitions)
-			throw new PrismException("Invalid transition index " + index);
-		return transitionList.getTransitionProbability(index);
-	}
-
-	public State getTransitionTarget(int index) //throws PrismException
-	{
-		// TODO
-		if (index < 0 || index >= transitionList.numTransitions)
-			return null;
-		//throw new PrismException("Invalid transition index " + index);
-		return transitionList.getTransitionTarget(index);
-	}
-
-	/**
-	 * Returns a string representation of the assignments for the current update at the given index.
-	 * 
-	 * @param index
-	 *            the index of the update of interest.
-	 * @return a string representation of the assignments for the current update at the given index.
-	 */
-	public String getAssignmentDescriptionOfUpdate(int index)
-	{
-		int i, n;
-		boolean first = true;
-		State v = path.getCurrentState();
-		State v2 = getTransitionTarget(index);
-		String s = "";
-		n = getNumVariables();
-		for (i = 0; i < n; i++) {
-			if (!v.varValues[i].equals(v2.varValues[i])) {
-				if (first)
-					first = false;
-				else
-					s += "&";
-				s += "(" + getVariableName(i) + "'=" + v2.varValues[i] + ")";
-			}
-		}
-		return s;
-	}
 
 	/**
 	 * Returns the index of the variable being assigned to for the current update at the given index (updateIndex) and
@@ -1137,7 +1136,8 @@ public class SimulatorEngine
 	 * @return the result.
 	 */
 	public Object[] modelCheckMultipleProperties(ModulesFile modulesFile, PropertiesFile propertiesFile,
-			ArrayList<Expression> exprs, Values initialState, int noIterations, int maxPathLength) throws PrismException
+			ArrayList<Expression> exprs, Values initialState, int noIterations, int maxPathLength)
+			throws PrismException
 	{
 		createNewOnTheFlyPath(modulesFile, propertiesFile);
 
@@ -1145,7 +1145,7 @@ public class SimulatorEngine
 		int[] indices = new int[exprs.size()];
 
 		// TODO: move addProperty stuff into startNewPath above
-		
+
 		// Add the properties to the simulator (after a check that they are valid)
 		int validPropsCount = 0;
 		for (int i = 0; i < exprs.size(); i++) {
@@ -1301,7 +1301,6 @@ public class SimulatorEngine
 	 */
 	public static native void stopSampling();
 
-
 	/**
 	 * Used by the recursive model/properties loading methods (not part of the API)
 	 */
@@ -1390,24 +1389,22 @@ public class SimulatorEngine
 	// STATE PROPOSITION METHODS
 	// ------------------------------------------------------------------------------
 
-	/**
-	 * Loads the boolean expression stored at exprPointer into the simulator engine. Returns the index of where the
-	 * proposition is being stored
-	 */
-	public static native int loadProposition(long exprPointer);
-
-	/**
-	 * For the state proposition stored at the given index, this returns 1 if it is true in the current state and 0 if
-	 * not. -1 is returned if the index is invalid.
-	 */
-	public static native int queryProposition(int index);
-
-	/**
-	 * For the state proposition stored at the given index, this returns 1 if it is true in the state at the given path
-	 * step and 0 if not. -1 is returned if the index is invalid.
-	 */
-	public static native int queryProposition(int index, int step);
-
+	public int addLabel(Expression label)
+	{
+		labels.add(label);
+		return labels.size() - 1;
+	}
+	
+	public boolean queryLabel(int index) throws PrismLangException
+	{
+		return labels.get(index).evaluateBoolean(currentState);
+	}
+	
+	public boolean queryLabel(int index, int step) throws PrismLangException
+	{
+		return labels.get(index).evaluateBoolean(path.getState(step));
+	}
+	
 	/**
 	 * For the current state, this returns 1 if it is the same as the initial state for the current path
 	 */

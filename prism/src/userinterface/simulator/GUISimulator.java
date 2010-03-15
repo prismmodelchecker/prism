@@ -52,6 +52,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	//ATTRIBUTES
 	private GUIPrism gui; //reference to the gui
 	private GUIMultiProperties guiProp; //reference to the properties information
+	private GUIMultiModel guiMultiModel; //reference to the model plugin
 	private SimulatorEngine engine;
 	private GUIPrismFileFilter[] txtFilter;
 	private JMenu simulatorMenu;
@@ -194,6 +195,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		currentUpdatesTable.requestFocus();
 
 		manualUpdateTableScrollPane.setToolTipText("Double-click or right-click below to create a new path");
+	}
+
+	public void setGUIMultiModel(GUIMultiModel guiMultiModel)
+	{
+		this.guiMultiModel = guiMultiModel;
 	}
 
 	public void setGUIProb(GUIMultiProperties guiProp)
@@ -418,6 +424,10 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 		} catch (PrismException e) {
 			this.error(e.getMessage());
+			if (e instanceof PrismLangException) {
+				guiMultiModel.getHandler().modelParseFailed((PrismLangException) e, false);
+				guiMultiModel.tabToFront();
+			}
 		}
 	}
 
@@ -438,7 +448,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			setComputing(true);
 
 			if (isOldUpdate()) {
-				engine.finishedWithOldUpdates();
+				engine.computeTransitionsForCurrentState();
 			}
 
 			engine.automaticChoices(noSteps, displayPathLoops);
@@ -462,6 +472,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		} catch (PrismException e) {
 			this.error(e.getMessage());
+			guiMultiModel.getHandler().modelParseFailed((PrismLangException) e, false);
+			guiMultiModel.tabToFront();
 		}
 	}
 
@@ -482,7 +494,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			setComputing(true);
 
 			if (isOldUpdate()) {
-				engine.finishedWithOldUpdates();
+				engine.computeTransitionsForCurrentState();
 			}
 
 			engine.automaticChoices(time, displayPathLoops);
@@ -512,37 +524,45 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	/** Backtracks to a certain time. */
 	public void a_backTrack(double time) throws PrismException
 	{
-		setComputing(true);
+		try {
+			setComputing(true);
 
-		engine.backtrack(time);
+			engine.backtrack(time);
 
-		pathTableModel.updatePathTable();
-		updateTableModel.updateUpdatesTable();
+			pathTableModel.updatePathTable();
+			updateTableModel.updateUpdatesTable();
 
-		totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
-		pathLengthLabel.setText("" + (engine.getPathSize() - 1));
-		stateLabelList.repaint();
-		pathFormulaeList.repaint();
+			totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
+			pathLengthLabel.setText("" + (engine.getPathSize() - 1));
+			stateLabelList.repaint();
+			pathFormulaeList.repaint();
 
-		setComputing(false);
+			setComputing(false);
+		} catch (PrismException e) {
+			this.error(e.getMessage());
+		}
 	}
 
 	/** Backtracks to a certain step. */
-	public void a_backTrack(int step) throws PrismException
+	public void a_backTrack(int step)
 	{
-		setComputing(true);
+		try {
+			setComputing(true);
 
-		engine.backtrack(step);
+			engine.backtrack(step);
 
-		pathTableModel.updatePathTable();
-		updateTableModel.updateUpdatesTable();
+			pathTableModel.updatePathTable();
+			updateTableModel.updateUpdatesTable();
 
-		totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
-		pathLengthLabel.setText("" + (engine.getPathSize() - 1));
-		stateLabelList.repaint();
-		pathFormulaeList.repaint();
+			totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
+			pathLengthLabel.setText("" + (engine.getPathSize() - 1));
+			stateLabelList.repaint();
+			pathFormulaeList.repaint();
 
-		setComputing(false);
+			setComputing(false);
+		} catch (PrismException e) {
+			this.error(e.getMessage());
+		}
 	}
 
 	public void a_restartPath()
@@ -862,8 +882,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		typeBacktrackCombo.setEnabled(pathActive);
 
 		currentUpdatesTable.setEnabled(pathActive && !computing);
-		autoTimeCheck.setEnabled(pathActive && parsedModel != null
-				&& parsedModel.getModelType() == ModelType.CTMC);
+		autoTimeCheck.setEnabled(pathActive && parsedModel != null && parsedModel.getModelType() == ModelType.CTMC);
 
 		//resetPathButton.setEnabled(pathActive && !computing);
 		//exportPathButton.setEnabled(pathActive && !computing);
@@ -878,8 +897,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		modelTypeLabel.setEnabled(parsedModel != null);
 
 		totalTime.setEnabled(pathActive && parsedModel != null && parsedModel.getModelType() == ModelType.CTMC);
-		totalTimeLabel.setEnabled(pathActive && parsedModel != null
-				&& parsedModel.getModelType() == ModelType.CTMC);
+		totalTimeLabel.setEnabled(pathActive && parsedModel != null && parsedModel.getModelType() == ModelType.CTMC);
 
 		pathLength.setEnabled(pathActive);
 		pathLengthLabel.setEnabled(pathActive);
@@ -1539,11 +1557,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				try {
-					a_backTrack(pathTable.getSelectedRow());
-				} catch (PrismException ex) {
-					error(ex.getMessage());
-				}
+				a_backTrack(pathTable.getSelectedRow());
 			}
 		};
 		backtrackToHere.putValue(Action.LONG_DESCRIPTION, "Backtracks the path to the selected state.");
@@ -1995,21 +2009,24 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	}
 
 	/**
-	 *  Captures
+	 * Respond to selections of rows in the path table: update transition list.
 	 */
 	public void valueChanged(ListSelectionEvent e)
 	{
-		if (pathTable.getSelectedRowCount() == 0) {
-			pathTable.getSelectionModel()
-					.setSelectionInterval(pathTable.getRowCount() - 1, pathTable.getRowCount() - 1);
-			updateTableModel.updateUpdatesTable();
-
+		try {
+			// If no rows are selected, make the last (current) state selected and proceed
+			if (pathTable.getSelectedRowCount() == 0) {
+				int last = pathTable.getRowCount() - 1;
+				pathTable.getSelectionModel().setSelectionInterval(last, last);
+				updateTableModel.updateUpdatesTable();
+			}
+			// Update transition table according to reflect currently selected step
+			updateTableModel.updateUpdatesTable(pathTable.getSelectedRow());
+			stateLabelList.repaint();
+			pathFormulaeList.repaint();
+		} catch (PrismException ex) {
+			this.error(ex.getMessage());
 		}
-
-		updateTableModel.updateUpdatesTable(pathTable.getSelectedRow());
-		stateLabelList.repaint();
-		pathFormulaeList.repaint();
-
 	}
 
 	// Variables declaration - do not modify//GEN-BEGIN:variables
@@ -2420,6 +2437,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		private ArrayList rewards;
 
 		private boolean stepsVisible;
+		private boolean actionsVisible;
 		private boolean showTime;
 		private boolean showCumulativeTime;
 		private boolean useChangeRenderer;
@@ -2435,6 +2453,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			this.rewards = new ArrayList();
 
 			this.stepsVisible = true;
+			this.actionsVisible = true;
 			this.showTime = false;
 			this.showCumulativeTime = true;
 
@@ -2450,6 +2469,19 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		public void showSteps(boolean stepsVisible)
 		{
 			this.stepsVisible = stepsVisible;
+
+			this.setChanged();
+			this.notifyObservers();
+		}
+
+		public boolean showActions()
+		{
+			return actionsVisible;
+		}
+
+		public void showActions(boolean actionsVisible)
+		{
+			this.actionsVisible = actionsVisible;
 
 			this.setChanged();
 			this.notifyObservers();
@@ -2575,59 +2607,59 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				if (parsedModel.getModelType() != ModelType.CTMC && (showTime || showCumulativeTime))
 					canUseCurrentView = false;
 
-					// Make a set of all variable names.
-					TreeSet<String> allVarNames = new TreeSet<String>();
+				// Make a set of all variable names.
+				TreeSet<String> allVarNames = new TreeSet<String>();
 
-					for (Object var : visibleVariables)
-						allVarNames.add(((Variable) var).getName());
-					for (Object var : hiddenVariables)
-						allVarNames.add(((Variable) var).getName());
+				for (Object var : visibleVariables)
+					allVarNames.add(((Variable) var).getName());
+				for (Object var : hiddenVariables)
+					allVarNames.add(((Variable) var).getName());
 
-					for (int i = 0; i < engine.getNumVariables(); i++) {
-						if (allVarNames.contains(engine.getVariableName(i)))
-							allVarNames.remove(engine.getVariableName(i));
-						else
-							// Cannot use current view if a variable is not there.
-							canUseCurrentView = false;
-					}
-
-					// Cannot use current view if we have too many variables.
-					if (allVarNames.size() > 0)
+				for (int i = 0; i < engine.getNumVariables(); i++) {
+					if (allVarNames.contains(engine.getVariableName(i)))
+						allVarNames.remove(engine.getVariableName(i));
+					else
+						// Cannot use current view if a variable is not there.
 						canUseCurrentView = false;
+				}
 
-					// Make a list of all reward structures
-					ArrayList<RewardStructure> allrew = new ArrayList<RewardStructure>();
+				// Cannot use current view if we have too many variables.
+				if (allVarNames.size() > 0)
+					canUseCurrentView = false;
 
-					for (Object rew : rewards) {
-						allrew.add((RewardStructure) rew);
-					}
+				// Make a list of all reward structures
+				ArrayList<RewardStructure> allrew = new ArrayList<RewardStructure>();
 
-					for (int r = 0; r < parsedModel.getNumRewardStructs(); r++) {
-						RewardStruct rewardStruct = parsedModel.getRewardStruct(r);
-						String rewardName = rewardStruct.getName();
+				for (Object rew : rewards) {
+					allrew.add((RewardStructure) rew);
+				}
 
-						boolean hasStates = parsedModel.getRewardStruct(r).getNumStateItems() != 0;
-						boolean hasTrans = parsedModel.getRewardStruct(r).getNumTransItems() != 0;
+				for (int r = 0; r < parsedModel.getNumRewardStructs(); r++) {
+					RewardStruct rewardStruct = parsedModel.getRewardStruct(r);
+					String rewardName = rewardStruct.getName();
 
-						boolean foundReward = false;
+					boolean hasStates = parsedModel.getRewardStruct(r).getNumStateItems() != 0;
+					boolean hasTrans = parsedModel.getRewardStruct(r).getNumTransItems() != 0;
 
-						for (Object rewobj : rewards) {
-							RewardStructure rew = (RewardStructure) rewobj;
-							if (rew.isStateEmpty() == !hasStates
-									&& rew.isTransitionEmpty() == !hasTrans
-									&& ((rew.getName() == null && rewardName.equals("")) || (rew.getName() != null && rew
-											.getName().equals(rewardName)))) {
-								allrew.remove(rew);
-								foundReward = true;
-							}
+					boolean foundReward = false;
+
+					for (Object rewobj : rewards) {
+						RewardStructure rew = (RewardStructure) rewobj;
+						if (rew.isStateEmpty() == !hasStates
+								&& rew.isTransitionEmpty() == !hasTrans
+								&& ((rew.getName() == null && rewardName.equals("")) || (rew.getName() != null && rew
+										.getName().equals(rewardName)))) {
+							allrew.remove(rew);
+							foundReward = true;
 						}
-
-						if (!foundReward)
-							canUseCurrentView = false;
 					}
 
-					if (allrew.size() > 0)
+					if (!foundReward)
 						canUseCurrentView = false;
+				}
+
+				if (allrew.size() > 0)
+					canUseCurrentView = false;
 
 			}
 
@@ -2639,33 +2671,33 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				rewards.clear();
 
 				{
-						for (int i = 0; i < engine.getNumVariables(); i++) {
-							visibleVariables.add(new Variable(i, engine.getVariableName(i), engine.getVariableType(i)));
+					for (int i = 0; i < engine.getNumVariables(); i++) {
+						visibleVariables.add(new Variable(i, engine.getVariableName(i), engine.getVariableType(i)));
+					}
+
+					for (int r = 0; r < parsedModel.getNumRewardStructs(); r++) {
+						RewardStruct rewardStruct = parsedModel.getRewardStruct(r);
+						String rewardName = rewardStruct.getName();
+
+						if (rewardName.trim().length() == 0) {
+							rewardName = null;
 						}
 
-						for (int r = 0; r < parsedModel.getNumRewardStructs(); r++) {
-							RewardStruct rewardStruct = parsedModel.getRewardStruct(r);
-							String rewardName = rewardStruct.getName();
+						RewardStructure rewardStructure = new RewardStructure(r, rewardName, parsedModel
+								.getRewardStruct(r).getNumStateItems() == 0, parsedModel.getRewardStruct(r)
+								.getNumTransItems() == 0);
 
-							if (rewardName.trim().length() == 0) {
-								rewardName = null;
-							}
+						if (!rewardStructure.isStateEmpty() || !rewardStructure.isTransitionEmpty())
+							rewards.add(rewardStructure);
 
-							RewardStructure rewardStructure = new RewardStructure(r, rewardName, parsedModel
-									.getRewardStruct(r).getNumStateItems() == 0, parsedModel.getRewardStruct(r)
-									.getNumTransItems() == 0);
+						if (!rewardStructure.isStateEmpty())
+							visibleRewardColumns.add(new RewardStructureColumn(rewardStructure,
+									RewardStructureColumn.STATE_REWARD));
 
-							if (!rewardStructure.isStateEmpty() || !rewardStructure.isTransitionEmpty())
-								rewards.add(rewardStructure);
-
-							if (!rewardStructure.isStateEmpty())
-								visibleRewardColumns.add(new RewardStructureColumn(rewardStructure,
-										RewardStructureColumn.STATE_REWARD));
-
-							if (!rewardStructure.isTransitionEmpty())
-								visibleRewardColumns.add(new RewardStructureColumn(rewardStructure,
-										RewardStructureColumn.TRANSITION_REWARD));
-						}
+						if (!rewardStructure.isTransitionEmpty())
+							visibleRewardColumns.add(new RewardStructureColumn(rewardStructure,
+									RewardStructureColumn.TRANSITION_REWARD));
+					}
 
 				}
 			}
@@ -2699,7 +2731,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			} else {
 				int groupCount = 0;
 
-				if (view.showSteps()) {
+				if (view.showSteps() || view.showActions()) {
 					groupCount++;
 				}
 
@@ -2757,7 +2789,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			} else {
 				int groupCount = 0;
 
-				if (view.showSteps()) {
+				if (view.showSteps() || view.showActions()) {
 					if (groupCount == groupIndex) {
 						return "Step";
 					}
@@ -2833,7 +2865,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 			int groupCount = 0;
 
-			if (view.showSteps()) {
+			if (view.showSteps() || view.showActions()) {
 				if (groupCount == groupIndex) {
 					return null;
 				}
@@ -2889,16 +2921,19 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		public int getLastColumnOfGroup(int groupIndex)
 		{
 			int stepStart = 0;
-			int timeStart = stepStart + (view.showSteps() ? 1 : 0);
+			int timeStart = stepStart + (view.showSteps() ? 1 : 0) + (view.showActions() ? 1 : 0);
 			int varStart = timeStart + (view.canShowTime() && view.showTime() ? 1 : 0)
 					+ (view.canShowTime() && view.showCumulativeTime() ? 1 : 0);
 			int rewardStart = varStart + view.getVisibleVariables().size();
 
 			int groupCount = 0;
 
-			if (view.showSteps()) {
+			if (view.showSteps() || view.showActions()) {
 				if (groupCount == groupIndex) {
-					return stepStart;
+					if (view.showSteps() && view.showActions())
+						return stepStart + 1;
+					else
+						return stepStart;
 				}
 
 				groupCount++;
@@ -2995,6 +3030,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				int colCount = 0;
 
 				colCount += (view.showSteps() ? 1 : 0);
+				colCount += (view.showActions() ? 1 : 0);
 				colCount += (view.canShowTime() && view.showTime() ? 1 : 0)
 						+ (view.canShowTime() && view.showCumulativeTime() ? 1 : 0);
 				colCount += view.getVisibleVariables().size();
@@ -3036,14 +3072,17 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		{
 			if (pathActive) {
 				int stepStart = 0;
-				int timeStart = stepStart + (view.showSteps() ? 1 : 0);
+				int actionStart = stepStart + (view.showSteps() ? 1 : 0);
+				int timeStart = actionStart + (view.showActions() ? 1 : 0);
 				int cumulativeTimeStart = timeStart + (view.canShowTime() && view.showTime() ? 1 : 0);
 				int varStart = cumulativeTimeStart + (view.canShowTime() && view.showCumulativeTime() ? 1 : 0);
 				int rewardStart = varStart + view.getVisibleVariables().size();
 
 				// The step column
-				if (stepStart <= columnIndex && columnIndex < timeStart) {
+				if (stepStart <= columnIndex && columnIndex < actionStart) {
 					return "#";
+				} else if (actionStart <= columnIndex && columnIndex < timeStart) {
+					return "Action";
 				} else if (timeStart <= columnIndex && columnIndex < cumulativeTimeStart) {
 					return "Time";
 				} else if (cumulativeTimeStart <= columnIndex && columnIndex < varStart) {
@@ -3066,16 +3105,19 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		{
 			if (pathActive) {
 				int stepStart = 0;
-				int timeStart = stepStart + (view.showSteps() ? 1 : 0);
+				int actionStart = stepStart + (view.showSteps() ? 1 : 0);
+				int timeStart = actionStart + (view.showActions() ? 1 : 0);
 				int cumulativeTimeStart = timeStart + (view.canShowTime() && view.showTime() ? 1 : 0);
 				int varStart = cumulativeTimeStart + (view.canShowTime() && view.showCumulativeTime() ? 1 : 0);
 				int rewardStart = varStart + view.getVisibleVariables().size();
 
 				// The step column
-				if (stepStart <= columnIndex && columnIndex < timeStart) {
-					return "State indices";
+				if (stepStart <= columnIndex && columnIndex < actionStart) {
+					return "Step index";
+				} else if (actionStart <= columnIndex && columnIndex < timeStart) {
+					return "Action label or module name";
 				} else if (timeStart <= columnIndex && columnIndex < cumulativeTimeStart) {
-					return "Time spent in a state";
+					return "Time spent in state";
 				} else if (cumulativeTimeStart <= columnIndex && columnIndex < varStart) {
 					return "Cumulative time";
 				}
@@ -3105,14 +3147,19 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		{
 			if (pathActive) {
 				int stepStart = 0;
-				int timeStart = stepStart + (view.showSteps() ? 1 : 0);
+				int actionStart = stepStart + (view.showSteps() ? 1 : 0);
+				int timeStart = actionStart + (view.showActions() ? 1 : 0);
 				int cumulativeTimeStart = timeStart + (view.canShowTime() && view.showTime() ? 1 : 0);
 				int varStart = cumulativeTimeStart + (view.canShowTime() && view.showCumulativeTime() ? 1 : 0);
 				int rewardStart = varStart + view.getVisibleVariables().size();
 
 				// The step column
-				if (stepStart <= columnIndex && columnIndex < timeStart) {
+				if (stepStart <= columnIndex && columnIndex < actionStart) {
 					return "" + rowIndex;
+				}
+				// The action column
+				else if (actionStart <= columnIndex && columnIndex < timeStart) {
+					return engine.getActionOfPathStep(rowIndex);
 				}
 				// Time column
 				else if (timeStart <= columnIndex && columnIndex < cumulativeTimeStart) {
@@ -3137,7 +3184,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					Object result = engine.getPathData(var.getIndex(), rowIndex);
 					variableValue.setVariable(var);
 					variableValue.setValue(result);
-					variableValue.setChanged(rowIndex == 0 || !engine.getPathData(var.getIndex(), rowIndex - 1).equals(result));
+					variableValue.setChanged(rowIndex == 0
+							|| !engine.getPathData(var.getIndex(), rowIndex - 1).equals(result));
 
 					return variableValue;
 				}
@@ -3312,25 +3360,16 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 		public int getColumnCount()
 		{
-			if (pathActive)
-				return 3;
-			else
-				return 0;
+			return pathActive ? 3 : 0;
 		}
 
 		public int getRowCount()
 		{
-
-			if (pathActive) {
-				return engine.getNumTransitions();
-			} else
-				return 0;
-
+			return pathActive ? engine.getNumTransitions() : 0;
 		}
 
 		public Object getValueAt(int rowIndex, int columnIndex)
 		{
-			String s;
 			if (pathActive) {
 				try {
 					switch (columnIndex) {
@@ -3372,10 +3411,13 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				return "";
 		}
 
-		public void updateUpdatesTable()
+		/**
+		 * Update the updates table to display the available transitions in the current path step.
+		 */
+		public void updateUpdatesTable() throws PrismException
 		{
 			if (isOldUpdate()) {
-				engine.finishedWithOldUpdates();
+				engine.computeTransitionsForCurrentState();
 			}
 			oldUpdate = false;
 			oldStep = -1;
@@ -3389,7 +3431,10 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		}
 
-		public void updateUpdatesTable(int oldStep)
+		/**
+		 * Update the updates table to display the available transitions in a particular path step.
+		 */
+		public void updateUpdatesTable(int oldStep) throws PrismException
 		{
 			if (oldStep == pathTable.getRowCount() - 1) // if current state selected
 			{
@@ -3398,7 +3443,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				this.oldStep = oldStep;
 				oldUpdate = true;
 				doEnables();
-				engine.calculateOldUpdates(oldStep);
+				engine.computeTransitionsForStep(oldStep);
 				fireTableDataChanged();
 
 				currentUpdatesTable.setEnabled(false);
@@ -3440,7 +3485,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		}
 	}
-	
+
 	/**
 	 * Utility function to format floating point numbers.
 	 */

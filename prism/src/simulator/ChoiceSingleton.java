@@ -26,16 +26,26 @@
 
 package simulator;
 
+import java.util.*;
+
 import parser.*;
 import parser.ast.*;
+import prism.*;
 
 public class ChoiceSingleton implements Choice
 {
 	protected String action;
-	protected State target;
+	protected List<Update> updates; 
 	protected double probability;
 	protected Command command;
 
+	// Constructor
+	
+	public ChoiceSingleton()
+	{
+		updates = new ArrayList<Update>(1);
+	}
+	
 	// Set methods
 	
 	public void setAction(String action)
@@ -43,9 +53,9 @@ public class ChoiceSingleton implements Choice
 		this.action = action;
 	}
 
-	public void setTarget(State target)
+	public void addUpdate(Update up)
 	{
-		this.target = target;
+		updates.add(up);
 	}
 
 	public void setProbability(double probability)
@@ -53,11 +63,6 @@ public class ChoiceSingleton implements Choice
 		this.probability = probability;
 	}
 
-	public void setCommand(Command command)
-	{
-		this.command = command;
-	}
-	
 	// Get methods
 	
 	public int size()
@@ -75,14 +80,39 @@ public class ChoiceSingleton implements Choice
 		return action;
 	}
 
-	public State getTarget()
+	public String getUpdateString(int i)
 	{
-		return target;
+		String s = "(";
+		for (Update up : updates)
+			s += up;
+		s += ")";
+		return s;
+	}
+	
+	public State computeTarget(State oldState) throws PrismLangException
+	{
+		State newState = new State(oldState);
+		for (Update up : updates)
+			up.update(oldState, newState);
+		return newState;
 	}
 
-	public State getTarget(int i)
+	public void computeTarget(State oldState, State newState) throws PrismLangException
 	{
-		return (i == 0) ? target : null;
+		for (Update up : updates)
+			up.update(oldState, newState);
+	}
+
+	public State computeTarget(int i, State oldState) throws PrismLangException
+	{
+		if (i == 0) return computeTarget(oldState);
+		else throw new PrismLangException("Choice does not have an element " + i);
+	}
+
+	public void computeTarget(int i, State oldState, State newState) throws PrismLangException
+	{
+		if (i == 0) computeTarget(oldState, newState);
+		else throw new PrismLangException("Choice does not have an element " + i);
 	}
 
 	public double getProbability()
@@ -113,6 +143,6 @@ public class ChoiceSingleton implements Choice
 	@Override
 	public String toString()
 	{
-		return "-{" + ("".equals(action) ?  "" : action+"," ) + probability + "}->" + target; 
+		return "-{" + ("".equals(action) ?  "" : action+"," ) + probability + "}->" + updates; 
 	}
 }

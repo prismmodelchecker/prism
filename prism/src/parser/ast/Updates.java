@@ -28,6 +28,7 @@ package parser.ast;
 
 import java.util.*;
 
+import parser.*;
 import parser.visitor.*;
 import prism.PrismLangException;
 
@@ -56,7 +57,7 @@ public class Updates extends ASTElement
 	// Set methods
 
 	/**
-	 * Add a probability/update pair (probability can be null, which equates to 1.0).
+	 * Add a probability (or rate) and update pair (probability/rate can be null, which equates to 1.0).
 	 */
 	public void addUpdate(Expression p, Update u)
 	{
@@ -75,7 +76,7 @@ public class Updates extends ASTElement
 	}
 
 	/**
-	 * Set the probability of the ith update (can be null; denotes default of 1.0)
+	 * Set the probability (or rate) of the ith update (can be null; denotes default of 1.0)
 	 */
 	public void setProbability(int i, Expression p)
 	{
@@ -118,13 +119,22 @@ public class Updates extends ASTElement
 	}
 
 	/**
-	 *  Get the probability of the ith update (may be null, which should be interpreted as constant 1.0)
+	 *  Get the probability (or rate) of the ith update (may be null, which should be interpreted as constant 1.0)
 	 */
 	public Expression getProbability(int i)
 	{
 		return probs.get(i);
 	}
 
+	/**
+	 * Evaluate the probability (or rate) of the ith update, in the context of a state
+	 */
+	public double getProbabilityInState(int i, State state) throws PrismLangException
+	{
+		Expression p = probs.get(i);
+		return (p == null) ? 1.0 : p.evaluateDouble(state);
+	}
+			
 	/**
 	 * Get the Command to which this Updates object belongs.
 	 */
