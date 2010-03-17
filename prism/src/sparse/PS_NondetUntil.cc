@@ -107,6 +107,18 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	Cudd_Ref(maybe);
 	a = DD_Apply(ddman, APPLY_TIMES, trans, maybe);
 	
+	// When computing maximum reachability probabilities,
+	// we can safely remove any probability 1 self-loops for efficiency.
+	// This might leave some states with no choices (only if no precomp done)
+	// but this is not a problem, for value iteration.
+	// This is also motivated by the fact that this fixes some simple problem
+	// cases for adversary generation.
+	if (!min) {
+		Cudd_Ref(a);
+		tmp = DD_And(ddman, DD_Equals(ddman, a, 1.0), DD_Identity(ddman, rvars, cvars, num_rvars));
+		a = DD_ITE(ddman, tmp, DD_Constant(ddman, 0), a);
+	}
+	
 	// get number of states
 	n = odd->eoff + odd->toff;
 	
