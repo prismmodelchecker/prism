@@ -721,8 +721,8 @@ public class Explicit2MTBDD
 						c = Integer.parseInt(ss[1]);
 						d = Double.parseDouble(ss[2]);
 						if (ss.length == 4) {
-							foundReward = true;
-							x = Double.parseDouble(ss[3]);
+							//foundReward = true;
+							//x = Double.parseDouble(ss[3]);
 						}
 						//System.out.println("("+r+","+c+") = "+d);
 					}
@@ -734,8 +734,8 @@ public class Explicit2MTBDD
 						c = Integer.parseInt(ss[2]);
 						d = Double.parseDouble(ss[3]);
 						if (ss.length == 5) {
-							foundReward = true;
-							x = Double.parseDouble(ss[4]);
+							//foundReward = true;
+							//x = Double.parseDouble(ss[4]);
 						}
 						//System.out.println("("+r+","+k+","+c+") = "+d);
 					}
