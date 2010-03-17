@@ -21,6 +21,39 @@ public enum ModelType {
 		case STPG:
 			return "stochastic two-player game";
 		}
+		// Should never happen
 		return "";
+	}
+	
+	public boolean choicesSumToOne()
+	{
+		switch (this) {
+		case DTMC:
+		case MDP:
+		case PTA:
+		case STPG:
+			return true;
+		case CTMC:
+		case CTMDP:
+			return false;
+		}
+		// Should never happen
+		return true;
+	}
+	
+	public boolean continuousTime()
+	{
+		switch (this) {
+		case DTMC:
+		case MDP:
+		case STPG:
+			return false;
+		case PTA:
+		case CTMC:
+		case CTMDP:
+			return true;
+		}
+		// Should never happen
+		return true;
 	}
 }
