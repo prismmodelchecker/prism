@@ -999,11 +999,21 @@ public class PrismCL
 						errorAndExit("No file specified for -"+sw+" switch");
 					}
 				}
-				// export prism model to file
+				// export adversary to file
 				else if (sw.equals("exportadv")) {
 					if (i < args.length-1) {
 						prism.setExportAdv(Prism.EXPORT_ADV_DTMC);
 						prism.setExportAdvFilename(args[++i]);
+					}
+					else {
+						errorAndExit("No file specified for -"+sw+" switch");
+					}
+				}
+				// export reachability target info to file
+				else if (sw.equals("exporttarget")) {
+					if (i < args.length-1) {
+						prism.setExportTarget(true);
+						prism.setExportTargetFilename(args[++i]);
 					}
 					else {
 						errorAndExit("No file specified for -"+sw+" switch");
