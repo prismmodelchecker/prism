@@ -54,7 +54,12 @@ public class NondetModelChecker extends NonProbModelChecker
 	// Options (in addition to those inherited from StateModelChecker):
 
 	// Use 0,1 precomputation algorithms?
+	// if 'precomp' is false, this disables all (non-essential) use of prob0/prob1
+	// if 'precomp' is true, the values of prob0/prob1 determine what is used
+	// (currently prob0/prob are not under user control)
 	protected boolean precomp;
+	protected boolean prob0;
+	protected boolean prob1;
 	// Use fairness?
 	protected boolean fairness;
 
@@ -71,15 +76,24 @@ public class NondetModelChecker extends NonProbModelChecker
 		nondetMask = model.getNondetMask();
 		allDDNondetVars = model.getAllDDNondetVars();
 		
-		// Display warning for some option combinations
-		if (prism.getExportAdv() != Prism.EXPORT_ADV_NONE && engine != Prism.SPARSE) {
-			mainLog.println("\nWarning: Adversary generation is only implemented for the sparse engine");
+		// Inherit some options from parent Prism object and store locally.
+		precomp = prism.getPrecomp();
+		prob0 = true;
+		prob1 = true;
+		fairness = prism.getFairness();
+		
+		// Display warning and/or make changes for some option combinations
+		if (prism.getExportAdv() != Prism.EXPORT_ADV_NONE) {
+			if (engine != Prism.SPARSE) {
+				mainLog.println("\nWarning: Adversary generation is only implemented for the sparse engine");
+			}
+			if (precomp && prob1) {
+				mainLog.println("\nWarning: Disabling Prob1 since this is needed for adversary generation");
+				prob1 = false;
+			}
 		}
 		
-		// Inherit some options from parent Prism object.
-		// Store locally and/or pass onto engines/native code.
-		precomp = prism.getPrecomp();
-		fairness = prism.getFairness();
+		// Pass some options onto engines/native code.
 		PrismNative.setExportAdv(prism.getExportAdv());
 		PrismNative.setExportAdvFilename(prism.getExportAdvFilename());
 		switch (engine) {
@@ -185,7 +199,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		}
 
 		// Compute probabilities
-		boolean qual = pb != null && ((p == 0) || (p == 1)) && precomp;
+		boolean qual = pb != null && ((p == 0) || (p == 1)) && precomp && prob0 && prob1;
 		probs = checkProbPathFormula(expr.getExpression(), qual, min);
 
 		// Print out probabilities
@@ -786,7 +800,7 @@ public class NondetModelChecker extends NonProbModelChecker
 			// no
 			if (yes.equals(reach)) {
 				no = JDD.Constant(0);
-			} else if (precomp) {
+			} else if (precomp && prob0) {
 				if (min) {
 					// "min prob = 0" equates to "there exists a prob 0"
 					no = PrismMTBDD.Prob0E(tr01, reach, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, b1,
@@ -979,21 +993,39 @@ public class NondetModelChecker extends NonProbModelChecker
 			no = JDD.And(reach, JDD.Not(b2));
 			maybe = JDD.Constant(0);
 		} else {
+			// no
 			// if precomputation enabled
-			if (precomp) {
+			if (precomp && prob0) {
 				// min
 				if (min) {
 					// no: "min prob = 0" equates to "there exists an adversary prob equals 0"
-					no = PrismMTBDD
-							.Prob0E(tr01, reach, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, b1, b2);
+					no = PrismMTBDD.Prob0E(tr01, reach, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, b1, b2);
+				}
+				// max
+				else {
+					// no: "max prob = 0" equates to "for all adversaries prob equals 0"
+					no = PrismMTBDD.Prob0A(tr01, reach, allDDRowVars, allDDColVars, allDDNondetVars, b1, b2);
+				}
+			}
+			// if precomputation not enabled
+			else {
+				// no
+				JDD.Ref(reach);
+				JDD.Ref(b1);
+				JDD.Ref(b2);
+				no = JDD.And(reach, JDD.Not(JDD.Or(b1, b2)));
+			}
+			// yes
+			// if precomputation enabled (need both prob0/prob1 to be enabled to do prob1)
+			if (precomp && prob0 && prob1) {
+				// min
+				if (min) {
 					// yes: "min prob = 1" equates to "for all adversaries prob equals 1"
 					yes = PrismMTBDD.Prob1A(tr01, reach, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, no,
 							b2);
 				}
 				// max
 				else {
-					// no: "max prob = 0" equates to "for all adversaries prob equals 0"
-					no = PrismMTBDD.Prob0A(tr01, reach, allDDRowVars, allDDColVars, allDDNondetVars, b1, b2);
 					// yes: "max prob = 1" equates to "there exists an adversary prob equals 1"
 					yes = PrismMTBDD.Prob1E(tr01, reach, allDDRowVars, allDDColVars, allDDNondetVars, b1, b2, no);
 				}
@@ -1003,11 +1035,6 @@ public class NondetModelChecker extends NonProbModelChecker
 				// yes
 				JDD.Ref(b2);
 				yes = b2;
-				// no
-				JDD.Ref(reach);
-				JDD.Ref(b1);
-				JDD.Ref(b2);
-				no = JDD.And(reach, JDD.Not(JDD.Or(b1, b2)));
 			}
 			// maybe
 			JDD.Ref(reach);

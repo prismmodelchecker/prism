@@ -87,6 +87,8 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	bool adv_loop = false;
 	FILE *fp_adv = NULL;
 	int adv_j, adv_l2, adv_h2;
+	int *adv = NULL;
+	// action info
 	int *actions;
 	jstring *action_names_jstrings;
 	const char** action_names;
@@ -171,6 +173,19 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	kbt += 2*kb;
 	PS_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
 	
+	// if required, create storage for adversary and initialise
+	if (export_adv_enabled != EXPORT_ADV_NONE) {
+		PS_PrintToMainLog(env, "Allocating adversary vector... ");
+		adv = new int[n];
+		kb = n*sizeof(int)/1024.0;
+		kbt += kb;
+		PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+		// Initialise all entries to -1 ("don't know")
+		for (i = 0; i < n; i++) {
+			adv[i] = -1;
+		}
+	}
+	
 	// print total memory usage
 	PS_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 	
@@ -201,21 +216,21 @@ jboolean min				// min or max probabilities (true = min, false = max)
 		}
 	}
 	
-	while ((!done && iters < max_iters) || adv_loop) {
+	// store local copies of stuff
+	double *non_zeros = ndsm->non_zeros;
+	unsigned char *row_counts = ndsm->row_counts;
+	int *row_starts = (int *)ndsm->row_counts;
+	unsigned char *choice_counts = ndsm->choice_counts;
+	int *choice_starts = (int *)ndsm->choice_counts;
+	bool use_counts = ndsm->use_counts;
+	unsigned int *cols = ndsm->cols;
+		
+	while (!done && iters < max_iters) {
 		
 		iters++;
 		
 //		PS_PrintToMainLog(env, "iter %d\n", iters);
 //		start3 = util_cpu_time();
-		
-		// store local copies of stuff
-		double *non_zeros = ndsm->non_zeros;
-		unsigned char *row_counts = ndsm->row_counts;
-		int *row_starts = (int *)ndsm->row_counts;
-		unsigned char *choice_counts = ndsm->choice_counts;
-		int *choice_starts = (int *)ndsm->choice_counts;
-		bool use_counts = ndsm->use_counts;
-		unsigned int *cols = ndsm->cols;
 		
 		// do matrix multiplication and min/max
 		h1 = h2 = 0;
@@ -233,20 +248,18 @@ jboolean min				// min or max probabilities (true = min, false = max)
 				}
 				if (first || (min&&(d2<d1)) || (!min&&(d2>d1))) {
 					d1 = d2;
-					if (adv_loop) { adv_j = j; adv_l2 = l2; adv_h2 = h2; }
+					// if adversary generation is enabled, remember new (strictly) better choices
+					if (export_adv_enabled != EXPORT_ADV_NONE) {
+						if (adv[i] == -1 || (min&&(d1<soln[i])) || (!min&&(d1>soln[i]))) {
+							adv[i] = j;
+						}
+					}
 				}
 				first = false;
 			}
 			// set vector element
 			// (if no choices, use value of yes)
 			soln2[i] = (h1 > l1) ? d1 : yes_vec[i];
-			// store adversary info (if required)
-			if (adv_loop) if (h1 > l1)
-				for (k = adv_l2; k < adv_h2; k++) {
-					fprintf(fp_adv, "%d %d %g", i, cols[k], non_zeros[k]);
-					if (actions != NULL) fprintf(fp_adv, " %s", actions[adv_j]>0?action_names[actions[adv_j]-1]:"");
-					fprintf(fp_adv, "\n");
-				}
 		}
 		
 		// check convergence
@@ -279,10 +292,29 @@ jboolean min				// min or max probabilities (true = min, false = max)
 		soln = soln2;
 		soln2 = tmpsoln;
 		
-		// if we're done, but adversary generation is required, go round once more
-		if (done && export_adv_enabled != EXPORT_ADV_NONE) adv_loop = !adv_loop;
-		
 //		PS_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
+	}
+	
+	// Traverse matrix to extract adversary
+	if (export_adv_enabled != EXPORT_ADV_NONE) {
+		h1 = h2 = 0;
+		for (i = 0; i < n; i++) {
+			if (!use_counts) { l1 = row_starts[i]; h1 = row_starts[i+1]; }
+			else { l1 = h1; h1 += row_counts[i]; }
+			// Have to loop through all choices (to compute offsets)
+			for (j = l1; j < h1; j++) {
+				if (!use_counts) { l2 = choice_starts[j]; h2 = choice_starts[j+1]; }
+				else { l2 = h2; h2 += choice_counts[j]; }
+				// But only output a choice if it is in the adversary
+				if (j == adv[i]) {
+					for (k = l2; k < h2; k++) {
+						fprintf(fp_adv, "%d %d %g", i, cols[k], non_zeros[k]);
+						if (actions != NULL) fprintf(fp_adv, " %s", actions[j]>0?action_names[actions[j]-1]:"");
+						fprintf(fp_adv, "\n");
+					}
+				}
+			}
+		}
 	}
 	
 	// stop clocks
@@ -314,6 +346,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	if (ndsm) delete ndsm;
 	if (yes_vec) delete[] yes_vec;
 	if (soln2) delete[] soln2;
+	if (adv) delete[] adv;
 	if (actions != NULL) {
 		delete[] actions;
 		release_string_array_from_java(env, action_names_jstrings, action_names, num_actions);
