@@ -26,28 +26,70 @@
 
 package explicit;
 
-import prism.ModelType;
+import java.util.Map;
 
 /**
- * Interface for classes that provide (read-only) access to an explicit-state CTMDP.
+ * Simple explicit-state representation of a CTMDP.
  */
-public interface CTMDP extends MDP
+public class CTMDPSimple extends MDPSimple implements CTMDP
 {
-	// Model type
-	public static ModelType modelType = ModelType.CTMDP;
-
-	// TODO: copy/modify functions from CTMC
-	
-	/**
-	 * Build the discretised (DT)MDP for this CTMDP, in implicit form
-	 * (i.e. where the details are computed on the fly from this one).
-	 * @param tau Step duration
-	 */
-	public MDP buildImplicitDiscretisedMDP(double tau);
+	// Constructors
 
 	/**
-	 * Build (a new) discretised (DT)MDP for this CTMDP.
-	 * @param tau Step duration
+	 * Constructor: empty CTMDP.
 	 */
-	public MDPSimple buildDiscretisedMDP(double tau);
+	public CTMDPSimple()
+	{
+		initialise(0);
+	}
+
+	/**
+	 * Constructor: new CTMDP with fixed number of states.
+	 */
+	public CTMDPSimple(int numStates)
+	{
+		initialise(numStates);
+	}
+
+	/**
+	 * Copy constructor.
+	 */
+	public CTMDPSimple(CTMDPSimple ctmdp)
+	{
+		super(ctmdp);
+	}
+
+	// Accessors (for CTMDP)
+
+	@Override
+	public MDP buildImplicitDiscretisedMDP(double tau)
+	{
+		// TODO
+		return null;
+	}
+
+	@Override
+	public MDPSimple buildDiscretisedMDP(double tau)
+	{
+		MDPSimple mdp;
+		Distribution distrNew;
+		int i;
+		double d;
+		mdp = new MDPSimple(numStates);
+		for (int in : getInitialStates()) {
+			mdp.addInitialState(in);
+		}
+		for (i = 0; i < numStates; i++) {
+			for (Distribution distr : trans.get(i)) {
+				distrNew = new Distribution();
+				d = Math.exp(-distr.sum() * tau);
+				for (Map.Entry<Integer, Double> e : distr) {
+					distrNew.add(e.getKey(), (1 - d) * e.getValue());
+				}
+				distrNew.add(i, d);
+				mdp.addChoice(i, distrNew);
+			}
+		}
+		return mdp;
+	}
 }

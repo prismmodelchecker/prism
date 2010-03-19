@@ -78,12 +78,12 @@ public class STPG extends ModelSimple
 	 * Constructor: build an STPG from an MDP.
 	 * Data is copied directly from the MDP so take a copy first if you plan to keep/modify the MDP.
 	 */
-	public STPG(MDP m)
+	public STPG(MDPSimple m)
 	{
 		DistributionSet set;
 		int i;
 		// TODO: actions? rewards?
-		initialise(m.numStates);
+		initialise(m.getNumStates());
 		for (i = 0; i < numStates; i++) {
 			set = newDistributionSet(null);
 			set.addAll(m.getChoices(i));

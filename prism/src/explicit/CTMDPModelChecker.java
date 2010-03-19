@@ -27,6 +27,7 @@
 package explicit;
 
 import java.util.BitSet;
+import java.util.Map;
 
 import prism.PrismException;
 
@@ -35,6 +36,30 @@ import prism.PrismException;
  */
 public class CTMDPModelChecker extends MDPModelChecker
 {
+	/**
+	 * Compute bounded probabilistic reachability.
+	 * @param target: Target states
+	 * @param t: Time bound
+	 * @param min: Min or max probabilities for (true=min, false=max)
+	 * @param init: Initial solution vector - pass null for default
+	 * @param results: Optional array of size b+1 to store (init state) results for each step (null if unused)
+	 */
+	public ModelCheckerResult probReachBounded2(CTMDP ctmdp, BitSet target, double t, boolean min, double init[],
+			double results[]) throws PrismException
+	{
+		MDP mdp;
+		MDPModelChecker mc;
+		ModelCheckerResult res;
+		
+		mdp = ctmdp.buildDiscretisedMDP(0.0002);
+		mainLog.println(mdp);
+		mc = new MDPModelChecker();
+		mc.inheritSettings(this);
+		res = mc.probReachBounded(mdp, target, 4500, min);
+		
+		return res;
+	}
+	
 	/**
 	 * Compute bounded probabilistic reachability.
 	 * @param target: Target states
@@ -60,10 +85,10 @@ public class CTMDPModelChecker extends MDPModelChecker
 		mainLog.println("Starting time-bounded probabilistic reachability...");
 
 		// Store num states
-		n = ctmdp.numStates;
+		n = ctmdp.getNumStates();
 
 		// Get uniformisation rate; do Fox-Glynn
-		q = ctmdp.unif;
+		q = 99;//ctmdp.unif;
 		qt = q * t;
 		mainLog.println("\nUniformisation: q.t = " + q + " x " + t + " = " + qt);
 		fg = new FoxGlynn(qt, 1e-300, 1e+300, termCritParam / 8.0);
@@ -137,5 +162,41 @@ public class CTMDPModelChecker extends MDPModelChecker
 		res.numIters = iters;
 		res.timeTaken = timer / 1000.0;
 		return res;
+	}
+	
+	/**
+	 * Simple test program.
+	 */
+	public static void main(String args[])
+	{
+		CTMDPModelChecker mc;
+		CTMDPSimple ctmdp;
+		ModelCheckerResult res;
+		BitSet target;
+		Map<String, BitSet> labels;
+		boolean min = true;
+		try {
+			mc = new CTMDPModelChecker();
+			ctmdp = new CTMDPSimple();
+			ctmdp.buildFromPrismExplicit(args[0]);
+			System.out.println(ctmdp);
+			labels = mc.loadLabelsFile(args[1]);
+			System.out.println(labels);
+			target = labels.get(args[2]);
+			if (target == null)
+				throw new PrismException("Unknown label \"" + args[2] + "\"");
+			for (int i = 3; i < args.length; i++) {
+				if (args[i].equals("-min"))
+					min = true;
+				else if (args[i].equals("-max"))
+					min = false;
+				else if (args[i].equals("-nopre"))
+					mc.setPrecomp(false);
+			}
+			res = mc.probReachBounded2(ctmdp, target, 1.0, min, null, null);
+			System.out.println(res.soln[0]);
+		} catch (PrismException e) {
+			System.out.println(e);
+		}
 	}
 }

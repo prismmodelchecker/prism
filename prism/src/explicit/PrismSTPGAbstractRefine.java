@@ -79,7 +79,7 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 			modelConcrete = new CTMCSimple();
 			break;
 		case MDP:
-			modelConcrete = new MDP();
+			modelConcrete = new MDPSimple();
 			break;
 		default:
 			throw new PrismException("Cannot handle model type " + modelType);
@@ -143,10 +143,10 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 		nAbstract = existsRest ? 3 : 2;
 		switch (modelType) {
 		case DTMC:
-			abstraction = new MDP(nAbstract);
+			abstraction = new MDPSimple(nAbstract);
 			break;
 		case CTMC:
-			abstraction = new CTMDP(nAbstract);
+			abstraction = new CTMDPSimple(nAbstract);
 			// TODO: ((CTMDP) abstraction).unif = ((CTMCSimple) modelConcrete).unif;
 			break;
 		case MDP:
@@ -174,15 +174,15 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 			switch (modelType) {
 			case DTMC:
 				distr = buildAbstractDistribution(c, (DTMCSimple) modelConcrete);
-				j = ((MDP) abstraction).addChoice(a, distr);
-				((MDP) abstraction).setTransitionReward(a, j, ((DTMC) modelConcrete).getTransitionReward(c));
+				j = ((MDPSimple) abstraction).addChoice(a, distr);
+				((MDPSimple) abstraction).setTransitionReward(a, j, ((DTMC) modelConcrete).getTransitionReward(c));
 				break;
 			case CTMC:
 				distr = buildAbstractDistribution(c, (CTMCSimple) modelConcrete);
-				j = ((CTMDP) abstraction).addChoice(a, distr);
+				j = ((CTMDPSimple) abstraction).addChoice(a, distr);
 				break;
 			case MDP:
-				set = buildAbstractDistributionSet(c, (MDP) modelConcrete, (STPG) abstraction);
+				set = buildAbstractDistributionSet(c, (MDPSimple) modelConcrete, (STPG) abstraction);
 				j = ((STPG) abstraction).addDistributionSet(a, set);
 				break;
 			default:
@@ -206,7 +206,7 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 	/**
 	 * Abstract a concrete state c of an MDP ready to add to an STPG state.
 	 */
-	protected DistributionSet buildAbstractDistributionSet(int c, MDP mdp, STPG stpg)
+	protected DistributionSet buildAbstractDistributionSet(int c, MDPSimple mdp, STPG stpg)
 	{
 		DistributionSet set = ((STPG) stpg).newDistributionSet(null);
 		for (Distribution distr : mdp.getChoices(c)) {
@@ -328,16 +328,16 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 				switch (modelType) {
 				case DTMC:
 					distr = buildAbstractDistribution(c, (DTMCSimple) modelConcrete);
-					j = ((MDP) abstraction).addChoice(a, distr);
-					((MDP) abstraction).setTransitionReward(a, j, ((DTMC) modelConcrete).getTransitionReward(c));
+					j = ((MDPSimple) abstraction).addChoice(a, distr);
+					((MDPSimple) abstraction).setTransitionReward(a, j, ((DTMC) modelConcrete).getTransitionReward(c));
 					break;
 				case CTMC:
 					distr = buildAbstractDistribution(c, (CTMCSimple) modelConcrete);
-					j = ((CTMDP) abstraction).addChoice(a, distr);
+					j = ((CTMDPSimple) abstraction).addChoice(a, distr);
 					// TODO: recompute unif?
 					break;
 				case MDP:
-					set = buildAbstractDistributionSet(c, (MDP) modelConcrete, (STPG) abstraction);
+					set = buildAbstractDistributionSet(c, (MDPSimple) modelConcrete, (STPG) abstraction);
 					j = ((STPG) abstraction).addDistributionSet(a, set);
 					break;
 				default:

@@ -28,11 +28,8 @@ package pta;
 
 import java.util.*;
 
-import explicit.Distribution;
-import explicit.MDP;
-
-import prism.PrismException;
-import prism.PrismLog;
+import explicit.*;
+import prism.*;
 
 /**
  * Class to store a forwards reachability graph for a PTA.
@@ -177,10 +174,10 @@ public class ReachabilityGraph
 	{
 		Distribution distr;
 		int numStates, src, count, dest;
-		MDP mdp;
+		MDPSimple mdp;
 
 		// Building MDP...
-		mdp = new MDP();
+		mdp = new MDPSimple();
 
 		// Add all states
 		mdp.addStates(states.size());

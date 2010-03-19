@@ -1187,8 +1187,8 @@ public abstract class STPGAbstractRefine
 		int i, j, k;
 		if (abstraction instanceof STPG) {
 			stpg = (STPG) abstraction;
-		} else if (abstraction instanceof MDP) {
-			stpg = new STPG((MDP) abstraction);
+		} else if (abstraction instanceof MDPSimple) {
+			stpg = new STPG((MDPSimple) abstraction);
 		} else {
 			throw new PrismException("Cannot export this model type to a dot file");
 		}

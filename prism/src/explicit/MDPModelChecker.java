@@ -42,8 +42,8 @@ public class MDPModelChecker extends ModelChecker
 	 */
 	public BitSet prob0(MDP mdp, BitSet target, boolean min)
 	{
-		int i, k, n, iters;
-		boolean b2, b3;
+		int i, n, iters;
+		boolean b2;
 		BitSet u, soln;
 		boolean u_done;
 		long timer;
@@ -54,13 +54,13 @@ public class MDPModelChecker extends ModelChecker
 
 		// Special case: no target states
 		if (target.cardinality() == 0) {
-			soln = new BitSet(mdp.numStates);
-			soln.set(0, mdp.numStates);
+			soln = new BitSet(mdp.getNumStates());
+			soln.set(0, mdp.getNumStates());
 			return soln;
 		}
 
 		// Initialise vectors
-		n = mdp.numStates;
+		n = mdp.getNumStates();
 		u = (BitSet) target.clone();
 		soln = new BitSet(n);
 
@@ -72,35 +72,18 @@ public class MDPModelChecker extends ModelChecker
 		while (!u_done) {
 			iters++;
 			for (i = 0; i < n; i++) {
-				// First see if this state is a target state
-				// (in which case, can skip rest of fixed point function evaluation)
-				b2 = target.get(i);
-				if (!b2) {
-					b2 = min; // there exists or for all nondet choices
-					for (Distribution distr : mdp.getChoices(i)) {
-						b3 = false; // some transition goes to u
-						for (Map.Entry<Integer, Double> e : distr) {
-							k = (Integer) e.getKey();
-							if (u.get(k)) {
-								b3 = true;
-								continue;
-							}
-						}
-						if (min) {
-							if (!b3)
-								b2 = false;
-						} else {
-							if (b3)
-								b2 = true;
-						}
-					}
+				// Need either that i is a target state or
+				// (for min) all choices have a transition to u
+				// (for max) some choice has a transition to u
+				if (min) {
+					b2 = target.get(i) || mdp.someSuccessorsInSetForAllChoices(i, u);
+				} else {
+					b2 = target.get(i) || mdp.someSuccessorsInSet(i, u);
 				}
 				soln.set(i, b2);
 			}
-
 			// Check termination
 			u_done = soln.equals(u);
-
 			// u = soln
 			u.clear();
 			u.or(soln);
@@ -122,8 +105,8 @@ public class MDPModelChecker extends ModelChecker
 	 */
 	public BitSet prob1(MDP mdp, BitSet target, boolean min)
 	{
-		int i, k, n, iters;
-		boolean b2, b3, b4, b5;
+		int i, n, iters;
+		boolean b2;
 		BitSet u, v, soln;
 		boolean u_done, v_done;
 		long timer;
@@ -134,11 +117,11 @@ public class MDPModelChecker extends ModelChecker
 
 		// Special case: no target states
 		if (target.cardinality() == 0) {
-			return new BitSet(mdp.numStates);
+			return new BitSet(mdp.getNumStates());
 		}
 
 		// Initialise vectors
-		n = mdp.numStates;
+		n = mdp.getNumStates();
 		u = new BitSet(n);
 		v = new BitSet(n);
 		soln = new BitSet(n);
@@ -155,45 +138,24 @@ public class MDPModelChecker extends ModelChecker
 			while (!v_done) {
 				iters++;
 				for (i = 0; i < n; i++) {
-					// First see if this state is a target state
-					// (in which case, can skip rest of fixed point function evaluation)
-					b2 = target.get(i);
-					if (!b2) {
-						b2 = min; // there exists or for all choices
-						for (Distribution distr : mdp.getChoices(i)) {
-							b3 = true; // all transitions are to u states
-							b4 = false; // some transition goes to v
-							for (Map.Entry<Integer, Double> e : distr) {
-								k = (Integer) e.getKey();
-								if (!u.get(k))
-									b3 = false;
-								if (v.get(k))
-									b4 = true;
-							}
-							b5 = (b3 && b4);
-							if (min) {
-								if (!b5)
-									b2 = false;
-							} else {
-								if (b5)
-									b2 = true;
-							}
-						}
+					// Need either that i is a target state or
+					// (for min) all choices have all transitions to v and a transition to u
+					// (for max) some choice has all transitions to v and a transition to u
+					if (min) {
+						b2 = target.get(i) || mdp.someAllSuccessorsInSetForAllChoices(i, u, v);
+					} else {
+						b2 = target.get(i) || mdp.someAllSuccessorsInSetForSomeChoices(i, u, v);
 					}
 					soln.set(i, b2);
 				}
-
 				// Check termination (inner)
 				v_done = soln.equals(v);
-
 				// v = soln
 				v.clear();
 				v.or(soln);
 			}
-
 			// Check termination (outer)
 			u_done = v.equals(u);
-
 			// u = v
 			u.clear();
 			u.or(v);
@@ -243,7 +205,7 @@ public class MDPModelChecker extends ModelChecker
 		mdp.checkForDeadlocks(target);
 
 		// Store num states
-		n = mdp.numStates;
+		n = mdp.getNumStates();
 
 		// Optimise by enlarging target set (if more info is available)
 		if (init != null && known != null) {
@@ -321,7 +283,7 @@ public class MDPModelChecker extends ModelChecker
 		mainLog.println("Starting value iteration (" + (min ? "min" : "max") + ")...");
 
 		// Store num states
-		n = mdp.numStates;
+		n = mdp.getNumStates();
 
 		// Create solution vector(s)
 		soln = new double[n];
@@ -433,7 +395,7 @@ public class MDPModelChecker extends ModelChecker
 		mainLog.println("Starting bounded probabilistic reachability...");
 
 		// Store num states
-		n = mdp.numStates;
+		n = mdp.getNumStates();
 
 		// Create solution vector(s)
 		soln = new double[n];
@@ -529,7 +491,7 @@ public class MDPModelChecker extends ModelChecker
 		mdp.checkForDeadlocks(target);
 
 		// Store num states
-		n = mdp.numStates;
+		n = mdp.getNumStates();
 
 		// Optimise by enlarging target set (if more info is available)
 		if (init != null && known != null) {
@@ -596,7 +558,7 @@ public class MDPModelChecker extends ModelChecker
 		mainLog.println("Starting value iteration (" + (min ? "min" : "max") + ")...");
 
 		// Store num states
-		n = mdp.numStates;
+		n = mdp.getNumStates();
 
 		// Create solution vector(s)
 		soln = new double[n];
@@ -678,14 +640,14 @@ public class MDPModelChecker extends ModelChecker
 	public static void main(String args[])
 	{
 		MDPModelChecker mc;
-		MDP mdp;
+		MDPSimple mdp;
 		ModelCheckerResult res;
 		BitSet target;
 		Map<String, BitSet> labels;
 		boolean min = true;
 		try {
 			mc = new MDPModelChecker();
-			mdp = new MDP();
+			mdp = new MDPSimple();
 			mdp.buildFromPrismExplicit(args[0]);
 			//System.out.println(mdp);
 			labels = mc.loadLabelsFile(args[1]);
@@ -695,7 +657,7 @@ public class MDPModelChecker extends ModelChecker
 				throw new PrismException("Unknown label \"" + args[2] + "\"");
 			for (int i = 3; i < args.length; i++) {
 				if (args[i].equals("-min"))
-					min =true;
+					min = true;
 				else if (args[i].equals("-max"))
 					min = false;
 				else if (args[i].equals("-nopre"))

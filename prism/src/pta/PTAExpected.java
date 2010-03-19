@@ -298,13 +298,13 @@ public class PTAExpected
 		int src, count, dest, choice, lzRew, rew, i, j;
 		double rewSum;
 		long timer;
-		MDP mdp;
+		MDPSimple mdp;
 		int someClock = 1;
 
 		// Building MDP...
 		mainLog.println("\nBuilding MDP...");
 		timer = System.currentTimeMillis();
-		mdp = new MDP();
+		mdp = new MDPSimple();
 
 		// Add all states, including a new initial state
 		mdp.addStates(graph.states.size() + 1);

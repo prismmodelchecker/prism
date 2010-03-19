@@ -77,10 +77,8 @@ public class DTMCModelChecker extends ModelChecker
 				b2 = target.get(i) || dtmc.someSuccessorsInSet(i, u);
 				soln.set(i, b2);
 			}
-
 			// Check termination
 			u_done = soln.equals(u);
-
 			// u = soln
 			u.clear();
 			u.or(soln);
@@ -140,18 +138,14 @@ public class DTMCModelChecker extends ModelChecker
 					b2 = target.get(i) || (dtmc.allSuccessorsInSet(i, u) && dtmc.someSuccessorsInSet(i, v));
 					soln.set(i, b2);
 				}
-
 				// Check termination (inner)
 				v_done = soln.equals(v);
-
 				// v = soln
 				v.clear();
 				v.or(soln);
 			}
-
 			// Check termination (outer)
 			u_done = v.equals(u);
-
 			// u = v
 			u.clear();
 			u.or(v);
