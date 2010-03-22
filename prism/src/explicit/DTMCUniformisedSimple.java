@@ -1,27 +1,27 @@
 //==============================================================================
-//	
-//	Copyright (c) 2002-
-//	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
-//	
+//
+//Copyright (c) 2002-
+//Authors:
+//* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//
 //------------------------------------------------------------------------------
-//	
-//	This file is part of PRISM.
-//	
-//	PRISM is free software; you can redistribute it and/or modify
-//	it under the terms of the GNU General Public License as published by
-//	the Free Software Foundation; either version 2 of the License, or
-//	(at your option) any later version.
-//	
-//	PRISM is distributed in the hope that it will be useful,
-//	but WITHOUT ANY WARRANTY; without even the implied warranty of
-//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//	GNU General Public License for more details.
-//	
-//	You should have received a copy of the GNU General Public License
-//	along with PRISM; if not, write to the Free Software Foundation,
-//	Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//	
+//
+//This file is part of PRISM.
+//
+//PRISM is free software; you can redistribute it and/or modify
+//it under the terms of the GNU General Public License as published by
+//the Free Software Foundation; either version 2 of the License, or
+//(at your option) any later version.
+//
+//PRISM is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//GNU General Public License for more details.
+//
+//You should have received a copy of the GNU General Public License
+//along with PRISM; if not, write to the Free Software Foundation,
+//Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
 //==============================================================================
 
 package explicit;
@@ -31,32 +31,40 @@ import java.util.*;
 import prism.PrismException;
 
 /**
- * Simple explicit-state representation of a DTMC, constructed (implicitly) as the embedded DTMC of a CTMC.
- * This class is read-only: most of data is pointers to other model info.
- */
-public class DTMCEmbeddedSimple implements DTMC
+* Simple explicit-state representation of a DTMC, constructed (implicitly) as the uniformised DTMC of a CTMC.
+* This class is read-only: most of data is pointers to other model info.
+*/
+public class DTMCUniformisedSimple implements DTMC
 {
 	// Parent CTMC
 	protected CTMCSimple ctmc;
-	// Exit rates vector
-	protected double exitRates[];
+	// Uniformisation rate
+	protected double q;
 	// Number of extra transitions added (just for stats)
 	protected int numExtraTransitions;
 
 	/**
-	 * Constructor: create from CTMC.
+	 * Constructor: create from CTMC and uniformisation rate q.
 	 */
-	public DTMCEmbeddedSimple(CTMCSimple ctmc)
+	public DTMCUniformisedSimple(CTMCSimple ctmc, double q)
 	{
 		this.ctmc = ctmc;
+		this.q = q;
 		int numStates = ctmc.getNumStates();
-		exitRates = new double[numStates];
 		numExtraTransitions = 0;
 		for (int i = 0; i < numStates; i++) {
-			exitRates[i] = ctmc.getTransitions(i).sum();
-			if (exitRates[i] == 0)
+			if (ctmc.getTransitions(i).get(i) == 0 && ctmc.getTransitions(i).sumAllBut(i) < q) {
 				numExtraTransitions++;
+			}
 		}
+	}
+
+	/**
+	 * Constructor: create from CTMC and its default uniformisation rate.
+	 */
+	public DTMCUniformisedSimple(CTMCSimple ctmc)
+	{
+		this(ctmc, ctmc.getDefaultUniformisationRate());
 	}
 
 	// Accessors (for Model)
@@ -93,17 +101,20 @@ public class DTMCEmbeddedSimple implements DTMC
 
 	public boolean isSuccessor(int s1, int s2)
 	{
-		return exitRates[s1] == 0 ? (s1 == s2) : ctmc.isSuccessor(s1, s2);
+		// TODO
+		throw new Error("Not yet supported");
 	}
 
 	public boolean allSuccessorsInSet(int s, BitSet set)
 	{
-		return exitRates[s] == 0 ? set.get(s) : ctmc.allSuccessorsInSet(s, set); 
+		// TODO
+		throw new Error("Not yet supported");
 	}
 
 	public boolean someSuccessorsInSet(int s, BitSet set)
 	{
-		return exitRates[s] == 0 ? set.get(s) : ctmc.allSuccessorsInSet(s, set); 
+		// TODO
+		throw new Error("Not yet supported");
 	}
 
 	public int getNumChoices(int s)
@@ -147,7 +158,7 @@ public class DTMCEmbeddedSimple implements DTMC
 	public double getTransitionReward(int s)
 	{
 		// TODO
-		return 0;
+		throw new Error("Not yet supported");
 	}
 
 	public void mvMult(double vect[], double result[], BitSet subset, boolean complement)
@@ -170,24 +181,23 @@ public class DTMCEmbeddedSimple implements DTMC
 	public double mvMultSingle(int s, double vect[])
 	{
 		int k;
-		double d, er, prob;
+		double sum, d, prob;
 		Distribution distr;
 
 		distr = ctmc.getTransitions(s);
-		d = 0.0;
-		er = exitRates[s];
-		// Exit rate 0: prob 1 self-loop
-		if (er == 0) {
-			d += vect[s];
-		}
-		// Exit rate > 0
-		else {
-			for (Map.Entry<Integer, Double> e : distr) {
-				k = (Integer) e.getKey();
-				prob = (Double) e.getValue();
-				d += prob * vect[k];
+		sum = d = 0.0;
+		for (Map.Entry<Integer, Double> e : distr) {
+			k = (Integer) e.getKey();
+			prob = (Double) e.getValue();
+			// Non-diagonal entries
+			if (k != s) {
+				sum += prob;
+				d += (prob / q) * vect[k];
 			}
-			d /= er;
+		}
+		// Diagonal entry
+		if (sum < q) {
+			d += (1 - sum/q) * vect[s];
 		}
 
 		return d;
@@ -212,61 +222,28 @@ public class DTMCEmbeddedSimple implements DTMC
 
 	public double mvMultRewSingle(int s, double vect[])
 	{
-		int k;
-		double d, er, prob;
-		Distribution distr;
-
-		distr = ctmc.getTransitions(s);
-		d = 0.0;
-		er = exitRates[s];
-		// Exit rate 0: prob 1 self-loop
-		if (er == 0) {
-			d += vect[s];
-		}
-		// Exit rate > 0
-		else {
-			for (Map.Entry<Integer, Double> e : distr) {
-				k = (Integer) e.getKey();
-				prob = (Double) e.getValue();
-				d += prob * vect[k];
-			}
-			d /= er;
-		}
-
-		// TODO: modify reward?
-		return d + ctmc.getTransitionReward(s);
+		// TODO
+		throw new Error("Not yet supported");
 	}
 
 	@Override
 	public String toString()
 	{
-		int i, numStates;
-		boolean first;
 		String s = "";
 		s += "ctmc: " + ctmc;
-		first = true;
-		s = ", exitRates: [ ";
-		numStates = getNumStates();
-		for (i = 0; i < numStates; i++) {
-			if (first)
-				first = false;
-			else
-				s += ", ";
-			s += i + ": " + exitRates[i];
-		}
-		s += " ]";
+		s = ", q: " + q;
 		return s;
 	}
 
 	@Override
 	public boolean equals(Object o)
 	{
-		if (o == null || !(o instanceof DTMCEmbeddedSimple))
+		if (o == null || !(o instanceof DTMCUniformisedSimple))
 			return false;
-		DTMCEmbeddedSimple dtmc = (DTMCEmbeddedSimple) o;
+		DTMCUniformisedSimple dtmc = (DTMCUniformisedSimple) o;
 		if (!ctmc.equals(dtmc.ctmc))
 			return false;
-		if (!exitRates.equals(dtmc.exitRates))
+		if (q != dtmc.q)
 			return false;
 		if (numExtraTransitions != dtmc.numExtraTransitions)
 			return false;

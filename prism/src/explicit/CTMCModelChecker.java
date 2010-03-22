@@ -91,11 +91,12 @@ public class CTMCModelChecker extends DTMCModelChecker
 		ModelCheckerResult res = null;
 		int i, n, iters;
 		double soln[], soln2[], tmpsoln[], sum[];
+		DTMC dtmc;
 		long timer;
 		// Fox-Glynn stuff
 		FoxGlynn fg;
 		int left, right;
-		double q, qt, weights[], totalWeight;
+		double q, qt, acc, weights[], totalWeight;
 
 		// Start bounded probabilistic reachability
 		timer = System.currentTimeMillis();
@@ -105,10 +106,11 @@ public class CTMCModelChecker extends DTMCModelChecker
 		n = ctmc.getNumStates();
 
 		// Get uniformisation rate; do Fox-Glynn
-		q = ctmc.getMaxExitRate();
+		q = ctmc.getDefaultUniformisationRate();
 		qt = q * t;
 		mainLog.println("\nUniformisation: q.t = " + q + " x " + t + " = " + qt);
-		fg = new FoxGlynn(qt, 1e-300, 1e+300, termCritParam / 8.0);
+		acc = termCritParam / 8.0;
+		fg = new FoxGlynn(qt, 1e-300, 1e+300, acc);
 		left = fg.getLeftTruncationPoint();
 		right = fg.getRightTruncationPoint();
 		if (right < 0) {
@@ -119,8 +121,11 @@ public class CTMCModelChecker extends DTMCModelChecker
 		for (i = left; i <= right; i++) {
 			weights[i - left] /= totalWeight;
 		}
-		mainLog.println("Fox-Glynn: left = " + left + ", right = " + right);
+		mainLog.println("Fox-Glynn (" + acc + "): left = " + left + ", right = " + right);
 
+		// Build (implicit) uniformised DTMC
+		dtmc = ctmc.buildImplicitUniformisedDTMC(q);
+		
 		// Create solution vector(s)
 		soln = new double[n];
 		soln2 = (init == null) ? new double[n] : init;
@@ -146,7 +151,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 		iters = 1;
 		while (iters < right) {
 			// Matrix-vector multiply
-			ctmc.mvMult(soln, soln2, target, true);
+			dtmc.mvMult(soln, soln2, target, true);
 			// Swap vectors for next iter
 			tmpsoln = soln;
 			soln = soln2;
@@ -224,7 +229,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 			target = labels.get(args[2]);
 			if (target == null)
 				throw new PrismException("Unknown label \"" + args[2] + "\"");
-			for (int i = 3; i < args.length; i++) {
+			for (int i = 4; i < args.length; i++) {
 				if (args[i].equals("-nopre"))
 					mc.setPrecomp(false);
 			}

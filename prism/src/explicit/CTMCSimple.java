@@ -67,7 +67,7 @@ public class CTMCSimple extends DTMCSimple implements CTMC
 		int i;
 		double d, max = Double.NEGATIVE_INFINITY;
 		for (i = 0; i < numStates; i++) {
-			d = trans.get(i).sumAllBut(i);
+			d = trans.get(i).sum();
 			if (d > max)
 				max = d;
 		}
@@ -125,8 +125,7 @@ public class CTMCSimple extends DTMCSimple implements CTMC
 	@Override
 	public DTMC buildImplicitUniformisedDTMC(double q)
 	{
-		// TODO
-		return null;
+		return new DTMCUniformisedSimple(this, q);
 	}
 	
 	@Override

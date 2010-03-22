@@ -51,11 +51,17 @@ public class CTMDPModelChecker extends MDPModelChecker
 		MDPModelChecker mc;
 		ModelCheckerResult res;
 		
-		mdp = ctmdp.buildDiscretisedMDP(0.0002);
+		// TODO: check locally uniform
+		double epsilon = 1e-3;
+		double q = ctmdp.getMaxExitRate();
+		int k = (int)Math.ceil((q * t * q * t) / (2 * epsilon));
+		double tau = t / k;
+		mainLog.println("q = " + q + ", k = " + k + ", tau = " + tau);
+		mdp = ctmdp.buildDiscretisedMDP(tau);
 		mainLog.println(mdp);
 		mc = new MDPModelChecker();
 		mc.inheritSettings(this);
-		res = mc.probReachBounded(mdp, target, 4500, min);
+		res = mc.probReachBounded(mdp, target, k, min);
 		
 		return res;
 	}
@@ -185,7 +191,7 @@ public class CTMDPModelChecker extends MDPModelChecker
 			target = labels.get(args[2]);
 			if (target == null)
 				throw new PrismException("Unknown label \"" + args[2] + "\"");
-			for (int i = 3; i < args.length; i++) {
+			for (int i = 4; i < args.length; i++) {
 				if (args[i].equals("-min"))
 					min = true;
 				else if (args[i].equals("-max"))
@@ -193,7 +199,7 @@ public class CTMDPModelChecker extends MDPModelChecker
 				else if (args[i].equals("-nopre"))
 					mc.setPrecomp(false);
 			}
-			res = mc.probReachBounded2(ctmdp, target, 1.0, min, null, null);
+			res = mc.probReachBounded2(ctmdp, target, Double.parseDouble(args[3]), min, null, null);
 			System.out.println(res.soln[0]);
 		} catch (PrismException e) {
 			System.out.println(e);

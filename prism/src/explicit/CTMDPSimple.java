@@ -62,6 +62,21 @@ public class CTMDPSimple extends MDPSimple implements CTMDP
 	// Accessors (for CTMDP)
 
 	@Override
+	public double getMaxExitRate()
+	{
+		int i;
+		double d, max = Double.NEGATIVE_INFINITY;
+		for (i = 0; i < numStates; i++) {
+			for (Distribution distr : trans.get(i)) {
+				d = distr.sum();
+				if (d > max)
+					max = d;
+			}
+		}
+		return max;
+	}
+
+	@Override
 	public MDP buildImplicitDiscretisedMDP(double tau)
 	{
 		// TODO
@@ -74,7 +89,7 @@ public class CTMDPSimple extends MDPSimple implements CTMDP
 		MDPSimple mdp;
 		Distribution distrNew;
 		int i;
-		double d;
+		double sum, d;
 		mdp = new MDPSimple(numStates);
 		for (int in : getInitialStates()) {
 			mdp.addInitialState(in);
@@ -82,9 +97,10 @@ public class CTMDPSimple extends MDPSimple implements CTMDP
 		for (i = 0; i < numStates; i++) {
 			for (Distribution distr : trans.get(i)) {
 				distrNew = new Distribution();
-				d = Math.exp(-distr.sum() * tau);
+				sum = distr.sum();
+				d = Math.exp(-sum * tau);
 				for (Map.Entry<Integer, Double> e : distr) {
-					distrNew.add(e.getKey(), (1 - d) * e.getValue());
+					distrNew.add(e.getKey(), (1 - d) * (e.getValue() / sum));
 				}
 				distrNew.add(i, d);
 				mdp.addChoice(i, distrNew);

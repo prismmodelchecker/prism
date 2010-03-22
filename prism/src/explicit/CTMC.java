@@ -37,7 +37,7 @@ public interface CTMC extends DTMC
 	public static ModelType modelType = ModelType.CTMC;
 
 	/**
-	 * Compute the maximum exit rate (ignoring self-loops).
+	 * Compute the maximum exit rate.
 	 */
 	public double getMaxExitRate();
 	

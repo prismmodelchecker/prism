@@ -39,6 +39,11 @@ public interface CTMDP extends MDP
 	// TODO: copy/modify functions from CTMC
 	
 	/**
+	 * Compute the maximum exit rate.
+	 */
+	public double getMaxExitRate();
+	
+	/**
 	 * Build the discretised (DT)MDP for this CTMDP, in implicit form
 	 * (i.e. where the details are computed on the fly from this one).
 	 * @param tau Step duration
