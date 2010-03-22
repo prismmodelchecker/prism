@@ -255,6 +255,7 @@ public class SCCComputerSCCFind extends SCCComputer
 			intersection = JDD.And(preimage(scc, edges), forwardSet);
 			JDD.Ref(intersection);
 			JDD.Ref(scc);
+			JDD.Deref(tmp);
 			tmp = JDD.And(intersection, JDD.Not(scc));
 		}
 		JDD.Deref(tmp);
