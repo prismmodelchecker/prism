@@ -1447,8 +1447,11 @@ public class Modules2MTBDD
 				guardDDs[l] = JDD.Apply(JDD.TIMES, guardDDs[l], range);
 				// check for false guard
 				if (guardDDs[l].equals(JDD.ZERO)) {
-					String s = "\nWarning: Guard for command " + (l+1) + " of module \"" + module.getName() + "\" is never satisfied.\n";
-					mainLog.print(s);
+					// display a warning (unless guard is "false", in which case was probably intentional
+					if (!Expression.isFalse(command.getGuard())) {
+						String s = "\nWarning: Guard for command " + (l+1) + " of module \"" + module.getName() + "\" is never satisfied.\n";
+						mainLog.print(s);
+					}
 					// no point bothering to compute the mtbdds for the update
 					// if the guard is never satisfied
 					upDDs[l] = JDD.Constant(0);
