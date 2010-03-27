@@ -129,6 +129,6 @@ public class Result
 	 */
 	public String toString()
 	{
-		return result.toString();
+		return result == null ? "null" : result.toString();
 	}
 }
