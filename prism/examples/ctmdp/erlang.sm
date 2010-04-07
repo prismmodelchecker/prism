@@ -1,0 +1,28 @@
+imc
+
+const int k;
+const double mean = 10;
+
+module erlang
+
+	s : [0..5];
+	i : [1..k+1];
+
+	[] s=0 -> 1 : (s'=1);
+	[a] s=1 -> 1 : (s'=1);
+	[] i < k -> k/mean : (i'=i+1);
+	[go] i = k -> k/mean : (i'=i+1);
+
+endmodule
+
+module main
+
+	x : [0..1];
+
+	[go] x=0 -> (x'=1);
+
+endmodule
+
+rewards "time"
+true : 1;
+endrewards

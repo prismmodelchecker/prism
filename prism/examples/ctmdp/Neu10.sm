@@ -1,0 +1,20 @@
+// Simple CTMP from Neuhausser thesis defence slides (2010)
+
+// For mac prob of reaching target within time bound 1,
+// exact answer is 1 + 19/24 e^−3 − 3/2 e^-1 = (approx.) 0.48759
+// discretisation (k = 4500, tau = 0.0002222...) gives 0.487552953296395
+
+mdp
+
+module M
+
+	s : [0..3];
+	
+	[a] s=0 -> 1 : (s'=2) + 2 : (s'=3);
+	[b] s=0 -> 3 : (s'=1);
+	[b] s=1 -> 1 : (s'=2);
+	[c] s>1 -> 1 : true;
+
+endmodule
+
+label "target" = s=2;

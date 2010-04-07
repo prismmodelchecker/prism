@@ -1,0 +1,4 @@
+java -cp classes explicit.CTMDPModelChecker examples/ctmdp/Neu10.{tra,lab} target 1 -max
+
+java -cp classes explicit.CTMDPModelChecker examples/ctmdp/jsp.{tra,lab} done 10 -max
+
