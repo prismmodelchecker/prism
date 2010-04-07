@@ -1,3 +1,5 @@
+prism examples/ctmdp/Neu10.sm -noprobchecks -exporttrans examples/ctmdp/Neu10.tra -exportlabels examples/ctmdp/Neu10.lab
+
 java -cp classes explicit.CTMDPModelChecker examples/ctmdp/Neu10.{tra,lab} target 1 -max
 
 java -cp classes explicit.CTMDPModelChecker examples/ctmdp/jsp.{tra,lab} done 10 -max
