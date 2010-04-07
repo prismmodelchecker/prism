@@ -35,9 +35,6 @@ import prism.ModelType;
  */
 public interface DTMC extends Model
 {
-	// Model type
-	public static ModelType modelType = ModelType.DTMC;
-
 	/**
 	 * Get the transition reward (if any) for the transitions in state s.
 	 */

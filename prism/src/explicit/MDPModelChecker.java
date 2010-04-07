@@ -33,7 +33,7 @@ import prism.*;
 /**
  * Explicit-state model checker for Markov decision processes (MDPs).
  */
-public class MDPModelChecker extends ModelChecker
+public class MDPModelChecker extends StateModelChecker
 {
 	// Model checking functions
 

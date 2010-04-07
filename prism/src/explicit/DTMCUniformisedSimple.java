@@ -28,6 +28,7 @@ package explicit;
 
 import java.util.*;
 
+import prism.ModelType;
 import prism.PrismException;
 
 /**
@@ -68,6 +69,11 @@ public class DTMCUniformisedSimple implements DTMC
 	}
 
 	// Accessors (for Model)
+
+	public ModelType getModelType()
+	{
+		return ModelType.DTMC;
+	}
 
 	public int getNumStates()
 	{

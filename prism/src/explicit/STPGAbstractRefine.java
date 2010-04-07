@@ -30,17 +30,17 @@ import java.io.*;
 import java.util.*;
 
 import prism.*;
-import explicit.ModelChecker.TermCrit;
-import explicit.ModelChecker.ValIterDir;
+import explicit.StateModelChecker.TermCrit;
+import explicit.StateModelChecker.ValIterDir;
 
 public abstract class STPGAbstractRefine
 {
 	// Log for output (default: just send to stdout)
 	protected PrismLog mainLog = new PrismPrintStreamLog(System.out);
 	// Model checker
-	protected ModelChecker mc;
+	protected StateModelChecker mc;
 	// Dummy model checker to store options
-	protected ModelChecker mcOptions;
+	protected StateModelChecker mcOptions;
 
 	// Flags/settings
 
@@ -129,13 +129,13 @@ public abstract class STPGAbstractRefine
 		// By default, log output goes to System.out.
 		setLog(new PrismPrintStreamLog(System.out));
 		// Create dummy model checker to store options
-		mcOptions = new ModelChecker();
+		mcOptions = new StateModelChecker();
 	}
 
 	/**
 	 * Provides access to the underlying model checker for the purpose of setting options. 
 	 */
-	public ModelChecker getModelChecker()
+	public StateModelChecker getModelChecker()
 	{
 		return mcOptions;
 	}

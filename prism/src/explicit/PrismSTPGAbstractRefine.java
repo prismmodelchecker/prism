@@ -106,7 +106,7 @@ public class PrismSTPGAbstractRefine extends STPGAbstractRefine
 		}
 
 		// Get initial/target (concrete) states
-		labels = new ModelChecker().loadLabelsFile(labFile);
+		labels = new StateModelChecker().loadLabelsFile(labFile);
 		initialConcrete = labels.get("init");
 		targetConcrete = labels.get(targetLabel);
 		if (targetConcrete == null)

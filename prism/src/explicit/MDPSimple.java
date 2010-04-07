@@ -29,6 +29,7 @@ package explicit;
 import java.util.*;
 import java.io.*;
 
+import prism.ModelType;
 import prism.PrismException;
 import prism.PrismUtils;
 
@@ -225,7 +226,7 @@ public class MDPSimple extends ModelSimple implements MDP
 			System.out.println(e);
 			System.exit(1);
 		} catch (NumberFormatException e) {
-			throw new PrismException("Problem in .tra file (line " + lineNum + ") for " + modelType);
+			throw new PrismException("Problem in .tra file (line " + lineNum + ") for " + getModelType());
 		}
 		// Set initial state (assume 0)
 		initialStates.add(0);
@@ -340,6 +341,12 @@ public class MDPSimple extends ModelSimple implements MDP
 	// Accessors (for ModelSimple)
 
 	@Override
+	public ModelType getModelType()
+	{
+		return ModelType.MDP;
+	}
+
+	@Override
 	public int getNumTransitions()
 	{
 		return numTransitions;
@@ -428,7 +435,7 @@ public class MDPSimple extends ModelSimple implements MDP
 			}
 			out.close();
 		} catch (IOException e) {
-			throw new PrismException("Could not export " + modelType + " to file \"" + filename + "\"" + e);
+			throw new PrismException("Could not export " + getModelType() + " to file \"" + filename + "\"" + e);
 		}
 	}
 
@@ -439,7 +446,7 @@ public class MDPSimple extends ModelSimple implements MDP
 		String nij;
 		try {
 			FileWriter out = new FileWriter(filename);
-			out.write("digraph " + modelType + " {\nsize=\"8,5\"\nnode [shape=box];\n");
+			out.write("digraph " + getModelType() + " {\nsize=\"8,5\"\nnode [shape=box];\n");
 			for (i = 0; i < numStates; i++) {
 				if (mark != null && mark.get(i))
 					out.write(i + " [style=filled  fillcolor=\"#cccccc\"]\n");
@@ -457,7 +464,7 @@ public class MDPSimple extends ModelSimple implements MDP
 			out.write("}\n");
 			out.close();
 		} catch (IOException e) {
-			throw new PrismException("Could not write " + modelType + " to file \"" + filename + "\"" + e);
+			throw new PrismException("Could not write " + getModelType() + " to file \"" + filename + "\"" + e);
 		}
 	}
 

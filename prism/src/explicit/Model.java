@@ -28,6 +28,7 @@ package explicit;
 
 import java.util.*;
 
+import prism.ModelType;
 import prism.PrismException;
 
 /**
@@ -36,6 +37,11 @@ import prism.PrismException;
 public interface Model
 {
 	// Accessors
+
+	/**
+	 * Get the type of this model.
+	 */
+	public ModelType getModelType();
 
 	/**
 	 * Get the number of states.
@@ -92,7 +98,7 @@ public interface Model
 	 * Get the number of nondeterministic choices in state s.
 	 */
 	public int getNumChoices(int s);
-
+	
 	/**
 	 * Checks for deadlocks and throws an exception if any exist.
 	 */

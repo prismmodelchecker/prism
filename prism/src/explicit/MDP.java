@@ -28,16 +28,11 @@ package explicit;
 
 import java.util.*;
 
-import prism.ModelType;
-
 /**
  * Interface for classes that provide (read-only) access to an explicit-state MDP.
  */
 public interface MDP extends Model
 {
-	// Model type
-	public static ModelType modelType = ModelType.MDP;
-
 	/**
 	 * Check if any successor states are in a set for all choices of a state.
 	 * @param s The state to check

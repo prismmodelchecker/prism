@@ -28,6 +28,7 @@ package explicit;
 
 import java.util.*;
 
+import prism.ModelType;
 import prism.PrismException;
 
 /**
@@ -81,6 +82,8 @@ public abstract class ModelSimple implements Model
 
 	// Accessors (for Model interface)
 	
+	public abstract ModelType getModelType();
+
 	public int getNumStates()
 	{
 		return numStates;

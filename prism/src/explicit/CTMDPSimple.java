@@ -28,6 +28,8 @@ package explicit;
 
 import java.util.Map;
 
+import prism.ModelType;
+
 /**
  * Simple explicit-state representation of a CTMDP.
  */
@@ -57,6 +59,14 @@ public class CTMDPSimple extends MDPSimple implements CTMDP
 	public CTMDPSimple(CTMDPSimple ctmdp)
 	{
 		super(ctmdp);
+	}
+
+	// Accessors (for ModelSimple)
+	
+	@Override
+	public ModelType getModelType()
+	{
+		return ModelType.CTMDP;
 	}
 
 	// Accessors (for CTMDP)

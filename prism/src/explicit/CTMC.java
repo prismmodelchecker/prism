@@ -26,16 +26,11 @@
 
 package explicit;
 
-import prism.ModelType;
-
 /**
  * Interface for classes that provide (read-only) access to an explicit-state CTMC.
  */
 public interface CTMC extends DTMC
 {
-	// Model type
-	public static ModelType modelType = ModelType.CTMC;
-
 	/**
 	 * Compute the maximum exit rate.
 	 */

@@ -29,6 +29,7 @@ package explicit;
 import java.util.*;
 import java.io.*;
 
+import prism.ModelType;
 import prism.PrismException;
 
 /**
@@ -163,7 +164,7 @@ public class DTMCSimple extends ModelSimple implements DTMC
 			System.out.println(e);
 			System.exit(1);
 		} catch (NumberFormatException e) {
-			throw new PrismException("Problem in .tra file (line " + lineNum + ") for " + modelType);
+			throw new PrismException("Problem in .tra file (line " + lineNum + ") for " + getModelType());
 		}
 		// Set initial state (assume 0)
 		initialStates.add(0);
@@ -224,6 +225,12 @@ public class DTMCSimple extends ModelSimple implements DTMC
 	// Accessors (for ModelSimple)
 
 	@Override
+	public ModelType getModelType()
+	{
+		return ModelType.DTMC;
+	}
+
+	@Override
 	public int getNumTransitions()
 	{
 		return numTransitions;
@@ -275,7 +282,7 @@ public class DTMCSimple extends ModelSimple implements DTMC
 		int i;
 		try {
 			FileWriter out = new FileWriter(filename);
-			out.write("digraph " + modelType + " {\nsize=\"8,5\"\nnode [shape=box];\n");
+			out.write("digraph " + getModelType() + " {\nsize=\"8,5\"\nnode [shape=box];\n");
 			for (i = 0; i < numStates; i++) {
 				if (mark != null && mark.get(i))
 					out.write(i + " [style=filled  fillcolor=\"#cccccc\"]\n");
@@ -287,7 +294,7 @@ public class DTMCSimple extends ModelSimple implements DTMC
 			out.write("}\n");
 			out.close();
 		} catch (IOException e) {
-			throw new PrismException("Could not write " + modelType + " to file \"" + filename + "\"" + e);
+			throw new PrismException("Could not write " + getModelType() + " to file \"" + filename + "\"" + e);
 		}
 	}
 

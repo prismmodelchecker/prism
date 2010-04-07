@@ -29,13 +29,145 @@ package explicit;
 import java.util.*;
 
 import prism.*;
+import parser.ast.*;
+import parser.Values;
 
 /**
  * Explicit-state model checker for discrete-time Markov chains (DTMCs).
  */
-public class DTMCModelChecker extends ModelChecker
+public class DTMCModelChecker extends StateModelChecker
 {
+	protected Values constantValues = null;
+	
+	/**
+	 * Pass a set of constant values to the model checker, to be used when
+	 * evaluating constant expressions in expressions/properties.   
+	 */
+	public void setConstantValues(Values constantValues)
+	{
+		this.constantValues = constantValues;
+	}
+	
 	// Model checking functions
+
+	/**
+	 * Model check an expression and return the values for all states.
+	 */
+	public Object checkExpression(Model model, Expression expr) throws PrismException
+	{
+		Object res;
+
+		// P operator
+		if (expr instanceof ExpressionProb) {
+			res = checkExpressionProb(model, (ExpressionProb) expr);
+		}
+		// Otherwise, use the superclass
+		else {
+			res = super.checkExpression(model, expr);
+		}
+
+		return res;
+	}
+
+	/**
+	 * Model check a P operator expression and return the values for all states.
+	 */
+	protected StateValues checkExpressionProb(Model model, ExpressionProb expr) throws PrismException
+	{
+		StateValues probs = null;
+
+		// Check for unhandled cases
+		if (expr.getProb() != null)
+			throw new PrismException("Bounded P operators not yet supported");
+			
+		// Compute probabilities
+		probs = checkProbPathFormula(model, expr.getExpression());
+
+		// Print out probabilities
+		if (getVerbosity() > 5) {
+			mainLog.print("\nProbabilities (non-zero only) for all states:\n");
+			mainLog.print(probs);
+		}
+
+		// For =? properties, just return values
+		return probs;
+	}
+
+	/**
+	 * Compute probabilities for the contents of a P operator.
+	 */
+	protected StateValues checkProbPathFormula(Model model, Expression expr) throws PrismException
+	{
+		// Test whether this is a simple path formula (i.e. PCTL)
+		// and then pass control to appropriate method. 
+		if (expr.isSimplePathFormula()) {
+			return checkProbPathFormulaSimple(model, expr);
+		} else {
+			throw new PrismException("LTL-style path formulas are not yet supported");
+		}
+	}
+
+	/**
+	 * Compute probabilities for a simple, non-LTL path operator.
+	 */
+	protected StateValues checkProbPathFormulaSimple(Model model, Expression expr) throws PrismException
+	{
+		StateValues probs = null;
+
+		// Temporal operators
+		if (expr instanceof ExpressionTemporal) {
+			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
+			// Until
+			if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
+				if (exprTemp.hasBounds()) {
+					probs = checkProbBoundedUntil(model, exprTemp);
+				} else {
+					probs = null; // TODO checkProbUntil(model, exprTemp);
+				}
+			}
+		}
+
+		if (probs == null)
+			throw new PrismException("Unrecognised path operator in P operator");
+
+		return probs;
+	}
+
+	protected StateValues checkProbBoundedUntil(Model model, ExpressionTemporal expr) throws PrismException
+	{
+		int time;
+		BitSet b1, b2;
+		StateValues probs = null;
+		ModelCheckerResult res = null;
+
+		// get info from bounded until
+		time = expr.getUpperBound().evaluateInt(constantValues, null);
+		if (expr.upperBoundIsStrict())
+			time--;
+		if (time < 0) {
+			String bound = expr.upperBoundIsStrict() ? "<" + (time + 1) : "<=" + time;
+			throw new PrismException("Invalid bound " + bound + " in bounded until formula");
+		}
+
+		// model check operands first
+		b1 = (BitSet)checkExpression(model, expr.getOperand1());
+		b2 = (BitSet)checkExpression(model, expr.getOperand2());
+
+		// compute probabilities
+
+		// a trivial case: "U<=0"
+		if (time == 0) {
+			// prob is 1 in b2 states, 0 otherwise
+			probs = StateValues.createFromBitSetAsDoubles(model.getNumStates(), b2);
+		} else {
+			res = probReachBounded((DTMC)model, b2, time);
+			probs = StateValues.createFromDoubleArray(res.soln);
+		}
+
+		return probs;
+	}
+
+	// Precomputation functions
 
 	/**
 	 * Prob0 precomputation algorithm.
@@ -158,6 +290,8 @@ public class DTMCModelChecker extends ModelChecker
 
 		return u;
 	}
+
+	// Numerical computation functions
 
 	/**
 	 * Compute probabilistic reachability.

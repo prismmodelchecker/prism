@@ -38,9 +38,6 @@ import prism.PrismUtils;
  */
 public class STPG extends ModelSimple
 {
-	// Model type (TODO: move to interface)
-	public static ModelType modelType = ModelType.STPG;
-
 	// Transition function (Steps)
 	protected List<ArrayList<DistributionSet>> trans;
 
@@ -259,6 +256,12 @@ public class STPG extends ModelSimple
 		return trans.get(s).get(i);
 	}
 	
+	@Override
+	public ModelType getModelType()
+	{
+		return ModelType.MDP;
+	}
+
 	/**
 	 * Get the transition reward (if any) for choice i of state s.
 	 */
@@ -440,7 +443,7 @@ public class STPG extends ModelSimple
 			System.out.println(e);
 			System.exit(1);
 		} catch (NumberFormatException e) {
-			throw new PrismException("Problem in .tra file (line " + lineNum + ") for " + modelType);
+			throw new PrismException("Problem in .tra file (line " + lineNum + ") for " + getModelType());
 		}
 		// Set initial state (assume 0)
 		initialStates.add(0);
@@ -600,7 +603,7 @@ public class STPG extends ModelSimple
 			out.close();
 			// TODO: rewards
 		} catch (IOException e) {
-			throw new PrismException("Could not export " + modelType + " to file \"" + filename + "\"" + e);
+			throw new PrismException("Could not export " + getModelType() + " to file \"" + filename + "\"" + e);
 		}
 	}
 
@@ -613,7 +616,7 @@ public class STPG extends ModelSimple
 		String nij, nijk;
 		try {
 			FileWriter out = new FileWriter(filename);
-			out.write("digraph " + modelType + " {\nsize=\"8,5\"\nnode [shape=box];\n");
+			out.write("digraph " + getModelType() + " {\nsize=\"8,5\"\nnode [shape=box];\n");
 			for (i = 0; i < numStates; i++) {
 				if (mark != null && mark.get(i))
 					out.write(i + " [style=filled  fillcolor=\"#cccccc\"]\n");
@@ -638,7 +641,7 @@ public class STPG extends ModelSimple
 			out.write("}\n");
 			out.close();
 		} catch (IOException e) {
-			throw new PrismException("Could not write " + modelType + " to file \"" + filename + "\"" + e);
+			throw new PrismException("Could not write " + getModelType() + " to file \"" + filename + "\"" + e);
 		}
 	}
 

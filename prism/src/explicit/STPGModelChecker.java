@@ -33,7 +33,7 @@ import prism.*;
 /**
  * Explicit-state model checker for two-player stochastic games (STPGs).
  */
-public class STPGModelChecker extends ModelChecker
+public class STPGModelChecker extends StateModelChecker
 {
 	// Model checking functions
 
