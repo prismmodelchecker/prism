@@ -695,19 +695,14 @@ public class ProbModel implements Model
 				}
 			}
 		}
-		if (transActions != null && !transActions.equals(JDD.ZERO)) {
-			log.print("Action label indices: ");
-			log.print(JDD.GetNumNodes(transActions) + " nodes (");
-			log.print(JDD.GetNumTerminals(transActions) + " terminal)\n");
-		}
 		if (transPerAction != null) {
 			for (i = 0; i < numSynchs + 1; i++) {
 				log.print("Action label info (");
 				log.print((i == 0 ? "" : synchs.get(i - 1)) + "): ");
-				log.print(JDD.GetNumNodes(transPerAction[i]) + " nodes (");
-				log.print(JDD.GetNumTerminals(transPerAction[i]) + " terminal)\n");
+				log.println(JDD.GetInfoString(transPerAction[i], getNumDDVarsInTrans()));
 			}
 		}
+		// Don't need to print info for transActions (only stored for MDPs)
 	}
 
 	// export transition matrix to a file
