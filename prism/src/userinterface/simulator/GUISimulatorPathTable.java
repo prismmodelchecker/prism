@@ -275,6 +275,20 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 				stringValue = (String)value;
 				this.setToolTipText("State " + row);
 			}	
+			else if (value instanceof GUISimulator.ActionValue)
+			{	
+				GUISimulator.ActionValue actionValue = (GUISimulator.ActionValue)value;
+				if (actionValue.isActionValueUnknown())
+				{	
+					stringValue = "?";
+					this.setToolTipText("Action label or module name for transition from state " + (row) + " to " + (row + 1) + " (not yet known)");
+				}
+				else
+				{
+					stringValue = actionValue.getValue();
+					this.setToolTipText("Action label or module name for transition from state " + (row) + " to " + (row + 1));
+				}
+			}
 			else if (value instanceof GUISimulator.TimeValue)
 			{	
 				GUISimulator.TimeValue timeValue = (GUISimulator.TimeValue)value;
@@ -347,8 +361,8 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 			width = (int)Math.ceil(rect.getWidth());
 			height = (int)Math.ceil(rect.getHeight());
 			
-			// State index
-			if (value instanceof String) {
+			// State index/action
+			if (value instanceof String || value instanceof GUISimulator.ActionValue) {
 				// Position (horiz centred, vert centred)
 	   			x = (getWidth()/2) - (width/2);
 	   			y = (getHeight()/2) + (height/2);

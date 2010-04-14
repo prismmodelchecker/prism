@@ -192,7 +192,7 @@ public class SimulatorEngine
 	protected TransitionList transitionList;
 
 	protected List<Expression> labels;
-	
+
 	// ------------------------------------------------------------------------------
 	// CONSTANTS
 	// ------------------------------------------------------------------------------
@@ -337,6 +337,7 @@ public class SimulatorEngine
 		}
 		// Or pick a random one
 		else {
+			// TODO
 			//currentState...
 			throw new PrismException("Random initial start state not yet supported");
 		}
@@ -350,30 +351,30 @@ public class SimulatorEngine
 
 	/**
 	 * Execute a transition from the current transition list, specified by its index
-	 * within the (whole) list.
+	 * within the (whole) list. If this is a continuous time model, the time to be spent
+	 * in the state before leaving is picked randomly.
 	 */
 	public void manualUpdate(int index) throws PrismException
 	{
-		int choice = transitionList.getChoiceIndexOfTransition(index);
+		int i = transitionList.getChoiceIndexOfTransition(index);
 		int offset = transitionList.getChoiceOffsetOfTransition(index);
-		executeTransition(choice, offset);
+		if (modelType.continuousTime())
+			executeTimedTransition(i, offset, -1, index);
+		else
+			executeTransition(i, offset, index);
 	}
 
 	/**
-	 * This function applies the index update of the current list of updates to the model. The time spent in the last
-	 * state is also given (for ctmcs). Use -1.0 for this parameter if an automatically generated time is required.
-	 * 
-	 * @param index
-	 *            the index of the selected update to be applied.
-	 * @param time_in_state
-	 *            the time spent in the last state. Use -1.0 for this parameter if an automatically generated time is
-	 *            required.
-	 * @throws PrismException
-	 *             if the index is out of range, or there was a problem with performing the update.
+	 * Execute a transition from the current transition list, specified by its index
+	 * within the (whole) list. In addition, specify the amount of time to be spent in
+	 * the current state before this transition occurs. If -1, this is picked randomly.
+	 * [continuous-time models only]
 	 */
-	public void manualUpdate(int index, double time_in_state) throws PrismException
+	public void manualUpdate(int index, double time) throws PrismException
 	{
-		//TODO int result = makeManualUpdate(index, time_in_state);
+		int i = transitionList.getChoiceIndexOfTransition(index);
+		int offset = transitionList.getChoiceOffsetOfTransition(index);
+		executeTimedTransition(i, offset, time, index);
 	}
 
 	/**
@@ -395,12 +396,12 @@ public class SimulatorEngine
 		for (i = 0; i < n; i++)
 			automaticChoice(detect);
 	}
-	
+
 	public void automaticChoice(boolean detect) throws PrismException
 	{
 		// just one for now...
 
-		Choice ch;
+		Choice choice;
 		int numChoices, i, j;
 		double d;
 
@@ -413,11 +414,11 @@ public class SimulatorEngine
 				throw new PrismException("Deadlock found at state " + currentState.toString(modulesFile));
 			// Pick a random choice
 			i = rng.randomInt(numChoices);
-			ch = transitionList.getChoice(i);
+			choice = transitionList.getChoice(i);
 			// Pick a random transition from this choice
 			d = rng.randomDouble();
-			j = ch.getIndexByProbSum(d);
-			executeTransition(i, j);
+			j = choice.getIndexByProbSum(d);
+			executeTransition(i, j, -1);
 			break;
 		case CTMC:
 			// TODO: automaticUpdateContinuous();
@@ -458,21 +459,61 @@ public class SimulatorEngine
 	}
 
 	/**
-	 * Execute a transition from the current transition list, specified by index
-	 * of choice and offset within that choice. Also update path info (if required).
+	 * Execute a transition from the current transition list and update path (if being stored).
+	 * Transition is specified by index of it choice and offset within it. If known, its index
+	 * (within the whole list) can optionally be specified (since this may be needed for storage
+	 * in the path). If this is -1, it will be computed automatically if needed.
+	 * @param i Index of choice containing transition to execute
+	 * @param offset Index within choice of transition to execute
+	 * @param index (Optionally) index of transition within whole list (-1 if unknown)
 	 */
-	private void executeTransition(int choice, int offset) throws PrismException
+	private void executeTransition(int i, int offset, int index) throws PrismException
 	{
-		Choice ch;
+		// Get corresponding choice
+		Choice choice = transitionList.getChoice(i);
 		// Remember last state and compute next one (and its state rewards)
 		lastState.copy(currentState);
-		ch = transitionList.getChoice(choice); 
-		ch.computeTarget(offset, lastState, currentState);
+		choice.computeTarget(offset, lastState, currentState);
 		updater.calculateStateRewards(currentState, currentStateRewards);
-		// Stored path info (if necessary)
-		if (!onTheFly)
-			// TODO: first currentStateRewards should be new Trans rewards!
-			path.addStep(offset, ch.getAction(), currentStateRewards, currentState, currentStateRewards);
+		// Store path info (if necessary)
+		if (!onTheFly) {
+			if (index == -1)
+				index = transitionList.getTotalIndexOfTransition(i, offset);
+			path.addStep(index, choice.getAction(), currentStateRewards, currentState, currentStateRewards);
+			// TODO: first currentStateRewards in above should be new *trans* rewards!
+		}
+		// Generate updates for next state 
+		updater.calculateTransitions(currentState, transitionList);
+	}
+
+	/**
+	 * Execute a (timed) transition from the current transition list and update path (if being stored).
+	 * Transition is specified by index of it choice and offset within it. If known, its index
+	 * (within the whole list) can optionally be specified (since this may be needed for storage
+	 * in the path). If this is -1, it will be computed automatically if needed.
+	 * In addition, the amount of time to be spent in the current state before this transition occurs
+	 * should be specified. If -1, this is picked randomly.
+	 * [continuous-time models only]
+	 * @param i Index of choice containing transition to execute
+	 * @param offset Index within choice of transition to execute
+	 * @param time Time for transition
+	 * @param index (Optionally) index of transition within whole list (-1 if unknown)
+	 */
+	private void executeTimedTransition(int i, int offset, double time, int index) throws PrismException
+	{
+		// Get corresponding choice
+		Choice choice = transitionList.getChoice(i);
+		// Remember last state and compute next one (and its state rewards)
+		lastState.copy(currentState);
+		choice.computeTarget(offset, lastState, currentState);
+		updater.calculateStateRewards(currentState, currentStateRewards);
+		// Store path info (if necessary)
+		if (!onTheFly) {
+			if (index == -1)
+				index = transitionList.getTotalIndexOfTransition(i, offset);
+			path.addStep(time, index, choice.getAction(), currentStateRewards, currentState, currentStateRewards);
+			// TODO: first currentStateRewards in above should be new *trans* rewards!
+		}
 		// Generate updates for next state 
 		updater.calculateTransitions(currentState, transitionList);
 	}
@@ -602,7 +643,7 @@ public class SimulatorEngine
 
 		// Create updater for model
 		updater = new Updater(this, modulesFile);
-		
+
 		// Create storage for labels
 		labels = new ArrayList<Expression>();
 	}
@@ -800,26 +841,18 @@ public class SimulatorEngine
 
 	/**
 	 * Returns the time spent in the state at the given path index.
-	 * 
-	 * @param stateIndex
-	 *            the index of the path state of interest
-	 * @return the time spent in the state at the given path index.
 	 */
-	public double getTimeSpentInPathState(int stateIndex)
+	public double getTimeSpentInPathState(int index)
 	{
-		return path.getTime(stateIndex);
+		return path.getTime(index);
 	}
 
 	/**
-	 * Returns the cumulative time spent in the states upto a given path index.
-	 * 
-	 * @param stateIndex
-	 *            the index of the path state of interest
-	 * @return the time spent in the state at the given path index.
+	 * Returns the cumulative time spent in the states up to (and including) a given path index.
 	 */
-	public double getCumulativeTimeSpentInPathState(int stateIndex)
+	public double getCumulativeTimeSpentInPathState(int index)
 	{
-		return 99;
+		return path.getCumulativeTime(index);
 	}
 
 	/**
@@ -932,15 +965,11 @@ public class SimulatorEngine
 	public static native int loopEnd();
 
 	/**
-	 * Returns the index of the update chosen for the precalculated old update set.
-	 * 
-	 * @param oldStep
-	 *            the old path step of interest
-	 * @return the index of the update chosen for the precalculated old update set.
+	 * Returns the index of the update chosen for an earlier state in the path.
 	 */
-	public int getChosenIndexOfOldUpdate(int oldStep)
+	public int getChosenIndexOfOldUpdate(int step)
 	{
-		return path.getChoice(oldStep);
+		return path.getChoice(step);
 	}
 
 	/**
@@ -1394,17 +1423,17 @@ public class SimulatorEngine
 		labels.add(label);
 		return labels.size() - 1;
 	}
-	
+
 	public boolean queryLabel(int index) throws PrismLangException
 	{
 		return labels.get(index).evaluateBoolean(currentState);
 	}
-	
+
 	public boolean queryLabel(int index, int step) throws PrismLangException
 	{
 		return labels.get(index).evaluateBoolean(path.getState(step));
 	}
-	
+
 	/**
 	 * For the current state, this returns 1 if it is the same as the initial state for the current path
 	 */

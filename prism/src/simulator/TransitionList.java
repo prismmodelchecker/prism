@@ -33,7 +33,7 @@ import prism.*;
 
 public class TransitionList
 {
-	public ArrayList<Choice> transitions = new ArrayList<Choice>();
+	public ArrayList<Choice> choices = new ArrayList<Choice>();
 	public ArrayList<Integer> transitionIndices = new ArrayList<Integer>();
 	public ArrayList<Integer> transitionOffsets = new ArrayList<Integer>();
 	public int numChoices = 0;
@@ -42,7 +42,7 @@ public class TransitionList
 
 	public void clear()
 	{
-		transitions.clear();
+		choices.clear();
 		transitionIndices.clear();
 		transitionOffsets.clear();
 		numChoices = 0;
@@ -53,10 +53,10 @@ public class TransitionList
 	public void add(Choice tr)
 	{
 		int i, n;
-		transitions.add(tr);
+		choices.add(tr);
 		n = tr.size();
 		for (i = 0; i < n; i++) {
-			transitionIndices.add(transitions.size() - 1);
+			transitionIndices.add(choices.size() - 1);
 			transitionOffsets.add(i);
 		}
 		numChoices++;
@@ -64,30 +64,52 @@ public class TransitionList
 		probSum += tr.getProbabilitySum();
 	}
 
-	// get ith choice
+	// Get access to Choice objects 
+	
+	/**
+	 * Get the ith choice.
+	 */
 	public Choice getChoice(int i)
 	{
-		return transitions.get(i);
+		return choices.get(i);
 	}
 
-	// get choice containing ith transition
+	/**
+	 * Get the choice containing the ith transition.
+	 */
 	public Choice getChoiceOfTransition(int i)
 	{
-		return transitions.get(transitionIndices.get(i));
+		return choices.get(transitionIndices.get(i));
 	}
 
-	// get index of choice containing ith transition
+	// Get index/offset info
+	
+	/**
+	 * Get the index of the choice containing the ith transition. 
+	 */
 	public int getChoiceIndexOfTransition(int i)
 	{
 		return transitionIndices.get(i);
 	}
 
-	// get offset in choice containing ith transition
+	/**
+	 * Get the offset of the ith transition within its containing choice.
+	 */
 	public int getChoiceOffsetOfTransition(int i)
 	{
 		return transitionOffsets.get(i);
 	}
 
+	/**
+	 * Get the (total) index of a transition from the index of its containing choice and its offset within it.
+	 */
+	public int getTotalIndexOfTransition(int i, int offset)
+	{
+		return transitionOffsets.get(i);
+	}
+
+	// Access to transition info
+	
 	// get prob (or rate) of ith transition
 	public double getTransitionProbability(int i)
 	{
@@ -114,7 +136,7 @@ public class TransitionList
 	public String toString()
 	{
 		String s = "";
-		for (Choice tr : transitions)
+		for (Choice tr : choices)
 			s += tr.toString();
 		return s;
 	}

@@ -40,6 +40,7 @@ public class Updater
 
 	// Model to which the path corresponds
 	protected ModulesFile modulesFile;
+	protected ModelType modelType;
 	protected int numModules;
 	// Synchronising action info
 	protected Vector<String> synchs;
@@ -58,6 +59,7 @@ public class Updater
 		this.simulator = simulator;
 		prism = simulator.getPrism();
 		this.modulesFile = modulesFile;
+		modelType = modulesFile.getModelType();
 		numModules = modulesFile.getNumModules();
 		synchs = modulesFile.getSynchs();
 		numSynchs = synchs.size();
@@ -107,9 +109,10 @@ public class Updater
 		System.out.println("updateLists: " + updateLists);
 
 		// Combination of updates depends on model type
-		switch (modulesFile.getModelType()) {
+		switch (modelType) {
 
 		case DTMC:
+		case CTMC:
 			ch = new ChoiceListFlexi();
 			n = 0;
 			// Independent choices for each (enabled) module
@@ -194,13 +197,13 @@ public class Updater
 			break;
 
 		default:
-			throw new PrismException("Unhandled model type \"" + modulesFile.getModelType() + "\"");
+			throw new PrismException("Unhandled model type \"" + modelType + "\"");
 		}
 
 		// For DTMCs, need to randomise
 
 		//System.out.println(transitionList.transitionTotal);
-		System.out.println(transitionList.transitions);
+		System.out.println(transitionList.choices);
 		//System.out.println(transitionList.transitionIndices);
 		//System.out.println(transitionList.transitionOffsets);
 
@@ -224,8 +227,8 @@ public class Updater
 			list.add(ups.getUpdate(i));
 			ch.add("", p, list, ups.getParent());
 		}
-		// Check distribution sums to 1
-		if (Math.abs(sum - 1) > prism.getSumRoundOff()) {
+		// Check distribution sums to 1 (if required)
+		if (modelType.choicesSumToOne() && Math.abs(sum - 1) > prism.getSumRoundOff()) {
 			throw new PrismLangException("Probabilities sum to " + sum + " in state " + state.toString(modulesFile), ups);
 		}
 
@@ -247,8 +250,8 @@ public class Updater
 			list.add(ups.getUpdate(i));
 			ch.add("", p, list, ups.getParent());
 		}
-		// Check distribution sums to 1
-		if (Math.abs(sum - 1) > prism.getSumRoundOff()) {
+		// Check distribution sums to 1 (if required)
+		if (modelType.choicesSumToOne() && Math.abs(sum - 1) > prism.getSumRoundOff()) {
 			throw new PrismLangException("Probabilities sum to " + sum + " in state " + state);
 		}
 

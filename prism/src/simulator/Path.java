@@ -49,6 +49,7 @@ public class Path
 		public State state;
 		public double stateRewards[];
 		public double time;
+		public double timeCumul;
 		public int choice;
 		public String action;
 		public double transitionRewards[];
@@ -58,6 +59,8 @@ public class Path
 	protected SimulatorEngine engine;
 	// Model to which the path corresponds
 	protected ModulesFile modulesFile;
+	// Does model use continuous time?
+	protected boolean continuousTime;
 	// Model info/stats
 	protected int numRewardStructs;
 	// The path, i.e. list of states, etc.
@@ -98,6 +101,11 @@ public class Path
 		return path.get(i).time;
 	}
 
+	public double getCumulativeTime(int i)
+	{
+		return path.get(i).timeCumul;
+	}
+
 	public int getChoice(int i)
 	{
 		return path.get(i).choice;
@@ -122,6 +130,7 @@ public class Path
 		this.engine = engine;
 		// Store model and info
 		this.modulesFile = modulesFile;
+		continuousTime = modulesFile.getModelType().continuousTime();
 		numRewardStructs = modulesFile.getNumRewardStructs();
 		// Create arrays to store totals
 		totalReward = new double[numRewardStructs];
@@ -163,13 +172,28 @@ public class Path
 	}
 
 	/**
-	 * Add step...
+	 * Add a step to the path.
 	 */
 	public void addStep(int choice, String action, double[] transRewards, State newState, double[] newStateRewards)
+	{
+		addStep(0, choice, action, transRewards, newState, newStateRewards);
+	}
+
+	/**
+	 * Add a (timed) step to the path.
+	 */
+	public void addStep(double time, int choice, String action, double[] transRewards, State newState,
+			double[] newStateRewards)
 	{
 		Step step;
 		// Add info to last existing step
 		step = path.get(path.size() - 1);
+		if (continuousTime) {
+			step.time = time;
+			step.timeCumul = time;
+			if (path.size() > 1)
+				step.timeCumul += path.get(path.size() - 1).timeCumul;
+		}
 		step.choice = choice;
 		step.action = action;
 		step.transitionRewards = transRewards.clone();

@@ -619,6 +619,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	public void a_manualUpdate()
 	{
 		try {
+			if (currentUpdatesTable.getSelectedRow() == -1)
+				throw new PrismException("No current update is selected");
+			
 			if (displayPathLoops && pathTableModel.isPathLooping()) {
 				if (questionYesNo("A loop in the path has been detected. Do you wish to disable loop detection and extend the path?") == 0) {
 					displayPathLoops = false;
@@ -638,10 +641,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				//Double.parseDouble(stateTimeField.getText());
 
 				setComputing(true);
-
-				if (currentUpdatesTable.getSelectedRow() == -1)
-					throw new PrismException("No current update is selected");
-				engine.manualUpdate(currentUpdatesTable.getSelectedRow(), time);
+				if (time == -1) {
+					engine.manualUpdate(currentUpdatesTable.getSelectedRow());
+				} else {
+					engine.manualUpdate(currentUpdatesTable.getSelectedRow(), time);
+				}
 
 				pathTableModel.updatePathTable();
 				updateTableModel.updateUpdatesTable();
@@ -657,8 +661,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			} else {
 
 				setComputing(true);
-				if (currentUpdatesTable.getSelectedRow() == -1)
-					throw new PrismException("No current update is selected");
+				
 				engine.manualUpdate(currentUpdatesTable.getSelectedRow());
 
 				pathTableModel.updatePathTable();
@@ -2183,6 +2186,37 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		}
 	}
 
+	public class ActionValue
+	{
+		private String value;
+		private boolean actionValueUnknown;
+
+		public ActionValue(String value)
+		{
+			this.value = value;
+		}
+
+		public String getValue()
+		{
+			return value;
+		}
+
+		public void setValue(String value)
+		{
+			this.value = value;
+		}
+
+		public void setActionValueUnknown(boolean unknown)
+		{
+			this.actionValueUnknown = unknown;
+		}
+
+		public boolean isActionValueUnknown()
+		{
+			return this.actionValueUnknown;
+		}
+	}
+
 	public class TimeValue
 	{
 		private Double value;
@@ -2714,6 +2748,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		private RewardStructureValue rewardStructureValue;
 		private VariableValue variableValue;
 		private TimeValue timeValue;
+		private ActionValue actionValue;
 
 		public PathTableModel(SimulationView view)
 		{
@@ -3113,7 +3148,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 				// The step column
 				if (stepStart <= columnIndex && columnIndex < actionStart) {
-					return "Step index";
+					return "Index of state in path";
 				} else if (actionStart <= columnIndex && columnIndex < timeStart) {
 					return "Action label or module name";
 				} else if (timeStart <= columnIndex && columnIndex < cumulativeTimeStart) {
@@ -3159,13 +3194,14 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				}
 				// The action column
 				else if (actionStart <= columnIndex && columnIndex < timeStart) {
-					return engine.getActionOfPathStep(rowIndex);
+					actionValue = new ActionValue(engine.getActionOfPathStep(rowIndex));
+					actionValue.setActionValueUnknown(rowIndex >= engine.getPathSize() - 1);
+					return actionValue;
 				}
 				// Time column
 				else if (timeStart <= columnIndex && columnIndex < cumulativeTimeStart) {
 					timeValue = new TimeValue(engine.getTimeSpentInPathState(rowIndex), false);
 					timeValue.setTimeValueUnknown(rowIndex >= engine.getPathSize() - 1);
-
 					return timeValue;
 				}
 				// Cumulative time column
@@ -3173,30 +3209,24 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					timeValue = new TimeValue((rowIndex == 0) ? 0.0 : engine
 							.getCumulativeTimeSpentInPathState(rowIndex - 1), true);
 					timeValue.setTimeValueUnknown(rowIndex >= engine.getPathSize());
-
 					return timeValue;
 				}
 				// A variable column
 				else if (varStart <= columnIndex && columnIndex < rewardStart) {
 					Variable var = ((Variable) view.getVisibleVariables().get(columnIndex - varStart));
-
-					Type type = var.getType();
 					Object result = engine.getPathData(var.getIndex(), rowIndex);
 					variableValue.setVariable(var);
 					variableValue.setValue(result);
 					variableValue.setChanged(rowIndex == 0
 							|| !engine.getPathData(var.getIndex(), rowIndex - 1).equals(result));
-
 					return variableValue;
 				}
 				// A reward column
 				else if (rewardStart <= columnIndex) {
 					RewardStructureColumn rewardColumn = (RewardStructureColumn) view.getVisibleRewardColumns().get(
 							columnIndex - rewardStart);
-
 					rewardStructureValue.setRewardStructureColumn(rewardColumn);
 					rewardStructureValue.setRewardValueUnknown(false);
-
 					// A state reward column
 					if (rewardColumn.isStateReward()) {
 						double value = engine.getStateRewardOfPathState(rowIndex, rewardColumn.getRewardStructure()
@@ -3205,7 +3235,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 								|| value != engine.getStateRewardOfPathState(rowIndex - 1, rewardColumn
 										.getRewardStructure().getIndex()));
 						rewardStructureValue.setRewardValue(new Double(value));
-
 						rewardStructureValue.setRewardValueUnknown(rowIndex > engine.getPathSize() - 1);
 					}
 					// A transition reward column
@@ -3216,7 +3245,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 								|| value != engine.getTransitionRewardOfPathState(rowIndex - 1, rewardColumn
 										.getRewardStructure().getIndex()));
 						rewardStructureValue.setRewardValue(new Double(value));
-
 						rewardStructureValue.setRewardValueUnknown(rowIndex >= engine.getPathSize() - 1);
 					}
 					// A cumulative reward column
@@ -3241,7 +3269,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 							rewardStructureValue.setRewardValueUnknown(rowIndex >= engine.getPathSize());
 						}
 					}
-
 					return rewardStructureValue;
 				}
 			}
