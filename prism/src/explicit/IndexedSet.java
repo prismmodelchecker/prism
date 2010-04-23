@@ -34,12 +34,17 @@ import java.util.*;
  */
 public class IndexedSet<T>
 {
-	private HashMap<T, Integer> set;
+	private Map<T, Integer> set;
 	private int indexOfLastAdd;
 
 	public IndexedSet()
 	{
-		set = new HashMap<T, Integer>();
+		this(false);
+	}
+
+	public IndexedSet(boolean sorted)
+	{
+		set = sorted ? new TreeMap<T, Integer>() : new HashMap<T, Integer>();
 		indexOfLastAdd = -1;
 	}
 
@@ -103,6 +108,26 @@ public class IndexedSet<T>
 		for (Map.Entry<T, Integer> e : set.entrySet()) {
 			list.set(e.getValue(), e.getKey());
 		}
+	}
+	
+	/**
+	 * Build sort permutation. Assuming this was built as a sorted set,
+	 * this returns a permutation (integer array) mapping current indices
+	 * to new indices under the sorting order.
+	 */
+	public int[] buildSortingPermutation()
+	{
+		int i, n;
+		int perm[];
+		
+		n = set.size();
+		perm = new int[n];
+		i = 0;
+		for (Map.Entry<T, Integer> e : set.entrySet()) {
+			perm[e.getValue()] = i++;
+		}
+		
+		return perm;
 	}
 	
 	@Override

@@ -247,7 +247,7 @@ public class STPG extends ModelSimple
 	{
 		return trans.get(s);
 	}
-	
+
 	/**
 	 * Get the ith choice (distribution set) for state s.
 	 */
@@ -255,7 +255,7 @@ public class STPG extends ModelSimple
 	{
 		return trans.get(s).get(i);
 	}
-	
+
 	@Override
 	public ModelType getModelType()
 	{
@@ -318,7 +318,7 @@ public class STPG extends ModelSimple
 	{
 		return numDistrSets;
 	}
-	
+
 	/**
 	 * Get the total number of player 2 choices (distributions) over all states.
 	 */
@@ -326,7 +326,7 @@ public class STPG extends ModelSimple
 	{
 		return numDistrs;
 	}
-	
+
 	/**
 	 * Get the total number of transitions in the model.
 	 */
@@ -334,7 +334,7 @@ public class STPG extends ModelSimple
 	{
 		return numTransitions;
 	}
-	
+
 	/**
 	 * Get the maximum number of player 1 choices (distribution sets) in any state.
 	 */
@@ -343,7 +343,7 @@ public class STPG extends ModelSimple
 		// TODO: Recompute if necessary
 		return maxNumDistrSets;
 	}
-	
+
 	/**
 	 * Get the maximum number of player 2 choices (distributions) in any state.
 	 */
@@ -352,7 +352,7 @@ public class STPG extends ModelSimple
 		// TODO: Recompute if necessary
 		return maxNumDistrs;
 	}
-	
+
 	/**
 	 * Checks for deadlocks (states with no choices) and throws an exception if any exist.
 	 * States in 'except' (If non-null) are excluded from the check.
@@ -595,7 +595,8 @@ public class STPG extends ModelSimple
 					for (Distribution distr : distrs) {
 						k++;
 						for (Map.Entry<Integer, Double> e : distr) {
-							out.write(i + " " + j + " " + k + " " + e.getKey() + " " + e.getValue() + "\n");
+							out.write(i + " " + j + " " + k + " " + e.getKey() + " "
+									+ PrismUtils.formatDouble(e.getValue()) + "\n");
 						}
 					}
 				}

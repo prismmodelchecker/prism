@@ -61,6 +61,22 @@ public class Distribution implements Iterable<Entry<Integer,Double>>
 	}
 	
 	/**
+	 * Construct a distribution from an existing one and a state index permutation,
+	 * i.e. in which state index i becomes index permut[i].
+	 * Note: have to build the new distributions from scratch anyway to do this,
+	 * so may as well provide this functionality as a constructor.
+	 */
+	public Distribution(Distribution distr, int permut[])
+	{
+		this();
+		Iterator<Entry<Integer,Double>> i = distr.iterator();
+		while (i.hasNext()) {
+			Map.Entry<Integer,Double> e = i.next();
+			add(permut[e.getKey()], e.getValue());
+		}
+	}
+	
+	/**
 	 * Clear all entries of the distribution.
 	 */
 	public void clear()
@@ -70,14 +86,19 @@ public class Distribution implements Iterable<Entry<Integer,Double>>
 	
 	/**
 	 * Add 'prob' to the probability for state 'j'.
+	 * Return boolean indicating whether or not there was already
+	 * non-zero probability for this state (i.e. false denotes new transition).
 	 */
-	public void add(int j, double prob)
+	public boolean add(int j, double prob)
 	{
 		Double d = (Double) map.get(j);
-		if (d == null)
+		if (d == null) {
 			map.put(j, prob);
-		else
+			return false;
+		} else {
 			set(j, d + prob);
+			return true;
+		}
 	}
 
 	/**

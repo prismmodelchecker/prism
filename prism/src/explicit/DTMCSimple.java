@@ -31,6 +31,7 @@ import java.io.*;
 
 import prism.ModelType;
 import prism.PrismException;
+import prism.PrismUtils;
 
 /**
  * Simple explicit-state representation of a DTMC.
@@ -80,6 +81,25 @@ public class DTMCSimple extends ModelSimple implements DTMC
 			trans.set(i, new Distribution(dtmc.trans.get(i)));
 		}
 		// TODO: copy rewards
+		numTransitions = dtmc.numTransitions;
+	}
+
+	/**
+	 * Construct a DTMC from an existing one and a state index permutation,
+	 * i.e. in which state index i becomes index permut[i].
+	 * Note: have to build new Distributions from scratch anyway to do this,
+	 * so may as well provide this functionality as a constructor.
+	 */
+	public DTMCSimple(DTMCSimple dtmc, int permut[])
+	{
+		this(dtmc.numStates);
+		for (int in : dtmc.getInitialStates()) {
+			addInitialState(permut[in]);
+		}
+		for (int i = 0; i < numStates; i++) {
+			trans.set(permut[i], new Distribution(dtmc.trans.get(i), permut));
+		}
+		// TODO: permute rewards
 		numTransitions = dtmc.numTransitions;
 	}
 
@@ -182,7 +202,18 @@ public class DTMCSimple extends ModelSimple implements DTMC
 			numTransitions--;
 		if (prob != 0.0)
 			numTransitions++;
-		trans.get(i).set(j, prob);
+		distr.set(j, prob);
+	}
+
+	/**
+	 * Add to the probability for a transition. 
+	 */
+	public void addToProbability(int i, int j, double prob)
+	{
+		if (!trans.get(i).add(j, prob)) {
+			if (prob != 0.0)
+				numTransitions++;
+		}
 	}
 
 	/**
@@ -273,7 +304,26 @@ public class DTMCSimple extends ModelSimple implements DTMC
 	@Override
 	public void exportToPrismExplicit(String baseFilename) throws PrismException
 	{
-		throw new PrismException("Export not yet supported");
+		int i;
+		String filename = null;
+		FileWriter out;
+		try {
+			// Output transitions to .tra file
+			filename = baseFilename + ".tra";
+			out = new FileWriter(filename);
+			out.write(numStates + " " + numTransitions + "\n");
+			for (i = 0; i < numStates; i++) {
+				for (Map.Entry<Integer, Double> e : trans.get(i)) {
+					out.write(i + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()) + "\n");
+				}
+			}
+			out.close();
+			// Output transition rewards to .trew file
+			// TODO
+			out.close();
+		} catch (IOException e) {
+			throw new PrismException("Could not export " + getModelType() + " to file \"" + filename + "\"" + e);
+		}
 	}
 
 	@Override

@@ -59,6 +59,17 @@ public class CTMCSimple extends DTMCSimple implements CTMC
 		super(ctmc);
 	}
 	
+	/**
+	 * Construct a CTMC from an existing one and a state index permutation,
+	 * i.e. in which state index i becomes index permut[i].
+	 * Note: have to build new Distributions from scratch anyway to do this,
+	 * so may as well provide this functionality as a constructor.
+	 */
+	public CTMCSimple(CTMCSimple ctmc, int permut[])
+	{
+		super(ctmc, permut);
+	}
+
 	// Accessors (for CTMC)
 	
 	@Override

@@ -414,7 +414,7 @@ public class MDPSimple extends ModelSimple implements MDP
 				for (Distribution distr : trans.get(i)) {
 					j++;
 					for (Map.Entry<Integer, Double> e : distr) {
-						out.write(i + " " + j + " " + e.getKey() + " " + e.getValue() + "\n");
+						out.write(i + " " + j + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()) + "\n");
 					}
 				}
 			}
@@ -492,7 +492,7 @@ public class MDPSimple extends ModelSimple implements MDP
 		}
 		return true;
 	}
-	
+
 	@Override
 	public boolean someAllSuccessorsInSetForSomeChoices(int s, BitSet set1, BitSet set2)
 	{
