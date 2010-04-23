@@ -307,15 +307,24 @@ public class DTMCSimple extends ModelSimple implements DTMC
 		int i;
 		String filename = null;
 		FileWriter out;
+		TreeMap<Integer, Double> sorted;
 		try {
 			// Output transitions to .tra file
 			filename = baseFilename + ".tra";
 			out = new FileWriter(filename);
 			out.write(numStates + " " + numTransitions + "\n");
+			sorted = new TreeMap<Integer, Double>();
 			for (i = 0; i < numStates; i++) {
+				// Extract transitions and sort by destination state index (to match PRISM-exported files)
 				for (Map.Entry<Integer, Double> e : trans.get(i)) {
+					sorted.put(e.getKey(), e.getValue());
+				}
+				// Print out (sorted) transitions
+				for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
+					// Note use of PrismUtils.formatDouble to match PRISM-exported files
 					out.write(i + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()) + "\n");
 				}
+				sorted.clear();
 			}
 			out.close();
 			// Output transition rewards to .trew file

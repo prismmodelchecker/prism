@@ -404,18 +404,27 @@ public class MDPSimple extends ModelSimple implements MDP
 		int i, j;
 		String filename = null;
 		FileWriter out;
+		TreeMap<Integer, Double> sorted;
 		try {
 			// Output transitions to .tra file
 			filename = baseFilename + ".tra";
 			out = new FileWriter(filename);
 			out.write(numStates + " " + numDistrs + " " + numTransitions + "\n");
+			sorted = new TreeMap<Integer, Double>();
 			for (i = 0; i < numStates; i++) {
 				j = -1;
 				for (Distribution distr : trans.get(i)) {
 					j++;
+					// Extract transitions and sort by destination state index (to match PRISM-exported files)
 					for (Map.Entry<Integer, Double> e : distr) {
+						sorted.put(e.getKey(), e.getValue());
+					}
+					// Print out (sorted) transitions
+					for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
+						// Note use of PrismUtils.formatDouble to match PRISM-exported files
 						out.write(i + " " + j + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()) + "\n");
 					}
+					sorted.clear();
 				}
 			}
 			out.close();
