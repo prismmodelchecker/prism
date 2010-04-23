@@ -36,7 +36,7 @@ public class PrismUtils
 {
 	// Threshold for comparison of doubles
 	public static double epsilonDouble = 1e-12;
-	
+
 	/**
 	 * Compute logarithm of x to base b.
 	 */
@@ -90,7 +90,7 @@ public class PrismUtils
 		// For two (near) zero values, return true, for just one, return false
 		if (d1 < epsilonDouble)
 			return (d2 < epsilonDouble);
-		return ( Math.abs(d1 - d2) / d1 < epsilon);
+		return (Math.abs(d1 - d2) / d1 < epsilon);
 	}
 
 	/**
@@ -181,7 +181,17 @@ public class PrismUtils
 	private static DecimalFormat formatterDouble2dp = new DecimalFormat("#0.00");
 
 	/**
+	 * Format a double, as would be done by printf's %.12g
+	 */
+	public static String formatDouble(double d)
+	{
+		// Note that we have to tweak this since Java do it quite like C. 
+		return String.format("%.12g", d).replaceFirst("\\.?0+(e|$)", "$1");
+	}
+
+	/**
 	 * Format a double.
+	 * TODO: fix me (precision ignored, re-use above code instead)
 	 */
 	public static String formatDouble(int precision, double d)
 	{
