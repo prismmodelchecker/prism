@@ -173,7 +173,7 @@ public class ChoiceList implements Choice
 		return command.get(i);
 	}
 
-	public int getIndexByProbSum(double x)
+	public int getIndexByProbabilitySum(double x)
 	{
 		int i, n;
 		double d;

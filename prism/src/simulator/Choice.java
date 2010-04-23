@@ -45,5 +45,5 @@ public interface Choice
 	public void computeTarget(State oldState, State newState) throws PrismLangException;
 	public State computeTarget(int i, State oldState) throws PrismLangException;
 	public void computeTarget(int i, State oldState, State newState) throws PrismLangException;
-	public int getIndexByProbSum(double x);
+	public int getIndexByProbabilitySum(double x);
 }

@@ -83,6 +83,9 @@ public class GenerateSimulationPath
 		generatePath();
 	}
 
+	/**
+	 * Parse a string specifying how to generate a simulation path.
+	 */
 	private void parseDetails(String details) throws PrismException
 	{
 		String s, ss[];
@@ -185,6 +188,9 @@ public class GenerateSimulationPath
 			throw new PrismException("Invalid path details \"" + details + "\"");
 	}
 
+	/**
+	 * Generate a random path using the simulator.
+	 */
 	private void generatePath() throws PrismException
 	{
 		int i = 0, j = 0;

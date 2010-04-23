@@ -141,6 +141,7 @@ public class Updater
 					}
 					// Case where there are multiple choices
 					else {
+						// TODO
 						throw new PrismLangException("Don't handle local nondet yet");
 					}
 					System.out.println("prod" + j + ": " + prod);
@@ -202,10 +203,7 @@ public class Updater
 
 		// For DTMCs, need to randomise
 
-		//System.out.println(transitionList.transitionTotal);
-		System.out.println(transitionList.choices);
-		//System.out.println(transitionList.transitionIndices);
-		//System.out.println(transitionList.transitionOffsets);
+		System.out.println(transitionList);
 
 	}
 

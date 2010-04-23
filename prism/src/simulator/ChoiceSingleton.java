@@ -70,7 +70,7 @@ public class ChoiceSingleton implements Choice
 		return 1;
 	}
 	
-	public int getIndexByProbSum(double x)
+	public int getIndexByProbabilitySum(double x)
 	{
 		return 0;
 	}

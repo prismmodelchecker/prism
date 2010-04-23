@@ -403,25 +403,37 @@ public class SimulatorEngine
 
 		Choice choice;
 		int numChoices, i, j;
-		double d;
+		double d, r;
 
 		switch (modelType) {
 		case DTMC:
 		case MDP:
 			// Check for deadlock
-			numChoices = transitionList.numChoices;
+			numChoices = transitionList.getNumChoices();
 			if (numChoices == 0)
 				throw new PrismException("Deadlock found at state " + currentState.toString(modulesFile));
 			// Pick a random choice
-			i = rng.randomInt(numChoices);
+			i = rng.randomUnifInt(numChoices);
 			choice = transitionList.getChoice(i);
 			// Pick a random transition from this choice
-			d = rng.randomDouble();
-			j = choice.getIndexByProbSum(d);
+			d = rng.randomUnifDouble();
+			j = choice.getIndexByProbabilitySum(d);
+			// Execute
 			executeTransition(i, j, -1);
 			break;
 		case CTMC:
-			// TODO: automaticUpdateContinuous();
+			// Check for deadlock
+			numChoices = transitionList.getNumChoices();
+			if (numChoices == 0)
+				throw new PrismException("Deadlock found at state " + currentState.toString(modulesFile));
+			// Get sum of all rates
+			r = transitionList.getProbabilitySum();
+			// Pick a random number to determine choice/transition
+			d = r * rng.randomUnifDouble();
+			TransitionList.Ref ref = transitionList.new Ref();
+			transitionList.getChoiceIndexByProbabilitySum(d, ref);
+			// Execute
+			executeTimedTransition(ref.i, ref.offset, rng.randomExpDouble(r), -1);
 			break;
 		}
 
@@ -460,7 +472,7 @@ public class SimulatorEngine
 
 	/**
 	 * Execute a transition from the current transition list and update path (if being stored).
-	 * Transition is specified by index of it choice and offset within it. If known, its index
+	 * Transition is specified by index of its choice and offset within it. If known, its index
 	 * (within the whole list) can optionally be specified (since this may be needed for storage
 	 * in the path). If this is -1, it will be computed automatically if needed.
 	 * @param i Index of choice containing transition to execute
@@ -488,7 +500,7 @@ public class SimulatorEngine
 
 	/**
 	 * Execute a (timed) transition from the current transition list and update path (if being stored).
-	 * Transition is specified by index of it choice and offset within it. If known, its index
+	 * Transition is specified by index of its choice and offset within it. If known, its index
 	 * (within the whole list) can optionally be specified (since this may be needed for storage
 	 * in the path). If this is -1, it will be computed automatically if needed.
 	 * In addition, the amount of time to be spent in the current state before this transition occurs
@@ -726,7 +738,7 @@ public class SimulatorEngine
 	 */
 	public int getNumTransitions()
 	{
-		return transitionList.numTransitions;
+		return transitionList.getNumTransitions();
 	}
 
 	/**
@@ -736,7 +748,7 @@ public class SimulatorEngine
 	 */
 	public String getTransitionAction(int index) throws PrismException
 	{
-		if (index < 0 || index >= transitionList.numTransitions)
+		if (index < 0 || index >= transitionList.getNumTransitions())
 			throw new PrismException("Invalid transition index " + index);
 		return transitionList.getChoiceOfTransition(index).getAction();
 	}
@@ -764,13 +776,13 @@ public class SimulatorEngine
 	public double getTransitionProbability(int index) throws PrismException
 	{
 		double p = transitionList.getTransitionProbability(index);
-		return (modelType == ModelType.DTMC ? p / transitionList.numChoices : p);
+		return (modelType == ModelType.DTMC ? p / transitionList.getNumChoices() : p);
 	}
 
 	public State computeTransitionTarget(int index) throws PrismLangException
 	{
-		// TODO
-		if (index < 0 || index >= transitionList.numTransitions)
+		// TODO: need to check bounds?
+		if (index < 0 || index >= transitionList.getNumTransitions())
 			return null;
 		//throw new PrismException("Invalid transition index " + index);
 		return transitionList.computeTransitionTarget(index, currentState);

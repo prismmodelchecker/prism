@@ -191,12 +191,16 @@ public class ChoiceListFlexi implements Choice
 		return command.get(i);
 	}
 
-	public int getIndexByProbSum(double x)
+	/**
+	 * Return the index of a transition according to a probability (or rate) sum, x.
+	 * i.e. return the index of the first transition in this choice for which the
+	 * sum of probabilities/rates for all prior transitions exceeds x.
+	 */
+	public int getIndexByProbabilitySum(double x)
 	{
 		int i, n;
 		double d;
 		n = size();
-		i = 0;
 		d = 0.0;
 		for (i = 0; x >= d && i < n; i++) {
 			d += probability.get(i);

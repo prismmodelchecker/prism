@@ -40,7 +40,7 @@ public class RandomNumberGenerator
 	/**
 	 * Pick a (uniformly) random integer in range [0,...,n-1].
 	 */
-	public int randomInt(int n)
+	public int randomUnifInt(int n)
 	{
 		return random.nextInt(n);
 	}
@@ -48,7 +48,7 @@ public class RandomNumberGenerator
 	/**
 	 * Pick a (uniformly) random double in range [0,1).
 	 */
-	public double randomDouble()
+	public double randomUnifDouble()
 	{
 		return random.nextDouble();
 	}
@@ -56,8 +56,20 @@ public class RandomNumberGenerator
 	/**
 	 * Pick a (uniformly) random double in range [0,x).
 	 */
-	public double randomDouble(double x)
+	public double randomUnifDouble(double x)
 	{
 		return x * random.nextDouble();
+	}
+	
+	/**
+	 * Pick a random double according to exponential distribution with rate x.
+	 */
+	public double randomExpDouble(double x)
+	{
+		double y;
+		// Pick (non-zero) random y in (0,1)
+		while ((y = random.nextDouble()) == 0);
+		// Sample exponential
+		return (-Math.log(y)) / x;
 	}
 }

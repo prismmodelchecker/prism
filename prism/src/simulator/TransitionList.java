@@ -33,13 +33,22 @@ import prism.*;
 
 public class TransitionList
 {
-	public ArrayList<Choice> choices = new ArrayList<Choice>();
-	public ArrayList<Integer> transitionIndices = new ArrayList<Integer>();
-	public ArrayList<Integer> transitionOffsets = new ArrayList<Integer>();
-	public int numChoices = 0;
-	public int numTransitions = 0;
-	public double probSum = 0.0;
+	private ArrayList<Choice> choices = new ArrayList<Choice>();
+	private ArrayList<Integer> transitionIndices = new ArrayList<Integer>();
+	private ArrayList<Integer> transitionOffsets = new ArrayList<Integer>();
+	private int numChoices = 0;
+	private int numTransitions = 0;
+	private double probSum = 0.0;
 
+	// TODO: document this
+	public class Ref
+	{
+		public int i;
+		public int offset;
+		//int index;
+		//Choice ch;
+	}
+	
 	public void clear()
 	{
 		choices.clear();
@@ -63,7 +72,33 @@ public class TransitionList
 		numTransitions += tr.size();
 		probSum += tr.getProbabilitySum();
 	}
-
+	
+	// ACCESSORS
+	
+	/**
+	 * Get the number of choices.
+	 */
+	public int getNumChoices()
+	{
+		return numChoices;
+	}
+	
+	/**
+	 * Get the number of transitions.
+	 */
+	public int getNumTransitions()
+	{
+		return numTransitions;
+	}
+	
+	/**
+	 * Get the total sum of all probabilities (or rates).
+	 */
+	public double getProbabilitySum()
+	{
+		return probSum;
+	}
+	
 	// Get access to Choice objects 
 	
 	/**
@@ -108,6 +143,36 @@ public class TransitionList
 		return transitionOffsets.get(i);
 	}
 
+	// Random selection of a choice 
+	
+	/**
+	 * Get a reference to a transition according to a total probability (rate) sum, x.
+	 * i.e.the first transition for which the sum of probabilities of all prior transitions
+	 * (across all choices) exceeds x.
+	 * Note: this only really makes sense for models where these are rates, rather than probabilities.
+	 * @param x Probability (or rate) sum
+	 * @param ref Empty transition reference to store result
+	 */
+	public void getChoiceIndexByProbabilitySum(double x, Ref ref)
+	{
+		int i;
+		Choice choice;
+		double d = 0.0, tot = 0.0;
+		// Add up choice prob/rate sums to find choice
+		for (i = 0; x >= tot && i < numChoices; i++) {
+			d = getChoice(i).getProbabilitySum();
+			tot += d;
+		}
+		ref.i = i - 1;
+		// Pick transition within choice 
+		choice = getChoice(i - 1);
+		if (choice.size() > 1) {
+			ref.offset = choice.getIndexByProbabilitySum(tot - d);
+		} else {
+			ref.offset = 0;
+		}
+	}
+
 	// Access to transition info
 	
 	// get prob (or rate) of ith transition
@@ -136,8 +201,14 @@ public class TransitionList
 	public String toString()
 	{
 		String s = "";
-		for (Choice tr : choices)
+		boolean first = true;
+		for (Choice tr : choices) {
+			if (first)
+				first = false;
+			else
+				s += ", ";
 			s += tr.toString();
+		}
 		return s;
 	}
 }
