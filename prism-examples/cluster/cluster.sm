@@ -7,12 +7,6 @@ const int N; // Number of workstations in each cluster
 const int left_mx = N; // Number of work stations in left cluster
 const int right_mx = N; // Number of work stations in right cluster
 
-// Minimum QoS requires 3/4 connected workstations operational
-const int k = floor(0.75*N);
-formula minimum = (left_n>=k & toleft_n) | 
-                  (right_n>=k & toright_n) | 
-                  ((left_n+right_n)>=k & toleft_n & line_n & toright_n);
-
 // Failure rates
 const double ws_fail = 1/500; // Single workstation: average time to fail = 500 hrs
 const double switch_fail = 1/4000; // Switch: average time to fail = 4000 hrs
@@ -84,6 +78,21 @@ module ToRight = Line[line=toright,
                       startLine=startToRight,
                       repairLine=repairToRight ]
 endmodule
+
+// Formulas + labels
+
+// Minimum QoS requires 3/4 connected workstations operational
+const int k = floor(0.75*N);
+// left_operational_i : left_n>=i & toleft_n
+// right_operational_i : right_n>=i & toright_n
+// operational_i : (left_n+right_n)>=i & toleft_n & line_n & toright_n
+// minimum_k : left_operational_k | right_operational_k | operational_k
+formula minimum = (left_n>=k & toleft_n) | 
+                  (right_n>=k & toright_n) | 
+                  ((left_n+right_n)>=k & toleft_n & line_n & toright_n);
+label "minimum" = (left_n>=k & toleft_n) | (right_n>=k & toright_n) | ((left_n+right_n)>=k & toleft_n & line_n & toright_n);
+// premium = minimum_N
+label "premium" = (left_n>=left_mx & toleft_n) | (right_n>=right_mx & toright_n) | ((left_n+right_n)>=left_mx & toleft_n & line_n & toright_n);
 
 // Reward structures
 

@@ -1,13 +1,5 @@
 // Properties based on those from [HHK00]
 
-// left_operational_i : left_n>=i & toleft_n
-// right_operational_i : right_n>=i & toright_n
-// operational_i : (left_n+right_n)>=i & toleft_n & line_n & toright_n
-// minimum_k : left_operational_k | right_operational_k | operational_k
-// premium = minimum_N
-label "minimum" = (left_n>=k & toleft_n) | (right_n>=k & toright_n) | ((left_n+right_n)>=k & toleft_n & line_n & toright_n);
-label "premium" = (left_n>=left_mx & toleft_n) | (right_n>=right_mx & toright_n) | ((left_n+right_n)>=left_mx & toleft_n & line_n & toright_n);
-
 const double T;
 
 // In the long run, the probability that premium QoS will be delivered
