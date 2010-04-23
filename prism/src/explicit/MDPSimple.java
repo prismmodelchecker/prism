@@ -399,15 +399,13 @@ public class MDPSimple extends ModelSimple implements MDP
 	}
 
 	@Override
-	public void exportToPrismExplicit(String baseFilename) throws PrismException
+	public void exportToPrismExplicitTra(String filename) throws PrismException
 	{
 		int i, j;
-		String filename = null;
 		FileWriter out;
 		TreeMap<Integer, Double> sorted;
 		try {
 			// Output transitions to .tra file
-			filename = baseFilename + ".tra";
 			out = new FileWriter(filename);
 			out.write(numStates + " " + numDistrs + " " + numTransitions + "\n");
 			sorted = new TreeMap<Integer, Double>();
@@ -425,21 +423,6 @@ public class MDPSimple extends ModelSimple implements MDP
 						out.write(i + " " + j + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()) + "\n");
 					}
 					sorted.clear();
-				}
-			}
-			out.close();
-			// Output transition rewards to .trew file
-			// TODO
-			filename = baseFilename + ".trew";
-			out = new FileWriter(filename);
-			out.write(numStates + " " + "?" + " " + "?" + "\n");
-			for (i = 0; i < numStates; i++) {
-				j = -1;
-				for (Distribution distr : trans.get(i)) {
-					j++;
-					for (Map.Entry<Integer, Double> e : distr) {
-						out.write(i + " " + j + " " + e.getKey() + " " + "1.0" + "\n");
-					}
 				}
 			}
 			out.close();

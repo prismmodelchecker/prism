@@ -144,6 +144,11 @@ public class DTMCUniformisedSimple implements DTMC
 		throw new PrismException("Export not yet supported");
 	}
 
+	public void exportToPrismExplicitTra(String filename) throws PrismException
+	{
+		throw new PrismException("Export not yet supported");
+	}
+
 	public void exportToDotFile(String filename) throws PrismException
 	{
 		throw new PrismException("Export not yet supported");

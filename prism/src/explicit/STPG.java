@@ -574,18 +574,14 @@ public class STPG extends ModelSimple
 		exportToDotFile(filename, null);
 	}
 
-	/**
-	 * Export to explicit format readable by PRISM (i.e. a .tra file, etc.).
-	 */
-	public void exportToPrismExplicit(String baseFilename) throws PrismException
+	@Override
+	public void exportToPrismExplicitTra(String filename) throws PrismException
 	{
 		int i, j, k;
-		String filename = null;
 		FileWriter out;
 		TreeMap<Integer, Double> sorted;
 		try {
 			// Output transitions to .tra file
-			filename = baseFilename + ".tra";
 			out = new FileWriter(filename);
 			out.write(numStates + " " + numDistrSets + " " + numDistrs + " " + numTransitions + "\n");
 			sorted = new TreeMap<Integer, Double>();
@@ -611,7 +607,6 @@ public class STPG extends ModelSimple
 				}
 			}
 			out.close();
-			// TODO: rewards
 		} catch (IOException e) {
 			throw new PrismException("Could not export " + getModelType() + " to file \"" + filename + "\"" + e);
 		}

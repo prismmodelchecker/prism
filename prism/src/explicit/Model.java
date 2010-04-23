@@ -116,6 +116,11 @@ public interface Model
 	public void exportToPrismExplicit(String baseFilename) throws PrismException;
 
 	/**
+	 * Export transition matrix to explicit format readable by PRISM (i.e. a .tra file).
+	 */
+	public void exportToPrismExplicitTra(String traFilename) throws PrismException;
+
+	/**
 	 * Export to a dot file.
 	 */
 	public void exportToDotFile(String filename) throws PrismException;

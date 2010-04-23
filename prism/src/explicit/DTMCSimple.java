@@ -304,13 +304,18 @@ public class DTMCSimple extends ModelSimple implements DTMC
 	@Override
 	public void exportToPrismExplicit(String baseFilename) throws PrismException
 	{
+		exportToPrismExplicitTra(baseFilename + ".tra");
+		// TODO: Output transition rewards to .trew file, etc.
+	}
+
+	@Override
+	public void exportToPrismExplicitTra(String filename) throws PrismException
+	{
 		int i;
-		String filename = null;
 		FileWriter out;
 		TreeMap<Integer, Double> sorted;
 		try {
 			// Output transitions to .tra file
-			filename = baseFilename + ".tra";
 			out = new FileWriter(filename);
 			out.write(numStates + " " + numTransitions + "\n");
 			sorted = new TreeMap<Integer, Double>();
@@ -326,9 +331,6 @@ public class DTMCSimple extends ModelSimple implements DTMC
 				}
 				sorted.clear();
 			}
-			out.close();
-			// Output transition rewards to .trew file
-			// TODO
 			out.close();
 		} catch (IOException e) {
 			throw new PrismException("Could not export " + getModelType() + " to file \"" + filename + "\"" + e);

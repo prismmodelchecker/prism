@@ -122,7 +122,16 @@ public abstract class ModelSimple implements Model
 	
 	public abstract void checkForDeadlocks(BitSet except) throws PrismException;
 	
-	public abstract void exportToPrismExplicit(String baseFilename) throws PrismException;
+	@Override
+	public void exportToPrismExplicit(String baseFilename) throws PrismException
+	{
+		// Default implementation - just output .tra file
+		// (some models might override this)
+		exportToPrismExplicitTra(baseFilename + ".tra");
+		// TODO: Also output transition rewards to .trew file, etc.
+	}
+
+	public abstract void exportToPrismExplicitTra(String filename) throws PrismException;
 
 	public void exportToDotFile(String filename) throws PrismException
 	{
