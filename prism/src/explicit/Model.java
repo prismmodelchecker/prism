@@ -105,6 +105,12 @@ public interface Model
 	public void checkForDeadlocks() throws PrismException;
 
 	/**
+	 * Find all deadlocks and return a BitSet of these states.
+	 * If requested (if fix=true, then add self-loops in these states).
+	 */
+	public BitSet findDeadlocks(boolean fix) throws PrismException;
+
+	/**
 	 * Checks for deadlocks and throws an exception if any exist.
 	 * States in 'except' (If non-null) are excluded from the check.
 	 */

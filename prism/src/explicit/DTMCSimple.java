@@ -302,6 +302,23 @@ public class DTMCSimple extends ModelSimple implements DTMC
 	}
 
 	@Override
+	public BitSet findDeadlocks(boolean fix) throws PrismException
+	{
+		int i;
+		BitSet deadlocks = new BitSet();
+		for (i = 0; i < numStates; i++) {
+			if (trans.get(i).isEmpty())
+				deadlocks.set(i);
+		}
+		if (fix) {
+			for (i = deadlocks.nextSetBit(0); i >= 0; i = deadlocks.nextSetBit(i + 1)) {
+				setProbability(i, i, 1.0);		
+			}
+		}
+		return deadlocks;
+	}
+
+	@Override
 	public void exportToPrismExplicit(String baseFilename) throws PrismException
 	{
 		exportToPrismExplicitTra(baseFilename + ".tra");

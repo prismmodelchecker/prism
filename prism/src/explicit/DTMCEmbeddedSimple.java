@@ -128,6 +128,12 @@ public class DTMCEmbeddedSimple implements DTMC
 		// No deadlocks by definition
 	}
 
+	public BitSet findDeadlocks(boolean fix) throws PrismException
+	{
+		// No deadlocks by definition
+		return new BitSet();
+	}
+
 	public void exportToPrismExplicit(String baseFilename) throws PrismException
 	{
 		throw new PrismException("Export not yet supported");

@@ -366,6 +366,28 @@ public class STPG extends ModelSimple
 		// TODO: Check for empty distributions sets too?
 	}
 
+	@Override
+	public BitSet findDeadlocks(boolean fix) throws PrismException
+	{
+		int i;
+		BitSet deadlocks = new BitSet();
+		for (i = 0; i < numStates; i++) {
+			// Note that no distributions is a deadlock, not an empty distribution
+			if (trans.get(i).isEmpty())
+				deadlocks.set(i);
+		}
+		if (fix) {
+			for (i = deadlocks.nextSetBit(0); i >= 0; i = deadlocks.nextSetBit(i + 1)) {
+				DistributionSet distrs = newDistributionSet(null);
+				Distribution distr = new Distribution();
+				distr.add(i, 1.0);
+				distrs.add(distr);
+				addDistributionSet(i, distrs);
+			}
+		}
+		return deadlocks;
+	}
+
 	/**
 	 * Build (anew) from a list of transitions exported explicitly by PRISM (i.e. a .tra file).
 	 */

@@ -110,6 +110,26 @@ public class MDPSimple extends ModelSimple implements MDP
 		// TODO: copy rewards, etc.
 	}
 
+	/**
+	 * Construct an MDP from an existing one and a state index permutation,
+	 * i.e. in which state index i becomes index permut[i].
+	 * Note: have to build new Distributions from scratch anyway to do this,
+	 * so may as well provide this functionality as a constructor.
+	 */
+	public MDPSimple(MDPSimple mdp, int permut[])
+	{
+		this(mdp.numStates);
+		for (int in : mdp.getInitialStates()) {
+			addInitialState(permut[in]);
+		}
+		for (int i = 0; i < numStates; i++) {
+			for (Distribution distr : mdp.trans.get(i)) {
+				addChoice(permut[i], new Distribution(distr, permut));
+			}
+		}
+		// TODO: permute rewards
+	}
+
 	// Mutators (for ModelSimple)
 
 	@Override
@@ -396,6 +416,26 @@ public class MDPSimple extends ModelSimple implements MDP
 				throw new PrismException("MDP has a deadlock in state " + i);
 		}
 		// TODO: Check for empty distributions too?
+	}
+
+	@Override
+	public BitSet findDeadlocks(boolean fix) throws PrismException
+	{
+		int i;
+		BitSet deadlocks = new BitSet();
+		for (i = 0; i < numStates; i++) {
+			// Note that no distributions is a deadlock, not an empty distribution
+			if (trans.get(i).isEmpty())
+				deadlocks.set(i);
+		}
+		if (fix) {
+			for (i = deadlocks.nextSetBit(0); i >= 0; i = deadlocks.nextSetBit(i + 1)) {
+				Distribution distr = new Distribution();
+				distr.add(i, 1.0);
+				addChoice(i, distr);
+			}
+		}
+		return deadlocks;
 	}
 
 	@Override
