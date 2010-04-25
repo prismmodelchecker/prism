@@ -36,96 +36,117 @@ public class PrismStaTra
 	// files to read in from
 	private File statesFile;
 	private File transFile;
-	
+
 	// states info
 	private ArrayList<String> states;
-	
+
 	public PrismStaTra(File sf, File tf)
 	{
 		statesFile = sf;
 		transFile = tf;
 	}
-	
+
 	// Read info about reachable state space from file and store string
-	
+
 	public void readStatesFromFile() throws PrismException
 	{
 		BufferedReader in;
 		String s, ss[];
 		int lineNum = 0;
-		
+
 		// create arrays for explicit state storage
 		states = new ArrayList<String>();
 		try {
 			// open file for reading
 			in = new BufferedReader(new FileReader(statesFile));
 			// skip first line
-			in.readLine(); lineNum = 1;
+			in.readLine();
+			lineNum = 1;
 			// read remaining lines
-			s = in.readLine(); lineNum++;
+			s = in.readLine();
+			lineNum++;
 			while (s != null) {
 				s = s.trim();
 				ss = s.split(":");
 				//i = Integer.parseInt(ss[0]);
 				states.add(ss[1]);
-				s = in.readLine(); lineNum++;
+				s = in.readLine();
+				lineNum++;
 			}
 			// close file
 			in.close();
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + statesFile + "\"");
-		}
-		catch (NumberFormatException e) {
+		} catch (NumberFormatException e) {
 			throw new PrismException("Error detected at line " + lineNum + " of states file \"" + statesFile + "\"");
 		}
 	}
 
 	// Read info about transitions from file, insert state info and re-output
-	
+
 	private void readTransitionsFromFile() throws PrismException
 	{
 		BufferedReader in;
 		String s, ss[];
-		int r, c, lineNum = 0;
-		
+		int i, r, c, lineNum = 0;
+
 		try {
 			// open file for reading
 			in = new BufferedReader(new FileReader(transFile));
 			// skip first line
-			s = in.readLine(); System.out.println(s); lineNum = 1;
+			s = in.readLine();
+			System.out.println(s);
+			lineNum = 1;
 			// read remaining lines
-			s = in.readLine(); lineNum++;
+			s = in.readLine();
+			lineNum++;
 			while (s != null) {
 				// parse line, split into parts
 				s = s.trim();
 				ss = s.split(" ");
-				// case for dtmcs/ctmcs...
+				// then replace any state indices with state description...
+				// dtmc/ctmc with no action:
 				if (ss.length == 3) {
-					r = Integer.parseInt(ss[0]);
-					c = Integer.parseInt(ss[1]);
-					System.out.println(states.get(r) + " " + states.get(c) + " " + ss[2]);
+					ss[0] = "" + states.get(Integer.parseInt(ss[0]));
+					ss[1] = "" + states.get(Integer.parseInt(ss[1]));
+				} else if (ss.length == 4) {
+					// dtmc/ctmc with action:
+					if (ss[3].matches("[_a-zA-Z][_a-zA-Z0-9]*")) {
+						ss[0] = "" + states.get(Integer.parseInt(ss[0]));
+						ss[1] = "" + states.get(Integer.parseInt(ss[1]));
+					}
+					// mdp with no action:
+					else {
+						ss[0] = "" + states.get(Integer.parseInt(ss[0]));
+						ss[2] = "" + states.get(Integer.parseInt(ss[2]));
+					}
 				}
-				// case for mdps...
-				else if (ss.length == 4) {
-					r = Integer.parseInt(ss[0]);
-					c = Integer.parseInt(ss[2]);
-					System.out.println(states.get(r) + " " + ss[1] + " " + states.get(c) + " " + ss[3]);
+				// mdp with action:
+				else {
+					ss[0] = "" + states.get(Integer.parseInt(ss[0]));
+					ss[2] = "" + states.get(Integer.parseInt(ss[2]));
 				}
+				// print out modified line
+				for (i = 0; i < ss.length; i++) {
+					if (i > 0)
+						System.out.print(" ");
+					System.out.print(ss[i]);
+				}
+				System.out.println();
 				// read next line
-				s = in.readLine(); lineNum++;
+				s = in.readLine();
+				lineNum++;
 			}
 			// close file
 			in.close();
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
-		}
-		catch (NumberFormatException e) {
-			throw new PrismException("Error detected at line " + lineNum + " of transition matrix file \"" + transFile + "\"");
+		} catch (NumberFormatException e) {
+			throw new PrismException("Error detected at line " + lineNum + " of transition matrix file \"" + transFile
+					+ "\"");
 		}
 	}
-	
+
 	public static void main(String args[])
 	{
 		if (args.length < 2) {
@@ -136,8 +157,7 @@ public class PrismStaTra
 			PrismStaTra pst = new PrismStaTra(new File(args[0]), new File(args[1]));
 			pst.readStatesFromFile();
 			pst.readTransitionsFromFile();
-		}
-		catch (PrismException e) {
+		} catch (PrismException e) {
 			System.out.println("Error: " + e.getMessage());
 			System.exit(1);
 		}
