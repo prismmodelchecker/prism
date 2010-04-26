@@ -331,6 +331,16 @@ public class SimulatorEngine
 	 */
 	public void initialisePath(Values initialState) throws PrismException
 	{
+		// TODO: need this method?
+		initialisePath(new State(initialState));
+	}
+
+	/**
+	 * Initialise (or re-initialise) the simulation path, starting with a specific (or random) initial state.
+	 * @param initialState Initial state (if null, is selected randomly)
+	 */
+	public void initialisePath(State initialState) throws PrismException
+	{
 		// Store a copy of passed in state
 		if (initialState != null) {
 			currentState.copy(new State(initialState));
@@ -471,66 +481,6 @@ public class SimulatorEngine
 	}
 
 	/**
-	 * Execute a transition from the current transition list and update path (if being stored).
-	 * Transition is specified by index of its choice and offset within it. If known, its index
-	 * (within the whole list) can optionally be specified (since this may be needed for storage
-	 * in the path). If this is -1, it will be computed automatically if needed.
-	 * @param i Index of choice containing transition to execute
-	 * @param offset Index within choice of transition to execute
-	 * @param index (Optionally) index of transition within whole list (-1 if unknown)
-	 */
-	private void executeTransition(int i, int offset, int index) throws PrismException
-	{
-		// Get corresponding choice
-		Choice choice = transitionList.getChoice(i);
-		// Remember last state and compute next one (and its state rewards)
-		lastState.copy(currentState);
-		choice.computeTarget(offset, lastState, currentState);
-		updater.calculateStateRewards(currentState, currentStateRewards);
-		// Store path info (if necessary)
-		if (!onTheFly) {
-			if (index == -1)
-				index = transitionList.getTotalIndexOfTransition(i, offset);
-			path.addStep(index, choice.getAction(), currentStateRewards, currentState, currentStateRewards);
-			// TODO: first currentStateRewards in above should be new *trans* rewards!
-		}
-		// Generate updates for next state 
-		updater.calculateTransitions(currentState, transitionList);
-	}
-
-	/**
-	 * Execute a (timed) transition from the current transition list and update path (if being stored).
-	 * Transition is specified by index of its choice and offset within it. If known, its index
-	 * (within the whole list) can optionally be specified (since this may be needed for storage
-	 * in the path). If this is -1, it will be computed automatically if needed.
-	 * In addition, the amount of time to be spent in the current state before this transition occurs
-	 * should be specified. If -1, this is picked randomly.
-	 * [continuous-time models only]
-	 * @param i Index of choice containing transition to execute
-	 * @param offset Index within choice of transition to execute
-	 * @param time Time for transition
-	 * @param index (Optionally) index of transition within whole list (-1 if unknown)
-	 */
-	private void executeTimedTransition(int i, int offset, double time, int index) throws PrismException
-	{
-		// Get corresponding choice
-		Choice choice = transitionList.getChoice(i);
-		// Remember last state and compute next one (and its state rewards)
-		lastState.copy(currentState);
-		choice.computeTarget(offset, lastState, currentState);
-		updater.calculateStateRewards(currentState, currentStateRewards);
-		// Store path info (if necessary)
-		if (!onTheFly) {
-			if (index == -1)
-				index = transitionList.getTotalIndexOfTransition(i, offset);
-			path.addStep(time, index, choice.getAction(), currentStateRewards, currentState, currentStateRewards);
-			// TODO: first currentStateRewards in above should be new *trans* rewards!
-		}
-		// Generate updates for next state 
-		updater.calculateTransitions(currentState, transitionList);
-	}
-
-	/**
 	 * This function backtracks the current path to the state of the given index
 	 * 
 	 * @param step
@@ -660,6 +610,66 @@ public class SimulatorEngine
 		labels = new ArrayList<Expression>();
 	}
 
+	/**
+	 * Execute a transition from the current transition list and update path (if being stored).
+	 * Transition is specified by index of its choice and offset within it. If known, its index
+	 * (within the whole list) can optionally be specified (since this may be needed for storage
+	 * in the path). If this is -1, it will be computed automatically if needed.
+	 * @param i Index of choice containing transition to execute
+	 * @param offset Index within choice of transition to execute
+	 * @param index (Optionally) index of transition within whole list (-1 if unknown)
+	 */
+	private void executeTransition(int i, int offset, int index) throws PrismException
+	{
+		// Get corresponding choice
+		Choice choice = transitionList.getChoice(i);
+		// Remember last state and compute next one (and its state rewards)
+		lastState.copy(currentState);
+		choice.computeTarget(offset, lastState, currentState);
+		updater.calculateStateRewards(currentState, currentStateRewards);
+		// Store path info (if necessary)
+		if (!onTheFly) {
+			if (index == -1)
+				index = transitionList.getTotalIndexOfTransition(i, offset);
+			path.addStep(index, choice.getAction(), currentStateRewards, currentState, currentStateRewards);
+			// TODO: first currentStateRewards in above should be new *trans* rewards!
+		}
+		// Generate updates for next state 
+		updater.calculateTransitions(currentState, transitionList);
+	}
+
+	/**
+	 * Execute a (timed) transition from the current transition list and update path (if being stored).
+	 * Transition is specified by index of its choice and offset within it. If known, its index
+	 * (within the whole list) can optionally be specified (since this may be needed for storage
+	 * in the path). If this is -1, it will be computed automatically if needed.
+	 * In addition, the amount of time to be spent in the current state before this transition occurs
+	 * should be specified. If -1, this is picked randomly.
+	 * [continuous-time models only]
+	 * @param i Index of choice containing transition to execute
+	 * @param offset Index within choice of transition to execute
+	 * @param time Time for transition
+	 * @param index (Optionally) index of transition within whole list (-1 if unknown)
+	 */
+	private void executeTimedTransition(int i, int offset, double time, int index) throws PrismException
+	{
+		// Get corresponding choice
+		Choice choice = transitionList.getChoice(i);
+		// Remember last state and compute next one (and its state rewards)
+		lastState.copy(currentState);
+		choice.computeTarget(offset, lastState, currentState);
+		updater.calculateStateRewards(currentState, currentStateRewards);
+		// Store path info (if necessary)
+		if (!onTheFly) {
+			if (index == -1)
+				index = transitionList.getTotalIndexOfTransition(i, offset);
+			path.addStep(time, index, choice.getAction(), currentStateRewards, currentState, currentStateRewards);
+			// TODO: first currentStateRewards in above should be new *trans* rewards!
+		}
+		// Generate updates for next state 
+		updater.calculateTransitions(currentState, transitionList);
+	}
+
 	// ------------------------------------------------------------------------------
 	// Queries regarding model
 	// ------------------------------------------------------------------------------
@@ -722,7 +732,7 @@ public class SimulatorEngine
 	}
 
 	// ------------------------------------------------------------------------------
-	// State/Transitions querying
+	// State/Choice/Transition querying
 	// ------------------------------------------------------------------------------
 
 	/**
@@ -734,11 +744,63 @@ public class SimulatorEngine
 	}
 
 	/**
-	 * Returns the current number of available transitions.
+	 * Returns the current number of available choices.
+	 */
+	public int getNumChoices()
+	{
+		return transitionList.getNumChoices();
+	}
+
+	/**
+	 * Returns the current (total) number of available transitions.
 	 */
 	public int getNumTransitions()
 	{
 		return transitionList.getNumTransitions();
+	}
+
+	/**
+	 * Returns the current number of available transitions in choice i.
+	 */
+	public int getNumTransitions(int i)
+	{
+		return transitionList.getChoice(i).size();
+	}
+
+	/**
+	 * Get the probability/rate of a transition within a choice, specified by its index/offset.
+	 */
+	public double getTransitionProbability(int i, int offset) throws PrismException
+	{
+		double p = transitionList.getChoice(i).getProbability(offset);
+		// For DTMCs, we need to normalise (over choices)
+		return (modelType == ModelType.DTMC ? p / transitionList.getNumChoices() : p);
+	}
+
+	/**
+	 * Get the probability/rate of a transition, specified by its index.
+	 */
+	public double getTransitionProbability(int index) throws PrismException
+	{
+		double p = transitionList.getTransitionProbability(index);
+		// For DTMCs, we need to normalise (over choices)
+		return (modelType == ModelType.DTMC ? p / transitionList.getNumChoices() : p);
+	}
+
+	/**
+	 * Get the target (as a new State object) of a transition within a choice, specified by its index/offset.
+	 */
+	public State computeTransitionTarget(int i, int offset) throws PrismLangException
+	{
+		return transitionList.getChoice(i).computeTarget(offset, currentState);
+	}
+
+	/**
+	 * Get the target of a transition (as a new State object), specified by its index.
+	 */
+	public State computeTransitionTarget(int index) throws PrismLangException
+	{
+		return transitionList.computeTransitionTarget(index, currentState);
 	}
 
 	/**
@@ -764,28 +826,6 @@ public class SimulatorEngine
 	public String getTransitionModuleOrAction(int index)
 	{
 		return transitionList.getTransitionActionString(index);
-	}
-
-	/**
-	 * Returns the probability/rate of the update at the given index
-	 * 
-	 * @param i
-	 *            the index of the update of interest.
-	 * @return the probability/rate of the update at the given index.
-	 */
-	public double getTransitionProbability(int index) throws PrismException
-	{
-		double p = transitionList.getTransitionProbability(index);
-		return (modelType == ModelType.DTMC ? p / transitionList.getNumChoices() : p);
-	}
-
-	public State computeTransitionTarget(int index) throws PrismLangException
-	{
-		// TODO: need to check bounds?
-		if (index < 0 || index >= transitionList.getNumTransitions())
-			return null;
-		//throw new PrismException("Invalid transition index " + index);
-		return transitionList.computeTransitionTarget(index, currentState);
 	}
 
 	/**

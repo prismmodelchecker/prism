@@ -45,6 +45,7 @@ public class Updater
 	// Synchronising action info
 	protected Vector<String> synchs;
 	protected int numSynchs;
+	protected int synchModuleCounts[];
 	// Model info/stats
 	protected int numRewardStructs;
 
@@ -56,6 +57,10 @@ public class Updater
 	// TODO: apply optimiseForFast or assume called?
 	public Updater(SimulatorEngine simulator, ModulesFile modulesFile)
 	{
+		int i, j;
+		String s;
+		
+		// Get info from simulator/model
 		this.simulator = simulator;
 		prism = simulator.getPrism();
 		this.modulesFile = modulesFile;
@@ -64,17 +69,30 @@ public class Updater
 		synchs = modulesFile.getSynchs();
 		numSynchs = synchs.size();
 		numRewardStructs = modulesFile.getNumRewardStructs();
+		
+		// Compute count of number of modules using each synch action
+		synchModuleCounts = new int[numSynchs];
+		for (j = 0; j < numSynchs; j++) {
+			synchModuleCounts[j] = 0;
+			s = synchs.get(j);
+			for (i = 0; i < numModules; i++) {
+				if (modulesFile.getModule(i).usesSynch(s))
+					synchModuleCounts[j]++;
+			}
+		}
+		
+		// Build lists/bitsets for later use
 		updateLists = new ArrayList<List<List<Updates>>>(numModules);
-		for (int i = 0; i < numModules; i++) {
+		for (i = 0; i < numModules; i++) {
 			updateLists.add(new ArrayList<List<Updates>>(numSynchs + 1));
-			for (int j = 0; j < numSynchs + 1; j++) {
+			for (j = 0; j < numSynchs + 1; j++) {
 				updateLists.get(i).add(new ArrayList<Updates>());
 			}
 		}
 		enabledSynchs = new BitSet(numSynchs + 1);
 		enabledModules = new BitSet[numSynchs + 1];
-		for (int i = 0; i < numSynchs + 1; i++) {
-			enabledModules[i] = new BitSet(numModules);
+		for (j = 0; j < numSynchs + 1; j++) {
+			enabledModules[j] = new BitSet(numModules);
 		}
 	}
 
@@ -87,9 +105,10 @@ public class Updater
 	{
 		Module module;
 		ChoiceListFlexi ch, prod;
-		int i, j, n, n2, n3;
+		int i, j, n, count, n2, n3;
 		double p;
 
+		System.out.println("Synchs: " + synchs);
 		System.out.println("Calc updates for " + state);
 		// Clear lists/bitsets
 		transitionList.clear();
@@ -109,10 +128,10 @@ public class Updater
 		System.out.println("updateLists: " + updateLists);
 
 		// Combination of updates depends on model type
-		switch (modelType) {
+		/*switch (modelType) {
 
 		case DTMC:
-		case CTMC:
+		case CTMC:*/
 			ch = new ChoiceListFlexi();
 			n = 0;
 			// Independent choices for each (enabled) module
@@ -125,11 +144,15 @@ public class Updater
 			}
 			// Add synchronous transitions to list
 			for (i = enabledSynchs.nextSetBit(1); i >= 0; i = enabledSynchs.nextSetBit(i + 1)) {
+				// Check counts to see if this action is blocked by some module
+				if (enabledModules[i].cardinality() < synchModuleCounts[i - 1])
+					continue;
+				// If not, proceed...
 				prod = null;
 				for (j = enabledModules[i].nextSetBit(0); j >= 0; j = enabledModules[i].nextSetBit(j + 1)) {
-					// TODO: Case where module blocks (CHECK COUNT?)
+					count = updateLists.get(j).get(i).size();
 					// Case where there is 1 choice
-					if (updateLists.get(j).get(i).size() == 1) {
+					if (count == 1) {
 						// Case where this is the first Updates added
 						if (prod == null) {
 							for (Updates ups : updateLists.get(j).get(i)) {
@@ -153,9 +176,9 @@ public class Updater
 			/*if (n > 1)
 				ch.scaleProbabilitiesBy(1.0 / n);
 			transitionList.add(ch);*/
-			break;
+			//break;
 
-		case MDP:
+		//case MDP:
 			/*
 			// Add independent transitions to list 
 			for (i = 0; i < numModules; i++) {
@@ -195,11 +218,11 @@ public class Updater
 					transitionList.add(calculateTransitionsForUpdates(ups, state));
 				}
 			}*/
-			break;
+			/*break;
 
 		default:
 			throw new PrismException("Unhandled model type \"" + modelType + "\"");
-		}
+		}*/
 
 		// For DTMCs, need to randomise
 

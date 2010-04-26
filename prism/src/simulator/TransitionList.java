@@ -110,29 +110,29 @@ public class TransitionList
 	}
 
 	/**
-	 * Get the choice containing the ith transition.
+	 * Get the choice containing a transition of a given index.
 	 */
-	public Choice getChoiceOfTransition(int i)
+	public Choice getChoiceOfTransition(int index)
 	{
-		return choices.get(transitionIndices.get(i));
+		return choices.get(transitionIndices.get(index));
 	}
 
 	// Get index/offset info
 	
 	/**
-	 * Get the index of the choice containing the ith transition. 
+	 * Get the index of the choice containing a transition of a given index.
 	 */
-	public int getChoiceIndexOfTransition(int i)
+	public int getChoiceIndexOfTransition(int index)
 	{
-		return transitionIndices.get(i);
+		return transitionIndices.get(index);
 	}
 
 	/**
-	 * Get the offset of the ith transition within its containing choice.
+	 * Get the offset of a transition within its containing choice.
 	 */
-	public int getChoiceOffsetOfTransition(int i)
+	public int getChoiceOffsetOfTransition(int index)
 	{
-		return transitionOffsets.get(i);
+		return transitionOffsets.get(index);
 	}
 
 	/**
@@ -173,28 +173,32 @@ public class TransitionList
 		}
 	}
 
-	// Access to transition info
+	// Direct access to transition info
 	
-	// get prob (or rate) of ith transition
-	public double getTransitionProbability(int i)
+	/**
+	 * Get the probability/rate of a transition, specified by its index.
+	 */
+	public double getTransitionProbability(int index)
 	{
-		return getChoiceOfTransition(i).getProbability(transitionOffsets.get(i));
+		return getChoiceOfTransition(index).getProbability(transitionOffsets.get(index));
 	}
 	
-	public String getTransitionActionString(int i)
+	/**
+	 * Get the target of a transition (as a new State object), specified by its index.
+	 */
+	public State computeTransitionTarget(int index, State oldState) throws PrismLangException
 	{
-		return getChoiceOfTransition(i).getAction();
+		return getChoiceOfTransition(index).computeTarget(transitionOffsets.get(index), oldState);
 	}
 	
-	public String getTransitionUpdateString(int i)
+	public String getTransitionActionString(int index)
 	{
-		return getChoiceOfTransition(i).getUpdateString(transitionOffsets.get(i));
+		return getChoiceOfTransition(index).getAction();
 	}
 	
-	// compute target of ith transition
-	public State computeTransitionTarget(int i, State oldState) throws PrismLangException
+	public String getTransitionUpdateString(int index)
 	{
-		return getChoiceOfTransition(i).computeTarget(transitionOffsets.get(i), oldState);
+		return getChoiceOfTransition(index).getUpdateString(transitionOffsets.get(index));
 	}
 	
 	@Override
