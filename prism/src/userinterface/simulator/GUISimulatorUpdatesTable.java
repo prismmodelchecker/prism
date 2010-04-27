@@ -43,188 +43,177 @@ import userinterface.GUIPrism;
  */
 public class GUISimulatorUpdatesTable extends JTable implements ListSelectionListener
 {
-    public static Color [] DISTRIBUTION_COLOURS = { new Color(255,255,255),     //white
-						    new Color(253,255,201) };     //yellow
-						    /*new Color(224,255,224),     //green
-						    new Color(255,227,255),     //pink
-						    new Color(255,234,199),     //orange
-						    new Color(209,217,255),     //blue
-						    new Color(226,199,255),     //purple
-						    new Color(212,255,255)} ;*/   //cyan
-    private GUISimulator.UpdateTableModel utm;
-    
-    private UpdateHeaderListModel headerModel;
-    private JList header;
-    private UpdateHeaderRenderer updateHeaderRenderer;
-    private UpdateTableRenderer updateTableRenderer;
-    
-    private GUISimulator sim;
-    
-    /** Creates a new instance of GUISimulatorUpdatesTable */
-    public GUISimulatorUpdatesTable(GUISimulator.UpdateTableModel utm, GUISimulator sim)
-    {
+	public static Color[] DISTRIBUTION_COLOURS = { new Color(255, 255, 255), //white
+			new Color(253, 255, 201) }; //yellow
+	/*new Color(224,255,224),     //green
+	new Color(255,227,255),     //pink
+	new Color(255,234,199),     //orange
+	new Color(209,217,255),     //blue
+	new Color(226,199,255),     //purple
+	new Color(212,255,255)} ;*///cyan
+	private GUISimulator.UpdateTableModel utm;
+
+	private UpdateHeaderListModel headerModel;
+	private JList header;
+	private UpdateHeaderRenderer updateHeaderRenderer;
+	private UpdateTableRenderer updateTableRenderer;
+
+	private GUISimulator sim;
+
+	/** Creates a new instance of GUISimulatorUpdatesTable */
+	public GUISimulatorUpdatesTable(GUISimulator.UpdateTableModel utm, GUISimulator sim)
+	{
 		super(utm);
 		this.sim = sim;
 		this.utm = utm;
-		
+
 		this.getSelectionModel().addListSelectionListener(this);
-		
+
 		setColumnSelectionAllowed(false);
-		getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION); 
-		
+		getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
 		headerModel = new UpdateHeaderListModel();
 		JList rowHeader = new JList(headerModel);
-	
+
 		rowHeader.setBackground(new JPanel().getBackground());
-	
+
 		rowHeader.setFixedCellWidth(15);
-	
+
 		rowHeader.setFixedCellHeight(getRowHeight());
 		//+ getRowMargin());
 		//getIntercellSpacing().height);
 		updateHeaderRenderer = new UpdateHeaderRenderer(this);
 		rowHeader.setCellRenderer(updateHeaderRenderer);
-	
+
 		this.header = rowHeader;
-		
+
 		updateTableRenderer = new UpdateTableRenderer();
 		setDefaultRenderer(Object.class, updateTableRenderer);
-	
-	
+
 		setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-		
+
 		InputMap inputMap = new ComponentInputMap(this);
-		
+
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "Down");
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "Up");
-		
+
 		ActionMap actionMap = new ActionMap();
-		
-		actionMap.put("Down", new AbstractAction() 
+
+		actionMap.put("Down", new AbstractAction()
 		{
-			public void actionPerformed(ActionEvent e) 
+			public void actionPerformed(ActionEvent e)
 			{
 				int selectedRow = GUISimulatorUpdatesTable.this.getSelectedRow();
-				if (selectedRow != -1)
-				{
+				if (selectedRow != -1) {
 					if (selectedRow < GUISimulatorUpdatesTable.this.getRowCount() - 1)
 						GUISimulatorUpdatesTable.this.getSelectionModel().setSelectionInterval(selectedRow + 1, selectedRow + 1);
 					else
 						GUISimulatorUpdatesTable.this.getSelectionModel().setSelectionInterval(0, 0);
 				}
 			}
-		});		
-		
-		actionMap.put("Up", new AbstractAction() 
+		});
+
+		actionMap.put("Up", new AbstractAction()
 		{
-			public void actionPerformed(ActionEvent e) 
+			public void actionPerformed(ActionEvent e)
 			{
 				int selectedRow = GUISimulatorUpdatesTable.this.getSelectedRow();
-				if (selectedRow != -1)
-				{
+				if (selectedRow != -1) {
 					if (selectedRow >= 1)
 						GUISimulatorUpdatesTable.this.getSelectionModel().setSelectionInterval(selectedRow - 1, selectedRow - 1);
 					else
-						GUISimulatorUpdatesTable.this.getSelectionModel().setSelectionInterval(GUISimulatorUpdatesTable.this.getRowCount()-1, GUISimulatorUpdatesTable.this.getRowCount()-1);
+						GUISimulatorUpdatesTable.this.getSelectionModel().setSelectionInterval(GUISimulatorUpdatesTable.this.getRowCount() - 1,
+								GUISimulatorUpdatesTable.this.getRowCount() - 1);
 				}
 			}
-		});		
-		
+		});
+
 		this.setInputMap(JComponent.WHEN_FOCUSED, inputMap);
 		this.setActionMap(actionMap);
-		
-	
-    }
-    
-    /** Override set font to pass changes onto renderer(s) and set row height */
-    public void setFont(Font font)
-    {
-    	super.setFont(font);
-    	if (updateTableRenderer != null) updateTableRenderer.setFont(font);
-    	setRowHeight(getFontMetrics(font).getHeight() + 4);
-    	if (header != null) header.setFixedCellHeight(getRowHeight());
-    }
-    
-    public void valueChanged(ListSelectionEvent e)
-    {
-	if(headerModel != null)
-	headerModel.updateHeader();
-	repaint();
-    }
-    
-    public JList getUpdateRowHeader()
-    {
-	return header;
-    }
-    
-    class UpdateTableRenderer implements TableCellRenderer 
-    {
+
+	}
+
+	/** Override set font to pass changes onto renderer(s) and set row height */
+	public void setFont(Font font)
+	{
+		super.setFont(font);
+		if (updateTableRenderer != null)
+			updateTableRenderer.setFont(font);
+		setRowHeight(getFontMetrics(font).getHeight() + 4);
+		if (header != null)
+			header.setFixedCellHeight(getRowHeight());
+	}
+
+	public void valueChanged(ListSelectionEvent e)
+	{
+		if (headerModel != null)
+			headerModel.updateHeader();
+		repaint();
+	}
+
+	public JList getUpdateRowHeader()
+	{
+		return header;
+	}
+
+	class UpdateTableRenderer implements TableCellRenderer
+	{
 		JTextField renderer;
-		
+
 		public UpdateTableRenderer()
 		{
-		    renderer = new JTextField("");
+			renderer = new JTextField("");
 		}
-		
+
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
 		{
-		    renderer.setText(value.toString());
-		    
-		    int dist;
-		    
-		    if(sim.getModulesFile().getModelType() == ModelType.CTMC)
-			dist = 0;
-		    else dist = utm.getProbabilityDistributionOf(row);
-		    
-		    Color c = DISTRIBUTION_COLOURS[dist%2];
-		    
-		   
-		    if(isSelected)
-		    {
-			Color newCol = new Color(c.getRed()-20, c.getGreen()-20, c.getBlue());
-			if(utm.oldUpdate)
-			{
-			    newCol = new Color(newCol.getRed()-7, newCol.getGreen()-7, newCol.getBlue()-7);
-			    renderer.setBackground(newCol);
-			}
+			renderer.setText(value.toString());
+
+			int dist;
+
+			// Select default background colour
+			// (depends on choice, for nondeterministic models)
+			if (sim.getModulesFile().getModelType().nondeterministic())
+				dist = utm.getChoiceIndexOf(row);
 			else
-			{
-			    renderer.setBackground(newCol);
+				dist = 0;
+			Color c = DISTRIBUTION_COLOURS[dist % 2];
+
+			if (isSelected) {
+				Color newCol = new Color(c.getRed() - 20, c.getGreen() - 20, c.getBlue());
+				if (utm.oldUpdate) {
+					newCol = new Color(newCol.getRed() - 7, newCol.getGreen() - 7, newCol.getBlue() - 7);
+					renderer.setBackground(newCol);
+				} else {
+					renderer.setBackground(newCol);
+				}
+			} else {
+				if (utm.oldUpdate) {
+					Color newCol = new Color(c.getRed() - 7, c.getGreen() - 7, c.getBlue() - 7);
+					renderer.setBackground(newCol);
+				} else
+					renderer.setBackground(c);
 			}
-		    }
-		    else
-		    {
-			if(utm.oldUpdate)
-			{
-			    Color newCol = new Color(c.getRed()-7, c.getGreen()-7, c.getBlue()-7);
-			    renderer.setBackground(newCol);
-			}
-			else
-			    renderer.setBackground(c);
-		    }
-		    
-		    renderer.setBorder(new EmptyBorder(1, 1, 1, 1));
-		    return renderer;
+
+			renderer.setBorder(new EmptyBorder(1, 1, 1, 1));
+			return renderer;
 		}
-		
+
 		public void setFont(Font font)
 		{
 			renderer.setFont(font);
 		}
-    }
-    
-    
-    
-    
+	}
+
 	class UpdateHeaderRenderer extends JButton implements ListCellRenderer
 	{
-	
+
 		boolean selected;
 		ImageIcon selectedIcon;
-	
+
 		UpdateHeaderRenderer(JTable table)
 		{
-		    selected = false;
+			selected = false;
 			/*JTableHeader header = table.getTableHeader();
 			 setOpaque(true);
 			 setBorder(UIManager.getBorder("TableHeader.cellBorder"));
@@ -232,51 +221,46 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 			 setForeground(header.getForeground());
 			 setBackground(header.getBackground());
 			 setFont(header.getFont());*/
-		    setBorder(null);
-		    selectedIcon = GUIPrism.getIconFromImage("smallItemSelected.png");
+			setBorder(null);
+			selectedIcon = GUIPrism.getIconFromImage("smallItemSelected.png");
 		}
-	
-		public Component getListCellRendererComponent( JList list,
-			Object value, int index, boolean isSelected, boolean cellHasFocus)
+
+		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
 		{
-			
-		    setBorder(null);
+
+			setBorder(null);
 			selected = getSelectedRow() == index;
-			
-			if(selected)
-			{
-			    setIcon(selectedIcon);
+
+			if (selected) {
+				setIcon(selectedIcon);
+			} else {
+				setIcon(null);
 			}
-			else
-			{
-			    setIcon(null);
-			}
-			
+
 			return this;
 		}
-	
-		
+
 	}
-    
+
 	class UpdateHeaderListModel extends AbstractListModel
 	{
-	
+
 		public Object getElementAt(int index)
 		{
-			return ""+index;
+			return "" + index;
 		}
-	
+
 		public int getSize()
 		{
 			return utm.getRowCount();
 		}
-	
+
 		public void updateHeader()
 		{
 			fireContentsChanged(this, 0, utm.getRowCount());
-			
+
 			//System.out.println("The tables width is "+getWidth());
 		}
-	
+
 	}
 }

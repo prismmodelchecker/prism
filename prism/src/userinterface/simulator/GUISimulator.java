@@ -3492,9 +3492,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		}
 
-		public int getProbabilityDistributionOf(int row)
+		public int getChoiceIndexOf(int row)
 		{
-			return engine.getDistributionIndexOfUpdate(row);
+			return engine.getChoiceIndexOfTransition(row);
 		}
 	}
 

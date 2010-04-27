@@ -5,6 +5,9 @@ public enum ModelType {
 	// List of model types (ordered alphabetically)
 	CTMC, CTMDP, DTMC, MDP, PTA, STPG;
 
+	/**
+	 * Get the full name, in words, of the this model type.
+	 */
 	public String fullName()
 	{
 		switch (this) {
@@ -25,6 +28,9 @@ public enum ModelType {
 		return "";
 	}
 	
+	/**
+	 * Do the transitions in a choice sum to 1 for this model type?
+	 */
 	public boolean choicesSumToOne()
 	{
 		switch (this) {
@@ -41,6 +47,9 @@ public enum ModelType {
 		return true;
 	}
 	
+	/**
+	 * Are time delay continuous for this model type?
+	 */
 	public boolean continuousTime()
 	{
 		switch (this) {
@@ -50,6 +59,25 @@ public enum ModelType {
 			return false;
 		case PTA:
 		case CTMC:
+		case CTMDP:
+			return true;
+		}
+		// Should never happen
+		return true;
+	}
+	
+	/**
+	 * Does this model allow nondeterministic choices?
+	 */
+	public boolean nondeterministic()
+	{
+		switch (this) {
+		case DTMC:
+		case CTMC:
+			return false;
+		case MDP:
+		case STPG:
+		case PTA:
 		case CTMDP:
 			return true;
 		}

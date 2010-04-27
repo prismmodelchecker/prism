@@ -732,7 +732,7 @@ public class SimulatorEngine
 	}
 
 	// ------------------------------------------------------------------------------
-	// State/Choice/Transition querying
+	// Querying of current state and its available choices/transitions
 	// ------------------------------------------------------------------------------
 
 	/**
@@ -765,6 +765,14 @@ public class SimulatorEngine
 	public int getNumTransitions(int i)
 	{
 		return transitionList.getChoice(i).size();
+	}
+
+	/**
+	 * Get the index of the choice containing a transition of a given index.
+	 */
+	public int getChoiceIndexOfTransition(int index)
+	{
+		return transitionList.getChoiceIndexOfTransition(index);
 	}
 
 	/**
@@ -804,62 +812,25 @@ public class SimulatorEngine
 	}
 
 	/**
-	 * Returns the action label of a transition in the list of those currently available.
-	 * An empty string denotes an unlabelled (asynchronous) transition.
-	 * @param i: The index of the transition being queried
-	 */
-	public String getTransitionAction(int index) throws PrismException
-	{
-		if (index < 0 || index >= transitionList.getNumTransitions())
-			throw new PrismException("Invalid transition index " + index);
-		return transitionList.getChoiceOfTransition(index).getAction();
-	}
-
-	/**
 	 * TODO
-	 * Returns the module name of the udpate at the given index.
-	 * 
-	 * @param i
-	 *            the index of the update of interest.
-	 * @return the module name of the udpate at the given index.
 	 */
 	public String getTransitionModuleOrAction(int index)
 	{
 		return transitionList.getTransitionActionString(index);
+		//return transitionList.getChoiceOfTransition(index).getAction();
 	}
 
 	/**
 	 * Returns a string representation of the assignments for the current update at the given index.
-	 * 
-	 * @param index
-	 *            the index of the update of interest.
-	 * @return a string representation of the assignments for the current update at the given index.
+	 * TODO
 	 */
 	public String getAssignmentDescriptionOfUpdate(int index)
 	{
 		return transitionList.getTransitionUpdateString(index);
-		/*
-		int i, n;
-		boolean first = true;
-		State v = path.getCurrentState();
-		State v2 = getTransitionTarget(index);
-		String s = "";
-		n = getNumVariables();
-		for (i = 0; i < n; i++) {
-			if (!v.varValues[i].equals(v2.varValues[i])) {
-				if (first)
-					first = false;
-				else
-					s += "&";
-				s += "(" + getVariableName(i) + "'=" + v2.varValues[i] + ")";
-			}
-		}
-		return s;
-		*/
 	}
 
 	// ------------------------------------------------------------------------------
-	// Path querying
+	// Querying of current path
 	// ------------------------------------------------------------------------------
 
 	/**
@@ -1059,36 +1030,6 @@ public class SimulatorEngine
 			log.println();
 		}
 		path.exportToLog(log, timeCumul, colSep, vars);
-	}
-
-	// ------------------------------------------------------------------------------
-	// UPDATE HANDLER UPDATE METHODS
-	// ------------------------------------------------------------------------------
-
-	/**
-	 * Returns the index of the variable being assigned to for the current update at the given index (updateIndex) and
-	 * for its assignment indexed assignmentIndex
-	 */
-	private static native int getAssignmentVariableIndexOfUpdate(int updateIndex, int assignmentIndex);
-
-	/**
-	 * Returns the value of the assignment for the current update at the given index (updateIndex and for its assignment
-	 * indexed assignmentIndex.
-	 */
-	private static native int getAssignmentValueOfUpdate(int updateIndex, int assignmentIndex);
-
-	/**
-	 * For mdps, updates can belong to different probability distributions. These probability distributions are indexed.
-	 * This returns the probability distribution that the indexed update belongs to.
-	 * 
-	 * @param updateIndex
-	 *            the index of the update of interest.
-	 * @return the probability distribution that the indexed update belongs to.
-	 */
-	public int getDistributionIndexOfUpdate(int updateIndex)
-	{
-		// TODO
-		return 0;
 	}
 
 	// ------------------------------------------------------------------------------
