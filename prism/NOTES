@@ -10,7 +10,6 @@ Stuff to remove when distributing early copies to people:
 * examples/des
 * examples/explicit
 * src/explicit/PrismSTPGAsbtractRefine
-* {src,classes}/abstraction
 
 -----------------------------------------------------------------------
 
@@ -64,6 +63,16 @@ TODO:
 - also look up lrs?
 - finalise tra format with actions (needs to work with actions too)
   - so also fix e.g. importtrans, prism-statra
+
+-----------------------------------------------------------------------
+
+Abstraction/refinement:
+
+TODO:
+* exp reach for games
+
+Other notes/ideas:
+* refine opt: don't add ubsets of player1 choices
 
 -----------------------------------------------------------------------
 

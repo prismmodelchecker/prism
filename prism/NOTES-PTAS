@@ -11,6 +11,11 @@ Todo
 
 * Sort VarList (two types - before and after constants evaluated). Need for simulator too.
 
+* Digital clocks: No time-bounded until yet
+* Digital clocks: Translation done sep for each property (e.g. for cmax)?
+
+* BRP example
+
 
 Maybe todo
 ----------
@@ -19,8 +24,6 @@ Maybe todo
   (extras added in old target states) using until in forwards reach?
 
 * Fix: Creation of new names (adding extra _s) doesn't take into account prop file ot consts etc.
-
-* Digital clocks: Translation done sep for each property (e.g. for cmax)?
 
 * Digital clocks: urgency?
 

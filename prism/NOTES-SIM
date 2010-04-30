@@ -1,15 +1,29 @@
 
-Copied prism-arrays typing stuff
-Disabled .jj stuff so cannot actually create arrays
-Completed update of type system
+NOW/NEXT:
 
-Moved simulator to simulator-old
-Started to build coarse Java-version of SimulatorEngine.
-Currently, just a few statements in automaticChoices...
+
+work on Sampler classes
+need to get property constants sorted out
+should be specified when passed to sim engine, like for models
+but when are props passed to sim engine? diff for pathgen/sampling?
+what about experiments, e.g. F<=t for t=...?
+
+
+looping
+
 
 TODO:
 
+explicitbuildtest doesn't handle dupes in mdps (e.fg. consensus)
+
+explicit build doesn't handle multiple initial states
+
 seed issues (currently twice in one second = same seed)
+
+traviendo export?
+
+approx mc of a property loses any current simulator path in gui.
+is that ok? (seems to be buggy in 3.3.1 anyway)
 
 TEST CASES
 
