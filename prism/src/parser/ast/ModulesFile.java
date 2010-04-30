@@ -408,6 +408,9 @@ public class ModulesFile extends ASTElement
 		formulaIdents.clear();
 		constantIdents.clear();
 		varIdents.clear();
+		varDecls.clear();
+		varNames.clear();
+		varTypes.clear();
 		
 		// Expansion of formulas and renaming
 
