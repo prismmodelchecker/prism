@@ -285,6 +285,10 @@ public abstract class STPGAbstractRefine
 						throw new PrismException("Unknown refinement option \"" + ss[1] + "\"");
 				}
 			}
+		} else if (opt.equals("epsilonref") || opt.equals("eref")) {
+			if (optVal != null) {
+				setRefineTermCritParam(Double.parseDouble(optVal));
+			}
 		} else if (opt.equals("nopre")) {
 			getModelChecker().setPrecomp(false);
 		} else if (opt.equals("pre")) {
