@@ -17,6 +17,9 @@ if [ "$PRISM_JAVAMAXMEM" != "" ]; then
 		echo; echo "Error: Environment variable PRISM_JAVAMAXMEM is invalid."; exit
 	fi
 	PRISM_JAVAMAXMEM="-Xmx$PRISM_JAVAMAXMEM"
+else
+	# default
+	PRISM_JAVAMAXMEM="-Xmx512m"
 fi
 
 # Add PRISM to LD_LIBRARY_PATH
