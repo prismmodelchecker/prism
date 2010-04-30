@@ -173,4 +173,10 @@ public class Simplify extends ASTTraverseModify
 		}
 		return e;
 	}
+	
+	public Object visit(ExpressionFormula e) throws PrismLangException
+	{
+		// If formula has an attached definition, just replace it with that
+		return e.getDefinition() != null ? e.getDefinition() : e;
+	}
 }

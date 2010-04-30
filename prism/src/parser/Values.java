@@ -53,6 +53,7 @@ public class Values //implements Comparable
 	/**
 	 * Construct a new Values object by copying an existing one
 	 */
+	@SuppressWarnings("unchecked")
 	public Values(Values v)
 	{
 		names = (ArrayList<String>)v.names.clone();

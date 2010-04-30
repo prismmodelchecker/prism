@@ -851,10 +851,17 @@ public class ModulesFile extends ASTElement
 	/**
 	 * Perform a deep copy.
 	 */
+	@SuppressWarnings("unchecked")
 	public ASTElement deepCopy()
 	{
 		int i, n;
 		ModulesFile ret = new ModulesFile();
+		
+		// Copy ASTElement stuff
+		ret.setPosition(this);
+		// Copy type
+		ret.setModelType(modelType);
+		// Deep copy main components
 		ret.setFormulaList((FormulaList) formulaList.deepCopy());
 		ret.setLabelList((LabelList) labelList.deepCopy());
 		ret.setConstantList((ConstantList) constantList.deepCopy());
@@ -874,7 +881,21 @@ public class ModulesFile extends ASTElement
 		}
 		if (initStates != null)
 			ret.setInitialStates(initStates.deepCopy());
-		ret.setPosition(this);
+		// Copy other (generated) info
+		ret.formulaIdents = (formulaIdents == null) ? null : (Vector<String>)formulaIdents.clone();
+		ret.constantIdents = (constantIdents == null) ? null : (Vector<String>)constantIdents.clone();
+		ret.varIdents = (varIdents == null) ? null : (Vector<String>)varIdents.clone();
+		ret.moduleNames = (moduleNames == null) ? null : moduleNames.clone();
+		ret.synchs = (synchs == null) ? null : (Vector<String>)synchs.clone();
+		if (varDecls != null) {
+			ret.varDecls = new Vector<Declaration>();
+			for (Declaration d : varDecls)
+				ret.varDecls.add((Declaration) d.deepCopy());
+		}
+		ret.varNames = (varNames == null) ? null : (Vector<String>)varNames.clone();
+		ret.varTypes = (varTypes == null) ? null : (Vector<Type>)varTypes.clone();
+		ret.constantValues = (constantValues == null) ? null : new Values(constantValues);
+		
 		return ret;
 	}
 }

@@ -161,9 +161,6 @@ public class SimulatorEngine
 	protected Prism prism;
 	protected PrismLog mainLog;
 
-	// Random number generator
-	private RandomNumberGenerator rng;
-
 	// The current parsed model + info
 	private ModulesFile modulesFile;
 	private ModelType modelType;
@@ -174,12 +171,22 @@ public class SimulatorEngine
 	private Vector<String> synchs;
 	private int numSynchs;
 
+	// Properties info
+	private PropertiesFile propertiesFile;
+	private List<ExpressionTemporal> pathProps;
+	private Values propertyConstants;
+	private ArrayList loadedProperties;
+
+	// Updater object for model
+	protected Updater updater;
+	protected TransitionList transitionList;
+	// Random number generator
+	private RandomNumberGenerator rng;
+
 	// TODO: ... more from below
 
 	// NEW STUFF:
 	protected boolean onTheFly;
-	// Updater object for model
-	protected Updater updater;
 
 	protected State lastState;
 	protected State currentState;
@@ -189,7 +196,6 @@ public class SimulatorEngine
 	protected Path path = null;
 	// TRANSITIONS:
 
-	protected TransitionList transitionList;
 
 	protected List<Expression> labels;
 
@@ -228,12 +234,6 @@ public class SimulatorEngine
 	 */
 	public static final double UNDEFINED_DOUBLE = -10E23f;
 
-	// Infinity
-	/**
-	 * Used by the simulator engine, usually for infinite rewards. etc...
-	 */
-	public static final double INFINITY = 10E23f;
-
 	// ------------------------------------------------------------------------------
 	// CLASS MEMBERS
 	// ------------------------------------------------------------------------------
@@ -243,12 +243,6 @@ public class SimulatorEngine
 	// Current model
 	private Values constants;
 
-	// PRISM parsed properties files
-	private PropertiesFile propertiesFile;
-
-	// Current Properties
-	private Values propertyConstants;
-	private ArrayList loadedProperties;
 
 	// ------------------------------------------------------------------------------
 	// Basic setup
@@ -261,7 +255,7 @@ public class SimulatorEngine
 	{
 		this.prism = prism;
 		setMainLog(prism.getMainLog());
-		// TODO
+		// TODO: finish this code once class members finalised
 		rng = new RandomNumberGenerator();
 		varIndices = null;
 		modulesFile = null;
@@ -560,6 +554,107 @@ public class SimulatorEngine
 	}
 
 	// ------------------------------------------------------------------------------
+	// Methods for adding/querying labels and properties
+	// ------------------------------------------------------------------------------
+
+	/**
+	 * Add a label to the simulator, whose value will be computed during path generation.
+	 * The resulting index of the label is returned: this is used for later queries about the property.
+	 * Any constants/formulas etc. appearing in the label must have been defined in the current model.
+	 * If there are additional constants (e.g. from a properties file),
+	 * then use the {@link #addLabel(Expression, PropertiesFile)} method. 
+	 */
+	public int addLabel(Expression label) throws PrismLangException
+	{
+		// Take a copy, get rid of any constants and simplify
+		Expression labelNew = label.deepCopy();
+		labelNew = (Expression) labelNew.replaceConstants(constants);
+		labelNew = (Expression) labelNew.simplify();
+		labels.add(labelNew);
+		return labels.size() - 1;
+	}
+
+	/**
+	 * Add a label to the simulator, whose value will be computed during path generation.
+	 * The resulting index of the label is returned: this is used for later queries about the property.
+	 * Any constants/formulas etc. appearing in the label must have been defined in the current model
+	 * or be supplied in the (optional) passed in PropertiesFile.
+	 */
+	public int addLabel(Expression label, PropertiesFile pf) throws PrismLangException
+	{
+		// Take a copy, get rid of any constants and simplify
+		Expression labelNew = label.deepCopy();
+		labelNew = (Expression) labelNew.replaceConstants(constants);
+		labelNew = (Expression) labelNew.replaceConstants(pf.getConstantValues());
+		labelNew = (Expression) labelNew.simplify();
+		labels.add(labelNew);
+		return labels.size() - 1;
+	}
+
+	/**
+	 * Add a (path) property to the simulator, whose value will be computed during path generation.
+	 * The resulting index of the property is returned: this is used for later queries about the property.
+	 */
+	private int addProperty(Expression prop)
+	{
+		// clone, converttountil, simplify ???
+		
+		// TODO
+		return -1;
+	}
+
+	/**
+	 * Get the current value of a previously added label (specified by its index).
+	 */
+	public boolean queryLabel(int index) throws PrismLangException
+	{
+		return labels.get(index).evaluateBoolean(currentState);
+	}
+
+	/**
+	 * Get the value, at the specified path step, of a previously added label (specified by its index).
+	 */
+	public boolean queryLabel(int index, int step) throws PrismLangException
+	{
+		return labels.get(index).evaluateBoolean(path.getState(step));
+	}
+
+	/**
+	 * Check whether the current state is an initial state.
+	 */
+	public boolean queryIsInitial() throws PrismLangException
+	{
+		// Currently init...endinit is not supported so this is easy to check
+		return currentState.equals(new State(modulesFile.getInitialValues()));
+	}
+
+	/**
+	 * Check whether a particular step in the current path is an initial state.
+	 */
+	public boolean queryIsInitial(int step) throws PrismLangException
+	{
+		// Currently init...endinit is not supported so this is easy to check
+		return path.getState(step).equals(new State(modulesFile.getInitialValues()));
+	}
+
+	/**
+	 * Check whether the current state is a deadlock.
+	 */
+	public boolean queryIsDeadlock() throws PrismLangException
+	{
+		return transitionList.getNumChoices() == 0;
+	}
+
+	/**
+	 * Check whether a particular step in the current path is a deadlock.
+	 */
+	public boolean queryIsDeadlock(int step) throws PrismLangException
+	{
+		// By definition, earlier states in the path cannot be deadlocks
+		return step == path.size() ? queryIsDeadlock() : false;
+	}
+
+	// ------------------------------------------------------------------------------
 	// Private methods for path creation and modification
 	// ------------------------------------------------------------------------------
 
@@ -594,9 +689,10 @@ public class SimulatorEngine
 		synchs = modulesFile.getSynchs();
 		numSynchs = synchs.size();
 
-		// Evaluate constants and optimise modules file for simulation
-		modulesFile = (ModulesFile) modulesFile.replaceConstants(constants).simplify();
-
+		// Evaluate constants and optimise (a copy of) modules file for simulation
+		modulesFile = (ModulesFile) modulesFile.deepCopy().replaceConstants(constants).simplify();
+		mainLog.println(modulesFile);
+		
 		// Create state/transition storage
 		lastState = new State(numVars);
 		currentState = new State(numVars);
@@ -1037,11 +1133,6 @@ public class SimulatorEngine
 	// ------------------------------------------------------------------------------
 
 	/**
-	 * Allocate space for storage of sampling information
-	 */
-	private static native int allocateSampling();
-
-	/**
 	 * Provides access to the propertyConstants
 	 * 
 	 * @return the propertyConstants
@@ -1131,9 +1222,16 @@ public class SimulatorEngine
 	}
 
 	/**
-	 * This method completely encapsulates the model checking of multiple properties prerequisites modulesFile constants
-	 * should all be defined propertiesFile constants should all be defined
-	 * 
+	 * Perform approximate model checking of properties on a model, using the simulator.
+	 * Note: All constants in the model/property files must have already been defined.
+	 * @param modulesFile Model for simulation, constants defined
+	 * @param propertiesFile Properties file containing property to check, constants defined
+	 * @param exprs The properties to check
+	 * @param initialState
+	 *            The initial state for the sampling.
+	 * @param noIterations The number of iterations (i.e. number of samples to generate)
+	 * @param maxPathLength The maximum path length for sampling
+	 *  
 	 * <P>
 	 * The returned result is an array each item of which is either:
 	 * <UL>
@@ -1141,24 +1239,9 @@ public class SimulatorEngine
 	 * <LI> An exception if there was a problem
 	 * </UL>
 	 * 
-	 * @param modulesFile
-	 *            The ModulesFile, constants already defined.
-	 * @param propertiesFile
-	 *            The PropertiesFile containing the property of interest, constants defined.
-	 * @param exprs
-	 *            The properties of interest
-	 * @param initialState
-	 *            The initial state for the sampling.
-	 * @param noIterations
-	 *            The number of iterations for the sampling algorithm
-	 * @param maxPathLength
-	 *            the maximum path length for the sampling algorithm.
-	 * @throws PrismException
-	 *             if anything goes wrong.
-	 * @return the result.
 	 */
 	public Object[] modelCheckMultipleProperties(ModulesFile modulesFile, PropertiesFile propertiesFile,
-			ArrayList<Expression> exprs, Values initialState, int noIterations, int maxPathLength)
+			List<Expression> exprs, Values initialState, int noIterations, int maxPathLength)
 			throws PrismException
 	{
 		createNewOnTheFlyPath(modulesFile, propertiesFile);
@@ -1185,7 +1268,7 @@ public class SimulatorEngine
 		// as long as there are at least some valid props, do sampling
 		if (validPropsCount > 0) {
 			initialisePath(initialState);
-			int result = doSampling(noIterations, maxPathLength);
+			int result = 0;//doSampling(noIterations, maxPathLength);
 			if (result == ERROR) {
 				throw new PrismException(getLastErrorMessage());
 			}
@@ -1277,7 +1360,7 @@ public class SimulatorEngine
 		// as long as there are at least some valid props, do sampling
 		if (validPropsCount > 0) {
 			initialisePath(initialState);
-			int result = doSampling(noIterations, maxPathLength);
+			int result = 0;//doSampling(noIterations, maxPathLength);
 			if (result == ERROR) {
 				throw new PrismException(getLastErrorMessage());
 			}
@@ -1303,17 +1386,201 @@ public class SimulatorEngine
 		}
 	}
 
-	/**
-	 * Returns the index of the property, if it can be added, -1 if nots
-	 */
-	private int addProperty(Expression prop)
+	/*
+	private int doSampling(State initialState, int numIters, int maxPathLength)
+	{
+		int iteration_counter = 0;
+		int last_percentage_done = -1;
+		int percentage_done = -1;
+		double average_path_length = 0;
+		int min_path_length = 0, max_path_length = 0;
+		boolean stopped_early = false;
+		boolean deadlocks_found = false;
+		//The current path
+		int current_index;
+		
+		//double* path_cost = new double[no_reward_structs];
+		//double* total_state_cost = new double[no_reward_structs];
+		//double* total_transition_cost = new double[no_reward_structs];
+		
+		// Timing info
+		long start, start2, stop;
+		double time_taken;
+		
+		//Loop detection requires that deterministic paths are
+		//stored, until that determinism is broken.  This path
+		//is allocated dynamically, 10 steps at a time.
+		//CSamplingLoopDetectionHandler* loop_detection = new CSamplingLoopDetectionHandler();
+		
+		//TODO: allow stopping of sampling mid-way through?
+		//External flag set to false
+		boolean should_stop_sampling = false;
+		
+		start = start2 = System.currentTimeMillis();
+		
+		mainLog.print("\nSampling progress: [");
+		mainLog.flush();
+		
+		//The loop continues until each pctl/csl formula is satisfied:
+		//E.g. usually, this is when the correct number of iterations
+		//has been performed, but for some, such as cumulative rewards
+		//this can be early if a loop is detected at any point, this
+		//is all handled by the All_Done_Sampling() function
+		
+		// Main sampling loop
+		while (!should_stop_sampling && !isSamplingDone()) {
+			
+			// Display progress
+			percentage_done = ((10*(iteration_counter))/numIters)*10;
+			if (percentage_done > last_percentage_done) {
+				last_percentage_done = percentage_done;
+				//cout << " " << last_percentage_done << "%" << endl;
+				mainLog.print(" " + last_percentage_done + "%");
+				mainLog.flush();
+			}
+			
+			//do polling and feedback every 2 seconds
+			stop = System.currentTimeMillis();
+			if (stop - start2 > 2000) {
+				//Write_Feedback(iteration_counter, numIters, false);
+				//int poll = Poll_Control_File();
+				//if(poll & STOP_SAMPLING == STOP_SAMPLING)
+				//	should_stop_sampling = true;
+				 start2 = System.currentTimeMillis();
+			}
+			
+			iteration_counter++;
+			
+			// Start the new path for this iteration (sample)
+			initialisePath(initialState);			
+			
+			//loop_detection->Reset();
+			
+			
+			notifyPathFormulae(last_state, state_variables, loop_detection);
+			
+			// Generate a path, up to at most maxPathLength steps
+			for (current_index = 0; 
+				!All_PCTL_Answers_Known(loop_detection) &&	//not got answers for all properties yet
+				//!loop_detection->Is_Proven_Looping()		//not looping (removed this - e.g. cumul rewards can't stop yet)
+				current_index < path_length;				//not exceeding path_length
+				current_index++)
+			{
+				// Make a random transition
+				automaticChoice(detect);
+				
+				//if(!loop_detection->Is_Proven_Looping()) { // removed this: for e.g. cumul rewards need to keep counting in loops...
+				
+				if (modelType.continuousTime()) {
+					double time_in_state = Get_Sampled_Time();
+					
+					last_state->time_spent_in_state = time_in_state;
+					
+					for (int i = 0; i < no_reward_structs; i++) {
+						last_state->state_cost[i] = last_state->state_instant_cost[i]*time_in_state;
+						last_state->transition_cost[i] = Get_Transition_Reward(i);
+						total_state_cost[i] += last_state->state_instant_cost[i]*time_in_state;
+						total_transition_cost[i] += last_state->transition_cost[i];
+						path_cost[i] = total_state_cost[i] + total_transition_cost[i];
+						
+						last_state->cumulative_state_cost[i] = total_state_cost[i];
+						last_state->cumulative_transition_cost[i] = total_transition_cost[i];
+					}
+					
+					Notify_Path_Formulae(last_state, state_variables, loop_detection);
+				}
+				else
+				{
+					for (int i = 0; i < no_reward_structs; i++) {
+						last_state->state_cost[i] = last_state->state_instant_cost[i];
+						last_state->transition_cost[i] = Get_Transition_Reward(i);
+						total_state_cost[i] += last_state->state_instant_cost[i];
+						total_transition_cost[i] += last_state->transition_cost[i];
+						path_cost[i] = total_state_cost[i] + total_transition_cost[i];
+						
+						last_state->cumulative_state_cost[i] = total_state_cost[i];
+						last_state->cumulative_transition_cost[i] = total_transition_cost[i];	
+					}
+					
+					Notify_Path_Formulae(last_state, state_variables, loop_detection); 
+				}
+				//}
+			
+			}
+			
+			// record if we found any deadlocks (can check this outside path gen loop because never escape deadlocks)
+			if (loop_detection->Is_Deadlock()) deadlocks_found = true;
+			
+			// compute path length statistics so far
+			average_path_length = (average_path_length*(iteration_counter-1)+(current_index))/iteration_counter;
+			min_path_length = (iteration_counter == 1) ? current_index : ((current_index < min_path_length) ? current_index : min_path_length);
+			max_path_length = (iteration_counter == 1) ? current_index : ((current_index > max_path_length) ? current_index : max_path_length);
+			
+			//Get samples and notify sample collectors
+			Do_A_Sample(loop_detection);
+			
+			// stop early if any of the properties couldn't be sampled
+			if (Get_Total_Num_Reached_Max_Path() > 0) { stopped_early = true; break; }
+			
+		}//end sampling while
+		
+		if (!stopped_early) {
+			if (!should_stop_sampling)
+				mainLog.print(" 100% ]");
+			mainLog.println();
+			stop = System.currentTimeMillis();
+			time_taken = (stop - start) / 1000.0;
+			mainLog.print("\nSampling complete: ");
+			mainLog.print(iteration_counter + " iterations in " + time_taken + " seconds (average " + time_taken/iteration_counter + ")\n");
+			mainLog.print("Path length statistics: average " + average_path_length + ", min " + min_path_length + ", max " + max_path_length + "\n");
+		} else {
+			mainLog.print(" ...\n\nSampling terminated early after " + iteration_counter + " iterations.\n");
+		}
+		
+		// print a warning if deadlocks occurred at any point
+		if (deadlocks_found)
+			mainLog.print("\nWarning: Deadlocks were found during simulation: self-loops were added\n");
+		
+		// print a warning if simulation was stopped by the user
+		if (should_stop_sampling)
+			mainLog.print("\nWarning: Simulation was terminated before completion.\n");
+		
+		//write to feedback file with true to indicate that we have finished sampling
+		Write_Feedback(iteration_counter, numIters, true);
+		
+		//Print_Sampling_Results();
+		delete loop_detection;
+		delete[] starting_variables;
+		delete last_state;
+		delete[] path_cost;
+		delete[] total_state_cost;
+		delete[] total_transition_cost;
+		
+		if (stopped_early) {
+			Report_Error("One or more of the properties being sampled could not be checked on a sample. Consider increasing the maximum path length");
+			throw 0;
+		}
+		
+		
+		// TODO:
+		return -1;
+	}*/
+
+	private void notifyPathFormulae()
+	{
+		/*for(int i = 0; i< no_path_formulae; i++)
+		{
+			if(!registered_path_formulae[i]->Is_Answer_Known(loop_detection))
+				registered_path_formulae[i]->Notify_State(last_state, current_state);
+		}*/
+	}
+	
+	private boolean isSamplingDone()
 	{
 		// TODO
-		return -1;
+		return false;
 	}
-
-	private static native int doSampling(int noIterations, int maxPathLength);
-
+	
 	private static native double getSamplingResult(int propertyIndex);
 
 	private static native int getNumReachedMaxPath(int propertyIndex);
@@ -1405,59 +1672,6 @@ public class SimulatorEngine
 		} catch (PrismLangException e) {
 			throw new PrismException("Simulator cannot handle nested P, R or S operators");
 		}
-	}
-
-	// ------------------------------------------------------------------------------
-	// STATE PROPOSITION METHODS
-	// ------------------------------------------------------------------------------
-
-	public int addLabel(Expression label)
-	{
-		labels.add(label);
-		return labels.size() - 1;
-	}
-
-	public boolean queryLabel(int index) throws PrismLangException
-	{
-		return labels.get(index).evaluateBoolean(currentState);
-	}
-
-	public boolean queryLabel(int index, int step) throws PrismLangException
-	{
-		return labels.get(index).evaluateBoolean(path.getState(step));
-	}
-
-	/**
-	 * For the current state, this returns 1 if it is the same as the initial state for the current path
-	 */
-	public int queryIsInitial()
-	{
-		return 0; // TODO
-	}
-
-	/**
-	 * For the state at the given index, this returns 1 if it is the same as the initial state for the current path
-	 */
-	public int queryIsInitial(int step)
-	{
-		return 0; // TODO
-	}
-
-	/**
-	 * For the current state, this returns 1 if it is a deadlock state.
-	 */
-	// TODO
-	public int queryIsDeadlock()
-	{
-		return 0;
-	}
-
-	/**
-	 * For the state at the given index, this returns 1 if it is a deadlock state.
-	 */
-	public int queryIsDeadlock(int step)
-	{
-		return 0; // TODO
 	}
 
 	// ------------------------------------------------------------------------------

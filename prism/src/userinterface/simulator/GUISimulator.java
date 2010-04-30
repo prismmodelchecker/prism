@@ -73,8 +73,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	private SimulationView view;
 
 	//Actions
-	private Action randomExploration, backtrack, backtrackToHere, removeToHere, newPath, resetPath, exportPath,
-			configureView;
+	private Action randomExploration, backtrack, backtrackToHere, removeToHere, newPath, resetPath, exportPath, configureView;
 
 	/** Creates a new instance of GUISimulator */
 	public GUISimulator(GUIPrism gui)
@@ -133,10 +132,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					a_manualUpdate();
 					currentUpdatesTable.requestFocus();
 				} else if (e.getClickCount() == 2 && !currentUpdatesTable.isEnabled()) {
-					GUISimulator.this
-							.warning(
-									"Simulation",
-									"You cannot continue exploration from the state that is current selected.\nSelect the last state in the path table to continue");
+					GUISimulator.this.warning("Simulation",
+							"You cannot continue exploration from the state that is current selected.\nSelect the last state in the path table to continue");
 				}
 			}
 		});
@@ -162,8 +159,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		lastInitialState = null;
 
 		tableScroll.setRowHeaderView(((GUISimulatorPathTable) pathTable).getPathLoopIndicator());
-		manualUpdateTableScrollPane.setRowHeaderView(((GUISimulatorUpdatesTable) currentUpdatesTable)
-				.getUpdateRowHeader());
+		manualUpdateTableScrollPane.setRowHeaderView(((GUISimulatorUpdatesTable) currentUpdatesTable).getUpdateRowHeader());
 
 		tableScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		stateLabelList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -259,7 +255,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		pathActive = false;
 		pathTableModel.restartPathTable();
 
-		((GUISimLabelFormulaeList) stateLabelList).clearLabels();
+		((GUISimLabelList) stateLabelList).clearLabels();
 		((GUISimPathFormulaeList) pathFormulaeList).clearList();
 	}
 
@@ -276,7 +272,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		else
 			modelTypeLabel.setText("Unknown");
 
-		((GUISimLabelFormulaeList) stateLabelList).clearLabels();
+		((GUISimLabelList) stateLabelList).clearLabels();
 		((GUISimPathFormulaeList) pathFormulaeList).clearList();
 		stateLabelList.repaint();
 		pathFormulaeList.repaint();
@@ -310,18 +306,17 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			// get properties constants/labels
 			PropertiesFile pf;
 			try {
-				pf = getPrism().parsePropertiesString(parsedModel,
-						guiProp.getConstantsString().toString() + guiProp.getLabelsString());
+				pf = getPrism().parsePropertiesString(parsedModel, guiProp.getConstantsString().toString() + guiProp.getLabelsString());
 			} catch (PrismLangException e) {
 				// ignore properties if they don't parse
 				pf = null; //if any problems
 			}
 
 			// if necessary, get values for undefined constants from user
+			// TODO: only get necessary property constants (pf can decide this)
 			UndefinedConstants uCon = new UndefinedConstants(parsedModel, pf);
 			if (uCon.getMFNumUndefined() + uCon.getPFNumUndefined() > 0) {
-				int result = GUIConstantsPicker.defineConstantsWithDialog(gui, uCon, lastConstants,
-						lastPropertyConstants);
+				int result = GUIConstantsPicker.defineConstantsWithDialog(gui, uCon, lastConstants, lastPropertyConstants);
 				if (result != GUIConstantsPicker.VALUES_DONE)
 					return;
 			}
@@ -377,8 +372,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 			// if required, we prompt the user for an initial state
 			if (isAskForInitialState()) {
-				initialState = GUIInitialStatePicker.defineInitalValuesWithDialog(getGUI(), lastInitialState,
-						parsedModel);
+				initialState = GUIInitialStatePicker.defineInitalValuesWithDialog(getGUI(), lastInitialState, parsedModel);
 				// if user clicked cancel from dialog...
 
 				if (initialState == null) {
@@ -391,16 +385,16 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			tableScroll.setViewportView(pathTable);
 
 			displayPathLoops = true;
+			
+			// Create a new path in the simulator and add labels/properties 
 			engine.createNewPath(parsedModel, pf);
 			engine.initialisePath(initialState);
-			//engine.setPropertyConstants(lastPropertyConstants);
-
 			pathActive = true;
+			repopulateFormulae(pf);
 
 			totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
 			pathLengthLabel.setText("" + (engine.getPathSize() - 1));
-			definedConstantsLabel.setText((uCon.getDefinedConstantsString().length() == 0) ? "None" : uCon
-					.getDefinedConstantsString());
+			definedConstantsLabel.setText((uCon.getDefinedConstantsString().length() == 0) ? "None" : uCon.getDefinedConstantsString());
 
 			doEnables();
 
@@ -408,10 +402,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 			updateTableModel.restartUpdatesTable();
 
-			pathTable.getSelectionModel()
-					.setSelectionInterval(pathTable.getRowCount() - 1, pathTable.getRowCount() - 1);
+			pathTable.getSelectionModel().setSelectionInterval(pathTable.getRowCount() - 1, pathTable.getRowCount() - 1);
 
-			repopulateFormulae();
 			stateLabelList.repaint();
 			pathFormulaeList.repaint();
 
@@ -455,8 +447,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 			pathTableModel.updatePathTable();
 			updateTableModel.updateUpdatesTable();
-			pathTable.scrollRectToVisible(new Rectangle(0, (int) pathTable.getPreferredSize().getHeight() - 10,
-					(int) pathTable.getPreferredSize().getWidth(), (int) pathTable.getPreferredSize().getHeight()));
+			pathTable.scrollRectToVisible(new Rectangle(0, (int) pathTable.getPreferredSize().getHeight() - 10, (int) pathTable.getPreferredSize().getWidth(),
+					(int) pathTable.getPreferredSize().getHeight()));
 
 			totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
 			pathLengthLabel.setText("" + (engine.getPathSize() - 1));
@@ -501,8 +493,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 			pathTableModel.updatePathTable();
 			updateTableModel.updateUpdatesTable();
-			pathTable.scrollRectToVisible(new Rectangle(0, (int) pathTable.getPreferredSize().getHeight() - 10,
-					(int) pathTable.getPreferredSize().getWidth(), (int) pathTable.getPreferredSize().getHeight()));
+			pathTable.scrollRectToVisible(new Rectangle(0, (int) pathTable.getPreferredSize().getHeight() - 10, (int) pathTable.getPreferredSize().getWidth(),
+					(int) pathTable.getPreferredSize().getHeight()));
 
 			totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
 			pathLengthLabel.setText("" + (engine.getPathSize() - 1));
@@ -621,7 +613,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		try {
 			if (currentUpdatesTable.getSelectedRow() == -1)
 				throw new PrismException("No current update is selected");
-			
+
 			if (displayPathLoops && pathTableModel.isPathLooping()) {
 				if (questionYesNo("A loop in the path has been detected. Do you wish to disable loop detection and extend the path?") == 0) {
 					displayPathLoops = false;
@@ -650,8 +642,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				pathTableModel.updatePathTable();
 				updateTableModel.updateUpdatesTable();
 
-				pathTable.scrollRectToVisible(new Rectangle(0, pathTable.getHeight() - 10, pathTable.getWidth(),
-						pathTable.getHeight()));
+				pathTable.scrollRectToVisible(new Rectangle(0, pathTable.getHeight() - 10, pathTable.getWidth(), pathTable.getHeight()));
 
 				totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
 				pathLengthLabel.setText("" + (engine.getPathSize() - 1));
@@ -661,7 +652,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			} else {
 
 				setComputing(true);
-				
+
 				engine.manualUpdate(currentUpdatesTable.getSelectedRow());
 
 				pathTableModel.updatePathTable();
@@ -670,16 +661,15 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				totalTimeLabel.setText("" + engine.getTotalPathTime());
 				pathLengthLabel.setText("" + (engine.getPathSize() - 1));
 
-				pathTable.scrollRectToVisible(new Rectangle(0, (int) pathTable.getPreferredSize().getHeight() - 10,
-						(int) pathTable.getPreferredSize().getWidth(), (int) pathTable.getPreferredSize().getHeight()));
+				pathTable.scrollRectToVisible(new Rectangle(0, (int) pathTable.getPreferredSize().getHeight() - 10, (int) pathTable.getPreferredSize()
+						.getWidth(), (int) pathTable.getPreferredSize().getHeight()));
 
 				setComputing(false);
 			}
 			stateLabelList.repaint();
 			pathFormulaeList.repaint();
 		} catch (NumberFormatException e) {
-			this
-					.error("The Auto update \'no. steps\' parameter is invalid.\nIt must be a positive integer representing a step in the path table");
+			this.error("The Auto update \'no. steps\' parameter is invalid.\nIt must be a positive integer representing a step in the path table");
 			setComputing(false);
 		} catch (PrismException e) {
 			this.error(e.getMessage());
@@ -692,12 +682,36 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		new GUIViewDialog(gui, pathTableModel.getView());
 	}
 
-	/* Repopulate "State labels" and "Path formulae" lists */
-
-	public void repopulateFormulae()
+	/**
+	 * Re-populate lists of labels and path formulas.
+	 * Labels are taken from current model and passed in properties file. 
+	 * Path formulas are taken from the passed in properties file. 
+	 */
+	private void repopulateFormulae(PropertiesFile propertiesFile)
 	{
-		// "Path formulae" list
-		((GUISimPathFormulaeList) pathFormulaeList).clearList();
+		// Labels
+		GUISimLabelList theStateLabelList = (GUISimLabelList) stateLabelList;
+		theStateLabelList.clearLabels();
+		if (pathActive) {
+			// Add the default labels: "init" and "deadlock"
+			theStateLabelList.addDeadlockAndInit();
+			if (parsedModel != null) {
+				// Add labels from model
+				LabelList labelList1 = parsedModel.getLabelList();
+				for (int i = 0; i < labelList1.size(); i++) {
+					theStateLabelList.addModelLabel(labelList1.getLabelName(i), labelList1.getLabel(i));
+				}
+				// Add labels from properties file
+				LabelList labelList2 = propertiesFile.getLabelList();
+				for (int i = 0; i < labelList2.size(); i++) {
+					theStateLabelList.addPropertyLabel(labelList2.getLabelName(i), labelList2.getLabel(i), propertiesFile);
+				}
+			}
+		}
+		
+		// TODO: fix and re-enable this (note: should use passed in properties file)
+		// Path formulas
+		/*((GUISimPathFormulaeList) pathFormulaeList).clearList();
 		if (pathActive) {
 			// Go through the property list from the Properties tab of GUI
 			GUIPropertiesList gpl = guiProp.getPropList();
@@ -706,46 +720,17 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				// For properties which are simulate-able...
 				if (gp.isValidForSimulation()) {
 					Expression expr = gp.getProperty();
-					// TODO: re-enable...
 					// Add them to the list
-					/*if (expr instanceof ExpressionProb) {
+					if (expr instanceof ExpressionProb) {
 						ExpressionProb prob = (ExpressionProb) expr;
 						((GUISimPathFormulaeList) pathFormulaeList).addProbFormula(prob);
 					} else if (expr instanceof ExpressionReward) {
 						ExpressionReward rew = (ExpressionReward) expr;
 						((GUISimPathFormulaeList) pathFormulaeList).addRewardFormula(rew);
-					}*/
-				}
-			}
-		}
-		// "State labels" list
-		((GUISimLabelFormulaeList) stateLabelList).clearLabels();
-		if (pathActive) {
-			// Add the default labels: "init" and "deadlock"
-			((GUISimLabelFormulaeList) stateLabelList).addDeadlockAndInit();
-			if (parsedModel != null) {
-				// Add labels from model
-				LabelList labelList1 = parsedModel.getLabelList();
-				for (int i = 0; i < labelList1.size(); i++) {
-					((GUISimLabelFormulaeList) stateLabelList).addLabel(labelList1.getLabelName(i), labelList1
-							.getLabel(i), parsedModel);
-				}
-				// Add (correctly parsing) labels from label list in Properties tab of GUI
-				GUIPropLabelList labelList2 = guiProp.getLabTable();
-				for (int i = 0; i < labelList2.getNumLabels(); i++) {
-					GUILabel gl = labelList2.getLabel(i);
-					if (gl.isParseable()) {
-						try {
-							PropertiesFile pf = getPrism().parsePropertiesString(parsedModel,
-									guiProp.getConstantsString().toString() + "\n" + gl.toString());
-							((GUISimLabelFormulaeList) stateLabelList).addLabel(pf.getLabelList().getLabelName(0), pf
-									.getLabelList().getLabel(0), parsedModel);
-						} catch (PrismException e) {
-						}
 					}
 				}
 			}
-		}
+		}*/
 	}
 
 	//METHODS TO IMPLEMENT THE GUIPLUGIN INTERFACE
@@ -941,7 +926,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		outerStateLabelPanel = new javax.swing.JPanel();
 		stateLabelScrollPane = new javax.swing.JScrollPane();
 		stateLabelList = new javax.swing.JList();
-		stateLabelList = new GUISimLabelFormulaeList(this);
+		stateLabelList = new GUISimLabelList(this);
 		outerPathFormulaePanel = new javax.swing.JPanel();
 		pathFormulaeScrollPane = new javax.swing.JScrollPane();
 		pathFormulaeList = new javax.swing.JList();
@@ -1052,9 +1037,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 		innerButtonPanel.add(configureViewButton);
 
-		pathTable.setModel(new javax.swing.table.DefaultTableModel(new Object[][] { { null, null, null, null },
-				{ null, null, null, null }, { null, null, null, null }, { null, null, null, null } }, new String[] {
-				"Title 1", "Title 2", "Title 3", "Title 4" }));
+		pathTable.setModel(new javax.swing.table.DefaultTableModel(new Object[][] { { null, null, null, null }, { null, null, null, null },
+				{ null, null, null, null }, { null, null, null, null } }, new String[] { "Title 1", "Title 2", "Title 3", "Title 4" }));
 		jSplitPane1.setLeftComponent(jPanel3);
 
 		jSplitPane1.setRightComponent(jPanel4);
@@ -1219,8 +1203,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		noStepsExplorePanel.setLayout(new java.awt.GridBagLayout());
 
 		noStepsExplorePanel.setMinimumSize(new java.awt.Dimension(107, 0));
-		typeExploreCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Num. steps", "Upto state",
-				"Max. time" }));
+		typeExploreCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Num. steps", "Upto state", "Max. time" }));
 		typeExploreCombo.setToolTipText("");
 		gridBagConstraints = new java.awt.GridBagConstraints();
 		gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
@@ -1319,9 +1302,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 		innerManualUpdatesPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		manualUpdateTableScrollPane.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-		currentUpdatesTable.setModel(new javax.swing.table.DefaultTableModel(new Object[][] {
-				{ null, null, null, null }, { null, null, null, null }, { null, null, null, null },
-				{ null, null, null, null } }, new String[] { "Title 1", "Title 2", "Title 3", "Title 4" }));
+		currentUpdatesTable.setModel(new javax.swing.table.DefaultTableModel(new Object[][] { { null, null, null, null }, { null, null, null, null },
+				{ null, null, null, null }, { null, null, null, null } }, new String[] { "Title 1", "Title 2", "Title 3", "Title 4" }));
 		currentUpdatesTable.setToolTipText("Double click on an update to manually execute the update");
 		manualUpdateTableScrollPane.setViewportView(currentUpdatesTable);
 
@@ -1331,8 +1313,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 		autoTimeCheckPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 0, 0, 0));
 		autoTimeCheck.setText("Generate time automatically");
-		autoTimeCheck
-				.setToolTipText("When not selected, you will be prompted to manually enter the time spent in states");
+		autoTimeCheck.setToolTipText("When not selected, you will be prompted to manually enter the time spent in states");
 		autoTimeCheck.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
 		autoTimeCheck.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
 		autoTimeCheck.setMargin(new java.awt.Insets(0, 0, 0, 0));
@@ -1453,9 +1434,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					else
 						a_backTrack(engine.getTotalPathTime() - time);
 				} catch (NumberFormatException nfe) {
-					throw new PrismException(
-							"The \"Time\" parameter is invalid, it must be a positive double smaller than the cumulative path time (which is "
-									+ engine.getTotalPathTime() + ")");
+					throw new PrismException("The \"Time\" parameter is invalid, it must be a positive double smaller than the cumulative path time (which is "
+							+ engine.getTotalPathTime() + ")");
 				}
 			} else if (typeBacktrackCombo.getSelectedIndex() == 3) {
 				double time;
@@ -1798,16 +1778,14 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					a_newPath();
 			}
 			if (e.isPopupTrigger()
-					&& (e.getSource() == pathTablePlaceHolder || e.getSource() == pathTable
-							|| e.getSource() == pathTable.getTableHeader() || e.getSource() == tableScroll)) {
-				randomExploration.setEnabled(!(e.getSource() == pathTable.getTableHeader()
-						|| e.getSource() == pathTablePlaceHolder || e.getSource() == tableScroll));
-				backtrack.setEnabled(!(e.getSource() == pathTable.getTableHeader()
-						|| e.getSource() == pathTablePlaceHolder || e.getSource() == tableScroll));
-				backtrackToHere.setEnabled(!(e.getSource() == pathTable.getTableHeader()
-						|| e.getSource() == pathTablePlaceHolder || e.getSource() == tableScroll));
-				removeToHere.setEnabled(!(e.getSource() == pathTable.getTableHeader()
-						|| e.getSource() == pathTablePlaceHolder || e.getSource() == tableScroll));
+					&& (e.getSource() == pathTablePlaceHolder || e.getSource() == pathTable || e.getSource() == pathTable.getTableHeader() || e.getSource() == tableScroll)) {
+				randomExploration
+						.setEnabled(!(e.getSource() == pathTable.getTableHeader() || e.getSource() == pathTablePlaceHolder || e.getSource() == tableScroll));
+				backtrack.setEnabled(!(e.getSource() == pathTable.getTableHeader() || e.getSource() == pathTablePlaceHolder || e.getSource() == tableScroll));
+				backtrackToHere
+						.setEnabled(!(e.getSource() == pathTable.getTableHeader() || e.getSource() == pathTablePlaceHolder || e.getSource() == tableScroll));
+				removeToHere
+						.setEnabled(!(e.getSource() == pathTable.getTableHeader() || e.getSource() == pathTablePlaceHolder || e.getSource() == tableScroll));
 
 				doEnables();
 
@@ -2325,8 +2303,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 		public boolean equals(Object o)
 		{
-			return (o instanceof RewardStructure && ((RewardStructure) o).getIndex() == index && ((RewardStructure) o)
-					.isCumulative() == isCumulative());
+			return (o instanceof RewardStructure && ((RewardStructure) o).getIndex() == index && ((RewardStructure) o).isCumulative() == isCumulative());
 		}
 	}
 
@@ -2583,15 +2560,12 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			for (Object obj : visibleRewardListItems) {
 				GUIViewDialog.RewardListItem item = (GUIViewDialog.RewardListItem) obj;
 				if (item.isCumulative())
-					visibleRewardColumns.add(new RewardStructureColumn(item.getRewardStructure(),
-							GUISimulator.RewardStructureColumn.CUMULATIVE_REWARD));
+					visibleRewardColumns.add(new RewardStructureColumn(item.getRewardStructure(), GUISimulator.RewardStructureColumn.CUMULATIVE_REWARD));
 				else {
 					if (!item.getRewardStructure().isStateEmpty())
-						visibleRewardColumns.add(new RewardStructureColumn(item.getRewardStructure(),
-								GUISimulator.RewardStructureColumn.STATE_REWARD));
+						visibleRewardColumns.add(new RewardStructureColumn(item.getRewardStructure(), GUISimulator.RewardStructureColumn.STATE_REWARD));
 					if (!item.getRewardStructure().isTransitionEmpty())
-						visibleRewardColumns.add(new RewardStructureColumn(item.getRewardStructure(),
-								GUISimulator.RewardStructureColumn.TRANSITION_REWARD));
+						visibleRewardColumns.add(new RewardStructureColumn(item.getRewardStructure(), GUISimulator.RewardStructureColumn.TRANSITION_REWARD));
 				}
 			}
 
@@ -2679,10 +2653,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 					for (Object rewobj : rewards) {
 						RewardStructure rew = (RewardStructure) rewobj;
-						if (rew.isStateEmpty() == !hasStates
-								&& rew.isTransitionEmpty() == !hasTrans
-								&& ((rew.getName() == null && rewardName.equals("")) || (rew.getName() != null && rew
-										.getName().equals(rewardName)))) {
+						if (rew.isStateEmpty() == !hasStates && rew.isTransitionEmpty() == !hasTrans
+								&& ((rew.getName() == null && rewardName.equals("")) || (rew.getName() != null && rew.getName().equals(rewardName)))) {
 							allrew.remove(rew);
 							foundReward = true;
 						}
@@ -2717,20 +2689,17 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 							rewardName = null;
 						}
 
-						RewardStructure rewardStructure = new RewardStructure(r, rewardName, parsedModel
-								.getRewardStruct(r).getNumStateItems() == 0, parsedModel.getRewardStruct(r)
-								.getNumTransItems() == 0);
+						RewardStructure rewardStructure = new RewardStructure(r, rewardName, parsedModel.getRewardStruct(r).getNumStateItems() == 0,
+								parsedModel.getRewardStruct(r).getNumTransItems() == 0);
 
 						if (!rewardStructure.isStateEmpty() || !rewardStructure.isTransitionEmpty())
 							rewards.add(rewardStructure);
 
 						if (!rewardStructure.isStateEmpty())
-							visibleRewardColumns.add(new RewardStructureColumn(rewardStructure,
-									RewardStructureColumn.STATE_REWARD));
+							visibleRewardColumns.add(new RewardStructureColumn(rewardStructure, RewardStructureColumn.STATE_REWARD));
 
 						if (!rewardStructure.isTransitionEmpty())
-							visibleRewardColumns.add(new RewardStructureColumn(rewardStructure,
-									RewardStructureColumn.TRANSITION_REWARD));
+							visibleRewardColumns.add(new RewardStructureColumn(rewardStructure, RewardStructureColumn.TRANSITION_REWARD));
 					}
 
 				}
@@ -2957,8 +2926,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		{
 			int stepStart = 0;
 			int timeStart = stepStart + (view.showSteps() ? 1 : 0) + (view.showActions() ? 1 : 0);
-			int varStart = timeStart + (view.canShowTime() && view.showTime() ? 1 : 0)
-					+ (view.canShowTime() && view.showCumulativeTime() ? 1 : 0);
+			int varStart = timeStart + (view.canShowTime() && view.showTime() ? 1 : 0) + (view.canShowTime() && view.showCumulativeTime() ? 1 : 0);
 			int rewardStart = varStart + view.getVisibleVariables().size();
 
 			int groupCount = 0;
@@ -3066,8 +3034,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 				colCount += (view.showSteps() ? 1 : 0);
 				colCount += (view.showActions() ? 1 : 0);
-				colCount += (view.canShowTime() && view.showTime() ? 1 : 0)
-						+ (view.canShowTime() && view.showCumulativeTime() ? 1 : 0);
+				colCount += (view.canShowTime() && view.showTime() ? 1 : 0) + (view.canShowTime() && view.showCumulativeTime() ? 1 : 0);
 				colCount += view.getVisibleVariables().size();
 				colCount += view.getVisibleRewardColumns().size();
 
@@ -3089,8 +3056,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		{
 			int selection = stateLabelList.getSelectedIndex();
 			if (selection != -1) {
-				GUISimLabelFormulaeList.SimLabel label = (GUISimLabelFormulaeList.SimLabel) stateLabelList.getModel()
-						.getElementAt(selection);
+				GUISimLabelList.SimLabel label = (GUISimLabelList.SimLabel) stateLabelList.getModel().getElementAt(selection);
 				if (row == getRowCount() - 1) {
 					if (label.getResult() == 1)
 						return true;
@@ -3129,8 +3095,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				}
 
 				else if (rewardStart <= columnIndex) {
-					return ((RewardStructureColumn) view.getVisibleRewardColumns().get(columnIndex - rewardStart))
-							.getColumnName();
+					return ((RewardStructureColumn) view.getVisibleRewardColumns().get(columnIndex - rewardStart)).getColumnName();
 				}
 			}
 			return "Undefined Column";
@@ -3158,13 +3123,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				}
 				// A variable column
 				else if (varStart <= columnIndex && columnIndex < rewardStart) {
-					return "Values of variable \""
-							+ ((Variable) view.getVisibleVariables().get(columnIndex - varStart)).toString() + "\"";
+					return "Values of variable \"" + ((Variable) view.getVisibleVariables().get(columnIndex - varStart)).toString() + "\"";
 				}
 
 				else if (rewardStart <= columnIndex) {
-					RewardStructureColumn column = ((RewardStructureColumn) view.getVisibleRewardColumns().get(
-							columnIndex - rewardStart));
+					RewardStructureColumn column = ((RewardStructureColumn) view.getVisibleRewardColumns().get(columnIndex - rewardStart));
 					String rewardName = column.getRewardStructure().getColumnName();
 
 					if (column.isStateReward())
@@ -3206,8 +3169,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				}
 				// Cumulative time column
 				else if (cumulativeTimeStart <= columnIndex && columnIndex < varStart) {
-					timeValue = new TimeValue((rowIndex == 0) ? 0.0 : engine
-							.getCumulativeTimeSpentInPathState(rowIndex - 1), true);
+					timeValue = new TimeValue((rowIndex == 0) ? 0.0 : engine.getCumulativeTimeSpentInPathState(rowIndex - 1), true);
 					timeValue.setTimeValueUnknown(rowIndex >= engine.getPathSize());
 					return timeValue;
 				}
@@ -3217,33 +3179,27 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					Object result = engine.getPathData(var.getIndex(), rowIndex);
 					variableValue.setVariable(var);
 					variableValue.setValue(result);
-					variableValue.setChanged(rowIndex == 0
-							|| !engine.getPathData(var.getIndex(), rowIndex - 1).equals(result));
+					variableValue.setChanged(rowIndex == 0 || !engine.getPathData(var.getIndex(), rowIndex - 1).equals(result));
 					return variableValue;
 				}
 				// A reward column
 				else if (rewardStart <= columnIndex) {
-					RewardStructureColumn rewardColumn = (RewardStructureColumn) view.getVisibleRewardColumns().get(
-							columnIndex - rewardStart);
+					RewardStructureColumn rewardColumn = (RewardStructureColumn) view.getVisibleRewardColumns().get(columnIndex - rewardStart);
 					rewardStructureValue.setRewardStructureColumn(rewardColumn);
 					rewardStructureValue.setRewardValueUnknown(false);
 					// A state reward column
 					if (rewardColumn.isStateReward()) {
-						double value = engine.getStateRewardOfPathState(rowIndex, rewardColumn.getRewardStructure()
-								.getIndex());
+						double value = engine.getStateRewardOfPathState(rowIndex, rewardColumn.getRewardStructure().getIndex());
 						rewardStructureValue.setChanged(rowIndex == 0
-								|| value != engine.getStateRewardOfPathState(rowIndex - 1, rewardColumn
-										.getRewardStructure().getIndex()));
+								|| value != engine.getStateRewardOfPathState(rowIndex - 1, rewardColumn.getRewardStructure().getIndex()));
 						rewardStructureValue.setRewardValue(new Double(value));
 						rewardStructureValue.setRewardValueUnknown(rowIndex > engine.getPathSize() - 1);
 					}
 					// A transition reward column
 					else if (rewardColumn.isTransitionReward()) {
-						double value = engine.getTransitionRewardOfPathState(rowIndex, rewardColumn
-								.getRewardStructure().getIndex());
+						double value = engine.getTransitionRewardOfPathState(rowIndex, rewardColumn.getRewardStructure().getIndex());
 						rewardStructureValue.setChanged(rowIndex == 0
-								|| value != engine.getTransitionRewardOfPathState(rowIndex - 1, rewardColumn
-										.getRewardStructure().getIndex()));
+								|| value != engine.getTransitionRewardOfPathState(rowIndex - 1, rewardColumn.getRewardStructure().getIndex()));
 						rewardStructureValue.setRewardValue(new Double(value));
 						rewardStructureValue.setRewardValueUnknown(rowIndex >= engine.getPathSize() - 1);
 					}
@@ -3254,17 +3210,13 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 							rewardStructureValue.setRewardValue(new Double(0.0));
 							rewardStructureValue.setRewardValueUnknown(false);
 						} else {
-							double value = engine.getTotalStateRewardOfPathState(rowIndex - 1, rewardColumn
-									.getRewardStructure().getIndex())
-									+ engine.getTotalTransitionRewardOfPathState(rowIndex - 1, rewardColumn
-											.getRewardStructure().getIndex());
+							double value = engine.getTotalStateRewardOfPathState(rowIndex - 1, rewardColumn.getRewardStructure().getIndex())
+									+ engine.getTotalTransitionRewardOfPathState(rowIndex - 1, rewardColumn.getRewardStructure().getIndex());
 							if (rowIndex == 1)
 								rewardStructureValue.setChanged(value != 0.0);
 							else
-								rewardStructureValue.setChanged(value != (engine.getTotalStateRewardOfPathState(
-										rowIndex - 2, rewardColumn.getRewardStructure().getIndex()) + engine
-										.getTotalTransitionRewardOfPathState(rowIndex - 2, rewardColumn
-												.getRewardStructure().getIndex())));
+								rewardStructureValue.setChanged(value != (engine.getTotalStateRewardOfPathState(rowIndex - 2, rewardColumn.getRewardStructure()
+										.getIndex()) + engine.getTotalTransitionRewardOfPathState(rowIndex - 2, rewardColumn.getRewardStructure().getIndex())));
 							rewardStructureValue.setRewardValue(new Double(value));
 							rewardStructureValue.setRewardValueUnknown(rowIndex >= engine.getPathSize());
 						}
@@ -3504,10 +3456,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 		if (displayStyleFast != view.isChangeRenderer()) {
 			String[] answers = { "Yes", "No" };
-			if (GUISimulator.this
-					.question(
-							"You have changed the default rendering style of paths. Do you wish \nto reflect this in your current trace?",
-							answers, 0) == 0) {
+			if (GUISimulator.this.question("You have changed the default rendering style of paths. Do you wish \nto reflect this in your current trace?",
+					answers, 0) == 0) {
 				view.setRenderer(displayStyleFast);
 			}
 		}
