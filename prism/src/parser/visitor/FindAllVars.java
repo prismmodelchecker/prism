@@ -61,7 +61,6 @@ public class FindAllVars extends ASTTraverseModify
 				throw new PrismLangException(s, e.getVarIdent(i));
 			}
 			// Store the type
-			System.out.println("Setting "+i+" of " +e+ " to "+varTypes.elementAt(j));
 			e.setType(i, varTypes.elementAt(j));
 			// And store the variable index
 			e.setVarIndex(i, j);
