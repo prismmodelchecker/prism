@@ -234,15 +234,15 @@ public class GenerateSimulationPath
 				// check for termination (depending on type)
 				switch (simPathType) {
 				case SIM_PATH_NUM_STEPS:
-					if (i >= simPathLength || engine.queryIsDeadlock() == 1)
+					if (i >= simPathLength || engine.queryIsDeadlock())
 						done = true;
 					break;
 				case SIM_PATH_TIME:
-					if (t >= simPathTime || i >= maxPathLength || engine.queryIsDeadlock() == 1)
+					if (t >= simPathTime || i >= maxPathLength || engine.queryIsDeadlock())
 						done = true;
 					break;
 				case SIM_PATH_DEADLOCK:
-					if (engine.queryIsDeadlock() == 1 || i >= maxPathLength)
+					if (engine.queryIsDeadlock() || i >= maxPathLength)
 						done = true;
 					break;
 				}
@@ -252,7 +252,7 @@ public class GenerateSimulationPath
 			}
 
 			// if we are generating multiple paths (to find a deadlock) only stop if deadlock actually found
-			if (simPathType == PathType.SIM_PATH_DEADLOCK && engine.queryIsDeadlock() == 1)
+			if (simPathType == PathType.SIM_PATH_DEADLOCK && engine.queryIsDeadlock())
 				break;
 		}
 		if (j < simPathRepeat)
@@ -269,7 +269,7 @@ public class GenerateSimulationPath
 			mainLog.println("\n" + j + " paths were generated.");
 
 		// export path
-		if (simPathType == PathType.SIM_PATH_DEADLOCK && engine.queryIsDeadlock() != 1) {
+		if (simPathType == PathType.SIM_PATH_DEADLOCK && !engine.queryIsDeadlock()) {
 			mainLog.print("\nNo deadlock state found within " + maxPathLength + " steps");
 			if (simPathRepeat > 1)
 				mainLog.print(" (generated " + simPathRepeat + " paths)");
