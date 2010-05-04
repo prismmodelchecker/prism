@@ -638,8 +638,24 @@ public class PrismCL
 				tmpFile = "explicitbuildtest.tra";
 				mainLog.println("\nExporting (explicit) model to \"" + tmpFile + "1\"...");
 				modelExplicit.exportToPrismExplicitTra(tmpFile + "1");
-				mainLog.println("\nExporting (explicit) model to \"" + tmpFile + "2\"...");
+				mainLog.println("\nExporting (normal) model to \"" + tmpFile + "2\"...");
 				prism.exportTransToFile(model, true, Prism.EXPORT_PLAIN, new File(tmpFile + "2"));
+				explicit.ModelSimple modelExplicit2 = null;
+				switch (model.getModelType()) {
+				case DTMC:
+					modelExplicit2 = new explicit.DTMCSimple();
+					break;
+				case CTMC:
+					modelExplicit2 = new explicit.CTMCSimple();
+					break;
+				case MDP:
+					modelExplicit2 = new explicit.MDPSimple();
+					break;
+				}
+				modelExplicit2.buildFromPrismExplicit(tmpFile + "2");
+				if (!modelExplicit.equals(modelExplicit2)) {
+					throw new PrismException("Explicit models differ");
+				}
 			} catch (IOException e) {
 				throw new PrismException("Could not create temporary file \"" + tmpFile + "\"");
 			}
