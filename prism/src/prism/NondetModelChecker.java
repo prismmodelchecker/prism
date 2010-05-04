@@ -727,7 +727,7 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// compute rewards
 		try {
-			rewards = computeReachRewards(trans, trans01, stateRewards, transRewards, b, min);
+			rewards = computeReachRewards(trans, transActions, trans01, stateRewards, transRewards, b, min);
 		} catch (PrismException e) {
 			JDD.Deref(b);
 			throw e;
@@ -1138,7 +1138,7 @@ public class NondetModelChecker extends NonProbModelChecker
 
 	// compute rewards for reach reward
 
-	protected StateValues computeReachRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr, JDDNode b, boolean min)
+	protected StateValues computeReachRewards(JDDNode tr, JDDNode tra, JDDNode tr01, JDDNode sr, JDDNode trr, JDDNode b, boolean min)
 			throws PrismException
 	{
 		JDDNode inf, maybe, prob1, no;
@@ -1240,7 +1240,7 @@ public class NondetModelChecker extends NonProbModelChecker
 					rewards = new StateValuesMTBDD(rewardsMTBDD, model);
 					break;
 				case Prism.SPARSE:
-					rewardsDV = PrismSparse.NondetReachReward(tr, sr, trr, odd, allDDRowVars, allDDColVars,
+					rewardsDV = PrismSparse.NondetReachReward(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars,
 							allDDNondetVars, b, inf, maybe, min);
 					rewards = new StateValuesDV(rewardsDV, model);
 					break;

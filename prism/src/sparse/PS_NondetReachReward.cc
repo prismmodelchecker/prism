@@ -33,6 +33,8 @@
 #include <odd.h>
 #include <dv.h>
 #include "sparse.h"
+#include "prism.h"
+#include "PrismNativeGlob.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
 #include <new>
@@ -43,7 +45,9 @@ JNIEXPORT jlong __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetReachRe
 (
 JNIEnv *env,
 jclass cls,
-jlong __jlongpointer t,	// trans matrix
+jlong __jlongpointer t,		// trans matrix
+jlong __jlongpointer ta,	// trans action labels
+jobject synchs,
 jlong __jlongpointer sr,	// state rewards
 jlong __jlongpointer trr,	// transition rewards
 jlong __jlongpointer od,	// odd
@@ -53,26 +57,27 @@ jlong __jlongpointer cv,	// col vars
 jint num_cvars,
 jlong __jlongpointer ndv,	// nondet vars
 jint num_ndvars,
-jlong __jlongpointer g,	// 'goal' states
+jlong __jlongpointer g,		// 'goal' states
 jlong __jlongpointer in,	// 'inf' states
-jlong __jlongpointer m,	// 'maybe' states
-jboolean min		// min or max probabilities (true = min, false = max)
+jlong __jlongpointer m,		// 'maybe' states
+jboolean min				// min or max probabilities (true = min, false = max)
 )
 {
 	// cast function parameters
-	DdNode *trans = jlong_to_DdNode(t);		// trans matrix
+	DdNode *trans = jlong_to_DdNode(t);				// trans matrix
+	DdNode *trans_actions = jlong_to_DdNode(ta);	// trans action labels
 	DdNode *state_rewards = jlong_to_DdNode(sr);	// state rewards
 	DdNode *trans_rewards = jlong_to_DdNode(trr);	// transition rewards
-	ODDNode *odd = jlong_to_ODDNode(od); 		// reachable states
+	ODDNode *odd = jlong_to_ODDNode(od); 			// reachable states
 	DdNode **rvars = jlong_to_DdNode_array(rv); 	// row vars
 	DdNode **cvars = jlong_to_DdNode_array(cv); 	// col vars
 	DdNode **ndvars = jlong_to_DdNode_array(ndv);	// nondet vars
-	DdNode *goal = jlong_to_DdNode(g);		// 'goal' states
-	DdNode *inf = jlong_to_DdNode(in); 		// 'inf' states
-	DdNode *maybe = jlong_to_DdNode(m); 		// 'maybe' states
+	DdNode *goal = jlong_to_DdNode(g);				// 'goal' states
+	DdNode *inf = jlong_to_DdNode(in); 				// 'inf' states
+	DdNode *maybe = jlong_to_DdNode(m); 			// 'maybe' states
 
 	// mtbdds
-	DdNode *a;
+	DdNode *a, *tmp = NULL;
 	// model stats
 	int n, nc, nc_r;
 	long nnz, nnz_r;
@@ -84,9 +89,16 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
 	// adversary stuff
-	bool adv = false, adv_loop = false;
+	int export_adv_enabled = export_adv;
+	bool adv_loop = false;
 	FILE *fp_adv = NULL;
-	int adv_l, adv_h;
+	int adv_j, adv_l2, adv_h2;
+	int *adv = NULL;
+	// action info
+	int *actions;
+	jstring *action_names_jstrings;
+	const char** action_names;
+	int num_actions;
 	// misc
 	int i, j, k, k_r, l1, h1, l2, h2, l2_r, h2_r, iters;
 	double d1, d2, kb, kbt;
@@ -128,6 +140,28 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc, nnz, ndsm->k);
 	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
+	// if needed, and if info is available, build a vector of action indices for the MDP
+	actions = NULL;
+	if (export_adv_enabled != EXPORT_ADV_NONE) {
+		if (trans_actions != NULL) {
+			PS_PrintToMainLog(env, "Building action information... ");
+			// first need to filter out unwanted rows
+			Cudd_Ref(trans_actions);
+			Cudd_Ref(maybe);
+			tmp = DD_Apply(ddman, APPLY_TIMES, trans_actions, maybe);
+			// then convert to a vector of integer indices
+			actions = build_nd_action_vector(ddman, a, tmp, ndsm, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
+			Cudd_RecursiveDeref(ddman, tmp);
+			kb = n*4.0/1024.0;
+			kbt += kb;
+			PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+			// also extract list of action names from 'synchs'
+			get_string_array_from_java(env, synchs, action_names_jstrings, action_names, num_actions);
+		} else {
+			PS_PrintToMainLog(env, "Warning: Action labels are not available for adversary generation.\n", export_adv_filename);
+		}
+	}
+	
 	// build sparse matrix (rewards)
 	PS_PrintToMainLog(env, "Building sparse matrix (transition rewards)... ");
 	ndsm_r = build_sub_nd_sparse_matrix(ddman, a, trans_rewards, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
@@ -162,6 +196,19 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	kbt += 2*kb;
 	PS_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
 
+	// if required, create storage for adversary and initialise
+	if (export_adv_enabled != EXPORT_ADV_NONE) {
+		PS_PrintToMainLog(env, "Allocating adversary vector... ");
+		adv = new int[n];
+		kb = n*sizeof(int)/1024.0;
+		kbt += kb;
+		PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+		// Initialise all entries to -1 ("don't know")
+		for (i = 0; i < n; i++) {
+			adv[i] = -1;
+		}
+	}
+	
 	// print total memory usage
 	PS_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 
@@ -181,41 +228,41 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	PS_PrintToMainLog(env, "\nStarting iterations...\n");
 
 	// open file to store adversary (if required)
-	if (adv) {
-		fp_adv = fopen("adv.tra", "w");
+	if (export_adv_enabled != EXPORT_ADV_NONE) {
+		fp_adv = fopen(export_adv_filename, "w");
 		if (fp_adv) {
 			fprintf(fp_adv, "%d ?\n", n);
 		} else {
-			PS_PrintToMainLog(env, "\nWarning: Adversary generation cancelled (could not open file \"%s\").\n", "adv.tra");
-			adv = false;
+			PS_PrintToMainLog(env, "\nWarning: Adversary generation cancelled (could not open file \"%s\").\n", export_adv_filename);
+			export_adv_enabled = EXPORT_ADV_NONE;
 		}
 	}
 	
-	while ((!done && iters < max_iters) || adv_loop) {
+	// store local copies of stuff
+	// firstly for transition matrix
+	double *non_zeros = ndsm->non_zeros;
+	unsigned char *row_counts = ndsm->row_counts;
+	int *row_starts = (int *)ndsm->row_counts;
+	unsigned char *choice_counts = ndsm->choice_counts;
+	int *choice_starts = (int *)ndsm->choice_counts;
+	bool use_counts = ndsm->use_counts;
+	unsigned int *cols = ndsm->cols;
+	// and then for transition rewards matrix
+	// (note: we don't need row_counts/row_starts for
+	// this since choice structure mirrors transition matrix)
+	double *non_zeros_r = ndsm_r->non_zeros;
+	unsigned char *choice_counts_r = ndsm_r->choice_counts;
+	int *choice_starts_r = (int *)ndsm_r->choice_counts;
+	bool use_counts_r = ndsm_r->use_counts;
+	unsigned int *cols_r = ndsm_r->cols;
+		
+	while (!done && iters < max_iters) {
 	
 		iters++;
 
 //		PS_PrintToMainLog(env, "iter %d\n", iters);
 //		start3 = util_cpu_time();
 
-		// store local copies of stuff
-		// firstly for transition matrix
-		double *non_zeros = ndsm->non_zeros;
-		unsigned char *row_counts = ndsm->row_counts;
-		int *row_starts = (int *)ndsm->row_counts;
-		unsigned char *choice_counts = ndsm->choice_counts;
-		int *choice_starts = (int *)ndsm->choice_counts;
-		bool use_counts = ndsm->use_counts;
-		unsigned int *cols = ndsm->cols;
-		// and then for transition rewards matrix
-		// (note: we don't need row_counts/row_starts for
-		// this since choice structure mirrors transition matrix)
-		double *non_zeros_r = ndsm_r->non_zeros;
-		unsigned char *choice_counts_r = ndsm_r->choice_counts;
-		int *choice_starts_r = (int *)ndsm_r->choice_counts;
-		bool use_counts_r = ndsm_r->use_counts;
-		unsigned int *cols_r = ndsm_r->cols;
-		
 		// do matrix multiplication and min/max
 		h1 = h2 = h2_r = 0;
 		// loop through states
@@ -248,16 +295,18 @@ jboolean min		// min or max probabilities (true = min, false = max)
 				// see if this value is the min/max so far
 				if (first || (min&&(d2<d1)) || (!min&&(d2>d1))) {
 					d1 = d2;
-					if (adv_loop) { adv_l = l2; adv_h = h2; }
+					// if adversary generation is enabled, remember new (strictly) better choices
+					if (export_adv_enabled != EXPORT_ADV_NONE) {
+						if (adv[i] == -1 || (min&&(d1<soln[i])) || (!min&&(d1>soln[i]))) {
+							adv[i] = j;
+						}
+					}
 				}
 				first = false;
 			}
 			// set vector element
 			// (if there were no choices from this state, reward is zero/infinity)
 			soln2[i] = (h1 > l1) ? d1 : inf_vec[i] > 0 ? HUGE_VAL : 0;
-			// store adversary info (if required)
-			if (adv_loop) if (h1 > l1)
-				for (k = adv_l; k < adv_h; k++) fprintf(fp_adv, "%d %d %g\n", i, cols[k], non_zeros[k]);
 		}
 		
 		// check convergence
@@ -296,6 +345,28 @@ jboolean min		// min or max probabilities (true = min, false = max)
 //		PS_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
 	}
 	
+	// Traverse matrix to extract adversary
+	if (export_adv_enabled != EXPORT_ADV_NONE) {
+		h1 = h2 = 0;
+		for (i = 0; i < n; i++) {
+			if (!use_counts) { l1 = row_starts[i]; h1 = row_starts[i+1]; }
+			else { l1 = h1; h1 += row_counts[i]; }
+			// Have to loop through all choices (to compute offsets)
+			for (j = l1; j < h1; j++) {
+				if (!use_counts) { l2 = choice_starts[j]; h2 = choice_starts[j+1]; }
+				else { l2 = h2; h2 += choice_counts[j]; }
+				// But only output a choice if it is in the adversary
+				if (j == adv[i]) {
+					for (k = l2; k < h2; k++) {
+						fprintf(fp_adv, "%d %d %g", i, cols[k], non_zeros[k]);
+						if (actions != NULL) fprintf(fp_adv, " %s", actions[j]>0?action_names[actions[j]-1]:"");
+						fprintf(fp_adv, "\n");
+					}
+				}
+			}
+		}
+	}
+	
 	// stop clocks
 	stop = util_cpu_time();
 	time_for_iters = (double)(stop - start2)/1000;
@@ -308,9 +379,9 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	if (!done) { delete soln; soln = NULL; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
 	
 	// close file to store adversary (if required)
-	if (adv) {
+	if (export_adv_enabled != EXPORT_ADV_NONE) {
 		fclose(fp_adv);
-		PS_PrintToMainLog(env, "\nAdversary written to file \"%s\".\n", "adv.tra");
+		PS_PrintToMainLog(env, "\nAdversary written to file \"%s\".\n", export_adv_filename);
 	}
 	
 	// catch exceptions: register error, free memory
@@ -329,6 +400,11 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	if (inf_vec) delete[] inf_vec;
 	if (sr_vec) delete[] sr_vec;
 	if (soln2) delete[] soln2;
+	if (adv) delete[] adv;
+	if (actions != NULL) {
+		delete[] actions;
+		release_string_array_from_java(env, action_names_jstrings, action_names, num_actions);
+	}
 	
 	return ptr_to_jlong(soln);
 }

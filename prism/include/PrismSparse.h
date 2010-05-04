@@ -178,10 +178,10 @@ JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1NondetInstReward
 /*
  * Class:     sparse_PrismSparse
  * Method:    PS_NondetReachReward
- * Signature: (JJJJJIJIJIJJJZ)J
+ * Signature: (JJLjava/util/List;JJJJIJIJIJJJZ)J
  */
 JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1NondetReachReward
-  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jlong, jboolean);
+  (JNIEnv *, jclass, jlong, jlong, jobject, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jlong, jboolean);
 
 /*
  * Class:     sparse_PrismSparse

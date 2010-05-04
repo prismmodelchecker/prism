@@ -274,10 +274,10 @@ public class PrismSparse
 	}
 
 	// pctl reach reward (nondeterministic/mdp)
-	private static native long PS_NondetReachReward(long trans, long sr, long trr, long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long goal, long inf, long maybe, boolean minmax);
-	public static DoubleVector NondetReachReward(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode goal, JDDNode inf, JDDNode maybe, boolean minmax) throws PrismException
+	private static native long PS_NondetReachReward(long trans, long trans_actions, List<String> synchs, long sr, long trr, long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long goal, long inf, long maybe, boolean minmax);
+	public static DoubleVector NondetReachReward(JDDNode trans, JDDNode transActions, List<String> synchs, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode goal, JDDNode inf, JDDNode maybe, boolean minmax) throws PrismException
 	{
-		long ptr = PS_NondetReachReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), goal.ptr(), inf.ptr(), maybe.ptr(), minmax);
+		long ptr = PS_NondetReachReward(trans.ptr(), (transActions == null) ? 0 : transActions.ptr(), synchs, sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), goal.ptr(), inf.ptr(), maybe.ptr(), minmax);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
