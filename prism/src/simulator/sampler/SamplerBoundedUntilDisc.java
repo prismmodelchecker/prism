@@ -62,23 +62,33 @@ public class SamplerBoundedUntilDisc extends SamplerBoolean
 	public void update(Path path) throws PrismLangException
 	{
 		int pathSize = path.size();
+		// Upper bound exceeded
 		if (pathSize > ub) {
 			valueKnown = true;
 			value = false;
-		} else if (pathSize < lb) {
+		}
+		// Lower bound not yet exceeded but LHS of until violated
+		// (no need to check RHS because too early)
+		else if (pathSize < lb) {
 			if (!left.evaluateBoolean(path.getCurrentState())) {
 				valueKnown = true;
 				value = false;
 			}
-		} else {
+		}
+		// Current time is between lower/upper bounds...
+		else {
 			State currentState = path.getCurrentState();
+			// Have we reached the target (i.e. RHS of until)?
 			if (right.evaluateBoolean(currentState)) {
 				valueKnown = true;
 				value = true;
-			} else if (!left.evaluateBoolean(currentState)) {
+			}
+			// Or, if not, have we violated the LJS of the until?
+			else if (!left.evaluateBoolean(currentState)) {
 				valueKnown = true;
 				value = false;
 			}
+			// Otherwise, don't know
 		}
 	}
 }

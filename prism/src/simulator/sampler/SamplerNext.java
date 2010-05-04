@@ -28,7 +28,6 @@ package simulator.sampler;
 
 import simulator.*;
 import prism.*;
-import parser.*;
 import parser.ast.*;
 
 public class SamplerNext extends SamplerBoolean

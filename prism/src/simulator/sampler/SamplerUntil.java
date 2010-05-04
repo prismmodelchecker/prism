@@ -70,5 +70,6 @@ public class SamplerUntil extends SamplerBoolean
 			valueKnown = true;
 			value = false;
 		}
+		// Otherwise, don't know
 	}
 }

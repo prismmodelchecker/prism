@@ -66,12 +66,13 @@ public class SamplerBoundedUntilCont extends SamplerBoolean
 	public void update(Path path) throws PrismLangException
 	{
 		if (path.size() > 0) {
-			double time_so_far = path.getTimeSoFar();
-			if (time_so_far > ub) {
+			double timeSoFar = path.getTimeSoFar();
+			// As soon as upper time bound exceeded, we can decide
+			if (timeSoFar > ub) {
 				// must take into account the possibility of missing lower bound
 
 				// could have missed out evaluation of right
-				if (time_so_far - path.getTimeInPreviousState() <= lb) {
+				if (timeSoFar - path.getTimeInPreviousState() <= lb) {
 					if (right.evaluateBoolean(path.getPreviousState())) {
 						valueKnown = true;
 						value = true;
@@ -83,7 +84,7 @@ public class SamplerBoundedUntilCont extends SamplerBoolean
 					valueKnown = true;
 					value = false;
 				}
-			} else if (time_so_far <= lb) {
+			} else if (timeSoFar <= lb) {
 				if (!left.evaluateBoolean(path.getCurrentState())) {
 					valueKnown = true;
 					value = false;
