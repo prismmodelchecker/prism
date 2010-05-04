@@ -36,8 +36,10 @@ import prism.PrismLog;
 
 /**
  * Stores and manipulates a path though a model.
+ * The full path is stored, i.e. all info at all steps.
+ * State objects and arrays are copied for storage.
  */
-public class Path
+public class PathFull extends Path
 {
 	class Step
 	{
@@ -74,12 +76,153 @@ public class Path
 	protected double totalStateReward[];
 	protected double totalTransitionReward[];
 
-	// ACCESSORS
+	/**
+	 * Constructor: creates a new (empty) PathFull object for a specific model.
+	 */
+	public PathFull(SimulatorEngine engine, ModulesFile modulesFile)
+	{
+		// Store ptr to engine
+		this.engine = engine;
+		// Store model and info
+		this.modulesFile = modulesFile;
+		continuousTime = modulesFile.getModelType().continuousTime();
+		numRewardStructs = modulesFile.getNumRewardStructs();
+		// Create arrays to store totals
+		totalReward = new double[numRewardStructs];
+		totalStateReward = new double[numRewardStructs];
+		totalTransitionReward = new double[numRewardStructs];
+		// Initialise variables
+		clear();
+	}
 
+	/**
+	 * Clear the path.
+	 */
+	protected void clear()
+	{
+		// Initialise path totals
+		size = 0;
+		totalTime = 0.0;
+		for (int i = 0; i < numRewardStructs; i++) {
+			totalReward[i] = 0.0;
+			totalStateReward[i] = 0.0;
+			totalTransitionReward[i] = 0.0;
+		}
+	}
+
+	// MUTATORS (for Path)
+
+	@Override
+	public void initialise(State initialState, double[] initialStateRewards)
+	{
+		clear();
+		path = new ArrayList<Step>(100);
+		// Add new step item to the path
+		Step step = new Step();
+		path.add(step);
+		size++;
+		// Add (copies of) initial state and state rewards to new step
+		step.state = new State(initialState);
+		step.stateRewards = initialStateRewards.clone();
+	}
+
+	/**
+	 * Add a step to the path.
+	 * The passed in State object and arrays (of rewards) will be copied to store in the path.
+	 */
+	@Override
+	public void addStep(int choice, String action, double[] transRewards, State newState, double[] newStateRewards)
+	{
+		addStep(0, choice, action, transRewards, newState, newStateRewards);
+	}
+
+	/**
+	 * Add a timed step to the path.
+	 * The passed in State object and arrays (of rewards) will be copied to store in the path.
+	 */
+	@Override
+	public void addStep(double time, int choice, String action, double[] transRewards, State newState, double[] newStateRewards)
+	{
+		Step step;
+		// Add info to last existing step
+		step = path.get(path.size() - 1);
+		if (continuousTime) {
+			step.time = time;
+			step.timeCumul = time;
+			if (path.size() > 1)
+				step.timeCumul += path.get(path.size() - 1).timeCumul;
+		}
+		step.choice = choice;
+		step.action = action;
+		step.transitionRewards = transRewards.clone();
+		// Add new step item to the path
+		step = new Step();
+		path.add(step);
+		size++;
+		// Add (copies of) new state and state rewards to new step
+		step.state = new State(newState);
+		step.stateRewards = newStateRewards.clone();
+		// Update totals
+		totalTime += time;
+	}
+
+	// ACCESSORS (for Path)
+
+	@Override
 	public int size()
 	{
 		return size;
 	}
+
+	@Override
+	public State getPreviousState()
+	{
+		return path.get(path.size() - 2).state;
+	}
+
+	@Override
+	public State getCurrentState()
+	{
+		return path.get(path.size() - 1).state;
+	}
+
+	@Override
+	public double getTimeSoFar()
+	{
+		return totalTime;
+	}
+
+	@Override
+	public double getTimeInPreviousState()
+	{
+		return path.get(path.size() - 2).time;
+	}
+
+	@Override
+	public double getRewardCumulatedSoFar(int index)
+	{
+		return totalReward[index];
+	}
+	
+	@Override
+	public double getPreviousStateReward(int index)
+	{
+		return path.get(path.size() - 2).stateRewards[index];
+	}
+	
+	@Override
+	public double getPreviousTransitionReward(int index)
+	{
+		return path.get(path.size() - 2).transitionRewards[index];
+	}
+	
+	@Override
+	public double getCurrentStateReward(int index)
+	{
+		return path.get(path.size() - 1).stateRewards[index];
+	}
+	
+	// ACCESSORS (additional)
 
 	public State getState(int step)
 	{
@@ -89,11 +232,6 @@ public class Path
 	public double getStateReward(int step, int i)
 	{
 		return path.get(step).stateRewards[i];
-	}
-
-	public State getCurrentState()
-	{
-		return getState(size - 1);
 	}
 
 	public double getTime(int i)
@@ -122,99 +260,13 @@ public class Path
 	}
 
 	/**
-	 * Constructor: creates a new (empty) Path object for a specific model.
-	 */
-	public Path(SimulatorEngine engine, ModulesFile modulesFile)
-	{
-		// Store ptr to engine
-		this.engine = engine;
-		// Store model and info
-		this.modulesFile = modulesFile;
-		continuousTime = modulesFile.getModelType().continuousTime();
-		numRewardStructs = modulesFile.getNumRewardStructs();
-		// Create arrays to store totals
-		totalReward = new double[numRewardStructs];
-		totalStateReward = new double[numRewardStructs];
-		totalTransitionReward = new double[numRewardStructs];
-		// Initialise variables
-		clear();
-	}
-
-	/**
-	 * Clear the path
-	 */
-	protected void clear()
-	{
-		// Initialise path totals
-		size = 0;
-		totalTime = 0.0;
-		for (int i = 0; i < numRewardStructs; i++) {
-			totalReward[i] = 0.0;
-			totalStateReward[i] = 0.0;
-			totalTransitionReward[i] = 0.0;
-		}
-	}
-
-	/**
-	 * Initialise the path with an initial state and rewards.
-	 */
-	public void initialise(State initialState, double[] initialStateRewards)
-	{
-		clear();
-		path = new ArrayList<Step>(100);
-		// Add new step item to the path
-		Step step = new Step();
-		path.add(step);
-		size++;
-		// Add (copies of) initial state and state rewards to new step
-		step.state = new State(initialState);
-		step.stateRewards = initialStateRewards.clone();
-	}
-
-	/**
-	 * Add a step to the path.
-	 */
-	public void addStep(int choice, String action, double[] transRewards, State newState, double[] newStateRewards)
-	{
-		addStep(0, choice, action, transRewards, newState, newStateRewards);
-	}
-
-	/**
-	 * Add a (timed) step to the path.
-	 */
-	public void addStep(double time, int choice, String action, double[] transRewards, State newState,
-			double[] newStateRewards)
-	{
-		Step step;
-		// Add info to last existing step
-		step = path.get(path.size() - 1);
-		if (continuousTime) {
-			step.time = time;
-			step.timeCumul = time;
-			if (path.size() > 1)
-				step.timeCumul += path.get(path.size() - 1).timeCumul;
-		}
-		step.choice = choice;
-		step.action = action;
-		step.transitionRewards = transRewards.clone();
-		// Add new step item to the path
-		step = new Step();
-		path.add(step);
-		size++;
-		// Add (copies of) new state and state rewards to new step
-		step.state = new State(newState);
-		step.stateRewards = newStateRewards.clone();
-	}
-
-	/**
-	 * Exports path to a file.
+	 * Export path to a file.
 	 * @param log: PrismLog to which the path should be exported to.
 	 * @param timeCumul: Show time in cumulative form?
 	 * @param colSep: String used to separate columns in display
 	 * @param vars: Restrict printing to these variables (indices) and steps which change them (ignore if null)
 	 */
-	public void exportToLog(PrismLog log, boolean timeCumul, String colSep, ArrayList<Integer> vars)
-			throws PrismException
+	public void exportToLog(PrismLog log, boolean timeCumul, String colSep, ArrayList<Integer> vars) throws PrismException
 	{
 		int i, j, n, nv;
 		double d, t;
@@ -304,9 +356,7 @@ public class Path
 		log.close();
 	}
 
-	/**
-	 * Generate string representation.
-	 */
+	@Override
 	public String toString()
 	{
 		int i;

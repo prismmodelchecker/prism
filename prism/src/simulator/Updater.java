@@ -108,8 +108,8 @@ public class Updater
 		int i, j, n, count, n2, n3;
 		double p;
 
-		System.out.println("Synchs: " + synchs);
-		System.out.println("Calc updates for " + state);
+		//System.out.println("Synchs: " + synchs);
+		//System.out.println("Calc updates for " + state);
 		// Clear lists/bitsets
 		transitionList.clear();
 		for (i = 0; i < numModules; i++) {
@@ -125,7 +125,7 @@ public class Updater
 		for (i = 0; i < numModules; i++) {
 			calculateUpdatesForModule(i, state);
 		}
-		System.out.println("updateLists: " + updateLists);
+		//System.out.println("updateLists: " + updateLists);
 
 		// Combination of updates depends on model type
 		/*switch (modelType) {
@@ -167,7 +167,7 @@ public class Updater
 						// TODO
 						throw new PrismLangException("Don't handle local nondet yet");
 					}
-					System.out.println("prod" + j + ": " + prod);
+					//System.out.println("prod" + j + ": " + prod);
 				}
 				transitionList.add(prod);
 				n++;
@@ -226,7 +226,7 @@ public class Updater
 
 		// For DTMCs, need to randomise
 
-		System.out.println(transitionList);
+		//System.out.println(transitionList);
 
 	}
 
