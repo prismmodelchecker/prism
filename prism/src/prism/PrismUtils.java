@@ -190,35 +190,12 @@ public class PrismUtils
 	}
 
 	/**
-	 * Format a double.
-	 * TODO: fix me (precision ignored, re-use above code instead)
+	 * Format a double, as would be done by printf's %.<prec>g
 	 */
-	public static String formatDouble(int precision, double d)
+	public static String formatDouble(int prec, double d)
 	{
-		Formatter formatter = new Formatter();
-
-		formatter.format("%.6g", d); // [the way to format scientific notation with 6 being the precision]
-
-		String res = formatter.toString().trim();
-
-		int trailingZeroEnd = res.lastIndexOf('e');
-		if (trailingZeroEnd == -1)
-			trailingZeroEnd = res.length();
-
-		int x = trailingZeroEnd - 1;
-
-		while (x > 0 && res.charAt(x) == '0')
-			x--;
-
-		if (res.charAt(x) == '.')
-			x++;
-
-		res = res.substring(0, x + 1) + res.substring(trailingZeroEnd, res.length());
-
-		//formatter.format("%.6f",d); //(just decimals)
-		//formatter.format("%1$.2e", d); // [the way to format scientific notation with 6 being the precision]
-
-		return res;
+		// Note that we have to tweak this since Java do it quite like C. 
+		return String.format("%." + prec + "g", d).replaceFirst("\\.?0+(e|$)", "$1");
 	}
 }
 
