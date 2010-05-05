@@ -317,6 +317,17 @@ public abstract class ASTElement
 	}
 
 	/**
+	 * Expand labels, return result.
+	 * Special labels "deadlock", "init" and any not in list are left.
+	 * @param labelList: The LabelList for label definitions
+	 */
+	public ASTElement expandLabels(LabelList labelList) throws PrismLangException
+	{
+		ExpandLabels visitor = new ExpandLabels(labelList);
+		return (ASTElement) accept(visitor);
+	}
+
+	/**
 	 * Check for type-correctness and compute type.
 	 */
 	public void typeCheck() throws PrismLangException

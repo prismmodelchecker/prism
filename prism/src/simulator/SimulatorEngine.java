@@ -611,8 +611,12 @@ public class SimulatorEngine
 	 */
 	public int addProperty(Expression prop, PropertiesFile pf) throws PrismException
 	{
-		// Take a copy, get rid of any constants and simplify
+		// Take a copy
 		Expression propNew = prop.deepCopy();
+		// Combine label lists from model/property file, then remove labels from property 
+		LabelList combinedLabelList = (pf == null) ? modulesFile.getLabelList() : pf.getCombinedLabelList();
+		propNew = (Expression) propNew.expandLabels(combinedLabelList);
+		// Then get rid of any constants and simplify
 		propNew = (Expression) propNew.replaceConstants(constants);
 		if (pf != null) {
 			propNew = (Expression) propNew.replaceConstants(pf.getConstantValues());

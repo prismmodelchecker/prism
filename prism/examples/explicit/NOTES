@@ -110,6 +110,8 @@ prism polling/poll5.sm -fixdl -exporttrans polling/poll5.tra -exportstates polli
   prism-ar polling/poll2 last_polled -ctmc -noopt
   prism-ar polling/poll5 last_polled -ctmc -noopt
 
+  prism-ar polling/poll2 last_polled -ctmc -noopt -exactcheck
+
 -ctmc -probreachbnd=1
 
 #================================================

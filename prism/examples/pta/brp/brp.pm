@@ -10,7 +10,7 @@ const int MAX;
 // max time to send a message (transition delay)
 const int TD;
 // time out limit (greater than TD+TD - the max time to send a message and receive an ack)
-const int TIME_OUT;
+const int TIME_OUT = 2*TD + 1;
 
 module sender
 

@@ -20,21 +20,6 @@ See also:
 
 -----------------------------------------------------------------------
 
-Fixes/tidying needed before release to Kim:
-
-Processing TODOs:
-Check STPGAR carefully (and then PTAAR subclass)
-CTL stuff (even if only disable?) in NonProbMC
-Tidy up, disable and/or remove PTA rewards stuff
-
-disable simulator neatly?
-
-and to Holger et al.:
-
-CTMDP stuff
-
------------------------------------------------------------------------
-
 Filters, property semantics, etc.
 
 TODO:

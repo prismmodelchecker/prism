@@ -4,3 +4,6 @@ java -cp classes explicit.CTMDPModelChecker examples/ctmdp/Neu10.{tra,lab} targe
 
 java -cp classes explicit.CTMDPModelChecker examples/ctmdp/jsp.{tra,lab} done 10 -max
 
+
+prism examples/ctmdp/cluster.sm -csl 'const double T; P=? [ true U<=T !"minimum" ]' -const N=4,T=1000
+prism examples/ctmdp/cluster.sm -csl 'const double T; P=? [ true U<=T !"minimum" {"crit"} ]' -const N=4,T=1000

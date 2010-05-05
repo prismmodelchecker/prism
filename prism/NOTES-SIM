@@ -2,19 +2,15 @@
 NOW/NEXT:
 
 
-work on Sampler classes
-need to get property constants sorted out
-should be specified when passed to sim engine, like for models
-but when are props passed to sim engine? diff for pathgen/sampling?
-what about experiments, e.g. F<=t for t=...?
-
 
 looping
 
 
 TODO:
 
-explicitbuildtest doesn't handle dupes in mdps (e.fg. consensus)
+add support "deadlock" and "init" (new EvaluationContext, model *and* state dependent)
+
+explicitbuildtest doesn't handle dupes in mdps (e.g. consensus)
 
 explicit build doesn't handle multiple initial states
 
