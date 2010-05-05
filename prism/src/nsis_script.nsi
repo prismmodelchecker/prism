@@ -27,7 +27,7 @@
 
 ; You should always call makensis in the following way:
 ;
-; > makensis /DPRISM_NAME="PRISM 3.0" /DPRISM_BUILD="prism-3.0" 
+; > makensis /NOCD /DPRISM_NAME="PRISM 3.0" /DPRISM_BUILD="prism-3.0" 
 ;	/DPRISM_DIR="" installer_script.nsi
 ;
 ; Where "PRISM 3.0" is the name of the program displayed to the user, prism-3.0
