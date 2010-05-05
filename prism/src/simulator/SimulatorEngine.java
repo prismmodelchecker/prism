@@ -165,82 +165,35 @@ public class SimulatorEngine
 	// Variable info
 	private VarList varList;
 	private int numVars;
+	private Map<String, Integer> varIndices;
 	// Synchronising action info
 	private Vector<String> synchs;
 	private int numSynchs;
+	// Constant definitions from model file
+	private Values mfConstants;
 
-	// Properties info
-	private PropertiesFile propertiesFile;
+	// Labels + properties info
+	protected List<Expression> labels;
 	private List<Expression> properties;
 	private List<Sampler> propertySamplers;
 
-	private Values propertyConstants;
-	private ArrayList loadedProperties;
-
-	// Updater object for model
-	protected Updater updater;
-	protected TransitionList transitionList;
-	// Random number generator
-	private RandomNumberGenerator rng;
-
-	// TODO: ... more from below
-
-	// NEW STUFF:
+	// Current path info
+	protected Path path;
 	protected boolean onTheFly;
-
+	
+	// TODO: remove these now can get from path?
 	protected State previousState;
 	protected State currentState;
 	protected double currentStateRewards[];
-
-	// PATH:
-	protected PathFull path = null;
-	// TRANSITIONS:
-
-	protected List<Expression> labels;
-
-	// ------------------------------------------------------------------------------
-	// CONSTANTS
-	// ------------------------------------------------------------------------------
-
-	// Errors
-	/**
-	 * Used by the simulator engine to report that something has caused an exception. The actual content of the error
-	 * can be queried using the <tt>getLastErrorMessage()</tt> method.
-	 */
-	public static final int ERROR = -1;
-	/**
-	 * Used by the simulator engine to report that an index parameter was out of range.
-	 */
-	public static final int OUTOFRANGE = -1;
-	/**
-	 * Used by the simulator engine to indicate that a returned pointer is NULL.
-	 */
-	public static final int NULL = 0;
-
-	// Model type
-	/**
-	 * A constant for the model type
-	 */
-	public static final int NOT_LOADED = 0;
-
-	// Undefined values
-	/**
-	 * Used throughout the simulator for undefined integers
-	 */
-	public static final int UNDEFINED_INT = Integer.MIN_VALUE + 1;
-	/**
-	 * Used throughout the simulator for undefined doubles
-	 */
-	public static final double UNDEFINED_DOUBLE = -10E23f;
-
-	// ------------------------------------------------------------------------------
-	// CLASS MEMBERS
-	// ------------------------------------------------------------------------------
-
-	private Map<String, Integer> varIndices;
-
-	// Current model
-	private Values constants;
+	
+	// List of currently available transitions
+	protected TransitionList transitionList;
+	
+	// Updater object for model
+	protected Updater updater;
+	
+	// Random number generator
+	private RandomNumberGenerator rng;
 
 	// ------------------------------------------------------------------------------
 	// Basic setup
@@ -257,9 +210,7 @@ public class SimulatorEngine
 		rng = new RandomNumberGenerator();
 		varIndices = null;
 		modulesFile = null;
-		propertiesFile = null;
-		constants = null;
-		propertyConstants = null;
+		mfConstants = null;
 		properties = null;
 		propertySamplers = null;
 	}
@@ -285,36 +236,30 @@ public class SimulatorEngine
 	// ------------------------------------------------------------------------------
 
 	/**
-	 * Create a new path for a model and (possibly) some properties.
+	 * Create a new path for a model.
 	 * Note: All constants in the model must have already been defined.
 	 * @param modulesFile Model for simulation
-	 * @param propertiesFile Properties to check during simulation TODO: change?
 	 */
-	public void createNewPath(ModulesFile modulesFile, PropertiesFile propertiesFile) throws PrismException
+	public void createNewPath(ModulesFile modulesFile) throws PrismException
 	{
-		// Store model/properties
+		// Store model
 		loadModulesFile(modulesFile);
-		this.propertiesFile = (propertiesFile == null) ? new PropertiesFile(modulesFile) : propertiesFile;
-		propertyConstants = this.propertiesFile.getConstantValues();
-		// Create empty path object associated with this model
+		// Create empty (full) path object associated with this model
 		path = new PathFull(this, modulesFile);
-		// This is not on-the-fly
 		onTheFly = false;
 	}
 
 	/**
-	 * Create a new on-the-fly path for a model and (possibly) some properties.
+	 * Create a new on-the-fly path for a model.
 	 * Note: All constants in the model must have already been defined.
 	 * @param modulesFile Model for simulation
-	 * @param propertiesFile Properties to check during simulation TODO: change?
 	 */
-	public void createNewOnTheFlyPath(ModulesFile modulesFile, PropertiesFile propertiesFile) throws PrismException
+	public void createNewOnTheFlyPath(ModulesFile modulesFile) throws PrismException
 	{
-		// Store model/properties
+		// Store model
 		loadModulesFile(modulesFile);
-		this.propertiesFile = (propertiesFile == null) ? new PropertiesFile(modulesFile) : propertiesFile;
-		propertyConstants = this.propertiesFile.getConstantValues();
-		// This is on-the-fly
+		// Create empty (on-the-fly_ path object associated with this model
+		path = new PathOnTheFly(this, modulesFile);
 		onTheFly = true;
 	}
 
@@ -346,8 +291,7 @@ public class SimulatorEngine
 		}
 		updater.calculateStateRewards(currentState, currentStateRewards);
 		// Initialise stored path if necessary
-		if (!onTheFly)
-			path.initialise(currentState, currentStateRewards);
+		path.initialise(currentState, currentStateRewards);
 		// Reset and then update samplers for any loaded properties
 		resetSamplers();
 		updateSamplers();
@@ -486,9 +430,7 @@ public class SimulatorEngine
 	 */
 	public void backtrack(int step) throws PrismException
 	{
-		int result = doBacktrack(step);
-		if (result == ERROR)
-			throw new PrismException(getLastErrorMessage());
+		//doBacktrack(step);
 	}
 
 	/**
@@ -503,20 +445,8 @@ public class SimulatorEngine
 	public void backtrack(double time) throws PrismException
 	{
 		// Backtrack(time) in simpath.cc
-		int result = doBacktrack(time);
-		if (result == ERROR)
-			throw new PrismException(getLastErrorMessage());
+		//doBacktrack(time);
 	}
-
-	/**
-	 * Asks the c++ engine to backtrack to the given step. Returns OUTOFRANGE (=-1) if step is out of range
-	 */
-	private static native int doBacktrack(int step);
-
-	/**
-	 * Asks the c++ engine to backtrack to some given time of the path. Returns OUTOFRANGE (=-1) if time is out of range
-	 */
-	private static native int doBacktrack(double time);
 
 	/**
 	 * This function removes states of the path that precede those of the given index
@@ -528,9 +458,7 @@ public class SimulatorEngine
 	 */
 	public void removePrecedingStates(int step) throws PrismException
 	{
-		int result = doRemovePrecedingStates(step);
-		if (result == ERROR)
-			throw new PrismException(getLastErrorMessage());
+		//doRemovePrecedingStates(step);
 	}
 
 	/**
@@ -541,10 +469,11 @@ public class SimulatorEngine
 
 	/**
 	 * Compute the transition table for an earlier step in the path.
+	 * (Not applicable for on-the-fly paths)
 	 */
 	public void computeTransitionsForStep(int step) throws PrismException
 	{
-		updater.calculateTransitions(path.getState(step), transitionList);
+		updater.calculateTransitions(((PathFull) path).getState(step), transitionList);
 	}
 
 	/**
@@ -581,7 +510,7 @@ public class SimulatorEngine
 	{
 		// Take a copy, get rid of any constants and simplify
 		Expression labelNew = label.deepCopy();
-		labelNew = (Expression) labelNew.replaceConstants(constants);
+		labelNew = (Expression) labelNew.replaceConstants(mfConstants);
 		if (pf != null) {
 			labelNew = (Expression) labelNew.replaceConstants(pf.getConstantValues());
 		}
@@ -617,7 +546,7 @@ public class SimulatorEngine
 		LabelList combinedLabelList = (pf == null) ? modulesFile.getLabelList() : pf.getCombinedLabelList();
 		propNew = (Expression) propNew.expandLabels(combinedLabelList);
 		// Then get rid of any constants and simplify
-		propNew = (Expression) propNew.replaceConstants(constants);
+		propNew = (Expression) propNew.replaceConstants(mfConstants);
 		if (pf != null) {
 			propNew = (Expression) propNew.replaceConstants(pf.getConstantValues());
 		}
@@ -633,15 +562,16 @@ public class SimulatorEngine
 	 */
 	public boolean queryLabel(int index) throws PrismLangException
 	{
-		return labels.get(index).evaluateBoolean(currentState);
+		return labels.get(index).evaluateBoolean(path.getCurrentState());
 	}
 
 	/**
 	 * Get the value, at the specified path step, of a previously added label (specified by its index).
+	 * (Not applicable for on-the-fly paths)
 	 */
 	public boolean queryLabel(int index, int step) throws PrismLangException
 	{
-		return labels.get(index).evaluateBoolean(path.getState(step));
+		return labels.get(index).evaluateBoolean(((PathFull) path).getState(step));
 	}
 
 	/**
@@ -650,16 +580,17 @@ public class SimulatorEngine
 	public boolean queryIsInitial() throws PrismLangException
 	{
 		// Currently init...endinit is not supported so this is easy to check
-		return currentState.equals(new State(modulesFile.getInitialValues()));
+		return path.getCurrentState().equals(new State(modulesFile.getInitialValues()));
 	}
 
 	/**
 	 * Check whether a particular step in the current path is an initial state.
+	 * (Not applicable for on-the-fly paths)
 	 */
 	public boolean queryIsInitial(int step) throws PrismLangException
 	{
 		// Currently init...endinit is not supported so this is easy to check
-		return path.getState(step).equals(new State(modulesFile.getInitialValues()));
+		return ((PathFull) path).getState(step).equals(new State(modulesFile.getInitialValues()));
 	}
 
 	/**
@@ -672,6 +603,7 @@ public class SimulatorEngine
 
 	/**
 	 * Check whether a particular step in the current path is a deadlock.
+	 * (Not applicable for on-the-fly paths)
 	 */
 	public boolean queryIsDeadlock(int step) throws PrismLangException
 	{
@@ -692,7 +624,7 @@ public class SimulatorEngine
 		// Store model, some info and constants
 		this.modulesFile = modulesFile;
 		modelType = modulesFile.getModelType();
-		this.constants = modulesFile.getConstantValues();
+		this.mfConstants = modulesFile.getConstantValues();
 
 		// Check for presence of system...endsystem
 		if (modulesFile.getSystemDefn() != null) {
@@ -715,7 +647,7 @@ public class SimulatorEngine
 		numSynchs = synchs.size();
 
 		// Evaluate constants and optimise (a copy of) modules file for simulation
-		modulesFile = (ModulesFile) modulesFile.deepCopy().replaceConstants(constants).simplify();
+		modulesFile = (ModulesFile) modulesFile.deepCopy().replaceConstants(mfConstants).simplify();
 
 		// Create state/transition storage
 		previousState = new State(numVars);
@@ -749,13 +681,11 @@ public class SimulatorEngine
 		previousState.copy(currentState);
 		choice.computeTarget(offset, previousState, currentState);
 		updater.calculateStateRewards(currentState, currentStateRewards);
-		// Store path info (if necessary)
-		if (!onTheFly) {
-			if (index == -1)
-				index = transitionList.getTotalIndexOfTransition(i, offset);
-			path.addStep(index, choice.getAction(), currentStateRewards, currentState, currentStateRewards);
-			// TODO: first currentStateRewards in above should be new *trans* rewards!
-		}
+		// Store path info, first calculating transition index for full paths
+		if (!onTheFly && index == -1)
+			index = transitionList.getTotalIndexOfTransition(i, offset);
+		path.addStep(index, choice.getAction(), currentStateRewards, currentState, currentStateRewards);
+		// TODO: first currentStateRewards in above should be new *trans* rewards!
 		// Update samplers for any loaded properties
 		updateSamplers();
 		// Generate updates for next state 
@@ -783,13 +713,11 @@ public class SimulatorEngine
 		previousState.copy(currentState);
 		choice.computeTarget(offset, previousState, currentState);
 		updater.calculateStateRewards(currentState, currentStateRewards);
-		// Store path info (if necessary)
-		if (!onTheFly) {
-			if (index == -1)
-				index = transitionList.getTotalIndexOfTransition(i, offset);
-			path.addStep(time, index, choice.getAction(), currentStateRewards, currentState, currentStateRewards);
-			// TODO: first currentStateRewards in above should be new *trans* rewards!
-		}
+		// Store path info, first calculating transition index for full paths
+		if (!onTheFly && index == -1)
+			index = transitionList.getTotalIndexOfTransition(i, offset);
+		path.addStep(time, index, choice.getAction(), currentStateRewards, currentState, currentStateRewards);
+		// TODO: first currentStateRewards in above should be new *trans* rewards!
 		// Update samplers for any loaded properties
 		updateSamplers();
 		// Generate updates for next state 
@@ -865,30 +793,9 @@ public class SimulatorEngine
 		return synchs.indexOf(name);
 	}
 
-	/**
-	 * Provides access to the loaded <ModulesFile>'s constants.
-	 * @return the loaded <ModulesFile>'s constants.
-	 */
-	// TODO: remove?
-	public Values getConstants()
-	{
-		if (constants == null) {
-			constants = new Values();
-		}
-		return constants;
-	}
-
 	// ------------------------------------------------------------------------------
 	// Querying of current state and its available choices/transitions
 	// ------------------------------------------------------------------------------
-
-	/**
-	 * Returns the current state being explored by the simulator.
-	 */
-	public State getCurrentState()
-	{
-		return currentState;
-	}
 
 	/**
 	 * Returns the current number of available choices.
@@ -977,7 +884,7 @@ public class SimulatorEngine
 	}
 
 	// ------------------------------------------------------------------------------
-	// Querying of current path
+	// Querying of current path (full or on-the-fly)
 	// ------------------------------------------------------------------------------
 
 	/**
@@ -989,7 +896,20 @@ public class SimulatorEngine
 	}
 
 	/**
+	 * Returns the current state being explored by the simulator.
+	 */
+	public State getCurrentState()
+	{
+		return path.getCurrentState();
+	}
+
+	// ------------------------------------------------------------------------------
+	// Querying of current path (full paths only)
+	// ------------------------------------------------------------------------------
+
+	/**
 	 * Returns the value stored for the variable at varIndex at the path index: stateIndex.
+	 * (Not applicable for on-the-fly paths)
 	 * 
 	 * @param varIndex
 	 *            the index of the variable of interest.
@@ -999,32 +919,35 @@ public class SimulatorEngine
 	 */
 	public Object getPathData(int varIndex, int stateIndex)
 	{
-		return path.getState(stateIndex).varValues[varIndex];
+		return ((PathFull) path).getState(stateIndex).varValues[varIndex];
 	}
 
 	public String getActionOfPathStep(int step)
 	{
-		return path.getAction(step);
+		return ((PathFull) path).getAction(step);
 	}
 
 	/**
 	 * Returns the time spent in the state at the given path index.
+	 * (Not applicable for on-the-fly paths)
 	 */
 	public double getTimeSpentInPathState(int index)
 	{
-		return path.getTime(index);
+		return ((PathFull) path).getTime(index);
 	}
 
 	/**
 	 * Returns the cumulative time spent in the states up to (and including) a given path index.
+	 * (Not applicable for on-the-fly paths)
 	 */
 	public double getCumulativeTimeSpentInPathState(int index)
 	{
-		return path.getCumulativeTime(index);
+		return ((PathFull) path).getCumulativeTime(index);
 	}
 
 	/**
 	 * Returns the ith state reward of the state at the given path index.
+	 * (Not applicable for on-the-fly paths)
 	 * 
 	 * @param stateIndex
 	 *            the index of the path state of interest
@@ -1034,7 +957,7 @@ public class SimulatorEngine
 	 */
 	public double getStateRewardOfPathState(int step, int stateIndex)
 	{
-		return path.getStateReward(step, stateIndex);
+		return ((PathFull) path).getStateReward(step, stateIndex);
 	}
 
 	/**
@@ -1134,25 +1057,26 @@ public class SimulatorEngine
 
 	/**
 	 * Returns the index of the update chosen for an earlier state in the path.
+	 * (Not applicable for on-the-fly paths)
 	 */
 	public int getChosenIndexOfOldUpdate(int step)
 	{
-		return path.getChoice(step);
+		return ((PathFull) path).getChoice(step);
 	}
 
 	/**
 	 * Exports the current path to a file in a simple space separated format.
+	 * (Not applicable for on-the-fly paths)
 	 * @param file: File to which the path should be exported to (mainLog if null).
 	 */
 	public void exportPath(File file) throws PrismException
 	{
-		if (path == null)
-			throw new PrismException("There is no path to export");
 		exportPath(file, false, " ", null);
 	}
 
 	/**
 	 * Exports the current path to a file.
+	 * (Not applicable for on-the-fly paths)
 	 * @param file: File to which the path should be exported to (mainLog if null).
 	 * @param timeCumul: Show time in cumulative form?
 	 * @param colSep: String used to separate columns in display
@@ -1174,56 +1098,12 @@ public class SimulatorEngine
 			log = mainLog;
 			log.println();
 		}
-		path.exportToLog(log, timeCumul, colSep, vars);
+		((PathFull) path).exportToLog(log, timeCumul, colSep, vars);
 	}
 
 	// ------------------------------------------------------------------------------
 	// PROPERTIES AND SAMPLING (not yet sorted)
 	// ------------------------------------------------------------------------------
-
-	/**
-	 * Provides access to the propertyConstants
-	 * 
-	 * @return the propertyConstants
-	 */
-	public Values getPropertyConstants()
-	{
-		if (propertyConstants == null) {
-			propertyConstants = new Values();
-		}
-		return propertyConstants;
-	}
-
-	/**
-	 * Gets (double) result from simulator for a given property/index and process result
-	 */
-	private Object processSamplingResult(Expression expr, int index)
-	{
-		if (index == -1) {
-			return new PrismException("Property cannot be handled by the PRISM simulator");
-		} else {
-			double result = getSamplingResult(index);
-			if (result == UNDEFINED_DOUBLE)
-				result = Double.POSITIVE_INFINITY;
-			// only handle P=?/R=? properties (we could check against the bounds in P>p etc. but results would be a bit
-			// dubious)
-			if (expr instanceof ExpressionProb) {
-				if (((ExpressionProb) expr).getProb() == null) {
-					return new Double(result);
-				} else {
-					return new PrismException("Property cannot be handled by the PRISM simulator");
-				}
-			} else if (expr instanceof ExpressionReward) {
-				if (((ExpressionReward) expr).getReward() == null) {
-					return new Double(result);
-				} else {
-					return new PrismException("Property cannot be handled by the PRISM simulator");
-				}
-			} else {
-				return new PrismException("Property cannot be handled by the PRISM simulator");
-			}
-		}
-	}
 
 	// PCTL Stuff
 
@@ -1291,9 +1171,7 @@ public class SimulatorEngine
 	public Object[] modelCheckMultipleProperties(ModulesFile modulesFile, PropertiesFile propertiesFile, List<Expression> exprs, Values initialState,
 			int noIterations, int maxPathLength) throws PrismException
 	{
-		// TODO: make on the fly again
-		//createNewOnTheFlyPath(modulesFile, propertiesFile);
-		createNewPath(modulesFile, propertiesFile);
+		createNewOnTheFlyPath(modulesFile);
 
 		Object[] results = new Object[exprs.size()];
 		int[] indices = new int[exprs.size()];
@@ -1375,7 +1253,7 @@ public class SimulatorEngine
 		int n;
 		Values definedPFConstants = new Values();
 
-		createNewOnTheFlyPath(modulesFile, propertiesFile);
+		createNewOnTheFlyPath(modulesFile);
 
 		n = undefinedConstants.getNumPropertyIterations();
 		Object[] results = new Object[n];
@@ -1388,7 +1266,6 @@ public class SimulatorEngine
 			definedPFConstants = undefinedConstants.getPFConstantValues();
 			pfcs[i] = definedPFConstants;
 			propertiesFile.setUndefinedConstants(definedPFConstants);
-			propertyConstants = propertiesFile.getConstantValues();
 			try {
 				checkPropertyForSimulation(propertyToCheck, modulesFile.getModelType());
 				indices[i] = addProperty(propertyToCheck, propertiesFile);
@@ -1404,17 +1281,14 @@ public class SimulatorEngine
 		// as long as there are at least some valid props, do sampling
 		if (validPropsCount > 0) {
 			initialisePath(initialState);
-			int result = 0;//doSampling(noIterations, maxPathLength);
-			if (result == ERROR) {
-				throw new PrismException(getLastErrorMessage());
-			}
+			//doSampling(noIterations, maxPathLength);
 		}
 
 		// process the results
 		for (int i = 0; i < n; i++) {
-			// if we have already stored an error for this property, keep it as the result, otherwise process
+			// if we have already stored an error for this property, keep it as the result
 			if (!(results[i] instanceof Exception))
-				results[i] = processSamplingResult(propertyToCheck, indices[i]);
+				results[i] = propertySamplers.get(indices[i]).getMeanValue();
 			// store it in the ResultsCollection
 			resultsCollection.setResult(undefinedConstants.getMFConstantValues(), pfcs[i], results[i]);
 		}
@@ -1615,14 +1489,6 @@ public class SimulatorEngine
 	 * Used to halt the sampling algorithm in its tracks.
 	 */
 	public static native void stopSampling();
-
-	/**
-	 * Used by the recursive model/properties loading methods (not part of the API)
-	 */
-	public LabelList getLabelList()
-	{
-		return propertiesFile.getCombinedLabelList();
-	}
 
 	// Methods to compute parameters for simulation
 

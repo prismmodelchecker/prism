@@ -387,7 +387,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			displayPathLoops = true;
 			
 			// Create a new path in the simulator and add labels/properties 
-			engine.createNewPath(parsedModel, pf);
+			engine.createNewPath(parsedModel);
 			engine.initialisePath(initialState);
 			pathActive = true;
 			repopulateFormulae(pf);

@@ -32,8 +32,6 @@ import parser.ast.*;
 /**
  * Stores and manipulates a path though a model.
  * Minimal info is stored - just enough to allow checking of properties.
- * State objects and arrays are just stored as references to existing objects, but never modified.
- * TODO: decide whether to copy states (we already copy rewards actually)
  */
 public class PathOnTheFly extends Path
 {
@@ -68,6 +66,9 @@ public class PathOnTheFly extends Path
 		this.modulesFile = modulesFile;
 		continuousTime = modulesFile.getModelType().continuousTime();
 		numRewardStructs = modulesFile.getNumRewardStructs();
+		// Create State objects for current/previous state
+		previousState = new State(modulesFile.getNumVars());
+		currentState = new State(modulesFile.getNumVars());
 		// Create arrays to store totals
 		totalRewards = new double[numRewardStructs];
 		previousStateRewards = new double[numRewardStructs];
@@ -84,8 +85,8 @@ public class PathOnTheFly extends Path
 	{
 		// Initialise all path info
 		size = 0;
-		previousState = null;
-		currentState = null;
+		previousState.clear();
+		currentState.clear();
 		totalTime = 0.0;
 		timeInPreviousState = 0.0;
 		for (int i = 0; i < numRewardStructs; i++) {
@@ -102,30 +103,24 @@ public class PathOnTheFly extends Path
 	public void initialise(State initialState, double[] initialStateRewards)
 	{
 		clear();
-		currentState = initialState;
-		currentStateRewards = initialStateRewards;
+		currentState.copy(initialState);
+		for (int i = 0; i < numRewardStructs; i++) {
+			currentStateRewards[i] = initialStateRewards[i];
+		}
 	}
 
-	/**
-	 * Add a step to the path.
-	 * The passed in State object and arrays (of rewards) will be stored as references, but never modified.
-	 */
 	@Override
 	public void addStep(int choice, String action, double[] transRewards, State newState, double[] newStateRewards)
 	{
 		addStep(0, choice, action, transRewards, newState, newStateRewards);
 	}
 
-	/**
-	 * Add a timed step to the path.
-	 * The passed in State object and arrays (of rewards) will be stored as references, but never modified.
-	 */
 	@Override
 	public void addStep(double time, int choice, String action, double[] transRewards, State newState, double[] newStateRewards)
 	{
 		size++;
-		previousState = currentState;
-		currentState = newState;
+		previousState.copy(currentState);
+		currentState.copy(newState);
 		totalTime += time;
 		timeInPreviousState = time;
 		for (int i = 0; i < numRewardStructs; i++) {

@@ -218,7 +218,7 @@ public class GenerateSimulationPath
 		}
 
 		// generate path
-		engine.createNewPath(modulesFile, null);
+		engine.createNewPath(modulesFile);
 		for (j = 0; j < simPathRepeat; j++) {
 			engine.initialisePath(initialState);
 			i = 0;

@@ -69,7 +69,7 @@ public class ConstructModel
 		Distribution distr = null;
 
 		// Initialise simulator for this model
-		engine.createNewOnTheFlyPath(modulesFile, null);
+		engine.createNewOnTheFlyPath(modulesFile);
 
 		// Create a (simple, mutable) model of the appropriate type
 		switch (modelType) {

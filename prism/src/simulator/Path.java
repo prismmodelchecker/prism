@@ -37,16 +37,19 @@ public abstract class Path
 	
 	/**
 	 * Initialise the path with an initial state and rewards.
+	 * Note: State object and array will be copied, not stored directly.
 	 */
 	public abstract void initialise(State initialState, double[] initialStateRewards);
 
 	/**
 	 * Add a step to the path.
+	 * Note: State object and arrays will be copied, not stored directly.
 	 */
 	public abstract void addStep(int choice, String action, double[] transRewards, State newState, double[] newStateRewards);
 
 	/**
 	 * Add a timed step to the path.
+	 * Note: State object and arrays will be copied, not stored directly.
 	 */
 	public abstract void addStep(double time, int choice, String action, double[] transRewards, State newState, double[] newStateRewards);
 

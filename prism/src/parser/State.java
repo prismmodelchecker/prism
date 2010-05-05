@@ -88,6 +88,17 @@ public class State implements Comparable<State>
 	}
 
 	/**
+	 * Clear: set all values to null
+	 */
+	public void clear()
+	{
+		int i, n;
+		n = varValues.length;
+		for (i = 0; i < n; i++)
+			varValues[i] = null;
+	}
+
+	/**
 	 * 
 	 */
 	public void setValue(int i, Object val)
