@@ -123,7 +123,7 @@ public class PathOnTheFly extends Path
 	@Override
 	public void addStep(double time, int choice, String action, double[] transRewards, State newState, double[] newStateRewards)
 	{
-		size = 0;
+		size++;
 		previousState = currentState;
 		currentState = newState;
 		totalTime += time;

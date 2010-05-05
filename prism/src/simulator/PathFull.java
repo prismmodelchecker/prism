@@ -120,7 +120,6 @@ public class PathFull extends Path
 		// Add new step item to the path
 		Step step = new Step();
 		path.add(step);
-		size++;
 		// Add (copies of) initial state and state rewards to new step
 		step.state = new State(initialState);
 		step.stateRewards = initialStateRewards.clone();

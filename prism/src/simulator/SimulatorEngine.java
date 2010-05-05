@@ -614,7 +614,9 @@ public class SimulatorEngine
 		// Take a copy, get rid of any constants and simplify
 		Expression propNew = prop.deepCopy();
 		propNew = (Expression) propNew.replaceConstants(constants);
-		propNew = (Expression) propNew.replaceConstants(pf.getConstantValues());
+		if (pf != null) {
+			propNew = (Expression) propNew.replaceConstants(pf.getConstantValues());
+		}
 		propNew = (Expression) propNew.simplify();
 		// Create sampler, update lists and return index
 		properties.add(propNew);
@@ -710,7 +712,6 @@ public class SimulatorEngine
 
 		// Evaluate constants and optimise (a copy of) modules file for simulation
 		modulesFile = (ModulesFile) modulesFile.deepCopy().replaceConstants(constants).simplify();
-		mainLog.println(modulesFile);
 
 		// Create state/transition storage
 		previousState = new State(numVars);
@@ -1573,8 +1574,8 @@ public class SimulatorEngine
 			stop = System.currentTimeMillis();
 			time_taken = (stop - start) / 1000.0;
 			mainLog.print("\nSampling complete: ");
-			mainLog.print(iters + " iterations in " + time_taken + " seconds (average " + time_taken / iters + ")\n");
-			mainLog.print("Path length statistics: average " + avgPathLength + ", min " + minPathFound + ", max " + maxPathFound + "\n");
+			mainLog.print(iters + " iterations in " + time_taken + " seconds (average " + PrismUtils.formatDouble(2, time_taken / iters) + ")\n");
+			mainLog.print("Path length statistics: average " + PrismUtils.formatDouble(2, avgPathLength) + ", min " + minPathFound + ", max " + maxPathFound + "\n");
 		} else {
 			mainLog.print(" ...\n\nSampling terminated early after " + iters + " iterations.\n");
 		}

@@ -56,7 +56,7 @@ public class SamplerBoundedUntilCont extends SamplerBoolean
 		left = expr.getOperand1();
 		right = expr.getOperand2();
 		lb = expr.getLowerBound() == null ? 0.0 : expr.getLowerBound().evaluateDouble();
-		ub = expr.getUpperBound() == null ? Double.POSITIVE_INFINITY: expr.getUpperBound().evaluateDouble();
+		ub = expr.getUpperBound() == null ? Double.POSITIVE_INFINITY : expr.getUpperBound().evaluateDouble();
 		// Initialise sampler info
 		reset();
 		resetStats();
@@ -65,49 +65,71 @@ public class SamplerBoundedUntilCont extends SamplerBoolean
 	@Override
 	public void update(Path path) throws PrismLangException
 	{
-		if (path.size() > 0) {
-			double timeSoFar = path.getTimeSoFar();
-			// As soon as upper time bound exceeded, we can decide
-			if (timeSoFar > ub) {
-				// must take into account the possibility of missing lower bound
+		// For continuous-time bounded until, we may need to look back at previous state.
+		// So, treat first/subsequent calls to update() differently. 
 
-				// could have missed out evaluation of right
-				if (timeSoFar - path.getTimeInPreviousState() <= lb) {
-					if (right.evaluateBoolean(path.getPreviousState())) {
-						valueKnown = true;
-						value = true;
-					} else {
-						valueKnown = true;
-						value = false;
-					}
-				} else {
-					valueKnown = true;
-					value = false;
-				}
-			} else if (timeSoFar <= lb) {
-				if (!left.evaluateBoolean(path.getCurrentState())) {
-					valueKnown = true;
-					value = false;
-				}
-			} else {
-				if (right.evaluateBoolean(path.getCurrentState())) {
-					valueKnown = true;
-					value = true;
-				} else if (!left.evaluateBoolean(path.getCurrentState())) {
-					valueKnown = true;
-					value = false;
-				}
-			}
-		} else {
+		// First path state:
+		if (path.size() == 0) {
+			// Initially, zero time has elapsed so to satisfy the until,
+			// we need a lower time bound of 0 and the RHS to be satisfied 
 			if (lb == 0.0) {
 				if (right.evaluateBoolean(path.getCurrentState())) {
 					valueKnown = true;
 					value = true;
 				}
-			} else {
+			}
+			// If LHS of the until violated, will never be true
+			else {
 				if (!left.evaluateBoolean(path.getCurrentState())) {
 					valueKnown = true;
 					value = false;
+				}
+			}
+		}
+		// Second and subsequent path states:
+		else {
+			double timeSoFar = path.getTimeSoFar();
+			// As soon as upper time bound exceeded, we can decide
+			if (timeSoFar > ub) {
+				// Upper time bound was exceeded (for first time) in *previous* state
+				// Had we reached the target (i.e. RHS of until)?
+				if (right.evaluateBoolean(path.getPreviousState())) {
+					valueKnown = true;
+					value = true;
+				}
+				// If not, it's too late now
+				else {
+					valueKnown = true;
+					value = false;
+				}
+			}
+			// Lower bound not yet exceeded but LHS of until violated
+			// (no need to check RHS because too early)
+			else if (timeSoFar <= lb) {
+				if (!left.evaluateBoolean(path.getCurrentState())) {
+					valueKnown = true;
+					value = false;
+				}
+			}
+			// Current time is between lower/upper bounds...
+			else {
+				// Have we reached the target (i.e. RHS of until)?
+				if (right.evaluateBoolean(path.getCurrentState())) {
+					valueKnown = true;
+					value = true;
+				}
+				// Or, if not, have we violated the LHS of the until?
+				else if (!left.evaluateBoolean(path.getCurrentState())) {
+					valueKnown = true;
+					value = false;
+				}
+				// If the lower bound was exceeded for the first time in the
+				// previous state, and that one satisfies the RHS of the until...
+				else if (timeSoFar - path.getTimeInPreviousState() <= lb) {
+					if (right.evaluateBoolean(path.getPreviousState())) {
+						valueKnown = true;
+						value = true;
+					}
 				}
 			}
 		}

@@ -63,6 +63,8 @@ public class SamplerRewardInstCont extends SamplerDouble
 			// Time bound was exceeded in either previous or current state
 			// (unless the time bound is 0, the latter is very unlikely)
 			if (path.getTimeSoFar() > time) {
+				// Note: Time so far > 0 so cannot be first state,
+				// so safe to look at previous state.
 				value = path.getPreviousStateReward(rewardStructIndex);
 			} else {
 				value = path.getCurrentStateReward(rewardStructIndex);
