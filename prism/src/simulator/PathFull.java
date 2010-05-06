@@ -41,22 +41,6 @@ import prism.PrismLog;
  */
 public class PathFull extends Path
 {
-	class Step
-	{
-		public Step()
-		{
-			stateRewards = new double[numRewardStructs];
-		}
-
-		public State state;
-		public double stateRewards[];
-		public double time;
-		public double timeCumul;
-		public int choice;
-		public String action;
-		public double transitionRewards[];
-	}
-
 	// Parent simulator engine
 	protected SimulatorEngine engine;
 	// Model to which the path corresponds
@@ -65,16 +49,11 @@ public class PathFull extends Path
 	protected boolean continuousTime;
 	// Model info/stats
 	protected int numRewardStructs;
+	
 	// The path, i.e. list of states, etc.
-	protected ArrayList<Step> path;
-	// The path length
+	protected ArrayList<Step> steps;
+	// The path length (just for convenience; equal to steps.size() - 1)
 	protected int size;
-
-	// Path totals (time/rewards)
-	protected double totalTime;
-	protected double totalReward[];
-	protected double totalStateReward[];
-	protected double totalTransitionReward[];
 
 	/**
 	 * Constructor: creates a new (empty) PathFull object for a specific model.
@@ -87,10 +66,8 @@ public class PathFull extends Path
 		this.modulesFile = modulesFile;
 		continuousTime = modulesFile.getModelType().continuousTime();
 		numRewardStructs = modulesFile.getNumRewardStructs();
-		// Create arrays to store totals
-		totalReward = new double[numRewardStructs];
-		totalStateReward = new double[numRewardStructs];
-		totalTransitionReward = new double[numRewardStructs];
+		// Create list to store path
+		steps = new ArrayList<Step>(100);
 		// Initialise variables
 		clear();
 	}
@@ -100,14 +77,8 @@ public class PathFull extends Path
 	 */
 	protected void clear()
 	{
-		// Initialise path totals
+		steps.clear();
 		size = 0;
-		totalTime = 0.0;
-		for (int i = 0; i < numRewardStructs; i++) {
-			totalReward[i] = 0.0;
-			totalStateReward[i] = 0.0;
-			totalTransitionReward[i] = 0.0;
-		}
 	}
 
 	// MUTATORS (for Path)
@@ -116,13 +87,17 @@ public class PathFull extends Path
 	public void initialise(State initialState, double[] initialStateRewards)
 	{
 		clear();
-		path = new ArrayList<Step>(100);
 		// Add new step item to the path
 		Step step = new Step();
-		path.add(step);
+		steps.add(step);
 		// Add (copies of) initial state and state rewards to new step
 		step.state = new State(initialState);
 		step.stateRewards = initialStateRewards.clone();
+		// Set cumulative time/reward (up until entering this state)
+		step.timeCumul = 0.0;
+		for (int i = 0; i < numRewardStructs; i++) {
+			step.rewardsCumul[i] = 0.0;
+		}
 	}
 
 	/**
@@ -130,9 +105,9 @@ public class PathFull extends Path
 	 * The passed in State object and arrays (of rewards) will be copied to store in the path.
 	 */
 	@Override
-	public void addStep(int choice, String action, double[] transRewards, State newState, double[] newStateRewards)
+	public void addStep(int choice, String action, double[] transitionRewards, State newState, double[] newStateRewards)
 	{
-		addStep(0, choice, action, transRewards, newState, newStateRewards);
+		addStep(0.0, choice, action, transitionRewards, newState, newStateRewards);
 	}
 
 	/**
@@ -140,31 +115,42 @@ public class PathFull extends Path
 	 * The passed in State object and arrays (of rewards) will be copied to store in the path.
 	 */
 	@Override
-	public void addStep(double time, int choice, String action, double[] transRewards, State newState, double[] newStateRewards)
+	public void addStep(double time, int choice, String action, double[] transitionRewards, State newState, double[] newStateRewards)
 	{
-		Step step;
+		Step stepOld, stepNew;
 		// Add info to last existing step
-		step = path.get(path.size() - 1);
-		if (continuousTime) {
-			step.time = time;
-			step.timeCumul = time;
-			if (path.size() > 1)
-				step.timeCumul += path.get(path.size() - 1).timeCumul;
-		}
-		step.choice = choice;
-		step.action = action;
-		step.transitionRewards = transRewards.clone();
+		stepOld = steps.get(steps.size() - 1);
+		stepOld.time = time;
+		stepOld.choice = choice;
+		stepOld.action = action;
+		stepOld.transitionRewards = transitionRewards.clone();
 		// Add new step item to the path
-		step = new Step();
-		path.add(step);
-		size++;
+		stepNew = new Step();
+		steps.add(stepNew);
 		// Add (copies of) new state and state rewards to new step
-		step.state = new State(newState);
-		step.stateRewards = newStateRewards.clone();
-		// Update totals
-		totalTime += time;
+		stepNew.state = new State(newState);
+		stepNew.stateRewards = newStateRewards.clone();
+		// Set cumulative time/rewards (up until entering this state)
+		stepNew.timeCumul = stepOld.timeCumul + time;
+		for (int i = 0; i < numRewardStructs; i++) {
+			stepNew.rewardsCumul[i] = stepOld.rewardsCumul[i];
+			if (continuousTime)
+				stepNew.rewardsCumul[i] += stepOld.stateRewards[i] * time;
+			else
+				stepNew.rewardsCumul[i] += stepOld.stateRewards[i];
+			stepNew.rewardsCumul[i] += transitionRewards[i];
+		}
+		// Update size too
+		size++;
 	}
 
+	// MUTATORS (additional)
+	
+	public void backtrack(int step)
+	{
+		
+	}
+	
 	// ACCESSORS (for Path)
 
 	@Override
@@ -176,86 +162,126 @@ public class PathFull extends Path
 	@Override
 	public State getPreviousState()
 	{
-		return path.get(path.size() - 2).state;
+		return steps.get(steps.size() - 2).state;
 	}
 
 	@Override
 	public State getCurrentState()
 	{
-		return path.get(path.size() - 1).state;
+		return steps.get(steps.size() - 1).state;
 	}
 
 	@Override
-	public double getTimeSoFar()
+	public double getTotalTime()
 	{
-		return totalTime;
+		return steps.get(steps.size() - 1).timeCumul;
 	}
 
 	@Override
 	public double getTimeInPreviousState()
 	{
-		return path.get(path.size() - 2).time;
+		return steps.get(steps.size() - 2).time;
 	}
 
 	@Override
-	public double getRewardCumulatedSoFar(int index)
+	public double getTotalCumulativeReward(int rsi)
 	{
-		return totalReward[index];
+		return steps.get(steps.size() - 1).rewardsCumul[rsi];
 	}
 	
 	@Override
-	public double getPreviousStateReward(int index)
+	public double getPreviousStateReward(int rsi)
 	{
-		return path.get(path.size() - 2).stateRewards[index];
+		return steps.get(steps.size() - 2).stateRewards[rsi];
 	}
 	
 	@Override
-	public double getPreviousTransitionReward(int index)
+	public double getPreviousTransitionReward(int rsi)
 	{
-		return path.get(path.size() - 2).transitionRewards[index];
+		return steps.get(steps.size() - 2).transitionRewards[rsi];
 	}
 	
 	@Override
-	public double getCurrentStateReward(int index)
+	public double getCurrentStateReward(int rsi)
 	{
-		return path.get(path.size() - 1).stateRewards[index];
+		return steps.get(steps.size() - 1).stateRewards[rsi];
 	}
 	
 	// ACCESSORS (additional)
 
+	/**
+	 * Get the state at a given step of the path.
+	 * @param step Step index (0 = initial state/step of path)
+	 */
 	public State getState(int step)
 	{
-		return path.get(step).state;
+		return steps.get(step).state;
 	}
 
-	public double getStateReward(int step, int i)
+	/**
+	 * Get a state reward for the state at a given step of the path.
+	 * @param step Step index (0 = initial state/step of path)
+	 * @param rsi Reward structure index
+	 */
+	public double getStateReward(int step, int rsi)
 	{
-		return path.get(step).stateRewards[i];
+		return steps.get(step).stateRewards[rsi];
 	}
 
-	public double getTime(int i)
+	/**
+	 * Get the total time spent up until entering a given step of the path.
+	 * @param step Step index (0 = initial state/step of path)
+	 */
+	public double getCumulativeTime(int step)
 	{
-		return path.get(i).time;
+		return steps.get(step).timeCumul;
 	}
 
-	public double getCumulativeTime(int i)
+	/**
+	 * Get the total (state and transition) reward accumulated up until entering a given step of the path.
+	 * @param step Step index (0 = initial state/step of path)
+	 * @param rsi Reward structure index
+	 */
+	public double getCumulativeReward(int step, int rsi)
 	{
-		return path.get(i).timeCumul;
+		return steps.get(step).rewardsCumul[rsi];
 	}
 
-	public int getChoice(int i)
+	/**
+	 * Get the time spent in a state at a given step of the path.
+	 * @param step Step index (0 = initial state/step of path)
+	 */
+	public double getTime(int step)
 	{
-		return path.get(i).choice;
+		return steps.get(step).time;
 	}
 
-	public String getAction(int i)
+	/**
+	 * Get the index of the choice taken for a given step.
+	 * @param step Step index (0 = initial state/step of path)
+	 */
+	public int getChoice(int step)
 	{
-		return path.get(i).action;
+		return steps.get(step).choice;
 	}
 
-	public double getTransitionReward(int i, int j)
+	/**
+	 * Get the action label taken for a given step.
+	 * @param step Step index (0 = initial state/step of path)
+	 */
+	public String getAction(int step)
 	{
-		return path.get(i).transitionRewards[j];
+		return steps.get(step).action;
+	}
+
+	/**
+	 * Get a transition reward associated with a given step.
+	 * @param step Step index (0 = initial state/step of path)
+	 * @param rsi Reward structure index
+	 */
+	public double getTransitionReward(int step, int rsi)
+	{
+		return steps.get(step).transitionRewards[rsi];
 	}
 
 	/**
@@ -364,5 +390,34 @@ public class PathFull extends Path
 			s += getState(i) + "\n";
 		}
 		return s;
+	}
+
+	/**
+	 * Inner class to store info about a single path step.
+	 */
+	class Step
+	{
+		public Step()
+		{
+			stateRewards = new double[numRewardStructs];
+			rewardsCumul = new double[numRewardStructs];
+			transitionRewards = new double[numRewardStructs];
+		}
+		// Current state (before transition)
+		public State state;
+		// State rewards for current state
+		public double stateRewards[];
+		// Cumulative time spent up until entering this state
+		public double timeCumul;
+		// Cumulative rewards spent up until entering this state
+		public double rewardsCumul[];
+		// Time spent in state
+		public double time;
+		// Index of the choice taken
+		public int choice;
+		// Action label taken
+		public String action;
+		// Transition rewards associated with step
+		public double transitionRewards[];
 	}
 }

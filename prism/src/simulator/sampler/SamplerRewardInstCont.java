@@ -58,11 +58,11 @@ public class SamplerRewardInstCont extends SamplerDouble
 	public void update(Path path) throws PrismLangException
 	{
 		// As soon as time bound exceeded, compute reward
-		if (path.getTimeSoFar() >= time) {
+		if (path.getTotalTime() >= time) {
 			valueKnown = true;
 			// Time bound was exceeded in either previous or current state
 			// (unless the time bound is 0, the latter is very unlikely)
-			if (path.getTimeSoFar() > time) {
+			if (path.getTotalTime() > time) {
 				// Note: Time so far > 0 so cannot be first state,
 				// so safe to look at previous state.
 				value = path.getPreviousStateReward(rewardStructIndex);

@@ -156,7 +156,7 @@ public class PathOnTheFly extends Path
 	}
 
 	@Override
-	public double getTimeSoFar()
+	public double getTotalTime()
 	{
 		return totalTime;
 	}
@@ -168,26 +168,26 @@ public class PathOnTheFly extends Path
 	}
 
 	@Override
-	public double getRewardCumulatedSoFar(int index)
+	public double getTotalCumulativeReward(int rsi)
 	{
-		return totalRewards[index];
+		return totalRewards[rsi];
 	}
 	
 	@Override
-	public double getPreviousStateReward(int index)
+	public double getPreviousStateReward(int rsi)
 	{
-		return previousStateRewards[index];
+		return previousStateRewards[rsi];
 	}
 	
 	@Override
-	public double getPreviousTransitionReward(int index)
+	public double getPreviousTransitionReward(int rsi)
 	{
-		return previousTransitionRewards[index];
+		return previousTransitionRewards[rsi];
 	}
 	
 	@Override
-	public double getCurrentStateReward(int index)
+	public double getCurrentStateReward(int rsi)
 	{
-		return currentStateRewards[index];
+		return currentStateRewards[rsi];
 	}
 }

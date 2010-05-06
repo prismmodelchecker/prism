@@ -210,37 +210,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		n = parsedModel.getNumRewardStructs();
 		s = "<html>";
 		for (i = 0; i < n; i++) {
-			s += engine.getTotalPathReward(i);
-			if (i < n - 1)
-				s += ",<br>";
-		}
-		s += "</html>";
-		return s;
-	}
-
-	public String getTotalStateRewardLabelString()
-	{
-		int i, n;
-		String s;
-		n = parsedModel.getNumRewardStructs();
-		s = "<html>";
-		for (i = 0; i < n; i++) {
-			s += engine.getTotalStateReward(i);
-			if (i < n - 1)
-				s += ",<br>";
-		}
-		s += "</html>";
-		return s;
-	}
-
-	public String getTotalTransitionRewardLabelString()
-	{
-		int i, n;
-		String s;
-		n = parsedModel.getNumRewardStructs();
-		s = "<html>";
-		for (i = 0; i < n; i++) {
-			s += engine.getTotalTransitionReward(i);
+			s += engine.getTotalCumulativeRewardForPath(i);
 			if (i < n - 1)
 				s += ",<br>";
 		}
@@ -385,15 +355,15 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			tableScroll.setViewportView(pathTable);
 
 			displayPathLoops = true;
-			
+
 			// Create a new path in the simulator and add labels/properties 
 			engine.createNewPath(parsedModel);
 			engine.initialisePath(initialState);
 			pathActive = true;
 			repopulateFormulae(pf);
 
-			totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
-			pathLengthLabel.setText("" + (engine.getPathSize() - 1));
+			totalTimeLabel.setText(formatDouble(engine.getTotalTimeForPath()));
+			pathLengthLabel.setText("" + engine.getPathSize());
 			definedConstantsLabel.setText((uCon.getDefinedConstantsString().length() == 0) ? "None" : uCon.getDefinedConstantsString());
 
 			doEnables();
@@ -443,15 +413,15 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				engine.computeTransitionsForCurrentState();
 			}
 
-			engine.automaticChoices(noSteps, displayPathLoops);
+			engine.automaticTransitions(noSteps, displayPathLoops);
 
 			pathTableModel.updatePathTable();
 			updateTableModel.updateUpdatesTable();
 			pathTable.scrollRectToVisible(new Rectangle(0, (int) pathTable.getPreferredSize().getHeight() - 10, (int) pathTable.getPreferredSize().getWidth(),
 					(int) pathTable.getPreferredSize().getHeight()));
 
-			totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
-			pathLengthLabel.setText("" + (engine.getPathSize() - 1));
+			totalTimeLabel.setText(formatDouble(engine.getTotalTimeForPath()));
+			pathLengthLabel.setText("" + engine.getPathSize());
 
 			stateLabelList.repaint();
 			pathFormulaeList.repaint();
@@ -473,7 +443,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	public void a_autoStep(double time)
 	{
 		try {
-			double oldPathTime = engine.getTotalPathTime();
+			double oldPathTime = engine.getTotalTimeForPath();
 
 			if (displayPathLoops && pathTableModel.isPathLooping()) {
 				if (questionYesNo("The current path contains a deterministic loop. Do you wish to disable the detection of deterministic loops and extend the path anyway?") == 0) {
@@ -489,21 +459,21 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				engine.computeTransitionsForCurrentState();
 			}
 
-			engine.automaticChoices(time, displayPathLoops);
+			engine.automaticTransitions(time, displayPathLoops);
 
 			pathTableModel.updatePathTable();
 			updateTableModel.updateUpdatesTable();
 			pathTable.scrollRectToVisible(new Rectangle(0, (int) pathTable.getPreferredSize().getHeight() - 10, (int) pathTable.getPreferredSize().getWidth(),
 					(int) pathTable.getPreferredSize().getHeight()));
 
-			totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
-			pathLengthLabel.setText("" + (engine.getPathSize() - 1));
+			totalTimeLabel.setText(formatDouble(engine.getTotalTimeForPath()));
+			pathLengthLabel.setText("" + engine.getPathSize());
 
 			stateLabelList.repaint();
 			pathFormulaeList.repaint();
 			setComputing(false);
 
-			double newPathTime = engine.getTotalPathTime();
+			double newPathTime = engine.getTotalTimeForPath();
 
 			if (displayPathLoops && pathTableModel.isPathLooping() && (newPathTime - oldPathTime) < time) {
 				message("Exploration has stopped early because a deterministic loop has been detected.");
@@ -524,8 +494,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			pathTableModel.updatePathTable();
 			updateTableModel.updateUpdatesTable();
 
-			totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
-			pathLengthLabel.setText("" + (engine.getPathSize() - 1));
+			totalTimeLabel.setText(formatDouble(engine.getTotalTimeForPath()));
+			pathLengthLabel.setText("" + engine.getPathSize());
 			stateLabelList.repaint();
 			pathFormulaeList.repaint();
 
@@ -546,8 +516,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			pathTableModel.updatePathTable();
 			updateTableModel.updateUpdatesTable();
 
-			totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
-			pathLengthLabel.setText("" + (engine.getPathSize() - 1));
+			totalTimeLabel.setText(formatDouble(engine.getTotalTimeForPath()));
+			pathLengthLabel.setText("" + engine.getPathSize());
 			stateLabelList.repaint();
 			pathFormulaeList.repaint();
 
@@ -561,14 +531,14 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	{
 		try {
 			setComputing(true);
-
+			// Instruct simulator to go back to step 0
 			engine.backtrack(0);
 
 			pathTableModel.updatePathTable();
 			updateTableModel.updateUpdatesTable();
 
-			totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
-			pathLengthLabel.setText("" + (engine.getPathSize() - 1));
+			totalTimeLabel.setText(formatDouble(engine.getTotalTimeForPath()));
+			pathLengthLabel.setText("" + engine.getPathSize());
 			stateLabelList.repaint();
 			pathFormulaeList.repaint();
 			setComputing(false);
@@ -601,8 +571,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		pathTableModel.updatePathTable();
 		updateTableModel.updateUpdatesTable();
 
-		totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
-		pathLengthLabel.setText("" + (engine.getPathSize() - 1));
+		totalTimeLabel.setText(formatDouble(engine.getTotalTimeForPath()));
+		pathLengthLabel.setText("" + engine.getPathSize());
 		stateLabelList.repaint();
 		pathFormulaeList.repaint();
 		setComputing(false);
@@ -634,9 +604,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 				setComputing(true);
 				if (time == -1) {
-					engine.manualUpdate(currentUpdatesTable.getSelectedRow());
+					engine.manualTransition(currentUpdatesTable.getSelectedRow());
 				} else {
-					engine.manualUpdate(currentUpdatesTable.getSelectedRow(), time);
+					engine.manualTransition(currentUpdatesTable.getSelectedRow(), time);
 				}
 
 				pathTableModel.updatePathTable();
@@ -644,8 +614,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 				pathTable.scrollRectToVisible(new Rectangle(0, pathTable.getHeight() - 10, pathTable.getWidth(), pathTable.getHeight()));
 
-				totalTimeLabel.setText(formatDouble(engine.getTotalPathTime()));
-				pathLengthLabel.setText("" + (engine.getPathSize() - 1));
+				totalTimeLabel.setText(formatDouble(engine.getTotalTimeForPath()));
+				pathLengthLabel.setText("" + engine.getPathSize());
 
 				setComputing(false);
 
@@ -653,13 +623,13 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 				setComputing(true);
 
-				engine.manualUpdate(currentUpdatesTable.getSelectedRow());
+				engine.manualTransition(currentUpdatesTable.getSelectedRow());
 
 				pathTableModel.updatePathTable();
 				updateTableModel.updateUpdatesTable();
 
-				totalTimeLabel.setText("" + engine.getTotalPathTime());
-				pathLengthLabel.setText("" + (engine.getPathSize() - 1));
+				totalTimeLabel.setText("" + engine.getTotalTimeForPath());
+				pathLengthLabel.setText("" + engine.getPathSize());
 
 				pathTable.scrollRectToVisible(new Rectangle(0, (int) pathTable.getPreferredSize().getHeight() - 10, (int) pathTable.getPreferredSize()
 						.getWidth(), (int) pathTable.getPreferredSize().getHeight()));
@@ -708,7 +678,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				}
 			}
 		}
-		
+
 		// TODO: fix and re-enable this (note: should use passed in properties file)
 		// Path formulas
 		/*((GUISimPathFormulaeList) pathFormulaeList).clearList();
@@ -1375,85 +1345,73 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	{//GEN-FIRST:event_backtrackButtonActionPerformed
 
 		try {
-			/* Update some given number of steps. */
+			// Backtrack a specified number of steps
 			if (typeBacktrackCombo.getSelectedIndex() == 0) {
-				int noSteps;
-
 				try {
-					if (inputBacktrackField.getText().trim().length() == 0)
-						throw new NumberFormatException();
-
-					noSteps = Integer.parseInt(inputBacktrackField.getText().trim());
-
-					if (noSteps >= engine.getPathSize())
-						noSteps = engine.getPathSize() - 1;
-
+					int noSteps = Integer.parseInt(inputBacktrackField.getText().trim());
+					// Number must be >=0
 					if (noSteps < 0)
 						throw new NumberFormatException();
+					// If number is too big, just set as max possible (i.e. path size)
+					if (noSteps > engine.getPathSize())
+						noSteps = engine.getPathSize();
+					// If number is 0, nothing to do
 					else if (noSteps == 0)
 						return;
-
-					a_backTrack(engine.getPathSize() - noSteps - 1);
+					// Do backtrack
+					a_backTrack(engine.getPathSize() - noSteps);
 				} catch (NumberFormatException nfe) {
-					throw new PrismException(
-							"The \"Steps\" parameter is invalid, it must be a positive integer smaller than the current path length (which is "
-									+ engine.getPathSize() + ")");
+					String msg = "The \"" + typeBacktrackCombo.getSelectedItem() + "\" parameter is invalid: ";
+					msg += "it should be a positive integer";
+					throw new PrismException(msg);
 				}
-			} else if (typeBacktrackCombo.getSelectedIndex() == 1) {
-				int toState;
-
+			}
+			// Backtrack to a specified step index
+			else if (typeBacktrackCombo.getSelectedIndex() == 1) {
 				try {
-					if (inputBacktrackField.getText().trim().length() == 0)
+					int toState = Integer.parseInt(inputBacktrackField.getText().trim());
+					// Number must be a valid state index
+					if (toState < 0 || toState > engine.getPathSize())
 						throw new NumberFormatException();
-
-					toState = Integer.parseInt(inputBacktrackField.getText().trim());
-
-					if (toState < 0 || toState >= engine.getPathSize())
-						throw new NumberFormatException();
-
+					// Do backtrack
 					a_backTrack(toState);
 				} catch (NumberFormatException nfe) {
-					throw new PrismException(
-							"The \"Steps\" parameter is invalid, it must be a positive integer smaller than the current path length (which is "
-									+ engine.getPathSize() + ")");
+					String msg = "The \"" + typeBacktrackCombo.getSelectedItem() + "\" parameter is invalid: ";
+					msg += "it should be between 0 and " + (engine.getPathSize() - 1);
+					throw new PrismException(msg);
 				}
-			} else if (typeBacktrackCombo.getSelectedIndex() == 2) {
-				double time;
-
+			}
+			// Backtrack for a specific amount of time
+			else if (typeBacktrackCombo.getSelectedIndex() == 2) {
 				try {
-					if (inputBacktrackField.getText().trim().length() == 0)
-						throw new NumberFormatException();
-
-					time = Double.parseDouble(inputBacktrackField.getText().trim());
-
+					double time = Double.parseDouble(inputBacktrackField.getText().trim());
+					// Time must be >=0
 					if (time < 0)
 						throw new NumberFormatException();
-
-					if (time >= engine.getTotalPathTime())
-						a_backTrack(0.0d);
-					else
-						a_backTrack(engine.getTotalPathTime() - time);
+					// If time is too big, just set as max possible (i.e. total path time)
+					if (time >= engine.getTotalTimeForPath())
+						time = engine.getTotalTimeForPath();
+					// Do backtrack
+					a_backTrack(engine.getTotalTimeForPath() - time);
 				} catch (NumberFormatException nfe) {
-					throw new PrismException("The \"Time\" parameter is invalid, it must be a positive double smaller than the cumulative path time (which is "
-							+ engine.getTotalPathTime() + ")");
+					String msg = "The \"" + typeBacktrackCombo.getSelectedItem() + "\" parameter is invalid: ";
+					msg += "it should be a positive double";
+					throw new PrismException(msg);
 				}
-			} else if (typeBacktrackCombo.getSelectedIndex() == 3) {
-				double time;
-
+			}
+			// Backtrack to a specified point in time
+			else if (typeBacktrackCombo.getSelectedIndex() == 3) {
 				try {
-					if (inputBacktrackField.getText().trim().length() == 0)
+					double time = Double.parseDouble(inputBacktrackField.getText().trim());
+					// Must be a valid time point in path
+					if (time < 0 || time >= engine.getTotalTimeForPath())
 						throw new NumberFormatException();
-
-					time = Double.parseDouble(inputBacktrackField.getText().trim());
-
-					if (time < 0 || time >= engine.getTotalPathTime())
-						throw new NumberFormatException();
-
+					// Do backtrack
 					a_backTrack(time);
 				} catch (NumberFormatException nfe) {
-					throw new PrismException(
-							"The \"Back to time\" parameter is invalid, it must be a positive double smaller than the cumulative path time (which is "
-									+ engine.getTotalPathTime() + ")");
+					String msg = "The \"" + typeBacktrackCombo.getSelectedItem() + "\" parameter is invalid: ";
+					msg += "it should be between 0 and " + (engine.getTotalTimeForPath());
+					throw new PrismException(msg);
 				}
 			}
 		} catch (PrismException se) {
@@ -1621,77 +1579,64 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	{//GEN-FIRST:event_randomExplorationButtonActionPerformed
 
 		try {
-			/* Update some given number of steps. */
+			// Simulate a specified number of steps
 			if (typeExploreCombo.getSelectedIndex() == 0) {
-				int noSteps = 1;
-
 				try {
-					if (inputExploreField.getText().trim().length() == 0)
-						throw new NumberFormatException();
-
-					noSteps = Integer.parseInt(inputExploreField.getText().trim());
-
+					int noSteps = Integer.parseInt(inputExploreField.getText().trim());
+					// Number must be >0
 					if (noSteps <= 0)
 						throw new NumberFormatException();
-
+					// Do simulation
 					a_autoStep(noSteps);
 				} catch (NumberFormatException nfe) {
-					throw new PrismException("The \"Steps\" parameter is invalid, it must be a positive integer.");
+					String msg = "The \"" + typeExploreCombo.getSelectedItem() + "\" parameter is invalid: ";
+					msg += "it should be a positive integer";
+					throw new PrismException(msg);
 				}
 			}
-			/* Update upto some state. */
+			// Simulate up until a specified step index 
 			else if (typeExploreCombo.getSelectedIndex() == 1) {
-				int uptoState;
-
 				try {
-					if (inputExploreField.getText().trim().length() == 0)
+					int uptoState = Integer.parseInt(inputExploreField.getText().trim());
+					// Index must exceed current path length
+					if (uptoState <= engine.getPathSize())
 						throw new NumberFormatException();
-
-					uptoState = Integer.parseInt(inputExploreField.getText().trim());
-
-					if (uptoState < engine.getPathSize())
-						throw new NumberFormatException();
-
-					a_autoStep(uptoState - engine.getPathSize() + 1);
+					// Do simulation
+					a_autoStep(uptoState - engine.getPathSize());
 				} catch (NumberFormatException nfe) {
-					throw new PrismException(
-							"The \"Up to state\" parameter is invalid, it must be a positive integer larger than the index of the current state (which is "
-									+ (engine.getPathSize() - 1) + ")");
+					String msg = "The \"" + typeExploreCombo.getSelectedItem() + "\" parameter is invalid: ";
+					msg += "it should be greater than " + engine.getPathSize();
+					throw new PrismException(msg);
 				}
-			} else if (typeExploreCombo.getSelectedIndex() == 2) {
-				double time;
-
+			}
+			// Simulate for a specified amount of time
+			else if (typeExploreCombo.getSelectedIndex() == 2) {
 				try {
-					if (inputExploreField.getText().trim().length() == 0)
+					double time = Double.parseDouble(inputExploreField.getText().trim());
+					// Time must be >=0
+					if (time < 0.0)
 						throw new NumberFormatException();
-
-					time = Double.parseDouble(inputExploreField.getText().trim());
-
-					if (time < 0.0d)
-						throw new NumberFormatException();
-
+					// Do simulation
 					a_autoStep(time);
 				} catch (NumberFormatException nfe) {
-					throw new PrismException("The \"Time\" parameter is invalid, it must be a positive double");
+					String msg = "The \"" + typeExploreCombo.getSelectedItem() + "\" parameter is invalid: ";
+					msg += "it should be a positive double";
+					throw new PrismException(msg);
 				}
-			} else if (typeExploreCombo.getSelectedIndex() == 3) {
-				double time;
-				double currentTime = engine.getTotalPathTime();
-
+			}
+			// Simulate up until a specified point in time
+			else if (typeExploreCombo.getSelectedIndex() == 3) {
+				double currentTime = engine.getTotalTimeForPath();
 				try {
-					if (inputExploreField.getText().trim().length() == 0)
-						throw new NumberFormatException();
-
-					time = Double.parseDouble(inputExploreField.getText().trim());
-
+					double time = Double.parseDouble(inputExploreField.getText().trim());
+					// Time must exceed current total path time
 					if (time <= currentTime)
 						throw new NumberFormatException();
-
+					// Do simulation
 					a_autoStep(time - currentTime);
 				} catch (NumberFormatException nfe) {
-					throw new PrismException(
-							"The \"Time\" parameter is invalid, it must be a positive double larger than the cumulative path time (which is currently "
-									+ currentTime + ")");
+					String msg = "The \"" + typeExploreCombo.getSelectedItem() + "\" parameter is invalid: ";
+					msg += "it should be greater than " + currentTime;
 				}
 			}
 
@@ -3049,7 +2994,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		public int getRowCount()
 		{
 			// Return current path size if there is an active path.
-			return (pathActive ? engine.getPathSize() : 0);
+			return (pathActive ? engine.getPathSize() + 1 : 0);
 		}
 
 		public boolean shouldColourRow(int row)
@@ -3158,28 +3103,28 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				// The action column
 				else if (actionStart <= columnIndex && columnIndex < timeStart) {
 					actionValue = new ActionValue(engine.getActionOfPathStep(rowIndex));
-					actionValue.setActionValueUnknown(rowIndex >= engine.getPathSize() - 1);
+					actionValue.setActionValueUnknown(rowIndex >= engine.getPathSize());
 					return actionValue;
 				}
 				// Time column
 				else if (timeStart <= columnIndex && columnIndex < cumulativeTimeStart) {
-					timeValue = new TimeValue(engine.getTimeSpentInPathState(rowIndex), false);
-					timeValue.setTimeValueUnknown(rowIndex >= engine.getPathSize() - 1);
+					timeValue = new TimeValue(engine.getTimeSpentInPathStep(rowIndex), false);
+					timeValue.setTimeValueUnknown(rowIndex >= engine.getPathSize());
 					return timeValue;
 				}
 				// Cumulative time column
 				else if (cumulativeTimeStart <= columnIndex && columnIndex < varStart) {
-					timeValue = new TimeValue((rowIndex == 0) ? 0.0 : engine.getCumulativeTimeSpentInPathState(rowIndex - 1), true);
-					timeValue.setTimeValueUnknown(rowIndex >= engine.getPathSize());
+					timeValue = new TimeValue(engine.getCumulativeTimeUpToPathStep(rowIndex), true);
+					timeValue.setTimeValueUnknown(rowIndex > engine.getPathSize()); // Never unknown
 					return timeValue;
 				}
 				// A variable column
 				else if (varStart <= columnIndex && columnIndex < rewardStart) {
 					Variable var = ((Variable) view.getVisibleVariables().get(columnIndex - varStart));
-					Object result = engine.getPathData(var.getIndex(), rowIndex);
+					Object result = engine.getVariableValueOfPathStep(rowIndex, var.getIndex());
 					variableValue.setVariable(var);
 					variableValue.setValue(result);
-					variableValue.setChanged(rowIndex == 0 || !engine.getPathData(var.getIndex(), rowIndex - 1).equals(result));
+					variableValue.setChanged(rowIndex == 0 || !engine.getVariableValueOfPathStep(rowIndex - 1, var.getIndex()).equals(result));
 					return variableValue;
 				}
 				// A reward column
@@ -3189,37 +3134,27 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					rewardStructureValue.setRewardValueUnknown(false);
 					// A state reward column
 					if (rewardColumn.isStateReward()) {
-						double value = engine.getStateRewardOfPathState(rowIndex, rewardColumn.getRewardStructure().getIndex());
+						double value = engine.getStateRewardOfPathStep(rowIndex, rewardColumn.getRewardStructure().getIndex());
 						rewardStructureValue.setChanged(rowIndex == 0
-								|| value != engine.getStateRewardOfPathState(rowIndex - 1, rewardColumn.getRewardStructure().getIndex()));
+								|| value != engine.getStateRewardOfPathStep(rowIndex - 1, rewardColumn.getRewardStructure().getIndex()));
 						rewardStructureValue.setRewardValue(new Double(value));
-						rewardStructureValue.setRewardValueUnknown(rowIndex > engine.getPathSize() - 1);
+						rewardStructureValue.setRewardValueUnknown(rowIndex > engine.getPathSize()); // Never unknown
 					}
 					// A transition reward column
 					else if (rewardColumn.isTransitionReward()) {
-						double value = engine.getTransitionRewardOfPathState(rowIndex, rewardColumn.getRewardStructure().getIndex());
+						double value = engine.getTransitionRewardOfPathStep(rowIndex, rewardColumn.getRewardStructure().getIndex());
 						rewardStructureValue.setChanged(rowIndex == 0
-								|| value != engine.getTransitionRewardOfPathState(rowIndex - 1, rewardColumn.getRewardStructure().getIndex()));
+								|| value != engine.getTransitionRewardOfPathStep(rowIndex - 1, rewardColumn.getRewardStructure().getIndex()));
 						rewardStructureValue.setRewardValue(new Double(value));
-						rewardStructureValue.setRewardValueUnknown(rowIndex >= engine.getPathSize() - 1);
+						rewardStructureValue.setRewardValueUnknown(rowIndex >= engine.getPathSize());
 					}
 					// A cumulative reward column
 					else {
-						if (rowIndex == 0) {
-							rewardStructureValue.setChanged(true);
-							rewardStructureValue.setRewardValue(new Double(0.0));
-							rewardStructureValue.setRewardValueUnknown(false);
-						} else {
-							double value = engine.getTotalStateRewardOfPathState(rowIndex - 1, rewardColumn.getRewardStructure().getIndex())
-									+ engine.getTotalTransitionRewardOfPathState(rowIndex - 1, rewardColumn.getRewardStructure().getIndex());
-							if (rowIndex == 1)
-								rewardStructureValue.setChanged(value != 0.0);
-							else
-								rewardStructureValue.setChanged(value != (engine.getTotalStateRewardOfPathState(rowIndex - 2, rewardColumn.getRewardStructure()
-										.getIndex()) + engine.getTotalTransitionRewardOfPathState(rowIndex - 2, rewardColumn.getRewardStructure().getIndex())));
-							rewardStructureValue.setRewardValue(new Double(value));
-							rewardStructureValue.setRewardValueUnknown(rowIndex >= engine.getPathSize());
-						}
+						double value = engine.getCumulativeRewardUpToPathStep(rowIndex, rewardColumn.getRewardStructure().getIndex());
+						rewardStructureValue.setChanged(rowIndex == 0
+								|| value != (engine.getCumulativeRewardUpToPathStep(rowIndex - 1, rewardColumn.getRewardStructure().getIndex())));
+						rewardStructureValue.setRewardValue(new Double(value));
+						rewardStructureValue.setRewardValueUnknown(rowIndex > engine.getPathSize()); // Never unknown
 					}
 					return rewardStructureValue;
 				}
@@ -3428,7 +3363,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				currentUpdatesTable.setEnabled(false);
 
 				if (getRowCount() > 0) {
-					int selectThis = engine.getChosenIndexOfOldUpdate(oldStep);
+					int selectThis = engine.getChoiceOfPathStep(oldStep);
 					currentUpdatesTable.getSelectionModel().setSelectionInterval(selectThis, selectThis);
 				}
 			}

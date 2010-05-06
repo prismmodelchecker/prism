@@ -58,11 +58,11 @@ public class SamplerRewardCumulCont extends SamplerDouble
 	public void update(Path path) throws PrismLangException
 	{
 		// As soon as time bound exceeded, compute reward total
-		if (path.getTimeSoFar() >= timeBound) {
+		if (path.getTotalTime() >= timeBound) {
 			valueKnown = true;
-			value = path.getRewardCumulatedSoFar(rewardStructIndex);
+			value = path.getTotalCumulativeReward(rewardStructIndex);
 			// Compute excess time, i.e. how long ago time bound was reached
-			double excessTime = timeBound - path.getTimeSoFar();
+			double excessTime = timeBound - path.getTotalTime();
 			// If this is > 0 (very likely, unless time bound = 0),
 			// need to subtract reward accumulated in excess time
 			// (i.e. fraction of previous state reward, and transition reward)

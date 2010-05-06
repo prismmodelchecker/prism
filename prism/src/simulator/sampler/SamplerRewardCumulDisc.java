@@ -60,7 +60,7 @@ public class SamplerRewardCumulDisc extends SamplerDouble
 		// As soon as time bound reached, store current reward total
 		if (path.size() == timeBound) {
 			valueKnown = true;
-			value = path.getRewardCumulatedSoFar(rewardStructIndex);
+			value = path.getTotalCumulativeReward(rewardStructIndex);
 		}
 	}
 }

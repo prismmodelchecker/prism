@@ -74,7 +74,7 @@ public abstract class Path
 	 * For paths with continuous-time info, get the total time elapsed so far
 	 * (where zero time has been spent in the current (final) state).
 	 */
-	public abstract double getTimeSoFar();
+	public abstract double getTotalTime();
 	
 	/**
 	 * For paths with continuous-time info, get the time spent in the previous state.
@@ -84,27 +84,27 @@ public abstract class Path
 	/**
 	 * Get the total reward accumulated so far
 	 * (includes reward for previous transition but no state reward for current (final) state).
-	 * @param index Reward structure index
+	 * @param rsi Reward structure index
 	 */
-	public abstract double getRewardCumulatedSoFar(int index);
+	public abstract double getTotalCumulativeReward(int rsi);
 	
 	/**
 	 * Get the state reward for the previous state.
 	 * (For continuous-time models, need to multiply this by time spent in the state.)
-	 * @param index Reward structure index
+	 * @param rsi Reward structure index
 	 */
-	public abstract double getPreviousStateReward(int index);
+	public abstract double getPreviousStateReward(int rsi);
 	
 	/**
 	 * Get the transition reward for the transition between the previous and current states.
-	 * @param index Reward structure index
+	 * @param rsi Reward structure index
 	 */
-	public abstract double getPreviousTransitionReward(int index);
+	public abstract double getPreviousTransitionReward(int rsi);
 
 	/**
 	 * Get the state reward for the current state.
 	 * (For continuous-time models, need to multiply this by time spent in the state.)
-	 * @param index Reward structure index
+	 * @param rsi Reward structure index
 	 */
-	public abstract double getCurrentStateReward(int index);
+	public abstract double getCurrentStateReward(int rsi);
 }

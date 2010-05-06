@@ -88,7 +88,7 @@ public class SamplerBoundedUntilCont extends SamplerBoolean
 		}
 		// Second and subsequent path states:
 		else {
-			double timeSoFar = path.getTimeSoFar();
+			double timeSoFar = path.getTotalTime();
 			// As soon as upper time bound exceeded, we can decide
 			if (timeSoFar > ub) {
 				// Upper time bound was exceeded (for first time) in *previous* state

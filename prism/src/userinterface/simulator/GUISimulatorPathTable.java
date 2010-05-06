@@ -296,7 +296,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 				{	
 					stringValue = "?";
 					if (timeValue.isCumulative())
-						this.setToolTipText("Cumulative time up until state " + (row) + " (not yet known)");
+						this.setToolTipText("Cumulative time up until entering state " + (row) + " (not yet known)");
 					else
 						this.setToolTipText("Time spent in state " + (row) + " (not yet known)");
 				}
@@ -304,7 +304,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 				{
 					stringValue = (simulator.formatDouble((Double)timeValue.getValue()));
 					if (timeValue.isCumulative())
-						this.setToolTipText("Cumulative time up until state " + (row));
+						this.setToolTipText("Cumulative time up until entering state " + (row));
 					else
 						this.setToolTipText("Time spent in state " + (row));
 				}

@@ -59,7 +59,7 @@ public class SamplerRewardReach extends SamplerDouble
 	{
 		if (target.evaluateBoolean(path.getCurrentState())) {
 			valueKnown = true;
-			value = path.getRewardCumulatedSoFar(rewardStructIndex);
+			value = path.getTotalCumulativeReward(rewardStructIndex);
 		}
 	}
 }

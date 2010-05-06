@@ -180,18 +180,18 @@ public class SimulatorEngine
 	// Current path info
 	protected Path path;
 	protected boolean onTheFly;
-	
+
 	// TODO: remove these now can get from path?
 	protected State previousState;
 	protected State currentState;
 	protected double currentStateRewards[];
-	
+
 	// List of currently available transitions
 	protected TransitionList transitionList;
-	
+
 	// Updater object for model
 	protected Updater updater;
-	
+
 	// Random number generator
 	private RandomNumberGenerator rng;
 
@@ -301,10 +301,10 @@ public class SimulatorEngine
 
 	/**
 	 * Execute a transition from the current transition list, specified by its index
-	 * within the (whole) list. If this is a continuous time model, the time to be spent
+	 * within the (whole) list. If this is a continuous-time model, the time to be spent
 	 * in the state before leaving is picked randomly.
 	 */
-	public void manualUpdate(int index) throws PrismException
+	public void manualTransition(int index) throws PrismException
 	{
 		int i = transitionList.getChoiceIndexOfTransition(index);
 		int offset = transitionList.getChoiceOffsetOfTransition(index);
@@ -320,7 +320,7 @@ public class SimulatorEngine
 	 * the current state before this transition occurs. If -1, this is picked randomly.
 	 * [continuous-time models only]
 	 */
-	public void manualUpdate(int index, double time) throws PrismException
+	public void manualTransition(int index, double time) throws PrismException
 	{
 		int i = transitionList.getChoiceIndexOfTransition(index);
 		int offset = transitionList.getChoiceOffsetOfTransition(index);
@@ -335,22 +335,26 @@ public class SimulatorEngine
 	 * @throws PrismException
 	 *             if something goes wrong when updating the state.
 	 */
-	public void automaticChoices(int n) throws PrismException
+	public void automaticTransitions(int n) throws PrismException
 	{
-		automaticChoices(n, true);
+		automaticTransitions(n, true);
 	}
 
-	public void automaticChoices(int n, boolean detect) throws PrismException
+	public void automaticTransitions(int n, boolean detect) throws PrismException
 	{
 		int i;
 		for (i = 0; i < n; i++)
-			automaticChoice(detect);
+			automaticTransition(detect);
 	}
 
-	public void automaticChoice(boolean detect) throws PrismException
+	/**
+	 * Select, at random, a transition from the current transition list and execute it.
+	 * For continuous-time models, the time to be spent in the state before leaving is also picked randomly.
+	 * @param detect Whether...
+	 * throws an exception if deadlock...
+	 */
+	public void automaticTransition(boolean detect) throws PrismException
 	{
-		// just one for now...
-
 		Choice choice;
 		int numChoices, i, j;
 		double d, r;
@@ -386,21 +390,24 @@ public class SimulatorEngine
 			executeTimedTransition(ref.i, ref.offset, rng.randomExpDouble(r), -1);
 			break;
 		}
-
 	}
 
 	/**
+	 * Randomly select and execute transitions until the specified time delay is first exceeded.
+	 * (Time is measured from the initial execution of this method, not total time.)
+	 * (For discrete-time models, this just results in ceil(time) steps being executed.)
+	 * (If deadlock...
+	 */
+	/**
 	 * This function makes a number of automatic choices of updates to the global state, untill `time' has passed.
 	 * 
-	 * @param time		Values v = path.get(pathLength);
-
-	 *            is the length of time to pass.
+	 * @param time  is the length of time to pass.
 	 * @throws PrismException
 	 *             if something goes wrong when updating the state.
 	 */
-	public void automaticChoices(double time) throws PrismException
+	public void automaticTransitions(double time) throws PrismException
 	{
-		automaticChoices(time, true);
+		automaticTransitions(time, true);
 	}
 
 	/**
@@ -413,24 +420,120 @@ public class SimulatorEngine
 	 * @throws PrismException
 	 *             if something goes wrong when updating the state.
 	 */
-	public void automaticChoices(double time, boolean detect) throws PrismException
+	public void automaticTransitions(double time, boolean detect) throws PrismException
 	{
-		/*int result = doAutomaticChoices(time, detect);
-		if (result == ERROR)
-			throw new PrismException(getLastErrorMessage());*/
+		// For discrete-time models, this just results in ceil(time) steps being executed.
+		if (!modelType.continuousTime()) {
+			automaticTransitions((int) Math.ceil(time), detect);
+		} else {
+			double startTime = path.getTotalTime();
+			double currentTime = startTime;
+			// Loop until delay exceed
+			while (currentTime - startTime < time) {
+				/* Break when looping. */
+				//if (detect && loop_detection->Is_Proven_Looping()) 
+				//break;
+
+				if (queryIsDeadlock())
+					/* Break when deadlocking. */
+					//	if (loop_detection->Is_Deadlock()) 
+					break;
+
+				double probability = 0.0;
+				//Automatic_Update(loop_detection, probability);
+
+				// Because we cannot guarantee that we know the selected index, we have to show this.
+				//stored_path[current_index]->choice_made = PATH_NO_CHOICE_MADE;
+				//stored_path[current_index]->probability = probability;
+
+				// Unless requested not to (detect==false), this function will stop exploring when a loop is detected.
+				// Because Automatic_Update() checks for loops before making a transition, we overshoot.
+				// Hence at this point if we are looping we step back a state,
+				// i.e. reset state_variables and don't add new state to the path.
+
+				/*if (detect && loop_detection->Is_Proven_Looping()) 
+				{
+					stored_path[current_index]->Make_Current_State_This();
+				}
+				else 
+				{						
+					// Add state to path (unless we have stayed in the same state because of deadlock).
+					if (!loop_detection->Is_Deadlock()) 
+						Add_Current_State_To_Path();	
+					currentTime = path_timer;
+				}
+				
+				Calculate_State_Reward(state_variables);
+				}
+				
+				Calculate_Updates(state_variables);
+				
+				// check for looping
+				if(Are_Updates_Deterministic())
+				{
+				loop_detection->Notify_Deterministic_State(false);
+				}
+				else
+				{
+				loop_detection->Notify_Deterministic_Path_End();
+				}*/
+
+			}
+		}
 	}
 
 	/**
-	 * This function backtracks the current path to the state of the given index
-	 * 
-	 * @param step
-	 *            the path index to backtrack to.
-	 * @throws PrismException
-	 *             is something goes wrong when backtracking.
+	 * Backtrack to a particular step within the current path.
+	 * (Not applicable for on-the-fly paths)
+	 * @param step The step to backtrack to.
 	 */
 	public void backtrack(int step) throws PrismException
 	{
-		//doBacktrack(step);
+		// Check step is valid
+		if (step > path.size()) {
+			throw new PrismException("There is no step " + step + " to backtrack to");
+		}
+		
+		/*
+		((PathFull) path).backTrack(step);
+		// if go back at least one step, escape deadlock
+		if (step < current_index) loop_detection->Set_Deadlock(false);
+		
+		current_index = step;
+		
+		//copy the state stored in this path to model_variables
+		stored_path[current_index]->Make_Current_State_This();
+		
+		//recalculate timer and rewards
+		path_timer = 0.0;
+		for(int i = 0; i < no_reward_structs; i++) {
+			path_cost[i] = 0.0;
+			total_state_cost[i] = 0.0;
+			total_transition_cost[i] = 0.0;
+		}
+		
+		for(int i = 0; i < current_index; i++)
+		{
+			if(stored_path[i]->time_known)
+				path_timer += stored_path[i]->time_spent_in_state;
+			
+			for (int j = 0; j < no_reward_structs; j++) {
+				total_state_cost[j] += stored_path[i]->state_cost[j];
+				total_transition_cost[j] += stored_path[i]->transition_cost[j];
+			}
+		}
+		for (int j = 0; j < no_reward_structs; j++) {
+			path_cost[j] = total_state_cost[j] + total_transition_cost[j];
+		}
+		
+		Recalculate_Path_Formulae();
+		
+		Calculate_State_Reward(state_variables);
+		
+		Calculate_Updates(state_variables);
+		
+		loop_detection->Backtrack(step);
+		*/
 	}
 
 	/**
@@ -460,12 +563,6 @@ public class SimulatorEngine
 	{
 		//doRemovePrecedingStates(step);
 	}
-
-	/**
-	 * Asks the c++ engine to remove states which precde the given step. Returns OUTOFRANGE (=-1) if step is out of
-	 * range
-	 */
-	private static native int doRemovePrecedingStates(int step);
 
 	/**
 	 * Compute the transition table for an earlier step in the path.
@@ -903,131 +1000,120 @@ public class SimulatorEngine
 		return path.getCurrentState();
 	}
 
+	/**
+	 * For paths with continuous-time info, get the total time elapsed so far
+	 * (where zero time has been spent in the current (final) state).
+	 */
+	public double getTotalTimeForPath()
+	{
+		return path.getTotalTime();
+	}
+
+	/**
+	 * Get the total reward accumulated so far
+	 * (includes reward for previous transition but no state reward for current (final) state).
+	 * @param rsi Reward structure index
+	 */
+	public double getTotalCumulativeRewardForPath(int rsi)
+	{
+		return path.getTotalCumulativeReward(rsi);
+	}
+	
 	// ------------------------------------------------------------------------------
 	// Querying of current path (full paths only)
 	// ------------------------------------------------------------------------------
 
 	/**
-	 * Returns the value stored for the variable at varIndex at the path index: stateIndex.
+	 * Get the value of a variable at a given step of the path.
 	 * (Not applicable for on-the-fly paths)
-	 * 
-	 * @param varIndex
-	 *            the index of the variable of interest.
-	 * @param stateIndex
-	 *            the index of the path state of interest
-	 * @return the value stored for the variable at varIndes at the given stateIndex.
+	 * @param step Step index (0 = initial state/step of path)
+	 * @param varIndex The index of the variable to look up
 	 */
-	public Object getPathData(int varIndex, int stateIndex)
+	public Object getVariableValueOfPathStep(int step, int varIndex)
 	{
-		return ((PathFull) path).getState(stateIndex).varValues[varIndex];
+		return ((PathFull) path).getState(step).varValues[varIndex];
 	}
 
+	/**
+	 * Get the state at a given step of the path.
+	 * (Not applicable for on-the-fly paths)
+	 * @param step Step index (0 = initial state/step of path)
+	 */
+	public State getStateOfPathStep(int step)
+	{
+		return ((PathFull) path).getState(step);
+	}
+
+	/**
+	 * Get a state reward for the state at a given step of the path.
+	 * (Not applicable for on-the-fly paths)
+	 * @param step Step index (0 = initial state/step of path)
+	 * @param rsi Reward structure index
+	 */
+	public double getStateRewardOfPathStep(int step, int rsi)
+	{
+		return ((PathFull) path).getStateReward(step, rsi);
+	}
+
+	/**
+	 * Get the total time spent up until entering a given step of the path.
+	 * (Not applicable for on-the-fly paths)
+	 * @param step Step index (0 = initial state/step of path)
+	 */
+	public double getCumulativeTimeUpToPathStep(int step)
+	{
+		return ((PathFull) path).getCumulativeTime(step);
+	}
+
+	/**
+	 * Get the total (state and transition) reward accumulated up until entering a given step of the path.
+	 * (Not applicable for on-the-fly paths)
+	 * @param step Step index (0 = initial state/step of path)
+	 * @param rsi Reward structure index
+	 */
+	public double getCumulativeRewardUpToPathStep(int step, int rsi)
+	{
+		return ((PathFull) path).getCumulativeReward(step, rsi);
+	}
+
+	/**
+	 * Get the time spent in a state at a given step of the path.
+	 * (Not applicable for on-the-fly paths)
+	 * @param step Step index (0 = initial state/step of path)
+	 */
+	public double getTimeSpentInPathStep(int step)
+	{
+		return ((PathFull) path).getTime(step);
+	}
+
+	/**
+	 * Get the index of the choice taken for a given step.
+	 * (Not applicable for on-the-fly paths)
+	 * @param step Step index (0 = initial state/step of path)
+	 */
+	public int getChoiceOfPathStep(int step)
+	{
+		return ((PathFull) path).getChoice(step);
+	}
+
+	/**
+	 * Get the action label taken for a given step.
+	 * (Not applicable for on-the-fly paths)
+	 * @param step Step index (0 = initial state/step of path)
+	 */
 	public String getActionOfPathStep(int step)
 	{
 		return ((PathFull) path).getAction(step);
 	}
 
 	/**
-	 * Returns the time spent in the state at the given path index.
-	 * (Not applicable for on-the-fly paths)
+	 * Get a transition reward associated with a given step.
+	 * @param step Step index (0 = initial state/step of path)
+	 * @param rsi Reward structure index
 	 */
-	public double getTimeSpentInPathState(int index)
+	public double getTransitionRewardOfPathStep(int step, int rsi)
 	{
-		return ((PathFull) path).getTime(index);
-	}
-
-	/**
-	 * Returns the cumulative time spent in the states up to (and including) a given path index.
-	 * (Not applicable for on-the-fly paths)
-	 */
-	public double getCumulativeTimeSpentInPathState(int index)
-	{
-		return ((PathFull) path).getCumulativeTime(index);
-	}
-
-	/**
-	 * Returns the ith state reward of the state at the given path index.
-	 * (Not applicable for on-the-fly paths)
-	 * 
-	 * @param stateIndex
-	 *            the index of the path state of interest
-	 * @param i
-	 *            the index of the reward structure
-	 * @return the state reward of the state at the given path index.
-	 */
-	public double getStateRewardOfPathState(int step, int stateIndex)
-	{
-		return ((PathFull) path).getStateReward(step, stateIndex);
-	}
-
-	/**
-	 * Returns the ith transition reward of (moving out of) the state at the given path index.
-	 * 
-	 * @param stateIndex
-	 *            the index of the path state of interest
-	 * @param i
-	 *            the index of the reward structure
-	 * @return the transition reward of (moving out of) the state at the given path index.
-	 */
-	public double getTransitionRewardOfPathState(int stateIndex, int i)
-	{
-		return 99;
-	}
-
-	/**
-	 * Cumulative version of getStateRewardOfPathState.
-	 */
-	public double getTotalStateRewardOfPathState(int stateIndex, int i)
-	{
-		return 99;
-	}
-
-	/**
-	 * Cumulative version of getTransitionRewardOfPathState.
-	 */
-	public double getTotalTransitionRewardOfPathState(int stateIndex, int i)
-	{
-		return 99;
-	}
-
-	/**
-	 * Returns the total path time.
-	 * 
-	 * @return the total path time.
-	 */
-	public double getTotalPathTime()
-	{
-		return 99;
-	}
-
-	/**
-	 * Returns the total path reward.
-	 * 
-	 * @return the total path reward.
-	 */
-	public double getTotalPathReward(int i)
-	{
-		return 99;
-	}
-
-	/**
-	 * Returns the total state reward for the path.
-	 * 
-	 * @return the total state reward for the path.
-	 */
-	public double getTotalStateReward(int i)
-	{
-		return 99;
-	}
-
-	/**
-	 * Returns the total transition reward for the path.
-	 * 
-	 * @return the total transition reward for the path.
-	 */
-	public double getTotalTransitionReward(int i)
-	{
-		return 99;
+		return ((PathFull) path).getTransitionReward(step, rsi);
 	}
 
 	/**
@@ -1055,17 +1141,9 @@ public class SimulatorEngine
 	 */
 	public static native int loopEnd();
 
-	/**
-	 * Returns the index of the update chosen for an earlier state in the path.
-	 * (Not applicable for on-the-fly paths)
-	 */
-	public int getChosenIndexOfOldUpdate(int step)
-	{
-		return ((PathFull) path).getChoice(step);
-	}
 
 	/**
-	 * Exports the current path to a file in a simple space separated format.
+	 * Export the current path to a file in a simple space separated format.
 	 * (Not applicable for on-the-fly paths)
 	 * @param file: File to which the path should be exported to (mainLog if null).
 	 */
@@ -1075,7 +1153,7 @@ public class SimulatorEngine
 	}
 
 	/**
-	 * Exports the current path to a file.
+	 * Export the current path to a file.
 	 * (Not applicable for on-the-fly paths)
 	 * @param file: File to which the path should be exported to (mainLog if null).
 	 * @param timeCumul: Show time in cumulative form?
@@ -1175,8 +1253,6 @@ public class SimulatorEngine
 
 		Object[] results = new Object[exprs.size()];
 		int[] indices = new int[exprs.size()];
-
-		// TODO: move addProperty stuff into startNewPath above
 
 		// Add the properties to the simulator (after a check that they are valid)
 		int validPropsCount = 0;
@@ -1373,7 +1449,7 @@ public class SimulatorEngine
 
 			// Generate a path, up to at most maxPathLength steps
 			for (i = 0; i < maxPathLength; i++) {
-				
+
 				// See if all samplers have established a value; if so, stop.
 				allKnown = true;
 				for (Sampler sampler : propertySamplers) {
@@ -1382,9 +1458,9 @@ public class SimulatorEngine
 				}
 				if (allKnown)
 					break;
-				
+
 				// Make a random transition
-				automaticChoice(true);
+				automaticTransition(true);
 
 				//if(!loop_detection->Is_Proven_Looping()) { // removed this: for e.g. cumul rewards need to keep counting in loops...
 
@@ -1432,13 +1508,13 @@ public class SimulatorEngine
 			avgPathLength = (avgPathLength * (iters - 1) + (i)) / iters;
 			minPathFound = (iters == 1) ? i : Math.min(minPathFound, i);
 			maxPathFound = (iters == 1) ? i : Math.max(maxPathFound, i);
-			
+
 			// If not all samplers could produce values, this an error
 			if (!allKnown) {
 				stoppedEarly = true;
 				break;
 			}
-			
+
 			// Update state of samplers based on last path
 			for (Sampler sampler : propertySamplers) {
 				sampler.updateStats();
@@ -1453,7 +1529,8 @@ public class SimulatorEngine
 			time_taken = (stop - start) / 1000.0;
 			mainLog.print("\nSampling complete: ");
 			mainLog.print(iters + " iterations in " + time_taken + " seconds (average " + PrismUtils.formatDouble(2, time_taken / iters) + ")\n");
-			mainLog.print("Path length statistics: average " + PrismUtils.formatDouble(2, avgPathLength) + ", min " + minPathFound + ", max " + maxPathFound + "\n");
+			mainLog.print("Path length statistics: average " + PrismUtils.formatDouble(2, avgPathLength) + ", min " + minPathFound + ", max " + maxPathFound
+					+ "\n");
 		} else {
 			mainLog.print(" ...\n\nSampling terminated early after " + iters + " iterations.\n");
 		}
