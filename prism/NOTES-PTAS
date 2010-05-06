@@ -1,9 +1,7 @@
-Bugs
-----
-
-
 Todo
 ----
+
+* GUI
 
 * Clarify semantic/type checks (consistency with games/digital)
 
@@ -15,6 +13,10 @@ Todo
 * Digital clocks: Translation done sep for each property (e.g. for cmax)?
 
 * BRP example
+
+
+Bugs
+----
 
 
 Maybe todo
