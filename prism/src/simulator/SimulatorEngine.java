@@ -3,7 +3,6 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
-//	* Andrew Hinton <ug60axh@cs.bham.ac.uk> (University of Birmingham)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -38,6 +37,8 @@ import parser.visitor.ASTTraverse;
 import prism.*;
 
 /**
+ * TODO: rewrite from scratch:
+ * 
  * The SimulatorEngine class uses the JNI to provide a Java interface to the PRISM simulator engine library, written in
  * c++. There are two ways to use this API:
  * <UL>
@@ -184,7 +185,7 @@ public class SimulatorEngine
 	// TODO: remove these now can get from path?
 	protected State previousState;
 	protected State currentState;
-	
+
 	// TODO: just temp storage?
 	// (if so, remove 'current', 'prev' from names?)
 	protected double currentStateRewards[];
@@ -336,44 +337,27 @@ public class SimulatorEngine
 	}
 
 	/**
-	 * This function makes n automatic choices of updates to the global state.
-	 * 
-	 * @param n
-	 *            the number of automatic choices to be made.
-	 * @throws PrismException
-	 *             if something goes wrong when updating the state.
-	 */
-	public void automaticTransitions(int n) throws PrismException
-	{
-		automaticTransitions(n, true);
-	}
-
-	public void automaticTransitions(int n, boolean detect) throws PrismException
-	{
-		int i;
-		for (i = 0; i < n; i++)
-			automaticTransition(detect);
-	}
-
-	/**
 	 * Select, at random, a transition from the current transition list and execute it.
 	 * For continuous-time models, the time to be spent in the state before leaving is also picked randomly.
-	 * @param detect Whether...
-	 * throws an exception if deadlock...
+	 * If there is currently a deadlock, no transition is taken.
+	 * The function returns a boolean value, with true indicating a transition was successfully taken. 
+	 * @param detect Whether... TODO
 	 */
-	public void automaticTransition(boolean detect) throws PrismException
+	public boolean automaticTransition(boolean detect) throws PrismException
 	{
 		Choice choice;
 		int numChoices, i, j;
 		double d, r;
 
+		// Check for deadlock; if so, stop and return false
+		numChoices = transitionList.getNumChoices();
+		if (numChoices == 0)
+			return false;
+		//throw new PrismException("Deadlock found at state " + currentState.toString(modulesFile));
+
 		switch (modelType) {
 		case DTMC:
 		case MDP:
-			// Check for deadlock
-			numChoices = transitionList.getNumChoices();
-			if (numChoices == 0)
-				throw new PrismException("Deadlock found at state " + currentState.toString(modulesFile));
 			// Pick a random choice
 			i = rng.randomUnifInt(numChoices);
 			choice = transitionList.getChoice(i);
@@ -384,10 +368,6 @@ public class SimulatorEngine
 			executeTransition(i, j, -1);
 			break;
 		case CTMC:
-			// Check for deadlock
-			numChoices = transitionList.getNumChoices();
-			if (numChoices == 0)
-				throw new PrismException("Deadlock found at state " + currentState.toString(modulesFile));
 			// Get sum of all rates
 			r = transitionList.getProbabilitySum();
 			// Pick a random number to determine choice/transition
@@ -398,61 +378,51 @@ public class SimulatorEngine
 			executeTimedTransition(ref.i, ref.offset, rng.randomExpDouble(r), -1);
 			break;
 		}
+
+		return true;
+	}
+
+	/**
+	 * Select, at random, n successive transitions and execute them.
+	 * For continuous-time models, the time to be spent in each state before leaving is also picked randomly.
+	 * If a deadlock is found, the process stops.
+	 * The function returns the number of transitions successfully taken. 
+	 */
+	public int automaticTransitions(int n, boolean detect) throws PrismException
+	{
+		int i = 0;
+		while (i < n) {
+			if (!automaticTransition(detect))
+				break;
+			i++;
+		}
+		return i;
 	}
 
 	/**
 	 * Randomly select and execute transitions until the specified time delay is first exceeded.
 	 * (Time is measured from the initial execution of this method, not total time.)
 	 * (For discrete-time models, this just results in ceil(time) steps being executed.)
-	 * (If deadlock...
+	 * If a deadlock is found, the process stops.
+	 * The function returns the number of transitions successfully taken. 
 	 */
-	/**
-	 * This function makes a number of automatic choices of updates to the global state, untill `time' has passed.
-	 * 
-	 * @param time  is the length of time to pass.
-	 * @throws PrismException
-	 *             if something goes wrong when updating the state.
-	 */
-	public void automaticTransitions(double time) throws PrismException
-	{
-		automaticTransitions(time, true);
-	}
-
-	/**
-	 * This function makes n automatic choices of updates to the global state, untill `time' has passed.
-	 * 
-	 * @param time
-	 *            is the length of time to pass.
-	 * @param detect
-	 *            whether to employ loop detection.
-	 * @throws PrismException
-	 *             if something goes wrong when updating the state.
-	 */
-	public void automaticTransitions(double time, boolean detect) throws PrismException
+	public int automaticTransitions(double time, boolean detect) throws PrismException
 	{
 		// For discrete-time models, this just results in ceil(time) steps being executed.
 		if (!modelType.continuousTime()) {
-			automaticTransitions((int) Math.ceil(time), detect);
+			return automaticTransitions((int) Math.ceil(time), detect);
 		} else {
-			double startTime = path.getTotalTime();
-			double currentTime = startTime;
-			// Loop until delay exceed
-			while (currentTime - startTime < time) {
+			int i = 0;
+			double targetTime = path.getTotalTime() + time;
+			while (path.getTotalTime() < targetTime) {
+				if (automaticTransition(detect))
+					i++;
+				else
+					break;
+				// TODO
 				/* Break when looping. */
 				//if (detect && loop_detection->Is_Proven_Looping()) 
 				//break;
-
-				if (queryIsDeadlock())
-					/* Break when deadlocking. */
-					//	if (loop_detection->Is_Deadlock()) 
-					break;
-
-				double probability = 0.0;
-				//Automatic_Update(loop_detection, probability);
-
-				// Because we cannot guarantee that we know the selected index, we have to show this.
-				//stored_path[current_index]->choice_made = PATH_NO_CHOICE_MADE;
-				//stored_path[current_index]->probability = probability;
 
 				// Unless requested not to (detect==false), this function will stop exploring when a loop is detected.
 				// Because Automatic_Update() checks for loops before making a transition, we overshoot.
@@ -487,84 +457,63 @@ public class SimulatorEngine
 				}*/
 
 			}
+			return i;
 		}
 	}
 
 	/**
 	 * Backtrack to a particular step within the current path.
+	 * Time point should be >=0 and <= the total path size. 
 	 * (Not applicable for on-the-fly paths)
 	 * @param step The step to backtrack to.
 	 */
-	public void backtrack(int step) throws PrismException
+	public void backtrackTo(int step) throws PrismException
 	{
 		// Check step is valid
+		if (step < 0) {
+			throw new PrismException("Cannot backtrack to a negative step index");
+		}
 		if (step > path.size()) {
 			throw new PrismException("There is no step " + step + " to backtrack to");
 		}
 		// Back track in path
 		((PathFull) path).backtrack(step);
 		// Update previous/current state info
-		previousState = path.getPreviousState();
+		if (step == 0)
+			previousState.clear();
+		else
+			previousState.copy(path.getPreviousState());
 		currentState = path.getCurrentState();
 		// Recompute samplers for any loaded properties
 		recomputeSamplers();
 		// Generate updates for new current state 
 		updater.calculateTransitions(currentState, transitionList);
-		
-		/*
-		// if go back at least one step, escape deadlock
-		if (step < current_index) loop_detection->Set_Deadlock(false);
-		
-		current_index = step;
-		
-		//copy the state stored in this path to model_variables
-		stored_path[current_index]->Make_Current_State_This();
-		
-		//recalculate timer and rewards
-		path_timer = 0.0;
-		for(int i = 0; i < no_reward_structs; i++) {
-			path_cost[i] = 0.0;
-			total_state_cost[i] = 0.0;
-			total_transition_cost[i] = 0.0;
-		}
-		
-		for(int i = 0; i < current_index; i++)
-		{
-			if(stored_path[i]->time_known)
-				path_timer += stored_path[i]->time_spent_in_state;
-			
-			for (int j = 0; j < no_reward_structs; j++) {
-				total_state_cost[j] += stored_path[i]->state_cost[j];
-				total_transition_cost[j] += stored_path[i]->transition_cost[j];
-			}
-		}
-		for (int j = 0; j < no_reward_structs; j++) {
-			path_cost[j] = total_state_cost[j] + total_transition_cost[j];
-		}
-		
-		Recalculate_Path_Formulae();
-		
-		Calculate_State_Reward(state_variables);
-		
-		Calculate_Updates(state_variables);
-		
-		loop_detection->Backtrack(step);
-		*/
 	}
 
 	/**
-	 * This function backtracks the current path to such that the cumulative time is equal or less than the time
-	 * parameter.
-	 * 
-	 * @param time
-	 *            the cumulative time to backtrack to.
-	 * @throws PrismException
-	 *             is something goes wrong when backtracking.
+	 * Backtrack to a particular (continuous) time point within the current path.
+	 * Time point should be >=0 and <= the total path time. 
+	 * (Not applicable for on-the-fly paths)
+	 * @param time The amount of time to backtrack.
 	 */
-	public void backtrack(double time) throws PrismException
+	public void backtrackTo(double time) throws PrismException
 	{
-		// Backtrack(time) in simpath.cc
-		//doBacktrack(time);
+		// Check step is valid
+		if (time < 0) {
+			throw new PrismException("Cannot backtrack to a negative time point");
+		}
+		if (time > path.getTotalTime()) {
+			throw new PrismException("There is no time point " + time + " to backtrack to");
+		}
+		int step, n;
+		PathFull pathFull = (PathFull) path;
+		n = path.size();
+		// Find the index of the step we are in at that point
+		// i.e. the first state whose cumulative time on entering exceeds 'time'
+		for (step = 0; step <= n && pathFull.getCumulativeTime(step) < time; step++)
+			;
+		// Then backtrack to this step
+		backtrackTo(step);
 	}
 
 	/**
@@ -1059,7 +1008,7 @@ public class SimulatorEngine
 	{
 		return path.getTotalCumulativeReward(rsi);
 	}
-	
+
 	// ------------------------------------------------------------------------------
 	// Querying of current path (full paths only)
 	// ------------------------------------------------------------------------------
@@ -1194,7 +1143,6 @@ public class SimulatorEngine
 	 */
 	public static native int loopEnd();
 
-
 	/**
 	 * Export the current path to a file in a simple space separated format.
 	 * (Not applicable for on-the-fly paths)
@@ -1233,14 +1181,77 @@ public class SimulatorEngine
 	}
 
 	// ------------------------------------------------------------------------------
-	// PROPERTIES AND SAMPLING (not yet sorted)
+	// Model checking (approximate)
 	// ------------------------------------------------------------------------------
 
-	// PCTL Stuff
+	/**
+	 * Check whether a property is suitable for approximate model checking using the simulator.
+	 * If not, an explanatory error message is thrown as an exception.
+	 */
+	public void checkPropertyForSimulation(Expression prop) throws PrismException
+	{
+		// Simulator can only be applied to P=? or R=? properties
+		boolean ok = true;
+		Expression expr = null;
+		if (!(prop instanceof ExpressionProb || prop instanceof ExpressionReward))
+			ok = false;
+		else if (prop instanceof ExpressionProb) {
+			if ((((ExpressionProb) prop).getProb() != null))
+				ok = false;
+			expr = ((ExpressionProb) prop).getExpression();
+		} else if (prop instanceof ExpressionReward) {
+			if ((((ExpressionReward) prop).getReward() != null))
+				ok = false;
+			expr = ((ExpressionReward) prop).getExpression();
+		}
+		if (!ok)
+			throw new PrismException("Simulator can only handle P=? or R=? properties");
+
+		// Check that there are no nested probabilistic operators
+		try {
+			expr.accept(new ASTTraverse()
+			{
+				public void visitPre(ExpressionProb e) throws PrismLangException
+				{
+					throw new PrismLangException("");
+				}
+
+				public void visitPre(ExpressionReward e) throws PrismLangException
+				{
+					throw new PrismLangException("");
+				}
+
+				public void visitPre(ExpressionSS e) throws PrismLangException
+				{
+					throw new PrismLangException("");
+				}
+			});
+		} catch (PrismLangException e) {
+			throw new PrismException("Simulator cannot handle nested P, R or S operators");
+		}
+	}
+
+	// Methods to compute parameters for simulation
+
+	public double computeSimulationApproximation(double confid, int numSamples)
+	{
+		return Math.sqrt((4.0 * PrismUtils.log(2.0 / confid, 10)) / numSamples);
+	}
+
+	public double computeSimulationConfidence(double approx, int numSamples)
+	{
+		return 2.0 / Math.pow(10, (numSamples * approx * approx) / 4.0);
+	}
+
+	public int computeSimulationNumSamples(double approx, double confid)
+	{
+		return (int) Math.ceil(4.0 * PrismUtils.log(2.0 / confid, 10) / (approx * approx));
+	}
 
 	/**
-	 * This method completely encapsulates the model checking of a property so long as: prerequisites modulesFile
-	 * constants should all be defined propertiesFile constants should all be defined
+	 * Perform approximate model checking for a single property.
+	 * Note: All constants in the model must have already been defined.
+	 * @param modulesFile Model for simulation
 	 * 
 	 * <P>
 	 * The returned result is:
@@ -1248,8 +1259,6 @@ public class SimulatorEngine
 	 * <LI> A Double object: for =?[] properties
 	 * </UL>
 	 * 
-	 * @param modulesFile
-	 *            The ModulesFile, constants already defined.
 	 * @param propertiesFile
 	 *            The PropertiesFile containing the property of interest, constants defined.
 	 * @param expr
@@ -1264,7 +1273,7 @@ public class SimulatorEngine
 	 *             if anything goes wrong.
 	 * @return the result.
 	 */
-	public Object modelCheckSingleProperty(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression expr, Values initialState, int noIterations,
+	public Object modelCheckSingleProperty(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression expr, State initialState, int numIters,
 			int maxPathLength) throws PrismException
 	{
 		ArrayList exprs;
@@ -1272,7 +1281,7 @@ public class SimulatorEngine
 
 		exprs = new ArrayList();
 		exprs.add(expr);
-		res = modelCheckMultipleProperties(modulesFile, propertiesFile, exprs, initialState, noIterations, maxPathLength);
+		res = modelCheckMultipleProperties(modulesFile, propertiesFile, exprs, initialState, numIters, maxPathLength);
 
 		if (res[0] instanceof PrismException)
 			throw (PrismException) res[0];
@@ -1282,25 +1291,17 @@ public class SimulatorEngine
 
 	/**
 	 * Perform approximate model checking of properties on a model, using the simulator.
+	 * Sampling starts from the initial state provided or, if null, a random initial state each time.
 	 * Note: All constants in the model/property files must have already been defined.
 	 * @param modulesFile Model for simulation, constants defined
 	 * @param propertiesFile Properties file containing property to check, constants defined
 	 * @param exprs The properties to check
-	 * @param initialState
-	 *            The initial state for the sampling.
-	 * @param noIterations The number of iterations (i.e. number of samples to generate)
+	 * @param initialState Initial state (if null, is selected randomly)
+	 * @param numIters The number of iterations (i.e. number of samples to generate)
 	 * @param maxPathLength The maximum path length for sampling
-	 *  
-	 * <P>
-	 * The returned result is an array each item of which is either:
-	 * <UL>
-	 * <LI> Double object: for =?[] properties
-	 * <LI> An exception if there was a problem
-	 * </UL>
-	 * 
 	 */
-	public Object[] modelCheckMultipleProperties(ModulesFile modulesFile, PropertiesFile propertiesFile, List<Expression> exprs, Values initialState,
-			int noIterations, int maxPathLength) throws PrismException
+	public Object[] modelCheckMultipleProperties(ModulesFile modulesFile, PropertiesFile propertiesFile, List<Expression> exprs, State initialState,
+			int numIters, int maxPathLength) throws PrismException
 	{
 		createNewOnTheFlyPath(modulesFile);
 
@@ -1311,7 +1312,7 @@ public class SimulatorEngine
 		int validPropsCount = 0;
 		for (int i = 0; i < exprs.size(); i++) {
 			try {
-				checkPropertyForSimulation((Expression) exprs.get(i), modulesFile.getModelType());
+				checkPropertyForSimulation((Expression) exprs.get(i));
 				indices[i] = addProperty((Expression) exprs.get(i), propertiesFile);
 				if (indices[i] >= 0)
 					validPropsCount++;
@@ -1323,7 +1324,7 @@ public class SimulatorEngine
 
 		// as long as there are at least some valid props, do sampling
 		if (validPropsCount > 0) {
-			doSampling(new State(initialState), noIterations, maxPathLength);
+			doSampling(initialState, numIters, maxPathLength);
 		}
 
 		// process the results
@@ -1396,7 +1397,7 @@ public class SimulatorEngine
 			pfcs[i] = definedPFConstants;
 			propertiesFile.setUndefinedConstants(definedPFConstants);
 			try {
-				checkPropertyForSimulation(propertyToCheck, modulesFile.getModelType());
+				checkPropertyForSimulation(propertyToCheck);
 				indices[i] = addProperty(propertyToCheck, propertiesFile);
 				if (indices[i] >= 0)
 					validPropsCount++;
@@ -1473,7 +1474,7 @@ public class SimulatorEngine
 		//is all handled by the All_Done_Sampling() function
 
 		// Main sampling loop
-		while (!should_stop_sampling && !isSamplingDone() && iters < numIters) {
+		while (!should_stop_sampling && iters < numIters) {
 
 			// Display progress
 			percentageDone = ((10 * (iters)) / numIters) * 10;
@@ -1605,148 +1606,10 @@ public class SimulatorEngine
 		}
 	}
 
-	private boolean isSamplingDone()
-	{
-		// TODO
-		return false;
-	}
-
-	private static native double getSamplingResult(int propertyIndex);
-
-	private static native int getNumReachedMaxPath(int propertyIndex);
-
 	/**
+	 * TODO
 	 * Used to halt the sampling algorithm in its tracks.
 	 */
 	public static native void stopSampling();
 
-	// Methods to compute parameters for simulation
-
-	public double computeSimulationApproximation(double confid, int numSamples)
-	{
-		return Math.sqrt((4.0 * log(10, 2.0 / confid)) / numSamples);
-	}
-
-	public double computeSimulationConfidence(double approx, int numSamples)
-	{
-		return 2.0 / Math.pow(10, (numSamples * approx * approx) / 4.0);
-	}
-
-	public int computeSimulationNumSamples(double approx, double confid)
-	{
-		return (int) Math.ceil(4.0 * log(10, 2.0 / confid) / (approx * approx));
-	}
-
-	public static double log(double base, double x)
-	{
-		return Math.log(x) / Math.log(base);
-	}
-
-	// Method to check if a property is suitable for simulation
-	// If not, throws an exception with the reason
-
-	public void checkPropertyForSimulation(Expression prop, ModelType modelType) throws PrismException
-	{
-		// Check general validity of property
-		try {
-			prop.checkValid(modelType);
-		} catch (PrismLangException e) {
-			throw new PrismException(e.getMessage());
-		}
-
-		// Simulator can only be applied to P=? or R=? properties
-		boolean ok = true;
-		Expression expr = null;
-		if (!(prop instanceof ExpressionProb || prop instanceof ExpressionReward))
-			ok = false;
-		else if (prop instanceof ExpressionProb) {
-			if ((((ExpressionProb) prop).getProb() != null))
-				ok = false;
-			expr = ((ExpressionProb) prop).getExpression();
-		} else if (prop instanceof ExpressionReward) {
-			if ((((ExpressionReward) prop).getReward() != null))
-				ok = false;
-			expr = ((ExpressionReward) prop).getExpression();
-		}
-		if (!ok)
-			throw new PrismException("Simulator can only be applied to properties of the form \"P=? [ ... ]\" or \"R=? [ ... ]\"");
-
-		// Check that there are no nested probabilistic operators
-		try {
-			expr.accept(new ASTTraverse()
-			{
-				public void visitPre(ExpressionProb e) throws PrismLangException
-				{
-					throw new PrismLangException("");
-				}
-
-				public void visitPre(ExpressionReward e) throws PrismLangException
-				{
-					throw new PrismLangException("");
-				}
-
-				public void visitPre(ExpressionSS e) throws PrismLangException
-				{
-					throw new PrismLangException("");
-				}
-			});
-		} catch (PrismLangException e) {
-			throw new PrismException("Simulator cannot handle nested P, R or S operators");
-		}
-	}
-
-	// ------------------------------------------------------------------------------
-	// UTILITY METHODS
-	// These are for debugging purposes only
-	// ------------------------------------------------------------------------------
-
-	/**
-	 * Convienience method to print an expression at a given pointer location
-	 * 
-	 * @param exprPointer
-	 *            the expression pointer.
-	 */
-	public static native void printExpression(long exprPointer);
-
-	/**
-	 * Returns a string representation of the expression at the given pointer location.
-	 * 
-	 * @param exprPointer
-	 *            the pointer location of the expression.
-	 * @return a string representation of the expression at the given pointer location.
-	 */
-	public static native String expressionToString(long exprPointer);
-
-	/**
-	 * Returns a string representation of the loaded simulator engine model.
-	 * 
-	 * @return a string representation of the loaded simulator engine model.
-	 */
-	public static native String modelToString();
-
-	/**
-	 * Returns a string representation of the stored path.
-	 * 
-	 * @return a string representation of the stored path.
-	 */
-	public static native String pathToString();
-
-	/**
-	 * Prints the current update set to the command line.
-	 */
-	public static native void printCurrentUpdates();
-
-	// ------------------------------------------------------------------------------
-	// ERROR HANDLING
-	// ------------------------------------------------------------------------------
-
-	/**
-	 * If any native method has had a problem, it should have passed a message to the error handler. This method returns
-	 * that message.
-	 * 
-	 * @return returns the last c++ error message.
-	 */
-	public static native String getLastErrorMessage();
-
 }
-// ==================================================================================

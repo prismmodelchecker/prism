@@ -28,8 +28,7 @@
 package prism;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Vector;
+import java.util.*;
 
 import jdd.*;
 import dv.*;
@@ -1405,20 +1404,23 @@ public class Prism implements PrismSettingsListener
 
 	// check if a property is suitable for analysis with the simulator
 	
-	public void checkPropertyForSimulation(Expression f, ModelType modelType) throws PrismException
+	public void checkPropertyForSimulation(Expression expr) throws PrismException
 	{
-		getSimulator().checkPropertyForSimulation(f, modelType);
+		getSimulator().checkPropertyForSimulation(expr);
 	}
 	
 	// model check using simulator
 	// returns result or throws an exception in case of error
 	
-	public Result modelCheckSimulator(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression f, Values initialState, int noIterations, int maxPathLength) throws PrismException
+	public Result modelCheckSimulator(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression expr, Values initialState, int noIterations, int maxPathLength) throws PrismException
 	{
 		Object res = null;
 		
-		//do model checking
-		res = getSimulator().modelCheckSingleProperty(modulesFile, propertiesFile, f, initialState, noIterations, maxPathLength);
+		// Check that property is valid for this model type
+		expr.checkValid(modulesFile.getModelType());
+		
+		// Do model checking
+		res = getSimulator().modelCheckSingleProperty(modulesFile, propertiesFile, expr, new State(initialState), noIterations, maxPathLength);
 		
 		return new Result(res);
 	}
@@ -1427,11 +1429,16 @@ public class Prism implements PrismSettingsListener
 	// returns an array of results, some of which may be Exception objects if there were errors
 	// in the case of an error which affects all properties, an exception is thrown
 	
-	public Result[] modelCheckSimulatorSimultaneously(ModulesFile modulesFile, PropertiesFile propertiesFile, ArrayList<Expression> fs, Values initialState, int noIterations, int maxPathLength) throws PrismException
+	public Result[] modelCheckSimulatorSimultaneously(ModulesFile modulesFile, PropertiesFile propertiesFile, List<Expression> exprs, Values initialState, int noIterations, int maxPathLength) throws PrismException
 	{
 		Object[] res = null;
 		
-		res = getSimulator().modelCheckMultipleProperties(modulesFile, propertiesFile, fs, initialState, noIterations, maxPathLength);
+		// Check that properties are valid for this model type
+		for (Expression expr : exprs)
+			expr.checkValid(modulesFile.getModelType());
+		
+		// Do model checking
+		res = getSimulator().modelCheckMultipleProperties(modulesFile, propertiesFile, exprs, new State(initialState), noIterations, maxPathLength);
 		
 		Result[] resArray = new Result[res.length];
 		for (int i = 0; i < res.length; i++) resArray[i] = new Result(res[i]);

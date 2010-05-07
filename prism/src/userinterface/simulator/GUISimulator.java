@@ -489,7 +489,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		try {
 			setComputing(true);
 
-			engine.backtrack(time);
+			engine.backtrackTo(time);
 
 			pathTableModel.updatePathTable();
 			updateTableModel.updateUpdatesTable();
@@ -511,7 +511,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		try {
 			setComputing(true);
 
-			engine.backtrack(step);
+			engine.backtrackTo(step);
 
 			pathTableModel.updatePathTable();
 			updateTableModel.updateUpdatesTable();
@@ -532,7 +532,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		try {
 			setComputing(true);
 			// Instruct simulator to go back to step 0
-			engine.backtrack(0);
+			engine.backtrackTo(0);
 
 			pathTableModel.updatePathTable();
 			updateTableModel.updateUpdatesTable();
