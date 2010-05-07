@@ -658,7 +658,7 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 			for(i = 0; i < initValuesModel.getNumValues(); i++)
 			{
 				parameter = initValuesModel.getValue(i).name;
-				newInitState.addValue(initValuesModel.getValue(i).name, initValuesModel.getValue(i));
+				newInitState.addValue(initValuesModel.getValue(i).name, initValuesModel.getValue(i).value);
 			}
 			information.setInitialState(newInitState);
 			
