@@ -863,8 +863,7 @@ public class SimulatorEngine
 	private void updateSamplers() throws PrismLangException
 	{
 		for (Sampler sampler : propertySamplers) {
-			if (!sampler.isCurrentValueKnown())
-				sampler.update(path);
+			sampler.update(path);
 		}
 	}
 
@@ -881,8 +880,7 @@ public class SimulatorEngine
 		for (i = 0; i <= n; i++) {
 			prefix.setPrefixLength(i);
 			for (Sampler sampler : propertySamplers) {
-				if (!sampler.isCurrentValueKnown())
-					sampler.update(prefix);
+				sampler.update(prefix);
 			}
 		}
 	}

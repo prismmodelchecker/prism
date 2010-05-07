@@ -57,8 +57,12 @@ public class SamplerUntil extends SamplerBoolean
 	}
 
 	@Override
-	public void update(Path path) throws PrismLangException
+	public boolean update(Path path) throws PrismLangException
 	{
+		// If the answer is already known we should do nothing
+		if (valueKnown)
+			return true;
+		
 		State currentState = path.getCurrentState();
 		// Have we reached the target (i.e. RHS of until)?
 		if (right.evaluateBoolean(currentState)) {
@@ -71,5 +75,7 @@ public class SamplerUntil extends SamplerBoolean
 			value = false;
 		}
 		// Otherwise, don't know
+		
+		return valueKnown;
 	}
 }

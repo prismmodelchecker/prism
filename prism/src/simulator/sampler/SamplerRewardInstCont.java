@@ -55,8 +55,12 @@ public class SamplerRewardInstCont extends SamplerDouble
 	}
 
 	@Override
-	public void update(Path path) throws PrismLangException
+	public boolean update(Path path) throws PrismLangException
 	{
+		// If the answer is already known we should do nothing
+		if (valueKnown)
+			return true;
+		
 		// As soon as time bound exceeded, compute reward
 		if (path.getTotalTime() >= time) {
 			valueKnown = true;
@@ -70,5 +74,7 @@ public class SamplerRewardInstCont extends SamplerDouble
 				value = path.getCurrentStateReward(rewardStructIndex);
 			}
 		}
+		
+		return valueKnown;
 	}
 }

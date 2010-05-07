@@ -63,8 +63,12 @@ public class SamplerBoundedUntilCont extends SamplerBoolean
 	}
 
 	@Override
-	public void update(Path path) throws PrismLangException
+	public boolean update(Path path) throws PrismLangException
 	{
+		// If the answer is already known we should do nothing
+		if (valueKnown)
+			return true;
+		
 		// For continuous-time bounded until, we may need to look back at previous state.
 		// So, treat first/subsequent calls to update() differently. 
 
@@ -133,5 +137,7 @@ public class SamplerBoundedUntilCont extends SamplerBoolean
 				}
 			}
 		}
+		
+		return valueKnown;
 	}
 }

@@ -59,8 +59,12 @@ public class SamplerBoundedUntilDisc extends SamplerBoolean
 	}
 
 	@Override
-	public void update(Path path) throws PrismLangException
+	public boolean update(Path path) throws PrismLangException
 	{
+		// If the answer is already known we should do nothing
+		if (valueKnown)
+			return true;
+		
 		int pathSize = path.size();
 		// Upper bound exceeded
 		if (pathSize > ub) {
@@ -90,5 +94,7 @@ public class SamplerBoundedUntilDisc extends SamplerBoolean
 			}
 			// Otherwise, don't know
 		}
+		
+		return valueKnown;
 	}
 }

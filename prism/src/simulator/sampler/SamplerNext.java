@@ -52,8 +52,12 @@ public class SamplerNext extends SamplerBoolean
 	}
 
 	@Override
-	public void update(Path path) throws PrismLangException
+	public boolean update(Path path) throws PrismLangException
 	{
+		// If the answer is already known we should do nothing
+		if (valueKnown)
+			return true;
+		
 		// X "target" is true iff state 1 satisfies "target"
 		if (path.size() == 1) {
 			valueKnown = true;
@@ -61,5 +65,7 @@ public class SamplerNext extends SamplerBoolean
 		}
 		// Nothing else to do: if path size is 0, can't decide;
 		// if path size > 1 (should never happen), nothing changes
+		
+		return valueKnown;
 	}
 }

@@ -59,9 +59,9 @@ public abstract class Sampler
 	/**
 	 * Update the current value of the sampler based on the current simulation path.
 	 * It is assumed that this is called at every step of the path.
-	 * It is also assumed that this is not called after the value becomes known. 
+	 * This returns true if the sampler's value becomes (or is already) known.
 	 */
-	public abstract void update(Path path) throws PrismLangException;
+	public abstract boolean update(Path path) throws PrismLangException;
 
 	/**
 	 * Update the statistics for the sampler, assuming that the current path is finished.

@@ -92,6 +92,16 @@ public class ChoiceList implements Choice
 	
 	// Get methods
 	
+	public int getModuleOrActionIndex()
+	{
+		return 0; // TODO
+	}
+
+	public String getModuleOrAction()
+	{
+		return null; // TODO
+	}
+
 	public String getAction()
 	{
 		return action;

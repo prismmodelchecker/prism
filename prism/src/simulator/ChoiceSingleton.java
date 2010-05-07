@@ -65,6 +65,16 @@ public class ChoiceSingleton implements Choice
 
 	// Get methods
 	
+	public int getModuleOrActionIndex()
+	{
+		return 0; // TODO
+	}
+
+	public String getModuleOrAction()
+	{
+		return null; // TODO
+	}
+
 	public int size()
 	{
 		return 1;

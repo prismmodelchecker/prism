@@ -55,12 +55,18 @@ public class SamplerRewardCumulDisc extends SamplerDouble
 	}
 
 	@Override
-	public void update(Path path) throws PrismLangException
+	public boolean update(Path path) throws PrismLangException
 	{
+		// If the answer is already known we should do nothing
+		if (valueKnown)
+			return true;
+		
 		// As soon as time bound reached, store current reward total
 		if (path.size() == timeBound) {
 			valueKnown = true;
 			value = path.getTotalCumulativeReward(rewardStructIndex);
 		}
+		
+		return valueKnown;
 	}
 }

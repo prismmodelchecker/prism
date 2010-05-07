@@ -43,6 +43,10 @@ public class SamplerRewardReach extends SamplerDouble
 	 */
 	public SamplerRewardReach(ExpressionTemporal expr, int rewardStructIndex) throws PrismException
 	{
+		// If the answer is already known we should do nothing
+		if (valueKnown)
+			return;
+		
 		// Make sure expression is of the correct type
 		// Then extract other required info
 		if (expr.getOperator() != ExpressionTemporal.R_F)
@@ -55,11 +59,17 @@ public class SamplerRewardReach extends SamplerDouble
 	}
 
 	@Override
-	public void update(Path path) throws PrismLangException
+	public boolean update(Path path) throws PrismLangException
 	{
+		// If the answer is already known we should do nothing
+		if (valueKnown)
+			return true;
+		
 		if (target.evaluateBoolean(path.getCurrentState())) {
 			valueKnown = true;
 			value = path.getTotalCumulativeReward(rewardStructIndex);
 		}
+		
+		return valueKnown;
 	}
 }

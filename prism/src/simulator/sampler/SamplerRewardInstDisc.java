@@ -55,12 +55,18 @@ public class SamplerRewardInstDisc extends SamplerDouble
 	}
 
 	@Override
-	public void update(Path path) throws PrismLangException
+	public boolean update(Path path) throws PrismLangException
 	{
+		// If the answer is already known we should do nothing
+		if (valueKnown)
+			return true;
+		
 		// As soon as time bound reached, store current state reward
 		if (path.size() == time) {
 			valueKnown = true;
 			value = path.getCurrentStateReward(rewardStructIndex);
 		}
+		
+		return valueKnown;
 	}
 }

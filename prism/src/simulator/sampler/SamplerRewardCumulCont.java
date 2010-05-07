@@ -55,8 +55,12 @@ public class SamplerRewardCumulCont extends SamplerDouble
 	}
 
 	@Override
-	public void update(Path path) throws PrismLangException
+	public boolean update(Path path) throws PrismLangException
 	{
+		// If the answer is already known we should do nothing
+		if (valueKnown)
+			return true;
+		
 		// As soon as time bound exceeded, compute reward total
 		if (path.getTotalTime() >= timeBound) {
 			valueKnown = true;
@@ -75,5 +79,7 @@ public class SamplerRewardCumulCont extends SamplerDouble
 				value -= path.getPreviousTransitionReward(rewardStructIndex);
 			}
 		}
+		
+		return valueKnown;
 	}
 }

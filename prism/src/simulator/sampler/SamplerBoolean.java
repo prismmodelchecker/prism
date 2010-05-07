@@ -57,7 +57,7 @@ public abstract class SamplerBoolean extends Sampler
 	}
 
 	@Override
-	public abstract void update(Path path) throws PrismLangException;
+	public abstract boolean update(Path path) throws PrismLangException;
 
 	@Override
 	public void updateStats()
