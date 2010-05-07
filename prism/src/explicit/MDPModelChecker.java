@@ -642,7 +642,7 @@ public class MDPModelChecker extends StateModelChecker
 		MDPModelChecker mc;
 		MDPSimple mdp;
 		ModelCheckerResult res;
-		BitSet target;
+		BitSet init, target;
 		Map<String, BitSet> labels;
 		boolean min = true;
 		try {
@@ -652,6 +652,7 @@ public class MDPModelChecker extends StateModelChecker
 			//System.out.println(mdp);
 			labels = mc.loadLabelsFile(args[1]);
 			//System.out.println(labels);
+			init = labels.get("init");
 			target = labels.get(args[2]);
 			if (target == null)
 				throw new PrismException("Unknown label \"" + args[2] + "\"");
@@ -664,7 +665,7 @@ public class MDPModelChecker extends StateModelChecker
 					mc.setPrecomp(false);
 			}
 			res = mc.probReach(mdp, target, min);
-			System.out.println(res.soln[0]);
+			System.out.println(res.soln[init.nextSetBit(0)]);
 		} catch (PrismException e) {
 			System.out.println(e);
 		}
