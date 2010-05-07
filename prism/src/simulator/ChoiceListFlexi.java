@@ -35,7 +35,10 @@ import prism.PrismLangException;
 public class ChoiceListFlexi implements Choice
 {
 	// TODO: need mult actions
-	protected String action;
+	//protected String action;
+	
+	protected int moduleOrActionIndex;
+	
 	// List of multiple targets and associated info
 	// Size of list is stored implicitly in target.length
 	// TODO: convert to arrays?
@@ -52,9 +55,14 @@ public class ChoiceListFlexi implements Choice
 
 	// Set methods
 
+	public void setModuleOrActionIndex(int moduleOrActionIndex)
+	{
+		this.moduleOrActionIndex = moduleOrActionIndex;
+	}
+	
 	public void add(String action, double probability, List<Update> ups, Command command)
 	{
-		this.action = action;
+		//this.action = action;
 		this.updates.add(ups);
 		this.probability.add(probability);
 		this.command.add(command);
@@ -105,7 +113,12 @@ public class ChoiceListFlexi implements Choice
 
 	// Get methods
 
-	public String getAction()
+	public int getModuleOrActionIndex()
+	{
+		return moduleOrActionIndex;
+	}
+
+	public String getModuleOrAction()
 	{
 		Update u = updates.get(0).get(0);
 		Command c = u.getParent().getParent();

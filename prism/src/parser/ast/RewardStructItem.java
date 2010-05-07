@@ -36,6 +36,10 @@ public class RewardStructItem extends ASTElement
 	// * "" = empty/tau/asynchronous action (i.e. transition reward)
 	// * "act" = "act"-labelled action (i.e. transition reward)
 	private String synch;
+	// Index of action label in model's list of all actions ("synchs")
+	// This is 1-indexed, with 0 denoting an independent ("tau"-labelled) command.
+	// -1 denotes either none (i.e. state reward, synch==null) or not (yet) known.
+	private int synchIndex;
 	// Guard expression
 	private Expression states;
 	// Reward expression
@@ -46,11 +50,22 @@ public class RewardStructItem extends ASTElement
 	public RewardStructItem(String a, Expression s, Expression r)
 	{
 		synch = a;
+		synchIndex = -1;
 		states = s;
 		reward = r;
 	}
 
 	// Set methods
+	
+	public void setSynch(String s)
+	{
+		synch = s;
+	}
+	
+	public void setSynchIndex(int i)
+	{
+		synchIndex = i;
+	}
 	
 	public void setStates(Expression e)
 	{
@@ -64,9 +79,23 @@ public class RewardStructItem extends ASTElement
 	
 	// Get methods
 	
+	/**
+	 * Get the action label for this command. For independent ("tau"-labelled) commands,
+	 * this is the empty string "" (it should never be null).
+	 */
 	public String getSynch()
 	{
 		return synch;
+	}
+	
+	/**
+	 * Get the index of the action label for this command (in the model's list of actions).
+	 * This is 1-indexed, with 0 denoting an independent ("tau"-labelled) command.
+	 * -1 denotes either none (i.e. state reward, synch==null) or not (yet) known.
+	 */
+	public int getSynchIndex()
+	{
+		return synchIndex;
 	}
 	
 	public Expression getStates()
@@ -116,6 +145,7 @@ public class RewardStructItem extends ASTElement
 	public ASTElement deepCopy()
 	{
 		RewardStructItem ret = new RewardStructItem(synch, states.deepCopy(), reward.deepCopy());
+		ret.setSynchIndex(getSynchIndex());
 		ret.setPosition(this);
 		return ret;
 	}

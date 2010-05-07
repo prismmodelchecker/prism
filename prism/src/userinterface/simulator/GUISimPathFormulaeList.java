@@ -30,7 +30,10 @@ package userinterface.simulator;
 import java.awt.*;
 import javax.swing.*;
 import parser.ast.*;
+import prism.PrismException;
+import prism.PrismLangException;
 import userinterface.properties.*;
+import userinterface.simulator.GUISimLabelList.SimLabel;
 import simulator.*;
 
 /**
@@ -60,16 +63,7 @@ public class GUISimPathFormulaeList extends JList
 		listModel.clear();
 	}
 
-	public void addInitial()
-	{
-		listModel.addElement("init");
-	}
-
-	public void addDeadlock()
-	{
-		listModel.addElement("deadlock");
-	}
-
+	// TODO: cut (subsumed by below)
 	public void addRewardFormula(ExpressionReward rew)
 	{
 		String str = rew.getExpression().toString();
@@ -83,31 +77,28 @@ public class GUISimPathFormulaeList extends JList
 		long pathPointer = -1;//engine.addExpressionReward(rew);
 		if (pathPointer <= 0)
 			return;
-		int index = engine.findPathFormulaIndex(pathPointer);
+		int index = -1;//engine.findPathFormulaIndex(pathPointer);
 
 		SimPathFormula form = new SimPathFormula(str, index);
 		listModel.addElement(form);
 	}
 
-	public void addProbFormula(ExpressionProb prob)
+	public void addProperty(Expression prop, PropertiesFile propertiesFile)
 	{
-		String str = prob.getExpression().toString();
-
-		for (int i = 0; i < listModel.getSize(); i++) {
-			if (listModel.getElementAt(i).toString().equals(str))
-				return;// if this already is in here, do not add it
+		try {
+			//String str = prop.getExpression().toString();
+			String str = prop.toString();
+			for (int i = 0; i < listModel.getSize(); i++) {
+				if (listModel.getElementAt(i).toString().equals(str))
+					return;// if this already is in here, do not add it
+			}
+			int index = engine.addProperty(prop, propertiesFile);
+			SimPathFormula form = new SimPathFormula(str, index);
+			listModel.addElement(form);
 		}
-		
-		// TODO: re-enable
-		long pathPointer = -1; //engine.addExpressionProb(prob);
-		if (pathPointer <= 0)
-			return;
-		// System.out.println("probPointer = "+pathPointer);
-		int index = engine.findPathFormulaIndex(pathPointer);
-		// System.out.println("probindex = "+index);
-
-		SimPathFormula form = new SimPathFormula(str, index);
-		listModel.addElement(form);
+		catch (PrismException e) {
+			// Silently ignore any problems - just don't add label to list
+		}
 	}
 
 	class SimPathFormula
@@ -126,16 +117,10 @@ public class GUISimPathFormulaeList extends JList
 			return pathFormula;
 		}
 
-		public int getResult()
+		public Object getResult()
 		{
-			return engine.queryPathFormula(pathFormulaIndex);
+			return engine.queryProperty(pathFormulaIndex);
 		}
-
-		public double getResultNumeric()
-		{
-			return engine.queryPathFormulaNumeric(pathFormulaIndex);
-		}
-
 	}
 
 	// RENDERERS
@@ -163,16 +148,13 @@ public class GUISimPathFormulaeList extends JList
 
 			setText(l.toString());
 
-			int result = l.getResult();
+			Object result = l.getResult();
 
-			if (result == 1) {
-				lastText = "True";
-				setIcon(GUIProperty.IMAGE_TICK);
-			} else if (result == 0) {
-				lastText = "False";
-				setIcon(GUIProperty.IMAGE_CROSS);
-			} else if (result == 2) {
-				lastText = "" + l.getResultNumeric();
+			if (result instanceof Boolean) {
+				lastText = ((Boolean) result).booleanValue() ? "True" : "False";
+				setIcon(((Boolean) result).booleanValue() ? GUIProperty.IMAGE_TICK : GUIProperty.IMAGE_CROSS);
+			} else if (result != null) {
+				lastText = result.toString();
 				setIcon(GUIProperty.IMAGE_NUMBER);
 			} else {
 				lastText = "Unknown";

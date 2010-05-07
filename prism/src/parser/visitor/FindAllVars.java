@@ -47,6 +47,8 @@ public class FindAllVars extends ASTTraverseModify
 		this.varTypes = varTypes;
 	}
 	
+	// Note that this is done with VisitPost, i.e. after recursively visiting children.
+	// This is ok because we can modify rather than create a new object so don't need to return it.
 	public void visitPost(Update e) throws PrismLangException
 	{
 		int i, j, n;
@@ -96,8 +98,7 @@ public class FindAllVars extends ASTTraverseModify
 			return e;
 		}
 		// Otherwise, there is a problem
-		// TODO: reinstate this..
-		return e; // throw new PrismLangException("Unknown variable " + e.getName() + " in ExpressionVar object", e);
+		throw new PrismLangException("Unknown variable " + e.getName() + " in ExpressionVar object", e);
 	}
 }
 

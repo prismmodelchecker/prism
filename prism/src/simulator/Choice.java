@@ -35,7 +35,8 @@ import java.util.*;
 public interface Choice
 {
 //	public void setAction(String action);
-	public String getAction();
+	public int getModuleOrActionIndex();
+	public String getModuleOrAction();
 	public int size();
 	public double getProbability();
 	public double getProbability(int i);

@@ -176,6 +176,14 @@ public class TransitionList
 	// Direct access to transition info
 	
 	/**
+	 * Get a string describing the action/module of a transition, specified by its index.
+	 */
+	public String getTransitionModuleOrAction(int index)
+	{
+		return getChoiceOfTransition(index).getModuleOrAction();
+	}
+	
+	/**
 	 * Get the probability/rate of a transition, specified by its index.
 	 */
 	public double getTransitionProbability(int index)
@@ -184,21 +192,19 @@ public class TransitionList
 	}
 	
 	/**
+	 * Get a string describing the updates making up a transition, specified by its index.
+	 */
+	public String getTransitionUpdateString(int index)
+	{
+		return getChoiceOfTransition(index).getUpdateString(transitionOffsets.get(index));
+	}
+	
+	/**
 	 * Get the target of a transition (as a new State object), specified by its index.
 	 */
 	public State computeTransitionTarget(int index, State oldState) throws PrismLangException
 	{
 		return getChoiceOfTransition(index).computeTarget(transitionOffsets.get(index), oldState);
-	}
-	
-	public String getTransitionActionString(int index)
-	{
-		return getChoiceOfTransition(index).getAction();
-	}
-	
-	public String getTransitionUpdateString(int index)
-	{
-		return getChoiceOfTransition(index).getUpdateString(transitionOffsets.get(index));
 	}
 	
 	@Override

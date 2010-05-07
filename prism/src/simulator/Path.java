@@ -45,13 +45,13 @@ public abstract class Path
 	 * Add a step to the path.
 	 * Note: State object and arrays will be copied, not stored directly.
 	 */
-	public abstract void addStep(int choice, String action, double[] transRewards, State newState, double[] newStateRewards);
+	public abstract void addStep(int choice, int actionIndex, double[] transRewards, State newState, double[] newStateRewards);
 
 	/**
 	 * Add a timed step to the path.
 	 * Note: State object and arrays will be copied, not stored directly.
 	 */
-	public abstract void addStep(double time, int choice, String action, double[] transRewards, State newState, double[] newStateRewards);
+	public abstract void addStep(double time, int choice, int actionIndex, double[] transRewards, State newState, double[] newStateRewards);
 
 	// ACCESSORS
 

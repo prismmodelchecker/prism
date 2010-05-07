@@ -49,9 +49,16 @@ public class Updater
 	// Model info/stats
 	protected int numRewardStructs;
 
-	// Temp storage
+	// Temporary storage:
+	
+	// Element i,j of updateLists is a list of the updates from module i labelled with action j
+	// (where j=0 denotes independent, otherwise 1-indexed action label)
 	protected List<List<List<Updates>>> updateLists;
+	// Bit j of enabledSynchs is set iff action j is currently enabled
+	// (where j=0 denotes independent, otherwise 1-indexed action label)
 	protected BitSet enabledSynchs;
+	// Element j of enabledSynchs is BitSet showing modules which enable action j
+	// (where j=0 denotes independent, otherwise 1-indexed action label)
 	protected BitSet enabledModules[];
 
 	// TODO: apply optimiseForFast or assume called?
@@ -104,7 +111,7 @@ public class Updater
 	public void calculateTransitions(State state, TransitionList transitionList) throws PrismException
 	{
 		Module module;
-		ChoiceListFlexi ch, prod;
+		ChoiceListFlexi prod;
 		int i, j, n, count, n2, n3;
 		double p;
 
@@ -132,14 +139,13 @@ public class Updater
 
 		case DTMC:
 		case CTMC:*/
-			ch = new ChoiceListFlexi();
 			n = 0;
 			// Independent choices for each (enabled) module
 			for (i = enabledModules[0].nextSetBit(0); i >= 0; i = enabledModules[0].nextSetBit(i + 1)) {
 				for (Updates ups : updateLists.get(i).get(0)) {
 					/*processUpdatesAndAddToSum(ups, state, ch);
 					n++;*/
-					transitionList.add(processUpdatesAndCreateNewChoice(ups, state));
+					transitionList.add(processUpdatesAndCreateNewChoice(-(i + 1), ups, state));
 				}
 			}
 			// Add synchronous transitions to list
@@ -156,7 +162,7 @@ public class Updater
 						// Case where this is the first Updates added
 						if (prod == null) {
 							for (Updates ups : updateLists.get(j).get(i)) {
-								prod = processUpdatesAndCreateNewChoice(ups, state);
+								prod = processUpdatesAndCreateNewChoice(i, ups, state);
 							}
 						} else {
 							processUpdatesAndAddToProduct(updateLists.get(j).get(i).get(0), state, prod);
@@ -230,7 +236,7 @@ public class Updater
 
 	}
 
-	private ChoiceListFlexi processUpdatesAndCreateNewChoice(Updates ups, State state) throws PrismLangException
+	private ChoiceListFlexi processUpdatesAndCreateNewChoice(int moduleOrActionIndex, Updates ups, State state) throws PrismLangException
 	{
 		// TODO: use sum function?
 		ChoiceListFlexi ch;
@@ -239,6 +245,7 @@ public class Updater
 		double p, sum;
 
 		ch = new ChoiceListFlexi();
+		ch.setModuleOrActionIndex(moduleOrActionIndex);
 		n = ups.getNumUpdates();
 		sum = 0;
 		for (i = 0; i < n; i++) {
@@ -280,8 +287,9 @@ public class Updater
 
 	private void processUpdatesAndAddToProduct(Updates ups, State state, ChoiceListFlexi ch) throws PrismLangException
 	{
-		ChoiceListFlexi chNew;
-		chNew = processUpdatesAndCreateNewChoice(ups, state);
+		// Create new choice (action index is 0 - not needed)
+		ChoiceListFlexi chNew = processUpdatesAndCreateNewChoice(0, ups, state);
+		// Build product with existing
 		ch.productWith(chNew);
 	}
 
@@ -307,11 +315,10 @@ public class Updater
 		for (i = 0; i < n; i++) {
 			command = module.getCommand(i);
 			if (command.getGuard().evaluateBoolean(state)) {
-				s = command.getSynch();
-				j = ("".equals(s)) ? -1 : synchs.indexOf(s);
-				updateLists.get(m).get(j + 1).add(command.getUpdates());
-				enabledSynchs.set(j + 1);
-				enabledModules[j + 1].set(m);
+				j = command.getSynchIndex();
+				updateLists.get(m).get(j).add(command.getUpdates());
+				enabledSynchs.set(j);
+				enabledModules[j].set(m);
 			}
 		}
 	}
@@ -358,6 +365,11 @@ public class Updater
 		return newState;
 	}
 
+	/**
+	 * Calculate the state rewards for a given state.
+	 * @param state The state to compute rewards for
+	 * @param store An array in which to store the rewards
+	 */
 	public void calculateStateRewards(State state, double[] store) throws PrismLangException
 	{
 		int i, j, n;
@@ -376,4 +388,28 @@ public class Updater
 		}
 	}
 
+	/**
+	 * Calculate the transition rewards for a given state and outgoing choice.
+	 * @param state The state to compute rewards for
+	 * @param ch The choice from the state to compute rewards for
+	 * @param store An array in which to store the rewards
+	 */
+	public void calculateTransitionRewards(State state, Choice ch, double[] store) throws PrismLangException
+	{
+		int i, j, n;
+		double d;
+		RewardStruct rw;
+		for (i = 0; i < numRewardStructs; i++) {
+			rw = modulesFile.getRewardStruct(i);
+			n = rw.getNumItems();
+			d = 0.0;
+			for (j = 0; j < n; j++) {
+				if (rw.getRewardStructItem(j).isTransitionReward())
+					if (rw.getRewardStructItem(j).getSynchIndex() == Math.max(0, ch.getModuleOrActionIndex()))
+						if (rw.getStates(j).evaluateBoolean(state))
+							d += rw.getReward(j).evaluateDouble(state);
+			}
+			store[i] = d;
+		}
+	}
 }

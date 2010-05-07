@@ -42,18 +42,18 @@ import prism.PrismLog;
 public class PathFull extends Path
 {
 	// Parent simulator engine
-	protected SimulatorEngine engine;
+	private SimulatorEngine engine;
 	// Model to which the path corresponds
-	protected ModulesFile modulesFile;
+	private ModulesFile modulesFile;
 	// Does model use continuous time?
-	protected boolean continuousTime;
+	private boolean continuousTime;
 	// Model info/stats
-	protected int numRewardStructs;
+	private int numRewardStructs;
 	
 	// The path, i.e. list of states, etc.
-	protected ArrayList<Step> steps;
+	private ArrayList<Step> steps;
 	// The path length (just for convenience; equal to steps.size() - 1)
-	protected int size;
+	private int size;
 
 	/**
 	 * Constructor: creates a new (empty) PathFull object for a specific model.
@@ -100,29 +100,21 @@ public class PathFull extends Path
 		}
 	}
 
-	/**
-	 * Add a step to the path.
-	 * The passed in State object and arrays (of rewards) will be copied to store in the path.
-	 */
 	@Override
-	public void addStep(int choice, String action, double[] transitionRewards, State newState, double[] newStateRewards)
+	public void addStep(int choice, int moduleOrActionIndex, double[] transitionRewards, State newState, double[] newStateRewards)
 	{
-		addStep(0.0, choice, action, transitionRewards, newState, newStateRewards);
+		addStep(0.0, choice, moduleOrActionIndex, transitionRewards, newState, newStateRewards);
 	}
 
-	/**
-	 * Add a timed step to the path.
-	 * The passed in State object and arrays (of rewards) will be copied to store in the path.
-	 */
 	@Override
-	public void addStep(double time, int choice, String action, double[] transitionRewards, State newState, double[] newStateRewards)
+	public void addStep(double time, int choice, int moduleOrActionIndex, double[] transitionRewards, State newState, double[] newStateRewards)
 	{
 		Step stepOld, stepNew;
 		// Add info to last existing step
 		stepOld = steps.get(steps.size() - 1);
 		stepOld.time = time;
 		stepOld.choice = choice;
-		stepOld.action = action;
+		stepOld.moduleOrActionIndex = moduleOrActionIndex;
 		stepOld.transitionRewards = transitionRewards.clone();
 		// Add new step item to the path
 		stepNew = new Step();
@@ -146,9 +138,26 @@ public class PathFull extends Path
 
 	// MUTATORS (additional)
 	
+	/**
+	 * Backtrack to a particular step within the current path.
+	 * @param The step of the path to backtrack to (step >= 0)
+	 */
 	public void backtrack(int step)
 	{
-		
+		int i, n;
+		// Remove steps after index 'step'
+		n = steps.size() - 1;
+		for (i = n; i > step; i--)
+			steps.remove(i);
+		// Update info in last step of path
+		Step last = steps.get(steps.size() - 1);
+		last.time = 0.0;
+		last.choice = -1;
+		last.moduleOrActionIndex = 0;
+		for (i = 0; i < numRewardStructs; i++)
+			last.transitionRewards[i] = 0.0;
+		// Update size too
+		size = step;
 	}
 	
 	// ACCESSORS (for Path)
@@ -156,6 +165,8 @@ public class PathFull extends Path
 	@Override
 	public int size()
 	{
+		// TODO: remove this sanity check
+		if (size != steps.size() - 1) throw new Error("size != size");
 		return size;
 	}
 
@@ -266,12 +277,29 @@ public class PathFull extends Path
 	}
 
 	/**
-	 * Get the action label taken for a given step.
+	 * Get the index i of the action taken for a given step.
+	 * If i>0, then i-1 is the index of an action label (0-indexed)
+	 * If i<0, then -i-1 is the index of a module (0-indexed)
 	 * @param step Step index (0 = initial state/step of path)
 	 */
-	public String getAction(int step)
+	public int getModuleOrActionIndex(int step)
 	{
-		return steps.get(step).action;
+		return steps.get(step).moduleOrActionIndex;
+	}
+
+	/**
+	 * Get a string describing the action/module of a given step.
+	 * @param step Step index (0 = initial state/step of path)
+	 */
+	public String getModuleOrAction(int step)
+	{
+		int i = steps.get(step).moduleOrActionIndex;
+		if (i < 0)
+			return modulesFile.getModuleName(-i - 1);
+		else if (i > 0)
+			return "[" + modulesFile.getSynchs().get(i - 1) + "]";
+		else
+			return "?";
 	}
 
 	/**
@@ -399,8 +427,14 @@ public class PathFull extends Path
 	{
 		public Step()
 		{
+			// Set (unknown) defaults and initialise arrays
+			state = null;
 			stateRewards = new double[numRewardStructs];
+			timeCumul = 0.0;
 			rewardsCumul = new double[numRewardStructs];
+			time = 0.0;
+			choice = -1;
+			moduleOrActionIndex = 0;
 			transitionRewards = new double[numRewardStructs];
 		}
 		// Current state (before transition)
@@ -415,8 +449,9 @@ public class PathFull extends Path
 		public double time;
 		// Index of the choice taken
 		public int choice;
-		// Action label taken
-		public String action;
+		// Action label taken (i.e. the index in the model's list of all actions).
+		// This is 1-indexed, with 0 denoting an independent ("tau"-labelled) command.
+		public int moduleOrActionIndex;
 		// Transition rewards associated with step
 		public double transitionRewards[];
 	}

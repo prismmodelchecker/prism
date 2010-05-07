@@ -358,9 +358,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 			// Create a new path in the simulator and add labels/properties 
 			engine.createNewPath(parsedModel);
-			engine.initialisePath(initialState);
 			pathActive = true;
 			repopulateFormulae(pf);
+			engine.initialisePath(initialState);
 
 			totalTimeLabel.setText(formatDouble(engine.getTotalTimeForPath()));
 			pathLengthLabel.setText("" + engine.getPathSize());
@@ -681,7 +681,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 		// TODO: fix and re-enable this (note: should use passed in properties file)
 		// Path formulas
-		/*((GUISimPathFormulaeList) pathFormulaeList).clearList();
+		GUISimPathFormulaeList thePathFormulaeList = (GUISimPathFormulaeList) pathFormulaeList;
+		thePathFormulaeList.clearList();
 		if (pathActive) {
 			// Go through the property list from the Properties tab of GUI
 			GUIPropertiesList gpl = guiProp.getPropList();
@@ -689,18 +690,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				GUIProperty gp = gpl.getProperty(i);
 				// For properties which are simulate-able...
 				if (gp.isValidForSimulation()) {
-					Expression expr = gp.getProperty();
 					// Add them to the list
-					if (expr instanceof ExpressionProb) {
-						ExpressionProb prob = (ExpressionProb) expr;
-						((GUISimPathFormulaeList) pathFormulaeList).addProbFormula(prob);
-					} else if (expr instanceof ExpressionReward) {
-						ExpressionReward rew = (ExpressionReward) expr;
-						((GUISimPathFormulaeList) pathFormulaeList).addRewardFormula(rew);
-					}
+					thePathFormulaeList.addProperty(gp.getProperty(), propertiesFile);
 				}
 			}
-		}*/
+		}
 	}
 
 	//METHODS TO IMPLEMENT THE GUIPLUGIN INTERFACE
@@ -3102,7 +3096,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				}
 				// The action column
 				else if (actionStart <= columnIndex && columnIndex < timeStart) {
-					actionValue = new ActionValue(engine.getActionOfPathStep(rowIndex));
+					actionValue = new ActionValue(engine.getModuleOrActionOfPathStep(rowIndex));
 					actionValue.setActionValueUnknown(rowIndex >= engine.getPathSize());
 					return actionValue;
 				}
@@ -3292,7 +3286,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					case 1:
 						return "" + engine.getTransitionProbability(rowIndex);
 					case 2:
-						return engine.getAssignmentDescriptionOfUpdate(rowIndex);
+						return engine.getTransitionUpdateString(rowIndex);
 					default:
 						return "";
 					}

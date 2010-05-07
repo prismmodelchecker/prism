@@ -3,6 +3,7 @@ NOW/NEXT:
 
 add path manip methods - autochoice, backtrack etc.
 but need to sort out loop detection first?
+embedded into Path*?
 
 
 TODO:

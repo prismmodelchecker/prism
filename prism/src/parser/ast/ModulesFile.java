@@ -435,6 +435,8 @@ public class ModulesFile extends ASTElement
 
 		// Get synchronising action names
 		getSynchNames();
+		// Then identify/check any references to action names
+		findAllActions(synchs);
 
 		// Check constant identifiers
 		checkConstantIdents();

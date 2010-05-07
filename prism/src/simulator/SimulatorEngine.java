@@ -184,7 +184,11 @@ public class SimulatorEngine
 	// TODO: remove these now can get from path?
 	protected State previousState;
 	protected State currentState;
+	
+	// TODO: just temp storage?
+	// (if so, remove 'current', 'prev' from names?)
 	protected double currentStateRewards[];
+	protected double previousTransitionRewards[];
 
 	// List of currently available transitions
 	protected TransitionList transitionList;
@@ -306,18 +310,22 @@ public class SimulatorEngine
 	 */
 	public void manualTransition(int index) throws PrismException
 	{
+		// TODO (and other manual/auto)
+		// if transitionList not current (need flag), re-compute it
 		int i = transitionList.getChoiceIndexOfTransition(index);
 		int offset = transitionList.getChoiceOffsetOfTransition(index);
-		if (modelType.continuousTime())
-			executeTimedTransition(i, offset, -1, index);
-		else
+		if (modelType.continuousTime()) {
+			double r = transitionList.getProbabilitySum();
+			executeTimedTransition(i, offset, rng.randomExpDouble(r), index);
+		} else {
 			executeTransition(i, offset, index);
+		}
 	}
 
 	/**
 	 * Execute a transition from the current transition list, specified by its index
 	 * within the (whole) list. In addition, specify the amount of time to be spent in
-	 * the current state before this transition occurs. If -1, this is picked randomly.
+	 * the current state before this transition occurs.
 	 * [continuous-time models only]
 	 */
 	public void manualTransition(int index, double time) throws PrismException
@@ -493,9 +501,17 @@ public class SimulatorEngine
 		if (step > path.size()) {
 			throw new PrismException("There is no step " + step + " to backtrack to");
 		}
+		// Back track in path
+		((PathFull) path).backtrack(step);
+		// Update previous/current state info
+		previousState = path.getPreviousState();
+		currentState = path.getCurrentState();
+		// Recompute samplers for any loaded properties
+		recomputeSamplers();
+		// Generate updates for new current state 
+		updater.calculateTransitions(currentState, transitionList);
 		
 		/*
-		((PathFull) path).backTrack(step);
 		// if go back at least one step, escape deadlock
 		if (step < current_index) loop_detection->Set_Deadlock(false);
 		
@@ -708,6 +724,14 @@ public class SimulatorEngine
 		return step == path.size() ? queryIsDeadlock() : false;
 	}
 
+	// TODO: doc
+	// null if not known yet
+	public Object queryProperty(int index)
+	{
+		Sampler sampler = propertySamplers.get(index);
+		return sampler.isCurrentValueKnown() ? sampler.getCurrentValue() : null;
+	}
+
 	// ------------------------------------------------------------------------------
 	// Private methods for path creation and modification
 	// ------------------------------------------------------------------------------
@@ -750,6 +774,7 @@ public class SimulatorEngine
 		previousState = new State(numVars);
 		currentState = new State(numVars);
 		currentStateRewards = new double[modulesFile.getNumRewardStructs()];
+		previousTransitionRewards = new double[modulesFile.getNumRewardStructs()];
 		transitionList = new TransitionList();
 
 		// Create updater for model
@@ -772,17 +797,18 @@ public class SimulatorEngine
 	 */
 	private void executeTransition(int i, int offset, int index) throws PrismException
 	{
-		// Get corresponding choice
+		// Get corresponding choice and, if required (for full paths), calculate transition index
 		Choice choice = transitionList.getChoice(i);
+		if (!onTheFly && index == -1)
+			index = transitionList.getTotalIndexOfTransition(i, offset);
+		// Compute its transition rewards
+		updater.calculateTransitionRewards(currentState, choice, previousTransitionRewards);
 		// Remember last state and compute next one (and its state rewards)
 		previousState.copy(currentState);
 		choice.computeTarget(offset, previousState, currentState);
 		updater.calculateStateRewards(currentState, currentStateRewards);
-		// Store path info, first calculating transition index for full paths
-		if (!onTheFly && index == -1)
-			index = transitionList.getTotalIndexOfTransition(i, offset);
-		path.addStep(index, choice.getAction(), currentStateRewards, currentState, currentStateRewards);
-		// TODO: first currentStateRewards in above should be new *trans* rewards!
+		// Update path
+		path.addStep(index, choice.getModuleOrActionIndex(), previousTransitionRewards, currentState, currentStateRewards);
 		// Update samplers for any loaded properties
 		updateSamplers();
 		// Generate updates for next state 
@@ -794,8 +820,7 @@ public class SimulatorEngine
 	 * Transition is specified by index of its choice and offset within it. If known, its index
 	 * (within the whole list) can optionally be specified (since this may be needed for storage
 	 * in the path). If this is -1, it will be computed automatically if needed.
-	 * In addition, the amount of time to be spent in the current state before this transition occurs
-	 * should be specified. If -1, this is picked randomly.
+	 * In addition, the amount of time to be spent in the current state before this transition occurs should be specified.
 	 * [continuous-time models only]
 	 * @param i Index of choice containing transition to execute
 	 * @param offset Index within choice of transition to execute
@@ -804,17 +829,18 @@ public class SimulatorEngine
 	 */
 	private void executeTimedTransition(int i, int offset, double time, int index) throws PrismException
 	{
-		// Get corresponding choice
+		// Get corresponding choice and, if required (for full paths), calculate transition index
 		Choice choice = transitionList.getChoice(i);
+		if (!onTheFly && index == -1)
+			index = transitionList.getTotalIndexOfTransition(i, offset);
+		// Compute its transition rewards
+		updater.calculateTransitionRewards(currentState, choice, previousTransitionRewards);
 		// Remember last state and compute next one (and its state rewards)
 		previousState.copy(currentState);
 		choice.computeTarget(offset, previousState, currentState);
 		updater.calculateStateRewards(currentState, currentStateRewards);
-		// Store path info, first calculating transition index for full paths
-		if (!onTheFly && index == -1)
-			index = transitionList.getTotalIndexOfTransition(i, offset);
-		path.addStep(time, index, choice.getAction(), currentStateRewards, currentState, currentStateRewards);
-		// TODO: first currentStateRewards in above should be new *trans* rewards!
+		// Update path
+		path.addStep(time, index, choice.getModuleOrActionIndex(), previousTransitionRewards, currentState, currentStateRewards);
 		// Update samplers for any loaded properties
 		updateSamplers();
 		// Generate updates for next state 
@@ -839,6 +865,25 @@ public class SimulatorEngine
 		for (Sampler sampler : propertySamplers) {
 			if (!sampler.isCurrentValueKnown())
 				sampler.update(path);
+		}
+	}
+
+	/**
+	 * Recompute the state of samplers for any loaded properties based on the whole current path.
+	 * (Not applicable for on-the-fly paths)
+	 */
+	private void recomputeSamplers() throws PrismLangException
+	{
+		int i, n;
+		resetSamplers();
+		n = path.size();
+		PathFullPrefix prefix = new PathFullPrefix((PathFull) path, 0);
+		for (i = 0; i <= n; i++) {
+			prefix.setPrefixLength(i);
+			for (Sampler sampler : propertySamplers) {
+				if (!sampler.isCurrentValueKnown())
+					sampler.update(prefix);
+			}
 		}
 	}
 
@@ -927,6 +972,14 @@ public class SimulatorEngine
 	}
 
 	/**
+	 * Get a string describing the action/module of a transition, specified by its index.
+	 */
+	public String getTransitionModuleOrAction(int index)
+	{
+		return transitionList.getTransitionModuleOrAction(index);
+	}
+
+	/**
 	 * Get the probability/rate of a transition within a choice, specified by its index/offset.
 	 */
 	public double getTransitionProbability(int i, int offset) throws PrismException
@@ -947,6 +1000,14 @@ public class SimulatorEngine
 	}
 
 	/**
+	 * Get a string describing the updates making up a transition, specified by its index.
+	 */
+	public String getTransitionUpdateString(int index)
+	{
+		return transitionList.getTransitionUpdateString(index);
+	}
+
+	/**
 	 * Get the target (as a new State object) of a transition within a choice, specified by its index/offset.
 	 */
 	public State computeTransitionTarget(int i, int offset) throws PrismLangException
@@ -960,24 +1021,6 @@ public class SimulatorEngine
 	public State computeTransitionTarget(int index) throws PrismLangException
 	{
 		return transitionList.computeTransitionTarget(index, currentState);
-	}
-
-	/**
-	 * TODO
-	 */
-	public String getTransitionModuleOrAction(int index)
-	{
-		return transitionList.getTransitionActionString(index);
-		//return transitionList.getChoiceOfTransition(index).getAction();
-	}
-
-	/**
-	 * Returns a string representation of the assignments for the current update at the given index.
-	 * TODO
-	 */
-	public String getAssignmentDescriptionOfUpdate(int index)
-	{
-		return transitionList.getTransitionUpdateString(index);
 	}
 
 	// ------------------------------------------------------------------------------
@@ -1097,13 +1140,25 @@ public class SimulatorEngine
 	}
 
 	/**
-	 * Get the action label taken for a given step.
+	 * Get the index i of the action taken for a given step.
+	 * If i>0, then i-1 is the index of an action label (0-indexed)
+	 * If i<0, then -i-1 is the index of a module (0-indexed)
 	 * (Not applicable for on-the-fly paths)
 	 * @param step Step index (0 = initial state/step of path)
 	 */
-	public String getActionOfPathStep(int step)
+	public int getModuleOrActionIndexOfPathStep(int step)
 	{
-		return ((PathFull) path).getAction(step);
+		return ((PathFull) path).getModuleOrActionIndex(step);
+	}
+
+	/**
+	 * Get a string describing the action/module of a given step.
+	 * (Not applicable for on-the-fly paths)
+	 * @param step Step index (0 = initial state/step of path)
+	 */
+	public String getModuleOrActionOfPathStep(int step)
+	{
+		return ((PathFull) path).getModuleOrAction(step);
 	}
 
 	/**
@@ -1641,32 +1696,6 @@ public class SimulatorEngine
 			throw new PrismException("Simulator cannot handle nested P, R or S operators");
 		}
 	}
-
-	// ------------------------------------------------------------------------------
-	// PATH FORMULA METHODS
-	// ------------------------------------------------------------------------------
-
-	/**
-	 * Loads the path formula stored at pathPointer into the simulator engine. Returns the index of where the path is
-	 * being stored
-	 */
-	public static native int findPathFormulaIndex(long pathPointer);
-
-	/**
-	 * For the path formula at the given index, this returns:
-	 * <UL>
-	 * <LI> -1 if the answer is unknown
-	 * <LI> 0 if the answer is false
-	 * <LI> 1 if the answer is true
-	 * <LI> 2 if the answer is numeric
-	 * </UL>
-	 */
-	public static native int queryPathFormula(int index);
-
-	/**
-	 * Returns the numberic answer for the indexed path formula
-	 */
-	public static native double queryPathFormulaNumeric(int index);
 
 	// ------------------------------------------------------------------------------
 	// UTILITY METHODS

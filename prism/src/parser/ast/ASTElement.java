@@ -328,6 +328,16 @@ public abstract class ASTElement
 	}
 
 	/**
+	 * Find all references to action labels, check they exist and, if required,
+	 * store their index locally (as defined by the containing ModuleFile).
+	 */
+	public ASTElement findAllActions(List<String> synchs) throws PrismLangException
+	{
+		FindAllActions visitor = new FindAllActions(synchs);
+		return (ASTElement) accept(visitor);
+	}
+
+	/**
 	 * Check for type-correctness and compute type.
 	 */
 	public void typeCheck() throws PrismLangException

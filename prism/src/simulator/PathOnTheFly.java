@@ -110,13 +110,13 @@ public class PathOnTheFly extends Path
 	}
 
 	@Override
-	public void addStep(int choice, String action, double[] transRewards, State newState, double[] newStateRewards)
+	public void addStep(int choice, int actionIndex, double[] transRewards, State newState, double[] newStateRewards)
 	{
-		addStep(0, choice, action, transRewards, newState, newStateRewards);
+		addStep(0, choice, actionIndex, transRewards, newState, newStateRewards);
 	}
 
 	@Override
-	public void addStep(double time, int choice, String action, double[] transRewards, State newState, double[] newStateRewards)
+	public void addStep(double time, int choice, int actionIndex, double[] transRewards, State newState, double[] newStateRewards)
 	{
 		size++;
 		previousState.copy(currentState);

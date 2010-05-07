@@ -26,28 +26,30 @@
 
 package parser.ast;
 
-import java.util.ArrayList;
-
-import parser.Values;
 import parser.visitor.*;
 import prism.PrismLangException;
 
 public class Command extends ASTElement
 {
 	// Action label
-	String synch;
+	private String synch;
+	// Index of action label in model's list of all actions ("synchs")
+	// This is 1-indexed, with 0 denoting an independent ("tau"-labelled) command.
+	// -1 denotes not (yet) known.
+	private int synchIndex;
 	// Guard
-	Expression guard;
+	private Expression guard;
 	// List of updates
-	Updates updates;
+	private Updates updates;
 	// Parent module
-	Module parent;
+	private Module parent;
 	
 	// Constructor
 	
 	public Command()
 	{
 		synch = "";
+		synchIndex = -1;
 		guard = null;
 		updates = null;
 	}
@@ -57,6 +59,11 @@ public class Command extends ASTElement
 	public void setSynch(String s)
 	{
 		synch = s;
+	}
+	
+	public void setSynchIndex(int i)
+	{
+		synchIndex = i;
 	}
 	
 	public void setGuard(Expression g)
@@ -77,9 +84,23 @@ public class Command extends ASTElement
 
 	// Get methods
 
+	/**
+	 * Get the action label for this command. For independent ("tau"-labelled) commands,
+	 * this is the empty string "" (it should never be null).
+	 */
 	public String getSynch()
 	{
 		return synch;
+	}
+	
+	/**
+	 * Get the index of the action label for this command (in the model's list of actions).
+	 * This is 1-indexed, with 0 denoting an independent ("tau"-labelled) command.
+	// -1 denotes not (yet) known.
+	 */
+	public int getSynchIndex()
+	{
+		return synchIndex;
 	}
 	
 	public Expression getGuard()
@@ -124,6 +145,7 @@ public class Command extends ASTElement
 	{
 		Command ret = new Command();
 		ret.setSynch(getSynch());
+		ret.setSynchIndex(getSynchIndex());
 		ret.setGuard(getGuard().deepCopy());
 		ret.setUpdates((Updates)getUpdates().deepCopy());
 		ret.setPosition(this);
