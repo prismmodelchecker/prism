@@ -29,9 +29,9 @@ package simulator;
 import java.io.File;
 import java.util.ArrayList;
 
-import parser.Values;
-import parser.ast.ModulesFile;
 import prism.*;
+import parser.*;
+import parser.ast.*;
 
 public class GenerateSimulationPath
 {
@@ -220,7 +220,7 @@ public class GenerateSimulationPath
 		// generate path
 		engine.createNewPath(modulesFile);
 		for (j = 0; j < simPathRepeat; j++) {
-			engine.initialisePath(initialState);
+			engine.initialisePath(new State(initialState));
 			i = 0;
 			t = 0.0;
 			done = false;

@@ -360,7 +360,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			engine.createNewPath(parsedModel);
 			pathActive = true;
 			repopulateFormulae(pf);
-			engine.initialisePath(initialState);
+			engine.initialisePath(new State(initialState));
 
 			totalTimeLabel.setText(formatDouble(engine.getTotalTimeForPath()));
 			pathLengthLabel.setText("" + engine.getPathSize());

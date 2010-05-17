@@ -272,16 +272,6 @@ public class SimulatorEngine
 	 * Initialise (or re-initialise) the simulation path, starting with a specific (or random) initial state.
 	 * @param initialState Initial state (if null, is selected randomly)
 	 */
-	public void initialisePath(Values initialState) throws PrismException
-	{
-		// TODO: need this method?
-		initialisePath(new State(initialState));
-	}
-
-	/**
-	 * Initialise (or re-initialise) the simulation path, starting with a specific (or random) initial state.
-	 * @param initialState Initial state (if null, is selected randomly)
-	 */
 	public void initialisePath(State initialState) throws PrismException
 	{
 		// Store a copy of passed in state
@@ -290,8 +280,6 @@ public class SimulatorEngine
 		}
 		// Or pick a random one
 		else {
-			// TODO
-			//currentState...
 			throw new PrismException("Random initial start state not yet supported");
 		}
 		updater.calculateStateRewards(currentState, currentStateRewards);
@@ -1377,7 +1365,7 @@ public class SimulatorEngine
 	 *             if something goes wrong with the sampling algorithm
 	 */
 	public void modelCheckExperiment(ModulesFile modulesFile, PropertiesFile propertiesFile, UndefinedConstants undefinedConstants,
-			ResultsCollection resultsCollection, Expression propertyToCheck, Values initialState, int maxPathLength, int noIterations) throws PrismException,
+			ResultsCollection resultsCollection, Expression propertyToCheck, State initialState, int maxPathLength, int noIterations) throws PrismException,
 			InterruptedException, PrismException
 	{
 		int n;
