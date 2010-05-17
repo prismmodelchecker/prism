@@ -76,7 +76,7 @@ public class PTAModelChecker
 		labelList = propertiesFile.getCombinedLabelList();
 		labelList = (LabelList) labelList.replaceConstants(constantValues);
 
-		// Build Mapping from all (original model) variables to non-clocks only
+		// Build mapping from all (original model) variables to non-clocks only
 		int numVars = modulesFile.getNumVars();
 		nonClockVarMap = new int[numVars];
 		int count = 0;
@@ -142,7 +142,7 @@ public class PTAModelChecker
 		else if (expr instanceof ExpressionReward)
 			res = checkExpressionReward((ExpressionReward) expr);
 		else
-			throw new PrismException("PTA model checking supported for this operator");
+			throw new PrismException("PTA model checking not supported for this operator");
 
 		return res;
 	}
