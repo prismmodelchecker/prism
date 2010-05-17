@@ -40,7 +40,7 @@ public class Module extends ASTElement
 	private ArrayList<Declaration> decls;
 	// Commands
 	private ArrayList<Command> commands;
-	// Invariant (PTA models only; optionoal)
+	// Invariant (PTA models only; optional)
 	private Expression invariant;
 	// Parent ModulesFile
 	private ModulesFile parent;
@@ -142,6 +142,18 @@ public class Module extends ASTElement
 	public List<Declaration> getDeclarations()
 	{
 		return decls;
+	}
+	
+	/**
+	 * Check for the existence of a local variable (declaration).
+	 */
+	public boolean isVariableName(String var)
+	{
+		for (Declaration decl: decls) {
+			if (decl.getName().equals(var))
+				return true;
+		}
+		return false;
 	}
 	
 	public int getNumCommands()

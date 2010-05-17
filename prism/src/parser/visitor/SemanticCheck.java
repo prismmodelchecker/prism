@@ -42,6 +42,7 @@ public class SemanticCheck extends ASTTraverse
 	private ModulesFile modulesFile;
 	private PropertiesFile propertiesFile;
 	// Sometimes we need to keep track of parent (ancestor) objects
+	private Module module = null;
 	private Update update = null;
 
 	public SemanticCheck()
@@ -73,7 +74,7 @@ public class SemanticCheck extends ASTTraverse
 	public void visitPost(ModulesFile e) throws PrismLangException
 	{
 		int i, j, n, n2;
-		Module module;
+		Module m;
 		Vector<String> v;
 
 		// Check for use of init...endinit _and_ var initial values
@@ -81,35 +82,30 @@ public class SemanticCheck extends ASTTraverse
 			n = e.getNumGlobals();
 			for (i = 0; i < n; i++) {
 				if (e.getGlobal(i).isStartSpecified())
-					throw new PrismLangException("Cannot use both \"init...endinit\" and initial values for variables",
-							e.getGlobal(i).getStart());
+					throw new PrismLangException("Cannot use both \"init...endinit\" and initial values for variables", e.getGlobal(i).getStart());
 			}
 			n = e.getNumModules();
 			for (i = 0; i < n; i++) {
-				module = e.getModule(i);
-				n2 = module.getNumDeclarations();
+				m = e.getModule(i);
+				n2 = m.getNumDeclarations();
 				for (j = 0; j < n2; j++) {
-					if (module.getDeclaration(j).isStartSpecified())
-						throw new PrismLangException(
-								"Cannot use both \"init...endinit\" and initial values for variables", module
-										.getDeclaration(j).getStart());
+					if (m.getDeclaration(j).isStartSpecified())
+						throw new PrismLangException("Cannot use both \"init...endinit\" and initial values for variables", m.getDeclaration(j).getStart());
 				}
 			}
 		}
 
 		// Check system...endsystem construct (if present)
-		// Each modules should appear exactly once
+		// Each module should appear exactly once
 		if (e.getSystemDefn() != null) {
 			e.getSystemDefn().getModules(v = new Vector<String>());
 			if (v.size() != e.getNumModules()) {
-				throw new PrismLangException("All modules must appear in the \"system\" construct exactly once", e
-						.getSystemDefn());
+				throw new PrismLangException("All modules must appear in the \"system\" construct exactly once", e.getSystemDefn());
 			}
 			n = e.getNumModules();
 			for (i = 0; i < n; i++) {
 				if (!(v.contains(e.getModuleName(i)))) {
-					throw new PrismLangException("All modules must appear in the \"system\" construct exactly once", e
-							.getSystemDefn());
+					throw new PrismLangException("All modules must appear in the \"system\" construct exactly once", e.getSystemDefn());
 				}
 			}
 		}
@@ -123,11 +119,9 @@ public class SemanticCheck extends ASTTraverse
 		for (i = 0; i < n; i++) {
 			s = e.getLabelName(i);
 			if ("deadlock".equals(s))
-				throw new PrismLangException("Cannot define a label called \"deadlock\" - this is a built-in label", e
-						.getLabel(i));
+				throw new PrismLangException("Cannot define a label called \"deadlock\" - this is a built-in label", e.getLabel(i));
 			if ("init".equals(s))
-				throw new PrismLangException("Cannot define a label called \"init\" - this is a built-in label", e
-						.getLabel(i));
+				throw new PrismLangException("Cannot define a label called \"init\" - this is a built-in label", e.getLabel(i));
 		}
 	}
 
@@ -137,17 +131,15 @@ public class SemanticCheck extends ASTTraverse
 		n = e.size();
 		for (i = 0; i < n; i++) {
 			if (e.getConstant(i) != null && !e.getConstant(i).isConstant()) {
-				throw new PrismLangException("Definition of constant \"" + e.getConstantName(i) + "\" is not constant",
-						e.getConstant(i));
+				throw new PrismLangException("Definition of constant \"" + e.getConstantName(i) + "\" is not constant", e.getConstant(i));
 			}
 		}
 	}
-	
+
 	public void visitPost(Declaration e) throws PrismLangException
 	{
 		if (e.getStart() != null && !e.getStart().isConstant()) {
-			throw new PrismLangException("Initial variable value of variable \"" + e.getName() + "\" is not constant", e
-					.getStart());
+			throw new PrismLangException("Initial variable value of variable \"" + e.getName() + "\" is not constant", e.getStart());
 		}
 		// Clocks cannot be given initial variables
 		// (Note: it is safe to use getType() here because the type of a Declaration
@@ -156,7 +148,7 @@ public class SemanticCheck extends ASTTraverse
 			throw new PrismLangException("Cannot specify initial value for a clock", e);
 		}
 	}
-	
+
 	public void visitPost(DeclarationInt e) throws PrismLangException
 	{
 		if (e.getLow() != null && !e.getLow().isConstant()) {
@@ -166,7 +158,7 @@ public class SemanticCheck extends ASTTraverse
 			throw new PrismLangException("Integer range upper bound \"" + e.getLow() + "\" is not constant", e.getLow());
 		}
 	}
-	
+
 	public void visitPost(DeclarationArray e) throws PrismLangException
 	{
 		if (e.getLow() != null && !e.getLow().isConstant()) {
@@ -176,7 +168,7 @@ public class SemanticCheck extends ASTTraverse
 			throw new PrismLangException("Array upper bound \"" + e.getLow() + "\" is not constant", e.getLow());
 		}
 	}
-	
+
 	public void visitPost(DeclarationClock e) throws PrismLangException
 	{
 		// Clocks are only allowed in PTA models
@@ -184,13 +176,25 @@ public class SemanticCheck extends ASTTraverse
 			throw new PrismLangException("Clock variables are only allowed in PTA models", e);
 		}
 	}
-	
+
+	public void visitPre(Module e) throws PrismLangException
+	{
+		// Register the fact we are entering a module
+		module = e;
+	}
+
+	public void visitPost(Module e) throws PrismLangException
+	{
+		// Register the fact we are leaving a module
+		module = null;
+	}
+
 	public void visitPre(Update e) throws PrismLangException
 	{
 		// Register the fact we are entering an update
 		update = e;
 	}
-	
+
 	public void visitPost(Update e) throws PrismLangException
 	{
 		int i, n;
@@ -202,7 +206,7 @@ public class SemanticCheck extends ASTTraverse
 
 		// Register the fact we are leaving an update
 		update = null;
-		
+
 		// Determine containing command/module/model
 		// (mf should coincide with the stored modulesFile)
 		c = e.getParent().getParent();
@@ -242,8 +246,7 @@ public class SemanticCheck extends ASTTraverse
 				throw new PrismLangException("Invalid action \"" + s + "\" in \"system\" construct", e);
 			}
 			if (v.contains(s)) {
-				throw new PrismLangException("Duplicated action \"" + s
-						+ "\" in parallel composition in \"system\" construct", e);
+				throw new PrismLangException("Duplicated action \"" + s + "\" in parallel composition in \"system\" construct", e);
 			} else {
 				v.addElement(s);
 			}
@@ -265,8 +268,7 @@ public class SemanticCheck extends ASTTraverse
 				throw new PrismLangException("Invalid action \"" + s + "\" in \"system\" construct", e);
 			}
 			if (v.contains(s)) {
-				throw new PrismLangException("Duplicated action \"" + s
-						+ "\" in parallel composition in \"system\" construct", e);
+				throw new PrismLangException("Duplicated action \"" + s + "\" in parallel composition in \"system\" construct", e);
 			} else {
 				v.addElement(s);
 			}
@@ -288,8 +290,7 @@ public class SemanticCheck extends ASTTraverse
 				throw new PrismLangException("Invalid action \"" + s + "\" in \"system\" construct", e);
 			}
 			if (v.contains(s)) {
-				throw new PrismLangException("Duplicated action \"" + s
-						+ "\" in parallel composition in \"system\" construct", e);
+				throw new PrismLangException("Duplicated action \"" + s + "\" in parallel composition in \"system\" construct", e);
 			} else {
 				v.addElement(s);
 			}
@@ -304,36 +305,29 @@ public class SemanticCheck extends ASTTraverse
 		Expression lBound = e.getLowerBound();
 		Expression uBound = e.getUpperBound();
 		if (lBound != null && !lBound.isConstant()) {
-			throw new PrismLangException("Lower bound in " + e.getOperatorSymbol() + " operator is not constant",
-					lBound);
+			throw new PrismLangException("Lower bound in " + e.getOperatorSymbol() + " operator is not constant", lBound);
 		}
 		if (uBound != null && !uBound.isConstant()) {
-			throw new PrismLangException("Upper bound in " + e.getOperatorSymbol() + " operator is not constant",
-					uBound);
+			throw new PrismLangException("Upper bound in " + e.getOperatorSymbol() + " operator is not constant", uBound);
 		}
 		// Other checks (which parser should never allow to occur anyway)
-		if (op == ExpressionTemporal.P_X
-				&& (operand1 != null || operand2 == null || lBound != null || uBound != null)) {
+		if (op == ExpressionTemporal.P_X && (operand1 != null || operand2 == null || lBound != null || uBound != null)) {
 			throw new PrismLangException("Cannot attach bounds to " + e.getOperatorSymbol() + " operator", e);
 		}
-		if (op == ExpressionTemporal.R_C
-				&& (operand1 != null || operand2 != null || lBound != null || uBound == null)) {
+		if (op == ExpressionTemporal.R_C && (operand1 != null || operand2 != null || lBound != null || uBound == null)) {
 			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
 		}
-		if (op == ExpressionTemporal.R_I
-				&& (operand1 != null || operand2 != null || lBound != null || uBound == null)) {
+		if (op == ExpressionTemporal.R_I && (operand1 != null || operand2 != null || lBound != null || uBound == null)) {
 			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
 		}
-		if (op == ExpressionTemporal.R_F
-				&& (operand1 != null || operand2 == null || lBound != null || uBound != null)) {
+		if (op == ExpressionTemporal.R_F && (operand1 != null || operand2 == null || lBound != null || uBound != null)) {
 			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
 		}
-		if (op == ExpressionTemporal.R_S
-				&& (operand1 != null || operand2 != null || lBound != null || uBound != null)) {
+		if (op == ExpressionTemporal.R_S && (operand1 != null || operand2 != null || lBound != null || uBound != null)) {
 			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
 		}
 	}
-	
+
 	public void visitPost(ExpressionFunc e) throws PrismLangException
 	{
 		// Check function name is valid
@@ -345,8 +339,7 @@ public class SemanticCheck extends ASTTraverse
 			throw new PrismLangException("Not enough arguments to \"" + e.getName() + "\" function", e);
 		}
 		if (e.getMaxArity() != -1 && e.getNumOperands() > e.getMaxArity()) {
-			throw new PrismLangException("Too many " + e.getMaxArity() + "arguments to \"" + e.getName()
-					+ "\" function", e);
+			throw new PrismLangException("Too many " + e.getMaxArity() + "arguments to \"" + e.getName() + "\" function", e);
 		}
 	}
 
@@ -366,6 +359,12 @@ public class SemanticCheck extends ASTTraverse
 
 	public void visitPost(ExpressionVar e) throws PrismLangException
 	{
+		// For PTAs, references to variables in modules have to be local
+		if (modulesFile.getModelType() == ModelType.PTA && module != null) {
+			if (!module.isLocalVariable(e.getName())) {
+				throw new PrismLangException("Modules in a PTA cannot access non-local variables", e);
+			}
+		}
 		// Clocks cannot be used in expressions on RHS of updates
 		// (Note: type checking has not been done, but we know types for ExpressionVars)
 		if (update != null && e.getType() instanceof TypeClock) {
@@ -388,11 +387,10 @@ public class SemanticCheck extends ASTTraverse
 				if (!(rsi.isConstant())) {
 					throw new PrismLangException("R operator reward struct index is not constant", rsi);
 				}
-			}
-			else if (e.getRewardStructIndex() instanceof String) {
+			} else if (e.getRewardStructIndex() instanceof String) {
 				String s = (String) e.getRewardStructIndex();
 				if (modulesFile != null && modulesFile.getRewardStructIndex(s) == -1) {
-					throw new PrismLangException("R operator reward struct index \""+s+"\" does not exist", e);
+					throw new PrismLangException("R operator reward struct index \"" + s + "\" does not exist", e);
 				}
 			}
 		}
@@ -426,7 +424,7 @@ public class SemanticCheck extends ASTTraverse
 			throw new PrismLangException("Undeclared label", e);
 		}
 	}
-	
+
 	public void visitPost(ExpressionFilter e) throws PrismLangException
 	{
 		// Check filter type is valid

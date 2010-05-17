@@ -369,7 +369,6 @@ public class Modules2PTA
 	 * containing this module afterwards, since this changes the global indices of variables.
 	 * @param module: The module to convert.
 	 * @param pcVars: The variables that should be converted to a PC.
-	 * @param init: Initial state (values for PC variables)
 	 * @param pcStates: An empty ArrayList into which PC value states will be stored.
 	 */
 	private Module convertModuleToPCForm(Module module, List<String> pcVars, ArrayList<State> pcStates)
