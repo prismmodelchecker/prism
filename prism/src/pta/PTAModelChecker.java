@@ -72,8 +72,15 @@ public class PTAModelChecker
 		if (propertiesFile != null)
 			constantValues.addValues(propertiesFile.getConstantValues());
 
-		// Get combined label list, expand constants
-		labelList = propertiesFile.getCombinedLabelList();
+		// Build a combined label list and expand any constants
+		// (note labels in model are ignored (removed) during PTA translation so need to store here)
+		labelList = new LabelList();
+		for (int i = 0; i < modulesFile.getLabelList().size(); i++) {
+			labelList.addLabel(modulesFile.getLabelList().getLabelNameIdent(i), modulesFile.getLabelList().getLabel(i).deepCopy());
+		}
+		for (int i = 0; i < propertiesFile.getLabelList().size(); i++) {
+			labelList.addLabel(propertiesFile.getLabelList().getLabelNameIdent(i), propertiesFile.getLabelList().getLabel(i).deepCopy());
+		}
 		labelList = (LabelList) labelList.replaceConstants(constantValues);
 
 		// Build mapping from all (original model) variables to non-clocks only
@@ -101,7 +108,7 @@ public class PTAModelChecker
 
 		// Starting model checking
 		timer = System.currentTimeMillis();
-		
+
 		// Translate ModulesFile object into a PTA object
 		mainLog.println("\nBuilding PTA...");
 		m2pta = new Modules2PTA(prism, modulesFile);
@@ -117,7 +124,7 @@ public class PTAModelChecker
 		// Model checking complete
 		timer = System.currentTimeMillis() - timer;
 		mainLog.println("\nModel checking completed in " + (timer / 1000.0) + " secs.");
-		
+
 		// Print result to log
 		resultString = "Result";
 		if (!("Result".equals(expr.getResultName())))

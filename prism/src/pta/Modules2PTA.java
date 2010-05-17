@@ -83,7 +83,10 @@ public class Modules2PTA
 
 		// Clone the model file, replace any constants with values,
 		// and simplify any expressions as much as possible.
-		modulesFile = (ModulesFile) modulesFile.replaceConstants(constantValues).simplify();
+		modulesFile = (ModulesFile) modulesFile.deepCopy().replaceConstants(constantValues).simplify();
+		
+		// Remove labels from (cloned) model - these are not translated.
+		modulesFile.setLabelList(new LabelList());
 
 		// Go through list of modules
 		numModules = modulesFile.getNumModules();
