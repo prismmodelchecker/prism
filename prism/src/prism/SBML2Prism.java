@@ -38,6 +38,8 @@ import prism.Prism;
 public class SBML2Prism implements EntityResolver
 {
 	private static PrismParser prismParser;
+	private String compartmentName;
+	private double compartmentSize;
 	private ArrayList<Species> speciesList;
 	private ArrayList<Parameter> parameterList;
 	private ArrayList<Reaction> reactionList;
@@ -169,7 +171,8 @@ public class SBML2Prism implements EntityResolver
 	
 	private void extractModelFromSBML(Document doc) throws PrismException
 	{
-		Element e, e_model, e_list, e_species, e_parameter, e_reaction, e_kinetics, e_mathml, e_params;
+		Element e, e_model, e_list;
+		Element e_comp, e_species, e_parameter, e_reaction, e_kinetics, e_mathml;
 		NodeList nodes, nodes2;
 		Node node = null;
 		Species species;
@@ -183,6 +186,26 @@ public class SBML2Prism implements EntityResolver
 		// Get "model" element of SBML file
 		nodes = doc.getDocumentElement().getElementsByTagName("model");
 		e_model = (Element)nodes.item(0);
+		
+		// Process compartment info (if present)
+		// Just need to extract the size in case used
+		e_list = (Element)e_model.getElementsByTagName("listOfCompartments").item(0);
+		nodes = e_list.getElementsByTagName("compartment");
+		n = nodes.getLength();
+		// Make sure there is at most one
+		if (n > 1)
+			throw new PrismException("Only one compartment is permitted");
+		// And if present, store size info
+		compartmentName = null;
+		if (n == 1) {
+			e_comp = (Element)nodes.item(0);
+			if (!"".equals(e_comp.getAttribute("size"))) {
+				compartmentName = e_comp.getAttribute("id");
+				if ("".equals(compartmentName))
+					throw new PrismException("Missing compartment name");
+				compartmentSize = Double.parseDouble(e_comp.getAttribute("size"));
+			}
+		}
 		
 		// Process list of species
 		speciesList = new ArrayList<Species>();
@@ -397,6 +420,12 @@ public class SBML2Prism implements EntityResolver
 		s += "// Original SBML file: " + f.getPath() + "\n\n"; 
 		s += "ctmc\n";
 		s += "\nconst int MAX_AMOUNT = " + maxAmount + ";\n";
+		
+		// If required, add a constant for compartment size
+		if (compartmentName != null) {
+			s += "\n// Compartment size\n";
+			s += "const double " + compartmentName + " = " + compartmentSize + ";\n";
+		}
 		
 		// Generate constant definition for each (model and reaction) parameter
 		n = parameterList.size();
