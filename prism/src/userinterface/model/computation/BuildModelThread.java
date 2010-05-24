@@ -184,6 +184,7 @@ public class BuildModelThread extends GUIComputationThread
 				error(errMsg);
 				handler.modelBuildFailed(buildError);
 			}});
+			return;
 		}
 		
 		// notify interface
