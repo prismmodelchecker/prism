@@ -149,7 +149,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 
 		// Start iterations
 		iters = 1;
-		while (iters < right) {
+		while (iters <= right) {
 			// Matrix-vector multiply
 			dtmc.mvMult(soln, soln2, target, true);
 			// Swap vectors for next iter
