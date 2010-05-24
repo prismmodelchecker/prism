@@ -189,7 +189,7 @@ public class PrismCL
 				modulesFile.setUndefinedConstants(definedMFConstants);
 			} catch (PrismException e) {
 				// in case of error, report it, store as result for any properties, and go on to the next model
-				// (should never happen)
+				// (might happen for example if overflow or another numerical problem is detected at this stage)
 				error(e.getMessage());
 				try {
 					for (j = 0; j < numPropertiesToCheck; j++) {
