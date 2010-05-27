@@ -139,12 +139,12 @@ public class MDPModelChecker extends StateModelChecker
 				iters++;
 				for (i = 0; i < n; i++) {
 					// Need either that i is a target state or
-					// (for min) all choices have all transitions to v and a transition to u
-					// (for max) some choice has all transitions to v and a transition to u
+					// (for min) all choices have all transitions to u and a transition to v
+					// (for max) some choice has all transitions to u and a transition to v
 					if (min) {
-						b2 = target.get(i) || mdp.someAllSuccessorsInSetForAllChoices(i, u, v);
+						b2 = target.get(i) || mdp.someAllSuccessorsInSetForAllChoices(i, v, u);
 					} else {
-						b2 = target.get(i) || mdp.someAllSuccessorsInSetForSomeChoices(i, u, v);
+						b2 = target.get(i) || mdp.someAllSuccessorsInSetForSomeChoices(i, v, u);
 					}
 					soln.set(i, b2);
 				}
