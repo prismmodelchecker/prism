@@ -360,7 +360,7 @@ public class SemanticCheck extends ASTTraverse
 	public void visitPost(ExpressionVar e) throws PrismLangException
 	{
 		// For PTAs, references to variables in modules have to be local
-		if (modulesFile.getModelType() == ModelType.PTA && module != null) {
+		if (modulesFile != null && modulesFile.getModelType() == ModelType.PTA && module != null) {
 			if (!module.isLocalVariable(e.getName())) {
 				throw new PrismLangException("Modules in a PTA cannot access non-local variables", e);
 			}
