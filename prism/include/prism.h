@@ -36,8 +36,8 @@
 // Fox-Glynn wieghts struct
 typedef struct FoxGlynnWeights
 {
-	int left;
-	int right;
+	long left;
+	long right;
 	double total_weight;
 	double *weights;
 } FoxGlynnWeights;

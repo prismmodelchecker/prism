@@ -68,7 +68,7 @@ jdouble time				// time
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
 	// misc
-	int i, iters, num_iters;
+	long i, iters, num_iters;
 	double max_diag, weight, unif, term_crit_param_unif;
 	bool done, combine;
 	

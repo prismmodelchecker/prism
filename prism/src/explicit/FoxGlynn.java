@@ -3,7 +3,7 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
-//	* Joachim Meyer-Kayser <Joachim.Meyer-Kayser@informatik.uni-erlangen.de> (University of Erlangen)
+//	* Vojtech Forejt <forejt@fi.muni.cz> (Masaryk University)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -71,150 +71,141 @@ public final class FoxGlynn
 
 	private final void run() throws PrismException
 	{
-		int m = (int) Math.floor(q_tmax);
-		double q = find(m); // get q, left and right
-
-		//Log.entry("Weighter: Right: " + right);
-		//Log.entry("Weighter: Left : " + left);
-
-		weights = new double[right - left + 1];
-		weights[m - left] = q;
-		//Log.logArray("Weights before calculation: ",weights);
-
-		// down
-		for (int j = m; j > left; j--) {
-			weights[j - 1 - left] = (j / q_tmax) * weights[j - left];
+		if (q_tmax == 0.0) {
+			throw new PrismException("Overflow: TA parameter qtmax = time * maxExitRate = 0.");
 		}
+		else if (q_tmax < 400)
+		{ //here naive approach should have better performance than Fox Glynn
+			final double expcoef = Math.exp(-q_tmax); //the "e^-lambda" part of p.m.f. of Poisson dist.
+			int k; //denotes that we work with event "k steps occur"
+			double lastval; //(probability that exactly k events occur)/expcoef
+			double accum; //(probability that 0 to k events occur)/expcoef
+			double desval = (1-(accuracy/2.0)) / expcoef; //value that we want to accumulate in accum before we stop
+			java.util.Vector<Double> w = new java.util.Vector<Double>(); //stores weights computed so far.
+			
+			//k=0 is simple
+			lastval = 1;
+			accum = lastval;
+			w.add(lastval * expcoef);
+			
+			//add further steps until you have accumulated enough
+			k = 1;
+			do {
+				lastval *= q_tmax / k; // invariant: lastval = q_tmax^k / k!
+				accum += lastval;
+				w.add(lastval * expcoef);
+				k++;
+			} while (accum < desval);
 
-		//up
-		if (q_tmax < 400) {
+			//store all data
+			this.left=0;
+			this.right=k-1;
+			this.weights = new double[k];
 
-			if (right > 600) {
-				throw new PrismException("Overflow: right truncation point > 600.");
+			for(int i = 0; i < w.size(); i++)
+			{
+				this.weights[i] = w.get(i);			
 			}
 
-			for (int j = m; j < right;) {
-				q = q_tmax / (j + 1);
+			//we return actual weights, so no reweighting should be done
+			this.totalWeight = 1.0;
+		}
+		else
+		{ //use actual Fox Glynn for q_tmax>400
+			if (accuracy < 1e-10) {
+				throw new PrismException("Overflow: Accuracy is smaller than Fox Glynn can handle (must be at least 1e-10).");
+			}
+			final double factor = 1e+10; //factor from the paper, it has no real explanation there
+			final int m = (int) q_tmax; //mode
+			//run FINDER to get left, right and weight[m]
+			{
+				final double sqrtpi = 1.7724538509055160; //square root of PI
+				final double sqrt2 = 1.4142135623730950; //square root of 2
+				final double sqrtq = Math.sqrt(q_tmax);
+				final double aq = (1.0 + 1.0/q_tmax) * Math.exp(0.0625) * sqrt2; //a_\lambda from the paper			
+				final double bq = (1.0 + 1.0/q_tmax) * Math.exp(0.125/q_tmax); //b_\lambda from the paper
 
-				if (weights[j - left] > underflow / q) {
-					weights[j + 1 - left] = q * weights[j - left];
-					j++;
-				} else {
-					right = j;
-					//Log.entry("Weighter: Right is now set to " + right);
-					computeTotalWeight();
-					return;
+				//use Corollary 1 to find right truncation point
+				final double lower_k_1 = 1.0 / (2.0*sqrt2*q_tmax); //lower bound on k from Corollary 1
+				final double upper_k_1 = sqrtq / (2.0*sqrt2); //upper bound on k from Corollary 1
+				double k;
+
+				//justification for increment is in the paper:
+				//"increase k through the positive integers greater than 3"
+				for(k=lower_k_1; k <= upper_k_1;
+					k=(k==lower_k_1)? k+4 : k+1 )
+				{
+					double dkl = 1.0/(1 - Math.exp(-(2.0/9.0)*(k*sqrt2*sqrtq+1.5))); //d(k,\lambda) from the paper
+					double res = aq*dkl*Math.exp(-k*k/2.0)/(k*sqrt2*sqrtpi); //right hand side of the equation in Corollary 1
+					if (res <= accuracy/2.0)
+					{
+						break;
+					}
+				}
+
+				if (k>upper_k_1)
+					k=upper_k_1;
+
+				this.right = (int) Math.ceil(m+k*sqrt2*sqrtq + 1.5); 
+
+				//use Corollary 2 to find left truncation point
+				//NOTE: the original implementation used some upper bound on k,
+				//      however, I didn't find it in the paper and I think it is not needed
+				final double lower_k_2 = 1.0/(sqrt2*sqrtq); //lower bound on k from Corollary 2
+
+				double res;
+				k=lower_k_2;
+				do
+				{
+					res = bq*Math.exp(-k*k/2.0)/(k*sqrt2*sqrtpi); //right hand side of the equation in Corollary 2
+					k++;			
+				}
+				while (res > accuracy/2.0);
+				
+				this.left = (int) (m - k*sqrtq - 1.5);
+				
+				//According to the paper, we should check underflow of lower bound.
+				//However, it seems that for no reasonable values this can happen.
+				//And neither the original implementation checked it
+				
+				double wm = overflow / (factor*(this.right - this.left));
+
+				this.weights = new double[this.right-this.left+1];
+				this.weights[m-this.left] = wm;
+			}
+			//end of FINDER
+
+			//compute weights
+			//(at this point this.left, this.right and this.weight[m] is known)
+			
+			//Down from m
+			for(int j=m; j>this.left; j--)
+				this.weights[j-1-this.left] = (j/q_tmax)*this.weights[j-this.left];
+			//Up from m
+			for(int j=m; j<this.right; j++)
+				this.weights[j+1-this.left] = (q_tmax/(j+1))*this.weights[j-this.left];
+
+			//Compute totalWeight (i.e. W in the paper)
+			//instead of summing from left to right, start from smallest
+			//and go to highest weights to prevent roundoff
+			this.totalWeight = 0.0;
+			int s = this.left;
+			int t = this.right;
+			while (s<t)
+			{
+				if(this.weights[s - this.left] <= this.weights[t - this.left])
+				{
+					this.totalWeight += this.weights[s-this.left];
+					s++;
+				}
+				else
+				{
+					this.totalWeight += this.weights[t-this.left];
+					t--;
 				}
 			}
-
-		} else {
-			for (int j = m; j < right; j++) {
-				weights[j + 1 - left] = (q_tmax / (j + 1)) * weights[j - left];
-			}
+			this.totalWeight += this.weights[s-this.left];
 		}
-		computeTotalWeight();
-	}
-
-	private final void computeTotalWeight()
-	{
-		int l = left;
-		int r = right;
-		totalWeight = 0.0;
-
-		while (l < r) {
-			if (weights[l - left] <= weights[r - left]) {
-				totalWeight += weights[l - left];
-				++l;
-			} else {
-				totalWeight += weights[r - left];
-				--r;
-			}
-		}
-		totalWeight += weights[l - left];
-	}
-
-	private final double find(double m) throws PrismException
-	{
-		double k;
-
-		if (q_tmax == 0.0)
-			throw new PrismException("Overflow: TA parameter qtmax = time * maxExitRate = 0.");
-
-		if (q_tmax < 25.0)
-			left = 0;
-
-		if (q_tmax < 400.0) {
-			// Find right using Corollary 1 with q_tmax=400
-			double sqrt2 = Math.sqrt(2.0);
-			double sqrtl = 20;
-			double a = 1.0025 * Math.exp(0.0625) * sqrt2;
-			double b = 1.0025 * Math.exp(0.125 / 400); //Math.exp (0.0003125)
-			double startk = 1.0 / (2.0 * sqrt2 * 400);
-			double stopk = sqrtl / (2 * sqrt2);
-
-			for (k = startk; k <= stopk; k += 3.0) {
-				double d = 1.0 / (1 - Math.exp((-2.0 / 9.0) * (k * sqrt2 * sqrtl + 1.5)));
-				double f = a * d * Math.exp(-0.5 * k * k) / (k * Math.sqrt(2.0 * Math.PI));
-
-				if (f <= accuracy / 2.0)
-					break;
-			}
-
-			if (k > stopk)
-				k = stopk;
-
-			right = (int) Math.ceil(m + k * sqrt2 * sqrtl + 1.5);
-		}
-
-		if (q_tmax >= 400.0) {
-			// Find right using Corollary 1 using actual q_tmax 
-			double sqrt2 = Math.sqrt(2.0);
-			double sqrtl = Math.sqrt(q_tmax);
-			double a = (1.0 + 1.0 / q_tmax) * Math.exp(0.0625) * sqrt2;
-			double b = (1.0 + 1.0 / q_tmax) * Math.exp(0.125 / q_tmax);
-			double startk = 1.0 / (2.0 * sqrt2 * q_tmax);
-			double stopk = sqrtl / (2 * sqrt2);
-
-			for (k = startk; k <= stopk; k += 3.0) {
-				double d = 1.0 / (1 - Math.exp((-2.0 / 9.0) * (k * sqrt2 * sqrtl + 1.5)));
-				double f = a * d * Math.exp(-0.5 * k * k) / (k * Math.sqrt(2.0 * Math.PI));
-
-				if (f <= accuracy / 2.0)
-					break;
-			}
-
-			if (k > stopk)
-				k = stopk;
-
-			right = (int) Math.ceil(m + k * sqrt2 * sqrtl + 1.5);
-		}
-
-		if (q_tmax >= 25.0) {
-			// Find left using Corollary 2 using actual q_tmax 
-			double sqrt2 = Math.sqrt(2.0);
-			double sqrtl = Math.sqrt(q_tmax);
-			double a = (1.0 + 1.0 / q_tmax) * Math.exp(0.0625) * sqrt2;
-			double b = (1.0 + 1.0 / q_tmax) * Math.exp(0.125 / q_tmax);
-			double startk = 1.0 / (sqrt2 * sqrtl);
-			double stopk = (m - 1.5) / (sqrt2 * sqrtl);
-
-			for (k = startk; k <= stopk; k += 3.0) {
-				if (b * Math.exp(-0.5 * k * k) / (k * Math.sqrt(2.0 * Math.PI)) <= accuracy / 2.0)
-					break;
-			}
-
-			if (k > stopk)
-				k = stopk;
-
-			left = (int) Math.floor(m - k * sqrtl - 1.5);
-		}
-
-		if (left < 0) {
-			left = 0;
-			System.out.println("Weighter: negative left truncation point found. Ignored.");
-		}
-
-		return overflow / (Math.pow(10.0, 10.0) * (right - left));
 	}
 
 	public static void test()

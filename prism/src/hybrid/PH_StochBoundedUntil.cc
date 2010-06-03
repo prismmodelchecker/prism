@@ -99,7 +99,7 @@ jlong __jlongpointer mu	// probs for multiplying
 	double time_taken, time_for_setup, time_for_iters;
 	// misc
 	bool done;
-	int i, iters, num_iters;
+	long i, iters, num_iters;
 	double x, kb, kbt, max_diag, weight, term_crit_param_unif;
 	
 	// exception handling around whole function

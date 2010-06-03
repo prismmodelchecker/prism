@@ -71,7 +71,7 @@ jdouble time		// time bound
 	double time_taken, time_for_setup, time_for_iters;
 	// misc
 	bool done;
-	int i, iters, num_iters;
+	long i, iters, num_iters;
 	double max_diag, weight, unif, term_crit_param_unif;
 	
 	// start clocks

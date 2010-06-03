@@ -3,7 +3,7 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
-//	* Joachim Meyer-Kayser <Joachim.Meyer-Kayser@informatik.uni-erlangen.de> (University of Erlangen)
+//	* Vojtech Forejt <forejt@fi.muni.cz> (Masaryk University)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <new>
+#include <vector>
 
 //------------------------------------------------------------------------------
 
@@ -78,150 +79,155 @@ void release_string_array_from_java(JNIEnv *env, jstring *strings_jstrings, cons
 
 //------------------------------------------------------------------------------
 
-// Compute poisson probabilities for uniformisation (Fox-Glynn method)
-// NB: This function was written by Joachim Meyer-Kayser (converted from Java)
+// Compute poisson probabilities for uniformisation. If q_tmax<400, then a naive implementation
+// is used, otherwise the Fox-Glynn method is used.
+// Note that Fox-Glynn method requires accuracy to be at least 1e-10.
 
 EXPORT FoxGlynnWeights fox_glynn(double q_tmax, double underflow, double overflow, double accuracy)
 {
-	int m;
-	double q;
 	FoxGlynnWeights fgw;
-	
-	m = (int)floor(q_tmax);
-	
-	{
-		double m2 = m;
-		double k;
+
+	if (q_tmax == 0.0) {
+		//FIXME: what should happen now?
+		printf("Overflow: TA parameter qtmax = time * maxExitRate = 0.");
+		fgw.right = -1;
+	}
+	else if (q_tmax < 400)
+	{ //here naive approach should have better performance than Fox Glynn
+		const double expcoef = exp(-q_tmax); //the "e^-lambda" part of p.m.f. of Poisson dist.
+		int k; //denotes that we work with event "k steps occur"
+		double lastval; //(probability that exactly k events occur)/expcoef
+		double accum; //(probability that 0 to k events occur)/expcoef
+		double desval = (1-(accuracy/2.0)) / expcoef; //value that we want to accumulate in accum before we stop
+		std::vector<double> w; //stores weights computed so far.
 		
-		if (q_tmax == 0.0) {
-			printf("Overflow: TA parameter qtmax = time * maxExitRate = 0.");
+		//k=0 is simple
+		lastval = 1;
+		accum = lastval;
+		w.push_back(lastval * expcoef);
+		
+		//add further steps until you have accumulated enough
+		k = 1;
+		do {
+			lastval *= q_tmax / k; // invariant: lastval = q_tmax^k / k!
+			accum += lastval;
+			w.push_back(lastval * expcoef);
+			k++;
+		} while (accum < desval);
+
+		//store all data to fgw
+		fgw.left=0;
+		fgw.right=k-1;
+		fgw.weights = new double[k];
+
+		for(int i = 0; i < w.size(); i++)
+		{
+			fgw.weights[i] = w[i];			
 		}
-		if (q_tmax < 25.0) {
-			fgw.left = 0;
+
+		//we return actual weights, so no reweighting should be done
+		fgw.total_weight = 1.0;
+	}
+	else
+	{ //use actual Fox Glynn for q_tmax>400
+		if (accuracy < 1e-10) {
+			//FIXME: what should happen now?
+			printf("Overflow: Accuracy is smaller than Fox Glynn can handle (must be at least 1e-10).");
+			fgw.right = -1;
 		}
-		if (q_tmax < 400.0) {
-			// Find right using Corollary 1 with q_tmax=400
-			double sqrt2  = sqrt(2.0);
-			double sqrtl  = 20;
-			double a = 1.0025 * exp (0.0625) * sqrt2;
-			double b = 1.0025 * exp (0.125/400); 	//exp (0.0003125)
-			double startk = 1.0/(2.0 * sqrt2 * 400);
-			double stopk = sqrtl/(2*sqrt2);
-			
-			for (k = startk; k <= stopk; k += 3.0) {
-			double d = 1.0/(1 - exp ((-2.0/9.0)*(k*sqrt2*sqrtl + 1.5)));
-			double f = a * d * exp (-0.5*k*k) / (k * sqrt (2.0 * 3.1415926));
-			
-			if (f <= accuracy/2.0)
-				break;
-			}
-			
-			if (k > stopk) 
-				k = stopk;
-			
-			fgw.right = (int) ceil(m2 + k*sqrt2*sqrtl + 1.5);
-		}
-		if (q_tmax >= 400.0) {
-			// Find right using Corollary 1 using actual q_tmax 
-			double sqrt2  = sqrt (2.0);
-			double sqrtl  = sqrt (q_tmax);
-			double a = (1.0 + 1.0/q_tmax) * exp (0.0625) * sqrt2;
-			double b = (1.0 + 1.0/q_tmax) * exp (0.125/q_tmax);
-			double startk = 1.0/(2.0 * sqrt2 * q_tmax);
-			double stopk = sqrtl/(2*sqrt2);
-			
-			for (k = startk; k <= stopk; k += 3.0) {
-				double d = 1.0/(1 - exp ((-2.0/9.0)*(k*sqrt2*sqrtl + 1.5)));
-				double f = a * d * exp (-0.5*k*k) / (k * sqrt (2.0 * 3.1415926));
-				
-				if (f <= accuracy/2.0)
+		const double factor = 1e+10;
+
+		const long m = (long) q_tmax; //mode
+		//run FINDER to get left, right and weight[m]
+		{
+			const double sqrtpi = 1.7724538509055160; //square root of PI
+			const double sqrt2 = 1.4142135623730950; //square root of 2
+			const double sqrtq = sqrt(q_tmax);
+			const double aq = (1.0 + 1.0/q_tmax) * exp(0.0625) * sqrt2; //a_\lambda from the paper			
+			const double bq = (1.0 + 1.0/q_tmax) * exp(0.125/q_tmax); //b_\lambda from the paper
+
+			//use Corollary 1 to find right truncation point
+			const double lower_k_1 = 1.0 / (2.0*sqrt2*q_tmax); //lower bound on k from Corollary 1
+			const double upper_k_1 = sqrtq / (2.0*sqrt2); //upper bound on k from Corollary 1
+			double k;
+
+			//justification for increment is in the paper:
+			//"increase k through the positive integers greater than 3"
+			for(k=lower_k_1; k <= upper_k_1;
+				k=(k==lower_k_1)? k+4 : k+1 )
+			{
+				double dkl = 1.0/(1 - exp(-(2.0/9.0)*(k*sqrt2*sqrtq+1.5))); //d(k,\lambda) from the paper
+				double res = aq*dkl*exp(-k*k/2.0)/(k*sqrt2*sqrtpi); //right hand side of the equation in Corollary 1
+				if (res <= accuracy/2.0)
+				{
 					break;
+				}
 			}
-			
-			if (k > stopk) 
-				k = stopk;
-			
-			fgw.right = (int) ceil(m2 + k*sqrt2*sqrtl + 1.5);
-		}
-		if (q_tmax >= 25.0) {
-			// Find left using Corollary 2 using actual q_tmax 
-			double sqrt2  = sqrt (2.0);
-			double sqrtl  = sqrt (q_tmax);
-			double a = (1.0 + 1.0/q_tmax) * exp (0.0625) * sqrt2;
-			double b = (1.0 + 1.0/q_tmax) * exp (0.125/q_tmax);
-			double startk = 1.0/(sqrt2*sqrtl);
-			double stopk =  (m2 - 1.5)/(sqrt2*sqrtl);
-			
-			for (k = startk; k <= stopk; k += 3.0) {
-			if (b * exp(-0.5*k*k)/(k * sqrt (2.0 * 3.1415926)) <= accuracy/2.0)
-				break;
+
+			if (k>upper_k_1)
+				k=upper_k_1;
+
+			const double right_d = ceil(m+k*sqrt2*sqrtq + 1.5);
+			fgw.right = (long) right_d; 
+
+			//use Corollary 2 to find left truncation point
+			//NOTE: the original implementation used some upper bound on k,
+			//      however, I didn't find it in the paper and I think it is not needed
+			const double lower_k_2 = 1.0/(sqrt2*sqrtq); //lower bound on k from Corollary 2
+
+			double res;
+			k=lower_k_2;
+			do
+			{
+				res = bq*exp(-k*k/2.0)/(k*sqrt2*sqrtpi); //right hand side of the equation in Corollary 2
+				k++;			
 			}
+			while (res > accuracy/2.0);
 			
-			if (k > stopk) 
-				k = stopk;
-				
-			fgw.left = (int) floor(m2 - k*sqrtl - 1.5);
-		}
-		
-		if (fgw.left < 0) {
-			fgw.left = 0;
-			//printf("Weighter: negative left truncation point found. Ignored.\n");
-		}
-		
-		q = overflow / (pow(10.0, 10.0) * (fgw.right - fgw.left));
-	}
-	
-	fgw.weights = new double[fgw.right-fgw.left+1];
-	fgw.weights[m-fgw.left] = q;
-	
-	// down
-	for (int j=m; j>fgw.left; j--) {
-		fgw.weights[j-1-fgw.left] = (j/q_tmax) * fgw.weights[j-fgw.left];
-	}
-	
-	//up
-	if (q_tmax < 400) {
-		
-		if (fgw.right > 600) {
-			printf("Overflow: right truncation point > 600.");
-		} 
-		
-		for (int j=m; j<fgw.right; ) {
-			q = q_tmax / (j+1);
+			fgw.left = (long) (m - k*sqrtq - 1.5);
 			
-			if (fgw.weights[j-fgw.left] > underflow/q) {
-				fgw.weights[j+1-fgw.left] = q * fgw.weights[j-fgw.left];
-				j++;
-			}
-			else {
-				fgw.right = j;
-			}
-		} 
-	}
-	else {
-		for (int j=m; j<fgw.right; j++) {
-			fgw.weights[j+1-fgw.left] = (q_tmax/(j+1)) * fgw.weights[j-fgw.left];
+			//According to the paper, we should check underflow of lower bound.
+			//However, it seems that for no reasonable values this can happen.
+			//And neither the original implementation checked it
+			
+			double wm = overflow / (factor*(fgw.right - fgw.left));
+
+			fgw.weights = new double[fgw.right-fgw.left+1];
+			fgw.weights[m-fgw.left] = wm;
 		}
-	}
-	
-	{
-		int l = fgw.left;
-		int r = fgw.right;
+		//end of FINDER
+
+		//compute weights
+		//(at this point fgw.left, fgw.right and fgw.weight[m] is known)
+		
+		//Down from m
+		for(long j=m; j>fgw.left; j--)
+			fgw.weights[j-1-fgw.left] = (j/q_tmax)*fgw.weights[j-fgw.left];
+		//Up from m
+		for(long j=m; j<fgw.right; j++)
+			fgw.weights[j+1-fgw.left] = (q_tmax/(j+1))*fgw.weights[j-fgw.left];
+
+		//Compute total_weight (i.e. W in the paper)
+		//instead of summing from left to right, start from smallest
+		//and go to highest weights to prevent roundoff
 		fgw.total_weight = 0.0;
-		
-		while (l < r) {
-			if (fgw.weights[l-fgw.left] <= fgw.weights[r-fgw.left]) {
-				fgw.total_weight += fgw.weights[l-fgw.left];
-				++l;
+		long s = fgw.left;
+		long t = fgw.right;
+		while (s<t)
+		{
+			if(fgw.weights[s - fgw.left] <= fgw.weights[t - fgw.left])
+			{
+				fgw.total_weight += fgw.weights[s-fgw.left];
+				s++;
 			}
-			else {
-				fgw.total_weight += fgw.weights[r-fgw.left];
-				--r;
+			else
+			{
+				fgw.total_weight += fgw.weights[t-fgw.left];
+				t--;
 			}
 		}
-		fgw.total_weight += fgw.weights[l-fgw.left];
+		fgw.total_weight += fgw.weights[s-fgw.left];
 	}
-	
 	return fgw;
 }
 
