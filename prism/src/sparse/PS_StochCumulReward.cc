@@ -199,7 +199,7 @@ jdouble time		// time bound
 	for (i = fgw.left; i <= fgw.right; i++) {
 		fgw.weights[i-fgw.left] /= fgw.total_weight;
 	}
-	PS_PrintToMainLog(env, "Fox-Glynn: left = %d, right = %d\n", fgw.left, fgw.right);
+	PS_PrintToMainLog(env, "Fox-Glynn: left = %ld, right = %ld\n", fgw.left, fgw.right);
 	
 	// modify the poisson probabilities to what we need for this computation
 	// first make the kth value equal to the sum of the values for 0...k
@@ -322,7 +322,7 @@ jdouble time		// time bound
 			// add to sum
 			for (i = 0; i < n; i++) sum[i] += weight * soln2[i];
 			
-			PS_PrintToMainLog(env, "\nSteady state detected at iteration %d\n", iters);
+			PS_PrintToMainLog(env, "\nSteady state detected at iteration %ld\n", iters);
 			num_iters = iters;
 			break;
 		}
@@ -349,7 +349,7 @@ jdouble time		// time bound
 	
 	// print iters/timing info
 	if (num_iters == -1) num_iters = fgw.right;
-	PS_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", num_iters, time_taken, time_for_iters/num_iters, time_for_setup);
+	PS_PrintToMainLog(env, "\nIterative method: %ld iterations in %.2f seconds (average %.6f, setup %.2f)\n", num_iters, time_taken, time_for_iters/num_iters, time_for_setup);
 	
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {

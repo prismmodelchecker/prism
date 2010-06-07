@@ -168,7 +168,7 @@ jdouble time				// time
 	for (i = fgw.left; i <= fgw.right; i++) {
 		fgw.weights[i-fgw.left] /= fgw.total_weight;
 	}
-	PM_PrintToMainLog(env, "Fox-Glynn: left = %d, right = %d\n", fgw.left, fgw.right);
+	PM_PrintToMainLog(env, "Fox-Glynn: left = %ld, right = %ld\n", fgw.left, fgw.right);
 	
 //	PM_PrintToMainLog(env, "right-left = %d\n", fgw.right-fgw.left);
 //	PM_PrintToMainLog(env, "total_weight = %f\n", fgw.total_weight);
@@ -264,7 +264,7 @@ jdouble time				// time
 			// add to sum
 			Cudd_Ref(tmp);
 			sum = DD_Apply(ddman, APPLY_PLUS, sum, DD_Apply(ddman, APPLY_TIMES, tmp, DD_Constant(ddman, weight)));
-			PM_PrintToMainLog(env, "\nSteady state detected at iteration %d\n", iters);
+			PM_PrintToMainLog(env, "\nSteady state detected at iteration %ld\n", iters);
 			num_iters = iters;
 			Cudd_RecursiveDeref(ddman, tmp);
 			break;
@@ -293,7 +293,7 @@ jdouble time				// time
 	
 	// print iterations/timing info
 	if (num_iters == -1) num_iters = fgw.right;
-	PM_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", num_iters, time_taken, time_for_iters/num_iters, time_for_setup);
+	PM_PrintToMainLog(env, "\nIterative method: %ld iterations in %.2f seconds (average %.6f, setup %.2f)\n", num_iters, time_taken, time_for_iters/num_iters, time_for_setup);
 	
 	// free memory
 	if (combine) {
