@@ -201,7 +201,7 @@ jlong __jlongpointer mu	// probs for multiplying
 	for (i = fgw.left; i <= fgw.right; i++) {
 		fgw.weights[i-fgw.left] /= fgw.total_weight;
 	}
-	PS_PrintToMainLog(env, "Fox-Glynn: left = %d, right = %d\n", fgw.left, fgw.right);
+	PS_PrintToMainLog(env, "Fox-Glynn: left = %ld, right = %ld\n", fgw.left, fgw.right);
 	
 	// set up vectors
 	for (i = 0; i < n; i++) {
@@ -311,7 +311,7 @@ jlong __jlongpointer mu	// probs for multiplying
 			}
 			// add to sum
 			for (i = 0; i < n; i++) sum[i] += weight * soln2[i];
-			PS_PrintToMainLog(env, "\nSteady state detected at iteration %d\n", iters);
+			PS_PrintToMainLog(env, "\nSteady state detected at iteration %ld\n", iters);
 			num_iters = iters;
 			break;
 		}
@@ -336,7 +336,7 @@ jlong __jlongpointer mu	// probs for multiplying
 	
 	// print iters/timing info
 	if (num_iters == -1) num_iters = fgw.right;
-	PS_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", num_iters, time_taken, time_for_iters/num_iters, time_for_setup);
+	PS_PrintToMainLog(env, "\nIterative method: %ld iterations in %.2f seconds (average %.6f, setup %.2f)\n", num_iters, time_taken, time_for_iters/num_iters, time_for_setup);
 	
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
@@ -357,6 +357,7 @@ jlong __jlongpointer mu	// probs for multiplying
 	if (diags_dist) delete diags_dist;
 	if (soln) delete[] soln;
 	if (soln2) delete[] soln2;
+	if (fgw.weights) delete[] fgw.weights;
 	
 	return ptr_to_jlong(sum);
 }
