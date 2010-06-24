@@ -1189,6 +1189,8 @@ public abstract class STPGAbstractRefine
 	{
 		STPG stpg;
 		int i, j, k;
+		String nij, nijk;
+		
 		if (abstraction instanceof STPG) {
 			stpg = (STPG) abstraction;
 		} else if (abstraction instanceof MDPSimple) {
@@ -1205,19 +1207,23 @@ public abstract class STPGAbstractRefine
 					out.write(i + " [label=\"" + i + " {" + lbSoln[i] + "}" + "\" style=filled  fillcolor=\"#cccccc\"");
 				else
 					out.write(i + " [label=\"" + i + " [" + (ubSoln[i] - lbSoln[i]) + "]" + "\"");
-				//out.write(i + " [label=\"" + i + " [" + (ubSoln[i]) + "-" + (lbSoln[i]) + "=" + (ubSoln[i] - lbSoln[i]) + "]" + "\"");
 				out.write("]\n");
-				j = 0;
+				j = -1;
 				for (DistributionSet distrs : stpg.getChoices(i)) {
-					k = 0;
-					for (Distribution distr : distrs) {
-						for (Map.Entry<Integer, Double> e : distr) {
-							out.write(i + " -> " + e.getKey() + " [ label=\"");
-							out.write(j + "," + k + ":" + e.getValue() + "\" ];\n");
-						}
-						k++;
-					}
 					j++;
+					nij = "n" + i + "_" + j;
+					out.write(i + " -> " + nij + " [ arrowhead=none,label=\"" + j + "\" ];\n");
+					out.write(nij + " [ shape=circle,width=0.1,height=0.1,label=\"\" ];\n");
+					k = -1;
+					for (Distribution distr : distrs) {
+						k++;
+						nijk = "n" + i + "_" + j + "_" + k;
+						out.write(nij + " -> " + nijk + " [ arrowhead=none,label=\"" + k + "\" ];\n");
+						out.write(nijk + " [ shape=point,label=\"\" ];\n");
+						for (Map.Entry<Integer, Double> e : distr) {
+							out.write(nijk + " -> " + e.getKey() + " [ label=\"" + e.getValue() + "\" ];\n");
+						}
+					}
 				}
 			}
 			out.write("}\n");
