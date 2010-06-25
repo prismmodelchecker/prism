@@ -6,7 +6,14 @@ but need to sort out loop detection first?
 embedded into Path*?
 
 
-TODO:
+TODO (before any release):
+
+* variable overflow?
+
+TODO (later):
+
+* random initial state
+
 
 add support "deadlock" and "init" (new EvaluationContext, model *and* state dependent)
 

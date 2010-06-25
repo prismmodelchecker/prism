@@ -14,6 +14,8 @@ Todo
 
 * BRP example
 
+* Clarify issue of PTAs accessing non-local vars (currently don't allow this because doesn't work with AR approach which converts to PTA objects first). But this rules out message passing.
+
 
 Bugs
 ----
@@ -49,5 +51,9 @@ Where can clocks be used
 * var decl.s
 * generally must be convex (i.e. just conj of constraints) (can be relaxed a bit for digital clocks)
 
+Modules cannot access non-local vars (is this too restrictive, e.g. for message passing?)
+
 Must have single initial state (is this true for digital clocks too?)
+
+Invariants must come straight after var decls
 
