@@ -226,7 +226,8 @@ public class GenerateSimulationPath
 			done = false;
 			while (!done) {
 				// generate a single step of path
-				engine.automaticTransitions(1, simLoopCheck);
+				// TODO: engine.automaticTransitions(1, simLoopCheck);
+				engine.automaticTransitions(1);
 				if (stochastic)
 					t += engine.getTimeSpentInPathStep(i++);
 				else

@@ -1176,10 +1176,10 @@ public class SimulatorEngine
 	public Object modelCheckSingleProperty(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression expr, State initialState, int numIters,
 			int maxPathLength) throws PrismException
 	{
-		ArrayList exprs;
+		ArrayList<Expression> exprs;
 		Object res[];
 
-		exprs = new ArrayList();
+		exprs = new ArrayList<Expression>();
 		exprs.add(expr);
 		res = modelCheckMultipleProperties(modulesFile, propertiesFile, exprs, initialState, numIters, maxPathLength);
 
@@ -1335,37 +1335,30 @@ public class SimulatorEngine
 
 	private void doSampling(State initialState, int numIters, int maxPathLength) throws PrismException
 	{
-		int iters = 0;
-		int lastPercentageDone = 0;
-		int percentageDone = 0;
+		int i, iters;
+		// Flags
+		boolean stoppedEarly = false;
+		boolean deadlocksFound = false;
+		boolean allKnown = false;
+		boolean shouldStopSampling = false;
+		// Path stats
 		double avgPathLength = 0;
 		int minPathFound = 0, maxPathFound = 0;
-		boolean stoppedEarly = false;
-		boolean deadlocks_found = false;
-		boolean allKnown = false;
-		int i;
-
+		// Progress info
+		int lastPercentageDone = 0;
+		int percentageDone = 0;
 		// Timing info
-		long start, start2, stop;
+		long start, stop;
 		double time_taken;
 
-		//TODO: allow stopping of sampling mid-way through?
-		//External flag set to false
-		boolean should_stop_sampling = false;
-
-		start = start2 = System.currentTimeMillis();
-
+		// Start
+		start = System.currentTimeMillis();
 		mainLog.print("\nSampling progress: [");
 		mainLog.flush();
 
-		//The loop continues until each pctl/csl formula is satisfied:
-		//E.g. usually, this is when the correct number of iterations
-		//has been performed, but for some, such as cumulative rewards
-		//this can be early if a loop is detected at any point, this
-		//is all handled by the All_Done_Sampling() function
-
 		// Main sampling loop
-		while (!should_stop_sampling && iters < numIters) {
+		iters = 0;
+		while (!shouldStopSampling && iters < numIters) {
 
 			// Display progress
 			percentageDone = ((10 * (iters)) / numIters) * 10;
@@ -1375,26 +1368,13 @@ public class SimulatorEngine
 				mainLog.flush();
 			}
 
-			//do polling and feedback every 2 seconds
-			stop = System.currentTimeMillis();
-			if (stop - start2 > 2000) {
-				//Write_Feedback(iteration_counter, numIters, false);
-				//int poll = Poll_Control_File();
-				//if(poll & STOP_SAMPLING == STOP_SAMPLING)
-				//	should_stop_sampling = true;
-				start2 = System.currentTimeMillis();
-			}
-
 			iters++;
 
 			// Start the new path for this iteration (sample)
 			initialisePath(initialState);
-
-			//loop_detection->Reset();
-
+			
 			// Generate a path, up to at most maxPathLength steps
 			for (i = 0; i < maxPathLength; i++) {
-
 				// See if all samplers have established a value; if so, stop.
 				allKnown = true;
 				for (Sampler sampler : propertySamplers) {
@@ -1403,51 +1383,13 @@ public class SimulatorEngine
 				}
 				if (allKnown)
 					break;
-
 				// Make a random transition
 				automaticTransition();
-
-				//if(!loop_detection->Is_Proven_Looping()) { // removed this: for e.g. cumul rewards need to keep counting in loops...
-
-				/*if (modelType.continuousTime()) {
-					double time_in_state = Get_Sampled_Time();
-					
-					last_state->time_spent_in_state = time_in_state;
-					
-					for (int i = 0; i < no_reward_structs; i++) {
-						last_state->state_cost[i] = last_state->state_instant_cost[i]*time_in_state;
-						last_state->transition_cost[i] = Get_Transition_Reward(i);
-						total_state_cost[i] += last_state->state_instant_cost[i]*time_in_state;
-						total_transition_cost[i] += last_state->transition_cost[i];
-						path_cost[i] = total_state_cost[i] + total_transition_cost[i];
-						
-						last_state->cumulative_state_cost[i] = total_state_cost[i];
-						last_state->cumulative_transition_cost[i] = total_transition_cost[i];
-					}
-					
-					Notify_Path_Formulae(last_state, state_variables, loop_detection);
-				}
-				else
-				{
-					for (int i = 0; i < no_reward_structs; i++) {
-						last_state->state_cost[i] = last_state->state_instant_cost[i];
-						last_state->transition_cost[i] = Get_Transition_Reward(i);
-						total_state_cost[i] += last_state->state_instant_cost[i];
-						total_transition_cost[i] += last_state->transition_cost[i];
-						path_cost[i] = total_state_cost[i] + total_transition_cost[i];
-						
-						last_state->cumulative_state_cost[i] = total_state_cost[i];
-						last_state->cumulative_transition_cost[i] = total_transition_cost[i];	
-					}
-					
-					Notify_Path_Formulae(last_state, state_variables, loop_detection); 
-				}*/
-				//}
-
 			}
 
 			// record if we found any deadlocks (can check this outside path gen loop because never escape deadlocks)
-			//if (loop_detection->Is_Deadlock()) deadlocks_found = true;
+			//if (loop_detection->Is_Deadlock()) deadlocksFound = true;
+			// TODO
 
 			// Update path length statistics
 			avgPathLength = (avgPathLength * (iters - 1) + (i)) / iters;
@@ -1467,7 +1409,7 @@ public class SimulatorEngine
 		}
 
 		if (!stoppedEarly) {
-			if (!should_stop_sampling)
+			if (!shouldStopSampling)
 				mainLog.print(" 100% ]");
 			mainLog.println();
 			stop = System.currentTimeMillis();
@@ -1481,11 +1423,11 @@ public class SimulatorEngine
 		}
 
 		// print a warning if deadlocks occurred at any point
-		if (deadlocks_found)
+		if (deadlocksFound)
 			mainLog.print("\nWarning: Deadlocks were found during simulation: self-loops were added\n");
 
 		// print a warning if simulation was stopped by the user
-		if (should_stop_sampling)
+		if (shouldStopSampling)
 			mainLog.print("\nWarning: Simulation was terminated before completion.\n");
 
 		//write to feedback file with true to indicate that we have finished sampling
@@ -1498,9 +1440,10 @@ public class SimulatorEngine
 	}
 
 	/**
-	 * TODO
-	 * Used to halt the sampling algorithm in its tracks.
+	 * Halt the sampling algorithm in its tracks (not implemented).
 	 */
-	public static native void stopSampling();
-
+	public void stopSampling()
+	{
+		// TODO
+	}
 }
