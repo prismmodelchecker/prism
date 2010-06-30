@@ -413,7 +413,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				engine.computeTransitionsForCurrentState();
 			}
 
-			engine.automaticTransitions(noSteps, displayPathLoops);
+			// TODO engine.automaticTransitions(noSteps, displayPathLoops);
+			engine.automaticTransitions(noSteps);
 
 			pathTableModel.updatePathTable();
 			updateTableModel.updateUpdatesTable();
@@ -459,7 +460,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				engine.computeTransitionsForCurrentState();
 			}
 
-			engine.automaticTransitions(time, displayPathLoops);
+			// TODO engine.automaticTransitions(time, displayPathLoops);
+			engine.automaticTransitions(time);
 
 			pathTableModel.updatePathTable();
 			updateTableModel.updateUpdatesTable();
