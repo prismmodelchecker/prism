@@ -40,9 +40,32 @@ public class LocZone
 	}
 
 	/**
-	 * dSuc: discrete successor
+	 * Do combined discrete *then* time post operation wrt. an edge.
+	 * Note: time part includes c-closure.
 	 */
-	public void dSuc(Edge edge)
+	public void post(Edge edge)
+	{
+		PTA pta = edge.getParent().getParent();
+		dPost(edge);
+		tPost(pta);
+	}
+
+	/**
+	 * Do time part of post operation (including c-closure).
+	 * Note: pta is passed in just for efficiency, could find it if we wanted.
+	 */
+	public void tPost(PTA pta)
+	{
+		// Time successor (up)
+		zone.up(pta.getInvariantConstraints(loc));
+		// c-Closure
+		zone.cClosure(pta.getMaxClockConstraint());
+	}
+	
+	/**
+	 * Do discrete part of post operation (wrt. an edge).
+	 */
+	public void dPost(Edge edge)
 	{
 		Transition tr = edge.getParent();
 		// Intersect this zone with guard of edge's transition's guard 
@@ -57,20 +80,6 @@ public class LocZone
 		zone.addConstraints(tr.getParent().getInvariantConstraints(edge.getDestination()));
 		// Set location to target location
 		loc = edge.getDestination();
-	}
-
-	/**
-	 * post: combined discrete/time successors + c-closure
-	 */
-	public void post(Edge edge)
-	{
-		PTA pta = edge.getParent().getParent();
-		// Discrete successor
-		dSuc(edge);
-		// Time successor (up)
-		zone.up(pta.getInvariantConstraints(loc));
-		// c-Closure
-		zone.cClosure(pta.getMaxClockConstraint());
 	}
 
 	/**

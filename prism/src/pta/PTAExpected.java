@@ -369,7 +369,7 @@ public class PTAExpected
 							if (lzRew > 10000)
 								throw new PrismException("stop");
 							LocZone lz2 = lz.deepCopy();
-							lz2.dSuc(edge);
+							lz2.dPost(edge);
 							mainLog.println("post: " + lz2);
 							rew = getMinMaxForZone(lz2.zone, someClock, min);
 							mainLog.println(rew);
