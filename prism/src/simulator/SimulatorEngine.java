@@ -37,123 +37,54 @@ import parser.visitor.ASTTraverse;
 import prism.*;
 
 /**
- * TODO: rewrite from scratch:
- * 
- * The SimulatorEngine class uses the JNI to provide a Java interface to the PRISM simulator engine library, written in
- * c++. There are two ways to use this API:
+ * The SimulatorEngine class provides support for:
  * <UL>
- * <LI> To access the engine directly to perform tasks such as model exploration.</LI>
- * <LI> To perform Monte-Carlo sampling techniques for approximate property verification.</LI>
- * <LI> To generate whole random paths at once.</LI>
- * </UL>
- * Each type of use only builds the relevant data structures of the simulator engine.
- * 
- * <H3>Model Exploration</H3>
- * 
- * In order to load a PRISM model into the simulator engine, a valid <tt>ModulesFile</tt>, that has had all of its
- * constants defined, can be loaded using the <tt>startNewPath</tt> method. If the simulator engine is to be used to
- * reason with path properties, a PropertiesFile object is passed. The initial state must also be provided.
- * 
- * At this point, the simulator engine will automatically calculate the set of updates to that initial state. This
- * update set can be queried by the methods such as:
- * 
- * <UL>
- * <LI> <tt>getNumUpdates()</tt></LI>
- * <LI> <tt>getActionLabelOfUpdate(int index)</tt></LI>
- * <LI> <tt>getProbabilityOfUpdate(int index)</tt></LI>
- * <LI> <tt>getNumAssignmentsOfUpdate(int index)</tt></LI>
- * <LI> <tt>getAssignmentVariableIndexOfUpdate(int updateIndex,
- *                assignmentIndex)</tt></LI>
- * <LI> <tt>getAssignmentValueOfUpdate(int updateIndex,
- *                assignmentIndex)</tt></LI>
+ * <LI> State/model exploration
+ * <LI> Manual/random path generation
+ * <LI> Monte-Carlo sampling techniques for approximate property verification
  * </UL>
  * 
- * It should be noted that all references to variables, action labels etc... are of the simulators stored index. There
- * are a number of methods provided to convert the string representations of these items to their appropriate indices:
- * 
+ * After creating a SimulatorEngine object, you can build paths or explore models using:
  * <UL>
- * <LI> <tt>getIndexOfVar(String var)</tt></LI>
- * <LI> <tt>getIndicesOfAction(String var)</tt></LI>
+ * <LI> <code>createNewPath</code> if you want to create a path that will be stored in full
+ * <LI> <code>createNewOnTheFlyPath</code> if just want to do e.g. model exploration
+ * </UL>
+ * The input to these methods is a model (ModulesFile) in which all constants have already been defined.
+ * 
+ * At this point, you can also load labels and properties into the simulator, whose values
+ * will be available during path generation. Use:
+ * <UL>
+ * <LI> <code>addLabel</code>
+ * <LI> <code>addProperty</code>
  * </UL>
  * 
- * At this point, there are three options:
- * 
+ * To actually initialise the path with an initial state (or to reinitialise later) use:
  * <UL>
- * <LI> Reset the path with a new initial state using the <tt>restartPath(Values initialState)</tt> method.</LI>
- * <LI> Tell the simulator engine to update the current state by executing the assignments of a manually selected choice
- * from the update set. This is done by the <tt>manualUpdate(int index)</tt> for dtmcs and mdps and the
- * <tt>manualUpdate(int index, double timeTaken)</tt> for ctmcs.</LI>
- * <LI> Request that the simulator engine update the current state with a randomly sampled choice from the update set.
- * This can be repeated n times. This is done by the <tt>automaticChoices(int n, ...)</tt> method.
+ * <LI> <code>initialisePath</code>
+ * <LI> <code>addProperty</code>
  * </UL>
  * 
- * The simulator engine maintains an execution path of all of the previous states of the system. It is possible to
- * access the information using the following methods:
- * 
+ * To see the transitions available in the current state, use:
  * <UL>
- * <LI> <tt>getDataSize()</tt></LI>
- * <LI> <tt>getPathData(int pathIndex, int variableIndex)</tt></LI>
- * <LI> <tt>getTimeSpentInPathState(int pathIndex)</tt></LI>
- * <LI> <tt>getCumulativeTimeSpentInPathState(int pathIndex)</tt></LI>
- * <LI> <tt>getStateRewardOfPathState(int pathIndex, int i)</tt></LI>
- * <LI> <tt>getTotalStateRewardOfPathState(int pathIndex, int i)</tt> (Cumulative)</LI>
- * <LI> <tt>getTransitionRewardOfPathState(int pathIndex, int i)</tt></LI>
- * <LI> <tt>getTotalTransitionRewardOfPathState(int pathIndex, int i)</tt> (Cumulative)</LI>
+ * <LI> ... TODO
  * </UL>
  * 
- * The simulator engine automatically detects loops in execution paths, and there are a couple of methods used to query
- * this: <tt>boolean isPathLooping()</tt> and <tt>int loopStart()</tt>
- * 
- * Functionality to backtrack to previous states of the path is provided by the <tt>backtrack(int toPathIndex)</tt>
- * method and the ability to remove states from the path before a given index is provids by the
- * <tt>removePrecedingStates</tt> method.
- * 
- * There are two ways in which the path can be analysed:
- * 
+ * For path manipulation...
  * <UL>
- * <LI> The engine can be loaded with PCTL/CSL formulae via the <tt>addPCTLRewardFormula</tt> and
- * <tt>addPCTLProbFormula</tt> methods and the <tt>queryPathFormula(int index)</tt> and
- * <tt>queryPathFormulaNumeric(int index)</tt> methods can be used to obtain results over the current execution path.
- * Note that the <tt>PropertiesFile</tt> object for these properties should have been provided so that any constant
- * values can be obtained. </LI>
- * <LI> The engine can be loaded with state proposition expressions via the <tt>loadProposition</tt> method. These
- * propositions can be used to determine whether a state at a particular index in the execution path satisfies a
- * particular (potentially complex) boolean expression (<tt>queryProposition(int index, int propIndex)</tt>).
- * Further functionality is provided to see whether these states are initial (<tt>queryIsIntitial(int index)</tt>)
- * or deadlock (<tt>queryIsDeadlock(int index)</tt>) states.
+ * <LI> ... TODO
  * </UL>
  * 
- * The <tt>deallocateEngine()</tt> method should be used after using the engine, or before a new model, or path is
- * started. This simply cleans up the memory in the c++ engine.
+ * ...
+ * TODO
  * 
- * <H3>Monte-Carlo Sampling</H3>
- * 
- * Three methods are provided to make the interface cleaner, if it is only used for approximate model checking. Each
- * method deals with all model loading, algorithm execution and tidying up afterwards. The three methods are:
- * 
+ * For sampling-based approximate model checking, use:
  * <UL>
- * <LI> <tt>modelCheckSingleProperty</tt>. Loads the given <tt>ModuleFile</tt> and PCTL/CSL formula, provided the
- * constants are defined. The initial state in the <tt>Value</tt> object is loaded into the simulator and then a given
- * number of randomly generated paths are computed up to the given maximum path length (including loop detection when
- * appropriate). The property is evaluated over each path and the average probability or reward is returned as a Double
- * object.</LI>
- * <LI> <tt>modelCheckMultipleProperties</tt>. Similar to the single property method, except takes advantage of the
- * fact that it is usually more efficient to deal to multiple properties at the same time.
- * <LI> <tt>modelCheckExperiment</tt>. Deals with all of the logistics of performing an experiment and storing the
- * results in an appropriate <tt>ResultsCollection</tt> object.
+ * <LI> <code>checkPropertyForSimulation</code>
+ * <LI> <code>modelCheckSingleProperty</code>
+ * <LI> <code>modelCheckMultipleProperties</code>
+ * <LI> <code>modelCheckExperiment</code>
  * </UL>
- * 
- * <H3>Path Generation</H3>
- * 
- * The following utility method is used for generating (and exporting) a single path satisfying certain criteria:
- * 
- * <UL>
- * <LI> <tt>generateSimulationPath</tt>.
- * </UL>
- * 
- * @author Andrew Hinton
  */
-
 public class SimulatorEngine
 {
 	// PRISM stuff
@@ -299,8 +230,6 @@ public class SimulatorEngine
 	 */
 	public void manualTransition(int index) throws PrismException
 	{
-		// TODO (and other manual/auto)
-		// if transitionList not current (need flag), re-compute it
 		int i = transitionList.getChoiceIndexOfTransition(index);
 		int offset = transitionList.getChoiceOffsetOfTransition(index);
 		if (modelType.continuousTime()) {
@@ -327,11 +256,10 @@ public class SimulatorEngine
 	/**
 	 * Select, at random, a transition from the current transition list and execute it.
 	 * For continuous-time models, the time to be spent in the state before leaving is also picked randomly.
-	 * If there is currently a deadlock, no transition is taken.
-	 * The function returns a boolean value, with true indicating a transition was successfully taken. 
-	 * @param detect Whether... TODO
+	 * If there is currently a deadlock, no transition is taken and the function returns false.
+	 * Otherwise, the function returns true indicating that a transition was successfully taken. 
 	 */
-	public boolean automaticTransition(boolean detect) throws PrismException
+	public boolean automaticTransition() throws PrismException
 	{
 		Choice choice;
 		int numChoices, i, j;
@@ -376,11 +304,11 @@ public class SimulatorEngine
 	 * If a deadlock is found, the process stops.
 	 * The function returns the number of transitions successfully taken. 
 	 */
-	public int automaticTransitions(int n, boolean detect) throws PrismException
+	public int automaticTransitions(int n) throws PrismException
 	{
 		int i = 0;
 		while (i < n) {
-			if (!automaticTransition(detect))
+			if (!automaticTransition())
 				break;
 			i++;
 		}
@@ -394,56 +322,19 @@ public class SimulatorEngine
 	 * If a deadlock is found, the process stops.
 	 * The function returns the number of transitions successfully taken. 
 	 */
-	public int automaticTransitions(double time, boolean detect) throws PrismException
+	public int automaticTransitions(double time) throws PrismException
 	{
 		// For discrete-time models, this just results in ceil(time) steps being executed.
 		if (!modelType.continuousTime()) {
-			return automaticTransitions((int) Math.ceil(time), detect);
+			return automaticTransitions((int) Math.ceil(time));
 		} else {
 			int i = 0;
 			double targetTime = path.getTotalTime() + time;
 			while (path.getTotalTime() < targetTime) {
-				if (automaticTransition(detect))
+				if (automaticTransition())
 					i++;
 				else
 					break;
-				// TODO
-				/* Break when looping. */
-				//if (detect && loop_detection->Is_Proven_Looping()) 
-				//break;
-
-				// Unless requested not to (detect==false), this function will stop exploring when a loop is detected.
-				// Because Automatic_Update() checks for loops before making a transition, we overshoot.
-				// Hence at this point if we are looping we step back a state,
-				// i.e. reset state_variables and don't add new state to the path.
-
-				/*if (detect && loop_detection->Is_Proven_Looping()) 
-				{
-					stored_path[current_index]->Make_Current_State_This();
-				}
-				else 
-				{						
-					// Add state to path (unless we have stayed in the same state because of deadlock).
-					if (!loop_detection->Is_Deadlock()) 
-						Add_Current_State_To_Path();	
-					currentTime = path_timer;
-				}
-				
-				Calculate_State_Reward(state_variables);
-				}
-				
-				Calculate_Updates(state_variables);
-				
-				// check for looping
-				if(Are_Updates_Deterministic())
-				{
-				loop_detection->Notify_Deterministic_State(false);
-				}
-				else
-				{
-				loop_detection->Notify_Deterministic_Path_End();
-				}*/
-
 			}
 			return i;
 		}
@@ -533,6 +424,9 @@ public class SimulatorEngine
 	/**
 	 * Compute the transition table for an earlier step in the path.
 	 * (Not applicable for on-the-fly paths)
+	 * If you do this mid-path, don't forget to reset the transition table
+	 * with <code>computeTransitionsForCurrentState</code> because this
+	 * is not kept track of by the simulator.
 	 */
 	public void computeTransitionsForStep(int step) throws PrismException
 	{
@@ -631,6 +525,7 @@ public class SimulatorEngine
 	/**
 	 * Get the value, at the specified path step, of a previously added label (specified by its index).
 	 * (Not applicable for on-the-fly paths)
+	 * @param step The index of the step to check for
 	 */
 	public boolean queryLabel(int index, int step) throws PrismLangException
 	{
@@ -648,6 +543,7 @@ public class SimulatorEngine
 
 	/**
 	 * Check whether a particular step in the current path is an initial state.
+	 * @param step The index of the step to check for
 	 * (Not applicable for on-the-fly paths)
 	 */
 	public boolean queryIsInitial(int step) throws PrismLangException
@@ -667,6 +563,7 @@ public class SimulatorEngine
 	/**
 	 * Check whether a particular step in the current path is a deadlock.
 	 * (Not applicable for on-the-fly paths)
+	 * @param step The index of the step to check for
 	 */
 	public boolean queryIsDeadlock(int step) throws PrismLangException
 	{
@@ -674,8 +571,11 @@ public class SimulatorEngine
 		return step == path.size() ? queryIsDeadlock() : false;
 	}
 
-	// TODO: doc
-	// null if not known yet
+	/**
+	 * Check the value for a particular property in the current path.
+	 * If the value is not known yet, the result will be null.
+	 * @param index The index of the property to check
+	 */
 	public Object queryProperty(int index)
 	{
 		Sampler sampler = propertySamplers.get(index);
@@ -1120,29 +1020,28 @@ public class SimulatorEngine
 	}
 
 	/**
-	 * Returns whether the current path is in a looping state
-	 * 
-	 * @return whether the current path is in a looping state
+	 * Check whether the current path is in a deterministic loop.
 	 */
-	// TODO
 	public boolean isPathLooping()
 	{
-		return false;
+		return false; // TODO
 	}
 
 	/**
-	 * Returns where a loop starts
-	 * 
-	 * @return where a loop starts
+	 * Check whether a deterministic loop (if present) starts.
 	 */
-	public native int loopStart();
+	public int loopStart()
+	{
+		return -1; // TODO
+	}
 
 	/**
-	 * Returns where a loop ends
-	 * 
-	 * @return where a loop ends
+	 * Check whether a deterministic loop (if present) starts.
 	 */
-	public static native int loopEnd();
+	public int loopEnd()
+	{
+		return -1; // TODO
+	}
 
 	/**
 	 * Export the current path to a file in a simple space separated format.
@@ -1446,18 +1345,9 @@ public class SimulatorEngine
 		boolean allKnown = false;
 		int i;
 
-		//double* path_cost = new double[no_reward_structs];
-		//double* total_state_cost = new double[no_reward_structs];
-		//double* total_transition_cost = new double[no_reward_structs];
-
 		// Timing info
 		long start, start2, stop;
 		double time_taken;
-
-		//Loop detection requires that deterministic paths are
-		//stored, until that determinism is broken.  This path
-		//is allocated dynamically, 10 steps at a time.
-		//CSamplingLoopDetectionHandler* loop_detection = new CSamplingLoopDetectionHandler();
 
 		//TODO: allow stopping of sampling mid-way through?
 		//External flag set to false
@@ -1515,7 +1405,7 @@ public class SimulatorEngine
 					break;
 
 				// Make a random transition
-				automaticTransition(true);
+				automaticTransition();
 
 				//if(!loop_detection->Is_Proven_Looping()) { // removed this: for e.g. cumul rewards need to keep counting in loops...
 
