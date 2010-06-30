@@ -2,40 +2,35 @@
 NOW/NEXT
 --------
 
-add path manip methods - autochoice, backtrack etc.
-but need to sort out loop detection first?
-embedded into Path*?
+DTMC with local nondet and actions (~/prism-models/dave-test.nm)
+
+GUI transition box: "true" updates don't display correctly
 
 
 TODO (before any release)
 -------------------------
 
-* variable overflow?
 
 TODO (later)
 ------------
 
+* add (back) support for loop detection (embedded into Path*?)
+* add (back) early termination of sampling (thru expt stop?)
+
 * random initial state
+* variable overflow etc.
+* add support for "deadlock" and "init" (new EvaluationContext, model *and* state dependent)
 
 * explicitbuildtest doesn't handle dupes in mdps (e.g. consensus)
 * seed issues (currently twice in one second = same seed)
 * traviendo export?
 
-add support for "deadlock" and "init" (new EvaluationContext, model *and* state dependent)
+* explicit build doesn't handle multiple initial states
 
+BUGS (later)
+------------
 
-explicit build doesn't handle multiple initial states
-
-
-approx mc of a property loses any current simulator path in gui.
-is that ok? (seems to be buggy in 3.3.1 anyway)
-
-TEST CASES
-
-[t,t'] examples sent as MRMC bug fix?
-
-DTMC with local nondet and actions (~/prism-models/dave-test.nm)
-
-GUI transition box: "true" updates don't display correctly
+* approx mc of a property loses any current simulator path in gui.
+  is that ok? (seems to be buggy in 3.3.1 anyway)
 
 
