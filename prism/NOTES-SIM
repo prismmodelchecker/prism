@@ -1,29 +1,31 @@
 
-NOW/NEXT:
+NOW/NEXT
+--------
 
 add path manip methods - autochoice, backtrack etc.
 but need to sort out loop detection first?
 embedded into Path*?
 
 
-TODO (before any release):
+TODO (before any release)
+-------------------------
 
 * variable overflow?
 
-TODO (later):
+TODO (later)
+------------
 
 * random initial state
 
+* explicitbuildtest doesn't handle dupes in mdps (e.g. consensus)
+* seed issues (currently twice in one second = same seed)
+* traviendo export?
 
-add support "deadlock" and "init" (new EvaluationContext, model *and* state dependent)
+add support for "deadlock" and "init" (new EvaluationContext, model *and* state dependent)
 
-explicitbuildtest doesn't handle dupes in mdps (e.g. consensus)
 
 explicit build doesn't handle multiple initial states
 
-seed issues (currently twice in one second = same seed)
-
-traviendo export?
 
 approx mc of a property loses any current simulator path in gui.
 is that ok? (seems to be buggy in 3.3.1 anyway)
