@@ -160,6 +160,42 @@ public class PathFull extends Path
 		size = step;
 	}
 	
+	/**
+	 * Remove the prefix of the current path up to the given path step.
+	 * Index step should be >=0 and <= the total path size. 
+	 * @param step The step before which state will be removed.
+	 */
+	public void removePrecedingStates(int step)
+	{
+		int i, j, n, n2;
+		double timeCumul, rewardsCumul[];
+		
+		// Ignore trivial case
+		if (step == 0)
+			return;
+		// Get cumulative time/reward for index 'step'
+		timeCumul = getCumulativeTime(step);
+		rewardsCumul = new double[numRewardStructs];
+		for (j = 0; j < numRewardStructs; j++)
+			rewardsCumul[j] = getCumulativeReward(step, j);
+		// Move later steps of path 'step' places forward 
+		// and subtract time/reward as appropriate 
+		n = steps.size() - step;
+		for (i = 0; i < n; i++) {
+			Step tmp = steps.get(i + step);
+			tmp.timeCumul -= timeCumul;
+			for (j = 0; j < numRewardStructs; j++)
+				tmp.rewardsCumul[j] -= rewardsCumul[j];
+			steps.set(i, tmp);
+		}
+		// Remove steps after index 'step'
+		n2 = steps.size() - 1;
+		for (i = n2; i >= n; i--)
+			steps.remove(i);
+		// Update size too
+		size = steps.size() - 1;
+	}
+	
 	// ACCESSORS (for Path)
 
 	@Override

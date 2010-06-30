@@ -505,16 +505,29 @@ public class SimulatorEngine
 	}
 
 	/**
-	 * This function removes states of the path that precede those of the given index
-	 * 
-	 * @param step
-	 *            the index before which the states should be removed.
-	 * @throws PrismException
-	 *             if anything goes wrong with the state removal.
+	 * Remove the prefix of the current path up to the given path step.
+	 * Index step should be >=0 and <= the total path size. 
+	 * (Not applicable for on-the-fly paths)
+	 * @param step The step before which state will be removed.
 	 */
 	public void removePrecedingStates(int step) throws PrismException
 	{
-		//doRemovePrecedingStates(step);
+		// Check step is valid
+		if (step < 0) {
+			throw new PrismException("Cannot remove states before a negative step index");
+		}
+		if (step > path.size()) {
+			throw new PrismException("There is no step " + step + " in the path");
+		}
+		// Modify path
+		((PathFull) path).removePrecedingStates(step);
+		// Update previous state info (if required)
+		// (No need to update current state info)
+		if (path.size() == 1)
+			previousState.clear();
+		// Recompute samplers for any loaded properties
+		recomputeSamplers();
+		// (No need to re-generate updates for new current state) 
 	}
 
 	/**
