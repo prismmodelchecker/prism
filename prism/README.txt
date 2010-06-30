@@ -88,13 +88,14 @@ in the Computing Laboratory at the University of Oxford, comprises:
 Contributions to the development of PRISM have also been gratefully received from:
 
  * Andrew Hinton: Original versions of the GUI, Windows-port and simulator
- * Joachim Meyer-Kayser: Implementation of the "Fox-Glynn" algorithm
+ * Joachim Meyer-Kayser: Original implementation of the "Fox-Glynn" algorithm
  * Alistair John Strachan: Port to 64-bit architectures
  * Stephen Gilmore: Support for the stochastic process algebra PEPA
  * Paolo Ballarini & Kenneth Chan: Port of PRISM to Mac OS X
  * Rashid Mehmood: Improvements to low-level data structures and numerical solution algorithms
  * Alistair John Strachan, Mike Arthur and Zak Cohen: Integration of JFreeChart into PRISM
  * Carlos Bederian (working with Pedro D'Argenio): Addition of LTL model checking for MDPs to PRISM
+ * Vojtech Forejt: "Fox-Glynn" algorithm implementation
  
 For more details see:
 
