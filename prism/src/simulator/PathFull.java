@@ -160,31 +160,6 @@ public class PathFull extends Path
 		size = step;
 	}
 	
-	/**
-	 * Remove the prefix of the current path up to the given path step.
-	 * Index step should be >=0 and <= the total path size. 
-	 * @param step The step before which state will be removed.
-	 */
-	public void removePrecedingStates(int step)
-	{
-		int i, n, n2;
-		
-		// Ignore trivial case
-		if (step == 0)
-			return;
-		// Move later steps of path 'step' places forward 
-		n = steps.size() - step;
-		for (i = 0; i < n; i++) {
-			steps.set(i, steps.get(i + step));
-		}
-		// Remove final steps
-		n2 = steps.size();
-		for (i = n + 1; i < n2; i++)
-			steps.remove(i);
-		// Update size too
-		size = steps.size() - 1;
-	}
-	
 	// ACCESSORS (for Path)
 
 	@Override
