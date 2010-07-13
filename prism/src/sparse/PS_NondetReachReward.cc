@@ -268,8 +268,8 @@ jboolean min				// min or max probabilities (true = min, false = max)
 		h1 = h2 = h2_r = 0;
 		// loop through states
 		for (i = 0; i < n; i++) {
-			d1 = 0.0;
-			first = true;
+			d1 = 0.0; // initial value doesn't matter
+			first = true; // (because we also remember 'first')
 			adv_new = false;
 			// get pointers to nondeterministic choices for state i
 			if (!use_counts) { l1 = row_starts[i]; h1 = row_starts[i+1]; }
