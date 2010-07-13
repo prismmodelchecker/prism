@@ -86,7 +86,8 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	int export_adv_enabled = export_adv;
 	bool adv_loop = false;
 	FILE *fp_adv = NULL;
-	int adv_j, adv_l2, adv_h2;
+	int adv_j;
+	bool adv_new;
 	int *adv = NULL;
 	// action info
 	int *actions;
@@ -235,8 +236,9 @@ jboolean min				// min or max probabilities (true = min, false = max)
 		// do matrix multiplication and min/max
 		h1 = h2 = 0;
 		for (i = 0; i < n; i++) {
-			d1 = min ? 2 : -1;
-			first = true;
+			d1 = 0.0; // initial value doesn't matter
+			first = true; // (because we also remember 'first')
+			adv_new = false;
 			if (!use_counts) { l1 = row_starts[i]; h1 = row_starts[i+1]; }
 			else { l1 = h1; h1 += row_counts[i]; }
 			for (j = l1; j < h1; j++) {
@@ -251,7 +253,10 @@ jboolean min				// min or max probabilities (true = min, false = max)
 					// if adversary generation is enabled, remember new (strictly) better choices
 					if (export_adv_enabled != EXPORT_ADV_NONE) {
 						if (adv[i] == -1 || (min&&(d1<soln[i])) || (!min&&(d1>soln[i]))) {
-							adv[i] = j;
+							// NB: don't overwrite adv[i] yet, just make a note that we need to update it
+							// (want to remember if is -1: this is necessary for (at least) min rewards)
+							adv_j = j;
+							adv_new = true;
 						}
 					}
 				}
@@ -260,6 +265,10 @@ jboolean min				// min or max probabilities (true = min, false = max)
 			// set vector element
 			// (if no choices, use value of yes)
 			soln2[i] = (h1 > l1) ? d1 : yes_vec[i];
+			// store adversary choice (if required)
+			if (export_adv_enabled != EXPORT_ADV_NONE && adv_new) {
+				adv[i] = adv_j;
+			}
 		}
 		
 		// check convergence
