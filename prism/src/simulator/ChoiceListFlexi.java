@@ -34,18 +34,21 @@ import prism.PrismLangException;
 
 public class ChoiceListFlexi implements Choice
 {
-	// TODO: need mult actions
-	//protected String action;
-	
+	// Module/action info, encoded as an integer.
+	// For an independent (non-synchronous) choice, this is -i,
+	// where i is the 1-indexed module index.
+	// For a synchronous choice, this is the 1-indexed action index.
 	protected int moduleOrActionIndex;
 	
 	// List of multiple targets and associated info
 	// Size of list is stored implicitly in target.length
-	// TODO: convert to arrays?
 	protected List<List<Update>> updates;
 	protected List<Double> probability;
 	protected List<Command> command;
 
+	/**
+	 * Create empty choice.
+	 */
 	public ChoiceListFlexi()
 	{
 		updates = new ArrayList<List<Update>>();
@@ -55,19 +58,32 @@ public class ChoiceListFlexi implements Choice
 
 	// Set methods
 
+	/**
+	 * Set the module/action for this choice, encoded as an integer
+	 * (-i for independent in ith module, i for synchronous on ith action)
+	 * (in both cases, modules/actions are 1-indexed)
+	 */
 	public void setModuleOrActionIndex(int moduleOrActionIndex)
 	{
 		this.moduleOrActionIndex = moduleOrActionIndex;
 	}
 	
-	public void add(String action, double probability, List<Update> ups, Command command)
+	/**
+	 * Add a transition to this choice.
+	 * @param probability Probability (or rate) of the transition
+	 * @param ups List of Update objects defining transition
+	 * @param command Corresponding Command object
+	 */
+	public void add(double probability, List<Update> ups, Command command)
 	{
-		//this.action = action;
 		this.updates.add(ups);
 		this.probability.add(probability);
 		this.command.add(command);
 	}
 
+	/**
+	 * Scale probability/rate of all transitions, multiplying by d.
+	 */
 	public void scaleProbabilitiesBy(double d)
 	{
 		int i, n;
@@ -77,6 +93,9 @@ public class ChoiceListFlexi implements Choice
 		}
 	}
 
+	/**
+	 * Modify this choice, constructing product of it with another.
+	 */
 	public void productWith(ChoiceListFlexi ch)
 	{
 		List<Update> list;
@@ -98,7 +117,7 @@ public class ChoiceListFlexi implements Choice
 				for (Update u : ch.updates.get(i)) {
 					list.add(u);
 				}
-				add("?", pi * getProbability(j), list, null);
+				add(pi * getProbability(j), list, null);
 			}
 		}
 		// Modify elements of current choice to get (0,j) elements of product
@@ -113,11 +132,20 @@ public class ChoiceListFlexi implements Choice
 
 	// Get methods
 
+	/**
+	 * Get the module/action for this choice, as an integer index
+	 * (-i for independent in ith module, i for synchronous on ith action)
+	 * (in both cases, modules/actions are 1-indexed)
+	 */
 	public int getModuleOrActionIndex()
 	{
 		return moduleOrActionIndex;
 	}
 
+	/**
+	 * Get the module/action for this choice, as a string
+	 * (form is "module" or "[action]")
+	 */
 	public String getModuleOrAction()
 	{
 		Update u = updates.get(0).get(0);
@@ -128,11 +156,17 @@ public class ChoiceListFlexi implements Choice
 			return "[" + c.getSynch() + "]";
 	}
 
+	/**
+	 * Get the number of transitions in this choice.
+	 */
 	public int size()
 	{
 		return probability.size();
 	}
 
+	/**
+	 * Get the updates of the ith transition, as a string.
+	 */
 	public String getUpdateString(int i)
 	{
 		String s = "(";
@@ -142,6 +176,9 @@ public class ChoiceListFlexi implements Choice
 		return s;
 	}
 	
+	/**
+	 * Compute the target for the ith transition, based on a current state.
+	 */
 	public State computeTarget(int i, State oldState) throws PrismLangException
 	{
 		if (i < 0 || i >= size())
@@ -152,6 +189,9 @@ public class ChoiceListFlexi implements Choice
 		return newState;
 	}
 
+	/**
+	 * Compute the target for the ith transition, based on a current state, store in a State.
+	 */
 	public void computeTarget(int i, State oldState, State newState) throws PrismLangException
 	{
 		if (i < 0 || i >= size())
@@ -170,17 +210,17 @@ public class ChoiceListFlexi implements Choice
 		computeTarget(0, oldState, newState);
 	}
 
-	public double getProbability()
-	{
-		return getProbability(0);
-	}
-
 	public double getProbability(int i)
 	{
 		if (i < 0 || i >= size())
 			return -1;
 		//throw new PrismLangException("Invalid grouped transition index " + i);
 		return probability.get(i);
+	}
+
+	public double getProbability()
+	{
+		return getProbability(0);
 	}
 
 	public double getProbabilitySum()

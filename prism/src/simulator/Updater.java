@@ -50,23 +50,22 @@ public class Updater
 	protected int numRewardStructs;
 
 	// Temporary storage:
-	
+
 	// Element i,j of updateLists is a list of the updates from module i labelled with action j
 	// (where j=0 denotes independent, otherwise 1-indexed action label)
 	protected List<List<List<Updates>>> updateLists;
 	// Bit j of enabledSynchs is set iff action j is currently enabled
 	// (where j=0 denotes independent, otherwise 1-indexed action label)
 	protected BitSet enabledSynchs;
-	// Element j of enabledSynchs is BitSet showing modules which enable action j
+	// Element j of enabledModules is a BitSet showing modules which enable action j
 	// (where j=0 denotes independent, otherwise 1-indexed action label)
 	protected BitSet enabledModules[];
 
-	// TODO: apply optimiseForFast or assume called?
 	public Updater(SimulatorEngine simulator, ModulesFile modulesFile)
 	{
 		int i, j;
 		String s;
-		
+
 		// Get info from simulator/model
 		this.simulator = simulator;
 		prism = simulator.getPrism();
@@ -76,7 +75,7 @@ public class Updater
 		synchs = modulesFile.getSynchs();
 		numSynchs = synchs.size();
 		numRewardStructs = modulesFile.getNumRewardStructs();
-		
+
 		// Compute count of number of modules using each synch action
 		synchModuleCounts = new int[numSynchs];
 		for (j = 0; j < numSynchs; j++) {
@@ -87,7 +86,7 @@ public class Updater
 					synchModuleCounts[j]++;
 			}
 		}
-		
+
 		// Build lists/bitsets for later use
 		updateLists = new ArrayList<List<List<Updates>>>(numModules);
 		for (i = 0; i < numModules; i++) {
@@ -110,13 +109,9 @@ public class Updater
 	 */
 	public void calculateTransitions(State state, TransitionList transitionList) throws PrismException
 	{
-		Module module;
-		ChoiceListFlexi prod;
-		int i, j, n, count, n2, n3;
-		double p;
+		List<ChoiceListFlexi> chs;
+		int i, j, k, l, n, count;
 
-		//System.out.println("Synchs: " + synchs);
-		//System.out.println("Calc updates for " + state);
 		// Clear lists/bitsets
 		transitionList.clear();
 		for (i = 0; i < numModules; i++) {
@@ -128,122 +123,95 @@ public class Updater
 		for (i = 0; i < numSynchs + 1; i++) {
 			enabledModules[i].clear();
 		}
+
 		// Calculate the available updates for each module/action
+		// (update information in updateLists, enabledSynchs and enabledModules)
 		for (i = 0; i < numModules; i++) {
 			calculateUpdatesForModule(i, state);
 		}
 		//System.out.println("updateLists: " + updateLists);
 
-		// Combination of updates depends on model type
-		/*switch (modelType) {
-
-		case DTMC:
-		case CTMC:*/
-			n = 0;
-			// Independent choices for each (enabled) module
-			for (i = enabledModules[0].nextSetBit(0); i >= 0; i = enabledModules[0].nextSetBit(i + 1)) {
-				for (Updates ups : updateLists.get(i).get(0)) {
-					/*processUpdatesAndAddToSum(ups, state, ch);
-					n++;*/
-					transitionList.add(processUpdatesAndCreateNewChoice(-(i + 1), ups, state));
-				}
+		// Add independent transitions for each (enabled) module to list
+		for (i = enabledModules[0].nextSetBit(0); i >= 0; i = enabledModules[0].nextSetBit(i + 1)) {
+			for (Updates ups : updateLists.get(i).get(0)) {
+				transitionList.add(processUpdatesAndCreateNewChoice(-(i + 1), ups, state));
 			}
-			// Add synchronous transitions to list
-			for (i = enabledSynchs.nextSetBit(1); i >= 0; i = enabledSynchs.nextSetBit(i + 1)) {
-				// Check counts to see if this action is blocked by some module
-				if (enabledModules[i].cardinality() < synchModuleCounts[i - 1])
-					continue;
-				// If not, proceed...
-				prod = null;
-				for (j = enabledModules[i].nextSetBit(0); j >= 0; j = enabledModules[i].nextSetBit(j + 1)) {
-					count = updateLists.get(j).get(i).size();
-					// Case where there is 1 choice
-					if (count == 1) {
-						// Case where this is the first Updates added
-						if (prod == null) {
-							for (Updates ups : updateLists.get(j).get(i)) {
-								prod = processUpdatesAndCreateNewChoice(i, ups, state);
-							}
-						} else {
-							processUpdatesAndAddToProduct(updateLists.get(j).get(i).get(0), state, prod);
+		}
+		// Add synchronous transitions to list
+		chs = new ArrayList<ChoiceListFlexi>();
+		for (i = enabledSynchs.nextSetBit(1); i >= 0; i = enabledSynchs.nextSetBit(i + 1)) {
+			chs.clear();
+			// Check counts to see if this action is blocked by some module
+			if (enabledModules[i].cardinality() < synchModuleCounts[i - 1])
+				continue;
+			// If not, proceed...
+			for (j = enabledModules[i].nextSetBit(0); j >= 0; j = enabledModules[i].nextSetBit(j + 1)) {
+				count = updateLists.get(j).get(i).size();
+				// Case where there is only 1 Updates for this module
+				if (count == 1) {
+					Updates ups = updateLists.get(j).get(i).get(0);
+					// Case where this is the first Choice created
+					if (chs.size() == 0) {
+						chs.add(processUpdatesAndCreateNewChoice(i, ups, state));
+					}
+					// Case where there are existing Choices
+					else {
+						// Product with all existing choices
+						for (ChoiceListFlexi ch : chs) {
+							processUpdatesAndAddToProduct(ups, state, ch);
 						}
 					}
-					// Case where there are multiple choices
-					else {
-						// TODO
-						throw new PrismLangException("Don't handle local nondet yet");
-					}
-					//System.out.println("prod" + j + ": " + prod);
 				}
-				transitionList.add(prod);
-				n++;
-			}
-
-			/*if (n > 1)
-				ch.scaleProbabilitiesBy(1.0 / n);
-			transitionList.add(ch);*/
-			//break;
-
-		//case MDP:
-			/*
-			// Add independent transitions to list 
-			for (i = 0; i < numModules; i++) {
-				for (Updates ups : updateLists.get(i).get(0)) {
-					transitionList.add(calculateTransitionsForUpdates(ups, state));
-				}
-			}
-			// Add synchronous transitions to list
-			for (i = 0; i < numSynchs; i++) {
-				prod = new ArrayList<Updates>();
-				for (j = 0; j < numModules; j++) {
-					// Skip modules not using this action
-					if (!modulesFile.getModule(j).usesSynch(synchs.get(i)))
-						continue;
-					// Case where module blocks
-					if (updateLists.get(j).get(i).size() == 0) {
-						prod.clear();
-						break;
-					}
-					// Case where this is the first Updates added
-					if (prod.isEmpty()) {
+				// Case where there are multiple Updates (i.e. local nondeterminism)
+				else {
+					// Case where there are no existing choices
+					if (chs.size() == 0) {
 						for (Updates ups : updateLists.get(j).get(i)) {
-							// TODO: avoid so much copying for efficiency?
-							prod.add((Updates) ups.deepCopy());
+							chs.add(processUpdatesAndCreateNewChoice(i, ups, state));
 						}
 					}
-					// Case where there is 1 choice
-					else if (updateLists.get(j).get(i).size() == 1) {
-					}
-					// Case where there are multiple choices
+					// Case where there are existing Choices
 					else {
-						// TODO
-						//for (Choice tr : choiceLists.get(j).get(i)) {
+						// Duplicate (count-1 copies of) current Choice list
+						n = chs.size();
+						for (k = 0; k < count - 1; k++)
+							for (l = 0; l < n; l++)
+								chs.add(chs.get(l));
+						// Products with existing choices
+						for (k = 0; k < count; k++) {
+							Updates ups = updateLists.get(j).get(i).get(k);
+							for (l = 0; l < n; l++)
+								processUpdatesAndAddToProduct(ups, state, chs.get(k * n + l));
+						}
 					}
 				}
-				for (Updates ups : prod) {
-					transitionList.add(calculateTransitionsForUpdates(ups, state));
-				}
-			}*/
-			/*break;
-
-		default:
-			throw new PrismException("Unhandled model type \"" + modelType + "\"");
-		}*/
-
-		// For DTMCs, need to randomise
+			}
+			// Add all new choices to transition list
+			for (ChoiceListFlexi ch : chs) {
+				transitionList.add(ch);
+			}
+		}
 
 		//System.out.println(transitionList);
-
 	}
 
+	// Private helpers
+	
+	/**
+	 * Create a new Choice object (currently ChoiceListFlexi) based on an Updates object
+	 * and a (global) state. If appropriate, check probabilities sum to 1 too.
+	 * @param moduleOrActionIndex Module/action for the choice, encoded as an integer (see Choice)
+	 * @param ups The Updates object 
+	 * @param state Global state
+	 */
 	private ChoiceListFlexi processUpdatesAndCreateNewChoice(int moduleOrActionIndex, Updates ups, State state) throws PrismLangException
 	{
-		// TODO: use sum function?
 		ChoiceListFlexi ch;
 		List<Update> list;
 		int i, n;
 		double p, sum;
 
+		// Create choice and add all info
 		ch = new ChoiceListFlexi();
 		ch.setModuleOrActionIndex(moduleOrActionIndex);
 		n = ups.getNumUpdates();
@@ -253,7 +221,7 @@ public class Updater
 			sum += p;
 			list = new ArrayList<Update>();
 			list.add(ups.getUpdate(i));
-			ch.add("", p, list, ups.getParent());
+			ch.add(p, list, ups.getParent());
 		}
 		// Check distribution sums to 1 (if required)
 		if (modelType.choicesSumToOne() && Math.abs(sum - 1) > prism.getSumRoundOff()) {
@@ -263,28 +231,14 @@ public class Updater
 		return ch;
 	}
 
-	private void processUpdatesAndAddToSum(Updates ups, State state, ChoiceListFlexi ch) throws PrismLangException
-	{
-		List<Update> list;
-		int i, n;
-		double p, sum;
-
-		n = ups.getNumUpdates();
-		sum = 0;
-		for (i = 0; i < n; i++) {
-			p = ups.getProbabilityInState(i, state);
-			sum += p;
-			list = new ArrayList<Update>();
-			list.add(ups.getUpdate(i));
-			ch.add("", p, list, ups.getParent());
-		}
-		// Check distribution sums to 1 (if required)
-		if (modelType.choicesSumToOne() && Math.abs(sum - 1) > prism.getSumRoundOff()) {
-			throw new PrismLangException("Probabilities sum to " + sum + " in state " + state);
-		}
-
-	}
-
+	/**
+	 * Create a new Choice object (currently ChoiceListFlexi) based on the product
+	 * of an existing ChoiceListFlexi and an Updates object, for some (global) state.
+	 * If appropriate, check probabilities sum to 1 too.
+	 * @param ups The Updates object 
+	 * @param state Global state
+	 * @param ch The existing Choices object
+	 */
 	private void processUpdatesAndAddToProduct(Updates ups, State state, ChoiceListFlexi ch) throws PrismLangException
 	{
 		// Create new choice (action index is 0 - not needed)
@@ -293,22 +247,17 @@ public class Updater
 		ch.productWith(chNew);
 	}
 
-	// Model exploration methods (e.g. for simulation)
-
 	/**
 	 * Determine the enabled updates for the 'm'th module from (global) state 'state'.
-	 * Update information in ... TODO
+	 * Update information in updateLists, enabledSynchs and enabledModules.
 	 * @param m The module index
 	 * @param state State from which to explore
-	 * @param ... 
-	 * TODO
 	 */
 	private void calculateUpdatesForModule(int m, State state) throws PrismLangException
 	{
 		Module module;
 		Command command;
 		int i, j, n;
-		String s;
 
 		module = modulesFile.getModule(m);
 		n = module.getNumCommands();
