@@ -99,12 +99,12 @@ public class NondetModel extends ProbModel
 	{
 		return transInd;
 	}
-	
+
 	public JDDNode[] getTransSynch()
 	{
 		return transSynch;
 	}
-	
+
 	// additional useful methods to do with dd vars
 	public int getNumDDNondetVars()
 	{
@@ -125,24 +125,23 @@ public class NondetModel extends ProbModel
 	{
 		return "S";
 	}
-	
+
 	// set methods for things not set up in constructor
-	
+
 	public void setTransInd(JDDNode transInd)
 	{
 		this.transInd = transInd;
 	}
-	
+
 	public void setTransSynch(JDDNode[] transSynch)
 	{
 		this.transSynch = transSynch;
 	}
-	
+
 	// constructor
 
-	public NondetModel(JDDNode tr, JDDNode s, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv,
-			JDDVars asyv, JDDVars asv, JDDVars achv, JDDVars andv, Vector<String> ddvn, int nm, String[] mn,
-			JDDVars[] mrv, JDDVars[] mcv, int nv, VarList vl, JDDVars[] vrv, JDDVars[] vcv, Values cv)
+	public NondetModel(JDDNode tr, JDDNode s, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv, JDDVars asyv, JDDVars asv, JDDVars achv,
+			JDDVars andv, Vector<String> ddvn, int nm, String[] mn, JDDVars[] mrv, JDDVars[] mcv, int nv, VarList vl, JDDVars[] vrv, JDDVars[] vcv, Values cv)
 	{
 		super(tr, s, sr, trr, rsn, arv, acv, ddvn, nm, mn, mrv, mcv, nv, vl, vrv, vcv, cv);
 
@@ -267,7 +266,7 @@ public class NondetModel extends ProbModel
 	public void printTransInfo(PrismLog log, boolean extra)
 	{
 		int i, j, n;
-		
+
 		log.print("States:      " + getNumStatesString() + " (" + getNumStartStatesString() + " initial)" + "\n");
 		log.print("Transitions: " + getNumTransitionsString() + "\n");
 		log.print("Choices:     " + getNumChoicesString() + "\n");
@@ -293,46 +292,43 @@ public class NondetModel extends ProbModel
 				log.print(" " + j + ":" + ddVarNames.get(j));
 			}
 			log.println();
-			log.print(getTransName() + " terminals: " + JDD.GetTerminalsAndNumbersString(trans, getNumDDVarsInTrans())
-					+ "\n");
+			log.print(getTransName() + " terminals: " + JDD.GetTerminalsAndNumbersString(trans, getNumDDVarsInTrans()) + "\n");
 			log.print("Reach: " + JDD.GetNumNodes(reach) + " nodes\n");
 			log.print("ODD: " + ODDUtils.GetNumODDNodes() + " nodes\n");
 			log.print("Mask: " + JDD.GetNumNodes(nondetMask) + " nodes, ");
 			log.print(JDD.GetNumMintermsString(nondetMask, getNumDDRowVars() + getNumDDNondetVars()) + " minterms\n");
-		}
 
-		for (i = 0; i < numRewardStructs; i++) {
-			if (stateRewards[i] != null && !stateRewards[i].equals(JDD.ZERO)) {
-				log.print("State rewards (" + (i + 1)
-						+ (("".equals(rewardStructNames[i])) ? "" : (":\"" + rewardStructNames[i] + "\"")) + "): ");
-				log.print(JDD.GetNumNodes(stateRewards[i]) + " nodes (");
-				log.print(JDD.GetNumTerminals(stateRewards[i]) + " terminal), ");
-				log.print(JDD.GetNumMintermsString(stateRewards[i], getNumDDRowVars()) + " minterms\n");
-				if (extra) {
-					log.print("State rewards terminals (" + (i + 1)
-							+ (("".equals(rewardStructNames[i])) ? "" : (":\"" + rewardStructNames[i] + "\"")) + "): ");
-					log.print(JDD.GetTerminalsAndNumbersString(stateRewards[i], getNumDDRowVars()) + "\n");
+			for (i = 0; i < numRewardStructs; i++) {
+				if (stateRewards[i] != null && !stateRewards[i].equals(JDD.ZERO)) {
+					log.print("State rewards (" + (i + 1) + (("".equals(rewardStructNames[i])) ? "" : (":\"" + rewardStructNames[i] + "\"")) + "): ");
+					log.print(JDD.GetNumNodes(stateRewards[i]) + " nodes (");
+					log.print(JDD.GetNumTerminals(stateRewards[i]) + " terminal), ");
+					log.print(JDD.GetNumMintermsString(stateRewards[i], getNumDDRowVars()) + " minterms\n");
+					if (extra) {
+						log.print("State rewards terminals (" + (i + 1) + (("".equals(rewardStructNames[i])) ? "" : (":\"" + rewardStructNames[i] + "\""))
+								+ "): ");
+						log.print(JDD.GetTerminalsAndNumbersString(stateRewards[i], getNumDDRowVars()) + "\n");
+					}
+				}
+				if (transRewards[i] != null && !transRewards[i].equals(JDD.ZERO)) {
+					log.print("Transition rewards (" + (i + 1) + (("".equals(rewardStructNames[i])) ? "" : (":\"" + rewardStructNames[i] + "\"")) + "): ");
+					log.print(JDD.GetNumNodes(transRewards[i]) + " nodes (");
+					log.print(JDD.GetNumTerminals(transRewards[i]) + " terminal), ");
+					log.print(JDD.GetNumMintermsString(transRewards[i], getNumDDVarsInTrans()) + " minterms\n");
+					if (extra) {
+						log.print("Transition rewards terminals (" + (i + 1) + (("".equals(rewardStructNames[i])) ? "" : (":\"" + rewardStructNames[i] + "\""))
+								+ "): ");
+						log.print(JDD.GetTerminalsAndNumbersString(transRewards[i], getNumDDVarsInTrans()) + "\n");
+					}
 				}
 			}
-			if (transRewards[i] != null && !transRewards[i].equals(JDD.ZERO)) {
-				log.print("Transition rewards (" + (i + 1)
-						+ (("".equals(rewardStructNames[i])) ? "" : (":\"" + rewardStructNames[i] + "\"")) + "): ");
-				log.print(JDD.GetNumNodes(transRewards[i]) + " nodes (");
-				log.print(JDD.GetNumTerminals(transRewards[i]) + " terminal), ");
-				log.print(JDD.GetNumMintermsString(transRewards[i], getNumDDVarsInTrans()) + " minterms\n");
-				if (extra) {
-					log.print("Transition rewards terminals (" + (i + 1)
-							+ (("".equals(rewardStructNames[i])) ? "" : (":\"" + rewardStructNames[i] + "\"")) + "): ");
-					log.print(JDD.GetTerminalsAndNumbersString(transRewards[i], getNumDDVarsInTrans()) + "\n");
-				}
+			if (transActions != null && !transActions.equals(JDD.ZERO)) {
+				log.print("Action label indices: ");
+				log.print(JDD.GetNumNodes(transActions) + " nodes (");
+				log.print(JDD.GetNumTerminals(transActions) + " terminal)\n");
 			}
+			// Don't need to print info for transPerAction (not stored for MDPs)
 		}
-		if (transActions != null && !transActions.equals(JDD.ZERO)) {
-			log.print("Action label indices: ");
-			log.print(JDD.GetNumNodes(transActions) + " nodes (");
-			log.print(JDD.GetNumTerminals(transActions) + " terminal)\n");
-		}
-		// Don't need to print info for transPerAction (not stored for MDPs)
 	}
 
 	// export transition matrix to a file
@@ -342,8 +338,8 @@ public class NondetModel extends ProbModel
 		if (!explicit) {
 			// can only do explicit (sparse matrix based) export for mdps
 		} else {
-			PrismSparse.ExportMDP(trans, transActions, getSynchs(), getTransSymbol(), allDDRowVars, allDDColVars, allDDNondetVars, odd,
-					exportType, (file != null) ? file.getPath() : null);
+			PrismSparse.ExportMDP(trans, transActions, getSynchs(), getTransSymbol(), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType,
+					(file != null) ? file.getPath() : null);
 		}
 	}
 
@@ -372,8 +368,7 @@ public class NondetModel extends ProbModel
 
 	// returns string containing files used if there were more than 1, null otherwise
 
-	public String exportTransRewardsToFile(int exportType, boolean explicit, File file) throws FileNotFoundException,
-			PrismException
+	public String exportTransRewardsToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException
 	{
 		if (numRewardStructs == 0)
 			throw new PrismException("There are no transition rewards to export");
@@ -388,8 +383,7 @@ public class NondetModel extends ProbModel
 			if (!explicit) {
 				// can only do explicit (sparse matrix based) export for mdps
 			} else {
-				PrismSparse.ExportSubMDP(trans, transRewards[i], "C" + (i + 1), allDDRowVars, allDDColVars,
-						allDDNondetVars, odd, exportType, filename);
+				PrismSparse.ExportSubMDP(trans, transRewards[i], "C" + (i + 1), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType, filename);
 			}
 		}
 		return (allFilenames.length() > 0) ? allFilenames : null;
@@ -405,10 +399,12 @@ public class NondetModel extends ProbModel
 		allDDChoiceVars.derefAll();
 		allDDNondetVars.derefAll();
 		JDD.Deref(nondetMask);
-		if (transInd != null) JDD.Deref(transInd);
-		if (transSynch != null) for (int i = 0; i < numSynchs; i++) {
-			JDD.Deref(transSynch[i]);
-		}
+		if (transInd != null)
+			JDD.Deref(transInd);
+		if (transSynch != null)
+			for (int i = 0; i < numSynchs; i++) {
+				JDD.Deref(transSynch[i]);
+			}
 	}
 }
 

@@ -75,7 +75,7 @@ public class ProbModel implements Model
 	protected JDDNode transRewards[]; // transition rewards dds
 	protected JDDNode transActions; // dd for transition action labels (MDPs)
 	protected JDDNode transPerAction[]; // dds for transition action labels (D/CTMCs)
-	
+
 	// dd vars
 	protected JDDVars[] varDDRowVars; // dd vars for each module variable (rows)
 	protected JDDVars[] varDDColVars; // dd vars for each module variable (cols)
@@ -167,7 +167,7 @@ public class ProbModel implements Model
 	{
 		return synchs;
 	}
-	
+
 	// rewards
 	public int getNumRewardStructs()
 	{
@@ -294,12 +294,12 @@ public class ProbModel implements Model
 	{
 		return transActions;
 	}
-	
+
 	public JDDNode[] getTransPerAction()
 	{
 		return transPerAction;
 	}
-	
+
 	// dd vars
 	public JDDVars[] getVarDDRowVars()
 	{
@@ -389,9 +389,8 @@ public class ProbModel implements Model
 
 	// constructor
 
-	public ProbModel(JDDNode tr, JDDNode s, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv,
-			Vector<String> ddvn, int nm, String[] mn, JDDVars[] mrv, JDDVars[] mcv, int nv, VarList vl, JDDVars[] vrv,
-			JDDVars[] vcv, Values cv)
+	public ProbModel(JDDNode tr, JDDNode s, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv, Vector<String> ddvn, int nm, String[] mn,
+			JDDVars[] mrv, JDDVars[] mcv, int nv, VarList vl, JDDVars[] vrv, JDDVars[] vcv, Values cv)
 	{
 		int i;
 
@@ -414,11 +413,11 @@ public class ProbModel implements Model
 		varDDRowVars = vrv;
 		varDDColVars = vcv;
 		constantValues = cv;
-		
+
 		// action label info (optional) is initially null
 		transActions = null;
 		transPerAction = null;
-		
+
 		// compute numbers for globalToLocal converter
 		gtol = new long[numVars];
 		for (i = 0; i < numVars; i++) {
@@ -444,25 +443,26 @@ public class ProbModel implements Model
 		this.synchs = synchs;
 		this.numSynchs = synchs.size();
 	}
-	
+
 	/**
 	 * Reset transition matrix DD
 	 */
-	
+
 	public void resetTrans(JDDNode trans)
 	{
-		if (this.trans != null) JDD.Deref(this.trans);
+		if (this.trans != null)
+			JDD.Deref(this.trans);
 		this.trans = trans;
 	}
 
 	/**
 	 * Reset transition rewards DDs
 	 */
-	
+
 	public void resetTransRewards(int i, JDDNode transRewards)
 	{
 		if (this.transRewards[i] != null) {
-				JDD.Deref(this.transRewards[i]);
+			JDD.Deref(this.transRewards[i]);
 		}
 		this.transRewards[i] = transRewards;
 	}
@@ -498,19 +498,20 @@ public class ProbModel implements Model
 	/**
 	 * Set reachable states BDD (and compute number of states and ODD)
 	 */
-	
+
 	public void setReach(JDDNode reach)
 	{
-		if (this.reach != null) JDD.Deref(this.reach);
+		if (this.reach != null)
+			JDD.Deref(this.reach);
 		this.reach = reach;
-		
+
 		// work out number of reachable states
 		numStates = JDD.GetNumMinterms(reach, allDDRowVars.n());
 
 		// build odd
 		odd = ODDUtils.BuildODD(reach, allDDRowVars);
 	}
-	
+
 	/**
 	 * Set the DD used to store transition action label indices (MDPs).
 	 */
@@ -518,7 +519,7 @@ public class ProbModel implements Model
 	{
 		this.transActions = transActions;
 	}
-	
+
 	/**
 	 * Set the DDs used to store transition action label indices (D/CTMCs).
 	 */
@@ -526,7 +527,7 @@ public class ProbModel implements Model
 	{
 		this.transPerAction = transPerAction;
 	}
-	
+
 	// remove non-reachable states from various dds
 	// (and calculate num transitions)
 
@@ -559,7 +560,7 @@ public class ProbModel implements Model
 			tmp = JDD.PermuteVariables(reach, allDDRowVars, allDDColVars);
 			transRewards[i] = JDD.Apply(JDD.TIMES, tmp, transRewards[i]);
 		}
-		
+
 		// Action label index info
 		if (transActions != null) {
 			// transActions just stored per state so only filter rows
@@ -576,12 +577,12 @@ public class ProbModel implements Model
 				transPerAction[i] = JDD.Apply(JDD.TIMES, tmp, transPerAction[i]);
 			}
 		}
-		
+
 		// filter start states, work out number of initial states
 		JDD.Ref(reach);
 		start = JDD.Apply(JDD.TIMES, reach, start);
 		numStartStates = JDD.GetNumMinterms(start, allDDRowVars.n());
-		
+
 		// work out number of transitions
 		numTransitions = JDD.GetNumMinterms(trans01, getNumDDVarsInTrans());
 	}
@@ -664,45 +665,42 @@ public class ProbModel implements Model
 				log.print(" " + j + ":" + ddVarNames.get(j));
 			}
 			log.println();
-			log.print(getTransName() + " terminals: " + JDD.GetTerminalsAndNumbersString(trans, getNumDDVarsInTrans())
-					+ "\n");
+			log.print(getTransName() + " terminals: " + JDD.GetTerminalsAndNumbersString(trans, getNumDDVarsInTrans()) + "\n");
 			log.print("Reach: " + JDD.GetNumNodes(reach) + " nodes\n");
 			log.print("ODD: " + ODDUtils.GetNumODDNodes() + " nodes\n");
-		}
-		for (i = 0; i < numRewardStructs; i++) {
-			if (stateRewards[i] != null && !stateRewards[i].equals(JDD.ZERO)) {
-				log.print("State rewards (" + (i + 1)
-						+ (("".equals(rewardStructNames[i])) ? "" : (":\"" + rewardStructNames[i] + "\"")) + "): ");
-				log.print(JDD.GetNumNodes(stateRewards[i]) + " nodes (");
-				log.print(JDD.GetNumTerminals(stateRewards[i]) + " terminal), ");
-				log.print(JDD.GetNumMintermsString(stateRewards[i], getNumDDRowVars()) + " minterms\n");
-				if (extra) {
-					log.print("State rewards terminals (" + (i + 1)
-							+ (("".equals(rewardStructNames[i])) ? "" : (":\"" + rewardStructNames[i] + "\"")) + "): ");
-					log.print(JDD.GetTerminalsAndNumbersString(stateRewards[i], getNumDDRowVars()) + "\n");
+			for (i = 0; i < numRewardStructs; i++) {
+				if (stateRewards[i] != null && !stateRewards[i].equals(JDD.ZERO)) {
+					log.print("State rewards (" + (i + 1) + (("".equals(rewardStructNames[i])) ? "" : (":\"" + rewardStructNames[i] + "\"")) + "): ");
+					log.print(JDD.GetNumNodes(stateRewards[i]) + " nodes (");
+					log.print(JDD.GetNumTerminals(stateRewards[i]) + " terminal), ");
+					log.print(JDD.GetNumMintermsString(stateRewards[i], getNumDDRowVars()) + " minterms\n");
+					if (extra) {
+						log.print("State rewards terminals (" + (i + 1) + (("".equals(rewardStructNames[i])) ? "" : (":\"" + rewardStructNames[i] + "\""))
+								+ "): ");
+						log.print(JDD.GetTerminalsAndNumbersString(stateRewards[i], getNumDDRowVars()) + "\n");
+					}
+				}
+				if (transRewards[i] != null && !transRewards[i].equals(JDD.ZERO)) {
+					log.print("Transition rewards (" + (i + 1) + (("".equals(rewardStructNames[i])) ? "" : (":\"" + rewardStructNames[i] + "\"")) + "): ");
+					log.print(JDD.GetNumNodes(transRewards[i]) + " nodes (");
+					log.print(JDD.GetNumTerminals(transRewards[i]) + " terminal), ");
+					log.print(JDD.GetNumMintermsString(transRewards[i], getNumDDVarsInTrans()) + " minterms\n");
+					if (extra) {
+						log.print("Transition rewards terminals (" + (i + 1) + (("".equals(rewardStructNames[i])) ? "" : (":\"" + rewardStructNames[i] + "\""))
+								+ "): ");
+						log.print(JDD.GetTerminalsAndNumbersString(transRewards[i], getNumDDVarsInTrans()) + "\n");
+					}
 				}
 			}
-			if (transRewards[i] != null && !transRewards[i].equals(JDD.ZERO)) {
-				log.print("Transition rewards (" + (i + 1)
-						+ (("".equals(rewardStructNames[i])) ? "" : (":\"" + rewardStructNames[i] + "\"")) + "): ");
-				log.print(JDD.GetNumNodes(transRewards[i]) + " nodes (");
-				log.print(JDD.GetNumTerminals(transRewards[i]) + " terminal), ");
-				log.print(JDD.GetNumMintermsString(transRewards[i], getNumDDVarsInTrans()) + " minterms\n");
-				if (extra) {
-					log.print("Transition rewards terminals (" + (i + 1)
-							+ (("".equals(rewardStructNames[i])) ? "" : (":\"" + rewardStructNames[i] + "\"")) + "): ");
-					log.print(JDD.GetTerminalsAndNumbersString(transRewards[i], getNumDDVarsInTrans()) + "\n");
+			if (transPerAction != null) {
+				for (i = 0; i < numSynchs + 1; i++) {
+					log.print("Action label info (");
+					log.print((i == 0 ? "" : synchs.get(i - 1)) + "): ");
+					log.println(JDD.GetInfoString(transPerAction[i], getNumDDVarsInTrans()));
 				}
 			}
+			// Don't need to print info for transActions (only stored for MDPs)
 		}
-		if (transPerAction != null) {
-			for (i = 0; i < numSynchs + 1; i++) {
-				log.print("Action label info (");
-				log.print((i == 0 ? "" : synchs.get(i - 1)) + "): ");
-				log.println(JDD.GetInfoString(transPerAction[i], getNumDDVarsInTrans()));
-			}
-		}
-		// Don't need to print info for transActions (only stored for MDPs)
 	}
 
 	// export transition matrix to a file
@@ -710,11 +708,9 @@ public class ProbModel implements Model
 	public void exportToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException
 	{
 		if (!explicit) {
-			PrismMTBDD.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType,
-					(file != null) ? file.getPath() : null);
+			PrismMTBDD.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType, (file != null) ? file.getPath() : null);
 		} else {
-			PrismSparse.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType,
-					(file != null) ? file.getPath() : null);
+			PrismSparse.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType, (file != null) ? file.getPath() : null);
 		}
 	}
 
@@ -731,10 +727,10 @@ public class ProbModel implements Model
 		for (i = 0; i < numRewardStructs; i++) {
 			filename = (file != null) ? file.getPath() : null;
 			if (filename != null && numRewardStructs > 1) {
-				filename = PrismUtils.addCounterSuffixToFilename(filename, i+1);
+				filename = PrismUtils.addCounterSuffixToFilename(filename, i + 1);
 				allFilenames += ((i > 0) ? ", " : "") + filename;
 			}
-			PrismMTBDD.ExportVector(stateRewards[i], "c" + (i+1), allDDRowVars, odd, exportType, filename);
+			PrismMTBDD.ExportVector(stateRewards[i], "c" + (i + 1), allDDRowVars, odd, exportType, filename);
 		}
 		return (allFilenames.length() > 0) ? allFilenames : null;
 	}
@@ -743,8 +739,7 @@ public class ProbModel implements Model
 
 	// returns string containing files used if there were more than 1, null otherwise
 
-	public String exportTransRewardsToFile(int exportType, boolean explicit, File file) throws FileNotFoundException,
-			PrismException
+	public String exportTransRewardsToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException
 	{
 		if (numRewardStructs == 0)
 			throw new PrismException("There are no transition rewards to export");
@@ -753,15 +748,13 @@ public class ProbModel implements Model
 		for (i = 0; i < numRewardStructs; i++) {
 			filename = (file != null) ? file.getPath() : null;
 			if (filename != null && numRewardStructs > 1) {
-				filename = PrismUtils.addCounterSuffixToFilename(filename, i+1);
+				filename = PrismUtils.addCounterSuffixToFilename(filename, i + 1);
 				allFilenames += ((i > 0) ? ", " : "") + filename;
 			}
 			if (!explicit) {
-				PrismMTBDD
-						.ExportMatrix(transRewards[i], "C" + (i+1), allDDRowVars, allDDColVars, odd, exportType, filename);
+				PrismMTBDD.ExportMatrix(transRewards[i], "C" + (i + 1), allDDRowVars, allDDColVars, odd, exportType, filename);
 			} else {
-				PrismSparse.ExportMatrix(transRewards[i], "C" + (i+1), allDDRowVars, allDDColVars, odd, exportType,
-						filename);
+				PrismSparse.ExportMatrix(transRewards[i], "C" + (i + 1), allDDRowVars, allDDColVars, odd, exportType, filename);
 			}
 		}
 		return (allFilenames.length() > 0) ? allFilenames : null;
@@ -825,7 +818,7 @@ public class ProbModel implements Model
 		// Then convert to State object
 		return varList.convertBitSetToState(bits);
 	}
-	
+
 	/**
 	 * Convert a BDD (over model row variables) representing a single state
 	 * to a (reachable) state index. 
@@ -848,13 +841,13 @@ public class ProbModel implements Model
 				oddPtr = oddPtr.getElse();
 			} else {
 				ptr = ptr.getThen();
-				index += oddPtr.getEOff(); 
+				index += oddPtr.getEOff();
 				oddPtr = oddPtr.getThen();
 			}
 		}
 		return index;
 	}
-	
+
 	// clear up (deref all dds, dd vars)
 
 	public void clear()
@@ -872,14 +865,17 @@ public class ProbModel implements Model
 		JDD.Deref(trans);
 		JDD.Deref(trans01);
 		JDD.Deref(start);
-		if (reach != null) JDD.Deref(reach);
-		if (deadlocks != null) JDD.Deref(deadlocks);
+		if (reach != null)
+			JDD.Deref(reach);
+		if (deadlocks != null)
+			JDD.Deref(deadlocks);
 		JDD.Deref(fixdl);
 		for (int i = 0; i < numRewardStructs; i++) {
 			JDD.Deref(stateRewards[i]);
 			JDD.Deref(transRewards[i]);
 		}
-		if (transActions != null) JDD.Deref(transActions);
+		if (transActions != null)
+			JDD.Deref(transActions);
 		if (transPerAction != null) {
 			for (int i = 0; i < numSynchs + 1; i++) {
 				JDD.Deref(transPerAction[i]);
