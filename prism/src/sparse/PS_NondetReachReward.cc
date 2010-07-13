@@ -297,13 +297,19 @@ jboolean min				// min or max probabilities (true = min, false = max)
 				// see if this value is the min/max so far
 				if (first || (min&&(d2<d1)) || (!min&&(d2>d1))) {
 					d1 = d2;
-					// if adversary generation is enabled, remember new (strictly) better choices
+					// if adversary generation is enabled, remember optimal choice
 					if (export_adv_enabled != EXPORT_ADV_NONE) {
-						if (adv[i] == -1 || (min&&(d1<soln[i])) || (!min&&(d1>soln[i]))) {
-							// NB: don't overwrite adv[i] yet, just make a note that we need to update it
-							// (want to remember if is -1: this is necessary for (at least) min rewards)
-							adv_j = j;
-							adv_new = true;
+						// for max, only remember strictly better choices
+						// (this resolves problems with end components)
+						if (!min) {
+							if (adv[i] == -1 || (d1>soln[i])) {
+								adv[i] = j;
+							}
+						}
+						// for min, this is straightforward
+						// (in fact, could do it at the end of value iteration, but we don't)
+						else {
+							adv[i] = j;
 						}
 					}
 				}
@@ -312,10 +318,6 @@ jboolean min				// min or max probabilities (true = min, false = max)
 			// set vector element
 			// (if there were no choices from this state, reward is zero/infinity)
 			soln2[i] = (h1 > l1) ? d1 : inf_vec[i] > 0 ? HUGE_VAL : 0;
-			// store adversary choice (if required)
-			if (export_adv_enabled != EXPORT_ADV_NONE && adv_new) {
-				adv[i] = adv_j;
-			}
 		}
 		
 		// check convergence
