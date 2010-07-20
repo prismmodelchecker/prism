@@ -362,7 +362,7 @@ public class SimulatorEngine
 			previousState.clear();
 		else
 			previousState.copy(path.getPreviousState());
-		currentState = path.getCurrentState();
+		currentState.copy(path.getCurrentState());
 		// Recompute samplers for any loaded properties
 		recomputeSamplers();
 		// Generate updates for new current state 
