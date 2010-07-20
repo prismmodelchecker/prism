@@ -1,5 +1,6 @@
-Todo
-----
+
+TODO (before any release)
+-------------------------
 
 * GUI
 
@@ -51,7 +52,8 @@ Where can clocks be used
 * var decl.s
 * generally must be convex (i.e. just conj of constraints) (can be relaxed a bit for digital clocks)
 
-Modules cannot access non-local vars (is this too restrictive, e.g. for message passing?)
+Currently, modules cannot access non-local vars (and there are no globals)
+(this is too restrictive, e.g. for message passing)
 
 Must have single initial state (is this true for digital clocks too?)
 

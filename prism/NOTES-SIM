@@ -2,6 +2,8 @@
 NOW/NEXT
 --------
 
+Updater, esp. local nodet
+
 DTMC with local nondet and actions (~/prism-models/dave-test.nm)
 
 GUI transition box: "true" updates don't display correctly
@@ -9,6 +11,9 @@ GUI transition box: "true" updates don't display correctly
 
 TODO (before any release)
 -------------------------
+
+* local nondet in Updater (and tidy that class)
+* ChoiceListFlexi TODOs
 
 
 TODO (later)
@@ -26,6 +31,9 @@ TODO (later)
 * traviendo export?
 
 * explicit build doesn't handle multiple initial states
+
+CODE:
+* Optimise Choices (ChoiceList/ChoiceSingleton/etc.)
 
 BUGS (later)
 ------------
