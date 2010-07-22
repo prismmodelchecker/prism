@@ -195,8 +195,81 @@ public class Updater
 		//System.out.println(transitionList);
 	}
 
+	/**
+	 * Calculate the state rewards for a given state.
+	 * @param state The state to compute rewards for
+	 * @param store An array in which to store the rewards
+	 */
+	public void calculateStateRewards(State state, double[] store) throws PrismLangException
+	{
+		int i, j, n;
+		double d;
+		RewardStruct rw;
+		for (i = 0; i < numRewardStructs; i++) {
+			rw = modulesFile.getRewardStruct(i);
+			n = rw.getNumItems();
+			d = 0.0;
+			for (j = 0; j < n; j++) {
+				if (!rw.getRewardStructItem(j).isTransitionReward())
+					if (rw.getStates(j).evaluateBoolean(state))
+						d += rw.getReward(j).evaluateDouble(state);
+			}
+			store[i] = d;
+		}
+	}
+
+	/**
+	 * Calculate the transition rewards for a given state and outgoing choice.
+	 * @param state The state to compute rewards for
+	 * @param ch The choice from the state to compute rewards for
+	 * @param store An array in which to store the rewards
+	 */
+	public void calculateTransitionRewards(State state, Choice ch, double[] store) throws PrismLangException
+	{
+		int i, j, n;
+		double d;
+		RewardStruct rw;
+		for (i = 0; i < numRewardStructs; i++) {
+			rw = modulesFile.getRewardStruct(i);
+			n = rw.getNumItems();
+			d = 0.0;
+			for (j = 0; j < n; j++) {
+				if (rw.getRewardStructItem(j).isTransitionReward())
+					if (rw.getRewardStructItem(j).getSynchIndex() == Math.max(0, ch.getModuleOrActionIndex()))
+						if (rw.getStates(j).evaluateBoolean(state))
+							d += rw.getReward(j).evaluateDouble(state);
+			}
+			store[i] = d;
+		}
+	}
+	
 	// Private helpers
 	
+	/**
+	 * Determine the enabled updates for the 'm'th module from (global) state 'state'.
+	 * Update information in updateLists, enabledSynchs and enabledModules.
+	 * @param m The module index
+	 * @param state State from which to explore
+	 */
+	private void calculateUpdatesForModule(int m, State state) throws PrismLangException
+	{
+		Module module;
+		Command command;
+		int i, j, n;
+
+		module = modulesFile.getModule(m);
+		n = module.getNumCommands();
+		for (i = 0; i < n; i++) {
+			command = module.getCommand(i);
+			if (command.getGuard().evaluateBoolean(state)) {
+				j = command.getSynchIndex();
+				updateLists.get(m).get(j).add(command.getUpdates());
+				enabledSynchs.set(j);
+				enabledModules[j].set(m);
+			}
+		}
+	}
+
 	/**
 	 * Create a new Choice object (currently ChoiceListFlexi) based on an Updates object
 	 * and a (global) state. If appropriate, check probabilities sum to 1 too.
@@ -245,120 +318,5 @@ public class Updater
 		ChoiceListFlexi chNew = processUpdatesAndCreateNewChoice(0, ups, state);
 		// Build product with existing
 		ch.productWith(chNew);
-	}
-
-	/**
-	 * Determine the enabled updates for the 'm'th module from (global) state 'state'.
-	 * Update information in updateLists, enabledSynchs and enabledModules.
-	 * @param m The module index
-	 * @param state State from which to explore
-	 */
-	private void calculateUpdatesForModule(int m, State state) throws PrismLangException
-	{
-		Module module;
-		Command command;
-		int i, j, n;
-
-		module = modulesFile.getModule(m);
-		n = module.getNumCommands();
-		for (i = 0; i < n; i++) {
-			command = module.getCommand(i);
-			if (command.getGuard().evaluateBoolean(state)) {
-				j = command.getSynchIndex();
-				updateLists.get(m).get(j).add(command.getUpdates());
-				enabledSynchs.set(j);
-				enabledModules[j].set(m);
-			}
-		}
-	}
-
-	/*private Choice calculateTransitionsForUpdates(Updates ups, State state) throws PrismLangException
-	{
-		int i, n;
-		State newState;
-
-		n = ups.getNumUpdates();
-		if (n == 1) {
-			ChoiceSingleton chSingle = null;
-			chSingle = new ChoiceSingleton();
-			newState = calculateTransitionsForUpdate(ups.getUpdate(0), state);
-			chSingle.setTarget(newState);
-			chSingle.setProbability(ups.getProbabilityInState(0, state));
-			return chSingle;
-		} else {
-			ChoiceList chList;
-			chList = new ChoiceList(n);
-			for (i = 0; i < n; i++) {
-				newState = calculateTransitionsForUpdate(ups.getUpdate(i), state);
-				chList.addTarget(newState);
-				chList.addProbability(ups.getProbabilityInState(i, state));
-			}
-			return chList;
-		}
-	}*/
-
-	// TODO: do we really need to evaluate dest State at this point?
-	// maybe just store pointer to Update object for efficiency
-	private State calculateTransitionsForUpdate(Update up, State state) throws PrismLangException
-	{
-		State newState;
-		int i, n;
-
-		// Copy current state, then apply updates
-		newState = new State(state);
-		n = up.getNumElements();
-		for (i = 0; i < n; i++) {
-			newState.varValues[up.getVarIndex(i)] = up.getExpression(i).evaluate(state);
-		}
-
-		return newState;
-	}
-
-	/**
-	 * Calculate the state rewards for a given state.
-	 * @param state The state to compute rewards for
-	 * @param store An array in which to store the rewards
-	 */
-	public void calculateStateRewards(State state, double[] store) throws PrismLangException
-	{
-		int i, j, n;
-		double d;
-		RewardStruct rw;
-		for (i = 0; i < numRewardStructs; i++) {
-			rw = modulesFile.getRewardStruct(i);
-			n = rw.getNumItems();
-			d = 0.0;
-			for (j = 0; j < n; j++) {
-				if (!rw.getRewardStructItem(j).isTransitionReward())
-					if (rw.getStates(j).evaluateBoolean(state))
-						d += rw.getReward(j).evaluateDouble(state);
-			}
-			store[i] = d;
-		}
-	}
-
-	/**
-	 * Calculate the transition rewards for a given state and outgoing choice.
-	 * @param state The state to compute rewards for
-	 * @param ch The choice from the state to compute rewards for
-	 * @param store An array in which to store the rewards
-	 */
-	public void calculateTransitionRewards(State state, Choice ch, double[] store) throws PrismLangException
-	{
-		int i, j, n;
-		double d;
-		RewardStruct rw;
-		for (i = 0; i < numRewardStructs; i++) {
-			rw = modulesFile.getRewardStruct(i);
-			n = rw.getNumItems();
-			d = 0.0;
-			for (j = 0; j < n; j++) {
-				if (rw.getRewardStructItem(j).isTransitionReward())
-					if (rw.getRewardStructItem(j).getSynchIndex() == Math.max(0, ch.getModuleOrActionIndex()))
-						if (rw.getStates(j).evaluateBoolean(state))
-							d += rw.getReward(j).evaluateDouble(state);
-			}
-			store[i] = d;
-		}
 	}
 }

@@ -98,9 +98,6 @@ public class SimulatorEngine
 	private VarList varList;
 	private int numVars;
 	private Map<String, Integer> varIndices;
-	// Synchronising action info
-	private Vector<String> synchs;
-	private int numSynchs;
 	// Constant definitions from model file
 	private Values mfConstants;
 
@@ -109,21 +106,17 @@ public class SimulatorEngine
 	private List<Expression> properties;
 	private List<Sampler> propertySamplers;
 
-	// Current path info
-	protected Path path;
-	protected boolean onTheFly;
-
-	// TODO: remove these now can get from path?
-	protected State previousState;
-	protected State currentState;
-
-	// TODO: just temp storage?
-	// (if so, remove 'current', 'prev' from names?)
-	protected double currentStateRewards[];
-	protected double previousTransitionRewards[];
+	// Temporary storage for manipulating states/rewards
+	protected State tmpState;
+	protected double tmpStateRewards[];
+	protected double tmpTransitionRewards[];
 
 	// List of currently available transitions
 	protected TransitionList transitionList;
+
+	// Current path info
+	protected Path path;
+	protected boolean onTheFly;
 
 	// Updater object for model
 	protected Updater updater;
@@ -205,22 +198,22 @@ public class SimulatorEngine
 	 */
 	public void initialisePath(State initialState) throws PrismException
 	{
-		// Store a copy of passed in state
+		// Store a temporary copy of passed in state
 		if (initialState != null) {
-			currentState.copy(new State(initialState));
+			tmpState.copy(new State(initialState));
 		}
 		// Or pick a random one
 		else {
 			throw new PrismException("Random initial start state not yet supported");
 		}
-		updater.calculateStateRewards(currentState, currentStateRewards);
+		updater.calculateStateRewards(tmpState, tmpStateRewards);
 		// Initialise stored path if necessary
-		path.initialise(currentState, currentStateRewards);
+		path.initialise(tmpState, tmpStateRewards);
 		// Reset and then update samplers for any loaded properties
 		resetSamplers();
 		updateSamplers();
 		// Generate updates for initial state 
-		updater.calculateTransitions(currentState, transitionList);
+		updater.calculateTransitions(tmpState, transitionList);
 	}
 
 	/**
@@ -269,7 +262,7 @@ public class SimulatorEngine
 		numChoices = transitionList.getNumChoices();
 		if (numChoices == 0)
 			return false;
-		//throw new PrismException("Deadlock found at state " + currentState.toString(modulesFile));
+		//throw new PrismException("Deadlock found at state " + path.getCurrentState().toString(modulesFile));
 
 		switch (modelType) {
 		case DTMC:
@@ -357,16 +350,10 @@ public class SimulatorEngine
 		}
 		// Back track in path
 		((PathFull) path).backtrack(step);
-		// Update previous/current state info
-		if (step == 0)
-			previousState.clear();
-		else
-			previousState.copy(path.getPreviousState());
-		currentState.copy(path.getCurrentState());
 		// Recompute samplers for any loaded properties
 		recomputeSamplers();
 		// Generate updates for new current state 
-		updater.calculateTransitions(currentState, transitionList);
+		updater.calculateTransitions(path.getCurrentState(), transitionList);
 	}
 
 	/**
@@ -412,10 +399,6 @@ public class SimulatorEngine
 		}
 		// Modify path
 		((PathFull) path).removePrecedingStates(step);
-		// Update previous state info (if required)
-		// (No need to update current state info)
-		if (path.size() == 1)
-			previousState.clear();
 		// Recompute samplers for any loaded properties
 		recomputeSamplers();
 		// (No need to re-generate updates for new current state) 
@@ -438,7 +421,7 @@ public class SimulatorEngine
 	 */
 	public void computeTransitionsForCurrentState() throws PrismException
 	{
-		updater.calculateTransitions(currentState, transitionList);
+		updater.calculateTransitions(path.getCurrentState(), transitionList);
 	}
 
 	// ------------------------------------------------------------------------------
@@ -613,18 +596,13 @@ public class SimulatorEngine
 			varIndices.put(varList.getName(i), i);
 		}
 
-		// Get list of synchronising actions
-		synchs = modulesFile.getSynchs();
-		numSynchs = synchs.size();
-
 		// Evaluate constants and optimise (a copy of) modules file for simulation
 		modulesFile = (ModulesFile) modulesFile.deepCopy().replaceConstants(mfConstants).simplify();
 
-		// Create state/transition storage
-		previousState = new State(numVars);
-		currentState = new State(numVars);
-		currentStateRewards = new double[modulesFile.getNumRewardStructs()];
-		previousTransitionRewards = new double[modulesFile.getNumRewardStructs()];
+		// Create temporary state/transition storage
+		tmpState = new State(numVars);
+		tmpStateRewards = new double[modulesFile.getNumRewardStructs()];
+		tmpTransitionRewards = new double[modulesFile.getNumRewardStructs()];
 		transitionList = new TransitionList();
 
 		// Create updater for model
@@ -652,17 +630,16 @@ public class SimulatorEngine
 		if (!onTheFly && index == -1)
 			index = transitionList.getTotalIndexOfTransition(i, offset);
 		// Compute its transition rewards
-		updater.calculateTransitionRewards(currentState, choice, previousTransitionRewards);
-		// Remember last state and compute next one (and its state rewards)
-		previousState.copy(currentState);
-		choice.computeTarget(offset, previousState, currentState);
-		updater.calculateStateRewards(currentState, currentStateRewards);
+		updater.calculateTransitionRewards(path.getCurrentState(), choice, tmpTransitionRewards);
+		// Compute next state (and its state rewards)
+		choice.computeTarget(offset, path.getCurrentState(), tmpState);
+		updater.calculateStateRewards(tmpState, tmpStateRewards);
 		// Update path
-		path.addStep(index, choice.getModuleOrActionIndex(), previousTransitionRewards, currentState, currentStateRewards);
+		path.addStep(index, choice.getModuleOrActionIndex(), tmpTransitionRewards, tmpState, tmpStateRewards);
 		// Update samplers for any loaded properties
 		updateSamplers();
 		// Generate updates for next state 
-		updater.calculateTransitions(currentState, transitionList);
+		updater.calculateTransitions(tmpState, transitionList);
 	}
 
 	/**
@@ -684,17 +661,16 @@ public class SimulatorEngine
 		if (!onTheFly && index == -1)
 			index = transitionList.getTotalIndexOfTransition(i, offset);
 		// Compute its transition rewards
-		updater.calculateTransitionRewards(currentState, choice, previousTransitionRewards);
-		// Remember last state and compute next one (and its state rewards)
-		previousState.copy(currentState);
-		choice.computeTarget(offset, previousState, currentState);
-		updater.calculateStateRewards(currentState, currentStateRewards);
+		updater.calculateTransitionRewards(path.getCurrentState(), choice, tmpTransitionRewards);
+		// Compute next state (and its state rewards)
+		choice.computeTarget(offset, path.getCurrentState(), tmpState);
+		updater.calculateStateRewards(tmpState, tmpStateRewards);
 		// Update path
-		path.addStep(time, index, choice.getModuleOrActionIndex(), previousTransitionRewards, currentState, currentStateRewards);
+		path.addStep(time, index, choice.getModuleOrActionIndex(), tmpTransitionRewards, tmpState, tmpStateRewards);
 		// Update samplers for any loaded properties
 		updateSamplers();
 		// Generate updates for next state 
-		updater.calculateTransitions(currentState, transitionList);
+		updater.calculateTransitions(tmpState, transitionList);
 	}
 
 	/**
@@ -774,15 +750,6 @@ public class SimulatorEngine
 		return varList.getIndex(name);
 	}
 
-	/**
-	 * Returns the index of an action name, as stored by the simulator for the current model.
-	 * Returns -1 if the action name does not exist. 
-	 */
-	public int getIndexOfAction(String name)
-	{
-		return synchs.indexOf(name);
-	}
-
 	// ------------------------------------------------------------------------------
 	// Querying of current state and its available choices/transitions
 	// ------------------------------------------------------------------------------
@@ -860,7 +827,7 @@ public class SimulatorEngine
 	 */
 	public State computeTransitionTarget(int i, int offset) throws PrismLangException
 	{
-		return transitionList.getChoice(i).computeTarget(offset, currentState);
+		return transitionList.getChoice(i).computeTarget(offset, path.getCurrentState());
 	}
 
 	/**
@@ -868,7 +835,7 @@ public class SimulatorEngine
 	 */
 	public State computeTransitionTarget(int index) throws PrismLangException
 	{
-		return transitionList.computeTransitionTarget(index, currentState);
+		return transitionList.computeTransitionTarget(index, path.getCurrentState());
 	}
 
 	// ------------------------------------------------------------------------------

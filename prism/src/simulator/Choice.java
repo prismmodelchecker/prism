@@ -27,10 +27,7 @@
 package simulator;
 
 import parser.*;
-import parser.ast.*;
 import prism.*;
-
-import java.util.*;
 
 public interface Choice
 {
