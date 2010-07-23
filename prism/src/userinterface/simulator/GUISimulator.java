@@ -3304,7 +3304,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			if (pathActive) {
 				switch (column) {
 				case 0:
-					return "Module/Action";
+					return "Module/[action]";
 				case 1: {
 					if (parsedModel != null && parsedModel.getModelType() == ModelType.CTMC)
 						return "Rate";

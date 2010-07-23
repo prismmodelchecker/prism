@@ -169,10 +169,12 @@ public class ChoiceListFlexi implements Choice
 	 */
 	public String getUpdateString(int i)
 	{
-		String s = "(";
-		for (Update up : updates.get(i))
+		String s = "";
+		boolean first = true;
+		for (Update up : updates.get(i)) {
+			if (first) first = false; else s+= " & ";
 			s += up;
-		s += ")";
+		}
 		return s;
 	}
 	

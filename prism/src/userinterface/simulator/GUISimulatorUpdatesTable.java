@@ -34,13 +34,8 @@ import javax.swing.table.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 
-import prism.ModelType;
 import userinterface.GUIPrism;
 
-/**
- *
- * @author  ug60axh
- */
 public class GUISimulatorUpdatesTable extends JTable implements ListSelectionListener
 {
 	public static Color[] DISTRIBUTION_COLOURS = { new Color(255, 255, 255), //white
