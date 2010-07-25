@@ -346,11 +346,12 @@ public class PTAModelChecker
 		}
 
 		// Do model checking...
-		PTAExpected ptaExp;
+		/*PTAExpected ptaExp;
 		ptaExp = new PTAExpected(prism);
-		reward = ptaExp.check(pta, targetLocs, min);
-
-		return new Result(new Double(reward));
+		reward = ptaExp.check(pta, targetLocs, min);*/
+		throw new PrismException("Reward properties not yet supported for PTAs");
+		
+		//return new Result(new Double(reward));
 	}
 
 	/**
