@@ -1338,9 +1338,12 @@ public class Prism implements PrismSettingsListener
 		if (file != null) tmpLog.close();
 	}
 	
-	// model checking
-	// returns result or throws an exception in case of error
-	
+	/**
+	 * Perform model checking of a property on a model and return result.
+	 * @param model: The model (DTMC, CTMC or MDP)
+	 * @param propertiesFile: Parent property file of property (for labels/constants/...)
+	 * @param expr: The property
+	 */
 	public Result modelCheck(Model model, PropertiesFile propertiesFile, Expression expr) throws PrismException, PrismLangException
 	{
 		Result res;
@@ -1369,9 +1372,12 @@ public class Prism implements PrismSettingsListener
 		return res;
 	}
 	
-	// model checking for PTAs
-	// returns result or throws an exception in case of error
-	
+	/**
+	 * Perform model checking of a property on a PTA model and return result.
+	 * @param model: The PTA model (language-level)
+	 * @param propertiesFile: Parent property file of property (for labels/constants/...)
+	 * @param expr: The property
+	 */
 	public Result modelCheckPTA(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression expr) throws PrismException, PrismLangException
 	{
 		PTAModelChecker mcPta;
