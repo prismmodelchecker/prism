@@ -44,224 +44,264 @@ import prism.*;
 public class GUIPropertiesList extends JList implements KeyListener
 {
 	//STATICS
-	
+
 	private static int counter = 0;
-	
+
 	//ATTRIBUTES
-	
+
 	private Prism prism;
 	private GUIMultiProperties parent;
-	
+
 	private DefaultListModel listModel;
-	
+
 	private PictureCellRenderer rend;
-	
+
 	//CONSTRUCTORS
-	
+
 	/** Creates a new instance of GUIPropertiesList */
 	public GUIPropertiesList(Prism prism, GUIMultiProperties parent)
 	{
 		this.prism = prism;
 		this.parent = parent;
-		
+
 		listModel = new DefaultListModel();
 		setModel(listModel);
-		
+
 		rend = new PictureCellRenderer();
 		setCellRenderer(rend);
-		
+
 		addKeyListener(this);
 		setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-		
+
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_MASK), "none");
 	}
-	
+
 	/** Override set font to update row heights at same time */
 	public void setFont(Font font)
 	{
 		super.setFont(font);
 		// Note: minimum of 20 since icons are 16x16
-		if (font != null) setFixedCellHeight(Math.max(20, getFontMetrics(font).getHeight() + 4));
+		if (font != null)
+			setFixedCellHeight(Math.max(20, getFontMetrics(font).getHeight() + 4));
 	}
 
 	//ACCESS METHODS
-	
+
 	public int getNumProperties()
 	{
 		return listModel.size();
 	}
-	
-	public GUIProperty getProperty(int index)
+
+	/**
+	 * Get the ith property in the list.
+	 */
+	public GUIProperty getProperty(int i)
 	{
-		return (GUIProperty)listModel.getElementAt(index);
+		return (GUIProperty) listModel.getElementAt(i);
 	}
-	
-	public int getNumValidProperties()
+
+	/**
+	 * Check that all properties in the list are valid.
+	 */
+	public boolean allPropertiesAreValid()
 	{
-		int total = 0;
-		for(int i = 0; i < getNumProperties(); i++)
-		{
-			GUIProperty gp = getProperty(i);
-			if(gp.isValid()) total++;
+		for (int i = 0; i < getNumProperties(); i++) {
+			if (!getProperty(i).isValid())
+				return false;
 		}
-		return total;
+		return true;
 	}
-	
+
+	/**
+	 * Get the number of properties currently selected in the list.
+	 */
 	public int getNumSelectedProperties()
 	{
 		return getSelectedIndices().length;
 	}
-	
-	public ArrayList getSelectedProperties()
+
+	/**
+	 * Get a list of the properties currently selected in the list.
+	 */
+	public ArrayList<GUIProperty> getSelectedProperties()
 	{
+		ArrayList<GUIProperty> gps = new ArrayList<GUIProperty>();
 		int[] ind = getSelectedIndices();
-		ArrayList ps = new ArrayList();
-		for(int i = 0; i < ind.length; i++)
-			ps.add(getProperty(ind[i]));
-		return ps;
+		for (int i = 0; i < ind.length; i++) {
+			gps.add(getProperty(ind[i]));
+		}
+		return gps;
 	}
-	
-	public ArrayList getValidSelectedProperties()
+
+	/**
+	 * Check if there are any valid properties currently selected in the list.
+	 */
+	public boolean existsValidSelectedProperties()
 	{
-		ArrayList gps = new ArrayList();
-		ArrayList prs = getSelectedProperties();
-		for(int i = 0; i < prs.size(); i++)
-		{
-			GUIProperty gp = (GUIProperty)prs.get(i);
-			if(gp.isValid())
-			{
+		if (parent.getParsedModel() == null)
+			return false;
+		int[] ind = getSelectedIndices();
+		for (int i = 0; i < ind.length; i++) {
+			if (getProperty(ind[i]).isValid()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Get a list of the valid properties currently selected in the list.
+	 */
+	public ArrayList<GUIProperty> getValidSelectedProperties()
+	{
+		ArrayList<GUIProperty> gps = new ArrayList<GUIProperty>();
+		if (parent.getParsedModel() == null)
+			return gps;
+		int[] ind = getSelectedIndices();
+		for (int i = 0; i < ind.length; i++) {
+			GUIProperty gp = getProperty(ind[i]);
+			if (gp.isValid()) {
 				gps.add(gp);
 			}
 		}
 		return gps;
 	}
-	
-	public ArrayList getValidSimulatableSelectedProperties()
-	{
-		ArrayList gps = new ArrayList();
-		if(parent.getParsedModel() == null) return gps;
-		ArrayList prs = getSelectedProperties();
-		for(int i = 0; i < prs.size(); i++)
-		{
-			GUIProperty gp = (GUIProperty)prs.get(i);
-			if(gp.isValidForSimulation())
-			{
-				gps.add(gp);
-			}
-		} 
 
-		return gps;
-	}
-	
+	/**
+	 * Get a string comprising concatenation of all valid properties currently selected in the list.
+	 */
 	public String getValidSelectedString()
 	{
 		String str = "";
-		ArrayList prs = getValidSelectedProperties();
-		for(int i = 0; i < prs.size(); i++)
-		{
-			str += ((GUIProperty)prs.get(i)).getPropString()+"\n";
+		ArrayList<GUIProperty> gps = getValidSelectedProperties();
+		for (GUIProperty gp : gps) {
+			str += gp.getPropString() + "\n";
 		}
 		return str;
 	}
-	
+
+	/**
+	 * Check if there are any valid and simulate-able properties currently selected in the list.
+	 */
+	public boolean existsValidSimulatableSelectedProperties()
+	{
+		if (parent.getParsedModel() == null)
+			return false;
+		int[] ind = getSelectedIndices();
+		for (int i = 0; i < ind.length; i++) {
+			if (getProperty(ind[i]).isValidForSimulation()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Get a list of the valid and simulate-able properties currently selected in the list.
+	 */
+	public ArrayList<GUIProperty> getValidSimulatableSelectedProperties()
+	{
+		ArrayList<GUIProperty> gps = new ArrayList<GUIProperty>();
+		if (parent.getParsedModel() == null)
+			return gps;
+		int[] ind = getSelectedIndices();
+		for (int i = 0; i < ind.length; i++) {
+			GUIProperty gp = getProperty(ind[i]);
+			if (gp.isValidForSimulation()) {
+				gps.add(gp);
+			}
+		}
+		return gps;
+	}
+
 	public int getIndexOf(String id)
 	{
 		int index = -1;
-		for(int i = 0; i < getNumProperties(); i++)
-		{
+		for (int i = 0; i < getNumProperties(); i++) {
 			String str = getProperty(i).getID();
-			if(id.equals(str))
-			{
+			if (id.equals(str)) {
 				index = i;
 				break;
 			}
 		}
 		return index;
 	}
-	
+
 	//Used for cut and copy
 	public String getClipboardString()
 	{
-		int[]ind = getSelectedIndices();
+		int[] ind = getSelectedIndices();
 		String str = "";
-		for(int i = 0 ; i < ind.length; i++)
-		{
+		for (int i = 0; i < ind.length; i++) {
 			GUIProperty gp = getProperty(i);
-			str+=gp.getPropString();
-			if(i != ind.length-1) str+="\n";
+			str += gp.getPropString();
+			if (i != ind.length - 1)
+				str += "\n";
 		}
 		return str;
 	}
-	
+
 	/* UPDATE METHODS */
-	
+
 	public void addProperty(String propString, String comment)
 	{
 		counter++;
-		GUIProperty gp = new GUIProperty(prism, "PROPERTY"+counter, propString, comment);
+		GUIProperty gp = new GUIProperty(prism, "PROPERTY" + counter, propString, comment);
 		gp.parse(parent.getParsedModel(), parent.getConstantsString(), parent.getLabelsString());
 		listModel.addElement(gp);
 	}
-	
-	
+
 	public void setProperty(int index, String propString, String comment)
 	{
 		counter++;
-		GUIProperty gp = new GUIProperty(prism, "PROPERTY"+counter, propString, comment);
+		GUIProperty gp = new GUIProperty(prism, "PROPERTY" + counter, propString, comment);
 		gp.parse(parent.getParsedModel(), parent.getConstantsString(), parent.getLabelsString());
 		listModel.setElementAt(gp, index);
 	}
-	
+
 	/** Used for pasting */
 	public void pastePropertiesString(String str)
 	{
 		StringTokenizer sto = new StringTokenizer(str, "\n");
-		while(sto.hasMoreTokens())
-		{
+		while (sto.hasMoreTokens()) {
 			String token = sto.nextToken();
-			
+
 			// Make sure it isn't comment we are pasting
 			if (token.indexOf("//") != 0)
 				addProperty(token, "");
 		}
 	}
-	
+
 	public void addPropertiesFile(PropertiesFile pf)
 	{
-		for(int i = 0; i < pf.getNumProperties(); i++)
-		{
+		for (int i = 0; i < pf.getNumProperties(); i++) {
 			String str = pf.getProperty(i).toString();
 			String com = pf.getPropertyComment(i);
 			addProperty(str, com);
 		}
 	}
-	
+
 	public boolean deleteProperty(int index)
 	{
 		GUIProperty gp = getProperty(index);
-		if(!gp.isBeingEdited())
-		{
+		if (!gp.isBeingEdited()) {
 			listModel.removeElementAt(index);
 			return true;
-		}
-		else return false;
+		} else
+			return false;
 	}
-	
+
 	public void deleteSelected()
 	{
-		while(!isSelectionEmpty())
-		{
+		while (!isSelectionEmpty()) {
 			boolean deleted = deleteProperty(getSelectedIndex());
-			if(!deleted)
-			{
+			if (!deleted) {
 				//if not deleted, unselect, so the rest can!!
-				int[]ind = getSelectedIndices();
-				int[]newInd = new int[ind.length-1];
+				int[] ind = getSelectedIndices();
+				int[] newInd = new int[ind.length - 1];
 				int c = 0;
-				for(int i = 0; i < ind.length; i++)
-				{
-					if(ind[i] != getSelectedIndex())
-					{
+				for (int i = 0; i < ind.length; i++) {
+					if (ind[i] != getSelectedIndex()) {
 						newInd[c] = ind[i];
 						c++;
 					}
@@ -270,43 +310,41 @@ public class GUIPropertiesList extends JList implements KeyListener
 			}
 		}
 	}
-	
+
 	public void deleteAll()
 	{
 		selectAll();
 		deleteSelected();
 	}
-	
+
 	public void selectAll()
 	{
-		if(getNumProperties() > 0)
-		{
-			setSelectionInterval(0, getNumProperties()-1);
+		if (getNumProperties() > 0) {
+			setSelectionInterval(0, getNumProperties() - 1);
 		}
 	}
-	
+
 	/** Validate all the properties in the list
 	    NB: Don't call it "validate()" to avoid overwriting Swing methods */
-	
+
 	public void validateProperties()
 	{
-		for(int i = 0; i < getNumProperties(); i++)
-		{
+		for (int i = 0; i < getNumProperties(); i++) {
 			GUIProperty p = getProperty(i);
 			p.parse(parent.getParsedModel(), parent.getConstantsString(), parent.getLabelsString());
 		}
 		// Force repaint because we modified a GUIProperty directly
 		repaint();
 	}
-	
+
 	// convert to string which can be written to a file
-	
+
 	public String toFileString(File f, GUIPropConstantList consList, GUIPropLabelList labList)
 	{
 		int numProp;
-		String s, s2[];
-		int i, j;
-		
+		String s;
+		int i;
+
 		s = "";
 		if (consList.getNumConstants() > 0) {
 			s += consList.getConstantsString() + "\n";
@@ -315,135 +353,116 @@ public class GUIPropertiesList extends JList implements KeyListener
 			s += labList.getLabelsString() + "\n";
 		}
 		numProp = getNumProperties();
-		for(i = 0; i < numProp; i++)
-		{
+		for (i = 0; i < numProp; i++) {
 			GUIProperty gp = getProperty(i);
-			if (gp.getComment().length()>0)
+			if (gp.getComment().length() > 0)
 				s += PrismParser.slashCommentBlock(gp.getComment());
 			s += gp.getPropString() + "\n\n";
 		}
-		
+
 		return s;
 	}
-	
+
 	//REQUIRED TO IMPLEMENT KEYLISTENER
-	
+
 	public void keyPressed(KeyEvent e)
 	{
-		if(e.getModifiers() == KeyEvent.CTRL_MASK)
-		{
-			if(e.getKeyCode() == KeyEvent.VK_C)
-			{					
-				parent.a_copy();				
-			}			
-			else if(e.getKeyCode() == KeyEvent.VK_V)
-			{
-				parent.a_paste();				
-			}
-			else if(e.getKeyCode() == KeyEvent.VK_X)
-			{
-				parent.a_cut();				
-			}
-			else if(e.getKeyCode() == KeyEvent.VK_D)
-			{
-				parent.a_delete();				
-			}
-			else if(e.getKeyCode() == KeyEvent.VK_A)
-			{
+		if (e.getModifiers() == KeyEvent.CTRL_MASK) {
+			if (e.getKeyCode() == KeyEvent.VK_C) {
+				parent.a_copy();
+			} else if (e.getKeyCode() == KeyEvent.VK_V) {
+				parent.a_paste();
+			} else if (e.getKeyCode() == KeyEvent.VK_X) {
+				parent.a_cut();
+			} else if (e.getKeyCode() == KeyEvent.VK_D) {
+				parent.a_delete();
+			} else if (e.getKeyCode() == KeyEvent.VK_A) {
 				parent.a_selectAll();
-			}			
+			}
 		}
-		if(e.getKeyCode() == KeyEvent.VK_DELETE)
-		{
-			parent.a_delete();			
+		if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+			parent.a_delete();
 		}
 	}
-	
+
 	public void keyReleased(KeyEvent e)
 	{
 	}
-	
+
 	public void keyTyped(KeyEvent e)
 	{
 	}
-	
+
 	//RENDERERS
-	
+
 	class PictureCellRenderer extends JLabel implements ListCellRenderer
 	{
 		String toolTip;
-		
+
 		public PictureCellRenderer()
 		{
 			toolTip = "";
 			setOpaque(true);
 		}
-		
+
 		public String getToolTipText()
 		{
 			return toolTip;
 		}
-		
+
 		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
 		{
 			setBorder(new BottomBorder());
 			GUIProperty p = getProperty(index);
-			
+
 			// tooltip
 			toolTip = p.getToolTipText();
-			
+
 			// text
 			setText(p.getPropString());
-			
+
 			// icon
 			setIcon(p.getImage());
-			
+
 			// foreground/background colours
-			if(isSelected)
-			{
+			if (isSelected) {
 				setBackground(parent.getSelectionColor());
 				setForeground(p.isValid() ? Color.black : Color.red);
-			}
-			else
-			{
-				if(!p.isValid())
-				{
+			} else {
+				if (!p.isValid()) {
 					setBackground(parent.getWarningColor());
 					setForeground(Color.red);
-				}
-				else
-				{
+				} else {
 					setBackground(Color.white);
 					setForeground(Color.black);
 				}
 			}
-			
-			if(p.isBeingEdited())
-			{
+
+			if (p.isBeingEdited()) {
 				setBackground(Color.lightGray);
 			}
-			
+
 			return this;
 		}
 	}
-	
+
 	class BottomBorder implements javax.swing.border.Border
 	{
 		public Insets getBorderInsets(Component c)
 		{
-			return new Insets(0,0,0,0);
+			return new Insets(0, 0, 0, 0);
 		}
-		
+
 		public boolean isBorderOpaque()
 		{
 			return true;
 		}
-		
+
 		public void paintBorder(Component c, Graphics g, int x, int y, int width, int height)
 		{
 			g.setColor(Color.lightGray);
-			g.drawLine(x,(y+height-1), (x+width), (y+height-1));
-			
+			g.drawLine(x, (y + height - 1), (x + width), (y + height - 1));
+
 		}
 	}
 }

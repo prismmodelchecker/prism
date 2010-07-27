@@ -46,12 +46,12 @@ public class ModelCheckThread extends GUIComputationThread
 	private GUIMultiProperties parent;
 	private Model m;
 	private PropertiesFile prFi;
-	private ArrayList guiProps;
+	private ArrayList<GUIProperty> guiProps;
 	private Values definedMFConstants;
 	private Values definedPFConstants;
 	
 	/** Creates a new instance of ModelCheckThread */
-	public ModelCheckThread(GUIMultiProperties parent, Model m, PropertiesFile prFi, ArrayList guiProps, Values definedMFConstants, Values definedPFConstants)
+	public ModelCheckThread(GUIMultiProperties parent, Model m, PropertiesFile prFi, ArrayList<GUIProperty> guiProps, Values definedMFConstants, Values definedPFConstants)
 	{
 		super(parent);
 		this.parent = parent;
@@ -82,7 +82,7 @@ public class ModelCheckThread extends GUIComputationThread
 		//Set icon for all properties to be verified to a clock
 		for(int i = 0; i < guiProps.size(); i++)
 		{
-			GUIProperty gp = (GUIProperty)guiProps.get(i);
+			GUIProperty gp = guiProps.get(i);
 			gp.setStatus(GUIProperty.STATUS_DOING);
 			parent.repaintList();
 		}
@@ -92,7 +92,7 @@ public class ModelCheckThread extends GUIComputationThread
 		for(int i = 0; i < prFi.getNumProperties(); i++)
 		{
 			// get property
-			GUIProperty gp = (GUIProperty)guiProps.get(i);
+			GUIProperty gp = guiProps.get(i);
 			// animate it's clock icon
 			ic = new IconThread(gp);
 			ic.start();
