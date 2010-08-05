@@ -57,25 +57,30 @@ public class SamplerUntil extends SamplerBoolean
 	}
 
 	@Override
-	public boolean update(Path path) throws PrismLangException
+	public boolean update(Path path, TransitionList transList) throws PrismLangException
 	{
 		// If the answer is already known we should do nothing
 		if (valueKnown)
 			return true;
-		
+
 		State currentState = path.getCurrentState();
 		// Have we reached the target (i.e. RHS of until)?
 		if (right.evaluateBoolean(currentState)) {
 			valueKnown = true;
 			value = true;
 		}
-		// Or, if not, have we violated the LJS of the until?
+		// Or, if not, have we violated the LHS of the until?
 		else if (!left.evaluateBoolean(currentState)) {
 			valueKnown = true;
 			value = false;
 		}
+		// Or, if we are now at a deadlock/self-loop
+		else if (transList != null && (transList.isDeadlock() || transList.isDeterministicSelfLoop(currentState))) {
+			valueKnown = true;
+			value = false;
+		}
 		// Otherwise, don't know
-		
+
 		return valueKnown;
 	}
 }

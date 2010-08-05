@@ -294,7 +294,7 @@ public class Updater
 			sum += p;
 			list = new ArrayList<Update>();
 			list.add(ups.getUpdate(i));
-			ch.add(p, list, ups.getParent());
+			ch.add(p, list);
 		}
 		// Check distribution sums to 1 (if required)
 		if (modelType.choicesSumToOne() && Math.abs(sum - 1) > prism.getSumRoundOff()) {

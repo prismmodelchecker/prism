@@ -48,7 +48,7 @@ public class TransitionList
 		//int index;
 		//Choice ch;
 	}
-	
+
 	public void clear()
 	{
 		choices.clear();
@@ -58,7 +58,7 @@ public class TransitionList
 		numTransitions = 0;
 		probSum = 0.0;
 	}
-	
+
 	public void add(Choice tr)
 	{
 		int i, n;
@@ -72,9 +72,9 @@ public class TransitionList
 		numTransitions += tr.size();
 		probSum += tr.getProbabilitySum();
 	}
-	
+
 	// ACCESSORS
-	
+
 	/**
 	 * Get the number of choices.
 	 */
@@ -82,7 +82,7 @@ public class TransitionList
 	{
 		return numChoices;
 	}
-	
+
 	/**
 	 * Get the number of transitions.
 	 */
@@ -90,7 +90,7 @@ public class TransitionList
 	{
 		return numTransitions;
 	}
-	
+
 	/**
 	 * Get the total sum of all probabilities (or rates).
 	 */
@@ -98,9 +98,9 @@ public class TransitionList
 	{
 		return probSum;
 	}
-	
+
 	// Get access to Choice objects 
-	
+
 	/**
 	 * Get the ith choice.
 	 */
@@ -118,7 +118,7 @@ public class TransitionList
 	}
 
 	// Get index/offset info
-	
+
 	/**
 	 * Get the index of the choice containing a transition of a given index.
 	 */
@@ -144,7 +144,7 @@ public class TransitionList
 	}
 
 	// Random selection of a choice 
-	
+
 	/**
 	 * Get a reference to a transition according to a total probability (rate) sum, x.
 	 * i.e.the first transition for which the sum of probabilities of all prior transitions
@@ -174,7 +174,7 @@ public class TransitionList
 	}
 
 	// Direct access to transition info
-	
+
 	/**
 	 * Get a string describing the action/module of a transition, specified by its index.
 	 */
@@ -182,7 +182,7 @@ public class TransitionList
 	{
 		return getChoiceOfTransition(index).getModuleOrAction();
 	}
-	
+
 	/**
 	 * Get the probability/rate of a transition, specified by its index.
 	 */
@@ -190,34 +190,85 @@ public class TransitionList
 	{
 		return getChoiceOfTransition(index).getProbability(transitionOffsets.get(index));
 	}
-	
+
 	/**
 	 * Get a string describing the updates making up a transition, specified by its index.
+	 * This is in abbreviated form, i.e. x'=1, rather than x'=x+1.
+	 * Format is: x'=1, y'=0, with empty string for empty update.
+	 * Only variables updated are included in list (even if unchanged).
 	 */
-	public String getTransitionUpdateString(int index)
+	public String getTransitionUpdateString(int index, State currentState) throws PrismLangException
 	{
-		return getChoiceOfTransition(index).getUpdateString(transitionOffsets.get(index));
+		return getChoiceOfTransition(index).getUpdateString(transitionOffsets.get(index), currentState);
 	}
-	
+
+	/**
+	 * Get a string describing the updates making up a transition, specified by its index.
+	 * This is in full, i.e. of the form x'=x+1, rather than x'=1.
+	 * Format is: (x'=x+1) & (y'=y-1), with empty string for empty update.
+	 * Only variables updated are included in list.
+	 * Note that expressions may have been simplified from original model. 
+	 */
+	public String getTransitionUpdateStringFull(int index)
+	{
+		return getChoiceOfTransition(index).getUpdateStringFull(transitionOffsets.get(index));
+	}
+
 	/**
 	 * Get the target of a transition (as a new State object), specified by its index.
 	 */
-	public State computeTransitionTarget(int index, State oldState) throws PrismLangException
+	public State computeTransitionTarget(int index, State currentState) throws PrismLangException
 	{
-		return getChoiceOfTransition(index).computeTarget(transitionOffsets.get(index), oldState);
+		return getChoiceOfTransition(index).computeTarget(transitionOffsets.get(index), currentState);
 	}
-	
+
+	/**
+	 * Is there a deadlock (i.e. no available transitions)?
+	 */
+	public boolean isDeadlock()
+	{
+		return numChoices == 0;
+	}
+
+	/**
+	 * Is there a deterministic self-loop, i.e. do all transitions go to the current state.
+	 */
+	public boolean isDeterministicSelfLoop(State currentState)
+	{
+		// TODO: make more efficient, and also limit calls to it
+		// (e.g. only if already stayed in state twice?)
+		int i, n;
+		State newState = new State(currentState);
+		try {
+			for (Choice ch : choices) {
+				n = ch.size();
+				for (i = 0; i < n; i++) {
+					ch.computeTarget(i, currentState, newState);
+					if (!currentState.equals(newState)) {
+						// Found a non-loop
+						return false;
+					}
+				}
+			}
+		} catch (PrismLangException e) {
+			// If anything goes wrong when evaluating, just return false.
+			return false;
+		}
+		// All targets loop
+		return true;
+	}
+
 	@Override
 	public String toString()
 	{
 		String s = "";
 		boolean first = true;
-		for (Choice tr : choices) {
+		for (Choice ch : choices) {
 			if (first)
 				first = false;
 			else
 				s += ", ";
-			s += tr.toString();
+			s += ch.toString();
 		}
 		return s;
 	}

@@ -192,8 +192,9 @@ public class Update extends ASTElement
 	}
 
 	/**
-	 * Execute this update, based on variable values specified as a State object,
-	 * applying changes in variables to a second State object. 
+	 * Execute this update, based on variable values specified as a State object.
+	 * Apply changes in variables to a provided copy of the State object.
+	 * (i.e. oldState and newState should be equal when passed in.) 
 	 * It is assumed that any constants have already been defined.
 	 * @param oldState: Variable values in current state
 	 * @param newState: State object to apply changes to
@@ -208,8 +209,9 @@ public class Update extends ASTElement
 	}
 
 	/**
-	 * Execute this update, based on variable values specified as a State object,
-	 * applying changes in variables to a second State object.
+	 * Execute this update, based on variable values specified as a State object.
+	 * Apply changes in variables to a provided copy of the State object.
+	 * (i.e. oldState and newState should be equal when passed in.) 
 	 * Both State objects represent only a subset of the total set of variables,
 	 * with this subset being defined by the mapping varMap.
 	 * Only variables in this subset are updated.

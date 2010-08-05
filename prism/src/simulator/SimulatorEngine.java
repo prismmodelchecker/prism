@@ -106,21 +106,21 @@ public class SimulatorEngine
 	private List<Expression> properties;
 	private List<Sampler> propertySamplers;
 
-	// Temporary storage for manipulating states/rewards
-	protected State tmpState;
-	protected double tmpStateRewards[];
-	protected double tmpTransitionRewards[];
-
-	// List of currently available transitions
-	protected TransitionList transitionList;
-
 	// Current path info
 	protected Path path;
 	protected boolean onTheFly;
+	// Current state (note: this info is duplicated in the path - it is always the same
+	// as path.getCurrentState(); we maintain it separately for efficiency,
+	// i.e. to avoid creating new State objects at every step)
+	protected State currentState;
+	// List of currently available transitions
+	protected TransitionList transitionList;
+	// Temporary storage for manipulating states/rewards
+	protected double tmpStateRewards[];
+	protected double tmpTransitionRewards[];
 
 	// Updater object for model
 	protected Updater updater;
-
 	// Random number generator
 	private RandomNumberGenerator rng;
 
@@ -198,22 +198,22 @@ public class SimulatorEngine
 	 */
 	public void initialisePath(State initialState) throws PrismException
 	{
-		// Store a temporary copy of passed in state
+		// Store passed in state as current state
 		if (initialState != null) {
-			tmpState.copy(new State(initialState));
+			currentState.copy(initialState);
 		}
 		// Or pick a random one
 		else {
 			throw new PrismException("Random initial start state not yet supported");
 		}
-		updater.calculateStateRewards(tmpState, tmpStateRewards);
-		// Initialise stored path if necessary
-		path.initialise(tmpState, tmpStateRewards);
+		updater.calculateStateRewards(currentState, tmpStateRewards);
+		// Initialise stored path
+		path.initialise(currentState, tmpStateRewards);
+		// Generate transitions for initial state 
+		updater.calculateTransitions(currentState, transitionList);
 		// Reset and then update samplers for any loaded properties
 		resetSamplers();
 		updateSamplers();
-		// Generate updates for initial state 
-		updater.calculateTransitions(tmpState, transitionList);
 	}
 
 	/**
@@ -350,10 +350,12 @@ public class SimulatorEngine
 		}
 		// Back track in path
 		((PathFull) path).backtrack(step);
+		// Update current state
+		currentState.copy(path.getCurrentState());
+		// Generate transitions for new current state 
+		updater.calculateTransitions(currentState, transitionList);
 		// Recompute samplers for any loaded properties
 		recomputeSamplers();
-		// Generate updates for new current state 
-		updater.calculateTransitions(path.getCurrentState(), transitionList);
 	}
 
 	/**
@@ -399,9 +401,9 @@ public class SimulatorEngine
 		}
 		// Modify path
 		((PathFull) path).removePrecedingStates(step);
+		// (No need to update currentState or re-generate transitions) 
 		// Recompute samplers for any loaded properties
 		recomputeSamplers();
-		// (No need to re-generate updates for new current state) 
 	}
 
 	/**
@@ -540,7 +542,7 @@ public class SimulatorEngine
 	 */
 	public boolean queryIsDeadlock() throws PrismLangException
 	{
-		return transitionList.getNumChoices() == 0;
+		return transitionList.isDeadlock();
 	}
 
 	/**
@@ -551,7 +553,7 @@ public class SimulatorEngine
 	public boolean queryIsDeadlock(int step) throws PrismLangException
 	{
 		// By definition, earlier states in the path cannot be deadlocks
-		return step == path.size() ? queryIsDeadlock() : false;
+		return step == path.size() ? transitionList.isDeadlock() : false;
 	}
 
 	/**
@@ -599,8 +601,8 @@ public class SimulatorEngine
 		// Evaluate constants and optimise (a copy of) modules file for simulation
 		modulesFile = (ModulesFile) modulesFile.deepCopy().replaceConstants(mfConstants).simplify();
 
-		// Create temporary state/transition storage
-		tmpState = new State(numVars);
+		// Create state/transition/rewards storage
+		currentState = new State(numVars);
 		tmpStateRewards = new double[modulesFile.getNumRewardStructs()];
 		tmpTransitionRewards = new double[modulesFile.getNumRewardStructs()];
 		transitionList = new TransitionList();
@@ -631,15 +633,17 @@ public class SimulatorEngine
 			index = transitionList.getTotalIndexOfTransition(i, offset);
 		// Compute its transition rewards
 		updater.calculateTransitionRewards(path.getCurrentState(), choice, tmpTransitionRewards);
-		// Compute next state (and its state rewards)
-		choice.computeTarget(offset, path.getCurrentState(), tmpState);
-		updater.calculateStateRewards(tmpState, tmpStateRewards);
+		// Compute next state. Note use of path.getCurrentState() because currentState
+		// will be overwritten during the call to computeTarget().
+		choice.computeTarget(offset, path.getCurrentState(), currentState);
+		// Compute state rewards for new state 
+		updater.calculateStateRewards(currentState, tmpStateRewards);
 		// Update path
-		path.addStep(index, choice.getModuleOrActionIndex(), tmpTransitionRewards, tmpState, tmpStateRewards);
+		path.addStep(index, choice.getModuleOrActionIndex(), tmpTransitionRewards, currentState, tmpStateRewards);
+		// Generate transitions for next state 
+		updater.calculateTransitions(currentState, transitionList);
 		// Update samplers for any loaded properties
 		updateSamplers();
-		// Generate updates for next state 
-		updater.calculateTransitions(tmpState, transitionList);
 	}
 
 	/**
@@ -662,19 +666,21 @@ public class SimulatorEngine
 			index = transitionList.getTotalIndexOfTransition(i, offset);
 		// Compute its transition rewards
 		updater.calculateTransitionRewards(path.getCurrentState(), choice, tmpTransitionRewards);
-		// Compute next state (and its state rewards)
-		choice.computeTarget(offset, path.getCurrentState(), tmpState);
-		updater.calculateStateRewards(tmpState, tmpStateRewards);
+		// Compute next state. Note use of path.getCurrentState() because currentState
+		// will be overwritten during the call to computeTarget().
+		choice.computeTarget(offset, path.getCurrentState(), currentState);
+		// Compute state rewards for new state 
+		updater.calculateStateRewards(currentState, tmpStateRewards);
 		// Update path
-		path.addStep(time, index, choice.getModuleOrActionIndex(), tmpTransitionRewards, tmpState, tmpStateRewards);
+		path.addStep(time, index, choice.getModuleOrActionIndex(), tmpTransitionRewards, currentState, tmpStateRewards);
+		// Generate transitions for next state 
+		updater.calculateTransitions(currentState, transitionList);
 		// Update samplers for any loaded properties
 		updateSamplers();
-		// Generate updates for next state 
-		updater.calculateTransitions(tmpState, transitionList);
 	}
 
 	/**
-	 * Reset samplers for any loaded properties that a new step has occurred.
+	 * Reset samplers for any loaded properties.
 	 */
 	private void resetSamplers() throws PrismLangException
 	{
@@ -689,7 +695,7 @@ public class SimulatorEngine
 	private void updateSamplers() throws PrismLangException
 	{
 		for (Sampler sampler : propertySamplers) {
-			sampler.update(path);
+			sampler.update(path, transitionList);
 		}
 	}
 
@@ -706,7 +712,8 @@ public class SimulatorEngine
 		for (i = 0; i <= n; i++) {
 			prefix.setPrefixLength(i);
 			for (Sampler sampler : propertySamplers) {
-				sampler.update(prefix);
+				sampler.update(prefix, null);
+				// TODO: fix this optimisation 
 			}
 		}
 	}
@@ -816,12 +823,27 @@ public class SimulatorEngine
 
 	/**
 	 * Get a string describing the updates making up a transition, specified by its index.
+	 * This is in abbreviated form, i.e. x'=1, rather than x'=x+1.
+	 * Format is: x'=1, y'=0, with empty string for empty update.
+	 * Only variables updated are included in list (even if unchanged).
 	 */
-	public String getTransitionUpdateString(int index)
+	public String getTransitionUpdateString(int index) throws PrismLangException
 	{
-		return transitionList.getTransitionUpdateString(index);
+		return transitionList.getTransitionUpdateString(index, path.getCurrentState());
 	}
-
+	
+	/**
+	 * Get a string describing the updates making up a transition, specified by its index.
+	 * This is in full, i.e. of the form x'=x+1, rather than x'=1.
+	 * Format is: (x'=x+1) & (y'=y-1), with empty string for empty update.
+	 * Only variables updated are included in list.
+	 * Note that expressions may have been simplified from original model. 
+	 */
+	public String getTransitionUpdateStringFull(int index)
+	{
+		return transitionList.getTransitionUpdateStringFull(index);
+	}
+	
 	/**
 	 * Get the target (as a new State object) of a transition within a choice, specified by its index/offset.
 	 */

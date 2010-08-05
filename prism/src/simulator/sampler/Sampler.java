@@ -59,9 +59,11 @@ public abstract class Sampler
 	/**
 	 * Update the current value of the sampler based on the current simulation path.
 	 * It is assumed that this is called at every step of the path.
+	 * We also need the transition list for the current (end) state of the path
+	 * to check if there is a deadlock or self-loop.
 	 * This returns true if the sampler's value becomes (or is already) known.
 	 */
-	public abstract boolean update(Path path) throws PrismLangException;
+	public abstract boolean update(Path path, TransitionList transList) throws PrismLangException;
 
 	/**
 	 * Update the statistics for the sampler, assuming that the current path is finished.

@@ -39,12 +39,13 @@ public class ChoiceListFlexi implements Choice
 	// where i is the 1-indexed module index.
 	// For a synchronous choice, this is the 1-indexed action index.
 	protected int moduleOrActionIndex;
-	
-	// List of multiple targets and associated info
+
+	// List of multiple updates and associated probabilities/rates
 	// Size of list is stored implicitly in target.length
+	// Probabilities/rates are already evaluated, target states are not
+	// but are just stored as lists of updates (for efficiency)
 	protected List<List<Update>> updates;
 	protected List<Double> probability;
-	protected List<Command> command;
 
 	/**
 	 * Create empty choice.
@@ -53,7 +54,6 @@ public class ChoiceListFlexi implements Choice
 	{
 		updates = new ArrayList<List<Update>>();
 		probability = new ArrayList<Double>();
-		command = new ArrayList<Command>();
 	}
 
 	// Set methods
@@ -67,18 +67,16 @@ public class ChoiceListFlexi implements Choice
 	{
 		this.moduleOrActionIndex = moduleOrActionIndex;
 	}
-	
+
 	/**
 	 * Add a transition to this choice.
 	 * @param probability Probability (or rate) of the transition
 	 * @param ups List of Update objects defining transition
-	 * @param command Corresponding Command object
 	 */
-	public void add(double probability, List<Update> ups, Command command)
+	public void add(double probability, List<Update> ups)
 	{
 		this.updates.add(ups);
 		this.probability.add(probability);
-		this.command.add(command);
 	}
 
 	/**
@@ -101,7 +99,7 @@ public class ChoiceListFlexi implements Choice
 		List<Update> list;
 		int i, j, n, n2;
 		double pi;
-		
+
 		n = ch.size();
 		n2 = size();
 		// Loop through each (ith) element of new choice (skipping first)
@@ -117,7 +115,7 @@ public class ChoiceListFlexi implements Choice
 				for (Update u : ch.updates.get(i)) {
 					list.add(u);
 				}
-				add(pi * getProbability(j), list, null);
+				add(pi * getProbability(j), list);
 			}
 		}
 		// Modify elements of current choice to get (0,j) elements of product
@@ -148,6 +146,7 @@ public class ChoiceListFlexi implements Choice
 	 */
 	public String getModuleOrAction()
 	{
+		// Action label (or absence of) will be the same for all updates in a choice
 		Update u = updates.get(0).get(0);
 		Command c = u.getParent().getParent();
 		if ("".equals(c.getSynch()))
@@ -166,57 +165,92 @@ public class ChoiceListFlexi implements Choice
 
 	/**
 	 * Get the updates of the ith transition, as a string.
+	 * This is in abbreviated form, i.e. x'=1, rather than x'=x+1.
+	 * Format is: x'=1, y'=0, with empty string for empty update.
+	 * Only variables updated are included in list (even if unchanged).
 	 */
-	public String getUpdateString(int i)
+	public String getUpdateString(int i, State currentState) throws PrismLangException
+	{
+		int j, n;
+		String s = "";
+		boolean first = true;
+		for (Update up : updates.get(i)) {
+			n = up.getNumElements();
+			for (j = 0; j < n; j++) {
+				if (first)
+					first = false;
+				else
+					s += ", ";
+				s += up.getVar(j) + "'=" + up.getExpression(j).evaluate(currentState);
+			}
+		}
+		return s;
+	}
+
+	/**
+	 * Get the updates of the ith transition, as a string.
+	 * This is in full, i.e. of the form x'=x+1, rather than x'=1.
+	 * Format is: (x'=x+1) & (y'=y-1), with empty string for empty update.
+	 * Only variables updated are included in list.
+	 * Note that expressions may have been simplified from original model. 
+	 */
+	public String getUpdateStringFull(int i)
 	{
 		String s = "";
 		boolean first = true;
 		for (Update up : updates.get(i)) {
-			if (first) first = false; else s+= " & ";
+			if (up.getNumElements() == 0)
+				continue;
+			if (first)
+				first = false;
+			else
+				s += " & ";
 			s += up;
 		}
 		return s;
 	}
-	
+
 	/**
-	 * Compute the target for the ith transition, based on a current state.
+	 * Compute the target for the ith transition, based on a current state,
+	 * returning the result as a new State object copied from the existing one.
+	 * NB: for efficiency, there are no bounds checks done on i.
 	 */
-	public State computeTarget(int i, State oldState) throws PrismLangException
+	public State computeTarget(int i, State currentState) throws PrismLangException
 	{
-		if (i < 0 || i >= size())
-			throw new PrismLangException("Choice does not have an element " + i);
-		State newState = new State(oldState);
+		State newState = new State(currentState);
 		for (Update up : updates.get(i))
-			up.update(oldState, newState);
+			up.update(currentState, newState);
 		return newState;
 	}
 
 	/**
-	 * Compute the target for the ith transition, based on a current state, store in a State.
+	 * Compute the target for the ith transition, based on a current state.
+	 * Apply changes in variables to a provided copy of the State object.
+	 * (i.e. currentState and newState should be equal when passed in.) 
+	 * NB: for efficiency, there are no bounds checks done on i.
 	 */
-	public void computeTarget(int i, State oldState, State newState) throws PrismLangException
+	public void computeTarget(int i, State currentState, State newState) throws PrismLangException
 	{
-		if (i < 0 || i >= size())
-			throw new PrismLangException("Choice does not have an element " + i);
 		for (Update up : updates.get(i))
-			up.update(oldState, newState);
-	}
-	
-	public State computeTarget(State oldState) throws PrismLangException
-	{
-		return computeTarget(0, oldState);
+			up.update(currentState, newState);
 	}
 
-	public void computeTarget(State oldState, State newState) throws PrismLangException
+	public State computeTarget(State currentState) throws PrismLangException
 	{
-		computeTarget(0, oldState, newState);
+		return computeTarget(0, currentState);
 	}
 
+	public void computeTarget(State currentState, State newState) throws PrismLangException
+	{
+		computeTarget(0, currentState, newState);
+	}
+
+	/**
+	 * Get the probability rate for the ith transition.
+	 * NB: for efficiency, there are no bounds checks done on i.
+	 */
 	public double getProbability(int i)
 	{
-		if (i < 0 || i >= size())
-			return -1;
-		//throw new PrismLangException("Invalid grouped transition index " + i);
 		return probability.get(i);
 	}
 
@@ -231,19 +265,6 @@ public class ChoiceListFlexi implements Choice
 		for (double d : probability)
 			sum += d;
 		return sum;
-	}
-
-	public Command getCommand()
-	{
-		return getCommand(0);
-	}
-
-	public Command getCommand(int i)
-	{
-		if (i < 0 || i >= size())
-			return null;
-		//throw new PrismLangException("Invalid grouped transition index " + i);
-		return command.get(i);
 	}
 
 	/**

@@ -38,10 +38,11 @@ public interface Choice
 	public double getProbability();
 	public double getProbability(int i);
 	public double getProbabilitySum();
-	public String getUpdateString(int i);
-	public State computeTarget(State oldState) throws PrismLangException;
-	public void computeTarget(State oldState, State newState) throws PrismLangException;
-	public State computeTarget(int i, State oldState) throws PrismLangException;
-	public void computeTarget(int i, State oldState, State newState) throws PrismLangException;
+	public String getUpdateString(int i, State currentState) throws PrismLangException;
+	public String getUpdateStringFull(int i);
+	public State computeTarget(State currentState) throws PrismLangException;
+	public void computeTarget(State currentState, State newState) throws PrismLangException;
+	public State computeTarget(int i, State currentState) throws PrismLangException;
+	public void computeTarget(int i, State currentState, State newState) throws PrismLangException;
 	public int getIndexByProbabilitySum(double x);
 }

@@ -112,13 +112,18 @@ public class ChoiceList implements Choice
 		return probability.size();
 	}
 	
-	public String getUpdateString(int i)
+	public String getUpdateString(int i, State currentState) throws PrismLangException
 	{
 		String s = "(";
 		for (Update up : updates.get(i))
 			s += up;
 		s += ")";
 		return s;
+	}
+	
+	public String getUpdateStringFull(int i)
+	{
+		return null;
 	}
 	
 	public State computeTarget(State oldState) throws PrismLangException

@@ -90,13 +90,18 @@ public class ChoiceSingleton implements Choice
 		return action;
 	}
 
-	public String getUpdateString(int i)
+	public String getUpdateString(int i, State currentState)
 	{
 		String s = "(";
 		for (Update up : updates)
 			s += up;
 		s += ")";
 		return s;
+	}
+	
+	public String getUpdateStringFull(int i)
+	{
+		return null;
 	}
 	
 	public State computeTarget(State oldState) throws PrismLangException
