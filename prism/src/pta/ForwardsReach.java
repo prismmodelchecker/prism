@@ -149,7 +149,7 @@ public class ForwardsReach
 			// First, check there is at least one transition
 			// (don't want deadlocks in non-target states)
 			if (pta.getTransitions(lz.loc).size() == 0) {
-				throw new PrismException("PTA deadlocks in location \"" + pta.getLocationNameString(lz.loc) + "\"");
+				throw new PrismException("Deadlock (no transitions) in PTA at location \"" + pta.getLocationNameString(lz.loc) + "\"");
 			}
 			// Add current state to reachability graph
 			graph.addState();
@@ -182,6 +182,10 @@ public class ForwardsReach
 						throw new PrismException("Badly formed PTA: state " + src);
 					graph.addTransition(src, transition, dests, null);
 				}
+			}
+			// Check for deadlock (transitions exist but not enabled)
+			if (graph.trans.get(src).size() == 0) {
+				throw new PrismException("Deadlock (no enabled transitions) in PTA at location \"" + pta.getLocationNameString(lz.loc) + "\"");
 			}
 			// Print some progress info occasionally
 			if (System.currentTimeMillis() - timerProgress > 3000) {
