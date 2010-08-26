@@ -161,8 +161,10 @@ public class ForwardsReach
 				count = 0;
 				for (Edge edge : transition.getEdges()) {
 					// Do "discrete post" for this edge
+					// (followed by c-closure)
 					lz2 = lz.deepCopy();
 					lz2.dPost(edge);
+					lz2.cClosure(pta);
 					// If non-empty, create edge, also adding state to X if new 
 					if (!lz2.zone.isEmpty()) {
 						if (Yset.add(lz2)) {
@@ -263,9 +265,10 @@ public class ForwardsReach
 
 		// Build initial symbolic state (NB: assume initial location = 0)
 		z = DBM.createZero(pta);
-		z.up(pta.getInvariantConstraints(0));
-		z.cClosure(cMax);
 		init = new LocZone(0, z);
+		// And do tpost/c-closure
+		init.tPost(pta);
+		init.cClosure(pta);
 
 		// Reachability loop
 		Zset.add(init);
@@ -300,8 +303,11 @@ public class ForwardsReach
 				count = 0;
 				for (Edge edge : transition.getEdges()) {
 					// Build "post" zone for this edge
+					// (dpost, then tpost, then c-closure) 
 					lz2 = lz.deepCopy();
-					lz2.post(edge);
+					lz2.dPost(edge);
+					lz2.tPost(pta);
+					lz2.cClosure(pta);
 					// If non-empty, create edge, also adding state to Y if new 
 					if (!lz2.zone.isEmpty()) {
 						if (Zset.add(lz2)) {
