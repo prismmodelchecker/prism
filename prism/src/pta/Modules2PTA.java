@@ -85,9 +85,13 @@ public class Modules2PTA
 		// and simplify any expressions as much as possible.
 		modulesFile = (ModulesFile) modulesFile.deepCopy().replaceConstants(constantValues).simplify();
 		
-		// Remove labels from (cloned) model - these are not translated.
+		// Remove formulas/labels from (cloned) model - these are not translated.
+		modulesFile.setFormulaList(new FormulaList());
 		modulesFile.setLabelList(new LabelList());
-
+		
+		// Also remove reward structures - these are not currently used
+		modulesFile.clearRewardStructs();
+		
 		// Go through list of modules
 		numModules = modulesFile.getNumModules();
 		pcStates = new ArrayList<ArrayList<State>>(numModules);

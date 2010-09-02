@@ -143,6 +143,11 @@ public class ModulesFile extends ASTElement
 		systemDefn = s;
 	}
 
+	public void clearRewardStructs()
+	{
+		rewardStructs.clear();
+	}
+
 	public void addRewardStruct(RewardStruct r)
 	{
 		rewardStructs.add(r);
