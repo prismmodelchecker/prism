@@ -2,38 +2,34 @@
 NOW/NEXT
 --------
 
-Updater, esp. local nodet
-
-DTMC with local nondet and actions (~/prism-models/dave-test.nm)
-
-GUI transition box: "true" updates don't display correctly
-
 
 TODO (before any release)
 -------------------------
-
-* local nondet in Updater (and tidy that class)
-* ChoiceListFlexi TODOs
 
 
 TODO (later)
 ------------
 
-* add (back) support for loop detection (embedded into Path*?)
-* add (back) early termination of sampling (thru expt stop?)
+* investigate efficiency wrt old simulator
+
+* add (back) support for full loop detection? (embedded into Path*?)
+* add (back) early manual termination of sampling (thru expt stop?)
 
 * random initial state
 * variable overflow etc.
 * add support for "deadlock" and "init" (new EvaluationContext, model *and* state dependent)
+* seed issues (currently twice in one second = same seed)
 
 * explicitbuildtest doesn't handle dupes in mdps (e.g. consensus)
-* seed issues (currently twice in one second = same seed)
-* traviendo export?
-
 * explicit build doesn't handle multiple initial states
 
+* GUI sim - add context menu to transition list with e.g. "show in model"
+
+* traviendo export?
+
 CODE:
-* Optimise Choices (ChoiceList/ChoiceSingleton/etc.)
+* Optimise/tidy Choices (ChoiceList/ChoiceSingleton/etc.)
+
 
 BUGS (later)
 ------------
