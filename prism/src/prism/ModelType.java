@@ -29,6 +29,29 @@ public enum ModelType {
 	}
 	
 	/**
+	 * Get the PRISM keyword for this model type.
+	 */
+	public String keyword()
+	{
+		switch (this) {
+		case CTMC:
+			return "ctmc";
+		case CTMDP:
+			return "ctmdp";
+		case DTMC:
+			return "dtmc";
+		case MDP:
+			return "mdp";
+		case PTA:
+			return "pta";
+		case STPG:
+			return "stpg";
+		}
+		// Should never happen
+		return "";
+	}
+	
+	/**
 	 * Do the transitions in a choice sum to 1 for this model type?
 	 */
 	public boolean choicesSumToOne()
