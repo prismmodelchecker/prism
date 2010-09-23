@@ -6,16 +6,43 @@ TODO (before any release)
 
 * Clarify semantic/type checks (consistency with games/digital)
 
+* Check guards/invariants for convexity (for now, neither can be non-convex, see below)
+
 * Clarify time divergence issues
+
+* non-zeno checks?
 
 * Sort VarList (two types - before and after constants evaluated). Need for simulator too.
 
 * Digital clocks: No time-bounded until yet
 * Digital clocks: Translation done sep for each property (e.g. for cmax)?
 
+* Bug fix: action alphabet (syntactic) for sync lost in PTA object construction
+
+
+TODO (later)
+------------
+
+* Enforce well-formedness checks (i.e. guards/resets imply target invariants)
+  (as opposed to say supporting strong invariants,
+   where targets with false invariants cannot be entered)
+  - zone-based: check during reach using valids
+    (or just during FW reach?) (nb: need to split dpost to do check)
+    (see non-well-formed.nm/pctl for a test case)
+    (if can't do that, syntax check using sat)
+  - digital clocks: check invariants after transform/reach?
+
+* On-the-fly global reachability to allow (for A-R engine):
+  - access to other local and global vars
+  - system endsystem?
+ (then test on Arnd's BRP model + others)
+
 * BRP example
 
-* Clarify issue of PTAs accessing non-local vars (currently don't allow this because doesn't work with AR approach which converts to PTA objects first). But this rules out message passing.
+* Translate non-convex guards to DNF and multiple transitions
+
+* Investigate whether non-convex invariants can be supported (look at zone ops)
+
 
 
 Bugs
