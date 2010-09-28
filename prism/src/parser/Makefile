@@ -24,10 +24,10 @@ checks:
 	fi; 
 
 PrismParser.java: PrismParser.jj
-	@javacc $< || echo "Warning: Did not recompile PrismParser.jj"
+	$(JAVACC) $< || echo "Warning: Did not recompile PrismParser.jj"
 
 Prism3To4.java: Prism3To4.jj
-	@javacc $< || echo "Warning: Did not recompile Prism3To4.jj"
+	$(JAVACC) $< || echo "Warning: Did not recompile Prism3To4.jj"
 
 $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class: %.java
 	(cd ..; $(JAVAC) -sourcepath $(THIS_DIR)/$(PRISM_DIR_REL)/$(SRC_DIR) -classpath $(THIS_DIR)/$(PRISM_DIR_REL)/$(CLASSES_DIR) -d $(THIS_DIR)/$(PRISM_DIR_REL)/$(CLASSES_DIR) $(THIS_DIR)/$<)

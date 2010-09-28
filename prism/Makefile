@@ -113,6 +113,7 @@ C = gcc
 CPP = g++
 LD = $(CPP)
 JAVAC = javac
+JAVACC = javacc
 JAVAH = javah
 
 ##############
@@ -156,6 +157,7 @@ ifeq ($(OSTYPE),linux)
 		CUDD_XCFLAGS = -m32 -mtune=native -malign-double -DHAVE_IEEE_754 -DBSD
 	endif
 	endif
+	JFLAGS =
 	SHARED = -shared
 	#SHARED = -G
 	EXE =
@@ -171,6 +173,7 @@ ifeq ($(OSTYPE),solaris)
 	CPPFLAGS = $(DEBUG) $(OPTIMISE)
 	LDFLAGS = $(DEBUG) $(OPTIMISE)
 	CUDD_XCFLAGS = -mcpu=ultrasparc -DHAVE_IEEE_754 -DUNIX100 -DEPD_BIG_ENDIAN
+	JFLAGS =
 	SHARED = -shared -mimpure-text
 	EXE =
 	LIBPREFIX = lib
@@ -185,6 +188,8 @@ ifeq ($(OSTYPE),cygwin)
 	CPPFLAGS = -mno-cygwin $(DEBUG) $(OPTIMISE)
 	LDFLAGS = -mno-cygwin -Wl,--add-stdcall-alias $(DEBUG) $(OPTIMISE)
 	CUDD_XCFLAGS = -mno-cygwin -march=i686 -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=268435456 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0
+	JFLAGS = -encoding UTF8
+	JAVACC = javacc.bat
 	SHARED = -shared
 	#SHARED = -G
 	EXE = .exe
@@ -207,6 +212,7 @@ ifeq ($(OSTYPE),darwin)
 		LDFLAGS = -arch i386 -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
 		CUDD_XCFLAGS = -arch i386 -DHAVE_IEEE_754 -DBSD -fno-common
 	endif
+	JFLAGS =
 	SHARED = -dynamiclib
 	EXE =
 	LIBPREFIX = lib
@@ -325,7 +331,8 @@ make_dirs:
 	  C="$(C)" \
 	  CPP="$(CPP)" \
 	  LD="$(LD)" \
-	  JAVAC="$(JAVAC)" \
+	  JAVAC="$(JAVAC) $(JFLAGS)" \
+	  JAVACC="$(JAVACC)" \
 	  JAVAH="$(JAVAH)" \
 	  CFLAGS="$(CFLAGS)" \
 	  CPPFLAGS="$(CPPFLAGS)" \
@@ -522,7 +529,8 @@ checks:
 	fi; \
 	echo "OSTYPE/ARCH: $(OSTYPE) $(ARCH)"; \
 	echo "JAVA_DIR: $(JAVA_DIR)"; \
-	echo "JAVAC: "`which $(JAVAC)` \
+	echo "JAVAC: "`which $(JAVAC)`; \
+	echo "JAVACC: "`which $(JAVACC)` \
 	)
 
 #################################################
