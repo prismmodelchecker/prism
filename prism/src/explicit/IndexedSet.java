@@ -85,6 +85,14 @@ public class IndexedSet<T>
 	}
 
 	/**
+	 * Get access to the underlying set of map entries. 
+	 */
+	public Set<Map.Entry<T, Integer>> getEntrySet()
+	{
+		return set.entrySet();
+	}
+	
+	/**
 	 * Create an ArrayList of the states, ordered by index.
 	 */
 	public ArrayList<T> toArrayList()
