@@ -1028,6 +1028,15 @@ public class PrismCL
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
 				}
+				// export adversary to file, as an mdp
+				else if (sw.equals("exportadvmdp")) {
+					if (i < args.length - 1) {
+						prism.setExportAdv(Prism.EXPORT_ADV_MDP);
+						prism.setExportAdvFilename(args[++i]);
+					} else {
+						errorAndExit("No file specified for -" + sw + " switch");
+					}
+				}
 				// export reachability target info to file
 				else if (sw.equals("exporttarget")) {
 					if (i < args.length - 1) {
