@@ -9,7 +9,7 @@ TODO (before any release)
 
 PTAs:
 * GUI
-* Tidy prism-examples/pta, incl. delete brp
+* Tidy prism-examples/pta
 * Clarify semantic/type checks (consistency with games/digital)
 * Check guards/invariants for convexity (for now, neither can be non-convex, see below)
 * Clarify time divergence issues
@@ -87,6 +87,7 @@ PTAs:
 * BRP example
 * Translate non-convex guards to DNF and multiple transitions
 * Investigate whether non-convex invariants can be supported (look at zone ops)
+* BRP example
 
 * Games: Optimise number of states in time-bounded PTAs
   (extras added in old target states) using until in forwards reach?

@@ -47,7 +47,9 @@ import pta.*;
 public class Prism implements PrismSettingsListener
 {
 	// prism version
-	private static String version = "3.3.dev";
+	private static String version = "4.0.alpha";
+	// prism version suffix
+	private static String versionSuffix = ".$Rev$";
 	
 	//------------------------------------------------------------------------------
 	// Constants
@@ -382,7 +384,7 @@ public class Prism implements PrismSettingsListener
 	// get methods
 	
 	public static String getVersion()
-	{ return version; }
+	{ return version + versionSuffix; }
 	
 	public PrismLog getMainLog()
 	{ return mainLog; }
@@ -647,7 +649,7 @@ public class Prism implements PrismSettingsListener
 	public void initialise() throws PrismException
 	{
 		mainLog.print("PRISM\n=====\n");
-		mainLog.print("\nVersion: " + version + "\n");
+		mainLog.print("\nVersion: " + getVersion() + "\n");
 		mainLog.print("Date: " + new java.util.Date() + "\n");
 		try {
 			String h = java.net.InetAddress.getLocalHost().getHostName();
