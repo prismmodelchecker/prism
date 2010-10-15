@@ -1,5 +1,0 @@
-const int T;
-
-// Maximum probability that malicious recepient gains information by deadline T
-Pmax=? [ F<T "gains_information" ]
-

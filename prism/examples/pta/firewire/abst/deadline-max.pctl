@@ -1,3 +1,0 @@
-// Minimum probability that a leader has been elected by deadline T
-Pmax=? [ F "done_after" ]
-

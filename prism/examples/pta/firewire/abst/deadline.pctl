@@ -1,5 +1,0 @@
-const int T;
-
-// Minimum probability that a leader has been elected by deadline T
-Pmin=? [ F<=T "done" ]
-
