@@ -57,10 +57,10 @@ public class ConstructModel
 		modelType = modulesFile.getModelType();
 		this.initialState = initialState;
 
-		int i, j, nc, nt, src, dest;
 		IndexedSet<State> states;
 		LinkedList<State> explore;
 		State state, stateNew;
+		LabelList ll;
 
 		ModelSimple model = null;
 		DTMCSimple dtmc = null;
@@ -68,8 +68,26 @@ public class ConstructModel
 		MDPSimple mdp = null;
 		Distribution distr = null;
 
+		int i, j, k, nc, nt, nl, src, dest;
+		boolean progressDisplayed;
+		long timer, timerProgress;
+
+		// Starting reachability...
+		mainLog.println("\nExploring reachable state space...");
+		timer = timerProgress = System.currentTimeMillis();
+		progressDisplayed = false;
+
 		// Initialise simulator for this model
 		engine.createNewOnTheFlyPath(modulesFile);
+		
+		// Go through labels: create Bitsets and add to simulator
+		ll = modulesFile.getLabelList();
+		nl = ll.size();
+		ArrayList<BitSet> labels = new ArrayList<BitSet>(nl);
+		for (i = 0; i < nl; i++) {
+			engine.addLabel(ll.getLabel(i));
+			labels.add(new BitSet());
+		}
 
 		// Create a (simple, mutable) model of the appropriate type
 		switch (modelType) {
@@ -102,6 +120,12 @@ public class ConstructModel
 			// Use simulator to explore all choices/transitions from this state
 			engine.initialisePath(state);
 			nc = engine.getNumChoices();
+			// TODO: remove this deadlock check (nc=0) hack
+			for (k = 0; k < nl; k++) {
+				if (nc == 0 && engine.queryLabel(k)) {
+					labels.get(k).set(src);
+				}
+			}
 			for (i = 0; i < nc; i++) {
 				if (modelType == ModelType.MDP) {
 					distr = new Distribution();
@@ -135,14 +159,32 @@ public class ConstructModel
 					mdp.addChoice(src, distr);
 				}
 			}
+			// Print some progress info occasionally
+			if (System.currentTimeMillis() - timerProgress > 3000) {
+				if (!progressDisplayed) {
+					mainLog.print("Number of states so far:");
+					progressDisplayed = true;
+				}
+				mainLog.print(" " + (src + 1));
+				mainLog.flush();
+				timerProgress = System.currentTimeMillis();
+			}
 		}
+
+		// Tidy up progress display
+		if (progressDisplayed)
+			mainLog.println(" " + (src + 1));
+
+		// Reachability complete
+		mainLog.println("State exploration done in " + ((System.currentTimeMillis() - timer) / 1000.0) + " secs.");
+		mainLog.println("States: " + (src + 1));
 
 		//graph.states = states.toArrayList();
 
 		int permut[] = states.buildSortingPermutation();
-		mainLog.println(permut);
+		//mainLog.println(permut);
 
-		mainLog.println("Model: " + model);
+		//mainLog.println("Model: " + model);
 
 		switch (modelType) {
 		case DTMC:
@@ -156,14 +198,31 @@ public class ConstructModel
 			break;
 		}
 
-		mainLog.println(states.size() + " states: " + states);
-		mainLog.println("Model: " + model);
+		//mainLog.println(states.size() + " states: " + states);
+		//mainLog.println("Model: " + model);
 
 		BitSet deadlocks = model.findDeadlocks(true);
 		if (deadlocks.cardinality() > 0) {
 			mainLog.println("Adding self-loops in " + deadlocks.cardinality() + " states...");
 		}
 
+		// Model construction complete
+		timer = System.currentTimeMillis() - timer;
+		mainLog.println("Model construction done in " + (timer / 1000.0) + " secs.");
+		
+		// TODO: clean me up
+		for (i = 0; i < nl; i++) {
+			mainLog.println(labels.get(i));
+			/*ll.getLabel(i);
+			j = 0;
+			for (Map.Entry<State, Integer> e : states.getEntrySet()) {
+				mainLog.println(j + ":" + permut[j] + ":" + e.getValue() + " - ");
+				j++;
+			}*/
+		}
+		
+		((CTMCSimple)model).exportToPrismLanguage("ctmc.sm");
+		
 		return model;
 	}
 

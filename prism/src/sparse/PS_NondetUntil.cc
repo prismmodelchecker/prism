@@ -319,7 +319,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 				// But only output a choice if it is in the adversary
 				if (j == adv[i]) {
 					for (k = l2; k < h2; k++) {
-						fprintf(fp_adv, "%d %d %g", i, cols[k], non_zeros[k]);
+						fprintf(fp_adv, "%d 0 %d %g", i, cols[k], non_zeros[k]);
 						if (actions != NULL) fprintf(fp_adv, " %s", actions[j]>0?action_names[actions[j]-1]:"");
 						fprintf(fp_adv, "\n");
 					}

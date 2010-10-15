@@ -1,5 +1,0 @@
-csma2.deslist '*:*:*:c4' 'true'
-csma4.deslist '*:*:*:c4' 'true'
-csma2.deslist '*:*:*:c8' 'true'
-csma4.deslist '*:*:*:c8' 'true'
-

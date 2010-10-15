@@ -1,5 +1,0 @@
-repudiation.honest.deslist 'done:*' 'true'
-repudiation.honest.40.deslist '*:*:before' 'true'
-repudiation.honest.80.deslist '*:*:before' 'true'
-repudiation.honest.100.deslist '*:*:before' 'true'
-
