@@ -501,6 +501,49 @@ public class MDPSimple extends ModelSimple implements MDP
 	}
 
 	@Override
+	public void exportToPrismLanguage(String filename) throws PrismException
+	{
+		int i, j;
+		boolean first;
+		FileWriter out;
+		TreeMap<Integer, Double> sorted;
+		try {
+			// Output transitions to PRISM language file
+			out = new FileWriter(filename);
+			out.write(getModelType().keyword() + "\n");
+			out.write("module M\nx : [0.." + (numStates-1) + "];\n");
+			sorted = new TreeMap<Integer, Double>();
+			for (i = 0; i < numStates; i++) {
+				j = -1;
+				for (Distribution distr : trans.get(i)) {
+					j++;
+					// Extract transitions and sort by destination state index (to match PRISM-exported files)
+					for (Map.Entry<Integer, Double> e : distr) {
+						sorted.put(e.getKey(), e.getValue());
+					}
+					// Print out (sorted) transitions
+					out.write("[]x=" + i + "->");
+					first = true;
+					for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
+						if (first)
+							first = false;
+						else
+							out.write("+");
+						// Note use of PrismUtils.formatDouble to match PRISM-exported files
+						out.write(PrismUtils.formatDouble(e.getValue()) + ":(x'=" + e.getKey() + ")");
+					}
+					out.write(";\n");
+					sorted.clear();
+				}
+			}
+			out.write("endmodule\n");
+			out.close();
+		} catch (IOException e) {
+			throw new PrismException("Could not export " + getModelType() + " to file \"" + filename + "\"" + e);
+		}
+	}
+
+	@Override
 	public String infoString()
 	{
 		String s = "";

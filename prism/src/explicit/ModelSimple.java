@@ -140,6 +140,8 @@ public abstract class ModelSimple implements Model
 
 	public abstract void exportToDotFile(String filename, BitSet mark) throws PrismException;
 	
+	public abstract void exportToPrismLanguage(String filename) throws PrismException;
+	
 	public abstract String infoString();
 
 	@Override
