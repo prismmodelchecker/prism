@@ -1,27 +1,31 @@
-
-Last stable version of PRISM on svn (3.3 plus some fixes) is rev 1405
-(there is a copy of this, e.g. to get working old simulator, in ~/prism-old)
-
------------------------------------------------------------------------
-
-Stuff to remove when distributing early copies to people:
+Remove for beta distributions:
+------------------------------
 * NOTES*
 * TODO?
-* examples/des
-* examples/explicit
 
------------------------------------------------------------------------
+=======================================================
 
-See also:
-* NOTES-PTAS
-* NOTES-SIM
-* NOTES-ABSTR
+TODO (before any release)
+-------------------------
 
------------------------------------------------------------------------
+PTAs:
+* GUI
+* Tidy prism-examples/pta, incl. delete brp
+* Clarify semantic/type checks (consistency with games/digital)
+* Check guards/invariants for convexity (for now, neither can be non-convex, see below)
+* Clarify time divergence issues
+* non-zeno checks?
+* Sort VarList (two types - before and after constants evaluated). Need for simulator too.
+* Digital clocks: No time-bounded until yet
+* Digital clocks: Translation done sep for each property (e.g. for cmax)?
+* Bug fix: action alphabet (syntactic) for sync lost in PTA object construction
+
+=======================================================
+
+TODO (before public release)
+----------------------------
 
 Filters, property semantics, etc.
-
-TODO:
 * Integer-valued props displayed as doubles - need to give types to StateValues?
   - lots of other places too e.g. GUI results)
 * Intervals for multiple initial states
@@ -30,51 +34,106 @@ TODO:
 * Restructure Result class? e.g. separate bracketed comment? (done I think)
   - Errors (Exceptions) formatted properly?
 
-Doc:
+PTAs:
+* Enforce well-formedness checks (i.e. guards/resets imply target invariants)
+  (as opposed to say supporting strong invariants,
+   where targets with false invariants cannot be entered)
+  - zone-based: check during reach using valids
+    (or just during FW reach?) (nb: need to split dpost to do check)
+    (see non-well-formed.nm/pctl for a test case)
+    (if can't do that, syntax check using sat)
+  - digital clocks: check invariants after transform/reach?
+
+DOC (before public release)
+---------------------------
+
+Filters:
 * Filters - no longer allowed minmax (or encode as range?)
 * P>=p[...{filter}] means & not print (didn't print in 3.3 anyway, despite manual)
 
------------------------------------------------------------------------
+PTAs:
+* Where can clocks be used
+ - clock constraints (just (some) binops)
+  - in guards
+  - in invariants
+ - resets (normal updates, but to ints only)
+ - var decl.s
+ - generally must be convex (i.e. just conj of constraints) (can be relaxed a bit for digital clocks)
+* Currently, modules cannot access non-local vars (and there are no globals)
+  (this is too restrictive, e.g. for message passing)
+* Must have single initial state (is this true for digital clocks too?)
+* Invariants must come straight after var decls
 
-TODO:
+=======================================================
 
-- remove colons from @params
+BUG (some time)
+---------------
 
-- fix adversary generation (de alfaro thesis)
-- add adversary generation for other engines
-- make action storage optional (when required e.g. for export) (especially for MCs)
-- lp stuff - plugin support for eclipse/lpsolve (in prism-multi?)
-- also look up lrs?
-- finalise tra format with actions (needs to work with actions too)
-  - so also fix e.g. importtrans, prism-statra
+Simulator:
+* approx mc of a property loses any current simulator path in gui.
+  is that ok? (seems to be buggy in 3.3.1 anyway)
 
------------------------------------------------------------------------
+* prism ~/prism-examples/dice/dice.pm \
+-pctl '(s=0|s=1)=>P>=1 [ (P>=0.9 [ F<=1 s=3 ])=>(P>=0.5 [ F<=2 s=4 ]) ]'
+(time-bounds should be ok in inner pctl but are not)
+
+TODO (some time)
+----------------
+
+PTAs:
+* On-the-fly global reachability to allow (for A-R engine):
+  - access to other local and global vars
+  - system endsystem?
+ (then test on Arnd's BRP model + others)
+* BRP example
+* Translate non-convex guards to DNF and multiple transitions
+* Investigate whether non-convex invariants can be supported (look at zone ops)
+
+* Games: Optimise number of states in time-bounded PTAs
+  (extras added in old target states) using until in forwards reach?
+* Fix: Creation of new names (adding extra _s) doesn't take into account prop file ot consts etc.
+* Digital clocks: urgency?
+* Digital clocks: optimisations?
+
+* New version of valid2 (inv/g push outside)
+* Combined complement + intersection (terminating early) for when dbm lists get big
+* Are we ok to have non-diagonal c-closure algorithm?
+  (or is it ok if only use this on initial reach graph construction?)
+
+Simulator:
+* Investigate efficiency wrt old simulator
+* Add (back) support for full loop detection? (embedded into Path*?)
+* Add (back) early manual termination of sampling (thru expt stop?)
+* Random initial state
+* Variable overflow etc.
+* Add support for "deadlock" and "init" (new EvaluationContext, model *and* state dependent)
+* Seed issues (currently twice in one second = same seed)
+* explicitbuildtest doesn't handle dupes in mdps (e.g. consensus)
+* Explicit build doesn't handle multiple initial states
+* GUI sim - add context menu to transition list with e.g. "show in model"
+* Traviendo export?
+* Code: Optimise/tidy Choices (ChoiceList/ChoiceSingleton/etc.)
+
+Actions:
+* Finalise tra format with actions (needs to work with MCs too)
+  - also fix e.g. importtrans, prism-statra
+* make action storage optional (when required e.g. for export) (especially for MCs)
+
+Adversary generation:
+* Add adversary generation for other engines
 
 Abstraction/refinement:
+* Exp reach for games
+* Poss. refine opt: don't add ubsets of player1 choices
 
-TODO:
-* exp reach for games
+BSCC stuff:
+* regression testing + perf. on ltl stuff with 3 diff options
 
-Other notes/ideas:
-* refine opt: don't add ubsets of player1 choices
+Code tidy:
+* remove colons from @params
 
------------------------------------------------------------------------
+DOC (some time)
+---------------
 
-LTL...
-
-bug:
-
-prism ~/prism-examples/dice/dice.pm \
--pctl '(s=0|s=1)=>P>=1 [ (P>=0.9 [ F<=1 s=3 ])=>(P>=0.5 [ F<=2 s=4 ]) ]'
-time-bounds should be ok in inner pctl but are not
-
-bscc stuff
-- regression testing on ltl stuff with 3 diff options
-
------------------------------------------------------------------------
-
-prism-multi
-
-DOC: no state rewards
-
-
+Prism-multi:
+* No state rewards
