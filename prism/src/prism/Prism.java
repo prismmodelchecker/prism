@@ -49,7 +49,8 @@ public class Prism implements PrismSettingsListener
 	// prism version
 	private static String version = "4.0.alpha";
 	// prism version suffix
-	private static String versionSuffix = ".$Rev$";
+	private static String rev = "$Rev: 2167$";
+	private static String versionSuffix = ".r" + rev.substring(6, rev.length() - 1);
 	
 	//------------------------------------------------------------------------------
 	// Constants
