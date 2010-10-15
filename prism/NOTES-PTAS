@@ -4,8 +4,6 @@ TODO (before any release)
 
 * GUI
 
-* Tidy prism-examples/pta, incl. delete brp
-
 * Clarify semantic/type checks (consistency with games/digital)
 
 * Check guards/invariants for convexity (for now, neither can be non-convex, see below)
