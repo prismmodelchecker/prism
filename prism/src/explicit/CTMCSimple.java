@@ -26,13 +26,7 @@
 
 package explicit;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Map;
-import java.util.TreeMap;
-
-import prism.PrismException;
-import prism.PrismUtils;
 
 /**
  * Simple explicit-state representation of a CTMC.
@@ -74,40 +68,6 @@ public class CTMCSimple extends DTMCSimple implements CTMC
 	public CTMCSimple(CTMCSimple ctmc, int permut[])
 	{
 		super(ctmc, permut);
-	}
-
-	// Accessors (for ModelSimple, overriding DTMCSimple)
-	
-	//@Override
-	public void exportToPrismLanguage(String filename) throws PrismException
-	{
-		int i;
-		FileWriter out;
-		TreeMap<Integer, Double> sorted;
-		try {
-			// Output transitions to .tra file
-			out = new FileWriter(filename);
-			out.write(getModelType().keyword() + "\n");
-			out.write("module M\nx : [0.." + (numStates-1) + "];\n");
-			sorted = new TreeMap<Integer, Double>();
-			for (i = 0; i < numStates; i++) {
-				// Extract transitions and sort by destination state index (to match PRISM-exported files)
-				for (Map.Entry<Integer, Double> e : trans.get(i)) {
-					sorted.put(e.getKey(), e.getValue());
-				}
-				// Print out (sorted) transitions
-				for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
-					// Note use of PrismUtils.formatDouble to match PRISM-exported files
-					out.write("[]x=" + i + "->" + PrismUtils.formatDouble(e.getValue()));
-					out.write(":(x'=" + e.getKey() + ");\n");
-				}
-				sorted.clear();
-			}
-			out.write("endmodule\n");
-			out.close();
-		} catch (IOException e) {
-			throw new PrismException("Could not export " + getModelType() + " to file \"" + filename + "\"" + e);
-		}
 	}
 
 	// Accessors (for CTMC)

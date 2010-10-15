@@ -1,6 +1,6 @@
 
 Last stable version of PRISM on svn (3.3 plus some fixes) is rev 1405
-(there is a copy of this, e.g. to get working old simulator, in ~/prism-old)
+(there is a copy of this, e.g. to get working simulator, in ~/prism-old)
 
 -----------------------------------------------------------------------
 
@@ -62,13 +62,6 @@ Other notes/ideas:
 -----------------------------------------------------------------------
 
 LTL...
-
-bug:
-
-prism ~/prism-examples/dice/dice.pm \
--pctl '(s=0|s=1)=>P>=1 [ (P>=0.9 [ F<=1 s=3 ])=>(P>=0.5 [ F<=2 s=4 ]) ]'
-time-bounds should be ok in inner pctl but are not
-
 bscc stuff
 - regression testing on ltl stuff with 3 diff options
 
