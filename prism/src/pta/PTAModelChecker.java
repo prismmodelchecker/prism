@@ -295,13 +295,8 @@ public class PTAModelChecker
 
 		// Do probability computation by first constructing a bisimulation  
 		else if (ptaMethod.equals("Bisimulation minimisation")) {
-			PTABisimulation ptaBisim = new PTABisimulation(mainLog, prism.getVerbose() ? 5 : 0);
-			MDP mdp = ptaBisim.computeBisimulation(pta, targetLocs);
-			MDPModelChecker mc = new MDPModelChecker();
-			mc.setLog(mainLog);
-			mc.setVerbosity(prism.getVerbose() ? 5 : 0);
-			ModelCheckerResult res = mc.probReach(mdp, ptaBisim.getTarget(), min);
-			return res.soln[mdp.getFirstInitialState()];
+			// Not supported yet
+			throw new PrismException("Not yet supported");
 		}
 
 		else
@@ -313,45 +308,7 @@ public class PTAModelChecker
 	 */
 	private Result checkExpressionReward(ExpressionReward expr) throws PrismException
 	{
-		boolean min;
-		ExpressionTemporal exprTemp;
-		Expression exprTarget;
-		BitSet targetLocs;
-		double prob, reward;
-
-		// Check whether Rmin=? or Rmax=? (only two cases allowed)
-		if (expr.getReward() != null) {
-			throw new PrismException("PTA model checking currently only supports Rmin=? and Rmax=? properties");
-		}
-		min = expr.getRelOp().equals("min=");
-
-		// Check this is a reachability property (only case allowed at the moment)
-		if (!(expr.getExpression() instanceof ExpressionTemporal))
-			throw new PrismException("PTA model checking for rewards currently only supports the F operator");
-		exprTemp = (ExpressionTemporal) expr.getExpression();
-		if (exprTemp.getOperator() != ExpressionTemporal.R_F)
-			throw new PrismException("PTA model checking for rewards currently only supports the F operator");
-
-		// Determine locations satisfying target
-		exprTarget = exprTemp.getOperand2();
-		targetLocs = checkLocationExpression(exprTarget);
-		mainLog.println("Target (" + exprTarget + ") satisfied by " + targetLocs.cardinality() + " locations.");
-		//mainLog.println(targetLocs);
-
-		// Check that probability of reaching target is 1.0
-		prob = computeProbabilisticReachability(targetLocs, !min);
-		// TODO: fix (do a qualitative version)
-		if (prob < 0.9999) {
-			throw new PrismException((min ? "Max" : "Min") + " probability of reaching target is less than 1");
-		}
-
-		// Do model checking...
-		/*PTAExpected ptaExp;
-		ptaExp = new PTAExpected(prism);
-		reward = ptaExp.check(pta, targetLocs, min);*/
-		throw new PrismException("Reward properties not yet supported for PTAs");
-		
-		//return new Result(new Double(reward));
+		throw new PrismException("Not yet supported");
 	}
 
 	/**
