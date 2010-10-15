@@ -1,0 +1,7 @@
+#!/bin/csh
+
+foreach N (16 32 64)
+	foreach MAX (2 3 4 5)
+		prism brp.pm brp.pctl -const N=$N,MAX=$MAX,TD=2,TIME_OUT=5 -fixdl
+	end
+end

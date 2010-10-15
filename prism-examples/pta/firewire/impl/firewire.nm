@@ -1,0 +1,179 @@
+// Firewire protocol (PTA model)
+// dxp/gxn 08/07/09
+
+pta
+
+// CLOCKS
+// x1 (x2) clock for node1 (node2)
+// y1 and y2 (z1 and z2) clocks for wire12 (wire21)
+
+// maximum and minimum delays
+// fast
+const int rc_fast_max = 850;
+const int rc_fast_min = 760;
+// slow
+const int rc_slow_max = 1670;
+const int rc_slow_min = 1590;
+// delay caused by the wire length
+const int delay;
+// probability of choosing fast and slow
+const double fast = 0.5;
+const double slow = 1-fast;
+
+module wire12
+	
+	// local state
+	w12 : [0..9];
+	// 0 - empty
+	// 1 - rec_req
+	// 2 - rec_req_ack
+	// 3 - rec_ack
+	// 4 - rec_ack_idle
+	// 5 - rec_idle
+	// 6 - rec_idle_req
+	// 7 - rec_ack_req
+	// 8 - rec_req_idle
+	// 9 - rec_idle_ack
+	
+	// clock for wire12
+	y1 : clock;
+	y2 : clock;
+
+	// clock invariant
+	invariant
+	    (w12=1 => y2<=delay)
+	  & (w12=2 => y1<=delay)
+	  & (w12=3 => y2<=delay)
+	  & (w12=4 => y1<=delay)
+	  & (w12=5 => y2<=delay)
+	  & (w12=6 => y1<=delay)
+	  & (w12=7 => y1<=delay)
+	  & (w12=8 => y1<=delay)
+	  & (w12=9 => y1<=delay)
+	endinvariant
+
+	// empty
+	// do not need y1 and y2 to increase as always reset when this state is left
+	// similarly can reset y1 and y2 when we re-enter this state
+	[snd_req12]  w12=0 -> (w12'=1) & (y1'=0) & (y2'=0);
+	[snd_ack12]  w12=0 -> (w12'=3) & (y1'=0) & (y2'=0);
+	[snd_idle12] w12=0 -> (w12'=5) & (y1'=0) & (y2'=0);
+	// rec_req
+	[snd_req12]  w12=1 -> (w12'=1);
+	[rec_req12]  w12=1 -> (w12'=0) & (y1'=0) & (y2'=0);
+	[snd_ack12]  w12=1 -> (w12'=2) & (y2'=0);
+	[snd_idle12] w12=1 -> (w12'=8) & (y2'=0);
+	// rec_req_ack
+	[snd_ack12] w12=2 -> (w12'=2);
+	[rec_req12] w12=2 -> (w12'=3);
+	// rec_ack
+	[snd_ack12]  w12=3 -> (w12'=3);
+	[rec_ack12]  w12=3 -> (w12'=0) & (y1'=0) & (y2'=0);
+	[snd_idle12] w12=3 -> (w12'=4) & (y2'=0);
+	[snd_req12]  w12=3 -> (w12'=7) & (y2'=0);
+	// rec_ack_idle
+	[snd_idle12] w12=4 -> (w12'=4);
+	[rec_ack12]  w12=4 -> (w12'=5);
+	// rec_idle
+	[snd_idle12] w12=5 -> (w12'=5);
+	[rec_idle12] w12=5 -> (w12'=0) & (y1'=0) & (y2'=0);
+	[snd_req12]  w12=5 -> (w12'=6) & (y2'=0);
+	[snd_ack12]  w12=5 -> (w12'=9) & (y2'=0);
+	// rec_idle_req
+	[snd_req12]  w12=6 -> (w12'=6);
+	[rec_idle12] w12=6 -> (w12'=1);
+	// rec_ack_req
+	[snd_req12] w12=7 -> (w12'=7);
+	[rec_ack12] w12=7 -> (w12'=1);
+	// rec_req_idle
+	[snd_idle12] w12=8 -> (w12'=8);
+	[rec_req12]  w12=8 -> (w12'=5);
+	// rec_idle_ack
+	[snd_ack12]  w12=9 -> (w12'=9);
+	[rec_idle12] w12=9 -> (w12'=3);
+	
+endmodule
+
+module node1
+	
+	// clock for node1
+	x1 : clock;
+	
+	// local state
+	s1 : [0..8];
+	// 0 - root contention
+	// 1 - rec_idle
+	// 2 - rec_req_fast
+	// 3 - rec_req_slow
+	// 4 - rec_idle_fast
+	// 5 - rec_idle_slow
+	// 6 - snd_req
+	// 7 - almost_root
+	// 8 - almost_child
+	
+	// clock invariant
+	invariant
+	    (s1=2 => x1<=rc_fast_max)
+	  & (s1=3 => x1<=rc_slow_max)
+	  & (s1=4 => x1<=rc_fast_max)
+	  & (s1=5 => x1<=rc_slow_max)
+	  // urgency:
+	  & (s1=0 => x1<=0)
+	  & (s1=1 => x1<=0)
+	endinvariant
+	
+	// added resets to x1 when not considered again until after rest
+	// removed root and child (using almost root and almost child)
+	
+	// root contention immediate state)
+	[snd_idle12] s1=0 & x1=0 -> fast : (s1'=2) +  slow : (s1'=3);
+	[rec_idle21] s1=0 & x1=0 -> (s1'=1);
+	// rec_idle immediate state)
+	[snd_idle12] s1=1 & x1=0 -> fast : (s1'=4) +  slow : (s1'=5);
+	[rec_req21]  s1=1 & x1=0 -> (s1'=0);
+	// rec_req_fast
+	[rec_idle21] s1=2 -> (s1'=4);	
+	[snd_ack12]  s1=2 & x1>=rc_fast_min -> (s1'=7) & (x1'=0);
+	// rec_req_slow
+	[rec_idle21] s1=3 -> (s1'=5);
+	[snd_ack12]  s1=3 & x1>=rc_slow_min -> (s1'=7) & (x1'=0);
+	// rec_idle_fast
+	[rec_req21] s1=4 -> (s1'=2);
+	[snd_req12] s1=4 & x1>=rc_fast_min -> (s1'=6) & (x1'=0);
+	// rec_idle_slow
+	[rec_req21] s1=5 -> (s1'=3);
+	[snd_req12] s1=5 & x1>=rc_slow_min -> (s1'=6) & (x1'=0);
+	// snd_req 
+	// do not use x1 until reset (in state 0 or in state 1) so do not need to increase x1
+	// also can set x1 to 0 upon entering this state
+	[rec_req21] s1=6 -> (s1'=0) & (x1'=0);
+	[rec_ack21] s1=6 -> (s1'=8) & (x1'=0);
+	// almost root or almost child (immediate) 
+	// loop in final states to remove deadlock
+	[loop] s1=7 -> true;
+	[loop] s1=8 -> true;
+	
+endmodule
+
+// construct remaining automata through renaming
+module wire21=wire12[w12=w21, y1=z1, y2=z2, 
+	snd_req12=snd_req21, snd_idle12=snd_idle21, snd_ack12=snd_ack21,
+	rec_req12=rec_req21, rec_idle12=rec_idle21, rec_ack12=rec_ack21]
+endmodule
+module node2=node1[s1=s2, s2=s1, x1=x2, 
+	rec_req21=rec_req12, rec_idle21=rec_idle12, rec_ack21=rec_ack12,
+	snd_req12=snd_req21, snd_idle12=snd_idle21, snd_ack12=snd_ack21]
+endmodule
+
+// labels
+label "done" = (s1=8 & s2=7) | (s1=7 & s2=8);
+
+// reward structures
+// time
+rewards "time"	
+	true : 1;
+endrewards
+// time nodes sending
+rewards "time_sending"
+	(w12>0 | w21>0) : 1;
+endrewards

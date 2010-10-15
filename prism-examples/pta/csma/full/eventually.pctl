@@ -1,0 +1,5 @@
+Pmin=?[ F "s1_done"]
+Pmin=?[ F "s2_done"]
+Pmin=?[ F "done" ]
+Pmin=?[ F cd1=2 ]
+Pmax=?[ F cd1=2 ]

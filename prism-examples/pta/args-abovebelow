@@ -1,0 +1,14 @@
+# no pre (or as little as poss)
+-aroptions nopre,noopt
+-aroptions nopre,opt
+-aroptions nopre,opt,above
+
+-aroptions noprob1,noopt
+-aroptions noprob1,opt
+-aroptions noprob1,opt,above
+
+# pre
+-aroptions pre,noopt
+-aroptions pre,opt
+-aroptions pre,opt,above
+
