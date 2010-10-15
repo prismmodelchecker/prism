@@ -672,6 +672,12 @@ public class STPG extends ModelSimple
 		}
 	}
 
+	@Override
+	public void exportToPrismLanguage(String filename) throws PrismException
+	{
+		throw new PrismException("Export to STPG PRISM models not supported");
+	}
+	
 	/**
 	 * Get string with model info/stats.
 	 */
