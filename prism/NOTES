@@ -9,15 +9,12 @@ TODO (before any release)
 
 PTAs:
 * GUI
-* Tidy prism-examples/pta
+* (Further) tidy of prism-examples/pta
 * Clarify semantic/type checks (consistency with games/digital)
 * Check guards/invariants for convexity (for now, neither can be non-convex, see below)
 * Clarify time divergence issues
 * non-zeno checks?
 * Sort VarList (two types - before and after constants evaluated). Need for simulator too.
-* Digital clocks: No time-bounded until yet
-* Digital clocks: Translation done sep for each property (e.g. for cmax)?
-* Bug fix: action alphabet (syntactic) for sync lost in PTA object construction
 
 =======================================================
 
@@ -42,6 +39,9 @@ PTAs:
     (see non-well-formed.nm/pctl for a test case)
     (if can't do that, syntax check using sat)
   - digital clocks: check invariants after transform/reach?
+* Digital clocks: No time-bounded until yet
+* Digital clocks: Translation done sep for each property (e.g. for cmax)?
+* Bug fix: action alphabet (syntactic) for sync lost in PTA object construction
 
 DOC (before public release)
 ---------------------------
