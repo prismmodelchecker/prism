@@ -1,0 +1,28 @@
+Brief notes on support for PTAs in PRISM
+----------------------------------------
+
+* The PRISM Language
+
+In short, there is a new datatype "clock", which can be used in guards and reset (to zero) just like a normal PRISM variable. The only other addition is an "invariant" keyword, used to specify clock invariants for each PRISM module.
+
+There are a set of PRISM PTA examples in the directory examples/pta.
+
+* Properties
+
+Properties are specified in PCTL, i.e. essentially we allow unbounded or time-bounded reachability properties. See the .pctl files include with the examples for some sample properties.
+
+* Running PRISM
+
+Temporarily, PTA support is only available through the command-line version of PRISM. See the formats09.sh script in the examples/pta directory for details of how to run the examples. Currently, there are two different engines for verifying PTAs: (1) "abstraction-refinement", as described in [KNP09c]; and (2) "digital clocks", as described in [KNPS06]. The default is (1). The digital clocks engine can be enabled using the switch "-ptamethod digital". Note, though, that this does not yet support time-bounded reachability properties.
+
+-----------------
+
+[KNP09c]
+M. Kwiatkowska, G. Norman, and D. Parker.
+Stochastic games for verification of probabilistic timed automata.
+In Proc. FORMATS’09, volume 5813 of LNCS, pages 212–227. Springer, 2009.
+
+[KNPS06]
+M. Kwiatkowska, G. Norman, D. Parker, and J. Sproston.
+Performance analysis of probabilistic timed automata using digital clocks.
+Formal Methods in System Design, 29:33–78, 2006.
