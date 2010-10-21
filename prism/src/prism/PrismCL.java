@@ -66,6 +66,7 @@ public class PrismCL
 	private boolean simpath = false;
 	private ModelType typeOverride = null;
 	private boolean explicitbuildtest = false;
+	private boolean nobuild = false;
 
 	// property info
 	private int propertyToCheck = -1;
@@ -267,10 +268,13 @@ public class PrismCL
 
 			// decide if model construction is necessary
 			boolean doBuild = true;
-			// e.g. no need if using approximate (simulation-based) model checking
+			// if explicitly disabled...
+			if (nobuild)
+				doBuild = false;
+			// no need if using approximate (simulation-based) model checking...
 			if (simulate)
 				doBuild = false;
-			// e.g. no need for PTA model checking (when not using digital clocks)
+			// no need for PTA model checking (when not using digital clocks)...
 			else if (modulesFile.getModelType() == ModelType.PTA
 					&& !prism.getSettings().getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks"))
 				doBuild = false;
@@ -1081,6 +1085,10 @@ public class PrismCL
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
 				}
+				// disable model construction
+				else if (sw.equals("nobuild")) {
+					nobuild = true;
+				}
 				// set scc computation algorithm
 				else if (sw.equals("sccmethod") || sw.equals("bsccmethod")) {
 					if (i < args.length - 1) {
@@ -1778,6 +1786,7 @@ public class PrismCL
 		mainLog.println("-exporttransient <file> ........ Export transient probabilities to a file");
 		mainLog.println("-exportprism <file> ............ Export final PRISM model to a file");
 		mainLog.println("-exportprismconst <file> ....... Export final PRISM model with expanded constants to a file");
+		mainLog.println("-nobuild ....................... Skip model construction (just parse/export)");
 		mainLog.println();
 		mainLog.println("-mtbdd (or -m) ................. Use the MTBDD engine");
 		mainLog.println("-sparse (or -s) ................ Use the Sparse engine");
