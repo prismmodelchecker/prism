@@ -16,6 +16,9 @@ PTAs:
 * non-zeno checks?
 * Sort VarList (two types - before and after constants evaluated). Need for simulator too.
 
+Sim(?):
+* Auto x100 in GUI sim doesn't stop on even simple loops
+
 =======================================================
 
 TODO (before public release)

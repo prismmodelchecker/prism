@@ -58,6 +58,7 @@ public class PrismCL
 	private boolean exportbsccs = false;
 	private boolean exportresults = false;
 	private boolean exportprism = false;
+	private boolean exportprismconst = false;
 	private boolean exportPlainDeprecated = false;
 	private int exportType = Prism.EXPORT_PLAIN;
 	private boolean exportordered = true;
@@ -97,6 +98,7 @@ public class PrismCL
 	private String exportResultsFilename = null;
 	private String exportTransientFilename = null;
 	private String exportPrismFilename = null;
+	private String exportPrismConstFilename = null;
 	private String simpathFilename = null;
 
 	// logs
@@ -230,13 +232,37 @@ public class PrismCL
 
 			// output final prism model here if required
 			if (exportprism) {
-				try {
-					FileWriter writer = new FileWriter(exportPrismFilename);
-					writer.write(modulesFile.toString());
-					writer.close();
-				} catch (IOException e) {
-					error("Could not export PRISM model to file \"" + exportPrismFilename + "\"");
+				mainLog.print("\nExporting parsed PRISM file ");
+				if (!exportPrismFilename.equals("stdout"))
+					mainLog.println("to file \"" + exportPrismFilename + "\"...");
+				else
+					mainLog.println("below:");
+				PrismFileLog tmpLog = new PrismFileLog(exportPrismFilename);
+				if (!tmpLog.ready()) {
+					errorAndExit("Couldn't open file \"" + exportPrismFilename + "\" for output");
 				}
+				tmpLog.print(modulesFile.toString());
+			}
+			if (exportprismconst) {
+				mainLog.print("\nExporting parsed PRISM file (with constant expansion) ");
+				if (!exportPrismConstFilename.equals("stdout"))
+					mainLog.println("to file \"" + exportPrismConstFilename + "\"...");
+				else
+					mainLog.println("below:");
+				PrismFileLog tmpLog = new PrismFileLog(exportPrismConstFilename);
+				if (!tmpLog.ready()) {
+					errorAndExit("Couldn't open file \"" + exportPrismConstFilename + "\" for output");
+				}
+				ModulesFile mfTmp = (ModulesFile) modulesFile.deepCopy();
+				try {
+					mfTmp = (ModulesFile) mfTmp.replaceConstants(modulesFile.getConstantValues());
+					mfTmp = (ModulesFile) mfTmp.replaceConstants(definedMFConstants);
+					// NB: Don't use simplify() here because doesn't work for the purposes of printing out
+					// (e.g. loss of parethenses causes precedence problems)
+				} catch (PrismLangException e) {
+					error(e.getMessage());
+				}
+				tmpLog.print(mfTmp.toString());
 			}
 
 			// decide if model construction is necessary
@@ -1019,6 +1045,15 @@ public class PrismCL
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
 				}
+				// export prism model to file (with consts expanded)
+				else if (sw.equals("exportprismconst")) {
+					if (i < args.length - 1) {
+						exportprismconst = true;
+						exportPrismConstFilename = args[++i];
+					} else {
+						errorAndExit("No file specified for -" + sw + " switch");
+					}
+				}
 				// export adversary to file
 				else if (sw.equals("exportadv")) {
 					if (i < args.length - 1) {
@@ -1742,6 +1777,7 @@ public class PrismCL
 		mainLog.println("-exportbsccs <file> ............ Compute and export all BSCCs of the model");
 		mainLog.println("-exporttransient <file> ........ Export transient probabilities to a file");
 		mainLog.println("-exportprism <file> ............ Export final PRISM model to a file");
+		mainLog.println("-exportprismconst <file> ....... Export final PRISM model with expanded constants to a file");
 		mainLog.println();
 		mainLog.println("-mtbdd (or -m) ................. Use the MTBDD engine");
 		mainLog.println("-sparse (or -s) ................ Use the Sparse engine");
