@@ -111,19 +111,20 @@ public class DigitalClocks
 		// TODO: need property constants too?
 		varList = modulesFile.createVarList();
 
-		// Check that model (and properties) are closed and diagonal-free
+		// Check that model (and properties) are closed
+		// (don't need to check that they are diagonal-free)
 		astt = new ASTTraverse()
 		{
 			// Clock constraints
 			public void visitPost(ExpressionBinaryOp e) throws PrismLangException
 			{
 				if (e.getOperand1().getType() instanceof TypeClock) {
-					if (e.getOperand2().getType() instanceof TypeClock) {
-						throw new PrismLangException("Diagonal clock constraints are not allowed when using the digital clocks method", e);
-					} else {
+					//if (e.getOperand2().getType() instanceof TypeClock) {
+					//	throw new PrismLangException("Diagonal clock constraints are not allowed when using the digital clocks method", e);
+					//} else {
 						if (e.getOperator() == ExpressionBinaryOp.GT || e.getOperator() == ExpressionBinaryOp.LT)
 							throw new PrismLangException("Strict clock constraints are not allowed when using the digital clocks method", e);
-					}
+					//}
 				} else if (e.getOperand2().getType() instanceof TypeClock) {
 					if (e.getOperator() == ExpressionBinaryOp.GT || e.getOperator() == ExpressionBinaryOp.LT)
 						throw new PrismLangException("Strict clock constraints are not allowed when using the digital clocks method", e);
