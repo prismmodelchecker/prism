@@ -119,23 +119,28 @@ public class DigitalClocks
 			{
 				if (e.getOperand1().getType() instanceof TypeClock) {
 					if (e.getOperand2().getType() instanceof TypeClock) {
-						throw new PrismLangException(
-								"Diagonal clock constraints are not allowed when using the digital clocks method", e);
+						throw new PrismLangException("Diagonal clock constraints are not allowed when using the digital clocks method", e);
 					} else {
 						if (e.getOperator() == ExpressionBinaryOp.GT || e.getOperator() == ExpressionBinaryOp.LT)
-							throw new PrismLangException(
-									"Strict clock constraints are not allowed when using the digital clocks method", e);
+							throw new PrismLangException("Strict clock constraints are not allowed when using the digital clocks method", e);
 					}
 				} else if (e.getOperand2().getType() instanceof TypeClock) {
 					if (e.getOperator() == ExpressionBinaryOp.GT || e.getOperator() == ExpressionBinaryOp.LT)
-						throw new PrismLangException(
-								"Strict clock constraints are not allowed when using the digital clocks method", e);
+						throw new PrismLangException("Strict clock constraints are not allowed when using the digital clocks method", e);
 				}
 			}
 		};
 		modulesFile.accept(astt);
 		if (propertiesFile != null)
 			propertiesFile.accept(astt);
+
+		// Check that there are no nested probabilistic operators
+		// TODO: should be checking on individual properties really 
+		if (propertiesFile != null) {
+			if (propertiesFile.computeProbNesting() > 1) {
+				throw new PrismLangException("Nested P operators are not allowed when using the digital clocks method");
+			}
+		}
 
 		// Choose a new action label to represent time
 		timeAction = "time";
@@ -165,8 +170,7 @@ public class DigitalClocks
 				if (e.getDeclType() instanceof DeclarationClock) {
 					int cMax = cci.getScaledClockMax(e.getName());
 					if (cMax < 0)
-						throw new PrismLangException("Clock " + e.getName()
-								+ " is unbounded since there are no references to it in the model");
+						throw new PrismLangException("Clock " + e.getName() + " is unbounded since there are no references to it in the model");
 					DeclarationType declType = new DeclarationInt(Expression.Int(0), Expression.Int(cMax + 1));
 					Declaration decl = new Declaration(e.getName(), declType);
 					return decl;
@@ -281,8 +285,7 @@ public class DigitalClocks
 				continue;
 			// TODO: handle this case
 			if (rs.getNumTransItems() > 0)
-				throw new PrismLangException(
-						"Translation of reward structures with both state/transition items is not yet supported");
+				throw new PrismLangException("Translation of reward structures with both state/transition items is not yet supported");
 			n = rs.getNumItems();
 			for (i = 0; i < n; i++) {
 				RewardStructItem rsi = rs.getRewardStructItem(i);

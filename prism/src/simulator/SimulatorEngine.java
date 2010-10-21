@@ -33,7 +33,6 @@ import simulator.sampler.*;
 import parser.*;
 import parser.ast.*;
 import parser.type.*;
-import parser.visitor.ASTTraverse;
 import prism.*;
 
 /**
@@ -1081,41 +1080,20 @@ public class SimulatorEngine
 	{
 		// Simulator can only be applied to P=? or R=? properties
 		boolean ok = true;
-		Expression expr = null;
 		if (!(prop instanceof ExpressionProb || prop instanceof ExpressionReward))
 			ok = false;
 		else if (prop instanceof ExpressionProb) {
 			if ((((ExpressionProb) prop).getProb() != null))
 				ok = false;
-			expr = ((ExpressionProb) prop).getExpression();
 		} else if (prop instanceof ExpressionReward) {
 			if ((((ExpressionReward) prop).getReward() != null))
 				ok = false;
-			expr = ((ExpressionReward) prop).getExpression();
 		}
 		if (!ok)
 			throw new PrismException("Simulator can only handle P=? or R=? properties");
 
 		// Check that there are no nested probabilistic operators
-		try {
-			expr.accept(new ASTTraverse()
-			{
-				public void visitPre(ExpressionProb e) throws PrismLangException
-				{
-					throw new PrismLangException("");
-				}
-
-				public void visitPre(ExpressionReward e) throws PrismLangException
-				{
-					throw new PrismLangException("");
-				}
-
-				public void visitPre(ExpressionSS e) throws PrismLangException
-				{
-					throw new PrismLangException("");
-				}
-			});
-		} catch (PrismLangException e) {
+		if (prop.computeProbNesting() > 1) {
 			throw new PrismException("Simulator cannot handle nested P, R or S operators");
 		}
 	}

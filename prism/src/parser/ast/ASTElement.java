@@ -411,6 +411,16 @@ public abstract class ASTElement
 	}
 
 	/**
+	 * Compute (maximum) number of nested probabilistic operators (P, S, R).
+	 */
+	public int computeProbNesting() throws PrismLangException
+	{
+		ComputeProbNesting visitor = new ComputeProbNesting();
+		accept(visitor);
+		return visitor.getMaxNesting();
+	}
+
+	/**
 	 * Convert to string showing tree representation.
 	 */
 	public String toTreeString()
