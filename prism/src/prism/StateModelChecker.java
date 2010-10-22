@@ -882,9 +882,11 @@ public class StateModelChecker implements ModelChecker
 				break;
 			case ExpressionFunc.MOD:
 				for (i = 0; i < n; i++) {
-					d = (int) dv2.getElement(i);
-					d = (d == 0) ? Double.NaN : (int) dv1.getElement(i) % (int) d;
-					dv1.setElement(i, d);
+					double div = (int) dv2.getElement(i);
+					// Non-positive divisor not allowed (flag as NaN)
+					d = (div <= 0) ? Double.NaN : (int) dv1.getElement(i) % (int) div;
+					// Take care of negative case (% is remainder, not modulo)
+					dv1.setElement(i, d < 0 ? d + div : d);
 				}
 				break;
 			case ExpressionFunc.LOG:

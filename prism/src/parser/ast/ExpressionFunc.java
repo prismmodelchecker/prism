@@ -262,9 +262,12 @@ public class ExpressionFunc extends Expression
 	{
 		int i = getOperand(0).evaluateInt(ec);
 		int j = getOperand(1).evaluateInt(ec);
-		if (j == 0)
-			throw new PrismLangException("Attempt to compute modulo zero", this);
-		return new Integer(i % j);
+		// Non-positive divisor not allowed 
+		if (j <= 0)
+			throw new PrismLangException("Attempt to compute modulo with non-positive divisor", this);
+		// Take care of negative case (% is remainder, not modulo)
+		int rem = i % j;
+		return new Integer(rem < 0 ? rem + j : rem);
 	}
 
 	public Object evaluateLog(EvaluateContext ec) throws PrismLangException
