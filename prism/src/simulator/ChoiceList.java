@@ -30,6 +30,8 @@ import java.util.*;
 
 import parser.*;
 import parser.ast.*;
+import prism.ModelType;
+import prism.PrismException;
 import prism.PrismLangException;
 
 public class ChoiceList implements Choice
@@ -199,6 +201,12 @@ public class ChoiceList implements Choice
 			d += probability.get(i);
 		}
 		return i - 1;
+	}
+	
+	@Override
+	public void checkValid(ModelType modelType) throws PrismException
+	{
+		// TODO
 	}
 	
 	public String toString()

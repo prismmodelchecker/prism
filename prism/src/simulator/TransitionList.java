@@ -72,7 +72,18 @@ public class TransitionList
 		numTransitions += tr.size();
 		probSum += tr.getProbabilitySum();
 	}
-
+	
+	/**
+	 * Check the validity of the available transitions for a given model type.
+	 * Throw a PrismExecption if an error is found.
+	 */
+	public void checkValid(ModelType modelType) throws PrismException
+	{
+		for (Choice ch : choices) {
+			ch.checkValid(modelType);
+		}
+	}
+	
 	// ACCESSORS
 
 	/**

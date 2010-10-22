@@ -156,6 +156,12 @@ public class ChoiceSingleton implements Choice
 	}
 
 	@Override
+	public void checkValid(ModelType modelType) throws PrismException
+	{
+		// TODO
+	}
+	
+	@Override
 	public String toString()
 	{
 		return "-{" + ("".equals(action) ?  "" : action+"," ) + probability + "}->" + updates; 

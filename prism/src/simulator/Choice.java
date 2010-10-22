@@ -45,4 +45,5 @@ public interface Choice
 	public State computeTarget(int i, State currentState) throws PrismLangException;
 	public void computeTarget(int i, State currentState, State newState) throws PrismLangException;
 	public int getIndexByProbabilitySum(double x);
+	public void checkValid(ModelType modelType) throws PrismException;
 }

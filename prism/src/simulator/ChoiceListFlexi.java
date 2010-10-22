@@ -30,6 +30,8 @@ import java.util.*;
 
 import parser.*;
 import parser.ast.*;
+import prism.ModelType;
+import prism.PrismException;
 import prism.PrismLangException;
 
 public class ChoiceListFlexi implements Choice
@@ -284,6 +286,13 @@ public class ChoiceListFlexi implements Choice
 		return i - 1;
 	}
 
+	@Override
+	public void checkValid(ModelType modelType) throws PrismException
+	{
+		// Currently nothing to do here:
+		// Checks for bad probabilities/rates done earlier.
+	}
+	
 	public String toString()
 	{
 		int i, n;

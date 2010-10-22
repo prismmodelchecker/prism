@@ -53,6 +53,7 @@ public enum ModelType {
 	
 	/**
 	 * Do the transitions in a choice sum to 1 for this model type?
+	 * Can also use this to test whether models uses rates or probabilities.
 	 */
 	public boolean choicesSumToOne()
 	{

@@ -191,7 +191,11 @@ public class Updater
 				transitionList.add(ch);
 			}
 		}
-
+		
+		// Check validity of the computed transitions
+		// (not needed currently)
+		//transitionList.checkValid(modelType);
+		
 		//System.out.println(transitionList);
 	}
 
@@ -272,7 +276,8 @@ public class Updater
 
 	/**
 	 * Create a new Choice object (currently ChoiceListFlexi) based on an Updates object
-	 * and a (global) state. If appropriate, check probabilities sum to 1 too.
+	 * and a (global) state. Check for negative probabilities/rates and, if appropriate,
+	 * check probabilities sum to 1 too.
 	 * @param moduleOrActionIndex Module/action for the choice, encoded as an integer (see Choice)
 	 * @param ups The Updates object 
 	 * @param state Global state
@@ -290,7 +295,16 @@ public class Updater
 		n = ups.getNumUpdates();
 		sum = 0;
 		for (i = 0; i < n; i++) {
+			// Compute probability/rate
 			p = ups.getProbabilityInState(i, state);
+			// Check for negative/NaN probabilities/rates
+			if (Double.isNaN(p) || p < 0) {
+				String s = modelType.choicesSumToOne() ? "Probability" : "Rate";
+				s += " is invalid (" + p + ") in state " + state.toString(modulesFile);
+				// Note: we indicate error in whole Updates object because the offending
+				// probability expression has probably been simplified from original form.
+				throw new PrismLangException(s, ups);
+			}
 			sum += p;
 			list = new ArrayList<Update>();
 			list.add(ups.getUpdate(i));
