@@ -1076,11 +1076,20 @@ Cudd_addMod(
 {
     DdNode *res;
     DdNode *F, *G;
+    int rem;
     CUDD_VALUE_TYPE value;
 
     F = *f; G = *g;
     if (cuddIsConstant(F) && cuddIsConstant(G)) {
-	value = (cuddV(G) != 0.0) ? ((int)cuddV(F) % (int)cuddV(G)) : (0.0/0.0); // x mod 0 is NaN
+	// If g is <=0, then result is NaN
+	if (cuddV(G) <= 0) value = (0.0/0.0);
+	// Take care of negative case (% is remainder, not modulo)
+	else {
+		rem = ((int)cuddV(F) % (int)cuddV(G));
+		if (rem < 0) rem += (int)cuddV(G);
+		value = rem;
+	}
+	// Create/return result
 	res = cuddUniqueConst(dd,value);
 	return(res);
     }
