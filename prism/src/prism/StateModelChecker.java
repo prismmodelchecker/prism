@@ -781,9 +781,11 @@ public class StateModelChecker implements ModelChecker
 			dd1 = ((StateValuesMTBDD) res1).getJDDNode();
 			switch (op) {
 			case ExpressionFunc.FLOOR:
+				// NB: Floor result kept as double, so don't need to check if operand is NaN
 				dd1 = JDD.MonadicApply(JDD.FLOOR, dd1);
 				break;
 			case ExpressionFunc.CEIL:
+				// NB: Ceil result kept as double, so don't need to check if operand is NaN
 				dd1 = JDD.MonadicApply(JDD.CEIL, dd1);
 				break;
 			}
@@ -795,10 +797,12 @@ public class StateModelChecker implements ModelChecker
 			n = dv1.getSize();
 			switch (op) {
 			case ExpressionFunc.FLOOR:
+				// NB: Floor result kept as double, so don't need to check if operand is NaN
 				for (i = 0; i < n; i++)
 					dv1.setElement(i, Math.floor(dv1.getElement(i)));
 				break;
 			case ExpressionFunc.CEIL:
+				// NB: Ceil result kept as double, so don't need to check if operand is NaN
 				for (i = 0; i < n; i++)
 					dv1.setElement(i, Math.ceil(dv1.getElement(i)));
 				break;

@@ -232,12 +232,20 @@ public class ExpressionFunc extends Expression
 
 	public Object evaluateFloor(EvaluateContext ec) throws PrismLangException
 	{
-		return new Integer((int) Math.floor(getOperand(0).evaluateDouble(ec)));
+		double d = Math.floor(getOperand(0).evaluateDouble(ec));
+		// Check for NaN or +/-inf, otherwise possible errors lost in cast to int
+		if (Double.isNaN(d) || Double.isInfinite(d))
+			throw new PrismLangException("Cannot take floor() of " + d, this);
+		return new Integer((int) d);
 	}
 
 	public Object evaluateCeil(EvaluateContext ec) throws PrismLangException
 	{
-		return new Integer((int) Math.ceil(getOperand(0).evaluateDouble(ec)));
+		double d = Math.ceil(getOperand(0).evaluateDouble(ec));
+		// Check for NaN or +/-inf, otherwise possible errors lost in cast to int
+		if (Double.isNaN(d) || Double.isInfinite(d))
+			throw new PrismLangException("Cannot take ceil() of " + d, this);
+		return new Integer((int) d);
 	}
 
 	public Object evaluatePow(EvaluateContext ec) throws PrismLangException
