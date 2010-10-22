@@ -832,7 +832,23 @@ public class StateModelChecker implements ModelChecker
 			dd2 = ((StateValuesMTBDD) res2).getJDDNode();
 			switch (op) {
 			case ExpressionFunc.POW:
+				// Deref dd1/dd2 because may still need below
+				JDD.Ref(dd1);
+				JDD.Ref(dd2);
 				dd = JDD.Apply(JDD.POW, dd1, dd2);
+				// Check for some possible problems in case of integer power
+				// (denote error with NaN for states with problems)
+				if (expr.getType() instanceof TypeInt) {
+					// Negative exponent not allowed for integer power
+					JDD.Ref(dd2);
+					dd = JDD.ITE(JDD.LessThan(dd2, 0), JDD.Constant(0.0/0.0), dd);
+					// Check for integer overflow 
+					JDD.Ref(dd);
+					dd = JDD.ITE(JDD.GreaterThan(dd, Integer.MAX_VALUE), JDD.Constant(0.0/0.0), dd);
+				}
+				// Late deref of dd1/dd2 because needed above
+				JDD.Deref(dd1);
+				JDD.Deref(dd2);
 				break;
 			case ExpressionFunc.MOD:
 				dd = JDD.Apply(JDD.MOD, dd1, dd2);
@@ -850,8 +866,19 @@ public class StateModelChecker implements ModelChecker
 			n = dv1.getSize();
 			switch (op) {
 			case ExpressionFunc.POW:
-				for (i = 0; i < n; i++)
-					dv1.setElement(i, Math.pow(dv1.getElement(i), dv2.getElement(i)));
+				// For integer power, have to check for errors and flag as NaN
+				if (expr.getType() instanceof TypeInt) {
+					double base, exp, pow;
+					for (i = 0; i < n; i++) {
+						base = dv1.getElement(i);
+						exp = dv2.getElement(i);
+						pow = Math.pow(base, exp);
+						dv1.setElement(i, (exp < 0 || pow > Integer.MAX_VALUE) ? 0.0/0.0: pow);
+					}
+				} else {
+					for (i = 0; i < n; i++)
+						dv1.setElement(i, Math.pow(dv1.getElement(i), dv2.getElement(i)));
+				}
 				break;
 			case ExpressionFunc.MOD:
 				for (i = 0; i < n; i++) {
