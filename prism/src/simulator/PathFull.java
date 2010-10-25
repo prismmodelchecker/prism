@@ -54,6 +54,9 @@ public class PathFull extends Path
 	private ArrayList<Step> steps;
 	// The path length (just for convenience; equal to steps.size() - 1)
 	private int size;
+	
+	// Loop detector for path
+	protected LoopDetector loopDet;
 
 	/**
 	 * Constructor: creates a new (empty) PathFull object for a specific model.
@@ -70,6 +73,8 @@ public class PathFull extends Path
 		steps = new ArrayList<Step>(100);
 		// Initialise variables
 		clear();
+		// Create loop detector
+		loopDet = new LoopDetector();
 	}
 
 	/**
@@ -98,16 +103,18 @@ public class PathFull extends Path
 		for (int i = 0; i < numRewardStructs; i++) {
 			step.rewardsCumul[i] = 0.0;
 		}
+		// Initialise loop detector
+		loopDet.initialise();
 	}
 
 	@Override
-	public void addStep(int choice, int moduleOrActionIndex, double[] transitionRewards, State newState, double[] newStateRewards)
+	public void addStep(int choice, int moduleOrActionIndex, double[] transitionRewards, State newState, double[] newStateRewards, TransitionList transitionList)
 	{
-		addStep(0.0, choice, moduleOrActionIndex, transitionRewards, newState, newStateRewards);
+		addStep(0.0, choice, moduleOrActionIndex, transitionRewards, newState, newStateRewards, transitionList);
 	}
 
 	@Override
-	public void addStep(double time, int choice, int moduleOrActionIndex, double[] transitionRewards, State newState, double[] newStateRewards)
+	public void addStep(double time, int choice, int moduleOrActionIndex, double[] transitionRewards, State newState, double[] newStateRewards, TransitionList transitionList)
 	{
 		Step stepOld, stepNew;
 		// Add info to last existing step
@@ -134,6 +141,8 @@ public class PathFull extends Path
 		}
 		// Update size too
 		size++;
+		// Update loop detector
+		loopDet.addStep(this, transitionList);
 	}
 
 	// MUTATORS (additional)
@@ -158,16 +167,18 @@ public class PathFull extends Path
 			last.transitionRewards[i] = 0.0;
 		// Update size too
 		size = step;
+		// Update loop detector
+		loopDet.backtrack(this);
 	}
 	
 	/**
 	 * Remove the prefix of the current path up to the given path step.
 	 * Index step should be >=0 and <= the total path size. 
-	 * @param step The step before which state will be removed.
+	 * @param step The step before which states will be removed.
 	 */
 	public void removePrecedingStates(int step)
 	{
-		int i, j, n, n2;
+		int i, j, numKeep, sizeOld;
 		double timeCumul, rewardsCumul[];
 		
 		// Ignore trivial case
@@ -180,8 +191,8 @@ public class PathFull extends Path
 			rewardsCumul[j] = getCumulativeReward(step, j);
 		// Move later steps of path 'step' places forward 
 		// and subtract time/reward as appropriate 
-		n = steps.size() - step;
-		for (i = 0; i < n; i++) {
+		numKeep = steps.size() - step;
+		for (i = 0; i < numKeep; i++) {
 			Step tmp = steps.get(i + step);
 			tmp.timeCumul -= timeCumul;
 			for (j = 0; j < numRewardStructs; j++)
@@ -189,20 +200,26 @@ public class PathFull extends Path
 			steps.set(i, tmp);
 		}
 		// Remove steps after index 'step'
-		n2 = steps.size() - 1;
-		for (i = n2; i >= n; i--)
+		sizeOld = steps.size();
+		for (i = sizeOld - 1; i >= numKeep; i--)
 			steps.remove(i);
 		// Update size too
 		size = steps.size() - 1;
+		// Update loop detector
+		loopDet.removePrecedingStates(this, step);
 	}
 	
 	// ACCESSORS (for Path)
 
 	@Override
+	public boolean continuousTime()
+	{
+		return continuousTime;
+	}
+	
+	@Override
 	public int size()
 	{
-		// TODO: remove this sanity check
-		if (size != steps.size() - 1) throw new Error("size != size");
 		return size;
 	}
 
@@ -252,6 +269,24 @@ public class PathFull extends Path
 	public double getCurrentStateReward(int rsi)
 	{
 		return steps.get(steps.size() - 1).stateRewards[rsi];
+	}
+	
+	@Override
+	public boolean isLooping()
+	{
+		return loopDet.isLooping();
+	}
+	
+	@Override
+	public int loopStart()
+	{
+		return loopDet.loopStart();
+	}
+	
+	@Override
+	public int loopEnd()
+	{
+		return loopDet.loopEnd();
 	}
 	
 	// ACCESSORS (additional)

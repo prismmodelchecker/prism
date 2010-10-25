@@ -117,7 +117,7 @@ public class SimulatorEngine
 	// Temporary storage for manipulating states/rewards
 	protected double tmpStateRewards[];
 	protected double tmpTransitionRewards[];
-
+	
 	// Updater object for model
 	protected Updater updater;
 	// Random number generator
@@ -294,12 +294,13 @@ public class SimulatorEngine
 	 * Select, at random, n successive transitions and execute them.
 	 * For continuous-time models, the time to be spent in each state before leaving is also picked randomly.
 	 * If a deadlock is found, the process stops.
+	 * Optionally, if a deterministic loop is detected, the process stops.
 	 * The function returns the number of transitions successfully taken. 
 	 */
-	public int automaticTransitions(int n) throws PrismException
+	public int automaticTransitions(int n, boolean stopOnLoops) throws PrismException
 	{
 		int i = 0;
-		while (i < n) {
+		while (i < n && !(stopOnLoops && path.isLooping())) {
 			if (!automaticTransition())
 				break;
 			i++;
@@ -314,11 +315,11 @@ public class SimulatorEngine
 	 * If a deadlock is found, the process stops.
 	 * The function returns the number of transitions successfully taken. 
 	 */
-	public int automaticTransitions(double time) throws PrismException
+	public int automaticTransitions(double time, boolean stopOnLoops) throws PrismException
 	{
 		// For discrete-time models, this just results in ceil(time) steps being executed.
 		if (!modelType.continuousTime()) {
-			return automaticTransitions((int) Math.ceil(time));
+			return automaticTransitions((int) Math.ceil(time), false);
 		} else {
 			int i = 0;
 			double targetTime = path.getTotalTime() + time;
@@ -638,7 +639,7 @@ public class SimulatorEngine
 		// Compute state rewards for new state 
 		updater.calculateStateRewards(currentState, tmpStateRewards);
 		// Update path
-		path.addStep(index, choice.getModuleOrActionIndex(), tmpTransitionRewards, currentState, tmpStateRewards);
+		path.addStep(index, choice.getModuleOrActionIndex(), tmpTransitionRewards, currentState, tmpStateRewards, transitionList);
 		// Generate transitions for next state 
 		updater.calculateTransitions(currentState, transitionList);
 		// Update samplers for any loaded properties
@@ -671,7 +672,7 @@ public class SimulatorEngine
 		// Compute state rewards for new state 
 		updater.calculateStateRewards(currentState, tmpStateRewards);
 		// Update path
-		path.addStep(time, index, choice.getModuleOrActionIndex(), tmpTransitionRewards, currentState, tmpStateRewards);
+		path.addStep(time, index, choice.getModuleOrActionIndex(), tmpTransitionRewards, currentState, tmpStateRewards, transitionList);
 		// Generate transitions for next state 
 		updater.calculateTransitions(currentState, transitionList);
 		// Update samplers for any loaded properties
@@ -1012,23 +1013,23 @@ public class SimulatorEngine
 	 */
 	public boolean isPathLooping()
 	{
-		return false; // TODO
+		return path.isLooping();
 	}
 
 	/**
-	 * Check whether a deterministic loop (if present) starts.
+	 * Get at which step a deterministic loop (if present) starts.
 	 */
 	public int loopStart()
 	{
-		return -1; // TODO
+		return path.loopStart();
 	}
 
 	/**
-	 * Check whether a deterministic loop (if present) starts.
+	 * Get at which step a deterministic loop (if present) ends.
 	 */
 	public int loopEnd()
 	{
-		return -1; // TODO
+		return path.loopEnd();
 	}
 
 	/**

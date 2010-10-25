@@ -397,10 +397,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	public void a_autoStep(int noSteps)
 	{
 		try {
-			int oldPathSize = engine.getPathSize();
-
 			if (displayPathLoops && pathTableModel.isPathLooping()) {
-				if (questionYesNo("The current path contains a deterministic loop. Do you wish to disable the detection of deterministic loops and extend the path anyway?") == 0) {
+				if (questionYesNo("The current path contains a deterministic loop. \nDo you wish to disable detection of such loops and extend the path anyway?") == 0) {
 					displayPathLoops = false;
 					pathTable.repaint();
 				} else
@@ -413,8 +411,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				engine.computeTransitionsForCurrentState();
 			}
 
-			// TODO engine.automaticTransitions(noSteps, displayPathLoops);
-			engine.automaticTransitions(noSteps);
+			int noStepsTaken = engine.automaticTransitions(noSteps, displayPathLoops);
 
 			pathTableModel.updatePathTable();
 			updateTableModel.updateUpdatesTable();
@@ -428,11 +425,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			pathFormulaeList.repaint();
 			setComputing(false);
 
-			int newPathSize = engine.getPathSize();
-
-			if (displayPathLoops && pathTableModel.isPathLooping() && (newPathSize - oldPathSize) < noSteps) {
-				message("Exploration has stopped early because a deterministic loop has been detected.");
-			}
+			//if (displayPathLoops && pathTableModel.isPathLooping() && (noStepsTaken < noSteps) {
+			//	message("Exploration has stopped early because a deterministic loop has been detected.");
+			//}
 		} catch (PrismException e) {
 			this.error(e.getMessage());
 			guiMultiModel.getHandler().modelParseFailed((PrismLangException) e, false);
@@ -447,7 +442,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			double oldPathTime = engine.getTotalTimeForPath();
 
 			if (displayPathLoops && pathTableModel.isPathLooping()) {
-				if (questionYesNo("The current path contains a deterministic loop. Do you wish to disable the detection of deterministic loops and extend the path anyway?") == 0) {
+				if (questionYesNo("The current path contains a deterministic loop. \nDo you wish to disable detection of such loops and extend the path anyway?") == 0) {
 					displayPathLoops = false;
 					pathTable.repaint();
 				} else
@@ -460,8 +455,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				engine.computeTransitionsForCurrentState();
 			}
 
-			// TODO engine.automaticTransitions(time, displayPathLoops);
-			engine.automaticTransitions(time);
+			engine.automaticTransitions(time, displayPathLoops);
 
 			pathTableModel.updatePathTable();
 			updateTableModel.updateUpdatesTable();
@@ -475,11 +469,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			pathFormulaeList.repaint();
 			setComputing(false);
 
-			double newPathTime = engine.getTotalTimeForPath();
-
-			if (displayPathLoops && pathTableModel.isPathLooping() && (newPathTime - oldPathTime) < time) {
-				message("Exploration has stopped early because a deterministic loop has been detected.");
-			}
+			//if (displayPathLoops && pathTableModel.isPathLooping() && (engine.getTotalTimeForPath() - oldPathTime) < time) {
+			//	message("Exploration has stopped early because a deterministic loop has been detected.");
+			//}
 		} catch (PrismException e) {
 			this.error(e.getMessage());
 		}
@@ -587,7 +579,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				throw new PrismException("No current update is selected");
 
 			if (displayPathLoops && pathTableModel.isPathLooping()) {
-				if (questionYesNo("A loop in the path has been detected. Do you wish to disable loop detection and extend the path?") == 0) {
+				if (questionYesNo("The current path contains a deterministic loop. \nDo you wish to disable detection of such loops and extend the path anyway?") == 0) {
 					displayPathLoops = false;
 					pathTable.repaint();
 				} else

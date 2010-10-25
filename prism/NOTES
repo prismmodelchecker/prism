@@ -16,9 +16,6 @@ PTAs:
 * non-zeno checks?
 * Sort VarList (two types - before and after constants evaluated). Need for simulator too.
 
-Sim(?):
-* Auto x100 in GUI sim doesn't stop on even simple loops
-
 =======================================================
 
 TODO (before public release)
@@ -105,7 +102,7 @@ PTAs:
 
 Simulator:
 * Investigate efficiency wrt old simulator
-* Add (back) support for full loop detection? (embedded into Path*?)
+* Add (back) support for *full* loop detection? (not just *single* self-loops)
 * Add (back) early manual termination of sampling (thru expt stop?)
 * Random initial state
 * Variable overflow etc.

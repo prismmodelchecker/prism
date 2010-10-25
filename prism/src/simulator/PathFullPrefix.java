@@ -57,13 +57,13 @@ public class PathFullPrefix extends Path
 	}
 
 	@Override
-	public void addStep(int choice, int moduleOrActionIndex, double[] transitionRewards, State newState, double[] newStateRewards)
+	public void addStep(int choice, int moduleOrActionIndex, double[] transitionRewards, State newState, double[] newStateRewards, TransitionList transitionList)
 	{
 		// Do nothing (we are not allowed to modify the underlying PathFull)
 	}
 
 	@Override
-	public void addStep(double time, int choice, int moduleOrActionIndex, double[] transitionRewards, State newState, double[] newStateRewards)
+	public void addStep(double time, int choice, int moduleOrActionIndex, double[] transitionRewards, State newState, double[] newStateRewards, TransitionList transitionList)
 	{
 		// Do nothing (we are not allowed to modify the underlying PathFull)
 	}
@@ -77,6 +77,12 @@ public class PathFullPrefix extends Path
 	
 	// ACCESSORS (for Path)
 
+	@Override
+	public boolean continuousTime()
+	{
+		return pathFull.continuousTime();
+	}
+	
 	@Override
 	public int size()
 	{
@@ -129,5 +135,23 @@ public class PathFullPrefix extends Path
 	public double getCurrentStateReward(int rsi)
 	{
 		return pathFull.getStateReward(prefixLength, rsi);
+	}
+	
+	@Override
+	public boolean isLooping()
+	{
+		return pathFull.isLooping() && pathFull.loopEnd() < prefixLength;
+	}
+	
+	@Override
+	public int loopStart()
+	{
+		return isLooping() ? pathFull.loopStart() : -1;
+	}
+	
+	@Override
+	public int loopEnd()
+	{
+		return isLooping() ? pathFull.loopEnd() : -1;
 	}
 }

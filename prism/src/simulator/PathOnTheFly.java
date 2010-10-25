@@ -55,6 +55,9 @@ public class PathOnTheFly extends Path
 	protected double previousTransitionRewards[];
 	protected double currentStateRewards[];
 	
+	// Loop detector for path
+	protected LoopDetector loopDet;
+
 	/**
 	 * Constructor: creates a new (empty) PathOnTheFly object for a specific model.
 	 */
@@ -76,6 +79,8 @@ public class PathOnTheFly extends Path
 		currentStateRewards = new double[numRewardStructs];
 		// Initialise path info
 		clear();
+		// Create loop detector
+		loopDet = new LoopDetector();
 	}
 
 	/**
@@ -107,16 +112,18 @@ public class PathOnTheFly extends Path
 		for (int i = 0; i < numRewardStructs; i++) {
 			currentStateRewards[i] = initialStateRewards[i];
 		}
+		// Initialise loop detector
+		loopDet.initialise();
 	}
 
 	@Override
-	public void addStep(int choice, int actionIndex, double[] transRewards, State newState, double[] newStateRewards)
+	public void addStep(int choice, int actionIndex, double[] transRewards, State newState, double[] newStateRewards, TransitionList transitionList)
 	{
-		addStep(0, choice, actionIndex, transRewards, newState, newStateRewards);
+		addStep(0, choice, actionIndex, transRewards, newState, newStateRewards, transitionList);
 	}
 
 	@Override
-	public void addStep(double time, int choice, int actionIndex, double[] transRewards, State newState, double[] newStateRewards)
+	public void addStep(double time, int choice, int actionIndex, double[] transRewards, State newState, double[] newStateRewards, TransitionList transitionList)
 	{
 		size++;
 		previousState.copy(currentState);
@@ -133,10 +140,18 @@ public class PathOnTheFly extends Path
 			previousTransitionRewards[i] = transRewards[i];
 			currentStateRewards[i] = newStateRewards[i];
 		}
+		// Update loop detector
+		loopDet.addStep(this, transitionList);
 	}
 
 	// ACCESSORS (for Path)
 
+	@Override
+	public boolean continuousTime()
+	{
+		return continuousTime;
+	}
+	
 	@Override
 	public int size()
 	{
@@ -189,5 +204,23 @@ public class PathOnTheFly extends Path
 	public double getCurrentStateReward(int rsi)
 	{
 		return currentStateRewards[rsi];
+	}
+	
+	@Override
+	public boolean isLooping()
+	{
+		return loopDet.isLooping();
+	}
+	
+	@Override
+	public int loopStart()
+	{
+		return loopDet.loopStart();
+	}
+	
+	@Override
+	public int loopEnd()
+	{
+		return loopDet.loopEnd();
 	}
 }

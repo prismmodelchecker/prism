@@ -45,15 +45,20 @@ public abstract class Path
 	 * Add a step to the path.
 	 * Note: State object and arrays will be copied, not stored directly.
 	 */
-	public abstract void addStep(int choice, int actionIndex, double[] transRewards, State newState, double[] newStateRewards);
+	public abstract void addStep(int choice, int actionIndex, double[] transRewards, State newState, double[] newStateRewards, TransitionList transitionList);
 
 	/**
 	 * Add a timed step to the path.
 	 * Note: State object and arrays will be copied, not stored directly.
 	 */
-	public abstract void addStep(double time, int choice, int actionIndex, double[] transRewards, State newState, double[] newStateRewards);
+	public abstract void addStep(double time, int choice, int actionIndex, double[] transRewards, State newState, double[] newStateRewards, TransitionList transitionList);
 
 	// ACCESSORS
+
+	/**
+	 * Check whether this path includes continuous-time information, e.g. delays for a CTMC.
+	 */
+	public abstract boolean continuousTime();
 
 	/**
 	 * Get the size of the path (number of steps; or number of states - 1).
@@ -107,4 +112,19 @@ public abstract class Path
 	 * @param rsi Reward structure index
 	 */
 	public abstract double getCurrentStateReward(int rsi);
+	
+	/**
+	 * Does the path contain a deterministic loop?
+	 */
+	public abstract boolean isLooping();
+	
+	/**
+	 * What is the step index of the start of the deterministic loop, if it exists?
+	 */
+	public abstract int loopStart();
+	
+	/**
+	 * What is the step index of the end of the deterministic loop, if it exists?
+	 */
+	public abstract int loopEnd();
 }

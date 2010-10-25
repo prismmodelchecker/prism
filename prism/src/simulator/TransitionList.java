@@ -243,6 +243,8 @@ public class TransitionList
 
 	/**
 	 * Are the choices deterministic? (i.e. a single probability 1.0 transition)
+	 * (will also return true for a continuous-time model matching this
+	 * definition, since TransitionList does not know about model type)
 	 */
 	public boolean isDeterministic()
 	{

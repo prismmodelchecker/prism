@@ -75,7 +75,8 @@ public class SamplerUntil extends SamplerBoolean
 			value = false;
 		}
 		// Or, if we are now at a deadlock/self-loop
-		else if (transList != null && (transList.isDeadlock() || transList.isDeterministicSelfLoop(currentState))) {
+		else if (transList != null && (transList.isDeadlock() || path.isLooping())) {
+		//else if (transList != null && (transList.isDeadlock() || transList.isDeterministicSelfLoop(currentState))) {
 			valueKnown = true;
 			value = false;
 		}
