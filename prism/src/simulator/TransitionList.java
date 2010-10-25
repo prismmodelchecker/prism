@@ -178,7 +178,7 @@ public class TransitionList
 		// Pick transition within choice 
 		choice = getChoice(i - 1);
 		if (choice.size() > 1) {
-			ref.offset = choice.getIndexByProbabilitySum(tot - d);
+			ref.offset = choice.getIndexByProbabilitySum(x - (tot - d));
 		} else {
 			ref.offset = 0;
 		}
