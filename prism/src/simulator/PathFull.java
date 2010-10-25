@@ -436,7 +436,7 @@ public class PathFull extends Path
 
 		// Write path
 		t = 0.0;
-		for (i = 0; i < n; i++) {
+		for (i = 0; i <= n; i++) {
 			// (if required) see if relevant vars have changed
 			if (vars != null && i > 0) {
 				changed = false;
