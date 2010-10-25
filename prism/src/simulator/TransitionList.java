@@ -242,6 +242,14 @@ public class TransitionList
 	}
 
 	/**
+	 * Are the choices deterministic? (i.e. a single probability 1.0 transition)
+	 */
+	public boolean isDeterministic()
+	{
+		return numTransitions == 1 && getChoice(0).getProbability(0) == 1.0;
+	}
+
+	/**
 	 * Is there a deterministic self-loop, i.e. do all transitions go to the current state.
 	 */
 	public boolean isDeterministicSelfLoop(State currentState)
