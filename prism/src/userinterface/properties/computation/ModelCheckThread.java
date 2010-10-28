@@ -38,35 +38,57 @@ import userinterface.util.*;
 import userinterface.properties.*;
 
 /**
- *
- * @author  ug60axh
+ * Thread that executes model checking of a property via PRISM.
  */
 public class ModelCheckThread extends GUIComputationThread
 {
+	// Access to GUI (to send notifications etc.)
 	private GUIMultiProperties parent;
+	// Model (in most cases, have a Model object; in others, e.g. PTA model checking,
+	// we just have the language-level model description, i.e. a ModulesFile).
+	// Currently exactly one-of m/mf is non-null
 	private Model m;
-	private PropertiesFile prFi;
+	private ModulesFile mf;
+	// Properties file and GUI properties (these are assumed to match)
+	// (Also need properties file for access to constants/labels/etc.)
+	private PropertiesFile pf;
 	private ArrayList<GUIProperty> guiProps;
+	// Values give to constants
 	private Values definedMFConstants;
 	private Values definedPFConstants;
-	
-	/** Creates a new instance of ModelCheckThread */
-	public ModelCheckThread(GUIMultiProperties parent, Model m, PropertiesFile prFi, ArrayList<GUIProperty> guiProps, Values definedMFConstants, Values definedPFConstants)
+
+	/**
+	 * Create a new instance of ModelCheckThread (where a Model has been built)
+	 */
+	public ModelCheckThread(GUIMultiProperties parent, Model m, PropertiesFile pf, ArrayList<GUIProperty> guiProps, Values definedMFConstants,
+			Values definedPFConstants)
 	{
 		super(parent);
 		this.parent = parent;
 		this.m = m;
-		this.prFi = prFi;
+		this.mf = null;
+		this.pf = pf;
 		this.guiProps = guiProps;
 		this.definedMFConstants = definedMFConstants;
 		this.definedPFConstants = definedPFConstants;
 	}
-	
+
+	/**
+	 * Create a new instance of ModelCheckThread (where no Model has been built, e.g. PTAs)
+	 */
+	public ModelCheckThread(GUIMultiProperties parent, ModulesFile mf, PropertiesFile pf, ArrayList<GUIProperty> guiProps, Values definedMFConstants,
+			Values definedPFConstants)
+	{
+		this(parent, (Model) null, pf, guiProps, definedMFConstants, definedPFConstants);
+		this.mf = mf;
+	}
+
 	public void run()
 	{
-		if(m == null) return;
-		
-		//Notify user interface of the start of computation
+		if (m == null && mf == null)
+			return;
+
+		// Notify user interface of the start of computation
 		SwingUtilities.invokeLater(new Runnable()
 		{
 			public void run()
@@ -76,54 +98,67 @@ public class ModelCheckThread extends GUIComputationThread
 				parent.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_START, parent));
 			}
 		});
-		
+
 		Result result = null;
-		
-		//Set icon for all properties to be verified to a clock
-		for(int i = 0; i < guiProps.size(); i++)
-		{
+
+		// Set icon for all properties to be verified to a clock
+		for (int i = 0; i < guiProps.size(); i++) {
 			GUIProperty gp = guiProps.get(i);
 			gp.setStatus(GUIProperty.STATUS_DOING);
 			parent.repaintList();
 		}
-		
+
 		IconThread ic = new IconThread(null);
-		
-		for(int i = 0; i < prFi.getNumProperties(); i++)
-		{
-			// get property
+
+		// Work through list of properties
+		for (int i = 0; i < pf.getNumProperties(); i++) {
+
+			// Get ith property
 			GUIProperty gp = guiProps.get(i);
-			// animate it's clock icon
+			// Animate it's clock icon
 			ic = new IconThread(gp);
 			ic.start();
-			// do model checking
-			try
-			{
+
+			// Do model checking
+			try {
+				// Print info to log
 				logln("\n-------------------------------------------");
-				logln("\nModel checking: " + prFi.getProperty(i));
-				if (definedMFConstants != null) if (definedMFConstants.getNumValues() > 0) logln("Model constants: " + definedMFConstants);
-				if (definedPFConstants != null) if (definedPFConstants.getNumValues() > 0) logln("Property constants: " + definedPFConstants);
-				result = prism.modelCheck(m, prFi, prFi.getProperty(i));
-			}
-			catch(PrismException e)
-			{
+				logln("\nModel checking: " + pf.getProperty(i));
+				if (definedMFConstants != null)
+					if (definedMFConstants.getNumValues() > 0)
+						logln("Model constants: " + definedMFConstants);
+				if (definedPFConstants != null)
+					if (definedPFConstants.getNumValues() > 0)
+						logln("Property constants: " + definedPFConstants);
+				// No model (PTA) case
+				if (m == null) {
+					if (mf.getModelType() != ModelType.PTA)
+						throw new PrismException("No model to verify");
+					result = prism.modelCheckPTA(mf, pf, pf.getProperty(i));
+				}
+				// Normal model checking
+				else {
+					result = prism.modelCheck(m, pf, pf.getProperty(i));
+				}
+
+			} catch (PrismException e) {
 				result = new Result(e);
 				error(e.getMessage());
 			}
 			ic.interrupt();
-			try
-			{
+			try {
 				ic.join();
+			} catch (InterruptedException e) {
 			}
-			catch(InterruptedException e)
-			{}
 			//while(!ic.canContinue){}
 			gp.setResult(result);
 			gp.setMethodString("Verification");
 			gp.setConstants(definedMFConstants, definedPFConstants);
-			
+
 			parent.repaintList();
 		}
+
+		// Notify user interface of the end of computation
 		SwingUtilities.invokeLater(new Runnable()
 		{
 			public void run()
@@ -136,11 +171,13 @@ public class ModelCheckThread extends GUIComputationThread
 		});
 	}
 
+	// Clock animation icon
 	class IconThread extends Thread
 	{
 		GUIProperty gp;
 		ImageIcon[] images;
 		boolean canContinue = false;
+
 		public IconThread(GUIProperty gp)
 		{
 			this.gp = gp;
@@ -154,22 +191,19 @@ public class ModelCheckThread extends GUIComputationThread
 			images[6] = GUIPrism.getIconFromImage("smallClockAnim7.png");
 			images[7] = GUIPrism.getIconFromImage("smallClockAnim8.png");
 		}
+
 		public void run()
 		{
-			try
-			{
+			try {
 				int counter = 0;
-				while(!interrupted() && gp != null)
-				{
+				while (!interrupted() && gp != null) {
 					counter++;
-					counter = counter%8;
+					counter = counter % 8;
 					gp.setDoingImage(images[counter]);
 					parent.repaintList();
 					sleep(150);
 				}
-			}
-			catch(InterruptedException e)
-			{
+			} catch (InterruptedException e) {
 			}
 			canContinue = true;
 		}

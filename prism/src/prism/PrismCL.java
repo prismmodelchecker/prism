@@ -266,17 +266,17 @@ public class PrismCL
 				tmpLog.print(mfTmp.toString());
 			}
 
-			// decide if model construction is necessary
+			// Decide if model construction is necessary
 			boolean doBuild = true;
-			// if explicitly disabled...
+			// If explicitly disabled...
 			if (nobuild)
 				doBuild = false;
-			// no need if using approximate (simulation-based) model checking...
+			// No need if using approximate (simulation-based) model checking...
 			if (simulate)
 				doBuild = false;
-			// no need for PTA model checking (when not using digital clocks)...
-			else if (modulesFile.getModelType() == ModelType.PTA
-					&& !prism.getSettings().getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks"))
+			// No need if doing PTA model checking...
+			// (NB: PTA digital clocks excluded - has already been reduced to an MDP)
+			if (modulesFile.getModelType() == ModelType.PTA)
 				doBuild = false;
 
 			// do model construction (if necessary)
@@ -396,12 +396,10 @@ public class PrismCL
 							// exact (non-appoximate) model checking
 							if (!simulate) {
 								// PTA model checking
-								if (modulesFile.getModelType() == ModelType.PTA
-										&& !prism.getSettings().getString(PrismSettings.PRISM_PTA_METHOD).equals(
-												"Digital clocks")) {
+								if (modulesFile.getModelType() == ModelType.PTA) {
 									res = prism.modelCheckPTA(modulesFile, propertiesFile, propertiesToCheck[j]);
 								}
-								// non-PTA model checking
+								// Non-PTA model checking
 								else {
 									res = prism.modelCheck(model, propertiesFile, propertiesToCheck[j]);
 								}
