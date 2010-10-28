@@ -52,7 +52,6 @@ public class Result
 	
 	/**
 	 * Create a Result object based on a result.
-	 * (If result is an Exception, explanatory text is also set.)
 	 */
 	public Result(Object result)
 	{
@@ -62,15 +61,10 @@ public class Result
 	
 	/**
 	 * Set the result.
-	 * (If result is an Exception, explanatory text is also set.)
 	 */
 	public void setResult(Object result)
 	{
 		this.result = result;
-		if (result instanceof Exception)
-			this.explanation = ((Exception)result).getMessage();
-		else
-			this.explanation = null;
 	}
 	
 	/**
