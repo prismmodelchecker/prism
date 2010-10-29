@@ -32,6 +32,7 @@ static int num_odd_nodes = 0;
 // local prototypes
 static ODDNode *build_odd_rec(DdManager *ddman, DdNode *dd, int level, DdNode **vars, int num_vars, ODDNode **tables);
 static long add_offsets(DdManager *ddman, ODDNode *dd, int level, int num_vars);
+static DdNode *single_index_to_bdd_rec(DdManager *ddman, int i, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
 
 //------------------------------------------------------------------------------
 
@@ -160,6 +161,34 @@ int get_index_of_first_from_bdd(DdManager *ddman, DdNode *dd, DdNode **vars, int
 	}
 
 	return index;
+}
+
+// Get a BDD for a single state given its index and the accompanying ODD.
+
+EXPORT DdNode *single_index_to_bdd(DdManager *ddman, int i, DdNode **vars, int num_vars, ODDNode *odd)
+{
+	return single_index_to_bdd_rec(ddman, i, vars, num_vars, 0, odd, 0);
+}
+
+DdNode *single_index_to_bdd_rec(DdManager *ddman, int i, DdNode **vars, int num_vars, int level, ODDNode *odd, long o)
+{
+	DdNode *dd;
+
+	if (level == num_vars) {
+		return DD_Constant(ddman, 1);
+	}
+	else {
+		if (odd->eoff > i - o) {
+			dd = single_index_to_bdd_rec(ddman, i, vars, num_vars, level+1, odd->e, o);
+			Cudd_Ref(vars[level]);
+			return DD_And(ddman, DD_Not(ddman, vars[level]), dd);
+		}
+		else {
+			dd = single_index_to_bdd_rec(ddman, i, vars, num_vars, level+1, odd->t, o+odd->eoff);
+			Cudd_Ref(vars[level]);
+			return DD_And(ddman, vars[level], dd);
+		}
+	}
 }
 
 //------------------------------------------------------------------------------
