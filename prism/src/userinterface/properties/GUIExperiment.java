@@ -31,6 +31,7 @@ import parser.*;
 import parser.ast.*;
 import parser.type.*;
 import prism.*;
+import pta.DigitalClocks;
 
 import javax.swing.*;
 import userinterface.*;
@@ -218,6 +219,7 @@ public class GUIExperiment
 			boolean clear = true;
 			Model model = null;
 
+			ModulesFile modulesFileToCheck;
 			Expression propertyToCheck = propertiesFile.getProperty(0);
 			SimulationInformation info = null;
 			boolean reuseInfo = false, reuseInfoAsked = false;
@@ -390,7 +392,7 @@ public class GUIExperiment
 									propertiesFile.setUndefinedConstants(definedPFConstants);
 								}
 
-								// do model checking
+								// log output
 								logln("\n-------------------------------------------");
 								logln("\n" + (useSimulation ? "Simulating" : "Model checking") + ": " + propertyToCheck);
 								if (definedMFConstants != null)
@@ -399,21 +401,49 @@ public class GUIExperiment
 								if (definedPFConstants != null)
 									if (definedPFConstants.getNumValues() > 0)
 										logln("Property constants: " + definedPFConstants);
-								if (useSimulation)
-									log("Simulation parameters: approx = " + info.getApprox() + ", conf = " + info.getConfidence() + ", num samples = "
-											+ info.getNoIterations() + ", max path len = " + info.getMaxPathLength() + ")\n");
 
+								// for PTAs via digital clocks, do model translation and build
+								if (modulesFile.getModelType() == ModelType.PTA
+										&& prism.getSettings().getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks")) {
+									DigitalClocks dc = new DigitalClocks(prism);
+									dc.translate(modulesFile, propertiesFile, propertyToCheck);
+									modulesFileToCheck = dc.getNewModulesFile();
+									modulesFileToCheck.setUndefinedConstants(modulesFile.getConstantValues());
+									// build model
+									logln("\n-------------------------------------------");
+									model = prism.buildModel(modulesFileToCheck);
+									clear = false;
+									// remove any deadlocks (don't prompt - probably should)
+									StateList states = model.getDeadlockStates();
+									if (states != null) {
+										if (states.size() > 0) {
+											guiProp.log("\nWarning: " + states.size() + " deadlock states detected; adding self-loops in these states...\n");
+											model.fixDeadlocks();
+										}
+									}
+									// print some model info
+									guiProp.log("\n");
+									model.printTransInfo(guiProp.getGUI().getLog());
+								} else {
+									modulesFileToCheck = modulesFile;
+								}
+
+								// exact (non-approximate) model checking
 								if (!useSimulation) {
 									// PTA model checking
-									if (modulesFile.getModelType() == ModelType.PTA) {
-										res = prism.modelCheckPTA(modulesFile, propertiesFile, propertyToCheck);
+									if (modulesFileToCheck.getModelType() == ModelType.PTA) {
+										res = prism.modelCheckPTA(modulesFileToCheck, propertiesFile, propertyToCheck);
 									}
 									// Non-PTA model checking
 									else {
 										res = prism.modelCheck(model, propertiesFile, propertyToCheck);
 									}
-								} else {
-									res = prism.modelCheckSimulator(modulesFile, propertiesFile, propertyToCheck, info.getInitialState(), info
+								}
+								// approximate (simulation-based) model checking
+								else {
+									log("Simulation parameters: approx = " + info.getApprox() + ", conf = " + info.getConfidence() + ", num samples = "
+											+ info.getNoIterations() + ", max path len = " + info.getMaxPathLength() + ")\n");
+									res = prism.modelCheckSimulator(modulesFileToCheck, propertiesFile, propertyToCheck, info.getInitialState(), info
 											.getNoIterations(), info.getMaxPathLength());
 								}
 							} catch (PrismException e) {
