@@ -262,7 +262,7 @@ public class PrismCL
 			if (simulate)
 				doBuild = false;
 			// No need if doing PTA model checking...
-			// (NB: PTA digital clocks excluded - has already been reduced to an MDP)
+			// (even if needed for digital clocks, will be done later)
 			if (modulesFile.getModelType() == ModelType.PTA)
 				doBuild = false;
 
