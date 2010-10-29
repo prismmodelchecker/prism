@@ -383,7 +383,7 @@ public class PrismCL
 							if (modulesFile.getModelType() == ModelType.PTA
 									&& prism.getSettings().getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks")) {
 								DigitalClocks dc = new DigitalClocks(prism);
-								dc.translate(modulesFile, propertiesFile);
+								dc.translate(modulesFile, propertiesFile, propertiesToCheck[j]);
 								modulesFileToCheck = dc.getNewModulesFile();
 								modulesFileToCheck.setUndefinedConstants(modulesFile.getConstantValues());
 								buildModel(modulesFileToCheck);
