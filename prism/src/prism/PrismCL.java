@@ -146,6 +146,7 @@ public class PrismCL
 	public void run(String[] args)
 	{
 		int i, j, k;
+		ModulesFile modulesFileToCheck;
 		Result res;
 
 		// initialise
@@ -217,20 +218,6 @@ public class PrismCL
 				continue;
 			}
 
-			// for pta model checking using digital clocks, we do a model translation here
-			if (modulesFile.getModelType() == ModelType.PTA
-					&& prism.getSettings().getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks")) {
-				try {
-					DigitalClocks dc = new DigitalClocks(prism);
-					dc.translate(modulesFile, propertiesFile);
-					ModulesFile mfMdp = dc.getNewModulesFile();
-					mfMdp.setUndefinedConstants(modulesFile.getConstantValues());
-					modulesFile = mfMdp;
-				} catch (PrismLangException e) {
-					errorAndExit(e.getMessage());
-				}
-			}
-
 			// output final prism model here if required
 			if (exportprism) {
 				mainLog.print("\nExporting parsed PRISM file ");
@@ -283,7 +270,7 @@ public class PrismCL
 			if (doBuild) {
 				// build model
 				try {
-					buildModel();
+					buildModel(modulesFile);
 				} catch (PrismException e) {
 					// in case of error, report it, store as result for any properties, and go on to the next model
 					error(e.getMessage());
@@ -353,11 +340,10 @@ public class PrismCL
 							if (definedMFConstants.getNumValues() > 0)
 								mainLog.println("Model constants: " + definedMFConstants);
 						mainLog.println("Property constants: " + undefinedConstants.getPFDefinedConstantsString());
-						mainLog.println("Simulation parameters: approx = " + simApprox + ", conf = " + simConfidence
-								+ ", num samples = " + simNumSamples + ", max path len = " + simMaxPath + ")");
-						prism.modelCheckSimulatorExperiment(modulesFile, propertiesFile, undefinedConstants,
-								results[j], propertiesToCheck[j], modulesFile.getInitialValues(), simNumSamples,
-								simMaxPath);
+						mainLog.println("Simulation parameters: approx = " + simApprox + ", conf = " + simConfidence + ", num samples = " + simNumSamples
+								+ ", max path len = " + simMaxPath + ")");
+						prism.modelCheckSimulatorExperiment(modulesFile, propertiesFile, undefinedConstants, results[j], propertiesToCheck[j], modulesFile
+								.getInitialValues(), simNumSamples, simMaxPath);
 					} catch (PrismException e) {
 						// in case of (overall) error, report it, store as result for property, and proceed
 						error(e.getMessage());
@@ -383,21 +369,33 @@ public class PrismCL
 								propertiesFile.setUndefinedConstants(definedPFConstants);
 							}
 
-							// do model checking
+							// log output
 							mainLog.println("\n-------------------------------------------");
-							mainLog.println("\n" + (simulate ? "Simulating" : "Model checking") + ": "
-									+ propertiesToCheck[j]);
+							mainLog.println("\n" + (simulate ? "Simulating" : "Model checking") + ": " + propertiesToCheck[j]);
 							if (definedMFConstants != null)
 								if (definedMFConstants.getNumValues() > 0)
 									mainLog.println("Model constants: " + definedMFConstants);
 							if (definedPFConstants != null)
 								if (definedPFConstants.getNumValues() > 0)
 									mainLog.println("Property constants: " + definedPFConstants);
-							// exact (non-appoximate) model checking
+
+							// for PTAs via digital clocks, do model translation and build
+							if (modulesFile.getModelType() == ModelType.PTA
+									&& prism.getSettings().getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks")) {
+								DigitalClocks dc = new DigitalClocks(prism);
+								dc.translate(modulesFile, propertiesFile);
+								modulesFileToCheck = dc.getNewModulesFile();
+								modulesFileToCheck.setUndefinedConstants(modulesFile.getConstantValues());
+								buildModel(modulesFileToCheck);
+							} else {
+								modulesFileToCheck = modulesFile;
+							}
+
+							// exact (non-approximate) model checking
 							if (!simulate) {
 								// PTA model checking
-								if (modulesFile.getModelType() == ModelType.PTA) {
-									res = prism.modelCheckPTA(modulesFile, propertiesFile, propertiesToCheck[j]);
+								if (modulesFileToCheck.getModelType() == ModelType.PTA) {
+									res = prism.modelCheckPTA(modulesFileToCheck, propertiesFile, propertiesToCheck[j]);
 								}
 								// Non-PTA model checking
 								else {
@@ -406,11 +404,10 @@ public class PrismCL
 							}
 							// approximate (simulation-based) model checking
 							else {
-								mainLog.println("Simulation parameters: approx = " + simApprox + ", conf = "
-										+ simConfidence + ", num samples = " + simNumSamples + ", max path len = "
-										+ simMaxPath + ")");
-								res = prism.modelCheckSimulator(modulesFile, propertiesFile, propertiesToCheck[j],
-										modulesFile.getInitialValues(), simNumSamples, simMaxPath);
+								mainLog.println("Simulation parameters: approx = " + simApprox + ", conf = " + simConfidence + ", num samples = "
+										+ simNumSamples + ", max path len = " + simMaxPath + ")");
+								res = prism.modelCheckSimulator(modulesFileToCheck, propertiesFile, propertiesToCheck[j],
+										modulesFileToCheck.getInitialValues(), simNumSamples, simMaxPath);
 							}
 						} catch (PrismException e) {
 							// in case of error, report it, store exception as the result and proceed
@@ -596,9 +593,12 @@ public class PrismCL
 		}
 	}
 
-	// build model
-
-	private void buildModel() throws PrismException
+	/**
+	 * Build a model, usually from the passed in modulesFileToBuild. However, if importtrans=true,
+	 * then explicit model import is done and modulesFileToBuild can be null.
+	 * This method also displays model info and checks/fixes deadlocks.
+	 */
+	private void buildModel(ModulesFile modulesFileToBuild) throws PrismException
 	{
 		StateList states;
 		int i;
@@ -609,7 +609,7 @@ public class PrismCL
 		if (importtrans) {
 			model = prism.buildExplicitModel();
 		} else {
-			model = prism.buildModel(modulesFile);
+			model = prism.buildModel(modulesFileToBuild);
 		}
 
 		// print model info
@@ -631,8 +631,7 @@ public class PrismCL
 			if (states.size() > 0) {
 				// if requested, remove them
 				if (fixdl) {
-					mainLog.print("\nWarning: " + states.size()
-							+ " deadlock states detected; adding self-loops in these states...\n");
+					mainLog.print("\nWarning: " + states.size() + " deadlock states detected; adding self-loops in these states...\n");
 					model.fixDeadlocks();
 				}
 				// otherwise print error and bail out
@@ -641,8 +640,7 @@ public class PrismCL
 					model.printTransInfo(mainLog, prism.getExtraDDInfo());
 					mainLog.print("\nError: Model contains " + states.size() + " deadlock states");
 					if (!verbose && states.size() > 10) {
-						mainLog
-								.print(".\nThe first 10 deadlock states are displayed below. To view them all use the -v switch.\n");
+						mainLog.print(".\nThe first 10 deadlock states are displayed below. To view them all use the -v switch.\n");
 						states.print(mainLog, 10);
 					} else {
 						mainLog.print(":\n");
@@ -665,7 +663,7 @@ public class PrismCL
 			try {
 				explicit.ConstructModel constructModel = new explicit.ConstructModel(prism.getSimulator(), mainLog);
 				mainLog.println("\nConstructing model explicitly...");
-				explicit.Model modelExplicit = constructModel.construct(modulesFile, modulesFile.getInitialValues());
+				explicit.Model modelExplicit = constructModel.construct(modulesFileToBuild, modulesFileToBuild.getInitialValues());
 				tmpFile = File.createTempFile("explicitbuildtest", ".tra").getAbsolutePath();
 				tmpFile = "explicitbuildtest.tra";
 				mainLog.println("\nExporting (explicit) model to \"" + tmpFile + "1\"...");
@@ -712,8 +710,7 @@ public class PrismCL
 			}
 
 			if (exportPlainDeprecated)
-				mainLog
-						.println("\nWarning: The -exportplain switch is now deprecated. Please use -exporttrans in future.");
+				mainLog.println("\nWarning: The -exportplain switch is now deprecated. Please use -exporttrans in future.");
 		}
 
 		// export state rewards to a file
@@ -795,8 +792,7 @@ public class PrismCL
 		// export transition matrix graph to dot file (with states)
 		if (exporttransdotstates) {
 			try {
-				File f = (exportTransDotStatesFilename.equals("stdout")) ? null
-						: new File(exportTransDotStatesFilename);
+				File f = (exportTransDotStatesFilename.equals("stdout")) ? null : new File(exportTransDotStatesFilename);
 				prism.exportTransToFile(model, exportordered, Prism.EXPORT_DOT_STATES, f);
 			}
 			// in case of error, report it and proceed
@@ -851,20 +847,16 @@ public class PrismCL
 			try {
 				d = Double.parseDouble(transientTime);
 			} catch (NumberFormatException e) {
-				throw new PrismException("Invalid value \"" + transientTime
-						+ "\" for transient probability computation");
+				throw new PrismException("Invalid value \"" + transientTime + "\" for transient probability computation");
 			}
-			prism.doTransient(model, d, exportType, exportTransientFile, importinitdist ? new File(
-					importInitDistFilename) : null);
+			prism.doTransient(model, d, exportType, exportTransientFile, importinitdist ? new File(importInitDistFilename) : null);
 		} else if (model.getModelType() == ModelType.DTMC) {
 			try {
 				i = Integer.parseInt(transientTime);
 			} catch (NumberFormatException e) {
-				throw new PrismException("Invalid value \"" + transientTime
-						+ "\" for transient probability computation");
+				throw new PrismException("Invalid value \"" + transientTime + "\" for transient probability computation");
 			}
-			prism.doTransient(model, i, exportType, exportTransientFile, importinitdist ? new File(
-					importInitDistFilename) : null);
+			prism.doTransient(model, i, exportType, exportTransientFile, importinitdist ? new File(importInitDistFilename) : null);
 		} else {
 			mainLog.println("\nWarning: Transient probabilities only computed for DTMCs/CTMCs.");
 		}
@@ -1098,8 +1090,7 @@ public class PrismCL
 						else if (s.equals("sccfind"))
 							prism.getSettings().set(PrismSettings.PRISM_SCC_METHOD, "SCC-Find");
 						else
-							errorAndExit("Unrecognised option for -" + sw
-									+ " switch (options are: xiebeerel, lockstep, sccfind)");
+							errorAndExit("Unrecognised option for -" + sw + " switch (options are: xiebeerel, lockstep, sccfind)");
 					} else {
 						errorAndExit("No parameter specified for -" + sw + " switch");
 					}
@@ -1685,8 +1676,7 @@ public class PrismCL
 		// check not trying to do gauss-seidel with mtbdd engine
 		if (prism.getEngine() == Prism.MTBDD) {
 			j = prism.getLinEqMethod();
-			if (j == Prism.GAUSSSEIDEL || j == Prism.BGAUSSSEIDEL || j == Prism.PGAUSSSEIDEL
-					|| j == Prism.BPGAUSSSEIDEL) {
+			if (j == Prism.GAUSSSEIDEL || j == Prism.BGAUSSSEIDEL || j == Prism.PGAUSSSEIDEL || j == Prism.BPGAUSSSEIDEL) {
 				errorAndExit("Gauss-Seidel and its variants are currently not supported by the MTBDD engine");
 			}
 			if (j == Prism.SOR || j == Prism.BSOR || j == Prism.PSOR || j == Prism.BPSOR) {
@@ -1706,8 +1696,7 @@ public class PrismCL
 
 		// print a warning if user tried to specify all three params
 		if (simApproxGiven && simConfidenceGiven && simNumSamplesGiven)
-			mainLog
-					.println("\nWarning: Cannot specify all three simulation parameters; ignoring approximation parameter.");
+			mainLog.println("\nWarning: Cannot specify all three simulation parameters; ignoring approximation parameter.");
 		// start with default values where not supplied
 		if (!simApproxGiven)
 			simApprox = prism.getSettings().getDouble(PrismSettings.SIMULATOR_DEFAULT_APPROX);
@@ -1758,8 +1747,7 @@ public class PrismCL
 		mainLog.println("-importstates <file>............ Import the list of states directly from a text file");
 		mainLog.println("-importlabels <file>............ Import the list of labels directly from a text file");
 		mainLog.println("-importinit <expr>.............. Specify the initial state for explicitly imported models");
-		mainLog
-				.println("-importinitdist <expr>.......... Specify the initial probability distribution for transient analysis");
+		mainLog.println("-importinitdist <expr>.......... Specify the initial probability distribution for transient analysis");
 		mainLog.println("-dtmc .......................... Force imported/built model to be a DTMC");
 		mainLog.println("-ctmc .......................... Force imported/built model to be a CTMC");
 		mainLog.println("-mdp ........................... Force imported/built model to be an MDP");
@@ -1770,15 +1758,13 @@ public class PrismCL
 		mainLog.println("-exporttransrewards <file> ..... Export the transition rewards matrix to a file");
 		mainLog.println("-exportstates <file> ........... Export the list of reachable states to a file");
 		mainLog.println("-exportlabels <file> ........... Export the list of labels and satisfying states to a file");
-		mainLog
-				.println("-exportmatlab .................. When exporting matrices/vectors/labels/etc., use Matlab format");
+		mainLog.println("-exportmatlab .................. When exporting matrices/vectors/labels/etc., use Matlab format");
 		mainLog.println("-exportmrmc .................... When exporting matrices/vectors/labels, use MRMC format");
 		mainLog.println("-exportrows .................... When exporting matrices, put a whole row on one line");
 		mainLog.println("-exportordered ................. When exporting matrices, order entries (by row) [default]");
 		mainLog.println("-exportunordered ............... When exporting matrices, don't order entries");
 		mainLog.println("-exporttransdot <file> ......... Export the transition matrix graph to a dot file");
-		mainLog
-				.println("-exporttransdotstates <file> ... Export the transition matrix graph to a dot file, with state info");
+		mainLog.println("-exporttransdotstates <file> ... Export the transition matrix graph to a dot file, with state info");
 		mainLog.println("-exportdot <file> .............. Export the transition matrix MTBDD to a dot file");
 		mainLog.println("-exportbsccs <file> ............ Compute and export all BSCCs of the model");
 		mainLog.println("-exporttransient <file> ........ Export transient probabilities to a file");
@@ -1801,8 +1787,7 @@ public class PrismCL
 		mainLog.println("-bsor .......................... Use Backwards SOR for numerical computation");
 		mainLog.println("-psor .......................... Use Pseudo SOR for numerical computation");
 		mainLog.println("-bpsor ......................... Use Backwards Pseudo SOR for numerical computation");
-		mainLog
-				.println("-omega <x> ..................... Set over-relaxation parameter (for JOR/SOR/...) [default 0.9]");
+		mainLog.println("-omega <x> ..................... Set over-relaxation parameter (for JOR/SOR/...) [default 0.9]");
 		mainLog.println();
 		mainLog.println("-relative (or -rel) ............ Use relative error for detecting convergence [default]");
 		mainLog.println("-absolute (or -abs) ............ Use absolute error for detecting convergence");
@@ -1814,16 +1799,13 @@ public class PrismCL
 		mainLog.println("-extrareachinfo ................ Display extra info about progress of reachability");
 		mainLog.println("-nopre ......................... Skip precomputation algorithms");
 		mainLog.println("-fair .......................... Use fairness (for probabilistic reachability in MDPs)");
-		mainLog
-				.println("-nofair ........................ Don't use fairness (for probabilistic reachability in MDPs) [default]");
+		mainLog.println("-nofair ........................ Don't use fairness (for probabilistic reachability in MDPs) [default]");
 		mainLog.println("-fixdl ......................... Automatically put self-loops in deadlock states");
 		mainLog.println("-nocompact ..................... Switch off \"compact\" sparse storage schemes");
 		mainLog.println("-noprobchecks .................. Disable checks on model probabilities/rates");
 		mainLog.println("-zerorewardchecks .............. Check for absence of zero-reward loops");
-		mainLog
-				.println("-nossdetect .................... Disable steady-state detection for CTMC transient computations");
-		mainLog
-				.println("-sccmethod <name> .............. Specify SCC computation method (xiebeerel, lockstep, sccfind)");
+		mainLog.println("-nossdetect .................... Disable steady-state detection for CTMC transient computations");
+		mainLog.println("-sccmethod <name> .............. Specify SCC computation method (xiebeerel, lockstep, sccfind)");
 		mainLog.println();
 		mainLog.println("-sbmax <n> ..................... Set memory limit (KB) (for hybrid engine) [default 1024]");
 		mainLog.println("-sbl <n> ....................... Set number of levels (for hybrid engine) [default -1]");
@@ -1833,8 +1815,7 @@ public class PrismCL
 		mainLog.println("-cuddmaxmem <n> ................ Set max memory for CUDD package (KB) [default 200x1024]");
 		mainLog.println("-cuddepsilon <x> ............... Set epsilon value for CUDD package [default 1e-15]");
 		mainLog.println();
-		mainLog
-				.println("-sim ........................... Use the PRISM simulator to approximate results of model checking");
+		mainLog.println("-sim ........................... Use the PRISM simulator to approximate results of model checking");
 		mainLog.println("-simapprox <x> ................. Set the approximation parameter for the simulator");
 		mainLog.println("-simconf <x> ................... Set the confidence parameter for the simulator");
 		mainLog.println("-simsamples <n> ................ Set the number of samples for the simulator");
