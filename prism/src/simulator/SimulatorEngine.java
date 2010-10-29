@@ -582,6 +582,11 @@ public class SimulatorEngine
 		modelType = modulesFile.getModelType();
 		this.mfConstants = modulesFile.getConstantValues();
 
+		// Check for PTAs
+		if (modulesFile.getModelType() == ModelType.PTA) {
+			throw new PrismException("Sorry - the simulator does not currently support PTAs");
+		}
+
 		// Check for presence of system...endsystem
 		if (modulesFile.getSystemDefn() != null) {
 			throw new PrismException("Sorry - the simulator does not currently handle the system...endsystem construct");
