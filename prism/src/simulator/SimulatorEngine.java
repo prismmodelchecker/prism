@@ -96,7 +96,6 @@ public class SimulatorEngine
 	// Variable info
 	private VarList varList;
 	private int numVars;
-	private Map<String, Integer> varIndices;
 	// Constant definitions from model file
 	private Values mfConstants;
 
@@ -134,13 +133,22 @@ public class SimulatorEngine
 	{
 		this.prism = prism;
 		setMainLog(prism.getMainLog());
-		// TODO: finish this code once class members finalised
-		rng = new RandomNumberGenerator();
-		varIndices = null;
 		modulesFile = null;
+		modelType = null;
+		varList = null;
+		numVars = 0;
 		mfConstants = null;
+		labels = null;
 		properties = null;
 		propertySamplers = null;
+		path = null;
+		onTheFly = true;
+		currentState = null;
+		transitionList = null;
+		tmpStateRewards = null;
+		tmpTransitionRewards = null;
+		updater = null;
+		rng = new RandomNumberGenerator();
 	}
 
 	/**
@@ -595,13 +603,6 @@ public class SimulatorEngine
 		// Get variable list (symbol table) for model 
 		varList = modulesFile.createVarList();
 		numVars = varList.getNumVars();
-
-		// Build mapping between var names
-		// TODO: push into VarList?
-		varIndices = new HashMap<String, Integer>();
-		for (int i = 0; i < numVars; i++) {
-			varIndices.put(varList.getName(i), i);
-		}
 
 		// Evaluate constants and optimise (a copy of) modules file for simulation
 		modulesFile = (ModulesFile) modulesFile.deepCopy().replaceConstants(mfConstants).simplify();
