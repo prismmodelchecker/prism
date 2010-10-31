@@ -293,6 +293,17 @@ public class ChoiceListFlexi implements Choice
 		// Checks for bad probabilities/rates done earlier.
 	}
 	
+	@Override
+	public void checkForErrors(State currentState, VarList varList) throws PrismException
+	{
+		int i, n;
+		n = size();
+		for (i = 0; i < n; i++) {
+			for (Update up : updates.get(i))
+				up.checkUpdate(currentState, varList);
+		}
+	}
+	
 	public String toString()
 	{
 		int i, n;

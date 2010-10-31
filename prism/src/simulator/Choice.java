@@ -46,4 +46,12 @@ public interface Choice
 	public void computeTarget(int i, State currentState, State newState) throws PrismLangException;
 	public int getIndexByProbabilitySum(double x);
 	public void checkValid(ModelType modelType) throws PrismException;
+	
+	/**
+	 * Check whether the transitions in this choice (from a particular state)
+	 * would cause any errors, mainly variable overflows.
+	 * Variable ranges are specified in the passed in VarList.
+	 * Throws an exception if such an error occurs.
+	 */
+	public void checkForErrors(State currentState, VarList varList) throws PrismException;
 }

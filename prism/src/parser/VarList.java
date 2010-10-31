@@ -35,7 +35,10 @@ import parser.type.*;
 /**
  * Class to store information about the set of variables in a PRISM model.
  * Assumes that any constants in the model have been given fixed values.
-*/
+ * Thus, initial/min/max values for all variables are known.
+ * VarList also takes care of how each variable will be encoded to an integer
+ * (e.g. for (MT)BDD representation).
+ */
 public class VarList
 {
 	// List of variables
@@ -288,6 +291,50 @@ public class VarList
 	}
 
 	/**
+	 * Get the value (as an Object) of a variable, from the value encoded as an integer. 
+	 */
+	public Object decodeFromInt(int var, int val)
+	{
+		Type type = getType(var);
+		// Integer type
+		if (type instanceof TypeInt) {
+			return new Integer(val + getLow(var));
+		}
+		// Boolean type
+		else if (type instanceof TypeBool) {
+			return new Boolean(val != 0);
+		}
+		// Anything else
+		return null;
+	}
+
+	/**
+	 * Get the integer encoding of a value for a variable, specified as an Object.
+	 * The Object is assumed to be of correct type (e.g. Integer, Boolean).
+	 * Throws an exception if Object is of the wrong type.
+	 */
+	public int encodeToInt(int var, Object val) throws PrismLangException
+	{
+		Type type = getType(var);
+		try {
+			// Integer type
+			if (type instanceof TypeInt) {
+				return ((Integer) val).intValue() - getLow(var);
+			}
+			// Boolean type
+			else if (type instanceof TypeBool) {
+				return ((Boolean) val).booleanValue() ? 1 : 0;
+			}
+			// Anything else
+			else {
+				throw new PrismLangException("Unknown type " + type + " for variable " + getName(var));
+			}
+		} catch (ClassCastException e) {
+			throw new PrismLangException("Value " + val + " is wrong type for variable " + getName(var));
+		}
+	}
+
+	/**
 	 * Get a list of all possible values for a subset of the variables in this list.
 	 * @param vars: The subset of variables
 	 */
@@ -354,24 +401,6 @@ public class VarList
 			}
 		}
 		return state;
-	}
-
-	/**
-	 * Get the value (as an Object) of a variable, from the value encoded as an integer. 
-	 */
-	public Object decodeFromInt(int var, int val)
-	{
-		Type type = getType(var);
-		// Integer type
-		if (type instanceof TypeInt) {
-			return new Integer(val + getLow(var));
-		}
-		// Boolean type
-		else if (type instanceof TypeBool) {
-			return new Boolean(val != 0);
-		}
-		// Anything else
-		return null;
 	}
 
 	/**

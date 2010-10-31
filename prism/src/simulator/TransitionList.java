@@ -73,17 +73,6 @@ public class TransitionList
 		probSum += tr.getProbabilitySum();
 	}
 	
-	/**
-	 * Check the validity of the available transitions for a given model type.
-	 * Throw a PrismExecption if an error is found.
-	 */
-	public void checkValid(ModelType modelType) throws PrismException
-	{
-		for (Choice ch : choices) {
-			ch.checkValid(modelType);
-		}
-	}
-	
 	// ACCESSORS
 
 	/**
@@ -232,7 +221,9 @@ public class TransitionList
 	{
 		return getChoiceOfTransition(index).computeTarget(transitionOffsets.get(index), currentState);
 	}
-
+	
+	// Other checks and queries
+	
 	/**
 	 * Is there a deadlock (i.e. no available transitions)?
 	 */
@@ -279,6 +270,30 @@ public class TransitionList
 		return true;
 	}
 
+	/**
+	 * Check the validity of the available transitions for a given model type.
+	 * Throw a PrismException if an error is found.
+	 */
+	public void checkValid(ModelType modelType) throws PrismException
+	{
+		for (Choice ch : choices) {
+			ch.checkValid(modelType);
+		}
+	}
+	
+	/**
+	 * Check whether the available transitions (from a particular state)
+	 * would cause any errors, mainly variable overflows.
+	 * Variable ranges are specified in the passed in VarList.
+	 * Throws an exception if such an error occurs.
+	 */
+	public void checkForErrors(State currentState, VarList varList) throws PrismException
+	{
+		for (Choice ch : choices) {
+			ch.checkForErrors(currentState, varList);
+		}
+	}
+	
 	@Override
 	public String toString()
 	{

@@ -162,6 +162,12 @@ public class ChoiceSingleton implements Choice
 	}
 	
 	@Override
+	public void checkForErrors(State currentState, VarList varList) throws PrismException
+	{
+		// TODO
+	}
+	
+	@Override
 	public String toString()
 	{
 		return "-{" + ("".equals(action) ?  "" : action+"," ) + probability + "}->" + updates; 

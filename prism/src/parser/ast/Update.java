@@ -233,6 +233,25 @@ public class Update extends ASTElement
 		}
 	}
 
+	/**
+	 * Check whether this update (from a particular state) would cause any errors, mainly variable overflows.
+	 * Variable ranges are specified in the passed in VarList.
+	 * Throws an exception if such an error occurs.
+	 */
+	public State checkUpdate(State oldState, VarList varList) throws PrismLangException
+	{
+		int i, n, valNew;
+		State res;
+		res = new State(oldState);
+		n = exprs.size();
+		for (i = 0; i < n; i++) {
+			valNew = varList.encodeToInt(i, getExpression(i).evaluate(oldState));
+			if (valNew < varList.getLow(i) || valNew > varList.getHigh(i))
+				throw new PrismLangException("Value of variable " + getVar(i) + " overflows", getExpression(i));
+		}
+		return res;
+	}
+
 	// Methods required for ASTElement:
 
 	/**

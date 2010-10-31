@@ -614,7 +614,7 @@ public class SimulatorEngine
 		transitionList = new TransitionList();
 
 		// Create updater for model
-		updater = new Updater(this, modulesFile);
+		updater = new Updater(this, modulesFile, varList);
 
 		// Create storage for labels/properties
 		labels = new ArrayList<Expression>();

@@ -209,6 +209,12 @@ public class ChoiceList implements Choice
 		// TODO
 	}
 	
+	@Override
+	public void checkForErrors(State currentState, VarList varList) throws PrismException
+	{
+		// TODO
+	}
+	
 	public String toString()
 	{
 		int i, n;

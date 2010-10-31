@@ -42,6 +42,7 @@ public class Updater
 	protected ModulesFile modulesFile;
 	protected ModelType modelType;
 	protected int numModules;
+	protected VarList varList;
 	// Synchronising action info
 	protected Vector<String> synchs;
 	protected int numSynchs;
@@ -61,7 +62,7 @@ public class Updater
 	// (where j=0 denotes independent, otherwise 1-indexed action label)
 	protected BitSet enabledModules[];
 
-	public Updater(SimulatorEngine simulator, ModulesFile modulesFile)
+	public Updater(SimulatorEngine simulator, ModulesFile modulesFile, VarList varList)
 	{
 		int i, j;
 		String s;
@@ -75,6 +76,7 @@ public class Updater
 		synchs = modulesFile.getSynchs();
 		numSynchs = synchs.size();
 		numRewardStructs = modulesFile.getNumRewardStructs();
+		this.varList = varList;
 
 		// Compute count of number of modules using each synch action
 		synchModuleCounts = new int[numSynchs];
@@ -195,6 +197,9 @@ public class Updater
 		// Check validity of the computed transitions
 		// (not needed currently)
 		//transitionList.checkValid(modelType);
+		
+		// Check for errors (e.g. overflows) in the computed transitions
+		//transitionList.checkForErrors(state, varList);
 		
 		//System.out.println(transitionList);
 	}
