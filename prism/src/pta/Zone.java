@@ -34,7 +34,7 @@ public abstract class Zone
 
 	public abstract PTA getPTA();
 
-	/* Zone operations */
+	// Zone operations (modify the zone)
 
 	/**
 	 * Conjunction: add constraint x-y db
@@ -102,6 +102,8 @@ public abstract class Zone
 	 */
 	public abstract void cClosure(int c);
 
+	// Zone operations (create new zone)
+	
 	/**
 	 * Complement
 	 * Creates non-convex zone so creates new one,
@@ -109,6 +111,8 @@ public abstract class Zone
 	 */
 	public abstract NCZone createComplement();
 
+	// Zone queries (do not modify the zone)
+	
 	/**
 	 * Is this zone empty (i.e. inconsistent)?
 	 */
@@ -125,11 +129,21 @@ public abstract class Zone
 	public abstract boolean includes(DBM dbm);
 	
 	/**
+	 * Get the minimum value of a clock. 
+	 */
+	public abstract int getMin(int x);
+	
+	/**
+	 * Get the maximum value of a clock. 
+	 */
+	public abstract int getMax(int x);
+	
+	// Misc
+	
+	/**
 	 * Clone this zone
 	 */
 	public abstract Zone deepCopy();
-	
-	// Misc
 	
 	/**
 	 * Get storage info string

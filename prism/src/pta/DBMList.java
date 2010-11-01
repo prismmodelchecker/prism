@@ -125,7 +125,7 @@ public class DBMList extends NCZone
 		return pta;
 	}
 
-	/* Zone operations */
+	// Zone operations (modify the zone)
 
 	/**
 	 * Conjunction: add constraint x-y db
@@ -179,20 +179,6 @@ public class DBMList extends NCZone
 			}
 		}
 		list = listNew.list;
-	}
-
-	/**
-	 * Conjunction: with complement of another zone
-	 */
-	public void intersectComplement(Zone z)
-	{
-		if (z instanceof DBM)
-			z = new DBMList((DBM) z);
-		DBMList dbml = (DBMList) z;
-		for (DBM dbm : dbml.list) {
-			DBMList listTmp = dbm.createComplement();
-			intersect(listTmp);
-		}
 	}
 
 	/**
@@ -269,6 +255,8 @@ public class DBMList extends NCZone
 		throw new RuntimeException("Not implemented yet");
 	}
 
+	// Zone operations (create new zone)
+	
 	/**
 	 * Complement
 	 * Creates non-convex zone so creates new one,
@@ -281,33 +269,8 @@ public class DBMList extends NCZone
 		return dbml;
 	}
 
-	/**
-	 * Complement
-	 */
-	public void complement()
-	{
-		DBMList listNew, res;
-		res = null;
-		// Special case: complement of empty DBM list is True
-		if (list.size() == 0)
-			addDBM(DBM.createTrue(pta));
-		// The complement of a list of DBMs is the intersection
-		// of the complement of each DBM (and the complement of
-		// of a DBM is a DBM list).
-		for (DBM dbm : list) {
-			listNew = dbm.createComplement();
-			if (res == null)
-				res = listNew;
-			else {
-				res.intersect(listNew);
-			}
-			// Stop early if res already empty
-			if (res.list.size() == 0)
-				break;
-		}
-		list = res.list;
-	}
-
+	// Zone queries (do not modify the zone)
+	
 	/**
 	 * Is this zone empty (i.e. inconsistent)?
 	 */
@@ -342,6 +305,75 @@ public class DBMList extends NCZone
 				return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Get the minimum value of a clock. 
+	 */
+	public int getMin(int x)
+	{
+		// Take min across all DBMs
+		int min = Integer.MAX_VALUE;
+		for (DBM dbm : list) {
+			min = Math.min(min, dbm.getMin(x));
+		}
+		return min;
+	}
+	
+	/**
+	 * Get the maximum value of a clock. 
+	 */
+	public int getMax(int x)
+	{
+		// Take max across all DBMs
+		int max = Integer.MIN_VALUE;
+		for (DBM dbm : list) {
+			max = Math.max(max, dbm.getMax(x));
+		}
+		return max;
+	}
+	
+	// Methods required for NCZone interface
+	
+	/**
+	 * Conjunction: with complement of another zone
+	 */
+	public void intersectComplement(Zone z)
+	{
+		if (z instanceof DBM)
+			z = new DBMList((DBM) z);
+		DBMList dbml = (DBMList) z;
+		for (DBM dbm : dbml.list) {
+			DBMList listTmp = dbm.createComplement();
+			intersect(listTmp);
+		}
+	}
+
+	/**
+	 * Complement
+	 */
+	public void complement()
+	{
+		DBMList listNew, res;
+		res = null;
+		// Special case: complement of empty DBM list is True
+		if (list.size() == 0)
+			addDBM(DBM.createTrue(pta));
+		// The complement of a list of DBMs is the intersection
+		// of the complement of each DBM (and the complement of
+		// of a DBM is a DBM list).
+		for (DBM dbm : list) {
+			listNew = dbm.createComplement();
+			if (res == null)
+				res = listNew;
+			else {
+				res.intersect(listNew);
+			}
+			// Stop early if res already empty
+			if (res.list.size() == 0)
+				break;
+		}
+		list = res.list;
 	}
 
 	/**

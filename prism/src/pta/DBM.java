@@ -57,7 +57,7 @@ public class DBM extends Zone
 		return pta;
 	}
 
-	/* Zone operations */
+	// Zone operations (modify the zone)
 
 	/**
 	 * Conjunction: add constraint x-y db
@@ -225,6 +225,35 @@ public class DBM extends Zone
 		canonicalise();
 	}
 
+	// Zone operations (create new zone)
+	
+	/**
+	 * Complement this DBM; creates a new DBM list as result.
+	 */
+	public DBMList createComplement()
+	{
+		DBMList list = new DBMList(pta);
+		DBM dbmNew;
+		int i, j, n;
+		n = d.length - 1;
+		for (i = 0; i < n + 1; i++) {
+			for (j = 0; j < n + 1; j++) {
+				if (i == j)
+					continue;
+				if (DB.isInfty(d[i][j]))
+					continue;
+				dbmNew = (DBM) new DBMFactory().createTrue(pta);
+				dbmNew.addConstraint(j, i, DB.dual(d[i][j]));
+				if (!dbmNew.isEmpty()) {
+					list.addDBM(dbmNew);
+				}
+			}
+		}
+		return list;
+	}
+
+	// Zone queries (do not modify the zone)
+	
 	/**
 	 * Is this zone empty (i.e. inconsistent)?
 	 */
@@ -276,31 +305,8 @@ public class DBM extends Zone
 		return DB.getSignedDiff(d[x][0]);
 	}
 	
-	/**
-	 * Complement this DBM; creates a new DBM list as result.
-	 */
-	public DBMList createComplement()
-	{
-		DBMList list = new DBMList(pta);
-		DBM dbmNew;
-		int i, j, n;
-		n = d.length - 1;
-		for (i = 0; i < n + 1; i++) {
-			for (j = 0; j < n + 1; j++) {
-				if (i == j)
-					continue;
-				if (DB.isInfty(d[i][j]))
-					continue;
-				dbmNew = (DBM) new DBMFactory().createTrue(pta);
-				dbmNew.addConstraint(j, i, DB.dual(d[i][j]));
-				if (!dbmNew.isEmpty()) {
-					list.addDBM(dbmNew);
-				}
-			}
-		}
-		return list;
-	}
-
+	// Misc
+	
 	/**
 	 * Clone this zone
 	 */
@@ -316,6 +322,14 @@ public class DBM extends Zone
 			}
 		}
 		return copy;
+	}
+
+	/**
+	 * Get storage info string
+	 */
+	public String storageInfo()
+	{
+		return "DBM with " + pta.numClocks + " clocks";
 	}
 
 	// Standard Java methods
@@ -413,14 +427,6 @@ public class DBM extends Zone
 		}
 		s += " ]";
 		return s;
-	}
-
-	/**
-	 * Get storage info string
-	 */
-	public String storageInfo()
-	{
-		return "DBM with " + pta.numClocks + " clocks";
 	}
 
 	/* Private utility methods */
