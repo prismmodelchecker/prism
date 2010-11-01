@@ -9,7 +9,6 @@ TODO (before any release)
 
 PTAs:
 * (Further) tidy of prism-examples/pta
-* Check guards/invariants for convexity (for now, neither can be non-convex, see below)
 * Clarify time divergence issues
 * non-zeno checks?
 

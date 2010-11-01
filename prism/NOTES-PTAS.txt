@@ -13,11 +13,11 @@ There are a set of PRISM PTA examples in the directory examples/pta. See the for
 
 * Properties
 
-Properties are specified in PCTL, with no nested P operators, i.e. essentially we allow unbounded or time-bounded reachability properties: properties of the form Pmin=?[F a], Pmax=?[F a], Pmin=?[F<=T a] or Pmax=?[F<=T a], where a is a Boolean-valued expression, not including any clock variables. See the .pctl files included with the examples for some sample properties. For digital clocks, a few less restrictions are in place, e.g. until formulae are allowed, as are clock variables in expressions, as are arithmetic expressions such as 1-Pmin=?[F...].
+Properties are specified in PCTL, with no nested P operators, i.e. essentially we allow unbounded or time-bounded reachability properties: properties of the form Pmin=?[F a], Pmax=?[F a], Pmin=?[F<=T a] or Pmax=?[F<=T a], where a is a Boolean-valued expression, not including any clock variables. See the .pctl files included with the examples for some sample properties. For digital clocks, a few less restrictions are in place, e.g. until formulae are allowed, as are clock variables in expressions, as are arithmetic expressions such as 1-Pmin=?[F a].
 
 * Running PRISM
 
-Currently, there are two different engines for verifying PTAs: (1) "abstraction-refinement", as described in [KNP09c]; and (2) "digital clocks", as described in [KNPS06]. The default is (1). The digital clocks engine can be enabled using the switch "-ptamethod digital". Note, though, that this does not yet support time-bounded reachability properties.
+Currently, there are two different engines for verifying PTAs: (1) "abstraction-refinement", as described in [KNP09c]; and (2) "digital clocks", as described in [KNPS06]. The default is (1). The digital clocks engine can be enabled using the switch "-ptamethod digital". Note, though, that this does not yet support time-bounded reachability properties. Also, the simulator does not yet support PTAs.
 
 -----------------
 
