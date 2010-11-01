@@ -253,7 +253,7 @@ public class ExpressionFunc extends Expression
 		double base = getOperand(0).evaluateDouble(ec);
 		double exp = getOperand(1).evaluateDouble(ec);
 		// Not allowed to do e.g. pow(2,-2) because of typing (should be pow(2.0,-2) instead)
-		if (type instanceof TypeInt || (exp < 0))
+		if (type instanceof TypeInt && (exp < 0))
 			throw new PrismLangException("Negative exponent not allowed for integer power", this);
 		double res = Math.pow(base, exp);
 		if (type instanceof TypeInt) {
