@@ -3,17 +3,21 @@ Brief notes on support for PTAs in PRISM
 
 * The PRISM Language
 
-In short, there is a new datatype "clock", which can be used in guards and reset (to zero) just like a normal PRISM variable. The only other addition is an "invariant" keyword, used to specify clock invariants for each PRISM module.
+In short, there is a new datatype "clock", which can be used in guards and reset (to an integer value) just like a normal PRISM variable. The only other addition is an "invariant" keyword, used to specify clock invariants for each PRISM module. The invariant should appear between the variable declarations and the guarded commands.
 
-There are a set of PRISM PTA examples in the directory examples/pta.
+In guards or invariants, references to clocks must be conjunctions of simple clock constraints (i.e. x~c or x~y where x and y are clocks, c is an integer-valued expression and ~ is one of <, <=, >=, >, =). In fact, when using the digital clocks method (see below), this is relaxed and boolean combinations of clock constraints are allowed.
+
+There are also some additional restrictions for PTA models. Modules cannot read the local variables of other modules and global variables are not permitted. The model must also have a single initial state (i.e. the init...endinit construct is not permitted). Again, when using digital clocks, the latter constraint does not apply.
+
+There are a set of PRISM PTA examples in the directory examples/pta. See the formats09.sh script in this directory for details of how to run the examples.
 
 * Properties
 
-Properties are specified in PCTL, i.e. essentially we allow unbounded or time-bounded reachability properties. See the .pctl files include with the examples for some sample properties.
+Properties are specified in PCTL, with no nested P operators, i.e. essentially we allow unbounded or time-bounded reachability properties: properties of the form Pmin=?[F...], Pmax=?[F...], Pmin=?[F<=T...] or Pmax=?[F<=T...]. See the .pctl files included with the examples for some sample properties. For digital clocks, a few less restrictions are in place, e.g. until formulae are allowed, as are arithmetic expression such as 1-Pmin=?[F...].
 
 * Running PRISM
 
-Temporarily, PTA support is only available through the command-line version of PRISM. See the formats09.sh script in the examples/pta directory for details of how to run the examples. Currently, there are two different engines for verifying PTAs: (1) "abstraction-refinement", as described in [KNP09c]; and (2) "digital clocks", as described in [KNPS06]. The default is (1). The digital clocks engine can be enabled using the switch "-ptamethod digital". Note, though, that this does not yet support time-bounded reachability properties.
+Currently, there are two different engines for verifying PTAs: (1) "abstraction-refinement", as described in [KNP09c]; and (2) "digital clocks", as described in [KNPS06]. The default is (1). The digital clocks engine can be enabled using the switch "-ptamethod digital". Note, though, that this does not yet support time-bounded reachability properties.
 
 -----------------
 
