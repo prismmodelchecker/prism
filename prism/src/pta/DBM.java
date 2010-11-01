@@ -292,7 +292,7 @@ public class DBM extends Zone
 	/**
 	 * Get the minimum value of a clock. 
 	 */
-	public int getMin(int x)
+	public int getClockMin(int x)
 	{
 		return -DB.getSignedDiff(d[0][x]);
 	}
@@ -300,9 +300,32 @@ public class DBM extends Zone
 	/**
 	 * Get the maximum value of a clock. 
 	 */
-	public int getMax(int x)
+	public int getClockMax(int x)
 	{
 		return DB.getSignedDiff(d[x][0]);
+	}
+	
+	/**
+	 * Check if a clock is unbounded (can be infinite).
+	 */
+	public boolean clockIsUnbounded(int x)
+	{
+		return DB.isInfty(d[x][0]);
+	}
+	
+	/**
+	 * Check if all clocks are unbounded (can be infinite).
+	 */
+	public boolean allClocksAreUnbounded()
+	{
+		int i, n;
+		n = pta.numClocks;
+		for (i = 0; i < n + 1; i++) {
+			if (!DB.isInfty(d[i][0])) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	// Misc

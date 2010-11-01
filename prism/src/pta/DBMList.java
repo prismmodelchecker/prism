@@ -310,12 +310,12 @@ public class DBMList extends NCZone
 	/**
 	 * Get the minimum value of a clock. 
 	 */
-	public int getMin(int x)
+	public int getClockMin(int x)
 	{
 		// Take min across all DBMs
 		int min = Integer.MAX_VALUE;
 		for (DBM dbm : list) {
-			min = Math.min(min, dbm.getMin(x));
+			min = Math.min(min, dbm.getClockMin(x));
 		}
 		return min;
 	}
@@ -323,14 +323,42 @@ public class DBMList extends NCZone
 	/**
 	 * Get the maximum value of a clock. 
 	 */
-	public int getMax(int x)
+	public int getClockMax(int x)
 	{
 		// Take max across all DBMs
 		int max = Integer.MIN_VALUE;
 		for (DBM dbm : list) {
-			max = Math.max(max, dbm.getMax(x));
+			max = Math.max(max, dbm.getClockMax(x));
 		}
 		return max;
+	}
+	
+	/**
+	 * Check if a clock is unbounded (can be infinite).
+	 */
+	public boolean clockIsUnbounded(int x)
+	{
+		// Clock is unbounded if is in any DBM
+		for (DBM dbm : list) {
+			if (dbm.clockIsUnbounded(x))
+				return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Check if all clocks are unbounded (can be infinite).
+	 */
+	public boolean allClocksAreUnbounded()
+	{
+		int i, n;
+		n = pta.numClocks;
+		for (i = 0; i < n + 1; i++) {
+			if (!clockIsUnbounded(i)) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	// Methods required for NCZone interface

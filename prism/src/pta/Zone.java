@@ -131,12 +131,22 @@ public abstract class Zone
 	/**
 	 * Get the minimum value of a clock. 
 	 */
-	public abstract int getMin(int x);
+	public abstract int getClockMin(int x);
 	
 	/**
 	 * Get the maximum value of a clock. 
 	 */
-	public abstract int getMax(int x);
+	public abstract int getClockMax(int x);
+	
+	/**
+	 * Check if a clock is unbounded (can be infinite).
+	 */
+	public abstract boolean clockIsUnbounded(int x);
+	
+	/**
+	 * Check if all clocks are unbounded (can be infinite).
+	 */
+	public abstract boolean allClocksAreUnbounded();
 	
 	// Misc
 	
