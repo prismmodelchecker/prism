@@ -217,42 +217,14 @@ public class PrismCL
 				undefinedConstants.iterateModel();
 				continue;
 			}
-
-			// output final prism model here if required
-			if (exportprism) {
-				mainLog.print("\nExporting parsed PRISM file ");
-				if (!exportPrismFilename.equals("stdout"))
-					mainLog.println("to file \"" + exportPrismFilename + "\"...");
-				else
-					mainLog.println("below:");
-				PrismFileLog tmpLog = new PrismFileLog(exportPrismFilename);
-				if (!tmpLog.ready()) {
-					errorAndExit("Couldn't open file \"" + exportPrismFilename + "\" for output");
-				}
-				tmpLog.print(modulesFile.toString());
+			
+			// Do any requested exports of PRISM code
+			// (except for PTA digital clocks case - postpone this)
+			if (!(modulesFile.getModelType() == ModelType.PTA
+					&& prism.getSettings().getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks"))) {
+				doPrismLangExports(modulesFile);
 			}
-			if (exportprismconst) {
-				mainLog.print("\nExporting parsed PRISM file (with constant expansion) ");
-				if (!exportPrismConstFilename.equals("stdout"))
-					mainLog.println("to file \"" + exportPrismConstFilename + "\"...");
-				else
-					mainLog.println("below:");
-				PrismFileLog tmpLog = new PrismFileLog(exportPrismConstFilename);
-				if (!tmpLog.ready()) {
-					errorAndExit("Couldn't open file \"" + exportPrismConstFilename + "\" for output");
-				}
-				ModulesFile mfTmp = (ModulesFile) modulesFile.deepCopy();
-				try {
-					mfTmp = (ModulesFile) mfTmp.replaceConstants(modulesFile.getConstantValues());
-					mfTmp = (ModulesFile) mfTmp.replaceConstants(definedMFConstants);
-					// NB: Don't use simplify() here because doesn't work for the purposes of printing out
-					// (e.g. loss of parethenses causes precedence problems)
-				} catch (PrismLangException e) {
-					error(e.getMessage());
-				}
-				tmpLog.print(mfTmp.toString());
-			}
-
+			
 			// Decide if model construction is necessary
 			boolean doBuild = true;
 			// If explicitly disabled...
@@ -386,6 +358,7 @@ public class PrismCL
 								dc.translate(modulesFile, propertiesFile, propertiesToCheck[j]);
 								modulesFileToCheck = dc.getNewModulesFile();
 								modulesFileToCheck.setUndefinedConstants(modulesFile.getConstantValues());
+								doPrismLangExports(modulesFileToCheck);
 								buildModel(modulesFileToCheck);
 							} else {
 								modulesFileToCheck = modulesFile;
@@ -592,7 +565,48 @@ public class PrismCL
 			}
 		}
 	}
-
+	
+	/**
+	 * Do any exports of PRISM code that have been requested.
+	 */
+	private void doPrismLangExports(ModulesFile modulesFileToExport)
+	{
+		// output final prism model here if required
+		if (exportprism) {
+			mainLog.print("\nExporting parsed PRISM file ");
+			if (!exportPrismFilename.equals("stdout"))
+				mainLog.println("to file \"" + exportPrismFilename + "\"...");
+			else
+				mainLog.println("below:");
+			PrismFileLog tmpLog = new PrismFileLog(exportPrismFilename);
+			if (!tmpLog.ready()) {
+				errorAndExit("Couldn't open file \"" + exportPrismFilename + "\" for output");
+			}
+			tmpLog.print(modulesFileToExport.toString());
+		}
+		if (exportprismconst) {
+			mainLog.print("\nExporting parsed PRISM file (with constant expansion) ");
+			if (!exportPrismConstFilename.equals("stdout"))
+				mainLog.println("to file \"" + exportPrismConstFilename + "\"...");
+			else
+				mainLog.println("below:");
+			PrismFileLog tmpLog = new PrismFileLog(exportPrismConstFilename);
+			if (!tmpLog.ready()) {
+				errorAndExit("Couldn't open file \"" + exportPrismConstFilename + "\" for output");
+			}
+			ModulesFile mfTmp = (ModulesFile) modulesFileToExport.deepCopy();
+			try {
+				mfTmp = (ModulesFile) mfTmp.replaceConstants(modulesFileToExport.getConstantValues());
+				mfTmp = (ModulesFile) mfTmp.replaceConstants(definedMFConstants);
+				// NB: Don't use simplify() here because doesn't work for the purposes of printing out
+				// (e.g. loss of parethenses causes precedence problems)
+			} catch (PrismLangException e) {
+				error(e.getMessage());
+			}
+			tmpLog.print(mfTmp.toString());
+		}
+	}
+	
 	/**
 	 * Build a model, usually from the passed in modulesFileToBuild. However, if importtrans=true,
 	 * then explicit model import is done and modulesFileToBuild can be null.
