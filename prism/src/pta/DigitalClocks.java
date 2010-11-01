@@ -337,7 +337,7 @@ public class DigitalClocks
 					}
 				}
 			};
-			modulesFile.accept(astt);
+			ast.accept(astt);
 		} catch (PrismLangException e) {
 			return e.getASTElement();
 		}
