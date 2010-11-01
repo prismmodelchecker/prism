@@ -188,8 +188,15 @@ public class Modules2PTA
 				pcValues.setValue(pc, i);
 				// Evaluate (partially) invariant for this PC value
 				invar = (Expression) invar.evaluatePartially(null, pcValues).simplify();
-				// Add invariant to transition (unless "true")
+				// The (partial) invariant should now be a conjunction of clock constraints (or true)
+				// Split into parts, convert to constraints and add to PTA (unless "true")
+				// If expression is not (syntactically) convex, complain
 				exprs = ParserUtils.splitConjunction(invar);
+				for (Expression ex : exprs) {
+					if (!(Expression.isTrue(ex) || Expression.isFalse(ex))) {
+						checkIsSimpleClockConstraint(ex);
+					}
+				}
 				for (Expression ex : exprs) {
 					if (!Expression.isTrue(ex)) {
 						for (Constraint c : exprToConstraint(ex, pta)) {
