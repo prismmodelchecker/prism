@@ -84,14 +84,14 @@ public class Modules2PTA
 		// Clone the model file, replace any constants with values,
 		// and simplify any expressions as much as possible.
 		modulesFile = (ModulesFile) modulesFile.deepCopy().replaceConstants(constantValues).simplify();
-		
+
 		// Remove formulas/labels from (cloned) model - these are not translated.
 		modulesFile.setFormulaList(new FormulaList());
 		modulesFile.setLabelList(new LabelList());
-		
+
 		// Also remove reward structures - these are not currently used
 		modulesFile.clearRewardStructs();
-		
+
 		// Go through list of modules
 		numModules = modulesFile.getNumModules();
 		pcStates = new ArrayList<ArrayList<State>>(numModules);
@@ -125,7 +125,7 @@ public class Modules2PTA
 			pta = (pta == null) ? pta2 : new PTAParallel().compose(pta, pta2);
 		}
 		//mainLog.println(pta);
-		
+
 		// Pass the list of non-clock variables to the PTA  
 		pta.setLocationNameVars(allNonClocks);
 
@@ -210,12 +210,18 @@ public class Modules2PTA
 			pcValues = new Values();
 			pcValues.setValue(pc, pcVal);
 			// RHS of guard should be conjunction of clock constraints (or true)
-			// Split into parts, convert to constraints and add to new PTA transition 
+			// Split into parts, convert to constraints and add to new PTA transition
+			// If expression is not (syntactically) convex, complain
 			tr = pta.addTransition(pcVal, command.getSynch());
 			exprs = ParserUtils.splitConjunction(((ExpressionBinaryOp) command.getGuard()).getOperand2());
 			for (Expression ex : exprs) {
-				if (!Expression.isTrue(ex)) {
-					for (Constraint c : exprToConstraint(ex, pta)) {
+				if (!(Expression.isTrue(ex) || Expression.isFalse(ex))) {
+					checkIsSimpleClockConstraint(ex);
+				}
+			}
+			for (Expression ex2 : exprs) {
+				if (!Expression.isTrue(ex2)) {
+					for (Constraint c : exprToConstraint(ex2, pta)) {
 						tr.addGuardConstraint(c);
 					}
 				}
@@ -253,7 +259,63 @@ public class Modules2PTA
 	}
 
 	/**
-	 * Convert a PRISM expression representing a clock constraint into
+	 * Check whether a PRISM expression (over clock variables) is a "simple" clock constraint, i.e. of the form
+	 * x~c or x~y where x and y are clocks, c is an integer-valued expression and ~ is one of <, <=, >=, >, =.
+	 * Throws an explanatory exception if not.
+	 * @param expr: The expression to be checked.
+	 */
+	private void checkIsSimpleClockConstraint(Expression expr) throws PrismLangException
+	{
+		ExpressionBinaryOp exprRelOp;
+		Expression expr1, expr2;
+		int op, clocks = 0;
+
+		// Check is rel op
+		if (!Expression.isRelOp(expr))
+			throw new PrismLangException("Invalid clock constraint \"" + expr + "\"", expr);
+		// Split into parts
+		exprRelOp = (ExpressionBinaryOp) expr;
+		op = exprRelOp.getOperator();
+		expr1 = exprRelOp.getOperand1();
+		expr2 = exprRelOp.getOperand2();
+		// Check operator is of allowed type
+		if (!ExpressionBinaryOp.isRelOp(op))
+			throw new PrismLangException("Can't use operator " + exprRelOp.getOperatorSymbol() + " in clock constraint \"" + expr + "\"", expr);
+		if (op == ExpressionBinaryOp.NE)
+			throw new PrismLangException("Can't use negation in clock constraint \"" + expr + "\"", expr);
+		// LHS
+		if (expr1.getType() instanceof TypeClock) {
+			if (!(expr1 instanceof ExpressionVar)) {
+				throw new PrismLangException("Invalid clock expression \"" + expr1 + "\"", expr1);
+			}
+			clocks++;
+		} else if (expr1.getType() instanceof TypeInt) {
+			if (!expr1.isConstant()) {
+				throw new PrismLangException("Invalid clock constraint \"" + expr + "\"", expr);
+			}
+		} else {
+			throw new PrismLangException("Invalid clock constraint \"" + expr + "\"", expr);
+		}
+		// RHS
+		if (expr2.getType() instanceof TypeClock) {
+			if (!(expr2 instanceof ExpressionVar)) {
+				throw new PrismLangException("Invalid clock expression \"" + expr2 + "\"", expr2);
+			}
+			clocks++;
+		} else if (expr2.getType() instanceof TypeInt) {
+			if (!expr2.isConstant()) {
+				throw new PrismLangException("Invalid clock constraint \"" + expr + "\"", expr);
+			}
+		} else {
+			throw new PrismLangException("Invalid clock constraint \"" + expr + "\"", expr);
+		}
+		// Should be at least one clock
+		if (clocks == 0) 
+			throw new PrismLangException("Invalid clock constraint \"" + expr + "\"", expr);
+	}
+
+	/**
+	 * Convert a PRISM expression representing a (simple) clock constraint into
 	 * the Constraint data structures used in the pta package.
 	 * Actually creates a list of constraints (since e.g. x=c maps to multiple constraints) 
 	 * @param expr: The expression to be converted.
@@ -378,8 +440,7 @@ public class Modules2PTA
 	 * @param pcVars: The variables that should be converted to a PC.
 	 * @param pcStates: An empty ArrayList into which PC value states will be stored.
 	 */
-	private Module convertModuleToPCForm(Module module, List<String> pcVars, ArrayList<State> pcStates)
-			throws PrismLangException
+	private Module convertModuleToPCForm(Module module, List<String> pcVars, ArrayList<State> pcStates) throws PrismLangException
 	{
 		// Info about variables in model to be used as program counter
 		int pcNumVars;
