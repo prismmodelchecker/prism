@@ -320,7 +320,7 @@ public class DBM extends Zone
 	{
 		int i, n;
 		n = pta.numClocks;
-		for (i = 0; i < n + 1; i++) {
+		for (i = 1; i < n + 1; i++) {
 			if (!DB.isInfty(d[i][0])) {
 				return false;
 			}
