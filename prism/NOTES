@@ -8,13 +8,10 @@ TODO (before any release)
 -------------------------
 
 PTAs:
-* GUI
 * (Further) tidy of prism-examples/pta
-* Clarify semantic/type checks (consistency with games/digital)
 * Check guards/invariants for convexity (for now, neither can be non-convex, see below)
 * Clarify time divergence issues
 * non-zeno checks?
-* Sort VarList (two types - before and after constants evaluated). Need for simulator too.
 
 =======================================================
 
@@ -30,7 +27,12 @@ Filters, property semantics, etc.
 * Restructure Result class? e.g. separate bracketed comment? (done I think)
   - Errors (Exceptions) formatted properly?
 
+Sim:
+* tidy doSampling, looking at Vincent's code
+* seed issues (Vlad)
+
 PTAs:
+* More of PCTL - even just G, bounded (not =?), etc.
 * Enforce well-formedness checks (i.e. guards/resets imply target invariants)
   (as opposed to say supporting strong invariants,
    where targets with false invariants cannot be entered)
@@ -49,19 +51,6 @@ DOC (before public release)
 Filters:
 * Filters - no longer allowed minmax (or encode as range?)
 * P>=p[...{filter}] means & not print (didn't print in 3.3 anyway, despite manual)
-
-PTAs:
-* Where can clocks be used
- - clock constraints (just (some) binops)
-  - in guards
-  - in invariants
- - resets (normal updates, but to ints only)
- - var decl.s
- - generally must be convex (i.e. just conj of constraints) (can be relaxed a bit for digital clocks)
-* Currently, modules cannot access non-local vars (and there are no globals)
-  (this is too restrictive, e.g. for message passing)
-* Must have single initial state (is this true for digital clocks too?)
-* Invariants must come straight after var decls
 
 =======================================================
 
@@ -87,7 +76,6 @@ PTAs:
 * BRP example
 * Translate non-convex guards to DNF and multiple transitions
 * Investigate whether non-convex invariants can be supported (look at zone ops)
-* BRP example
 
 * Games: Optimise number of states in time-bounded PTAs
   (extras added in old target states) using until in forwards reach?
@@ -101,11 +89,13 @@ PTAs:
   (or is it ok if only use this on initial reach graph construction?)
 
 Simulator:
+* Variable overflow etc.
+  - would make sense to check in Update.update() because want to know offending command
+  - but need access to VarList, which we don't have
 * Investigate efficiency wrt old simulator
 * Add (back) support for *full* loop detection? (not just *single* self-loops)
 * Add (back) early manual termination of sampling (thru expt stop?)
 * Random initial state
-* Variable overflow etc.
 * Add support for "deadlock" and "init" (new EvaluationContext, model *and* state dependent)
 * Seed issues (currently twice in one second = same seed)
 * explicitbuildtest doesn't handle dupes in mdps (e.g. consensus)
