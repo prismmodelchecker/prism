@@ -545,7 +545,7 @@ Cudd_DumpDot(
 		    if (st_is_member(visited,(char *) scan)) {
 			/* print label (blank) */
 			retval = fprintf(fp,
-			    "\"%lx\" [label = \"\"];\n",
+			    "\"%p\" [label = \"\"];\n",
 			    (unsigned long) ((mask & (long) scan) /
 			    sizeof(DdNode)));
 			if (retval == EOF) goto failure;
