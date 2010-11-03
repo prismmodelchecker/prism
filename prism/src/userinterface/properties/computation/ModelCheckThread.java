@@ -135,7 +135,7 @@ public class ModelCheckThread extends GUIComputationThread
 					if (definedPFConstants.getNumValues() > 0)
 						logln("Property constants: " + definedPFConstants);
 				// for PTAs via digital clocks, do model translation and build
-				if (modulesFile.getModelType() == ModelType.PTA
+				if (model == null && modulesFile.getModelType() == ModelType.PTA
 						&& prism.getSettings().getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks")) {
 					DigitalClocks dc = new DigitalClocks(prism);
 					dc.translate(modulesFile, propertiesFile, propertiesFile.getProperty(i));
@@ -159,7 +159,7 @@ public class ModelCheckThread extends GUIComputationThread
 				} else {
 					modulesFileToCheck = modulesFile;
 				}
-				// No model (PTA) case
+				// No model (PTA, non-digital-clocks) case
 				if (model == null) {
 					if (modulesFile.getModelType() != ModelType.PTA)
 						throw new PrismException("No model to verify");
