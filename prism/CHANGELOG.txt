@@ -5,16 +5,17 @@ of the main changes in each public release, see the file VERSIONS.txt.
 Ongoing changes:
 
 * Explicit state libraries
-* PTA model checking
 * CTL model checking
+
+Latest changes (mostly reverse chronological):
+[correct wrt svn rev 2221]
+
+* PTA model checking
 * New simulator
-* Adversary generation
-* Access to action labels. inclusion in export, etc.
+* New -exporttarget switch
+* Adversary generation (e.g. -exportadv switch)
 * Filters and property semantics changes/additions
-
-Latest changes (reverse chronological):
-[correct wrt svn rev 1610]
-
+* Access to action labels, e.g. in transition matrix export
 * Formulas used in properties are left unexpanded for legibility
 * New versions of jcommon (1.0.16) and jfreechart (1.0.13)
 * Option to specify initial distribution for transient analysis
@@ -22,14 +23,8 @@ Latest changes (reverse chronological):
 * New -exporttransdotstates option
 * Improved dot file export for MDPs
 * Strict upper time-bounds allowed in properties
-* New -exportprism switch
+* New -exportprism/-exportprismconst/-nobuild switches
 * Check for existence of zero-reward loops
-
-Temporary files:
-
-* NOTES*
-* TODO
-* examples/
 
 -----------------------------------------------------------------------------
 Version 3.3.1 (released 22/11/2009)
