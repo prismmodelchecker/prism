@@ -529,8 +529,7 @@ checks:
 	fi; \
 	echo "OSTYPE/ARCH: $(OSTYPE) $(ARCH)"; \
 	echo "JAVA_DIR: $(JAVA_DIR)"; \
-	echo "JAVAC: "`which $(JAVAC)`; \
-	echo "JAVACC: "`which $(JAVACC)` \
+	echo "JAVAC: "`which $(JAVAC)` \
 	)
 
 #################################################
