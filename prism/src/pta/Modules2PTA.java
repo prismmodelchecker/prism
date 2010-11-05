@@ -317,7 +317,7 @@ public class Modules2PTA
 			throw new PrismLangException("Invalid clock constraint \"" + expr + "\"", expr);
 		}
 		// Should be at least one clock
-		if (clocks == 0) 
+		if (clocks == 0)
 			throw new PrismLangException("Invalid clock constraint \"" + expr + "\"", expr);
 	}
 
@@ -521,72 +521,78 @@ public class Modules2PTA
 		states.add(state);
 		explore.add(state);
 		src = -1;
-		while (!explore.isEmpty()) {
-			// Pick next state to explore
-			// (they are stored in order found so know index is src+1)
-			state = explore.removeFirst();
-			src++;
-			// Build expression for this PC state
-			exprPc = new ExpressionVar(pc, TypeInt.getInstance());
-			exprPc = new ExpressionBinaryOp(ExpressionBinaryOp.EQ, exprPc, Expression.Int(src));
-			// For each command in the module
-			numCommands = module.getNumCommands();
-			for (i = 0; i < numCommands; i++) {
-				command = module.getCommand(i);
-				// See if guard is potentially true for this PC value
-				guard = command.getGuard();
-				guard = (Expression) guard.deepCopy().evaluatePartially(state, varMap).simplify();
-				if (!Expression.isFalse(guard)) {
-					// If so, build a new command
-					commandNew = new Command();
-					commandNew.setSynch(command.getSynch());
-					guardNew = Expression.And(exprPc, guard);
-					commandNew.setGuard(guardNew);
-					// Go through updates, modifying them 
-					updates = command.getUpdates();
-					updatesNew = new Updates();
-					numUpdates = updates.getNumUpdates();
-					for (j = 0; j < numUpdates; j++) {
-						update = updates.getUpdate(j);
-						// Determine successor (PC) state
-						stateNew = new State(state);
-						update.updatePartially(state, stateNew, varMap);
-						// If new, add it to explore list
-						if (states.add(stateNew)) {
-							explore.add(stateNew);
-						}
-						dest = states.getIndexOfLastAdd();
-						// Build new update
-						updateNew = new Update();
-						updateNew.addElement(new ExpressionIdent(pc), Expression.Int(dest));
-						numElements = update.getNumElements();
-						// Copy across rest of old update  
-						for (k = 0; k < numElements; k++) {
-							if (varMap[update.getVarIndex(k)] == -1) {
-								updateNew.addElement(update.getVarIdent(k), update.getExpression(k));
+		try {
+			while (!explore.isEmpty()) {
+				// Pick next state to explore
+				// (they are stored in order found so know index is src+1)
+				state = explore.removeFirst();
+				src++;
+				// Build expression for this PC state
+				exprPc = new ExpressionVar(pc, TypeInt.getInstance());
+				exprPc = new ExpressionBinaryOp(ExpressionBinaryOp.EQ, exprPc, Expression.Int(src));
+				// For each command in the module
+				numCommands = module.getNumCommands();
+				for (i = 0; i < numCommands; i++) {
+					command = module.getCommand(i);
+					// See if guard is potentially true for this PC value
+					guard = command.getGuard();
+					guard = (Expression) guard.deepCopy().evaluatePartially(state, varMap).simplify();
+					if (!Expression.isFalse(guard)) {
+						// If so, build a new command
+						commandNew = new Command();
+						commandNew.setSynch(command.getSynch());
+						guardNew = Expression.And(exprPc, guard);
+						commandNew.setGuard(guardNew);
+						// Go through updates, modifying them 
+						updates = command.getUpdates();
+						updatesNew = new Updates();
+						numUpdates = updates.getNumUpdates();
+						for (j = 0; j < numUpdates; j++) {
+							update = updates.getUpdate(j);
+							// Determine successor (PC) state
+							stateNew = new State(state);
+							update.updatePartially(state, stateNew, varMap);
+							// If new, add it to explore list
+							if (states.add(stateNew)) {
+								explore.add(stateNew);
 							}
+							dest = states.getIndexOfLastAdd();
+							// Build new update
+							updateNew = new Update();
+							updateNew.addElement(new ExpressionIdent(pc), Expression.Int(dest));
+							numElements = update.getNumElements();
+							// Copy across rest of old update  
+							for (k = 0; k < numElements; k++) {
+								if (varMap[update.getVarIndex(k)] == -1) {
+									updateNew.addElement(update.getVarIdent(k), update.getExpression(k));
+								}
+							}
+							updatesNew.addUpdate(updates.getProbability(j), updateNew);
 						}
-						updatesNew.addUpdate(updates.getProbability(j), updateNew);
+						// Add new stuff to new module
+						commandNew.setUpdates(updatesNew);
+						moduleNew.addCommand(commandNew);
 					}
-					// Add new stuff to new module
-					commandNew.setUpdates(updatesNew);
-					moduleNew.addCommand(commandNew);
 				}
-			}
 
-			// Also generate the (clock) invariant for this state
-			invar = module.getInvariant();
-			if (invar != null) {
-				// Get (copy of) existing invariant for module
-				invar = invar.deepCopy();
-				// Evaluate (partially) invariant for this PC value
-				invar = (Expression) invar.evaluatePartially(state, varMap).simplify();
-				// If not "true", add into new invariant
-				if (!Expression.isTrue(invar)) {
-					invar = Expression.Parenth(Expression.Implies(exprPc, invar));
-					invarNew = (invarNew == null) ? invar : Expression.And(invarNew, invar);
+				// Also generate the (clock) invariant for this state
+				invar = module.getInvariant();
+				if (invar != null) {
+					// Get (copy of) existing invariant for module
+					invar = invar.deepCopy();
+					// Evaluate (partially) invariant for this PC value
+					invar = (Expression) invar.evaluatePartially(state, varMap).simplify();
+					// If not "true", add into new invariant
+					if (!Expression.isTrue(invar)) {
+						invar = Expression.Parenth(Expression.Implies(exprPc, invar));
+						invarNew = (invarNew == null) ? invar : Expression.And(invarNew, invar);
+					}
 				}
 			}
+		}
+		// Catch a (possibly) common source of mem-out errors during explicit-state reachability
+		catch (OutOfMemoryError e) {
+			throw new PrismLangException("Out of memory after exploring " + (src + 1) + " states of module " + module.getName(), module);
 		}
 
 		// Set the invariant for the new module
