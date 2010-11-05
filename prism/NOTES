@@ -8,9 +8,9 @@ TODO (before any release)
 -------------------------
 
 PTAs:
+* Implement divergence fix
+* Sort out "time-lock" error message
 * (Further) tidy of prism-examples/pta
-* Clarify time divergence issues
-* non-zeno checks?
 
 =======================================================
 
@@ -26,6 +26,9 @@ Filters, property semantics, etc.
 * Restructure Result class? e.g. separate bracketed comment? (done I think)
   - Errors (Exceptions) formatted properly?
 
+Action labels:
+* Check status of export/import trans wrt actions (alll models)
+
 Sim:
 * tidy doSampling, looking at Vincent's code
 * seed issues (Vlad)
@@ -40,8 +43,12 @@ PTAs:
     (see non-well-formed.nm/pctl for a test case)
     (if can't do that, syntax check using sat)
   - digital clocks: check invariants after transform/reach?
-* Digital clocks: No time-bounded until yet
-* Digital clocks: Translation done sep for each property (e.g. for cmax)?
+    (might be like non-pta case: doing before reach causes false alarms?)
+* Digital clocks time-bounded
+  - will need to make sure cmax is updated accordingly
+    (currently just from temporal operator time bound since no clocks in formula)
+  - also might need to access property constants (see TODO in DC.java)
+
 * Bug fix: action alphabet (syntactic) for sync lost in PTA object construction
 
 DOC (before public release)
@@ -72,6 +79,7 @@ PTAs:
   - access to other local and global vars
   - system endsystem?
  (then test on Arnd's BRP model + others)
+* Implement structurally non-zeno checks
 * BRP example
 * Translate non-convex guards to DNF and multiple transitions
 * Investigate whether non-convex invariants can be supported (look at zone ops)
