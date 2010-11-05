@@ -97,8 +97,7 @@ public class ForwardsReach
 		IndexedSet<LocZone> Yset;
 		//LocZoneSetOld Zset;
 		ReachabilityGraph graph;
-		int src, dest, count, dests[];
-		boolean canDiverge;
+		int src, dest, count;
 		long timer, timerProgress;
 		boolean progressDisplayed;
 
@@ -139,34 +138,24 @@ public class ForwardsReach
 			// Compute timed post for this zone (NB: do this before checking if target)
 			lz = lz.deepCopy();
 			lz.tPost(pta);
-			// Is this a target state? (If so, don't explore)
+			// Is this a target state?
 			if (targetLocs.get(lz.loc) && (targetConstraint == null || lz.zone.isSatisfied(targetConstraint))) {
 				target.set(src);
 				// Add null for this state (no need to store info)
 				graph.addState();
 				continue;
 			}
-			// Check if time can diverge in this state
-			canDiverge = lz.zone.allClocksAreUnbounded();
-			// Explore this symbolic state
-			// First, check for possibility of timelock: if there are no PTA transitions
-			// and it is not possible for time to diverge in this state
-			if (!canDiverge && pta.getTransitions(lz.loc).size() == 0) {
-				throw new PrismException("Timelock (no transitions) in PTA at location \"" + pta.getLocationNameString(lz.loc) + "\"");
+			// Otherwise, explore this symbolic state
+			// First, check there is at least one transition
+			// (don't want deadlocks in non-target states)
+			if (pta.getTransitions(lz.loc).size() == 0) {
+				throw new PrismException("Deadlock (no transitions) in PTA at location \"" + pta.getLocationNameString(lz.loc) + "\"");
 			}
 			// Add current state to reachability graph
 			graph.addState();
-			// For unbounded case, add a special self-loop transition to model divergence
-			if (canDiverge) {
-				dests = new int[1];
-				dests[0] = src;
-				Transition trNew = new Transition(pta, src, "_diverge");
-				trNew.addEdge(1.0, src);
-				graph.addTransition(src, trNew, dests, null);
-			}
 			// For each outgoing transition...
 			for (Transition transition : pta.getTransitions(lz.loc)) {
-				dests = new int[transition.getNumEdges()];
+				int[] dests = new int[transition.getNumEdges()];
 				boolean enabled = false;
 				boolean unenabled = false;
 				count = 0;

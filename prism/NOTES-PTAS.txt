@@ -9,8 +9,6 @@ In guards or invariants, references to clocks must be conjunctions of simple clo
 
 There are also some additional restrictions for PTA models. Modules cannot read the local variables of other modules and global variables are not permitted. The model must also have a single initial state (i.e. the init...endinit construct is not permitted). Again, when using digital clocks, the latter constraint does not apply.
 
-Model checking requires several assumptions: we require PTAs to be well-formed and non-zeno (see e.g. [KNP09c] for details). Currently, PRISM does not check automatically that these assumptions are satisfied.
-
 There are a set of PRISM PTA examples in the directory examples/pta. See the formats09.sh script in this directory for details of how to run the examples.
 
 * Properties
