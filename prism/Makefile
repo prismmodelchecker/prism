@@ -69,10 +69,13 @@ endif
 # For Macs, we decide whether to build in 64-bit mode based on
 # whether java is 32/64-bit (since these need to match)
 ifeq ($(OSTYPE),darwin)
-	JAVA_VERSION_STRING = $(shell java -version 2>&1)
-	ifneq (, $(or $(findstring 64-bit, $(JAVA_VERSION_STRING)), $(findstring 64-Bit, $(JAVA_VERSION_STRING)) ))
-		ARCH = x86_64
-	endif
+    JAVA_VERSION_STRING = $(shell java -version 2>&1)
+    ifneq (, $(findstring 64-bit, $(JAVA_VERSION_STRING)) )
+        ARCH = x86_64
+    endif
+    ifneq (, $(findstring 64-Bit, $(JAVA_VERSION_STRING)) )
+        ARCH = x86_64
+    endif
 endif
 
 ########
