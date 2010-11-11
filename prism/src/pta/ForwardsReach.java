@@ -77,12 +77,8 @@ public class ForwardsReach
 	public ReachabilityGraph buildForwardsGraph(PTA pta, BitSet targetLocs, Constraint targetConstraint)
 			throws PrismException
 	{
-		boolean formats10 = true;
-		
-		if (formats10)
-			return buildForwardsGraphFormats10(pta, targetLocs, targetConstraint);
-		else
-			return buildForwardsGraphFormats09(pta, targetLocs, targetConstraint);
+		return buildForwardsGraphFormats10(pta, targetLocs, targetConstraint);
+		//return buildForwardsGraphFormats09(pta, targetLocs, targetConstraint);
 	}
 	
 	/**
@@ -262,7 +258,10 @@ public class ForwardsReach
 	
 	/**
 	 * Implementation of {@link #buildForwardsGraph} using FORMATS'09 definition.
+	 * This should not be used any more since changes/improvements to e.g. timelock detection
+	 * have been implemented under the assumption that the default (FORMATS'10) algorithm is used.
 	 */
+	@SuppressWarnings("unused")
 	private ReachabilityGraph buildForwardsGraphFormats09(PTA pta, BitSet targetLocs, Constraint targetConstraint)
 	throws PrismException
 	{
