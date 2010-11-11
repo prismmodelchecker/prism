@@ -8,9 +8,11 @@ TODO (before any release)
 -------------------------
 
 PTAs:
-* Implement divergence fix
-* Sort out "time-lock" error message
 * (Further) tidy of prism-examples/pta
+
+DOC!
+
+timelock reported as deadlock for digital
 
 =======================================================
 
@@ -28,6 +30,9 @@ Filters, property semantics, etc.
 
 Action labels:
 * Check status of export/import trans wrt actions (alll models)
+* Finalise tra format with actions (needs to work with MCs too)
+  - also fix e.g. importtrans, prism-statra
+* make action storage optional (when required e.g. for export) (especially for MCs)
 
 Sim:
 * tidy doSampling, looking at Vincent's code
@@ -110,11 +115,6 @@ Simulator:
 * GUI sim - add context menu to transition list with e.g. "show in model"
 * Traviendo export?
 * Code: Optimise/tidy Choices (ChoiceList/ChoiceSingleton/etc.)
-
-Actions:
-* Finalise tra format with actions (needs to work with MCs too)
-  - also fix e.g. importtrans, prism-statra
-* make action storage optional (when required e.g. for export) (especially for MCs)
 
 Adversary generation:
 * Add adversary generation for other engines

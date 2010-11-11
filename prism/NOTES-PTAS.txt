@@ -11,6 +11,8 @@ There are also some additional restrictions for PTA models. Modules cannot read 
 
 Model checking requires several assumptions: we require PTAs to be well-formed and non-zeno (see e.g. [KNP09c] for details). Currently, PRISM does not check automatically that these assumptions are satisfied.
 
+PRISM does check for timelocks, i.e. states in which it possible to get to a point where no transitions are available and time cannot elapse due to invariant conditions.
+
 There are a set of PRISM PTA examples in the directory examples/pta. See the formats09.sh script in this directory for details of how to run the examples.
 
 * Properties
