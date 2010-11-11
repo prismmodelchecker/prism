@@ -194,13 +194,10 @@ public class PTAAbstractRefine extends STPGAbstractRefine
 		if (level == numValids) {
 			// Check this combination of transitions is non-empty  
 			if (!valid.isEmpty()) {
-				// Check for the case where it is possible that no transitions are enabled.
-				// We disallow this (time-divergence restrictions on PTAs that we can handle). 
-				if (bitSet.cardinality() == 0) {
-					String s = "Possibility of time divergence in PTA location ";
-					s += pta.getLocationNameString(graph.states.get(src).loc);
-					throw new PrismException(s);
-				}
+				// Ignore the case where no transitions are enabled
+				// (has been dealt with earlier by adding explicit "diverge" transition)
+				if (bitSet.cardinality() == 0)
+					return;
 				// Create distribution set for this combination of transitions
 				distrSet = stpg.newDistributionSet(null);
 				// If using BitSets for action labels (as opposed to storing the zones directly)
@@ -238,13 +235,14 @@ public class PTAAbstractRefine extends STPGAbstractRefine
 					distrSet.setAction(actionBitSet);
 				stpg.addDistributionSet(src, distrSet);
 			}
-
 		} else {
 			// Recursive step
 			// Note that the construction of the validity constraint for
 			// transition combinations is done recursively - this gives big gains in efficiency.
 			// Note also that, the first thing added to the conjunction (i.e. the validity constraint)
-			// before recursion starts is the symbolic state zone. Generally, it is better to
+			// before recursion starts is the symbolic state zone. We can only do this because at
+			// least one transition is enabled in this combination, so its validity will need to include
+			// the symbolic state zone. Generally, it is better to
 			// add non-complemented zones, like this, early to avoid blowups
 			// (in terms of conjunctions on complements, which are typically large DBM lists).
 			// Finally, note that use of combined intersectComplement operation is, like

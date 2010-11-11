@@ -405,6 +405,30 @@ public class DBMList extends NCZone
 	}
 
 	/**
+	 * Disjunction: with another zone
+	 */
+	public void union(Zone z)
+	{
+		if (z instanceof DBM) {
+			addDBM((DBM) z);
+		}
+		else {
+			addDBMs((DBMList) z);
+		}
+	}
+	
+	/**
+	 * Get some (any) convex zone contained within this zone.
+	 * Returns null if this zone is empty.
+	 */
+	public Zone getAZone()
+	{
+		if (list.size() > 0)
+			return list.get(0);
+		else return null;
+	}
+	
+	/**
 	 * Clone this zone
 	 */
 	public DBMList deepCopy()
@@ -458,6 +482,17 @@ public class DBMList extends NCZone
 	public String storageInfo()
 	{
 		return "List of " + list.size() + " DBMs with " + pta.numClocks + " clocks";
+	}
+
+	// Static zone creation methods
+
+	/**
+	 * Create empty DBM list (i.e. false)
+	 */
+	public static DBMList createFalse(PTA pta)
+	{
+		DBMList dbml = new DBMList(pta);
+		return dbml;
 	}
 
 	// Private utility methods

@@ -235,6 +235,11 @@ public class DBM extends Zone
 		DBMList list = new DBMList(pta);
 		DBM dbmNew;
 		int i, j, n;
+		// Special case: complement of empty DBM is True
+		if (isEmpty()) {
+			list.addDBM(createTrue(pta));
+			return list;
+		}
 		n = d.length - 1;
 		for (i = 0; i < n + 1; i++) {
 			for (j = 0; j < n + 1; j++) {

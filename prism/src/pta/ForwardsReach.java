@@ -91,13 +91,13 @@ public class ForwardsReach
 	private ReachabilityGraph buildForwardsGraphFormats10(PTA pta, BitSet targetLocs, Constraint targetConstraint)
 	throws PrismException
 	{
-		Zone z;
 		LocZone init, lz, lz2;
 		LinkedList<LocZone> X;
 		IndexedSet<LocZone> Yset;
 		//LocZoneSetOld Zset;
 		ReachabilityGraph graph;
-		int src, dest, count;
+		int src, dest, count, dests[];
+		boolean canDiverge;
 		long timer, timerProgress;
 		boolean progressDisplayed;
 
@@ -121,8 +121,7 @@ public class ForwardsReach
 		target = new BitSet();
 
 		// Build initial symbolic state (NB: assume initial location = 0)
-		z = DBM.createZero(pta);
-		init = new LocZone(0, z);
+		init = new LocZone(0, DBM.createZero(pta));
 
 		// Reachability loop
 		Yset.add(init);
@@ -138,24 +137,56 @@ public class ForwardsReach
 			// Compute timed post for this zone (NB: do this before checking if target)
 			lz = lz.deepCopy();
 			lz.tPost(pta);
-			// Is this a target state?
+			// Is this a target state? (If so, don't explore)
 			if (targetLocs.get(lz.loc) && (targetConstraint == null || lz.zone.isSatisfied(targetConstraint))) {
 				target.set(src);
 				// Add null for this state (no need to store info)
 				graph.addState();
 				continue;
 			}
-			// Otherwise, explore this symbolic state
-			// First, check there is at least one transition
-			// (don't want deadlocks in non-target states)
-			if (pta.getTransitions(lz.loc).size() == 0) {
-				throw new PrismException("Deadlock (no transitions) in PTA at location \"" + pta.getLocationNameString(lz.loc) + "\"");
+			// Check if time can diverge in this state
+			// (note we already did tPost above)
+			canDiverge = lz.zone.allClocksAreUnbounded();
+			// Explore this symbolic state
+			// First, check for one possible cause of timelock:
+			// no PTA transitions and not possible for time to diverge
+			if (!canDiverge && pta.getTransitions(lz.loc).size() == 0) {
+				throw new PrismException("Timelock (no transitions) in PTA at location " + pta.getLocationNameString(lz.loc));
 			}
 			// Add current state to reachability graph
 			graph.addState();
+			// For unbounded case, add a special self-loop transition to model divergence
+			if (canDiverge) {
+				dests = new int[1];
+				dests[0] = src;
+				Transition trNew = new Transition(pta, lz.loc, "_diverge");
+				trNew.addEdge(1.0, lz.loc);
+				graph.addTransition(src, trNew, dests, null);
+			}
+			// And for the non-unbounded case, need to do a check for time-locks
+			else {
+				Zone zone;
+				NCZone ncZone;
+				// Build union of tPre of each guard
+				ncZone = DBMList.createFalse(pta);
+				for (Transition transition : pta.getTransitions(lz.loc)) {
+					zone = DBM.createFromConstraints(pta, transition.getGuardConstraints());
+					zone.down();
+					ncZone.union(zone);
+				}
+				// Make sure tPost of this zone is not bigger (tPost done above)
+				// (i.e. intersection with complement of union is empty)
+				ncZone.complement();
+				ncZone.intersect(lz.zone);
+				if (!ncZone.isEmpty()) {
+					String s = "Timelock in PTA at location " + pta.getLocationNameString(lz.loc);
+					s += " when " + ncZone.getAZone();
+					throw new PrismException(s);
+				}
+			}
 			// For each outgoing transition...
 			for (Transition transition : pta.getTransitions(lz.loc)) {
-				int[] dests = new int[transition.getNumEdges()];
+				dests = new int[transition.getNumEdges()];
 				boolean enabled = false;
 				boolean unenabled = false;
 				count = 0;
@@ -185,9 +216,13 @@ public class ForwardsReach
 					graph.addTransition(src, transition, dests, null);
 				}
 			}
-			// Check for deadlock (transitions exist but not enabled)
-			if (graph.trans.get(src).size() == 0) {
-				throw new PrismException("Deadlock (no enabled transitions) in PTA at location \"" + pta.getLocationNameString(lz.loc) + "\"");
+			// Check for another possible cause of timelock:
+			// no PTA transitions *enabled* and not possible for time to diverge
+			// (NB: This should be defunct now because of earlier timelock check)
+			// (NB2: Strictly speaking, don't need to check canDiverge - if it was
+			// true, we would have added a loop transition that is definitely enabled)
+			if (!canDiverge && graph.trans.get(src).size() == 0) {
+				throw new PrismException("Timelock (no enabled transitions) in PTA at location " + pta.getLocationNameString(lz.loc));
 			}
 			// Print some progress info occasionally
 			if (System.currentTimeMillis() - timerProgress > 3000) {
@@ -292,7 +327,7 @@ public class ForwardsReach
 			// First, check there is at least one transition
 			// (don't want deadlocks in non-target states)
 			if (pta.getTransitions(lz.loc).size() == 0) {
-				throw new PrismException("PTA deadlocks in location \"" + pta.getLocationNameString(lz.loc) + "\"");
+				throw new PrismException("PTA deadlocks in location " + pta.getLocationNameString(lz.loc));
 			}
 			// For each outgoing transition...
 			graph.addState();
