@@ -274,7 +274,11 @@ public class GUIProperty
 			} else {
 				setStatus(STATUS_RESULT_FALSE);
 			}
+		} else if (result.getResult() instanceof Integer) {
+			setStatus(STATUS_RESULT_NUMBER);
 		} else if (result.getResult() instanceof Double) {
+			setStatus(STATUS_RESULT_NUMBER);
+		} else if (result.getResult() instanceof Interval) {
 			setStatus(STATUS_RESULT_NUMBER);
 		} else if (result.getResult() instanceof Exception) {
 			setStatus(STATUS_RESULT_ERROR);
