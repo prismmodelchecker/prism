@@ -27,23 +27,18 @@
 
 package userinterface.properties;
 
+import java.util.Vector;
+import java.util.ArrayList;
+import javax.swing.*;
+import java.awt.*;
+import org.jfree.data.xy.*;
+
 import userinterface.*;
 import userinterface.graph.Graph;
 import userinterface.graph.GraphResultListener;
-
-import javax.swing.*;
-
-
-import java.awt.*;
 import prism.*;
 import parser.*;
-import java.util.*;
-import org.jfree.data.xy.*;
 
-/**
- * 
- * @author  ug60axh
- */
 public class GUIGraphPicker extends javax.swing.JDialog
 {   
     private GUIPrism gui;
@@ -59,7 +54,7 @@ public class GUIGraphPicker extends javax.swing.JDialog
     private DefinedConstant rangingConstant;
     
     private Values otherValues;
-    private java.util.Vector<DefinedConstant> multiSeries;
+    private Vector<DefinedConstant> multiSeries;
     
     private userinterface.graph.Graph graphModel;
     private boolean graphCancelled;
@@ -72,9 +67,8 @@ public class GUIGraphPicker extends javax.swing.JDialog
      * @param plugin The GUIPlugin (GUIMultiProperties)
      * @param experiment The experiment for which to plot a graph.
      * @param graphHandler The graph handler in which to display the graph.
-     * @param useExistingResults If true, simply plot existing results (experiment has been done). 
-     * If false, attach listeners to the results such that plot is made when results become 
-     * available.
+     * @param resultsKnown If true, simply plot existing results (experiment has been done). 
+     * If false, attach listeners to the results such that plot is made when results become available.
      */
     public GUIGraphPicker(GUIPrism parent, GUIPlugin plugin, GUIExperiment experiment, GUIGraphHandler graphHandler, boolean resultsKnown)
     {
@@ -88,11 +82,11 @@ public class GUIGraphPicker extends javax.swing.JDialog
         this.graphHandler = graphHandler;        
         this.resultsCollection = experiment.getResults();        
         
-        // graphCancelled will be set explictly to false when the OK button is pressed
+        // graphCancelled will be set explicitly to false when the OK button is pressed
         // (this means if the user closes the dialog, this counts as a cancel)
         this.graphCancelled = true;
         
-        this.multiSeries = new java.util.Vector<DefinedConstant>();
+        this.multiSeries = new Vector<DefinedConstant>();
        
         initComponents();        
         setResizable(false);
@@ -108,7 +102,7 @@ public class GUIGraphPicker extends javax.swing.JDialog
 		if (!graphCancelled)
 		{			
 			/* Collect series keys. */
-			java.util.Vector<Graph.SeriesKey> seriesKeys = new java.util.Vector<Graph.SeriesKey>();
+			Vector<Graph.SeriesKey> seriesKeys = new Vector<Graph.SeriesKey>();
 							        
 	        /* Collect series Values */
 	        ArrayList<Values> seriesValues = new ArrayList<Values>();
@@ -156,8 +150,6 @@ public class GUIGraphPicker extends javax.swing.JDialog
 		            Values values = seriesValues.get(series);
 		            Graph.SeriesKey seriesKey = seriesKeys.get(series);
 		            
-		            int nrSeries = -1;
-		           
 	            	/** Range over x-axis. */
 	            	for(int i = 0; i < rangingConstant.getNumSteps(); i++)
 		            {			                
@@ -191,8 +183,9 @@ public class GUIGraphPicker extends javax.swing.JDialog
 		                    else
 		                    {	validY = false;	}
 		                    
-		                    if (validX && validY)
+		                    if (validX && validY) {
 		                    	graphModel.addPointToSeries(seriesKey, new XYDataItem(x,y));
+		                    }
 	                    }
 	                    catch (PrismException pe)
 	                    {
@@ -299,7 +292,7 @@ public class GUIGraphPicker extends javax.swing.JDialog
         ranger = selectAxisConstantCombo.getSelectedItem().toString();
         // init arrays
         otherValues = new Values();
-        multiSeries = new java.util.Vector<DefinedConstant>();
+        multiSeries = new Vector<DefinedConstant>();
         // go through constants in picker list
         for(int j = 0; j < pickerList.getNumConstants(); j++)
         {
@@ -582,7 +575,7 @@ public class GUIGraphPicker extends javax.swing.JDialog
        
         // init arrays
         otherValues = new Values();
-        multiSeries = new java.util.Vector<DefinedConstant>();
+        multiSeries = new Vector<DefinedConstant>();
         
         // go through all constants in picker list
         for(int j = 0; j < pickerList.getNumConstants(); j++)
