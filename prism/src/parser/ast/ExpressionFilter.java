@@ -51,6 +51,8 @@ public class ExpressionFilter extends Expression
 	// by toString(). This is used to add filters to P/R/S operators that
 	// were created with old-style filter syntax. 
 	private boolean invisible = false;
+	// Whether or not an explanation should be displayed when model checking
+	private boolean explanationEnabled = true;
 	
 	// Constructors
 
@@ -113,6 +115,11 @@ public class ExpressionFilter extends Expression
 		this.invisible = invisible;
 	}
 	
+	public void setExplanationEnabled(boolean explanationEnabled)
+	{
+		this.explanationEnabled = explanationEnabled;
+	}
+	
 	// Get methods
 
 	public FilterOperator getOperatorType()
@@ -140,6 +147,11 @@ public class ExpressionFilter extends Expression
 		return invisible;
 	}
 
+	public boolean getExplanationEnabled()
+	{
+		return explanationEnabled;
+	}
+	
 	// Methods required for Expression:
 
 	/**

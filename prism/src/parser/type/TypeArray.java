@@ -13,11 +13,6 @@ public class TypeArray extends Type
 	
 	private Type subType;
 	
-	private TypeArray()
-	{
-		this.subType = null;
-	}
-	
 	public TypeArray(Type subType)
 	{
 		this.subType = subType;
@@ -51,7 +46,7 @@ public class TypeArray extends Type
 	
 	public static TypeArray getInstance(Type subType)
 	{
-		if (singletons.containsKey(subType))
+		if (!singletons.containsKey(subType))
 			singletons.put(subType, new TypeArray(subType));
 			
 		return singletons.get(subType);

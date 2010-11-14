@@ -589,9 +589,11 @@ public class TypeCheck extends ASTTraverse
 		case MAX:
 		case SUM:
 		case FIRST:
-		case RANGE:
 		case PRINT:
 			e.setType(t);
+			break;
+		case RANGE:
+			e.setType(TypeInterval.getInstance(t));
 			break;
 		case COUNT:
 			e.setType(TypeInt.getInstance());
