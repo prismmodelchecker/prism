@@ -87,6 +87,11 @@ public class GraphResultListener implements ResultListener
 			if (x == Double.POSITIVE_INFINITY || x == Double.NEGATIVE_INFINITY || x != x) 
 				return;
 						
+            // For now, to plot intervals, just pick lower value
+            if (result instanceof Interval) {
+            	result = ((Interval) result).lower;
+            }
+            
 			// Get y coordinate
 			if(result instanceof Integer) {	
 				y = ((Integer)result).intValue(); 

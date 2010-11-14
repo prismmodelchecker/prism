@@ -176,6 +176,11 @@ public class GUIGraphPicker extends javax.swing.JDialog
 		                    else
 		                    {	validX = false;	}
 		                    
+		                    // For now, to plot intervals, just pick lower value
+		                    if (result instanceof Interval) {
+		                    	result = ((Interval) result).lower;
+		                    }
+		                    
 		                    if(result instanceof Double)
 		                    {   y = ((Double)result).doubleValue();	}
 		                    else if (value instanceof Integer)
