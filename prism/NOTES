@@ -13,6 +13,7 @@ PTAs:
 DOC!
 
 timelock reported as deadlock for digital
+verbose has new behaviour now?! (wrt filters)
 
 =======================================================
 
@@ -20,13 +21,8 @@ TODO (before public release)
 ----------------------------
 
 Filters, property semantics, etc.
-* Integer-valued props displayed as doubles - need to give types to StateValues?
-  - lots of other places too e.g. GUI results)
-* Intervals for multiple initial states
-  - Need classes for Result
-  - Graph plotting?
-* Restructure Result class? e.g. separate bracketed comment? (done I think)
-  - Errors (Exceptions) formatted properly?
+* Integer-valued props displayed as doubles when printed as vector
+* Intervals (e.g. for multiple initial states) plotted in graphs
 
 Action labels:
 * Check status of export/import trans wrt actions (alll models)
