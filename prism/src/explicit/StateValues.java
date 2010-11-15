@@ -66,6 +66,7 @@ public class StateValues
 	 */
 	public StateValues(Type type, int size)
 	{
+		// TODO: check this: ? probably always returns Double due to typing
 		this(type, size, type instanceof TypeInt ? new Integer(0) : new Double(0.0));
 	}
 	
