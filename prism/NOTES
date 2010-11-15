@@ -35,6 +35,8 @@ Sim:
 * seed issues (Vlad)
 
 PTAs:
+* Clarify rewards support (digital clocks)
+* Less verbose A-R output?
 * More of PCTL - even just G, bounded (not =?), etc.
 * Enforce well-formedness checks (i.e. guards/resets imply target invariants)
   (as opposed to say supporting strong invariants,
