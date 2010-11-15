@@ -113,7 +113,7 @@ public class DigitalClocks
 
 		// Check that model does not contain any closed clock constraints
 		// (don't need to check for diagonal-free-ness)
-		ast = findAStrictClockConstraint(propertyToCheck);
+		ast = findAStrictClockConstraint(modulesFile);
 		if (ast != null)
 			throw new PrismLangException("Strict clock constraints are not allowed when using the digital clocks method", ast);
 
