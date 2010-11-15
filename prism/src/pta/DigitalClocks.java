@@ -258,13 +258,9 @@ public class DigitalClocks
 			pf = (PropertiesFile) pf.accept(asttm);
 
 		// Change state rewards in reward structures to use time action
-		// TODO: need to check properties file and see if used in non-cumulative way
+		// (no need to change transition rewards)
+		// Note: only cumulative (F) properties supported currently.
 		for (RewardStruct rs : mf.getRewardStructs()) {
-			if (rs.getNumStateItems() == 0)
-				continue;
-			// TODO: handle this case
-			if (rs.getNumTransItems() > 0)
-				throw new PrismLangException("Translation of reward structures with both state/transition items is not yet supported");
 			n = rs.getNumItems();
 			for (i = 0; i < n; i++) {
 				RewardStructItem rsi = rs.getRewardStructItem(i);
