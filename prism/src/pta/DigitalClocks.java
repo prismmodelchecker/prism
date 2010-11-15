@@ -117,6 +117,20 @@ public class DigitalClocks
 		if (ast != null)
 			throw new PrismLangException("Strict clock constraints are not allowed when using the digital clocks method", ast);
 
+		// ACheck for any references to clocks in rewards structures - not allowed.
+		for (RewardStruct rs : modulesFile.getRewardStructs()) {
+			rs.accept(new ASTTraverseModify()
+			{
+				public Object visit(ExpressionVar e) throws PrismLangException
+				{
+					if (e.getType() instanceof TypeClock) {
+						throw new PrismLangException("Reward structures cannot contain references to clocks", e);
+					} else {
+						return e;
+					}
+				}
+			});
+		}
 		// Check that the property is suitable for checking with digital clocks
 		if (propertyToCheck != null)
 			checkProperty(propertyToCheck);
@@ -257,13 +271,14 @@ public class DigitalClocks
 		if (pf != null)
 			pf = (PropertiesFile) pf.accept(asttm);
 
-		// Change state rewards in reward structures to use time action
-		// (no need to change transition rewards)
+		// Change state rewards in reward structures to use time action)
+		// (transition rewards can be left unchanged)
 		// Note: only cumulative (F) properties supported currently.
 		for (RewardStruct rs : mf.getRewardStructs()) {
 			n = rs.getNumItems();
 			for (i = 0; i < n; i++) {
 				RewardStructItem rsi = rs.getRewardStructItem(i);
+				// Convert state rewards
 				if (!rsi.isTransitionReward()) {
 					rsi = new RewardStructItem(timeAction, rsi.getStates().deepCopy(), rsi.getReward().deepCopy());
 					rs.setRewardStructItem(i, rsi);
@@ -284,27 +299,27 @@ public class DigitalClocks
 	public void checkProperty(Expression propertyToCheck) throws PrismLangException
 	{
 		ASTElement ast;
-		
+
 		// Bounded properties not yet handled.
 		try {
 			propertyToCheck.accept(new ASTTraverse()
-		{
-			public void visitPost(ExpressionTemporal e) throws PrismLangException
 			{
-				if (e.getLowerBound() != null || e.getUpperBound() != null)
-					throw new PrismLangException("The digital clocks method does not yet support bounded properties");
-			}
-		});
+				public void visitPost(ExpressionTemporal e) throws PrismLangException
+				{
+					if (e.getLowerBound() != null || e.getUpperBound() != null)
+						throw new PrismLangException("The digital clocks method does not yet support bounded properties");
+				}
+			});
 		} catch (PrismLangException e) {
 			e.setASTElement(propertyToCheck);
 			throw e;
 		}
-		
+
 		// Check that there are no nested probabilistic operators
 		if (propertyToCheck.computeProbNesting() > 1) {
 			throw new PrismLangException("Nested P operators are not allowed when using the digital clocks method", propertyToCheck);
 		}
-		
+
 		// Check for presence of strict clock constraints
 		// TODO: also need to look in any required properties file labels
 		// (currently, these cannot even contain clocks so not an issue)
