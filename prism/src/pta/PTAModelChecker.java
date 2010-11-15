@@ -124,7 +124,7 @@ public class PTAModelChecker
 			public Object visit(ExpressionVar e) throws PrismLangException
 			{
 				if (e.getType() instanceof TypeClock) {
-					throw new PrismLangException("Properties cannot contain references to clocks", e);
+					throw new PrismLangException("Properties cannot contain references to clocks (try the digital clocks engine instead)", e);
 				} else {
 					return e;
 				}
@@ -171,7 +171,7 @@ public class PTAModelChecker
 		else if (expr instanceof ExpressionReward)
 			res = checkExpressionReward((ExpressionReward) expr);
 		else
-			throw new PrismException("PTA model checking not supported for this operator");
+			throw new PrismException("PTA model checking not yet supported for this operator (try the digital clocks engine)");
 
 		return res;
 	}
@@ -191,16 +191,16 @@ public class PTAModelChecker
 
 		// Check whether Pmin=? or Pmax=? (only two cases allowed)
 		if (expr.getProb() != null) {
-			throw new PrismException("PTA model checking currently only supports Pmin=? and Pmax=? properties");
+			throw new PrismException("PTA model checking currently only supports Pmin=? and Pmax=? properties (try the digital clocks engine instead)");
 		}
 		min = expr.getRelOp().equals("min=");
 
 		// Check this is a F path property (only case allowed at the moment)
 		if (!(expr.getExpression() instanceof ExpressionTemporal))
-			throw new PrismException("PTA model checking currently only supports the F path operator");
+			throw new PrismException("PTA model checking currently only supports the F path operator (try the digital clocks engine instead)");
 		exprTemp = (ExpressionTemporal) expr.getExpression();
 		if (exprTemp.getOperator() != ExpressionTemporal.P_F || !exprTemp.isSimplePathFormula())
-			throw new PrismException("PTA model checking currently only supports the F path operator");
+			throw new PrismException("PTA model checking currently only supports the F path operator (try the digital clocks engine instead)");
 		
 		// Determine locations satisfying target
 		exprTarget = exprTemp.getOperand2();
@@ -330,7 +330,7 @@ public class PTAModelChecker
 	 */
 	private Result checkExpressionReward(ExpressionReward expr) throws PrismException
 	{
-		throw new PrismException("Not yet supported");
+		throw new PrismException("Reward properties not yet supported for PTA model checking (try the digital clocks engine instead)");
 	}
 
 	/**
