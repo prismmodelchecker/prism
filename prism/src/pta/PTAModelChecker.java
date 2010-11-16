@@ -269,8 +269,6 @@ public class PTAModelChecker
 					for (Edge e : trNew.getEdges()) {
 						if (targetLocs.get(e.getDestination())) {
 							e.setDestination(newTargetLoc);
-							toTarget = true;
-							break;
 						}
 					}
 					if (timeBoundStrict)
