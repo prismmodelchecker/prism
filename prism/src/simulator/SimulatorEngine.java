@@ -116,7 +116,7 @@ public class SimulatorEngine
 	// Temporary storage for manipulating states/rewards
 	protected double tmpStateRewards[];
 	protected double tmpTransitionRewards[];
-	
+
 	// Updater object for model
 	protected Updater updater;
 	// Random number generator
@@ -837,7 +837,7 @@ public class SimulatorEngine
 	{
 		return transitionList.getTransitionUpdateString(index, path.getCurrentState());
 	}
-	
+
 	/**
 	 * Get a string describing the updates making up a transition, specified by its index.
 	 * This is in full, i.e. of the form x'=x+1, rather than x'=1.
@@ -849,7 +849,7 @@ public class SimulatorEngine
 	{
 		return transitionList.getTransitionUpdateStringFull(index);
 	}
-	
+
 	/**
 	 * Get the target (as a new State object) of a transition within a choice, specified by its index/offset.
 	 */
@@ -1123,29 +1123,15 @@ public class SimulatorEngine
 	}
 
 	/**
-	 * Perform approximate model checking for a single property.
-	 * Note: All constants in the model must have already been defined.
-	 * @param modulesFile Model for simulation
-	 * 
-	 * <P>
-	 * The returned result is:
-	 * <UL>
-	 * <LI> A Double object: for =?[] properties
-	 * </UL>
-	 * 
-	 * @param propertiesFile
-	 *            The PropertiesFile containing the property of interest, constants defined.
-	 * @param expr
-	 *            The property of interest
-	 * @param initialState
-	 *            The initial state for the sampling.
-	 * @param noIterations
-	 *            The number of iterations for the sampling algorithm
-	 * @param maxPathLength
-	 *            the maximum path length for the sampling algorithm.
-	 * @throws PrismException
-	 *             if anything goes wrong.
-	 * @return the result.
+	 * Perform approximate model checking of a property on a model, using the simulator.
+	 * Sampling starts from the initial state provided or, if null, a random initial state each time.
+	 * Note: All constants in the model/property files must have already been defined.
+	 * @param modulesFile Model for simulation, constants defined
+	 * @param propertiesFile Properties file containing property to check, constants defined
+	 * @param expr The property to check
+	 * @param initialState Initial state (if null, is selected randomly)
+	 * @param numIters The number of iterations (i.e. number of samples to generate)
+	 * @param maxPathLength The maximum path length for sampling
 	 */
 	public Object modelCheckSingleProperty(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression expr, State initialState, int numIters,
 			int maxPathLength) throws PrismException
@@ -1153,6 +1139,7 @@ public class SimulatorEngine
 		ArrayList<Expression> exprs;
 		Object res[];
 
+		// Just do this via the 'multiple properties' method
 		exprs = new ArrayList<Expression>();
 		exprs.add(expr);
 		res = modelCheckMultipleProperties(modulesFile, propertiesFile, exprs, initialState, numIters, maxPathLength);
@@ -1222,37 +1209,23 @@ public class SimulatorEngine
 	}
 
 	/**
-	 * Deals with all of the logistics of performing an experiment and storing the results in an appropriate
-	 * <tt>ResultsCollection</tt> object.
-	 * 
-	 * @param exp
-	 *            the experiment in which to store the results.
-	 * @param modulesFile
-	 *            The ModulesFile, constants already defined.
-	 * @param propertiesFile
-	 *            The PropertiesFile containing the property of interest, constants defined.
-	 * @param undefinedConstants
-	 *            defining what should be done for the experiment
-	 * @param resultsCollection
-	 *            where the results should be stored
-	 * @param propertyToCheck
-	 *            the property to check for the experiment
-	 * @param initialState
-	 *            The initial state for the sampling.
-	 * @param maxPathLength
-	 *            the maximum path length for the sampling algorithm.
-	 * @param noIterations
-	 *            The number of iterations for the sampling algorithm
-	 * @throws PrismException
-	 *             if something goes wrong with the results reporting
-	 * @throws InterruptedException
-	 *             if the thread is interrupted
-	 * @throws PrismException
-	 *             if something goes wrong with the sampling algorithm
+	 * Perform an approximate model checking experiment on a model, using the simulator.
+	 * Sampling starts from the initial state provided or, if null, a random initial state each time.
+	 * Note: All constants in the model/property files must have already been defined.
+	 * @param modulesFile Model for simulation, constants defined
+	 * @param propertiesFile Properties file containing property to check, constants defined
+	 * @param undefinedConstants Details of constant ranges defining the experiment
+	 * @param resultsCollection Where to store the results
+	 * @param expr The property to check
+	 * @param initialState Initial state (if null, is selected randomly)
+	 * @param numIters The number of iterations (i.e. number of samples to generate)
+	 * @param maxPathLength The maximum path length for sampling
+	 * @throws PrismException if something goes wrong with the sampling algorithm
+	 * @throws InterruptedException if the thread is interrupted
 	 */
 	public void modelCheckExperiment(ModulesFile modulesFile, PropertiesFile propertiesFile, UndefinedConstants undefinedConstants,
-			ResultsCollection resultsCollection, Expression propertyToCheck, State initialState, int maxPathLength, int noIterations) throws PrismException,
-			InterruptedException, PrismException
+			ResultsCollection resultsCollection, Expression expr, State initialState, int maxPathLength, int numIters) throws PrismException,
+			InterruptedException
 	{
 		int n;
 		Values definedPFConstants = new Values();
@@ -1271,8 +1244,8 @@ public class SimulatorEngine
 			pfcs[i] = definedPFConstants;
 			propertiesFile.setUndefinedConstants(definedPFConstants);
 			try {
-				checkPropertyForSimulation(propertyToCheck);
-				indices[i] = addProperty(propertyToCheck, propertiesFile);
+				checkPropertyForSimulation(expr);
+				indices[i] = addProperty(expr, propertiesFile);
 				if (indices[i] >= 0)
 					validPropsCount++;
 			} catch (PrismException e) {
@@ -1284,7 +1257,7 @@ public class SimulatorEngine
 
 		// as long as there are at least some valid props, do sampling
 		if (validPropsCount > 0) {
-			doSampling(initialState, noIterations, maxPathLength);
+			doSampling(initialState, numIters, maxPathLength);
 		}
 
 		// process the results
@@ -1345,7 +1318,7 @@ public class SimulatorEngine
 
 			// Start the new path for this iteration (sample)
 			initialisePath(initialState);
-			
+
 			// Generate a path, up to at most maxPathLength steps
 			for (i = 0; i < maxPathLength; i++) {
 				// See if all samplers have established a value; if so, stop.
