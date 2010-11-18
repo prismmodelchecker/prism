@@ -1284,8 +1284,7 @@ public class SimulatorEngine
 
 		// as long as there are at least some valid props, do sampling
 		if (validPropsCount > 0) {
-			initialisePath(initialState);
-			//doSampling(noIterations, maxPathLength);
+			doSampling(initialState, noIterations, maxPathLength);
 		}
 
 		// process the results
