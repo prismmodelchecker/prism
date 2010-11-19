@@ -41,7 +41,7 @@ public class State implements Comparable<State>
 
 	/**
 	 * Construct empty (uninitialised) state.
-	 * @param n: Number of variables.
+	 * @param n Number of variables.
 	 */
 	public State(int n)
 	{
@@ -50,7 +50,7 @@ public class State implements Comparable<State>
 
 	/**
 	 * Construct by copying existing State object.
-	 * @param s: State to copy.
+	 * @param s State to copy.
 	 */
 	public State(State s)
 	{
@@ -75,7 +75,7 @@ public class State implements Comparable<State>
 
 	/**
 	 * Construct by copying existing Values object.
-	 * @param s: State to copy.
+	 * @param v Values object to copy.
 	 */
 	//FIXME:don't assume v has correct order  
 	public State(Values v) throws PrismLangException
@@ -108,7 +108,7 @@ public class State implements Comparable<State>
 
 	/**
 	 * Copy contents of an existing state.
-	 * @param s: State to copy.
+	 * @param s State to copy.
 	 */
 	public void copy(State s)
 	{

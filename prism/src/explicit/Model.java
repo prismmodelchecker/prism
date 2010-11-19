@@ -82,15 +82,15 @@ public interface Model
 
 	/**
 	 * Check if all the successor states of a state are in a set.
-	 * @param s: The state to check
-	 * @param set: The set to test for inclusion
+	 * @param s The state to check
+	 * @param set The set to test for inclusion
 	 */
 	public boolean allSuccessorsInSet(int s, BitSet set);
 
 	/**
 	 * Check if any successor states of a state are in a set.
-	 * @param s: The state to check
-	 * @param set: The set to test for inclusion
+	 * @param s The state to check
+	 * @param set The set to test for inclusion
 	 */
 	public boolean someSuccessorsInSet(int s, BitSet set);
 

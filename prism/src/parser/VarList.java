@@ -90,9 +90,9 @@ public class VarList
 
 	/**
 	 * Add a new variable to the end of the VarList.
-	 * @param decl: Declaration defining the variable
-	 * @param module: Index of module containing variable
-	 * @param constantValues: Values of constants needed to evaluate low/high/etc.
+	 * @param decl Declaration defining the variable
+	 * @param module Index of module containing variable
+	 * @param constantValues Values of constants needed to evaluate low/high/etc.
 	 */
 	public void addVar(Declaration decl, int module, Values constantValues) throws PrismLangException
 	{
@@ -104,9 +104,9 @@ public class VarList
 
 	/**
 	 * Add a new variable at position i in the VarList.
-	 * @param decl: Declaration defining the variable
-	 * @param module: Index of module containing variable
-	 * @param constantValues: Values of constants needed to evaluate low/high/etc.
+	 * @param decl Declaration defining the variable
+	 * @param module Index of module containing variable
+	 * @param constantValues Values of constants needed to evaluate low/high/etc.
 	 */
 	public void addVar(int i, Declaration decl, int module, Values constantValues) throws PrismLangException
 	{
@@ -124,9 +124,9 @@ public class VarList
 
 	/**
 	 * Create a new variable object to the store in the list.
-	 * @param decl: Declaration defining the variable
-	 * @param module: Index of module containing variable
-	 * @param constantValues: Values of constants needed to evaluate low/high/etc.
+	 * @param decl Declaration defining the variable
+	 * @param module Index of module containing variable
+	 * @param constantValues Values of constants needed to evaluate low/high/etc.
 	 */
 	private Var createVar(Declaration decl, int module, Values constantValues) throws PrismLangException
 	{
@@ -336,7 +336,7 @@ public class VarList
 
 	/**
 	 * Get a list of all possible values for a subset of the variables in this list.
-	 * @param vars: The subset of variables
+	 * @param vars The subset of variables
 	 */
 	public List<Values> getAllValues(List<String> vars) throws PrismLangException
 	{

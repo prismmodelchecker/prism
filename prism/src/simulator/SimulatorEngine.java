@@ -45,7 +45,7 @@ import prism.*;
  * 
  * After creating a SimulatorEngine object, you can build paths or explore models using:
  * <UL>
- * <LI> <code>createNewPath</code> if you want to create a path that will be stored in full
+ * <LI> {@link #createNewPath} if you want to create a path that will be stored in full
  * <LI> <code>createNewOnTheFlyPath</code> if just want to do e.g. model exploration
  * </UL>
  * The input to these methods is a model (ModulesFile) in which all constants have already been defined.
@@ -1041,7 +1041,7 @@ public class SimulatorEngine
 	/**
 	 * Export the current path to a file in a simple space separated format.
 	 * (Not applicable for on-the-fly paths)
-	 * @param file: File to which the path should be exported to (mainLog if null).
+	 * @param file File to which the path should be exported to (mainLog if null).
 	 */
 	public void exportPath(File file) throws PrismException
 	{
@@ -1051,10 +1051,10 @@ public class SimulatorEngine
 	/**
 	 * Export the current path to a file.
 	 * (Not applicable for on-the-fly paths)
-	 * @param file: File to which the path should be exported to (mainLog if null).
-	 * @param timeCumul: Show time in cumulative form?
-	 * @param colSep: String used to separate columns in display
-	 * @param vars: Restrict printing to these variables (indices) and steps which change them (ignore if null)
+	 * @param file File to which the path should be exported to (mainLog if null).
+	 * @param timeCumul Show time in cumulative form?
+	 * @param colSep String used to separate columns in display
+	 * @param vars Restrict printing to these variables (indices) and steps which change them (ignore if null)
 	 */
 	public void exportPath(File file, boolean timeCumul, String colSep, ArrayList<Integer> vars) throws PrismException
 	{

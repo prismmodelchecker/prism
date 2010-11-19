@@ -1909,7 +1909,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 	/**
 	 * Setter for property displayStyle.
-	 * @param displayStyle New value of property displayStyle.
+	 * @param b New value of property displayStyle.
 	 */
 	public void setDisplayPathLoops(boolean b) throws PrismException
 	{

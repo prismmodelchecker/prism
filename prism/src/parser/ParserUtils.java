@@ -36,7 +36,7 @@ public class ParserUtils
 	/**
 	 * Split a conjunction into a list of its component expressions, removing any parentheses.
 	 * Note: this is purely syntactic, e.g. both "true" and "false" just result in a singleton list.  
-	 * @param expr: Expression to split.
+	 * @param expr Expression to split.
 	 */
 	public static List<Expression> splitConjunction(Expression expr)
 	{
@@ -48,7 +48,7 @@ public class ParserUtils
 	/**
 	 * Split a disjunction into a list of its component expressions, removing any parentheses.
 	 * Note: this is purely syntactic, e.g. both "true" and "false" just result in a singleton list.  
-	 * @param expr: Expression to split.
+	 * @param expr Expression to split.
 	 */
 	public static List<Expression> splitDisjunction(Expression expr)
 	{
@@ -60,9 +60,9 @@ public class ParserUtils
 	/**
 	 * Split an expression into a list of its component expressions, based on a binary operator.
 	 * Also remove any parentheses.
-	 * @param expr: Expression to split.
-	 * @param op: Code of operator to split on (from ExpressionBinaryOp).
-	 * @param list: Expression list in which to append resulting expressions.
+	 * @param expr Expression to split.
+	 * @param op Code of operator to split on (from ExpressionBinaryOp).
+	 * @param list Expression list in which to append resulting expressions.
 	 */
 	public static void splitOnBinaryOp(Expression expr, int op, List<Expression> list)
 	{

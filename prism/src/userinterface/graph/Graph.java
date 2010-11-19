@@ -434,7 +434,7 @@ public class Graph extends ChartPanel implements SettingOwner, EntityResolver, O
 		
 	/**
 	 * Should always be synchronised on seriesCollection when called.
-	 * @returns >0 when series found.
+	 * @return >0 when series found.
 	 */
 	public int getJFreeChartIndex(SeriesKey key)
 	{
@@ -490,7 +490,7 @@ public class Graph extends ChartPanel implements SettingOwner, EntityResolver, O
 	
 	/**
 	 * Setter for property titleFont.
-	 * @param value Value of property titleFont.
+	 * @param font Value of property titleFont.
 	 */
 	public void setTitleFont(FontColorPair font)
 	{
@@ -517,7 +517,7 @@ public class Graph extends ChartPanel implements SettingOwner, EntityResolver, O
 	
 	/**
 	 * Setter for property legendFont.
-	 * @param value Value of property legendFont.
+	 * @param font Value of property legendFont.
 	 */
 	public void setLegendFont(FontColorPair font)
 	{
@@ -544,7 +544,7 @@ public class Graph extends ChartPanel implements SettingOwner, EntityResolver, O
 	
 	/**
 	 * Setter for property legendVisible.
-	 * @param value Value of property legendVisible.
+	 * @param visible Value of property legendVisible.
 	 */
 	public void setLegendVisible(boolean visible)
 	{
@@ -787,9 +787,7 @@ public class Graph extends ChartPanel implements SettingOwner, EntityResolver, O
 
 	/**
 	 * Wholly remove a series from the current graph, by key.
-	 * 
-	 * @param seriesKey
-	 *            SeriesKey of series to remove.
+	 * @param seriesKey SeriesKey of series to remove.
 	 */
 	public void removeSeries(SeriesKey seriesKey) 
 	{
@@ -820,11 +818,8 @@ public class Graph extends ChartPanel implements SettingOwner, EntityResolver, O
 
 	/**
 	 * Add a point to the specified graph series.
-	 * 
-	 * @param seriesKey
-	 *            Key of series to update.
-	 * @param gp
-	 *            GraphPoint value to insert into this series.
+	 * @param seriesKey Key of series to update.
+	 * @param dataItem XYDataItem object to insert into this series.
 	 */
 	public void addPointToSeries(SeriesKey seriesKey, XYDataItem dataItem) {
 		
@@ -1002,12 +997,9 @@ public class Graph extends ChartPanel implements SettingOwner, EntityResolver, O
 
 	/**
 	 * Method to load a PRISM 'gra' file into the application.
-	 * 
-	 * @param Name
-	 *            of the file to load.
+	 * @param file Name of the file to load.
 	 * @return The model of the graph contained in the file.
-	 * @throws GraphException
-	 *             Various I/O errors have occured.
+	 * @throws GraphException if I/O errors have occurred.
 	 */
 	public static Graph load(File file) throws GraphException {
 				
@@ -1237,13 +1229,9 @@ public class Graph extends ChartPanel implements SettingOwner, EntityResolver, O
 
 	/**
 	 * Exports the current graph to Matlab file format.
-	 * 
-	 * @param file
-	 *            The file to write the data to.
-	 * @throws GraphException
-	 *             If file cannot be written to.
+	 * @param f The file to write the data to.
 	 */
-	public void exportToMatlab(File f)throws IOException
+	public void exportToMatlab(File f) throws IOException
 	{
 		PrintWriter out = new PrintWriter(new FileWriter(f));
 		

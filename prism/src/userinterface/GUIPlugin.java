@@ -188,7 +188,7 @@ public abstract class GUIPlugin extends JPanel implements GUIEventListener, Pris
 	}
 		
 	/** Determine whether or not this action should be enabled.
-	 * @param: action An action in GUIClipboard (but not undo/redo).
+	 * @param action An action in GUIClipboard (but not undo/redo).
 	 */	
 	public boolean canDoClipBoardAction(Action action)
 	{

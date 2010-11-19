@@ -32,9 +32,9 @@ public class Utils
 {
 	/**
 	 * Compute the minimum or maximum value over a subset of an array of doubles.
-	 * @param array: The array
-	 * @param subset: The subset
-	 * @param min: Min or max (true = min, false = max) 
+	 * @param array The array
+	 * @param subset The subset
+	 * @param min Min or max (true = min, false = max) 
 	 */
 	public static double minMaxOverArraySubset(double[] array, Iterable<Integer> subset, boolean min)
 	{
@@ -46,8 +46,8 @@ public class Utils
 	
 	/**
 	 * Compute the minimum value over a subset of an array of doubles.
-	 * @param array: The array
-	 * @param subset: The subset
+	 * @param array The array
+	 * @param subset The subset
 	 */
 	public static double minOverArraySubset(double[] array, Iterable<Integer> subset)
 	{
@@ -62,8 +62,8 @@ public class Utils
 	
 	/**
 	 * Compute the maximum value over a subset of an array of doubles.
-	 * @param array: The array
-	 * @param subset: The subset
+	 * @param array The array
+	 * @param subset The subset
 	 */
 	public static double maxOverArraySubset(double[] array, Iterable<Integer> subset)
 	{
@@ -78,8 +78,8 @@ public class Utils
 	
 	/**
 	 * Create an n-element array of doubles (0s and 1s) from a BitSet.
-	 *  @param bs: The bitset specifying 0s and 1s
-	 *  @param n: The size of the array.
+	 *  @param bs The bitset specifying 0s and 1s
+	 *  @param n The size of the array.
 	 */
 	public static double[] bitsetToDoubleArray(BitSet bs, int n)
 	{
@@ -92,11 +92,11 @@ public class Utils
 
 	/**
 	 * Extend a double array to be at least as big as requested size.
-	 * @param array: The array to be resized
-	 * @param nOld: The size of the old array (not necessarily array.length)
-	 * @param nNew: The desired new size
-	 * @param valNew: Value to initialise new elements with
-	 * @return: The new array
+	 * @param array The array to be resized
+	 * @param nOld The size of the old array (not necessarily array.length)
+	 * @param nNew The desired new size
+	 * @param valNew Value to initialise new elements with
+	 * @return The new array
 	 */
 	public static double[] extendDoubleArray(double array[], int nOld, int nNew, double valNew)
 	{
@@ -125,8 +125,8 @@ public class Utils
 
 	/**
 	 * Clone a double array.
-	 * @param array: The array to be cloned
-	 * @return: The new array
+	 * @param array The array to be cloned
+	 * @return The new array
 	 */
 	public static double[] cloneDoubleArray(double array[])
 	{

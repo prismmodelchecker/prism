@@ -104,7 +104,7 @@ public class IndexedSet<T>
 
 	/**
 	 * Create an ArrayList of the states, ordered by index, storing in the passed in list.
-	 * @param storeHere: An empty ArrayList in which to store the result.
+	 * @param list An empty ArrayList in which to store the result.
 	 */
 	public void toArrayList(ArrayList<T> list)
 	{

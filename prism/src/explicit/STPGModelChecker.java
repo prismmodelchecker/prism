@@ -229,10 +229,10 @@ public class STPGModelChecker extends StateModelChecker
 
 	/**
 	 * Compute probabilistic reachability.
-	 * @param stpg: The STPG
-	 * @param target: Target states
-	 * @param min1: Min or max probabilities for player 1 (true=lower bound, false=upper bound)
-	 * @param min2: Min or max probabilities for player 2 (true=min, false=max)
+	 * @param stpg The STPG
+	 * @param target Target states
+	 * @param min1 Min or max probabilities for player 1 (true=lower bound, false=upper bound)
+	 * @param min2 Min or max probabilities for player 2 (true=min, false=max)
 	 */
 	public ModelCheckerResult probReach(STPG stpg, BitSet target, boolean min1, boolean min2) throws PrismException
 	{
@@ -241,12 +241,12 @@ public class STPGModelChecker extends StateModelChecker
 
 	/**
 	 * Compute probabilistic reachability.
-	 * @param stpg: The STPG
-	 * @param target: Target states
-	 * @param min1: Min or max probabilities for player 1 (true=lower bound, false=upper bound)
-	 * @param min2: Min or max probabilities for player 2 (true=min, false=max)
-	 * @param init: Optionally, an initial solution vector for value iteration 
-	 * @param known: Optionally, a set of states for which the exact answer is known
+	 * @param stpg The STPG
+	 * @param target Target states
+	 * @param min1 Min or max probabilities for player 1 (true=lower bound, false=upper bound)
+	 * @param min2 Min or max probabilities for player 2 (true=min, false=max)
+	 * @param init Optionally, an initial solution vector for value iteration 
+	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
 	public ModelCheckerResult probReach(STPG stpg, BitSet target, boolean min1, boolean min2, double init[],
@@ -325,13 +325,13 @@ public class STPGModelChecker extends StateModelChecker
 
 	/**
 	 * Compute probabilistic reachability using value iteration.
-	 * @param stpg: The STPG
-	 * @param no: Probability 0 states
-	 * @param yes: Probability 1 states
-	 * @param min1: Min or max probabilities for player 1 (true=lower bound, false=upper bound)
-	 * @param min2: Min or max probabilities for player 2 (true=min, false=max)
-	 * @param init: Optionally, an initial solution vector for value iteration 
-	 * @param known: Optionally, a set of states for which the exact answer is known
+	 * @param stpg The STPG
+	 * @param no Probability 0 states
+	 * @param yes Probability 1 states
+	 * @param min1 Min or max probabilities for player 1 (true=lower bound, false=upper bound)
+	 * @param min2 Min or max probabilities for player 2 (true=min, false=max)
+	 * @param init Optionally, an initial solution vector for value iteration 
+	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
 	protected ModelCheckerResult probReachValIter(STPG stpg, BitSet no, BitSet yes, boolean min1, boolean min2,
@@ -416,12 +416,12 @@ public class STPGModelChecker extends StateModelChecker
 	 * Construct strategy information for min/max reachability probabilities.
 	 * (More precisely, list of indices of player 1 choices resulting in min/max.)
 	 * (Note: indices are guaranteed to be sorted in ascending order.)
-	 * @param stpg: The STPG
-	 * @param state: The state to generate strategy info for
-	 * @param target: The set of target states to reach
-	 * @param min1: Min or max probabilities for player 1 (true=min, false=max)
-	 * @param min:1 Min or max probabilities for player 2 (true=min, false=max)
-	 * @param lastSoln: Vector of probabilities from which to recompute in one iteration 
+	 * @param stpg The STPG
+	 * @param state The state to generate strategy info for
+	 * @param target The set of target states to reach
+	 * @param min1 Min or max probabilities for player 1 (true=min, false=max)
+	 * @param min2 Min or max probabilities for player 2 (true=min, false=max)
+	 * @param lastSoln Vector of probabilities from which to recompute in one iteration 
 	 */
 	public List<Integer> probReachStrategy(STPG stpg, int state, BitSet target, boolean min1, boolean min2,
 			double lastSoln[]) throws PrismException
@@ -432,13 +432,13 @@ public class STPGModelChecker extends StateModelChecker
 
 	/**
 	 * Compute bounded probabilistic reachability.
-	 * @param stpg: The STPG
-	 * @param target: Target states
-	 * @param b: Bound
-	 * @param min1: Min or max probabilities for player 1 (true=lower bound, false=upper bound)
-	 * @param min2: Min or max probabilities for player 2 (true=min, false=max)
-	 * @param init: Initial solution vector - pass null for default
-	 * @param results: Optional array of size b+1 to store (init state) results for each step (null if unused)
+	 * @param stpg The STPG
+	 * @param target Target states
+	 * @param b Bound
+	 * @param min1 Min or max probabilities for player 1 (true=lower bound, false=upper bound)
+	 * @param min2 Min or max probabilities for player 2 (true=min, false=max)
+	 * @param init Initial solution vector - pass null for default
+	 * @param results Optional array of size b+1 to store (init state) results for each step (null if unused)
 	 */
 	public ModelCheckerResult probReachBounded(STPG stpg, BitSet target, int b, boolean min1, boolean min2,
 			double init[], double results[]) throws PrismException

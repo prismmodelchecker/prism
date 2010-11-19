@@ -181,11 +181,8 @@ public class CTMCModelChecker extends DTMCModelChecker
 
 	/**
 	 * Compute expected reachability.
-	 * @param ctmc: The CTMC
-	 * @param target: Target states
-	 * @param init: Optionally, an initial solution vector for value iteration 
-	 * @param known: Optionally, a set of states for which the exact answer is known
-	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
+	 * @param ctmc The CTMC
+	 * @param target Target states
 	 */
 	public ModelCheckerResult expReach(CTMC ctmc, BitSet target) throws PrismException
 	{
@@ -196,10 +193,10 @@ public class CTMCModelChecker extends DTMCModelChecker
 
 	/**
 	 * Compute expected reachability.
-	 * @param ctmc: The CTMC
-	 * @param target: Target states
-	 * @param init: Optionally, an initial solution vector for value iteration 
-	 * @param known: Optionally, a set of states for which the exact answer is known
+	 * @param ctmc The CTMC
+	 * @param target Target states
+	 * @param init Optionally, an initial solution vector for value iteration 
+	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
 	public ModelCheckerResult expReach(CTMC ctmc, BitSet target, double init[], BitSet known) throws PrismException

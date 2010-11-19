@@ -52,7 +52,7 @@ public class GraphResultListener implements ResultListener
 		
 	/** 
 	 * Creates a new instance of GraphResultListener 
-	 * It presumes that the seriesKey is returned by a call of {@link userinterface.graph.graph#addSeries graph.addSeries(...)}. 
+	 * It presumes that the seriesKey is returned by a call of {@link userinterface.graph.Graph#addSeries graph.addSeries(...)}. 
 	 * @param graph The graph to notify when new results are found.
 	 * @param seriesKey The key of the series this listener represents.
 	 * @param rangeConstant The ranging constant (x-axis value) (required to identify the series from the results). 

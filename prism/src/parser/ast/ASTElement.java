@@ -202,7 +202,7 @@ public abstract class ASTElement
 
 	/**
 	 * Expand all formulas, return result.
-	 * @param formulaList: The FormulaList for formula definitions
+	 * @param formulaList The FormulaList for formula definitions
 	 */
 	public ASTElement expandFormulas(FormulaList formulaList) throws PrismLangException
 	{
@@ -211,8 +211,8 @@ public abstract class ASTElement
 
 	/**
 	 * Expand all formulas, return result.
-	 * @param formulaList: The FormulaList for formula definitions
-	 * @param replace: Whether to replace formulas outright with their definition
+	 * @param formulaList The FormulaList for formula definitions
+	 * @param replace Whether to replace formulas outright with their definition
 	 * (true for use in models since they may be subjected to renaming afterwards;
 	 * false for properties since it is cleaner just to have the name there when displayed)
 	 */
@@ -319,7 +319,7 @@ public abstract class ASTElement
 	/**
 	 * Expand labels, return result.
 	 * Special labels "deadlock", "init" and any not in list are left.
-	 * @param labelList: The LabelList for label definitions
+	 * @param labelList The LabelList for label definitions
 	 */
 	public ASTElement expandLabels(LabelList labelList) throws PrismLangException
 	{

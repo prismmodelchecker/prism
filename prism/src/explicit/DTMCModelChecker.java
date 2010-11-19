@@ -295,8 +295,8 @@ public class DTMCModelChecker extends StateModelChecker
 
 	/**
 	 * Compute probabilistic reachability.
-	 * @param dtmc: The DTMC
-	 * @param target: Target states
+	 * @param dtmc The DTMC
+	 * @param target Target states
 	 */
 	public ModelCheckerResult probReach(DTMC dtmc, BitSet target) throws PrismException
 	{
@@ -305,10 +305,10 @@ public class DTMCModelChecker extends StateModelChecker
 
 	/**
 	 * Compute probabilistic reachability.
-	 * @param dtmc: The DTMC
-	 * @param target: Target states
-	 * @param init: Optionally, an initial solution vector for value iteration 
-	 * @param known: Optionally, a set of states for which the exact answer is known
+	 * @param dtmc The DTMC
+	 * @param target Target states
+	 * @param init Optionally, an initial solution vector for value iteration 
+	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
 	public ModelCheckerResult probReach(DTMC dtmc, BitSet target, double init[], BitSet known) throws PrismException
@@ -381,11 +381,11 @@ public class DTMCModelChecker extends StateModelChecker
 
 	/**
 	 * Compute probabilistic reachability using value iteration.
-	 * @param dtmc: The DTMC
-	 * @param no: Probability 0 states
-	 * @param yes: Probability 1 states
-	 * @param init: Optionally, an initial solution vector for value iteration 
-	 * @param known: Optionally, a set of states for which the exact answer is known
+	 * @param dtmc The DTMC
+	 * @param no Probability 0 states
+	 * @param yes Probability 1 states
+	 * @param init Optionally, an initial solution vector for value iteration 
+	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
 	protected ModelCheckerResult probReachValIter(DTMC dtmc, BitSet no, BitSet yes, double init[], BitSet known)
@@ -464,11 +464,9 @@ public class DTMCModelChecker extends StateModelChecker
 
 	/**
 	 * Compute bounded probabilistic reachability.
-	 * @param dtmc: The DTMC
-	 * @param target: Target states
-	 * @param k: Bound
-	 * @param init: Initial solution vector - pass null for default
-	 * @param results: Optional array of size b+1 to store (init state) results for each step (null if unused)
+	 * @param dtmc The DTMC
+	 * @param target Target states
+	 * @param k Bound
 	 */
 	public ModelCheckerResult probReachBounded(DTMC dtmc, BitSet target, int k) throws PrismException
 	{
@@ -477,11 +475,11 @@ public class DTMCModelChecker extends StateModelChecker
 
 	/**
 	 * Compute bounded probabilistic reachability.
-	 * @param dtmc: The DTMC
-	 * @param target: Target states
-	 * @param k: Bound
-	 * @param init: Initial solution vector - pass null for default
-	 * @param results: Optional array of size b+1 to store (init state) results for each step (null if unused)
+	 * @param dtmc The DTMC
+	 * @param target Target states
+	 * @param k Bound
+	 * @param init Initial solution vector - pass null for default
+	 * @param results Optional array of size b+1 to store (init state) results for each step (null if unused)
 	 */
 	public ModelCheckerResult probReachBounded(DTMC dtmc, BitSet target, int k, double init[], double results[])
 			throws PrismException
@@ -553,11 +551,8 @@ public class DTMCModelChecker extends StateModelChecker
 
 	/**
 	 * Compute expected reachability.
-	 * @param dtmc: The DTMC
-	 * @param target: Target states
-	 * @param init: Optionally, an initial solution vector for value iteration 
-	 * @param known: Optionally, a set of states for which the exact answer is known
-	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
+	 * @param dtmc The DTMC
+	 * @param target Target states
 	 */
 	public ModelCheckerResult expReach(DTMC dtmc, BitSet target) throws PrismException
 	{
@@ -566,10 +561,10 @@ public class DTMCModelChecker extends StateModelChecker
 
 	/**
 	 * Compute expected reachability.
-	 * @param dtmc: The DTMC
-	 * @param target: Target states
-	 * @param init: Optionally, an initial solution vector for value iteration 
-	 * @param known: Optionally, a set of states for which the exact answer is known
+	 * @param dtmc The DTMC
+	 * @param target Target states
+	 * @param init Optionally, an initial solution vector for value iteration 
+	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
 	public ModelCheckerResult expReach(DTMC dtmc, BitSet target, double init[], BitSet known) throws PrismException
@@ -631,11 +626,11 @@ public class DTMCModelChecker extends StateModelChecker
 
 	/**
 	 * Compute expected reachability using value iteration.
-	 * @param dtmc: The DTMC
-	 * @param target: Target states
-	 * @param inf: States for which reward is infinite
-	 * @param init: Optionally, an initial solution vector for value iteration 
-	 * @param known: Optionally, a set of states for which the exact answer is known
+	 * @param dtmc The DTMC
+	 * @param target Target states
+	 * @param inf States for which reward is infinite
+	 * @param init Optionally, an initial solution vector for value iteration 
+	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.
 	 */
 	protected ModelCheckerResult expReachValIter(DTMC dtmc, BitSet target, BitSet inf, double init[], BitSet known)

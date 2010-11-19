@@ -86,7 +86,6 @@ public class Filter extends ASTElement
 	/**
 	 * Get (as a string) the operator for this filter
 	 * (as need to construct an ExpressionFilter object)
-	 * @return
 	 */
 	public String getFilterOpString()
 	{

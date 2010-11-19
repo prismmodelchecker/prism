@@ -37,9 +37,9 @@ public class Constraint
 
 	/**
 	 * Create a constraint.
-	 * @param x: Left clock
-	 * @param y: Right clock
-	 * @param db: Difference bound encoded as an integer
+	 * @param x Left clock
+	 * @param y Right clock
+	 * @param db Difference bound encoded as an integer
 	 */
 	public Constraint(int x, int y, int db)
 	{

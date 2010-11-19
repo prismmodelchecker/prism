@@ -171,9 +171,9 @@ public class MDPModelChecker extends StateModelChecker
 
 	/**
 	 * Compute probabilistic reachability.
-	 * @param mdp: The MDP
-	 * @param target: Target states
-	 * @param min: Min or max probabilities (true=min, false=max)
+	 * @param mdp The MDP
+	 * @param target Target states
+	 * @param min Min or max probabilities (true=min, false=max)
 	 */
 	public ModelCheckerResult probReach(MDP mdp, BitSet target, boolean min) throws PrismException
 	{
@@ -182,11 +182,11 @@ public class MDPModelChecker extends StateModelChecker
 
 	/**
 	 * Compute probabilistic reachability.
-	 * @param mdp: The MDP
-	 * @param target: Target states
-	 * @param min: Min or max probabilities (true=min, false=max)
-	 * @param init: Optionally, an initial solution vector for value iteration 
-	 * @param known: Optionally, a set of states for which the exact answer is known
+	 * @param mdp The MDP
+	 * @param target Target states
+	 * @param min Min or max probabilities (true=min, false=max)
+	 * @param init Optionally, an initial solution vector for value iteration 
+	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
 	public ModelCheckerResult probReach(MDP mdp, BitSet target, boolean min, double init[], BitSet known)
@@ -260,12 +260,12 @@ public class MDPModelChecker extends StateModelChecker
 
 	/**
 	 * Compute probabilistic reachability using value iteration.
-	 * @param mdp: The MDP
-	 * @param no: Probability 0 states
-	 * @param yes: Probability 1 states
-	 * @param min: Min or max probabilities (true=min, false=max)
-	 * @param init: Optionally, an initial solution vector for value iteration 
-	 * @param known: Optionally, a set of states for which the exact answer is known
+	 * @param mdp The MDP
+	 * @param no Probability 0 states
+	 * @param yes Probability 1 states
+	 * @param min Min or max probabilities (true=min, false=max)
+	 * @param init Optionally, an initial solution vector for value iteration 
+	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
 	protected ModelCheckerResult probReachValIter(MDP mdp, BitSet no, BitSet yes, boolean min, double init[],
@@ -346,11 +346,11 @@ public class MDPModelChecker extends StateModelChecker
 	 * Construct strategy information for min/max reachability probabilities.
 	 * (More precisely, list of indices of choices resulting in min/max.)
 	 * (Note: indices are guaranteed to be sorted in ascending order.)
-	 * @param mdp: The MDP
-	 * @param state: The state to generate strategy info for
-	 * @param target: The set of target states to reach
-	 * @param min: Min or max probabilities (true=min, false=max)
-	 * @param lastSoln: Vector of values from which to recompute in one iteration 
+	 * @param mdp The MDP
+	 * @param state The state to generate strategy info for
+	 * @param target The set of target states to reach
+	 * @param min Min or max probabilities (true=min, false=max)
+	 * @param lastSoln Vector of values from which to recompute in one iteration 
 	 */
 	public List<Integer> probReachStrategy(MDP mdp, int state, BitSet target, boolean min, double lastSoln[])
 			throws PrismException
@@ -361,12 +361,10 @@ public class MDPModelChecker extends StateModelChecker
 
 	/**
 	 * Compute bounded probabilistic reachability.
-	 * @param mdp: The MDP
-	 * @param target: Target states
-	 * @param k: Bound
-	 * @param min: Min or max probabilities for (true=min, false=max)
-	 * @param init: Initial solution vector - pass null for default
-	 * @param results: Optional array of size b+1 to store (init state) results for each step (null if unused)
+	 * @param mdp The MDP
+	 * @param target Target states
+	 * @param k Bound
+	 * @param min Min or max probabilities for (true=min, false=max)
 	 */
 	public ModelCheckerResult probReachBounded(MDP mdp, BitSet target, int k, boolean min) throws PrismException
 	{
@@ -375,12 +373,12 @@ public class MDPModelChecker extends StateModelChecker
 
 	/**
 	 * Compute bounded probabilistic reachability.
-	 * @param mdp: The MDP
-	 * @param target: Target states
-	 * @param k: Bound
-	 * @param min: Min or max probabilities for (true=min, false=max)
-	 * @param init: Initial solution vector - pass null for default
-	 * @param results: Optional array of size b+1 to store (init state) results for each step (null if unused)
+	 * @param mdp The MDP
+	 * @param target Target states
+	 * @param k Bound
+	 * @param min Min or max probabilities for (true=min, false=max)
+	 * @param init Initial solution vector - pass null for default
+	 * @param results Optional array of size b+1 to store (init state) results for each step (null if unused)
 	 */
 	public ModelCheckerResult probReachBounded(MDP mdp, BitSet target, int k, boolean min, double init[],
 			double results[]) throws PrismException
@@ -454,12 +452,9 @@ public class MDPModelChecker extends StateModelChecker
 
 	/**
 	 * Compute expected reachability.
-	 * @param mdp: The MDP
-	 * @param target: Target states
-	 * @param min: Min or max rewards (true=min, false=max)
-	 * @param init: Optionally, an initial solution vector for value iteration 
-	 * @param known: Optionally, a set of states for which the exact answer is known
-	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
+	 * @param mdp The MDP
+	 * @param target Target states
+	 * @param min Min or max rewards (true=min, false=max)
 	 */
 	public ModelCheckerResult expReach(MDP mdp, BitSet target, boolean min) throws PrismException
 	{
@@ -468,11 +463,11 @@ public class MDPModelChecker extends StateModelChecker
 
 	/**
 	 * Compute expected reachability.
-	 * @param mdp: The MDP
-	 * @param target: Target states
-	 * @param min: Min or max rewards (true=min, false=max)
-	 * @param init: Optionally, an initial solution vector for value iteration 
-	 * @param known: Optionally, a set of states for which the exact answer is known
+	 * @param mdp The MDP
+	 * @param target Target states
+	 * @param min Min or max rewards (true=min, false=max)
+	 * @param init Optionally, an initial solution vector for value iteration 
+	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
 	public ModelCheckerResult expReach(MDP mdp, BitSet target, boolean min, double init[], BitSet known)
@@ -535,12 +530,12 @@ public class MDPModelChecker extends StateModelChecker
 
 	/**
 	 * Compute expected reachability using value iteration.
-	 * @param mdp: The MDP
-	 * @param target: Target states
-	 * @param inf: States for which reward is infinite
-	 * @param min: Min or max rewards (true=min, false=max)
-	 * @param init: Optionally, an initial solution vector for value iteration 
-	 * @param known: Optionally, a set of states for which the exact answer is known
+	 * @param mdp The MDP
+	 * @param target Target states
+	 * @param inf States for which reward is infinite
+	 * @param min Min or max rewards (true=min, false=max)
+	 * @param init Optionally, an initial solution vector for value iteration 
+	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.
 	 */
 	protected ModelCheckerResult expReachValIter(MDP mdp, BitSet target, BitSet inf, boolean min, double init[],
@@ -621,11 +616,11 @@ public class MDPModelChecker extends StateModelChecker
 	 * Construct strategy information for min/max expected reachability.
 	 * (More precisely, list of indices of choices resulting in min/max.)
 	 * (Note: indices are guaranteed to be sorted in ascending order.)
-	 * @param mdp: The MDP
-	 * @param state: The state to generate strategy info for
-	 * @param target: The set of target states to reach
-	 * @param min: Min or max rewards (true=min, false=max)
-	 * @param lastSoln: Vector of values from which to recompute in one iteration 
+	 * @param mdp The MDP
+	 * @param state The state to generate strategy info for
+	 * @param target The set of target states to reach
+	 * @param min Min or max rewards (true=min, false=max)
+	 * @param lastSoln Vector of values from which to recompute in one iteration 
 	 */
 	public List<Integer> expReachStrategy(MDP mdp, int state, BitSet target, boolean min, double lastSoln[])
 			throws PrismException

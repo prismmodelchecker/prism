@@ -95,7 +95,7 @@ public class PrismUtils
 
 	/**
 	 * See if two doubles are within epsilon of each other (relative or absolute error).
-	 * @param abs: Absolute if true, relative if false
+	 * @param abs Absolute if true, relative if false
 	 */
 	public static boolean doublesAreClose(double d1, double d2, double epsilon, boolean abs)
 	{

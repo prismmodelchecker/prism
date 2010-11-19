@@ -46,7 +46,7 @@ public class ReachabilityGraph
 
 	/**
 	 * Construct empty reachability graph.
-	 * @param pta: PTA associated with this graph.
+	 * @param pta PTA associated with this graph.
 	 */
 	public ReachabilityGraph(PTA pta)
 	{
@@ -72,10 +72,10 @@ public class ReachabilityGraph
 
 	/**
 	 * Add a new symbolic transition to the graph.
-	 * @param src: Source state index
-	 * @param tr: Corresponding transition in the PTA
-	 * @param dests: List of destinations
-	 * @param valid: Validity condition (usually left null and computed later)
+	 * @param src Source state index
+	 * @param tr Corresponding transition in the PTA
+	 * @param dests List of destinations
+	 * @param valid Validity condition (usually left null and computed later)
 	 */
 	public void addTransition(int src, Transition tr, int dests[], Zone valid)
 	{
@@ -146,9 +146,9 @@ public class ReachabilityGraph
 
 	/**
 	 * Compute the validity condition for a symbolic transition
-	 * @param src: The index of the source state of the symbolic transition 
-	 * @param tr: The PTA transition corresponding to the symbolic transition
-	 * @param dests: The list of destination state indices of the symbolic transition
+	 * @param src The index of the source state of the symbolic transition 
+	 * @param tr The PTA transition corresponding to the symbolic transition
+	 * @param dests The list of destination state indices of the symbolic transition
 	 */
 	public Zone computeValidity(int src, Transition tr, int[] dests)
 	{

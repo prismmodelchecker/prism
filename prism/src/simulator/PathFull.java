@@ -149,7 +149,7 @@ public class PathFull extends Path
 	
 	/**
 	 * Backtrack to a particular step within the current path.
-	 * @param The step of the path to backtrack to (step >= 0)
+	 * @param step The step of the path to backtrack to (step >= 0)
 	 */
 	public void backtrack(int step)
 	{
@@ -385,10 +385,10 @@ public class PathFull extends Path
 
 	/**
 	 * Export path to a file.
-	 * @param log: PrismLog to which the path should be exported to.
-	 * @param timeCumul: Show time in cumulative form?
-	 * @param colSep: String used to separate columns in display
-	 * @param vars: Restrict printing to these variables (indices) and steps which change them (ignore if null)
+	 * @param log PrismLog to which the path should be exported to.
+	 * @param timeCumul Show time in cumulative form?
+	 * @param colSep String used to separate columns in display
+	 * @param vars Restrict printing to these variables (indices) and steps which change them (ignore if null)
 	 */
 	public void exportToLog(PrismLog log, boolean timeCumul, String colSep, ArrayList<Integer> vars) throws PrismException
 	{

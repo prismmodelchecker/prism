@@ -67,10 +67,10 @@ public class GenerateSimulationPath
 
 	/**
 	 * Generate and export a random path through a model with the simulator.
-	 * @param modulesFile: The model
-	 * @param initialState: Initial state (if null, is selected randomly)
-	 * @param details: Information about the path to be generated
-	 * @param file: File to output the path to (stdout if null)
+	 * @param modulesFile The model
+	 * @param initialState Initial state (if null, is selected randomly)
+	 * @param details Information about the path to be generated
+	 * @param file File to output the path to (stdout if null)
 	 */
 	public void generateSimulationPath(ModulesFile modulesFile, Values initialState, String details, int maxPathLength,
 			File file) throws PrismException

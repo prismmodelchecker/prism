@@ -38,11 +38,11 @@ public class CTMDPModelChecker extends MDPModelChecker
 {
 	/**
 	 * Compute bounded probabilistic reachability.
-	 * @param target: Target states
-	 * @param t: Time bound
-	 * @param min: Min or max probabilities for (true=min, false=max)
-	 * @param init: Initial solution vector - pass null for default
-	 * @param results: Optional array of size b+1 to store (init state) results for each step (null if unused)
+	 * @param target Target states
+	 * @param t Time bound
+	 * @param min Min or max probabilities for (true=min, false=max)
+	 * @param init Initial solution vector - pass null for default
+	 * @param results Optional array of size b+1 to store (init state) results for each step (null if unused)
 	 */
 	public ModelCheckerResult probReachBounded(CTMDP ctmdp, BitSet target, double t, boolean min, double init[],
 			double results[]) throws PrismException

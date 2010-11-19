@@ -533,7 +533,6 @@ public class Prism implements PrismSettingsListener
 	/**
 	 * Get an SCCComputer object.
 	 * Type (i.e. algorithm) depends on SCCMethod PRISM option.
-	 * @return
 	 */
 	public SCCComputer getSCCComputer(Model model)
 	{
@@ -543,7 +542,6 @@ public class Prism implements PrismSettingsListener
 	/**
 	 * Get an SCCComputer object.
 	 * Type (i.e. algorithm) depends on SCCMethod PRISM option.
-	 * @return
 	 */
 	public SCCComputer getSCCComputer(JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars)
 	{
@@ -1343,9 +1341,9 @@ public class Prism implements PrismSettingsListener
 	
 	/**
 	 * Perform model checking of a property on a model and return result.
-	 * @param model: The model (DTMC, CTMC or MDP)
-	 * @param propertiesFile: Parent property file of property (for labels/constants/...)
-	 * @param expr: The property
+	 * @param model The model (DTMC, CTMC or MDP)
+	 * @param propertiesFile Parent property file of property (for labels/constants/...)
+	 * @param expr The property
 	 */
 	public Result modelCheck(Model model, PropertiesFile propertiesFile, Expression expr) throws PrismException, PrismLangException
 	{
@@ -1377,9 +1375,9 @@ public class Prism implements PrismSettingsListener
 	
 	/**
 	 * Perform model checking of a property on a PTA model and return result.
-	 * @param model: The PTA model (language-level)
-	 * @param propertiesFile: Parent property file of property (for labels/constants/...)
-	 * @param expr: The property
+	 * @param modulesFile The PTA model (language-level)
+	 * @param propertiesFile Parent property file of property (for labels/constants/...)
+	 * @param expr The property
 	 */
 	public Result modelCheckPTA(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression expr) throws PrismException, PrismLangException
 	{

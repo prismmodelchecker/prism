@@ -45,9 +45,9 @@ public class Edge
 
 	/**
 	 * Create an empty edge.
-	 * @param parent: Parent transition
-	 * @param prob: Probability
-	 * @param dest: destination location
+	 * @param parent Parent transition
+	 * @param prob Probability
+	 * @param dest destination location
 	 */
 	public Edge(Transition parent, double prob, int dest)
 	{

@@ -127,7 +127,7 @@ public class PTA
 
 	/**
 	 * Add a new "tau" transition (no action label) to the PTA.
-	 * @param loc: Source location of the new transition.  
+	 * @param loc Source location of the new transition.  
 	 */
 	public Transition addTransition(int loc)
 	{
@@ -136,8 +136,8 @@ public class PTA
 
 	/**
 	 * Add a new transition to the PTA.
-	 * @param loc: Source location of the new transition.  
-	 * @param action: Action label for the transition  
+	 * @param loc Source location of the new transition.  
+	 * @param action Action label for the transition  
 	 */
 	public Transition addTransition(int loc, String action)
 	{

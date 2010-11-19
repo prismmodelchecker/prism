@@ -171,8 +171,8 @@ public class DisplaySettings extends Observable implements SettingOwner
 	}
 	
 	/**
-	 * Getter for property antiAlias.
-	 * @return Value of property antiAlias.
+	 * Getter for property backgroundColor.
+	 * @return Value of property backgroundColor.
 	 */
 	public Color getBackgroundColor()
 	{
@@ -180,8 +180,8 @@ public class DisplaySettings extends Observable implements SettingOwner
 	}
 	
 	/**
-	 * Setter for property antiAlias.
-	 * @param value Value of property antiAlias.
+	 * Setter for property backgroundColor.
+	 * @param background Value of property backgroundColor.
 	 */
 	public void setBackgroundColor(Color background)
 	{

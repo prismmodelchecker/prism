@@ -473,12 +473,12 @@ public class STPG extends ModelSimple
 
 	/**
 	 * Do a matrix-vector multiplication followed by two min/max ops, i.e. one step of value iteration.
-	 * @param vect: Vector to multiply by
-	 * @param min1: Min or max for player 1 (true=min, false=max)
-	 * @param min2: Min or max for player 2 (true=min, false=max)
-	 * @param result: Vector to store result in
-	 * @param subset: Only do multiplication for these rows
-	 * @param complement: If true, 'subset' is taken to be its complement
+	 * @param vect Vector to multiply by
+	 * @param min1 Min or max for player 1 (true=min, false=max)
+	 * @param min2 Min or max for player 2 (true=min, false=max)
+	 * @param result Vector to store result in
+	 * @param subset Only do multiplication for these rows
+	 * @param complement If true, 'subset' is taken to be its complement
 	 */
 	public void mvMultMinMax(double vect[], boolean min1, boolean min2, double result[], BitSet subset,
 			boolean complement)
@@ -499,10 +499,10 @@ public class STPG extends ModelSimple
 
 	/**
 	 * Do a single row of matrix-vector multiplication followed by two min/max ops.
-	 * @param s: Row index
-	 * @param vect: Vector to multiply by
-	 * @param min1: Min or max for player 1 (true=min, false=max)
-	 * @param min2: Min or max for player 2 (true=min, false=max)
+	 * @param s Row index
+	 * @param vect Vector to multiply by
+	 * @param min1 Min or max for player 1 (true=min, false=max)
+	 * @param min2 Min or max for player 2 (true=min, false=max)
 	 */
 	public double mvMultMinMaxSingle(int s, double vect[], boolean min1, boolean min2)
 	{
@@ -541,11 +541,11 @@ public class STPG extends ModelSimple
 
 	/**
 	 * Determine which choices result in min/max after a single row of matrix-vector multiplication.
-	 * @param s: Row index
-	 * @param vect: Vector to multiply by
-	 * @param min: Min or max for player 1 (true=min, false=max)
-	 * @param min: Min or max for player 2 (true=min, false=max)
-	 * @param val: Min or max value to match
+	 * @param s Row index
+	 * @param vect Vector to multiply by
+	 * @param min1 Min or max for player 1 (true=min, false=max)
+	 * @param min2 Min or max for player 2 (true=min, false=max)
+	 * @param val Min or max value to match
 	 */
 	public List<Integer> mvMultMinMaxSingleChoices(int s, double vect[], boolean min1, boolean min2, double val)
 	{

@@ -47,9 +47,9 @@ public class Transition
 
 	/**
 	 * Create an empty transition.
-	 * @param parent: Parent PTA
-	 * @param src: Source location index
-	 * @param action: Synchronising action ("" if none)
+	 * @param parent Parent PTA
+	 * @param src Source location index
+	 * @param action Synchronising action ("" if none)
 	 */
 	public Transition(PTA parent, int src, String action)
 	{
