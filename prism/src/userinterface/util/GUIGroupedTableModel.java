@@ -29,7 +29,6 @@ package userinterface.util;
 import javax.swing.table.TableModel;
 
 /**
- * @author mxk
  * An interface which extends {@link TableModel} such that also group information can 
  * be extracted automatically. Note that groups are always non-empty.
  */

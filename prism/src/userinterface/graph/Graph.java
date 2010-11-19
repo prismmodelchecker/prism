@@ -60,10 +60,6 @@ import settings.*;
 /**
  * This class represents multiple series on a single unit graph; all series are
  * rendered together by MultiGraphView.
- * 
- * @author Alistair Strachan <alistair@devzero.co.uk>
- * @author Mike Arthur <mike@mikearthur.co.uk>
- * @author Zak Cohen <zakcohen@gmail.com>
  */
 public class Graph extends ChartPanel implements SettingOwner, EntityResolver, Observer, Printable
 {
@@ -1596,8 +1592,6 @@ public class Graph extends ChartPanel implements SettingOwner, EntityResolver, O
 	 * Previously this was done using integers, which was unsafe if removeSeries
 	 * was used. The hashcode() and equals() implementation of Object (based on
 	 * object identity) are sufficient to use this as the key of a HashMap.
-	 * 
-	 * @author mxk
 	 */
 	public class SeriesKey 
 	{

@@ -26,14 +26,12 @@
 //==============================================================================
 
 package settings;
+
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import java.awt.event.*;
-/**
- *
- * @author  ug60axh
- */
+
 public class FontChooser extends javax.swing.JDialog implements ListSelectionListener, ActionListener, FocusListener, ChangeListener
 {
     

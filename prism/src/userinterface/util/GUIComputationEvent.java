@@ -28,10 +28,7 @@
 package userinterface.util;
 
 import userinterface.*;
-/**
- *
- * @author  ug60axh
- */
+
 public class GUIComputationEvent extends GUIEvent
 {
     //CONSTANTS

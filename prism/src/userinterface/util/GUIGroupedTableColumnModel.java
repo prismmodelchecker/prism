@@ -31,13 +31,8 @@ import javax.swing.event.*;
 import javax.swing.table.*;
 
 /**
- * @author mxk
  * The TableColumnModel with the addition of Groups. A group is a set of columns. The set of columns 
  * belonging to each group are disjoint and non-empty (!). 
- */
-/**
- * @author mxk
- *
  */
 public class GUIGroupedTableColumnModel extends DefaultTableColumnModel implements TableColumnModelListener
 {

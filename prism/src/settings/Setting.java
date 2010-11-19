@@ -28,10 +28,6 @@ package settings;
 
 import java.util.*;
 
-/**
- *
- * @author Andrew Hinton
- */
 public abstract class Setting
 {
     private String key;

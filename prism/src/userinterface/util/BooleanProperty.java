@@ -31,10 +31,7 @@ import javax.swing.*;
 import java.awt.*;
 import javax.swing.border.*;
 import java.awt.event.*;
-/**
- *
- * @author  ug60axh
- */
+
 public class BooleanProperty extends SingleProperty
 {
     JPanel pan = new JPanel();

@@ -25,16 +25,14 @@
 //==============================================================================
 
 package settings;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.event.*;
 import javax.swing.text.BadLocationException;
 import java.util.*;
-/**
- *
- * @author  ug60axh
- */
+
 public class MultipleLineStringEditor implements SettingEditor, KeyListener, CaretListener, FocusListener
 {
     private JTextArea area;

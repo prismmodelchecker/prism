@@ -26,14 +26,12 @@
 //==============================================================================
 
 package userinterface.model.graphicModel;
-import javax.swing.*;
+
 import java.awt.event.*;
+import javax.swing.*;
+
 import userinterface.GUIPrism;
 
-/**
- *
- * @author  Andrew Hinton
- */
 public class GraphicToolBar extends JToolBar
 {
     //CONSTANTS

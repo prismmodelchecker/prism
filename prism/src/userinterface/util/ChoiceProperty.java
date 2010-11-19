@@ -32,10 +32,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-/**
- *
- * @author  Andrew Hinton
- */
 public class ChoiceProperty extends SingleProperty 
 {
     private ArrayList properties;

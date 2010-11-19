@@ -33,9 +33,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.table.*;
 
-
 /**
- * @author mxk
  * An object to represent a grouped TableHeader. It extends JTableHeader, but actually consists of two separate
  * JTableHeaders. Some of this could be tidied up, but it is build more or less to Swings concepts.
  */

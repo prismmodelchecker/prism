@@ -31,13 +31,8 @@ package userinterface.properties;
 import java.awt.*;
 
 import prism.*;
-import parser.ast.Expression;
 import parser.type.*;
 
-/**
- *
- * @author  ug60axh
- */
 public class ConstantLine extends javax.swing.JPanel
 {
 	public static final String SINGLE_DEFAULT = "0";

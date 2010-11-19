@@ -35,10 +35,6 @@ import prism.*;
 import userinterface.util.*;
 import userinterface.GUIComputationThread;
 
-/**
- *
- * @author  ug60axh
- */
 public class ParseModelThread extends GUIComputationThread
 {
 	private GUIMultiModelHandler handler;

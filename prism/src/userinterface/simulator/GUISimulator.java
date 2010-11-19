@@ -2011,8 +2011,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	// End of variables declaration//GEN-END:variables
 
 	/**
-	 * @author mxk
-	 * Represents a  in the model.
+	 * Represents a variable in the model.
 	 */
 	public class Variable
 	{
@@ -2172,8 +2171,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	}
 
 	/**
-	 * @author mxk
-	 * Represents a  in the model.
+	 * Represents a reward structure in the model.
 	 */
 	public class RewardStructure
 	{

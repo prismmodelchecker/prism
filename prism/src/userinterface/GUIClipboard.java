@@ -26,16 +26,16 @@
 //==============================================================================
 
 package userinterface;
-import javax.swing.*;
-import javax.swing.undo.UndoManager;
 
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.FlavorEvent;
 import java.awt.datatransfer.FlavorListener;
 import java.awt.event.*;
+import javax.swing.*;
 
 import userinterface.util.*;
+
 /**
  * This class gets notified through pluginChanged when the plugin in
  * focus has changed. The undo/redo actions can be implemented cleanly
@@ -50,8 +50,6 @@ import userinterface.util.*;
  * a change in selection occurs.
  * 
  * All actions can be and should be used as menu items.
- * 
- * @author  ug60axh, mxk
  */
 public class GUIClipboard extends GUIPlugin
 {

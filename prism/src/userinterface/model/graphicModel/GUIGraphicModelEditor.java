@@ -27,23 +27,18 @@
 
 package userinterface.model.graphicModel;
 
+
 import java.io.*;
 import java.util.*;
 import java.awt.*;
 import javax.swing.*;
 
 import prism.*;
-import parser.ast.*;
 import parser.type.*;
 import userinterface.util.*;
 import userinterface.model.*;
 import userinterface.model.computation.*;
 
-
-/**
- *
- * @author  ug60axh
- */
 public class GUIGraphicModelEditor extends GUIModelEditor implements SelectionListener
 {
     public static final JLabel NO_MODULES = new JLabel("Empty Graphic Model", JLabel.CENTER);

@@ -27,10 +27,6 @@
 
 package userinterface.util;
 
-/**
- *
- * @author  ug60axh
- */
 public final class PropertyConstants
 {
     public static final int STATE = 0;

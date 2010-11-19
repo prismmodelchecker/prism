@@ -26,10 +26,6 @@
 
 package settings;
 
-/**
- *
- * @author  Andrew Hinton
- */
 public class SingleLineStringSetting extends Setting
 {
     private static SingleLineStringRenderer renderer;

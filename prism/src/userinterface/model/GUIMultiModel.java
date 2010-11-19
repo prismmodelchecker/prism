@@ -26,6 +26,7 @@
 //==============================================================================
 
 package userinterface.model;
+
 import userinterface.*;
 
 import javax.swing.*;
@@ -34,14 +35,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import prism.*;
-import parser.ast.*;
 import userinterface.util.*;
 
-
-/**
- *
- * @author  ug60axh
- */
 public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 {
 	//Constants

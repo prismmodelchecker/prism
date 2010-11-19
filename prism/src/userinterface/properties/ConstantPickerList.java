@@ -34,10 +34,6 @@ import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.util.*;
 
-/**
- *
- * @author  ug60axh
- */
 public class ConstantPickerList extends JPanel implements Scrollable
 {
     private ArrayList rows;

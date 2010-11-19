@@ -27,17 +27,11 @@
 
 package userinterface.util;
 
-/**
- *
- * @author  ug60axh
- */
 public class PropertyException extends Exception
 {
-    
     /** Creates a new instance of PropertyException */
     public PropertyException(String desc)
     {
         super(desc);
     }
-    
 }

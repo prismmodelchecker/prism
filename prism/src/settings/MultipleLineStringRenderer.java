@@ -25,14 +25,12 @@
 //==============================================================================
 
 package settings;
-import javax.swing.*;
-import java.awt.*;
-import javax.swing.border.*;
+
 import java.util.*;
-/**
- *
- * @author  ug60axh
- */
+import java.awt.*;
+import javax.swing.*;
+import javax.swing.border.*;
+
 public class MultipleLineStringRenderer implements SettingRenderer
 {
     private JTextArea area = new JTextArea();

@@ -30,11 +30,12 @@
 
 package userinterface.model;
 
+import java.io.*;
+import java.util.*;
 import javax.swing.*;
 import javax.swing.text.*;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
-import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
@@ -44,23 +45,15 @@ import java.awt.event.MouseListener;
 import java.awt.datatransfer.Clipboard;
 import javax.swing.event.*;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Stack;
-
 import prism.PrismLangException;
 import prism.PrismSettings;
 import prism.PrismSettingsListener;
-import userinterface.GUIClipboardEvent;
-import userinterface.GUIPlugin;
 import userinterface.GUIPrism;
 import userinterface.util.GUIEvent;
 import userinterface.util.GUIUndoManager;
 
-/** Editing pane with syntax highlighting and line numbers etc for text 
+/**
+ * Editing pane with syntax highlighting and line numbers etc for text 
  * model files. Currently supports Prism and Pepa models. It also tells 
  * the GUIPrism, of which it is a member, about modified events.
  */

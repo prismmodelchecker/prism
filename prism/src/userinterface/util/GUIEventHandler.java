@@ -28,10 +28,7 @@
 package userinterface.util;
 import java.util.*;
 import userinterface.*;
-/**
- *
- * @author  ug60axh
- */
+
 public class GUIEventHandler
 {
 	public GUIPrism gui;

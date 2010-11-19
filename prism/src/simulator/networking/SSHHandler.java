@@ -30,10 +30,6 @@ import java.io.*;
 import java.util.*;
 import prism.PrismException;
 
-/**
- *
- * @author  ug60axh
- */
 public class SSHHandler
 {
 	

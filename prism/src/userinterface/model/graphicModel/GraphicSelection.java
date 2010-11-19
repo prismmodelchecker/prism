@@ -30,10 +30,7 @@ package userinterface.model.graphicModel;
 import java.awt.datatransfer.*;
 import java.io.*;
 import java.util.*;
-/**
- *
- * @author  Andrew Hinton
- */
+
 public class GraphicSelection implements ClipboardOwner, Transferable, Serializable
 {
     SelectionPair selection;

@@ -32,14 +32,11 @@ import javax.swing.*;
 import java.awt.event.*;
 import javax.swing.border.*;
 import java.util.*;
-/**
- *
- * @author  Andrew
- */
+
 public class ColourProperty extends SingleProperty
 {
-    
     private ArrayList actionListeners;
+    
     /** Creates a new instance of FontProperty */
     public ColourProperty(PropertyOwner owner,String name, Color property)
     {

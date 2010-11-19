@@ -25,13 +25,10 @@
 //==============================================================================
 
 package settings;
+
 import java.util.*;
 import java.awt.*;
 
-/**
- *
- * @author  ug60axh
- */
 public class FontColorSetting extends Setting 
 {
     private static FontColorRenderer renderer;

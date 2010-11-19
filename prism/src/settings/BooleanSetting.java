@@ -26,10 +26,6 @@
 
 package settings;
 
-/**
- *
- * @author  ug60axh
- */
 public class BooleanSetting extends Setting 
 {
     private static BooleanRenderer renderer;

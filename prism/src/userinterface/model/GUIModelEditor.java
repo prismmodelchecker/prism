@@ -26,14 +26,12 @@
 //==============================================================================
 
 package userinterface.model;
+
 import javax.swing.*;
 
 import prism.PrismLangException;
 import userinterface.util.GUIUndoManager;
-/**
- *
- * @author  ug60axh
- */
+
 public abstract class GUIModelEditor extends JPanel
 {    
     public abstract String getParseText();

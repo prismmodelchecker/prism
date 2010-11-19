@@ -26,14 +26,11 @@
 //==============================================================================
 
 package userinterface.properties;
+
 import javax.swing.*;
 import java.util.*;
 import java.awt.*;
 
-/**
- *
- * @author  ug60axh
- */
 public class GraphConstantPickerList extends JPanel implements Scrollable
 {
     

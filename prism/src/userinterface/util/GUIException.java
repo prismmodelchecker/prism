@@ -27,13 +27,8 @@
 
 package userinterface.util;
 
-/**
- *
- * @author  ug60axh
- */
 public class GUIException extends java.lang.Exception
 {
-    
     /**
      * Creates a new instance of <code>GUIException</code> without detail message.
      */

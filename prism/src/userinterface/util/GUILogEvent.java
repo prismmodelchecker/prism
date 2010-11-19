@@ -27,10 +27,6 @@
 
 package userinterface.util;
 
-/**
- *
- * @author  ug60axh
- */
 public class GUILogEvent extends GUIEvent
 {
     public static final int PRINTLN = 0;

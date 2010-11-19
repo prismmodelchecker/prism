@@ -39,10 +39,6 @@ import java.util.*;
 import userinterface.util.*;
 import userinterface.simulator.networking.*;
 
-/**
- *
- * @author  ug60axh
- */
 public class GUIExperiment
 {
 	private GUIMultiProperties guiProp;

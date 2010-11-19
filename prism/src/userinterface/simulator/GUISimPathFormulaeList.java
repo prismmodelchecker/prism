@@ -29,17 +29,12 @@ package userinterface.simulator;
 
 import java.awt.*;
 import javax.swing.*;
+
 import parser.ast.*;
 import prism.PrismException;
-import prism.PrismLangException;
 import userinterface.properties.*;
-import userinterface.simulator.GUISimLabelList.SimLabel;
 import simulator.*;
 
-/**
- * 
- * @author ug60axh
- */
 public class GUISimPathFormulaeList extends JList
 {
 

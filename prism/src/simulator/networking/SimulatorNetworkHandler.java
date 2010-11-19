@@ -46,10 +46,6 @@ import settings.*;
 import prism.*;
 import parser.*;
 
-/**
- *
- * @author  Andrew Hinton
- */
 public class SimulatorNetworkHandler extends Observable implements EntityResolver, SettingOwner, TreeNode, TableModel
 {
 	public static final String EXECUTABLE = "prismsimulator"; //always linux

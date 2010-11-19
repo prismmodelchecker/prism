@@ -36,10 +36,6 @@ import parser.ast.*;
 import prism.*;
 import userinterface.util.*;
 
-/**
- *
- * @author  ug60axh
- */
 public class BuildModelThread extends GUIComputationThread
 {
 	private GUIMultiModelHandler handler;

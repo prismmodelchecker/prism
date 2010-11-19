@@ -32,10 +32,6 @@ import userinterface.model.*;
 import prism.*;
 import userinterface.util.*;
 
-/**
- *
- * @author  ug60axh
- */
 public class ComputeSteadyStateThread extends GUIComputationThread
 {
 	private GUIMultiModelHandler handler;

@@ -37,10 +37,6 @@ import parser.*;
 import parser.ast.*;
 import prism.*;
 
-/**
- *
- * @author  ug60axh
- */
 public class GUIPropertiesList extends JList implements KeyListener
 {
 	//STATICS

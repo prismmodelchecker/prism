@@ -25,15 +25,11 @@
 //==============================================================================
 
 package settings;
+
 import java.awt.*;
 import java.io.*;
-
 import javax.swing.*;
 
-/**
- *
- * @author  Andrew Hinton
- */
 public class FileSetting extends Setting 
 {
     private static FileRenderer renderer;

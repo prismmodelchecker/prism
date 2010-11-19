@@ -27,29 +27,24 @@
 
 package prism;
 
-/**
- *
- * @author  Andrew Hinton
- */
 public final class PropertyConstants
 {
-    public static final int STATE = 0;
-    public static final int TRANSITION = 1;
-    public static final int NAIL = 2;
-    public static final int DECISION = 3;
-    public static final int PROBTRANSITION = 4;
-    public static final int BRANCHTRANSITION = 5;
-    public static final int GRAPH = 6;
-    public static final int AXIS = 7;
-    public static final int SERIES = 8;
-    public static final int PRISM = 9;
-    public static final int MODEL = 10;
-    public static final int PROPERTIES = 11;
-    public static final int SIMULATOR = 12;
-    public static final int LOG = 13;
+	public static final int STATE = 0;
+	public static final int TRANSITION = 1;
+	public static final int NAIL = 2;
+	public static final int DECISION = 3;
+	public static final int PROBTRANSITION = 4;
+	public static final int BRANCHTRANSITION = 5;
+	public static final int GRAPH = 6;
+	public static final int AXIS = 7;
+	public static final int SERIES = 8;
+	public static final int PRISM = 9;
+	public static final int MODEL = 10;
+	public static final int PROPERTIES = 11;
+	public static final int SIMULATOR = 12;
+	public static final int LOG = 13;
 	public static final int SSHHOST = 14;
 	public static final int FILESYSTEM = 15;
 	public static final int NETWORK_PROFILE = 16;
 	public static final int GRAPH_DISPLAY = 17;
-    
 }

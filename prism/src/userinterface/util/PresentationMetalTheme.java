@@ -30,9 +30,10 @@ package userinterface.util;
 import javax.swing.plaf.*;
 import javax.swing.plaf.metal.*;
 import java.awt.*;
-/** This class overrides DefaultMetalTheme to change the fonts for components and
+
+/**
+ * This class overrides DefaultMetalTheme to change the fonts for components and
  * menus to a bigger size suitable for presentations.
- * @author ug60axh
  */
 public class PresentationMetalTheme extends DefaultMetalTheme
 {

@@ -25,15 +25,13 @@
 //==============================================================================
 
 package settings;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.event.*;
 import java.util.*;
-/**
- *
- * @author  ug60axh
- */
+
 public class FontColorEditor implements SettingEditor, ActionListener, FocusListener
 {
     private JLabel renderer;

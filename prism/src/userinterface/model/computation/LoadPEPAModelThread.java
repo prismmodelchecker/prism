@@ -33,10 +33,7 @@ import userinterface.*;
 import userinterface.model.*;
 import userinterface.model.pepaModel.*;
 import userinterface.util.*;
-/**
- *
- * @author  ug60axh
- */
+
 public class LoadPEPAModelThread extends Thread
 {
 	private GUIMultiModelHandler handler;

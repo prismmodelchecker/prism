@@ -26,17 +26,11 @@
 
 package settings;
 
-/**
- *
- * @author  ug60axh
- */
 public class SettingException extends Exception
 {
-    
     /** Creates a new instance of SettingException */
     public SettingException(String message)
     {
         super(message);
     }
-    
 }

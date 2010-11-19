@@ -37,17 +37,12 @@ import javax.xml.transform.stream.*;
 import org.w3c.dom.*;
 
 import prism.*;
-import parser.ast.*;
 import parser.type.*;
 import userinterface.*;
 import userinterface.model.*;
 import userinterface.model.graphicModel.*;
 import userinterface.util.*;
 
-/**
- *
- * @author  Andrew Hinton
- */
 public class SaveGraphicModelThread extends Thread
 {
     private GUIModelEditor theEditor;

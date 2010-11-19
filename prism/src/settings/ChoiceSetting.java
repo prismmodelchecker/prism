@@ -26,10 +26,6 @@
 
 package settings;
 
-/**
- *
- * @author  ug60axh
- */
 public class ChoiceSetting extends Setting
 {
     private static ChoiceRenderer renderer;

@@ -26,6 +26,7 @@
 //==============================================================================
 
 package userinterface.model.computation;
+
 import java.io.*;
 import java.util.*;
 import java.awt.*;
@@ -41,12 +42,6 @@ import userinterface.model.*;
 import userinterface.model.graphicModel.*;
 import userinterface.util.*;
 
-
-
-/**
- *
- * @author  ug60axh
- */
 public class LoadGraphicModelThread extends Thread implements EntityResolver
 {
 	private GUIMultiModelHandler handler;

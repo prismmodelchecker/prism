@@ -26,10 +26,6 @@
 
 package settings;
 
-/**
- *
- * @author  Andrew Hinton
- */
 public class DoubleRangeConstraint implements SettingConstraint
 {
     private double lower, upper;

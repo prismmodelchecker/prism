@@ -26,15 +26,14 @@
 //==============================================================================
 
 package userinterface.model.computation;
+
 import java.io.*;
 import javax.swing.*;
+
 import userinterface.*;
 import userinterface.model.*;
 import userinterface.util.*;
-/**
- *
- * @author  ug60axh
- */
+
 public class LoadPRISMModelThread extends Thread
 {
 	private GUIMultiModelHandler handler;

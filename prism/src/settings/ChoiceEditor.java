@@ -25,16 +25,14 @@
 //==============================================================================
 
 package settings;
+
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.event.*;
 import java.awt.event.*;
 import javax.swing.border.*;
 import java.util.*;
-/**
- *
- * @author  Andrew Hinton
- */
+
 public class ChoiceEditor implements SettingEditor, ActionListener, FocusListener
 {
     private Font font = new Font("monospaced", Font.PLAIN, 12);

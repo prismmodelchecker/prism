@@ -25,13 +25,10 @@
 //==============================================================================
 
 package settings;
-import javax.swing.*;
-import java.awt.*;
 
-/**
- *
- * @author  ug60axh
- */
+import java.awt.*;
+import javax.swing.*;
+
 public interface SettingRenderer
 {
     

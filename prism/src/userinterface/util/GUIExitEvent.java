@@ -27,13 +27,9 @@
 
 package userinterface.util;
 
-/**
- *
- * @author  ug60axh
- */
 public class GUIExitEvent extends GUIEvent
 {
-    //CONSTANTS
+    // CONSTANTS
     public static final int REQUEST_EXIT = 0;
     public static final int CANCEL_EXIT = 1;
     

@@ -33,10 +33,6 @@ import userinterface.*;
 import userinterface.model.*;
 import userinterface.util.*;
 
-/**
- *
- * @author  ug60axh
- */
 public class SavePRISMModelThread extends Thread
 {
 	private GUIModelEditor editor;

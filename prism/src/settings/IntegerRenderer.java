@@ -25,15 +25,12 @@
 //==============================================================================
 
 package settings;
-import javax.swing.*;
-import java.awt.*;
-import javax.swing.border.*;
-import java.util.*;
 
-/**
- *
- * @author  ug60axh
- */
+import java.awt.*;
+import java.util.*;
+import javax.swing.*;
+import javax.swing.border.*;
+
 public class IntegerRenderer implements SettingRenderer
 {
     private JTextField renderer = new JTextField();

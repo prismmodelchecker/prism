@@ -26,6 +26,7 @@
 //==============================================================================
 
 package userinterface;
+
 import javax.swing.JMenu;
 import javax.swing.Action;
 import javax.swing.AbstractAction;
@@ -33,10 +34,7 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import userinterface.util.*;
-/**
- *
- * @author  ug60axh
- */
+
 public class GUIFileMenu extends GUIPlugin
 {
     private JMenu menu;

@@ -26,6 +26,7 @@
 //==============================================================================
 
 package userinterface.model.graphicModel;
+
 import javax.swing.*;
 import javax.swing.event.*;
 import java.awt.*;
@@ -34,11 +35,6 @@ import userinterface.*;
 import java.awt.event.*;
 import java.beans.*;
 
-
-/**
- *
- * @author  Andrew Hinton
- */
 public class GraphicModuleContainer implements FocusListener, AdjustmentListener
 {
     public static final int DEFAULT_X_SIZE = 400;

@@ -37,7 +37,6 @@ import org.jfree.data.xy.*;
 
 /**
  * This class is responsible for mapping output of a ResultsCollection to the input of a GraphModel. Used to be called Displayable Data.
- * @author  ug60axh, mxk
  */
 public class GraphResultListener implements ResultListener
 {

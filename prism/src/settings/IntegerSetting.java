@@ -26,10 +26,6 @@
 
 package settings;
 
-/**
- *
- * @author  ug60axh
- */
 public class IntegerSetting extends Setting 
 {
     private static IntegerRenderer renderer;

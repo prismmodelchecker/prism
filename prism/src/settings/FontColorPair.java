@@ -26,11 +26,9 @@
 //==============================================================================
 
 package settings;
+
 import java.awt.*;
-/**
- *
- * @author  ug60axh
- */
+
 public class FontColorPair
     {
         

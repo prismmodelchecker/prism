@@ -26,10 +26,6 @@
 
 package settings;
 
-/**
- *
- * @author Andrew Hinton
- */
 public abstract class NumericConstraint implements SettingConstraint
 {
 	

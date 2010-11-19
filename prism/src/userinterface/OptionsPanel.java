@@ -26,12 +26,10 @@
 //==============================================================================
 
 package userinterface;
+
 import javax.swing.*;
 import prism.*;
-/**
- *
- * @author  ug60axh
- */
+
 public abstract class OptionsPanel extends JPanel
 {
     

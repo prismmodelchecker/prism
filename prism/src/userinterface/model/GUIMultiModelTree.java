@@ -42,10 +42,6 @@ import parser.ast.*;
 import parser.type.*;
 import prism.*;
 
-/**
- *
- * @author  ug60axh
- */
 public class GUIMultiModelTree extends JPanel implements MouseListener
 {
     //Constants

@@ -34,10 +34,6 @@ import javax.swing.*;
 import prism.*;
 import settings.*;
 
-/**
- *
- * @author  Andrew Hinton
- */
 public class SSHHost extends Thread implements SettingOwner, TreeNode
 {
 	//state constants

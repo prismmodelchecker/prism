@@ -34,10 +34,6 @@ import java.awt.event.*;
 import userinterface.*;
 import java.beans.*;
 
-/**
- *
- * @author  Andrew Hinton
- */
 public class ModulesPanel extends JPanel implements MouseListener, ComponentListener
 {
     private ArrayList containers;

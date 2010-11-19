@@ -25,15 +25,13 @@
 //==============================================================================
 
 package settings;
+
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.event.*;
 import java.awt.event.*;
 import java.util.*;
-/**
- *
- * @author  ug60axh
- */
+
 public class SingleLineStringEditor implements SettingEditor, CaretListener, FocusListener
 {
     private JTextField field;

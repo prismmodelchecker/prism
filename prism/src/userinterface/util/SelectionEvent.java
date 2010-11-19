@@ -27,10 +27,7 @@
 
 package userinterface.util;
 import java.util.ArrayList;
-/**
- *
- * @author  ug60axh
- */
+
 public class SelectionEvent
 {
     private ArrayList selectedItems;

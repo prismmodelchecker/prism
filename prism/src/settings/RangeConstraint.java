@@ -25,12 +25,9 @@
 //==============================================================================
 
 package settings;
+
 import java.util.*;
 
-/**
- *
- * @author  Andrew Hinton
- */
 public class RangeConstraint extends NumericConstraint
 {
     private double lower, upper;

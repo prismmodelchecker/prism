@@ -32,10 +32,7 @@ import javax.swing.tree.*;
 
 import prism.*;
 import settings.*;
-/**
- *
- * @author  Andrew Hinton
- */
+
 public class FileSystem implements SettingOwner, TreeNode
 {
 	private SimulatorNetworkHandler network;

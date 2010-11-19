@@ -26,14 +26,12 @@
 //==============================================================================
 
 package userinterface.properties.computation;
+
 import userinterface.properties.*;
 import userinterface.util.*;
 import java.io.*;
 import javax.swing.*;
-/**
- *
- * @author  ug60axh
- */
+
 public class SavePropertiesThread extends Thread
 {
 	private GUIMultiProperties parent;

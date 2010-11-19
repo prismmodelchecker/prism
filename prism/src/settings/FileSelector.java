@@ -25,13 +25,10 @@
 //==============================================================================
 
 package settings;
+
 import java.io.*;
 import java.awt.*;
 
-/**
- *
- * @author  Andrew Hinton
- */
 public interface FileSelector
 {
 	public File getFile(Frame parent, File defaultFile);

@@ -36,10 +36,6 @@ import javax.swing.table.*;
 import javax.swing.border.*;
 import javax.swing.text.*;
 
-/**
- *
- * @author  ug60axh
- */
 public class PropertyTable extends JPanel implements ListSelectionListener, TableModelListener, ItemListener
 {
     private PropertyTableModel theModel;

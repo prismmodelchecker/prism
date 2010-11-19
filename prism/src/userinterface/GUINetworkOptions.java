@@ -30,10 +30,7 @@ import userinterface.util.*;
 
 import java.util.*;
 import org.w3c.dom.*;
-/**
- *
- * @author  Andrew
- */
+
 public class GUINetworkOptions extends OptionsPanel
 {
     //ATTRIBUTES

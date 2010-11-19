@@ -27,13 +27,7 @@
 
 package prism;
 
-/**
- *
- * @author  Andrew Hinton
- */
 public interface PrismSettingsListener
 {
-    
-    public void notifySettings(PrismSettings settings);
-    
+	public void notifySettings(PrismSettings settings);
 }

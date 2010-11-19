@@ -25,13 +25,10 @@
 //==============================================================================
 
 package settings;
+
 import javax.swing.*;
 import java.awt.*;
 
-/**
- *
- * @author  Andrew Hinton
- */
 public interface SettingEditor
 {
     public static final String NOT_CHANGED_VALUE = "$%^&*NOTCHANGED*&^%$";

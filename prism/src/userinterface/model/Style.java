@@ -26,19 +26,9 @@
 //==============================================================================
 
 package userinterface.model;
+
 import java.awt.*;
 
-// import java.util.Vector;
-// import java.util.Properties;
-// import javax.swing.text.*;
-// import javax.swing.event.*;
-// import java.util.*;
-// import javax.swing.table.*;
-// import javax.swing.*;
-/**
- *
- * @author  ug60axh
- */
 public class Style
 {
     public Color c;

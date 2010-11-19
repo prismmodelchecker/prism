@@ -39,14 +39,9 @@ import javax.swing.Icon;
 import javax.swing.JList;
 import javax.swing.UIManager;
 
-import parser.ast.Expression;
 import parser.type.*;
 import prism.DefinedConstant;
 
-/**
- *
- * @author  ug60axh
- */
 public class GraphConstantLine extends javax.swing.JPanel
 {
     public static final String SINGLE_DEFAULT = "0";

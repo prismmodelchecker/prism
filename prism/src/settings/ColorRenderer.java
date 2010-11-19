@@ -25,14 +25,12 @@
 //==============================================================================
 
 package settings;
+
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.border.*;
 import java.util.*;
-/**
- *
- * @author  ug60axh
- */
+
 public class ColorRenderer implements SettingRenderer
 {
     private JLabel renderer;

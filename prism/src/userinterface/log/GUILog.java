@@ -26,6 +26,7 @@
 //==============================================================================
 
 package userinterface.log;
+
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -35,10 +36,7 @@ import userinterface.*;
 import prism.PrismLog;
 import userinterface.util.*;
 import prism.*;
-/**
- *
- * @author  ug60axh
- */
+
 public class GUILog extends GUIPlugin implements MouseListener, PrismSettingsListener
 {
 	

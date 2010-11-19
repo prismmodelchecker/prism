@@ -32,8 +32,7 @@ import java.awt.*;
 import javax.swing.*;
 
 /**
- *  Represents more than one single property when it is selected.
- * @author  ug60axh
+ * Represents more than one single property when it is selected.
  */
 public class MultipleProperty
 {

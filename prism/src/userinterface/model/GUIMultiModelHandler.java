@@ -26,6 +26,7 @@
 //==============================================================================
 
 package userinterface.model;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
@@ -39,10 +40,6 @@ import userinterface.model.computation.*;
 import userinterface.*;
 import userinterface.util.*;
 
-/**
- *
- * @author  ug60axh
- */
 public class GUIMultiModelHandler extends JPanel
 {
     //Constants

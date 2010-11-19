@@ -39,10 +39,6 @@ import javax.swing.event.*;
 import java.io.*;
 import userinterface.model.*;
 
-/**
- *
- * @author  ug60axh
- */
 public class GUIPepaModelEditor extends GUIModelEditor implements DocumentListener
 {	
 	private JEditorPane editor;

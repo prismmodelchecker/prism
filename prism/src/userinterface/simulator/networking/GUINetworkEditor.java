@@ -25,6 +25,7 @@
 //==============================================================================
 
 package userinterface.simulator.networking;
+
 import javax.swing.*;
 import javax.swing.tree.*;
 import javax.swing.event.*;
@@ -32,16 +33,13 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import java.io.*;
+
 import simulator.networking.*;
 import settings.*;
 import prism.*;
 import userinterface.*;
 import userinterface.util.*;
 
-/**
- *
- * @author  Andrew Hinton
- */
 public class GUINetworkEditor extends JDialog implements TreeSelectionListener, MouseListener, Observer, FileSelector
 {
 	public static final int CONTINUE = 0;

@@ -28,10 +28,6 @@ package userinterface;
 
 import parser.*;
 
-/**
- *
- * @author  Andrew Hinton
- */
 public class SimulationInformation
 {
     Values initialState;

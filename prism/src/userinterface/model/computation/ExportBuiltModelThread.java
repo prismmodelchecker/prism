@@ -26,16 +26,15 @@
 //==============================================================================
 
 package userinterface.model.computation;
+
 import java.io.*;
 import javax.swing.*;
+
+import prism.*;
 import userinterface.*;
 import userinterface.model.*;
-import prism.*;
 import userinterface.util.*;
-/**
- *
- * @author  ug60axh
- */
+
 public class ExportBuiltModelThread extends GUIComputationThread
 {
 	private GUIMultiModelHandler handler;

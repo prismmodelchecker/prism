@@ -27,8 +27,7 @@
 package settings;
 
 /**
- *  Implement this interface to enforce constraints on properties.
- * @author  Andrew Hinton
+ * Implement this interface to enforce constraints on properties.
  */
 public interface SettingConstraint
 {

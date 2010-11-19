@@ -25,14 +25,10 @@
 //==============================================================================
 
 package settings;
+
 import java.awt.*;
 import java.util.*;
 
-
-/**
- *
- * @author  ug60axh
- */
 public class ColorSetting extends Setting
 {
 	private static ColorRenderer renderer;

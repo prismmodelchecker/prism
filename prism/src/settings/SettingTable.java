@@ -34,10 +34,6 @@ import java.awt.event.*;
 import java.util.*;
 import javax.swing.table.*;
 
-/**
- *
- * @author  ug60axh
- */
 public class SettingTable extends JPanel implements ListSelectionListener, TableModelListener, ItemListener, SettingDisplay
 {
 	private Component parent;

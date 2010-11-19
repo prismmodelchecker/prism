@@ -26,10 +26,6 @@
 
 package settings;
 
-/**
- *
- * @author  ug60axh
- */
 public class DoubleSetting extends Setting 
 {
     private static DoubleRenderer renderer;

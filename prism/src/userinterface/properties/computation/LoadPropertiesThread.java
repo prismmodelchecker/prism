@@ -35,10 +35,6 @@ import userinterface.util.*;
 import prism.*;
 import parser.ast.*;
 
-/**
- *
- * @author  ug60axh
- */
 public class LoadPropertiesThread extends Thread
 {
 	private GUIMultiProperties parent;

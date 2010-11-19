@@ -30,10 +30,7 @@ import javax.swing.*;
 import java.awt.*;
 import javax.swing.border.*;
 import java.util.*;
-/**
- *
- * @author  ug60axh
- */
+
 public class ChoiceRenderer implements SettingRenderer
 {
     private JPanel panel;

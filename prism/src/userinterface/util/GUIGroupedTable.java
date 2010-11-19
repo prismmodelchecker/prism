@@ -34,13 +34,11 @@ import java.util.*;
 
 
 /**
- * @author mxk
  * A table object that is capable of grouping headers, effectively by means of two JTableHeader
  * Objects on top of each other.
  */
 public class GUIGroupedTable extends JTable 
 {
-	
 	/**
 	 * Creates a new GUIGroupedTable.
 	 * @param tableModel The (grouped) table data model on which to base this table. 

@@ -63,8 +63,6 @@ import userinterface.util.*;
  *	<LI>Switching this plugin to the front of the gui
  *	<LI>Switching the log of the gui to the front
  * </UL>
- * @author Andrew Hinton
- * @since 21/10/03
  */
 public abstract class GUIPlugin extends JPanel implements GUIEventListener, PrismSettingsListener
 {

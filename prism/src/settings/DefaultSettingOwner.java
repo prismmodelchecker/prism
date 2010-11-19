@@ -29,8 +29,7 @@ package settings;
 import java.util.*;
 
 /**
- *  DefaultSettingOwners do not have a class and therefore can not be multiple
- * @author  Andrew Hinton
+ * DefaultSettingOwners do not have a class and therefore can not be multiple
  */
 public class DefaultSettingOwner extends Observable implements SettingOwner
 {

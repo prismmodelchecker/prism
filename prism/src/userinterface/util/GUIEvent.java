@@ -26,14 +26,12 @@
 //==============================================================================
 
 package userinterface.util;
-/**
- *
- * @author  ug60axh
- */
+
 public class GUIEvent
 {
     private Object data;
     private int id;
+    
     /** Creates a new instance of GUIEvent */
     public GUIEvent(int id)
     {
@@ -56,6 +54,5 @@ public class GUIEvent
     public Object getData()
     {
         return data;
-    }
-    
+    }   
 }

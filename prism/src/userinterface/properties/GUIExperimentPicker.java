@@ -36,10 +36,6 @@ import prism.*;
 import parser.type.*;
 import userinterface.*;
 
-/**
- *
- * @author  ug60axh
- */
 public class GUIExperimentPicker extends javax.swing.JDialog
 {
 	public static final int NO_VALUES = 0;

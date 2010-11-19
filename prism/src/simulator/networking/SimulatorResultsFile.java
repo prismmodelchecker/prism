@@ -30,10 +30,6 @@ import java.util.*;
 import java.io.*;
 import prism.*;
 
-/**
- *
- * @author  Andrew Hinton
- */
 public class SimulatorResultsFile extends Observable
 {
 	

@@ -26,13 +26,8 @@
 
 package settings;
 
-/**
- *
- * @author  ug60axh
- */
 public interface SettingOwner extends Comparable
 {
-    
     /**
      *  One for each type of owner
      */

@@ -31,7 +31,6 @@ import java.util.*;
 
 /**
  * Handles the selection of PropertyOwners
- * @author  ug60axh
  */
 public abstract class SelectionModel extends Observable
 {

@@ -26,13 +26,7 @@
 
 package settings;
 
-/**
- *
- * @author  ug60axh
- */
 public interface SettingDisplay
 {
-    
     public void redisplaySetting(Setting setting);
-    
 }

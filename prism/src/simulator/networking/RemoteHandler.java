@@ -28,10 +28,6 @@ package simulator.networking;
 
 import java.io.*;
 
-/**
- *
- * @author  Andrew Hinton
- */
 public class RemoteHandler
 {
 	

@@ -26,16 +26,14 @@
 //==============================================================================
 
 package userinterface.properties;
+
 import userinterface.*;
 import parser.ast.*;
 import prism.*;
 import java.awt.event.*;
 import javax.swing.*;
 import java.awt.*;
-/**
- *
- * @author  ug60axh
- */
+
 public class GUIPropertyEditor extends javax.swing.JDialog implements ActionListener, KeyListener
 {
 	

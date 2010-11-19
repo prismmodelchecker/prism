@@ -27,13 +27,8 @@
 
 package userinterface.util;
 import java.util.EventListener;
-/**
- *
- * @author  ug60axh
- */
+
 public interface SelectionListener extends EventListener
 {
-    
     public void selectionPerformed(SelectionEvent e);
-    
 }

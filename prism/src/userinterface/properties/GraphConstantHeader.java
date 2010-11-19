@@ -29,10 +29,6 @@ package userinterface.properties;
 
 import java.awt.*;
 
-/**
- *
- * @author  ug60axh
- */
 public class GraphConstantHeader extends javax.swing.JPanel
 {
     

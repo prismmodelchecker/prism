@@ -27,10 +27,7 @@
 package userinterface.util;
 
 import java.util.*;
-/**
- *
- * @author  Andrew
- */
+
 public interface PropertyOwner extends Comparable
 {
     //One for each type of owner

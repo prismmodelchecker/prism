@@ -30,10 +30,7 @@ package userinterface.util;
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
-/**
- *
- * @author  Andrew
- */
+
 public class SingleProperty extends Observable 
 {
     protected String name;

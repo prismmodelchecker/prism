@@ -26,10 +26,6 @@
 
 package userinterface;
 
-/**
- *
- * @author  ug60axh
- */
 public class GUINetwork extends GUIPlugin
 {
     private GUINetworkOptions options;

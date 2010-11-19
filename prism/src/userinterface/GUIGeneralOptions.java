@@ -26,15 +26,14 @@
 //==============================================================================
 
 package userinterface;
-import userinterface.OptionsPanel;
+
 import javax.swing.plaf.metal.*;
 import javax.swing.*;
 import userinterface.util.*;
 import org.w3c.dom.*;
-/**
- *
- * @author  ug60axh
- */
+
+import userinterface.OptionsPanel;
+
 public class GUIGeneralOptions extends OptionsPanel
 {
     private GUIPrism gui;

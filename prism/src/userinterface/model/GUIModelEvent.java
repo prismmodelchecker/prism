@@ -26,14 +26,12 @@
 //==============================================================================
 
 package userinterface.model;
+
 import parser.ast.ModulesFile;
 import prism.Model;
 import parser.Values;
 import userinterface.util.*;
-/**
- *
- * @author  ug60axh
- */
+
 public class GUIModelEvent extends GUIEvent
 {
     //CONSTANTS

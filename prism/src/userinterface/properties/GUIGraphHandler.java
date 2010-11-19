@@ -40,10 +40,6 @@ import userinterface.*;
 import userinterface.graph.*;
 import userinterface.util.*;
 
-/**
- *
- * @author  ug60axh
- */
 public class GUIGraphHandler extends JPanel implements MouseListener
 {
 	

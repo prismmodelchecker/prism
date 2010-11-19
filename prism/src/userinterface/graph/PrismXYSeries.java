@@ -31,10 +31,6 @@ import java.util.*;
 import org.jfree.data.xy.*;
 import org.jfree.data.general.*;
 
-/**
- * @author mxk
- *
- */
 public class PrismXYSeries extends XYSeries
 {
 	/** Do not allow negative and zero values on the x axis. */

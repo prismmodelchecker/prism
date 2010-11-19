@@ -41,9 +41,8 @@ import prism.PrismException;
 import prism.PrismLangException;
 
 /**
- *  This does not store an expression, it actually maintains a string which is
- *  tested for its validity with the PRISM parser
- * @author  Andrew Hinton
+ * This does not store an expression, it actually maintains a string which is
+ * tested for its validity with the PRISM parser
  */
 public class ExpressionProperty extends SingleProperty
 {

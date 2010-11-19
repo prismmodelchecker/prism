@@ -31,10 +31,6 @@ import java.awt.*;
 
 import userinterface.util.*;
 
-/**
- *
- * @author  ug60axh
- */
 public class GUIClipboardEvent extends GUIEvent
 {
     public static final int COPY = 0;

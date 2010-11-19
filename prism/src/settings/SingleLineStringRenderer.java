@@ -25,15 +25,12 @@
 //==============================================================================
 
 package settings;
+
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.border.*;
 import java.util.*;
 
-/**
- *
- * @author  Andrew Hinton
- */
 public class SingleLineStringRenderer implements SettingRenderer 
 {
     private JTextField field = new JTextField();

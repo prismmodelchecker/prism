@@ -27,15 +27,10 @@
 
 package userinterface.util;
 
-/**
- *
- * @author  ug60axh
- */
 public interface GUIEventListener
 {
     // implementation returns false by default,
     // unless event should not be passed on to any more listeners,
     // in which case it returns true
     public boolean processGUIEvent(GUIEvent e);
-    
 }

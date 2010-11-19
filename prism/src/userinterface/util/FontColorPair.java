@@ -26,11 +26,9 @@
 //==============================================================================
 
 package userinterface.util;
+
 import java.awt.*;
-/**
- *
- * @author  ug60axh
- */
+
 public class FontColorPair
     {
         

@@ -35,14 +35,8 @@ import javax.swing.table.*;
 import parser.ast.*;
 import prism.*;
 
-/**
- *
- * @author  ug60axh
- */
- 
 public class GUIExperimentTable extends JTable
 {
-	
 	private ExperimentTableModel expModel;
 	private GUIMultiProperties guiProps;
 	

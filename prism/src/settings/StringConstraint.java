@@ -26,13 +26,8 @@
 
 package settings;
 
-/**
- *
- * @author  ug60axh
- */
 public abstract class StringConstraint implements SettingConstraint
 {
-	
 	/** Creates a new instance of StringConstraint */
 	public StringConstraint()
 	{
@@ -44,5 +39,4 @@ public abstract class StringConstraint implements SettingConstraint
 	}
 	
 	public abstract void checkValueString(String str) throws SettingException;
-	
 }

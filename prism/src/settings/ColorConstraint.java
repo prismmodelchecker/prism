@@ -25,11 +25,9 @@
 //==============================================================================
 
 package settings;
+
 import java.awt.Color;
-/**
- *
- * @author  ug60axh
- */
+
 public abstract class ColorConstraint implements SettingConstraint
 {
 	

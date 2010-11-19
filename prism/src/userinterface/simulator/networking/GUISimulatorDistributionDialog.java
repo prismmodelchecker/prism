@@ -43,18 +43,11 @@ import parser.ast.*;
 import prism.*;
 import settings.*;
 
-/**
- *
- * @author  Andrew Hinton
- */
 public class GUISimulatorDistributionDialog extends javax.swing.JDialog implements Observer
 {
 	private SimulatorNetworkHandler network;
 	private File netFile;
 	private SimulatorEngine simulator;
-	
-	
-	
 	
 	//The job to be done
 	private boolean isExperiment;

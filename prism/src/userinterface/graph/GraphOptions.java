@@ -35,7 +35,6 @@ import userinterface.*;
 
 /**
  * This class is to make the new chart package compatible with the old.
- * @author  ug60axh
  */
 public class GraphOptions extends JDialog
 {

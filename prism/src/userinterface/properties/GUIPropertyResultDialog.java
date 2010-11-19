@@ -26,11 +26,9 @@
 //==============================================================================
 
 package userinterface.properties;
+
 import java.awt.Font;
-/**
- *
- * @author  ug60axh
- */
+
 public class GUIPropertyResultDialog extends javax.swing.JDialog
 {
 	private static int noOpen = 0;

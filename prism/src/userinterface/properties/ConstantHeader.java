@@ -29,10 +29,6 @@ package userinterface.properties;
 
 import java.awt.*;
 
-/**
- *
- * @author  ug60axh
- */
 public class ConstantHeader extends javax.swing.JPanel
 {
     

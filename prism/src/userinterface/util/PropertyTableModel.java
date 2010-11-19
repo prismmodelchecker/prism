@@ -30,10 +30,7 @@ package userinterface.util;
 import javax.swing.table.*;
 import javax.swing.*;
 import java.util.*;
-/**
- *
- * @author  Andrew Hinton
- */
+
 public class PropertyTableModel extends AbstractTableModel implements Observer
 {
     //All of the data

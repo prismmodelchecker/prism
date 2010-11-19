@@ -27,13 +27,8 @@
 
 package userinterface.util;
 
-/**
- *
- * @author  ug60axh
- */
 public class DoubleProperty extends SingleProperty
 {
-    
     /** Creates a new instance of DoubleProperty */
     public DoubleProperty(PropertyOwner owner,String name, double property)
     {

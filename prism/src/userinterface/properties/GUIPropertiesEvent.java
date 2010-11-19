@@ -26,12 +26,10 @@
 //==============================================================================
 
 package userinterface.properties;
+
 import userinterface.util.*;
 import parser.*;
-/**
- *
- * @author  ug60axh
- */
+
 public class GUIPropertiesEvent extends GUIEvent
 {
     public static final int REQUEST_MODEL_BUILD = 0;

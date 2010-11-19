@@ -27,10 +27,6 @@
 
 package prism;
 
-/**
- *
- * @author  ug60axh
- */
 public class RangingConstant
 {
     private String name;
