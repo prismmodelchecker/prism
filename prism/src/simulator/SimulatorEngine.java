@@ -46,21 +46,20 @@ import prism.*;
  * After creating a SimulatorEngine object, you can build paths or explore models using:
  * <UL>
  * <LI> {@link #createNewPath} if you want to create a path that will be stored in full
- * <LI> <code>createNewOnTheFlyPath</code> if just want to do e.g. model exploration
+ * <LI> {@link #createNewOnTheFlyPath} if just want to do e.g. model exploration
  * </UL>
  * The input to these methods is a model (ModulesFile) in which all constants have already been defined.
  * 
  * At this point, you can also load labels and properties into the simulator, whose values
  * will be available during path generation. Use:
  * <UL>
- * <LI> <code>addLabel</code>
- * <LI> <code>addProperty</code>
+ * <LI> {@link #addLabel}
+ * <LI> {@link #addProperty}
  * </UL>
  * 
  * To actually initialise the path with an initial state (or to reinitialise later) use:
  * <UL>
- * <LI> <code>initialisePath</code>
- * <LI> <code>addProperty</code>
+ * <LI> {@link #initialisePath}
  * </UL>
  * 
  * To see the transitions available in the current state, use:
@@ -78,10 +77,10 @@ import prism.*;
  * 
  * For sampling-based approximate model checking, use:
  * <UL>
- * <LI> <code>checkPropertyForSimulation</code>
- * <LI> <code>modelCheckSingleProperty</code>
- * <LI> <code>modelCheckMultipleProperties</code>
- * <LI> <code>modelCheckExperiment</code>
+ * <LI> {@link #checkPropertyForSimulation}
+ * <LI> {@link #modelCheckSingleProperty}
+ * <LI> {@link #modelCheckMultipleProperties}
+ * <LI> {@link #modelCheckExperiment}
  * </UL>
  */
 public class SimulatorEngine
