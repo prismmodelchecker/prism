@@ -94,6 +94,7 @@ Contributions to the development of PRISM have also been gratefully received fro
  * Paolo Ballarini & Kenneth Chan: Port to Mac OS X
  * Rashid Mehmood: Improvements to low-level data structures and numerical solution algorithms
  * Alistair John Strachan, Mike Arthur and Zak Cohen: Integration of JFreeChart into PRISM
+ * Charles Harley and Sebastian Vermehren: GUI enhancements
  * Carlos Bederian (working with Pedro D'Argenio): Addition of LTL model checking for MDPs to PRISM
  * Vojtech Forejt: "Fox-Glynn" algorithm implementation
  
