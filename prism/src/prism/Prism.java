@@ -41,9 +41,10 @@ import parser.ast.*;
 import simulator.*;
 import pta.*;
 
-// prism class - main class for model checker
-// (independent of user interface (command line or gui))
-
+/**
+ * Main class for all PRISM's core functionality.
+ * This is independent of the user interface (command line or gui).
+ */
 public class Prism implements PrismSettingsListener
 {
 	// prism version
@@ -159,19 +160,20 @@ public class Prism implements PrismSettingsListener
 	
 	private boolean cuddStarted = false;
 
-	
-	
 	//------------------------------------------------------------------------------
 	// methods
 	//------------------------------------------------------------------------------
 	
-	// constructor
-	
-	public Prism(PrismLog l1, PrismLog l2)
+	/**
+	 * Construct a new Prism object.
+	 * @param mainLog PrismLog where messages and model checking output will be sent.
+	 * @param techLog PrismLog for output of detailed technical info (not really used).
+	 */
+	public Prism(PrismLog mainLog, PrismLog techLog)
 	{
 		// set up logs
-		mainLog = l1;
-		techLog = l2;
+		this.mainLog = mainLog;
+		this.techLog = techLog;
 		
 		// set up some default options
 		settings = new PrismSettings();
@@ -204,8 +206,11 @@ public class Prism implements PrismSettingsListener
 		sumRoundOff = 1e-5;
 	}
 	
-	// set methods
+	// Set methods
 	
+	/**
+	 * Set the PrismLog where messages and model checking output will be sent.
+	 */
 	public void setMainLog(PrismLog l)
 	{
 		// store new log
@@ -216,6 +221,9 @@ public class Prism implements PrismSettingsListener
 		PrismHybrid.setMainLog(mainLog);
 	}
 	
+	/**
+	 * Set the PrismLog for output of detailed technical info (not really used).
+	 */
 	public void setTechLog(PrismLog l)
 	{
 		// store new log
@@ -227,8 +235,8 @@ public class Prism implements PrismSettingsListener
 		PrismHybrid.setTechLog(techLog);
 	}
 	
-	// set methods for main prism settings
-	// provided for convenience and for compatability with old code
+	// Set methods for main prism settings
+	// (provided for convenience and for compatibility with old code)
 	
 	public void setEngine(int e) throws PrismException
 	{
@@ -345,7 +353,7 @@ public class Prism implements PrismSettingsListener
 		settings.set(PrismSettings.PRISM_EXPORT_ADV_FILENAME, s);
 	}
 	
-	// set methods for miscellaneous options
+	// Set methods for miscellaneous options
 	
 	public void setExportTarget(boolean b) throws PrismException
 	{
@@ -382,7 +390,7 @@ public class Prism implements PrismSettingsListener
 		sumRoundOff = d;
 	}
 	
-	// get methods
+	// Get methods
 	
 	public static String getVersion()
 	{ return version + versionSuffix; }
@@ -393,8 +401,8 @@ public class Prism implements PrismSettingsListener
 	public PrismLog getTechLog()
 	{ return techLog; }
 	
-	// get methods for main prism settings
-	// as above, provided for convenience and for compatability with old code
+	// Get methods for main prism settings
+	// (as above, provided for convenience and for compatibility with old code)
 	
 	public int getEngine()
 	{ return settings.getInteger(PrismSettings.PRISM_ENGINE)+1; } //note the correction
@@ -465,7 +473,7 @@ public class Prism implements PrismSettingsListener
 	public String getExportAdvFilename()
 	{ return settings.getString(PrismSettings.PRISM_EXPORT_ADV_FILENAME); }
 	
-	// get methods for miscellaneous options
+	// Get methods for miscellaneous options
 	
 	public boolean getExportTarget()
 	{return exportTarget; }
@@ -488,12 +496,12 @@ public class Prism implements PrismSettingsListener
 	public double getSumRoundOff()
 	{ return sumRoundOff; }
 	
-	// get/release (exclusive) access to the prism parser
-	
-	// note: this mutex mechanism is based on public domain code by Doug Lea
-	
+	/**
+	 * Get (exclusive) access to the PRISM parser.
+	 */
 	public static PrismParser getPrismParser() throws InterruptedException
 	{
+		// Note: this mutex mechanism is based on public domain code by Doug Lea
 		if (Thread.interrupted()) throw new InterruptedException();
 		// this code is synchronized on the whole Prism class
 		// (because this is a static method)
@@ -514,14 +522,18 @@ public class Prism implements PrismSettingsListener
 		}
 	}
 	
+	/**
+	 * Release (exclusive) access to the PRISM parser.
+	 */
 	public static synchronized void releasePrismParser()
 	{
 		prismParserInUse = false;
 		Prism.class.notify(); 
 	}
 
-	// get Simulator object, creating if necessary
-	
+	/**
+	 * Get the SimulatorEngine object for PRISM, creating if necessary.
+	 */
 	public SimulatorEngine getSimulator()
 	{
 		if (theSimulator == null) {
@@ -562,8 +574,9 @@ public class Prism implements PrismSettingsListener
 		return sccComputer;
 	}
 	
-	// Let PrismSettings object notify us things have changed
-	
+	/**
+	 * Let PrismSettings object notify us things have changed
+	 */
 	public void notifySettings(PrismSettings settings)
 	{
 		if (cuddStarted)
@@ -573,10 +586,11 @@ public class Prism implements PrismSettingsListener
 		}
 	}
 
-	// Compare two version numbers of PRISM (strings)
-	// Returns: 1 if v1>v2, -1 if v1<v2, 0 if v1=v2
-	// Example ordering: { "1", "2", "2.0", "2.1.beta", "2.1.beta4", "2.1", "2.1.dev", "2.1.dev1", "2.1.dev2", "2.1.2", "2.9", "3", "3.4"}
-	
+	/**
+	 * Compare two version numbers of PRISM (strings).
+	 * Example ordering: { "1", "2", "2.0", "2.1.beta", "2.1.beta4", "2.1", "2.1.dev", "2.1.dev1", "2.1.dev2", "2.1.2", "2.9", "3", "3.4"}
+	 * Returns: 1 if v1>v2, -1 if v1<v2, 0 if v1=v2
+	 */
 	public static int compareVersions(String v1, String v2)
 	{
 		String ss1[], ss2[], tmp[];
@@ -643,8 +657,9 @@ public class Prism implements PrismSettingsListener
 		return 0;
 	}
 
-	// initialise
-	
+	/**
+	 * Initialise PRISM.
+	 */
 	public void initialise() throws PrismException
 	{
 		mainLog.print("PRISM\n=====\n");
@@ -1461,11 +1476,15 @@ public class Prism implements PrismSettingsListener
 		getSimulator().modelCheckExperiment(modulesFile, propertiesFile, undefinedConstants, results, propertyToCheck, new State(initialState), pathLength, noIterations);
 	}
 	
-	// generate a random path through the model using the simulator
-	
+	/**
+	 * Generate a random path through the model using the simulator.
+	 * @param modulesFile The model
+	 * @param initialState Initial state (if null, is selected randomly)
+	 * @param details Information about the path to be generated
+	 * @param file File to output the path to (stdout if null)
+	 */
 	public void generateSimulationPath(ModulesFile modulesFile, String details, int maxPathLength, File file) throws PrismException, PrismLangException
 	{
-		// do path generation
 		GenerateSimulationPath genPath = new GenerateSimulationPath(getSimulator(), mainLog);
 		genPath.generateSimulationPath(modulesFile, modulesFile.getInitialValues(), details, maxPathLength, file);
 	}
@@ -1601,7 +1620,7 @@ public class Prism implements PrismSettingsListener
 		}
 	}
 	
-	//access method for the settings
+	// Access method for the settings
 	
 	public PrismSettings getSettings()
 	{
