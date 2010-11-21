@@ -162,7 +162,6 @@ public class GUITextModelEditorGutter extends JPanel implements PropertyChangeLi
 	
 	public void paintComponent(Graphics g)
 	{
-		System.out.println("paint");
 		// Draw the background of the panel.
 		Rectangle drawArea = g.getClipBounds();
 		g.setColor(BACKGROUND_COLOR);
@@ -230,7 +229,6 @@ public class GUITextModelEditorGutter extends JPanel implements PropertyChangeLi
 	 */
 	public void insertUpdate(DocumentEvent event)
 	{
-		System.out.println(event);
 		documentUpdated(event);
 	}
 
