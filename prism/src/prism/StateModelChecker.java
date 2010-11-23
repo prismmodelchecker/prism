@@ -1027,6 +1027,9 @@ public class StateModelChecker implements ModelChecker
 		// Remember whether filter is for the initial state and, if so, whether there's just one
 		filterInit = (filter instanceof ExpressionLabel && ((ExpressionLabel) filter).getName().equals("init"));
 		filterInitSingle = filterInit & model.getNumStartStates() == 1;
+		// Print out number of states satisfying filter
+		if (!filterInit)
+			mainLog.println("\nStates satisfying filter " + filter + ": " + statesFilter.sizeString());
 
 		// Compute result according to filter type
 		op = expr.getOperatorType();
