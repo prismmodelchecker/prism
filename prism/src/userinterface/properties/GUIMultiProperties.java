@@ -357,7 +357,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			error("Cannot create an experiment because there are no constants with undefined values");
 			return;
 		}
-		int result = GUIExperimentPicker.defineConstantsWithDialog(this.getGUI(), uCon, type instanceof TypeInt || type instanceof TypeDouble, gp
+		boolean offerGraph = type instanceof TypeInt || type instanceof TypeDouble || type instanceof TypeInterval; 
+		int result = GUIExperimentPicker.defineConstantsWithDialog(this.getGUI(), uCon, offerGraph, gp
 				.isValidForSimulation());
 		if (result == GUIExperimentPicker.VALUES_DONE_SHOW_GRAPH || result == GUIExperimentPicker.VALUES_DONE_SHOW_GRAPH_AND_SIMULATE) {
 			showGraphDialog = true;
@@ -561,7 +562,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		if (experiments.getSelectedRowCount() == 1) {
 			GUIExperiment exp = experiments.getExperiment(experiments.getSelectedRow());
 			Type type = exp.getPropertyType();
-			plotResults.setEnabled(type instanceof TypeInt || type instanceof TypeDouble);
+			plotResults.setEnabled(type instanceof TypeInt || type instanceof TypeDouble || type instanceof TypeInterval);
 		} else {
 			plotResults.setEnabled(false);
 		}
@@ -946,7 +947,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		exp = experiments.getExperiment(experiments.getSelectedRow());
 		// check its type
 		type = exp.getPropertyType();
-		if (!(type instanceof TypeInt || type instanceof TypeDouble)) {
+		if (!(type instanceof TypeInt || type instanceof TypeDouble || type instanceof TypeInterval)) {
 			message("Can only plot results if the property is of type int or double");
 			return;
 		}
