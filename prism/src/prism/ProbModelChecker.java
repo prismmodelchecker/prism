@@ -1486,7 +1486,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			JDDNode labels[] = { model.getStart(), b2 };
 			String labelNames[] = { "init", "target" };
 			try {
-				mainLog.print("\nExporting target states info to file \"" + prism.getExportTargetFilename() + "\"...");
+				mainLog.println("\nExporting target states info to file \"" + prism.getExportTargetFilename() + "\"...");
 				PrismMTBDD.ExportLabels(labels, labelNames, "l", model.getAllDDRowVars(), model.getODD(), Prism.EXPORT_PLAIN, prism.getExportTargetFilename());
 			} catch (FileNotFoundException e) {
 				mainLog.println("\nWarning: Could not export target to file \"" + prism.getExportTargetFilename() + "\"");
