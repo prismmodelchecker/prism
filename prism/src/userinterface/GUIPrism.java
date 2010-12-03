@@ -407,8 +407,8 @@ public class GUIPrism extends JFrame
         doExit = true;
         notifyEventListeners(new GUIExitEvent(GUIExitEvent.REQUEST_EXIT));
         
-        if(prism.getSettings().isModified())
-        {
+        // Don't bug user to save defaults on exit
+        /*if (prism.getSettings().isModified()) {
             
             String[] selection =
             {"Yes", "No", "Cancel"};
@@ -432,8 +432,7 @@ public class GUIPrism extends JFrame
                 case 2: doExit = false;
                 default: doExit = false;
             }
-            
-        }
+        }*/
         
         if (doExit) System.exit(0);
     }
