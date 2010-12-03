@@ -657,6 +657,27 @@ public class Prism implements PrismSettingsListener
 		return 0;
 	}
 
+    /**
+	 * Get access to the list of all PRISM language keywords.
+	 */
+	public static List<String> getListOfKeyords()
+	{
+		try {
+			// obtain exclusive access to the prism parser
+			// (don't forget to release it afterwards)
+			try {
+				return getPrismParser().getListOfKeywords();
+			}
+			finally {
+				// release prism parser
+				releasePrismParser();
+			}
+		}
+		catch(InterruptedException ie) {
+			return null;
+		}
+	}
+	
 	/**
 	 * Initialise PRISM.
 	 */

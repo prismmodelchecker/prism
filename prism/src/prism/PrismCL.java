@@ -27,6 +27,7 @@
 package prism;
 
 import java.io.*;
+import java.util.*;
 
 import parser.*;
 import parser.ast.*;
@@ -913,6 +914,12 @@ public class PrismCL
 					printVersion();
 					exit();
 				}
+				// print a list of all keywords (hidden option)
+				else if (sw.equals("keywords")) {
+					printListOfKeywords();
+					exit();
+				}
+
 
 				// property/properties given in command line
 				else if (sw.equals("pctl") || sw.equals("csl")) {
@@ -1635,7 +1642,7 @@ public class PrismCL
 				else if (sw.equals("explicitbuildtest")) {
 					explicitbuildtest = true;
 				}
-
+				
 				// unknown switch - error
 				else {
 					errorAndExit("Invalid switch -" + sw + " (type \"prism -help\" for full list)");
@@ -1844,6 +1851,19 @@ public class PrismCL
 		mainLog.println("PRISM version " + Prism.getVersion());
 	}
 
+	/**
+	 * Print out a list of all PRISM language keywords.
+	 */
+	private void printListOfKeywords()
+	{
+		List<String> list = Prism.getListOfKeyords();
+		mainLog.print("PRISM keywords:");
+		for (String s : list) {
+			mainLog.print(" " + s);
+		}
+		mainLog.println();
+	}
+	
 	// report (non-fatal) error
 
 	private void error(String s)

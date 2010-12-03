@@ -33,6 +33,7 @@ PARSER_BEGIN(PrismParser)
 package parser;
 
 import java.io.*;
+import java.util.List;
 import java.util.ArrayList;
 
 import parser.ast.*;
@@ -268,11 +269,20 @@ public class PrismParser
 		return res;
 	}
 	
-	// Test a string to see if it is a PRISM language keyword
-	
+	/**
+	 * Test a string to see if it is a PRISM language keyword.
+	 */
 	public static boolean isKeyword(String s)
 	{
 		return keywordList.contains(s);
+	}
+	
+	/**
+	 * Get access to the list of all PRISM language keywords.
+	 */
+	public static List<String> getListOfKeywords()
+	{
+		return keywordList;
 	}
 	
 	/**
