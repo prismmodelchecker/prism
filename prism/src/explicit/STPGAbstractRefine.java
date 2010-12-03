@@ -412,6 +412,8 @@ public abstract class STPGAbstractRefine
 			throw new PrismException("Cannot handle model type " + modelType);
 		}
 		mc.inheritSettings(mcOptions);
+		// But limit verbosity (since model checking will be done many times)
+		mc.setVerbosity(verbosity - 1);
 
 		// Init timers, etc.
 		timerTotal = System.currentTimeMillis();
@@ -425,9 +427,11 @@ public abstract class STPGAbstractRefine
 		initialise();
 		initAbstractionInfo = abstraction.infoString();
 		timer = System.currentTimeMillis() - timer;
-		mainLog.println(abstractionType + " constructed in " + (timer / 1000.0) + " secs.");
 		timeBuild += timer / 1000.0;
-		mainLog.println(abstractionType + ": " + abstraction.infoString());
+		if (verbosity >= 2) {
+			mainLog.println(abstractionType + " constructed in " + (timer / 1000.0) + " secs.");
+			mainLog.println(abstractionType + ": " + abstraction.infoString());
+		}
 		if (verbosity >= 10) {
 			mainLog.println(abstractionType + ": " + abstraction);
 		}

@@ -50,7 +50,8 @@ public class STPGModelChecker extends StateModelChecker
 
 		// Start precomputation
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting Prob0 (" + (min1 ? "min" : "max") + (min2 ? "min" : "max") + ")...");
+		if (verbosity >= 1)
+			mainLog.println("Starting Prob0 (" + (min1 ? "min" : "max") + (min2 ? "min" : "max") + ")...");
 
 		// Special case: no target states
 		if (target.cardinality() == 0) {
@@ -121,8 +122,10 @@ public class STPGModelChecker extends StateModelChecker
 
 		// Finished precomputation
 		timer = System.currentTimeMillis() - timer;
-		mainLog.print("Prob0 (" + (min1 ? "min" : "max") + (min2 ? "min" : "max") + ")");
-		mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
+		if (verbosity >= 1) {
+			mainLog.print("Prob0 (" + (min1 ? "min" : "max") + (min2 ? "min" : "max") + ")");
+			mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
+		}
 
 		return u;
 	}
@@ -140,7 +143,8 @@ public class STPGModelChecker extends StateModelChecker
 
 		// Start precomputation
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting Prob1 (" + (min1 ? "min" : "max") + (min2 ? "min" : "max") + ")...");
+		if (verbosity >= 1)
+			mainLog.println("Starting Prob1 (" + (min1 ? "min" : "max") + (min2 ? "min" : "max") + ")...");
 
 		// Special case: no target states
 		if (target.cardinality() == 0) {
@@ -221,8 +225,10 @@ public class STPGModelChecker extends StateModelChecker
 
 		// Finished precomputation
 		timer = System.currentTimeMillis() - timer;
-		mainLog.print("Prob1 (" + (min1 ? "min" : "max") + (min2 ? "min" : "max") + ")");
-		mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
+		if (verbosity >= 1) {
+			mainLog.print("Prob1 (" + (min1 ? "min" : "max") + (min2 ? "min" : "max") + ")");
+			mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
+		}
 
 		return u;
 	}
@@ -249,8 +255,7 @@ public class STPGModelChecker extends StateModelChecker
 	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
-	public ModelCheckerResult probReach(STPG stpg, BitSet target, boolean min1, boolean min2, double init[],
-			BitSet known) throws PrismException
+	public ModelCheckerResult probReach(STPG stpg, BitSet target, boolean min1, boolean min2, double init[], BitSet known) throws PrismException
 	{
 		ModelCheckerResult res = null;
 		BitSet no, yes;
@@ -264,14 +269,15 @@ public class STPGModelChecker extends StateModelChecker
 
 		// Start probabilistic reachability
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting probabilistic reachability...");
+		if (verbosity >= 1)
+			mainLog.println("Starting probabilistic reachability...");
 
 		// Check for deadlocks in non-target state (because breaks e.g. prob1)
 		stpg.checkForDeadlocks(target);
 
 		// Store num states
 		n = stpg.numStates;
-		
+
 		// Optimise by enlarging target set (if more info is available)
 		if (init != null && known != null) {
 			BitSet targetNew = new BitSet(n);
@@ -300,7 +306,8 @@ public class STPGModelChecker extends StateModelChecker
 		// Print results of precomputation
 		numYes = yes.cardinality();
 		numNo = no.cardinality();
-		mainLog.println("yes=" + numYes + ", no=" + numNo + ", maybe=" + (n - (numYes + numNo)));
+		if (verbosity >= 1)
+			mainLog.println("yes=" + numYes + ", no=" + numNo + ", maybe=" + (n - (numYes + numNo)));
 
 		// Compute probabilities
 		switch (solnMethod) {
@@ -313,7 +320,8 @@ public class STPGModelChecker extends StateModelChecker
 
 		// Finished probabilistic reachability
 		timer = System.currentTimeMillis() - timer;
-		mainLog.println("Probabilistic reachability took " + timer / 1000.0 + " seconds.");
+		if (verbosity >= 1)
+			mainLog.println("Probabilistic reachability took " + timer / 1000.0 + " seconds.");
 
 		// Update time taken
 		res.timeTaken = timer / 1000.0;
@@ -334,8 +342,8 @@ public class STPGModelChecker extends StateModelChecker
 	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
-	protected ModelCheckerResult probReachValIter(STPG stpg, BitSet no, BitSet yes, boolean min1, boolean min2,
-			double init[], BitSet known) throws PrismException
+	protected ModelCheckerResult probReachValIter(STPG stpg, BitSet no, BitSet yes, boolean min1, boolean min2, double init[], BitSet known)
+			throws PrismException
 	{
 		ModelCheckerResult res = null;
 		BitSet unknown;
@@ -346,7 +354,8 @@ public class STPGModelChecker extends StateModelChecker
 
 		// Start value iteration
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting value iteration (" + (min1 ? "min" : "max") + (min2 ? "min" : "max") + ")...");
+		if (verbosity >= 1)
+			mainLog.println("Starting value iteration (" + (min1 ? "min" : "max") + (min2 ? "min" : "max") + ")...");
 
 		// Store num states
 		n = stpg.numStates;
@@ -401,9 +410,11 @@ public class STPGModelChecker extends StateModelChecker
 
 		// Finished value iteration
 		timer = System.currentTimeMillis() - timer;
-		mainLog.print("Value iteration (" + (min1 ? "min" : "max") + (min2 ? "min" : "max") + ")");
-		mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
-
+		if (verbosity >= 1) {
+			mainLog.print("Value iteration (" + (min1 ? "min" : "max") + (min2 ? "min" : "max") + ")");
+			mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
+		}
+		
 		// Return results
 		res = new ModelCheckerResult();
 		res.soln = soln;
@@ -423,8 +434,7 @@ public class STPGModelChecker extends StateModelChecker
 	 * @param min2 Min or max probabilities for player 2 (true=min, false=max)
 	 * @param lastSoln Vector of probabilities from which to recompute in one iteration 
 	 */
-	public List<Integer> probReachStrategy(STPG stpg, int state, BitSet target, boolean min1, boolean min2,
-			double lastSoln[]) throws PrismException
+	public List<Integer> probReachStrategy(STPG stpg, int state, BitSet target, boolean min1, boolean min2, double lastSoln[]) throws PrismException
 	{
 		double val = stpg.mvMultMinMaxSingle(state, lastSoln, min1, min2);
 		return stpg.mvMultMinMaxSingleChoices(state, lastSoln, min1, min2, val);
@@ -440,8 +450,8 @@ public class STPGModelChecker extends StateModelChecker
 	 * @param init Initial solution vector - pass null for default
 	 * @param results Optional array of size b+1 to store (init state) results for each step (null if unused)
 	 */
-	public ModelCheckerResult probReachBounded(STPG stpg, BitSet target, int b, boolean min1, boolean min2,
-			double init[], double results[]) throws PrismException
+	public ModelCheckerResult probReachBounded(STPG stpg, BitSet target, int b, boolean min1, boolean min2, double init[], double results[])
+			throws PrismException
 	{
 		ModelCheckerResult res = null;
 		int i, n, iters;
@@ -450,7 +460,8 @@ public class STPGModelChecker extends StateModelChecker
 
 		// Start bounded probabilistic reachability
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting bounded probabilistic reachability...");
+		if (verbosity >= 1)
+			mainLog.println("Starting bounded probabilistic reachability...");
 
 		// Store num states
 		n = stpg.numStates;
@@ -495,8 +506,10 @@ public class STPGModelChecker extends StateModelChecker
 
 		// Finished bounded probabilistic reachability
 		timer = System.currentTimeMillis() - timer;
-		mainLog.print("Bounded probabilistic reachability (" + (min1 ? "min" : "max") + (min2 ? "min" : "max") + ")");
-		mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
+		if (verbosity >= 1) {
+			mainLog.print("Bounded probabilistic reachability (" + (min1 ? "min" : "max") + (min2 ? "min" : "max") + ")");
+			mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
+		}
 
 		// Return results
 		res = new ModelCheckerResult();
@@ -663,7 +676,6 @@ public class STPGModelChecker extends StateModelChecker
 		}
 	}*/
 
-
 	/**
 	 * Simple test program.
 	 */
@@ -685,18 +697,18 @@ public class STPGModelChecker extends StateModelChecker
 			target = labels.get(args[2]);
 			if (target == null)
 				throw new PrismException("Unknown label \"" + args[2] + "\"");
-			for (int i  =3; i < args.length; i++) {
+			for (int i = 3; i < args.length; i++) {
 				if (args[i].equals("-minmin")) {
-					min1 =true;
+					min1 = true;
 					min2 = true;
 				} else if (args[i].equals("-maxmin")) {
-					min1 =false;
+					min1 = false;
 					min2 = true;
 				} else if (args[i].equals("-minmax")) {
-					min1 =true;
+					min1 = true;
 					min2 = false;
 				} else if (args[i].equals("-maxmax")) {
-					min1 =false;
+					min1 = false;
 					min2 = false;
 				}
 			}
