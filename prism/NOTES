@@ -7,9 +7,6 @@ Remove for beta distributions:
 TODO (before any release)
 -------------------------
 
-PTAs:
-* (Further) tidy of prism-examples/pta
-
 DOC!
 
 timelock reported as deadlock for digital
@@ -40,8 +37,10 @@ Sim:
 * seed issues (Vlad)
 
 PTAs:
+* More tidying of PTA examples
+  - README files for other (non-firewire) examples
+  - comments in pctl files, missing ones into autos
 * Clarify rewards support (digital clocks)
-* Less verbose A-R output?
 * More of PCTL - even just G, bounded (not =?), etc.
 * Enforce well-formedness checks (i.e. guards/resets imply target invariants)
   (as opposed to say supporting strong invariants,
