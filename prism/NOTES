@@ -14,10 +14,18 @@ verbose has new behaviour now?! (wrt filters)
 pta rewards with digital clocks (just F) - no clocks in rew strs though
 filters: {} always range, even if single value (allow "single"?)
 
+Documentation:
+* Filters - no longer allowed minmax (or encode as range?)
+* P>=p[...{filter}] means & not print (didn't print in 3.3 anyway, despite manual)
+
 =======================================================
 
 TODO (before public release)
 ----------------------------
+
+Documentation:
+* Fix links from tutorial to manual
+* Add DTMC/MDP case to synchronisation section
 
 Filters, property semantics, etc.
 * Integer-valued props displayed as doubles when printed as vector
@@ -30,11 +38,6 @@ Action labels:
 * Finalise tra format with actions (needs to work with MCs too)
   - also fix e.g. importtrans, prism-statra
 * make action storage optional (when required e.g. for export) (especially for MCs)
-
-Sim:
-* Result object creation pushed into SimEngine
-* tidy doSampling, looking at Vincent's code
-* seed issues (Vlad)
 
 PTAs:
 * More tidying of PTA examples
@@ -58,12 +61,14 @@ PTAs:
 
 * Bug fix: action alphabet (syntactic) for sync lost in PTA object construction
 
-DOC (before public release)
----------------------------
+=======================================================
 
-Filters:
-* Filters - no longer allowed minmax (or encode as range?)
-* P>=p[...{filter}] means & not print (didn't print in 3.3 anyway, despite manual)
+TODO (before statmc release)
+----------------------------
+
+* Result object creation pushed into SimEngine
+* tidy doSampling, looking at Vincent's code
+* seed issues (Vlad)
 
 =======================================================
 
