@@ -110,8 +110,9 @@ public class StochModelChecker extends ProbModelChecker
 		exprTmp = expr.getUpperBound();
 		if (exprTmp != null) {
 			uTime = exprTmp.evaluateDouble(constantValues, null);
-			if (uTime < 0) {
-				throw new PrismException("Invalid upper bound " + uTime + " in time-bounded until formula");
+			if (uTime < 0 || (uTime == 0 && expr.upperBoundIsStrict())) {
+				String bound = (expr.upperBoundIsStrict() ? "<" : "<=") + uTime;
+				throw new PrismException("Invalid upper bound " + bound + " in time-bounded until formula");
 			}
 			if (uTime < lTime) {
 				throw new PrismException("Upper bound must exceed lower bound in time-bounded until formula");
