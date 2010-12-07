@@ -8,7 +8,7 @@ Ongoing changes:
 * CTL model checking
 
 Latest changes (mostly reverse chronological):
-[correct wrt svn rev 2221]
+[correct wrt svn rev 2286]
 
 * PTA model checking
 * New simulator
