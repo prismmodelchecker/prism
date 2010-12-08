@@ -98,6 +98,7 @@ public class PrismCL
 	private String exportTransDotStatesFilename = null;
 	private String exportBSCCsFilename = null;
 	private String exportResultsFilename = null;
+	private String exportSteadyStateFilename = null;
 	private String exportTransientFilename = null;
 	private String exportPrismFilename = null;
 	private String exportPrismConstFilename = null;
@@ -835,9 +836,17 @@ public class PrismCL
 
 	private void doSteadyState() throws PrismException
 	{
+		File exportSteadyStateFile = null;
+
+		// choose destination for output (file or log)
+		if (exportSteadyStateFilename == null || exportSteadyStateFilename.equals("stdout"))
+			exportSteadyStateFile = null;
+		else
+			exportSteadyStateFile = new File(exportSteadyStateFilename);
+
 		// compute steady-state probabilities
 		if (model.getModelType() == ModelType.CTMC || model.getModelType() == ModelType.DTMC) {
-			prism.doSteadyState(model);
+			prism.doSteadyState(model, exportType, exportSteadyStateFile);
 		} else {
 			mainLog.println("\nWarning: Steady-state probabilities only computed for DTMCs/CTMCs.");
 		}
@@ -1121,6 +1130,14 @@ public class PrismCL
 					if (i < args.length - 1) {
 						exportresults = true;
 						exportResultsFilename = args[++i];
+					} else {
+						errorAndExit("No file specified for -" + sw + " switch");
+					}
+				}
+				// export steady-state probs (as opposed to displaying on screen) 
+				else if (sw.equals("exportsteadystate") || sw.equals("exportss")) {
+					if (i < args.length - 1) {
+						exportSteadyStateFilename = args[++i];
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
@@ -1788,6 +1805,7 @@ public class PrismCL
 		mainLog.println("-exporttransdotstates <file> ... Export the transition matrix graph to a dot file, with state info");
 		mainLog.println("-exportdot <file> .............. Export the transition matrix MTBDD to a dot file");
 		mainLog.println("-exportbsccs <file> ............ Compute and export all BSCCs of the model");
+		mainLog.println("-exportsteadystate <file> ...... Export steady-state probabilities to a file");
 		mainLog.println("-exporttransient <file> ........ Export transient probabilities to a file");
 		mainLog.println("-exportprism <file> ............ Export final PRISM model to a file");
 		mainLog.println("-exportprismconst <file> ....... Export final PRISM model with expanded constants to a file");
