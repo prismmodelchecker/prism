@@ -1091,6 +1091,7 @@ TimeBound TimeBound() :
 	( <LE> ( LOOKAHEAD(IdentifierExpression() <LPARENTH>) tb.uBound = IdentifierExpression() | tb.uBound = Expression(false, false) )
 	| <LT> {tb.uBoundStrict=true;} ( LOOKAHEAD(IdentifierExpression() <LPARENTH>) tb.uBound = IdentifierExpression() | tb.uBound = Expression(false, false) )
 	| <GE> ( LOOKAHEAD(IdentifierExpression() <LPARENTH>) tb.lBound = IdentifierExpression() | tb.lBound = Expression(false, false) )
+	| <GT> {tb.lBoundStrict=true;} ( LOOKAHEAD(IdentifierExpression() <LPARENTH>) tb.lBound = IdentifierExpression() | tb.lBound = Expression(false, false) )
 	| <LBRACKET> tb.lBound = Expression(false, false) <COMMA> tb.uBound = Expression(false, false) <RBRACKET> )
 	{ return tb; }
 }
