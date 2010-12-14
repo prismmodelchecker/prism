@@ -975,6 +975,10 @@ public class Prism implements PrismSettingsListener
 		long l; // timer
 		Model model;
 		
+		if (modulesFile.getModelType() == ModelType.PTA) {
+			throw new PrismException("You cannot build a PTA model explicitly, only perform model checking");
+		}
+		
 		mainLog.print("\nBuilding model");
 		if (msg != null) if (msg.length() > 0) mainLog.print(" (" + msg + ")");
 		mainLog.print("...\n");
