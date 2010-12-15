@@ -244,7 +244,7 @@ public class PrismCL
 			if (doBuild) {
 				// build model
 				try {
-					buildModel(modulesFile);
+					buildModel(modulesFile, false);
 				} catch (PrismException e) {
 					// in case of error, report it, store as result for any properties, and go on to the next model
 					error(e.getMessage());
@@ -361,7 +361,7 @@ public class PrismCL
 								modulesFileToCheck = dc.getNewModulesFile();
 								modulesFileToCheck.setUndefinedConstants(modulesFile.getConstantValues());
 								doPrismLangExports(modulesFileToCheck);
-								buildModel(modulesFileToCheck);
+								buildModel(modulesFileToCheck, true);
 							} else {
 								modulesFileToCheck = modulesFile;
 							}
@@ -613,8 +613,10 @@ public class PrismCL
 	 * Build a model, usually from the passed in modulesFileToBuild. However, if importtrans=true,
 	 * then explicit model import is done and modulesFileToBuild can be null.
 	 * This method also displays model info and checks/fixes deadlocks.
+	 * If flag 'digital' is true, then this (MDP) model was constructed
+	 * from digital clocks semantics of a PTA - might need for error reporting.
 	 */
-	private void buildModel(ModulesFile modulesFileToBuild) throws PrismException
+	private void buildModel(ModulesFile modulesFileToBuild, boolean digital) throws PrismException
 	{
 		StateList states;
 		int i;
@@ -645,8 +647,13 @@ public class PrismCL
 		states = model.getDeadlockStates();
 		if (states != null) {
 			if (states.size() > 0) {
+				// for pta models (via digital clocks)
+				if (digital) {
+					// by construction, these can only occur from timelocks
+					throw new PrismException("Timelock in PTA, e.g. in state (" + states.getFirstAsValues() + ")");
+				}
 				// if requested, remove them
-				if (fixdl) {
+				else if (fixdl) {
 					mainLog.print("\nWarning: " + states.size() + " deadlock states detected; adding self-loops in these states...\n");
 					model.fixDeadlocks();
 				}

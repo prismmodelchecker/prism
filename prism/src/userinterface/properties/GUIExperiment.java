@@ -409,13 +409,10 @@ public class GUIExperiment
 									logln("\n-------------------------------------------");
 									model = prism.buildModel(modulesFileToCheck);
 									clear = false;
-									// remove any deadlocks (don't prompt - probably should)
+									// by construction, deadlocks can only occur from timelocks
 									StateList states = model.getDeadlockStates();
 									if (states != null) {
-										if (states.size() > 0) {
-											guiProp.log("\nWarning: " + states.size() + " deadlock states detected; adding self-loops in these states...\n");
-											model.fixDeadlocks();
-										}
+										throw new PrismException("Timelock in PTA, e.g. in state (" + states.getFirstAsValues() + ")");
 									}
 									// print some model info
 									guiProp.log("\n");
