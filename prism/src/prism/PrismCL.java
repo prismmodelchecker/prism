@@ -1820,6 +1820,8 @@ public class PrismCL
 		mainLog.println("-exporttransient <file> ........ Export transient probabilities to a file");
 		mainLog.println("-exportprism <file> ............ Export final PRISM model to a file");
 		mainLog.println("-exportprismconst <file> ....... Export final PRISM model with expanded constants to a file");
+		mainLog.println("-exportadv <file> .............. Export an adversary from MDP model checking (as a DTMC)");
+		mainLog.println("-exportadvmdp <file> ........... Export an adversary from MDP model checking (as an MDP)");
 		mainLog.println();
 		mainLog.println("ENGINES/METHODS:");
 		mainLog.println("-mtbdd (or -m) ................. Use the MTBDD engine");
@@ -1855,6 +1857,11 @@ public class PrismCL
 		mainLog.println("-nossdetect .................... Disable steady-state detection for CTMC transient computations");
 		mainLog.println("-sccmethod <name> .............. Specify SCC computation method (xiebeerel, lockstep, sccfind)");
 		mainLog.println();
+		mainLog.println("OUTPUT OPTIONS:");
+		mainLog.println("-verbose (or -v) ............... Verbose mode: print out state lists and probability vectors");
+		mainLog.println("-extraddinfo ................... Display extra info about some (MT)BDDs");
+		mainLog.println("-extrareachinfo ................ Display extra info about progress of reachability");
+		mainLog.println();
 		mainLog.println("SPARSE/HYBRID/MTBDD OPTIONS:");
 		mainLog.println("-nocompact ..................... Switch off \"compact\" sparse storage schemes");
 		mainLog.println("-sbmax <n> ..................... Set memory limit (KB) (for hybrid engine) [default: 1024]");
@@ -1863,11 +1870,6 @@ public class PrismCL
 		mainLog.println("-gsl <n> (or sorl <n>) ......... Set number of levels for hybrid GS/SOR [default: -1]");
 		mainLog.println("-cuddmaxmem <n> ................ Set max memory for CUDD package (KB) [default: 200x1024]");
 		mainLog.println("-cuddepsilon <x> ............... Set epsilon value for CUDD package [default: 1e-15]");
-		mainLog.println();
-		mainLog.println("OUTPUT OPTIONS:");
-		mainLog.println("-verbose (or -v) ............... Verbose mode: print out state lists and probability vectors");
-		mainLog.println("-extraddinfo ................... Display extra info about some (MT)BDDs");
-		mainLog.println("-extrareachinfo ................ Display extra info about progress of reachability");
 		mainLog.println();
 		mainLog.println("SIMULATION OPTIONS:");
 		mainLog.println("-sim ........................... Use the PRISM simulator to approximate results of model checking");
