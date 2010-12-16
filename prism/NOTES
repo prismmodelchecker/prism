@@ -125,6 +125,7 @@ Simulator:
 Other:
 * Export tr/ss probs from GUI
 * Initial distr for steady-state
+* Finish CTL
 
 Adversary generation:
 * Add adversary generation for other engines
