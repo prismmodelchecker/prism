@@ -111,7 +111,7 @@ Section "Desktop shortcut"
 	
 	CreateShortCut  "$DESKTOP\${PRISM_NAME}.lnk" \
                     "$INSTDIR\bin\xprism.bat" ""                            \
-                    "$INSTDIR\etc\prism.ico" 0                                \
+                    "$INSTDIR\etc\icons\prism.ico" 0                                \
                     SW_SHOWMINIMIZED "" "${PRISM_NAME} (GUI mode)"
                     
 SectionEnd
@@ -124,7 +124,7 @@ Section "Start menu shortcuts"
 
     CreateShortCut  "$SMPROGRAMS\${PRISM_NAME}\PRISM (GUI).lnk" \
                     "$INSTDIR\bin\xprism.bat" ""                            \
-                    "$INSTDIR\etc\prism.ico" 0                                \
+                    "$INSTDIR\etc\icons\prism.ico" 0                                \
                     SW_SHOWMINIMIZED "" "Runs the PRISM GUI"
 
     CreateShortCut  "$SMPROGRAMS\${PRISM_NAME}\PRISM (console).lnk" \
