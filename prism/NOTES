@@ -6,22 +6,10 @@ Remove for beta distributions:
 
 TODO (before any release)
 -------------------------
-
-DOC!
-
-
-Documentation:
-
-* PTA model checking
-  - timelock reported as deadlock for digital
-  - pta rewards with digital clocks (just F) - no clocks in rew strs though
-
-* Filters and property semantics changes/additions
-  - filters: {} always range, even if single value (allow "single"?)
-  - P>=p[...{filter}] means & not print (didn't print in 3.3 anyway, despite manual)
-  - verbose has new behaviour now?! (wrt filters)
   
 * Adversary generation (e.g. -exportadv switch)
+
+fix prob 1 for <=t ?
 
 =======================================================
 
@@ -29,17 +17,20 @@ TODO (before public release)
 ----------------------------
 
 Documentation:
-* Fix links from tutorial to manual
+* Fix links from tutorial to manual (and reread/tweak)
 * Add DTMC/MDP case to synchronisation section
 * New -exportprism/-exportprismconst/-nobuild switches
 * Check for existence of zero-reward loops
 * New -exporttarget switch
+* Extra reach info switches?
 
 Filters, property semantics, etc.
 * Integer-valued props displayed as doubles when printed as vector
 * Intervals (e.g. for multiple initial states) plotted in graphs
 * Add "single" filter - throws error if filter states > 1?
 * Allow other filter types to be spec with {} notation?
+  and then in doc clarify P>=p[...{filter}] means & not print
+  (didn't print in 3.3 anyway, despite manual)
 
 Action labels:
 * Check status of export/import trans wrt actions (alll models)
