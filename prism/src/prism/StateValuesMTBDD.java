@@ -212,6 +212,14 @@ public class StateValuesMTBDD implements StateValues
 		values = JDD.Apply(JDD.TIMES, values, filter);
 	}
 	
+	// apply max operator, i.e. vec[i] = max(vec[i], vec2[i]), where vec2 is an mtbdd
+	
+	public void maxMTBDD(JDDNode vec2)
+	{
+		JDD.Ref(vec2);
+		values = JDD.Apply(JDD.MAX, values, vec2);
+	}
+	
 	// clear
 	
 	public void clear()

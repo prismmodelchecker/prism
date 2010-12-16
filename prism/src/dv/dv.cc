@@ -35,6 +35,7 @@ static void mtbdd_to_double_vector_rec(DdManager *ddman, DdNode *dd, DdNode **va
 static DdNode *double_vector_to_mtbdd_rec(DdManager *ddman, double *vec, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
 static DdNode *double_vector_to_bdd_rec(DdManager *ddman, double *vec, int rel_op, double value1, double value2, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
 static void filter_double_vector_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
+static void max_double_vector_mtbdd_rec(DdManager *ddman, double *vec, DdNode *vec2, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
 static double get_first_from_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
 static double min_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
 static double max_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
@@ -231,6 +232,39 @@ void filter_double_vector_rec(DdManager *ddman, double *vec, DdNode *filter, DdN
 		if (odd->toff > 0) {
 			dd = (filter->index > vars[level]->index) ? filter : Cudd_T(filter);
 			filter_double_vector_rec(ddman, vec, dd, vars, num_vars, level+1, odd->t, o+odd->eoff);
+		}
+	}
+}	
+
+//------------------------------------------------------------------------------
+
+// apply max operator, i.e. vec[i] = max(vec[i], vec2[i]), where vec2 is an mtbdd
+
+EXPORT void max_double_vector_mtbdd(DdManager *ddman, double *vec, DdNode *vec2, DdNode **vars, int num_vars, ODDNode *odd)
+{
+	max_double_vector_mtbdd_rec(ddman, vec, vec2, vars, num_vars, 0, odd, 0);
+}
+
+void max_double_vector_mtbdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, long o)
+{
+	DdNode *dd;
+	double d;
+	
+	if (level == num_vars) {
+	
+		d = Cudd_V(filter);
+		if (d > vec[o]) {
+			vec[o] = d;
+		}
+	}
+	else {
+		if (odd->eoff > 0) {
+			dd = (filter->index > vars[level]->index) ? filter : Cudd_E(filter);
+			max_double_vector_mtbdd_rec(ddman, vec, dd, vars, num_vars, level+1, odd->e, o);
+		}
+		if (odd->toff > 0) {
+			dd = (filter->index > vars[level]->index) ? filter : Cudd_T(filter);
+			max_double_vector_mtbdd_rec(ddman, vec, dd, vars, num_vars, level+1, odd->t, o+odd->eoff);
 		}
 	}
 }	

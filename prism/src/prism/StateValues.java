@@ -43,6 +43,7 @@ public interface StateValues
 	void add(StateValues sp);
 	void timesConstant(double d);
 	void filter(JDDNode filter);
+	public void maxMTBDD(JDDNode vec2);
 	void clear();
 	int getNNZ();
 	String getNNZString();

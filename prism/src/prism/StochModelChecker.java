@@ -196,6 +196,9 @@ public class StochModelChecker extends ProbModelChecker
 					throw e;
 				}
 				JDD.Deref(tmp);
+				// set values to exactly 1 for target (b2) states
+				// (these are computed inexactly during uniformisation)
+				probs.maxMTBDD(b2);
 			}
 			// [lTime,uTime] (including where lTime == uTime)
 			else {

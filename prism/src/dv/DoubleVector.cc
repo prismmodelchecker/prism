@@ -234,6 +234,28 @@ jlong __jlongpointer odd
 
 //------------------------------------------------------------------------------
 
+JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1MaxMTBDD
+(
+JNIEnv *env,
+jobject obj,
+jlong __jlongpointer vector,
+jlong __jlongpointer vector2,
+jlong __jlongpointer vars,
+jint num_vars,
+jlong __jlongpointer odd
+)
+{
+	max_double_vector_mtbdd(
+		ddman,
+		jlong_to_double(vector),
+		jlong_to_DdNode(vector2),
+		jlong_to_DdNode_array(vars), num_vars,
+		jlong_to_ODDNode(odd)
+	);
+}
+
+//------------------------------------------------------------------------------
+
 JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1Clear
 (
 JNIEnv *env,

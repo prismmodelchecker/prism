@@ -196,6 +196,13 @@ public class StateValuesDV implements StateValues
 		values.filter(filter, vars, odd);
 	}
 	
+	// apply max operator, i.e. vec[i] = max(vec[i], vec2[i]), where vec2 is an mtbdd
+	
+	public void maxMTBDD(JDDNode vec2)
+	{
+		values.maxMTBDD(vec2, vars, odd);
+	}
+	
 	// clear (free memory)
 	
 	public void clear()

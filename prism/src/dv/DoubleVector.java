@@ -152,6 +152,13 @@ public class DoubleVector
 	{
 		DV_Filter(v, filter.ptr(), vars.array(), vars.n(), odd.ptr());
 	}
+	
+	// apply max operator, i.e. v[i] = max(v[i], v2[i]), where v2 is an mtbdd
+	private native void DV_MaxMTBDD(long v, long v2, long vars, int num_vars, long odd);
+	public void maxMTBDD(JDDNode v2, JDDVars vars, ODDNode odd)
+	{
+		DV_MaxMTBDD(v, v2.ptr(), vars.array(), vars.n(), odd.ptr());
+	}
 
 	// clear (free memory)
 	private native void DV_Clear(long v);

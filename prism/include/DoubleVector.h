@@ -89,6 +89,14 @@ JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1Filter
 
 /*
  * Class:     dv_DoubleVector
+ * Method:    DV_MaxMTBDD
+ * Signature: (JJJIJ)V
+ */
+JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1MaxMTBDD
+  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jlong);
+
+/*
+ * Class:     dv_DoubleVector
  * Method:    DV_Clear
  * Signature: (J)V
  */
