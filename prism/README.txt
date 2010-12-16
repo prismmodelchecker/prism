@@ -2,7 +2,7 @@
 README
 ======
 
-This is PRISM (Probabilistic Symbolic Model Checker), version 3.3.
+This is PRISM (Probabilistic Symbolic Model Checker), version 4.0.
 
 ------------
 INSTALLATION
@@ -76,14 +76,15 @@ library, see:
 ACKNOWLEDGEMENTS
 ----------------
 
-The core team behind the development of PRISM, previously working in the
-School of Computer Science at the University of Birmingham and now working
-in the Computing Laboratory at the University of Oxford, comprises:
+Currently, development work on PRISM is primarily carried out in the
+Computing Laboratory at the University of Oxford. Previously, PRISM
+was based in the School of Computer Science at the University of Birmingham.
 
- * Dave Parker
- * Gethin Norman
- * Marta Kwiatkowska
- * Mark Kattenbelt
+The core team working on PRISM currently comprises:
+
+    * Dave Parker (Oxford)
+    * Gethin Norman (Glasgow)
+    * Marta Kwiatkowska (Oxford) 
  
 Contributions to the development of PRISM have also been gratefully received from:
 
@@ -92,6 +93,7 @@ Contributions to the development of PRISM have also been gratefully received fro
  * Alistair John Strachan: Port to 64-bit architectures
  * Stephen Gilmore: Support for the stochastic process algebra PEPA
  * Paolo Ballarini & Kenneth Chan: Port to Mac OS X
+ * Mark Kattenbelt: Wide range of enhancements/additions, especially in the GUI
  * Rashid Mehmood: Improvements to low-level data structures and numerical solution algorithms
  * Alistair John Strachan, Mike Arthur and Zak Cohen: Integration of JFreeChart into PRISM
  * Charles Harley and Sebastian Vermehren: GUI enhancements
@@ -115,7 +117,7 @@ Other comments and feedback about any aspect of PRISM are also very welcome. Ple
 
   Dave Parker
   (david.parker@comlab.ox.ac.uk)
-  Oxford University Computing Laboratory,
+  Oxford University Computing Laboratory
   Wolfson Building
   Parks Road
   Oxford

@@ -2,11 +2,6 @@ This file contains details of the changes in each new version of PRISM,
 including development and beta versions. For a less detailed overview
 of the main changes in each public release, see the file VERSIONS.txt.
 
-Ongoing changes:
-
-* Explicit state libraries
-* CTL model checking
-
 Latest changes (mostly reverse chronological):
 [correct wrt svn rev 2286]
 
