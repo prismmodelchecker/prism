@@ -588,13 +588,14 @@ public class Prism implements PrismSettingsListener
 
 	/**
 	 * Compare two version numbers of PRISM (strings).
-	 * Example ordering: { "1", "2", "2.0", "2.1.beta", "2.1.beta4", "2.1", "2.1.dev", "2.1.dev1", "2.1.dev2", "2.1.2", "2.9", "3", "3.4"}
+	 * Example ordering: { "1", "2.0", "2.1.alpha", "2.1.alpha.r5555", "2.1.alpha.r5557", "2.1.beta", "2.1.beta4", "2.1", "2.1.dev", "2.1.dev.r6666", "2.1.dev1", "2.1.dev2", "2.1.2", "2.9", "3", "3.4"};
 	 * Returns: 1 if v1>v2, -1 if v1<v2, 0 if v1=v2
 	 */
 	public static int compareVersions(String v1, String v2)
 	{
 		String ss1[], ss2[], tmp[];
-		int s1 = 0, s2 = 0, i, n;
+		int i, n, x;
+		double s1 = 0, s2 = 0;
 		boolean s1num, s2num;
 		
 		// Exactly equal
@@ -618,35 +619,55 @@ public class Prism implements PrismSettingsListener
 		}
 		// Loop through sections of string
 		for (i = 0; i < n; i++) {
+			// 2.1.alpha < 2.1, etc.
+			// 2.1.alpha < 2.1.alpha2 < 2.1.alpha3, etc.
+			// so replace alphax with -10000+x
+			if (ss1[i].matches("alpha.*")) {
+				try { if (ss1[i].length() == 5) x = 0; else x = Integer.parseInt(ss1[i].substring(5)); } catch (NumberFormatException e) { x = 0; }
+				ss1[i] = "" + (-10000 + x);
+			}
+			if (ss2[i].matches("alpha.*")) {
+				try { if (ss2[i].length() == 5) x = 0; else x = Integer.parseInt(ss2[i].substring(5)); } catch (NumberFormatException e) { x = 0; }
+				ss2[i] = "" + (-10000 + x);
+			}
 			// 2.1.beta < 2.1, etc.
+			// 2.1.beta < 2.1.beta2 < 2.1.beta3, etc.
+			// so replace betax with -100+x
 			if (ss1[i].matches("beta.*")) {
-				if (ss2[i].matches("beta.*")) {
-					// 2.1.beta < 2.1.beta2 < 2.1.beta3, etc.
-					try { if (ss1[i].length() == 4) s1 = 0; else s1 = Integer.parseInt(ss1[i].substring(4)); } catch (NumberFormatException e) { return 0; }
-					try { if (ss2[i].length() == 4) s2 = 0; else s2 = Integer.parseInt(ss2[i].substring(4)); } catch (NumberFormatException e) { return 0; }
-					if (s1 == s2) return 0; else return (s1 > s2) ? 1 : -1;
-				}
-				else return -1;
+				try { if (ss1[i].length() == 4) x = 0; else x = Integer.parseInt(ss1[i].substring(4)); } catch (NumberFormatException e) { x = 0; }
+				ss1[i] = "" + (-100 + x);
 			}
-			if (ss2[i].matches("beta.*")) return 1;
+			if (ss2[i].matches("beta.*")) {
+				try { if (ss2[i].length() == 4) x = 0; else x = Integer.parseInt(ss2[i].substring(4)); } catch (NumberFormatException e) { x = 0; }
+				ss2[i] = "" + (-100 + x);
+			}
 			// 2 < 2.1, etc.
-			if (ss1[i].equals("")) { if (ss2[i].equals("")) return 0; else return -1; }
-			if (ss2[i].equals("")) return 1;
+			// so treat 2 as 2.0
+			if (ss1[i].equals("")) ss1[i] = "0";
+			if (ss2[i].equals("")) ss2[i] = "0";
 			// 2.1 < 2.1.dev, etc.
+			// 2.1.dev < 2.1.dev2 < 2.1.dev3, etc.
+			// so replace devx with 0.5+x/1000
 			if (ss1[i].matches("dev.*")) {
-				if (ss2[i].matches("dev.*")) {
-					// 2.1.dev < 2.1.dev2 < 2.1.dev3, etc.
-					try { if (ss1[i].length() == 3) s1 = 0; else s1 = Integer.parseInt(ss1[i].substring(3)); } catch (NumberFormatException e) { return 0; }
-					try { if (ss2[i].length() == 3) s2 = 0; else s2 = Integer.parseInt(ss2[i].substring(3)); } catch (NumberFormatException e) { return 0; }
-					if (s1 == s2) return 0; else return (s1 > s2) ? 1 : -1;
-				}
-				else return -1;
+				try { if (ss1[i].length() == 3) x = 0; else x = Integer.parseInt(ss1[i].substring(3)); } catch (NumberFormatException e) { x = 0; }
+				ss1[i] = "" + (0.5 + x / 1000.0);
 			}
-			if (ss2[i].matches("dev.*")) return 1;
+			if (ss2[i].matches("dev.*")) {
+				try { if (ss2[i].length() == 3) x = 0; else x = Integer.parseInt(ss2[i].substring(3)); } catch (NumberFormatException e) { x = 0; }
+				ss2[i] = "" + (0.5 + x / 1000.0);
+			}
+			// replace rx (e.g. as in 4.0.alpha.r5555) with x
+			if (ss1[i].matches("r.*")) {
+				try { x = Integer.parseInt(ss1[i].substring(1)); } catch (NumberFormatException e) { x = 0; }
+				ss1[i] = "" + x;
+			}
+			if (ss2[i].matches("r.*")) {
+				try { x = Integer.parseInt(ss2[i].substring(1)); } catch (NumberFormatException e) { x = 0; }
+				ss2[i] = "" + x;
+			}
 			// See if strings are integers
-			try { s1num = true; s1 = Integer.parseInt(ss1[i]); } catch (NumberFormatException e) { s1num = false; }
-			try { s2num = true; s2 = Integer.parseInt(ss2[i]); } catch (NumberFormatException e) { s2num = false; }
-			// 2.5 < 3.1, etc. 
+			try { s1num = true; s1 = Double.parseDouble(ss1[i]); } catch (NumberFormatException e) { s1num = false; }
+			try { s2num = true; s2 = Double.parseDouble(ss2[i]); } catch (NumberFormatException e) { s2num = false; }
 			if (s1num && s2num) {
 				if (s1 < s2) return -1;
 				if (s1 > s2) return 1;
@@ -657,6 +678,22 @@ public class Prism implements PrismSettingsListener
 		return 0;
 	}
 
+	/*// Simple test harness for compareVersions
+	public static void main(String[] args)
+	{
+		 String v[] =  { "1", "2.0", "2.1.alpha", "2.1.alpha.r5555", "2.1.alpha.r5557", "2.1.beta", "2.1.beta4", "2.1", "2.1.dev", "2.1.dev.r6666", "2.1.dev1", "2.1.dev2", "2.1.2", "2.9", "3", "3.4"};
+		 for (int i = 0; i < v.length; i++) {
+			 for (int j = 0; j < v.length; j++) {
+				 int d = compareVersions(v[i], v[j]);
+				 System.out.print(d == 1 ? ">" : d==0 ? "=" : d==-1 ? "<" : "?");
+				 if (d != compareVersions(""+i, ""+j))
+					 System.out.print("ERR(" + v[i] + "," + v[j] + ")");
+					 
+			 }
+			 System.out.println();
+		 }
+	}*/
+	
     /**
 	 * Get access to the list of all PRISM language keywords.
 	 */
