@@ -16,7 +16,7 @@ public class Prism3To4 implements Prism3To4Constants {
                         System.err.println("Syntax error"+(args.length > 0?" in "+args[0]:"")+": " + e.getMessage()); System.exit(1);
                 }
                 catch (ParseException e) {
-                        System.err.println("Error"+(args.length > 0?" in "+args[0]:"")+": " + e.getShortMessage()); System.exit(1);
+                        System.err.println("Error"+(args.length > 0?" in "+args[0]:"")+": " + e.getMessage()); System.exit(1);
                 }
                 catch (FileNotFoundException e) {
                         System.err.println(e); System.exit(1);
