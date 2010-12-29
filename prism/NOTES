@@ -1,20 +1,21 @@
+=======================================================
 Remove for beta distributions:
-------------------------------
+=======================================================
+
 * NOTES
 
 =======================================================
-
-TODO (before any release)
--------------------------
-  
-* Adversary generation (e.g. -exportadv switch)
-
-fix prob 1 for <=t ?
-
+TODO (before public release of 4.0)
 =======================================================
 
-TODO (before public release)
-----------------------------
+PRIORITY
+--------
+
+* Doc: Adversary generation (e.g. -exportadv switch)
+* Intervals (e.g. for multiple initial states) plotted in graphs
+
+THE REST
+--------
 
 Documentation:
 * Fix links from tutorial to manual (and reread/tweak)
@@ -23,10 +24,10 @@ Documentation:
 * Check for existence of zero-reward loops
 * New -exporttarget switch
 * Extra reach info switches?
+* Some pointers for where to start with PTAs, e.g. where examples are
 
 Filters, property semantics, etc.
 * Integer-valued props displayed as doubles when printed as vector
-* Intervals (e.g. for multiple initial states) plotted in graphs
 * Add "single" filter - throws error if filter states > 1?
 * Allow other filter types to be spec with {} notation?
   and then in doc clarify P>=p[...{filter}] means & not print
@@ -39,6 +40,8 @@ Action labels:
 * make action storage optional (when required e.g. for export) (especially for MCs)
 
 PTAs:
+* Find a way to make PTA and multi-obj report that result
+  is just for initial state; need re-think of filters?
 * More tidying of PTA examples
   - README files for other (non-firewire) examples
   - comments in pctl files, missing ones into autos
@@ -57,18 +60,53 @@ PTAs:
   - will need to make sure cmax is updated accordingly
     (currently just from temporal operator time bound since no clocks in formula)
   - also might need to access property constants (see TODO in DC.java)
+* Allow constraints of the form x-y<=c
 
 * Bug fix: action alphabet (syntactic) for sync lost in PTA object construction
 
 =======================================================
+4.0.1?
+=======================================================
 
+* statmc?
+
+* multi-objective?
+
+=======================================================
 TODO (before statmc release)
-----------------------------
+=======================================================
 
 * Result object creation pushed into SimEngine
-* tidy doSampling, looking at Vincent's code
-* seed issues (Vlad)
+  Result objects returned from SimEngine + explanation strings
 
+* Sort initial state in sim dialog
+  tick box for default initial
+  is there a bug in this already?
+  ready for mult init states?
+
+* Tidy up other new sim options (simmanual, simvar, simmaxrwd)
+
+* check seed issues (Vlad)
+
+=======================================================
+TODO (statmc) (maybe) (but postpone):
+=======================================================
+
+* SimMethod deal with possibility of more iters than expected
+  - recalc some stats on computeMissingParameterAfterSim?
+  - max 100% for getProgress?
+  - search TODO
+* refine PrismCL switches
+  - e.g. all in simmethod (like aroptions?)
+* make call to setExpression earlier for earlier detection of errors?
+  (would need to pass multiple sim methods to Prism)
+  (but: consts not def yet, e.g. might not know theta)
+* merge APMC/etc. triple subclasses?
+* store log for likelihood ratio?
+* make percentage from getProgress more accurate, do mod 10 after
+* do we stil need reset() in SimMethod? Don't delete, just check
+
+=======================================================
 =======================================================
 
 BUG (some time)
