@@ -42,8 +42,11 @@ public class SemanticCheck extends ASTTraverse
 	private ModulesFile modulesFile;
 	private PropertiesFile propertiesFile;
 	// Sometimes we need to keep track of parent (ancestor) objects
-	private Module module = null;
-	private Update update = null;
+	private ModulesFile inModulesFile = null;
+	private Module inModule = null;
+	private Expression inInvariant = null;
+	private Expression inGuard = null;
+	private Update inUpdate = null;
 
 	public SemanticCheck()
 	{
@@ -71,12 +74,21 @@ public class SemanticCheck extends ASTTraverse
 		this.propertiesFile = propertiesFile;
 	}
 
+	public void visitPre(ModulesFile e) throws PrismLangException
+	{
+		// Register the fact we are entering a model
+		inModulesFile = e;
+	}
+	
 	public void visitPost(ModulesFile e) throws PrismLangException
 	{
 		int i, j, n, n2;
 		Module m;
 		Vector<String> v;
 
+		// Register the fact we are leaving a model
+		inModulesFile = null;
+		
 		// Check for use of init...endinit _and_ var initial values
 		if (e.getInitialStates() != null) {
 			n = e.getNumGlobals();
@@ -111,6 +123,14 @@ public class SemanticCheck extends ASTTraverse
 		}
 	}
 
+	public Object visit(FormulaList e) throws PrismLangException
+	{
+		// Override - don't need to do any semantic checks on formulas
+		// (they will have been expanded in place, where needed)
+		// (and we shouldn't check them - e.g. clock vars appearing in errors would show as an error)
+		return null;
+	}
+	
 	public void visitPost(LabelList e) throws PrismLangException
 	{
 		int i, n;
@@ -180,19 +200,52 @@ public class SemanticCheck extends ASTTraverse
 	public void visitPre(Module e) throws PrismLangException
 	{
 		// Register the fact we are entering a module
-		module = e;
+		inModule = e;
+	}
+
+	public Object visit(Module e) throws PrismLangException
+	{
+		// Override this so we can keep track of when we are in an invariant
+		visitPre(e);
+		int i, n;
+		n = e.getNumDeclarations();
+		for (i = 0; i < n; i++) {
+			if (e.getDeclaration(i) != null) e.getDeclaration(i).accept(this);
+		}
+		inInvariant = e.getInvariant();
+		if (e.getInvariant() != null)
+			e.getInvariant().accept(this);
+		inInvariant = null;
+		n = e.getNumCommands();
+		for (i = 0; i < n; i++) {
+			if (e.getCommand(i) != null) e.getCommand(i).accept(this);
+		}
+		visitPost(e);
+		return null;
 	}
 
 	public void visitPost(Module e) throws PrismLangException
 	{
 		// Register the fact we are leaving a module
-		module = null;
+		inModule = null;
 	}
 
+	public Object visit(Command e) throws PrismLangException
+	{
+		// Override this so we can keep track of when we are in a command
+		visitPre(e);
+		inGuard = e.getGuard();
+		e.getGuard().accept(this);
+		inGuard = null;
+		e.getUpdates().accept(this);
+		visitPost(e);
+		return null;
+	}
+	
 	public void visitPre(Update e) throws PrismLangException
 	{
 		// Register the fact we are entering an update
-		update = e;
+		inUpdate = e;
 	}
 
 	public void visitPost(Update e) throws PrismLangException
@@ -205,7 +258,7 @@ public class SemanticCheck extends ASTTraverse
 		boolean isLocal, isGlobal;
 
 		// Register the fact we are leaving an update
-		update = null;
+		inUpdate = null;
 
 		// Determine containing command/module/model
 		// (mf should coincide with the stored modulesFile)
@@ -360,15 +413,17 @@ public class SemanticCheck extends ASTTraverse
 	public void visitPost(ExpressionVar e) throws PrismLangException
 	{
 		// For PTAs, references to variables in modules have to be local
-		if (modulesFile != null && modulesFile.getModelType() == ModelType.PTA && module != null) {
-			if (!module.isLocalVariable(e.getName())) {
+		if (modulesFile != null && modulesFile.getModelType() == ModelType.PTA && inModule != null) {
+			if (!inModule.isLocalVariable(e.getName())) {
 				throw new PrismLangException("Modules in a PTA cannot access non-local variables", e);
 			}
 		}
-		// Clocks cannot be used in expressions on RHS of updates
+		// Clock references, in models, can only appear in invariants and guards
 		// (Note: type checking has not been done, but we know types for ExpressionVars)
-		if (update != null && e.getType() instanceof TypeClock) {
-			throw new PrismLangException("Cannot use clocks to update other variables", e);
+		if (e.getType() instanceof TypeClock && inModulesFile != null) {
+			if (inInvariant == null && inGuard == null) {
+				throw new PrismLangException("Reference to a clock variable cannot appear here", e);
+			}
 		}
 	}
 
