@@ -180,6 +180,8 @@ public class ASTTraverse implements ASTVisitor
 	public void visitPre(Module e) throws PrismLangException { defaultVisitPre(e); }
 	public Object visit(Module e) throws PrismLangException
 	{
+		// Note: a few classes override this method (e.g. SemanticCheck)
+		// so take care to update those versions if changing this method
 		visitPre(e);
 		int i, n;
 		n = e.getNumDeclarations();
@@ -200,6 +202,8 @@ public class ASTTraverse implements ASTVisitor
 	public void visitPre(Command e) throws PrismLangException { defaultVisitPre(e); }
 	public Object visit(Command e) throws PrismLangException
 	{
+		// Note: a few classes override this method (e.g. SemanticCheck)
+		// so take care to update those versions if changing this method
 		visitPre(e);
 		e.getGuard().accept(this);
 		e.getUpdates().accept(this);
