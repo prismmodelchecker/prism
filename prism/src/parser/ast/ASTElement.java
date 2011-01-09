@@ -111,7 +111,7 @@ public abstract class ASTElement
 	/**
 	 * Get the type for this element. It should have already been computed
 	 * by calling typeCheck(). If not, it will be computed first but, in
-	 * the case of error, you will get "unknown" type, not the error.
+	 * the case of error, you will get "unknown" (null) type, not the error.
 	 */
 	public Type getType()
 	{
@@ -128,11 +128,12 @@ public abstract class ASTElement
 	}
 
 	/**
-	 * Get the type for this element, as a string.
+	 * Get the type for this element but, unlike getType(), don't call typeCheck()
+	 * if it has not been computed yet - just return null instead.
 	 */
-	public String getTypeString()
+	public Type getTypeIfDefined()
 	{
-		return type.getTypeString();
+		return type;
 	}
 
 	public boolean hasPosition()

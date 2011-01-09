@@ -67,7 +67,7 @@ public class ExpandFormulas extends ASTTraverseModify
 			expr = Expression.Parenth(expr);
 			// This is probably being done before type-checking so
 			// don't really need to preserve type, but do so just in case
-			t = expr.getType();
+			t = expr.getTypeIfDefined();
 			expr = Expression.Parenth(expr);
 			expr.setType(t);
 			// Return replacement expression
