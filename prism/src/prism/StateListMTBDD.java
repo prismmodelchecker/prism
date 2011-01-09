@@ -290,7 +290,7 @@ public class StateListMTBDD implements StateList
 	public Values getFirstAsValues() throws PrismException
 	{
 		Values values;
-		int i, j, n, n2, v;
+		int i, j, n, n2, level, v;
 		JDDNode first, tmp;
 		Object o;
 		
@@ -305,16 +305,20 @@ public class StateListMTBDD implements StateList
 		tmp = states;
 		values = new Values();
 		n = varList.getNumVars();
+		level = 0;
 		for (i = 0; i < n; i++) {
 			v = 0;
 			n2 = varSizes[i];
 			for (j = 0; j < n2; j++) {
-				if (!tmp.getElse().equals(JDD.ZERO)) {
+				if (tmp.getIndex() > vars.getVarIndex(level)) {
+					// tmp = tmp;
+				} else if (!tmp.getElse().equals(JDD.ZERO)) {
 					tmp = tmp.getElse();
 				} else {
 					tmp = tmp.getThen();
 					v += (1 << (n2-1-j));
 				}
+				level++;
 			}
 			v += varList.getLow(i);
 			if (varList.getType(i) instanceof TypeInt) {
