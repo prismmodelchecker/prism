@@ -411,7 +411,7 @@ public class GUIExperiment
 									clear = false;
 									// by construction, deadlocks can only occur from timelocks
 									StateList states = model.getDeadlockStates();
-									if (states != null) {
+									if (states != null && states.size() > 0) {
 										throw new PrismException("Timelock in PTA, e.g. in state (" + states.getFirstAsValues() + ")");
 									}
 									// print some model info

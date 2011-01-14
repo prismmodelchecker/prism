@@ -645,34 +645,32 @@ public class PrismCL
 
 		// check for deadlocks
 		states = model.getDeadlockStates();
-		if (states != null) {
-			if (states.size() > 0) {
-				// for pta models (via digital clocks)
-				if (digital) {
-					// by construction, these can only occur from timelocks
-					throw new PrismException("Timelock in PTA, e.g. in state (" + states.getFirstAsValues() + ")");
+		if (states != null && states.size() > 0) {
+			// for pta models (via digital clocks)
+			if (digital) {
+				// by construction, these can only occur from timelocks
+				throw new PrismException("Timelock in PTA, e.g. in state (" + states.getFirstAsValues() + ")");
+			}
+			// if requested, remove them
+			else if (fixdl) {
+				mainLog.print("\nWarning: " + states.size() + " deadlock states detected; adding self-loops in these states...\n");
+				model.fixDeadlocks();
+			}
+			// otherwise print error and bail out
+			else {
+				mainLog.println();
+				model.printTransInfo(mainLog, prism.getExtraDDInfo());
+				mainLog.print("\nError: Model contains " + states.size() + " deadlock states");
+				if (!verbose && states.size() > 10) {
+					mainLog.print(".\nThe first 10 deadlock states are displayed below. To view them all use the -v switch.\n");
+					states.print(mainLog, 10);
+				} else {
+					mainLog.print(":\n");
+					states.print(mainLog);
 				}
-				// if requested, remove them
-				else if (fixdl) {
-					mainLog.print("\nWarning: " + states.size() + " deadlock states detected; adding self-loops in these states...\n");
-					model.fixDeadlocks();
-				}
-				// otherwise print error and bail out
-				else {
-					mainLog.println();
-					model.printTransInfo(mainLog, prism.getExtraDDInfo());
-					mainLog.print("\nError: Model contains " + states.size() + " deadlock states");
-					if (!verbose && states.size() > 10) {
-						mainLog.print(".\nThe first 10 deadlock states are displayed below. To view them all use the -v switch.\n");
-						states.print(mainLog, 10);
-					} else {
-						mainLog.print(":\n");
-						states.print(mainLog);
-					}
-					mainLog.print("\nTip: Use the -fixdl switch to automatically add self-loops in deadlock states.\n");
-					model.clear();
-					exit();
-				}
+				mainLog.print("\nTip: Use the -fixdl switch to automatically add self-loops in deadlock states.\n");
+				model.clear();
+				exit();
 			}
 		}
 
