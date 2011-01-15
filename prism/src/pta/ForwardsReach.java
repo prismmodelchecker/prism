@@ -185,6 +185,7 @@ public class ForwardsReach
 				dests = new int[transition.getNumEdges()];
 				boolean enabled = false;
 				boolean unenabled = false;
+				Edge unenabledEdge = null;
 				count = 0;
 				for (Edge edge : transition.getEdges()) {
 					// Do "discrete post" for this edge
@@ -202,13 +203,20 @@ public class ForwardsReach
 						dests[count] = dest;
 					} else {
 						unenabled = true;
+						// Store first unenabled edge
+						unenabledEdge = (unenabledEdge == null) ? edge : unenabledEdge;
 						dests[count] = -1;
 					}
 					count++;
 				}
 				if (enabled) {
-					if (unenabled)
-						throw new PrismException("Badly formed PTA: state " + src);
+					if (unenabled) {
+						String s = "Badly formed PTA at location " + pta.getLocationNameString(lz.loc) + " when " + lz.zone;
+						s += ": \"" + transition.getAction() + "\"-labelled transition to ";
+						s += pta.getLocationNameString(unenabledEdge.getDestination());
+						s += " leads to state where invariant is not satisfied";
+						throw new PrismException(s);
+					}
 					graph.addTransition(src, transition, dests, null);
 				}
 			}
