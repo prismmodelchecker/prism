@@ -1085,8 +1085,12 @@ public class SimulatorEngine
 	 */
 	public void checkPropertyForSimulation(Expression prop) throws PrismException
 	{
-		// Simulator can only be applied to P or R properties
+		// Simulator can only be applied to P or R properties (without filters)
 		if (!(prop instanceof ExpressionProb || prop instanceof ExpressionReward)) {
+			if (prop instanceof ExpressionFilter) {
+				if (((ExpressionFilter) prop).getOperand() instanceof ExpressionProb || ((ExpressionFilter) prop).getOperand() instanceof ExpressionReward)
+					throw new PrismException("Simulator cannot handle P or R properties with filters");
+			}
 			throw new PrismException("Simulator can only handle P or R properties");
 		}
 		// Check that there are no nested probabilistic operators
