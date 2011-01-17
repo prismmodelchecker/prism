@@ -8,20 +8,42 @@ Remove for beta distributions:
 TODO (before public release of 4.0)
 =======================================================
 
-PRIORITY
+PRIORITY (first beta, w/ CAV paper)
 --------
 
-* Doc: Adversary generation (e.g. -exportadv switch)
+* Integrate stat-mc
+
+  - Result object creation pushed into SimEngine?
+    Result objects returned from SimEngine + explanation strings
+
+  - Sort initial state in sim dialog?
+    tick box for default initial
+    is there a bug in this already?
+    ready for mult init states?
+
+  - Tidy up other new sim options (simmanual, simvar, simmaxrwd) ?
+    Decide if want to refine PrismCL switches
+    e.g. all in simmethod (like aroptions?)
+
+PRIORITY (next betas)
+--------
+
 * Intervals (e.g. for multiple initial states) plotted in graphs
 
-THE REST
+* PTA fix: convex, non-diagonal, etc.
+  cases to consider:
+  - implications in invariants
+  - Pmax=? [ F "end" & (x<=5) ]
+  - Then: test with formats09 script
+
+* Doc: Adversary generation (e.g. -exportadv switch)
+
+THE REST (before 4.0)
 --------
 
 Documentation:
 * Fix links from tutorial to manual (and reread/tweak)
-* Add DTMC/MDP case to synchronisation section
 * New -exportprism/-exportprismconst/-nobuild switches
-* Check for existence of zero-reward loops
 * New -exporttarget switch
 * Extra reach info switches?
 * Some pointers for where to start with PTAs, e.g. where examples are
@@ -61,43 +83,33 @@ PTAs:
     (currently just from temporal operator time bound since no clocks in formula)
   - also might need to access property constants (see TODO in DC.java)
 * Allow constraints of the form x-y<=c
-
 * Bug fix: action alphabet (syntactic) for sync lost in PTA object construction
 
 =======================================================
-4.0.1?
+Post-4.0 fixes/adds (4.0.1 etc.)
 =======================================================
 
-* statmc?
+Integrate multi-objective?
 
-* multi-objective?
+General:
+* Error (at least warning) on Pmax=? [ target ] (i.e. no F) (all models)
 
-=======================================================
-TODO (before statmc release)
-=======================================================
+Documentation:
+* Add DTMC/MDP case to synchronisation section
+* Check for existence of zero-reward loops
 
-* Result object creation pushed into SimEngine
-  Result objects returned from SimEngine + explanation strings
+PTAs:
+* On-the-fly global reachability to allow (for A-R engine):
+  - more scalable
+  - access to other local and global vars
+  - system endsystem?
+    (then test on Arnd's BRP model + Marco's + others)
 
-* Sort initial state in sim dialog
-  tick box for default initial
-  is there a bug in this already?
-  ready for mult init states?
-
-* Tidy up other new sim options (simmanual, simvar, simmaxrwd)
-
-* check seed issues (Vlad)
-
-=======================================================
-TODO (statmc) (maybe) (but postpone):
-=======================================================
-
+Simulator:
 * SimMethod deal with possibility of more iters than expected
   - recalc some stats on computeMissingParameterAfterSim?
   - max 100% for getProgress?
   - search TODO
-* refine PrismCL switches
-  - e.g. all in simmethod (like aroptions?)
 * make call to setExpression earlier for earlier detection of errors?
   (would need to pass multiple sim methods to Prism)
   (but: consts not def yet, e.g. might not know theta)
@@ -124,21 +136,15 @@ TODO (some time)
 ----------------
 
 PTAs:
-* On-the-fly global reachability to allow (for A-R engine):
-  - access to other local and global vars
-  - system endsystem?
- (then test on Arnd's BRP model + others)
 * Implement structurally non-zeno checks
 * BRP example
 * Translate non-convex guards to DNF and multiple transitions
 * Investigate whether non-convex invariants can be supported (look at zone ops)
-
 * Games: Optimise number of states in time-bounded PTAs
   (extras added in old target states) using until in forwards reach?
 * Fix: Creation of new names (adding extra _s) doesn't take into account prop file ot consts etc.
 * Digital clocks: urgency?
 * Digital clocks: optimisations?
-
 * New version of valid2 (inv/g push outside)
 * Combined complement + intersection (terminating early) for when dbm lists get big
 * Are we ok to have non-diagonal c-closure algorithm?
