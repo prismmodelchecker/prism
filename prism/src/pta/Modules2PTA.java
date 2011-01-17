@@ -592,6 +592,8 @@ public class Modules2PTA
 		}
 		// Catch a (possibly) common source of mem-out errors during explicit-state reachability
 		catch (OutOfMemoryError e) {
+			states.clear();
+			System.gc();
 			throw new PrismLangException("Out of memory after exploring " + (src + 1) + " states of module " + module.getName(), module);
 		}
 

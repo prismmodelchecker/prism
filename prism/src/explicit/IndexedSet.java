@@ -48,6 +48,11 @@ public class IndexedSet<T>
 		indexOfLastAdd = -1;
 	}
 
+	public void clear()
+	{
+		set.clear();
+	}
+	
 	public boolean add(T state)
 	{
 		Integer i = set.get(state);
