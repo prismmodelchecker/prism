@@ -272,7 +272,7 @@ public class ChoiceListFlexi implements Choice
 	/**
 	 * Return the index of a transition according to a probability (or rate) sum, x.
 	 * i.e. return the index of the first transition in this choice for which the
-	 * sum of probabilities/rates for all prior transitions exceeds x.
+	 * sum of probabilities/rates for that and all prior transitions exceeds x.
 	 */
 	public int getIndexByProbabilitySum(double x)
 	{

@@ -173,28 +173,20 @@ public class GUIProperty
 		return expr != null;
 	}
 
-	// just a basic check - see if it's a P=? or R=? property
-
 	/**
 	 * Is this property both valid (i.e. parsed OK last time it was checked)
 	 * and suitable approximate verification through simulation?
 	 */
 	public boolean isValidForSimulation()
 	{
-		boolean b = isValid() && (expr instanceof ExpressionProb || expr instanceof ExpressionReward);
-		if (b) {
-			if (expr instanceof ExpressionProb) {
-				if ((((ExpressionProb) expr).getProb() != null)) {
-					return false;
-				}
-			} else if (expr instanceof ExpressionReward) {
-				if ((((ExpressionReward) expr).getReward() != null)) {
-					return false;
-				}
-			}
-			return true;
-		} else
+		if (!isValid())
 			return false;
+		try {
+			prism.checkPropertyForSimulation(expr);
+		} catch (PrismException e) {
+			return false;
+		}
+		return true;
 	}
 
 	public Result getResult()

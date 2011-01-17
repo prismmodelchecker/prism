@@ -15,6 +15,8 @@ PRISM_DIR_REL = ../..
 JAVA_FILES = $(wildcard *.java sampler/*.java networking/*.java)
 CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class)
 
+PRISM_CLASSPATH = "$(THIS_DIR)/$(PRISM_DIR_REL)/$(CLASSES_DIR)$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/jcommon.jar$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/jfreechart.jar$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/epsgraphics.jar$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/colt.jar"
+
 default: all
 
 all: checks $(CLASS_FILES)
@@ -26,7 +28,7 @@ checks:
 	fi; 
 
 $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class: %.java
-	(cd ..; $(JAVAC) -sourcepath $(THIS_DIR)/$(PRISM_DIR_REL)/$(SRC_DIR) -classpath $(THIS_DIR)/$(PRISM_DIR_REL)/$(CLASSES_DIR) -d $(THIS_DIR)/$(PRISM_DIR_REL)/$(CLASSES_DIR) $(THIS_DIR)/$<)
+	(cd ..; $(JAVAC) -sourcepath $(THIS_DIR)/$(PRISM_DIR_REL)/$(SRC_DIR) -classpath $(PRISM_CLASSPATH) -d $(THIS_DIR)/$(PRISM_DIR_REL)/$(CLASSES_DIR) $(THIS_DIR)/$<)
 
 clean: checks
 	@rm -f $(CLASS_FILES) $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)simengine$(LIBSUFFIX) $(O_FILES)

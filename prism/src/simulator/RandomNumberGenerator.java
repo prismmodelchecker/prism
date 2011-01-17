@@ -3,6 +3,7 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//	* Vincent Nimal <vincent.nimal@comlab.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -26,50 +27,63 @@
 
 package simulator;
 
-import java.util.Random;
+import java.util.Date;
 
+import cern.jet.random.Exponential;
+import cern.jet.random.Uniform;
+import cern.jet.random.engine.MersenneTwister;
+
+/**
+ * Random number generator for the simulator.
+ * Currently, uses the Colt library.
+ */
 public class RandomNumberGenerator
 {
-	private Random random; 
-	
+	private MersenneTwister random;
+	private Uniform uniform;
+	private Exponential exponential;
+
+	/**
+	 * Create a new random number generator (seeded, by default, with the current time).
+	 */
 	public RandomNumberGenerator()
 	{
-		random = new Random();
+		random = new MersenneTwister(new Date());
+		uniform = new Uniform(random);
+		// Create exponential generator (rate 1.0 but this is ignored from now on)
+		exponential = new Exponential(1.0, random);
 	}
-	
+
 	/**
-	 * Pick a (uniformly) random integer in range [0,...,n-1].
+	 * Pick a (uniformly distributed) random integer in the range [0,...,n-1].
 	 */
 	public int randomUnifInt(int n)
 	{
-		return random.nextInt(n);
+		return uniform.nextIntFromTo(0, n - 1);
 	}
-	
+
 	/**
-	 * Pick a (uniformly) random double in range [0,1).
+	 * Pick a (uniformly distributed) random double in the range (0,1).
 	 */
 	public double randomUnifDouble()
 	{
 		return random.nextDouble();
 	}
-	
+
 	/**
-	 * Pick a (uniformly) random double in range [0,x).
+	 * Pick a (uniformly distributed) random double in range (0,x).
 	 */
 	public double randomUnifDouble(double x)
 	{
 		return x * random.nextDouble();
 	}
-	
+
 	/**
 	 * Pick a random double according to exponential distribution with rate x.
 	 */
 	public double randomExpDouble(double x)
 	{
-		double y;
-		// Pick (non-zero) random y in (0,1)
-		while ((y = random.nextDouble()) == 0);
-		// Sample exponential
-		return (-Math.log(y)) / x;
+		return exponential.nextDouble(x);
+		//return (-Math.log(random.nextDouble())) / x;
 	}
 }

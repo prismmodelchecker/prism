@@ -4,6 +4,7 @@
 //	Authors:
 //	* Andrew Hinton <ug60axh@cs.bham.ac.uk> (University of Birmingham)
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Vincent Nimal <vincent.nimal@comlab.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -33,6 +34,7 @@ import javax.swing.*;
 import parser.*;
 import parser.ast.*;
 import prism.*;
+import simulator.method.SimulationMethod;
 import userinterface.*;
 import userinterface.util.*;
 import userinterface.properties.*;
@@ -52,13 +54,12 @@ public class SimulateModelCheckThread extends GUIComputationThread
 	private Values definedMFConstants;
 	private Values definedPFConstants;
 	private Values initialState;
-	private int noIterations;
 	private int maxPathLength;
 	private SimulationInformation info;
 
 	/** Creates a new instance of SimulateModelCheckThread */
 	public SimulateModelCheckThread(GUIMultiProperties parent, ModulesFile m, PropertiesFile prFi, ArrayList<GUIProperty> guiProps, Values definedMFConstants,
-			Values definedPFConstants, Values initialState, int noIterations, int maxPathLength, SimulationInformation info)
+			Values definedPFConstants, SimulationInformation info)
 	{
 		super(parent);
 		this.parent = parent;
@@ -67,16 +68,17 @@ public class SimulateModelCheckThread extends GUIComputationThread
 		this.guiProps = guiProps;
 		this.definedMFConstants = definedMFConstants;
 		this.definedPFConstants = definedPFConstants;
-		this.initialState = initialState;
-		this.noIterations = noIterations;
-		this.maxPathLength = maxPathLength;
 		this.info = info;
+		this.initialState = info.getInitialState();
+		this.maxPathLength = info.getMaxPathLength();
 	}
 
 	public void run()
 	{
 		boolean allAtOnce = prism.getSettings().getBoolean(PrismSettings.SIMULATOR_SIMULTANEOUS);
-
+		
+		SimulationMethod method = info.createSimulationMethod();
+		
 		if (mf == null)
 			return;
 
@@ -130,11 +132,10 @@ public class SimulateModelCheckThread extends GUIComputationThread
 				if (definedPFConstants != null)
 					if (definedPFConstants.getNumValues() > 0)
 						logln("Property constants: " + definedPFConstants);
-				log("Simulation parameters: approx = " + info.getApprox() + ", conf = " + info.getConfidence() + ", num samples = " + noIterations
-						+ ", max path len = " + maxPathLength + ")\n");
-
+				
 				// do simulation
-				results = prism.modelCheckSimulatorSimultaneously(mf, pf, properties, initialState, noIterations, maxPathLength);
+				results = prism.modelCheckSimulatorSimultaneously(mf, pf, properties, initialState, maxPathLength, method);
+				method.reset();
 			} catch (PrismException e) {
 				// in the case of an error which affects all props, store/report it
 				resultError = e;
@@ -179,10 +180,11 @@ public class SimulateModelCheckThread extends GUIComputationThread
 					if (definedPFConstants != null)
 						if (definedPFConstants.getNumValues() > 0)
 							logln("Property constants: " + definedPFConstants);
-					log("Simulation parameters: approx = " + info.getApprox() + ", conf = " + info.getConfidence() + ", num samples = " + noIterations
-							+ ", max path len = " + maxPathLength + ")\n");
-					result = prism.modelCheckSimulator(mf, pf, pf.getProperty(i), initialState, noIterations, maxPathLength);
-				} catch (PrismException e) {
+					result = prism.modelCheckSimulator(mf, pf,  pf.getProperty(i), initialState, maxPathLength, method);
+					method.reset();
+				}
+				catch(PrismException e)
+				{
 					result = new Result(e);
 					error(e.getMessage());
 				}

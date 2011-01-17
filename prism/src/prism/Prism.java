@@ -39,6 +39,7 @@ import hybrid.*;
 import parser.*;
 import parser.ast.*;
 import simulator.*;
+import simulator.method.SimulationMethod;
 import pta.*;
 
 /**
@@ -1471,21 +1472,6 @@ public class Prism implements PrismSettingsListener
 		return res;
 	}
 	
-	// compute parameters for simulation
-	
-	public double computeSimulationApproximation(double confid, int numSamples)
-	{
-		return getSimulator().computeSimulationApproximation(confid, numSamples);
-	}
-	public double computeSimulationConfidence(double approx, int numSamples)
-	{
-		return getSimulator().computeSimulationConfidence(approx, numSamples);
-	}
-	public int computeSimulationNumSamples(double approx, double confid)
-	{
-		return getSimulator().computeSimulationNumSamples(approx, confid);
-	}
-
 	// check if a property is suitable for analysis with the simulator
 	
 	public void checkPropertyForSimulation(Expression expr) throws PrismException
@@ -1496,7 +1482,7 @@ public class Prism implements PrismSettingsListener
 	// model check using simulator
 	// returns result or throws an exception in case of error
 	
-	public Result modelCheckSimulator(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression expr, Values initialState, int noIterations, int maxPathLength) throws PrismException
+	public Result modelCheckSimulator(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression expr, Values initialState, int maxPathLength, SimulationMethod simMethod) throws PrismException
 	{
 		Object res = null;
 		
@@ -1504,7 +1490,7 @@ public class Prism implements PrismSettingsListener
 		expr.checkValid(modulesFile.getModelType());
 		
 		// Do model checking
-		res = getSimulator().modelCheckSingleProperty(modulesFile, propertiesFile, expr, new State(initialState), noIterations, maxPathLength);
+		res = getSimulator().modelCheckSingleProperty(modulesFile, propertiesFile, expr, new State(initialState), maxPathLength, simMethod);
 		
 		return new Result(res);
 	}
@@ -1513,7 +1499,7 @@ public class Prism implements PrismSettingsListener
 	// returns an array of results, some of which may be Exception objects if there were errors
 	// in the case of an error which affects all properties, an exception is thrown
 	
-	public Result[] modelCheckSimulatorSimultaneously(ModulesFile modulesFile, PropertiesFile propertiesFile, List<Expression> exprs, Values initialState, int noIterations, int maxPathLength) throws PrismException
+	public Result[] modelCheckSimulatorSimultaneously(ModulesFile modulesFile, PropertiesFile propertiesFile, List<Expression> exprs, Values initialState, int maxPathLength, SimulationMethod simMethod) throws PrismException
 	{
 		Object[] res = null;
 		
@@ -1522,7 +1508,7 @@ public class Prism implements PrismSettingsListener
 			expr.checkValid(modulesFile.getModelType());
 		
 		// Do model checking
-		res = getSimulator().modelCheckMultipleProperties(modulesFile, propertiesFile, exprs, new State(initialState), noIterations, maxPathLength);
+		res = getSimulator().modelCheckMultipleProperties(modulesFile, propertiesFile, exprs, new State(initialState), maxPathLength, simMethod);
 		
 		Result[] resArray = new Result[res.length];
 		for (int i = 0; i < res.length; i++) resArray[i] = new Result(res[i]);
@@ -1533,9 +1519,9 @@ public class Prism implements PrismSettingsListener
 	// results are stored in the ResultsCollection, some of which may be Exception objects if there were errors
 	// in the case of an error which affects all properties, an exception is thrown
 	
-	public void modelCheckSimulatorExperiment(ModulesFile modulesFile, PropertiesFile propertiesFile, UndefinedConstants undefinedConstants, ResultsCollection results, Expression propertyToCheck, Values initialState, int noIterations, int pathLength) throws PrismException, InterruptedException
+	public void modelCheckSimulatorExperiment(ModulesFile modulesFile, PropertiesFile propertiesFile, UndefinedConstants undefinedConstants, ResultsCollection results, Expression propertyToCheck, Values initialState, int pathLength, SimulationMethod simMethod) throws PrismException, InterruptedException
 	{
-		getSimulator().modelCheckExperiment(modulesFile, propertiesFile, undefinedConstants, results, propertyToCheck, new State(initialState), pathLength, noIterations);
+		getSimulator().modelCheckExperiment(modulesFile, propertiesFile, undefinedConstants, results, propertyToCheck, new State(initialState), pathLength, simMethod);
 	}
 	
 	/**

@@ -454,6 +454,23 @@ public abstract class Expression extends ASTElement
 		return expr instanceof ExpressionBinaryOp
 				&& ExpressionBinaryOp.isRelOp(((ExpressionBinaryOp) expr).getOperator());
 	}
+
+	/**
+	 * Test if an expression is a quantitative property (P=?, R=? or S=?) 
+	 */
+	public static boolean isQuantitative(Expression expr)
+	{
+		if (expr instanceof ExpressionProb) {
+			return ((ExpressionProb) expr).getProb() == null;
+		}
+		else if (expr instanceof ExpressionReward) {
+			return ((ExpressionReward) expr).getReward() == null;
+		}
+		else if (expr instanceof ExpressionSS) {
+			return ((ExpressionSS) expr).getProb() == null;
+		}
+		return false;
+	}
 }
 
 //------------------------------------------------------------------------------

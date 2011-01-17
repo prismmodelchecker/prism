@@ -3,6 +3,7 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//	* Vincent Nimal <vincent.nimal@comlab.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -27,6 +28,7 @@
 package simulator.sampler;
 
 import simulator.*;
+import prism.PrismException;
 import prism.PrismLangException;
 
 /**
@@ -38,6 +40,7 @@ public abstract class SamplerDouble extends Sampler
 	protected double value;
 	// Stats over all paths
 	protected double valueSum;
+	protected double valueSumSq;
 	protected int numSamples;
 
 	@Override
@@ -51,6 +54,7 @@ public abstract class SamplerDouble extends Sampler
 	public void resetStats()
 	{
 		valueSum = 0.0;
+		valueSumSq = 0.0;
 		numSamples = 0;
 	}
 
@@ -61,6 +65,7 @@ public abstract class SamplerDouble extends Sampler
 	public void updateStats()
 	{
 		valueSum += value;
+		valueSumSq += value * value;
 		numSamples++;
 	}
 
@@ -71,8 +76,43 @@ public abstract class SamplerDouble extends Sampler
 	}
 
 	@Override
-	public Object getMeanValue()
+	public double getMeanValue()
 	{
-		return new Double(valueSum / numSamples);
+		return valueSum / numSamples;
+	}
+
+	@Override
+	public double getVariance()
+	{
+		// Estimator to the variance (see p.24 of Vincent Nimal's MSc thesis)
+		if (numSamples <= 1) {
+			return 0.0;
+		} else {
+			double mean = valueSum / numSamples;
+			return (valueSumSq - numSamples * mean * mean) / (numSamples - 1.0);
+		}
+		
+		// An alternative, below, would be to use the empirical mean
+		// (this is not equivalent (or unbiased) but, asymptotically, is the same)
+		//double mean = valueSum / numSamples;
+		//return (valueSumSq / numSamples) - (mean * mean);
+	}
+
+	@Override
+	public double getLikelihoodRatio(double p1, double p0) throws PrismException
+	{
+		// See Sec 6.3 of Vincent Nimal's MSc thesis for details
+		// (in which mu1=p1 and mu0=p0)
+		if (numSamples <= 1)
+			return 0.0;
+		if (valueSumSq == 0)
+			throw new PrismException("Cannot compute likelihood ratio with null variance");
+		// Compute maximum likelihood estimator of variance
+		double MLE = valueSumSq / numSamples - (valueSum * valueSum) / numSamples / numSamples;
+		double lr = (-1 / (2 * MLE)) * (numSamples * (p1 * p1 - p0 * p0) - 2 * valueSum * (p1 - p0));
+		if (Double.isNaN(lr)) {
+			throw new PrismException("Error computing likelihood ratio");
+		}
+		return Math.exp(lr);
 	}
 }

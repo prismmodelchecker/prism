@@ -115,7 +115,7 @@ public class GUISimulatorDistributionDialog extends javax.swing.JDialog implemen
 		
 		summary.append("Defined Model Constants:\n\t"+undefinedConstants.getMFConstantValues()+"\n");
 		summary.append("Property Constant Ranges:\n\t"+expr.getPFDefinedConstantsString()+"\n");
-		summary.append("Total simulator iterations:\n\t"+info.getNoIterations()+"\n");
+		summary.append("Total simulator iterations:\n\t"+info.getNumSamples()+"\n");
 		summary.append("Simulator max. path length:\n\t"+info.getMaxPathLength()+"\n");
 		summary.append("Initial state:\n\t"+info.getInitialState().toString()+"\n");
 		summaryText.setText(summary.toString());
@@ -184,7 +184,7 @@ public class GUISimulatorDistributionDialog extends javax.swing.JDialog implemen
 			}
 		}
 		//summary.append("Defined Constants:\n\t"+constantsStr+"\n");
-		summary.append("Total simulator iterations:\n\t"+info.getNoIterations()+"\n");
+		summary.append("Total simulator iterations:\n\t"+info.getNumSamples()+"\n");
 		summary.append("Simulator max. path length:\n\t"+info.getMaxPathLength()+"\n");
 		summary.append("Initial state:\n\t"+info.getInitialState().toString()+"\n");
 		summaryText.setText(summary.toString());
@@ -630,7 +630,7 @@ public class GUISimulatorDistributionDialog extends javax.swing.JDialog implemen
 	
 	private void doneButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_doneButtonActionPerformed
 	{//GEN-HEADEREND:event_doneButtonActionPerformed
-		if(network.countIterationsDone() < info.getNoIterations())
+		if(network.countIterationsDone() < info.getNumSamples())
 		{
 			String[] selection =
 			{"Yes", "No", "Cancel"};
@@ -676,7 +676,7 @@ public class GUISimulatorDistributionDialog extends javax.swing.JDialog implemen
 				//simulator.exportBinaryForMultipleProperties(modulesFile, propertiesFile, propFormulae, info.getInitialState(), binfile.getPath());
 				System.out.println("doing 2");
 				
-				network.doNetworking(info.getNoIterations(), info.getMaxPathLength(), binfile, feedbackIterationsProgressRadio.isSelected(), feedbackResultsProgressRadio.isSelected());
+				network.doNetworking(info.getNumSamples(), info.getMaxPathLength(), binfile, feedbackIterationsProgressRadio.isSelected(), feedbackResultsProgressRadio.isSelected());
 				
 			}
 			catch(Exception e)
@@ -695,7 +695,7 @@ public class GUISimulatorDistributionDialog extends javax.swing.JDialog implemen
 				//TODO: re-enable?
 				//propertyValues = simulator.exportBinaryForExperiment(expr, experimentThread, modulesFile, propertiesFile, undefinedConstants, experimentFormula, info.getInitialState(), binfile.getPath());
 				
-				network.doNetworking(info.getNoIterations(), info.getMaxPathLength(), binfile, feedbackIterationsProgressRadio.isSelected(), feedbackResultsProgressRadio.isSelected(), undefinedConstants.getMFConstantValues(), propertyValues, expr.getResults());
+				network.doNetworking(info.getNumSamples(), info.getMaxPathLength(), binfile, feedbackIterationsProgressRadio.isSelected(), feedbackResultsProgressRadio.isSelected(), undefinedConstants.getMFConstantValues(), propertyValues, expr.getResults());
 				
 			}
 			catch(Exception e)

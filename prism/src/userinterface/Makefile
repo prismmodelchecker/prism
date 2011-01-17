@@ -13,7 +13,7 @@ PRISM_DIR_REL = ../..
 JAVA_FILES = $(wildcard *.java graph/*.java model/*.java model/computation/*.java model/pepaModel/*.java model/graphicModel/*.java util/*.java simulator/*.java simulator/networking/*.java properties/*.java properties/computation/*.java log/*.java)
 CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class)
 
-PRISM_CLASSPATH = "$(THIS_DIR)/$(PRISM_DIR_REL)/$(CLASSES_DIR)$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/jcommon.jar$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/jfreechart.jar$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/epsgraphics.jar"
+PRISM_CLASSPATH = "$(THIS_DIR)/$(PRISM_DIR_REL)/$(CLASSES_DIR)$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/jcommon.jar$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/jfreechart.jar$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/epsgraphics.jar$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/colt.jar"
 
 default: all
 

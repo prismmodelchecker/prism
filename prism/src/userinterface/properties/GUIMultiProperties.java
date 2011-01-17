@@ -5,6 +5,7 @@
 //	* Andrew Hinton <ug60axh@cs.bham.ac.uk> (University of Birmingham)
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
 //	* Mark Kattenbelt <mark.kattenbelt@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Vincent Nimal <vincent.nimal@comlab.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -249,6 +250,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	{
 		simulateAfterReceiveParseNotification = false;
 		ArrayList<GUIProperty> validGUIProperties, simulatableGUIProperties;
+		ArrayList<Expression> simulatableExprs;
 		UndefinedConstants uCon;
 		try {
 			parsedProperties = getPrism().parsePropertiesString(parsedModel,
@@ -263,13 +265,16 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			return;
 		}
 
-		// See which of the selected properties are ok for simulation
+		// See which of the (valid) selected properties are ok for simulation
+		// Also store a list of the expression themselves
 		simulatableGUIProperties = new ArrayList<GUIProperty>();
+		simulatableExprs = new ArrayList<Expression>();
 		for (int i = 0; i < validGUIProperties.size(); i++) {
 			GUIProperty guiP = validGUIProperties.get(i);
 			try {
 				getPrism().checkPropertyForSimulation(guiP.getProperty());
 				simulatableGUIProperties.add(guiP);
+				simulatableExprs.add(guiP.getProperty());
 			} catch (PrismException e) {
 				// do nothing
 			}
@@ -293,27 +298,26 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				if (result != GUIConstantsPicker.VALUES_DONE)
 					return;
 			}
+			
 			// Store model/property constants and set in files
 			mfConstants = uCon.getMFConstantValues();
 			pfConstants = uCon.getPFConstantValues();
 			parsedModel.setUndefinedConstants(mfConstants);
 			parsedProperties.setUndefinedConstants(pfConstants);
 
-			SimulationInformation info = GUISimulationPicker.defineSimulationWithDialog(this.getGUI(), parsedModel.getInitialValues(), parsedModel);
+			// Get simulation info with dialog
+			SimulationInformation info = GUISimulationPicker.defineSimulationWithDialog(this.getGUI(), simulatableExprs, parsedModel, null);
+			
+			// If user cancelled simulation, quit 
 			if (info == null)
 				return;
-			Values initialState = info.getInitialState();
-
-			int noIterations = info.getNoIterations();
-			int maxPathLength = info.getMaxPathLength();
-
-			if (parsedModel != null && parsedProperties != null && validGUIProperties != null) {
+			
+			if (parsedModel != null && parsedProperties != null) {
 				if (info.isDistributed()) {
-					new GUISimulatorDistributionDialog(getGUI(), getPrism().getSimulator(), true).show(this, parsedModel, parsedProperties, validGUIProperties,
+					new GUISimulatorDistributionDialog(getGUI(), getPrism().getSimulator(), true).show(this, parsedModel, parsedProperties, simulatableGUIProperties,
 							info);
 				} else {
-					Thread t = new SimulateModelCheckThread(this, parsedModel, parsedProperties, validGUIProperties, mfConstants, pfConstants,
-							initialState, noIterations, maxPathLength, info);
+					Thread t = new SimulateModelCheckThread(this, parsedModel, parsedProperties, simulatableGUIProperties, mfConstants, pfConstants, info);
 					t.setPriority(Thread.NORM_PRIORITY);
 					t.start();
 				}

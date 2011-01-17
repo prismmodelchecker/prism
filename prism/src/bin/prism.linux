@@ -36,6 +36,7 @@ fi
 #  - lib/pepa.zip (PEPA stuff)
 #  - lib/{jcommon,jfreechart}.jar (JFreeChart stuff)
 #  - lib/epsgraphics.jar (Java EPS Graphics library)
+#  - lib/colt.jar (COLT statistics library)
 PRISM_CLASSPATH=\
 "$PRISM_DIR"/lib/prism.jar\
 :"$PRISM_DIR"/classes\
@@ -43,7 +44,8 @@ PRISM_CLASSPATH=\
 :"$PRISM_DIR"/lib/pepa.zip\
 :"$PRISM_DIR"/lib/jcommon.jar\
 :"$PRISM_DIR"/lib/jfreechart.jar\
-:"$PRISM_DIR"/lib/epsgraphics.jar
+:"$PRISM_DIR"/lib/epsgraphics.jar\
+:"$PRISM_DIR"/lib/colt.jar
 
 # Export environment variables
 export PRISM_DIR LD_LIBRARY_PATH

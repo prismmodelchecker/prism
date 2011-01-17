@@ -147,9 +147,9 @@ public class TransitionList
 
 	/**
 	 * Get a reference to a transition according to a total probability (rate) sum, x.
-	 * i.e.the first transition for which the sum of probabilities of all prior transitions
-	 * (across all choices) exceeds x.
-	 * Note: this only really makes sense for models where these are rates, rather than probabilities.
+	 * i.e.the first transition for which the sum of probabilities of that and all prior
+	 * transitions (across all choices) exceeds x. Really, this is designed for the case
+	 * where these are rates, rather than probabilities.
 	 * @param x Probability (or rate) sum
 	 * @param ref Empty transition reference to store result
 	 */

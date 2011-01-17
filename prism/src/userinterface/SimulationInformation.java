@@ -3,6 +3,8 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Andrew Hinton <ug60axh@cs.bham.ac.uk> (University of Birmingham)
+//	* Vincent Nimal <vincent.nimal@comlab.ox.ac.uk> (University of Oxford)
+//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -27,135 +29,190 @@
 package userinterface;
 
 import parser.*;
+import prism.PrismSettings;
+import simulator.method.*;
 
 public class SimulationInformation
 {
-    Values initialState;
-    double approx;
-    double confidence;
-    int noIterations;
-    int maxPathLength;
-	int autoIndex;
-	boolean distributed;
-    
-    public SimulationInformation
-    (Values initialState,
-    double approx,
-    double confidence,
-    int noIterations,
-    int maxPathLength)
-    {
-        this.initialState = initialState;
-        this.approx = approx;
-        this.confidence = confidence;
-        this.noIterations = noIterations;
-        this.maxPathLength = maxPathLength;
+	// PRISM settings object
+	private PrismSettings settings;
 
-		this.autoIndex = 1;
-		
+	// Simulation method
+	public enum Method { CI, ACI, APMC, SPRT };
+	private Method method;
+	// Unknown variable
+	public enum Unknown { WIDTH, CONFIDENCE, NUM_SAMPLES };
+	private Unknown unknown;
+
+	// Settings
+	private Values initialState;
+
+
+	private double width;
+	private double confidence;
+	private int numSamples;
+	private int maxPathLength;
+
+	private boolean distributed;
+	private boolean maxRewardGiven;
+
+	/**
+	 * Create a new SimulationInformation object.
+	 * Default values for simulator settings are extracted from PrismSettings.
+	 * PrismSettings object is retained for other settings needed later. 
+	 */
+	public SimulationInformation(PrismSettings settings)
+	{
+		this.settings = settings;
+
+		this.initialState = null;
+
+		this.method = Method.CI;
+		this.unknown = Unknown.WIDTH;
+		this.width = settings.getDouble(PrismSettings.SIMULATOR_DEFAULT_WIDTH);
+		this.confidence = settings.getDouble(PrismSettings.SIMULATOR_DEFAULT_CONFIDENCE);
+		this.numSamples = settings.getInteger(PrismSettings.SIMULATOR_DEFAULT_NUM_SAMPLES);
+		this.maxPathLength = settings.getInteger(PrismSettings.SIMULATOR_DEFAULT_MAX_PATH);
+
+
 		this.distributed = false;
-    }
 
-	public int getAutoIndex()
-	{
-		return autoIndex;
+		this.maxRewardGiven = false;
 	}
 
-	public void setAutoIndex(int autoIndex)
+	public void setMethod(Method method)
 	{
-		this.autoIndex = autoIndex;
+		this.method = method;
 	}
-    
-    /**
-     * Getter for property initialState.
-     * @return Value of property initialState.
-     */
-    public parser.Values getInitialState()
-    {
-        return initialState;
-    }
-    
-    /**
-     * Setter for property initialState.
-     * @param initialState New value of property initialState.
-     */
-    public void setInitialState(parser.Values initialState)
-    {
-        this.initialState = initialState;
-    }
-    
-    /**
-     * Getter for property approx.
-     * @return Value of property approx.
-     */
-    public double getApprox()
-    {
-        return approx;
-    }
-    
-    /**
-     * Setter for property approx.
-     * @param approx New value of property approx.
-     */
-    public void setApprox(double approx)
-    {
-        this.approx = approx;
-    }
-    
-    /**
-     * Getter for property confidence.
-     * @return Value of property confidence.
-     */
-    public double getConfidence()
-    {
-        return confidence;
-    }
-    
-    /**
-     * Setter for property confidence.
-     * @param confidence New value of property confidence.
-     */
-    public void setConfidence(double confidence)
-    {
-        this.confidence = confidence;
-    }
-    
-    /**
-     * Getter for property noIterations.
-     * @return Value of property noIterations.
-     */
-    public int getNoIterations()
-    {
-        return noIterations;
-    }
-    
-    /**
-     * Setter for property noIterations.
-     * @param noIterations New value of property noIterations.
-     */
-    public void setNoIterations(int noIterations)
-    {
-        this.noIterations = noIterations;
-    }
-    
-    /**
-     * Getter for property maxPathLength.
-     * @return Value of property maxPathLength.
-     */
-    public int getMaxPathLength()
-    {
-        return maxPathLength;
-    }
-    
-    /**
-     * Setter for property maxPathLength.
-     * @param maxPathLength New value of property maxPathLength.
-     */
-    public void setMaxPathLength(int maxPathLength)
-    {
-        this.maxPathLength = maxPathLength;
-    }
-    
+
+	public Method getMethod()
+	{
+		return method;
+	}
+
+	public void setMethodByName(String name)
+	{
+		setMethod(Method.valueOf(name));
+	}
+
+	public String getMethodName()
+	{
+		return method.toString();
+	}
+
+	public void setUnknown(Unknown unknown)
+	{
+		this.unknown = unknown;
+	}
+
+	public void setUnknownByName(String name)
+	{
+		if (name.equals("Width") || name.equals("Approximation")) {
+			setUnknown(Unknown.WIDTH);
+		} else if  (name.equals("Confidence")) {
+			setUnknown(Unknown.CONFIDENCE);
+		} else if (name.equals("Number of samples")) {
+			setUnknown(Unknown.NUM_SAMPLES);
+		}
+	}
+
+	public String getUnknownName()
+	{
+		switch (unknown) {
+		case WIDTH:
+			return (method == Method.APMC) ? "Approximation" : "Width";
+		case CONFIDENCE:
+			return "Confidence";
+		case NUM_SAMPLES:
+			return "Number of samples";
+		}
+		return null;
+	}
+
+	public Unknown getUnknown()
+	{
+		return unknown;
+	}
+	
+	/**
+	 * Getter for property initialState.
+	 * @return Value of property initialState.
+	 */
+	public parser.Values getInitialState()
+	{
+		return initialState;
+	}
+
+	/**
+	 * Setter for property initialState.
+	 * @param initialState New value of property initialState.
+	 */
+	public void setInitialState(parser.Values initialState)
+	{
+		this.initialState = initialState;
+	}
+
+	public double getWidth()
+	{
+		return width;
+	}
+
+	public void setWidth(double width)
+	{
+		this.width = width;
+	}
+
+	/**
+	 * Getter for property confidence.
+	 * @return Value of property confidence.
+	 */
+	public double getConfidence()
+	{
+		return confidence;
+	}
+
+	/**
+	 * Setter for property confidence.
+	 * @param confidence New value of property confidence.
+	 */
+	public void setConfidence(double confidence)
+	{
+		this.confidence = confidence;
+	}
+
+	public int getNumSamples()
+	{
+		return numSamples;
+	}
+
+	public void setNumSamples(int numSamples)
+	{
+		this.numSamples = numSamples;
+	}
+
+	/**
+	 * Getter for property maxPathLength.
+	 * @return Value of property maxPathLength.
+	 */
+	public int getMaxPathLength()
+	{
+		return maxPathLength;
+	}
+
+	/**
+	 * Setter for property maxPathLength.
+	 * @param maxPathLength New value of property maxPathLength.
+	 */
+	public void setMaxPathLength(int maxPathLength)
+	{
+		this.maxPathLength = maxPathLength;
+	}
+
+	public void setPropReward(boolean b)
+	{
+		this.maxRewardGiven = b;
+	}
+
 	/**
 	 * Getter for property distributed.
 	 * @return Value of property distributed.
@@ -164,7 +221,7 @@ public class SimulationInformation
 	{
 		return distributed;
 	}
-	
+
 	/**
 	 * Setter for property distributed.
 	 * @param distributed New value of property distributed.
@@ -173,5 +230,70 @@ public class SimulationInformation
 	{
 		this.distributed = distributed;
 	}
-	
+
+	/**
+	 * create and return the selected method of simulation
+	 * @return the method of simulation
+	 */
+	public SimulationMethod createSimulationMethod()
+	{
+		// Extract some simulator options, in case needed, from PRISM settings
+		double maxReward = settings.getDouble(PrismSettings.SIMULATOR_MAX_REWARD);
+		boolean numberToDecideGiven = settings.getBoolean(PrismSettings.SIMULATOR_DECIDE);
+		int numberToDecide = settings.getInteger(PrismSettings.SIMULATOR_ITERATIONS_TO_DECIDE);
+
+		switch (method) {
+		case CI:
+			switch (unknown) {
+			case WIDTH:
+				return new CIwidth(confidence, numSamples);
+			case CONFIDENCE:
+				return new CIconfidence(width, numSamples);
+			case NUM_SAMPLES:
+				if (numberToDecideGiven) {
+					return new CIiterations(confidence, width, numberToDecide);
+				} else {
+					if (maxRewardGiven)
+						return new CIiterations(confidence, width, maxReward);
+					else
+						return new CIiterations(confidence, width);
+				}
+			default:
+				return null;
+			}
+		case ACI:
+			switch (unknown) {
+			case WIDTH:
+				return new ACIwidth(confidence, numSamples);
+			case CONFIDENCE:
+				return new ACIconfidence(width, numSamples);
+			case NUM_SAMPLES:
+				if (numberToDecideGiven) {
+					return new ACIiterations(confidence, width, numberToDecide);
+				} else {
+					if (maxRewardGiven)
+						return new ACIiterations(confidence, width, maxReward);
+					else
+						return new ACIiterations(confidence, width);
+				}
+			default:
+				return null;
+			}
+		case APMC:
+			switch (unknown) {
+			case WIDTH:
+				return new APMCapproximation(confidence, numSamples);
+			case CONFIDENCE:
+				return new APMCconfidence(width, numSamples);
+			case NUM_SAMPLES:
+				return new APMCiterations(confidence, width);
+			default:
+				return null;
+			}
+		case SPRT:
+			return new SPRTMethod(confidence, confidence, width);
+		default:
+			return null;
+		}
+	}
 }

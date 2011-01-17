@@ -4,6 +4,7 @@
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
 //	* Andrew Hinton <ug60axh@cs.bham.ac.uk> (University of Birmingham)
+//	* Vincent Nimal <vincent.nimal@comlab.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -125,11 +126,15 @@ public class PrismSettings implements Observer
 	public static final	String PROPERTIES_ADDITION_STRATEGY			= "properties.additionStategy";
 	public static final	String PROPERTIES_CLEAR_LIST_ON_LOAD		= "properties.clearListOnLoad";
 	
-	//GUI Simulator
-	public static final String SIMULATOR_DEFAULT_APPROX				= "simulator.defaultApprox";
-	public static final String SIMULATOR_DEFAULT_CONFIDENCE			= "simulator.defaultConfidence";
+	//Simulator
 	public static final String SIMULATOR_DEFAULT_NUM_SAMPLES		= "simulator.defaultNumSamples";
+	public static final String SIMULATOR_DEFAULT_CONFIDENCE			= "simulator.defaultConfidence";
+	public static final String SIMULATOR_DEFAULT_WIDTH				= "simulator.defaultWidth";
+	public static final String SIMULATOR_DEFAULT_APPROX				= "simulator.defaultApprox";
 	public static final String SIMULATOR_DEFAULT_MAX_PATH			= "simulator.defaultMaxPath";
+	public static final String SIMULATOR_DECIDE 					= "simulator.decide";
+	public static final String SIMULATOR_ITERATIONS_TO_DECIDE		= "simulator.iterationsToDecide";
+	public static final String SIMULATOR_MAX_REWARD					= "simulator.maxReward";
 	public static final	String SIMULATOR_SIMULTANEOUS				= "simulator.simultaneous";
 	public static final String SIMULATOR_FIELD_CHOICE				= "simulator.fieldChoice";
 	public static final	String SIMULATOR_NEW_PATH_ASK_INITIAL		= "simulator.newPathAskDefault";
@@ -266,16 +271,34 @@ public class PrismSettings implements Observer
 			{ BOOLEAN_TYPE,		PROPERTIES_CLEAR_LIST_ON_LOAD,			"Clear list when load model",			"2.1",			new Boolean(true),															"",																							"Clear the properties list whenever a new model is loaded." }
 		},
 		{
-			{ DOUBLE_TYPE,		SIMULATOR_DEFAULT_APPROX,				"Default approximation parameter",		"2.1",			new Double(1.0E-2),															"0,1",																						"Default approximation parameter for approximate model checking using the PRISM simulator." },
-			{ DOUBLE_TYPE,		SIMULATOR_DEFAULT_CONFIDENCE,			"Default confidence parameter",			"2.1",			new Double(1.0E-10),														"0,1",																						"Default confidence parameter for approximate model checking using the PRISM simulator." },
-			{ INTEGER_TYPE,		SIMULATOR_DEFAULT_NUM_SAMPLES,			"Default number of samples",			"2.1",			new Integer(402412),														"1,",																						"Default number of samples for approximate model checking using the PRISM simulator." },
-			{ INTEGER_TYPE,		SIMULATOR_DEFAULT_MAX_PATH,				"Default maximum path length",			"2.1",			new Integer(10000),															"1,",																						"Default maximum path length for approximate model checking using the PRISM simulator." },
-			{ BOOLEAN_TYPE,		SIMULATOR_SIMULTANEOUS,					"Check properties simultaneously",		"2.1",			new Boolean(true),															"",																							"Check multiple properties simultaneously over the same set of execution paths (simulator only)." },
-			{ CHOICE_TYPE,		SIMULATOR_FIELD_CHOICE,					"Values used in dialog",				"2.1",			"Last used values",															"Last used values,Always use defaults",														"How to choose values for the simulation dialog: remember previously used values or revert to the defaults each time." },
-			{ BOOLEAN_TYPE,		SIMULATOR_NEW_PATH_ASK_INITIAL,			"Ask for initial state",				"2.1",			new Boolean(true),															"",																							"Prompt for details of initial state when creating a new simulation path." },
-			{ BOOLEAN_TYPE,		SIMULATOR_NEW_PATH_ASK_VIEW,			"Ask for view configuration",			"2.1",			new Boolean(false),															"",																							"Display dialog with display options when creating a new simulation path." },
-			{ CHOICE_TYPE,		SIMULATOR_RENDER_ALL_VALUES,			"Path render style",					"3.2",			"Render all values",															"Render changes,Render all values",															"Display style for paths in the simulator user interface: only show variable values when they change, or show all values regardless." },
-			{ FILE_TYPE,		SIMULATOR_NETWORK_FILE,					"Network profile",						"2.1",			new File(""),																		"",																					"File specifying the network profile used by the distributed PRISM simulator." }
+			{ INTEGER_TYPE,		SIMULATOR_DEFAULT_NUM_SAMPLES,			"Default number of samples",			"4.0",		new Integer(1000),			"1,",
+																			"Default number of samples when using approximate (simulation-based) model checking (CI/ACI/APMC methods)." },
+			{ DOUBLE_TYPE,		SIMULATOR_DEFAULT_CONFIDENCE,			"Default confidence parameter",			"4.0",		new Double(0.01),			"0,1",
+																			"Default value for the 'confidence' parameter when using approximate (simulation-based) model checking (CI/ACI/APMC/SPRT methods). For CI/ACI, this means that the corresponding 'confidence level' is 100 x (1 - confidence)%; for APMC, this is the probability of the 'approximation' being exceeded; for SPRT, this is the acceptable probability for type I/II errors." },
+			{ DOUBLE_TYPE,		SIMULATOR_DEFAULT_WIDTH,				"Default width of confidence interval",	"4.0",		new Double(0.05),			"0,",
+																			"Default (half-)width of the confidence interval when using approximate (simulation-based) model checking (CI/ACI/SPRT methods). For SPRT, this refers to the 'indifference' parameter." },
+			{ DOUBLE_TYPE,		SIMULATOR_DEFAULT_APPROX,				"Default approximation parameter",		"4.0",		new Double(0.05),			"0,",
+																			"Default value for the 'approximation' parameter when using approximate (simulation-based) model checking (APMC method)." },
+			{ INTEGER_TYPE,		SIMULATOR_DEFAULT_MAX_PATH,				"Default maximum path length",			"2.1",		new Integer(10000),			"1,",
+																			"Default maximum path length when using approximate (simulation-based) model checking." },
+			{ BOOLEAN_TYPE,		SIMULATOR_DECIDE,						"Decide S^2=0 or not automatically",	"4.0",		new	Boolean(true),			"",
+																			"Let PRISM choose whether, after a certain number of iterations, the standard error is null or not." },
+			{ INTEGER_TYPE,		SIMULATOR_ITERATIONS_TO_DECIDE,			"Number of iterations to decide",		"4.0",		new	Integer(10000),			"1,",
+																			"Number of iterations to decide whether the standard error is null or not." },
+			{ DOUBLE_TYPE,		SIMULATOR_MAX_REWARD,					"Maximum reward",						"4.0",		new	Double(1000.0),			"1,",
+																			"Maximum reward for CI/ACI methods. It helps these methods in displaying the progress in case of rewards computation." },
+			{ BOOLEAN_TYPE,		SIMULATOR_SIMULTANEOUS,					"Check properties simultaneously",		"2.1",		new Boolean(true),			"",
+																			"Check multiple properties simultaneously over the same set of execution paths (simulator only)." },
+			{ CHOICE_TYPE,		SIMULATOR_FIELD_CHOICE,					"Values used in dialog",				"2.1",		"Last used values",			"Last used values,Always use defaults",
+																			"How to choose values for the simulation dialog: remember previously used values or revert to the defaults each time." },
+			{ BOOLEAN_TYPE,		SIMULATOR_NEW_PATH_ASK_INITIAL,			"Ask for initial state",				"2.1",		new Boolean(true),			"",
+																			"Prompt for details of initial state when creating a new simulation path." },
+			{ BOOLEAN_TYPE,		SIMULATOR_NEW_PATH_ASK_VIEW,			"Ask for view configuration",			"2.1",		new Boolean(false),			"",
+																			"Display dialog with display options when creating a new simulation path." },
+			{ CHOICE_TYPE,		SIMULATOR_RENDER_ALL_VALUES,			"Path render style",					"3.2",		"Render all values",		"Render changes,Render all values",
+																			"Display style for paths in the simulator user interface: only show variable values when they change, or show all values regardless." },
+			{ FILE_TYPE,		SIMULATOR_NETWORK_FILE,					"Network profile",						"2.1",		new File(""),				"",
+																			"File specifying the network profile used by the distributed PRISM simulator." }
 		},
 		{
 			{ FONT_COLOUR_TYPE,	LOG_FONT,								"Display font",							"2.1",			new FontColorPair(new Font("monospaced", Font.PLAIN, 12), Color.black),		"",																							"Font used for the log display." },

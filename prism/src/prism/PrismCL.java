@@ -32,6 +32,7 @@ import java.util.*;
 import parser.*;
 import parser.ast.*;
 import pta.*;
+import simulator.method.*;
 
 // prism - command line version
 
@@ -134,14 +135,23 @@ public class PrismCL
 	private String transientTime;
 
 	// simulation info
+	private String simMethodName = null;
 	private double simApprox;
 	private double simConfidence;
 	private int simNumSamples;
+	private double simWidth;
+	private int reqIterToConclude;
+	private double simMaxReward;
 	private int simMaxPath;
 	private boolean simApproxGiven = false;
 	private boolean simConfidenceGiven = false;
 	private boolean simNumSamplesGiven = false;
+	private boolean simWidthGiven = false;
+	private boolean reqIterToConcludeGiven = false;
+	private boolean simMaxRewardGiven = false;
 	private boolean simMaxPathGiven = false;
+	private boolean simManual = false;
+	private SimulationMethod simMethod = null;
 
 	// entry point - run method
 
@@ -219,14 +229,13 @@ public class PrismCL
 				undefinedConstants.iterateModel();
 				continue;
 			}
-			
+
 			// Do any requested exports of PRISM code
 			// (except for PTA digital clocks case - postpone this)
-			if (!(modulesFile.getModelType() == ModelType.PTA
-					&& prism.getSettings().getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks"))) {
+			if (!(modulesFile.getModelType() == ModelType.PTA && prism.getSettings().getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks"))) {
 				doPrismLangExports(modulesFile);
 			}
-			
+
 			// Decide if model construction is necessary
 			boolean doBuild = true;
 			// If explicitly disabled...
@@ -314,10 +323,9 @@ public class PrismCL
 							if (definedMFConstants.getNumValues() > 0)
 								mainLog.println("Model constants: " + definedMFConstants);
 						mainLog.println("Property constants: " + undefinedConstants.getPFDefinedConstantsString());
-						mainLog.println("Simulation parameters: approx = " + simApprox + ", conf = " + simConfidence + ", num samples = " + simNumSamples
-								+ ", max path len = " + simMaxPath + ")");
+						simMethod = processSimulationOptions(propertiesToCheck[j]);
 						prism.modelCheckSimulatorExperiment(modulesFile, propertiesFile, undefinedConstants, results[j], propertiesToCheck[j], modulesFile
-								.getInitialValues(), simNumSamples, simMaxPath);
+								.getInitialValues(), simMaxPath, simMethod);
 					} catch (PrismException e) {
 						// in case of (overall) error, report it, store as result for property, and proceed
 						error(e.getMessage());
@@ -379,10 +387,10 @@ public class PrismCL
 							}
 							// approximate (simulation-based) model checking
 							else {
-								mainLog.println("Simulation parameters: approx = " + simApprox + ", conf = " + simConfidence + ", num samples = "
-										+ simNumSamples + ", max path len = " + simMaxPath + ")");
+								simMethod = processSimulationOptions(propertiesToCheck[j]);
 								res = prism.modelCheckSimulator(modulesFileToCheck, propertiesFile, propertiesToCheck[j],
-										modulesFileToCheck.getInitialValues(), simNumSamples, simMaxPath);
+										modulesFileToCheck.getInitialValues(), simMaxPath, simMethod);
+								simMethod.reset();
 							}
 						} catch (PrismException e) {
 							// in case of error, report it, store exception as the result and proceed
@@ -567,7 +575,7 @@ public class PrismCL
 			}
 		}
 	}
-	
+
 	/**
 	 * Do any exports of PRISM code that have been requested.
 	 */
@@ -608,7 +616,7 @@ public class PrismCL
 			tmpLog.print(mfTmp.toString());
 		}
 	}
-	
+
 	/**
 	 * Build a model, usually from the passed in modulesFileToBuild. However, if importtrans=true,
 	 * then explicit model import is done and modulesFileToBuild can be null.
@@ -1237,6 +1245,10 @@ public class PrismCL
 				else if (sw.equals("sim")) {
 					simulate = true;
 				}
+				// use the number of iterations given instead of automatically deciding whether the variance is null ot not
+				else if (sw.equals("simmanual")) {
+					simManual = true;
+				}
 				// generate path with simulator
 				else if (sw.equals("simpath")) {
 					if (i < args.length - 2) {
@@ -1559,6 +1571,33 @@ public class PrismCL
 					}
 				}
 
+				// simulation-based model checking methods
+				else if (sw.equals("simmethod")) {
+					if (i < args.length - 1) {
+						s = args[++i];
+						if (s.equals("ci") || s.equals("aci") || s.equals("apmc") || s.equals("sprt"))
+							simMethodName = s;
+						else
+							errorAndExit("Unrecognised option for -" + sw + " switch (options are: ci, aci, apmc, sprt)");
+					} else {
+						errorAndExit("No parameter specified for -" + sw + " switch");
+					}
+				}
+				// simulation confidence interval width
+				else if (sw.equals("simwidth")) {
+					if (i < args.length - 1) {
+						try {
+							simWidth = Double.parseDouble(args[++i]);
+							if (simWidth <= 0)
+								throw new NumberFormatException("");
+							simWidthGiven = true;
+						} catch (NumberFormatException e) {
+							errorAndExit("Invalid value for -" + sw + " switch");
+						}
+					} else {
+						errorAndExit("No value specified for -" + sw + " switch");
+					}
+				}
 				// simulation approximation parameter
 				else if (sw.equals("simapprox")) {
 					if (i < args.length - 1) {
@@ -1597,6 +1636,36 @@ public class PrismCL
 							if (simNumSamples <= 0)
 								throw new NumberFormatException("");
 							simNumSamplesGiven = true;
+						} catch (NumberFormatException e) {
+							errorAndExit("Invalid value for -" + sw + " switch");
+						}
+					} else {
+						errorAndExit("No value specified for -" + sw + " switch");
+					}
+				}
+				// simulation number of samples to conclude S^2=0 or not
+				else if (sw.equals("simvar")) {
+					if (i < args.length - 1) {
+						try {
+							reqIterToConclude = Integer.parseInt(args[++i]);
+							if (reqIterToConclude <= 0)
+								throw new NumberFormatException("");
+							reqIterToConcludeGiven = true;
+						} catch (NumberFormatException e) {
+							errorAndExit("Invalid value for -" + sw + " switch");
+						}
+					} else {
+						errorAndExit("No value specified for -" + sw + " switch");
+					}
+				}
+				// maximum value of reward
+				else if (sw.equals("simmaxrwd")) {
+					if (i < args.length - 1) {
+						try {
+							simMaxReward = Double.parseDouble(args[++i]);
+							if (simMaxReward <= 0.0)
+								throw new NumberFormatException("");
+							simMaxRewardGiven = true;
 						} catch (NumberFormatException e) {
 							errorAndExit("Invalid value for -" + sw + " switch");
 						}
@@ -1734,37 +1803,130 @@ public class PrismCL
 				errorAndExit("Pseudo Gauss-Seidel/SOR methods are currently not supported by the sparse engine");
 			}
 		}
+	}
 
-		// compute simulation parameters
+	/**
+	 * Process the simulation-related command-line options and generate
+	 * a SimulationMethod object to be used for approximate model checking.
+	 * @param expr The property to be checked (note: constants may not be defined)
+	 * @throws PrismException if there are problems with the specified options
+	 */
+	private SimulationMethod processSimulationOptions(Expression expr) throws PrismException
+	{
+		SimulationMethod aSimMethod = null;
 
-		// print a warning if user tried to specify all three params
-		if (simApproxGiven && simConfidenceGiven && simNumSamplesGiven)
-			mainLog.println("\nWarning: Cannot specify all three simulation parameters; ignoring approximation parameter.");
-		// start with default values where not supplied
+		// See if property to be checked is a reward (R) operator
+		boolean isReward = (expr instanceof ExpressionReward);
+		
+		// See if property to be checked is quantitative (=?)
+		boolean isQuant = Expression.isQuantitative(expr);
+		
+		// Pick defaults for simulation settings not set from command-line
 		if (!simApproxGiven)
 			simApprox = prism.getSettings().getDouble(PrismSettings.SIMULATOR_DEFAULT_APPROX);
 		if (!simConfidenceGiven)
 			simConfidence = prism.getSettings().getDouble(PrismSettings.SIMULATOR_DEFAULT_CONFIDENCE);
 		if (!simNumSamplesGiven)
 			simNumSamples = prism.getSettings().getInteger(PrismSettings.SIMULATOR_DEFAULT_NUM_SAMPLES);
-		// which one are we going to compute from the other two?
-		// (note have to compute one so that the three params are consistent)
-		// number of samples gets priority - if this is specified, always use it
-		if (simNumSamplesGiven) {
-			// if approximation, but not confidence given, compute confidence
-			if (simApproxGiven && !simConfidenceGiven) {
-				simConfidence = prism.computeSimulationConfidence(simApprox, simNumSamples);
-			}
-			// otherwise compute approximation
-			else {
-				simApprox = prism.computeSimulationApproximation(simConfidence, simNumSamples);
-			}
-		} else {
-			simNumSamples = prism.computeSimulationNumSamples(simApprox, simConfidence);
-		}
-		// finally, use default value for max path length if not supplied
+		if (!simWidthGiven)
+			simWidth = prism.getSettings().getDouble(PrismSettings.SIMULATOR_DEFAULT_WIDTH);
+		
+		if (!reqIterToConcludeGiven)
+			reqIterToConclude = prism.getSettings().getInteger(PrismSettings.SIMULATOR_DECIDE);
+		if (!simMaxRewardGiven)
+			simMaxReward = prism.getSettings().getDouble(PrismSettings.SIMULATOR_MAX_REWARD);
 		if (!simMaxPathGiven)
 			simMaxPath = prism.getSettings().getInteger(PrismSettings.SIMULATOR_DEFAULT_MAX_PATH);
+
+		// Pick a default method, if not specified
+		// (CI for quantitative, SPRT for bounded)
+		if (simMethodName == null) {
+			simMethodName = isQuant ? "ci" : "sprt";
+		}
+		
+		// CI
+		if (simMethodName.equals("ci")) {
+			if (simWidthGiven && simConfidenceGiven && simNumSamplesGiven) {
+				throw new PrismException("Cannot specify all three parameters (width/confidence/samples) for CI method");
+			}
+			if (!simWidthGiven) {
+				// Default (unless width specified) is to leave width unknown
+				aSimMethod = new CIwidth(simConfidence, simNumSamples);
+			} else if (!simNumSamplesGiven) {
+				// Next preferred option (unless specified) is unknown samples
+				if (simManual)
+					aSimMethod = new CIiterations(simConfidence, simWidth, reqIterToConclude);
+				else
+					aSimMethod = (isReward ? new CIiterations(simConfidence, simWidth, simMaxReward) : new CIiterations(simConfidence, simWidth));
+			} else {
+				// Otherwise confidence unknown
+				aSimMethod = new CIconfidence(simWidth, simNumSamples);
+			}
+			if (simApproxGiven) {
+				mainLog.println("\nWarning: Option -simapprox is not used for the CI method and is being ignored");
+			}
+		}
+		// ACI
+		else if (simMethodName.equals("aci")) {
+			if (simWidthGiven && simConfidenceGiven && simNumSamplesGiven) {
+				throw new PrismException("Cannot specify all three parameters (width/confidence/samples) for ACI method");
+			}
+			if (!simWidthGiven) {
+				// Default (unless width specified) is to leave width unknown
+				aSimMethod = new ACIwidth(simConfidence, simNumSamples);
+			} else if (!simNumSamplesGiven) {
+				// Next preferred option (unless specified) is unknown samples
+				if (simManual)
+					aSimMethod = new ACIiterations(simConfidence, simWidth, reqIterToConclude);
+				else
+					aSimMethod = (isReward ? new ACIiterations(simConfidence, simWidth, simMaxReward) : new CIiterations(simConfidence, simWidth));
+			} else {
+				// Otherwise confidence unknown
+				aSimMethod = new ACIconfidence(simWidth, simNumSamples);
+			}
+			if (simApproxGiven) {
+				mainLog.println("\nWarning: Option -simapprox is not used for the ACI method and is being ignored");
+			}
+		}
+		// APMC
+		else if (simMethodName.equals("apmc")) {
+			if (isReward) {
+				throw new PrismException("Cannot use the APMC method on reward properties; try CI (switch -simci) instead");
+			}
+			if (simApproxGiven && simConfidenceGiven && simNumSamplesGiven) {
+				throw new PrismException("Cannot specify all three parameters (approximation/confidence/samples) for APMC method");
+			}
+			if (!simApproxGiven) {
+				// Default (unless width specified) is to leave approximation unknown
+				aSimMethod = new APMCapproximation(simConfidence, simNumSamples);
+			} else if (!simNumSamplesGiven) {
+				// Next preferred option (unless specified) is unknown samples
+				aSimMethod = new APMCiterations(simConfidence, simApprox);
+			} else {
+				// Otherwise confidence unknown
+				aSimMethod = new APMCconfidence(simApprox, simNumSamples);
+			}
+			if (simWidthGiven) {
+				mainLog.println("\nWarning: Option -simwidth is not used for the APMC method and is being ignored");
+			}
+		}
+		// SPRT
+		else if (simMethodName.equals("sprt")) {
+			if (isQuant) {
+				throw new PrismException("Cannot use SPRT on a quantitative (=?) property");
+			}
+			aSimMethod = new SPRTMethod(simConfidence, simConfidence, simWidth);
+			if (simApproxGiven) {
+				mainLog.println("\nWarning: Option -simapprox is not used for the SPRT method and is being ignored");
+			}
+			if (simNumSamplesGiven) {
+				mainLog.println("\nWarning: Option -simsamples is not used for the SPRT method and is being ignored");
+			}
+		}
+		else
+			throw new PrismException("Unknown simulation method \"" + simMethodName + "\"");
+			
+		return aSimMethod;
 	}
 
 	// print help message
@@ -1871,9 +2033,14 @@ public class PrismCL
 		mainLog.println();
 		mainLog.println("SIMULATION OPTIONS:");
 		mainLog.println("-sim ........................... Use the PRISM simulator to approximate results of model checking");
-		mainLog.println("-simapprox <x> ................. Set the approximation parameter for the simulator");
-		mainLog.println("-simconf <x> ................... Set the confidence parameter for the simulator");
-		mainLog.println("-simsamples <n> ................ Set the number of samples for the simulator");
+		mainLog.println("-simmethod <name> .............. Specify the method for approximate model checking (ci, aci, apmc, sprt)");
+		mainLog.println("-simsamples <n> ................ Set the number of samples for the simulator (CI/ACI/APMC methods)");
+		mainLog.println("-simconf <x> ................... Set the confidence parameter for the simulator (CI/ACI/APMC methods)");
+		mainLog.println("-simwidth <x> .................. Set the interval width for the simulator (CI/ACI methods)");
+		mainLog.println("-simapprox <x> ................. Set the approximation parameter for the simulator (APMC method)");
+		mainLog.println("-simmanual ..................... Do not use the automated way of deciding whether the variance is null or not");
+		mainLog.println("-simvar <n> .................... Set the minimum number of samples to know the variance is null or not");
+		mainLog.println("-simmaxrwd <x> ................. Set the maximum reward -- useful to display the CI/ACI methods progress");
 		mainLog.println("-simpathlen <n> ................ Set the maximum path length for the simulator");
 	}
 

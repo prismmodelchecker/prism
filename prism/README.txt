@@ -99,6 +99,7 @@ Contributions to the development of PRISM have also been gratefully received fro
  * Charles Harley and Sebastian Vermehren: GUI enhancements
  * Carlos Bederian (working with Pedro D'Argenio): Addition of LTL model checking for MDPs to PRISM
  * Vojtech Forejt: "Fox-Glynn" algorithm implementation
+ * Vincent Nimal: Approximate (simulation-based) model checking techniques 
  
 For more details see:
 

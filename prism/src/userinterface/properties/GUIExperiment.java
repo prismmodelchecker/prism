@@ -34,6 +34,8 @@ import prism.*;
 import pta.DigitalClocks;
 
 import javax.swing.*;
+
+import simulator.method.APMCapproximation;
 import userinterface.*;
 import java.util.*;
 import userinterface.util.*;
@@ -295,9 +297,9 @@ public class GUIExperiment
 					if (useSimulation && !reuseInfo) {
 						try {
 							info = null;
-							info = GUISimulationPicker.defineSimulationWithDialog(guiProp.getGUI(), modulesFile.getInitialValues(), modulesFile, "("
-									+ definedMFConstants + ")");
-						} catch (PrismException e) {
+							info = GUISimulationPicker.defineSimulationWithDialog(guiProp.getGUI(), propertyToCheck, modulesFile, "("+definedMFConstants+")");
+						}
+						catch (PrismException e) {
 							// in case of error, report it (in log only), store as result, and go on to the next model
 							errorLog(e.getMessage());
 							try {
@@ -356,10 +358,8 @@ public class GUIExperiment
 								if (definedMFConstants.getNumValues() > 0)
 									logln("Model constants: " + definedMFConstants);
 							logln("Property constants: " + undefinedConstants.getPFDefinedConstantsString());
-							log("Simulation parameters: approx = " + info.getApprox() + ", conf = " + info.getConfidence() + ", num samples = "
-									+ info.getNoIterations() + ", max path len = " + info.getMaxPathLength() + ")\n");
 							prism.modelCheckSimulatorExperiment(modulesFile, propertiesFile, undefinedConstants, results, propertyToCheck, info
-									.getInitialState(), info.getNoIterations(), info.getMaxPathLength());
+									.getInitialState(), info.getMaxPathLength(), info.createSimulationMethod());
 							// update progress meter
 							// (all properties simulated simultaneously so can't get more accurate feedback at the moment anyway)
 							table.progressChanged();
@@ -434,10 +434,7 @@ public class GUIExperiment
 								}
 								// approximate (simulation-based) model checking
 								else {
-									log("Simulation parameters: approx = " + info.getApprox() + ", conf = " + info.getConfidence() + ", num samples = "
-											+ info.getNoIterations() + ", max path len = " + info.getMaxPathLength() + ")\n");
-									res = prism.modelCheckSimulator(modulesFileToCheck, propertiesFile, propertyToCheck, info.getInitialState(), info
-											.getNoIterations(), info.getMaxPathLength());
+									res = prism.modelCheckSimulator(modulesFileToCheck, propertiesFile, propertyToCheck, info.getInitialState(), info.getMaxPathLength(), info.createSimulationMethod());
 								}
 							} catch (PrismException e) {
 								// in case of error, report it (in log only), store exception as the result and proceed

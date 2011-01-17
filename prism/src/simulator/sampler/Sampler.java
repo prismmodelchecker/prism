@@ -3,6 +3,7 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//	* Vincent Nimal <vincent.nimal@comlab.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -27,16 +28,21 @@
 package simulator.sampler;
 
 import simulator.*;
+import simulator.method.SimulationMethod;
 import parser.ast.*;
 import prism.PrismException;
 import prism.PrismLangException;
 
 /**
- * Samplers: determine values based on a sequence of simulation paths. 
+ * A Sampler determines values corresponding to a path property based on a sequence of simulation paths.
+ * It determines the corresponding value for a single path, and also keeps track of the mean/variance
+ * of this value over multiple traces. A Sampler can also be connected to a SimulationMethod object,
+ * which is responsible for determining how many paths are required and how the final value is used.
  */
 public abstract class Sampler
 {
 	protected boolean valueKnown;
+	protected SimulationMethod simulationMethod;
 
 	/**
 	 * Is the current value of the sampler known, based on the path seen so far?
@@ -76,10 +82,48 @@ public abstract class Sampler
 	public abstract Object getCurrentValue();
 
 	/**
-	 * Get the mean value of the sampler, over all paths seen.
+	 * Get the (estimated) mean value from the sampler, over all paths seen.
 	 */
-	public abstract Object getMeanValue();
+	public abstract double getMeanValue();
 
+	/**
+	 * Get the (estimated) variance from the sampler, over all paths seen.
+	 */
+	public abstract double getVariance();
+
+	/**
+	 * Get the ratio of the likelihoods for the distribution followed by the samples of this sampler
+	 * with the given parameters for hypotheses H1 and H0).
+	 * @param p1 Probability (or expectation) for hypothesis H1
+	 * @param p0 Probability (or expectation) for hypothesis H0
+	 */
+	public abstract double getLikelihoodRatio(double p1, double p0) throws PrismException;
+
+	/**
+	 * Set the attached SimulationMethod object.
+	 */
+	public void setSimulationMethod(SimulationMethod simulationMethod)
+	{
+		this.simulationMethod = simulationMethod;
+	}
+	
+	/**
+	 * Get the attached SimulationMethod object.
+	 */
+	public SimulationMethod getSimulationMethod()
+	{
+		return simulationMethod;
+	}
+	
+	/**
+	 * Get an explanation of the result for the attached SimulationMethod object.
+	 * @throws PrismException if we can't get a result for some reason.
+	 */
+	public String getSimulationMethodResultExplanation() throws PrismException
+	{
+		return simulationMethod.getResultExplanation(this);
+	}
+	
 	// Static methods for sampler creation
 
 	/**

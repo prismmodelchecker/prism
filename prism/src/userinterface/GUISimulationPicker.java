@@ -4,6 +4,7 @@
 //	Authors:
 //	* Andrew Hinton <ug60axh@cs.bham.ac.uk> (University of Birmingham)
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Vincent Nimal <vincent.nimal@comlab.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -27,55 +28,67 @@
 
 package userinterface;
 
-import javax.swing.*;
-import java.awt.*;
-import javax.swing.table.*;
 import java.util.*;
+import java.util.List;
+import java.awt.*;
 import java.awt.event.*;
+import javax.swing.*;
+import javax.swing.table.*;
 
 import parser.*;
 import parser.ast.*;
 import parser.type.*;
 import prism.*;
+import simulator.method.*;
 
 /**
- *  GUISimulationPicker is a dialog to collect the initial state, approximation,
- *  confidence, number of samples and path length for simulation techniques.
- *
- *  (Some of this code was modified from GUIConstantsPicker)
+ *  GUISimulationPicker is a dialog to collect the details required for
+ *  approximate (simulation-based) model checking: initial state, max path length,
+ *  simulation method + parameters, etc.
  */
 public class GUISimulationPicker extends javax.swing.JDialog implements KeyListener
 {
-	
+	// Default serial version ID
+	private static final long serialVersionUID = 1L;
+
 	//STATICS
-	
+
 	public static final int NO_VALUES = 0;
 	public static final int VALUES_DONE = 1;
 	public static final int CANCELLED = 2;
-	
+
 	public static SimulationInformation lastSimulationInformation = null;
-	
+
 	//ATTRIBUTES
-	
+
 	private GUIPrism gui;
-	private ModulesFile mf;
+	private ModulesFile modulesFile;
 	private SimulationInformation information;
-	
+
 	private boolean cancelled = true;
-	
+
 	private JTable initValuesTable;
 	private DefineValuesTable initValuesModel;
-	private Action okAction;
-	private Action cancelAction;
-	
+
+	// Last valid contents of tetx boxes
+	private String lastWidth;
+	private String lastConf;
+	private String lastNumSamples;
+
+	private boolean atLeastOneRwd;
+	private boolean atLeastOneQuant;
+
 	// Variables declaration - do not modify//GEN-BEGIN:variables
-	javax.swing.JTextField approximationField;
+	javax.swing.JTextField widthField;
+	javax.swing.JComboBox selectSimulationMethod;
 	javax.swing.JComboBox automaticCalculateCombo;
 	private javax.swing.JButton cancelButton;
 	javax.swing.JTextField confidenceField;
-	private javax.swing.JCheckBox distributedCheck;
-	javax.swing.JTextField iterationsField;
+	javax.swing.JTextField numberToDecide;
+	//private javax.swing.JCheckBox distributedCheck;
+	javax.swing.JTextField numSamplesField;
 	private javax.swing.JLabel jLabel2;
+	private javax.swing.JLabel jLabelSSM;
 	private javax.swing.JLabel jLabel4;
 	private javax.swing.JLabel jLabel5;
 	private javax.swing.JLabel jLabel6;
@@ -103,58 +116,92 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 	private javax.swing.JButton okayButton;
 	javax.swing.JTextField pathLengthField;
 	javax.swing.JPanel topPanel;
+
 	// End of variables declaration//GEN-END:variables
-	
-	/** Creates new form GUIConstantsPicker */
-	public GUISimulationPicker(GUIPrism parent, Values defaultInitial, ModulesFile mf) { this(parent, defaultInitial, mf, null); }
-	public GUISimulationPicker(GUIPrism parent, Values defaultInitial, ModulesFile mf, String titleExtra)
+
+	/**
+	 * Create a new GUIConstantsPicker dialog to define info for simulation-based property checking.
+	 * @param parent Parent GUI window
+	 * @param exprs The properties to be checked (note: constants may not be defined)
+	 * @param modulesFile The model that will be simulated (for initial state info)
+	 * @param titleExtra Optional string to append to dialog (null if not needed)
+	 * @throws PrismException if there is a problem getting initial state info from the model.
+	 */
+	public GUISimulationPicker(GUIPrism parent, List<Expression> exprs, ModulesFile modulesFile, String titleExtra) throws PrismException
 	{
-		super(parent, "Simulation Parameters"+((titleExtra != null)?(" - "+titleExtra):""), true);
-		
+		super(parent, "Simulation Parameters" + ((titleExtra != null) ? (" - " + titleExtra) : ""), true);
 		this.gui = parent;
-		this.mf = mf;
-		
-		// if there is no existing simulation information
-		// or if the user wants to use the default values regardless
-		// then use defaults...
-		PrismSettings settings = parent.getPrism().getSettings();
-		if(lastSimulationInformation == null || settings.getString(PrismSettings.SIMULATOR_FIELD_CHOICE).equals("Always use defaults"))
-		{
-			double dappr = settings.getDouble(PrismSettings.SIMULATOR_DEFAULT_APPROX);
-			double dconf = settings.getDouble(PrismSettings.SIMULATOR_DEFAULT_CONFIDENCE);
-			int dsamples = settings.getInteger(PrismSettings.SIMULATOR_DEFAULT_NUM_SAMPLES);
-			int dpathlen = settings.getInteger(PrismSettings.SIMULATOR_DEFAULT_MAX_PATH);
-			lastSimulationInformation = new SimulationInformation(null, dappr, dconf, dsamples, dpathlen);
+		this.modulesFile = modulesFile;
+
+		// See if there are any reward props in the list to be checked
+		atLeastOneRwd = false;
+		for (Expression expr : exprs) {
+			if (expr instanceof ExpressionReward) {
+				atLeastOneRwd = true;
+				break;
+			}
 		}
-		
+
+		// See if there are any quantitative (=?) props in the list to be checked
+		atLeastOneQuant = false;
+		for (Expression expr : exprs) {
+			if (Expression.isQuantitative(expr)) {
+				atLeastOneQuant = true;
+				break;
+			}
+		}
+
+		// Create a SimulationInformation object to store info in this dialog,
+		// (or re-use last one if user prefers to do that)
+		PrismSettings settings = parent.getPrism().getSettings();
+		if (lastSimulationInformation == null || settings.getString(PrismSettings.SIMULATOR_FIELD_CHOICE).equals("Always use defaults")) {
+			lastSimulationInformation = new SimulationInformation(settings);
+			// Pick a default method (CI for quantitative, SPRT for bounded)
+			lastSimulationInformation.setMethod(atLeastOneQuant ? SimulationInformation.Method.CI : SimulationInformation.Method.SPRT);
+		}
+
+		// Make sure method choice is valid (if remembered)
+		if (atLeastOneRwd && lastSimulationInformation.getMethod() == SimulationInformation.Method.APMC) {
+			lastSimulationInformation.setMethod(SimulationInformation.Method.CI);
+		}
+		if (atLeastOneQuant && lastSimulationInformation.getMethod() == SimulationInformation.Method.SPRT) {
+			lastSimulationInformation.setMethod(SimulationInformation.Method.CI);
+		}
+
+		lastSimulationInformation.setPropReward(atLeastOneRwd);
+
+		lastWidth = "" + lastSimulationInformation.getWidth();
+		lastConf = "" + lastSimulationInformation.getConfidence();
+		lastNumSamples = "" + lastSimulationInformation.getNumSamples();
+
 		// create "initial state" table
 		initValuesModel = new DefineValuesTable();
 		initValuesTable = new JTable();
 		initValuesTable.setModel(initValuesModel);
 		initValuesTable.setSelectionMode(DefaultListSelectionModel.SINGLE_INTERVAL_SELECTION);
 		initValuesTable.setCellSelectionEnabled(true);
-		
+
 		// set up simulation information based on previous info (or defaults - see above)
 		information = lastSimulationInformation;
 		// set initial state as passed in to constructor
-		information.setInitialState(defaultInitial);
-		
+		information.setInitialState(modulesFile.getInitialValues());
+
 		// initialise
 		initComponents();
 		this.getRootPane().setDefaultButton(okayButton);
-		
+
 		initTable();
 		initValues();
-		approximationField.addKeyListener(this);
+		widthField.addKeyListener(this);
 		confidenceField.addKeyListener(this);
-		iterationsField.addKeyListener(this);
-		doEnablesAndCalculations();
+		numSamplesField.addKeyListener(this);
+		doEnablesAndCalculations(true);
 		setResizable(false);
-		
+
 		pack();
 		setLocationRelativeTo(getParent()); // centre
 	}
-	
+
 	/** This method is called from within the constructor to
 	 * initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is
@@ -177,17 +224,20 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 		jPanel10 = new javax.swing.JPanel();
 		jPanel8 = new javax.swing.JPanel();
 		jPanel9 = new javax.swing.JPanel();
+		jLabelSSM = new javax.swing.JLabel();
 		jLabel4 = new javax.swing.JLabel();
 		jLabel5 = new javax.swing.JLabel();
 		jLabel6 = new javax.swing.JLabel();
 		jLabel7 = new javax.swing.JLabel();
 		jPanel11 = new javax.swing.JPanel();
 		jPanel12 = new javax.swing.JPanel();
+		selectSimulationMethod = new javax.swing.JComboBox(); // new
 		automaticCalculateCombo = new javax.swing.JComboBox();
 		jPanel13 = new javax.swing.JPanel();
-		approximationField = new javax.swing.JTextField();
+		widthField = new javax.swing.JTextField();
 		confidenceField = new javax.swing.JTextField();
-		iterationsField = new javax.swing.JTextField();
+		numberToDecide = new javax.swing.JTextField();
+		numSamplesField = new javax.swing.JTextField();
 		jPanel14 = new javax.swing.JPanel();
 		jPanel15 = new javax.swing.JPanel();
 		jPanel16 = new javax.swing.JPanel();
@@ -237,7 +287,7 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 
 		jPanel1.setLayout(new java.awt.GridBagLayout());
 
-		jPanel1.setBorder(new javax.swing.border.TitledBorder("Initial State"));
+		jPanel1.setBorder(new javax.swing.border.TitledBorder("Initial state"));
 		gridBagConstraints = new java.awt.GridBagConstraints();
 		gridBagConstraints.gridx = 0;
 		gridBagConstraints.gridy = 0;
@@ -272,21 +322,28 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 
 		jPanel8.setLayout(new java.awt.GridBagLayout());
 
-		jPanel8.setBorder(new javax.swing.border.TitledBorder("Sampling Parameters"));
+		jPanel8.setBorder(new javax.swing.border.TitledBorder("Sampling parameters"));
 		gridBagConstraints = new java.awt.GridBagConstraints();
 		gridBagConstraints.gridx = 0;
 		gridBagConstraints.gridy = 0;
 		gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
 		jPanel8.add(jPanel9, gridBagConstraints);
 
-		jLabel4.setText("Automatically Calculate:");
+		jLabelSSM.setText("Simulation method:");
+		gridBagConstraints = new java.awt.GridBagConstraints();
+		gridBagConstraints.gridx = 1;
+		gridBagConstraints.gridy = 3;
+		gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+		jPanel8.add(jLabelSSM, gridBagConstraints);
+
+		jLabel4.setText("Automatically calculate:");
 		gridBagConstraints = new java.awt.GridBagConstraints();
 		gridBagConstraints.gridx = 1;
 		gridBagConstraints.gridy = 4;
 		gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
 		jPanel8.add(jLabel4, gridBagConstraints);
 
-		jLabel5.setText("Approximation:");
+		jLabel5.setText("Width:");
 		gridBagConstraints = new java.awt.GridBagConstraints();
 		gridBagConstraints.gridx = 1;
 		gridBagConstraints.gridy = 6;
@@ -300,7 +357,7 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 		gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
 		jPanel8.add(jLabel6, gridBagConstraints);
 
-		jLabel7.setText("Number of Samples:");
+		jLabel7.setText("Number of samples:");
 		gridBagConstraints = new java.awt.GridBagConstraints();
 		gridBagConstraints.gridx = 1;
 		gridBagConstraints.gridy = 8;
@@ -318,7 +375,25 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 		gridBagConstraints.gridy = 3;
 		jPanel8.add(jPanel12, gridBagConstraints);
 
-		automaticCalculateCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Number of samples", "Approximation", "Confidence" }));
+		// Populate simulation method choices
+		Vector<String> methods = new Vector<String>();
+		methods.add("CI");
+		methods.add("ACI");
+		if (!atLeastOneRwd)
+			methods.add("APMC");
+		if (!atLeastOneQuant)
+			methods.add("SPRT");
+		selectSimulationMethod.setModel(new javax.swing.DefaultComboBoxModel(methods));
+
+		selectSimulationMethod.addActionListener(new java.awt.event.ActionListener()
+		{
+			public void actionPerformed(java.awt.event.ActionEvent evt)
+			{
+				selectSimulationMethodActionPerformed(evt);
+			}
+		});
+
+		automaticCalculateCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { }));
 		automaticCalculateCombo.addActionListener(new java.awt.event.ActionListener()
 		{
 			public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -326,6 +401,13 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 				automaticCalculateComboActionPerformed(evt);
 			}
 		});
+
+		gridBagConstraints = new java.awt.GridBagConstraints();
+		gridBagConstraints.gridx = 3;
+		gridBagConstraints.gridy = 3;
+		gridBagConstraints.gridwidth = 2;
+		gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+		jPanel8.add(selectSimulationMethod, gridBagConstraints);
 
 		gridBagConstraints = new java.awt.GridBagConstraints();
 		gridBagConstraints.gridx = 3;
@@ -339,12 +421,12 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 		gridBagConstraints.gridy = 0;
 		jPanel8.add(jPanel13, gridBagConstraints);
 
-		approximationField.setPreferredSize(new java.awt.Dimension(65, 20));
-		approximationField.addActionListener(new java.awt.event.ActionListener()
+		widthField.setPreferredSize(new java.awt.Dimension(65, 20));
+		widthField.addActionListener(new java.awt.event.ActionListener()
 		{
 			public void actionPerformed(java.awt.event.ActionEvent evt)
 			{
-				approximationFieldActionPerformed(evt);
+				widthFieldActionPerformed(evt);
 			}
 		});
 
@@ -353,7 +435,7 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 		gridBagConstraints.gridy = 6;
 		gridBagConstraints.gridwidth = 2;
 		gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-		jPanel8.add(approximationField, gridBagConstraints);
+		jPanel8.add(widthField, gridBagConstraints);
 
 		confidenceField.setPreferredSize(new java.awt.Dimension(60, 20));
 		confidenceField.addActionListener(new java.awt.event.ActionListener()
@@ -371,12 +453,12 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 		gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		jPanel8.add(confidenceField, gridBagConstraints);
 
-		iterationsField.setPreferredSize(new java.awt.Dimension(60, 20));
-		iterationsField.addActionListener(new java.awt.event.ActionListener()
+		numSamplesField.setPreferredSize(new java.awt.Dimension(60, 20));
+		numSamplesField.addActionListener(new java.awt.event.ActionListener()
 		{
 			public void actionPerformed(java.awt.event.ActionEvent evt)
 			{
-				iterationsFieldActionPerformed(evt);
+				numSamplesFieldActionPerformed(evt);
 			}
 		});
 
@@ -385,7 +467,7 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 		gridBagConstraints.gridy = 8;
 		gridBagConstraints.gridwidth = 2;
 		gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-		jPanel8.add(iterationsField, gridBagConstraints);
+		jPanel8.add(numSamplesField, gridBagConstraints);
 
 		gridBagConstraints = new java.awt.GridBagConstraints();
 		gridBagConstraints.gridx = 0;
@@ -396,13 +478,13 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 
 		jPanel15.setLayout(new java.awt.GridBagLayout());
 
-		jPanel15.setBorder(new javax.swing.border.TitledBorder("Path Parameters"));
+		jPanel15.setBorder(new javax.swing.border.TitledBorder("Path parameters"));
 		gridBagConstraints = new java.awt.GridBagConstraints();
 		gridBagConstraints.gridx = 0;
 		gridBagConstraints.gridy = 0;
 		jPanel15.add(jPanel16, gridBagConstraints);
 
-		jLabel2.setText("Maximum Path Length:");
+		jLabel2.setText("Maximum path length:");
 		jLabel2.setPreferredSize(new java.awt.Dimension(150, 15));
 		gridBagConstraints = new java.awt.GridBagConstraints();
 		gridBagConstraints.gridx = 1;
@@ -454,107 +536,259 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 
 		pack();
 	}//GEN-END:initComponents
-	
-	private void iterationsFieldActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_iterationsFieldActionPerformed
-	{//GEN-HEADEREND:event_iterationsFieldActionPerformed
-		doEnablesAndCalculations();
-	}//GEN-LAST:event_iterationsFieldActionPerformed
-	
+
+	private void numSamplesFieldActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_numSamplesFieldActionPerformed
+	{//GEN-HEADEREND:event_numSamplesFieldActionPerformed
+		doEnablesAndCalculations(false);
+	}//GEN-LAST:event_numSamplesFieldActionPerformed
+
 	private void confidenceFieldActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_confidenceFieldActionPerformed
 	{//GEN-HEADEREND:event_confidenceFieldActionPerformed
-		doEnablesAndCalculations();
+		doEnablesAndCalculations(false);
 	}//GEN-LAST:event_confidenceFieldActionPerformed
-	
-	private void approximationFieldActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_approximationFieldActionPerformed
-	{//GEN-HEADEREND:event_approximationFieldActionPerformed
-		doEnablesAndCalculations();
-	}//GEN-LAST:event_approximationFieldActionPerformed
-	
+
+	private void widthFieldActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_approximationFieldActionPerformed
+	{//GEN-HEADEREND:event_widthFieldActionPerformed
+		doEnablesAndCalculations(false);
+	}//GEN-LAST:event_widthFieldActionPerformed
+
+	private void selectSimulationMethodActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_automaticCalculateComboActionPerformed
+	{//GEN-HEADEREND:event_selectSimulationMethodActionPerformed
+		doChangeSimulationMethod();
+	}//GEN-LAST:event_selectSimulationMethodActionPerformed
+
 	private void automaticCalculateComboActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_automaticCalculateComboActionPerformed
 	{//GEN-HEADEREND:event_automaticCalculateComboActionPerformed
-		doEnablesAndCalculations();
+		doEnablesAndCalculations(true);
 	}//GEN-LAST:event_automaticCalculateComboActionPerformed
-	
-	private void doEnablesAndCalculations()
+
+	private static boolean isValidDoubleOrEmpty(String s)
 	{
-		double approx, confid;
-		int iterat;
-		
-		switch(automaticCalculateCombo.getSelectedIndex())
-		{
-			case 0://auto iterations
-				iterationsField.setEnabled(false);
-				approximationField.setEnabled(true);
-				confidenceField.setEnabled(true);
-				try
-				{
-					approx = Double.parseDouble(approximationField.getText());
-					confid = Double.parseDouble(confidenceField.getText());
-					if (approx > 0 && confid > 0 && confid < 1) {
-						iterat = GUIPrism.getGUI().getPrism().computeSimulationNumSamples(approx, confid);
-						iterationsField.setText(""+iterat);
-					}
-				}
-				catch(NumberFormatException e)
-				{
-					// if something goes wrong, don't update text field
-				}
-				break;
-			case 1://auto approximation
-				iterationsField.setEnabled(true);
-				approximationField.setEnabled(false);
-				confidenceField.setEnabled(true);
-				try
-				{
-					confid = Double.parseDouble(confidenceField.getText());
-					iterat = Integer.parseInt(iterationsField.getText());
-					if (confid > 0 && confid < 1 && iterat > 0) {
-						approx = GUIPrism.getGUI().getPrism().computeSimulationApproximation(confid, iterat);
-						approximationField.setText(""+approx);
-					}
-				}
-				catch(NumberFormatException e)
-				{
-					// if something goes wrong, don't update text field
-				}
-				break;
-			case 2://auto confidence
-				iterationsField.setEnabled(true);
-				approximationField.setEnabled(true);
-				confidenceField.setEnabled(false);
-				try
-				{
-					approx = Double.parseDouble(approximationField.getText());
-					iterat = Integer.parseInt(iterationsField.getText());
-					if (approx > 0 && iterat > 0) {
-						confid = GUIPrism.getGUI().getPrism().computeSimulationConfidence(approx, iterat);
-						confidenceField.setText(""+confid);
-					}
-				}
-				catch(NumberFormatException e)
-				{
-					// if something goes wrong, don't update text field
-				}
-				break;
+		if (s.isEmpty())
+			return true;
+		try {
+			Double.parseDouble(s);
+		} catch (NumberFormatException e) {
+			return false;
+		}
+		return true;
+	}
+
+	private void doChangeSimulationMethod()
+	{
+		// Remember choice for "Automatically calculate"
+		int automaticCalculateComboIndex = automaticCalculateCombo.getSelectedIndex();
+		// Store method, change text labels, and
+		// populate "Automatically calculate" choices based on method
+		information.setMethodByName((String) selectSimulationMethod.getSelectedItem());
+		switch (information.getMethod()) {
+		case CI:
+			jLabel5.setText("Width:");
+			jLabel6.setText("Confidence:");
+			automaticCalculateCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Width", "Confidence", "Number of samples" }));
+			break;
+		case ACI:
+			jLabel5.setText("Width:");
+			jLabel6.setText("Confidence:");
+			automaticCalculateCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Width", "Confidence", "Number of samples" }));
+			break;
+		case APMC:
+			jLabel5.setText("Approximation:");
+			jLabel6.setText("Confidence:");
+			automaticCalculateCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Approximation", "Confidence", "Number of samples" }));
+			break;
+		case SPRT:
+			jLabel5.setText("Indifference:");
+			jLabel6.setText("Type I/II error:");
+			automaticCalculateCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Number of samples" }));
+			break;
+		}
+		// Restore choice for "Automatically calculate"
+		// (unless empty list, indicated by -1 indexx, which means this the initial setup)
+		if (automaticCalculateComboIndex != -1) {
+			// If choice invalid due to list size change, reset to 0
+			if (automaticCalculateComboIndex > automaticCalculateCombo.getItemCount() - 1)
+				automaticCalculateComboIndex = 0;
+			automaticCalculateCombo.setSelectedIndex(automaticCalculateComboIndex);
 		}
 	}
-	
+
+	/**
+	 * Update dialog after a change in one of the controls.
+	 * Enable/disable text fields as necessary.
+	 * Compute new value for unknown fields.
+	 * @param autoChange indicates that the "method" or "auto calc" has changed
+	 */
+	private void doEnablesAndCalculations(boolean autoChange)
+	{
+		double width, confidence;
+		int numSamples;
+		
+		// Save valid values for later
+		if (isValidDoubleOrEmpty(confidenceField.getText()))
+			lastConf = confidenceField.getText();
+		if (isValidDoubleOrEmpty(numSamplesField.getText()))
+			lastNumSamples = numSamplesField.getText();
+		if (isValidDoubleOrEmpty(widthField.getText()))
+			lastWidth = widthField.getText();
+
+		// Store current unknown parameter
+		information.setUnknownByName((String) automaticCalculateCombo.getSelectedItem());
+
+		// Enable all text fields (then disable some below)
+		widthField.setEnabled(true);
+		confidenceField.setEnabled(true);
+		numSamplesField.setEnabled(true);
+
+		switch (information.getMethod()) {
+
+		case CI:
+		case ACI:
+			switch (information.getUnknown()) {
+			case WIDTH:
+				widthField.setEnabled(false);
+				widthField.setText("Unknown before sim.");
+				widthField.setCaretPosition(0);
+				// If method changes, display last valid values
+				if (autoChange) {
+					numSamplesField.setText(lastNumSamples);
+					numSamplesField.setCaretPosition(0);
+					confidenceField.setText(lastConf);
+					confidenceField.setCaretPosition(0);
+				}
+				break;
+			case CONFIDENCE:
+				confidenceField.setEnabled(false);
+				confidenceField.setText("Unknown before sim.");
+				confidenceField.setCaretPosition(0);
+				// If method changes, display last valid values
+				if (autoChange) {
+					widthField.setText(lastWidth);
+					widthField.setCaretPosition(0);
+					numSamplesField.setText(lastNumSamples);
+					numSamplesField.setCaretPosition(0);
+				}
+				break;
+			case NUM_SAMPLES:
+				numSamplesField.setEnabled(false);
+				numSamplesField.setText("Unknown before sim.");
+				numSamplesField.setCaretPosition(0);
+				// If method changes, display last valid values
+				if (autoChange) {
+					widthField.setText(lastWidth);
+					widthField.setCaretPosition(0);
+					confidenceField.setText(lastConf);
+					confidenceField.setCaretPosition(0);
+				}
+				break;
+			}
+			break;
+
+		case APMC:
+			switch (information.getUnknown()) {
+			case WIDTH:
+				widthField.setEnabled(false);
+				try {
+					confidence = Double.parseDouble(confidenceField.getText());
+					numSamples = Integer.parseInt(numSamplesField.getText());
+					if (confidence > 0 && confidence < 1 && numSamples > 0) {
+						widthField.setText("" + (new APMCapproximation(confidence, numSamples)).getMissingParameter());
+						widthField.setCaretPosition(0);
+					}
+				} catch (NumberFormatException e) {
+					// Any problems, don't update text field
+				} catch (PrismException e) {
+					// Any problems, don't update text field
+				}
+				// If method changes, display last valid values
+				if (autoChange) {
+					numSamplesField.setText(lastNumSamples);
+					numSamplesField.setCaretPosition(0);
+					confidenceField.setText(lastConf);
+					confidenceField.setCaretPosition(0);
+				}
+				break;
+			case CONFIDENCE:
+				confidenceField.setEnabled(false);
+				try {
+					width = Double.parseDouble(widthField.getText());
+					numSamples = Integer.parseInt(numSamplesField.getText());
+					if (width > 0 && numSamples > 0) {
+						try {
+							confidenceField.setText("" + (new APMCconfidence(width, numSamples)).getMissingParameter());
+							confidenceField.setCaretPosition(0);
+						} catch (PrismException e) {
+							// Catch this error to set helpful message
+							confidenceField.setText("Incr. approx/samples");
+							confidenceField.setCaretPosition(0);
+						}
+					}
+				} catch (NumberFormatException e) {
+					// Any problems, don't update text field
+				}
+				// If method changes, display last valid values
+				if (autoChange) {
+					widthField.setText(lastWidth);
+					widthField.setCaretPosition(0);
+					numSamplesField.setText(lastNumSamples);
+					numSamplesField.setCaretPosition(0);
+				}
+				break;
+			case NUM_SAMPLES:
+				numSamplesField.setEnabled(false);
+				try {
+					width = Double.parseDouble(widthField.getText());
+					confidence = Double.parseDouble(confidenceField.getText());
+					if (width > 0 && confidence > 0 && confidence < 1) {
+						numSamplesField.setText("" + (new APMCiterations(confidence, width)).getMissingParameter());
+						numSamplesField.setCaretPosition(0);
+					}
+				} catch (NumberFormatException e) {
+					// Any problems, don't update text field
+				} catch (PrismException e) {
+					// Any problems, don't update text field
+				}
+				// If method changes, display last valid values
+				if (autoChange) {
+					widthField.setText(lastWidth);
+					widthField.setCaretPosition(0);
+					confidenceField.setText(lastConf);
+					confidenceField.setCaretPosition(0);
+				}
+				break;
+			}
+			break;
+
+		case SPRT:
+			numSamplesField.setEnabled(false);
+			numSamplesField.setText("Unknown before sim.");
+			numSamplesField.setCaretPosition(0);
+			// If method changes, display last valid values
+			if (autoChange) {
+				widthField.setText(lastWidth);
+				widthField.setCaretPosition(0);
+				confidenceField.setText(lastConf);
+				confidenceField.setCaretPosition(0);
+			}
+			break;
+		}
+	}
+
 	private void initTable()
 	{
 		JScrollPane sp = new JScrollPane();
-		
+
 		sp.setViewportView(initValuesTable);
 		topPanel.add(sp);
-		
-		topPanel.setPreferredSize(new Dimension(300,300));
+
+		topPanel.setPreferredSize(new Dimension(300, 300));
 	}
-	
+
 	private void initValues()
 	{
-		
+
 		Value v;
-		if(information.getInitialState() == null)
-		{
+		if (information.getInitialState() == null) {
 			/*
 			int n,i,j,n2;
 			Declaration decl;
@@ -583,109 +817,151 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 			}
 			*/
 			initValuesTable.setEnabled(false);
-		}
-		else
-		{
-			for(int i = 0; i < information.getInitialState().getNumValues(); i++)
-			{
-				try
-				{
+		} else {
+			for (int i = 0; i < information.getInitialState().getNumValues(); i++) {
+				try {
 					v = new Value(information.getInitialState().getName(i), information.getInitialState().getType(i), information.getInitialState().getValue(i));
 					initValuesModel.addValue(v);
+				} catch (Exception e) {
 				}
-				catch(Exception e)
-				{}
 			}
 		}
-		
+
 		// populate parameter text boxes
-		approximationField.setText(""+information.getApprox());
-		confidenceField.setText(""+information.getConfidence());
-		iterationsField.setText(""+information.getNoIterations());
+		widthField.setText("" + information.getWidth());
+		widthField.setCaretPosition(0);
+		confidenceField.setText("" + information.getConfidence());
+		confidenceField.setCaretPosition(0);
+		numSamplesField.setText("" + information.getNumSamples());
+		numSamplesField.setCaretPosition(0);
 		// note: do this after above "setText"s because it triggers a doEnablesAndCalculations()
-		automaticCalculateCombo.setSelectedIndex(information.getAutoIndex());
-		
-		pathLengthField.setText(""+information.getMaxPathLength());
+		selectSimulationMethod.setSelectedItem(information.getMethodName());
+		automaticCalculateCombo.setSelectedItem(information.getUnknownName());
+
+		pathLengthField.setText("" + information.getMaxPathLength());
 		//distributedCheck.setSelected(information.isDistributed());
 	}
-	
+
 	/** Call this static method to construct a new GUIValuesPicker to define
 	 *  initialState.  If you don't want any default values, then pass in null for
 	 *  initDefaults
 	 */
-	public static SimulationInformation defineSimulationWithDialog(GUIPrism parent, Values initDefaults, ModulesFile mf)
-	{ return defineSimulationWithDialog(parent, initDefaults, mf, null); }
-	public static SimulationInformation defineSimulationWithDialog(GUIPrism parent, Values initDefaults, ModulesFile mf, String titleExtra)
+	/**
+	 * Create a new GUIConstantsPicker dialog to define info for simulation-based property checking.
+	 * @param parent Parent GUI window
+	 * @param exprs The properties to be checked (note: constants may not be defined)
+	 * @param modulesFile The model that will be simulated (for initial state info)
+	 * @param titleExtra Optional string to append to dialog (null if not needed)
+	 * @throws PrismException if there is a problem getting initial state info from the model.
+	 */
+	public static SimulationInformation defineSimulationWithDialog(GUIPrism parent, List<Expression> exprs, ModulesFile modulesFile, String titleExtra)
+			throws PrismException
 	{
-		return new GUISimulationPicker(parent, initDefaults, mf, titleExtra).defineValues();
+		return new GUISimulationPicker(parent, exprs, modulesFile, titleExtra).defineValues();
 	}
-	
+
+	/**
+	 * Create a new GUIConstantsPicker dialog to define info for simulation-based property checking.
+	 * @param parent Parent GUI window
+	 * @param expr The property to be checked (note: constants may not be defined)
+	 * @param modulesFile The model that will be simulated (for initial state info)
+	 * @param titleExtra Optional string to append to dialog (null if not needed)
+	 * @throws PrismException if there is a problem getting initial state info from the model.
+	 */
+	public static SimulationInformation defineSimulationWithDialog(GUIPrism parent, Expression expr, ModulesFile modulesFile, String titleExtra)
+			throws PrismException
+	{
+		List<Expression> exprs = new ArrayList<Expression>(1);
+		exprs.add(expr);
+		return new GUISimulationPicker(parent, exprs, modulesFile, titleExtra).defineValues();
+	}
+
 	public SimulationInformation defineValues()
 	{
-		show();
-		if(cancelled) return null;
-		else return information;
+		setVisible(true);
+		if (cancelled)
+			return null;
+		else
+			return information;
 	}
-	
+
 	private void okayButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_okayButtonActionPerformed
 	{//GEN-HEADEREND:event_okayButtonActionPerformed
-		int i, n;
-		Value c;
-		
-		doEnablesAndCalculations();
-		
-		if (initValuesTable.getCellEditor() != null) initValuesTable.getCellEditor().stopCellEditing();
-			
+		int i;
+
+		doEnablesAndCalculations(false);
+
+		if (initValuesTable.getCellEditor() != null)
+			initValuesTable.getCellEditor().stopCellEditing();
+
 		String parameter = "";
-		try
-		{
-			// check simulation parameters ok
-			parameter = "approximation";
-			double approx = Double.parseDouble(approximationField.getText());
-			if (approx <= 0) throw new NumberFormatException();
-			parameter = "confidence";
-			double confidence = Double.parseDouble(confidenceField.getText());
-			if (confidence <= 0 || confidence >= 1) throw new NumberFormatException();
-			parameter = "samples";
-			int noIterations = Integer.parseInt(iterationsField.getText());
-			if (noIterations <= 0) throw new NumberFormatException();
-			parameter = "max path length";
+		try {
+			// Check (editable) simulation parameters are ok, store in SimulationInformation
+			if (widthField.isEnabled()) {
+				parameter = jLabel5.getText().substring(0, jLabel5.getText().length() - 1);
+				double width = Double.parseDouble(widthField.getText());
+				if (width <= 0) {
+					gui.errorDialog("Parameter \"" + parameter + "\" most be positive");
+					return;
+				}
+				information.setWidth(width);
+			}
+			if (confidenceField.isEnabled()) {
+				parameter = jLabel6.getText().substring(0, jLabel6.getText().length() - 1);
+				double confidence = Double.parseDouble(confidenceField.getText());
+				if (confidence <= 0 || confidence >= 1) {
+					gui.errorDialog("Parameter \"" + parameter + "\" most be between 0 and 1");
+					return;
+				}
+				information.setConfidence(confidence);
+			}
+			if (numSamplesField.isEnabled()) {
+				parameter = "Number of samples";
+				int numSamples = Integer.parseInt(numSamplesField.getText());
+				if (numSamples <= 0) {
+					gui.errorDialog("Parameter \"" + parameter + "\" most be positive");
+					return;
+				}
+				information.setNumSamples(numSamples);
+			}
+			// Create SimulationMethod object, just to check parameters are ok
+			try {
+				information.createSimulationMethod().computeMissingParameterBeforeSim();
+			} catch (PrismException e) {
+				gui.errorDialog(e.getMessage());
+				return;
+			}
+			// Check/store max path length
+			parameter = "Maximum path length";
 			int maxPathLength = Integer.parseInt(pathLengthField.getText());
-			if (maxPathLength <= 0) throw new NumberFormatException();
-			
-			// check each value of initial state
+			if (maxPathLength <= 0) {
+				gui.errorDialog("Parameter \"" + parameter + "\" most be positive");
+				return;
+			}
+			information.setMaxPathLength(maxPathLength);
+			// Store initial state
 			Values newInitState = new Values();
-			for(i = 0; i < initValuesModel.getNumValues(); i++)
-			{
+			for (i = 0; i < initValuesModel.getNumValues(); i++) {
 				parameter = initValuesModel.getValue(i).name;
 				newInitState.addValue(initValuesModel.getValue(i).name, initValuesModel.getValue(i).value);
 			}
 			information.setInitialState(newInitState);
-			
-			information.setApprox(approx);
-			information.setConfidence(confidence);
-			information.setNoIterations(noIterations);
-			information.setMaxPathLength(maxPathLength);
-			
-			information.setAutoIndex(automaticCalculateCombo.getSelectedIndex());
+
 			//information.setDistributed(distributedCheck.isSelected());
-			
 			cancelled = false;
-			
 			lastSimulationInformation = information;
 			dispose();
+		} catch (NumberFormatException e) {
+			gui.errorDialog("Invalid number value entered for parameter \"" + parameter + "\"");
 		}
-		catch(NumberFormatException e)
-		{
-			gui.errorDialog("Invalid number value entered for "+parameter+" parameter");
-		}
+
 	}//GEN-LAST:event_okayButtonActionPerformed
-		
+
 	private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cancelButtonActionPerformed
 	{//GEN-HEADEREND:event_cancelButtonActionPerformed
 		dispose();
 	}//GEN-LAST:event_cancelButtonActionPerformed
-		
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -696,123 +972,130 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 	public void keyPressed(KeyEvent e)
 	{
 	}
-	
+
 	public void keyReleased(KeyEvent e)
 	{
-		doEnablesAndCalculations();
+		doEnablesAndCalculations(false);
 	}
-	
+
 	public void keyTyped(KeyEvent e)
 	{
-		
+
 	}
 
 	class DefineValuesTable extends AbstractTableModel
 	{
-		ArrayList values;
-		
+		ArrayList<Value> values;
+
 		public DefineValuesTable()
 		{
-			values = new ArrayList();
+			values = new ArrayList<Value>();
 		}
-		
+
 		public void addValue(Value v)
 		{
 			values.add(v);
-			fireTableRowsInserted(values.size()-1, values.size()-1);
+			fireTableRowsInserted(values.size() - 1, values.size() - 1);
 		}
-		
+
 		public int getNumValues()
 		{
 			return values.size();
 		}
-		
+
 		public Value getValue(int i)
 		{
-			return (Value)values.get(i);
+			return values.get(i);
 		}
-		
+
 		public int getColumnCount()
 		{
 			return 3;
 		}
-		
+
 		public int getRowCount()
 		{
 			return values.size();
 		}
-		
+
 		public Object getValueAt(int rowIndex, int columnIndex)
 		{
-			
-			Value v = (Value)values.get(rowIndex);
-			switch(columnIndex)
-			{
-				case 0: return v.name;
-				case 1: return v.type.getTypeString();
-				case 2: return v.value.toString();
-				default: return "";
+
+			Value v = values.get(rowIndex);
+			switch (columnIndex) {
+			case 0:
+				return v.name;
+			case 1:
+				return v.type.getTypeString();
+			case 2:
+				return v.value.toString();
+			default:
+				return "";
 			}
 		}
-		
+
 		public String getColumnName(int columnIndex)
 		{
-			switch(columnIndex)
-			{
-				case 0: return "Name";
-				case 1: return "Type";
-				case 2: return "Value";
-				default: return "";
+			switch (columnIndex) {
+			case 0:
+				return "Name";
+			case 1:
+				return "Type";
+			case 2:
+				return "Value";
+			default:
+				return "";
 			}
 		}
-			
+
 		public boolean isCellEditable(int rowIndex, int columnIndex)
 		{
-			if(columnIndex == 2) return true;
-			else return false;
+			if (columnIndex == 2)
+				return true;
+			else
+				return false;
 		}
-			
+
 		public void setValueAt(Object aValue, int rowIndex, int columnIndex)
 		{
-			if(columnIndex == 2)
-			{
-				Value v = (Value)values.get(rowIndex);
-				String s = (String)aValue;
+			if (columnIndex == 2) {
+				Value v = values.get(rowIndex);
+				String s = (String) aValue;
 				v.value = s;
 				fireTableCellUpdated(rowIndex, columnIndex);
 			}
 		}
-			
+
 		public String toString()
 		{
 			String str = "";
-			for(int i = 0 ; i < values.size(); i++)
-			{
-				Value c = (Value)values.get(i);
-				str+=c.toString();
-				if(i!= values.size()-1) str+=",";
+			for (int i = 0; i < values.size(); i++) {
+				Value c = values.get(i);
+				str += c.toString();
+				if (i != values.size() - 1)
+					str += ",";
 			}
 			return str;
 		}
-		
+
 	}
-	
+
 	class Value
 	{
 		String name;
 		Type type;
 		Object value;
-		
+
 		public Value(String name, Type type, Object value)
 		{
 			this.name = name;
 			this.type = type;
 			this.value = value;
 		}
-		
+
 		public String toString()
 		{
-			return name+"="+value.toString();
+			return name + "=" + value.toString();
 		}
 	}
 }
