@@ -571,6 +571,10 @@ public class SimulatorEngine
 	 */
 	public Object queryProperty(int index)
 	{
+		if (index < 0 || index >= propertySamplers.size()) {
+			System.out.println("Warning: Can't query property " + index);
+			return null;
+		}
 		Sampler sampler = propertySamplers.get(index);
 		return sampler.isCurrentValueKnown() ? sampler.getCurrentValue() : null;
 	}
