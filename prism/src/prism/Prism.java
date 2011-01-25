@@ -49,10 +49,9 @@ import pta.*;
 public class Prism implements PrismSettingsListener
 {
 	// prism version
-	private static String version = "4.0.alpha";
+	private static String version = "4.0.beta";
 	// prism version suffix
-	private static String rev = "$Rev: 2167$";
-	private static String versionSuffix = ".r" + rev.substring(6, rev.length() - 1);
+	private static String versionSuffix = ""; //".rXXXX";;
 	
 	//------------------------------------------------------------------------------
 	// Constants
