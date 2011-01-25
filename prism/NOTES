@@ -11,32 +11,38 @@ TODO (before public release of 4.0)
 PRIORITY (first beta, w/ CAV paper)
 --------
 
-* Integrate stat-mc
+* JAVADOC
 
-  - Result object creation pushed into SimEngine?
-    Result objects returned from SimEngine + explanation strings
+* BENCHMARKS!
 
-  - Sort initial state in sim dialog?
-    tick box for default initial
-    is there a bug in this already?
-    ready for mult init states?
+* Integrate stat-mc (patch done)
 
-  - Tidy up other new sim options (simmanual, simvar, simmaxrwd) ?
-    Decide if want to refine PrismCL switches
-    e.g. all in simmethod (like aroptions?)
 
 PRIORITY (next betas)
 --------
 
 * Intervals (e.g. for multiple initial states) plotted in graphs
 
+* Stat m/c
+  - Tidy up other new sim options (simmanual, simvar, simmaxrwd) ?
+  - MDP warning
+  - Sort initial state in sim dialog?
+    tick box for default initial
+    is there a bug in this already?
+    ready for mult init states?
+  - Result object creation pushed into SimEngine?
+    Result objects returned from SimEngine + explanation strings
+  
 * PTA fix: convex, non-diagonal, etc.
   cases to consider:
   - implications in invariants
   - Pmax=? [ F "end" & (x<=5) ]
   - Then: test with formats09 script
+  - Then: respond to Nico B (when live)
 
 * Doc: Adversary generation (e.g. -exportadv switch)
+* Doc: Sim switches -simmanual, -simvar <n> and -simmaxrwd <x>
+
 
 THE REST (before 4.0)
 --------
