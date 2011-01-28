@@ -12,14 +12,20 @@ PRIORITY (first beta, w/ CAV paper)
 --------
 
 * JAVADOC
-
-* BENCHMARKS!
-
-* Integrate stat-mc (patch done)
+  - links on front page?
 
 
 PRIORITY (next betas)
 --------
+
+* Benchmarks
+  - Get tar files online
+  - Check/tidy
+  - Links to e.g CTMCs props from below CTMCs table
+  - Links from each prop to corr model table?
+  - More labels
+  - ctmc steady-state split up?
+  - unique prop names across models?
 
 * Intervals (e.g. for multiple initial states) plotted in graphs
 
@@ -34,6 +40,7 @@ PRIORITY (next betas)
     Result objects returned from SimEngine + explanation strings
   
 * PTA fix: convex, non-diagonal, etc.
+  (see DigitalClocks.java.patch)
   cases to consider:
   - implications in invariants
   - Pmax=? [ F "end" & (x<=5) ]
