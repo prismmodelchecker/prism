@@ -76,7 +76,7 @@ public abstract class QuantAbstractRefine
 	// Use convergence from above for value iteration?
 	protected boolean above = false;
 	// Abstraction-refinement settings
-	protected RefineStratWhere refineStratWhere = RefineStratWhere.ALL_MAX;
+	protected RefineStratWhere refineStratWhere = RefineStratWhere.ALL;
 	protected RefineStratHow refineStratHow = RefineStratHow.VAL;
 
 	// Private flags/settings
