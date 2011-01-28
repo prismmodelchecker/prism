@@ -413,11 +413,12 @@ public class SemanticCheck extends ASTTraverse
 	public void visitPost(ExpressionVar e) throws PrismLangException
 	{
 		// For PTAs, references to variables in modules have to be local
-		if (modulesFile != null && modulesFile.getModelType() == ModelType.PTA && inModule != null) {
+		// (no longer checked here, e.g. because allowed for digital clocks)
+		/*if (modulesFile != null && modulesFile.getModelType() == ModelType.PTA && inModule != null) {
 			if (!inModule.isLocalVariable(e.getName())) {
 				throw new PrismLangException("Modules in a PTA cannot access non-local variables", e);
 			}
-		}
+		}*/
 		// Clock references, in models, can only appear in invariants and guards
 		// (Note: type checking has not been done, but we know types for ExpressionVars)
 		if (e.getType() instanceof TypeClock && inModulesFile != null) {

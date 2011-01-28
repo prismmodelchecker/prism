@@ -33,6 +33,7 @@ import explicit.IndexedSet;
 import parser.*;
 import parser.ast.*;
 import parser.type.*;
+import parser.visitor.ASTTraverse;
 import prism.*;
 
 /**
@@ -81,6 +82,34 @@ public class Modules2PTA
 		if (modulesFile.getInitialStates() != null)
 			throw new PrismLangException("PTA models cannot use init...endinit");
 
+		// Check for inter-module variable references 
+		modulesFile.accept(new ASTTraverse()
+		{
+			private Module inModule = null;
+
+			public void visitPre(Module e) throws PrismLangException
+			{
+				// Register the fact we are entering a module
+				inModule = e;
+			}
+
+			public void visitPost(Module e) throws PrismLangException
+			{
+				// Register the fact we are leaving a module
+				inModule = null;
+			}
+
+			public void visitPost(ExpressionVar e) throws PrismLangException
+			{
+				// For PTAs, references to variables in modules have to be local
+				if (inModule != null) {
+					if (!inModule.isLocalVariable(e.getName())) {
+						throw new PrismLangException("Modules in a PTA cannot access non-local variables", e);
+					}
+				}
+			}
+		});
+		
 		// Clone the model file, replace any constants with values,
 		// and simplify any expressions as much as possible.
 		modulesFile = (ModulesFile) modulesFile.deepCopy().replaceConstants(constantValues).simplify();
