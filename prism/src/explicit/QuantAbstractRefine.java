@@ -33,7 +33,24 @@ import prism.*;
 import explicit.StateModelChecker.TermCrit;
 import explicit.StateModelChecker.ValIterDir;
 
-public abstract class STPGAbstractRefine
+/**
+ * Base class for implementing quantitative abstraction-refinement loop.
+ * Subclasses need to implement the following abstract methods:
+ * <ul>
+ * <li> {@link #initialise}
+ * <li> {@link #splitState}
+ * <li> {@link #rebuildAbstraction}
+ * </ul>
+ * Various settings are available. In particular, model/property type should be set with:
+ * <ul>
+ * <li> {@link #setModelType}
+ * <li> {@link #setPropertyType}
+ * </ul>
+ * See other setXXX methods for further configuration options.
+ * <br><br>
+ * The abstraction-refinement loop can then be started with {@link #abstractRefine}.
+ */
+public abstract class QuantAbstractRefine
 {
 	// Log for output (default: just send to stdout)
 	protected PrismLog mainLog = new PrismPrintStreamLog(System.out);
@@ -44,12 +61,6 @@ public abstract class STPGAbstractRefine
 
 	// Flags/settings
 
-	// Model type
-	protected ModelType modelType = ModelType.MDP;
-	// Property type
-	protected PropertyType propertyType = PropertyType.PROB_REACH;
-	// Bound for when property is bounded reachabilty
-	protected int reachBound = 0;
 	// Verbosity level
 	protected int verbosity = 0;
 	// Maximum number of refinement iterations
@@ -91,13 +102,24 @@ public abstract class STPGAbstractRefine
 		ALL, VAL
 	};
 
-	// Objects needed for abstraction refinement
-	// (abstract model, target states)
-	protected ModelSimple abstraction;
-	protected BitSet target;
-	// Other parameters
+	// Concrete model info
+	/** Type of (concrete) model; default is MDP. */
+	protected ModelType modelType = ModelType.MDP;
+	
+	// Property info
+	/** Property type; default is PROB_REACH */
+	protected PropertyType propertyType = PropertyType.PROB_REACH;
+	/** For nondeterministic (concrete) models, compute min? (or max?) */
 	protected boolean min;
-	protected boolean buildEmbeddedDtmc = false; // Construct DTMC from CTMC?
+	/** Bound for when property is bounded reachability */
+	protected int reachBound = 0;
+	
+	// Abstract model info (updated by subclasses)
+	/** Abstract model */
+	protected ModelSimple abstraction;
+	/** BitSet of (abstract) target states for property to drive refinement */
+	protected BitSet target;
+	
 	// Stuff for refinement loop
 	protected ModelType abstractionType;
 	protected double[] lbSoln;
@@ -108,6 +130,7 @@ public abstract class STPGAbstractRefine
 	protected double ubInit;
 	protected BitSet known;
 	protected List<Integer> refineStates;
+	protected boolean buildEmbeddedDtmc = false; // Construct DTMC from CTMC?
 	// Timing info, etc.
 	protected double timeBuild;
 	protected double timeRebuild;
@@ -124,7 +147,7 @@ public abstract class STPGAbstractRefine
 	/**
 	 * Default constructor.
 	 */
-	public STPGAbstractRefine()
+	public QuantAbstractRefine()
 	{
 		// By default, log output goes to System.out.
 		setLog(new PrismPrintStreamLog(System.out));
@@ -333,39 +356,44 @@ public abstract class STPGAbstractRefine
 	// Abstract methods that must be implemented for abstraction-refinement loop
 
 	/**
-	 * Initialise: Build initial abstraction and set of target abstract states.
-	 * (storing in abstraction and target, respectively).
-	 * Note: abstraction must respect initial states,
+	 * Initialise: Build initial abstraction and set of target abstract states
+	 * (storing in {@link #abstraction} and {@link #target}, respectively).
+	 * Note: {@link #abstraction} must respect initial states,
 	 * i.e. any abstract state contains either all/no initial states. 
 	 */
 	protected abstract void initialise() throws PrismException;
 
 	/**
 	 * Split an abstract state for refinement, based on sets of nondeterministic choices.
-	 * This function should update any information stored locally about abstract state space etc.,
-	 * add new states to the abstraction and update the set of initial/target states appropriately.
+	 * This function should add new states to the abstract model ({@link #abstraction}),
+	 * update its initial states and update the {@link #target}. Any information stored locally
+	 * about abstract state space etc. should also be updated at this point.
+	 * <br><br>
 	 * One of the new states should replace the state being split;
 	 * the rest should be appended to the list of abstract states.
 	 * Abstract states that need to be rebuilt (either because they are new, or because
 	 * one of their successors has been split) can either be rebuilt at this point,
-	 * or left until later. If the former, the state should be added to the list rebuiltStates;
-	 * if the latter, it should be added to rebuildStates.
+	 * or left until later. If the former, the state should be added to the list {@code rebuiltStates};
+	 * if the latter, it should be added to {@code rebuildStates}.
 	 * The total number of new states should be returned.
+	 * <br><br>
 	 * Notes:
-	 *  # The union of all the sets in choiceLists may not cover all choices in the state to be split.
-	 *    This is because there may be more efficient ways to compute the remainder of the abstract state.
-	 *    If not, use the utility function addRemainderIntoChoiceLists(...).
-	 * @param splitState: State to split.
-	 * @param choiceLists: Lists of nondeterministic choices defining split.
-	 * @param rebuildStates: States that need rebuilding as a result should be added here.
-	 * @return: Number of states into which split (i.e. 1 denotes split failed).
+	 * <ul>
+	 * <li> The union of all the sets in {@link #choiceLists} may not cover all choices in the state to be split.
+	 *      This is because there may be more efficient ways to compute the remainder of the abstract state.
+	 *      If not, use the utility function {@link #addRemainderIntoChoiceLists}.
+	 * </ul>
+	 * @param splitState State to split.
+	 * @param choiceLists Lists of nondeterministic choices defining split.
+	 * @param rebuildStates States that need rebuilding as a result should be added here.
+	 * @return Number of states into which split (i.e. 1 denotes split failed).
 	 */
 	protected abstract int splitState(int splitState, List<List<Integer>> choiceLists, Set<Integer> rebuiltStates,
 			Set<Integer> rebuildStates) throws PrismException;
 
 	/**
 	 * Rebuild the abstraction after a refinement.
-	 * @param rebuildStates: States that need rebuilding.
+	 * @param rebuildStates States that need rebuilding.
 	 */
 	protected abstract void rebuildAbstraction(Set<Integer> rebuildStates) throws PrismException;
 
@@ -889,7 +917,7 @@ public abstract class STPGAbstractRefine
 
 	/**
 	 * Refine a set of states.
-	 * @param refineState: States to refine.
+	 * @param refineState States to refine.
 	 */
 	protected void refine(List<Integer> refineStates) throws PrismException
 	{
@@ -939,10 +967,10 @@ public abstract class STPGAbstractRefine
 	 * Adds new states to abstraction (and updates initial states), updates target states,
 	 * and resizes/updates lb/ub solution vectors and 'known' set.
 	 * Also keeps track of which states have been or will need to be rebuilt as a result.
-	 * @param refineState: State to refine.
-	 * @param rebuiltStates: States that have been rebuilt as a result will be added here.
-	 * @param rebuildStates: States that need rebuilding as a result will be added here.
-	 * @return: Number of states into which split (i.e. 1 denotes refinement failed).
+	 * @param refineState State to refine.
+	 * @param rebuiltStates States that have been rebuilt as a result will be added here.
+	 * @param rebuildStates States that need rebuilding as a result will be added here.
+	 * @return Number of states into which split (i.e. 1 denotes refinement failed).
 	 */
 	protected int refineState(int refineState, Set<Integer> rebuiltStates, Set<Integer> rebuildStates)
 			throws PrismException

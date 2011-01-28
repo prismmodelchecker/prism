@@ -28,6 +28,7 @@ package pta;
 
 import java.util.*;
 
+import prism.ModelType;
 import prism.PrismException;
 import explicit.*;
 
@@ -35,7 +36,7 @@ import explicit.*;
  * Probabilistic reachability for PTAs, using abstraction/refinement of stochastic games.
  * See: "Stochastic Games for Verification of Probabilistic Timed Automata" (FORMATS'09).
  */
-public class PTAAbstractRefine extends STPGAbstractRefine
+public class PTAAbstractRefine extends QuantAbstractRefine
 {
 	// PTA, target info
 	protected PTA pta = null;
@@ -51,6 +52,16 @@ public class PTAAbstractRefine extends STPGAbstractRefine
 	// bit of time, but at the expense of some space). 
 	boolean storeValidZones = true;
 
+	/**
+	 * Default constructor.
+	 */
+	public PTAAbstractRefine()
+	{
+		// Just do basic config for QuantAbstractRefine
+		setModelType(ModelType.MDP);
+		setPropertyType(QuantAbstractRefine.PropertyType.PROB_REACH);
+	}
+	
 	/**
 	 * Compute min/max PTA reachability probabilities using STPG abstraction refinement. 
 	 */
@@ -68,6 +79,7 @@ public class PTAAbstractRefine extends STPGAbstractRefine
 
 	// Implementation of initialise() for abstraction-refinement loop; see superclass for details 
 
+	@Override
 	protected void initialise() throws PrismException
 	{
 		ForwardsReach forwardsReach;
@@ -110,6 +122,7 @@ public class PTAAbstractRefine extends STPGAbstractRefine
 
 	// Implementation of rebuildAbstraction(...) for abstraction-refinement loop; see superclass for details 
 
+	@Override
 	protected void rebuildAbstraction(Set<Integer> rebuildStates) throws PrismException
 	{
 		for (int src : rebuildStates) {
@@ -270,6 +283,7 @@ public class PTAAbstractRefine extends STPGAbstractRefine
 	//  - abstraction (new states, initial states and transitions)
 	//  - target set 
 
+	@Override
 	protected int splitState(int splitState, List<List<Integer>> choiceLists, Set<Integer> rebuiltStates,
 			Set<Integer> rebuildStates) throws PrismException
 	{
