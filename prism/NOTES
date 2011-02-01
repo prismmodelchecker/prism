@@ -119,6 +119,7 @@ PTAs:
     (then test on Arnd's BRP model + Marco's + others)
 
 Simulator:
+* New display progress meter for simulation?
 * SimMethod deal with possibility of more iters than expected
   - recalc some stats on computeMissingParameterAfterSim?
   - max 100% for getProgress?
@@ -130,6 +131,10 @@ Simulator:
 * store log for likelihood ratio?
 * make percentage from getProgress more accurate, do mod 10 after
 * do we stil need reset() in SimMethod? Don't delete, just check
+
+General:
+* finish -explicitbuild (e.g. no labels, rewards), currently in -qar
+* postpone reward struct constr until needed?
 
 =======================================================
 =======================================================

@@ -12,7 +12,7 @@ fi
 
 # Max memory for Java
 if [ "$PRISM_JAVAMAXMEM" != "" ]; then
-	PRISM_JAVAMAXMEM=`echo "$PRISM_JAVAMAXMEM" | awk /^[0-9]+[mk]?$/`
+	PRISM_JAVAMAXMEM=`echo "$PRISM_JAVAMAXMEM" | awk /^[0-9]+[kmg]?$/`
 	if [ "$PRISM_JAVAMAXMEM" = "" ]; then
 		echo; echo "Error: Environment variable PRISM_JAVAMAXMEM is invalid."; exit
 	fi
