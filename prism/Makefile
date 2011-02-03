@@ -437,7 +437,7 @@ tarcf:
 PRISM_CLASSPATH = "$(CLASSES_DIR)$(CLASSPATHSEP)$(LIB_DIR)/jcommon.jar$(CLASSPATHSEP)$(LIB_DIR)/jfreechart.jar$(CLASSPATHSEP)$(LIB_DIR)/epsgraphics.jar$(CLASSPATHSEP)$(LIB_DIR)/colt.jar"
 
 javadoc:
-	@JAVADOC_DIRS=`echo $(MAKE_DIRS) | sed 's/\//./g' | sed 's/ /:/g'` && \mkdir -p javadoc; javadoc -d javadoc -classpath $(SRC_DIR)$(CLASSPATHSEP)$(PRISM_CLASSPATH) -subpackages $$JAVADOC_DIRS
+	@JAVADOC_DIRS=`echo $(MAKE_DIRS) | sed 's/\//./g' | sed 's/ /:/g'` && \mkdir -p javadoc; javadoc -d javadoc -overview $(SRC_DIR)/overview.html -sourcepath $(SRC_DIR) -classpath $(SRC_DIR)$(CLASSPATHSEP)$(PRISM_CLASSPATH) -subpackages $$JAVADOC_DIRS
 
 clean: checks
 	@(for dir in $(MAKE_DIRS); do \

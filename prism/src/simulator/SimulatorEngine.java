@@ -37,6 +37,8 @@ import parser.type.*;
 import prism.*;
 
 /**
+ * A discrete event simulation engine for PRISM models.
+ * 
  * The SimulatorEngine class provides support for:
  * <UL>
  * <LI> State/model exploration
@@ -62,19 +64,6 @@ import prism.*;
  * <UL>
  * <LI> {@link #initialisePath}
  * </UL>
- * 
- * To see the transitions available in the current state, use:
- * <UL>
- * <LI> ... TODO
- * </UL>
- * 
- * For path manipulation...
- * <UL>
- * <LI> ... TODO
- * </UL>
- * 
- * ...
- * TODO
  * 
  * For sampling-based approximate model checking, use:
  * <UL>
