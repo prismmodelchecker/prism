@@ -8,13 +8,6 @@ Remove for beta distributions:
 TODO (before public release of 4.0)
 =======================================================
 
-PRIORITY (first beta, w/ CAV paper)
---------
-
-* JAVADOC
-  - links on front page?
-
-
 PRIORITY (next betas)
 --------
 
@@ -61,6 +54,7 @@ Documentation:
 * Extra reach info switches?
 * Some pointers for where to start with PTAs, e.g. where examples are
 * SimulatorEngine JavaDoc
+* Update other-downloads.php
 
 Filters, property semantics, etc.
 * Integer-valued props displayed as doubles when printed as vector
