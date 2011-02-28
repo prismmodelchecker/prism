@@ -178,12 +178,13 @@ public class Updater
 						n = chs.size();
 						for (k = 0; k < count - 1; k++)
 							for (l = 0; l < n; l++)
-								chs.add(chs.get(l));
+								chs.add(new ChoiceListFlexi(chs.get(l)));
 						// Products with existing choices
 						for (k = 0; k < count; k++) {
 							Updates ups = updateLists.get(j).get(i).get(k);
-							for (l = 0; l < n; l++)
+							for (l = 0; l < n; l++) {
 								processUpdatesAndAddToProduct(ups, state, chs.get(k * n + l));
+							}
 						}
 					}
 				}

@@ -58,6 +58,27 @@ public class ChoiceListFlexi implements Choice
 		probability = new ArrayList<Double>();
 	}
 
+	/**
+	 * Copy constructor.
+	 * NB: Does a shallow, not deep, copy with respect to references to Update objects.
+	 */
+	public ChoiceListFlexi(ChoiceListFlexi ch)
+	{
+		moduleOrActionIndex = ch.moduleOrActionIndex;
+		updates = new ArrayList<List<Update>>(ch.updates.size());
+		for (List<Update> list : ch.updates) {
+			List<Update> listNew = new ArrayList<Update>(list.size()); 
+			updates.add(listNew);
+			for (Update up : list) {
+				listNew.add(up);
+			}
+		}
+		probability = new ArrayList<Double>(ch.size());
+		for (double p : ch.probability) {
+			probability.add(p);
+		}
+	}
+
 	// Set methods
 
 	/**
