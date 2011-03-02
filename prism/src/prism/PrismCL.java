@@ -2013,7 +2013,7 @@ public class PrismCL
 		mainLog.println("-nofair ........................ Don't use fairness (for probabilistic reachability in MDPs) [default]");
 		mainLog.println("-fixdl ......................... Automatically put self-loops in deadlock states");
 		mainLog.println("-noprobchecks .................. Disable checks on model probabilities/rates");
-		mainLog.println("-zerorewardchecks .............. Check for absence of zero-reward loops");
+		mainLog.println("-zerorewardcheck ............... Check for absence of zero-reward loops");
 		mainLog.println("-nossdetect .................... Disable steady-state detection for CTMC transient computations");
 		mainLog.println("-sccmethod <name> .............. Specify SCC computation method (xiebeerel, lockstep, sccfind)");
 		mainLog.println();

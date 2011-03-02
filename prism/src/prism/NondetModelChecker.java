@@ -1124,7 +1124,7 @@ public class NondetModelChecker extends NonProbModelChecker
 					break;
 				case Prism.HYBRID:
 					throw new PrismException(
-							"Hybrid engine does not yet supported this type of property (use sparse or MTBDD engine instead)");
+							"Hybrid engine does not yet support this type of property (use sparse or MTBDD engine instead)");
 				default:
 					throw new PrismException("Unknown engine");
 				}
@@ -1246,7 +1246,7 @@ public class NondetModelChecker extends NonProbModelChecker
 					break;
 				case Prism.HYBRID:
 					throw new PrismException(
-							"Hybrid engine does not yet supported this type of property (use sparse or MTBDD engine instead)");
+							"Hybrid engine does not yet support this type of property (use sparse or MTBDD engine instead)");
 					// rewardsDV = PrismHybrid.NondetReachReward(tr, sr, trr,
 					// odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,
 					// maybe, min);
