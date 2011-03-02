@@ -4,7 +4,7 @@
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
 //	* Carlos S. Bederian (Universidad Nacional de Cordoba)
-//  * Mark Kattenbelt <mark.kattenbelt@comlab.ox.ac.uk> (University of Oxford)
+//	* Mark Kattenbelt <mark.kattenbelt@comlab.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
