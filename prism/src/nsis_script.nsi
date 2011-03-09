@@ -1,36 +1,11 @@
 ;==============================================================================
-;	
-;	Copyright (c) 2002-
-;	Authors:
-;	* Mark Kattenbelt <mark.kattenbelt@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
-;	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
-;	
-;------------------------------------------------------------------------------
-;	
-;	This file is part of PRISM.
-;	
-;	PRISM is free software; you can redistribute it and/or modify
-;	it under the terms of the GNU General Public License as published by
-;	the Free Software Foundation; either version 2 of the License, or
-;	(at your option) any later version.
-;	
-;	PRISM is distributed in the hope that it will be useful,
-;	but WITHOUT ANY WARRANTY; without even the implied warranty of
-;	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;	GNU General Public License for more details.
-;	
-;	You should have received a copy of the GNU General Public License
-;	along with PRISM; if not, write to the Free Software Foundation,
-;	Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-;	
-;==============================================================================
 
 ; You should always call makensis in the following way:
 ;
-; > makensis /NOCD /DPRISM_NAME="PRISM 3.0" /DPRISM_BUILD="prism-3.0" 
+; > makensis /NOCD /DPRISM_NAME="PRISM X.y" /DPRISM_BUILD="prism-X.y" 
 ;	/DPRISM_DIR="" installer_script.nsi
 ;
-; Where "PRISM 3.0" is the name of the program displayed to the user, prism-3.0
+; Where "PRISM X.y" is the name of the program displayed to the user, prism-3.0
 ; is the name of the build (no spaces). The PRISM_DIR variable should be set
 ; to "" if the working directory is the prism directory or to the prism 
 ; directory otherwise (ending with `\').
@@ -177,7 +152,6 @@ Section Uninstall
 
     Delete "$DESKTOP\${PRISM_NAME}.lnk"
 
-    ;DeleteRegKey HKEY_LOCAL_MACHINE "SOFTWARE\University of Birmingham\${PRISM_BUILD}"
     ;DeleteRegKey HKEY_LOCAL_MACHINE "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PRISM_BUILD}"
 
     Delete $INSTDIR\uninstall.exe
