@@ -12,7 +12,7 @@ PRIORITY (next betas)
 --------
 
 * Benchmarks
-  - Get tar files online
+  - Get tar files online (mv all files into "files" for easier tar-ing?)
   - Check/tidy
   - Links to e.g CTMCs props from below CTMCs table
   - Links from each prop to corr model table?
@@ -62,6 +62,10 @@ Filters, property semantics, etc.
 * Allow other filter types to be spec with {} notation?
   and then in doc clarify P>=p[...{filter}] means & not print
   (didn't print in 3.3 anyway, despite manual)
+* Some info lost with new filters:
+  old: Result (minimum probability): 0.0
+  new: 0.0 (value in the initial state)
+  can we merge?
 
 Action labels:
 * Check status of export/import trans wrt actions (alll models)
