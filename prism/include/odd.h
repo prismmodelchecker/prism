@@ -57,10 +57,10 @@ struct ODDNode
 
 // function prototypes
 
-ODDNode *build_odd(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars);
-int get_index_of_first_from_bdd(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, ODDNode *odd);
+EXPORT ODDNode *build_odd(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars);
+EXPORT int get_index_of_first_from_bdd(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, ODDNode *odd);
 EXPORT DdNode *single_index_to_bdd(DdManager *ddman, int i, DdNode **vars, int num_vars, ODDNode *odd);
-int get_num_odd_nodes();
+EXPORT int get_num_odd_nodes();
 
 //------------------------------------------------------------------------------
 
