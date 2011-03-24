@@ -101,7 +101,9 @@ JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetMainLog(JNIEnv *env, jclas
 	// if main log has been set previously, we need to delete existing global refs first
 	if (main_log_obj != NULL) {
 		env->DeleteGlobalRef(main_log_cls);
+		main_log_cls = NULL;
 		env->DeleteGlobalRef(main_log_obj);
+		main_log_obj = NULL;
 	}
 	
 	// make a global reference to the log object
@@ -119,7 +121,9 @@ JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetTechLog(JNIEnv *env, jclas
 	// if tech log has been set previously, we need to delete existing global refs first
 	if (tech_log_obj != NULL) {
 		env->DeleteGlobalRef(tech_log_cls);
+		tech_log_cls = NULL;
 		env->DeleteGlobalRef(tech_log_obj);
+		tech_log_obj = NULL;
 	}
 	
 	// make a global reference to the log object
