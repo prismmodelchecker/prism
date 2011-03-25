@@ -24,7 +24,7 @@ PRIORITY (next betas)
 
 * Stat m/c
   - Tidy up other new sim options (simmanual, simvar, simmaxrwd) ?
-  - MDP warning
+  - Add MDP warning
   - Sort initial state in sim dialog?
     tick box for default initial
     is there a bug in this already?
