@@ -32,6 +32,7 @@ PRIORITY (next betas)
   - Result object creation pushed into SimEngine?
     Result objects returned from SimEngine + explanation strings
   
+* PTA fix: digital clocks just non-diagonal again for now
 * PTA fix: convex, non-diagonal, etc.
   (see DigitalClocks.java.patch)
   cases to consider:
