@@ -66,16 +66,15 @@ public class SamplerRewardCumulCont extends SamplerDouble
 			valueKnown = true;
 			value = path.getTotalCumulativeReward(rewardStructIndex);
 			// Compute excess time, i.e. how long ago time bound was reached
-			double excessTime = timeBound - path.getTotalTime();
+			double excessTime = path.getTotalTime() - timeBound;
 			// If this is > 0 (very likely, unless time bound = 0),
-			// need to subtract reward accumulated in excess time
-			// (i.e. fraction of previous state reward, and transition reward)
+			// need to subtract reward accumulated in excess time and transition reward
 			// Note that this cannot be the case for the first state of path,
 			// so the call to getTimeInPreviousState() is safe.
 			if (excessTime > 0) {
 				// Note: Time so far > 0 so cannot be first state,
 				// so safe to look at previous state.
-				value -= path.getPreviousStateReward(rewardStructIndex) * (excessTime / path.getTimeInPreviousState());
+				value -= path.getPreviousStateReward(rewardStructIndex) * excessTime;
 				value -= path.getPreviousTransitionReward(rewardStructIndex);
 			}
 		}
