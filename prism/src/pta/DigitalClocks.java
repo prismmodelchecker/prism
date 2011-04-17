@@ -112,10 +112,14 @@ public class DigitalClocks
 		varList = modulesFile.createVarList();
 
 		// Check that model does not contain any closed clock constraints
-		// (don't need to check for diagonal-free-ness)
 		ast = findAStrictClockConstraint(modulesFile);
 		if (ast != null)
 			throw new PrismLangException("Strict clock constraints are not allowed when using the digital clocks method", ast);
+		// Check that model does not contain any diagonal clock constraints
+		// (for now; should be able to relax this later)
+		ast = findADiagonalClockConstraint(modulesFile);
+		if (ast != null)
+			throw new PrismLangException("Diagonal clock constraints are not allowed when using the digital clocks method", ast);
 
 		// ACheck for any references to clocks in rewards structures - not allowed.
 		for (RewardStruct rs : modulesFile.getRewardStructs()) {
@@ -321,11 +325,16 @@ public class DigitalClocks
 		}
 
 		// Check for presence of strict clock constraints
-		// TODO: also need to look in any required properties file labels
-		// (currently, these cannot even contain clocks so not an issue)
 		ast = findAStrictClockConstraint(propertyToCheck);
 		if (ast != null)
 			throw new PrismLangException("Strict clock constraints are not allowed when using the digital clocks method", ast);
+		// Check for presence of diagonal clock constraints
+		// (for now; should be able to relax this later)
+		ast = findADiagonalClockConstraint(modulesFile);
+		if (ast != null)
+			throw new PrismLangException("Diagonal clock constraints are not allowed when using the digital clocks method", ast);
+		// TODO: also need to look in any required properties file labels
+		// (currently, these cannot even contain clocks so not an issue)
 	}
 
 	/**
