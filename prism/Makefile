@@ -370,17 +370,37 @@ $(BIN_XPRISM_BAT): $(BIN_XPRISM_BAT_SRC)
 
 VERSION=# default value for VERSION is blank to force provision at command-line 
 
-dist: dist_check_version dist_copy clean_all dist_tidy
+dist_src: dist_check_version dist_copy clean_all dist_tidy
 
 dist_bin: dist_check_version binary dist_tidy dist_bin_copy
 
 dist_check_version:
-	@if [ "$(VERSION)" = "" ]; then echo "Usage: make dist/dist_bin VERSION=3.1"; exit 1; fi
+	@if [ "$(VERSION)" = "" ]; then echo "Usage: make dist_src/dist_bin VERSION=3.1"; exit 1; fi
 
+# Unless already present, copy cudd/examples/doc to this dir
+# By default, cudd/examples from svn trunk and doc from ~/prism-doc; other options commented out below
 dist_copy:
-#	@echo Adding cudd...; rm -rf cudd && svn -q export https://subversion.cs.bham.ac.uk/svn/dxp/prismsvn/prism/tags/prism-$(VERSION)/cudd cudd
-#	@echo Adding examples...; rm -rf examples && svn -q export https://subversion.cs.bham.ac.uk/svn/dxp/prismsvn/prism/tags/prism-$(VERSION)/prism-examples examples
-#	@echo Adding doc...; test -f ~dxp/prism-dev/doc/manual.pdf && rm -rf doc && mkdir doc && cp ~dxp/prism-dev/doc/manual.pdf doc
+	@if [ -e .svn ]; then echo "Warning: This is an svn version; you should use an exported version really"; fi
+	@if [ -e cudd ]; then \
+	  echo "Warning: Not copying cudd since directory already exists"; \
+	else \
+	  echo "Installing CUDD from svn trunk..."; svn -q export https://www.prismmodelchecker.org/svn/prism/prism/trunk/cudd cudd; \
+	fi
+#	  echo "Installing CUDD from ../cudd..."; (SRC_DIST_DIR=`/bin/pwd`; cd ..; tar cf - cudd | tar xf - -C "$$SRC_DIST_DIR");
+	@if [ -e examples ]; then \
+	  echo "Warning: Not copying examples since directory already exists"; \
+	else \
+	  echo "Installing examples from svn trunk..."; svn -q export https://www.prismmodelchecker.org/svn/prism/prism/trunk/prism-examples examples; \
+	fi
+#	  echo "Installing examples from ../prism-examples..."; (SRC_DIST_DIR=`/bin/pwd`; cd ..; tar cf - prism-examples | tar xf - -C "$$SRC_DIST_DIR"); mv prism-examples examples;
+	@if [ -e doc ]; then \
+	  echo "Warning: Not copying manual since directory doc already exists"; \
+	else \
+	  echo "Installing manual from ~/prism-doc..."; \
+	  mkdir doc; \
+	  (SRC_DIST_DIR=`/bin/pwd`; cd ~/prism-doc; tar cf - manual | tar xf - -C "$$SRC_DIST_DIR"/doc); \
+	  cp ~/prism-doc/manual.pdf doc; \
+	fi
 
 dist_bin_copy:
 	@if [ "$(BINDISTSUFFIX)" = "win" ]; then \
