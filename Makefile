@@ -13,8 +13,7 @@ dist_src: dist_check_version
 	mv prism-examples prism/examples
 	mv cudd prism
 	mv prism "prism-$(VERSION)-src"
-	(cd "prism-$(VERSION)-src"; $(MAKE) clean_all )
-	(cd "prism-$(VERSION)-src"; $(MAKE) dist_tidy )
+	(cd "prism-$(VERSION)-src"; $(MAKE) dist_src )
 	tar cfz "prism-$(VERSION)-src.tar.gz" "prism-$(VERSION)-src"
 
 dist_check_version:
