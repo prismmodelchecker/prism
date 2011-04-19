@@ -441,7 +441,7 @@ public class PathFull extends Path
 			if (vars != null && i > 0) {
 				changed = false;
 				for (j = 0; j < varsNum; j++) {
-					if (!getState(i).varValues[j].equals(getState(i - 1).varValues[j]))
+					if (!getState(i).varValues[varsIndices[j]].equals(getState(i - 1).varValues[varsIndices[j]]))
 						changed = true;
 				}
 				if (!changed) {
