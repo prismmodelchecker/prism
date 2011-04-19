@@ -221,6 +221,8 @@ public class PrismCL
 			// if requested, generate a random path with simulator (and then skip anything else)
 			if (simpath) {
 				try {
+					if (!simMaxPathGiven)
+						simMaxPath = prism.getSettings().getInteger(PrismSettings.SIMULATOR_DEFAULT_MAX_PATH);
 					File f = (simpathFilename.equals("stdout")) ? null : new File(simpathFilename);
 					prism.generateSimulationPath(modulesFile, simpathDetails, simMaxPath, f);
 				} catch (PrismException e) {
