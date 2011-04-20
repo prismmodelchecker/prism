@@ -280,13 +280,20 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 				GUISimulator.ActionValue actionValue = (GUISimulator.ActionValue)value;
 				if (actionValue.isActionValueUnknown())
 				{	
+					// unused:
 					stringValue = "?";
-					this.setToolTipText("Action label or module name for transition from state " + (row) + " to " + (row + 1) + " (not yet known)");
+					this.setToolTipText("Action label or module name for transition from state " + (row - 1) + " to " + (row) + " (not yet known)");
 				}
 				else
 				{
 					stringValue = actionValue.getValue();
-					this.setToolTipText("Action label or module name for transition from state " + (row) + " to " + (row + 1));
+					String tooltip;
+					if (row == 0) {
+						tooltip = null;
+					} else {
+						tooltip = "Action label or module name for transition from state " + (row - 1) + " to " + (row);
+					}
+					this.setToolTipText(tooltip);
 				}
 			}
 			else if (value instanceof GUISimulator.TimeValue)

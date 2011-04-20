@@ -2666,7 +2666,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			} else {
 				int groupCount = 0;
 
-				if (view.showSteps() || view.showActions()) {
+				if (view.showActions() || view.showSteps()) {
 					groupCount++;
 				}
 
@@ -2724,7 +2724,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			} else {
 				int groupCount = 0;
 
-				if (view.showSteps() || view.showActions()) {
+				if (view.showActions() || view.showSteps()) {
 					if (groupCount == groupIndex) {
 						return "Step";
 					}
@@ -2800,7 +2800,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 			int groupCount = 0;
 
-			if (view.showSteps() || view.showActions()) {
+			if (view.showActions() || view.showSteps()) {
 				if (groupCount == groupIndex) {
 					return null;
 				}
@@ -2856,15 +2856,15 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		public int getLastColumnOfGroup(int groupIndex)
 		{
 			int stepStart = 0;
-			int timeStart = stepStart + (view.showSteps() ? 1 : 0) + (view.showActions() ? 1 : 0);
-			int varStart = timeStart + (view.canShowTime() && view.showTime() ? 1 : 0) + (view.canShowTime() && view.showCumulativeTime() ? 1 : 0);
+			int timeStart = stepStart + (view.showActions() ? 1 : 0) + (view.showSteps() ? 1 : 0);
+			int varStart = timeStart + (view.canShowTime() && view.showTime() ? 1 : 0) + (view.showCumulativeTime() && view.showTime() ? 1 : 0);
 			int rewardStart = varStart + view.getVisibleVariables().size();
 
 			int groupCount = 0;
 
-			if (view.showSteps() || view.showActions()) {
+			if (view.showActions() || view.showSteps()) {
 				if (groupCount == groupIndex) {
-					if (view.showSteps() && view.showActions())
+					if (view.showActions() && view.showSteps())
 						return stepStart + 1;
 					else
 						return stepStart;
@@ -2873,9 +2873,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				groupCount++;
 			}
 
-			if (view.canShowTime() && (view.showTime() || view.showCumulativeTime())) {
+			if (view.canShowTime() && (view.showCumulativeTime() || view.showTime())) {
 				if (groupCount == groupIndex) {
-					if (view.showTime() && view.showCumulativeTime())
+					if (view.showCumulativeTime() && view.showTime())
 						return timeStart + 1;
 					else
 						return timeStart;
@@ -2963,9 +2963,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			} else {
 				int colCount = 0;
 
-				colCount += (view.showSteps() ? 1 : 0);
 				colCount += (view.showActions() ? 1 : 0);
-				colCount += (view.canShowTime() && view.showTime() ? 1 : 0) + (view.canShowTime() && view.showCumulativeTime() ? 1 : 0);
+				colCount += (view.showSteps() ? 1 : 0);
+				colCount += (view.canShowTime() && view.showCumulativeTime() ? 1 : 0) + (view.canShowTime() && view.showTime() ? 1 : 0);
 				colCount += view.getVisibleVariables().size();
 				colCount += view.getVisibleRewardColumns().size();
 
@@ -3003,22 +3003,22 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		public String getColumnName(int columnIndex)
 		{
 			if (pathActive) {
-				int stepStart = 0;
-				int actionStart = stepStart + (view.showSteps() ? 1 : 0);
-				int timeStart = actionStart + (view.showActions() ? 1 : 0);
-				int cumulativeTimeStart = timeStart + (view.canShowTime() && view.showTime() ? 1 : 0);
-				int varStart = cumulativeTimeStart + (view.canShowTime() && view.showCumulativeTime() ? 1 : 0);
+				int actionStart = 0;
+				int stepStart = actionStart + (view.showActions() ? 1 : 0);
+				int cumulativeTimeStart = stepStart + (view.showSteps() ? 1 : 0);
+				int timeStart = cumulativeTimeStart + (view.canShowTime() && view.showCumulativeTime() ? 1 : 0);
+				int varStart = timeStart + (view.canShowTime() && view.showTime() ? 1 : 0);
 				int rewardStart = varStart + view.getVisibleVariables().size();
 
 				// The step column
-				if (stepStart <= columnIndex && columnIndex < actionStart) {
-					return "#";
-				} else if (actionStart <= columnIndex && columnIndex < timeStart) {
+				if (actionStart <= columnIndex && columnIndex < stepStart) {
 					return "Action";
-				} else if (timeStart <= columnIndex && columnIndex < cumulativeTimeStart) {
-					return "Time";
-				} else if (cumulativeTimeStart <= columnIndex && columnIndex < varStart) {
+				} else if (stepStart <= columnIndex && columnIndex < cumulativeTimeStart) {
+					return "#";
+				} else if (cumulativeTimeStart <= columnIndex && columnIndex < timeStart) {
 					return "Time (+)";
+				} else if (timeStart <= columnIndex && columnIndex < varStart) {
+					return "Time";
 				}
 				// A variable column
 				else if (varStart <= columnIndex && columnIndex < rewardStart) {
@@ -3035,22 +3035,22 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		public String getColumnToolTip(int columnIndex)
 		{
 			if (pathActive) {
-				int stepStart = 0;
-				int actionStart = stepStart + (view.showSteps() ? 1 : 0);
-				int timeStart = actionStart + (view.showActions() ? 1 : 0);
-				int cumulativeTimeStart = timeStart + (view.canShowTime() && view.showTime() ? 1 : 0);
-				int varStart = cumulativeTimeStart + (view.canShowTime() && view.showCumulativeTime() ? 1 : 0);
+				int actionStart = 0;
+				int stepStart = actionStart + (view.showActions() ? 1 : 0);
+				int cumulativeTimeStart = stepStart + (view.showSteps() ? 1 : 0);
+				int timeStart = cumulativeTimeStart + (view.canShowTime() && view.showCumulativeTime() ? 1 : 0);
+				int varStart = timeStart + (view.canShowTime() && view.showTime() ? 1 : 0);
 				int rewardStart = varStart + view.getVisibleVariables().size();
 
 				// The step column
-				if (stepStart <= columnIndex && columnIndex < actionStart) {
-					return "Index of state in path";
-				} else if (actionStart <= columnIndex && columnIndex < timeStart) {
+				if (actionStart <= columnIndex && columnIndex < stepStart) {
 					return "Action label or module name";
-				} else if (timeStart <= columnIndex && columnIndex < cumulativeTimeStart) {
-					return "Time spent in state";
-				} else if (cumulativeTimeStart <= columnIndex && columnIndex < varStart) {
+				} else if (stepStart <= columnIndex && columnIndex < cumulativeTimeStart) {
+					return "Index of state in path";
+				} else if (cumulativeTimeStart <= columnIndex && columnIndex < timeStart) {
 					return "Cumulative time";
+				} else if (timeStart <= columnIndex && columnIndex < varStart) {
+					return "Time spent in state";
 				}
 				// A variable column
 				else if (varStart <= columnIndex && columnIndex < rewardStart) {
@@ -3075,33 +3075,33 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		public Object getValueAt(int rowIndex, int columnIndex)
 		{
 			if (pathActive) {
-				int stepStart = 0;
-				int actionStart = stepStart + (view.showSteps() ? 1 : 0);
-				int timeStart = actionStart + (view.showActions() ? 1 : 0);
-				int cumulativeTimeStart = timeStart + (view.canShowTime() && view.showTime() ? 1 : 0);
-				int varStart = cumulativeTimeStart + (view.canShowTime() && view.showCumulativeTime() ? 1 : 0);
+				int actionStart = 0;
+				int stepStart = actionStart + (view.showActions() ? 1 : 0);
+				int cumulativeTimeStart = stepStart + (view.showSteps() ? 1 : 0);
+				int timeStart = cumulativeTimeStart + (view.canShowTime() && view.showCumulativeTime() ? 1 : 0);
+				int varStart = timeStart + (view.canShowTime() && view.showTime() ? 1 : 0);
 				int rewardStart = varStart + view.getVisibleVariables().size();
 
-				// The step column
-				if (stepStart <= columnIndex && columnIndex < actionStart) {
-					return "" + rowIndex;
-				}
 				// The action column
-				else if (actionStart <= columnIndex && columnIndex < timeStart) {
-					actionValue = new ActionValue(engine.getModuleOrActionOfPathStep(rowIndex));
-					actionValue.setActionValueUnknown(rowIndex >= engine.getPathSize());
+				if (actionStart <= columnIndex && columnIndex < stepStart) {
+					actionValue = new ActionValue(rowIndex == 0 ? "" : engine.getModuleOrActionOfPathStep(rowIndex - 1));
+					actionValue.setActionValueUnknown(false);
 					return actionValue;
 				}
-				// Time column
-				else if (timeStart <= columnIndex && columnIndex < cumulativeTimeStart) {
-					timeValue = new TimeValue(engine.getTimeSpentInPathStep(rowIndex), false);
-					timeValue.setTimeValueUnknown(rowIndex >= engine.getPathSize());
-					return timeValue;
+				// The step column
+				else if (stepStart <= columnIndex && columnIndex < cumulativeTimeStart) {
+					return "" + rowIndex;
 				}
 				// Cumulative time column
-				else if (cumulativeTimeStart <= columnIndex && columnIndex < varStart) {
+				else if (cumulativeTimeStart <= columnIndex && columnIndex < timeStart) {
 					timeValue = new TimeValue(engine.getCumulativeTimeUpToPathStep(rowIndex), true);
 					timeValue.setTimeValueUnknown(rowIndex > engine.getPathSize()); // Never unknown
+					return timeValue;
+				}
+				// Time column
+				else if (timeStart <= columnIndex && columnIndex < varStart) {
+					timeValue = new TimeValue(engine.getTimeSpentInPathStep(rowIndex), false);
+					timeValue.setTimeValueUnknown(rowIndex >= engine.getPathSize());
 					return timeValue;
 				}
 				// A variable column
