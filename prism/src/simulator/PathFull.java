@@ -417,15 +417,16 @@ public class PathFull extends Path
 		}
 
 		// Write header
-		log.print("step");
+		log.print("action");
+		log.print(colSep + "step");
+		if (stochastic)
+			log.print(colSep + (timeCumul ? "time" : "time_in_state"));
 		if (vars == null)
 			for (j = 0; j < nv; j++)
 				log.print(colSep + engine.getVariableName(j));
 		else
 			for (j = 0; j < varsNum; j++)
 				log.print(colSep + engine.getVariableName(varsIndices[j]));
-		if (stochastic)
-			log.print(colSep + (timeCumul ? "time" : "time_in_state"));
 		if (numRewardStructs == 1) {
 			log.print(colSep + "state_reward" + colSep + "transition_reward");
 		} else {
@@ -450,8 +451,17 @@ public class PathFull extends Path
 					continue;
 				}
 			}
+			// write action
+			log.print(i == 0 ? "-" : getModuleOrAction(i - 1));
 			// write state index
+			log.print(colSep);
 			log.print(i);
+			// print time (if continuous time)
+			if (stochastic) {
+				d = (i < n - 1) ? getTime(i) : 0.0;
+				log.print(colSep + (timeCumul ? t : d));
+				t += d;
+			}
 			// write vars
 			if (vars == null) {
 				for (j = 0; j < nv; j++) {
@@ -464,11 +474,7 @@ public class PathFull extends Path
 					log.print(getState(i).varValues[varsIndices[j]]);
 				}
 			}
-			if (stochastic) {
-				d = (i < n - 1) ? getTime(i) : 0.0;
-				log.print(colSep + (timeCumul ? t : d));
-				t += d;
-			}
+			// write rewards
 			for (j = 0; j < numRewardStructs; j++) {
 				log.print(colSep + ((i < n - 1) ? getStateReward(i, j) : 0.0));
 				log.print(colSep + ((i < n - 1) ? getTransitionReward(i, j) : 0.0));
