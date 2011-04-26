@@ -123,19 +123,19 @@ public class PrismSyntaxHighlighter
 		return resStringBuffer.toString();
 	}
 	
-	public static String fileToHtml(File file, boolean hf) throws FileNotFoundException, PrismLangException
+	public static String fileToHtml(File file, boolean hf, String cssLoc) throws FileNotFoundException, PrismLangException
 	{
 		resStringBuffer = new StringBuffer();
-		if (hf) resStringBuffer.append(htmlFileHeader(file.getName()));
+		if (hf) resStringBuffer.append(htmlFileHeader(file.getName(), cssLoc));
 		highlight(new FileInputStream(file), HTML);
 		if (hf) resStringBuffer.append(htmlFileFooter()); 
 		return resStringBuffer.toString();
 	}
 	
-	public static String fileToHtml(InputStream stream, boolean hf) throws PrismLangException
+	public static String fileToHtml(InputStream stream, boolean hf, String cssLoc) throws PrismLangException
 	{
 		resStringBuffer = new StringBuffer();
-		if (hf) resStringBuffer.append(htmlFileHeader("PRISM Code")); 
+		if (hf) resStringBuffer.append(htmlFileHeader("PRISM Code", cssLoc)); 
 		highlight(stream, HTML);
 		if (hf) resStringBuffer.append(htmlFileFooter()); 
 		return resStringBuffer.toString();
@@ -173,7 +173,7 @@ public class PrismSyntaxHighlighter
 
 	// generate file headers/footers
 	
-	private static String htmlFileHeader(String title)
+	private static String htmlFileHeader(String title, String cssLoc)
 	{
 		String s = "";
 		s += "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"\n";
@@ -186,7 +186,7 @@ public class PrismSyntaxHighlighter
 		s += "</title>" + "\n";
 		s += "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">" + "\n";
 		s += "<!-- Style sheet \"prism.css\" can be found in the \"etc\" directory of the PRISM distribution -->" + "\n";
-		s += "<link type=\"text/css\" rel=\"stylesheet\" href=\"prism.css\">" + "\n";
+		s += "<link type=\"text/css\" rel=\"stylesheet\" href=\"" + cssLoc + "\">" + "\n";
 		s += "</head>" + "\n";
 		s += "<body text=\"#000000\" bgcolor=\"#ffffff\">" + "\n";
 		s += "<pre>" + "\n";
@@ -495,26 +495,54 @@ public class PrismSyntaxHighlighter
 	
 	public static void main(String args[])
 	{
-		if (args.length == 0) {
+		// Default setting
+		String cssLoc = "prism.css";
+		
+		// Put arguments into a list, parsing any switches as we go
+		ArrayList<String> argsList = new ArrayList<String>();
+		int i = 0;
+		while (i < args.length) {
+			if (args[i].matches("-.*")) {
+				String sw = args[i].substring(1);
+				if (sw.equals("css")) {
+					if (args.length < i + 2)  {
+						System.out.print("Error: Missing argument for switch " + args[i]);
+						System.exit(1);
+					}
+					cssLoc = args[i+1];
+					i += 2;
+				}
+				else {
+					System.out.print("Error: Unknown switch " + args[i]);
+					System.exit(1);
+				}
+			} else {
+				argsList.add(args[i]);
+				i++;
+			}
+		}
+		
+		// Process non-switch arguments
+		if (argsList.size() == 0) {
 			System.out.println("Error: First argument must be output type");
 			System.exit(1);
 		}
 		try {
-			if (args[0].equals("echo")) {
-				if (args.length > 1) {
-					System.out.print(echoFile(new File(args[1])));
+			if (argsList.get(0).equals("echo")) {
+				if (argsList.size() > 1) {
+					System.out.print(echoFile(new File(argsList.get(1))));
 				} else {
 					System.out.print(echoFile(System.in));
 				}
-			} else if (args[0].equals("html")) {
-				if (args.length > 1) {
-					System.out.print(fileToHtml(new File(args[1]), true));
+			} else if (argsList.get(0).equals("html")) {
+				if (argsList.size() > 1) {
+					System.out.print(fileToHtml(new File(argsList.get(1)), true, cssLoc));
 				} else {
-					System.out.print(fileToHtml(System.in, false));
+					System.out.print(fileToHtml(System.in, false, cssLoc));
 				}
-			} else if (args[0].equals("latex")) {
-				if (args.length > 1) {
-					System.out.print(fileToLatex(new File(args[1]), true));
+			} else if (argsList.get(0).equals("latex")) {
+				if (argsList.size() > 1) {
+					System.out.print(fileToLatex(new File(argsList.get(1)), true));
 				} else {
 					System.out.print(fileToLatex(System.in, false));
 				}
@@ -524,7 +552,7 @@ public class PrismSyntaxHighlighter
 			}
 		}
 		catch (FileNotFoundException e) {
-			System.out.println("Error: Could not load file \""+ args[1] + "\"");
+			System.out.println("Error: Could not load file \""+ argsList.get(1) + "\"");
 			System.exit(1);
 		}
 		catch (PrismLangException e) {
