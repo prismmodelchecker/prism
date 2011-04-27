@@ -26,6 +26,7 @@
 
 options {
 	LOOKAHEAD = 1;
+	UNICODE_INPUT = true;
 }
 
 PARSER_BEGIN(PrismParser)
