@@ -102,8 +102,8 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
 		setResizable(true);
 		setLocationRelativeTo(getParent()); // centre
 		
-		this.askOption = gui.getPrism().getSettings().getBoolean(PrismSettings.SIMULATOR_NEW_PATH_ASK_INITIAL);
-		optionCheckBox.setSelected(this.askOption);
+		//this.askOption = gui.getPrism().getSettings().getBoolean(PrismSettings.SIMULATOR_NEW_PATH_ASK_INITIAL);
+		//optionCheckBox.setSelected(this.askOption);
 	}
     
 	/** This method is called from within the constructor to
@@ -162,7 +162,7 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
             }
         });
 
-        bottomPanel.add(optionCheckBox, java.awt.BorderLayout.WEST);
+        //bottomPanel.add(optionCheckBox, java.awt.BorderLayout.WEST);
         optionCheckBox.getAccessibleContext().setAccessibleName("optionCheckBox");
 
         allPanel.add(bottomPanel, java.awt.BorderLayout.SOUTH);
@@ -265,48 +265,33 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
     
 	private void okayButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_okayButtonActionPerformed
 	{//GEN-HEADEREND:event_okayButtonActionPerformed
-		int i, n;
-		Value c;
-            
-		if (optionCheckBox.isSelected() != this.askOption)
-		{
-			this.askOption = !this.askOption;
-			try
-			{
-				gui.getPrism().getSettings().set(PrismSettings.SIMULATOR_NEW_PATH_ASK_INITIAL, this.askOption);
-			}
-			catch (PrismException e)
-			{
-			
-			}			
-		}
-            
-		if(initValuesTable.getCellEditor() != null)initValuesTable.getCellEditor().stopCellEditing();
-            
+		if(initValuesTable.getCellEditor() != null)
+			initValuesTable.getCellEditor().stopCellEditing();
             
 		String parameter = "";
-		try
-		{
-			
-                
+		try {
 			Values newInitState = new Values();
-                
-			//check each value of values
-			for(i = 0; i < initValuesModel.getNumValues(); i++)
-			{
+			// check each variable value
+			for (int i = 0; i < initValuesModel.getNumValues(); i++) {
 				parameter = initValuesModel.getValue(i).name;
-				newInitState.addValue(initValuesModel.getValue(i).name, initValuesModel.getValue(i).value);
+				Object parameterValue = null;
+				if (initValuesModel.getValue(i).type instanceof TypeBool) {
+					String bool = initValuesModel.getValue(i).value.toString();
+					if (!(bool.equals("true") || bool.equals("false")))
+						throw new NumberFormatException();
+					parameterValue = new Boolean(bool);
+				} else if (initValuesModel.getValue(i).type instanceof TypeInt) {
+					parameterValue = new Integer(initValuesModel.getValue(i).value.toString());
+				} else { 
+					throw new NumberFormatException();
+				}
+				newInitState.addValue(parameter, parameterValue);
 			}
 			initialState = newInitState;
-                
-			
 			cancelled = false;
-                
-			
 			dispose();
 		}
-		catch(NumberFormatException e)
-		{
+		catch(NumberFormatException e) {
 			gui.errorDialog("Invalid number value entered for "+parameter+" parameter");
 		}
 	}//GEN-LAST:event_okayButtonActionPerformed

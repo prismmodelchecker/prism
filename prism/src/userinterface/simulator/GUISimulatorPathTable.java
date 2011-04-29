@@ -282,7 +282,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 				{	
 					// unused:
 					stringValue = "?";
-					this.setToolTipText("Action label or module name for transition from state " + (row - 1) + " to " + (row) + " (not yet known)");
+					this.setToolTipText("Module name or [action] label for transition from state " + (row - 1) + " to " + (row) + " (not yet known)");
 				}
 				else
 				{
@@ -291,7 +291,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 					if (row == 0) {
 						tooltip = null;
 					} else {
-						tooltip = "Action label or module name for transition from state " + (row - 1) + " to " + (row);
+						tooltip = "Module name or [action] label for transition from state " + (row - 1) + " to " + (row);
 					}
 					this.setToolTipText(tooltip);
 				}

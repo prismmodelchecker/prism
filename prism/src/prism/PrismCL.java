@@ -326,8 +326,8 @@ public class PrismCL
 								mainLog.println("Model constants: " + definedMFConstants);
 						mainLog.println("Property constants: " + undefinedConstants.getPFDefinedConstantsString());
 						simMethod = processSimulationOptions(propertiesToCheck[j]);
-						prism.modelCheckSimulatorExperiment(modulesFile, propertiesFile, undefinedConstants, results[j], propertiesToCheck[j], modulesFile
-								.getInitialValues(), simMaxPath, simMethod);
+						prism.modelCheckSimulatorExperiment(modulesFile, propertiesFile, undefinedConstants, results[j], propertiesToCheck[j], null,
+								simMaxPath, simMethod);
 					} catch (PrismException e) {
 						// in case of (overall) error, report it, store as result for property, and proceed
 						error(e.getMessage());
@@ -390,8 +390,7 @@ public class PrismCL
 							// approximate (simulation-based) model checking
 							else {
 								simMethod = processSimulationOptions(propertiesToCheck[j]);
-								res = prism.modelCheckSimulator(modulesFileToCheck, propertiesFile, propertiesToCheck[j],
-										modulesFileToCheck.getInitialValues(), simMaxPath, simMethod);
+								res = prism.modelCheckSimulator(modulesFileToCheck, propertiesFile, propertiesToCheck[j], null, simMaxPath, simMethod);
 								simMethod.reset();
 							}
 						} catch (PrismException e) {
@@ -694,7 +693,7 @@ public class PrismCL
 			try {
 				explicit.ConstructModel constructModel = new explicit.ConstructModel(prism.getSimulator(), mainLog);
 				mainLog.println("\nConstructing model explicitly...");
-				explicit.Model modelExplicit = constructModel.construct(modulesFileToBuild, modulesFileToBuild.getInitialValues());
+				explicit.Model modelExplicit = constructModel.construct(modulesFileToBuild);
 				tmpFile = File.createTempFile("explicitbuildtest", ".tra").getAbsolutePath();
 				tmpFile = "explicitbuildtest.tra";
 				mainLog.println("\nExporting (explicit) model to \"" + tmpFile + "1\"...");
@@ -943,7 +942,6 @@ public class PrismCL
 					printListOfKeywords();
 					exit();
 				}
-
 
 				// property/properties given in command line
 				else if (sw.equals("pctl") || sw.equals("csl")) {
@@ -1735,7 +1733,7 @@ public class PrismCL
 				else if (sw.equals("explicitbuildtest")) {
 					explicitbuildtest = true;
 				}
-				
+
 				// unknown switch - error
 				else {
 					errorAndExit("Invalid switch -" + sw + " (type \"prism -help\" for full list)");
@@ -1819,10 +1817,10 @@ public class PrismCL
 
 		// See if property to be checked is a reward (R) operator
 		boolean isReward = (expr instanceof ExpressionReward);
-		
+
 		// See if property to be checked is quantitative (=?)
 		boolean isQuant = Expression.isQuantitative(expr);
-		
+
 		// Pick defaults for simulation settings not set from command-line
 		if (!simApproxGiven)
 			simApprox = prism.getSettings().getDouble(PrismSettings.SIMULATOR_DEFAULT_APPROX);
@@ -1832,7 +1830,7 @@ public class PrismCL
 			simNumSamples = prism.getSettings().getInteger(PrismSettings.SIMULATOR_DEFAULT_NUM_SAMPLES);
 		if (!simWidthGiven)
 			simWidth = prism.getSettings().getDouble(PrismSettings.SIMULATOR_DEFAULT_WIDTH);
-		
+
 		if (!reqIterToConcludeGiven)
 			reqIterToConclude = prism.getSettings().getInteger(PrismSettings.SIMULATOR_DECIDE);
 		if (!simMaxRewardGiven)
@@ -1845,7 +1843,7 @@ public class PrismCL
 		if (simMethodName == null) {
 			simMethodName = isQuant ? "ci" : "sprt";
 		}
-		
+
 		// CI
 		if (simMethodName.equals("ci")) {
 			if (simWidthGiven && simConfidenceGiven && simNumSamplesGiven) {
@@ -1924,10 +1922,9 @@ public class PrismCL
 			if (simNumSamplesGiven) {
 				mainLog.println("\nWarning: Option -simsamples is not used for the SPRT method and is being ignored");
 			}
-		}
-		else
+		} else
 			throw new PrismException("Unknown simulation method \"" + simMethodName + "\"");
-			
+
 		return aSimMethod;
 	}
 
@@ -2065,7 +2062,7 @@ public class PrismCL
 		}
 		mainLog.println();
 	}
-	
+
 	// report (non-fatal) error
 
 	private void error(String s)

@@ -43,7 +43,7 @@ import userinterface.properties.*;
  *  This thread handles the calling of simulation-based
  *  model checking (sampling) with the given modules file (constants
  *  defined), properties file (constants defined), list of properties to
- *  be (approximately) verified and initial state.
+ *  be (approximately) verified and initial state (default/random if null).
  */
 public class SimulateModelCheckThread extends GUIComputationThread
 {
@@ -53,7 +53,6 @@ public class SimulateModelCheckThread extends GUIComputationThread
 	private ArrayList<GUIProperty> guiProps;
 	private Values definedMFConstants;
 	private Values definedPFConstants;
-	private Values initialState;
 	private int maxPathLength;
 	private SimulationInformation info;
 
@@ -69,7 +68,6 @@ public class SimulateModelCheckThread extends GUIComputationThread
 		this.definedMFConstants = definedMFConstants;
 		this.definedPFConstants = definedPFConstants;
 		this.info = info;
-		this.initialState = info.getInitialState();
 		this.maxPathLength = info.getMaxPathLength();
 	}
 
@@ -132,7 +130,14 @@ public class SimulateModelCheckThread extends GUIComputationThread
 				if (definedPFConstants != null)
 					if (definedPFConstants.getNumValues() > 0)
 						logln("Property constants: " + definedPFConstants);
-				
+				// convert initial Values -> State
+				// (remember: null means use default or pick randomly)
+				parser.State initialState;
+				if (info.getInitialState() == null) {
+					initialState = null;
+				} else {
+					initialState = new parser.State(info.getInitialState(), mf);
+				}
 				// do simulation
 				results = prism.modelCheckSimulatorSimultaneously(mf, pf, properties, initialState, maxPathLength, method);
 				method.reset();
@@ -180,6 +185,15 @@ public class SimulateModelCheckThread extends GUIComputationThread
 					if (definedPFConstants != null)
 						if (definedPFConstants.getNumValues() > 0)
 							logln("Property constants: " + definedPFConstants);
+					// convert initial Values -> State
+					// (remember: null means use default or pick randomly)
+					parser.State initialState;
+					if (info.getInitialState() == null) {
+						initialState = null;
+					} else {
+						initialState = new parser.State(info.getInitialState(), mf);
+					}
+					// do simulation
 					result = prism.modelCheckSimulator(mf, pf,  pf.getProperty(i), initialState, maxPathLength, method);
 					method.reset();
 				}

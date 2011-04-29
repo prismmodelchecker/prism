@@ -43,7 +43,6 @@ public class ConstructModel
 	// Basic info needed about model
 	private ModulesFile modulesFile;
 	private ModelType modelType;
-	private Values initialState;
 
 	public ConstructModel(SimulatorEngine engine, PrismLog mainLog)
 	{
@@ -51,11 +50,10 @@ public class ConstructModel
 		this.mainLog = mainLog;
 	}
 
-	public Model construct(ModulesFile modulesFile, Values initialState) throws PrismException
+	public Model construct(ModulesFile modulesFile) throws PrismException
 	{
 		this.modulesFile = modulesFile;
 		modelType = modulesFile.getModelType();
-		this.initialState = initialState;
 
 		IndexedSet<State> states;
 		LinkedList<State> explore;
@@ -106,7 +104,10 @@ public class ConstructModel
 		states = new IndexedSet<State>(true);
 		explore = new LinkedList<State>();
 		// Add initial state to lists/model
-		state = new State(modulesFile.getInitialValues());
+		if (modulesFile.getInitialStates() != null) {
+			throw new PrismException("Explicit model construction does not support multiple initial states");
+		}
+		state = modulesFile.getDefaultInitialState();
 		states.add(state);
 		explore.add(state);
 		model.addState();
@@ -240,7 +241,7 @@ public class ConstructModel
 				undefinedConstants.defineUsingConstSwitch(args[2]);
 			modulesFile.setUndefinedConstants(undefinedConstants.getMFConstantValues());
 			ConstructModel constructModel = new ConstructModel(prism.getSimulator(), mainLog);
-			Model model = constructModel.construct(modulesFile, modulesFile.getInitialValues());
+			Model model = constructModel.construct(modulesFile);
 			model.exportToPrismExplicitTra(args[1]);
 		} catch (FileNotFoundException e) {
 			System.out.println("Error: " + e.getMessage());

@@ -35,7 +35,6 @@ import pta.DigitalClocks;
 
 import javax.swing.*;
 
-import simulator.method.APMCapproximation;
 import userinterface.*;
 import java.util.*;
 import userinterface.util.*;
@@ -261,7 +260,7 @@ public class GUIExperiment
 
 					// only do explicit model construction if necessary
 					if (!useSimulation && modulesFile.getModelType() != ModelType.PTA) {
-						
+
 						// build model
 						try {
 							logln("\n-------------------------------------------");
@@ -297,9 +296,9 @@ public class GUIExperiment
 					if (useSimulation && !reuseInfo) {
 						try {
 							info = null;
-							info = GUISimulationPicker.defineSimulationWithDialog(guiProp.getGUI(), propertyToCheck, modulesFile, "("+definedMFConstants+")");
-						}
-						catch (PrismException e) {
+							info = GUISimulationPicker.defineSimulationWithDialog(guiProp.getGUI(), propertyToCheck, modulesFile, "(" + definedMFConstants
+									+ ")");
+						} catch (PrismException e) {
 							// in case of error, report it (in log only), store as result, and go on to the next model
 							errorLog(e.getMessage());
 							try {
@@ -320,7 +319,7 @@ public class GUIExperiment
 						// if there are multiple models, offer the chance to reuse simulation info
 						if (undefinedConstants.getNumModelIterations() > 1 && !reuseInfoAsked) {
 							reuseInfoAsked = true;
-							int q = guiProp.questionYesNo("Do you want to reuse the same initial state and simulation\n"
+							int q = guiProp.questionYesNo("Do you want to reuse the same simulation\n"
 									+ "parameters for the remaining models in this experiment?\n" + "If not you will be prompted for new values for each one.");
 							if (q == 0)
 								reuseInfo = true;
@@ -358,8 +357,17 @@ public class GUIExperiment
 								if (definedMFConstants.getNumValues() > 0)
 									logln("Model constants: " + definedMFConstants);
 							logln("Property constants: " + undefinedConstants.getPFDefinedConstantsString());
-							prism.modelCheckSimulatorExperiment(modulesFile, propertiesFile, undefinedConstants, results, propertyToCheck, info
-									.getInitialState(), info.getMaxPathLength(), info.createSimulationMethod());
+							// convert initial Values -> State
+							// (remember: null means use default or pick randomly)
+							parser.State initialState;
+							if (info.getInitialState() == null) {
+								initialState = null;
+							} else {
+								initialState = new parser.State(info.getInitialState(), modulesFile);
+							}
+							// do simulation
+							prism.modelCheckSimulatorExperiment(modulesFile, propertiesFile, undefinedConstants, results, propertyToCheck, initialState, info
+									.getMaxPathLength(), info.createSimulationMethod());
 							// update progress meter
 							// (all properties simulated simultaneously so can't get more accurate feedback at the moment anyway)
 							table.progressChanged();
@@ -434,7 +442,17 @@ public class GUIExperiment
 								}
 								// approximate (simulation-based) model checking
 								else {
-									res = prism.modelCheckSimulator(modulesFileToCheck, propertiesFile, propertyToCheck, info.getInitialState(), info.getMaxPathLength(), info.createSimulationMethod());
+									// convert initial Values -> State
+									// (remember: null means use default or pick randomly)
+									parser.State initialState;
+									if (info.getInitialState() == null) {
+										initialState = null;
+									} else {
+										initialState = new parser.State(info.getInitialState(), modulesFileToCheck);
+									}
+									// do simulation
+									res = prism.modelCheckSimulator(modulesFileToCheck, propertiesFile, propertyToCheck, initialState, info.getMaxPathLength(),
+											info.createSimulationMethod());
 								}
 							} catch (PrismException e) {
 								// in case of error, report it (in log only), store exception as the result and proceed

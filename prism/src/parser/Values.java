@@ -30,6 +30,7 @@ import java.util.*;
 import java.text.*;
 
 import parser.type.*;
+import parser.ast.ModulesFile;
 import prism.PrismLangException;
 
 // class to store a list of typed constant/variable values
@@ -58,6 +59,22 @@ public class Values //implements Comparable
 	{
 		names = (ArrayList<String>)v.names.clone();
 		values = (ArrayList<Object>)v.values.clone();
+	}
+	
+	/**
+	 * Construct a new Values object  by copying existing State object.
+	 * Need access to a ModulesFile for variable names.
+	 * @param s State object to copy.
+	 * @param mf Corresponding ModulesFile (for variable info/ordering)
+	 */
+	public Values(State s, ModulesFile mf)
+	{
+		this();
+		int i, n;
+		n = s.varValues.length;
+		for (i = 0; i < n; i++) {
+			addValue(mf.getVarName(i), s.varValues[i]);
+		}
 	}
 	
 	// add value (type of value detetmined by type of Object)

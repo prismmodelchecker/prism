@@ -107,7 +107,6 @@ public class PrismSettings implements Observer
 	public static final String SIMULATOR_MAX_REWARD					= "simulator.maxReward";
 	public static final	String SIMULATOR_SIMULTANEOUS				= "simulator.simultaneous";
 	public static final String SIMULATOR_FIELD_CHOICE				= "simulator.fieldChoice";
-	public static final	String SIMULATOR_NEW_PATH_ASK_INITIAL		= "simulator.newPathAskDefault";
 	public static final	String SIMULATOR_NEW_PATH_ASK_VIEW			= "simulator.newPathAskView";
 	public static final	String SIMULATOR_RENDER_ALL_VALUES			= "simulator.renderAllValues";
 	public static final String SIMULATOR_NETWORK_FILE				= "simulator.networkFile";
@@ -265,8 +264,6 @@ public class PrismSettings implements Observer
 																			"Check multiple properties simultaneously over the same set of execution paths (simulator only)." },
 			{ CHOICE_TYPE,		SIMULATOR_FIELD_CHOICE,					"Values used in dialog",				"2.1",		"Last used values",			"Last used values,Always use defaults",
 																			"How to choose values for the simulation dialog: remember previously used values or revert to the defaults each time." },
-			{ BOOLEAN_TYPE,		SIMULATOR_NEW_PATH_ASK_INITIAL,			"Ask for initial state",				"2.1",		new Boolean(true),			"",
-																			"Prompt for details of initial state when creating a new simulation path." },
 			{ BOOLEAN_TYPE,		SIMULATOR_NEW_PATH_ASK_VIEW,			"Ask for view configuration",			"2.1",		new Boolean(false),			"",
 																			"Display dialog with display options when creating a new simulation path." },
 			{ CHOICE_TYPE,		SIMULATOR_RENDER_ALL_VALUES,			"Path render style",					"3.2",		"Render all values",		"Render changes,Render all values",
@@ -307,7 +304,7 @@ public class PrismSettings implements Observer
 		}
 	};
 	
-	public static final String[] oldPropertyNames = {"simulator.apmcStrategy", "simulator.engine"};
+	public static final String[] oldPropertyNames = {"simulator.apmcStrategy", "simulator.engine", "simulator.newPathAskDefault"};
 	
 	public DefaultSettingOwner[] optionOwners;
 	private Hashtable<String,Setting> data;

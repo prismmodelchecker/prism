@@ -46,7 +46,7 @@ public class GenerateSimulationPath
 
 	// Basic info needed for path
 	private ModulesFile modulesFile;
-	private Values initialState;
+	private State initialState;
 	private int maxPathLength;
 	private File file;
 	
@@ -72,7 +72,7 @@ public class GenerateSimulationPath
 	 * @param details Information about the path to be generated
 	 * @param file File to output the path to (stdout if null)
 	 */
-	public void generateSimulationPath(ModulesFile modulesFile, Values initialState, String details, int maxPathLength,
+	public void generateSimulationPath(ModulesFile modulesFile, State initialState, String details, int maxPathLength,
 			File file) throws PrismException
 	{
 		this.modulesFile = modulesFile;
@@ -221,7 +221,7 @@ public class GenerateSimulationPath
 		// generate path
 		engine.createNewPath(modulesFile);
 		for (j = 0; j < simPathRepeat; j++) {
-			engine.initialisePath(new State(initialState));
+			engine.initialisePath(initialState);
 			i = 0;
 			t = 0.0;
 			done = false;

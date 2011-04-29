@@ -190,7 +190,7 @@ public class SimulatorEngine
 
 	/**
 	 * Initialise (or re-initialise) the simulation path, starting with a specific (or random) initial state.
-	 * @param initialState Initial state (if null, is selected randomly)
+	 * @param initialState Initial state (if null, use default, selecting randomly if needed)
 	 */
 	public void initialisePath(State initialState) throws PrismException
 	{
@@ -198,9 +198,13 @@ public class SimulatorEngine
 		if (initialState != null) {
 			currentState.copy(initialState);
 		}
-		// Or pick a random one
+		// Or pick default/random one
 		else {
-			throw new PrismException("Random initial start state not yet supported");
+			if (modulesFile.getInitialStates() == null) {
+				currentState.copy(modulesFile.getDefaultInitialState());
+			} else {
+				throw new PrismException("Random choice of multiple initial states not yet supported");
+			}
 		}
 		updater.calculateStateRewards(currentState, tmpStateRewards);
 		// Initialise stored path
@@ -520,7 +524,7 @@ public class SimulatorEngine
 	public boolean queryIsInitial() throws PrismLangException
 	{
 		// Currently init...endinit is not supported so this is easy to check
-		return path.getCurrentState().equals(new State(modulesFile.getInitialValues()));
+		return path.getCurrentState().equals(modulesFile.getDefaultInitialState());
 	}
 
 	/**
@@ -531,7 +535,7 @@ public class SimulatorEngine
 	public boolean queryIsInitial(int step) throws PrismLangException
 	{
 		// Currently init...endinit is not supported so this is easy to check
-		return ((PathFull) path).getState(step).equals(new State(modulesFile.getInitialValues()));
+		return ((PathFull) path).getState(step).equals(modulesFile.getDefaultInitialState());
 	}
 
 	/**
@@ -1094,7 +1098,9 @@ public class SimulatorEngine
 
 	/**
 	 * Perform approximate model checking of a property on a model, using the simulator.
-	 * Sampling starts from the initial state provided or, if null, a random initial state each time.
+	 * Sampling starts from the initial state provided or, if null, the default
+	 * initial state is used, selecting randomly (each time) if there are more than one.
+	 * Returns a Result object, except in case of error, where an Exception is thrown.
 	 * Note: All constants in the model/property files must have already been defined.
 	 * @param modulesFile Model for simulation, constants defined
 	 * @param propertiesFile Properties file containing property to check, constants defined
@@ -1122,7 +1128,10 @@ public class SimulatorEngine
 
 	/**
 	 * Perform approximate model checking of properties on a model, using the simulator.
-	 * Sampling starts from the initial state provided or, if null, a random initial state each time.
+	 * Sampling starts from the initial state provided or, if null, the default
+	 * initial state is used, selecting randomly (each time) if there are more than one.
+	 * Returns an array of results, some of which may be Exception objects if there were errors.
+	 * In the case of an error which affects all properties, an exception is thrown.
 	 * Note: All constants in the model/property files must have already been defined.
 	 * @param modulesFile Model for simulation, constants defined
 	 * @param propertiesFile Properties file containing property to check, constants defined
@@ -1226,9 +1235,14 @@ public class SimulatorEngine
 	}
 
 	/**
-	 * Perform an approximate model checking experiment on a model, using the simulator.
-	 * Sampling starts from the initial state provided or, if null, a random initial state each time.
-	 * Note: All constants in the model/property files must have already been defined.
+	 * Perform an approximate model checking experiment on a model, using the simulator
+	 * (specified by values for undefined constants from the property only).
+	 * Sampling starts from the initial state provided or, if null, the default
+	 * initial state is used, selecting randomly (each time) if there are more than one.
+	 * Results are stored in the ResultsCollection object passed in,
+	 * some of which may be Exception objects if there were errors.
+	 * In the case of an error which affects all properties, an exception is thrown.
+	 * Note: All constants in the model file must have already been defined.
 	 * @param modulesFile Model for simulation, constants defined
 	 * @param propertiesFile Properties file containing property to check, constants defined
 	 * @param undefinedConstants Details of constant ranges defining the experiment

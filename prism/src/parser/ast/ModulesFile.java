@@ -298,6 +298,12 @@ public class ModulesFile extends ASTElement
 		return getRewardStruct(0);
 	}
 
+	/**
+	 * Get the expression used in init...endinit to define the initial states of the model.
+	 * This is null if absent, i.e. the model has a single initial state defined by the
+	 * initial values for each individual variable.  
+	 * If non-null, we have to assume that there may be multiple initial states. 
+	 */
 	public Expression getInitialStates()
 	{
 		return initStates;
@@ -721,8 +727,52 @@ public class ModulesFile extends ASTElement
 		return constantValues;
 	}
 
-	// create a Values object to represent (a unique) initial state
+	/**
+	 * Create a State object representing the default initial state of this model.
+	 * If there are potentially multiple initial states (because the model has an 
+	 * init...endinit specification), this method returns null;
+	 * Assumes that values for constants have been provided for the model.
+	 * Note: This method replaces the old getInitialValues() method,
+	 * since State objects are now preferred to Values objects for efficiency.
+	 */
+	public State getDefaultInitialState() throws PrismLangException
+	{
+		int i, j, count, n, n2;
+		Module module;
+		Declaration decl;
+		State initialState;
 
+		if (initStates != null) {
+			return null;
+		}
+
+		// Create State object
+		initialState = new State(getNumVars());
+		// Then add values for all globals and all locals, in that order
+		count = 0;
+		n = getNumGlobals();
+		for (i = 0; i < n; i++) {
+			decl = getGlobal(i);
+			initialState.setValue(count++, decl.getStartOrDefault().evaluate(constantValues, null));
+		}
+		n = getNumModules();
+		for (i = 0; i < n; i++) {
+			module = getModule(i);
+			n2 = module.getNumDeclarations();
+			for (j = 0; j < n2; j++) {
+				decl = module.getDeclaration(j);
+				initialState.setValue(count++, decl.getStartOrDefault().evaluate(constantValues, null));
+			}
+		}
+
+		return initialState;
+	}
+
+	/**
+	 * Create a Values object representing the default initial state of this model.
+	 * Deprecated: Use getDefaultInitialState() instead
+	 * (or new Values(getDefaultInitialState(), modulesFile)).
+	 */
 	public Values getInitialValues() throws PrismLangException
 	{
 		int i, j, n, n2;
@@ -792,7 +842,7 @@ public class ModulesFile extends ASTElement
 
 	/**
 	 * Create a VarList object storing information about all variables in this model.
-	 * Assumes that values for constants have been provided for the model,.
+	 * Assumes that values for constants have been provided for the model.
 	 * Also performs various syntactic checks on the variables.   
 	 */
 	public VarList createVarList() throws PrismLangException

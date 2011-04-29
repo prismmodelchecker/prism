@@ -75,16 +75,32 @@ public class State implements Comparable<State>
 
 	/**
 	 * Construct by copying existing Values object.
+	 * Need access to a ModulesFile in case variables are not ordered correctly.
+	 * Throws an exception if any variables are undefined. 
 	 * @param v Values object to copy.
+	 * @param mf Corresponding ModulesFile (for variable info/ordering)
 	 */
-	//FIXME:don't assume v has correct order  
-	public State(Values v) throws PrismLangException
+	public State(Values v, ModulesFile mf) throws PrismLangException
 	{
-		int i, n;
+		int i, j, n;
 		n = v.getNumValues();
+		if (n != mf.getNumVars()) {
+			throw new PrismLangException("Wrong number of variables in state");
+		}
 		varValues = new Object[n];
-		for (i = 0; i < n; i++)
+		for (i = 0; i < n; i++) {
+			varValues[i] = null;
+		}
+		for (i = 0; i < n; i++) {
+			j = mf.getVarIndex(v.getName(i));
+			if (j == -1) {
+				throw new PrismLangException("Unknown variable " + v.getName(i) + " in state");
+			}
+			if (varValues[i] != null) {
+				throw new PrismLangException("Duplicated variable " + v.getName(i) + " in state");
+			}
 			varValues[i] = v.getValue(i);
+		}
 	}
 
 	/**
