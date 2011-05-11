@@ -5,49 +5,72 @@ of the main changes in each public release, see the file VERSIONS.txt.
 Latest changes (mostly reverse chronological):
 [correct wrt svn rev 2286]
 
-* PTA model checking
-* New simulator
-* New -exporttarget switch
-* Adversary generation (e.g. -exportadv switch)
-* Filters and property semantics changes/additions
-* Access to action labels, e.g. in transition matrix export
-* Formulas used in properties are left unexpanded for legibility
-* New versions of jcommon (1.0.16) and jfreechart (1.0.13)
-* Option to specify initial distribution for transient analysis
-* Option to export steady-state/transient probabilities to a file
-* New -exporttransdotstates option
-* Improved dot file export for MDPs
-* Strict upper time-bounds allowed in properties
-* New -exportprism/-exportprismconst/-nobuild switches
-* Check for existence of zero-reward loops
+* Support for probabilistic timed automata (PTAs)
+  - new modelling language features: clocks, invariants
+  - model checking of timed/untimed probabilistic reachability properties
+  - two model checking engines: abstraction-refinement, digital clocks
+  - support for expected reward properties (i.e. priced PTAs)
+
+* New approximate/statistical model checking functionality
+  - additional confidence-interval (CI) based approximation methods
+  - acceptance sampling: sequential probabilistic ratio test (SPRT) method
+
+* Optimal adversary generation for MDPs
+  - and for PTAs, via digital clocks engine
+  
+* Improvements to the property language and model checking
+  - enhanced filters for property result processing
+  - new, clearer reporting of results from PRISM
+
+* Improved model export functionality
+  - option to include state information in dot files (e.g. -exporttransdotstates)
+  - action labels included in dot/transition matrix exports
+  - clearer for file export for MDPs
+
+* Additional functionality for transient/steady-state probabilities
+  - option to specify initial distribution for transient analysis
+  - option to export steady-state/transient probabilities to a file
+
+* New components/libraries for developers:
+  - completely re-written discrete-event simulation engine
+  - explicit-state probabilistic model checking library
+  - a quantitative abstraction-refinement engine 
+
+* Other improvements/additions:
+  - Strict upper time-bounds allowed in properties
+  - Formulas used in properties are left unexpanded for legibility
+  - Added check for existence of zero-reward loops in MDPs
+  - New -exportprism/-exportprismconst/-nobuild switches
+  - New -exporttarget switch
+  - New versions of jcommon (1.0.16) and jfreechart (1.0.13)
 
 -----------------------------------------------------------------------------
 Version 3.3.1 (released 22/11/2009)
 -----------------------------------------------------------------------------
 
-Bug fixes:
-- Building on new 64-bit Macs
-- Simulator bug (crashes on min/max function)
-- CTMC transient probs with MTBDD engine crash
-- State/transition reward mix-up in parser
-- Approximate verification of lower time-bounded properties for CTMCs
+* Bug fixes:
+  - Building on new 64-bit Macs
+  - Simulator bug (crashes on min/max function)
+  - CTMC transient probs with MTBDD engine crash
+  - State/transition reward mix-up in parser
+  - Approximate verification of lower time-bounded properties for CTMCs
 
 -----------------------------------------------------------------------------
 Version 3.3 (released 29/10/2009)
 -----------------------------------------------------------------------------
 
-Bug fixes:
-- Building on new Macs
-- Copy+paste bug in GUI
+* Bug fixes:
+  - Building on new Macs
+  - Copy+paste bug in GUI
 
 -----------------------------------------------------------------------------
 Version 3.3.beta2 (released 29/7/2009)
 -----------------------------------------------------------------------------
 
-Bug fixes:
-- LTL model checking (svn: 1112, 1132)
-- Approximate model checking (svn: 1214)
-- Building on new Macs (svn: 1103, 1105, 1349)
+* Bug fixes:
+  - LTL model checking (svn: 1112, 1132)
+  - Approximate model checking (svn: 1214)
+  - Building on new Macs (svn: 1103, 1105, 1349)
 
 -----------------------------------------------------------------------------
 Version 3.3.beta1 (released 20/5/2009) (svn: trunk rev 1066)
