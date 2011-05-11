@@ -228,18 +228,34 @@ public class UndefinedConstants
 		}
 	}
 
-	// define value for a single undefined constant
-	// returns whether or not an existing definition was overwritten
-	// actually just helper method for more general method below
-	
+	/** Define value for a single undefined constant.
+	 *  Returns whether or not an existing definition was overwritten.
+     *	Actually just helper method for more general method {@link #defineConstant(String, String, String, String) below}.
+     *  
+     *  The method {@link #initialiseIterators() initialiseIterators} must be called after all constants are defined.
+	 *
+	 *  @param name The name of the constant.
+	 *  @param val The value to be assigned.
+	 *  
+	 *  @return True if the constant was defined before.
+	 */
 	public boolean defineConstant(String name, String val) throws PrismException
 	{
 		return defineConstant(name, val, null, null);
 	}
 
-	// define value for a single undefined constant
-	// returns whether or not an existing definition was overwritten
-	
+	/** Define value for a single undefined constant.
+	 *  Returns whether or not an existing definition was overwritten.
+	 *
+	 *  The method {@link #initialiseIterators() initialiseIterators} must be called after all constants are defined.
+	 *	
+	 *  @param name The name of the constant.
+	 *  @param sl If sh are sl are null, this is the value to be assigned. Otherwise, it is the lower bound for the range.
+	 *  @param sh The upper bound for the range.
+	 *  @param ss The step for the values. Null means 1.
+	 *  
+	 *  @return True if the constant was defined before.
+	 */
 	public boolean defineConstant(String name, String sl, String sh, String ss) throws PrismException
 	{
 		int index = 0;
