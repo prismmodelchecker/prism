@@ -36,7 +36,7 @@ public class Filter extends ASTElement
 {
 	private Expression expr = null;
 	// Either "min" or "max", or neither or both.
-	// In the latter two cases, this means "range"
+	// In the latter two cases, this means "state" or "range"
 	private boolean minReq = false;
 	private boolean maxReq = false;
 
@@ -90,7 +90,7 @@ public class Filter extends ASTElement
 		if (minReq) {
 			return maxReq ? "range" : "min";
 		} else {
-			return maxReq ? "max" : "range";
+			return maxReq ? "max" : "state";
 		}
 	}
 	

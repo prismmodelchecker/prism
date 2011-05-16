@@ -34,7 +34,7 @@ public class ExpressionFilter extends Expression
 {
 	// Enums for  types of filter
 	public enum FilterOperator {
-		MIN, MAX, ARGMIN, ARGMAX, COUNT, SUM, AVG, FIRST, RANGE, FORALL, EXISTS, PRINT;
+		MIN, MAX, ARGMIN, ARGMAX, COUNT, SUM, AVG, FIRST, RANGE, FORALL, EXISTS, PRINT, STATE;
 	};
 
 	// Operator used in filter
@@ -97,6 +97,8 @@ public class ExpressionFilter extends Expression
 			opType = FilterOperator.EXISTS;
 		else if (opName.equals("print"))
 			opType = FilterOperator.PRINT;
+		else if (opName.equals("state"))
+			opType = FilterOperator.STATE;
 		else opType = null;
 	}
 	

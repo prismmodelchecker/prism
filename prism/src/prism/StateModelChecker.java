@@ -163,7 +163,7 @@ public class StateModelChecker implements ModelChecker
 				// Result is for the initial state, if there is just one,
 				// or the range over all initial states, if multiple
 				if (model.getNumStartStates() == 1) {
-					exprFilter = new ExpressionFilter("first", expr, new ExpressionLabel("init"));
+					exprFilter = new ExpressionFilter("state", expr, new ExpressionLabel("init"));
 				} else {
 					exprFilter = new ExpressionFilter("range", expr, new ExpressionLabel("init"));
 				}
@@ -1247,6 +1247,33 @@ public class StateModelChecker implements ModelChecker
 			mainLog.println("\n" + resultExpl);
 			// Derefs
 			JDD.Deref(dd);
+			break;
+		case STATE:
+			// Check filter satisfied by exactly one state
+			if (statesFilter.size() != 1) {
+				String s = "Filter should be satisfied in exactly 1 state";
+				s += " (but \"" + filter + "\" is true in " + statesFilter.size() + " states)";
+				throw new PrismException(s);
+			}
+			// Find first (only) value
+			d = vals.firstFromBDD(ddFilter);
+			// Store as object/vector
+			if (expr.getType() instanceof TypeInt) {
+				resObj = new Integer((int) d);
+			} else if (expr.getType() instanceof TypeDouble) {
+				resObj = new Double(d);
+			} else {
+				resObj = new Boolean(d > 0);
+			}
+			resVals = new StateValuesMTBDD(JDD.Constant(d), model);
+			// Create explanation of result and print some details to log
+			resultExpl = "Value in ";
+			if (filterInit) {
+				resultExpl += "the initial state";
+			} else {
+				resultExpl += "the filter state";
+			}
+			mainLog.println("\n" + resultExpl + ": " + resObj);
 			break;
 		default:
 			JDD.Deref(ddFilter);
