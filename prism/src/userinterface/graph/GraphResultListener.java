@@ -83,23 +83,30 @@ public class GraphResultListener implements ResultListener
 			} else return; // Cancel if non integer/double			
 			
 			// Cancel if x = +/- infinity or NaN
-			if (x == Double.POSITIVE_INFINITY || x == Double.NEGATIVE_INFINITY || x != x) 
+			if (x == Double.POSITIVE_INFINITY || x == Double.NEGATIVE_INFINITY || Double.isNaN(x)) 
 				return;
 						
-            // For now, to plot intervals, just pick lower value
-            if (result instanceof Interval) {
-            	result = ((Interval) result).lower;
-            }
-            
-			// Get y coordinate
-			if(result instanceof Integer) {	
-				y = ((Integer)result).intValue(); 
-			} else if(result instanceof Double)	{
-				y = ((Double)result).doubleValue();
-			} else return; // Cancel if non integer/double
-
-			// Add point to graph
-			graph.addPointToSeries(seriesKey, new XYDataItem(x,y));
+			// Add point to graph (if of valid type) 
+			if (result instanceof Double) {
+				y = ((Double) result).doubleValue();
+				graph.addPointToSeries(seriesKey, new XYDataItem(x, y));
+			} else if (result instanceof Integer) {
+				y = ((Integer) result).intValue();
+				graph.addPointToSeries(seriesKey, new XYDataItem(x, y));
+			} else if (result instanceof Interval) {
+				Interval interval = (Interval) result;
+				if (interval.lower instanceof Double) {
+					y = ((Double) interval.lower).doubleValue();
+					graph.addPointToSeries(seriesKey, new XYDataItem(x, y));
+					y = ((Double) interval.upper).doubleValue();
+					graph.addPointToSeries(seriesKey.next, new XYDataItem(x, y));
+				} else if (result instanceof Integer) {
+					y = ((Integer) interval.lower).intValue();
+					graph.addPointToSeries(seriesKey, new XYDataItem(x, y));
+					y = ((Integer) interval.upper).intValue();
+					graph.addPointToSeries(seriesKey.next, new XYDataItem(x, y));
+				}
+			}
 		}
 	}
 	
