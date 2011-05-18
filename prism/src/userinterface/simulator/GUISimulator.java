@@ -2874,7 +2874,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		{
 			int stepStart = 0;
 			int timeStart = stepStart + (view.showActions() ? 1 : 0) + (view.showSteps() ? 1 : 0);
-			int varStart = timeStart + (view.canShowTime() && view.showTime() ? 1 : 0) + (view.showCumulativeTime() && view.showTime() ? 1 : 0);
+			int varStart = timeStart + (view.canShowTime() && view.showCumulativeTime() ? 1 : 0) + (view.canShowTime() && view.showTime() ? 1 : 0);
 			int rewardStart = varStart + view.getVisibleVariables().size();
 
 			int groupCount = 0;
