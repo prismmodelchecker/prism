@@ -106,6 +106,8 @@ jlong __jlongpointer m	// 'maybe' states
 			soln = jlong_to_double(Java_sparse_PrismSparse_PS_1SOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(b), ptr_to_jlong(b), false, false, lin_eq_method_param, true)); break;
 		case LIN_EQ_METHOD_BSOR:
 			soln = jlong_to_double(Java_sparse_PrismSparse_PS_1SOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(b), ptr_to_jlong(b), false, false, lin_eq_method_param, false)); break;
+		default:
+			PS_SetErrorMessage("Pseudo Gauss-Seidel/SOR methods are currently not supported by the sparse engine"); return 0;
 	}
 	
 	// catch exceptions: register error, free memory
