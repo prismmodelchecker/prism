@@ -183,7 +183,7 @@ public class Modules2PTA
 		Edge edge;
 		// Misc
 		int i, j, k;
-		double prob;
+		double prob, probSum;
 
 		// Determine PC variable and clock variables in module
 		pc = module.getDeclaration(0).getName();
@@ -265,11 +265,17 @@ public class Modules2PTA
 
 			// Go through all updates
 			numUpdates = command.getUpdates().getNumUpdates();
+			probSum = 0.0;
 			for (j = 0; j < numUpdates; j++) {
 				up = command.getUpdates().getUpdate(j);
 				// Compute probability
 				expr = command.getUpdates().getProbability(j);
 				prob = (expr == null) ? 1.0 : expr.evaluateDouble(constantValues, pcValues);
+				if (prob < 0)
+					throw new PrismLangException("Negative probability (" + prob + ") found in PTA");
+				if (prob > 1)
+					throw new PrismLangException("Probability greater than 1 (" + prob + ") found in PTA");
+				probSum += prob;
 				// Create edge (destination is temporarily -1 since not known yet)
 				edge = tr.addEdge(prob, -1);
 				// Go through elements of update
@@ -288,6 +294,10 @@ public class Modules2PTA
 				// If no destination found, must be a loop
 				if (edge.getDestination() == -1)
 					edge.setDestination(tr.getSource());
+			}
+			// Check probabilities sum to one (ish)
+			if (!PrismUtils.doublesAreCloseAbs(probSum, 1.0, prism.getSumRoundOff())) {
+				throw new PrismLangException("Probabilities do not sum to one (" + probSum + ") in PTA");
 			}
 		}
 
