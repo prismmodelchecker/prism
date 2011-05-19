@@ -2,6 +2,11 @@ This file contains details of the changes in each new version of PRISM,
 including development and beta versions. For a less detailed overview
 of the main changes in each public release, see the file VERSIONS.txt.
 
+Latest changes (mostly reverse chronological):
+[correct wrt svn rev 2927]
+
+* <none>
+
 -----------------------------------------------------------------------------
 Version 4.0.beta (released 16/12/2010)
 -----------------------------------------------------------------------------
