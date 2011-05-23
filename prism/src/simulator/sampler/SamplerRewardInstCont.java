@@ -45,7 +45,7 @@ public class SamplerRewardInstCont extends SamplerDouble
 	{
 		// Make sure expression is of the correct type
 		// Then extract other required info
-		if (expr.getOperator() != ExpressionTemporal.R_C)
+		if (expr.getOperator() != ExpressionTemporal.R_I)
 			throw new PrismException("Error creating Sampler");
 		time = expr.getUpperBound().evaluateDouble();
 		this.rewardStructIndex = rewardStructIndex;
