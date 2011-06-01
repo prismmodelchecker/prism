@@ -77,7 +77,7 @@ ACKNOWLEDGEMENTS
 ----------------
 
 Currently, development work on PRISM is primarily carried out in the
-Computing Laboratory at the University of Oxford. Previously, PRISM
+Department of Computer Science at the University of Oxford. Previously, PRISM
 was based in the School of Computer Science at the University of Birmingham.
 
 The core team working on PRISM currently comprises:
@@ -117,8 +117,9 @@ If you have problems or questions regarding PRISM, please use the help forum pro
 Other comments and feedback about any aspect of PRISM are also very welcome. Please contact:
 
   Dave Parker
-  (david.parker@comlab.ox.ac.uk)
-  Oxford University Computing Laboratory
+  (david.parker@cs.ox.ac.uk)
+  Department of Computer Science
+  University of Oxford
   Wolfson Building
   Parks Road
   Oxford
