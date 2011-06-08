@@ -1,2 +1,2 @@
 // liveness property (eventually a process is made the leader)
-"init" => P>=1[ true U (s=9) ]
+P>=1 [ F (s=9) ]

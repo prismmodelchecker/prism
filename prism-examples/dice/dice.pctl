@@ -1,7 +1,7 @@
 const int x;
 
 // Is probability of throwing x > 0.1?
-"init" => P>0.1 [ true U s=7 & d=x ]
+P>0.1 [ true U s=7 & d=x ]
 
 // Probability of throwing 6?
 P=? [ true U s=7 & d=6 ]
