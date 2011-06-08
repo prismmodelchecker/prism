@@ -1734,8 +1734,9 @@ public class PrismCL
 		return aSimMethod;
 	}
 
-	// print help message
-
+	/**
+	 * Print a -help message, i.e. a list of the command-line switches.
+	 */
 	private void printHelp()
 	{
 		mainLog.println("Usage: prism <model-file> [<properties-file>] [options]");
@@ -1785,58 +1786,9 @@ public class PrismCL
 		mainLog.println("-exporttransient <file> ........ Export transient probabilities to a file");
 		mainLog.println("-exportprism <file> ............ Export final PRISM model to a file");
 		mainLog.println("-exportprismconst <file> ....... Export final PRISM model with expanded constants to a file");
-		mainLog.println();
-		mainLog.println("ENGINES/METHODS:");
-		mainLog.println("-mtbdd (or -m) ................. Use the MTBDD engine");
-		mainLog.println("-sparse (or -s) ................ Use the Sparse engine");
-		mainLog.println("-hybrid (or -h) ................ Use the Hybrid engine [default]");
-		mainLog.println("-ptamethod <name> .............. Specify PTA engine (games, digital) [default: games]");
-		mainLog.println();
-		mainLog.println("NUMERICAL SOLUTION OPTIONS:");
-		mainLog.println("-power (or -pow, -pwr) ......... Use the Power method for numerical computation");
-		mainLog.println("-jacobi (or -jac) .............. Use Jacobi for numerical computation [default]");
-		mainLog.println("-gaussseidel (or -gs) .......... Use Gauss-Seidel for numerical computation");
-		mainLog.println("-bgaussseidel (or -bgs) ........ Use Backwards Gauss-Seidel for numerical computation");
-		mainLog.println("-pgaussseidel (or -pgs) ........ Use Pseudo Gauss-Seidel for numerical computation");
-		mainLog.println("-bpgaussseidel (or -bpgs) ...... Use Backwards Pseudo Gauss-Seidel for numerical computation");
-		mainLog.println("-jor ........................... Use JOR for numerical computation");
-		mainLog.println("-sor ........................... Use SOR for numerical computation");
-		mainLog.println("-bsor .......................... Use Backwards SOR for numerical computation");
-		mainLog.println("-psor .......................... Use Pseudo SOR for numerical computation");
-		mainLog.println("-bpsor ......................... Use Backwards Pseudo SOR for numerical computation");
-		mainLog.println("-omega <x> ..................... Set over-relaxation parameter (for JOR/SOR/...) [default: 0.9]");
-		mainLog.println("-relative (or -rel) ............ Use relative error for detecting convergence [default]");
-		mainLog.println("-absolute (or -abs) ............ Use absolute error for detecting convergence");
-		mainLog.println("-epsilon <x> (or -e <x>) ....... Set value of epsilon (for convergence check) [default: 1e-6]");
-		mainLog.println("-maxiters <n> .................. Set max number of iterations [default: 10000]");
-		mainLog.println();
-		mainLog.println("MODEL CHECKING OPTIONS:");
-		mainLog.println("-nopre ......................... Skip (optional) precomputation algorithms");
-		mainLog.println("-fair .......................... Use fairness (for model checking of MDPs)");
-		mainLog.println("-nofair ........................ Don't use fairness (for model checking of MDPs) [default]");
-		mainLog.println("-fixdl ......................... Automatically put self-loops in deadlock states");
-		mainLog.println("-noprobchecks .................. Disable checks on model probabilities/rates");
-		mainLog.println("-zerorewardcheck ............... Check for absence of zero-reward loops");
-		mainLog.println("-nossdetect .................... Disable steady-state detection for CTMC transient computations");
-		mainLog.println("-sccmethod <name> .............. Specify SCC computation method (xiebeerel, lockstep, sccfind)");
-		mainLog.println("-symm <string> ................. Symmetry reduction options string");
-		mainLog.println("-aroptions <string> ............ Abstraction-refinement engine options string");
-		mainLog.println("-exportadv <file> .............. Export an adversary from MDP model checking (as a DTMC)");
-		mainLog.println("-exportadvmdp <file> ........... Export an adversary from MDP model checking (as an MDP)");
-		mainLog.println();
-		mainLog.println("OUTPUT OPTIONS:");
-		mainLog.println("-verbose (or -v) ............... Verbose mode: print out state lists and probability vectors");
-		mainLog.println("-extraddinfo ................... Display extra info about some (MT)BDDs");
-		mainLog.println("-extrareachinfo ................ Display extra info about progress of reachability");
-		mainLog.println();
-		mainLog.println("SPARSE/HYBRID/MTBDD OPTIONS:");
-		mainLog.println("-nocompact ..................... Switch off \"compact\" sparse storage schemes");
-		mainLog.println("-sbl <n> ....................... Set number of levels (for hybrid engine) [default: -1]");
-		mainLog.println("-sbmax <n> ..................... Set memory limit (KB) (for hybrid engine) [default: 1024]");
-		mainLog.println("-gsl <n> (or sorl <n>) ......... Set number of levels for hybrid GS/SOR [default: -1]");
-		mainLog.println("-gsmax <n> (or sormax <n>) ..... Set memory limit (KB) for hybrid GS/SOR [default: 1024]");
-		mainLog.println("-cuddmaxmem <n> ................ Set max memory for CUDD package (KB) [default: 200x1024]");
-		mainLog.println("-cuddepsilon <x> ............... Set epsilon value for CUDD package [default: 1e-15]");
+		
+		prism.getSettings().printHelp(mainLog);
+		
 		mainLog.println();
 		mainLog.println("SIMULATION OPTIONS:");
 		mainLog.println("-sim ........................... Use the PRISM simulator to approximate results of model checking");
