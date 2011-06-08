@@ -34,12 +34,11 @@ import java.awt.*;
 import javax.swing.*;
 import java.util.regex.*;
 
+import parser.ast.*;
 import settings.*;
-
 
 public class PrismSettings implements Observer
 {
-	
 	//Default Constants
 	public static final String DEFAULT_STRING = "";
 	public static final int DEFAULT_INT = 0;
@@ -171,7 +170,7 @@ public class PrismSettings implements Observer
 	
 	// Property table:
 	// * Datatype = type of choice (see type constants at top of this file)
-	// * Key= internal key, used programmatically; need to add this to key list above
+	// * Key = internal key, used programmatically; need to add this to key list above
 	// * Display name = display name; used e.g. in GUI options dialog
 	// * Version = last public version of PRISM in which this setting did *not* appear
 	//   (the main use for this is to allow a new default setting to be provided in a new version of PRISM)
@@ -207,7 +206,7 @@ public class PrismSettings implements Observer
 			{ BOOLEAN_TYPE,		PRISM_PRECOMPUTATION,					"Use precomputation",					"2.1",			new Boolean(true),															"",																							
 																			"Use model checking precomputation algorithms (Prob0, Prob1, etc.), where optional." },
 			{ BOOLEAN_TYPE,		PRISM_FAIRNESS,							"Use fairness",							"2.1",			new Boolean(false),															"",																							
-																			"Constrain to fair adversaries when model checking probabilistic reachability properties of MDPs." },
+																			"Constrain to fair adversaries when model checking MDPs." },
 			{ BOOLEAN_TYPE,		PRISM_DO_PROB_CHECKS,					"Do probability/rate checks",			"2.1",			new Boolean(true),															"",																							
 																			"Perform sanity checks on model probabilities/rates when constructing probabilistic models." },
 			{ BOOLEAN_TYPE,		PRISM_DO_SS_DETECTION,					"Use steady-state detection",			"2.1",			new Boolean(true),															"0,",																						
@@ -236,11 +235,11 @@ public class PrismSettings implements Observer
 																			"Number of MTBDD levels descended for hybrid engine data structures block division with GS/SOR." },
 			{ INTEGER_TYPE,		PRISM_SOR_MAX_MEM,						"Hybrid GS memory (KB)",				"2.1",			new Integer(1024),															"0,",																						
 																			"Maximum memory usage for hybrid engine data structures block division with GS/SOR (KB)." },
-			{ INTEGER_TYPE,		PRISM_CUDD_MAX_MEM,						"CUDD max. memory (KB)",				"2.1",			new Integer(204800),														"0,",																						
+			{ INTEGER_TYPE,		PRISM_CUDD_MAX_MEM,						"CUDD max. memory (KB)",				"2.1",			new Integer(409600),														"0,",																						
 																			"Maximum memory available to CUDD (underlying BDD/MTBDD library) in KB (Note: Restart PRISM after changing this.)" },
 			{ DOUBLE_TYPE,		PRISM_CUDD_EPSILON,						"CUDD epsilon",							"2.1",			new Double(1.0E-15),														"0.0,",																						
 																			"Epsilon value used by CUDD (underlying BDD/MTBDD library) for terminal cache comparisons." },
-			// ADVERSARIES/COUNTEREXAMPLES
+			// ADVERSARIES/COUNTEREXAMPLES:
 			{ CHOICE_TYPE,		PRISM_EXPORT_ADV,						"Adversary export",						"3.3",			"None",																	"None,DTMC,MDP",																
 																			"Type of adversary to generate and export during MDP model checking" },
 			{ STRING_TYPE,		PRISM_EXPORT_ADV_FILENAME,				"Adversary export filename",			"3.3",			"adv.tra",																	"",															
@@ -307,7 +306,7 @@ public class PrismSettings implements Observer
 		}
 	};
 	
-	public static final String[] oldPropertyNames = {"simulator.apmcStrategy", "simulator.engine", "simulator.newPathAskDefault"};
+	public static final String[] oldPropertyNames =  {"simulator.apmcStrategy", "simulator.engine", "simulator.newPathAskDefault"};
 	
 	public DefaultSettingOwner[] optionOwners;
 	private Hashtable<String,Setting> data;
@@ -315,6 +314,9 @@ public class PrismSettings implements Observer
 	
 	private ArrayList<PrismSettingsListener> settingsListeners;
 	
+	/**
+	 * Default constructor: set all options to default values. 
+	 */
 	public PrismSettings()
 	{
 		optionOwners = new DefaultSettingOwner[propertyOwnerIDs.length];
@@ -424,7 +426,25 @@ public class PrismSettings implements Observer
 		//populate a hash table with the keys
 		populateHashTable(counter);
 		settingsListeners = new ArrayList<PrismSettingsListener>();
-		
+	}
+	
+	/**
+	 * Copy constructor. 
+	 */
+	public PrismSettings(PrismSettings settings)
+	{
+		// Create anew with default values
+		// (that way, we get a fresh set of Setting objects)
+		this();
+		// Then, copy across options
+		for (Map.Entry<String,Setting> e : settings.data.entrySet()) {
+			try {
+				set(e.getKey(), e.getValue().getValue());
+			} catch (PrismException ex) {
+				// Should never happen
+				System.err.println(ex);
+			}
+		}
 	}
 	
 	private void populateHashTable(int size)
@@ -677,52 +697,348 @@ public class PrismSettings implements Observer
 		notifySettingsListeners();
 	}
 	
+	/**
+	 * Set an option by parsing one or more command-line arguments.
+	 * Reads the ith argument (assumed to be in the form "-switch")
+	 * and also any subsequent arguments required as parameters.
+	 * Return the index of the next argument to be read.
+	 * @param args Full list of arguments
+	 * @param i Index of first argument to read
+	 */
+	public synchronized int setFromCommandLineSwitch(String args[], int i) throws PrismException
+	{
+		String sw, s;
+		int j;
+		double d;
+		
+		sw = args[i].substring(1);
+
+		// ENGINES/METHODS:
+		
+		// Main model checking engine
+		if (sw.equals("mtbdd") || sw.equals("m")) {
+			set(PRISM_ENGINE, "MTBDD");
+		}
+		else if (sw.equals("sparse") || sw.equals("s")) {
+			set(PRISM_ENGINE, "Sparse");
+		}
+		else if (sw.equals("hybrid") || sw.equals("h")) {
+			set(PRISM_ENGINE, "Hybrid");
+		}
+		// PTA model checking methods
+		else if (sw.equals("ptamethod")) {
+			if (i < args.length - 1) {
+				s = args[++i];
+				if (s.equals("digital"))
+					set(PRISM_PTA_METHOD, "Digital clocks");
+				else if (s.equals("games"))
+					set(PRISM_PTA_METHOD, "Stochastic games");
+				else if (s.equals("bisim"))
+					set(PRISM_PTA_METHOD, "Bisimulation minimisation");
+				else
+					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: digital, games)");
+			} else {
+				throw new PrismException("No parameter specified for -" + sw + " switch");
+			}
+		}
+
+		// NUMERICAL SOLUTION OPTIONS:
+		
+		// Linear equation solver method
+		else if (sw.equals("power") || sw.equals("pow") || sw.equals("pwr")) {
+			set(PRISM_LIN_EQ_METHOD, "Power");
+		} else if (sw.equals("jacobi") || sw.equals("jac")) {
+			set(PRISM_LIN_EQ_METHOD, "Jacobi");
+		} else if (sw.equals("gaussseidel") || sw.equals("gs")) {
+			set(PRISM_LIN_EQ_METHOD, "Gauss-Seidel");
+		} else if (sw.equals("bgaussseidel") || sw.equals("bgs")) {
+			set(PRISM_LIN_EQ_METHOD, "Backwards Gauss-Seidel");
+		} else if (sw.equals("pgaussseidel") || sw.equals("pgs")) {
+			set(PRISM_LIN_EQ_METHOD, "Pseudo-Gauss-Seidel");
+		} else if (sw.equals("bpgaussseidel") || sw.equals("bpgs")) {
+			set(PRISM_LIN_EQ_METHOD, "Backwards Pseudo-Gauss-Seidel");
+		} else if (sw.equals("jor")) {
+			set(PRISM_LIN_EQ_METHOD, "JOR");
+		} else if (sw.equals("sor")) {
+			set(PRISM_LIN_EQ_METHOD, "SOR");
+		} else if (sw.equals("bsor")) {
+			set(PRISM_LIN_EQ_METHOD, "Backwards SOR");
+		} else if (sw.equals("psor")) {
+			set(PRISM_LIN_EQ_METHOD, "Pseudo-SOR");
+		} else if (sw.equals("bpsor")) {
+			set(PRISM_LIN_EQ_METHOD, "Backwards Pseudo-SOR");
+		}
+		// Termination criterion (iterative methods)
+		else if (sw.equals("absolute") || sw.equals("abs")) {
+			set(PRISM_TERM_CRIT, "Absolute");
+		} else if (sw.equals("relative") || sw.equals("rel")) {
+			set(PRISM_TERM_CRIT, "Relative");
+		}
+		// Termination criterion parameter
+		else if (sw.equals("epsilon") || sw.equals("e")) {
+			if (i < args.length - 1) {
+				try {
+					d = Double.parseDouble(args[++i]);
+					if (d < 0)
+						throw new NumberFormatException("");
+					set(PRISM_TERM_CRIT_PARAM, d);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
+		}
+		// Linear equation solver over-relaxation parameter
+		else if (sw.equals("omega")) {
+			if (i < args.length - 1) {
+				try {
+					d = Double.parseDouble(args[++i]);
+					set(PRISM_LIN_EQ_METHOD_PARAM, d);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
+		}
+		// Max iters
+		else if (sw.equals("maxiters")) {
+			if (i < args.length - 1) {
+				try {
+					j = Integer.parseInt(args[++i]);
+					if (j < 0)
+						throw new NumberFormatException("");
+					set(PRISM_MAX_ITERS, j);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
+		}
+
+		// MODEL CHECKING OPTIONS:
+		
+		// Precomputation algs off
+		else if (sw.equals("nopre")) {
+			set(PRISM_PRECOMPUTATION, false);
+		}
+		// Fairness on/off
+		else if (sw.equals("fair")) {
+			set(PRISM_FAIRNESS, true);
+		}
+		else if (sw.equals("nofair")) {
+			set(PRISM_FAIRNESS, false);
+		}
+		// Prob/rate checks off
+		else if (sw.equals("noprobchecks")) {
+			set(PRISM_DO_PROB_CHECKS, false);
+		}
+		// No steady-state detection
+		else if (sw.equals("nossdetect")) {
+			set(PRISM_DO_SS_DETECTION, false);
+		}
+		// SCC computation algorithm
+		else if (sw.equals("sccmethod") || sw.equals("bsccmethod")) {
+			if (i < args.length - 1) {
+				s = args[++i];
+				if (s.equals("xiebeerel"))
+					set(PRISM_SCC_METHOD, "Xie-Beerel");
+				else if (s.equals("lockstep"))
+					set(PRISM_SCC_METHOD, "Lockstep");
+				else if (s.equals("sccfind"))
+					set(PRISM_SCC_METHOD, "SCC-Find");
+				else
+					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: xiebeerel, lockstep, sccfind)");
+			} else {
+				throw new PrismException("No parameter specified for -" + sw + " switch");
+			}
+		}
+		// Enable symmetry reduction
+		else if (sw.equals("symm")) {
+			if (i < args.length - 2) {
+				set(PRISM_SYMM_RED_PARAMS, args[++i] + " " + args[++i]);
+			} else {
+				throw new PrismException("-symm switch requires two parameters (num. modules before/after symmetric ones)");
+			}
+		}
+		// Abstraction-refinement engine options string (append if already partially specified)
+		else if (sw.equals("aroptions")) {
+			if (i < args.length - 1) {
+				String arOptions = getString(PRISM_AR_OPTIONS);
+				if ("".equals(arOptions))
+					arOptions = args[++i].trim();
+				else
+					arOptions += "," + args[++i].trim();
+				set(PRISM_AR_OPTIONS, arOptions);
+			} else {
+				throw new PrismException("No parameter specified for -" + sw + " switch");
+			}
+		}
+		
+		// OUTPUT OPTIONS:
+		
+		// Verbosity
+		else if (sw.equals("verbose") || sw.equals("v")) {
+			set(PRISM_VERBOSE, true);
+		}
+		// Extra dd info on
+		else if (sw.equals("extraddinfo")) {
+			set(PRISM_EXTRA_DD_INFO, true);
+		}
+		// Extra reach info on
+		else if (sw.equals("extrareachinfo")) {
+			set(PRISM_EXTRA_REACH_INFO, true);
+		}
+		
+		// SPARSE/HYBRID/MTBDD OPTIONS:
+		
+		// Turn off compact option for sparse matrix storage
+		else if (sw.equals("nocompact")) {
+			set(PRISM_COMPACT, false);
+		}
+		// Sparse bits info
+		else if (sw.equals("sbl")) {
+			if (i < args.length - 1) {
+				try {
+					j = Integer.parseInt(args[++i]);
+					if (j < -1)
+						throw new NumberFormatException();
+					set(PRISM_NUM_SB_LEVELS, j);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
+		}
+		else if (sw.equals("sbmax")) {
+			if (i < args.length - 1) {
+				try {
+					j = Integer.parseInt(args[++i]);
+					if (j < 0)
+						throw new NumberFormatException();
+					set(PRISM_SB_MAX_MEM, j);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
+		}
+		// Hybrid SOR info
+		else if (sw.equals("sorl") || sw.equals("gsl")) {
+			if (i < args.length - 1) {
+				try {
+					j = Integer.parseInt(args[++i]);
+					if (j < -1)
+						throw new NumberFormatException();
+					set(PRISM_NUM_SOR_LEVELS, j);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
+		}
+		else if (sw.equals("sormax") || sw.equals("gsmax")) {
+			if (i < args.length - 1) {
+				try {
+					j = Integer.parseInt(args[++i]);
+					if (j < 0)
+						throw new NumberFormatException();
+					set(PRISM_SOR_MAX_MEM, j);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
+		}
+		// CUDD settings
+		else if (sw.equals("cuddmaxmem")) {
+			if (i < args.length - 1) {
+				try {
+					j = Integer.parseInt(args[++i]);
+					if (j < 0)
+						throw new NumberFormatException();
+					set(PRISM_CUDD_MAX_MEM, j);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
+		}
+		else if (sw.equals("cuddepsilon")) {
+			if (i < args.length - 1) {
+				try {
+					d = Double.parseDouble(args[++i]);
+					if (d < 0)
+						throw new NumberFormatException("");
+					set(PRISM_CUDD_EPSILON, d);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
+		}
+		
+		// ADVERSARIES/COUNTEREXAMPLES:
+		
+		// Export adversary to file
+		else if (sw.equals("exportadv")) {
+			if (i < args.length - 1) {
+				set(PRISM_EXPORT_ADV, "DTMC");
+				set(PRISM_EXPORT_ADV_FILENAME, args[++i]);
+			} else {
+				throw new PrismException("No file specified for -" + sw + " switch");
+			}
+		}
+		// Export adversary to file, as an MDP
+		else if (sw.equals("exportadvmdp")) {
+			if (i < args.length - 1) {
+				set(PRISM_EXPORT_ADV, "MDP");
+				set(PRISM_EXPORT_ADV_FILENAME, args[++i]);
+			} else {
+				throw new PrismException("No file specified for -" + sw + " switch");
+			}
+		}
+		
+		// unknown switch - error
+		else {
+			throw new PrismException("Invalid switch -" + sw + " (type \"prism -help\" for full list)");
+		}
+		
+		return i + 1;
+	}
+	
+	/**
+	 * Set the value for an option, with the option key given as a String,
+	 * and the value as an Object of appropriate type or a String to be parsed.
+	 * For options of type ChoiceSetting, either a String or (0-indexed) Integer can be used.
+	 */
 	public synchronized void set(String key, Object value) throws PrismException
 	{
 		Setting set = settingFromHash(key);
-		if(set == null)throw new PrismException("Property "+key+" is not valid.");
+		if (set == null)
+			throw new PrismException("Property " + key + " is not valid");
 		try
 		{
 			String oldValueString = set.toString();
-			
-			if(value instanceof Integer && set instanceof ChoiceSetting)
-			{
+			if (value instanceof String) {
+				set.setValue(set.parseStringValue((String) value));
+			} else if (value instanceof Integer && set instanceof ChoiceSetting) {
 				int iv = ((Integer)value).intValue();
-				((ChoiceSetting)set).setSelectedIndex(iv);
-			}
-			else
-			{
+				((ChoiceSetting) set).setSelectedIndex(iv);
+			} else {
 				set.setValue(value);
 			}
-			
 			notifySettingsListeners();
-			
-			if(!set.toString().equals(oldValueString))modified = true;
-		}
-		catch(SettingException e)
-		{
-			throw new PrismException(e.getMessage());
-		}
-	}
-	
-	public synchronized void set(String key, String value) throws PrismException
-	{
-		Setting set = settingFromHash(key);
-		for(int i = 0; (i < optionOwners.length) && (set==null); i++)
-		{
-			set = optionOwners[i].getFromKey(key);
-		}
-		if(set == null)throw new PrismException("Property "+key+" is not valid.");
-		try
-		{
-			Object obj = set.parseStringValue(value);
-			String oldValueString = set.toString();
-			
-			set.setValue(obj);
-			
-			notifySettingsListeners();
-			
-			if(!set.toString().equals(oldValueString))modified = true;
+			if (!set.toString().equals(oldValueString))
+				modified = true;
 		}
 		catch(SettingException e)
 		{
@@ -733,29 +1049,10 @@ public class PrismSettings implements Observer
 	public synchronized void setFileSelector(String key, FileSelector select)
 	{
 		Setting set = settingFromHash(key);
-		if(set instanceof FileSetting)
-		{
+		if (set instanceof FileSetting) {
 			FileSetting fset = (FileSetting)set;
-			
 			fset.setFileSelector(select);
 		}
-	}
-	
-	//The following methods are kept in for legacy purposes
-	
-	public synchronized void set(String key, int value) throws PrismException
-	{
-		set(key, new Integer(value));
-	}
-	
-	public synchronized void set(String key, boolean value) throws PrismException
-	{
-		set(key, new Boolean(value));
-	}
-	
-	public synchronized void set(String key, double value) throws PrismException
-	{
-		set(key, new Double(value));
 	}
 	
 	public synchronized String getString(String key)
