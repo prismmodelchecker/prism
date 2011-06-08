@@ -27,6 +27,7 @@
 package explicit;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.io.*;
 
 import prism.ModelType;
@@ -35,6 +36,9 @@ import prism.PrismUtils;
 
 /**
  * Simple explicit-state representation of an MDP.
+ * The implementation is far from optimal, both in terms of memory usage and speed of access.
+ * The model is, however, easy to manipulate. For a static model (i.e. one that does not change
+ * after creation), consider MDPSparse, which is more efficient. 
  */
 public class MDPSimple extends ModelSimple implements MDP
 {
@@ -84,15 +88,19 @@ public class MDPSimple extends ModelSimple implements MDP
 	public MDPSimple(MDPSimple mdp)
 	{
 		this(mdp.numStates);
-		for (int in : mdp.getInitialStates()) {
-			addInitialState(in);
-		}
-		for (int i = 0; i < numStates; i++) {
-			for (Distribution distr : mdp.trans.get(i)) {
-				addChoice(i, new Distribution(distr));
+		copyFrom(mdp);
+		for (int s = 0; s < numStates; s++) {
+			for (Distribution distr : mdp.trans.get(s)) {
+				addChoice(s, new Distribution(distr));
 			}
 		}
-		// TODO: copy actions, rewards
+		for (int s = 0; s < numStates; s++) {
+			int n = mdp.getNumChoices(s);
+			for (int i = 0; i < n; i++) {
+				setAction(s, i, mdp.getAction(s, i));
+			}
+		}
+		// TODO: copy rewards
 	}
 
 	/**
@@ -101,9 +109,7 @@ public class MDPSimple extends ModelSimple implements MDP
 	public MDPSimple(DTMCSimple dtmc)
 	{
 		this(dtmc.getNumStates());
-		for (int s : dtmc.getInitialStates()) {
-			addInitialState(s);
-		}
+		copyFrom(dtmc);
 		for (int s = 0; s < numStates; s++) {
 			addChoice(s, new Distribution(dtmc.getTransitions(s)));
 		}
@@ -119,12 +125,16 @@ public class MDPSimple extends ModelSimple implements MDP
 	public MDPSimple(MDPSimple mdp, int permut[])
 	{
 		this(mdp.numStates);
-		for (int in : mdp.getInitialStates()) {
-			addInitialState(permut[in]);
+		copyFrom(mdp, permut);
+		for (int s = 0; s < numStates; s++) {
+			for (Distribution distr : mdp.trans.get(s)) {
+				addChoice(permut[s], new Distribution(distr, permut));
+			}
 		}
-		for (int i = 0; i < numStates; i++) {
-			for (Distribution distr : mdp.trans.get(i)) {
-				addChoice(permut[i], new Distribution(distr, permut));
+		for (int s = 0; s < numStates; s++) {
+			int n = mdp.getNumChoices(s);
+			for (int i = 0; i < n; i++) {
+				setAction(permut[s], i, mdp.getAction(s, i));
 			}
 		}
 		// TODO: permute rewards
@@ -511,7 +521,7 @@ public class MDPSimple extends ModelSimple implements MDP
 			// Output transitions to PRISM language file
 			out = new FileWriter(filename);
 			out.write(getModelType().keyword() + "\n");
-			out.write("module M\nx : [0.." + (numStates-1) + "];\n");
+			out.write("module M\nx : [0.." + (numStates - 1) + "];\n");
 			sorted = new TreeMap<Integer, Double>();
 			for (i = 0; i < numStates; i++) {
 				j = -1;
@@ -547,45 +557,36 @@ public class MDPSimple extends ModelSimple implements MDP
 	public String infoString()
 	{
 		String s = "";
-		s += numStates + " states";
-		s += " (" + getNumInitialStates() + " initial)";
-		s += ", " + numDistrs + " distributions";
+		s += numStates + " states (" + getNumInitialStates() + " initial)";
 		s += ", " + numTransitions + " transitions";
-		s += ", dist max/avg = " + getMaxNumChoices() + "/"
-				+ PrismUtils.formatDouble2dp(((double) numDistrs) / numStates);
+		s += ", " + numDistrs + " choices";
+		s += ", dist max/avg = " + getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) numDistrs) / numStates);
+		return s;
+	}
+
+	@Override
+	public String infoStringTable()
+	{
+		String s = "";
+		s += "States:      " + numStates + " (" + getNumInitialStates() + " initial)\n";
+		s += "Transitions: " + numTransitions + "\n";
+		s += "Choices:     " + numDistrs + "\n";
+		s += "Max/avg:     " + getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) numDistrs) / numStates) + "\n";
 		return s;
 	}
 
 	// Accessors (for MDP)
 
 	@Override
-	public boolean someSuccessorsInSetForAllChoices(int s, BitSet set)
+	public double getNumTransitions(int s, int i)
 	{
-		for (Distribution distr : trans.get(s)) {
-			if (!distr.containsOneOf(set))
-				return false;
-		}
-		return true;
+		return trans.get(s).get(i).size();
 	}
 
 	@Override
-	public boolean someAllSuccessorsInSetForSomeChoices(int s, BitSet set1, BitSet set2)
+	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s, int i)
 	{
-		for (Distribution distr : trans.get(s)) {
-			if (distr.containsOneOf(set1) && distr.isSubsetOf(set2))
-				return true;
-		}
-		return false;
-	}
-
-	@Override
-	public boolean someAllSuccessorsInSetForAllChoices(int s, BitSet set1, BitSet set2)
-	{
-		for (Distribution distr : trans.get(s)) {
-			if (!distr.containsOneOf(set1) || !distr.isSubsetOf(set2))
-				return false;
-		}
-		return true;
+		return trans.get(s).get(i).iterator();
 	}
 
 	@Override
@@ -600,30 +601,85 @@ public class MDPSimple extends ModelSimple implements MDP
 	}
 
 	@Override
-	public void mvMultMinMax(double vect[], boolean min, double result[], BitSet subset, boolean complement)
+	public void prob0step(BitSet subset, BitSet u, boolean forall, BitSet result)
+	{
+		int i;
+		boolean b1, b2;
+		for (i = 0; i < numStates; i++) {
+			if (subset.get(i)) {
+				b1 = forall; // there exists or for all
+				for (Distribution distr : trans.get(i)) {
+					b2 = distr.containsOneOf(u);
+					if (forall) {
+						if (!b2) {
+							b1 = false;
+							continue;
+						}
+					} else {
+						if (b2) {
+							b1 = true;
+							continue;
+						}
+					}
+				}
+				result.set(i, b1);
+			}
+		}
+	}
+
+	@Override
+	public void prob1step(BitSet subset, BitSet u, BitSet v, boolean forall, BitSet result)
+	{
+		int i;
+		boolean b1, b2;
+		for (i = 0; i < numStates; i++) {
+			if (subset.get(i)) {
+				b1 = forall; // there exists or for all
+				for (Distribution distr : trans.get(i)) {
+					b2 = distr.containsOneOf(v) && distr.isSubsetOf(u);
+					if (forall) {
+						if (!b2) {
+							b1 = false;
+							continue;
+						}
+					} else {
+						if (b2) {
+							b1 = true;
+							continue;
+						}
+					}
+				}
+				result.set(i, b1);
+			}
+		}
+	}
+
+	@Override
+	public void mvMultMinMax(double vect[], boolean min, double result[], BitSet subset, boolean complement, int adv[])
 	{
 		int s;
 		// Loop depends on subset/complement arguments
 		if (subset == null) {
 			for (s = 0; s < numStates; s++)
-				result[s] = mvMultMinMaxSingle(s, vect, min);
+				result[s] = mvMultMinMaxSingle(s, vect, min, adv);
 		} else if (complement) {
 			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1))
-				result[s] = mvMultMinMaxSingle(s, vect, min);
+				result[s] = mvMultMinMaxSingle(s, vect, min, adv);
 		} else {
 			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1))
-				result[s] = mvMultMinMaxSingle(s, vect, min);
+				result[s] = mvMultMinMaxSingle(s, vect, min, adv);
 		}
 	}
 
 	@Override
-	public double mvMultMinMaxSingle(int s, double vect[], boolean min)
+	public double mvMultMinMaxSingle(int s, double vect[], boolean min, int adv[])
 	{
-		int k;
+		int j, k;
 		double d, prob, minmax;
 		boolean first;
 		List<Distribution> step;
 
+		j = 0;
 		minmax = 0;
 		first = true;
 		step = trans.get(s);
@@ -636,9 +692,19 @@ public class MDPSimple extends ModelSimple implements MDP
 				d += prob * vect[k];
 			}
 			// Check whether we have exceeded min/max so far
-			if (first || (min && d < minmax) || (!min && d > minmax))
+			if (first || (min && d < minmax) || (!min && d > minmax)) {
 				minmax = d;
+				// If adversary generation is enabled, remember optimal choice
+				if (adv != null) {
+					// Only remember strictly better choices
+					// (required if either player is doing max)
+					if (adv[s] == -1 || (min && minmax < vect[s]) || (!min && minmax > vect[s])) {
+						adv[s] = j;
+					}
+				}
+			}
 			first = false;
+			j++;
 		}
 
 		return minmax;
@@ -678,29 +744,139 @@ public class MDPSimple extends ModelSimple implements MDP
 	}
 
 	@Override
-	public void mvMultRewMinMax(double vect[], boolean min, double result[], BitSet subset, boolean complement)
+	public double mvMultSingle(int s, int k, double vect[])
+	{
+		double d, prob;
+
+		Distribution distr = trans.get(s).get(k);
+		// Compute sum for this distribution
+		d = 0.0;
+		for (Map.Entry<Integer, Double> e : distr) {
+			k = (Integer) e.getKey();
+			prob = (Double) e.getValue();
+			d += prob * vect[k];
+		}
+
+		return d;
+	}
+
+	@Override
+	public double mvMultGSMinMax(double vect[], boolean min, BitSet subset, boolean complement, boolean absolute)
+	{
+		int s;
+		double d, diff, maxDiff = 0.0;
+		// Loop depends on subset/complement arguments
+		if (subset == null) {
+			for (s = 0; s < numStates; s++) {
+				d = mvMultJacMinMaxSingle(s, vect, min);
+				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+				maxDiff = diff > maxDiff ? diff : maxDiff;
+				vect[s] = d;
+			}
+		} else if (complement) {
+			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1)) {
+				d = mvMultJacMinMaxSingle(s, vect, min);
+				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+				maxDiff = diff > maxDiff ? diff : maxDiff;
+				vect[s] = d;
+			}
+		} else {
+			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1)) {
+				d = mvMultJacMinMaxSingle(s, vect, min);
+				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+				maxDiff = diff > maxDiff ? diff : maxDiff;
+				vect[s] = d;
+			}
+		}
+		return maxDiff;
+	}
+
+	@Override
+	public double mvMultJacMinMaxSingle(int s, double vect[], boolean min)
+	{
+		int k;
+		double diag, d, prob, minmax;
+		boolean first;
+		List<Distribution> step;
+
+		minmax = 0;
+		first = true;
+		step = trans.get(s);
+		for (Distribution distr : step) {
+			diag = 1.0;
+			// Compute sum for this distribution
+			d = 0.0;
+			for (Map.Entry<Integer, Double> e : distr) {
+				k = (Integer) e.getKey();
+				prob = (Double) e.getValue();
+				if (k != s) {
+					d += prob * vect[k];
+				} else {
+					diag -= prob;
+				}
+			}
+			if (diag > 0)
+				d /= diag;
+			// Check whether we have exceeded min/max so far
+			if (first || (min && d < minmax) || (!min && d > minmax))
+				minmax = d;
+			first = false;
+		}
+
+		return minmax;
+	}
+
+	@Override
+	public double mvMultJacSingle(int s, int k, double vect[])
+	{
+		double diag, d, prob;
+		Distribution distr;
+
+		distr = trans.get(s).get(k);
+		diag = 1.0;
+		// Compute sum for this distribution
+		d = 0.0;
+		for (Map.Entry<Integer, Double> e : distr) {
+			k = (Integer) e.getKey();
+			prob = (Double) e.getValue();
+			if (k != s) {
+				d += prob * vect[k];
+			} else {
+				diag -= prob;
+			}
+		}
+		if (diag > 0)
+			d /= diag;
+
+		return d;
+	}
+
+	@Override
+	public void mvMultRewMinMax(double vect[], boolean min, double result[], BitSet subset, boolean complement, int adv[])
 	{
 		int s;
 		// Loop depends on subset/complement arguments
 		if (subset == null) {
 			for (s = 0; s < numStates; s++)
-				result[s] = mvMultRewMinMaxSingle(s, vect, min);
+				result[s] = mvMultRewMinMaxSingle(s, vect, min, adv);
 		} else if (complement) {
 			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1))
-				result[s] = mvMultRewMinMaxSingle(s, vect, min);
+				result[s] = mvMultRewMinMaxSingle(s, vect, min, adv);
 		} else {
 			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1))
-				result[s] = mvMultRewMinMaxSingle(s, vect, min);
+				result[s] = mvMultRewMinMaxSingle(s, vect, min, adv);
 		}
 	}
 
 	@Override
-	public double mvMultRewMinMaxSingle(int s, double vect[], boolean min)
+	public double mvMultRewMinMaxSingle(int s, double vect[], boolean min, int adv[])
 	{
 		int j, k;
 		double d, prob, minmax;
 		boolean first;
 		List<Distribution> step;
+
+		// TODO: implement adv. gen.
 
 		minmax = 0;
 		first = true;
@@ -813,23 +989,29 @@ public class MDPSimple extends ModelSimple implements MDP
 	@Override
 	public String toString()
 	{
-		int i;
-		boolean first;
+		int i, j, n;
+		Object o;
 		String s = "";
-		first = true;
 		s = "[ ";
 		for (i = 0; i < numStates; i++) {
-			if (first)
-				first = false;
-			else
+			if (i > 0)
 				s += ", ";
-			s += i + ": " + trans.get(i);
-			if (actions != null)
-				s += actions.get(i);
+			s += i + ": ";
+			s += "[";
+			n = getNumChoices(i);
+			for (j = 0; j < n; j++) {
+				if (j > 0)
+					s += ",";
+				o = getAction(i, j);
+				if (o != null)
+					s += o + ":";
+				s += trans.get(i).get(j);
+			}
+			s += "]";
 			if (transRewards != null)
 				s += transRewards.get(i);
 		}
-		s += " ]";
+		s += " ]\n";
 		return s;
 	}
 
@@ -848,5 +1030,19 @@ public class MDPSimple extends ModelSimple implements MDP
 		// TODO: compare actions (complicated: null = null,null,null,...)
 		// TODO: compare rewards (complicated: null = 0,0,0,0)
 		return true;
+	}
+
+	@Override
+	public void mvMultRight(int[] states, int[] adv, double[] source,
+			double[] dest) {
+		for (int s : states) {
+			Iterator<Entry<Integer, Double>> it = this.getTransitionsIterator(s, adv[s]);
+			while (it.hasNext()) {
+				Entry<Integer, Double> next = it.next();
+				int col = next.getKey();
+				double prob = next.getValue();
+				dest[col] += prob * source[s];
+			}
+		}
 	}
 }

@@ -27,7 +27,10 @@
 package explicit;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.io.*;
+
+import explicit.rewards.MCRewards;
 
 import prism.ModelType;
 import prism.PrismException;
@@ -74,9 +77,7 @@ public class DTMCSimple extends ModelSimple implements DTMC
 	public DTMCSimple(DTMCSimple dtmc)
 	{
 		this(dtmc.numStates);
-		for (int in : dtmc.getInitialStates()) {
-			addInitialState(in);
-		}
+		copyFrom(dtmc);
 		for (int i = 0; i < numStates; i++) {
 			trans.set(i, new Distribution(dtmc.trans.get(i)));
 		}
@@ -87,15 +88,14 @@ public class DTMCSimple extends ModelSimple implements DTMC
 	/**
 	 * Construct a DTMC from an existing one and a state index permutation,
 	 * i.e. in which state index i becomes index permut[i].
+	 * Pointer to states list is NOT copied (since now wrong).
 	 * Note: have to build new Distributions from scratch anyway to do this,
 	 * so may as well provide this functionality as a constructor.
 	 */
 	public DTMCSimple(DTMCSimple dtmc, int permut[])
 	{
 		this(dtmc.numStates);
-		for (int in : dtmc.getInitialStates()) {
-			addInitialState(permut[in]);
-		}
+		copyFrom(dtmc, permut);
 		for (int i = 0; i < numStates; i++) {
 			trans.set(permut[i], new Distribution(dtmc.trans.get(i), permut));
 		}
@@ -419,13 +419,33 @@ public class DTMCSimple extends ModelSimple implements DTMC
 	public String infoString()
 	{
 		String s = "";
-		s += numStates + " states";
-		s += " (" + getNumInitialStates() + " initial)";
+		s += numStates + " states (" + getNumInitialStates() + " initial)";
 		s += ", " + numTransitions + " transitions";
 		return s;
 	}
 
+	@Override
+	public String infoStringTable()
+	{
+		String s = "";
+		s += "States:      " + numStates + " (" + getNumInitialStates() + " initial)\n";
+		s += "Transitions: " + numTransitions + "\n";
+		return s;
+	}
+
 	// Accessors (for DTMC)
+
+	@Override
+	public double getNumTransitions(int s)
+	{
+		return trans.get(s).size();
+	}
+
+	@Override
+	public Iterator<Entry<Integer,Double>> getTransitionsIterator(int s)
+	{
+		return trans.get(s).iterator();
+	}
 
 	@Override
 	public double getTransitionReward(int s)
@@ -435,6 +455,32 @@ public class DTMCSimple extends ModelSimple implements DTMC
 		if (transRewards == null)
 			return 0.0;
 		return transRewards.get(s);
+	}
+
+	@Override
+	public void prob0step(BitSet subset, BitSet u, BitSet result)
+	{
+		int i;
+		Distribution distr;
+		for (i = 0; i < numStates; i++) {
+			if (subset.get(i)) {
+				distr = trans.get(i);
+				result.set(i, distr.containsOneOf(u));
+			}
+		}
+	}
+
+	@Override
+	public void prob1step(BitSet subset, BitSet u, BitSet v, BitSet result)
+	{
+		int i;
+		Distribution distr;
+		for (i = 0; i < numStates; i++) {
+			if (subset.get(i)) {
+				distr = trans.get(i);
+				result.set(i, distr.containsOneOf(v) && distr.isSubsetOf(u));
+			}
+		}
 	}
 
 	@Override
@@ -473,31 +519,87 @@ public class DTMCSimple extends ModelSimple implements DTMC
 	}
 
 	@Override
-	public void mvMultRew(double vect[], double result[], BitSet subset, boolean complement)
+	public double mvMultGS(double vect[], BitSet subset, boolean complement, boolean absolute)
+	{
+		int s;
+		double d, diff, maxDiff = 0.0;
+		// Loop depends on subset/complement arguments
+		if (subset == null) {
+			for (s = 0; s < numStates; s++) {
+				d = mvMultJacSingle(s, vect);
+				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+				maxDiff = diff > maxDiff ? diff : maxDiff;
+				vect[s] = d;
+			}
+		} else if (complement) {
+			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1)) {
+				d = mvMultJacSingle(s, vect);
+				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+				maxDiff = diff > maxDiff ? diff : maxDiff;
+				vect[s] = d;
+			}
+		} else {
+			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1)) {
+				d = mvMultJacSingle(s, vect);
+				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+				maxDiff = diff > maxDiff ? diff : maxDiff;
+				vect[s] = d;
+			}
+		}
+		return maxDiff;
+	}
+
+	@Override
+	public double mvMultJacSingle(int s, double vect[])
+	{
+		int k;
+		double diag, d, prob;
+		Distribution distr;
+
+		distr = trans.get(s);
+		diag = 1.0;
+		d = 0.0;
+		for (Map.Entry<Integer, Double> e : distr) {
+			k = (Integer) e.getKey();
+			prob = (Double) e.getValue();
+			if (k != s) {
+				d += prob * vect[k];
+			} else {
+				diag -= prob;
+			}
+		}
+		if (diag > 0)
+			d /= diag;
+
+		return d;
+	}
+
+	@Override
+	public void mvMultRew(double vect[], MCRewards mcRewards, double result[], BitSet subset, boolean complement)
 	{
 		int s;
 		// Loop depends on subset/complement arguments
 		if (subset == null) {
 			for (s = 0; s < numStates; s++)
-				result[s] = mvMultRewSingle(s, vect);
+				result[s] = mvMultRewSingle(s, vect, mcRewards);
 		} else if (complement) {
 			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1))
-				result[s] = mvMultRewSingle(s, vect);
+				result[s] = mvMultRewSingle(s, vect, mcRewards);
 		} else {
 			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1))
-				result[s] = mvMultRewSingle(s, vect);
+				result[s] = mvMultRewSingle(s, vect, mcRewards);
 		}
 	}
 
 	@Override
-	public double mvMultRewSingle(int s, double vect[])
+	public double mvMultRewSingle(int s, double vect[], MCRewards mcRewards)
 	{
 		int k;
 		double d, prob;
 		Distribution distr;
 
 		distr = trans.get(s);
-		d = getTransitionReward(s);
+		d = mcRewards.getStateReward(s);
 		for (Map.Entry<Integer, Double> e : distr) {
 			k = (Integer) e.getKey();
 			prob = (Double) e.getValue();

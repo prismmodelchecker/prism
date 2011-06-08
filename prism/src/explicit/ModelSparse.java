@@ -34,59 +34,25 @@ import prism.ModelType;
 import prism.PrismException;
 
 /**
- * Base class for simple explicit-state model representations.
+ * Base class sparse matrix-based (non-mutable) explicit-state model representations
  */
-public abstract class ModelSimple implements Model
+public abstract class ModelSparse implements Model
 {
 	// Number of states
 	protected int numStates;
 	// Initial states
 	protected List<Integer> initialStates; // TODO: should be a (linkedhash?) set really
-	// State info (read only, just a pointer)
+	// State info
 	protected List<State> statesList;
-	// Constant info (read only, just a pointer)
+	// Constant info
 	protected Values constantValues;
 	
 	// Mutators
-
-	/**
-	 * Copy data from another ModelSimple (used by superclass copy constructors).
-	 * Assumes that this has already been initialise()ed.
-	 */
-	public void copyFrom(ModelSimple model)
-	{
-		numStates = model.numStates;
-		for (int in : model.initialStates) {
-			addInitialState(in);
-		}
-		// Shallow copy of read-only stuff
-		statesList = model.statesList;
-		constantValues = model.constantValues;
-	}
-	
-	/**
-	 * Copy data from another ModelSimple and a state index permutation,
-	 * i.e. state index i becomes index permut[i]
-	 * (used by superclass copy constructors).
-	 * Assumes that this has already been initialise()ed.
-	 * Pointer to states list is NOT copied (since now wrong).
-	 */
-	public void copyFrom(ModelSimple model, int permut[])
-	{
-		numStates = model.numStates;
-		for (int in : model.initialStates) {
-			addInitialState(permut[in]);
-		}
-		// Shallow copy of (some) read-only stuff
-		// (i.e. info that is not broken by permute)
-		statesList = null;
-		constantValues = model.constantValues;
-	}
 	
 	/**
 	 * Initialise: create new model with fixed number of states.
 	 */
-	public void initialise(int numStates)
+	protected void initialise(int numStates)
 	{
 		this.numStates = numStates;
 		initialStates = new ArrayList<Integer>();
@@ -101,21 +67,6 @@ public abstract class ModelSimple implements Model
 		initialStates.add(i);
 	}
 	
-	/**
-	 * Clear all information for a state (i.e. remove all transitions).
-	 */
-	public abstract void clearState(int i);
-	
-	/**
-	 * Add a new state and return its index.
-	 */
-	public abstract int addState();
-
-	/**
-	 * Add multiple new states.
-	 */
-	public abstract void addStates(int numToAdd);
-
 	/**
 	 * Build (anew) from a list of transitions exported explicitly by PRISM (i.e. a .tra file).
 	 */

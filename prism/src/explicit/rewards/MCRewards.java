@@ -24,35 +24,15 @@
 //	
 //==============================================================================
 
-package explicit;
+package explicit.rewards;
 
 /**
- * Interface for classes that provide (read) access to an explicit-state CTMDP.
+ * Classes that provide (read) access to explicit-state rewards for a Markov chain (DTMC/CTMC).
  */
-public interface CTMDP extends MDP
+public abstract class MCRewards
 {
-	// TODO: copy/modify functions from CTMC
-	
 	/**
-	 * Compute the maximum exit rate.
+	 * Get the state reward for state {@code s}.
 	 */
-	public double getMaxExitRate();
-	
-	/**
-	 * Check if the CTMDP is locally uniform, i.e. each state has the same exit rate for all actions. 
-	 */
-	public boolean isLocallyUniform();
-	
-	/**
-	 * Build the discretised (DT)MDP for this CTMDP, in implicit form
-	 * (i.e. where the details are computed on the fly from this one).
-	 * @param tau Step duration
-	 */
-	public MDP buildImplicitDiscretisedMDP(double tau);
-
-	/**
-	 * Build (a new) discretised (DT)MDP for this CTMDP.
-	 * @param tau Step duration
-	 */
-	public MDPSimple buildDiscretisedMDP(double tau);
+	public abstract double getStateReward(int s); 
 }

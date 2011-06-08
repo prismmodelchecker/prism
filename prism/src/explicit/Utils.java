@@ -43,7 +43,7 @@ public class Utils
 		else
 			return maxOverArraySubset(array, subset);
 	}
-	
+
 	/**
 	 * Compute the minimum value over a subset of an array of doubles.
 	 * @param array The array
@@ -59,7 +59,7 @@ public class Utils
 		}
 		return d;
 	}
-	
+
 	/**
 	 * Compute the maximum value over a subset of an array of doubles.
 	 * @param array The array
@@ -75,7 +75,7 @@ public class Utils
 		}
 		return d;
 	}
-	
+
 	/**
 	 * Create an n-element array of doubles (0s and 1s) from a BitSet.
 	 *  @param bs The bitset specifying 0s and 1s
@@ -142,5 +142,53 @@ public class Utils
 			arrayNew[i] = array[i];
 		}
 		return arrayNew;
+	}
+
+	/**
+	 * Test if two double arrays are equal.
+	 */
+	public static boolean doubleArraysAreEqual(double array1[], double array2[])
+	{
+		int i, n;
+		if (array1 == null)
+			return (array2 == null);
+		n = array1.length;
+		if (n != array2.length)
+			return false;
+		for (i = 0; i < n; i++) {
+			if (array1[i] != array2[i])
+				return false;
+			;
+		}
+		return true;
+	}
+
+	/**
+	 * Test if two int arrays are equal.
+	 */
+	public static boolean intArraysAreEqual(int array1[], int array2[])
+	{
+		int i, n;
+		if (array1 == null)
+			return (array2 == null);
+		n = array1.length;
+		if (n != array2.length)
+			return false;
+		for (i = 0; i < n; i++) {
+			if (array1[i] != array2[i])
+				return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Returns true if int array 'array' contains value 'val'.
+	 */
+	public static boolean intArrayContains(int val, int[] array)
+	{
+		for (int i = 0; i < array.length; i++)
+			if (val == array[i])
+				return true;
+		return false;
 	}
 }

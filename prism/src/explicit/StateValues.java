@@ -146,6 +146,16 @@ public class StateValues
 	
 	// METHODS TO MODIFY VECTOR
 	
+	public void setIntValue(int i, int val)
+	{
+		valuesI[i] = val;
+	}
+	
+	public void setDoubleValue(int i, double val)
+	{
+		valuesD[i] = val;
+	}
+	
 	// ...
 	
 	// METHODS TO ACCESS VECTOR DATA

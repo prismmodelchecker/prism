@@ -28,7 +28,10 @@ package explicit;
 
 import java.util.Map;
 
+import explicit.StateModelChecker.TermCrit;
+
 import prism.ModelType;
+import prism.PrismUtils;
 
 /**
  * Simple explicit-state representation of a CTMDP.
@@ -61,8 +64,19 @@ public class CTMDPSimple extends MDPSimple implements CTMDP
 		super(ctmdp);
 	}
 
+	/**
+	 * Construct a CTMDP from an existing one and a state index permutation,
+	 * i.e. in which state index i becomes index permut[i].
+	 * Note: have to build new Distributions from scratch anyway to do this,
+	 * so may as well provide this functionality as a constructor.
+	 */
+	public CTMDPSimple(CTMDPSimple ctmdp, int permut[])
+	{
+		super(ctmdp, permut);
+	}
+
 	// Accessors (for ModelSimple)
-	
+
 	@Override
 	public ModelType getModelType()
 	{
@@ -84,6 +98,24 @@ public class CTMDPSimple extends MDPSimple implements CTMDP
 			}
 		}
 		return max;
+	}
+
+	@Override
+	public boolean isLocallyUniform()
+	{
+		int i, j, n;
+		double d;
+		for (i = 0; i < numStates; i++) {
+			n = trans.get(i).size();
+			if (n < 2)
+				continue;
+			d = trans.get(i).get(0).sum();
+			for (j = 1; j < n; j++) {
+				if (!PrismUtils.doublesAreCloseAbs(trans.get(i).get(j).sum(), d, 1e-12))
+					return false;
+			}
+		}
+		return true;
 	}
 
 	@Override

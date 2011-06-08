@@ -105,7 +105,7 @@ public class PTAAbstractRefine extends QuantAbstractRefine
 		}
 
 		// Build empty game
-		abstraction = new STPG();
+		abstraction = new STPGAbstrSimple();
 
 		// Add all states
 		numStates = graph.states.size();
@@ -193,7 +193,7 @@ public class PTAAbstractRefine extends QuantAbstractRefine
 	protected void buildSTPGStateRec(int src, NCZone valid, BitSet bitSet, ArrayList<NCZone> valids, int[] map,
 			int level, int numValids) throws PrismException
 	{
-		STPG stpg;
+		STPGAbstrSimple stpg;
 		ArrayList<SymbolicTransition> sts;
 		DistributionSet distrSet;
 		Distribution distr;
@@ -201,7 +201,7 @@ public class PTAAbstractRefine extends QuantAbstractRefine
 		int count, i, dest;
 
 		// Cast abstraction to STPG since we know the type
-		stpg = (STPG) abstraction;
+		stpg = (STPGAbstrSimple) abstraction;
 
 		// Bottom of recursion: check if valid and, if so, add appropriate distribution set to game
 		if (level == numValids) {
@@ -310,7 +310,7 @@ public class PTAAbstractRefine extends QuantAbstractRefine
 			for (int in : choiceList) {
 				// If using BitSets for action labels (i.e. have not cached zones for reuse)
 				// need to build the corresponding zone
-				action = ((STPG) abstraction).getChoice(splitState, in).action;
+				action = ((STPGAbstrSimple) abstraction).getChoice(splitState, in).action;
 				if (!storeValidZones) {
 					actionBitSet = (BitSet) action;
 					List<SymbolicTransition> sts = graph.trans.get(splitState);

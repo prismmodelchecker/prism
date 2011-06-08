@@ -24,35 +24,28 @@
 //	
 //==============================================================================
 
-package explicit;
+package explicit.rewards;
 
 /**
- * Interface for classes that provide (read) access to an explicit-state CTMDP.
+ * Explicit-state storage of constant state rewards for a DTMC/CTMC.
  */
-public interface CTMDP extends MDP
+public class MCRewardsStateConstant extends MCRewards
 {
-	// TODO: copy/modify functions from CTMC
+	protected double stateReward = 0.0;
 	
 	/**
-	 * Compute the maximum exit rate.
+	 * Constructor: all rewards equal to {@code r}
 	 */
-	public double getMaxExitRate();
+	public MCRewardsStateConstant(double r)
+	{
+		stateReward = r;
+	}
 	
-	/**
-	 * Check if the CTMDP is locally uniform, i.e. each state has the same exit rate for all actions. 
-	 */
-	public boolean isLocallyUniform();
+	// Accessors (for MCRewards)
 	
-	/**
-	 * Build the discretised (DT)MDP for this CTMDP, in implicit form
-	 * (i.e. where the details are computed on the fly from this one).
-	 * @param tau Step duration
-	 */
-	public MDP buildImplicitDiscretisedMDP(double tau);
-
-	/**
-	 * Build (a new) discretised (DT)MDP for this CTMDP.
-	 * @param tau Step duration
-	 */
-	public MDPSimple buildDiscretisedMDP(double tau);
+	@Override
+	public double getStateReward(int s)
+	{
+		return stateReward;
+	}
 }

@@ -27,7 +27,12 @@
 package explicit;
 
 import java.util.*;
+import java.util.Map.Entry;
 
+import explicit.rewards.MCRewards;
+
+import parser.State;
+import parser.Values;
 import prism.ModelType;
 import prism.PrismException;
 
@@ -39,6 +44,8 @@ public class DTMCUniformisedSimple implements DTMC
 {
 	// Parent CTMC
 	protected CTMCSimple ctmc;
+	// Also store num states for easy access
+	protected int numStates;
 	// Uniformisation rate
 	protected double q;
 	// Number of extra transitions added (just for stats)
@@ -50,8 +57,8 @@ public class DTMCUniformisedSimple implements DTMC
 	public DTMCUniformisedSimple(CTMCSimple ctmc, double q)
 	{
 		this.ctmc = ctmc;
+		this.numStates = ctmc.getNumStates();
 		this.q = q;
-		int numStates = ctmc.getNumStates();
 		numExtraTransitions = 0;
 		for (int i = 0; i < numStates; i++) {
 			if (ctmc.getTransitions(i).get(i) == 0 && ctmc.getTransitions(i).sumAllBut(i) < q) {
@@ -100,6 +107,16 @@ public class DTMCUniformisedSimple implements DTMC
 		return ctmc.isInitialState(i);
 	}
 
+	public List<State> getStatesList()
+	{
+		return ctmc.getStatesList();
+	}
+	
+	public Values getConstantValues()
+	{
+		return ctmc.getConstantValues();
+	}
+	
 	public int getNumTransitions()
 	{
 		return ctmc.getNumTransitions() + numExtraTransitions;
@@ -165,12 +182,37 @@ public class DTMCUniformisedSimple implements DTMC
 		throw new PrismException("Export not yet supported");
 	}
 
+	@Override
 	public String infoString()
 	{
-		return ctmc.infoString() + " + " + numExtraTransitions + " self-loops";
+		String s = "";
+		s += numStates + " states (" + getNumInitialStates() + " initial)";
+		s += ", " + getNumTransitions() + " transitions (incl. " + numExtraTransitions + " self-loops)";
+		return s;
+	}
+
+	@Override
+	public String infoStringTable()
+	{
+		String s = "";
+		s += "States:      " + numStates + " (" + getNumInitialStates() + " initial)\n";
+		s += "Transitions: " + getNumTransitions() + "\n";
+		return s;
 	}
 
 	// Accessors (for DTMC)
+
+	public double getNumTransitions(int s)
+	{
+		// TODO
+		throw new RuntimeException("Not implemented yet");
+	}
+
+	public Iterator<Entry<Integer,Double>> getTransitionsIterator(int s)
+	{
+		// TODO
+		throw new RuntimeException("Not implemented yet");
+	}
 
 	public double getTransitionReward(int s)
 	{
@@ -178,10 +220,21 @@ public class DTMCUniformisedSimple implements DTMC
 		throw new Error("Not yet supported");
 	}
 
+	public void prob0step(BitSet subset, BitSet u, BitSet result)
+	{
+		// TODO
+		throw new Error("Not yet supported");
+	}
+
+	public void prob1step(BitSet subset, BitSet u, BitSet v, BitSet result)
+	{
+		// TODO
+		throw new Error("Not yet supported");
+	}
+
 	public void mvMult(double vect[], double result[], BitSet subset, boolean complement)
 	{
-		int s, numStates;
-		numStates = ctmc.getNumStates();
+		int s;
 		// Loop depends on subset/complement arguments
 		if (subset == null) {
 			for (s = 0; s < numStates; s++)
@@ -220,24 +273,79 @@ public class DTMCUniformisedSimple implements DTMC
 		return d;
 	}
 
-	public void mvMultRew(double vect[], double result[], BitSet subset, boolean complement)
+	@Override
+	public double mvMultGS(double vect[], BitSet subset, boolean complement, boolean absolute)
+	{
+		int s;
+		double d, diff, maxDiff = 0.0;
+		// Loop depends on subset/complement arguments
+		if (subset == null) {
+			for (s = 0; s < numStates; s++) {
+				d = mvMultJacSingle(s, vect);
+				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+				maxDiff = diff > maxDiff ? diff : maxDiff;
+				vect[s] = d;
+			}
+		} else if (complement) {
+			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1)) {
+				d = mvMultJacSingle(s, vect);
+				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+				maxDiff = diff > maxDiff ? diff : maxDiff;
+				vect[s] = d;
+			}
+		} else {
+			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1)) {
+				d = mvMultJacSingle(s, vect);
+				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+				maxDiff = diff > maxDiff ? diff : maxDiff;
+				vect[s] = d;
+			}
+		}
+		return maxDiff;
+	}
+
+	@Override
+	public double mvMultJacSingle(int s, double vect[])
+	{
+		int k;
+		double sum, d, prob;
+		Distribution distr;
+
+		distr = ctmc.getTransitions(s);
+		sum = d = 0.0;
+		for (Map.Entry<Integer, Double> e : distr) {
+			k = (Integer) e.getKey();
+			prob = (Double) e.getValue();
+			// Non-diagonal entries only
+			if (k != s) {
+				sum += prob;
+				d += (prob / q) * vect[k];
+			}
+		}
+		// Diagonal entry is 1 - sum/q
+		d /= (sum / q);
+
+		return d;
+	}
+
+	public void mvMultRew(double vect[], MCRewards mcRewards, double result[], BitSet subset, boolean complement)
 	{
 		int s, numStates;
 		numStates = ctmc.getNumStates();
 		// Loop depends on subset/complement arguments
 		if (subset == null) {
 			for (s = 0; s < numStates; s++)
-				result[s] = mvMultRewSingle(s, vect);
+				result[s] = mvMultRewSingle(s, vect, mcRewards);
 		} else if (complement) {
 			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1))
-				result[s] = mvMultRewSingle(s, vect);
+				result[s] = mvMultRewSingle(s, vect, mcRewards);
 		} else {
 			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1))
-				result[s] = mvMultRewSingle(s, vect);
+				result[s] = mvMultRewSingle(s, vect, mcRewards);
 		}
 	}
 
-	public double mvMultRewSingle(int s, double vect[])
+	public double mvMultRewSingle(int s, double vect[], MCRewards mcRewards)
 	{
 		// TODO
 		throw new Error("Not yet supported");

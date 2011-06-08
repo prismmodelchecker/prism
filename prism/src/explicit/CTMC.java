@@ -27,12 +27,19 @@
 package explicit;
 
 /**
- * Interface for classes that provide (read-only) access to an explicit-state CTMC.
+ * Interface for classes that provide (read) access to an explicit-state CTMC.
  */
 public interface CTMC extends DTMC
 {
 	/**
+	 * Get the exit rate for state {@code i}.
+	 * i.e. sum_j R(i,j)
+	 */
+	public double getExitRate(int i);
+	
+	/**
 	 * Compute the maximum exit rate.
+	 * i.e. max_i { sum_j R(i,j) }
 	 */
 	public double getMaxExitRate();
 	

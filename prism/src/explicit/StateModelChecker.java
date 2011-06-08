@@ -29,26 +29,35 @@ package explicit;
 import java.io.*;
 import java.util.*;
 
-import jdd.JDD;
-import jdd.JDDNode;
-
+import parser.State;
+import parser.Values;
 import parser.ast.*;
 import parser.type.*;
 import prism.PrismException;
-import prism.PrismLangException;
 import prism.PrismLog;
 import prism.PrismPrintStreamLog;
+import prism.PrismSettings;
 import prism.Result;
 
-import prism.StateValuesMTBDD;
-
 /**
- * Super class for explicit-state probabilistic model checkers
+ * Super class for explicit-state model checkers
  */
 public class StateModelChecker
 {
 	// Log for output (default to System.out)
 	protected PrismLog mainLog = new PrismPrintStreamLog(System.out);
+
+	// PRISM settings object
+	protected PrismSettings settings = new PrismSettings();
+	
+	// Model file (for reward structures, etc.)
+	protected ModulesFile modulesFile = null;
+
+	// Properties file (for labels, constants, etc.)
+	protected PropertiesFile propertiesFile = null;
+
+	// Constants (extracted from model/properties)
+	protected Values constantValues;
 
 	// The result of model checking will be stored here
 	protected Result result;
@@ -62,7 +71,7 @@ public class StateModelChecker
 	// Parameter for iterative numerical method termination criteria
 	protected double termCritParam = 1e-8;
 	// Max iterations for numerical solution
-	protected int maxIters = 100000;
+	protected int maxIters = 100000; // TODO: make same as PRISM?
 	// Use precomputation algorithms in model checking?
 	protected boolean precomp = true;
 	protected boolean prob0 = true;
@@ -86,11 +95,11 @@ public class StateModelChecker
 
 	// Method used for numerical solution
 	public enum SolnMethod {
-		VALUE_ITERATION
+		VALUE_ITERATION, GAUSS_SEIDEL, POLICY_ITERATION, MODIFIED_POLICY_ITERATION
 	};
 
-	// Log setter/getter
-	
+	// Setters/getters
+
 	/**
 	 * Set log for output.
 	 */
@@ -105,6 +114,38 @@ public class StateModelChecker
 	public PrismLog getLog()
 	{
 		return mainLog;
+	}
+
+	/**
+	 * Set PRISM settings object.
+	 */
+	public void setSettings(PrismSettings settings)
+	{
+		this.settings = settings;
+	}
+
+	/**
+	 * Get PRISM settings object.
+	 */
+	public PrismSettings getSettings()
+	{
+		return settings;
+	}
+
+	/**
+	 * Set the attached model file (for e.g. reward structures when model checking)
+	 */
+	public void setModulesFile(ModulesFile modulesFile)
+	{
+		this.modulesFile = modulesFile;
+	}
+
+	/**
+	 * Set the attached properties file (for e.g. constants/labels when model checking)
+	 */
+	public void setPropertiesFile(PropertiesFile propertiesFile)
+	{
+		this.propertiesFile = propertiesFile;
 	}
 
 	// Set methods for flags/settings
@@ -244,7 +285,7 @@ public class StateModelChecker
 		setValIterDir(other.getValIterDir());
 		setSolnMethod(other.getSolnMethod());
 	}
-	
+
 	/**
 	 * Print summary of current settings.
 	 */
@@ -264,9 +305,13 @@ public class StateModelChecker
 	}
 
 	// Model checking functions
-	
+
 	/**
 	 * Model check an expression, process and return the result.
+	 * Information about states and model constants should be attached to the model.
+	 * For other required info (labels, reward structures, etc.), use the methods
+	 * {@link #setModulesFile} and {@link #setPropertiesFile}
+	 * to attach the original model/properties files.
 	 */
 	public Result check(Model model, Expression expr) throws PrismException
 	{
@@ -279,8 +324,19 @@ public class StateModelChecker
 		boolean satInit = false;
 		int numSat = 0;
 
+		// Get combined constant values from model/properties
+		constantValues = new Values();
+		constantValues.addValues(model.getConstantValues());
+		if (propertiesFile != null)
+			constantValues.addValues(propertiesFile.getConstantValues());
+
 		// Create storage for result
 		result = new Result();
+
+		// Remove labels from property, using combined label list (on a copy of the expression) 
+		expr = (Expression) expr.deepCopy().expandLabels(propertiesFile.getCombinedLabelList());
+		// Also evaluate/replace any constants
+		expr = (Expression) expr.replaceConstants(constantValues);
 
 		// Do model checking and store result vector
 		timer = System.currentTimeMillis();
@@ -292,7 +348,7 @@ public class StateModelChecker
 		if (expr.getType() instanceof TypeBool) {
 
 			// Cast to Bitset
-			valsBitSet = (BitSet)vals;
+			valsBitSet = (BitSet) vals;
 			// And check how many states are satisfying
 			numSat = valsBitSet.cardinality();
 
@@ -352,8 +408,8 @@ public class StateModelChecker
 			// and whether it is just a single value (e.g. from if the top-level operator is a filter)
 
 			// Cast to Bitset
-			valsSV = (StateValues)vals;
-			
+			valsSV = (StateValues) vals;
+
 			// Case where this is a single value (e.g. filter)
 			if (expr.returnsSingleValue()) {
 				// Get result for initial state (although it is the same for all states)
@@ -413,6 +469,10 @@ public class StateModelChecker
 
 	/**
 	 * Model check an expression and return a vector result values over all states.
+	 * Information about states and model constants should be attached to the model.
+	 * For other required info (labels, reward structures, etc.), use the methods
+	 * {@link #setModulesFile} and {@link #setPropertiesFile}
+	 * to attach the original model/properties files.
 	 */
 	public Object checkExpression(Model model, Expression expr) throws PrismException
 	{
@@ -426,6 +486,32 @@ public class StateModelChecker
 		else if (expr instanceof ExpressionLabel) {
 			res = checkExpressionLabel(model, (ExpressionLabel) expr);
 		}
+		// Anything else - just evaluate expression repeatedly
+		else if (expr.getType() instanceof TypeBool) {
+			int numStates = model.getNumStates();
+			BitSet bs = new BitSet(numStates);
+			List<State> statesList = model.getStatesList();
+			for (int i = 0; i < numStates; i++) {
+				bs.set(i, expr.evaluateBoolean(statesList.get(i)));
+			}
+			res = bs;
+		} else if (expr.getType() instanceof TypeInt) {
+			int numStates = model.getNumStates();
+			StateValues sv = new StateValues(expr.getType(), numStates);
+			List<State> statesList = model.getStatesList();
+			for (int i = 0; i < numStates; i++) {
+				sv.setIntValue(i, expr.evaluateInt(statesList.get(i)));
+			}
+			res = sv;
+		} else if (expr.getType() instanceof TypeDouble) {
+			int numStates = model.getNumStates();
+			StateValues sv = new StateValues(expr.getType(), numStates);
+			List<State> statesList = model.getStatesList();
+			for (int i = 0; i < numStates; i++) {
+				sv.setDoubleValue(i, expr.evaluateDouble(statesList.get(i)));
+			}
+			res = sv;
+		}
 		// Anything else - error
 		else {
 			throw new PrismException("Couldn't check " + expr.getClass());
@@ -433,24 +519,28 @@ public class StateModelChecker
 
 		return res;
 	}
-	
+
 	/**
 	 * Model check a literal.
 	 */
 	protected Object checkExpressionLiteral(Model model, ExpressionLiteral expr) throws PrismException
 	{
-		// TODO: make much more efficient
 		Type type;
-		BitSet result = null;
+		Object res = null;
 		type = expr.getType();
 		if (type instanceof TypeBool) {
-			result = new BitSet(model.getNumStates());
+			BitSet bs = new BitSet(model.getNumStates());
 			if (expr.evaluateBoolean()) {
-				result.set(0, model.getNumStates());
+				bs.set(0, model.getNumStates());
 			}
+			res = bs;
+		} else if (type instanceof TypeInt || type instanceof TypeDouble) {
+			res = new StateValues(expr.getType(), model.getNumStates(), expr.evaluate());
+		} else {
+			throw new PrismException("Couldn't check literal " + expr);
 		}
 
-		return result;
+		return res;
 	}
 
 	/**
@@ -474,9 +564,17 @@ public class StateModelChecker
 			//JDD.Ref(dd);
 			//return new StateValuesMTBDD(dd, model);
 		} else {
-			labels = loadLabelsFile(getLabelsFilename());
+			ll = propertiesFile.getCombinedLabelList();
+			i = ll.getLabelIndex(expr.getName());
+			if (i == -1)
+				throw new PrismException("Unknown label \"" + expr.getName() + "\" in property");
+			// check recursively
+			return checkExpression(model, ll.getLabel(i));
+
+			// TODO: remove this:
+			//labels = loadLabelsFile(getLabelsFilename());
 			// get expression associated with label
-			return labels.get(expr.getName());
+			//return labels.get(expr.getName());
 		}
 	}
 
@@ -553,26 +651,5 @@ public class StateModelChecker
 		} catch (NumberFormatException e) {
 			throw new PrismException("Error in labels file");
 		}
-	}
-	
-	// (TEMPORARY)
-	protected String labelsFilename = null;
-	
-	/**
-	 * (TEMPORARY)
-	 * Set the labels file associated with this model.
-	 */
-	public void setLabelsFilename(String filename)
-	{
-		labelsFilename = filename;
-	}
-	
-	/**
-	 * (TEMPORARY)
-	 * Get the labels file associated with this model.
-	 */
-	public String getLabelsFilename()
-	{
-		return labelsFilename;
 	}
 }

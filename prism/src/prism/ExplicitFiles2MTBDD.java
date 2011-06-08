@@ -34,9 +34,10 @@ import parser.*;
 import parser.ast.*;
 import parser.type.*;
 
-// class to translate an explicit prism model description into an MTBDD model
-
-public class Explicit2MTBDD
+/**
+ * Class to convert explicit-state file storage of a model to symbolic representation.
+ */
+public class ExplicitFiles2MTBDD
 {
 	// prism
 	private Prism prism;
@@ -110,7 +111,7 @@ public class Explicit2MTBDD
 
 	// constructor
 	
-	public Explicit2MTBDD(Prism prism, File sf, File tf, File lf, ModelType t)
+	public ExplicitFiles2MTBDD(Prism prism, File sf, File tf, File lf, ModelType t)
 	{
 		this.prism = prism;
 		mainLog = prism.getMainLog();

@@ -83,6 +83,12 @@ public class CTMCSimple extends DTMCSimple implements CTMC
 	// Accessors (for CTMC)
 	
 	@Override
+	public double getExitRate(int i)
+	{
+		return trans.get(i).sum();
+	}
+	
+	@Override
 	public double getMaxExitRate()
 	{
 		int i;

@@ -441,7 +441,7 @@ public abstract class QuantAbstractRefine
 		}
 		mc.inheritSettings(mcOptions);
 		// But limit verbosity (since model checking will be done many times)
-		mc.setVerbosity(verbosity - 1);
+		//mc.setVerbosity(verbosity - 1);
 
 		// Init timers, etc.
 		timerTotal = System.currentTimeMillis();
@@ -524,7 +524,7 @@ public abstract class QuantAbstractRefine
 				// Compute... note lbsoln for both is ok sinec = ubsoln
 				lb = ((STPG) abstraction).mvMultMinMaxSingle(i, lbSoln, true, min);
 				ub = ((STPG) abstraction).mvMultMinMaxSingle(i, lbSoln, false, min);
-				mainLog.println(((STPG) abstraction).getChoices(i));
+				mainLog.println(((STPGAbstrSimple) abstraction).getChoices(i));
 				mainLog.println("XX " + i + ": old=[" + lbSoln[i] + "," + ubSoln[i] + "], new=[" + lb + "," + ub + "]");
 				if (PrismUtils.doublesAreClose(ub, lb, refineTermCritParam, refineTermCrit == RefineTermCrit.ABSOLUTE)) {
 					lbSoln[i] = ubSoln[i] = lb;
@@ -648,7 +648,7 @@ public abstract class QuantAbstractRefine
 				mc.setValIterDir(MDPModelChecker.ValIterDir.BELOW);
 				// TODO
 			} else {
-				res = ((MDPModelChecker) mc).probReach((MDP) abstraction, target, true);
+				res = ((MDPModelChecker) mc).computeReachProbs((MDP) abstraction, target, true);
 			}
 			break;
 		case CTMDP:
@@ -656,15 +656,15 @@ public abstract class QuantAbstractRefine
 				mc.setValIterDir(MDPModelChecker.ValIterDir.BELOW);
 				// TODO
 			} else {
-				res = ((CTMDPModelChecker) mc).probReach((CTMDP) abstraction, target, true);
+				res = ((CTMDPModelChecker) mc).computeReachProbs((CTMDP) abstraction, target, true);
 			}
 			break;
 		case STPG:
 			if (optimise && refinementNum > 0) {
 				mc.setValIterDir(MDPModelChecker.ValIterDir.BELOW);
-				res = ((STPGModelChecker) mc).probReach((STPG) abstraction, target, true, min, lbSoln, known);
+				res = ((STPGModelChecker) mc).computeReachProbs((STPG) abstraction, null, target, true, min, lbSoln, known);
 			} else {
-				res = ((STPGModelChecker) mc).probReach((STPG) abstraction, target, true, min, null, null);
+				res = ((STPGModelChecker) mc).computeReachProbs((STPG) abstraction, null, target, true, min, null, null);
 			}
 			break;
 		default:
@@ -684,28 +684,28 @@ public abstract class QuantAbstractRefine
 			if (optimise) {
 				// TODO
 			} else {
-				res = ((MDPModelChecker) mc).probReach((MDP) abstraction, target, false);
+				res = ((MDPModelChecker) mc).computeReachProbs((MDP) abstraction, target, false);
 			}
 			break;
 		case CTMDP:
 			if (optimise) {
 				// TODO
 			} else {
-				res = ((CTMDPModelChecker) mc).probReach((CTMDP) abstraction, target, false);
+				res = ((CTMDPModelChecker) mc).computeReachProbs((CTMDP) abstraction, target, false);
 			}
 			break;
 		case STPG:
 			if (optimise) {
 				if (above) {
 					mc.setValIterDir(ValIterDir.ABOVE);
-					res = ((STPGModelChecker) mc).probReach((STPG) abstraction, target, false, min, ubSoln, known);
+					res = ((STPGModelChecker) mc).computeReachProbs((STPG) abstraction, null, target, false, min, ubSoln, known);
 				} else {
 					mc.setValIterDir(ValIterDir.BELOW);
 					double lbCopy[] = Utils.cloneDoubleArray(lbSoln);
-					res = ((STPGModelChecker) mc).probReach((STPG) abstraction, target, false, min, lbCopy, known);
+					res = ((STPGModelChecker) mc).computeReachProbs((STPG) abstraction, null, target, false, min, lbCopy, known);
 				}
 			} else {
-				res = ((STPGModelChecker) mc).probReach((STPG) abstraction, target, false, min, null, null);
+				res = ((STPGModelChecker) mc).computeReachProbs((STPG) abstraction, null, target, false, min, null, null);
 			}
 			break;
 		default:
@@ -731,14 +731,14 @@ public abstract class QuantAbstractRefine
 		// Compute lower bounds
 		switch (abstractionType) {
 		case MDP:
-			res = ((MDPModelChecker) mc).probReachBounded((MDP) abstraction, target, reachBound, true, null, results);
+			res = ((MDPModelChecker) mc).computeBoundedReachProbs((MDP) abstraction, null, target, reachBound, true, null, results);
 			break;
 		case CTMDP:
-			res = ((CTMDPModelChecker) mc).probReachBounded((CTMDP) abstraction, target, (double) reachBound, true,
+			res = ((CTMDPModelChecker) mc).computeBoundedReachProbs((CTMDP) abstraction, null, target, (double) reachBound, true,
 					null, results);
 			break;
 		case STPG:
-			res = ((STPGModelChecker) mc).probReachBounded((STPG) abstraction, target, reachBound, true, min, null,
+			res = ((STPGModelChecker) mc).computeBoundedReachProbs((STPG) abstraction, null, target, reachBound, true, min, null,
 					results);
 			break;
 		default:
@@ -759,14 +759,14 @@ public abstract class QuantAbstractRefine
 		// Compute upper bounds
 		switch (abstractionType) {
 		case MDP:
-			res = ((MDPModelChecker) mc).probReachBounded((MDP) abstraction, target, reachBound, false, null, results);
+			res = ((MDPModelChecker) mc).computeBoundedReachProbs((MDP) abstraction, null, target, reachBound, false, null, results);
 			break;
 		case CTMDP:
-			res = ((CTMDPModelChecker) mc).probReachBounded((CTMDP) abstraction, target, (double) reachBound, false,
+			res = ((CTMDPModelChecker) mc).computeBoundedReachProbs((CTMDP) abstraction, null, target, (double) reachBound, false,
 					null, results);
 			break;
 		case STPG:
-			res = ((STPGModelChecker) mc).probReachBounded((STPG) abstraction, target, reachBound, false, min, null,
+			res = ((STPGModelChecker) mc).computeBoundedReachProbs((STPG) abstraction, null, target, reachBound, false, min, null,
 					results);
 			break;
 		default:
@@ -801,9 +801,9 @@ public abstract class QuantAbstractRefine
 		switch (abstractionType) {
 		case MDP:
 			if (optimise && refinementNum > 0) {
-				res = ((MDPModelChecker) mc).expReach((MDP) abstraction, target, true, lbSoln, known);
+				res = ((MDPModelChecker) mc).computeReachRewards((MDP) abstraction, target, true, lbSoln, known);
 			} else {
-				res = ((MDPModelChecker) mc).expReach((MDP) abstraction, target, true, null, null);
+				res = ((MDPModelChecker) mc).computeReachRewards((MDP) abstraction, target, true, null, null);
 			}
 			break;
 		default:
@@ -821,9 +821,9 @@ public abstract class QuantAbstractRefine
 		case MDP:
 			if (optimise) {
 				double lbCopy[] = Utils.cloneDoubleArray(lbSoln);
-				res = ((MDPModelChecker) mc).expReach((MDP) abstraction, target, false, lbCopy, known);
+				res = ((MDPModelChecker) mc).computeReachRewards((MDP) abstraction, target, false, lbCopy, known);
 			} else {
-				res = ((MDPModelChecker) mc).expReach((MDP) abstraction, target, false, null, null);
+				res = ((MDPModelChecker) mc).computeReachRewards((MDP) abstraction, target, false, null, null);
 			}
 			break;
 		default:
@@ -1219,14 +1219,14 @@ public abstract class QuantAbstractRefine
 	private static void exportToDotFile(String filename, Model abstraction, BitSet known, double lbSoln[],
 			double ubSoln[]) throws PrismException
 	{
-		STPG stpg;
+		STPGAbstrSimple stpg;
 		int i, j, k;
 		String nij, nijk;
 		
 		if (abstraction instanceof STPG) {
-			stpg = (STPG) abstraction;
+			stpg = (STPGAbstrSimple) abstraction;
 		} else if (abstraction instanceof MDPSimple) {
-			stpg = new STPG((MDPSimple) abstraction);
+			stpg = new STPGAbstrSimple((MDPSimple) abstraction);
 		} else {
 			throw new PrismException("Cannot export this model type to a dot file");
 		}
@@ -1234,7 +1234,7 @@ public abstract class QuantAbstractRefine
 		try {
 			FileWriter out = new FileWriter(filename);
 			out.write("digraph " + "STPG" + " {\nsize=\"8,5\"\nnode [shape=box];\n");
-			for (i = 0; i < stpg.numStates; i++) {
+			for (i = 0; i < stpg.getNumStates(); i++) {
 				if (known.get(i))
 					out.write(i + " [label=\"" + i + " {" + lbSoln[i] + "}" + "\" style=filled  fillcolor=\"#cccccc\"");
 				else

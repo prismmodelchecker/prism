@@ -124,6 +124,36 @@ public class IndexedSet<T>
 	}
 	
 	/**
+	 * Create an ArrayList of the states, ordered by permuted index.
+	 * Index in new list is permut[old_index].
+	 * @param permut Permutation to apply
+	 */
+	public ArrayList<T> toPermutedArrayList(int permut[])
+	{
+		ArrayList<T> list = new ArrayList<T>(set.size());
+		toPermutedArrayList(permut, list);
+		return list;
+	}
+
+	/**
+	 * Create an ArrayList of the states, ordered by permuted index, storing in the passed in list.
+	 * Index in new list is permut[old_index].
+	 * @param permut Permutation to apply
+	 * @param list An empty ArrayList in which to store the result.
+	 */
+	public void toPermutedArrayList(int permut[], ArrayList<T> list)
+	{
+		int i, n;
+
+		n = set.size();
+		for (i = 0; i < n ; i++)
+			list.add(null);
+		for (Map.Entry<T, Integer> e : set.entrySet()) {
+			list.set(permut[e.getValue()], e.getKey());
+		}
+	}
+	
+	/**
 	 * Build sort permutation. Assuming this was built as a sorted set,
 	 * this returns a permutation (integer array) mapping current indices
 	 * to new indices under the sorting order.

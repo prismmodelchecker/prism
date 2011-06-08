@@ -77,6 +77,7 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_COMPACT						= "prism.compact";
 	public static final	String PRISM_LIN_EQ_METHOD					= "prism.linEqMethod";//"prism.iterativeMethod";
 	public static final	String PRISM_LIN_EQ_METHOD_PARAM			= "prism.linEqMethodParam";//"prism.overRelaxation";
+	public static final	String PRISM_MDP_SOLN_METHOD				= "prism.mdpSolnMethod";
 	public static final	String PRISM_TERM_CRIT						= "prism.termCrit";//"prism.termination";
 	public static final	String PRISM_TERM_CRIT_PARAM				= "prism.termCritParam";//"prism.terminationEpsilon";
 	public static final	String PRISM_MAX_ITERS						= "prism.maxIters";//"prism.maxIterations";
@@ -192,6 +193,8 @@ public class PrismSettings implements Observer
 			// NUMERICAL SOLUTION OPTIONS:
 			{ CHOICE_TYPE,		PRISM_LIN_EQ_METHOD,					"Linear equations method",				"2.1",			"Jacobi",																	"Power,Jacobi,Gauss-Seidel,Backwards Gauss-Seidel,Pseudo-Gauss-Seidel,Backwards Pseudo-Gauss-Seidel,JOR,SOR,Backwards SOR,Pseudo-SOR,Backwards Pseudo-SOR",
 																			"Which iterative method to use when solving linear equation systems." },
+			{ CHOICE_TYPE,		PRISM_MDP_SOLN_METHOD,					"MDP solution method",				"4.0",			"Value iteration",																"Value iteration,Gauss-Seidel,Policy iteration,Modified policy iteration,Linear programming",
+																			"Which method to use when solving Markov decision processes." },
 			{ CHOICE_TYPE,		PRISM_TERM_CRIT,						"Termination criteria",					"2.1",			"Relative",																	"Absolute,Relative",																		
 																			"Criteria to use for checking termination of iterative numerical methods." },
 			{ DOUBLE_TYPE,		PRISM_TERM_CRIT_PARAM,					"Termination epsilon",					"2.1",			new Double(1.0E-6),															"0.0,",																						

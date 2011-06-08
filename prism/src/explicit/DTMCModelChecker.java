@@ -29,69 +29,16 @@ package explicit;
 import java.util.*;
 
 import prism.*;
+import explicit.StateValues;
+import explicit.rewards.*;
 import parser.ast.*;
-import parser.Values;
 
 /**
  * Explicit-state model checker for discrete-time Markov chains (DTMCs).
  */
-public class DTMCModelChecker extends StateModelChecker
+public class DTMCModelChecker extends ProbModelChecker
 {
-	protected Values constantValues = null;
-	
-	/**
-	 * Pass a set of constant values to the model checker, to be used when
-	 * evaluating constant expressions in expressions/properties.   
-	 */
-	public void setConstantValues(Values constantValues)
-	{
-		this.constantValues = constantValues;
-	}
-	
 	// Model checking functions
-
-	/**
-	 * Model check an expression and return the values for all states.
-	 */
-	public Object checkExpression(Model model, Expression expr) throws PrismException
-	{
-		Object res;
-
-		// P operator
-		if (expr instanceof ExpressionProb) {
-			res = checkExpressionProb(model, (ExpressionProb) expr);
-		}
-		// Otherwise, use the superclass
-		else {
-			res = super.checkExpression(model, expr);
-		}
-
-		return res;
-	}
-
-	/**
-	 * Model check a P operator expression and return the values for all states.
-	 */
-	protected StateValues checkExpressionProb(Model model, ExpressionProb expr) throws PrismException
-	{
-		StateValues probs = null;
-
-		// Check for unhandled cases
-		if (expr.getProb() != null)
-			throw new PrismException("Bounded P operators not yet supported");
-			
-		// Compute probabilities
-		probs = checkProbPathFormula(model, expr.getExpression());
-
-		// Print out probabilities
-		if (getVerbosity() > 5) {
-			mainLog.print("\nProbabilities (non-zero only) for all states:\n");
-			mainLog.print(probs);
-		}
-
-		// For =? properties, just return values
-		return probs;
-	}
 
 	/**
 	 * Compute probabilities for the contents of a P operator.
@@ -122,8 +69,12 @@ public class DTMCModelChecker extends StateModelChecker
 				if (exprTemp.hasBounds()) {
 					probs = checkProbBoundedUntil(model, exprTemp);
 				} else {
-					probs = null; // TODO checkProbUntil(model, exprTemp);
+					probs = checkProbUntil(model, exprTemp);
 				}
+			}
+			// Anything else - convert to until and recurse
+			else {
+				probs = checkProbPathFormulaSimple(model, exprTemp.convertToUntilForm());
 			}
 		}
 
@@ -133,6 +84,9 @@ public class DTMCModelChecker extends StateModelChecker
 		return probs;
 	}
 
+	/**
+	 * Compute probabilities for a bounded until operator.
+	 */
 	protected StateValues checkProbBoundedUntil(Model model, ExpressionTemporal expr) throws PrismException
 	{
 		int time;
@@ -150,8 +104,8 @@ public class DTMCModelChecker extends StateModelChecker
 		}
 
 		// model check operands first
-		b1 = (BitSet)checkExpression(model, expr.getOperand1());
-		b2 = (BitSet)checkExpression(model, expr.getOperand2());
+		b1 = (BitSet) checkExpression(model, expr.getOperand1());
+		b2 = (BitSet) checkExpression(model, expr.getOperand2());
 
 		// compute probabilities
 
@@ -160,163 +114,132 @@ public class DTMCModelChecker extends StateModelChecker
 			// prob is 1 in b2 states, 0 otherwise
 			probs = StateValues.createFromBitSetAsDoubles(model.getNumStates(), b2);
 		} else {
-			res = probReachBounded((DTMC)model, b2, time);
+			res = computeBoundedUntilProbs((DTMC) model, b1, b2, time);
 			probs = StateValues.createFromDoubleArray(res.soln);
 		}
 
 		return probs;
 	}
 
-	// Precomputation functions
-
 	/**
-	 * Prob0 precomputation algorithm.
+	 * Compute probabilities for an (unbounded) until operator.
 	 */
-	public BitSet prob0(DTMC dtmc, BitSet target)
+	protected StateValues checkProbUntil(Model model, ExpressionTemporal expr) throws PrismException
 	{
-		int i, n, iters;
-		boolean b2;
-		BitSet u, soln;
-		boolean u_done;
-		long timer;
+		BitSet b1, b2;
+		StateValues probs = null;
+		ModelCheckerResult res = null;
 
-		// Start precomputation
-		timer = System.currentTimeMillis();
-		mainLog.println("Starting Prob0...");
+		// model check operands first
+		b1 = (BitSet) checkExpression(model, expr.getOperand1());
+		b2 = (BitSet) checkExpression(model, expr.getOperand2());
 
-		// Special case: no target states
-		if (target.cardinality() == 0) {
-			soln = new BitSet(dtmc.getNumStates());
-			soln.set(0, dtmc.getNumStates());
-			return soln;
-		}
+		// print out some info about num states
+		// mainLog.print("\nb1 = " + JDD.GetNumMintermsString(b1,
+		// allDDRowVars.n()));
+		// mainLog.print(" states, b2 = " + JDD.GetNumMintermsString(b2,
+		// allDDRowVars.n()) + " states\n");
 
-		// Initialise vectors
-		n = dtmc.getNumStates();
-		u = (BitSet) target.clone();
-		soln = new BitSet(n);
+		res = computeUntilProbs((DTMC) model, b1, b2);
+		probs = StateValues.createFromDoubleArray(res.soln);
 
-		// Fixed point loop
-		iters = 0;
-		u_done = false;
-		// Least fixed point - should start from 0 but we optimise by
-		// starting from 'target' (see above) thus bypassing first iteration 
-		while (!u_done) {
-			iters++;
-			for (i = 0; i < n; i++) {
-				// Need either that i is a target state
-				// or some transition goes to u
-				b2 = target.get(i) || dtmc.someSuccessorsInSet(i, u);
-				soln.set(i, b2);
-			}
-			// Check termination
-			u_done = soln.equals(u);
-			// u = soln
-			u.clear();
-			u.or(soln);
-		}
-
-		// Negate
-		u.flip(0, n);
-
-		// Finished precomputation
-		timer = System.currentTimeMillis() - timer;
-		mainLog.print("Prob0");
-		mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
-
-		return u;
+		return probs;
 	}
 
 	/**
-	 * Prob1 precomputation algorithm.
+	 * Compute rewards for the contents of an R operator.
 	 */
-	public BitSet prob1(DTMC dtmc, BitSet target)
+	protected StateValues checkRewardFormula(Model model, MCRewards modelRewards, Expression expr) throws PrismException
 	{
-		int i, n, iters;
-		boolean b2;
-		BitSet u, v, soln;
-		boolean u_done, v_done;
-		long timer;
-
-		// Start precomputation
-		timer = System.currentTimeMillis();
-		mainLog.println("Starting Prob1...");
-
-		// Special case: no target states
-		if (target.cardinality() == 0) {
-			return new BitSet(dtmc.getNumStates());
-		}
-
-		// Initialise vectors
-		n = dtmc.getNumStates();
-		u = new BitSet(n);
-		v = new BitSet(n);
-		soln = new BitSet(n);
-
-		// Nested fixed point loop
-		iters = 0;
-		u_done = false;
-		// Greatest fixed point
-		u.set(0, n);
-		while (!u_done) {
-			v_done = false;
-			// Least fixed point
-			v.clear();
-			while (!v_done) {
-				iters++;
-				for (i = 0; i < n; i++) {
-					// Need either that i is a target state
-					// or all transitions are to u states and some transition goes to v
-					b2 = target.get(i) || (dtmc.allSuccessorsInSet(i, u) && dtmc.someSuccessorsInSet(i, v));
-					soln.set(i, b2);
-				}
-				// Check termination (inner)
-				v_done = soln.equals(v);
-				// v = soln
-				v.clear();
-				v.or(soln);
+		StateValues rewards = null;
+		
+		if (expr instanceof ExpressionTemporal) {
+			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
+			switch (exprTemp.getOperator()) {
+			case ExpressionTemporal.R_F:
+				rewards = checkRewardReach(model, modelRewards, exprTemp);
+				break;
+			default:
+				throw new PrismException("Cannot model check " + exprTemp.getOperatorSymbol() + " operator in R operator");
 			}
-			// Check termination (outer)
-			u_done = v.equals(u);
-			// u = v
-			u.clear();
-			u.or(v);
 		}
+		
+		if (rewards == null)
+			throw new PrismException("Unrecognised operator in R operator");
 
-		// Finished precomputation
-		timer = System.currentTimeMillis() - timer;
-		mainLog.print("Prob1");
-		mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
+		return rewards;
+	}
 
-		return u;
+	/**
+	 * Compute rewards for a reachability reward operator.
+	 */
+	protected StateValues checkRewardReach(Model model, MCRewards modelRewards, ExpressionTemporal expr) throws PrismException
+	{
+		BitSet b;
+		StateValues rewards = null;
+		ModelCheckerResult res = null;
+
+		// model check operand first
+		b = (BitSet) checkExpression(model, expr.getOperand2());
+
+		// print out some info about num states
+		// mainLog.print("\nb = " + JDD.GetNumMintermsString(b1,
+		// allDDRowVars.n()));
+
+		res = computeReachRewards((DTMC) model, modelRewards, b);
+		rewards = StateValues.createFromDoubleArray(res.soln);
+
+		return rewards;
 	}
 
 	// Numerical computation functions
 
 	/**
-	 * Compute probabilistic reachability.
+	 * Compute reachability probabilities.
+	 * i.e. compute the probability of reaching a state in {@code target}.
 	 * @param dtmc The DTMC
 	 * @param target Target states
 	 */
-	public ModelCheckerResult probReach(DTMC dtmc, BitSet target) throws PrismException
+	public ModelCheckerResult computeReachProbs(DTMC dtmc, BitSet target) throws PrismException
 	{
-		return probReach(dtmc, target, null, null);
+		return computeReachProbs(dtmc, null, target, null, null);
 	}
 
 	/**
-	 * Compute probabilistic reachability.
+	 * Compute until probabilities.
+	 * i.e. compute the probability of reaching a state in {@code target},
+	 * while remaining in those in @{code remain}.
 	 * @param dtmc The DTMC
+	 * @param remain Remain in these states (optional: null means "all")
 	 * @param target Target states
-	 * @param init Optionally, an initial solution vector for value iteration 
+	 */
+	public ModelCheckerResult computeUntilProbs(DTMC dtmc, BitSet remain, BitSet target) throws PrismException
+	{
+		return computeReachProbs(dtmc, remain, target, null, null);
+	}
+
+	/**
+	 * Compute reachability/until probabilities.
+	 * i.e. compute the min/max probability of reaching a state in {@code target},
+	 * while remaining in those in @{code remain}.
+	 * @param dtmc The DTMC
+	 * @param remain Remain in these states (optional: null means "all")
+	 * @param target Target states
+	 * @param init Optionally, an initial solution vector (may be overwritten) 
 	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
-	public ModelCheckerResult probReach(DTMC dtmc, BitSet target, double init[], BitSet known) throws PrismException
+	public ModelCheckerResult computeReachProbs(DTMC dtmc, BitSet remain, BitSet target, double init[], BitSet known) throws PrismException
 	{
 		ModelCheckerResult res = null;
 		BitSet no, yes;
 		int i, n, numYes, numNo;
 		long timer, timerProb0, timerProb1;
+
+		// Check for some unsupported combinations
+		if (solnMethod == SolnMethod.VALUE_ITERATION && valIterDir == ValIterDir.ABOVE && !(precomp && prob0)) {
+			throw new PrismException("Precomputation (Prob0) must be enabled for value iteration from above");
+		}
 
 		// Start probabilistic reachability
 		timer = System.currentTimeMillis();
@@ -340,14 +263,14 @@ public class DTMCModelChecker extends StateModelChecker
 		// Precomputation
 		timerProb0 = System.currentTimeMillis();
 		if (precomp && prob0) {
-			no = prob0(dtmc, target);
+			no = prob0(dtmc, remain, target);
 		} else {
 			no = new BitSet();
 		}
 		timerProb0 = System.currentTimeMillis() - timerProb0;
 		timerProb1 = System.currentTimeMillis();
 		if (precomp && prob1) {
-			yes = prob1(dtmc, target);
+			yes = prob1(dtmc, remain, target);
 		} else {
 			yes = (BitSet) target.clone();
 		}
@@ -356,12 +279,15 @@ public class DTMCModelChecker extends StateModelChecker
 		// Print results of precomputation
 		numYes = yes.cardinality();
 		numNo = no.cardinality();
-		mainLog.println("yes=" + numYes + ", no=" + numNo + ", maybe=" + (n - (numYes + numNo)));
+		mainLog.println("target=" + target.cardinality() + ", yes=" + numYes + ", no=" + numNo + ", maybe=" + (n - (numYes + numNo)));
 
 		// Compute probabilities
 		switch (solnMethod) {
 		case VALUE_ITERATION:
-			res = probReachValIter(dtmc, no, yes, init, known);
+			res = computeReachProbsValIter(dtmc, no, yes, init, known);
+			break;
+		case GAUSS_SEIDEL:
+			res = computeReachProbsGaussSeidel(dtmc, no, yes, init, known);
 			break;
 		default:
 			throw new PrismException("Unknown DTMC solution method " + solnMethod);
@@ -380,16 +306,157 @@ public class DTMCModelChecker extends StateModelChecker
 	}
 
 	/**
-	 * Compute probabilistic reachability using value iteration.
+	 * Prob0 precomputation algorithm.
+	 * i.e. determine the states of a DTMC which, with probability 0,
+	 * reach a state in {@code target}, while remaining in those in @{code remain}.
+	 * @param mdp The MDP
+	 * @param remain Remain in these states (optional: null means "all")
+	 * @param target Target states
+	 */
+	public BitSet prob0(DTMC dtmc, BitSet remain, BitSet target)
+	{
+		int n, iters;
+		BitSet u, soln, unknown;
+		boolean u_done;
+		long timer;
+
+		// Start precomputation
+		timer = System.currentTimeMillis();
+		mainLog.println("Starting Prob0...");
+
+		// Special case: no target states
+		if (target.cardinality() == 0) {
+			soln = new BitSet(dtmc.getNumStates());
+			soln.set(0, dtmc.getNumStates());
+			return soln;
+		}
+
+		// Initialise vectors
+		n = dtmc.getNumStates();
+		u = new BitSet(n);
+		soln = new BitSet(n);
+
+		// Determine set of states actually need to perform computation for
+		unknown = new BitSet();
+		unknown.set(0, n);
+		unknown.andNot(target);
+		if (remain != null)
+			unknown.and(remain);
+
+		// Fixed point loop
+		iters = 0;
+		u_done = false;
+		// Least fixed point - should start from 0 but we optimise by
+		// starting from 'target', thus bypassing first iteration
+		u.or(target);
+		soln.or(target);
+		while (!u_done) {
+			iters++;
+			// Single step of Prob0
+			dtmc.prob0step(unknown, u, soln);
+			// Check termination
+			u_done = soln.equals(u);
+			// u = soln
+			u.clear();
+			u.or(soln);
+		}
+
+		// Negate
+		u.flip(0, n);
+
+		// Finished precomputation
+		timer = System.currentTimeMillis() - timer;
+		mainLog.print("Prob0");
+		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
+
+		return u;
+	}
+
+	/**
+	 * Prob1 precomputation algorithm.
+	 * i.e. determine the states of a DTMC which, with probability 1,
+	 * reach a state in {@code target}, while remaining in those in @{code remain}.
+	 * @param mdp The MDP
+	 * @param remain Remain in these states (optional: null means "all")
+	 * @param target Target states
+	 */
+	public BitSet prob1(DTMC dtmc, BitSet remain, BitSet target)
+	{
+		int n, iters;
+		BitSet u, v, soln, unknown;
+		boolean u_done, v_done;
+		long timer;
+
+		// Start precomputation
+		timer = System.currentTimeMillis();
+		mainLog.println("Starting Prob1...");
+
+		// Special case: no target states
+		if (target.cardinality() == 0) {
+			return new BitSet(dtmc.getNumStates());
+		}
+
+		// Initialise vectors
+		n = dtmc.getNumStates();
+		u = new BitSet(n);
+		v = new BitSet(n);
+		soln = new BitSet(n);
+
+		// Determine set of states actually need to perform computation for
+		unknown = new BitSet();
+		unknown.set(0, n);
+		unknown.andNot(target);
+		if (remain != null)
+			unknown.and(remain);
+
+		// Nested fixed point loop
+		iters = 0;
+		u_done = false;
+		// Greatest fixed point
+		u.set(0, n);
+		while (!u_done) {
+			v_done = false;
+			// Least fixed point - should start from 0 but we optimise by
+			// starting from 'target', thus bypassing first iteration
+			v.clear();
+			v.or(target);
+			soln.clear();
+			soln.or(target);
+			while (!v_done) {
+				iters++;
+				// Single step of Prob1
+				dtmc.prob1step(unknown, u, v, soln);
+				// Check termination (inner)
+				v_done = soln.equals(v);
+				// v = soln
+				v.clear();
+				v.or(soln);
+			}
+			// Check termination (outer)
+			u_done = v.equals(u);
+			// u = v
+			u.clear();
+			u.or(v);
+		}
+
+		// Finished precomputation
+		timer = System.currentTimeMillis() - timer;
+		mainLog.print("Prob1");
+		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
+
+		return u;
+	}
+
+	/**
+	 * Compute reachability probabilities using value iteration.
 	 * @param dtmc The DTMC
 	 * @param no Probability 0 states
 	 * @param yes Probability 1 states
-	 * @param init Optionally, an initial solution vector for value iteration 
+	 * @param init Optionally, an initial solution vector (will be overwritten) 
 	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
-	protected ModelCheckerResult probReachValIter(DTMC dtmc, BitSet no, BitSet yes, double init[], BitSet known)
-			throws PrismException
+	protected ModelCheckerResult computeReachProbsValIter(DTMC dtmc, BitSet no, BitSet yes, double init[], BitSet known) throws PrismException
 	{
 		ModelCheckerResult res;
 		BitSet unknown;
@@ -452,7 +519,7 @@ public class DTMCModelChecker extends StateModelChecker
 		// Finished value iteration
 		timer = System.currentTimeMillis() - timer;
 		mainLog.print("Value iteration");
-		mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
+		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
 
 		// Return results
 		res = new ModelCheckerResult();
@@ -463,27 +530,123 @@ public class DTMCModelChecker extends StateModelChecker
 	}
 
 	/**
-	 * Compute bounded probabilistic reachability.
+	 * Compute reachability probabilities using Gauss-Seidel.
+	 * @param dtmc The DTMC
+	 * @param no Probability 0 states
+	 * @param yes Probability 1 states
+	 * @param init Optionally, an initial solution vector (will be overwritten) 
+	 * @param known Optionally, a set of states for which the exact answer is known
+	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
+	 */
+	protected ModelCheckerResult computeReachProbsGaussSeidel(DTMC dtmc, BitSet no, BitSet yes, double init[], BitSet known) throws PrismException
+	{
+		ModelCheckerResult res;
+		BitSet unknown;
+		int i, n, iters;
+		double soln[], initVal, maxDiff;
+		boolean done;
+		long timer;
+
+		// Start value iteration
+		timer = System.currentTimeMillis();
+		mainLog.println("Starting Gauss-Seidel...");
+
+		// Store num states
+		n = dtmc.getNumStates();
+
+		// Create solution vector
+		soln = (init == null) ? new double[n] : init;
+
+		// Initialise solution vector. Use (where available) the following in order of preference:
+		// (1) exact answer, if already known; (2) 1.0/0.0 if in yes/no; (3) passed in initial value; (4) initVal
+		// where initVal is 0.0 or 1.0, depending on whether we converge from below/above. 
+		initVal = (valIterDir == ValIterDir.BELOW) ? 0.0 : 1.0;
+		if (init != null) {
+			if (known != null) {
+				for (i = 0; i < n; i++)
+					soln[i] = known.get(i) ? init[i] : yes.get(i) ? 1.0 : no.get(i) ? 0.0 : init[i];
+			} else {
+				for (i = 0; i < n; i++)
+					soln[i] = yes.get(i) ? 1.0 : no.get(i) ? 0.0 : init[i];
+			}
+		} else {
+			for (i = 0; i < n; i++)
+				soln[i] = yes.get(i) ? 1.0 : no.get(i) ? 0.0 : initVal;
+		}
+
+		// Determine set of states actually need to compute values for
+		unknown = new BitSet();
+		unknown.set(0, n);
+		unknown.andNot(yes);
+		unknown.andNot(no);
+		if (known != null)
+			unknown.andNot(known);
+
+		// Start iterations
+		iters = 0;
+		done = false;
+		while (!done && iters < maxIters) {
+			iters++;
+			// Matrix-vector multiply
+			maxDiff = dtmc.mvMultGS(soln, unknown, false, termCrit == TermCrit.ABSOLUTE);
+			// Check termination
+			done = maxDiff < termCritParam;
+		}
+
+		// Finished Gauss-Seidel
+		timer = System.currentTimeMillis() - timer;
+		mainLog.print("Gauss-Seidel");
+		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
+
+		// Return results
+		res = new ModelCheckerResult();
+		res.soln = soln;
+		res.numIters = iters;
+		res.timeTaken = timer / 1000.0;
+		return res;
+	}
+
+	/**
+	 * Compute bounded reachability probabilities.
+	 * i.e. compute the probability of reaching a state in {@code target} within k steps.
 	 * @param dtmc The DTMC
 	 * @param target Target states
 	 * @param k Bound
 	 */
-	public ModelCheckerResult probReachBounded(DTMC dtmc, BitSet target, int k) throws PrismException
+	public ModelCheckerResult computeBoundedReachProbs(DTMC dtmc, BitSet target, int k) throws PrismException
 	{
-		return probReachBounded(dtmc, target, k, null, null);
+		return computeBoundedReachProbs(dtmc, null, target, k, null, null);
 	}
 
 	/**
-	 * Compute bounded probabilistic reachability.
+	 * Compute bounded until probabilities.
+	 * i.e. compute the probability of reaching a state in {@code target},
+	 * within k steps, and while remaining in states in @{code remain}.
 	 * @param dtmc The DTMC
+	 * @param remain Remain in these states (optional: null means "all")
+	 * @param target Target states
+	 * @param k Bound
+	 */
+	public ModelCheckerResult computeBoundedUntilProbs(DTMC dtmc, BitSet remain, BitSet target, int k) throws PrismException
+	{
+		return computeBoundedReachProbs(dtmc, remain, target, k, null, null);
+	}
+
+	/**
+	 * Compute bounded reachability/until probabilities.
+	 * i.e. compute the probability of reaching a state in {@code target},
+	 * within k steps, and while remaining in states in @{code remain}.
+	 * @param dtmc The DTMC
+	 * @param remain Remain in these states (optional: null means "all")
 	 * @param target Target states
 	 * @param k Bound
 	 * @param init Initial solution vector - pass null for default
 	 * @param results Optional array of size b+1 to store (init state) results for each step (null if unused)
 	 */
-	public ModelCheckerResult probReachBounded(DTMC dtmc, BitSet target, int k, double init[], double results[])
-			throws PrismException
+	public ModelCheckerResult computeBoundedReachProbs(DTMC dtmc, BitSet remain, BitSet target, int k, double init[], double results[]) throws PrismException
 	{
+		// TODO: implement until
+		
 		ModelCheckerResult res = null;
 		int i, n, iters;
 		double soln[], soln2[], tmpsoln[];
@@ -537,7 +700,7 @@ public class DTMCModelChecker extends StateModelChecker
 		// Finished bounded probabilistic reachability
 		timer = System.currentTimeMillis() - timer;
 		mainLog.print("Bounded probabilistic reachability");
-		mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
+		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
 
 		// Return results
 		res = new ModelCheckerResult();
@@ -550,24 +713,26 @@ public class DTMCModelChecker extends StateModelChecker
 	}
 
 	/**
-	 * Compute expected reachability.
+	 * Compute expected reachability rewards.
 	 * @param dtmc The DTMC
+	 * @param mcRewards The rewards
 	 * @param target Target states
 	 */
-	public ModelCheckerResult expReach(DTMC dtmc, BitSet target) throws PrismException
+	public ModelCheckerResult computeReachRewards(DTMC dtmc, MCRewards mcRewards, BitSet target) throws PrismException
 	{
-		return expReach(dtmc, target, null, null);
+		return computeReachRewards(dtmc, mcRewards, target, null, null);
 	}
 
 	/**
-	 * Compute expected reachability.
+	 * Compute expected reachability rewards.
 	 * @param dtmc The DTMC
+	 * @param mcRewards The rewards
 	 * @param target Target states
-	 * @param init Optionally, an initial solution vector for value iteration 
+	 * @param init Optionally, an initial solution vector (may be overwritten) 
 	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
-	public ModelCheckerResult expReach(DTMC dtmc, BitSet target, double init[], BitSet known) throws PrismException
+	public ModelCheckerResult computeReachRewards(DTMC dtmc, MCRewards mcRewards, BitSet target, double init[], BitSet known) throws PrismException
 	{
 		ModelCheckerResult res = null;
 		BitSet inf;
@@ -595,7 +760,7 @@ public class DTMCModelChecker extends StateModelChecker
 
 		// Precomputation (not optional)
 		timerProb1 = System.currentTimeMillis();
-		inf = prob1(dtmc, target);
+		inf = prob1(dtmc, null, target);
 		inf.flip(0, n);
 		timerProb1 = System.currentTimeMillis() - timerProb1;
 
@@ -607,7 +772,7 @@ public class DTMCModelChecker extends StateModelChecker
 		// Compute rewards
 		switch (solnMethod) {
 		case VALUE_ITERATION:
-			res = expReachValIter(dtmc, target, inf, init, known);
+			res = computeReachRewardsValIter(dtmc, mcRewards, target, inf, init, known);
 			break;
 		default:
 			throw new PrismException("Unknown DTMC solution method " + solnMethod);
@@ -625,16 +790,16 @@ public class DTMCModelChecker extends StateModelChecker
 	}
 
 	/**
-	 * Compute expected reachability using value iteration.
+	 * Compute expected reachability rewards using value iteration.
 	 * @param dtmc The DTMC
+	 * @param mcRewards The rewards
 	 * @param target Target states
 	 * @param inf States for which reward is infinite
-	 * @param init Optionally, an initial solution vector for value iteration 
+	 * @param init Optionally, an initial solution vector (will be overwritten) 
 	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.
 	 */
-	protected ModelCheckerResult expReachValIter(DTMC dtmc, BitSet target, BitSet inf, double init[], BitSet known)
-			throws PrismException
+	protected ModelCheckerResult computeReachRewardsValIter(DTMC dtmc, MCRewards mcRewards, BitSet target, BitSet inf, double init[], BitSet known) throws PrismException
 	{
 		ModelCheckerResult res;
 		BitSet unknown;
@@ -659,8 +824,7 @@ public class DTMCModelChecker extends StateModelChecker
 		if (init != null) {
 			if (known != null) {
 				for (i = 0; i < n; i++)
-					soln[i] = soln2[i] = known.get(i) ? init[i] : target.get(i) ? 0.0
-							: inf.get(i) ? Double.POSITIVE_INFINITY : init[i];
+					soln[i] = soln2[i] = known.get(i) ? init[i] : target.get(i) ? 0.0 : inf.get(i) ? Double.POSITIVE_INFINITY : init[i];
 			} else {
 				for (i = 0; i < n; i++)
 					soln[i] = soln2[i] = target.get(i) ? 0.0 : inf.get(i) ? Double.POSITIVE_INFINITY : init[i];
@@ -685,7 +849,7 @@ public class DTMCModelChecker extends StateModelChecker
 			//mainLog.println(soln);
 			iters++;
 			// Matrix-vector multiply
-			dtmc.mvMultRew(soln, soln2, unknown, false);
+			dtmc.mvMultRew(soln, mcRewards, soln2, unknown, false);
 			// Check termination
 			done = PrismUtils.doublesAreClose(soln, soln2, termCritParam, termCrit == TermCrit.ABSOLUTE);
 			// Swap vectors for next iter
@@ -697,7 +861,7 @@ public class DTMCModelChecker extends StateModelChecker
 		// Finished value iteration
 		timer = System.currentTimeMillis() - timer;
 		mainLog.print("Value iteration");
-		mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
+		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
 
 		// Return results
 		res = new ModelCheckerResult();
@@ -731,7 +895,7 @@ public class DTMCModelChecker extends StateModelChecker
 				if (args[i].equals("-nopre"))
 					mc.setPrecomp(false);
 			}
-			res = mc.probReach(dtmc, target);
+			res = mc.computeReachProbs(dtmc, target);
 			System.out.println(res.soln[0]);
 		} catch (PrismException e) {
 			System.out.println(e);

@@ -28,6 +28,8 @@ package explicit;
 
 import java.util.*;
 
+import parser.State;
+import parser.Values;
 import prism.ModelType;
 import prism.PrismException;
 
@@ -70,6 +72,16 @@ public interface Model
 	 */
 	public boolean isInitialState(int i);
 
+	/**
+	 * Get access to an (optional) list of states.
+	 */
+	public List<State> getStatesList();
+	
+	/**
+	 * Get access to an (optional) list of constant values.
+	 */
+	public Values getConstantValues();
+	
 	/**
 	 * Get the total number of transitions in the model.
 	 */
@@ -140,4 +152,9 @@ public interface Model
 	 * Report info/stats about the model as a string.
 	 */
 	public String infoString();
+
+	/**
+	 * Report info/stats about the model, tabulated, as a string.
+	 */
+	public String infoStringTable();
 }

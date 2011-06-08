@@ -37,36 +37,27 @@ import prism.ModelType;
 import prism.PrismException;
 
 /**
- * Simple explicit-state representation of a DTMC, constructed (implicitly) as the embedded DTMC of a CTMC.
- * i.e. P(i,j) = R(i,j) / E(i) if E(i) > 0 and P(i,i) = 1 otherwise
- * where E(i) is the exit rate for state i: sum_j R(i,j).
+ * Explicit-state representation of a DTMC, constructed (implicitly)
+ * from an MDP and a memoryless adversary, specified as an array of integer indices.
  * This class is read-only: most of data is pointers to other model info.
  */
-public class DTMCEmbeddedSimple implements DTMC
+public class DTMCFromMDPMemorylessAdversary implements DTMC
 {
-	// Parent CTMC
-	protected CTMCSimple ctmc;
+	// Parent MDP
+	protected MDP mdp;
 	// Also store num states for easy access
 	protected int numStates;
-	// Exit rates vector
-	protected double exitRates[];
-	// Number of extra transitions added (just for stats)
-	protected int numExtraTransitions;
+	// Adversary
+	protected int adv[];
 
 	/**
-	 * Constructor: create from CTMC.
+	 * Constructor: create from MDP and memoryless adversary.
 	 */
-	public DTMCEmbeddedSimple(CTMCSimple ctmc)
+	public DTMCFromMDPMemorylessAdversary(MDP mdp, int adv[])
 	{
-		this.ctmc = ctmc;
-		this.numStates = ctmc.getNumStates();
-		exitRates = new double[numStates];
-		numExtraTransitions = 0;
-		for (int i = 0; i < numStates; i++) {
-			exitRates[i] = ctmc.getTransitions(i).sum();
-			if (exitRates[i] == 0)
-				numExtraTransitions++;
-		}
+		this.mdp = mdp;
+		this.numStates = mdp.getNumStates();
+		this.adv = adv;
 	}
 
 	// Accessors (for Model)
@@ -78,57 +69,57 @@ public class DTMCEmbeddedSimple implements DTMC
 
 	public int getNumStates()
 	{
-		return ctmc.getNumStates();
+		return mdp.getNumStates();
 	}
 
 	public int getNumInitialStates()
 	{
-		return ctmc.getNumInitialStates();
+		return mdp.getNumInitialStates();
 	}
 
 	public Iterable<Integer> getInitialStates()
 	{
-		return ctmc.getInitialStates();
+		return mdp.getInitialStates();
 	}
 
 	public int getFirstInitialState()
 	{
-		return ctmc.getFirstInitialState();
+		return mdp.getFirstInitialState();
 	}
 
 	public boolean isInitialState(int i)
 	{
-		return ctmc.isInitialState(i);
+		return mdp.isInitialState(i);
 	}
 
 	public List<State> getStatesList()
 	{
-		return ctmc.getStatesList();
+		return mdp.getStatesList();
 	}
 	
 	public Values getConstantValues()
 	{
-		return ctmc.getConstantValues();
+		return mdp.getConstantValues();
 	}
 	
 	public int getNumTransitions()
 	{
-		return ctmc.getNumTransitions() + numExtraTransitions;
+		throw new RuntimeException("Not implemented");
 	}
 
 	public boolean isSuccessor(int s1, int s2)
 	{
-		return exitRates[s1] == 0 ? (s1 == s2) : ctmc.isSuccessor(s1, s2);
+		throw new RuntimeException("Not implemented yet");
 	}
 
 	public boolean allSuccessorsInSet(int s, BitSet set)
 	{
-		return exitRates[s] == 0 ? set.get(s) : ctmc.allSuccessorsInSet(s, set); 
+		throw new RuntimeException("Not implemented yet");
 	}
 
 	public boolean someSuccessorsInSet(int s, BitSet set)
 	{
-		return exitRates[s] == 0 ? set.get(s) : ctmc.someSuccessorsInSet(s, set); 
+		throw new RuntimeException("Not implemented yet");
 	}
 
 	public int getNumChoices(int s)
@@ -176,20 +167,15 @@ public class DTMCEmbeddedSimple implements DTMC
 	@Override
 	public String infoString()
 	{
-		String s = "";
-		s += numStates + " states (" + getNumInitialStates() + " initial)";
-		s += ", " + getNumTransitions() + " transitions (incl. " + numExtraTransitions + " self-loops)";
-		return s;
+		return mdp.infoString() + " + " + "???"; // TODO
 	}
 
 	@Override
 	public String infoStringTable()
 	{
-		String s = "";
-		s += "States:      " + numStates + " (" + getNumInitialStates() + " initial)\n";
-		s += "Transitions: " + getNumTransitions() + "\n";
-		return s;
+		return mdp.infoString() + " + " + "???\n"; // TODO
 	}
+
 
 	// Accessors (for DTMC)
 
@@ -213,22 +199,14 @@ public class DTMCEmbeddedSimple implements DTMC
 
 	public void prob0step(BitSet subset, BitSet u, BitSet result)
 	{
-		int i;
-		for (i = 0; i < numStates; i++) {
-			if (subset.get(i)) {
-				result.set(i, someSuccessorsInSet(i, u));
-			}
-		}
+		// TODO
+		throw new Error("Not yet supported");
 	}
 
 	public void prob1step(BitSet subset, BitSet u, BitSet v, BitSet result)
 	{
-		int i;
-		for (i = 0; i < numStates; i++) {
-			if (subset.get(i)) {
-				result.set(i, someSuccessorsInSet(i, v) && allSuccessorsInSet(i, u));
-			}
-		}
+		// TODO
+		throw new Error("Not yet supported");
 	}
 
 	public void mvMult(double vect[], double result[], BitSet subset, boolean complement)
@@ -249,28 +227,7 @@ public class DTMCEmbeddedSimple implements DTMC
 
 	public double mvMultSingle(int s, double vect[])
 	{
-		int k;
-		double d, er, prob;
-		Distribution distr;
-
-		distr = ctmc.getTransitions(s);
-		d = 0.0;
-		er = exitRates[s];
-		// Exit rate 0: prob 1 self-loop
-		if (er == 0) {
-			d += vect[s];
-		}
-		// Exit rate > 0
-		else {
-			for (Map.Entry<Integer, Double> e : distr) {
-				k = (Integer) e.getKey();
-				prob = (Double) e.getValue();
-				d += prob * vect[k];
-			}
-			d /= er;
-		}
-
-		return d;
+		return mdp.mvMultSingle(s, adv[s], vect);
 	}
 
 	@Override
@@ -307,42 +264,13 @@ public class DTMCEmbeddedSimple implements DTMC
 	@Override
 	public double mvMultJacSingle(int s, double vect[])
 	{
-		int k;
-		double diag, d, er, prob;
-		Distribution distr;
-
-		distr = ctmc.getTransitions(s);
-		diag = d = 0.0;
-		er = exitRates[s];
-		// Exit rate 0: prob 1 self-loop
-		if (er == 0) {
-			return 0.0;
-		}
-		// Exit rate > 0
-		else {
-			// (sum_{j!=s} P(s,j)*vect[j]) / (1-P(s,s))
-			// = (sum_{j!=s} (R(s,j)/E(s))*vect[j]) / (1-(P(s,s)/E(s)))
-			// = (sum_{j!=s} R(s,j)*vect[j]) / (E(s)-P(s,s))
-			for (Map.Entry<Integer, Double> e : distr) {
-				k = (Integer) e.getKey();
-				prob = (Double) e.getValue();
-				// Non-diagonal entries only
-				if (k != s) {
-					d += prob * vect[k];
-				} else {
-					diag = prob;
-				}
-			}
-			d /= (er - diag);
-		}
-		
-		return d;
+		return mdp.mvMultJacSingle(s, adv[s], vect);
 	}
 
 	public void mvMultRew(double vect[], MCRewards mcRewards, double result[], BitSet subset, boolean complement)
 	{
 		int s, numStates;
-		numStates = ctmc.getNumStates();
+		numStates = mdp.getNumStates();
 		// Loop depends on subset/complement arguments
 		if (subset == null) {
 			for (s = 0; s < numStates; s++)
@@ -358,63 +286,19 @@ public class DTMCEmbeddedSimple implements DTMC
 
 	public double mvMultRewSingle(int s, double vect[], MCRewards mcRewards)
 	{
-		int k;
-		double d, er, prob;
-		Distribution distr;
-
-		distr = ctmc.getTransitions(s);
-		d = mcRewards.getStateReward(s);
-		er = exitRates[s];
-		// Exit rate 0: prob 1 self-loop
-		if (er == 0) {
-			d += vect[s];
-		}
-		// Exit rate > 0
-		else {
-			for (Map.Entry<Integer, Double> e : distr) {
-				k = (Integer) e.getKey();
-				prob = (Double) e.getValue();
-				d += prob * vect[k];
-			}
-			d /= er;
-		}
-
-		return d;
+		throw new RuntimeException("Not implemented yet");
+		//return mdp.mvMultRewSingle(s, adv[s], vect);
 	}
 
 	@Override
 	public String toString()
 	{
-		int i, numStates;
-		boolean first;
-		String s = "";
-		s += "ctmc: " + ctmc;
-		first = true;
-		s = ", exitRates: [ ";
-		numStates = getNumStates();
-		for (i = 0; i < numStates; i++) {
-			if (first)
-				first = false;
-			else
-				s += ", ";
-			s += i + ": " + exitRates[i];
-		}
-		s += " ]";
-		return s;
+		throw new RuntimeException("Not implemented yet");
 	}
 
 	@Override
 	public boolean equals(Object o)
 	{
-		if (o == null || !(o instanceof DTMCEmbeddedSimple))
-			return false;
-		DTMCEmbeddedSimple dtmc = (DTMCEmbeddedSimple) o;
-		if (!ctmc.equals(dtmc.ctmc))
-			return false;
-		if (!exitRates.equals(dtmc.exitRates))
-			return false;
-		if (numExtraTransitions != dtmc.numExtraTransitions)
-			return false;
-		return true;
+		throw new RuntimeException("Not implemented yet");
 	}
 }

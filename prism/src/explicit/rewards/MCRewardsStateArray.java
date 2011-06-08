@@ -24,35 +24,42 @@
 //	
 //==============================================================================
 
-package explicit;
+package explicit.rewards;
 
 /**
- * Interface for classes that provide (read) access to an explicit-state CTMDP.
+ * Explicit-state storage of just state rewards for a DTMC/CTMC (as an array).
  */
-public interface CTMDP extends MDP
+public class MCRewardsStateArray extends MCRewards
 {
-	// TODO: copy/modify functions from CTMC
+	/** Array of state rewards **/
+	protected double stateRewards[] = null;
 	
 	/**
-	 * Compute the maximum exit rate.
+	 * Constructor: all zero rewards.
+	 * @param numStates Number of states
 	 */
-	public double getMaxExitRate();
+	public MCRewardsStateArray(int numStates)
+	{
+		stateRewards = new double[numStates];
+		for (int i = 0; i < numStates; i++)
+			stateRewards[i] = 0.0;
+	}
+	
+	// Mutators
 	
 	/**
-	 * Check if the CTMDP is locally uniform, i.e. each state has the same exit rate for all actions. 
+	 * Set the reward for state {@code s} to {@code r}.
 	 */
-	public boolean isLocallyUniform();
+	public void setStateReward(int s, double r)
+	{
+		stateRewards[s] = r;
+	}
 	
-	/**
-	 * Build the discretised (DT)MDP for this CTMDP, in implicit form
-	 * (i.e. where the details are computed on the fly from this one).
-	 * @param tau Step duration
-	 */
-	public MDP buildImplicitDiscretisedMDP(double tau);
-
-	/**
-	 * Build (a new) discretised (DT)MDP for this CTMDP.
-	 * @param tau Step duration
-	 */
-	public MDPSimple buildDiscretisedMDP(double tau);
+	// Accessors (for MCRewards)
+	
+	@Override
+	public double getStateReward(int s)
+	{
+		return stateRewards[s];
+	}
 }
