@@ -134,4 +134,22 @@ public enum ModelType {
 		// Should never happen
 		return true;
 	}
+	
+	public static ModelType parseName(String name)
+	{
+		if ("ctmc".equals(name))
+			return CTMC;
+		else if ("ctmdp".equals(name))
+			return CTMDP;
+		else if ("dtmc".equals(name))
+			return DTMC;
+		else if ("mdp".equals(name))
+			return MDP;
+		else if ("pta".equals(name))
+			return PTA;
+		else if ("stpg".equals(name))
+			return STPG;
+		else
+			return null;
+	}
 }
