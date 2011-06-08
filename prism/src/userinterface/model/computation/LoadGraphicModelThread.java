@@ -658,7 +658,7 @@ public class LoadGraphicModelThread extends Thread implements EntityResolver
 		// override the resolve method for the dtd
 		if (systemId.endsWith("dtd")) {
 			// get appropriate dtd from classpath
-			InputStream inputStream = ClassLoader.getSystemResourceAsStream("dtds/gmo.dtd");
+			InputStream inputStream = LoadGraphicModelThread.class.getClassLoader().getResourceAsStream("dtds/gmo.dtd");
 			if (inputStream != null) inputSource = new InputSource(inputStream);
 		}
 		

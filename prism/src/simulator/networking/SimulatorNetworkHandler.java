@@ -673,7 +673,7 @@ public class SimulatorNetworkHandler extends Observable implements EntityResolve
 		if (systemId.endsWith("dtd"))
 		{
 			// get appropriate dtd from classpath
-			InputStream inputStream = ClassLoader.getSystemResourceAsStream("dtds/prismnetwork.dtd");
+			InputStream inputStream = SimulatorNetworkHandler.class.getClassLoader().getResourceAsStream("dtds/prismnetwork.dtd");
 			if (inputStream != null) inputSource = new InputSource(inputStream);
 		}
 		

@@ -470,7 +470,7 @@ public class GUIPrism extends JFrame
      */
     public static ImageIcon getIconFromImage(String file)
     {
-        URL url = ClassLoader.getSystemResource("images/" + file);
+        URL url = GUIPrism.class.getClassLoader().getResource("images/" + file);
         if (url == null)
         {
             System.out.println("Warning: Failed to load icon file \"" + file + "\"");

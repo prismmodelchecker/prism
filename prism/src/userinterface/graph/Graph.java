@@ -861,8 +861,7 @@ public class Graph extends ChartPanel implements SettingOwner, EntityResolver, O
 		// override the resolve method for the dtd
 		if (systemId.endsWith("dtd")) {
 			// get appropriate dtd from classpath
-			InputStream inputStream = ClassLoader
-					.getSystemResourceAsStream("dtds/chartformat.dtd");
+			InputStream inputStream = Graph.class.getClassLoader().getResourceAsStream("dtds/chartformat.dtd");
 			if (inputStream != null)
 				inputSource = new InputSource(inputStream);
 		}

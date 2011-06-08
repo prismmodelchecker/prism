@@ -147,7 +147,7 @@ public class SBML2Prism implements EntityResolver
 		if (systemId.endsWith("dtd"))
 		{
 			// get appropriate dtd from classpath
-			InputStream inputStream = ClassLoader.getSystemResourceAsStream("dtds/sbml.dtd");
+			InputStream inputStream = this.getClass().getResourceAsStream("dtds/sbml.dtd");
 			if (inputStream != null) inputSource = new InputSource(inputStream);
 		}
 		
