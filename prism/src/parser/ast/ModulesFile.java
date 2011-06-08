@@ -259,8 +259,9 @@ public class ModulesFile extends ASTElement
 	}
 
 	/**
-	 * Get a reward structure by its index.
-	 * (indexed from 0, not from 1 like at the user (property language) level)
+	 * Get a reward structure by its index
+	 * (indexed from 0, not from 1 like at the user (property language) level).
+	 * Returns null if index is out of range.
 	 */
 	public RewardStruct getRewardStruct(int i)
 	{
@@ -277,7 +278,8 @@ public class ModulesFile extends ASTElement
 
 	/**
 	 * Get the index of a module by its name
-	 * 	(indexed from 0, not from 1 like at the user (property language) level)
+	 * (indexed from 0, not from 1 like at the user (property language) level).
+	 * Returns -1 if name does not exist.
 	 */
 	public int getRewardStructIndex(String name)
 	{
@@ -288,6 +290,16 @@ public class ModulesFile extends ASTElement
 				return i;
 		}
 		return -1;
+	}
+
+	/**
+	 * Get a reward structure by its name
+	 * Returns null if name does not exist.
+	 */
+	public RewardStruct getRewardStructByName(String name)
+	{
+		int i = getRewardStructIndex(name);
+		return i == -1 ? null : getRewardStruct(i);
 	}
 
 	/**
