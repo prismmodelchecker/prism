@@ -1831,10 +1831,10 @@ public class PrismCL
 		mainLog.println();
 		mainLog.println("SPARSE/HYBRID/MTBDD OPTIONS:");
 		mainLog.println("-nocompact ..................... Switch off \"compact\" sparse storage schemes");
-		mainLog.println("-sbmax <n> ..................... Set memory limit (KB) (for hybrid engine) [default: 1024]");
 		mainLog.println("-sbl <n> ....................... Set number of levels (for hybrid engine) [default: -1]");
-		mainLog.println("-gsmax <n> (or sormax <n>) ..... Set memory limit (KB) for hybrid GS/SOR [default: 1024]");
+		mainLog.println("-sbmax <n> ..................... Set memory limit (KB) (for hybrid engine) [default: 1024]");
 		mainLog.println("-gsl <n> (or sorl <n>) ......... Set number of levels for hybrid GS/SOR [default: -1]");
+		mainLog.println("-gsmax <n> (or sormax <n>) ..... Set memory limit (KB) for hybrid GS/SOR [default: 1024]");
 		mainLog.println("-cuddmaxmem <n> ................ Set max memory for CUDD package (KB) [default: 200x1024]");
 		mainLog.println("-cuddepsilon <x> ............... Set epsilon value for CUDD package [default: 1e-15]");
 		mainLog.println();

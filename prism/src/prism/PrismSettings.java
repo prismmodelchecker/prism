@@ -192,6 +192,8 @@ public class PrismSettings implements Observer
 			// NUMERICAL SOLUTION OPTIONS:
 			{ CHOICE_TYPE,		PRISM_LIN_EQ_METHOD,					"Linear equations method",				"2.1",			"Jacobi",																	"Power,Jacobi,Gauss-Seidel,Backwards Gauss-Seidel,Pseudo-Gauss-Seidel,Backwards Pseudo-Gauss-Seidel,JOR,SOR,Backwards SOR,Pseudo-SOR,Backwards Pseudo-SOR",
 																			"Which iterative method to use when solving linear equation systems." },
+			{ DOUBLE_TYPE,		PRISM_LIN_EQ_METHOD_PARAM,				"Over-relaxation parameter",			"2.1",			new Double(0.9),															"",																							
+																			"Over-relaxation parameter for iterative numerical methods such as JOR/SOR." },
 			{ CHOICE_TYPE,		PRISM_MDP_SOLN_METHOD,					"MDP solution method",				"4.0",			"Value iteration",																"Value iteration,Gauss-Seidel,Policy iteration,Modified policy iteration,Linear programming",
 																			"Which method to use when solving Markov decision processes." },
 			{ CHOICE_TYPE,		PRISM_TERM_CRIT,						"Termination criteria",					"2.1",			"Relative",																	"Absolute,Relative",																		
@@ -200,8 +202,6 @@ public class PrismSettings implements Observer
 																			"Epsilon value to use for checking termination of iterative numerical methods." },
 			{ INTEGER_TYPE,		PRISM_MAX_ITERS,						"Termination max. iterations",			"2.1",			new Integer(10000),															"0,",																						
 																			"Maximum number of iterations to perform if iterative methods do not converge." },
-			{ DOUBLE_TYPE,		PRISM_LIN_EQ_METHOD_PARAM,				"Over-relaxation parameter",			"2.1",			new Double(0.9),															"",																							
-																			"Over-relaxation parameter for iterative numerical methods such as JOR/SOR." },
 			// MODEL CHECKING OPTIONS:
 			{ BOOLEAN_TYPE,		PRISM_PRECOMPUTATION,					"Use precomputation",					"2.1",			new Boolean(true),															"",																							
 																			"Use model checking precomputation algorithms (Prob0, Prob1, etc.), where optional." },
@@ -713,6 +713,8 @@ public class PrismSettings implements Observer
 		
 		sw = args[i].substring(1);
 
+		// Note: the order of these switches should match the -help output (just to help keep track of things).
+		
 		// ENGINES/METHODS:
 		
 		// Main model checking engine
@@ -768,11 +770,25 @@ public class PrismSettings implements Observer
 		} else if (sw.equals("bpsor")) {
 			set(PRISM_LIN_EQ_METHOD, "Backwards Pseudo-SOR");
 		}
+		// Linear equation solver over-relaxation parameter
+		else if (sw.equals("omega")) {
+			if (i < args.length - 1) {
+				try {
+					d = Double.parseDouble(args[++i]);
+					set(PRISM_LIN_EQ_METHOD_PARAM, d);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
+		}
 		// Termination criterion (iterative methods)
+		else if (sw.equals("relative") || sw.equals("rel")) {
+			set(PRISM_TERM_CRIT, "Relative");
+		}
 		else if (sw.equals("absolute") || sw.equals("abs")) {
 			set(PRISM_TERM_CRIT, "Absolute");
-		} else if (sw.equals("relative") || sw.equals("rel")) {
-			set(PRISM_TERM_CRIT, "Relative");
 		}
 		// Termination criterion parameter
 		else if (sw.equals("epsilon") || sw.equals("e")) {
@@ -782,19 +798,6 @@ public class PrismSettings implements Observer
 					if (d < 0)
 						throw new NumberFormatException("");
 					set(PRISM_TERM_CRIT_PARAM, d);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		// Linear equation solver over-relaxation parameter
-		else if (sw.equals("omega")) {
-			if (i < args.length - 1) {
-				try {
-					d = Double.parseDouble(args[++i]);
-					set(PRISM_LIN_EQ_METHOD_PARAM, d);
 				} catch (NumberFormatException e) {
 					throw new PrismException("Invalid value for -" + sw + " switch");
 				}
