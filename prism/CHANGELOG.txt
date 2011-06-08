@@ -3,9 +3,11 @@ including development and beta versions. For a less detailed overview
 of the main changes in each public release, see the file VERSIONS.txt.
 
 Latest changes (mostly reverse chronological):
-[correct wrt svn rev 2927]
+[correct wrt svn rev 3047]
 
-* <none>
+* Ongoing: new explicit engine (some extra methods e.g. for MDPs)
+
+* Various bug fixes
 
 -----------------------------------------------------------------------------
 Version 4.0.beta (released 16/12/2010)
