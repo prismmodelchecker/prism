@@ -1455,7 +1455,7 @@ public class PrismCL
 					fixdl = true;
 				}
 				// enable explicit-state engine
-				else if (sw.equals("explicit")) {
+				else if (sw.equals("explicit") || sw.equals("ex")) {
 					explicit = true;
 				}
 				// explicit-state model construction
