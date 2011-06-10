@@ -201,6 +201,10 @@ ifeq ($(OSTYPE),cygwin)
 	BINDISTSUFFIX = win
 	OSTYPE_INCLUDE = include
 	CLASSPATHSEP = ;
+	# Also override default compilers
+	# (because -mno-cygwin flag no longer in new versions of gcc)
+	C = gcc-3
+	CPP = g++-3
 endif
 # Darwin
 ifeq ($(OSTYPE),darwin)
