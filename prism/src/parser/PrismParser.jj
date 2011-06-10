@@ -213,21 +213,22 @@ public class PrismParser
 	// Some utility methods
 	//-----------------------------------------------------------------------------------
 	
-	/**
-	 * Get comment block directly preceding a token and remove "//" characters
-	 */
+	// Get comment block (including white space)
+	// preceding a token and remove "//" characters
+	
 	public static String getPrecedingCommentBlock(Token firstToken)
 	{
 		String comment = "", s;
 		Token t = firstToken;
 		
 		// extract any comment from the previous lines of the file
-		if (t.specialToken != null && !(t.specialToken.kind == PrismParserConstants.WHITESPACE && t.specialToken.image.matches("[\\n\\r]*"))) {
-			// trace back thru special tokens that are comments
+		if (t.specialToken != null) {
+			// trace back thru special tokens
 			t = t.specialToken;
-			while (t.specialToken != null && !(t.specialToken.kind == PrismParserConstants.WHITESPACE && t.specialToken.image.matches("[\\n\\r]*")))
-				t = t.specialToken;
-			// concatenate comment special tokens
+			while (t.specialToken != null) t = t.specialToken;
+			// ignore initial white space
+			while (t != null && t.kind == PrismParserConstants.WHITESPACE) t = t.next;
+			// concatenate special tokens
 			while (t != null) {
 				s = t.image;
 				// strip any nasty carriage returns
@@ -518,14 +519,14 @@ ModulesFile ModulesFile() throws PrismLangException :
 PropertiesFile PropertiesFile() throws PrismLangException :
 {
 	PropertiesFile pf = new PropertiesFile(modulesFile);
-	Property prop;
-	Token begin = null;
+	Expression expr;
+	Token begin = null, t = null;
 }
 {
 	{ begin = getToken(1); }
 	(
 		// Semi-colon terminated property
-		( prop = Property() { pf.addProperty(prop); } (<SEMICOLON>)+ )
+		( { t = getToken(1); } expr = Property() { pf.addProperty(expr, getPrecedingCommentBlock(t)); } (<SEMICOLON>)+ )
 	|
 		// Label/constant definition
 		( LabelDef(pf.getLabelList()) ) | ( ConstantDef(pf.getConstantList()) )
@@ -538,14 +539,14 @@ PropertiesFile PropertiesFile() throws PrismLangException :
 PropertiesFile PropertiesFileSemicolonless() throws PrismLangException :
 {
 	PropertiesFile pf = new PropertiesFile(modulesFile);
-	Property prop;
-	Token begin = null;
+	Expression expr;
+	Token begin = null, t = null;
 }
 {
 	{ begin = getToken(1); }
 	(
 		// Semi-colon terminated property
-		( prop = Property() (<SEMICOLON>)* { pf.addProperty(prop); } )
+		( { t = getToken(1); } expr = Property() (<SEMICOLON>)* { pf.addProperty(expr, getPrecedingCommentBlock(t)); } )
 	|
 		// Label/constant definition
 		( LabelDef(pf.getLabelList()) ) | ( ConstantDef(pf.getConstantList()) )
@@ -553,26 +554,17 @@ PropertiesFile PropertiesFileSemicolonless() throws PrismLangException :
 	{ pf.setPosition(begin, getToken(0)); return pf; }
 }
 
-// Property - expression, with optional name/comment
+// Property expression (used above)
 
-Property Property() :
+Expression Property() :
 {
-	String name = null;
 	Expression expr;
-	Property prop;
-	Token begin = null;
 }
 {
 	// Note that we jump in a few levels down in the Expression hierarchy
 	// (more precisely, we skip the temporal operators, which can't occur at the top-level)
 	// (this avoids some common parsing errors for semicolon-less files)
-	// Note also use of lookahead (to colon) to distinguish (optional) name from label reference
-	( { begin = getToken(1); }
-	( LOOKAHEAD(<DQUOTE> Identifier() <DQUOTE> <COLON>) <DQUOTE> name = Identifier() <DQUOTE> <COLON> )?
-	expr = ExpressionITE(true, false)
-	{ prop = new Property(expr, name, getPrecedingCommentBlock(begin)); }
-	)
-	{ prop.setPosition(begin, getToken(0)); return prop; }
+	expr = ExpressionITE(true, false) { return expr; }
 }
 
 // A single expression

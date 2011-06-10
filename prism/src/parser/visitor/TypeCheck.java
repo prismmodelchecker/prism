@@ -46,11 +46,6 @@ public class TypeCheck extends ASTTraverse
 		}
 	}
 
-	public void visitPost(Property e) throws PrismLangException
-	{
-		e.setType(e.getExpression().getType());
-	}
-
 	public void visitPost(FormulaList e) throws PrismLangException
 	{
 		// Formulas are defined at the text level and are type checked after

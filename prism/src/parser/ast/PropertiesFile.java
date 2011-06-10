@@ -44,10 +44,11 @@ public class PropertiesFile extends ASTElement
 	private LabelList labelList;
 	private LabelList combinedLabelList; // Labels from both model/here
 	private ConstantList constantList;
-	private Vector<Property> properties; // Properties
+	private Vector<Expression> properties; // Properties
+	private Vector<String> comments; // Property comments
 	
 	// list of all identifiers used
-	private Vector<String> allIdentsUsed;
+	private List<String> allIdentsUsed;
 	
 	// actual values of constants
 	private Values constantValues;
@@ -56,20 +57,18 @@ public class PropertiesFile extends ASTElement
 	
 	public PropertiesFile(ModulesFile mf)
 	{
-		setModulesFile(mf);
+		modulesFile = mf;
 		formulaList = new FormulaList();
 		labelList = new LabelList();
 		combinedLabelList = new LabelList();
 		constantList = new ConstantList();
-		properties = new Vector<Property>();
+		properties = new Vector<Expression>();
+		comments = new Vector<String>();
 		allIdentsUsed = new Vector<String>();
 		constantValues = null;
 	}
 	
 	// Set methods
-	
-	/** Attach to a ModulesFile (so can access labels/constants etc.) */
-	public void setModulesFile(ModulesFile mf) { this.modulesFile = mf; }
 	
 	public void setFormulaList(FormulaList fl) { formulaList = fl; }
 	
@@ -77,51 +76,13 @@ public class PropertiesFile extends ASTElement
 	
 	public void setConstantList(ConstantList cl) { constantList = cl; }
 	
-	public void addProperty(Property prop)
-	{
-		properties.add(prop);
-	}
-	
 	public void addProperty(Expression p, String c)
 	{
-		properties.addElement(new Property(p, null, c));
+		properties.addElement(p);
+		comments.addElement(c);
 	}
 	
-	public void setPropertyObject(int i, Property prop) { properties.set(i, prop); }
-	
-	public void setPropertyExpression(int i, Expression p) { properties.get(i).setExpression(p); }
-	
-	/**
-	 * Insert the contents of another PropertiesFile (just a shallow copy).
-	 */
-	public void insertPropertiesFile(PropertiesFile pf) throws PrismLangException
-	{
-		FormulaList fl;
-		LabelList ll;
-		ConstantList cl;
-		int i, n;
-		fl = pf.formulaList;
-		n = fl.size();
-		for (i = 0; i < n; i++) {
-			formulaList.addFormula(fl.getFormulaNameIdent(i), fl.getFormula(i));
-		}
-		ll = pf.labelList;
-		n = ll.size();
-		for (i = 0; i < n; i++) {
-			labelList.addLabel(ll.getLabelNameIdent(i), ll.getLabel(i));
-		}
-		cl = pf.constantList;
-		n = cl.size();
-		for (i = 0; i < n; i++) {
-			constantList.addConstant(cl.getConstantNameIdent(i), cl.getConstant(i), cl.getConstantType(i));
-		}
-		n = pf.properties.size();
-		for (i = 0; i < n; i++) {
-			properties.add(pf.properties.get(i));
-		}
-		// Need to re-tidy (some checks should be re-done, some new info created)
-		tidyUp();
-	}
+	public void setProperty(int i, Expression p) { properties.setElementAt(p, i); }
 	
 	// Get methods
 
@@ -135,39 +96,9 @@ public class PropertiesFile extends ASTElement
 	
 	public int getNumProperties() { return properties.size(); }
 	
-	public Property getPropertyObject(int i) { return properties.get(i); }
+	public Expression getProperty(int i) { return properties.elementAt(i); }
 	
-	public Expression getProperty(int i) { return properties.get(i).getExpression(); }
-	
-	public String getPropertyName(int i) { return properties.get(i).getName(); }
-	
-	public String getPropertyComment(int i) { return properties.get(i).getComment(); }
-	
-	/**
-	 * Look up a property by name from those listed in this properties file.
-	 * (Use {@link #lookUpPropertyObjectByName} to search model file too)
-	 * Returns null if not found.
-	 */
-	public Property getPropertyObjectByName(String name)
-	{
-		int i, n;
-		n = getNumProperties();
-		for (i = 0; i < n; i++) {
-			if (name.equals(getPropertyName(i))) {
-				return getPropertyObject(i);
-			}
-		}
-		return null;
-	}
-	
-	/**
-	 * Look up a property by name, currently just locally like {@link #getPropertyObjectByName}.
-	 * Returns null if not found.
-	 */
-	public Property lookUpPropertyObjectByName(String name)
-	{
-		return getPropertyObjectByName(name);
-	}
+	public String getPropertyComment(int i) { return comments.elementAt(i); }
 	
 	/**
 	 * Check if an identifier is used by this properties file 
@@ -188,7 +119,7 @@ public class PropertiesFile extends ASTElement
 		// check for any cyclic dependencies in the formula list and then expand all formulas.
 		// Note: We have to look for formulas defined both here and in the model.
 		// Note also that we opt not to do actual replacement of formulas in calls to exandFormulas
-		// (to improve legibility of properties)
+		// (to improve legebility of properties)
 		findAllFormulas(modulesFile.getFormulaList());
 		findAllFormulas(formulaList);
 		formulaList.findCycles();
@@ -207,9 +138,6 @@ public class PropertiesFile extends ASTElement
 
 		// check constants for cyclic dependencies
 		constantList.findCycles();
-		
-		// Check property names
-		checkPropertyNames();
 		
 		// Find all instances of variables (i.e. locate idents which are variables).
 		findAllVars(modulesFile.getVarNames(), modulesFile.getVarTypes());
@@ -306,44 +234,6 @@ public class PropertiesFile extends ASTElement
 		}
 	}
 
-	/**
-	 * Check for any duplicate property names (or clashes with labels).
-	 */
-	private void checkPropertyNames() throws PrismLangException
-	{
-		int i, n;
-		String s;
-		Vector<String> propNames;
-		LabelList mfLabels;
-		
-		// get label list from model file
-		mfLabels = modulesFile.getLabelList();
-		// Go thru properties
-		n = properties.size();
-		propNames = new Vector<String>();
-		for (i = 0; i < n; i++) {
-			s = properties.get(i).getName();
-			if (s == null)
-				continue;
-			// see if ident has been used already for a label in model file
-			if (mfLabels.getLabelIndex(s) != -1) {
-				throw new PrismLangException("Property name \"" + s + "\" clashes with label in model file", getPropertyObject(i));
-			}
-			// see if ident has been used already for a label in properties file
-			if (labelList.getLabelIndex(s) != -1) {
-				throw new PrismLangException("Property name \"" + s + "\" clashes with label", getPropertyObject(i));
-			}
-			// see if ident has been used already for a property name
-			if (propNames.contains(s)) {
-				throw new PrismLangException("Duplicated property name \"" + s + "\"", getPropertyObject(i));
-			}
-			// store identifier
-			else {
-				propNames.addElement(s);
-			}
-		}
-	}
-
 	// get undefined constants
 	
 	public Vector<String> getUndefinedConstants()
@@ -400,7 +290,14 @@ public class PropertiesFile extends ASTElement
 		
 		n = getNumProperties();
 		for (i = 0; i < n; i++) {
-			s += getPropertyObject(i) + ";\n";
+			// add comment (if any)
+			tmp = getPropertyComment(i);
+			if (tmp != null) {
+				if (tmp.length() > 0) {
+					s += PrismParser.slashCommentBlock(tmp);
+				}
+			}
+			s += getProperty(i) + "\n";
 			if (i < n-1) s += "\n";
 		}
 		
@@ -410,27 +307,10 @@ public class PropertiesFile extends ASTElement
 	/**
 	 * Perform a deep copy.
 	 */
-	@SuppressWarnings("unchecked")
 	public ASTElement deepCopy()
 	{
-		int i, n;
-		PropertiesFile ret = new PropertiesFile(modulesFile);
-		// Copy ASTElement stuff
-		ret.setPosition(this);
-		// Deep copy main components
-		ret.setFormulaList((FormulaList) formulaList.deepCopy());
-		ret.setLabelList((LabelList) labelList.deepCopy());
-		ret.combinedLabelList = (LabelList) combinedLabelList.deepCopy();
-		ret.setConstantList((ConstantList) constantList.deepCopy());
-		n = getNumProperties();
-		for (i = 0; i < n; i++) {
-			ret.addProperty((Property) getPropertyObject(i).deepCopy());
-		}
-		// Copy other (generated) info
-		ret.allIdentsUsed = (allIdentsUsed == null) ? null : (Vector<String>)allIdentsUsed.clone();
-		ret.constantValues = (constantValues == null) ? null : new Values(constantValues);
-		
-		return ret;
+		// Deep copy not required for whole properties file
+		return null;
 	}
 }
 
