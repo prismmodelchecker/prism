@@ -135,6 +135,7 @@ public class PrismExplicit
 			mc.setTermCrit(StateModelChecker.TermCrit.RELATIVE);
 		}
 		mc.setTermCritParam(settings.getDouble(PrismSettings.PRISM_TERM_CRIT_PARAM));
+		mc.setMaxIters(settings.getInteger(PrismSettings.PRISM_MAX_ITERS));
 		switch (model.getModelType()) {
 		case DTMC:
 			s = settings.getString(PrismSettings.PRISM_LIN_EQ_METHOD);
