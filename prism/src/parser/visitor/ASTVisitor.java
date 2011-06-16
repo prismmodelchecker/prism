@@ -34,6 +34,7 @@ public interface ASTVisitor
 	// ASTElement classes (model/properties file)
 	public Object visit(ModulesFile e) throws PrismLangException;
 	public Object visit(PropertiesFile e) throws PrismLangException;
+	public Object visit(Property e) throws PrismLangException;
 	public Object visit(FormulaList e) throws PrismLangException;
 	public Object visit(LabelList e) throws PrismLangException;
 	public Object visit(ConstantList e) throws PrismLangException;

@@ -73,6 +73,7 @@ public class PrismCL
 	private boolean explicitbuild = false;
 	private boolean explicitbuildtest = false;
 	private boolean nobuild = false;
+	private boolean test = false;
 
 	// property info
 	private int propertyToCheck = -1;
@@ -122,7 +123,7 @@ public class PrismCL
 
 	// info about which properties to model check
 	private int numPropertiesToCheck = 0;
-	private Expression propertiesToCheck[] = null;
+	private List<Property> propertiesToCheck = null;
 
 	// info about undefined constants
 	private UndefinedConstants undefinedConstants;
@@ -197,7 +198,7 @@ public class PrismCL
 		// initialise storage for results
 		results = new ResultsCollection[numPropertiesToCheck];
 		for (i = 0; i < numPropertiesToCheck; i++) {
-			results[i] = new ResultsCollection(undefinedConstants, propertiesToCheck[i].getResultName());
+			results[i] = new ResultsCollection(undefinedConstants, propertiesToCheck.get(i).getExpression().getResultName());
 		}
 
 		// iterate through as many models as necessary
@@ -328,13 +329,13 @@ public class PrismCL
 				if (simulate && undefinedConstants.getNumPropertyIterations() > 1) {
 					try {
 						mainLog.println("\n-------------------------------------------");
-						mainLog.println("\nSimulating: " + propertiesToCheck[j]);
+						mainLog.println("\nSimulating: " + propertiesToCheck.get(j));
 						if (definedMFConstants != null)
 							if (definedMFConstants.getNumValues() > 0)
 								mainLog.println("Model constants: " + definedMFConstants);
 						mainLog.println("Property constants: " + undefinedConstants.getPFDefinedConstantsString());
-						simMethod = processSimulationOptions(propertiesToCheck[j]);
-						prism.modelCheckSimulatorExperiment(modulesFile, propertiesFile, undefinedConstants, results[j], propertiesToCheck[j], null,
+						simMethod = processSimulationOptions(propertiesToCheck.get(j).getExpression());
+						prism.modelCheckSimulatorExperiment(modulesFile, propertiesFile, undefinedConstants, results[j], propertiesToCheck.get(j).getExpression(), null,
 								simMaxPath, simMethod);
 					} catch (PrismException e) {
 						// in case of (overall) error, report it, store as result for property, and proceed
@@ -363,7 +364,7 @@ public class PrismCL
 
 							// log output
 							mainLog.println("\n-------------------------------------------");
-							mainLog.println("\n" + (simulate ? "Simulating" : "Model checking") + ": " + propertiesToCheck[j]);
+							mainLog.println("\n" + (simulate ? "Simulating" : "Model checking") + ": " + propertiesToCheck.get(j));
 							if (definedMFConstants != null)
 								if (definedMFConstants.getNumValues() > 0)
 									mainLog.println("Model constants: " + definedMFConstants);
@@ -375,7 +376,7 @@ public class PrismCL
 							if (modulesFile.getModelType() == ModelType.PTA
 									&& prism.getSettings().getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks")) {
 								DigitalClocks dc = new DigitalClocks(prism);
-								dc.translate(modulesFile, propertiesFile, propertiesToCheck[j]);
+								dc.translate(modulesFile, propertiesFile, propertiesToCheck.get(j).getExpression());
 								modulesFileToCheck = dc.getNewModulesFile();
 								modulesFileToCheck.setUndefinedConstants(modulesFile.getConstantValues());
 								doPrismLangExports(modulesFileToCheck);
@@ -388,21 +389,21 @@ public class PrismCL
 							if (!simulate) {
 								// PTA model checking
 								if (modulesFileToCheck.getModelType() == ModelType.PTA) {
-									res = prism.modelCheckPTA(modulesFileToCheck, propertiesFile, propertiesToCheck[j]);
+									res = prism.modelCheckPTA(modulesFileToCheck, propertiesFile, propertiesToCheck.get(j).getExpression());
 								}
 								// Non-PTA model checking
 								else {
 									if (!explicit) {
-										res = prism.modelCheck(model, propertiesFile, propertiesToCheck[j]);
+										res = prism.modelCheck(model, propertiesFile, propertiesToCheck.get(j).getExpression());
 									} else {
-										res = prismExpl.modelCheck(modelExpl, modulesFileToCheck, propertiesFile, propertiesToCheck[j]);
+										res = prismExpl.modelCheck(modelExpl, modulesFileToCheck, propertiesFile, propertiesToCheck.get(j).getExpression());
 									}
 								}
 							}
 							// approximate (simulation-based) model checking
 							else {
-								simMethod = processSimulationOptions(propertiesToCheck[j]);
-								res = prism.modelCheckSimulator(modulesFileToCheck, propertiesFile, propertiesToCheck[j], null, simMaxPath, simMethod);
+								simMethod = processSimulationOptions(propertiesToCheck.get(j).getExpression());
+								res = prism.modelCheckSimulator(modulesFileToCheck, propertiesFile, propertiesToCheck.get(j).getExpression(), null, simMaxPath, simMethod);
 								simMethod.reset();
 							}
 						} catch (PrismException e) {
@@ -420,6 +421,20 @@ public class PrismCL
 							}
 						} catch (PrismException e) {
 							error("Problem storing results");
+						}
+
+						// if required, check result against expected value
+						if (test) {
+							try {
+								if (propertiesToCheck.get(j).checkAgainstExpectedResult(res.getResult())) {
+									mainLog.println("Testing result: PASS");
+								} else {
+									mainLog.println("Testing result: NOT TESTED");
+								}
+							} catch (PrismException e) {
+								mainLog.println("Testing result: FAIL: " + e.getMessage());
+								errorAndExit("Testing failed");
+							}
 						}
 
 						// iterate to next property
@@ -452,7 +467,7 @@ public class PrismCL
 			for (i = 0; i < numPropertiesToCheck; i++) {
 				if (i > 0)
 					tmpLog.println();
-				tmpLog.print(propertiesToCheck[i] + ":\n" + results[i].toString(false, " ", " "));
+				tmpLog.print(propertiesToCheck.get(i) + ":\n" + results[i].toString(false, " ", " "));
 			}
 			tmpLog.close();
 		}
@@ -565,25 +580,24 @@ public class PrismCL
 	{
 		int i;
 
+		propertiesToCheck = new ArrayList<Property>();
+		
 		// no properties to check
 		if (propertiesFile == null) {
 			numPropertiesToCheck = 0;
-			propertiesToCheck = null;
 		}
 		// unless specified, verify all properties
 		else if (propertyToCheck == -1) {
 			numPropertiesToCheck = propertiesFile.getNumProperties();
-			propertiesToCheck = new Expression[numPropertiesToCheck];
 			for (i = 0; i < numPropertiesToCheck; i++) {
-				propertiesToCheck[i] = propertiesFile.getProperty(i);
+				propertiesToCheck.add(propertiesFile.getPropertyObject(i));
 			}
 		}
 		// otherwise just verify the relevant property
 		else {
 			if (propertyToCheck > 0 && propertyToCheck <= propertiesFile.getNumProperties()) {
 				numPropertiesToCheck = 1;
-				propertiesToCheck = new Expression[1];
-				propertiesToCheck[0] = propertiesFile.getProperty(propertyToCheck - 1);
+				propertiesToCheck.add(propertiesFile.getPropertyObject(propertyToCheck - 1));
 			} else {
 				errorAndExit("There is not a property " + propertyToCheck + " to verify");
 			}
@@ -1064,6 +1078,10 @@ public class PrismCL
 				// disable model construction
 				else if (sw.equals("nobuild")) {
 					nobuild = true;
+				}
+				// enable "testing" mode
+				else if (sw.equals("test")) {
+					test = true;
 				}
 				
 				// IMPORT OPTIONS:
@@ -1754,6 +1772,7 @@ public class PrismCL
 		mainLog.println("-transient <x> (or -tr <x>) .... Compute transient probabilities for time <x> (D/CTMCs only)");
 		mainLog.println("-simpath <options> <file>....... Generate a random path with the simulator");
 		mainLog.println("-nobuild ....................... Skip model construction (just do parse/export)");
+		mainLog.println("-test .......................... Enable \"test\" mode");
 		mainLog.println();
 		mainLog.println("IMPORT OPTIONS:");
 		mainLog.println("-importpepa .................... Model description is in PEPA, not the PRISM language");
@@ -1827,6 +1846,11 @@ public class PrismCL
 
 	private void error(String s)
 	{
+		// If (and only if) we are in "test" mode, treat any error as fatal
+		if (test) {
+			errorAndExit(s);
+		}
+		// Normal case: just display error message, but don't exit
 		mainLog.println("\nError: " + s + ".");
 	}
 
@@ -1835,7 +1859,7 @@ public class PrismCL
 	private void errorAndExit(String s)
 	{
 		prism.closeDown(false);
-		error(s);
+		mainLog.println("\nError: " + s + ".");
 		System.exit(1);
 	}
 
