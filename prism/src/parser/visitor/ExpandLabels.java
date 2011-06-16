@@ -53,17 +53,16 @@ public class ExpandLabels extends ASTTraverseModify
 		// See if identifier corresponds to a label
 		i = labelList.getLabelIndex(e.getName());
 		if (i != -1) {
-			// If so, replace it with the corresponding expression
-			expr = labelList.getLabel(i);
+			// If so, replace it with (a copy of) the corresponding expression
+			expr = labelList.getLabel(i).deepCopy();
 			// But also recursively expand that
 			// (nested labels not currently supported but may be one day)
 			// (don't clone it to avoid duplication of work)
 			expr = (Expression)expr.expandLabels(labelList);
 			// Put in brackets so precedence is preserved
 			// (for display purposes only; in case of re-parse)
-			expr = Expression.Parenth(expr);
-			// This is probably being done before type-checking so
-			// don't really need to preserve type, but do so just in case
+			// Also, preserve type (this is probably being done before
+			// type-checking so unnecessary, but do so just in case)
 			t = expr.getType();
 			expr = Expression.Parenth(expr);
 			expr.setType(t);
