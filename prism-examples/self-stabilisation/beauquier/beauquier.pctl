@@ -6,7 +6,7 @@ label "k_tokens" = num_tokens=k; // configurations with k tokens
 label "stable" = num_tokens=1;   // stable configurations (1 token)
 
 // From any configuration, a stable configuration is reached with probability 1
-filter(forall, P>=1 [ F "stable" ], "init")
+filter(forall, "init" => P>=1 [ F "stable" ])
 
 // Maximum expected time to reach a stable configuration (for all configurations)
 Rmax=? [ F "stable" {"init"}{max} ]
