@@ -169,6 +169,8 @@ public class CTMCModelChecker extends DTMCModelChecker
 		int left, right;
 		double q, qt, acc, weights[], totalWeight;
 
+		// TODO: remove 'init' from args, but probably replace with 'mult' like in other engines
+		
 		// Start bounded probabilistic reachability
 		timer = System.currentTimeMillis();
 		mainLog.println("Starting time-bounded probabilistic reachability...");
