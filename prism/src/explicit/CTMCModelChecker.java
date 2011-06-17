@@ -28,8 +28,6 @@ package explicit;
 
 import java.util.*;
 
-import jdd.JDD;
-import jdd.JDDNode;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MCRewardsStateArray;
 import parser.ast.ExpressionTemporal;
