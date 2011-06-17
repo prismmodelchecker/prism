@@ -28,8 +28,6 @@ package explicit;
 
 import java.util.*;
 
-import explicit.StateModelChecker.SolnMethod;
-import explicit.StateModelChecker.ValIterDir;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MCRewardsStateArray;
 
