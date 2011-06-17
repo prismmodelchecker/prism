@@ -291,6 +291,12 @@ public class DTMCFromMDPMemorylessAdversary implements DTMC
 	}
 
 	@Override
+	public void vmMult(double vect[], double result[])
+	{
+		throw new RuntimeException("Not implemented yet"); // TODO
+	}
+
+	@Override
 	public String toString()
 	{
 		throw new RuntimeException("Not implemented yet");

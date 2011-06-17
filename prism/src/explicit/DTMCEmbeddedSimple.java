@@ -383,6 +383,36 @@ public class DTMCEmbeddedSimple implements DTMC
 	}
 
 	@Override
+	public void vmMult(double vect[], double result[])
+	{
+		int i, j;
+		double prob, er;
+		Distribution distr;
+		
+		// Initialise result to 0
+		for (j = 0; j < numStates; j++) {
+			result[j] = 0;
+		}
+		// Go through matrix elements (by row)
+		for (i = 0; i < numStates; i++) {
+			distr = ctmc.getTransitions(i);
+			er = exitRates[i];
+			// Exit rate 0: prob 1 self-loop
+			if (er == 0) {
+				result[i] += vect[i];
+			}
+			// Exit rate > 0
+			else {
+				for (Map.Entry<Integer, Double> e : distr) {
+					j = (Integer) e.getKey();
+					prob = (Double) e.getValue();
+					result[j] += (prob / er) * vect[i];
+				}
+			}
+		}
+	}
+
+	@Override
 	public String toString()
 	{
 		int i, numStates;

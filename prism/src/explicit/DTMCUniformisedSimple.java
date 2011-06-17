@@ -352,6 +352,35 @@ public class DTMCUniformisedSimple implements DTMC
 	}
 
 	@Override
+	public void vmMult(double vect[], double result[])
+	{
+		int i, j;
+		double prob, sum;
+		Distribution distr;
+		
+		// Initialise result to 0
+		for (j = 0; j < numStates; j++) {
+			result[j] = 0;
+		}
+		// Go through matrix elements (by row)
+		for (i = 0; i < numStates; i++) {
+			distr = ctmc.getTransitions(i);
+			sum = 0.0;
+			for (Map.Entry<Integer, Double> e : distr) {
+				j = (Integer) e.getKey();
+				prob = (Double) e.getValue();
+				// Non-diagonal entries only
+				if (j != i) {
+					sum += prob;
+					result[j] += (prob / q) * vect[i];
+				}
+			}
+			// Diagonal entry is 1 - sum/q
+			result[i] += (1 - sum / q) * vect[i];
+		}
+	}
+
+	@Override
 	public String toString()
 	{
 		String s = "";

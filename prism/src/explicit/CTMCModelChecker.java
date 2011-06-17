@@ -28,9 +28,10 @@ package explicit;
 
 import java.util.*;
 
+import jdd.JDD;
+import jdd.JDDNode;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MCRewardsStateArray;
-
 import parser.ast.ExpressionTemporal;
 import prism.*;
 
@@ -77,6 +78,43 @@ public class CTMCModelChecker extends DTMCModelChecker
 		return probs;
 	}
 
+	// Transient/steady-state probability computation
+	
+	/**
+	 * Compute transient probability distribution (forwards).
+	 * Optionally, use the passed in vector initDist as the initial probability distribution (time 0).
+	 * If null, start from initial state (or uniform distribution over multiple initial states).
+	 * For reasons of efficiency, when a vector is passed in, it will be trampled over,
+	 * so if you wanted it, take a copy. 
+	 */
+	public StateValues doTransient(CTMC ctmc, double time, double initDist[]) throws PrismException
+	{
+		ModelCheckerResult res = null;
+		int n;
+		double initDistNew[] = null;
+		StateValues probs = null;
+
+		// Store num states
+		n = ctmc.getNumStates();
+
+		// Build initial distribution (if not specified)
+		if (initDist == null) {
+			initDistNew = new double[n];
+			for (int in : ctmc.getInitialStates()) {
+				initDistNew[in] = 1 / ctmc.getNumInitialStates();
+			}
+		} else {
+			initDistNew = initDist;
+			throw new PrismException("Not implemented yet"); // TODO
+		}
+		
+		// Compute transient probabilities
+		res = computeTransientProbs(ctmc, initDistNew, time);
+		probs = StateValues.createFromDoubleArray(res.soln);
+
+		return probs;
+	}
+
 	// Numerical computation functions
 
 	/**
@@ -119,8 +157,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 	 * @param t Time bound
 	 * @param init Initial solution vector - pass null for default
 	 */
-	public ModelCheckerResult computeTimeBoundedUntilProbs(CTMC ctmc, BitSet target, double t, double init[])
-			throws PrismException
+	public ModelCheckerResult computeTimeBoundedUntilProbs(CTMC ctmc, BitSet target, double t, double init[]) throws PrismException
 	{
 		ModelCheckerResult res = null;
 		int i, n, iters;
@@ -159,7 +196,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 
 		// Build (implicit) uniformised DTMC
 		dtmc = ctmc.buildImplicitUniformisedDTMC(q);
-		
+
 		// Create solution vector(s)
 		soln = new double[n];
 		soln2 = (init == null) ? new double[n] : init;
@@ -233,6 +270,103 @@ public class CTMCModelChecker extends DTMCModelChecker
 		}
 		// Do computation on DTMC
 		return super.computeReachRewards(dtmcEmb, rewEmb, target);
+	}
+
+	/**
+	 * Compute transient probabilities.
+	 * i.e. compute the probability of being in each state at time {@code t},
+	 * assuming the initial distribution . 
+	 * @param ctmc The CTMC
+	 * @param initDist Initial distribution
+	 * @param t Time point
+	 */
+	public ModelCheckerResult computeTransientProbs(CTMC ctmc, double initDist[], double t) throws PrismException
+	{
+		ModelCheckerResult res = null;
+		int i, n, iters;
+		double soln[], soln2[], tmpsoln[], sum[];
+		DTMC dtmc;
+		long timer;
+		// Fox-Glynn stuff
+		FoxGlynn fg;
+		int left, right;
+		double q, qt, acc, weights[], totalWeight;
+
+		// Start bounded probabilistic reachability
+		timer = System.currentTimeMillis();
+		mainLog.println("Starting transient probability computation...");
+
+		// Store num states
+		n = ctmc.getNumStates();
+
+		// Get uniformisation rate; do Fox-Glynn
+		q = ctmc.getDefaultUniformisationRate();
+		qt = q * t;
+		mainLog.println("\nUniformisation: q.t = " + q + " x " + t + " = " + qt);
+		termCritParam = 1e-6;
+		acc = termCritParam / 8.0;
+		fg = new FoxGlynn(qt, 1e-300, 1e+300, acc);
+		left = fg.getLeftTruncationPoint();
+		right = fg.getRightTruncationPoint();
+		if (right < 0) {
+			throw new PrismException("Overflow in Fox-Glynn computation (time bound too big?)");
+		}
+		weights = fg.getWeights();
+		totalWeight = fg.getTotalWeight();
+		for (i = left; i <= right; i++) {
+			weights[i - left] /= totalWeight;
+		}
+		mainLog.println("Fox-Glynn (" + acc + "): left = " + left + ", right = " + right);
+
+		// Build (implicit) uniformised DTMC
+		dtmc = ctmc.buildImplicitUniformisedDTMC(q);
+
+		// Create solution vector(s)
+		// For soln, we just use init (since we are free to modify this vector)
+		soln = initDist;
+		soln2 = new double[n];
+		sum = new double[n];
+
+		// Initialise solution vectors
+		// (don't need to do soln2 since will be immediately overwritten)
+		for (i = 0; i < n; i++)
+			sum[i] = 0.0;
+
+		// If necessary, do 0th element of summation (doesn't require any matrix powers)
+		if (left == 0)
+			for (i = 0; i < n; i++)
+				sum[i] += weights[0] * soln[i];
+
+		// Start iterations
+		iters = 1;
+		while (iters <= right) {
+			// Matrix-vector multiply
+			dtmc.vmMult(soln, soln2);
+			// Swap vectors for next iter
+			tmpsoln = soln;
+			soln = soln2;
+			soln2 = tmpsoln;
+			// Add to sum
+			if (iters >= left) {
+				for (i = 0; i < n; i++)
+					sum[i] += weights[iters - left] * soln[i];
+			}
+			iters++;
+		}
+
+		// Finished bounded probabilistic reachability
+		timer = System.currentTimeMillis() - timer;
+		mainLog.print("Transient probability computation");
+		mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
+
+		// Return results
+		res = new ModelCheckerResult();
+		res.soln = sum;
+		res.lastSoln = soln2;
+		res.numIters = iters;
+		res.timeTaken = timer / 1000.0;
+		res.timePre = 0.0;
+		return res;
 	}
 
 	/**

@@ -312,7 +312,7 @@ public class DTMCSimple extends ModelSimple implements DTMC
 		}
 		if (fix) {
 			for (i = deadlocks.nextSetBit(0); i >= 0; i = deadlocks.nextSetBit(i + 1)) {
-				setProbability(i, i, 1.0);		
+				setProbability(i, i, 1.0);
 			}
 		}
 		return deadlocks;
@@ -387,7 +387,7 @@ public class DTMCSimple extends ModelSimple implements DTMC
 			// Output transitions to PRISM language file
 			out = new FileWriter(filename);
 			out.write(getModelType().keyword() + "\n");
-			out.write("module M\nx : [0.." + (numStates-1) + "];\n");
+			out.write("module M\nx : [0.." + (numStates - 1) + "];\n");
 			sorted = new TreeMap<Integer, Double>();
 			for (i = 0; i < numStates; i++) {
 				// Extract transitions and sort by destination state index (to match PRISM-exported files)
@@ -442,7 +442,7 @@ public class DTMCSimple extends ModelSimple implements DTMC
 	}
 
 	@Override
-	public Iterator<Entry<Integer,Double>> getTransitionsIterator(int s)
+	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s)
 	{
 		return trans.get(s).iterator();
 	}
@@ -607,6 +607,29 @@ public class DTMCSimple extends ModelSimple implements DTMC
 		}
 
 		return d;
+	}
+
+	@Override
+	public void vmMult(double vect[], double result[])
+	{
+		int i, j;
+		double prob;
+		Distribution distr;
+		
+		// Initialise result to 0
+		for (j = 0; j < numStates; j++) {
+			result[j] = 0;
+		}
+		// Go through matrix elements (by row)
+		for (i = 0; i < numStates; i++) {
+			distr = trans.get(i);
+			for (Map.Entry<Integer, Double> e : distr) {
+				j = (Integer) e.getKey();
+				prob = (Double) e.getValue();
+				result[j] += prob * vect[i];
+			}
+
+		}
 	}
 
 	// Accessors (other)

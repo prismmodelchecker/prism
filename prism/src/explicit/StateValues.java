@@ -32,6 +32,7 @@ import dv.DoubleVector;
 
 import parser.type.*;
 import prism.PrismException;
+import prism.PrismLog;
 
 /**
  * Class for explicit-state storage of a state-indexed vector of (integer or double) values.
@@ -158,6 +159,18 @@ public class StateValues
 	
 	// ...
 	
+	// clear (free memory)
+	
+	/**
+	 * Clear the vector, i.e. free any used memory.
+	 * (Well, actually, just set pointer to null and wait for later garbage collection.)
+	 */
+	public void clear()
+	{
+		valuesI = null;
+		valuesD = null;
+	}
+
 	// METHODS TO ACCESS VECTOR DATA
 	
 	/**
@@ -187,6 +200,24 @@ public class StateValues
 		return "" + getNNZ();
 	}
 	*/
+	
+	// PRINTING STUFF
+	
+	/**
+	 * Print vector to a log/file (non-zero entries only)
+	 */
+	public void print(PrismLog log) throws PrismException
+	{
+		int i;
+		for (i = 0; i < size; i++) {
+			log.println(getValue(i));
+		}
+	}
+	
+	public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
+	{
+		print(log); //TODO
+	}
 	
 	/**
 	 * Make a (deep) copy of this vector

@@ -52,17 +52,6 @@ public interface DTMC extends Model
 	public double getTransitionReward(int s);
 
 	/**
-	 * Do a matrix-vector multiplication for
-	 * the DTMC's transition probability matrix P and the vector {@code vect} passed in.
-	 * i.e. for all s: result[s] = sum_j P(s,j)*vect[j]
-	 * @param vect Vector to multiply by
-	 * @param result Vector to store result in
-	 * @param subset Only do multiplication for these rows (ignored if null)
-	 * @param complement If true, {@code subset} is taken to be its complement (ignored if {@code subset} is null)
-	 */
-	public void mvMult(double vect[], double result[], BitSet subset, boolean complement);
-
-	/**
 	 * Perform a single step of precomputation algorithm Prob0, i.e., for states i in {@code subset},
 	 * set bit i of {@code result} iff there is a transition to a state in {@code u}.
 	 * @param subset Only compute for these states
@@ -80,6 +69,17 @@ public interface DTMC extends Model
 	 * @param result Store results here
 	 */
 	public void prob1step(BitSet subset, BitSet u, BitSet v, BitSet result);
+
+	/**
+	 * Do a matrix-vector multiplication for
+	 * the DTMC's transition probability matrix P and the vector {@code vect} passed in.
+	 * i.e. for all s: result[s] = sum_j P(s,j)*vect[j]
+	 * @param vect Vector to multiply by
+	 * @param result Vector to store result in
+	 * @param subset Only do multiplication for these rows (ignored if null)
+	 * @param complement If true, {@code subset} is taken to be its complement (ignored if {@code subset} is null)
+	 */
+	public void mvMult(double vect[], double result[], BitSet subset, boolean complement);
 
 	/**
 	 * Do a single row of matrix-vector multiplication for
@@ -132,4 +132,12 @@ public interface DTMC extends Model
 	 */
 	public double mvMultRewSingle(int s, double vect[], MCRewards mcRewards);
 
+	/**
+	 * Do a vector-matrix multiplication for
+	 * the DTMC's transition probability matrix P and the vector {@code vect} passed in.
+	 * i.e. for all s: result[s] = sum_i P(i,s)*vect[i]
+	 * @param vect Vector to multiply by
+	 * @param result Vector to store result in
+	 */
+	public void vmMult(double vect[], double result[]);
 }

@@ -912,6 +912,7 @@ public class PrismCL
 
 	private void doSteadyState() throws PrismException
 	{
+		ModelType modelType;
 		File exportSteadyStateFile = null;
 
 		// choose destination for output (file or log)
@@ -920,8 +921,15 @@ public class PrismCL
 		else
 			exportSteadyStateFile = new File(exportSteadyStateFilename);
 
+		// Determine model type
+		if (explicit) {
+			modelType = modelExpl.getModelType();
+		} else {
+			modelType = model.getModelType();
+		}
+		
 		// compute steady-state probabilities
-		if (model.getModelType() == ModelType.CTMC || model.getModelType() == ModelType.DTMC) {
+		if (modelType == ModelType.CTMC || modelType == ModelType.DTMC) {
 			prism.doSteadyState(model, exportType, exportSteadyStateFile);
 		} else {
 			mainLog.println("\nWarning: Steady-state probabilities only computed for DTMCs/CTMCs.");
@@ -932,6 +940,7 @@ public class PrismCL
 
 	private void doTransient() throws PrismException
 	{
+		ModelType modelType;
 		double d;
 		int i;
 		File exportTransientFile = null;
@@ -942,21 +951,36 @@ public class PrismCL
 		else
 			exportTransientFile = new File(exportTransientFilename);
 
+		// Determine model type
+		if (explicit) {
+			modelType = modelExpl.getModelType();
+		} else {
+			modelType = model.getModelType();
+		}
+		
 		// compute transient probabilities
-		if (model.getModelType() == ModelType.CTMC) {
+		if (modelType == ModelType.CTMC) {
 			try {
 				d = Double.parseDouble(transientTime);
 			} catch (NumberFormatException e) {
 				throw new PrismException("Invalid value \"" + transientTime + "\" for transient probability computation");
 			}
-			prism.doTransient(model, d, exportType, exportTransientFile, importinitdist ? new File(importInitDistFilename) : null);
-		} else if (model.getModelType() == ModelType.DTMC) {
+			if (explicit) {
+				prismExpl.doTransient(modelExpl, d, exportType, exportTransientFile, importinitdist ? new File(importInitDistFilename) : null);
+			} else {
+				prism.doTransient(model, d, exportType, exportTransientFile, importinitdist ? new File(importInitDistFilename) : null);
+			}
+		} else if (modelType == ModelType.DTMC) {
 			try {
 				i = Integer.parseInt(transientTime);
 			} catch (NumberFormatException e) {
 				throw new PrismException("Invalid value \"" + transientTime + "\" for transient probability computation");
 			}
-			prism.doTransient(model, i, exportType, exportTransientFile, importinitdist ? new File(importInitDistFilename) : null);
+			if (explicit) {
+				prismExpl.doTransient(modelExpl, i, exportType, exportTransientFile, importinitdist ? new File(importInitDistFilename) : null);
+			} else {
+				prism.doTransient(model, i, exportType, exportTransientFile, importinitdist ? new File(importInitDistFilename) : null);
+			}
 		} else {
 			mainLog.println("\nWarning: Transient probabilities only computed for DTMCs/CTMCs.");
 		}
