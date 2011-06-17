@@ -311,6 +311,9 @@ public class Updater
 				// probability expression has probably been simplified from original form.
 				throw new PrismLangException(s, ups);
 			}
+			// Skip transitions with zero probability/rate
+			if (p == 0)
+				continue;
 			sum += p;
 			list = new ArrayList<Update>();
 			list.add(ups.getUpdate(i));
