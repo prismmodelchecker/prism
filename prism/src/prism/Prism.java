@@ -1732,9 +1732,6 @@ public class Prism implements PrismSettingsListener
 		// rows format does not apply to states output
 		if (exportType == EXPORT_ROWS) exportType = EXPORT_PLAIN;
 		
-		// create new model checker object
-		mc = new StochModelChecker(this, model, null);
-		
 		l = System.currentTimeMillis();
 
 		if (model.getModelType() == ModelType.DTMC) {
