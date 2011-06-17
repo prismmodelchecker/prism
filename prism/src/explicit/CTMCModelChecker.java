@@ -275,9 +275,11 @@ public class CTMCModelChecker extends DTMCModelChecker
 	/**
 	 * Compute transient probabilities.
 	 * i.e. compute the probability of being in each state at time {@code t},
-	 * assuming the initial distribution . 
+	 * assuming the initial distribution {@code initDist}. 
+	 * For space efficiency, the initial distribution vector will be modified and values over-written,  
+	 * so if you wanted it, take a copy. 
 	 * @param ctmc The CTMC
-	 * @param initDist Initial distribution
+	 * @param initDist Initial distribution (will be overwritten)
 	 * @param t Time point
 	 */
 	public ModelCheckerResult computeTransientProbs(CTMC ctmc, double initDist[], double t) throws PrismException
