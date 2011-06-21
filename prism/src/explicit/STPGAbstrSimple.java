@@ -396,6 +396,7 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 				distr.add(i, 1.0);
 				distrs.add(distr);
 				addDistributionSet(i, distrs);
+				addFixedDeadlockState(i);
 			}
 		}
 		return deadlocks;

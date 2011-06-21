@@ -73,6 +73,13 @@ public interface Model
 	public boolean isInitialState(int i);
 
 	/**
+	 * Check whether a state is a "fixed" deadlock, i.e. a state that was
+	 * originally a deadlock but has been fixed through the addition of a self-loop,
+	 * or a state that is still a deadlock but in a model where this acceptable, e.g. a CTMC.
+	 */
+	public boolean isFixedDeadlockState(int i);
+	
+	/**
 	 * Get access to an (optional) list of states.
 	 */
 	public List<State> getStatesList();
@@ -118,7 +125,8 @@ public interface Model
 
 	/**
 	 * Find all deadlocks and return a BitSet of these states.
-	 * If requested (if fix=true, then add self-loops in these states).
+	 * If requested (if fix=true), then add self-loops in these states
+	 * (and update the "fixed" deadlock information).
 	 */
 	public BitSet findDeadlocks(boolean fix) throws PrismException;
 

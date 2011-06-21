@@ -92,6 +92,11 @@ public class DTMCFromMDPMemorylessAdversary implements DTMC
 		return mdp.isInitialState(i);
 	}
 
+	public boolean isFixedDeadlockState(int i)
+	{
+		return mdp.isFixedDeadlockState(i);
+	}
+
 	public List<State> getStatesList()
 	{
 		return mdp.getStatesList();

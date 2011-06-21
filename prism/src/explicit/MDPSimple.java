@@ -443,6 +443,7 @@ public class MDPSimple extends ModelSimple implements MDP
 				Distribution distr = new Distribution();
 				distr.add(i, 1.0);
 				addChoice(i, distr);
+				addFixedDeadlockState(i);
 			}
 		}
 		return deadlocks;

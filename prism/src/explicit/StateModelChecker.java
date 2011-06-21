@@ -554,15 +554,19 @@ public class StateModelChecker
 
 		// treat special cases
 		if (expr.getName().equals("deadlock")) {
-			throw new PrismException("Not supported"); // TODO
-			//dd = model.getFixedDeadlocks();
-			//JDD.Ref(dd);
-			//return new StateValuesMTBDD(dd, model);
+			int numStates = model.getNumStates();
+			BitSet bs = new BitSet(numStates);
+			for (i = 0; i < numStates; i++) {
+				bs.set(i, model.isFixedDeadlockState(i));
+			}
+			return bs;
 		} else if (expr.getName().equals("init")) {
-			throw new PrismException("Not supported"); // TODO
-			//dd = start;
-			//JDD.Ref(dd);
-			//return new StateValuesMTBDD(dd, model);
+			int numStates = model.getNumStates();
+			BitSet bs = new BitSet(numStates);
+			for (i = 0; i < numStates; i++) {
+				bs.set(i, model.isInitialState(i));
+			}
+			return bs;
 		} else {
 			ll = propertiesFile.getCombinedLabelList();
 			i = ll.getLabelIndex(expr.getName());

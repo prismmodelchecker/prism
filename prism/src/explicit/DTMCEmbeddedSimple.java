@@ -101,6 +101,11 @@ public class DTMCEmbeddedSimple implements DTMC
 		return ctmc.isInitialState(i);
 	}
 
+	public boolean isFixedDeadlockState(int i)
+	{
+		return ctmc.isFixedDeadlockState(i);
+	}
+
 	public List<State> getStatesList()
 	{
 		return ctmc.getStatesList();

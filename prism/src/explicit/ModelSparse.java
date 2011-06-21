@@ -42,6 +42,12 @@ public abstract class ModelSparse implements Model
 	protected int numStates;
 	// Initial states
 	protected List<Integer> initialStates; // TODO: should be a (linkedhash?) set really
+	/**
+	 * States with deadlocks that have been "fixed", i.e. a state that was
+	 * originally a deadlock but has been fixed through the addition of a self-loop,
+	 * or a state that is still a deadlock but in a model where this acceptable, e.g. a CTMC.
+	 */
+	protected TreeSet<Integer> deadlocksFixed;
 	// State info
 	protected List<State> statesList;
 	// Constant info
@@ -56,6 +62,7 @@ public abstract class ModelSparse implements Model
 	{
 		this.numStates = numStates;
 		initialStates = new ArrayList<Integer>();
+		deadlocksFixed = new TreeSet<Integer>();
 		statesList = null;
 	}
 	
@@ -67,6 +74,14 @@ public abstract class ModelSparse implements Model
 		initialStates.add(i);
 	}
 	
+	/**
+	 * Add a state to the list of "fixed" deadlock states.
+	 */
+	public void addFixedDeadlockState(int i)
+	{
+		deadlocksFixed.add(i);
+	}
+
 	/**
 	 * Build (anew) from a list of transitions exported explicitly by PRISM (i.e. a .tra file).
 	 */
@@ -99,6 +114,12 @@ public abstract class ModelSparse implements Model
 	public boolean isInitialState(int i)
 	{
 		return initialStates.contains(i);
+	}
+	
+	@Override
+	public boolean isFixedDeadlockState(int i)
+	{
+		return deadlocksFixed.contains(i);
 	}
 	
 	public List<State> getStatesList()
