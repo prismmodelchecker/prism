@@ -535,7 +535,7 @@ public class StateModelChecker
 		BitSet res1bs = (BitSet) checkExpression(model, expr.getOperand1()); 
 		BitSet res2bs = (BitSet) checkExpression(model, expr.getOperand2());
 		res1bs.and(res2bs);
-		return res2bs;
+		return res1bs;
 	}
 
 	/**
