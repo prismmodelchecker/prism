@@ -478,14 +478,20 @@ public class StateModelChecker
 	{
 		Object res;
 
+		// Binary ops
+		// (just "and" for now - more to come later)
+		if (expr instanceof ExpressionBinaryOp && Expression.isAnd(expr)) {
+			res = checkExpressionBinaryOp(model, (ExpressionBinaryOp) expr);
+		}
 		// Literals
-		if (expr instanceof ExpressionLiteral) {
+		else if (expr instanceof ExpressionLiteral) {
 			res = checkExpressionLiteral(model, (ExpressionLiteral) expr);
 		}
 		// Labels
 		else if (expr instanceof ExpressionLabel) {
 			res = checkExpressionLabel(model, (ExpressionLabel) expr);
 		}
+		
 		// Anything else - just evaluate expression repeatedly
 		else if (expr.getType() instanceof TypeBool) {
 			int numStates = model.getNumStates();
@@ -518,6 +524,18 @@ public class StateModelChecker
 		}
 
 		return res;
+	}
+
+	/**
+	 * Model check a binary operator.
+	 */
+	protected Object checkExpressionBinaryOp(Model model, ExpressionBinaryOp expr) throws PrismException
+	{
+		// (just "and" for now - more to come later)
+		BitSet res1bs = (BitSet) checkExpression(model, expr.getOperand1()); 
+		BitSet res2bs = (BitSet) checkExpression(model, expr.getOperand2());
+		res1bs.and(res2bs);
+		return res2bs;
 	}
 
 	/**
