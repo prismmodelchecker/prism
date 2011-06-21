@@ -28,9 +28,12 @@ package explicit;
 
 import java.util.*;
 
+import jdd.JDD;
+
 import explicit.rewards.MCRewards;
 import explicit.rewards.MCRewardsStateArray;
-import parser.ast.ExpressionTemporal;
+import parser.ast.*;
+import parser.type.*;
 import prism.*;
 
 /**
@@ -43,19 +46,50 @@ public class CTMCModelChecker extends DTMCModelChecker
 {
 	// Model checking functions
 
+	/**
+	 * Model check a time-bounded until operator; return vector of probabilities for all states.
+	 */
 	protected StateValues checkProbBoundedUntil(Model model, ExpressionTemporal expr) throws PrismException
 	{
-		// TODO: handle until case
-		double time;
-		BitSet b1, b2;
+		double lTime, uTime; // time bounds
+		Expression exprTmp;
+		BitSet b1, b2, tmp;
 		StateValues probs = null;
-		ModelCheckerResult res = null;
+		ModelCheckerResult tmpRes = null, res = null;
+
+		// check not LTL
+		if (!(expr.getOperand1().getType() instanceof TypeBool))
+			throw new PrismException("Invalid path formula");
+		if (!(expr.getOperand2().getType() instanceof TypeBool))
+			throw new PrismException("Invalid path formula");
 
 		// get info from bounded until
-		time = expr.getUpperBound().evaluateDouble(constantValues, null);
-		if (time < 0) {
-			String bound = expr.upperBoundIsStrict() ? "<" + (time + 1) : "<=" + time;
-			throw new PrismException("Invalid bound " + bound + " in bounded until formula");
+
+		// lower bound is 0 if not specified
+		// (i.e. if until is of form U<=t)
+		exprTmp = expr.getLowerBound();
+		if (exprTmp != null) {
+			lTime = exprTmp.evaluateDouble(constantValues, null);
+			if (lTime < 0) {
+				throw new PrismException("Invalid lower bound " + lTime + " in time-bounded until formula");
+			}
+		} else {
+			lTime = 0;
+		}
+		// upper bound is -1 if not specified
+		// (i.e. if until is of form U>=t)
+		exprTmp = expr.getUpperBound();
+		if (exprTmp != null) {
+			uTime = exprTmp.evaluateDouble(constantValues, null);
+			if (uTime < 0 || (uTime == 0 && expr.upperBoundIsStrict())) {
+				String bound = (expr.upperBoundIsStrict() ? "<" : "<=") + uTime;
+				throw new PrismException("Invalid upper bound " + bound + " in time-bounded until formula");
+			}
+			if (uTime < lTime) {
+				throw new PrismException("Upper bound must exceed lower bound in time-bounded until formula");
+			}
+		} else {
+			uTime = -1;
 		}
 
 		// model check operands first
@@ -65,19 +99,57 @@ public class CTMCModelChecker extends DTMCModelChecker
 		// compute probabilities
 
 		// a trivial case: "U<=0"
-		if (time == 0) {
+		if (lTime == 0 && uTime == 0) {
 			// prob is 1 in b2 states, 0 otherwise
 			probs = StateValues.createFromBitSetAsDoubles(model.getNumStates(), b2);
 		} else {
-			res = computeTimeBoundedUntilProbs((CTMC) model, b2, time);
-			probs = StateValues.createFromDoubleArray(res.soln);
+
+			// break down into different cases to compute probabilities
+
+			// >= lTime
+			if (uTime == -1) {
+				// check for special case of lTime == 0, this is actually an unbounded until
+				if (lTime == 0) {
+					// compute probs
+					res = computeUntilProbs((DTMC) model, b1, b2);
+					probs = StateValues.createFromDoubleArray(res.soln);
+				} else {
+					// compute unbounded until probs
+					tmpRes = computeUntilProbs((DTMC) model, b1, b2);
+					// compute bounded until probs
+					res = computeTransientBackwardsProbs((CTMC) model, b1, b1, lTime, tmpRes.soln);
+					probs = StateValues.createFromDoubleArray(res.soln);
+				}
+			}
+			// <= uTime
+			else if (lTime == 0) {
+				// nb: uTime != 0 since would be caught above (trivial case)
+				b1.andNot(b2);
+				res = computeTransientBackwardsProbs((CTMC) model, b2, b1, uTime, null);
+				probs = StateValues.createFromDoubleArray(res.soln);
+				// set values to exactly 1 for target (b2) states
+				// (these are computed inexactly during uniformisation)
+				int n = model.getNumStates();
+				for (int i = 0; i < n; i++) {
+					if (b2.get(i))
+						probs.setDoubleValue(i, 1);
+				}
+			}
+			// [lTime,uTime] (including where lTime == uTime)
+			else {
+				tmp = (BitSet) b1.clone();
+				tmp.andNot(b2);
+				tmpRes = computeTransientBackwardsProbs((CTMC) model, b2, tmp, uTime - lTime, null);
+				res = computeTransientBackwardsProbs((CTMC) model, b1, b1, lTime, tmpRes.soln);
+				probs = StateValues.createFromDoubleArray(res.soln);
+			}
 		}
 
 		return probs;
 	}
 
 	// Transient/steady-state probability computation
-	
+
 	/**
 	 * Compute transient probability distribution (forwards).
 	 * Optionally, use the passed in vector initDist as the initial probability distribution (time 0).
@@ -105,7 +177,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 			initDistNew = initDist;
 			throw new PrismException("Not implemented yet"); // TODO
 		}
-		
+
 		// Compute transient probabilities
 		res = computeTransientProbs(ctmc, initDistNew, time);
 		probs = StateValues.createFromDoubleArray(res.soln);
@@ -117,7 +189,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 
 	/**
 	 * Compute reachability/until probabilities.
-	 * i.e. compute the min/max probability of reaching a state in {@code target},
+	 * i.e. compute the probability of reaching a state in {@code target},
 	 * while remaining in those in @{code remain}.
 	 * @param dtmc The CTMC
 	 * @param remain Remain in these states (optional: null means "all")
@@ -134,28 +206,58 @@ public class CTMCModelChecker extends DTMCModelChecker
 	}
 
 	/**
-	 * Compute time-bounded until probabilities.
-	 * i.e. compute the probability of reaching a state in {@code target},
-	 * within time t, and while remaining in states in @{code remain}.
+	 * Compute time-bounded reachability probabilities,
+	 * i.e. compute the probability of reaching a state in {@code target} within time {@code t}.
 	 * @param ctmc The CTMC
 	 * @param target Target states
 	 * @param t Time bound
 	 */
-	public ModelCheckerResult computeTimeBoundedUntilProbs(CTMC ctmc, BitSet target, double t) throws PrismException
+	public ModelCheckerResult computeTimeBoundedReachProbs(CTMC ctmc, BitSet target, double t) throws PrismException
 	{
-		return computeTimeBoundedUntilProbs(ctmc, target, t, null);
+		return computeTimeBoundedUntilProbs(ctmc, null, target, t);
 	}
 
 	/**
-	 * Compute time-bounded until probabilities.
+	 * Compute time-bounded until probabilities,
 	 * i.e. compute the probability of reaching a state in {@code target},
-	 * within time t, and while remaining in states in @{code remain}.
+	 * within time {@code t}, and while remaining in states in {@code remain}.
 	 * @param ctmc The CTMC
+	 * @param remain Remain in these states (optional: null means "all")
 	 * @param target Target states
 	 * @param t Time bound
-	 * @param init Initial solution vector - pass null for default
 	 */
-	public ModelCheckerResult computeTimeBoundedUntilProbs(CTMC ctmc, BitSet target, double t, double init[]) throws PrismException
+	public ModelCheckerResult computeTimeBoundedUntilProbs(CTMC ctmc, BitSet remain, BitSet target, double t) throws PrismException
+	{
+		BitSet nonAbs = null;
+		if (remain != null) {
+			nonAbs = (BitSet) remain.clone();
+			nonAbs.andNot(target);
+		}
+		ModelCheckerResult res = computeTransientBackwardsProbs(ctmc, target, nonAbs, t, null);
+		// Set values to exactly 1 for target states
+		// (these are computed inexactly during uniformisation)
+		int n = ctmc.getNumStates();
+		for (int i = 0; i < n; i++) {
+			if (target.get(i))
+				res.soln[i] = 1.0;
+		}
+		return res;
+	}
+
+	/**
+	 * Perform transient probability computation, as required for (e.g. CSL) model checking.
+	 * Compute, for each state, the sum over {@code target} states
+	 * of the probability of being in that state at time {@code t}
+	 * multiplied by the corresponding probability in the vector {@code multProbs},
+	 * assuming that all states *not* in {@code nonAbs} are made absorbing.
+	 * If {@code multProbs} is null, it is assumed to be all 1s.
+	 * @param ctmc The CTMC
+	 * @param target Target states
+	 * @param nonAbs States *not* to be made absorbing (optional: null means "all")
+	 * @param t Time bound
+	 * @param multProbs Multiplication vector (optional: null means all 1s)
+	 */
+	public ModelCheckerResult computeTransientBackwardsProbs(CTMC ctmc, BitSet target, BitSet nonAbs, double t, double multProbs[]) throws PrismException
 	{
 		ModelCheckerResult res = null;
 		int i, n, iters;
@@ -167,17 +269,22 @@ public class CTMCModelChecker extends DTMCModelChecker
 		int left, right;
 		double q, qt, acc, weights[], totalWeight;
 
-		// TODO: remove 'init' from args, but probably replace with 'mult' like in other engines
+		// Optimisations: If (nonAbs is empty or t = 0) and multProbs is null, this is easy.
+		if (((nonAbs != null && nonAbs.isEmpty()) || (t == 0)) && multProbs == null) {
+			res = new ModelCheckerResult();
+			res.soln = Utils.bitsetToDoubleArray(target, ctmc.getNumStates());
+			return res;
+		}
 		
-		// Start bounded probabilistic reachability
+		// Start backwards transient computation
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting time-bounded probabilistic reachability...");
+		mainLog.println("Starting backwards transient probability computation...");
 
 		// Store num states
 		n = ctmc.getNumStates();
 
 		// Get uniformisation rate; do Fox-Glynn
-		q = ctmc.getDefaultUniformisationRate();
+		q = ctmc.getDefaultUniformisationRate(nonAbs);
 		qt = q * t;
 		mainLog.println("\nUniformisation: q.t = " + q + " x " + t + " = " + qt);
 		acc = termCritParam / 8.0;
@@ -199,19 +306,19 @@ public class CTMCModelChecker extends DTMCModelChecker
 
 		// Create solution vector(s)
 		soln = new double[n];
-		soln2 = (init == null) ? new double[n] : init;
+		soln2 = new double[n];
 		sum = new double[n];
 
-		// Initialise solution vectors. Use passed in initial vector, if present
-		if (init != null) {
+		// Initialise solution vectors.
+		// Vectors soln/soln2 are 1 for target states, or multProbs[i] if supplied.
+		// Vector sum is all zeros (done by array creation).
+		if (multProbs != null) {
 			for (i = 0; i < n; i++)
-				soln[i] = soln2[i] = target.get(i) ? 1.0 : init[i];
+				soln[i] = soln2[i] = target.get(i) ? multProbs[i] : 0.0;
 		} else {
 			for (i = 0; i < n; i++)
 				soln[i] = soln2[i] = target.get(i) ? 1.0 : 0.0;
 		}
-		for (i = 0; i < n; i++)
-			sum[i] = 0.0;
 
 		// If necessary, do 0th element of summation (doesn't require any matrix powers)
 		if (left == 0)
@@ -222,7 +329,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 		iters = 1;
 		while (iters <= right) {
 			// Matrix-vector multiply
-			dtmc.mvMult(soln, soln2, target, true);
+			dtmc.mvMult(soln, soln2, nonAbs, false);
 			// Swap vectors for next iter
 			tmpsoln = soln;
 			soln = soln2;
@@ -235,9 +342,9 @@ public class CTMCModelChecker extends DTMCModelChecker
 			iters++;
 		}
 
-		// Finished bounded probabilistic reachability
+		// Finished backwards transient computation
 		timer = System.currentTimeMillis() - timer;
-		mainLog.print("Time-bounded probabilistic reachability");
+		mainLog.print("Backwards transient probability computation");
 		mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
 
 		// Return results
@@ -395,7 +502,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 				if (args[i].equals("-nopre"))
 					mc.setPrecomp(false);
 			}
-			res = mc.computeTimeBoundedUntilProbs(ctmc, target, Double.parseDouble(args[3]));
+			res = mc.computeTimeBoundedReachProbs(ctmc, target, Double.parseDouble(args[3]));
 			System.out.println(res.soln[0]);
 		} catch (PrismException e) {
 			System.out.println(e);

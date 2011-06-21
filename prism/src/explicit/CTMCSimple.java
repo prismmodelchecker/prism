@@ -27,6 +27,7 @@
 package explicit;
 
 import java.util.Map;
+import java.util.BitSet;
 
 import prism.ModelType;
 
@@ -102,9 +103,28 @@ public class CTMCSimple extends DTMCSimple implements CTMC
 	}
 	
 	@Override
+	public double getMaxExitRate(BitSet subset)
+	{
+		int i;
+		double d, max = Double.NEGATIVE_INFINITY;
+		for (i = subset.nextSetBit(0); i >= 0; i = subset.nextSetBit(i + 1)) {
+			d = trans.get(i).sum();
+			if (d > max)
+				max = d;
+		}
+		return max;
+	}
+	
+	@Override
 	public double getDefaultUniformisationRate()
 	{
 		return 1.02 * getMaxExitRate(); 
+	}
+	
+	@Override
+	public double getDefaultUniformisationRate(BitSet nonAbs)
+	{
+		return 1.02 * getMaxExitRate(nonAbs); 
 	}
 	
 	@Override
