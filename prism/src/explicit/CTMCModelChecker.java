@@ -373,7 +373,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 		n = dtmc.getNumStates();
 		MCRewardsStateArray rewEmb = new MCRewardsStateArray(n);
 		for (i = 0; i < n; i++) {
-			rewEmb.setStateReward(i, mcRewards.getStateReward(i) * ((CTMC) dtmc).getExitRate(i));
+			rewEmb.setStateReward(i, mcRewards.getStateReward(i) / ((CTMC) dtmc).getExitRate(i));
 		}
 		// Do computation on DTMC
 		return super.computeReachRewards(dtmcEmb, rewEmb, target);

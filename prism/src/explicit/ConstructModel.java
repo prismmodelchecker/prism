@@ -106,7 +106,7 @@ public class ConstructModel
 		boolean fixdl = false;
 
 		// For now, don't use sparse (so can use actions) (TODO: fix)
-		buildSparse = false;
+		//buildSparse = false;
 		
 		// Don't support multiple initial states
 		if (modulesFile.getInitialStates() != null) {
