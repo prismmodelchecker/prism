@@ -138,6 +138,7 @@ public class PrismExplicit
 		mc.setMaxIters(settings.getInteger(PrismSettings.PRISM_MAX_ITERS));
 		switch (model.getModelType()) {
 		case DTMC:
+		case CTMC:
 			s = settings.getString(PrismSettings.PRISM_LIN_EQ_METHOD);
 			if (s.equals("Gauss-Seidel")) {
 				mc.setSolnMethod(StateModelChecker.SolnMethod.GAUSS_SEIDEL);
