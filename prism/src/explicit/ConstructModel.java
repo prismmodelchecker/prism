@@ -105,9 +105,6 @@ public class ConstructModel
 		long timer, timerProgress;
 		boolean fixdl = false;
 
-		// For now, don't use sparse (so can use actions) (TODO: fix)
-		buildSparse = false;
-		
 		// Don't support multiple initial states
 		if (modulesFile.getInitialStates() != null) {
 			throw new PrismException("Cannot do explicit-state reachability if there are multiple initial states");
