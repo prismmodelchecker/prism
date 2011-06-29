@@ -264,57 +264,63 @@ public class NonProbModelChecker extends StateModelChecker
 
 		// Process the counterexample info to produce a trace 
 		if (doGenCex) {
-			mainLog.println("\nProcessing counterexample trace (length " + (cexDDs.size() - 1) + ")...");
-			// First state of counterexample (at end of array) is initial state
-			JDD.Deref(cexDDs.get(cexDDs.size() - 1));
-			JDD.Ref(init);
-			cexDDs.set(cexDDs.size() - 1, init);
-			// Go through remaining steps of counterexample
-			for (i = cexDDs.size() - 2; i >= 0; i--) {
-				// Get states that are a successor of the previous state of the counterexample
-				JDD.Ref(cexDDs.get(i + 1));
-				JDD.Ref(transRel);
-				tmp3 = JDD.And(cexDDs.get(i + 1), transRel);
-				tmp3 = JDD.ThereExists(tmp3, allDDRowVars);
-				tmp3 = JDD.PermuteVariables(tmp3, allDDColVars, allDDRowVars);
-				// Intersect with possible states for this step of the counterexample
-				JDD.Ref(cexDDs.get(i));
-				tmp3 = JDD.And(tmp3, cexDDs.get(i));
-				// Pick one of these state (the first)
-				tmp3 = JDD.PermuteVariables(JDD.RestrictToFirst(tmp3, allDDColVars), allDDColVars, allDDRowVars);
-				// Replace this state in the counterexample
-				JDD.Deref(cexDDs.get(i));
-				cexDDs.set(i, tmp3);
-			}
-			// For an MDP model, build a list of actions from counterexample
-			if (model.getModelType() == ModelType.MDP) {
-				cexActions = new Vector<String>();
-				for (i = cexDDs.size() - 1; i >= 1; i--) {
-					JDD.Ref(trans01);
+			if (!cexDone) {
+				for (i = 0; i < cexDDs.size(); i++) {
+					JDD.Deref(cexDDs.get(i));
+				}
+			} else {
+				mainLog.println("\nProcessing counterexample trace (length " + (cexDDs.size() - 1) + ")...");
+				// First state of counterexample (at end of array) is initial state
+				JDD.Deref(cexDDs.get(cexDDs.size() - 1));
+				JDD.Ref(init);
+				cexDDs.set(cexDDs.size() - 1, init);
+				// Go through remaining steps of counterexample
+				for (i = cexDDs.size() - 2; i >= 0; i--) {
+					// Get states that are a successor of the previous state of the counterexample
+					JDD.Ref(cexDDs.get(i + 1));
+					JDD.Ref(transRel);
+					tmp3 = JDD.And(cexDDs.get(i + 1), transRel);
+					tmp3 = JDD.ThereExists(tmp3, allDDRowVars);
+					tmp3 = JDD.PermuteVariables(tmp3, allDDColVars, allDDRowVars);
+					// Intersect with possible states for this step of the counterexample
 					JDD.Ref(cexDDs.get(i));
-					tmp3 = JDD.And(trans01, cexDDs.get(i));
-					JDD.Ref(cexDDs.get(i - 1));
-					tmp3 = JDD.And(tmp3, JDD.PermuteVariables(cexDDs.get(i - 1), allDDRowVars, allDDColVars));
-					tmp3 = JDD.ThereExists(tmp3, allDDColVars);
-					JDD.Ref(transActions);
-					tmp3 = JDD.Apply(JDD.TIMES, tmp3, transActions);
-					int action = (int) JDD.FindMax(tmp3);
-					cexActions.add(action > 0 ? model.getSynchs().get(action - 1) : "");
-					JDD.Deref(tmp3);
+					tmp3 = JDD.And(tmp3, cexDDs.get(i));
+					// Pick one of these state (the first)
+					tmp3 = JDD.PermuteVariables(JDD.RestrictToFirst(tmp3, allDDColVars), allDDColVars, allDDRowVars);
+					// Replace this state in the counterexample
 					JDD.Deref(cexDDs.get(i));
+					cexDDs.set(i, tmp3);
 				}
-				JDD.Deref(cexDDs.get(0));
-				mainLog.println("Counterexample (action sequence): " + cexActions);
-				result.setCounterexample(cexActions);
-			}
-			// Otherwise, convert list of BDDs to list of states
-			else {
-				CexPathAsBDDs cex = new CexPathAsBDDs(model);
-				for (i = cexDDs.size() - 1; i >= 0; i--) {
-					cex.addState(cexDDs.get(i));
-					JDD.Deref(cexDDs.get(i));
+				// For an MDP model, build a list of actions from counterexample
+				if (model.getModelType() == ModelType.MDP) {
+					cexActions = new Vector<String>();
+					for (i = cexDDs.size() - 1; i >= 1; i--) {
+						JDD.Ref(trans01);
+						JDD.Ref(cexDDs.get(i));
+						tmp3 = JDD.And(trans01, cexDDs.get(i));
+						JDD.Ref(cexDDs.get(i - 1));
+						tmp3 = JDD.And(tmp3, JDD.PermuteVariables(cexDDs.get(i - 1), allDDRowVars, allDDColVars));
+						tmp3 = JDD.ThereExists(tmp3, allDDColVars);
+						JDD.Ref(transActions);
+						tmp3 = JDD.Apply(JDD.TIMES, tmp3, transActions);
+						int action = (int) JDD.FindMax(tmp3);
+						cexActions.add(action > 0 ? model.getSynchs().get(action - 1) : "");
+						JDD.Deref(tmp3);
+						JDD.Deref(cexDDs.get(i));
+					}
+					JDD.Deref(cexDDs.get(0));
+					mainLog.println("Counterexample (action sequence): " + cexActions);
+					result.setCounterexample(cexActions);
 				}
-				result.setCounterexample(cex);
+				// Otherwise, convert list of BDDs to list of states
+				else {
+					CexPathAsBDDs cex = new CexPathAsBDDs(model);
+					for (i = cexDDs.size() - 1; i >= 0; i--) {
+						cex.addState(cexDDs.get(i));
+						JDD.Deref(cexDDs.get(i));
+					}
+					result.setCounterexample(cex);
+				}
 			}
 		}
 
