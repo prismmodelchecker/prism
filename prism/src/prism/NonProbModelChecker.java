@@ -105,31 +105,83 @@ public class NonProbModelChecker extends StateModelChecker
 			}
 			// Negation
 			else if (exprUnary.getOperator() == ExpressionUnaryOp.NOT) {
-				// Compute, then subtract from 1 
-				res = checkExpressionExists(exprUnary.getOperand()); //TODO: forall
-				res.subtractFromOne(); //TODO
+				// Compute, then negate 
+				res = checkExpressionForAll(exprUnary.getOperand());
+				res.subtractFromOne();
 			}
 		}
 		// Temporal operators
 		else if (expr instanceof ExpressionTemporal) {
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
-			// Next
+			if (exprTemp.hasBounds()) {
+				throw new PrismException("Model checking of bounded CTL operators is not supported");
+			}
+			// Next (EX)
 			if (exprTemp.getOperator() == ExpressionTemporal.P_X) {
 				// TODO
-				throw new PrismException("CTL model checking of this operator is not yet supported");
+				throw new PrismException("CTL model checking of the E X operator is not yet supported");
 			}
-			// Until
+			// Until (EU)
 			else if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
-				if (exprTemp.hasBounds()) {
-					// TODO
-					throw new PrismException("CTL model checking of this operator is not yet supported");
-				} else {
-					res = checkExistsUntil(exprTemp);
-				}
+				res = checkExistsUntil(exprTemp);
 			}
 			// Anything else - convert to until and recurse
 			else {
 				res = checkExpressionExists(exprTemp.convertToUntilForm());
+			}
+		}
+
+		if (res == null)
+			throw new PrismException("Unrecognised path operator in E operator");
+
+		return res;
+	}
+
+	/**
+	 * Model check a CTL forall (A) operator.
+	 */
+	protected StateValues checkExpressionForAll(Expression expr) throws PrismException
+	{
+		StateValues res = null;
+
+		// Check whether this is a simple path formula (i.e. CTL, not LTL)
+		if (!expr.isSimplePathFormula()) {
+			throw new PrismException("(Non-probabilistic) LTL model checking is not supported");
+		}
+
+		// Negation/parentheses
+		if (expr instanceof ExpressionUnaryOp) {
+			ExpressionUnaryOp exprUnary = (ExpressionUnaryOp) expr;
+			// Parentheses
+			if (exprUnary.getOperator() == ExpressionUnaryOp.PARENTH) {
+				// Recurse
+				res = checkExpressionForAll(exprUnary.getOperand());
+			}
+			// Negation
+			else if (exprUnary.getOperator() == ExpressionUnaryOp.NOT) {
+				// Compute, then negate 
+				res = checkExpressionExists(exprUnary.getOperand());
+				res.subtractFromOne();
+			}
+		}
+		// Temporal operators
+		else if (expr instanceof ExpressionTemporal) {
+			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
+			if (exprTemp.hasBounds()) {
+				throw new PrismException("Model checking of bounded CTL operators is not supported");
+			}
+			// Next (AX)
+			if (exprTemp.getOperator() == ExpressionTemporal.P_X) {
+				// TODO
+				throw new PrismException("CTL model checking of the A X operator is not yet supported");
+			}
+			// Until (AU)
+			else if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
+				throw new PrismException("CTL model checking of the A U operator is not yet supported");
+			}
+			// Anything else - convert to until and recurse
+			else {
+				res = checkExpressionForAll(exprTemp.convertToUntilForm());
 			}
 		}
 
@@ -169,16 +221,16 @@ public class NonProbModelChecker extends StateModelChecker
 			cexDone = false;
 			init = model.getStart();
 		}
-		
+
 		// Get transition relation
 		if (model.getModelType() == ModelType.MDP) {
 			JDD.Ref(trans01);
-			transRel = JDD.ThereExists(trans01, ((NondetModel)model).getAllDDNondetVars());
+			transRel = JDD.ThereExists(trans01, ((NondetModel) model).getAllDDNondetVars());
 		} else {
 			JDD.Ref(trans01);
 			transRel = trans01;
 		}
-		
+
 		// Fixpoint loop
 		done = false;
 		iters = 0;
@@ -247,7 +299,7 @@ public class NonProbModelChecker extends StateModelChecker
 					tmp3 = JDD.ThereExists(tmp3, allDDColVars);
 					JDD.Ref(transActions);
 					tmp3 = JDD.Apply(JDD.TIMES, tmp3, transActions);
-					int action = (int)JDD.FindMax(tmp3);
+					int action = (int) JDD.FindMax(tmp3);
 					cexActions.add(action > 0 ? model.getSynchs().get(action - 1) : "");
 					JDD.Deref(tmp3);
 					JDD.Deref(cexDDs.get(i));
@@ -278,14 +330,6 @@ public class NonProbModelChecker extends StateModelChecker
 		mainLog.println("\nCTL EU fixpoint: " + iters + " iterations in " + (l / 1000.0) + " seconds");
 
 		return new StateValuesMTBDD(tmp, model);
-	}
-
-	/**
-	 * Model check a CTL forall (A) operator.
-	 */
-	protected StateValues checkExpressionForAll(Expression expr) throws PrismException
-	{
-		throw new PrismException("CTL model checking of this operator is not yet supported");
 	}
 }
 
