@@ -415,9 +415,13 @@ public class PrismCL
 						// store result of model checking
 						try {
 							results[j].setResult(definedMFConstants, definedPFConstants, res.getResult());
-							if (res.getCounterexample() != null) {
+							Object cex = res.getCounterexample(); 
+							if (cex != null) {
 								mainLog.println("\nCounterexample/witness:");
-								mainLog.println(res.getCounterexample());
+								mainLog.println(cex);
+								if (cex instanceof NonProbModelChecker.CexPathAsBDDs){
+									((NonProbModelChecker.CexPathAsBDDs) cex).clear();
+								}
 							}
 						} catch (PrismException e) {
 							error("Problem storing results");

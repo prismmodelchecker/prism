@@ -199,7 +199,6 @@ public class NonProbModelChecker extends StateModelChecker
 		JDDNode b1, b2, transRel, tmp, tmp2, tmp3, tmp4, init = null;
 		ArrayList<JDDNode> cexDDs = null;
 		boolean done, cexDone = false;
-		List<State> cexStates;
 		Vector<String> cexActions;
 		int iters, i;
 		long l;
@@ -310,12 +309,12 @@ public class NonProbModelChecker extends StateModelChecker
 			}
 			// Otherwise, convert list of BDDs to list of states
 			else {
-				cexStates = new ArrayList<State>(cexDDs.size());
+				CexPathAsBDDs cex = new CexPathAsBDDs(model);
 				for (i = cexDDs.size() - 1; i >= 0; i--) {
-					cexStates.add(model.convertBddToState(cexDDs.get(i)));
+					cex.addState(cexDDs.get(i));
 					JDD.Deref(cexDDs.get(i));
 				}
-				result.setCounterexample(cexStates);
+				result.setCounterexample(cex);
 			}
 		}
 
@@ -330,6 +329,49 @@ public class NonProbModelChecker extends StateModelChecker
 		mainLog.println("\nCTL EU fixpoint: " + iters + " iterations in " + (l / 1000.0) + " seconds");
 
 		return new StateValuesMTBDD(tmp, model);
+	}
+
+	class CexPathAsBDDs
+	{
+		protected prism.Model model;
+		protected ArrayList<JDDNode> states;
+
+		public CexPathAsBDDs(prism.Model model)
+		{
+			this.model = model;
+			states = new ArrayList<JDDNode>();
+		}
+
+		/**
+		 * Add a state to the path (as a BDD, which will be stored and Ref'ed.
+		 */
+		public void addState(JDDNode state)
+		{
+			JDD.Ref(state);
+			states.add(state);
+		}
+
+		public void clear()
+		{
+			for (JDDNode dd : states) {
+				JDD.Deref(dd);
+			}
+		}
+
+		public String toString()
+		{
+			State state;
+			int i, n;
+			String s = "";
+			n = states.size();
+			for (i = 0; i < n; i++) { 
+				state = model.convertBddToState(states.get(i));
+				s += state.toString();
+				if (i < n - 1)
+					s += "\n";
+			}
+			return s;
+		}
 	}
 }
 
