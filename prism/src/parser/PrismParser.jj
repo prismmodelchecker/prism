@@ -411,6 +411,7 @@ TOKEN :
 |	< AND:			"&" >
 |	< OR:			"|" >
 |	< IMPLIES:		"=>" >
+|	< IFF:			"<=>" >
 |	< RARROW:		"->" >
 |	< COLON:		":" >
 |	< SEMICOLON:	";" >
@@ -1121,8 +1122,21 @@ Expression ExpressionImplies(boolean prop, boolean pathprop) :
 	Token begin = null;
 }
 {
+	{ begin = getToken(1); } ret = ExpressionIff(prop, pathprop)
+	( <IMPLIES> expr = ExpressionIff(prop, pathprop) { ret = new ExpressionBinaryOp(ExpressionBinaryOp.IMPLIES, ret, expr); ret.setPosition(begin, getToken(0)); } )*
+	{ return ret; }
+}
+
+// Expression: if-and-only-iff
+
+Expression ExpressionIff(boolean prop, boolean pathprop) :
+{
+	Expression ret, expr;
+	Token begin = null;
+}
+{
 	{ begin = getToken(1); } ret = ExpressionOr(prop, pathprop)
-	( <IMPLIES> expr = ExpressionOr(prop, pathprop) { ret = new ExpressionBinaryOp(ExpressionBinaryOp.IMPLIES, ret, expr); ret.setPosition(begin, getToken(0)); } )*
+	( <IFF> expr = ExpressionOr(prop, pathprop) { ret = new ExpressionBinaryOp(ExpressionBinaryOp.IFF, ret, expr); ret.setPosition(begin, getToken(0)); } )*
 	{ return ret; }
 }
 

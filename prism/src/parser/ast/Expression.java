@@ -369,6 +369,11 @@ public abstract class Expression extends ASTElement
 		return new ExpressionBinaryOp(ExpressionBinaryOp.OR, expr1, expr2);
 	}
 
+	public static Expression Iff(Expression expr1, Expression expr2)
+	{
+		return new ExpressionBinaryOp(ExpressionBinaryOp.IFF, expr1, expr2);
+	}
+
 	public static Expression Implies(Expression expr1, Expression expr2)
 	{
 		return new ExpressionBinaryOp(ExpressionBinaryOp.IMPLIES, expr1, expr2);
@@ -435,6 +440,12 @@ public abstract class Expression extends ASTElement
 	public static boolean isOr(Expression expr)
 	{
 		return expr instanceof ExpressionBinaryOp && ((ExpressionBinaryOp) expr).getOperator() == ExpressionBinaryOp.OR;
+	}
+
+	public static boolean isIff(Expression expr)
+	{
+		return expr instanceof ExpressionBinaryOp
+				&& ((ExpressionBinaryOp) expr).getOperator() == ExpressionBinaryOp.IFF;
 	}
 
 	public static boolean isImplies(Expression expr)

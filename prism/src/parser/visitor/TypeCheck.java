@@ -246,6 +246,7 @@ public class TypeCheck extends ASTTraverse
 
 		switch (e.getOperator()) {
 		case ExpressionBinaryOp.IMPLIES:
+		case ExpressionBinaryOp.IFF:
 		case ExpressionBinaryOp.OR:
 		case ExpressionBinaryOp.AND:
 			if (!(t1 instanceof TypeBool) && !(t1 instanceof TypePathBool)) {

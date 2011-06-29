@@ -35,22 +35,23 @@ public class ExpressionBinaryOp extends Expression
 {
 	// Operator constants
 	public static final int IMPLIES = 1;
-	public static final int OR = 2;
-	public static final int AND = 3;
-	public static final int EQ = 4;
-	public static final int NE = 5;
-	public static final int GT = 6;
-	public static final int GE = 7;
-	public static final int LT = 8;
-	public static final int LE = 9;
-	public static final int PLUS = 10;
-	public static final int MINUS = 11;
-	public static final int TIMES = 12;
-	public static final int DIVIDE = 13;
+	public static final int IFF = 2;
+	public static final int OR = 3;
+	public static final int AND = 4;
+	public static final int EQ = 5;
+	public static final int NE = 6;
+	public static final int GT = 7;
+	public static final int GE = 8;
+	public static final int LT = 9;
+	public static final int LE = 10;
+	public static final int PLUS = 11;
+	public static final int MINUS = 12;
+	public static final int TIMES = 13;
+	public static final int DIVIDE = 14;
 	// Operator symbols
-	public static final String opSymbols[] = { "", "=>", "|", "&", "=", "!=", ">", ">=", "<", "<=", "+", "-", "*", "/" };
+	public static final String opSymbols[] = { "", "=>", "<=>", "|", "&", "=", "!=", ">", ">=", "<", "<=", "+", "-", "*", "/" };
 	// Operator type testers
-	public static boolean isLogical(int op) { return op==IMPLIES || op==OR || op==AND; }
+	public static boolean isLogical(int op) { return op==IMPLIES || op==IFF || op==OR || op==AND; }
 	public static boolean isRelOp(int op) { return op==EQ || op==NE || op==GT ||  op==GE || op==LT || op==LE; }
 	public static boolean isArithmetic(int op) { return op==PLUS || op==MINUS || op==TIMES ||  op==DIVIDE; }
 	
@@ -131,6 +132,8 @@ public class ExpressionBinaryOp extends Expression
 		switch (op) {
 		case IMPLIES:
 			return new Boolean(!operand1.evaluateBoolean(ec) || operand2.evaluateBoolean(ec));
+		case IFF:
+			return new Boolean(operand1.evaluateBoolean(ec) == operand2.evaluateBoolean(ec));
 		case OR:
 			return new Boolean(operand1.evaluateBoolean(ec) || operand2.evaluateBoolean(ec));
 		case AND:

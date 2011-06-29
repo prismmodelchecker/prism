@@ -54,6 +54,22 @@ public class Simplify extends ASTTraverseModify
 			if (Expression.isTrue(e.getOperand1()))
 				return e.getOperand2();
 			break;
+		case ExpressionBinaryOp.IFF:
+			if (Expression.isFalse(e.getOperand1())) {
+				if (Expression.isFalse(e.getOperand2())) {
+					return Expression.True();
+				} else if (Expression.isTrue(e.getOperand2())) {
+					return Expression.False();
+				}
+			}
+			if (Expression.isTrue(e.getOperand1())) {
+				if (Expression.isFalse(e.getOperand2())) {
+					return Expression.False();
+				} else if (Expression.isTrue(e.getOperand2())) {
+					return Expression.True();
+				}
+			}
+			break;
 		case ExpressionBinaryOp.OR:
 			if (Expression.isTrue(e.getOperand1()) || Expression.isTrue(e.getOperand2()))
 				return Expression.True();

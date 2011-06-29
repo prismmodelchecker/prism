@@ -96,6 +96,9 @@ public class ConvertForJltl2ba extends ASTTraverseModify
 		case ExpressionBinaryOp.IMPLIES:
 			res = new SimpleLTL(SimpleLTL.LTLType.IMPLIES, ltl1, ltl2);
 			break;
+		case ExpressionBinaryOp.IFF:
+			res = new SimpleLTL(SimpleLTL.LTLType.EQUIV, ltl1, ltl2);
+			break;
 		case ExpressionBinaryOp.OR:
 			res = new SimpleLTL(SimpleLTL.LTLType.OR, ltl1, ltl2);
 			break;

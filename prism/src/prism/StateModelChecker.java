@@ -401,6 +401,9 @@ public class StateModelChecker implements ModelChecker
 			case ExpressionBinaryOp.IMPLIES:
 				dd = JDD.Or(JDD.Not(dd1), dd2);
 				break;
+			case ExpressionBinaryOp.IFF:
+				dd = JDD.Not(JDD.Xor(dd1, dd2));
+				break;
 			case ExpressionBinaryOp.OR:
 				dd = JDD.Or(dd1, dd2);
 				break;
