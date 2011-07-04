@@ -293,7 +293,7 @@ ifeq ($(OSTYPE),darwin)
 	BIN_TARGETS=$(BIN_PRISM) $(BIN_XPRISM)
 endif
 
-.PHONY: clean javadoc
+.PHONY: clean javadoc tests
 
 default: all
 
@@ -356,6 +356,9 @@ make_dirs:
 	  (cd $(LIB_DIR) && \
 	  for lib in `ls *$(LIBSUFFIX)`; do ln -fs $$lib `echo $$lib | sed s/$(LIBSUFFIX)/.jnilib/`; done;); \
 	fi
+
+tests:
+	cd ~/prism-tests && $(MAKE) clean && $(MAKE) PRISM_EXEC=../bin/prism
 
 bin_scripts: $(BIN_TARGETS)
 	@./install.sh silent
