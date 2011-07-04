@@ -329,6 +329,15 @@ public abstract class ASTElement
 	}
 
 	/**
+	 * Find all references to properties (by name), replace the ExpressionLabels with ExpressionProps.
+	 */
+	public ASTElement findAllProps(ModulesFile mf, PropertiesFile pf) throws PrismLangException
+	{
+		FindAllProps visitor = new FindAllProps(mf, pf);
+		return (ASTElement) accept(visitor);
+	}
+
+	/**
 	 * Find all references to action labels, check they exist and, if required,
 	 * store their index locally (as defined by the containing ModuleFile).
 	 */

@@ -214,6 +214,9 @@ public class PropertiesFile extends ASTElement
 		// Find all instances of variables (i.e. locate idents which are variables).
 		findAllVars(modulesFile.getVarNames(), modulesFile.getVarTypes());
 		
+		// Find all instances of property refs
+		findAllProps(null, this);
+		
 		// Various semantic checks 
 		semanticCheck(modulesFile, this);
 		// Type checking

@@ -262,6 +262,10 @@ public class StateModelChecker implements ModelChecker
 		else if (expr instanceof ExpressionLabel) {
 			res = checkExpressionLabel((ExpressionLabel) expr);
 		}
+		// Property refs
+		else if (expr instanceof ExpressionProp) {
+			res = checkExpressionProp((ExpressionProp) expr);
+		}
 		// Filter
 		else if (expr instanceof ExpressionFilter) {
 			res = checkExpressionFilter((ExpressionFilter) expr);
@@ -987,6 +991,20 @@ public class StateModelChecker implements ModelChecker
 				throw new PrismException("Unknown label \"" + expr.getName() + "\" in property");
 			// check recursively
 			return checkExpression(ll.getLabel(i));
+		}
+	}
+
+	// Check property ref
+
+	protected StateValues checkExpressionProp(ExpressionProp expr) throws PrismException
+	{
+		// Look up property and check recursively
+		Property prop = propertiesFile.lookUpPropertyObjectByName(expr.getName());
+		if (prop != null) {
+			mainLog.println("\nModel checking : " + prop);
+			return checkExpression(prop.getExpression());
+		} else {
+			throw new PrismException("Unknown property reference " + expr);
 		}
 	}
 

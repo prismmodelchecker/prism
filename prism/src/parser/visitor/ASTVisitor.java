@@ -75,6 +75,7 @@ public interface ASTVisitor
 	public Object visit(ExpressionExists e) throws PrismLangException;
 	public Object visit(ExpressionForAll e) throws PrismLangException;
 	public Object visit(ExpressionLabel e) throws PrismLangException;
+	public Object visit(ExpressionProp e) throws PrismLangException;
 	public Object visit(ExpressionFilter e) throws PrismLangException;
 	// ASTElement classes (misc.)
 	public Object visit(Filter e) throws PrismLangException;
