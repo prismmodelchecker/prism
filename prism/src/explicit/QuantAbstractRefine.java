@@ -801,9 +801,9 @@ public abstract class QuantAbstractRefine
 		switch (abstractionType) {
 		case MDP:
 			if (optimise && refinementNum > 0) {
-				res = ((MDPModelChecker) mc).computeReachRewards((MDP) abstraction, target, true, lbSoln, known);
+				res = ((MDPModelChecker) mc).computeReachRewards((MDP) abstraction, null, target, true, lbSoln, known);
 			} else {
-				res = ((MDPModelChecker) mc).computeReachRewards((MDP) abstraction, target, true, null, null);
+				res = ((MDPModelChecker) mc).computeReachRewards((MDP) abstraction, null, target, true, null, null);
 			}
 			break;
 		default:
@@ -821,9 +821,9 @@ public abstract class QuantAbstractRefine
 		case MDP:
 			if (optimise) {
 				double lbCopy[] = Utils.cloneDoubleArray(lbSoln);
-				res = ((MDPModelChecker) mc).computeReachRewards((MDP) abstraction, target, false, lbCopy, known);
+				res = ((MDPModelChecker) mc).computeReachRewards((MDP) abstraction, null, target, false, lbCopy, known);
 			} else {
-				res = ((MDPModelChecker) mc).computeReachRewards((MDP) abstraction, target, false, null, null);
+				res = ((MDPModelChecker) mc).computeReachRewards((MDP) abstraction, null, target, false, null, null);
 			}
 			break;
 		default:
@@ -1021,9 +1021,9 @@ public abstract class QuantAbstractRefine
 							ubLastSoln);
 					break;
 				case EXP_REACH:
-					lbStrat = ((MDPModelChecker) mc).expReachStrategy((MDP) abstraction, refineState, target, true,
+					lbStrat = ((MDPModelChecker) mc).expReachStrategy((MDP) abstraction, null, refineState, target, true,
 							lbLastSoln);
-					ubStrat = ((MDPModelChecker) mc).expReachStrategy((MDP) abstraction, refineState, target, false,
+					ubStrat = ((MDPModelChecker) mc).expReachStrategy((MDP) abstraction, null, refineState, target, false,
 							ubLastSoln);
 					break;
 				}

@@ -30,6 +30,8 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.io.*;
 
+import explicit.rewards.MDPRewards;
+
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismUtils;
@@ -853,24 +855,24 @@ public class MDPSimple extends ModelSimple implements MDP
 	}
 
 	@Override
-	public void mvMultRewMinMax(double vect[], boolean min, double result[], BitSet subset, boolean complement, int adv[])
+	public void mvMultRewMinMax(double vect[], MDPRewards mdpRewards, boolean min, double result[], BitSet subset, boolean complement, int adv[])
 	{
 		int s;
 		// Loop depends on subset/complement arguments
 		if (subset == null) {
 			for (s = 0; s < numStates; s++)
-				result[s] = mvMultRewMinMaxSingle(s, vect, min, adv);
+				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv);
 		} else if (complement) {
 			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1))
-				result[s] = mvMultRewMinMaxSingle(s, vect, min, adv);
+				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv);
 		} else {
 			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1))
-				result[s] = mvMultRewMinMaxSingle(s, vect, min, adv);
+				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv);
 		}
 	}
 
 	@Override
-	public double mvMultRewMinMaxSingle(int s, double vect[], boolean min, int adv[])
+	public double mvMultRewMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int adv[])
 	{
 		int j, k;
 		double d, prob, minmax;
@@ -886,7 +888,7 @@ public class MDPSimple extends ModelSimple implements MDP
 		for (Distribution distr : step) {
 			j++;
 			// Compute sum for this distribution
-			d = getTransitionReward(s, j);
+			d = mdpRewards != null ? mdpRewards.getTransitionReward(s, j) : getTransitionReward(s, j);
 			for (Map.Entry<Integer, Double> e : distr) {
 				k = (Integer) e.getKey();
 				prob = (Double) e.getValue();
@@ -902,7 +904,7 @@ public class MDPSimple extends ModelSimple implements MDP
 	}
 
 	@Override
-	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], boolean min, double val)
+	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], MDPRewards mdpRewards, boolean min, double val)
 	{
 		int j, k;
 		double d, prob;
@@ -917,7 +919,7 @@ public class MDPSimple extends ModelSimple implements MDP
 		for (Distribution distr : step) {
 			j++;
 			// Compute sum for this distribution
-			d = getTransitionReward(s, j);
+			d = mdpRewards != null ? mdpRewards.getTransitionReward(s, j) : getTransitionReward(s, j);
 			for (Map.Entry<Integer, Double> e : distr) {
 				k = (Integer) e.getKey();
 				prob = (Double) e.getValue();

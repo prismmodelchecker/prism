@@ -142,7 +142,8 @@ public class ProbModelChecker extends StateModelChecker
 		boolean min = false; // For nondeterministic models, are we finding min (true) or max (false) rewards
 		ModelType modelType = model.getModelType();
 		StateValues rews = null;
-		MCRewards modelRewards = null;
+		MCRewards mcRewards = null;
+		MDPRewards mdpRewards = null;
 		int i;
 
 		// Get info from reward operator
@@ -194,7 +195,10 @@ public class ProbModelChecker extends StateModelChecker
 		switch (modelType) {
 		case CTMC:
 		case DTMC:
-			modelRewards = buildMCRewardStructure(model, rewStruct);
+			mcRewards = buildMCRewardStructure(model, rewStruct);
+			break;
+		case MDP:
+			mdpRewards = buildMDPRewardStructure((MDP) model, rewStruct);
 			break;
 		default:
 			throw new PrismException("Cannot build rewards for " + modelType + "s");
@@ -204,13 +208,13 @@ public class ProbModelChecker extends StateModelChecker
 		mainLog.println("Building reward structure...");
 		switch (modelType) {
 		case CTMC:
-			rews = ((CTMCModelChecker) this).checkRewardFormula(model, modelRewards, expr.getExpression());
+			rews = ((CTMCModelChecker) this).checkRewardFormula(model, mcRewards, expr.getExpression());
 			break;
 		case DTMC:
-			rews = ((DTMCModelChecker) this).checkRewardFormula(model, modelRewards, expr.getExpression());
+			rews = ((DTMCModelChecker) this).checkRewardFormula(model, mcRewards, expr.getExpression());
 			break;
 		case MDP:
-			rews = ((MDPModelChecker) this).checkRewardFormula(model, expr.getExpression(), min);
+			rews = ((MDPModelChecker) this).checkRewardFormula(model, mdpRewards, expr.getExpression(), min);
 			break;
 		default:
 			throw new PrismException("Cannot model check " + expr + " for " + modelType + "s");
@@ -237,7 +241,7 @@ public class ProbModelChecker extends StateModelChecker
 		case CTMC:
 		case DTMC:
 			if (rewStr.getNumTransItems() > 0) {
-				throw new PrismException("Explicit engine does not yet handle transition rewards");
+				throw new PrismException("Explicit engine does not yet handle transition rewards for D/CTMCs");
 			}
 			// Special case: constant rewards
 			if (rewStr.getNumStateItems() == 1 && Expression.isTrue(rewStr.getStates(0)) && rewStr.getReward(0).isConstant()) {
@@ -245,9 +249,9 @@ public class ProbModelChecker extends StateModelChecker
 			}
 			// Normal: state rewards
 			else {
-				MCRewardsStateArray rewSA = new MCRewardsStateArray(model.getNumStates());
 				numStates = model.getNumStates();
 				statesList = model.getStatesList();
+				MCRewardsStateArray rewSA = new MCRewardsStateArray(numStates);
 				n = rewStr.getNumItems();
 				for (i = 0; i < n; i++) {
 					guard = rewStr.getStates(i);
@@ -262,6 +266,48 @@ public class ProbModelChecker extends StateModelChecker
 			//break;
 		default:
 			throw new PrismException("Cannot build rewards for " + model.getModelType() + "s");
+		}
+	}
+	
+	private MDPRewards buildMDPRewardStructure(MDP mdp, RewardStruct rewStr) throws PrismException
+	{
+		//MCRewards modelRewards = null;
+		List<State> statesList;
+		Expression guard;
+		String action;
+		Object mdpAction;
+		int i, j, k, n, numStates, numChoices;
+
+		if (rewStr.getNumStateItems() > 0) {
+			throw new PrismException("Explicit engine does not yet handle state rewards for MDPs");
+		}
+		// Special case: constant rewards
+		// TODO
+		/*if (rewStr.getNumStateItems() == 1 && Expression.isTrue(rewStr.getStates(0)) && rewStr.getReward(0).isConstant()) {
+			return new MCRewardsStateConstant(rewStr.getReward(0).evaluateDouble());
+		}*/
+		// Normal: transition rewards
+		else {
+			numStates = mdp.getNumStates();
+			statesList = mdp.getStatesList();
+			MDPRewardsSimple rewSimple = new MDPRewardsSimple(numStates);
+			n = rewStr.getNumItems();
+			for (i = 0; i < n; i++) {
+				guard = rewStr.getStates(i);
+				action = rewStr.getSynch(i);
+				for (j = 0; j < numStates; j++) {
+					if (guard.evaluateBoolean(statesList.get(j))) {
+						numChoices = mdp.getNumChoices(j);
+						for (k = 0; k < numChoices; k++) {
+							mdpAction = mdp.getAction(j, k); 
+							if (mdpAction == null ? (action == null) : mdpAction.equals(action)) {
+								rewSimple.setTransitionReward(j, k, rewStr.getReward(i).evaluateDouble(statesList.get(j)));
+							}
+						}
+					}
+				}
+			}
+			return rewSimple;
 		}
 	}
 }

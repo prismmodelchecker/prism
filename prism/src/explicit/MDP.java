@@ -29,6 +29,8 @@ package explicit;
 import java.util.*;
 import java.util.Map.Entry;
 
+import explicit.rewards.*;
+
 /**
  * Interface for classes that provide (read) access to an explicit-state MDP.
  */
@@ -157,32 +159,35 @@ public interface MDP extends Model
 	 * Do a matrix-vector multiplication and sum of action reward followed by min/max, i.e. one step of value iteration.
 	 * i.e. for all s: result[s] = min/max_k { rew(s) + sum_j P_k(s,j)*vect[j] }
 	 * @param vect Vector to multiply by
+	 * @param mdpRewards The rewards
 	 * @param min Min or max for (true=min, false=max)
 	 * @param result Vector to store result in
 	 * @param subset Only do multiplication for these rows (ignored if null)
 	 * @param complement If true, {@code subset} is taken to be its complement (ignored if {@code subset} is null)
 	 * @param adv Storage for adversary choice indices (ignored if null)
 	 */
-	public void mvMultRewMinMax(double vect[], boolean min, double result[], BitSet subset, boolean complement, int adv[]);
+	public void mvMultRewMinMax(double vect[], MDPRewards mdpRewards, boolean min, double result[], BitSet subset, boolean complement, int adv[]);
 
 	/**
 	 * Do a single row of matrix-vector multiplication and sum of action reward followed by min/max.
 	 * i.e. return min/max_k { rew(s) + sum_j P_k(s,j)*vect[j] }
 	 * @param s Row index
 	 * @param vect Vector to multiply by
+	 * @param mdpRewards The rewards
 	 * @param min Min or max for (true=min, false=max)
 	 * @param adv Storage for adversary choice indices (ignored if null)
 	 */
-	public double mvMultRewMinMaxSingle(int s, double vect[], boolean min, int adv[]);
+	public double mvMultRewMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int adv[]);
 
 	/**
 	 * Determine which choices result in min/max after a single row of matrix-vector multiplication and sum of action reward.
 	 * @param s Row index
 	 * @param vect Vector to multiply by
+	 * @param mdpRewards The rewards
 	 * @param min Min or max (true=min, false=max)
 	 * @param val Min or max value to match
 	 */
-	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], boolean min, double val);
+	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], MDPRewards mdpRewards, boolean min, double val);
 
 	/**
 	 * Multiply the probability matrix induced by the mdp and {@code adv}
