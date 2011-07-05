@@ -202,7 +202,7 @@ public class ConstructModel
 				if (!justReach) {
 					if (modelType == ModelType.MDP) {
 						k = mdp.addChoice(src, distr);
-						mdp.setAction(src, k, engine.getTransitionModuleOrAction(i, 0));
+						mdp.setAction(src, k, engine.getTransitionAction(i, 0));
 					} else if (modelType == ModelType.CTMDP) {
 						ctmdp.addChoice(src, distr);
 					}
