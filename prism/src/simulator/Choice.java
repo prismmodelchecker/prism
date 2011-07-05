@@ -31,20 +31,71 @@ import prism.*;
 
 public interface Choice
 {
-//	public void setAction(String action);
+	/**
+	 * Get the module/action for this choice, as an integer index
+	 * (-i for independent in ith module, i for synchronous on ith action)
+	 * (in both cases, modules/actions are 1-indexed)
+	 */
 	public int getModuleOrActionIndex();
+	
+	/**
+	 * Get the module/action for this choice, as a string
+	 * (form is "module" or "[action]")
+	 */
 	public String getModuleOrAction();
+	
+	/**
+	 * Get the number of transitions in this choice.
+	 */
 	public int size();
-	public double getProbability();
-	public double getProbability(int i);
-	public double getProbabilitySum();
+	
+	/**
+	 * Get the updates of the ith transition, as a string.
+	 * This is in abbreviated form, i.e. x'=1, rather than x'=x+1.
+	 * Format is: x'=1, y'=0, with empty string for empty update.
+	 * Only variables updated are included in list (even if unchanged).
+	 */
 	public String getUpdateString(int i, State currentState) throws PrismLangException;
+	
+	/**
+	 * Get the updates of the ith transition, as a string.
+	 * This is in full, i.e. of the form x'=x+1, rather than x'=1.
+	 * Format is: (x'=x+1) & (y'=y-1), with empty string for empty update.
+	 * Only variables updated are included in list.
+	 * Note that expressions may have been simplified from original model. 
+	 */
 	public String getUpdateStringFull(int i);
-	public State computeTarget(State currentState) throws PrismLangException;
-	public void computeTarget(State currentState, State newState) throws PrismLangException;
+	
+	/**
+	 * Compute the target for the ith transition, based on a current state,
+	 * returning the result as a new State object copied from the existing one.
+	 */
 	public State computeTarget(int i, State currentState) throws PrismLangException;
+	
+	/**
+	 * Compute the target for the ith transition, based on a current state.
+	 * Apply changes in variables to a provided copy of the State object.
+	 * (i.e. currentState and newState should be equal when passed in.) 
+	 */
 	public void computeTarget(int i, State currentState, State newState) throws PrismLangException;
+	
+	/**
+	 * Get the probability/rate for the ith transition.
+	 */
+	public double getProbability(int i);
+	
+	/**
+	 * Get the sum of probabilities/rates for all transitions.
+	 */
+	public double getProbabilitySum();
+	
+	/**
+	 * Return the index of a transition according to a probability (or rate) sum, x.
+	 * i.e. return the index of the first transition in this choice for which the
+	 * sum of probabilities/rates for that and all prior transitions exceeds x.
+	 */
 	public int getIndexByProbabilitySum(double x);
+	
 	public void checkValid(ModelType modelType) throws PrismException;
 	
 	/**

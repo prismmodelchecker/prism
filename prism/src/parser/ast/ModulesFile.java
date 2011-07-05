@@ -352,9 +352,20 @@ public class ModulesFile extends ASTElement
 		return moduleNames;
 	}
 
+	/**
+	 * Get the list of action names.
+	 */
 	public Vector<String> getSynchs()
 	{
 		return synchs;
+	}
+
+	/**
+	 * Get the {@code i}th action name (0-indexed).
+	 */
+	public String getSynch(int i)
+	{
+		return synchs.get(i);
 	}
 
 	public boolean isSynch(String s)

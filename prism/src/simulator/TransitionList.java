@@ -179,10 +179,21 @@ public class TransitionList
 
 	/**
 	 * Get a string describing the action/module of a transition, specified by its index.
+	 * (form is "module" or "[action]")
 	 */
 	public String getTransitionModuleOrAction(int index)
 	{
 		return getChoiceOfTransition(index).getModuleOrAction();
+	}
+
+	/**
+	 * Get the index of the action/module of a transition, specified by its index.
+	 * (-i for independent in ith module, i for synchronous on ith action)
+	 * (in both cases, modules/actions are 1-indexed)
+	 */
+	public int getTransitionModuleOrActionIndex(int index)
+	{
+		return getChoiceOfTransition(index).getModuleOrActionIndex();
 	}
 
 	/**

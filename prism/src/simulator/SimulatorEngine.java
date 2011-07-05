@@ -807,8 +807,8 @@ public class SimulatorEngine
 	}
 
 	/**
-	 * Get a string describing the action/module of a transition, specified by
-	 * its index/offset.
+	 * Get a string describing the action/module of a transition, specified by its index/offset.
+	 * (form is "module" or "[action]")
 	 */
 	public String getTransitionModuleOrAction(int i, int offset)
 	{
@@ -817,10 +817,51 @@ public class SimulatorEngine
 
 	/**
 	 * Get a string describing the action/module of a transition, specified by its index.
+	 * (form is "module" or "[action]")
 	 */
 	public String getTransitionModuleOrAction(int index)
 	{
 		return transitionList.getTransitionModuleOrAction(index);
+	}
+
+	/**
+	 * Get the index of the action/module of a transition, specified by its index/offset.
+	 * (-i for independent in ith module, i for synchronous on ith action)
+	 * (in both cases, modules/actions are 1-indexed)
+	 */
+	public int getTransitionModuleOrActionIndex(int i, int offset)
+	{
+		return transitionList.getTransitionModuleOrActionIndex(transitionList.getTotalIndexOfTransition(i, offset));
+	}
+
+	/**
+	 * Get the index of the action/module of a transition, specified by its index.
+	 * (-i for independent in ith module, i for synchronous on ith action)
+	 * (in both cases, modules/actions are 1-indexed)
+	 */
+	public int getTransitionModuleOrActionIndex(int index)
+	{
+		return transitionList.getTransitionModuleOrActionIndex(index);
+	}
+
+	/**
+	 * Get the action label of a transition as a string, specified by its index/offset.
+	 * (null for asynchronous/independent transitions)
+	 */
+	public String getTransitionAction(int i, int offset)
+	{
+		int a = transitionList.getTransitionModuleOrActionIndex(transitionList.getTotalIndexOfTransition(i, offset));
+		return a < 0 ? null : modulesFile.getSynch(a - 1);
+	}
+
+	/**
+	 * Get the action label of a transition as a string, specified by its index.
+	 * (null for asynchronous/independent transitions)
+	 */
+	public String getTransitionAction(int index)
+	{
+		int a = transitionList.getTransitionModuleOrActionIndex(index);
+		return a < 0 ? null : modulesFile.getSynch(a - 1);
 	}
 
 	/**
