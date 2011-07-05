@@ -30,8 +30,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.io.*;
 
-import explicit.rewards.MCRewards;
-
+import explicit.rewards.*;
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismUtils;

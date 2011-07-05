@@ -26,9 +26,11 @@
 
 package explicit;
 
-import explicit.rewards.MCRewards;
-import explicit.rewards.MCRewardsStateConstant;
-import jdd.JDDNode;
+import java.util.BitSet;
+import java.util.List;
+
+import explicit.rewards.*;
+import parser.State;
 import parser.ast.*;
 import prism.*;
 
@@ -192,14 +194,14 @@ public class ProbModelChecker extends StateModelChecker
 		switch (modelType) {
 		case CTMC:
 		case DTMC:
-			//modelRewards = new MCRewardsStateArray(model.getNumStates());
-			modelRewards = new MCRewardsStateConstant(1);
+			modelRewards = buildMCRewardStructure(model, rewStruct);
 			break;
 		default:
-			throw new PrismException("Cannot build rewards " + expr + " for " + modelType + "s");
+			throw new PrismException("Cannot build rewards for " + modelType + "s");
 		}
 		
 		// Compute rewards
+		mainLog.println("Building reward structure...");
 		switch (modelType) {
 		case CTMC:
 			rews = ((CTMCModelChecker) this).checkRewardFormula(model, modelRewards, expr.getExpression());
@@ -222,5 +224,44 @@ public class ProbModelChecker extends StateModelChecker
 
 		// For =? properties, just return values
 		return rews;
+	}
+	
+	private MCRewards buildMCRewardStructure(Model model, RewardStruct rewStr) throws PrismException
+	{
+		//MCRewards modelRewards = null;
+		List<State> statesList;
+		Expression guard;
+		int i, j, n, numStates;
+		
+		switch (model.getModelType()) {
+		case CTMC:
+		case DTMC:
+			if (rewStr.getNumTransItems() > 0) {
+				throw new PrismException("Explicit engine does not yet handle transition rewards");
+			}
+			// Special case: constant rewards
+			if (rewStr.getNumStateItems() == 1 && Expression.isTrue(rewStr.getStates(0)) && rewStr.getReward(0).isConstant()) {
+				return new MCRewardsStateConstant(rewStr.getReward(0).evaluateDouble());
+			}
+			// Normal: state rewards
+			else {
+				MCRewardsStateArray rewSA = new MCRewardsStateArray(model.getNumStates());
+				numStates = model.getNumStates();
+				statesList = model.getStatesList();
+				n = rewStr.getNumItems();
+				for (i = 0; i < n; i++) {
+					guard = rewStr.getStates(i);
+					for (j = 0; j < numStates; j++) {
+						if (guard.evaluateBoolean(statesList.get(j))) {
+							rewSA.setStateReward(j, rewStr.getReward(i).evaluateDouble(statesList.get(j)));
+						}
+					}
+				}
+				return rewSA;
+			}
+			//break;
+		default:
+			throw new PrismException("Cannot build rewards for " + model.getModelType() + "s");
+		}
 	}
 }
