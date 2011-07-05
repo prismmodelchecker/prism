@@ -51,7 +51,7 @@ public class MDPModelChecker extends ProbModelChecker
 		if (expr.isSimplePathFormula()) {
 			return checkProbPathFormulaSimple(model, expr, min);
 		} else {
-			throw new PrismException("LTL-style path formulas are not yet supported");
+			throw new PrismException("Explicit engine does not yet handle LTL-style path formulas");
 		}
 	}
 
@@ -167,7 +167,7 @@ public class MDPModelChecker extends ProbModelChecker
 				rewards = checkRewardReach(model, exprTemp, min);
 				break;
 			default:
-				throw new PrismException("Cannot model check " + exprTemp.getOperatorSymbol() + " operator in R operator");
+				throw new PrismException("Explicit engine does not yet handle the " + exprTemp.getOperatorSymbol() + " operator in the R operator");
 			}
 		}
 		

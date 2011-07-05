@@ -491,6 +491,14 @@ public class StateModelChecker
 		else if (expr instanceof ExpressionLabel) {
 			res = checkExpressionLabel(model, (ExpressionLabel) expr);
 		}
+		// Property refs
+		else if (expr instanceof ExpressionProp) {
+			res = checkExpressionProp(model, (ExpressionProp) expr);
+		}
+		// Filter
+		else if (expr instanceof ExpressionFilter) {
+			throw new PrismException("Explicit engine does not yet handle filters");
+		}
 		
 		// Anything else - just evaluate expression repeatedly
 		else if (expr.getType() instanceof TypeBool) {
@@ -597,6 +605,20 @@ public class StateModelChecker
 			//labels = loadLabelsFile(getLabelsFilename());
 			// get expression associated with label
 			//return labels.get(expr.getName());
+		}
+	}
+
+	// Check property ref
+
+	protected Object checkExpressionProp(Model model, ExpressionProp expr) throws PrismException
+	{
+		// Look up property and check recursively
+		Property prop = propertiesFile.lookUpPropertyObjectByName(expr.getName());
+		if (prop != null) {
+			mainLog.println("\nModel checking : " + prop);
+			return checkExpression(model, prop.getExpression());
+		} else {
+			throw new PrismException("Unknown property reference " + expr);
 		}
 	}
 

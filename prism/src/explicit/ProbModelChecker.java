@@ -52,6 +52,10 @@ public class ProbModelChecker extends StateModelChecker
 		else if (expr instanceof ExpressionReward) {
 			res = checkExpressionReward(model, (ExpressionReward) expr);
 		}
+		// S operator
+		else if (expr instanceof ExpressionSS) {
+			throw new PrismException("Explicit engine does not yet handle the S operator");
+		}
 		// Otherwise, use the superclass
 		else {
 			res = super.checkExpression(model, expr);
@@ -76,7 +80,7 @@ public class ProbModelChecker extends StateModelChecker
 
 		// Check for unhandled cases
 		if (expr.getProb() != null)
-			throw new PrismException("Bounded P operators not yet supported");
+			throw new PrismException("Explicit engine does not yet handle bounded P operators");
 
 		// For nondeterministic models, determine whether min or max probabilities needed
 		if (modelType.nondeterministic()) {

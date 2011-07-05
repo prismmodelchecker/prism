@@ -49,7 +49,7 @@ public class STPGModelChecker extends ProbModelChecker
 		if (expr.isSimplePathFormula()) {
 			return checkProbPathFormulaSimple(model, expr, min1, min2);
 		} else {
-			throw new PrismException("LTL-style path formulas are not yet supported");
+			throw new PrismException("Explicit engine does not yet handle LTL-style path formulas");
 		}
 	}
 
