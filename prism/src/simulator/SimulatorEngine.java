@@ -847,6 +847,7 @@ public class SimulatorEngine
 	/**
 	 * Get the action label of a transition as a string, specified by its index/offset.
 	 * (null for asynchronous/independent transitions)
+	 * (see also {@link #getTransitionModuleOrAction(int, int)} and {@link #getTransitionModuleOrActionIndex(int, int)})
 	 */
 	public String getTransitionAction(int i, int offset)
 	{
@@ -857,6 +858,7 @@ public class SimulatorEngine
 	/**
 	 * Get the action label of a transition as a string, specified by its index.
 	 * (null for asynchronous/independent transitions)
+	 * (see also {@link #getTransitionModuleOrAction(int)} and {@link #getTransitionModuleOrActionIndex(int)})
 	 */
 	public String getTransitionAction(int index)
 	{
