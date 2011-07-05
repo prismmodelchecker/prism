@@ -527,7 +527,6 @@ public class ProbModelChecker extends NonProbModelChecker
 			return checkProbPathFormulaSimple(expr, qual);
 		} else {
 			return checkProbPathFormulaLTL(expr, qual);
-			//throw new PrismException("LTL-style path formulas are not yet supported");
 		}
 	}
 
