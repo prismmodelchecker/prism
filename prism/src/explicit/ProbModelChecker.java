@@ -154,7 +154,9 @@ public class ProbModelChecker extends StateModelChecker
 		}
 
 		// Check for unhandled cases
-		// TODO
+		if (expr.getReward() != null)
+			throw new PrismException("Explicit engine does not yet handle bounded R operators");
+		// More? TODO
 
 		// For nondeterministic models, determine whether min or max rewards needed
 		if (modelType.nondeterministic()) {
