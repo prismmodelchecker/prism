@@ -347,25 +347,37 @@ public class PropertiesFile extends ASTElement
 		}
 	}
 
-	// get undefined constants
-	
+	/**
+	 * Get  a list of constants in the model that are undefined
+	 * ("const int x;" rather than "const int x = 1;") 
+	 */
 	public Vector<String> getUndefinedConstants()
 	{
 		return constantList.getUndefinedConstants();
 	}
 	
-	// set values for undefined constants and evaluate all constants
-	// always need to call this, even when there are no undefined constants
-	// (if this is the case, someValues can be null)
-	
+	/**
+	 * Set values for all undefined constants and then evaluate all constants.
+	 * Always need to call this before using the properties file,
+	 * even when there are no undefined constants
+	 * (if this is the case, {@code someValues} can be null).
+	 * Calling this method also triggers some additional semantic checks
+	 * that can only be done once constant values have been specified.
+	 * <br><br>
+	 * Undefined constants can be subsequently redefined to different values with the same method.
+	 * The current constant values (if set) are available via {@link #setUndefinedConstants(Values)}. 
+	 */
 	public void setUndefinedConstants(Values someValues) throws PrismLangException
 	{
 		// might need values for ModulesFile constants too
 		constantValues = constantList.evaluateConstants(someValues, modulesFile.getConstantValues());
 	}
 	
-	// get all constant values
-	
+	/**
+	 * Get access to the values assigned to undefined constants in the model,
+	 * as set previously via the method {@link #setUndefinedConstants(Values)}.
+	 * Until they are set for the first time, this method returns null.  
+	 */
 	public Values getConstantValues()
 	{
 		return constantValues;
