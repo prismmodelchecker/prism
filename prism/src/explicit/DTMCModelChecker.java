@@ -192,6 +192,62 @@ public class DTMCModelChecker extends ProbModelChecker
 		return rewards;
 	}
 
+	// Steady-state/transient probability computation
+
+	/**
+	 * Compute steady-state probability distribution (forwards).
+	 * Optionally, use the passed in vector initDist as the initial probability distribution (time step 0).
+	 * If null, start from initial state (or uniform distribution over multiple initial states).
+	 * For reasons of efficiency, when a vector is passed in, it will be trampled over,
+	 * so if you wanted it, take a copy. 
+	 * @param dtmc The DTMC
+	 * @param initDist Initial distribution (will be overwritten)
+	 */
+	public StateValues doSteadyState(DTMC dtmc, double initDist[]) throws PrismException
+	{
+		ModelCheckerResult res = null;
+		int n;
+		double initDistNew[] = null;
+		StateValues probs = null;
+
+		// TODO: BSCC computation
+		
+		// Store num states
+		n = dtmc.getNumStates();
+
+		// Build initial distribution (if not specified)
+		if (initDist == null) {
+			initDistNew = new double[n];
+			for (int in : dtmc.getInitialStates()) {
+				initDistNew[in] = 1 / dtmc.getNumInitialStates();
+			}
+		} else {
+			initDistNew = initDist;
+			throw new PrismException("Not implemented yet"); // TODO
+		}
+
+		// Compute transient probabilities
+		res = computeSteadyStateProbs(dtmc, initDistNew);
+		probs = StateValues.createFromDoubleArray(res.soln);
+
+		return probs;
+	}
+	
+	/**
+	 * Compute transient probability distribution (forwards).
+	 * Optionally, use the passed in vector initDist as the initial probability distribution (time step 0).
+	 * If null, start from initial state (or uniform distribution over multiple initial states).
+	 * For reasons of efficiency, when a vector is passed in, it will be trampled over,
+	 * so if you wanted it, take a copy. 
+	 * @param dtmc The DTMC
+	 * @param k Time step
+	 * @param initDist Initial distribution (will be overwritten)
+	 */
+	public StateValues doTransient(DTMC dtmc, int k, double initDist[]) throws PrismException
+	{
+		throw new PrismException("Not implemented yet");
+	}
+	
 	// Numerical computation functions
 
 	/**
@@ -871,6 +927,81 @@ public class DTMCModelChecker extends ProbModelChecker
 		return res;
 	}
 
+	/**
+	 * Compute steady-state probabilities
+	 * i.e. compute the long-run probability of being in each state,
+	 * assuming the initial distribution {@code initDist}. 
+	 * For space efficiency, the initial distribution vector will be modified and values over-written,  
+	 * so if you wanted it, take a copy. 
+	 * @param dtmc The DTMC
+	 * @param initDist Initial distribution (will be overwritten)
+	 */
+	public ModelCheckerResult computeSteadyStateProbs(DTMC dtmc, double initDist[]) throws PrismException
+	{
+		ModelCheckerResult res;
+		int n, iters;
+		double soln[], soln2[], tmpsoln[];
+		boolean done;
+		long timer;
+
+		// Start value iteration
+		timer = System.currentTimeMillis();
+		mainLog.println("Starting value iteration...");
+
+		// Store num states
+		n = dtmc.getNumStates();
+
+		// Create solution vector(s)
+		// For soln, we just use init (since we are free to modify this vector)
+		soln = initDist;
+		soln2 = new double[n];
+		
+		// No need to initialise solution vectors
+		// (soln is done, soln2 will be immediately overwritten)
+
+		// Start iterations
+		iters = 0;
+		done = false;
+		while (!done && iters < maxIters) {
+			iters++;
+			// Matrix-vector multiply
+			dtmc.vmMult(soln, soln2);
+			// Check termination
+			done = PrismUtils.doublesAreClose(soln, soln2, termCritParam, termCrit == TermCrit.ABSOLUTE);
+			// Swap vectors for next iter
+			tmpsoln = soln;
+			soln = soln2;
+			soln2 = tmpsoln;
+		}
+
+		// Finished value iteration
+		timer = System.currentTimeMillis() - timer;
+		mainLog.print("Value iteration");
+		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
+
+		// Return results
+		res = new ModelCheckerResult();
+		res.soln = soln;
+		res.numIters = iters;
+		res.timeTaken = timer / 1000.0;
+		return res;
+	}
+	
+	/**
+	 * Compute transient probabilities
+	 * i.e. compute the probability of being in each state at time step {@code k},
+	 * assuming the initial distribution {@code initDist}. 
+	 * For space efficiency, the initial distribution vector will be modified and values over-written,  
+	 * so if you wanted it, take a copy. 
+	 * @param dtmc The DTMC
+	 * @param k Time step
+	 * @param initDist Initial distribution (will be overwritten)
+	 */
+	public ModelCheckerResult computeTransientProbs(DTMC dtmc, int k, double initDist[]) throws PrismException
+	{
+		throw new PrismException("Not implemented yet");
+	}
+	
 	/**
 	 * Simple test program.
 	 */

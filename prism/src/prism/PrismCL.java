@@ -936,7 +936,11 @@ public class PrismCL
 		
 		// compute steady-state probabilities
 		if (modelType == ModelType.CTMC || modelType == ModelType.DTMC) {
-			prism.doSteadyState(model, exportType, exportSteadyStateFile);
+			if (explicit) {
+				prismExpl.doSteadyState(modelExpl, exportType, exportSteadyStateFile);
+			} else {
+				prism.doSteadyState(model, exportType, exportSteadyStateFile);
+			}
 		} else {
 			mainLog.println("\nWarning: Steady-state probabilities only computed for DTMCs/CTMCs.");
 		}

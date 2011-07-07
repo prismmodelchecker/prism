@@ -170,6 +170,77 @@ public class PrismExplicit
 	}
 
 	/**
+	 * Compute steady-state probabilities (for a DTMC or CTMC).
+	 * Output probability distribution to log. 
+	 */
+	public void doSteadyState(Model model) throws PrismException
+	{
+		doSteadyState(model, Prism.EXPORT_PLAIN, null);
+	}
+	
+	/**
+	 * Compute steady-state probabilities (for a DTMC or CTMC).
+	 * Output probability distribution to a file (or, if file is null, to log). 
+	 * The exportType should be EXPORT_PLAIN or EXPORT_MATLAB.
+	 */
+	public void doSteadyState(Model model, int exportType, File fileOut) throws PrismException
+	{
+		long l = 0; // timer
+		StateValues probs = null;
+		PrismLog tmpLog;
+		
+		// no specific states format for MRMC
+		if (exportType == Prism.EXPORT_MRMC) exportType = Prism.EXPORT_PLAIN;
+		// rows format does not apply to states output
+		if (exportType == Prism.EXPORT_ROWS) exportType = Prism.EXPORT_PLAIN;
+		
+		mainLog.println("\nComputing steady-state probabilities...");
+		l = System.currentTimeMillis();
+
+		if (model.getModelType() == ModelType.DTMC) {
+			DTMCModelChecker mcDTMC = new DTMCModelChecker();
+			// TODO: pass settings
+			probs = mcDTMC.doSteadyState((DTMC) model, null);
+		}
+		else if (model.getModelType() == ModelType.CTMC) {
+			throw new PrismException("Not implemented yet"); // TODO
+		}
+		else {
+			throw new PrismException("Steady-state probabilities only computed for DTMCs/CTMCs");
+		}
+		
+		l = System.currentTimeMillis() - l;
+		
+		// print message
+		mainLog.print("\nPrinting steady-state probabilities ");
+		switch (exportType) {
+		case Prism.EXPORT_PLAIN: mainLog.print("in plain text format "); break;
+		case Prism.EXPORT_MATLAB: mainLog.print("in Matlab format "); break;
+		}
+		if (fileOut != null) mainLog.println("to file \"" + fileOut + "\"..."); else mainLog.println("below:");
+		
+		// create new file log or use main log
+		if (fileOut != null) {
+			tmpLog = new PrismFileLog(fileOut.getPath());
+			if (!tmpLog.ready()) {
+				throw new PrismException("Could not open file \"" + fileOut + "\" for output");
+			}
+		} else {
+			tmpLog = mainLog;
+		}
+		
+		// print out or export probabilities
+		probs.print(tmpLog, fileOut == null, exportType == Prism.EXPORT_MATLAB, fileOut == null);
+		
+		// print out computation time
+		mainLog.println("\nTime for steady-state probability computation: " + l/1000.0 + " seconds.");
+		
+		// tidy up
+		probs.clear();
+		if (fileOut != null) tmpLog.close();
+	}
+	
+	/**
 	 * Compute transient probabilities (for a DTMC or CTMC).
 	 * Output probability distribution to log. 
 	 */

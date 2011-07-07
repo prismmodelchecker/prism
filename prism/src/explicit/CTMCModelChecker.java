@@ -148,7 +148,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 		return probs;
 	}
 
-	// Transient/steady-state probability computation
+	// Steady-state/transient probability computation
 
 	/**
 	 * Compute transient probability distribution (forwards).
@@ -156,8 +156,11 @@ public class CTMCModelChecker extends DTMCModelChecker
 	 * If null, start from initial state (or uniform distribution over multiple initial states).
 	 * For reasons of efficiency, when a vector is passed in, it will be trampled over,
 	 * so if you wanted it, take a copy. 
+	 * @param ctmc The CTMC
+	 * @param t Time point
+	 * @param initDist Initial distribution (will be overwritten)
 	 */
-	public StateValues doTransient(CTMC ctmc, double time, double initDist[]) throws PrismException
+	public StateValues doTransient(CTMC ctmc, double t, double initDist[]) throws PrismException
 	{
 		ModelCheckerResult res = null;
 		int n;
@@ -179,7 +182,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 		}
 
 		// Compute transient probabilities
-		res = computeTransientProbs(ctmc, initDistNew, time);
+		res = computeTransientProbs(ctmc, t, initDistNew);
 		probs = StateValues.createFromDoubleArray(res.soln);
 
 		return probs;
@@ -386,10 +389,10 @@ public class CTMCModelChecker extends DTMCModelChecker
 	 * For space efficiency, the initial distribution vector will be modified and values over-written,  
 	 * so if you wanted it, take a copy. 
 	 * @param ctmc The CTMC
-	 * @param initDist Initial distribution (will be overwritten)
 	 * @param t Time point
+	 * @param initDist Initial distribution (will be overwritten)
 	 */
-	public ModelCheckerResult computeTransientProbs(CTMC ctmc, double initDist[], double t) throws PrismException
+	public ModelCheckerResult computeTransientProbs(CTMC ctmc, double t, double initDist[]) throws PrismException
 	{
 		ModelCheckerResult res = null;
 		int i, n, iters;
