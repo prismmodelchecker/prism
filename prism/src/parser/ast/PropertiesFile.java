@@ -371,6 +371,7 @@ public class PropertiesFile extends ASTElement
 	{
 		// might need values for ModulesFile constants too
 		constantValues = constantList.evaluateConstants(someValues, modulesFile.getConstantValues());
+		semanticCheckAfterConstants(modulesFile, this);
 	}
 	
 	/**

@@ -373,13 +373,24 @@ public abstract class ASTElement
 	}
 
 	/**
-	 * Perform any required semantic checks. Optionally pass in parent
-	 * ModulesFile and PropertiesFile for some additional checks (or leave
-	 * null);
+	 * Perform any required semantic checks. Optionally pass in parent ModulesFile
+	 * and PropertiesFile for some additional checks (or leave null);
+	 * These checks are done *before* any undefined constants have been defined.
 	 */
 	public void semanticCheck(ModulesFile modulesFile, PropertiesFile propertiesFile) throws PrismLangException
 	{
 		SemanticCheck visitor = new SemanticCheck(modulesFile, propertiesFile);
+		accept(visitor);
+	}
+
+	/**
+	 * Perform further semantic checks that can only be done once values
+	 * for any undefined constants have been defined. Optionally pass in parent
+	 * ModulesFile and PropertiesFile for some additional checks (or leave null);
+	 */
+	public void semanticCheckAfterConstants(ModulesFile modulesFile, PropertiesFile propertiesFile) throws PrismLangException
+	{
+		SemanticCheckAfterConstants visitor = new SemanticCheckAfterConstants(modulesFile, propertiesFile);
 		accept(visitor);
 	}
 

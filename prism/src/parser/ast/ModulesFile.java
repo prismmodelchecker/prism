@@ -763,6 +763,7 @@ public class ModulesFile extends ASTElement
 	public void setUndefinedConstants(Values someValues) throws PrismLangException
 	{
 		constantValues = constantList.evaluateConstants(someValues, null);
+		semanticCheckAfterConstants(this, null);
 	}
 
 	/**
