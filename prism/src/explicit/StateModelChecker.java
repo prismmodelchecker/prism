@@ -49,7 +49,7 @@ public class StateModelChecker
 
 	// PRISM settings object
 	protected PrismSettings settings = new PrismSettings();
-	
+
 	// Model file (for reward structures, etc.)
 	protected ModulesFile modulesFile = null;
 
@@ -134,18 +134,17 @@ public class StateModelChecker
 
 	/**
 	 * Set the attached model file (for e.g. reward structures when model checking)
+	 * and the attached properties file (for e.g. constants/labels when model checking)
 	 */
-	public void setModulesFile(ModulesFile modulesFile)
+	public void setModulesFileAndPropertiesFile(ModulesFile modulesFile, PropertiesFile propertiesFile)
 	{
 		this.modulesFile = modulesFile;
-	}
-
-	/**
-	 * Set the attached properties file (for e.g. constants/labels when model checking)
-	 */
-	public void setPropertiesFile(PropertiesFile propertiesFile)
-	{
 		this.propertiesFile = propertiesFile;
+		// Get combined constant values from model/properties
+		constantValues = new Values();
+		constantValues.addValues(modulesFile.getConstantValues());
+		if (propertiesFile != null)
+			constantValues.addValues(propertiesFile.getConstantValues());
 	}
 
 	// Set methods for flags/settings
@@ -324,19 +323,16 @@ public class StateModelChecker
 		boolean satInit = false;
 		int numSat = 0;
 
-		// Get combined constant values from model/properties
-		constantValues = new Values();
-		constantValues.addValues(model.getConstantValues());
-		if (propertiesFile != null)
-			constantValues.addValues(propertiesFile.getConstantValues());
-
 		// Create storage for result
 		result = new Result();
 
-		// Remove labels from property, using combined label list (on a copy of the expression) 
+		// Remove labels from property, using combined label list (on a copy of the expression)
+		// This is done now so that we can handle labels nested below operators that are not
+		// handled natively by the model checker yet (just evaluate()ed in a loop).
 		expr = (Expression) expr.deepCopy().expandLabels(propertiesFile.getCombinedLabelList());
+
 		// Also evaluate/replace any constants
-		expr = (Expression) expr.replaceConstants(constantValues);
+		//expr = (Expression) expr.replaceConstants(constantValues);
 
 		// Do model checking and store result vector
 		timer = System.currentTimeMillis();
@@ -476,7 +472,7 @@ public class StateModelChecker
 	 */
 	public Object checkExpression(Model model, Expression expr) throws PrismException
 	{
-		Object res;
+		Object res = null;
 
 		// Binary ops
 		// (just "and" for now - more to come later)
@@ -499,37 +495,42 @@ public class StateModelChecker
 		else if (expr instanceof ExpressionFilter) {
 			throw new PrismException("Explicit engine does not yet handle filters");
 		}
-		
+
 		// Anything else - just evaluate expression repeatedly
-		else if (expr.getType() instanceof TypeBool) {
-			int numStates = model.getNumStates();
-			BitSet bs = new BitSet(numStates);
-			List<State> statesList = model.getStatesList();
-			for (int i = 0; i < numStates; i++) {
-				bs.set(i, expr.evaluateBoolean(statesList.get(i)));
+		else {
+			// Evaluate/replace any constants first
+			expr = (Expression) expr.replaceConstants(constantValues);
+			
+			if (expr.getType() instanceof TypeBool) {
+				int numStates = model.getNumStates();
+				BitSet bs = new BitSet(numStates);
+				List<State> statesList = model.getStatesList();
+				for (int i = 0; i < numStates; i++) {
+					bs.set(i, expr.evaluateBoolean(statesList.get(i)));
+				}
+				res = bs;
+			} else if (expr.getType() instanceof TypeInt) {
+				int numStates = model.getNumStates();
+				StateValues sv = new StateValues(expr.getType(), numStates);
+				List<State> statesList = model.getStatesList();
+				for (int i = 0; i < numStates; i++) {
+					sv.setIntValue(i, expr.evaluateInt(statesList.get(i)));
+				}
+				res = sv;
+			} else if (expr.getType() instanceof TypeDouble) {
+				int numStates = model.getNumStates();
+				StateValues sv = new StateValues(expr.getType(), numStates);
+				List<State> statesList = model.getStatesList();
+				for (int i = 0; i < numStates; i++) {
+					sv.setDoubleValue(i, expr.evaluateDouble(statesList.get(i)));
+				}
+				res = sv;
 			}
-			res = bs;
-		} else if (expr.getType() instanceof TypeInt) {
-			int numStates = model.getNumStates();
-			StateValues sv = new StateValues(expr.getType(), numStates);
-			List<State> statesList = model.getStatesList();
-			for (int i = 0; i < numStates; i++) {
-				sv.setIntValue(i, expr.evaluateInt(statesList.get(i)));
-			}
-			res = sv;
-		} else if (expr.getType() instanceof TypeDouble) {
-			int numStates = model.getNumStates();
-			StateValues sv = new StateValues(expr.getType(), numStates);
-			List<State> statesList = model.getStatesList();
-			for (int i = 0; i < numStates; i++) {
-				sv.setDoubleValue(i, expr.evaluateDouble(statesList.get(i)));
-			}
-			res = sv;
 		}
 		// Anything else - error
-		else {
+		/*else {
 			throw new PrismException("Couldn't check " + expr.getClass());
-		}
+		}*/
 
 		return res;
 	}
@@ -540,7 +541,7 @@ public class StateModelChecker
 	protected Object checkExpressionBinaryOp(Model model, ExpressionBinaryOp expr) throws PrismException
 	{
 		// (just "and" for now - more to come later)
-		BitSet res1bs = (BitSet) checkExpression(model, expr.getOperand1()); 
+		BitSet res1bs = (BitSet) checkExpression(model, expr.getOperand1());
 		BitSet res2bs = (BitSet) checkExpression(model, expr.getOperand2());
 		res1bs.and(res2bs);
 		return res1bs;

@@ -124,8 +124,7 @@ public class PrismExplicit
 		mc.setLog(mainLog);
 		mc.setSettings(settings);
 
-		mc.setModulesFile(modulesFile);
-		mc.setPropertiesFile(propertiesFile);
+		mc.setModulesFileAndPropertiesFile(modulesFile, propertiesFile);
 
 		mc.setPrecomp(settings.getBoolean(PrismSettings.PRISM_PRECOMPUTATION));
 		s = settings.getString(PrismSettings.PRISM_TERM_CRIT);
