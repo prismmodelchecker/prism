@@ -641,6 +641,14 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportMatrixToPPFile
 
 /*
  * Class:     jdd_JDD
+ * Method:    DD_Export3dMatrixToPPFile
+ * Signature: (JJIJIJILjava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_jdd_JDD_DD_1Export3dMatrixToPPFile
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jint, jstring);
+
+/*
+ * Class:     jdd_JDD
  * Method:    DD_ExportMatrixToMatlabFile
  * Signature: (JJIJILjava/lang/String;Ljava/lang/String;)V
  */

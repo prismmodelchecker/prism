@@ -3,6 +3,7 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Vojtech Forejt <vojtech.forejt@cs.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -113,6 +114,7 @@ public class JDD
 	private static native void DD_ExportDDToDotFile(long dd, String filename);
 	private static native void DD_ExportDDToDotFileLabelled(long dd, String filename, List<String> var_names);
 	private static native void DD_ExportMatrixToPPFile(long dd, long rvars, int num_rvars, long cvars, int num_cvars, String filename);
+	private static native void DD_Export3dMatrixToPPFile(long dd, long rvars, int num_rvars, long cvars, int num_cvars, long nvars, int num_nvars, String filename);
 	private static native void DD_ExportMatrixToMatlabFile(long dd, long rvars, int num_rvars, long cvars, int num_cvars, String name, String filename);
 	private static native void DD_ExportMatrixToSpyFile(long dd, long rvars, int num_rvars, long cvars, int num_cvars, int depth, String filename);
 
@@ -951,6 +953,36 @@ public class JDD
 	public static void ExportMatrixToPPFile(JDDNode dd, JDDVars rvars, JDDVars cvars, String filename)
 	{
 		DD_ExportMatrixToPPFile(dd.ptr(), rvars.array(), rvars.n(), cvars.array(), cvars.n(), filename);
+	}
+	
+	/**
+	 * Given a BDD that represents transition matrices of an MDP, this method
+     * outputs one matrix for every action. Note that the output is in fact
+     * not a PP file, but several PP files concatenated into one file.
+	 *
+	 * For example, for a model with the variable
+	 * 	x : [0..2];
+	 * and transitions
+	 *  [a] (x=0) -> 0.3:(x'=1) + 0.7:(x'=2);
+	 *  [b] (x=0) -> 1:(x'=2);
+	 *  [a] (x=2) -> (x'=1);
+	 *  [a] (x=1) -> (x'=0);
+	 * the output would be (e.g.)
+ 	 *  4
+	 *	4
+	 *	0 2 1.000000
+	 *	4
+	 *	0 1 0.300000
+	 *	1 0 1.000000
+	 *	0 2 0.700000
+	 *	2 1 1.000000
+	 *  4
+	 *
+	 * [ REFS: <none>, DEREFS: <none> ]
+	 */
+	public static void Export3dMatrixToPPFile(JDDNode dd, JDDVars rvars, JDDVars cvars, JDDVars nvars, String filename)
+	{
+		DD_Export3dMatrixToPPFile(dd.ptr(), rvars.array(), rvars.n(), cvars.array(), cvars.n(), nvars.array(), nvars.n(), filename);
 	}
 
 	// export matrix dd to a matlab file

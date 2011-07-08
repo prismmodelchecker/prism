@@ -3,6 +3,7 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Vojtech Forejt <vojtech.forejt@cs.ox.ac.uk> (University of Oxford)
 //	Description: DD export functions
 //	
 //------------------------------------------------------------------------------
@@ -455,6 +456,88 @@ int cstart
 		Cudd_RecursiveDeref(ddman, ne);
 		Cudd_RecursiveDeref(ddman, sw);
 		Cudd_RecursiveDeref(ddman, se);
+	}
+}
+
+//------------------------------------------------------------------------------
+
+// Given a BDD that represents a MDP transition matrices, this method
+// outputs one matrix for every action.
+// note that the output is in fact not a PP file, but
+// several PP files concatenated into one file.
+//
+// For example, for a model with the variable
+//  x : [0..2];
+// and transitions
+//  [a] (x=0) -> 0.3:(x'=1) + 0.7:(x'=2);
+//  [b] (x=0) -> 1:(x'=2);
+//  [a] (x=2) -> (x'=1);
+//  [a] (x=1) -> (x'=0);
+// the output would be (e.g.)
+//  4
+//  4
+//  0 2 1.000000
+//  4
+//  0 1 0.300000
+//  1 0 1.000000
+//  0 2 0.700000
+//  2 1 1.000000
+//  4
+void DD_Export3dMatrixToPPFile
+(
+ DdManager *ddman,
+ DdNode *dd,
+ DdNode **rvars,
+ int num_rvars,
+ DdNode **cvars,
+ int num_cvars,
+ DdNode **nvars,
+ int num_nvars,
+ char *filename
+ )
+{
+	FILE *fp = fopen(filename, "w");
+	if (fp == NULL) {
+		// crash out
+		return;
+	}
+	DD_Export3dMatrixToPPFile(ddman, dd, rvars, num_rvars, cvars, num_cvars, nvars, num_nvars, fp);
+	fclose(fp);
+}
+
+void DD_Export3dMatrixToPPFile
+(
+ DdManager *ddman,
+ DdNode *dd,
+ DdNode **rvars,
+ int num_rvars,
+ DdNode **cvars,
+ int num_cvars,
+ DdNode **nvars,
+ int num_nvars,
+ FILE *fp
+ )
+{
+	DdNode *n, *s;
+	if (num_nvars == 0)
+	{   //base step: if there are no nondeterministic variables, print output as for normal PP file
+		fprintf(fp, "%d\n", (int)pow(2.0, num_rvars));
+		DD_ExportMatrixToPPFile(ddman, dd, rvars, num_rvars, cvars, num_cvars, fp, 0, 0);
+	}
+	else
+	{ //if there are some nondeterministic variables, we remove one of them, splitting into two cases
+		Cudd_Ref(dd);
+		Cudd_Ref(nvars[0]);
+		n = DD_Restrict(ddman, dd, DD_Not(ddman, nvars[0]));
+		Cudd_Ref(dd);
+		Cudd_Ref(nvars[0]);
+		s = DD_Restrict(ddman, dd, nvars[0]);
+		
+		DD_Export3dMatrixToPPFile(ddman, n, rvars, num_rvars, cvars, num_cvars, &nvars[1], num_nvars-1, fp);
+		DD_Export3dMatrixToPPFile(ddman, s, rvars, num_rvars, cvars, num_cvars, &nvars[1], num_nvars-1, fp);
+		
+		Cudd_RecursiveDeref(ddman, n);
+		Cudd_RecursiveDeref(ddman, s);
 	}
 }
 

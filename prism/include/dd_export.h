@@ -42,6 +42,8 @@ void DD_ExportMatrixToMatlabFile(DdManager *ddman, DdNode *dd, DdNode **rvars, i
 void DD_ExportMatrixToMatlabFile(DdManager *ddman, DdNode *dd, DdNode **rvars, int num_rvars, DdNode **cvars, int num_cvars, char *name, FILE *fp_out);
 void DD_ExportMatrixToPPFile(DdManager *ddman, DdNode *dd, DdNode **rvars, int num_rvars, DdNode **cvars, int num_cvars, char *filename);
 void DD_ExportMatrixToPPFile(DdManager *ddman, DdNode *dd, DdNode **rvars, int num_rvars, DdNode **cvars, int num_cvars, FILE *fp_out);
+void DD_Export3dMatrixToPPFile(DdManager *ddman, DdNode *dd, DdNode **rvars, int num_rvars, DdNode **cvars, int num_cvars, DdNode **nvars, int num_nvars, char *filename);
+void DD_Export3dMatrixToPPFile(DdManager *ddman, DdNode *dd, DdNode **rvars, int num_rvars, DdNode **cvars, int num_cvars, DdNode **nvars, int num_nvars, FILE *fp);
 void DD_ExportMatrixToSpyFile(DdManager *ddman, DdNode *dd, DdNode **rvars, int num_rvars, DdNode **cvars, int num_cvars, int depth, char *filename);
 void DD_ExportMatrixToSpyFile(DdManager *ddman, DdNode *dd, DdNode **rvars, int num_rvars, DdNode **cvars, int num_cvars, int depth, FILE *fp_out);
 

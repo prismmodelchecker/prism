@@ -3,6 +3,7 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Vojtech Forejt <vojtech.forejt@cs.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -720,6 +721,22 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportMatrixToPPFile(JNIEnv *env, jclass
 		ddman, jlong_to_DdNode(dd),
 		jlong_to_DdNode_array(rvars), num_rvars,
 		jlong_to_DdNode_array(cvars), num_cvars,
+		(char *)str
+	);
+	env->ReleaseStringUTFChars(filename, str);
+}
+
+//------------------------------------------------------------------------------
+
+
+JNIEXPORT void JNICALL Java_jdd_JDD_DD_1Export3dMatrixToPPFile(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer rvars, jint num_rvars, jlong __jlongpointer cvars, jint num_cvars, jlong __jlongpointer nvars, jint num_nvars, jstring filename)
+{
+	const char *str = env->GetStringUTFChars(filename, 0);
+	DD_Export3dMatrixToPPFile(
+		ddman, jlong_to_DdNode(dd),
+		jlong_to_DdNode_array(rvars), num_rvars,
+		jlong_to_DdNode_array(cvars), num_cvars,
+		jlong_to_DdNode_array(nvars), num_nvars,
 		(char *)str
 	);
 	env->ReleaseStringUTFChars(filename, str);
