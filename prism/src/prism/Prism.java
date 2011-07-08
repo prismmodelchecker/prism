@@ -879,6 +879,25 @@ public class Prism implements PrismSettingsListener
 		return parseModelString(modelString);
 	}
 
+	/**
+	 * Import a PRISM model from a PRISM preprocessor file
+	 */
+	public ModulesFile importPrismPreprocFile(File file, String params[]) throws PrismException
+	{
+		String modelString;
+		
+		// Compile preprocessor file to a string
+		Preprocessor pp = new Preprocessor(this, file);
+		pp.setParameters(params);
+		modelString = pp.preprocess();
+		if (modelString == null) {
+			throw new PrismException("No preprocessing information");
+		}
+		
+		// Parse string as PRISM model and return
+		return parseModelString(modelString);
+	}
+	
 	// parse properties from file
 	// nb: need to pass in modules file to access its constants
 	//     but if its null, we just create a blank one for you.

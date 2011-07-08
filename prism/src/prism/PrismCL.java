@@ -43,6 +43,7 @@ public class PrismCL
 	private boolean verbose;
 	private boolean fixdl = false;
 	private boolean importpepa = false;
+	private boolean importprismpp = false;
 	private boolean importtrans = false;
 	private boolean importstates = false;
 	private boolean importlabels = false;
@@ -85,6 +86,9 @@ public class PrismCL
 
 	// argument to -simpath switch
 	private String simpathDetails = null;
+
+	// argument to -importprismpp switch
+	private String prismppParams = null;
 
 	// files/filenames
 	private String mainLogFilename = "stdout";
@@ -525,6 +529,10 @@ public class PrismCL
 			if (importpepa) {
 				mainLog.print("\nImporting PEPA file \"" + modelFilename + "\"...\n");
 				modulesFile = prism.importPepaFile(new File(modelFilename));
+			} else if (importprismpp) {
+				mainLog.print("\nImporting PRISM preprocessor file \"" + modelFilename + "\"...\n");
+				String prismppParamsList[] = ("? " + prismppParams).split(" ");
+				modulesFile = prism.importPrismPreprocFile(new File(modelFilename), prismppParamsList);
 			} else if (importtrans) {
 				mainLog.print("\nImporting model (");
 				mainLog.print(typeOverride == null ? "MDP" : typeOverride);
@@ -1129,6 +1137,15 @@ public class PrismCL
 				// change model type to pepa
 				else if (sw.equals("importpepa")) {
 					importpepa = true;
+				}
+				// Import model from PRISM preprocessor
+				else if (sw.equals("importprismpp")) {
+					if (i < args.length - 1) {
+						importprismpp = true;
+						prismppParams = args[++i];
+					} else {
+						errorAndExit("No parameters specified for -" + sw + " switch");
+					}
 				}
 				// import model from explicit format
 				else if (sw.equals("importtrans")) {
