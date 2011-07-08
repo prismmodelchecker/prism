@@ -34,9 +34,8 @@ import jdd.JDDNode;
 import jdd.JDDVars;
 
 public class ECComputerDefault extends ECComputer
-{	
-	public ECComputerDefault(Prism prism, JDDNode reach, JDDNode trans, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars,
-			JDDVars allDDNondetVars)
+{
+	public ECComputerDefault(Prism prism, JDDNode reach, JDDNode trans, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars, JDDVars allDDNondetVars)
 	{
 		super(prism, reach, trans, trans01, allDDRowVars, allDDColVars, allDDNondetVars);
 	}
@@ -51,44 +50,31 @@ public class ECComputerDefault extends ECComputer
 		candidates.push(reach);
 		SCCComputer sccComputer;
 
-		while (!candidates.isEmpty()) 
-		{
-			System.out.println("Checking candidate");
-			
+		while (!candidates.isEmpty()) {
 			JDDNode candidate = candidates.pop();
 
 			// Compute the stable set
 			JDD.Ref(candidate);
 			JDDNode stableSet = findMaximalStableSet(candidate);
 
-			System.out.println("found max stable set");
-			
 			// Drop empty sets
-			if (stableSet.equals(JDD.ZERO)) 
-			{
-				System.out.println("empty set");
+			if (stableSet.equals(JDD.ZERO)) {
 				JDD.Deref(stableSet);
 				JDD.Deref(candidate);
 				continue;
 			}
 
-			if (!initialCandidate) 
-			{
-				System.out.println("not initial");
-				
+			if (!initialCandidate) {
 				// candidate is an SCC, check if it's stable
-				if (stableSet.equals(candidate)) 
-				{
+				if (stableSet.equals(candidate)) {
 					vectECs.add(maxStableSetChoices(candidate));
 					JDD.Deref(stableSet);
 					continue;
 				}
-			} 
-			else 
-			{
+			} else {
 				initialCandidate = false;
 			}
-			
+
 			JDD.Deref(candidate);
 
 			// Filter bad transitions
@@ -106,28 +92,19 @@ public class ECComputerDefault extends ECComputer
 			candidates.addAll(sccs);
 		}
 	}
-	
+
 	/**
 	 * Returns a stable set of states contained in candidateStates
 	 * 
-	 * @param candidateStates
-	 *            set of candidate states S x H_i (dereferenced after calling this function)
+	 * @param candidateStates set of candidate states S x H_i (dereferenced after calling this function)
 	 * @return a referenced BDD with the maximal stable set in c
 	 */
 	private JDDNode findMaximalStableSet(JDDNode candidateStates)
 	{
-		System.out.println("findMaximalStableSet");
-
-		
-		
 		JDDNode old = JDD.Constant(0);
 		JDDNode current = candidateStates;
-		
-		if (current.isConstant())
-			System.out.println("current = " + current.getValue());
 
-		while (!current.equals(old)) 
-		{
+		while (!current.equals(old)) {
 			JDD.Deref(old);
 			JDD.Ref(current);
 			old = current;
@@ -150,17 +127,15 @@ public class ECComputerDefault extends ECComputer
 		JDD.Deref(old);
 		return current;
 	}
-	
+
 	/**
 	 * Returns the transition relation of a stable set
 	 * 
-	 * @param b
-	 *            BDD of a stable set (dereferenced after calling this function)
+	 * @param b BDD of a stable set (dereferenced after calling this function)
 	 * @return referenced BDD of the transition relation restricted to the stable set
 	 */
 	private JDDNode maxStableSetTrans(JDDNode b)
 	{
-		System.out.println("maxStableSetTrans");
 		JDD.Ref(b);
 		JDD.Ref(trans);
 		// Select transitions starting in b
@@ -179,18 +154,15 @@ public class ECComputerDefault extends ECComputer
 		// Abstract over actions
 		return JDD.ThereExists(stableTrans01, allDDNondetVars);
 	}
-	
+
 	/**
 	 * Returns the transition relation of a stable set
 	 * 
-	 * @param b
-	 *            BDD of a stable set (dereferenced after calling this function)
+	 * @param b BDD of a stable set (dereferenced after calling this function)
 	 * @return referenced BDD of the transition relation restricted to the stable set
 	 */
 	public JDDNode maxStableSetChoices(JDDNode b)
 	{
-		System.out.println("maxStableSetChoices");
-		
 		JDD.Ref(b);
 		JDD.Ref(trans);
 		// Select transitions starting in b
@@ -209,5 +181,4 @@ public class ECComputerDefault extends ECComputer
 		// Abstract over actions
 		return JDD.ThereExists(stableTrans01, allDDColVars);
 	}
-
 }
