@@ -29,20 +29,33 @@ package parser;
 /**
  * Information required to evaluate an expression: a State object.
  * This is basically an array of Objects, indexed according to a model file. 
+ * Optionally values for constants can also be supplied.
  */
 public class EvaluateContextState implements EvaluateContext
 {
+	private Values constantValues;
 	private Object[] varValues;
 
 	public EvaluateContextState(State state)
 	{
+		this.constantValues = null;
+		this.varValues = state.varValues;
+	}
+
+	public EvaluateContextState(Values constantValues, State state)
+	{
+		this.constantValues = constantValues;
 		this.varValues = state.varValues;
 	}
 
 	public Object getConstantValue(String name)
 	{
-		// No constant value stored here
-		return null;
+		if (constantValues == null)
+			return null;
+		int i = constantValues.getIndexOf(name);
+		if (i == -1)
+			return null;
+		return constantValues.getValue(i);
 	}
 
 	public Object getVarValue(String name, int index)

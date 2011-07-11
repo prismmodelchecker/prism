@@ -212,7 +212,7 @@ public class PTAModelChecker
 		if (exprTemp.hasBounds()) {
 			mainLog.println("Modifying PTA to encode time bound from property...");
 			// Get time bound info (is always of form <=T or <T)
-			timeBound = exprTemp.getUpperBound().evaluateInt(constantValues, null);
+			timeBound = exprTemp.getUpperBound().evaluateInt(constantValues);
 			timeBoundStrict = exprTemp.upperBoundIsStrict();
 			// Modify PTA to include time bound; get new target
 			targetLocs = buildTimeBoundIntoPta(pta, targetLocs, timeBound, timeBoundStrict);

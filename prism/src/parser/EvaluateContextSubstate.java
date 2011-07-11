@@ -30,22 +30,36 @@ package parser;
  * Information required to evaluate an expression: a subset of a State object.
  * More precisely: a State object, indexed over a subset of all variables,
  * and a mapping from indices (over all variables) to this subset (-1 if not in subset). 
+ * Optionally values for constants can also be supplied.
  */
 public class EvaluateContextSubstate implements EvaluateContext
 {
+	private Values constantValues;
 	private Object[] varValues;
 	private int[] varMap;
 
 	public EvaluateContextSubstate(State substate, int[] varMap)
 	{
+		this.constantValues = null;
+		this.varValues = substate.varValues;
+		this.varMap = varMap;
+	}
+
+	public EvaluateContextSubstate(Values constantValues, State substate, int[] varMap)
+	{
+		this.constantValues = constantValues;
 		this.varValues = substate.varValues;
 		this.varMap = varMap;
 	}
 
 	public Object getConstantValue(String name)
 	{
-		// No constant value stored here
-		return null;
+		if (constantValues == null)
+			return null;
+		int i = constantValues.getIndexOf(name);
+		if (i == -1)
+			return null;
+		return constantValues.getValue(i);
 	}
 
 	public Object getVarValue(String name, int index)

@@ -128,7 +128,27 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
-	 * Evaluate this expression, based on Values for constants/variables; return result.
+	 * Evaluate this expression, using no constant or variable values.
+	 * Note: assumes that type checking has been done already.
+	 */
+	public Object evaluate() throws PrismLangException
+	{
+		return evaluate(new EvaluateContextValues(null, null));
+	}
+
+	/**
+	 * Evaluate this expression, based on values for constants (but not variables).
+	 * Constant values are supplied as a Values object. 
+	 * Note: assumes that type checking has been done already.
+	 */
+	public Object evaluate(Values constantValues) throws PrismLangException
+	{
+		return evaluate(new EvaluateContextValues(constantValues, null));
+	}
+
+	/**
+	 * Evaluate this expression, based on values for constants/variables.
+	 * Each set of values is supplied as a Values object. 
 	 * Note: assumes that type checking has been done already.
 	 */
 	public Object evaluate(Values constantValues, Values varValues) throws PrismLangException
@@ -137,7 +157,8 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
-	 * Evaluate this expression, based on a State object, i.e. array of variable values; return result.
+	 * Evaluate this expression, based on values for variables (but not constants).
+	 * Variable values are supplied as a State object, i.e. array of variable values.
 	 * Note: assumes that constants have been evaluated and type checking has been done.
 	 */
 	public Object evaluate(State state) throws PrismLangException
@@ -146,9 +167,22 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
-	 * Evaluate this expression, based on a State object, indexed over a subset of all variables,
+	 * Evaluate this expression, based on values for constants/variables.
+	 * Constant values are supplied as a Values object. 
+	 * Variable values are supplied as a State object, i.e. array of variable values.
+	 * Note: assumes that type checking has been done.
+	 */
+	public Object evaluate(Values constantValues, State state) throws PrismLangException
+	{
+		return evaluate(new EvaluateContextState(constantValues, state));
+	}
+
+	/**
+	 * Evaluate this expression, based on values for some variables (but not constants).
+	 * Variable values are supplied as a State object, indexed over a subset of all variables,
 	 * and a mapping from indices (over all variables) to this subset (-1 if not in subset).
 	 * If any variables required for evaluation are missing, this will fail with an exception.
+	 * Note: assumes that constants have been evaluated and type checking has been done.
 	 */
 	public Object evaluate(State substate, int[] varMap) throws PrismLangException
 	{
@@ -156,11 +190,16 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
-	 * Evaluate this expression, using no constant or variable values.
+	 * Evaluate this expression, based on values for constants and some variables.
+	 * Constant values are supplied as a Values object. 
+	 * Variable values are supplied as a State object, indexed over a subset of all variables,
+	 * and a mapping from indices (over all variables) to this subset (-1 if not in subset).
+	 * If any variables required for evaluation are missing, this will fail with an exception.
+	 * Note: assumes that type checking has been done.
 	 */
-	public Object evaluate() throws PrismLangException
+	public Object evaluate(Values constantValues, State substate, int[] varMap) throws PrismLangException
 	{
-		return evaluate(new EvaluateContextValues(null, null));
+		return evaluate(new EvaluateContextSubstate(constantValues, substate, varMap));
 	}
 
 	/**
@@ -180,8 +219,31 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
-	 * Evaluate this expression as an integer.
+	 * Evaluate this expression as an integer, using no constant or variable values.
 	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
+	 * Note: assumes that type checking has been done already.
+	 */
+	public int evaluateInt() throws PrismLangException
+	{
+		return evaluateInt(new EvaluateContextValues(null, null));
+	}
+
+	/**
+	 * Evaluate this expression as an integer, based on values for constants (but not variables).
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
+	 * Constant values are supplied as a Values object. 
+	 * Note: assumes that type checking has been done already.
+	 */
+	public int evaluateInt(Values constantValues) throws PrismLangException
+	{
+		return evaluateInt(new EvaluateContextValues(constantValues, null));
+	}
+
+	/**
+	 * Evaluate this expression as an integer, based on values for constants/variables.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
+	 * Each set of values is supplied as a Values object. 
+	 * Note: assumes that type checking has been done already.
 	 */
 	public int evaluateInt(Values constantValues, Values varValues) throws PrismLangException
 	{
@@ -189,8 +251,10 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
-	 * Evaluate this expression as an integer.
+	 * Evaluate this expression as an integer, based on values for variables (but not constants).
 	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
+	 * Variable values are supplied as a State object, i.e. array of variable values.
+	 * Note: assumes that constants have been evaluated and type checking has been done.
 	 */
 	public int evaluateInt(State state) throws PrismLangException
 	{
@@ -198,8 +262,24 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
-	 * Evaluate this expression as an integer.
+	 * Evaluate this expression as an integer, based on values for constants/variables.
 	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
+	 * Constant values are supplied as a Values object. 
+	 * Variable values are supplied as a State object, i.e. array of variable values.
+	 * Note: assumes that type checking has been done.
+	 */
+	public int evaluateInt(Values constantValues, State state) throws PrismLangException
+	{
+		return evaluateInt(new EvaluateContextState(constantValues, state));
+	}
+
+	/**
+	 * Evaluate this expression as an integer, based on values for some variables (but not constants).
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
+	 * Variable values are supplied as a State object, indexed over a subset of all variables,
+	 * and a mapping from indices (over all variables) to this subset (-1 if not in subset).
+	 * If any variables required for evaluation are missing, this will fail with an exception.
+	 * Note: assumes that constants have been evaluated and type checking has been done.
 	 */
 	public int evaluateInt(State substate, int[] varMap) throws PrismLangException
 	{
@@ -207,12 +287,17 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
-	 * Evaluate this expression as an integer.
+	 * Evaluate this expression as an integer, based on values for constants and some variables.
 	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
+	 * Constant values are supplied as a Values object. 
+	 * Variable values are supplied as a State object, indexed over a subset of all variables,
+	 * and a mapping from indices (over all variables) to this subset (-1 if not in subset).
+	 * If any variables required for evaluation are missing, this will fail with an exception.
+	 * Note: assumes that type checking has been done.
 	 */
-	public int evaluateInt() throws PrismLangException
+	public int evaluateInt(Values constantValues, State substate, int[] varMap) throws PrismLangException
 	{
-		return evaluateInt(new EvaluateContextValues(null, null));
+		return evaluateInt(new EvaluateContextSubstate(constantValues, substate, varMap));
 	}
 
 	/**
@@ -235,8 +320,31 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
-	 * Evaluate this expression as a double.
+	 * Evaluate this expression as a double, using no constant or variable values.
 	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0.0/1.0).
+	 * Note: assumes that type checking has been done already.
+	 */
+	public double evaluateDouble() throws PrismLangException
+	{
+		return evaluateDouble(new EvaluateContextValues(null, null));
+	}
+
+	/**
+	 * Evaluate this expression as a double, based on values for constants (but not variables).
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0.0/1.0).
+	 * Constant values are supplied as a Values object. 
+	 * Note: assumes that type checking has been done already.
+	 */
+	public double evaluateDouble(Values constantValues) throws PrismLangException
+	{
+		return evaluateDouble(new EvaluateContextValues(constantValues, null));
+	}
+
+	/**
+	 * Evaluate this expression as a double, based on values for constants/variables.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0.0/1.0).
+	 * Each set of values is supplied as a Values object. 
+	 * Note: assumes that type checking has been done already.
 	 */
 	public double evaluateDouble(Values constantValues, Values varValues) throws PrismLangException
 	{
@@ -244,8 +352,10 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
-	 * Evaluate this expression as a double.
+	 * Evaluate this expression as a double, based on values for variables (but not constants).
 	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0.0/1.0).
+	 * Variable values are supplied as a State object, i.e. array of variable values.
+	 * Note: assumes that constants have been evaluated and type checking has been done.
 	 */
 	public double evaluateDouble(State state) throws PrismLangException
 	{
@@ -253,8 +363,24 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
-	 * Evaluate this expression as a double.
+	 * Evaluate this expression as a double, based on values for constants/variables.
 	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0.0/1.0).
+	 * Constant values are supplied as a Values object. 
+	 * Variable values are supplied as a State object, i.e. array of variable values.
+	 * Note: assumes that type checking has been done.
+	 */
+	public double evaluateDouble(Values constantValues, State state) throws PrismLangException
+	{
+		return evaluateDouble(new EvaluateContextState(constantValues, state));
+	}
+
+	/**
+	 * Evaluate this expression as a double, based on values for some variables (but not constants).
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0.0/1.0).
+	 * Variable values are supplied as a State object, indexed over a subset of all variables,
+	 * and a mapping from indices (over all variables) to this subset (-1 if not in subset).
+	 * If any variables required for evaluation are missing, this will fail with an exception.
+	 * Note: assumes that constants have been evaluated and type checking has been done.
 	 */
 	public double evaluateDouble(State substate, int[] varMap) throws PrismLangException
 	{
@@ -262,12 +388,17 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
-	 * Evaluate this expression as a double.
+	 * Evaluate this expression as a double, based on values for constants and some variables.
 	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0.0/1.0).
+	 * Constant values are supplied as a Values object. 
+	 * Variable values are supplied as a State object, indexed over a subset of all variables,
+	 * and a mapping from indices (over all variables) to this subset (-1 if not in subset).
+	 * If any variables required for evaluation are missing, this will fail with an exception.
+	 * Note: assumes that type checking has been done.
 	 */
-	public double evaluateDouble() throws PrismLangException
+	public double evaluateDouble(Values constantValues, State substate, int[] varMap) throws PrismLangException
 	{
-		return evaluateDouble(new EvaluateContextValues(null, null));
+		return evaluateDouble(new EvaluateContextSubstate(constantValues, substate, varMap));
 	}
 
 	/**
@@ -284,8 +415,31 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
-	 * Evaluate this expression as a boolean.
+	 * Evaluate this expression as a boolean, using no constant or variable values.
 	 * Any typing issues cause an exception.
+	 * Note: assumes that type checking has been done already.
+	 */
+	public boolean evaluateBoolean() throws PrismLangException
+	{
+		return evaluateBoolean(new EvaluateContextValues(null, null));
+	}
+
+	/**
+	 * Evaluate this expression as a boolean, based on values for constants (but not variables).
+	 * Any typing issues cause an exception.
+	 * Constant values are supplied as a Values object. 
+	 * Note: assumes that type checking has been done already.
+	 */
+	public boolean evaluateBoolean(Values constantValues) throws PrismLangException
+	{
+		return evaluateBoolean(new EvaluateContextValues(constantValues, null));
+	}
+
+	/**
+	 * Evaluate this expression as a boolean, based on values for constants/variables.
+	 * Any typing issues cause an exception.
+	 * Each set of values is supplied as a Values object. 
+	 * Note: assumes that type checking has been done already.
 	 */
 	public boolean evaluateBoolean(Values constantValues, Values varValues) throws PrismLangException
 	{
@@ -293,8 +447,10 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
-	 * Evaluate this expression as a boolean.
+	 * Evaluate this expression as a boolean, based on values for variables (but not constants).
 	 * Any typing issues cause an exception.
+	 * Variable values are supplied as a State object, i.e. array of variable values.
+	 * Note: assumes that constants have been evaluated and type checking has been done.
 	 */
 	public boolean evaluateBoolean(State state) throws PrismLangException
 	{
@@ -302,8 +458,24 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
-	 * Evaluate this expression as a boolean.
+	 * Evaluate this expression as a boolean, based on values for constants/variables.
 	 * Any typing issues cause an exception.
+	 * Constant values are supplied as a Values object. 
+	 * Variable values are supplied as a State object, i.e. array of variable values.
+	 * Note: assumes that type checking has been done.
+	 */
+	public boolean evaluateBoolean(Values constantValues, State state) throws PrismLangException
+	{
+		return evaluateBoolean(new EvaluateContextState(constantValues, state));
+	}
+
+	/**
+	 * Evaluate this expression as a boolean, based on values for some variables (but not constants).
+	 * Any typing issues cause an exception.
+	 * Variable values are supplied as a State object, indexed over a subset of all variables,
+	 * and a mapping from indices (over all variables) to this subset (-1 if not in subset).
+	 * If any variables required for evaluation are missing, this will fail with an exception.
+	 * Note: assumes that constants have been evaluated and type checking has been done.
 	 */
 	public boolean evaluateBoolean(State substate, int[] varMap) throws PrismLangException
 	{
@@ -311,12 +483,17 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
-	 * Evaluate this expression as a boolean.
+	 * Evaluate this expression as a boolean, based on values for constants and some variables.
 	 * Any typing issues cause an exception.
+	 * Constant values are supplied as a Values object. 
+	 * Variable values are supplied as a State object, indexed over a subset of all variables,
+	 * and a mapping from indices (over all variables) to this subset (-1 if not in subset).
+	 * If any variables required for evaluation are missing, this will fail with an exception.
+	 * Note: assumes that type checking has been done.
 	 */
-	public boolean evaluateBoolean() throws PrismLangException
+	public boolean evaluateBoolean(Values constantValues, State substate, int[] varMap) throws PrismLangException
 	{
-		return evaluateBoolean(new EvaluateContextValues(null, null));
+		return evaluateBoolean(new EvaluateContextSubstate(constantValues, substate, varMap));
 	}
 
 	// Static constructors for convenience

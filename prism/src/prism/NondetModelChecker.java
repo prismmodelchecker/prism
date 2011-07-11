@@ -168,7 +168,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		relOp = expr.getRelOp();
 		pb = expr.getProb();
 		if (pb != null) {
-			p = pb.evaluateDouble(constantValues, null);
+			p = pb.evaluateDouble(constantValues);
 			if (p < 0 || p > 1)
 				throw new PrismException("Invalid probability bound " + p + " in P operator");
 		}
@@ -244,7 +244,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		relOp = expr.getRelOp();
 		rb = expr.getReward();
 		if (rb != null) {
-			r = rb.evaluateDouble(constantValues, null);
+			r = rb.evaluateDouble(constantValues);
 			if (r < 0)
 				throw new PrismException("Invalid reward bound " + r + " in R operator");
 		}
@@ -256,7 +256,7 @@ public class NondetModelChecker extends NonProbModelChecker
 			stateRewards = model.getStateRewards(0);
 			transRewards = model.getTransRewards(0);
 		} else if (rs instanceof Expression) {
-			i = ((Expression) rs).evaluateInt(constantValues, null);
+			i = ((Expression) rs).evaluateInt(constantValues);
 			rs = new Integer(i); // for better error reporting below
 			stateRewards = model.getStateRewards(i - 1);
 			transRewards = model.getTransRewards(i - 1);
@@ -526,7 +526,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		StateValues probs = null;
 
 		// get info from bounded until
-		time = expr.getUpperBound().evaluateInt(constantValues, null);
+		time = expr.getUpperBound().evaluateInt(constantValues);
 		if (expr.upperBoundIsStrict())
 			time--;
 		if (time < 0) {
@@ -698,7 +698,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		StateValues rewards = null;
 
 		// get info from bounded until
-		time = expr.getUpperBound().evaluateInt(constantValues, null);
+		time = expr.getUpperBound().evaluateInt(constantValues);
 		if (time < 0) {
 			throw new PrismException("Invalid bound " + time + " in instantaneous reward property");
 		}

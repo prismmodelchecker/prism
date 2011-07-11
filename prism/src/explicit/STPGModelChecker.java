@@ -94,7 +94,7 @@ public class STPGModelChecker extends ProbModelChecker
 		ModelCheckerResult res = null;
 
 		// get info from bounded until
-		time = expr.getUpperBound().evaluateInt(constantValues, null);
+		time = expr.getUpperBound().evaluateInt(constantValues);
 		if (expr.upperBoundIsStrict())
 			time--;
 		if (time < 0) {

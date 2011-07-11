@@ -151,7 +151,7 @@ public class ProbModelChecker extends StateModelChecker
 		relOp = expr.getRelOp();
 		rb = expr.getReward();
 		if (rb != null) {
-			r = rb.evaluateDouble(constantValues, null);
+			r = rb.evaluateDouble(constantValues);
 			if (r < 0)
 				throw new PrismException("Invalid reward bound " + r + " in R[] formula");
 		}
@@ -182,7 +182,7 @@ public class ProbModelChecker extends StateModelChecker
 		if (rs == null) {
 			rewStruct = modulesFile.getRewardStruct(0);
 		} else if (rs instanceof Expression) {
-			i = ((Expression) rs).evaluateInt(constantValues, null);
+			i = ((Expression) rs).evaluateInt(constantValues);
 			rs = new Integer(i); // for better error reporting below
 			rewStruct = modulesFile.getRewardStruct(i - 1);
 		} else if (rs instanceof String) {

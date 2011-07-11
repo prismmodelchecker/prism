@@ -498,7 +498,7 @@ public class StateModelChecker implements ModelChecker
 			h = varList.getHigh(v);
 			// create dd
 			dd = JDD.Constant(0);
-			i = e2.evaluateInt(constantValues, null);
+			i = e2.evaluateInt(constantValues);
 			switch (op) {
 			case ExpressionBinaryOp.EQ:
 				if (i >= l && i <= h)
@@ -548,7 +548,7 @@ public class StateModelChecker implements ModelChecker
 			h = varList.getHigh(v);
 			// create dd
 			dd = JDD.Constant(0);
-			i = e1.evaluateInt(constantValues, null);
+			i = e1.evaluateInt(constantValues);
 			switch (op) {
 			case ExpressionBinaryOp.EQ:
 				if (i >= l && i <= h)

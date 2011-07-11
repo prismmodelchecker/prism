@@ -95,7 +95,7 @@ public class ParserUtils
 		
 		// For constant expressions, this is easy
 		if (expr.isConstant())
-			return expr.evaluateInt(constantValues, null);
+			return expr.evaluateInt(constantValues);
 		
 		// Get all variables appearing in the expression and all values of them
 		vars = expr.getAllVars();
@@ -124,7 +124,7 @@ public class ParserUtils
 		
 		// For constant expressions, this is easy
 		if (expr.isConstant())
-			return expr.evaluateInt(constantValues, null);
+			return expr.evaluateInt(constantValues);
 		
 		// Get all variables appearing in the expression and all values of them
 		vars = expr.getAllVars();
@@ -154,7 +154,7 @@ public class ParserUtils
 		// For constant expressions, this is easy
 		if (expr.isConstant()) {
 			res = new HashSet<Integer>();
-			res.add(expr.evaluateInt(constantValues, null));
+			res.add(expr.evaluateInt(constantValues));
 			return res;
 		}
 		

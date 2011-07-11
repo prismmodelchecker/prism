@@ -145,9 +145,9 @@ public class VarList
 		// Variable is integer
 		if (declType instanceof DeclarationInt) {
 			DeclarationInt intdecl = (DeclarationInt) declType;
-			low = intdecl.getLow().evaluateInt(constantValues, null);
-			high = intdecl.getHigh().evaluateInt(constantValues, null);
-			start = decl.getStartOrDefault().evaluateInt(constantValues, null);
+			low = intdecl.getLow().evaluateInt(constantValues);
+			high = intdecl.getHigh().evaluateInt(constantValues);
+			start = decl.getStartOrDefault().evaluateInt(constantValues);
 			// Check range is valid
 			if (high - low <= 0) {
 				String s = "Invalid range (" + low + "-" + high + ") for variable \"" + decl.getName() + "\"";
@@ -167,7 +167,7 @@ public class VarList
 		else if (declType instanceof DeclarationBool) {
 			low = 0;
 			high = 1;
-			start = (decl.getStartOrDefault().evaluateBoolean(constantValues, null)) ? 1 : 0;
+			start = (decl.getStartOrDefault().evaluateBoolean(constantValues)) ? 1 : 0;
 		}
 		// Otherwise (i.e. clock) create dummy info
 		else {

@@ -417,7 +417,7 @@ public class Modules2PTA
 				x = pta.getClockIndex(((ExpressionVar) expr1).getName());
 				if (x < 0)
 					throw new PrismLangException("Unknown clock \"" + ((ExpressionVar) expr1).getName() + "\"", expr);
-				v = expr2.evaluateInt(constantValues, null);
+				v = expr2.evaluateInt(constantValues);
 				switch (exprRelOp.getOperator()) {
 				case ExpressionBinaryOp.EQ:
 					res.add(Constraint.buildGeq(x, v));
@@ -446,7 +446,7 @@ public class Modules2PTA
 			x = pta.getClockIndex(((ExpressionVar) expr2).getName());
 			if (x < 0)
 				throw new PrismLangException("Unknown clock \"" + ((ExpressionVar) expr2).getName() + "\"", expr);
-			v = expr1.evaluateInt(constantValues, null);
+			v = expr1.evaluateInt(constantValues);
 			switch (exprRelOp.getOperator()) {
 			case ExpressionBinaryOp.EQ:
 				res.add(Constraint.buildGeq(x, v));
@@ -520,7 +520,7 @@ public class Modules2PTA
 		pcInit = new State(pcNumVars);
 		for (i = 0; i < pcNumVars; i++) {
 			decl = modulesFile.getVarDeclaration(modulesFile.getVarIndex(pcVars.get(i)));
-			pcInit.setValue(i, decl.getStartOrDefault().evaluate(constantValues, null));
+			pcInit.setValue(i, decl.getStartOrDefault().evaluate(constantValues));
 		}
 
 		// Build variable index mapping

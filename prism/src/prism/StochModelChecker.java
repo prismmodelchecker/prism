@@ -98,7 +98,7 @@ public class StochModelChecker extends ProbModelChecker
 		// (i.e. if until is of form U<=t)
 		exprTmp = expr.getLowerBound();
 		if (exprTmp != null) {
-			lTime = exprTmp.evaluateDouble(constantValues, null);
+			lTime = exprTmp.evaluateDouble(constantValues);
 			if (lTime < 0) {
 				throw new PrismException("Invalid lower bound " + lTime + " in time-bounded until formula");
 			}
@@ -109,7 +109,7 @@ public class StochModelChecker extends ProbModelChecker
 		// (i.e. if until is of form U>=t)
 		exprTmp = expr.getUpperBound();
 		if (exprTmp != null) {
-			uTime = exprTmp.evaluateDouble(constantValues, null);
+			uTime = exprTmp.evaluateDouble(constantValues);
 			if (uTime < 0 || (uTime == 0 && expr.upperBoundIsStrict())) {
 				String bound = (expr.upperBoundIsStrict() ? "<" : "<=") + uTime;
 				throw new PrismException("Invalid upper bound " + bound + " in time-bounded until formula");
@@ -242,7 +242,7 @@ public class StochModelChecker extends ProbModelChecker
 		StateValues rewards = null;
 
 		// get info from inst reward
-		time = expr.getUpperBound().evaluateDouble(constantValues, null);
+		time = expr.getUpperBound().evaluateDouble(constantValues);
 		if (time < 0) {
 			throw new PrismException("Invalid time bound " + time + " in cumulative reward formula");
 		}
@@ -273,7 +273,7 @@ public class StochModelChecker extends ProbModelChecker
 		StateValues sr = null, rewards = null;
 
 		// get info from inst reward
-		time = expr.getUpperBound().evaluateDouble(constantValues, null);
+		time = expr.getUpperBound().evaluateDouble(constantValues);
 		if (time < 0) {
 			throw new PrismException("Invalid bound " + time + " in instantaneous reward property");
 		}

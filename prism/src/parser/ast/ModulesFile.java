@@ -802,7 +802,7 @@ public class ModulesFile extends ASTElement
 		n = getNumGlobals();
 		for (i = 0; i < n; i++) {
 			decl = getGlobal(i);
-			initialState.setValue(count++, decl.getStartOrDefault().evaluate(constantValues, null));
+			initialState.setValue(count++, decl.getStartOrDefault().evaluate(constantValues));
 		}
 		n = getNumModules();
 		for (i = 0; i < n; i++) {
@@ -810,7 +810,7 @@ public class ModulesFile extends ASTElement
 			n2 = module.getNumDeclarations();
 			for (j = 0; j < n2; j++) {
 				decl = module.getDeclaration(j);
-				initialState.setValue(count++, decl.getStartOrDefault().evaluate(constantValues, null));
+				initialState.setValue(count++, decl.getStartOrDefault().evaluate(constantValues));
 			}
 		}
 
@@ -840,7 +840,7 @@ public class ModulesFile extends ASTElement
 		n = getNumGlobals();
 		for (i = 0; i < n; i++) {
 			decl = getGlobal(i);
-			values.addValue(decl.getName(), decl.getStartOrDefault().evaluate(constantValues, null));
+			values.addValue(decl.getName(), decl.getStartOrDefault().evaluate(constantValues));
 		}
 		// then add all module variables
 		n = getNumModules();
@@ -849,7 +849,7 @@ public class ModulesFile extends ASTElement
 			n2 = module.getNumDeclarations();
 			for (j = 0; j < n2; j++) {
 				decl = module.getDeclaration(j);
-				values.addValue(decl.getName(), decl.getStartOrDefault().evaluate(constantValues, null));
+				values.addValue(decl.getName(), decl.getStartOrDefault().evaluate(constantValues));
 			}
 		}
 
