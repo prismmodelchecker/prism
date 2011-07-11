@@ -33,7 +33,7 @@ import java.util.List;
  * Simple explicit-state storage of rewards for an MDP.
  * Like the related class MDPSimple, this is not especially efficient, but mutable (in terms of size).
  */
-public class MDPRewardsSimple extends MDPRewards
+public class MDPRewardsSimple implements MDPRewards
 {
 	/** Number of state */
 	protected int numStates;
@@ -86,7 +86,7 @@ public class MDPRewardsSimple extends MDPRewards
 		list.set(i, r);
 	}
 
-	// Accessors (for MDPRewards)
+	// Accessors
 	
 	@Override
 	public double getStateReward(int s)

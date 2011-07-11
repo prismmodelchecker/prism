@@ -27,12 +27,25 @@
 package explicit.rewards;
 
 /**
- * Classes that provide (read) access to explicit-state rewards for a Markov chain (DTMC/CTMC).
+ * Explicit-state storage of constant state rewards.
  */
-public interface MCRewards
+public class StateRewardsConstant extends StateRewards
 {
+	protected double stateReward = 0.0;
+	
 	/**
-	 * Get the state reward for state {@code s}.
+	 * Constructor: all rewards equal to {@code r}
 	 */
-	public abstract double getStateReward(int s); 
+	public StateRewardsConstant(double r)
+	{
+		stateReward = r;
+	}
+	
+	// Accessors
+	
+	@Override
+	public double getStateReward(int s)
+	{
+		return stateReward;
+	}
 }

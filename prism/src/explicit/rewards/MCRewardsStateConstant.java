@@ -29,7 +29,7 @@ package explicit.rewards;
 /**
  * Explicit-state storage of constant state rewards for a DTMC/CTMC.
  */
-public class MCRewardsStateConstant extends MCRewards
+public class MCRewardsStateConstant implements MCRewards, MDPRewards
 {
 	protected double stateReward = 0.0;
 	
@@ -41,11 +41,17 @@ public class MCRewardsStateConstant extends MCRewards
 		stateReward = r;
 	}
 	
-	// Accessors (for MCRewards)
+	// Accessors
 	
 	@Override
 	public double getStateReward(int s)
 	{
 		return stateReward;
+	}
+	
+	@Override
+	public double getTransitionReward(int s, int i)
+	{
+		return 0.0;
 	}
 }

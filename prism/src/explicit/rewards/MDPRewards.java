@@ -29,7 +29,7 @@ package explicit.rewards;
 /**
  * Classes that provide (read) access to explicit-state rewards for an MDP.
  */
-public abstract class MDPRewards
+public interface MDPRewards
 {
 	/**
 	 * Get the state reward for state {@code s}.

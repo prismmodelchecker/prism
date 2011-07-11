@@ -26,13 +26,55 @@
 
 package explicit.rewards;
 
+import java.util.ArrayList;
+
 /**
- * Classes that provide (read) access to explicit-state rewards for a Markov chain (DTMC/CTMC).
+ * Explicit-state storage of just state rewards (mutable).
  */
-public interface MCRewards
+public class StateRewardsSimple extends StateRewards
 {
+	/** Arraylist of state rewards **/
+	protected ArrayList<Double> stateRewards;
+	
 	/**
-	 * Get the state reward for state {@code s}.
+	 * Constructor: all zero rewards.
+	 * @param numStates Number of states
 	 */
-	public abstract double getStateReward(int s); 
+	public StateRewardsSimple(int numStates)
+	{
+		stateRewards = new ArrayList<Double>(numStates);
+		for (int i = 0; i < numStates; i++)
+			stateRewards.add(0.0);
+	}
+	
+	// Mutators
+	
+	/**
+	 * Set the reward for state {@code s} to {@code r}.
+	 */
+	public void setStateReward(int s, double r)
+	{
+		// If list not big enough, extend
+		int n = s - stateRewards.size() + 1;
+		if (n > 0) {
+			for (int j = 0; j < n; j++) {
+				stateRewards.add(0.0);
+			}
+		}
+		// Set reward
+		stateRewards.set(s, r);
+	}
+	
+	// Accessors
+	
+	@Override
+	public double getStateReward(int s)
+	{
+		try {
+			return stateRewards.get(s);
+		}
+		catch (ArrayIndexOutOfBoundsException e) {
+			return 0.0;
+		}
+	}
 }

@@ -29,7 +29,7 @@ package explicit.rewards;
 /**
  * Explicit-state storage of just state rewards for a DTMC/CTMC (as an array).
  */
-public class MCRewardsStateArray extends MCRewards
+public class MCRewardsStateArray implements MCRewards, MDPRewards
 {
 	/** Array of state rewards **/
 	protected double stateRewards[] = null;
@@ -55,11 +55,17 @@ public class MCRewardsStateArray extends MCRewards
 		stateRewards[s] = r;
 	}
 	
-	// Accessors (for MCRewards)
+	// Accessors
 	
 	@Override
 	public double getStateReward(int s)
 	{
 		return stateRewards[s];
+	}
+	
+	@Override
+	public double getTransitionReward(int s, int i)
+	{
+		return 0.0;
 	}
 }
