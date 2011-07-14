@@ -1830,6 +1830,7 @@ public class PrismCL
 		mainLog.println("-simpath <options> <file>....... Generate a random path with the simulator");
 		mainLog.println("-nobuild ....................... Skip model construction (just do parse/export)");
 		mainLog.println("-test .......................... Enable \"test\" mode");
+		mainLog.println("-testall ....................... Enable \"test\" mode, but don't exit on error");
 		mainLog.println();
 		mainLog.println("IMPORT OPTIONS:");
 		mainLog.println("-importpepa .................... Model description is in PEPA, not the PRISM language");
