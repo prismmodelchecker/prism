@@ -3,30 +3,21 @@ including development and beta versions. For a less detailed overview
 of the main changes in each public release, see the file VERSIONS.txt.
 
 Latest changes (mostly reverse chronological):
-[correct wrt svn rev 3047]
+[correct wrt svn rev 3250]
 
+* Added if-and-only-if operator (<=>) for use in models/properties
+* Properties can be named, by prefixing with "name":, and reference each other
+* Updated version of explicit engine
+* Testing mode (-test and -testall switches)
 * Various bug fixes
+
+* CTL AG/EF
 
 Ongoing changes:
 
-* New version of explicit engine (including extra methods e.g. for MDPs)
-* Property names allowed, but mostly not used
-* Testing mode
 
 -----------------------------------------------------------------------------
 Version 4.0 (released 28/6/2011)
------------------------------------------------------------------------------
-
-* No changes
-
------------------------------------------------------------------------------
-Version 4.0.beta2 (released 10/6/2011)
------------------------------------------------------------------------------
-
-* Bug fixes: simulator, error messages, typos and examples
-
------------------------------------------------------------------------------
-Version 4.0.beta (released 16/12/2010)
 -----------------------------------------------------------------------------
 
 * Support for probabilistic timed automata (PTAs)
@@ -68,6 +59,12 @@ Version 4.0.beta (released 16/12/2010)
   - New -exporttarget switch
   - New versions of jcommon (1.0.16) and jfreechart (1.0.13)
 
+* Changes since 4.0.beta2 (released 10/6/2011) []:
+  - None
+
+* Changes since 4.0.beta (released 16/12/2010) [svn: trunk rev XX]:
+  - Bug fixes: simulator, error messages, typos and examples)
+  
 -----------------------------------------------------------------------------
 Version 3.3.1 (released 22/11/2009)
 -----------------------------------------------------------------------------

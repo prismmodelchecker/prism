@@ -1138,7 +1138,7 @@ public class PrismCL
 				else if (sw.equals("importpepa")) {
 					importpepa = true;
 				}
-				// Import model from PRISM preprocessor
+				// Import model from PRISM preprocessor (hidden option)
 				else if (sw.equals("importprismpp")) {
 					if (i < args.length - 1) {
 						importprismpp = true;
