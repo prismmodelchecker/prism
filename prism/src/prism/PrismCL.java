@@ -435,7 +435,8 @@ public class PrismCL
 						// if required, check result against expected value
 						if (test) {
 							try {
-								if (propertiesToCheck.get(j).checkAgainstExpectedResult(res.getResult())) {
+								String consts = Values.toStringConcatenated(definedMFConstants, definedPFConstants);
+								if (propertiesToCheck.get(j).checkAgainstExpectedResult(res.getResult(), consts)) {
 									mainLog.println("Testing result: PASS");
 								} else {
 									mainLog.println("Testing result: NOT TESTED");

@@ -26,9 +26,11 @@
 
 package parser.ast;
 
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import parser.Values;
 import parser.type.*;
 import parser.visitor.*;
 import prism.PrismException;
@@ -113,29 +115,76 @@ public class Property extends ASTElement
 	 */
 	public boolean checkAgainstExpectedResult(Object result) throws PrismException
 	{
+		return checkAgainstExpectedResult(result, null);
+	}
+	
+	/**
+	 * Tests a result (specified as an object of the appropriate type: Boolean, Double, etc.)
+	 * against the expected result for this Property, specified by an embedded "RESULT: xxx"
+	 * string in the accompanying comment (immediately preceding it in the property specification).
+	 * Different results for different constant values are specified by e.g. "RESULT (x=1): xxx". 
+	 * If the test fails or something else goes wrong, an explanatory PrismException is thrown.
+	 * Otherwise, the method successfully exits, returning a boolean value that indicates
+	 * whether or not a check was actually applied (i.e. if the result specification is of the
+	 * form "RESULT: ?") then false is returned; otherwise true.   
+	 * @param result The actual result
+	 * @param constValues The values of any undefined constants (null or "" if none)
+	 * @return Whether or not the check was performed
+	 */
+	public boolean checkAgainstExpectedResult(Object result, String constValues) throws PrismException
+	{
+		HashMap<String,String> strExpectedMap = new HashMap<String, String>();
 		String strExpected = null;
-		Type type;
 		
-		// Extract expected result from comment
+		if (constValues == null)
+			constValues = "";
+		
+		// Extract expected result(s) from comment
 		if (comment != null) {
-			Pattern p = Pattern.compile("RESULT:[ \t]*([^ \t\n\r]+)");
+			// Look for "RESULT: val" or "RESULT (x=1,y=2): val"
+			Pattern p = Pattern.compile("RESULT[ \t]*(\\(([^\\)]+)\\))?[ \t]*:[ \t]*([^ \t\n\r]+)");
 			Matcher matcher = p.matcher(comment);
-			if (matcher.find())
-				strExpected = matcher.group(1);
-			if (matcher.find())
-				throw new PrismException("Multiple RESULT specificiations for test");
+			// Store RESULT specifications found
+			while (matcher.find()) {
+				String constValsSubstring = matcher.group(2) == null ? "" : matcher.group(2); 
+				String expResultSubstring = matcher.group(3);
+				// Error if there are dupes 
+				if (strExpectedMap.put(constValsSubstring, expResultSubstring) != null) {
+					if (constValsSubstring.length() == 0)
+						throw new PrismException("Multiple RESULT specificiations for test");
+					else
+						throw new PrismException("Multiple RESULT (" + constValsSubstring + ") specificiations for test");
+				}
+			}
 		}
+		if (strExpectedMap.size() == 0) {
+			throw new PrismException("Did not find any RESULT specifications to test against");
+		}
+		// Look up result for the constant values provided
+		strExpected = strExpectedMap.get(constValues);
 		if (strExpected == null) {
-			throw new PrismException("Did not find RESULT specification to test against");
+			throw new PrismException("Did not find a RESULT specification (for " + constValues + ") to test against");
 		}
 		
+		return checkAgainstExpectedResultString(strExpected, result);
+	}
+	
+	/**
+	 * Tests a result (specified as an object of the appropriate type: Boolean, Double, etc.)
+	 * against the expected result, given by a string extracted from a RESULT: specification.
+	 * (As required for {@link #checkAgainstExpectedResult(Object)} and {@link #checkAgainstExpectedResult(Object, String)}) 
+	 * @param strExpected Expected result
+	 * @param result The actual result
+	 */
+	private boolean checkAgainstExpectedResultString(String strExpected, Object result) throws PrismException
+	{
 		// Check for special "don't case" case
 		if (strExpected.equals("?")) {
 			return false;
 		}
 		
 		// Check expected/actual result
-		type = expr.getType();
+		Type type = expr.getType();
 		
 		// Boolean-valued properties
 		if (type instanceof TypeBool) {
