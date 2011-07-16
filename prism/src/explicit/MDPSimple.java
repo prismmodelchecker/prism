@@ -492,6 +492,7 @@ public class MDPSimple extends ModelSimple implements MDP
 	{
 		int i, j;
 		String nij;
+		Object action;
 		try {
 			FileWriter out = new FileWriter(filename);
 			out.write("digraph " + getModelType() + " {\nsize=\"8,5\"\nnode [shape=box];\n");
@@ -501,8 +502,12 @@ public class MDPSimple extends ModelSimple implements MDP
 				j = -1;
 				for (Distribution distr : trans.get(i)) {
 					j++;
+					action = getAction(i, j);
 					nij = "n" + i + "_" + j;
-					out.write(i + " -> " + nij + " [ arrowhead=none,label=\"" + j + "\" ];\n");
+					out.write(i + " -> " + nij + " [ arrowhead=none,label=\"" + j);
+					if (action != null)
+						out.write(":" + action);
+					out.write("\" ];\n");
 					out.write(nij + " [ shape=point,width=0.1,height=0.1,label=\"\" ];\n");
 					for (Map.Entry<Integer, Double> e : distr) {
 						out.write(nij + " -> " + e.getKey() + " [ label=\"" + e.getValue() + "\" ];\n");
@@ -523,6 +528,7 @@ public class MDPSimple extends ModelSimple implements MDP
 		boolean first;
 		FileWriter out;
 		TreeMap<Integer, Double> sorted;
+		Object action;
 		try {
 			// Output transitions to PRISM language file
 			out = new FileWriter(filename);
@@ -538,7 +544,9 @@ public class MDPSimple extends ModelSimple implements MDP
 						sorted.put(e.getKey(), e.getValue());
 					}
 					// Print out (sorted) transitions
-					out.write("[]x=" + i + "->");
+					action = getAction(i, j);
+					out.write(action != null ? ("[" + action + "]") : "[]");
+					out.write("x=" + i + "->");
 					first = true;
 					for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
 						if (first)

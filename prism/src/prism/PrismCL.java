@@ -884,6 +884,7 @@ public class PrismCL
 		// export transition matrix graph to dot file
 		if (exporttransdot) {
 			try {
+				modelExpl.exportToDotFile(exportTransDotFilename);
 				File f = (exportTransDotFilename.equals("stdout")) ? null : new File(exportTransDotFilename);
 				prism.exportTransToFile(model, exportordered, Prism.EXPORT_DOT, f);
 			}

@@ -523,6 +523,7 @@ public class MDPSparse extends ModelSparse implements MDP
 	{
 		int i, j, k, l1, h1, l2, h2;
 		String nij;
+		Object action;
 		try {
 			FileWriter out = new FileWriter(filename);
 			out.write("digraph " + getModelType() + " {\nsize=\"8,5\"\nnode [shape=box];\n");
@@ -532,8 +533,12 @@ public class MDPSparse extends ModelSparse implements MDP
 				l1 = rowStarts[i];
 				h1 = rowStarts[i + 1];
 				for (j = l1; j < h1; j++) {
+					action = getAction(i, j - l1);
 					nij = "n" + i + "_" + (j - l1);
-					out.write(i + " -> " + nij + " [ arrowhead=none,label=\"" + (j - l1) + "\" ];\n");
+					out.write(i + " -> " + nij + " [ arrowhead=none,label=\"" + j);
+					if (action != null)
+						out.write(":" + action);
+					out.write("\" ];\n");
 					out.write(nij + " [ shape=point,width=0.1,height=0.1,label=\"\" ];\n");
 					l2 = choiceStarts[j];
 					h2 = choiceStarts[j + 1];
@@ -554,6 +559,7 @@ public class MDPSparse extends ModelSparse implements MDP
 	{
 		int i, j, k, l1, h1, l2, h2;
 		FileWriter out;
+		Object action;
 		try {
 			// Output transitions to PRISM language file
 			out = new FileWriter(filename);
@@ -564,7 +570,9 @@ public class MDPSparse extends ModelSparse implements MDP
 				h1 = rowStarts[i + 1];
 				for (j = l1; j < h1; j++) {
 					// Print out transitions
-					out.write("[]x=" + i + "->");
+					action = getAction(i, j - l1);
+					out.write(action != null ? ("[" + action + "]") : "[]");
+					out.write("x=" + i + "->");
 					l2 = choiceStarts[j];
 					h2 = choiceStarts[j + 1];
 					for (k = l2; k < h2; k++) {
