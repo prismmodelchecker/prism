@@ -455,6 +455,7 @@ public class MDPSimple extends ModelSimple implements MDP
 	public void exportToPrismExplicitTra(String filename) throws PrismException
 	{
 		int i, j;
+		Object action;
 		FileWriter out;
 		TreeMap<Integer, Double> sorted;
 		try {
@@ -473,7 +474,9 @@ public class MDPSimple extends ModelSimple implements MDP
 					// Print out (sorted) transitions
 					for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
 						// Note use of PrismUtils.formatDouble to match PRISM-exported files
-						out.write(i + " " + j + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()) + "\n");
+						out.write(i + " " + j + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()));
+						action = getAction(i, j);
+						out.write(action == null ? "\n" : (" " + action + "\n"));
 					}
 					sorted.clear();
 				}

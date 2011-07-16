@@ -493,6 +493,7 @@ public class MDPSparse extends ModelSparse implements MDP
 		// Note: In PRISM .tra files, transitions are usually sorted by column index within choices
 		// (to ensure this is the case, you may need to sort the model when constructing)
 		int i, j, k, l1, h1, l2, h2;
+		Object action;
 		FileWriter out;
 		try {
 			// Output transitions to .tra file
@@ -505,7 +506,9 @@ public class MDPSparse extends ModelSparse implements MDP
 					l2 = choiceStarts[j];
 					h2 = choiceStarts[j + 1];
 					for (k = l2; k < h2; k++) {
-						out.write(i + " " + (j - l1) + " " + cols[k] + " " + PrismUtils.formatDouble(nonZeros[k]) + "\n");
+						out.write(i + " " + (j - l1) + " " + cols[k] + " " + PrismUtils.formatDouble(nonZeros[k]));
+						action = getAction(i, j - l1);
+						out.write(action == null ? "\n" : (" " + action + "\n"));
 					}
 				}
 			}
