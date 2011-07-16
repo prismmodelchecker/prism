@@ -95,7 +95,7 @@ jstring fn		// filename
 	switch (export_type) {
 	case EXPORT_PLAIN: export_string("%d %d\n", n, nnz); break;
 	case EXPORT_MATLAB: export_string("%s = sparse(%d,%d);\n", export_name, n, n); break;
-	case EXPORT_DOT: case EXPORT_DOT_STATES: export_string("digraph %s {\nsize=\"8,5\"\nnode [shape = circle];\n", export_name); break;
+	case EXPORT_DOT: case EXPORT_DOT_STATES: export_string("digraph %s {\nsize=\"8,5\"\nnode [shape=box];\n", export_name); break;
 	case EXPORT_MRMC: export_string("STATES %d\nTRANSITIONS %d\n", n, nnz); break;
 	case EXPORT_ROWS: export_string("%d %d\n", n, nnz); break;
 	}

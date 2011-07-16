@@ -100,7 +100,7 @@ jstring fn		// filename
 	switch (export_type) {
 	case EXPORT_PLAIN: export_string("%d %d %d\n", n, nc, nnz); break;
 	case EXPORT_MATLAB: for (i = 0; i < ndsm->k; i++) export_string("%s%d = sparse(%d,%d);\n", export_name, i+1, n, n); break;
-	case EXPORT_DOT: case EXPORT_DOT_STATES: export_string("digraph %s {\nsize=\"8,5\"\nnode [shape = circle];\n", export_name); break;
+	case EXPORT_DOT: case EXPORT_DOT_STATES: export_string("digraph %s {\nsize=\"8,5\"\nnode [shape=box];\n", export_name); break;
 	case EXPORT_ROWS: export_string("%d %d %d\n", n, nc, nnz); break;
 	}
 	
@@ -126,7 +126,7 @@ jstring fn		// filename
 				export_string("%d -> n%d_%d [ arrowhead=none,label=\"%d", i, i, j-l1, j-l1);
 				if (actions != NULL) export_string(":%s", (actions[j]>0?action_names[actions[j]-1]:""));
 				export_string("\" ];\n");
-				export_string("n%d_%d [ shape=point,label=\"\" ];\n", i, j-l1);
+				export_string("n%d_%d [ shape=point,width=0.1,height=0.1,label=\"\" ];\n", i, j-l1);
 			}
 			for (k = l2; k < h2; k++) {
 				switch (export_type) {

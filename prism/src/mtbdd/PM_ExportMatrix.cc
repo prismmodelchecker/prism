@@ -71,7 +71,7 @@ jstring fn		// filename
 	switch (export_type) {
 	case EXPORT_PLAIN: export_string("%d %.0f\n", odd->eoff+odd->toff, DD_GetNumMinterms(ddman, matrix, num_rvars+num_cvars)); break;
 	case EXPORT_MATLAB: export_string("%s = sparse(%d,%d);\n", export_name, odd->eoff+odd->toff, odd->eoff+odd->toff); break;
-	case EXPORT_DOT: case EXPORT_DOT_STATES: export_string("digraph %s {\nsize=\"8,5\"\nnode [shape = circle];\n", export_name); break;
+	case EXPORT_DOT: case EXPORT_DOT_STATES: export_string("digraph %s {\nsize=\"8,5\"\nnode [shape = box];\n", export_name); break;
 	}
 	
 	// print main part of file
