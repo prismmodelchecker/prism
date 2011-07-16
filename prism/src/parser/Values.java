@@ -33,14 +33,16 @@ import parser.type.*;
 import parser.ast.ModulesFile;
 import prism.PrismLangException;
 
-// class to store a list of typed constant/variable values
-
+/**
+ * Class to store a list of typed constant/variable values.
+ * (Basically, just a mapping from String to Object)
+ */
 public class Values //implements Comparable
 {
-	ArrayList<String> names;
-	ArrayList<Object> values;
+	protected ArrayList<String> names;
+	protected ArrayList<Object> values;
 	
-	// constructors
+	// Constructors
 	
 	/**
 	 * Construct a new, empty Values object
@@ -62,7 +64,7 @@ public class Values //implements Comparable
 	}
 	
 	/**
-	 * Construct a new Values object  by copying existing State object.
+	 * Construct a new Values object by copying existing State object.
 	 * Need access to a ModulesFile for variable names.
 	 * @param s State object to copy.
 	 * @param mf Corresponding ModulesFile (for variable info/ordering)
@@ -77,18 +79,22 @@ public class Values //implements Comparable
 		}
 	}
 	
-	// add value (type of value detetmined by type of Object)
-	// (note: no checking for duplication/inconsistencies/etc.)
-	
-	public void addValue(String n, Object o)
+	/**
+	 * Add a value (type of value determined by type of Object).
+	 * (Note: there is no checking for duplication/inconsistencies/etc.)
+	 * @param name Constant/variable name
+	 * @param value Value
+	 */
+	public void addValue(String name, Object value)
 	{
-		names.add(n);
-		values.add(o);
+		names.add(name);
+		values.add(value);
 	}
 	
-	// add multiple values
-	// (note: no checking for duplication/inconsistencies/etc.)
-	
+	/**
+	 * Add multiple values.
+	 * (Note: there is no checking for duplication/inconsistencies/etc.)
+	 */
 	public void addValues(Values v)
 	{
 		int i, n;
@@ -100,25 +106,29 @@ public class Values //implements Comparable
 		}
 	}
 	
-	// set value (overwrite if already present)
-	// returns 0 if added, -1 if overwritten
-	
-	public int setValue(String n, Object o)
+	/**
+	 * Set a value (overwrite if already present)
+	 * Returns 0 if added, -1 if overwritten
+	 * @param name Constant/variable name
+	 * @param value Value
+	 */
+	public int setValue(String name, Object value)
 	{
-		int i = getIndexOf(n);
+		int i = getIndexOf(name);
 		if (i == -1) {
-			addValue(n, o);
+			addValue(name, value);
 			return 0;
 		}
 		else {
-			values.set(i, o);
+			values.set(i, value);
 			return -1;
 		}
 	}
 	
-	// set multiple values (overwrite if already present)
-	// returns num values overwritten
-	
+	/**
+	 * Set multiple values (overwrite if already present)
+	 * Returns number of values overwritten.
+	 */
 	public int setValues(Values v)
 	{
 		int i, n, c = 0;
@@ -132,8 +142,9 @@ public class Values //implements Comparable
 		return c;
 	}
 	
-	// remove value (if present)
-	
+	/**
+	 * Remove the {@code i}th value added (if present)
+	 */
 	public void removeValue(int i)
 	{
 		if (i >= 0 && i < getNumValues()) {
@@ -142,38 +153,55 @@ public class Values //implements Comparable
 		}
 	}
 	
-	// remove value (if present)
-	
-	public void removeValue(String n)
+	/**
+	 * Remove the value for constant/variable {@code name} (if present)
+	 */
+	public void removeValue(String name)
 	{
-		int i = getIndexOf(n);
+		int i = getIndexOf(name);
 		if (i != -1) {
 			removeValue(i);
 		}
 	}
 	
-	// get methods
+	// Get methods
 	
+	/**
+	 * Get the number of values.
+	 */
 	public int getNumValues()
 	{
 		return names.size();
 	}
 	
+	/**
+	 * Get the variable/constant name for the {@code i}th value.
+	 */
 	public String getName(int i)
 	{
 		return names.get(i);
 	}
 
-	public int getIndexOf(String n)
+	/**
+	 * Get the index of the value for variable/constant {@code name} (-1 if not present).
+	 */
+	public int getIndexOf(String name)
 	{
-		return names.indexOf(n);
+		return names.indexOf(name);
 	}
 	
-	public boolean contains(String n)
+	/**
+	 * Is there a value for variable/constant {@code name}?
+	 */
+	public boolean contains(String name)
 	{
-		return names.contains(n);
+		return names.contains(name);
 	}
 	
+	/**
+	 * Get the type for the {@code i}th value.
+	 * (This is based on the type of the Object storing the value.)
+	 */
 	public Type getType(int i)
 	{
 		Object o = values.get(i);
@@ -183,13 +211,16 @@ public class Values //implements Comparable
 		else return null;
 	}
 
+	/**
+	 * Get the {@code i}th value.
+	 */
 	public Object getValue(int i)
 	{
 		return values.get(i);
 	}
 	
 	/**
-	 * Evaluate ith value as an int.
+	 * Evaluate {@code i}th value as an int.
 	 * (Note: Booleans get mapped to 0/1)
 	 */
 	public int getIntValue(int i) throws PrismLangException
@@ -209,7 +240,7 @@ public class Values //implements Comparable
 	}
 
 	/**
-	 * Evaluate ith value as a double.
+	 * Evaluate {@code i}th value as a double.
 	 * (Note: Booleans get mapped to 0.0/1.0)
 	 */
 	public double getDoubleValue(int i) throws PrismLangException
@@ -232,7 +263,7 @@ public class Values //implements Comparable
 	}
 
 	/**
-	 * Evaluate ith value as a Boolean.
+	 * Evaluate {@code i}th value as a Boolean.
 	 */
 	public boolean getBooleanValue(int i) throws PrismLangException
 	{
@@ -247,24 +278,36 @@ public class Values //implements Comparable
 		return ((Boolean)o).booleanValue();
 	}
 
-	public Object getValueOf(String n) throws PrismLangException
+	/**
+	 * Get the value for variable/constant {@code name}.
+	 * @throws PrismLangException if no value is present.
+	 */
+	public Object getValueOf(String name) throws PrismLangException
 	{
 		int i;
 		
-		i = getIndexOf(n);
-		if (i == -1) throw new PrismLangException("Couldn't get value for \"" + n + "\"");
+		i = getIndexOf(name);
+		if (i == -1) throw new PrismLangException("Couldn't get value for \"" + name + "\"");
 		return getValue(i);
 	}
 
-	public int getIntValueOf(String n) throws PrismLangException
+	/**
+	 * Evaluate variable/constant {@code name} as an int.
+	 * (Note: Booleans get mapped to 0/1)
+	 */
+	public int getIntValueOf(String name) throws PrismLangException
 	{
 		int i;
 		
-		i = getIndexOf(n);
-		if (i == -1) throw new PrismLangException("Couldn't get value for \"" + n + "\"");
+		i = getIndexOf(name);
+		if (i == -1) throw new PrismLangException("Couldn't get value for \"" + name + "\"");
 		return getIntValue(i);
 	}
 
+	/**
+	 * Evaluate variable/constant {@code name} as a double.
+	 * (Note: Booleans get mapped to 0.0/1.0)
+	 */
 	public double getDoubleValueOf(String n) throws PrismLangException
 	{
 		int i;
@@ -274,6 +317,9 @@ public class Values //implements Comparable
 		return getDoubleValue(i);
 	}
 
+	/**
+	 * Evaluate variable/constant {@code name} as a boolean.
+	 */
 	public boolean getBooleanValueOf(String n) throws PrismLangException
 	{
 		int i;
@@ -283,8 +329,7 @@ public class Values //implements Comparable
 		return getBooleanValue(i);
 	}
 
-	// compare for equality
-	
+	@Override
 	public boolean equals(Object o)
 	{
 		int i, j, n;
@@ -344,8 +389,7 @@ public class Values //implements Comparable
 // 		return 0;
 // 	}
 
-	// clone
-	
+	@Override
 	public Object clone()
 	{
 		Values res;
@@ -367,13 +411,12 @@ public class Values //implements Comparable
 		return res;
 	}
 
-	// to string
-	
+	@Override
 	public String toString()
 	{
 		int i, n;
 		String s;
-		
+		// Build string of form "x=1,y=2"
 		n = getNumValues();
 		s = "";
 		for (i = 0; i < n; i++) {
@@ -384,6 +427,31 @@ public class Values //implements Comparable
 		return s;
 	}
 	
+	/**
+	 * Build a string for two Values objects, combined.
+	 * Either can be null, meaning an empty object
+	 * If both are empty the resulting string is "".
+	 */
+	public static String toStringConcatenated(Values v1, Values v2)
+	{
+		String s = "", s2;
+		if (v1 != null) {
+			s += v1.toString();
+		}
+		if (v2 != null) {
+			s2 = v2.toString();
+			if (s2.length() > 0) {
+				if (s.length() > 0)
+					s += ",";
+				s += s2;
+			}
+		}
+		return s;
+	}
+	
+	/**
+	 * Format a value (as an Object) as a string.
+	 */
 	private String valToString(Object o)
 	{
 		String s;
