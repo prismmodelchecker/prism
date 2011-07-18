@@ -6,13 +6,13 @@ Latest changes (mostly reverse chronological):
 [correct wrt svn rev 3263]
 
 * Added if-and-only-if operator (<=>) for use in models/properties
-* Properties can be named, by prefixing with "name":, and reference each other
-* Updated version of explicit engine
+* Updated version of explicit model checking library
 * Testing mode (-test and -testall switches)
 * Various bug fixes
 
 Ongoing changes:
 
+* Properties can be named, by prefixing with "name":, and reference each other
 * More improvements to explicit engine
 * CTL AG/EF
 
