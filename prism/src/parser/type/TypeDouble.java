@@ -26,6 +26,8 @@
 
 package parser.type;
 
+import prism.PrismLangException;
+
 public class TypeDouble extends Type 
 {
 	private static TypeDouble singleton;
@@ -54,8 +56,20 @@ public class TypeDouble extends Type
 		return singleton;
 	}
 	
+	@Override
 	public boolean canAssign(Type type)
 	{
 		return (type instanceof TypeDouble || type instanceof TypeInt);
+	}
+	
+	@Override
+	public Object castValueTo(Object value) throws PrismLangException
+	{
+		if (value instanceof Double)
+			return value;
+		if (value instanceof Integer)
+			return new Double(((Double) value).doubleValue());
+		else
+			throw new PrismLangException("Can't convert " + value.getClass() + " to type " + getTypeString());
 	}
 }

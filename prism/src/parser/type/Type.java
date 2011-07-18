@@ -26,15 +26,34 @@
 
 package parser.type;
 
+import prism.PrismLangException;
+
 public abstract class Type 
 {
 	public abstract String getTypeString();
 	
+	/**
+	 * Returns true iff a variable of this type can be assigned a value that is of type {@code type}. 
+	 */
 	public boolean canAssign(Type type)
 	{
+		// Play safe: assume not possible, unless explicitly overridden.
 		return false;
 	}
 	
+	/**
+	 * Make sure that a value, stored as an Object (Integer, Boolean, etc.) is of this type.
+	 * Basically, implement some implicit casts, e.g. Integer -> Double.
+	 * This should only only work for combinations of types that satisfy {@code #canAssign(Type)}.
+	 * If not, an exception is thrown (but such problems should have been caught earlier by type checking)
+	 */
+	public Object castValueTo(Object value) throws PrismLangException
+	{
+		// Play safe: assume error unless explicitly overridden.
+		throw new PrismLangException("Cannot cast a value to type " + getTypeString());
+	}
+	
+	@Override
 	public String toString()
 	{
 		return getTypeString();

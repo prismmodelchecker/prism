@@ -26,6 +26,8 @@
 
 package parser.type;
 
+import prism.PrismLangException;
+
 public class TypeBool extends Type 
 {
 	private static TypeBool singleton;
@@ -54,8 +56,18 @@ public class TypeBool extends Type
 		return singleton;
 	}
 	
+	@Override
 	public boolean canAssign(Type type)
 	{
 		return (type instanceof TypeBool);
+	}
+	
+	@Override
+	public Object castValueTo(Object value) throws PrismLangException
+	{
+		if (value instanceof Integer)
+			return value;
+		else
+			throw new PrismLangException("Can't convert " + value.getClass() + " to type " + getTypeString());
 	}
 }
