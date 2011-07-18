@@ -5,16 +5,20 @@ of the main changes in each public release, see the file VERSIONS.txt.
 Latest changes (mostly reverse chronological):
 [correct wrt svn rev 3263]
 
-* Added if-and-only-if operator (<=>) for use in models/properties
-* Updated version of explicit model checking library
-* Testing mode (-test and -testall switches)
-* Various bug fixes
-
 Ongoing changes:
 
 * Properties can be named, by prefixing with "name":, and reference each other
 * More improvements to explicit engine
 * CTL AG/EF
+
+-----------------------------------------------------------------------------
+Version 4.0.1 (released ...)
+-----------------------------------------------------------------------------
+
+* Added if-and-only-if operator (<=>) for use in models/properties
+* Updated version of explicit model checking library
+* Testing mode (-test and -testall switches)
+* Various bug fixes
 
 -----------------------------------------------------------------------------
 Version 4.0 (released 28/6/2011)

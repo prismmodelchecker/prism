@@ -2,6 +2,15 @@ This file summarises the principal changes between each main public release of P
 For more detailed information about the various changes, see the file CHANGELOG.txt.
 
 -----------------------------------------------------------------------------
+Version 4.0.1 (released ...)
+-----------------------------------------------------------------------------
+
+* Added if-and-only-if operator (<=>) for use in models/properties
+* Updated version of explicit model checking library
+* Testing mode (-test and -testall switches)
+* Various bug fixes
+
+-----------------------------------------------------------------------------
 Version 4.0 (beta released 16/12/2010)
 -----------------------------------------------------------------------------
 
