@@ -3,6 +3,7 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//	* Christian von Essen <christian.vonessen@imag.fr> (Verimag, Grenoble)
 //	
 //------------------------------------------------------------------------------
 //	
