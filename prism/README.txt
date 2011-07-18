@@ -82,24 +82,24 @@ was based in the School of Computer Science at the University of Birmingham.
 
 The core team working on PRISM currently comprises:
 
-    * Dave Parker (Oxford)
-    * Gethin Norman (Glasgow)
-    * Marta Kwiatkowska (Oxford) 
+ * Dave Parker (Oxford)
+ * Gethin Norman (Glasgow)
+ * Marta Kwiatkowska (Oxford) 
  
-Contributions to the development of PRISM have also been gratefully received from:
+Many others have contributed to PRISM. In approximately reverse chronological order:
 
- * Andrew Hinton: Original versions of the GUI, Windows-port and simulator
- * Joachim Meyer-Kayser: Original implementation of the "Fox-Glynn" algorithm
- * Alistair John Strachan: Port to 64-bit architectures
- * Stephen Gilmore: Support for the stochastic process algebra PEPA
- * Paolo Ballarini & Kenneth Chan: Port to Mac OS X
+ * Vincent Nimal: Approximate (simulation-based) model checking techniques
+ * Vojtech Forejt: "Fox-Glynn" algorithm implementation
  * Mark Kattenbelt: Wide range of enhancements/additions, especially in the GUI
- * Rashid Mehmood: Improvements to low-level data structures and numerical solution algorithms
+ * Carlos Bederian (working with Pedro D'Argenio): Addition of LTL model checking for MDPs to PRISM
+ * Alistair John Strachan: Port to 64-bit architectures
  * Alistair John Strachan, Mike Arthur and Zak Cohen: Integration of JFreeChart into PRISM
  * Charles Harley and Sebastian Vermehren: GUI enhancements
- * Carlos Bederian (working with Pedro D'Argenio): Addition of LTL model checking for MDPs to PRISM
- * Vojtech Forejt: "Fox-Glynn" algorithm implementation
- * Vincent Nimal: Approximate (simulation-based) model checking techniques 
+ * Rashid Mehmood: Improvements to low-level data structures and numerical solution algorithms
+ * Stephen Gilmore: Support for the stochastic process algebra PEPA
+ * Paolo Ballarini & Kenneth Chan: Port to Mac OS X
+ * Andrew Hinton: Original versions of the GUI, Windows-port and simulator
+ * Joachim Meyer-Kayser: Original implementation of the "Fox-Glynn" algorithm
  
 For more details see:
 
