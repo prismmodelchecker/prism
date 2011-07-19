@@ -33,6 +33,8 @@ package userinterface.model;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
@@ -142,6 +144,11 @@ class PrismView extends PlainView
 		int stLine = p0;// findStartOfLine(p0, getDocument());
 		int enLine = p1;// findEndOfLine(p1-1, getDocument());
 
+		if (g instanceof Graphics2D) {
+			Graphics2D g2d = (Graphics2D)g;
+			g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		}
+        
 		// x+= getLeftInset();
 		// System.out.println("p0 = "+p0+", p1 = "+p1+", st = "+stLine+",
 		// enLine = "+enLine+".");
@@ -192,6 +199,11 @@ class PrismView extends PlainView
 		int stLine = p0;// findStartOfLine(p0, getDocument());
 		int enLine = p1;// findEndOfLine(p1-1, getDocument());
 
+		if (g instanceof Graphics2D) {
+			Graphics2D g2d = (Graphics2D)g;
+			g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		}
+        
 		// x+= getLeftInset();
 		// System.out.println("p0 = "+p0+", p1 = "+p1+", st = "+stLine+",
 		// enLine = "+enLine+".");

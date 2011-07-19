@@ -35,6 +35,7 @@ import javax.swing.undo.UndoManager;
 
 import java.util.regex.*;
 import java.awt.*;
+
 import javax.swing.event.*;
 import java.io.*;
 import userinterface.model.*;
@@ -257,7 +258,12 @@ public class GUIPepaModelEditor extends GUIModelEditor implements DocumentListen
 		{
 			int stLine = findStartOfLine(p0, getDocument());
 			int enLine = findEndOfLine(p1, getDocument());
-			//System.out.println("p0 = "+p0+", p1 = "+p1+", st = "+stLine+", enLine = "+enLine+".");
+			
+			if (g instanceof Graphics2D) {
+				Graphics2D g2d = (Graphics2D)g;
+				g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+			}
+	        
 			try
 			{
 				g.setColor(Color.green);
@@ -301,7 +307,12 @@ public class GUIPepaModelEditor extends GUIModelEditor implements DocumentListen
 		{
 			int stLine = findStartOfLine(p0, getDocument());
 			int enLine = findEndOfLine(p1, getDocument());
-			//System.out.println("p0 = "+p0+", p1 = "+p1+", st = "+stLine+", enLine = "+enLine+".");
+			
+			if (g instanceof Graphics2D) {
+				Graphics2D g2d = (Graphics2D)g;
+				g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+			}
+	        
 			try
 			{
 				g.setColor(Color.green);
