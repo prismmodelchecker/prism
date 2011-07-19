@@ -790,6 +790,7 @@ public class ModulesFile extends ASTElement
 		Module module;
 		Declaration decl;
 		State initialState;
+		Object initialValue;
 
 		if (initStates != null) {
 			return null;
@@ -802,7 +803,9 @@ public class ModulesFile extends ASTElement
 		n = getNumGlobals();
 		for (i = 0; i < n; i++) {
 			decl = getGlobal(i);
-			initialState.setValue(count++, decl.getStartOrDefault().evaluate(constantValues));
+			initialValue = decl.getStartOrDefault().evaluate(constantValues);
+			initialValue = getGlobal(i).getType().castValueTo(initialValue);
+			initialState.setValue(count++, initialValue);
 		}
 		n = getNumModules();
 		for (i = 0; i < n; i++) {
@@ -810,7 +813,9 @@ public class ModulesFile extends ASTElement
 			n2 = module.getNumDeclarations();
 			for (j = 0; j < n2; j++) {
 				decl = module.getDeclaration(j);
-				initialState.setValue(count++, decl.getStartOrDefault().evaluate(constantValues));
+				initialValue = decl.getStartOrDefault().evaluate(constantValues);
+				initialValue = module.getDeclaration(j).getType().castValueTo(initialValue);
+				initialState.setValue(count++, initialValue);
 			}
 		}
 
@@ -828,6 +833,7 @@ public class ModulesFile extends ASTElement
 		Module module;
 		Declaration decl;
 		Values values;
+		Object initialValue;
 
 		if (initStates != null) {
 			throw new PrismLangException("There are multiple initial states");
@@ -840,7 +846,9 @@ public class ModulesFile extends ASTElement
 		n = getNumGlobals();
 		for (i = 0; i < n; i++) {
 			decl = getGlobal(i);
-			values.addValue(decl.getName(), decl.getStartOrDefault().evaluate(constantValues));
+			initialValue = decl.getStartOrDefault().evaluate(constantValues);
+			initialValue = getGlobal(i).getType().castValueTo(initialValue);
+			values.addValue(decl.getName(), initialValue);
 		}
 		// then add all module variables
 		n = getNumModules();
@@ -849,7 +857,9 @@ public class ModulesFile extends ASTElement
 			n2 = module.getNumDeclarations();
 			for (j = 0; j < n2; j++) {
 				decl = module.getDeclaration(j);
-				values.addValue(decl.getName(), decl.getStartOrDefault().evaluate(constantValues));
+				initialValue = decl.getStartOrDefault().evaluate(constantValues);
+				initialValue = module.getDeclaration(j).getType().castValueTo(initialValue);
+				values.addValue(decl.getName(), initialValue);
 			}
 		}
 
