@@ -27,9 +27,11 @@
 
 package prism;
 
-import parser.ast.*;
 import parser.type.*;
 
+/**
+ * Class to manage values for a an undefined constant.
+ */
 public class DefinedConstant
 {
 	/* When iterating over doubles it is not unlikely that the value
@@ -49,8 +51,6 @@ public class DefinedConstant
 	private int numSteps;
 	/* Storage for a (temporary) value of the constant. */
 	private Object value;
-	
-	
 
 	/** Creates a new instance of DefinedConstant
 	(which is initially undefined, bar a name and type). */

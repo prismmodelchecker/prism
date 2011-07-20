@@ -32,8 +32,9 @@ import parser.*;
 import parser.ast.*;
 import parser.type.*;
 
-// class to handle the undefined constants in model/properties files
-
+/**
+ * Class to handle the undefined constants in model/properties files.
+ */
 public class UndefinedConstants
 {
 	// parsed model/properties files
@@ -51,14 +52,15 @@ public class UndefinedConstants
 	private Values pfValues = null;
 	
 	// class-wide storage for info from -const switch
-	private Vector constSwitchNames;
-	private Vector constSwitchLows;
-	private Vector constSwitchHighs;
-	private Vector constSwitchSteps;
+	private Vector<String> constSwitchNames;
+	private Vector<String> constSwitchLows;
+	private Vector<String> constSwitchHighs;
+	private Vector<String> constSwitchSteps;
 	
-	// constructor
-	// note that properties file may be null
-	
+	/**
+	 * Construct information about undefined constants from a model and, optionally,
+	 * a properties files (in which case th latter is null).
+	 */
 	public UndefinedConstants(ModulesFile mf, PropertiesFile pf)
 	{
 		int i;
@@ -107,8 +109,9 @@ public class UndefinedConstants
 	
 	public int getPFConstIndex(String s) { for (int i = 0; i < pfNumConsts; i++) { if (pfConsts[i].getName().equals(s)) return i; } return -1; }
 
-	// clear definitions of all undefined constants
-	
+	/**
+	 * Clear definitions of all undefined constants.
+	 */
 	public void clearAllDefinitions()
 	{
 		int i;
@@ -123,8 +126,10 @@ public class UndefinedConstants
 		}
 	}
 
-	// define all undefined constants using the argument to the prism -const command line switch
-	
+	/**
+	 * Define all undefined constants using the argument to the prism -const command line switch.
+	 * (i.e. format is "x=1,y=1:100,z=1:10:100,b=true")
+	 */
 	public void defineUsingConstSwitch(String constSwitch) throws PrismException
 	{
 		int i;
@@ -149,10 +154,10 @@ public class UndefinedConstants
 		for (i = 0; i < constSwitchNames.size(); i++) {
 			
 			// get name
-			name = (String)constSwitchNames.elementAt(i);
+			name = constSwitchNames.elementAt(i);
 			
 			// define constant using info from switch
-			dupe = defineConstant(name, (String)constSwitchLows.elementAt(i), (String)constSwitchHighs.elementAt(i), (String)constSwitchSteps.elementAt(i));
+			dupe = defineConstant(name, constSwitchLows.elementAt(i), constSwitchHighs.elementAt(i), constSwitchSteps.elementAt(i));
 			
 			// check for duplication
 			if (dupe) {
@@ -167,18 +172,19 @@ public class UndefinedConstants
 		initialiseIterators();
 	}
 
-	// parse const switch string and store info
-	
+	/**
+	 * Parse -const switch string and store info.
+	 */
 	private void parseConstSwitch(String constSwitch) throws PrismException
 	{
 		int i, j;
 		String parts[], args[];
 		
 		// create storage for info
-		constSwitchNames = new Vector();
-		constSwitchLows = new Vector();
-		constSwitchHighs = new Vector();
-		constSwitchSteps = new Vector();
+		constSwitchNames = new Vector<String>();
+		constSwitchLows = new Vector<String>();
+		constSwitchHighs = new Vector<String>();
+		constSwitchSteps = new Vector<String>();
 		
 		// if string is null, nothing more to do
 		if (constSwitch == null) return;
@@ -285,13 +291,15 @@ public class UndefinedConstants
 		return overwrite;
 	}
 
-	// check that definitions have been provided for all constants
-	
+	/**
+	 * Check that definitions have been provided for all constants.
+	 * Throw explanatory exception if not.
+	 */
 	public void checkAllDefined() throws PrismException
 	{
 		int i, n;
 		String s;
-		Vector v = new Vector();
+		Vector<String> v = new Vector<String>();
 		
 		for (i = 0; i < mfNumConsts; i++) {
 			if (mfConsts[i].getLow() == null) {
@@ -321,15 +329,19 @@ public class UndefinedConstants
 		}
 	}
 
-	// initialise stuff for iterations
-	
+	/**
+	 * Initialise iterators for stepping through constant values.
+	 */
 	public void initialiseIterators()
 	{
 		intialiseModelIterator();
 		intialisePropertyIterator();
 	}
 	
-	public void intialiseModelIterator()
+	/**
+	 * Initialise iterator for stepping through model constant values.
+	 */
+	private void intialiseModelIterator()
 	{
 		int i;
 		
@@ -344,7 +356,10 @@ public class UndefinedConstants
 		}
 	}
 	
-	public void intialisePropertyIterator()
+	/**
+	 * Initialise iterator for stepping through property constant values.
+	 */
+	private void intialisePropertyIterator()
 	{
 		int i;
 		
@@ -359,8 +374,12 @@ public class UndefinedConstants
 		}
 	}
 
-	// accessor methods for info about values of defined constants, iterators, etc.
+	// Accessor methods for info about values of defined constants, iterators, etc.
 	
+	/**
+	 * Get a string showing the values/ranges of all constants. 
+	 * (e.g. "x=1,y=1:100,z=1:10:100,b=true")
+	 */
 	public String getDefinedConstantsString()
 	{
 		int i;
@@ -379,6 +398,10 @@ public class UndefinedConstants
 		return s;
 	}
 	
+	/**
+	 * Get a string showing the values/ranges of all properties file constants. 
+	 * (e.g. "x=1,y=1:100,z=1:10:100,b=true")
+	 */
 	public String getPFDefinedConstantsString()
 	{
 		int i;
@@ -437,12 +460,12 @@ public class UndefinedConstants
 		return getNumModelIterations() * getNumPropertyIterations();
 	}
 
-	public Vector getRangingConstants()
+	public Vector<DefinedConstant> getRangingConstants()
 	{
 		int i;
-		Vector res;
+		Vector<DefinedConstant> res;
 		
-		res = new Vector();
+		res = new Vector<DefinedConstant>();
 		for (i = 0; i < mfNumConsts; i++) if (mfConsts[i].getNumSteps() > 1) res.addElement(mfConsts[i]);
 		for (i = 0; i < pfNumConsts; i++) if (pfConsts[i].getNumSteps() > 1) res.addElement(pfConsts[i]);
 		
