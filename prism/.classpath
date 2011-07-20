@@ -6,5 +6,6 @@
 	<classpathentry kind="lib" path="lib/jcommon.jar"/>
 	<classpathentry kind="lib" path="lib/jfreechart.jar" sourcepath="/jfreechart/source"/>
 	<classpathentry kind="lib" path="lib/colt.jar" sourcepath="/Users/dxp/colt/src"/>
+	<classpathentry kind="lib" path="lib/pepa.zip"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>
