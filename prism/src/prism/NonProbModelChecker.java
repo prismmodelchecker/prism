@@ -196,8 +196,9 @@ public class NonProbModelChecker extends StateModelChecker
 	 */
 	protected StateValues checkExistsUntil(ExpressionTemporal expr) throws PrismException
 	{
-		JDDNode b1, b2, transRel, tmp, tmp2, tmp3, tmp4, init = null;
+		JDDNode b1, b2, transRel, tmp, tmp2, tmp3, init = null;
 		ArrayList<JDDNode> cexDDs = null;
+		JDDNode cexInit = null;
 		boolean done, cexDone = false;
 		Vector<String> cexActions;
 		int iters, i;
@@ -255,8 +256,14 @@ public class NonProbModelChecker extends StateModelChecker
 				JDD.Ref(tmp2);
 				cexDDs.add(JDD.And(tmp2, JDD.Not(tmp)));
 				// See if we have found the initial state yet, and if so, don't store any more info
-				if (JDD.AreInterecting(tmp2, init))
+				if (JDD.AreInterecting(tmp2, init)) {
 					cexDone = true;
+					// Choose an initial state (in case there are several) which intersects
+					JDD.Ref(tmp2);
+					JDD.Ref(init);
+					cexInit = JDD.And(tmp2, init);
+					cexInit = JDD.RestrictToFirst(cexInit, allDDRowVars);
+				}
 			}
 			JDD.Deref(tmp);
 			tmp = tmp2;
@@ -272,8 +279,7 @@ public class NonProbModelChecker extends StateModelChecker
 				mainLog.println("\nProcessing counterexample trace (length " + (cexDDs.size() - 1) + ")...");
 				// First state of counterexample (at end of array) is initial state
 				JDD.Deref(cexDDs.get(cexDDs.size() - 1));
-				JDD.Ref(init);
-				cexDDs.set(cexDDs.size() - 1, init);
+				cexDDs.set(cexDDs.size() - 1, cexInit);
 				// Go through remaining steps of counterexample
 				for (i = cexDDs.size() - 2; i >= 0; i--) {
 					// Get states that are a successor of the previous state of the counterexample
