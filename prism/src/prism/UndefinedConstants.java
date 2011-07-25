@@ -26,6 +26,7 @@
 
 package prism;
 
+import java.util.List;
 import java.util.Vector;
 
 import parser.*;
@@ -33,7 +34,7 @@ import parser.ast.*;
 import parser.type.*;
 
 /**
- * Class to handle the undefined constants in model/properties files.
+ * Class to handle the undefined constants in model and/or properties file.
  */
 public class UndefinedConstants
 {
@@ -58,21 +59,94 @@ public class UndefinedConstants
 	private Vector<String> constSwitchSteps;
 	
 	/**
-	 * Construct information about undefined constants from a model and, optionally,
-	 * a properties files (in which case th latter is null).
+	 * Construct information about undefined constants from a model and/or properties file.
+	 * If either is not required, it can be left as null. All undefined constants,
+	 * whether used or not, are assumed to be required to be provided.
 	 */
 	public UndefinedConstants(ModulesFile mf, PropertiesFile pf)
 	{
-		int i;
+		this(mf, pf, false);
+	}
+	
+	/**
+	 * Construct information about undefined constants from a model and/or properties file.
+	 * If either is not required, it can be left as null. If {@code justLabels} is false,
+	 * all constants, whether used or not, are assumed to be required to be provided.
+	 * If {@code justLabels} is true, only properties file constants that are needed for labels are.
+	 */
+	public UndefinedConstants(ModulesFile mf, PropertiesFile pf, boolean justLabels)
+	{
 		Vector<String> mfv, pfv;
-		String s;
-		
 		// store model/properties files
 		modulesFile = mf;
 		propertiesFile = pf;
 		// determine which constants are undefined
-		mfv = modulesFile.getUndefinedConstants();
+		mfv = (modulesFile == null) ? new Vector<String>() : modulesFile.getUndefinedConstants();
 		pfv = (propertiesFile == null) ? new Vector<String>() : propertiesFile.getUndefinedConstants();
+		if (propertiesFile == null) {
+			pfv = new Vector<String>();
+		} else {
+			if (justLabels) {
+				pfv = propertiesFile.getUndefinedConstantsUsedInLabels();
+			} else {
+				pfv = propertiesFile.getUndefinedConstants();
+			}
+		}
+		// create data structures
+		initialise(mfv, pfv);
+	}
+	
+	/**
+	 * Construct information about undefined constants for a specific property.
+	 * It is assumed that all undefined constants from model file are needed,
+	 * plus any from the properties file that are use in the property {@code prop}.  
+	 */
+	public UndefinedConstants(ModulesFile mf, PropertiesFile pf, Property prop)
+	{
+		Vector<String> mfv, pfv;
+		// store model/properties files
+		modulesFile = mf;
+		propertiesFile = pf;
+		// determine which constants are undefined
+		mfv = (modulesFile == null) ? new Vector<String>() : modulesFile.getUndefinedConstants();
+		if (propertiesFile == null || prop == null) {
+			pfv = new Vector<String>();
+		} else {
+			pfv = propertiesFile.getUndefinedConstantsUsedInProperty(prop);
+		}
+		// create data structures
+		initialise(mfv, pfv);
+	}
+
+	/**
+	 * Construct information about undefined constants for specific properties.
+	 * It is assumed that all undefined constants from model file are needed,
+	 * plus any from the properties file that are use in the properties {@code props}.  
+	 */
+	public UndefinedConstants(ModulesFile mf, PropertiesFile pf, List<Property> props)
+	{
+		Vector<String> mfv, pfv;
+		// store model/properties files
+		modulesFile = mf;
+		propertiesFile = pf;
+		// determine which constants are undefined
+		mfv = (modulesFile == null) ? new Vector<String>() : modulesFile.getUndefinedConstants();
+		if (propertiesFile == null || props == null) {
+			pfv = new Vector<String>();
+		} else {
+			pfv = propertiesFile.getUndefinedConstantsUsedInProperties(props);
+		}
+		// create data structures
+		initialise(mfv, pfv);
+	}
+
+	/**
+	 * Set up data structures (as required by constructor methods)
+	 */
+	private void initialise(Vector<String> mfv, Vector<String> pfv)
+	{
+		int i;
+		String s;
 		// determine how many constants there are
 		mfNumConsts = mfv.size();
 		pfNumConsts = pfv.size();
@@ -90,7 +164,7 @@ public class UndefinedConstants
 		// initialise storage just created
 		clearAllDefinitions();
 	}
-
+	
 	// accessor methods for info about undefined constants
 	
 	public int getMFNumUndefined() { return mfNumConsts; }
@@ -135,6 +209,7 @@ public class UndefinedConstants
 		int i;
 		String name;
 		boolean dupe;
+		boolean useAll = false;
 		
 		// clear any previous definitions
 		clearAllDefinitions();
@@ -143,7 +218,7 @@ public class UndefinedConstants
 		parseConstSwitch(constSwitch);
 		
 		// if there are no undefined consts...
-		if (mfNumConsts + pfNumConsts == 0) {
+		if (useAll && (mfNumConsts + pfNumConsts == 0)) {
 			if (constSwitchNames.size() > 0) {
 				throw new PrismException("There are no undefined constants to define");
 			}
@@ -157,7 +232,7 @@ public class UndefinedConstants
 			name = constSwitchNames.elementAt(i);
 			
 			// define constant using info from switch
-			dupe = defineConstant(name, constSwitchLows.elementAt(i), constSwitchHighs.elementAt(i), constSwitchSteps.elementAt(i));
+			dupe = defineConstant(name, constSwitchLows.elementAt(i), constSwitchHighs.elementAt(i), constSwitchSteps.elementAt(i), useAll);
 			
 			// check for duplication
 			if (dupe) {
@@ -247,7 +322,7 @@ public class UndefinedConstants
 	 */
 	public boolean defineConstant(String name, String val) throws PrismException
 	{
-		return defineConstant(name, val, null, null);
+		return defineConstant(name, val, null, null, false);
 	}
 
 	/** Define value for a single undefined constant.
@@ -259,10 +334,29 @@ public class UndefinedConstants
 	 *  @param sl If sh are sl are null, this is the value to be assigned. Otherwise, it is the lower bound for the range.
 	 *  @param sh The upper bound for the range.
 	 *  @param ss The step for the values. Null means 1.
+	 *  @param useAll If true, throw an exception if {@code name} is does not need to be defined
 	 *  
 	 *  @return True if the constant was defined before.
 	 */
 	public boolean defineConstant(String name, String sl, String sh, String ss) throws PrismException
+	{
+		return defineConstant(name, sl, sh, ss, false);
+	}
+	
+	/** Define value for a single undefined constant.
+	 *  Returns whether or not an existing definition was overwritten.
+	 *
+	 *  The method {@link #initialiseIterators() initialiseIterators} must be called after all constants are defined.
+	 *	
+	 *  @param name The name of the constant.
+	 *  @param sl If sh are sl are null, this is the value to be assigned. Otherwise, it is the lower bound for the range.
+	 *  @param sh The upper bound for the range.
+	 *  @param ss The step for the values. Null means 1.
+	 *  @param useAll If true, throw an exception if {@code name} is does not need to be defined
+	 *  
+	 *  @return True if the constant was defined before.
+	 */
+	public boolean defineConstant(String name, String sl, String sh, String ss, boolean useAll) throws PrismException
 	{
 		int index = 0;
 		boolean overwrite = false; // did definition exist already?
@@ -283,7 +377,8 @@ public class UndefinedConstants
 				pfConsts[index].define(sl, sh, ss);
 			}
 			else {
-				throw new PrismException("\"" + name + "\" is not an undefined constant");
+				if (useAll)
+					throw new PrismException("\"" + name + "\" is not an undefined constant");
 			}
 		}
 		

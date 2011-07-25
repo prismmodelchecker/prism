@@ -49,7 +49,7 @@ public class PropertiesFile extends ASTElement
 	// list of all identifiers used
 	private Vector<String> allIdentsUsed;
 	
-	// actual values of constants
+	// actual values of (some or all) constants
 	private Values constantValues;
 	
 	// Constructor
@@ -212,6 +212,10 @@ public class PropertiesFile extends ASTElement
 		// check constants for cyclic dependencies
 		constantList.findCycles();
 		
+		// Set up some values for constants
+		// (without assuming any info about undefined constants)
+		setSomeUndefinedConstants(null);
+		
 		// Check property names
 		checkPropertyNames();
 		
@@ -352,7 +356,7 @@ public class PropertiesFile extends ASTElement
 	}
 
 	/**
-	 * Get  a list of constants in the model that are undefined
+	 * Get a list of all undefined constants in the properties files
 	 * ("const int x;" rather than "const int x = 1;") 
 	 */
 	public Vector<String> getUndefinedConstants()
@@ -361,27 +365,93 @@ public class PropertiesFile extends ASTElement
 	}
 	
 	/**
-	 * Set values for all undefined constants and then evaluate all constants.
-	 * Always need to call this before using the properties file,
-	 * even when there are no undefined constants
-	 * (if this is the case, {@code someValues} can be null).
-	 * Calling this method also triggers some additional semantic checks
-	 * that can only be done once constant values have been specified.
-	 * <br><br>
+	 * Get a list of undefined (properties file) constants appearing in labels of the properties file
+	 * (undefined constants are those of form "const int x;" rather than "const int x = 1;") 
+	 */
+	public Vector<String> getUndefinedConstantsUsedInLabels()
+	{
+		int i, n;
+		Expression expr;
+		Vector<String> consts, tmp;
+		consts = new Vector<String>();
+		n = labelList.size();
+		for (i = 0; i < n; i++) {
+			expr = labelList.getLabel(i);
+			tmp = expr.getAllUndefinedConstantsRecursively(constantList, combinedLabelList);
+			for (String s : tmp) {
+				if (!consts.contains(s)) {
+					consts.add(s);
+				}
+			}
+		}
+		return consts;
+	}
+	
+	/**
+	 * Get a list of undefined (properties file) constants used in a property
+	 * (including those that appear in required labels/properties)
+	 * (undefined constants are those of form "const int x;" rather than "const int x = 1;") 
+	 */
+	public Vector<String> getUndefinedConstantsUsedInProperty(Property prop)
+	{
+		return prop.getExpression().getAllUndefinedConstantsRecursively(constantList, combinedLabelList);
+	}
+	
+	/**
+	 * Get a list of undefined (properties file) constants used in a list of properties
+	 * (including those that appear in required labels/properties)
+	 * (undefined constants are those of form "const int x;" rather than "const int x = 1;") 
+	 */
+	public Vector<String> getUndefinedConstantsUsedInProperties(List <Property> props)
+	{
+		Vector<String> consts, tmp;
+		consts = new Vector<String>();
+		for (Property prop : props) {
+			tmp = prop.getExpression().getAllUndefinedConstantsRecursively(constantList, combinedLabelList);
+			for (String s : tmp) {
+				if (!consts.contains(s)) {
+					consts.add(s);
+				}
+			}
+		}
+		return consts;
+	}
+	
+	/**
+	 * Set values for *all* undefined constants and then evaluate all constants.
+	 * If there are no undefined constants, {@code someValues} can be null.
 	 * Undefined constants can be subsequently redefined to different values with the same method.
 	 * The current constant values (if set) are available via {@link #setUndefinedConstants(Values)}. 
 	 */
 	public void setUndefinedConstants(Values someValues) throws PrismLangException
 	{
-		// might need values for ModulesFile constants too
+		// Might need values for ModulesFile constants too
 		constantValues = constantList.evaluateConstants(someValues, modulesFile.getConstantValues());
-		semanticCheckAfterConstants(modulesFile, this);
+		// Note: unlike ModulesFile, we don't trigger any semantic checks at this point
+		// This will usually be done on a per-property basis later
+		// (and sometimes we don't want to have to define all constants)
 	}
 	
 	/**
-	 * Get access to the values assigned to undefined constants in the model,
-	 * as set previously via the method {@link #setUndefinedConstants(Values)}.
-	 * Until they are set for the first time, this method returns null.  
+	 * Set values for *some* undefined constants and then evaluate all constants where possible.
+	 * If there are no undefined constants, {@code someValues} can be null.
+	 * Undefined constants can be subsequently redefined to different values with the same method.
+	 * The current constant values (if set) are available via {@link #setUndefinedConstants(Values)}.
+	 */
+	public void setSomeUndefinedConstants(Values someValues) throws PrismLangException
+	{
+		// Might need values for ModulesFile constants too
+		constantValues = constantList.evaluateSomeConstants(someValues, modulesFile.getConstantValues());
+		// Note: unlike ModulesFile, we don't trigger any semantic checks at this point
+		// This will usually be done on a per-property basis later
+		// (and sometimes we don't want to have to define all constants)
+	}
+	
+	/**
+	 * Get access to the values assigned to constants in the model,
+	 * as set previously via the method {@link #setUndefinedConstants(Values)}
+	 * or {@link #setUndefinedConstants(Values)}. If neither method has been called
+	 * constant values will have been evaluated assuming that there are no undefined constants.
 	 */
 	public Values getConstantValues()
 	{

@@ -1385,7 +1385,6 @@ public class Prism implements PrismSettingsListener
 		int i, n;
 		LabelList ll;
 		Expression expr;
-		Values constantValues;
 		StateModelChecker mc = null;
 		JDDNode dd, labels[];
 		String labelNames[];
@@ -1405,10 +1404,7 @@ public class Prism implements PrismSettingsListener
 		
 		// convert labels to bdds
 		if (n > 0) {
-			constantValues = new Values();
-			constantValues.addValues(model.getConstantValues());
-			if (propertiesFile != null) constantValues.addValues(propertiesFile.getConstantValues());
-			mc = new StateModelChecker(this, model, null);
+			mc = new StateModelChecker(this, model, propertiesFile);
 		}
 		labels = new JDDNode[n+2];
 		labels[0] = model.getStart();

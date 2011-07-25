@@ -131,7 +131,8 @@ public class PrismCL
 	private List<Property> propertiesToCheck = null;
 
 	// info about undefined constants
-	private UndefinedConstants undefinedConstants;
+	private UndefinedConstants undefinedConstants[];
+	private UndefinedConstants undefinedMFConstants;
 	private Values definedMFConstants;
 	private Values definedPFConstants;
 
@@ -192,10 +193,20 @@ public class PrismCL
 		// sort out properties to check
 		sortProperties();
 
-		// sort out undefined constants
+		// process info about undefined constants
 		try {
-			undefinedConstants = new UndefinedConstants(modulesFile, propertiesFile);
-			undefinedConstants.defineUsingConstSwitch(constSwitch);
+			// one set of info for model
+			if (exportlabels)
+				undefinedMFConstants = new UndefinedConstants(modulesFile, propertiesFile, true);
+			else
+				undefinedMFConstants = new UndefinedConstants(modulesFile, null);
+			undefinedMFConstants.defineUsingConstSwitch(constSwitch);
+			// and one set of info for each property
+			undefinedConstants = new UndefinedConstants[numPropertiesToCheck]; 
+			for (i = 0; i < numPropertiesToCheck; i++) {
+				undefinedConstants[i] = new UndefinedConstants(modulesFile, propertiesFile, propertiesToCheck.get(i));
+				undefinedConstants[i].defineUsingConstSwitch(constSwitch);
+			}
 		} catch (PrismException e) {
 			errorAndExit(e.getMessage());
 		}
@@ -203,13 +214,13 @@ public class PrismCL
 		// initialise storage for results
 		results = new ResultsCollection[numPropertiesToCheck];
 		for (i = 0; i < numPropertiesToCheck; i++) {
-			results[i] = new ResultsCollection(undefinedConstants, propertiesToCheck.get(i).getExpression().getResultName());
+			results[i] = new ResultsCollection(undefinedConstants[i], propertiesToCheck.get(i).getExpression().getResultName());
 		}
 
 		// iterate through as many models as necessary
-		for (i = 0; i < undefinedConstants.getNumModelIterations(); i++) {
+		for (i = 0; i < undefinedMFConstants.getNumModelIterations(); i++) {
 
-			definedMFConstants = undefinedConstants.getMFConstantValues();
+			definedMFConstants = undefinedMFConstants.getMFConstantValues();
 			if (definedMFConstants != null)
 				if (definedMFConstants.getNumValues() > 0)
 					mainLog.println("\nModel constants: " + definedMFConstants);
@@ -228,7 +239,11 @@ public class PrismCL
 				} catch (PrismException e2) {
 					error("Problem storing results");
 				}
-				undefinedConstants.iterateModel();
+				// iterate to next model
+				undefinedMFConstants.iterateModel();
+				for (i = 0; i < numPropertiesToCheck; i++) {
+					undefinedConstants[i].iterateModel();
+				}
 				continue;
 			}
 
@@ -242,7 +257,11 @@ public class PrismCL
 				} catch (PrismException e) {
 					error(e.getMessage());
 				}
-				undefinedConstants.iterateModel();
+				// iterate to next model
+				undefinedMFConstants.iterateModel();
+				for (i = 0; i < numPropertiesToCheck; i++) {
+					undefinedConstants[i].iterateModel();
+				}
 				continue;
 			}
 
@@ -280,7 +299,11 @@ public class PrismCL
 					} catch (PrismException e2) {
 						error("Problem storing results");
 					}
-					undefinedConstants.iterateModel();
+					// iterate to next model
+					undefinedMFConstants.iterateModel();
+					for (i = 0; i < numPropertiesToCheck; i++) {
+						undefinedConstants[i].iterateModel();
+					}
 					continue;
 				}
 
@@ -312,8 +335,8 @@ public class PrismCL
 				if (exportlabels) {
 					try {
 						if (propertiesFile != null) {
-							definedPFConstants = undefinedConstants.getPFConstantValues();
-							propertiesFile.setUndefinedConstants(definedPFConstants);
+							definedPFConstants = undefinedMFConstants.getPFConstantValues();
+							propertiesFile.setSomeUndefinedConstants(definedPFConstants);
 						}
 						File f = (exportLabelsFilename.equals("stdout")) ? null : new File(exportLabelsFilename);
 						prism.exportLabelsToFile(model, modulesFile, propertiesFile, exportType, f);
@@ -331,16 +354,16 @@ public class PrismCL
 			for (j = 0; j < numPropertiesToCheck; j++) {
 
 				// for simulation we can do multiple values of property constants simultaneously
-				if (simulate && undefinedConstants.getNumPropertyIterations() > 1) {
+				if (simulate && undefinedConstants[j].getNumPropertyIterations() > 1) {
 					try {
 						mainLog.println("\n-------------------------------------------");
 						mainLog.println("\nSimulating: " + propertiesToCheck.get(j));
 						if (definedMFConstants != null)
 							if (definedMFConstants.getNumValues() > 0)
 								mainLog.println("Model constants: " + definedMFConstants);
-						mainLog.println("Property constants: " + undefinedConstants.getPFDefinedConstantsString());
+						mainLog.println("Property constants: " + undefinedConstants[j].getPFDefinedConstantsString());
 						simMethod = processSimulationOptions(propertiesToCheck.get(j).getExpression());
-						prism.modelCheckSimulatorExperiment(modulesFile, propertiesFile, undefinedConstants, results[j], propertiesToCheck.get(j).getExpression(), null,
+						prism.modelCheckSimulatorExperiment(modulesFile, propertiesFile, undefinedConstants[j], results[j], propertiesToCheck.get(j).getExpression(), null,
 								simMaxPath, simMethod);
 					} catch (PrismException e) {
 						// in case of (overall) error, report it, store as result for property, and proceed
@@ -350,7 +373,6 @@ public class PrismCL
 						} catch (PrismException e2) {
 							error("Problem storing results");
 						}
-						undefinedConstants.iterateModel();
 						continue;
 					} catch (InterruptedException e) {
 						// ignore - won't get interrupted
@@ -358,13 +380,13 @@ public class PrismCL
 				}
 				// otherwise, treat each case individually
 				else {
-					for (k = 0; k < undefinedConstants.getNumPropertyIterations(); k++) {
+					for (k = 0; k < undefinedConstants[j].getNumPropertyIterations(); k++) {
 
 						try {
 							// set values for PropertiesFile constants
 							if (propertiesFile != null) {
-								definedPFConstants = undefinedConstants.getPFConstantValues();
-								propertiesFile.setUndefinedConstants(definedPFConstants);
+								definedPFConstants = undefinedConstants[j].getPFConstantValues();
+								propertiesFile.setSomeUndefinedConstants(definedPFConstants);
 							}
 
 							// log output
@@ -449,7 +471,7 @@ public class PrismCL
 						}
 
 						// iterate to next property
-						undefinedConstants.iterateProperty();
+						undefinedConstants[j].iterateProperty();
 					}
 				}
 			}
@@ -460,7 +482,10 @@ public class PrismCL
 			}
 
 			// iterate to next model
-			undefinedConstants.iterateModel();
+			undefinedMFConstants.iterateModel();
+			for (i = 0; i < numPropertiesToCheck; i++) {
+				undefinedConstants[i].iterateModel();
+			}
 		}
 
 		// export results (if required)

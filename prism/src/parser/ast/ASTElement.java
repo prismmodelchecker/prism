@@ -270,6 +270,23 @@ public abstract class ASTElement
 	}
 
 	/**
+	 * Get all undefined constants used (i.e. in ExpressionConstant objects) recursively and return as a list.
+	 * Recursive decent means that we find e.g. constants that are used within other constants, labels.
+	 */
+	public Vector<String> getAllUndefinedConstantsRecursively(ConstantList constantList, LabelList labelList)
+	{
+		Vector<String> v= new Vector<String>();
+		GetAllUndefinedConstantsRecursively visitor = new GetAllUndefinedConstantsRecursively(v, constantList, labelList);
+		try {
+			accept(visitor);
+		} catch (PrismLangException e) {
+			// GetAllUndefinedConstantsRecursively can throw an exception (if a constant does not exist)
+			// but this would have been caught by earlier checks so we ignore. 
+		}
+		return v;
+	}
+
+	/**
 	 * Expand all constants, return result.
 	 */
 	public ASTElement expandConstants(ConstantList constantList) throws PrismLangException

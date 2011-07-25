@@ -393,7 +393,7 @@ public class GUIExperiment
 								// set values for PropertiesFile constants
 								if (propertiesFile != null) {
 									definedPFConstants = undefinedConstants.getPFConstantValues();
-									propertiesFile.setUndefinedConstants(definedPFConstants);
+									propertiesFile.setSomeUndefinedConstants(definedPFConstants);
 								}
 
 								// log output

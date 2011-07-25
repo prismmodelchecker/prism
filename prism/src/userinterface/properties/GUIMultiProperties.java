@@ -207,9 +207,12 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			parsedProperties = getPrism().parsePropertiesString(parsedModel, propertiesString);
 			// And get list of corresponding GUIProperty objects
 			validGUIProperties = propList.getValidSelectedProperties();
-
 			// Query user for undefined constant values (if required)
-			uCon = new UndefinedConstants(parsedModel, parsedProperties);
+			int n = parsedProperties.getNumProperties();
+			ArrayList<Property> validProperties = new ArrayList<Property>(n);
+			for (int i = 0; i < n; i++)
+				validProperties.add(parsedProperties.getPropertyObject(i));
+			uCon = new UndefinedConstants(parsedModel, parsedProperties, validProperties);
 			if (uCon.getMFNumUndefined() + uCon.getPFNumUndefined() > 0) {
 				// Use previous constant values as defaults in dialog
 				int result = GUIConstantsPicker.defineConstantsWithDialog(this.getGUI(), uCon, mfConstants, pfConstants);
@@ -221,7 +224,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			mfConstants = uCon.getMFConstantValues();
 			// Store property constants and set in file
 			pfConstants = uCon.getPFConstantValues();
-			parsedProperties.setUndefinedConstants(pfConstants);
+			parsedProperties.setSomeUndefinedConstants(pfConstants);
 
 			// Store properties to be verified
 			propertiesToBeVerified = validGUIProperties;
@@ -268,12 +271,14 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		// See which of the (valid) selected properties are ok for simulation
 		// Also store a list of the expression themselves
 		simulatableGUIProperties = new ArrayList<GUIProperty>();
+		ArrayList<Property> simulatableProperties = new ArrayList<Property>();
 		simulatableExprs = new ArrayList<Expression>();
 		for (int i = 0; i < validGUIProperties.size(); i++) {
 			GUIProperty guiP = validGUIProperties.get(i);
 			try {
 				getPrism().checkPropertyForSimulation(guiP.getProperty());
 				simulatableGUIProperties.add(guiP);
+				simulatableProperties.add(parsedProperties.getPropertyObject(i));
 				simulatableExprs.add(guiP.getProperty());
 			} catch (PrismException e) {
 				// do nothing
@@ -291,7 +296,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 
 		//find out any undefined constants
 		try {
-			uCon = new UndefinedConstants(parsedModel, parsedProperties);
+			uCon = new UndefinedConstants(parsedModel, parsedProperties, simulatableProperties);
 			if (uCon.getMFNumUndefined() + uCon.getPFNumUndefined() > 0) {
 				// Use previous constant values as defaults in dialog
 				int result = GUIConstantsPicker.defineConstantsWithDialog(this.getGUI(), uCon, mfConstants, pfConstants);
@@ -303,7 +308,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			mfConstants = uCon.getMFConstantValues();
 			pfConstants = uCon.getPFConstantValues();
 			parsedModel.setUndefinedConstants(mfConstants);
-			parsedProperties.setUndefinedConstants(pfConstants);
+			parsedProperties.setSomeUndefinedConstants(pfConstants);
 
 			// Get simulation info with dialog
 			SimulationInformation info = GUISimulationPicker.defineSimulationWithDialog(this.getGUI(), simulatableExprs, parsedModel, null);
@@ -354,7 +359,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		}
 
 		// sort out undefined constants
-		UndefinedConstants uCon = new UndefinedConstants(parsedModel, parsedProperties);
+		UndefinedConstants uCon = new UndefinedConstants(parsedModel, parsedProperties, parsedProperties.getPropertyObject(0));
 		boolean showGraphDialog = false;
 		boolean useSimulation = false;
 		if (uCon.getMFNumUndefined() + uCon.getPFNumUndefined() == 0) {

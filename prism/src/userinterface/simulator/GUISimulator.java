@@ -283,8 +283,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 
 			// if necessary, get values for undefined constants from user
-			// TODO: only get necessary property constants (pf can decide this)
-			UndefinedConstants uCon = new UndefinedConstants(parsedModel, pf);
+			// (just get contants needed for properties file labels)
+			UndefinedConstants uCon = new UndefinedConstants(parsedModel, pf, true);
 			if (uCon.getMFNumUndefined() + uCon.getPFNumUndefined() > 0) {
 				int result = GUIConstantsPicker.defineConstantsWithDialog(gui, uCon, lastConstants, lastPropertyConstants);
 				if (result != GUIConstantsPicker.VALUES_DONE)
@@ -295,7 +295,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			lastPropertyConstants = uCon.getPFConstantValues();
 			// store constants
 			parsedModel.setUndefinedConstants(lastConstants);
-			pf.setUndefinedConstants(lastPropertyConstants);
+			pf.setSomeUndefinedConstants(lastPropertyConstants);
 
 			// check here for possibility of multiple initial states
 			// (not supported yet) to avoid problems below

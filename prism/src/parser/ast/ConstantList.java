@@ -212,20 +212,46 @@ public class ConstantList extends ASTElement
 		return v;
 	}
 	
-	// Set values for undefined constants, evaluate all and return.
-	// Argument 'someValues' contains values for undefined ones, can be null if all already defined
-	// Argument 'otherValues' contains any other values which may be needed, null if none
-	
+	/**
+	 * Set values for *all* undefined constants, evaluate values for *all* constants
+	 * and return a Values object with values for *all* constants.
+	 * Argument 'someValues' contains values for undefined ones, can be null if all already defined
+	 * Argument 'otherValues' contains any other values which may be needed, null if none
+	 */
 	public Values evaluateConstants(Values someValues, Values otherValues) throws PrismLangException
+	{
+		return evaluateSomeOrAllConstants(someValues, otherValues, true);
+	}
+	
+	/**
+	 * Set values for *some* undefined constants, evaluate values for constants where possible
+	 * and return a Values object with values for all constants that could be evaluated.
+	 * Argument 'someValues' contains values for undefined ones, can be null if all already defined
+	 * Argument 'otherValues' contains any other values which may be needed, null if none
+	 */
+	public Values evaluateSomeConstants(Values someValues, Values otherValues) throws PrismLangException
+	{
+		return evaluateSomeOrAllConstants(someValues, otherValues, false);
+	}
+	
+	/**
+	 * Set values for *some* or *all* undefined constants, evaluate values for constants where possible
+	 * and return a Values object with values for all constants that could be evaluated.
+	 * Argument 'someValues' contains values for undefined ones, can be null if all already defined.
+	 * Argument 'otherValues' contains any other values which may be needed, null if none.
+	 * If argument 'all' is true, an exception is thrown if any undefined constant is not defined.
+	 */
+	private Values evaluateSomeOrAllConstants(Values someValues, Values otherValues, boolean all) throws PrismLangException
 	{
 		ConstantList cl;
 		Expression e;
 		Values allValues;
-		int i, j, n;
+		int i, j, n, numToEvaluate;
 		Type t = null;
 		ExpressionIdent s;
+		Object val;
 		
-		// create new copy of this ConstantList
+		// Create new copy of this ConstantList
 		// (copy existing constant definitions, add new ones where undefined)
 		cl = new ConstantList();
 		n = constants.size();
@@ -235,55 +261,50 @@ public class ConstantList extends ASTElement
 			t = getConstantType(i);
 			if (e != null) {
 				cl.addConstant((ExpressionIdent)s.deepCopy(), e.deepCopy(), t);
-			}
-			else 
-			{
-				// create new literal expression using values passed in
-				j = someValues.getIndexOf(s.getName());
-				if (j == -1) {
-					throw new PrismLangException("No value specified for constant", s);
-				}
-				else 
-				{
-					if (t instanceof TypeInt)
-						cl.addConstant((ExpressionIdent)s.deepCopy(), new ExpressionLiteral(TypeInt.getInstance(), someValues.getIntValue(j)), TypeInt.getInstance()); 
-					else if (t instanceof TypeDouble)
-						cl.addConstant((ExpressionIdent)s.deepCopy(), new ExpressionLiteral(TypeDouble.getInstance(), someValues.getDoubleValue(j)), TypeDouble.getInstance()); 
-					else if (t instanceof TypeBool)
-						cl.addConstant((ExpressionIdent)s.deepCopy(), new ExpressionLiteral(TypeBool.getInstance(), someValues.getBooleanValue(j)), TypeBool.getInstance());
+			} else {
+				// Create new literal expression using values passed in (if possible and needed)
+				if (someValues != null && (j = someValues.getIndexOf(s.getName())) != -1) {
+					cl.addConstant((ExpressionIdent) s.deepCopy(), new ExpressionLiteral(t, t.castValueTo(someValues.getValue(j))), t);
+				} else {
+					if (all)
+						throw new PrismLangException("No value specified for constant", s);
 				}
 			}
 		}
+		numToEvaluate = cl.size();
 		
-		// now add constants corresponding to the 'otherValues' argument to the new constant list
+		// Now add constants corresponding to the 'otherValues' argument to the new constant list
 		if (otherValues != null) {
 			n = otherValues.getNumValues();
 			for (i = 0; i < n; i++) {
 				Type iType = otherValues.getType(i);
-				if (iType instanceof TypeInt)
-					cl.addConstant(new ExpressionIdent(otherValues.getName(i)), new ExpressionLiteral(TypeInt.getInstance(), otherValues.getIntValue(i)), TypeInt.getInstance());
-				else if (iType instanceof TypeDouble)
-					cl.addConstant(new ExpressionIdent(otherValues.getName(i)), new ExpressionLiteral(TypeDouble.getInstance(), otherValues.getDoubleValue(i)), TypeDouble.getInstance()); 
-				else if (iType instanceof TypeBool)
-					cl.addConstant(new ExpressionIdent(otherValues.getName(i)), new ExpressionLiteral(TypeBool.getInstance(), otherValues.getBooleanValue(i)), TypeBool.getInstance());
+				cl.addConstant(new ExpressionIdent(otherValues.getName(i)), new ExpressionLiteral(iType, iType.castValueTo(otherValues.getValue(i))), iType);
 			}
 		}
 		
-		// go thru and expand definition of each constant
+		// Go trough and expand definition of each constant
 		// (i.e. replace other constant references with their definitions)
-		// (working with new copy of constant list)
-		// (and ignoring extra constants added on the end which are all defined)		
-		n = constants.size();
-		for (i = 0; i < n; i++) {
-			cl.setConstant(i, (Expression)cl.getConstant(i).expandConstants(cl));
+		// Note: work with new copy of constant list, don't need to expand 'otherValues' ones.
+		for (i = 0; i < numToEvaluate; i++) {
+			try {
+				e = (Expression)cl.getConstant(i).expandConstants(cl);
+				cl.setConstant(i, e);
+			} catch (PrismLangException ex) {
+				if (all) {
+					throw ex;
+				} else {
+					cl.setConstant(i, null);
+				}
+			}
 		}
 		
-		// evaluate constants and store in new Values object
-		// (again, ignoring extra constants added on the end)		
+		// Evaluate constants and store in new Values object (again, ignoring 'otherValues' ones)		
 		allValues = new Values();
-		n = constants.size();
-		for (i = 0; i < n; i++) {
-			allValues.addValue(cl.getConstantName(i), cl.getConstant(i).evaluate(null, otherValues));
+		for (i = 0; i < numToEvaluate; i++) {
+			if (cl.getConstant(i) != null) {
+				val = cl.getConstant(i).evaluate(null, otherValues);
+				allValues.addValue(cl.getConstantName(i), val);
+			}
 		}
 		
 		return allValues;

@@ -62,10 +62,9 @@ public class ResultsCollection
 		resultListeners = new Vector<ResultListener>();
 		rangingConstants = new Vector<DefinedConstant>();
 
-		/* TODO: Fix this when/if getRangingConstants() returns Vector<DefinedConstant> */
-		Vector tmpRangingConstants = uCons.getRangingConstants();
+		Vector<DefinedConstant> tmpRangingConstants = uCons.getRangingConstants();
 		for (int i = 0; i < tmpRangingConstants.size(); i++) {
-			rangingConstants.add((DefinedConstant) tmpRangingConstants.get(i));
+			rangingConstants.add(tmpRangingConstants.get(i));
 		}
 
 		this.root = (rangingConstants.size() > 0) ? new TreeNode(0) : new TreeLeaf();
