@@ -104,4 +104,10 @@ public class MDPRewardsSimple implements MDPRewards
 			return 0.0;
 		return list.get(i);
 	}
+	
+	@Override
+	public String toString()
+	{
+		return "st: " + this.stateRewards + "; tr:" + this.transRewards;
+	}
 }

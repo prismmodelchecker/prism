@@ -38,7 +38,7 @@ import prism.PrismUtils;
 public class Distribution implements Iterable<Entry<Integer,Double>>
 {
 	private HashMap<Integer,Double> map;
-
+	
 	/**
 	 * Create an empty distribution.
 	 */
@@ -242,7 +242,7 @@ public class Distribution implements Iterable<Entry<Integer,Double>>
 		}
 		return true;
 	}
-
+	
 	@Override
 	public int hashCode()
 	{
@@ -253,6 +253,6 @@ public class Distribution implements Iterable<Entry<Integer,Double>>
 	@Override
 	public String toString()
 	{
-		return "" + map;
+		return map.toString();
 	}
 }

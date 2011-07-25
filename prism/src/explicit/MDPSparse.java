@@ -683,18 +683,6 @@ public class MDPSparse extends ModelSparse implements MDP
 	}
 
 	@Override
-	public double getTransitionReward(int s, int i)
-	{
-		// TODO
-		return 0;/*List<Double> list;
-					if (transRewardsConstant != null)
-					return transRewardsConstant;
-					if (transRewards == null || (list = transRewards.get(s)) == null)
-					return 0.0;
-					return list.get(i);*/
-	}
-
-	@Override
 	public void prob0step(BitSet subset, BitSet u, boolean forall, BitSet result)
 	{
 		int i, j, k, l1, h1, l2, h2;
@@ -1006,7 +994,7 @@ public class MDPSparse extends ModelSparse implements MDP
 		h1 = rowStarts[s + 1];
 		for (j = l1; j < h1; j++) {
 			// Compute sum for this distribution
-			d = mdpRewards != null ? mdpRewards.getTransitionReward(s, j - l1) : getTransitionReward(s, j - l1);
+			d = mdpRewards.getTransitionReward(s, j - l1);
 			l2 = choiceStarts[j];
 			h2 = choiceStarts[j + 1];
 			for (k = l2; k < h2; k++) {
@@ -1035,7 +1023,7 @@ public class MDPSparse extends ModelSparse implements MDP
 		h1 = rowStarts[s + 1];
 		for (j = l1; j < h1; j++) {
 			// Compute sum for this distribution
-			d = mdpRewards != null ? mdpRewards.getTransitionReward(s, j) : getTransitionReward(s, j);
+			d = mdpRewards.getTransitionReward(s, j);
 			l2 = choiceStarts[j];
 			h2 = choiceStarts[j + 1];
 			for (k = l2; k < h2; k++) {

@@ -31,6 +31,7 @@ import java.util.*;
 import parser.ast.Expression;
 import parser.ast.ExpressionTemporal;
 import prism.*;
+import explicit.rewards.STPGRewards;
 
 /**
  * Explicit-state model checker for two-player stochastic games (STPGs).
@@ -154,7 +155,7 @@ public class STPGModelChecker extends ProbModelChecker
 	/**
 	 * Compute rewards for the contents of an R operator.
 	 */
-	protected StateValues checkRewardFormula(Model model, ExpressionTemporal expr, boolean min1, boolean min2) throws PrismException
+	protected StateValues checkRewardFormula(Model model, STPGRewards rewards, ExpressionTemporal expr, boolean min1, boolean min2) throws PrismException
 	{
 		// Assume R [F ] for now...
 
@@ -165,7 +166,7 @@ public class STPGModelChecker extends ProbModelChecker
 		// model check operands first
 		target = (BitSet) checkExpression(model, expr.getOperand2());
 
-		res = computeReachRewards((STPG) model, target, min1, min2);
+		res = computeReachRewards((STPG) model, rewards, target, min1, min2);
 		rews = StateValues.createFromDoubleArray(res.soln);
 
 		return rews;
@@ -783,9 +784,9 @@ public class STPGModelChecker extends ProbModelChecker
 	 * @param min1 Min or max rewards for player 1 (true=min, false=max)
 	 * @param min2 Min or max rewards for player 2 (true=min, false=max)
 	 */
-	public ModelCheckerResult computeReachRewards(STPG stpg, BitSet target, boolean min1, boolean min2) throws PrismException
+	public ModelCheckerResult computeReachRewards(STPG stpg, STPGRewards rewards, BitSet target, boolean min1, boolean min2) throws PrismException
 	{
-		return computeReachRewards(stpg, target, min1, min2, null, null);
+		return computeReachRewards(stpg, rewards, target, min1, min2, null, null);
 	}
 
 	/**
@@ -799,7 +800,7 @@ public class STPGModelChecker extends ProbModelChecker
 	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
-	public ModelCheckerResult computeReachRewards(STPG stpg, BitSet target, boolean min1, boolean min2, double init[], BitSet known) throws PrismException
+	public ModelCheckerResult computeReachRewards(STPG stpg, STPGRewards rewards, BitSet target, boolean min1, boolean min2, double init[], BitSet known) throws PrismException
 	{
 		ModelCheckerResult res = null;
 		BitSet inf;
@@ -841,7 +842,7 @@ public class STPGModelChecker extends ProbModelChecker
 		// Compute rewards
 		switch (solnMethod) {
 		case VALUE_ITERATION:
-			res = computeReachRewardsValIter(stpg, target, inf, min1, min2, init, known);
+			res = computeReachRewardsValIter(stpg, rewards, target, inf, min1, min2, init, known);
 			break;
 		default:
 			throw new PrismException("Unknown STPG solution method " + solnMethod);
@@ -870,7 +871,7 @@ public class STPGModelChecker extends ProbModelChecker
 	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.
 	 */
-	protected ModelCheckerResult computeReachRewardsValIter(STPG stpg, BitSet target, BitSet inf, boolean min1, boolean min2, double init[], BitSet known)
+	protected ModelCheckerResult computeReachRewardsValIter(STPG stpg, STPGRewards rewards, BitSet target, BitSet inf, boolean min1, boolean min2, double init[], BitSet known)
 			throws PrismException
 	{
 		ModelCheckerResult res;
@@ -922,7 +923,7 @@ public class STPGModelChecker extends ProbModelChecker
 			//mainLog.println(soln);
 			iters++;
 			// Matrix-vector multiply and min/max ops
-			stpg.mvMultRewMinMax(soln, min1, min2, soln2, unknown, false, null);
+			stpg.mvMultRewMinMax(soln, rewards, min1, min2, soln2, unknown, false, null);
 			// Check termination
 			done = PrismUtils.doublesAreClose(soln, soln2, termCritParam, termCrit == TermCrit.ABSOLUTE);
 			// Swap vectors for next iter

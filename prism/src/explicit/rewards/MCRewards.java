@@ -29,7 +29,7 @@ package explicit.rewards;
 /**
  * Classes that provide (read) access to explicit-state rewards for a Markov chain (DTMC/CTMC).
  */
-public interface MCRewards
+public interface MCRewards extends Rewards
 {
 	/**
 	 * Get the state reward for state {@code s}.

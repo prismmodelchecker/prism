@@ -32,6 +32,7 @@ import java.util.Map.Entry;
 import java.io.*;
 
 import explicit.rewards.MDPRewards;
+import explicit.rewards.MDPRewardsSimple;
 
 import prism.ModelType;
 import prism.PrismException;
@@ -55,8 +56,9 @@ public class MDPSimple extends ModelSimple implements MDP
 	// Rewards
 	// (if transRewardsConstant non-null, use this for all transitions; otherwise, use transRewards list)
 	// (for transRewards, null in element s means no rewards for that state)
-	protected Double transRewardsConstant;
-	protected List<List<Double>> transRewards;
+	//protected Double transRewardsConstant;
+	//protected List<List<Double>> transRewards;
+	protected List<Double> stateRewards;
 
 	// Flag: allow duplicates in distribution sets?
 	protected boolean allowDupes = false;
@@ -156,7 +158,7 @@ public class MDPSimple extends ModelSimple implements MDP
 			trans.add(new ArrayList<Distribution>());
 		}
 		actions = null;
-		clearAllRewards();
+		//clearAllRewards();
 	}
 
 	@Override
@@ -175,8 +177,6 @@ public class MDPSimple extends ModelSimple implements MDP
 		trans.get(s).clear();
 		if (actions != null && actions.get(s) != null)
 			actions.get(s).clear();
-		if (transRewards != null && transRewards.get(s) != null)
-			transRewards.get(s).clear();
 	}
 
 	@Override
@@ -193,8 +193,6 @@ public class MDPSimple extends ModelSimple implements MDP
 			trans.add(new ArrayList<Distribution>());
 			if (actions != null)
 				actions.add(null);
-			if (transRewards != null)
-				transRewards.add(null);
 			numStates++;
 		}
 	}
@@ -265,6 +263,86 @@ public class MDPSimple extends ModelSimple implements MDP
 		initialStates.add(0);
 	}
 
+	public MDPRewardsSimple buildRewardsFromPrismExplicit(String rews, String rewt) throws PrismException
+	{
+		BufferedReader in;
+		Distribution distr;
+		String s, ss[];
+		int i, j, iLast, kLast, n, lineNum = 0;
+		double reward;
+		MDPRewardsSimple rs = new MDPRewardsSimple(this.getNumStates());
+		
+		try {
+			/* WE DO NOT SUPPORT STATE REWARDS YET
+			// Open rews file
+			in = new BufferedReader(new FileReader(new File(rews)));
+			// Parse first line to get num states
+			s = in.readLine();
+			lineNum = 1;
+			if (s == null)
+				throw new PrismException("Missing first line of .rews file");
+			ss = s.split(" ");
+			n = Integer.parseInt(ss[0]);
+			// Go though list of transitions in file
+			iLast = -1;
+			kLast = -1;
+			distr = null;
+			s = in.readLine();
+			lineNum++;
+			while (s != null) {
+				s = s.trim();
+				if (s.length() > 0) {
+					ss = s.split(" ");
+					i = Integer.parseInt(ss[0]);
+					reward = Double.parseDouble(ss[1]);
+					this.setStateReward(i,reward);
+				}
+				s = in.readLine();
+				lineNum++;
+			}
+			// Close file
+			in.close();
+			*/
+		
+			//Open rewt file
+			in = new BufferedReader(new FileReader(new File(rewt)));
+			// Parse first line to get num states
+			s = in.readLine();
+			lineNum = 1;
+			if (s == null)
+				throw new PrismException("Missing first line of .rewt file");
+			ss = s.split(" ");
+			n = Integer.parseInt(ss[0]);
+			// Go though list of transitions in file
+			iLast = -1;
+			kLast = -1;
+			distr = null;
+			s = in.readLine();
+			lineNum++;
+			while (s != null) {
+				s = s.trim();
+				if (s.length() > 0) {
+					ss = s.split(" ");
+					i = Integer.parseInt(ss[0]);
+					j = Integer.parseInt(ss[1]);
+					reward = Double.parseDouble(ss[2]);
+					rs.setTransitionReward(i, j, reward);
+				}
+				s = in.readLine();
+				lineNum++;
+			}
+			// Close file
+			in.close();
+			return rs;
+		} catch (IOException e) {
+			System.out.println(e);
+			System.exit(1);
+			return null; //will never happen, it's here just to make the compiler happy
+		} catch (NumberFormatException e) {
+			throw new PrismException("Problem in .rewt file (line " + lineNum + ") for MDP");
+		}
+	}
+	
 	// Mutators (other)
 
 	/**
@@ -292,8 +370,6 @@ public class MDPSimple extends ModelSimple implements MDP
 		if (actions != null && actions.get(s) != null)
 			actions.get(s).add(null);
 		// Add zero reward if necessary
-		if (transRewards != null && transRewards.get(s) != null)
-			transRewards.get(s).add(0.0);
 		// Update stats
 		numDistrs++;
 		maxNumDistrs = Math.max(maxNumDistrs, set.size());
@@ -304,11 +380,11 @@ public class MDPSimple extends ModelSimple implements MDP
 	/**
 	 * Remove all rewards from the model
 	 */
-	public void clearAllRewards()
+	/*public void clearAllRewards()
 	{
 		transRewards = null;
 		transRewardsConstant = null;
-	}
+	}*/
 
 	/**
 	 * Set the action label for choice i in some state s.
@@ -337,20 +413,34 @@ public class MDPSimple extends ModelSimple implements MDP
 	/**
 	 * Set a constant reward for all transitions
 	 */
-	public void setConstantTransitionReward(double r)
+	/*public void setConstantTransitionReward(double r)
 	{
 		// This replaces any other reward definitions
 		transRewards = null;
 		// Store as a Double (because we use null to check for its existence)
 		transRewardsConstant = new Double(r);
-	}
+	}*/
 
+	public void setStateReward(int s, double r)
+	{
+		if(stateRewards == null) {
+			stateRewards = new ArrayList<Double>(numStates);
+			for (int i = 0; i< numStates; i++)
+			{
+				stateRewards.add(0.0);
+			}
+		}
+		
+		stateRewards.set(s,r);
+	}
+	
 	/**
 	 * Set the reward for choice i in some state s to r.
 	 */
 	public void setTransitionReward(int s, int i, double r)
 	{
-		// This would replace any constant reward definition, if it existed
+		//this.trans.get(s).get(i).setReward(r);
+		/*// This would replace any constant reward definition, if it existed
 		transRewardsConstant = null;
 		// If no rewards array created yet, create it
 		if (transRewards == null) {
@@ -368,9 +458,9 @@ public class MDPSimple extends ModelSimple implements MDP
 			transRewards.set(s, list);
 		}
 		// Set reward
-		transRewards.get(s).set(i, r);
+		transRewards.get(s).set(i, r);*/
 	}
-
+	
 	// Accessors (for ModelSimple)
 
 	@Override
@@ -602,17 +692,6 @@ public class MDPSimple extends ModelSimple implements MDP
 	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s, int i)
 	{
 		return trans.get(s).get(i).iterator();
-	}
-
-	@Override
-	public double getTransitionReward(int s, int i)
-	{
-		List<Double> list;
-		if (transRewardsConstant != null)
-			return transRewardsConstant;
-		if (transRewards == null || (list = transRewards.get(s)) == null)
-			return 0.0;
-		return list.get(i);
 	}
 
 	@Override
@@ -900,7 +979,7 @@ public class MDPSimple extends ModelSimple implements MDP
 		for (Distribution distr : step) {
 			j++;
 			// Compute sum for this distribution
-			d = mdpRewards != null ? mdpRewards.getTransitionReward(s, j) : getTransitionReward(s, j);
+			d = mdpRewards.getTransitionReward(s, j);
 			for (Map.Entry<Integer, Double> e : distr) {
 				k = (Integer) e.getKey();
 				prob = (Double) e.getValue();
@@ -931,7 +1010,7 @@ public class MDPSimple extends ModelSimple implements MDP
 		for (Distribution distr : step) {
 			j++;
 			// Compute sum for this distribution
-			d = mdpRewards != null ? mdpRewards.getTransitionReward(s, j) : getTransitionReward(s, j);
+			d = mdpRewards.getTransitionReward(s, j);
 			for (Map.Entry<Integer, Double> e : distr) {
 				k = (Integer) e.getKey();
 				prob = (Double) e.getValue();
@@ -1023,8 +1102,6 @@ public class MDPSimple extends ModelSimple implements MDP
 				s += trans.get(i).get(j);
 			}
 			s += "]";
-			if (transRewards != null)
-				s += transRewards.get(i);
 		}
 		s += " ]\n";
 		return s;

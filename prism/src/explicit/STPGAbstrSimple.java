@@ -29,6 +29,8 @@ package explicit;
 import java.util.*;
 import java.io.*;
 
+import explicit.rewards.STPGRewards;
+
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismUtils;
@@ -43,10 +45,6 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 {
 	// Transition function (Steps)
 	protected List<ArrayList<DistributionSet>> trans;
-
-	// Rewards
-	protected List<List<Double>> transRewards;
-	protected Double transRewardsConstant;
 
 	// Flag: allow dupes in distribution sets?
 	public boolean allowDupes = false;
@@ -104,7 +102,7 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 		for (int i = 0; i < numStates; i++) {
 			trans.add(new ArrayList<DistributionSet>());
 		}
-		clearAllRewards();
+		//clearAllRewards();
 	}
 
 	@Override
@@ -270,27 +268,27 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 	/**
 	 * Remove all rewards from the model
 	 */
-	public void clearAllRewards()
+	/*public void clearAllRewards()
 	{
 		transRewards = null;
 		transRewardsConstant = null;
-	}
+	}*/
 
 	/**
 	 * Set a constant reward for all transitions
 	 */
-	public void setConstantTransitionReward(double r)
+	/*public void setConstantTransitionReward(double r)
 	{
 		// This replaces any other reward definitions
 		transRewards = null;
 		// Store as a Double (because we use null to check for its existence)
 		transRewardsConstant = new Double(r);
-	}
+	}*/
 
 	/**
 	 * Set the reward for choice i in some state s to r.
 	 */
-	public void setTransitionReward(int s, int i, double r)
+	/*public void setTransitionReward(int s, int i, double r)
 	{
 		// This would replace any constant reward definition, if it existed
 		transRewardsConstant = null;
@@ -311,7 +309,7 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 		}
 		// Set reward
 		transRewards.get(s).set(i, r);
-	}
+	}*/
 
 	// Accessors (for ModelSimple)
 
@@ -515,7 +513,7 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 		return null;
 	}
 
-	@Override
+	/*@Override
 	public double getTransitionReward(int s, int i)
 	{
 		List<Double> list;
@@ -524,7 +522,7 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 		if (transRewards == null || (list = transRewards.get(s)) == null)
 			return 0.0;
 		return list.get(i);
-	}
+	}*/
 
 	@Override
 	public void prob0step(BitSet subset, BitSet u, boolean forall1, boolean forall2, BitSet result)
@@ -762,62 +760,72 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 	}
 
 	@Override
-	public void mvMultRewMinMax(double vect[], boolean min1, boolean min2, double result[], BitSet subset, boolean complement, int adv[])
+	public void mvMultRewMinMax(double vect[], STPGRewards rewards, boolean min1, boolean min2, double result[], BitSet subset, boolean complement, int adv[])
 	{
 		int s;
 		// Loop depends on subset/complement arguments
 		if (subset == null) {
 			for (s = 0; s < numStates; s++)
-				result[s] = mvMultRewMinMaxSingle(s, vect, min1, min2, adv);
+				result[s] = mvMultRewMinMaxSingle(s, vect, rewards, min1, min2, adv);
 		} else if (complement) {
 			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1))
-				result[s] = mvMultRewMinMaxSingle(s, vect, min1, min2, adv);
+				result[s] = mvMultRewMinMaxSingle(s, vect, rewards, min1, min2, adv);
 		} else {
 			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1))
-				result[s] = mvMultRewMinMaxSingle(s, vect, min1, min2, adv);
+				result[s] = mvMultRewMinMaxSingle(s, vect, rewards, min1, min2, adv);
 		}
 	}
 
 	@Override
-	public double mvMultRewMinMaxSingle(int s, double vect[], boolean min1, boolean min2, int adv[])
+	public double mvMultRewMinMaxSingle(int s, double vect[], STPGRewards rewards, boolean min1, boolean min2, int adv[])
 	{
-		int k;
+		int dsIter, rewIter, dIter, rewCount, k;
 		double d, prob, minmax1, minmax2;
 		boolean first1, first2;
 		ArrayList<DistributionSet> step;
 
 		minmax1 = 0;
 		first1 = true;
+	    dsIter=-1;
 		step = trans.get(s);
 		for (DistributionSet distrs : step) {
+			dsIter++;
 			minmax2 = 0;
 			first2 = true;
+	
+			dIter=-1;
 			for (Distribution distr : distrs) {
-				// Compute sum for this distribution
-				d = 0.0;
-				for (Map.Entry<Integer, Double> e : distr) {
-					k = (Integer) e.getKey();
-					prob = (Double) e.getValue();
-					d += prob * vect[k];
+				dIter++;
+				rewCount = rewards.getTransitionRewardCount(s, dsIter, dIter);
+				for(rewIter = 0; rewIter<rewCount; rewIter++)
+				{
+					// Compute sum for this distribution
+					d = rewards.getTransitionReward(s, dsIter, dIter, rewIter);
+					
+					for (Map.Entry<Integer, Double> e : distr) {
+						k = (Integer) e.getKey();
+						prob = (Double) e.getValue();
+						d += prob * vect[k];
+					}
+					// Check whether we have exceeded min/max so far
+					if (first2 || (min2 && d < minmax2) || (!min2 && d > minmax2))
+						minmax2 = d;
+					first2 = false;
 				}
-				// Check whether we have exceeded min/max so far
-				if (first2 || (min2 && d < minmax2) || (!min2 && d > minmax2))
-					minmax2 = d;
-				first2 = false;
 			}
 			// Check whether we have exceeded min/max so far
 			if (first1 || (min1 && minmax2 < minmax1) || (!min1 && minmax2 > minmax1))
 				minmax1 = minmax2;
-			first1 = false;
+			first1 = false;	
 		}
 
-		return minmax1;
+		return minmax1;		
 	}
 
 	@Override
-	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], boolean min1, boolean min2, double val)
+	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], STPGRewards rewards, boolean min1, boolean min2, double val)
 	{
-		int j, k;
+		int dsIter, rewIter, dIter, rewCount, k;
 		double d, prob, minmax2;
 		boolean first2;
 		List<Integer> res;
@@ -826,15 +834,22 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 		// Create data structures to store strategy
 		res = new ArrayList<Integer>();
 		// One row of matrix-vector operation 
-		j = -1;
+		dsIter = -1;
 		step = trans.get(s);
 		for (DistributionSet distrs : step) {
-			j++;
+			dsIter++;
 			minmax2 = 0;
 			first2 = true;
+
+			dIter = -1;
 			for (Distribution distr : distrs) {
+				dIter++;
+				
+				rewCount = rewards.getTransitionRewardCount(s, dsIter, dIter);
+				for(rewIter = 0; rewIter<rewCount; rewIter++)
+				{
 				// Compute sum for this distribution
-				d = 0.0;
+				d = rewards.getTransitionReward(s,dsIter,dIter, rewIter);
 				for (Map.Entry<Integer, Double> e : distr) {
 					k = (Integer) e.getKey();
 					prob = (Double) e.getValue();
@@ -844,13 +859,15 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 				if (first2 || (min2 && d < minmax2) || (!min2 && d > minmax2))
 					minmax2 = d;
 				first2 = false;
+				}
 			}
 			// Store strategy info if value matches
 			//if (PrismUtils.doublesAreClose(val, d, termCritParam, termCrit == TermCrit.ABSOLUTE)) {
 			if (PrismUtils.doublesAreClose(val, minmax2, 1e-12, false)) {
-				res.add(j);
+				res.add(dsIter);
 				//res.add(distrs.getAction());
 			}
+			
 		}
 
 		return res;

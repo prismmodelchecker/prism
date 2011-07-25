@@ -27,6 +27,7 @@
 package explicit;
 
 import java.util.*;
+import explicit.rewards.STPGRewards;
 
 /**
  * Interface for classes that provide (read) access to an explicit-state stochastic two-player game (STPG),
@@ -41,7 +42,7 @@ public interface STPG extends Model
 	/**
 	 * Get the transition reward (if any) for choice i of state s.
 	 */
-	public double getTransitionReward(int s, int i);
+	//public double getTransitionReward(int s, int i);
 
 	/**
 	 * Perform a single step of precomputation algorithm Prob0, i.e., for states i in {@code subset},
@@ -140,7 +141,7 @@ public interface STPG extends Model
 	 * @param complement If true, {@code subset} is taken to be its complement (ignored if {@code subset} is null)
 	 * @param adv Storage for adversary choice indices (ignored if null)
 	 */
-	public void mvMultRewMinMax(double vect[], boolean min1, boolean min2, double result[], BitSet subset, boolean complement, int adv[]);
+	public void mvMultRewMinMax(double vect[], STPGRewards rewards, boolean min1, boolean min2, double result[], BitSet subset, boolean complement, int adv[]);
 
 	/**
 	 * Do a single row of matrix-vector multiplication and sum of action reward followed by min/max.
@@ -151,7 +152,7 @@ public interface STPG extends Model
 	 * @param min2 Min or max for player 2 (true=min, false=max)
 	 * @param adv Storage for adversary choice indices (ignored if null)
 	 */
-	public double mvMultRewMinMaxSingle(int s, double vect[], boolean min1, boolean min2, int adv[]);
+	public double mvMultRewMinMaxSingle(int s, double vect[], STPGRewards rewards, boolean min1, boolean min2, int adv[]);
 
 	/**
 	 * Determine which choices result in min/max after a single row of matrix-vector multiplication and sum of action reward.
@@ -161,5 +162,5 @@ public interface STPG extends Model
 	 * @param min2 Min or max for player 2 (true=min, false=max)
 	 * @param val Min or max value to match
 	 */
-	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], boolean min1, boolean min2, double val);
+	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], STPGRewards rewards, boolean min1, boolean min2, double val);
 }
