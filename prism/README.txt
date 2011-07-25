@@ -88,9 +88,9 @@ The core team working on PRISM currently comprises:
  
 Many others have contributed to PRISM. In approximately reverse chronological order:
 
+ * Vojtech Forejt: "Fox-Glynn" implementation, explicit-state model checking
  * Christian von Essen: Contributions to explicit-state model checking library
  * Vincent Nimal: Approximate (simulation-based) model checking techniques
- * Vojtech Forejt: "Fox-Glynn" algorithm implementation
  * Mark Kattenbelt: Wide range of enhancements/additions, especially in the GUI
  * Carlos Bederian (working with Pedro D'Argenio): Addition of LTL model checking for MDPs to PRISM
  * Alistair John Strachan: Port to 64-bit architectures
