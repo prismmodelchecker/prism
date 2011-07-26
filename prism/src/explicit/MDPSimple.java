@@ -49,7 +49,7 @@ public class MDPSimple extends ModelSimple implements MDP
 	protected List<List<Distribution>> trans;
 
 	// Action labels
-	// (null in element s means no actions for that state)
+	// (null list means no actions; null in element s means no actions for state s)
 	protected List<List<Object>> actions;
 
 	// Flag: allow duplicates in distribution sets?
@@ -86,17 +86,34 @@ public class MDPSimple extends ModelSimple implements MDP
 	{
 		this(mdp.numStates);
 		copyFrom(mdp);
+		// Copy storage directly to avoid worrying about duplicate distributions (and for efficiency) 
 		for (int s = 0; s < numStates; s++) {
+			List<Distribution> distrs = trans.get(s); 
 			for (Distribution distr : mdp.trans.get(s)) {
-				addChoice(s, new Distribution(distr));
+				distrs.add(new Distribution(distr));
 			}
 		}
-		for (int s = 0; s < numStates; s++) {
-			int n = mdp.getNumChoices(s);
-			for (int i = 0; i < n; i++) {
-				setAction(s, i, mdp.getAction(s, i));
+		if (mdp.actions != null) {
+			actions = new ArrayList<List<Object>>(numStates);
+			for (int s = 0; s < numStates; s++)
+				actions.add(null);
+			for (int s = 0; s < numStates; s++) {
+				if (mdp.actions.get(s) != null) {
+					int n = mdp.trans.get(s).size();
+					List<Object> list = new ArrayList<Object>(n);
+					for (int i = 0; i < n; i++) {
+						list.add(mdp.actions.get(s).get(i));
+					}
+					actions.set(s, list);
+				}
 			}
 		}
+		// Copy flags/stats too
+		allowDupes = mdp.allowDupes;
+		numDistrs = mdp.numDistrs;
+		numTransitions = mdp.numTransitions;
+		maxNumDistrs = mdp.maxNumDistrs;
+		maxNumDistrsOk = mdp.maxNumDistrsOk;
 	}
 
 	/**
@@ -107,6 +124,7 @@ public class MDPSimple extends ModelSimple implements MDP
 		this(dtmc.getNumStates());
 		copyFrom(dtmc);
 		for (int s = 0; s < numStates; s++) {
+			// Note: DTMCSimple has no actions so can ignore these
 			addChoice(s, new Distribution(dtmc.getTransitions(s)));
 		}
 	}
@@ -121,17 +139,35 @@ public class MDPSimple extends ModelSimple implements MDP
 	{
 		this(mdp.numStates);
 		copyFrom(mdp, permut);
+		// Copy storage directly to avoid worrying about duplicate distributions (and for efficiency)
+		// (Since permut is a bijection, all structures and statistics are identical)
 		for (int s = 0; s < numStates; s++) {
+			List<Distribution> distrs = trans.get(permut[s]); 
 			for (Distribution distr : mdp.trans.get(s)) {
-				addChoice(permut[s], new Distribution(distr, permut));
+				distrs.add(new Distribution(distr, permut));
 			}
 		}
-		for (int s = 0; s < numStates; s++) {
-			int n = mdp.getNumChoices(s);
-			for (int i = 0; i < n; i++) {
-				setAction(permut[s], i, mdp.getAction(s, i));
+		if (mdp.actions != null) {
+			actions = new ArrayList<List<Object>>(numStates);
+			for (int s = 0; s < numStates; s++)
+				actions.add(null);
+			for (int s = 0; s < numStates; s++) {
+				if (mdp.actions.get(s) != null) {
+					int n = mdp.trans.get(s).size();
+					List<Object> list = new ArrayList<Object>(n);
+					for (int i = 0; i < n; i++) {
+						list.add(mdp.actions.get(s).get(i));
+					}
+					actions.set(permut[s], list);
+				}
 			}
 		}
+		// Copy flags/stats too
+		allowDupes = mdp.allowDupes;
+		numDistrs = mdp.numDistrs;
+		numTransitions = mdp.numTransitions;
+		maxNumDistrs = mdp.maxNumDistrs;
+		maxNumDistrsOk = mdp.maxNumDistrsOk;
 	}
 
 	// Mutators (for ModelSimple)
@@ -401,6 +437,9 @@ public class MDPSimple extends ModelSimple implements MDP
 	 */
 	public void setAction(int s, int i, Object o)
 	{
+		// If action to be set is null, nothing to do
+		if (o == null)
+			return;
 		// If no actions array created yet, create it
 		if (actions == null) {
 			actions = new ArrayList<List<Object>>(numStates);
@@ -477,7 +516,6 @@ public class MDPSimple extends ModelSimple implements MDP
 			if (trans.get(i).isEmpty() && (except == null || !except.get(i)))
 				throw new PrismException("MDP has a deadlock in state " + i);
 		}
-		// TODO: Check for empty distributions too?
 	}
 
 	@Override

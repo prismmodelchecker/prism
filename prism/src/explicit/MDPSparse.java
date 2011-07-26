@@ -32,7 +32,7 @@ import java.util.Map.Entry;
 import java.io.*;
 
 import explicit.rewards.MDPRewards;
-
+import parser.State;
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismUtils;
@@ -57,7 +57,8 @@ public class MDPSparse extends ModelSparse implements MDP
 	protected int rowStarts[];
 
 	// Action labels
-	/** Array of action labels for choices (is of size numDistrs) */
+	/** Array of action labels for choices;
+	 * if null, there are no actions; otherwise, is an array of size numDistrs */
 	protected Object actions[];
 
 	// Other statistics
@@ -73,79 +74,6 @@ public class MDPSparse extends ModelSparse implements MDP
 	public MDPSparse(MDPSimple mdp)
 	{
 		this(mdp, false);
-	}
-
-	/**
-	 * Copy constructor for a (sub-)MDP from a given MDP.
-	 * The states and actions will be indexed as given by the order
-	 * of the lists {@code states} and {@code actions}.
-	 * 
-	 * @param mdp MDP to copy from
-	 * @param states States to copy
-	 * @param actions Actions to copy
-	 */
-	public MDPSparse(MDP mdp, List<Integer> states, List<List<Integer>> actions)
-	{
-		initialise(states.size());
-		for (int in : mdp.getInitialStates()) {
-			addInitialState(in);
-		}
-
-		// statesList = new ArrayList<State>(states.size());
-		statesList = new ArrayList<parser.State>();
-		for (int s : states) {
-			statesList.add(mdp.getStatesList().get(s));
-		}
-
-		numDistrs = 0;
-		numTransitions = 0;
-		maxNumDistrs = 0;
-
-		for (int i = 0; i < states.size(); i++) {
-			int s = states.get(i);
-
-			final int numChoices = actions.get(s).size();
-			numDistrs += numChoices;
-			if (numChoices > maxNumDistrs) {
-				maxNumDistrs = numChoices;
-			}
-			for (int a : actions.get(s)) {
-				numTransitions += mdp.getNumTransitions(s, a);
-			}
-		}
-
-		nonZeros = new double[numTransitions];
-		cols = new int[numTransitions];
-		choiceStarts = new int[numDistrs + 1];
-		rowStarts = new int[numStates + 1];
-		this.actions = new Object[numDistrs];
-		int choiceIndex = 0;
-		int colIndex = 0;
-
-		int[] reverseStates = new int[mdp.getNumStates()];
-		for (int i = 0; i < states.size(); i++) {
-			reverseStates[states.get(i)] = i;
-		}
-
-		for (int i = 0; i < states.size(); i++) {
-			int s = states.get(i);
-			rowStarts[i] = choiceIndex;
-			for (int a : actions.get(s)) {
-				choiceStarts[choiceIndex] = colIndex;
-				this.actions[choiceIndex] = mdp.getAction(s, a);
-				choiceIndex++;
-				Iterator<Entry<Integer, Double>> it = mdp.getTransitionsIterator(s, a);
-				while (it.hasNext()) {
-					Entry<Integer, Double> next = it.next();
-					cols[colIndex] = reverseStates[next.getKey()];
-					nonZeros[colIndex] = next.getValue();
-					colIndex++;
-				}
-			}
-		}
-
-		choiceStarts[numDistrs] = numTransitions;
-		rowStarts[numStates] = numDistrs;
 	}
 
 	/**
@@ -273,6 +201,69 @@ public class MDPSparse extends ModelSparse implements MDP
 					sorted.clear();
 				}
 				j++;
+			}
+		}
+		choiceStarts[numDistrs] = numTransitions;
+		rowStarts[numStates] = numDistrs;
+	}
+
+	/**
+	 * Copy constructor for a (sub-)MDP from a given MDP.
+	 * The states and actions will be indexed as given by the order
+	 * of the lists {@code states} and {@code actions}.
+	 * @param mdp MDP to copy from
+	 * @param states States to copy
+	 * @param actions Actions to copy
+	 */
+	public MDPSparse(MDP mdp, List<Integer> states, List<List<Integer>> actions)
+	{
+		initialise(states.size());
+		for (int in : mdp.getInitialStates()) {
+			addInitialState(in);
+		}
+		statesList = new ArrayList<State>();
+		for (int s : states) {
+			statesList.add(mdp.getStatesList().get(s));
+		}
+		numDistrs = 0;
+		numTransitions = 0;
+		maxNumDistrs = 0;
+		for (int i = 0; i < states.size(); i++) {
+			int s = states.get(i);
+			final int numChoices = actions.get(s).size();
+			numDistrs += numChoices;
+			if (numChoices > maxNumDistrs) {
+				maxNumDistrs = numChoices;
+			}
+			for (int a : actions.get(s)) {
+				numTransitions += mdp.getNumTransitions(s, a);
+			}
+		}
+		nonZeros = new double[numTransitions];
+		cols = new int[numTransitions];
+		choiceStarts = new int[numDistrs + 1];
+		rowStarts = new int[numStates + 1];
+		this.actions = new Object[numDistrs];
+		int choiceIndex = 0;
+		int colIndex = 0;
+		int[] reverseStates = new int[mdp.getNumStates()];
+		for (int i = 0; i < states.size(); i++) {
+			reverseStates[states.get(i)] = i;
+		}
+		for (int i = 0; i < states.size(); i++) {
+			int s = states.get(i);
+			rowStarts[i] = choiceIndex;
+			for (int a : actions.get(s)) {
+				choiceStarts[choiceIndex] = colIndex;
+				this.actions[choiceIndex] = mdp.getAction(s, a);
+				choiceIndex++;
+				Iterator<Entry<Integer, Double>> it = mdp.getTransitionsIterator(s, a);
+				while (it.hasNext()) {
+					Entry<Integer, Double> next = it.next();
+					cols[colIndex] = reverseStates[next.getKey()];
+					nonZeros[colIndex] = next.getValue();
+					colIndex++;
+				}
 			}
 		}
 		choiceStarts[numDistrs] = numTransitions;
@@ -455,7 +446,6 @@ public class MDPSparse extends ModelSparse implements MDP
 			if (getNumChoices(i) == 0 && (except == null || !except.get(i)))
 				throw new PrismException("MDP has a deadlock in state " + i);
 		}
-		// TODO: Check for empty distributions too?
 	}
 
 	@Override
@@ -666,7 +656,7 @@ public class MDPSparse extends ModelSparse implements MDP
 	@Override
 	public Object getAction(int s, int i)
 	{
-		return actions[rowStarts[s] + i];
+		return actions == null ? null : actions[rowStarts[s] + i];
 	}
 
 	@Override
@@ -1043,7 +1033,7 @@ public class MDPSparse extends ModelSparse implements MDP
 			for (j = l1; j < h1; j++) {
 				if (j > l1)
 					s += ",";
-				o = actions[j];
+				o = getAction(i, j - l1);
 				if (o != null)
 					s += o + ":";
 				s += "{";
