@@ -1015,6 +1015,20 @@ public class MDPSparse extends ModelSparse implements MDP
 		return res;
 	}
 
+	@Override
+	public void mvMultRight(int[] states, int[] adv, double[] source, double[] dest)
+	{
+		for (int s : states) {
+			int j, l2, h2;
+			int k = adv[s];
+			j = rowStarts[s] + k;
+			l2 = choiceStarts[j];
+			h2 = choiceStarts[j + 1];
+			for (k = l2; k < h2; k++) {
+				dest[cols[k]] += nonZeros[k] * source[s];
+			}
+		}
+	}
 	// Standard methods
 
 	@Override
@@ -1073,20 +1087,5 @@ public class MDPSparse extends ModelSparse implements MDP
 			return false;
 		// TODO: compare actions (complicated: null = null,null,null,...)
 		return true;
-	}
-
-	@Override
-	public void mvMultRight(int[] states, int[] adv, double[] source, double[] dest)
-	{
-		for (int s : states) {
-			int j, l2, h2;
-			int k = adv[s];
-			j = rowStarts[s] + k;
-			l2 = choiceStarts[j];
-			h2 = choiceStarts[j + 1];
-			for (k = l2; k < h2; k++) {
-				dest[cols[k]] += nonZeros[k] * source[s];
-			}
-		}
 	}
 }

@@ -190,14 +190,12 @@ public interface MDP extends Model
 	 * and only those columns in the probability matrix are considered, that
 	 * are elements of {@code states}.
 	 * 
-	 * The result of this multiplication is added to the contents
-	 * of {@code dest}.
+	 * The result of this multiplication is added to the contents of {@code dest}.
 	 *   
 	 * @param states States for which to multiply
 	 * @param adv Strategy to use
 	 * @param source Vector to multiply matrix with
 	 * @param dest Vector to write result to.
 	 */
-	public void mvMultRight(int[] states, int[] adv, double[] source,
-			double[] dest);
+	public void mvMultRight(int[] states, int[] adv, double[] source, double[] dest);
 }

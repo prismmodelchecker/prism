@@ -1024,6 +1024,20 @@ public class MDPSimple extends ModelSimple implements MDP
 		return res;
 	}
 
+	@Override
+	public void mvMultRight(int[] states, int[] adv, double[] source,
+			double[] dest) {
+		for (int s : states) {
+			Iterator<Entry<Integer, Double>> it = this.getTransitionsIterator(s, adv[s]);
+			while (it.hasNext()) {
+				Entry<Integer, Double> next = it.next();
+				int col = next.getKey();
+				double prob = next.getValue();
+				dest[col] += prob * source[s];
+			}
+		}
+	}
+	
 	// Accessors (other)
 
 	/**
@@ -1161,19 +1175,5 @@ public class MDPSimple extends ModelSimple implements MDP
 			return false;
 		// TODO: compare actions (complicated: null = null,null,null,...)
 		return true;
-	}
-
-	@Override
-	public void mvMultRight(int[] states, int[] adv, double[] source,
-			double[] dest) {
-		for (int s : states) {
-			Iterator<Entry<Integer, Double>> it = this.getTransitionsIterator(s, adv[s]);
-			while (it.hasNext()) {
-				Entry<Integer, Double> next = it.next();
-				int col = next.getKey();
-				double prob = next.getValue();
-				dest[col] += prob * source[s];
-			}
-		}
 	}
 }
