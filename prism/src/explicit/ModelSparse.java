@@ -151,7 +151,6 @@ public abstract class ModelSparse implements Model
 		// Default implementation - just output .tra file
 		// (some models might override this)
 		exportToPrismExplicitTra(baseFilename + ".tra");
-		// TODO: Also output transition rewards to .trew file, etc.
 	}
 
 	public abstract void exportToPrismExplicitTra(String filename) throws PrismException;
