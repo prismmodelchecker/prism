@@ -175,7 +175,7 @@ public class PrismSTPGAbstractRefine extends QuantAbstractRefine
 			case DTMC:
 				distr = buildAbstractDistribution(c, (DTMCSimple) modelConcrete);
 				j = ((MDPSimple) abstraction).addChoice(a, distr);
-				((MDPSimple) abstraction).setTransitionReward(a, j, ((DTMC) modelConcrete).getTransitionReward(c));
+				//((MDPSimple) abstraction).setTransitionReward(a, j, ((DTMC) modelConcrete).getTransitionReward(c));
 				break;
 			case CTMC:
 				distr = buildAbstractDistribution(c, (CTMCSimple) modelConcrete);
@@ -329,7 +329,7 @@ public class PrismSTPGAbstractRefine extends QuantAbstractRefine
 				case DTMC:
 					distr = buildAbstractDistribution(c, (DTMCSimple) modelConcrete);
 					j = ((MDPSimple) abstraction).addChoice(a, distr);
-					((MDPSimple) abstraction).setTransitionReward(a, j, ((DTMC) modelConcrete).getTransitionReward(c));
+					//((MDPSimple) abstraction).setTransitionReward(a, j, ((DTMC) modelConcrete).getTransitionReward(c));
 					break;
 				case CTMC:
 					distr = buildAbstractDistribution(c, (CTMCSimple) modelConcrete);

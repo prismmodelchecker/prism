@@ -30,7 +30,6 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import explicit.rewards.MCRewards;
-
 import parser.State;
 import parser.Values;
 import prism.ModelType;
@@ -194,12 +193,6 @@ public class DTMCFromMDPMemorylessAdversary implements DTMC
 	{
 		// TODO
 		throw new RuntimeException("Not implemented yet");
-	}
-
-	public double getTransitionReward(int s)
-	{
-		// TODO
-		return 0;
 	}
 
 	public void prob0step(BitSet subset, BitSet u, BitSet result)

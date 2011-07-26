@@ -31,7 +31,6 @@ import java.util.*;
 import java.io.*;
 
 import explicit.rewards.STPGRewards;
-
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismUtils;
@@ -81,7 +80,7 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 	{
 		DistributionSet set;
 		int i;
-		// TODO: actions? rewards?
+		// TODO: actions?
 		initialise(m.getNumStates());
 		copyFrom(m);
 		for (i = 0; i < numStates; i++) {
@@ -103,7 +102,6 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 		for (int i = 0; i < numStates; i++) {
 			trans.add(new ArrayList<DistributionSet>());
 		}
-		//clearAllRewards();
 	}
 
 	@Override
@@ -265,52 +263,6 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 			numTransitions += distr.size();
 		return set.size() - 1;
 	}
-
-	/**
-	 * Remove all rewards from the model
-	 */
-	/*public void clearAllRewards()
-	{
-		transRewards = null;
-		transRewardsConstant = null;
-	}*/
-
-	/**
-	 * Set a constant reward for all transitions
-	 */
-	/*public void setConstantTransitionReward(double r)
-	{
-		// This replaces any other reward definitions
-		transRewards = null;
-		// Store as a Double (because we use null to check for its existence)
-		transRewardsConstant = new Double(r);
-	}*/
-
-	/**
-	 * Set the reward for choice i in some state s to r.
-	 */
-	/*public void setTransitionReward(int s, int i, double r)
-	{
-		// This would replace any constant reward definition, if it existed
-		transRewardsConstant = null;
-		// If no rewards array created yet, create it
-		if (transRewards == null) {
-			transRewards = new ArrayList<List<Double>>(numStates);
-			for (int j = 0; j < numStates; j++)
-				transRewards.add(null);
-		}
-		// If no rewards for state i yet, create list
-		if (transRewards.get(s) == null) {
-			int n = trans.get(s).size();
-			List<Double> list = new ArrayList<Double>(n);
-			for (int j = 0; j < n; j++) {
-				list.add(0.0);
-			}
-			transRewards.set(s, list);
-		}
-		// Set reward
-		transRewards.get(s).set(i, r);
-	}*/
 
 	// Accessors (for ModelSimple)
 
@@ -513,17 +465,6 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 		// TODO
 		return null;
 	}
-
-	/*@Override
-	public double getTransitionReward(int s, int i)
-	{
-		List<Double> list;
-		if (transRewardsConstant != null)
-			return transRewardsConstant;
-		if (transRewards == null || (list = transRewards.get(s)) == null)
-			return 0.0;
-		return list.get(i);
-	}*/
 
 	@Override
 	public void prob0step(BitSet subset, BitSet u, boolean forall1, boolean forall2, BitSet result)

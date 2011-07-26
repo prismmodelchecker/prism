@@ -33,7 +33,6 @@ import java.io.*;
 
 import explicit.rewards.MDPRewards;
 import explicit.rewards.MDPRewardsSimple;
-
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismUtils;
@@ -52,13 +51,6 @@ public class MDPSimple extends ModelSimple implements MDP
 	// Action labels
 	// (null in element s means no actions for that state)
 	protected List<List<Object>> actions;
-
-	// Rewards
-	// (if transRewardsConstant non-null, use this for all transitions; otherwise, use transRewards list)
-	// (for transRewards, null in element s means no rewards for that state)
-	//protected Double transRewardsConstant;
-	//protected List<List<Double>> transRewards;
-	protected List<Double> stateRewards;
 
 	// Flag: allow duplicates in distribution sets?
 	protected boolean allowDupes = false;
@@ -105,7 +97,6 @@ public class MDPSimple extends ModelSimple implements MDP
 				setAction(s, i, mdp.getAction(s, i));
 			}
 		}
-		// TODO: copy rewards
 	}
 
 	/**
@@ -118,7 +109,6 @@ public class MDPSimple extends ModelSimple implements MDP
 		for (int s = 0; s < numStates; s++) {
 			addChoice(s, new Distribution(dtmc.getTransitions(s)));
 		}
-		// TODO: copy rewards, etc.
 	}
 
 	/**
@@ -142,7 +132,6 @@ public class MDPSimple extends ModelSimple implements MDP
 				setAction(permut[s], i, mdp.getAction(s, i));
 			}
 		}
-		// TODO: permute rewards
 	}
 
 	// Mutators (for ModelSimple)
@@ -158,7 +147,6 @@ public class MDPSimple extends ModelSimple implements MDP
 			trans.add(new ArrayList<Distribution>());
 		}
 		actions = null;
-		//clearAllRewards();
 	}
 
 	@Override
@@ -346,9 +334,9 @@ public class MDPSimple extends ModelSimple implements MDP
 	// Mutators (other)
 
 	/**
-	 * Add a choice (distribution 'distr') to state s (which must exist).
-	 * Distribution is only actually added if it does not already exists for state s.
-	 * (Assuming 'allowDupes' flag is not enabled.)
+	 * Add a choice (distribution {@code distr}) to state {@code s} (which must exist).
+	 * Distribution is only actually added if it does not already exists for state {@code s}.
+	 * (Assuming {@code allowDupes} flag is not enabled.)
 	 * Returns the index of the (existing or newly added) distribution.
 	 * Returns -1 in case of error.
 	 */
@@ -359,17 +347,16 @@ public class MDPSimple extends ModelSimple implements MDP
 		if (s >= numStates || s < 0)
 			return -1;
 		// Add distribution (if new)
-		set = trans.get(s);
 		if (!allowDupes) {
-			int i = set.indexOf(distr);
+			int i = indexOfChoice(s, distr);
 			if (i != -1)
 				return i;
 		}
+		set = trans.get(s);
 		set.add(distr);
 		// Add null action if necessary
 		if (actions != null && actions.get(s) != null)
 			actions.get(s).add(null);
-		// Add zero reward if necessary
 		// Update stats
 		numDistrs++;
 		maxNumDistrs = Math.max(maxNumDistrs, set.size());
@@ -378,16 +365,39 @@ public class MDPSimple extends ModelSimple implements MDP
 	}
 
 	/**
-	 * Remove all rewards from the model
+	 * Add a choice (distribution {@code distr}) labelled with {@code action} to state {@code s} (which must exist).
+	 * Action/distribution is only actually added if it does not already exists for state {@code s}.
+	 * (Assuming {@code allowDupes} flag is not enabled.)
+	 * Returns the index of the (existing or newly added) distribution.
+	 * Returns -1 in case of error.
 	 */
-	/*public void clearAllRewards()
+	public int addActionLabelledChoice(int s, Distribution distr, Object action)
 	{
-		transRewards = null;
-		transRewardsConstant = null;
-	}*/
+		List<Distribution> set;
+		// Check state exists
+		if (s >= numStates || s < 0)
+			return -1;
+		// Add distribution/action (if new)
+		if (!allowDupes) {
+			int i = indexOfActionLabelledChoice(s, distr, action);
+			if (i != -1)
+				return i;
+		}
+		set = trans.get(s);
+		set.add(distr);
+		setAction(s, set.size() - 1, action);
+		// Update stats
+		numDistrs++;
+		maxNumDistrs = Math.max(maxNumDistrs, set.size());
+		numTransitions += distr.size();
+		return set.size() - 1;
+	}
 
 	/**
 	 * Set the action label for choice i in some state s.
+	 * This method does not know about duplicates (i.e. if setting an action causes
+	 * two choices to be identical, one will not be removed).
+	 * Use {@link #addActionLabelledChoice(int, Distribution, Object)} which is more reliable.
 	 */
 	public void setAction(int s, int i, Object o)
 	{
@@ -410,57 +420,6 @@ public class MDPSimple extends ModelSimple implements MDP
 		actions.get(s).set(i, o);
 	}
 
-	/**
-	 * Set a constant reward for all transitions
-	 */
-	/*public void setConstantTransitionReward(double r)
-	{
-		// This replaces any other reward definitions
-		transRewards = null;
-		// Store as a Double (because we use null to check for its existence)
-		transRewardsConstant = new Double(r);
-	}*/
-
-	public void setStateReward(int s, double r)
-	{
-		if(stateRewards == null) {
-			stateRewards = new ArrayList<Double>(numStates);
-			for (int i = 0; i< numStates; i++)
-			{
-				stateRewards.add(0.0);
-			}
-		}
-		
-		stateRewards.set(s,r);
-	}
-	
-	/**
-	 * Set the reward for choice i in some state s to r.
-	 */
-	public void setTransitionReward(int s, int i, double r)
-	{
-		//this.trans.get(s).get(i).setReward(r);
-		/*// This would replace any constant reward definition, if it existed
-		transRewardsConstant = null;
-		// If no rewards array created yet, create it
-		if (transRewards == null) {
-			transRewards = new ArrayList<List<Double>>(numStates);
-			for (int j = 0; j < numStates; j++)
-				transRewards.add(null);
-		}
-		// If no rewards for state i yet, create list
-		if (transRewards.get(s) == null) {
-			int n = trans.get(s).size();
-			List<Double> list = new ArrayList<Double>(n);
-			for (int j = 0; j < n; j++) {
-				list.add(0.0);
-			}
-			transRewards.set(s, list);
-		}
-		// Set reward
-		transRewards.get(s).set(i, r);*/
-	}
-	
 	// Accessors (for ModelSimple)
 
 	@Override
@@ -1078,6 +1037,49 @@ public class MDPSimple extends ModelSimple implements MDP
 		return maxNumDistrs;
 	}
 
+	/**
+	 * Returns the index of the choice {@code distr} for state {@code s}, if it exists.
+	 * If none, -1 is returned. If there are multiple (i.e. allowDupes is true), the first is returned. 
+	 */
+	public int indexOfChoice(int s, Distribution distr)
+	{
+		return trans.get(s).indexOf(distr);
+	}
+	
+	/**
+	 * Returns the index of the {@code action}-labelled choice {@code distr} for state {@code s}, if it exists.
+	 * If none, -1 is returned. If there are multiple (i.e. allowDupes is true), the first is returned. 
+	 */
+	public int indexOfActionLabelledChoice(int s, Distribution distr, Object action)
+	{
+		List<Distribution> set = trans.get(s);
+		int i, n = set.size();
+		if (distr == null) {
+		    for (i = 0; i < n; i++) {
+		    	if (set.get(i) == null) {
+		    		Object a = getAction(s, i);
+		    		if (action == null) {
+		    			if (a == null) return i;
+		    		} else {
+		    			if (action.equals(a)) return i;
+		    		}
+		    	}
+		    }
+		} else {
+		    for (i = 0; i < n; i++) {
+		    	if (distr.equals(set.get(i))) {
+		    		Object a = getAction(s, i);
+		    		if (action == null) {
+		    			if (a == null) return i;
+		    		} else {
+		    			if (action.equals(a)) return i;
+		    		}
+		    	}
+		    }
+		}
+		return -1;
+	}
+	
 	// Standard methods
 
 	@Override
@@ -1120,7 +1122,6 @@ public class MDPSimple extends ModelSimple implements MDP
 		if (!trans.equals(mdp.trans))
 			return false;
 		// TODO: compare actions (complicated: null = null,null,null,...)
-		// TODO: compare rewards (complicated: null = 0,0,0,0)
 		return true;
 	}
 

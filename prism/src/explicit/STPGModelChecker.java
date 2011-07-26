@@ -781,6 +781,7 @@ public class STPGModelChecker extends ProbModelChecker
 	/**
 	 * Compute expected reachability rewards.
 	 * @param stpg The STPG
+	 * @param rewards The rewards
 	 * @param target Target states
 	 * @param min1 Min or max rewards for player 1 (true=min, false=max)
 	 * @param min2 Min or max rewards for player 2 (true=min, false=max)
@@ -794,6 +795,7 @@ public class STPGModelChecker extends ProbModelChecker
 	 * Compute expected reachability rewards.
 	 * i.e. compute the min/max reward accumulated to reach a state in {@code target}.
 	 * @param stpg The STPG
+	 * @param rewards The rewards
 	 * @param target Target states
 	 * @param min1 Min or max rewards for player 1 (true=min, false=max)
 	 * @param min2 Min or max rewards for player 2 (true=min, false=max)
@@ -864,6 +866,7 @@ public class STPGModelChecker extends ProbModelChecker
 	/**
 	 * Compute expected reachability rewards using value iteration.
 	 * @param stpg The STPG
+	 * @param rewards The rewards
 	 * @param target Target states
 	 * @param inf States for which reward is infinite
 	 * @param min1 Min or max rewards for player 1 (true=min, false=max)

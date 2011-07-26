@@ -43,12 +43,6 @@ public class DTMCSimple extends ModelSimple implements DTMC
 	// Transition matrix (distribution list) 
 	protected List<Distribution> trans;
 
-	// Rewards
-	// (if transRewardsConstant non-null, use this for all transitions; otherwise, use transRewards list)
-	// (for transRewards, null in element s means no rewards for that state)
-	protected Double transRewardsConstant;
-	protected List<Double> transRewards;
-
 	// Other statistics
 	protected int numTransitions;
 
@@ -80,7 +74,6 @@ public class DTMCSimple extends ModelSimple implements DTMC
 		for (int i = 0; i < numStates; i++) {
 			trans.set(i, new Distribution(dtmc.trans.get(i)));
 		}
-		// TODO: copy rewards
 		numTransitions = dtmc.numTransitions;
 	}
 
@@ -98,7 +91,6 @@ public class DTMCSimple extends ModelSimple implements DTMC
 		for (int i = 0; i < numStates; i++) {
 			trans.set(permut[i], new Distribution(dtmc.trans.get(i), permut));
 		}
-		// TODO: permute rewards
 		numTransitions = dtmc.numTransitions;
 	}
 
@@ -112,7 +104,6 @@ public class DTMCSimple extends ModelSimple implements DTMC
 		for (int i = 0; i < numStates; i++) {
 			trans.add(new Distribution());
 		}
-		clearAllRewards();
 	}
 
 	@Override
@@ -215,43 +206,6 @@ public class DTMCSimple extends ModelSimple implements DTMC
 		}
 	}
 
-	/**
-	 * Remove all rewards from the model
-	 */
-	public void clearAllRewards()
-	{
-		transRewards = null;
-		transRewardsConstant = null;
-	}
-
-	/**
-	 * Set a constant reward for all transitions
-	 */
-	public void setConstantTransitionReward(double r)
-	{
-		// This replaces any other reward definitions
-		transRewards = null;
-		// Store as a Double (because we use null to check for its existence)
-		transRewardsConstant = new Double(r);
-	}
-
-	/**
-	 * Set the reward for (all) transitions in state s to r.
-	 */
-	public void setTransitionReward(int s, double r)
-	{
-		// This would replace any constant reward definition, if it existed
-		transRewardsConstant = null;
-		// If no rewards array created yet, create it
-		if (transRewards == null) {
-			transRewards = new ArrayList<Double>(numStates);
-			for (int j = 0; j < numStates; j++)
-				transRewards.add(0.0);
-		}
-		// Set reward
-		transRewards.set(s, r);
-	}
-
 	// Accessors (for ModelSimple)
 
 	@Override
@@ -322,7 +276,6 @@ public class DTMCSimple extends ModelSimple implements DTMC
 	public void exportToPrismExplicit(String baseFilename) throws PrismException
 	{
 		exportToPrismExplicitTra(baseFilename + ".tra");
-		// TODO: Output transition rewards to .trew file, etc.
 	}
 
 	@Override
@@ -445,16 +398,6 @@ public class DTMCSimple extends ModelSimple implements DTMC
 	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s)
 	{
 		return trans.get(s).iterator();
-	}
-
-	@Override
-	public double getTransitionReward(int s)
-	{
-		if (transRewardsConstant != null)
-			return transRewardsConstant;
-		if (transRewards == null)
-			return 0.0;
-		return transRewards.get(s);
 	}
 
 	@Override
@@ -673,7 +616,6 @@ public class DTMCSimple extends ModelSimple implements DTMC
 		DTMCSimple dtmc = (DTMCSimple) o;
 		if (!trans.equals(dtmc.trans))
 			return false;
-		// TODO: rewards
 		if (numTransitions != dtmc.numTransitions)
 			return false;
 		return true;

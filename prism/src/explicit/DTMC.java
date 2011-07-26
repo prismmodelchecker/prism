@@ -47,11 +47,6 @@ public interface DTMC extends Model
 	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s);
 
 	/**
-	 * Get the transition reward (if any) for the transitions in state s.
-	 */
-	public double getTransitionReward(int s);
-
-	/**
 	 * Perform a single step of precomputation algorithm Prob0, i.e., for states i in {@code subset},
 	 * set bit i of {@code result} iff there is a transition to a state in {@code u}.
 	 * @param subset Only compute for these states

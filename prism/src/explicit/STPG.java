@@ -40,11 +40,6 @@ public interface STPG extends Model
 	public Object getAction(int s, int i);
 
 	/**
-	 * Get the transition reward (if any) for choice i of state s.
-	 */
-	//public double getTransitionReward(int s, int i);
-
-	/**
 	 * Perform a single step of precomputation algorithm Prob0, i.e., for states i in {@code subset},
 	 * set bit i of {@code result} iff, for all/some player 1 choices, for all/some player 2 choices,
 	 * there is a transition to a state in {@code u}.

@@ -60,12 +60,6 @@ public class MDPSparse extends ModelSparse implements MDP
 	/** Array of action labels for choices (is of size numDistrs) */
 	protected Object actions[];
 
-	// Rewards
-	// (if transRewardsConstant non-null, use this for all transitions; otherwise, use transRewards list)
-	// (for transRewards, null in element s means no rewards for that state)
-	protected Double transRewardsConstant;
-	protected List<List<Double>> transRewards;
-
 	// Other statistics
 	protected int numDistrs;
 	protected int numTransitions;
@@ -152,8 +146,6 @@ public class MDPSparse extends ModelSparse implements MDP
 
 		choiceStarts[numDistrs] = numTransitions;
 		rowStarts[numStates] = numDistrs;
-
-		// TODO copy rewards
 	}
 
 	/**
@@ -214,8 +206,6 @@ public class MDPSparse extends ModelSparse implements MDP
 		}
 		choiceStarts[numDistrs] = numTransitions;
 		rowStarts[numStates] = numDistrs;
-
-		// TODO: copy rewards
 	}
 
 	/**
@@ -287,8 +277,6 @@ public class MDPSparse extends ModelSparse implements MDP
 		}
 		choiceStarts[numDistrs] = numTransitions;
 		rowStarts[numStates] = numDistrs;
-
-		// TODO: copy rewards
 	}
 
 	// Mutators (for ModelSparse)
@@ -299,7 +287,6 @@ public class MDPSparse extends ModelSparse implements MDP
 		super.initialise(numStates);
 		numDistrs = numTransitions = maxNumDistrs = 0;
 		actions = null;
-		//clearAllRewards();
 	}
 
 	@Override
@@ -1095,7 +1082,6 @@ public class MDPSparse extends ModelSparse implements MDP
 		if (!Utils.intArraysAreEqual(rowStarts, mdp.rowStarts))
 			return false;
 		// TODO: compare actions (complicated: null = null,null,null,...)
-		// TODO: compare rewards (complicated: null = 0,0,0,0)*/
 		return true;
 	}
 
