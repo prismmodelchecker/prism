@@ -28,6 +28,12 @@ package pta;
 
 import java.util.*;
 
+/**
+ * List of DBMs representing a non-convex zone.
+ * 
+ * See this reference for some useful algorithms:
+ * S. Tripakis. The formal analysis of timed systems in practice. Joseph Fourier University, 1998.
+ */
 public class DBMList extends NCZone
 {
 	/* Parent PTA */

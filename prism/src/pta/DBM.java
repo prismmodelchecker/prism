@@ -26,6 +26,13 @@
 
 package pta;
 
+/**
+ * Implementation of the difference-bound matrix (DBM) data structure.
+ * 
+ * Data structures and algorithms are mostly based on those from: 
+ * Johan Bengtsson, Wang Yi: Timed Automata: Semantics, Algorithms and Tools.
+ * Lectures on Concurrency and Petri Nets 2003, LNCS volume 3098, pages 87-124, Springer, 2004
+ */
 public class DBM extends Zone
 {
 	/* Parent PTA */
