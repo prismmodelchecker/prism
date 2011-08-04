@@ -985,6 +985,7 @@ public class MDPSimple extends ModelSimple implements MDP
 				minmax = d;
 			first = false;
 		}
+		minmax += mdpRewards.getStateReward(s);
 
 		return minmax;
 	}

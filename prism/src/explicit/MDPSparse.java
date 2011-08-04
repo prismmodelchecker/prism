@@ -976,6 +976,7 @@ public class MDPSparse extends ModelSparse implements MDP
 				minmax = d;
 			first = false;
 		}
+		minmax += mdpRewards.getStateReward(s);
 
 		return minmax;
 	}
