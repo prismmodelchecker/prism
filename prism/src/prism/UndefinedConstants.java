@@ -377,7 +377,6 @@ public class UndefinedConstants
 				pfConsts[index].define(sl, sh, ss);
 			}
 			else {
-				System.out.println("XXX: " + name);
 				if (useAll)
 					throw new PrismException("\"" + name + "\" is not an undefined constant");
 			}
