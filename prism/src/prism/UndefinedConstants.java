@@ -331,7 +331,7 @@ public class UndefinedConstants
 	 *  The method {@link #initialiseIterators() initialiseIterators} must be called after all constants are defined.
 	 *	
 	 *  @param name The name of the constant.
-	 *  @param sl If sh are sl are null, this is the value to be assigned. Otherwise, it is the lower bound for the range.
+	 *  @param sl If sh are ss are null, this is the value to be assigned. Otherwise, it is the lower bound for the range.
 	 *  @param sh The upper bound for the range.
 	 *  @param ss The step for the values. Null means 1.
 	 *  @param useAll If true, throw an exception if {@code name} is does not need to be defined
@@ -349,10 +349,10 @@ public class UndefinedConstants
 	 *  The method {@link #initialiseIterators() initialiseIterators} must be called after all constants are defined.
 	 *	
 	 *  @param name The name of the constant.
-	 *  @param sl If sh are sl are null, this is the value to be assigned. Otherwise, it is the lower bound for the range.
+	 *  @param sl If sh are ss are null, this is the value to be assigned. Otherwise, it is the lower bound for the range.
 	 *  @param sh The upper bound for the range.
 	 *  @param ss The step for the values. Null means 1.
-	 *  @param useAll If true, throw an exception if {@code name} is does not need to be defined
+	 *  @param useAll If true, throw an exception if {@code name} does not need to be defined
 	 *  
 	 *  @return True if the constant was defined before.
 	 */
