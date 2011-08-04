@@ -35,11 +35,11 @@ import java.util.List;
  */
 public class MDPRewardsSimple implements MDPRewards
 {
-	/** Number of state */
+	/** Number of states */
 	protected int numStates;
-	/** State rewards **/
+	/** State rewards */
 	protected List<Double> stateRewards;
-	/** Transition rewards **/
+	/** Transition rewards */
 	protected List<List<Double>> transRewards;
 	
 	/**
