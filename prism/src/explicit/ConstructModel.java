@@ -73,7 +73,7 @@ public class ConstructModel
 	 */
 	public Model constructModel(ModulesFile modulesFile) throws PrismException
 	{
-		return constructModel(modulesFile, false, false);
+		return constructModel(modulesFile, false, false, true);
 	}
 
 	/**
@@ -85,6 +85,20 @@ public class ConstructModel
 	 * @param buildSparse Build a sparse version of the model (if possible)?
 	 */
 	public Model constructModel(ModulesFile modulesFile, boolean justReach, boolean buildSparse) throws PrismException
+	{
+		return constructModel(modulesFile, justReach, buildSparse, true);
+	}
+	
+	/**
+	 * Construct an explicit-state model from a PRISM model language description and return.
+	 * If {@code justReach} is true, no model is built and null is returned;
+	 * the set of reachable states can be obtained with {@link #getStatesList()}.
+	 * @param modulesFile The PRISM model
+	 * @param justReach If true, just build the reachable state set, not the model
+	 * @param buildSparse Build a sparse version of the model (if possible)?
+	 * @param distinguishActions True if the distributions with different action should be added to the model as separate ones.
+	 */
+	public Model constructModel(ModulesFile modulesFile, boolean justReach, boolean buildSparse, boolean distinguishActions) throws PrismException
 	{
 		// Model info
 		ModelType modelType;
@@ -201,8 +215,12 @@ public class ConstructModel
 				}
 				if (!justReach) {
 					if (modelType == ModelType.MDP) {
-						k = mdp.addChoice(src, distr);
-						mdp.setAction(src, k, engine.getTransitionAction(i, 0));
+						if (distinguishActions) {
+							k = mdp.addActionLabelledChoice(src, distr, engine.getTransitionAction(i, 0));
+							mdp.setAction(src, k, engine.getTransitionAction(i, 0));
+						} else {
+							k = mdp.addChoice(src, distr);
+						}
 					} else if (modelType == ModelType.CTMDP) {
 						ctmdp.addChoice(src, distr);
 					}

@@ -272,6 +272,7 @@ public class SimulatorEngine
 		switch (modelType) {
 		case DTMC:
 		case MDP:
+		case PTA:
 			// Pick a random choice
 			i = rng.randomUnifInt(numChoices);
 			choice = transitionList.getChoice(i);
@@ -596,9 +597,9 @@ public class SimulatorEngine
 		this.mfConstants = modulesFile.getConstantValues();
 
 		// Check for PTAs
-		if (modulesFile.getModelType() == ModelType.PTA) {
+		/*if (modulesFile.getModelType() == ModelType.PTA) {
 			throw new PrismException("Sorry - the simulator does not currently support PTAs");
-		}
+		}*/
 
 		// Check for presence of system...endsystem
 		if (modulesFile.getSystemDefn() != null) {
@@ -1352,7 +1353,7 @@ public class SimulatorEngine
 		for (int i = 0; i < n; i++) {
 			definedPFConstants = undefinedConstants.getPFConstantValues();
 			pfcs[i] = definedPFConstants;
-			propertiesFile.setUndefinedConstants(definedPFConstants);
+			propertiesFile.setSomeUndefinedConstants(definedPFConstants);
 			try {
 				checkPropertyForSimulation(expr);
 				indices[i] = addProperty(expr, propertiesFile);
