@@ -35,6 +35,7 @@ import explicit.rewards.MDPRewards;
 import parser.State;
 import prism.ModelType;
 import prism.PrismException;
+import prism.PrismLog;
 import prism.PrismUtils;
 
 /**
@@ -466,33 +467,26 @@ public class MDPSparse extends ModelSparse implements MDP
 	}
 
 	@Override
-	public void exportToPrismExplicitTra(String filename) throws PrismException
+	public void exportToPrismExplicitTra(PrismLog out) throws PrismException
 	{
 		// Note: In PRISM .tra files, transitions are usually sorted by column index within choices
 		// (to ensure this is the case, you may need to sort the model when constructing)
 		int i, j, k, l1, h1, l2, h2;
 		Object action;
-		FileWriter out;
-		try {
-			// Output transitions to .tra file
-			out = new FileWriter(filename);
-			out.write(numStates + " " + numDistrs + " " + numTransitions + "\n");
-			for (i = 0; i < numStates; i++) {
-				l1 = rowStarts[i];
-				h1 = rowStarts[i + 1];
-				for (j = l1; j < h1; j++) {
-					l2 = choiceStarts[j];
-					h2 = choiceStarts[j + 1];
-					for (k = l2; k < h2; k++) {
-						out.write(i + " " + (j - l1) + " " + cols[k] + " " + PrismUtils.formatDouble(nonZeros[k]));
-						action = getAction(i, j - l1);
-						out.write(action == null ? "\n" : (" " + action + "\n"));
-					}
+		// Output transitions to .tra file
+		out.print(numStates + " " + numDistrs + " " + numTransitions + "\n");
+		for (i = 0; i < numStates; i++) {
+			l1 = rowStarts[i];
+			h1 = rowStarts[i + 1];
+			for (j = l1; j < h1; j++) {
+				l2 = choiceStarts[j];
+				h2 = choiceStarts[j + 1];
+				for (k = l2; k < h2; k++) {
+					out.print(i + " " + (j - l1) + " " + cols[k] + " " + PrismUtils.formatDouble(nonZeros[k]));
+					action = getAction(i, j - l1);
+					out.print(action == null ? "\n" : (" " + action + "\n"));
 				}
 			}
-			out.close();
-		} catch (IOException e) {
-			throw new PrismException("Could not export " + getModelType() + " to file \"" + filename + "\"" + e);
 		}
 	}
 

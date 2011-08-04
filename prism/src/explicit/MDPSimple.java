@@ -35,6 +35,7 @@ import explicit.rewards.MDPRewards;
 import explicit.rewards.MDPRewardsSimple;
 import prism.ModelType;
 import prism.PrismException;
+import prism.PrismLog;
 import prism.PrismUtils;
 
 /**
@@ -540,38 +541,31 @@ public class MDPSimple extends ModelSimple implements MDP
 	}
 
 	@Override
-	public void exportToPrismExplicitTra(String filename) throws PrismException
+	public void exportToPrismExplicitTra(PrismLog out) throws PrismException
 	{
 		int i, j;
 		Object action;
-		FileWriter out;
 		TreeMap<Integer, Double> sorted;
-		try {
-			// Output transitions to .tra file
-			out = new FileWriter(filename);
-			out.write(numStates + " " + numDistrs + " " + numTransitions + "\n");
-			sorted = new TreeMap<Integer, Double>();
-			for (i = 0; i < numStates; i++) {
-				j = -1;
-				for (Distribution distr : trans.get(i)) {
-					j++;
-					// Extract transitions and sort by destination state index (to match PRISM-exported files)
-					for (Map.Entry<Integer, Double> e : distr) {
-						sorted.put(e.getKey(), e.getValue());
-					}
-					// Print out (sorted) transitions
-					for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
-						// Note use of PrismUtils.formatDouble to match PRISM-exported files
-						out.write(i + " " + j + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()));
-						action = getAction(i, j);
-						out.write(action == null ? "\n" : (" " + action + "\n"));
-					}
-					sorted.clear();
+		// Output transitions to .tra file
+		out.print(numStates + " " + numDistrs + " " + numTransitions + "\n");
+		sorted = new TreeMap<Integer, Double>();
+		for (i = 0; i < numStates; i++) {
+			j = -1;
+			for (Distribution distr : trans.get(i)) {
+				j++;
+				// Extract transitions and sort by destination state index (to match PRISM-exported files)
+				for (Map.Entry<Integer, Double> e : distr) {
+					sorted.put(e.getKey(), e.getValue());
 				}
+				// Print out (sorted) transitions
+				for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
+					// Note use of PrismUtils.formatDouble to match PRISM-exported files
+					out.print(i + " " + j + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()));
+					action = getAction(i, j);
+					out.print(action == null ? "\n" : (" " + action + "\n"));
+				}
+				sorted.clear();
 			}
-			out.close();
-		} catch (IOException e) {
-			throw new PrismException("Could not export " + getModelType() + " to file \"" + filename + "\"" + e);
 		}
 	}
 

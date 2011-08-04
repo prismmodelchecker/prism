@@ -26,12 +26,14 @@
 
 package explicit;
 
+import java.io.File;
 import java.util.*;
 
 import parser.State;
 import parser.Values;
 import prism.ModelType;
 import prism.PrismException;
+import prism.PrismLog;
 
 /**
  * Interface for (abstract) classes that provide (read-only) access to an explicit-state model.
@@ -144,8 +146,18 @@ public interface Model
 	/**
 	 * Export transition matrix to explicit format readable by PRISM (i.e. a .tra file).
 	 */
-	public void exportToPrismExplicitTra(String traFilename) throws PrismException;
+	public void exportToPrismExplicitTra(String filename) throws PrismException;
 
+	/**
+	 * Export transition matrix to explicit format readable by PRISM (i.e. a .tra file).
+	 */
+	public void exportToPrismExplicitTra(File file) throws PrismException;
+	
+	/**
+	 * Export transition matrix to explicit format readable by PRISM (i.e. a .tra file).
+	 */
+	public void exportToPrismExplicitTra(PrismLog log) throws PrismException;
+	
 	/**
 	 * Export to a dot file.
 	 */

@@ -26,6 +26,7 @@
 
 package explicit;
 
+import java.io.File;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -34,6 +35,7 @@ import parser.State;
 import parser.Values;
 import prism.ModelType;
 import prism.PrismException;
+import prism.PrismLog;
 
 /**
 * Simple explicit-state representation of a DTMC, constructed (implicitly) as the uniformised DTMC of a CTMC.
@@ -172,6 +174,16 @@ public class DTMCUniformisedSimple implements DTMC
 	}
 
 	public void exportToPrismExplicitTra(String filename) throws PrismException
+	{
+		throw new PrismException("Export not yet supported");
+	}
+
+	public void exportToPrismExplicitTra(File file) throws PrismException
+	{
+		throw new PrismException("Export not yet supported");
+	}
+
+	public void exportToPrismExplicitTra(PrismLog out) throws PrismException
 	{
 		throw new PrismException("Export not yet supported");
 	}

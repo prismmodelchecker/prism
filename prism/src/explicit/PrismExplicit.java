@@ -87,6 +87,54 @@ public class PrismExplicit
 	}
 
 	/**
+	 * Export a model's transition matrix to a file (or to the log)
+	 * @param model The model
+	 * @param ordered Ensure that (source) states are in ascending order?
+	 * @param exportType Type of export; one of: <ul>
+	 * <li> {@link #EXPORT_PLAIN} 
+	 * <li> {@link #EXPORT_MATLAB}
+	 * <li> {@link #EXPORT_DOT}
+	 * <li> {@link #EXPORT_MRMC}
+	 * <li> {@link #EXPORT_MRMC}
+	 * <li> {@link #EXPORT_DOT_STATES}
+	 * </ul>
+	 * @param file File to export to (if null, print to the log instead)
+	 */
+	public void exportTransToFile(Model model, boolean ordered, int exportType, File file) throws FileNotFoundException, PrismException
+	{
+		// can only do ordered version of export for explicit engine
+		if (!ordered) {
+			mainLog.println("\nWarning: Cannot export unordered transition matrix with the explicit engine; using ordered.");
+			ordered = true;
+		}
+		// print message
+		mainLog.print("\nExporting transition matrix ");
+		switch (exportType) {
+		case Prism.EXPORT_PLAIN: mainLog.print("in plain text format "); break;
+		case Prism.EXPORT_MATLAB: mainLog.print("in Matlab format "); break;
+		case Prism.EXPORT_DOT: mainLog.print("in Dot format "); break;
+		case Prism.EXPORT_MRMC: mainLog.print("in MRMC format "); break;
+		case Prism.EXPORT_ROWS: mainLog.print("in rows format "); break;
+		case Prism.EXPORT_DOT_STATES: mainLog.print("in Dot format (with states) "); break;
+		}
+		if (file != null) mainLog.println("to file \"" + file + "\"..."); else mainLog.println("below:");
+		PrismLog tmpLog = getPrismLogForFile(file);
+		
+		// do export
+		switch (exportType) {
+		case Prism.EXPORT_PLAIN:
+			model.exportToPrismExplicitTra(tmpLog);
+			break;
+		case Prism.EXPORT_MATLAB:
+		case Prism.EXPORT_DOT:
+		case Prism.EXPORT_MRMC:
+		case Prism.EXPORT_ROWS:
+		case Prism.EXPORT_DOT_STATES:
+			throw new PrismException("Export not yet supported"); // TODO
+		}
+	}
+
+	/**
 	 * Perform model checking of a property on a model and return result.
 	 * @param model The model
 	 * @param modulesFile Original model file (for rewards/...) (optional; null if not needed)
@@ -311,6 +359,26 @@ public class PrismExplicit
 		// tidy up
 		probs.clear();
 		if (fileOut != null) tmpLog.close();
+	}
+	
+	/**
+	 * Either create a new PrismFileLog for {@code file} or,
+	 * if {@code file} is null, return {@code mainLog}.
+	 * Throws a {@code PrismException} if there is a problem opening the file.
+	 */
+	private PrismLog getPrismLogForFile(File file) throws PrismException
+	{
+		// create new file log or use main log
+		PrismLog tmpLog;
+		if (file != null) {
+			tmpLog = new PrismFileLog(file.getPath());
+			if (!tmpLog.ready()) {
+				throw new PrismException("Could not open file \"" + file + "\" for output");
+			}
+		} else {
+			tmpLog = mainLog;
+		}
+		return tmpLog;
 	}
 	
 	/**

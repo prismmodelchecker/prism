@@ -33,6 +33,7 @@ import java.io.*;
 import explicit.rewards.STPGRewards;
 import prism.ModelType;
 import prism.PrismException;
+import prism.PrismLog;
 import prism.PrismUtils;
 
 /**
@@ -354,39 +355,32 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 	}
 
 	@Override
-	public void exportToPrismExplicitTra(String filename) throws PrismException
+	public void exportToPrismExplicitTra(PrismLog out) throws PrismException
 	{
 		int i, j, k;
-		FileWriter out;
 		TreeMap<Integer, Double> sorted;
-		try {
-			// Output transitions to .tra file
-			out = new FileWriter(filename);
-			out.write(numStates + " " + numDistrSets + " " + numDistrs + " " + numTransitions + "\n");
-			sorted = new TreeMap<Integer, Double>();
-			for (i = 0; i < numStates; i++) {
-				j = -1;
-				for (DistributionSet distrs : trans.get(i)) {
-					j++;
-					k = -1;
-					for (Distribution distr : distrs) {
-						k++;
-						// Extract transitions and sort by destination state index (to match PRISM-exported files)
-						for (Map.Entry<Integer, Double> e : distr) {
-							sorted.put(e.getKey(), e.getValue());
-						}
-						// Print out (sorted) transitions
-						for (Map.Entry<Integer, Double> e : distr) {
-							// Note use of PrismUtils.formatDouble to match PRISM-exported files
-							out.write(i + " " + j + " " + k + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()) + "\n");
-						}
-						sorted.clear();
+		// Output transitions to .tra file
+		out.print(numStates + " " + numDistrSets + " " + numDistrs + " " + numTransitions + "\n");
+		sorted = new TreeMap<Integer, Double>();
+		for (i = 0; i < numStates; i++) {
+			j = -1;
+			for (DistributionSet distrs : trans.get(i)) {
+				j++;
+				k = -1;
+				for (Distribution distr : distrs) {
+					k++;
+					// Extract transitions and sort by destination state index (to match PRISM-exported files)
+					for (Map.Entry<Integer, Double> e : distr) {
+						sorted.put(e.getKey(), e.getValue());
 					}
+					// Print out (sorted) transitions
+					for (Map.Entry<Integer, Double> e : distr) {
+						// Note use of PrismUtils.formatDouble to match PRISM-exported files
+						out.print(i + " " + j + " " + k + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()) + "\n");
+					}
+					sorted.clear();
 				}
 			}
-			out.close();
-		} catch (IOException e) {
-			throw new PrismException("Could not export " + getModelType() + " to file \"" + filename + "\"" + e);
 		}
 	}
 

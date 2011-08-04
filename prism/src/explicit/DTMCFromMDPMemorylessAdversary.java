@@ -26,6 +26,7 @@
 
 package explicit;
 
+import java.io.File;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -34,6 +35,7 @@ import parser.State;
 import parser.Values;
 import prism.ModelType;
 import prism.PrismException;
+import prism.PrismLog;
 
 /**
  * Explicit-state representation of a DTMC, constructed (implicitly)
@@ -154,6 +156,16 @@ public class DTMCFromMDPMemorylessAdversary implements DTMC
 	}
 
 	public void exportToPrismExplicitTra(String filename) throws PrismException
+	{
+		throw new PrismException("Export not yet supported");
+	}
+
+	public void exportToPrismExplicitTra(File file) throws PrismException
+	{
+		throw new PrismException("Export not yet supported");
+	}
+
+	public void exportToPrismExplicitTra(PrismLog out) throws PrismException
 	{
 		throw new PrismException("Export not yet supported");
 	}

@@ -33,6 +33,7 @@ import java.io.*;
 import explicit.rewards.*;
 import prism.ModelType;
 import prism.PrismException;
+import prism.PrismLog;
 import prism.PrismUtils;
 
 /**
@@ -273,37 +274,24 @@ public class DTMCSimple extends ModelSimple implements DTMC
 	}
 
 	@Override
-	public void exportToPrismExplicit(String baseFilename) throws PrismException
-	{
-		exportToPrismExplicitTra(baseFilename + ".tra");
-	}
-
-	@Override
-	public void exportToPrismExplicitTra(String filename) throws PrismException
+	public void exportToPrismExplicitTra(PrismLog out) throws PrismException
 	{
 		int i;
-		FileWriter out;
 		TreeMap<Integer, Double> sorted;
-		try {
-			// Output transitions to .tra file
-			out = new FileWriter(filename);
-			out.write(numStates + " " + numTransitions + "\n");
-			sorted = new TreeMap<Integer, Double>();
-			for (i = 0; i < numStates; i++) {
-				// Extract transitions and sort by destination state index (to match PRISM-exported files)
-				for (Map.Entry<Integer, Double> e : trans.get(i)) {
-					sorted.put(e.getKey(), e.getValue());
-				}
-				// Print out (sorted) transitions
-				for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
-					// Note use of PrismUtils.formatDouble to match PRISM-exported files
-					out.write(i + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()) + "\n");
-				}
-				sorted.clear();
+		// Output transitions to .tra file
+		out.print(numStates + " " + numTransitions + "\n");
+		sorted = new TreeMap<Integer, Double>();
+		for (i = 0; i < numStates; i++) {
+			// Extract transitions and sort by destination state index (to match PRISM-exported files)
+			for (Map.Entry<Integer, Double> e : trans.get(i)) {
+				sorted.put(e.getKey(), e.getValue());
 			}
-			out.close();
-		} catch (IOException e) {
-			throw new PrismException("Could not export " + getModelType() + " to file \"" + filename + "\"" + e);
+			// Print out (sorted) transitions
+			for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
+				// Note use of PrismUtils.formatDouble to match PRISM-exported files
+				out.print(i + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()) + "\n");
+			}
+			sorted.clear();
 		}
 	}
 
