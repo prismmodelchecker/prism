@@ -422,6 +422,10 @@ public class MDPSimple extends ModelSimple implements MDP
 		}
 		set = trans.get(s);
 		set.add(distr);
+		// Add null action if necessary
+		if (actions != null && actions.get(s) != null)
+			actions.get(s).add(null);
+		// Set action
 		setAction(s, set.size() - 1, action);
 		// Update stats
 		numDistrs++;
