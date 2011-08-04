@@ -1199,7 +1199,7 @@ public class Prism implements PrismSettingsListener
 	{ exportTransToFile(model, ordered, exportType, file); }
 	
 	/**
-	 * Export a model's transition matrix to a file
+	 * Export a model's transition matrix to a file (or to the log)
 	 * @param model The model
 	 * @param ordered Ensure that (source) states are in ascending order?
 	 * @param exportType Type of export; one of: <ul>
@@ -1210,7 +1210,7 @@ public class Prism implements PrismSettingsListener
 	 * <li> {@link #EXPORT_MRMC}
 	 * <li> {@link #EXPORT_DOT_STATES}
 	 * </ul>
-	 * @param file File to export to 
+	 * @param file File to export to (if null, print to the log instead)
 	 */
 	public void exportTransToFile(Model model, boolean ordered, int exportType, File file) throws FileNotFoundException, PrismException
 	{
