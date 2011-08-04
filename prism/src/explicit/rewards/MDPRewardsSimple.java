@@ -57,7 +57,22 @@ public class MDPRewardsSimple implements MDPRewards
 	// Mutators
 	
 	/**
-	 * Set the reward for choice {@code i} of state {@code s} to {@code r}.
+	 * Set the state reward for state {@code s} to {@code r}.
+	 */
+	public void setStateReward(int s, double r)
+	{
+		// If no rewards array created yet, create it
+		if (stateRewards == null) {
+			stateRewards = new ArrayList<Double>(numStates);
+			for (int j = 0; j < numStates; j++)
+				stateRewards.add(0.0);
+		}
+		// Set reward
+		stateRewards.set(s, r);
+	}
+
+	/**
+	 * Set the transition reward for choice {@code i} of state {@code s} to {@code r}.
 	 */
 	public void setTransitionReward(int s, int i, double r)
 	{

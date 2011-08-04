@@ -191,14 +191,15 @@ public class ProbModelChecker extends StateModelChecker
 		if (rewStruct == null)
 			throw new PrismException("Invalid reward structure index \"" + rs + "\"");
 
-		// Build rewards (just MCs for now)
+		// Build rewards
+		ConstructRewards constructRewards = new ConstructRewards(mainLog);
 		switch (modelType) {
 		case CTMC:
 		case DTMC:
-			mcRewards = buildMCRewardStructure(model, rewStruct);
+			mcRewards = constructRewards.buildMCRewardStructure(model, rewStruct, constantValues);
 			break;
 		case MDP:
-			mdpRewards = buildMDPRewardStructure((MDP) model, rewStruct);
+			mdpRewards = constructRewards.buildMDPRewardStructure((MDP) model, rewStruct, constantValues);
 			break;
 		default:
 			throw new PrismException("Cannot build rewards for " + modelType + "s");
@@ -228,86 +229,5 @@ public class ProbModelChecker extends StateModelChecker
 
 		// For =? properties, just return values
 		return rews;
-	}
-	
-	private MCRewards buildMCRewardStructure(Model model, RewardStruct rewStr) throws PrismException
-	{
-		//MCRewards modelRewards = null;
-		List<State> statesList;
-		Expression guard;
-		int i, j, n, numStates;
-		
-		switch (model.getModelType()) {
-		case CTMC:
-		case DTMC:
-			if (rewStr.getNumTransItems() > 0) {
-				throw new PrismException("Explicit engine does not yet handle transition rewards for D/CTMCs");
-			}
-			// Special case: constant rewards
-			if (rewStr.getNumStateItems() == 1 && Expression.isTrue(rewStr.getStates(0)) && rewStr.getReward(0).isConstant()) {
-				return new MCRewardsStateConstant(rewStr.getReward(0).evaluateDouble(constantValues));
-			}
-			// Normal: state rewards
-			else {
-				numStates = model.getNumStates();
-				statesList = model.getStatesList();
-				MCRewardsStateArray rewSA = new MCRewardsStateArray(numStates);
-				n = rewStr.getNumItems();
-				for (i = 0; i < n; i++) {
-					guard = rewStr.getStates(i);
-					for (j = 0; j < numStates; j++) {
-						if (guard.evaluateBoolean(constantValues, statesList.get(j))) {
-							rewSA.setStateReward(j, rewStr.getReward(i).evaluateDouble(constantValues, statesList.get(j)));
-						}
-					}
-				}
-				return rewSA;
-			}
-			//break;
-		default:
-			throw new PrismException("Cannot build rewards for " + model.getModelType() + "s");
-		}
-	}
-	
-	private MDPRewards buildMDPRewardStructure(MDP mdp, RewardStruct rewStr) throws PrismException
-	{
-		//MCRewards modelRewards = null;
-		List<State> statesList;
-		Expression guard;
-		String action;
-		Object mdpAction;
-		int i, j, k, n, numStates, numChoices;
-
-		if (rewStr.getNumStateItems() > 0) {
-			throw new PrismException("Explicit engine does not yet handle state rewards for MDPs");
-		}
-		// Special case: constant rewards
-		// TODO
-		/*if (rewStr.getNumStateItems() == 1 && Expression.isTrue(rewStr.getStates(0)) && rewStr.getReward(0).isConstant()) {
-			return new MCRewardsStateConstant(rewStr.getReward(0).evaluateDouble(constantValues));
-		}*/
-		// Normal: transition rewards
-		else {
-			numStates = mdp.getNumStates();
-			statesList = mdp.getStatesList();
-			MDPRewardsSimple rewSimple = new MDPRewardsSimple(numStates);
-			n = rewStr.getNumItems();
-			for (i = 0; i < n; i++) {
-				guard = rewStr.getStates(i);
-				action = rewStr.getSynch(i);
-				for (j = 0; j < numStates; j++) {
-					if (guard.evaluateBoolean(constantValues, statesList.get(j))) {
-						numChoices = mdp.getNumChoices(j);
-						for (k = 0; k < numChoices; k++) {
-							mdpAction = mdp.getAction(j, k); 
-							if (mdpAction == null ? (action == null) : mdpAction.equals(action)) {
-								rewSimple.setTransitionReward(j, k, rewStr.getReward(i).evaluateDouble(constantValues, statesList.get(j)));
-							}
-						}
-					}
-				}
-			}
-			return rewSimple;
-		}
 	}
 }
