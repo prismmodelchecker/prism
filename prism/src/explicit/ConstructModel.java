@@ -96,7 +96,7 @@ public class ConstructModel
 	 * @param modulesFile The PRISM model
 	 * @param justReach If true, just build the reachable state set, not the model
 	 * @param buildSparse Build a sparse version of the model (if possible)?
-	 * @param distinguishActions True if the distributions with different action should be added to the model as separate ones.
+	 * @param distinguishActions True if actions should be attached to distributions (and used to distinguish them)
 	 */
 	public Model constructModel(ModulesFile modulesFile, boolean justReach, boolean buildSparse, boolean distinguishActions) throws PrismException
 	{
@@ -217,7 +217,6 @@ public class ConstructModel
 					if (modelType == ModelType.MDP) {
 						if (distinguishActions) {
 							k = mdp.addActionLabelledChoice(src, distr, engine.getTransitionAction(i, 0));
-							mdp.setAction(src, k, engine.getTransitionAction(i, 0));
 						} else {
 							k = mdp.addChoice(src, distr);
 						}
