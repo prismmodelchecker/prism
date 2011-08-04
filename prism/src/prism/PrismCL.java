@@ -832,7 +832,11 @@ public class PrismCL
 		if (exporttrans) {
 			try {
 				File f = (exportTransFilename.equals("stdout")) ? null : new File(exportTransFilename);
-				prism.exportTransToFile(model, exportordered, exportType, f);
+				if (explicit) {
+					prismExpl.exportTransToFile(modelExpl, exportordered, exportType, f);
+				} else {
+					prism.exportTransToFile(model, exportordered, exportType, f);
+				}
 			}
 			// in case of error, report it and proceed
 			catch (FileNotFoundException e) {
