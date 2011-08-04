@@ -106,6 +106,8 @@ public class MDPRewardsSimple implements MDPRewards
 	@Override
 	public double getStateReward(int s)
 	{
+		if (stateRewards == null)
+			return 0.0;
 		return stateRewards.get(s);
 	}
 	
