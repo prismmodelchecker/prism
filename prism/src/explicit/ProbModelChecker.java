@@ -196,7 +196,7 @@ public class ProbModelChecker extends StateModelChecker
 		switch (modelType) {
 		case CTMC:
 		case DTMC:
-			mcRewards = constructRewards.buildMCRewardStructure(model, rewStruct, constantValues);
+			mcRewards = constructRewards.buildMCRewardStructure((DTMC) model, rewStruct, constantValues);
 			break;
 		case MDP:
 			mdpRewards = constructRewards.buildMDPRewardStructure((MDP) model, rewStruct, constantValues);

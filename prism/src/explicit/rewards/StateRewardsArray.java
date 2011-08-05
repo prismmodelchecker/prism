@@ -27,9 +27,9 @@
 package explicit.rewards;
 
 /**
- * Explicit-state storage of just state rewards for a DTMC/CTMC (as an array).
+ * Explicit-state storage of just state rewards (as an array).
  */
-public class MCRewardsStateArray implements MCRewards, MDPRewards
+public class StateRewardsArray implements MCRewards, MDPRewards
 {
 	/** Array of state rewards **/
 	protected double stateRewards[] = null;
@@ -38,7 +38,7 @@ public class MCRewardsStateArray implements MCRewards, MDPRewards
 	 * Constructor: all zero rewards.
 	 * @param numStates Number of states
 	 */
-	public MCRewardsStateArray(int numStates)
+	public StateRewardsArray(int numStates)
 	{
 		stateRewards = new double[numStates];
 		for (int i = 0; i < numStates; i++)

@@ -31,7 +31,7 @@ import java.util.*;
 import jdd.JDD;
 
 import explicit.rewards.MCRewards;
-import explicit.rewards.MCRewardsStateArray;
+import explicit.rewards.StateRewardsArray;
 import parser.ast.*;
 import parser.type.*;
 import prism.*;
@@ -374,7 +374,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 		DTMC dtmcEmb = ((CTMC) dtmc).buildImplicitEmbeddedDTMC();
 		// Convert rewards
 		n = dtmc.getNumStates();
-		MCRewardsStateArray rewEmb = new MCRewardsStateArray(n);
+		StateRewardsArray rewEmb = new StateRewardsArray(n);
 		for (i = 0; i < n; i++) {
 			rewEmb.setStateReward(i, mcRewards.getStateReward(i) / ((CTMC) dtmc).getExitRate(i));
 		}

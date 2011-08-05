@@ -35,8 +35,7 @@ import parser.ast.RewardStruct;
 import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLog;
-import explicit.MDP;
-import explicit.Model;
+import explicit.*;
 
 public class ConstructRewards
 {
@@ -54,17 +53,18 @@ public class ConstructRewards
 
 	/**
 	 * Construct the rewards for a Markov chain (DTMC or CTMC) from a model and reward structure. 
-	 * @param model The DTMC or CTMC
+	 * @param mc The DTMC or CTMC
 	 * @param rewStr The reward structure
 	 * @param constantValues Values for any undefined constants needed
 	 */
-	public MCRewards buildMCRewardStructure(Model model, RewardStruct rewStr, Values constantValues) throws PrismException
+	public MCRewards buildMCRewardStructure(DTMC mc, RewardStruct rewStr, Values constantValues) throws PrismException
 	{
 		List<State> statesList;
 		Expression guard;
 		int i, j, n, numStates;
 
 		if (rewStr.getNumTransItems() > 0) {
+			// TODO
 			throw new PrismException("Explicit engine does not yet handle transition rewards for D/CTMCs");
 		}
 		// Special case: constant rewards
@@ -73,9 +73,9 @@ public class ConstructRewards
 		}
 		// Normal: state rewards
 		else {
-			numStates = model.getNumStates();
-			statesList = model.getStatesList();
-			MCRewardsStateArray rewSA = new MCRewardsStateArray(numStates);
+			numStates = mc.getNumStates();
+			statesList = mc.getStatesList();
+			StateRewardsArray rewSA = new StateRewardsArray(numStates);
 			n = rewStr.getNumItems();
 			for (i = 0; i < n; i++) {
 				guard = rewStr.getStates(i);
@@ -90,8 +90,8 @@ public class ConstructRewards
 	}
 
 	/**
-	 * Construct the rewards for a Markov chain (DTMC or CTMC) from a model and reward structure. 
-	 * @param model The DTMC or CTMC
+	 * Construct the rewards for an MDP from a model and reward structure. 
+	 * @param model The MDP
 	 * @param rewStr The reward structure
 	 * @param constantValues Values for any undefined constants needed
 	 */
