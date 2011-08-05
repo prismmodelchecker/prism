@@ -26,6 +26,10 @@
 
 package explicit.rewards;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.List;
 
 import parser.State;
@@ -157,5 +161,87 @@ public class ConstructRewards
 			}
 			return rewSimple;
 		}
+	}
+
+	/**
+	 * Construct the rewards for an MDP from files exported explicitly by PRISM.
+	 * @param model The MDP
+	 * @param rews The file containing state rewards (ignored if null)
+	 * @param rewt The file containing transition rewards (ignored if null)
+	 */
+	public MDPRewards buildMDPRewardsFromPrismExplicit(MDP mdp, File rews, File rewt) throws PrismException
+	{
+		BufferedReader in;
+		String s, ss[];
+		int i, j, lineNum = 0;
+		double reward;
+		MDPRewardsSimple rs = new MDPRewardsSimple(mdp.getNumStates());
+
+		try {
+			if (rews != null) {
+				// Open rews file
+				in = new BufferedReader(new FileReader(rews));
+				// Ignore first line (num states)
+				s = in.readLine();
+				lineNum = 1;
+				if (s == null)
+					throw new PrismException("Missing first line of .rews file");
+				// Go though list of transitions in file
+				s = in.readLine();
+				lineNum++;
+				while (s != null) {
+					s = s.trim();
+					if (s.length() > 0) {
+						ss = s.split(" ");
+						i = Integer.parseInt(ss[0]);
+						reward = Double.parseDouble(ss[1]);
+						rs.setStateReward(i, reward);
+					}
+					s = in.readLine();
+					lineNum++;
+				}
+				// Close file
+				in.close();
+			}
+		} catch (IOException e) {
+			throw new PrismException("Could not read rewards from file \"" + rewt + "\"" + e);
+		} catch (NumberFormatException e) {
+			throw new PrismException("Problem in .rewt file (line " + lineNum + ") for MDP");
+		}
+
+		try {
+			if (rewt != null) {
+				// Open rewt file
+				in = new BufferedReader(new FileReader(rewt));
+				// Ignore first line (num states)
+				s = in.readLine();
+				lineNum = 1;
+				if (s == null)
+					throw new PrismException("Missing first line of .rewt file");
+				// Go though list of transitions in file
+				s = in.readLine();
+				lineNum++;
+				while (s != null) {
+					s = s.trim();
+					if (s.length() > 0) {
+						ss = s.split(" ");
+						i = Integer.parseInt(ss[0]);
+						j = Integer.parseInt(ss[1]);
+						reward = Double.parseDouble(ss[2]);
+						rs.setTransitionReward(i, j, reward);
+					}
+					s = in.readLine();
+					lineNum++;
+				}
+				// Close file
+				in.close();
+			}
+		} catch (IOException e) {
+			throw new PrismException("Could not read transition rewards from file \"" + rewt + "\"" + e);
+		} catch (NumberFormatException e) {
+			throw new PrismException("Problem in .rewt file (line " + lineNum + ") for MDP");
+		}
+
+		return rs;
 	}
 }
