@@ -37,19 +37,19 @@ import explicit.rewards.*;
 public interface MDP extends Model
 {
 	/**
-	 * Get the number of transitions from choice i of state s.
+	 * Get the number of transitions from choice {@code i} of state {@code s}.
 	 */
-	public double getNumTransitions(int s, int i);
+	public int getNumTransitions(int s, int i);
 
 	/**
-	 * Get an iterator over the transitions from choice i of state s.
-	 */
-	public Iterator<Entry<Integer,Double>> getTransitionsIterator(int s, int i);
-
-	/**
-	 * Get the action label (if any) for choice i of state s.
+	 * Get the action label (if any) for choice {@code i} of state {@code s}.
 	 */
 	public Object getAction(int s, int i);
+
+	/**
+	 * Get an iterator over the transitions from choice {@code i} of state {@code s}.
+	 */
+	public Iterator<Entry<Integer,Double>> getTransitionsIterator(int s, int i);
 
 	/**
 	 * Perform a single step of precomputation algorithm Prob0, i.e., for states i in {@code subset},
