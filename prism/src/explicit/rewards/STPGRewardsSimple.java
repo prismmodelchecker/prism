@@ -164,7 +164,7 @@ public class STPGRewardsSimple extends MDPRewardsSimple implements STPGRewards
 	{
 		List<List<Double>> list1;
 		List<Double> list2;
-		if (nestedTransRewards1 == null || (list1 = nestedTransRewards2.get(s)) == null)
+		if (nestedTransRewards2 == null || (list1 = nestedTransRewards2.get(s)) == null)
 			return 0.0;
 		if (list1.size() <= i || (list2 = list1.get(i)) == null)
 			return 0.0;
