@@ -83,7 +83,7 @@ public class MDPRewardsSimple implements MDPRewards
 			for (int j = 0; j < numStates; j++)
 				transRewards.add(null);
 		}
-		// If no rewards for state i yet, create list
+		// If no rewards for state s yet, create list
 		if (transRewards.get(s) == null) {
 			list = new ArrayList<Double>();
 			transRewards.set(s, list);

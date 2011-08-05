@@ -28,52 +28,29 @@
 package explicit.rewards;
 
 /**
- * Class that provide access to explicit-state rewards for an abstraction STPG.
- * 
- * There are two type of rewards. Ones are on distribution sets and correspond
- * to state rewards in the MDP (SUPPORT FOR THESE IS CURRENTLY NOT IMPLEMENTED).
- * The others are on Distributions and correspond to transition rewards. Because
- * each of the distributions may abstract several concrete distributions, it can
- * have multiple rewards. The number of different rewards for each distribution
- * can be obtained using {@link #getTransitionRewardCount(int, int, int)}, 
- * the rewards itself are then obtained using {@link #getTransitionReward(int, int, int, int)} 
- * 
- * 
- * 
+ * Classes that provide (read) access to explicit-state rewards for an STPG.
+ * See the {@link explicit.STPG} interface for details of the accompanying model,
+ * in particular, for an explanation of nested transitions. 
  */
 public interface STPGRewards extends Rewards
 {
 	/**
-	 * Returns the reward associated with {@code ds}th distribution for the state {@code s}.
+	 * Get the state reward for state {@code s}.
 	 */
-	public double getDistributionSetReward(int s, int ds);
-
-	/**
-	 * Removes all rewards for DistributionSets and Distributions associated with state {@code s}.
-	 */
-	public void clearRewards(int s);
+	public abstract double getStateReward(int s);
 	
 	/**
-	 * Returns the number of different rewards associated with {@code d}th distribution of
-	 * {@code ds}th distribution set of state {@code s}
-	 * 
-	 * @param s State
-	 * @param ds Distribution set
-	 * @param d Distribution
-	 * @return Number of different rewards associated with the distribution
+	 * Get the transition reward for the {@code i}th choice from state {@code s}.
 	 */
-	public int getTransitionRewardCount(int s, int ds, int d);
+	public abstract double getTransitionReward(int s, int i); 
 	
 	/**
-	 * 
-	 * Returns {@code i}th reward of {@code d}th distribution of
-	 * {@code ds}th distribution set of state {@code s}
-	 * 
-	 * @param s State
-	 * @param ds Distribution set
-	 * @param d Distribution
-	 * @param i Index of the reward to return
-	 * @return The reward.
+	 * Get the transition reward for the {@code i}th nested choice from state {@code s}.
 	 */
-	public double getTransitionReward(int s, int ds, int d, int i); 
+	public abstract double getNestedTransitionReward(int s, int i);
+	
+	/**
+	 * Get the transition reward for the {@code i,j}th nested choice from state {@code s}.
+	 */
+	public abstract double getNestedTransitionReward(int s, int i, int j); 
 }

@@ -715,7 +715,7 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 	@Override
 	public double mvMultRewMinMaxSingle(int s, double vect[], STPGRewards rewards, boolean min1, boolean min2, int adv[])
 	{
-		int dsIter, rewIter, dIter, rewCount, k;
+		int dsIter, dIter, k;
 		double d, prob, minmax1, minmax2;
 		boolean first1, first2;
 		ArrayList<DistributionSet> step;
@@ -728,26 +728,22 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 			dsIter++;
 			minmax2 = 0;
 			first2 = true;
-
 			dIter = -1;
 			for (Distribution distr : distrs) {
 				dIter++;
-				rewCount = rewards.getTransitionRewardCount(s, dsIter, dIter);
-				for (rewIter = 0; rewIter < rewCount; rewIter++) {
-					// Compute sum for this distribution
-					d = rewards.getTransitionReward(s, dsIter, dIter, rewIter);
-
-					for (Map.Entry<Integer, Double> e : distr) {
-						k = (Integer) e.getKey();
-						prob = (Double) e.getValue();
-						d += prob * vect[k];
-					}
-					// Check whether we have exceeded min/max so far
-					if (first2 || (min2 && d < minmax2) || (!min2 && d > minmax2))
-						minmax2 = d;
-					first2 = false;
+				// Compute sum for this distribution
+				d = rewards.getNestedTransitionReward(s, dsIter, dIter);
+				for (Map.Entry<Integer, Double> e : distr) {
+					k = (Integer) e.getKey();
+					prob = (Double) e.getValue();
+					d += prob * vect[k];
 				}
+				// Check whether we have exceeded min/max so far
+				if (first2 || (min2 && d < minmax2) || (!min2 && d > minmax2))
+					minmax2 = d;
+				first2 = false;
 			}
+			minmax2 += rewards.getNestedTransitionReward(s, dsIter);
 			// Check whether we have exceeded min/max so far
 			if (first1 || (min1 && minmax2 < minmax1) || (!min1 && minmax2 > minmax1))
 				minmax1 = minmax2;
@@ -760,7 +756,7 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 	@Override
 	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], STPGRewards rewards, boolean min1, boolean min2, double val)
 	{
-		int dsIter, rewIter, dIter, rewCount, k;
+		int dsIter, dIter, k;
 		double d, prob, minmax2;
 		boolean first2;
 		List<Integer> res;
@@ -775,33 +771,28 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 			dsIter++;
 			minmax2 = 0;
 			first2 = true;
-
 			dIter = -1;
 			for (Distribution distr : distrs) {
 				dIter++;
-
-				rewCount = rewards.getTransitionRewardCount(s, dsIter, dIter);
-				for (rewIter = 0; rewIter < rewCount; rewIter++) {
-					// Compute sum for this distribution
-					d = rewards.getTransitionReward(s, dsIter, dIter, rewIter);
-					for (Map.Entry<Integer, Double> e : distr) {
-						k = (Integer) e.getKey();
-						prob = (Double) e.getValue();
-						d += prob * vect[k];
-					}
-					// Check whether we have exceeded min/max so far
-					if (first2 || (min2 && d < minmax2) || (!min2 && d > minmax2))
-						minmax2 = d;
-					first2 = false;
+				// Compute sum for this distribution
+				d = rewards.getNestedTransitionReward(s, dsIter, dIter);
+				for (Map.Entry<Integer, Double> e : distr) {
+					k = (Integer) e.getKey();
+					prob = (Double) e.getValue();
+					d += prob * vect[k];
 				}
+				// Check whether we have exceeded min/max so far
+				if (first2 || (min2 && d < minmax2) || (!min2 && d > minmax2))
+					minmax2 = d;
+				first2 = false;
 			}
+			minmax2 += rewards.getNestedTransitionReward(s, dsIter);
 			// Store strategy info if value matches
 			//if (PrismUtils.doublesAreClose(val, d, termCritParam, termCrit == TermCrit.ABSOLUTE)) {
 			if (PrismUtils.doublesAreClose(val, minmax2, 1e-12, false)) {
 				res.add(dsIter);
 				//res.add(distrs.getAction());
 			}
-
 		}
 
 		return res;
