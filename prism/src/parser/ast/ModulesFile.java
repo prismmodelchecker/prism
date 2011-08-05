@@ -772,8 +772,8 @@ public class ModulesFile extends ASTElement
 	}
 
 	/**
-	 * Get access to the values assigned to undefined constants in the model,
-	 * as set previously via the method {@link #setUndefinedConstants(Values)}.
+	 * Get access to the values for all constants in the model, including the 
+	 * undefined constants set previously via the method {@link #setUndefinedConstants(Values)}.
 	 * Until they are set for the first time, this method returns null.  
 	 */
 	public Values getConstantValues()

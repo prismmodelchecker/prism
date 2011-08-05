@@ -448,8 +448,8 @@ public class PropertiesFile extends ASTElement
 	}
 	
 	/**
-	 * Get access to the values assigned to constants in the model,
-	 * as set previously via the method {@link #setUndefinedConstants(Values)}
+	 * Get access to the values for all constants in the properties file, including the
+	 * undefined constants set previously via the method {@link #setUndefinedConstants(Values)}
 	 * or {@link #setUndefinedConstants(Values)}. If neither method has been called
 	 * constant values will have been evaluated assuming that there are no undefined constants.
 	 */
