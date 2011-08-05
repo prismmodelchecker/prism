@@ -54,6 +54,9 @@ public class StateRewardsSimple extends StateRewards
 	 */
 	public void setStateReward(int s, double r)
 	{
+		// Nothing to do for zero reward
+		if (r == 0.0)
+			return;
 		// If list not big enough, extend
 		int n = s - stateRewards.size() + 1;
 		if (n > 0) {
