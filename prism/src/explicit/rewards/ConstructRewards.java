@@ -52,6 +52,25 @@ public class ConstructRewards
 	}
 
 	/**
+	 * Construct rewards from a model and reward structure. 
+	 * @param model The model
+	 * @param rewStr The reward structure
+	 * @param constantValues Values for any undefined constants needed
+	 */
+	public Rewards buildRewardStructure(Model model, RewardStruct rewStr, Values constantValues) throws PrismException
+	{
+		switch (model.getModelType()) {
+		case DTMC:
+		case CTMC:
+			return buildMCRewardStructure((DTMC) model, rewStr, constantValues);
+		case MDP:
+			return buildMDPRewardStructure((MDP) model, rewStr, constantValues);
+		default:
+			throw new PrismException("Cannot build rewards for " + model.getModelType() + "s");
+		}
+	}
+
+	/**
 	 * Construct the rewards for a Markov chain (DTMC or CTMC) from a model and reward structure. 
 	 * @param mc The DTMC or CTMC
 	 * @param rewStr The reward structure
