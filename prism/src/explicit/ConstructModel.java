@@ -3,6 +3,7 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//	* Vojtech Forejt <vojtech.forejt@cs.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -88,7 +89,7 @@ public class ConstructModel
 	{
 		return constructModel(modulesFile, justReach, buildSparse, true);
 	}
-	
+
 	/**
 	 * Construct an explicit-state model from a PRISM model language description and return.
 	 * If {@code justReach} is true, no model is built and null is returned;
@@ -115,7 +116,7 @@ public class ConstructModel
 		Model model = null;
 		Distribution distr = null;
 		// Misc
-		int i, j, k, nc, nt, src, dest;
+		int i, j, nc, nt, src, dest;
 		long timer, timerProgress;
 		boolean fixdl = false;
 
@@ -178,6 +179,7 @@ public class ConstructModel
 			// Look at each outgoing choice in turn
 			nc = engine.getNumChoices();
 			for (i = 0; i < nc; i++) {
+
 				if (!justReach && (modelType == ModelType.MDP || modelType == ModelType.CTMDP)) {
 					distr = new Distribution();
 				}
@@ -190,8 +192,9 @@ public class ConstructModel
 						// If so, add to the explore list
 						explore.add(stateNew);
 						// And to model
-						if (!justReach)
+						if (!justReach) {
 							modelSimple.addState();
+						}
 					}
 					// Get index of state in state set
 					dest = states.getIndexOfLastAdd();
@@ -216,15 +219,20 @@ public class ConstructModel
 				if (!justReach) {
 					if (modelType == ModelType.MDP) {
 						if (distinguishActions) {
-							k = mdp.addActionLabelledChoice(src, distr, engine.getTransitionAction(i, 0));
+							mdp.addActionLabelledChoice(src, distr, engine.getTransitionAction(i, 0));
 						} else {
-							k = mdp.addChoice(src, distr);
+							mdp.addChoice(src, distr);
 						}
 					} else if (modelType == ModelType.CTMDP) {
-						ctmdp.addChoice(src, distr);
+						if (distinguishActions) {
+							ctmdp.addActionLabelledChoice(src, distr, engine.getTransitionAction(i, 0));
+						} else {
+							ctmdp.addChoice(src, distr);
+						}
 					}
 				}
 			}
+
 			// Print some progress info occasionally
 			if (System.currentTimeMillis() - timerProgress > 3000) {
 				mainLog.print(" " + (src + 1));
@@ -251,13 +259,13 @@ public class ConstructModel
 
 		boolean sort = true;
 		int permut[] = null;
-		
+
 		if (sort) {
-		// Sort states and convert set to list
-		mainLog.println("Sorting reachable states list...");
-		permut = states.buildSortingPermutation();
-		statesList = states.toPermutedArrayList(permut);
-		//mainLog.println(permut);
+			// Sort states and convert set to list
+			mainLog.println("Sorting reachable states list...");
+			permut = states.buildSortingPermutation();
+			statesList = states.toPermutedArrayList(permut);
+			//mainLog.println(permut);
 		} else {
 			statesList = states.toArrayList();
 		}
