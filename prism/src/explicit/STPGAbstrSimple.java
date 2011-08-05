@@ -722,22 +722,21 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 
 		minmax1 = 0;
 		first1 = true;
-	    dsIter=-1;
+		dsIter = -1;
 		step = trans.get(s);
 		for (DistributionSet distrs : step) {
 			dsIter++;
 			minmax2 = 0;
 			first2 = true;
-	
-			dIter=-1;
+
+			dIter = -1;
 			for (Distribution distr : distrs) {
 				dIter++;
 				rewCount = rewards.getTransitionRewardCount(s, dsIter, dIter);
-				for(rewIter = 0; rewIter<rewCount; rewIter++)
-				{
+				for (rewIter = 0; rewIter < rewCount; rewIter++) {
 					// Compute sum for this distribution
 					d = rewards.getTransitionReward(s, dsIter, dIter, rewIter);
-					
+
 					for (Map.Entry<Integer, Double> e : distr) {
 						k = (Integer) e.getKey();
 						prob = (Double) e.getValue();
@@ -752,10 +751,10 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 			// Check whether we have exceeded min/max so far
 			if (first1 || (min1 && minmax2 < minmax1) || (!min1 && minmax2 > minmax1))
 				minmax1 = minmax2;
-			first1 = false;	
+			first1 = false;
 		}
 
-		return minmax1;		
+		return minmax1;
 	}
 
 	@Override
@@ -780,21 +779,20 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 			dIter = -1;
 			for (Distribution distr : distrs) {
 				dIter++;
-				
+
 				rewCount = rewards.getTransitionRewardCount(s, dsIter, dIter);
-				for(rewIter = 0; rewIter<rewCount; rewIter++)
-				{
-				// Compute sum for this distribution
-				d = rewards.getTransitionReward(s,dsIter,dIter, rewIter);
-				for (Map.Entry<Integer, Double> e : distr) {
-					k = (Integer) e.getKey();
-					prob = (Double) e.getValue();
-					d += prob * vect[k];
-				}
-				// Check whether we have exceeded min/max so far
-				if (first2 || (min2 && d < minmax2) || (!min2 && d > minmax2))
-					minmax2 = d;
-				first2 = false;
+				for (rewIter = 0; rewIter < rewCount; rewIter++) {
+					// Compute sum for this distribution
+					d = rewards.getTransitionReward(s, dsIter, dIter, rewIter);
+					for (Map.Entry<Integer, Double> e : distr) {
+						k = (Integer) e.getKey();
+						prob = (Double) e.getValue();
+						d += prob * vect[k];
+					}
+					// Check whether we have exceeded min/max so far
+					if (first2 || (min2 && d < minmax2) || (!min2 && d > minmax2))
+						minmax2 = d;
+					first2 = false;
 				}
 			}
 			// Store strategy info if value matches
@@ -803,7 +801,7 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 				res.add(dsIter);
 				//res.add(distrs.getAction());
 			}
-			
+
 		}
 
 		return res;
