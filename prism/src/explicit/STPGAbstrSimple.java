@@ -28,6 +28,7 @@
 package explicit;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.io.*;
 
 import explicit.rewards.STPGRewards;
@@ -454,10 +455,84 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 	// Accessors (for STPG)
 
 	@Override
+	public int getPlayer(int s)
+	{
+		// All states are player 1
+		return 1;
+	}
+	
+	@Override
 	public Object getAction(int s, int i)
 	{
-		// TODO
+		// No actions stored currently
 		return null;
+	}
+
+	@Override
+	public int getNumTransitions(int s, int i)
+	{
+		// All choices are nested
+		return 0;
+	}
+
+	@Override
+	public Iterator<Entry<Integer,Double>> getTransitionsIterator(int s, int i)
+	{
+		// All choices are nested
+		return null;
+	}
+
+	@Override
+	public boolean isChoiceNested(int s, int i)
+	{
+		// All choices are nested
+		return true;
+	}
+
+	@Override
+	public int getNumNestedChoices(int s, int i)
+	{
+		return trans.get(s).get(i).size();
+	}
+
+	@Override
+	public Object getNestedAction(int s, int i, int j)
+	{
+		return trans.get(s).get(i).getAction();
+	}
+
+	@Override
+	public int getNumNestedTransitions(int s, int i, int j)
+	{
+		DistributionSet ds = trans.get(s).get(i);
+		Iterator<Distribution> iter = ds.iterator();
+		Distribution distr = null;
+		int k = 0;
+		while (iter.hasNext() && k <= j) {
+			distr = iter.next();
+			k++;
+		}
+		if (k <= j)
+			return 0;
+		else
+			return distr.size();
+	}
+
+	@Override
+	public Iterator<Entry<Integer, Double>> getNestedTransitionsIterator(int s, int i, int j)
+	{
+		DistributionSet ds = trans.get(s).get(i);
+		Iterator<Distribution> iter = ds.iterator();
+		Distribution distr = null;
+		int k = 0;
+		while (iter.hasNext() && k <= j) {
+			distr = iter.next();
+			k++;
+		}
+		if (k <= j)
+			return null;
+		else
+			return distr.iterator();
 	}
 
 	@Override
