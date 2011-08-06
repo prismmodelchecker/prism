@@ -37,14 +37,14 @@ import explicit.rewards.*;
 public interface MDP extends Model
 {
 	/**
-	 * Get the number of transitions from choice {@code i} of state {@code s}.
-	 */
-	public int getNumTransitions(int s, int i);
-
-	/**
 	 * Get the action label (if any) for choice {@code i} of state {@code s}.
 	 */
 	public Object getAction(int s, int i);
+
+	/**
+	 * Get the number of transitions from choice {@code i} of state {@code s}.
+	 */
+	public int getNumTransitions(int s, int i);
 
 	/**
 	 * Get an iterator over the transitions from choice {@code i} of state {@code s}.

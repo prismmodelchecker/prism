@@ -598,18 +598,18 @@ public class MDPSimple extends ModelSimple implements MDP
 	// Accessors (for MDP)
 
 	@Override
-	public int getNumTransitions(int s, int i)
-	{
-		return trans.get(s).get(i).size();
-	}
-
-	@Override
 	public Object getAction(int s, int i)
 	{
 		List<Object> list;
 		if (actions == null || (list = actions.get(s)) == null)
 			return null;
 		return list.get(i);
+	}
+
+	@Override
+	public int getNumTransitions(int s, int i)
+	{
+		return trans.get(s).get(i).size();
 	}
 
 	@Override
