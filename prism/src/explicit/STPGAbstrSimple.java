@@ -927,11 +927,84 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 
 	// Standard methods
 
-	/**
-	 * Get transition function as string.
-	 */
+	// @Override // Move to superclass later
+	public String toStringGeneric()
+	{
+		// General purpose toString(), based on STPG access methods
+		int s, i, j, ni, nj;
+		boolean first, firsti, firstTr;
+		Iterator<Entry<Integer, Double>> it;
+		String str = "";
+		first = true;
+		str = "[ ";
+		for (s = 0; s < numStates; s++) {
+			if (first)
+				first = false;
+			else
+				str += ", ";
+			str += s + ": ";
+			ni = getNumChoices(s);
+			str += "[";
+			firsti = true;
+			for (i = 0; i < ni; i++) {
+				// Do non-nested choices
+				it = getTransitionsIterator(s, i);
+				if (it == null)
+					continue;
+				if (firsti)
+					firsti = false;
+				else
+					str += ", ";
+				str += "{";
+				firstTr = true;
+				while (it.hasNext()) {
+					Entry<Integer, Double> next = it.next();
+					if (firstTr)
+						firstTr = false;
+					else
+						str += ", ";
+					str += next.getKey() + "=" + next.getValue();
+				}
+				str += "}";
+				// Do nested choices
+				nj = getNumNestedChoices(s, i);
+				if (nj == 0)
+					continue;
+				if (firsti)
+					firsti = false;
+				else
+					str += ", ";
+				str += "[";
+				for (j = 0; j < nj; j++) {
+					it = getNestedTransitionsIterator(s, i, j);
+					if (it == null)
+						continue;
+					if (j > 0)
+						str += ", ";
+					str += "{";
+					firstTr = true;
+					while (it.hasNext()) {
+						Entry<Integer, Double> next = it.next();
+						if (firstTr)
+							firstTr = false;
+						else
+							str += ", ";
+						str += next.getKey() + "=" + next.getValue();
+					}
+					str += "}";
+				}
+				str += "]";
+			}
+			str += "]";
+		}
+		str += " ]";
+		return str;
+	}
+
+	@Override
 	public String toString()
 	{
+		// Custom toString()
 		int i;
 		boolean first;
 		String s = "";
