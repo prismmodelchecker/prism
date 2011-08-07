@@ -818,7 +818,7 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 					minmax2 = d;
 				first2 = false;
 			}
-			minmax2 += rewards.getNestedTransitionReward(s, dsIter);
+			minmax2 += rewards.getTransitionReward(s, dsIter);
 			// Check whether we have exceeded min/max so far
 			if (first1 || (min1 && minmax2 < minmax1) || (!min1 && minmax2 > minmax1))
 				minmax1 = minmax2;
@@ -861,7 +861,7 @@ public class STPGAbstrSimple extends ModelSimple implements STPG
 					minmax2 = d;
 				first2 = false;
 			}
-			minmax2 += rewards.getNestedTransitionReward(s, dsIter);
+			minmax2 += rewards.getTransitionReward(s, dsIter);
 			// Store strategy info if value matches
 			//if (PrismUtils.doublesAreClose(val, d, termCritParam, termCrit == TermCrit.ABSOLUTE)) {
 			if (PrismUtils.doublesAreClose(val, minmax2, 1e-12, false)) {

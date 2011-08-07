@@ -45,11 +45,6 @@ public interface STPGRewards extends Rewards
 	public abstract double getTransitionReward(int s, int i); 
 	
 	/**
-	 * Get the transition reward for the {@code i}th nested choice from state {@code s}.
-	 */
-	public abstract double getNestedTransitionReward(int s, int i);
-	
-	/**
 	 * Get the transition reward for the {@code i,j}th nested choice from state {@code s}.
 	 */
 	public abstract double getNestedTransitionReward(int s, int i, int j); 
