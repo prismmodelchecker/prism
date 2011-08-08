@@ -29,7 +29,8 @@ endrewards
 
 // formula, for use here and in properties: number of tokens
 formula num_tokens = #+ i=1:N#q#i##end#;
-// label - stable configurations (1 token)
+
+// label - stable configurations (1 token)
 label "stable" = num_tokens=1;
 
 // initial states (at least one token)
