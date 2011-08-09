@@ -377,8 +377,17 @@ public class UndefinedConstants
 				pfConsts[index].define(sl, sh, ss);
 			}
 			else {
+				// If we are required to use all supplied const values, check for this
+				// (by default we don't care about un-needed or non-existent const values)
 				if (useAll)
 					throw new PrismException("\"" + name + "\" is not an undefined constant");
+				// But if an unused supplied value clashes with a defined constant, we complain
+				if (modulesFile != null && modulesFile.isDefinedConstant(name)) {
+					throw new PrismException("Constant \"" + name + "\" has already been defined in the model");
+				}
+				if (propertiesFile != null && propertiesFile.isDefinedConstant(name)) {
+					throw new PrismException("Constant \"" + name + "\" has already been defined");
+				}
 			}
 		}
 		
