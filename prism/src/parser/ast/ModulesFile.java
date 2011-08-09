@@ -772,6 +772,15 @@ public class ModulesFile extends ASTElement
 	}
 
 	/**
+	 * Check if {@code name} is a *defined* constant in the model,
+	 * i.e. a constant whose value was *not* left unspecified.
+	 */
+	public boolean isDefinedConstant(String name)
+	{
+		return constantList.isDefinedConstant(name);
+	}
+	
+	/**
 	 * Get access to the values for all constants in the model, including the 
 	 * undefined constants set previously via the method {@link #setUndefinedConstants(Values)}.
 	 * Until they are set for the first time, this method returns null.  

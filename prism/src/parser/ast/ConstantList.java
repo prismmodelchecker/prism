@@ -32,8 +32,10 @@ import parser.*;
 import parser.visitor.*;
 import prism.PrismLangException;
 import parser.type.*;
-// class to store list of constants
 
+/**
+ * Class to store list of (defined and undefined) constants
+ */
 public class ConstantList extends ASTElement
 {
 	// Name/expression/type triples to define constants
@@ -173,8 +175,9 @@ public class ConstantList extends ASTElement
 		}
 	}
 	
-	// get number of undefined constants
-	
+	/**
+	 * Get the number of undefined constants in the list.
+	 */
 	public int getNumUndefined()
 	{
 		int i, n, res;
@@ -192,8 +195,9 @@ public class ConstantList extends ASTElement
 		return res;
 	}
 	
-	// get undefined constants
-	
+	/**
+	 * Get a list of the undefined constants in the list.
+	 */
 	public Vector<String> getUndefinedConstants()
 	{
 		int i, n;
@@ -210,6 +214,18 @@ public class ConstantList extends ASTElement
 		}
 		
 		return v;
+	}
+	
+	/**
+	 * Check if {@code name} is a *defined* constants in the list,
+	 * i.e. a constant whose value was *not* left unspecified in the model/property.
+	 */
+	public boolean isDefinedConstant(String name)
+	{
+		int i = getConstantIndex(name);
+		if (i == -1)
+			return false;
+		return (getConstant(i) != null);
 	}
 	
 	/**

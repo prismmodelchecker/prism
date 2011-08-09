@@ -448,6 +448,15 @@ public class PropertiesFile extends ASTElement
 	}
 	
 	/**
+	 * Check if {@code name} is a *defined* constant in the properties file,
+	 * i.e. a constant whose value was *not* left unspecified.
+	 */
+	public boolean isDefinedConstant(String name)
+	{
+		return constantList.isDefinedConstant(name);
+	}
+	
+	/**
 	 * Get access to the values for all constants in the properties file, including the
 	 * undefined constants set previously via the method {@link #setUndefinedConstants(Values)}
 	 * or {@link #setUndefinedConstants(Values)}. If neither method has been called
