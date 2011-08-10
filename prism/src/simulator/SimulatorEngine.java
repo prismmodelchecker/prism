@@ -1352,12 +1352,11 @@ public class SimulatorEngine
 		for (int i = 0; i < n; i++) {
 			definedPFConstants = undefinedConstants.getPFConstantValues();
 			pfcs[i] = definedPFConstants;
-			propertiesFile.setUndefinedConstants(definedPFConstants);
+			propertiesFile.setSomeUndefinedConstants(definedPFConstants);
 			try {
 				checkPropertyForSimulation(expr);
 				indices[i] = addProperty(expr, propertiesFile);
 				validPropsCount++;
-				undefinedConstants.iterateProperty();
 				// Attach a SimulationMethod object to each property's sampler
 				SimulationMethod simMethodNew = simMethod.clone();
 				propertySamplers.get(indices[i]).setSimulationMethod(simMethodNew);
@@ -1367,6 +1366,7 @@ public class SimulatorEngine
 					simMethodNew.setExpression(properties.get(indices[i]));
 				} catch (PrismException e) {
 					// In case of error, also need to remove property/sampler from list
+					// (NB: this will be at the end of the list so no re-indexing issues)
 					properties.remove(indices[i]);
 					propertySamplers.remove(indices[i]);
 					throw e;
@@ -1375,6 +1375,7 @@ public class SimulatorEngine
 				results[i] = e;
 				indices[i] = -1;
 			}
+			undefinedConstants.iterateProperty();
 		}
 
 		// As long as there are at least some valid props, do sampling
