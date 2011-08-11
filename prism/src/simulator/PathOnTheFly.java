@@ -35,8 +35,6 @@ import parser.ast.*;
  */
 public class PathOnTheFly extends Path
 {
-	// Parent simulator engine
-	protected SimulatorEngine engine;
 	// Model to which the path corresponds
 	protected ModulesFile modulesFile;
 	// Does model use continuous time?
@@ -61,10 +59,8 @@ public class PathOnTheFly extends Path
 	/**
 	 * Constructor: creates a new (empty) PathOnTheFly object for a specific model.
 	 */
-	public PathOnTheFly(SimulatorEngine engine, ModulesFile modulesFile)
+	public PathOnTheFly(ModulesFile modulesFile)
 	{
-		// Store ptr to engine
-		this.engine = engine;
 		// Store model and info
 		this.modulesFile = modulesFile;
 		continuousTime = modulesFile.getModelType().continuousTime();

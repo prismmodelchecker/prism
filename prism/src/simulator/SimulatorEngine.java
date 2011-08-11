@@ -174,7 +174,7 @@ public class SimulatorEngine
 		// Store model
 		loadModulesFile(modulesFile);
 		// Create empty (full) path object associated with this model
-		path = new PathFull(this, modulesFile);
+		path = new PathFull(modulesFile);
 		onTheFly = false;
 	}
 
@@ -188,7 +188,7 @@ public class SimulatorEngine
 		// Store model
 		loadModulesFile(modulesFile);
 		// Create empty (on-the-fly_ path object associated with this model
-		path = new PathOnTheFly(this, modulesFile);
+		path = new PathOnTheFly(modulesFile);
 		onTheFly = true;
 	}
 

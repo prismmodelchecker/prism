@@ -30,7 +30,6 @@ import java.util.ArrayList;
 
 import parser.*;
 import parser.ast.*;
-import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLog;
 
@@ -41,8 +40,6 @@ import prism.PrismLog;
  */
 public class PathFull extends Path
 {
-	// Parent simulator engine
-	private SimulatorEngine engine;
 	// Model to which the path corresponds
 	private ModulesFile modulesFile;
 	// Does model use continuous time?
@@ -61,10 +58,8 @@ public class PathFull extends Path
 	/**
 	 * Constructor: creates a new (empty) PathFull object for a specific model.
 	 */
-	public PathFull(SimulatorEngine engine, ModulesFile modulesFile)
+	public PathFull(ModulesFile modulesFile)
 	{
-		// Store ptr to engine
-		this.engine = engine;
 		// Store model and info
 		this.modulesFile = modulesFile;
 		continuousTime = modulesFile.getModelType().continuousTime();
@@ -394,7 +389,7 @@ public class PathFull extends Path
 	{
 		int i, j, n, nv;
 		double d, t;
-		boolean stochastic = (modulesFile.getModelType() == ModelType.CTMC);
+		boolean contTime = modulesFile.getModelType().continuousTime();
 		boolean changed;
 		int varsNum = 0, varsIndices[] = null;
 
@@ -406,7 +401,7 @@ public class PathFull extends Path
 
 		// Get sizes
 		n = size();
-		nv = engine.getNumVariables();
+		nv = modulesFile.getNumVars();
 
 		// if necessary, store info about which vars to display
 		if (vars != null) {
@@ -419,14 +414,14 @@ public class PathFull extends Path
 		// Write header
 		log.print("action");
 		log.print(colSep + "step");
-		if (stochastic)
+		if (contTime)
 			log.print(colSep + (timeCumul ? "time" : "time_in_state"));
 		if (vars == null)
 			for (j = 0; j < nv; j++)
-				log.print(colSep + engine.getVariableName(j));
+				log.print(colSep + modulesFile.getVarName(j));
 		else
 			for (j = 0; j < varsNum; j++)
-				log.print(colSep + engine.getVariableName(varsIndices[j]));
+				log.print(colSep + modulesFile.getVarName(varsIndices[j]));
 		if (numRewardStructs == 1) {
 			log.print(colSep + "state_reward" + colSep + "transition_reward");
 		} else {
@@ -457,7 +452,7 @@ public class PathFull extends Path
 			log.print(colSep);
 			log.print(i);
 			// print time (if continuous time)
-			if (stochastic) {
+			if (contTime) {
 				d = (i < n - 1) ? getTime(i) : 0.0;
 				log.print(colSep + (timeCumul ? t : d));
 				t += d;
