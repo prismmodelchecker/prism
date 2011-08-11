@@ -166,6 +166,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 		{
 			Graphics2D g2 = (Graphics2D) g;
 			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
 			g2.setColor(getBackground());
 			g2.fillRect(0, 0, getWidth(), getHeight());
@@ -346,6 +347,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 				y = (getHeight() / 2) + (height / 2);
 				// Write value
 				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+				g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 				g2.setColor(Color.black);
 				g2.drawString(stringValue, x, y);
 			}
@@ -371,6 +373,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 						g2.setColor(color);
 						g2.draw(rec);
 						g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+						g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 						g2.drawString(stringValue, x, y);
 					}
 				}
@@ -379,6 +382,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 					// Just display value
 					g2.setColor(color);
 					g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+					g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 					g2.drawString(stringValue, x, y);
 				}
 			}
@@ -406,6 +410,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 							g2.setColor(color);
 							g2.draw(rec);
 							g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+							g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 							g2.drawString(stringValue, x, y);
 						}
 					}
@@ -414,6 +419,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 						// Just display value
 						g2.setColor(color);
 						g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+						g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 						g2.drawString(stringValue, x, y);
 					}
 				}
@@ -425,6 +431,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 					// Write text
 					g2.setColor(Color.black);
 					g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+					g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 					g2.drawString(stringValue, x, y);
 				}
 			}
@@ -436,6 +443,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 				// Write text
 				g2.setColor(Color.black);
 				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+				g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 				g2.drawString(stringValue, x, y);
 			}
 		}
