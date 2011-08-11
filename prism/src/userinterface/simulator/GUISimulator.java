@@ -48,7 +48,7 @@ import userinterface.simulator.networking.*;
 public class GUISimulator extends GUIPlugin implements MouseListener, ListSelectionListener, PrismSettingsListener
 {
 	private static final long serialVersionUID = 1L;
-	
+
 	//ATTRIBUTES
 	private GUIPrism gui; //reference to the gui
 	private GUIMultiProperties guiProp; //reference to the properties information
@@ -221,51 +221,78 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		return s;
 	}
 
+	/**
+	 * Update all fields in the "Path information" box.
+	 */
+	private void updatePathInfoAll(UndefinedConstants uCon)
+	{
+		modelTypeLabel.setText(parsedModel == null ? "Unknown" : parsedModel.getTypeString());
+		String constantsString = uCon == null ? "" : uCon.getDefinedConstantsString();
+		definedConstantsLabel.setText((constantsString.length() == 0) ? "None" : constantsString);
+		pathLengthLabel.setText(pathActive ? "" + engine.getPathSize() : "0");
+		totalTimeLabel.setText(pathActive ? formatDouble(engine.getTotalTimeForPath()) : "0");
+	}
+
+	/**
+	 * Update path length/time fields in the "Path information" box.
+	 */
+	private void updatePathInfo()
+	{
+		pathLengthLabel.setText(pathActive ? "" + engine.getPathSize() : "0");
+		totalTimeLabel.setText(pathActive ? formatDouble(engine.getTotalTimeForPath()) : "0");
+	}
+
+	/**
+	 * Repaint state label and path formulae lists.
+	 */
+	private void repaintLists()
+	{
+		stateLabelList.repaint();
+		pathFormulaeList.repaint();
+	}
+
 	public void a_clearModel()
 	{
+		// Blank out path table
 		tableScroll.setViewportView(pathTablePlaceHolder);
-
+		// Update model/path/tables/lists
 		setPathActive(false);
+		setParsedModel(null);
 		pathTableModel.restartPathTable();
-
+		updateTableModel.restartUpdatesTable();
 		((GUISimLabelList) stateLabelList).clearLabels();
 		((GUISimPathFormulaeList) pathFormulaeList).clearList();
+		// Update display
+		repaintLists();
+		updatePathInfoAll(null);
+		doEnables();
 	}
 
 	public void a_loadModulesFile(ModulesFile mf)
 	{
-		setParsedModel(mf);
+		// Update model/path/tables/lists
 		setPathActive(false);
-
+		setParsedModel(mf);
 		pathTableModel.restartPathTable();
 		updateTableModel.restartUpdatesTable();
-
-		if (mf != null)
-			modelTypeLabel.setText("" + mf.getTypeString());
-		else
-			modelTypeLabel.setText("Unknown");
-
 		((GUISimLabelList) stateLabelList).clearLabels();
 		((GUISimPathFormulaeList) pathFormulaeList).clearList();
-		stateLabelList.repaint();
-		pathFormulaeList.repaint();
+		// Update display
+		repaintLists();
+		updatePathInfoAll(null);
 		doEnables();
-
+		// Populate controls based on model type
 		typeExploreCombo.removeAllItems();
 		typeExploreCombo.addItem("Steps");
 		typeExploreCombo.addItem("Up to step");
-
 		if (mf != null && mf.getModelType().continuousTime()) {
 			typeExploreCombo.addItem("Time");
 			typeExploreCombo.addItem("Up to time");
 		}
-
-		typeBacktrackCombo.setEnabled(pathActive);
+		typeBacktrackCombo.setEnabled(false);
 		typeBacktrackCombo.removeAllItems();
-
 		typeBacktrackCombo.addItem("Steps");
 		typeBacktrackCombo.addItem("Back to step");
-
 		if (mf != null && mf.getModelType().continuousTime()) {
 			typeBacktrackCombo.addItem("Time");
 			typeBacktrackCombo.addItem("Back to time");
@@ -354,31 +381,25 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				}
 			}
 
+			// Insert path table
 			tableScroll.setViewportView(pathTable);
 
 			displayPathLoops = true;
 
 			// Create a new path in the simulator and add labels/properties 
 			engine.createNewPath(parsedModel);
-			pathTableModel.setPath(engine.getPathFull());
-			setPathActive(true);
 			engine.initialisePath(initialState == null ? null : new parser.State(initialState, parsedModel));
-			repopulateFormulae(pf);
-
-			totalTimeLabel.setText(formatDouble(engine.getTotalTimeForPath()));
-			pathLengthLabel.setText("" + engine.getPathSize());
-			definedConstantsLabel.setText((uCon.getDefinedConstantsString().length() == 0) ? "None" : uCon.getDefinedConstantsString());
-
-			doEnables();
-
+			// Update model/path/tables/lists
+			setPathActive(true);
+			pathTableModel.setPath(engine.getPathFull());
 			pathTableModel.restartPathTable();
-
+			pathTable.getSelectionModel().setSelectionInterval(0, 0);
 			updateTableModel.restartUpdatesTable();
-
-			pathTable.getSelectionModel().setSelectionInterval(pathTable.getRowCount() - 1, pathTable.getRowCount() - 1);
-
-			stateLabelList.repaint();
-			pathFormulaeList.repaint();
+			repopulateFormulae(pf);
+			// Update display
+			repaintLists();
+			updatePathInfoAll(uCon);
+			doEnables();
 
 			// store inital state for next time
 			lastInitialState = initialState;
@@ -413,24 +434,19 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			if (isOldUpdate()) {
 				engine.computeTransitionsForCurrentState();
 			}
+			engine.automaticTransitions(noSteps, displayPathLoops);
 
-			int noStepsTaken = engine.automaticTransitions(noSteps, displayPathLoops);
-
+			// Update model/path/tables/lists
 			pathTableModel.updatePathTable();
+			int height = (int) pathTable.getPreferredSize().getHeight();
+			int width = (int) pathTable.getPreferredSize().getWidth();
+			pathTable.scrollRectToVisible(new Rectangle(0, height - 10, width, height));
 			updateTableModel.updateUpdatesTable();
-			pathTable.scrollRectToVisible(new Rectangle(0, (int) pathTable.getPreferredSize().getHeight() - 10, (int) pathTable.getPreferredSize().getWidth(),
-					(int) pathTable.getPreferredSize().getHeight()));
-
-			totalTimeLabel.setText(formatDouble(engine.getTotalTimeForPath()));
-			pathLengthLabel.setText("" + engine.getPathSize());
-
-			stateLabelList.repaint();
-			pathFormulaeList.repaint();
+			// Update display
+			repaintLists();
+			updatePathInfo();
 			setComputing(false);
-
-			//if (displayPathLoops && pathTableModel.isPathLooping() && (noStepsTaken < noSteps) {
-			//	message("Exploration has stopped early because a deterministic loop has been detected.");
-			//}
+			
 		} catch (PrismException e) {
 			this.error(e.getMessage());
 			guiMultiModel.getHandler().modelParseFailed((PrismLangException) e, false);
@@ -442,8 +458,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	public void a_autoStep(double time)
 	{
 		try {
-			double oldPathTime = engine.getTotalTimeForPath();
-
 			if (displayPathLoops && pathTableModel.isPathLooping()) {
 				if (questionYesNo("The current path contains a deterministic loop. \nDo you wish to disable detection of such loops and extend the path anyway?") == 0) {
 					displayPathLoops = false;
@@ -453,125 +467,91 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 
 			setComputing(true);
-
 			if (isOldUpdate()) {
 				engine.computeTransitionsForCurrentState();
 			}
-
 			engine.automaticTransitions(time, displayPathLoops);
-
+			// Update model/path/tables/lists
 			pathTableModel.updatePathTable();
+			int height = (int) pathTable.getPreferredSize().getHeight();
+			int width = (int) pathTable.getPreferredSize().getWidth();
+			pathTable.scrollRectToVisible(new Rectangle(0, height - 10, width, height));
 			updateTableModel.updateUpdatesTable();
-			pathTable.scrollRectToVisible(new Rectangle(0, (int) pathTable.getPreferredSize().getHeight() - 10, (int) pathTable.getPreferredSize().getWidth(),
-					(int) pathTable.getPreferredSize().getHeight()));
-
-			totalTimeLabel.setText(formatDouble(engine.getTotalTimeForPath()));
-			pathLengthLabel.setText("" + engine.getPathSize());
-
-			stateLabelList.repaint();
-			pathFormulaeList.repaint();
+			// Update display
+			repaintLists();
+			updatePathInfo();
 			setComputing(false);
 
-			//if (displayPathLoops && pathTableModel.isPathLooping() && (engine.getTotalTimeForPath() - oldPathTime) < time) {
-			//	message("Exploration has stopped early because a deterministic loop has been detected.");
-			//}
 		} catch (PrismException e) {
 			this.error(e.getMessage());
 		}
 	}
 
-	/** Backtracks to a certain time. */
+	/** Backtrack to a certain time. */
 	public void a_backTrack(double time) throws PrismException
 	{
 		try {
 			setComputing(true);
-
 			engine.backtrackTo(time);
-
+			// Update model/path/tables/lists
 			pathTableModel.updatePathTable();
 			updateTableModel.updateUpdatesTable();
-
-			totalTimeLabel.setText(formatDouble(engine.getTotalTimeForPath()));
-			pathLengthLabel.setText("" + engine.getPathSize());
-			stateLabelList.repaint();
-			pathFormulaeList.repaint();
-
+			// Update display
+			repaintLists();
+			updatePathInfo();
 			setComputing(false);
 		} catch (PrismException e) {
 			this.error(e.getMessage());
 		}
 	}
 
-	/** Backtracks to a certain step. */
+	/** Backtrack to a certain step. */
 	public void a_backTrack(int step)
 	{
 		try {
 			setComputing(true);
-
 			engine.backtrackTo(step);
-
+			// Update model/path/tables/lists
 			pathTableModel.updatePathTable();
 			updateTableModel.updateUpdatesTable();
-
-			totalTimeLabel.setText(formatDouble(engine.getTotalTimeForPath()));
-			pathLengthLabel.setText("" + engine.getPathSize());
-			stateLabelList.repaint();
-			pathFormulaeList.repaint();
-
+			// Update display
+			repaintLists();
+			updatePathInfo();
 			setComputing(false);
 		} catch (PrismException e) {
 			this.error(e.getMessage());
 		}
 	}
 
+	/** Backtrack to the start of the path. */
 	public void a_restartPath()
 	{
 		try {
 			setComputing(true);
-			// Instruct simulator to go back to step 0
 			engine.backtrackTo(0);
-
+			// Update model/path/tables/lists
 			pathTableModel.updatePathTable();
 			updateTableModel.updateUpdatesTable();
-
-			totalTimeLabel.setText(formatDouble(engine.getTotalTimeForPath()));
-			pathLengthLabel.setText("" + engine.getPathSize());
-			stateLabelList.repaint();
-			pathFormulaeList.repaint();
+			// Update display
+			repaintLists();
+			updatePathInfo();
 			setComputing(false);
 		} catch (PrismException e) {
 			this.error(e.getMessage());
 		}
 	}
 
-	public void a_exportPath()
-	{
-		try {
-			if (showSaveFileDialog(txtFilter, txtFilter[0]) != JFileChooser.APPROVE_OPTION)
-				return;
-			setComputing(true);
-
-			engine.exportPath(getChooserFile());
-
-			setComputing(false);
-		} catch (PrismException e) {
-			error(e.getMessage());
-		}
-	}
-
+	/** Remove the prefix of the current path up to the given path step. */
 	public void a_removePreceding(int step) throws PrismException
 	{
 		setComputing(true);
-
 		engine.removePrecedingStates(step);
-
+		// Update model/path/tables/lists
 		pathTableModel.updatePathTable();
 		updateTableModel.updateUpdatesTable();
-
-		totalTimeLabel.setText(formatDouble(engine.getTotalTimeForPath()));
-		pathLengthLabel.setText("" + engine.getPathSize());
-		stateLabelList.repaint();
-		pathFormulaeList.repaint();
+		// Update display
+		repaintLists();
+		updatePathInfo();
 		setComputing(false);
 	}
 
@@ -580,7 +560,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		try {
 			if (currentUpdatesTable.getSelectedRow() == -1)
 				throw new PrismException("No current update is selected");
-
 			if (displayPathLoops && pathTableModel.isPathLooping()) {
 				if (questionYesNo("The current path contains a deterministic loop. \nDo you wish to disable detection of such loops and extend the path anyway?") == 0) {
 					displayPathLoops = false;
@@ -596,51 +575,44 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					if (time < 0.0d) // dialog cancelled
 						return;
 				}
-
-				//Double.parseDouble(stateTimeField.getText());
-
-				setComputing(true);
-				if (time == -1) {
-					engine.manualTransition(currentUpdatesTable.getSelectedRow());
-				} else {
-					engine.manualTransition(currentUpdatesTable.getSelectedRow(), time);
-				}
-
-				pathTableModel.updatePathTable();
-				updateTableModel.updateUpdatesTable();
-
-				pathTable.scrollRectToVisible(new Rectangle(0, pathTable.getHeight() - 10, pathTable.getWidth(), pathTable.getHeight()));
-
-				totalTimeLabel.setText(formatDouble(engine.getTotalTimeForPath()));
-				pathLengthLabel.setText("" + engine.getPathSize());
-
-				setComputing(false);
-
-			} else {
-
-				setComputing(true);
-
-				engine.manualTransition(currentUpdatesTable.getSelectedRow());
-
-				pathTableModel.updatePathTable();
-				updateTableModel.updateUpdatesTable();
-
-				totalTimeLabel.setText("" + engine.getTotalTimeForPath());
-				pathLengthLabel.setText("" + engine.getPathSize());
-
-				pathTable.scrollRectToVisible(new Rectangle(0, (int) pathTable.getPreferredSize().getHeight() - 10, (int) pathTable.getPreferredSize()
-						.getWidth(), (int) pathTable.getPreferredSize().getHeight()));
-
-				setComputing(false);
 			}
-			stateLabelList.repaint();
-			pathFormulaeList.repaint();
+
+			setComputing(true);
+			if (parsedModel.getModelType().continuousTime() && time != -1) {
+				engine.manualTransition(currentUpdatesTable.getSelectedRow(), time);
+			} else {
+				engine.manualTransition(currentUpdatesTable.getSelectedRow());
+			}
+			// Update model/path/tables/lists
+			pathTableModel.updatePathTable();
+			int height = (int) pathTable.getPreferredSize().getHeight();
+			int width = (int) pathTable.getPreferredSize().getWidth();
+			pathTable.scrollRectToVisible(new Rectangle(0, height - 10, width, height));
+			updateTableModel.updateUpdatesTable();
+			// Update display
+			repaintLists();
+			updatePathInfo();
+			setComputing(false);
+			
 		} catch (NumberFormatException e) {
 			this.error("The Auto update \'no. steps\' parameter is invalid.\nIt must be a positive integer representing a step in the path table");
 			setComputing(false);
 		} catch (PrismException e) {
 			this.error(e.getMessage());
 			setComputing(false);
+		}
+	}
+
+	public void a_exportPath()
+	{
+		try {
+			if (showSaveFileDialog(txtFilter, txtFilter[0]) != JFileChooser.APPROVE_OPTION)
+				return;
+			setComputing(true);
+			engine.exportPath(getChooserFile());
+			setComputing(false);
+		} catch (PrismException e) {
+			error(e.getMessage());
 		}
 	}
 
