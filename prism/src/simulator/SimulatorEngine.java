@@ -978,6 +978,16 @@ public class SimulatorEngine
 	// ------------------------------------------------------------------------------
 
 	/**
+	 * Get access to the {@code PathFull} object storing the current path.
+	 * (Not applicable for on-the-fly paths)
+	 * This object is only valid until the next time {@link #createNewPath} is called. 
+	 */
+	public PathFull getPathFull()
+	{
+		return (PathFull) path;
+	}
+	
+	/**
 	 * Get the value of a variable at a given step of the path.
 	 * (Not applicable for on-the-fly paths)
 	 * @param step Step index (0 = initial state/step of path)

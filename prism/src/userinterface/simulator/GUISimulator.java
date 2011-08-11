@@ -82,7 +82,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		this.engine = gui.getPrism().getSimulator();
 
 		view = new SimulationView(this, gui.getPrism().getSettings());
-		pathTableModel = new GUISimulatorPathTableModel(this, engine, view);
+		pathTableModel = new GUISimulatorPathTableModel(this, view);
 
 		updateTableModel = new UpdateTableModel();
 
@@ -114,7 +114,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 		pathTablePlaceHolder.addMouseListener(this);
 
-		view.refreshToDefaultView(engine, pathActive, parsedModel);
+		view.refreshToDefaultView(pathActive, parsedModel);
 
 		setPathActive(false);
 		doEnables();
@@ -360,6 +360,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 			// Create a new path in the simulator and add labels/properties 
 			engine.createNewPath(parsedModel);
+			pathTableModel.setPath(engine.getPathFull());
 			setPathActive(true);
 			engine.initialisePath(initialState == null ? null : new parser.State(initialState, parsedModel));
 			repopulateFormulae(pf);

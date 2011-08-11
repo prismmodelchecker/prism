@@ -33,7 +33,6 @@ import java.util.*;
 import parser.ast.*;
 import parser.type.Type;
 import prism.PrismSettings;
-import simulator.SimulatorEngine;
 import userinterface.simulator.GUIViewDialog.RewardListItem;
 
 /**
@@ -189,7 +188,7 @@ public class SimulationView extends Observable
 		}
 	}
 
-	public void refreshToDefaultView(SimulatorEngine engine, boolean pathActive, ModulesFile parsedModel)
+	public void refreshToDefaultView(boolean pathActive, ModulesFile parsedModel)
 	{
 		// First see if we can get away with using current settings...
 		boolean canUseCurrentView = true;
@@ -212,12 +211,17 @@ public class SimulationView extends Observable
 			for (Variable var : hiddenVariables)
 				allVarNames.add(var.getName());
 
-			for (int i = 0; i < engine.getNumVariables(); i++) {
-				if (allVarNames.contains(engine.getVariableName(i)))
-					allVarNames.remove(engine.getVariableName(i));
-				else
-					// Cannot use current view if a variable is not there.
+			// Cannot use current view if a variable is not there.
+			for (int g = 0; g < parsedModel.getNumGlobals(); g++) {
+				if (!allVarNames.remove(parsedModel.getGlobal(g).getName()))
 					canUseCurrentView = false;
+			}
+			for (int m = 0; m < parsedModel.getNumModules(); m++) {
+				Module module = parsedModel.getModule(m);
+				for (int v = 0; v < module.getNumDeclarations(); v++) {
+					if (!allVarNames.remove(module.getDeclaration(v).getName()))
+						canUseCurrentView = false;
+				}
 			}
 
 			// Cannot use current view if we have too many variables.
@@ -265,8 +269,17 @@ public class SimulationView extends Observable
 			rewards.clear();
 
 			{
-				for (int i = 0; i < engine.getNumVariables(); i++) {
-					visibleVariables.add(new Variable(i, engine.getVariableName(i), engine.getVariableType(i)));
+				int i = 0;
+				for (int g = 0; g < parsedModel.getNumGlobals(); g++) {
+					visibleVariables.add(new Variable(i, parsedModel.getGlobal(g).getName(), parsedModel.getGlobal(g).getType()));
+					i++;
+				}
+				for (int m = 0; m < parsedModel.getNumModules(); m++) {
+					Module module = parsedModel.getModule(m);
+					for (int v = 0; v < module.getNumDeclarations(); v++) {
+						visibleVariables.add(new Variable(i, module.getDeclaration(v).getName(), module.getDeclaration(v).getType()));
+						i++;
+					}
 				}
 
 				for (int r = 0; r < parsedModel.getNumRewardStructs(); r++) {

@@ -31,7 +31,7 @@ package userinterface.simulator;
 import java.util.*;
 import javax.swing.table.AbstractTableModel;
 
-import simulator.SimulatorEngine;
+import simulator.PathFull;
 import userinterface.simulator.SimulationView.*;
 import userinterface.util.GUIGroupedTableModel;
 import parser.ast.*;
@@ -41,21 +41,20 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 	private static final long serialVersionUID = 1L;
 
 	private GUISimulator simulator;
-	private SimulatorEngine engine;
 	private SimulationView view;
 
 	private boolean pathActive;
 	private ModulesFile parsedModel;
+	private PathFull path; 
 
 	private RewardStructureValue rewardStructureValue;
 	private VariableValue variableValue;
 	private TimeValue timeValue;
 	private ActionValue actionValue;
 
-	public GUISimulatorPathTableModel(GUISimulator simulator, SimulatorEngine engine, SimulationView view)
+	public GUISimulatorPathTableModel(GUISimulator simulator, SimulationView view)
 	{
 		this.simulator = simulator;
-		this.engine = engine;
 		this.view = view;
 		this.view.addObserver(this);
 
@@ -66,6 +65,11 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 	public void setPathActive(boolean pathActive)
 	{
 		this.pathActive = pathActive;
+	}
+
+	public void setPath(PathFull path)
+	{
+		this.path = path;
 	}
 
 	public void setParsedModel(ModulesFile parsedModel)
@@ -395,7 +399,7 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 	public int getRowCount()
 	{
 		// Return current path size if there is an active path.
-		return (pathActive ? engine.getPathSize() + 1 : 0);
+		return (pathActive ? path.size() + 1 : 0);
 	}
 
 	public boolean shouldColourRow(int row)
@@ -499,7 +503,7 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 
 			// The action column
 			if (actionStart <= columnIndex && columnIndex < stepStart) {
-				actionValue = view.new ActionValue(rowIndex == 0 ? "" : engine.getModuleOrActionOfPathStep(rowIndex - 1));
+				actionValue = view.new ActionValue(rowIndex == 0 ? "" : path.getModuleOrAction(rowIndex - 1));
 				actionValue.setActionValueUnknown(false);
 				return actionValue;
 			}
@@ -509,23 +513,23 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 			}
 			// Cumulative time column
 			else if (cumulativeTimeStart <= columnIndex && columnIndex < timeStart) {
-				timeValue = view.new TimeValue(engine.getCumulativeTimeUpToPathStep(rowIndex), true);
-				timeValue.setTimeValueUnknown(rowIndex > engine.getPathSize()); // Never unknown
+				timeValue = view.new TimeValue(path.getCumulativeTime(rowIndex), true);
+				timeValue.setTimeValueUnknown(rowIndex > path.size()); // Never unknown
 				return timeValue;
 			}
 			// Time column
 			else if (timeStart <= columnIndex && columnIndex < varStart) {
-				timeValue = view.new TimeValue(engine.getTimeSpentInPathStep(rowIndex), false);
-				timeValue.setTimeValueUnknown(rowIndex >= engine.getPathSize());
+				timeValue = view.new TimeValue(path.getTime(rowIndex), false);
+				timeValue.setTimeValueUnknown(rowIndex >= path.size());
 				return timeValue;
 			}
 			// A variable column
 			else if (varStart <= columnIndex && columnIndex < rewardStart) {
-				Variable var = ((Variable) view.getVisibleVariables().get(columnIndex - varStart));
-				Object result = engine.getVariableValueOfPathStep(rowIndex, var.getIndex());
+				Variable var = view.getVisibleVariables().get(columnIndex - varStart);
+				Object result = path.getState(rowIndex).varValues[var.getIndex()];
 				variableValue.setVariable(var);
 				variableValue.setValue(result);
-				variableValue.setChanged(rowIndex == 0 || !engine.getVariableValueOfPathStep(rowIndex - 1, var.getIndex()).equals(result));
+				variableValue.setChanged(rowIndex == 0 || !path.getState(rowIndex - 1).varValues[var.getIndex()].equals(result));
 				return variableValue;
 			}
 			// A reward column
@@ -535,27 +539,27 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 				rewardStructureValue.setRewardValueUnknown(false);
 				// A state reward column
 				if (rewardColumn.isStateReward()) {
-					double value = engine.getStateRewardOfPathStep(rowIndex, rewardColumn.getRewardStructure().getIndex());
+					double value = path.getStateReward(rowIndex, rewardColumn.getRewardStructure().getIndex());
 					rewardStructureValue.setChanged(rowIndex == 0
-							|| value != engine.getStateRewardOfPathStep(rowIndex - 1, rewardColumn.getRewardStructure().getIndex()));
+							|| value != path.getStateReward(rowIndex - 1, rewardColumn.getRewardStructure().getIndex()));
 					rewardStructureValue.setRewardValue(new Double(value));
-					rewardStructureValue.setRewardValueUnknown(rowIndex > engine.getPathSize()); // Never unknown
+					rewardStructureValue.setRewardValueUnknown(rowIndex > path.size()); // Never unknown
 				}
 				// A transition reward column
 				else if (rewardColumn.isTransitionReward()) {
-					double value = engine.getTransitionRewardOfPathStep(rowIndex, rewardColumn.getRewardStructure().getIndex());
+					double value = path.getTransitionReward(rowIndex, rewardColumn.getRewardStructure().getIndex());
 					rewardStructureValue.setChanged(rowIndex == 0
-							|| value != engine.getTransitionRewardOfPathStep(rowIndex - 1, rewardColumn.getRewardStructure().getIndex()));
+							|| value != path.getTransitionReward(rowIndex - 1, rewardColumn.getRewardStructure().getIndex()));
 					rewardStructureValue.setRewardValue(new Double(value));
-					rewardStructureValue.setRewardValueUnknown(rowIndex >= engine.getPathSize());
+					rewardStructureValue.setRewardValueUnknown(rowIndex >= path.size());
 				}
 				// A cumulative reward column
 				else {
-					double value = engine.getCumulativeRewardUpToPathStep(rowIndex, rewardColumn.getRewardStructure().getIndex());
+					double value = path.getCumulativeReward(rowIndex, rewardColumn.getRewardStructure().getIndex());
 					rewardStructureValue.setChanged(rowIndex == 0
-							|| value != (engine.getCumulativeRewardUpToPathStep(rowIndex - 1, rewardColumn.getRewardStructure().getIndex())));
+							|| value != (path.getCumulativeReward(rowIndex - 1, rewardColumn.getRewardStructure().getIndex())));
 					rewardStructureValue.setRewardValue(new Double(value));
-					rewardStructureValue.setRewardValueUnknown(rowIndex > engine.getPathSize()); // Never unknown
+					rewardStructureValue.setRewardValueUnknown(rowIndex > path.size()); // Never unknown
 				}
 				return rewardStructureValue;
 			}
@@ -570,7 +574,7 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 	 */
 	public void restartPathTable()
 	{
-		view.refreshToDefaultView(engine, pathActive, parsedModel);
+		view.refreshToDefaultView(pathActive, parsedModel);
 	}
 
 	/** 
@@ -583,17 +587,17 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 
 	public boolean isPathLooping()
 	{
-		return engine.isPathLooping();
+		return path.isLooping();
 	}
 
 	public int getLoopStart()
 	{
-		return engine.loopStart();
+		return path.loopStart();
 	}
 
 	public int getLoopEnd()
 	{
-		return engine.loopEnd();
+		return path.loopEnd();
 	}
 
 	public SimulationView getView()
