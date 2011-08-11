@@ -446,8 +446,8 @@ public class PrismCL
 							if (cex != null) {
 								mainLog.println("\nCounterexample/witness:");
 								mainLog.println(cex);
-								if (cex instanceof NonProbModelChecker.CexPathAsBDDs){
-									((NonProbModelChecker.CexPathAsBDDs) cex).clear();
+								if (cex instanceof cex.CexPathAsBDDs){
+									((cex.CexPathAsBDDs) cex).clear();
 								}
 							}
 						} catch (PrismException e) {

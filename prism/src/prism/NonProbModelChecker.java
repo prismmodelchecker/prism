@@ -29,8 +29,8 @@ package prism;
 import java.util.*;
 
 import jdd.*;
-import parser.*;
 import parser.ast.*;
+import cex.CexPathAsBDDs;
 
 /*
  * Non probabilistic model checker, initially for CTL.
@@ -341,49 +341,6 @@ public class NonProbModelChecker extends StateModelChecker
 		mainLog.println("\nCTL EU fixpoint: " + iters + " iterations in " + (l / 1000.0) + " seconds");
 
 		return new StateValuesMTBDD(tmp, model);
-	}
-
-	class CexPathAsBDDs
-	{
-		protected prism.Model model;
-		protected ArrayList<JDDNode> states;
-
-		public CexPathAsBDDs(prism.Model model)
-		{
-			this.model = model;
-			states = new ArrayList<JDDNode>();
-		}
-
-		/**
-		 * Add a state to the path (as a BDD, which will be stored and Ref'ed.
-		 */
-		public void addState(JDDNode state)
-		{
-			JDD.Ref(state);
-			states.add(state);
-		}
-
-		public void clear()
-		{
-			for (JDDNode dd : states) {
-				JDD.Deref(dd);
-			}
-		}
-
-		public String toString()
-		{
-			State state;
-			int i, n;
-			String s = "";
-			n = states.size();
-			for (i = 0; i < n; i++) { 
-				state = model.convertBddToState(states.get(i));
-				s += state.toString();
-				if (i < n - 1)
-					s += "\n";
-			}
-			return s;
-		}
 	}
 }
 
