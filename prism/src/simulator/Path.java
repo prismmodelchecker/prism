@@ -78,6 +78,7 @@ public abstract class Path
 	/**
 	 * For paths with continuous-time info, get the total time elapsed so far
 	 * (where zero time has been spent in the current (final) state).
+	 * For discrete-time models, just returns 0.0.
 	 */
 	public abstract double getTotalTime();
 	
