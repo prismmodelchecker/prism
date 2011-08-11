@@ -389,7 +389,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 			// Reward value
 			else if (value instanceof RewardStructureValue) {
 				RewardStructureValue rewardValue = (RewardStructureValue) value;
-				// Default case (everything except cumulative for CTMCs)
+				// Default case (everything except cumulative time)
 				if (!(ptm.canShowTime() && rewardValue.getRewardStructureColumn().isCumulativeReward())) {
 					// Position (horiz centred, vert centred)
 					x = (getWidth() / 2) - (width / 2);
@@ -423,7 +423,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 						g2.drawString(stringValue, x, y);
 					}
 				}
-				// For cumulative rewards on CTMCs, we left-align (like for display of time)
+				// For continuous-time cumulative rewards, we left-align (like for display of time)
 				else {
 					// Position (left aligned, vert centred)
 					x = 3;

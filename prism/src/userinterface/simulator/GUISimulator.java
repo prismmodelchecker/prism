@@ -255,7 +255,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		typeExploreCombo.addItem("Steps");
 		typeExploreCombo.addItem("Up to step");
 
-		if (mf != null && mf.getModelType() == ModelType.CTMC) {
+		if (mf != null && mf.getModelType().continuousTime()) {
 			typeExploreCombo.addItem("Time");
 			typeExploreCombo.addItem("Up to time");
 		}
@@ -266,7 +266,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		typeBacktrackCombo.addItem("Steps");
 		typeBacktrackCombo.addItem("Back to step");
 
-		if (mf != null && mf.getModelType() == ModelType.CTMC) {
+		if (mf != null && mf.getModelType().continuousTime()) {
 			typeBacktrackCombo.addItem("Time");
 			typeBacktrackCombo.addItem("Back to time");
 		}
@@ -590,7 +590,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 
 			double time = -1;
-			if (parsedModel.getModelType() == ModelType.CTMC) {
+			if (parsedModel.getModelType().continuousTime()) {
 				if (!autoTimeCheck.isSelected()) {
 					time = GUITimeDialog.askTime(this.getGUI(), this);
 					if (time < 0.0d) // dialog cancelled
@@ -808,7 +808,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		typeBacktrackCombo.setEnabled(pathActive);
 
 		currentUpdatesTable.setEnabled(pathActive && !computing);
-		autoTimeCheck.setEnabled(pathActive && parsedModel != null && parsedModel.getModelType() == ModelType.CTMC);
+		autoTimeCheck.setEnabled(pathActive && parsedModel != null && parsedModel.getModelType().continuousTime());
 
 		//resetPathButton.setEnabled(pathActive && !computing);
 		//exportPathButton.setEnabled(pathActive && !computing);
@@ -823,8 +823,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		modelType.setEnabled(parsedModel != null);
 		modelTypeLabel.setEnabled(parsedModel != null);
 
-		totalTime.setEnabled(pathActive && parsedModel != null && parsedModel.getModelType() == ModelType.CTMC);
-		totalTimeLabel.setEnabled(pathActive && parsedModel != null && parsedModel.getModelType() == ModelType.CTMC);
+		totalTime.setEnabled(pathActive && parsedModel != null && parsedModel.getModelType().continuousTime());
+		totalTimeLabel.setEnabled(pathActive && parsedModel != null && parsedModel.getModelType().continuousTime());
 
 		pathLength.setEnabled(pathActive);
 		pathLengthLabel.setEnabled(pathActive);
