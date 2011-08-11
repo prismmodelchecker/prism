@@ -135,6 +135,21 @@ public enum ModelType {
 		return true;
 	}
 	
+	/**
+	 * Does this model have probabilities or rates?
+	 * @return "Probability" or "Rate"
+	 */
+	public String probabilityOrRate()
+	{
+		switch (this) {
+		case CTMC:
+		case CTMDP:
+			return "Rate";
+		default:
+			return "Probability";
+		}
+	}
+	
 	public static ModelType parseName(String name)
 	{
 		if ("ctmc".equals(name))
