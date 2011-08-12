@@ -108,7 +108,8 @@ public class Distribution implements Iterable<Entry<Integer,Double>>
 	{
 		if (prob == 0.0)
 			map.remove(j);
-		map.put(j, prob);
+		else
+			map.put(j, prob);
 	}
 
 	/**
