@@ -128,7 +128,7 @@ public class GUIViewDialog extends JDialog implements KeyListener
 		setResizable(true);
 		setLocationRelativeTo(getParent()); // centre
 
-		this.askOption = ((GUIPrism) this.getParent()).getPrism().getSettings().getBoolean(PrismSettings.SIMULATOR_NEW_PATH_ASK_VIEW);
+		this.askOption = gui.getPrism().getSettings().getBoolean(PrismSettings.SIMULATOR_NEW_PATH_ASK_VIEW);
 		optionCheckBox.setSelected(this.askOption);
 
 		showTimeCheckBox.setSelected(view.showTime());
@@ -682,7 +682,7 @@ public class GUIViewDialog extends JDialog implements KeyListener
 			this.askOption = !this.askOption;
 
 			try {
-				((GUIPrism) this.getParent()).getPrism().getSettings().set(PrismSettings.SIMULATOR_NEW_PATH_ASK_VIEW, this.askOption);
+				gui.getPrism().getSettings().set(PrismSettings.SIMULATOR_NEW_PATH_ASK_VIEW, this.askOption);
 			} catch (PrismException e) {
 			}
 		}

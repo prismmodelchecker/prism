@@ -50,7 +50,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	private static final long serialVersionUID = 1L;
 
 	//ATTRIBUTES
-	private GUIPrism gui; //reference to the gui
 	private GUIMultiProperties guiProp; //reference to the properties information
 	private GUIMultiModel guiMultiModel; //reference to the model plugin
 	private SimulatorEngine engine;
@@ -316,7 +315,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			// (just get contants needed for properties file labels)
 			UndefinedConstants uCon = new UndefinedConstants(parsedModel, pf, true);
 			if (uCon.getMFNumUndefined() + uCon.getPFNumUndefined() > 0) {
-				int result = GUIConstantsPicker.defineConstantsWithDialog(gui, uCon, lastConstants, lastPropertyConstants);
+				int result = GUIConstantsPicker.defineConstantsWithDialog(getGUI(), uCon, lastConstants, lastPropertyConstants);
 				if (result != GUIConstantsPicker.VALUES_DONE)
 					return;
 			}
@@ -405,7 +404,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			lastInitialState = initialState;
 
 			if (getPrism().getSettings().getBoolean(PrismSettings.SIMULATOR_NEW_PATH_ASK_VIEW)) {
-				new GUIViewDialog(gui, pathTableModel.getView(), pathTableModel);
+				new GUIViewDialog(getGUI(), pathTableModel.getView(), pathTableModel);
 			}
 
 		} catch (PrismException e) {
@@ -618,7 +617,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 	public void a_configureView()
 	{
-		new GUIViewDialog(gui, pathTableModel.getView(), pathTableModel);
+		new GUIViewDialog(getGUI(), pathTableModel.getView(), pathTableModel);
 	}
 
 	/**
