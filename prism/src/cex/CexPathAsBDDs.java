@@ -31,11 +31,13 @@ import java.util.ArrayList;
 import jdd.JDD;
 import jdd.JDDNode;
 import parser.State;
+import simulator.PathFullInfo;;
 
 /**
- * Class to store a single-path counterexample, as a list of BDDs.
+ * Class to store a single-path, non-probabilistic counterexample, as a list of BDDs.
+ * This is just a sequence of states, no more.
  */
-public class CexPathAsBDDs
+public class CexPathAsBDDs implements PathFullInfo
 {
 	protected prism.Model model;
 	protected ArrayList<JDDNode> states;
@@ -68,6 +70,118 @@ public class CexPathAsBDDs
 		}
 	}
 
+	// ACCESSORS (for PathFullInfo)
+	
+	@Override
+	public int size()
+	{
+		return states.size() - 1;
+	}
+	
+	@Override
+	public State getState(int step)
+	{
+		return model.convertBddToState(states.get(step));
+	}
+	
+	@Override
+	public double getStateReward(int step, int rsi)
+	{
+		return 0.0;
+	}
+
+	@Override
+	public double getCumulativeTime(int step)
+	{
+		return 0.0;
+	}
+
+	@Override
+	public double getCumulativeReward(int step, int rsi)
+	{
+		return 0.0;
+	}
+
+	@Override
+	public double getTime(int step)
+	{
+		return 0.0;
+	}
+
+	@Override
+	public int getChoice(int step)
+	{
+		return 0;
+	}
+
+	@Override
+	public int getModuleOrActionIndex(int step)
+	{
+		return 0;
+	}
+
+	@Override
+	public String getModuleOrAction(int step)
+	{
+		return "";
+	}
+
+	@Override
+	public double getTransitionReward(int step, int rsi)
+	{
+		return 0.0;
+	}
+	
+	@Override
+	public boolean isLooping()
+	{
+		return false;
+	}
+	
+	@Override
+	public int loopStart()
+	{
+		return 0;
+	}
+	
+	@Override
+	public int loopEnd()
+	{
+		return 0;
+	}
+	
+	@Override
+	public boolean hasRewardInfo()
+	{
+		return false;
+	}
+	
+	@Override
+	public boolean hasChoiceInfo()
+	{
+		return false;
+	}
+	
+	@Override
+	public boolean hasActionInfo()
+	{
+		return false;
+	}
+	
+	@Override
+	public boolean hasTimeInfo()
+	{
+		return false;
+	}
+	
+	@Override
+	public boolean hasLoopInfo()
+	{
+		return false;
+	}
+	
+	// Standard method
+	
 	@Override
 	public String toString()
 	{
