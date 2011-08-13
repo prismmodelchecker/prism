@@ -31,7 +31,7 @@ package userinterface.simulator;
 import java.util.*;
 import javax.swing.table.AbstractTableModel;
 
-import simulator.PathFull;
+import simulator.PathFullInfo;
 import userinterface.simulator.SimulationView.*;
 import userinterface.util.GUIGroupedTableModel;
 import parser.ast.*;
@@ -45,7 +45,7 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 
 	private boolean pathActive;
 	private ModulesFile parsedModel;
-	private PathFull path; 
+	private PathFullInfo path; 
 
 	private RewardStructureValue rewardStructureValue;
 	private VariableValue variableValue;
@@ -67,7 +67,7 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 		this.pathActive = pathActive;
 	}
 
-	public void setPath(PathFull path)
+	public void setPath(PathFullInfo path)
 	{
 		this.path = path;
 	}
