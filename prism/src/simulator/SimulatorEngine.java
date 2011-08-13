@@ -435,6 +435,43 @@ public class SimulatorEngine
 		transitionListState = null;
 	}
 
+	/**
+	 * Construct a path through a model to match a supplied path,
+	 * specified as a PathFullInfo object.
+	 * Note: All constants in the model must have already been defined.
+	 * @param modulesFile Model for simulation
+	 * @param newPath Path to match
+	 */
+	public void loadPath(ModulesFile modulesFile, PathFullInfo newPath) throws PrismException
+	{
+		int i, j, numSteps, numTrans;
+		boolean found;
+		State state, nextState;
+		createNewPath(modulesFile);
+		numSteps = newPath.size();
+		if (numSteps == 0)
+			return;
+		state = newPath.getState(0);
+		initialisePath(state);
+		for (i = 0; i < numSteps; i++) {
+			nextState = newPath.getState(i + 1);
+			// Find matching transition
+			// (just look at states for now)
+			numTrans = transitionList.getNumTransitions();
+			found = false;
+			for (j = 0; j < numTrans; j++) {
+				if (transitionList.computeTransitionTarget(j, state).equals(nextState)) {
+					found = true;
+					manualTransition(j);
+					break;
+				}
+			}
+			if (!found)
+				throw new PrismException("Path loading failed at step " + (i + 1));
+			state = nextState;
+		}
+	}
+	
 	// ------------------------------------------------------------------------------
 	// Methods for adding/querying labels and properties
 	// ------------------------------------------------------------------------------

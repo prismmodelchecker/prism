@@ -602,6 +602,34 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		}
 	}
 
+	public void a_loadPath(PathFullInfo pathNew)
+	{
+		try {
+			// Insert path table
+			tableScroll.setViewportView(pathTable);
+
+			displayPathLoops = true;
+
+			// Load new path into the simulator 
+			engine.loadPath(parsedModel, pathNew);
+			// Update model/path/tables/lists
+			setPathActive(true);
+			pathTableModel.setPath(engine.getPathFull());
+			pathTableModel.restartPathTable();
+			pathTable.getSelectionModel().setSelectionInterval(0, 0);
+			updateTableModel.restartUpdatesTable();
+			//repopulateFormulae(pf);
+			// Update display
+			repaintLists();
+			updatePathInfoAll(null);
+			doEnables();
+
+		} catch (PrismException e) {
+			this.error(e.getMessage());
+			setComputing(false);
+		}
+	}
+
 	public void a_exportPath()
 	{
 		try {
