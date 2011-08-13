@@ -38,7 +38,7 @@ import prism.PrismLog;
  * The full path is stored, i.e. all info at all steps.
  * State objects and arrays are copied for storage.
  */
-public class PathFull extends Path
+public class PathFull extends Path implements PathFullInfo
 {
 	// Model to which the path corresponds
 	private ModulesFile modulesFile;
@@ -204,7 +204,7 @@ public class PathFull extends Path
 		loopDet.removePrecedingStates(this, step);
 	}
 	
-	// ACCESSORS (for Path)
+	// ACCESSORS (for Path (and some of PathFullInfo))
 
 	@Override
 	public boolean continuousTime()
@@ -284,7 +284,7 @@ public class PathFull extends Path
 		return loopDet.loopEnd();
 	}
 	
-	// ACCESSORS (additional)
+	// ACCESSORS (for PathFullInfo)
 
 	/**
 	 * Get the state at a given step of the path.
@@ -378,6 +378,8 @@ public class PathFull extends Path
 		return steps.get(step).transitionRewards[rsi];
 	}
 
+	// Other methods
+	
 	/**
 	 * Export path to a file.
 	 * @param log PrismLog to which the path should be exported to.
