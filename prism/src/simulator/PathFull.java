@@ -378,6 +378,36 @@ public class PathFull extends Path implements PathFullInfo
 		return steps.get(step).transitionRewards[rsi];
 	}
 
+	@Override
+	public boolean hasRewardInfo()
+	{
+		return true;
+	}
+	
+	@Override
+	public boolean hasChoiceInfo()
+	{
+		return true;
+	}
+	
+	@Override
+	public boolean hasActionInfo()
+	{
+		return true;
+	}
+	
+	@Override
+	public boolean hasTimeInfo()
+	{
+		return true;
+	}
+	
+	@Override
+	public boolean hasLoopInfo()
+	{
+		return true;
+	}
+	
 	// Other methods
 	
 	/**
