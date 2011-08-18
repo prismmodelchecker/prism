@@ -137,7 +137,8 @@ public class LTLModelChecker
 	 * @param labelDDs: BDDs giving the set of states for each AP in the DRA
 	 * @param draDDRowVarsCopy: (Optionally) empty JDDVars object to obtain copy of DD row vars for DRA
 	 * @param draDDColVarsCopy: (Optionally) empty JDDVars object to obtain copy of DD col vars for DRA
-	 * @param allInit: Do we assume that all states of the original model are initial states? (see below)
+	 * @param allInit: Do we assume that all states of the original model are initial states?
+	 *        (just for the purposes of reachability)
 	 */
 	public ProbModel constructProductMC(DRA dra, ProbModel model, Vector<JDDNode> labelDDs, JDDVars draDDRowVarsCopy, JDDVars draDDColVarsCopy, boolean allInit)
 			throws PrismException
@@ -258,6 +259,7 @@ public class LTLModelChecker
 		// states of the original model (because we compute probabilities for all of them)
 		// but some of these may not be reachable from the initial state of the product model.
 		// Optionally (if allInit is false), we don't do this - maybe because we only care about result for the initial state
+		// Note that we reset the initial states after reachability, corresponding to just the initial states of the original model.  
 		newStart = buildStartMask(dra, labelDDs, draDDRowVars);
 		JDD.Ref(allInit ? model.getReach() : model.getStart());
 		newStart = JDD.And(allInit ? model.getReach() : model.getStart(), newStart);
@@ -287,6 +289,12 @@ public class LTLModelChecker
 			throw new PrismException("Model-DRA product has deadlock states");
 		}
 
+		// Reset initial state
+		newStart = buildStartMask(dra, labelDDs, draDDRowVars);
+		JDD.Ref(model.getStart());
+		newStart = JDD.And(model.getStart(), newStart);
+		modelProd.setStart(newStart);
+		
 		// Reference DRA DD vars (if being returned)
 		if (draDDRowVarsCopy != null)
 			draDDRowVarsCopy.refAll();
@@ -328,7 +336,8 @@ public class LTLModelChecker
 	 * @param labelDDs: BDDs giving the set of states for each AP in the DRA
 	 * @param draDDRowVarsCopy: (Optionally) empty JDDVars object to obtain copy of DD row vars for DRA
 	 * @param draDDColVarsCopy: (Optionally) empty JDDVars object to obtain copy of DD col vars for DRA
-	 * @param allInit: Do we assume that all states of the original model are initial states? (see below)
+	 * @param allInit: Do we assume that all states of the original model are initial states?
+	 *        (just for the purposes of reachability)
 	 */
 	public NondetModel constructProductMDP(DRA dra, NondetModel model, Vector<JDDNode> labelDDs, JDDVars draDDRowVarsCopy, JDDVars draDDColVarsCopy,
 			boolean allInit) throws PrismException
@@ -453,6 +462,7 @@ public class LTLModelChecker
 		// states of the original model (because we compute probabilities for all of them)
 		// but some of these may not be reachable from the initial state of the product model.
 		// Optionally (if allInit is false), we don't do this - maybe because we only care about result for the initial state
+		// Note that we reset the initial states after reachability, corresponding to just the initial states of the original model.  
 		newStart = buildStartMask(dra, labelDDs, draDDRowVars);
 		JDD.Ref(allInit ? model.getReach() : model.getStart());
 		newStart = JDD.And(allInit ? model.getReach() : model.getStart(), newStart);
@@ -494,6 +504,12 @@ public class LTLModelChecker
 			throw new PrismException("Model-DRA product has deadlock states");
 		}
 
+		// Reset initial state
+		newStart = buildStartMask(dra, labelDDs, draDDRowVars);
+		JDD.Ref(model.getStart());
+		newStart = JDD.And(model.getStart(), newStart);
+		modelProd.setStart(newStart);
+		
 		//try { prism.exportStatesToFile(modelProd, Prism.EXPORT_PLAIN, new java.io.File("prod.sta")); }
 		//catch (java.io.FileNotFoundException e) {}
 

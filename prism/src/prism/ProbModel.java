@@ -513,6 +513,20 @@ public class ProbModel implements Model
 	}
 
 	/**
+	 * Set the initial state(s) BDD (but don't re-do reachability).
+	 * Old BDD is derefed if set already
+	 */
+	public void setStart(JDDNode start)
+	{
+		if (this.start != null)
+			JDD.Deref(this.start);
+		this.start = start;
+		
+		// work out number of initial states
+		numStartStates = JDD.GetNumMinterms(start, allDDRowVars.n());
+	}
+
+	/**
 	 * Set the DD used to store transition action label indices (MDPs).
 	 */
 	public void setTransActions(JDDNode transActions)
