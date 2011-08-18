@@ -3,10 +3,12 @@ including development and beta versions. For a less detailed overview
 of the main changes in each public release, see the file VERSIONS.txt.
 
 Latest changes (mostly reverse chronological):
-[correct wrt svn rev 3263]
+[correct wrt svn rev 3510]
 
 * Fixed anti-aliasing in GUI model editor
 * Better handling of undefined constants in properties
+* Added -exportprodtrans and -exportprodstates switches
+* Bug fixes
 
 Ongoing changes:
 
