@@ -117,7 +117,12 @@ public class Prism implements PrismSettingsListener
 	// Export target state info?
 	protected boolean exportTarget;
 	protected String exportTargetFilename;
-	
+	// Export product model info?
+	protected boolean exportProductTrans;
+	protected String exportProductTransFilename;
+	protected boolean exportProductStates;
+	protected String exportProductStatesFilename;
+		
 	// A few miscellaneous options (i.e. defunct/hidden/undocumented/etc.)
 	// See constructor below for default values
 	
@@ -208,6 +213,10 @@ public class Prism implements PrismSettingsListener
 		// default values for miscellaneous options 
 		exportTarget = false;
 		exportTargetFilename = null;
+		exportProductTrans = false;
+		exportProductTransFilename = null;
+		exportProductStates = false;
+		exportProductStatesFilename = null;
 		doReach = true;
 		bsccComp = true;
 		checkZeroLoops = false;
@@ -380,6 +389,26 @@ public class Prism implements PrismSettingsListener
 		exportTargetFilename = s;
 	}
 	
+	public void setExportProductTrans(boolean b) throws PrismException
+	{
+		exportProductTrans = b;
+	}
+	
+	public void setExportProductTransFilename(String s) throws PrismException
+	{
+		exportProductTransFilename = s;
+	}
+	
+	public void setExportProductStates(boolean b) throws PrismException
+	{
+		exportProductStates = b;
+	}
+	
+	public void setExportProductStatesFilename(String s) throws PrismException
+	{
+		exportProductStatesFilename = s;
+	}
+	
 	public void setDoReach(boolean b) throws PrismException
 	{
 		doReach = b;
@@ -494,10 +523,22 @@ public class Prism implements PrismSettingsListener
 	// Get methods for miscellaneous options
 	
 	public boolean getExportTarget()
-	{return exportTarget; }
+	{ return exportTarget; }
 	
 	public String getExportTargetFilename()
 	{ return exportTargetFilename; }
+	
+	public boolean getExportProductTrans()
+	{ return exportProductTrans; }
+	
+	public String getExportProductTransFilename()
+	{ return exportProductTransFilename; }
+	
+	public boolean getExportProductStates()
+	{ return exportProductStates; }
+	
+	public String getExportProductStatesFilename()
+	{ return exportProductStatesFilename; }
 	
 	public boolean getDoReach()
 	{ return doReach; }

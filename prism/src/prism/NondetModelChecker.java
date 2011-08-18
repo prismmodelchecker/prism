@@ -27,6 +27,7 @@
 
 package prism;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 
@@ -449,8 +450,24 @@ public class NondetModelChecker extends NonProbModelChecker
 		modelProduct = mcLtl.constructProductMDP(dra, model, labelDDs, draDDRowVars, draDDColVars);
 		mainLog.println();
 		modelProduct.printTransInfo(mainLog, prism.getExtraDDInfo());
-		// prism.exportStatesToFile(modelProduct, Prism.EXPORT_PLAIN, null);
-		// prism.exportTransToFile(modelProduct, true, Prism.EXPORT_PLAIN, null);
+		// Output product, if required
+		if (prism.getExportProductTrans()) {
+			try {
+				mainLog.println("\nExporting product transition matrix to file \"" + prism.getExportProductTransFilename() + "\"...");
+				prism.exportTransToFile(modelProduct, true, Prism.EXPORT_PLAIN, new File(prism.getExportProductTransFilename()));
+			} catch (FileNotFoundException e) {
+				mainLog.println("\nWarning: Could not export product transition matrix to file \"" + prism.getExportProductTransFilename() + "\"");
+			}
+		}
+		if (prism.getExportProductStates()) {
+			try {
+				mainLog.println("\nExporting product state space to file \"" + prism.getExportProductStatesFilename() + "\"...");
+				prism.exportTransToFile(modelProduct, true, Prism.EXPORT_PLAIN, new File(prism.getExportProductStatesFilename()));
+				prism.exportStatesToFile(modelProduct, Prism.EXPORT_PLAIN, new File(prism.getExportProductStatesFilename()));
+			} catch (FileNotFoundException e) {
+				mainLog.println("\nWarning: Could not export product state space to file \"" + prism.getExportProductStatesFilename() + "\"");
+			}
+		}
 
 		// Find accepting maximum end components
 		mainLog.println("\nFinding accepting end components...");

@@ -1387,6 +1387,24 @@ public class PrismCL
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
 				}
+				// export product transition matrix to file (hidden option)
+				else if (sw.equals("exportprodtrans")) {
+					if (i < args.length - 1) {
+						prism.setExportProductTrans(true);
+						prism.setExportProductTransFilename(args[++i]);
+					} else {
+						errorAndExit("No file specified for -" + sw + " switch");
+					}
+				}
+				// export product states to file (hidden option)
+				else if (sw.equals("exportprodstates")) {
+					if (i < args.length - 1) {
+						prism.setExportProductStates(true);
+						prism.setExportProductStatesFilename(args[++i]);
+					} else {
+						errorAndExit("No file specified for -" + sw + " switch");
+					}
+				}
 				// export model to plain text file (deprecated option so hidden)
 				else if (sw.equals("exportplain")) {
 					if (i < args.length - 1) {
