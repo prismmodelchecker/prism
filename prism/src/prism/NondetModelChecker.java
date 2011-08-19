@@ -485,8 +485,6 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// Convert probability vector to original model
 		// First, filter over DRA start states
-		// (which we can get from initial states of product model,
-		// because of the way it is constructed)
 		startMask = mcLtl.buildStartMask(dra, labelDDs, draDDRowVars);
 		JDD.Ref(model.getReach());
 		startMask = JDD.And(model.getReach(), startMask);
