@@ -487,7 +487,9 @@ public class NondetModelChecker extends NonProbModelChecker
 		// First, filter over DRA start states
 		// (which we can get from initial states of product model,
 		// because of the way it is constructed)
-		startMask = modelProduct.getStart();
+		startMask = mcLtl.buildStartMask(dra, labelDDs, draDDRowVars);
+		JDD.Ref(model.getReach());
+		startMask = JDD.And(model.getReach(), startMask);
 		probsProduct.filter(startMask);
 		// Then sum over DD vars for the DRA state
 		probs = probsProduct.sumOverDDVars(draDDRowVars, model);
@@ -499,6 +501,7 @@ public class NondetModelChecker extends NonProbModelChecker
 			JDD.Deref(labelDDs.get(i));
 		}
 		JDD.Deref(acc);
+		JDD.Deref(startMask);
 		draDDRowVars.derefAll();
 		draDDColVars.derefAll();
 
