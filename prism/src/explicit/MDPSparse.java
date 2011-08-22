@@ -85,7 +85,7 @@ public class MDPSparse extends ModelExplicit implements MDP
 	 */
 	public MDPSparse(MDPSimple mdp, boolean sort)
 	{
-		int i, j, k;
+		int i, j, k, n;
 		TreeMap<Integer, Double> sorted = null;
 		initialise(mdp.getNumStates());
 		for (int in : mdp.getInitialStates()) {
@@ -104,12 +104,15 @@ public class MDPSparse extends ModelExplicit implements MDP
 		cols = new int[numTransitions];
 		choiceStarts = new int[numDistrs + 1];
 		rowStarts = new int[numStates + 1];
-		actions = new Object[numDistrs];
+		actions = mdp.actions == null ? null : new Object[numDistrs];
 		j = k = 0;
 		for (i = 0; i < numStates; i++) {
 			rowStarts[i] = j;
-			for (int l = 0; l < mdp.actions.get(i).size(); l++) {
-				actions[j + l] = mdp.actions.get(i).get(l);
+			if (mdp.actions != null) {
+				n = mdp.getNumChoices(i);
+				for (int l = 0; l < n; l++) {
+					actions[j + l] = mdp.getAction(i, l);
+				}
 			}
 			for (Distribution distr : mdp.trans.get(i)) {
 				choiceStarts[j] = k;
@@ -149,7 +152,7 @@ public class MDPSparse extends ModelExplicit implements MDP
 	 */
 	public MDPSparse(MDPSimple mdp, boolean sort, int permut[])
 	{
-		int i, j, k;
+		int i, j, k, n;
 		TreeMap<Integer, Double> sorted = null;
 		int permutInv[];
 		initialise(mdp.getNumStates());
@@ -175,12 +178,15 @@ public class MDPSparse extends ModelExplicit implements MDP
 		cols = new int[numTransitions];
 		choiceStarts = new int[numDistrs + 1];
 		rowStarts = new int[numStates + 1];
-		actions = new Object[numDistrs];
+		actions = mdp.actions == null ? null : new Object[numDistrs];
 		j = k = 0;
 		for (i = 0; i < numStates; i++) {
 			rowStarts[i] = j;
-			for (int l = 0; l < mdp.actions.get(permutInv[i]).size(); l++) {
-				actions[j + l] = mdp.actions.get(permutInv[i]).get(l);
+			if (mdp.actions != null) {
+				n = mdp.getNumChoices(permutInv[i]);
+				for (int l = 0; l < n; l++) {
+					actions[j + l] = mdp.getAction(permutInv[i], l);
+				}
 			}
 			for (Distribution distr : mdp.trans.get(permutInv[i])) {
 				choiceStarts[j] = k;
