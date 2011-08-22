@@ -27,14 +27,20 @@
 
 package userinterface;
 
-import javax.swing.*;
-import java.awt.*;
-import javax.swing.border.*;
-import javax.swing.table.*;
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.util.ArrayList;
+
+import javax.swing.Action;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultListSelectionModel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.border.TitledBorder;
+import javax.swing.table.AbstractTableModel;
 
 import parser.*;
-import parser.ast.*;
 import parser.type.*;
 import prism.*;
 
