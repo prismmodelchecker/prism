@@ -454,6 +454,10 @@ public class DigitalClocks
 			for (int x : ints) {
 				gcd = computeGCD(gcd, x);
 			}
+			if (gcd == 0) {
+				// For the case where clock set is empty or all zeros
+				gcd = 1;
+			}
 			return gcd;
 		}
 
