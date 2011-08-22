@@ -1134,10 +1134,10 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 	class Value
 	{
 		String name;
-		Type type;
+		parser.type.Type type;
 		Object value;
 
-		public Value(String name, Type type, Object value)
+		public Value(String name, parser.type.Type type, Object value)
 		{
 			this.name = name;
 			this.type = type;

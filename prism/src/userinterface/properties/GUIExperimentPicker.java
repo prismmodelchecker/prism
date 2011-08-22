@@ -498,7 +498,7 @@ public class GUIExperimentPicker extends javax.swing.JDialog
 		static class Rememberance
 		{
 			String varName;
-			Type type;
+			parser.type.Type type;
 			boolean isRange;
 			String singleValue;
 			String start;

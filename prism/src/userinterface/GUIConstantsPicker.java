@@ -40,9 +40,9 @@ import javax.swing.JTable;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.AbstractTableModel;
 
-import parser.*;
-import parser.type.*;
-import prism.*;
+import parser.Values;
+import prism.PrismException;
+import prism.UndefinedConstants;
 
 public class GUIConstantsPicker extends javax.swing.JDialog
 {
@@ -449,10 +449,10 @@ public class GUIConstantsPicker extends javax.swing.JDialog
 	class Constant
 	{
 	String name;
-	Type type;
+	parser.type.Type type;
 	Object value;
 	
-	public Constant(String name, Type type, Object value)
+	public Constant(String name, parser.type.Type type, Object value)
 	{
 		this.name = name;
 		this.type = type;

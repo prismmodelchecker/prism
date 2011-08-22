@@ -415,10 +415,10 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
 	class Value
 	{
 		String name;
-		Type type;
+		parser.type.Type type;
 		Object value;
             
-		public Value(String name, Type type, Object value)
+		public Value(String name, parser.type.Type type, Object value)
 		{
 			this.name = name;
 			this.type = type;
