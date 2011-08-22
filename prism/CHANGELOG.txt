@@ -8,12 +8,12 @@ Latest changes (mostly reverse chronological):
 * Fixed anti-aliasing in GUI model editor
 * Better handling of undefined constants in properties
 * Added -exportprodtrans and -exportprodstates switches
+* More improvements to explicit engine
 * Bug fixes
 
 Ongoing changes:
 
 * Properties can be named, by prefixing with "name":, and reference each other
-* More improvements to explicit engine
 * CTL AG/EF
 
 -----------------------------------------------------------------------------
