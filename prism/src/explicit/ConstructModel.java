@@ -113,7 +113,7 @@ public class ConstructModel
 		CTMCSimple ctmc = null;
 		MDPSimple mdp = null;
 		CTMDPSimple ctmdp = null;
-		Model model = null;
+		ModelExplicit model = null;
 		Distribution distr = null;
 		// Misc
 		int i, j, nc, nt, src, dest;
@@ -278,31 +278,23 @@ public class ConstructModel
 			switch (modelType) {
 			case DTMC:
 				model = sort ? new DTMCSimple(dtmc, permut) : (DTMCSimple) dtmc;
-				((ModelSimple) model).statesList = statesList;
-				((ModelSimple) model).constantValues = new Values(modulesFile.getConstantValues());
 				break;
 			case CTMC:
 				model = sort ? new CTMCSimple(ctmc, permut) : (CTMCSimple) ctmc;
-				((ModelSimple) model).statesList = statesList;
-				((ModelSimple) model).constantValues = new Values(modulesFile.getConstantValues());
 				break;
 			case MDP:
 				if (buildSparse) {
 					model = sort ? new MDPSparse(mdp, true, permut) : new MDPSparse(mdp);
-					((ModelSparse) model).statesList = statesList;
-					((ModelSparse) model).constantValues = new Values(modulesFile.getConstantValues());
 				} else {
 					model = sort ? new MDPSimple(mdp, permut) : mdp;
-					((ModelSimple) model).statesList = statesList;
-					((ModelSimple) model).constantValues = new Values(modulesFile.getConstantValues());
 				}
 				break;
 			case CTMDP:
 				model = sort ? new CTMDPSimple(ctmdp, permut) : mdp;
-				((ModelSimple) model).statesList = statesList;
-				((ModelSimple) model).constantValues = new Values(modulesFile.getConstantValues());
 				break;
 			}
+			model.setStatesList(statesList);
+			model.setConstantValues(new Values(modulesFile.getConstantValues()));
 			//mainLog.println("Model: " + model);
 		}
 

@@ -43,7 +43,7 @@ import prism.PrismUtils;
  * This is much faster to access than e.g. MDPSimple and should also be more compact.
  * The catch is that you have to create the model all in one go and then can't modify it.
  */
-public class MDPSparse extends ModelSparse implements MDP
+public class MDPSparse extends ModelExplicit implements MDP
 {
 	// Sparse matrix storing transition function (Steps)
 	/** Probabilities for each transition (array of size numTransitions) */
@@ -274,7 +274,7 @@ public class MDPSparse extends ModelSparse implements MDP
 	// Mutators (for ModelSparse)
 
 	@Override
-	protected void initialise(int numStates)
+	public void initialise(int numStates)
 	{
 		super.initialise(numStates);
 		numDistrs = numTransitions = maxNumDistrs = 0;

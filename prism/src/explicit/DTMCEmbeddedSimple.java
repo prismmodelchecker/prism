@@ -26,7 +26,6 @@
 
 package explicit;
 
-import java.io.File;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -35,7 +34,6 @@ import parser.State;
 import parser.Values;
 import prism.ModelType;
 import prism.PrismException;
-import prism.PrismLog;
 
 /**
  * Simple explicit-state representation of a DTMC, constructed (implicitly) as the embedded DTMC of a CTMC.
@@ -43,7 +41,7 @@ import prism.PrismLog;
  * where E(i) is the exit rate for state i: sum_j R(i,j).
  * This class is read-only: most of data is pointers to other model info.
  */
-public class DTMCEmbeddedSimple implements DTMC
+public class DTMCEmbeddedSimple extends DTMCExplicit
 {
 	// Parent CTMC
 	protected CTMCSimple ctmc;
@@ -70,6 +68,12 @@ public class DTMCEmbeddedSimple implements DTMC
 		}
 	}
 
+	@Override
+	public void buildFromPrismExplicit(String filename) throws PrismException
+	{
+		throw new PrismException("Not supported");
+	}
+	
 	// Accessors (for Model)
 
 	public ModelType getModelType()
@@ -159,36 +163,6 @@ public class DTMCEmbeddedSimple implements DTMC
 		return new BitSet();
 	}
 
-	public void exportToPrismExplicit(String baseFilename) throws PrismException
-	{
-		throw new PrismException("Export not yet supported");
-	}
-
-	public void exportToPrismExplicitTra(String filename) throws PrismException
-	{
-		throw new PrismException("Export not yet supported");
-	}
-
-	public void exportToPrismExplicitTra(File file) throws PrismException
-	{
-		throw new PrismException("Export not yet supported");
-	}
-
-	public void exportToPrismExplicitTra(PrismLog out) throws PrismException
-	{
-		throw new PrismException("Export not yet supported");
-	}
-
-	public void exportToDotFile(String filename) throws PrismException
-	{
-		throw new PrismException("Export not yet supported");
-	}
-
-	public void exportToDotFile(String filename, BitSet mark) throws PrismException
-	{
-		throw new PrismException("Export not yet supported");
-	}
-
 	@Override
 	public String infoString()
 	{
@@ -241,22 +215,6 @@ public class DTMCEmbeddedSimple implements DTMC
 		}
 	}
 
-	public void mvMult(double vect[], double result[], BitSet subset, boolean complement)
-	{
-		int s;
-		// Loop depends on subset/complement arguments
-		if (subset == null) {
-			for (s = 0; s < numStates; s++)
-				result[s] = mvMultSingle(s, vect);
-		} else if (complement) {
-			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1))
-				result[s] = mvMultSingle(s, vect);
-		} else {
-			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1))
-				result[s] = mvMultSingle(s, vect);
-		}
-	}
-
 	public double mvMultSingle(int s, double vect[])
 	{
 		int k;
@@ -281,37 +239,6 @@ public class DTMCEmbeddedSimple implements DTMC
 		}
 
 		return d;
-	}
-
-	@Override
-	public double mvMultGS(double vect[], BitSet subset, boolean complement, boolean absolute)
-	{
-		int s;
-		double d, diff, maxDiff = 0.0;
-		// Loop depends on subset/complement arguments
-		if (subset == null) {
-			for (s = 0; s < numStates; s++) {
-				d = mvMultJacSingle(s, vect);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
-		} else if (complement) {
-			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1)) {
-				d = mvMultJacSingle(s, vect);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
-		} else {
-			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1)) {
-				d = mvMultJacSingle(s, vect);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
-		}
-		return maxDiff;
 	}
 
 	@Override
@@ -347,23 +274,6 @@ public class DTMCEmbeddedSimple implements DTMC
 		}
 		
 		return d;
-	}
-
-	public void mvMultRew(double vect[], MCRewards mcRewards, double result[], BitSet subset, boolean complement)
-	{
-		int s, numStates;
-		numStates = ctmc.getNumStates();
-		// Loop depends on subset/complement arguments
-		if (subset == null) {
-			for (s = 0; s < numStates; s++)
-				result[s] = mvMultRewSingle(s, vect, mcRewards);
-		} else if (complement) {
-			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1))
-				result[s] = mvMultRewSingle(s, vect, mcRewards);
-		} else {
-			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1))
-				result[s] = mvMultRewSingle(s, vect, mcRewards);
-		}
 	}
 
 	public double mvMultRewSingle(int s, double vect[], MCRewards mcRewards)

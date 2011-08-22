@@ -169,6 +169,11 @@ public interface Model
 	public void exportToDotFile(String filename, BitSet mark) throws PrismException;
 
 	/**
+	 * Export to a equivalent PRISM language model description.
+	 */
+	public void exportToPrismLanguage(String filename) throws PrismException;
+	
+	/**
 	 * Report info/stats about the model as a string.
 	 */
 	public String infoString();

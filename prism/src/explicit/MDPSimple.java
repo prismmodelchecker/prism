@@ -44,7 +44,7 @@ import prism.PrismUtils;
  * The model is, however, easy to manipulate. For a static model (i.e. one that does not change
  * after creation), consider MDPSparse, which is more efficient. 
  */
-public class MDPSimple extends ModelSimple implements MDP
+public class MDPSimple extends ModelExplicit implements MDP, ModelSimple
 {
 	// Transition function (Steps)
 	protected List<List<Distribution>> trans;

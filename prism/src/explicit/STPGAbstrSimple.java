@@ -43,7 +43,7 @@ import prism.PrismUtils;
  * player 2 and probabilistic states. Thus, we store this a set of sets of
  * distributions for each state.
  */
-public class STPGAbstrSimple extends ModelSimple implements STPG
+public class STPGAbstrSimple extends ModelExplicit implements STPG, ModelSimple
 {
 	// Transition function (Steps)
 	protected List<ArrayList<DistributionSet>> trans;
