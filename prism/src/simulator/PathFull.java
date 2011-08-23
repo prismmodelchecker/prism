@@ -233,7 +233,7 @@ public class PathFull extends Path implements PathFullInfo
 	@Override
 	public double getTotalTime()
 	{
-		return steps.get(steps.size() - 1).timeCumul;
+		return size < 1 ? 0.0 : steps.get(steps.size() - 1).timeCumul;
 	}
 
 	@Override

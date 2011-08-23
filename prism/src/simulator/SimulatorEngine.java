@@ -449,8 +449,6 @@ public class SimulatorEngine
 		State state, nextState;
 		createNewPath(modulesFile);
 		numSteps = newPath.size();
-		if (numSteps == 0)
-			return;
 		state = newPath.getState(0);
 		initialisePath(state);
 		for (i = 0; i < numSteps; i++) {
