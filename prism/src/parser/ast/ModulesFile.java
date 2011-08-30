@@ -761,7 +761,7 @@ public class ModulesFile extends ASTElement
 	 * Set values for *all* undefined constants and then evaluate all constants.
 	 * If there are no undefined constants, {@code someValues} can be null.
 	 * Undefined constants can be subsequently redefined to different values with the same method.
-	 * The current constant values (if set) are available via {@link #setUndefinedConstants(Values)}. 
+	 * The current constant values (if set) are available via {@link #getConstantValues()}. 
 	 * Calling this method also triggers some additional semantic checks
 	 * that can only be done once constant values have been specified.
 	 */

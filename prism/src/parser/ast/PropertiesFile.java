@@ -421,7 +421,7 @@ public class PropertiesFile extends ASTElement
 	 * Set values for *all* undefined constants and then evaluate all constants.
 	 * If there are no undefined constants, {@code someValues} can be null.
 	 * Undefined constants can be subsequently redefined to different values with the same method.
-	 * The current constant values (if set) are available via {@link #setUndefinedConstants(Values)}. 
+	 * The current constant values (if set) are available via {@link #getConstantValues()}. 
 	 */
 	public void setUndefinedConstants(Values someValues) throws PrismLangException
 	{
@@ -436,7 +436,7 @@ public class PropertiesFile extends ASTElement
 	 * Set values for *some* undefined constants and then evaluate all constants where possible.
 	 * If there are no undefined constants, {@code someValues} can be null.
 	 * Undefined constants can be subsequently redefined to different values with the same method.
-	 * The current constant values (if set) are available via {@link #setUndefinedConstants(Values)}.
+	 * The current constant values (if set) are available via {@link #getConstantValues()}.
 	 */
 	public void setSomeUndefinedConstants(Values someValues) throws PrismLangException
 	{
