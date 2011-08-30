@@ -279,7 +279,11 @@ public abstract class QuantAbstractRefine
 		}
 		// Parse
 		if (opt.equals("verbose") || opt.equals("v")) {
-			setVerbosity((optVal == null) ? 10 : Integer.parseInt(optVal));
+			try {
+				setVerbosity((optVal == null) ? 10 : Integer.parseInt(optVal));
+			} catch (NumberFormatException e) {
+				throw new PrismException("Invalid value \"" + optVal + "\" for abstraction-refinement setting \"" + opt + "\"");
+			}
 		} else if (opt.matches("refine")) {
 			if (optVal != null) {
 				String ss[] = optVal.split(",");
@@ -310,7 +314,11 @@ public abstract class QuantAbstractRefine
 			}
 		} else if (opt.equals("epsilonref") || opt.equals("eref")) {
 			if (optVal != null) {
-				setRefineTermCritParam(Double.parseDouble(optVal));
+				try {
+					setRefineTermCritParam(Double.parseDouble(optVal));
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value \"" + optVal + "\" for abstraction-refinement setting \"" + opt + "\"");
+				}
 			}
 		} else if (opt.equals("nopre")) {
 			getModelChecker().setPrecomp(false);
@@ -322,11 +330,19 @@ public abstract class QuantAbstractRefine
 			getModelChecker().setProb1(false);
 		} else if (opt.equals("epsilon")) {
 			if (optVal != null) {
-				getModelChecker().setTermCritParam(Double.parseDouble(optVal));
+				try {
+					getModelChecker().setTermCritParam(Double.parseDouble(optVal));
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value \"" + optVal + "\" for abstraction-refinement setting \"" + opt + "\"");
+				}
 			}
 		} else if (opt.equals("maxrefs")) {
 			if (optVal != null) {
-				setMaxRefinements(Integer.parseInt(optVal));
+				try {
+					setMaxRefinements(Integer.parseInt(optVal));
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value \"" + optVal + "\" for abstraction-refinement setting \"" + opt + "\"");
+				}
 			}
 		} else if (opt.equals("opt")) {
 			setOptimise(true);
