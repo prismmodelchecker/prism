@@ -27,12 +27,17 @@
 package explicit;
 
 import java.util.BitSet;
-import java.util.List;
 
-import explicit.rewards.*;
-import parser.State;
-import parser.ast.*;
-import prism.*;
+import parser.ast.Expression;
+import parser.ast.ExpressionProb;
+import parser.ast.ExpressionReward;
+import parser.ast.ExpressionSS;
+import parser.ast.RewardStruct;
+import prism.ModelType;
+import prism.PrismException;
+import explicit.rewards.ConstructRewards;
+import explicit.rewards.MCRewards;
+import explicit.rewards.MDPRewards;
 
 /**
  * Super class for explicit-state probabilistic model checkers
@@ -69,8 +74,10 @@ public class ProbModelChecker extends StateModelChecker
 	/**
 	 * Model check a P operator expression and return the values for all states.
 	 */
-	protected StateValues checkExpressionProb(Model model, ExpressionProb expr) throws PrismException
+	protected Object checkExpressionProb(Model model, ExpressionProb expr) throws PrismException
 	{
+		Expression pb; // Probability bound (expression)
+		double p = 0; // Probability bound (actual value)
 		String relOp; // Relational operator
 		boolean min = false; // For nondeterministic models, are we finding min (true) or max (false) probs
 		ModelType modelType = model.getModelType();
@@ -79,10 +86,12 @@ public class ProbModelChecker extends StateModelChecker
 
 		// Get info from prob operator
 		relOp = expr.getRelOp();
-
-		// Check for unhandled cases
-		if (expr.getProb() != null)
-			throw new PrismException("Explicit engine does not yet handle bounded P operators");
+		pb = expr.getProb();
+		if (pb != null) {
+			p = pb.evaluateDouble(constantValues);
+			if (p < 0 || p > 1)
+				throw new PrismException("Invalid probability bound " + p + " in P operator");
+		}
 
 		// For nondeterministic models, determine whether min or max probabilities needed
 		if (modelType.nondeterministic()) {
@@ -125,20 +134,27 @@ public class ProbModelChecker extends StateModelChecker
 		}
 
 		// For =? properties, just return values
-		return probs;
+		if (pb == null) {
+			return probs;
+		}
+		// Otherwise, compare against bound to get set of satisfying states
+		else {
+			BitSet sol = probs.getBitSetFromInterval(relOp, p);
+			probs.clear();
+			return sol;
+		}
 	}
 	
 	/**
 	 * Model check an R operator expression and return the values for all states.
 	 */
-	protected StateValues checkExpressionReward(Model model, ExpressionReward expr) throws PrismException
+	protected Object checkExpressionReward(Model model, ExpressionReward expr) throws PrismException
 	{
 		Object rs; // Reward struct index
 		RewardStruct rewStruct = null; // Reward struct object
 		Expression rb; // Reward bound (expression)
 		double r = 0; // Reward bound (actual value)
 		String relOp; // Relational operator
-		Expression expr2; // expression
 		boolean min = false; // For nondeterministic models, are we finding min (true) or max (false) rewards
 		ModelType modelType = model.getModelType();
 		StateValues rews = null;
@@ -155,11 +171,6 @@ public class ProbModelChecker extends StateModelChecker
 			if (r < 0)
 				throw new PrismException("Invalid reward bound " + r + " in R[] formula");
 		}
-
-		// Check for unhandled cases
-		if (expr.getReward() != null)
-			throw new PrismException("Explicit engine does not yet handle bounded R operators");
-		// More? TODO
 
 		// For nondeterministic models, determine whether min or max rewards needed
 		if (modelType.nondeterministic()) {
@@ -228,6 +239,14 @@ public class ProbModelChecker extends StateModelChecker
 		}
 
 		// For =? properties, just return values
-		return rews;
+		if (rb == null) {
+			return rews;
+		}
+		// Otherwise, compare against bound to get set of satisfying states
+		else {
+			BitSet sol = rews.getBitSetFromInterval(relOp, r);
+			rews.clear();
+			return sol;
+		}
 	}
 }

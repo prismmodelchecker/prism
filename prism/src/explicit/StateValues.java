@@ -26,11 +26,11 @@
 
 package explicit;
 
-import java.util.*;
+import java.util.BitSet;
 
-import dv.DoubleVector;
-
-import parser.type.*;
+import parser.type.Type;
+import parser.type.TypeDouble;
+import parser.type.TypeInt;
 import prism.PrismException;
 import prism.PrismLog;
 
@@ -46,9 +46,9 @@ public class StateValues
 	// Vector (only one used, depending on type)
 	protected int[] valuesI;
 	protected double[] valuesD;
-	
+
 	// CONSTRUCTORS, etc.
-	
+
 	/**
 	 * Construct a new empty state values vector of unspecified type.
 	 * (Mostly for internal use.)
@@ -60,7 +60,7 @@ public class StateValues
 		valuesI = null;
 		valuesD = null;
 	}
-	
+
 	/**
 	 * Construct a new state values vector of the given type and size.
 	 * All values are initially set to zero.
@@ -70,7 +70,7 @@ public class StateValues
 		// TODO: check this: ? probably always returns Double due to typing
 		this(type, size, type instanceof TypeInt ? new Integer(0) : new Double(0.0));
 	}
-	
+
 	/**
 	 * Construct a new state values vector of the given type and size,
 	 * initialising all values to 'init'.
@@ -89,17 +89,17 @@ public class StateValues
 		// Create/initialise array of appropriate type
 		if (type instanceof TypeInt) {
 			valuesI = new int[size];
-			initI = ((Integer)init).intValue();
+			initI = ((Integer) init).intValue();
 			for (i = 0; i < size; i++)
 				valuesI[i] = initI;
 		} else if (type instanceof TypeDouble) {
 			valuesD = new double[size];
-			initD = ((Double)init).doubleValue();
+			initD = ((Double) init).doubleValue();
 			for (i = 0; i < size; i++)
 				valuesD[i] = initD;
 		}
 	}
-	
+
 	/**
 	 * Create a new (double-valued) state values vector from an existing array of doubles.
 	 * The array is stored directly, not copied.
@@ -128,9 +128,9 @@ public class StateValues
 		}
 		return createFromDoubleArray(array);
 	}
-		
+
 	// CONVERSION METHODS
-	
+
 	/*// convert to StateValuesDV (nothing to do)
 	public StateValuesDV convertToStateValuesDV()
 	{
@@ -144,23 +144,72 @@ public class StateValues
 		clear();
 		return res;
 	}*/
-	
+
+	/**
+	 * Generate BitSet for states in the given interval
+	 * (interval specified as relational operator and bound)
+	 */
+	public BitSet getBitSetFromInterval(String relOp, double bound)
+	{
+		BitSet sol = new BitSet();
+
+		if (type instanceof TypeInt) {
+			if (relOp.equals(">=")) {
+				for (int i = 0; i < size; i++) {
+					sol.set(i, valuesI[i] >= bound);
+				}
+			} else if (relOp.equals(">")) {
+				for (int i = 0; i < size; i++) {
+					sol.set(i, valuesI[i] > bound);
+				}
+			} else if (relOp.equals("<=")) {
+				for (int i = 0; i < size; i++) {
+					sol.set(i, valuesI[i] <= bound);
+				}
+			} else if (relOp.equals("<")) {
+				for (int i = 0; i < size; i++) {
+					sol.set(i, valuesI[i] < bound);
+				}
+			}
+		} else if (type instanceof TypeDouble) {
+			if (relOp.equals(">=")) {
+				for (int i = 0; i < size; i++) {
+					sol.set(i, valuesD[i] >= bound);
+				}
+			} else if (relOp.equals(">")) {
+				for (int i = 0; i < size; i++) {
+					sol.set(i, valuesD[i] > bound);
+				}
+			} else if (relOp.equals("<=")) {
+				for (int i = 0; i < size; i++) {
+					sol.set(i, valuesD[i] <= bound);
+				}
+			} else if (relOp.equals("<")) {
+				for (int i = 0; i < size; i++) {
+					sol.set(i, valuesD[i] < bound);
+				}
+			}
+		}
+
+		return sol;
+	}
+
 	// METHODS TO MODIFY VECTOR
-	
+
 	public void setIntValue(int i, int val)
 	{
 		valuesI[i] = val;
 	}
-	
+
 	public void setDoubleValue(int i, double val)
 	{
 		valuesD[i] = val;
 	}
-	
+
 	// ...
-	
+
 	// clear (free memory)
-	
+
 	/**
 	 * Clear the vector, i.e. free any used memory.
 	 * (Well, actually, just set pointer to null and wait for later garbage collection.)
@@ -172,7 +221,7 @@ public class StateValues
 	}
 
 	// METHODS TO ACCESS VECTOR DATA
-	
+
 	/**
 	 * Get the value of the ith element of the vector, as an Object.
 	 */
@@ -186,7 +235,7 @@ public class StateValues
 			return null;
 		}
 	}
-	
+
 	/*
 	// get num non zeros
 	
@@ -200,9 +249,9 @@ public class StateValues
 		return "" + getNNZ();
 	}
 	*/
-	
+
 	// PRINTING STUFF
-	
+
 	/**
 	 * Print vector to a log/file (non-zero entries only)
 	 */
@@ -213,12 +262,12 @@ public class StateValues
 			log.println(getValue(i));
 		}
 	}
-	
+
 	public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
 	{
 		print(log); //TODO
 	}
-	
+
 	/**
 	 * Make a (deep) copy of this vector
 	 */
