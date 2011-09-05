@@ -104,8 +104,8 @@ public class DTMCModelChecker extends ProbModelChecker
 		}
 
 		// model check operands first
-		b1 = (BitSet) checkExpression(model, expr.getOperand1());
-		b2 = (BitSet) checkExpression(model, expr.getOperand2());
+		b1 = checkExpression(model, expr.getOperand1()).getBitSet();
+		b2 = checkExpression(model, expr.getOperand2()).getBitSet();
 
 		// compute probabilities
 
@@ -131,8 +131,8 @@ public class DTMCModelChecker extends ProbModelChecker
 		ModelCheckerResult res = null;
 
 		// model check operands first
-		b1 = (BitSet) checkExpression(model, expr.getOperand1());
-		b2 = (BitSet) checkExpression(model, expr.getOperand2());
+		b1 = checkExpression(model, expr.getOperand1()).getBitSet();
+		b2 = checkExpression(model, expr.getOperand2()).getBitSet();
 
 		// print out some info about num states
 		// mainLog.print("\nb1 = " + JDD.GetNumMintermsString(b1,
@@ -180,7 +180,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		ModelCheckerResult res = null;
 
 		// model check operand first
-		b = (BitSet) checkExpression(model, expr.getOperand2());
+		b = checkExpression(model, expr.getOperand2()).getBitSet();
 
 		// print out some info about num states
 		// mainLog.print("\nb = " + JDD.GetNumMintermsString(b1,

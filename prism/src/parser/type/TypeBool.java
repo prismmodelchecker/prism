@@ -46,9 +46,16 @@ public class TypeBool extends Type
 		return (o instanceof TypeBool);
 	}
 	
+	@Override
 	public String getTypeString()
 	{
 		return "bool";
+	}
+	
+	@Override
+	public Object defaultValue()
+	{
+		return new Boolean(false);
 	}
 	
 	public static TypeBool getInstance()

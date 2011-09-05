@@ -93,8 +93,8 @@ public class CTMCModelChecker extends DTMCModelChecker
 		}
 
 		// model check operands first
-		b1 = (BitSet) checkExpression(model, expr.getOperand1());
-		b2 = (BitSet) checkExpression(model, expr.getOperand2());
+		b1 = checkExpression(model, expr.getOperand1()).getBitSet();
+		b2 = checkExpression(model, expr.getOperand2()).getBitSet();
 
 		// compute probabilities
 

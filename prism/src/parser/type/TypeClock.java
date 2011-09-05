@@ -46,9 +46,16 @@ public class TypeClock extends Type
 		return (o instanceof TypeClock);
 	}
 	
+	@Override
 	public String getTypeString()
 	{
 		return "clock";
+	}
+	
+	@Override
+	public Object defaultValue()
+	{
+		return new Double(0.0);
 	}
 	
 	public static TypeClock getInstance()

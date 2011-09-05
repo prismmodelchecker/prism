@@ -47,9 +47,9 @@ public class ProbModelChecker extends StateModelChecker
 	// Model checking functions
 
 	@Override
-	public Object checkExpression(Model model, Expression expr) throws PrismException
+	public StateValues checkExpression(Model model, Expression expr) throws PrismException
 	{
-		Object res;
+		StateValues res;
 
 		// P operator
 		if (expr instanceof ExpressionProb) {
@@ -74,7 +74,7 @@ public class ProbModelChecker extends StateModelChecker
 	/**
 	 * Model check a P operator expression and return the values for all states.
 	 */
-	protected Object checkExpressionProb(Model model, ExpressionProb expr) throws PrismException
+	protected StateValues checkExpressionProb(Model model, ExpressionProb expr) throws PrismException
 	{
 		Expression pb; // Probability bound (expression)
 		double p = 0; // Probability bound (actual value)
@@ -141,14 +141,14 @@ public class ProbModelChecker extends StateModelChecker
 		else {
 			BitSet sol = probs.getBitSetFromInterval(relOp, p);
 			probs.clear();
-			return sol;
+			return StateValues.createFromBitSet(sol, model.getNumStates());
 		}
 	}
 	
 	/**
 	 * Model check an R operator expression and return the values for all states.
 	 */
-	protected Object checkExpressionReward(Model model, ExpressionReward expr) throws PrismException
+	protected StateValues checkExpressionReward(Model model, ExpressionReward expr) throws PrismException
 	{
 		Object rs; // Reward struct index
 		RewardStruct rewStruct = null; // Reward struct object
@@ -246,7 +246,7 @@ public class ProbModelChecker extends StateModelChecker
 		else {
 			BitSet sol = rews.getBitSetFromInterval(relOp, r);
 			rews.clear();
-			return sol;
+			return StateValues.createFromBitSet(sol, model.getNumStates());
 		}
 	}
 }

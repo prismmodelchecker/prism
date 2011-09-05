@@ -46,9 +46,16 @@ public class TypeDouble extends Type
 		return (o instanceof TypeDouble);
 	}
 	
+	@Override
 	public String getTypeString()
 	{
 		return "double";
+	}
+	
+	@Override
+	public Object defaultValue()
+	{
+		return new Double(0.0);
 	}
 	
 	public static TypeDouble getInstance()

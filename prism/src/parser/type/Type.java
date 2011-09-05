@@ -30,7 +30,19 @@ import prism.PrismLangException;
 
 public abstract class Type 
 {
+	/**
+	 * Returns the string denoting this type, e.g. "int", "bool".
+	 */
 	public abstract String getTypeString();
+	
+	/**
+	 * Returns the default value for this type, assuming no initialisation specified.
+	 */
+	public Object defaultValue()
+	{
+		// Play safe: assume null
+		return null;
+	}
 	
 	/**
 	 * Returns true iff a variable of this type can be assigned a value that is of type {@code type}. 

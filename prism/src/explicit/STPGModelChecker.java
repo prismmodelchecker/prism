@@ -105,8 +105,8 @@ public class STPGModelChecker extends ProbModelChecker
 		}
 
 		// model check operands first
-		b1 = (BitSet) checkExpression(model, expr.getOperand1());
-		b2 = (BitSet) checkExpression(model, expr.getOperand2());
+		b1 = checkExpression(model, expr.getOperand1()).getBitSet();
+		b2 = checkExpression(model, expr.getOperand2()).getBitSet();
 
 		// print out some info about num states
 		// mainLog.print("\nb1 = " + JDD.GetNumMintermsString(b1,
@@ -138,8 +138,8 @@ public class STPGModelChecker extends ProbModelChecker
 		ModelCheckerResult res = null;
 
 		// model check operands first
-		b1 = (BitSet) checkExpression(model, expr.getOperand1());
-		b2 = (BitSet) checkExpression(model, expr.getOperand2());
+		b1 = checkExpression(model, expr.getOperand1()).getBitSet();
+		b2 = checkExpression(model, expr.getOperand2()).getBitSet();
 
 		// print out some info about num states
 		// mainLog.print("\nb1 = " + JDD.GetNumMintermsString(b1,
@@ -165,7 +165,7 @@ public class STPGModelChecker extends ProbModelChecker
 		ModelCheckerResult res = null;
 
 		// model check operands first
-		target = (BitSet) checkExpression(model, expr.getOperand2());
+		target = checkExpression(model, expr.getOperand2()).getBitSet();
 
 		res = computeReachRewards((STPG) model, rewards, target, min1, min2);
 		rews = StateValues.createFromDoubleArray(res.soln);

@@ -46,9 +46,16 @@ public class TypeInt extends Type
 		return (o instanceof TypeInt);
 	}
 	
+	@Override
 	public String getTypeString()
 	{
 		return "int";
+	}
+	
+	@Override
+	public Object defaultValue()
+	{
+		return new Integer(0);
 	}
 	
 	public static TypeInt getInstance()

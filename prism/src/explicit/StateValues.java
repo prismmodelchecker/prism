@@ -29,9 +29,12 @@ package explicit;
 import java.util.BitSet;
 
 import parser.type.Type;
+import parser.type.TypeBool;
 import parser.type.TypeDouble;
 import parser.type.TypeInt;
 import prism.PrismException;
+import prism.PrismFileLog;
+import prism.PrismLangException;
 import prism.PrismLog;
 
 /**
@@ -39,13 +42,14 @@ import prism.PrismLog;
  */
 public class StateValues
 {
-	// Type (int or double)
+	// Type (int, double or boolean)
 	protected Type type;
 	// Size
 	protected int size;
 	// Vector (only one used, depending on type)
 	protected int[] valuesI;
 	protected double[] valuesD;
+	protected BitSet valuesB;
 
 	// CONSTRUCTORS, etc.
 
@@ -59,44 +63,56 @@ public class StateValues
 		size = 0;
 		valuesI = null;
 		valuesD = null;
+		valuesB = null;
 	}
 
 	/**
 	 * Construct a new state values vector of the given type and size.
 	 * All values are initially set to zero.
 	 */
-	public StateValues(Type type, int size)
+	public StateValues(Type type, int size) throws PrismLangException
 	{
-		// TODO: check this: ? probably always returns Double due to typing
-		this(type, size, type instanceof TypeInt ? new Integer(0) : new Double(0.0));
+		this(type, size, type.defaultValue());
 	}
 
 	/**
 	 * Construct a new state values vector of the given type and size,
-	 * initialising all values to 'init'.
-	 * @param type Value type (int/double)
+	 * initialising all values to {@code init}.
+	 * Throws an exception of {@code init} is of the wrong type.
+	 * @param type Value type
 	 * @param size Vector size
-	 * @param init Initial value for all states (as Integer or Double object)
+	 * @param init Initial value for all states (as an appropriate Object)
 	 */
-	public StateValues(Type type, int size, Object init)
+	public StateValues(Type type, int size, Object init) throws PrismLangException
 	{
-		int i, initI;
-		double initD;
+		super();
+		int i;
 		this.type = type;
 		this.size = size;
-		valuesI = null;
-		valuesD = null;
 		// Create/initialise array of appropriate type
 		if (type instanceof TypeInt) {
 			valuesI = new int[size];
-			initI = ((Integer) init).intValue();
+			Integer objI = (Integer) type.castValueTo(init);
+			int initI = objI.intValue();
 			for (i = 0; i < size; i++)
 				valuesI[i] = initI;
 		} else if (type instanceof TypeDouble) {
 			valuesD = new double[size];
-			initD = ((Double) init).doubleValue();
+			Double objD = (Double) type.castValueTo(init);
+			double initD = objD.doubleValue();
 			for (i = 0; i < size; i++)
 				valuesD[i] = initD;
+		} else if (type instanceof TypeBool) {
+			Boolean objB = (Boolean) type.castValueTo(init);
+			boolean initB = objB.booleanValue();
+			if (initB) {
+				valuesB = new BitSet(size);
+				valuesB.set(0, size);
+			} else {
+				valuesB = new BitSet();
+			}
+		} else {
+			throw new PrismLangException("Cannot create an vector of type " + type);
 		}
 	}
 
@@ -109,8 +125,20 @@ public class StateValues
 		StateValues sv = new StateValues();
 		sv.type = TypeDouble.getInstance();
 		sv.size = array.length;
-		sv.valuesI = null;
 		sv.valuesD = array;
+		return sv;
+	}
+
+	/**
+	 * Create a new (Boolean-valued) state values vector from an existing BitSet.
+	 * The BitSet is stored directly, not copied.
+	 */
+	public static StateValues createFromBitSet(BitSet bs, int size)
+	{
+		StateValues sv = new StateValues();
+		sv.type = TypeBool.getInstance();
+		sv.size = size;
+		sv.valuesB = bs;
 		return sv;
 	}
 
@@ -206,6 +234,19 @@ public class StateValues
 		valuesD[i] = val;
 	}
 
+	public void setBooleanValue(int i, boolean val)
+	{
+		valuesB.set(i, val);
+	}
+
+	public void and(StateValues sv) throws PrismException
+	{
+		if (!(type instanceof TypeBool) || !(sv.type instanceof TypeBool)) {
+			throw new PrismException("Conjunction can only be applied to Boolean vectors");
+		}
+		valuesB.and(sv.valuesB);
+	}
+	
 	// ...
 
 	// clear (free memory)
@@ -218,6 +259,7 @@ public class StateValues
 	{
 		valuesI = null;
 		valuesD = null;
+		valuesB = null;
 	}
 
 	// METHODS TO ACCESS VECTOR DATA
@@ -231,11 +273,21 @@ public class StateValues
 			return valuesI[i];
 		} else if (type instanceof TypeDouble) {
 			return valuesD[i];
+		} else if (type instanceof TypeBool) {
+			return valuesB.get(i);
 		} else {
 			return null;
 		}
 	}
 
+	/**
+	 * For Boolean-valued vectors, get the BitSet storing the data.
+	 */
+	public BitSet getBitSet()
+	{
+		return valuesB;
+	}
+	
 	/*
 	// get num non zeros
 	
@@ -274,6 +326,6 @@ public class StateValues
 	public StateValues deepCopy() throws PrismException
 	{
 		// TODO
-		throw new PrismException("Not impleneted yet");
+		throw new PrismException("Not implemented yet");
 	}
 }
