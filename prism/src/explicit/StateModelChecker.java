@@ -573,17 +573,16 @@ public class StateModelChecker
 		// Compute result according to filter type
 		op = expr.getOperatorType();
 		switch (op) {
-		/*case PRINT:
+		case PRINT:
 			// Format of print-out depends on type
 			if (expr.getType() instanceof TypeBool) {
 				// NB: 'usual' case for filter(print,...) on Booleans is to use no filter
-				mainLog.print("\nSatisfying states");
+				/*mainLog.print("\nSatisfying states");
 				mainLog.println(filterTrue ? ":" : " that are also in filter " + filter + ":");
 				dd = vals.deepCopy().convertToStateValuesMTBDD().getJDDNode();
 				new StateListMTBDD(dd, model).print(mainLog);
-				JDD.Deref(dd);
+				JDD.Deref(dd);*/
 			} else {
-				// TODO: integer-typed case: either add to print method or store in StateValues
 				mainLog.println("\nResults (non-zero only) for filter " + filter + ":");
 				vals.printFiltered(mainLog, bsFilter);
 			}
@@ -592,7 +591,7 @@ public class StateModelChecker
 			resVals = vals;
 			// Set vals to null to stop it being cleared below
 			vals = null;
-			break;*/
+			break;
 		case MIN:
 			// Compute min
 			// Store as object/vector
