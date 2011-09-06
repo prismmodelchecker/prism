@@ -1062,6 +1062,8 @@ public class StateModelChecker implements ModelChecker
 				mainLog.print("\nSatisfying states");
 				mainLog.println(filterTrue ? ":" : " that are also in filter " + filter + ":");
 				dd = vals.deepCopy().convertToStateValuesMTBDD().getJDDNode();
+				JDD.Ref(ddFilter);
+				dd = JDD.And(dd, ddFilter);
 				new StateListMTBDD(dd, model).print(mainLog);
 				JDD.Deref(dd);
 			} else {
