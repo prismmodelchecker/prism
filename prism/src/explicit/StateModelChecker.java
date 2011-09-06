@@ -534,13 +534,12 @@ public class StateModelChecker
 		Expression filter;
 		FilterOperator op;
 		String filterStatesString;
-		/*StateListMTBDD statesFilter;*/
 		boolean filterInit, filterInitSingle, filterTrue;
 		BitSet bsFilter = null;
 		// Result info
 		StateValues vals = null, resVals = null;
 		BitSet bsMatch = null, bs;
-		/*StateListMTBDD states;*/
+		StateValues states;
 		boolean b = false;
 		int count = 0;
 		String resultExpl = null;
@@ -558,7 +557,6 @@ public class StateModelChecker
 		// Store some more info
 		filterStatesString = filterTrue ? "all states" : "states satisfying filter";
 		bsFilter = checkExpression(model, filter).getBitSet();
-		/*statesFilter = new StateListMTBDD(bsFilter, model);*/
 		// Check if filter state set is empty; we treat this as an error
 		if (bsFilter.isEmpty()) {
 			throw new PrismException("Filter satisfies no states");
@@ -567,8 +565,8 @@ public class StateModelChecker
 		filterInit = (filter instanceof ExpressionLabel && ((ExpressionLabel) filter).getName().equals("init"));
 		filterInitSingle = filterInit & model.getNumInitialStates() == 1;
 		// Print out number of states satisfying filter
-		/*if (!filterInit)
-			mainLog.println("\nStates satisfying filter " + filter + ": " + statesFilter.sizeString());*/
+		if (!filterInit)
+			mainLog.println("\nStates satisfying filter " + filter + ": " + bsFilter.cardinality());
 
 		// Compute result according to filter type
 		op = expr.getOperatorType();
@@ -577,11 +575,9 @@ public class StateModelChecker
 			// Format of print-out depends on type
 			if (expr.getType() instanceof TypeBool) {
 				// NB: 'usual' case for filter(print,...) on Booleans is to use no filter
-				/*mainLog.print("\nSatisfying states");
+				mainLog.print("\nSatisfying states");
 				mainLog.println(filterTrue ? ":" : " that are also in filter " + filter + ":");
-				dd = vals.deepCopy().convertToStateValuesMTBDD().getJDDNode();
-				new StateListMTBDD(dd, model).print(mainLog);
-				JDD.Deref(dd);*/
+				vals.printFiltered(mainLog, bsFilter);
 			} else {
 				mainLog.println("\nResults (non-zero only) for filter " + filter + ":");
 				vals.printFiltered(mainLog, bsFilter);
@@ -771,19 +767,19 @@ public class StateModelChecker
 		}
 
 		// For some operators, print out some matching states
-		/*if (bsMatch != null) {
-			states = new StateListMTBDD(bsMatch, model);
-			mainLog.print("\nThere are " + states.sizeString() + " states with ");
+		if (bsMatch != null) {
+			states = StateValues.createFromBitSet(bsMatch, model);
+			mainLog.print("\nThere are " + bsMatch.cardinality() + " states with ");
 			mainLog.print(expr.getType() instanceof TypeDouble ? "(approximately) " : "" + "this value");
-			if (!verbose && (states.size() == -1 || states.size() > 10)) {
+			boolean verbose = verbosity > 0; // TODO
+			if (!verbose && bsMatch.cardinality() > 10) {
 				mainLog.print(".\nThe first 10 states are displayed below. To view them all, enable verbose mode or use a print filter.\n");
 				states.print(mainLog, 10);
 			} else {
 				mainLog.print(":\n");
 				states.print(mainLog);
 			}
-			JDD.Deref(bsMatch);
-		}*/
+		}
 
 		// Store result
 		result.setResult(resObj);
@@ -794,7 +790,7 @@ public class StateModelChecker
 			result.setExplanation(null);
 		}
 
-		// Derefs, clears
+		// Clear up
 		if (vals != null)
 			vals.clear();
 

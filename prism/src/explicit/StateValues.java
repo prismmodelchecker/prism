@@ -519,65 +519,96 @@ public class StateValues
 	// PRINTING STUFF
 
 	/**
-	 * Print vector to a log/file (non-zero entries only).
+	 * Print vector to a log/file (non-zero/non-false entries only).
 	 */
 	public void print(PrismLog log) throws PrismException
 	{
-		printFiltered(log, null, true, false, true);
+		doPrinting(log, -1, null, true, false, true, true);
+	}
+
+	/**
+	 * Print up to {@code limit} entries of a vector to a log/file (non-zero/non-false entries only).
+	 */
+	public void print(PrismLog log, int limit) throws PrismException
+	{
+		doPrinting(log, limit, null, true, false, true, true);
 	}
 
 	/**
 	 * Print vector to a log/file.
 	 * @param log The log
-	 * @param printSparse Print non-zero elements only? 
+	 * @param printSparse Print non-zero/non-false elements only? 
 	 * @param printMatlab Print in Matlab format?
 	 * @param printStates Print states (variable values) for each element? 
+	 * @param printIndices Print state indices for each element? 
 	 */
-	public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
+	public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices) throws PrismException
 	{
-		printFiltered(log, null, true, false, true);
+		doPrinting(log, -1, null, printSparse, printMatlab, printStates, printIndices);
 	}
 
 	/**
-	 * Print part of vector to a log/file (non-zero entries only).
+	 * Print part of vector to a log/file (non-zero/non-false entries only).
 	 * @param log The log
 	 * @param filter A BitSet specifying which states to print for.
 	 */
 	public void printFiltered(PrismLog log, BitSet filter) throws PrismException
 	{
-		printFiltered(log, filter, true, false, true);
+		doPrinting(log, -1, filter, true, false, true, true);
 	}
 
 	/**
 	 * Print part of vector to a log/file.
 	 * @param log The log
 	 * @param filter A BitSet specifying which states to print for (null if all).
-	 * @param printSparse Print non-zero elements only? 
+	 * @param printSparse Print non-zero/non-false elements only? 
 	 * @param printMatlab Print in Matlab format?
 	 * @param printStates Print states (variable values) for each element? 
+	 * @param printIndices Print state indices for each element? 
 	 */
-	public void printFiltered(PrismLog log, BitSet filter, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
+	public void printFiltered(PrismLog log, BitSet filter, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices)
+			throws PrismException
 	{
-		int i;
-		boolean some = false;
+		doPrinting(log, -1, filter, printSparse, printMatlab, printStates, printIndices);
+	}
 
+	/**
+	 * Print part of vector to a log/file.
+	 * @param log The log
+	 * @param limit Maximum number of entries to print (-1 = no limit)
+	 * @param filter A BitSet specifying which states to print for (null if all).
+	 * @param printSparse Print non-zero/non-false elements only? 
+	 * @param printMatlab Print in Matlab format?
+	 * @param printStates Print states (variable values) for each element? 
+	 * @param printIndices Print state indices for each element? 
+	 */
+	private void doPrinting(PrismLog log, int limit, BitSet filter, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices)
+			throws PrismException
+	{
+		int i, count = 0;
+
+		if (limit == -1)
+			limit = Integer.MAX_VALUE;
+		
 		// Header for Matlab format
 		if (printMatlab)
 			log.println(!printSparse ? "v = [" : "v = sparse(" + size + ",1);");
 
 		// Print vector
 		if (filter == null) {
-			for (i = 0; i < size; i++) {
-				some |= printLine(log, i, printSparse, printMatlab, printStates);
+			for (i = 0; i < size & count < limit; i++) {
+				if (printLine(log, i, printSparse, printMatlab, printStates, printIndices))
+					count++;
 			}
 		} else {
-			for (i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
-				some |= printLine(log, i, printSparse, printMatlab, printStates);
+			for (i = filter.nextSetBit(0); i >= 0 && count < limit; i = filter.nextSetBit(i + 1)) {
+				if (printLine(log, i, printSparse, printMatlab, printStates, printIndices))
+					count++;
 			}
 		}
 
 		// Check if all zero
-		if (printSparse && !printMatlab && !some) {
+		if (printSparse && !printMatlab && count == 0) {
 			log.println("(all zero)");
 			return;
 		}
@@ -587,20 +618,28 @@ public class StateValues
 			log.println("];");
 	}
 
-	private boolean printLine(PrismLog log, int i, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
+	private boolean printLine(PrismLog log, int i, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices) throws PrismException
 	{
 		if (!printSparse || isNonZero(i)) {
-			if (printSparse)
-				log.print(printMatlab ? "v(" + (i + 1) + ")" : i);
-			if (printStates && !printMatlab && statesList != null) {
-				log.print(":" + statesList.get(i).toString());
+			if (printMatlab) {
+				if (printSparse) {
+					log.println("v(" + (i + 1) + ")=" + getValue(i) + ";");
+				} else {
+					log.println(getValue(i));
+				}
+			} else {
+				if (printIndices)
+					log.print(i);
+				if (printStates && statesList != null)
+					log.print(":" + statesList.get(i).toString());
+				if (printSparse && type instanceof TypeBool) {
+					log.println();
+				} else {
+					if (printIndices || printStates)
+						log.print("=");
+					log.println(getValue(i));
+				}
 			}
-			if (printSparse)
-				log.print("=");
-			log.print(getValue(i));
-			if (printMatlab && printSparse)
-				log.print(";");
-			log.println();
 			return true;
 		} else {
 			return false;
