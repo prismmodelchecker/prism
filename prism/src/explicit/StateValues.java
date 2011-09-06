@@ -29,6 +29,8 @@ package explicit;
 import java.util.BitSet;
 import java.util.List;
 
+import jdd.JDDNode;
+
 import parser.State;
 import parser.type.Type;
 import parser.type.TypeBool;
@@ -52,7 +54,7 @@ public class StateValues
 	protected int[] valuesI;
 	protected double[] valuesD;
 	protected BitSet valuesB;
-	
+
 	// Model info
 	protected List<State> statesList;
 
@@ -491,50 +493,76 @@ public class StateValues
 	 */
 	public void print(PrismLog log) throws PrismException
 	{
-		print(log, true, false, true);
+		printFiltered(log, null, true, false, true);
 	}
 
 	/**
-	 * Print vector to a log/file.
+	 * Print part of vector to a log/file (non-zero entries only).
 	 * @param log The log
+	 * @param filter A BitSet specifying which states to print for.
+	 */
+	public void printFiltered(PrismLog log, BitSet filter) throws PrismException
+	{
+		printFiltered(log, filter, true, false, true);
+	}
+
+	/**
+	 * Print part of vector to a log/file (non-zero entries only).
+	 * @param log The log
+	 * @param filter A BitSet specifying which states to print for (null if all).
 	 * @param printSparse Print non-zero elements only? 
 	 * @param printMatlab Print in Matlab format?
 	 * @param printStates Print states (variable values) for each element? 
 	 */
-	public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
+	public void printFiltered(PrismLog log, BitSet filter, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
 	{
 		int i;
-		
+		boolean some = false;
+
 		// Header for Matlab format
 		if (printMatlab)
 			log.println(!printSparse ? "v = [" : "v = sparse(" + size + ",1);");
-		
+
+		// Print vector
+		if (filter == null) {
+			for (i = 0; i < size; i++) {
+				some |= printLine(log, i, printSparse, printMatlab, printStates);
+			}
+		} else {
+			for (i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
+				some |= printLine(log, i, printSparse, printMatlab, printStates);
+			}
+		}
+
 		// Check if all zero
-		if (printSparse && !printMatlab && getNNZ() == 0) {
+		if (printSparse && !printMatlab && !some) {
 			log.println("(all zero)");
 			return;
 		}
 
-		// Print vector
-		for (i = 0; i < size; i++) {
-			if (!printSparse || isNonZero(i)) {
-				if (printSparse)
-					log.print(printMatlab ? "v(" + (i + 1) + ")" : i);
-				if (printStates && !printMatlab && statesList != null) {
-					log.print(":" + statesList.get(i).toString());
-				}
-				if (printSparse)
-					log.print("=");
-				log.print(getValue(i));
-				if (printMatlab && printSparse)
-					log.print(";");
-				log.println();
-			}
-		}
-		
 		// Footer for Matlab format
 		if (printMatlab && !printSparse)
 			log.println("];");
+	}
+
+	private boolean printLine(PrismLog log, int i, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
+	{
+		if (!printSparse || isNonZero(i)) {
+			if (printSparse)
+				log.print(printMatlab ? "v(" + (i + 1) + ")" : i);
+			if (printStates && !printMatlab && statesList != null) {
+				log.print(":" + statesList.get(i).toString());
+			}
+			if (printSparse)
+				log.print("=");
+			log.print(getValue(i));
+			if (printMatlab && printSparse)
+				log.print(";");
+			log.println();
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	/**
