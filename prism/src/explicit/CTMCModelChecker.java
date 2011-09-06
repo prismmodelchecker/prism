@@ -101,7 +101,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 		// a trivial case: "U<=0"
 		if (lTime == 0 && uTime == 0) {
 			// prob is 1 in b2 states, 0 otherwise
-			probs = StateValues.createFromBitSetAsDoubles(model.getNumStates(), b2);
+			probs = StateValues.createFromBitSetAsDoubles(b2, model);
 		} else {
 
 			// break down into different cases to compute probabilities
@@ -112,13 +112,13 @@ public class CTMCModelChecker extends DTMCModelChecker
 				if (lTime == 0) {
 					// compute probs
 					res = computeUntilProbs((DTMC) model, b1, b2);
-					probs = StateValues.createFromDoubleArray(res.soln);
+					probs = StateValues.createFromDoubleArray(res.soln, model);
 				} else {
 					// compute unbounded until probs
 					tmpRes = computeUntilProbs((DTMC) model, b1, b2);
 					// compute bounded until probs
 					res = computeTransientBackwardsProbs((CTMC) model, b1, b1, lTime, tmpRes.soln);
-					probs = StateValues.createFromDoubleArray(res.soln);
+					probs = StateValues.createFromDoubleArray(res.soln, model);
 				}
 			}
 			// <= uTime
@@ -126,7 +126,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 				// nb: uTime != 0 since would be caught above (trivial case)
 				b1.andNot(b2);
 				res = computeTransientBackwardsProbs((CTMC) model, b2, b1, uTime, null);
-				probs = StateValues.createFromDoubleArray(res.soln);
+				probs = StateValues.createFromDoubleArray(res.soln, model);
 				// set values to exactly 1 for target (b2) states
 				// (these are computed inexactly during uniformisation)
 				int n = model.getNumStates();
@@ -141,7 +141,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 				tmp.andNot(b2);
 				tmpRes = computeTransientBackwardsProbs((CTMC) model, b2, tmp, uTime - lTime, null);
 				res = computeTransientBackwardsProbs((CTMC) model, b1, b1, lTime, tmpRes.soln);
-				probs = StateValues.createFromDoubleArray(res.soln);
+				probs = StateValues.createFromDoubleArray(res.soln, model);
 			}
 		}
 
@@ -183,7 +183,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 
 		// Compute transient probabilities
 		res = computeTransientProbs(ctmc, t, initDistNew);
-		probs = StateValues.createFromDoubleArray(res.soln);
+		probs = StateValues.createFromDoubleArray(res.soln, ctmc);
 
 		return probs;
 	}

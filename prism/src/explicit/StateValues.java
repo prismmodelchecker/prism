@@ -29,8 +29,6 @@ package explicit;
 import java.util.BitSet;
 import java.util.List;
 
-import jdd.JDDNode;
-
 import parser.State;
 import parser.type.Type;
 import parser.type.TypeBool;
@@ -74,12 +72,39 @@ public class StateValues
 	}
 
 	/**
+	 * Construct a new state values vector of the given type.
+	 * All values are initially set to zero/false.
+	 * Also set associated model (and this determines the vector size).
+	 * @param type Value type
+	 * @param model Associated model 
+	 */
+	public StateValues(Type type, Model model) throws PrismLangException
+	{
+		this(type, model.getNumStates());
+		statesList = model.getStatesList();
+	}
+
+	/**
 	 * Construct a new state values vector of the given type and size.
-	 * All values are initially set to zero.
+	 * All values are initially set to zero/false.
 	 */
 	public StateValues(Type type, int size) throws PrismLangException
 	{
 		this(type, size, type.defaultValue());
+	}
+
+	/**
+	 * Construct a new state values vector of the given type, initialising all values to {@code init}.
+	 * Also set associated model (and this determines the vector size).
+	 * Throws an exception of {@code init} is of the wrong type.
+	 * @param type Value type
+	 * @param init Initial value for all states (as an appropriate Object)
+	 * @param model Associated model 
+	 */
+	public StateValues(Type type, Object init, Model model) throws PrismLangException
+	{
+		this(type, model.getNumStates(), init);
+		statesList = model.getStatesList();
 	}
 
 	/**
@@ -126,42 +151,47 @@ public class StateValues
 	/**
 	 * Create a new (double-valued) state values vector from an existing array of doubles.
 	 * The array is stored directly, not copied.
+	 * Also set associated model (whose state space size should match vector size).
 	 */
-	public static StateValues createFromDoubleArray(double[] array)
+	public static StateValues createFromDoubleArray(double[] array, Model model)
 	{
 		StateValues sv = new StateValues();
 		sv.type = TypeDouble.getInstance();
 		sv.size = array.length;
 		sv.valuesD = array;
+		sv.statesList = model.getStatesList();
 		return sv;
 	}
 
 	/**
 	 * Create a new (Boolean-valued) state values vector from an existing BitSet.
 	 * The BitSet is stored directly, not copied.
+	 * Also set associated model (and this determines the vector size).
 	 */
-	public static StateValues createFromBitSet(BitSet bs, int size)
+	public static StateValues createFromBitSet(BitSet bs, Model model)
 	{
 		StateValues sv = new StateValues();
 		sv.type = TypeBool.getInstance();
-		sv.size = size;
+		sv.size = model.getNumStates();
 		sv.valuesB = bs;
+		sv.statesList = model.getStatesList();
 		return sv;
 	}
 
 	/**
 	 * Create a new (double-valued) state values vector from a BitSet,
 	 * where each entry is 1.0 if in the bitset, 0.0 otherwise.
-	 * The size must also be given since this is not explicit in the bitset.
+	 * Also set associated model (and this determines the vector size).
 	 * The bitset is not modified or stored.
 	 */
-	public static StateValues createFromBitSetAsDoubles(int size, BitSet bitset)
+	public static StateValues createFromBitSetAsDoubles(BitSet bitset, Model model)
 	{
+		int size = model.getNumStates();
 		double[] array = new double[size];
 		for (int i = 0; i < size; i++) {
 			array[i] = bitset.get(i) ? 1.0 : 0.0;
 		}
-		return createFromDoubleArray(array);
+		return createFromDoubleArray(array, model);
 	}
 
 	/**
@@ -489,9 +519,21 @@ public class StateValues
 	// PRINTING STUFF
 
 	/**
-	 * Print vector to a log/file (non-zero entries only)
+	 * Print vector to a log/file (non-zero entries only).
 	 */
 	public void print(PrismLog log) throws PrismException
+	{
+		printFiltered(log, null, true, false, true);
+	}
+
+	/**
+	 * Print vector to a log/file.
+	 * @param log The log
+	 * @param printSparse Print non-zero elements only? 
+	 * @param printMatlab Print in Matlab format?
+	 * @param printStates Print states (variable values) for each element? 
+	 */
+	public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
 	{
 		printFiltered(log, null, true, false, true);
 	}
@@ -507,7 +549,7 @@ public class StateValues
 	}
 
 	/**
-	 * Print part of vector to a log/file (non-zero entries only).
+	 * Print part of vector to a log/file.
 	 * @param log The log
 	 * @param filter A BitSet specifying which states to print for (null if all).
 	 * @param printSparse Print non-zero elements only? 

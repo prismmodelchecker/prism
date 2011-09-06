@@ -434,7 +434,7 @@ public class StateModelChecker
 			expr = (Expression) expr.replaceConstants(constantValues);
 			
 			int numStates = model.getNumStates();
-			res = new StateValues(expr.getType(), numStates);
+			res = new StateValues(expr.getType(), model);
 			List<State> statesList = model.getStatesList();
 			if (expr.getType() instanceof TypeBool) {
 				for (int i = 0; i < numStates; i++) {
@@ -476,7 +476,7 @@ public class StateModelChecker
 	 */
 	protected StateValues checkExpressionLiteral(Model model, ExpressionLiteral expr) throws PrismException
 	{
-		return new StateValues(expr.getType(), model.getNumStates(), expr.evaluate());
+		return new StateValues(expr.getType(), expr.evaluate(), model);
 	}
 
 	/**
@@ -494,14 +494,14 @@ public class StateModelChecker
 			for (i = 0; i < numStates; i++) {
 				bs.set(i, model.isFixedDeadlockState(i));
 			}
-			return StateValues.createFromBitSet(bs, numStates);
+			return StateValues.createFromBitSet(bs, model);
 		} else if (expr.getName().equals("init")) {
 			int numStates = model.getNumStates();
 			BitSet bs = new BitSet(numStates);
 			for (i = 0; i < numStates; i++) {
 				bs.set(i, model.isInitialState(i));
 			}
-			return StateValues.createFromBitSet(bs, numStates);
+			return StateValues.createFromBitSet(bs, model);
 		} else {
 			ll = propertiesFile.getCombinedLabelList();
 			i = ll.getLabelIndex(expr.getName());
@@ -596,7 +596,7 @@ public class StateModelChecker
 			// Compute min
 			// Store as object/vector
 			resObj = vals.minOverBitSet(bsFilter);
-			resVals = new StateValues(expr.getType(), model.getNumStates(), resObj); 
+			resVals = new StateValues(expr.getType(), resObj, model); 
 			// Create explanation of result and print some details to log
 			resultExpl = "Minimum value over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
@@ -608,7 +608,7 @@ public class StateModelChecker
 			// Compute max
 			// Store as object/vector
 			resObj = vals.maxOverBitSet(bsFilter);
-			resVals = new StateValues(expr.getType(), model.getNumStates(), resObj); 
+			resVals = new StateValues(expr.getType(), resObj, model); 
 			// Create explanation of result and print some details to log
 			resultExpl = "Maximum value over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
@@ -625,7 +625,7 @@ public class StateModelChecker
 			bsMatch.and(bsFilter);
 			// Store states in vector; for ARGMIN, don't store a single value (in resObj)
 			// Also, don't bother with explanation string
-			resVals = StateValues.createFromBitSet(bsMatch, model.getNumStates());
+			resVals = StateValues.createFromBitSet(bsMatch, model);
 			// Print out number of matching states, but not the actual states
 			mainLog.println("\nNumber of states with minimum value: " + bsMatch.cardinality());
 			bsMatch = null;
@@ -639,7 +639,7 @@ public class StateModelChecker
 			bsMatch.and(bsFilter);
 			// Store states in vector; for ARGMAX, don't store a single value (in resObj)
 			// Also, don't bother with explanation string
-			resVals = StateValues.createFromBitSet(bsMatch, model.getNumStates());
+			resVals = StateValues.createFromBitSet(bsMatch, model);
 			// Print out number of matching states, but not the actual states
 			mainLog.println("\nNumber of states with maximum value: " + bsMatch.cardinality());
 			bsMatch = null;
@@ -649,7 +649,7 @@ public class StateModelChecker
 			count = vals.countOverBitSet(bsFilter);
 			// Store as object/vector
 			resObj = new Integer(count);
-			resVals = new StateValues(expr.getType(), model.getNumStates(), resObj); 
+			resVals = new StateValues(expr.getType(), resObj, model); 
 			// Create explanation of result and print some details to log
 			resultExpl = filterTrue ? "Count of satisfying states" : "Count of satisfying states also in filter";
 			mainLog.println("\n" + resultExpl + ": " + resObj);
@@ -658,7 +658,7 @@ public class StateModelChecker
 			// Compute sum
 			// Store as object/vector
 			resObj = vals.sumOverBitSet(bsFilter);
-			resVals = new StateValues(expr.getType(), model.getNumStates(), resObj); 
+			resVals = new StateValues(expr.getType(), resObj, model); 
 			// Create explanation of result and print some details to log
 			resultExpl = "Sum over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
@@ -667,7 +667,7 @@ public class StateModelChecker
 			// Compute average
 			// Store as object/vector
 			resObj = vals.averageOverBitSet(bsFilter);
-			resVals = new StateValues(expr.getType(), model.getNumStates(), resObj); 
+			resVals = new StateValues(expr.getType(), resObj, model); 
 			// Create explanation of result and print some details to log
 			resultExpl = "Average over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
@@ -675,7 +675,7 @@ public class StateModelChecker
 		case FIRST:
 			// Find first value
 			resObj = vals.firstFromBitSet(bsFilter);
-			resVals = new StateValues(expr.getType(), model.getNumStates(), resObj); 
+			resVals = new StateValues(expr.getType(), resObj, model); 
 			// Create explanation of result and print some details to log
 			resultExpl = "Value in ";
 			if (filterInit) {
@@ -708,7 +708,7 @@ public class StateModelChecker
 			b = vals.forallOverBitSet(bsFilter);
 			// Store as object/vector
 			resObj = new Boolean(b);
-			resVals = new StateValues(expr.getType(), model.getNumStates(), resObj); 
+			resVals = new StateValues(expr.getType(), resObj, model); 
 			// Create explanation of result and print some details to log
 			resultExpl = "Property " + (b ? "" : "not ") + "satisfied in ";
 			mainLog.print("\nProperty satisfied in " + vals.countOverBitSet(bsFilter));
@@ -736,7 +736,7 @@ public class StateModelChecker
 			b = vals.existsOverBitSet(bsFilter);
 			// Store as object/vector
 			resObj = new Boolean(b);
-			resVals = new StateValues(expr.getType(), model.getNumStates(), resObj); 
+			resVals = new StateValues(expr.getType(), resObj, model); 
 			// Create explanation of result and print some details to log
 			resultExpl = "Property satisfied in ";
 			if (filterTrue) {
@@ -756,7 +756,7 @@ public class StateModelChecker
 			// Find first (only) value
 			// Store as object/vector
 			resObj = vals.firstFromBitSet(bsFilter);
-			resVals = new StateValues(expr.getType(), model.getNumStates(), resObj); 
+			resVals = new StateValues(expr.getType(), resObj, model); 
 			// Create explanation of result and print some details to log
 			resultExpl = "Value in ";
 			if (filterInit) {

@@ -141,7 +141,7 @@ public class ProbModelChecker extends StateModelChecker
 		else {
 			BitSet sol = probs.getBitSetFromInterval(relOp, p);
 			probs.clear();
-			return StateValues.createFromBitSet(sol, model.getNumStates());
+			return StateValues.createFromBitSet(sol, model);
 		}
 	}
 	
@@ -246,7 +246,7 @@ public class ProbModelChecker extends StateModelChecker
 		else {
 			BitSet sol = rews.getBitSetFromInterval(relOp, r);
 			rews.clear();
-			return StateValues.createFromBitSet(sol, model.getNumStates());
+			return StateValues.createFromBitSet(sol, model);
 		}
 	}
 }
