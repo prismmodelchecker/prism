@@ -241,8 +241,8 @@ public class PrismCL
 				}
 				// iterate to next model
 				undefinedMFConstants.iterateModel();
-				for (i = 0; i < numPropertiesToCheck; i++) {
-					undefinedConstants[i].iterateModel();
+				for (j = 0; j < numPropertiesToCheck; j++) {
+					undefinedConstants[j].iterateModel();
 				}
 				continue;
 			}
@@ -259,8 +259,8 @@ public class PrismCL
 				}
 				// iterate to next model
 				undefinedMFConstants.iterateModel();
-				for (i = 0; i < numPropertiesToCheck; i++) {
-					undefinedConstants[i].iterateModel();
+				for (j = 0; j < numPropertiesToCheck; j++) {
+					undefinedConstants[j].iterateModel();
 				}
 				continue;
 			}
@@ -301,8 +301,8 @@ public class PrismCL
 					}
 					// iterate to next model
 					undefinedMFConstants.iterateModel();
-					for (i = 0; i < numPropertiesToCheck; i++) {
-						undefinedConstants[i].iterateModel();
+					for (j = 0; j < numPropertiesToCheck; j++) {
+						undefinedConstants[j].iterateModel();
 					}
 					continue;
 				}
@@ -483,8 +483,8 @@ public class PrismCL
 
 			// iterate to next model
 			undefinedMFConstants.iterateModel();
-			for (i = 0; i < numPropertiesToCheck; i++) {
-				undefinedConstants[i].iterateModel();
+			for (j = 0; j < numPropertiesToCheck; j++) {
+				undefinedConstants[j].iterateModel();
 			}
 		}
 
