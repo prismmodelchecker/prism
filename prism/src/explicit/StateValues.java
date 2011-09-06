@@ -27,23 +27,20 @@
 package explicit;
 
 import java.util.BitSet;
+import java.util.List;
 
-import com.sun.org.apache.xerces.internal.parsers.IntegratedParserConfiguration;
-
-import jdd.JDDNode;
-
+import parser.State;
 import parser.type.Type;
 import parser.type.TypeBool;
 import parser.type.TypeDouble;
 import parser.type.TypeInt;
 import prism.PrismException;
-import prism.PrismFileLog;
 import prism.PrismLangException;
 import prism.PrismLog;
 import prism.PrismUtils;
 
 /**
- * Class for explicit-state storage of a state-indexed vector of (integer or double) values.
+ * Class for explicit-state storage of a state-indexed vector of values (int, double, boolean).
  */
 public class StateValues
 {
@@ -55,6 +52,9 @@ public class StateValues
 	protected int[] valuesI;
 	protected double[] valuesD;
 	protected BitSet valuesB;
+	
+	// Model info
+	protected List<State> statesList;
 
 	// CONSTRUCTORS, etc.
 
@@ -162,22 +162,6 @@ public class StateValues
 		return createFromDoubleArray(array);
 	}
 
-	// CONVERSION METHODS
-
-	/*// convert to StateValuesDV (nothing to do)
-	public StateValuesDV convertToStateValuesDV()
-	{
-		return this;
-	}
-	
-	// convert to StateValuesMTBDD, destroy (clear) old vector
-	public StateValuesMTBDD convertToStateValuesMTBDD()
-	{
-		StateValuesMTBDD res = new StateValuesMTBDD(values.convertToMTBDD(vars, odd), model);
-		clear();
-		return res;
-	}*/
-
 	/**
 	 * Generate BitSet for states in the given interval
 	 * (interval specified as relational operator and bound)
@@ -247,10 +231,10 @@ public class StateValues
 				sol.set(i, PrismUtils.doublesAreClose(valuesD[i], valueD, epsilon, abs));
 			}
 		}
-		
+
 		return sol;
 	}
-	
+
 	// METHODS TO MODIFY VECTOR
 
 	public void setIntValue(int i, int val)
@@ -275,10 +259,8 @@ public class StateValues
 		}
 		valuesB.and(sv.valuesB);
 	}
-	
-	// ...
 
-	// clear (free memory)
+	// ...
 
 	/**
 	 * Clear the vector, i.e. free any used memory.
@@ -310,29 +292,56 @@ public class StateValues
 	}
 
 	/**
+	 * Is the ith element of the vector non-zero (or non-false)?
+	 */
+	public boolean isNonZero(int i)
+	{
+		if (type instanceof TypeInt) {
+			return valuesI[i] != 0;
+		} else if (type instanceof TypeDouble) {
+			return valuesD[i] != 0.0;
+		} else if (type instanceof TypeBool) {
+			return valuesB.get(i);
+		} else {
+			return false;
+		}
+	}
+
+	/**
 	 * For Boolean-valued vectors, get the BitSet storing the data.
 	 */
 	public BitSet getBitSet()
 	{
 		return valuesB;
 	}
-	
-	/*
-	// get num non zeros
-	
+
+	/**
+	 * Get the number of states for which the value is non-zero/non-false.
+	 */
 	public int getNNZ()
 	{
-		return values.getNNZ();
+		int count = 0;
+		if (type instanceof TypeBool) {
+			count = valuesB.cardinality();
+		} else {
+			for (int i = 0; i < size; i++) {
+				if (isNonZero(i))
+					count++;
+			}
+		}
+		return count;
 	}
-	
+
+	/**
+	 * Get (as a string) the number of states for which the value is non-zero/non-false.
+	 */
 	public String getNNZString()
 	{
 		return "" + getNNZ();
 	}
-	*/
 
 	// Filter operations
-	
+
 	/**
 	 * Get the value of first vector element that is in the (BitSet) filter.
 	 */
@@ -340,7 +349,7 @@ public class StateValues
 	{
 		return getValue(filter.nextSetBit(0));
 	}
-	
+
 	/**
 	 * Get the minimum value of those that are in the (BitSet) filter.
 	 */
@@ -386,7 +395,7 @@ public class StateValues
 		}
 		throw new PrismException("Can't take max over a vector of type " + type);
 	}
-	
+
 	/**
 	 * Check if value is true for all states in the (BitSet) filter.
 	 */
@@ -401,7 +410,7 @@ public class StateValues
 		}
 		throw new PrismException("Can't take for-all over a vector of type " + type);
 	}
-	
+
 	/**
 	 * Check if there exists a true value for some state in the (BitSet) filter.
 	 */
@@ -416,7 +425,7 @@ public class StateValues
 		}
 		throw new PrismException("Can't take there-exists over a vector of type " + type);
 	}
-	
+
 	/**
 	 * Count the number of states with value true from those in the (BitSet) filter.
 	 */
@@ -432,7 +441,7 @@ public class StateValues
 		}
 		throw new PrismException("Can't take count over a vector of type " + type);
 	}
-	
+
 	/**
 	 * Get the sum of values for states that are in the (BitSet) filter.
 	 */
@@ -453,7 +462,7 @@ public class StateValues
 		}
 		throw new PrismException("Can't take sum over a vector of type " + type);
 	}
-	
+
 	/**
 	 * Get the average of values for states that are in the (BitSet) filter.
 	 */
@@ -464,17 +473,17 @@ public class StateValues
 			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
 				sumI += valuesI[i];
 			}
-			return ((double) sumI) / filter.cardinality(); 
+			return ((double) sumI) / filter.cardinality();
 		} else if (type instanceof TypeDouble) {
 			double sumD = 0.0;
 			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
 				sumD += valuesD[i];
 			}
-			return sumD / filter.cardinality(); 
+			return sumD / filter.cardinality();
 		}
 		throw new PrismException("Can't take average over a vector of type " + type);
 	}
-	
+
 	// PRINTING STUFF
 
 	/**
@@ -482,15 +491,50 @@ public class StateValues
 	 */
 	public void print(PrismLog log) throws PrismException
 	{
-		int i;
-		for (i = 0; i < size; i++) {
-			log.println(getValue(i));
-		}
+		print(log, true, false, true);
 	}
 
+	/**
+	 * Print vector to a log/file.
+	 * @param log The log
+	 * @param printSparse Print non-zero elements only? 
+	 * @param printMatlab Print in Matlab format?
+	 * @param printStates Print states (variable values) for each element? 
+	 */
 	public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
 	{
-		print(log); //TODO
+		int i;
+		
+		// Header for Matlab format
+		if (printMatlab)
+			log.println(!printSparse ? "v = [" : "v = sparse(" + size + ",1);");
+		
+		// Check if all zero
+		if (printSparse && !printMatlab && getNNZ() == 0) {
+			log.println("(all zero)");
+			return;
+		}
+
+		// Print vector
+		for (i = 0; i < size; i++) {
+			if (!printSparse || isNonZero(i)) {
+				if (printSparse)
+					log.print(printMatlab ? "v(" + (i + 1) + ")" : i);
+				if (printStates && !printMatlab && statesList != null) {
+					log.print(":" + statesList.get(i).toString());
+				}
+				if (printSparse)
+					log.print("=");
+				log.print(getValue(i));
+				if (printMatlab && printSparse)
+					log.print(";");
+				log.println();
+			}
+		}
+		
+		// Footer for Matlab format
+		if (printMatlab && !printSparse)
+			log.println("];");
 	}
 
 	/**
@@ -498,7 +542,19 @@ public class StateValues
 	 */
 	public StateValues deepCopy() throws PrismException
 	{
-		// TODO
-		throw new PrismException("Not implemented yet");
+		StateValues sv = new StateValues();
+		sv.type = type;
+		sv.size = size;
+		if (valuesI != null) {
+			sv.valuesI = Utils.cloneIntArray(valuesI);
+		}
+		if (valuesD != null) {
+			sv.valuesD = Utils.cloneDoubleArray(valuesD);
+		}
+		if (valuesB != null) {
+			sv.valuesB = (BitSet) valuesB.clone();
+		}
+		sv.statesList = statesList;
+		return sv;
 	}
 }

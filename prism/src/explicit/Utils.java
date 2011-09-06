@@ -145,6 +145,27 @@ public class Utils
 	}
 
 	/**
+	 * Clone an integer array.
+	 * @param array The array to be cloned
+	 * @return The new array
+	 */
+	public static int[] cloneIntArray(int array[])
+	{
+		int i, n;
+		int[] arrayNew;
+		// Do nothing for null pointers
+		if (array == null)
+			return null;
+		// Otherwise copy and return
+		n = array.length;
+		arrayNew = new int[n];
+		for (i = 0; i < n; i++) {
+			arrayNew[i] = array[i];
+		}
+		return arrayNew;
+	}
+
+	/**
 	 * Test if two double arrays are equal.
 	 */
 	public static boolean doubleArraysAreEqual(double array1[], double array2[])
