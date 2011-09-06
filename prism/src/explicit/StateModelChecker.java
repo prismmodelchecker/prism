@@ -530,8 +530,6 @@ public class StateModelChecker
 
 	protected StateValues checkExpressionFilter(Model model, ExpressionFilter expr) throws PrismException
 	{
-		//throw new PrismException("Explicit engine does not yet handle filters");
-		
 		// Filter info
 		Expression filter;
 		FilterOperator op;
@@ -543,7 +541,6 @@ public class StateModelChecker
 		StateValues vals = null, resVals = null;
 		BitSet bsMatch = null, bs;
 		/*StateListMTBDD states;*/
-		double d = 0.0, d2 = 0.0;
 		boolean b = false;
 		int count = 0;
 		String resultExpl = null;
@@ -620,38 +617,34 @@ public class StateModelChecker
 			bsMatch = vals.getBitSetFromCloseValue(resObj, termCritParam, termCrit == TermCrit.ABSOLUTE);
 			bsMatch.and(bsFilter);
 			break;
-		/*case ARGMIN:
+		case ARGMIN:
 			// Compute/display min
-			d = vals.minOverBDD(bsFilter);
-			mainLog.print("\nMinimum value over " + filterStatesString + ": ");
-			mainLog.println((expr.getType() instanceof TypeInt) ? ((Object) new Integer((int) d)) : (new Double(d)));
+			resObj = vals.minOverBitSet(bsFilter);
+			mainLog.print("\nMinimum value over " + filterStatesString + ": " + resObj);
 			// Find states that (are close to) selected value
-			ddMatch = vals.getBDDFromCloseValue(d, prism.getTermCritParam(), prism.getTermCrit() == Prism.ABSOLUTE);
-			JDD.Ref(bsFilter);
-			ddMatch = JDD.And(ddMatch, bsFilter);
+			bsMatch = vals.getBitSetFromCloseValue(resObj, termCritParam, termCrit == TermCrit.ABSOLUTE);
+			bsMatch.and(bsFilter);
 			// Store states in vector; for ARGMIN, don't store a single value (in resObj)
 			// Also, don't bother with explanation string
-			resVals = new StateValuesMTBDD(ddMatch, model);
+			resVals = StateValues.createFromBitSet(bsMatch, model.getNumStates());
 			// Print out number of matching states, but not the actual states
-			mainLog.println("\nNumber of states with minimum value: " + resVals.getNNZString());
-			ddMatch = null;
+			mainLog.println("\nNumber of states with minimum value: " + bsMatch.cardinality());
+			bsMatch = null;
 			break;
 		case ARGMAX:
 			// Compute/display max
-			d = vals.maxOverBDD(bsFilter);
-			mainLog.print("\nMaximum value over " + filterStatesString + ": ");
-			mainLog.println((expr.getType() instanceof TypeInt) ? ((Object) new Integer((int) d)) : (new Double(d)));
+			resObj = vals.maxOverBitSet(bsFilter);
+			mainLog.print("\nMaximum value over " + filterStatesString + ": " + resObj);
 			// Find states that (are close to) selected value
-			ddMatch = vals.getBDDFromCloseValue(d, prism.getTermCritParam(), prism.getTermCrit() == Prism.ABSOLUTE);
-			JDD.Ref(bsFilter);
-			ddMatch = JDD.And(ddMatch, bsFilter);
+			bsMatch = vals.getBitSetFromCloseValue(resObj, termCritParam, termCrit == TermCrit.ABSOLUTE);
+			bsMatch.and(bsFilter);
 			// Store states in vector; for ARGMAX, don't store a single value (in resObj)
 			// Also, don't bother with explanation string
-			resVals = new StateValuesMTBDD(ddMatch, model);
+			resVals = StateValues.createFromBitSet(bsMatch, model.getNumStates());
 			// Print out number of matching states, but not the actual states
-			mainLog.println("\nNumber of states with maximum value: " + resVals.getNNZString());
-			ddMatch = null;
-			break;*/
+			mainLog.println("\nNumber of states with maximum value: " + bsMatch.cardinality());
+			bsMatch = null;
+			break;
 		case COUNT:
 			// Compute count
 			count = vals.countOverBitSet(bsFilter);
@@ -662,26 +655,24 @@ public class StateModelChecker
 			resultExpl = filterTrue ? "Count of satisfying states" : "Count of satisfying states also in filter";
 			mainLog.println("\n" + resultExpl + ": " + resObj);
 			break;
-		/*case SUM:
+		case SUM:
 			// Compute sum
-			d = vals.sumOverBDD(bsFilter);
-			// Store as object/vector (note crazy Object cast to avoid Integer->int auto conversion)
-			resObj = (expr.getType() instanceof TypeInt) ? ((Object) new Integer((int) d)) : (new Double(d));
-			resVals = new StateValuesMTBDD(JDD.Constant(d), model);
+			// Store as object/vector
+			resObj = vals.sumOverBitSet(bsFilter);
+			resVals = new StateValues(expr.getType(), model.getNumStates(), resObj); 
 			// Create explanation of result and print some details to log
 			resultExpl = "Sum over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
 			break;
 		case AVG:
 			// Compute average
-			d = vals.sumOverBDD(bsFilter) / JDD.GetNumMinterms(bsFilter, allDDRowVars.n());
 			// Store as object/vector
-			resObj = new Double(d);
-			resVals = new StateValuesMTBDD(JDD.Constant(d), model);
+			resObj = vals.averageOverBitSet(bsFilter);
+			resVals = new StateValues(expr.getType(), model.getNumStates(), resObj); 
 			// Create explanation of result and print some details to log
 			resultExpl = "Average over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
-			break;*/
+			break;
 		case FIRST:
 			// Find first value
 			resObj = vals.firstFromBitSet(bsFilter);
@@ -739,18 +730,14 @@ public class StateModelChecker
 				}
 			}
 			break;
-		/*case EXISTS:
-			// Get access to BDD for this
-			dd = vals.convertToStateValuesMTBDD().getJDDNode();
+		case EXISTS:
+			// Get access to BitSet for this
+			bs = vals.getBitSet();
 			// Check "there exists" over filter
-			JDD.Ref(bsFilter);
-			dd = JDD.And(dd, bsFilter);
-			b = !dd.equals(JDD.ZERO);
+			b = vals.existsOverBitSet(bsFilter);
 			// Store as object/vector
 			resObj = new Boolean(b);
-			resVals = new StateValuesMTBDD(JDD.Constant(b ? 1.0 : 0.0), model);
-			// Set vals to null so that is not clear()-ed twice
-			vals = null;
+			resVals = new StateValues(expr.getType(), model.getNumStates(), resObj); 
 			// Create explanation of result and print some details to log
 			resultExpl = "Property satisfied in ";
 			if (filterTrue) {
@@ -759,9 +746,7 @@ public class StateModelChecker
 				resultExpl += b ? "at least one filter state" : "no filter states";
 			}
 			mainLog.println("\n" + resultExpl);
-			// Derefs
-			JDD.Deref(dd);
-			break;*/
+			break;
 		case STATE:
 			// Check filter satisfied by exactly one state
 			if (bsFilter.cardinality() != 1) {

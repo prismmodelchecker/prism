@@ -388,18 +388,33 @@ public class StateValues
 	}
 	
 	/**
-	 * Check if true for all states in the (BitSet) filter.
+	 * Check if value is true for all states in the (BitSet) filter.
 	 */
 	public boolean forallOverBitSet(BitSet filter) throws PrismException
 	{
 		if (type instanceof TypeBool) {
 			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
 				if (!valuesB.get(i))
-					return new Boolean(false);
+					return false;
 			}
-			return new Boolean(true);
+			return true;
 		}
-		throw new PrismException("Can't take forall over a vector of type " + type);
+		throw new PrismException("Can't take for-all over a vector of type " + type);
+	}
+	
+	/**
+	 * Check if there exists a true value for some state in the (BitSet) filter.
+	 */
+	public boolean existsOverBitSet(BitSet filter) throws PrismException
+	{
+		if (type instanceof TypeBool) {
+			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
+				if (valuesB.get(i))
+					return true;
+			}
+			return false;
+		}
+		throw new PrismException("Can't take there-exists over a vector of type " + type);
 	}
 	
 	/**
@@ -416,6 +431,48 @@ public class StateValues
 			return new Integer(count);
 		}
 		throw new PrismException("Can't take count over a vector of type " + type);
+	}
+	
+	/**
+	 * Get the sum of values for states that are in the (BitSet) filter.
+	 */
+	public Object sumOverBitSet(BitSet filter) throws PrismException
+	{
+		if (type instanceof TypeInt) {
+			int sumI = 0;
+			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
+				sumI += valuesI[i];
+			}
+			return new Integer(sumI);
+		} else if (type instanceof TypeDouble) {
+			double sumD = 0.0;
+			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
+				sumD += valuesD[i];
+			}
+			return new Double(sumD);
+		}
+		throw new PrismException("Can't take sum over a vector of type " + type);
+	}
+	
+	/**
+	 * Get the average of values for states that are in the (BitSet) filter.
+	 */
+	public double averageOverBitSet(BitSet filter) throws PrismException
+	{
+		if (type instanceof TypeInt) {
+			int sumI = 0;
+			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
+				sumI += valuesI[i];
+			}
+			return ((double) sumI) / filter.cardinality(); 
+		} else if (type instanceof TypeDouble) {
+			double sumD = 0.0;
+			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
+				sumD += valuesD[i];
+			}
+			return sumD / filter.cardinality(); 
+		}
+		throw new PrismException("Can't take average over a vector of type " + type);
 	}
 	
 	// PRINTING STUFF
