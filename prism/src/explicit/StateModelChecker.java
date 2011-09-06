@@ -595,36 +595,32 @@ public class StateModelChecker
 			resVals = vals;
 			// Set vals to null to stop it being cleared below
 			vals = null;
-			break;
+			break;*/
 		case MIN:
 			// Compute min
-			d = vals.minOverBDD(bsFilter);
-			// Store as object/vector (note crazy Object cast to avoid Integer->int auto conversion)
-			resObj = (expr.getType() instanceof TypeInt) ? ((Object) new Integer((int) d)) : (new Double(d));
-			resVals = new StateValuesMTBDD(JDD.Constant(d), model);
+			// Store as object/vector
+			resObj = vals.minOverBitSet(bsFilter);
+			resVals = new StateValues(expr.getType(), model.getNumStates(), resObj); 
 			// Create explanation of result and print some details to log
 			resultExpl = "Minimum value over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
 			// Also find states that (are close to) selected value for display to log
-			ddMatch = vals.getBDDFromCloseValue(d, prism.getTermCritParam(), prism.getTermCrit() == Prism.ABSOLUTE);
-			JDD.Ref(bsFilter);
-			ddMatch = JDD.And(ddMatch, bsFilter);
+			bsMatch = vals.getBitSetFromCloseValue(resObj, termCritParam, termCrit == TermCrit.ABSOLUTE);
+			bsMatch.and(bsFilter);
 			break;
 		case MAX:
 			// Compute max
-			d = vals.maxOverBDD(bsFilter);
-			// Store as object/vector (note crazy Object cast to avoid Integer->int auto conversion)
-			resObj = (expr.getType() instanceof TypeInt) ? ((Object) new Integer((int) d)) : (new Double(d));
-			resVals = new StateValuesMTBDD(JDD.Constant(d), model);
+			// Store as object/vector
+			resObj = vals.maxOverBitSet(bsFilter);
+			resVals = new StateValues(expr.getType(), model.getNumStates(), resObj); 
 			// Create explanation of result and print some details to log
 			resultExpl = "Maximum value over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
 			// Also find states that (are close to) selected value for display to log
-			bsMatch = vals.getBitSetFromCloseValue(d, prism.getTermCritParam(), prism.getTermCrit() == Prism.ABSOLUTE);
-			JDD.Ref(bsFilter);
-			bsMatch = JDD.And(bsMatch, bsFilter);
+			bsMatch = vals.getBitSetFromCloseValue(resObj, termCritParam, termCrit == TermCrit.ABSOLUTE);
+			bsMatch.and(bsFilter);
 			break;
-		case ARGMIN:
+		/*case ARGMIN:
 			// Compute/display min
 			d = vals.minOverBDD(bsFilter);
 			mainLog.print("\nMinimum value over " + filterStatesString + ": ");

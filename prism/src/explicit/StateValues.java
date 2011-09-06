@@ -40,6 +40,7 @@ import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLangException;
 import prism.PrismLog;
+import prism.PrismUtils;
 
 /**
  * Class for explicit-state storage of a state-indexed vector of (integer or double) values.
@@ -226,6 +227,30 @@ public class StateValues
 		return sol;
 	}
 
+	/**
+	 * Generate BitSet for states whose value is close to 'value'
+	 * (within either absolute or relative error 'epsilon')
+	 * The type of 'value' is assumed to match that of the vector.
+	 */
+	public BitSet getBitSetFromCloseValue(Object value, double epsilon, boolean abs)
+	{
+		BitSet sol = new BitSet();
+
+		if (type instanceof TypeInt) {
+			int valueI = ((Integer) value).intValue();
+			for (int i = 0; i < size; i++) {
+				sol.set(i, PrismUtils.doublesAreClose(valuesI[i], valueI, epsilon, abs));
+			}
+		} else if (type instanceof TypeDouble) {
+			double valueD = ((Double) value).doubleValue();
+			for (int i = 0; i < size; i++) {
+				sol.set(i, PrismUtils.doublesAreClose(valuesD[i], valueD, epsilon, abs));
+			}
+		}
+		
+		return sol;
+	}
+	
 	// METHODS TO MODIFY VECTOR
 
 	public void setIntValue(int i, int val)
