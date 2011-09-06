@@ -28,6 +28,10 @@ package explicit;
 
 import java.util.BitSet;
 
+import com.sun.org.apache.xerces.internal.parsers.IntegratedParserConfiguration;
+
+import jdd.JDDNode;
+
 import parser.type.Type;
 import parser.type.TypeBool;
 import parser.type.TypeDouble;
@@ -302,6 +306,93 @@ public class StateValues
 	}
 	*/
 
+	// Filter operations
+	
+	/**
+	 * Get the value of first vector element that is in the (BitSet) filter.
+	 */
+	public Object firstFromBitSet(BitSet filter)
+	{
+		return getValue(filter.nextSetBit(0));
+	}
+	
+	/**
+	 * Get the minimum value of those that are in the (BitSet) filter.
+	 */
+	public Object minOverBitSet(BitSet filter) throws PrismException
+	{
+		if (type instanceof TypeInt) {
+			int minI = Integer.MAX_VALUE;
+			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
+				if (valuesI[i] < minI)
+					minI = valuesI[i];
+			}
+			return new Integer(minI);
+		} else if (type instanceof TypeDouble) {
+			double minD = Double.POSITIVE_INFINITY;
+			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
+				if (valuesD[i] < minD)
+					minD = valuesD[i];
+			}
+			return new Double(minD);
+		}
+		throw new PrismException("Can't take min over a vector of type " + type);
+	}
+
+	/**
+	 * Get the maximum value of those that are in the (BitSet) filter.
+	 */
+	public Object maxOverBitSet(BitSet filter) throws PrismException
+	{
+		if (type instanceof TypeInt) {
+			int maxI = Integer.MIN_VALUE;
+			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
+				if (valuesI[i] > maxI)
+					maxI = valuesI[i];
+			}
+			return new Integer(maxI);
+		} else if (type instanceof TypeDouble) {
+			double maxD = Double.NEGATIVE_INFINITY;
+			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
+				if (valuesD[i] > maxD)
+					maxD = valuesD[i];
+			}
+			return new Double(maxD);
+		}
+		throw new PrismException("Can't take max over a vector of type " + type);
+	}
+	
+	/**
+	 * Check if true for all states in the (BitSet) filter.
+	 */
+	public boolean forallOverBitSet(BitSet filter) throws PrismException
+	{
+		if (type instanceof TypeBool) {
+			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
+				if (!valuesB.get(i))
+					return new Boolean(false);
+			}
+			return new Boolean(true);
+		}
+		throw new PrismException("Can't take forall over a vector of type " + type);
+	}
+	
+	/**
+	 * Count the number of states with value true from those in the (BitSet) filter.
+	 */
+	public int countOverBitSet(BitSet filter) throws PrismException
+	{
+		if (type instanceof TypeBool) {
+			int count = 0;
+			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
+				if (valuesB.get(i))
+					count++;
+			}
+			return new Integer(count);
+		}
+		throw new PrismException("Can't take count over a vector of type " + type);
+	}
+	
 	// PRINTING STUFF
 
 	/**

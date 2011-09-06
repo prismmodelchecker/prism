@@ -36,6 +36,16 @@ public class Interval
 	public Object upper;
 	
 	/**
+	 * Construct an Interval.
+	 * (lower and upper should be of the same type: Integer or Double)
+	 */
+	public Interval(Object lower, Object upper)
+	{
+		this.lower = lower;
+		this.upper = upper;
+	}
+	
+	/**
 	 * Construct an integer Interval.
 	 */
 	public Interval(Integer lower, Integer upper)
