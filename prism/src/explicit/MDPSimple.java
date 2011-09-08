@@ -692,7 +692,7 @@ public class MDPSimple extends ModelExplicit implements MDP, ModelSimple
 	@Override
 	public double mvMultMinMaxSingle(int s, double vect[], boolean min, int adv[])
 	{
-		int j, k;
+		int j, k, advCh = -1;
 		double d, prob, minmax;
 		boolean first;
 		List<Distribution> step;
@@ -713,16 +713,18 @@ public class MDPSimple extends ModelExplicit implements MDP, ModelSimple
 			if (first || (min && d < minmax) || (!min && d > minmax)) {
 				minmax = d;
 				// If adversary generation is enabled, remember optimal choice
-				if (adv != null) {
-					// Only remember strictly better choices
-					// (required if either player is doing max)
-					if (adv[s] == -1 || (min && minmax < vect[s]) || (!min && minmax > vect[s])) {
-						adv[s] = j;
-					}
-				}
+				if (adv != null)
+					advCh = j;
 			}
 			first = false;
 			j++;
+		}
+		// If adversary generation is enabled, store optimal choice
+		if (adv != null & !first) {
+			// Only remember strictly better choices (required for max)
+			if (adv[s] == -1 || (min && minmax < vect[s]) || (!min && minmax > vect[s])) {
+				adv[s] = advCh;
+			}
 		}
 
 		return minmax;

@@ -758,7 +758,7 @@ public class MDPSparse extends ModelExplicit implements MDP
 	@Override
 	public double mvMultMinMaxSingle(int s, double vect[], boolean min, int adv[])
 	{
-		int j, k, l1, h1, l2, h2;
+		int j, k, l1, h1, l2, h2, advCh = -1;
 		double d, minmax;
 		boolean first;
 
@@ -778,15 +778,17 @@ public class MDPSparse extends ModelExplicit implements MDP
 			if (first || (min && d < minmax) || (!min && d > minmax)) {
 				minmax = d;
 				// If adversary generation is enabled, remember optimal choice
-				if (adv != null) {
-					// Only remember strictly better choices
-					// (required if either player is doing max)
-					if (adv[s] == -1 || (min && minmax < vect[s]) || (!min && minmax > vect[s])) {
-						adv[s] = j - l1;
-					}
-				}
+				if (adv != null)
+					advCh = j - l1;
 			}
 			first = false;
+		}
+		// If adversary generation is enabled, store optimal choice
+		if (adv != null & !first) {
+			// Only remember strictly better choices (required for max)
+			if (adv[s] == -1 || (min && minmax < vect[s]) || (!min && minmax > vect[s])) {
+				adv[s] = advCh;
+			}
 		}
 
 		return minmax;
