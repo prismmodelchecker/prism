@@ -141,23 +141,23 @@ OPTIMISE = -O3
 ifeq ($(OSTYPE),linux)
 	ifeq ($(ARCH),amd64)
 		# Position Independent Code required on AMD64/Itanium
-		CFLAGS = $(DEBUG) $(OPTIMISE) -DPIC -fPIC
-		CPPFLAGS = $(DEBUG) $(OPTIMISE) -DPIC -fPIC
-		LDFLAGS = $(DEBUG) $(OPTIMISE) -DPIC -fPIC
-		CUDD_XCFLAGS = -m64 -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8
+		CUDD_XCFLAGS = -m64 -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 $(DEBUG)
+		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+		CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 	else
 	ifeq ($(ARCH),ia64)
 		# Position Independent Code required on AMD64/Itanium
-		CFLAGS = $(DEBUG) $(OPTIMISE) -DPIC -fPIC
-		CPPFLAGS = $(DEBUG) $(OPTIMISE) -DPIC -fPIC
-		LDFLAGS = $(DEBUG) $(OPTIMISE) -DPIC -fPIC
 		# Note: We omit the -m64 flag from here since it seems to be unsupported by gcc on IA64
-		CUDD_XCFLAGS = -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8
+		CUDD_XCFLAGS = -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 $(DEBUG)
+		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+		CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 	else
-		CFLAGS = -m32 $(DEBUG) $(OPTIMISE)
-		CPPFLAGS = -m32 $(DEBUG) $(OPTIMISE)
-		LDFLAGS = -m32 $(DEBUG) $(OPTIMISE)
-		CUDD_XCFLAGS = -m32 -mtune=native -malign-double -DHAVE_IEEE_754 -DBSD
+		CUDD_XCFLAGS = -m32 -mtune=native -malign-double -DHAVE_IEEE_754 -DBSD $(DEBUG)
+		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+		CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 	endif
 	endif
 	JFLAGS =
@@ -172,10 +172,10 @@ ifeq ($(OSTYPE),linux)
 endif
 # Solaris
 ifeq ($(OSTYPE),solaris)
-	CFLAGS = $(DEBUG) $(OPTIMISE)
-	CPPFLAGS = $(DEBUG) $(OPTIMISE)
-	LDFLAGS = $(DEBUG) $(OPTIMISE)
-	CUDD_XCFLAGS = -mcpu=ultrasparc -DHAVE_IEEE_754 -DUNIX100 -DEPD_BIG_ENDIAN
+	CUDD_XCFLAGS = -mcpu=ultrasparc -DHAVE_IEEE_754 -DUNIX100 -DEPD_BIG_ENDIAN $(DEBUG)
+	CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+	CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+	LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 	JFLAGS =
 	SHARED = -shared -mimpure-text
 	EXE =
@@ -187,10 +187,10 @@ ifeq ($(OSTYPE),solaris)
 endif
 # Cygwin
 ifeq ($(OSTYPE),cygwin)
-	CFLAGS = -mno-cygwin $(DEBUG) $(OPTIMISE)
-	CPPFLAGS = -mno-cygwin $(DEBUG) $(OPTIMISE)
-	LDFLAGS = -mno-cygwin -Wl,--add-stdcall-alias $(DEBUG) $(OPTIMISE)
-	CUDD_XCFLAGS = -mno-cygwin -march=i686 -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=268435456 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0
+	CUDD_XCFLAGS = -mno-cygwin -march=i686 -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=268435456 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0 $(DEBUG)
+	CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+	CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+	LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,--add-stdcall-alias
 	JFLAGS = -encoding UTF8
 	JAVACC = javacc.bat
 	SHARED = -shared
@@ -209,15 +209,15 @@ endif
 # Darwin
 ifeq ($(OSTYPE),darwin)
 	ifeq ($(ARCH),x86_64)
-		CFLAGS = -arch x86_64 -fPIC -DPIC $(DEBUG) $(OPTIMISE)
-		CPPFLAGS = -arch x86_64 -fPIC -DPIC $(DEBUG) $(OPTIMISE)
-		LDFLAGS = -arch x86_64 -fPIC -DPIC -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
-		CUDD_XCFLAGS = -arch x86_64 -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 -fno-common
+		CUDD_XCFLAGS = -arch x86_64 -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 -fno-common $(DEBUG)
+		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+		CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,-search_paths_first
 	else
-		CFLAGS = -arch i386 $(DEBUG) $(OPTIMISE)
-		CPPFLAGS = -arch i386 $(DEBUG) $(OPTIMISE)
-		LDFLAGS = -arch i386 -Wl,-search_paths_first $(DEBUG) $(OPTIMISE)
-		CUDD_XCFLAGS = -arch i386 -DHAVE_IEEE_754 -DBSD -fno-common
+		CUDD_XCFLAGS = -arch i386 -DHAVE_IEEE_754 -DBSD -fno-common $(DEBUG)
+		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+		CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,-search_paths_first
 	endif
 	JFLAGS =
 	SHARED = -dynamiclib
