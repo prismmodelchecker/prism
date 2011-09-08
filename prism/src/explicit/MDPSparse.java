@@ -782,7 +782,7 @@ public class MDPSparse extends ModelExplicit implements MDP
 					// Only remember strictly better choices
 					// (required if either player is doing max)
 					if (adv[s] == -1 || (min && minmax < vect[s]) || (!min && minmax > vect[s])) {
-						adv[s] = j;
+						adv[s] = j - l1;
 					}
 				}
 			}
