@@ -891,12 +891,10 @@ public class MDPSimple extends ModelExplicit implements MDP, ModelSimple
 	@Override
 	public double mvMultRewMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int adv[])
 	{
-		int j, k;
+		int j, k, advCh = -1;
 		double d, prob, minmax;
 		boolean first;
 		List<Distribution> step;
-
-		// TODO: implement adv. gen.
 
 		minmax = 0;
 		first = true;
@@ -912,10 +910,22 @@ public class MDPSimple extends ModelExplicit implements MDP, ModelSimple
 				d += prob * vect[k];
 			}
 			// Check whether we have exceeded min/max so far
-			if (first || (min && d < minmax) || (!min && d > minmax))
+			if (first || (min && d < minmax) || (!min && d > minmax)) {
 				minmax = d;
+				// If adversary generation is enabled, remember optimal choice
+				if (adv != null)
+					advCh = j;
+			}
 			first = false;
 		}
+		// If adversary generation is enabled, store optimal choice
+		if (adv != null & !first) {
+			// Only remember strictly better choices (required for max)
+			if (adv[s] == -1 || (min && minmax < vect[s]) || (!min && minmax > vect[s])) {
+				adv[s] = advCh;
+			}
+		}
+		// Add state reward (doesn't affect min/max)
 		minmax += mdpRewards.getStateReward(s);
 
 		return minmax;
