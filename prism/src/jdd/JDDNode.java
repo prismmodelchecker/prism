@@ -51,11 +51,13 @@ public class JDDNode
 	public JDDNode(long p)
 	{
 		ptr = p;
+		if (DebugJDD.debugEnabled)
+			DebugJDD.addToSet(this);
 	}
 	
 	public JDDNode(JDDNode dd)
 	{
-		ptr = dd.ptr;
+		this(dd.ptr());
 	}
 	
 	public long ptr()
