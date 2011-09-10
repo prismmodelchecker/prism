@@ -376,7 +376,7 @@ public class MDPSimple extends ModelExplicit implements MDP, ModelSimple
 			int n = trans.get(s).size();
 			List<Object> list = new ArrayList<Object>(n);
 			for (int j = 0; j < n; j++) {
-				list.add(0.0);
+				list.add(null);
 			}
 			actions.set(s, list);
 		}
