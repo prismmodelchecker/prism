@@ -785,8 +785,10 @@ public class MDPSparse extends ModelExplicit implements MDP
 		}
 		// If adversary generation is enabled, store optimal choice
 		if (adv != null & !first) {
-			// Only remember strictly better choices (required for max)
-			if (adv[s] == -1 || (min && minmax < vect[s]) || (!min && minmax > vect[s])) {
+			// For max, only remember strictly better choices
+			if (min) {
+				adv[s] = advCh;
+			} else if (adv[s] == -1 || minmax > vect[s]) {
 				adv[s] = advCh;
 			}
 		}
