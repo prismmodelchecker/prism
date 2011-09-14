@@ -144,7 +144,7 @@ public class StateValues
 				valuesB = new BitSet();
 			}
 		} else {
-			throw new PrismLangException("Cannot create an vector of type " + type);
+			throw new PrismLangException("Cannot create a vector of type " + type);
 		}
 	}
 
@@ -521,7 +521,7 @@ public class StateValues
 	/**
 	 * Print vector to a log/file (non-zero/non-false entries only).
 	 */
-	public void print(PrismLog log) throws PrismException
+	public void print(PrismLog log)
 	{
 		doPrinting(log, -1, null, true, false, true, true);
 	}
@@ -529,7 +529,7 @@ public class StateValues
 	/**
 	 * Print up to {@code limit} entries of a vector to a log/file (non-zero/non-false entries only).
 	 */
-	public void print(PrismLog log, int limit) throws PrismException
+	public void print(PrismLog log, int limit)
 	{
 		doPrinting(log, limit, null, true, false, true, true);
 	}
@@ -542,7 +542,7 @@ public class StateValues
 	 * @param printStates Print states (variable values) for each element? 
 	 * @param printIndices Print state indices for each element? 
 	 */
-	public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices) throws PrismException
+	public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices)
 	{
 		doPrinting(log, -1, null, printSparse, printMatlab, printStates, printIndices);
 	}
@@ -552,7 +552,7 @@ public class StateValues
 	 * @param log The log
 	 * @param filter A BitSet specifying which states to print for.
 	 */
-	public void printFiltered(PrismLog log, BitSet filter) throws PrismException
+	public void printFiltered(PrismLog log, BitSet filter)
 	{
 		doPrinting(log, -1, filter, true, false, true, true);
 	}
@@ -567,7 +567,6 @@ public class StateValues
 	 * @param printIndices Print state indices for each element? 
 	 */
 	public void printFiltered(PrismLog log, BitSet filter, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices)
-			throws PrismException
 	{
 		doPrinting(log, -1, filter, printSparse, printMatlab, printStates, printIndices);
 	}
@@ -583,13 +582,12 @@ public class StateValues
 	 * @param printIndices Print state indices for each element? 
 	 */
 	private void doPrinting(PrismLog log, int limit, BitSet filter, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices)
-			throws PrismException
 	{
 		int i, count = 0;
 
 		if (limit == -1)
 			limit = Integer.MAX_VALUE;
-		
+
 		// Header for Matlab format
 		if (printMatlab)
 			log.println(!printSparse ? "v = [" : "v = sparse(" + size + ",1);");
@@ -618,7 +616,7 @@ public class StateValues
 			log.println("];");
 	}
 
-	private boolean printLine(PrismLog log, int i, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices) throws PrismException
+	private boolean printLine(PrismLog log, int i, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices)
 	{
 		if (!printSparse || isNonZero(i)) {
 			if (printMatlab) {
