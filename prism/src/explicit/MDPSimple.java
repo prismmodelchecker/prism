@@ -86,7 +86,7 @@ public class MDPSimple extends MDPExplicit implements ModelSimple
 		copyFrom(mdp);
 		// Copy storage directly to avoid worrying about duplicate distributions (and for efficiency) 
 		for (int s = 0; s < numStates; s++) {
-			List<Distribution> distrs = trans.get(s); 
+			List<Distribution> distrs = trans.get(s);
 			for (Distribution distr : mdp.trans.get(s)) {
 				distrs.add(new Distribution(distr));
 			}
@@ -140,7 +140,7 @@ public class MDPSimple extends MDPExplicit implements ModelSimple
 		// Copy storage directly to avoid worrying about duplicate distributions (and for efficiency)
 		// (Since permut is a bijection, all structures and statistics are identical)
 		for (int s = 0; s < numStates; s++) {
-			List<Distribution> distrs = trans.get(permut[s]); 
+			List<Distribution> distrs = trans.get(permut[s]);
 			for (Distribution distr : mdp.trans.get(s)) {
 				distrs.add(new Distribution(distr, permut));
 			}
@@ -780,8 +780,8 @@ public class MDPSimple extends MDPExplicit implements ModelSimple
 	}
 
 	@Override
-	public void mvMultRight(int[] states, int[] adv, double[] source,
-			double[] dest) {
+	public void mvMultRight(int[] states, int[] adv, double[] source, double[] dest)
+	{
 		for (int s : states) {
 			Iterator<Entry<Integer, Double>> it = this.getTransitionsIterator(s, adv[s]);
 			while (it.hasNext()) {
@@ -792,7 +792,7 @@ public class MDPSimple extends MDPExplicit implements ModelSimple
 			}
 		}
 	}
-	
+
 	// Accessors (other)
 
 	/**
@@ -819,7 +819,7 @@ public class MDPSimple extends MDPExplicit implements ModelSimple
 	{
 		return trans.get(s).indexOf(distr);
 	}
-	
+
 	/**
 	 * Returns the index of the {@code action}-labelled choice {@code distr} for state {@code s}, if it exists.
 	 * If none, -1 is returned. If there are multiple (i.e. allowDupes is true), the first is returned. 
@@ -829,31 +829,35 @@ public class MDPSimple extends MDPExplicit implements ModelSimple
 		List<Distribution> set = trans.get(s);
 		int i, n = set.size();
 		if (distr == null) {
-		    for (i = 0; i < n; i++) {
-		    	if (set.get(i) == null) {
-		    		Object a = getAction(s, i);
-		    		if (action == null) {
-		    			if (a == null) return i;
-		    		} else {
-		    			if (action.equals(a)) return i;
-		    		}
-		    	}
-		    }
+			for (i = 0; i < n; i++) {
+				if (set.get(i) == null) {
+					Object a = getAction(s, i);
+					if (action == null) {
+						if (a == null)
+							return i;
+					} else {
+						if (action.equals(a))
+							return i;
+					}
+				}
+			}
 		} else {
-		    for (i = 0; i < n; i++) {
-		    	if (distr.equals(set.get(i))) {
-		    		Object a = getAction(s, i);
-		    		if (action == null) {
-		    			if (a == null) return i;
-		    		} else {
-		    			if (action.equals(a)) return i;
-		    		}
-		    	}
-		    }
+			for (i = 0; i < n; i++) {
+				if (distr.equals(set.get(i))) {
+					Object a = getAction(s, i);
+					if (action == null) {
+						if (a == null)
+							return i;
+					} else {
+						if (action.equals(a))
+							return i;
+					}
+				}
+			}
 		}
 		return -1;
 	}
-	
+
 	// Standard methods
 
 	@Override
