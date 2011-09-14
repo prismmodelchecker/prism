@@ -30,8 +30,8 @@ import java.io.*;
 import java.util.*;
 
 import prism.*;
-import explicit.StateModelChecker.TermCrit;
-import explicit.StateModelChecker.ValIterDir;
+import explicit.ProbModelChecker.TermCrit;
+import explicit.ProbModelChecker.ValIterDir;
 
 /**
  * Base class for implementing quantitative abstraction-refinement loop.
@@ -55,9 +55,9 @@ public abstract class QuantAbstractRefine
 	// Log for output (default: just send to stdout)
 	protected PrismLog mainLog = new PrismPrintStreamLog(System.out);
 	// Model checker
-	protected StateModelChecker mc;
+	protected ProbModelChecker mc;
 	// Dummy model checker to store options
-	protected StateModelChecker mcOptions;
+	protected ProbModelChecker mcOptions;
 
 	// Flags/settings
 
@@ -152,13 +152,13 @@ public abstract class QuantAbstractRefine
 		// By default, log output goes to System.out.
 		setLog(new PrismPrintStreamLog(System.out));
 		// Create dummy model checker to store options
-		mcOptions = new StateModelChecker();
+		mcOptions = new ProbModelChecker();
 	}
 
 	/**
 	 * Provides access to the underlying model checker for the purpose of setting options. 
 	 */
-	public StateModelChecker getModelChecker()
+	public ProbModelChecker getModelChecker()
 	{
 		return mcOptions;
 	}
@@ -182,7 +182,9 @@ public abstract class QuantAbstractRefine
 		mainLog.print(" refineStratWhere = " + refineStratWhere);
 		mainLog.print(" refineStratHow = " + refineStratHow);
 		mainLog.println();
+		mainLog.print("\nMC Settings: ");
 		mcOptions.printSettings();
+		mainLog.println();
 	}
 
 	// Set methods for flags/settings, etc.

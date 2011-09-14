@@ -28,8 +28,6 @@ package explicit;
 
 import java.util.Map;
 
-import explicit.StateModelChecker.TermCrit;
-
 import prism.ModelType;
 import prism.PrismUtils;
 

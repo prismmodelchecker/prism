@@ -50,7 +50,7 @@ public class StateModelChecker
 	protected PrismLog mainLog = new PrismPrintStreamLog(System.out);
 
 	// PRISM settings object
-	protected PrismSettings settings = new PrismSettings();
+	//protected PrismSettings settings = new PrismSettings();
 
 	// Model file (for reward structures, etc.)
 	protected ModulesFile modulesFile = null;
@@ -68,38 +68,7 @@ public class StateModelChecker
 
 	// Verbosity level
 	protected int verbosity = 0;
-	// Iterative numerical method termination criteria
-	protected TermCrit termCrit = TermCrit.RELATIVE;
-	// Parameter for iterative numerical method termination criteria
-	protected double termCritParam = 1e-8;
-	// Max iterations for numerical solution
-	protected int maxIters = 100000; // TODO: make same as PRISM?
-	// Use precomputation algorithms in model checking?
-	protected boolean precomp = true;
-	protected boolean prob0 = true;
-	protected boolean prob1 = true;
-	// Direction of convergence for value iteration (lfp/gfp)
-	protected ValIterDir valIterDir = ValIterDir.BELOW;
-	// Method used for numerical solution
-	protected SolnMethod solnMethod = SolnMethod.VALUE_ITERATION;
-
-	// Enums for flags/settings
-
-	// Iterative numerical method termination criteria
-	public enum TermCrit {
-		ABSOLUTE, RELATIVE
-	};
-
-	// Direction of convergence for value iteration (lfp/gfp)
-	public enum ValIterDir {
-		BELOW, ABOVE
-	};
-
-	// Method used for numerical solution
-	public enum SolnMethod {
-		VALUE_ITERATION, GAUSS_SEIDEL, POLICY_ITERATION, MODIFIED_POLICY_ITERATION
-	};
-
+	
 	// Setters/getters
 
 	/**
@@ -119,22 +88,6 @@ public class StateModelChecker
 	}
 
 	/**
-	 * Set PRISM settings object.
-	 */
-	public void setSettings(PrismSettings settings)
-	{
-		this.settings = settings;
-	}
-
-	/**
-	 * Get PRISM settings object.
-	 */
-	public PrismSettings getSettings()
-	{
-		return settings;
-	}
-
-	/**
 	 * Set the attached model file (for e.g. reward structures when model checking)
 	 * and the attached properties file (for e.g. constants/labels when model checking)
 	 */
@@ -149,6 +102,33 @@ public class StateModelChecker
 			constantValues.addValues(propertiesFile.getConstantValues());
 	}
 
+	// Settings methods
+	
+	/**
+	 * Set settings from a PRISMSettings object.
+	 */
+	public void setSettings(PrismSettings settings)
+	{
+		verbosity = settings.getBoolean(PrismSettings.PRISM_VERBOSE) ? 10 : 1;
+	}
+
+	/**
+	 * Inherit settings (and other info) from another model checker object.
+	 */
+	public void inheritSettings(StateModelChecker other)
+	{
+		setLog(other.getLog());
+		setVerbosity(other.getVerbosity());
+	}
+
+	/**
+	 * Print summary of current settings.
+	 */
+	public void printSettings()
+	{
+		mainLog.print("verbosity = " + verbosity + " ");
+	}
+
 	// Set methods for flags/settings
 
 	/**
@@ -159,150 +139,11 @@ public class StateModelChecker
 		this.verbosity = verbosity;
 	}
 
-	/**
-	 * Set termination criteria type for numerical iterative methods.
-	 */
-	public void setTermCrit(TermCrit termCrit)
-	{
-		this.termCrit = termCrit;
-	}
-
-	/**
-	 * Set termination criteria parameter (epsilon) for numerical iterative methods.
-	 */
-	public void setTermCritParam(double termCritParam)
-	{
-		this.termCritParam = termCritParam;
-	}
-
-	/**
-	 * Set maximum number of iterations for numerical iterative methods.
-	 */
-	public void setMaxIters(int maxIters)
-	{
-		this.maxIters = maxIters;
-	}
-
-	/**
-	 * Set whether or not to use precomputation (Prob0, Prob1, etc.).
-	 */
-	public void setPrecomp(boolean precomp)
-	{
-		this.precomp = precomp;
-	}
-
-	/**
-	 * Set whether or not to use Prob0 precomputation
-	 */
-	public void setProb0(boolean prob0)
-	{
-		this.prob0 = prob0;
-	}
-
-	/**
-	 * Set whether or not to use Prob1 precomputation
-	 */
-	public void setProb1(boolean prob1)
-	{
-		this.prob1 = prob1;
-	}
-
-	/**
-	 * Set direction of convergence for value iteration (lfp/gfp).
-	 */
-	public void setValIterDir(ValIterDir valIterDir)
-	{
-		this.valIterDir = valIterDir;
-	}
-
-	/**
-	 * Set method used for numerical solution.
-	 */
-	public void setSolnMethod(SolnMethod solnMethod)
-	{
-		this.solnMethod = solnMethod;
-	}
-
 	// Get methods for flags/settings
 
 	public int getVerbosity()
 	{
 		return verbosity;
-	}
-
-	public TermCrit getTermCrit()
-	{
-		return termCrit;
-	}
-
-	public double getTermCritParam()
-	{
-		return termCritParam;
-	}
-
-	public int getMaxIters()
-	{
-		return maxIters;
-	}
-
-	public boolean getPrecomp()
-	{
-		return precomp;
-	}
-
-	public boolean getProb0()
-	{
-		return prob0;
-	}
-
-	public boolean getProb1()
-	{
-		return prob1;
-	}
-
-	public ValIterDir getValIterDir()
-	{
-		return valIterDir;
-	}
-
-	public SolnMethod getSolnMethod()
-	{
-		return solnMethod;
-	}
-
-	/**
-	 * Inherit settings from another model checker object.
-	 */
-	public void inheritSettings(StateModelChecker other)
-	{
-		setLog(other.getLog());
-		setVerbosity(other.getVerbosity());
-		setTermCrit(other.getTermCrit());
-		setTermCritParam(other.getTermCritParam());
-		setMaxIters(other.getMaxIters());
-		setPrecomp(other.getPrecomp());
-		setProb0(other.getProb0());
-		setProb1(other.getProb1());
-		setValIterDir(other.getValIterDir());
-		setSolnMethod(other.getSolnMethod());
-	}
-
-	/**
-	 * Print summary of current settings.
-	 */
-	public void printSettings()
-	{
-		mainLog.print("\nMC Settings:");
-		mainLog.print(" verbosity = " + verbosity);
-		mainLog.print(" termCrit = " + termCrit);
-		mainLog.print(" termCritParam = " + termCritParam);
-		mainLog.print(" maxIters = " + maxIters);
-		mainLog.print(" precomp = " + precomp);
-		mainLog.print(" prob0 = " + prob0);
-		mainLog.print(" prob1 = " + prob1);
-		mainLog.print(" valIterDir = " + valIterDir);
-		mainLog.print(" solnMethod = " + solnMethod);
-		mainLog.println();
 	}
 
 	// Model checking functions
@@ -597,7 +438,8 @@ public class StateModelChecker
 			resultExpl = "Minimum value over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
 			// Also find states that (are close to) selected value for display to log
-			bsMatch = vals.getBitSetFromCloseValue(resObj, termCritParam, termCrit == TermCrit.ABSOLUTE);
+			// TODO: un-hard-code precision once StateValues knows hoe precise it is
+			bsMatch = vals.getBitSetFromCloseValue(resObj, 1e-5, false);
 			bsMatch.and(bsFilter);
 			break;
 		case MAX:
@@ -609,7 +451,8 @@ public class StateModelChecker
 			resultExpl = "Maximum value over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
 			// Also find states that (are close to) selected value for display to log
-			bsMatch = vals.getBitSetFromCloseValue(resObj, termCritParam, termCrit == TermCrit.ABSOLUTE);
+			// TODO: un-hard-code precision once StateValues knows hoe precise it is
+			bsMatch = vals.getBitSetFromCloseValue(resObj, 1e-5, false);
 			bsMatch.and(bsFilter);
 			break;
 		case ARGMIN:
@@ -617,7 +460,8 @@ public class StateModelChecker
 			resObj = vals.minOverBitSet(bsFilter);
 			mainLog.print("\nMinimum value over " + filterStatesString + ": " + resObj);
 			// Find states that (are close to) selected value
-			bsMatch = vals.getBitSetFromCloseValue(resObj, termCritParam, termCrit == TermCrit.ABSOLUTE);
+			// TODO: un-hard-code precision once StateValues knows hoe precise it is
+			bsMatch = vals.getBitSetFromCloseValue(resObj, 1e-5, false);
 			bsMatch.and(bsFilter);
 			// Store states in vector; for ARGMIN, don't store a single value (in resObj)
 			// Also, don't bother with explanation string
@@ -631,7 +475,8 @@ public class StateModelChecker
 			resObj = vals.maxOverBitSet(bsFilter);
 			mainLog.print("\nMaximum value over " + filterStatesString + ": " + resObj);
 			// Find states that (are close to) selected value
-			bsMatch = vals.getBitSetFromCloseValue(resObj, termCritParam, termCrit == TermCrit.ABSOLUTE);
+			// TODO: un-hard-code precision once StateValues knows hoe precise it is
+			bsMatch = vals.getBitSetFromCloseValue(resObj, 1e-5, false);
 			bsMatch.and(bsFilter);
 			// Store states in vector; for ARGMAX, don't store a single value (in resObj)
 			// Also, don't bother with explanation string

@@ -231,7 +231,7 @@ public class STPGModelChecker extends ProbModelChecker
 		}
 
 		// Are we generating an optimal adversary?
-		genAdv = !(settings.getString(PrismSettings.PRISM_EXPORT_ADV).equals("None"));
+		genAdv = exportAdv;
 
 		// Start probabilistic reachability
 		timer = System.currentTimeMillis();
@@ -476,7 +476,7 @@ public class STPGModelChecker extends ProbModelChecker
 		long timer;
 
 		// Are we generating an optimal adversary?
-		genAdv = !(settings.getString(PrismSettings.PRISM_EXPORT_ADV).equals("None"));
+		genAdv = exportAdv;
 
 		// Start value iteration
 		timer = System.currentTimeMillis();
@@ -547,7 +547,7 @@ public class STPGModelChecker extends ProbModelChecker
 
 		// Print adversary
 		if (genAdv) {
-			PrismLog out = new PrismFileLog(settings.getString(PrismSettings.PRISM_EXPORT_ADV_FILENAME));
+			PrismLog out = new PrismFileLog(exportAdvFilename);
 			for (i = 0; i < n; i++) {
 				out.println(i + " " + (adv[i] != -1 ? stpg.getAction(i, adv[i]) : "-"));
 			}

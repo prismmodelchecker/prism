@@ -35,6 +35,7 @@ import parser.ast.ExpressionSS;
 import parser.ast.RewardStruct;
 import prism.ModelType;
 import prism.PrismException;
+import prism.PrismSettings;
 import explicit.rewards.ConstructRewards;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
@@ -44,6 +45,238 @@ import explicit.rewards.MDPRewards;
  */
 public class ProbModelChecker extends StateModelChecker
 {
+	// Flags/settings
+
+	// Iterative numerical method termination criteria
+	protected TermCrit termCrit = TermCrit.RELATIVE;
+	// Parameter for iterative numerical method termination criteria
+	protected double termCritParam = 1e-8;
+	// Max iterations for numerical solution
+	protected int maxIters = 100000; // TODO: make same as PRISM?
+	// Use precomputation algorithms in model checking?
+	protected boolean precomp = true;
+	protected boolean prob0 = true;
+	protected boolean prob1 = true;
+	// Direction of convergence for value iteration (lfp/gfp)
+	protected ValIterDir valIterDir = ValIterDir.BELOW;
+	// Method used for numerical solution
+	protected SolnMethod solnMethod = SolnMethod.VALUE_ITERATION;
+	// Adversary export
+	protected boolean exportAdv = false;
+	protected String exportAdvFilename;
+
+	// Enums for flags/settings
+
+	// Iterative numerical method termination criteria
+	public enum TermCrit {
+		ABSOLUTE, RELATIVE
+	};
+
+	// Direction of convergence for value iteration (lfp/gfp)
+	public enum ValIterDir {
+		BELOW, ABOVE
+	};
+
+	// Method used for numerical solution
+	public enum SolnMethod {
+		VALUE_ITERATION, GAUSS_SEIDEL, POLICY_ITERATION, MODIFIED_POLICY_ITERATION
+	};
+
+	// Settings methods
+	
+	/**
+	 * Set settings from a PRISMSettings object.
+	 */
+	public void setSettings(PrismSettings settings)
+	{
+		String s;
+		s = settings.getString(PrismSettings.PRISM_TERM_CRIT);
+		if (s.equals("Absolute")) {
+			setTermCrit(TermCrit.ABSOLUTE);
+		} else if (s.equals("Relative")) {
+			setTermCrit(TermCrit.RELATIVE);
+		}
+		setTermCritParam(settings.getDouble(PrismSettings.PRISM_TERM_CRIT_PARAM));
+		setMaxIters(settings.getInteger(PrismSettings.PRISM_MAX_ITERS));
+		setPrecomp(settings.getBoolean(PrismSettings.PRISM_PRECOMPUTATION));
+		// prob0
+		// prob1
+		// valiterdir
+		s = settings.getString(PrismSettings.PRISM_LIN_EQ_METHOD);
+		if (s.equals("Gauss-Seidel")) {
+			setSolnMethod(SolnMethod.GAUSS_SEIDEL);
+		} else {
+			setSolnMethod(SolnMethod.VALUE_ITERATION);
+		}
+		s = settings.getString(PrismSettings.PRISM_MDP_SOLN_METHOD);
+		if (s.equals("Gauss-Seidel")) {
+			setSolnMethod(SolnMethod.GAUSS_SEIDEL);
+		} else if (s.equals("Policy iteration")) {
+			setSolnMethod(SolnMethod.POLICY_ITERATION);
+		} else if (s.equals("Modified policy iteration")) {
+			setSolnMethod(SolnMethod.MODIFIED_POLICY_ITERATION);
+		} else {
+			setSolnMethod(SolnMethod.VALUE_ITERATION);
+		}
+		s = settings.getString(PrismSettings.PRISM_EXPORT_ADV);
+		if (!(s.equals("None")))
+			exportAdv = true;
+		exportAdvFilename = settings.getString(PrismSettings.PRISM_EXPORT_ADV_FILENAME);
+	}
+
+	/**
+	 * Inherit settings (and other info) from another model checker object.
+	 */
+	public void inheritSettings(ProbModelChecker other)
+	{
+		super.inheritSettings(other);
+		setTermCrit(other.getTermCrit());
+		setTermCritParam(other.getTermCritParam());
+		setMaxIters(other.getMaxIters());
+		setPrecomp(other.getPrecomp());
+		setProb0(other.getProb0());
+		setProb1(other.getProb1());
+		setValIterDir(other.getValIterDir());
+		setSolnMethod(other.getSolnMethod());
+	}
+
+	/**
+	 * Print summary of current settings.
+	 */
+	public void printSettings()
+	{
+		super.printSettings();
+		mainLog.print("termCrit = " + termCrit + " ");
+		mainLog.print("termCritParam = " + termCritParam + " ");
+		mainLog.print("maxIters = " + maxIters + " ");
+		mainLog.print("precomp = " + precomp + " ");
+		mainLog.print("prob0 = " + prob0 + " ");
+		mainLog.print("prob1 = " + prob1 + " ");
+		mainLog.print("valIterDir = " + valIterDir + " ");
+		mainLog.print("solnMethod = " + solnMethod + " ");
+	}
+
+	// Set methods for flags/settings
+
+	/**
+	 * Set verbosity level, i.e. amount of output produced.
+	 */
+	public void setVerbosity(int verbosity)
+	{
+		this.verbosity = verbosity;
+	}
+
+	/**
+	 * Set termination criteria type for numerical iterative methods.
+	 */
+	public void setTermCrit(TermCrit termCrit)
+	{
+		this.termCrit = termCrit;
+	}
+
+	/**
+	 * Set termination criteria parameter (epsilon) for numerical iterative methods.
+	 */
+	public void setTermCritParam(double termCritParam)
+	{
+		this.termCritParam = termCritParam;
+	}
+
+	/**
+	 * Set maximum number of iterations for numerical iterative methods.
+	 */
+	public void setMaxIters(int maxIters)
+	{
+		this.maxIters = maxIters;
+	}
+
+	/**
+	 * Set whether or not to use precomputation (Prob0, Prob1, etc.).
+	 */
+	public void setPrecomp(boolean precomp)
+	{
+		this.precomp = precomp;
+	}
+
+	/**
+	 * Set whether or not to use Prob0 precomputation
+	 */
+	public void setProb0(boolean prob0)
+	{
+		this.prob0 = prob0;
+	}
+
+	/**
+	 * Set whether or not to use Prob1 precomputation
+	 */
+	public void setProb1(boolean prob1)
+	{
+		this.prob1 = prob1;
+	}
+
+	/**
+	 * Set direction of convergence for value iteration (lfp/gfp).
+	 */
+	public void setValIterDir(ValIterDir valIterDir)
+	{
+		this.valIterDir = valIterDir;
+	}
+
+	/**
+	 * Set method used for numerical solution.
+	 */
+	public void setSolnMethod(SolnMethod solnMethod)
+	{
+		this.solnMethod = solnMethod;
+	}
+
+	// Get methods for flags/settings
+
+	public int getVerbosity()
+	{
+		return verbosity;
+	}
+
+	public TermCrit getTermCrit()
+	{
+		return termCrit;
+	}
+
+	public double getTermCritParam()
+	{
+		return termCritParam;
+	}
+
+	public int getMaxIters()
+	{
+		return maxIters;
+	}
+
+	public boolean getPrecomp()
+	{
+		return precomp;
+	}
+
+	public boolean getProb0()
+	{
+		return prob0;
+	}
+
+	public boolean getProb1()
+	{
+		return prob1;
+	}
+
+	public ValIterDir getValIterDir()
+	{
+		return valIterDir;
+	}
+
+	public SolnMethod getSolnMethod()
+	{
+		return solnMethod;
+	}
+
 	// Model checking functions
 
 	@Override

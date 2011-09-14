@@ -26,12 +26,10 @@
 
 package explicit;
 
-import java.util.*;
 import java.io.*;
 
 import parser.ast.*;
 import prism.*;
-import parser.*; // Override some imports for which there are name clashes
 import simulator.SimulatorEngine;
 import explicit.Model;
 import explicit.StateModelChecker;
@@ -144,7 +142,6 @@ public class PrismExplicit
 	public Result modelCheck(Model model, ModulesFile modulesFile, PropertiesFile propertiesFile, Expression expr) throws PrismException, PrismLangException
 	{
 		Result result = null;
-		String s;
 
 		// Check that property is valid for this model type
 		// and create new model checker object
@@ -168,48 +165,11 @@ public class PrismExplicit
 		default:
 			throw new PrismException("Unknown model type " + model.getModelType());
 		}
-
 		mc.setLog(mainLog);
 		mc.setSettings(settings);
 
-		mc.setModulesFileAndPropertiesFile(modulesFile, propertiesFile);
-
-		mc.setPrecomp(settings.getBoolean(PrismSettings.PRISM_PRECOMPUTATION));
-		s = settings.getString(PrismSettings.PRISM_TERM_CRIT);
-		if (s.equals("Absolute")) {
-			mc.setTermCrit(StateModelChecker.TermCrit.ABSOLUTE);
-		} else if (s.equals("Relative")) {
-			mc.setTermCrit(StateModelChecker.TermCrit.RELATIVE);
-		}
-		mc.setTermCritParam(settings.getDouble(PrismSettings.PRISM_TERM_CRIT_PARAM));
-		mc.setMaxIters(settings.getInteger(PrismSettings.PRISM_MAX_ITERS));
-		switch (model.getModelType()) {
-		case DTMC:
-		case CTMC:
-			s = settings.getString(PrismSettings.PRISM_LIN_EQ_METHOD);
-			if (s.equals("Gauss-Seidel")) {
-				mc.setSolnMethod(StateModelChecker.SolnMethod.GAUSS_SEIDEL);
-			} else {
-				mc.setSolnMethod(StateModelChecker.SolnMethod.VALUE_ITERATION);
-			}
-			break;
-		case MDP:
-			s = settings.getString(PrismSettings.PRISM_MDP_SOLN_METHOD);
-			if (s.equals("Gauss-Seidel")) {
-				mc.setSolnMethod(StateModelChecker.SolnMethod.GAUSS_SEIDEL);
-			} else if (s.equals("Policy iteration")) {
-				mc.setSolnMethod(StateModelChecker.SolnMethod.POLICY_ITERATION);
-			} else if (s.equals("Modified policy iteration")) {
-				mc.setSolnMethod(StateModelChecker.SolnMethod.MODIFIED_POLICY_ITERATION);
-			} else {
-				mc.setSolnMethod(StateModelChecker.SolnMethod.VALUE_ITERATION);
-			}
-			break;
-		}
-
-		// TODO: pass PRISM settings to mc
-
 		// Do model checking
+		mc.setModulesFileAndPropertiesFile(modulesFile, propertiesFile);
 		result = mc.check(model, expr);
 
 		// Return result
@@ -246,7 +206,8 @@ public class PrismExplicit
 
 		if (model.getModelType() == ModelType.DTMC) {
 			DTMCModelChecker mcDTMC = new DTMCModelChecker();
-			// TODO: pass settings
+			mcDTMC.setLog(mainLog);
+			mcDTMC.setSettings(settings);
 			probs = mcDTMC.doSteadyState((DTMC) model, null);
 		}
 		else if (model.getModelType() == ModelType.CTMC) {
@@ -323,7 +284,8 @@ public class PrismExplicit
 		else if (model.getModelType() == ModelType.CTMC) {
 			mainLog.println("\nComputing transient probabilities (time = " + time + ")...");
 			CTMCModelChecker mcCTMC = new CTMCModelChecker();
-			// TODO: pass settings
+			mcCTMC.setLog(mainLog);
+			mcCTMC.setSettings(settings);
 			probs = mcCTMC.doTransient((CTMC) model, time, null);
 		}
 		else {
