@@ -3,6 +3,7 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//	* Christian von Essen <christian.vonessen@imag.fr> (Verimag, Grenoble)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -26,31 +27,26 @@
 
 package explicit;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.BitSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
+import java.io.*;
 
-import explicit.rewards.MCRewards;
-
+import explicit.rewards.MDPRewards;
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismUtils;
 
 /**
- * Base class for explicit-state representations of a DTMC.
+ * Base class for explicit-state representations of an MDP.
  */
-public abstract class DTMCExplicit extends ModelExplicit implements DTMC
+public abstract class MDPExplicit extends ModelExplicit implements MDP
 {
 	// Accessors (for Model)
 	
 	@Override
 	public ModelType getModelType()
 	{
-		return ModelType.DTMC;
+		return ModelType.MDP;
 	}
 
 	@Override
@@ -59,6 +55,8 @@ public abstract class DTMCExplicit extends ModelExplicit implements DTMC
 		String s = "";
 		s += numStates + " states (" + getNumInitialStates() + " initial)";
 		s += ", " + getNumTransitions() + " transitions";
+		s += ", " + getNumChoices() + " choices";
+		s += ", dist max/avg = " + getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) getNumChoices()) / numStates);
 		return s;
 	}
 
@@ -68,48 +66,67 @@ public abstract class DTMCExplicit extends ModelExplicit implements DTMC
 		String s = "";
 		s += "States:      " + numStates + " (" + getNumInitialStates() + " initial)\n";
 		s += "Transitions: " + getNumTransitions() + "\n";
+		s += "Choices:     " + getNumChoices() + "\n";
+		s += "Max/avg:     " + getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) getNumChoices()) / numStates) + "\n";
 		return s;
 	}
-	
+
 	@Override
 	public void exportToPrismExplicitTra(PrismLog out) throws PrismException
 	{
-		int i;
+		int i, j, numChoices;
+		Object action;
 		TreeMap<Integer, Double> sorted;
 		// Output transitions to .tra file
-		out.print(numStates + " " + getNumTransitions() + "\n");
+		out.print(numStates + " " + getNumChoices() + " " + getNumTransitions() + "\n");
 		sorted = new TreeMap<Integer, Double>();
 		for (i = 0; i < numStates; i++) {
-			// Extract transitions and sort by destination state index (to match PRISM-exported files)
-			Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i);
-			while (iter.hasNext()) {
-				Map.Entry<Integer, Double> e = iter.next();
-				sorted.put(e.getKey(), e.getValue());
+			numChoices = getNumChoices(i);
+			for (j = 0; j < numChoices; j++) {
+				// Extract transitions and sort by destination state index (to match PRISM-exported files)
+				Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i, j);
+				while (iter.hasNext()) {
+					Map.Entry<Integer, Double> e = iter.next();
+					sorted.put(e.getKey(), e.getValue());
+				}
+				// Print out (sorted) transitions
+				for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
+					// Note use of PrismUtils.formatDouble to match PRISM-exported files
+					out.print(i + " " + j + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()));
+					action = getAction(i, j);
+					out.print(action == null ? "\n" : (" " + action + "\n"));
+				}
+				sorted.clear();
 			}
-			// Print out (sorted) transitions
-			for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
-				// Note use of PrismUtils.formatDouble to match PRISM-exported files
-				out.print(i + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()) + "\n");
-			}
-			sorted.clear();
 		}
 	}
 
 	@Override
 	public void exportToDotFile(String filename, BitSet mark) throws PrismException
 	{
-		int i;
+		int i, j, numChoices;
+		String nij;
+		Object action;
 		try {
 			FileWriter out = new FileWriter(filename);
 			out.write("digraph " + getModelType() + " {\nsize=\"8,5\"\nnode [shape=box];\n");
 			for (i = 0; i < numStates; i++) {
 				if (mark != null && mark.get(i))
 					out.write(i + " [style=filled  fillcolor=\"#cccccc\"]\n");
-				Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i);
-				while (iter.hasNext()) {
-					Map.Entry<Integer, Double> e = iter.next();
-					out.write(i + " -> " + e.getKey() + " [ label=\"");
-					out.write(e.getValue() + "\" ];\n");
+				numChoices = getNumChoices(i);
+				for (j = 0; j < numChoices; j++) {
+					action = getAction(i, j);
+					nij = "n" + i + "_" + j;
+					out.write(i + " -> " + nij + " [ arrowhead=none,label=\"" + j);
+					if (action != null)
+						out.write(":" + action);
+					out.write("\" ];\n");
+					out.write(nij + " [ shape=point,width=0.1,height=0.1,label=\"\" ];\n");
+					Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i, j);
+					while (iter.hasNext()) {
+						Map.Entry<Integer, Double> e = iter.next();
+						out.write(nij + " -> " + e.getKey() + " [ label=\"" + e.getValue() + "\" ];\n");
+					}
 				}
 			}
 			out.write("}\n");
@@ -122,10 +139,11 @@ public abstract class DTMCExplicit extends ModelExplicit implements DTMC
 	@Override
 	public void exportToPrismLanguage(String filename) throws PrismException
 	{
-		int i;
+		int i, j, numChoices;
 		boolean first;
 		FileWriter out;
 		TreeMap<Integer, Double> sorted;
+		Object action;
 		try {
 			// Output transitions to PRISM language file
 			out = new FileWriter(filename);
@@ -133,25 +151,30 @@ public abstract class DTMCExplicit extends ModelExplicit implements DTMC
 			out.write("module M\nx : [0.." + (numStates - 1) + "];\n");
 			sorted = new TreeMap<Integer, Double>();
 			for (i = 0; i < numStates; i++) {
-				// Extract transitions and sort by destination state index (to match PRISM-exported files)
-				Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i);
-				while (iter.hasNext()) {
-					Map.Entry<Integer, Double> e = iter.next();
-					sorted.put(e.getKey(), e.getValue());
+				numChoices = getNumChoices(i);
+				for (j = 0; j < numChoices; j++) {
+					// Extract transitions and sort by destination state index (to match PRISM-exported files)
+					Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i, j);
+					while (iter.hasNext()) {
+						Map.Entry<Integer, Double> e = iter.next();
+						sorted.put(e.getKey(), e.getValue());
+					}
+					// Print out (sorted) transitions
+					action = getAction(i, j);
+					out.write(action != null ? ("[" + action + "]") : "[]");
+					out.write("x=" + i + "->");
+					first = true;
+					for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
+						if (first)
+							first = false;
+						else
+							out.write("+");
+						// Note use of PrismUtils.formatDouble to match PRISM-exported files
+						out.write(PrismUtils.formatDouble(e.getValue()) + ":(x'=" + e.getKey() + ")");
+					}
+					out.write(";\n");
+					sorted.clear();
 				}
-				// Print out (sorted) transitions
-				out.write("[]x=" + i + "->");
-				first = true;
-				for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
-					if (first)
-						first = false;
-					else
-						out.write("+");
-					// Note use of PrismUtils.formatDouble to match PRISM-exported files
-					out.write(PrismUtils.formatDouble(e.getValue()) + ":(x'=" + e.getKey() + ")");
-				}
-				out.write(";\n");
-				sorted.clear();
 			}
 			out.write("endmodule\n");
 			out.close();
@@ -159,71 +182,80 @@ public abstract class DTMCExplicit extends ModelExplicit implements DTMC
 			throw new PrismException("Could not export " + getModelType() + " to file \"" + filename + "\"" + e);
 		}
 	}
-	
-	// Accessors (for DTMC)
-	
+
+	// Accessors (for MDP)
+
 	@Override
-	public void mvMult(double vect[], double result[], BitSet subset, boolean complement)
+	public void mvMultMinMax(double vect[], boolean min, double result[], BitSet subset, boolean complement, int adv[])
 	{
 		int s;
 		// Loop depends on subset/complement arguments
 		if (subset == null) {
 			for (s = 0; s < numStates; s++)
-				result[s] = mvMultSingle(s, vect);
+				result[s] = mvMultMinMaxSingle(s, vect, min, adv);
 		} else if (complement) {
 			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1))
-				result[s] = mvMultSingle(s, vect);
+				result[s] = mvMultMinMaxSingle(s, vect, min, adv);
 		} else {
 			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1))
-				result[s] = mvMultSingle(s, vect);
+				result[s] = mvMultMinMaxSingle(s, vect, min, adv);
 		}
 	}
 
 	@Override
-	public double mvMultGS(double vect[], BitSet subset, boolean complement, boolean absolute)
+	public double mvMultGSMinMax(double vect[], boolean min, BitSet subset, boolean complement, boolean absolute)
 	{
 		int s;
 		double d, diff, maxDiff = 0.0;
 		// Loop depends on subset/complement arguments
 		if (subset == null) {
 			for (s = 0; s < numStates; s++) {
-				d = mvMultJacSingle(s, vect);
+				d = mvMultJacMinMaxSingle(s, vect, min);
 				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
 				maxDiff = diff > maxDiff ? diff : maxDiff;
 				vect[s] = d;
 			}
 		} else if (complement) {
 			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1)) {
-				d = mvMultJacSingle(s, vect);
+				d = mvMultJacMinMaxSingle(s, vect, min);
 				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
 				maxDiff = diff > maxDiff ? diff : maxDiff;
 				vect[s] = d;
 			}
 		} else {
 			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1)) {
-				d = mvMultJacSingle(s, vect);
+				d = mvMultJacMinMaxSingle(s, vect, min);
 				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
 				maxDiff = diff > maxDiff ? diff : maxDiff;
 				vect[s] = d;
 			}
 		}
+		// Use this code instead for backwards Gauss-Seidel
+		/*for (s = numStates - 1; s >= 0; s--) {
+			if (subset.get(s)) {
+				d = mvMultJacMinMaxSingle(s, vect, min);
+				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+				maxDiff = diff > maxDiff ? diff : maxDiff;
+				vect[s] = d;
+			}
+		}*/
 		return maxDiff;
 	}
 
 	@Override
-	public void mvMultRew(double vect[], MCRewards mcRewards, double result[], BitSet subset, boolean complement)
+	public void mvMultRewMinMax(double vect[], MDPRewards mdpRewards, boolean min, double result[], BitSet subset, boolean complement, int adv[])
 	{
 		int s;
 		// Loop depends on subset/complement arguments
 		if (subset == null) {
 			for (s = 0; s < numStates; s++)
-				result[s] = mvMultRewSingle(s, vect, mcRewards);
+				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv);
 		} else if (complement) {
 			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1))
-				result[s] = mvMultRewSingle(s, vect, mcRewards);
+				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv);
 		} else {
 			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1))
-				result[s] = mvMultRewSingle(s, vect, mcRewards);
+				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv);
 		}
 	}
 }

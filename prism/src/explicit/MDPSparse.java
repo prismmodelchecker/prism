@@ -33,9 +33,7 @@ import java.io.*;
 
 import explicit.rewards.MDPRewards;
 import parser.State;
-import prism.ModelType;
 import prism.PrismException;
-import prism.PrismLog;
 import prism.PrismUtils;
 
 /**
@@ -43,7 +41,7 @@ import prism.PrismUtils;
  * This is much faster to access than e.g. MDPSimple and should also be more compact.
  * The catch is that you have to create the model all in one go and then can't modify it.
  */
-public class MDPSparse extends ModelExplicit implements MDP
+public class MDPSparse extends MDPExplicit
 {
 	// Sparse matrix storing transition function (Steps)
 	/** Probabilities for each transition (array of size numTransitions) */
@@ -277,7 +275,7 @@ public class MDPSparse extends ModelExplicit implements MDP
 		rowStarts[numStates] = numDistrs;
 	}
 
-	// Mutators (for ModelSparse)
+	// Mutators (other)
 
 	@Override
 	public void initialise(int numStates)
@@ -369,13 +367,7 @@ public class MDPSparse extends ModelExplicit implements MDP
 		}
 	}
 
-	// Accessors (for ModelSparse)
-
-	@Override
-	public ModelType getModelType()
-	{
-		return ModelType.MDP;
-	}
+	// Accessors (for Model)
 
 	@Override
 	public int getNumTransitions()
@@ -472,126 +464,19 @@ public class MDPSparse extends ModelExplicit implements MDP
 		return deadlocks;
 	}
 
-	@Override
-	public void exportToPrismExplicitTra(PrismLog out) throws PrismException
-	{
-		// Note: In PRISM .tra files, transitions are usually sorted by column index within choices
-		// (to ensure this is the case, you may need to sort the model when constructing)
-		int i, j, k, l1, h1, l2, h2;
-		Object action;
-		// Output transitions to .tra file
-		out.print(numStates + " " + numDistrs + " " + numTransitions + "\n");
-		for (i = 0; i < numStates; i++) {
-			l1 = rowStarts[i];
-			h1 = rowStarts[i + 1];
-			for (j = l1; j < h1; j++) {
-				l2 = choiceStarts[j];
-				h2 = choiceStarts[j + 1];
-				for (k = l2; k < h2; k++) {
-					out.print(i + " " + (j - l1) + " " + cols[k] + " " + PrismUtils.formatDouble(nonZeros[k]));
-					action = getAction(i, j - l1);
-					out.print(action == null ? "\n" : (" " + action + "\n"));
-				}
-			}
-		}
-	}
-
-	@Override
-	public void exportToDotFile(String filename, BitSet mark) throws PrismException
-	{
-		int i, j, k, l1, h1, l2, h2;
-		String nij;
-		Object action;
-		try {
-			FileWriter out = new FileWriter(filename);
-			out.write("digraph " + getModelType() + " {\nsize=\"8,5\"\nnode [shape=box];\n");
-			for (i = 0; i < numStates; i++) {
-				if (mark != null && mark.get(i))
-					out.write(i + " [style=filled  fillcolor=\"#cccccc\"]\n");
-				l1 = rowStarts[i];
-				h1 = rowStarts[i + 1];
-				for (j = l1; j < h1; j++) {
-					action = getAction(i, j - l1);
-					nij = "n" + i + "_" + (j - l1);
-					out.write(i + " -> " + nij + " [ arrowhead=none,label=\"" + j);
-					if (action != null)
-						out.write(":" + action);
-					out.write("\" ];\n");
-					out.write(nij + " [ shape=point,width=0.1,height=0.1,label=\"\" ];\n");
-					l2 = choiceStarts[j];
-					h2 = choiceStarts[j + 1];
-					for (k = l2; k < h2; k++) {
-						out.write(nij + " -> " + cols[k] + " [ label=\"" + nonZeros[k] + "\" ];\n");
-					}
-				}
-			}
-			out.write("}\n");
-			out.close();
-		} catch (IOException e) {
-			throw new PrismException("Could not write " + getModelType() + " to file \"" + filename + "\"" + e);
-		}
-	}
-
-	@Override
-	public void exportToPrismLanguage(String filename) throws PrismException
-	{
-		int i, j, k, l1, h1, l2, h2;
-		FileWriter out;
-		Object action;
-		try {
-			// Output transitions to PRISM language file
-			out = new FileWriter(filename);
-			out.write(getModelType().keyword() + "\n");
-			out.write("module M\nx : [0.." + (numStates - 1) + "];\n");
-			for (i = 0; i < numStates; i++) {
-				l1 = rowStarts[i];
-				h1 = rowStarts[i + 1];
-				for (j = l1; j < h1; j++) {
-					// Print out transitions
-					action = getAction(i, j - l1);
-					out.write(action != null ? ("[" + action + "]") : "[]");
-					out.write("x=" + i + "->");
-					l2 = choiceStarts[j];
-					h2 = choiceStarts[j + 1];
-					for (k = l2; k < h2; k++) {
-						if (k > l2)
-							out.write("+");
-						// Note use of PrismUtils.formatDouble to match PRISM-exported files
-						out.write(PrismUtils.formatDouble(nonZeros[k]) + ":(x'=" + cols[k] + ")");
-					}
-					out.write(";\n");
-				}
-			}
-			out.write("endmodule\n");
-			out.close();
-		} catch (IOException e) {
-			throw new PrismException("Could not export " + getModelType() + " to file \"" + filename + "\"" + e);
-		}
-	}
-
-	@Override
-	public String infoString()
-	{
-		String s = "";
-		s += numStates + " states (" + getNumInitialStates() + " initial)";
-		s += ", " + numTransitions + " transitions";
-		s += ", " + numDistrs + " choices";
-		s += ", dist max/avg = " + maxNumDistrs + "/" + PrismUtils.formatDouble2dp(((double) numDistrs) / numStates);
-		return s;
-	}
-
-	@Override
-	public String infoStringTable()
-	{
-		String s = "";
-		s += "States:      " + numStates + " (" + getNumInitialStates() + " initial)\n";
-		s += "Transitions: " + numTransitions + "\n";
-		s += "Choices:     " + numDistrs + "\n";
-		s += "Max/avg:     " + maxNumDistrs + "/" + PrismUtils.formatDouble2dp(((double) numDistrs) / numStates) + "\n";
-		return s;
-	}
-
 	// Accessors (for MDP)
+
+	@Override
+	public int getNumChoices()
+	{
+		return numDistrs;
+	}
+
+	@Override
+	public int getMaxNumChoices()
+	{
+		return maxNumDistrs;
+	}
 
 	@Override
 	public Object getAction(int s, int i)
@@ -739,23 +624,6 @@ public class MDPSparse extends ModelExplicit implements MDP
 	}
 
 	@Override
-	public void mvMultMinMax(double vect[], boolean min, double result[], BitSet subset, boolean complement, int adv[])
-	{
-		int s;
-		// Loop depends on subset/complement arguments
-		if (subset == null) {
-			for (s = 0; s < numStates; s++)
-				result[s] = mvMultMinMaxSingle(s, vect, min, adv);
-		} else if (complement) {
-			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1))
-				result[s] = mvMultMinMaxSingle(s, vect, min, adv);
-		} else {
-			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1))
-				result[s] = mvMultMinMaxSingle(s, vect, min, adv);
-		}
-	}
-
-	@Override
 	public double mvMultMinMaxSingle(int s, double vect[], boolean min, int adv[])
 	{
 		int j, k, l1, h1, l2, h2, advCh = -1;
@@ -844,46 +712,6 @@ public class MDPSparse extends ModelExplicit implements MDP
 	}
 
 	@Override
-	public double mvMultGSMinMax(double vect[], boolean min, BitSet subset, boolean complement, boolean absolute)
-	{
-		int s;
-		double d, diff, maxDiff = 0.0;
-		// Loop depends on subset/complement arguments
-		if (subset == null) {
-			for (s = 0; s < numStates; s++) {
-				d = mvMultJacMinMaxSingle(s, vect, min);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
-		} else if (complement) {
-			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1)) {
-				d = mvMultJacMinMaxSingle(s, vect, min);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
-		} else {
-			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1)) {
-				d = mvMultJacMinMaxSingle(s, vect, min);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
-			// Use this code instead for backwards Gauss-Seidel
-			/*for (s = numStates - 1; s >= 0; s--) {
-				if (subset.get(s)) {
-					d = mvMultJacMinMaxSingle(s, vect, min);
-					diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-					maxDiff = diff > maxDiff ? diff : maxDiff;
-					vect[s] = d;
-				}
-			}*/
-		}
-		return maxDiff;
-	}
-
-	@Override
 	public double mvMultJacMinMaxSingle(int s, double vect[], boolean min)
 	{
 		int j, k, l1, h1, l2, h2;
@@ -941,23 +769,6 @@ public class MDPSparse extends ModelExplicit implements MDP
 			d /= diag;
 
 		return d;
-	}
-
-	@Override
-	public void mvMultRewMinMax(double vect[], MDPRewards mdpRewards, boolean min, double result[], BitSet subset, boolean complement, int adv[])
-	{
-		int s;
-		// Loop depends on subset/complement arguments
-		if (subset == null) {
-			for (s = 0; s < numStates; s++)
-				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv);
-		} else if (complement) {
-			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1))
-				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv);
-		} else {
-			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1))
-				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv);
-		}
 	}
 
 	@Override
@@ -1044,6 +855,7 @@ public class MDPSparse extends ModelExplicit implements MDP
 			}
 		}
 	}
+	
 	// Standard methods
 
 	@Override

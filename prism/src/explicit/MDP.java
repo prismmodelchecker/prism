@@ -37,6 +37,16 @@ import explicit.rewards.*;
 public interface MDP extends Model
 {
 	/**
+	 * Get the total number of choices (distributions) over all states.
+	 */
+	public int getNumChoices();
+	
+	/**
+	 * Get the maximum number of choices (distributions) in any state.
+	 */
+	public int getMaxNumChoices();
+	
+	/**
 	 * Get the action label (if any) for choice {@code i} of state {@code s}.
 	 */
 	public Object getAction(int s, int i);

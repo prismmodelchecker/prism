@@ -31,7 +31,6 @@ import java.util.Map.Entry;
 import java.io.*;
 
 import explicit.rewards.*;
-import prism.ModelType;
 import prism.PrismException;
 
 /**
@@ -205,13 +204,7 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 		}
 	}
 
-	// Accessors (for ModelSimple)
-
-	@Override
-	public ModelType getModelType()
-	{
-		return ModelType.DTMC;
-	}
+	// Accessors (for Model)
 
 	@Override
 	public int getNumTransitions()
