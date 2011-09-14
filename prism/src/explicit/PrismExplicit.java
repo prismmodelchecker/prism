@@ -29,6 +29,7 @@ package explicit;
 import java.io.*;
 
 import parser.ast.*;
+import parser.type.TypeBool;
 import prism.*;
 import simulator.SimulatorEngine;
 import explicit.Model;
@@ -132,6 +133,63 @@ public class PrismExplicit
 		}
 	}
 
+	public void exportStatesToFile(ModulesFile mf, Model model, int exportType, File file) throws FileNotFoundException
+	{
+		int i;
+		PrismLog tmpLog;
+		
+		// no specific states format for MRMC
+		if (exportType == Prism.EXPORT_MRMC) exportType = Prism.EXPORT_PLAIN;
+		// rows format does not apply to states output
+		if (exportType == Prism.EXPORT_ROWS) exportType = Prism.EXPORT_PLAIN;
+		
+		// print message
+		mainLog.print("\nExporting list of reachable states ");
+		switch (exportType) {
+		case Prism.EXPORT_PLAIN: mainLog.print("in plain text format "); break;
+		case Prism.EXPORT_MATLAB: mainLog.print("in Matlab format "); break;
+		}
+		if (file != null) mainLog.println("to file \"" + file + "\"..."); else mainLog.println("below:");
+		
+		// create new file log or use main log
+		if (file != null) {
+			tmpLog = new PrismFileLog(file.getPath());
+			if (!tmpLog.ready()) {
+				throw new FileNotFoundException();
+			}
+		} else {
+			tmpLog = mainLog;
+		}
+		
+		// print header: list of model vars
+		if (exportType == Prism.EXPORT_MATLAB) tmpLog.print("% ");
+		tmpLog.print("(");
+		for (i = 0; i < mf.getNumVars(); i++) {
+			tmpLog.print(mf.getVarName(i));
+			if (i < mf.getNumVars()-1) tmpLog.print(",");
+		}
+		tmpLog.println(")");
+		if (exportType == Prism.EXPORT_MATLAB) tmpLog.println("states=[");
+		
+		// print states
+		StateValues statesList = null;
+		try {
+			statesList = new StateValues(TypeBool.getInstance(), new Boolean(true), model);
+		} catch (PrismLangException e) {
+			// Can't go wrong - type always 
+		}
+		if (exportType != Prism.EXPORT_MATLAB)
+			statesList.print(tmpLog);
+		else
+			statesList.print(tmpLog, true, true, true, true);
+		
+		// print footer
+		if (exportType == Prism.EXPORT_MATLAB) tmpLog.println("];");
+		
+		// tidy up
+		if (file != null) tmpLog.close();
+	}
+	
 	/**
 	 * Perform model checking of a property on a model and return result.
 	 * @param model The model

@@ -881,7 +881,11 @@ public class PrismCL
 		if (exportstates) {
 			try {
 				File f = (exportStatesFilename.equals("stdout")) ? null : new File(exportStatesFilename);
-				prism.exportStatesToFile(model, exportType, f);
+				if (explicit) {
+					prismExpl.exportStatesToFile(modulesFile, modelExpl, exportType, f);
+				} else {
+					prism.exportStatesToFile(model, exportType, f);
+				}
 			}
 			// in case of error, report it and proceed
 			catch (FileNotFoundException e) {
