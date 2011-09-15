@@ -134,14 +134,16 @@ public class StateValuesMTBDD implements StateValues
 		values = JDD.ITE(dd, JDD.Constant(d), values);
 	}
 	
-	// read from file
-	
+	/**
+	 * Set the elements of this vector by reading them in from a file.
+	 */
 	public void readFromFile(File file) throws PrismException
 	{
 		BufferedReader in;
 		String s;
 		int lineNum = 0, count = 0;
 		double d;
+		long size = model.getNumStates();
 		
 		try {
 			// open file for reading
@@ -151,8 +153,8 @@ public class StateValuesMTBDD implements StateValues
 			while (s != null) {
 				s = s.trim();
 				if (!("".equals(s))) {
-					if (count + 1> model.getNumStates())
-						throw new PrismException("Too many values in initial distribution (" + (count + 1) + ", not " + model.getNumStates() + ")");
+					if (count + 1 > size)
+						throw new PrismException("Too many values in file \"" + file + "\" (more than " + size + ")");
 					d = Double.parseDouble(s);
 					setElement(count, d);
 					count++;
@@ -162,8 +164,8 @@ public class StateValuesMTBDD implements StateValues
 			// close file
 			in.close();
 			// check size
-			if (count < model.getNumStates())
-				throw new PrismException("Too few values in initial distribution (" + count + ", not " + model.getNumStates() + ")");
+			if (count < size)
+				throw new PrismException("Too few values in file \"" + file + "\" (" + count + ", not " + size + ")");
 		}
 		catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + file + "\"");

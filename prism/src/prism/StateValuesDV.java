@@ -121,14 +121,16 @@ public class StateValuesDV implements StateValues
 		values.setElement(i, d);
 	}
 	
-	// read from file
-	
+	/**
+	 * Set the elements of this vector by reading them in from a file.
+	 */
 	public void readFromFile(File file) throws PrismException
 	{
 		BufferedReader in;
 		String s;
 		int lineNum = 0, count = 0;
 		double d;
+		int size = values.getSize();
 		
 		try {
 			// open file for reading
@@ -138,9 +140,8 @@ public class StateValuesDV implements StateValues
 			while (s != null) {
 				s = s.trim();
 				if (!("".equals(s))) {
-					if (count + 1 > values.getSize())
-						// TODO: move these error messages elsewhere?
-						throw new PrismException("Too many values in initial distribution (" + (count + 1) + ", not " + values.getSize() + ")");
+					if (count + 1 > size)
+						throw new PrismException("Too many values in file \"" + file + "\" (more than " + size + ")");
 					d = Double.parseDouble(s);
 					setElement(count, d);
 					count++;
@@ -150,8 +151,8 @@ public class StateValuesDV implements StateValues
 			// close file
 			in.close();
 			// check size
-			if (count < values.getSize())
-				throw new PrismException("Too few values in initial distribution (" + count + ", not " + values.getSize() + ")");
+			if (count < size)
+				throw new PrismException("Too few values in file \"" + file + "\" (" + count + ", not " + size + ")");
 		}
 		catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + file + "\"");
