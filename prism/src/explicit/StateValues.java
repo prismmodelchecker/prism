@@ -26,6 +26,10 @@
 
 package explicit;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.BitSet;
 import java.util.List;
 
@@ -292,6 +296,55 @@ public class StateValues
 		valuesB.and(sv.valuesB);
 	}
 
+	/**
+	 * Set the elements of this vector by reading them in from a file.
+	 */
+	public void readFromFile(File file) throws PrismException
+	{
+		BufferedReader in;
+		String s;
+		int lineNum = 0, count = 0;
+		
+		try {
+			// open file for reading
+			in = new BufferedReader(new FileReader(file));
+			// read remaining lines
+			s = in.readLine(); lineNum++;
+			while (s != null) {
+				s = s.trim();
+				if (!("".equals(s))) {
+					if (count + 1 > size)
+						throw new PrismException("Too many values in file \"" + file + "\" (more than " + size + ")");
+					if (type instanceof TypeInt) {
+						int i = Integer.parseInt(s);
+						setIntValue(count, i);
+					}
+					else if (type instanceof TypeDouble) {
+						double d = Double.parseDouble(s);
+						setDoubleValue(count, d);
+					}
+					else if (type instanceof TypeBool) {
+						boolean b = Boolean.parseBoolean(s);
+						setBooleanValue(count, b);
+					}
+					count++;
+				}
+				s = in.readLine(); lineNum++;
+			}
+			// close file
+			in.close();
+			// check size
+			if (count < size)
+				throw new PrismException("Too few values in file \"" + file + "\" (" + count + ", not " + size + ")");
+		}
+		catch (IOException e) {
+			throw new PrismException("File I/O error reading from \"" + file + "\"");
+		}
+		catch (NumberFormatException e) {
+			throw new PrismException("Error detected at line " + lineNum + " of file \"" + file + "\"");
+		}
+	}
+	
 	// ...
 
 	/**
@@ -337,6 +390,22 @@ public class StateValues
 		} else {
 			return false;
 		}
+	}
+
+	/**
+	 * For integer-valued vectors, get the int array storing the data.
+	 */
+	public int[] getIntArray()
+	{
+		return valuesI;
+	}
+
+	/**
+	 * For double-valued vectors, get the double array storing the data.
+	 */
+	public double[] getDoubleArray()
+	{
+		return valuesD;
 	}
 
 	/**
