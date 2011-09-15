@@ -26,9 +26,8 @@
 
 package explicit;
 
+import java.io.File;
 import java.util.*;
-
-import jdd.JDD;
 
 import explicit.rewards.MCRewards;
 import explicit.rewards.StateRewardsArray;
@@ -152,6 +151,38 @@ public class CTMCModelChecker extends DTMCModelChecker
 
 	/**
 	 * Compute transient probability distribution (forwards).
+	 * Start from initial state (or uniform distribution over multiple initial states).
+	 */
+	public StateValues doTransient(CTMC ctmc, double time) throws PrismException
+	{
+		return doTransient(ctmc, time, (StateValues) null);
+	}
+	
+	/**
+	 * Compute transient probability distribution (forwards).
+	 * Optionally, use the passed in file initDistFile to give the initial probability distribution (time 0).
+	 * If null, start from initial state (or uniform distribution over multiple initial states).
+	 * @param ctmc The CTMC
+	 * @param t Time point
+	 * @param initDistFile File containing initial distribution
+	 */
+	public StateValues doTransient(CTMC ctmc, double t, File initDistFile) throws PrismException
+	{
+		StateValues initDist = null;
+
+		if (initDistFile != null) {
+			mainLog.println("\nImporting initial probability distribution from file \"" + initDistFile + "\"...");
+			// Build an empty vector 
+			initDist = new StateValues(TypeDouble.getInstance(), ctmc);
+			// Populate vector from file
+			initDist.readFromFile(initDistFile);
+		}
+		
+		return doTransient(ctmc, t, initDist);
+	}
+	
+	/**
+	 * Compute transient probability distribution (forwards).
 	 * Optionally, use the passed in vector initDist as the initial probability distribution (time 0).
 	 * If null, start from initial state (or uniform distribution over multiple initial states).
 	 * For reasons of efficiency, when a vector is passed in, it will be trampled over,
@@ -160,29 +191,24 @@ public class CTMCModelChecker extends DTMCModelChecker
 	 * @param t Time point
 	 * @param initDist Initial distribution (will be overwritten)
 	 */
-	public StateValues doTransient(CTMC ctmc, double t, double initDist[]) throws PrismException
+	public StateValues doTransient(CTMC ctmc, double t, StateValues initDist) throws PrismException
 	{
 		ModelCheckerResult res = null;
-		int n;
-		double initDistNew[] = null;
-		StateValues probs = null;
-
-		// Store num states
-		n = ctmc.getNumStates();
+		StateValues initDistNew = null, probs = null;
 
 		// Build initial distribution (if not specified)
 		if (initDist == null) {
-			initDistNew = new double[n];
+			initDistNew = new StateValues(TypeDouble.getInstance(), new Double(0.0), ctmc);
+			double initVal = 1.0 / ctmc.getNumInitialStates();
 			for (int in : ctmc.getInitialStates()) {
-				initDistNew[in] = 1 / ctmc.getNumInitialStates();
+				initDistNew.setDoubleValue(in, initVal);
 			}
 		} else {
 			initDistNew = initDist;
-			throw new PrismException("Not implemented yet"); // TODO
 		}
 
 		// Compute transient probabilities
-		res = computeTransientProbs(ctmc, t, initDistNew);
+		res = computeTransientProbs(ctmc, t, initDistNew.getDoubleArray());
 		probs = StateValues.createFromDoubleArray(res.soln, ctmc);
 
 		return probs;

@@ -344,7 +344,7 @@ public class PrismExplicit
 			CTMCModelChecker mcCTMC = new CTMCModelChecker();
 			mcCTMC.setLog(mainLog);
 			mcCTMC.setSettings(settings);
-			probs = mcCTMC.doTransient((CTMC) model, time, null);
+			probs = mcCTMC.doTransient((CTMC) model, time, fileIn);
 		}
 		else {
 			throw new PrismException("Transient probabilities only computed for DTMCs/CTMCs");
@@ -371,7 +371,7 @@ public class PrismExplicit
 		}
 		
 		// print out or export probabilities
-		probs.print(tmpLog, fileOut == null, exportType == Prism.EXPORT_MATLAB, fileOut == null, true);
+		probs.print(tmpLog, fileOut == null, exportType == Prism.EXPORT_MATLAB, fileOut == null, fileOut == null);
 		
 		// print out computation time
 		mainLog.println("\nTime for transient probability computation: " + l/1000.0 + " seconds.");
