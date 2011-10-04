@@ -53,6 +53,17 @@ public abstract class Sampler
 	}
 
 	/**
+	 * Does this sampler only require a bounded number of path steps?
+	 * i.e. is it safe to keep sampling beyond the maximum path length
+	 * even if this sampler does not know its value yet?
+	 * Conservatively, we assume "no"; override if required. 
+	 */
+	public boolean needsBoundedNumSteps()
+	{
+		return false;
+	}
+
+	/**
 	 * Reset the current value of the sampler and whether it is known or not.
 	 */
 	public abstract void reset();

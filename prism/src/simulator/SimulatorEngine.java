@@ -29,6 +29,8 @@ package simulator;
 import java.util.*;
 import java.io.*;
 
+import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MaximizeAction;
+
 import simulator.method.*;
 import simulator.sampler.*;
 import parser.*;
@@ -1481,6 +1483,7 @@ public class SimulatorEngine
 		boolean deadlocksFound = false;
 		boolean allDone = false;
 		boolean allKnown = false;
+		boolean someUnknownButBounded = false;
 		boolean shouldStopSampling = false;
 		// Path stats
 		double avgPathLength = 0;
@@ -1526,18 +1529,28 @@ public class SimulatorEngine
 			// Start the new path for this iteration (sample)
 			initialisePath(initialState);
 
-			// Generate a path, up to at most maxPathLength steps
-			for (i = 0; i < maxPathLength; i++) {
-				// See if all samplers have established a value; if so, stop.
+			// Generate a path
+			allKnown = false;
+			someUnknownButBounded = false;
+			i = 0;
+			while ((!allKnown && i < maxPathLength) || someUnknownButBounded) {
+				// Check status of samplers
 				allKnown = true;
+				someUnknownButBounded = false;
 				for (Sampler sampler : propertySamplers) {
-					if (!sampler.isCurrentValueKnown())
+					if (!sampler.isCurrentValueKnown()) {
 						allKnown = false;
+						if (sampler.needsBoundedNumSteps())
+							someUnknownButBounded = true;
+					}
 				}
-				if (allKnown)
+				// Stop when all answers are known or we have reached max path length
+				// (but don't stop yet if there are "bounded" samplers with unkown values)
+				if ((allKnown || i >= maxPathLength) && !someUnknownButBounded)
 					break;
 				// Make a random transition
 				automaticTransition();
+				i++;
 			}
 
 			// TODO: Detect deadlocks so we can report a warning

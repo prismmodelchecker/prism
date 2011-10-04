@@ -69,4 +69,11 @@ public class SamplerRewardCumulDisc extends SamplerDouble
 		
 		return valueKnown;
 	}
+	
+	@Override
+	public boolean needsBoundedNumSteps()
+	{
+		// Always bounded
+		return true;
+	}
 }

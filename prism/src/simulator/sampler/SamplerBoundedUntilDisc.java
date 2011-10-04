@@ -97,4 +97,11 @@ public class SamplerBoundedUntilDisc extends SamplerBoolean
 		
 		return valueKnown;
 	}
+	
+	@Override
+	public boolean needsBoundedNumSteps()
+	{
+		// Always bounded
+		return true;
+	}
 }

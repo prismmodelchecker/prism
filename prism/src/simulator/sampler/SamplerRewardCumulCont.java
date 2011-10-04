@@ -81,4 +81,11 @@ public class SamplerRewardCumulCont extends SamplerDouble
 		
 		return valueKnown;
 	}
+	
+	@Override
+	public boolean needsBoundedNumSteps()
+	{
+		// Always bounded (although we don't know the exact num steps, just the time bound)
+		return true;
+	}
 }
