@@ -74,6 +74,12 @@ public class SamplerRewardInstCont extends SamplerDouble
 				value = path.getCurrentStateReward(rewardStructIndex);
 			}
 		}
+		// Or, if we are now at a deadlock
+		else if (transList != null && transList.isDeadlock()) {
+			valueKnown = true;
+			value = path.getCurrentStateReward(rewardStructIndex);
+		}
+		// Otherwise, don't know
 		
 		return valueKnown;
 	}
