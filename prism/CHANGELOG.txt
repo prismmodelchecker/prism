@@ -3,13 +3,7 @@ including development and beta versions. For a less detailed overview
 of the main changes in each public release, see the file VERSIONS.txt.
 
 Latest changes (mostly reverse chronological):
-[correct wrt svn rev 3510]
-
-* Fixed anti-aliasing in GUI model editor
-* Better handling of undefined constants in properties
-* Added -exportprodtrans and -exportprodstates switches
-* More improvements to explicit engine
-* Bug fixes
+[correct wrt svn rev 3876]
 
 Ongoing changes:
 
@@ -17,7 +11,19 @@ Ongoing changes:
 * CTL AG/EF
 
 -----------------------------------------------------------------------------
-Version 4.0.1 (released ...)
+Version 4.0.2 (released ?)
+-----------------------------------------------------------------------------
+
+* Better handling of undefined constants in properties
+* Added -exportprodtrans and -exportprodstates switches
+* More improvements to explicit engine
+* Simulator fix: ignores "max path length" for time-bounded properties
+* Fixed to compile on Java 7
+* Fixed anti-aliasing in GUI model editor
+* Various bug fixes
+
+-----------------------------------------------------------------------------
+Version 4.0.1 (released 27/7/2011)
 -----------------------------------------------------------------------------
 
 * Added if-and-only-if operator (<=>) for use in models/properties
