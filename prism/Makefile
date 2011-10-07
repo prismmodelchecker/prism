@@ -145,6 +145,7 @@ ifeq ($(OSTYPE),linux)
 		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+		BINDISTSUFFIX = linux64
 	else
 	ifeq ($(ARCH),ia64)
 		# Position Independent Code required on AMD64/Itanium
@@ -153,11 +154,13 @@ ifeq ($(OSTYPE),linux)
 		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+		BINDISTSUFFIX = linux64
 	else
 		CUDD_XCFLAGS = -m32 -mtune=native -malign-double -DHAVE_IEEE_754 -DBSD $(DEBUG)
 		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+		BINDISTSUFFIX = linux32
 	endif
 	endif
 	JFLAGS =
@@ -166,7 +169,6 @@ ifeq ($(OSTYPE),linux)
 	EXE =
 	LIBPREFIX = lib
 	LIBSUFFIX = .so
-	BINDISTSUFFIX = linux
 	OSTYPE_INCLUDE = include
 	CLASSPATHSEP = :
 endif
@@ -176,12 +178,12 @@ ifeq ($(OSTYPE),solaris)
 	CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 	CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 	LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+	BINDISTSUFFIX = solaris
 	JFLAGS =
 	SHARED = -shared -mimpure-text
 	EXE =
 	LIBPREFIX = lib
 	LIBSUFFIX = .so
-	BINDISTSUFFIX = solaris
 	OSTYPE_INCLUDE = include
 	CLASSPATHSEP = :
 endif
@@ -191,6 +193,7 @@ ifeq ($(OSTYPE),cygwin)
 	CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 	CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 	LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,--add-stdcall-alias
+	BINDISTSUFFIX = win
 	JFLAGS = -encoding UTF8
 	JAVACC = javacc.bat
 	SHARED = -shared
@@ -198,7 +201,6 @@ ifeq ($(OSTYPE),cygwin)
 	EXE = .exe
 	LIBPREFIX =
 	LIBSUFFIX = .dll
-	BINDISTSUFFIX = win
 	OSTYPE_INCLUDE = include
 	CLASSPATHSEP = ;
 	# Also override default compilers
@@ -213,18 +215,19 @@ ifeq ($(OSTYPE),darwin)
 		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,-search_paths_first
+		BINDISTSUFFIX = osx64
 	else
 		CUDD_XCFLAGS = -arch i386 -DHAVE_IEEE_754 -DBSD -fno-common $(DEBUG)
 		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,-search_paths_first
+		BINDISTSUFFIX = osx32
 	endif
 	JFLAGS =
 	SHARED = -dynamiclib
 	EXE =
 	LIBPREFIX = lib
 	LIBSUFFIX = .dylib
-	BINDISTSUFFIX = osx
 	OSTYPE_INCLUDE = Headers
 	CLASSPATHSEP = :
 endif
