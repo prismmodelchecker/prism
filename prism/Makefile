@@ -382,7 +382,7 @@ VERSION=# default value for VERSION is blank to force provision at command-line
 
 dist_src: dist_check_version dist_copy clean_all dist_tidy
 
-dist_bin: dist_check_version binary dist_tidy dist_bin_copy
+dist_bin: dist_check_version all binary dist_tidy dist_bin_copy
 
 dist_check_version:
 	@if [ "$(VERSION)" = "" ]; then echo "Usage: make dist_src/dist_bin VERSION=3.1"; exit 1; fi
