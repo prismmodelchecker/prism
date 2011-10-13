@@ -366,7 +366,7 @@ public class PropertiesFile extends ASTElement
 	
 	/**
 	 * Get a list of undefined (properties file) constants appearing in labels of the properties file
-	 * (undefined constants are those of form "const int x;" rather than "const int x = 1;") 
+	 * (undefined constants are those of form "const int x;" rather than "const int x = 1;")
 	 */
 	public Vector<String> getUndefinedConstantsUsedInLabels()
 	{

@@ -33,7 +33,9 @@ import prism.PrismLangException;
 
 /**
  * Get all undefined constants used (i.e. in ExpressionConstant objects) recursively and return as a list.
- * Recursive decent means that we find e.g. constants that are used within other constants, labels.
+ * Recursive descent means that we find e.g. constants that are used within other constants, labels.
+ * But note that we only look at/for constants in the passed in ConstantList.
+ * Any others discovered are ignored (and not descended into).
  */
 public class GetAllUndefinedConstantsRecursively extends ASTTraverse
 {
@@ -52,8 +54,9 @@ public class GetAllUndefinedConstantsRecursively extends ASTTraverse
 	{
 		// Look up this constant in the constant list
 		int i = constantList.getConstantIndex(e.getName());
+		// Ignore constants not in the list 
 		if (i == -1)
-			throw new PrismLangException("Unknown constant \"" + e.getName() + "\"");
+			return;
 		Expression expr = constantList.getConstant(i);
 		// If constant is undefined, add to the list
 		if (expr == null) {

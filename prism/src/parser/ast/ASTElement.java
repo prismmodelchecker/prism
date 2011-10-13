@@ -271,7 +271,9 @@ public abstract class ASTElement
 
 	/**
 	 * Get all undefined constants used (i.e. in ExpressionConstant objects) recursively and return as a list.
-	 * Recursive decent means that we find e.g. constants that are used within other constants, labels.
+	 * Recursive descent means that we find e.g. constants that are used within other constants, labels.
+	 * But note that we only look at/for constants in the passed in ConstantList.
+	 * Any others discovered are ignored (and not descended into).
 	 */
 	public Vector<String> getAllUndefinedConstantsRecursively(ConstantList constantList, LabelList labelList)
 	{
