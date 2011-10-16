@@ -34,7 +34,6 @@ import parser.Values;
 import parser.ast.*;
 import parser.ast.ExpressionFilter.FilterOperator;
 import parser.type.*;
-import prism.Prism;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismPrintStreamLog;
@@ -248,8 +247,7 @@ public class StateModelChecker
 		StateValues res = null;
 
 		// Binary ops
-		// (just "and" for now - more to come later)
-		if (expr instanceof ExpressionBinaryOp && Expression.isAnd(expr)) {
+		if (expr instanceof ExpressionBinaryOp) {
 			res = checkExpressionBinaryOp(model, (ExpressionBinaryOp) expr);
 		}
 		// Literals
@@ -304,11 +302,25 @@ public class StateModelChecker
 	 */
 	protected StateValues checkExpressionBinaryOp(Model model, ExpressionBinaryOp expr) throws PrismException
 	{
-		// (just "and" for now - more to come later)
-		StateValues res1 = checkExpression(model, expr.getOperand1());
-		StateValues res2 = checkExpression(model, expr.getOperand2());
-		res1.and(res2);
+		StateValues res1 = null, res2 = null;
+		int op = expr.getOperator();
+		
+		// Check operands recursively
+		try {
+			res1 = checkExpression(model, expr.getOperand1());
+			res2 = checkExpression(model, expr.getOperand2());
+		} catch (PrismException e) {
+			if (res1 != null)
+				res1.clear();
+			throw e;
+		}
+		res1 = checkExpression(model, expr.getOperand1());
+		res2 = checkExpression(model, expr.getOperand2());
+		
+		// Apply operation
+		res1.applyBinaryOp(op, res2);
 		res2.clear();
+		
 		return res1;
 	}
 
