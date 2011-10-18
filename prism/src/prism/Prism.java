@@ -780,6 +780,8 @@ public class Prism implements PrismSettingsListener
 	 */
 	public void initialise() throws PrismException
 	{
+		boolean verbose = this.getSettings().getBoolean("PRISM_VERBOSE");
+		mainLog.setVerbosityLevel(verbose ? PrismLog.VL_ALL : PrismLog.VL_DEFAULT);
 		mainLog.print("PRISM\n=====\n");
 		mainLog.print("\nVersion: " + getVersion() + "\n");
 		mainLog.print("Date: " + new java.util.Date() + "\n");

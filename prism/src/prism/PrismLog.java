@@ -27,7 +27,42 @@
 package prism;
 
 public abstract class PrismLog
-{
+{	
+	/**
+	 * Specifies that only more important messages should be printed
+	 */
+	public static final int VL_DEFAULT = 0;
+	/**
+	 * Specifies that the output should be more verbose
+	 */
+	public static final int VL_HIGH = 1;
+	/**
+	 * Specifies that all messages should be printed
+	 */
+	public static final int VL_ALL = 2;
+	
+	protected int verbosityLevel = VL_DEFAULT;
+
+	/**
+	 * Returns the verbosity level of this log. The verbosity level
+	 * determines what messages will be printed.
+	 * @return
+	 */
+	public int getVerbosityLevel()
+	{
+		return verbosityLevel;
+	}
+	
+	/**
+	 * Changes the verbosity level of this log. The verbosity level
+	 * determines what messages will be printed.
+	 * @param verbosityLevel Should be one of {@link #VL_DEFAULT}, {@link #VL_HIGH} and {@link #VL_ALL}.
+	 */
+	public void setVerbosityLevel(int verbosityLevel)
+	{
+		this.verbosityLevel = verbosityLevel;
+	}
+	
 	public abstract boolean ready();
 	public abstract long getFilePointer();
 	public abstract void flush();
@@ -42,6 +77,87 @@ public abstract class PrismLog
 	public abstract void print(Object obj);
 	public abstract void print(String s);
 	public abstract void println();
+	
+	/**
+	 * Prints out the value of {@code b} if the log's verbosity level is at least {@code level}
+	 */
+	public void print(boolean b, int level)
+	{
+		if (level >= this.verbosityLevel)
+			print(b);
+	}
+	
+	/**
+	 * Prints out the value of {@code c} if the log's verbosity level is at least {@code level}
+	 */
+	public void print(char c, int level)
+	{
+		if (level >= this.verbosityLevel)
+			print(c);
+	}
+	
+	/**
+	 * Prints out the value of {@code d} if the log's verbosity level is at least {@code level}
+	 */
+	public void print(double d, int level)
+	{
+		if (level >= this.verbosityLevel)
+			print(d);
+	}
+	
+	/**
+	 * Prints out the value of {@code f} if the log's verbosity level is at least {@code level}
+	 */
+	public void print(float f, int level)
+	{
+		if (level >= this.verbosityLevel)
+			print(f);
+	}
+	
+	/**
+	 * Prints out the value of {@code i} if the log's verbosity level is at least {@code level}
+	 */
+	public void print(int i, int level)
+	{
+		if (level >= this.verbosityLevel)
+			print(i);	
+	}
+	
+	/**
+	 * Prints out the value of {@code l} if the log's verbosity level is at least {@code level}
+	 */
+	public void print(long l, int level)
+	{
+		if (level >= this.verbosityLevel)
+			print(l);
+	}
+	
+	/**
+	 * Prints out the value of {@code obj} if the log's verbosity level is at least {@code level}
+	 */
+	public void print(Object obj, int level)
+	{
+		if (level >= this.verbosityLevel)
+			print(obj);
+	}
+	
+	/**
+	 * Prints out {@code s} if the log's verbosity level is at least {@code level}
+	 */
+	public void print(String s, int level)
+	{
+		if (level >= this.verbosityLevel)
+			print(s);
+	}
+	
+	/**
+	 * Prints out the content  of {@code arr} if the log's verbosity level is at least {@code level}
+	 */
+	public void print(double[] arr, int level)
+	{
+		if (level >= this.verbosityLevel)
+			print(arr);
+	}
 	
 	public void print(double arr[])
 	{
@@ -123,6 +239,96 @@ public abstract class PrismLog
 	{
 		print(arr);
 		println();
+	}
+	
+	/**
+	 * Prints out the value of {@code b} followed by a newline character, provided that the log's verbosity level is at least {@code level}
+	 */
+	public void println(boolean b, int level)
+	{
+		if (level >= this.verbosityLevel)
+			println(b);
+	}
+
+	/**
+	 * Prints out the value of {@code c} followed by a newline character, provided that the log's verbosity level is at least {@code level}
+	 */
+	public void println(char c, int level)
+	{
+		if (level >= this.verbosityLevel)
+			println(c);
+	}
+
+	/**
+	 * Prints out the value of {@code d} followed by a newline character, provided that the log's verbosity level is at least {@code level}
+	 */
+	public void println(double d, int level)
+	{
+		if (level >= this.verbosityLevel)
+			println(d);
+	}
+
+	/**
+	 * Prints out the value of {@code f} followed by a newline character, provided that the log's verbosity level is at least {@code level}
+	 */
+	public void println(float f, int level)
+	{
+		if (level >= this.verbosityLevel)
+			println(f);
+	}
+
+	/**
+	 * Prints out the value of {@code i} followed by a newline character, provided that the log's verbosity level is at least {@code level}
+	 */
+	public void println(int i, int level)
+	{
+		if (level >= this.verbosityLevel)
+			println(i);
+	}
+
+	/**
+	 * Prints out the value of {@code l} followed by a newline character, provided that the log's verbosity level is at least {@code level}
+	 */
+	public void println(long l, int level)
+	{
+		if (level >= this.verbosityLevel)
+			println(l);
+	}
+
+	/**
+	 * Prints out the value of {@code o} followed by a newline character, provided that the log's verbosity level is at least {@code level}
+	 */
+	public void println(Object o, int level)
+	{
+		if (level >= this.verbosityLevel)
+			println(o);
+	}
+
+	/**
+	 * Prints out {@code s} followed by a newline character, provided that the log's verbosity level is at least {@code level}
+	 */
+	public void println(String s, int level)
+	{
+		if (level >= this.verbosityLevel)
+			println(s);
+	}
+
+	/**
+	 * Prints out the content of {@code arr} followed by a newline character, provided that the log's verbosity level is at least {@code level}
+	 */
+	public void println(double arr[], int level)
+	{
+		if (level >= this.verbosityLevel)
+			println(arr);
+	}
+
+	/**
+	 * Prints out the content of {@code arr} followed by a newline character, provided that the log's verbosity level is at least {@code level}
+	 */
+	public void println(int arr[], int level)
+	{
+		if (level >= this.verbosityLevel)
+			println(arr);
 	}
 }
 
