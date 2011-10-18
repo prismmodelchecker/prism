@@ -147,7 +147,7 @@ public class ConstructRewards
 							numChoices = mdp.getNumChoices(j);
 							for (k = 0; k < numChoices; k++) {
 								mdpAction = mdp.getAction(j, k);
-								if (mdpAction == null ? (action == null) : mdpAction.equals(action)) {
+								if (mdpAction == null ? (action.isEmpty()) : mdpAction.equals(action)) {
 									rewSimple.setTransitionReward(j, k, rewStr.getReward(i).evaluateDouble(constantValues, statesList.get(j)));
 								}
 							}
