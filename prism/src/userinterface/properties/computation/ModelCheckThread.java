@@ -184,6 +184,8 @@ public class ModelCheckThread extends GUIComputationThread
 			gp.setResult(result);
 			gp.setMethodString("Verification");
 			gp.setConstants(definedMFConstants, definedPFConstants);
+			gp.setNumberOfWarnings(prism.getMainLog().getNumberOfWarnings());
+			prism.getMainLog().resetNumberOfWarnings();
 
 			parent.repaintList();
 		}

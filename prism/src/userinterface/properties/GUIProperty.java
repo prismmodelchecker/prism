@@ -86,6 +86,7 @@ public class GUIProperty
 	private String comment; // The property's comment
 
 	private Result result; // Result of model checking etc. (if done, null if not)
+	private int numberOfWarnings; // Result of model checking etc. (if done, null if not)
 	private String parseError; // Parse error (if property is invalid)
 
 	private String method; // Method used (verification, simulation)
@@ -193,6 +194,12 @@ public class GUIProperty
 	{
 		return result;
 	}
+	
+	public int getNumberOfWarnings()
+	{
+		return this.numberOfWarnings;
+	}
+
 
 	public String getResultString()
 	{
@@ -278,6 +285,11 @@ public class GUIProperty
 			setStatus(STATUS_NOT_DONE);
 			result = null;
 		}
+	}
+	
+	public void setNumberOfWarnings(int n)
+	{
+		this.numberOfWarnings = n;
 	}
 
 	public void setMethodString(String method)

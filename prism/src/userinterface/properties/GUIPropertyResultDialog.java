@@ -52,7 +52,14 @@ public class GUIPropertyResultDialog extends javax.swing.JDialog
 		constantsLabel.setText(gp.getConstantsString());
 		methodLabel.setText(gp.getMethodString());
 		resultLabel.setText(gp.getResultString());
-		
+		if (gp.getNumberOfWarnings() == 0) {
+			warningLabel.setText("");
+		} else if (gp.getNumberOfWarnings() == 1) {
+			warningLabel.setText(gp.getNumberOfWarnings() + " warning (see log)");
+		} else {
+			warningLabel.setText(gp.getNumberOfWarnings() + " warnings (see log)");
+		}
+			
 		this.gp = gp;
 		this.gmp = gmp;
 		
@@ -96,6 +103,9 @@ public class GUIPropertyResultDialog extends javax.swing.JDialog
 		jLabel8.setFont(new Font(cur.getName(), Font.BOLD, cur.getSize()));
 		resultLabel = new javax.swing.JLabel();
 		jPanel8 = new javax.swing.JPanel();
+		warningLabel = new javax.swing.JLabel();
+		cur = warningLabel.getFont();
+		warningLabel.setFont(new Font(cur.getName(), Font.BOLD, cur.getSize()));
 		jPanel9 = new javax.swing.JPanel();
 		jPanel11 = new javax.swing.JPanel();
 		jPanel12 = new javax.swing.JPanel();
@@ -232,6 +242,14 @@ public class GUIPropertyResultDialog extends javax.swing.JDialog
 		gridBagConstraints.gridx = 0;
 		gridBagConstraints.gridy = 12;
 		jPanel1.add(jPanel9, gridBagConstraints);
+		
+		warningLabel.setText("dummy dummy");
+		gridBagConstraints = new java.awt.GridBagConstraints();
+		gridBagConstraints.gridx = 1;
+		gridBagConstraints.gridy = 13;
+		gridBagConstraints.gridwidth = 2;
+		gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+		jPanel1.add(warningLabel, gridBagConstraints);
 
 		gridBagConstraints = new java.awt.GridBagConstraints();
 		gridBagConstraints.gridx = 1;
@@ -292,6 +310,7 @@ public class GUIPropertyResultDialog extends javax.swing.JDialog
 	private javax.swing.JLabel jLabel3;
 	private javax.swing.JLabel jLabel5;
 	private javax.swing.JLabel jLabel8;
+	private javax.swing.JLabel warningLabel;
 	private javax.swing.JPanel jPanel1;
 	private javax.swing.JPanel jPanel10;
 	private javax.swing.JPanel jPanel11;
