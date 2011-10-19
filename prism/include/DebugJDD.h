@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 #undef jdd_DebugJDD_debugEnabled
-#define jdd_DebugJDD_debugEnabled 1L
+#define jdd_DebugJDD_debugEnabled 0L
 /*
  * Class:     jdd_DebugJDD
  * Method:    DebugJDD_GetRefCount
