@@ -81,10 +81,9 @@ _prismcomplete() {
 		COMPREPLY=("${COMPREPLY[@]/%/ }")
 		return 0;
 	fi;
-	COMPREPLY=( `compgen -A file -- $cur` )
-
-	return 1;
+	#COMPREPLY=( `compgen -A file -- $cur` )
+	return 0;
 }
 
-complete -o nospace -F _prismcomplete prism
+complete -o nospace -F _prismcomplete -o default prism
 
