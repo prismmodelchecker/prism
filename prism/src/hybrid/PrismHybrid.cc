@@ -54,6 +54,7 @@ static jobject main_log_obj = NULL;
 static jobject tech_log_obj = NULL;
 // method ids for print method in logs
 static jmethodID main_log_mid = NULL;
+static jmethodID main_log_warn = NULL;
 static jmethodID tech_log_mid = NULL;
 
 // numerical method stuff
@@ -112,6 +113,7 @@ JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetMainLog(JNIEnv *env, jclas
 	main_log_cls = (jclass)env->NewGlobalRef(env->GetObjectClass(main_log_obj));
 	// get the method id for the print method
 	main_log_mid = env->GetMethodID(main_log_cls, "print", "(Ljava/lang/String;)V");
+    main_log_warn = env->GetMethodID(main_log_cls, "printWarning", "(Ljava/lang/String;)V");
 }
 
 //------------------------------------------------------------------------------
@@ -149,6 +151,23 @@ void PH_PrintToMainLog(JNIEnv *env, const char *str, ...)
 		env->CallVoidMethod(main_log_obj, main_log_mid, env->NewStringUTF(full_string));
 	else
 		printf("%s", full_string);
+}
+
+//------------------------------------------------------------------------------
+
+void PH_PrintWarningToMainLog(JNIEnv *env, const char *str, ...)
+{
+	va_list argptr;
+	char full_string[MAX_LOG_STRING_LEN];
+	
+	va_start(argptr, str);
+	vsnprintf(full_string, MAX_LOG_STRING_LEN, str, argptr);
+	va_end(argptr);
+	
+	if (env)
+		env->CallVoidMethod(main_log_obj, main_log_warn, env->NewStringUTF(full_string));
+	else
+		printf("Warning: %s", full_string);
 }
 
 //------------------------------------------------------------------------------

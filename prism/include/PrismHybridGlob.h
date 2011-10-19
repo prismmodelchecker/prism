@@ -85,6 +85,7 @@ extern double last_unif;
 
 #define logtwo(X) log((double)X)/log(2.0)
 void PH_PrintToMainLog(JNIEnv *env, const char *str, ...);
+void PH_PrintWarningToMainLog(JNIEnv *env, const char *str, ...);
 void PH_PrintToTechLog(JNIEnv *env, const char *str, ...);
 void PH_PrintMemoryToMainLog(JNIEnv *env, const char *before, double mem, const char *after);
 void PH_SetErrorMessage(const char *str, ...);

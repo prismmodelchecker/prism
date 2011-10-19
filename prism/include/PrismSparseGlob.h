@@ -84,6 +84,7 @@ extern JNIEnv *export_env;
 
 #define logtwo(X) log((double)X)/log(2.0)
 void PS_PrintToMainLog(JNIEnv *env, const char *str, ...);
+void PS_PrintWarningToMainLog(JNIEnv *env, const char *str, ...);
 void PS_PrintToTechLog(JNIEnv *env, const char *str, ...);
 void PS_PrintMemoryToMainLog(JNIEnv *env, const char *before, double mem, const char *after);
 void PS_SetErrorMessage(const char *str, ...);

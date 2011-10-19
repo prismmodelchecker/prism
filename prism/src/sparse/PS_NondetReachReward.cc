@@ -159,7 +159,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 			// also extract list of action names from 'synchs'
 			get_string_array_from_java(env, synchs, action_names_jstrings, action_names, num_actions);
 		} else {
-			PS_PrintToMainLog(env, "Warning: Action labels are not available for adversary generation.\n", export_adv_filename);
+			PS_PrintWarningToMainLog(env, "Action labels are not available for adversary generation.\n", export_adv_filename);
 		}
 	}
 	
@@ -234,7 +234,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 		if (fp_adv) {
 			fprintf(fp_adv, "%d ?\n", n);
 		} else {
-			PS_PrintToMainLog(env, "\nWarning: Adversary generation cancelled (could not open file \"%s\").\n", export_adv_filename);
+			PS_PrintWarningToMainLog(env, "Adversary generation cancelled (could not open file \"%s\").\n", export_adv_filename);
 			export_adv_enabled = EXPORT_ADV_NONE;
 		}
 	}

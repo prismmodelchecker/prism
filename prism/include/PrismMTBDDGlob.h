@@ -80,6 +80,7 @@ extern JNIEnv *export_env;
 // function prototypes
 
 void PM_PrintToMainLog(JNIEnv *env, const char *str, ...);
+void PM_PrintWarningToMainLog(JNIEnv *env, const char *str, ...);
 void PM_PrintToTechLog(JNIEnv *env, const char *str, ...);
 void PM_SetErrorMessage(const char *str, ...);
 char *PM_GetErrorMessage();
