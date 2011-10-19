@@ -7,6 +7,8 @@ Latest changes (mostly reverse chronological):
 
 Ongoing changes:
 
+* Handling of verbosity/warnings in log
+* Bash completion scripts
 * Properties can be named, by prefixing with "name":, and reference each other
 * CTL AG/EF
 
