@@ -103,7 +103,7 @@ public class PrismExplicit
 	{
 		// can only do ordered version of export for explicit engine
 		if (!ordered) {
-			mainLog.println("\nWarning: Cannot export unordered transition matrix with the explicit engine; using ordered.");
+			mainLog.printWarning("Cannot export unordered transition matrix with the explicit engine; using ordered.");
 			ordered = true;
 		}
 		// print message

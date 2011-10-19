@@ -533,7 +533,7 @@ public class Modules2MTBDD
 			break;
 			
 		default:
-			mainLog.print("\nWarning: Invalid MTBDD ordering selected - it's all going to go wrong.\n");
+			mainLog.printWarning("Invalid MTBDD ordering selected - it's all going to go wrong.\n");
 			break;
 		}
 		
@@ -1449,8 +1449,8 @@ public class Modules2MTBDD
 				if (guardDDs[l].equals(JDD.ZERO)) {
 					// display a warning (unless guard is "false", in which case was probably intentional
 					if (!Expression.isFalse(command.getGuard())) {
-						String s = "\nWarning: Guard for command " + (l+1) + " of module \"" + module.getName() + "\" is never satisfied.\n";
-						mainLog.print(s);
+						String s = "Guard for command " + (l+1) + " of module \"" + module.getName() + "\" is never satisfied.\n";
+						mainLog.printWarning(s);
 					}
 					// no point bothering to compute the mtbdds for the update
 					// if the guard is never satisfied
@@ -1605,8 +1605,8 @@ public class Modules2MTBDD
 			tmp = JDD.And(guardDDs[i], covered);
 			if (!(tmp.equals(JDD.ZERO))) {
 				// if so, output a warning (but carry on regardless)
-				mainLog.print("\nWarning: Guard for command " + (i+1) + " of module \"");
-				mainLog.print(moduleNames[m] + "\" overlaps with previous commands.\n");
+				mainLog.printWarning("Guard for command " + (i+1) + " of module \""
+					+ moduleNames[m] + "\" overlaps with previous commands.\n");
 			}
 			JDD.Deref(tmp);
 			// add this command's guard to 'covered'
@@ -1878,7 +1878,7 @@ public class Modules2MTBDD
 				// Use a PrismLangException to get line numbers displayed
 				msg = "Update " + (i+1) + " of command " + (l+1);
 				msg += " of module \"" + moduleNames[m] + "\" doesn't do anything";
-				mainLog.println("\nWarning: " + new PrismLangException(msg, u.getUpdate(i)).getMessage());
+				mainLog.printWarning(new PrismLangException(msg, u.getUpdate(i)).getMessage());
 			}
 			// multiply by probability/rate
 			p = u.getProbability(i);
@@ -1890,7 +1890,7 @@ public class Modules2MTBDD
 				// Use a PrismLangException to get line numbers displayed
 				msg = "Update " + (i+1) + " of command " + (l+1);
 				msg += " of module \"" + moduleNames[m] + "\" doesn't do anything";
-				mainLog.println("\nWarning: " + new PrismLangException(msg, u.getUpdate(i)).getMessage());
+				mainLog.printWarning(new PrismLangException(msg, u.getUpdate(i)).getMessage());
 			}
 			dd = JDD.Apply(JDD.PLUS, dd, udd);
 		}

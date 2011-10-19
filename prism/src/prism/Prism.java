@@ -205,7 +205,7 @@ public class Prism implements PrismSettingsListener
 			}
 			catch(PrismException ex)
 			{
-				System.err.println("Warning: Failed to create new PRISM settings file.");
+				mainLog.printWarning("Failed to create new PRISM settings file.");
 			}
 		}
 		// add this Prism object as a listener
@@ -1260,17 +1260,17 @@ public class Prism implements PrismSettingsListener
 	{
 		// can only do ordered version of export for MDPs
 		if (model.getModelType() == ModelType.MDP) {
-			if (!ordered) mainLog.println("\nWarning: Cannot export unordered transition matrix for MDPs; using ordered.");
+			if (!ordered) mainLog.printWarning("Cannot export unordered transition matrix for MDPs; using ordered.");
 			ordered = true;
 		}
 		// can only do ordered version of export for MRMC
 		if (exportType == EXPORT_MRMC) {
-			if (!ordered) mainLog.println("\nWarning: Cannot export unordered transition matrix in MRMC format; using ordered.");
+			if (!ordered) mainLog.printWarning("Cannot export unordered transition matrix in MRMC format; using ordered.");
 			ordered = true;
 		}
 		// can only do ordered version of export for rows format
 		if (exportType == EXPORT_ROWS) {
-			if (!ordered) mainLog.println("\nWarning: Cannot export unordered transition matrix in rows format; using ordered.");
+			if (!ordered) mainLog.printWarning("Cannot export unordered transition matrix in rows format; using ordered.");
 			ordered = true;
 		}
 		
@@ -1341,17 +1341,17 @@ public class Prism implements PrismSettingsListener
 		
 		// can only do ordered version of export for MDPs
 		if (model.getModelType() == ModelType.MDP) {
-			if (!ordered) mainLog.println("\nWarning: Cannot export unordered transition reward matrix for MDPs; using ordered");
+			if (!ordered) mainLog.printWarning("Cannot export unordered transition reward matrix for MDPs; using ordered");
 			ordered = true;
 		}
 		// can only do ordered version of export for MRMC
 		if (exportType == EXPORT_MRMC) {
-			if (!ordered) mainLog.println("\nWarning: Cannot export unordered transition reward matrix in MRMC format; using ordered");
+			if (!ordered) mainLog.printWarning("Cannot export unordered transition reward matrix in MRMC format; using ordered");
 			ordered = true;
 		}
 		// can only do ordered version of export for rows format
 		if (exportType == EXPORT_ROWS) {
-			if (!ordered) mainLog.println("\nWarning: Cannot export unordered transition matrix in rows format; using ordered.");
+			if (!ordered) mainLog.printWarning("Cannot export unordered transition matrix in rows format; using ordered.");
 			ordered = true;
 		}
 		

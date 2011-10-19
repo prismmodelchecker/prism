@@ -215,7 +215,7 @@ public class GenerateSimulationPath
 		// display warning if attempt to use "repeat=" option and not "deadlock" option
 		if (simPathRepeat > 1 && simPathType != PathType.SIM_PATH_DEADLOCK) {
 			simPathRepeat = 1;
-			mainLog.println("\nWarning: Ignoring \"repeat\" option - it is only valid when looking for deadlocks.");
+			mainLog.printWarning("Ignoring \"repeat\" option - it is only valid when looking for deadlocks.");
 		}
 
 		// generate path
@@ -262,7 +262,7 @@ public class GenerateSimulationPath
 
 		// display warning if a deterministic loop was detected (but not in case where multiple paths generated)
 		if (simLoopCheck && engine.isPathLooping() && simPathRepeat == 1) {
-			mainLog.println("\nWarning: Deterministic loop detected after " + i
+			mainLog.printWarning("Deterministic loop detected after " + i
 					+ " steps (use loopcheck=false option to extend path).");
 		}
 
@@ -282,7 +282,7 @@ public class GenerateSimulationPath
 
 		// warning if stopped early
 		if (simPathType == PathType.SIM_PATH_TIME && t < simPathTime) {
-			mainLog.println("\nWarning: Path terminated before time " + simPathTime + " because maximum path length ("
+			mainLog.printWarning("Path terminated before time " + simPathTime + " because maximum path length ("
 					+ maxPathLength + ") reached.");
 		}
 	}

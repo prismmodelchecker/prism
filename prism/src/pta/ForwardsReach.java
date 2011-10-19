@@ -259,7 +259,7 @@ public class ForwardsReach
 
 		// Print a warning if there are no target states
 		if (target.cardinality() == 0)
-			mainLog.println("Warning: There are no target states.");
+			mainLog.printWarning("There are no target states.");
 
 		return graph;
 	}
@@ -401,7 +401,7 @@ public class ForwardsReach
 
 		// Print a warning if there are no target states
 		if (target.cardinality() == 0)
-			mainLog.println("Warning: There are no target states.");
+			mainLog.printWarning("There are no target states.");
 
 		return graph;
 	}

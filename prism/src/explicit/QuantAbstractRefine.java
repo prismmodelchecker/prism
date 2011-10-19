@@ -1013,7 +1013,7 @@ public abstract class QuantAbstractRefine
 		// Don't refine a state that we have already modified through refinement
 		if (rebuiltStates.contains(refineState)) {
 			if (verbosity >= 1)
-				mainLog.println("Warning: Skipping refinement of #" + refineState
+				mainLog.printWarning("Skipping refinement of #" + refineState
 						+ " which has already been modified by refinement.");
 			return 1;
 		}
@@ -1070,7 +1070,7 @@ public abstract class QuantAbstractRefine
 			// Check if lb/ub are identical (just use equals() since lists are sorted)
 			if (lbStrat.equals(ubStrat) && lbStrat.size() == abstraction.getNumChoices(refineState)) {
 				if (verbosity >= 1)
-					mainLog.println("Warning: Skipping refinement of #" + refineState
+					mainLog.printWarning("Skipping refinement of #" + refineState
 							+ " for which lb/ub strategy sets are equal and covering.");
 				return 1;
 			}

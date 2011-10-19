@@ -521,7 +521,7 @@ public class PrismCL
 		// even if a new log is created shortly
 		mainLog = new PrismFileLog("stdout");
 		techLog = new PrismFileLog("stdout");
-
+		
 		// create prism object(s)
 		prism = new Prism(mainLog, techLog);
 		prismExpl = new PrismExplicit(mainLog, prism.getSettings());
@@ -747,7 +747,7 @@ public class PrismCL
 				}
 				// if requested, remove them
 				else if (fixdl) {
-					mainLog.print("\nWarning: " + states.size() + " deadlock states detected; adding self-loops in these states...\n");
+					mainLog.printWarning(states.size() + " deadlock states detected; adding self-loops in these states...\n");
 					model.fixDeadlocks();
 				}
 				// otherwise print error and bail out
@@ -846,7 +846,7 @@ public class PrismCL
 			}
 
 			if (exportPlainDeprecated)
-				mainLog.println("\nWarning: The -exportplain switch is now deprecated. Please use -exporttrans in future.");
+				mainLog.printWarning("The -exportplain switch is now deprecated. Please use -exporttrans in future.");
 		}
 
 		// export state rewards to a file
@@ -984,7 +984,7 @@ public class PrismCL
 				prism.doSteadyState(model, exportType, exportSteadyStateFile);
 			}
 		} else {
-			mainLog.println("\nWarning: Steady-state probabilities only computed for DTMCs/CTMCs.");
+			mainLog.printWarning("Steady-state probabilities only computed for DTMCs/CTMCs.");
 		}
 	}
 
@@ -1034,7 +1034,7 @@ public class PrismCL
 				prism.doTransient(model, i, exportType, exportTransientFile, importinitdist ? new File(importInitDistFilename) : null);
 			}
 		} else {
-			mainLog.println("\nWarning: Transient probabilities only computed for DTMCs/CTMCs.");
+			mainLog.printWarning("Transient probabilities only computed for DTMCs/CTMCs.");
 		}
 	}
 
@@ -1045,6 +1045,11 @@ public class PrismCL
 		// clear up and close down
 		prism.closeDown(true);
 		mainLog.println();
+		if (mainLog.getNumberOfWarnings() > 0)
+		{
+			mainLog.println("Note that " + mainLog.getNumberOfWarnings()
+					+ " warning(s) were produced during computation");
+		}
 	}
 
 	/**
@@ -1796,7 +1801,7 @@ public class PrismCL
 				aSimMethod = new CIconfidence(simWidth, simNumSamples);
 			}
 			if (simApproxGiven) {
-				mainLog.println("\nWarning: Option -simapprox is not used for the CI method and is being ignored");
+				mainLog.printWarning("Option -simapprox is not used for the CI method and is being ignored");
 			}
 		}
 		// ACI
@@ -1818,7 +1823,7 @@ public class PrismCL
 				aSimMethod = new ACIconfidence(simWidth, simNumSamples);
 			}
 			if (simApproxGiven) {
-				mainLog.println("\nWarning: Option -simapprox is not used for the ACI method and is being ignored");
+				mainLog.printWarning("Option -simapprox is not used for the ACI method and is being ignored");
 			}
 		}
 		// APMC
@@ -1840,7 +1845,7 @@ public class PrismCL
 				aSimMethod = new APMCconfidence(simApprox, simNumSamples);
 			}
 			if (simWidthGiven) {
-				mainLog.println("\nWarning: Option -simwidth is not used for the APMC method and is being ignored");
+				mainLog.printWarning("Option -simwidth is not used for the APMC method and is being ignored");
 			}
 		}
 		// SPRT
@@ -1850,10 +1855,10 @@ public class PrismCL
 			}
 			aSimMethod = new SPRTMethod(simConfidence, simConfidence, simWidth);
 			if (simApproxGiven) {
-				mainLog.println("\nWarning: Option -simapprox is not used for the SPRT method and is being ignored");
+				mainLog.printWarning("Option -simapprox is not used for the SPRT method and is being ignored");
 			}
 			if (simNumSamplesGiven) {
-				mainLog.println("\nWarning: Option -simsamples is not used for the SPRT method and is being ignored");
+				mainLog.printWarning("Option -simsamples is not used for the SPRT method and is being ignored");
 			}
 		} else
 			throw new PrismException("Unknown simulation method \"" + simMethodName + "\"");

@@ -44,6 +44,29 @@ public abstract class PrismLog
 	protected int verbosityLevel = VL_DEFAULT;
 
 	/**
+	 * Keeps the count of warnings printed printed so far.
+	 */
+	protected int numberOfWarnings = 0;
+	
+	/**
+	 * Sets the counter of warnings that was printed to 0.
+	 */
+	public void resetNumberOfWarnings()
+	{
+		this.numberOfWarnings = 0;
+	}
+	
+	/**
+	 * Returns the number of warnings that have been printed since the beginning
+	 * or since the last reset of number of warnings.
+	 * @return
+	 */
+	public int getNumberOfWarnings()
+	{
+		return this.numberOfWarnings;
+	}
+	
+	/**
 	 * Returns the verbosity level of this log. The verbosity level
 	 * determines what messages will be printed.
 	 * @return
@@ -329,6 +352,21 @@ public abstract class PrismLog
 	{
 		if (level >= this.verbosityLevel)
 			println(arr);
+	}
+	
+	/**
+	 * Prints a warning message {@code s}, preceded by "\\nWarning: " string
+	 * and followed by a newline characted.
+	 * <p/>
+	 * Also increases {@link #numberOfWarnings} by one. This variable can be then
+	 * queried using {@link #getNumberOfWarnings()} at the end of computation
+	 * and the user can be appropriately informed that there were warnings
+	 * generated.
+	 * @param s The warning message.
+	 */
+	public void printWarning(String s) {
+		println("\nWarning: " + s);
+		this.numberOfWarnings++;
 	}
 }
 
