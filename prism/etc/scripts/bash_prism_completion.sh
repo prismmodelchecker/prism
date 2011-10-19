@@ -13,7 +13,7 @@ _prismcomplete() {
 	prev="${COMP_WORDS[COMP_CWORD-1]}"
 
 	#TODO prev empty
-	if [ $prev = -const ]; then
+	if [ "$prev" = -const ]; then
 
 		#get the name of the model
 		MODELFILE=`echo $COMP_LINE | grep -E -o "[^ ]*[.]([psn]m|smg) " | sed "s/ ^//"`
@@ -39,7 +39,7 @@ _prismcomplete() {
 		return 0;
 	fi;
 
-	#if [ $prev = -property ]; then
+	#if [ "$prev" = -property ]; then
 	#
 	#	PROPFILE=`echo $COMP_LINE | grep -o "[^ ]*[.]pctl" | sed "s/ ^//"`
 	#	PROPFILE=`eval echo $PROPFILE`
@@ -55,21 +55,21 @@ _prismcomplete() {
 	#	return 0;
 	#fi;
 
-	if [ $prev = -simmethod ]; then
+	if [ "$prev" = -simmethod ]; then
 		PARS="ci aci apmc sprt"
 		COMPREPLY=( `compgen -W "$PARS" -- $cur` )
 		COMPREPLY=("${COMPREPLY[@]/%/ }")
 		return 0;
 	fi;
 
-	if [ $prev = -ptamethod ]; then
+	if [ "$prev" = -ptamethod ]; then
 		PARS="games digital"
 		COMPREPLY=( `compgen -W "$PARS" -- $cur` )
 		COMPREPLY=("${COMPREPLY[@]/%/ }")
 		return 0;
 	fi;
 
-	if [ $prev = -sccmethod ]; then
+	if [ "$prev" = -sccmethod ]; then
 		PARS="xiebeerel lockstep sccfind"
 		COMPREPLY=( `compgen -W "$PARS" -- $cur` )
 		COMPREPLY=("${COMPREPLY[@]/%/ }")
