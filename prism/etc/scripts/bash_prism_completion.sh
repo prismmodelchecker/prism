@@ -12,7 +12,6 @@ _prismcomplete() {
 	cur="${COMP_WORDS[COMP_CWORD]}"
 	prev="${COMP_WORDS[COMP_CWORD-1]}"
 
-	#TODO prev empty
 	if [ "$prev" = -const ]; then
 
 		#get the name of the model
@@ -39,21 +38,20 @@ _prismcomplete() {
 		return 0;
 	fi;
 
-	#if [ "$prev" = -property ]; then
-	#
-	#	PROPFILE=`echo $COMP_LINE | grep -o "[^ ]*[.]pctl" | sed "s/ ^//"`
-	#	PROPFILE=`eval echo $PROPFILE`
-	#	test -n "$PROPFILE"|| return 0;
-	#	test -e $PROPFILE || return 0; 
-	#
-	#	#get the number of properties
-	#	NUM=`sed "s/\/\/.*//" $PROPFILE | grep "[a-z]" | wc -l `
-	#	SEQUENCE=`seq 1 $NUM`
-	#
-	#	COMPREPLY=( `compgen -W "$SEQUENCE" -- $cur` )
-	#	COMPREPLY=("${COMPREPLY[@]/%/ }")
-	#	return 0;
-	#fi;
+	if [ "$prev" = -property ]; then
+	
+		PROPFILE=`echo $COMP_LINE | grep -E -o "[^ ]*[.](pctl|props)" | sed "s/ ^//"`
+		PROPFILE=`eval echo $PROPFILE`
+		test -n "$PROPFILE"|| return 0;
+		test -e $PROPFILE || return 0; 
+	
+		#get the number of properties
+		SEQUENCE=`sed "s/\/\/.*//" $PROPFILE | grep "[a-z]" | awk '{print NR, " ", $0}' | sed "s/^[0-9]*[^\\"]*\\"\(.*\)\\":.*/\\1/" | sed "s/^\([0-9][0-9]*\).*$/\\1/"`
+	
+		COMPREPLY=( `compgen -W "$SEQUENCE" -- $cur` )
+		COMPREPLY=("${COMPREPLY[@]/%/ }")
+		return 0;
+	fi;
 
 	if [ "$prev" = -simmethod ]; then
 		PARS="ci aci apmc sprt"
