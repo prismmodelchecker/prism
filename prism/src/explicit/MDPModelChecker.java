@@ -250,8 +250,11 @@ public class MDPModelChecker extends ProbModelChecker
 		boolean genAdv;
 
 		// Check for some unsupported combinations
-		if (solnMethod == SolnMethod.VALUE_ITERATION && valIterDir == ValIterDir.ABOVE && !(precomp && prob0)) {
-			throw new PrismException("Precomputation (Prob0) must be enabled for value iteration from above");
+		if (solnMethod == SolnMethod.VALUE_ITERATION && valIterDir == ValIterDir.ABOVE) {
+			if (!(precomp && prob0)) 
+				throw new PrismException("Precomputation (Prob0) must be enabled for value iteration from above");
+			if (!min) 
+				throw new PrismException("Value iteration from above only works for minimum probabilities");
 		}
 
 		// Are we generating an optimal adversary?
