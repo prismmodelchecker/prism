@@ -764,7 +764,7 @@ public class PrismCL
 					}
 					mainLog.print("\nTip: Use the -fixdl switch to automatically add self-loops in deadlock states.\n");
 					model.clear();
-					exit();
+					exit(1);
 				}
 			}
 		} else {
@@ -776,7 +776,7 @@ public class PrismCL
 					mainLog.println();
 					mainLog.print("\nError: Model contains " + deadlocks.size() + " deadlock states");
 					mainLog.print("\nTip: Use the -fixdl switch to automatically add self-loops in deadlock states.\n");
-					exit();
+					exit(1);
 				}
 			}
 		}
@@ -1957,8 +1957,9 @@ public class PrismCL
 		mainLog.println();
 	}
 
-	// report (non-fatal) error
-
+	/**
+	 * Report a (non-fatal) error to the log.
+	 */
 	private void error(String s)
 	{
 		// If (and only if) we are in "test" (and not "testall") mode, treat any error as fatal
@@ -1969,8 +1970,9 @@ public class PrismCL
 		mainLog.println("\nError: " + s + ".");
 	}
 
-	// report error and exit cleanly
-
+	/**
+	 * Report a (fatal) error and exit cleanly (with exit code 1).
+	 */
 	private void errorAndExit(String s)
 	{
 		prism.closeDown(false);
@@ -1978,12 +1980,22 @@ public class PrismCL
 		System.exit(1);
 	}
 
-	// exit cleanly (no error)
-
+	/**
+	 * Exit cleanly (with exit code 0).
+	 */
 	private void exit()
 	{
 		prism.closeDown(true);
 		System.exit(0);
+	}
+
+	/**
+	 * Exit cleanly (with exit code i).
+	 */
+	private void exit(int i)
+	{
+		prism.closeDown(true);
+		System.exit(i);
 	}
 
 	// main method
