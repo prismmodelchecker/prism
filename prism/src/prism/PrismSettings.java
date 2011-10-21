@@ -759,6 +759,7 @@ public class PrismSettings implements Observer
 			set(PRISM_LIN_EQ_METHOD, "Jacobi");
 		} else if (sw.equals("gaussseidel") || sw.equals("gs")) {
 			set(PRISM_LIN_EQ_METHOD, "Gauss-Seidel");
+			set(PRISM_MDP_SOLN_METHOD, "Gauss-Seidel");
 		} else if (sw.equals("bgaussseidel") || sw.equals("bgs")) {
 			set(PRISM_LIN_EQ_METHOD, "Backwards Gauss-Seidel");
 		} else if (sw.equals("pgaussseidel") || sw.equals("pgs")) {
