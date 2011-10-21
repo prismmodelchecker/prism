@@ -5,6 +5,10 @@ of the main changes in each public release, see the file VERSIONS.txt.
 Latest changes (mostly reverse chronological):
 [correct wrt svn rev 3876]
 
+Changes:
+
+* Can disable Prob0/Prob1 precomputation algorithms independently (-noprob0, -noprob1)
+
 Ongoing changes:
 
 * Handling of verbosity/warnings in log
