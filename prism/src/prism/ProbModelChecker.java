@@ -52,6 +52,8 @@ public class ProbModelChecker extends NonProbModelChecker
 
 	// Use 0,1 precomputation algorithms?
 	protected boolean precomp;
+	protected boolean prob0;
+	protected boolean prob1;
 	// Do BSCC computation?
 	protected boolean bsccComp;
 
@@ -69,6 +71,8 @@ public class ProbModelChecker extends NonProbModelChecker
 		// Inherit some options from parent Prism object.
 		// Store locally and/or pass onto engines.
 		precomp = prism.getPrecomp();
+		prob0 = prism.getProb0();
+		prob1 = prism.getProb1();
 		bsccComp = prism.getBSCCComp();
 		switch (engine) {
 		case Prism.MTBDD:
@@ -188,7 +192,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 
 		// Compute probabilities
-		boolean qual = pb != null && ((p == 0) || (p == 1)) && precomp;
+		boolean qual = pb != null && ((p == 0) || (p == 1)) && precomp && prob0 && prob1;
 		probs = checkProbPathFormula(expr.getExpression(), qual);
 
 		// Print out probabilities
@@ -1345,7 +1349,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			// no
 			if (yes.equals(reach)) {
 				no = JDD.Constant(0);
-			} else if (precomp) {
+			} else if (precomp && prob0) {
 				no = PrismMTBDD.Prob0(tr01, reach, allDDRowVars, allDDColVars, b1, yes);
 			} else {
 				JDD.Ref(reach);
@@ -1508,16 +1512,19 @@ public class ProbModelChecker extends NonProbModelChecker
 			maybe = JDD.Constant(0);
 		} else {
 			// no/yes
-			if (precomp) {
+			if (precomp && (prob0 || prob1)) {
 				no = PrismMTBDD.Prob0(tr01, reach, allDDRowVars, allDDColVars, b1, b2);
-				yes = PrismMTBDD.Prob1(tr01, reach, allDDRowVars, allDDColVars, b1, b2, no);
 			} else {
-				JDD.Ref(b2);
-				yes = b2;
 				JDD.Ref(reach);
 				JDD.Ref(b1);
 				JDD.Ref(b2);
 				no = JDD.And(reach, JDD.Not(JDD.Or(b1, b2)));
+			}
+			if (precomp && prob1) {
+				yes = PrismMTBDD.Prob1(tr01, reach, allDDRowVars, allDDColVars, b1, b2, no);
+			} else {
+				JDD.Ref(b2);
+				yes = b2;
 			}
 			// maybe
 			JDD.Ref(reach);

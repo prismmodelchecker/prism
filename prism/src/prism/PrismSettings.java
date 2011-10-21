@@ -72,6 +72,8 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_VERBOSE						= "prism.verbose";
 	public static final	String PRISM_FAIRNESS						= "prism.fairness";
 	public static final	String PRISM_PRECOMPUTATION					= "prism.precomputation";
+	public static final	String PRISM_PROB0							= "prism.prob0";
+	public static final	String PRISM_PROB1							= "prism.prob1";
 	public static final	String PRISM_DO_PROB_CHECKS					= "prism.doProbChecks";
 	public static final	String PRISM_COMPACT						= "prism.compact";
 	public static final	String PRISM_LIN_EQ_METHOD					= "prism.linEqMethod";//"prism.iterativeMethod";
@@ -204,7 +206,11 @@ public class PrismSettings implements Observer
 																			"Maximum number of iterations to perform if iterative methods do not converge." },
 			// MODEL CHECKING OPTIONS:
 			{ BOOLEAN_TYPE,		PRISM_PRECOMPUTATION,					"Use precomputation",					"2.1",			new Boolean(true),															"",																							
-																			"Use model checking precomputation algorithms (Prob0, Prob1, etc.), where optional." },
+																			"Whether to use model checking precomputation algorithms (Prob0, Prob1, etc.), where optional." },
+			{ BOOLEAN_TYPE,		PRISM_PROB0,							"Use Prob0 precomputation",				"4.0.2",		new Boolean(true),															"",																							
+																			"Whether to use model checking precomputation algorithm Prob0 (if precomputation enabled)." },
+			{ BOOLEAN_TYPE,		PRISM_PROB1,							"Use Prob1 precomputation",				"4.0.2",		new Boolean(true),															"",																							
+																			"Whether to use model checking precomputation algorithm Prob1 (if precomputation enabled)." },
 			{ BOOLEAN_TYPE,		PRISM_FAIRNESS,							"Use fairness",							"2.1",			new Boolean(false),															"",																							
 																			"Constrain to fair adversaries when model checking MDPs." },
 			{ BOOLEAN_TYPE,		PRISM_DO_PROB_CHECKS,					"Do probability/rate checks",			"2.1",			new Boolean(true),															"",																							
@@ -827,6 +833,12 @@ public class PrismSettings implements Observer
 		else if (sw.equals("nopre")) {
 			set(PRISM_PRECOMPUTATION, false);
 		}
+		else if (sw.equals("noprob0")) {
+			set(PRISM_PROB0, false);
+		}
+		else if (sw.equals("noprob1")) {
+			set(PRISM_PROB1, false);
+		}
 		// Fairness on/off
 		else if (sw.equals("fair")) {
 			set(PRISM_FAIRNESS, true);
@@ -1050,7 +1062,9 @@ public class PrismSettings implements Observer
 		mainLog.println("-maxiters <n> .................. Set max number of iterations [default: 10000]");
 		mainLog.println();
 		mainLog.println("MODEL CHECKING OPTIONS:");
-		mainLog.println("-nopre ......................... Skip (optional) precomputation algorithms");
+		mainLog.println("-nopre ......................... Skip precomputation algorithms (where optional)");
+		mainLog.println("-noprob0 ....................... Skip precomputation algorithm Prob0 (where optional)");
+		mainLog.println("-noprob1 ....................... Skip precomputation algorithm Prob1 (where optional)");
 		mainLog.println("-fair .......................... Use fairness (for model checking of MDPs)");
 		mainLog.println("-nofair ........................ Don't use fairness (for model checking of MDPs) [default]");
 		mainLog.println("-fixdl ......................... Automatically put self-loops in deadlock states");

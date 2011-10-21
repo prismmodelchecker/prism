@@ -79,8 +79,8 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// Inherit some options from parent Prism object and store locally.
 		precomp = prism.getPrecomp();
-		prob0 = true;
-		prob1 = true;
+		prob0 = prism.getProb0();
+		prob1 = prism.getProb1();
 		fairness = prism.getFairness();
 
 		// Display warning and/or make changes for some option combinations
@@ -995,7 +995,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		} else {
 			// no
 			// if precomputation enabled
-			if (precomp && prob0) {
+			// (nb: prob1 needs prob0)
+			if (precomp && (prob0 || prob1)) {
 				// min
 				if (min) {
 					// no: "min prob = 0" equates to "there exists an adversary prob equals 0"
@@ -1016,8 +1017,8 @@ public class NondetModelChecker extends NonProbModelChecker
 				no = JDD.And(reach, JDD.Not(JDD.Or(b1, b2)));
 			}
 			// yes
-			// if precomputation enabled (need both prob0/prob1 to be enabled to do prob1)
-			if (precomp && prob0 && prob1) {
+			// if precomputation enabled
+			if (precomp && prob1) {
 				// min
 				if (min) {
 					// yes: "min prob = 1" equates to "for all adversaries prob equals 1"

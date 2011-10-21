@@ -99,8 +99,8 @@ public class ProbModelChecker extends StateModelChecker
 		setTermCritParam(settings.getDouble(PrismSettings.PRISM_TERM_CRIT_PARAM));
 		setMaxIters(settings.getInteger(PrismSettings.PRISM_MAX_ITERS));
 		setPrecomp(settings.getBoolean(PrismSettings.PRISM_PRECOMPUTATION));
-		// prob0
-		// prob1
+		setProb0(settings.getBoolean(PrismSettings.PRISM_PROB0));
+		setProb1(settings.getBoolean(PrismSettings.PRISM_PROB1));
 		// valiterdir
 		s = settings.getString(PrismSettings.PRISM_LIN_EQ_METHOD);
 		if (s.equals("Gauss-Seidel")) {

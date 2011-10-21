@@ -278,6 +278,16 @@ public class Prism implements PrismSettingsListener
 		settings.set(PrismSettings.PRISM_PRECOMPUTATION, b);
 	}
 	
+	public void setProb0(boolean b) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_PROB0, b);
+	}
+	
+	public void setProb1(boolean b) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_PROB1, b);
+	}
+	
 	public void setDoProbChecks(boolean b) throws PrismException
 	{
 		settings.set(PrismSettings.PRISM_DO_PROB_CHECKS, b);
@@ -478,6 +488,12 @@ public class Prism implements PrismSettingsListener
 	
 	public boolean getPrecomp()
 	{ return settings.getBoolean(PrismSettings.PRISM_PRECOMPUTATION); }
+	
+	public boolean getProb0()
+	{ return settings.getBoolean(PrismSettings.PRISM_PROB0); }
+	
+	public boolean getProb1()
+	{ return settings.getBoolean(PrismSettings.PRISM_PROB1); }
 	
 	public boolean getFairness()
 	{ return settings.getBoolean(PrismSettings.PRISM_FAIRNESS); }
