@@ -202,7 +202,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 
 		try {
 			// Get valid/selected properties
-			String propertiesString = getLabelsString() + "\n" + getConstantsString() + "\n" + propList.getValidSelectedString();
+			String propertiesString = getLabelsString() + "\n" + getConstantsString() + "\n" + propList.getValidSelectedAndReferencedString();
 			// Get PropertiesFile for valid/selected properties
 			parsedProperties = getPrism().parsePropertiesString(parsedModel, propertiesString);
 			// And get list of corresponding GUIProperty objects
@@ -257,7 +257,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		UndefinedConstants uCon;
 		try {
 			parsedProperties = getPrism().parsePropertiesString(parsedModel,
-					getLabelsString() + "\n" + getConstantsString() + "\n" + propList.getValidSelectedString());
+					getLabelsString() + "\n" + getConstantsString() + "\n" + propList.getValidSelectedAndReferencedString());
 			validGUIProperties = propList.getValidSelectedProperties();
 			if (validGUIProperties.size() == 0) {
 				error("None of the selected properties are suitable for simulation");
@@ -340,26 +340,42 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		Type type;
 
 		try {
+			//get referenced named properties
+			String namedString = "";
+			//Add named properties
+			for (GUIProperty namedProp : this.propList.getAllNamedProperties()) {
+				if (gp.getReferencedNames().contains(namedProp.getName())) {
+					namedString += "\"" + namedProp.getName() + "\" : " + namedProp.getPropString() + "\n";
+				}
+			}
+			
 			// parse property to be used for experiment
-			parsedProperties = getPrism().parsePropertiesString(parsedModel, getLabelsString() + "\n" + getConstantsString() + "\n" + gp.getPropString());
+			parsedProperties = getPrism().parsePropertiesString(parsedModel, getLabelsString() + "\n" + getConstantsString() + "\n" + namedString + gp.getPropString());
 			if (parsedProperties.getNumProperties() <= 0) {
 				error("There are no properties selected");
 				return;
 			}
-			if (parsedProperties.getNumProperties() > 1) {
+			if (propList.getNumSelectedProperties() > 1) {
 				error("Experiments can only be created for a single property");
 				return;
 			}
 
 			// check the type of the property
-			type = parsedProperties.getProperty(0).getType();
+			int index = parsedProperties.getNumProperties() - 1;
+			type = parsedProperties.getProperty(index).getType();
 		} catch (PrismException e) {
 			error(e.getMessage());
 			return;
 		}
 
+		//get Property objects for sorting out undefined constants
+		ArrayList<Property> props = new ArrayList<Property>();
+		for (int i = 0; i < parsedProperties.getNumProperties(); i++) {
+			props.add(parsedProperties.getPropertyObject(i));
+		}
+		
 		// sort out undefined constants
-		UndefinedConstants uCon = new UndefinedConstants(parsedModel, parsedProperties, parsedProperties.getPropertyObject(0));
+		UndefinedConstants uCon = new UndefinedConstants(parsedModel, parsedProperties, props);
 		boolean showGraphDialog = false;
 		boolean useSimulation = false;
 		if (uCon.getMFNumUndefined() + uCon.getPFNumUndefined() == 0) {
@@ -455,7 +471,18 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			GUIProperty gp = propList.getProperty(index);
 			gp.setBeingEdited(false);
 			if (pctl != null) {
-				gp.setPropString(pctl, parsedModel, getConstantsString(), getLabelsString());
+				if (pctl.matches("\"[^\"]*\"[ ]*:.*")) {
+					//the string contains property name
+					int start = pctl.indexOf('"') + 1;
+					int end = pctl.indexOf('"', start);
+					String name = pctl.substring(start,end);
+					int colon = pctl.indexOf(':') + 1;
+					pctl = pctl.substring(colon).trim();
+					gp.setPropStringAndName(pctl, name, parsedModel, getConstantsString(), getLabelsString());
+				} else {
+					gp.setPropStringAndName(pctl, null, parsedModel, getConstantsString(), getLabelsString());
+				}
+				
 				gp.setComment(comment);
 				setModified(true);
 			}
@@ -825,7 +852,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 					ArrayList listOfProperties = gcp.getProperties();
 					for (int i = 0; i < listOfProperties.size(); i++) {
 						GUIProperty property = (GUIProperty) listOfProperties.get(i);
-						propList.addProperty(property.getPropString(), property.getComment());
+						propList.addProperty(property.getName(), property.getPropString(), property.getComment());
 						setModified(true);
 					}
 				} catch (UnsupportedFlavorException e) {

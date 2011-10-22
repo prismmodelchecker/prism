@@ -114,11 +114,14 @@ public class ModelCheckThread extends GUIComputationThread
 
 		IconThread ic = new IconThread(null);
 
+		//numAuxiliary is the number of properties we don't check but that are contained because
+		//they are referenced. These are at the beginning of the file.
+		int numAuxiliary = propertiesFile.getNumProperties() - guiProps.size();
 		// Work through list of properties
-		for (int i = 0; i < propertiesFile.getNumProperties(); i++) {
+		for (int i = numAuxiliary; i < propertiesFile.getNumProperties(); i++) {
 
 			// Get ith property
-			GUIProperty gp = guiProps.get(i);
+			GUIProperty gp = guiProps.get(i - numAuxiliary);
 			// Animate it's clock icon
 			ic = new IconThread(gp);
 			ic.start();

@@ -91,7 +91,10 @@ public class GUIPropertyEditor extends javax.swing.JDialog implements ActionList
 		else
 		{
 			this.id = prop.getID();
-			propertyText.setText(prop.getPropString());
+			
+			String namePart = (prop.getName() != null) ? ("\"" + prop.getName() + "\" : ") : "";
+			
+			propertyText.setText(namePart + prop.getPropString());
 			commentTextArea.setText(prop.getComment());
 		}
 		addActionListeners();
@@ -802,13 +805,23 @@ public class GUIPropertyEditor extends javax.swing.JDialog implements ActionList
 			noConstants = fConLab.getConstantList().size();
 			noLabels = fConLab.getLabelList().size();
 			
+			String namedString = "";
+			int namedCount = 0;
+			//Add named properties
+			for (GUIProperty namedProp : this.props.getPropList().getAllNamedProperties()) {
+				if (namedProp.isValid() && this.id != null && !this.id.equals(namedProp.getID())) {
+					namedCount++;
+					namedString += "\"" + namedProp.getName() + "\" : " + namedProp.getPropString() + "\n";
+				}
+			}
+			
 			//Parse all together
-			String withConsLabs = props.getConstantsString()+"\n"+props.getLabelsString()+"\n"+propertyText.getText();
+			String withConsLabs = props.getConstantsString()+"\n"+props.getLabelsString()+namedString+propertyText.getText();
 			PropertiesFile ff = props.getPrism().parsePropertiesString(parsedModel, withConsLabs);
 			
 			//Validation of number of properties
-			if(ff.getNumProperties() == 0) throw new PrismException("Empty property");
-			else if(ff.getNumProperties() > 1) throw new PrismException("Contains multiple properties");
+			if(ff.getNumProperties() <= namedCount) throw new PrismException("Empty property");
+			else if(ff.getNumProperties() > namedCount + 1) throw new PrismException("Contains multiple properties");
 			
 			//Validation of constants and labels
 			if(ff.getConstantList().size() != noConstants) throw new PrismException("Contains constants");

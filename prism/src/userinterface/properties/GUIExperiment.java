@@ -106,12 +106,14 @@ public class GUIExperiment
 
 	public String getPropertyString()
 	{
-		return prop.getProperty(0).toString();
+		int i = prop.getNumProperties() - 1;
+		return prop.getProperty(i).toString();
 	}
 
 	public Type getPropertyType()
 	{
-		return prop.getProperty(0).getType();
+		int i = prop.getNumProperties() - 1;
+		return prop.getProperty(i).getType();
 	}
 
 	public ResultsCollection getResults()
@@ -217,7 +219,8 @@ public class GUIExperiment
 			Model model = null;
 
 			ModulesFile modulesFileToCheck;
-			Expression propertyToCheck = propertiesFile.getProperty(0);
+			int propertyIndex = propertiesFile.getNumProperties() - 1;
+			Expression propertyToCheck = propertiesFile.getProperty(propertyIndex);
 			SimulationInformation info = null;
 			boolean reuseInfo = false, reuseInfoAsked = false;
 

@@ -29,6 +29,7 @@ package userinterface.properties;
 
 import java.io.*;
 import java.util.*;
+import java.util.List;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -94,6 +95,35 @@ public class GUIPropertiesList extends JList implements KeyListener
 	public GUIProperty getProperty(int i)
 	{
 		return (GUIProperty) listModel.getElementAt(i);
+	}
+	
+	/**
+	 * Returns all properties in this list that have
+	 * non-null name.
+	 */
+	public List<GUIProperty> getAllNamedProperties() {
+		ArrayList<GUIProperty> ret = new ArrayList<GUIProperty>();
+		for (int i = 0; i < getNumProperties(); i++) {
+			if (getProperty(i).getName() != null)
+				ret.add(getProperty(i));
+		}
+		
+		return ret;
+	}
+	
+	/**
+	 * Looks up a property with the specified name and returns it. If
+	 * such a property does not exist, returns null;
+	 */
+	public GUIProperty getPropertyByName(String s) {
+		for (int i = 0; i < getNumProperties(); i++) {
+			GUIProperty p = getProperty(i);
+			if (p.getName() != null && p.getName().equals(s)) {
+				return p;
+			}
+		}
+		
+		return null;
 	}
 
 	/**
@@ -164,16 +194,58 @@ public class GUIPropertiesList extends JList implements KeyListener
 	}
 
 	/**
-	 * Get a string comprising concatenation of all valid properties currently selected in the list.
+	 * Get a string comprising concatenation of all valid properties currently selected in the list
+	 * together with all properties these reference (even indirectly). The properties which are not
+	 * selected, but referenced, are guarranteed to be first in the string.
 	 */
-	public String getValidSelectedString()
+	public String getValidSelectedAndReferencedString()
 	{
 		String str = "";
 		ArrayList<GUIProperty> gps = getValidSelectedProperties();
+		
+		//strings will contain all relevant named properties, first selected, then refernced
+		Vector<String> strings = new Vector<String>(); 
+		
+		for (GUIProperty p : gps) { 
+			//add even null
+			strings.add(p.getName());
+		}
+		
+		for (GUIProperty p : gps) { 
+			for (String s : p.getReferencedNames())
+				if (!strings.contains(s))
+					strings.add(s);
+		}
+		
+		Vector<GUIProperty> referencedProps = new Vector<GUIProperty>();
+
+		//turn referenced strings to props.
+		int i = gps.size();
+		while (i < strings.size()) {
+			GUIProperty p = getPropertyByName(strings.get(i));
+			if (p != null) {
+				referencedProps.add(p);
+				for (String s : p.getReferencedNames())
+					if (!strings.contains(s))
+						strings.add(s);
+			} //we don't need to care about null case, parser will find an error later.
+			i++;
+		}
+		
+		//add all named properties
+		String namedString = "";
+		//Add named properties
+		for (GUIProperty p : referencedProps) {
+				namedString += "\"" + p.getName() + "\" : " + p.getPropString() + "\n";
+		}
+		
 		for (GUIProperty gp : gps) {
+			if (gp.getName() != null) {
+				str += "\"" + gp.getName() + "\" : ";
+			}
 			str += gp.getPropString() + "\n";
 		}
-		return str;
+		return namedString + str;
 	}
 
 	/**
@@ -238,21 +310,36 @@ public class GUIPropertiesList extends JList implements KeyListener
 	}
 
 	/* UPDATE METHODS */
-
 	public void addProperty(String propString, String comment)
 	{
-		counter++;
-		GUIProperty gp = new GUIProperty(prism, "PROPERTY" + counter, propString, comment);
-		gp.parse(parent.getParsedModel(), parent.getConstantsString(), parent.getLabelsString());
-		listModel.addElement(gp);
+		if (propString.matches("\"[^\"]*\"[ ]*:.*")) {
+			//the string contains property name
+			int start = propString.indexOf('"') + 1;
+			int end = propString.indexOf('"', start);
+			String name = propString.substring(start,end);
+			int colon = propString.indexOf(':') + 1;
+			String actualPropString = propString.substring(colon).trim();
+			
+			addProperty(name, actualPropString, comment);
+		} else {
+			addProperty(null, propString, comment);
+		}
 	}
 
-	public void setProperty(int index, String propString, String comment)
+	public void addProperty(String name, String propString, String comment)
 	{
 		counter++;
-		GUIProperty gp = new GUIProperty(prism, "PROPERTY" + counter, propString, comment);
-		gp.parse(parent.getParsedModel(), parent.getConstantsString(), parent.getLabelsString());
+		GUIProperty gp = new GUIProperty(prism, this, "PROPERTY" + counter, propString, name, comment);
+		listModel.addElement(gp);
+		validateProperties();
+	}
+
+	public void setProperty(int index, String name, String propString, String comment)
+	{
+		counter++;
+		GUIProperty gp = new GUIProperty(prism, this, "PROPERTY" + counter, propString, name, comment);
 		listModel.setElementAt(gp, index);
+		validateProperties();
 	}
 
 	/** Used for pasting */
@@ -271,9 +358,10 @@ public class GUIPropertiesList extends JList implements KeyListener
 	public void addPropertiesFile(PropertiesFile pf)
 	{
 		for (int i = 0; i < pf.getNumProperties(); i++) {
+			String nam = pf.getPropertyName(i);
 			String str = pf.getProperty(i).toString();
 			String com = pf.getPropertyComment(i);
-			addProperty(str, com);
+			addProperty(nam, str, com);
 		}
 	}
 
@@ -282,6 +370,7 @@ public class GUIPropertiesList extends JList implements KeyListener
 		GUIProperty gp = getProperty(index);
 		if (!gp.isBeingEdited()) {
 			listModel.removeElementAt(index);
+			validateProperties();
 			return true;
 		} else
 			return false;
@@ -325,10 +414,28 @@ public class GUIPropertiesList extends JList implements KeyListener
 
 	public void validateProperties()
 	{
+		List<GUIProperty> list = new ArrayList<GUIProperty>();
 		for (int i = 0; i < getNumProperties(); i++) {
 			GUIProperty p = getProperty(i);
-			p.parse(parent.getParsedModel(), parent.getConstantsString(), parent.getLabelsString());
+			p.makeInvalid();
+			list.add(p);
 		}
+		
+		boolean changed;
+		do {
+			changed = false;
+			int i = 0;
+			while (i < list.size()) {
+				GUIProperty p = list.get(i);
+				p.parse(parent.getParsedModel(), parent.getConstantsString(), parent.getLabelsString());
+				if (p.isValid()) {
+					list.remove(i);
+					changed = true;
+				} else {
+					i++;
+				}
+			}
+		} while (changed && list.size() > 0);
 		// Force repaint because we modified a GUIProperty directly
 		repaint();
 	}
@@ -415,7 +522,7 @@ public class GUIPropertiesList extends JList implements KeyListener
 			toolTip = p.getToolTipText();
 
 			// text
-			setText(p.getPropString());
+			setText(p.toString());
 
 			// icon
 			setIcon(p.getImage());

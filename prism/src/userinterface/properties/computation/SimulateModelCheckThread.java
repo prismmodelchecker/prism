@@ -120,7 +120,7 @@ public class SimulateModelCheckThread extends GUIComputationThread
 					logln(": " + properties.get(0));
 				} else {
 					logln(" " + pf.getNumProperties() + " properties:");
-					for (int i = 0; i < pf.getNumProperties(); i++) {
+					for (int i = 0; i < properties.size(); i++) {
 						logln(" " + properties.get(i));
 					}
 				}

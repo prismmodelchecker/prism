@@ -28,11 +28,15 @@
 
 package userinterface.properties;
 
+import java.util.Vector;
+
 import javax.swing.*;
 
 import userinterface.GUIPrism;
 import parser.*;
 import parser.ast.*;
+import parser.visitor.FindAllProps;
+import parser.visitor.GetAllReferencedProperties;
 import prism.*;
 
 /**
@@ -91,12 +95,17 @@ public class GUIProperty
 
 	private String method; // Method used (verification, simulation)
 	private String constantsString; // Constant values used
+	private String name;
+	private Vector<String> referencedNames;
+	
+	private GUIPropertiesList propList; // to be able to get named properties
 
 	/** Creates a new instance of GUIProperty */
-	public GUIProperty(Prism prism, String id, String propString, String comment)
+	public GUIProperty(Prism prism, GUIPropertiesList propList, String id, String propString, String name, String comment)
 	{
 		this.prism = prism;
-
+		this.propList = propList;
+		
 		this.id = id;
 		status = STATUS_NOT_DONE;
 		doingImage = IMAGE_DOING;
@@ -105,6 +114,7 @@ public class GUIProperty
 		this.propString = propString;
 		expr = null;
 		this.comment = comment;
+		this.name = name;
 
 		result = null;
 		parseError = "";
@@ -155,6 +165,27 @@ public class GUIProperty
 	{
 		return propString;
 	}
+	
+	/**
+	 * Returns the name of this property, or {@code null} if the property
+	 * has no name.
+	 */
+	public String getName()
+	{
+		return this.name;
+	}
+	
+	/**
+	 * If the property is valid (see {@link #isValid()}), returns a
+	 * (potentialy empty) vector containing names of properties
+	 * this property references.
+	 * <p/>
+	 * If the property is not valid, returns {@code null}.
+	 */
+	public Vector<String> getReferencedNames()
+	{
+		return this.referencedNames;
+	}
 
 	public Expression getProperty()
 	{
@@ -174,6 +205,16 @@ public class GUIProperty
 		return expr != null;
 	}
 
+	/**
+	 * Forgets the validity state of the property, i.e. {@link #isValid()} will
+	 * be returning {@code false} until property is parsed OK again.
+	 * @return
+	 */
+	public void makeInvalid() {
+		this.expr = null;
+		this.referencedNames = null;
+	}
+	
 	/**
 	 * Is this property both valid (i.e. parsed OK last time it was checked)
 	 * and suitable approximate verification through simulation?
@@ -232,7 +273,7 @@ public class GUIProperty
 
 	public String toString()
 	{
-		return propString;
+		return ((this.name != null) ? ("\"" + this.name + "\" : ") : "") + propString;
 	}
 
 	//UPDATE METHODS
@@ -247,11 +288,12 @@ public class GUIProperty
 		doingImage = image;
 	}
 
-	public void setPropString(String propString, ModulesFile m, String constantsString, String labelString)
+	public void setPropStringAndName(String propString, String name, ModulesFile m, String constantsString, String labelString)
 	{
 		this.propString = propString;
+		this.name = name;
 		setStatus(STATUS_NOT_DONE);
-		parse(m, constantsString, labelString);
+		propList.validateProperties();
 	}
 
 	public void setComment(String comment)
@@ -327,14 +369,27 @@ public class GUIProperty
 			} catch (PrismException e) {
 				couldBeNoConstantsOrLabels = true;
 			}
+			
+			String namedString = "";
+			int namedCount = 0;
+			//Add named properties
+			for (GUIProperty namedProp : this.propList.getAllNamedProperties()) {
+				
+				if (namedProp.isValid() &&
+						(this.name == null || !this.name.equals(namedProp.getName()))) {
+					namedCount++;
+					namedString += "\"" + namedProp.getName() + "\" : " + namedProp.getPropString() + "\n";
+				}
+			}
+			
 			//Parse all together
-			String withConsLabs = constantsString + "\n" + labelString + "\n" + propString;
+			String withConsLabs = constantsString + "\n" + labelString + "\n" + namedString + propString;
 			PropertiesFile ff = prism.parsePropertiesString(m, withConsLabs);
-
+			
 			//Validation of number of properties
-			if (ff.getNumProperties() == 0)
+			if (ff.getNumProperties() <= namedCount)
 				throw new PrismException("Empty Property");
-			else if (ff.getNumProperties() > 1)
+			else if (ff.getNumProperties() > namedCount + 1)
 				throw new PrismException("Contains Multiple Properties");
 
 			//Validation of constants and labels
@@ -350,16 +405,37 @@ public class GUIProperty
 					throw new PrismException("Contains labels");
 			}
 			//Now set the property
-			expr = ff.getProperty(0);
+			expr = ff.getProperty(namedCount);
 			parseError = "(Unexpected) no error!";
 			// if status was previously a parse error, reset status.
 			// otherwise, don't set status - reparse doesn't mean existing results should be lost
 			if (getStatus() == STATUS_PARSE_ERROR)
 				setStatus(STATUS_NOT_DONE);
+			
+			//get the referenced names
+			this.referencedNames = new Vector<String>();
+			(new GetAllReferencedProperties(this.referencedNames, m, ff)).visit(ff.getPropertyObject(namedCount));
+			
 		} catch (PrismException ex) {
-			expr = null;
+			this.expr = null;
+			this.referencedNames = null;
 			setStatus(STATUS_PARSE_ERROR);
 			parseError = ex.getMessage();
 		}
+	}
+	
+	@Override
+	public int hashCode()
+	{
+		return (this.propString != null) ? this.propString.length() : 0;
+	}
+	
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (!(obj instanceof GUIProperty))
+			return false;
+		
+		return this.id.equals(((GUIProperty) obj).id);
 	}
 }
