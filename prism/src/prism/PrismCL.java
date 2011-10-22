@@ -610,7 +610,8 @@ public class PrismCL
 		mainLog.print("\n" + propertiesFile.getNumProperties());
 		mainLog.print(" propert" + ((propertiesFile.getNumProperties() == 1) ? "y" : "ies") + ":\n");
 		for (i = 0; i < propertiesFile.getNumProperties(); i++) {
-			mainLog.println("(" + (i + 1) + ") " + propertiesFile.getProperty(i));
+			String name = propertiesFile.getPropertyName(i);
+			mainLog.println("(" + (i + 1) + ") " + ((name != null) ? ("\"" + name + "\" : ") : "") + propertiesFile.getProperty(i));
 		}
 	}
 
