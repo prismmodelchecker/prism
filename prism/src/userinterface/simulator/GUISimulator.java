@@ -312,7 +312,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 
 			// if necessary, get values for undefined constants from user
-			// (just get contants needed for properties file labels)
+			// (for now, just get contants needed for properties file labels)
+			// TODO: also get constants for any (path) props we need, when this is re-enabled
 			UndefinedConstants uCon = new UndefinedConstants(parsedModel, pf, true);
 			if (uCon.getMFNumUndefined() + uCon.getPFNumUndefined() > 0) {
 				int result = GUIConstantsPicker.defineConstantsWithDialog(getGUI(), uCon, lastConstants, lastPropertyConstants);
@@ -676,10 +677,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		}
 
 		// TODO: fix and re-enable this (note: should use passed in properties file)
+		// (and make sure user is queried for any necessary undefined constants too) 
 		// Path formulas
 		GUISimPathFormulaeList thePathFormulaeList = (GUISimPathFormulaeList) pathFormulaeList;
 		thePathFormulaeList.clearList();
-		if (pathActive) {
+		if (1==2) if (pathActive) {
 			// Go through the property list from the Properties tab of GUI
 			GUIPropertiesList gpl = guiProp.getPropList();
 			for (int i = 0; i < gpl.getNumProperties(); i++) {
