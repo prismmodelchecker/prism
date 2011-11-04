@@ -83,7 +83,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 
 	// GUI
 	private GUIPrismFileFilter propsFilter[];
-	private GUIPrismFileFilter textFilter[];
+	private GUIPrismFileFilter resultsFilter[];
 	private JMenu propMenu;
 	private JPopupMenu propertiesPopup, constantsPopup, labelsPopup, experimentPopup;
 	private GUIExperimentTable experiments;
@@ -92,7 +92,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	private JLabel fileLabel;
 	private Vector clipboardVector;
 	private Action newProps, openProps, saveProps, savePropsAs, insertProps, verifySelected, newProperty, editProperty, newConstant, removeConstant, newLabel,
-			removeLabel, newExperiment, deleteExperiment, stopExperiment, viewResults, plotResults, exportResultsText, exportResultsMatrix,simulate, details;
+			removeLabel, newExperiment, deleteExperiment, stopExperiment, viewResults, plotResults,
+			exportResultsListText, exportResultsListCSV, exportResultsMatrixText, exportResultsMatrixCSV, simulate, details;
 
 	// Current properties
 	private GUIPropertiesList propList;
@@ -603,8 +604,10 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			plotResults.setEnabled(false);
 		}
 		// exportResults: enabled if at least one experiment is selected
-		exportResultsText.setEnabled(experiments.getSelectedRowCount() > 0);
-		exportResultsMatrix.setEnabled(experiments.getSelectedRowCount() > 0);
+		exportResultsListText.setEnabled(experiments.getSelectedRowCount() > 0);
+		exportResultsListCSV.setEnabled(experiments.getSelectedRowCount() > 0);
+		exportResultsMatrixText.setEnabled(experiments.getSelectedRowCount() > 0);
+		exportResultsMatrixCSV.setEnabled(experiments.getSelectedRowCount() > 0);
 	}
 
 	public int doModificationCheck()
@@ -999,7 +1002,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 
 	}
 
-	public void a_exportResults(boolean exportMatrix)
+	public void a_exportResults(boolean exportMatrix, String sep)
 	{
 		GUIExperiment exps[];
 		int i, n, inds[];
@@ -1013,9 +1016,9 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		for (i = 0; i < n; i++)
 			exps[i] = experiments.getExperiment(inds[i]);
 		// get filename to save
-		if (showSaveFileDialog(textFilter, textFilter[0]) == JFileChooser.APPROVE_OPTION) {
+		if (showSaveFileDialog(resultsFilter, sep.equals(", ") ? resultsFilter[1] : resultsFilter[0]) == JFileChooser.APPROVE_OPTION) {
 			File file = getChooserFile();
-			Thread t = new ExportResultsThread(this, exps, file, exportMatrix);
+			Thread t = new ExportResultsThread(this, exps, file, exportMatrix, sep);
 			t.setPriority(Thread.NORM_PRIORITY);
 			t.start();
 		}
@@ -1558,9 +1561,11 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		propsFilter[0] = new GUIPrismFileFilter("PRISM properties (*.pctl, *.csl)");
 		propsFilter[0].addExtension("pctl");
 		propsFilter[0].addExtension("csl");
-		textFilter = new GUIPrismFileFilter[1];
-		textFilter[0] = new GUIPrismFileFilter("Plain text files (*.txt)");
-		textFilter[0].addExtension("txt");
+		resultsFilter = new GUIPrismFileFilter[2];
+		resultsFilter[0] = new GUIPrismFileFilter("Plain text files (*.txt)");
+		resultsFilter[0].addExtension("txt");
+		resultsFilter[1] = new GUIPrismFileFilter("Comma-separated values (*.csv)");
+		resultsFilter[1].addExtension("csv");
 	}
 
 	private void createPopups()
@@ -1605,8 +1610,10 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		JMenu exportResultsMenu = new JMenu("Export results");
 		exportResultsMenu.setMnemonic('E');
 		exportResultsMenu.setIcon(GUIPrism.getIconFromImage("smallExport.png"));
-		exportResultsMenu.add(exportResultsText);
-		exportResultsMenu.add(exportResultsMatrix);
+		exportResultsMenu.add(exportResultsListText);
+		exportResultsMenu.add(exportResultsListCSV);
+		exportResultsMenu.add(exportResultsMatrixText);
+		exportResultsMenu.add(exportResultsMatrixCSV);
 		experimentPopup.add(exportResultsMenu);
 	}
 
@@ -1846,29 +1853,53 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		plotResults.putValue(Action.NAME, "Plot results");
 		plotResults.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileGraph.png"));
 
-		exportResultsText = new AbstractAction()
+		exportResultsListText = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportResults(false);
+				a_exportResults(false, "\t");
 			}
 		};
-		exportResultsText.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment to a text file");
-		exportResultsText.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_T));
-		exportResultsText.putValue(Action.NAME, "Text");
-		exportResultsText.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
+		exportResultsListText.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment to a text file");
+		exportResultsListText.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_L));
+		exportResultsListText.putValue(Action.NAME, "List (text)");
+		exportResultsListText.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
 
-		exportResultsMatrix = new AbstractAction()
+		exportResultsListCSV = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportResults(true);
+				a_exportResults(false, ", ");
 			}
 		};
-		exportResultsMatrix.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment to a file in matrix form");
-		exportResultsMatrix.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_M));
-		exportResultsMatrix.putValue(Action.NAME, "Matrix");
-		exportResultsMatrix.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
+		exportResultsListCSV.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment to a CSV file");
+		exportResultsListCSV.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_L));
+		exportResultsListCSV.putValue(Action.NAME, "List (CSV)");
+		exportResultsListCSV.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallMatrix.png"));
+
+		exportResultsMatrixText = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_exportResults(true, "\t");
+			}
+		};
+		exportResultsMatrixText.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment to a file in matrix form");
+		exportResultsMatrixText.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_M));
+		exportResultsMatrixText.putValue(Action.NAME, "Matrix (text)");
+		exportResultsMatrixText.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
+
+		exportResultsMatrixCSV = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_exportResults(true, ", ");
+			}
+		};
+		exportResultsMatrixCSV.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment to a file in matrix form");
+		exportResultsMatrixCSV.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_M));
+		exportResultsMatrixCSV.putValue(Action.NAME, "Matrix (CSV)");
+		exportResultsMatrixCSV.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallMatrix.png"));
 
 		stopExperiment = new AbstractAction()
 		{

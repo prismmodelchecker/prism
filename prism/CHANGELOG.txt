@@ -14,6 +14,7 @@ Changes:
 
 Ongoing changes:
 
+* CSV format for results export (GUI, not CL yet)
 * Handling of verbosity/warnings in log
 * Properties can be named, by prefixing with "name":, and reference each other
 * CTL AG/EF

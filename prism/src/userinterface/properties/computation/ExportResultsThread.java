@@ -39,6 +39,7 @@ public class ExportResultsThread extends Thread
 	private File f;
 	private Exception saveError;
 	private boolean exportMatrix; // export in matrix form?
+	private String sep; // string separating items
 	
 	/** Creates a new instance of ExportResultsThread */
 	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exp, File f)
@@ -48,6 +49,7 @@ public class ExportResultsThread extends Thread
 		this.exps[0] = exp;
 		this.f = f;
 		this.exportMatrix = false;
+		this.sep = " ";
 	}
 	
 	/** Creates a new instance of ExportResultsThread */
@@ -57,15 +59,17 @@ public class ExportResultsThread extends Thread
 		this.exps = exps;
 		this.f = f;
 		this.exportMatrix = false;
+		this.sep = " ";
 	}
 	
 	/** Creates a new instance of ExportResultsThread */
-	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exps[], File f, boolean exportMatrix)
+	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exps[], File f, boolean exportMatrix, String sep)
 	{
 		this.parent = parent;
 		this.exps = exps;
 		this.f = f;
 		this.exportMatrix = exportMatrix;
+		this.sep = sep;
 	}
 	
 	public void run()
@@ -86,11 +90,16 @@ public class ExportResultsThread extends Thread
 			n = exps.length;
 			for (i = 0; i < n; i++) {
 				if (i > 0) out.print("\n");
+				if (n > 1) {
+					if (sep.equals(", "))
+						out.print("\"" + exps[i].getPropertyString() + ":\"\n");
+					else
+						out.print(exps[i].getPropertyString() + ":\n");
+				}
 				if (!exportMatrix) {
-					out.print(exps[i].getPropertyString() + ":\n");
-					out.print(exps[i].getResults().toString(false, " ", " "));
+					out.print(exps[i].getResults().toString(false, sep, sep));
 				} else {
-					out.print(exps[i].getResults().toStringMatrix("\t"));
+					out.print(exps[i].getResults().toStringMatrix(sep));
 				}
 			}
 			out.flush();
