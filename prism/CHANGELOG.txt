@@ -3,21 +3,23 @@ including development and beta versions. For a less detailed overview
 of the main changes in each public release, see the file VERSIONS.txt.
 
 Latest changes (mostly reverse chronological):
-[correct wrt svn rev 3876]
+[correct wrt svn rev 4136]
 
 Changes:
 
+* Results can be exported in matrix form (e.g. for surface plots)
 * Can disable Prob0/Prob1 precomputation algorithms independently (-noprob0, -noprob1)
+* Bash completion scripts + additional syntax highlighters
+* Added PrismTest class to illustrate programmatic use of PRISM
 
 Ongoing changes:
 
 * Handling of verbosity/warnings in log
-* Bash completion scripts
 * Properties can be named, by prefixing with "name":, and reference each other
 * CTL AG/EF
 
 -----------------------------------------------------------------------------
-Version 4.0.2 (released ?)
+Version 4.0.2 (released 9/10/2011)
 -----------------------------------------------------------------------------
 
 * Better handling of undefined constants in properties
