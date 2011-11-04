@@ -38,6 +38,7 @@ public class ExportResultsThread extends Thread
 	private GUIExperiment exps[];
 	private File f;
 	private Exception saveError;
+	private boolean exportMatrix; // export in matrix form?
 	
 	/** Creates a new instance of ExportResultsThread */
 	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exp, File f)
@@ -46,6 +47,7 @@ public class ExportResultsThread extends Thread
 		this.exps = new GUIExperiment[1];
 		this.exps[0] = exp;
 		this.f = f;
+		this.exportMatrix = false;
 	}
 	
 	/** Creates a new instance of ExportResultsThread */
@@ -54,6 +56,16 @@ public class ExportResultsThread extends Thread
 		this.parent = parent;
 		this.exps = exps;
 		this.f = f;
+		this.exportMatrix = false;
+	}
+	
+	/** Creates a new instance of ExportResultsThread */
+	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exps[], File f, boolean exportMatrix)
+	{
+		this.parent = parent;
+		this.exps = exps;
+		this.f = f;
+		this.exportMatrix = exportMatrix;
 	}
 	
 	public void run()
@@ -74,8 +86,12 @@ public class ExportResultsThread extends Thread
 			n = exps.length;
 			for (i = 0; i < n; i++) {
 				if (i > 0) out.print("\n");
-				out.print(exps[i].getPropertyString() + ":\n");
-				out.print(exps[i].getResults().toString(false, " ", " "));
+				if (!exportMatrix) {
+					out.print(exps[i].getPropertyString() + ":\n");
+					out.print(exps[i].getResults().toString(false, " ", " "));
+				} else {
+					out.print(exps[i].getResults().toStringMatrix("\t"));
+				}
 			}
 			out.flush();
 			out.close();

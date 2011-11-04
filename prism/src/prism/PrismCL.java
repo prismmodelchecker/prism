@@ -61,6 +61,7 @@ public class PrismCL
 	private boolean exporttransdotstates = false;
 	private boolean exportbsccs = false;
 	private boolean exportresults = false;
+	private boolean exportresultsmatrix = false;
 	private boolean exportprism = false;
 	private boolean exportprismconst = false;
 	private boolean exportPlainDeprecated = false;
@@ -492,6 +493,8 @@ public class PrismCL
 		if (exportresults) {
 
 			mainLog.print("\nExporting results ");
+			if (exportresultsmatrix)
+				mainLog.print("in matrix form ");
 			if (!exportResultsFilename.equals("stdout"))
 				mainLog.println("to file \"" + exportResultsFilename + "\"...");
 			else
@@ -503,7 +506,11 @@ public class PrismCL
 			for (i = 0; i < numPropertiesToCheck; i++) {
 				if (i > 0)
 					tmpLog.println();
-				tmpLog.print(propertiesToCheck.get(i) + ":\n" + results[i].toString(false, " ", " "));
+				if (exportresultsmatrix) {
+					tmpLog.print(results[i].toStringMatrix("\t"));
+				} else {
+					tmpLog.print(propertiesToCheck.get(i) + ":\n" + results[i].toString(false, " ", " "));
+				}
 			}
 			tmpLog.close();
 		}
@@ -1237,6 +1244,16 @@ public class PrismCL
 				else if (sw.equals("exportresults")) {
 					if (i < args.length - 1) {
 						exportresults = true;
+						exportResultsFilename = args[++i];
+					} else {
+						errorAndExit("No file specified for -" + sw + " switch");
+					}
+				}
+				// export results, in matrix form
+				else if (sw.equals("exportresultsmatrix")) {
+					if (i < args.length - 1) {
+						exportresults = true;
+						exportresultsmatrix = true;
 						exportResultsFilename = args[++i];
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");

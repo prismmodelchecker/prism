@@ -92,7 +92,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	private JLabel fileLabel;
 	private Vector clipboardVector;
 	private Action newProps, openProps, saveProps, savePropsAs, insertProps, verifySelected, newProperty, editProperty, newConstant, removeConstant, newLabel,
-			removeLabel, newExperiment, deleteExperiment, stopExperiment, viewResults, plotResults, exportResults, simulate, details;
+			removeLabel, newExperiment, deleteExperiment, stopExperiment, viewResults, plotResults, exportResultsText, exportResultsMatrix,simulate, details;
 
 	// Current properties
 	private GUIPropertiesList propList;
@@ -603,7 +603,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			plotResults.setEnabled(false);
 		}
 		// exportResults: enabled if at least one experiment is selected
-		exportResults.setEnabled(experiments.getSelectedRowCount() > 0);
+		exportResultsText.setEnabled(experiments.getSelectedRowCount() > 0);
+		exportResultsMatrix.setEnabled(experiments.getSelectedRowCount() > 0);
 	}
 
 	public int doModificationCheck()
@@ -998,7 +999,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 
 	}
 
-	public void a_exportResults()
+	public void a_exportResults(boolean exportMatrix)
 	{
 		GUIExperiment exps[];
 		int i, n, inds[];
@@ -1014,7 +1015,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		// get filename to save
 		if (showSaveFileDialog(textFilter, textFilter[0]) == JFileChooser.APPROVE_OPTION) {
 			File file = getChooserFile();
-			Thread t = new ExportResultsThread(this, exps, file);
+			Thread t = new ExportResultsThread(this, exps, file, exportMatrix);
 			t.setPriority(Thread.NORM_PRIORITY);
 			t.start();
 		}
@@ -1601,8 +1602,12 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		experimentPopup.add(new JSeparator());
 		experimentPopup.add(viewResults);
 		experimentPopup.add(plotResults);
-		experimentPopup.add(exportResults);
-
+		JMenu exportResultsMenu = new JMenu("Export results");
+		exportResultsMenu.setMnemonic('E');
+		exportResultsMenu.setIcon(GUIPrism.getIconFromImage("smallExport.png"));
+		exportResultsMenu.add(exportResultsText);
+		exportResultsMenu.add(exportResultsMatrix);
+		experimentPopup.add(exportResultsMenu);
 	}
 
 	private void setupActions()
@@ -1841,17 +1846,29 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		plotResults.putValue(Action.NAME, "Plot results");
 		plotResults.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileGraph.png"));
 
-		exportResults = new AbstractAction()
+		exportResultsText = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportResults();
+				a_exportResults(false);
 			}
 		};
-		exportResults.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment to a file");
-		exportResults.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_E));
-		exportResults.putValue(Action.NAME, "Export results");
-		exportResults.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.png"));
+		exportResultsText.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment to a text file");
+		exportResultsText.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_T));
+		exportResultsText.putValue(Action.NAME, "Text");
+		exportResultsText.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
+
+		exportResultsMatrix = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_exportResults(true);
+			}
+		};
+		exportResultsMatrix.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment to a file in matrix form");
+		exportResultsMatrix.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_M));
+		exportResultsMatrix.putValue(Action.NAME, "Matrix");
+		exportResultsMatrix.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
 
 		stopExperiment = new AbstractAction()
 		{
