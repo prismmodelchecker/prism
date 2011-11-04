@@ -7,7 +7,7 @@ Latest changes (mostly reverse chronological):
 
 Changes:
 
-* Results can be exported in matrix form (e.g. for surface plots)
+* Export of results in matrix form, e.g. for surface plots (-exportresultsmatrix)
 * Can disable Prob0/Prob1 precomputation algorithms independently (-noprob0, -noprob1)
 * Bash completion scripts + additional syntax highlighters
 * Added PrismTest class to illustrate programmatic use of PRISM
