@@ -101,7 +101,9 @@ public class ResultsCollection
 		return resultName;
 	}
 
-	/** Sets the result for a particular set of values. */
+	/**
+	 * Sets the result for a particular set of values.
+	 */
 	public int setResult(Values values, Object result) throws PrismException
 	{
 		// store result
@@ -120,7 +122,9 @@ public class ResultsCollection
 		return ret;
 	}
 
-	/** Sets the result for a particular set of values. */
+	/**
+	 * Sets the result for a particular set of values.
+	 */
 	public int setResult(Values mfValues, Values pfValues, Object result) throws PrismException
 	{
 		// merge mfValues and pfValues
@@ -137,8 +141,8 @@ public class ResultsCollection
 	  * If any constants are left undefined, the same error will be set for all values of each constant.
 	  * Returns the total number of values which were set for the the first time.
 	  * Note: individual errors can be set using setResult(). That method could easily be adapted to store
-	  * multiple values but the DisplayableData aspect isn't sorted yet. */
-
+	  * multiple values but the DisplayableData aspect isn't sorted yet.
+	  */
 	public int setMultipleErrors(Values values, Exception error) throws PrismException
 	{
 		// store result
@@ -155,8 +159,8 @@ public class ResultsCollection
 	  * If any constants are left undefined, the same error will be set for all values of each constant.
 	  * Returns the total number of values which were set for the the first time.
 	  * Note: individual errors can be set using setResult(). That method could easily be adapted to store
-	  * multiple values but the DisplayableData aspect isn't sorted yet. */
-
+	  * multiple values but the DisplayableData aspect isn't sorted yet.
+	  */
 	public int setMultipleErrors(Values mfValues, Values pfValues, Exception error) throws PrismException
 	{
 		// merge mfValues and pfValues
@@ -169,19 +173,25 @@ public class ResultsCollection
 		return setMultipleErrors(merged, error);
 	}
 
-	/** Access a stored result */
+	/**
+	 * Access a stored result
+	 */
 	public Object getResult(Values val) throws PrismException
 	{
 		return root.getResult(val);
 	}
 
-	/** See if there were any errors */
+	/**
+	 * See if there were any errors
+	 */
 	public boolean containsErrors()
 	{
 		return anyErrors;
 	}
 
-	/** Create array of headings */
+	/**
+	 * Create array of headings
+	 */
 	public String[] getHeadingsArray()
 	{
 		int i;
@@ -196,29 +206,37 @@ public class ResultsCollection
 		return res;
 	}
 
-	/** Create ArrayList based repesentation of the data */
+	/**
+	 * Create ArrayList based representation of the data
+	 */
 	public ArrayList toArrayList()
 	{
 		return root.toArrayList();
 	}
 
-	/** Create string representation of the data */
+	/**
+	 * Create string representation of the data
+	 */
 	public String toString()
 	{
 		return toString(false, ",", ",", true);
 	}
 
-	/** Create string representation of the data */
+	/**
+	 * Create string representation of the data
+	 */
 	public String toString(boolean pv, String sep, String eq)
 	{
 		return toString(pv, sep, eq, true);
 	}
 
-	/** Create string representation of the data
-	  * @param pv Print the variables in each row?
-	  * @param sep String for separating values
-	  * @param eq String for seperating values and result
-	  * @param header Add a header? */
+	/**
+	 * Create string representation of the data
+	 * @param pv Print the variables in each row?
+	 * @param sep String for separating values
+	 * @param eq String for separating values and result
+	 * @param header Add a header?
+	 */
 	public String toString(boolean pv, String sep, String eq, boolean header)
 	{
 		int i;
@@ -242,12 +260,14 @@ public class ResultsCollection
 		return s;
 	}
 
-	/** Create string representation of the data for a partial evaluation
-	  * @param partial Values for a subset of the constants
-	  * @param pv Print the variables in each row?
-	  * @param sep String for separating values
-	  * @param eq String for seperating values and result
-	  * @param header Add a header showing the constant names? */
+	/**
+	 * Create string representation of the data for a partial evaluation
+	 * @param partial Values for a subset of the constants
+	 * @param pv Print the variables in each row?
+	 * @param sep String for separating values
+	 * @param eq String for separating values and result
+	 * @param header Add a header showing the constant names?
+	 */
 	public String toStringPartial(Values partial, boolean pv, String sep, String eq, boolean header) throws PrismException
 	{
 		int i;
@@ -288,7 +308,21 @@ public class ResultsCollection
 		return s;
 	}
 
-	// data structure to store result collection (internal classes)
+	/**
+	 * Create string representation of the data as a 2D matrix
+	 * @param sep String for separating values
+	 */
+	public String toStringMatrix(String sep)
+	{
+		String s = "";
+
+		// create matrix
+		s += root.toStringMatrix(sep);
+
+		return s;
+	}
+
+	// Data structure to store result collection (internal classes)
 
 	private class TreeNode
 	{
@@ -296,13 +330,17 @@ public class ResultsCollection
 		private DefinedConstant constant;
 		private TreeNode kids[];
 
-		/** Empty constructor */
-		/* Required by subclass */
+		/**
+		 * Empty constructor
+		 * (required by subclass)
+		 */
 		public TreeNode()
 		{
 		}
 
-		/** Actual constructor (recursive) */
+		/**
+		 * Actual constructor (recursive)
+		 */
 		public TreeNode(int l)
 		{
 			int i, n;
@@ -317,9 +355,11 @@ public class ResultsCollection
 			}
 		}
 
-		/** Sets the result for a particular set of values in the data structure.
-		  * If any constants are left undefined, the same result will be set for all values of each constant.
-		  * Returns the total number of values which were set for the the first time. */
+		/**
+		 * Sets the result for a particular set of values in the data structure.
+		 * If any constants are left undefined, the same result will be set for all values of each constant.
+		 * Returns the total number of values which were set for the the first time.
+		 */
 		public int setResult(Values setThese, Object result) throws PrismException
 		{
 			Object val;
@@ -345,7 +385,9 @@ public class ResultsCollection
 			}
 		}
 
-		/** Get a result from the data structure */
+		/**
+		 * Get a result from the data structure
+		 */
 		public Object getResult(Values getThese) throws PrismException
 		{
 			Object val;
@@ -359,7 +401,9 @@ public class ResultsCollection
 			return kids[valIndex].getResult(getThese);
 		}
 
-		/** Create ArrayList representation of the data */
+		/**
+		 * Create ArrayList representation of the data
+		 */
 		public ArrayList toArrayList()
 		{
 			ArrayList a = new ArrayList();
@@ -371,8 +415,6 @@ public class ResultsCollection
 		public void toArrayListRec(ArrayList a, String line[])
 		{
 			int i, n;
-			String res, s;
-
 			n = constant.getNumSteps();
 			for (i = 0; i < n; i++) {
 				line[level] = constant.getValue(i).toString();
@@ -380,16 +422,20 @@ public class ResultsCollection
 			}
 		}
 
-		/** Create string representation of the data */
+		/**
+		 * Create string representation of the data
+		 */
 		public String toString()
 		{
 			return toString(false, ",", ",");
 		}
 
-		/** Create string representation of the data
-		  * @param pv Print the variables in each row?
-		  * @param sep String for separating values
-		  * @param eq String for seperating values and result */
+		/**
+		 * Create string representation of the data
+		 * @param pv Print the variables in each row?
+		 * @param sep String for separating values
+		 * @param eq String for separating values and result
+		 */
 		public String toString(boolean pv, String sep, String eq)
 		{
 			return toStringRec(pv, sep, eq, "");
@@ -415,11 +461,13 @@ public class ResultsCollection
 			return res;
 		}
 
-		/** Create string representation of the data for a partial evaluation
-		  * @param partial Values for a subset of the constants
-		  * @param pv Print the variables in each row?
-		  * @param sep String for separating values
-		  * @param eq String for seperating values and result */
+		/**
+		 * Create string representation of the data for a partial evaluation
+		 * @param partial Values for a subset of the constants
+		 * @param pv Print the variables in each row?
+		 * @param sep String for separating values
+		 * @param eq String for separating values and result
+		 */
 		public String toStringPartial(Values partial, boolean pv, String sep, String eq) throws PrismException
 		{
 			return toStringPartialRec(partial, true, pv, sep, eq, "");
@@ -457,6 +505,47 @@ public class ResultsCollection
 
 			return res;
 		}
+
+		/**
+		 * Create string representation of the data as one or more 2D matrices
+		 * @param sep String for separating values
+		 */
+		public String toStringMatrix(String sep)
+		{
+			return toStringMatrixRec(sep);
+		}
+
+		public String toStringMatrixRec(String sep)
+		{
+			int i, n;
+			String res;
+
+			res = "";
+			n = constant.getNumSteps();
+			// Print top row of values
+			if (rangingConstants.size() - level == 2 && n > 0) {
+				TreeNode child = kids[0];
+				int nChild = child.constant.getNumSteps();
+				for (i = 0; i < nChild; i++) {
+					res += sep + child.constant.getValue(i);
+				}
+				res += "\n";
+			}
+			for (i = 0; i < n; i++) {
+				// Print first item of row: value
+				if (rangingConstants.size() - level == 2)
+					res += constant.getValue(i);
+				res += kids[i].toStringMatrixRec(sep);
+				// Print new line after row
+				if (rangingConstants.size() - level == 2)
+					res += "\n";
+			}
+			// Print gaps between matrices
+			if (rangingConstants.size() - level == 2)
+				res += "\n";
+
+			return res;
+		}
 	}
 
 	private class TreeLeaf extends TreeNode
@@ -473,6 +562,11 @@ public class ResultsCollection
 		public Object getResult(Values getThese) throws PrismException
 		{
 			return val;
+		}
+
+		public String toStringMatrixRec(String sep)
+		{
+			return sep + val;
 		}
 
 		public String toStringRec(boolean pv, String sep, String eq, String head)
