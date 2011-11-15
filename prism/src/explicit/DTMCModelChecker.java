@@ -577,6 +577,13 @@ public class DTMCModelChecker extends ProbModelChecker
 		mainLog.print("Value iteration");
 		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
 
+		// Non-convergence is an error
+		if (!done) {
+			String msg = "Iterative method did not converge within " + iters + " iterations.";
+			msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
+			throw new PrismException(msg);
+		}
+		
 		// Return results
 		res = new ModelCheckerResult();
 		res.soln = soln;
@@ -654,6 +661,13 @@ public class DTMCModelChecker extends ProbModelChecker
 		mainLog.print("Gauss-Seidel");
 		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
 
+		// Non-convergence is an error
+		if (!done) {
+			String msg = "Iterative method did not converge within " + iters + " iterations.";
+			msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
+			throw new PrismException(msg);
+		}
+		
 		// Return results
 		res = new ModelCheckerResult();
 		res.soln = soln;
@@ -919,6 +933,13 @@ public class DTMCModelChecker extends ProbModelChecker
 		mainLog.print("Value iteration");
 		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
 
+		// Non-convergence is an error
+		if (!done) {
+			String msg = "Iterative method did not converge within " + iters + " iterations.";
+			msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
+			throw new PrismException(msg);
+		}
+		
 		// Return results
 		res = new ModelCheckerResult();
 		res.soln = soln;
@@ -979,6 +1000,13 @@ public class DTMCModelChecker extends ProbModelChecker
 		mainLog.print("Value iteration");
 		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
 
+		// Non-convergence is an error
+		if (!done) {
+			String msg = "Iterative method did not converge within " + iters + " iterations.";
+			msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
+			throw new PrismException(msg);
+		}
+		
 		// Return results
 		res = new ModelCheckerResult();
 		res.soln = soln;
