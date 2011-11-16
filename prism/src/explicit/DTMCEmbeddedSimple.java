@@ -45,8 +45,6 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 {
 	// Parent CTMC
 	protected CTMCSimple ctmc;
-	// Also store num states for easy access
-	protected int numStates;
 	// Exit rates vector
 	protected double exitRates[];
 	// Number of extra transitions added (just for stats)
@@ -59,6 +57,7 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 	{
 		this.ctmc = ctmc;
 		this.numStates = ctmc.getNumStates();
+		// TODO: should we copy other stuff across too?
 		exitRates = new double[numStates];
 		numExtraTransitions = 0;
 		for (int i = 0; i < numStates; i++) {
