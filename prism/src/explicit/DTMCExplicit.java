@@ -206,6 +206,15 @@ public abstract class DTMCExplicit extends ModelExplicit implements DTMC
 				maxDiff = diff > maxDiff ? diff : maxDiff;
 				vect[s] = d;
 			}
+			// Use this code instead for backwards Gauss-Seidel
+			/*for (s = numStates - 1; s >= 0; s--) {
+				if (subset.get(s)) {
+					d = mvMultJacSingle(s, vect);
+					diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+					maxDiff = diff > maxDiff ? diff : maxDiff;
+					vect[s] = d;
+				}
+			}*/
 		}
 		return maxDiff;
 	}
