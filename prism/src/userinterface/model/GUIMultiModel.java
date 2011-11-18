@@ -412,7 +412,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		newPRISMModel.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
 		newPRISMModel.putValue(Action.NAME, "PRISM model");
 		newPRISMModel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFilePrism.png"));
-		newPRISMModel.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_MASK));
+		newPRISMModel.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_N, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		
 		newGraphicModel = new AbstractAction()
 		{
@@ -459,7 +459,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		loadModel.putValue(Action.NAME, "Open model...");
 		//loadModel.putValue(Action.ACTION_COMMAND_KEY,
 		loadModel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallOpen.png"));
-		loadModel.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_MASK));
+		loadModel.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		
 		reloadModel = new AbstractAction()
 		{
@@ -474,7 +474,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		reloadModel.putValue(Action.NAME, "Reload model");
 		//loadModel.putValue(Action.ACTION_COMMAND_KEY,
 		reloadModel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallReload.png"));
-		reloadModel.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_MASK));
+		reloadModel.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_R, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		
 		saveModel = new AbstractAction()
 		{
@@ -487,7 +487,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		//saveModel.putValue(Action.SHORT_DESCRIPTION, "Save Model");
 		saveModel.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_S));
 		saveModel.putValue(Action.NAME, "Save model");
-		saveModel.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
+		saveModel.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		//saveModel.putValue(Action.ACTION_COMMAND_KEY,
 		saveModel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallSave.png"));
 		

@@ -1632,7 +1632,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		newProps.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_N));
 		newProps.putValue(Action.NAME, "New properties list");
 		newProps.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallNew.png"));
-		newProps.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
+		newProps.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_N, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | InputEvent.SHIFT_MASK));
 
 		openProps = new AbstractAction()
 		{
@@ -1646,7 +1646,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		openProps.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_O));
 		openProps.putValue(Action.NAME, "Open properties list...");
 		openProps.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallOpen.png"));
-		openProps.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
+		openProps.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | InputEvent.SHIFT_MASK));
 
 		saveProps = new AbstractAction()
 		{
@@ -1661,7 +1661,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		saveProps.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_S));
 		saveProps.putValue(Action.NAME, "Save properties list");
 		saveProps.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallSave.png"));
-		saveProps.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
+		saveProps.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | InputEvent.SHIFT_MASK));
 
 		savePropsAs = new AbstractAction()
 		{

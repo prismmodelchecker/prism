@@ -290,7 +290,7 @@ public class GUIPrism extends JFrame
                 nextTab();
             }
         };
-        tabSwapper.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.CTRL_MASK));
+        tabSwapper.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_TAB, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
         
         prismOptions = new AbstractAction()
         {
@@ -318,7 +318,7 @@ public class GUIPrism extends JFrame
         fontIncrease.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_I));
         fontIncrease.putValue(Action.NAME, "Increase font size");
         fontIncrease.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFontIncrease.png"));
-		fontIncrease.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
+		fontIncrease.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | InputEvent.SHIFT_MASK));
         
         optionsMenu.add(fontIncrease);
         optionsMenu.setMnemonic('I');
@@ -334,7 +334,7 @@ public class GUIPrism extends JFrame
         fontDecrease.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_D));
         fontDecrease.putValue(Action.NAME, "Decrease font size");
         fontDecrease.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFontDecrease.png"));
-		fontDecrease.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, InputEvent.CTRL_MASK));
+		fontDecrease.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
         
         optionsMenu.add(fontDecrease);
         optionsMenu.setMnemonic('D');

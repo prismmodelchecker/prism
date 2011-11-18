@@ -109,7 +109,7 @@ public class SeriesEditorDialog extends JDialog
 		//exitAction.putValue(Action.SHORT_DESCRIPTION, "Exit");
 		cut.putValue(Action.NAME, "Cut");
 		cut.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallCut.png"));
-		//cut.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_X, InputEvent.CTRL_MASK));
+		//cut.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		
 		AbstractAction copy = new AbstractAction()
 		{
@@ -122,7 +122,7 @@ public class SeriesEditorDialog extends JDialog
 		//exitAction.putValue(Action.SHORT_DESCRIPTION, "Exit");
 		copy.putValue(Action.NAME, "Copy");
 		copy.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallCopy.png"));
-		//copy.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_MASK));
+		//copy.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		
 		AbstractAction paste = new AbstractAction()
 		{
@@ -135,7 +135,7 @@ public class SeriesEditorDialog extends JDialog
 		//exitAction.putValue(Action.SHORT_DESCRIPTION, "Exit");
 		paste.putValue(Action.NAME, "Paste");
 		paste.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPaste.png"));
-		//paste.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_MASK));
+		//paste.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		
 		AbstractAction delete = new AbstractAction()
 		{
@@ -443,9 +443,9 @@ public class SeriesEditorDialog extends JDialog
 			InputMap im =  this.table.getInputMap();
 			ActionMap am = this.table.getActionMap();
 			
-			im.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, InputEvent.CTRL_MASK), "cut");
-			im.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_MASK), "copy");
-			im.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_MASK), "paste");
+			im.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()), "cut");
+			im.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()), "copy");
+			im.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()), "paste");
 			im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
 			
 			am.put("cut", cut);

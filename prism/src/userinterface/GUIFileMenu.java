@@ -30,6 +30,8 @@ package userinterface;
 import javax.swing.JMenu;
 import javax.swing.Action;
 import javax.swing.AbstractAction;
+
+import java.awt.Toolkit;
 import java.awt.event.*;
 import javax.swing.*;
 
@@ -110,7 +112,7 @@ public class GUIFileMenu extends GUIPlugin
         exitAction.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_X));
         exitAction.putValue(Action.NAME, "Exit");
         exitAction.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExit.png"));
-        exitAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_MASK));
+        exitAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Q, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
         menu.add(exitAction);
     }
     

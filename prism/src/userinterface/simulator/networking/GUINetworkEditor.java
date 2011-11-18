@@ -577,7 +577,7 @@ public class GUINetworkEditor extends JDialog implements TreeSelectionListener, 
 		cut.putValue(Action.NAME, "Cut");
 		cut.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_T));
 		cut.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallCut.png"));
-		cut.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_X, InputEvent.CTRL_MASK));
+		cut.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		
 		copy = new AbstractAction()
 		{
@@ -591,7 +591,7 @@ public class GUINetworkEditor extends JDialog implements TreeSelectionListener, 
 		copy.putValue(Action.NAME, "Copy");
 		copy.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_C));
 		copy.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallCopy.png"));
-		copy.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_MASK));
+		copy.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		
 		paste = new AbstractAction()
 		{
@@ -605,7 +605,7 @@ public class GUINetworkEditor extends JDialog implements TreeSelectionListener, 
 		paste.putValue(Action.NAME, "Paste");
 		paste.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
 		paste.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPaste.png"));
-		paste.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_MASK));
+		paste.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		
 		delete = new AbstractAction()
 		{
@@ -711,7 +711,7 @@ public class GUINetworkEditor extends JDialog implements TreeSelectionListener, 
 		save.putValue(Action.NAME, "Save Profile");
 		save.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_S));
 		save.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallSave.png"));
-		save.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
+		save.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		
 		saveAs = new AbstractAction()
 		{
@@ -725,7 +725,7 @@ public class GUINetworkEditor extends JDialog implements TreeSelectionListener, 
 		saveAs.putValue(Action.NAME, "Save Profile As...");
 		saveAs.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_S));
 		saveAs.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallSaveAs.png"));
-		saveAs.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.CTRL_MASK));
+		saveAs.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		
 		close = new AbstractAction()
 		{

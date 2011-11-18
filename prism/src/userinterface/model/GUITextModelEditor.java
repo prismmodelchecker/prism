@@ -219,15 +219,15 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 	    InputMap inputMap = editor.getInputMap();	
 	    inputMap.clear();
 	
-	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, java.awt.event.InputEvent.CTRL_MASK), "prism_undo");
-	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, java.awt.event.InputEvent.CTRL_MASK), "prism_undo");
-	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, java.awt.event.InputEvent.CTRL_MASK), "prism_redo");
-	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, java.awt.event.InputEvent.CTRL_MASK), "prism_selectall");
-	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, java.awt.event.InputEvent.CTRL_MASK), "prism_delete");
-	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, java.awt.event.InputEvent.CTRL_MASK), "prism_cut");
-	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, java.awt.event.InputEvent.CTRL_MASK | java.awt.event.InputEvent.SHIFT_MASK), "prism_redo");
-	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, java.awt.event.InputEvent.CTRL_MASK), "prism_paste");
-	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_E, java.awt.event.InputEvent.CTRL_MASK), "prism_jumperr");
+	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()), "prism_undo");
+	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()), "prism_undo");
+	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()), "prism_redo");
+	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()), "prism_selectall");
+	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()), "prism_delete");
+	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()), "prism_cut");
+	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | java.awt.event.InputEvent.SHIFT_MASK), "prism_redo");
+	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()), "prism_paste");
+	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_E, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()), "prism_jumperr");
 	    
 		ActionMap actionMap = editor.getActionMap();
 		actionMap.put("prism_undo", GUIPrism.getClipboardPlugin().getUndoAction());
@@ -347,7 +347,7 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 		
 		actionJumpToError.putValue(Action.NAME, "Jump to error");
 		actionJumpToError.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("tinyError.png"));
-		actionJumpToError.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_MASK));
+		actionJumpToError.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_E, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		
 		
 		// search and replace action
@@ -372,7 +372,7 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
         actionSearch.putValue(Action.LONG_DESCRIPTION, "Opens a find and replace dialog.");
         //actionSearch.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("find.png"));
         actionSearch.putValue(Action.NAME, "Find/Replace");
-        //actionSearch.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_MASK));
+        //actionSearch.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_R, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
         
         insertDTMC = new AbstractAction() {
         	public void actionPerformed(ActionEvent ae) {
