@@ -11,6 +11,7 @@ Changes:
 * Can disable Prob0/Prob1 precomputation algorithms independently (-noprob0, -noprob1)
 * Bash completion scripts + additional syntax highlighters
 * Added PrismTest class to illustrate programmatic use of PRISM
+* GUI on Macs uses Cmd, not Ctrl
 
 Ongoing changes:
 
