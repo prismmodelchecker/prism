@@ -1466,13 +1466,17 @@ cuddUniqueConst(
     // this is the new version...
     // (round off before doing hash function to ensure
     //  close valued constants are in the same table)
-    trunc = 10000000000.0; // 10^10
-    m = value * trunc;
-    n = floor(m);
-    if (m-n >= 0.5) 
-        n = n + 1;
-    n = n / trunc;
-    split.value = n;
+    if (isfinite(value)) {
+		trunc = 10000000000.0; // 10^10
+		m = value * trunc;
+		n = floor(m);
+		if (m-n >= 0.5) 
+			n = n + 1;
+		n = n / trunc;
+		split.value = n;
+	} else {
+	    split.value = value;
+	}
 
     pos = ddHash(split.bits[0], split.bits[1], unique->constants.shift);
     nodelist = unique->constants.nodelist;
