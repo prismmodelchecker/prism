@@ -533,7 +533,7 @@ public class Modules2MTBDD
 			break;
 			
 		default:
-			mainLog.printWarning("Invalid MTBDD ordering selected - it's all going to go wrong.\n");
+			mainLog.printWarning("Invalid MTBDD ordering selected - it's all going to go wrong.");
 			break;
 		}
 		
@@ -1449,7 +1449,7 @@ public class Modules2MTBDD
 				if (guardDDs[l].equals(JDD.ZERO)) {
 					// display a warning (unless guard is "false", in which case was probably intentional
 					if (!Expression.isFalse(command.getGuard())) {
-						String s = "Guard for command " + (l+1) + " of module \"" + module.getName() + "\" is never satisfied.\n";
+						String s = "Guard for command " + (l+1) + " of module \"" + module.getName() + "\" is never satisfied.";
 						mainLog.printWarning(s);
 					}
 					// no point bothering to compute the mtbdds for the update
@@ -1606,7 +1606,7 @@ public class Modules2MTBDD
 			if (!(tmp.equals(JDD.ZERO))) {
 				// if so, output a warning (but carry on regardless)
 				mainLog.printWarning("Guard for command " + (i+1) + " of module \""
-					+ moduleNames[m] + "\" overlaps with previous commands.\n");
+					+ moduleNames[m] + "\" overlaps with previous commands.");
 			}
 			JDD.Deref(tmp);
 			// add this command's guard to 'covered'

@@ -755,7 +755,7 @@ public class PrismCL
 				}
 				// if requested, remove them
 				else if (fixdl) {
-					mainLog.printWarning(states.size() + " deadlock states detected; adding self-loops in these states...\n");
+					mainLog.printWarning(states.size() + " deadlock states detected; adding self-loops in these states...");
 					model.fixDeadlocks();
 				}
 				// otherwise print error and bail out

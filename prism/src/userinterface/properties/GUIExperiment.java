@@ -285,7 +285,7 @@ public class GUIExperiment
 						StateList states = model.getDeadlockStates();
 						if (states != null) {
 							if (states.size() > 0) {
-								guiProp.log("\nWarning: " + states.size() + " deadlock states detected; adding self-loops in these states...\n");
+								guiProp.logWarning(states.size() + " deadlock states detected; adding self-loops in these states...");
 								model.fixDeadlocks();
 							}
 						}

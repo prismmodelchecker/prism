@@ -177,11 +177,11 @@ public class NondetModelChecker extends NonProbModelChecker
 		// Check for trivial (i.e. stupid) cases
 		if (pb != null) {
 			if ((p == 0 && relOp.equals(">=")) || (p == 1 && relOp.equals("<="))) {
-				mainLog.printWarning("Checking for probability " + relOp + " " + p + " - formula trivially satisfies all states\n");
+				mainLog.printWarning("Checking for probability " + relOp + " " + p + " - formula trivially satisfies all states");
 				JDD.Ref(reach);
 				return new StateValuesMTBDD(reach, model);
 			} else if ((p == 0 && relOp.equals("<")) || (p == 1 && relOp.equals(">"))) {
-				mainLog.printWarning("Checking for probability " + relOp + " " + p + " - formula trivially satisfies no states\n");
+				mainLog.printWarning("Checking for probability " + relOp + " " + p + " - formula trivially satisfies no states");
 				return new StateValuesMTBDD(JDD.Constant(0), model);
 			}
 		}
@@ -269,11 +269,11 @@ public class NondetModelChecker extends NonProbModelChecker
 		// check for trivial (i.e. stupid) cases
 		if (rb != null) {
 			if (r == 0 && relOp.equals(">=")) {
-				mainLog.printWarning("Checking for reward " + relOp + " " + r + " - formula trivially satisfies all states\n");
+				mainLog.printWarning("Checking for reward " + relOp + " " + r + " - formula trivially satisfies all states");
 				JDD.Ref(reach);
 				return new StateValuesMTBDD(reach, model);
 			} else if (r == 0 && relOp.equals("<")) {
-				mainLog.printWarning("Checking for reward " + relOp + " " + r + " - formula trivially satisfies no states\n");
+				mainLog.printWarning("Checking for reward " + relOp + " " + r + " - formula trivially satisfies no states");
 				return new StateValuesMTBDD(JDD.Constant(0), model);
 			}
 		}
@@ -670,7 +670,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		// if requested (i.e. when prob bound is 0 or 1 and precomputation algorithms are enabled),
 		// compute probabilities qualitatively
 		if (qual) {
-			mainLog.printWarning("Probability bound in formula is" + " 0/1 so exact probabilities may not be computed\n");
+			mainLog.print("\nProbability bound in formula is 0/1 so not computing exact probabilities...\n");
 			// for fairness, we compute max here
 			probs = computeUntilProbsQual(trans01, newb1, newb2, min && !fairness);
 		}

@@ -1357,12 +1357,12 @@ public class Prism implements PrismSettingsListener
 		
 		// can only do ordered version of export for MDPs
 		if (model.getModelType() == ModelType.MDP) {
-			if (!ordered) mainLog.printWarning("Cannot export unordered transition reward matrix for MDPs; using ordered");
+			if (!ordered) mainLog.printWarning("Cannot export unordered transition reward matrix for MDPs; using ordered.");
 			ordered = true;
 		}
 		// can only do ordered version of export for MRMC
 		if (exportType == EXPORT_MRMC) {
-			if (!ordered) mainLog.printWarning("Cannot export unordered transition reward matrix in MRMC format; using ordered");
+			if (!ordered) mainLog.printWarning("Cannot export unordered transition reward matrix in MRMC format; using ordered.");
 			ordered = true;
 		}
 		// can only do ordered version of export for rows format

@@ -27,7 +27,7 @@
 package prism;
 
 public abstract class PrismLog
-{	
+{
 	/**
 	 * Specifies that only more important messages should be printed
 	 */
@@ -40,14 +40,14 @@ public abstract class PrismLog
 	 * Specifies that all messages should be printed
 	 */
 	public static final int VL_ALL = 2;
-	
+
 	protected int verbosityLevel = VL_DEFAULT;
 
 	/**
 	 * Keeps the count of warnings printed printed so far.
 	 */
 	protected int numberOfWarnings = 0;
-	
+
 	/**
 	 * Sets the counter of warnings that was printed to 0.
 	 */
@@ -55,7 +55,7 @@ public abstract class PrismLog
 	{
 		this.numberOfWarnings = 0;
 	}
-	
+
 	/**
 	 * Returns the number of warnings that have been printed since the beginning
 	 * or since the last reset of number of warnings.
@@ -65,7 +65,7 @@ public abstract class PrismLog
 	{
 		return this.numberOfWarnings;
 	}
-	
+
 	/**
 	 * Returns the verbosity level of this log. The verbosity level
 	 * determines what messages will be printed.
@@ -75,7 +75,7 @@ public abstract class PrismLog
 	{
 		return verbosityLevel;
 	}
-	
+
 	/**
 	 * Changes the verbosity level of this log. The verbosity level
 	 * determines what messages will be printed.
@@ -85,22 +85,33 @@ public abstract class PrismLog
 	{
 		this.verbosityLevel = verbosityLevel;
 	}
-	
+
 	public abstract boolean ready();
+
 	public abstract long getFilePointer();
+
 	public abstract void flush();
+
 	public abstract void close();
-	
+
 	public abstract void print(boolean b);
+
 	public abstract void print(char c);
+
 	public abstract void print(double d);
+
 	public abstract void print(float f);
+
 	public abstract void print(int i);
+
 	public abstract void print(long l);
+
 	public abstract void print(Object obj);
+
 	public abstract void print(String s);
+
 	public abstract void println();
-	
+
 	/**
 	 * Prints out the value of {@code b} if the log's verbosity level is at least {@code level}
 	 */
@@ -109,7 +120,7 @@ public abstract class PrismLog
 		if (level >= this.verbosityLevel)
 			print(b);
 	}
-	
+
 	/**
 	 * Prints out the value of {@code c} if the log's verbosity level is at least {@code level}
 	 */
@@ -118,7 +129,7 @@ public abstract class PrismLog
 		if (level >= this.verbosityLevel)
 			print(c);
 	}
-	
+
 	/**
 	 * Prints out the value of {@code d} if the log's verbosity level is at least {@code level}
 	 */
@@ -127,7 +138,7 @@ public abstract class PrismLog
 		if (level >= this.verbosityLevel)
 			print(d);
 	}
-	
+
 	/**
 	 * Prints out the value of {@code f} if the log's verbosity level is at least {@code level}
 	 */
@@ -136,16 +147,16 @@ public abstract class PrismLog
 		if (level >= this.verbosityLevel)
 			print(f);
 	}
-	
+
 	/**
 	 * Prints out the value of {@code i} if the log's verbosity level is at least {@code level}
 	 */
 	public void print(int i, int level)
 	{
 		if (level >= this.verbosityLevel)
-			print(i);	
+			print(i);
 	}
-	
+
 	/**
 	 * Prints out the value of {@code l} if the log's verbosity level is at least {@code level}
 	 */
@@ -154,7 +165,7 @@ public abstract class PrismLog
 		if (level >= this.verbosityLevel)
 			print(l);
 	}
-	
+
 	/**
 	 * Prints out the value of {@code obj} if the log's verbosity level is at least {@code level}
 	 */
@@ -163,7 +174,7 @@ public abstract class PrismLog
 		if (level >= this.verbosityLevel)
 			print(obj);
 	}
-	
+
 	/**
 	 * Prints out {@code s} if the log's verbosity level is at least {@code level}
 	 */
@@ -172,7 +183,7 @@ public abstract class PrismLog
 		if (level >= this.verbosityLevel)
 			print(s);
 	}
-	
+
 	/**
 	 * Prints out the content  of {@code arr} if the log's verbosity level is at least {@code level}
 	 */
@@ -181,7 +192,7 @@ public abstract class PrismLog
 		if (level >= this.verbosityLevel)
 			print(arr);
 	}
-	
+
 	public void print(double arr[])
 	{
 		int i, n = arr.length;
@@ -263,7 +274,7 @@ public abstract class PrismLog
 		print(arr);
 		println();
 	}
-	
+
 	/**
 	 * Prints out the value of {@code b} followed by a newline character, provided that the log's verbosity level is at least {@code level}
 	 */
@@ -353,18 +364,17 @@ public abstract class PrismLog
 		if (level >= this.verbosityLevel)
 			println(arr);
 	}
-	
+
 	/**
-	 * Prints a warning message {@code s}, preceded by "\\nWarning: " string
-	 * and followed by a newline characted.
+	 * Prints a warning message {@code s}, preceded by "\nWarning: " and followed by a newline character.
 	 * <p/>
-	 * Also increases {@link #numberOfWarnings} by one. This variable can be then
+	 * Also increases {@link #numberOfWarnings} by one. This variable can then be
 	 * queried using {@link #getNumberOfWarnings()} at the end of computation
-	 * and the user can be appropriately informed that there were warnings
-	 * generated.
+	 * and the user can be appropriately informed that there were warnings generated.
 	 * @param s The warning message.
 	 */
-	public void printWarning(String s) {
+	public void printWarning(String s)
+	{
 		println("\nWarning: " + s);
 		this.numberOfWarnings++;
 	}

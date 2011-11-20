@@ -610,7 +610,7 @@ public class SimulatorEngine
 	public Object queryProperty(int index)
 	{
 		if (index < 0 || index >= propertySamplers.size()) {
-			mainLog.printWarning("Can't query property " + index);
+			mainLog.printWarning("Can't query property " + index + ".");
 			return null;
 		}
 		Sampler sampler = propertySamplers.get(index);
@@ -1589,11 +1589,11 @@ public class SimulatorEngine
 
 		// Print a warning if deadlocks occurred at any point
 		if (deadlocksFound)
-			mainLog.printWarning("Deadlocks were found during simulation: self-loops were added\n");
+			mainLog.printWarning("Deadlocks were found during simulation: self-loops were added.");
 
 		// Print a warning if simulation was stopped by the user
 		if (shouldStopSampling)
-			mainLog.printWarning("Simulation was terminated before completion.\n");
+			mainLog.printWarning("Simulation was terminated before completion.");
 
 		// write to feedback file with true to indicate that we have finished sampling
 		// Write_Feedback(iteration_counter, numIters, true);

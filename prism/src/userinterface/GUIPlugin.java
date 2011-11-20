@@ -541,6 +541,14 @@ public abstract class GUIPlugin extends JPanel implements GUIEventListener, Pris
 		gui.enableTab(this, enabled);
 	}
 	
+	/** Method to add a warning message to the log contained within the parent GUIPrism.
+	 * @param message The message to be added to the log
+	 */	
+	public void logWarning(String message)
+	{
+		notifyEventListeners(new GUILogEvent(GUILogEvent.PRINTWARNING, message));
+	}
+	
 	/** Utility method to automatically jump this plugin to the front of the tabs
 	 * contained within the parent GUIPrism.
 	 */	

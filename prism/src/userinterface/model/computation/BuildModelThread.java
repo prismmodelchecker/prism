@@ -212,7 +212,7 @@ public class BuildModelThread extends GUIComputationThread
 			String[] options = {"Continue", "Display deadlocks"};
 			int choice = plug.question("Error", "Error: Model contains deadlock states.\nAdd self-loops to these states and continue?\nOr stop and display deadlock states in log?", options);
 			if (choice == 0) {
-				log("\nWarning: " + deadlocks.size() + " deadlock states detected; adding self-loops in these states...\n");
+				logWarning(deadlocks.size() + " deadlock states detected; adding self-loops in these states...");
 				model.fixDeadlocks();
 			}
 			else {

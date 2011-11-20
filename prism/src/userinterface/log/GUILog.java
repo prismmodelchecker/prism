@@ -122,6 +122,10 @@ public class GUILog extends GUIPlugin implements MouseListener, PrismSettingsLis
 			{
 				theLog.print(le.getData());
 			}
+			else if(le.getID() == le.PRINTWARNING)
+			{
+				theLog.printWarning((String) le.getData());
+			}
 		}
 		else if (e instanceof GUIClipboardEvent && super.getGUI().getFocussedPlugin() == this)
 		{
