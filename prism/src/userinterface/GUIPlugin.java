@@ -66,6 +66,8 @@ import userinterface.util.*;
  */
 public abstract class GUIPlugin extends JPanel implements GUIEventListener, PrismSettingsListener
 {
+	private static final long serialVersionUID = 1L;
+	
 	//ATTRIBUTES
 	private GUIPrism gui;
 	private Prism prism;

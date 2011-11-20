@@ -45,7 +45,6 @@ public class GUIExperiment
 	private GUIMultiProperties guiProp;
 	private GUIExperimentTable table;
 	private prism.ResultsCollection results;
-	private String modString;
 	private boolean finished = false;
 
 	private ModulesFile mod;
@@ -63,7 +62,7 @@ public class GUIExperiment
 	private Result res;
 
 	/** Creates a new instance of GUIExperiment */
-	public GUIExperiment(GUIExperimentTable table, GUIMultiProperties guiProp, PropertiesFile prop, UndefinedConstants cons, ModulesFile mod, String modString,
+	public GUIExperiment(GUIExperimentTable table, GUIMultiProperties guiProp, PropertiesFile prop, UndefinedConstants cons, ModulesFile mod,
 			boolean useSimulation)
 	{
 		this.table = table;
@@ -71,7 +70,6 @@ public class GUIExperiment
 		this.prop = prop;
 		this.cons = cons;
 		this.mod = mod;
-		this.modString = modString;
 		this.useSimulation = useSimulation;
 
 		results = new prism.ResultsCollection(cons, prop.getProperty(0).getResultName());
@@ -89,7 +87,7 @@ public class GUIExperiment
 		return results.getCurrentIteration();
 	}
 
-	public Vector getRangingConstants()
+	public Vector<DefinedConstant> getRangingConstants()
 	{
 		return cons.getRangingConstants();
 	}

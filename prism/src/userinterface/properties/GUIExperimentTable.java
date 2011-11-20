@@ -37,6 +37,8 @@ import prism.*;
 
 public class GUIExperimentTable extends JTable
 {
+	private static final long serialVersionUID = 1L;
+	
 	private ExperimentTableModel expModel;
 	private GUIMultiProperties guiProps;
 	
@@ -67,11 +69,10 @@ public class GUIExperimentTable extends JTable
 			removeExperiment(row);
 		}
 	}
-
 	
 	public int newExperiment(PropertiesFile propFile, UndefinedConstants cons, ModulesFile mf, boolean useSimulation)//propFile only contains 1 con
 	{
-		GUIExperiment ge = new GUIExperiment(this, guiProps, propFile, cons, mf, "", useSimulation); 
+		GUIExperiment ge = new GUIExperiment(this, guiProps, propFile, cons, mf, useSimulation); 
 		return expModel.addExperiment(ge);
 	}
 	
@@ -115,6 +116,8 @@ public class GUIExperimentTable extends JTable
 
 	class ExperimentTableModel extends AbstractTableModel
 	{
+		private static final long serialVersionUID = 1L;
+		
 		ArrayList<GUIExperiment> experiments;
 		
 		public ExperimentTableModel()

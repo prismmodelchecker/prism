@@ -28,8 +28,9 @@ package userinterface;
 
 import prism.*;
 
-// provides a few convenience methods for the various computation/*Thread classes
-
+/**
+ * Class providing a few convenience methods for the various computation/*Thread classes.
+ */
 public class GUIComputationThread extends Thread
 {
 	protected GUIPlugin plug;
@@ -42,14 +43,14 @@ public class GUIComputationThread extends Thread
 		prism = plug.getPrism();
 	}
 	
-	// report an error (in log and popup dialog)
+	/** Report an error (in log and popup dialog) */
 	public void error(String s)
 	{
 		errorLog(s);
 		errorDialog(s);
 	}
 	
-	// report an error (in log)
+	/** Report an error (in log) */
 	public void errorLog(String s)
 	{
 		logln("\nError: " + s + ".");
@@ -73,11 +74,9 @@ public class GUIComputationThread extends Thread
 	public void logln(boolean b) { plug.logln(b); }
 	public void logWarning(String s) { plug.logWarning(s); }
 	
-	// pop up an error dialog
+	/** pop up an error dialog */
 	public void errorDialog(String s)
 	{
 		plug.error(s);
 	}
 }
-
-
