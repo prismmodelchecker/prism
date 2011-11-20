@@ -44,12 +44,12 @@ public abstract class PrismLog
 	protected int verbosityLevel = VL_DEFAULT;
 
 	/**
-	 * Keeps the count of warnings printed printed so far.
+	 * Keeps the count of warnings printed so far.
 	 */
 	protected int numberOfWarnings = 0;
 
 	/**
-	 * Sets the counter of warnings that was printed to 0.
+	 * Sets the counter of warnings printed to 0.
 	 */
 	public void resetNumberOfWarnings()
 	{
@@ -58,8 +58,7 @@ public abstract class PrismLog
 
 	/**
 	 * Returns the number of warnings that have been printed since the beginning
-	 * or since the last reset of number of warnings.
-	 * @return
+	 * or since the last reset of the number of warnings.
 	 */
 	public int getNumberOfWarnings()
 	{
@@ -67,8 +66,7 @@ public abstract class PrismLog
 	}
 
 	/**
-	 * Returns the verbosity level of this log. The verbosity level
-	 * determines what messages will be printed.
+	 * Returns the verbosity level of this log. The verbosity level determines what messages will be printed.
 	 * @return
 	 */
 	public int getVerbosityLevel()
@@ -77,9 +75,8 @@ public abstract class PrismLog
 	}
 
 	/**
-	 * Changes the verbosity level of this log. The verbosity level
-	 * determines what messages will be printed.
-	 * @param verbosityLevel Should be one of {@link #VL_DEFAULT}, {@link #VL_HIGH} and {@link #VL_ALL}.
+	 * Changes the verbosity level of this log. The verbosity level determines what messages will be printed.
+	 * @param verbosityLevel Should be one of {@link #VL_DEFAULT}, {@link #VL_HIGH} or {@link #VL_ALL}.
 	 */
 	public void setVerbosityLevel(int verbosityLevel)
 	{
@@ -117,7 +114,7 @@ public abstract class PrismLog
 	 */
 	public void print(boolean b, int level)
 	{
-		if (level >= this.verbosityLevel)
+		if (level <= this.verbosityLevel)
 			print(b);
 	}
 
@@ -126,7 +123,7 @@ public abstract class PrismLog
 	 */
 	public void print(char c, int level)
 	{
-		if (level >= this.verbosityLevel)
+		if (level <= this.verbosityLevel)
 			print(c);
 	}
 
@@ -135,7 +132,7 @@ public abstract class PrismLog
 	 */
 	public void print(double d, int level)
 	{
-		if (level >= this.verbosityLevel)
+		if (level <= this.verbosityLevel)
 			print(d);
 	}
 
@@ -144,7 +141,7 @@ public abstract class PrismLog
 	 */
 	public void print(float f, int level)
 	{
-		if (level >= this.verbosityLevel)
+		if (level <= this.verbosityLevel)
 			print(f);
 	}
 
@@ -153,7 +150,7 @@ public abstract class PrismLog
 	 */
 	public void print(int i, int level)
 	{
-		if (level >= this.verbosityLevel)
+		if (level <= this.verbosityLevel)
 			print(i);
 	}
 
@@ -162,7 +159,7 @@ public abstract class PrismLog
 	 */
 	public void print(long l, int level)
 	{
-		if (level >= this.verbosityLevel)
+		if (level <= this.verbosityLevel)
 			print(l);
 	}
 
@@ -171,7 +168,7 @@ public abstract class PrismLog
 	 */
 	public void print(Object obj, int level)
 	{
-		if (level >= this.verbosityLevel)
+		if (level <= this.verbosityLevel)
 			print(obj);
 	}
 
@@ -180,7 +177,7 @@ public abstract class PrismLog
 	 */
 	public void print(String s, int level)
 	{
-		if (level >= this.verbosityLevel)
+		if (level <= this.verbosityLevel)
 			print(s);
 	}
 
@@ -189,7 +186,7 @@ public abstract class PrismLog
 	 */
 	public void print(double[] arr, int level)
 	{
-		if (level >= this.verbosityLevel)
+		if (level <= this.verbosityLevel)
 			print(arr);
 	}
 
@@ -280,7 +277,7 @@ public abstract class PrismLog
 	 */
 	public void println(boolean b, int level)
 	{
-		if (level >= this.verbosityLevel)
+		if (level <= this.verbosityLevel)
 			println(b);
 	}
 
@@ -289,7 +286,7 @@ public abstract class PrismLog
 	 */
 	public void println(char c, int level)
 	{
-		if (level >= this.verbosityLevel)
+		if (level <= this.verbosityLevel)
 			println(c);
 	}
 
@@ -298,7 +295,7 @@ public abstract class PrismLog
 	 */
 	public void println(double d, int level)
 	{
-		if (level >= this.verbosityLevel)
+		if (level <= this.verbosityLevel)
 			println(d);
 	}
 
@@ -307,7 +304,7 @@ public abstract class PrismLog
 	 */
 	public void println(float f, int level)
 	{
-		if (level >= this.verbosityLevel)
+		if (level <= this.verbosityLevel)
 			println(f);
 	}
 
@@ -316,7 +313,7 @@ public abstract class PrismLog
 	 */
 	public void println(int i, int level)
 	{
-		if (level >= this.verbosityLevel)
+		if (level <= this.verbosityLevel)
 			println(i);
 	}
 
@@ -325,7 +322,7 @@ public abstract class PrismLog
 	 */
 	public void println(long l, int level)
 	{
-		if (level >= this.verbosityLevel)
+		if (level <= this.verbosityLevel)
 			println(l);
 	}
 
@@ -334,7 +331,7 @@ public abstract class PrismLog
 	 */
 	public void println(Object o, int level)
 	{
-		if (level >= this.verbosityLevel)
+		if (level <= this.verbosityLevel)
 			println(o);
 	}
 
@@ -343,7 +340,7 @@ public abstract class PrismLog
 	 */
 	public void println(String s, int level)
 	{
-		if (level >= this.verbosityLevel)
+		if (level <= this.verbosityLevel)
 			println(s);
 	}
 
@@ -352,7 +349,7 @@ public abstract class PrismLog
 	 */
 	public void println(double arr[], int level)
 	{
-		if (level >= this.verbosityLevel)
+		if (level <= this.verbosityLevel)
 			println(arr);
 	}
 
@@ -361,7 +358,7 @@ public abstract class PrismLog
 	 */
 	public void println(int arr[], int level)
 	{
-		if (level >= this.verbosityLevel)
+		if (level <= this.verbosityLevel)
 			println(arr);
 	}
 
