@@ -1052,12 +1052,18 @@ public class PrismCL
 	{
 		// clear up and close down
 		prism.closeDown(true);
-		mainLog.println();
-		if (mainLog.getNumberOfWarnings() > 0)
-		{
-			mainLog.println("Note that " + mainLog.getNumberOfWarnings()
-					+ " warning(s) were produced during computation");
+		// notify about any warnings
+		int numWarnings = mainLog.getNumberOfWarnings();
+		if (numWarnings > 0) {
+			mainLog.println("\n-------------------------------------------");
+			mainLog.print("\nNote: There ");
+			if (numWarnings == 1)
+				mainLog.print("was 1 warning");
+			else
+				mainLog.print("were " + numWarnings + " warnings");
+			mainLog.println(" during computation.");
 		}
+		mainLog.println();
 	}
 
 	/**
