@@ -158,7 +158,7 @@ void PM_PrintWarningToMainLog(JNIEnv *env, const char *str, ...)
 	if (env)
 		env->CallVoidMethod(main_log_obj, main_log_warn, env->NewStringUTF(full_string));
 	else
-		printf("Warning: %s", full_string);
+		printf("\nWarning: %s\n", full_string);
 }
 
 //------------------------------------------------------------------------------
