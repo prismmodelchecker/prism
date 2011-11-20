@@ -114,15 +114,19 @@ public class GUILog extends GUIPlugin implements MouseListener, PrismSettingsLis
 		if(e instanceof GUILogEvent)
 		{
 			GUILogEvent le = (GUILogEvent)e;
-			if(le.getID() == le.PRINTLN)
+			if(le.getID() == GUILogEvent.PRINTLN)
 			{
 				theLog.println(le.getData());
 			}
-			else if(le.getID() == le.PRINT)
+			else if(le.getID() == GUILogEvent.PRINT)
 			{
 				theLog.print(le.getData());
 			}
-			else if(le.getID() == le.PRINTWARNING)
+			else if(le.getID() == GUILogEvent.PRINTSEPARATOR)
+			{
+				theLog.printSeparator();
+			}
+			else if(le.getID() == GUILogEvent.PRINTWARNING)
 			{
 				theLog.printWarning((String) le.getData());
 			}

@@ -129,7 +129,7 @@ public class ModelCheckThread extends GUIComputationThread
 			// Do model checking
 			try {
 				// Print info to log
-				logln("\n-------------------------------------------");
+				logSeparator();
 				logln("\nModel checking: " + propertiesFile.getProperty(i));
 				if (definedMFConstants != null)
 					if (definedMFConstants.getNumValues() > 0)
@@ -145,7 +145,7 @@ public class ModelCheckThread extends GUIComputationThread
 					modulesFileToCheck = dc.getNewModulesFile();
 					modulesFileToCheck.setUndefinedConstants(modulesFile.getConstantValues());
 					// build model
-					logln("\n-------------------------------------------");
+					logSeparator();
 					model = prism.buildModel(modulesFileToCheck);
 					clear = false;
 					// by construction, deadlocks can only occur from timelocks

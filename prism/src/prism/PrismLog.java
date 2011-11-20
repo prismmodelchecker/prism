@@ -363,6 +363,14 @@ public abstract class PrismLog
 	}
 
 	/**
+	 * Prints a separator between sections of log output.
+	 */
+	public void printSeparator()
+	{
+		println("\n---------------------------------------------------------------------");
+	}
+	
+	/**
 	 * Prints a warning message {@code s}, preceded by "\nWarning: " and followed by a newline character.
 	 * <p/>
 	 * Also increases {@link #numberOfWarnings} by one. This variable can then be

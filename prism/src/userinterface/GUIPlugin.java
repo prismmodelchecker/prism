@@ -543,6 +543,13 @@ public abstract class GUIPlugin extends JPanel implements GUIEventListener, Pris
 		gui.enableTab(this, enabled);
 	}
 	
+	/** Method to add a separator to the log contained within the parent GUIPrism.
+	 */	
+	public void logSeparator()
+	{
+		notifyEventListeners(new GUILogEvent(GUILogEvent.PRINTSEPARATOR, ""));
+	}
+	
 	/** Method to add a warning message to the log contained within the parent GUIPrism.
 	 * @param message The message to be added to the log
 	 */	

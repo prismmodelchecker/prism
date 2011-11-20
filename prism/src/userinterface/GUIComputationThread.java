@@ -72,6 +72,7 @@ public class GUIComputationThread extends Thread
 	public void logln(short s) { plug.logln(s); }
 	public void logln(byte b) { plug.logln(b); }
 	public void logln(boolean b) { plug.logln(b); }
+	public void logSeparator() { plug.logSeparator(); }
 	public void logWarning(String s) { plug.logWarning(s); }
 	
 	/** pop up an error dialog */

@@ -264,7 +264,7 @@ public class GUIExperiment
 
 						// build model
 						try {
-							logln("\n-------------------------------------------");
+							logSeparator();
 							model = prism.buildModel(modulesFile);
 							clear = false;
 						} catch (PrismException e) {
@@ -352,7 +352,7 @@ public class GUIExperiment
 					else if (useSimulation && prism.getSettings().getBoolean(PrismSettings.SIMULATOR_SIMULTANEOUS)
 							&& undefinedConstants.getNumPropertyIterations() > 1) {
 						try {
-							logln("\n-------------------------------------------");
+							logSeparator();
 							logln("\nSimulating: " + propertyToCheck);
 							if (definedMFConstants != null)
 								if (definedMFConstants.getNumValues() > 0)
@@ -398,7 +398,7 @@ public class GUIExperiment
 								}
 
 								// log output
-								logln("\n-------------------------------------------");
+								logSeparator();
 								logln("\n" + (useSimulation ? "Simulating" : "Model checking") + ": " + propertyToCheck);
 								if (definedMFConstants != null)
 									if (definedMFConstants.getNumValues() > 0)
@@ -415,7 +415,7 @@ public class GUIExperiment
 									modulesFileToCheck = dc.getNewModulesFile();
 									modulesFileToCheck.setUndefinedConstants(modulesFile.getConstantValues());
 									// build model
-									logln("\n-------------------------------------------");
+									logSeparator();
 									model = prism.buildModel(modulesFileToCheck);
 									clear = false;
 									// by construction, deadlocks can only occur from timelocks

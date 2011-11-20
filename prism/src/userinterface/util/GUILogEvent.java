@@ -31,7 +31,8 @@ public class GUILogEvent extends GUIEvent
 {
     public static final int PRINTLN = 0;
     public static final int PRINT = 1;
-    public static final int PRINTWARNING = 2;
+    public static final int PRINTSEPARATOR = 2;
+    public static final int PRINTWARNING = 3;
     
     /**
      * Constructs an instance of <code>GUILogEvent</code> with the specified detail message.
