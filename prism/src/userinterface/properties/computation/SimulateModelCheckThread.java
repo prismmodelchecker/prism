@@ -165,7 +165,6 @@ public class SimulateModelCheckThread extends GUIComputationThread
 				gp.setMethodString("Simulation");
 				gp.setConstants(definedMFConstants, definedPFConstants);
 				gp.setNumberOfWarnings(prism.getMainLog().getNumberOfWarnings());
-				prism.getMainLog().resetNumberOfWarnings();
 			}
 		}
 		// do each property individually

@@ -792,6 +792,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			error("None of the selected properties are suitable for simulation");
 			return;
 		}
+		// Reset warnings counter 
+		getPrism().getMainLog().resetNumberOfWarnings();
 		// Request a parse
 		simulateAfterReceiveParseNotification = true;
 		notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.REQUEST_MODEL_PARSE));
@@ -822,6 +824,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			error("None of the selected properties are suitable for verification. The model was not built");
 			return;
 		}
+		// Reset warnings counter 
+		getPrism().getMainLog().resetNumberOfWarnings();
 		// Request a parse
 		verifyAfterReceiveParseNotification = true;
 		notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.REQUEST_MODEL_PARSE));
