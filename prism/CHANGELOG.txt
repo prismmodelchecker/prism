@@ -12,12 +12,12 @@ Changes:
 * Bash completion scripts + additional syntax highlighters
 * Added PrismTest class to illustrate programmatic use of PRISM
 * GUI on Macs uses Cmd, not Ctrl
+* Added prominence given to log warning messages in command-line/GUI
 
 Ongoing changes:
 
 * CSV format for results export (GUI, not CL yet)
 * Handling of verbosity in log: PrismLog updated, not used yet
-* Handling of warnings in log
 * Properties can be named, by prefixing with "name":, and reference each other
 * CTL AG/EF
 
