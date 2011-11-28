@@ -38,7 +38,7 @@ import prism.Prism;
 public class SBML2Prism implements EntityResolver
 {
 	private static PrismParser prismParser;
-	private String compartmentName;
+	private String compartmentName, speciesId, initialAmountString;
 	private double compartmentSize;
 	private ArrayList<Species> speciesList;
 	private ArrayList<Parameter> parameterList;
@@ -214,8 +214,18 @@ public class SBML2Prism implements EntityResolver
 		n = nodes.getLength();
 		for (i = 0; i < n; i++) {
 			e_species = (Element)nodes.item(i);
-			d = Double.parseDouble(e_species.getAttribute("initialAmount"));
-			species = new Species(e_species.getAttribute("id"), e_species.getAttribute("name"), d);
+			speciesId = e_species.getAttribute("id");
+			initialAmountString = e_species.getAttribute("initialAmount");
+			if ("".equals(initialAmountString))
+				throw new PrismException("Missing initial amount for species " + speciesId);
+			try {
+				d = Double.parseDouble(initialAmountString);
+			}
+			catch (NumberFormatException nfe) {
+				String msg = "Badly formatted initialAmount \"" + initialAmountString + "\" for species " + speciesId;
+				throw new PrismException(msg);
+			}
+			species = new Species(speciesId, e_species.getAttribute("name"), d);
 			s = e_species.getAttribute("boundaryCondition");
 			if (s.equals("true")) species.boundaryCondition = true;
 			speciesList.add(species);
