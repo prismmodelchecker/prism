@@ -79,7 +79,7 @@ public class PrismCL
 	private boolean testExitsOnFail = true;
 
 	// property info
-	private int propertyToCheck = -1;
+	private Object propertyToCheck = null;
 	private String propertyString = "";
 
 	// argument to -const switch
@@ -635,7 +635,7 @@ public class PrismCL
 			numPropertiesToCheck = 0;
 		}
 		// unless specified, verify all properties
-		else if (propertyToCheck == -1) {
+		else if (propertyToCheck == null) {
 			numPropertiesToCheck = propertiesFile.getNumProperties();
 			for (i = 0; i < numPropertiesToCheck; i++) {
 				propertiesToCheck.add(propertiesFile.getPropertyObject(i));
@@ -643,11 +643,20 @@ public class PrismCL
 		}
 		// otherwise just verify the relevant property
 		else {
-			if (propertyToCheck > 0 && propertyToCheck <= propertiesFile.getNumProperties()) {
+			if (propertyToCheck instanceof Integer) {
+				int propIndex = (Integer) propertyToCheck;
+				if (propIndex <= 0 || propIndex > propertiesFile.getNumProperties())
+					errorAndExit("There is not a property " + propIndex + " to verify");
 				numPropertiesToCheck = 1;
-				propertiesToCheck.add(propertiesFile.getPropertyObject(propertyToCheck - 1));
+				propertiesToCheck.add(propertiesFile.getPropertyObject(propIndex - 1));
+			} else if (propertyToCheck instanceof String) {
+				Property p = propertiesFile.getPropertyObjectByName((String) propertyToCheck);
+				if (p == null)
+					errorAndExit("There is not a property \"" + propertyToCheck + "\" to check");
+				numPropertiesToCheck = 1;
+				propertiesToCheck.add(p);
 			} else {
-				errorAndExit("There is not a property " + propertyToCheck + " to verify");
+				errorAndExit("There is not a property " + propertyToCheck + " to check");
 			}
 		}
 	}
@@ -1113,15 +1122,13 @@ public class PrismCL
 						errorAndExit("No property specified for -" + sw + " switch");
 					}
 				}
-				// which property to check
+				// which property to check (int index or string name)
 				else if (sw.equals("prop") || sw.equals("property")) {
 					if (i < args.length - 1) {
 						try {
 							propertyToCheck = Integer.parseInt(args[++i]);
-							if (propertyToCheck < 1)
-								throw new NumberFormatException();
 						} catch (NumberFormatException e) {
-							errorAndExit("Invalid value for -" + sw + " switch");
+							propertyToCheck = args[i];
 						}
 					} else {
 						errorAndExit("No value specified for -" + sw + " switch");
