@@ -232,6 +232,10 @@ public class ExpressionFunc extends Expression
 
 	public Object evaluateFloor(EvaluateContext ec) throws PrismLangException
 	{
+		//Check number of operands
+		if (getNumOperands() != 1)
+			throw new PrismLangException("The function floor() requires exactly 1 parameter", this);
+		
 		double d = Math.floor(getOperand(0).evaluateDouble(ec));
 		// Check for NaN or +/-inf, otherwise possible errors lost in cast to int
 		if (Double.isNaN(d) || Double.isInfinite(d))
@@ -241,6 +245,10 @@ public class ExpressionFunc extends Expression
 
 	public Object evaluateCeil(EvaluateContext ec) throws PrismLangException
 	{
+		//Check number of operands
+		if (getNumOperands() != 1)
+			throw new PrismLangException("The function ceil() requires exactly 1 parameter", this);
+		
 		double d = Math.ceil(getOperand(0).evaluateDouble(ec));
 		// Check for NaN or +/-inf, otherwise possible errors lost in cast to int
 		if (Double.isNaN(d) || Double.isInfinite(d))
@@ -250,6 +258,10 @@ public class ExpressionFunc extends Expression
 
 	public Object evaluatePow(EvaluateContext ec) throws PrismLangException
 	{
+		//Check number of operands
+		if (getNumOperands() != 2)
+			throw new PrismLangException("The function pow() requires exactly 2 parameters", this);
+		
 		double base = getOperand(0).evaluateDouble(ec);
 		double exp = getOperand(1).evaluateDouble(ec);
 		// Not allowed to do e.g. pow(2,-2) because of typing (should be pow(2.0,-2) instead)
@@ -268,6 +280,10 @@ public class ExpressionFunc extends Expression
 
 	public Object evaluateMod(EvaluateContext ec) throws PrismLangException
 	{
+		//Check number of operands
+		if (getNumOperands() != 2)
+			throw new PrismLangException("The function mod() requires exactly 2 parameters", this);
+
 		int i = getOperand(0).evaluateInt(ec);
 		int j = getOperand(1).evaluateInt(ec);
 		// Non-positive divisor not allowed 
@@ -280,6 +296,10 @@ public class ExpressionFunc extends Expression
 
 	public Object evaluateLog(EvaluateContext ec) throws PrismLangException
 	{
+		//Check number of operands
+		if (getNumOperands() != 2)
+			throw new PrismLangException("The function log() requires exactly 2 parameters", this);
+
 		double x, b;
 		x = getOperand(0).evaluateDouble(ec);
 		b = getOperand(1).evaluateDouble(ec);
