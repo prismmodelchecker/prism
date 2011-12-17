@@ -13,6 +13,7 @@ Changes:
 * Added PrismTest class to illustrate programmatic use of PRISM
 * GUI on Macs uses Cmd, not Ctrl
 * Added prominence given to log warning messages in command-line/GUI
+* Command-line scripts can signal termination via growlnotify/notify-send 
 
 Ongoing changes:
 
