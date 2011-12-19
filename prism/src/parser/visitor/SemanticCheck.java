@@ -393,7 +393,7 @@ public class SemanticCheck extends ASTTraverse
 			throw new PrismLangException("Not enough arguments to \"" + e.getName() + "\" function", e);
 		}
 		if (e.getMaxArity() != -1 && e.getNumOperands() > e.getMaxArity()) {
-			throw new PrismLangException("Too many " + e.getMaxArity() + "arguments to \"" + e.getName() + "\" function", e);
+			throw new PrismLangException("Too many arguments to \"" + e.getName() + "\" function", e);
 		}
 	}
 
