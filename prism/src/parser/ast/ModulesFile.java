@@ -490,14 +490,6 @@ public class ModulesFile extends ASTElement
 		// Check constants for cyclic dependencies
 		constantList.findCycles();
 
-		// If there are no undefined constants, set up values for constants
-		// (to avoid need for a later call to setUndefinedConstants).
-		// NB: Can't call setUndefinedConstants if there are undefined constants
-		// because semanticCheckAfterConstants may fail. 
-		if (getUndefinedConstants().isEmpty()) {
-			setUndefinedConstants(null);
-		}
-		
 		// Check variable names, etc.
 		checkVarNames();
 		// Find all instances of variables, replace identifiers with variables.
@@ -512,8 +504,16 @@ public class ModulesFile extends ASTElement
 
 		// Various semantic checks 
 		semanticCheck(this);
+		
 		// Type checking
 		typeCheck();
+		// If there are no undefined constants, set up values for constants
+		// (to avoid need for a later call to setUndefinedConstants).
+		// NB: Can't call setUndefinedConstants if there are undefined constants
+		// because semanticCheckAfterConstants may fail. 
+		if (getUndefinedConstants().isEmpty()) {
+			setUndefinedConstants(null);
+		}
 	}
 
 	// Check formula identifiers
