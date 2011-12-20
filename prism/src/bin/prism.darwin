@@ -73,6 +73,10 @@ ICON_OPTION="-Xdock:name=PRISM -Xdock:icon=$PRISM_DIR/etc/icons/p64.png"
 # Run PRISM through Java
 "$PRISM_JAVA" $PRISM_JAVA_DEBUG $PRISM_JAVAMAXMEM $ICON_OPTION -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path=$PRISM_DIR/lib -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"
 
+PRISM_EXIT_CODE=$?
+
 if [ "$NOTIFY" = "yes" -a -n "`which growlnotify`" ]; then
 	growlnotify --image $PRISM_DIR/etc/icons/prism.ico PRISM has finished -m "" > /dev/null 2> /dev/null
 fi;
+
+exit $PRISM_EXIT_CODE

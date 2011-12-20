@@ -71,6 +71,10 @@ fi
 # Run PRISM through Java
 "$PRISM_JAVA" $PRISM_JAVA_DEBUG $PRISM_JAVAMAXMEM -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path=$PRISM_DIR/lib -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"
 
+PRISM_EXIT_CODE=$?
+
 if [ "$NOTIFY" = "yes" -a -n "`which notify-send`" ]; then
 	notify-send --icon=$PRISM_DIR/etc/icons/prism.ico "PRISM has finished" > /dev/null 2> /dev/null
 fi;
+
+exit $PRISM_EXIT_CODE
