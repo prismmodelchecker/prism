@@ -23,7 +23,7 @@ LIBRARIES = \
 -lodd \
 -ldd \
 -lprism \
--lm
+$(LIBMATH)
 
 JAVA_FILES = $(wildcard *.java)
 CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class)

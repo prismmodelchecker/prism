@@ -169,6 +169,7 @@ ifeq ($(OSTYPE),linux)
 	EXE =
 	LIBPREFIX = lib
 	LIBSUFFIX = .so
+	LIBMATH = -lm
 	OSTYPE_INCLUDE = include
 	CLASSPATHSEP = :
 endif
@@ -184,6 +185,7 @@ ifeq ($(OSTYPE),solaris)
 	EXE =
 	LIBPREFIX = lib
 	LIBSUFFIX = .so
+	LIBMATH = -lm
 	OSTYPE_INCLUDE = include
 	CLASSPATHSEP = :
 endif
@@ -201,6 +203,7 @@ ifeq ($(OSTYPE),cygwin)
 	EXE = .exe
 	LIBPREFIX =
 	LIBSUFFIX = .dll
+	LIBMATH = 
 	OSTYPE_INCLUDE = include
 	CLASSPATHSEP = ;
 	# Also override default compilers
@@ -228,6 +231,7 @@ ifeq ($(OSTYPE),darwin)
 	EXE =
 	LIBPREFIX = lib
 	LIBSUFFIX = .dylib
+	LIBMATH = -lm
 	OSTYPE_INCLUDE = Headers
 	CLASSPATHSEP = :
 endif
@@ -351,6 +355,7 @@ make_dirs:
 	  EXE="$(EXE)" \
 	  LIBPREFIX="$(LIBPREFIX)" \
 	  LIBSUFFIX="$(LIBSUFFIX)" \
+	  LIBMATH="$(LIBMATH)" \
 	  CLASSPATHSEP="$(CLASSPATHSEP)") \
 	  || exit 1; \
 	done; \
