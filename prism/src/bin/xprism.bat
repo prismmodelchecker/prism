@@ -23,5 +23,5 @@ rem  - lib/colt.jar (COLT statistics library)
 set CP=%PRISM_DIR%\lib\prism.jar;%PRISM_DIR%\classes;%PRISM_DIR%;%PRISM_DIR%\lib\pepa.zip;%PRISM_DIR%\lib\jcommon.jar;%PRISM_DIR%\lib\jfreechart.jar;%PRISM_DIR%\lib\epsgraphics.jar;%PRISM_DIR%\lib\colt.jar
 
 rem Run PRISM through Java
-start javaw -Djava.library.path="%PRISM_DIR%\lib" -classpath "%CP%" userinterface/GUIPrism %*
+start "PRISM" javaw -Djava.library.path="%PRISM_DIR%\lib" -classpath "%CP%" userinterface/GUIPrism %*
 exit
