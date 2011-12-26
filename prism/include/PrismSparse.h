@@ -41,62 +41,6 @@ JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetTechLog
 
 /*
  * Class:     sparse_PrismSparse
- * Method:    PS_SetLinEqMethod
- * Signature: (I)V
- */
-JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetLinEqMethod
-  (JNIEnv *, jclass, jint);
-
-/*
- * Class:     sparse_PrismSparse
- * Method:    PS_SetLinEqMethodParam
- * Signature: (D)V
- */
-JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetLinEqMethodParam
-  (JNIEnv *, jclass, jdouble);
-
-/*
- * Class:     sparse_PrismSparse
- * Method:    PS_SetTermCrit
- * Signature: (I)V
- */
-JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetTermCrit
-  (JNIEnv *, jclass, jint);
-
-/*
- * Class:     sparse_PrismSparse
- * Method:    PS_SetTermCritParam
- * Signature: (D)V
- */
-JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetTermCritParam
-  (JNIEnv *, jclass, jdouble);
-
-/*
- * Class:     sparse_PrismSparse
- * Method:    PS_SetMaxIters
- * Signature: (I)V
- */
-JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetMaxIters
-  (JNIEnv *, jclass, jint);
-
-/*
- * Class:     sparse_PrismSparse
- * Method:    PS_SetCompact
- * Signature: (Z)V
- */
-JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetCompact
-  (JNIEnv *, jclass, jboolean);
-
-/*
- * Class:     sparse_PrismSparse
- * Method:    PS_SetDoSSDetect
- * Signature: (Z)V
- */
-JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetDoSSDetect
-  (JNIEnv *, jclass, jboolean);
-
-/*
- * Class:     sparse_PrismSparse
  * Method:    PS_GetErrorMessage
  * Signature: ()Ljava/lang/String;
  */

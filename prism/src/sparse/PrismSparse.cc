@@ -56,19 +56,6 @@ static jmethodID main_log_mid = NULL;
 static jmethodID main_log_warn = NULL;
 static jmethodID tech_log_mid = NULL;
 
-// numerical method stuff
-int lin_eq_method;
-double lin_eq_method_param;
-int term_crit;
-double term_crit_param;
-int max_iters;
-
-// use "compact modified" sparse matrix storage?
-bool compact;
-
-// use steady-state detection for transient computation?
-bool do_ss_detect;
-
 // export stuff
 int export_type;
 FILE *export_file;
@@ -201,52 +188,6 @@ void PS_PrintMemoryToMainLog(JNIEnv *env, const char *before, double mem, const 
 	else {
 		printf("%s", full_string);
 	}
-}
-
-//------------------------------------------------------------------------------
-// numerical method stuff
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetLinEqMethod(JNIEnv *env, jclass cls, jint i)
-{
-	lin_eq_method = i;
-}
-
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetLinEqMethodParam(JNIEnv *env, jclass cls, jdouble d)
-{
-	lin_eq_method_param = d;
-}
-
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetTermCrit(JNIEnv *env, jclass cls, jint i)
-{
-	term_crit = i;
-}
-
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetTermCritParam(JNIEnv *env, jclass cls, jdouble d)
-{
-	term_crit_param = d;
-}
-
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetMaxIters(JNIEnv *env, jclass cls, jint i)
-{
-	max_iters = i;
-}
-
-//------------------------------------------------------------------------------
-// use "compact modified" sparse matrix storage?
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetCompact(JNIEnv *env, jclass cls, jboolean b)
-{
-	compact = b;
 }
 
 //------------------------------------------------------------------------------

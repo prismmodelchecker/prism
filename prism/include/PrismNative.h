@@ -9,6 +9,94 @@ extern "C" {
 #endif
 /*
  * Class:     prism_PrismNative
+ * Method:    PN_SetCompact
+ * Signature: (Z)V
+ */
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetCompact
+  (JNIEnv *, jclass, jboolean);
+
+/*
+ * Class:     prism_PrismNative
+ * Method:    PN_SetLinEqMethod
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetLinEqMethod
+  (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     prism_PrismNative
+ * Method:    PN_SetLinEqMethodParam
+ * Signature: (D)V
+ */
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetLinEqMethodParam
+  (JNIEnv *, jclass, jdouble);
+
+/*
+ * Class:     prism_PrismNative
+ * Method:    PN_SetTermCrit
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetTermCrit
+  (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     prism_PrismNative
+ * Method:    PN_SetTermCritParam
+ * Signature: (D)V
+ */
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetTermCritParam
+  (JNIEnv *, jclass, jdouble);
+
+/*
+ * Class:     prism_PrismNative
+ * Method:    PN_SetMaxIters
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetMaxIters
+  (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     prism_PrismNative
+ * Method:    PN_SetSBMaxMem
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetSBMaxMem
+  (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     prism_PrismNative
+ * Method:    PN_SetNumSBLevels
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetNumSBLevels
+  (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     prism_PrismNative
+ * Method:    PN_SetSORMaxMem
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetSORMaxMem
+  (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     prism_PrismNative
+ * Method:    PN_SetNumSORLevels
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetNumSORLevels
+  (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     prism_PrismNative
+ * Method:    PN_SetDoSSDetect
+ * Signature: (Z)V
+ */
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetDoSSDetect
+  (JNIEnv *, jclass, jboolean);
+
+/*
+ * Class:     prism_PrismNative
  * Method:    PN_SetExportAdv
  * Signature: (I)V
  */

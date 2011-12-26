@@ -117,60 +117,6 @@ public class PrismSparse
 	}
 
 	//------------------------------------------------------------------------------
-	// numerical method stuff
-	//----------------------------------------------------------------------------------------------
-	
-	private static native void PS_SetLinEqMethod(int i);
-	public static void setLinEqMethod(int i)
-	{
-		PS_SetLinEqMethod(i);
-	}
-	
-	private static native void PS_SetLinEqMethodParam(double d);
-	public static void setLinEqMethodParam(double d)
-	{
-		PS_SetLinEqMethodParam(d);
-	}
-	
-	private static native void PS_SetTermCrit(int i);
-	public static void setTermCrit(int i)
-	{
-		PS_SetTermCrit(i);
-	}
-	
-	private static native void PS_SetTermCritParam(double d);
-	public static void setTermCritParam(double d)
-	{
-		PS_SetTermCritParam(d);
-	}
-	
-	private static native void PS_SetMaxIters(int i);
-	public static void setMaxIters(int i)
-	{
-		PS_SetMaxIters(i);
-	}
-
-	//------------------------------------------------------------------------------
-	// use "compact modified" sparse matrix storage?
-	//------------------------------------------------------------------------------
-
-	private static native void PS_SetCompact(boolean b);
-	public static void setCompact(boolean b)
-	{
-		PS_SetCompact(b);
-	}
-
-	//------------------------------------------------------------------------------
-	// use steady-state detection?
-	//------------------------------------------------------------------------------
-	
-	private static native void PS_SetDoSSDetect(boolean b);
-	public static void setDoSSDetect(boolean b)
-	{
-		PS_SetDoSSDetect(b);
-	}
-
-	//------------------------------------------------------------------------------
 	// error message
 	//------------------------------------------------------------------------------
 	

@@ -44,7 +44,74 @@ public class PrismNative
 		}
 	}
 	
-	// Mode/filename for export of adversaries
+	// Options passing
+	
+	private static native void PN_SetCompact(boolean b);
+	public static void setCompact(boolean b)
+	{
+		PN_SetCompact(b);
+	}
+
+	private static native void PN_SetLinEqMethod(int i);
+	public static void setLinEqMethod(int i)
+	{
+		PN_SetLinEqMethod(i);
+	}
+	
+	private static native void PN_SetLinEqMethodParam(double d);
+	public static void setLinEqMethodParam(double d)
+	{
+		PN_SetLinEqMethodParam(d);
+	}
+	
+	private static native void PN_SetTermCrit(int i);
+	public static void setTermCrit(int i)
+	{
+		PN_SetTermCrit(i);
+	}
+	
+	private static native void PN_SetTermCritParam(double d);
+	public static void setTermCritParam(double d)
+	{
+		PN_SetTermCritParam(d);
+	}
+	
+	private static native void PN_SetMaxIters(int i);
+	public static void setMaxIters(int i)
+	{
+		PN_SetMaxIters(i);
+	}
+
+	private static native void PN_SetSBMaxMem(int i);
+	public static void setSBMaxMem(int i)
+	{
+		PN_SetSBMaxMem(i);
+	}
+	
+	private static native void PN_SetNumSBLevels(int i);
+	public static void setNumSBLevels(int i)
+	{
+		PN_SetNumSBLevels(i);
+	}
+	
+	private static native void PN_SetSORMaxMem(int i);
+	public static void setSORMaxMem(int i)
+	{
+		PN_SetSORMaxMem(i);
+	}
+	
+	private static native void PN_SetNumSORLevels(int i);
+	public static void setNumSORLevels(int i)
+	{
+		PN_SetNumSORLevels(i);
+	}
+	
+	private static native void PN_SetDoSSDetect(boolean b);
+	public static void setDoSSDetect(boolean b)
+	{
+		PN_SetDoSSDetect(b);
+	}
+
 	private static native void PN_SetExportAdv(int i);
 	public static void setExportAdv(int i)
 	{

@@ -41,54 +41,6 @@ JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetTechLog
 
 /*
  * Class:     mtbdd_PrismMTBDD
- * Method:    PM_SetLinEqMethod
- * Signature: (I)V
- */
-JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetLinEqMethod
-  (JNIEnv *, jclass, jint);
-
-/*
- * Class:     mtbdd_PrismMTBDD
- * Method:    PM_SetLinEqMethodParam
- * Signature: (D)V
- */
-JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetLinEqMethodParam
-  (JNIEnv *, jclass, jdouble);
-
-/*
- * Class:     mtbdd_PrismMTBDD
- * Method:    PM_SetTermCrit
- * Signature: (I)V
- */
-JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetTermCrit
-  (JNIEnv *, jclass, jint);
-
-/*
- * Class:     mtbdd_PrismMTBDD
- * Method:    PM_SetTermCritParam
- * Signature: (D)V
- */
-JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetTermCritParam
-  (JNIEnv *, jclass, jdouble);
-
-/*
- * Class:     mtbdd_PrismMTBDD
- * Method:    PM_SetMaxIters
- * Signature: (I)V
- */
-JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetMaxIters
-  (JNIEnv *, jclass, jint);
-
-/*
- * Class:     mtbdd_PrismMTBDD
- * Method:    PM_SetDoSSDetect
- * Signature: (Z)V
- */
-JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetDoSSDetect
-  (JNIEnv *, jclass, jboolean);
-
-/*
- * Class:     mtbdd_PrismMTBDD
  * Method:    PM_GetErrorMessage
  * Signature: ()Ljava/lang/String;
  */

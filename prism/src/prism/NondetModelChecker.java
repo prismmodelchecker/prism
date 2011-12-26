@@ -93,28 +93,15 @@ public class NondetModelChecker extends NonProbModelChecker
 			}
 		}
 
-		// Pass some options onto engines/native code.
+		// Pass some options onto native code.
+		PrismNative.setCompact(prism.getCompact());
+		PrismNative.setTermCrit(prism.getTermCrit());
+		PrismNative.setTermCritParam(prism.getTermCritParam());
+		PrismNative.setMaxIters(prism.getMaxIters());
+		PrismNative.setSBMaxMem(prism.getSBMaxMem());
+		PrismNative.setNumSBLevels(prism.getNumSBLevels());
 		PrismNative.setExportAdv(prism.getExportAdv());
 		PrismNative.setExportAdvFilename(prism.getExportAdvFilename());
-		switch (engine) {
-		case Prism.MTBDD:
-			PrismMTBDD.setTermCrit(prism.getTermCrit());
-			PrismMTBDD.setTermCritParam(prism.getTermCritParam());
-			PrismMTBDD.setMaxIters(prism.getMaxIters());
-			break;
-		case Prism.SPARSE:
-			PrismSparse.setTermCrit(prism.getTermCrit());
-			PrismSparse.setTermCritParam(prism.getTermCritParam());
-			PrismSparse.setMaxIters(prism.getMaxIters());
-			PrismSparse.setCompact(prism.getCompact());
-		case Prism.HYBRID:
-			PrismHybrid.setTermCrit(prism.getTermCrit());
-			PrismHybrid.setTermCritParam(prism.getTermCritParam());
-			PrismHybrid.setMaxIters(prism.getMaxIters());
-			PrismHybrid.setCompact(prism.getCompact());
-			PrismHybrid.setSBMaxMem(prism.getSBMaxMem());
-			PrismHybrid.setNumSBLevels(prism.getNumSBLevels());
-		}
 	}
 
 	// -----------------------------------------------------------------------------------

@@ -26,32 +26,7 @@
 
 #include <stdarg.h>
 #include <jni.h>
-
-//------------------------------------------------------------------------------
-
-// constants - these need to match the definitions in prism/Prism.java
-
-const int EXPORT_PLAIN = 1;
-const int EXPORT_MATLAB = 2;
-const int EXPORT_DOT = 3;
-const int EXPORT_MRMC = 4;
-const int EXPORT_ROWS = 5;
-const int EXPORT_DOT_STATES = 6;
-
-const int LIN_EQ_METHOD_POWER = 1;
-const int LIN_EQ_METHOD_JACOBI = 2;
-const int LIN_EQ_METHOD_GAUSSSEIDEL = 3;
-const int LIN_EQ_METHOD_BGAUSSSEIDEL = 4;
-const int LIN_EQ_METHOD_PGAUSSSEIDEL = 5;
-const int LIN_EQ_METHOD_BPGAUSSSEIDEL = 6;
-const int LIN_EQ_METHOD_JOR = 7;
-const int LIN_EQ_METHOD_SOR = 8;
-const int LIN_EQ_METHOD_BSOR = 9;
-const int LIN_EQ_METHOD_PSOR = 10;
-const int LIN_EQ_METHOD_BPSOR = 11;
-
-const int TERM_CRIT_ABSOLUTE = 1;
-const int TERM_CRIT_RELATIVE = 2;
+#include "PrismNativeGlob.h"
 
 //------------------------------------------------------------------------------
 
@@ -59,16 +34,6 @@ const int TERM_CRIT_RELATIVE = 2;
 
 // cudd manager
 extern DdManager *ddman;
-
-// numerical method stuff
-extern int lin_eq_method;
-extern double lin_eq_method_param;
-extern int term_crit;
-extern double term_crit_param;
-extern int max_iters;
-
-// use steady-state detection for transient computation?
-extern bool do_ss_detect;
 
 // export stuff
 extern int export_type;

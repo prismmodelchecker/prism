@@ -31,6 +31,24 @@
 #include "PrismNativeGlob.h"
 #include "jnipointer.h"
 
+// options
+
+// numerical method stuff
+EXPORT int lin_eq_method;
+EXPORT double lin_eq_method_param;
+EXPORT int term_crit;
+EXPORT double term_crit_param;
+EXPORT int max_iters;
+// use "compact modified" sparse matrix storage?
+EXPORT bool compact;
+// sparse bits info
+EXPORT int sb_max_mem;
+EXPORT int num_sb_levels;
+// hybrid sor info
+EXPORT int sor_max_mem;
+EXPORT int num_sor_levels;
+// use steady-state detection for transient computation?
+EXPORT bool do_ss_detect;
 // adversary export mode
 EXPORT int export_adv;
 // adversary export filename
@@ -38,6 +56,83 @@ EXPORT const char *export_adv_filename;
 
 //------------------------------------------------------------------------------
 // Set methods for options in native code
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetCompact(JNIEnv *env, jclass cls, jboolean b)
+{
+	compact = b;
+}
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetLinEqMethod(JNIEnv *env, jclass cls, jint i)
+{
+	lin_eq_method = i;
+}
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetLinEqMethodParam(JNIEnv *env, jclass cls, jdouble d)
+{
+	lin_eq_method_param = d;
+}
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetTermCrit(JNIEnv *env, jclass cls, jint i)
+{
+	term_crit = i;
+}
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetTermCritParam(JNIEnv *env, jclass cls, jdouble d)
+{
+	term_crit_param = d;
+}
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetMaxIters(JNIEnv *env, jclass cls, jint i)
+{
+	max_iters = i;
+}
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetSBMaxMem(JNIEnv *env, jclass cls, jint sbmm)
+{
+	sb_max_mem = sbmm;
+}
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetNumSBLevels(JNIEnv *env, jclass cls, jint nsbl)
+{
+	num_sb_levels = nsbl;
+}
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetSORMaxMem(JNIEnv *env, jclass cls, jint smm)
+{
+	sor_max_mem = smm;
+}
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetNumSORLevels(JNIEnv *env, jclass cls, jint nsl)
+{
+	num_sor_levels = nsl;
+}
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetDoSSDetect(JNIEnv *env, jclass cls, jboolean b)
+{
+	do_ss_detect = b;
+}
+
 //------------------------------------------------------------------------------
 
 JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetExportAdv(JNIEnv *env, jclass cls, jint i)

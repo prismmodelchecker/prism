@@ -116,50 +116,6 @@ public class PrismMTBDD
 	}
 
 	//------------------------------------------------------------------------------
-	// numerical method stuff
-	//------------------------------------------------------------------------------
-	
-	private static native void PM_SetLinEqMethod(int i);
-	public static void setLinEqMethod(int i)
-	{
-		PM_SetLinEqMethod(i);
-	}
-	
-	private static native void PM_SetLinEqMethodParam(double d);
-	public static void setLinEqMethodParam(double d)
-	{
-		PM_SetLinEqMethodParam(d);
-	}
-	
-	private static native void PM_SetTermCrit(int i);
-	public static void setTermCrit(int i)
-	{
-		PM_SetTermCrit(i);
-	}
-	
-	private static native void PM_SetTermCritParam(double d);
-	public static void setTermCritParam(double d)
-	{
-		PM_SetTermCritParam(d);
-	}
-	
-	private static native void PM_SetMaxIters(int i);
-	public static void setMaxIters(int i)
-	{
-		PM_SetMaxIters(i);
-	}
-
-	//------------------------------------------------------------------------------
-	// use steady-state detection?
-	//------------------------------------------------------------------------------
-	
-	private static native void PM_SetDoSSDetect(boolean b);
-	public static void setDoSSDetect(boolean b)
-	{
-		PM_SetDoSSDetect(b);
-	}
-
-	//------------------------------------------------------------------------------
 	// error message
 	//------------------------------------------------------------------------------
 	

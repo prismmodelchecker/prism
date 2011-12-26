@@ -57,27 +57,6 @@ static jmethodID main_log_mid = NULL;
 static jmethodID main_log_warn = NULL;
 static jmethodID tech_log_mid = NULL;
 
-// numerical method stuff
-int lin_eq_method;
-double lin_eq_method_param;
-int term_crit;
-double term_crit_param;
-int max_iters;
-
-// sparse bits info
-int sb_max_mem;
-int num_sb_levels;
-
-// hybrid sor info
-int sor_max_mem;
-int num_sor_levels;
-
-// use "compact modified" sparse matrix storage?
-bool compact;
-
-// use steady-state detection for transient computation?
-bool do_ss_detect;
-
 // error message
 char error_message[MAX_ERR_STRING_LEN];
 
@@ -208,93 +187,6 @@ void PH_PrintMemoryToMainLog(JNIEnv *env, const char *before, double mem, const 
 	else {
 		printf("%s", full_string);
 	}
-}
-
-//------------------------------------------------------------------------------
-// numerical method stuff
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetLinEqMethod(JNIEnv *env, jclass cls, jint i)
-{
-	lin_eq_method = i;
-}
-
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetLinEqMethodParam(JNIEnv *env, jclass cls, jdouble d)
-{
-	lin_eq_method_param = d;
-}
-
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetTermCrit(JNIEnv *env, jclass cls, jint i)
-{
-	term_crit = i;
-}
-
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetTermCritParam(JNIEnv *env, jclass cls, jdouble d)
-{
-	term_crit_param = d;
-}
-
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetMaxIters(JNIEnv *env, jclass cls, jint i)
-{
-	max_iters = i;
-}
-
-//------------------------------------------------------------------------------
-// sparse bits info
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetSBMaxMem(JNIEnv *env, jclass cls, jint sbmm)
-{
-	sb_max_mem = sbmm;
-}
-
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetNumSBLevels(JNIEnv *env, jclass cls, jint nsbl)
-{
-	num_sb_levels = nsbl;
-}
-
-//------------------------------------------------------------------------------
-// hybrid sor info
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetSORMaxMem(JNIEnv *env, jclass cls, jint smm)
-{
-	sor_max_mem = smm;
-}
-
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetNumSORLevels(JNIEnv *env, jclass cls, jint nsl)
-{
-	num_sor_levels = nsl;
-}
-
-//------------------------------------------------------------------------------
-// use "compact modified" sparse matrix storage?
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetCompact(JNIEnv *env, jclass cls, jboolean b)
-{
-	compact = b;
-}
-
-//------------------------------------------------------------------------------
-// use steady-state detection?
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetDoSSDetect(JNIEnv *env, jclass cls, jboolean b)
-{
-	do_ss_detect = b;
 }
 
 //------------------------------------------------------------------------------

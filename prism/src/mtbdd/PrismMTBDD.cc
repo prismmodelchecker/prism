@@ -57,20 +57,10 @@ static jmethodID main_log_mid = NULL;
 static jmethodID main_log_warn = NULL;
 static jmethodID tech_log_mid = NULL;
 
-// numerical method stuff
-int lin_eq_method;
-double lin_eq_method_param;
-int term_crit;
-double term_crit_param;
-int max_iters;
-
 // export stuff
 int export_type;
 FILE *export_file;
 JNIEnv *export_env;
-
-// use steady-state detection for transient computation?
-bool do_ss_detect;
 
 // error message
 char error_message[MAX_ERR_STRING_LEN];
@@ -179,43 +169,6 @@ void PM_PrintToTechLog(JNIEnv *env, const char *str, ...)
 }
 
 //------------------------------------------------------------------------------
-// numerical method stuff
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetLinEqMethod(JNIEnv *env, jclass cls, jint i)
-{
-	lin_eq_method = i;
-}
-
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetLinEqMethodParam(JNIEnv *env, jclass cls, jdouble d)
-{
-	lin_eq_method_param = d;
-}
-
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetTermCrit(JNIEnv *env, jclass cls, jint i)
-{
-	term_crit = i;
-}
-
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetTermCritParam(JNIEnv *env, jclass cls, jdouble d)
-{
-	term_crit_param = d;
-}
-
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetMaxIters(JNIEnv *env, jclass cls, jint i)
-{
-	max_iters = i;
-}
-
-//------------------------------------------------------------------------------
 // export stuff
 //------------------------------------------------------------------------------
 
@@ -258,15 +211,6 @@ void export_string(const char *str, ...)
 	} else {
 		PM_PrintToMainLog(export_env, full_string);
 	}
-}
-
-//------------------------------------------------------------------------------
-// use steady-state detection?
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetDoSSDetect(JNIEnv *env, jclass cls, jboolean b)
-{
-	do_ss_detect = b;
 }
 
 //------------------------------------------------------------------------------

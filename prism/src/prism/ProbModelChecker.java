@@ -71,41 +71,24 @@ public class ProbModelChecker extends NonProbModelChecker
 		model = (ProbModel) m;
 
 		// Inherit some options from parent Prism object.
-		// Store locally and/or pass onto engines.
+		// Store locally and/or pass onto native code.
 		precomp = prism.getPrecomp();
 		prob0 = prism.getProb0();
 		prob1 = prism.getProb1();
 		bsccComp = prism.getBSCCComp();
-		switch (engine) {
-		case Prism.MTBDD:
-			PrismMTBDD.setLinEqMethod(prism.getLinEqMethod());
-			PrismMTBDD.setLinEqMethodParam(prism.getLinEqMethodParam());
-			PrismMTBDD.setTermCrit(prism.getTermCrit());
-			PrismMTBDD.setTermCritParam(prism.getTermCritParam());
-			PrismMTBDD.setMaxIters(prism.getMaxIters());
-			PrismMTBDD.setDoSSDetect(prism.getDoSSDetect());
-			break;
-		case Prism.SPARSE:
-			PrismSparse.setLinEqMethod(prism.getLinEqMethod());
-			PrismSparse.setLinEqMethodParam(prism.getLinEqMethodParam());
-			PrismSparse.setTermCrit(prism.getTermCrit());
-			PrismSparse.setTermCritParam(prism.getTermCritParam());
-			PrismSparse.setMaxIters(prism.getMaxIters());
-			PrismSparse.setCompact(prism.getCompact());
-			PrismSparse.setDoSSDetect(prism.getDoSSDetect());
-		case Prism.HYBRID:
-			PrismHybrid.setLinEqMethod(prism.getLinEqMethod());
-			PrismHybrid.setLinEqMethodParam(prism.getLinEqMethodParam());
-			PrismHybrid.setTermCrit(prism.getTermCrit());
-			PrismHybrid.setTermCritParam(prism.getTermCritParam());
-			PrismHybrid.setMaxIters(prism.getMaxIters());
-			PrismHybrid.setCompact(prism.getCompact());
-			PrismHybrid.setSBMaxMem(prism.getSBMaxMem());
-			PrismHybrid.setNumSBLevels(prism.getNumSBLevels());
-			PrismHybrid.setSORMaxMem(prism.getSORMaxMem());
-			PrismHybrid.setNumSORLevels(prism.getNumSORLevels());
-			PrismHybrid.setDoSSDetect(prism.getDoSSDetect());
-		}
+		PrismNative.setCompact(prism.getCompact());
+		PrismNative.setLinEqMethod(prism.getLinEqMethod());
+		PrismNative.setLinEqMethodParam(prism.getLinEqMethodParam());
+		PrismNative.setTermCrit(prism.getTermCrit());
+		PrismNative.setTermCritParam(prism.getTermCritParam());
+		PrismNative.setMaxIters(prism.getMaxIters());
+		PrismNative.setSBMaxMem(prism.getSBMaxMem());
+		PrismNative.setNumSBLevels(prism.getNumSBLevels());
+		PrismNative.setSORMaxMem(prism.getSORMaxMem());
+		PrismNative.setNumSORLevels(prism.getNumSORLevels());
+		PrismNative.setDoSSDetect(prism.getDoSSDetect());
+		PrismNative.setExportAdv(prism.getExportAdv());
+		PrismNative.setExportAdvFilename(prism.getExportAdvFilename());
 	}
 
 	// Override-able "Constructor"
