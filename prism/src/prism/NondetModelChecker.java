@@ -1203,12 +1203,10 @@ public class NondetModelChecker extends NonProbModelChecker
 			// need to deal with zero loops yet
 			if (min && zeroCostEndComponents != null && zeroCostEndComponents.size() > 0) {
 				mainLog.printWarning("PRISM detected your model contains " + zeroCostEndComponents.size() + " zero-reward "
-						+ ((zeroCostEndComponents.size() == 1) ? "loop." : "loops.\n")
-						+ "Your minimum rewards may be too low...");
+						+ ((zeroCostEndComponents.size() == 1) ? "loop." : "loops.\n") + "Your minimum rewards may be too low...");
 			}
 		} else if (min) {
-			mainLog.printWarning("PRISM hasn't checked for zero-reward loops.\n"
-				+ "Your minimum rewards may be too low...");
+			mainLog.printWarning("PRISM hasn't checked for zero-reward loops.\n" + "Your minimum rewards may be too low...");
 		}
 
 		// print out yes/no/maybe
