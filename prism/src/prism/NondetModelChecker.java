@@ -38,7 +38,6 @@ import sparse.*;
 import hybrid.*;
 import parser.ast.*;
 import parser.visitor.ASTTraverse;
-import jltl2dstar.*;
 
 /*
  * Model checker for MDPs
