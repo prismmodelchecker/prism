@@ -3,6 +3,7 @@
  * (http://www.ltl2dstar.de/) for PRISM (http://www.prismmodelchecker.org/)
  * Copyright (C) 2005-2007 Joachim Klein <j.klein@ltl2dstar.de>
  * Copyright (c) 2007 Carlos Bederian
+ * Copyright (c) 2011- David Parker
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as 
@@ -24,11 +25,13 @@ import jltl2ba.APSet;
 import jltl2ba.SimpleLTL;
 import prism.PrismException;
 
+import java.util.BitSet;
+
 public class LTL2Rabin {
 	
-	public static DRA ltl2rabin(SimpleLTL ltlFormula) throws PrismException {
+	public static prism.DRA<BitSet> ltl2rabin(SimpleLTL ltlFormula) throws PrismException {
 		SimpleLTL ltl = ltlFormula.simplify();
-		return ltl2rabin(ltl, ltl.getAPs());
+		return ltl2rabin(ltl, ltl.getAPs()).createPrismDRA();
 	}
 	
 	private static DRA ltl2rabin(SimpleLTL ltl, APSet apset) throws PrismException {

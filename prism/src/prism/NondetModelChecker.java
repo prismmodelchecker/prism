@@ -431,14 +431,14 @@ public class NondetModelChecker extends NonProbModelChecker
 		// Convert LTL formula to deterministic Rabin automaton (DRA)
 		// For min probabilities, need to negate the formula
 		// (But check fairness setting since this may affect min/max)
-		mainLog.println("\nBuilding deterministic Rabin automaton (for " + (min && !fairness ? "!" : "") + ltl + ")...");
-		l = System.currentTimeMillis();
+		// (add parentheses to allow re-parsing if required)
 		if (min && !fairness) {
-			dra = LTL2Rabin.ltl2rabin(ltl.convertForJltl2ba().negate());
-		} else {
-			dra = LTL2Rabin.ltl2rabin(ltl.convertForJltl2ba());
+			ltl = Expression.Not(Expression.Parenth(ltl));
 		}
-		mainLog.println("\nDRA has " + dra.size() + " states, " + dra.acceptance().size() + " pairs.");
+		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
+		l = System.currentTimeMillis();
+		dra = LTLModelChecker.convertLTLFormulaToDRA(ltl);
+		mainLog.println("\nDRA has " + dra.size() + " states, " + dra.getNumAcceptancePairs() + " pairs.");
 		// dra.print(System.out);
 		l = System.currentTimeMillis() - l;
 		mainLog.println("\nTime for Rabin translation: " + l / 1000.0 + " seconds.");

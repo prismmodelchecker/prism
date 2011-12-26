@@ -28,11 +28,10 @@ package prism;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.BitSet;
 import java.util.Vector;
 
 import jdd.*;
-import jltl2dstar.DRA;
-import jltl2dstar.LTL2Rabin;
 import dv.*;
 import mtbdd.*;
 import sparse.*;
@@ -51,6 +50,9 @@ public class ProbModelChecker extends NonProbModelChecker
 	// Options (in addition to those inherited from StateModelChecker):
 
 	// Use 0,1 precomputation algorithms?
+	// if 'precomp' is false, this disables all (non-essential) use of prob0/prob1
+	// if 'precomp' is true, the values of prob0/prob1 determine what is used
+	// (currently prob0/prob are not under user control)
 	protected boolean precomp;
 	protected boolean prob0;
 	protected boolean prob1;
@@ -588,7 +590,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		StateValues probsProduct = null, probs = null;
 		Expression ltl;
 		Vector<JDDNode> labelDDs;
-		DRA dra;
+		DRA<BitSet> dra;
 		ProbModel modelProduct;
 		ProbModelChecker mcProduct;
 		JDDNode startMask;
@@ -624,8 +626,8 @@ public class ProbModelChecker extends NonProbModelChecker
 		// Convert LTL formula to deterministic Rabin automaton (DRA)
 		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
 		l = System.currentTimeMillis();
-		dra = LTL2Rabin.ltl2rabin(ltl.convertForJltl2ba());
-		mainLog.println("\nDRA has " + dra.size() + " states, " + dra.acceptance().size() + " pairs.");
+		dra = LTLModelChecker.convertLTLFormulaToDRA(ltl);
+		mainLog.println("\nDRA has " + dra.size() + " states, " + dra.getNumAcceptancePairs() + " pairs.");
 		// dra.print(System.out);
 		l = System.currentTimeMillis() - l;
 		mainLog.println("\nTime for Rabin translation: " + l / 1000.0 + " seconds.");

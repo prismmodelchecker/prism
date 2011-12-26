@@ -3,6 +3,7 @@
  * (http://www.ltl2dstar.de/) for PRISM (http://www.prismmodelchecker.org/)
  * Copyright (C) 2005-2007 Joachim Klein <j.klein@ltl2dstar.de>
  * Copyright (c) 2007 Carlos Bederian
+ * Copyright (c) 2011- Hongyang Qu
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as 
@@ -293,5 +294,58 @@ public class DA {
 				out.println(transition.getKey().toString(_ap_set, true) + " -> " + transition.getValue().getName());
 			}
 		}
+	}
+	
+	/**
+	 * Print the DA in dot format to the output stream.
+	 * This functions expects that the DA is compact.
+	 * @param da_type a string specifying the type of automaton ("DRA", "DSA").
+	 * @param out the output stream 
+	 * 
+	 * @author Hongyang Qu
+	 */
+	public void	printDot(String da_type, PrintStream out) throws PrismException {
+		// Ensure that this DA is compact...
+		if (!this.isCompact()) {
+			throw new PrismException("DA is not compact!");
+		}
+
+		if (this.getStartState() == null) {
+			// No start state! 
+			throw new PrismException("No start state in DA!");
+		}
+
+		int start_state = this.getStartState().getName();
+
+		out.println("digraph model {");
+		for (int i_state = 0; i_state < _index.size(); i_state++) {
+			if(i_state == start_state)
+				out.println("	" + i_state + " [label=\"" + i_state + "\", shape=ellipse]");
+			else {
+				boolean isAcceptance = false;
+				for (int ap_i = 0; ap_i < _acceptance.size(); ap_i++) {
+					if(_acceptance.isStateInAcceptance_L(ap_i, i_state)) {
+						out.println("	" + i_state + " [label=\"" + i_state + "\", shape=doublecircle]");
+						isAcceptance = true;
+						break;
+					} else if(_acceptance.isStateInAcceptance_U(ap_i, i_state)) {
+						out.println("	" + i_state + " [label=\"" + i_state + "\", shape=box]");
+						isAcceptance = true;
+						break;
+					}
+				}
+				if(!isAcceptance)
+					out.println("	" + i_state + " [label=\"" + i_state + "\", shape=circle]");
+			}
+		}
+		for (int i_state = 0; i_state < _index.size(); i_state++) {
+			DA_State cur_state = _index.get(i_state);
+			for (Map.Entry<APElement, DA_State> transition : cur_state.edges().entrySet()) {
+				out.println("	" + i_state + " -> " + transition.getValue().getName() + 
+						" [label=\"" + transition.getKey().toString(_ap_set, true) + "\"]");
+			}
+		}
+		out.println("}");
+		
 	}
 }

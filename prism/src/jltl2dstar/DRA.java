@@ -3,6 +3,7 @@
  * (http://www.ltl2dstar.de/) for PRISM (http://www.prismmodelchecker.org/)
  * Copyright (C) 2005-2007 Joachim Klein <j.klein@ltl2dstar.de>
  * Copyright (c) 2007 Carlos Bederian
+ * Copyright (c) 2011- David Parker, Hongyang Qu
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as 
@@ -20,9 +21,12 @@
 
 package jltl2dstar;
 
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.PrintStream;
-import java.util.Iterator;
+import java.util.*;
 
+import jltl2ba.APElement;
 import jltl2ba.APSet;
 
 import prism.PrismException;
@@ -85,6 +89,18 @@ public class DRA extends DA {
 
 		this.print(typeID(), out);
 	}
+	
+	/**
+	 * Print the DRA/DSA in dot format to the output stream.
+	 * This function can compact the automaton, which may invalidate iterators!
+	 */
+	public void printDot(PrintStream out) throws PrismException {
+		if (!this.isCompact()) {
+			this.makeCompact();
+		}
+
+		this.printDot(typeID(), out);
+	}
 
 	/**
 	 * Print the DRA/DSA in DOT format to the output stream.
@@ -127,6 +143,55 @@ public class DRA extends DA {
 		return DAUnionAlgorithm.calculateUnion(this, other, trueloop_check, detailed_states);
 	}
 
+	/**
+	 * Convert the DRA from jltl2dstar to PRISM data structures.  
+	 */
+	public prism.DRA<BitSet> createPrismDRA() throws PrismException
+	{
+		int i, k, numLabels, numStates, src, dest;
+		List<String> apList;
+		BitSet bitset, bitset2;
+		RabinAcceptance acc;
+		prism.DRA<BitSet> draNew;
+		
+		numLabels = getAPSize();
+		numStates = size();
+		draNew = new prism.DRA<BitSet>(numStates);
+		// Copy AP set
+		apList = new ArrayList<String>(numLabels);
+		for (i = 0; i < numLabels; i++) {
+			apList.add(getAPSet().getAP(i));
+		}
+		draNew.setAPList(apList);
+		// Copy start state
+		draNew.setStartState(getStartState().getName());
+		// Copy edges
+		for (i = 0; i < numStates; i++) {
+			DA_State cur_state = get(i);
+			src = cur_state.getName();
+			for (Map.Entry<APElement, DA_State> transition : cur_state.edges().entrySet()) {
+				dest = transition.getValue().getName();
+				bitset = new BitSet();
+				for (k = 0; k < numLabels; k++) {
+					bitset.set(k, transition.getKey().get(k));
+				}
+				draNew.addEdge(src, bitset, dest);
+			}
+		}
+		// Copy acceptance pairs
+		acc = acceptance(); 
+		for (i = 0; i < acc.size(); i++) {
+			bitset = new BitSet();
+			bitset.or(acc.getAcceptance_U(i));
+			bitset2 = new BitSet();
+			bitset2.or(acc.getAcceptance_L(i));
+			// Note: Pairs (U_i,L_i) become (L_i,K_i) in PRISM's notation
+			draNew.addAcceptancePair(bitset, bitset2);
+		}
+		
+		return draNew;
+	}
+	
 	//	public DRA calculateUnionStuttered(DRA other,
 	//			StutterSensitivenessInformation stutter_information,
 	//			boolean trueloop_check,

@@ -51,6 +51,15 @@ public class LTLModelChecker
 	}
 
 	/**
+	 * Convert an LTL formula into a DRA. The LTL formula is represented as a PRISM Expression,
+	 * in which atomic propositions are represented by ExpressionLabel objects.
+	 */
+	public static DRA<BitSet> convertLTLFormulaToDRA(Expression ltl) throws PrismException
+	{
+		return LTL2RabinLibrary.convertLTLFormulaToDRA(ltl);
+	}
+	
+	/**
 	 * Extract maximal state formula from an LTL path formula, model check them (with passed in model checker) and
 	 * replace them with ExpressionLabel objects L0, L1, etc. Expression passed in is modified directly, but the result
 	 * is also returned. As an optimisation, model checking that results in true/false for all states is converted to an
@@ -528,28 +537,25 @@ public class LTLModelChecker
 	 * 
 	 * @return a referenced mask BDD over trans
 	 */
-	public JDDNode buildTransMask(DRA dra, Vector<JDDNode> labelDDs, JDDVars allDDRowVars, JDDVars allDDColVars, JDDVars draDDRowVars, JDDVars draDDColVars)
+	public JDDNode buildTransMask(DRA<BitSet> dra, Vector<JDDNode> labelDDs, JDDVars allDDRowVars, JDDVars allDDColVars, JDDVars draDDRowVars, JDDVars draDDColVars)
 	{
-		Iterator<DA_State> it;
-		DA_State state;
 		JDDNode draMask, label, exprBDD, transition;
-		int i, n;
+		int i, j, k, numAPs, numStates, numEdges;
 
+		numAPs = dra.getAPList().size();
 		draMask = JDD.Constant(0);
 		// Iterate through all (states and) transitions of DRA
-		for (it = dra.iterator(); it.hasNext();) {
-			state = it.next();
-			for (Map.Entry<APElement, DA_State> edge : state.edges().entrySet()) {
+		numStates = dra.size();
+		for (i = 0; i < numStates; i++) {
+			numEdges = dra.getNumEdges(i);
+			for (j = 0; j < numEdges; j++) {
 				// Build a transition label BDD for each edge
-				// System.out.println(state.getName() + " to " + edge.getValue().getName() + " through " +
-				// edge.getKey().toString(dra.getAPSet(), false));
 				label = JDD.Constant(1);
-				n = dra.getAPSize();
-				for (i = 0; i < n; i++) {
-					// Get the expression BDD for label i
-					exprBDD = labelDDs.get(Integer.parseInt(dra.getAPSet().getAP(i).substring(1)));
+				for (k = 0; k < numAPs; k++) {
+					// Get the expression BDD for AP k (via label "Lk")
+					exprBDD = labelDDs.get(Integer.parseInt(dra.getAPList().get(k).substring(1)));
 					JDD.Ref(exprBDD);
-					if (!edge.getKey().get(i)) {
+					if (!dra.getEdgeLabel(i, j).get(k)) {
 						exprBDD = JDD.Not(exprBDD);
 					}
 					label = JDD.And(label, exprBDD);
@@ -557,7 +563,7 @@ public class LTLModelChecker
 				// Switch label BDD to col vars
 				label = JDD.PermuteVariables(label, allDDRowVars, allDDColVars);
 				// Build a BDD for the edge
-				transition = JDD.SetMatrixElement(JDD.Constant(0), draDDRowVars, draDDColVars, state.getName(), edge.getValue().getName(), 1);
+				transition = JDD.SetMatrixElement(JDD.Constant(0), draDDRowVars, draDDColVars, i, dra.getEdgeDest(i, j), 1);
 				// Now get the conjunction of the two
 				transition = JDD.And(transition, label);
 				// Add edge BDD to the DRA transition mask
@@ -574,27 +580,31 @@ public class LTLModelChecker
 	 * 
 	 * @return a referenced mask BDD over start
 	 */
-	public JDDNode buildStartMask(DRA dra, Vector<JDDNode> labelDDs, JDDVars draDDRowVars)
+	public JDDNode buildStartMask(DRA<BitSet> dra, Vector<JDDNode> labelDDs, JDDVars draDDRowVars)
 	{
 		JDDNode startMask, label, exprBDD, dest, tmp;
+		int i, j, k, numAPs, numEdges;
 
+		numAPs = dra.getAPList().size();
 		startMask = JDD.Constant(0);
-		for (Map.Entry<APElement, DA_State> edge : dra.getStartState().edges().entrySet()) {
+		// Iterate through all transitions of start state of DRA
+		i = dra.getStartState();
+		numEdges = dra.getNumEdges(i);
+		for (j = 0; j < numEdges; j++) {
 			// Build a transition label BDD for each edge
-			// System.out.println("To " + edge.getValue().getName() + " through " +
-			// edge.getKey().toString(dra.getAPSet(), false));
 			label = JDD.Constant(1);
-			for (int i = 0; i < dra.getAPSize(); i++) {
-				exprBDD = labelDDs.get(Integer.parseInt(dra.getAPSet().getAP(i).substring(1)));
+			for (k = 0; k < numAPs; k++) {
+				// Get the expression BDD for AP k (via label "Lk")
+				exprBDD = labelDDs.get(Integer.parseInt(dra.getAPList().get(k).substring(1)));
 				JDD.Ref(exprBDD);
-				if (!edge.getKey().get(i)) {
+				if (!dra.getEdgeLabel(i, j).get(k)) {
 					exprBDD = JDD.Not(exprBDD);
 				}
-				label = JDD.Apply(JDD.TIMES, label, exprBDD);
+				label = JDD.And(label, exprBDD);
 			}
 			// Build a BDD for the DRA destination state
 			dest = JDD.Constant(0);
-			dest = JDD.SetVectorElement(dest, draDDRowVars, edge.getValue().getName(), 1);
+			dest = JDD.SetVectorElement(dest, draDDRowVars, dra.getEdgeDest(i, j), 1);
 
 			// Now get the conjunction of the two
 			tmp = JDD.And(dest, label);
@@ -611,7 +621,7 @@ public class LTLModelChecker
 	 * 
 	 * @returns a referenced BDD of the union of all the accepting sets
 	 */
-	public JDDNode findAcceptingBSCCs(DRA dra, JDDVars draDDRowVars, JDDVars draDDColVars, ProbModel model) throws PrismException
+	public JDDNode findAcceptingBSCCs(DRA<BitSet> dra, JDDVars draDDRowVars, JDDVars draDDColVars, ProbModel model) throws PrismException
 	{
 		SCCComputer sccComputer;
 		JDDNode acceptingStates, allAcceptingStates;
@@ -629,23 +639,25 @@ public class LTLModelChecker
 
 		// for each acceptance pair (H_i, L_i) in the DRA, build H'_i = S x H_i
 		// and compute the BSCCs in H'_i
-		for (i = 0; i < dra.acceptance().size(); i++) {
+		for (i = 0; i < dra.getNumAcceptancePairs(); i++) {
 
 			// build the acceptance vectors H_i and L_i
 			JDDNode acceptanceVector_H = JDD.Constant(0);
 			JDDNode acceptanceVector_L = JDD.Constant(0);
 			for (j = 0; j < dra.size(); j++) {
 				/*
-				 * [dA97] uses Rabin acceptance pairs (H_i, L_i) such that H_i contains Inf(ρ) The intersection of
-				 * Inf(ρ) and L_i is non-empty
+				 * [dA97] uses Rabin acceptance pairs (H_i, L_i) such that
+				 * H_i contains Inf(\rho) and the intersection of Inf(K) and L_i is non-empty
 				 * 
-				 * OTOH ltl2dstar (and our port to java) uses pairs (L_i, U_i) such that The intersection of U_i and
-				 * Inf(ρ) is empty (H_i = S - U_i) The intersection of L_i and Inf(ρ) is non-empty
+				 * OTOH PRISM's DRAs (via ltl2dstar use pairs (L_i, K_i) such that
+				 * the intersection of L_i and Inf(\rho) is empty
+				 * and the intersection of K_i and Inf(\rho) is non-empty
+				 * So: L_i = K_i, H_i = S - L_i 
 				 */
-				if (!dra.acceptance().isStateInAcceptance_U(i, j)) {
+				if (!dra.getAcceptanceL(i).get(j)) {
 					acceptanceVector_H = JDD.SetVectorElement(acceptanceVector_H, draDDRowVars, j, 1.0);
 				}
-				if (dra.acceptance().isStateInAcceptance_L(i, j)) {
+				if (dra.getAcceptanceK(i).get(j)) {
 					acceptanceVector_L = JDD.SetVectorElement(acceptanceVector_L, draDDRowVars, j, 1.0);
 				}
 			}
@@ -699,7 +711,7 @@ public class LTLModelChecker
 
 		// for each acceptance pair (H_i, L_i) in the DRA, build H'_i = S x H_i
 		// and compute the maximal ECs in H'_i
-		for (i = 0; i < dra.acceptance().size(); i++) {
+		for (i = 0; i < dra.getNumAcceptancePairs(); i++) {
 
 			// build the acceptance vectors H_i and L_i
 			JDDNode acceptanceVector_H = JDD.Constant(0);
@@ -712,10 +724,10 @@ public class LTLModelChecker
 				 * OTOH ltl2dstar (and our port to java) uses pairs (L_i, U_i) such that The intersection of U_i and
 				 * Inf(ρ) is empty (H_i = S - U_i) The intersection of L_i and Inf(ρ) is non-empty
 				 */
-				if (!dra.acceptance().isStateInAcceptance_U(i, j)) {
+				if (!dra.getAcceptanceL(i).get(j)) {
 					acceptanceVector_H = JDD.SetVectorElement(acceptanceVector_H, draDDRowVars, j, 1.0);
 				}
-				if (dra.acceptance().isStateInAcceptance_L(i, j)) {
+				if (dra.getAcceptanceK(i).get(j)) {
 					acceptanceVector_L = JDD.SetVectorElement(acceptanceVector_L, draDDRowVars, j, 1.0);
 				}
 			}
