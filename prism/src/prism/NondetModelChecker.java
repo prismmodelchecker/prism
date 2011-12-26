@@ -462,7 +462,6 @@ public class NondetModelChecker extends NonProbModelChecker
 		if (prism.getExportProductStates()) {
 			try {
 				mainLog.println("\nExporting product state space to file \"" + prism.getExportProductStatesFilename() + "\"...");
-				prism.exportTransToFile(modelProduct, true, Prism.EXPORT_PLAIN, new File(prism.getExportProductStatesFilename()));
 				prism.exportStatesToFile(modelProduct, Prism.EXPORT_PLAIN, new File(prism.getExportProductStatesFilename()));
 			} catch (FileNotFoundException e) {
 				mainLog.printWarning("Could not export product state space to file \"" + prism.getExportProductStatesFilename() + "\"");
