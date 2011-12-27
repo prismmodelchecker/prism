@@ -1085,6 +1085,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		JDDNode rewardsMTBDD;
 		DoubleVector rewardsDV;
 		StateValues rewards = null;
+		// Local copy of setting
+		int engine = this.engine;
 
 		// a trivial case: "=0"
 		if (time == 0) {
@@ -1095,6 +1097,11 @@ public class NondetModelChecker extends NonProbModelChecker
 		else {
 			// compute the rewards
 			mainLog.println("\nComputing rewards...");
+			// switch engine, if necessary
+			if (engine == Prism.HYBRID) {
+				mainLog.println("Switching engine since hybrid engine does yet support this computation...");
+				engine = Prism.SPARSE;
+			}
 			mainLog.println("Engine: " + Prism.getEngineString(engine));
 			try {
 				switch (engine) {
@@ -1127,6 +1134,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		JDDNode rewardsMTBDD;
 		DoubleVector rewardsDV;
 		StateValues rewards = null;
+		// Local copy of setting
+		int engine = this.engine;
 
 		Vector<JDDNode> zeroCostEndComponents = null;
 
@@ -1213,6 +1222,11 @@ public class NondetModelChecker extends NonProbModelChecker
 		else {
 			// compute the rewards
 			mainLog.println("\nComputing remaining rewards...");
+			// switch engine, if necessary
+			if (engine == Prism.HYBRID) {
+				mainLog.println("Switching engine since hybrid engine does yet support this computation...");
+				engine = Prism.SPARSE;
+			}
 			mainLog.println("Engine: " + Prism.getEngineString(engine));
 			try {
 				switch (engine) {
