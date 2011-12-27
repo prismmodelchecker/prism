@@ -826,6 +826,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		// otherwise explicitly compute the remaining probabilities
 		else {
 			// compute probabilities
+			mainLog.println("\nComputing probabilities...");
+			mainLog.println("Engine: " + Prism.getEngineString(engine));
 			try {
 				switch (engine) {
 				case Prism.MTBDD:
@@ -1042,7 +1044,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		else {
 			// compute probabilities
 			mainLog.println("\nComputing remaining probabilities...");
-
+			mainLog.println("Engine: " + Prism.getEngineString(engine));
 			try {
 				switch (engine) {
 				case Prism.MTBDD:
@@ -1092,6 +1094,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		// otherwise we compute the actual rewards
 		else {
 			// compute the rewards
+			mainLog.println("\nComputing rewards...");
+			mainLog.println("Engine: " + Prism.getEngineString(engine));
 			try {
 				switch (engine) {
 				case Prism.MTBDD:
@@ -1208,6 +1212,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		// otherwise we compute the actual rewards
 		else {
 			// compute the rewards
+			mainLog.println("\nComputing remaining rewards...");
+			mainLog.println("Engine: " + Prism.getEngineString(engine));
 			try {
 				switch (engine) {
 				case Prism.MTBDD:

@@ -465,6 +465,8 @@ public class StochModelChecker extends ProbModelChecker
 		// otherwise explicitly compute the probabilities
 		else {
 			// compute probabilities
+			mainLog.println("\nComputing probabilities...");
+			mainLog.println("Engine: " + Prism.getEngineString(engine));
 			try {
 				switch (engine) {
 				case Prism.MTBDD:
@@ -531,6 +533,8 @@ public class StochModelChecker extends ProbModelChecker
 		StateValues rewards = null;
 
 		// compute rewards
+		mainLog.println("\nComputing rewards...");
+		mainLog.println("Engine: " + Prism.getEngineString(engine));
 		try {
 			switch (engine) {
 			case Prism.MTBDD:
@@ -610,6 +614,8 @@ public class StochModelChecker extends ProbModelChecker
 		}
 		
 		// general case
+		mainLog.println("\nComputing probabilities...");
+		mainLog.println("Engine: " + Prism.getEngineString(engine));
 		try {
 			switch (engine) {
 			case Prism.MTBDD:

@@ -64,6 +64,7 @@ public class Prism implements PrismSettingsListener
 	public static final int MTBDD = 1;
 	public static final int SPARSE = 2;
 	public static final int HYBRID = 3;
+	private static String[] engineStrings = { "?", "MTBDD", "Sparse", "Hybrid" };
 	
 	// methods for solving linear equation systems
 	public static final int POWER = 1;
@@ -571,6 +572,11 @@ public class Prism implements PrismSettingsListener
 	
 	public double getSumRoundOff()
 	{ return sumRoundOff; }
+	
+	// String methods for options
+	
+	public static String getEngineString(int engine)
+	{ return engineStrings[engine]; }
 	
 	/**
 	 * Get (exclusive) access to the PRISM parser.
