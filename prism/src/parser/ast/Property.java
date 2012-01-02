@@ -229,8 +229,12 @@ public class Property extends ASTElement
 			// Parse expected result
 			double doubleExp;
 			try {
+				// See if it's NaN
+				if (strExpected.equals("NaN")) {
+					doubleExp = Double.NaN;
+				}
 				// See if it's a fraction
-				if (strExpected.matches("[0-9]+/[0-9]+")) {
+				else if (strExpected.matches("[0-9]+/[0-9]+")) {
 					int numer = Integer.parseInt(strExpected.substring(0, strExpected.indexOf('/')));
 					int denom = Integer.parseInt(strExpected.substring(strExpected.indexOf('/') + 1));
 					doubleExp = ((double) numer) / denom;
@@ -247,8 +251,14 @@ public class Property extends ASTElement
 			if (!(result instanceof Double))
 				throw new PrismException("Result is wrong type for (double-valued) property");
 			doubleRes = ((Double) result).doubleValue();
-			if (!PrismUtils.doublesAreCloseRel(doubleRes, doubleExp, 1e-5))
-				throw new PrismException("Wrong result (expected " + doubleExp + ")");
+			// Compare results
+			if (Double.isNaN(doubleRes)) {
+				if (!Double.isNaN(doubleExp))
+					throw new PrismException("Wrong result (expected " + doubleExp + ")");
+			} else {
+				if (!PrismUtils.doublesAreCloseRel(doubleRes, doubleExp, 1e-5))
+					throw new PrismException("Wrong result (expected " + doubleExp + ")");
+			}
 		}
 		
 		// Unknown type
