@@ -365,12 +365,14 @@ make_dirs:
 	  for lib in `ls *$(LIBSUFFIX)`; do ln -fs $$lib `echo $$lib | sed s/$(LIBSUFFIX)/.jnilib/`; done;); \
 	fi
 
-tests:
-	@if [ -d tests ]; then \
-	  cd tests && $(MAKE) clean && $(MAKE) PRISM_EXEC=../bin/prism; \
-	fi
+tests: testslocal
 	@if [ -d ~/prism-tests ]; then \
 	  cd ~/prism-tests && $(MAKE) clean && $(MAKE) PRISM_EXEC=../bin/prism; \
+	fi
+
+testslocal:
+	@if [ -d tests ]; then \
+	  cd tests && $(MAKE) clean && $(MAKE) PRISM_EXEC=../bin/prism; \
 	fi
 
 bin_scripts: $(BIN_TARGETS)
