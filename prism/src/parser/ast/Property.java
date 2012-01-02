@@ -256,7 +256,7 @@ public class Property extends ASTElement
 				if (!Double.isNaN(doubleExp))
 					throw new PrismException("Wrong result (expected " + doubleExp + ")");
 			} else {
-				if (!PrismUtils.doublesAreCloseRel(doubleRes, doubleExp, 1e-5))
+				if (!PrismUtils.doublesAreCloseRel(doubleExp, doubleRes, 1e-5))
 					throw new PrismException("Wrong result (expected " + doubleExp + ")");
 			}
 		}
