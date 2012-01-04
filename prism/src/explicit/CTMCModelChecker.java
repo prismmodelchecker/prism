@@ -157,7 +157,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 	{
 		return doTransient(ctmc, time, (StateValues) null);
 	}
-	
+
 	/**
 	 * Compute transient probability distribution (forwards).
 	 * Optionally, use the passed in file initDistFile to give the initial probability distribution (time 0).
@@ -177,10 +177,10 @@ public class CTMCModelChecker extends DTMCModelChecker
 			// Populate vector from file
 			initDist.readFromFile(initDistFile);
 		}
-		
+
 		return doTransient(ctmc, t, initDist);
 	}
-	
+
 	/**
 	 * Compute transient probability distribution (forwards).
 	 * Optionally, use the passed in vector initDist as the initial probability distribution (time 0).
@@ -304,7 +304,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 			res.soln = Utils.bitsetToDoubleArray(target, ctmc.getNumStates());
 			return res;
 		}
-		
+
 		// Start backwards transient computation
 		timer = System.currentTimeMillis();
 		mainLog.println("Starting backwards transient probability computation...");
