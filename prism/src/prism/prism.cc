@@ -31,6 +31,25 @@
 #include <math.h>
 #include <new>
 #include <vector>
+#include "jnipointer.h"
+
+//------------------------------------------------------------------------------
+
+// Get the current time in milliseconds (via Java).
+// Returns -1 in case of error obtaining the time.
+
+long get_real_time(JNIEnv *env)
+{
+	jlong ret = 0;
+	if (env) {
+		jclass cl = env->FindClass("java/lang/System");
+		jmethodID me = env->GetStaticMethodID(cl, "currentTimeMillis", "()J");
+		ret = env->CallLongMethod(cl, me);
+	} else {
+		ret = -1;
+	}
+	return ret;
+}
 
 //------------------------------------------------------------------------------
 
