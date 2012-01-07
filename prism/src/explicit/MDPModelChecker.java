@@ -262,7 +262,7 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Start probabilistic reachability
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting probabilistic reachability...");
+		mainLog.println("Starting probabilistic reachability (" + (min ? "min" : "max") + ")...");
 
 		// Check for deadlocks in non-target state (because breaks e.g. prob1)
 		mdp.checkForDeadlocks(target);
@@ -609,7 +609,7 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Start value iteration
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting Gauss-Seidel...");
+		mainLog.println("Starting Gauss-Seidel (" + (min ? "min" : "max") + ")...");
 
 		// Store num states
 		n = mdp.getNumStates();
@@ -915,7 +915,7 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Start bounded probabilistic reachability
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting bounded probabilistic reachability...");
+		mainLog.println("Starting bounded probabilistic reachability (" + (min ? "min" : "max") + ")...");
 
 		// Store num states
 		n = mdp.getNumStates();
@@ -1007,7 +1007,7 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Start expected reachability
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting expected reachability...");
+		mainLog.println("Starting expected reachability (" + (min ? "min" : "max") + ")...");
 
 		// Check for deadlocks in non-target state (because breaks e.g. prob1)
 		mdp.checkForDeadlocks(target);
