@@ -174,6 +174,22 @@ public interface MDP extends Model
 	public void mvMultRewMinMax(double vect[], MDPRewards mdpRewards, boolean min, double result[], BitSet subset, boolean complement, int adv[]);
 
 	/**
+	 * Do a Gauss-Seidel-style matrix-vector multiplication and sum of action reward followed by min/max.
+	 * i.e. for all s: vect[s] = min/max_k { rew(s) + (sum_{j!=s} P_k(s,j)*vect[j]) / P_k(s,s) }
+	 * and store new values directly in {@code vect} as computed.
+	 * The maximum (absolute/relative) difference between old/new
+	 * elements of {@code vect} is also returned.
+	 * @param vect Vector to multiply by (and store the result in)
+	 * @param mdpRewards The rewards
+	 * @param min Min or max for (true=min, false=max)
+	 * @param subset Only do multiplication for these rows (ignored if null)
+	 * @param complement If true, {@code subset} is taken to be its complement (ignored if {@code subset} is null)
+	 * @param absolute If true, compute absolute, rather than relative, difference
+	 * @return The maximum difference between old/new elements of {@code vect}
+	 */
+	public double mvMultRewGSMinMax(double vect[], MDPRewards mdpRewards, boolean min, BitSet subset, boolean complement, boolean absolute);
+	
+	/**
 	 * Do a single row of matrix-vector multiplication and sum of action reward followed by min/max.
 	 * i.e. return min/max_k { rew(s) + sum_j P_k(s,j)*vect[j] }
 	 * @param s Row index
@@ -183,6 +199,16 @@ public interface MDP extends Model
 	 * @param adv Storage for adversary choice indices (ignored if null)
 	 */
 	public double mvMultRewMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int adv[]);
+
+	/**
+	 * Do a single row of Jacobi-style matrix-vector multiplication and sum of action reward followed by min/max.
+	 * i.e. return min/max_k { (sum_{j!=s} P_k(s,j)*vect[j]) / P_k(s,s) }
+	 * @param s Row index
+	 * @param vect Vector to multiply by
+	 * @param mdpRewards The rewards
+	 * @param min Min or max for (true=min, false=max)
+	 */
+	public double mvMultRewJacMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min);
 
 	/**
 	 * Determine which choices result in min/max after a single row of matrix-vector multiplication and sum of action reward.

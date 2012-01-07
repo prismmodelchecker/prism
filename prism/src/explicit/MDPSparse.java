@@ -813,6 +813,43 @@ public class MDPSparse extends MDPExplicit
 	}
 
 	@Override
+	public double mvMultRewJacMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min)
+	{
+		int j, k, l1, h1, l2, h2;
+		double diag, d, minmax;
+		boolean first;
+
+		minmax = 0;
+		first = true;
+		l1 = rowStarts[s];
+		h1 = rowStarts[s + 1];
+		for (j = l1; j < h1; j++) {
+			diag = 1.0;
+			// Compute sum for this distribution
+			d = mdpRewards.getTransitionReward(s, j - l1);
+			l2 = choiceStarts[j];
+			h2 = choiceStarts[j + 1];
+			for (k = l2; k < h2; k++) {
+				if (cols[k] != s) {
+					d += nonZeros[k] * vect[cols[k]];
+				} else {
+					diag -= nonZeros[k];
+				}
+			}
+			if (diag > 0)
+				d /= diag;
+			// Check whether we have exceeded min/max so far
+			if (first || (min && d < minmax) || (!min && d > minmax))
+				minmax = d;
+			first = false;
+		}
+		// Add state reward (doesn't affect min/max)
+		minmax += mdpRewards.getStateReward(s);
+
+		return minmax;
+	}
+
+	@Override
 	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], MDPRewards mdpRewards, boolean min, double val)
 	{
 		int j, k, l1, h1, l2, h2;

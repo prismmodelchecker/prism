@@ -747,6 +747,45 @@ public class MDPSimple extends MDPExplicit implements ModelSimple
 	}
 
 	@Override
+	public double mvMultRewJacMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min)
+	{
+		int j, k;
+		double diag, d, prob, minmax;
+		boolean first;
+		List<Distribution> step;
+
+		minmax = 0;
+		first = true;
+		j = -1;
+		step = trans.get(s);
+		for (Distribution distr : step) {
+			j++;
+			diag = 1.0;
+			// Compute sum for this distribution
+			d = mdpRewards.getTransitionReward(s, j);
+			for (Map.Entry<Integer, Double> e : distr) {
+				k = (Integer) e.getKey();
+				prob = (Double) e.getValue();
+				if (k != s) {
+					d += prob * vect[k];
+				} else {
+					diag -= prob;
+				}
+			}
+			if (diag > 0)
+				d /= diag;
+			// Check whether we have exceeded min/max so far
+			if (first || (min && d < minmax) || (!min && d > minmax))
+				minmax = d;
+			first = false;
+		}
+		// Add state reward (doesn't affect min/max)
+		minmax += mdpRewards.getStateReward(s);
+
+		return minmax;
+	}
+
+	@Override
 	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], MDPRewards mdpRewards, boolean min, double val)
 	{
 		int j, k;
