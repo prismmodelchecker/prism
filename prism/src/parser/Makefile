@@ -10,7 +10,8 @@
 THIS_DIR = parser
 PRISM_DIR_REL = ../..
 
-JAVA_FILES = $(wildcard *.java ast/*.java type/*.java visitor/*.java)
+JAVA_FILES_ALL = $(wildcard *.java ast/*.java type/*.java visitor/*.java)
+JAVA_FILES = $(patsubst %package-info.java,,$(JAVA_FILES_ALL))
 CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class)
 
 default: all
