@@ -51,18 +51,25 @@ public class ExpandConstants extends ASTTraverseModify
 		// See if identifier corresponds to a constant
 		i = constantList.getConstantIndex(e.getName());
 		if (i != -1) {
-			// If so, replace it with the corresponding expression
-			expr = constantList.getConstant(i).deepCopy();
-			// But also recursively expand that
-			expr = (Expression)expr.expandConstants(constantList);
-			// Put in brackets so precedence is preserved
-			// (for display purposes only; in case of re-parse)
-			// This is being done after type-checking so also set type
-			t = expr.getType();
-			expr = Expression.Parenth(expr);
-			expr.setType(t);
-			// Return replacement expression
-			return expr;
+			// And check that the constant is defined
+			if (constantList.getConstant(i) != null) {
+				// If so, replace it with the corresponding expression
+				expr = constantList.getConstant(i).deepCopy();
+				// But also recursively expand that
+				expr = (Expression) expr.expandConstants(constantList);
+				// Put in brackets so precedence is preserved
+				// (for display purposes only; in case of re-parse)
+				// This is being done after type-checking so also set type
+				t = expr.getType();
+				expr = Expression.Parenth(expr);
+				expr.setType(t);
+				// Return replacement expression
+				return expr;
+			}
+			else {
+				// Error (should never happen)
+				throw new PrismLangException("Undefined constant", e);
+			}
 		}
 		else {
 			// Error (should never happen)

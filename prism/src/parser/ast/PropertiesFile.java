@@ -212,10 +212,6 @@ public class PropertiesFile extends ASTElement
 		// check constants for cyclic dependencies
 		constantList.findCycles();
 		
-		// Set up some values for constants
-		// (without assuming any info about undefined constants)
-		setSomeUndefinedConstants(null);
-		
 		// Check property names
 		checkPropertyNames();
 		
@@ -229,6 +225,10 @@ public class PropertiesFile extends ASTElement
 		semanticCheck(modulesFile, this);
 		// Type checking
 		typeCheck();
+		
+		// Set up some values for constants
+		// (without assuming any info about undefined constants)
+		setSomeUndefinedConstants(null);
 	}
 
 	// check formula identifiers
