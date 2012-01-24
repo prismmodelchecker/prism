@@ -498,18 +498,27 @@ public class PrismCL
 			if (!exportResultsFilename.equals("stdout"))
 				mainLog.println("to file \"" + exportResultsFilename + "\"...");
 			else
-				mainLog.println("below:");
+				mainLog.println("below:\n");
 			PrismFileLog tmpLog = new PrismFileLog(exportResultsFilename);
 			if (!tmpLog.ready()) {
 				errorAndExit("Couldn't open file \"" + exportResultsFilename + "\" for output");
 			}
+			
+			boolean csv = false;
+			String sep = csv ? ", " : "\t";
 			for (i = 0; i < numPropertiesToCheck; i++) {
 				if (i > 0)
 					tmpLog.println();
-				if (exportresultsmatrix) {
-					tmpLog.print(results[i].toStringMatrix("\t"));
+				if (numPropertiesToCheck > 1) {
+					if (sep.equals(", "))
+						tmpLog.print("\"" + propertiesToCheck.get(i) + ":\"\n");
+					else
+						tmpLog.print(propertiesToCheck.get(i) + ":\n");
+				}
+				if (!exportresultsmatrix) {
+					tmpLog.println(results[i].toString(false, sep, sep));
 				} else {
-					tmpLog.print(propertiesToCheck.get(i) + ":\n" + results[i].toString(false, " ", " "));
+					tmpLog.println(results[i].toStringMatrix(sep));
 				}
 			}
 			tmpLog.close();

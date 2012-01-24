@@ -438,7 +438,11 @@ public class ResultsCollection
 		 */
 		public String toString(boolean pv, String sep, String eq)
 		{
-			return toStringRec(pv, sep, eq, "");
+			String ret = toStringRec(pv, sep, eq, "");
+			// Strip off last \n before returning
+			if (ret.charAt(ret.length() - 1) == '\n')
+				ret = ret.substring(0, ret.length() - 1);
+			return ret;
 		}
 
 		public String toStringRec(boolean pv, String sep, String eq, String head)
@@ -536,13 +540,13 @@ public class ResultsCollection
 				if (rangingConstants.size() - level == 2)
 					res += constant.getValue(i);
 				res += kids[i].toStringMatrixRec(sep);
-				// Print new line after row
-				if (rangingConstants.size() - level == 2)
+				// Print new line after row (except last one)
+				if ((rangingConstants.size() - level == 2) && i < n - 1)
 					res += "\n";
+				// Print gaps between matrices (except last one)
+				if ((rangingConstants.size() - level > 2) && i < n - 1)
+					res += "\n\n";
 			}
-			// Print gaps between matrices
-			if (rangingConstants.size() - level == 2)
-				res += "\n";
 
 			return res;
 		}

@@ -89,7 +89,8 @@ public class ExportResultsThread extends Thread
 			PrintWriter out = new PrintWriter(new FileWriter(f));
 			n = exps.length;
 			for (i = 0; i < n; i++) {
-				if (i > 0) out.print("\n");
+				if (i > 0)
+					out.println();
 				if (n > 1) {
 					if (sep.equals(", "))
 						out.print("\"" + exps[i].getPropertyString() + ":\"\n");
@@ -97,9 +98,9 @@ public class ExportResultsThread extends Thread
 						out.print(exps[i].getPropertyString() + ":\n");
 				}
 				if (!exportMatrix) {
-					out.print(exps[i].getResults().toString(false, sep, sep));
+					out.println(exps[i].getResults().toString(false, sep, sep));
 				} else {
-					out.print(exps[i].getResults().toStringMatrix(sep));
+					out.println(exps[i].getResults().toStringMatrix(sep));
 				}
 			}
 			out.flush();
