@@ -62,6 +62,7 @@ public class PrismCL
 	private boolean exportbsccs = false;
 	private boolean exportresults = false;
 	private boolean exportresultsmatrix = false;
+	private boolean exportresultscsv = false;
 	private boolean exportprism = false;
 	private boolean exportprismconst = false;
 	private boolean exportPlainDeprecated = false;
@@ -504,8 +505,7 @@ public class PrismCL
 				errorAndExit("Couldn't open file \"" + exportResultsFilename + "\" for output");
 			}
 			
-			boolean csv = false;
-			String sep = csv ? ", " : "\t";
+			String sep = exportresultscsv ? ", " : "\t";
 			for (i = 0; i < numPropertiesToCheck; i++) {
 				if (i > 0)
 					tmpLog.println();
@@ -1271,11 +1271,31 @@ public class PrismCL
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
 				}
+				else if (sw.equals("exportresultscsv")) {
+					if (i < args.length - 1) {
+						exportresults = true;
+						exportresultscsv = true;
+						exportResultsFilename = args[++i];
+					} else {
+						errorAndExit("No file specified for -" + sw + " switch");
+					}
+				}
 				// export results, in matrix form
 				else if (sw.equals("exportresultsmatrix")) {
 					if (i < args.length - 1) {
 						exportresults = true;
 						exportresultsmatrix = true;
+						exportResultsFilename = args[++i];
+					} else {
+						errorAndExit("No file specified for -" + sw + " switch");
+					}
+				}
+				// export results, in matrix form
+				else if (sw.equals("exportresultsmatrixcsv")) {
+					if (i < args.length - 1) {
+						exportresults = true;
+						exportresultsmatrix = true;
+						exportresultscsv = true;
 						exportResultsFilename = args[++i];
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
