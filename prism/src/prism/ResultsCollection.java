@@ -516,30 +516,58 @@ public class ResultsCollection
 		 */
 		public String toStringMatrix(String sep)
 		{
-			return toStringMatrixRec(sep);
+			return toStringMatrixRec(sep, "");
 		}
 
-		public String toStringMatrixRec(String sep)
+		public String toStringMatrixRec(String sep, String head)
 		{
 			int i, n;
 			String res;
 
 			res = "";
 			n = constant.getNumSteps();
+			
+			// Print constants/indices for matrix
+			// NB: need to enclose in quotes for CSV
+			if (rangingConstants.size() == 1 || rangingConstants.size() - level == 2) {
+				if (sep.equals(", "))
+					res += "\"";
+				if (rangingConstants.size() > 2)
+					res += head+", ";
+				if (rangingConstants.size() == 1)
+					res += constant.getName() + ":";
+				else
+					res += constant.getName() + "\\" + kids[0].constant.getName() + ":";
+				if (sep.equals(", "))
+					res += "\"";
+				res += "\n";
+			}
 			// Print top row of values
-			if (rangingConstants.size() - level == 2 && n > 0) {
-				TreeNode child = kids[0];
-				int nChild = child.constant.getNumSteps();
-				for (i = 0; i < nChild; i++) {
-					res += sep + child.constant.getValue(i);
+			if (rangingConstants.size() == 1 || rangingConstants.size() - level == 2) {
+				TreeNode node = rangingConstants.size() == 1 ? this : kids[0];
+				int nSteps = node.constant.getNumSteps();
+				for (i = 0; i < nSteps; i++) {
+					res += sep + node.constant.getValue(i);
 				}
 				res += "\n";
 			}
 			for (i = 0; i < n; i++) {
 				// Print first item of row: value
 				if (rangingConstants.size() - level == 2)
-					res += constant.getValue(i);
-				res += kids[i].toStringMatrixRec(sep);
+					res += constant.getValue(i) + sep;
+				// Print separator between row elements 
+				if (rangingConstants.size() - level == 1 && i > 0)
+					res += sep;
+				// Recurse
+				if (rangingConstants.size() - level <= 2) {
+					res += kids[i].toStringMatrixRec(sep, head);
+				} else {
+					String headNew = head;
+					if (!("".equals(head)))
+						headNew += ",";
+					headNew += constant.getName() + "=" + constant.getValue(i);
+					res += kids[i].toStringMatrixRec(sep, headNew);
+				}
 				// Print new line after row (except last one)
 				if ((rangingConstants.size() - level == 2) && i < n - 1)
 					res += "\n";
@@ -568,9 +596,9 @@ public class ResultsCollection
 			return val;
 		}
 
-		public String toStringMatrixRec(String sep)
+		public String toStringMatrixRec(String sep, String head)
 		{
-			return sep + val;
+			return val.toString();
 		}
 
 		public String toStringRec(boolean pv, String sep, String eq, String head)
