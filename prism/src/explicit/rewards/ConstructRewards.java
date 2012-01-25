@@ -104,7 +104,7 @@ public class ConstructRewards
 				guard = rewStr.getStates(i);
 				for (j = 0; j < numStates; j++) {
 					if (guard.evaluateBoolean(constantValues, statesList.get(j))) {
-						rewSA.setStateReward(j, rewStr.getReward(i).evaluateDouble(constantValues, statesList.get(j)));
+						rewSA.addToStateReward(j, rewStr.getReward(i).evaluateDouble(constantValues, statesList.get(j)));
 					}
 				}
 			}
@@ -148,13 +148,13 @@ public class ConstructRewards
 							for (k = 0; k < numChoices; k++) {
 								mdpAction = mdp.getAction(j, k);
 								if (mdpAction == null ? (action.isEmpty()) : mdpAction.equals(action)) {
-									rewSimple.setTransitionReward(j, k, rewStr.getReward(i).evaluateDouble(constantValues, statesList.get(j)));
+									rewSimple.addToTransitionReward(j, k, rewStr.getReward(i).evaluateDouble(constantValues, statesList.get(j)));
 								}
 							}
 						}
 						// State reward
 						else {
-							rewSimple.setStateReward(j, rewStr.getReward(i).evaluateDouble(constantValues, statesList.get(j)));
+							rewSimple.addToStateReward(j, rewStr.getReward(i).evaluateDouble(constantValues, statesList.get(j)));
 						}
 					}
 				}

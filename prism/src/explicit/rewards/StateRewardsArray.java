@@ -55,6 +55,14 @@ public class StateRewardsArray implements MCRewards, MDPRewards
 		stateRewards[s] = r;
 	}
 	
+	/**
+	 * Add {@code r} to the state reward for state {@code s} .
+	 */
+	public void addToStateReward(int s, double r)
+	{
+		stateRewards[s] += r;
+	}
+	
 	// Accessors
 	
 	@Override
