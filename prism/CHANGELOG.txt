@@ -18,6 +18,7 @@ Changes:
 
 Ongoing changes:
 
+* Need to decide on switch options format for -exportresults
 * Handling of verbosity in log: PrismLog updated, not used yet
 * Properties can be named, by prefixing with "name":, and reference each other
 * CTL AG/EF
