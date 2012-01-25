@@ -609,15 +609,20 @@ public class PrismSettings implements Observer
 							}
 							else
 							{
-								// Make sure this is not an old PRISM setting and if not print a warning
-								boolean isOld = false;
-								for (int i = 0; i < oldPropertyNames.length; i++) {
-									if (oldPropertyNames[i].equals(key)) {
-										isOld = true;
-										break;
+								// Warning for unused options disabled for now
+								// (it's a pain when you have lots of branches with lots of new options)
+								if (false) {
+									// Make sure this is not an old PRISM setting and if not print a warning
+									boolean isOld = false;
+									for (int i = 0; i < oldPropertyNames.length; i++) {
+										if (oldPropertyNames[i].equals(key)) {
+											isOld = true;
+											break;
+										}
 									}
+									if (!isOld)
+										System.err.println("Warning: PRISM setting \"" + key + "\" is unknown.");
 								}
-								if (!isOld) System.err.println("Warning: PRISM setting \""+key+"\" is unknown.");
 							}
 						}
 					}
