@@ -8,6 +8,7 @@ Latest changes (mostly reverse chronological):
 Changes:
 
 * Export of results in matrix form, e.g. for surface plots (-exportresultsmatrix)
+* And export of results in CSV format (-exportresultscsv and -exportresultsmatrixcsv)
 * Can disable Prob0/Prob1 precomputation algorithms independently (-noprob0, -noprob1)
 * Bash completion scripts + additional syntax highlighters
 * Added PrismTest class to illustrate programmatic use of PRISM
@@ -17,7 +18,6 @@ Changes:
 
 Ongoing changes:
 
-* CSV format for results export (GUI, not CL yet)
 * Handling of verbosity in log: PrismLog updated, not used yet
 * Properties can be named, by prefixing with "name":, and reference each other
 * CTL AG/EF
