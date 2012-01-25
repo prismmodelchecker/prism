@@ -141,6 +141,8 @@ public class ExplicitFiles2MTBDD
 			createVarInfoFromTransFile();
 		}
 		
+		modulesFile.setModelType(modelType);
+		
 		return modulesFile;
 	}
 
