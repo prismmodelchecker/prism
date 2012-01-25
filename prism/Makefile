@@ -367,12 +367,16 @@ make_dirs:
 
 tests: testslocal
 	@if [ -d ~/prism-tests ]; then \
-	  cd ~/prism-tests && $(MAKE) clean && $(MAKE) PRISM_EXEC=../bin/prism; \
+	  cd ~/prism-tests && $(MAKE) clean && $(MAKE) PRISM_EXEC=$(PWD)/bin/prism; \
+	else \
+	  echo "Skipping tests"; \
 	fi
 
 testslocal:
 	@if [ -d tests ]; then \
-	  cd tests && $(MAKE) clean && $(MAKE) PRISM_EXEC=../bin/prism; \
+	  cd tests && $(MAKE) clean && $(MAKE) PRISM_EXEC=$(PWD)/bin/prism; \
+	else \
+	  echo "Skipping local tests"; \
 	fi
 
 bin_scripts: $(BIN_TARGETS)
