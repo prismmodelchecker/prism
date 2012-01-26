@@ -37,6 +37,7 @@ import prism.Prism;
 
 public class SBML2Prism implements EntityResolver
 {
+	private PrismLog mainLog = null;
 	private static PrismParser prismParser;
 	private String compartmentName, speciesId, initialAmountString;
 	private double compartmentSize;
@@ -64,6 +65,15 @@ public class SBML2Prism implements EntityResolver
 		}
 	}
 	
+	public SBML2Prism()
+	{
+		this(new PrismFileLog("stdout"));
+	}
+	
+	public SBML2Prism(PrismLog mainLog)
+	{
+		this.mainLog = mainLog;
+	}
 	
 	// Main method: load SBML file, process and sent resulting PRISM file to stdout
 	
@@ -365,12 +375,12 @@ public class SBML2Prism implements EntityResolver
 			species = speciesList.get(i);
 			s = species.id;
 			s2 = convertToValidPrismIdent(s);
-			if (!s.equals(s2)) System.err.println("Warning: Converted species id \""+s+"\" to \""+s2+"\" (invalid PRISM identifier)");
+			if (!s.equals(s2)) mainLog.printWarning("Converted species id \""+s+"\" to \""+s2+"\" (invalid PRISM identifier)");
 			if (!modulesNames.add(s2)) {
 				j = 2;
 				while (!modulesNames.add(s2+"_"+j)) j++;
 				s2 = s2+"_"+j;
-				System.err.println("Warning: Converted species id \""+s+"\" to \""+s2+"\" (duplicate PRISM identifiers)");
+				mainLog.printWarning("Converted species id \""+s+"\" to \""+s2+"\" (duplicate PRISM identifiers)");
 			}
 			species.prismName = s2;
 			prismIdents.add(s2);
@@ -382,12 +392,12 @@ public class SBML2Prism implements EntityResolver
 			parameter = parameterList.get(i);
 			s = parameter.name;
 			s2 = convertToValidPrismIdent(s);
-			if (!s.equals(s2)) System.err.println("Warning: Converted parameter id \""+s+"\" to \""+s2+"\" (invalid PRISM identifier)");
+			if (!s.equals(s2)) mainLog.printWarning("Converted parameter id \""+s+"\" to \""+s2+"\" (invalid PRISM identifier)");
 			if (!modulesNames.add(s2)) {
 				j = 2;
 				while (!prismIdents.add(s2+"_"+j)) j++;
 				s2 = s2+"_"+j;
-				System.err.println("Warning: Converted parameter id \""+s+"\" to \""+s2+"\" (duplicate PRISM identifiers)");
+				mainLog.printWarning("Converted parameter id \""+s+"\" to \""+s2+"\" (duplicate PRISM identifiers)");
 			}
 			parameter.prismName = s2;
 			prismIdents.add(s2);
@@ -401,12 +411,12 @@ public class SBML2Prism implements EntityResolver
 			for (j = 0; j < m; j++) {
 				s = reaction.parameters.get(j).name;
 				s2 = convertToValidPrismIdent(s);
-				if (!s.equals(s2)) System.err.println("Warning: Converted parameter id \""+s+"\" to \""+s2+"\" (invalid PRISM identifier)");
+				if (!s.equals(s2)) mainLog.printWarning("Converted parameter id \""+s+"\" to \""+s2+"\" (invalid PRISM identifier)");
 				if (!prismIdents.add(s2)) {
 					k = 2;
 					while (!prismIdents.add(s2+"_"+k)) k++;
 					s2 = s2+"_"+k;
-					System.err.println("Warning: Converted parameter id \""+s+"\" to \""+s2+"\" (duplicate PRISM identifiers)");
+					mainLog.printWarning("Converted parameter id \""+s+"\" to \""+s2+"\" (duplicate PRISM identifiers)");
 				}
 				reaction.parameters.get(j).prismName = s2;
 			}

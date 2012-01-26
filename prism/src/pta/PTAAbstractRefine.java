@@ -149,7 +149,7 @@ public class PTAAbstractRefine extends QuantAbstractRefine
 		// Skip build of state if no transitions (should just be target states)
 		if (numTransitions == 0) {
 			if (!target.get(src))
-				mainLog.println("Warning: Building STPG state (" + src + ") with no transitions");
+				mainLog.printWarning("Building STPG state (" + src + ") with no transitions");
 			return;
 		}
 
@@ -360,7 +360,7 @@ public class PTAAbstractRefine extends QuantAbstractRefine
 		}
 		// Check we actually got a strict split of the partition
 		if (partition.size() <= 1) {
-			mainLog.println("Warning: failed to split state #" + splitState + "=" + lzSplit);
+			mainLog.printWarning("failed to split state #" + splitState + "=" + lzSplit);
 			return 1;
 		}
 
