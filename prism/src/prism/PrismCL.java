@@ -1124,7 +1124,7 @@ public class PrismCL
 				}
 
 				// property/properties given in command line
-				else if (sw.equals("pctl") || sw.equals("csl")) {
+				else if (sw.equals("pf") || sw.equals("pctl") || sw.equals("csl")) {
 					if (i < args.length - 1) {
 						propertyString = args[++i];
 					} else {
@@ -1939,7 +1939,7 @@ public class PrismCL
 		mainLog.println("-help .......................... Display this help message");
 		mainLog.println("-version ....................... Display tool version");
 		mainLog.println();
-		mainLog.println("-pctl <prop> (or -csl <prop>) .. Model check the PCTL/CSL property <prop>");
+		mainLog.println("-pf <props> (or -pctl or -csl) . Model check properties <props>");
 		mainLog.println("-property <n> (or -prop <n>) ... Only model check property <n>");
 		mainLog.println("-const <vals> .................. Define constant values as <vals> (e.g. for experiments)");
 		mainLog.println("-steadystate (or -ss) .......... Compute steady-state probabilities (D/CTMCs only)");

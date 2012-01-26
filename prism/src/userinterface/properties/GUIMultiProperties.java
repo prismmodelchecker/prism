@@ -1562,7 +1562,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		createPopups();
 		//file filters
 		propsFilter = new GUIPrismFileFilter[1];
-		propsFilter[0] = new GUIPrismFileFilter("PRISM properties (*.pctl, *.csl)");
+		propsFilter[0] = new GUIPrismFileFilter("PRISM properties (*.props, *.pctl, *.csl)");
+		propsFilter[0].addExtension("props");
 		propsFilter[0].addExtension("pctl");
 		propsFilter[0].addExtension("csl");
 		resultsFilter = new GUIPrismFileFilter[2];
