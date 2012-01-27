@@ -4,6 +4,7 @@
 //	Authors:
 //	* Andrew Hinton <ug60axh@cs.bham.ac.uk> (University of Birmingham)
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Vojtech Forejt <vojtech.forejt@cs.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
