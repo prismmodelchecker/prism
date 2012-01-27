@@ -300,7 +300,9 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 	
 	protected void a_build()
 	{
-		//check modified since build
+		// Reset warnings counter 
+		getPrism().getMainLog().resetNumberOfWarnings();
+		// Request build
 		handler.forceBuild();
 	}
 	/*
@@ -321,12 +323,17 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		default: res = showSaveFileDialog(textFilter, textFilter[0]); break;
 		}
 		if (res != JFileChooser.APPROVE_OPTION) return;
+		// Reset warnings counter 
+		getPrism().getMainLog().resetNumberOfWarnings();
 		// do export...
 		handler.exportBuild(exportEntity, exportType, getChooserFile());
 	}
 	
 	protected void a_viewBuild(int exportEntity, int exportType)
 	{
+		// Reset warnings counter 
+		getPrism().getMainLog().resetNumberOfWarnings();
+		// Do view...
 		handler.exportBuild(exportEntity, exportType, null);
 	}
 	
@@ -342,11 +349,17 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 	
 	protected void a_computeSteadyState()
 	{
+		// Reset warnings counter 
+		getPrism().getMainLog().resetNumberOfWarnings();
+		// Do steady-state
 		handler.computeSteadyState();
 	}
 	
 	protected void a_computeTransient()
 	{
+		// Reset warnings counter 
+		getPrism().getMainLog().resetNumberOfWarnings();
+		// Do transient
 		int result = GUITransientTime.requestTime(this.getGUI());
 		if (result == GUITransientTime.OK) {
 			handler.computeTransient(GUITransientTime.getTime());

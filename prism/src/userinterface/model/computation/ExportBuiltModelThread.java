@@ -108,8 +108,8 @@ public class ExportBuiltModelThread extends GUIComputationThread
 			//If we get here export was successful, notify interface
 			SwingUtilities.invokeAndWait(new Runnable() { public void run() {
 				plug.stopProgress(); 
-				plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, plug));
 				plug.setTaskBarText("Exporting... done.");
+				plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, plug));
 			}});
 		}
 		// catch and ignore any thread exceptions

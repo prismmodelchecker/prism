@@ -29,26 +29,83 @@
 
 package userinterface.properties;
 
-import java.io.*;
-import java.util.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.datatransfer.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.ActionEvent;
+import java.awt.event.ContainerEvent;
+import java.awt.event.ContainerListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Vector;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.border.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
+import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
-import userinterface.*;
-import userinterface.model.*;
-import userinterface.properties.computation.*;
-import userinterface.util.*;
-import userinterface.simulator.*;
-import userinterface.simulator.networking.*;
-import prism.*;
-import parser.*;
-import parser.ast.*;
-import parser.type.*;
+import parser.Values;
+import parser.ast.Expression;
+import parser.ast.ModulesFile;
+import parser.ast.PropertiesFile;
+import parser.ast.Property;
+import parser.type.Type;
+import parser.type.TypeDouble;
+import parser.type.TypeInt;
+import parser.type.TypeInterval;
+import prism.Model;
+import prism.ModelType;
+import prism.PrismException;
+import prism.PrismSettings;
+import prism.PrismSettingsListener;
+import prism.UndefinedConstants;
+import userinterface.GUIClipboardEvent;
+import userinterface.GUIConstantsPicker;
+import userinterface.GUIPlugin;
+import userinterface.GUIPrism;
+import userinterface.GUISimulationPicker;
+import userinterface.OptionsPanel;
+import userinterface.SimulationInformation;
+import userinterface.model.GUIModelEvent;
+import userinterface.properties.computation.ExportResultsThread;
+import userinterface.properties.computation.LoadPropertiesThread;
+import userinterface.properties.computation.ModelCheckThread;
+import userinterface.properties.computation.SimulateModelCheckThread;
+import userinterface.simulator.GUISimulator;
+import userinterface.simulator.networking.GUISimulatorDistributionDialog;
+import userinterface.util.GUIComputationEvent;
+import userinterface.util.GUIEvent;
+import userinterface.util.GUIExitEvent;
+import userinterface.util.GUIPrismFileFilter;
 
 /**
  *  Properties tab of the PRISM GUI.
@@ -949,6 +1006,9 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 
 	public void a_newExperiment()
 	{
+		// Reset warnings counter 
+		getPrism().getMainLog().resetNumberOfWarnings();
+		// Start expt
 		experimentAfterReceiveParseNotification = true;
 		notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.REQUEST_MODEL_PARSE));
 	}

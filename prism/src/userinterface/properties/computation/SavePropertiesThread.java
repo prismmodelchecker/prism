@@ -83,8 +83,8 @@ public class SavePropertiesThread extends Thread
 			//Computation successful, notify the user interface
 			SwingUtilities.invokeAndWait(new Runnable() { public void run() {
 				parent.stopProgress(); 
-				parent.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, parent));
 				parent.setTaskBarText("Saving properties... done.");
+				parent.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, parent));
 				parent.propertySaveSuccessful(f);
 			}});
 		}

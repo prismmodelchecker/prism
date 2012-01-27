@@ -244,8 +244,8 @@ public class BuildModelThread extends GUIComputationThread
 		//If we are here, the build was successful, notify the interface
 		SwingUtilities.invokeLater(new Runnable() { public void run() {
 			plug.stopProgress(); 
-			plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, plug));
 			plug.setTaskBarText("Building model... done.");
+			plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, plug));
 			handler.modelBuildSuccessful(model, buildValues);
 		}});
 	}

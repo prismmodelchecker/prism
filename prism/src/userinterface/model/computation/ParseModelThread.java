@@ -105,8 +105,8 @@ public class ParseModelThread extends GUIComputationThread
 		//If we get here, the parse has been successful, notify the interface and tell the handler.
 		SwingUtilities.invokeLater(new Runnable() { public void run() {
 			if(!background) plug.stopProgress();
-			plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, plug));
 			if(!background) plug.setTaskBarText("Parsing model... done.");
+			plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, plug));
 			handler.modelParsedSuccessful(mod);
 	   }});
 	}

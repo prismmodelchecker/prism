@@ -613,8 +613,8 @@ public class LoadGraphicModelThread extends Thread implements EntityResolver
 				public void run()
 				{
 					plug.stopProgress();
-					plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, plug));
 					plug.setTaskBarText("Loading model... done.");
+					plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, plug));
 					handler.graphicModelLoaded(graphicEdit, f );
 				}
 			});

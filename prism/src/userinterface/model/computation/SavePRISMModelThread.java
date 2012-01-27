@@ -88,8 +88,8 @@ public class SavePRISMModelThread extends Thread
 			//If we get here, the save has been successful, notify the interface and tell the handler.
 			SwingUtilities.invokeAndWait(new Runnable() { public void run() {
 				plug.stopProgress(); 
-				plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, plug));
 				plug.setTaskBarText("Saving model... done.");
+				plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, plug));
 				handler.prismFileWasSaved(f);
 			}});
 		}

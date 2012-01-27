@@ -125,8 +125,8 @@ public class ExportResultsThread extends Thread
 			public void run()
 			{
 					parent.stopProgress();
-					parent.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, parent));
 					parent.setTaskBarText("Exporting results... done.");
+					parent.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, parent));
 			}
 		});
 	}

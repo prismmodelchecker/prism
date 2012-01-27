@@ -556,8 +556,8 @@ public class SaveGraphicModelThread extends Thread
                 public void run()
                 {
                     plug.stopProgress();
-                    plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, plug));
                     plug.setTaskBarText("Saving model... done.");
+                    plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, plug));
                     handler.graphicFileWasSaved(f);
                 }
             });

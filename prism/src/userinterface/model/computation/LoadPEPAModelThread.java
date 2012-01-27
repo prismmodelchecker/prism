@@ -101,8 +101,8 @@ public class LoadPEPAModelThread extends Thread
 			//If we get here, the load has been successful, notify the interface and tell the handler.
 			SwingUtilities.invokeAndWait(new Runnable() { public void run() {
 				plug.stopProgress(); 
-				plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, plug));
 				plug.setTaskBarText("Loading model... done.");
+				plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, plug));
 				if(!reload)
 					handler.pepaModelLoaded(pepaEdit, f ,replace);
 				else

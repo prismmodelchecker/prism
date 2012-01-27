@@ -99,8 +99,8 @@ public class LoadPropertiesThread extends Thread
 			//If we get here, the load has been successful, notify the interface and tell the handler.
 			SwingUtilities.invokeAndWait(new Runnable() { public void run() {
 				parent.stopProgress(); 
-				parent.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, parent));
 				parent.setTaskBarText("Loading properties... done.");
+				parent.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, parent));
 				if(isInsert)
 					parent.propertyInsertSuccessful(props);
 				else

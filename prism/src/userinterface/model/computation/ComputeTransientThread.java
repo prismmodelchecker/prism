@@ -86,8 +86,8 @@ public class ComputeTransientThread extends GUIComputationThread
 		{
 			public void run()
 			{
-				plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, plug));
 				plug.setTaskBarText("Computing transient probabilities... done.");
+				plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, plug));
 				plug.stopProgress();
 			}
 		});

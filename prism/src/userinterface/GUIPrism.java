@@ -155,6 +155,7 @@ public class GUIPrism extends JFrame
     private JFileChooser choose;
     private JProgressBar progress;
     private GUITaskBar taskbar;
+    private String taskbarText = "";
     private Action prismOptions;
     private Action fontIncrease;
     private Action fontDecrease;
@@ -528,6 +529,7 @@ public class GUIPrism extends JFrame
             else if(e.getID() == GUIComputationEvent.COMPUTATION_DONE)
             {
                 prismOptions.setEnabled(true);
+    			appendWarningsNoteToTaskBarText(prism.getMainLog());
             }
             else if(e.getID() == GUIComputationEvent.COMPUTATION_ERROR)
             {
@@ -606,6 +608,30 @@ public class GUIPrism extends JFrame
     public void setTaskBarText(String message)
     {
         taskbar.setText(message);
+        // Store message to in case we want to append a (single) warning later
+        taskbarText = message;
+    }
+    
+    /** Utility update method to append a note about warnings to the taskbar
+     * @param log PrismLog to check for warnings
+     */
+    public void appendWarningsNoteToTaskBarText(PrismLog log)
+    {
+    	int numWarnings = log.getNumberOfWarnings();
+    	String message = null;
+    	if (numWarnings == 1)
+    		message = "[ There was 1 warning - see log for details ]";
+    	else if (numWarnings > 1)
+    		message = "[ There were " + numWarnings + " warnings - see log for details ]";
+    	if (message != null) {
+			String taskbarTextNew = taskbarText;
+			if (taskbarTextNew == null)
+				taskbarTextNew = "";
+			if (taskbarTextNew.length() > 0)
+				taskbarTextNew += "  ";
+			taskbarTextNew += message;
+			taskbar.setText(taskbarTextNew);
+    	}
     }
     
     /** Utility update method to set the JProgressBar to an indeterminate state. */
