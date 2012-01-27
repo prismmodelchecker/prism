@@ -358,6 +358,17 @@ public abstract class ASTElement
 	}
 
 	/**
+	 * Get all references to properties (by name) (i.e. ExpressionProp objects), store names in set.
+	 */
+	public Vector<String> getAllProps() throws PrismLangException
+	{
+		Vector<String> v = new Vector<String>();
+		GetAllProps visitor = new GetAllProps(v);
+		accept(visitor);
+		return v;
+	}
+
+	/**
 	 * Find all references to action labels, check they exist and, if required,
 	 * store their index locally (as defined by the containing ModuleFile).
 	 */
