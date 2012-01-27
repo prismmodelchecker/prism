@@ -115,11 +115,11 @@ public abstract class ASTElement
 	 */
 	public Type getType()
 	{
-		if (type != null) return type;
+		if (type != null)
+			return type;
 		try {
 			typeCheck();
-		}
-		catch (PrismLangException e) {
+		} catch (PrismLangException e) {
 			// Returns null (unknown) in case of error.
 			// If you want to check for errors, use typeCheck().
 			return null;
@@ -258,7 +258,7 @@ public abstract class ASTElement
 	 */
 	public Vector<String> getAllConstants()
 	{
-		Vector<String> v= new Vector<String>();
+		Vector<String> v = new Vector<String>();
 		GetAllConstants visitor = new GetAllConstants(v);
 		try {
 			accept(visitor);
@@ -270,20 +270,21 @@ public abstract class ASTElement
 	}
 
 	/**
-	 * Get all undefined constants used (i.e. in ExpressionConstant objects) recursively and return as a list.
-	 * Recursive descent means that we find e.g. constants that are used within other constants, labels.
-	 * But note that we only look at/for constants in the passed in ConstantList.
-	 * Any others discovered are ignored (and not descended into).
+	* Get all undefined constants used (i.e. in ExpressionConstant objects) recursively and return as a list.
+	* Recursive descent means that we also find constants that are used within other constants, labels, properties.
+	* We only recurse into constants/labels/properties in the passed in lists.
+	* Any others discovered are ignored (and not descended into).
+	* ConstantList must be non-null so that we can determine which constants are undefined;
+	* LabelList and PropertiesFile passed in as null are ignored.
 	 */
-	public Vector<String> getAllUndefinedConstantsRecursively(ConstantList constantList, LabelList labelList)
+	public Vector<String> getAllUndefinedConstantsRecursively(ConstantList constantList, LabelList labelList, PropertiesFile propertiesFile)
 	{
-		Vector<String> v= new Vector<String>();
-		GetAllUndefinedConstantsRecursively visitor = new GetAllUndefinedConstantsRecursively(v, constantList, labelList);
+		Vector<String> v = new Vector<String>();
+		GetAllUndefinedConstantsRecursively visitor = new GetAllUndefinedConstantsRecursively(v, constantList, labelList, propertiesFile);
 		try {
 			accept(visitor);
 		} catch (PrismLangException e) {
-			// GetAllUndefinedConstantsRecursively can throw an exception (if a constant does not exist)
-			// but this would have been caught by earlier checks so we ignore. 
+			// Should not happen; ignore. 
 		}
 		return v;
 	}
@@ -321,7 +322,7 @@ public abstract class ASTElement
 	 */
 	public Vector<String> getAllVars() throws PrismLangException
 	{
-		Vector<String> v =new Vector<String>();
+		Vector<String> v = new Vector<String>();
 		GetAllVars visitor = new GetAllVars(v);
 		accept(visitor);
 		return v;

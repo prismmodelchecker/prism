@@ -366,6 +366,7 @@ public class PropertiesFile extends ASTElement
 	
 	/**
 	 * Get a list of undefined (properties file) constants appearing in labels of the properties file
+	 * (including those that appear in definitions of other needed constants)
 	 * (undefined constants are those of form "const int x;" rather than "const int x = 1;")
 	 */
 	public Vector<String> getUndefinedConstantsUsedInLabels()
@@ -377,7 +378,7 @@ public class PropertiesFile extends ASTElement
 		n = labelList.size();
 		for (i = 0; i < n; i++) {
 			expr = labelList.getLabel(i);
-			tmp = expr.getAllUndefinedConstantsRecursively(constantList, combinedLabelList);
+			tmp = expr.getAllUndefinedConstantsRecursively(constantList, combinedLabelList, null);
 			for (String s : tmp) {
 				if (!consts.contains(s)) {
 					consts.add(s);
@@ -389,17 +390,17 @@ public class PropertiesFile extends ASTElement
 	
 	/**
 	 * Get a list of undefined (properties file) constants used in a property
-	 * (including those that appear in required labels/properties)
+	 * (including those that appear in definitions of other needed constants and labels/properties)
 	 * (undefined constants are those of form "const int x;" rather than "const int x = 1;") 
 	 */
 	public Vector<String> getUndefinedConstantsUsedInProperty(Property prop)
 	{
-		return prop.getExpression().getAllUndefinedConstantsRecursively(constantList, combinedLabelList);
+		return prop.getExpression().getAllUndefinedConstantsRecursively(constantList, combinedLabelList, this);
 	}
 	
 	/**
 	 * Get a list of undefined (properties file) constants used in a list of properties
-	 * (including those that appear in required labels/properties)
+	 * (including those that appear in definitions of other needed constants and labels/properties)
 	 * (undefined constants are those of form "const int x;" rather than "const int x = 1;") 
 	 */
 	public Vector<String> getUndefinedConstantsUsedInProperties(List <Property> props)
@@ -407,7 +408,7 @@ public class PropertiesFile extends ASTElement
 		Vector<String> consts, tmp;
 		consts = new Vector<String>();
 		for (Property prop : props) {
-			tmp = prop.getExpression().getAllUndefinedConstantsRecursively(constantList, combinedLabelList);
+			tmp = prop.getExpression().getAllUndefinedConstantsRecursively(constantList, combinedLabelList, this);
 			for (String s : tmp) {
 				if (!consts.contains(s)) {
 					consts.add(s);

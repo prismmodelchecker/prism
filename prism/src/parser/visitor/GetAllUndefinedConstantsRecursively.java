@@ -33,23 +33,27 @@ import prism.PrismLangException;
 
 /**
  * Get all undefined constants used (i.e. in ExpressionConstant objects) recursively and return as a list.
- * Recursive descent means that we find e.g. constants that are used within other constants, labels.
- * But note that we only look at/for constants in the passed in ConstantList.
+ * Recursive descent means that we also find constants that are used within other constants, labels, properties.
+ * We only recurse into constants/labels/properties in the passed in lists.
  * Any others discovered are ignored (and not descended into).
+ * ConstantList must be non-null so that we can determine which constants are undefined;
+ * LabelList and PropertiesFile passed in as null are ignored.
  */
 public class GetAllUndefinedConstantsRecursively extends ASTTraverse
 {
 	private Vector<String> v;
 	private ConstantList constantList;
 	private LabelList labelList;
-	
-	public GetAllUndefinedConstantsRecursively(Vector<String> v, ConstantList constantList, LabelList labelList)
+	private PropertiesFile propertiesFile;
+
+	public GetAllUndefinedConstantsRecursively(Vector<String> v, ConstantList constantList, LabelList labelList, PropertiesFile propertiesFile)
 	{
 		this.v = v;
 		this.constantList = constantList;
 		this.labelList = labelList;
+		this.propertiesFile = propertiesFile;
 	}
-	
+
 	public void visitPost(ExpressionConstant e) throws PrismLangException
 	{
 		// Look up this constant in the constant list
@@ -69,20 +73,33 @@ public class GetAllUndefinedConstantsRecursively extends ASTTraverse
 			expr.accept(this);
 		}
 	}
-	
+
 	public void visitPost(ExpressionLabel e) throws PrismLangException
 	{
 		// Ignore special cases of labels (no constants there)
 		if (e.getName().equals("deadlock") || e.getName().equals("init")) {
 			return;
 		}
-		// Look up this label in the label list
+		// Look up this label in the label list, if possible
+		if (labelList == null)
+			return;
 		int i = labelList.getLabelIndex(e.getName());
 		if (i == -1)
-			throw new PrismLangException("Unknown label \"" + e.getName() + "\"");
+			return;
 		Expression expr = labelList.getLabel(i);
 		// Check label definition recursively for more undefined constants
 		expr.accept(this);
 	}
-}
 
+	public void visitPost(ExpressionProp e) throws PrismLangException
+	{
+		// Look up this property in the properties files, if possible
+		if (propertiesFile == null)
+			return;
+		Property prop = propertiesFile.lookUpPropertyObjectByName(e.getName());
+		if (prop == null)
+			return;
+		// Check property recursively for more undefined constants
+		prop.getExpression().accept(this);
+	}
+}
