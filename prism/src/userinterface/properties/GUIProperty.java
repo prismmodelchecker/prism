@@ -35,7 +35,6 @@ import javax.swing.*;
 import userinterface.GUIPrism;
 import parser.*;
 import parser.ast.*;
-import parser.visitor.FindAllProps;
 import parser.visitor.GetAllReferencedProperties;
 import prism.*;
 

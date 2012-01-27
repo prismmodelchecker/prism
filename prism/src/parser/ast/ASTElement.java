@@ -349,21 +349,21 @@ public abstract class ASTElement
 	}
 
 	/**
-	 * Find all references to properties (by name), replace the ExpressionLabels with ExpressionProps.
+	 * Find all references to properties (by name), replace the ExpressionLabels with ExpressionProp objects.
 	 */
-	public ASTElement findAllProps(ModulesFile mf, PropertiesFile pf) throws PrismLangException
+	public ASTElement findAllPropRefs(ModulesFile mf, PropertiesFile pf) throws PrismLangException
 	{
-		FindAllProps visitor = new FindAllProps(mf, pf);
+		FindAllPropRefs visitor = new FindAllPropRefs(mf, pf);
 		return (ASTElement) accept(visitor);
 	}
 
 	/**
 	 * Get all references to properties (by name) (i.e. ExpressionProp objects), store names in set.
 	 */
-	public Vector<String> getAllProps() throws PrismLangException
+	public Vector<String> getAllPropRefs() throws PrismLangException
 	{
 		Vector<String> v = new Vector<String>();
-		GetAllProps visitor = new GetAllProps(v);
+		GetAllPropRefs visitor = new GetAllPropRefs(v);
 		accept(visitor);
 		return v;
 	}

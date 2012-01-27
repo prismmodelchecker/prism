@@ -279,7 +279,7 @@ public class PropertiesFile extends ASTElement
 		findAllVars(modulesFile.getVarNames(), modulesFile.getVarTypes());
 
 		// Find all instances of property refs
-		findAllProps(null, this);
+		findAllPropRefs(null, this);
 		// Check property references for cyclic dependencies
 		findCyclesInPropertyReferences();
 		
@@ -437,7 +437,7 @@ public class PropertiesFile extends ASTElement
 		// and store this info in boolean matrix
 		for (i = 0; i < n; i++) {
 			e = properties.get(i).getExpression();
-			v = e.getAllProps();
+			v = e.getAllPropRefs();
 			for (j = 0; j < v.size(); j++) {
 				k = getPropertyIndexByName(v.elementAt(j));
 				if (k != -1) {

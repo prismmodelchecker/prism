@@ -26,43 +26,28 @@
 
 package parser.visitor;
 
+import java.util.Vector;
+
 import parser.ast.*;
 import prism.PrismLangException;
 
 /**
- * Find all references to properties (by name), replace the ExpressionLabels with ExpressionProps.
+ * Get all references to properties (by name) (i.e. ExpressionProp objects), store names in set.
  */
-public class FindAllProps extends ASTTraverseModify
+public class GetAllPropRefs extends ASTTraverse
 {
-	private ModulesFile mf;
-	private PropertiesFile pf;
+	private Vector<String> v;
 	
-	public FindAllProps(ModulesFile mf, PropertiesFile pf)
+	public GetAllPropRefs(Vector<String> v)
 	{
-		this.mf = mf;
-		this.pf = pf;
+		this.v = v;
 	}
 	
-	public Object visit(ExpressionLabel e) throws PrismLangException
+	public void visitPost(ExpressionProp e) throws PrismLangException
 	{
-		String name;
-		Property prop = null;
-		// See if identifier corresponds to a property
-		name = e.getName();
-		if (mf != null) {
-			prop = mf.getPropertyByName(name);
+		if (!v.contains(e.getName())) {
+			v.addElement(e.getName());
 		}
-		if (prop == null && pf != null) {
-			prop = pf.getPropertyObjectByName(name);
-		}
-		if (prop != null) {
-			// If so, replace it with an ExpressionProp object
-			ExpressionProp expr = new ExpressionProp(e.getName());
-			expr.setPosition(e);
-			return expr;
-		}
-		// Otherwise, leave it unchanged
-		return e;
 	}
 }
 
