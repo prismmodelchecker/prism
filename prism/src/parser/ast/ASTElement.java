@@ -369,6 +369,17 @@ public abstract class ASTElement
 	}
 
 	/**
+	 * Get all references to properties (by name) (i.e. ExpressionProp objects) recursively, store names in set.
+	 */
+	public Vector<String> getAllPropRefsRecursively(PropertiesFile propertiesFile) throws PrismLangException
+	{
+		Vector<String> v = new Vector<String>();
+		GetAllPropRefsRecursively visitor = new GetAllPropRefsRecursively(v, propertiesFile);
+		accept(visitor);
+		return v;
+	}
+
+	/**
 	 * Find all references to action labels, check they exist and, if required,
 	 * store their index locally (as defined by the containing ModuleFile).
 	 */

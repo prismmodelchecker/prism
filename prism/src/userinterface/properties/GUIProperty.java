@@ -35,7 +35,6 @@ import javax.swing.*;
 import userinterface.GUIPrism;
 import parser.*;
 import parser.ast.*;
-import parser.visitor.GetAllReferencedProperties;
 import prism.*;
 
 /**
@@ -411,9 +410,8 @@ public class GUIProperty
 			if (getStatus() == STATUS_PARSE_ERROR)
 				setStatus(STATUS_NOT_DONE);
 			
-			//get the referenced names
-			this.referencedNames = new Vector<String>();
-			(new GetAllReferencedProperties(this.referencedNames, m, ff)).visit(ff.getPropertyObject(namedCount));
+			// get the referenced names
+			this.referencedNames = ff.getPropertyObject(namedCount).getAllPropRefsRecursively(ff); 
 			
 		} catch (PrismException ex) {
 			this.expr = null;
