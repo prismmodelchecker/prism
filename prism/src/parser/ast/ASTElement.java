@@ -369,6 +369,17 @@ public abstract class ASTElement
 
 	/**
 	 * Check for type-correctness and compute type.
+	 * Passed in PropertiesFile might be needed to find types for property references.
+	 */
+	public void typeCheck(PropertiesFile propertiesFile) throws PrismLangException
+	{
+		TypeCheck visitor = new TypeCheck(propertiesFile);
+		accept(visitor);
+	}
+
+	/**
+	 * Check for type-correctness and compute type.
+	 * If you are checking a property that might contain references to other properties, use {@link #typeCheck(PropertiesFile)}.
 	 */
 	public void typeCheck() throws PrismLangException
 	{

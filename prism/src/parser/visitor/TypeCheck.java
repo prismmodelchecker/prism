@@ -32,11 +32,20 @@ import prism.PrismLangException;
 
 /**
  * Check for type-correctness and compute type.
+ * Optionally pass in a PropertiesFile in order to find types of referenced properties.
  */
 public class TypeCheck extends ASTTraverse
 {
+	private PropertiesFile propertiesFile = null;
+
 	public TypeCheck()
 	{
+		this.propertiesFile = null;
+	}
+
+	public TypeCheck(PropertiesFile propertiesFile)
+	{
+		this.propertiesFile = propertiesFile;
 	}
 
 	public void visitPost(ModulesFile e) throws PrismLangException
@@ -63,8 +72,7 @@ public class TypeCheck extends ASTTraverse
 		n = e.size();
 		for (i = 0; i < n; i++) {
 			if (!(e.getLabel(i).getType() instanceof TypeBool)) {
-				throw new PrismLangException("Type error: Label \"" + e.getLabelName(i) + "\" is not Boolean", e
-						.getLabel(i));
+				throw new PrismLangException("Type error: Label \"" + e.getLabelName(i) + "\" is not Boolean", e.getLabel(i));
 			}
 		}
 	}
@@ -75,8 +83,7 @@ public class TypeCheck extends ASTTraverse
 		n = e.size();
 		for (i = 0; i < n; i++) {
 			if (e.getConstant(i) != null && !e.getConstantType(i).canAssign(e.getConstant(i).getType())) {
-				throw new PrismLangException(
-						"Type mismatch in definition of constant \"" + e.getConstantName(i) + "\"", e.getConstant(i));
+				throw new PrismLangException("Type mismatch in definition of constant \"" + e.getConstantName(i) + "\"", e.getConstant(i));
 			}
 		}
 	}
@@ -84,32 +91,27 @@ public class TypeCheck extends ASTTraverse
 	public void visitPost(Declaration e) throws PrismLangException
 	{
 		if (e.getStart() != null && !e.getType().canAssign(e.getStart().getType())) {
-			throw new PrismLangException(
-					"Type error: Initial value of variable \"" + e.getName() + "\" does not match", e.getStart());
+			throw new PrismLangException("Type error: Initial value of variable \"" + e.getName() + "\" does not match", e.getStart());
 		}
 	}
 
 	public void visitPost(DeclarationInt e) throws PrismLangException
 	{
 		if (e.getLow() != null && !TypeInt.getInstance().canAssign(e.getLow().getType())) {
-			throw new PrismLangException("Type error: Integer range lower bound \"" + e.getLow()
-					+ "\" is not an integer", e.getLow());
+			throw new PrismLangException("Type error: Integer range lower bound \"" + e.getLow() + "\" is not an integer", e.getLow());
 		}
 		if (e.getHigh() != null && !TypeInt.getInstance().canAssign(e.getHigh().getType())) {
-			throw new PrismLangException("Type error: Integer range upper bound \"" + e.getHigh()
-					+ "\" is not an integer", e.getHigh());
+			throw new PrismLangException("Type error: Integer range upper bound \"" + e.getHigh() + "\" is not an integer", e.getHigh());
 		}
 	}
 
 	public void visitPost(DeclarationArray e) throws PrismLangException
 	{
 		if (e.getLow() != null && !TypeInt.getInstance().canAssign(e.getLow().getType())) {
-			throw new PrismLangException("Type error: Array lower bound \"" + e.getLow() + "\" is not an integer", e
-					.getLow());
+			throw new PrismLangException("Type error: Array lower bound \"" + e.getLow() + "\" is not an integer", e.getLow());
 		}
 		if (e.getHigh() != null && !TypeInt.getInstance().canAssign(e.getHigh().getType())) {
-			throw new PrismLangException("Type error: Array upper bound \"" + e.getHigh() + "\" is not an integer", e
-					.getHigh());
+			throw new PrismLangException("Type error: Array upper bound \"" + e.getHigh() + "\" is not an integer", e.getHigh());
 		}
 	}
 
@@ -127,8 +129,7 @@ public class TypeCheck extends ASTTraverse
 		for (i = 0; i < n; i++) {
 			if (e.getProbability(i) != null)
 				if (!TypeDouble.getInstance().canAssign(e.getProbability(i).getType())) {
-					throw new PrismLangException("Type error: Update probability/rate must evaluate to a double", e
-							.getProbability(i));
+					throw new PrismLangException("Type error: Update probability/rate must evaluate to a double", e.getProbability(i));
 				}
 		}
 	}
@@ -141,8 +142,7 @@ public class TypeCheck extends ASTTraverse
 			// Udates to non-clocks
 			if (!(e.getType(i) instanceof TypeClock)) {
 				if (!e.getType(i).canAssign(e.getExpression(i).getType())) {
-					throw new PrismLangException("Type error in update to variable \"" + e.getVar(i) + "\"", e
-							.getExpression(i));
+					throw new PrismLangException("Type error in update to variable \"" + e.getVar(i) + "\"", e.getExpression(i));
 				}
 			}
 			// Updates to clocks
@@ -161,8 +161,7 @@ public class TypeCheck extends ASTTraverse
 			throw new PrismLangException("Type error in reward struct item: guard must be Boolean", e.getStates());
 		}
 		if (!TypeDouble.getInstance().canAssign(e.getReward().getType())) {
-			throw new PrismLangException("Type error in reward struct item: value must be an int or double", e
-					.getReward());
+			throw new PrismLangException("Type error in reward struct item: value must be an int or double", e.getReward());
 		}
 	}
 
@@ -170,12 +169,10 @@ public class TypeCheck extends ASTTraverse
 	{
 		Type type;
 		if (e.getLowerBound() != null && !TypeDouble.getInstance().canAssign(e.getLowerBound().getType())) {
-			throw new PrismLangException("Type error: Lower bound in " + e.getOperatorSymbol()
-					+ " operator must be an int or double", e.getLowerBound());
+			throw new PrismLangException("Type error: Lower bound in " + e.getOperatorSymbol() + " operator must be an int or double", e.getLowerBound());
 		}
 		if (e.getUpperBound() != null && !TypeDouble.getInstance().canAssign(e.getUpperBound().getType())) {
-			throw new PrismLangException("Type error: Upper bound in " + e.getOperatorSymbol()
-					+ " operator must be an int or double", e.getUpperBound());
+			throw new PrismLangException("Type error: Upper bound in " + e.getOperatorSymbol() + " operator must be an int or double", e.getUpperBound());
 		}
 		switch (e.getOperator()) {
 		case ExpressionTemporal.P_X:
@@ -187,14 +184,12 @@ public class TypeCheck extends ASTTraverse
 			if (e.getOperand1() != null) {
 				type = e.getOperand1().getType();
 				if (!(type instanceof TypeBool) && !(type instanceof TypePathBool))
-					throw new PrismLangException("Type error: Argument of " + e.getOperatorSymbol()
-							+ " operator is not Boolean", e.getOperand1());
+					throw new PrismLangException("Type error: Argument of " + e.getOperatorSymbol() + " operator is not Boolean", e.getOperand1());
 			}
 			if (e.getOperand2() != null) {
 				type = e.getOperand2().getType();
 				if (!(type instanceof TypeBool) && !(type instanceof TypePathBool))
-					throw new PrismLangException("Type error: Argument of " + e.getOperatorSymbol()
-							+ " operator is not Boolean", e.getOperand2());
+					throw new PrismLangException("Type error: Argument of " + e.getOperatorSymbol() + " operator is not Boolean", e.getOperand2());
 			}
 			e.setType(TypePathBool.getInstance());
 			break;
@@ -202,8 +197,7 @@ public class TypeCheck extends ASTTraverse
 			if (e.getOperand2() != null) {
 				type = e.getOperand2().getType();
 				if (!(type instanceof TypeBool) && !(type instanceof TypePathBool))
-					throw new PrismLangException("Type error: Argument of " + e.getOperatorSymbol()
-							+ " operator is not Boolean", e.getOperand2());
+					throw new PrismLangException("Type error: Argument of " + e.getOperatorSymbol() + " operator is not Boolean", e.getOperand2());
 			}
 			e.setType(TypePathDouble.getInstance());
 			break;
@@ -250,15 +244,12 @@ public class TypeCheck extends ASTTraverse
 		case ExpressionBinaryOp.OR:
 		case ExpressionBinaryOp.AND:
 			if (!(t1 instanceof TypeBool) && !(t1 instanceof TypePathBool)) {
-				throw new PrismLangException("Type error: " + e.getOperatorSymbol()
-						+ " applied to non-Boolean expression", e.getOperand1());
+				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " applied to non-Boolean expression", e.getOperand1());
 			}
 			if (!(t2 instanceof TypeBool) && !(t2 instanceof TypePathBool)) {
-				throw new PrismLangException("Type error: " + e.getOperatorSymbol()
-						+ " applied to non-Boolean expression", e.getOperand2());
+				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " applied to non-Boolean expression", e.getOperand2());
 			}
-			e.setType(t1 instanceof TypePathBool || t2 instanceof TypePathBool ? TypePathBool.getInstance() : TypeBool
-					.getInstance());
+			e.setType(t1 instanceof TypePathBool || t2 instanceof TypePathBool ? TypePathBool.getInstance() : TypeBool.getInstance());
 			break;
 		case ExpressionBinaryOp.EQ:
 		case ExpressionBinaryOp.NE:
@@ -268,23 +259,19 @@ public class TypeCheck extends ASTTraverse
 				ok = true;
 			}
 			// equality of ints/doubles
-			else if ((t1 instanceof TypeInt || t1 instanceof TypeDouble)
-					&& (t2 instanceof TypeInt || t2 instanceof TypeDouble)) {
+			else if ((t1 instanceof TypeInt || t1 instanceof TypeDouble) && (t2 instanceof TypeInt || t2 instanceof TypeDouble)) {
 				ok = true;
 			}
 			// equality of clocks against clocks/integers
 			// (and int/int - but this is already covered above)
-			else if ((t1 instanceof TypeInt || t1 instanceof TypeClock)
-					&& (t2 instanceof TypeInt || t2 instanceof TypeClock)) {
+			else if ((t1 instanceof TypeInt || t1 instanceof TypeClock) && (t2 instanceof TypeInt || t2 instanceof TypeClock)) {
 				ok = true;
 			}
 			if (!ok) {
 				if (t1.equals(t2))
-					throw new PrismLangException(
-							"Type error: " + e.getOperatorSymbol() + " cannot compare " + t1 + "s", e);
+					throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " cannot compare " + t1 + "s", e);
 				else
-					throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " cannot compare " + t1
-							+ " and " + t2, e);
+					throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " cannot compare " + t1 + " and " + t2, e);
 			}
 			e.setType(TypeBool.getInstance());
 			break;
@@ -294,23 +281,19 @@ public class TypeCheck extends ASTTraverse
 		case ExpressionBinaryOp.LE:
 			ok = false;
 			// comparison of ints/doubles
-			if ((t1 instanceof TypeInt || t1 instanceof TypeDouble)
-					&& (t2 instanceof TypeInt || t2 instanceof TypeDouble)) {
+			if ((t1 instanceof TypeInt || t1 instanceof TypeDouble) && (t2 instanceof TypeInt || t2 instanceof TypeDouble)) {
 				ok = true;
 			}
 			// equality of clocks against clocks/integers
 			// (and int/int - but this is already covered above)
-			else if ((t1 instanceof TypeInt || t1 instanceof TypeClock)
-					&& (t2 instanceof TypeInt || t2 instanceof TypeClock)) {
+			else if ((t1 instanceof TypeInt || t1 instanceof TypeClock) && (t2 instanceof TypeInt || t2 instanceof TypeClock)) {
 				ok = true;
 			}
 			if (!ok) {
 				if (t1.equals(t2))
-					throw new PrismLangException(
-							"Type error: " + e.getOperatorSymbol() + " cannot compare " + t1 + "s", e);
+					throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " cannot compare " + t1 + "s", e);
 				else
-					throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " cannot compare " + t1
-							+ " and " + t2, e);
+					throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " cannot compare " + t1 + " and " + t2, e);
 			}
 			e.setType(TypeBool.getInstance());
 			break;
@@ -318,24 +301,19 @@ public class TypeCheck extends ASTTraverse
 		case ExpressionBinaryOp.MINUS:
 		case ExpressionBinaryOp.TIMES:
 			if (!(t1 instanceof TypeInt || t1 instanceof TypeDouble)) {
-				throw new PrismLangException("Type error: " + e.getOperatorSymbol()
-						+ " can only be applied to ints or doubles", e.getOperand1());
+				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " can only be applied to ints or doubles", e.getOperand1());
 			}
 			if (!(t2 instanceof TypeInt || t2 instanceof TypeDouble)) {
-				throw new PrismLangException("Type error: " + e.getOperatorSymbol()
-						+ " can only be applied to ints or doubles", e.getOperand2());
+				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " can only be applied to ints or doubles", e.getOperand2());
 			}
-			e.setType(t1 instanceof TypeDouble || t2 instanceof TypeDouble ? TypeDouble.getInstance() : TypeInt
-					.getInstance());
+			e.setType(t1 instanceof TypeDouble || t2 instanceof TypeDouble ? TypeDouble.getInstance() : TypeInt.getInstance());
 			break;
 		case ExpressionBinaryOp.DIVIDE:
 			if (!(t1 instanceof TypeInt || t1 instanceof TypeDouble)) {
-				throw new PrismLangException("Type error: " + e.getOperatorSymbol()
-						+ " can only be applied to ints or doubles", e.getOperand1());
+				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " can only be applied to ints or doubles", e.getOperand1());
 			}
 			if (!(t2 instanceof TypeInt || t2 instanceof TypeDouble)) {
-				throw new PrismLangException("Type error: " + e.getOperatorSymbol()
-						+ " can only be applied to ints or doubles", e.getOperand2());
+				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " can only be applied to ints or doubles", e.getOperand2());
 			}
 			e.setType(TypeDouble.getInstance());
 			break;
@@ -349,15 +327,13 @@ public class TypeCheck extends ASTTraverse
 		switch (e.getOperator()) {
 		case ExpressionUnaryOp.NOT:
 			if (!(t instanceof TypeBool) && !(t instanceof TypePathBool)) {
-				throw new PrismLangException("Type error: " + e.getOperatorSymbol()
-						+ " applied to non-Boolean expression", e.getOperand());
+				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " applied to non-Boolean expression", e.getOperand());
 			}
 			e.setType(t);
 			break;
 		case ExpressionUnaryOp.MINUS:
 			if (!(t instanceof TypeInt || t instanceof TypeDouble)) {
-				throw new PrismLangException("Type error: " + e.getOperatorSymbol()
-						+ " can only be applied to ints or doubles", e.getOperand());
+				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " can only be applied to ints or doubles", e.getOperand());
 			}
 			e.setType(t);
 			break;
@@ -390,8 +366,7 @@ public class TypeCheck extends ASTTraverse
 			// All operands must be ints or doubles
 			for (i = 0; i < n; i++) {
 				if (types[i] instanceof TypeBool) {
-					throw new PrismLangException("Type error: Boolean argument not allowed as argument to function \""
-							+ e.getName() + "\"", e.getOperand(i));
+					throw new PrismLangException("Type error: Boolean argument not allowed as argument to function \"" + e.getName() + "\"", e.getOperand(i));
 				}
 			}
 			break;
@@ -399,8 +374,7 @@ public class TypeCheck extends ASTTraverse
 			// All operands must be ints
 			for (i = 0; i < n; i++) {
 				if (!(types[i] instanceof TypeInt)) {
-					throw new PrismLangException("Type error: non-integer argument to  function \"" + e.getName()
-							+ "\"", e.getOperand(i));
+					throw new PrismLangException("Type error: non-integer argument to  function \"" + e.getName() + "\"", e.getOperand(i));
 				}
 			}
 			break;
@@ -429,8 +403,7 @@ public class TypeCheck extends ASTTraverse
 			break;
 		case ExpressionFunc.POW:
 			// int if both ints, double otherwise
-			e.setType(types[0] instanceof TypeDouble || types[1] instanceof TypeDouble ? TypeDouble.getInstance()
-					: TypeInt.getInstance());
+			e.setType(types[0] instanceof TypeDouble || types[1] instanceof TypeDouble ? TypeDouble.getInstance() : TypeInt.getInstance());
 			break;
 		case ExpressionFunc.LOG:
 			// Resulting type is always double
@@ -476,8 +449,7 @@ public class TypeCheck extends ASTTraverse
 			throw new PrismLangException("Type error: P operator probability bound is not a double", e.getProb());
 		}
 		if (e.getFilter() != null && !(e.getFilter().getExpression().getType() instanceof TypeBool)) {
-			throw new PrismLangException("Type error: P operator filter is not a Boolean", e.getFilter()
-					.getExpression());
+			throw new PrismLangException("Type error: P operator filter is not a Boolean", e.getFilter().getExpression());
 		}
 		// Need to to do this type check here because some info has been lost when converted to ExpressionFilter
 		if (e.getProb() != null && e.getFilter() != null) {
@@ -501,8 +473,7 @@ public class TypeCheck extends ASTTraverse
 			throw new PrismLangException("Type error: R operator reward bound is not a double", e.getReward());
 		}
 		if (e.getFilter() != null && !(e.getFilter().getExpression().getType() instanceof TypeBool)) {
-			throw new PrismLangException("Type error: R operator filter is not a Boolean", e.getFilter()
-					.getExpression());
+			throw new PrismLangException("Type error: R operator filter is not a Boolean", e.getFilter().getExpression());
 		}
 		// Need to to do this type check here because some info has been lost when converted to ExpressionFilter
 		if (e.getReward() != null && e.getFilter() != null) {
@@ -520,8 +491,7 @@ public class TypeCheck extends ASTTraverse
 			throw new PrismLangException("Type error: S operator probability bound is not a double", e.getProb());
 		}
 		if (e.getFilter() != null && !(e.getFilter().getExpression().getType() instanceof TypeBool)) {
-			throw new PrismLangException("Type error: P operator filter is not a Boolean", e.getFilter()
-					.getExpression());
+			throw new PrismLangException("Type error: P operator filter is not a Boolean", e.getFilter().getExpression());
 		}
 		// Need to to do this type check here because some info has been lost when converted to ExpressionFilter
 		if (e.getProb() != null && e.getFilter() != null) {
@@ -548,6 +518,27 @@ public class TypeCheck extends ASTTraverse
 		e.setType(TypeBool.getInstance());
 	}
 
+	public void visitPost(ExpressionProp e) throws PrismLangException
+	{
+		// Recursively type check referenced property
+		// (may not have been done yet, e.g. because that property appears later than the current one in a PropertiesFile)
+		// (NB: recursive check not triggered in visit() method because PropertiesFile not available there)
+		// However, if a PropertiesFile is not available *and* we have a type stored already, don't recompute
+		// (in case typeCheck() is called by getType() later without passing a PropertieFile)
+		if (propertiesFile == null) {
+			if (e.getTypeIfDefined() == null)
+				throw new PrismLangException("No properties file to look up type of property reference " + e);
+		} else {
+			Property prop = propertiesFile.lookUpPropertyObjectByName(e.getName());
+			if (prop == null)
+				throw new PrismLangException("Could not look up type of property reference " + e);
+			// Notice we explicitly start a type check using the current TypeCheck class, rather than let
+			// it be triggered by the subsequent call to getType() becase need to keep ref to PropertiesFile
+			prop.accept(this);
+			e.setType(prop.getType());
+		}
+	}
+
 	public void visitPost(ExpressionFilter e) throws PrismLangException
 	{
 		// Get type of operand
@@ -568,17 +559,15 @@ public class TypeCheck extends ASTTraverse
 		case AVG:
 		case RANGE:
 			if (t instanceof TypeBool) {
-				throw new PrismLangException(
-						"Type error: Boolean argument not allowed as operand for filter of type \""
-								+ e.getOperatorName() + "\"", e.getOperand());
+				throw new PrismLangException("Type error: Boolean argument not allowed as operand for filter of type \"" + e.getOperatorName() + "\"",
+						e.getOperand());
 			}
 			break;
 		case COUNT:
 		case FORALL:
 		case EXISTS:
 			if (!(t instanceof TypeBool)) {
-				throw new PrismLangException("Type error: Operand for filter of type \"" + e.getOperatorName()
-						+ "\" must be Boolean", e.getOperand());
+				throw new PrismLangException("Type error: Operand for filter of type \"" + e.getOperatorName() + "\" must be Boolean", e.getOperand());
 			}
 			break;
 		case FIRST:

@@ -27,7 +27,6 @@
 package parser.ast;
 
 import parser.*;
-import parser.type.Type;
 import parser.visitor.*;
 import prism.PrismLangException;
 
@@ -40,10 +39,9 @@ public class ExpressionProp extends Expression
 
 	// Constructor
 	
-	public ExpressionProp(String s, Type t)
+	public ExpressionProp(String s)
 	{
 		name = s;
-		setType(t);
 	}
 
 	// Get Method
@@ -102,7 +100,8 @@ public class ExpressionProp extends Expression
 	 */
 	public Expression deepCopy()
 	{
-		ExpressionProp expr = new ExpressionProp(name, type);
+		ExpressionProp expr = new ExpressionProp(name);
+		expr.setType(type);
 		expr.setPosition(this);
 		return expr;
 	}

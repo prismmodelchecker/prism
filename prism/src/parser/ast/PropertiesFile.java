@@ -224,7 +224,7 @@ public class PropertiesFile extends ASTElement
 		// Various semantic checks 
 		semanticCheck(modulesFile, this);
 		// Type checking
-		typeCheck();
+		typeCheck(this);
 		
 		// Set up some values for constants
 		// (without assuming any info about undefined constants)

@@ -296,6 +296,7 @@ public class Property extends ASTElement
 	public Property deepCopy()
 	{
 		Property prop = new Property(expr, name, comment);
+		prop.setType(type);
 		prop.setPosition(this);
 		return prop;
 	}

@@ -57,7 +57,7 @@ public class FindAllProps extends ASTTraverseModify
 		}
 		if (prop != null) {
 			// If so, replace it with an ExpressionProp object
-			ExpressionProp expr = new ExpressionProp(e.getName(), prop.getType());
+			ExpressionProp expr = new ExpressionProp(e.getName());
 			expr.setPosition(e);
 			return expr;
 		}
