@@ -7,17 +7,22 @@ Latest changes (mostly reverse chronological):
 
 Changes:
 
+* Property names
+  - properties can be named, by prefixing with "name":
+  - properties can appear as sub-formulae of other properties using name references
+  - command-line -prop switch allows selection of property to check by name
 * Added -pf as a command-line switch alias for -pctl/-csl
 * Add .props as a properties file extension (in GUI)
+
 * Export of results in matrix form, e.g. for surface plots (-exportresultsmatrix)
 * And export of results in CSV format (-exportresultscsv and -exportresultsmatrixcsv)
-* Can disable Prob0/Prob1 precomputation algorithms independently (-noprob0, -noprob1)
-* Bash completion scripts + additional syntax highlighters
-* Added PrismTest class to illustrate programmatic use of PRISM
-* GUI on Macs uses Cmd, not Ctrl
+
+* New switches -noprob0/-noprob1 to disable individual precomputation algorithms
 * Added prominence given to log warning messages in command-line/GUI
+* GUI on Macs uses Cmd, not Ctrl
+* Added PrismTest class to illustrate programmatic use of PRISM
 * Command-line scripts can signal termination via growlnotify/notify-send 
-* Properties can be named, by prefixing with "name":, and reference each other
+* Bash completion scripts + additional syntax highlighters
 
 Ongoing changes:
 

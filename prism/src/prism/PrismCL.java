@@ -1088,7 +1088,7 @@ public class PrismCL
 	 */
 	private void parseArguments(String[] args) throws PrismException
 	{
-		int i,  j;
+		int i, j;
 		double d;
 		String sw, s;
 		PrismLog log;
@@ -1265,39 +1265,20 @@ public class PrismCL
 				else if (sw.equals("exportresults")) {
 					if (i < args.length - 1) {
 						exportresults = true;
-						exportResultsFilename = args[++i];
+						// Parse filename/options
+						s = args[++i];
+						String ss[] = s.split(",");
+						exportResultsFilename = ss[0];
+						for (j = 1; j < ss.length; j++) {
+							if (ss[j].equals("csv"))
+								exportresultscsv = true;
+							else if (ss[j].equals("matrix"))
+								exportresultsmatrix = true;
+							else
+								errorAndExit("Unknown option \"" + ss[j] + "\" for -" + sw + " switch");
+						}
 					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				else if (sw.equals("exportresultscsv")) {
-					if (i < args.length - 1) {
-						exportresults = true;
-						exportresultscsv = true;
-						exportResultsFilename = args[++i];
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export results, in matrix form
-				else if (sw.equals("exportresultsmatrix")) {
-					if (i < args.length - 1) {
-						exportresults = true;
-						exportresultsmatrix = true;
-						exportResultsFilename = args[++i];
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export results, in matrix form
-				else if (sw.equals("exportresultsmatrixcsv")) {
-					if (i < args.length - 1) {
-						exportresults = true;
-						exportresultsmatrix = true;
-						exportresultscsv = true;
-						exportResultsFilename = args[++i];
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
+						errorAndExit("No file/options specified for -" + sw + " switch");
 					}
 				}
 				// export transition matrix to file
@@ -1959,7 +1940,7 @@ public class PrismCL
 		mainLog.println("-mdp ........................... Force imported/built model to be an MDP");
 		mainLog.println();
 		mainLog.println("EXPORT OPTIONS:");
-		mainLog.println("-exportresults <file> .......... Export the results of model checking to a file");
+		mainLog.println("-exportresults <file[,options]>  Export the results of model checking to a file");
 		mainLog.println("-exporttrans <file> ............ Export the transition matrix to a file");
 		mainLog.println("-exportstaterewards <file> ..... Export the state rewards vector to a file");
 		mainLog.println("-exporttransrewards <file> ..... Export the transition rewards matrix to a file");
