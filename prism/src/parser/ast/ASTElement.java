@@ -380,6 +380,19 @@ public abstract class ASTElement
 	}
 
 	/**
+	 * Expand property references and labels, return result.
+	 * Property expansion is done recursively.
+	 * Special labels "deadlock", "init" and any not in label list are left.
+	 * @param propertiesFile The PropertiesFile for property lookup
+	 * @param labelList The LabelList for label definitions
+	 */
+	public ASTElement expandPropRefsAndLabels(PropertiesFile propertiesFile, LabelList labelList) throws PrismLangException
+	{
+		ExpandPropRefsAndLabels visitor = new ExpandPropRefsAndLabels(propertiesFile, labelList);
+		return (ASTElement) accept(visitor);
+	}
+
+	/**
 	 * Find all references to action labels, check they exist and, if required,
 	 * store their index locally (as defined by the containing ModuleFile).
 	 */

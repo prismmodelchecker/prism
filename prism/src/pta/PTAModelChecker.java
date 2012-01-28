@@ -133,8 +133,8 @@ public class PTAModelChecker
 		
 		// Take a copy of property, since will modify
 		expr = expr.deepCopy();
-		// Remove labels from property, using combined label list 
-		expr = (Expression) expr.expandLabels(labelList);
+		// Remove property refs ands labels from property 
+		expr = (Expression) expr.expandPropRefsAndLabels(propertiesFile, labelList);
 		// Evaluate constants in property (easier to do now)
 		expr = (Expression) expr.replaceConstants(constantValues);
 		// Also simplify expression to optimise model checking

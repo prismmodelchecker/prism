@@ -530,9 +530,9 @@ public class SimulatorEngine
 	{
 		// Take a copy
 		Expression propNew = prop.deepCopy();
-		// Combine label lists from model/property file, then remove labels from property 
+		// Combine label lists from model/property file, then expand property refs/labels in property 
 		LabelList combinedLabelList = (pf == null) ? modulesFile.getLabelList() : pf.getCombinedLabelList();
-		propNew = (Expression) propNew.expandLabels(combinedLabelList);
+		propNew = (Expression) propNew.expandPropRefsAndLabels(pf, combinedLabelList);
 		// Then get rid of any constants and simplify
 		propNew = (Expression) propNew.replaceConstants(mfConstants);
 		if (pf != null) {

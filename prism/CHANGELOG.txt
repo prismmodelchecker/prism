@@ -17,12 +17,12 @@ Changes:
 * GUI on Macs uses Cmd, not Ctrl
 * Added prominence given to log warning messages in command-line/GUI
 * Command-line scripts can signal termination via growlnotify/notify-send 
+* Properties can be named, by prefixing with "name":, and reference each other
 
 Ongoing changes:
 
 * Need to decide on switch options format for -exportresults
 * Handling of verbosity in log: PrismLog updated, not used yet
-* Properties can be named, by prefixing with "name":, and reference each other
 * CTL AG/EF
 
 -----------------------------------------------------------------------------
