@@ -314,8 +314,6 @@ public class StateModelChecker
 				res1.clear();
 			throw e;
 		}
-		res1 = checkExpression(model, expr.getOperand1());
-		res2 = checkExpression(model, expr.getOperand2());
 		
 		// Apply operation
 		res1.applyBinaryOp(op, res2);
