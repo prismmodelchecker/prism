@@ -13,10 +13,10 @@ Changes:
   - command-line -prop switch allows selection of property to check by name
 * Added -pf as a command-line switch alias for -pctl/-csl
 * Add .props as a properties file extension (in GUI)
-
-* Export of results in matrix form, e.g. for surface plots (-exportresultsmatrix)
-* And export of results in CSV format (-exportresultscsv and -exportresultsmatrixcsv)
-
+* New options for results export
+  - export in matrix form, e.g. for surface plots
+  - export in CSV (rather than tab-separated) form
+  - expanded switch: -exportresults file[,opt1,opt2,...] with options: matrix,csv
 * New switches -noprob0/-noprob1 to disable individual precomputation algorithms
 * Added prominence given to log warning messages in command-line/GUI
 * GUI on Macs uses Cmd, not Ctrl
@@ -26,7 +26,6 @@ Changes:
 
 Ongoing changes:
 
-* Need to decide on switch options format for -exportresults
 * Handling of verbosity in log: PrismLog updated, not used yet
 * CTL AG/EF
 
