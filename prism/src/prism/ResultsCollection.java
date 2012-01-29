@@ -547,7 +547,9 @@ public class ResultsCollection
 				TreeNode node = rangingConstants.size() == 1 ? this : kids[0];
 				int nSteps = node.constant.getNumSteps();
 				for (i = 0; i < nSteps; i++) {
-					res += sep + node.constant.getValue(i);
+					if (rangingConstants.size() > 1 || i > 0)
+						res += sep;
+					res += node.constant.getValue(i);
 				}
 				res += "\n";
 			}
