@@ -155,7 +155,7 @@ public class Prism implements PrismSettingsListener
 	private PrismLog techLog; // another one for technical/diagnostic output
 	
 	//------------------------------------------------------------------------------
-	// parsers/translators
+	// Parsers/translators/model checkers/simulators/etc.
 	//------------------------------------------------------------------------------
 	
 	private static PrismParser thePrismParser = null;
@@ -163,22 +163,16 @@ public class Prism implements PrismSettingsListener
 	private Modules2MTBDD mod2mtbdd = null;
 	private ExplicitFiles2MTBDD expf2mtbdd = null;
 	private ExplicitModel2MTBDD expm2mtbdd = null;
-	
-	//------------------------------------------------------------------------------
-	// model checkers/simulators
-	//------------------------------------------------------------------------------
-	
-	private ModelChecker mc = null;
 	private SimulatorEngine theSimulator = null;
 	
 	//------------------------------------------------------------------------------
-	// flags
+	// State
 	//------------------------------------------------------------------------------
 	
 	private boolean cuddStarted = false;
 
 	//------------------------------------------------------------------------------
-	// methods
+	// Methods
 	//------------------------------------------------------------------------------
 	
 	/**
@@ -1581,6 +1575,7 @@ public class Prism implements PrismSettingsListener
 	 */
 	public Result modelCheck(Model model, PropertiesFile propertiesFile, Expression expr) throws PrismException, PrismLangException
 	{
+		ModelChecker mc = null;
 		Result res;
 		
 		// Check that property is valid for this model type
@@ -1750,6 +1745,7 @@ public class Prism implements PrismSettingsListener
 	public void doSteadyState(Model model, int exportType, File fileOut) throws PrismException
 	{
 		long l = 0; // timer
+		ModelChecker mc = null;
 		StateValues probs = null;
 		PrismLog tmpLog;
 		
@@ -1825,6 +1821,7 @@ public class Prism implements PrismSettingsListener
 	public void doTransient(Model model, double time, int exportType, File fileOut, File fileIn) throws PrismException
 	{
 		long l = 0; // timer
+		ModelChecker mc = null;
 		StateValues probs = null;
 		PrismLog tmpLog;
 		
