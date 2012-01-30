@@ -45,8 +45,6 @@ public class PrismExplicit
 	// Parent Prism object
 	private PrismLog mainLog = null;
 	private PrismSettings settings = null;
-	// Model checker(s)
-	private StateModelChecker mc = null;
 
 	public PrismExplicit(PrismLog mainLog, PrismSettings settings)
 	{
@@ -199,6 +197,7 @@ public class PrismExplicit
 	 */
 	public Result modelCheck(Model model, ModulesFile modulesFile, PropertiesFile propertiesFile, Expression expr) throws PrismException, PrismLangException
 	{
+		StateModelChecker mc = null;
 		Result result = null;
 
 		// Check that property is valid for this model type
