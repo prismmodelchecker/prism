@@ -111,6 +111,11 @@ public class PTAModelChecker
 		// Starting model checking
 		timer = System.currentTimeMillis();
 
+		// Check for system...endsystem - not supported yet
+		if (modulesFile.getSystemDefn() != null) {
+			throw new PrismException("The system...endsystem construct is not supported yet (try the digital clocks engine instead)");
+		}
+		
 		// Translate ModulesFile object into a PTA object
 		mainLog.println("\nBuilding PTA...");
 		m2pta = new Modules2PTA(prism, modulesFile);
