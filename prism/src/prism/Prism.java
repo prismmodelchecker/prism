@@ -51,7 +51,7 @@ import prism.Model;
 public class Prism implements PrismSettingsListener
 {
 	// prism version
-	private static String version = "4.0.2";
+	private static String version = "4.0.3";
 	// prism version suffix
 	//private static String versionSuffix = "";
 	private static String versionSuffix = ".dev"; //".rXXXX";
