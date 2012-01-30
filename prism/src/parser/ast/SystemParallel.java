@@ -156,11 +156,13 @@ public class SystemParallel extends SystemDefn
 	/**
 	 * Perform a deep copy.
 	 */
+	@SuppressWarnings("unchecked")
 	public SystemDefn deepCopy()
 	{
 		SystemParallel ret = new SystemParallel();
 		ret.setOperand1(getOperand1().deepCopy());
 		ret.setOperand2(getOperand2().deepCopy());
+		ret.actions = (actions == null) ? null : (Vector<String>)actions.clone();
 		ret.setPosition(this);
 		return ret;
 	}
