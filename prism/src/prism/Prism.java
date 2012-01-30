@@ -169,6 +169,8 @@ public class Prism implements PrismSettingsListener
 	// State
 	//------------------------------------------------------------------------------
 	
+	// Info about currently loaded model, if any
+	private ModulesFile modulesFileCurrent = null;
 	// Has the CUDD library been initialised yet?
 	private boolean cuddStarted = false;
 
@@ -847,10 +849,20 @@ public class Prism implements PrismSettingsListener
 		ODDUtils.setCUDDManager();
 	}
 	
-	// parse model from file
-	
-	public ModulesFile parseModelFile(File file) throws FileNotFoundException, PrismLangException { return parseModelFile(file, null); }
-	
+	/**
+	 * Parse a PRISM model from a file.
+	 * @param file File to read in
+	 */
+	public ModulesFile parseModelFile(File file) throws FileNotFoundException, PrismLangException
+	{
+		return parseModelFile(file, null);
+	}
+
+	/**
+	 * Parse a PRISM model from a file.
+	 * @param file File to read in
+	 * @param typeOverride Optionally, override model type here (null if unused)
+	 */
 	public ModulesFile parseModelFile(File file, ModelType typeOverride) throws FileNotFoundException, PrismLangException
 	{
 		FileInputStream strModel;
@@ -882,10 +894,20 @@ public class Prism implements PrismSettingsListener
 		return modulesFile;
 	}
 
-	// parse model from string
+	/**
+	 * Parse a PRISM model from a string.
+	 * @param s String containing model
+	 */
+	public ModulesFile parseModelString(String s) throws PrismLangException
+	{
+		return parseModelString(s, null);
+	}
 	
-	public ModulesFile parseModelString(String s) throws PrismLangException { return parseModelString(s, null); }
-	
+	/**
+	 * Parse a PRISM model from a string.
+	 * @param s String containing model
+	 * @param typeOverride Optionally, override model type here (null if unused)
+	 */
 	public ModulesFile parseModelString(String s, ModelType typeOverride) throws PrismLangException
 	{
 		PrismParser prismParser; 
@@ -913,8 +935,10 @@ public class Prism implements PrismSettingsListener
 		return modulesFile;
 	}
 
-	// import pepa from file
-	
+	/**
+	 * Import a PRISM model from a PEPA model in a file
+	 * @param file File to read in
+	 */
 	public ModulesFile importPepaFile(File file) throws PrismException, PrismLangException
 	{
 		String modelString;
@@ -931,8 +955,10 @@ public class Prism implements PrismSettingsListener
 		return parseModelString(modelString);
 	}
 	
-	// import pepa from string
-	
+	/**
+	 * Import a PRISM model from a PEPA model in a string
+	 * @param s String containing model
+	 */
 	public ModulesFile importPepaString(String s) throws PrismException, PrismLangException
 	{
 		File pepaFile = null;
@@ -967,6 +993,8 @@ public class Prism implements PrismSettingsListener
 
 	/**
 	 * Import a PRISM model from a PRISM preprocessor file
+	 * @param file File to read in
+	 * @param params List of values for preprocessor parameters
 	 */
 	public ModulesFile importPrismPreprocFile(File file, String params[]) throws PrismException
 	{
@@ -984,13 +1012,26 @@ public class Prism implements PrismSettingsListener
 		return parseModelString(modelString);
 	}
 	
-	// parse properties from file
-	// nb: need to pass in modules file to access its constants
-	//     but if its null, we just create a blank one for you.
-	
+	/**
+	 * Parse a PRISM properties file. Typically, you need to pass in the corresponding PRISM model
+	 * (for access to constants, etc.) but if left null, a blank one is created automatically.
+	 * @param mf Accompanying ModulesFile (null if not needed)
+	 * @param file File to read in
+	 */
 	public PropertiesFile parsePropertiesFile(ModulesFile mf, File file) throws FileNotFoundException, PrismLangException
-	{ return parsePropertiesFile(mf, file, true); }
+	{
+		return parsePropertiesFile(mf, file, true);
+	}
 	
+	/**
+	 * Parse a PRISM properties file. Typically, you need to pass in the corresponding PRISM model
+	 * (for access to constants, etc.) but if left null, a blank one is created automatically.
+	 * You can also choose whether to do "tidy", i.e. post-parse checks and processing
+	 * (this must be done at some point but may want to postpone to allow parsing of files with errors). 
+	 * @param mf Accompanying ModulesFile (null if not needed)
+	 * @param file File to read in
+	 * @param tidy Whether or not to do "tidy" (post-parse checks and processing)
+	 */
 	public PropertiesFile parsePropertiesFile(ModulesFile mf, File file, boolean tidy) throws FileNotFoundException, PrismLangException
 	{
 		FileInputStream strProperties;
@@ -1029,10 +1070,12 @@ public class Prism implements PrismSettingsListener
 		return propertiesFile;
 	}
 
-	// parse properties from string
-	// nb: need to pass in modules file to access its constants
-	//     but if its null, we just create a blank one for you.
-	
+	/**
+	 * Parse a PRISM properties file from a string. Typically, you need to pass in the corresponding PRISM model
+	 * (for access to constants, etc.) but if left null, a blank one is created automatically.
+	 * @param mf Accompanying ModulesFile (null if not needed)
+	 * @param s String to parse
+	 */
 	public PropertiesFile parsePropertiesString(ModulesFile mf, String s) throws PrismLangException
 	{
 		PrismParser prismParser; 
@@ -1067,8 +1110,10 @@ public class Prism implements PrismSettingsListener
 		return propertiesFile;
 	}
 
-	// parse single expression from string
-	
+	/**
+	 * Parse a single PRISM expression from a string.
+	 * @param s String to parse
+	 */
 	public Expression parseSingleExpressionString(String s) throws PrismLangException
 	{
 		PrismParser prismParser; 
@@ -1094,8 +1139,10 @@ public class Prism implements PrismSettingsListener
 		return expr;
 	}
 
-	// parse for loop from string
-	
+	/**
+	 * Parse a for-loop (as used e.g. in preprocessor) from a string.
+	 * @param s String to parse
+	 */
 	public ForLoop parseForLoopString(String s) throws PrismLangException
 	{
 		PrismParser prismParser; 
