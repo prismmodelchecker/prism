@@ -5,6 +5,10 @@ Latest changes (mostly reverse chronological):
 [correct wrt svn rev 4512]
 -----------------------------------------------------------------------------
 
+-----------------------------------------------------------------------------
+Version 4.0.3 (released 30/1/2012)
+-----------------------------------------------------------------------------
+
 * Property names
   - properties can be named, by prefixing with "name":
   - properties can appear as sub-formulae of other properties using name references
