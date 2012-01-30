@@ -169,10 +169,11 @@ public class Prism implements PrismSettingsListener
 	// State
 	//------------------------------------------------------------------------------
 	
+	// Has the CUDD library been initialised yet?
 	private boolean cuddStarted = false;
 
 	//------------------------------------------------------------------------------
-	// Methods
+	// Constructors + options methods
 	//------------------------------------------------------------------------------
 	
 	/**
@@ -425,6 +426,11 @@ public class Prism implements PrismSettingsListener
 		bsccComp = b;
 	}
 	
+	public void setCheckZeroLoops(boolean checkZeroLoops)
+	{
+		this.checkZeroLoops = checkZeroLoops;		
+	}
+
 	public void setConstruction(int i) throws PrismException
 	{
 		construction = i;
@@ -451,6 +457,11 @@ public class Prism implements PrismSettingsListener
 	public PrismLog getTechLog()
 	{ return techLog; }
 	
+	public PrismSettings getSettings()
+	{
+		return settings;
+	}
+
 	// Get methods for main prism settings
 	// (as above, provided for convenience and for compatibility with old code)
 	
@@ -558,6 +569,9 @@ public class Prism implements PrismSettingsListener
 	public boolean getBSCCComp()
 	{ return bsccComp; }
 	
+	public boolean getCheckZeroLoops()
+	{ return this.checkZeroLoops; }	
+	
 	public int getConstruction()
 	{ return construction; }
 	
@@ -571,6 +585,22 @@ public class Prism implements PrismSettingsListener
 	
 	public static String getEngineString(int engine)
 	{ return engineStrings[engine]; }
+	
+	/**
+	 * Let PrismSettings object notify us things have changed
+	 */
+	public void notifySettings(PrismSettings settings)
+	{
+		if (cuddStarted)
+		{
+			JDD.SetCUDDEpsilon(settings.getDouble(PrismSettings.PRISM_CUDD_EPSILON));
+			JDD.SetCUDDMaxMem(settings.getInteger(PrismSettings.PRISM_CUDD_MAX_MEM));
+		}
+	}
+
+	//------------------------------------------------------------------------------
+	// Access to parser, simulator, etc.
+	//------------------------------------------------------------------------------
 	
 	/**
 	 * Get (exclusive) access to the PRISM parser.
@@ -650,18 +680,10 @@ public class Prism implements PrismSettingsListener
 		return sccComputer;
 	}
 	
-	/**
-	 * Let PrismSettings object notify us things have changed
-	 */
-	public void notifySettings(PrismSettings settings)
-	{
-		if (cuddStarted)
-		{
-			JDD.SetCUDDEpsilon(settings.getDouble(PrismSettings.PRISM_CUDD_EPSILON));
-			JDD.SetCUDDMaxMem(settings.getInteger(PrismSettings.PRISM_CUDD_MAX_MEM));
-		}
-	}
-
+	//------------------------------------------------------------------------------
+	// Utility methods
+	//------------------------------------------------------------------------------
+	
 	/**
 	 * Compare two version numbers of PRISM (strings).
 	 * Example ordering: { "1", "2.0", "2.1.alpha", "2.1.alpha.r5555", "2.1.alpha.r5557", "2.1.beta", "2.1.beta4", "2.1", "2.1.dev", "2.1.dev.r6666", "2.1.dev1", "2.1.dev2", "2.1.2", "2.9", "3", "3.4"};
@@ -790,6 +812,10 @@ public class Prism implements PrismSettingsListener
 			return null;
 		}
 	}
+	
+	//------------------------------------------------------------------------------
+	// Main "API" methods
+	//------------------------------------------------------------------------------
 	
 	/**
 	 * Initialise PRISM.
@@ -1900,23 +1926,6 @@ public class Prism implements PrismSettingsListener
 				DebugJDD.endLifeCycle();
 		}
 	}
-	
-	// Access method for the settings
-	
-	public PrismSettings getSettings()
-	{
-		return settings;
-	}
-
-	public void setCheckZeroLoops(boolean checkZeroLoops)
-	{
-		this.checkZeroLoops  = checkZeroLoops;		
-	}
-
-	public boolean getCheckZeroLoops()
-	{
-		return this.checkZeroLoops;
-	}		
 }
 
 //------------------------------------------------------------------------------
