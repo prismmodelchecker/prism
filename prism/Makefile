@@ -437,7 +437,7 @@ dist_bin_copy:
 		BIN_DIST_DIR_NAME=`basename $$BIN_DIST_DIR` && \
 		echo Creating binary distribution in $$BIN_DIST_DIR... && \
 		mkdir $$BIN_DIST_DIR && \
-		tar cf - README.txt VERSIONS.txt CHANGELOG.txt COPYING.txt install.sh bin etc lib examples doc | ( cd $$BIN_DIST_DIR; tar xfp -) && \
+		tar cf - README.txt CHANGELOG.txt COPYING.txt install.sh bin etc lib examples doc | ( cd $$BIN_DIST_DIR; tar xfp -) && \
 		echo Zipping $$BIN_DIST_DIR_NAME... && \
 		(cd $$BIN_DIST_DIR/..; tar cfz $$BIN_DIST_DIR_NAME.tar.gz $$BIN_DIST_DIR_NAME); \
 	fi

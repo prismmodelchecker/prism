@@ -67,7 +67,6 @@ Section "${PRISM_NAME}"
     File "COPYING.txt"
     FILE "install.sh"
     FILE "README.txt"
-    FILE "VERSIONS.txt"
 
     SetOutPath "$INSTDIR\bin"
     File bin\prism.bat
@@ -142,7 +141,6 @@ Section Uninstall
     Delete "$INSTDIR\COPYING.txt"
     Delete "$INSTDIR\install.sh"
     Delete "$INSTDIR\README.txt"
-    Delete "$INSTDIR\VERSIONS.txt"
 
     RMDir /r "$INSTDIR\examples\"
 
