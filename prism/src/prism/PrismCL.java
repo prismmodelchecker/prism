@@ -915,6 +915,8 @@ public class PrismCL
 			// in case of error, report it and proceed
 			catch (FileNotFoundException e) {
 				error("Couldn't open file \"" + exportStatesFilename + "\" for output");
+			} catch (PrismException e) {
+				error(e.getMessage());
 			}
 		}
 
@@ -926,6 +928,8 @@ public class PrismCL
 			// in case of error, report it and proceed
 			catch (FileNotFoundException e) {
 				error("Couldn't open file \"" + exportSpyFilename + "\" for output");
+			} catch (PrismException e) {
+				error(e.getMessage());
 			}
 		}
 
@@ -937,6 +941,8 @@ public class PrismCL
 			// in case of error, report it and proceed
 			catch (FileNotFoundException e) {
 				error("Couldn't open file \"" + exportDotFilename + "\" for output");
+			} catch (PrismException e) {
+				error(e.getMessage());
 			}
 		}
 
@@ -977,6 +983,8 @@ public class PrismCL
 			// in case of error, report it and proceed
 			catch (FileNotFoundException e) {
 				error("Couldn't open file \"" + exportBSCCsFilename + "\" for output");
+			} catch (PrismException e) {
+				error(e.getMessage());
 			}
 		}
 	}
