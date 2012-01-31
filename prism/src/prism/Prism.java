@@ -1317,7 +1317,7 @@ public class Prism implements PrismSettingsListener
 		// Store PRISM model
 		currentModulesFile = modulesFile;
 		// Reset dependent info
-		currentModelType = currentModulesFile.getModelType();
+		currentModelType = currentModulesFile == null ? null : currentModulesFile.getModelType();
 		currentModel = null;
 	}
 
@@ -1350,7 +1350,7 @@ public class Prism implements PrismSettingsListener
 		currentModulesFile = modulesFile;
 		currentModel = model;
 		// Reset dependent info
-		currentModelType = currentModulesFile.getModelType();
+		currentModelType = currentModulesFile == null ? null : currentModulesFile.getModelType();
 	}
 
 	/**
@@ -1365,7 +1365,7 @@ public class Prism implements PrismSettingsListener
 		currentModulesFile = null;
 		currentModel = model;
 		// Reset dependent info
-		currentModelType = currentModel.getModelType();
+		currentModelType = currentModel == null ? null : currentModel.getModelType();
 	}
 
 	/**
@@ -2334,6 +2334,16 @@ public class Prism implements PrismSettingsListener
 			tmpLog.close();
 	}
 
+	/**
+	 * Clear the built model (free/deallocate memory etc)
+	 */
+	public void clearBuiltModel()
+	{
+		if (currentModel != null)
+			currentModel.clear();
+		loadBuiltModel(null);
+	}
+	
 	/**
 	 * Clear up and close down.
 	 */
