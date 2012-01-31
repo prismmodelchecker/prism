@@ -1378,6 +1378,34 @@ public class Prism implements PrismSettingsListener
 	}
 
 	/**
+	 * Print basic info about the currently stored built model (type, modules, variables, etc.)
+	 * See also {@link #printBuiltModelStats()}.
+	 */
+	public void printBuiltModelInfo()
+	{
+		int i;
+		mainLog.println("\nType:        " + currentModel.getModelType());
+		mainLog.print("Modules:     ");
+		for (i = 0; i < currentModel.getNumModules(); i++) {
+			mainLog.print(currentModel.getModuleName(i) + " ");
+		}
+		mainLog.println();
+		mainLog.print("Variables:   ");
+		for (i = 0; i < currentModel.getNumVars(); i++) {
+			mainLog.print(currentModel.getVarName(i) + " ");
+		}
+		mainLog.println();
+	}
+	
+	/**
+	 * Print stats for the currently stored built model (number of states, transitions, etc.)
+	 */
+	public void printBuiltModelStats()
+	{
+		currentModel.printTransInfo(mainLog, getExtraDDInfo());
+	}
+	
+	/**
 	 * Build the currently loaded PRISM model and store for later use.
 	 * The build model can be accessed subsequently via {@link #getBuiltModel()}. 
 	 * Reachability and model construction are done symbolically, i.e. using (MT)BDDs.
