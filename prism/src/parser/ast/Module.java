@@ -266,7 +266,8 @@ public class Module extends ASTElement
 	{
 		int i, n;
 		Module ret = new Module(name);
-		ret.setNameASTElement((ExpressionIdent)nameASTElement.deepCopy());
+		if (nameASTElement != null)
+			ret.setNameASTElement((ExpressionIdent)nameASTElement.deepCopy());
 		n = getNumDeclarations();
 		for (i = 0; i < n; i++) {
 			ret.addDeclaration((Declaration)getDeclaration(i).deepCopy());
