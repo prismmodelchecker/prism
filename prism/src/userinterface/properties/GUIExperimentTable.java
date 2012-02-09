@@ -70,9 +70,9 @@ public class GUIExperimentTable extends JTable
 		}
 	}
 	
-	public int newExperiment(PropertiesFile propFile, UndefinedConstants cons, ModulesFile mf, boolean useSimulation)//propFile only contains 1 con
+	public int newExperiment(PropertiesFile propFile, UndefinedConstants cons, boolean useSimulation)//propFile only contains 1 con
 	{
-		GUIExperiment ge = new GUIExperiment(this, guiProps, propFile, cons, mf, useSimulation); 
+		GUIExperiment ge = new GUIExperiment(this, guiProps, propFile, cons, useSimulation); 
 		return expModel.addExperiment(ge);
 	}
 	

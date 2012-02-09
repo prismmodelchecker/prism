@@ -33,7 +33,6 @@ import javax.swing.*;
 import parser.*;
 import parser.ast.*;
 import prism.*;
-import pta.DigitalClocks;
 import userinterface.*;
 import userinterface.util.*;
 import userinterface.properties.*;
@@ -45,53 +44,27 @@ public class ModelCheckThread extends GUIComputationThread
 {
 	// Access to GUI (to send notifications etc.)
 	private GUIMultiProperties parent;
-	// Model (in most cases, have a Model object; in others, e.g. PTA model checking,
-	// we just have the language-level model description, i.e. a ModulesFile).
-	// Currently exactly one-of model/modulesFile is non-null
-	private Model model;
-	private ModulesFile modulesFile;
 	// Properties file and GUI properties (these are assumed to match)
 	// (Also need properties file for access to constants/labels/etc.)
 	private PropertiesFile propertiesFile;
 	private ArrayList<GUIProperty> guiProps;
 	// Values give to constants
-	private Values definedMFConstants;
 	private Values definedPFConstants;
 
 	/**
 	 * Create a new instance of ModelCheckThread (where a Model has been built)
 	 */
-	public ModelCheckThread(GUIMultiProperties parent, Model model, PropertiesFile propertiesFile, ArrayList<GUIProperty> guiProps, Values definedMFConstants,
-			Values definedPFConstants)
+	public ModelCheckThread(GUIMultiProperties parent, PropertiesFile propertiesFile, ArrayList<GUIProperty> guiProps, Values definedPFConstants)
 	{
 		super(parent);
 		this.parent = parent;
-		this.model = model;
-		this.modulesFile = null;
 		this.propertiesFile = propertiesFile;
 		this.guiProps = guiProps;
-		this.definedMFConstants = definedMFConstants;
 		this.definedPFConstants = definedPFConstants;
-	}
-
-	/**
-	 * Create a new instance of ModelCheckThread (where no Model has been built, e.g. PTAs)
-	 */
-	public ModelCheckThread(GUIMultiProperties parent, ModulesFile modulesFile, PropertiesFile propertiesFile, ArrayList<GUIProperty> guiProps, Values definedMFConstants,
-			Values definedPFConstants)
-	{
-		this(parent, (Model) null, propertiesFile, guiProps, definedMFConstants, definedPFConstants);
-		this.modulesFile = modulesFile;
 	}
 
 	public void run()
 	{
-		ModulesFile modulesFileToCheck;
-		boolean clear = true;
-		
-		if (model == null && modulesFile == null)
-			return;
-
 		// Notify user interface of the start of computation
 		SwingUtilities.invokeLater(new Runnable()
 		{
@@ -128,52 +101,7 @@ public class ModelCheckThread extends GUIComputationThread
 
 			// Do model checking
 			try {
-				// Print info to log
-				logSeparator();
-				logln("\nModel checking: " + propertiesFile.getProperty(i));
-				if (definedMFConstants != null)
-					if (definedMFConstants.getNumValues() > 0)
-						logln("Model constants: " + definedMFConstants);
-				if (definedPFConstants != null)
-					if (definedPFConstants.getNumValues() > 0)
-						logln("Property constants: " + definedPFConstants);
-				// for PTAs via digital clocks, do model translation and build
-				if (model == null && modulesFile.getModelType() == ModelType.PTA
-						&& prism.getSettings().getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks")) {
-					DigitalClocks dc = new DigitalClocks(prism);
-					dc.translate(modulesFile, propertiesFile, propertiesFile.getProperty(i));
-					modulesFileToCheck = dc.getNewModulesFile();
-					modulesFileToCheck.setUndefinedConstants(modulesFile.getConstantValues());
-					// build model
-					logSeparator();
-					model = prism.buildModel(modulesFileToCheck);
-					clear = false;
-					// by construction, deadlocks can only occur from timelocks
-					StateList states = model.getDeadlockStates();
-					if (states != null && states.size() > 0) {
-						throw new PrismException("Timelock in PTA, e.g. in state (" + states.getFirstAsValues() + ")");
-					}
-					// print some model info
-					log("\n");
-					model.printTransInfo(parent.getGUI().getLog());
-				} else {
-					modulesFileToCheck = modulesFile;
-				}
-				// No model (PTA, non-digital-clocks) case
-				if (model == null) {
-					if (modulesFile.getModelType() != ModelType.PTA)
-						throw new PrismException("No model to verify");
-					result = prism.modelCheckPTA(modulesFileToCheck, propertiesFile, propertiesFile.getProperty(i));
-				}
-				// Normal model checking
-				else {
-					result = prism.modelCheck(model, propertiesFile, propertiesFile.getProperty(i));
-				}
-				// Clear model, if required
-				if (!clear) {
-					model.clear();
-					clear = true;
-				}
+				result = prism.modelCheck(propertiesFile, propertiesFile.getProperty(i), definedPFConstants);
 			} catch (PrismException e) {
 				result = new Result(e);
 				error(e.getMessage());
@@ -186,7 +114,6 @@ public class ModelCheckThread extends GUIComputationThread
 			//while(!ic.canContinue){}
 			gp.setResult(result);
 			gp.setMethodString("Verification");
-			gp.setConstants(definedMFConstants, definedPFConstants);
 			gp.setNumberOfWarnings(prism.getMainLog().getNumberOfWarnings());
 
 			parent.repaintList();

@@ -235,7 +235,7 @@ public class ExplicitModel2MTBDD
 		}
 
 		// Find any deadlocks
-		model.findDeadlocks();
+		model.findDeadlocks(prism.getFixDeadlocks());
 
 		// Deref spare dds
 		if (modelType == ModelType.MDP) {

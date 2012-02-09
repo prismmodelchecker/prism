@@ -238,30 +238,24 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	}
 
 	@Override
+	public void findDeadlocks(boolean fix) throws PrismException
+	{
+		for (int i = 0; i < numStates; i++) {
+			if (trans.get(i).isEmpty()) {
+				addDeadlockState(i);
+				if (fix)
+					setProbability(i, i, 1.0);
+			}
+		}
+	}
+
+	@Override
 	public void checkForDeadlocks(BitSet except) throws PrismException
 	{
 		for (int i = 0; i < numStates; i++) {
 			if (trans.get(i).isEmpty() && (except == null || !except.get(i)))
 				throw new PrismException("DTMC has a deadlock in state " + i);
 		}
-	}
-
-	@Override
-	public BitSet findDeadlocks(boolean fix) throws PrismException
-	{
-		int i;
-		BitSet deadlocks = new BitSet();
-		for (i = 0; i < numStates; i++) {
-			if (trans.get(i).isEmpty())
-				deadlocks.set(i);
-		}
-		if (fix) {
-			for (i = deadlocks.nextSetBit(0); i >= 0; i = deadlocks.nextSetBit(i + 1)) {
-				setProbability(i, i, 1.0);
-				addFixedDeadlockState(i);
-			}
-		}
-		return deadlocks;
 	}
 
 	// Accessors (for DTMC)

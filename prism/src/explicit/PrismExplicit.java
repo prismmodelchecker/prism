@@ -53,7 +53,7 @@ public class PrismExplicit
 	}
 
 	/**
-	 * Build a model from a PRISM modelling language description, storing it explicitly.,
+	 * Build a model from a PRISM modelling language description, storing it explicitly.
 	 * It is assumed that all constants in the model file have been defined by now.  
 	 * @param modulesFile Model to build
 	 * @param simEngine PRISM simulator engine (for model exploration)
@@ -174,7 +174,7 @@ public class PrismExplicit
 		try {
 			statesList = new StateValues(TypeBool.getInstance(), new Boolean(true), model);
 		} catch (PrismLangException e) {
-			// Can't go wrong - type always 
+			// Can't go wrong - type always fine
 		}
 		if (exportType != Prism.EXPORT_MATLAB)
 			statesList.print(tmpLog);
@@ -252,6 +252,9 @@ public class PrismExplicit
 		long l = 0; // timer
 		StateValues probs = null;
 		PrismLog tmpLog;
+		
+		if (!(model.getModelType() == ModelType.CTMC || model.getModelType() == ModelType.DTMC))
+			throw new PrismException("Steady-state probabilities only computed for DTMCs/CTMCs");
 		
 		// no specific states format for MRMC
 		if (exportType == Prism.EXPORT_MRMC) exportType = Prism.EXPORT_PLAIN;

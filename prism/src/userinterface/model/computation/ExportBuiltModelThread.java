@@ -35,85 +35,97 @@ import userinterface.*;
 import userinterface.model.*;
 import userinterface.util.*;
 
+/**
+ * Thread that performs export of a built model.
+ */
 public class ExportBuiltModelThread extends GUIComputationThread
 {
+	@SuppressWarnings("unused")
 	private GUIMultiModelHandler handler;
-	private Model m;
 	private int exportEntity;
 	private int exportType;
 	private File exportFile;
-	private Exception e;
-	
+
 	/** Creates a new instance of ExportBuiltModelThread */
-	public ExportBuiltModelThread(GUIMultiModelHandler handler, Model m, int entity, int type, File f)
+	public ExportBuiltModelThread(GUIMultiModelHandler handler, int entity, int type, File f)
 	{
 		super(handler.getGUIPlugin());
 		this.handler = handler;
-		this.m = m; 
 		this.exportEntity = entity;
 		this.exportType = type;
 		this.exportFile = f;
 	}
-	
+
 	public void run()
 	{
-		try
-		{
-			//notify the interface of the start of computation
-			SwingUtilities.invokeAndWait(new Runnable() { public void run() {
-				plug.startProgress();
-				plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_START, plug));
-				plug.setTaskBarText("Exporting...");
-			}});
-			
-			//Do export
+		try {
+			// Notify the interface of the start of computation
+			SwingUtilities.invokeAndWait(new Runnable()
+			{
+				public void run()
+				{
+					plug.startProgress();
+					plug.setTaskBarText("Exporting...");
+					plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_START, plug));
+				}
+			});
+
+			// Do export
 			try {
 				switch (exportEntity) {
 				case GUIMultiModelHandler.STATES_EXPORT:
-					prism.exportStatesToFile(m, exportType, exportFile);
+					prism.exportStatesToFile(exportType, exportFile);
 					break;
 				case GUIMultiModelHandler.TRANS_EXPORT:
-					prism.exportTransToFile(m, true, exportType, exportFile);
+					prism.exportTransToFile(true, exportType, exportFile);
 					break;
 				case GUIMultiModelHandler.STATE_REWARDS_EXPORT:
-					prism.exportStateRewardsToFile(m, exportType, exportFile);
+					prism.exportStateRewardsToFile(exportType, exportFile);
 					break;
 				case GUIMultiModelHandler.TRANS_REWARDS_EXPORT:
-					prism.exportTransRewardsToFile(m, true, exportType, exportFile);
+					prism.exportTransRewardsToFile(true, exportType, exportFile);
 					break;
 				}
-			}
-			catch(FileNotFoundException e)
-			{
-				SwingUtilities.invokeAndWait(new Runnable() { public void run() {
-					plug.stopProgress(); 
-					plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, plug));
-					plug.setTaskBarText("Exporting... error.");
-					error("Could not export to file \"" + exportFile + "\"");
-				}});
+			} catch (FileNotFoundException e) {
+				SwingUtilities.invokeAndWait(new Runnable()
+				{
+					public void run()
+					{
+						plug.stopProgress();
+						plug.setTaskBarText("Exporting... error.");
+						plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, plug));
+						error("Could not export to file \"" + exportFile + "\"");
+					}
+				});
+				return;
+			} catch (PrismException e2) {
+				error(e2.getMessage());
+				SwingUtilities.invokeAndWait(new Runnable()
+				{
+					public void run()
+					{
+						plug.stopProgress();
+						plug.setTaskBarText("Exporting... error.");
+						plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, plug));
+					}
+				});
 				return;
 			}
-			catch(PrismException e2)
-			{
-				this.e = e2;
-				SwingUtilities.invokeAndWait(new Runnable() { public void run() {
-					plug.stopProgress(); 
-					plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, plug));
-					plug.setTaskBarText("Exporting... error.");
-					error(e.getMessage());
-				}});
-				return;
-			}
-			
+
 			//If we get here export was successful, notify interface
-			SwingUtilities.invokeAndWait(new Runnable() { public void run() {
-				plug.stopProgress(); 
-				plug.setTaskBarText("Exporting... done.");
-				plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, plug));
-			}});
+			SwingUtilities.invokeAndWait(new Runnable()
+			{
+				public void run()
+				{
+					plug.stopProgress();
+					plug.setTaskBarText("Exporting... done.");
+					plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, plug));
+				}
+			});
 		}
 		// catch and ignore any thread exceptions
-		catch (java.lang.InterruptedException e) {}
-		catch (java.lang.reflect.InvocationTargetException e) {}
+		catch (java.lang.InterruptedException e) {
+		} catch (java.lang.reflect.InvocationTargetException e) {
+		}
 	}
 }

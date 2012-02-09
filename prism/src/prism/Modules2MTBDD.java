@@ -304,8 +304,8 @@ public class Modules2MTBDD
 		// symmetrification
 		if (doSymmetry) doSymmetry(model);
 		
-		// find any deadlocks
-		model.findDeadlocks();
+		// find/fix any deadlocks
+		model.findDeadlocks(prism.getFixDeadlocks());
 		
 		// deref spare dds
 		globalDDRowVars.derefAll();

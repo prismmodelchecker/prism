@@ -105,9 +105,9 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 		return ctmc.isInitialState(i);
 	}
 
-	public boolean isFixedDeadlockState(int i)
+	public boolean isDeadlockState(int i)
 	{
-		return ctmc.isFixedDeadlockState(i);
+		return ctmc.isDeadlockState(i);
 	}
 
 	public List<State> getStatesList()
@@ -146,6 +146,11 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 		return 1;
 	}
 
+	public void findDeadlocks(boolean fix) throws PrismException
+	{
+		// No deadlocks by definition
+	}
+
 	public void checkForDeadlocks() throws PrismException
 	{
 		// No deadlocks by definition
@@ -154,12 +159,6 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 	public void checkForDeadlocks(BitSet except) throws PrismException
 	{
 		// No deadlocks by definition
-	}
-
-	public BitSet findDeadlocks(boolean fix) throws PrismException
-	{
-		// No deadlocks by definition
-		return new BitSet();
 	}
 
 	@Override

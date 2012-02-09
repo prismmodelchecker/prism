@@ -69,8 +69,7 @@ public class ProbModel implements Model
 	protected JDDNode trans01; // 0-1 transition matrix dd
 	protected JDDNode start; // start state dd
 	protected JDDNode reach; // reachable states dd
-	protected JDDNode deadlocks; // deadlock states dd
-	protected JDDNode fixdl; // fixed deadlock states dd
+	protected JDDNode deadlocks; // deadlock states dd (may have been fixed)
 	protected JDDNode stateRewards[]; // state rewards dds
 	protected JDDNode transRewards[]; // transition rewards dds
 	protected JDDNode transActions; // dd for transition action labels (MDPs)
@@ -212,6 +211,7 @@ public class ProbModel implements Model
 		return new StateListMTBDD(reach, this);
 	}
 
+	@Override
 	public StateList getDeadlockStates()
 	{
 		return new StateListMTBDD(deadlocks, this);
@@ -244,14 +244,10 @@ public class ProbModel implements Model
 		return reach;
 	}
 
+	@Override
 	public JDDNode getDeadlocks()
 	{
 		return deadlocks;
-	}
-
-	public JDDNode getFixedDeadlocks()
-	{
-		return fixdl;
 	}
 
 	public JDDNode getStateRewards()
@@ -396,7 +392,7 @@ public class ProbModel implements Model
 
 		trans = tr;
 		start = s;
-		fixdl = JDD.Constant(0);
+		deadlocks = null;
 		stateRewards = sr;
 		transRewards = trr;
 		numRewardStructs = stateRewards.length; // which should == transRewards.length
@@ -601,9 +597,8 @@ public class ProbModel implements Model
 		numTransitions = JDD.GetNumMinterms(trans01, getNumDDVarsInTrans());
 	}
 
-	// identify any deadlock states
-
-	public void findDeadlocks()
+	@Override
+	public void findDeadlocks(boolean fix)
 	{
 		// find states with at least one transition
 		JDD.Ref(trans01);
@@ -612,17 +607,11 @@ public class ProbModel implements Model
 		// find reachable states with no transitions
 		JDD.Ref(reach);
 		deadlocks = JDD.And(reach, JDD.Not(deadlocks));
-	}
-
-	// remove deadlocks by adding self-loops
-
-	public void fixDeadlocks()
-	{
-		JDDNode tmp;
-
-		if (!deadlocks.equals(JDD.ZERO)) {
+		
+		if (fix && !deadlocks.equals(JDD.ZERO)) {
 			// remove deadlocks by adding self-loops
 			// also update transPerAction info, if present
+			JDDNode tmp;
 			JDD.Ref(deadlocks);
 			tmp = JDD.And(deadlocks, JDD.Identity(allDDRowVars, allDDColVars));
 			JDD.Ref(tmp);
@@ -634,10 +623,6 @@ public class ProbModel implements Model
 				transPerAction[0] = JDD.Apply(JDD.PLUS, transPerAction[0], tmp);
 			}
 			JDD.Deref(tmp);
-			// update lists of deadlocks
-			JDD.Deref(fixdl);
-			fixdl = deadlocks;
-			deadlocks = JDD.Constant(0);
 			// update model stats
 			numTransitions = JDD.GetNumMinterms(trans01, getNumDDVarsInTrans());
 		}
@@ -883,7 +868,6 @@ public class ProbModel implements Model
 			JDD.Deref(reach);
 		if (deadlocks != null)
 			JDD.Deref(deadlocks);
-		JDD.Deref(fixdl);
 		for (int i = 0; i < numRewardStructs; i++) {
 			JDD.Deref(stateRewards[i]);
 			JDD.Deref(transRewards[i]);

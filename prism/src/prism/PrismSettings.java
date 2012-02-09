@@ -74,6 +74,7 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_PRECOMPUTATION					= "prism.precomputation";
 	public static final	String PRISM_PROB0							= "prism.prob0";
 	public static final	String PRISM_PROB1							= "prism.prob1";
+	public static final	String PRISM_FIX_DEADLOCKS					= "prism.fixDeadlocks";
 	public static final	String PRISM_DO_PROB_CHECKS					= "prism.doProbChecks";
 	public static final	String PRISM_COMPACT						= "prism.compact";
 	public static final	String PRISM_LIN_EQ_METHOD					= "prism.linEqMethod";//"prism.iterativeMethod";
@@ -187,8 +188,8 @@ public class PrismSettings implements Observer
 			//====================================================================================================================================================================================================================================================================================================================================
 			
 			// ENGINES/METHODS:
-			{ CHOICE_TYPE,		PRISM_ENGINE,							"Engine",								"2.1",			"Hybrid",																	"MTBDD,Sparse,Hybrid",																		
-																			"Which engine (hybrid, sparse or MTBDD) should be used for model checking." },
+			{ CHOICE_TYPE,		PRISM_ENGINE,							"Engine",								"2.1",			"Hybrid",																	"MTBDD,Sparse,Hybrid,Explicit",																		
+																			"Which engine (hybrid, sparse, MTBDD, explicit) should be used for model checking." },
 			{ CHOICE_TYPE,		PRISM_PTA_METHOD,						"PTA model checking method",			"3.3",			"Stochastic games",																	"Digital clocks,Stochastic games",																
 																			"Which method to use for model checking of PTAs." },
 			// NUMERICAL SOLUTION OPTIONS:
@@ -213,6 +214,8 @@ public class PrismSettings implements Observer
 																			"Whether to use model checking precomputation algorithm Prob1 (if precomputation enabled)." },
 			{ BOOLEAN_TYPE,		PRISM_FAIRNESS,							"Use fairness",							"2.1",			new Boolean(false),															"",																							
 																			"Constrain to fair adversaries when model checking MDPs." },
+			{ BOOLEAN_TYPE,		PRISM_FIX_DEADLOCKS,					"Automatically fix deadlocks",			"4.0.3",		new Boolean(true),															"",																							
+																			"Automatically fix deadlocks, where necessary, when constructing probabilistic models." },
 			{ BOOLEAN_TYPE,		PRISM_DO_PROB_CHECKS,					"Do probability/rate checks",			"2.1",			new Boolean(true),															"",																							
 																			"Perform sanity checks on model probabilities/rates when constructing probabilistic models." },
 			{ BOOLEAN_TYPE,		PRISM_DO_SS_DETECTION,					"Use steady-state detection",			"2.1",			new Boolean(true),															"0,",																						
@@ -738,6 +741,9 @@ public class PrismSettings implements Observer
 		else if (sw.equals("hybrid") || sw.equals("h")) {
 			set(PRISM_ENGINE, "Hybrid");
 		}
+		else if (sw.equals("explicit") || sw.equals("ex")) {
+			set(PRISM_ENGINE, "Explicit");
+		}
 		// PTA model checking methods
 		else if (sw.equals("ptamethod")) {
 			if (i < args.length - 1) {
@@ -844,6 +850,13 @@ public class PrismSettings implements Observer
 		}
 		else if (sw.equals("noprob1")) {
 			set(PRISM_PROB1, false);
+		}
+		// Fix deadlocks on/off
+		else if (sw.equals("fixdl")) {
+			set(PRISM_FIX_DEADLOCKS, true);
+		}
+		else if (sw.equals("nofixdl")) {
+			set(PRISM_FIX_DEADLOCKS, false);
 		}
 		// Fairness on/off
 		else if (sw.equals("fair")) {
@@ -1073,7 +1086,8 @@ public class PrismSettings implements Observer
 		mainLog.println("-noprob1 ....................... Skip precomputation algorithm Prob1 (where optional)");
 		mainLog.println("-fair .......................... Use fairness (for model checking of MDPs)");
 		mainLog.println("-nofair ........................ Don't use fairness (for model checking of MDPs) [default]");
-		mainLog.println("-fixdl ......................... Automatically put self-loops in deadlock states");
+		mainLog.println("-fixdl ......................... Automatically put self-loops in deadlock states [default]");
+		mainLog.println("-nofixdl ....................... Do not automatically put self-loops in deadlock states");
 		mainLog.println("-noprobchecks .................. Disable checks on model probabilities/rates");
 		mainLog.println("-zerorewardcheck ............... Check for absence of zero-reward loops");
 		mainLog.println("-nossdetect .................... Disable steady-state detection for CTMC transient computations");

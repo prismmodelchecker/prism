@@ -26,30 +26,33 @@
 //==============================================================================
 
 package userinterface.model.computation;
+
 import javax.swing.*;
 import userinterface.*;
 import userinterface.model.*;
 import prism.*;
 import userinterface.util.*;
 
+/**
+ * Thread that performs transient probability computation on a model.
+ */
 public class ComputeTransientThread extends GUIComputationThread
 {
+	@SuppressWarnings("unused")
 	private GUIMultiModelHandler handler;
-	private Model computeThis;
 	private double transientTime;
-	
+
 	/** Creates a new instance of ComputeTransientThread */
-	public ComputeTransientThread(GUIMultiModelHandler handler, Model computeThis, double transientTime)
+	public ComputeTransientThread(GUIMultiModelHandler handler, double transientTime)
 	{
 		super(handler.getGUIPlugin());
 		this.handler = handler;
-		this.computeThis = computeThis;
 		this.transientTime = transientTime;
 	}
-	
+
 	public void run()
 	{
-		//notify the interface that we are starting computation
+		// Notify the interface that we are starting computation
 		SwingUtilities.invokeLater(new Runnable()
 		{
 			public void run()
@@ -60,14 +63,10 @@ public class ComputeTransientThread extends GUIComputationThread
 			}
 		});
 
-		//Do Computation
+		// Do Computation
 		try {
-			if (!(computeThis.getModelType() == ModelType.CTMC || computeThis.getModelType() == ModelType.DTMC))
-				throw new PrismException("Can only compute transient probabilities for DTMCs/CTMCs");
-			plug.getPrism().doTransient(computeThis, transientTime);
-		}
-		catch(PrismException e)
-		{
+			prism.doTransient(transientTime);
+		} catch (PrismException e) {
 			error(e.getMessage());
 			SwingUtilities.invokeLater(new Runnable()
 			{
@@ -80,7 +79,7 @@ public class ComputeTransientThread extends GUIComputationThread
 			});
 			return;
 		}
-		
+
 		//If we get here, computation was successful
 		SwingUtilities.invokeLater(new Runnable()
 		{

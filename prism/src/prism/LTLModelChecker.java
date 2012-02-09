@@ -293,8 +293,9 @@ public class LTLModelChecker
 		// Do reachability/etc. for the new model
 		modelProd.doReachability(prism.getExtraReachInfo());
 		modelProd.filterReachableStates();
-		modelProd.findDeadlocks();
+		modelProd.findDeadlocks(false);
 		if (modelProd.getDeadlockStates().size() > 0) {
+			// Assuming original model has no deadlocks, neither should product
 			throw new PrismException("Model-DRA product has deadlock states");
 		}
 
@@ -508,8 +509,9 @@ public class LTLModelChecker
 		// Do reachability/etc. for the new model
 		modelProd.doReachability(prism.getExtraReachInfo());
 		modelProd.filterReachableStates();
-		modelProd.findDeadlocks();
+		modelProd.findDeadlocks(false);
 		if (modelProd.getDeadlockStates().size() > 0) {
+			// Assuming original model has no deadlocks, neither should product
 			throw new PrismException("Model-DRA product has deadlock states");
 		}
 

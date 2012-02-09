@@ -323,6 +323,24 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, ModelSimple
 	}
 
 	@Override
+	public void findDeadlocks(boolean fix) throws PrismException
+	{
+		for (int i = 0; i < numStates; i++) {
+			// Note that no distributions is a deadlock, not an empty distribution
+			if (trans.get(i).isEmpty()) {
+				addDeadlockState(i);
+				if (fix) {
+					DistributionSet distrs = newDistributionSet(null);
+					Distribution distr = new Distribution();
+					distr.add(i, 1.0);
+					distrs.add(distr);
+					addDistributionSet(i, distrs);
+				}
+			}
+		}
+	}
+
+	@Override
 	public void checkForDeadlocks(BitSet except) throws PrismException
 	{
 		for (int i = 0; i < numStates; i++) {
@@ -330,29 +348,6 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, ModelSimple
 				throw new PrismException("STPG has a deadlock in state " + i);
 		}
 		// TODO: Check for empty distributions sets too?
-	}
-
-	@Override
-	public BitSet findDeadlocks(boolean fix) throws PrismException
-	{
-		int i;
-		BitSet deadlocks = new BitSet();
-		for (i = 0; i < numStates; i++) {
-			// Note that no distributions is a deadlock, not an empty distribution
-			if (trans.get(i).isEmpty())
-				deadlocks.set(i);
-		}
-		if (fix) {
-			for (i = deadlocks.nextSetBit(0); i >= 0; i = deadlocks.nextSetBit(i + 1)) {
-				DistributionSet distrs = newDistributionSet(null);
-				Distribution distr = new Distribution();
-				distr.add(i, 1.0);
-				distrs.add(distr);
-				addDistributionSet(i, distrs);
-				addFixedDeadlockState(i);
-			}
-		}
-		return deadlocks;
 	}
 
 	@Override

@@ -46,11 +46,10 @@ public abstract class ModelExplicit implements Model
 	// Initial states
 	protected List<Integer> initialStates; // TODO: should be a (linkedhash?) set really
 	/**
-	 * States with deadlocks that have been "fixed", i.e. a state that was
-	 * originally a deadlock but has been fixed through the addition of a self-loop,
-	 * or a state that is still a deadlock but in a model where this acceptable, e.g. a CTMC.
+	 * States that are/were deadlocks. Where requested and where appropriate (DTMCs/MDPs),
+	 * these states may have been fixed at build time by adding self-loops.
 	 */
-	protected TreeSet<Integer> deadlocksFixed;
+	protected TreeSet<Integer> deadlocks;
 	// State info (read only, just a pointer)
 	protected List<State> statesList;
 	// Constant info (read only, just a pointer)
@@ -99,7 +98,7 @@ public abstract class ModelExplicit implements Model
 	{
 		this.numStates = numStates;
 		initialStates = new ArrayList<Integer>();
-		deadlocksFixed = new TreeSet<Integer>();
+		deadlocks = new TreeSet<Integer>();
 		statesList = null;
 	}
 
@@ -112,11 +111,11 @@ public abstract class ModelExplicit implements Model
 	}
 
 	/**
-	 * Add a state to the list of "fixed" deadlock states.
+	 * Add a state to the list of deadlock states.
 	 */
-	public void addFixedDeadlockState(int i)
+	public void addDeadlockState(int i)
 	{
-		deadlocksFixed.add(i);
+		deadlocks.add(i);
 	}
 
 	/**
@@ -176,9 +175,15 @@ public abstract class ModelExplicit implements Model
 	}
 
 	@Override
-	public boolean isFixedDeadlockState(int i)
+	public int getNumDeadlockStates()
 	{
-		return deadlocksFixed.contains(i);
+		return deadlocks.size();
+	}
+	
+	@Override
+	public boolean isDeadlockState(int i)
+	{
+		return deadlocks.contains(i);
 	}
 	
 	@Override

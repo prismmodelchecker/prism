@@ -343,7 +343,7 @@ public class StateModelChecker
 			int numStates = model.getNumStates();
 			BitSet bs = new BitSet(numStates);
 			for (i = 0; i < numStates; i++) {
-				bs.set(i, model.isFixedDeadlockState(i));
+				bs.set(i, model.isDeadlockState(i));
 			}
 			return StateValues.createFromBitSet(bs, model);
 		} else if (expr.getName().equals("init")) {

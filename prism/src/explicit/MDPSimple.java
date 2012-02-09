@@ -426,33 +426,28 @@ public class MDPSimple extends MDPExplicit implements ModelSimple
 	}
 
 	@Override
+	public void findDeadlocks(boolean fix) throws PrismException
+	{
+		for (int i = 0; i < numStates; i++) {
+			// Note that no distributions is a deadlock, not an empty distribution
+			if (trans.get(i).isEmpty()) {
+				addDeadlockState(i);
+				if (fix) {
+					Distribution distr = new Distribution();
+					distr.add(i, 1.0);
+					addChoice(i, distr);
+				}
+			}
+		}
+	}
+
+	@Override
 	public void checkForDeadlocks(BitSet except) throws PrismException
 	{
 		for (int i = 0; i < numStates; i++) {
 			if (trans.get(i).isEmpty() && (except == null || !except.get(i)))
 				throw new PrismException("MDP has a deadlock in state " + i);
 		}
-	}
-
-	@Override
-	public BitSet findDeadlocks(boolean fix) throws PrismException
-	{
-		int i;
-		BitSet deadlocks = new BitSet();
-		for (i = 0; i < numStates; i++) {
-			// Note that no distributions is a deadlock, not an empty distribution
-			if (trans.get(i).isEmpty())
-				deadlocks.set(i);
-		}
-		if (fix) {
-			for (i = deadlocks.nextSetBit(0); i >= 0; i = deadlocks.nextSetBit(i + 1)) {
-				Distribution distr = new Distribution();
-				distr.add(i, 1.0);
-				addChoice(i, distr);
-				addFixedDeadlockState(i);
-			}
-		}
-		return deadlocks;
 	}
 
 	// Accessors (for MDP)

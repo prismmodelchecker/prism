@@ -466,7 +466,7 @@ public class ExplicitFiles2MTBDD
 		}
 		
 		// find any deadlocks
-		model.findDeadlocks();
+		model.findDeadlocks(prism.getFixDeadlocks());
 		
 		// deref spare dds
 		JDD.Deref(moduleIdentities[0]);

@@ -976,7 +976,7 @@ public class StateModelChecker implements ModelChecker
 
 		// treat special cases
 		if (expr.getName().equals("deadlock")) {
-			dd = model.getFixedDeadlocks();
+			dd = model.getDeadlocks();
 			JDD.Ref(dd);
 			return new StateValuesMTBDD(dd, model);
 		} else if (expr.getName().equals("init")) {

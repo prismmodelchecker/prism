@@ -32,14 +32,11 @@ import parser.*;
 import parser.ast.*;
 import parser.type.*;
 import prism.*;
-import pta.DigitalClocks;
+import userinterface.*;
 
 import javax.swing.*;
-
-import userinterface.*;
 import java.util.*;
 import userinterface.util.*;
-import userinterface.simulator.networking.*;
 
 public class GUIExperiment
 {
@@ -48,7 +45,6 @@ public class GUIExperiment
 	private prism.ResultsCollection results;
 	private boolean finished = false;
 
-	private ModulesFile mod;
 	private UndefinedConstants cons;
 	private PropertiesFile prop; //contains 1 property only
 
@@ -63,14 +59,12 @@ public class GUIExperiment
 	private Result res;
 
 	/** Creates a new instance of GUIExperiment */
-	public GUIExperiment(GUIExperimentTable table, GUIMultiProperties guiProp, PropertiesFile prop, UndefinedConstants cons, ModulesFile mod,
-			boolean useSimulation)
+	public GUIExperiment(GUIExperimentTable table, GUIMultiProperties guiProp, PropertiesFile prop, UndefinedConstants cons, boolean useSimulation)
 	{
 		this.table = table;
 		this.guiProp = guiProp;
 		this.prop = prop;
 		this.cons = cons;
-		this.mod = mod;
 		this.useSimulation = useSimulation;
 
 		results = new prism.ResultsCollection(cons, prop.getProperty(0).getResultName());
@@ -139,7 +133,7 @@ public class GUIExperiment
 
 	public void startExperiment()
 	{
-		theThread = new ExperimentThread(guiProp, this, cons, mod, prop);
+		theThread = new ExperimentThread(guiProp, cons, prop);
 		running = true;
 		theThread.start();
 	}
@@ -197,27 +191,18 @@ public class GUIExperiment
 	class ExperimentThread extends GUIComputationThread
 	{
 		private UndefinedConstants undefinedConstants;
-		private ModulesFile modulesFile;
 		private PropertiesFile propertiesFile;
-		private GUIExperiment exp;
 
-		public ExperimentThread(GUIMultiProperties guiProp, GUIExperiment exp, UndefinedConstants undefinedConstants, ModulesFile modulesFile,
-				PropertiesFile propertiesFile)
+		public ExperimentThread(GUIMultiProperties guiProp, UndefinedConstants undefinedConstants, PropertiesFile propertiesFile)
 		{
 			super(guiProp);
-			this.exp = exp;
 			this.undefinedConstants = undefinedConstants;
-			this.modulesFile = modulesFile;
 			this.propertiesFile = propertiesFile;
 		}
 
 		public void run()
 		{
 			int i, k;
-			boolean clear = true;
-			Model model = null;
-
-			ModulesFile modulesFileToCheck;
 			int propertyIndex = propertiesFile.getNumProperties() - 1;
 			Expression propertyToCheck = propertiesFile.getProperty(propertyIndex);
 			SimulationInformation info = null;
@@ -240,14 +225,11 @@ public class GUIExperiment
 				});
 
 				for (i = 0; i < undefinedConstants.getNumModelIterations(); i++) {
-					definedMFConstants = undefinedConstants.getMFConstantValues();
-					if (definedMFConstants != null)
-						if (definedMFConstants.getNumValues() > 0)
-							logln("\nModel constants: " + definedMFConstants);
 
 					// set values for ModulesFile constants
 					try {
-						modulesFile.setUndefinedConstants(definedMFConstants);
+						definedMFConstants = undefinedConstants.getMFConstantValues();
+						prism.setPRISMModelConstants(definedMFConstants);
 					} catch (PrismException e) {
 						// in case of error, report it (in log only), store as result, and go on to the next model
 						errorLog(e.getMessage());
@@ -260,46 +242,12 @@ public class GUIExperiment
 						continue;
 					}
 
-					// only do explicit model construction if necessary
-					if (!useSimulation && modulesFile.getModelType() != ModelType.PTA) {
-
-						// build model
-						try {
-							logSeparator();
-							model = prism.buildModel(modulesFile);
-							clear = false;
-						} catch (PrismException e) {
-							// in case of error, report it (in log only), store as result, and go on to the next model
-							errorLog(e.getMessage());
-							try {
-								setMultipleErrors(definedMFConstants, null, e);
-							} catch (PrismException e2) {
-								error("Problem storing results");
-							}
-							undefinedConstants.iterateModel();
-							continue;
-						}
-
-						// remove any deadlocks (don't prompt - probably should)
-						StateList states = model.getDeadlockStates();
-						if (states != null) {
-							if (states.size() > 0) {
-								guiProp.logWarning(states.size() + " deadlock states detected; adding self-loops in these states...");
-								model.fixDeadlocks();
-							}
-						}
-
-						// print some model info
-						guiProp.log("\n");
-						model.printTransInfo(guiProp.getGUI().getLog());
-					}
-
 					// collect information for simulation if required
 					if (useSimulation && !reuseInfo) {
 						try {
 							info = null;
-							info = GUISimulationPicker.defineSimulationWithDialog(guiProp.getGUI(), propertyToCheck, modulesFile, "(" + definedMFConstants
-									+ ")");
+							info = GUISimulationPicker.defineSimulationWithDialog(guiProp.getGUI(), propertyToCheck, prism.getPRISMModel(), "("
+									+ definedMFConstants + ")");
 						} catch (PrismException e) {
 							// in case of error, report it (in log only), store as result, and go on to the next model
 							errorLog(e.getMessage());
@@ -308,8 +256,6 @@ public class GUIExperiment
 							} catch (PrismException e2) {
 								error("Problem storing results");
 							}
-							if (!clear)
-								model.clear();
 							undefinedConstants.iterateModel();
 							continue;
 						}
@@ -328,31 +274,11 @@ public class GUIExperiment
 						}
 					}
 
-					// for distributed simulation, pass control to the GUISimulatorDistributionDialog
-					if (useSimulation && info.isDistributed()) {
-						try {
-							GUISimulatorDistributionDialog dist = new GUISimulatorDistributionDialog(guiProp.getGUI(), prism.getSimulator(), true);
-							dist.show(exp, this, modulesFile, propertiesFile, undefinedConstants, propertyToCheck, info);
-							//new GUISimulatorDistributionDialog(guiProp.getGUI(), prism.getSimulator(),  true).show(modulesFile, undefinedConstants, propertyToCheck, info);
-						} catch (PrismException e) {
-							// in case of error, report it (in log only), store as result, and go on to the next model
-							errorLog(e.getMessage());
-							try {
-								setMultipleErrors(definedMFConstants, null, e);
-							} catch (PrismException e2) {
-								error("Problem storing results");
-							}
-							if (!clear)
-								model.clear();
-							undefinedConstants.iterateModel();
-							continue;
-						}
-					}
-
 					// for simulation where "simultaneous property checking" is enabled...
 					else if (useSimulation && prism.getSettings().getBoolean(PrismSettings.SIMULATOR_SIMULTANEOUS)
 							&& undefinedConstants.getNumPropertyIterations() > 1) {
 						try {
+							// TODO
 							logSeparator();
 							logln("\nSimulating: " + propertyToCheck);
 							if (definedMFConstants != null)
@@ -365,11 +291,11 @@ public class GUIExperiment
 							if (info.getInitialState() == null) {
 								initialState = null;
 							} else {
-								initialState = new parser.State(info.getInitialState(), modulesFile);
+								initialState = new parser.State(info.getInitialState(), prism.getPRISMModel());
 							}
 							// do simulation
-							prism.modelCheckSimulatorExperiment(modulesFile, propertiesFile, undefinedConstants, results, propertyToCheck, initialState, info
-									.getMaxPathLength(), info.createSimulationMethod());
+							prism.modelCheckSimulatorExperiment(propertiesFile, undefinedConstants, results, propertyToCheck, initialState,
+									info.getMaxPathLength(), info.createSimulationMethod());
 							// update progress meter
 							// (all properties simulated simultaneously so can't get more accurate feedback at the moment anyway)
 							table.progressChanged();
@@ -392,57 +318,16 @@ public class GUIExperiment
 								throw new InterruptedException();
 
 							try {
-								// set values for PropertiesFile constants
+								// Set values for PropertiesFile constants
 								if (propertiesFile != null) {
 									definedPFConstants = undefinedConstants.getPFConstantValues();
 									propertiesFile.setSomeUndefinedConstants(definedPFConstants);
 								}
-
-								// log output
-								logSeparator();
-								logln("\n" + (useSimulation ? "Simulating" : "Model checking") + ": " + propertyToCheck);
-								if (definedMFConstants != null)
-									if (definedMFConstants.getNumValues() > 0)
-										logln("Model constants: " + definedMFConstants);
-								if (definedPFConstants != null)
-									if (definedPFConstants.getNumValues() > 0)
-										logln("Property constants: " + definedPFConstants);
-
-								// for PTAs via digital clocks, do model translation and build
-								if (modulesFile.getModelType() == ModelType.PTA
-										&& prism.getSettings().getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks")) {
-									DigitalClocks dc = new DigitalClocks(prism);
-									dc.translate(modulesFile, propertiesFile, propertyToCheck);
-									modulesFileToCheck = dc.getNewModulesFile();
-									modulesFileToCheck.setUndefinedConstants(modulesFile.getConstantValues());
-									// build model
-									logSeparator();
-									model = prism.buildModel(modulesFileToCheck);
-									clear = false;
-									// by construction, deadlocks can only occur from timelocks
-									StateList states = model.getDeadlockStates();
-									if (states != null && states.size() > 0) {
-										throw new PrismException("Timelock in PTA, e.g. in state (" + states.getFirstAsValues() + ")");
-									}
-									// print some model info
-									guiProp.log("\n");
-									model.printTransInfo(guiProp.getGUI().getLog());
-								} else {
-									modulesFileToCheck = modulesFile;
-								}
-
-								// exact (non-approximate) model checking
+								// Normal model checking
 								if (!useSimulation) {
-									// PTA model checking
-									if (modulesFileToCheck.getModelType() == ModelType.PTA) {
-										res = prism.modelCheckPTA(modulesFileToCheck, propertiesFile, propertyToCheck);
-									}
-									// Non-PTA model checking
-									else {
-										res = prism.modelCheck(model, propertiesFile, propertyToCheck);
-									}
+									res = prism.modelCheck(propertiesFile, propertyToCheck, definedPFConstants);
 								}
-								// approximate (simulation-based) model checking
+								// Approximate (simulation-based) model checking
 								else {
 									// convert initial Values -> State
 									// (remember: null means use default or pick randomly)
@@ -450,10 +335,10 @@ public class GUIExperiment
 									if (info.getInitialState() == null) {
 										initialState = null;
 									} else {
-										initialState = new parser.State(info.getInitialState(), modulesFileToCheck);
+										initialState = new parser.State(info.getInitialState(), prism.getPRISMModel());
 									}
 									// do simulation
-									res = prism.modelCheckSimulator(modulesFileToCheck, propertiesFile, propertyToCheck, initialState, info.getMaxPathLength(),
+									res = prism.modelCheckSimulator(propertiesFile, propertyToCheck, definedPFConstants, initialState, info.getMaxPathLength(),
 											info.createSimulationMethod());
 								}
 							} catch (PrismException e) {
@@ -481,8 +366,6 @@ public class GUIExperiment
 							yield();
 						}
 					}
-					if (!clear)
-						model.clear();
 					// iterate to next model
 					undefinedConstants.iterateModel();
 					yield();
@@ -521,8 +404,6 @@ public class GUIExperiment
 				catch (InterruptedException e2) {
 				} catch (java.lang.reflect.InvocationTargetException e2) {
 				}
-				if (!clear)
-					model.clear();
 				experimentInterrupted();
 			}
 			// catch and ignore possible exception from invokeAndWait calls

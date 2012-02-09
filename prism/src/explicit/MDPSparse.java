@@ -439,29 +439,26 @@ public class MDPSparse extends MDPExplicit
 	}
 
 	@Override
+	public void findDeadlocks(boolean fix) throws PrismException
+	{
+		for (int i = 0; i < numStates; i++) {
+			// Note that no distributions is a deadlock, not an empty distribution
+			if (getNumChoices(i) == 0) {
+				addDeadlockState(i);
+				if (fix) {
+					throw new PrismException("Can't fix deadlocks in an MDPSparse since it cannot be modified after construction");
+				}
+			}
+		}
+	}
+
+	@Override
 	public void checkForDeadlocks(BitSet except) throws PrismException
 	{
 		for (int i = 0; i < numStates; i++) {
 			if (getNumChoices(i) == 0 && (except == null || !except.get(i)))
 				throw new PrismException("MDP has a deadlock in state " + i);
 		}
-	}
-
-	@Override
-	public BitSet findDeadlocks(boolean fix) throws PrismException
-	{
-		int i;
-		BitSet deadlocks = new BitSet();
-		for (i = 0; i < numStates; i++) {
-			// Note that no distributions is a deadlock, not an empty distribution
-			if (getNumChoices(i) == 0)
-				deadlocks.set(i);
-		}
-		if (fix) {
-			// TODO disallow this call?
-			throw new RuntimeException("Can't modify this model");
-		}
-		return deadlocks;
 	}
 
 	// Accessors (for MDP)

@@ -47,7 +47,7 @@ public class ParseModelThread extends GUIComputationThread
 	static int counter = 0;
 	int id;
 	long before;
-	
+
 	/** Creates a new instance of ParseModelThread */
 	public ParseModelThread(GUIMultiModelHandler handler, String parseThis, boolean isPepa, boolean background)
 	{
@@ -62,54 +62,69 @@ public class ParseModelThread extends GUIComputationThread
 
 	public void run()
 	{
-		//Notify user interface of the start of computation
-		SwingUtilities.invokeLater(new Runnable() { public void run() {
-			if(!background)plug.startProgress();
-			plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_START, plug));
-			if(!background)plug.setTaskBarText("Parsing model...");
-		}});
+		// Notify user interface of the start of computation
+		SwingUtilities.invokeLater(new Runnable()
+		{
+			public void run()
+			{
+				if (!background)
+					plug.startProgress();
+				plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_START, plug));
+				if (!background)
+					plug.setTaskBarText("Parsing model...");
+			}
+		});
 
 		// do parsing
 		try {
 			// normal prism mode
-			if(!isPepa) {
-				if(!background) plug.log("\nParsing model...\n");
+			if (!isPepa) {
+				if (!background)
+					plug.log("\nParsing model...\n");
 				mod = prism.parseModelString(parseThis);
 			}
 			// pepa mode
 			else {
-				if(!background) plug.log("\nParsing PEPA model...\n");
+				if (!background)
+					plug.log("\nParsing PEPA model...\n");
 				mod = prism.importPepaString(parseThis);
 			}
-		}
-		catch (PrismLangException err) {
+			// Load into PRISM once done
+			prism.loadPRISMModel(mod);
+		} catch (PrismLangException err) {
 			parseError = err;
 			errMsg = err.getMessage();
-			SwingUtilities.invokeLater(new Runnable() 
-			{ 
-				public void run() 
-				{			
-					if(!background) plug.stopProgress(); 
+			SwingUtilities.invokeLater(new Runnable()
+			{
+				public void run()
+				{
+					if (!background)
+						plug.stopProgress();
 					plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, plug));
-					if(!background) plug.setTaskBarText("Parsing model... error.");
-					if(!background) error(errMsg);
-					handler.modelParseFailed(parseError, background);			
+					if (!background)
+						plug.setTaskBarText("Parsing model... error.");
+					if (!background)
+						error(errMsg);
+					handler.modelParseFailed(parseError, background);
 				}
 			});
 			return;
+		} catch (PrismException e) {
+			throw new RuntimeException("Unexpected PrismException: " + e.getMessage());
 		}
-		catch (PrismException e) {
-			throw new RuntimeException("Unexpected PrismException: " + e.getMessage());			
-		}
-		
-		//If we get here, the parse has been successful, notify the interface and tell the handler.
-		SwingUtilities.invokeLater(new Runnable() { public void run() {
-			if(!background) plug.stopProgress();
-			if(!background) plug.setTaskBarText("Parsing model... done.");
-			plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, plug));
-			handler.modelParsedSuccessful(mod);
-	   }});
+
+		// If we get here, the parse has been successful, notify the interface and tell the handler.
+		SwingUtilities.invokeLater(new Runnable()
+		{
+			public void run()
+			{
+				if (!background)
+					plug.stopProgress();
+				if (!background)
+					plug.setTaskBarText("Parsing model... done.");
+				plug.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_DONE, plug));
+				handler.modelParsedSuccessful(mod);
+			}
+		});
 	}
 }
-
-

@@ -40,32 +40,28 @@ import userinterface.util.*;
 import userinterface.properties.*;
 
 /**
- *  This thread handles the calling of simulation-based
- *  model checking (sampling) with the given modules file (constants
- *  defined), properties file (constants defined), list of properties to
- *  be (approximately) verified and initial state (default/random if null).
+ * Thread that executes approximate (simulation-based) model checking of a property via PRISM.
+ * Model should have been loaded into PRISM already. Supplied are:
+ * properties file (constants defined), list of properties to
+ * be (approximately) verified and initial state (default/random if null).
  */
 public class SimulateModelCheckThread extends GUIComputationThread
 {
 	private GUIMultiProperties parent;
-	private ModulesFile mf;
 	private PropertiesFile pf;
 	private ArrayList<GUIProperty> guiProps;
-	private Values definedMFConstants;
 	private Values definedPFConstants;
 	private int maxPathLength;
 	private SimulationInformation info;
 
 	/** Creates a new instance of SimulateModelCheckThread */
-	public SimulateModelCheckThread(GUIMultiProperties parent, ModulesFile m, PropertiesFile prFi, ArrayList<GUIProperty> guiProps, Values definedMFConstants,
+	public SimulateModelCheckThread(GUIMultiProperties parent, PropertiesFile prFi, ArrayList<GUIProperty> guiProps,
 			Values definedPFConstants, SimulationInformation info)
 	{
 		super(parent);
 		this.parent = parent;
-		this.mf = m;
 		this.pf = prFi;
 		this.guiProps = guiProps;
-		this.definedMFConstants = definedMFConstants;
 		this.definedPFConstants = definedPFConstants;
 		this.info = info;
 		this.maxPathLength = info.getMaxPathLength();
@@ -74,11 +70,8 @@ public class SimulateModelCheckThread extends GUIComputationThread
 	public void run()
 	{
 		boolean allAtOnce = prism.getSettings().getBoolean(PrismSettings.SIMULATOR_SIMULTANEOUS);
-		
+
 		SimulationMethod method = info.createSimulationMethod();
-		
-		if (mf == null)
-			return;
 
 		//Notify user interface of the start of computation
 		SwingUtilities.invokeLater(new Runnable()
@@ -113,33 +106,16 @@ public class SimulateModelCheckThread extends GUIComputationThread
 			}
 
 			try {
-				// display info
-				logSeparator();
-				log("\nSimulating");
-				if (pf.getNumProperties() == 1) {
-					logln(": " + properties.get(0));
-				} else {
-					logln(" " + pf.getNumProperties() + " properties:");
-					for (int i = 0; i < properties.size(); i++) {
-						logln(" " + properties.get(i));
-					}
-				}
-				if (definedMFConstants != null)
-					if (definedMFConstants.getNumValues() > 0)
-						logln("Model constants: " + definedMFConstants);
-				if (definedPFConstants != null)
-					if (definedPFConstants.getNumValues() > 0)
-						logln("Property constants: " + definedPFConstants);
 				// convert initial Values -> State
 				// (remember: null means use default or pick randomly)
 				parser.State initialState;
 				if (info.getInitialState() == null) {
 					initialState = null;
 				} else {
-					initialState = new parser.State(info.getInitialState(), mf);
+					initialState = new parser.State(info.getInitialState(), prism.getPRISMModel());
 				}
 				// do simulation
-				results = prism.modelCheckSimulatorSimultaneously(mf, pf, properties, initialState, maxPathLength, method);
+				results = prism.modelCheckSimulatorSimultaneously(pf, properties, definedPFConstants, initialState, maxPathLength, method);
 				method.reset();
 			} catch (PrismException e) {
 				// in the case of an error which affects all props, store/report it
@@ -163,7 +139,6 @@ public class SimulateModelCheckThread extends GUIComputationThread
 				GUIProperty gp = guiProps.get(i);
 				gp.setResult((results == null) ? new Result(resultError) : results[i]);
 				gp.setMethodString("Simulation");
-				gp.setConstants(definedMFConstants, definedPFConstants);
 				gp.setNumberOfWarnings(prism.getMainLog().getNumberOfWarnings());
 			}
 		}
@@ -178,28 +153,18 @@ public class SimulateModelCheckThread extends GUIComputationThread
 				ict.start();
 				// do model checking
 				try {
-					logSeparator();
-					logln("\nSimulating" + ": " + pf.getProperty(i));
-					if (definedMFConstants != null)
-						if (definedMFConstants.getNumValues() > 0)
-							logln("Model constants: " + definedMFConstants);
-					if (definedPFConstants != null)
-						if (definedPFConstants.getNumValues() > 0)
-							logln("Property constants: " + definedPFConstants);
 					// convert initial Values -> State
 					// (remember: null means use default or pick randomly)
 					parser.State initialState;
 					if (info.getInitialState() == null) {
 						initialState = null;
 					} else {
-						initialState = new parser.State(info.getInitialState(), mf);
+						initialState = new parser.State(info.getInitialState(), prism.getPRISMModel());
 					}
 					// do simulation
-					result = prism.modelCheckSimulator(mf, pf,  pf.getProperty(i), initialState, maxPathLength, method);
+					result = prism.modelCheckSimulator(pf, pf.getProperty(i), definedPFConstants, initialState, maxPathLength, method);
 					method.reset();
-				}
-				catch(PrismException e)
-				{
+				} catch (PrismException e) {
 					result = new Result(e);
 					error(e.getMessage());
 				}
@@ -213,7 +178,6 @@ public class SimulateModelCheckThread extends GUIComputationThread
 				}
 				gp.setResult(result);
 				gp.setMethodString("Simulation");
-				gp.setConstants(definedMFConstants, definedPFConstants);
 
 				parent.repaintList();
 			}

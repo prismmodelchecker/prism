@@ -206,9 +206,8 @@ public class NondetModel extends ProbModel
 		numChoices = ((Math.pow(2, getNumDDNondetVars())) * numStates) - d;
 	}
 
-	// identify any deadlock states
-
-	public void findDeadlocks()
+	@Override
+	public void findDeadlocks(boolean fix)
 	{
 		// find states with at least one transition
 		JDD.Ref(trans01);
@@ -218,22 +217,15 @@ public class NondetModel extends ProbModel
 		// find reachable states with no transitions
 		JDD.Ref(reach);
 		deadlocks = JDD.And(reach, JDD.Not(deadlocks));
-	}
-
-	// remove deadlocks by adding self-loops
-
-	public void fixDeadlocks()
-	{
-		JDDNode tmp;
-		double d;
-
-		if (!deadlocks.equals(JDD.ZERO)) {
+		
+		if (fix && !deadlocks.equals(JDD.ZERO)) {
 			// remove deadlocks by adding self-loops to trans
 			// (also update transInd (if necessary) at same time)
 			// (note: we don't need to update transActions since
 			//  action-less transitions are encoded as 0 anyway)
 			// (note: would need to update transPerAction[0]
 			//  but this is not stored for MDPs)
+			JDDNode tmp;
 			JDD.Ref(deadlocks);
 			tmp = JDD.SetVectorElement(JDD.Constant(0), allDDNondetVars, 0, 1);
 			tmp = JDD.And(tmp, JDD.Identity(allDDRowVars, allDDColVars));
@@ -247,10 +239,6 @@ public class NondetModel extends ProbModel
 				transInd = JDD.Or(transInd, JDD.ThereExists(tmp, allDDColVars));
 			}
 			JDD.Deref(tmp);
-			// update lists of deadlocks
-			JDD.Deref(fixdl);
-			fixdl = deadlocks;
-			deadlocks = JDD.Constant(0);
 			// update mask
 			JDD.Deref(nondetMask);
 			JDD.Ref(trans01);
@@ -258,7 +246,7 @@ public class NondetModel extends ProbModel
 			nondetMask = JDD.And(JDD.Not(JDD.ThereExists(trans01, allDDColVars)), reach);
 			// update model stats
 			numTransitions = JDD.GetNumMinterms(trans01, getNumDDVarsInTrans());
-			d = JDD.GetNumMinterms(nondetMask, getNumDDRowVars() + getNumDDNondetVars());
+			double d = JDD.GetNumMinterms(nondetMask, getNumDDRowVars() + getNumDDNondetVars());
 			numChoices = ((Math.pow(2, getNumDDNondetVars())) * numStates) - d;
 		}
 	}
