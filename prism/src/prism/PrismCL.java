@@ -1159,8 +1159,10 @@ public class PrismCL
 				// export prism model to file
 				else if (sw.equals("exportprism")) {
 					if (i < args.length - 1) {
+						String filename = args[++i];
+						File f = (filename.equals("stdout")) ? null : new File(filename);
 						prism.setExportPrism(true);
-						prism.setExportPrismFilename(args[++i]);
+						prism.setExportPrismFile(f);
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
@@ -1168,8 +1170,10 @@ public class PrismCL
 				// export prism model to file (with consts expanded)
 				else if (sw.equals("exportprismconst")) {
 					if (i < args.length - 1) {
+						String filename = args[++i];
+						File f = (filename.equals("stdout")) ? null : new File(filename);
 						prism.setExportPrismConst(true);
-						prism.setExportPrismConstFilename(args[++i]);
+						prism.setExportPrismConstFile(f);
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
