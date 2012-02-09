@@ -116,14 +116,19 @@ public class Prism implements PrismSettingsListener
 	// Main PRISM settings
 	private PrismSettings settings;
 
+	// Export parsed PRISM model?
+	protected boolean exportPrism = false;
+	protected String exportPrismFilename = null;
+	protected boolean exportPrismConst = false;
+	protected String exportPrismConstFilename = null;
 	// Export target state info?
-	protected boolean exportTarget;
-	protected String exportTargetFilename;
+	protected boolean exportTarget = false;
+	protected String exportTargetFilename = null;
 	// Export product model info?
-	protected boolean exportProductTrans;
-	protected String exportProductTransFilename;
-	protected boolean exportProductStates;
-	protected String exportProductStatesFilename;
+	protected boolean exportProductTrans = false;
+	protected String exportProductTransFilename = null;
+	protected boolean exportProductStates = false;
+	protected String exportProductStatesFilename = null;
 
 	// A few miscellaneous options (i.e. defunct/hidden/undocumented/etc.)
 	// See constructor below for default values
@@ -230,12 +235,6 @@ public class Prism implements PrismSettingsListener
 		modelListeners = new ArrayList<PrismModelListener>();
 
 		// default values for miscellaneous options
-		exportTarget = false;
-		exportTargetFilename = null;
-		exportProductTrans = false;
-		exportProductTransFilename = null;
-		exportProductStates = false;
-		exportProductStatesFilename = null;
 		doReach = true;
 		bsccComp = true;
 		checkZeroLoops = false;
@@ -412,6 +411,26 @@ public class Prism implements PrismSettingsListener
 	}
 
 	// Set methods for miscellaneous options
+
+	public void setExportPrism(boolean b) throws PrismException
+	{
+		exportPrism = b;
+	}
+
+	public void setExportPrismFilename(String s) throws PrismException
+	{
+		exportPrismFilename = s;
+	}
+
+	public void setExportPrismConst(boolean b) throws PrismException
+	{
+		exportPrismConst = b;
+	}
+
+	public void setExportPrismConstFilename(String s) throws PrismException
+	{
+		exportPrismConstFilename = s;
+	}
 
 	public void setExportTarget(boolean b) throws PrismException
 	{
@@ -642,6 +661,26 @@ public class Prism implements PrismSettingsListener
 	}
 
 	// Get methods for miscellaneous options
+
+	public boolean getExportPrism()
+	{
+		return exportPrism;
+	}
+
+	public String getExportPrismFilename()
+	{
+		return exportPrismFilename;
+	}
+
+	public boolean getExportPrismConst()
+	{
+		return exportPrismConst;
+	}
+
+	public String getExportPrismConstFilename()
+	{
+		return exportPrismConstFilename;
+	}
 
 	public boolean getExportTarget()
 	{
@@ -1382,6 +1421,20 @@ public class Prism implements PrismSettingsListener
 			mainLog.print(currentModulesFile.getVarName(i) + " ");
 		}
 		mainLog.println();
+		
+		// If required, export parsed PRISM model
+		if (exportPrism) {
+			try {
+				File f = (exportPrismFilename.equals("stdout")) ? null : new File(exportPrismFilename);
+				exportPRISMModel(f);
+			}
+			// In case of error, just print a warning
+			catch (FileNotFoundException e) {
+				mainLog.printWarning("PRISM code export failed: Couldn't open file \"" + exportPrismFilename + "\" for output");
+			} catch (PrismException e) {
+				mainLog.printWarning("PRISM code export failed: " + e.getMessage());
+			}
+		}
 	}
 
 	/**
@@ -1400,6 +1453,20 @@ public class Prism implements PrismSettingsListener
 		// Reset dependent info
 		currentModel = null;
 		currentModelExpl = null;
+
+		// If required, export parsed PRISM model, with constants expanded
+		if (exportPrismConst) {
+			try {
+				File f = (exportPrismConstFilename.equals("stdout")) ? null : new File(exportPrismConstFilename);
+				exportPRISMModelWithExpandedConstants(f);
+			}
+			// In case of error, just print a warning
+			catch (FileNotFoundException e) {
+				mainLog.printWarning("PRISM code export failed: Couldn't open file \"" + exportPrismFilename + "\" for output");
+			} catch (PrismException e) {
+				mainLog.printWarning("PRISM code export failed: " + e.getMessage());
+			}
+		}
 	}
 
 	/**
@@ -2677,7 +2744,7 @@ public class Prism implements PrismSettingsListener
 	/**
 	 * Get a string describing an output format, e.g. "in plain text format" for EXPORT_PLAIN.
 	 */
-	private static String getStringForExportType(int exportType) throws PrismException
+	private static String getStringForExportType(int exportType)
 	{
 		switch (exportType) {
 		case EXPORT_PLAIN:
@@ -2701,7 +2768,7 @@ public class Prism implements PrismSettingsListener
 	 * Get a string describing the output destination specified by a File:
 	 * "to file \"filename\"..." if non-null; "below:" if null
 	 */
-	private static String getDestinationStringForFile(File file) throws PrismException
+	private static String getDestinationStringForFile(File file)
 	{
 		return (file == null) ? "below:" : "to file \"" + file + "\"...";
 	}

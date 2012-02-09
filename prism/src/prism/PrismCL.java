@@ -59,8 +59,6 @@ public class PrismCL
 	private boolean exportresults = false;
 	private boolean exportresultsmatrix = false;
 	private boolean exportresultscsv = false;
-	private boolean exportprism = false;
-	private boolean exportprismconst = false;
 	private boolean exportPlainDeprecated = false;
 	private int exportType = Prism.EXPORT_PLAIN;
 	private boolean exportordered = true;
@@ -108,8 +106,6 @@ public class PrismCL
 	private String exportResultsFilename = null;
 	private String exportSteadyStateFilename = null;
 	private String exportTransientFilename = null;
-	private String exportPrismFilename = null;
-	private String exportPrismConstFilename = null;
 	private String simpathFilename = null;
 
 	// logs
@@ -241,8 +237,7 @@ public class PrismCL
 				}
 			}
 
-			// Do any exports of code/model
-			doPrismLangExports();
+			// Do any model exports
 			doExports();
 
 			// Do steady-state/transient probability computation, if required
@@ -543,40 +538,6 @@ public class PrismCL
 				propertiesToCheck.add(p);
 			} else {
 				errorAndExit("There is not a property " + propertyToCheck + " to check");
-			}
-		}
-	}
-
-	/**
-	 * Do any exports of PRISM code that have been requested.
-	 */
-	private void doPrismLangExports()
-	{
-		// output parsed prism model here if required
-		if (exportprism) {
-			try {
-				File f = (exportPrismFilename.equals("stdout")) ? null : new File(exportPrismFilename);
-				prism.exportPRISMModel(f);
-			}
-			// in case of error, report it and proceed
-			catch (FileNotFoundException e) {
-				error("Couldn't open file \"" + exportPrismFilename + "\" for output");
-			} catch (PrismException e) {
-				error(e.getMessage());
-			}
-		}
-		
-		// output parsed prism model, with constants, here if required
-		if (exportprismconst) {
-			try {
-				File f = (exportPrismConstFilename.equals("stdout")) ? null : new File(exportPrismConstFilename);
-				prism.exportPRISMModelWithExpandedConstants(f);
-			}
-			// in case of error, report it and proceed
-			catch (FileNotFoundException e) {
-				error("Couldn't open file \"" + exportPrismConstFilename + "\" for output");
-			} catch (PrismException e) {
-				error(e.getMessage());
 			}
 		}
 	}
@@ -1198,8 +1159,8 @@ public class PrismCL
 				// export prism model to file
 				else if (sw.equals("exportprism")) {
 					if (i < args.length - 1) {
-						exportprism = true;
-						exportPrismFilename = args[++i];
+						prism.setExportPrism(true);
+						prism.setExportPrismFilename(args[++i]);
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
@@ -1207,8 +1168,8 @@ public class PrismCL
 				// export prism model to file (with consts expanded)
 				else if (sw.equals("exportprismconst")) {
 					if (i < args.length - 1) {
-						exportprismconst = true;
-						exportPrismConstFilename = args[++i];
+						prism.setExportPrismConst(true);
+						prism.setExportPrismConstFilename(args[++i]);
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
