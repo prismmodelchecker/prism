@@ -1400,6 +1400,8 @@ public class Prism implements PrismSettingsListener
 		currentModelSource = ModelSource.PRISM_MODEL;
 		// Store PRISM model
 		currentModulesFile = modulesFile;
+		// Clear any existing built model(s)
+		clearBuiltModel();
 		// Reset dependent info
 		currentModelType = currentModulesFile == null ? null : currentModulesFile.getModelType();
 		currentDefinedMFConstants = null;
@@ -1444,6 +1446,8 @@ public class Prism implements PrismSettingsListener
 		if (currentDefinedMFConstants != null && currentDefinedMFConstants.equals(definedMFConstants))
 			return;
 
+		// Clear any existing built model(s)
+		clearBuiltModel();
 		// Store constants here and in ModulesFile
 		currentDefinedMFConstants = definedMFConstants;
 		currentModulesFile.setUndefinedConstants(definedMFConstants);
@@ -1474,6 +1478,8 @@ public class Prism implements PrismSettingsListener
 	public void loadPRISMModelAndBuiltModel(ModulesFile modulesFile, Model model)
 	{
 		currentModelSource = ModelSource.PRISM_MODEL;
+		// Clear any existing built model(s)
+		clearBuiltModel();
 		// Store model info
 		currentModulesFile = modulesFile;
 		currentModel = model;
@@ -1492,6 +1498,8 @@ public class Prism implements PrismSettingsListener
 	public void loadBuiltModel(Model model)
 	{
 		currentModelSource = ModelSource.BUILT_MODEL;
+		// Clear any existing built model(s)
+		clearBuiltModel();
 		// Store model info
 		currentModulesFile = null;
 		currentModel = model;
@@ -1512,6 +1520,8 @@ public class Prism implements PrismSettingsListener
 	public ModulesFile loadModelFromExplicitFiles(File statesFile, File transFile, File labelsFile, ModelType typeOverride) throws PrismException
 	{
 		currentModelSource = ModelSource.EXPLICIT_FILES;
+		// Clear any existing built model(s)
+		clearBuiltModel();
 		// Create ExplicitFiles2MTBDD object and build state space
 		expf2mtbdd = new ExplicitFiles2MTBDD(this, statesFile, transFile, labelsFile, typeOverride);
 		currentModulesFile = expf2mtbdd.buildStates();
@@ -1611,6 +1621,9 @@ public class Prism implements PrismSettingsListener
 	{
 		long l; // timer
 
+		// Clear any existing built model(s)
+		clearBuiltModel();
+		
 		try {
 			if (currentModulesFile == null)
 				throw new PrismException("There is no currently loaded PRISM model to build");
@@ -2677,15 +2690,14 @@ public class Prism implements PrismSettingsListener
 	}
 
 	/**
-	 * Clear the built model (free/deallocate memory etc)
+	 * Clear the built model if needed (free/deallocate memory etc)
 	 */
-	public void clearBuiltModel()
+	private void clearBuiltModel()
 	{
 		if (currentModel != null)
 			currentModel.clear();
-		// TODO: if (currentModelExpl != null)
-		//currentModelExpl.clear();
-		loadBuiltModel(null);
+		/*if (currentModelExpl != null)
+			currentModelExpl.clear();*/
 	}
 
 	/**
@@ -2702,6 +2714,8 @@ public class Prism implements PrismSettingsListener
 	 */
 	public void closeDown(boolean check)
 	{
+		// Clear any built model(s)
+		clearBuiltModel();
 		// Close down engines
 		PrismMTBDD.closeDown();
 		PrismSparse.closeDown();

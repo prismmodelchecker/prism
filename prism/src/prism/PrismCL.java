@@ -345,9 +345,6 @@ public class PrismCL
 				}
 			}
 			
-			// clear model
-			prism.clearBuiltModel();
-
 			// iterate to next model
 			undefinedMFConstants.iterateModel();
 			for (j = 0; j < numPropertiesToCheck; j++) {
