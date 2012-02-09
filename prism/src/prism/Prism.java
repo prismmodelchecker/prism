@@ -1817,26 +1817,7 @@ public class Prism implements PrismSettingsListener
 
 		// print message
 		mainLog.print("\nExporting transition matrix ");
-		switch (exportType) {
-		case EXPORT_PLAIN:
-			mainLog.print("in plain text format ");
-			break;
-		case EXPORT_MATLAB:
-			mainLog.print("in Matlab format ");
-			break;
-		case EXPORT_DOT:
-			mainLog.print("in Dot format ");
-			break;
-		case EXPORT_MRMC:
-			mainLog.print("in MRMC format ");
-			break;
-		case EXPORT_ROWS:
-			mainLog.print("in rows format ");
-			break;
-		case EXPORT_DOT_STATES:
-			mainLog.print("in Dot format (with states) ");
-			break;
-		}
+		mainLog.print(getStringForExportType(exportType) + " ");
 		mainLog.println(getDestinationStringForFile(file));
 
 		// do export
@@ -1896,17 +1877,7 @@ public class Prism implements PrismSettingsListener
 
 		// print message
 		mainLog.print("\nExporting state rewards vector ");
-		switch (exportType) {
-		case EXPORT_PLAIN:
-			mainLog.print("in plain text format ");
-			break;
-		case EXPORT_MATLAB:
-			mainLog.print("in Matlab format ");
-			break;
-		case EXPORT_MRMC:
-			mainLog.print("in MRMC format ");
-			break;
-		}
+		mainLog.print(getStringForExportType(exportType) + " ");
 		mainLog.println(getDestinationStringForFile(file));
 
 		// do export
@@ -1957,20 +1928,7 @@ public class Prism implements PrismSettingsListener
 
 		// print message
 		mainLog.print("\nExporting transition rewards matrix ");
-		switch (exportType) {
-		case EXPORT_PLAIN:
-			mainLog.print("in plain text format ");
-			break;
-		case EXPORT_MATLAB:
-			mainLog.print("in Matlab format ");
-			break;
-		case EXPORT_MRMC:
-			mainLog.print("in MRMC format ");
-			break;
-		case EXPORT_ROWS:
-			mainLog.print("in rows format ");
-			break;
-		}
+		mainLog.print(getStringForExportType(exportType) + " ");
 		mainLog.println(getDestinationStringForFile(file));
 
 		// do export
@@ -2021,14 +1979,7 @@ public class Prism implements PrismSettingsListener
 
 		// print message
 		mainLog.print("\nExporting BSCCs ");
-		switch (exportType) {
-		case EXPORT_PLAIN:
-			mainLog.print("in plain text format ");
-			break;
-		case EXPORT_MATLAB:
-			mainLog.print("in Matlab format ");
-			break;
-		}
+		mainLog.print(getStringForExportType(exportType) + " ");
 		mainLog.println(getDestinationStringForFile(file));
 
 		// create new file log or use main log
@@ -2164,14 +2115,7 @@ public class Prism implements PrismSettingsListener
 
 		// print message
 		mainLog.print("\nExporting list of reachable states ");
-		switch (exportType) {
-		case EXPORT_PLAIN:
-			mainLog.print("in plain text format ");
-			break;
-		case EXPORT_MATLAB:
-			mainLog.print("in Matlab format ");
-			break;
-		}
+		mainLog.print(getStringForExportType(exportType) + " ");
 		mainLog.println(getDestinationStringForFile(file));
 
 		// create new file log or use main log
@@ -2537,14 +2481,7 @@ public class Prism implements PrismSettingsListener
 
 		// print message
 		mainLog.print("\nPrinting steady-state probabilities ");
-		switch (exportType) {
-		case EXPORT_PLAIN:
-			mainLog.print("in plain text format ");
-			break;
-		case EXPORT_MATLAB:
-			mainLog.print("in Matlab format ");
-			break;
-		}
+		mainLog.print(getStringForExportType(exportType) + " ");
 		mainLog.println(getDestinationStringForFile(file));
 
 		// create new file log or use main log
@@ -2644,14 +2581,7 @@ public class Prism implements PrismSettingsListener
 
 		// print message
 		mainLog.print("\nPrinting transient probabilities ");
-		switch (exportType) {
-		case EXPORT_PLAIN:
-			mainLog.print("in plain text format ");
-			break;
-		case EXPORT_MATLAB:
-			mainLog.print("in Matlab format ");
-			break;
-		}
+		mainLog.print(getStringForExportType(exportType) + " ");
 		mainLog.println(getDestinationStringForFile(file));
 
 		// create new file log or use main log
@@ -2745,13 +2675,33 @@ public class Prism implements PrismSettingsListener
 	}
 
 	/**
+	 * Get a string describing an output format, e.g. "in plain text format" for EXPORT_PLAIN.
+	 */
+	private static String getStringForExportType(int exportType) throws PrismException
+	{
+		switch (exportType) {
+		case EXPORT_PLAIN:
+			return "in plain text format";
+		case EXPORT_MATLAB:
+			return "in Matlab format";
+		case EXPORT_DOT:
+			return "in Dot format";
+		case EXPORT_MRMC:
+			return "in MRMC format";
+		case EXPORT_ROWS:
+			return "in rows format";
+		case EXPORT_DOT_STATES:
+			return "in Dot format (with states)";
+		default:
+			return "in ? format";
+		}
+	}
+
+	/**
 	 * Get a string describing the output destination specified by a File:
 	 * "to file \"filename\"..." if non-null; "below:" if null
-	 * Either create a new PrismFileLog for {@code file} or,
-	 * if {@code file} is null, return {@code mainLog}.
-	 * Throws a {@code PrismException} if there is a problem opening the file.
 	 */
-	private String getDestinationStringForFile(File file) throws PrismException
+	private static String getDestinationStringForFile(File file) throws PrismException
 	{
 		return (file == null) ? "below:" : "to file \"" + file + "\"...";
 	}
