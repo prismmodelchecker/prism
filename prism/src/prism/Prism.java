@@ -133,24 +133,24 @@ public class Prism implements PrismSettingsListener
 	// A few miscellaneous options (i.e. defunct/hidden/undocumented/etc.)
 	// See constructor below for default values
 
-	private boolean doReach; // do reachability? (sometimes might want to skip it)
-	private boolean bsccComp; // do bscc computation before steady-state?
-	private boolean checkZeroLoops;
+	private boolean doReach = true; // do reachability? (sometimes might want to skip it)
+	private boolean bsccComp = true; // do bscc computation before steady-state?
+	private boolean checkZeroLoops = false;
 
 	// MTBDD construction method (NOW DEFUNCT)
 	//  1 - use with ordering 1: nondet vars form a tree at the top
 	//  3 - use with ordering 2: zero for nonexistant bits
 	// nb: option 2 removed because it was stupid
-	private int construction;
+	private int construction = 3;
 
 	// MTBDD variable ordering
 	//  1 - (s ... s) (l ... l) (r c ... r c)
 	//  2 - (s l ... l r c ... r c) (s l ... l r c ... r c) ...
-	private int ordering;
+	private int ordering = 1;
 
 	// Round-off threshold for places where doubles are summed and compared to integers
 	// (e.g. checking that probabilities sum to 1 in an update).
-	private double sumRoundOff;
+	private double sumRoundOff = 1e-5;
 
 	//------------------------------------------------------------------------------
 	// Logs
@@ -233,14 +233,6 @@ public class Prism implements PrismSettingsListener
 		settings.addSettingsListener(this);
 		// create list of model listeners
 		modelListeners = new ArrayList<PrismModelListener>();
-
-		// default values for miscellaneous options
-		doReach = true;
-		bsccComp = true;
-		checkZeroLoops = false;
-		construction = 3;
-		ordering = 1;
-		sumRoundOff = 1e-5;
 	}
 
 	// Set methods
