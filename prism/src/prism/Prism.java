@@ -2235,7 +2235,7 @@ public class Prism implements PrismSettingsListener
 	{
 		Result res = null;
 
-		if (!digital) // TODO: if "non-nested"
+		if (!digital)
 			mainLog.printSeparator();
 		mainLog.println("\nModel checking: " + expr);
 		if (currentDefinedMFConstants != null && currentDefinedMFConstants.getNumValues() > 0)
@@ -2324,10 +2324,18 @@ public class Prism implements PrismSettingsListener
 				currentModulesFile = dc.getNewModulesFile();
 				currentModulesFile.setUndefinedConstants(oldModulesFile.getConstantValues());
 				currentModelType = ModelType.MDP;
-				/*if (exportprism) {
-					
-				}*/
-				//  TODO doPrismLangExports(modulesFileToCheck);
+				// If required, export generated PRISM model
+				if (exportPrism) {
+					try {
+						exportPRISMModel(exportPrismFile);
+					}
+					// In case of error, just print a warning
+					catch (FileNotFoundException e) {
+						mainLog.printWarning("PRISM code export failed: Couldn't open file \"" + exportPrismFile + "\" for output");
+					} catch (PrismException e) {
+						mainLog.printWarning("PRISM code export failed: " + e.getMessage());
+					}
+				}
 				return modelCheck(propertiesFile, expr, definedPFConstants);
 			} finally {
 				digital = false;
