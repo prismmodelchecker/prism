@@ -285,7 +285,7 @@ public class PrismCL
 							}
 							// Normal model checking
 							if (!simulate) {
-								res = prism.modelCheck(propertiesFile, propertiesToCheck.get(j).getExpression(), definedPFConstants);
+								res = prism.modelCheck(propertiesFile, propertiesToCheck.get(j).getExpression());
 							}
 							// Approximate (simulation-based) model checking
 							else {

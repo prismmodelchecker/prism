@@ -2242,11 +2242,11 @@ public class Prism implements PrismSettingsListener
 	 * Perform model checking of a property on the currently loaded model and return result.
 	 * @param propertiesFile Parent property file of property (for labels/constants/...)
 	 * @param expr The property to check
-	 * @param definedPFConstants Optional values info for properties file (to display in log) 
 	 */
-	public Result modelCheck(PropertiesFile propertiesFile, Expression expr, Values definedPFConstants) throws PrismException, PrismLangException
+	public Result modelCheck(PropertiesFile propertiesFile, Expression expr) throws PrismException, PrismLangException
 	{
 		Result res = null;
+		Values definedPFConstants = propertiesFile.getConstantValues();
 
 		if (!digital)
 			mainLog.printSeparator();
@@ -2349,7 +2349,7 @@ public class Prism implements PrismSettingsListener
 						mainLog.printWarning("PRISM code export failed: " + e.getMessage());
 					}
 				}
-				return modelCheck(propertiesFile, expr, definedPFConstants);
+				return modelCheck(propertiesFile, expr);
 			} finally {
 				digital = false;
 				currentModulesFile = oldModulesFile;
@@ -2972,7 +2972,7 @@ public class Prism implements PrismSettingsListener
 	public Result modelCheck(Model model, PropertiesFile propertiesFile, Expression expr) throws PrismException, PrismLangException
 	{
 		loadBuiltModel(model);
-		return modelCheck(propertiesFile, expr, null);
+		return modelCheck(propertiesFile, expr);
 	}
 
 	/**

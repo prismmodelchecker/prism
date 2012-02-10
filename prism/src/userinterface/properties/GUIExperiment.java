@@ -325,7 +325,7 @@ public class GUIExperiment
 								}
 								// Normal model checking
 								if (!useSimulation) {
-									res = prism.modelCheck(propertiesFile, propertyToCheck, definedPFConstants);
+									res = prism.modelCheck(propertiesFile, propertyToCheck);
 								}
 								// Approximate (simulation-based) model checking
 								else {

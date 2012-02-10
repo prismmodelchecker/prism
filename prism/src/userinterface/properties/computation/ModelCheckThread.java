@@ -48,19 +48,16 @@ public class ModelCheckThread extends GUIComputationThread
 	// (Also need properties file for access to constants/labels/etc.)
 	private PropertiesFile propertiesFile;
 	private ArrayList<GUIProperty> guiProps;
-	// Values give to constants
-	private Values definedPFConstants;
 
 	/**
 	 * Create a new instance of ModelCheckThread (where a Model has been built)
 	 */
-	public ModelCheckThread(GUIMultiProperties parent, PropertiesFile propertiesFile, ArrayList<GUIProperty> guiProps, Values definedPFConstants)
+	public ModelCheckThread(GUIMultiProperties parent, PropertiesFile propertiesFile, ArrayList<GUIProperty> guiProps)
 	{
 		super(parent);
 		this.parent = parent;
 		this.propertiesFile = propertiesFile;
 		this.guiProps = guiProps;
-		this.definedPFConstants = definedPFConstants;
 	}
 
 	public void run()
@@ -101,7 +98,7 @@ public class ModelCheckThread extends GUIComputationThread
 
 			// Do model checking
 			try {
-				result = prism.modelCheck(propertiesFile, propertiesFile.getProperty(i), definedPFConstants);
+				result = prism.modelCheck(propertiesFile, propertiesFile.getProperty(i));
 			} catch (PrismException e) {
 				result = new Result(e);
 				error(e.getMessage());

@@ -272,7 +272,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			for (GUIProperty gp : propertiesToBeVerified)
 				gp.setConstants(mfConstants, pfConstants);
 			// Start model checking
-			Thread t = new ModelCheckThread(this, parsedProperties, propertiesToBeVerified, pfConstants);
+			Thread t = new ModelCheckThread(this, parsedProperties, propertiesToBeVerified);
 			t.setPriority(Thread.NORM_PRIORITY);
 			t.start();
 		} catch (PrismException e) {
