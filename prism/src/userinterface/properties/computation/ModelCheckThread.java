@@ -27,15 +27,20 @@
 
 package userinterface.properties.computation;
 
-import java.util.*;
-import javax.swing.*;
+import java.util.ArrayList;
 
-import parser.*;
-import parser.ast.*;
-import prism.*;
-import userinterface.*;
-import userinterface.util.*;
-import userinterface.properties.*;
+import javax.swing.ImageIcon;
+import javax.swing.SwingUtilities;
+
+import parser.ast.PropertiesFile;
+import prism.PrismException;
+import prism.Result;
+import userinterface.GUIComputationThread;
+import userinterface.GUIPrism;
+import userinterface.properties.GUIMultiProperties;
+import userinterface.properties.GUIPropertiesEvent;
+import userinterface.properties.GUIProperty;
+import userinterface.util.GUIComputationEvent;
 
 /**
  * Thread that executes model checking of a property via PRISM.
