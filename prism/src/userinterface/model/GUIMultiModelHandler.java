@@ -30,8 +30,6 @@ package userinterface.model;
 import javax.swing.*;
 import javax.swing.border.*;
 
-import com.sun.tools.internal.ws.wsdl.document.jaxws.Exception;
-
 import java.awt.*;
 import java.io.*;
 import parser.*;
