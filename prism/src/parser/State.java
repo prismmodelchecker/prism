@@ -196,6 +196,9 @@ public class State implements Comparable<State>
 		return 0;
 	}
 
+	/**
+	 * Get string representation, e.g. "(0,true,5)". 
+	 */
 	@Override
 	public String toString()
 	{
@@ -212,7 +215,24 @@ public class State implements Comparable<State>
 	}
 
 	/**
-	 * Get string representation with variables names (taken from a String list). 
+	 * Get string representation, without outer parentheses, e.g. "0,true,5". 
+	 */
+	public String toStringNoParentheses()
+	{
+		int i, n;
+		String s = "";
+		n = varValues.length;
+		for (i = 0; i < n; i++) {
+			if (i > 0)
+				s += ",";
+			s += varValues[i];
+		}
+		return s;
+	}
+
+	/**
+	 * Get string representation, e.g. "(a=0,b=true,c=5)", 
+	 * with variables names (taken from a String list). 
 	 */
 	public String toString(List<String> varNames)
 	{
@@ -229,7 +249,8 @@ public class State implements Comparable<State>
 	}
 
 	/**
-	 * Get string representation with variables names (taken from a ModulesFile). 
+	 * Get string representation, e.g. "(a=0,b=true,c=5)", 
+	 * with variables names (taken from a ModulesFile). 
 	 */
 	public String toString(ModulesFile mf)
 	{
