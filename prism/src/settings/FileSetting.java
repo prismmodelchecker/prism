@@ -64,6 +64,9 @@ public class FileSetting extends Setting
 		catch (HeadlessException e) {
 			return null;
 		}
+		catch (Error e) {
+			return null;
+		}
 	}
     
 	private boolean validFile;
