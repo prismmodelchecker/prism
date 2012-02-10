@@ -38,7 +38,6 @@ import sparse.*;
 import hybrid.*;
 import parser.*;
 import parser.ast.*;
-import parser.type.TypeBool;
 import simulator.*;
 import simulator.method.SimulationMethod;
 import pta.*;
@@ -1409,7 +1408,6 @@ public class Prism implements PrismSettingsListener
 		currentModelExpl = null;
 
 		// Print basic model info
-		// TODO: move?
 		mainLog.println("\nType:        " + currentModulesFile.getModelType());
 		mainLog.print("Modules:     ");
 		for (int i = 0; i < currentModulesFile.getNumModules(); i++) {
@@ -2176,7 +2174,6 @@ public class Prism implements PrismSettingsListener
 	 */
 	public void exportStatesToFile(int exportType, File file) throws FileNotFoundException, PrismException
 	{
-		int i;
 		PrismLog tmpLog;
 
 		// No specific states format for MRMC
