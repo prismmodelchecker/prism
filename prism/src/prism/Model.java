@@ -135,6 +135,7 @@ public interface Model
 	void exportToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException;
 	String exportStateRewardsToFile(int exportType, File file) throws FileNotFoundException, PrismException;
 	String exportTransRewardsToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException;
+	void exportStates(int exportType, PrismLog log) throws PrismException;
 
 	void clear();
 }

@@ -759,6 +759,34 @@ public class ProbModel implements Model
 		return (allFilenames.length() > 0) ? allFilenames : null;
 	}
 
+	@Override
+	public void exportStates(int exportType, PrismLog log) throws PrismException
+	{
+		// Print header: list of model vars
+		if (exportType == Prism.EXPORT_MATLAB)
+			log.print("% ");
+		log.print("(");
+		int numVars = getNumVars();
+		for (int i = 0; i < numVars; i++) {
+			log.print(getVarName(i));
+			if (i < numVars - 1)
+				log.print(",");
+		}
+		log.println(")");
+		if (exportType == Prism.EXPORT_MATLAB)
+			log.println("states=[");
+
+		// Print states
+		if (exportType != Prism.EXPORT_MATLAB)
+			getReachableStates().print(log);
+		else
+			getReachableStates().printMatlab(log);
+
+		// Print footer
+		if (exportType == Prism.EXPORT_MATLAB)
+			log.println("];");
+	}
+
 	// convert global state index to local indices
 
 	public String globalToLocal(long x)

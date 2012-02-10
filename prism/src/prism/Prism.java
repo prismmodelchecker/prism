@@ -2179,61 +2179,32 @@ public class Prism implements PrismSettingsListener
 		int i;
 		PrismLog tmpLog;
 
-		// no specific states format for MRMC
+		// No specific states format for MRMC
 		if (exportType == EXPORT_MRMC)
 			exportType = EXPORT_PLAIN;
-		// rows format does not apply to states output
+		// Rows format does not apply to states output
 		if (exportType == EXPORT_ROWS)
 			exportType = EXPORT_PLAIN;
 
 		// Build model, if necessary
 		buildModelIfRequired();
 
-		// print message
+		// Print message
 		mainLog.print("\nExporting list of reachable states ");
 		mainLog.print(getStringForExportType(exportType) + " ");
 		mainLog.println(getDestinationStringForFile(file));
 
-		// create new file log or use main log
+		// Create new file log or use main log
 		tmpLog = getPrismLogForFile(file);
 
-		// print header: list of model vars
-		if (exportType == EXPORT_MATLAB)
-			tmpLog.print("% ");
-		tmpLog.print("(");
-		for (i = 0; i < currentModulesFile.getNumVars(); i++) {
-			tmpLog.print(currentModulesFile.getVarName(i));
-			if (i < currentModulesFile.getNumVars() - 1)
-				tmpLog.print(",");
-		}
-		tmpLog.println(")");
-		if (exportType == EXPORT_MATLAB)
-			tmpLog.println("states=[");
-
-		// print states
+		// Export
 		if (!getExplicit()) {
-			if (exportType != EXPORT_MATLAB)
-				currentModel.getReachableStates().print(tmpLog);
-			else
-				currentModel.getReachableStates().printMatlab(tmpLog);
+			currentModel.exportStates(exportType, tmpLog);
 		} else {
-			explicit.StateValues statesList = null;
-			try {
-				statesList = new explicit.StateValues(TypeBool.getInstance(), new Boolean(true), currentModelExpl);
-			} catch (PrismLangException e) {
-				// Can't go wrong - type always fine
-			}
-			if (exportType != Prism.EXPORT_MATLAB)
-				statesList.print(tmpLog);
-			else
-				statesList.print(tmpLog, true, true, true, true);
+			currentModelExpl.exportStates(exportType, currentModulesFile.createVarList(), tmpLog);
 		}
-
-		// print footer
-		if (exportType == EXPORT_MATLAB)
-			tmpLog.println("];");
-
-		// tidy up
+			
+		// Tidy up
 		if (file != null)
 			tmpLog.close();
 	}

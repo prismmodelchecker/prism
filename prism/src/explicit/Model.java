@@ -31,6 +31,7 @@ import java.util.*;
 
 import parser.State;
 import parser.Values;
+import parser.VarList;
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLog;
@@ -178,6 +179,11 @@ public interface Model
 	 * Export to a equivalent PRISM language model description.
 	 */
 	public void exportToPrismLanguage(String filename) throws PrismException;
+	
+	/**
+	 * Export states list.
+	 */
+	public void exportStates(int exportType, VarList varList, PrismLog log) throws PrismException;
 	
 	/**
 	 * Report info/stats about the model as a string.
