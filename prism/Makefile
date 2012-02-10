@@ -163,6 +163,7 @@ ifeq ($(OSTYPE),linux)
 		BINDISTSUFFIX = linux32
 	endif
 	endif
+	BIN_TARGETS=prism.linux xprism.linux
 	JFLAGS =
 	SHARED = -shared
 	#SHARED = -G
@@ -180,6 +181,7 @@ ifeq ($(OSTYPE),solaris)
 	CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 	LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 	BINDISTSUFFIX = solaris
+	BIN_TARGETS=prism.linux xprism.linux
 	JFLAGS =
 	SHARED = -shared -mimpure-text
 	EXE =
@@ -196,6 +198,7 @@ ifeq ($(OSTYPE),cygwin)
 	CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 	LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,--add-stdcall-alias
 	BINDISTSUFFIX = win
+	BIN_TARGETS=prism.cygwin xprism.linux prism.bat.win xprism.bat.win
 	JFLAGS = -encoding UTF8
 	JAVACC = javacc.bat
 	SHARED = -shared
@@ -226,6 +229,7 @@ ifeq ($(OSTYPE),darwin)
 		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,-search_paths_first
 		BINDISTSUFFIX = osx32
 	endif
+	BIN_TARGETS=prism.darwin xprism.linux
 	JFLAGS =
 	SHARED = -dynamiclib
 	EXE =
@@ -266,39 +270,6 @@ JAVA_INCLUDES = -I $(JAVA_JNI_H_DIR) -I $(JAVA_JNI_MD_H_DIR)
 #########################
 
 MAKE_DIRS = dd jdd odd dv prism mtbdd sparse hybrid parser settings userinterface pepa/compiler simulator jltl2ba jltl2dstar explicit pta
-
-ifeq ($(OSTYPE),linux)
-	BIN_PRISM=bin/prism
-	BIN_PRISM_SRC=src/bin/prism.linux
-	BIN_XPRISM=bin/xprism
-	BIN_XPRISM_SRC=src/bin/xprism.linux
-	BIN_TARGETS=$(BIN_PRISM) $(BIN_XPRISM)
-endif
-ifeq ($(OSTYPE),solaris)
-	BIN_PRISM=bin/prism
-	BIN_PRISM_SRC=src/bin/prism.linux
-	BIN_XPRISM=bin/xprism
-	BIN_XPRISM_SRC=src/bin/xprism.linux
-	BIN_TARGETS=$(BIN_PRISM) $(BIN_XPRISM)
-endif
-ifeq ($(OSTYPE),cygwin)
-	BIN_PRISM=bin/prism
-	BIN_PRISM_SRC=src/bin/prism.cygwin
-	BIN_XPRISM=bin/xprism
-	BIN_XPRISM_SRC=src/bin/xprism.linux
-	BIN_PRISM_BAT=bin/prism.bat
-	BIN_PRISM_BAT_SRC=src/bin/prism.bat
-	BIN_XPRISM_BAT=bin/xprism.bat
-	BIN_XPRISM_BAT_SRC=src/bin/xprism.bat
-	BIN_TARGETS=$(BIN_PRISM) $(BIN_XPRISM) $(BIN_PRISM_BAT) $(BIN_XPRISM_BAT)
-endif
-ifeq ($(OSTYPE),darwin)
-	BIN_PRISM=bin/prism
-	BIN_PRISM_SRC=src/bin/prism.darwin
-	BIN_XPRISM=bin/xprism
-	BIN_XPRISM_SRC=src/bin/xprism.linux
-	BIN_TARGETS=$(BIN_PRISM) $(BIN_XPRISM)
-endif
 
 .PHONY: clean javadoc tests
 
@@ -379,20 +350,13 @@ testslocal:
 	  echo "Skipping local tests"; \
 	fi
 
-bin_scripts: $(BIN_TARGETS)
+bin_scripts:
 	@./install.sh silent
-
-$(BIN_PRISM): $(BIN_PRISM_SRC)
-	@echo "$< -> $@"; cp $< $@
-
-$(BIN_XPRISM): $(BIN_XPRISM_SRC)
-	@echo "$< -> $@"; cp $< $@
-
-$(BIN_PRISM_BAT): $(BIN_PRISM_BAT_SRC)
-	@echo "$< -> $@"; cp $< $@
-
-$(BIN_XPRISM_BAT): $(BIN_XPRISM_BAT_SRC)
-	@echo "$< -> $@"; cp $< $@
+	@for target in $(BIN_TARGETS); do \
+	  target_trunc=`echo $$target | sed 's/\.[^.]*$$//'` && \
+	  echo Copying "$(SRC_DIR)/bin/$$target -> bin/$$target_trunc" && \
+	  cp $(SRC_DIR)/bin/$$target bin/$$target_trunc; \
+	done; \
 
 VERSION=# default value for VERSION is blank to force provision at command-line 
 
