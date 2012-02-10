@@ -10,6 +10,13 @@ none:
 VERSION=# default value for VERSION is blank to force provision at command-line 
 
 dist_src: dist_check_version
+	mkdir dontcopy
+	@if [ -e prism/examples ]; then \
+	  echo "mv prism/examples dontcopy"; mv prism/examples dontcopy; \
+	fi
+	@if [ -e prism/tests ]; then \
+	  echo "mv prism/tests dontcopy"; mv prism/tests dontcopy; \
+	fi
 	mv prism-examples prism/examples
 	mv cudd prism
 	mv prism "prism-$(VERSION)-src"
