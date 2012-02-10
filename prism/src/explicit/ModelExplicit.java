@@ -69,6 +69,9 @@ public abstract class ModelExplicit implements Model
 		for (int in : model.initialStates) {
 			addInitialState(in);
 		}
+		for (int dl : model.deadlocks) {
+			addDeadlockState(dl);
+		}
 		// Shallow copy of read-only stuff
 		statesList = model.statesList;
 		constantValues = model.constantValues;
@@ -86,6 +89,9 @@ public abstract class ModelExplicit implements Model
 		numStates = model.numStates;
 		for (int in : model.initialStates) {
 			addInitialState(permut[in]);
+		}
+		for (int dl : model.deadlocks) {
+			addDeadlockState(permut[dl]);
 		}
 		// Shallow copy of (some) read-only stuff
 		// (i.e. info that is not broken by permute)
