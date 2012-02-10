@@ -448,12 +448,10 @@ public class PrismExplicit
 			prism.initialise();
 			prism.setDoProbChecks(false);
 			ModulesFile modulesFile = prism.parseModelFile(new File(args[0]));
-			modulesFile.setUndefinedConstants(null);
 			PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile, new File(args[1]));
-			propertiesFile.setUndefinedConstants(null);
-			prism.Model model = prism.buildModel(modulesFile);
-			prism.exportTransToFile(model, true, Prism.EXPORT_PLAIN, new File("tmp.tra"));
-			prism.exportLabelsToFile(model, modulesFile, null, Prism.EXPORT_PLAIN, new File("tmp.lab"));
+			prism.loadPRISMModel(modulesFile);
+			prism.exportTransToFile(true, Prism.EXPORT_PLAIN, new File("tmp.tra"));
+			prism.exportLabelsToFile(null, Prism.EXPORT_PLAIN, new File("tmp.lab"));
 			DTMCSimple modelExplicit = new DTMCSimple();
 			modelExplicit.buildFromPrismExplicit("tmp.tra");
 			PrismExplicit pe = new PrismExplicit(prism.getMainLog(), prism.getSettings());
