@@ -32,6 +32,7 @@ import javax.swing.*;
 import prism.PrismLangException;
 import userinterface.util.GUIUndoManager;
 
+@SuppressWarnings("serial")
 public abstract class GUIModelEditor extends JPanel
 {    
     public abstract String getParseText();

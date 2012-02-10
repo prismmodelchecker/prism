@@ -37,9 +37,9 @@ import prism.PrismLog;
 import userinterface.util.*;
 import prism.*;
 
+@SuppressWarnings("serial")
 public class GUILog extends GUIPlugin implements MouseListener, PrismSettingsListener
 {
-	
 	private PrismLog theLog;
 	private JTextArea text;
 	private JPopupMenu popupMenu;
@@ -48,7 +48,6 @@ public class GUILog extends GUIPlugin implements MouseListener, PrismSettingsLis
 	//private GUILogOptions options;
 	private GUIPrismFileFilter textFilter[];
 	private Action clearAction, saveAction;
-	private int maxTextLengthFast;
 	
 	/** Creates a new instance of GUILog */
 	public GUILog(GUIPrism pr)
