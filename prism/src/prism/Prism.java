@@ -1670,17 +1670,18 @@ public class Prism implements PrismSettingsListener
 			// Deal with deadlocks
 			if (!getExplicit()) {
 				StateList deadlocks = currentModel.getDeadlockStates();
-				if (deadlocks.size() > 0) {
+				int numDeadlocks = deadlocks.size();
+				if (numDeadlocks > 0) {
 					if (digital) {
 						// For digital clocks, by construction, deadlocks can only occur from timelocks (and are not allowed)
 						throw new PrismException("Timelock in PTA, e.g. in state (" + deadlocks.getFirstAsValues() + ")");
 					}
 					if (getFixDeadlocks()) {
-						mainLog.printWarning("Deadlocks detected and fixed in " + deadlocks.size() + " states");
+						mainLog.printWarning("Deadlocks detected and fixed in " + numDeadlocks + " states");
 					} else {
 						currentModel.printTransInfo(mainLog, getExtraDDInfo());
-						mainLog.print("\n" + deadlocks.size() + " deadlock states found");
-						if (!getVerbose() && deadlocks.size() > 10) {
+						mainLog.print("\n" + numDeadlocks + " deadlock states found");
+						if (!getVerbose() && numDeadlocks > 10) {
 							mainLog.print(". The first 10 are below. Use verbose mode to view them all.\n");
 							deadlocks.print(mainLog, 10);
 						} else {
@@ -1688,20 +1689,33 @@ public class Prism implements PrismSettingsListener
 							deadlocks.print(mainLog);
 						}
 						mainLog.print("\nTip: Use the \"fix deadlocks\" option to automatically add self-loops in deadlock states.\n");
-						throw new PrismException("Model contains " + deadlocks.size() + " deadlock states");
+						throw new PrismException("Model contains " + numDeadlocks + " deadlock states");
 					}
 				}
 			} else {
-				if (currentModelExpl.getNumDeadlockStates() > 0) {
+				explicit.StateValues deadlocks = currentModelExpl.getDeadlockStatesList();
+				int numDeadlocks = currentModelExpl.getNumDeadlockStates();
+				if (numDeadlocks > 0) {
 					if (digital) {
 						// For digital clocks, by construction, deadlocks can only occur from timelocks (and are not allowed)
-						throw new PrismException("Timelock in PTA");
-						// TODO: find states, like for symbolic engines
+						int dl = currentModelExpl.getFirstDeadlockState();
+						String dls = currentModelExpl.getStatesList().get(dl).toString(currentModulesFile);
+						throw new PrismException("Timelock in PTA, e.g. in state " + dls);
 					}
 					if (getFixDeadlocks()) {
-						mainLog.printWarning("Deadlocks detected and fixed in " + currentModelExpl.getNumDeadlockStates() + " states");
+						mainLog.printWarning("Deadlocks detected and fixed in " + numDeadlocks + " states");
 					} else {
-						throw new PrismException("Model contains " + currentModelExpl.getNumDeadlockStates() + " deadlock states");
+						mainLog.print(currentModelExpl.infoStringTable());
+						mainLog.print("\n" + numDeadlocks + " deadlock states found");
+						if (!getVerbose() && numDeadlocks > 10) {
+							mainLog.print(". The first 10 are below. Use verbose mode to view them all.\n");
+							deadlocks.print(mainLog, 10);
+						} else {
+							mainLog.print(":\n");
+							deadlocks.print(mainLog);
+						}
+						mainLog.print("\nTip: Use the \"fix deadlocks\" option to automatically add self-loops in deadlock states.\n");
+						throw new PrismException("Model contains " + numDeadlocks + " deadlock states");
 					}
 				}
 			}

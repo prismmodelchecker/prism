@@ -195,6 +195,23 @@ public abstract class ModelExplicit implements Model
 	}
 
 	@Override
+	public StateValues getDeadlockStatesList()
+	{
+		BitSet bs = new BitSet();
+		for (int dl : deadlocks) {
+			bs.set(dl);
+		}
+		
+		return StateValues.createFromBitSet(bs, this);
+	}
+
+	@Override
+	public int getFirstDeadlockState()
+	{
+		return deadlocks.isEmpty() ? -1 : deadlocks.first();
+	}
+
+	@Override
 	public boolean isDeadlockState(int i)
 	{
 		return deadlocks.contains(i);

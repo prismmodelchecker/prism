@@ -88,6 +88,19 @@ public interface Model
 	public Iterable<Integer> getDeadlockStates();
 	
 	/**
+	 * Get list of states that are/were deadlocks.
+	 * (Such states may have been fixed at build-time by adding self-loops)
+	 */
+	public StateValues getDeadlockStatesList();
+	
+	/**
+	 * Get the index of the first state that is/was a deadlock.
+	 * (i.e. the one with the lowest index).
+	 * Returns -1 if there are no initial states.
+	 */
+	public int getFirstDeadlockState();
+
+	/**
 	 * Check whether a state is/was deadlock.
 	 * (Such states may have been fixed at build-time by adding self-loops)
 	 */
