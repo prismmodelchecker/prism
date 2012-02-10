@@ -868,16 +868,23 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 
 	private void updateBuiltModelDisplay()
 	{
-		Model m = prism.getBuiltModel();
-		// TODO: explicit case
-		if (m != null) {
-			builtNoStates.setText("" + m.getNumStatesString());
-			builtNoInitStates.setText("" + m.getNumStartStates());
-			builtNoTransitions.setText("" + m.getNumTransitionsString());
+		builtNoStates.setText("?");
+		builtNoInitStates.setText("?");
+		builtNoTransitions.setText("?");
+		if (!prism.getExplicit()) {
+			Model m = prism.getBuiltModel();
+			if (m != null) {
+				builtNoStates.setText("" + m.getNumStatesString());
+				builtNoInitStates.setText("" + m.getNumStartStates());
+				builtNoTransitions.setText("" + m.getNumTransitionsString());
+			}
 		} else {
-			builtNoStates.setText("?");
-			builtNoInitStates.setText("?");
-			builtNoTransitions.setText("?");
+			explicit.Model m = prism.getBuiltModelExplicit();
+			if (m != null) {
+				builtNoStates.setText("" + m.getNumStates());
+				builtNoInitStates.setText("" + m.getNumInitialStates());
+				builtNoTransitions.setText("" + m.getNumTransitions());
+			}
 		}
 	}
 
