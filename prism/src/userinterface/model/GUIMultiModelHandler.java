@@ -27,19 +27,49 @@
 
 package userinterface.model;
 
-import javax.swing.*;
-import javax.swing.border.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
-import java.awt.*;
-import java.io.*;
-import parser.*;
+import javax.swing.Action;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSplitPane;
+import javax.swing.SwingUtilities;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
+
+import parser.Values;
 import parser.ast.ModulesFile;
-import prism.*;
-import userinterface.model.pepaModel.*;
-import userinterface.model.graphicModel.*;
-import userinterface.model.computation.*;
-import userinterface.*;
-import userinterface.util.*;
+import prism.Model;
+import prism.ModelType;
+import prism.Prism;
+import prism.PrismException;
+import prism.PrismLangException;
+import prism.PrismModelListener;
+import prism.PrismSettings;
+import prism.UndefinedConstants;
+import userinterface.GUIConstantsPicker;
+import userinterface.GUIPlugin;
+import userinterface.model.computation.BuildModelThread;
+import userinterface.model.computation.ComputeSteadyStateThread;
+import userinterface.model.computation.ComputeTransientThread;
+import userinterface.model.computation.ExportBuiltModelThread;
+import userinterface.model.computation.LoadGraphicModelThread;
+import userinterface.model.computation.LoadPEPAModelThread;
+import userinterface.model.computation.LoadPRISMModelThread;
+import userinterface.model.computation.ParseModelThread;
+import userinterface.model.computation.SaveGraphicModelThread;
+import userinterface.model.graphicModel.GUIGraphicModelEditor;
+import userinterface.model.pepaModel.GUIPepaModelEditor;
+import userinterface.util.GUIUndoManager;
+import userinterface.util.PropertyTable;
+import userinterface.util.PropertyTableModel;
 
 @SuppressWarnings("serial")
 public class GUIMultiModelHandler extends JPanel implements PrismModelListener

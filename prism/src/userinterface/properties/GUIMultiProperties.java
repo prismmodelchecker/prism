@@ -53,7 +53,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Vector;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -144,7 +143,6 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	private GUIGraphHandler graphHandler;
 	private JScrollPane expScroller;
 	private JLabel fileLabel;
-	private Vector clipboardVector;
 	private Action newProps, openProps, saveProps, savePropsAs, insertProps, verifySelected, newProperty, editProperty, newConstant, removeConstant, newLabel,
 			removeLabel, newExperiment, deleteExperiment, stopExperiment, viewResults, plotResults,
 			exportResultsListText, exportResultsListCSV, exportResultsMatrixText, exportResultsMatrixCSV, simulate, details;
@@ -678,9 +676,9 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 
 	private void updateCommentLabel()
 	{
-		ArrayList selectedProps = propList.getSelectedProperties();
+		ArrayList<GUIProperty> selectedProps = propList.getSelectedProperties();
 		if (selectedProps.size() == 1) {
-			GUIProperty p = (GUIProperty) selectedProps.get(0);
+			GUIProperty p = selectedProps.get(0);
 			comLabel.setText(p.getComment());
 		} else {
 			comLabel.setText("");
@@ -882,7 +880,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			if (contents.isDataFlavorSupported(getGUIClipboardPropertiesDataFlavor())) {
 				try {
 					GUIClipboardProperties gcp = (GUIClipboardProperties) contents.getTransferData(getGUIClipboardPropertiesDataFlavor());
-					ArrayList listOfProperties = gcp.getProperties();
+					ArrayList<GUIProperty> listOfProperties = gcp.getProperties();
 					for (int i = 0; i < listOfProperties.size(); i++) {
 						GUIProperty property = (GUIProperty) listOfProperties.get(i);
 						propList.addProperty(property.getName(), property.getPropString(), property.getComment());
@@ -1030,8 +1028,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		}
 
 		// launch dialog, plot series (modal)
-		GUIGraphPicker ggp = new GUIGraphPicker(getGUI(), this, exp, graphHandler, true);
-
+		new GUIGraphPicker(getGUI(), this, exp, graphHandler, true);
 	}
 
 	public void a_exportResults(boolean exportMatrix, String sep)
@@ -1103,7 +1100,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	{
 		if (e instanceof GUIModelEvent) {
 			GUIModelEvent me = (GUIModelEvent) e;
-			if (me.getID() == me.NEW_MODEL) {
+			if (me.getID() == GUIModelEvent.NEW_MODEL) {
 				//New Model
 				setParsedModel(null);
 				doEnables();
@@ -1142,15 +1139,15 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 
 			if (ce.getComponent() == this || ce.getComponent() == propList) {
 				if (!computing) {
-					if (ce.getID() == ce.CUT) {
+					if (ce.getID() == GUIClipboardEvent.CUT) {
 						a_cut();
-					} else if (ce.getID() == ce.COPY) {
+					} else if (ce.getID() == GUIClipboardEvent.COPY) {
 						a_copy();
-					} else if (ce.getID() == ce.PASTE) {
+					} else if (ce.getID() == GUIClipboardEvent.PASTE) {
 						a_paste();
-					} else if (ce.getID() == ce.DELETE) {
+					} else if (ce.getID() == GUIClipboardEvent.DELETE) {
 						a_delete();
-					} else if (ce.getID() == ce.SELECT_ALL) {
+					} else if (ce.getID() == GUIClipboardEvent.SELECT_ALL) {
 						a_selectAll();
 					}
 				}
@@ -1984,15 +1981,15 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	 */
 	public class GUIClipboardProperties implements Transferable
 	{
-		private ArrayList listOfProperties;
+		private ArrayList<GUIProperty> listOfProperties;
 		private StringSelection stringRepresentation;
 
-		public GUIClipboardProperties(ArrayList listOfProperties)
+		public GUIClipboardProperties(ArrayList<GUIProperty> listOfProperties)
 		{
 			this.listOfProperties = listOfProperties;
 			String tmpString = "";
 			for (int i = 0; i < listOfProperties.size(); i++) {
-				GUIProperty gp = (GUIProperty) listOfProperties.get(i);
+				GUIProperty gp = listOfProperties.get(i);
 				if (gp.getComment().trim().length() > 0) {
 					tmpString += "//" + gp.getComment() + "\n";
 				}
@@ -2032,7 +2029,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			return (stringRepresentation.isDataFlavorSupported(flavor) || flavor.equals(GUIMultiProperties.getGUIClipboardPropertiesDataFlavor()));
 		}
 
-		public ArrayList getProperties()
+		public ArrayList<GUIProperty> getProperties()
 		{
 			return listOfProperties;
 		}

@@ -27,16 +27,43 @@
 
 package userinterface.model;
 
-import userinterface.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.io.File;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
-import prism.*;
-import userinterface.util.*;
+import prism.ModelType;
+import prism.Prism;
+import prism.PrismSettings;
+import prism.PrismSettingsListener;
+import userinterface.GUIClipboardEvent;
+import userinterface.GUIPlugin;
+import userinterface.GUIPrism;
+import userinterface.OptionsPanel;
+import userinterface.util.GUIComputationEvent;
+import userinterface.util.GUIEvent;
+import userinterface.util.GUIExitEvent;
+import userinterface.util.GUIPrismFileFilter;
+import userinterface.util.GUIUndoManager;
 
+@SuppressWarnings("serial")
 public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 {
 	//Constants
@@ -220,7 +247,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		diag.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		diag.pack();
 		diag.setLocationRelativeTo(getGUI()); // centre
-		diag.show();
+		diag.setVisible(true);
 	}
 
 	//Action methods
@@ -434,7 +461,6 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		}
 	}
 
-	@SuppressWarnings("serial")
 	private void setupActions()
 	{
 		newPRISMModel = new AbstractAction()
@@ -1080,7 +1106,6 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 	@Override
 	public boolean canDoClipBoardAction(Action action)
 	{
-		// TODO Auto-generated method stub
 		if (computing)
 			return false;
 
