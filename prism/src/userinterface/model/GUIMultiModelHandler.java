@@ -95,7 +95,6 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 	// State
 	private int currentMode;
 	private boolean modified;
-	private boolean modifiedSinceBuild;
 	private boolean modifiedSinceParse;
 	private File activeFile;
 	private ModulesFile parsedModel;
@@ -288,7 +287,6 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		activeFile = null;
 		modified = false;
 		modifiedSinceParse = false;
-		modifiedSinceBuild = false;
 		parsedModel = null;
 		updateBuiltModelDisplay();
 		if (currentMode == PRISM_MODE) {
@@ -316,7 +314,6 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 	{
 		activeFile = null;
 		modified = false;
-		modifiedSinceBuild = false;
 		modifiedSinceParse = false;
 		parsedModel = null;
 		updateBuiltModelDisplay();
@@ -345,7 +342,6 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 	{
 		activeFile = null;
 		modified = false;
-		modifiedSinceBuild = false;
 		modifiedSinceParse = false;
 		parsedModel = null;
 		updateBuiltModelDisplay();
@@ -429,7 +425,6 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_LOAD_NOT_RELOAD_MODEL));
 		activeFile = f;
 		modified = false;
-		modifiedSinceBuild = false;
 		modifiedSinceParse = false;
 		parsedModel = null;
 		updateBuiltModelDisplay();
@@ -479,7 +474,6 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_LOAD_NOT_RELOAD_MODEL));
 		activeFile = f;
 		modified = false;
-		modifiedSinceBuild = false;
 		modifiedSinceParse = false;
 		parsedModel = null;
 		updateBuiltModelDisplay();
@@ -527,7 +521,6 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.NEW_LOAD_NOT_RELOAD_MODEL));
 		activeFile = f;
 		modified = false;
-		modifiedSinceBuild = false;
 		modifiedSinceParse = false;
 		parsedModel = null;
 		updateBuiltModelDisplay();
@@ -592,7 +585,6 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		modified = false;
 		parsedModel = null;
 		modifiedSinceParse = false;
-		modifiedSinceBuild = false;
 		updateBuiltModelDisplay();
 		currentMode = PRISM_MODE;
 		checkSwitchAutoParse();
@@ -617,7 +609,6 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		modified = false;
 		parsedModel = null;
 		modifiedSinceParse = false;
-		modifiedSinceBuild = false;
 		updateBuiltModelDisplay();
 		currentMode = PEPA_MODE;
 		checkSwitchAutoParse();
@@ -642,7 +633,6 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		modified = false;
 		parsedModel = null;
 		modifiedSinceParse = false;
-		modifiedSinceBuild = false;
 		updateBuiltModelDisplay();
 		currentMode = GRAPHIC_MODE;
 		checkSwitchAutoParse();
@@ -1034,8 +1024,6 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 
 		tree.makeNotUpToDate();
 		theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.MODIFIED_SINCE_SAVE));
-		if (hasBuild())
-			modifiedSinceBuild = true;
 		modifiedSinceParse = true;
 
 		if (!parsing) {
@@ -1100,11 +1088,6 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		return activeFile != null;
 	}
 
-	public synchronized boolean hasBuild()
-	{
-		return prism.getBuiltModel() != null;
-	}
-
 	public synchronized boolean modified()
 	{
 		return modified;
@@ -1148,8 +1131,6 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 			return;
 		tree.makeNotUpToDate();
 		theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.MODIFIED_SINCE_SAVE));
-		if (hasBuild())
-			modifiedSinceBuild = true;
 
 		if (!parsing) {
 			if (isAutoParse()) {
