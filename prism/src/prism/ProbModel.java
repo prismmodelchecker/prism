@@ -760,7 +760,7 @@ public class ProbModel implements Model
 	}
 
 	@Override
-	public void exportStates(int exportType, PrismLog log) throws PrismException
+	public void exportStates(int exportType, PrismLog log)
 	{
 		// Print header: list of model vars
 		if (exportType == Prism.EXPORT_MATLAB)
