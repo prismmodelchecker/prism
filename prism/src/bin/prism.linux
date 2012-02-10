@@ -73,8 +73,10 @@ fi
 
 PRISM_EXIT_CODE=$?
 
-if [ "$NOTIFY" = "yes" -a -n "`which notify-send`" ]; then
+if [ "$NOTIFY" = "yes" ]; then
+	if [ -n "`which notify-send`" ]; then
 	notify-send --icon=$PRISM_DIR/etc/icons/prism.ico "PRISM has finished" > /dev/null 2> /dev/null
+	fi
 fi;
 
 exit $PRISM_EXIT_CODE
