@@ -50,7 +50,6 @@ public class PrismTest
 			PrismLog mainLog;
 			Prism prism;
 			ModulesFile modulesFile;
-			Model model;
 			PropertiesFile propertiesFile;
 			Result result;
 			
