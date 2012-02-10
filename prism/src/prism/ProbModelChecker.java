@@ -617,8 +617,19 @@ public class ProbModelChecker extends NonProbModelChecker
 		modelProduct = mcLtl.constructProductMC(dra, model, labelDDs, draDDRowVars, draDDColVars);
 		mainLog.println();
 		modelProduct.printTransInfo(mainLog, prism.getExtraDDInfo());
-		// prism.exportStatesToFile(modelProduct, Prism.EXPORT_PLAIN, null);
-		// prism.exportTransToFile(modelProduct, true, Prism.EXPORT_PLAIN, null);
+		// Output product, if required
+		if (prism.getExportProductTrans()) {
+			try {
+				mainLog.println("\nExporting product transition matrix to file \"" + prism.getExportProductTransFilename() + "\"...");
+				modelProduct.exportToFile(Prism.EXPORT_PLAIN, true, new File(prism.getExportProductTransFilename()));
+			} catch (FileNotFoundException e) {
+				mainLog.printWarning("Could not export product transition matrix to file \"" + prism.getExportProductTransFilename() + "\"");
+			}
+		}
+		if (prism.getExportProductStates()) {
+			mainLog.println("\nExporting product state space to file \"" + prism.getExportProductStatesFilename() + "\"...");
+			modelProduct.exportStates(Prism.EXPORT_PLAIN, new PrismFileLog(prism.getExportProductStatesFilename()));
+		}
 
 		// Find accepting maximum end BSCC
 		mainLog.println("\nFinding accepting BSCCs...");
