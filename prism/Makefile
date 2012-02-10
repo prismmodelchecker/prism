@@ -222,14 +222,15 @@ ifeq ($(OSTYPE),darwin)
 		CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,-search_paths_first
 		BINDISTSUFFIX = osx64
+		BIN_TARGETS=prism.darwin64 xprism.linux
 	else
 		CUDD_XCFLAGS = -arch i386 -DHAVE_IEEE_754 -DBSD -fno-common $(DEBUG)
 		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,-search_paths_first
 		BINDISTSUFFIX = osx32
+		BIN_TARGETS=prism.darwin32 xprism.linux
 	endif
-	BIN_TARGETS=prism.darwin xprism.linux
 	JFLAGS =
 	SHARED = -dynamiclib
 	EXE =
@@ -351,12 +352,12 @@ testslocal:
 	fi
 
 bin_scripts:
-	@./install.sh silent
 	@for target in $(BIN_TARGETS); do \
 	  target_trunc=`echo $$target | sed 's/\.[^.]*$$//'` && \
 	  echo Copying "$(SRC_DIR)/bin/$$target -> bin/$$target_trunc" && \
 	  cp $(SRC_DIR)/bin/$$target bin/$$target_trunc; \
-	done; \
+	done;
+	@./install.sh silent
 
 VERSION=# default value for VERSION is blank to force provision at command-line 
 
