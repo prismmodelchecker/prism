@@ -33,6 +33,7 @@ import parser.ast.*;
 /**
  * Example class demonstrating how to control PRISM programmatically,
  * i.e. through the "API" exposed by the class prism.Prism.
+ * (this now uses the newer version of the API, released after PRISM 4.0.3)
  * Test like this:
  * PRISM_MAINCLASS=prism.PrismTest bin/prism ../prism-examples/polling/poll2.sm ../prism-examples/polling/poll3.sm
  */
@@ -58,39 +59,29 @@ public class PrismTest
 			prism = new Prism(mainLog, mainLog);
 			prism.initialise();
 			
-			// Parse build model 1
+			// Parse/load model 1
+			// NB: no need to build explicitly - it will be done if/when neeed
 			modulesFile = prism.parseModelFile(new File(args[0]));
-			modulesFile.setUndefinedConstants(null);
-			model = prism.buildModel(modulesFile);
+			prism.loadPRISMModel(modulesFile);
 			
 			// Parse a prop, check on model 1
 			propertiesFile = prism.parsePropertiesString(modulesFile, "P=?[F<=0.1 s1=1]");
-			propertiesFile.setUndefinedConstants(null);
-			result = prism.modelCheck(model, propertiesFile, propertiesFile.getProperty(0));
+			result = prism.modelCheck(propertiesFile, propertiesFile.getProperty(0), null);
 			System.out.println(result.getResult());
 			
 			// Parse another prop, check on model 1
 			propertiesFile = prism.parsePropertiesString(modulesFile, "P=?[F<=0.1 s1=1]");
-			propertiesFile.setUndefinedConstants(null);
-			result = prism.modelCheck(model, propertiesFile, propertiesFile.getProperty(0));
+			result = prism.modelCheck(propertiesFile, propertiesFile.getProperty(0), null);
 			System.out.println(result.getResult());
 			
-			// Clear model 1
-			model.clear();
-			
-			// Parse build model 2
+			// Parse/load model 2
 			modulesFile = prism.parseModelFile(new File(args[1]));
-			modulesFile.setUndefinedConstants(null);
-			model = prism.buildModel(modulesFile);
+			prism.loadPRISMModel(modulesFile);
 			
 			// Parse a prop, check on model 2
 			propertiesFile = prism.parsePropertiesString(modulesFile, "P=?[F<=0.1 s1=1]");
-			propertiesFile.setUndefinedConstants(null);
-			result = prism.modelCheck(model, propertiesFile, propertiesFile.getProperty(0));
+			result = prism.modelCheck(propertiesFile, propertiesFile.getProperty(0), null);
 			System.out.println(result.getResult());
-			
-			// Clear model 2
-			model.clear();
 			
 			// Close down
 			prism.closeDown();
