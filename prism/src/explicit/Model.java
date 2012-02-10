@@ -82,6 +82,12 @@ public interface Model
 	public int getNumDeadlockStates();
 
 	/**
+	 * Get iterator over states that are/were deadlocks.
+	 * (Such states may have been fixed at build-time by adding self-loops)
+	 */
+	public Iterable<Integer> getDeadlockStates();
+	
+	/**
 	 * Check whether a state is/was deadlock.
 	 * (Such states may have been fixed at build-time by adding self-loops)
 	 */

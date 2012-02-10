@@ -189,6 +189,12 @@ public abstract class ModelExplicit implements Model
 	}
 	
 	@Override
+	public Iterable<Integer> getDeadlockStates()
+	{
+		return deadlocks;
+	}
+
+	@Override
 	public boolean isDeadlockState(int i)
 	{
 		return deadlocks.contains(i);

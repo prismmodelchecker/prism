@@ -86,10 +86,7 @@ public class MDPSparse extends MDPExplicit
 		int i, j, k, n;
 		TreeMap<Integer, Double> sorted = null;
 		initialise(mdp.getNumStates());
-		for (int in : mdp.getInitialStates()) {
-			addInitialState(in);
-		}
-		statesList = mdp.getStatesList();
+		copyFrom(mdp);
 		// Copy stats
 		numDistrs = mdp.getNumChoices();
 		numTransitions = mdp.getNumTransitions();
@@ -154,11 +151,7 @@ public class MDPSparse extends MDPExplicit
 		TreeMap<Integer, Double> sorted = null;
 		int permutInv[];
 		initialise(mdp.getNumStates());
-		for (int in : mdp.getInitialStates()) {
-			addInitialState(permut[in]);
-		}
-		// Don't copy states list (it will be wrong)
-		statesList = null;
+		copyFrom(mdp, permut);
 		// Copy stats
 		numDistrs = mdp.getNumChoices();
 		numTransitions = mdp.getNumTransitions();
@@ -225,6 +218,9 @@ public class MDPSparse extends MDPExplicit
 		initialise(states.size());
 		for (int in : mdp.getInitialStates()) {
 			addInitialState(in);
+		}
+		for (int dl : mdp.getDeadlockStates()) {
+			addDeadlockState(dl);
 		}
 		statesList = new ArrayList<State>();
 		for (int s : states) {
