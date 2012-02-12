@@ -1657,7 +1657,6 @@ public class Prism implements PrismSettingsListener
 						throw new PrismException("ExplicitFiles2MTBDD object never created");
 					currentModel = expf2mtbdd.buildModel();
 				} else {
-					// TODO: add using model.buildFromPrismExplicit(...);
 					throw new PrismException("Explicit import not yet supported for explicit engine");
 				}
 				break;
@@ -1922,7 +1921,7 @@ public class Prism implements PrismSettingsListener
 			case Prism.EXPORT_MRMC:
 			case Prism.EXPORT_ROWS:
 			case Prism.EXPORT_DOT_STATES:
-				throw new PrismException("Export not yet supported"); // TODO
+				throw new PrismException("Export not yet supported");
 			}
 		}
 
@@ -2546,7 +2545,7 @@ public class Prism implements PrismSettingsListener
 				mcDTMC.setSettings(settings);
 				probsExpl = mcDTMC.doSteadyState((DTMC) currentModelExpl, null);
 			} else if (currentModelType == ModelType.CTMC) {
-				throw new PrismException("Not implemented yet"); // TODO
+				throw new PrismException("Not implemented yet");
 			} else {
 				throw new PrismException("Steady-state probabilities only computed for DTMCs/CTMCs");
 			}
@@ -2641,7 +2640,7 @@ public class Prism implements PrismSettingsListener
 			}
 		} else {
 			if (currentModelType == ModelType.DTMC) {
-				throw new PrismException("Not implemented yet"); // TODO
+				throw new PrismException("Not implemented yet");
 			} else if (currentModelType == ModelType.CTMC) {
 				CTMCModelChecker mcCTMC = new CTMCModelChecker();
 				mcCTMC.setLog(mainLog);
