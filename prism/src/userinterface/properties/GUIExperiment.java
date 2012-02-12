@@ -164,12 +164,12 @@ public class GUIExperiment
 		table.repaint();
 	}
 
-	public synchronized void setResult(Values mfValues, Values pfValues, Result res) throws PrismException
+	public synchronized void setResult(Values mfValues, Values pfValues, Result res)
 	{
 		results.setResult(mfValues, pfValues, res.getResult());
 	}
 
-	public synchronized void setMultipleErrors(Values mfValues, Values pfValues, Exception e) throws PrismException
+	public synchronized void setMultipleErrors(Values mfValues, Values pfValues, Exception e)
 	{
 		results.setMultipleErrors(mfValues, pfValues, e);
 	}
@@ -233,11 +233,7 @@ public class GUIExperiment
 					} catch (PrismException e) {
 						// in case of error, report it (in log only), store as result, and go on to the next model
 						errorLog(e.getMessage());
-						try {
-							setMultipleErrors(definedMFConstants, null, e);
-						} catch (PrismException e2) {
-							error("Problem storing results");
-						}
+						setMultipleErrors(definedMFConstants, null, e);
 						undefinedConstants.iterateModel();
 						continue;
 					}
@@ -251,11 +247,7 @@ public class GUIExperiment
 						} catch (PrismException e) {
 							// in case of error, report it (in log only), store as result, and go on to the next model
 							errorLog(e.getMessage());
-							try {
-								setMultipleErrors(definedMFConstants, null, e);
-							} catch (PrismException e2) {
-								error("Problem storing results");
-							}
+							setMultipleErrors(definedMFConstants, null, e);
 							undefinedConstants.iterateModel();
 							continue;
 						}
@@ -302,11 +294,7 @@ public class GUIExperiment
 						} catch (PrismException e) {
 							// in case of error, report it (in log only), store as result, and go on to the next model
 							errorLog(e.getMessage());
-							try {
-								setMultipleErrors(definedMFConstants, null, e);
-							} catch (PrismException e2) {
-								error("Problem storing results");
-							}
+							setMultipleErrors(definedMFConstants, null, e);
 							undefinedConstants.iterateModel();
 							continue;
 						}
@@ -351,11 +339,7 @@ public class GUIExperiment
 							{
 								public void run()
 								{
-									try {
-										GUIExperiment.this.setResult(definedMFConstants, definedPFConstants, res);
-									} catch (PrismException e) {
-										error("Problem storing results");
-									}
+									GUIExperiment.this.setResult(definedMFConstants, definedPFConstants, res);
 								}
 							});
 

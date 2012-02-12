@@ -104,7 +104,7 @@ public class ResultsCollection
 	/**
 	 * Sets the result for a particular set of values.
 	 */
-	public int setResult(Values values, Object result) throws PrismException
+	public int setResult(Values values, Object result)
 	{
 		// store result
 		int ret = root.setResult(values, result);
@@ -125,7 +125,7 @@ public class ResultsCollection
 	/**
 	 * Sets the result for a particular set of values.
 	 */
-	public int setResult(Values mfValues, Values pfValues, Object result) throws PrismException
+	public int setResult(Values mfValues, Values pfValues, Object result)
 	{
 		// merge mfValues and pfValues
 		Values merged = new Values();
@@ -143,7 +143,7 @@ public class ResultsCollection
 	  * Note: individual errors can be set using setResult(). That method could easily be adapted to store
 	  * multiple values but the DisplayableData aspect isn't sorted yet.
 	  */
-	public int setMultipleErrors(Values values, Exception error) throws PrismException
+	public int setMultipleErrors(Values values, Exception error)
 	{
 		// store result
 		int ret = root.setResult(values, error);
@@ -161,7 +161,7 @@ public class ResultsCollection
 	  * Note: individual errors can be set using setResult(). That method could easily be adapted to store
 	  * multiple values but the DisplayableData aspect isn't sorted yet.
 	  */
-	public int setMultipleErrors(Values mfValues, Values pfValues, Exception error) throws PrismException
+	public int setMultipleErrors(Values mfValues, Values pfValues, Exception error)
 	{
 		// merge mfValues and pfValues
 		Values merged = new Values();
@@ -360,15 +360,19 @@ public class ResultsCollection
 		 * If any constants are left undefined, the same result will be set for all values of each constant.
 		 * Returns the total number of values which were set for the the first time.
 		 */
-		public int setResult(Values setThese, Object result) throws PrismException
+		public int setResult(Values setThese, Object result)
 		{
-			Object val;
+			Object val = null;
 			int valIndex, ret, i, n;
 
 			// if a value has been given for this node's constant, just store the result for this value
 			if (setThese.contains(constant.getName())) {
 				// get value of this node's constant
-				val = setThese.getValueOf(constant.getName());
+				try {
+					val = setThese.getValueOf(constant.getName());
+				} catch (PrismLangException e) {
+					// Ignore - already checked above
+				}
 				// and convert to index
 				valIndex = constant.getValueIndex(val);
 				// store the value
@@ -586,7 +590,7 @@ public class ResultsCollection
 	{
 		private Object val = null;
 
-		public int setResult(Values setThese, Object result) throws PrismException
+		public int setResult(Values setThese, Object result)
 		{
 			int ret = (val == null) ? 1 : 0;
 			val = result;

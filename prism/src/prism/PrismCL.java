@@ -209,12 +209,8 @@ public class PrismCL implements PrismModelListener
 				// in case of error, report it, store as result for any properties, and go on to the next model
 				// (might happen for example if overflow or another numerical problem is detected at this stage)
 				error(e.getMessage());
-				try {
-					for (j = 0; j < numPropertiesToCheck; j++) {
-						results[j].setMultipleErrors(definedMFConstants, null, e);
-					}
-				} catch (PrismException e2) {
-					error("Problem storing results");
+				for (j = 0; j < numPropertiesToCheck; j++) {
+					results[j].setMultipleErrors(definedMFConstants, null, e);
 				}
 				// iterate to next model
 				undefinedMFConstants.iterateModel();
@@ -275,11 +271,7 @@ public class PrismCL implements PrismModelListener
 					} catch (PrismException e) {
 						// in case of (overall) error, report it, store as result for property, and proceed
 						error(e.getMessage());
-						try {
-							results[j].setMultipleErrors(definedMFConstants, null, e);
-						} catch (PrismException e2) {
-							error("Problem storing results");
-						}
+						results[j].setMultipleErrors(definedMFConstants, null, e);
 						continue;
 					} catch (InterruptedException e) {
 						// ignore - won't get interrupted
@@ -313,27 +305,19 @@ public class PrismCL implements PrismModelListener
 
 						// in case of build failure during model checking, store as result for any const values and continue
 						if (modelBuildFail) {
-							try {
-								results[j].setMultipleErrors(definedMFConstants, null, modelBuildException);
-							} catch (PrismException e2) {
-								error("Problem storing results");
-							}
+							results[j].setMultipleErrors(definedMFConstants, null, modelBuildException);
 							continue;
 						}
 						
 						// store result of model checking
-						try {
-							results[j].setResult(definedMFConstants, definedPFConstants, res.getResult());
-							Object cex = res.getCounterexample(); 
-							if (cex != null) {
-								mainLog.println("\nCounterexample/witness:");
-								mainLog.println(cex);
-								if (cex instanceof cex.CexPathAsBDDs){
-									((cex.CexPathAsBDDs) cex).clear();
-								}
+						results[j].setResult(definedMFConstants, definedPFConstants, res.getResult());
+						Object cex = res.getCounterexample();
+						if (cex != null) {
+							mainLog.println("\nCounterexample/witness:");
+							mainLog.println(cex);
+							if (cex instanceof cex.CexPathAsBDDs) {
+								((cex.CexPathAsBDDs) cex).clear();
 							}
-						} catch (PrismException e) {
-							error("Problem storing results");
 						}
 
 						// if required, check result against expected value
@@ -358,12 +342,8 @@ public class PrismCL implements PrismModelListener
 					
 					// in case of build failure during model checking, store as result for any further properties, and go on to the next model
 					if (modelBuildFail) {
-						try {
-							for (j++; j < numPropertiesToCheck; j++) {
-								results[j].setMultipleErrors(definedMFConstants, null, modelBuildException);
-							}
-						} catch (PrismException e2) {
-							error("Problem storing results");
+						for (j++; j < numPropertiesToCheck; j++) {
+							results[j].setMultipleErrors(definedMFConstants, null, modelBuildException);
 						}
 						// iterate to next model
 						undefinedMFConstants.iterateModel();
