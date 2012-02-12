@@ -35,7 +35,7 @@ import simulator.method.*;
 
 // prism - command line version
 
-public class PrismCL
+public class PrismCL implements PrismModelListener
 {
 	// flags
 	private boolean importpepa = false;
@@ -119,6 +119,10 @@ public class PrismCL
 	private ModulesFile modulesFile = null;
 	private PropertiesFile propertiesFile = null;
 
+	// model failure info
+	boolean modelBuildFail = false;
+	Exception modelBuildException = null;
+	
 	// info about which properties to model check
 	private int numPropertiesToCheck = 0;
 	private List<Property> propertiesToCheck = null;
@@ -220,6 +224,8 @@ public class PrismCL
 				continue;
 			}
 
+			modelBuildFail = false;
+			
 			// if requested, generate a random path with the simulator
 			if (simpath) {
 				try {
@@ -239,10 +245,16 @@ public class PrismCL
 
 			// Do any model exports
 			doExports();
-
+			if (modelBuildFail)
+				continue;
+			
 			// Do steady-state/transient probability computation, if required
 			doSteadyState();
+			if (modelBuildFail)
+				continue;
 			doTransient();
+			if (modelBuildFail)
+				continue;
 
 			// Work through list of properties to be checked
 			for (j = 0; j < numPropertiesToCheck; j++) {
@@ -299,6 +311,16 @@ public class PrismCL
 							res = new Result(e);
 						}
 
+						// in case of build failure during model checking, store as result for any const values and continue
+						if (modelBuildFail) {
+							try {
+								results[j].setMultipleErrors(definedMFConstants, null, modelBuildException);
+							} catch (PrismException e2) {
+								error("Problem storing results");
+							}
+							continue;
+						}
+						
 						// store result of model checking
 						try {
 							results[j].setResult(definedMFConstants, definedPFConstants, res.getResult());
@@ -332,6 +354,23 @@ public class PrismCL
 
 						// iterate to next property
 						undefinedConstants[j].iterateProperty();
+					}
+					
+					// in case of build failure during model checking, store as result for any further properties, and go on to the next model
+					if (modelBuildFail) {
+						try {
+							for (j++; j < numPropertiesToCheck; j++) {
+								results[j].setMultipleErrors(definedMFConstants, null, modelBuildException);
+							}
+						} catch (PrismException e2) {
+							error("Problem storing results");
+						}
+						// iterate to next model
+						undefinedMFConstants.iterateModel();
+						for (j = 0; j < numPropertiesToCheck; j++) {
+							undefinedConstants[j].iterateModel();
+						}
+						continue;
 					}
 				}
 			}
@@ -404,6 +443,7 @@ public class PrismCL
 
 			// create prism object(s)
 			prism = new Prism(mainLog, techLog);
+			prism.addModelListener(this);
 
 			// parse command line arguments
 			parseArguments(args);
@@ -827,6 +867,20 @@ public class PrismCL
 		mainLog.println();
 	}
 
+	// PrismModelListener methods
+	
+	@Override
+	public void notifyModelBuildSuccessful()
+	{
+	}
+	
+	@Override
+	public void notifyModelBuildFailed(PrismException e)
+	{
+		modelBuildFail = true;
+		modelBuildException = e;
+	}
+	
 	/**
 	 * Process command-line arguments/switches.
 	 */
