@@ -270,13 +270,6 @@ public class GUIExperiment
 					if (useSimulation && prism.getSettings().getBoolean(PrismSettings.SIMULATOR_SIMULTANEOUS)
 							&& undefinedConstants.getNumPropertyIterations() > 1) {
 						try {
-							// TODO
-							logSeparator();
-							logln("\nSimulating: " + propertyToCheck);
-							if (definedMFConstants != null)
-								if (definedMFConstants.getNumValues() > 0)
-									logln("Model constants: " + definedMFConstants);
-							logln("Property constants: " + undefinedConstants.getPFDefinedConstantsString());
 							// convert initial Values -> State
 							// (remember: null means use default or pick randomly)
 							parser.State initialState;

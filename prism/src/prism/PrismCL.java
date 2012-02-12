@@ -122,7 +122,7 @@ public class PrismCL implements PrismModelListener
 	// model failure info
 	boolean modelBuildFail = false;
 	Exception modelBuildException = null;
-	
+
 	// info about which properties to model check
 	private int numPropertiesToCheck = 0;
 	private List<Property> propertiesToCheck = null;
@@ -183,7 +183,7 @@ public class PrismCL implements PrismModelListener
 				undefinedMFConstants = new UndefinedConstants(modulesFile, null);
 			undefinedMFConstants.defineUsingConstSwitch(constSwitch);
 			// and one set of info for each property
-			undefinedConstants = new UndefinedConstants[numPropertiesToCheck]; 
+			undefinedConstants = new UndefinedConstants[numPropertiesToCheck];
 			for (i = 0; i < numPropertiesToCheck; i++) {
 				undefinedConstants[i] = new UndefinedConstants(modulesFile, propertiesFile, propertiesToCheck.get(i));
 				undefinedConstants[i].defineUsingConstSwitch(constSwitch);
@@ -221,7 +221,7 @@ public class PrismCL implements PrismModelListener
 			}
 
 			modelBuildFail = false;
-			
+
 			// if requested, generate a random path with the simulator
 			if (simpath) {
 				try {
@@ -243,7 +243,7 @@ public class PrismCL implements PrismModelListener
 			doExports();
 			if (modelBuildFail)
 				continue;
-			
+
 			// Do steady-state/transient probability computation, if required
 			doSteadyState();
 			if (modelBuildFail)
@@ -258,13 +258,6 @@ public class PrismCL implements PrismModelListener
 				// for simulation we can do multiple values of property constants simultaneously
 				if (simulate && undefinedConstants[j].getNumPropertyIterations() > 1) {
 					try {
-						// TODO: remove output
-						mainLog.printSeparator();
-						mainLog.println("\nSimulating: " + propertiesToCheck.get(j));
-						if (definedMFConstants != null)
-							if (definedMFConstants.getNumValues() > 0)
-								mainLog.println("Model constants: " + definedMFConstants);
-						mainLog.println("Property constants: " + undefinedConstants[j].getPFDefinedConstantsString());
 						simMethod = processSimulationOptions(propertiesToCheck.get(j).getExpression());
 						prism.modelCheckSimulatorExperiment(propertiesFile, undefinedConstants[j], results[j], propertiesToCheck.get(j).getExpression(), null,
 								simMaxPath, simMethod);
@@ -294,7 +287,8 @@ public class PrismCL implements PrismModelListener
 							// Approximate (simulation-based) model checking
 							else {
 								simMethod = processSimulationOptions(propertiesToCheck.get(j).getExpression());
-								res = prism.modelCheckSimulator(propertiesFile, propertiesToCheck.get(j).getExpression(), definedPFConstants, null, simMaxPath, simMethod);
+								res = prism.modelCheckSimulator(propertiesFile, propertiesToCheck.get(j).getExpression(), definedPFConstants, null, simMaxPath,
+										simMethod);
 								simMethod.reset();
 							}
 						} catch (PrismException e) {
@@ -308,7 +302,7 @@ public class PrismCL implements PrismModelListener
 							results[j].setMultipleErrors(definedMFConstants, null, modelBuildException);
 							continue;
 						}
-						
+
 						// store result of model checking
 						results[j].setResult(definedMFConstants, definedPFConstants, res.getResult());
 						Object cex = res.getCounterexample();
@@ -339,7 +333,7 @@ public class PrismCL implements PrismModelListener
 						// iterate to next property
 						undefinedConstants[j].iterateProperty();
 					}
-					
+
 					// in case of build failure during model checking, store as result for any further properties, and go on to the next model
 					if (modelBuildFail) {
 						for (j++; j < numPropertiesToCheck; j++) {
@@ -363,7 +357,7 @@ public class PrismCL implements PrismModelListener
 					error(e.getMessage());
 				}
 			}
-			
+
 			// iterate to next model
 			undefinedMFConstants.iterateModel();
 			for (j = 0; j < numPropertiesToCheck; j++) {
@@ -385,7 +379,7 @@ public class PrismCL implements PrismModelListener
 			if (!tmpLog.ready()) {
 				errorAndExit("Couldn't open file \"" + exportResultsFilename + "\" for output");
 			}
-			
+
 			String sep = exportresultscsv ? ", " : "\t";
 			for (i = 0; i < numPropertiesToCheck; i++) {
 				if (i > 0)
@@ -512,7 +506,7 @@ public class PrismCL implements PrismModelListener
 				mainLog.println("(" + (i + 1) + ") " + propertiesFile.getPropertyObject(i));
 			}
 		}
-		
+
 		// Load model into PRISM (if not done already)
 		if (!importtrans) {
 			prism.loadPRISMModel(modulesFile);
@@ -527,7 +521,7 @@ public class PrismCL implements PrismModelListener
 		int i;
 
 		propertiesToCheck = new ArrayList<Property>();
-		
+
 		// no properties to check
 		if (propertiesFile == null) {
 			numPropertiesToCheck = 0;
@@ -740,7 +734,7 @@ public class PrismCL implements PrismModelListener
 				mainLog.println("\nError: " + e.getMessage() + ".");
 			}
 		}
-		
+
 		// export BSCCs to a file
 		if (exportbsccs) {
 			try {
@@ -848,19 +842,19 @@ public class PrismCL implements PrismModelListener
 	}
 
 	// PrismModelListener methods
-	
+
 	@Override
 	public void notifyModelBuildSuccessful()
 	{
 	}
-	
+
 	@Override
 	public void notifyModelBuildFailed(PrismException e)
 	{
 		modelBuildFail = true;
 		modelBuildException = e;
 	}
-	
+
 	/**
 	 * Process command-line arguments/switches.
 	 */
@@ -883,7 +877,7 @@ public class PrismCL implements PrismModelListener
 				// Note: the order of these switches should match the -help output (just to help keep track of things).
 				// But: processing of "PRISM" options is done elsewhere in PrismSettings
 				// Any "hidden" options, i.e. not in -help text/manual, are indicated as such.
-				
+
 				// print help
 				if (sw.equals("help") || sw.equals("-help") || sw.equals("?")) {
 					printHelp();
@@ -977,9 +971,9 @@ public class PrismCL implements PrismModelListener
 					test = true;
 					testExitsOnFail = false;
 				}
-				
+
 				// IMPORT OPTIONS:
-					
+
 				// change model type to pepa
 				else if (sw.equals("importpepa")) {
 					importpepa = true;
@@ -1036,9 +1030,9 @@ public class PrismCL implements PrismModelListener
 				else if (sw.equals("ctmc")) {
 					typeOverride = ModelType.CTMC;
 				}
-						
+
 				// EXPORT OPTIONS:
-					
+
 				// export results
 				else if (sw.equals("exportresults")) {
 					if (i < args.length - 1) {
@@ -1256,12 +1250,12 @@ public class PrismCL implements PrismModelListener
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
 				}
-				
+
 				// NB: Following the ordering of the -help text, more options go here,
 				// but these are processed in the PrismSettings class; see below 
-				
+
 				// SIMULATION OPTIONS:
-				
+
 				// use simulator for approximate/statistical model checking
 				else if (sw.equals("sim")) {
 					simulate = true;
@@ -1389,7 +1383,7 @@ public class PrismCL implements PrismModelListener
 				}
 
 				// FURTHER OPTIONS - NEED TIDYING/FIXING
-				
+
 				// zero-reward loops check on
 				else if (sw.equals("zerorewardcheck")) {
 					prism.setCheckZeroLoops(true);
@@ -1397,11 +1391,9 @@ public class PrismCL implements PrismModelListener
 				// MDP solution method
 				else if (sw.equals("valiter")) {
 					prism.setMDPSolnMethod(Prism.MDP_VALITER);
-				}
-				else if (sw.equals("politer")) {
+				} else if (sw.equals("politer")) {
 					prism.setMDPSolnMethod(Prism.MDP_POLITER);
-				}
-				else if (sw.equals("modpoliter")) {
+				} else if (sw.equals("modpoliter")) {
 					prism.setMDPSolnMethod(Prism.MDP_MODPOLITER);
 				}
 				// explicit-state model construction
@@ -1412,7 +1404,7 @@ public class PrismCL implements PrismModelListener
 				else if (sw.equals("explicitbuildtest")) {
 					explicitbuildtest = true;
 				}
-				
+
 				// MISCELLANEOUS UNDOCUMENTED/UNUSED OPTIONS:
 
 				// specify main log (hidden option)
@@ -1472,7 +1464,7 @@ public class PrismCL implements PrismModelListener
 				}
 
 				// Other switches - pass to PrismSettings
-				
+
 				else {
 					i = prism.getSettings().setFromCommandLineSwitch(args, i) - 1;
 				}
@@ -1536,7 +1528,7 @@ public class PrismCL implements PrismModelListener
 		if (prism.getExplicit()) {
 			explicitbuild = false;
 		}
-		
+
 		// check not trying to do gauss-seidel with mtbdd engine
 		if (prism.getEngine() == Prism.MTBDD) {
 			j = prism.getLinEqMethod();
@@ -1734,9 +1726,9 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-exporttransient <file> ........ Export transient probabilities to a file");
 		mainLog.println("-exportprism <file> ............ Export final PRISM model to a file");
 		mainLog.println("-exportprismconst <file> ....... Export final PRISM model with expanded constants to a file");
-		
+
 		prism.getSettings().printHelp(mainLog);
-		
+
 		mainLog.println();
 		mainLog.println("SIMULATION OPTIONS:");
 		mainLog.println("-sim ........................... Use the PRISM simulator to approximate results of model checking");

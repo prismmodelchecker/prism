@@ -1419,7 +1419,7 @@ public class Prism implements PrismSettingsListener
 			mainLog.print(currentModulesFile.getVarName(i) + " ");
 		}
 		mainLog.println();
-		
+
 		// If required, export parsed PRISM model
 		if (exportPrism) {
 			try {
@@ -1621,7 +1621,7 @@ public class Prism implements PrismSettingsListener
 
 		// Clear any existing built model(s)
 		clearBuiltModel();
-		
+
 		try {
 			if (currentModulesFile == null)
 				throw new PrismException("There is no currently loaded PRISM model to build");
@@ -2214,7 +2214,7 @@ public class Prism implements PrismSettingsListener
 		} else {
 			currentModelExpl.exportStates(exportType, currentModulesFile.createVarList(), tmpLog);
 		}
-			
+
 		// Tidy up
 		if (file != null)
 			tmpLog.close();
@@ -2374,6 +2374,7 @@ public class Prism implements PrismSettingsListener
 	{
 		Object res = null;
 
+		// Print info
 		mainLog.printSeparator();
 		mainLog.println("\nSimulating: " + expr);
 		if (currentDefinedMFConstants != null && currentDefinedMFConstants.getNumValues() > 0)
@@ -2384,7 +2385,7 @@ public class Prism implements PrismSettingsListener
 		// Check that property is valid for this model type
 		expr.checkValid(currentModelType);
 
-		// Do model checking
+		// Do simulation
 		res = getSimulator().modelCheckSingleProperty(currentModulesFile, propertiesFile, expr, initialState, maxPathLength, simMethod);
 
 		return new Result(res);
@@ -2409,6 +2410,7 @@ public class Prism implements PrismSettingsListener
 	{
 		Object[] res = null;
 
+		// Print info
 		mainLog.printSeparator();
 		mainLog.print("\nSimulating");
 		if (exprs.size() == 1) {
@@ -2428,7 +2430,7 @@ public class Prism implements PrismSettingsListener
 		for (Expression expr : exprs)
 			expr.checkValid(currentModelType);
 
-		// Do model checking
+		// Do simulation
 		res = getSimulator().modelCheckMultipleProperties(currentModulesFile, propertiesFile, exprs, initialState, maxPathLength, simMethod);
 
 		Result[] resArray = new Result[res.length];
@@ -2456,11 +2458,18 @@ public class Prism implements PrismSettingsListener
 	 * @throws PrismException if something goes wrong with the sampling algorithm
 	 * @throws InterruptedException if the thread is interrupted
 	 */
-	public void modelCheckSimulatorExperiment(PropertiesFile propertiesFile, UndefinedConstants undefinedConstants, ResultsCollection results,
-			Expression propertyToCheck, State initialState, int pathLength, SimulationMethod simMethod) throws PrismException, InterruptedException
+	public void modelCheckSimulatorExperiment(PropertiesFile propertiesFile, UndefinedConstants undefinedConstants, ResultsCollection results, Expression expr,
+			State initialState, int pathLength, SimulationMethod simMethod) throws PrismException, InterruptedException
 	{
-		getSimulator().modelCheckExperiment(currentModulesFile, propertiesFile, undefinedConstants, results, propertyToCheck, initialState, pathLength,
-				simMethod);
+		// Print info
+		mainLog.printSeparator();
+		mainLog.println("\nSimulating: " + expr);
+		if (currentDefinedMFConstants != null && currentDefinedMFConstants.getNumValues() > 0)
+			mainLog.println("Model constants: " + currentDefinedMFConstants);
+		mainLog.println("Property constants: " + undefinedConstants.getPFDefinedConstantsString());
+
+		// Do simulation
+		getSimulator().modelCheckExperiment(currentModulesFile, propertiesFile, undefinedConstants, results, expr, initialState, pathLength, simMethod);
 	}
 
 	/**
