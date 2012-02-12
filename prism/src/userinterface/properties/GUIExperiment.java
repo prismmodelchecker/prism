@@ -267,7 +267,7 @@ public class GUIExperiment
 					}
 
 					// for simulation where "simultaneous property checking" is enabled...
-					else if (useSimulation && prism.getSettings().getBoolean(PrismSettings.SIMULATOR_SIMULTANEOUS)
+					if (useSimulation && prism.getSettings().getBoolean(PrismSettings.SIMULATOR_SIMULTANEOUS)
 							&& undefinedConstants.getNumPropertyIterations() > 1) {
 						try {
 							// TODO
