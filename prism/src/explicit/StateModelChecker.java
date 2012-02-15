@@ -250,6 +250,10 @@ public class StateModelChecker
 		if (expr instanceof ExpressionBinaryOp) {
 			res = checkExpressionBinaryOp(model, (ExpressionBinaryOp) expr);
 		}
+		// Unary ops
+		if (expr instanceof ExpressionUnaryOp) {
+			res = checkExpressionUnaryOp(model, (ExpressionUnaryOp) expr);
+		}
 		// Literals
 		else if (expr instanceof ExpressionLiteral) {
 			res = checkExpressionLiteral(model, (ExpressionLiteral) expr);
@@ -318,6 +322,27 @@ public class StateModelChecker
 		// Apply operation
 		res1.applyBinaryOp(op, res2);
 		res2.clear();
+		
+		return res1;
+	}
+
+	/**
+	 * Model check a unary operator.
+	 */
+	protected StateValues checkExpressionUnaryOp(Model model, ExpressionUnaryOp expr) throws PrismException
+	{
+		StateValues res1 = null;
+		int op = expr.getOperator();
+		
+		// Check operand recursively
+		res1 = checkExpression(model, expr.getOperand());
+		
+		// Parentheses are easy - nothing to do:
+		if (op == ExpressionUnaryOp.PARENTH)
+			return res1;
+
+		// Apply operation
+		res1.applyUnaryOp(op);
 		
 		return res1;
 	}

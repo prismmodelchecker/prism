@@ -35,6 +35,7 @@ import java.util.List;
 
 import parser.State;
 import parser.ast.ExpressionBinaryOp;
+import parser.ast.ExpressionUnaryOp;
 import parser.type.Type;
 import parser.type.TypeBool;
 import parser.type.TypeDouble;
@@ -365,7 +366,7 @@ public class StateValues
 		valuesB.xor(sv.valuesB);
 		valuesB.flip(0, size);
 	}
-	
+
 	/**
 	 * Modify the vector by applying 'or' with operand {@code sv}.
 	 */
@@ -376,7 +377,7 @@ public class StateValues
 		}
 		valuesB.or(sv.valuesB);
 	}
-		
+
 	/**
 	 * Modify the vector by applying 'and' with operand {@code sv}.
 	 */
@@ -387,7 +388,7 @@ public class StateValues
 		}
 		valuesB.and(sv.valuesB);
 	}
-		
+
 	/**
 	 * Modify the vector by applying 'equals' with operand {@code sv}.
 	 */
@@ -425,7 +426,7 @@ public class StateValues
 		valuesI = null;
 		valuesD = null;
 	}
-		
+
 	/**
 	 * Modify the vector by applying 'not-equals' with operand {@code sv}.
 	 */
@@ -462,7 +463,7 @@ public class StateValues
 		valuesI = null;
 		valuesD = null;
 	}
-	
+
 	/**
 	 * Modify the vector by applying '>' with operand {@code sv}.
 	 */
@@ -491,8 +492,7 @@ public class StateValues
 				for (int i = 0; i < size; i++) {
 					valuesB.set(i, valuesD[i] > sv.valuesD[i]);
 				}
-			}
-			else {
+			} else {
 				throw new PrismException("Operator > can not be applied to Boolean vectors");
 			}
 		} else {
@@ -502,7 +502,7 @@ public class StateValues
 		valuesI = null;
 		valuesD = null;
 	}
-	
+
 	/**
 	 * Modify the vector by applying '>=' with operand {@code sv}.
 	 */
@@ -531,8 +531,7 @@ public class StateValues
 				for (int i = 0; i < size; i++) {
 					valuesB.set(i, valuesD[i] >= sv.valuesD[i]);
 				}
-			}
-			else {
+			} else {
 				throw new PrismException("Operator >= can not be applied to Boolean vectors");
 			}
 		} else {
@@ -542,7 +541,7 @@ public class StateValues
 		valuesI = null;
 		valuesD = null;
 	}
-	
+
 	/**
 	 * Modify the vector by applying '<' with operand {@code sv}.
 	 */
@@ -571,8 +570,7 @@ public class StateValues
 				for (int i = 0; i < size; i++) {
 					valuesB.set(i, valuesD[i] < sv.valuesD[i]);
 				}
-			}
-			else {
+			} else {
 				throw new PrismException("Operator < can not be applied to Boolean vectors");
 			}
 		} else {
@@ -582,7 +580,7 @@ public class StateValues
 		valuesI = null;
 		valuesD = null;
 	}
-	
+
 	/**
 	 * Modify the vector by applying '<=' with operand {@code sv}.
 	 */
@@ -611,8 +609,7 @@ public class StateValues
 				for (int i = 0; i < size; i++) {
 					valuesB.set(i, valuesD[i] <= sv.valuesD[i]);
 				}
-			}
-			else {
+			} else {
 				throw new PrismException("Operator <= can not be applied to Boolean vectors");
 			}
 		} else {
@@ -622,7 +619,7 @@ public class StateValues
 		valuesI = null;
 		valuesD = null;
 	}
-	
+
 	/**
 	 * Modify the vector by applying 'plus' with operand {@code sv}.
 	 */
@@ -659,7 +656,7 @@ public class StateValues
 			throw new PrismException("Operator + can not be applied to Boolean vectors");
 		}
 	}
-		
+
 	/**
 	 * Modify the vector by applying 'minus' with operand {@code sv}.
 	 */
@@ -696,7 +693,7 @@ public class StateValues
 			throw new PrismException("Operator - can not be applied to Boolean vectors");
 		}
 	}
-		
+
 	/**
 	 * Modify the vector by applying 'times' with operand {@code sv}.
 	 */
@@ -733,7 +730,7 @@ public class StateValues
 			throw new PrismException("Operator * can not be applied to Boolean vectors");
 		}
 	}
-		
+
 	/**
 	 * Modify the vector by applying 'divide' with operand {@code sv}.
 	 */
@@ -770,7 +767,53 @@ public class StateValues
 			throw new PrismException("Operator / can not be applied to Boolean vectors");
 		}
 	}
-		
+
+	/**
+	 * Modify the vector by applying unary operator {@code op}.
+	 */
+	public void applyUnaryOp(int op) throws PrismException
+	{
+		switch (op) {
+		case ExpressionUnaryOp.NOT:
+			not();
+			break;
+		case ExpressionUnaryOp.MINUS:
+			minus();
+			break;
+		default:
+			throw new PrismException("Unknown binary operator");
+		}
+	}
+
+	/**
+	 * Modify the vector by applying 'not'
+	 */
+	public void not() throws PrismException
+	{
+		if (!(type instanceof TypeBool)) {
+			throw new PrismException("Operator ! can only be applied to Boolean vectors");
+		}
+		valuesB.flip(0, size);
+	}
+
+	/**
+	 * Modify the vector by applying (unary) 'minus'.
+	 */
+	public void minus() throws PrismException
+	{
+		if (type instanceof TypeInt) {
+			for (int i = 0; i < size; i++) {
+				valuesI[i] = -valuesI[i];
+			}
+		} else if (type instanceof TypeDouble) {
+			for (int i = 0; i < size; i++) {
+				valuesD[i] = -valuesD[i];
+			}
+		} else {
+			throw new PrismException("Operator - can not be applied to Boolean vectors");
+		}
+	}
+
 	/**
 	 * Set the elements of this vector by reading them in from a file.
 	 */
