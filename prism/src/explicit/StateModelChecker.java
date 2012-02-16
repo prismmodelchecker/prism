@@ -252,7 +252,7 @@ public class StateModelChecker
 			res = checkExpressionBinaryOp(model, (ExpressionBinaryOp) expr);
 		}
 		// Unary ops
-		if (expr instanceof ExpressionUnaryOp) {
+		else if (expr instanceof ExpressionUnaryOp) {
 			res = checkExpressionUnaryOp(model, (ExpressionUnaryOp) expr);
 		}
 		// Functions
