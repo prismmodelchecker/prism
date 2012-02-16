@@ -71,6 +71,10 @@ Copy this file into ~/Library/Application Support/TextWrangler/Language Modules/
 	<array>
 		<dict>
 			<key>BBLMLanguageSuffix</key>
+			<string>.prism</string>
+		</dict>
+		<dict>
+			<key>BBLMLanguageSuffix</key>
 			<string>.pm</string>
 		</dict>
 		<dict>
@@ -80,6 +84,10 @@ Copy this file into ~/Library/Application Support/TextWrangler/Language Modules/
 		<dict>
 			<key>BBLMLanguageSuffix</key>
 			<string>.sm</string>
+		</dict>
+		<dict>
+			<key>BBLMLanguageSuffix</key>
+			<string>.props</string>
 		</dict>
 		<dict>
 			<key>BBLMLanguageSuffix</key>

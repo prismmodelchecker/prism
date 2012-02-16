@@ -19,9 +19,11 @@
       <match type="string" value="nondeterministic" offset="0"/>
       <match type="string" value="stochastic" offset="0"/>
     </magic>
+    <glob pattern="*.prism"/>
     <glob pattern="*.pm"/>
     <glob pattern="*.sm"/>
     <glob pattern="*.nm"/>
+    <glob pattern="*.props"/>
     <glob pattern="*.pctl"/>
     <glob pattern="*.csl"/>
     <glob pattern="*.pp"/>
