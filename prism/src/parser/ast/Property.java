@@ -200,6 +200,9 @@ public class Property extends ASTElement
 			}
 			throw new PrismException("Unexpected error: " + errMsg);
 		}
+		if (strExpected.startsWith("Error")) {
+			throw new PrismException("Was expecting an error");
+		}
 		
 		// Check expected/actual result
 		Type type = expr.getType();
