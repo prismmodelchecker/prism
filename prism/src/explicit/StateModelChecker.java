@@ -35,6 +35,7 @@ import parser.ast.*;
 import parser.ast.ExpressionFilter.FilterOperator;
 import parser.type.*;
 import prism.PrismException;
+import prism.PrismLangException;
 import prism.PrismLog;
 import prism.PrismPrintStreamLog;
 import prism.PrismSettings;
@@ -254,6 +255,10 @@ public class StateModelChecker
 		if (expr instanceof ExpressionUnaryOp) {
 			res = checkExpressionUnaryOp(model, (ExpressionUnaryOp) expr);
 		}
+		// Functions
+		else if (expr instanceof ExpressionFunc) {
+			res = checkExpressionFunc(model, (ExpressionFunc) expr);
+		}
 		// Literals
 		else if (expr instanceof ExpressionLiteral) {
 			res = checkExpressionLiteral(model, (ExpressionLiteral) expr);
@@ -347,6 +352,117 @@ public class StateModelChecker
 		return res1;
 	}
 
+	/**
+	 * Model check a function.
+	 */
+	protected StateValues checkExpressionFunc(Model model, ExpressionFunc expr) throws PrismException
+	{
+		switch (expr.getNameCode()) {
+		case ExpressionFunc.MIN:
+		case ExpressionFunc.MAX:
+			return checkExpressionFuncNary(model, expr);
+		case ExpressionFunc.FLOOR:
+		case ExpressionFunc.CEIL:
+			return checkExpressionFuncUnary(model, expr);
+		case ExpressionFunc.POW:
+		case ExpressionFunc.MOD:
+		case ExpressionFunc.LOG:
+			return checkExpressionFuncBinary(model, expr);
+		default:
+			throw new PrismException("Unrecognised function \"" + expr.getName() + "\"");
+		}
+	}
+
+	protected StateValues checkExpressionFuncUnary(Model model, ExpressionFunc expr) throws PrismException
+	{
+		StateValues res1 = null;
+		int op = expr.getNameCode();
+		
+		// Check operand recursively
+		res1 = checkExpression(model, expr.getOperand(0));
+		
+		// Apply operation
+		try {
+			res1.applyFunctionUnary(op);
+		} catch (PrismException e) {
+			if (res1 != null)
+				res1.clear();
+			if (e instanceof PrismLangException)
+				((PrismLangException) e).setASTElement(expr);
+			throw e;
+		}
+		
+		return res1;
+	}
+	
+	protected StateValues checkExpressionFuncBinary(Model model, ExpressionFunc expr) throws PrismException
+	{
+		StateValues res1 = null, res2 = null;
+		int op = expr.getNameCode();
+		
+		// Check operands recursively
+		try {
+			res1 = checkExpression(model, expr.getOperand(0));
+			res2 = checkExpression(model, expr.getOperand(1));
+		} catch (PrismException e) {
+			if (res1 != null)
+				res1.clear();
+			throw e;
+		}
+		
+		// Apply operation
+		try {
+			res1.applyFunctionBinary(op, res2);
+			res2.clear();
+		} catch (PrismException e) {
+			if (res1 != null)
+				res1.clear();
+			if (res2 != null)
+				res2.clear();
+			if (e instanceof PrismLangException)
+				((PrismLangException) e).setASTElement(expr);
+			throw e;
+		}
+		
+		return res1;
+	}
+	
+	protected StateValues checkExpressionFuncNary(Model model, ExpressionFunc expr) throws PrismException
+	{
+		StateValues res1 = null, res2 = null;
+		int i, n, op = expr.getNameCode();
+		
+		// Check first operand recursively
+		res1 = checkExpression(model, expr.getOperand(0));
+		// Go through remaining operands
+		n = expr.getNumOperands();
+		for (i = 1; i < n; i++) {
+			// Check next operand recursively
+			try {
+				res2 = checkExpression(model, expr.getOperand(i));
+			} catch (PrismException e) {
+				if (res2 != null)
+					res2.clear();
+				throw e;
+			}
+			// Apply operation
+			try {
+				res1.applyFunctionBinary(op, res2);
+				res2.clear();
+			} catch (PrismException e) {
+				if (res1 != null)
+					res1.clear();
+				if (res2 != null)
+					res2.clear();
+				if (e instanceof PrismLangException)
+					((PrismLangException) e).setASTElement(expr);
+				throw e;
+			}
+		}
+		
+		return res1;
+	}
+	
 	/**
 	 * Model check a literal.
 	 */
