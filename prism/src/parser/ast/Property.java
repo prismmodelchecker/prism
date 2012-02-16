@@ -175,12 +175,30 @@ public class Property extends ASTElement
 	 * (As required for {@link #checkAgainstExpectedResult(Object)} and {@link #checkAgainstExpectedResult(Object, String)}) 
 	 * @param strExpected Expected result
 	 * @param result The actual result
+	 * @return Whether or not the check was performed
 	 */
 	private boolean checkAgainstExpectedResultString(String strExpected, Object result) throws PrismException
 	{
 		// Check for special "don't case" case
 		if (strExpected.equals("?")) {
 			return false;
+		}
+		
+		// Check for exceptions
+		if (result instanceof Exception) {
+			String errMsg = ((Exception) result).getMessage();
+			if (strExpected.startsWith("Error")) {
+				if (strExpected.startsWith("Error:")) {
+					String words[] = strExpected.substring(6).split(",");
+					for (String word : words) {
+						if (!errMsg.contains(word)) {
+							throw new PrismException("Error message should contain \"" + word + "\"");
+						}
+					}
+				}
+				return true;
+			}
+			throw new PrismException("Unexpected error: " + errMsg);
 		}
 		
 		// Check expected/actual result

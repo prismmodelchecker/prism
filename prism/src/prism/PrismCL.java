@@ -293,7 +293,7 @@ public class PrismCL implements PrismModelListener
 							}
 						} catch (PrismException e) {
 							// in case of error, report it, store exception as the result and proceed
-							error(e.getMessage());
+							error(e.getMessage(), true);
 							res = new Result(e);
 						}
 
@@ -1721,8 +1721,17 @@ public class PrismCL implements PrismModelListener
 	 */
 	private void error(String s)
 	{
+		error(s, false);
+	}
+
+	/**
+	 * Report a (non-fatal) error to the log.
+	 * Optionally, requested that we do not exit, even if test mode is enabled
+	 */
+	private void error(String s, boolean dontExit)
+	{
 		// If (and only if) we are in "test" (and not "testall") mode, treat any error as fatal
-		if (test && testExitsOnFail) {
+		if (test && testExitsOnFail && !dontExit) {
 			errorAndExit(s);
 		}
 		// Normal case: just display error message, but don't exit
