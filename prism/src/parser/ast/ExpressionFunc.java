@@ -232,58 +232,106 @@ public class ExpressionFunc extends Expression
 
 	public Object evaluateFloor(EvaluateContext ec) throws PrismLangException
 	{
-		double d = Math.floor(getOperand(0).evaluateDouble(ec));
+		try {
+			return new Integer(evaluateFloor(getOperand(0).evaluateDouble(ec)));
+		} catch (PrismLangException e) {
+			e.setASTElement(this);
+			throw e;
+		}
+	}
+
+	public static int evaluateFloor(double arg) throws PrismLangException
+	{
+		double d = Math.floor(arg);
 		// Check for NaN or +/-inf, otherwise possible errors lost in cast to int
 		if (Double.isNaN(d) || Double.isInfinite(d))
-			throw new PrismLangException("Cannot take floor() of " + d, this);
-		return new Integer((int) d);
+			throw new PrismLangException("Cannot take floor() of " + d);
+		return (int) d;
 	}
 
 	public Object evaluateCeil(EvaluateContext ec) throws PrismLangException
 	{
-		double d = Math.ceil(getOperand(0).evaluateDouble(ec));
+		try {
+			return new Integer(evaluateCeil(getOperand(0).evaluateDouble(ec)));
+		} catch (PrismLangException e) {
+			e.setASTElement(this);
+			throw e;
+		}
+	}
+
+	public static int evaluateCeil(double arg) throws PrismLangException
+	{
+		double d = Math.ceil(arg);
 		// Check for NaN or +/-inf, otherwise possible errors lost in cast to int
 		if (Double.isNaN(d) || Double.isInfinite(d))
-			throw new PrismLangException("Cannot take ceil() of " + d, this);
-		return new Integer((int) d);
+			throw new PrismLangException("Cannot take ceil() of " + d);
+		return (int) d;
 	}
 
 	public Object evaluatePow(EvaluateContext ec) throws PrismLangException
 	{
-		double base = getOperand(0).evaluateDouble(ec);
-		double exp = getOperand(1).evaluateDouble(ec);
+		try {
+			if (type instanceof TypeInt) {
+				return new Integer(evaluatePowInt(getOperand(0).evaluateInt(ec), getOperand(1).evaluateInt(ec)));
+			} else {
+				return new Double(evaluatePowDouble(getOperand(0).evaluateDouble(ec), getOperand(1).evaluateDouble(ec)));
+			}
+		} catch (PrismLangException e) {
+			e.setASTElement(this);
+			throw e;
+		}
+	}
+
+	public static int evaluatePowInt(int base, int exp) throws PrismLangException
+	{
 		// Not allowed to do e.g. pow(2,-2) because of typing (should be pow(2.0,-2) instead)
-		if (type instanceof TypeInt && (exp < 0))
-			throw new PrismLangException("Negative exponent not allowed for integer power", this);
+		if (exp < 0)
+			throw new PrismLangException("Negative exponent not allowed for integer power");
 		double res = Math.pow(base, exp);
-		if (type instanceof TypeInt) {
-			if (res > Integer.MAX_VALUE)
-				throw new PrismLangException("Overflow evaluating integer power", this);
-			return new Integer((int)res);
-		}
-		else {
-			return new Double(res);
-		}
+		// Check for overflow
+		if (res > Integer.MAX_VALUE)
+			throw new PrismLangException("Overflow evaluating integer power");
+		return (int) res;
+	}
+
+	public static double evaluatePowDouble(double base, double exp) throws PrismLangException
+	{
+		return Math.pow(base, exp);
 	}
 
 	public Object evaluateMod(EvaluateContext ec) throws PrismLangException
 	{
-		int i = getOperand(0).evaluateInt(ec);
-		int j = getOperand(1).evaluateInt(ec);
-		// Non-positive divisor not allowed 
-		if (j <= 0)
-			throw new PrismLangException("Attempt to compute modulo with non-positive divisor", this);
-		// Take care of negative case (% is remainder, not modulo)
-		int rem = i % j;
-		return new Integer(rem < 0 ? rem + j : rem);
+		try {
+			return new Integer(evaluateMod(getOperand(0).evaluateInt(ec), getOperand(1).evaluateInt(ec)));
+		} catch (PrismLangException e) {
+			e.setASTElement(this);
+			throw e;
+		}
 	}
 
+	public static int evaluateMod(int i, int j) throws PrismLangException
+	{
+		// Non-positive divisor not allowed 
+		if (j <= 0)
+			throw new PrismLangException("Attempt to compute modulo with non-positive divisor");
+		// Take care of negative case (% is remainder, not modulo)
+		int rem = i % j;
+		return (rem < 0) ? rem + j : rem;
+	}
+	
 	public Object evaluateLog(EvaluateContext ec) throws PrismLangException
 	{
-		double x, b;
-		x = getOperand(0).evaluateDouble(ec);
-		b = getOperand(1).evaluateDouble(ec);
-		return new Double(PrismUtils.log(x, b));
+		try {
+			return new Double(evaluateLog(getOperand(0).evaluateDouble(ec), getOperand(1).evaluateDouble(ec)));
+		} catch (PrismLangException e) {
+			e.setASTElement(this);
+			throw e;
+		}
+	}
+
+	public static double evaluateLog(double x, double b) throws PrismLangException
+	{
+		return PrismUtils.log(x, b);
 	}
 
 	@Override
