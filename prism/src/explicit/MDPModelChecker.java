@@ -26,15 +26,18 @@
 
 package explicit;
 
-import java.util.*;
+import java.util.BitSet;
+import java.util.List;
+import java.util.Map;
 
 import parser.ast.Expression;
 import parser.ast.ExpressionTemporal;
-import java.util.Map.Entry;
-
+import prism.PrismDevNullLog;
+import prism.PrismException;
+import prism.PrismFileLog;
+import prism.PrismLog;
+import prism.PrismUtils;
 import explicit.rewards.MDPRewards;
-
-import prism.*;
 
 /**
  * Explicit-state model checker for Markov decision processes (MDPs).
@@ -248,9 +251,17 @@ public class MDPModelChecker extends ProbModelChecker
 		int i, n, numYes, numNo;
 		long timer, timerProb0, timerProb1;
 		boolean genAdv;
+		// Local copy of setting
+		MDPSolnMethod mdpSolnMethod = this.mdpSolnMethod;
 
+		// Switch to a supported method, if necessary
+		if (mdpSolnMethod == MDPSolnMethod.LINEAR_PROGRAMMING) {
+			mdpSolnMethod = MDPSolnMethod.GAUSS_SEIDEL;
+			mainLog.printWarning("Switching to MDP solution method \"" + mdpSolnMethod.fullName() + "\"");
+		}
+		
 		// Check for some unsupported combinations
-		if (solnMethod == SolnMethod.VALUE_ITERATION && valIterDir == ValIterDir.ABOVE) {
+		if (mdpSolnMethod == MDPSolnMethod.VALUE_ITERATION && valIterDir == ValIterDir.ABOVE) {
 			if (!(precomp && prob0)) 
 				throw new PrismException("Precomputation (Prob0) must be enabled for value iteration from above");
 			if (!min) 
@@ -301,7 +312,7 @@ public class MDPModelChecker extends ProbModelChecker
 		mainLog.println("target=" + target.cardinality() + ", yes=" + numYes + ", no=" + numNo + ", maybe=" + (n - (numYes + numNo)));
 
 		// Compute probabilities
-		switch (solnMethod) {
+		switch (mdpSolnMethod) {
 		case VALUE_ITERATION:
 			res = computeReachProbsValIter(mdp, no, yes, min, init, known);
 			break;
@@ -315,7 +326,7 @@ public class MDPModelChecker extends ProbModelChecker
 			res = computeReachProbsModPolIter(mdp, no, yes, min);
 			break;
 		default:
-			throw new PrismException("Unknown MDP solution method " + solnMethod);
+			throw new PrismException("Unknown MDP solution method " + mdpSolnMethod.fullName());
 		}
 
 		// Finished probabilistic reachability
@@ -1004,6 +1015,14 @@ public class MDPModelChecker extends ProbModelChecker
 		BitSet inf;
 		int i, n, numTarget, numInf;
 		long timer, timerProb1;
+		// Local copy of setting
+		MDPSolnMethod mdpSolnMethod = this.mdpSolnMethod;
+
+		// Switch to a supported method, if necessary
+		if (!(mdpSolnMethod == MDPSolnMethod.VALUE_ITERATION || mdpSolnMethod == MDPSolnMethod.GAUSS_SEIDEL)) {
+			mdpSolnMethod = MDPSolnMethod.GAUSS_SEIDEL;
+			mainLog.printWarning("Switching to MDP solution method \"" + mdpSolnMethod.fullName() + "\"");
+		}
 
 		// Start expected reachability
 		timer = System.currentTimeMillis();
@@ -1036,7 +1055,7 @@ public class MDPModelChecker extends ProbModelChecker
 		mainLog.println("target=" + numTarget + ", inf=" + numInf + ", rest=" + (n - (numTarget + numInf)));
 
 		// Compute rewards
-		switch (solnMethod) {
+		switch (mdpSolnMethod) {
 		case VALUE_ITERATION:
 			res = computeReachRewardsValIter(mdp, mdpRewards, target, inf, min, init, known);
 			break;
@@ -1044,7 +1063,7 @@ public class MDPModelChecker extends ProbModelChecker
 			res = computeReachRewardsGaussSeidel(mdp, mdpRewards, target, inf, min, init, known);
 			break;
 		default:
-			throw new PrismException("Unknown MDP solution method " + solnMethod);
+			throw new PrismException("Unknown MDP solution method " + mdpSolnMethod.fullName());
 		}
 
 		// Finished expected reachability
