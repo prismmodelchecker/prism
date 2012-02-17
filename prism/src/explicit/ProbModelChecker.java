@@ -176,22 +176,35 @@ public class ProbModelChecker extends StateModelChecker
 		} else {
 			throw new PrismException("Explicit engine does not support MDP solution method \"" + s + "\"");
 		}
-
+		// PRISM_TERM_CRIT
 		s = settings.getString(PrismSettings.PRISM_TERM_CRIT);
 		if (s.equals("Absolute")) {
 			setTermCrit(TermCrit.ABSOLUTE);
 		} else if (s.equals("Relative")) {
 			setTermCrit(TermCrit.RELATIVE);
+		} else {
+			throw new PrismException("Unknown termination criterion \"" + s + "\"");
 		}
+		// PRISM_TERM_CRIT_PARAM
 		setTermCritParam(settings.getDouble(PrismSettings.PRISM_TERM_CRIT_PARAM));
+		// PRISM_MAX_ITERS
 		setMaxIters(settings.getInteger(PrismSettings.PRISM_MAX_ITERS));
+		// PRISM_PRECOMPUTATION
 		setPrecomp(settings.getBoolean(PrismSettings.PRISM_PRECOMPUTATION));
+		// PRISM_PROB0
 		setProb0(settings.getBoolean(PrismSettings.PRISM_PROB0));
+		// PRISM_PROB1
 		setProb1(settings.getBoolean(PrismSettings.PRISM_PROB1));
-		// valiterdir
+		// PRISM_FAIRNESS
+		if (settings.getBoolean(PrismSettings.PRISM_FAIRNESS)) {
+			throw new PrismException("The explicit engine does not support model checking MDPs under fairness");
+		}
+		
+		// PRISM_EXPORT_ADV
 		s = settings.getString(PrismSettings.PRISM_EXPORT_ADV);
 		if (!(s.equals("None")))
 			exportAdv = true;
+		// PRISM_EXPORT_ADV_FILENAME
 		exportAdvFilename = settings.getString(PrismSettings.PRISM_EXPORT_ADV_FILENAME);
 	}
 
