@@ -66,131 +66,92 @@ jint info			// how much diagnostic info to display (0=none, 1=some)
 	// start clocks	
 	start1 = util_cpu_time();
 	
-	// reachability fixpoint loop - option 1
-	// here...
-
-	done = false;
-	iters = 0;
-	Cudd_Ref(init);
-	reach = DD_PermuteVariables(ddman, init, rvars, cvars, num_rvars);
+	int method = 1;
 	
-//	PM_PrintToMainLog(env, "Reachability:\n");
-	while (!done) {
-		iters++;
+	if (method == 1) {
+	
+		// initialise
+		done = false;
+		iters = 0;
+		Cudd_Ref(init);
+		reach = DD_PermuteVariables(ddman, init, rvars, cvars, num_rvars);
 		
-		// output info on progress
-		if (info > 0) {
-			PM_PrintToMainLog(env, "Iteration %d:", iters);
-			PM_PrintToMainLog(env, " %0.f states", DD_GetNumMinterms(ddman, reach, num_rvars));
-			PM_PrintToMainLog(env, " (%d nodes)", DD_GetNumNodes(ddman, reach));
-			start2 = util_cpu_time();
+		while (!done) {
+			iters++;
+			// output info on progress
+			if (info > 0) {
+				PM_PrintToMainLog(env, "Iteration %d:", iters);
+				PM_PrintToMainLog(env, " %0.f states", DD_GetNumMinterms(ddman, reach, num_rvars));
+				PM_PrintToMainLog(env, " (%d nodes)", DD_GetNumNodes(ddman, reach));
+				start2 = util_cpu_time();
+			}
+			// perform iteration
+			Cudd_Ref(reach);
+			tmp = DD_PermuteVariables(ddman, reach, cvars, rvars, num_cvars);
+			Cudd_Ref(trans01);
+			tmp = DD_And(ddman, tmp, trans01);
+			tmp = DD_ThereExists(ddman, tmp, rvars, num_rvars);
+			Cudd_Ref(reach);
+			tmp = DD_Or(ddman, reach, tmp);
+			// check convergence
+			if (tmp == reach) {
+				done = true;
+			}
+			Cudd_RecursiveDeref(ddman, reach);
+			reach = tmp;
+			// output info on progress
+			if (info > 0) {
+				stop = util_cpu_time();
+				PM_PrintToMainLog(env, " (%.2f seconds)\n", (double)(stop - start2)/1000);
+			}
 		}
-		
-//		PM_PrintToMainLog(env, "[permute(%d)", DD_GetNumNodes(ddman, reach));
-//		start3 = util_cpu_time();
-		Cudd_Ref(reach);
-		tmp = DD_PermuteVariables(ddman, reach, cvars, rvars, num_cvars);
-//		stop = util_cpu_time();
-//		PM_PrintToMainLog(env, "=%fs]", (double)(stop - start3)/1000);
-		
-//		PM_PrintToMainLog(env, "[and(%d,%d)", DD_GetNumNodes(ddman, tmp), DD_GetNumNodes(ddman, trans01));
-//		start3 = util_cpu_time();
-		Cudd_Ref(trans01);
-		tmp = DD_And(ddman, tmp, trans01);
-//		stop = util_cpu_time();
-//		PM_PrintToMainLog(env, "=%fs]", (double)(stop - start3)/1000);
-		
-//		PM_PrintToMainLog(env, "[thereexists(%d)", DD_GetNumNodes(ddman, tmp));
-//		start3 = util_cpu_time();
-		tmp = DD_ThereExists(ddman, tmp, rvars, num_rvars);
-//		stop = util_cpu_time();
-//		PM_PrintToMainLog(env, "=%fs]", (double)(stop - start3)/1000);
-		
-//		PM_PrintToMainLog(env, "[or(%d,%d)", DD_GetNumNodes(ddman, reach), DD_GetNumNodes(ddman, tmp));
-//		start3 = util_cpu_time();
-		Cudd_Ref(reach);
-		tmp = DD_Or(ddman, reach, tmp);
-//		stop = util_cpu_time();
-//		PM_PrintToMainLog(env, "=%fs]", (double)(stop - start3)/1000);
-
-		if (tmp == reach) {
-			done = true;
-		}
-		Cudd_RecursiveDeref(ddman, reach);
-		reach = tmp;
-		
-		// output info on progress
-		if (info > 0) {
-			stop = util_cpu_time();
-			PM_PrintToMainLog(env, " (%.2f seconds)\n", (double)(stop - start2)/1000);
-		}
+		reach = DD_PermuteVariables(ddman, reach, cvars, rvars, num_cvars);
 	}
-	reach = DD_PermuteVariables(ddman, reach, cvars, rvars, num_cvars);
-	// ...to here
-	
-	// reachability fixpoint loop - option 2
-	// here...
-	/*done = false;
-	iters = 0;
-	Cudd_Ref(init);
-	reach = init;
-	Cudd_Ref(reach);
-	frontier = reach;
-//	PM_PrintToMainLog(env, "Reachability:\n");
-	while (!done) {
-//		start2 = util_cpu_time();
-		iters++;
-//		PM_PrintToMainLog(env, "Iteration %d: ", iters);
-//		PM_PrintToMainLog(env, "%0.f (%d) ", DD_GetNumMinterms(ddman, reach, num_rvars), DD_GetNumNodes(ddman, reach));
-//		PM_PrintToMainLog(env, "%0.f (%d) ", DD_GetNumMinterms(ddman, frontier, num_rvars), DD_GetNumNodes(ddman, frontier));
-		
-//		start3 = util_cpu_time();
-//		PM_PrintToMainLog(env, "[permute(%d)", DD_GetNumNodes(ddman, frontier));
-		Cudd_Ref(frontier);
-		tmp = DD_PermuteVariables(ddman, frontier, cvars, rvars, num_cvars);
-//		stop = util_cpu_time();
-//		PM_PrintToMainLog(env, "=%fs]", (double)(stop - start3)/1000);
-		
-//		start3 = util_cpu_time();
-//		PM_PrintToMainLog(env, "[and(%d,%d)", DD_GetNumNodes(ddman, tmp), DD_GetNumNodes(ddman, trans01));
-		Cudd_Ref(trans01);
-		tmp = DD_And(ddman, tmp, trans01);
-//		stop = util_cpu_time();
-//		PM_PrintToMainLog(env, "=%fs]", (double)(stop - start3)/1000);
-		
-//		start3 = util_cpu_time();
-//		PM_PrintToMainLog(env, "[thereexists(%d)", DD_GetNumNodes(ddman, tmp));
-		tmp = DD_ThereExists(ddman, tmp, rvars, num_rvars);
-//		stop = util_cpu_time();
-//		PM_PrintToMainLog(env, "=%fs]", (double)(stop - start3)/1000);
-		
-//		start3 = util_cpu_time();
-//		PM_PrintToMainLog(env, "[or(%d,%d)", DD_GetNumNodes(ddman, reach), DD_GetNumNodes(ddman, tmp));
+	else {
+		// initialise
+		done = false;
+		iters = 0;
+		Cudd_Ref(init);
+		reach = init;
 		Cudd_Ref(reach);
-		tmp = DD_Or(ddman, reach, tmp);
-//		stop = util_cpu_time();
-//		PM_PrintToMainLog(env, "=%fs]", (double)(stop - start3)/1000);
-
-//		start3 = util_cpu_time();
-//		PM_PrintToMainLog(env, "[and(%d,not(%d))", DD_GetNumNodes(ddman, tmp), DD_GetNumNodes(ddman, reach));
+		frontier = reach;
+		
+		while (!done) {
+			iters++;
+			// output info on progress
+			if (info > 0) {
+				PM_PrintToMainLog(env, "Iteration %d:", iters);
+				PM_PrintToMainLog(env, " %0.f states", DD_GetNumMinterms(ddman, reach, num_rvars));
+				PM_PrintToMainLog(env, " (%d nodes)", DD_GetNumNodes(ddman, reach));
+				start2 = util_cpu_time();
+			}
+			// perform iteration
+			Cudd_Ref(frontier);
+			tmp = DD_PermuteVariables(ddman, frontier, cvars, rvars, num_cvars);
+			Cudd_Ref(trans01);
+			tmp = DD_And(ddman, tmp, trans01);
+			tmp = DD_ThereExists(ddman, tmp, rvars, num_rvars);
+			Cudd_Ref(reach);
+			tmp = DD_Or(ddman, reach, tmp);
+			Cudd_RecursiveDeref(ddman, frontier);
+			Cudd_Ref(tmp);
+			Cudd_Ref(reach);
+			frontier = DD_And(ddman, tmp, DD_Not(ddman, reach));
+			// check convergence
+			if (frontier == Cudd_ReadZero(ddman)) {
+				done = true;
+			}
+			Cudd_RecursiveDeref(ddman, reach);
+			reach = tmp;
+			// output info on progress
+			if (info > 0) {
+				stop = util_cpu_time();
+				PM_PrintToMainLog(env, " (%.2f seconds)\n", (double)(stop - start2)/1000);
+			}
+		}
+		reach = DD_PermuteVariables(ddman, reach, cvars, rvars, num_cvars);
 		Cudd_RecursiveDeref(ddman, frontier);
-		Cudd_Ref(tmp);
-		Cudd_Ref(reach);
-		frontier = DD_And(ddman, tmp, DD_Not(ddman, reach));
-//		stop = util_cpu_time();
-//		PM_PrintToMainLog(env, "=%fs]", (double)(stop - start3)/1000);
-
-		if (frontier == Cudd_ReadZero(ddman)) {
-			done = true;
-		}
-		Cudd_RecursiveDeref(ddman, reach);
-		reach = tmp;
-//		stop = util_cpu_time();
-//		PM_PrintToMainLog(env, " total=%fs\n", (double)(stop - start2)/1000);
 	}
-	reach = DD_PermuteVariables(ddman, reach, cvars, rvars, num_cvars);
-	Cudd_RecursiveDeref(ddman, frontier);*/
-	// ...to here
 	
 	// stop clock
 	stop = util_cpu_time();
