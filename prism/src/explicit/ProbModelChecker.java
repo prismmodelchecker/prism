@@ -46,6 +46,7 @@ import explicit.rewards.MDPRewards;
 public class ProbModelChecker extends StateModelChecker
 {
 	// Flags/settings
+	// (NB: defaults do not necessarily coincide with PRISM)
 
 	// Method used to solve linear equation systems
 	protected LinEqMethod linEqMethod = LinEqMethod.GAUSS_SEIDEL;
@@ -56,7 +57,7 @@ public class ProbModelChecker extends StateModelChecker
 	// Parameter for iterative numerical method termination criteria
 	protected double termCritParam = 1e-8;
 	// Max iterations for numerical solution
-	protected int maxIters = 100000; // TODO: make same as PRISM?
+	protected int maxIters = 100000;
 	// Use precomputation algorithms in model checking?
 	protected boolean precomp = true;
 	protected boolean prob0 = true;
