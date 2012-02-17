@@ -291,12 +291,15 @@ public class DTMCModelChecker extends ProbModelChecker
 		BitSet no, yes;
 		int i, n, numYes, numNo;
 		long timer, timerProb0, timerProb1;
+		// Local copy of setting
+		LinEqMethod linEqMethod = this.linEqMethod;
 
-		// Check for some unsupported combinations
-		if (solnMethod == SolnMethod.VALUE_ITERATION && valIterDir == ValIterDir.ABOVE && !(precomp && prob0)) {
-			throw new PrismException("Precomputation (Prob0) must be enabled for value iteration from above");
+		// Switch to a supported method, if necessary
+		if (!(linEqMethod == LinEqMethod.POWER || linEqMethod == LinEqMethod.GAUSS_SEIDEL)) {
+			linEqMethod = LinEqMethod.GAUSS_SEIDEL;
+			mainLog.printWarning("Switching to linear equation solution method \"" + linEqMethod.fullName() + "\"");
 		}
-
+		
 		// Start probabilistic reachability
 		timer = System.currentTimeMillis();
 		mainLog.println("Starting probabilistic reachability...");
@@ -338,15 +341,15 @@ public class DTMCModelChecker extends ProbModelChecker
 		mainLog.println("target=" + target.cardinality() + ", yes=" + numYes + ", no=" + numNo + ", maybe=" + (n - (numYes + numNo)));
 
 		// Compute probabilities
-		switch (solnMethod) {
-		case VALUE_ITERATION:
+		switch (linEqMethod) {
+		case POWER:
 			res = computeReachProbsValIter(dtmc, no, yes, init, known);
 			break;
 		case GAUSS_SEIDEL:
 			res = computeReachProbsGaussSeidel(dtmc, no, yes, init, known);
 			break;
 		default:
-			throw new PrismException("Unknown DTMC solution method " + solnMethod);
+			throw new PrismException("Unknown linear equation solution method " + linEqMethod.fullName());
 		}
 
 		// Finished probabilistic reachability
@@ -808,6 +811,14 @@ public class DTMCModelChecker extends ProbModelChecker
 		BitSet inf;
 		int i, n, numTarget, numInf;
 		long timer, timerProb1;
+		// Local copy of setting
+		LinEqMethod linEqMethod = this.linEqMethod;
+
+		// Switch to a supported method, if necessary
+		if (!(linEqMethod == LinEqMethod.POWER)) {
+			linEqMethod = LinEqMethod.POWER;
+			mainLog.printWarning("Switching to linear equation solution method \"" + linEqMethod.fullName() + "\"");
+		}
 
 		// Start expected reachability
 		timer = System.currentTimeMillis();
@@ -840,12 +851,12 @@ public class DTMCModelChecker extends ProbModelChecker
 		mainLog.println("target=" + numTarget + ", inf=" + numInf + ", rest=" + (n - (numTarget + numInf)));
 
 		// Compute rewards
-		switch (solnMethod) {
-		case VALUE_ITERATION:
+		switch (linEqMethod) {
+		case POWER:
 			res = computeReachRewardsValIter(dtmc, mcRewards, target, inf, init, known);
 			break;
 		default:
-			throw new PrismException("Unknown DTMC solution method " + solnMethod);
+			throw new PrismException("Unknown linear equation solution method " + linEqMethod.fullName());
 		}
 
 		// Finished expected reachability

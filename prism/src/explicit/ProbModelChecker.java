@@ -47,6 +47,8 @@ public class ProbModelChecker extends StateModelChecker
 {
 	// Flags/settings
 
+	// Method used to solve linear equation systems
+	protected LinEqMethod linEqMethod = LinEqMethod.GAUSS_SEIDEL;
 	// Iterative numerical method termination criteria
 	protected TermCrit termCrit = TermCrit.RELATIVE;
 	// Parameter for iterative numerical method termination criteria
@@ -67,6 +69,32 @@ public class ProbModelChecker extends StateModelChecker
 
 	// Enums for flags/settings
 
+	// Method used for numerical solution
+	public enum LinEqMethod {
+		POWER, JACOBI, GAUSS_SEIDEL, BACKWARDS_GAUSS_SEIDEL, JOR, SOR, BACKWARDS_SOR;
+		public String fullName()
+		{
+			switch (this) {
+			case POWER:
+				return "Power method";
+			case JACOBI:
+				return "Jacobi";
+			case GAUSS_SEIDEL:
+				return "Gauss-Seidel";
+			case BACKWARDS_GAUSS_SEIDEL:
+				return "Backwards Gauss-Seidel";
+			case JOR:
+				return "JOR";
+			case SOR:
+				return "SOR";
+			case BACKWARDS_SOR:
+				return "Backwards SOR";
+			default:
+				return this.toString();
+			}
+		}
+	};
+
 	// Iterative numerical method termination criteria
 	public enum TermCrit {
 		ABSOLUTE, RELATIVE
@@ -83,13 +111,33 @@ public class ProbModelChecker extends StateModelChecker
 	};
 
 	// Settings methods
-	
+
 	/**
 	 * Set settings from a PRISMSettings object.
 	 */
-	public void setSettings(PrismSettings settings)
+	public void setSettings(PrismSettings settings) throws PrismException
 	{
 		String s;
+		// PRISM_LIN_EQ_METHOD
+		s = settings.getString(PrismSettings.PRISM_LIN_EQ_METHOD);
+		if (s.equals("Power")) {
+			setLinEqMethod(LinEqMethod.POWER);
+		} else if (s.equals("Jacobi")) {
+			setLinEqMethod(LinEqMethod.JACOBI);
+		} else if (s.equals("Gauss-Seidel")) {
+			setLinEqMethod(LinEqMethod.GAUSS_SEIDEL);
+		} else if (s.equals("Backwards Gauss-Seidel")) {
+			setLinEqMethod(LinEqMethod.BACKWARDS_GAUSS_SEIDEL);
+		} else if (s.equals("JOR")) {
+			setLinEqMethod(LinEqMethod.JOR);
+		} else if (s.equals("SOR")) {
+			setLinEqMethod(LinEqMethod.SOR);
+		} else if (s.equals("Backwards SOR")) {
+			setLinEqMethod(LinEqMethod.BACKWARDS_SOR);
+		} else {
+			throw new PrismException("Explicit engine does not support linear equation solution method \"" + s + "\"");
+		}
+
 		s = settings.getString(PrismSettings.PRISM_TERM_CRIT);
 		if (s.equals("Absolute")) {
 			setTermCrit(TermCrit.ABSOLUTE);
@@ -102,12 +150,6 @@ public class ProbModelChecker extends StateModelChecker
 		setProb0(settings.getBoolean(PrismSettings.PRISM_PROB0));
 		setProb1(settings.getBoolean(PrismSettings.PRISM_PROB1));
 		// valiterdir
-		s = settings.getString(PrismSettings.PRISM_LIN_EQ_METHOD);
-		if (s.equals("Gauss-Seidel")) {
-			setSolnMethod(SolnMethod.GAUSS_SEIDEL);
-		} else {
-			setSolnMethod(SolnMethod.VALUE_ITERATION);
-		}
 		s = settings.getString(PrismSettings.PRISM_MDP_SOLN_METHOD);
 		if (s.equals("Gauss-Seidel")) {
 			setSolnMethod(SolnMethod.GAUSS_SEIDEL);
@@ -146,6 +188,7 @@ public class ProbModelChecker extends StateModelChecker
 	public void printSettings()
 	{
 		super.printSettings();
+		mainLog.print("linEqMethod = " + linEqMethod + " ");
 		mainLog.print("termCrit = " + termCrit + " ");
 		mainLog.print("termCritParam = " + termCritParam + " ");
 		mainLog.print("maxIters = " + maxIters + " ");
@@ -164,6 +207,14 @@ public class ProbModelChecker extends StateModelChecker
 	public void setVerbosity(int verbosity)
 	{
 		this.verbosity = verbosity;
+	}
+
+	/**
+	 * Set method used to solve linear equation systems.
+	 */
+	public void setLinEqMethod(LinEqMethod linEqMethod)
+	{
+		this.linEqMethod = linEqMethod;
 	}
 
 	/**
@@ -235,6 +286,11 @@ public class ProbModelChecker extends StateModelChecker
 	public int getVerbosity()
 	{
 		return verbosity;
+	}
+
+	public LinEqMethod getLinEqMethod()
+	{
+		return linEqMethod;
 	}
 
 	public TermCrit getTermCrit()
@@ -377,7 +433,7 @@ public class ProbModelChecker extends StateModelChecker
 			return StateValues.createFromBitSet(sol, model);
 		}
 	}
-	
+
 	/**
 	 * Model check an R operator expression and return the values for all states.
 	 */
@@ -448,7 +504,7 @@ public class ProbModelChecker extends StateModelChecker
 		default:
 			throw new PrismException("Cannot build rewards for " + modelType + "s");
 		}
-		
+
 		// Compute rewards
 		mainLog.println("Building reward structure...");
 		switch (modelType) {
