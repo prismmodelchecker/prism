@@ -467,13 +467,8 @@ public class ProbModel implements Model
 
 	public void doReachability()
 	{
-		doReachability(false);
-	}
-
-	public void doReachability(boolean extraReachInfo)
-	{
 		// compute reachable states
-		setReach(PrismMTBDD.Reachability(trans01, allDDRowVars, allDDColVars, start, extraReachInfo ? 1 : 0));
+		setReach(PrismMTBDD.Reachability(trans01, allDDRowVars, allDDColVars, start));
 	}
 
 	// this method allows you to skip the reachability phase

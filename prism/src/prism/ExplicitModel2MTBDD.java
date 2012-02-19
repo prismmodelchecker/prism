@@ -212,7 +212,7 @@ public class ExplicitModel2MTBDD
 		// Do reachability (if required)
 		if (doReach) {
 			mainLog.print("\nComputing reachable states...\n");
-			model.doReachability(prism.getExtraReachInfo());
+			model.doReachability();
 			model.filterReachableStates();
 		} else {
 			// If not, assume any non-empty row/column is a reachable state

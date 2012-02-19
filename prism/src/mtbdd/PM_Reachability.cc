@@ -47,8 +47,7 @@ jint num_rvars,
 jlong __jlongpointer cv,	// col vars
 jint num_cvars,
 jlong __jlongpointer s,	// start state
-jint info			// how much diagnostic info to display (0=none, 1=some)
-)
+jobject prism)
 {
 	DdNode *trans01 = jlong_to_DdNode(t01);		// 0-1 trans matrix
 	DdNode *init = jlong_to_DdNode(s);		// start state
@@ -58,17 +57,19 @@ jint info			// how much diagnostic info to display (0=none, 1=some)
 	DdNode *reach, *frontier, *tmp;
 	bool done;
 	int iters;
+	
+	// get PRISM options
+	int reach_method = env->CallIntMethod(prism_obj, env->GetMethodID(prism_cls, "getReachMethod", "()I"));
+	int info = env->CallIntMethod(prism_obj, env->GetMethodID(prism_cls, "getExtraReachInfo", "()Z"));
 
 	// timing stuff
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
 
-	// start clocks	
+	// start clocks
 	start1 = util_cpu_time();
 	
-	int method = 1;
-	
-	if (method == 1) {
+	if (reach_method == REACH_BFS) {
 	
 		// initialise
 		done = false;
@@ -160,7 +161,7 @@ jint info			// how much diagnostic info to display (0=none, 1=some)
 	time_for_iters = time_taken;
 
 	// print iterations/timing info
-	PM_PrintToMainLog(env, "\nReachability: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
+	PM_PrintToMainLog(env, "\nReachability (%s): %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", reach_method==REACH_BFS?"BFS":"frontier", iters, time_taken, time_for_iters/iters, time_for_setup);
 
 	return ptr_to_jlong(reach);
 }

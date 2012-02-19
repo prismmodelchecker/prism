@@ -113,7 +113,6 @@ public interface Model
 	void resetTrans(JDDNode trans);
 	void resetTransRewards(int i, JDDNode transRewards);
 	void doReachability();
-	void doReachability(boolean extraReachInfo);
 	void skipReachability();
 	void setReach(JDDNode reach);
 	void setTransActions(JDDNode transActions); // MDPs only

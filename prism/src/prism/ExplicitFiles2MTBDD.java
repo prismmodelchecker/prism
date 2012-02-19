@@ -451,7 +451,7 @@ public class ExplicitFiles2MTBDD
 		// do reachability (or not)
 		if (prism.getDoReach()) {
 			mainLog.print("\nComputing reachable states...\n");
-			model.doReachability(prism.getExtraReachInfo());
+			model.doReachability();
 			model.filterReachableStates();
 		}
 		else {

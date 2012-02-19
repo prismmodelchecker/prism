@@ -67,10 +67,18 @@ const int EXPORT_ADV_NONE = 1;
 const int EXPORT_ADV_DTMC = 2;
 const int EXPORT_ADV_MDP = 3;
 
+const int REACH_BFS = 1;
+const int REACH_FRONTIER = 2;
+
 //------------------------------------------------------------------------------
 
-// External refs to global variables for options
+// External refs to global variables
 
+// Prism object
+EXPORT extern jclass prism_cls;
+EXPORT extern jobject prism_obj;
+
+// Options:
 // numerical method stuff
 EXPORT extern int lin_eq_method;
 EXPORT extern double lin_eq_method_param;

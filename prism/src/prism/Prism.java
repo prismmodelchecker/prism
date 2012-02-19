@@ -150,6 +150,9 @@ public class Prism implements PrismSettingsListener
 	// Round-off threshold for places where doubles are summed and compared to integers
 	// (e.g. checking that probabilities sum to 1 in an update).
 	private double sumRoundOff = 1e-5;
+	
+	// Method to use for (symbolic) state-space reachability
+	private int reachMethod = REACH_BFS; 
 
 	//------------------------------------------------------------------------------
 	// Logs
@@ -489,6 +492,14 @@ public class Prism implements PrismSettingsListener
 		sumRoundOff = d;
 	}
 
+	public static int REACH_BFS = 1;
+	public static int REACH_FRONTIER = 2;
+	
+	public void setReachMethod(int reachMethod)
+	{
+		this.reachMethod = reachMethod;
+	}
+
 	// Get methods
 
 	public static String getVersion()
@@ -739,6 +750,11 @@ public class Prism implements PrismSettingsListener
 		return sumRoundOff;
 	}
 
+	public int getReachMethod()
+	{
+		return reachMethod;
+	}
+	
 	public void addModelListener(PrismModelListener listener)
 	{
 		modelListeners.add(listener);
@@ -1062,7 +1078,8 @@ public class Prism implements PrismSettingsListener
 		cuddStarted = true;
 		JDD.SetOutputStream(techLog.getFilePointer());
 
-		// initialise all three engines
+		// initialise libraries/engines
+		PrismNative.initialise(this);
 		PrismMTBDD.initialise(mainLog, techLog);
 		PrismSparse.initialise(mainLog, techLog);
 		PrismHybrid.initialise(mainLog, techLog);
@@ -2732,7 +2749,8 @@ public class Prism implements PrismSettingsListener
 	{
 		// Clear any built model(s)
 		clearBuiltModel();
-		// Close down engines
+		// Close down libraries/engines
+		PrismNative.closeDown();
 		PrismMTBDD.closeDown();
 		PrismSparse.closeDown();
 		PrismHybrid.closeDown();

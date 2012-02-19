@@ -134,11 +134,10 @@ public class PrismMTBDD
 	//------------------------------------------------------------------------------
 
 	// reachability
-	private static native long PM_Reachability(long trans01, long rv, int nrv, long cv, int ncv, long start, int info);
-	public static JDDNode Reachability(JDDNode trans01, JDDVars rows, JDDVars cols, JDDNode start) { return Reachability(trans01, rows, cols, start, 0); }
-	public static JDDNode Reachability(JDDNode trans01, JDDVars rows, JDDVars cols, JDDNode start, int info)// throws PrismException
+	private static native long PM_Reachability(long trans01, long rv, int nrv, long cv, int ncv, long start);
+	public static JDDNode Reachability(JDDNode trans01, JDDVars rows, JDDVars cols, JDDNode start)
 	{
-		long ptr = PM_Reachability(trans01.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), start.ptr(), info);
+		long ptr = PM_Reachability(trans01.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), start.ptr());
 		//if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new JDDNode(ptr);
 	}

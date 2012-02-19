@@ -44,6 +44,35 @@ public class PrismNative
 		}
 	}
 	
+	// Initialise/close down methods
+	
+	public static void initialise(Prism prism)
+	{
+		setPrism(prism);
+	}
+	
+	public static void closeDown()
+	{
+		// Tidy up any JNI stuff
+		PN_FreeGlobalRefs();
+	}
+
+	// tidy up in jni (free global references)
+	private static native void PN_FreeGlobalRefs();
+
+	// Prism object
+	
+	// Place to store Prism object for Java code
+	private static Prism prism;
+	// JNI method to set Prism object for native code
+	private static native void PN_SetPrism(Prism prism);
+	// Method to set Prism object both in Java and C++
+	public static void setPrism(Prism prism)
+	{
+		PrismNative.prism = prism;
+		PN_SetPrism(prism);
+	}
+	
 	// Options passing
 	
 	private static native void PN_SetCompact(boolean b);

@@ -291,7 +291,7 @@ public class LTLModelChecker
 				model.getConstantValues());
 
 		// Do reachability/etc. for the new model
-		modelProd.doReachability(prism.getExtraReachInfo());
+		modelProd.doReachability();
 		modelProd.filterReachableStates();
 		modelProd.findDeadlocks(false);
 		if (modelProd.getDeadlockStates().size() > 0) {
@@ -507,7 +507,7 @@ public class LTLModelChecker
 		modelProd.setSynchs(new Vector<String>(model.getSynchs()));
 
 		// Do reachability/etc. for the new model
-		modelProd.doReachability(prism.getExtraReachInfo());
+		modelProd.doReachability();
 		modelProd.filterReachableStates();
 		modelProd.findDeadlocks(false);
 		if (modelProd.getDeadlockStates().size() > 0) {

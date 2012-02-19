@@ -31,8 +31,11 @@
 #include "PrismNativeGlob.h"
 #include "jnipointer.h"
 
-// options
+// Global ref to prism class/object
+EXPORT jclass prism_cls = NULL;
+EXPORT jobject prism_obj = NULL;
 
+// Options:
 // numerical method stuff
 EXPORT int lin_eq_method;
 EXPORT double lin_eq_method_param;
@@ -53,6 +56,26 @@ EXPORT bool do_ss_detect;
 EXPORT int export_adv;
 // adversary export filename
 EXPORT const char *export_adv_filename;
+
+//------------------------------------------------------------------------------
+// Prism object
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetPrism(JNIEnv *env, jclass cls, jobject prism)
+{
+	// if prism has been set previously, we need to delete existing global refs first
+	if (prism_obj != NULL) {
+		env->DeleteGlobalRef(prism_cls);
+		prism_cls = NULL;
+		env->DeleteGlobalRef(prism_obj);
+		prism_obj = NULL;
+	}
+	
+	// make a global reference to the object
+	prism_obj = env->NewGlobalRef(prism);
+	// get the class and make a global reference to it
+	prism_cls = (jclass)env->NewGlobalRef(env->GetObjectClass(prism_obj));
+}
 
 //------------------------------------------------------------------------------
 // Set methods for options in native code
@@ -210,6 +233,19 @@ JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1FlushFile(JNIEnv *env, jclass 
 JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1CloseFile(JNIEnv *env, jclass cls, jlong __jlongpointer fp)
 {
 	fclose(jlong_to_FILE(fp));
+}
+
+//------------------------------------------------------------------------------
+// tidy up
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1FreeGlobalRefs(JNIEnv *env, jclass cls)
+{
+	// delete all global references
+	env->DeleteGlobalRef(prism_cls);
+	prism_cls = NULL;
+	env->DeleteGlobalRef(prism_obj);
+	prism_obj = NULL;
 }
 
 //------------------------------------------------------------------------------

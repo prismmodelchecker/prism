@@ -1415,6 +1415,13 @@ public class PrismCL implements PrismModelListener
 				else if (sw.equals("nobscc")) {
 					prism.setBSCCComp(false);
 				}
+				// reachability options (hidden options)
+				else if (sw.equals("frontier")) {
+					prism.setReachMethod(Prism.REACH_FRONTIER);
+				}
+				else if (sw.equals("bfs")) {
+					prism.setReachMethod(Prism.REACH_BFS);
+				}
 
 				// Other switches - pass to PrismSettings
 

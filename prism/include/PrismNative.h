@@ -9,6 +9,22 @@ extern "C" {
 #endif
 /*
  * Class:     prism_PrismNative
+ * Method:    PN_FreeGlobalRefs
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1FreeGlobalRefs
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     prism_PrismNative
+ * Method:    PN_SetPrism
+ * Signature: (Lprism/Prism;)V
+ */
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetPrism
+  (JNIEnv *, jclass, jobject);
+
+/*
+ * Class:     prism_PrismNative
  * Method:    PN_SetCompact
  * Signature: (Z)V
  */
