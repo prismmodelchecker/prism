@@ -46,8 +46,8 @@ jlong __jlongpointer rv,	// row vars
 jint num_rvars,
 jlong __jlongpointer cv,	// col vars
 jint num_cvars,
-jlong __jlongpointer s,	// start state
-jobject prism)
+jlong __jlongpointer s	// start state
+)
 {
 	DdNode *trans01 = jlong_to_DdNode(t01);		// 0-1 trans matrix
 	DdNode *init = jlong_to_DdNode(s);		// start state
