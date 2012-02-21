@@ -934,7 +934,7 @@ public class AxisSettings extends Observable implements SettingOwner
 		
 		Font numberFont = getNumberFont().f;
 		axis.setAttribute("numberFontName", numberFont.getName());
-		axis.setAttribute("numberFontSize", "" + headingFont.getSize());
+		axis.setAttribute("numberFontSize", "" + numberFont.getSize());
 		axis.setAttribute("numberFontStyle", "" + numberFont.getStyle());
 		
 		Color numberFontColor = getHeadingFont().c;
@@ -994,7 +994,7 @@ public class AxisSettings extends Observable implements SettingOwner
 	  
 		Color numberFontColor = Graph.parseColor(numberFontColourR, numberFontColourG, numberFontColourB);
 	  
-		setHeadingFont(new FontColorPair(numberFont, numberFontColor));
+		setNumberFont(new FontColorPair(numberFont, numberFontColor));
 		
 	   // axis autoScale property 
 		boolean autoScale = Graph.parseBoolean(axis.getAttribute("autoscale"));
