@@ -86,12 +86,6 @@ public class StochModelChecker extends ProbModelChecker
 		JDDNode b1, b2, tmp;
 		StateValues tmpProbs = null, probs = null;
 
-		// check not LTL
-		if (!(expr.getOperand1().getType() instanceof TypeBool))
-			throw new PrismException("Invalid path formula");
-		if (!(expr.getOperand2().getType() instanceof TypeBool))
-			throw new PrismException("Invalid path formula");
-
 		// get info from bounded until
 
 		// lower bound is 0 if not specified

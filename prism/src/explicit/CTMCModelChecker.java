@@ -56,12 +56,6 @@ public class CTMCModelChecker extends DTMCModelChecker
 		StateValues probs = null;
 		ModelCheckerResult tmpRes = null, res = null;
 
-		// check not LTL
-		if (!(expr.getOperand1().getType() instanceof TypeBool))
-			throw new PrismException("Invalid path formula");
-		if (!(expr.getOperand2().getType() instanceof TypeBool))
-			throw new PrismException("Invalid path formula");
-
 		// get info from bounded until
 
 		// lower bound is 0 if not specified
