@@ -189,14 +189,6 @@ public class StateModelChecker
 		// Create storage for result
 		result = new Result();
 
-		// Remove labels from property, using combined label list (on a copy of the expression)
-		// This is done now so that we can handle labels nested below operators that are not
-		// handled natively by the model checker yet (just evaluate()ed in a loop).
-		expr = (Expression) expr.deepCopy().expandLabels(propertiesFile.getCombinedLabelList());
-
-		// Also evaluate/replace any constants
-		//expr = (Expression) expr.replaceConstants(constantValues);
-
 		// The final result of model checking will be a single value. If the expression to be checked does not
 		// already yield a single value (e.g. because a filter has not been explicitly included), we need to wrap
 		// a new (invisible) filter around it. Note that some filters (e.g. print/argmin/argmax) also do not
