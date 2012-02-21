@@ -91,6 +91,15 @@ public class ODDUtils
 		return ODD_GetIndexOfFirstFromDD(dd.ptr(), odd.ptr(), vars.array(), vars.n());
 	}
 	
+	public static native long ODD_SingleIndexToDD(int i, long odd, long vars, int num_vars);
+	/**
+	 *  Convert a state index to a 0-1 MTBDD representing it, according to an ODD.
+	 */
+	public static JDDNode SingleIndexToDD(int i, ODDNode odd, JDDVars vars)
+	{
+		return new JDDNode(ODD_SingleIndexToDD(i, odd.ptr(), vars.array(), vars.n()));
+	}
+	
 	//------------------------------------------------------------------------------
 	// ODDNode methods
 	//------------------------------------------------------------------------------

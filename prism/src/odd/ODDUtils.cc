@@ -96,6 +96,28 @@ jint num_vars
 }
 
 //------------------------------------------------------------------------------
+
+JNIEXPORT jlong __jlongpointer  JNICALL Java_odd_ODDUtils_ODD_1SingleIndexToDD
+(
+JNIEnv *env,
+jclass cls,
+jint i,
+jlong __jlongpointer odd,
+jlong __jlongpointer vars,
+jint num_vars
+)
+{
+	return ptr_to_jlong(
+		single_index_to_bdd(
+			ddman,
+			i,
+			jlong_to_DdNode_array(vars), num_vars,
+			jlong_to_ODDNode(odd)
+		)
+	);
+}
+
+//------------------------------------------------------------------------------
 // ODDNode methods
 //------------------------------------------------------------------------------
 
