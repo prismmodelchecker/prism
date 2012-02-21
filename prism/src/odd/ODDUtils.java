@@ -62,8 +62,10 @@ public class ODDUtils
 	// JNI wrappers
 	//------------------------------------------------------------------------------
 	
-	// build odd
 	private static native long ODD_BuildODD(long dd, long vars, int num_vars);
+	/**
+	 *  Build an ODD.
+	 */
 	public static ODDNode BuildODD(JDDNode dd, JDDVars vars)
 	{
 		return new ODDNode(
@@ -71,13 +73,22 @@ public class ODDUtils
 		);
 	}
 	
-	//------------------------------------------------------------------------------
-
-	// get number of nodes in odd just built
 	private static native int ODD_GetNumODDNodes();
+	/**
+	 *  Get the number of nodes in the ODD just built.
+	 */
 	public static int GetNumODDNodes()
 	{
 		return ODD_GetNumODDNodes();
+	}
+	
+	public static native int ODD_GetIndexOfFirstFromDD(long dd, long odd, long vars, int num_vars);
+	/**
+	 *  Get the index of the first non-zero element of a 0-1 MTBDD, according to an ODD.
+	 */
+	public static int GetIndexOfFirstFromDD(JDDNode dd, ODDNode odd, JDDVars vars)
+	{
+		return ODD_GetIndexOfFirstFromDD(dd.ptr(), odd.ptr(), vars.array(), vars.n());
 	}
 	
 	//------------------------------------------------------------------------------

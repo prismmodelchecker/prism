@@ -76,6 +76,26 @@ jclass cls
 }
 
 //------------------------------------------------------------------------------
+
+JNIEXPORT jint JNICALL Java_odd_ODDUtils_ODD_1GetIndexOfFirstFromDD
+(
+JNIEnv *env,
+jclass cls,
+jlong __jlongpointer dd,
+jlong __jlongpointer odd,
+jlong __jlongpointer vars,
+jint num_vars
+)
+{
+	return get_index_of_first_from_bdd(
+		ddman,
+		jlong_to_DdNode(dd),
+		jlong_to_DdNode_array(vars), num_vars,
+		jlong_to_ODDNode(odd)
+	);
+}
+
+//------------------------------------------------------------------------------
 // ODDNode methods
 //------------------------------------------------------------------------------
 
