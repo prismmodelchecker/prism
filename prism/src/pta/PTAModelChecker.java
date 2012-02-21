@@ -175,6 +175,8 @@ public class PTAModelChecker
 			res = checkExpressionProb((ExpressionProb) expr);
 		else if (expr instanceof ExpressionReward)
 			res = checkExpressionReward((ExpressionReward) expr);
+		else if (expr instanceof ExpressionFilter)
+			throw new PrismException("PTA model checker does not handle filters since it only computes values for the initial state");
 		else
 			throw new PrismException("PTA model checking not yet supported for this operator (try the digital clocks engine)");
 
