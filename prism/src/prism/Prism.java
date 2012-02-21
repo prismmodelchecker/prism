@@ -150,9 +150,9 @@ public class Prism implements PrismSettingsListener
 	// Round-off threshold for places where doubles are summed and compared to integers
 	// (e.g. checking that probabilities sum to 1 in an update).
 	private double sumRoundOff = 1e-5;
-	
+
 	// Method to use for (symbolic) state-space reachability
-	private int reachMethod = REACH_BFS; 
+	private int reachMethod = REACH_BFS;
 
 	//------------------------------------------------------------------------------
 	// Logs
@@ -494,7 +494,7 @@ public class Prism implements PrismSettingsListener
 
 	public static int REACH_BFS = 1;
 	public static int REACH_FRONTIER = 2;
-	
+
 	public void setReachMethod(int reachMethod)
 	{
 		this.reachMethod = reachMethod;
@@ -754,7 +754,7 @@ public class Prism implements PrismSettingsListener
 	{
 		return reachMethod;
 	}
-	
+
 	public void addModelListener(PrismModelListener listener)
 	{
 		modelListeners.add(listener);
@@ -2588,8 +2588,9 @@ public class Prism implements PrismSettingsListener
 	}
 
 	/**
-	 * Compute transient probabilities for the current model (DTMCs/CTMCs only).
-	 * Output probability distribution to log. 
+	 * Compute transient probabilities (forwards) for the current model (DTMCs/CTMCs only).
+	 * Output probability distribution to log.
+	 * For a discrete-time model, {@code time} will be cast to an integer.
 	 */
 	public void doTransient(double time) throws PrismException
 	{
@@ -2597,8 +2598,9 @@ public class Prism implements PrismSettingsListener
 	}
 
 	/**
-	 * Compute transient probabilities for the current model (DTMCs/CTMCs only).
+	 * Compute transient probabilities (forwards) for the current model (DTMCs/CTMCs only).
 	 * Output probability distribution to a file (or, if file is null, to log). 
+	 * For a discrete-time model, {@code time} will be cast to an integer.
 	 * The exportType should be EXPORT_PLAIN or EXPORT_MATLAB.
 	 * Optionally (if non-null), read in the initial probability distribution from a file.
 	 */
@@ -2687,6 +2689,125 @@ public class Prism implements PrismSettingsListener
 			tmpLog.close();
 	}
 
+	/**
+	 * Compute transient probabilities (forwards) for the current model (DTMCs/CTMCs only)
+	 * for a range of time points. Each distribution is computed incrementally.
+	 * Output probability distribution to a file (or, if file is null, to log).
+	 * Time points are specified using an UndefinedConstants with a single ranging variable  
+	 * (of the appropriate type (int/double) and with arbitrary name).
+	 * The exportType should be EXPORT_PLAIN or EXPORT_MATLAB.
+	 * Optionally (if non-null), read in the initial probability distribution from a file.
+	 */
+	public void doTransient(UndefinedConstants times, int exportType, File file, File fileIn) throws PrismException
+	{
+		int i, timeInt = 0, initTimeInt = 0;
+		double timeDouble = 0, initTimeDouble = 0;
+		Object time;
+		long l = 0; // timer
+		StateValues probs = null, initDist = null;
+		explicit.StateValues probsExpl = null, initDistExpl = null;
+		PrismLog tmpLog = null;
+
+		if (!(currentModelType == ModelType.CTMC || currentModelType == ModelType.DTMC))
+			throw new PrismException("Steady-state probabilities only computed for DTMCs/CTMCs");
+
+		if (file != null && getEngine() == MTBDD)
+			throw new PrismException("Transient probability export only supported for sparse/hybrid engines");
+
+		// no specific states format for MRMC
+		if (exportType == EXPORT_MRMC)
+			exportType = EXPORT_PLAIN;
+		// rows format does not apply to states output
+		if (exportType == EXPORT_ROWS)
+			exportType = EXPORT_PLAIN;
+
+		// Step through required time points
+		for (i = 0; i < times.getNumPropertyIterations(); i++) {
+			
+			// Get time, check non-negative
+			time = times.getPFConstantValues().getValue(0);
+			if (currentModelType.continuousTime())
+				timeDouble = ((Double) time).doubleValue();
+			else
+				timeInt = ((Integer) time).intValue();
+			if (currentModelType.continuousTime() ? (((Double) time).doubleValue() < 0) : (((Integer) time).intValue() < 0))
+				throw new PrismException("Cannot compute transient probabilities for negative time value");
+
+			mainLog.printSeparator();
+			mainLog.println("\nComputing transient probabilities (time = " + time + ")...");
+			
+			// Build model, if necessary
+			buildModelIfRequired();
+
+			l = System.currentTimeMillis();
+
+			if (!getExplicit()) {
+				if (currentModelType.continuousTime()) {
+					StochModelChecker mc = new StochModelChecker(this, currentModel, null);
+					if (i == 0) {
+						initDist = mc.readDistributionFromFile(fileIn);
+						initTimeDouble = 0;
+					}
+					probs = ((StochModelChecker) mc).doTransient(timeDouble - initTimeDouble, initDist);
+				} else {
+					ProbModelChecker mc = new ProbModelChecker(this, currentModel, null);
+					if (i == 0) {
+						initDist = mc.readDistributionFromFile(fileIn);
+						initTimeInt = 0;
+					}
+					probs = ((ProbModelChecker) mc).doTransient(timeInt - initTimeInt, initDist);
+				}
+			} else {
+				if (currentModelType.continuousTime()) {
+					CTMCModelChecker mc = new CTMCModelChecker();
+					mc.setLog(mainLog);
+					mc.setSettings(settings);
+					if (i == 0) {
+						initDistExpl = mc.readDistributionFromFile(fileIn, currentModelExpl);
+						initTimeDouble = 0;
+					}
+					probsExpl = mc.doTransient((CTMC) currentModelExpl, timeDouble - initTimeDouble, initDistExpl);
+				} else {
+					throw new PrismException("Not implemented yet");
+				}
+			}
+
+			l = System.currentTimeMillis() - l;
+
+			// print message
+			mainLog.print("\nPrinting transient probabilities ");
+			mainLog.print(getStringForExportType(exportType) + " ");
+			mainLog.println(getDestinationStringForFile(file));
+
+			// create new file log or use main log
+			tmpLog = getPrismLogForFile(file);
+
+			// print out or export probabilities
+			if (!getExplicit())
+				probs.print(tmpLog, file == null, exportType == EXPORT_MATLAB, file == null);
+			else
+				probsExpl.print(tmpLog, file == null, exportType == EXPORT_MATLAB, file == null, true);
+
+			// print out computation time
+			mainLog.println("\nTime for transient probability computation: " + l / 1000.0 + " seconds.");
+
+			// Prepare for next iteration
+			initDist = probs;
+			initDistExpl = probsExpl;
+			initTimeInt = timeInt;
+			initTimeDouble = timeDouble;
+			times.iterateProperty();
+		}
+
+		// tidy up
+		if (!getExplicit())
+			probs.clear();
+		else
+			probsExpl.clear();
+		if (file != null)
+			tmpLog.close();
+	}
+
 	public void explicitBuildTest() throws PrismException
 	{
 		/* old code...
@@ -2721,7 +2842,7 @@ public class Prism implements PrismSettingsListener
 			throw new PrismException("Could not create temporary file \"" + tmpFile + "\"");
 		}*/
 	}
-	
+
 	/**
 	 * Clear the built model if needed (free/deallocate memory etc)
 	 */

@@ -168,16 +168,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 	 */
 	public StateValues doTransient(CTMC ctmc, double t, File initDistFile) throws PrismException
 	{
-		StateValues initDist = null;
-
-		if (initDistFile != null) {
-			mainLog.println("\nImporting initial probability distribution from file \"" + initDistFile + "\"...");
-			// Build an empty vector 
-			initDist = new StateValues(TypeDouble.getInstance(), ctmc);
-			// Populate vector from file
-			initDist.readFromFile(initDistFile);
-		}
-
+		StateValues initDist = readDistributionFromFile(initDistFile, ctmc);
 		return doTransient(ctmc, t, initDist);
 	}
 

@@ -26,12 +26,14 @@
 
 package explicit;
 
+import java.io.File;
 import java.util.*;
 
 import prism.*;
 import explicit.StateValues;
 import explicit.rewards.*;
 import parser.ast.*;
+import parser.type.TypeDouble;
 
 /**
  * Explicit-state model checker for discrete-time Markov chains (DTMCs).
@@ -248,6 +250,25 @@ public class DTMCModelChecker extends ProbModelChecker
 		throw new PrismException("Not implemented yet");
 	}
 	
+	/**
+	 * Generate a probability distribution, stored as a StateValues object, from a file.
+	 * If {@code distFile} is null, so is the return value.
+	 */
+	public StateValues readDistributionFromFile(File distFile, Model model) throws PrismException
+	{
+		StateValues dist = null;
+
+		if (distFile != null) {
+			mainLog.println("\nImporting probability distribution from file \"" + distFile + "\"...");
+			// Build an empty vector 
+			dist = new StateValues(TypeDouble.getInstance(), model);
+			// Populate vector from file
+			dist.readFromFile(distFile);
+		}
+
+		return dist;
+	}
+
 	// Numerical computation functions
 
 	/**

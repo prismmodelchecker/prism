@@ -1225,20 +1225,7 @@ public class ProbModelChecker extends NonProbModelChecker
 	 */
 	public StateValues doTransient(int time, File initDistFile) throws PrismException
 	{
-		StateValues initDist = null;
-
-		if (initDistFile != null) {
-			mainLog.println("\nImporting initial probability distribution from file \"" + initDistFile + "\"...");
-			// Build an empty vector of the appropriate type 
-			if (engine == Prism.MTBDD) {
-				initDist = new StateValuesMTBDD(JDD.Constant(0), model);
-			} else {
-				initDist = new StateValuesDV(new DoubleVector((int) model.getNumStates()), model);
-			}
-			// Populate vector from file
-			initDist.readFromFile(initDistFile);
-		}
-
+		StateValues initDist = readDistributionFromFile(initDistFile);
 		return doTransient(time, initDist);
 	}
 
@@ -1281,6 +1268,30 @@ public class ProbModelChecker extends NonProbModelChecker
 		probs = computeTransientProbs(trans, initDistNew, time);
 
 		return probs;
+	}
+
+	/**
+	 * Generate a probability distribution, stored as a StateValues object, from a file.
+	 * The type of storage (MTBDD or double vector) matches the current engine.
+	 * If {@code distFile} is null, so is the return value.
+	 */
+	public StateValues readDistributionFromFile(File distFile) throws PrismException
+	{
+		StateValues dist = null;
+
+		if (distFile != null) {
+			mainLog.println("\nImporting probability distribution from file \"" + distFile + "\"...");
+			// Build an empty vector of the appropriate type 
+			if (engine == Prism.MTBDD) {
+				dist = new StateValuesMTBDD(JDD.Constant(0), model);
+			} else {
+				dist = new StateValuesDV(new DoubleVector((int) model.getNumStates()), model);
+			}
+			// Populate vector from file
+			dist.readFromFile(distFile);
+		}
+		
+		return dist;
 	}
 
 	// -----------------------------------------------------------------------------------

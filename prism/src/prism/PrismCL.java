@@ -732,8 +732,6 @@ public class PrismCL implements PrismModelListener
 	private void doTransient()
 	{
 		ModelType modelType;
-		double d;
-		int i;
 		File exportTransientFile = null;
 
 		if (dotransient) {
@@ -747,24 +745,20 @@ public class PrismCL implements PrismModelListener
 				// Determine model type
 				modelType = prism.getModelType();
 
-				// Compute transient probabilities
-				if (modelType == ModelType.CTMC) {
-					try {
-						d = Double.parseDouble(transientTime);
-					} catch (NumberFormatException e) {
-						throw new PrismException("Invalid value \"" + transientTime + "\" for transient probability computation");
-					}
-					prism.doTransient(d, exportType, exportTransientFile, importinitdist ? new File(importInitDistFilename) : null);
-				} else if (modelType == ModelType.DTMC) {
-					try {
-						i = Integer.parseInt(transientTime);
-					} catch (NumberFormatException e) {
-						throw new PrismException("Invalid value \"" + transientTime + "\" for transient probability computation");
-					}
-					prism.doTransient(i, exportType, exportTransientFile, importinitdist ? new File(importInitDistFilename) : null);
-				} else {
-					mainLog.printWarning("Transient probabilities only computed for DTMCs/CTMCs.");
+				// Parse time specification, store as UndefinedConstant for constant T
+				String timeType = modelType.continuousTime() ? "double" : "int";
+				UndefinedConstants ucTransient = new UndefinedConstants(null, prism.parsePropertiesString(null, "const " + timeType + " T; T;"));
+				try {
+					ucTransient.defineUsingConstSwitch("T=" + transientTime);
+				} catch (PrismException e) {
+					if (transientTime.contains(":"))
+						errorAndExit("\"" + transientTime + "\" is not a valid time range for a " + modelType);
+					else
+						errorAndExit("\"" + transientTime + "\" is not a valid time for a " + modelType);
 				}
+				
+				// Compute transient probabilities
+				prism.doTransient(ucTransient, exportType, exportTransientFile, importinitdist ? new File(importInitDistFilename) : null);
 			}
 			// In case of error, report it and proceed
 			catch (PrismException e) {
@@ -814,7 +808,6 @@ public class PrismCL implements PrismModelListener
 	private void parseArguments(String[] args) throws PrismException
 	{
 		int i, j;
-		double d;
 		String sw, s;
 		PrismLog log;
 
@@ -886,16 +879,8 @@ public class PrismCL implements PrismModelListener
 				// do transient probability computation
 				else if (sw.equals("transient") || sw.equals("tr")) {
 					if (i < args.length - 1) {
-						try {
-							dotransient = true;
-							transientTime = args[++i];
-							// Make sure transient time parses as a +ve double
-							d = Double.parseDouble(transientTime);
-							if (d < 0)
-								throw new NumberFormatException("");
-						} catch (NumberFormatException e) {
-							errorAndExit("Invalid value for -" + sw + " switch");
-						}
+						dotransient = true;
+						transientTime = args[++i];
 					} else {
 						errorAndExit("No value specified for -" + sw + " switch");
 					}
@@ -1418,8 +1403,7 @@ public class PrismCL implements PrismModelListener
 				// reachability options (hidden options)
 				else if (sw.equals("frontier")) {
 					prism.setReachMethod(Prism.REACH_FRONTIER);
-				}
-				else if (sw.equals("bfs")) {
+				} else if (sw.equals("bfs")) {
 					prism.setReachMethod(Prism.REACH_BFS);
 				}
 
