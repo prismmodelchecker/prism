@@ -62,6 +62,9 @@ public class StateModelChecker implements ModelChecker
 	protected JDDVars allDDColVars;
 	protected JDDVars[] varDDRowVars;
 
+	// The filter to be applied to the current property
+	protected Filter currentFilter;
+
 	// The result of model checking will be stored here
 	protected Result result;
 
@@ -147,6 +150,9 @@ public class StateModelChecker implements ModelChecker
 		// Create storage for result
 		result = new Result();
 
+		// Remove any existing filter info
+		currentFilter = null;
+		
 		// The final result of model checking will be a single value. If the expression to be checked does not
 		// already yield a single value (e.g. because a filter has not been explicitly included), we need to wrap
 		// a new (invisible) filter around it. Note that some filters (e.g. print/argmin/argmax) also do not
@@ -1002,8 +1008,6 @@ public class StateModelChecker implements ModelChecker
 		String resultExpl = null;
 		Object resObj = null;
 
-		// Check operand recursively
-		vals = checkExpression(expr.getOperand());
 		// Translate filter
 		filter = expr.getFilter();
 		// Create default filter (true) if none given
@@ -1022,6 +1026,18 @@ public class StateModelChecker implements ModelChecker
 		// Remember whether filter is for the initial state and, if so, whether there's just one
 		filterInit = (filter instanceof ExpressionLabel && ((ExpressionLabel) filter).getName().equals("init"));
 		filterInitSingle = filterInit & model.getNumStartStates() == 1;
+
+		// For some types of filter, store info that may be used to optimise model checking
+		op = expr.getOperatorType();
+		if (op == FilterOperator.STATE) {
+			currentFilter = new Filter(Filter.FilterOperator.STATE, ODDUtils.GetIndexOfFirstFromDD(ddFilter, odd, allDDRowVars));
+		} else {
+			currentFilter = null;
+		}
+		
+		// Check operand recursively
+		vals = checkExpression(expr.getOperand());	
+		
 		// Print out number of states satisfying filter
 		if (!filterInit)
 			mainLog.println("\nStates satisfying filter " + filter + ": " + statesFilter.sizeString());
