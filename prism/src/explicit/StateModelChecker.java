@@ -612,6 +612,10 @@ public class StateModelChecker
 		op = expr.getOperatorType();
 		if (op == FilterOperator.STATE) {
 			currentFilter = new Filter(Filter.FilterOperator.STATE, bsFilter.nextSetBit(0));
+		} else if (op == FilterOperator.FORALL && filterInit && filterInitSingle) {
+			currentFilter = new Filter(Filter.FilterOperator.STATE, bsFilter.nextSetBit(0));
+		} else if (op == FilterOperator.FIRST && filterInit && filterInitSingle) {
+			currentFilter = new Filter(Filter.FilterOperator.STATE, bsFilter.nextSetBit(0));
 		} else {
 			currentFilter = null;
 		}

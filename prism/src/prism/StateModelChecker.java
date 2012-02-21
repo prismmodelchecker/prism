@@ -1031,6 +1031,10 @@ public class StateModelChecker implements ModelChecker
 		op = expr.getOperatorType();
 		if (op == FilterOperator.STATE) {
 			currentFilter = new Filter(Filter.FilterOperator.STATE, ODDUtils.GetIndexOfFirstFromDD(ddFilter, odd, allDDRowVars));
+		} else if (op == FilterOperator.FORALL && filterInit && filterInitSingle) {
+			currentFilter = new Filter(Filter.FilterOperator.STATE, ODDUtils.GetIndexOfFirstFromDD(ddFilter, odd, allDDRowVars));
+		} else if (op == FilterOperator.FIRST && filterInit && filterInitSingle) {
+			currentFilter = new Filter(Filter.FilterOperator.STATE, ODDUtils.GetIndexOfFirstFromDD(ddFilter, odd, allDDRowVars));
 		} else {
 			currentFilter = null;
 		}
