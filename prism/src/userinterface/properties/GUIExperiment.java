@@ -204,7 +204,7 @@ public class GUIExperiment
 		{
 			int i, k;
 			int propertyIndex = propertiesFile.getNumProperties() - 1;
-			Expression propertyToCheck = propertiesFile.getProperty(propertyIndex);
+			Property propertyToCheck = propertiesFile.getPropertyObject(propertyIndex);
 			SimulationInformation info = null;
 			boolean reuseInfo = false, reuseInfoAsked = false;
 
@@ -242,7 +242,7 @@ public class GUIExperiment
 					if (useSimulation && !reuseInfo) {
 						try {
 							info = null;
-							info = GUISimulationPicker.defineSimulationWithDialog(guiProp.getGUI(), propertyToCheck, prism.getPRISMModel(), "("
+							info = GUISimulationPicker.defineSimulationWithDialog(guiProp.getGUI(), propertyToCheck.getExpression(), prism.getPRISMModel(), "("
 									+ definedMFConstants + ")");
 						} catch (PrismException e) {
 							// in case of error, report it (in log only), store as result, and go on to the next model
@@ -279,7 +279,7 @@ public class GUIExperiment
 								initialState = new parser.State(info.getInitialState(), prism.getPRISMModel());
 							}
 							// do simulation
-							prism.modelCheckSimulatorExperiment(propertiesFile, undefinedConstants, results, propertyToCheck, initialState,
+							prism.modelCheckSimulatorExperiment(propertiesFile, undefinedConstants, results, propertyToCheck.getExpression(), initialState,
 									info.getMaxPathLength(), info.createSimulationMethod());
 							// update progress meter
 							// (all properties simulated simultaneously so can't get more accurate feedback at the moment anyway)
@@ -319,8 +319,8 @@ public class GUIExperiment
 										initialState = new parser.State(info.getInitialState(), prism.getPRISMModel());
 									}
 									// do simulation
-									res = prism.modelCheckSimulator(propertiesFile, propertyToCheck, definedPFConstants, initialState, info.getMaxPathLength(),
-											info.createSimulationMethod());
+									res = prism.modelCheckSimulator(propertiesFile, propertyToCheck.getExpression(), definedPFConstants, initialState,
+											info.getMaxPathLength(), info.createSimulationMethod());
 								}
 							} catch (PrismException e) {
 								// in case of error, report it (in log only), store exception as the result and proceed

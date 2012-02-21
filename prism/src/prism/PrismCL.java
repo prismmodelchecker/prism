@@ -282,7 +282,7 @@ public class PrismCL implements PrismModelListener
 							}
 							// Normal model checking
 							if (!simulate) {
-								res = prism.modelCheck(propertiesFile, propertiesToCheck.get(j).getExpression());
+								res = prism.modelCheck(propertiesFile, propertiesToCheck.get(j));
 							}
 							// Approximate (simulation-based) model checking
 							else {

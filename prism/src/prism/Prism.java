@@ -2234,23 +2234,33 @@ public class Prism implements PrismSettingsListener
 	 */
 	public Result modelCheck(PropertiesFile propertiesFile, Expression expr) throws PrismException, PrismLangException
 	{
+		return modelCheck(propertiesFile, new Property(expr));
+	}
+	
+	/**
+	 * Perform model checking of a property on the currently loaded model and return result.
+	 * @param propertiesFile Parent property file of property (for labels/constants/...)
+	 * @param expr The property to check
+	 */
+	public Result modelCheck(PropertiesFile propertiesFile, Property prop) throws PrismException, PrismLangException
+	{
 		Result res = null;
 		Values definedPFConstants = propertiesFile.getConstantValues();
 
 		if (!digital)
 			mainLog.printSeparator();
-		mainLog.println("\nModel checking: " + expr);
+		mainLog.println("\nModel checking: " + prop);
 		if (currentDefinedMFConstants != null && currentDefinedMFConstants.getNumValues() > 0)
 			mainLog.println("Model constants: " + currentDefinedMFConstants);
 		if (definedPFConstants != null && definedPFConstants.getNumValues() > 0)
 			mainLog.println("Property constants: " + definedPFConstants);
 
 		// Check that property is valid for the current model type
-		expr.checkValid(currentModelType);
+		prop.getExpression().checkValid(currentModelType);
 
 		// For PTAs...
 		if (currentModelType == ModelType.PTA) {
-			return modelCheckPTA(propertiesFile, expr, definedPFConstants);
+			return modelCheckPTA(propertiesFile, prop.getExpression(), definedPFConstants);
 		}
 
 		// Build model, if necessary
@@ -2272,7 +2282,7 @@ public class Prism implements PrismSettingsListener
 			default:
 				throw new PrismException("Unknown model type " + currentModelType);
 			}
-			res = mc.check(expr);
+			res = mc.check(prop.getExpression());
 		} else {
 			explicit.StateModelChecker mc = null;
 			switch (currentModelType) {
@@ -2297,7 +2307,7 @@ public class Prism implements PrismSettingsListener
 			mc.setLog(mainLog);
 			mc.setSettings(settings);
 			mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);
-			res = mc.check(currentModelExpl, expr);
+			res = mc.check(currentModelExpl, prop.getExpression());
 		}
 
 		// Return result
