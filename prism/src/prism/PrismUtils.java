@@ -152,11 +152,19 @@ public class PrismUtils
 	 */
 	public static String addCounterSuffixToFilename(String f, int i)
 	{
+		return addSuffixToFilename(f, "" + i);
+	}
+
+	/**
+	 * Modify a filename f, appending a string s just before the filetype extension. 
+	 */
+	public static String addSuffixToFilename(String f, String s)
+	{
 		int j = f.lastIndexOf(".");
 		if (j != -1) {
-			return f.substring(0, j) + i + f.substring(j);
+			return f.substring(0, j) + s + f.substring(j);
 		} else {
-			return f + i;
+			return f + s;
 		}
 	}
 
