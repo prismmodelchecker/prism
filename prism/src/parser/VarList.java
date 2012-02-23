@@ -335,6 +335,37 @@ public class VarList
 	}
 
 	/**
+	 * Get the integer encoding of a value for a variable, specified as a string.
+	 */
+	public int encodeToIntFromString(int var, String s) throws PrismLangException
+	{
+		Type type = getType(var);
+		// Integer type
+		if (type instanceof TypeInt) {
+			try {
+				int i = Integer.parseInt(s);
+				return i - getLow(var);
+			} catch (NumberFormatException e) {
+				throw new PrismLangException("\"" + s + "\" is not a valid integer value");
+			}
+		}
+		// Boolean type
+		else if (type instanceof TypeBool) {
+			if (s.equals("true"))
+				return 1;
+			else if (s.equals("false"))
+				return 0;
+			else
+				throw new PrismLangException("\"" + s + "\" is not a valid Boolean value");
+
+		}
+		// Anything else
+		else {
+			throw new PrismLangException("Unknown type " + type + " for variable " + getName(var));
+		}
+	}
+
+	/**
 	 * Get a list of all possible values for a subset of the variables in this list.
 	 * @param vars The subset of variables
 	 */

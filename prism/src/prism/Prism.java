@@ -199,6 +199,12 @@ public class Prism implements PrismSettingsListener
 	private explicit.Model currentModelExpl = null;
 	// Are we doing digital clocks translation for PTAs?
 	boolean digital = false;
+	
+	// Info for explicit files load
+	private File explicitFilesStatesFile = null;
+	private File explicitFilesTransFile = null;
+	private File explicitFilesLabelsFile = null;
+	private int explicitFilesNumStates = -1;
 
 	// Has the CUDD library been initialised yet?
 	private boolean cuddStarted = false;
@@ -1528,9 +1534,14 @@ public class Prism implements PrismSettingsListener
 		currentModelSource = ModelSource.EXPLICIT_FILES;
 		// Clear any existing built model(s)
 		clearBuiltModel();
-		// Create ExplicitFiles2MTBDD object and build state space
-		expf2mtbdd = new ExplicitFiles2MTBDD(this, statesFile, transFile, labelsFile, typeOverride);
-		currentModulesFile = expf2mtbdd.buildStates();
+		// Construct ModulesFile
+		ExplicitFiles2ModulesFile ef2mf = new ExplicitFiles2ModulesFile(this);
+		currentModulesFile = ef2mf.buildModulesFile(statesFile, transFile, typeOverride);
+		// Store explicit files info for later
+		explicitFilesStatesFile = statesFile;
+		explicitFilesTransFile = transFile;
+		explicitFilesLabelsFile = labelsFile;
+		explicitFilesNumStates = ef2mf.getNumStates();
 		// Reset dependent info
 		currentModelType = currentModulesFile == null ? null : currentModulesFile.getModelType();
 		currentDefinedMFConstants = null;
@@ -1660,10 +1671,8 @@ public class Prism implements PrismSettingsListener
 				break;
 			case EXPLICIT_FILES:
 				if (!getExplicit()) {
-					// check ExplicitFiles2MTBDD object created
-					if (expf2mtbdd == null)
-						throw new PrismException("ExplicitFiles2MTBDD object never created");
-					currentModel = expf2mtbdd.buildModel();
+					expf2mtbdd = new ExplicitFiles2MTBDD(this);
+					currentModel = expf2mtbdd.build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, currentModulesFile, explicitFilesNumStates);
 				} else {
 					throw new PrismException("Explicit import not yet supported for explicit engine");
 				}
