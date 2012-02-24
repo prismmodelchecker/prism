@@ -134,7 +134,7 @@ public class RewardStruct extends ASTElement
 		String s = "";
 		
 		s += "rewards";
-		if (name != null) s += " \""+name+"\"";
+		if (name != null && name.length() > 0) s += " \""+name+"\"";
 		s += " \n\n";
 		n = getNumItems();
 		for (i = 0; i < n; i++) {
