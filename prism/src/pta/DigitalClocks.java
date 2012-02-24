@@ -121,7 +121,7 @@ public class DigitalClocks
 		if (ast != null)
 			throw new PrismLangException("Diagonal clock constraints are not allowed when using the digital clocks method", ast);
 
-		// ACheck for any references to clocks in rewards structures - not allowed.
+		// Check for any references to clocks in rewards structures - not allowed.
 		for (RewardStruct rs : modulesFile.getRewardStructs()) {
 			rs.accept(new ASTTraverseModify()
 			{
