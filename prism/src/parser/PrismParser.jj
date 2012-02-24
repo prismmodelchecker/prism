@@ -322,8 +322,6 @@ public class PrismParser
 	// A few classes for temporary storage of bits of the AST
 	//-----------------------------------------------------------------------------------
 	
-	static class TimeBound { public Expression lBound = null; public Expression uBound = null; public boolean lBoundStrict = false; public boolean uBoundStrict = false; }
-	
 	static class ExpressionPair { public Expression expr1 = null; public Expression expr2 = null; }
 }
 
@@ -1039,7 +1037,6 @@ Expression ExpressionTemporalBinary(boolean prop, boolean pathprop) :
 {
 	Expression ret, expr;
 	ExpressionTemporal exprTemp;
-	TimeBound tb = null;
 	Token begin = null;
 }
 {
@@ -1051,7 +1048,7 @@ Expression ExpressionTemporalBinary(boolean prop, boolean pathprop) :
 		( <U> { exprTemp.setOperator(ExpressionTemporal.P_U); }
 		| <W> { exprTemp.setOperator(ExpressionTemporal.P_W); }
 		| <R> { exprTemp.setOperator(ExpressionTemporal.P_R); } )
-		( tb = TimeBound() { exprTemp.setLowerBound(tb.lBound, tb.lBoundStrict); exprTemp.setUpperBound(tb.uBound, tb.uBoundStrict); } )?
+		( TimeBound(exprTemp) )?
 		expr = ExpressionTemporalUnary(prop, pathprop)
 		{ exprTemp.setOperand2(expr); exprTemp.setPosition(begin, getToken(0)); ret = exprTemp; }
 	]
@@ -1062,7 +1059,6 @@ Expression ExpressionTemporalUnary(boolean prop, boolean pathprop) :
 {
 	Expression ret, expr;
 	ExpressionTemporal exprTemp;
-	TimeBound tb = null;
 	Token begin = null;
 }
 {
@@ -1073,7 +1069,7 @@ Expression ExpressionTemporalUnary(boolean prop, boolean pathprop) :
 		( <X> { exprTemp.setOperator(ExpressionTemporal.P_X); }
 		| <F> { exprTemp.setOperator(ExpressionTemporal.P_F); }
 		| <G> { exprTemp.setOperator(ExpressionTemporal.P_G); } )
-		( tb = TimeBound() { exprTemp.setLowerBound(tb.lBound, tb.lBoundStrict); exprTemp.setUpperBound(tb.uBound, tb.uBoundStrict); } )?
+		( TimeBound(exprTemp) )?
 		expr = ExpressionTemporalUnary(prop, pathprop)
 		{ exprTemp.setOperand2(expr); exprTemp.setPosition(begin, getToken(0)); ret = exprTemp; }
 	|
@@ -1085,17 +1081,18 @@ Expression ExpressionTemporalUnary(boolean prop, boolean pathprop) :
 // Time bound for temporal operators
 // (see ExpressionTemporal production for lookahead explanation)
 
-TimeBound TimeBound() :
+void TimeBound(ExpressionTemporal exprTemp) :
 {
-	TimeBound tb = new TimeBound();
+	Expression lBound, uBound;
 }
 {
-	( <LE> ( LOOKAHEAD(IdentifierExpression() <LPARENTH>) tb.uBound = IdentifierExpression() | tb.uBound = Expression(false, false) )
-	| <LT> {tb.uBoundStrict=true;} ( LOOKAHEAD(IdentifierExpression() <LPARENTH>) tb.uBound = IdentifierExpression() | tb.uBound = Expression(false, false) )
-	| <GE> ( LOOKAHEAD(IdentifierExpression() <LPARENTH>) tb.lBound = IdentifierExpression() | tb.lBound = Expression(false, false) )
-	| <GT> {tb.lBoundStrict=true;} ( LOOKAHEAD(IdentifierExpression() <LPARENTH>) tb.lBound = IdentifierExpression() | tb.lBound = Expression(false, false) )
-	| <LBRACKET> tb.lBound = Expression(false, false) <COMMA> tb.uBound = Expression(false, false) <RBRACKET> )
-	{ return tb; }
+	( ( <LE> ( LOOKAHEAD(IdentifierExpression() <LPARENTH>) uBound = IdentifierExpression() | uBound = Expression(false, false) ) { exprTemp.setUpperBound(uBound, false); } )
+	| ( <LT> ( LOOKAHEAD(IdentifierExpression() <LPARENTH>) uBound = IdentifierExpression() | uBound = Expression(false, false) ) { exprTemp.setUpperBound(uBound, true); } )
+	| ( <GE> ( LOOKAHEAD(IdentifierExpression() <LPARENTH>) lBound = IdentifierExpression() | lBound = Expression(false, false) ) { exprTemp.setLowerBound(lBound, false); } )
+	| ( <GT> ( LOOKAHEAD(IdentifierExpression() <LPARENTH>) lBound = IdentifierExpression() | lBound = Expression(false, false) ) { exprTemp.setLowerBound(lBound, true); } )
+	| ( <LBRACKET> lBound = Expression(false, false) <COMMA> uBound = Expression(false, false) <RBRACKET> { exprTemp.setLowerBound(lBound, false); exprTemp.setUpperBound(uBound, false); } )
+	| ( <EQ> lBound = Expression(false, false) { exprTemp.setEqualBounds(lBound); } )
+	)
 }
 
 // Expression: if-then-else, i.e. "cond ? then : else"

@@ -289,8 +289,6 @@ public class PrismParser implements PrismParserConstants {
         // A few classes for temporary storage of bits of the AST
         //-----------------------------------------------------------------------------------
 
-        static class TimeBound { public Expression lBound = null; public Expression uBound = null; public boolean lBoundStrict = false; public boolean uBoundStrict = false; }
-
         static class ExpressionPair { public Expression expr1 = null; public Expression expr2 = null; }
 
 //-----------------------------------------------------------------------------------
@@ -1489,7 +1487,6 @@ public class PrismParser implements PrismParserConstants {
   static final public Expression ExpressionTemporalBinary(boolean prop, boolean pathprop) throws ParseException {
         Expression ret, expr;
         ExpressionTemporal exprTemp;
-        TimeBound tb = null;
         Token begin = null;
           begin = getToken(1);
     ret = ExpressionTemporalUnary(prop, pathprop);
@@ -1519,12 +1516,12 @@ public class PrismParser implements PrismParserConstants {
       }
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case LBRACKET:
+      case EQ:
       case LT:
       case GT:
       case LE:
       case GE:
-        tb = TimeBound();
-                                     exprTemp.setLowerBound(tb.lBound, tb.lBoundStrict); exprTemp.setUpperBound(tb.uBound, tb.uBoundStrict);
+        TimeBound(exprTemp);
         break;
       default:
         jj_la1[39] = jj_gen;
@@ -1544,7 +1541,6 @@ public class PrismParser implements PrismParserConstants {
   static final public Expression ExpressionTemporalUnary(boolean prop, boolean pathprop) throws ParseException {
         Expression ret, expr;
         ExpressionTemporal exprTemp;
-        TimeBound tb = null;
         Token begin = null;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case F:
@@ -1572,12 +1568,12 @@ public class PrismParser implements PrismParserConstants {
       }
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case LBRACKET:
+      case EQ:
       case LT:
       case GT:
       case LE:
       case GE:
-        tb = TimeBound();
-                                     exprTemp.setLowerBound(tb.lBound, tb.lBoundStrict); exprTemp.setUpperBound(tb.uBound, tb.uBoundStrict);
+        TimeBound(exprTemp);
         break;
       default:
         jj_la1[42] = jj_gen;
@@ -1621,13 +1617,13 @@ public class PrismParser implements PrismParserConstants {
 
 // Time bound for temporal operators
 // (see ExpressionTemporal production for lookahead explanation)
-  static final public TimeBound TimeBound() throws ParseException {
-        TimeBound tb = new TimeBound();
+  static final public void TimeBound(ExpressionTemporal exprTemp) throws ParseException {
+        Expression lBound, uBound;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case LE:
       jj_consume_token(LE);
       if (jj_2_10(2147483647)) {
-        tb.uBound = IdentifierExpression();
+        uBound = IdentifierExpression();
       } else {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case A:
@@ -1655,7 +1651,7 @@ public class PrismParser implements PrismParserConstants {
         case REG_INT:
         case REG_DOUBLE:
         case REG_IDENT:
-          tb.uBound = Expression(false, false);
+          uBound = Expression(false, false);
           break;
         default:
           jj_la1[44] = jj_gen;
@@ -1663,12 +1659,12 @@ public class PrismParser implements PrismParserConstants {
           throw new ParseException();
         }
       }
+                                                                                                                                        exprTemp.setUpperBound(uBound, false);
       break;
     case LT:
       jj_consume_token(LT);
-                tb.uBoundStrict=true;
       if (jj_2_11(2147483647)) {
-        tb.uBound = IdentifierExpression();
+        uBound = IdentifierExpression();
       } else {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case A:
@@ -1696,7 +1692,7 @@ public class PrismParser implements PrismParserConstants {
         case REG_INT:
         case REG_DOUBLE:
         case REG_IDENT:
-          tb.uBound = Expression(false, false);
+          uBound = Expression(false, false);
           break;
         default:
           jj_la1[45] = jj_gen;
@@ -1704,11 +1700,12 @@ public class PrismParser implements PrismParserConstants {
           throw new ParseException();
         }
       }
+                                                                                                                                        exprTemp.setUpperBound(uBound, true);
       break;
     case GE:
       jj_consume_token(GE);
       if (jj_2_12(2147483647)) {
-        tb.lBound = IdentifierExpression();
+        lBound = IdentifierExpression();
       } else {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case A:
@@ -1736,7 +1733,7 @@ public class PrismParser implements PrismParserConstants {
         case REG_INT:
         case REG_DOUBLE:
         case REG_IDENT:
-          tb.lBound = Expression(false, false);
+          lBound = Expression(false, false);
           break;
         default:
           jj_la1[46] = jj_gen;
@@ -1744,12 +1741,12 @@ public class PrismParser implements PrismParserConstants {
           throw new ParseException();
         }
       }
+                                                                                                                                        exprTemp.setLowerBound(lBound, false);
       break;
     case GT:
       jj_consume_token(GT);
-                tb.lBoundStrict=true;
       if (jj_2_13(2147483647)) {
-        tb.lBound = IdentifierExpression();
+        lBound = IdentifierExpression();
       } else {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case A:
@@ -1777,7 +1774,7 @@ public class PrismParser implements PrismParserConstants {
         case REG_INT:
         case REG_DOUBLE:
         case REG_IDENT:
-          tb.lBound = Expression(false, false);
+          lBound = Expression(false, false);
           break;
         default:
           jj_la1[47] = jj_gen;
@@ -1785,21 +1782,26 @@ public class PrismParser implements PrismParserConstants {
           throw new ParseException();
         }
       }
+                                                                                                                                        exprTemp.setLowerBound(lBound, true);
       break;
     case LBRACKET:
       jj_consume_token(LBRACKET);
-      tb.lBound = Expression(false, false);
+      lBound = Expression(false, false);
       jj_consume_token(COMMA);
-      tb.uBound = Expression(false, false);
+      uBound = Expression(false, false);
       jj_consume_token(RBRACKET);
+                                                                                                                exprTemp.setLowerBound(lBound, false); exprTemp.setUpperBound(uBound, false);
+      break;
+    case EQ:
+      jj_consume_token(EQ);
+      lBound = Expression(false, false);
+                                                     exprTemp.setEqualBounds(lBound);
       break;
     default:
       jj_la1[48] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
-          {if (true) return tb;}
-    throw new Error("Missing return statement in function");
   }
 
 // Expression: if-then-else, i.e. "cond ? then : else"
@@ -3090,62 +3092,46 @@ public class PrismParser implements PrismParserConstants {
     finally { jj_save(13, xla); }
   }
 
-  static private boolean jj_3_13() {
-    if (jj_3R_30()) return true;
-    if (jj_scan_token(LPARENTH)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_58() {
-    if (jj_3R_68()) return true;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_69()) { jj_scanpos = xsp; break; }
-    }
-    return false;
-  }
-
-  static private boolean jj_3_11() {
-    if (jj_3R_30()) return true;
-    if (jj_scan_token(LPARENTH)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_66() {
-    if (jj_3R_30()) return true;
+  static private boolean jj_3R_70() {
+    if (jj_scan_token(IFF)) return true;
+    if (jj_3R_69()) return true;
     return false;
   }
 
   static private boolean jj_3R_59() {
-    if (jj_scan_token(IMPLIES)) return true;
-    if (jj_3R_58()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_62() {
-    if (jj_3R_30()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_51() {
-    if (jj_3R_58()) return true;
+    if (jj_3R_69()) return true;
     Token xsp;
     while (true) {
       xsp = jj_scanpos;
-      if (jj_3R_59()) { jj_scanpos = xsp; break; }
+      if (jj_3R_70()) { jj_scanpos = xsp; break; }
     }
     return false;
   }
 
-  static private boolean jj_3R_140() {
+  static private boolean jj_3R_60() {
+    if (jj_scan_token(IMPLIES)) return true;
+    if (jj_3R_59()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_51() {
+    if (jj_3R_59()) return true;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3R_60()) { jj_scanpos = xsp; break; }
+    }
+    return false;
+  }
+
+  static private boolean jj_3R_141() {
     if (jj_scan_token(EQ)) return true;
     if (jj_scan_token(QMARK)) return true;
     return false;
   }
 
-  static private boolean jj_3R_139() {
-    if (jj_3R_84()) return true;
+  static private boolean jj_3R_140() {
+    if (jj_3R_85()) return true;
     if (jj_3R_35()) return true;
     return false;
   }
@@ -3158,7 +3144,19 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
+  static private boolean jj_3_13() {
+    if (jj_3R_30()) return true;
+    if (jj_scan_token(LPARENTH)) return true;
+    return false;
+  }
+
   static private boolean jj_3_12() {
+    if (jj_3R_30()) return true;
+    if (jj_scan_token(LPARENTH)) return true;
+    return false;
+  }
+
+  static private boolean jj_3_11() {
     if (jj_3R_30()) return true;
     if (jj_scan_token(LPARENTH)) return true;
     return false;
@@ -3170,18 +3168,18 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_118() {
+  static private boolean jj_3R_119() {
     if (jj_scan_token(S)) return true;
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_139()) {
+    if (jj_3R_140()) {
     jj_scanpos = xsp;
-    if (jj_3R_140()) return true;
+    if (jj_3R_141()) return true;
     }
     if (jj_scan_token(LBRACKET)) return true;
     if (jj_3R_35()) return true;
     xsp = jj_scanpos;
-    if (jj_3R_141()) jj_scanpos = xsp;
+    if (jj_3R_142()) jj_scanpos = xsp;
     if (jj_scan_token(RBRACKET)) return true;
     return false;
   }
@@ -3194,28 +3192,44 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_64() {
+  static private boolean jj_3R_67() {
     if (jj_3R_30()) return true;
     return false;
   }
 
-  static private boolean jj_3R_138() {
-    if (jj_3R_161()) return true;
+  static private boolean jj_3R_65() {
+    if (jj_3R_30()) return true;
     return false;
   }
 
-  static private boolean jj_3R_174() {
+  static private boolean jj_3R_63() {
+    if (jj_3R_30()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_61() {
+    if (jj_3R_30()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_139() {
+    if (jj_3R_162()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_175() {
     if (jj_scan_token(MAX)) return true;
     return false;
   }
 
-  static private boolean jj_3R_60() {
-    if (jj_3R_30()) return true;
+  static private boolean jj_3R_174() {
+    if (jj_scan_token(MIN)) return true;
     return false;
   }
 
-  static private boolean jj_3R_173() {
-    if (jj_scan_token(MIN)) return true;
+  static private boolean jj_3R_58() {
+    if (jj_scan_token(EQ)) return true;
+    if (jj_3R_35()) return true;
     return false;
   }
 
@@ -3232,9 +3246,9 @@ public class PrismParser implements PrismParserConstants {
     if (jj_scan_token(GT)) return true;
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_66()) {
+    if (jj_3R_67()) {
     jj_scanpos = xsp;
-    if (jj_3R_67()) return true;
+    if (jj_3R_68()) return true;
     }
     return false;
   }
@@ -3243,9 +3257,9 @@ public class PrismParser implements PrismParserConstants {
     if (jj_scan_token(GE)) return true;
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_64()) {
+    if (jj_3R_65()) {
     jj_scanpos = xsp;
-    if (jj_3R_65()) return true;
+    if (jj_3R_66()) return true;
     }
     return false;
   }
@@ -3254,9 +3268,9 @@ public class PrismParser implements PrismParserConstants {
     if (jj_scan_token(LT)) return true;
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_62()) {
+    if (jj_3R_63()) {
     jj_scanpos = xsp;
-    if (jj_3R_63()) return true;
+    if (jj_3R_64()) return true;
     }
     return false;
   }
@@ -3265,10 +3279,22 @@ public class PrismParser implements PrismParserConstants {
     if (jj_scan_token(LE)) return true;
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_60()) {
+    if (jj_3R_61()) {
     jj_scanpos = xsp;
-    if (jj_3R_61()) return true;
+    if (jj_3R_62()) return true;
     }
+    return false;
+  }
+
+  static private boolean jj_3R_172() {
+    if (jj_scan_token(LBRACE)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_174()) {
+    jj_scanpos = xsp;
+    if (jj_3R_175()) return true;
+    }
+    if (jj_scan_token(RBRACE)) return true;
     return false;
   }
 
@@ -3283,34 +3309,25 @@ public class PrismParser implements PrismParserConstants {
     jj_scanpos = xsp;
     if (jj_3R_56()) {
     jj_scanpos = xsp;
-    if (jj_3R_57()) return true;
-    }
-    }
-    }
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_171() {
-    if (jj_scan_token(LBRACE)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_173()) {
+    if (jj_3R_57()) {
     jj_scanpos = xsp;
-    if (jj_3R_174()) return true;
+    if (jj_3R_58()) return true;
     }
-    if (jj_scan_token(RBRACE)) return true;
+    }
+    }
+    }
+    }
     return false;
   }
 
-  static private boolean jj_3R_161() {
+  static private boolean jj_3R_162() {
     if (jj_scan_token(LBRACE)) return true;
     if (jj_3R_35()) return true;
     if (jj_scan_token(RBRACE)) return true;
     Token xsp;
     while (true) {
       xsp = jj_scanpos;
-      if (jj_3R_171()) { jj_scanpos = xsp; break; }
+      if (jj_3R_172()) { jj_scanpos = xsp; break; }
     }
     return false;
   }
@@ -3356,8 +3373,8 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_157() {
-    if (jj_3R_84()) return true;
+  static private boolean jj_3R_158() {
+    if (jj_3R_85()) return true;
     if (jj_3R_35()) return true;
     return false;
   }
@@ -3372,7 +3389,7 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_160() {
+  static private boolean jj_3R_161() {
     if (jj_scan_token(MAX)) return true;
     if (jj_scan_token(EQ)) return true;
     if (jj_scan_token(QMARK)) return true;
@@ -3384,7 +3401,7 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_159() {
+  static private boolean jj_3R_160() {
     if (jj_scan_token(MIN)) return true;
     if (jj_scan_token(EQ)) return true;
     if (jj_scan_token(QMARK)) return true;
@@ -3396,7 +3413,7 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_158() {
+  static private boolean jj_3R_159() {
     if (jj_scan_token(EQ)) return true;
     if (jj_scan_token(QMARK)) return true;
     return false;
@@ -3412,14 +3429,14 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_137() {
+  static private boolean jj_3R_138() {
     if (jj_scan_token(PMAX)) return true;
     if (jj_scan_token(EQ)) return true;
     if (jj_scan_token(QMARK)) return true;
     return false;
   }
 
-  static private boolean jj_3R_136() {
+  static private boolean jj_3R_137() {
     if (jj_scan_token(PMIN)) return true;
     if (jj_scan_token(EQ)) return true;
     if (jj_scan_token(QMARK)) return true;
@@ -3442,37 +3459,37 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_135() {
+  static private boolean jj_3R_136() {
     if (jj_scan_token(P)) return true;
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_157()) {
-    jj_scanpos = xsp;
     if (jj_3R_158()) {
     jj_scanpos = xsp;
     if (jj_3R_159()) {
     jj_scanpos = xsp;
-    if (jj_3R_160()) return true;
+    if (jj_3R_160()) {
+    jj_scanpos = xsp;
+    if (jj_3R_161()) return true;
     }
     }
     }
     return false;
   }
 
-  static private boolean jj_3R_117() {
+  static private boolean jj_3R_118() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_135()) {
-    jj_scanpos = xsp;
     if (jj_3R_136()) {
     jj_scanpos = xsp;
-    if (jj_3R_137()) return true;
+    if (jj_3R_137()) {
+    jj_scanpos = xsp;
+    if (jj_3R_138()) return true;
     }
     }
     if (jj_scan_token(LBRACKET)) return true;
     if (jj_3R_35()) return true;
     xsp = jj_scanpos;
-    if (jj_3R_138()) jj_scanpos = xsp;
+    if (jj_3R_139()) jj_scanpos = xsp;
     if (jj_scan_token(RBRACKET)) return true;
     return false;
   }
@@ -3485,26 +3502,26 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_156() {
+  static private boolean jj_3R_157() {
     if (jj_scan_token(COMMA)) return true;
     if (jj_3R_35()) return true;
     return false;
   }
 
-  static private boolean jj_3R_134() {
+  static private boolean jj_3R_135() {
     if (jj_3R_28()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_116() {
-    if (jj_scan_token(LPARENTH)) return true;
-    if (jj_3R_35()) return true;
-    if (jj_scan_token(RPARENTH)) return true;
     return false;
   }
 
   static private boolean jj_3_4() {
     if (jj_scan_token(LABEL)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_117() {
+    if (jj_scan_token(LPARENTH)) return true;
+    if (jj_3R_35()) return true;
+    if (jj_scan_token(RPARENTH)) return true;
     return false;
   }
 
@@ -3514,7 +3531,7 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_133() {
+  static private boolean jj_3R_134() {
     if (jj_scan_token(MAX)) return true;
     return false;
   }
@@ -3524,59 +3541,54 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_127() {
+  static private boolean jj_3R_128() {
     if (jj_scan_token(FALSE)) return true;
     return false;
   }
 
-  static private boolean jj_3R_126() {
+  static private boolean jj_3R_127() {
     if (jj_scan_token(TRUE)) return true;
     return false;
   }
 
-  static private boolean jj_3R_125() {
+  static private boolean jj_3R_126() {
     if (jj_scan_token(REG_DOUBLE)) return true;
     return false;
   }
 
-  static private boolean jj_3R_132() {
+  static private boolean jj_3R_133() {
     if (jj_scan_token(MIN)) return true;
     return false;
   }
 
-  static private boolean jj_3R_124() {
+  static private boolean jj_3R_125() {
     if (jj_scan_token(REG_INT)) return true;
     return false;
   }
 
-  static private boolean jj_3R_112() {
+  static private boolean jj_3R_113() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_124()) {
-    jj_scanpos = xsp;
     if (jj_3R_125()) {
     jj_scanpos = xsp;
     if (jj_3R_126()) {
     jj_scanpos = xsp;
-    if (jj_3R_127()) return true;
+    if (jj_3R_127()) {
+    jj_scanpos = xsp;
+    if (jj_3R_128()) return true;
     }
     }
     }
     return false;
   }
 
-  static private boolean jj_3R_130() {
+  static private boolean jj_3R_131() {
     if (jj_scan_token(MAX)) return true;
     return false;
   }
 
-  static private boolean jj_3R_94() {
+  static private boolean jj_3R_95() {
     if (jj_scan_token(LE)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_93() {
-    if (jj_scan_token(GE)) return true;
     return false;
   }
 
@@ -3587,76 +3599,81 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_92() {
+  static private boolean jj_3R_94() {
+    if (jj_scan_token(GE)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_93() {
     if (jj_scan_token(LT)) return true;
     return false;
   }
 
-  static private boolean jj_3R_84() {
+  static private boolean jj_3R_85() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_91()) {
-    jj_scanpos = xsp;
     if (jj_3R_92()) {
     jj_scanpos = xsp;
     if (jj_3R_93()) {
     jj_scanpos = xsp;
-    if (jj_3R_94()) return true;
+    if (jj_3R_94()) {
+    jj_scanpos = xsp;
+    if (jj_3R_95()) return true;
     }
     }
     }
     return false;
   }
 
-  static private boolean jj_3R_91() {
+  static private boolean jj_3R_92() {
     if (jj_scan_token(GT)) return true;
     return false;
   }
 
-  static private boolean jj_3R_131() {
+  static private boolean jj_3R_132() {
     if (jj_3R_35()) return true;
     Token xsp;
     while (true) {
       xsp = jj_scanpos;
-      if (jj_3R_156()) { jj_scanpos = xsp; break; }
+      if (jj_3R_157()) { jj_scanpos = xsp; break; }
+    }
+    return false;
+  }
+
+  static private boolean jj_3R_87() {
+    if (jj_scan_token(NE)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_82() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_86()) {
+    jj_scanpos = xsp;
+    if (jj_3R_87()) return true;
     }
     return false;
   }
 
   static private boolean jj_3R_86() {
-    if (jj_scan_token(NE)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_81() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_85()) {
-    jj_scanpos = xsp;
-    if (jj_3R_86()) return true;
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_85() {
     if (jj_scan_token(EQ)) return true;
     return false;
   }
 
-  static private boolean jj_3R_115() {
+  static private boolean jj_3R_116() {
     if (jj_scan_token(FUNC)) return true;
     if (jj_scan_token(LPARENTH)) return true;
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_132()) {
-    jj_scanpos = xsp;
     if (jj_3R_133()) {
     jj_scanpos = xsp;
-    if (jj_3R_134()) return true;
+    if (jj_3R_134()) {
+    jj_scanpos = xsp;
+    if (jj_3R_135()) return true;
     }
     }
     if (jj_scan_token(COMMA)) return true;
-    if (jj_3R_131()) return true;
+    if (jj_3R_132()) return true;
     if (jj_scan_token(RPARENTH)) return true;
     return false;
   }
@@ -3675,20 +3692,20 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_129() {
+  static private boolean jj_3R_130() {
     if (jj_scan_token(MIN)) return true;
     return false;
   }
 
-  static private boolean jj_3R_114() {
+  static private boolean jj_3R_115() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_129()) {
+    if (jj_3R_130()) {
     jj_scanpos = xsp;
-    if (jj_3R_130()) return true;
+    if (jj_3R_131()) return true;
     }
     if (jj_scan_token(LPARENTH)) return true;
-    if (jj_3R_131()) return true;
+    if (jj_3R_132()) return true;
     if (jj_scan_token(RPARENTH)) return true;
     return false;
   }
@@ -3704,23 +3721,23 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_153() {
+  static private boolean jj_3R_154() {
     if (jj_scan_token(OR)) return true;
     return false;
   }
 
-  static private boolean jj_3R_128() {
+  static private boolean jj_3R_129() {
     if (jj_scan_token(LPARENTH)) return true;
-    if (jj_3R_131()) return true;
+    if (jj_3R_132()) return true;
     if (jj_scan_token(RPARENTH)) return true;
     return false;
   }
 
-  static private boolean jj_3R_113() {
+  static private boolean jj_3R_114() {
     if (jj_3R_28()) return true;
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_128()) jj_scanpos = xsp;
+    if (jj_3R_129()) jj_scanpos = xsp;
     return false;
   }
 
@@ -3729,18 +3746,23 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_111() {
-    if (jj_3R_123()) return true;
+  static private boolean jj_3R_112() {
+    if (jj_3R_124()) return true;
     return false;
   }
 
-  static private boolean jj_3R_150() {
+  static private boolean jj_3R_151() {
     if (jj_scan_token(MAX)) return true;
     return false;
   }
 
-  static private boolean jj_3R_152() {
+  static private boolean jj_3R_153() {
     if (jj_scan_token(AND)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_111() {
+    if (jj_3R_123()) return true;
     return false;
   }
 
@@ -3749,13 +3771,18 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
+  static private boolean jj_3R_28() {
+    if (jj_scan_token(REG_IDENT)) return true;
+    return false;
+  }
+
   static private boolean jj_3R_109() {
     if (jj_3R_121()) return true;
     return false;
   }
 
-  static private boolean jj_3R_28() {
-    if (jj_scan_token(REG_IDENT)) return true;
+  static private boolean jj_3R_99() {
+    if (jj_scan_token(DIVIDE)) return true;
     return false;
   }
 
@@ -3764,18 +3791,13 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_98() {
-    if (jj_scan_token(DIVIDE)) return true;
+  static private boolean jj_3R_149() {
+    if (jj_scan_token(INIT)) return true;
     return false;
   }
 
   static private boolean jj_3R_107() {
     if (jj_3R_119()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_148() {
-    if (jj_scan_token(INIT)) return true;
     return false;
   }
 
@@ -3794,14 +3816,14 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_103() {
-    if (jj_3R_115()) return true;
+  static private boolean jj_3R_156() {
+    if (jj_scan_token(COMMA)) return true;
+    if (jj_3R_35()) return true;
     return false;
   }
 
-  static private boolean jj_3R_155() {
-    if (jj_scan_token(COMMA)) return true;
-    if (jj_3R_35()) return true;
+  static private boolean jj_3R_103() {
+    if (jj_3R_115()) return true;
     return false;
   }
 
@@ -3810,48 +3832,41 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
+  static private boolean jj_3R_155() {
+    if (jj_3R_28()) return true;
+    return false;
+  }
+
   static private boolean jj_3R_101() {
     if (jj_3R_113()) return true;
     return false;
   }
 
-  static private boolean jj_3R_154() {
-    if (jj_3R_28()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_100() {
-    if (jj_3R_112()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_151() {
+  static private boolean jj_3R_152() {
     if (jj_scan_token(PLUS)) return true;
     return false;
   }
 
-  static private boolean jj_3R_149() {
+  static private boolean jj_3R_150() {
     if (jj_scan_token(MIN)) return true;
     return false;
   }
 
-  static private boolean jj_3R_90() {
+  static private boolean jj_3R_91() {
     if (jj_scan_token(MINUS)) return true;
     return false;
   }
 
-  static private boolean jj_3R_147() {
+  static private boolean jj_3R_148() {
     if (jj_3R_28()) return true;
     return false;
   }
 
-  static private boolean jj_3R_123() {
+  static private boolean jj_3R_124() {
     if (jj_scan_token(FILTER)) return true;
     if (jj_scan_token(LPARENTH)) return true;
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_149()) {
-    jj_scanpos = xsp;
     if (jj_3R_150()) {
     jj_scanpos = xsp;
     if (jj_3R_151()) {
@@ -3860,7 +3875,9 @@ public class PrismParser implements PrismParserConstants {
     jj_scanpos = xsp;
     if (jj_3R_153()) {
     jj_scanpos = xsp;
-    if (jj_3R_154()) return true;
+    if (jj_3R_154()) {
+    jj_scanpos = xsp;
+    if (jj_3R_155()) return true;
     }
     }
     }
@@ -3869,16 +3886,14 @@ public class PrismParser implements PrismParserConstants {
     if (jj_scan_token(COMMA)) return true;
     if (jj_3R_35()) return true;
     xsp = jj_scanpos;
-    if (jj_3R_155()) jj_scanpos = xsp;
+    if (jj_3R_156()) jj_scanpos = xsp;
     if (jj_scan_token(RPARENTH)) return true;
     return false;
   }
 
-  static private boolean jj_3R_99() {
+  static private boolean jj_3R_100() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_100()) {
-    jj_scanpos = xsp;
     if (jj_3R_101()) {
     jj_scanpos = xsp;
     if (jj_3R_102()) {
@@ -3899,7 +3914,9 @@ public class PrismParser implements PrismParserConstants {
     jj_scanpos = xsp;
     if (jj_3R_110()) {
     jj_scanpos = xsp;
-    if (jj_3R_111()) return true;
+    if (jj_3R_111()) {
+    jj_scanpos = xsp;
+    if (jj_3R_112()) return true;
     }
     }
     }
@@ -3914,41 +3931,29 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_96() {
-    if (jj_3R_99()) return true;
+  static private boolean jj_3R_97() {
+    if (jj_3R_100()) return true;
     return false;
   }
 
-  static private boolean jj_3R_176() {
+  static private boolean jj_3R_177() {
     if (jj_3R_35()) return true;
     return false;
   }
 
-  static private boolean jj_3R_95() {
+  static private boolean jj_3R_96() {
     if (jj_scan_token(MINUS)) return true;
-    if (jj_3R_87()) return true;
+    if (jj_3R_88()) return true;
     return false;
   }
 
-  static private boolean jj_3R_87() {
+  static private boolean jj_3R_88() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_95()) {
+    if (jj_3R_96()) {
     jj_scanpos = xsp;
-    if (jj_3R_96()) return true;
+    if (jj_3R_97()) return true;
     }
-    return false;
-  }
-
-  static private boolean jj_3R_122() {
-    if (jj_scan_token(DQUOTE)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_147()) {
-    jj_scanpos = xsp;
-    if (jj_3R_148()) return true;
-    }
-    if (jj_scan_token(DQUOTE)) return true;
     return false;
   }
 
@@ -3959,33 +3964,45 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_97() {
+  static private boolean jj_3R_123() {
+    if (jj_scan_token(DQUOTE)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_148()) {
+    jj_scanpos = xsp;
+    if (jj_3R_149()) return true;
+    }
+    if (jj_scan_token(DQUOTE)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_98() {
     if (jj_scan_token(TIMES)) return true;
     return false;
   }
 
-  static private boolean jj_3R_88() {
+  static private boolean jj_3R_89() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_97()) {
+    if (jj_3R_98()) {
     jj_scanpos = xsp;
-    if (jj_3R_98()) return true;
+    if (jj_3R_99()) return true;
     }
-    if (jj_3R_87()) return true;
+    if (jj_3R_88()) return true;
     return false;
   }
 
-  static private boolean jj_3R_82() {
-    if (jj_3R_87()) return true;
+  static private boolean jj_3R_83() {
+    if (jj_3R_88()) return true;
     Token xsp;
     while (true) {
       xsp = jj_scanpos;
-      if (jj_3R_88()) { jj_scanpos = xsp; break; }
+      if (jj_3R_89()) { jj_scanpos = xsp; break; }
     }
     return false;
   }
 
-  static private boolean jj_3R_121() {
+  static private boolean jj_3R_122() {
     if (jj_scan_token(A)) return true;
     if (jj_scan_token(LBRACKET)) return true;
     if (jj_3R_35()) return true;
@@ -3993,19 +4010,19 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_89() {
+  static private boolean jj_3R_90() {
     if (jj_scan_token(PLUS)) return true;
     return false;
   }
 
-  static private boolean jj_3R_83() {
+  static private boolean jj_3R_84() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_89()) {
+    if (jj_3R_90()) {
     jj_scanpos = xsp;
-    if (jj_3R_90()) return true;
+    if (jj_3R_91()) return true;
     }
-    if (jj_3R_82()) return true;
+    if (jj_3R_83()) return true;
     return false;
   }
 
@@ -4014,22 +4031,22 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_79() {
-    if (jj_3R_82()) return true;
+  static private boolean jj_3R_80() {
+    if (jj_3R_83()) return true;
     Token xsp;
     while (true) {
       xsp = jj_scanpos;
-      if (jj_3R_83()) { jj_scanpos = xsp; break; }
+      if (jj_3R_84()) { jj_scanpos = xsp; break; }
     }
     return false;
   }
 
-  static private boolean jj_3R_146() {
-    if (jj_3R_161()) return true;
+  static private boolean jj_3R_147() {
+    if (jj_3R_162()) return true;
     return false;
   }
 
-  static private boolean jj_3R_120() {
+  static private boolean jj_3R_121() {
     if (jj_scan_token(E)) return true;
     if (jj_scan_token(LBRACKET)) return true;
     if (jj_3R_35()) return true;
@@ -4042,103 +4059,93 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_170() {
+  static private boolean jj_3R_171() {
     if (jj_scan_token(S)) return true;
     return false;
   }
 
-  static private boolean jj_3R_80() {
-    if (jj_3R_84()) return true;
-    if (jj_3R_79()) return true;
+  static private boolean jj_3R_81() {
+    if (jj_3R_85()) return true;
+    if (jj_3R_80()) return true;
     return false;
   }
 
-  static private boolean jj_3R_67() {
-    if (jj_3R_35()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_169() {
+  static private boolean jj_3R_170() {
     if (jj_scan_token(F)) return true;
     if (jj_3R_35()) return true;
     return false;
   }
 
-  static private boolean jj_3R_168() {
+  static private boolean jj_3R_169() {
     if (jj_scan_token(I)) return true;
     if (jj_scan_token(EQ)) return true;
     if (jj_3R_35()) return true;
     return false;
   }
 
-  static private boolean jj_3R_63() {
-    if (jj_3R_35()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_167() {
+  static private boolean jj_3R_168() {
     if (jj_scan_token(C)) return true;
     if (jj_scan_token(LE)) return true;
     if (jj_3R_35()) return true;
     return false;
   }
 
-  static private boolean jj_3R_77() {
-    if (jj_3R_79()) return true;
+  static private boolean jj_3R_78() {
+    if (jj_3R_80()) return true;
     Token xsp;
     while (true) {
       xsp = jj_scanpos;
-      if (jj_3R_80()) { jj_scanpos = xsp; break; }
+      if (jj_3R_81()) { jj_scanpos = xsp; break; }
     }
     return false;
   }
 
-  static private boolean jj_3R_175() {
+  static private boolean jj_3R_176() {
     if (jj_scan_token(DQUOTE)) return true;
     if (jj_3R_28()) return true;
     if (jj_scan_token(DQUOTE)) return true;
     return false;
   }
 
-  static private boolean jj_3R_145() {
+  static private boolean jj_3R_146() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_167()) {
-    jj_scanpos = xsp;
     if (jj_3R_168()) {
     jj_scanpos = xsp;
     if (jj_3R_169()) {
     jj_scanpos = xsp;
-    if (jj_3R_170()) return true;
+    if (jj_3R_170()) {
+    jj_scanpos = xsp;
+    if (jj_3R_171()) return true;
     }
     }
     }
     return false;
   }
 
-  static private boolean jj_3R_78() {
-    if (jj_3R_81()) return true;
-    if (jj_3R_77()) return true;
+  static private boolean jj_3R_79() {
+    if (jj_3R_82()) return true;
+    if (jj_3R_78()) return true;
     return false;
   }
 
-  static private boolean jj_3R_76() {
-    if (jj_3R_77()) return true;
+  static private boolean jj_3R_77() {
+    if (jj_3R_78()) return true;
     Token xsp;
     while (true) {
       xsp = jj_scanpos;
-      if (jj_3R_78()) { jj_scanpos = xsp; break; }
+      if (jj_3R_79()) { jj_scanpos = xsp; break; }
     }
     return false;
   }
 
-  static private boolean jj_3R_172() {
+  static private boolean jj_3R_173() {
     if (jj_scan_token(LBRACE)) return true;
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_175()) {
+    if (jj_3R_176()) {
     jj_scanpos = xsp;
-    if (jj_3R_176()) return true;
+    if (jj_3R_177()) return true;
     }
     if (jj_scan_token(RBRACE)) return true;
     return false;
@@ -4150,34 +4157,34 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
+  static private boolean jj_3R_76() {
+    if (jj_3R_77()) return true;
+    return false;
+  }
+
   static private boolean jj_3R_75() {
-    if (jj_3R_76()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_74() {
     if (jj_scan_token(NOT)) return true;
-    if (jj_3R_72()) return true;
+    if (jj_3R_73()) return true;
     return false;
   }
 
-  static private boolean jj_3R_65() {
+  static private boolean jj_3R_68() {
     if (jj_3R_35()) return true;
     return false;
   }
 
-  static private boolean jj_3R_61() {
+  static private boolean jj_3R_66() {
     if (jj_3R_35()) return true;
     return false;
   }
 
-  static private boolean jj_3R_72() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_74()) {
-    jj_scanpos = xsp;
-    if (jj_3R_75()) return true;
-    }
+  static private boolean jj_3R_64() {
+    if (jj_3R_35()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_62() {
+    if (jj_3R_35()) return true;
     return false;
   }
 
@@ -4190,14 +4197,24 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_162() {
-    if (jj_3R_172()) return true;
+  static private boolean jj_3R_73() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_75()) {
+    jj_scanpos = xsp;
+    if (jj_3R_76()) return true;
+    }
     return false;
   }
 
-  static private boolean jj_3R_73() {
+  static private boolean jj_3R_163() {
+    if (jj_3R_173()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_74() {
     if (jj_scan_token(AND)) return true;
-    if (jj_3R_72()) return true;
+    if (jj_3R_73()) return true;
     return false;
   }
 
@@ -4211,55 +4228,42 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_141() {
-    if (jj_3R_161()) return true;
+  static private boolean jj_3_5() {
+    if (jj_3R_29()) return true;
     return false;
   }
 
-  static private boolean jj_3R_166() {
+  static private boolean jj_3R_142() {
+    if (jj_3R_162()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_167() {
     if (jj_scan_token(MAX)) return true;
     if (jj_scan_token(EQ)) return true;
     if (jj_scan_token(QMARK)) return true;
     return false;
   }
 
-  static private boolean jj_3_5() {
-    if (jj_3R_29()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_70() {
-    if (jj_3R_72()) return true;
+  static private boolean jj_3R_71() {
+    if (jj_3R_73()) return true;
     Token xsp;
     while (true) {
       xsp = jj_scanpos;
-      if (jj_3R_73()) { jj_scanpos = xsp; break; }
+      if (jj_3R_74()) { jj_scanpos = xsp; break; }
     }
     return false;
   }
 
-  static private boolean jj_3R_144() {
+  static private boolean jj_3R_145() {
     if (jj_scan_token(RMAX)) return true;
     if (jj_scan_token(EQ)) return true;
     if (jj_scan_token(QMARK)) return true;
     return false;
   }
 
-  static private boolean jj_3R_165() {
+  static private boolean jj_3R_166() {
     if (jj_scan_token(MIN)) return true;
-    if (jj_scan_token(EQ)) return true;
-    if (jj_scan_token(QMARK)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_143() {
-    if (jj_scan_token(RMIN)) return true;
-    if (jj_scan_token(EQ)) return true;
-    if (jj_scan_token(QMARK)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_164() {
     if (jj_scan_token(EQ)) return true;
     if (jj_scan_token(QMARK)) return true;
     return false;
@@ -4275,68 +4279,75 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_163() {
-    if (jj_3R_84()) return true;
+  static private boolean jj_3R_144() {
+    if (jj_scan_token(RMIN)) return true;
+    if (jj_scan_token(EQ)) return true;
+    if (jj_scan_token(QMARK)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_165() {
+    if (jj_scan_token(EQ)) return true;
+    if (jj_scan_token(QMARK)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_164() {
+    if (jj_3R_85()) return true;
     if (jj_3R_35()) return true;
     return false;
   }
 
-  static private boolean jj_3R_142() {
+  static private boolean jj_3R_143() {
     if (jj_scan_token(R)) return true;
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_162()) jj_scanpos = xsp;
+    if (jj_3R_163()) jj_scanpos = xsp;
     xsp = jj_scanpos;
-    if (jj_3R_163()) {
-    jj_scanpos = xsp;
     if (jj_3R_164()) {
     jj_scanpos = xsp;
     if (jj_3R_165()) {
     jj_scanpos = xsp;
-    if (jj_3R_166()) return true;
+    if (jj_3R_166()) {
+    jj_scanpos = xsp;
+    if (jj_3R_167()) return true;
     }
     }
     }
     return false;
   }
 
-  static private boolean jj_3R_71() {
+  static private boolean jj_3R_72() {
     if (jj_scan_token(OR)) return true;
-    if (jj_3R_70()) return true;
+    if (jj_3R_71()) return true;
     return false;
   }
 
-  static private boolean jj_3R_119() {
+  static private boolean jj_3R_120() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_142()) {
-    jj_scanpos = xsp;
     if (jj_3R_143()) {
     jj_scanpos = xsp;
-    if (jj_3R_144()) return true;
+    if (jj_3R_144()) {
+    jj_scanpos = xsp;
+    if (jj_3R_145()) return true;
     }
     }
     if (jj_scan_token(LBRACKET)) return true;
-    if (jj_3R_145()) return true;
+    if (jj_3R_146()) return true;
     xsp = jj_scanpos;
-    if (jj_3R_146()) jj_scanpos = xsp;
+    if (jj_3R_147()) jj_scanpos = xsp;
     if (jj_scan_token(RBRACKET)) return true;
     return false;
   }
 
-  static private boolean jj_3R_68() {
-    if (jj_3R_70()) return true;
+  static private boolean jj_3R_69() {
+    if (jj_3R_71()) return true;
     Token xsp;
     while (true) {
       xsp = jj_scanpos;
-      if (jj_3R_71()) { jj_scanpos = xsp; break; }
+      if (jj_3R_72()) { jj_scanpos = xsp; break; }
     }
-    return false;
-  }
-
-  static private boolean jj_3R_69() {
-    if (jj_scan_token(IFF)) return true;
-    if (jj_3R_68()) return true;
     return false;
   }
 
@@ -4368,7 +4379,7 @@ public class PrismParser implements PrismParserConstants {
       jj_la1_1 = new int[] {0x187c5,0x83c4,0x10401,0x40127ab8,0x8000000,0x40127ab8,0x40127ab8,0x8000000,0x40127ab8,0x40,0x4,0x8000,0x8144,0x0,0x0,0x280,0x280,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x4012783a,0x200000,0x40020000,0x10000000,0x4012783a,0x0,0x0,0x10000000,0x0,0x10000000,0x10000000,0x0,0x40000000,0xc2000,0x0,0xc2000,0x2,0x0,0x4012783a,0x4012783a,0x4012783a,0x4012783a,0x4012783a,0x0,0x0,0x800000,0x1000000,0x400000,0x200000,0x40127838,0x0,0x0,0x0,0x0,0x0,0x0,0x40027838,0x40027838,0x40000000,0x0,0x0,0x10000000,0x20000,0x0,0x38,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x3800,0x0,0x4012783a,0x4000,0x0,0x600000,0x10000000,0x0,0x0,0x0,0x4000000,};
    }
    private static void jj_la1_init_2() {
-      jj_la1_2 = new int[] {0x0,0x0,0x0,0x2e0800,0x0,0x2e0800,0x2e0800,0x0,0x2e0800,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x10,0x0,0x1,0x200000,0x0,0x1,0x200000,0x400,0x2e0800,0x0,0x0,0x0,0x2e0801,0x200000,0x1,0x0,0x2004,0x0,0x0,0x2004,0x200000,0x0,0x3c1,0x0,0x0,0x3c1,0x2e0800,0x2e0800,0x2e0800,0x2e0800,0x2e0800,0x3c1,0x10000,0x0,0x0,0x0,0x0,0x2e0800,0x30,0x3c0,0xc00,0xc00,0x3000,0x3000,0x2e0800,0x2e0000,0x0,0x0,0x200000,0x0,0xc0000,0x3d0,0x0,0x4,0x4,0x0,0x3d0,0x4,0x4,0x3d0,0x0,0x4,0x2e0800,0x0,0x200000,0x200400,0x0,0x200000,0x30,0x3c0,0x0,};
+      jj_la1_2 = new int[] {0x0,0x0,0x0,0x2e0800,0x0,0x2e0800,0x2e0800,0x0,0x2e0800,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x10,0x0,0x1,0x200000,0x0,0x1,0x200000,0x400,0x2e0800,0x0,0x0,0x0,0x2e0801,0x200000,0x1,0x0,0x2004,0x0,0x0,0x2004,0x200000,0x0,0x3d1,0x0,0x0,0x3d1,0x2e0800,0x2e0800,0x2e0800,0x2e0800,0x2e0800,0x3d1,0x10000,0x0,0x0,0x0,0x0,0x2e0800,0x30,0x3c0,0xc00,0xc00,0x3000,0x3000,0x2e0800,0x2e0000,0x0,0x0,0x200000,0x0,0xc0000,0x3d0,0x0,0x4,0x4,0x0,0x3d0,0x4,0x4,0x3d0,0x0,0x4,0x2e0800,0x0,0x200000,0x200400,0x0,0x200000,0x30,0x3c0,0x0,};
    }
   static final private JJCalls[] jj_2_rtns = new JJCalls[14];
   static private boolean jj_rescan = false;
