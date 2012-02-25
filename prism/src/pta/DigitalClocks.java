@@ -60,6 +60,8 @@ public class DigitalClocks
 	private ComputeClockInformation cci;
 	// String to be used for time action 
 	private String timeAction;
+	// Some invariant info
+	private Expression allInVariants = null;
 
 	// Translated model file
 	private ModulesFile mf;
@@ -178,6 +180,8 @@ public class DigitalClocks
 		});
 
 		// Add time command based on invariant for each module
+		// Also build an "invariants" label, as we go
+		allInVariants = null;
 		mf = (ModulesFile) mf.accept(new ASTTraverseModify()
 		{
 			public Object visit(Module e) throws PrismLangException
@@ -192,6 +196,9 @@ public class DigitalClocks
 				// Get (clock) invariant for module; create default if none
 				invar = e.getInvariant();
 				invar = (invar == null) ? Expression.True() : invar.deepCopy();
+				// Collect invariant for "invariants" label
+				if (!Expression.isTrue(invar))
+					allInVariants = (allInVariants == null) ? invar.deepCopy() : Expression.And(allInVariants, invar.deepCopy());
 				// Replace all clocks x with x+1 in invariant
 				invar = (Expression) invar.accept(new ASTTraverseModify()
 				{
@@ -231,6 +238,8 @@ public class DigitalClocks
 				return e;
 			}
 		});
+		// Add "invariants" label
+		mf.getLabelList().addLabel(new ExpressionIdent("invariants"), allInVariants == null ? Expression.True() : allInVariants);
 
 		// Change the type of any clock variable references to int
 		// and scale the variable appropriately, if required
