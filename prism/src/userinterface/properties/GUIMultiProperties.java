@@ -156,12 +156,16 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	private Font displayFontFast;
 	private Color backgroundFast, warningFast;
 
+	// The simulator
+	private GUISimulator simulator;
+	
 	// CONSTRUCTORS
 
 	/** Creates a new instance of GUIMultiProperties */
 	public GUIMultiProperties(GUIPrism pr, GUISimulator simulator)
 	{
 		super(pr);
+		this.simulator = simulator;
 		simulator.setGUIProb(this); // link required
 		initComponents();
 		a_newList();
@@ -854,6 +858,35 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.REQUEST_MODEL_PARSE));
 	}
 
+	public void a_verifyDone()
+	{
+		int[] selected = propList.getSelectedIndices();
+
+		// Display result dialogs
+		for (int i = 0; i < selected.length; i++) {
+			GUIProperty gp = propList.getProperty(selected[i]);
+			if (!gp.isBeingEdited()) {
+				gp.setBeingEdited(true);
+				// Force repaint because we modified the GUIProperty directly
+				repaintList();
+				new GUIPropertyResultDialog(getGUI(), this, gp).display();
+			}
+		}
+		
+		// For a single property with a displayable counterexample, offer to do show it
+		if (selected.length == 1) {
+			GUIProperty gp = propList.getProperty(selected[0]);
+			Object cex = gp.getResult().getCounterexample();
+			if (cex != null && cex instanceof simulator.PathFullInfo) {
+				String qu = "Do you want to view a witness/counterexample for the property in the simulator?";
+				if (questionYesNo("Question", qu, 0) == 0) {
+					simulator.a_loadPath((simulator.PathFullInfo) cex);
+					simulator.tabToFront();
+				}
+			}
+		}
+	}
+	
 	public void a_cut()
 	{
 		java.awt.datatransfer.Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -1160,7 +1193,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			} else if (pr.getID() == GUIPropertiesEvent.EXPERIMENT_END) {
 				stopExperiment.setEnabled(false);
 			} else if (pr.getID() == GUIPropertiesEvent.VERIFY_END) {
-				a_detailSelected();
+				a_verifyDone();
 			}
 		} else if (e instanceof GUIExitEvent) {
 			if (e.getID() == GUIExitEvent.REQUEST_EXIT) {

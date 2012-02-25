@@ -462,7 +462,10 @@ public class SimulatorEngine
 			for (j = 0; j < numTrans; j++) {
 				if (transitionList.computeTransitionTarget(j, state).equals(nextState)) {
 					found = true;
-					manualTransition(j);
+					if (modelType.continuousTime() && newPath.hasTimeInfo())
+						manualTransition(j, newPath.getTime(i));
+					else
+						manualTransition(j);
 					break;
 				}
 			}
