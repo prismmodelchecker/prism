@@ -29,8 +29,6 @@ package simulator;
 import java.util.*;
 import java.io.*;
 
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MaximizeAction;
-
 import simulator.method.*;
 import simulator.sampler.*;
 import parser.*;
