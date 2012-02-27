@@ -625,7 +625,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			setPathActive(true);
 			pathTableModel.setPath(engine.getPathFull());
 			pathTableModel.restartPathTable();
-			pathTable.getSelectionModel().setSelectionInterval(0, 0);
+			int last = pathTable.getRowCount() - 1;
+			pathTable.getSelectionModel().setSelectionInterval(last, last);
 			updateTableModel.restartUpdatesTable();
 			repopulateFormulae(pf);
 			// Update display
