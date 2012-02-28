@@ -1071,7 +1071,7 @@ public class StateModelChecker implements ModelChecker
 					vals.printFiltered(mainLog, ddFilter, false, false, true);
 				}
 			}
-			// Result vector is unchanged; for PRINT, don't store a single value (in resObj)
+			// Result vector is unchanged; for PRINT/PRINTALL, don't store a single value (in resObj)
 			// Also, don't bother with explanation string
 			resVals = vals;
 			// Set vals to null to stop it being cleared below
