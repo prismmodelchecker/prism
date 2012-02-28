@@ -34,7 +34,7 @@ public class ExpressionFilter extends Expression
 {
 	// Enums for  types of filter
 	public enum FilterOperator {
-		MIN, MAX, ARGMIN, ARGMAX, COUNT, SUM, AVG, FIRST, RANGE, FORALL, EXISTS, PRINT, STATE;
+		MIN, MAX, ARGMIN, ARGMAX, COUNT, SUM, AVG, FIRST, RANGE, FORALL, EXISTS, PRINT, PRINTALL, STATE;
 	};
 
 	// Operator used in filter
@@ -97,6 +97,8 @@ public class ExpressionFilter extends Expression
 			opType = FilterOperator.EXISTS;
 		else if (opName.equals("print"))
 			opType = FilterOperator.PRINT;
+		else if (opName.equals("printall"))
+			opType = FilterOperator.PRINTALL;
 		else if (opName.equals("state"))
 			opType = FilterOperator.STATE;
 		else opType = null;
@@ -180,6 +182,7 @@ public class ExpressionFilter extends Expression
 	{
 		// Most filters return a single value, but there are some exceptions...
 		if (opType == FilterOperator.PRINT) return false;
+		else if (opType == FilterOperator.PRINTALL) return false;
 		else if (opType == FilterOperator.ARGMIN) return false;
 		else if (opType == FilterOperator.ARGMAX) return false;
 		else return true;

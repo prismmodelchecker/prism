@@ -1050,6 +1050,7 @@ public class StateModelChecker implements ModelChecker
 		op = expr.getOperatorType();
 		switch (op) {
 		case PRINT:
+		case PRINTALL:
 			// Format of print-out depends on type
 			if (expr.getType() instanceof TypeBool) {
 				// NB: 'usual' case for filter(print,...) on Booleans is to use no filter
@@ -1062,10 +1063,15 @@ public class StateModelChecker implements ModelChecker
 				JDD.Deref(dd);
 			} else {
 				// TODO: integer-typed case: either add to print method or store in StateValues
-				mainLog.println("\nResults (non-zero only) for filter " + filter + ":");
-				vals.printFiltered(mainLog, ddFilter);
+				if (op == FilterOperator.PRINT) {
+					mainLog.println("\nResults (non-zero only) for filter " + filter + ":");
+					vals.printFiltered(mainLog, ddFilter);
+				} else {
+					mainLog.println("\nResults (including zeros) for filter " + filter + ":");
+					vals.printFiltered(mainLog, ddFilter, false, false, true);
+				}
 			}
-			// Result vector is unchanged; for ARGMIN, don't store a single value (in resObj)
+			// Result vector is unchanged; for PRINT, don't store a single value (in resObj)
 			// Also, don't bother with explanation string
 			resVals = vals;
 			// Set vals to null to stop it being cleared below

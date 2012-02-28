@@ -361,7 +361,7 @@ public class StateValuesDV implements StateValues
 	{
 		print(log, printSparse, printMatlab, printStates, true);
 	}
-	
+
 	/**
 	 * Print vector to a log/file.
 	 * @param log The log
@@ -484,7 +484,7 @@ public class StateValuesDV implements StateValues
 	{
 		printFiltered(log, filter, printSparse, printMatlab, printStates, true);
 	}
-	
+
 	/**
 	 * Print part of a vector to a log/file (non-zero entries only).
 	 * @param log The log
@@ -494,7 +494,8 @@ public class StateValuesDV implements StateValues
 	 * @param printStates Print states (variable values) for each element? 
 	 * @param printIndices Print state indices for each element? 
 	 */
-	public void printFiltered(PrismLog log, JDDNode filter, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices) throws PrismException
+	public void printFiltered(PrismLog log, JDDNode filter, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices)
+			throws PrismException
 	{
 		int i;
 
@@ -627,11 +628,10 @@ public class StateValuesDV implements StateValues
 							outputLog.print(",");
 					}
 					outputLog.print(")");
-				} else {
-					if (printIndices || printStates)
-						outputLog.print("=");
-					outputLog.println(d);
 				}
+				if (printIndices || printStates)
+					outputLog.print("=");
+				outputLog.println(d);
 			}
 			//return true;
 		} else {

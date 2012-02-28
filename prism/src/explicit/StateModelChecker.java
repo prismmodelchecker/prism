@@ -630,6 +630,7 @@ public class StateModelChecker
 		// Compute result according to filter type
 		switch (op) {
 		case PRINT:
+		case PRINTALL:
 			// Format of print-out depends on type
 			if (expr.getType() instanceof TypeBool) {
 				// NB: 'usual' case for filter(print,...) on Booleans is to use no filter
@@ -637,8 +638,13 @@ public class StateModelChecker
 				mainLog.println(filterTrue ? ":" : " that are also in filter " + filter + ":");
 				vals.printFiltered(mainLog, bsFilter);
 			} else {
-				mainLog.println("\nResults (non-zero only) for filter " + filter + ":");
-				vals.printFiltered(mainLog, bsFilter);
+				if (op == FilterOperator.PRINT) {
+					mainLog.println("\nResults (non-zero only) for filter " + filter + ":");
+					vals.printFiltered(mainLog, bsFilter);
+				} else {
+					mainLog.println("\nResults (including zeros) for filter " + filter + ":");
+					vals.printFiltered(mainLog, bsFilter, false, false, true, true);
+				}
 			}
 			// Result vector is unchanged; for ARGMIN, don't store a single value (in resObj)
 			// Also, don't bother with explanation string
