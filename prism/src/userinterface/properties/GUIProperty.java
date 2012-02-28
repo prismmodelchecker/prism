@@ -220,14 +220,7 @@ public class GUIProperty
 	 */
 	public boolean isValidForSimulation()
 	{
-		if (!isValid())
-			return false;
-		try {
-			prism.checkPropertyForSimulation(expr);
-		} catch (PrismException e) {
-			return false;
-		}
-		return true;
+		return isValid() && prism.isPropertyOKForSimulation(expr);
 	}
 
 	public Result getResult()

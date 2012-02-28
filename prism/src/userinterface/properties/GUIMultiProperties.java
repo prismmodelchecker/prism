@@ -309,13 +309,10 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		simulatableExprs = new ArrayList<Expression>();
 		for (int i = 0; i < validGUIProperties.size(); i++) {
 			GUIProperty guiP = validGUIProperties.get(i);
-			try {
-				getPrism().checkPropertyForSimulation(guiP.getProperty());
+			if (getPrism().isPropertyOKForSimulation(guiP.getProperty())) {
 				simulatableGUIProperties.add(guiP);
 				simulatableProperties.add(parsedProperties.getPropertyObject(i));
 				simulatableExprs.add(guiP.getProperty());
-			} catch (PrismException e) {
-				// do nothing
 			}
 		}
 		if (simulatableGUIProperties.size() == 0) {

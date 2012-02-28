@@ -2373,6 +2373,15 @@ public class Prism implements PrismSettingsListener
 	}
 
 	/**
+	 * Check whether a property is suitable for approximate model checking using the simulator.
+	 * @param expr The property to check.
+	 */
+	public boolean isPropertyOKForSimulation(Expression expr)
+	{
+		return getSimulator().isPropertyOKForSimulation(expr);
+	}
+	
+	/**
 	 * Check if a property is suitable for analysis with the simulator.
 	 * If not, an explanatory exception is thrown.
 	 * @param expr The property to check.
