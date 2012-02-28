@@ -32,7 +32,9 @@ import dv.*;
 import jdd.*;
 import odd.*;
 import parser.VarList;
-import parser.type.*;;
+import parser.type.*;
+
+;
 
 // Class for state-indexed vectors of (integer or double) values, represented by a vector of doubles
 
@@ -40,45 +42,46 @@ public class StateValuesDV implements StateValues
 {
 	// Double vector storing values
 	DoubleVector values;
-	
+
 	// info from model
 	Model model;
 	JDDVars vars;
 	int numVars;
 	ODDNode odd;
 	VarList varList;
-	
+
 	// stuff to keep track of variable values in print method
 	int[] varSizes;
 	int[] varValues;
 	int currentVar;
 	int currentVarLevel;
 	int counter;
-	
+
 	// log for output from print method
 	PrismLog outputLog;
-	
+
 	// flags
 	boolean printSparse = true;
 	boolean printMatlab = false;
 	boolean printStates = true;
+	boolean printIndices = true;
 
 	// CONSTRUCTORS
-	
+
 	public StateValuesDV(DoubleVector p, Model m)
 	{
 		int i;
-		
+
 		// store values vector
 		values = p;
-		
+
 		// get info from model
 		model = m;
 		vars = model.getAllDDRowVars();
 		numVars = vars.n();
 		odd = model.getODD();
 		varList = model.getVarList();
-		
+
 		// initialise arrays
 		varSizes = new int[varList.getNumVars()];
 		for (i = 0; i < varList.getNumVars(); i++) {
@@ -86,7 +89,7 @@ public class StateValuesDV implements StateValues
 		}
 		varValues = new int[varList.getNumVars()];
 	}
-	
+
 	public StateValuesDV(JDDNode dd, Model model)
 	{
 		// construct double vector from an mtbdd
@@ -94,15 +97,15 @@ public class StateValuesDV implements StateValues
 		// (otherwise bad things happen)
 		this(new DoubleVector(dd, model.getAllDDRowVars(), model.getODD()), model);
 	}
-	
+
 	// CONVERSION METHODS
-	
+
 	// convert to StateValuesDV (nothing to do)
 	public StateValuesDV convertToStateValuesDV()
 	{
 		return this;
 	}
-	
+
 	// convert to StateValuesMTBDD, destroy (clear) old vector
 	public StateValuesMTBDD convertToStateValuesMTBDD()
 	{
@@ -110,9 +113,9 @@ public class StateValuesDV implements StateValues
 		clear();
 		return res;
 	}
-	
+
 	// METHODS TO MODIFY VECTOR
-	
+
 	/**
 	 * Set element i of this vector to value d. 
 	 */
@@ -120,7 +123,7 @@ public class StateValuesDV implements StateValues
 	{
 		values.setElement(i, d);
 	}
-	
+
 	/**
 	 * Set the elements of this vector by reading them in from a file.
 	 */
@@ -131,12 +134,13 @@ public class StateValuesDV implements StateValues
 		int lineNum = 0, count = 0;
 		double d;
 		int size = values.getSize();
-		
+
 		try {
 			// open file for reading
 			in = new BufferedReader(new FileReader(file));
 			// read remaining lines
-			s = in.readLine(); lineNum++;
+			s = in.readLine();
+			lineNum++;
 			while (s != null) {
 				s = s.trim();
 				if (!("".equals(s))) {
@@ -146,94 +150,93 @@ public class StateValuesDV implements StateValues
 					setElement(count, d);
 					count++;
 				}
-				s = in.readLine(); lineNum++;
+				s = in.readLine();
+				lineNum++;
 			}
 			// close file
 			in.close();
 			// check size
 			if (count < size)
 				throw new PrismException("Too few values in file \"" + file + "\" (" + count + ", not " + size + ")");
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + file + "\"");
-		}
-		catch (NumberFormatException e) {
+		} catch (NumberFormatException e) {
 			throw new PrismException("Error detected at line " + lineNum + " of file \"" + file + "\"");
 		}
 	}
-	
+
 	// round
-	
+
 	public void roundOff(int places)
 	{
 		values.roundOff(places);
 	}
-	
+
 	// subtract all values from 1
-	
-	public void subtractFromOne() 
+
+	public void subtractFromOne()
 	{
 		values.subtractFromOne();
 	}
-	
+
 	// add another vector to this one
-	
-	public void add(StateValues sp) 
+
+	public void add(StateValues sp)
 	{
-		values.add(((StateValuesDV)sp).values);
+		values.add(((StateValuesDV) sp).values);
 	}
-	
+
 	// multiply vector by a constant
-	
-	public void timesConstant(double d) 
+
+	public void timesConstant(double d)
 	{
 		values.timesConstant(d);
 	}
-	
+
 	// filter vector using a bdd (set elements not in filter to 0)
-	
+
 	public void filter(JDDNode filter)
 	{
 		values.filter(filter, vars, odd);
 	}
-	
+
 	// apply max operator, i.e. vec[i] = max(vec[i], vec2[i]), where vec2 is an mtbdd
-	
+
 	public void maxMTBDD(JDDNode vec2)
 	{
 		values.maxMTBDD(vec2, vars, odd);
 	}
-	
+
 	// clear (free memory)
-	
+
 	public void clear()
 	{
 		values.clear();
 	}
 
 	// METHODS TO ACCESS VECTOR DATA
-	
+
 	// get vector
-	
+
 	public DoubleVector getDoubleVector()
 	{
 		return values;
 	}
-	
+
 	// get num non zeros
-	
+
 	public int getNNZ()
 	{
 		return values.getNNZ();
 	}
-	
+
 	public String getNNZString()
 	{
 		return "" + getNNZ();
 	}
-	
+
 	// Filter operations
-	
+
 	/**
 	 * Get the value of first vector element that is in the (BDD) filter.
 	 */
@@ -241,7 +244,7 @@ public class StateValuesDV implements StateValues
 	{
 		return values.firstFromBDD(filter, vars, odd);
 	}
-	
+
 	/**
 	 * Get the minimum value of those that are in the (BDD) filter.
 	 */
@@ -249,7 +252,7 @@ public class StateValuesDV implements StateValues
 	{
 		return values.minOverBDD(filter, vars, odd);
 	}
-	
+
 	/**
 	 * Get the minimum value of those that are in the (BDD) filter.
 	 */
@@ -257,7 +260,7 @@ public class StateValuesDV implements StateValues
 	{
 		return values.maxOverBDD(filter, vars, odd);
 	}
-	
+
 	/**
 	 * Get the sum of those elements that are in the (BDD) filter.
 	 */
@@ -265,7 +268,7 @@ public class StateValuesDV implements StateValues
 	{
 		return values.sumOverBDD(filter, vars, odd);
 	}
-	
+
 	/**
 	 * Do a weighted sum of the elements of the vector and the values the mtbdd passed in
 	 * (used for CSL reward steady state operator).
@@ -274,7 +277,7 @@ public class StateValuesDV implements StateValues
 	{
 		return values.sumOverMTBDD(mult, vars, odd);
 	}
-	
+
 	/**
 	* Sum up the elements of the vector, over a subset of its DD vars
 	* store the result in a new StateValues (for newModel)
@@ -283,12 +286,12 @@ public class StateValuesDV implements StateValues
 	public StateValues sumOverDDVars(JDDVars sumVars, Model newModel) throws PrismException
 	{
 		DoubleVector tmp;
-		
+
 		tmp = values.sumOverDDVars(model.getAllDDRowVars(), odd, newModel.getODD(), sumVars.getMinVarIndex(), sumVars.getMaxVarIndex());
-		
-		return (StateValues)new StateValuesDV(tmp, newModel);
+
+		return (StateValues) new StateValuesDV(tmp, newModel);
 	}
-	
+
 	/**
 	 * 	Generate BDD for states in the given interval
 	 * (interval specified as relational operator and bound)
@@ -297,7 +300,7 @@ public class StateValuesDV implements StateValues
 	{
 		return values.getBDDFromInterval(relOp, bound, vars, odd);
 	}
-	
+
 	/**
 	 * 	Generate BDD for states in the given interval
 	 * (interval specified as lower/upper bound)
@@ -318,7 +321,7 @@ public class StateValuesDV implements StateValues
 		else
 			return values.getBDDFromCloseValueRel(value, epsilon, vars, odd);
 	}
-	
+
 	/**
 	 * 	Generate BDD for states whose value is close to 'value'
 	 * (within absolute error 'epsilon')
@@ -327,7 +330,7 @@ public class StateValuesDV implements StateValues
 	{
 		return values.getBDDFromCloseValueAbs(value, epsilon, vars, odd);
 	}
-	
+
 	/**
 	 * 	Generate BDD for states whose value is close to 'value'
 	 * (within relative error 'epsilon')
@@ -336,15 +339,27 @@ public class StateValuesDV implements StateValues
 	{
 		return values.getBDDFromCloseValueRel(value, epsilon, vars, odd);
 	}
-	
+
 	// PRINTING STUFF
-	
+
 	/**
 	 * Print vector to a log/file (non-zero entries only)
 	 */
 	public void print(PrismLog log) throws PrismException
 	{
-		print(log, true, false, true);
+		print(log, true, false, true, true);
+	}
+
+	/**
+	 * Print vector to a log/file.
+	 * @param log The log
+	 * @param printSparse Print non-zero elements only? 
+	 * @param printMatlab Print in Matlab format?
+	 * @param printStates Print states (variable values) for each element? 
+	 */
+	public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
+	{
+		print(log, printSparse, printMatlab, printStates, true);
 	}
 	
 	/**
@@ -353,26 +368,28 @@ public class StateValuesDV implements StateValues
 	 * @param printSparse Print non-zero elements only? 
 	 * @param printMatlab Print in Matlab format?
 	 * @param printStates Print states (variable values) for each element? 
+	 * @param printIndices Print state indices for each element? 
 	 */
-public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
+	public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices) throws PrismException
 	{
 		int i;
-		
+
 		// store flags
 		this.printSparse = printSparse;
 		this.printMatlab = printMatlab;
 		this.printStates = printStates;
-		
+		this.printIndices = printIndices;
+
 		// header for matlab format
 		if (printMatlab)
 			log.println(!printSparse ? "v = [" : "v = sparse(" + values.getSize() + ",1);");
-		
+
 		// check if all zero
 		if (printSparse && !printMatlab && values.getNNZ() == 0) {
 			log.println("(all zero)");
 			return;
 		}
-		
+
 		// set up and call recursive print
 		outputLog = log;
 		for (i = 0; i < varList.getNumVars(); i++) {
@@ -385,8 +402,8 @@ public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolea
 		// footer for matlab format
 		if (printMatlab && !printSparse)
 			log.println("];");
-}
-	
+	}
+
 	/**
 	 * Recursive part of print method.
 	 * 
@@ -405,7 +422,7 @@ public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolea
 	private void printRec(int level, ODDNode o, int n)
 	{
 		double d;
-		
+
 		// base case - at bottom
 		if (level == numVars) {
 			d = values.getElement(n);
@@ -415,20 +432,36 @@ public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolea
 		// recurse
 		else {
 			if (o.getEOff() > 0) {
-				currentVarLevel++; if (currentVarLevel == varSizes[currentVar]) { currentVar++; currentVarLevel=0; }
-				printRec(level+1, o.getElse(), n);
-				currentVarLevel--; if (currentVarLevel == -1) { currentVar--; currentVarLevel=varSizes[currentVar]-1; }
+				currentVarLevel++;
+				if (currentVarLevel == varSizes[currentVar]) {
+					currentVar++;
+					currentVarLevel = 0;
+				}
+				printRec(level + 1, o.getElse(), n);
+				currentVarLevel--;
+				if (currentVarLevel == -1) {
+					currentVar--;
+					currentVarLevel = varSizes[currentVar] - 1;
+				}
 			}
 			if (o.getTOff() > 0) {
-				varValues[currentVar] += (1 << (varSizes[currentVar]-1-currentVarLevel));
-				currentVarLevel++; if (currentVarLevel == varSizes[currentVar]) { currentVar++; currentVarLevel=0; }
-				printRec(level+1, o.getThen(), (int)(n+o.getEOff()));
-				currentVarLevel--; if (currentVarLevel == -1) { currentVar--; currentVarLevel=varSizes[currentVar]-1; }
-				varValues[currentVar] -= (1 << (varSizes[currentVar]-1-currentVarLevel));
+				varValues[currentVar] += (1 << (varSizes[currentVar] - 1 - currentVarLevel));
+				currentVarLevel++;
+				if (currentVarLevel == varSizes[currentVar]) {
+					currentVar++;
+					currentVarLevel = 0;
+				}
+				printRec(level + 1, o.getThen(), (int) (n + o.getEOff()));
+				currentVarLevel--;
+				if (currentVarLevel == -1) {
+					currentVar--;
+					currentVarLevel = varSizes[currentVar] - 1;
+				}
+				varValues[currentVar] -= (1 << (varSizes[currentVar] - 1 - currentVarLevel));
 			}
 		}
 	}
-	
+
 	/**
 	 * Print part of a vector to a log/file (non-zero entries only).
 	 * @param log The log
@@ -436,9 +469,9 @@ public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolea
 	 */
 	public void printFiltered(PrismLog log, JDDNode filter) throws PrismException
 	{
-		printFiltered(log, filter, true, false, true);
+		printFiltered(log, filter, true, false, true, true);
 	}
-	
+
 	/**
 	 * Print part of a vector to a log/file (non-zero entries only).
 	 * @param log The log
@@ -449,20 +482,35 @@ public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolea
 	 */
 	public void printFiltered(PrismLog log, JDDNode filter, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
 	{
+		printFiltered(log, filter, printSparse, printMatlab, printStates, true);
+	}
+	
+	/**
+	 * Print part of a vector to a log/file (non-zero entries only).
+	 * @param log The log
+	 * @param filter A BDD specifying which states to print for.
+	 * @param printSparse Print non-zero elements only? 
+	 * @param printMatlab Print in Matlab format?
+	 * @param printStates Print states (variable values) for each element? 
+	 * @param printIndices Print state indices for each element? 
+	 */
+	public void printFiltered(PrismLog log, JDDNode filter, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices) throws PrismException
+	{
 		int i;
-		
+
 		// store flags
 		this.printSparse = printSparse;
 		this.printMatlab = printMatlab;
 		this.printStates = printStates;
-		
+		this.printIndices = printIndices;
+
 		// header for matlab format
 		if (printMatlab)
 			log.println(!printSparse ? "v = [" : "v = sparse(" + values.getSize() + ",1);");
-		
+
 		// set up a counter so we can check if there were no non-zero elements
 		counter = 0;
-		
+
 		// set up and call recursive print
 		outputLog = log;
 		for (i = 0; i < varList.getNumVars(); i++) {
@@ -471,34 +519,34 @@ public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolea
 		currentVar = 0;
 		currentVarLevel = 0;
 		printFilteredRec(0, odd, 0, filter);
-		
+
 		// check  if all zero
 		if (printSparse && !printMatlab && counter == 0) {
 			log.println("(all zero)");
 			return;
 		}
-		
+
 		// footer for matlab format
 		if (printMatlab && !printSparse)
 			log.println("];");
 	}
-	
+
 	/**
 	 * Recursive part of printFiltered method.
 	 *
 	 * So we need to traverse filter too.
 	 * See also notes above for printRec. 
-	 */ 
+	 */
 	private void printFilteredRec(int level, ODDNode o, int n, JDDNode filter)
 	{
 		double d;
 		JDDNode newFilter;
-		
+
 		// don't print if the filter is zero
 		if (filter.equals(JDD.ZERO)) {
 			return;
 		}
-		
+
 		// base case - at bottom
 		if (level == numVars) {
 			d = values.getElement(n);
@@ -508,26 +556,44 @@ public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolea
 		// recurse
 		else {
 			if (o.getEOff() > 0) {
-				currentVarLevel++; if (currentVarLevel == varSizes[currentVar]) { currentVar++; currentVarLevel=0; }
-				JDD.Ref(filter); JDD.Ref(vars.getVar(level));
+				currentVarLevel++;
+				if (currentVarLevel == varSizes[currentVar]) {
+					currentVar++;
+					currentVarLevel = 0;
+				}
+				JDD.Ref(filter);
+				JDD.Ref(vars.getVar(level));
 				newFilter = JDD.Apply(JDD.TIMES, filter, JDD.Not(vars.getVar(level)));
-				printFilteredRec(level+1, o.getElse(), n, newFilter);
+				printFilteredRec(level + 1, o.getElse(), n, newFilter);
 				JDD.Deref(newFilter);
-				currentVarLevel--; if (currentVarLevel == -1) { currentVar--; currentVarLevel=varSizes[currentVar]-1; }
+				currentVarLevel--;
+				if (currentVarLevel == -1) {
+					currentVar--;
+					currentVarLevel = varSizes[currentVar] - 1;
+				}
 			}
 			if (o.getTOff() > 0) {
-				varValues[currentVar] += (1 << (varSizes[currentVar]-1-currentVarLevel));
-				currentVarLevel++; if (currentVarLevel == varSizes[currentVar]) { currentVar++; currentVarLevel=0; }
-				JDD.Ref(filter); JDD.Ref(vars.getVar(level));
+				varValues[currentVar] += (1 << (varSizes[currentVar] - 1 - currentVarLevel));
+				currentVarLevel++;
+				if (currentVarLevel == varSizes[currentVar]) {
+					currentVar++;
+					currentVarLevel = 0;
+				}
+				JDD.Ref(filter);
+				JDD.Ref(vars.getVar(level));
 				newFilter = JDD.Apply(JDD.TIMES, filter, vars.getVar(level));
-				printFilteredRec(level+1, o.getThen(), (int)(n+o.getEOff()), newFilter);
+				printFilteredRec(level + 1, o.getThen(), (int) (n + o.getEOff()), newFilter);
 				JDD.Deref(newFilter);
-				currentVarLevel--; if (currentVarLevel == -1) { currentVar--; currentVarLevel=varSizes[currentVar]-1; }
-				varValues[currentVar] -= (1 << (varSizes[currentVar]-1-currentVarLevel));
+				currentVarLevel--;
+				if (currentVarLevel == -1) {
+					currentVar--;
+					currentVarLevel = varSizes[currentVar] - 1;
+				}
+				varValues[currentVar] -= (1 << (varSizes[currentVar] - 1 - currentVarLevel));
 			}
 		}
 	}
-	
+
 	private void printLine(int n, double d)
 	{
 		int i, j;
@@ -536,33 +602,43 @@ public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolea
 			counter++;
 		// do printing
 		if (!printSparse || d != 0) {
-			if (printSparse)
-				outputLog.print(printMatlab ? "v(" + (n + 1) + ")" : n);
-			if (printStates && !printMatlab) {
-				outputLog.print(":(");
-				j = varList.getNumVars();
-				for (i = 0; i < j; i++) {
-					// integer variable
-					if (varList.getType(i) instanceof TypeInt) {
-						outputLog.print(varValues[i]+varList.getLow(i));
-					}
-					// boolean variable
-					else {
-						outputLog.print(varValues[i] == 1);
-					}
-					if (i < j-1) outputLog.print(",");
+			if (printMatlab) {
+				if (printSparse) {
+					outputLog.println("v(" + (n + 1) + ")=" + d + ";");
+				} else {
+					outputLog.println(d);
 				}
-				outputLog.print(")");
+			} else {
+				if (printIndices)
+					outputLog.print(n);
+				if (printStates) {
+					outputLog.print(":(");
+					j = varList.getNumVars();
+					for (i = 0; i < j; i++) {
+						// integer variable
+						if (varList.getType(i) instanceof TypeInt) {
+							outputLog.print(varValues[i] + varList.getLow(i));
+						}
+						// boolean variable
+						else {
+							outputLog.print(varValues[i] == 1);
+						}
+						if (i < j - 1)
+							outputLog.print(",");
+					}
+					outputLog.print(")");
+				} else {
+					if (printIndices || printStates)
+						outputLog.print("=");
+					outputLog.println(d);
+				}
 			}
-			if (printSparse)
-				outputLog.print("=");
-			outputLog.print(d);
-			if (printMatlab && printSparse)
-				outputLog.print(";");
-			outputLog.println();
+			//return true;
+		} else {
+			//return false;
 		}
 	}
-	
+
 	/**
 	 * Make a (deep) copy of this vector
 	 */

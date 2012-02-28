@@ -1448,26 +1448,26 @@ public class StateValues
 			log.println("];");
 	}
 
-	private boolean printLine(PrismLog log, int i, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices)
+	private boolean printLine(PrismLog log, int n, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices)
 	{
-		if (!printSparse || isNonZero(i)) {
+		if (!printSparse || isNonZero(n)) {
 			if (printMatlab) {
 				if (printSparse) {
-					log.println("v(" + (i + 1) + ")=" + getValue(i) + ";");
+					log.println("v(" + (n + 1) + ")=" + getValue(n) + ";");
 				} else {
-					log.println(getValue(i));
+					log.println(getValue(n));
 				}
 			} else {
 				if (printIndices)
-					log.print(i);
+					log.print(n);
 				if (printStates && statesList != null)
-					log.print(":" + statesList.get(i).toString());
+					log.print(":" + statesList.get(n).toString());
 				if (printSparse && type instanceof TypeBool) {
 					log.println();
 				} else {
 					if (printIndices || printStates)
 						log.print("=");
-					log.println(getValue(i));
+					log.println(getValue(n));
 				}
 			}
 			return true;
