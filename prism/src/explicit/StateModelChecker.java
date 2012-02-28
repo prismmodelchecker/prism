@@ -45,6 +45,7 @@ import parser.ast.ExpressionFilter;
 import parser.ast.ExpressionFilter.FilterOperator;
 import parser.ast.ExpressionFormula;
 import parser.ast.ExpressionFunc;
+import parser.ast.ExpressionITE;
 import parser.ast.ExpressionIdent;
 import parser.ast.ExpressionLabel;
 import parser.ast.ExpressionLiteral;
@@ -270,8 +271,12 @@ public class StateModelChecker
 	{
 		StateValues res = null;
 
+		// If-then-else
+		if (expr instanceof ExpressionITE) {
+			res = checkExpressionITE(model, (ExpressionITE) expr);
+		}
 		// Binary ops
-		if (expr instanceof ExpressionBinaryOp) {
+		else if (expr instanceof ExpressionBinaryOp) {
 			res = checkExpressionBinaryOp(model, (ExpressionBinaryOp) expr);
 		}
 		// Unary ops
@@ -325,6 +330,34 @@ public class StateModelChecker
 		}
 
 		return res;
+	}
+
+	/**
+	 * Model check a binary operator.
+	 */
+	protected StateValues checkExpressionITE(Model model, ExpressionITE expr) throws PrismException
+	{
+		StateValues res1 = null, res2 = null, res3 = null;
+		
+		// Check operands recursively
+		try {
+			res1 = checkExpression(model, expr.getOperand1());
+			res2 = checkExpression(model, expr.getOperand2());
+			res3 = checkExpression(model, expr.getOperand3());
+		} catch (PrismException e) {
+			if (res1 != null)
+				res1.clear();
+			if (res2 != null)
+				res2.clear();
+			throw e;
+		}
+		
+		// Apply operation
+		res3.applyITE(res1, res2);
+		res1.clear();
+		res2.clear();
+		
+		return res3;
 	}
 
 	/**
