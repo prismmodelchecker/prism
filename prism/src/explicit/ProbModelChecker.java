@@ -165,15 +165,15 @@ public class ProbModelChecker extends StateModelChecker
 		// PRISM_MDP_SOLN_METHOD
 		s = settings.getString(PrismSettings.PRISM_MDP_SOLN_METHOD);
 		if (s.equals("Value iteration")) {
-			setSolnMethod(SolnMethod.VALUE_ITERATION);
+			setMDPSolnMethod(MDPSolnMethod.VALUE_ITERATION);
 		} else if (s.equals("Gauss-Seidel")) {
-			setSolnMethod(SolnMethod.GAUSS_SEIDEL);
+			setMDPSolnMethod(MDPSolnMethod.GAUSS_SEIDEL);
 		} else if (s.equals("Policy iteration")) {
-			setSolnMethod(SolnMethod.POLICY_ITERATION);
+			setMDPSolnMethod(MDPSolnMethod.POLICY_ITERATION);
 		} else if (s.equals("Modified policy iteration")) {
-			setSolnMethod(SolnMethod.MODIFIED_POLICY_ITERATION);
+			setMDPSolnMethod(MDPSolnMethod.MODIFIED_POLICY_ITERATION);
 		} else if (s.equals("Linear programming")) {
-			setSolnMethod(SolnMethod.LINEAR_PROGRAMMING);
+			setMDPSolnMethod(MDPSolnMethod.LINEAR_PROGRAMMING);
 		} else {
 			throw new PrismException("Explicit engine does not support MDP solution method \"" + s + "\"");
 		}
