@@ -1,5 +1,7 @@
+#! /usr/bin/env python
 # coding=utf-8
-# run "python prism-filler.py" for more help
+
+# run without arguments for usage info
 
 import re
 import sys
