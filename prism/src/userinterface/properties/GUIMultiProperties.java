@@ -373,17 +373,17 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		Type type;
 
 		try {
-			//get referenced named properties
+			/*//get referenced named properties
 			String namedString = "";
 			//Add named properties
 			for (GUIProperty namedProp : this.propList.getAllNamedProperties()) {
 				if (gp.getReferencedNames().contains(namedProp.getName())) {
 					namedString += "\"" + namedProp.getName() + "\" : " + namedProp.getPropString() + "\n";
 				}
-			}
+			}*/
 			
 			// parse property to be used for experiment
-			parsedProperties = getPrism().parsePropertiesString(parsedModel, getLabelsString() + "\n" + getConstantsString() + "\n" + namedString + gp.getPropString());
+			parsedProperties = getPrism().parsePropertiesString(parsedModel, getLabelsString() + "\n" + getConstantsString() + "\n" + propList.getValidSelectedAndReferencedString());
 			if (parsedProperties.getNumProperties() <= 0) {
 				error("There are no properties selected");
 				return;
