@@ -541,6 +541,9 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	public void constantListChanged()
 	{
 		labTable.validateLabels();
+		//maybe some constants became valid/invalid, so validate them
+		//before re-validating properties.
+		consTable.validateConstants();
 		propList.validateProperties();
 		setModified(true);
 	}
