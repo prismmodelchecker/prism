@@ -8,8 +8,6 @@
 
 pta
 
-const K;
-
 // PARAMETERS
 
 // parameters
@@ -18,17 +16,20 @@ const int lambda=808; // time to send a message
 const int delay=26; // wire delay
 const int slot=2*sigma; // size of back off slot
 
-const int bmax; // exponential backoff limit
-const int M=pow(2,bmax)-1; // max number of slots to wait
+const int K; // exponential backoff limit (sometimes called bmax)
+const int M=pow(2,K)-1; // max number of slots to wait
+
+const int COL; // max number of collisions (called K in an old version of this model)
+
 
 //----------------------------------------------------------------------------------------------------------------------------
 // collision counter
 module collisions
 
-	c : [0..max(1,K)];
+	c : [0..max(1,COL)];
 
-	[csend1] true -> (c'=min(K,c+1));
-	[csend2] true -> (c'=min(K,c+1));
+	[csend1] true -> (c'=min(COL,c+1));
+	[csend2] true -> (c'=min(COL,c+1));
 
 endmodule
 
@@ -93,7 +94,7 @@ module station1
 	
 	x1 : clock; // local clock
 
-	cd1 : [0..bmax]; // collision counter
+	cd1 : [0..K]; // collision counter
 
 	invariant
 		(s1=0 => x1<=delay) &
@@ -106,11 +107,11 @@ module station1
 	// start sending (make sure there is a collision, i.e. start before x1 equals delay)
 	[send1]  s1=0 -> (s1'=1) & (x1'=0); // start sending
 	[csend1] s1=0 -> (s1'=1) & (x1'=0); // start sending
-	[busy1] s1=0 -> (s1'=2) & (x1'=0) & (cd1'=min(bmax,cd1+1)); // detects channel is busy so go into backoff
+	[busy1] s1=0 -> (s1'=2) & (x1'=0) & (cd1'=min(K,cd1+1)); // detects channel is busy so go into backoff
 	
 	// transmitting
 	[end1] s1=1 & x1=lambda -> (s1'=4) & (x1'=0); // finished
-	[cd1] s1=1 -> (s1'=2) & (x1'=0) & (cd1'=min(bmax,cd1+1)); // collision detected
+	[cd1] s1=1 -> (s1'=2) & (x1'=0) & (cd1'=min(K,cd1+1)); // collision detected
 	
 	// set backoff (no time can pass in this state)
 	// first retransmission
@@ -2173,7 +2174,7 @@ module station1
 	// wait until backoff counter reaches 0 then send again
 	[send1]  s1=3 & x1=pow(2,cd1)*slot -> (s1'=1) & (x1'=0); // finished backoff (bus appears free)
 	[csend1] s1=3 & x1=pow(2,cd1)*slot -> (s1'=1) & (x1'=0); // finished backoff (bus appears free)
-	[busy1]  s1=3 & x1=pow(2,cd1)*slot  -> (s1'=2) & (x1'=0) & (cd1'=min(bmax,cd1+1)); // finished backoff (bus busy)
+	[busy1]  s1=3 & x1=pow(2,cd1)*slot  -> (s1'=2) & (x1'=0) & (cd1'=min(K,cd1+1)); // finished backoff (bus busy)
 	
 	// once finished loop (wait for other station to finish)
 	[done] s1=4 -> (s1'=4);
@@ -2203,4 +2204,4 @@ endrewards
 label "s1_done" = s1=4;
 label "s2_done" = s2=4;
 label "done" = s1=4 & s2=4;
-label "cmax" = c=K;
+label "cmax" = c=COL;
