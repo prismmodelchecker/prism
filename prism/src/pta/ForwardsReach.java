@@ -226,7 +226,9 @@ public class ForwardsReach
 			// (NB2: Strictly speaking, don't need to check canDiverge - if it was
 			// true, we would have added a loop transition that is definitely enabled)
 			if (!canDiverge && graph.trans.get(src).size() == 0) {
-				throw new PrismException("Timelock (no enabled transitions) in PTA at location " + pta.getLocationNameString(lz.loc));
+				String s = "Timelock in PTA (no enabled transitions) at location " + pta.getLocationNameString(lz.loc);
+				s += " when " + lz.zone;
+				throw new PrismException(s);
 			}
 			// Print some progress info occasionally
 			if (System.currentTimeMillis() - timerProgress > 3000) {
