@@ -175,7 +175,7 @@ def getArgsListsFromFile(file):
 def createLogFileName(args):
 	logFile = '.'.join(args)
 	logFile = re.sub('/', '_', logFile)
-	logFile = re.sub('[^a-zA-Z0-9_=, \.]', '', logFile)
+	logFile = re.sub('[^a-zA-Z0-9_, \.]', '', logFile)
 	logFile = re.sub('[ ]+', '.', logFile)
 	logFile = re.sub('[\.]+', '.', logFile)
 	logFile = re.sub('^[\._]+', '', logFile)
