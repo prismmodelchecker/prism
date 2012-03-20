@@ -1683,15 +1683,16 @@ public class Prism implements PrismSettingsListener
 			l = System.currentTimeMillis() - l;
 			mainLog.println("\nTime for model construction: " + l / 1000.0 + " seconds.");
 
+			// For digital clocks, do some extra checks on the built model
+			if (digital) {
+				doBuildModelDigitalClocksChecks();
+			}
+			
 			// Deal with deadlocks
 			if (!getExplicit()) {
 				StateList deadlocks = currentModel.getDeadlockStates();
 				int numDeadlocks = deadlocks.size();
 				if (numDeadlocks > 0) {
-					if (digital) {
-						// For digital clocks, by construction, deadlocks can only occur from timelocks (and are not allowed)
-						throw new PrismException("Timelock in PTA, e.g. in state (" + deadlocks.getFirstAsValues() + ")");
-					}
 					if (getFixDeadlocks()) {
 						mainLog.printWarning("Deadlocks detected and fixed in " + numDeadlocks + " states");
 					} else {
@@ -1712,12 +1713,6 @@ public class Prism implements PrismSettingsListener
 				explicit.StateValues deadlocks = currentModelExpl.getDeadlockStatesList();
 				int numDeadlocks = currentModelExpl.getNumDeadlockStates();
 				if (numDeadlocks > 0) {
-					if (digital) {
-						// For digital clocks, by construction, deadlocks can only occur from timelocks (and are not allowed)
-						int dl = currentModelExpl.getFirstDeadlockState();
-						String dls = currentModelExpl.getStatesList().get(dl).toString(currentModulesFile);
-						throw new PrismException("Timelock in PTA, e.g. in state " + dls);
-					}
 					if (getFixDeadlocks()) {
 						mainLog.printWarning("Deadlocks detected and fixed in " + numDeadlocks + " states");
 					} else {
@@ -1762,6 +1757,23 @@ public class Prism implements PrismSettingsListener
 		}
 	}
 
+	private void doBuildModelDigitalClocksChecks() throws PrismException
+	{
+		// For digital clocks, by construction, deadlocks can only occur from timelocks (and are not allowed)
+		if (!getExplicit()) {
+			StateList deadlocks = currentModel.getDeadlockStates();
+			if (deadlocks.size() > 0) {
+				throw new PrismException("Timelock in PTA, e.g. in state (" + deadlocks.getFirstAsValues() + ")");
+			}
+		} else {
+			if (currentModelExpl.getNumDeadlockStates() > 0) {
+				int dl = currentModelExpl.getFirstDeadlockState();
+				String dls = currentModelExpl.getStatesList().get(dl).toString(currentModulesFile);
+				throw new PrismException("Timelock in PTA, e.g. in state " + dls);
+			}
+		}
+	}
+	
 	/**
 	 * Build a model from a PRISM modelling language description, storing it symbolically,
 	 * as MTBDDs) via explicit-state reachability and model construction.
