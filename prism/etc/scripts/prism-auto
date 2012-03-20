@@ -259,7 +259,7 @@ def benchmarkDir(dir):
 		for modelFile in modelFiles:
 			# Build mode: just build
 			if options.build:
-				benchmark(modelFile + args, dir)
+				benchmark(modelFile, dir)
 			# Otherwise, find properties
 			else:
 				if options.matching: propertiesFiles = getMatchingPropertiesInDir(dir, modelFile[0])
