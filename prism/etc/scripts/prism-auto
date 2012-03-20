@@ -1,0 +1,339 @@
+#!/usr/bin/python
+
+# The prism-auto script automatically executes PRISM on one or more
+# models/properties, for the purposes of benchmarking or testing.
+
+# The simplest usage is just "prism-auto <target>" where <target>
+# is a directory, model file or properties file. For a directory,
+# prism-auto finds all models and all properties files in the
+# directory and then executes PRISM on each combination of them.
+# For a model file, it runs against all properties, and vice versa.
+
+# Run "prism-auto -h" for details of further options.
+
+import os,sys,re,subprocess,signal
+from optparse import OptionParser
+
+#==================================================================================================
+# Utility functions
+#==================================================================================================
+
+def isPrismModelFile(file):
+	return re.match('.+(\.prism|\.nm|\.pm|\.sm)$', file)
+
+def isPrismPropertiesFile(file):
+	return re.match('.+(\.props|\.pctl|\.csl)$', file)
+
+def isPrismModelListFile(file):
+	return re.match('models$', os.path.basename(file))
+
+def isPrismPropListFile(file):
+	return re.match('.+(\.txt)$', file)
+
+def lineIsCommentedOut(line):
+	return line.startswith('#')
+
+# Get a list of models in a directory, either from a "models" file if present,
+# or by searching for all files in the directory with an appropriate extension.
+# A "models" file is a list of (relative) path names, in which lines starting with # are ignored.
+# If a model files "model.pm" has a matching file "model.pm.args", then the contents of this
+# are also appended. Multiple lines in the .args file results in multiple copies of the model file.
+# Each item of the returned list is itself a list because the model specification may be in several parts,
+# e.g. ["model.pm", "-const", "N=2"], but the first item is always the name of the model file.
+
+def getModelsInDir(dir):
+	modelFiles = []
+	# Process "models" file, if present
+	if os.path.isfile(os.path.join(dir, "models")):
+		for line in open(os.path.join(dir, "models"), 'r').readlines():
+			line = line.strip()
+			if len(line) == 0 or lineIsCommentedOut(line): continue
+			modelFile = []
+			first = 1
+			for item in line.split(' '):
+				if first:
+					modelFile.append(os.path.join(dir, item))
+					first = 0
+				else:
+					modelFile.append(item)
+			modelFiles.append(modelFile)
+	# Otherwise look for all model files
+	else:
+		for file in os.listdir(dir):
+			if os.path.isfile(os.path.join(dir, file)) and isPrismModelFile(file):
+				modelFiles.append([os.path.join(dir, file)])
+	# Look for matching .args files for each model file and construct full list to be returned
+	allModelFiles = []
+	for modelFile in modelFiles:
+		allModelFiles += expandFileBasedOnArgsFile(modelFile)
+	return allModelFiles
+
+# Get a list of models in a directory matching a property file name.
+# If a model files "model.pm" has a matching file "model.pm.args", then the contents of this
+# are also appended. Multiple lines in the .args file results in multiple copies of the model file.
+# Each item of the returned list is itself a list because the model specification may be in several parts,
+# e.g. ["model.pm", "-const", "N=2"], but the first item is always the name of the model file.
+
+def getMatchingModelsInDir(dir, propertiesFile):
+	propertiesFiles = []
+	for file in os.listdir(dir):
+		if os.path.isfile(os.path.join(dir, file)) and isPrismModelFile(file):
+			if os.path.basename(propertiesFile).startswith(os.path.basename(os.path.join(dir, file))):
+				propertiesFiles.append([os.path.join(dir, file)])
+	# Look for matching .args files for each model file and construct full list to be returned
+	allPropertiesFiles = []
+	for propertiesFile in propertiesFiles:
+		allPropertiesFiles += expandFileBasedOnArgsFile(propertiesFile)
+	return allPropertiesFiles
+
+# Get a list of properties in a directory, by searching for all files with an appropriate extension.
+# If a properties files "props.pctl" has a matching file "props.pctl.args", then the contents of this
+# are also appended. Multiple lines in the .args file results in multiple copies of the properties file.
+# Each item of the returned list is itself a list because the model specification may be in several parts,
+# e.g. ["props.pctl", "-const", "T=10"], but the first item is always the name of the properties file.
+
+def getPropertiesInDir(dir):
+	propertiesFiles = []
+	# Otherwise look for all properties files
+	for file in os.listdir(dir):
+		if os.path.isfile(os.path.join(dir, file)) and isPrismPropertiesFile(file):
+			propertiesFiles.append(os.path.join(dir, file))
+	# Look for matching .args files for each model file and construct full list to be returned
+	allPropertiesFiles = []
+	for propertiesFile in propertiesFiles:
+		allPropertiesFiles += expandFileBasedOnArgsFile([propertiesFile])
+	return allPropertiesFiles
+
+# Get a list of properties in a directory with prefix matching a model file name.
+# If a properties files "props.pctl" has a matching file "props.pctl.args", then the contents of this
+# are also appended. Multiple lines in the .args file results in multiple copies of the properties file.
+# Each item of the returned list is itself a list because the model specification may be in several parts,
+# e.g. ["props.pctl", "-const", "T=10"], but the first item is always the name of the properties file.
+
+def getMatchingPropertiesInDir(dir, modelFile):
+	propertiesFiles = []
+	# Otherwise look for all properties files
+	for file in os.listdir(dir):
+		if os.path.isfile(os.path.join(dir, file)) and isPrismPropertiesFile(file):
+			if os.path.basename(os.path.join(dir, file)).startswith(os.path.basename(modelFile)):
+				propertiesFiles.append(os.path.join(dir, file))
+	# Look for matching .args files for each model file and construct full list to be returned
+	allPropertiesFiles = []
+	for propertiesFile in propertiesFiles:
+		allPropertiesFiles += expandFileBasedOnArgsFile([propertiesFile])
+	return allPropertiesFiles
+
+# Expand a (model/properties) file by appending arguments from a matching .args file
+# Multiple lines in the .args file result in multiple copies of the file
+# Incoming argument "file" is a list of strings (e.g. ["model.pm", "-const", "N=2"])
+# Returned is a list of lists of strings, of size equal to lines in .args (or 1 if non-existent)
+
+def expandFileBasedOnArgsFile(file):
+	allFiles = []
+	argsLists = getArgsListsFromFile(file[0] + ".args")
+	if len(argsLists) == 0:
+		allFiles.append(file)
+	else:
+		for args in argsLists:
+			allFiles.append(file + args)
+	return allFiles
+
+# Extract all command-line switches from an "args" file into a list
+# Just combine switches on all (non-commented) lines together, delimited by spaces
+# Returns an empty list if the file does not exist
+
+def getAllArgsFromFile(file):
+	args = []
+	if not os.path.isfile(file): return args
+	for line in open(file, 'r').readlines():
+		line = line.strip()
+		if len(line) == 0 or lineIsCommentedOut(line): continue
+		items = line.split(' ')
+		for item in items:
+			if len(item) > 0: args.append(item)
+	return args
+
+# Extract command-line switches from an "args" file into a list of lists
+# Switches from each (non-commented) line, delimited by spaces, are in a separate list
+# Returns an empty list if the file does not exist
+
+def getArgsListsFromFile(file):
+	argsSet = []
+	if not os.path.isfile(file): return argsSet
+	for line in open(file, 'r').readlines():
+		args = []
+		line = line.strip()
+		if len(line) == 0 or lineIsCommentedOut(line): continue
+		items = line.split(' ')
+		for item in items:
+			if len(item) > 0: args.append(item)
+		if len(args) > 0: argsSet.append(args)
+	return argsSet
+
+# Create a valid name for a log file based on a list of benchmark arguments
+
+def createLogFileName(args):
+	logFile = '.'.join(args)
+	logFile = re.sub('/', '_', logFile)
+	logFile = re.sub('[^a-zA-Z0-9_=, \.]', '', logFile)
+	logFile = re.sub('[ ]+', '.', logFile)
+	logFile = re.sub('[\.]+', '.', logFile)
+	logFile = re.sub('^[\._]+', '', logFile)
+	return logFile + ".log"
+
+# Walk a directory and execute a callback on each file
+
+def walk(dir, meth):
+	dir = os.path.abspath(dir)
+	for file in [file for file in os.listdir(dir) if not file in [".","..",".svn"]]:
+		nfile = os.path.join(dir, file)
+		meth(nfile)
+		if os.path.isdir(nfile):
+			walk(nfile,meth)
+
+#==================================================================================================
+# Benchmarking
+#==================================================================================================
+
+# Run PRISM with a given list of command-line args
+
+def runPrism(args):
+	if options.echo:
+		print ' '.join(args)
+		return
+	prismArgs = [options.prismExec] + args
+	if options.extraArgs:
+		prismArgs += options.extraArgs.split(' ');
+	print ' '.join(prismArgs)
+	if options.logDir:
+		logFile = os.path.join(options.logDir, createLogFileName(args))
+		f = open(logFile, 'w')
+		exitCode = subprocess.Popen(prismArgs, stdout=f).wait()
+		#exitCode = subprocess.Popen(prismArgs, cwd=dir, stdout=f).wait()
+	else:
+		exitCode = subprocess.Popen(prismArgs).wait()
+
+# Run a benchmark, specified by a list of command-line args,
+# possibly iterating over further lists of args from a "bm" file
+
+def benchmark(args):
+	# Loop through benchmark options, if required
+	if options.bmFile and os.path.isfile(os.path.join(options.bmFile)):
+		argsLists = getArgsListsFromFile(options.bmFile)
+		for bmArgs in argsLists:
+			runPrism(args + bmArgs)
+	# If none, just use existing args
+	else:
+		runPrism(args)
+
+# Execute benchmarking based on (possibly recursive) processing of a directory
+
+def benchmarkDir(dir):
+	# Recurse first, unless asked not to
+	if not options.nonRec:
+		for file in [file for file in os.listdir(dir) if not file in [".","..",".svn"]]:
+			if os.path.isdir(os.path.join(dir, file)):
+				benchmarkDir(os.path.join(dir, file))
+	# Get model files in dir
+	modelFiles = getModelsInDir(dir)
+	if len(modelFiles) > 0:
+		for modelFile in modelFiles:
+			# Build mode: just build
+			if options.build:
+				benchmark(modelFile + args)
+			# Otherwise, find properties
+			else:
+				if options.matching: propertiesFiles = getMatchingPropertiesInDir(dir, modelFile[0])
+				else: propertiesFiles = getPropertiesInDir(dir)
+				for propertiesFile in propertiesFiles:
+					benchmark(modelFile + propertiesFile)
+
+# Execute benchmarking based on a single file (model, property, list)
+
+def benchmarkFile(file):
+	if isPrismModelFile(file):
+		benchmarkModelFile(file)
+	elif isPrismPropertiesFile(file):
+		benchmarkPropertiesFile(file)
+	elif isPrismPropListFile(file):
+		benchmarkPropListFile(file)
+
+# Execute benchmarking based on a single model file
+
+def benchmarkModelFile(modelFile):
+	dir = os.path.dirname(modelFile)
+	if dir == "": dir = "."
+	# Expand model file based on any .args file
+	modelFiles = expandFileBasedOnArgsFile([modelFile])
+	for modelFile in modelFiles:
+		# Build mode: just build
+		if options.build:
+			benchmark(modelFile + args)
+		# Otherwise, find properties
+		else:
+			if options.matching: propertiesFiles = getMatchingPropertiesInDir(dir, modelFile[0])
+			else: propertiesFiles = getPropertiesInDir(dir)
+			for propertiesFile in propertiesFiles:
+				benchmark(modelFile + propertiesFile)
+
+# Execute benchmarking based on a single properties file
+
+def benchmarkPropertiesFile(propertiesFile):
+	dir = os.path.dirname(propertiesFile)
+	if dir == "": dir = "."
+	# Expand properties file based on any .args file
+	propertiesFiles = expandFileBasedOnArgsFile([propertiesFile])
+	for propertiesFile in propertiesFiles:
+		# Find models
+		if options.matching: modelFiles = getMatchingModelsInDir(dir, propertiesFile[0])
+		else: modelFiles = getModelsInDir(dir)
+		for modelFile in modelFiles:
+			benchmark(modelFile + propertiesFile)
+
+# Execute benchmarking based on a property list
+
+def benchmarkPropListFile(propListFile):
+	listDir = os.path.dirname(propListFile)
+	if listDir == "": listDir = "."
+	for line in open(propListFile, 'r').readlines():
+		line = line.strip()
+		if len(line) == 0 or lineIsCommentedOut(line): continue
+		items = line.split(',')
+		dir = os.path.join(listDir, items[0].strip())
+		dir = os.path.realpath(dir)
+		propFile = items[1].strip()
+		benchmarkPropertiesFile(os.path.join(dir, propFile))
+
+#==================================================================================================
+# Main program
+#==================================================================================================
+
+def printUsage():
+	print "Usage: prism-auto ..."
+
+def signal_handler(signal, frame):
+	sys.exit(1)
+
+# Main program
+
+signal.signal(signal.SIGINT, signal_handler)
+parser = OptionParser(usage="usage: %prog [options] arg")
+parser.add_option("-l", "--log", dest="logDir", metavar="DIR", default="", help="Store PRISM output in logs in DIR")
+parser.add_option("-a", "--args", dest="bmFile", metavar="FILE", default="", help="Read argument lists for benchmarking from FILE")
+parser.add_option("-e", "--echo", action="store_true", dest="echo", default=False, help="Just print out tasks, don't execute")
+parser.add_option("-m", "--matching", action="store_true", dest="matching", default=False, help="Only use matching models/properties, not all files")
+parser.add_option("-b", "--build", action="store_true", dest="build", default=False, help="Just build models, don't model check properties")
+parser.add_option("-p", "--prog", dest="prismExec", metavar="FILE", default="prism", help="Program to execute [default=prism]")
+parser.add_option("-n", "--non-recursive", action="store_true", dest="nonRec", default=False, help="Don't recurse into directories")
+parser.add_option("-x", "--extra", dest="extraArgs", metavar="XXX", default="", help="Pass (single string of) extra switches to PRISM")
+(options, args) = parser.parse_args()
+if len(args) != 1:
+	parser.print_help()
+	sys.exit(1)
+if options.logDir and not os.path.isdir(options.logDir):
+	print "Log directory \"" + options.logDir + "\" does not exist"
+	sys.exit(1)
+if os.path.isdir(args[0]):
+	benchmarkDir(args[0])
+elif os.path.isfile(args[0]):
+	benchmarkFile(args[0])

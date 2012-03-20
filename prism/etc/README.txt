@@ -16,6 +16,8 @@ Where appropriate, comments/instructions are included in the files themselves.
      more help.
    - bash-prism-completion.sh - Bash programmable completion for PRISM,
      automatically completes options for PRISM when run in Bash.
+   - prism-auto - automates PRISM execution for testing/benchmarking
+   - prism-test - automates running PRISM in test mode
 
  * syntax-highlighters/ - Syntax highlighting configs for various tools
    - gnome/{Overrides.xml,prism.lang} - files for Gnome environment
