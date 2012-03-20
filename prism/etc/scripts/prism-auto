@@ -177,7 +177,7 @@ def createLogFileName(args, dir=""):
 	if len(dir) > 0:
 		logFile = re.sub(dir, '', logFile)
 	logFile = re.sub('/', '_', logFile)
-	logFile = re.sub('[^a-zA-Z0-9_, \.]', '', logFile)
+	logFile = re.sub('[^a-zA-Z0-9=_, \.]', '', logFile)
 	logFile = re.sub('[ ]+', '.', logFile)
 	logFile = re.sub('[\.]+', '.', logFile)
 	logFile = re.sub('^[\._]+', '', logFile)
