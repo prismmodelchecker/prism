@@ -339,14 +339,14 @@ make_dirs:
 
 tests: testslocal
 	@if [ -d ~/prism-tests ]; then \
-	  cd ~/prism-tests && $(MAKE) clean && $(MAKE) PRISM_EXEC=$(PWD)/bin/prism; \
+	  cd ~/prism-tests && $(PWD)/etc/scripts/prism-auto -t -m . -p $(PWD)/bin/prism; \
 	else \
 	  echo "Skipping tests"; \
 	fi
 
 testslocal:
 	@if [ -d tests ]; then \
-	  cd tests && $(MAKE) clean && $(MAKE) PRISM_EXEC=$(PWD)/bin/prism; \
+	  cd tests && $(PWD)/etc/scripts/prism-auto -t -m . -p $(PWD)/bin/prism; \
 	else \
 	  echo "Skipping local tests"; \
 	fi
