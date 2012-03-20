@@ -213,7 +213,7 @@ def runPrism(args):
 		exitCode = subprocess.Popen(prismArgs, stdout=f).wait()
 		#exitCode = subprocess.Popen(prismArgs, cwd=dir, stdout=f).wait()
 	elif options.test:
-		f = tempfile.NamedTemporaryFile()
+		f = tempfile.NamedTemporaryFile(delete=False)
 		logFile = f.name
 		exitCode = subprocess.Popen(prismArgs, stdout=f).wait()
 	else:
@@ -221,9 +221,12 @@ def runPrism(args):
 	# Extract test results if needed
 	if options.test:
 		for line in open(logFile, 'r').readlines():
-			if re.match('Testing result', line):
+			if re.match('Testing result:', line):
 				print line,
 	if options.test and exitCode != 0:
+		for line in open(logFile, 'r').readlines():
+			if re.match('Error:', line):
+				print line,
 		print "Log file: " + logFile
 		sys.exit(1)
 
