@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # The prism-auto script automatically executes PRISM on one or more
 # models/properties, for the purposes of benchmarking or testing.
