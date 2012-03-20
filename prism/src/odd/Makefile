@@ -29,6 +29,8 @@ CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.
 CC_FILES = $(wildcard *.cc)
 O_FILES = $(CC_FILES:%.cc=$(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/%.o)
 
+PRISM_CLASSPATH = "$(THIS_DIR)/$(PRISM_DIR_REL)/$(CLASSES_DIR)$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/*"
+
 default: all
 
 all: checks $(CLASS_FILES) $(PRISM_DIR_REL)/$(INCLUDE_DIR)/ODDUtils.h $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)odd$(LIBSUFFIX)
@@ -40,7 +42,7 @@ checks:
 	fi; 
 
 $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class: %.java
-	(cd ..; $(JAVAC) -sourcepath $(THIS_DIR)/$(PRISM_DIR_REL)/$(SRC_DIR) -classpath $(THIS_DIR)/$(PRISM_DIR_REL)/$(CLASSES_DIR) -d $(THIS_DIR)/$(PRISM_DIR_REL)/$(CLASSES_DIR) $(THIS_DIR)/$<)
+	(cd ..; $(JAVAC) -sourcepath $(THIS_DIR)/$(PRISM_DIR_REL)/$(SRC_DIR) -classpath $(PRISM_CLASSPATH) -d $(THIS_DIR)/$(PRISM_DIR_REL)/$(CLASSES_DIR) $(THIS_DIR)/$<)
 
 $(PRISM_DIR_REL)/$(INCLUDE_DIR)/ODDUtils.h: $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/ODDUtils.class
 	($(JAVAH) -classpath $(PRISM_DIR_REL)/$(CLASSES_DIR) -jni -o $@ $(THIS_DIR).ODDUtils; touch $@)

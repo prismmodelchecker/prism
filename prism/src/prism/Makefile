@@ -24,10 +24,10 @@ JAVA_FILES_ALL = $(wildcard *.java)
 JAVA_FILES = $(subst package-info.java,,$(JAVA_FILES_ALL))
 CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class)
 
+PRISM_CLASSPATH = "$(THIS_DIR)/$(PRISM_DIR_REL)/$(CLASSES_DIR)$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/*"
+
 CC_FILES = $(wildcard *.cc)
 O_FILES = $(CC_FILES:%.cc=$(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/%.o)
-
-PRISM_CLASSPATH = "$(THIS_DIR)/$(PRISM_DIR_REL)/$(CLASSES_DIR)$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/jcommon.jar$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/jfreechart.jar$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/epsgraphics.jar$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/colt.jar"
 
 default: all
 

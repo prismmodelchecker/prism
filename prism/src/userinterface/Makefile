@@ -14,7 +14,7 @@ JAVA_FILES_ALL = $(wildcard *.java graph/*.java model/*.java model/computation/*
 JAVA_FILES = $(patsubst %package-info.java,,$(JAVA_FILES_ALL))
 CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class)
 
-PRISM_CLASSPATH = "$(THIS_DIR)/$(PRISM_DIR_REL)/$(CLASSES_DIR)$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/jcommon.jar$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/jfreechart.jar$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/epsgraphics.jar$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/colt.jar"
+PRISM_CLASSPATH = "$(THIS_DIR)/$(PRISM_DIR_REL)/$(CLASSES_DIR)$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/*"
 
 default: all
 
