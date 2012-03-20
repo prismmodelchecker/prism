@@ -31,6 +31,7 @@ import java.util.*;
 import jdd.*;
 import parser.ast.*;
 import cex.CexPathAsBDDs;
+import cex.CexPathStates;
 
 /*
  * Non probabilistic model checker, initially for CTL.
@@ -269,6 +270,10 @@ public class NonProbModelChecker extends StateModelChecker
 			tmp = tmp2;
 		}
 
+		// Print iterations/timing info
+		l = System.currentTimeMillis() - l;
+		mainLog.println("\nCTL EU fixpoint: " + iters + " iterations in " + (l / 1000.0) + " seconds");
+
 		// Process the counterexample info to produce a trace 
 		if (doGenCex) {
 			if (!cexDone) {
@@ -276,7 +281,7 @@ public class NonProbModelChecker extends StateModelChecker
 					JDD.Deref(cexDDs.get(i));
 				}
 			} else {
-				mainLog.println("\nProcessing counterexample trace (length " + (cexDDs.size() - 1) + ")...");
+				mainLog.println("Processing counterexample trace (" + cexDDs.size() + " states long)...");
 				// First state of counterexample (at end of array) is initial state
 				JDD.Deref(cexDDs.get(cexDDs.size() - 1));
 				cexDDs.set(cexDDs.size() - 1, cexInit);
@@ -297,48 +302,52 @@ public class NonProbModelChecker extends StateModelChecker
 					JDD.Deref(cexDDs.get(i));
 					cexDDs.set(i, tmp3);
 				}
-				// For an MDP model, build a list of actions from counterexample
-				if (model.getModelType() == ModelType.MDP) {
-					cexActions = new Vector<String>();
-					for (i = cexDDs.size() - 1; i >= 1; i--) {
-						JDD.Ref(trans01);
-						JDD.Ref(cexDDs.get(i));
-						tmp3 = JDD.And(trans01, cexDDs.get(i));
-						JDD.Ref(cexDDs.get(i - 1));
-						tmp3 = JDD.And(tmp3, JDD.PermuteVariables(cexDDs.get(i - 1), allDDRowVars, allDDColVars));
-						tmp3 = JDD.ThereExists(tmp3, allDDColVars);
-						JDD.Ref(transActions);
-						tmp3 = JDD.Apply(JDD.TIMES, tmp3, transActions);
-						int action = (int) JDD.FindMax(tmp3);
-						cexActions.add(action > 0 ? model.getSynchs().get(action - 1) : "");
-						JDD.Deref(tmp3);
-						JDD.Deref(cexDDs.get(i));
-					}
-					JDD.Deref(cexDDs.get(0));
-					mainLog.println("Counterexample (action sequence): " + cexActions);
-					result.setCounterexample(cexActions);
+				// Construct counterexample object
+				CexPathStates cex = new CexPathStates(model);
+				for (i = cexDDs.size() - 1; i >= 0; i--) {
+					cex.addState(model.convertBddToState(cexDDs.get(i)));
+					JDD.Deref(cexDDs.get(i));
 				}
-				// Otherwise, convert list of BDDs to list of states
-				else {
-					CexPathAsBDDs cex = new CexPathAsBDDs(model);
-					for (i = cexDDs.size() - 1; i >= 0; i--) {
-						cex.addState(cexDDs.get(i));
-						JDD.Deref(cexDDs.get(i));
+				result.setCounterexample(cex);
+				if (1 == 2) {
+					// For an MDP model, build a list of actions from counterexample
+					if (model.getModelType() == ModelType.MDP) {
+						cexActions = new Vector<String>();
+						for (i = cexDDs.size() - 1; i >= 1; i--) {
+							JDD.Ref(trans01);
+							JDD.Ref(cexDDs.get(i));
+							tmp3 = JDD.And(trans01, cexDDs.get(i));
+							JDD.Ref(cexDDs.get(i - 1));
+							tmp3 = JDD.And(tmp3, JDD.PermuteVariables(cexDDs.get(i - 1), allDDRowVars, allDDColVars));
+							tmp3 = JDD.ThereExists(tmp3, allDDColVars);
+							JDD.Ref(transActions);
+							tmp3 = JDD.Apply(JDD.TIMES, tmp3, transActions);
+							int action = (int) JDD.FindMax(tmp3);
+							cexActions.add(action > 0 ? model.getSynchs().get(action - 1) : "");
+							JDD.Deref(tmp3);
+							JDD.Deref(cexDDs.get(i));
+						}
+						JDD.Deref(cexDDs.get(0));
+						mainLog.println("Counterexample (action sequence): " + cexActions);
+						result.setCounterexample(cexActions);
 					}
-					result.setCounterexample(cex);
+					// Otherwise, convert list of BDDs to list of states
+					else {
+						CexPathAsBDDs cexBDDs = new CexPathAsBDDs(model);
+						for (i = cexDDs.size() - 1; i >= 0; i--) {
+							cexBDDs.addState(cexDDs.get(i));
+							JDD.Deref(cexDDs.get(i));
+						}
+						result.setCounterexample(cexBDDs);
+					}
 				}
 			}
 		}
-
-		l = System.currentTimeMillis() - l;
 
 		// Derefs
 		JDD.Deref(b1);
 		JDD.Deref(b2);
 		JDD.Deref(transRel);
-
-		// Print iterations/timing info
-		mainLog.println("\nCTL EU fixpoint: " + iters + " iterations in " + (l / 1000.0) + " seconds");
 
 		return new StateValuesMTBDD(tmp, model);
 	}

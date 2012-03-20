@@ -29,8 +29,11 @@ package prism;
 import java.io.*;
 import java.util.*;
 
+import cex.CexPathStates;
+
 import parser.*;
 import parser.ast.*;
+import simulator.SimulatorEngine;
 import simulator.method.*;
 
 // prism - command line version
@@ -309,6 +312,13 @@ public class PrismCL implements PrismModelListener
 						if (cex != null) {
 							mainLog.println("\nCounterexample/witness:");
 							mainLog.println(cex);
+							/*SimulatorEngine engine = prism.getSimulator();
+							try {
+								engine.loadPath(modulesFile, (CexPathStates) cex);
+								engine.exportPath(null, true, ",", null);
+							} catch (PrismException e) {
+								error(e.getMessage());
+							}*/
 							if (cex instanceof cex.CexPathAsBDDs) {
 								((cex.CexPathAsBDDs) cex).clear();
 							}

@@ -28,36 +28,32 @@ package cex;
 
 import java.util.ArrayList;
 
-import jdd.JDD;
-import jdd.JDDNode;
 import parser.State;
 import simulator.PathFullInfo;;
 
 /**
- * Class to store a counterexample/witness comprising a single path, as a list of BDDs.
- * The basic contents of the path is is a sequence of states (BDDs).
- * Optionally, action labels can also be included.
+ * Class to store a counterexample/witness comprising a single path,
+ * represented as a list of states, stored as State objects. 
  */
-public class CexPathAsBDDs implements PathFullInfo
+public class CexPathStates implements PathFullInfo
 {
 	protected prism.Model model;
-	protected ArrayList<JDDNode> states;
+	protected ArrayList<State> states;
 
 	/**
 	 * Construct empty path.
 	 */
-	public CexPathAsBDDs(prism.Model model)
+	public CexPathStates(prism.Model model)
 	{
 		this.model = model;
-		states = new ArrayList<JDDNode>();
+		states = new ArrayList<State>();
 	}
 
 	/**
-	 * Add a state to the path (as a BDD, which will be stored and Ref'ed).
+	 * Add a state to the path (will be stored, not copied).
 	 */
-	public void addState(JDDNode state)
+	public void addState(State state)
 	{
-		JDD.Ref(state);
 		states.add(state);
 	}
 
@@ -66,9 +62,7 @@ public class CexPathAsBDDs implements PathFullInfo
 	 */
 	public void clear()
 	{
-		for (JDDNode dd : states) {
-			JDD.Deref(dd);
-		}
+		states = null;
 	}
 
 	// ACCESSORS (for PathFullInfo)
@@ -82,7 +76,7 @@ public class CexPathAsBDDs implements PathFullInfo
 	@Override
 	public State getState(int step)
 	{
-		return model.convertBddToState(states.get(step));
+		return states.get(step);
 	}
 	
 	@Override
@@ -191,7 +185,7 @@ public class CexPathAsBDDs implements PathFullInfo
 		String s = "";
 		n = states.size();
 		for (i = 0; i < n; i++) { 
-			state = model.convertBddToState(states.get(i));
+			state = states.get(i);
 			s += state.toString();
 			if (i < n - 1)
 				s += "\n";
