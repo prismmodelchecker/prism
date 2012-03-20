@@ -1772,6 +1772,24 @@ public class Prism implements PrismSettingsListener
 				throw new PrismException("Timelock in PTA, e.g. in state " + dls);
 			}
 		}
+				
+		/*// Create new model checker object and do model checking
+		PropertiesFile pf = parsePropertiesString(currentModulesFile, "filter(exists,!\"invariants\"); E[F!\"invariants\"]");
+		if (!getExplicit()) {
+			ModelChecker mc = new NondetModelChecker(this, currentModel, pf);
+			if (((Boolean) mc.check(pf.getProperty(0)).getResult()).booleanValue()) {
+				mainLog.println(mc.check(pf.getProperty(1)).getCounterexample());
+			}
+			//sv.pr
+			//mainLog.println("XX" + res.getResult());
+		} else {
+			explicit.StateModelChecker mc = new MDPModelChecker();
+			mc.setLog(mainLog);
+			mc.setSettings(settings);
+			mc.setModulesFileAndPropertiesFile(currentModulesFile, pf);
+			explicit.StateValues sv = mc.checkExpression(currentModelExpl, pf.getProperty(0));
+			sv.print(mainLog, 1);
+		}*/
 	}
 	
 	/**
