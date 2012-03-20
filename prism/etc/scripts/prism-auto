@@ -11,7 +11,7 @@
 
 # Run "prism-auto -h" for details of further options.
 
-import os,sys,re,subprocess,signal
+import os,sys,re,subprocess,signal,tempfile
 from optparse import OptionParser
 
 #==================================================================================================
@@ -198,6 +198,8 @@ def walk(dir, meth):
 # Run PRISM with a given list of command-line args
 
 def runPrism(args):
+	if options.test:
+		args.append("-test")
 	if options.echo:
 		print ' '.join(args)
 		return
@@ -210,8 +212,20 @@ def runPrism(args):
 		f = open(logFile, 'w')
 		exitCode = subprocess.Popen(prismArgs, stdout=f).wait()
 		#exitCode = subprocess.Popen(prismArgs, cwd=dir, stdout=f).wait()
+	elif options.test:
+		f = tempfile.NamedTemporaryFile()
+		logFile = f.name
+		exitCode = subprocess.Popen(prismArgs, stdout=f).wait()
 	else:
 		exitCode = subprocess.Popen(prismArgs).wait()
+	# Extract test results if needed
+	if options.test:
+		for line in open(logFile, 'r').readlines():
+			if re.match('Testing result', line):
+				print line,
+	if options.test and exitCode != 0:
+		print "Log file: " + logFile
+		sys.exit(1)
 
 # Run a benchmark, specified by a list of command-line args,
 # possibly iterating over further lists of args from a "bm" file
@@ -326,6 +340,7 @@ parser.add_option("-b", "--build", action="store_true", dest="build", default=Fa
 parser.add_option("-p", "--prog", dest="prismExec", metavar="FILE", default="prism", help="Program to execute [default=prism]")
 parser.add_option("-n", "--non-recursive", action="store_true", dest="nonRec", default=False, help="Don't recurse into directories")
 parser.add_option("-x", "--extra", dest="extraArgs", metavar="XXX", default="", help="Pass (single string of) extra switches to PRISM")
+parser.add_option("-t", "--test", action="store_true", dest="test", default=False, help="Run in test mode")
 (options, args) = parser.parse_args()
 if len(args) != 1:
 	parser.print_help()
