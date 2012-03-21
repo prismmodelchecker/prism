@@ -129,6 +129,11 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		return popup;
 	}
 
+	public boolean getComputing()
+	{
+		return computing;
+	}
+	
 	public void doEnables()
 	{
 		// do nothing if not initialised yet

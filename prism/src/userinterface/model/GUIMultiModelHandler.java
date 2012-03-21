@@ -849,6 +849,7 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		{
 			public void run()
 			{
+				editor.modelParseSuccessful();
 				updateBuiltModelDisplay();
 				theModel.doEnables();
 				theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.MODEL_BUILT, lastMFConstants));
@@ -889,7 +890,10 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 			{
 				if (lastBuildError != null && lastBuildError instanceof PrismLangException) {
 					editor.modelParseFailed((PrismLangException) lastBuildError, false);
-					theModel.tabToFront();
+					// Bring model tab to front, but only if not busy e.g. with experiment
+					if (!theModel.getComputing()) {
+						theModel.tabToFront();
+					}
 				}
 				updateBuiltModelDisplay();
 				theModel.doEnables();
