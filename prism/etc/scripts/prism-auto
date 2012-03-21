@@ -203,13 +203,12 @@ def runPrism(args, dir=""):
 	if options.test:
 		if options.testAll: args.append("-testall")
 		else: args.append("-test")
-	if options.echo:
-		print ' '.join(args)
-		return
 	prismArgs = [options.prismExec] + args
 	if options.extraArgs:
 		prismArgs += options.extraArgs.split(' ');
 	print ' '.join(prismArgs)
+	if options.echo:
+		return
 	if options.logDir:
 		logFile = os.path.join(options.logDir, createLogFileName(args, dir))
 		f = open(logFile, 'w')
