@@ -27,6 +27,7 @@
 package explicit;
 
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -580,6 +581,9 @@ public class MDPModelChecker extends ProbModelChecker
 			msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
 			throw new PrismException(msg);
 		}
+		
+		// Prune adversary
+		restrictAdversaryToReachableStates(mdp, adv);
 		
 		// Print adversary
 		if (genAdv) {
@@ -1269,6 +1273,48 @@ public class MDPModelChecker extends ProbModelChecker
 		return mdp.mvMultRewMinMaxSingleChoices(state, lastSoln, mdpRewards, min, val);
 	}
 
+	/**
+	 * Restrict a (memoryless) adversary for an MDP, stored as an integer array of choice indices,
+	 * to the states of the MDP that are reachable under that adversary.  
+	 * @param mdp The MDP
+	 * @param adv The adversary
+	 */
+	public void restrictAdversaryToReachableStates(MDP mdp,int adv[])
+	{
+		BitSet restrict = new BitSet();
+		BitSet explore = new BitSet();
+		// Get initial states
+		for (int is : mdp.getInitialStates()) {
+			restrict.set(is);
+			explore.set(is);
+		}
+		// Compute reachable states (store in 'restrict') 
+		boolean foundMore = true;
+		while (foundMore) {
+			foundMore = false;
+			for (int s = explore.nextSetBit(0); s >= 0; s = explore.nextSetBit(s + 1)) {
+				explore.set(s, false);
+				if (adv[s] >= 0) {
+					Iterator<Map.Entry<Integer, Double>> iter = mdp.getTransitionsIterator(s, adv[s]);
+					while (iter.hasNext()) {
+						Map.Entry<Integer, Double> e = iter.next();
+						int dest = e.getKey();
+						if (!restrict.get(dest)) {
+							foundMore = true;
+							restrict.set(dest);
+							explore.set(dest);
+						}
+					}
+				}
+			}
+		}
+		// Set adversary choice for non-reachable state to -1
+		int n = mdp.getNumStates();
+		for (int s = restrict.nextClearBit(0); s < n; s = restrict.nextClearBit(s + 1)) {
+			adv[s] = -1;
+		}
+	}
+	
 	/**
 	 * Simple test program.
 	 */
