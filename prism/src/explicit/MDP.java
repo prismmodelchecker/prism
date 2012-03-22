@@ -29,6 +29,8 @@ package explicit;
 import java.util.*;
 import java.util.Map.Entry;
 
+import prism.PrismException;
+
 import explicit.rewards.*;
 
 /**
@@ -234,4 +236,9 @@ public interface MDP extends Model
 	 * @param dest Vector to write result to.
 	 */
 	public void mvMultRight(int[] states, int[] adv, double[] source, double[] dest);
+
+	/**
+	 * Export to a dot file, highlighting states in 'mark' and choices for a (memoryless) adversary.
+	 */
+	public void exportToDotFileWithAdv(String filename, BitSet mark, int adv[]) throws PrismException;
 }
