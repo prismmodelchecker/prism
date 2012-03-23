@@ -204,9 +204,9 @@ public class ProbModelChecker extends StateModelChecker
 		// PRISM_EXPORT_ADV
 		s = settings.getString(PrismSettings.PRISM_EXPORT_ADV);
 		if (!(s.equals("None")))
-			exportAdv = true;
+			setExportAdv(true);
 		// PRISM_EXPORT_ADV_FILENAME
-		exportAdvFilename = settings.getString(PrismSettings.PRISM_EXPORT_ADV_FILENAME);
+		setExportAdvFilename(settings.getString(PrismSettings.PRISM_EXPORT_ADV_FILENAME));
 	}
 
 	/**
@@ -333,6 +333,16 @@ public class ProbModelChecker extends StateModelChecker
 		this.solnMethod = solnMethod;
 	}
 
+	public void setExportAdv(boolean exportAdv)
+	{
+		this.exportAdv = exportAdv;
+	}
+	
+	public void setExportAdvFilename(String exportAdvFilename)
+	{
+		this.exportAdvFilename = exportAdvFilename;
+	}
+	
 	// Get methods for flags/settings
 
 	public int getVerbosity()
