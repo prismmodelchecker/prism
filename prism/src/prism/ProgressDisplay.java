@@ -55,6 +55,7 @@ public class ProgressDisplay
 	 */
 	public void start()
 	{
+		totalCount = -1; // i.e. not used
 		lastCount = 0;
 		lastPercentageDone = 0;
 		timerProgress = System.currentTimeMillis();
@@ -140,6 +141,7 @@ public class ProgressDisplay
 	{
 		mainLog.print(text);
 		if (totalCount != -1)
-			mainLog.println(" ]");
+			mainLog.print(" ]");
+		mainLog.println();
 	}
 }
