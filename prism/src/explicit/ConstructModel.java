@@ -136,7 +136,7 @@ public class ConstructModel
 		}
 
 		// Starting reachability...
-		mainLog.print("\nComputing reachable states... ");
+		mainLog.print("\nComputing reachable states...");
 		mainLog.flush();
 		ProgressDisplay progress = new ProgressDisplay(mainLog);
 		progress.start();
@@ -250,7 +250,7 @@ public class ConstructModel
 
 		// Finish progress display
 		progress.update(src + 1);
-		progress.end();
+		progress.end(" states");
 
 		// Reachability complete
 		mainLog.print("Reachable states exploration" + (justReach ? "" : " and model construction"));
