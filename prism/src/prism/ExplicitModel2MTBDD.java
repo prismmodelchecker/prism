@@ -391,6 +391,7 @@ public class ExplicitModel2MTBDD
 		nnz = modelExpl.getNumTransitions();
 		count = 0;
 		progress = new ProgressDisplay(mainLog);
+		progress.setTotalCount(nnz);
 		progress.start();
 		// Case for DTMCs/CTMCs...
 		if (modelType == ModelType.DTMC || modelType == ModelType.CTMC) {
@@ -433,10 +434,7 @@ public class ExplicitModel2MTBDD
 					// deref element dd
 					JDD.Deref(elem);
 					// Print some progress info occasionally
-					count++;
-					if (progress.ready()) {
-						progress.update((100.0 * count) / nnz);
-					}
+					progress.updateIfReady(++count);
 				}
 			}
 		}
@@ -477,10 +475,7 @@ public class ExplicitModel2MTBDD
 						// deref element dd
 						JDD.Deref(elem);
 						// Print some progress info occasionally
-						count++;
-						if (progress.ready()) {
-							progress.update((100.0 * count) / nnz);
-						}
+						progress.updateIfReady(++count);
 					}
 				}
 			}
@@ -488,7 +483,7 @@ public class ExplicitModel2MTBDD
 			throw new PrismException("Unknown model type");
 		}
 		// Tidy up progress display
-		progress.update(100.0);
+		progress.update(nnz);
 		progress.end();
 	}
 

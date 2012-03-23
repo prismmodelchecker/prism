@@ -27,7 +27,7 @@
 package prism;
 
 /**
- * Class to display percentage progress meter to a log.
+ * Class to display progress meter to a log, either as percentages or just a counter.
  */
 public class ProgressDisplay
 {
@@ -36,45 +36,110 @@ public class ProgressDisplay
 	// Config
 	/** Minimum delay between updates (milliseconds); */
 	private int delay = 3000;
-	/** Display progress as multiples of this number */ 
-	private int multiple = 2;
+	/** Display progress as multiples of this number */
+	private int percentMultiple = 2;
 	// Current state
-	private int lastPercentageDone;
+	private long totalCount;
+	private long lastCount;
+	private long lastPercentageDone;
 	private long timerProgress;
-	
+	private boolean first;
+
 	public ProgressDisplay(PrismLog mainLog)
 	{
 		this.mainLog = mainLog;
 	}
-	
+
+	/**
+	 * Initialise; start the timer.
+	 */
 	public void start()
 	{
+		lastCount = 0;
 		lastPercentageDone = 0;
 		timerProgress = System.currentTimeMillis();
-		mainLog.print("[");
+		first = true;
 	}
-	
+
+	/**
+	 * Set total count expected, thus triggering percentage mode.
+	 */
+	public void setTotalCount(long totalCount)
+	{
+		this.totalCount = totalCount;
+	}
+
+	/**
+	 * Is it time for the next update?
+	 */
 	public boolean ready()
 	{
 		return System.currentTimeMillis() - timerProgress > delay;
 	}
-	
-	public void update(double percentageDone)
+
+	/**
+	 * Display an update, if it is ready and anything changed.
+	 */
+	public void updateIfReady(long count)
 	{
-		// Round percentage down to nearest multiple of 'multiple' 
-		int percentageDoneRound = (int) Math.floor(percentageDone);
-		percentageDoneRound = (percentageDoneRound / multiple) * multiple;
-		// Print if new
-		if (percentageDoneRound > lastPercentageDone) {
-			lastPercentageDone = percentageDoneRound;
-			mainLog.print(" " + percentageDoneRound + "%");
-			mainLog.flush();
-			timerProgress = System.currentTimeMillis();
-		}
+		if (ready())
+			update(count);
 	}
 	
+	/**
+	 * Display an update, if anything changed.
+	 */
+	public void update(long count)
+	{
+		// Percentage mode
+		if (totalCount != -1) {
+			// Compute percentage, round down to nearest multiple of 'multiple'
+			int percentageDoneRound;
+			if (count >= totalCount) {
+				percentageDoneRound = 100;
+			} else {
+				percentageDoneRound = (int) Math.floor((100.0 * count) / totalCount);
+				percentageDoneRound = (percentageDoneRound / percentMultiple) * percentMultiple;
+			}
+			// Print if new
+			if (percentageDoneRound > lastPercentageDone) {
+				if (first) {
+					mainLog.print("[");
+					first = false;
+				}
+				lastPercentageDone = percentageDoneRound;
+				mainLog.print(" " + percentageDoneRound + "%");
+				mainLog.flush();
+				timerProgress = System.currentTimeMillis();
+			}
+		}
+		// Counter mode
+		else {
+			// Print if new
+			if (count > lastCount) {
+				lastCount = count;
+				mainLog.print(" " + count);
+				mainLog.flush();
+				timerProgress = System.currentTimeMillis();
+			}
+		}
+	}
+
+	/**
+	 * Finish up.
+	 */
 	public void end()
 	{
-		mainLog.println(" ]");
+		end("");
+	}
+
+	/**
+	 * Finish up, displaying {@code text} first.
+	 */
+	public void end(String text)
+	{
+		mainLog.print(text);
+		if (totalCount != -1)
+			mainLog.println(" ]");
 	}
 }
