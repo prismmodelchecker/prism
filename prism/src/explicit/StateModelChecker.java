@@ -138,6 +138,9 @@ public class StateModelChecker
 	 */
 	public void setSettings(PrismSettings settings) throws PrismException
 	{
+		if (settings == null)
+			return;
+		
 		verbosity = settings.getBoolean(PrismSettings.PRISM_VERBOSE) ? 10 : 1;
 	}
 

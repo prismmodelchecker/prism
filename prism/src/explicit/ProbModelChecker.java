@@ -142,6 +142,9 @@ public class ProbModelChecker extends StateModelChecker
 	 */
 	public void setSettings(PrismSettings settings) throws PrismException
 	{
+		if (settings == null)
+			return;
+		
 		String s;
 		// PRISM_LIN_EQ_METHOD
 		s = settings.getString(PrismSettings.PRISM_LIN_EQ_METHOD);
