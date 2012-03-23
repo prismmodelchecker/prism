@@ -251,7 +251,7 @@ public class ForwardsReach
 		timer = System.currentTimeMillis() - timer;
 		mainLog.println("Graph constructed in " + (timer / 1000.0) + " secs.");
 		mainLog.print("Graph: " + graph.states.size() + " symbolic states");
-		mainLog.println("), " + target.cardinality() + " target states");
+		mainLog.println(" (" + initialStates.size() + " initial, " + target.cardinality() + " target)");
 
 		// Print a warning if there are no target states
 		if (target.cardinality() == 0)
