@@ -303,7 +303,7 @@ public class PrismCL implements PrismModelListener
 						// in case of build failure during model checking, store as result for any const values and continue
 						if (modelBuildFail) {
 							results[j].setMultipleErrors(definedMFConstants, null, modelBuildException);
-							continue;
+							break;
 						}
 
 						// store result of model checking
@@ -343,19 +343,14 @@ public class PrismCL implements PrismModelListener
 						// iterate to next property
 						undefinedConstants[j].iterateProperty();
 					}
+				}
 
-					// in case of build failure during model checking, store as result for any further properties, and go on to the next model
-					if (modelBuildFail) {
-						for (j++; j < numPropertiesToCheck; j++) {
-							results[j].setMultipleErrors(definedMFConstants, null, modelBuildException);
-						}
-						// iterate to next model
-						undefinedMFConstants.iterateModel();
-						for (j = 0; j < numPropertiesToCheck; j++) {
-							undefinedConstants[j].iterateModel();
-						}
-						continue;
+				// in case of build failure during model checking, store as result for any further properties and continue
+				if (modelBuildFail) {
+					for (j++; j < numPropertiesToCheck; j++) {
+						results[j].setMultipleErrors(definedMFConstants, null, modelBuildException);
 					}
+					break;
 				}
 			}
 
