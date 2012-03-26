@@ -582,11 +582,11 @@ public class MDPModelChecker extends ProbModelChecker
 			throw new PrismException(msg);
 		}
 		
-		// Prune adversary
-		restrictAdversaryToReachableStates(mdp, adv);
-		
-		// Print adversary
+		// Process adversary
 		if (genAdv) {
+			// Prune adversary
+			restrictAdversaryToReachableStates(mdp, adv);
+			// Print adversary
 			PrismLog out = new PrismFileLog(exportAdvFilename);
 			out.print("Adv:");
 			for (i = 0; i < n; i++) {
