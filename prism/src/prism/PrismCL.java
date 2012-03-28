@@ -91,6 +91,7 @@ public class PrismCL implements PrismModelListener
 	// files/filenames
 	private String mainLogFilename = "stdout";
 	private String techLogFilename = "stdout";
+	private String settingsFilename = null;
 	private String modelFilename = null;
 	private String importStatesFilename = null;
 	private String importLabelsFilename = null;
@@ -426,6 +427,10 @@ public class PrismCL implements PrismModelListener
 
 			// parse command line arguments
 			parseArguments(args);
+			
+			// load setting file if requested
+			if (settingsFilename != null)
+				prism.loadUserSettingsFile(new File(settingsFilename));
 
 			// initialise
 			prism.initialise();
@@ -838,6 +843,14 @@ public class PrismCL implements PrismModelListener
 				else if (sw.equals("version")) {
 					printVersion();
 					exit();
+				}
+				// load settings
+				else if (sw.equals("settings")) {
+					if (i < args.length - 1) {
+						settingsFilename = args[++i].trim();
+					} else {
+						errorAndExit("Incomplete -" + sw + " switch");
+					}
 				}
 				// print a list of all keywords (hidden option)
 				else if (sw.equals("keywords")) {
@@ -1633,6 +1646,7 @@ public class PrismCL implements PrismModelListener
 		mainLog.println();
 		mainLog.println("-help .......................... Display this help message");
 		mainLog.println("-version ....................... Display tool version");
+		mainLog.println("-settings <file>................ Load settings from <file>");
 		mainLog.println();
 		mainLog.println("-pf <props> (or -pctl or -csl) . Model check properties <props>");
 		mainLog.println("-property <n> (or -prop <n>) ... Only model check property <n>");

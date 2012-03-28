@@ -233,18 +233,34 @@ public class Prism implements PrismSettingsListener
 	}
 
 	/**
-	 * Read in PRISM settings from a file (.prism in user's home directory).
+	 * Read in PRISM settings from the default file (.prism in user's home directory).
 	 * If no file exists, attempt to create a new one with default settings.
 	 */
 	public void loadUserSettingsFile()
 	{
+		loadUserSettingsFile(null);
+	}
+	
+	/**
+	 * Read in PRISM settings from a specified file.
+	 * If the file is null, use the default (.prism in user's home directory).
+	 * If no file exists, attempt to create a new one with default settings.
+	 */
+	public void loadUserSettingsFile(File settingsFile)
+	{
 		// load user's default settings
 		try {
-			settings.loadSettingsFile();
+			if (settingsFile == null)
+				settings.loadSettingsFile();
+			else
+				settings.loadSettingsFile(settingsFile);
 		} catch (PrismException e) {
 			// if there were no user defaults to load, create them
 			try {
-				settings.saveSettingsFile();
+				if (settingsFile == null)
+					settings.saveSettingsFile();
+				else
+					settings.saveSettingsFile(settingsFile);
 			} catch (PrismException ex) {
 				mainLog.printWarning("Failed to create new PRISM settings file.");
 			}
