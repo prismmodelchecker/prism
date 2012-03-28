@@ -226,6 +226,18 @@ public class Prism implements PrismSettingsListener
 
 		// set up some default options
 		settings = new PrismSettings();
+		// add this Prism object as a results listener
+		settings.addSettingsListener(this);
+		// create list of model listeners
+		modelListeners = new ArrayList<PrismModelListener>();
+	}
+
+	/**
+	 * Read in PRISM settings from a file (.prism in user's home directory).
+	 * If no file exists, attempt to create a new one with default settings.
+	 */
+	public void loadUserSettingsFile()
+	{
 		// load user's default settings
 		try {
 			settings.loadSettingsFile();
@@ -237,12 +249,8 @@ public class Prism implements PrismSettingsListener
 				mainLog.printWarning("Failed to create new PRISM settings file.");
 			}
 		}
-		// add this Prism object as a results listener
-		settings.addSettingsListener(this);
-		// create list of model listeners
-		modelListeners = new ArrayList<PrismModelListener>();
 	}
-
+	
 	// Set methods
 
 	/**

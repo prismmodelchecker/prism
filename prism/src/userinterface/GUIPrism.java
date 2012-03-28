@@ -220,6 +220,7 @@ public class GUIPrism extends JFrame
     {
         theLog = new userinterface.log.GUIWindowLog();
         prism = new Prism(theLog, new PrismFileLog("stdout"));
+        prism.loadUserSettingsFile();
         prism.initialise();
     }
     
