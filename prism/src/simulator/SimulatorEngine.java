@@ -103,6 +103,8 @@ public class SimulatorEngine
 	protected State currentState;
 	// List of currently available transitions
 	protected TransitionList transitionList;
+	// Has the transition list been built? 
+	protected boolean transitionListBuilt;
 	// State for which transition list applies
 	// (if null, just the default - i.e. the last state in the current path)
 	protected State transitionListState;
@@ -138,6 +140,7 @@ public class SimulatorEngine
 		onTheFly = true;
 		currentState = null;
 		transitionList = null;
+		transitionListBuilt = false;
 		transitionListState = null;
 		tmpStateRewards = null;
 		tmpTransitionRewards = null;
@@ -214,8 +217,8 @@ public class SimulatorEngine
 		updater.calculateStateRewards(currentState, tmpStateRewards);
 		// Initialise stored path
 		path.initialise(currentState, tmpStateRewards);
-		// Generate transitions for initial state 
-		updater.calculateTransitions(currentState, transitionList);
+		// Reset transition list
+		transitionListBuilt = false;
 		transitionListState = null;
 		// Reset and then update samplers for any loaded properties
 		resetSamplers();
@@ -229,10 +232,11 @@ public class SimulatorEngine
 	 */
 	public void manualTransition(int index) throws PrismException
 	{
-		int i = transitionList.getChoiceIndexOfTransition(index);
-		int offset = transitionList.getChoiceOffsetOfTransition(index);
+		TransitionList transitions = getTransitionList();
+		int i = transitions.getChoiceIndexOfTransition(index);
+		int offset = transitions.getChoiceOffsetOfTransition(index);
 		if (modelType.continuousTime()) {
-			double r = transitionList.getProbabilitySum();
+			double r = transitions.getProbabilitySum();
 			executeTimedTransition(i, offset, rng.randomExpDouble(r), index);
 		} else {
 			executeTransition(i, offset, index);
@@ -247,8 +251,9 @@ public class SimulatorEngine
 	 */
 	public void manualTransition(int index, double time) throws PrismException
 	{
-		int i = transitionList.getChoiceIndexOfTransition(index);
-		int offset = transitionList.getChoiceOffsetOfTransition(index);
+		TransitionList transitions = getTransitionList();
+		int i = transitions.getChoiceIndexOfTransition(index);
+		int offset = transitions.getChoiceOffsetOfTransition(index);
 		executeTimedTransition(i, offset, time, index);
 	}
 
@@ -264,8 +269,9 @@ public class SimulatorEngine
 		int numChoices, i, j;
 		double d, r;
 
+		TransitionList transitions = getTransitionList();
 		// Check for deadlock; if so, stop and return false
-		numChoices = transitionList.getNumChoices();
+		numChoices = transitions.getNumChoices();
 		if (numChoices == 0)
 			return false;
 		//throw new PrismException("Deadlock found at state " + path.getCurrentState().toString(modulesFile));
@@ -275,7 +281,7 @@ public class SimulatorEngine
 		case MDP:
 			// Pick a random choice
 			i = rng.randomUnifInt(numChoices);
-			choice = transitionList.getChoice(i);
+			choice = transitions.getChoice(i);
 			// Pick a random transition from this choice
 			d = rng.randomUnifDouble();
 			j = choice.getIndexByProbabilitySum(d);
@@ -284,11 +290,11 @@ public class SimulatorEngine
 			break;
 		case CTMC:
 			// Get sum of all rates
-			r = transitionList.getProbabilitySum();
+			r = transitions.getProbabilitySum();
 			// Pick a random number to determine choice/transition
 			d = rng.randomUnifDouble(r);
-			TransitionList.Ref ref = transitionList.new Ref();
-			transitionList.getChoiceIndexByProbabilitySum(d, ref);
+			TransitionList.Ref ref = transitions.new Ref();
+			transitions.getChoiceIndexByProbabilitySum(d, ref);
 			// Execute
 			executeTimedTransition(ref.i, ref.offset, rng.randomExpDouble(r), -1);
 			break;
@@ -359,8 +365,8 @@ public class SimulatorEngine
 		((PathFull) path).backtrack(step);
 		// Update current state
 		currentState.copy(path.getCurrentState());
-		// Generate transitions for new current state 
-		updater.calculateTransitions(currentState, transitionList);
+		// Reset transition list 
+		transitionListBuilt = false;
 		transitionListState = null;
 		// Recompute samplers for any loaded properties
 		recomputeSamplers();
@@ -424,6 +430,7 @@ public class SimulatorEngine
 	public void computeTransitionsForStep(int step) throws PrismException
 	{
 		updater.calculateTransitions(((PathFull) path).getState(step), transitionList);
+		transitionListBuilt = true;
 		transitionListState = new State(((PathFull) path).getState(step));
 	}
 
@@ -433,6 +440,7 @@ public class SimulatorEngine
 	public void computeTransitionsForCurrentState() throws PrismException
 	{
 		updater.calculateTransitions(path.getCurrentState(), transitionList);
+		transitionListBuilt = true;
 		transitionListState = null;
 	}
 
@@ -456,10 +464,11 @@ public class SimulatorEngine
 			nextState = newPath.getState(i + 1);
 			// Find matching transition
 			// (just look at states for now)
-			numTrans = transitionList.getNumTransitions();
+			TransitionList transitions = getTransitionList();
+			numTrans = transitions.getNumTransitions();
 			found = false;
 			for (j = 0; j < numTrans; j++) {
-				if (transitionList.computeTransitionTarget(j, state).equals(nextState)) {
+				if (transitions.computeTransitionTarget(j, state).equals(nextState)) {
 					found = true;
 					if (modelType.continuousTime() && newPath.hasTimeInfo())
 						manualTransition(j, newPath.getTime(i));
@@ -588,9 +597,9 @@ public class SimulatorEngine
 	/**
 	 * Check whether the current state is a deadlock.
 	 */
-	public boolean queryIsDeadlock() throws PrismLangException
+	public boolean queryIsDeadlock() throws PrismException
 	{
-		return transitionList.isDeadlock();
+		return getTransitionList().isDeadlock();
 	}
 
 	/**
@@ -598,10 +607,10 @@ public class SimulatorEngine
 	 * (Not applicable for on-the-fly paths)
 	 * @param step The index of the step to check for
 	 */
-	public boolean queryIsDeadlock(int step) throws PrismLangException
+	public boolean queryIsDeadlock(int step) throws PrismException
 	{
 		// By definition, earlier states in the path cannot be deadlocks
-		return step == path.size() ? transitionList.isDeadlock() : false;
+		return step == path.size() ? getTransitionList().isDeadlock() : false;
 	}
 
 	/**
@@ -677,10 +686,11 @@ public class SimulatorEngine
 	 */
 	private void executeTransition(int i, int offset, int index) throws PrismException
 	{
+		TransitionList transitions = getTransitionList();
 		// Get corresponding choice and, if required (for full paths), calculate transition index
-		Choice choice = transitionList.getChoice(i);
+		Choice choice = transitions.getChoice(i);
 		if (!onTheFly && index == -1)
-			index = transitionList.getTotalIndexOfTransition(i, offset);
+			index = transitions.getTotalIndexOfTransition(i, offset);
 		// Compute its transition rewards
 		updater.calculateTransitionRewards(path.getCurrentState(), choice, tmpTransitionRewards);
 		// Compute next state. Note use of path.getCurrentState() because currentState
@@ -689,9 +699,9 @@ public class SimulatorEngine
 		// Compute state rewards for new state 
 		updater.calculateStateRewards(currentState, tmpStateRewards);
 		// Update path
-		path.addStep(index, choice.getModuleOrActionIndex(), tmpTransitionRewards, currentState, tmpStateRewards, transitionList);
-		// Generate transitions for next state 
-		updater.calculateTransitions(currentState, transitionList);
+		path.addStep(index, choice.getModuleOrActionIndex(), tmpTransitionRewards, currentState, tmpStateRewards, transitions);
+		// Reset transition list 
+		transitionListBuilt = false;
 		transitionListState = null;
 		// Update samplers for any loaded properties
 		updateSamplers();
@@ -711,10 +721,11 @@ public class SimulatorEngine
 	 */
 	private void executeTimedTransition(int i, int offset, double time, int index) throws PrismException
 	{
+		TransitionList transitions = getTransitionList();
 		// Get corresponding choice and, if required (for full paths), calculate transition index
-		Choice choice = transitionList.getChoice(i);
+		Choice choice = transitions.getChoice(i);
 		if (!onTheFly && index == -1)
-			index = transitionList.getTotalIndexOfTransition(i, offset);
+			index = transitions.getTotalIndexOfTransition(i, offset);
 		// Compute its transition rewards
 		updater.calculateTransitionRewards(path.getCurrentState(), choice, tmpTransitionRewards);
 		// Compute next state. Note use of path.getCurrentState() because currentState
@@ -723,9 +734,9 @@ public class SimulatorEngine
 		// Compute state rewards for new state 
 		updater.calculateStateRewards(currentState, tmpStateRewards);
 		// Update path
-		path.addStep(time, index, choice.getModuleOrActionIndex(), tmpTransitionRewards, currentState, tmpStateRewards, transitionList);
-		// Generate transitions for next state 
-		updater.calculateTransitions(currentState, transitionList);
+		path.addStep(time, index, choice.getModuleOrActionIndex(), tmpTransitionRewards, currentState, tmpStateRewards, transitions);
+		// Reset transition list 
+		transitionListBuilt = false;
 		transitionListState = null;
 		// Update samplers for any loaded properties
 		updateSamplers();
@@ -744,10 +755,10 @@ public class SimulatorEngine
 	/**
 	 * Notify samplers for any loaded properties that a new step has occurred.
 	 */
-	private void updateSamplers() throws PrismLangException
+	private void updateSamplers() throws PrismException
 	{
 		for (Sampler sampler : propertySamplers) {
-			sampler.update(path, transitionList);
+			sampler.update(path, getTransitionList());
 		}
 	}
 
@@ -814,53 +825,67 @@ public class SimulatorEngine
 	// ------------------------------------------------------------------------------
 
 	/**
+	 * Returns the current list of available transitions, generating it first if this has not yet been done.
+	 */
+	public TransitionList getTransitionList() throws PrismException
+	{
+		// Compute the current transition list, if required
+		if (!transitionListBuilt) {
+			updater.calculateTransitions(currentState, transitionList);
+			transitionListBuilt = true;
+		}
+		return transitionList;
+	}
+	
+	/**
 	 * Returns the current number of available choices.
 	 */
-	public int getNumChoices()
+	public int getNumChoices() throws PrismException
 	{
-		return transitionList.getNumChoices();
+		return getTransitionList().getNumChoices();
 	}
 
 	/**
 	 * Returns the current (total) number of available transitions.
 	 */
-	public int getNumTransitions()
+	public int getNumTransitions() throws PrismException
 	{
-		return transitionList.getNumTransitions();
+		return getTransitionList().getNumTransitions();
 	}
 
 	/**
 	 * Returns the current number of available transitions in choice i.
 	 */
-	public int getNumTransitions(int i)
+	public int getNumTransitions(int i) throws PrismException
 	{
-		return transitionList.getChoice(i).size();
+		return getTransitionList().getChoice(i).size();
 	}
 
 	/**
 	 * Get the index of the choice containing a transition of a given index.
 	 */
-	public int getChoiceIndexOfTransition(int index)
+	public int getChoiceIndexOfTransition(int index) throws PrismException
 	{
-		return transitionList.getChoiceIndexOfTransition(index);
+		return getTransitionList().getChoiceIndexOfTransition(index);
 	}
 
 	/**
 	 * Get a string describing the action/module of a transition, specified by its index/offset.
 	 * (form is "module" or "[action]")
 	 */
-	public String getTransitionModuleOrAction(int i, int offset)
+	public String getTransitionModuleOrAction(int i, int offset) throws PrismException
 	{
-		return transitionList.getTransitionModuleOrAction(transitionList.getTotalIndexOfTransition(i, offset));
+		TransitionList transitions = getTransitionList();
+		return transitions.getTransitionModuleOrAction(transitions.getTotalIndexOfTransition(i, offset));
 	}
 
 	/**
 	 * Get a string describing the action/module of a transition, specified by its index.
 	 * (form is "module" or "[action]")
 	 */
-	public String getTransitionModuleOrAction(int index)
+	public String getTransitionModuleOrAction(int index) throws PrismException
 	{
-		return transitionList.getTransitionModuleOrAction(index);
+		return getTransitionList().getTransitionModuleOrAction(index);
 	}
 
 	/**
@@ -868,9 +893,10 @@ public class SimulatorEngine
 	 * (-i for independent in ith module, i for synchronous on ith action)
 	 * (in both cases, modules/actions are 1-indexed)
 	 */
-	public int getTransitionModuleOrActionIndex(int i, int offset)
+	public int getTransitionModuleOrActionIndex(int i, int offset) throws PrismException
 	{
-		return transitionList.getTransitionModuleOrActionIndex(transitionList.getTotalIndexOfTransition(i, offset));
+		TransitionList transitions = getTransitionList();
+		return transitions.getTransitionModuleOrActionIndex(transitions.getTotalIndexOfTransition(i, offset));
 	}
 
 	/**
@@ -878,9 +904,9 @@ public class SimulatorEngine
 	 * (-i for independent in ith module, i for synchronous on ith action)
 	 * (in both cases, modules/actions are 1-indexed)
 	 */
-	public int getTransitionModuleOrActionIndex(int index)
+	public int getTransitionModuleOrActionIndex(int index) throws PrismException
 	{
-		return transitionList.getTransitionModuleOrActionIndex(index);
+		return getTransitionList().getTransitionModuleOrActionIndex(index);
 	}
 
 	/**
@@ -888,9 +914,10 @@ public class SimulatorEngine
 	 * (null for asynchronous/independent transitions)
 	 * (see also {@link #getTransitionModuleOrAction(int, int)} and {@link #getTransitionModuleOrActionIndex(int, int)})
 	 */
-	public String getTransitionAction(int i, int offset)
+	public String getTransitionAction(int i, int offset) throws PrismException
 	{
-		int a = transitionList.getTransitionModuleOrActionIndex(transitionList.getTotalIndexOfTransition(i, offset));
+		TransitionList transitions = getTransitionList();
+		int a = transitions.getTransitionModuleOrActionIndex(transitions.getTotalIndexOfTransition(i, offset));
 		return a < 0 ? null : modulesFile.getSynch(a - 1);
 	}
 
@@ -899,9 +926,9 @@ public class SimulatorEngine
 	 * (null for asynchronous/independent transitions)
 	 * (see also {@link #getTransitionModuleOrAction(int)} and {@link #getTransitionModuleOrActionIndex(int)})
 	 */
-	public String getTransitionAction(int index)
+	public String getTransitionAction(int index) throws PrismException
 	{
-		int a = transitionList.getTransitionModuleOrActionIndex(index);
+		int a = getTransitionList().getTransitionModuleOrActionIndex(index);
 		return a < 0 ? null : modulesFile.getSynch(a - 1);
 	}
 
@@ -910,9 +937,10 @@ public class SimulatorEngine
 	 */
 	public double getTransitionProbability(int i, int offset) throws PrismException
 	{
-		double p = transitionList.getChoice(i).getProbability(offset);
+		TransitionList transitions = getTransitionList();
+		double p = transitions.getChoice(i).getProbability(offset);
 		// For DTMCs, we need to normalise (over choices)
-		return (modelType == ModelType.DTMC ? p / transitionList.getNumChoices() : p);
+		return (modelType == ModelType.DTMC ? p / transitions.getNumChoices() : p);
 	}
 
 	/**
@@ -920,9 +948,10 @@ public class SimulatorEngine
 	 */
 	public double getTransitionProbability(int index) throws PrismException
 	{
-		double p = transitionList.getTransitionProbability(index);
+		TransitionList transitions = getTransitionList();
+		double p = transitions.getTransitionProbability(index);
 		// For DTMCs, we need to normalise (over choices)
-		return (modelType == ModelType.DTMC ? p / transitionList.getNumChoices() : p);
+		return (modelType == ModelType.DTMC ? p / transitions.getNumChoices() : p);
 	}
 
 	/**
@@ -931,12 +960,12 @@ public class SimulatorEngine
 	 * Format is: x'=1, y'=0, with empty string for empty update.
 	 * Only variables updated are included in list (even if unchanged).
 	 */
-	public String getTransitionUpdateString(int index) throws PrismLangException
+	public String getTransitionUpdateString(int index) throws PrismException
 	{
 		// We need the state containing the transitions. Usually, this is the current (final) state
 		// of the path. But if the user called computeTransitionsForStep(int step), this is not so. 
 		State state = (transitionListState == null) ? path.getCurrentState() : transitionListState;
-		return transitionList.getTransitionUpdateString(index, state);
+		return getTransitionList().getTransitionUpdateString(index, state);
 	}
 
 	/**
@@ -946,31 +975,31 @@ public class SimulatorEngine
 	 * Only variables updated are included in list.
 	 * Note that expressions may have been simplified from original model. 
 	 */
-	public String getTransitionUpdateStringFull(int index)
+	public String getTransitionUpdateStringFull(int index) throws PrismException
 	{
-		return transitionList.getTransitionUpdateStringFull(index);
+		return getTransitionList().getTransitionUpdateStringFull(index);
 	}
 
 	/**
 	 * Get the target (as a new State object) of a transition within a choice, specified by its index/offset.
 	 */
-	public State computeTransitionTarget(int i, int offset) throws PrismLangException
+	public State computeTransitionTarget(int i, int offset) throws PrismException
 	{
 		// We need the state containing the transitions. Usually, this is the current (final) state
 		// of the path. But if the user called computeTransitionsForStep(int step), this is not so. 
 		State state = (transitionListState == null) ? path.getCurrentState() : transitionListState;
-		return transitionList.getChoice(i).computeTarget(offset, state);
+		return getTransitionList().getChoice(i).computeTarget(offset, state);
 	}
 
 	/**
 	 * Get the target of a transition (as a new State object), specified by its index.
 	 */
-	public State computeTransitionTarget(int index) throws PrismLangException
+	public State computeTransitionTarget(int index) throws PrismException
 	{
 		// We need the state containing the transitions. Usually, this is the current (final) state
 		// of the path. But if the user called computeTransitionsForStep(int step), this is not so. 
 		State state = (transitionListState == null) ? path.getCurrentState() : transitionListState;
-		return transitionList.computeTransitionTarget(index, state);
+		return getTransitionList().computeTransitionTarget(index, state);
 	}
 
 	// ------------------------------------------------------------------------------

@@ -31,6 +31,7 @@ import java.awt.*;
 import javax.swing.*;
 
 import parser.ast.*;
+import prism.PrismException;
 import prism.PrismLangException;
 import userinterface.properties.*;
 import simulator.*;
@@ -207,7 +208,7 @@ public class GUISimLabelList extends JList
 		{
 			try {
 				return engine.queryIsDeadlock() ? 1 : 0;
-			} catch (PrismLangException e) {
+			} catch (PrismException e) {
 				return -1;
 			}
 		}
@@ -217,7 +218,7 @@ public class GUISimLabelList extends JList
 		{
 			try {
 				return engine.queryIsDeadlock(step) ? 1 : 0;
-			} catch (PrismLangException e) {
+			} catch (PrismException e) {
 				return -1;
 			}
 		}
