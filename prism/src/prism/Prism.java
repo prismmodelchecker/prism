@@ -120,6 +120,9 @@ public class Prism implements PrismSettingsListener
 	protected File exportPrismFile = null;
 	protected boolean exportPrismConst = false;
 	protected File exportPrismConstFile = null;
+	// Export digital clocks translation PRISM model?
+	protected boolean exportDigital = false;
+	protected File exportDigitalFile = null;
 	// Export target state info?
 	protected boolean exportTarget = false;
 	protected String exportTargetFilename = null;
@@ -460,6 +463,19 @@ public class Prism implements PrismSettingsListener
 	public void setExportPrismConstFile(File f) throws PrismException
 	{
 		exportPrismConstFile = f;
+	}
+
+	public void setExportDigital(boolean b) throws PrismException
+	{
+		exportDigital = b;
+	}
+
+	/**
+	 * Set file to export digital clocks translation PRISM file to (null = stdout).
+	 */
+	public void setExportDigitalFile(File f) throws PrismException
+	{
+		exportDigitalFile = f;
 	}
 
 	public void setExportTarget(boolean b) throws PrismException
@@ -2406,13 +2422,13 @@ public class Prism implements PrismSettingsListener
 				currentModulesFile.setUndefinedConstants(oldModulesFile.getConstantValues());
 				currentModelType = ModelType.MDP;
 				// If required, export generated PRISM model
-				if (exportPrism) {
+				if (exportDigital) {
 					try {
-						exportPRISMModel(exportPrismFile);
+						exportPRISMModel(exportDigitalFile);
 					}
 					// In case of error, just print a warning
 					catch (FileNotFoundException e) {
-						mainLog.printWarning("PRISM code export failed: Couldn't open file \"" + exportPrismFile + "\" for output");
+						mainLog.printWarning("PRISM code export failed: Couldn't open file \"" + exportDigitalFile + "\" for output");
 					} catch (PrismException e) {
 						mainLog.printWarning("PRISM code export failed: " + e.getMessage());
 					}

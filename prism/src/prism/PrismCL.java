@@ -1159,6 +1159,17 @@ public class PrismCL implements PrismModelListener
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
 				}
+				// export digital clocks translation prism model to file
+				else if (sw.equals("exportdigital")) {
+					if (i < args.length - 1) {
+						String filename = args[++i];
+						File f = (filename.equals("stdout")) ? null : new File(filename);
+						prism.setExportDigital(true);
+						prism.setExportDigitalFile(f);
+					} else {
+						errorAndExit("No file specified for -" + sw + " switch");
+					}
+				}
 				// export reachability target info to file (hidden option)
 				else if (sw.equals("exporttarget")) {
 					if (i < args.length - 1) {
