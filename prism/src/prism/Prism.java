@@ -1865,6 +1865,9 @@ public class Prism implements PrismSettingsListener
 		mainLog.println(getDestinationStringForFile(file));
 		PrismLog tmpLog = getPrismLogForFile(file);
 		tmpLog.print(currentModulesFile.toString());
+		// tidy up
+		if (file != null)
+			tmpLog.close();
 	}
 
 	/**
@@ -1882,6 +1885,9 @@ public class Prism implements PrismSettingsListener
 		// NB: Don't use simplify() here because doesn't work for the purposes of printing out
 		// (e.g. loss of parentheses causes precedence problems)
 		tmpLog.print(mfTmp.toString());
+		// tidy up
+		if (file != null)
+			tmpLog.close();
 	}
 
 	/**
