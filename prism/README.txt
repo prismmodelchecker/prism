@@ -36,6 +36,7 @@ For source code distributions:
 
 If you have problems check the manual, especially the section "Common Problems And Questions".
 
+
 -------------
 DOCUMENTATION
 -------------
@@ -53,6 +54,7 @@ For other PRISM-related information, see the website:
 
   http://www.prismmodelchecker.org/
 
+
 ---------
 LICENSING
 ---------
@@ -69,35 +71,41 @@ library, see:
 
   http://vlsi.colorado.edu/~fabio/CUDD/
 
+
 ----------------
 ACKNOWLEDGEMENTS
 ----------------
 
-PRISM was created and is still actively maintained by:
+Currently, development work on PRISM is primarily carried out in the
+Department of Computer Science at the University of Oxford. Previously, PRISM
+was based in the School of Computer Science at the University of Birmingham.
 
- * Dave Parker (University of Birmingham)
- * Gethin Norman (University of Glasgow)
- * Marta Kwiatkowska (University of Oxford) 
+The core team working on PRISM currently comprises:
 
-We gratefully acknowledge contributions to the PRISM code-base from various sources,
-including (in approximately reverse chronological order):
+ * Dave Parker (Oxford)
+ * Gethin Norman (Glasgow)
+ * Marta Kwiatkowska (Oxford) 
+ 
+Many others have contributed to PRISM. In approximately reverse chronological order:
 
+ * Vojtech Forejt: "Fox-Glynn" implementation, explicit-state model checking
+ * Christian von Essen: Contributions to explicit-state model checking library
  * Vincent Nimal: Approximate (simulation-based) model checking techniques
  * Mark Kattenbelt: Wide range of enhancements/additions, especially in the GUI
- * Carlos Bederian (working with Pedro D'Argenio): LTL model checking for MDPs
- * Gethin Norman: Precomputation algorithms, abstraction
+ * Carlos Bederian (working with Pedro D'Argenio): Addition of LTL model checking for MDPs to PRISM
  * Alistair John Strachan: Port to 64-bit architectures
  * Alistair John Strachan, Mike Arthur and Zak Cohen: Integration of JFreeChart into PRISM
  * Charles Harley and Sebastian Vermehren: GUI enhancements
  * Rashid Mehmood: Improvements to low-level data structures and numerical solution algorithms
  * Stephen Gilmore: Support for the stochastic process algebra PEPA
  * Paolo Ballarini & Kenneth Chan: Port to Mac OS X
- * Andrew Hinton: Original versions of the GUI, Windows port and simulator
- * Joachim Meyer-Kayser: Original implementation of the "Fox-Glynn" algorithm 
-
+ * Andrew Hinton: Original versions of the GUI, Windows-port and simulator
+ * Joachim Meyer-Kayser: Original implementation of the "Fox-Glynn" algorithm
+ 
 For more details see:
 
   http://www.prismmodelchecker.org/people.php
+
 
 -------
 CONTACT
@@ -110,10 +118,12 @@ If you have problems or questions regarding PRISM, please use the help forum pro
 Other comments and feedback about any aspect of PRISM are also very welcome. Please contact:
 
   Dave Parker
-  (d.a.parker@cs.bham.ac.uk)
-  School of Computer Science
-  University of Birmingham
-  Edgbaston
-  Birmingham
-  B15 2TT
+  (david.parker@cs.ox.ac.uk)
+  Department of Computer Science
+  University of Oxford
+  Wolfson Building
+  Parks Road
+  Oxford
+  OX1 3QD
   ENGLAND
+

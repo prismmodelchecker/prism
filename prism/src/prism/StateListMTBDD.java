@@ -71,30 +71,6 @@ public class StateListMTBDD implements StateList
 	
 	// constructor
 	
-	public StateListMTBDD(JDDNode s, JDDVars _vars, ODDNode _odd, VarList _varList)
-	{
-	int i;
-	
-	// store states vector mtbdd
-	states = s;
-	
-	// get info from model
-	vars = _vars;
-	numVars = vars.n();
-	odd = _odd;
-	varList = _varList;
-	
-	// count number of states in list
-	size = JDD.GetNumMinterms(states, numVars);
-	
-	// initialise arrays
-	varSizes = new int[varList.getNumVars()];
-	for (i = 0; i < varList.getNumVars(); i++) {
-	varSizes[i] = varList.getRangeLogTwo(i);
-	}
-	varValues = new int[varList.getNumVars()];
-	}
-
 	public StateListMTBDD(JDDNode s, Model model)
 	{
 		int i;
