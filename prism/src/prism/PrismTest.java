@@ -27,8 +27,17 @@
 package prism;
 
 import java.io.*;
+import java.util.*;
+
+import mtbdd.PrismMTBDD;
+
+import jdd.JDD;
+import jdd.JDDNode;
+import jdd.JDDVars;
+import odd.*;
 
 import parser.ast.*;
+import prism.*;
 
 /**
  * Example class demonstrating how to control PRISM programmatically,
@@ -41,6 +50,7 @@ public class PrismTest
 {
 	public static void main(String args[])
 	{
+
 		new PrismTest().go(args);
 	}
 	
@@ -49,9 +59,6 @@ public class PrismTest
 		try {
 			PrismLog mainLog;
 			Prism prism;
-			ModulesFile modulesFile;
-			PropertiesFile propertiesFile;
-			Result result;
 			
 			// Init
 			mainLog = new PrismFileLog("stdout");
@@ -60,28 +67,19 @@ public class PrismTest
 			
 			// Parse/load model 1
 			// NB: no need to build explicitly - it will be done if/when neeed
-			modulesFile = prism.parseModelFile(new File(args[0]));
-			prism.loadPRISMModel(modulesFile);
+			ModulesFile modulesFile = prism.parseModelFile(new File(args[0]));
+			modulesFile.setModelType(ModelType.DTMC);
+			prism.buildModel(modulesFile);
+			ProbModel dtmc = (ProbModel) prism.getBuiltModel();
+			PropertiesFile pf = prism.parsePropertiesString(modulesFile, "\"target\"");
+			dtmc.setReach(JDD.Constant(1));
+			ProbModelChecker mc = new ProbModelChecker(prism, dtmc, pf);
+			JDDNode target = mc.checkExpressionDD(pf.getProperty(0));
+			JDD.ExportDDToDotFile(target, "target.dot");
+						
 			
-			// Parse a prop, check on model 1
-			propertiesFile = prism.parsePropertiesString(modulesFile, "P=?[F<=0.1 s1=1]");
-			result = prism.modelCheck(propertiesFile, propertiesFile.getPropertyObject(0));
-			System.out.println(result.getResult());
 			
-			// Parse another prop, check on model 1
-			propertiesFile = prism.parsePropertiesString(modulesFile, "P=?[F<=0.1 s1=1]");
-			result = prism.modelCheck(propertiesFile, propertiesFile.getPropertyObject(0));
-			System.out.println(result.getResult());
-			
-			// Parse/load model 2
-			modulesFile = prism.parseModelFile(new File(args[1]));
-			prism.loadPRISMModel(modulesFile);
-			
-			// Parse a prop, check on model 2
-			propertiesFile = prism.parsePropertiesString(modulesFile, "P=?[F<=0.1 s1=1]");
-			result = prism.modelCheck(propertiesFile, propertiesFile.getPropertyObject(0));
-			System.out.println(result.getResult());
-			
+
 			// Close down
 			prism.closeDown();
 		}
@@ -95,3 +93,4 @@ public class PrismTest
 		}
 	}
 }
+//----------------------------------------------------------------------------
