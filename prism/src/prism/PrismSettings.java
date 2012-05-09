@@ -795,6 +795,8 @@ public class PrismSettings implements Observer
 			set(PRISM_LIN_EQ_METHOD, "Backwards Pseudo-SOR");
 		} else if (sw.equals("valiter")) {
 			set(PRISM_MDP_SOLN_METHOD, "Value iteration");
+		} else if (sw.equals("politer")) {
+			set(PRISM_MDP_SOLN_METHOD, "Policy iteration");
 		}
 		// Linear equation solver over-relaxation parameter
 		else if (sw.equals("omega")) {
@@ -1082,6 +1084,8 @@ public class PrismSettings implements Observer
 		mainLog.println("-bsor .......................... Use Backwards SOR for numerical computation");
 		mainLog.println("-psor .......................... Use Pseudo SOR for numerical computation");
 		mainLog.println("-bpsor ......................... Use Backwards Pseudo SOR for numerical computation");
+		mainLog.println("-valiter ....................... Use value iteration for solving MDPs [default]");
+		mainLog.println("-politer ....................... Use policy iteration for solving MDPs");
 		mainLog.println("-omega <x> ..................... Set over-relaxation parameter (for JOR/SOR/...) [default: 0.9]");
 		mainLog.println("-relative (or -rel) ............ Use relative error for detecting convergence [default]");
 		mainLog.println("-absolute (or -abs) ............ Use absolute error for detecting convergence");
