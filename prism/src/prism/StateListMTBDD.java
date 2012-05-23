@@ -69,8 +69,8 @@ public class StateListMTBDD implements StateList
 	enum OutputFormat { NORMAL, MATLAB, DOT, STRINGS };
 	OutputFormat outputFormat = OutputFormat.NORMAL;
 	
-	// constructor
-	
+	// Constructors
+
 	public StateListMTBDD(JDDNode s, Model model)
 	{
 		int i;
@@ -87,6 +87,30 @@ public class StateListMTBDD implements StateList
 		// count number of states in list
 		size = JDD.GetNumMinterms(states, model.getNumDDRowVars());
 		
+		// initialise arrays
+		varSizes = new int[varList.getNumVars()];
+		for (i = 0; i < varList.getNumVars(); i++) {
+			varSizes[i] = varList.getRangeLogTwo(i);
+		}
+		varValues = new int[varList.getNumVars()];
+	}
+
+	public StateListMTBDD(JDDNode s, JDDVars vars, ODDNode odd, VarList varList)
+	{
+		int i;
+
+		// store states vector mtbdd
+		states = s;
+
+		// get info from model
+		this.vars = vars;
+		this.numVars = vars.n();
+		this.odd = odd;
+		this.varList = varList;
+
+		// count number of states in list
+		size = JDD.GetNumMinterms(states, numVars);
+
 		// initialise arrays
 		varSizes = new int[varList.getNumVars()];
 		for (i = 0; i < varList.getNumVars(); i++) {
