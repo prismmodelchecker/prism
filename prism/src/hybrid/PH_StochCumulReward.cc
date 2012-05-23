@@ -259,29 +259,6 @@ jdouble time		// time bound
 		mult_rec(hdd, 0, 0, 0);
 		
 		// check for steady state convergence
-		// (note: doing outside loop means may not need to check all elements)
-		if (do_ss_detect) switch (term_crit) {
-		case TERM_CRIT_ABSOLUTE:
-			done = true;
-			for (i = 0; i < n; i++) {
-				if (fabs(soln2[i] - soln[i]) > term_crit_param_unif) {
-					done = false;
-					break;
-				}
-			}
-			break;
-		case TERM_CRIT_RELATIVE:
-			done = true;
-			for (i = 0; i < n; i++) {
-				if (fabs((soln2[i] - soln[i])/soln2[i]) > term_crit_param_unif) {
-					done = false;
-					break;
-				}
-			}
-			break;
-		}
-		
-		// check for steady state convergence
 		if (do_ss_detect) {
 			sup_norm = 0.0;
 			for (i = 0; i < n; i++) {
