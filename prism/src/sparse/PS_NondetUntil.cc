@@ -96,7 +96,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	int num_actions;
 	// misc
 	int i, j, k, l1, h1, l2, h2, iters;
-	double d1, d2, kb, kbt;
+	double d1, d2, x, sup_norm, kb, kbt;
 	bool done, first;
 	
 	// exception handling around whole function
@@ -200,6 +200,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
 	start2 = stop;
+	start3 = stop;
 	
 	// start iterations
 	iters = 0;
@@ -229,9 +230,6 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	while (!done && iters < max_iters) {
 		
 		iters++;
-		
-//		PS_PrintToMainLog(env, "iter %d\n", iters);
-//		start3 = util_cpu_time();
 		
 		// do matrix multiplication and min/max
 		h1 = h2 = 0;
@@ -274,36 +272,29 @@ jboolean min				// min or max probabilities (true = min, false = max)
 		}
 		
 		// check convergence
-		// (note: doing outside loop means may not need to check all elements)
-		switch (term_crit) {
-		case TERM_CRIT_ABSOLUTE:
-			done = true;
-			for (i = 0; i < n; i++) {
-				if (fabs(soln2[i] - soln[i]) > term_crit_param) {
-					done = false;
-					break;
-				}
-				
+		sup_norm = 0.0;
+		for (i = 0; i < n; i++) {
+			x = fabs(soln2[i] - soln[i]);
+			if (term_crit == TERM_CRIT_RELATIVE) {
+				x /= soln2[i];
 			}
-			break;
-		case TERM_CRIT_RELATIVE:
+			if (x > sup_norm) sup_norm = x;
+		}
+		if (sup_norm < term_crit_param) {
 			done = true;
-			for (i = 0; i < n; i++) {
-				if (fabs(soln2[i] - soln[i])/soln2[i] > term_crit_param) {
-					done = false;
-					break;
-				}
-				
-			}
-			break;
+		}
+		
+		// print occasional status update
+		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
+			PS_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, (term_crit == TERM_CRIT_RELATIVE)?"relative ":"", sup_norm);
+			PS_PrintToMainLog(env, ", %.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			start3 = util_cpu_time();
 		}
 		
 		// prepare for next iteration
 		tmpsoln = soln;
 		soln = soln2;
 		soln2 = tmpsoln;
-		
-//		PS_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
 	}
 	
 	// Traverse matrix to extract adversary

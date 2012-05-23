@@ -36,6 +36,7 @@
 #include "sparse.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
+#include "prism.h"
 #include <new>
 
 //------------------------------------------------------------------------------
@@ -87,7 +88,7 @@ jlong __jlongpointer mu	// probs for multiplying
 	bool done;
 	int j, l, h;
 	long i, iters, num_iters;
-	double d, x, max_diag, weight, kb, kbt, unif, term_crit_param_unif;
+	double d, x, sup_norm, max_diag, weight, kb, kbt, unif, term_crit_param_unif;
 	
 	// exception handling around whole function
 	try {
@@ -212,6 +213,7 @@ jlong __jlongpointer mu	// probs for multiplying
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
 	start2 = stop;
+	start3 = stop;
 	
 	// start transient analysis
 	done = false;
@@ -225,9 +227,6 @@ jlong __jlongpointer mu	// probs for multiplying
 	
 	// note that we ignore max_iters as we know how any iterations _should_ be performed
 	for (iters = 1; (iters <= fgw.right) && !done; iters++) {
-		
-//		PS_PrintToMainLog(env, "Iteration %d: ", iters);
-//		start3 = util_cpu_time();
 		
 		// store local copies of stuff
 		double *non_zeros;
@@ -276,26 +275,18 @@ jlong __jlongpointer mu	// probs for multiplying
 		}
 		
 		// check for steady state convergence
-		// (note: doing outside loop means may not need to check all elements)
-		if (do_ss_detect) switch (term_crit) {
-		case TERM_CRIT_ABSOLUTE:
-			done = true;
+		if (do_ss_detect) {
+			sup_norm = 0.0;
 			for (i = 0; i < n; i++) {
-				if (fabs(soln2[i] - soln[i]) > term_crit_param_unif) {
-					done = false;
-					break;
+				x = fabs(soln2[i] - soln[i]);
+				if (term_crit == TERM_CRIT_RELATIVE) {
+					x /= soln2[i];
 				}
+				if (x > sup_norm) sup_norm = x;
 			}
-			break;
-		case TERM_CRIT_RELATIVE:
-			done = true;
-			for (i = 0; i < n; i++) {
-				if (fabs((soln2[i] - soln[i])/soln2[i]) > term_crit_param_unif) {
-					done = false;
-					break;
-				}
+			if (sup_norm < term_crit_param_unif) {
+				done = true;
 			}
-			break;
 		}
 		
 		// special case when finished early (steady-state detected)
@@ -316,6 +307,14 @@ jlong __jlongpointer mu	// probs for multiplying
 			break;
 		}
 		
+		// print occasional status update
+		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
+			PS_PrintToMainLog(env, "Iteration %d (of %d): ", iters, fgw.right);
+			if (do_ss_detect) PS_PrintToMainLog(env, "max %sdiff=%f, ", (term_crit == TERM_CRIT_RELATIVE)?"relative ":"", sup_norm);
+			PS_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			start3 = util_cpu_time();
+		}
+		
 		// prepare for next iteration
 		tmpsoln = soln;
 		soln = soln2;
@@ -325,8 +324,6 @@ jlong __jlongpointer mu	// probs for multiplying
 		if (iters >= fgw.left) {
 			for (i = 0; i < n; i++) sum[i] += fgw.weights[iters-fgw.left] * soln[i];
 		}
-		
-//		PS_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
 	}
 	
 	// stop clocks

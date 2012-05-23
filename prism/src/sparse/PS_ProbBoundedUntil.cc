@@ -35,6 +35,7 @@
 #include "sparse.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
+#include "prism.h"
 #include <new>
 
 //------------------------------------------------------------------------------
@@ -154,15 +155,13 @@ jint bound		// time bound
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
 	start2 = stop;
+	start3 = stop;
 	
 	// start iterations
 	PS_PrintToMainLog(env, "\nStarting iterations...\n");
 	
 	// note that we ignore max_iters as we know how any iterations _should_ be performed
 	for (iters = 0; iters < bound; iters++) {
-		
-//		PS_PrintToMainLog(env, "Iteration %d: ", iters);
-//		start3 = util_cpu_time();
 		
 		// store local copies of stuff
 		double *non_zeros;
@@ -212,12 +211,17 @@ jint bound		// time bound
 			soln2[i] = d;
 		}
 		
+		// print occasional status update
+		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
+			PS_PrintToMainLog(env, "Iteration %d (of %d): ", iters, bound);
+			PS_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			start3 = util_cpu_time();
+		}
+		
 		// prepare for next iteration
 		tmpsoln = soln;
 		soln = soln2;
 		soln2 = tmpsoln;
-		
-//		PS_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
 	}
 	
 	// stop clocks
