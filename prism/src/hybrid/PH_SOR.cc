@@ -37,6 +37,7 @@
 #include "hybrid.h"
 #include "PrismHybridGlob.h"
 #include "jnipointer.h"
+#include "prism.h"
 #include <new>
 
 // local prototypes
@@ -241,6 +242,7 @@ jboolean fwds		// forwards or backwards?
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
 	start2 = stop;
+	start3 = stop;
 	
 	// start iterations
 	iters = 0;
@@ -250,9 +252,6 @@ jboolean fwds		// forwards or backwards?
 	while (!done && iters < max_iters) {
 		
 		iters++;
-		
-//		PH_PrintToMainLog(env, "Iteration %d: ", iters);
-//		start3 = util_cpu_time();
 		
 		sup_norm = 0.0;
 		
@@ -371,7 +370,12 @@ jboolean fwds		// forwards or backwards?
 			done = true;
 		}
 		
-//		PH_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
+		// print occasional status update
+		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
+			PH_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, (term_crit == TERM_CRIT_RELATIVE)?"relative ":"", sup_norm);
+			PH_PrintToMainLog(env, ", %.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			start3 = util_cpu_time();
+		}
 	}
 	
 	// stop clocks

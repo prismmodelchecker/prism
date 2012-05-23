@@ -85,7 +85,7 @@ jint time		// time
 	double *tmpsoln = NULL, *sum = NULL;
 	// timing stuff
 	long start1, start2, start3, stop;
-	double time_taken, time_for_setup, time_for_iters;
+	double x, sup_norm, time_taken, time_for_setup, time_for_iters;
 	// misc
 	bool done;
 	int i, iters;
@@ -143,6 +143,7 @@ jint time		// time
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
 	start2 = stop;
+	start3 = stop;
 	
 	// start transient analysis
 	iters = 0;
@@ -152,9 +153,6 @@ jint time		// time
 	// note that we ignore max_iters as we know how any iterations _should_ be performed
 	for (iters = 0; iters < time && !done; iters++) {
 		
-//		PH_PrintToMainLog(env, "Iteration %d: ", iters);
-//		start3 = util_cpu_time();
-		
 		// initialise vector
 		for (i = 0; i < n; i++) soln2[i] = 0.0;
 		
@@ -162,33 +160,32 @@ jint time		// time
 		mult_rec(hdd, 0, 0, 0);
 		
 		// check for steady state convergence
-		if (do_ss_detect) switch (term_crit) {
-		case TERM_CRIT_ABSOLUTE:
-			done = true;
+		if (do_ss_detect) {
+			sup_norm = 0.0;
 			for (i = 0; i < n; i++) {
-				if (fabs(soln2[i] - soln[i]) > term_crit_param) {
-					done = false;
-					break;
+				x = fabs(soln2[i] - soln[i]);
+				if (term_crit == TERM_CRIT_RELATIVE) {
+					x /= soln2[i];
 				}
+				if (x > sup_norm) sup_norm = x;
 			}
-			break;
-		case TERM_CRIT_RELATIVE:
-			done = true;
-			for (i = 0; i < n; i++) {
-				if (fabs((soln2[i] - soln[i])/soln2[i]) > term_crit_param) {
-					done = false;
-					break;
-				}
+			if (sup_norm < term_crit_param) {
+				done = true;
 			}
-			break;
+		}
+		
+		// print occasional status update
+		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
+			PH_PrintToMainLog(env, "Iteration %d (of %d): ", iters, time);
+			if (do_ss_detect) PH_PrintToMainLog(env, "max %sdiff=%f, ", (term_crit == TERM_CRIT_RELATIVE)?"relative ":"", sup_norm);
+			PH_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			start3 = util_cpu_time();
 		}
 		
 		// prepare for next iteration
 		tmpsoln = soln;
 		soln = soln2;
 		soln2 = tmpsoln;
-		
-//		PH_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
 	}
 	
 	// stop clocks
