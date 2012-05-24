@@ -473,7 +473,7 @@ public class PathFull extends Path implements PathFullInfo
 						changed = true;
 				}
 				if (!changed) {
-					d = (i < n - 1) ? getTime(i) : 0.0;
+					d = (i < n) ? getTime(i) : 0.0;
 					t += d;
 					continue;
 				}
@@ -485,7 +485,7 @@ public class PathFull extends Path implements PathFullInfo
 			log.print(i);
 			// print time (if continuous time)
 			if (contTime) {
-				d = (i < n - 1) ? getTime(i) : 0.0;
+				d = (i < n) ? getTime(i) : 0.0;
 				log.print(colSep + (timeCumul ? t : d));
 				t += d;
 			}

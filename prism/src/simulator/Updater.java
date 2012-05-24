@@ -323,7 +323,14 @@ public class Updater
 		if (modelType.choicesSumToOne() && Math.abs(sum - 1) > prism.getSumRoundOff()) {
 			throw new PrismLangException("Probabilities sum to " + sum + " in state " + state.toString(modulesFile), ups);
 		}
-
+		// Check if empty (e.g. due to all 0 probs/rates)
+		// Currently, PRISM treats this as an error
+		if (ch.size() == 0) {
+			String msg = modelType.probabilityOrRate();
+			msg += (ups.getNumUpdates() > 1) ? " values sum to " : " is ";
+			msg += "zero for update in state " + state.toString(modulesFile);
+			//throw new PrismLangException(msg, ups);
+		}
 		return ch;
 	}
 
