@@ -54,7 +54,7 @@ EXPORT FoxGlynnWeights fox_glynn(double q_tmax, double underflow, double overflo
 
 // Global constants
 // Delay between occasional updates for slow processes, e.g. numerical solution (milliseconds)
-const int UPDATE_DELAY = 1000;
+const int UPDATE_DELAY = 5000;
 
 //------------------------------------------------------------------------------
 
