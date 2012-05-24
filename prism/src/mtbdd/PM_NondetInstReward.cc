@@ -33,6 +33,7 @@
 #include <odd.h>
 #include "PrismMTBDDGlob.h"
 #include "jnipointer.h"
+#include "prism.h"
 
 //------------------------------------------------------------------------------
 
@@ -88,6 +89,7 @@ jlong __jlongpointer in
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
 	start2 = stop;
+	start3 = stop;
 	
 	// start iterations
 	iters = 0;
@@ -95,9 +97,6 @@ jlong __jlongpointer in
 	
 	// note that we ignore max_iters as we know how any iterations _should_ be performed
 	for (iters = 0; iters < bound; iters++) {
-		
-//		PM_PrintToMainLog(env, "Iteration %d: ", iters);
-//		start3 = util_cpu_time();
 		
 		// matrix-vector multiply
 		Cudd_Ref(sol);
@@ -118,6 +117,13 @@ jlong __jlongpointer in
 			tmp = DD_MaxAbstract(ddman, tmp, ndvars, num_ndvars);
 		}
 		
+		// print occasional status update
+		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
+			PM_PrintToMainLog(env, "Iteration %d (of %d): ", iters, bound);
+			PM_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			start3 = util_cpu_time();
+		}
+		
 		// prepare for next iteration
 		Cudd_RecursiveDeref(ddman, sol);
 		sol = tmp;
@@ -128,8 +134,6 @@ jlong __jlongpointer in
 //		tmp = DD_SumAbstract(ddman, tmp, rvars, num_rvars);
 //		PM_PrintToMainLog(env, "%i: %f (%0.f, %0d)\n", iters, Cudd_V(tmp), DD_GetNumMinterms(ddman, sol, num_rvars), DD_GetNumNodes(ddman, sol));
 //		Cudd_RecursiveDeref(ddman, tmp);
-		
-//		PM_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
 	}
 	
 	// stop clocks

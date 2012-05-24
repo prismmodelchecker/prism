@@ -210,6 +210,7 @@ jlong __jlongpointer mu	// probs for multiplying
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
 	start2 = stop;
+	start3 = stop;
 	
 	// start iterations
 	done = false;
@@ -227,9 +228,6 @@ jlong __jlongpointer mu	// probs for multiplying
 	// note that we ignore max_iters as we know how any iterations _should_ be performed
 	for (iters = 1; (iters <= fgw.right) && !done; iters++) {
 	
-//		PM_PrintToMainLog(env, "Iteration %d: ", iters);
-//		start3 = util_cpu_time();
-		
 		if (combine) {
 			
 			// METHOD 1 (combine rate matrix and diagonals)
@@ -294,6 +292,13 @@ jlong __jlongpointer mu	// probs for multiplying
 			break;
 		}
 		
+		// print occasional status update
+		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
+			PM_PrintToMainLog(env, "Iteration %d (of %d): ", iters, fgw.right);
+			PM_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			start3 = util_cpu_time();
+		}
+		
 		// prepare for next iteration
 		Cudd_RecursiveDeref(ddman, sol);
 		sol = tmp;
@@ -303,8 +308,6 @@ jlong __jlongpointer mu	// probs for multiplying
 			Cudd_Ref(sol);
 			sum = DD_Apply(ddman, APPLY_PLUS, sum, DD_Apply(ddman, APPLY_TIMES, sol, DD_Constant(ddman, fgw.weights[iters-fgw.left])));
 		}
-		
-//		PM_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
 	}
 	
 	// stop clocks

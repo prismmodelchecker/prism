@@ -33,6 +33,7 @@
 #include <odd.h>
 #include "PrismMTBDDGlob.h"
 #include "jnipointer.h"
+#include "prism.h"
 
 //------------------------------------------------------------------------------
 
@@ -93,6 +94,7 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
 	start2 = stop;
+	start3 = stop;
 
 	// start iterations
 	iters = 0;
@@ -108,9 +110,6 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	
 		iters++;
 		
-//		PM_PrintToMainLog(env, "Iteration %d: ", iters);
-//		start3 = util_cpu_time();
-
 //		DD_PrintInfoBrief(ddman, sol, num_rvars);
 
 		// matrix-vector multiply
@@ -152,11 +151,18 @@ jboolean min		// min or max probabilities (true = min, false = max)
 			break;
 		}
 
+		// print occasional status update
+		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
+			PM_PrintToMainLog(env, "Iteration %d: ", iters);
+			PM_PrintToMainLog(env, "sol=%d nodes", DD_GetNumNodes(ddman, sol));
+			// NB: but tmp was probably bigger than sol (pre min/max-abstract)
+			PM_PrintToMainLog(env, ", %.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			start3 = util_cpu_time();
+		}
+		
 		// prepare for next iteration
 		Cudd_RecursiveDeref(ddman, sol);
 		sol = tmp;
-		
-//		PM_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
 	}
 							
 	// stop clocks

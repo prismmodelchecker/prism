@@ -33,6 +33,7 @@
 #include <odd.h>
 #include "PrismMTBDDGlob.h"
 #include "jnipointer.h"
+#include "prism.h"
 
 //------------------------------------------------------------------------------
 
@@ -98,6 +99,7 @@ jboolean transpose	// transpose A? (i.e. solve xA=b not Ax=b?)
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
 	start2 = stop;
+	start3 = stop;
 	
 	// start iterations
 	iters = 0;
@@ -107,9 +109,6 @@ jboolean transpose	// transpose A? (i.e. solve xA=b not Ax=b?)
 	while (!done && iters < max_iters) {
 		
 		iters++;
-		
-//		PM_PrintToMainLog(env, "Iteration %d: ", iters);
-//		start3 = util_cpu_time();
 		
 		// matrix multiply
 		Cudd_Ref(sol);
@@ -133,11 +132,16 @@ jboolean transpose	// transpose A? (i.e. solve xA=b not Ax=b?)
 			break;
 		}
 		
+		// print occasional status update
+		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
+			PM_PrintToMainLog(env, "Iteration %d: ", iters);
+			PM_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			start3 = util_cpu_time();
+		}
+		
 		// prepare for next iteration
 		Cudd_RecursiveDeref(ddman, sol);
 		sol = tmp;
-		
-//		PM_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
 	}
 	
 	// transpose solution if necessary

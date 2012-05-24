@@ -33,6 +33,7 @@
 #include <odd.h>
 #include "PrismMTBDDGlob.h"
 #include "jnipointer.h"
+#include "prism.h"
 
 //------------------------------------------------------------------------------
 
@@ -86,6 +87,7 @@ jint bound				// time bound
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
 	start2 = stop;
+	start3 = stop;
 
 	// start iterations
 	PM_PrintToMainLog(env, "\nStarting iterations...\n");
@@ -93,9 +95,6 @@ jint bound				// time bound
 	// note that we ignore max_iters as we know how any iterations _should_ be performed
 	for (iters = 0; iters < bound; iters++) {
 	
-//		PM_PrintToMainLog(env, "Iteration %d: ", iters);
-//		start3 = util_cpu_time();
-
 		// matrix-vector multiply
 		Cudd_Ref(sol);
 		tmp = DD_PermuteVariables(ddman, sol, rvars, cvars, num_rvars);
@@ -105,11 +104,16 @@ jint bound				// time bound
 		Cudd_Ref(all_rewards);
 		tmp = DD_Apply(ddman, APPLY_PLUS, tmp, all_rewards);
 		
+		// print occasional status update
+		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
+			PM_PrintToMainLog(env, "Iteration %d (of %d): ", iters, bound);
+			PM_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			start3 = util_cpu_time();
+		}
+		
 		// prepare for next iteration
 		Cudd_RecursiveDeref(ddman, sol);
 		sol = tmp;
-		
-//		PM_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
 	}
 	
 	// stop clocks

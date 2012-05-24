@@ -151,6 +151,7 @@ jdouble time		// time bound
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
 	start2 = stop;
+	start3 = stop;
 	
 	// start transient analysis
 	done = false;
@@ -168,9 +169,6 @@ jdouble time		// time bound
 	
 	// note that we ignore max_iters as we know how any iterations _should_ be performed
 	for (iters = 1; (iters <= fgw.right) && !done; iters++) {
-		
-//		PM_PrintToMainLog(env, "Iteration %d: ", iters);
-//		start3 = util_cpu_time();
 		
 		//matrix-vector multiply
 		Cudd_Ref(sol);
@@ -212,6 +210,13 @@ jdouble time		// time bound
 			break;
 		}
 		
+		// print occasional status update
+		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
+			PM_PrintToMainLog(env, "Iteration %d (of %d): ", iters, fgw.right);
+			PM_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+			start3 = util_cpu_time();
+		}
+		
 		// prepare for next iteration
 		Cudd_RecursiveDeref(ddman, sol);
 		sol = tmp;
@@ -224,8 +229,6 @@ jdouble time		// time bound
 			Cudd_Ref(sol);
 			sum = DD_Apply(ddman, APPLY_PLUS, sum, DD_Apply(ddman, APPLY_TIMES, sol, DD_Constant(ddman, fgw.weights[iters-fgw.left])));
 		}
-		
-//		PM_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
 	}
 	
 	// stop clocks
