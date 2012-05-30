@@ -136,7 +136,9 @@ public class Updater
 		// Add independent transitions for each (enabled) module to list
 		for (i = enabledModules[0].nextSetBit(0); i >= 0; i = enabledModules[0].nextSetBit(i + 1)) {
 			for (Updates ups : updateLists.get(i).get(0)) {
-				transitionList.add(processUpdatesAndCreateNewChoice(-(i + 1), ups, state));
+				ChoiceListFlexi ch = processUpdatesAndCreateNewChoice(-(i + 1), ups, state);
+				if (ch.size() > 0)
+					transitionList.add(ch);
 			}
 		}
 		// Add synchronous transitions to list
@@ -154,7 +156,9 @@ public class Updater
 					Updates ups = updateLists.get(j).get(i).get(0);
 					// Case where this is the first Choice created
 					if (chs.size() == 0) {
-						chs.add(processUpdatesAndCreateNewChoice(i, ups, state));
+						ChoiceListFlexi ch = processUpdatesAndCreateNewChoice(i, ups, state);
+						if (ch.size() > 0)
+							chs.add(ch);
 					}
 					// Case where there are existing Choices
 					else {
@@ -169,7 +173,9 @@ public class Updater
 					// Case where there are no existing choices
 					if (chs.size() == 0) {
 						for (Updates ups : updateLists.get(j).get(i)) {
-							chs.add(processUpdatesAndCreateNewChoice(i, ups, state));
+							ChoiceListFlexi ch = processUpdatesAndCreateNewChoice(i, ups, state);
+							if (ch.size() > 0)
+								chs.add(ch);
 						}
 					}
 					// Case where there are existing Choices
@@ -319,11 +325,18 @@ public class Updater
 			list.add(ups.getUpdate(i));
 			ch.add(p, list);
 		}
-		// Check distribution sums to 1 (if required)
-		if (modelType.choicesSumToOne() && Math.abs(sum - 1) > prism.getSumRoundOff()) {
+		// For now, PRISM treats empty (all zero probs/rates) distributions as an error.
+		// Later, when errors in symbolic model construction are improved, this might be relaxed.
+		if (ch.size() == 0) {
+			String msg = modelType.probabilityOrRate();
+			msg += (ups.getNumUpdates() > 1) ? " values sum to " : " is ";
+			msg += "zero for updates in state " + state.toString(modulesFile);
+			throw new PrismLangException(msg, ups);
+		}
+		// Check distribution sums to 1 (if required, and if is non-empty)
+		if (ch.size() > 0 && modelType.choicesSumToOne() && Math.abs(sum - 1) > prism.getSumRoundOff()) {
 			throw new PrismLangException("Probabilities sum to " + sum + " in state " + state.toString(modulesFile), ups);
 		}
-
 		return ch;
 	}
 
