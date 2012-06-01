@@ -36,7 +36,7 @@ def lineIsCommentedOut(line):
 # Get a list of models in a directory, either from a "models" file if present,
 # or by searching for all files in the directory with an appropriate extension.
 # A "models" file is a list of (relative) path names, in which lines starting with # are ignored.
-# If a model files "model.pm" has a matching file "model.pm.args", then the contents of this
+# If a model file "model.pm" has a matching file "model.pm.args", then the contents of this
 # are also appended. Multiple lines in the .args file results in multiple copies of the model file.
 # Each item of the returned list is itself a list because the model specification may be in several parts,
 # e.g. ["model.pm", "-const", "N=2"], but the first item is always the name of the model file.
