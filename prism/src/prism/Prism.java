@@ -2353,42 +2353,10 @@ public class Prism implements PrismSettingsListener
 
 		// Create new model checker object and do model checking
 		if (!getExplicit()) {
-			ModelChecker mc = null;
-			switch (currentModelType) {
-			case DTMC:
-				mc = new ProbModelChecker(this, currentModel, propertiesFile);
-				break;
-			case MDP:
-				mc = new NondetModelChecker(this, currentModel, propertiesFile);
-				break;
-			case CTMC:
-				mc = new StochModelChecker(this, currentModel, propertiesFile);
-				break;
-			default:
-				throw new PrismException("Unknown model type " + currentModelType);
-			}
+			ModelChecker mc = StateModelChecker.createModelChecker(currentModelType, this, currentModel, propertiesFile);
 			res = mc.check(prop.getExpression());
 		} else {
-			explicit.StateModelChecker mc = null;
-			switch (currentModelType) {
-			case DTMC:
-				mc = new DTMCModelChecker();
-				break;
-			case MDP:
-				mc = new MDPModelChecker();
-				break;
-			case CTMC:
-				mc = new CTMCModelChecker();
-				break;
-			case CTMDP:
-				mc = new CTMDPModelChecker();
-				break;
-			case STPG:
-				mc = new STPGModelChecker();
-				break;
-			default:
-				throw new PrismException("Unknown model type " + currentModelType);
-			}
+			explicit.StateModelChecker mc = explicit.StateModelChecker.createModelChecker(currentModelType);
 			mc.setLog(mainLog);
 			mc.setSettings(settings);
 			mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);

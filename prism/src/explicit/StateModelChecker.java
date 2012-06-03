@@ -60,6 +60,7 @@ import parser.type.TypeBool;
 import parser.type.TypeDouble;
 import parser.type.TypeInt;
 import prism.Filter;
+import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLangException;
 import prism.PrismLog;
@@ -92,6 +93,34 @@ public class StateModelChecker
 
 	// The result of model checking will be stored here
 	protected Result result;
+
+	/**
+	 * Create a model checker (a subclass of this one) for a given model type
+	 */
+	public static StateModelChecker createModelChecker(ModelType modelType) throws PrismException
+	{
+		explicit.StateModelChecker mc = null;
+		switch (modelType) {
+		case DTMC:
+			mc = new DTMCModelChecker();
+			break;
+		case MDP:
+			mc = new MDPModelChecker();
+			break;
+		case CTMC:
+			mc = new CTMCModelChecker();
+			break;
+		case CTMDP:
+			mc = new CTMDPModelChecker();
+			break;
+		case STPG:
+			mc = new STPGModelChecker();
+			break;
+		default:
+			throw new PrismException("Cannot create model checker for model type " + modelType);
+		}
+		return mc;
+	}
 
 	// Flags/settings
 

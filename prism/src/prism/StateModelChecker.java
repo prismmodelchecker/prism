@@ -130,6 +130,28 @@ public class StateModelChecker implements ModelChecker
 	}
 
 	/**
+	 * Create a model checker (a subclass of this one) for a given model type
+	 */
+	public static ModelChecker createModelChecker(ModelType modelType, Prism prism, Model model, PropertiesFile propertiesFile) throws PrismException
+	{
+		ModelChecker mc = null;
+		switch (modelType) {
+		case DTMC:
+			mc = new ProbModelChecker(prism, model, propertiesFile);
+			break;
+		case MDP:
+			mc = new NondetModelChecker(prism, model, propertiesFile);
+			break;
+		case CTMC:
+			mc = new StochModelChecker(prism, model, propertiesFile);
+			break;
+		default:
+			throw new PrismException("Cannot create model checker for model type " + modelType);
+		}
+		return mc;
+	}
+	
+	/**
 	 * Clean up the dummy model created when using the abbreviated constructor
 	 */
 	public void clearDummyModel()
