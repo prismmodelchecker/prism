@@ -213,6 +213,12 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	}
 
 	@Override
+	public Iterator<Integer> getSuccessorsIterator(final int s)
+	{
+		return trans.get(s).getSupport().iterator();
+	}
+	
+	@Override
 	public boolean isSuccessor(int s1, int s2)
 	{
 		return trans.get(s1).contains(s2);

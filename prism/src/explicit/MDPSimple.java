@@ -390,6 +390,18 @@ public class MDPSimple extends MDPExplicit implements ModelSimple
 	}
 
 	@Override
+	public Iterator<Integer> getSuccessorsIterator(final int s)
+	{
+		// Need to build set to avoid duplicates
+		// So not necessarily the fastest method to access successors
+		HashSet<Integer> succs = new HashSet<Integer>();
+		for (Distribution distr : trans.get(s)) {
+			succs.addAll(distr.getSupport());
+		}
+		return succs.iterator();
+	}
+	
+	@Override
 	public boolean isSuccessor(int s1, int s2)
 	{
 		for (Distribution distr : trans.get(s1)) {

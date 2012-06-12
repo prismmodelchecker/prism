@@ -125,6 +125,18 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 		return ctmc.getNumTransitions() + numExtraTransitions;
 	}
 
+	@Override
+	public Iterator<Integer> getSuccessorsIterator(final int s)
+	{
+		if (exitRates[s] == 0) {
+			List<Integer> list = new ArrayList<Integer>(1);
+			list.add(s);
+			return list.iterator();
+		} else {
+			return ctmc.getSuccessorsIterator(s);
+		}
+	}
+	
 	public boolean isSuccessor(int s1, int s2)
 	{
 		return exitRates[s1] == 0 ? (s1 == s2) : ctmc.isSuccessor(s1, s2);

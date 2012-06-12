@@ -28,6 +28,7 @@ package explicit;
 
 import java.io.File;
 import java.util.*;
+import java.util.Map.Entry;
 
 import parser.State;
 import parser.Values;
@@ -121,6 +122,11 @@ public interface Model
 	 */
 	public int getNumTransitions();
 
+	/**
+	 * Get an iterator over the successors of state s.
+	 */
+	public Iterator<Integer> getSuccessorsIterator(int s);
+	
 	/**
 	 * Returns true if state s2 is a successor of state s1.
 	 */

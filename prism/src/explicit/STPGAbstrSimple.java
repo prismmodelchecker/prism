@@ -281,6 +281,20 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, ModelSimple
 	}
 
 	@Override
+	public Iterator<Integer> getSuccessorsIterator(final int s)
+	{
+		// Need to build set to avoid duplicates
+		// So not necessarily the fastest method to access successors
+		HashSet<Integer> succs = new HashSet<Integer>();
+		for (DistributionSet distrs : trans.get(s)) {
+			for (Distribution distr : distrs) {
+				succs.addAll(distr.getSupport());
+			}
+		}
+		return succs.iterator();
+	}
+	
+	@Override
 	public boolean isSuccessor(int s1, int s2)
 	{
 		for (DistributionSet distrs : trans.get(s1)) {

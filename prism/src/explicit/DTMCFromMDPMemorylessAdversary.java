@@ -117,6 +117,11 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 		throw new RuntimeException("Not implemented");
 	}
 
+	public Iterator<Integer> getSuccessorsIterator(final int s)
+	{
+		throw new RuntimeException("Not implemented yet");
+	}
+	
 	public boolean isSuccessor(int s1, int s2)
 	{
 		throw new RuntimeException("Not implemented yet");

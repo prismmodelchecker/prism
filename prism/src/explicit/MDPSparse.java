@@ -372,6 +372,20 @@ public class MDPSparse extends MDPExplicit
 	}
 
 	@Override
+	public Iterator<Integer> getSuccessorsIterator(final int s)
+	{
+		// Need to build set to avoid duplicates
+		// So not necessarily the fastest method to access successors
+		int start = choiceStarts[rowStarts[s]];
+		int end = choiceStarts[rowStarts[s + 1]];
+		HashSet<Integer> succs = new HashSet<Integer>();
+		for (int i = start; i < end; i++) {
+			succs.add(cols[i]);
+		}
+		return succs.iterator();
+	}
+	
+	@Override
 	public boolean isSuccessor(int s1, int s2)
 	{
 		int j, k, l1, h1, l2, h2;

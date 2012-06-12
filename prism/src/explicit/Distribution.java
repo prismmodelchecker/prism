@@ -159,6 +159,14 @@ public class Distribution implements Iterable<Entry<Integer,Double>>
 	}
 	
 	/**
+	 * Get the support of the distribution.
+	 */
+	public Set<Integer> getSupport()
+	{
+		return map.keySet();
+	}
+	
+	/**
 	 * Get an iterator over the entries of the map defining the distribution.
 	 */
 	public Iterator<Entry<Integer,Double>> iterator()
