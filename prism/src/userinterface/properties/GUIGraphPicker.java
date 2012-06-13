@@ -242,9 +242,14 @@ public class GUIGraphPicker extends javax.swing.JDialog
 			this.selectAxisConstantCombo.addItem(dc.getName());
 		}
 
-		// select the first constant for the x axis
-		if (selectAxisConstantCombo.getItemCount() > 0)
-			selectAxisConstantCombo.setSelectedIndex(0);
+		// select the default constant for the x axis
+		// (first property if there is one, if not first model one)
+		if (selectAxisConstantCombo.getItemCount() > 0) {
+			if (resultsCollection.getNumPropertyRangingConstants() > 0)
+				selectAxisConstantCombo.setSelectedIndex(resultsCollection.getNumModelRangingConstants());
+			else
+				selectAxisConstantCombo.setSelectedIndex(0);
+		}
 		// and disable it in the picker list
 		pickerList.disableLine(0);
 

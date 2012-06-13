@@ -39,6 +39,8 @@ public class ResultsCollection
 {
 	// Info about the constants over which these results range
 	private Vector<DefinedConstant> rangingConstants;
+	private int numMFRangingConstants;
+	private int numPFRangingConstants;
 
 	// Storage of the actual results
 	private TreeNode root;
@@ -61,11 +63,12 @@ public class ResultsCollection
 	{
 		resultListeners = new Vector<ResultListener>();
 		rangingConstants = new Vector<DefinedConstant>();
-
 		Vector<DefinedConstant> tmpRangingConstants = uCons.getRangingConstants();
 		for (int i = 0; i < tmpRangingConstants.size(); i++) {
 			rangingConstants.add(tmpRangingConstants.get(i));
 		}
+		numMFRangingConstants = uCons.getNumModelRangingConstants(); 
+		numPFRangingConstants = uCons.getNumPropertyRangingConstants(); 
 
 		this.root = (rangingConstants.size() > 0) ? new TreeNode(0) : new TreeLeaf();
 		this.resultName = (resultName == null) ? "Result" : resultName;
@@ -79,6 +82,16 @@ public class ResultsCollection
 	public int getNumRangingConstants()
 	{
 		return rangingConstants.size();
+	}
+
+	public int getNumModelRangingConstants()
+	{
+		return numMFRangingConstants;
+	}
+
+	public int getNumPropertyRangingConstants()
+	{
+		return numPFRangingConstants;
 	}
 
 	public boolean addResultListener(ResultListener resultListener)
