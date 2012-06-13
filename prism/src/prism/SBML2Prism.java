@@ -53,15 +53,17 @@ public class SBML2Prism implements EntityResolver
 	
 	public static void main(String args[])
 	{
+		PrismLog errLog = new PrismPrintStreamLog(System.err);
 		try {
 			if (args.length < 1) {
 				System.err.println("Usage: java -cp classes prism.SBML2Prism <sbml_file> [max_amount]");
 				System.exit(1);
 			}
-			new SBML2Prism().load(new File(args[0]), (args.length>1)?args[1]:"100");
+			SBML2Prism sbml2prism = new SBML2Prism(errLog);
+			sbml2prism.load(new File(args[0]), (args.length>1)?args[1]:"100");
 		}
 		catch (PrismException e) {
-			System.err.println("Error: "+e.getMessage()+".");
+			errLog.println("Error: "+e.getMessage()+".");
 		}
 	}
 	
