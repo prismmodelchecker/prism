@@ -88,6 +88,7 @@ public class UndefinedConstants
 		} else {
 			if (justLabels) {
 				pfv = propertiesFile.getUndefinedConstantsUsedInLabels();
+				pfv = orderConstantsByPropertiesFile(pfv, pf);
 			} else {
 				pfv = propertiesFile.getUndefinedConstants();
 			}
@@ -113,6 +114,7 @@ public class UndefinedConstants
 			pfv = new Vector<String>();
 		} else {
 			pfv = propertiesFile.getUndefinedConstantsUsedInProperty(prop);
+			pfv = orderConstantsByPropertiesFile(pfv, pf);
 		}
 		// create data structures
 		initialise(mfv, pfv);
@@ -135,6 +137,7 @@ public class UndefinedConstants
 			pfv = new Vector<String>();
 		} else {
 			pfv = propertiesFile.getUndefinedConstantsUsedInProperties(props);
+			pfv = orderConstantsByPropertiesFile(pfv, pf);
 		}
 		// create data structures
 		initialise(mfv, pfv);
@@ -163,6 +166,20 @@ public class UndefinedConstants
 		}
 		// initialise storage just created
 		clearAllDefinitions();
+	}
+	
+	/**
+	 * Create a new copy of a list of constant names, sorted by their occurrence in a PropertiesFile. 
+	 */
+	private Vector<String> orderConstantsByPropertiesFile(Vector<String> oldList, PropertiesFile propertiesFile)
+	{
+		Vector<String> newList = new Vector<String>();
+		Vector<String> pfList = propertiesFile.getUndefinedConstants();
+		for (String s : pfList) {
+			if (oldList.contains(s))
+				newList.add(s);
+		}
+		return newList;
 	}
 	
 	// accessor methods for info about undefined constants
@@ -529,7 +546,10 @@ public class UndefinedConstants
 		return res;
 	}
 
-	public int getNumModelDimensions()
+	/**
+	 * Get the number of ranging constants (constants with range > 1) from the model file.
+	 */
+	public int getNumModelRangingConstants()
 	{
 		int i, res;
 		
@@ -549,7 +569,10 @@ public class UndefinedConstants
 		return res;
 	}
 
-	public int getNumPropertyDimensions()
+	/**
+	 * Get the number of ranging constants (constants with range > 1) from the properties file.
+	 */
+	public int getNumPropertyRangingConstants()
 	{
 		int i, res;
 		
@@ -564,6 +587,10 @@ public class UndefinedConstants
 		return getNumModelIterations() * getNumPropertyIterations();
 	}
 
+	/**
+	 * Get a list of DefinedConstant objects: one for each ranging constant,
+	 * i.e. each constant that has range > 1.
+	 */
 	public Vector<DefinedConstant> getRangingConstants()
 	{
 		int i;
@@ -575,7 +602,7 @@ public class UndefinedConstants
 		
 		return res;
 	}
-
+	
 	public void iterateModel()
 	{
 		int i, ptr;
