@@ -636,6 +636,16 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		}		
 	}
 	
+	public void mouseClicked(MouseEvent e)
+	{
+		// Zoom out on double click
+		if (e.getClickCount() == 2) {
+			if (e.getSource() instanceof Graph) {
+				((Graph) e.getSource()).restoreAutoBounds();
+			}
+		}
+	}
+	
 	public void mouseReleased(MouseEvent e) 
 	{ 
 		if(e.isPopupTrigger())
@@ -705,7 +715,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 	}
 	
 	// don't implement these for tabs
-	public void mouseClicked(MouseEvent e) { }
+	//public void mouseClicked(MouseEvent e) { }
 	public void mouseEntered(MouseEvent e) { }
 	public void mouseExited(MouseEvent e)  { }
 	
