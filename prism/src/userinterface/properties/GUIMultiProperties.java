@@ -231,6 +231,11 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		return getPrism().getSettings().getInteger(PrismSettings.PROPERTIES_ADDITION_STRATEGY) + 1; //note the correction
 	}
 
+	public GUIGraphHandler getGraphHandler()
+	{
+		return graphHandler;
+	}
+	
 	/* UPDATE METHODS */
 
 	public void repaintList()

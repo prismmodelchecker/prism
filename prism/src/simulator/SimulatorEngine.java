@@ -31,6 +31,7 @@ import java.io.*;
 
 import simulator.method.*;
 import simulator.sampler.*;
+import userinterface.graph.Graph;
 import parser.*;
 import parser.ast.*;
 import parser.type.*;
@@ -1220,6 +1221,14 @@ public class SimulatorEngine
 			log.println();
 		}
 		((PathFull) path).exportToLog(log, timeCumul, colSep, vars);
+	}
+	
+	/**
+	 * Plot the current path on a Graph.
+	 */
+	public void plotPath(Graph graphModel)
+	{
+		((PathFull) path).plotOnGraph(graphModel);
 	}
 
 	// ------------------------------------------------------------------------------

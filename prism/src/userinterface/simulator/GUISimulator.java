@@ -41,6 +41,7 @@ import parser.ast.*;
 import prism.*;
 import userinterface.*;
 import userinterface.util.*;
+import userinterface.graph.Graph;
 import userinterface.model.*;
 import userinterface.properties.*;
 import userinterface.simulator.networking.*;
@@ -72,7 +73,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	private SimulationView view;
 
 	//Actions
-	private Action randomExploration, backtrack, backtrackToHere, removeToHere, newPath, newPathFromState, resetPath, exportPath, configureView;
+	private Action randomExploration, backtrack, backtrackToHere, removeToHere, newPath, newPathFromState, resetPath, exportPath, plotPath, configureView;
 
 	/** Creates a new instance of GUISimulator */
 	public GUISimulator(GUIPrism gui)
@@ -653,6 +654,16 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		}
 	}
 
+	public void a_plotPath()
+	{
+		setComputing(true);
+		guiProp.tabToFront();
+		Graph graphModel = new Graph();
+		guiProp.getGraphHandler().addGraph(graphModel);
+		engine.plotPath(graphModel);
+		setComputing(false);
+	}
+
 	public void a_configureView()
 	{
 		new GUIViewDialog(getGUI(), pathTableModel.getView(), pathTableModel);
@@ -804,6 +815,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		newPathFromState.setEnabled(parsedModel != null && !computing);
 		resetPath.setEnabled(pathActive && !computing);
 		exportPath.setEnabled(pathActive && !computing);
+		plotPath.setEnabled(pathActive && !computing);
 		randomExploration.setEnabled(pathActive && !computing);
 		backtrack.setEnabled(pathActive && !computing);
 		configureView.setEnabled(pathActive && !computing);
@@ -1461,6 +1473,19 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		exportPath.putValue(Action.NAME, "Export path");
 		exportPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.png"));
 
+		plotPath = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_plotPath();
+			}
+		};
+
+		plotPath.putValue(Action.LONG_DESCRIPTION, "Plots the path on a graph.");
+		plotPath.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
+		plotPath.putValue(Action.NAME, "Plot path");
+		plotPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileGraph.png"));
+
 		randomExploration = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
@@ -1533,6 +1558,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		pathPopupMenu.add(newPathFromState);
 		pathPopupMenu.add(resetPath);
 		pathPopupMenu.add(exportPath);
+		pathPopupMenu.add(plotPath);
 		pathPopupMenu.addSeparator();
 		pathPopupMenu.add(randomExploration);
 		pathPopupMenu.add(backtrack);
@@ -1546,6 +1572,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		simulatorMenu.add(newPathFromState);
 		simulatorMenu.add(resetPath);
 		simulatorMenu.add(exportPath);
+		simulatorMenu.add(plotPath);
 		simulatorMenu.addSeparator();
 		simulatorMenu.add(randomExploration);
 		simulatorMenu.add(backtrack);

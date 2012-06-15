@@ -27,11 +27,14 @@
 package simulator;
 
 import java.util.ArrayList;
+import org.jfree.data.xy.XYDataItem;
 
 import parser.*;
 import parser.ast.*;
 import prism.PrismException;
 import prism.PrismLog;
+import userinterface.graph.Graph;
+import userinterface.graph.Graph.SeriesKey;
 
 /**
  * Stores and manipulates a path though a model.
@@ -513,6 +516,14 @@ public class PathFull extends Path implements PathFullInfo
 		log.close();
 	}
 
+	/**
+	 * Plot path on a graph.
+	 */
+	public void plotOnGraph(Graph graphModel)
+	{
+		new PlotOnGraphThread(graphModel).start();
+	}
+
 	@Override
 	public String toString()
 	{
@@ -558,5 +569,52 @@ public class PathFull extends Path implements PathFullInfo
 		public int moduleOrActionIndex;
 		// Transition rewards associated with step
 		public double transitionRewards[];
+	}
+	
+	class PlotOnGraphThread extends Thread
+	{
+		private Graph graphModel = null;
+		
+		public PlotOnGraphThread(Graph graphmodel)
+		{
+			this.graphModel = graphmodel;
+		}
+		
+		public void run()
+		{
+			int i, j, n, nv;
+			double d, t;
+			boolean contTime = modulesFile.getModelType().continuousTime();
+			SeriesKey seriesKeys[] = null;
+
+			// Configure axes
+			graphModel.getXAxisSettings().setHeading("Time");
+			graphModel.getYAxisSettings().setHeading("Value");
+			
+			// Get sizes
+			n = size();
+			nv = modulesFile.getNumVars();
+
+			// Create series
+			seriesKeys = new SeriesKey[nv];
+			for (j = 0; j < nv; j++) {
+				seriesKeys[j] = graphModel.addSeries(modulesFile.getVarName(j));
+			}
+			
+			// Plot path
+			t = 0.0;
+			for (i = 0; i <= n; i++) {
+				if (contTime) {
+					d = (i < n) ? getTime(i) : 0.0;
+					t += d;
+				}
+				for (j = 0; j < nv; j++) {
+					// Always plot first/last points to ensure complete line.
+					// Otherwise only add a point if the variable value changed. 
+					if (i == 0 || i == n-1 || !PathFull.this.getState(i).varValues[j].equals(PathFull.this.getState(i - 1).varValues[j]))
+						graphModel.addPointToSeries(seriesKeys[j], new XYDataItem(contTime ? t : i, ((Integer) PathFull.this.getState(i).varValues[j]).intValue()));
+				}
+			}
+		}
 	}
 }
