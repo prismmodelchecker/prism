@@ -27,6 +27,7 @@
 
 package explicit;
 
+import java.util.BitSet;
 import java.util.List;
 
 /**
@@ -56,7 +57,7 @@ public abstract class SCCComputer
 	{
 		return new SCCComputerTarjan(model);
 	}
-	
+
 	/**
 	 * Compute SCCs and store them. They can be retrieved using {@link #getSCCs()}.
 	 */
@@ -70,10 +71,10 @@ public abstract class SCCComputer
 	/**
 	 * Get the list of computed SCCs.
 	 */
-	public abstract List<List<Integer>> getSCCs();
+	public abstract List<BitSet> getSCCs();
 
 	/**
 	 * Get the list of computed BSCCs.
 	 */
-	public abstract List<List<Integer>> getBSCCs();
+	public abstract List<BitSet> getBSCCs();
 }

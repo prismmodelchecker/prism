@@ -28,6 +28,7 @@
 package explicit;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -42,7 +43,7 @@ public class SCCComputerTarjan extends SCCComputer
 	/* Number of nodes (model states) */
 	private int numNodes;
 	/* Computed list of SCCs */
-	private List<List<Integer>> sccs = new ArrayList<List<Integer>>();
+	private List<BitSet> sccs = new ArrayList<BitSet>();
 
 	/* Next index to give to a node */
 	private int index = 0;
@@ -50,8 +51,8 @@ public class SCCComputerTarjan extends SCCComputer
 	private List<Integer> stack = new LinkedList<Integer>();
 	/* List of nodes in the graph. Invariant: {@code nodeList.get(i).id == i} */
 	private ArrayList<Node> nodeList;
-	/* True iff node {@code i} currently is on the stack. */
-	boolean[] onStack;
+	/* Nodes currently on the stack. */
+	private BitSet onStack;
 
 	/**
 	 * Build (B)SCC computer for a given model.
@@ -64,7 +65,7 @@ public class SCCComputerTarjan extends SCCComputer
 		for (int i = 0; i < numNodes; i++) {
 			nodeList.add(new Node(i));
 		}
-		onStack = new boolean[numNodes];
+		onStack = new BitSet();
 	}
 
 	// Methods for SCCComputer interface
@@ -82,13 +83,13 @@ public class SCCComputerTarjan extends SCCComputer
 	}
 
 	@Override
-	public List<List<Integer>> getSCCs()
+	public List<BitSet> getSCCs()
 	{
 		return sccs;
 	}
 
 	@Override
-	public List<List<Integer>> getBSCCs()
+	public List<BitSet> getBSCCs()
 	{
 		return null;
 	}
@@ -108,32 +109,32 @@ public class SCCComputerTarjan extends SCCComputer
 
 	}
 
-	private void tarjan(Integer i)
+	private void tarjan(int i)
 	{
 		final Node v = nodeList.get(i);
 		v.index = index;
 		v.lowlink = index;
 		index++;
 		stack.add(0, i);
-		onStack[i] = true;
+		onStack.set(i);
 		Iterator<Integer> it = model.getSuccessorsIterator(i);
 		while (it.hasNext()) {
-			Integer e = it.next();
+			int e = it.next();
 			Node n = nodeList.get(e);
 			if (n.index == -1) {
 				tarjan(e);
 				v.lowlink = Math.min(v.lowlink, n.lowlink);
-			} else if (onStack[e]) {
+			} else if (onStack.get(e)) {
 				v.lowlink = Math.min(v.lowlink, n.index);
 			}
 		}
 		if (v.lowlink == v.index) {
-			Integer n;
-			List<Integer> component = new ArrayList<Integer>();
+			int n;
+			BitSet component = new BitSet();
 			do {
 				n = stack.remove(0);
-				onStack[n] = false;
-				component.add(n);
+				onStack.set(n, false);
+				component.set(n);
 			} while (n != i);
 			sccs.add(component);
 		}
