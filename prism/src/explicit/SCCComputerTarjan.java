@@ -44,6 +44,10 @@ public class SCCComputerTarjan extends SCCComputer
 	private int numNodes;
 	/* Computed list of SCCs */
 	private List<BitSet> sccs = new ArrayList<BitSet>();
+	/* Computed list of BSCCs */
+	private List<BitSet> bsccs = new ArrayList<BitSet>();
+	/* States not in any BSCC */
+	private BitSet notInBSCCs;
 
 	/* Next index to give to a node */
 	private int index = 0;
@@ -79,7 +83,23 @@ public class SCCComputerTarjan extends SCCComputer
 	@Override
 	public void computeBSCCs()
 	{
-		throw new UnsupportedOperationException();
+		computeSCCs();
+		notInBSCCs = new BitSet();
+		int n = sccs.size();
+		for (int i = 0; i < n; i++) {
+			BitSet scc = sccs.get(i);
+			boolean bottom = true;
+			for (int s = scc.nextSetBit(0); s >= 0; s = scc.nextSetBit(s + 1)) {
+				if (!model.allSuccessorsInSet(s, scc)) {
+					bottom = false;
+					break;
+				}
+			}
+			if (bottom)
+				bsccs.add(scc);
+			else
+				notInBSCCs.or(scc);
+		}
 	}
 
 	@Override
@@ -91,9 +111,15 @@ public class SCCComputerTarjan extends SCCComputer
 	@Override
 	public List<BitSet> getBSCCs()
 	{
-		return null;
+		return bsccs;
 	}
 
+	@Override
+	public BitSet getNotInBSCCs()
+	{
+		return notInBSCCs;
+	}
+	
 	// SCC Computation
 
 	/**

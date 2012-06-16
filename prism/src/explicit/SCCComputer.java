@@ -77,4 +77,9 @@ public abstract class SCCComputer
 	 * Get the list of computed BSCCs.
 	 */
 	public abstract List<BitSet> getBSCCs();
+	
+	/**
+	 * Get the states not in any BSCC.
+	 */
+	public abstract BitSet getNotInBSCCs();
 }
