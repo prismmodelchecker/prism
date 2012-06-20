@@ -43,8 +43,7 @@ module abstract_firewire
 		(s=5 => x<=rc_fast_max) &
 		(s=6 => x<=rc_slow_max) &
 		(s=7 => x<=rc_slow_max) &
-		(s=8 => x<=rc_slow_max) &
-		(s=9 => x<=0)
+		(s=8 => x<=rc_slow_max)
 	endinvariant
 	
 	// start_start (initial state)
