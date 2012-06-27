@@ -463,7 +463,8 @@ public class GenerateSimulationPath
 			try {
 				generateAndPlotSimulationPath(modulesFile, initialState, details, maxPathLength, graphModel);
 			} catch (PrismException e) {
-				// Just ignore problems
+				// Just report errors passively to log
+				mainLog.printWarning("Error occured during path plot: " + e.getMessage());
 			}
 		}
 	}

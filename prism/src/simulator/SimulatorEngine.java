@@ -170,6 +170,22 @@ public class SimulatorEngine
 	// ------------------------------------------------------------------------------
 
 	/**
+	 * Check whether a model is suitable for exploration/analysis using the simulator.
+	 * If not, an explanatory error message is thrown as an exception.
+	 */
+	public void checkModelForSimulation(ModulesFile modulesFile) throws PrismException
+	{
+		// No support for PTAs yet
+		if (modulesFile.getModelType() == ModelType.PTA) {
+			throw new PrismException("Sorry - the simulator does not currently support PTAs");
+		}
+		// No support for system...endsystem yet
+		if (modulesFile.getSystemDefn() != null) {
+			throw new PrismException("Sorry - the simulator does not currently handle the system...endsystem construct");
+		}
+	}
+	
+	/**
 	 * Create a new path for a model.
 	 * Note: All constants in the model must have already been defined.
 	 * @param modulesFile Model for simulation
@@ -644,15 +660,8 @@ public class SimulatorEngine
 		modelType = modulesFile.getModelType();
 		this.mfConstants = modulesFile.getConstantValues();
 
-		// Check for PTAs
-		if (modulesFile.getModelType() == ModelType.PTA) {
-			throw new PrismException("Sorry - the simulator does not currently support PTAs");
-		}
-
-		// Check for presence of system...endsystem
-		if (modulesFile.getSystemDefn() != null) {
-			throw new PrismException("Sorry - the simulator does not currently handle the system...endsystem construct");
-		}
+		// Check model is simulate-able
+		checkModelForSimulation(modulesFile);
 
 		// Get variable list (symbol table) for model 
 		varList = modulesFile.createVarList();

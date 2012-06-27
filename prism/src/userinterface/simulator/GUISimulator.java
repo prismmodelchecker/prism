@@ -318,6 +318,10 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	{
 		Values initialState;
 		try {
+			// Check model is simulate-able
+			// (bail out now else causes problems below)
+			engine.checkModelForSimulation(parsedModel);
+			
 			// get properties constants/labels
 			PropertiesFile pf;
 			try {
@@ -693,6 +697,10 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	{
 		Values initialState;
 		try {
+			// Check model is simulate-able
+			// (bail out now else causes problems below)
+			engine.checkModelForSimulation(parsedModel);
+			
 			// if necessary, get values for undefined constants from user
 			UndefinedConstants uCon = new UndefinedConstants(parsedModel, null);
 			if (uCon.getMFNumUndefined() > 0) {
@@ -704,12 +712,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			lastConstants = uCon.getMFConstantValues();
 			// store constants
 			parsedModel.setUndefinedConstants(lastConstants);
-
-			// check here for possibility of multiple initial states
-			// (not supported yet) to avoid problems below
-			if (parsedModel.getInitialStates() != null) {
-				throw new PrismException("The simulator does not not yet handle models with multiple states");
-			}
 
 			// do we need to ask for an initial state for simulation?
 			// no: just use default/random
