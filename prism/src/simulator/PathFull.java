@@ -28,14 +28,11 @@ package simulator;
 
 import java.util.ArrayList;
 
-import org.jfree.data.xy.XYDataItem;
-
 import parser.State;
 import parser.ast.ModulesFile;
 import prism.PrismException;
 import prism.PrismLog;
 import userinterface.graph.Graph;
-import userinterface.graph.Graph.SeriesKey;
 
 /**
  * Stores and manipulates a path though a model.
@@ -50,12 +47,12 @@ public class PathFull extends Path implements PathFullInfo
 	private boolean continuousTime;
 	// Model info/stats
 	private int numRewardStructs;
-	
+
 	// The path, i.e. list of states, etc.
 	private ArrayList<Step> steps;
 	// The path length (just for convenience; equal to steps.size() - 1)
 	private int size;
-	
+
 	// Loop detector for path
 	protected LoopDetector loopDet;
 
@@ -113,7 +110,8 @@ public class PathFull extends Path implements PathFullInfo
 	}
 
 	@Override
-	public void addStep(double time, int choice, int moduleOrActionIndex, double[] transitionRewards, State newState, double[] newStateRewards, TransitionList transitionList)
+	public void addStep(double time, int choice, int moduleOrActionIndex, double[] transitionRewards, State newState, double[] newStateRewards,
+			TransitionList transitionList)
 	{
 		Step stepOld, stepNew;
 		// Add info to last existing step
@@ -145,7 +143,7 @@ public class PathFull extends Path implements PathFullInfo
 	}
 
 	// MUTATORS (additional)
-	
+
 	/**
 	 * Backtrack to a particular step within the current path.
 	 * @param step The step of the path to backtrack to (step >= 0)
@@ -169,7 +167,7 @@ public class PathFull extends Path implements PathFullInfo
 		// Update loop detector
 		loopDet.backtrack(this);
 	}
-	
+
 	/**
 	 * Remove the prefix of the current path up to the given path step.
 	 * Index step should be >=0 and <= the total path size. 
@@ -179,7 +177,7 @@ public class PathFull extends Path implements PathFullInfo
 	{
 		int i, j, numKeep, sizeOld;
 		double timeCumul, rewardsCumul[];
-		
+
 		// Ignore trivial case
 		if (step == 0)
 			return;
@@ -207,7 +205,7 @@ public class PathFull extends Path implements PathFullInfo
 		// Update loop detector
 		loopDet.removePrecedingStates(this, step);
 	}
-	
+
 	// ACCESSORS (for Path (and some of PathFullInfo))
 
 	@Override
@@ -215,7 +213,7 @@ public class PathFull extends Path implements PathFullInfo
 	{
 		return continuousTime;
 	}
-	
+
 	@Override
 	public int size()
 	{
@@ -269,61 +267,61 @@ public class PathFull extends Path implements PathFullInfo
 	{
 		return steps.get(steps.size() - 1).rewardsCumul[rsi];
 	}
-	
+
 	@Override
 	public double getPreviousStateReward(int rsi)
 	{
 		return steps.get(steps.size() - 2).stateRewards[rsi];
 	}
-	
+
 	@Override
 	public double[] getPreviousStateRewards()
 	{
 		return steps.get(steps.size() - 2).stateRewards;
 	}
-	
+
 	@Override
 	public double getPreviousTransitionReward(int rsi)
 	{
 		return steps.get(steps.size() - 2).transitionRewards[rsi];
 	}
-	
+
 	@Override
 	public double[] getPreviousTransitionRewards()
 	{
 		return steps.get(steps.size() - 2).transitionRewards;
 	}
-	
+
 	@Override
 	public double getCurrentStateReward(int rsi)
 	{
 		return steps.get(steps.size() - 1).stateRewards[rsi];
 	}
-	
+
 	@Override
 	public double[] getCurrentStateRewards()
 	{
 		return steps.get(steps.size() - 1).stateRewards;
 	}
-	
+
 	@Override
 	public boolean isLooping()
 	{
 		return loopDet.isLooping();
 	}
-	
+
 	@Override
 	public int loopStart()
 	{
 		return loopDet.loopStart();
 	}
-	
+
 	@Override
 	public int loopEnd()
 	{
 		return loopDet.loopEnd();
 	}
-	
+
 	// ACCESSORS (for PathFullInfo)
 
 	/**
@@ -441,33 +439,33 @@ public class PathFull extends Path implements PathFullInfo
 	{
 		return true;
 	}
-	
+
 	@Override
 	public boolean hasChoiceInfo()
 	{
 		return true;
 	}
-	
+
 	@Override
 	public boolean hasActionInfo()
 	{
 		return true;
 	}
-	
+
 	@Override
 	public boolean hasTimeInfo()
 	{
 		return true;
 	}
-	
+
 	@Override
 	public boolean hasLoopInfo()
 	{
 		return true;
 	}
-	
+
 	// Other methods
-	
+
 	/**
 	 * Pass the path to a PathDisplayer object.
 	 * @param displayer The PathDisplayer
@@ -516,7 +514,7 @@ public class PathFull extends Path implements PathFullInfo
 		displayer.setVarsToShow(vars);
 		display(displayer);
 	}
-	
+
 	/**
 	 * Plot path on a graph.
 	 * @param graphModel Graph on which to plot path
@@ -555,6 +553,7 @@ public class PathFull extends Path implements PathFullInfo
 			moduleOrActionIndex = 0;
 			transitionRewards = new double[numRewardStructs];
 		}
+
 		// Current state (before transition)
 		public State state;
 		// State rewards for current state
@@ -573,63 +572,16 @@ public class PathFull extends Path implements PathFullInfo
 		// Transition rewards associated with step
 		public double transitionRewards[];
 	}
-	
-	class PlotOnGraphThread extends Thread
-	{
-		private Graph graphModel = null;
-		
-		public PlotOnGraphThread(Graph graphModel)
-		{
-			this.graphModel = graphModel;
-		}
-		
-		public void run()
-		{
-			int i, j, n, nv;
-			double d, t;
-			boolean contTime = modulesFile.getModelType().continuousTime();
-			SeriesKey seriesKeys[] = null;
 
-			// Configure axes
-			graphModel.getXAxisSettings().setHeading("Time");
-			graphModel.getYAxisSettings().setHeading("Value");
-			
-			// Get sizes
-			n = size();
-			nv = modulesFile.getNumVars();
-
-			// Create series
-			seriesKeys = new SeriesKey[nv];
-			for (j = 0; j < nv; j++) {
-				seriesKeys[j] = graphModel.addSeries(modulesFile.getVarName(j));
-			}
-			
-			// Plot path
-			t = 0.0;
-			for (i = 0; i <= n; i++) {
-				if (contTime) {
-					d = (i < n) ? getTime(i) : 0.0;
-					t += d;
-				}
-				for (j = 0; j < nv; j++) {
-					// Always plot first/last points to ensure complete line.
-					// Otherwise only add a point if the variable value changed. 
-					if (i == 0 || i == n-1 || !PathFull.this.getState(i).varValues[j].equals(PathFull.this.getState(i - 1).varValues[j]))
-						graphModel.addPointToSeries(seriesKeys[j], new XYDataItem(contTime ? t : i, ((Integer) PathFull.this.getState(i).varValues[j]).intValue()));
-				}
-			}
-		}
-	}
-	
 	class DisplayThread extends Thread
 	{
 		private PathDisplayer displayer = null;
-		
+
 		public DisplayThread(PathDisplayer displayer)
 		{
 			this.displayer = displayer;
 		}
-		
+
 		public void run()
 		{
 			try {
