@@ -102,6 +102,18 @@ public class PathFullPrefix extends Path
 	}
 
 	@Override
+	public int getPreviousModuleOrActionIndex()
+	{
+		return pathFull.getModuleOrActionIndex(prefixLength - 1);
+	}
+
+	@Override
+	public String getPreviousModuleOrAction()
+	{
+		return pathFull.getModuleOrAction(prefixLength - 1);
+	}
+	
+	@Override
 	public double getTotalTime()
 	{
 		return pathFull.getCumulativeTime(prefixLength);
@@ -126,15 +138,33 @@ public class PathFullPrefix extends Path
 	}
 	
 	@Override
+	public double[] getPreviousStateRewards()
+	{
+		return pathFull.getStateRewards(prefixLength - 1);
+	}
+	
+	@Override
 	public double getPreviousTransitionReward(int rsi)
 	{
 		return pathFull.getTransitionReward(prefixLength - 1, rsi);
 	}
 	
 	@Override
+	public double[] getPreviousTransitionRewards()
+	{
+		return pathFull.getTransitionRewards(prefixLength - 1);
+	}
+	
+	@Override
 	public double getCurrentStateReward(int rsi)
 	{
 		return pathFull.getStateReward(prefixLength, rsi);
+	}
+	
+	@Override
+	public double[] getCurrentStateRewards()
+	{
+		return pathFull.getStateRewards(prefixLength);
 	}
 	
 	@Override

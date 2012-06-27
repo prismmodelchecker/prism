@@ -76,9 +76,20 @@ public abstract class Path
 	public abstract State getCurrentState();
 
 	/**
-	 * For paths with continuous-time info, get the total time elapsed so far
-	 * (where zero time has been spent in the current (final) state).
-	 * For discrete-time models, just returns 0.0.
+	 * Get the index i of the action taken in the previous step.
+	 * If i>0, then i-1 is the index of an action label (0-indexed)
+	 * If i<0, then -i-1 is the index of a module (0-indexed)
+	 */
+	public abstract int getPreviousModuleOrActionIndex();
+
+	/**
+	 * Get a string describing the action/module of the previous step.
+	 */
+	public abstract String getPreviousModuleOrAction();
+	
+	/**
+	 * Get the total time elapsed so far (where zero time has been spent in the current (final) state).
+	 * For discrete-time models, this is just the number of steps (but returned as a double).
 	 */
 	public abstract double getTotalTime();
 	
@@ -102,10 +113,21 @@ public abstract class Path
 	public abstract double getPreviousStateReward(int rsi);
 	
 	/**
+	 * Get the state rewards for the previous state.
+	 * (For continuous-time models, need to multiply these by time spent in the state.)
+	 */
+	public abstract double[] getPreviousStateRewards();
+	
+	/**
 	 * Get the transition reward for the transition between the previous and current states.
 	 * @param rsi Reward structure index
 	 */
 	public abstract double getPreviousTransitionReward(int rsi);
+
+	/**
+	 * Get the transition rewards for the transition between the previous and current states.
+	 */
+	public abstract double[] getPreviousTransitionRewards();
 
 	/**
 	 * Get the state reward for the current state.
@@ -113,6 +135,12 @@ public abstract class Path
 	 * @param rsi Reward structure index
 	 */
 	public abstract double getCurrentStateReward(int rsi);
+	
+	/**
+	 * Get the state rewards for the current state.
+	 * (For continuous-time models, need to multiply these by time spent in the state.)
+	 */
+	public abstract double[] getCurrentStateRewards();
 	
 	/**
 	 * Does the path contain a deterministic loop?

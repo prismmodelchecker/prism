@@ -27,10 +27,11 @@
 package simulator;
 
 import java.util.ArrayList;
+
 import org.jfree.data.xy.XYDataItem;
 
-import parser.*;
-import parser.ast.*;
+import parser.State;
+import parser.ast.ModulesFile;
 import prism.PrismException;
 import prism.PrismLog;
 import userinterface.graph.Graph;
@@ -108,7 +109,7 @@ public class PathFull extends Path implements PathFullInfo
 	@Override
 	public void addStep(int choice, int moduleOrActionIndex, double[] transitionRewards, State newState, double[] newStateRewards, TransitionList transitionList)
 	{
-		addStep(0.0, choice, moduleOrActionIndex, transitionRewards, newState, newStateRewards, transitionList);
+		addStep(1.0, choice, moduleOrActionIndex, transitionRewards, newState, newStateRewards, transitionList);
 	}
 
 	@Override
@@ -234,6 +235,24 @@ public class PathFull extends Path implements PathFullInfo
 	}
 
 	@Override
+	public int getPreviousModuleOrActionIndex()
+	{
+		return steps.get(steps.size() - 2).moduleOrActionIndex;
+	}
+
+	@Override
+	public String getPreviousModuleOrAction()
+	{
+		int i = getPreviousModuleOrActionIndex();
+		if (i < 0)
+			return modulesFile.getModuleName(-i - 1);
+		else if (i > 0)
+			return "[" + modulesFile.getSynchs().get(i - 1) + "]";
+		else
+			return "?";
+	}
+
+	@Override
 	public double getTotalTime()
 	{
 		return size < 1 ? 0.0 : steps.get(steps.size() - 1).timeCumul;
@@ -258,15 +277,33 @@ public class PathFull extends Path implements PathFullInfo
 	}
 	
 	@Override
+	public double[] getPreviousStateRewards()
+	{
+		return steps.get(steps.size() - 2).stateRewards;
+	}
+	
+	@Override
 	public double getPreviousTransitionReward(int rsi)
 	{
 		return steps.get(steps.size() - 2).transitionRewards[rsi];
 	}
 	
 	@Override
+	public double[] getPreviousTransitionRewards()
+	{
+		return steps.get(steps.size() - 2).transitionRewards;
+	}
+	
+	@Override
 	public double getCurrentStateReward(int rsi)
 	{
 		return steps.get(steps.size() - 1).stateRewards[rsi];
+	}
+	
+	@Override
+	public double[] getCurrentStateRewards()
+	{
+		return steps.get(steps.size() - 1).stateRewards;
 	}
 	
 	@Override
@@ -306,6 +343,15 @@ public class PathFull extends Path implements PathFullInfo
 	public double getStateReward(int step, int rsi)
 	{
 		return steps.get(step).stateRewards[rsi];
+	}
+
+	/**
+	 * Get an array of state rewards for the state at a given step of the path.
+	 * @param step Step index (0 = initial state/step of path)
+	 */
+	protected double[] getStateRewards(int step)
+	{
+		return steps.get(step).stateRewards;
 	}
 
 	/**
@@ -381,6 +427,15 @@ public class PathFull extends Path implements PathFullInfo
 		return steps.get(step).transitionRewards[rsi];
 	}
 
+	/**
+	 * Get an array of transitions reward associated with a given step.
+	 * @param step Step index (0 = initial state/step of path)
+	 */
+	protected double[] getTransitionRewards(int step)
+	{
+		return steps.get(step).transitionRewards;
+	}
+
 	@Override
 	public boolean hasRewardInfo()
 	{
@@ -414,114 +469,62 @@ public class PathFull extends Path implements PathFullInfo
 	// Other methods
 	
 	/**
-	 * Export path to a file.
-	 * @param log PrismLog to which the path should be exported to.
-	 * @param timeCumul Show time in cumulative form?
-	 * @param colSep String used to separate columns in display
-	 * @param vars Restrict printing to these variables (indices) and steps which change them (ignore if null)
+	 * Pass the path to a PathDisplayer object.
+	 * @param displayer The PathDisplayer
 	 */
-	public void exportToLog(PrismLog log, boolean timeCumul, String colSep, ArrayList<Integer> vars) throws PrismException
+	public void display(PathDisplayer displayer) throws PrismException
 	{
-		int i, j, n, nv;
-		double d, t;
-		boolean contTime = modulesFile.getModelType().continuousTime();
-		boolean changed;
-		int varsNum = 0, varsIndices[] = null;
-
+		// In the absence of model info, do nothing
 		if (modulesFile == null) {
-			log.flush();
-			log.close();
 			return;
 		}
-
-		// Get sizes
-		n = size();
-		nv = modulesFile.getNumVars();
-
-		// if necessary, store info about which vars to display
-		if (vars != null) {
-			varsNum = vars.size();
-			varsIndices = new int[varsNum];
-			for (i = 0; i < varsNum; i++)
-				varsIndices[i] = vars.get(i);
+		// Display path
+		displayer.start(getState(0), getStateRewards(0));
+		int n = size();
+		for (int i = 1; i <= n; i++) {
+			displayer.step(getTime(i - 1), getCumulativeTime(i), getModuleOrAction(i - 1), getTransitionRewards(i), getState(i), getStateRewards(i));
 		}
-
-		// Write header
-		log.print("action");
-		log.print(colSep + "step");
-		if (contTime)
-			log.print(colSep + (timeCumul ? "time" : "time_in_state"));
-		if (vars == null)
-			for (j = 0; j < nv; j++)
-				log.print(colSep + modulesFile.getVarName(j));
-		else
-			for (j = 0; j < varsNum; j++)
-				log.print(colSep + modulesFile.getVarName(varsIndices[j]));
-		if (numRewardStructs == 1) {
-			log.print(colSep + "state_reward" + colSep + "transition_reward");
-		} else {
-			for (j = 0; j < numRewardStructs; j++)
-				log.print(colSep + "state_reward" + (j + 1) + colSep + "transition_reward" + (j + 1));
-		}
-		log.println();
-
-		// Write path
-		t = 0.0;
-		for (i = 0; i <= n; i++) {
-			// (if required) see if relevant vars have changed
-			if (vars != null && i > 0) {
-				changed = false;
-				for (j = 0; j < varsNum; j++) {
-					if (!getState(i).varValues[varsIndices[j]].equals(getState(i - 1).varValues[varsIndices[j]]))
-						changed = true;
-				}
-				if (!changed) {
-					d = (i < n) ? getTime(i) : 0.0;
-					t += d;
-					continue;
-				}
-			}
-			// write action
-			log.print(i == 0 ? "-" : getModuleOrAction(i - 1));
-			// write state index
-			log.print(colSep);
-			log.print(i);
-			// print time (if continuous time)
-			if (contTime) {
-				d = (i < n) ? getTime(i) : 0.0;
-				log.print(colSep + (timeCumul ? t : d));
-				t += d;
-			}
-			// write vars
-			if (vars == null) {
-				for (j = 0; j < nv; j++) {
-					log.print(colSep);
-					log.print(getState(i).varValues[j]);
-				}
-			} else {
-				for (j = 0; j < varsNum; j++) {
-					log.print(colSep);
-					log.print(getState(i).varValues[varsIndices[j]]);
-				}
-			}
-			// write rewards
-			for (j = 0; j < numRewardStructs; j++) {
-				log.print(colSep + ((i < n - 1) ? getStateReward(i, j) : 0.0));
-				log.print(colSep + ((i < n - 1) ? getTransitionReward(i, j) : 0.0));
-			}
-			log.println();
-		}
-
-		log.flush();
-		log.close();
+		displayer.end();
 	}
 
 	/**
-	 * Plot path on a graph.
+	 * Pass the path to a PathDisplayer object, running in a new thread. 
+	 * @param displayer The PathDisplayer
 	 */
-	public void plotOnGraph(Graph graphModel)
+	public void displayThreaded(PathDisplayer displayer) throws PrismException
 	{
-		new PlotOnGraphThread(graphModel).start();
+		// In the absence of model info, do nothing
+		if (modulesFile == null) {
+			return;
+		}
+		// Display path
+		new DisplayThread(displayer).start();
+	}
+
+	/**
+	 * Export path to a PrismLog (e.g. file, stdout).
+	 * @param log PrismLog to which the path should be exported to.
+	 * @param showTimeCumul Show time in cumulative form?
+	 * @param colSep String used to separate columns in display
+	 * @param vars Restrict printing to these variables (indices) and steps which change them (ignore if null)
+	 */
+	public void exportToLog(PrismLog log, boolean showTimeCumul, String colSep, ArrayList<Integer> vars) throws PrismException
+	{
+		PathToText displayer = new PathToText(log, modulesFile);
+		displayer.setShowTimeCumul(showTimeCumul);
+		displayer.setColSep(colSep);
+		displayer.setVarsToShow(vars);
+		display(displayer);
+	}
+	
+	/**
+	 * Plot path on a graph.
+	 * @param graphModel Graph on which to plot path
+	 */
+	public void plotOnGraph(Graph graphModel) throws PrismException
+	{
+		PathToGraph displayer = new PathToGraph(graphModel, modulesFile);
+		displayThreaded(displayer);
 	}
 
 	@Override
@@ -575,9 +578,9 @@ public class PathFull extends Path implements PathFullInfo
 	{
 		private Graph graphModel = null;
 		
-		public PlotOnGraphThread(Graph graphmodel)
+		public PlotOnGraphThread(Graph graphModel)
 		{
-			this.graphModel = graphmodel;
+			this.graphModel = graphModel;
 		}
 		
 		public void run()
@@ -614,6 +617,25 @@ public class PathFull extends Path implements PathFullInfo
 					if (i == 0 || i == n-1 || !PathFull.this.getState(i).varValues[j].equals(PathFull.this.getState(i - 1).varValues[j]))
 						graphModel.addPointToSeries(seriesKeys[j], new XYDataItem(contTime ? t : i, ((Integer) PathFull.this.getState(i).varValues[j]).intValue()));
 				}
+			}
+		}
+	}
+	
+	class DisplayThread extends Thread
+	{
+		private PathDisplayer displayer = null;
+		
+		public DisplayThread(PathDisplayer displayer)
+		{
+			this.displayer = displayer;
+		}
+		
+		public void run()
+		{
+			try {
+				display(displayer);
+			} catch (PrismException e) {
+				// Just ignore problems
 			}
 		}
 	}

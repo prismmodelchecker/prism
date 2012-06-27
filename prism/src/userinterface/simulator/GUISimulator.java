@@ -73,7 +73,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	private SimulationView view;
 
 	//Actions
-	private Action randomExploration, backtrack, backtrackToHere, removeToHere, newPath, newPathFromState, resetPath, exportPath, plotPath, configureView;
+	private Action randomExploration, backtrack, backtrackToHere, removeToHere, newPath, newPathFromState, newPathPlot, newPathPlotFromState, resetPath,
+			exportPath, plotPath, configureView;
 
 	/** Creates a new instance of GUISimulator */
 	public GUISimulator(GUIPrism gui)
@@ -299,6 +300,20 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		}
 	}
 
+	public void a_clearPath()
+	{
+		// Update path/tables/lists
+		setPathActive(false);
+		pathTableModel.restartPathTable();
+		updateTableModel.restartUpdatesTable();
+		((GUISimLabelList) stateLabelList).clearLabels();
+		((GUISimPathFormulaeList) pathFormulaeList).clearList();
+		// Update display
+		repaintLists();
+		updatePathInfoAll(null);
+		doEnables();
+	}
+
 	public void a_newPath(boolean chooseInitialState)
 	{
 		Values initialState;
@@ -339,43 +354,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			if (!chooseInitialState) {
 				initialState = null;
 			}
-			// yes: 
+			// yes: user chooses 
 			else {
-				// first, pick default values for chooser dialog
-
-				// default initial state if none specified previously
-				if (lastInitialState == null) {
-					lastInitialState = new Values(parsedModel.getDefaultInitialState(), parsedModel);
-				}
-				// otherwise, check previously used state for validity
-				else {
-					boolean match = true;
-					int i, n;
-					n = parsedModel.getNumVars();
-					if (lastInitialState.getNumValues() != n) {
-						match = false;
-					} else {
-						for (i = 0; i < n; i++) {
-							if (!lastInitialState.contains(parsedModel.getVarName(i))) {
-								match = false;
-								break;
-							} else {
-								int index = lastInitialState.getIndexOf(parsedModel.getVarName(i));
-								if (!lastInitialState.getType(index).equals(parsedModel.getVarType(i))) {
-									match = false;
-									break;
-								}
-							}
-						}
-					}
-					// if there's a problem, just use the default
-					if (!match) {
-						lastInitialState = new Values(parsedModel.getDefaultInitialState(), parsedModel);
-					}
-				}
-
-				initialState = null;
-				initialState = GUIInitialStatePicker.defineInitalValuesWithDialog(getGUI(), lastInitialState, parsedModel);
+				initialState = a_chooseInitialState();
 				// if user clicked cancel from dialog, bail out
 				if (initialState == null) {
 					return;
@@ -402,7 +383,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			updatePathInfoAll(uCon);
 			doEnables();
 
-			// store inital state for next time
+			// store initial state for next time
 			lastInitialState = initialState;
 
 			if (getPrism().getSettings().getBoolean(PrismSettings.SIMULATOR_NEW_PATH_ASK_VIEW)) {
@@ -416,6 +397,46 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				guiMultiModel.tabToFront();
 			}
 		}
+	}
+
+	public Values a_chooseInitialState() throws PrismLangException
+	{
+		// first, pick default values for chooser dialog
+
+		// default initial state if none specified previously
+		if (lastInitialState == null) {
+			lastInitialState = new Values(parsedModel.getDefaultInitialState(), parsedModel);
+		}
+		// otherwise, check previously used state for validity
+		else {
+			boolean match = true;
+			int i, n;
+			n = parsedModel.getNumVars();
+			if (lastInitialState.getNumValues() != n) {
+				match = false;
+			} else {
+				for (i = 0; i < n; i++) {
+					if (!lastInitialState.contains(parsedModel.getVarName(i))) {
+						match = false;
+						break;
+					} else {
+						int index = lastInitialState.getIndexOf(parsedModel.getVarName(i));
+						if (!lastInitialState.getType(index).equals(parsedModel.getVarType(i))) {
+							match = false;
+							break;
+						}
+					}
+				}
+			}
+			// if there's a problem, just use the default
+			if (!match) {
+				lastInitialState = new Values(parsedModel.getDefaultInitialState(), parsedModel);
+			}
+		}
+
+		Values initialState = null;
+		initialState = GUIInitialStatePicker.defineInitalValuesWithDialog(getGUI(), lastInitialState, parsedModel);
+		return initialState;
 	}
 
 	/** Explore a number of steps. */
@@ -447,7 +468,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			repaintLists();
 			updatePathInfo();
 			setComputing(false);
-			
+
 		} catch (PrismException e) {
 			this.error(e.getMessage());
 			guiMultiModel.getHandler().modelParseFailed((PrismLangException) e, false);
@@ -594,7 +615,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			repaintLists();
 			updatePathInfo();
 			setComputing(false);
-			
+
 		} catch (NumberFormatException e) {
 			this.error("The Auto update \'no. steps\' parameter is invalid.\nIt must be a positive integer representing a step in the path table");
 			setComputing(false);
@@ -656,12 +677,84 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 	public void a_plotPath()
 	{
-		setComputing(true);
-		guiProp.tabToFront();
-		Graph graphModel = new Graph();
-		guiProp.getGraphHandler().addGraph(graphModel);
-		engine.plotPath(graphModel);
-		setComputing(false);
+		try {
+			setComputing(true);
+			guiProp.tabToFront();
+			Graph graphModel = new Graph();
+			guiProp.getGraphHandler().addGraph(graphModel);
+			engine.plotPath(graphModel);
+			setComputing(false);
+		} catch (PrismException e) {
+			error(e.getMessage());
+		}
+	}
+
+	public void a_newPathPlot(boolean chooseInitialState)
+	{
+		Values initialState;
+		try {
+			// if necessary, get values for undefined constants from user
+			UndefinedConstants uCon = new UndefinedConstants(parsedModel, null);
+			if (uCon.getMFNumUndefined() > 0) {
+				int result = GUIConstantsPicker.defineConstantsWithDialog(getGUI(), uCon, lastConstants, lastPropertyConstants);
+				if (result != GUIConstantsPicker.VALUES_DONE)
+					return;
+			}
+			// remember constant values for next time
+			lastConstants = uCon.getMFConstantValues();
+			// store constants
+			parsedModel.setUndefinedConstants(lastConstants);
+
+			// check here for possibility of multiple initial states
+			// (not supported yet) to avoid problems below
+			if (parsedModel.getInitialStates() != null) {
+				throw new PrismException("The simulator does not not yet handle models with multiple states");
+			}
+
+			// do we need to ask for an initial state for simulation?
+			// no: just use default/random
+			if (!chooseInitialState) {
+				initialState = null;
+			}
+			// yes: user chooses 
+			else {
+				initialState = a_chooseInitialState();
+				// if user clicked cancel from dialog, bail out
+				if (initialState == null) {
+					return;
+				}
+			}
+
+			// Get a time limit from user
+			int result = GUIPathPlotDialog.requestTime(this.getGUI());
+			if (result != GUIPathPlotDialog.OK) {
+				return;
+			}
+						
+			// Create a new path in the simulator and plot it 
+			a_clearPath();
+			setComputing(true);
+			guiProp.tabToFront();
+			Graph graphModel = new Graph();
+			guiProp.getGraphHandler().addGraph(graphModel);
+			GenerateSimulationPath genPath = new GenerateSimulationPath(engine, getGUI().getLog());
+			int maxPathLength = getPrism().getSettings().getInteger(PrismSettings.SIMULATOR_DEFAULT_MAX_PATH);
+			State initialStateObject = initialState == null ? null : new parser.State(initialState, parsedModel);
+			//String simPathDetails = "time=" + GUIPathPlotDialog.getTime() + ",snapshot=" + GUIPathPlotDialog.getTime()/500;
+			String simPathDetails = "time=" + GUIPathPlotDialog.getTime();
+			genPath.generateAndPlotSimulationPathInThread(parsedModel, initialStateObject, simPathDetails, maxPathLength, graphModel);
+			setComputing(false);
+
+			// store initial state for next time
+			lastInitialState = initialState;
+			
+		} catch (PrismException e) {
+			this.error(e.getMessage());
+			if (e instanceof PrismLangException) {
+				guiMultiModel.getHandler().modelParseFailed((PrismLangException) e, false);
+				guiMultiModel.tabToFront();
+			}
+		}
 	}
 
 	public void a_configureView()
@@ -701,18 +794,19 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		// Path formulas
 		GUISimPathFormulaeList thePathFormulaeList = (GUISimPathFormulaeList) pathFormulaeList;
 		thePathFormulaeList.clearList();
-		if (1==2) if (pathActive) {
-			// Go through the property list from the Properties tab of GUI
-			GUIPropertiesList gpl = guiProp.getPropList();
-			for (int i = 0; i < gpl.getNumProperties(); i++) {
-				GUIProperty gp = gpl.getProperty(i);
-				// For properties which are simulate-able...
-				if (gp.isValidForSimulation()) {
-					// Add them to the list
-					thePathFormulaeList.addProperty(gp.getProperty(), propertiesFile);
+		if (1 == 2)
+			if (pathActive) {
+				// Go through the property list from the Properties tab of GUI
+				GUIPropertiesList gpl = guiProp.getPropList();
+				for (int i = 0; i < gpl.getNumProperties(); i++) {
+					GUIProperty gp = gpl.getProperty(i);
+					// For properties which are simulate-able...
+					if (gp.isValidForSimulation()) {
+						// Add them to the list
+						thePathFormulaeList.addProperty(gp.getProperty(), propertiesFile);
+					}
 				}
 			}
-		}
 	}
 
 	//METHODS TO IMPLEMENT THE GUIPLUGIN INTERFACE
@@ -813,6 +907,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	{
 		newPath.setEnabled(parsedModel != null && !computing);
 		newPathFromState.setEnabled(parsedModel != null && !computing);
+		newPathPlot.setEnabled(parsedModel != null && !computing);
+		newPathPlotFromState.setEnabled(parsedModel != null && !computing);
 		resetPath.setEnabled(pathActive && !computing);
 		exportPath.setEnabled(pathActive && !computing);
 		plotPath.setEnabled(pathActive && !computing);
@@ -1446,6 +1542,30 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		newPathFromState.putValue(Action.NAME, "New path from state");
 		newPathFromState.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallStates.png"));
 
+		newPathPlot = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_newPathPlot(false);
+			}
+		};
+		newPathPlot.putValue(Action.LONG_DESCRIPTION, "Creates and plots a new path.");
+		//newPathPlot.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_N));
+		newPathPlot.putValue(Action.NAME, "Plot new path");
+		newPathPlot.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileGraph.png"));
+
+		newPathPlotFromState = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_newPathPlot(true);
+			}
+		};
+		newPathPlotFromState.putValue(Action.LONG_DESCRIPTION, "Creates and plots a new path from a chosen state.");
+		//newPathPlotFromState.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_N));
+		newPathPlotFromState.putValue(Action.NAME, "Plot new path from state");
+		newPathPlotFromState.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileGraph.png"));
+
 		resetPath = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
@@ -1480,7 +1600,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				a_plotPath();
 			}
 		};
-
 		plotPath.putValue(Action.LONG_DESCRIPTION, "Plots the path on a graph.");
 		plotPath.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
 		plotPath.putValue(Action.NAME, "Plot path");
@@ -1556,6 +1675,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		pathPopupMenu = new JPopupMenu();
 		pathPopupMenu.add(newPath);
 		pathPopupMenu.add(newPathFromState);
+		pathPopupMenu.add(newPathPlot);
+		pathPopupMenu.add(newPathPlotFromState);
+		pathPopupMenu.addSeparator();
 		pathPopupMenu.add(resetPath);
 		pathPopupMenu.add(exportPath);
 		pathPopupMenu.add(plotPath);
@@ -1570,6 +1692,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		simulatorMenu = new JMenu("Simulator");
 		simulatorMenu.add(newPath);
 		simulatorMenu.add(newPathFromState);
+		simulatorMenu.add(newPathPlot);
+		simulatorMenu.add(newPathPlotFromState);
+		simulatorMenu.addSeparator();
 		simulatorMenu.add(resetPath);
 		simulatorMenu.add(exportPath);
 		simulatorMenu.add(plotPath);

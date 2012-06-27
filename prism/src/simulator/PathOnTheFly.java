@@ -46,6 +46,7 @@ public class PathOnTheFly extends Path
 	protected int size;
 	protected State previousState;
 	protected State currentState;
+	protected int previousModuleOrActionIndex;
 	protected double totalTime;
 	double timeInPreviousState;
 	protected double totalRewards[];
@@ -113,17 +114,18 @@ public class PathOnTheFly extends Path
 	}
 
 	@Override
-	public void addStep(int choice, int actionIndex, double[] transRewards, State newState, double[] newStateRewards, TransitionList transitionList)
+	public void addStep(int choice, int moduleOrActionIndex, double[] transRewards, State newState, double[] newStateRewards, TransitionList transitionList)
 	{
-		addStep(0, choice, actionIndex, transRewards, newState, newStateRewards, transitionList);
+		addStep(1.0, choice, moduleOrActionIndex, transRewards, newState, newStateRewards, transitionList);
 	}
 
 	@Override
-	public void addStep(double time, int choice, int actionIndex, double[] transRewards, State newState, double[] newStateRewards, TransitionList transitionList)
+	public void addStep(double time, int choice, int moduleOrActionIndex, double[] transRewards, State newState, double[] newStateRewards, TransitionList transitionList)
 	{
 		size++;
 		previousState.copy(currentState);
 		currentState.copy(newState);
+		previousModuleOrActionIndex = moduleOrActionIndex;
 		totalTime += time;
 		timeInPreviousState = time;
 		for (int i = 0; i < numRewardStructs; i++) {
@@ -167,6 +169,24 @@ public class PathOnTheFly extends Path
 	}
 
 	@Override
+	public int getPreviousModuleOrActionIndex()
+	{
+		return previousModuleOrActionIndex;
+	}
+
+	@Override
+	public String getPreviousModuleOrAction()
+	{
+		int i = getPreviousModuleOrActionIndex();
+		if (i < 0)
+			return modulesFile.getModuleName(-i - 1);
+		else if (i > 0)
+			return "[" + modulesFile.getSynchs().get(i - 1) + "]";
+		else
+			return "?";
+	}
+
+	@Override
 	public double getTotalTime()
 	{
 		return totalTime;
@@ -191,15 +211,33 @@ public class PathOnTheFly extends Path
 	}
 	
 	@Override
+	public double[] getPreviousStateRewards()
+	{
+		return previousStateRewards;
+	}
+	
+	@Override
 	public double getPreviousTransitionReward(int rsi)
 	{
 		return previousTransitionRewards[rsi];
 	}
 	
 	@Override
+	public double[] getPreviousTransitionRewards()
+	{
+		return previousTransitionRewards;
+	}
+	
+	@Override
 	public double getCurrentStateReward(int rsi)
 	{
 		return currentStateRewards[rsi];
+	}
+	
+	@Override
+	public double[] getCurrentStateRewards()
+	{
+		return currentStateRewards;
 	}
 	
 	@Override

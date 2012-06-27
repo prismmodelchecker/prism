@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import prism.*;
 import parser.*;
 import parser.ast.*;
+import userinterface.graph.Graph;
 
 public class GenerateSimulationPath
 {
@@ -49,7 +50,7 @@ public class GenerateSimulationPath
 	private State initialState;
 	private int maxPathLength;
 	private File file;
-	
+
 	// Path configuration options
 	private PathType simPathType = null;
 	private int simPathLength = 0;
@@ -58,6 +59,9 @@ public class GenerateSimulationPath
 	private ArrayList<Integer> simVars = null;
 	private boolean simLoopCheck = true;
 	private int simPathRepeat = 1;
+	private boolean simPathShowRewards = false;
+	private boolean simPathSnapshots = false;
+	private double simPathSnapshotTime = 0.0;
 
 	public GenerateSimulationPath(SimulatorEngine engine, PrismLog mainLog)
 	{
@@ -72,15 +76,52 @@ public class GenerateSimulationPath
 	 * @param details Information about the path to be generated
 	 * @param file File to output the path to (stdout if null)
 	 */
-	public void generateSimulationPath(ModulesFile modulesFile, State initialState, String details, int maxPathLength,
-			File file) throws PrismException
+	public void generateSimulationPath(ModulesFile modulesFile, State initialState, String details, int maxPathLength, File file) throws PrismException
 	{
 		this.modulesFile = modulesFile;
 		this.initialState = initialState;
 		this.maxPathLength = maxPathLength;
 		this.file = file;
+
 		parseDetails(details);
-		generatePath();
+		PathDisplayer displayer = generateDisplayerForExport();
+		if (simPathType == PathType.SIM_PATH_DEADLOCK)
+			generateMultiplePaths(displayer);
+		else
+			generatePath(displayer);
+	}
+
+	/**
+	 * Generate and plot a random path through a model with the simulator.
+	 * @param modulesFile The model
+	 * @param initialState Initial state (if null, is selected randomly)
+	 * @param details Information about the path to be generated
+	 */
+	public void generateAndPlotSimulationPath(ModulesFile modulesFile, State initialState, String details, int maxPathLength, Graph graphModel)
+			throws PrismException
+	{
+		this.modulesFile = modulesFile;
+		this.initialState = initialState;
+		this.maxPathLength = maxPathLength;
+
+		parseDetails(details);
+		PathDisplayer displayer = generateDisplayerForPlotting(graphModel);
+		if (simPathType == PathType.SIM_PATH_DEADLOCK)
+			generateMultiplePaths(displayer);
+		else
+			generatePath(displayer);
+	}
+
+	/**
+	 * Generate and plot a random path through a model with the simulator, in a separate thread.
+	 * @param modulesFile The model
+	 * @param initialState Initial state (if null, is selected randomly)
+	 * @param details Information about the path to be generated
+	 */
+	public void generateAndPlotSimulationPathInThread(ModulesFile modulesFile, State initialState, String details, int maxPathLength, Graph graphModel)
+			throws PrismException
+	{
+		new GenerateAndPlotThread(modulesFile, initialState, details, maxPathLength, graphModel).start();
 	}
 
 	/**
@@ -173,6 +214,19 @@ public class GenerateSimulationPath
 				} catch (NumberFormatException e) {
 					throw new PrismException("Value for \"repeat\" option must be a positive integer");
 				}
+			} else if (ss[i].indexOf("snapshot=") == 0) {
+				// print timed snapshots of path
+				try {
+					simPathSnapshots = true;
+					simPathSnapshotTime = Double.parseDouble(ss[i].substring(9));
+					if (simPathSnapshotTime <= 0)
+						throw new NumberFormatException();
+				} catch (NumberFormatException e) {
+					throw new PrismException("Value for \"snapshot\" option must be a positive double");
+				}
+			} else if (ss[i].equals("rewards")) {
+				// display rewards
+				simPathShowRewards = true;
 			} else {
 				// path of fixed number of steps
 				simPathType = PathType.SIM_PATH_NUM_STEPS;
@@ -181,25 +235,71 @@ public class GenerateSimulationPath
 					if (simPathLength < 0)
 						throw new NumberFormatException();
 				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid path length \"" + ss[i] + "\"");
+					throw new PrismException("Invalid path option \"" + ss[i] + "\"");
 				}
 			}
 		}
 		if (simPathType == null)
 			throw new PrismException("Invalid path details \"" + details + "\"");
+
+		// Display warning if attempt to use "repeat=" option and not "deadlock" option
+		if (simPathRepeat > 1 && simPathType != PathType.SIM_PATH_DEADLOCK) {
+			simPathRepeat = 1;
+			mainLog.printWarning("Ignoring \"repeat\" option - it is only valid when looking for deadlocks.");
+		}
 	}
 
 	/**
-	 * Generate a random path using the simulator.
+	 * Create a PathDisplayer object for file export
 	 */
-	private void generatePath() throws PrismException
+	private PathDisplayer generateDisplayerForExport() throws PrismException
 	{
-		int i = 0, j = 0;
-		boolean done;
-		double t = 0.0;
-		boolean stochastic = (modulesFile.getModelType() == ModelType.CTMC);
+		PrismLog log;
+		PathToText displayer;
 
-		// print details
+		if (file != null) {
+			log = new PrismFileLog(file.getPath());
+			if (!log.ready()) {
+				throw new PrismException("Could not open file \"" + file + "\" for output");
+			}
+		} else {
+			log = mainLog;
+		}
+		displayer = new PathToText(log, modulesFile);
+		displayer.setColSep(simPathSep);
+		displayer.setVarsToShow(simVars);
+		displayer.setShowRewards(simPathShowRewards);
+		if (simPathSnapshots)
+			displayer.setToShowSnapShots(simPathSnapshotTime);
+
+		return displayer;
+	}
+
+	/**
+	 * Create a PathDisplayer object for graph plotting
+	 */
+	private PathDisplayer generateDisplayerForPlotting(Graph graphModel) throws PrismException
+	{
+		PathToGraph displayer;
+
+		displayer = new PathToGraph(graphModel, modulesFile);
+		displayer.setShowRewards(simPathShowRewards);
+		if (simPathSnapshots)
+			displayer.setToShowSnapShots(simPathSnapshotTime);
+
+		return displayer;
+	}
+
+	/**
+	 * Generate a random (on-the-fly) path using the simulator.
+	 */
+	private void generatePath(PathDisplayer displayer) throws PrismException
+	{
+		Path path = null;
+		int i = 0;
+		boolean done;
+
+		// Print details
 		switch (simPathType) {
 		case SIM_PATH_NUM_STEPS:
 			mainLog.println("\nGenerating random path of length " + simPathLength + " steps...");
@@ -207,83 +307,164 @@ public class GenerateSimulationPath
 		case SIM_PATH_TIME:
 			mainLog.println("\nGenerating random path with time limit " + simPathTime + "...");
 			break;
+		}
+		if (displayer instanceof PathToText && file == null)
+			mainLog.println();
+
+		// Create path
+		engine.createNewOnTheFlyPath(modulesFile);
+		// Build path
+		path = engine.getPath();
+		engine.initialisePath(initialState);
+		displayer.start(path.getCurrentState(), path.getCurrentStateRewards());
+		i = 0;
+		done = false;
+		while (!done) {
+			// Generate a single step of path
+			engine.automaticTransition();
+			i++;
+			if (simPathType != PathType.SIM_PATH_DEADLOCK) {
+				displayer.step(path.getTimeInPreviousState(), path.getTotalTime(), path.getPreviousModuleOrAction(), path.getPreviousTransitionRewards(),
+						path.getCurrentState(), path.getCurrentStateRewards());
+			}
+			// Check for termination (depending on type)
+			switch (simPathType) {
+			case SIM_PATH_NUM_STEPS:
+				if (i >= simPathLength || engine.queryIsDeadlock())
+					done = true;
+				break;
+			case SIM_PATH_TIME:
+				if (path.getTotalTime() >= simPathTime || i >= maxPathLength || engine.queryIsDeadlock())
+					done = true;
+				break;
+			}
+			// Stop if a loop was found (and loop checking was not disabled)
+			if (simLoopCheck && engine.isPathLooping())
+				break;
+		}
+		displayer.end();
+
+		// Display warnings if needed
+		if (simLoopCheck && engine.isPathLooping()) {
+			mainLog.printWarning("Deterministic loop detected after " + engine.getPathSize() + " steps (use loopcheck=false option to extend path).");
+		}
+		if (simPathType == PathType.SIM_PATH_TIME && path.getTotalTime() < simPathTime) {
+			mainLog.printWarning("Path terminated before time " + simPathTime + " because maximum path length (" + maxPathLength + ") was reached.");
+		}
+
+		// Print summary of path
+		mainLog.print("\nGenerated path: " + path.size() + " step" + (path.size() == 1 ? "" : "s"));
+		if (modulesFile.getModelType().continuousTime()) {
+			mainLog.print(", total time " + path.getTotalTime());
+		}
+		if (file != null) {
+			mainLog.println(" (exported to " + file + ")");
+		} else {
+			mainLog.println();
+		}
+	}
+
+	/**
+	 * Generate multiple random paths using the simulator.
+	 * Note: these are not on-the-fly paths since we don't in advance if they are to be displayed.
+	 */
+	private void generateMultiplePaths(PathDisplayer displayer) throws PrismException
+	{
+		Path path = null;
+		int i = 0, j = 0;
+		boolean done;
+
+		// Print details
+		switch (simPathType) {
 		case SIM_PATH_DEADLOCK:
-			mainLog.println("\nGenerating random path until deadlock state...");
+			mainLog.println("\nGenerating random path(s) until deadlock state...");
 			break;
 		}
 
-		// display warning if attempt to use "repeat=" option and not "deadlock" option
-		if (simPathRepeat > 1 && simPathType != PathType.SIM_PATH_DEADLOCK) {
-			simPathRepeat = 1;
-			mainLog.printWarning("Ignoring \"repeat\" option - it is only valid when looking for deadlocks.");
-		}
-
-		// generate path
+		// Create path
 		engine.createNewPath(modulesFile);
+		// Build path
 		for (j = 0; j < simPathRepeat; j++) {
+			path = engine.getPath();
 			engine.initialisePath(initialState);
 			i = 0;
-			t = 0.0;
 			done = false;
 			while (!done) {
-				// generate a single step of path
-				// (no need to do any loop detection: this is done below)
+				// Generate a single step of path
 				engine.automaticTransition();
-				if (stochastic)
-					t += engine.getTimeSpentInPathStep(i++);
-				else
-					t = ++i;
-				// check for termination (depending on type)
+				i++;
+				// Check for termination (depending on type)
 				switch (simPathType) {
-				case SIM_PATH_NUM_STEPS:
-					if (i >= simPathLength || engine.queryIsDeadlock())
-						done = true;
-					break;
-				case SIM_PATH_TIME:
-					if (t >= simPathTime || i >= maxPathLength || engine.queryIsDeadlock())
-						done = true;
-					break;
 				case SIM_PATH_DEADLOCK:
 					if (engine.queryIsDeadlock() || i >= maxPathLength)
 						done = true;
 					break;
 				}
-				// stop if a loop was found (and loop checking was not disabled)
+				// Stop if a loop was found (and loop checking was not disabled)
 				if (simLoopCheck && engine.isPathLooping())
 					break;
 			}
-
-			// if we are generating multiple paths (to find a deadlock) only stop if deadlock actually found
-			if (simPathType == PathType.SIM_PATH_DEADLOCK && engine.queryIsDeadlock())
+			// Stop generating paths if done
+			if (engine.queryIsDeadlock())
 				break;
 		}
 		if (j < simPathRepeat)
 			j++;
 
-		// display warning if a deterministic loop was detected (but not in case where multiple paths generated)
-		if (simLoopCheck && engine.isPathLooping() && simPathRepeat == 1) {
-			mainLog.printWarning("Deterministic loop detected after " + i
-					+ " steps (use loopcheck=false option to extend path).");
-		}
-
-		// if we needed multiple paths to find a deadlock, say how many
-		if (simPathRepeat > 1 && j > 1)
-			mainLog.println("\n" + j + " paths were generated.");
-
-		// export path
-		if (simPathType == PathType.SIM_PATH_DEADLOCK && !engine.queryIsDeadlock()) {
+		// Bail out if we didn't build a suitable path 
+		if (!engine.queryIsDeadlock()) {
 			mainLog.print("\nNo deadlock state found within " + maxPathLength + " steps");
 			if (simPathRepeat > 1)
 				mainLog.print(" (generated " + simPathRepeat + " paths)");
 			mainLog.println(".");
-		} else {
-			engine.exportPath(file, true, simPathSep, simVars);
+			return;
 		}
 
-		// warning if stopped early
-		if (simPathType == PathType.SIM_PATH_TIME && t < simPathTime) {
-			mainLog.printWarning("Path terminated before time " + simPathTime + " because maximum path length ("
-					+ maxPathLength + ") reached.");
+		// Display path
+		if (file == null)
+			mainLog.println();
+		engine.getPathFull().display(displayer);
+
+		// Print summary of path(s)
+		if (simPathRepeat > 1 && j > 1)
+			mainLog.print("\nGenerated " + j + " paths. Final path: ");
+		else
+			mainLog.print("\nGenerated path: ");
+		mainLog.print(path.size() + " steps");
+		if (modulesFile.getModelType().continuousTime()) {
+			mainLog.print(", total time " + path.getTotalTime());
+		}
+		if (file != null) {
+			mainLog.println(" (exported to " + file + ")");
+		} else {
+			mainLog.println();
+		}
+	}
+
+	class GenerateAndPlotThread extends Thread
+	{
+		private ModulesFile modulesFile;
+		private parser.State initialState;
+		private String details;
+		private int maxPathLength;
+		private Graph graphModel;
+		
+		public GenerateAndPlotThread(ModulesFile modulesFile, parser.State initialState, String details, int maxPathLength, Graph graphModel)
+		{
+			this.modulesFile = modulesFile;
+			this.initialState = initialState;
+			this.details = details;
+			this.maxPathLength = maxPathLength;
+			this.graphModel = graphModel;
+		}
+
+		public void run()
+		{
+			try {
+				generateAndPlotSimulationPath(modulesFile, initialState, details, maxPathLength, graphModel);
+			} catch (PrismException e) {
+				// Just ignore problems
+			}
 		}
 	}
 }

@@ -1008,6 +1008,15 @@ public class SimulatorEngine
 	// ------------------------------------------------------------------------------
 
 	/**
+	 * Get access to the {@code Path} object storing the current path.
+	 * This object is only valid until the next time {@link #createNewPath} is called. 
+	 */
+	public Path getPath()
+	{
+		return (Path) path;
+	}
+	
+	/**
 	 * Get the size of the current path (number of steps; or number of states - 1).
 	 */
 	public int getPathSize()
@@ -1024,9 +1033,16 @@ public class SimulatorEngine
 	}
 
 	/**
-	 * For paths with continuous-time info, get the total time elapsed so far
-	 * (where zero time has been spent in the current (final) state).
-	 * For discrete-time models, just returns 0.0.
+	 * Returns the previous state of the current path in the simulator.
+	 */
+	public State getPreviousState()
+	{
+		return path.getPreviousState();
+	}
+
+	/**
+	 * Get the total time elapsed so far (where zero time has been spent in the current (final) state).
+	 * For discrete-time models, this is just the number of steps (but returned as a double).
 	 */
 	public double getTotalTimeForPath()
 	{
@@ -1225,8 +1241,9 @@ public class SimulatorEngine
 	
 	/**
 	 * Plot the current path on a Graph.
+	 * @param graphModel Graph on which to plot path
 	 */
-	public void plotPath(Graph graphModel)
+	public void plotPath(Graph graphModel) throws PrismException
 	{
 		((PathFull) path).plotOnGraph(graphModel);
 	}
