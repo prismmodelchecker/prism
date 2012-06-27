@@ -166,6 +166,42 @@ public class Utils
 	}
 
 	/**
+	 * Copy a double array.
+	 * @param array The array to be cloned
+	 * @param copy The destination array (should exist and be same size)
+	 */
+	public static void copyDoubleArray(double array[], double copyTo[])
+	{
+		int i, n;
+		// Do nothing for null pointers
+		if (array == null)
+			return;
+		// Otherwise copy
+		n = array.length;
+		for (i = 0; i < n; i++) {
+			copyTo[i] = array[i];
+		}
+	}
+
+	/**
+	 * Copy an integer array.
+	 * @param array The array to be cloned
+	 * @param copy The destination array (should exist and be same size)
+	 */
+	public static void copyIntArray(int array[], int copyTo[])
+	{
+		int i, n;
+		// Do nothing for null pointers
+		if (array == null)
+			return;
+		// Otherwise copy
+		n = array.length;
+		for (i = 0; i < n; i++) {
+			copyTo[i] = array[i];
+		}
+	}
+
+	/**
 	 * Test if two double arrays are equal.
 	 */
 	public static boolean doubleArraysAreEqual(double array1[], double array2[])
