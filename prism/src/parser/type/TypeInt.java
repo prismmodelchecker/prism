@@ -70,10 +70,10 @@ public class TypeInt extends Type
 	}
 	
 	@Override
-	public Object castValueTo(Object value) throws PrismLangException
+	public Integer castValueTo(Object value) throws PrismLangException
 	{
 		if (value instanceof Integer)
-			return value;
+			return (Integer) value;
 		else
 			throw new PrismLangException("Can't convert " + value.getClass() + " to type " + getTypeString());
 	}

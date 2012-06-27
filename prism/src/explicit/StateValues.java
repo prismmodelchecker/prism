@@ -131,18 +131,18 @@ public class StateValues
 		// Create/initialise array of appropriate type
 		if (type instanceof TypeInt) {
 			valuesI = new int[size];
-			Integer objI = (Integer) type.castValueTo(init);
+			Integer objI = ((TypeInt) type).castValueTo(init);
 			int initI = objI.intValue();
 			for (i = 0; i < size; i++)
 				valuesI[i] = initI;
 		} else if (type instanceof TypeDouble) {
 			valuesD = new double[size];
-			Double objD = (Double) type.castValueTo(init);
+			Double objD = ((TypeDouble) type).castValueTo(init);
 			double initD = objD.doubleValue();
 			for (i = 0; i < size; i++)
 				valuesD[i] = initD;
 		} else if (type instanceof TypeBool) {
-			Boolean objB = (Boolean) type.castValueTo(init);
+			Boolean objB = ((TypeBool) type).castValueTo(init);
 			boolean initB = objB.booleanValue();
 			if (initB) {
 				valuesB = new BitSet(size);

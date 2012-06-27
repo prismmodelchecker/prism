@@ -70,10 +70,10 @@ public class TypeBool extends Type
 	}
 	
 	@Override
-	public Object castValueTo(Object value) throws PrismLangException
+	public Boolean castValueTo(Object value) throws PrismLangException
 	{
 		if (value instanceof Boolean)
-			return value;
+			return (Boolean) value;
 		else
 			throw new PrismLangException("Can't convert " + value.getClass() + " to type " + getTypeString());
 	}
