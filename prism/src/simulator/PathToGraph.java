@@ -30,6 +30,8 @@ import org.jfree.data.xy.XYDataItem;
 
 import parser.State;
 import parser.ast.ModulesFile;
+import parser.type.TypeDouble;
+import prism.PrismException;
 import userinterface.graph.Graph;
 import userinterface.graph.Graph.SeriesKey;
 
@@ -41,7 +43,7 @@ public class PathToGraph extends PathDisplayer
 	/** Graph on which to plot path */
 	private Graph graphModel = null;
 	private SeriesKey seriesKeys[] = null;
-	
+
 	// Model info
 	private ModulesFile modulesFile;
 	private int numVars;
@@ -68,20 +70,20 @@ public class PathToGraph extends PathDisplayer
 	}
 
 	// Display methods
-	
+
 	@Override
 	public void startDisplay(State initialState, double[] stateRewards)
 	{
 		// Configure axes
 		graphModel.getXAxisSettings().setHeading("Time");
 		graphModel.getYAxisSettings().setHeading("Value");
-		
+
 		// Create series
 		seriesKeys = new SeriesKey[numVars];
 		for (int j = 0; j < numVars; j++) {
 			seriesKeys[j] = graphModel.addSeries(modulesFile.getVarName(j));
 		}
-		
+
 		// Display initial state
 		lastState = new State(initialState.varValues.length);
 		displayState(0.0, initialState, true);
@@ -102,9 +104,18 @@ public class PathToGraph extends PathDisplayer
 	private void displayState(double time, State state, boolean force)
 	{
 		for (int j = 0; j < numVars; j++) {
-			// TODO: other var types?
-			if (force || !state.varValues[j].equals(lastState.varValues[j])) {
-				graphModel.addPointToSeries(seriesKeys[j], new XYDataItem(time, ((Integer) state.varValues[j]).intValue()));
+			Object val = state.varValues[j];
+			double d = 0.0;
+			if (force || !val.equals(lastState.varValues[j])) {
+				try {
+					d = TypeDouble.getInstance().castValueTo(val).doubleValue();
+					graphModel.addPointToSeries(seriesKeys[j], new XYDataItem(time, d));
+				} catch (PrismException e) {
+					if (val instanceof Boolean) {
+						d = ((Boolean) val).booleanValue() ? 1.0 : 0.0;
+						graphModel.addPointToSeries(seriesKeys[j], new XYDataItem(time, d));
+					}
+				}
 			}
 		}
 		lastTime = time;
