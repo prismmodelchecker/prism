@@ -224,9 +224,15 @@ public class GenerateSimulationPath
 				} catch (NumberFormatException e) {
 					throw new PrismException("Value for \"snapshot\" option must be a positive double");
 				}
-			} else if (ss[i].equals("rewards")) {
-				// display rewards
-				simPathShowRewards = true;
+			} else if (ss[i].equals("rewards=")) {
+				// display rewards?
+				String bool = ss[i].substring(8).toLowerCase();
+				if (bool.equals("true"))
+					simPathShowRewards = true;
+				else if (bool.equals("true"))
+					simPathShowRewards = true;
+				else
+					throw new PrismException("Value for \"rewards\" option must \"true\" or \"false\"");
 			} else {
 				// path of fixed number of steps
 				simPathType = PathType.SIM_PATH_NUM_STEPS;
