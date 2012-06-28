@@ -58,6 +58,8 @@ public class PathToText extends PathDisplayer
 	private State lastState;
 	/** Last state rewards */
 	private double[] lastStateRewards;
+	/** Did the displayed info change in the current step? */
+	private boolean changed;
 
 	/**
 	 * Construct a {@link PathToText} object
@@ -102,7 +104,7 @@ public class PathToText extends PathDisplayer
 	}
 
 	// Display methods
-	
+
 	@Override
 	public void startDisplay(State initialState, double[] initialStateRewards)
 	{
@@ -142,6 +144,7 @@ public class PathToText extends PathDisplayer
 		log.println();
 
 		// Display initial step
+		changed = true;
 		step = 0;
 		firstCol = true;
 		if (!getShowSnapshots()) {
@@ -162,35 +165,28 @@ public class PathToText extends PathDisplayer
 	@Override
 	public void displayStep(double timeSpent, double timeCumul, Object action, double[] transitionRewards, State newState, double[] newStateRewards)
 	{
-		step++;
-		
-		// (if required) see if relevant vars have changed
-		if (varsToShow != null && step > 0) {
-			boolean changed = false;
-			for (int v : varsToShow){
-				if (!newState.varValues[v].equals(lastState.varValues[v])) {
-					changed = true;
-					continue;
+		if (!showChangesOnly || changed) {
+			// display rewards for last state
+			if (getShowRewards()) {
+				for (int j = 0; j < numRewardStructs; j++) {
+					log.print(getColSep() + lastStateRewards[j]);
+					log.print(getColSep() + transitionRewards[j]);
 				}
 			}
-			if (!changed) {
+			// display time spent in state
+			if (contTime && showTimeSpent)
+				log.print(getColSep() + timeSpent);
+			log.println();
+		}
+
+		// if required, check whether the info to be displayed changed
+		if (showChangesOnly) {
+			changed = stateChanged(lastState, newState) || rewardsChanged(lastStateRewards, newStateRewards);
+			if (!changed)
 				return;
-			}
 		}
 
-		// display rewards for last state
-		if (getShowRewards()) {
-			for (int j = 0; j < numRewardStructs; j++) {
-				log.print(getColSep() + lastStateRewards[j]);
-				log.print(getColSep() + transitionRewards[j]);
-			}
-			explicit.Utils.copyDoubleArray(newStateRewards, lastStateRewards);
-		}
-		// display time spent in state
-		if (contTime && showTimeSpent)
-			log.print(getColSep() + timeSpent);
-		log.println();
-
+		step++;
 		firstCol = true;
 
 		// display action
@@ -202,6 +198,10 @@ public class PathToText extends PathDisplayer
 			log.print(getColSep() + timeCumul);
 		// display state
 		displayState(newState);
+		// store state rewards
+		if (getShowRewards()) {
+			explicit.Utils.copyDoubleArray(newStateRewards, lastStateRewards);
+		}
 	}
 
 	@Override
@@ -251,10 +251,40 @@ public class PathToText extends PathDisplayer
 		}
 	}
 
+	private boolean stateChanged(State lastState, State newState)
+	{
+		if (varsToShow == null) {
+			for (int j = 0; j < numVars; j++) {
+				if (!newState.varValues[j].equals(lastState.varValues[j])) {
+					return true;
+				}
+			}
+		} else {
+			for (int v : varsToShow) {
+				if (!newState.varValues[v].equals(lastState.varValues[v])) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private boolean rewardsChanged(double[] lastStateRewards, double[] newStateRewards)
+	{
+		if (!showRewards)
+			return false;
+		for (int j = 0; j < numRewardStructs; j++) {
+			if (newStateRewards[j] != lastStateRewards[j]) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	@Override
 	public void endDisplay()
 	{
-		if (!getShowSnapshots()) {
+		if (!getShowSnapshots() && (!showChangesOnly || changed)) {
 			// display state rewards for last state
 			// (transition rewards unknown because no outgoing transition)
 			if (getShowRewards()) {

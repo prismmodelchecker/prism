@@ -60,6 +60,7 @@ public class GenerateSimulationPath
 	private boolean simLoopCheck = true;
 	private int simPathRepeat = 1;
 	private boolean simPathShowRewards = false;
+	private boolean simPathShowChangesOnly = false;
 	private boolean simPathSnapshots = false;
 	private double simPathSnapshotTime = 0.0;
 
@@ -224,15 +225,24 @@ public class GenerateSimulationPath
 				} catch (NumberFormatException e) {
 					throw new PrismException("Value for \"snapshot\" option must be a positive double");
 				}
-			} else if (ss[i].equals("rewards=")) {
+			} else if (ss[i].indexOf("rewards=") == 0) {
 				// display rewards?
 				String bool = ss[i].substring(8).toLowerCase();
 				if (bool.equals("true"))
 					simPathShowRewards = true;
-				else if (bool.equals("true"))
-					simPathShowRewards = true;
+				else if (bool.equals("false"))
+					simPathShowRewards = false;
 				else
 					throw new PrismException("Value for \"rewards\" option must \"true\" or \"false\"");
+			} else if (ss[i].indexOf("changes=") == 0) {
+				// display changes only?
+				String bool = ss[i].substring(8).toLowerCase();
+				if (bool.equals("true"))
+					simPathShowChangesOnly = true;
+				else if (bool.equals("false"))
+					simPathShowChangesOnly = false;
+				else
+					throw new PrismException("Value for \"changes\" option must \"true\" or \"false\"");
 			} else {
 				// path of fixed number of steps
 				simPathType = PathType.SIM_PATH_NUM_STEPS;
@@ -275,6 +285,7 @@ public class GenerateSimulationPath
 		displayer.setColSep(simPathSep);
 		displayer.setVarsToShow(simVars);
 		displayer.setShowRewards(simPathShowRewards);
+		displayer.setShowChangesOnly(simPathShowChangesOnly);
 		if (simPathSnapshots)
 			displayer.setToShowSnapShots(simPathSnapshotTime);
 
@@ -290,6 +301,7 @@ public class GenerateSimulationPath
 
 		displayer = new PathToGraph(graphModel, modulesFile);
 		displayer.setShowRewards(simPathShowRewards);
+		displayer.setShowChangesOnly(simPathShowChangesOnly);
 		if (simPathSnapshots)
 			displayer.setToShowSnapShots(simPathSnapshotTime);
 
