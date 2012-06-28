@@ -43,6 +43,9 @@ public abstract class PathDisplayer
 	/** If we are displaying snapshots, when is the next one due? */
 	protected double nextTime = 0.0;
 
+	/** Should we show changes in state only, or all steps? (not for snapshot mode) */
+	protected boolean showChangesOnly = true;
+	
 	/** Indices of variables to show (null = all) */
 	protected List<Integer> varsToShow = null;
 
@@ -68,14 +71,13 @@ public abstract class PathDisplayer
 	}
 
 	/**
-	 * Set (indices of) vars to show values of (null = all).
+	 * Should we show changes in state only, or all steps? (not for snapshot mode)
 	 */
-	public void setVarsToShow(List<Integer> varsToShow)
+	public boolean getShowChangesOnly()
 	{
-		// Take a copy of var index list
-		this.varsToShow = varsToShow == null ? null : new ArrayList<Integer>(varsToShow);
+		return showChangesOnly;
 	}
-
+	
 	/**
 	 * Should we display rewards?
 	 */
@@ -83,7 +85,7 @@ public abstract class PathDisplayer
 	{
 		return showRewards;
 	}
-
+	
 	// Setters for config
 
 	/**
@@ -101,6 +103,23 @@ public abstract class PathDisplayer
 	{
 		this.showSnapshots = true;
 		this.snapshotTimeStep = timeStep;
+	}
+
+	/**
+	 * Set whether we show changes in state only, or all steps (not for snapshot mode).
+	 */
+	public void setShowChangesOnly(boolean showChangesOnly)
+	{
+		this.showChangesOnly = showChangesOnly;
+	}
+
+	/**
+	 * Set (indices of) vars to show values of (null = all).
+	 */
+	public void setVarsToShow(List<Integer> varsToShow)
+	{
+		// Take a copy of var index list
+		this.varsToShow = varsToShow == null ? null : new ArrayList<Integer>(varsToShow);
 	}
 
 	/**

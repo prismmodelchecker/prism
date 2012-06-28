@@ -92,13 +92,13 @@ public class PathToGraph extends PathDisplayer
 	@Override
 	public void displayStep(double timeSpent, double timeCumul, Object action, double[] transitionRewards, State newState, double[] newStateRewards)
 	{
-		displayState(timeCumul, newState, false);
+		displayState(timeCumul, newState, !showChangesOnly);
 	}
 
 	@Override
 	public void displaySnapshot(double timeCumul, State newState, double[] newStateRewards)
 	{
-		displayState(timeCumul, newState, false);
+		displayState(timeCumul, newState, true);
 	}
 
 	private void displayState(double time, State state, boolean force)
