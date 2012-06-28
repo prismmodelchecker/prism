@@ -727,11 +727,10 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				}
 			}
 
-			// Get a time limit from user
-			int result = GUIPathPlotDialog.requestTime(this.getGUI());
-			if (result != GUIPathPlotDialog.OK) {
+			// Get path details from dialog
+			String simPathDetails = GUIPathPlotDialog.getPathPlotSettings(getGUI(), parsedModel);
+			if (simPathDetails == null)
 				return;
-			}
 						
 			// Create a new path in the simulator and plot it 
 			a_clearPath();
@@ -742,8 +741,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			GenerateSimulationPath genPath = new GenerateSimulationPath(engine, getGUI().getLog());
 			int maxPathLength = getPrism().getSettings().getInteger(PrismSettings.SIMULATOR_DEFAULT_MAX_PATH);
 			State initialStateObject = initialState == null ? null : new parser.State(initialState, parsedModel);
-			//String simPathDetails = "time=" + GUIPathPlotDialog.getTime() + ",snapshot=" + GUIPathPlotDialog.getTime()/500;
-			String simPathDetails = "time=" + GUIPathPlotDialog.getTime();
 			genPath.generateAndPlotSimulationPathInThread(parsedModel, initialStateObject, simPathDetails, maxPathLength, graphModel);
 			setComputing(false);
 
@@ -1863,10 +1860,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	public void mousePressed(MouseEvent e)
 	{
 		doPopupDetection(e);
-
-		if (e.getSource() == pathTable) {
-			int row = pathTable.getSelectedRow();
-		}
 	}
 
 	public void mouseReleased(MouseEvent e)
