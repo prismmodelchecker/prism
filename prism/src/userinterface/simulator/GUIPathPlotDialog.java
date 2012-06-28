@@ -258,6 +258,7 @@ public class GUIPathPlotDialog extends JDialog
 			textFieldTime.setText("100");
 			textFieldInterval.setText("");
 		}
+		comboBoxShow.setSelectedItem(ShowChoice.CHANGES);
 
 		this.getRootPane().setDefaultButton(okButton);
 		setLocationRelativeTo(getParent()); // centre
