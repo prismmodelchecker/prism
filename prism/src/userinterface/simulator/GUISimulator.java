@@ -1869,7 +1869,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	public void doPopupDetection(MouseEvent e)
 	{
 		if (!computing) {
-			if (e.getClickCount() == 2 && e.getSource() == pathTablePlaceHolder || e.getSource() == tableScroll) {
+			if (e.getClickCount() == 2 && (e.getSource() == pathTablePlaceHolder || e.getSource() == tableScroll)) {
 				if (newPath.isEnabled())
 					a_newPath(false);
 			}
