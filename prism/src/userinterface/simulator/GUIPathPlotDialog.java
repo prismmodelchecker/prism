@@ -331,6 +331,9 @@ public class GUIPathPlotDialog extends JDialog
 				return;
 			}
 		}
+		if ((ShowChoice) comboBoxShow.getSelectedItem() == ShowChoice.CHANGES) {
+			simPathString += ",changes=true";
+		}
 
 		cancelled = false;
 		dispose();
