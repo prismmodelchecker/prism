@@ -1846,7 +1846,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 	public void mouseClicked(MouseEvent e)
 	{
-
 	}
 
 	public void mouseEntered(MouseEvent e)
@@ -1870,11 +1869,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	public void doPopupDetection(MouseEvent e)
 	{
 		if (!computing) {
-			if (e.getClickCount() == 2 && e.getSource() == pathTablePlaceHolder) {
+			if (e.getClickCount() == 2 && e.getSource() == pathTablePlaceHolder || e.getSource() == tableScroll) {
 				if (newPath.isEnabled())
 					a_newPath(false);
 			}
-			if (e.isPopupTrigger()
+			else if (e.isPopupTrigger()
 					&& (e.getSource() == pathTablePlaceHolder || e.getSource() == pathTable || e.getSource() == pathTable.getTableHeader() || e.getSource() == tableScroll)) {
 				randomExploration
 						.setEnabled(!(e.getSource() == pathTable.getTableHeader() || e.getSource() == pathTablePlaceHolder || e.getSource() == tableScroll));
@@ -1883,82 +1882,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 						.setEnabled(!(e.getSource() == pathTable.getTableHeader() || e.getSource() == pathTablePlaceHolder || e.getSource() == tableScroll));
 				removeToHere
 						.setEnabled(!(e.getSource() == pathTable.getTableHeader() || e.getSource() == pathTablePlaceHolder || e.getSource() == tableScroll));
-
 				doEnables();
-
 				int index = pathTable.rowAtPoint(e.getPoint());
-
 				pathTable.getSelectionModel().setSelectionInterval(index, index);
-
-				/*
-				showColumnMenu.removeAll();
-				
-				//Now populate showColumnMenu with all columns
-				for(int i = 1; i < pathTableModel.getColumnCount(); i++)
-				{
-					// Better to use JCheckBoxMenuItems rather than JCheckBox.
-					JCheckBoxMenuItem showColumn = new JCheckBoxMenuItem(pathTableModel.getColumnName(i));
-					
-					// A column is selected if it is present in the view.
-					showColumn.setSelected(pathTable.convertColumnIndexToView(i) != -1);
-					
-					showColumn.addItemListener(new ItemListener() 
-					{
-						public void itemStateChanged(ItemEvent e)
-						{
-							JCheckBoxMenuItem showColumn = (JCheckBoxMenuItem)e.getSource();
-							
-							if (e.getStateChange() == ItemEvent.DESELECTED)
-							{													
-								TableColumn tc = pathTable.getColumn(showColumn.getText());								
-								hiddenColumns.add(tc);								
-								pathTable.removeColumn(tc);
-							}
-							else if (e.getStateChange() == ItemEvent.SELECTED)
-							{
-								//search for this in hiddenColumns								
-								TableColumn tc = null;
-								
-								for (int i = 0; i < hiddenColumns.size(); i++)
-								{
-									tc = (TableColumn)hiddenColumns.get(i);
-									if(tc.getHeaderValue().equals(showColumn.getText()))
-										break;
-								}
-								if(tc == null) return;
-								
-								insertTableColumn(tc);
-								hiddenColumns.remove(tc);								
-							}
-						}
-					});					
-					
-					showColumnMenu.add(showColumn);
-				}
-				
-				*/
-				/*
-				showColumnMenu.addSeparator();
-				
-				JMenuItem showAll = new JMenuItem("Show all columns");
-				
-				showAll.addActionListener(new ActionListener()
-				{
-					public void actionPerformed(ActionEvent e)
-					{
-						for(int i = hiddenColumns.size()-1; i>=0; i--)
-						{
-							TableColumn tc = (TableColumn) hiddenColumns.get(i);
-							insertTableColumn(tc);
-							hiddenColumns.remove(tc);
-						}
-						
-						sortOutColumnSizes();
-					}
-				});
-				showColumnMenu.add(showAll);
-				*/
-
 				pathPopupMenu.show(e.getComponent(), e.getX(), e.getY());
 			}
 		}
