@@ -58,7 +58,7 @@ public class Reactions2Prism
 
 	// Config
 	
-	/** Maximum amount of each species (unless some initial amound is higher). */
+	/** Maximum amount of each species (unless some initial amount is higher). */
 	protected int maxAmount = 100;
 
 	// Optional PRISM code header/footer
