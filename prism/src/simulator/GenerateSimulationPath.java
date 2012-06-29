@@ -179,10 +179,12 @@ public class GenerateSimulationPath
 					s = s.substring(0, s.length() - 1);
 					done = true;
 				}
-				j = varList.getIndex(s);
-				if (j == -1)
-					throw new PrismException("Unknown variable \"" + s + "\" in \"vars=(...)\" list");
-				simVars.add(j);
+				if (s.length() > 0) {
+					j = varList.getIndex(s);
+					if (j == -1)
+						throw new PrismException("Unknown variable \"" + s + "\" in \"vars=(...)\" list");
+					simVars.add(j);
+				}
 				while (i < n && !done) {
 					s = ss[++i];
 					if (s.indexOf(')') > -1) {
@@ -466,7 +468,7 @@ public class GenerateSimulationPath
 		private String details;
 		private int maxPathLength;
 		private Graph graphModel;
-		
+
 		public GenerateAndPlotThread(ModulesFile modulesFile, parser.State initialState, String details, int maxPathLength, Graph graphModel)
 		{
 			this.modulesFile = modulesFile;
