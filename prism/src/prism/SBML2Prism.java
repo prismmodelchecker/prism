@@ -62,7 +62,13 @@ public class SBML2Prism extends Reactions2Prism implements EntityResolver
 				System.exit(1);
 			}
 			SBML2Prism sbml2prism = new SBML2Prism(errLog);
-			sbml2prism.translate(new File(args[0]), (args.length > 1) ? args[1] : "100");
+			try {
+				if (args.length > 1)
+					sbml2prism.setMaxAmount(Integer.parseInt(args[1]));
+			} catch (NumberFormatException e) {
+				throw new PrismException("Invalid max amount \"" + args[1] + "\"");
+			}
+			sbml2prism.translate(new File(args[0]));
 		} catch (PrismException e) {
 			errLog.println("Error: " + e.getMessage() + ".");
 		}
@@ -81,16 +87,10 @@ public class SBML2Prism extends Reactions2Prism implements EntityResolver
 	}
 
 	/**
-	 * Main method: load SBML file, process and sent resulting PRISM file to stdout
+	 * Main method: load SBML file, process and send resulting PRISM file to stdout
 	 */
-	public void translate(File f, String maxAmount) throws PrismException
+	public void translate(File f) throws PrismException
 	{
-		// translate
-		try {
-			this.maxAmount = Integer.parseInt(maxAmount);
-		} catch (NumberFormatException e) {
-			throw new PrismException("Invalid max amount \"" + maxAmount + "\"");
-		}
 		// Read in SBML
 		Document doc = parseSBML(f);
 		checkSBMLVersion(doc);

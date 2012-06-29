@@ -56,12 +56,15 @@ public class Reactions2Prism
 	protected ArrayList<Parameter> parameterList;
 	protected ArrayList<Reaction> reactionList;
 
+	// Config
+	
+	/** Maximum amount of each species (unless some initial amound is higher). */
+	protected int maxAmount = 100;
+
 	// Optional PRISM code header/footer
 	protected String prismCodeHeader;
 	protected String prismCodeFooter;
-
-	protected int maxAmount;
-
+	
 	// Constructors
 
 	public Reactions2Prism()
@@ -74,6 +77,11 @@ public class Reactions2Prism
 		this.mainLog = mainLog;
 	}
 
+	public void setMaxAmount(int maxAmount)
+	{
+		this.maxAmount = maxAmount;
+	}
+	
 	/**
 	 * Print the currently loaded reaction set model (for testing purposes).
 	 */
