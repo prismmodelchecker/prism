@@ -302,6 +302,7 @@ public class GenerateSimulationPath
 		PathToGraph displayer;
 
 		displayer = new PathToGraph(graphModel, modulesFile);
+		displayer.setVarsToShow(simVars);
 		displayer.setShowRewards(simPathShowRewards);
 		displayer.setShowChangesOnly(simPathShowChangesOnly);
 		if (simPathSnapshots)

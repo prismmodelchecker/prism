@@ -45,6 +45,7 @@ import javax.swing.border.EmptyBorder;
 
 import parser.ast.ModulesFile;
 import userinterface.GUIPrism;
+import javax.swing.JCheckBox;
 
 @SuppressWarnings("serial")
 public class GUIPathPlotDialog extends JDialog
@@ -101,6 +102,9 @@ public class GUIPathPlotDialog extends JDialog
 	private JComboBox comboBoxSimulate;
 	private JButton okButton;
 	private JButton cancelButton;
+	private JLabel lblPlot;
+	private JCheckBox chckbxVariables;
+	private JCheckBox chckbxRewards;
 
 	/**
 	 * Show "Path Plot Details" dialog, return settings as a simpath string.
@@ -135,15 +139,15 @@ public class GUIPathPlotDialog extends JDialog
 		super(parent, "Path Plot Details", true);
 		this.gui = parent;
 		this.modulesFile = modulesFile;
-		setBounds(100, 100, 450, 154);
+		setBounds(100, 100, 450, 200);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
 		GridBagLayout gbl_contentPanel = new GridBagLayout();
 		gbl_contentPanel.columnWidths = new int[] { 20, 0, 0, 0, 60, 0 };
-		gbl_contentPanel.rowHeights = new int[] { 20, 0, 0, 0, 0 };
+		gbl_contentPanel.rowHeights = new int[] { 20, 0, 0, 0, 0, 0, 0 };
 		gbl_contentPanel.columnWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
-		gbl_contentPanel.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
+		gbl_contentPanel.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
 		contentPanel.setLayout(gbl_contentPanel);
 		{
 			JLabel lblSimulate = new JLabel("Simulate:");
@@ -248,6 +252,33 @@ public class GUIPathPlotDialog extends JDialog
 				buttonPane.add(cancelButton);
 			}
 		}
+		{
+			lblPlot = new JLabel("Plot:");
+			GridBagConstraints gbc_lblPlot = new GridBagConstraints();
+			gbc_lblPlot.anchor = GridBagConstraints.EAST;
+			gbc_lblPlot.insets = new Insets(0, 0, 5, 5);
+			gbc_lblPlot.gridx = 1;
+			gbc_lblPlot.gridy = 3;
+			contentPanel.add(lblPlot, gbc_lblPlot);
+		}
+		{
+			chckbxVariables = new JCheckBox("Variables");
+			GridBagConstraints gbc_chckbxVariables = new GridBagConstraints();
+			gbc_chckbxVariables.anchor = GridBagConstraints.WEST;
+			gbc_chckbxVariables.insets = new Insets(0, 0, 5, 5);
+			gbc_chckbxVariables.gridx = 2;
+			gbc_chckbxVariables.gridy = 3;
+			contentPanel.add(chckbxVariables, gbc_chckbxVariables);
+		}
+		{
+			chckbxRewards = new JCheckBox("Rewards");
+			GridBagConstraints gbc_chckbxRewards = new GridBagConstraints();
+			gbc_chckbxRewards.anchor = GridBagConstraints.WEST;
+			gbc_chckbxRewards.insets = new Insets(0, 0, 5, 5);
+			gbc_chckbxRewards.gridx = 2;
+			gbc_chckbxRewards.gridy = 4;
+			contentPanel.add(chckbxRewards, gbc_chckbxRewards);
+		}
 
 		// defaults for new creation
 		if (modulesFile.getModelType().continuousTime()) {
@@ -259,6 +290,8 @@ public class GUIPathPlotDialog extends JDialog
 			textFieldInterval.setText("");
 		}
 		comboBoxShow.setSelectedItem(ShowChoice.CHANGES);
+		chckbxVariables.setSelected(true);
+		chckbxRewards.setSelected(false);
 
 		this.getRootPane().setDefaultButton(okButton);
 		setLocationRelativeTo(getParent()); // centre
@@ -334,6 +367,10 @@ public class GUIPathPlotDialog extends JDialog
 		if ((ShowChoice) comboBoxShow.getSelectedItem() == ShowChoice.CHANGES) {
 			simPathString += ",changes=true";
 		}
+		if (!chckbxVariables.isSelected()) {
+			simPathString += ",vars=()";
+		}
+		simPathString += ",rewards=" + chckbxRewards.isSelected();
 
 		cancelled = false;
 		dispose();

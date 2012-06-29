@@ -26,6 +26,9 @@
 
 package simulator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.jfree.data.xy.XYDataItem;
 
 import parser.State;
@@ -42,7 +45,8 @@ public class PathToGraph extends PathDisplayer
 {
 	/** Graph on which to plot path */
 	private Graph graphModel = null;
-	private SeriesKey seriesKeys[] = null;
+	private List<SeriesKey> varSeriesKeys = null;
+	private List<SeriesKey> rewardSeriesKeys = null;
 
 	// Model info
 	private ModulesFile modulesFile;
@@ -53,6 +57,7 @@ public class PathToGraph extends PathDisplayer
 	/** Step counter */
 	private double lastTime;
 	private State lastState;
+	private double[] lastStateRewards;
 
 	/**
 	 * Construct a {@link PathToGraph} object
@@ -72,54 +77,100 @@ public class PathToGraph extends PathDisplayer
 	// Display methods
 
 	@Override
-	public void startDisplay(State initialState, double[] stateRewards)
+	public void startDisplay(State initialState, double[] initialStateRewards)
 	{
 		// Configure axes
 		graphModel.getXAxisSettings().setHeading("Time");
 		graphModel.getYAxisSettings().setHeading("Value");
 
 		// Create series
-		seriesKeys = new SeriesKey[numVars];
-		for (int j = 0; j < numVars; j++) {
-			seriesKeys[j] = graphModel.addSeries(modulesFile.getVarName(j));
+		varSeriesKeys = new ArrayList<Graph.SeriesKey>();
+		if (varsToShow == null) {
+			for (int j = 0; j < numVars; j++) {
+				varSeriesKeys.add(graphModel.addSeries(modulesFile.getVarName(j)));
+			}
+		} else {
+			for (int j = 0; j < numVars; j++) {
+				if (varsToShow != null && varsToShow.contains(j))
+					varSeriesKeys.add(graphModel.addSeries(modulesFile.getVarName(j)));
+				else
+					varSeriesKeys.add(null);
+			}
+		}
+		if (showRewards) {
+			rewardSeriesKeys = new ArrayList<Graph.SeriesKey>();
+			for (int j = 0; j < numRewardStructs; j++) {
+				rewardSeriesKeys.add(graphModel.addSeries(modulesFile.getRewardStruct(j).getName()));
+			}
 		}
 
 		// Display initial state
 		lastState = new State(initialState.varValues.length);
-		displayState(0.0, initialState, true);
+		if (showRewards)
+			lastStateRewards = explicit.Utils.cloneDoubleArray(initialStateRewards);
+		displayState(0.0, initialState, initialStateRewards, true);
 	}
 
 	@Override
 	public void displayStep(double timeSpent, double timeCumul, Object action, double[] transitionRewards, State newState, double[] newStateRewards)
 	{
-		displayState(timeCumul, newState, !showChangesOnly);
+		displayState(timeCumul, newState, newStateRewards, !showChangesOnly);
 	}
 
 	@Override
 	public void displaySnapshot(double timeCumul, State newState, double[] newStateRewards)
 	{
-		displayState(timeCumul, newState, true);
+		displayState(timeCumul, newState, newStateRewards, true);
 	}
 
-	private void displayState(double time, State state, boolean force)
+	private void displayState(double time, State state, double[] stateRewards, boolean force)
 	{
-		for (int j = 0; j < numVars; j++) {
-			Object val = state.varValues[j];
-			double d = 0.0;
-			if (force || !val.equals(lastState.varValues[j])) {
-				try {
-					d = TypeDouble.getInstance().castValueTo(val).doubleValue();
-					graphModel.addPointToSeries(seriesKeys[j], new XYDataItem(time, d));
-				} catch (PrismException e) {
-					if (val instanceof Boolean) {
-						d = ((Boolean) val).booleanValue() ? 1.0 : 0.0;
-						graphModel.addPointToSeries(seriesKeys[j], new XYDataItem(time, d));
+		if (varsToShow == null) {
+			for (int j = 0; j < numVars; j++) {
+				Object val = state.varValues[j];
+				double d = 0.0;
+				if (force || !val.equals(lastState.varValues[j])) {
+					try {
+						d = TypeDouble.getInstance().castValueTo(val).doubleValue();
+						graphModel.addPointToSeries(varSeriesKeys.get(j), new XYDataItem(time, d));
+					} catch (PrismException e) {
+						if (val instanceof Boolean) {
+							d = ((Boolean) val).booleanValue() ? 1.0 : 0.0;
+							graphModel.addPointToSeries(varSeriesKeys.get(j), new XYDataItem(time, d));
+						}
 					}
+				}
+			}
+		} else {
+			for (int j : varsToShow) {
+				Object val = state.varValues[j];
+				double d = 0.0;
+				if (force || !val.equals(lastState.varValues[j])) {
+					try {
+						d = TypeDouble.getInstance().castValueTo(val).doubleValue();
+						graphModel.addPointToSeries(varSeriesKeys.get(j), new XYDataItem(time, d));
+					} catch (PrismException e) {
+						if (val instanceof Boolean) {
+							d = ((Boolean) val).booleanValue() ? 1.0 : 0.0;
+							graphModel.addPointToSeries(varSeriesKeys.get(j), new XYDataItem(time, d));
+						}
+					}
+				}
+			}
+		}
+		if (showRewards) {
+			for (int j = 0; j < numRewardStructs; j++) {
+				double d = stateRewards[j];
+				if (force || lastStateRewards[j] != stateRewards[j]) {
+					graphModel.addPointToSeries(rewardSeriesKeys.get(j), new XYDataItem(time, d));
 				}
 			}
 		}
 		lastTime = time;
 		lastState.copy(state);
+		if (showRewards) {
+			explicit.Utils.copyDoubleArray(stateRewards, lastStateRewards);
+		}
 	}
 
 	@Override
@@ -127,6 +178,6 @@ public class PathToGraph extends PathDisplayer
 	{
 		// Always display last points to ensure complete plot lines
 		// (it's OK to overwrite points)
-		displayState(lastTime, lastState, true);
+		displayState(lastTime, lastState, lastStateRewards, true);
 	}
 }
