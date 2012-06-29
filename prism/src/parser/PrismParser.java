@@ -16,6 +16,12 @@ public class PrismParser implements PrismParserConstants {
 
         // List of keyword strings
         private static ArrayList<String> keywordList = new ArrayList<String>();
+        {
+                keywordList.clear();
+                for (int i = PrismParserConstants.COMMENT+1; i < PrismParserConstants.NOT; i++) {
+                        keywordList.add(PrismParserConstants.tokenImage[i].replaceAll("\u005c"", ""));
+                }
+        }
 
         //-----------------------------------------------------------------------------------
         // Main method for testing purposes
@@ -85,11 +91,6 @@ public class PrismParser implements PrismParserConstants {
         {
                 // Call default constructor
                 this(System.in);
-                // Build a list of strings for keywords
-                keywordList.clear();
-                for (int i = PrismParserConstants.COMMENT+1; i < PrismParserConstants.NOT; i++) {
-                        keywordList.add(PrismParserConstants.tokenImage[i].replaceAll("\u005c"", ""));
-                }
         }
 
         // Parse modules file
