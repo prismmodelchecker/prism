@@ -27,7 +27,7 @@
 package prism;
 
 import java.text.DecimalFormat;
-import java.util.Formatter;
+import java.util.List;
 
 /**
  * Various general-purpose utility methods in Java
@@ -204,6 +204,44 @@ public class PrismUtils
 	{
 		// Note that we have to tweak this since Java do it quite like C. 
 		return String.format("%." + prec + "g", d).replaceFirst("\\.?0+(e|$)", "$1");
+	}
+	
+	/**
+	 * Create a string for a list of objects, with a specified separator,
+	 * e.g. ["a","b","c"], "," -> "a,b,c"
+	 */
+	public static String joinString(List<?> objs, String separator)
+	{
+		String s = "";
+		boolean first = true;
+		for (Object obj : objs) {
+			if (first) {
+				first = false;
+			} else {
+				s += separator; 
+			}
+			s += obj.toString();
+		}
+		return s;
+	}
+	
+	/**
+	 * Create a string for an array of objects, with a specified separator,
+	 * e.g. ["a","b","c"], "," -> "a,b,c"
+	 */
+	public static String joinString(Object[] objs, String separator)
+	{
+		String s = "";
+		boolean first = true;
+		for (Object obj : objs) {
+			if (first) {
+				first = false;
+			} else {
+				s += separator; 
+			}
+			s += obj.toString();
+		}
+		return s;
 	}
 }
 
