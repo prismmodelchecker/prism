@@ -57,14 +57,14 @@ public class Reactions2Prism
 	protected ArrayList<Reaction> reactionList;
 
 	// Config
-	
+
 	/** Maximum amount of each species (unless some initial amount is higher). */
 	protected int maxAmount = 100;
 
 	// Optional PRISM code header/footer
 	protected String prismCodeHeader;
 	protected String prismCodeFooter;
-	
+
 	// Constructors
 
 	public Reactions2Prism()
@@ -81,7 +81,7 @@ public class Reactions2Prism
 	{
 		this.maxAmount = maxAmount;
 	}
-	
+
 	/**
 	 * Print the currently loaded reaction set model (for testing purposes).
 	 */
@@ -360,8 +360,12 @@ public class Reactions2Prism
 			sb.append("\t// " + reaction.id);
 			if (reaction.name.length() > 0)
 				sb.append(" (" + reaction.name + ")");
+			sb.append(": " + reaction.reactionString());
 			sb.append("\n");
-			s2 = MathML2Prism.convert(reaction.kineticLaw, renameFrom, renameTo);
+			if (reaction.kineticLawString != null)
+				s2 = reaction.kineticLawString;
+			else
+				s2 = MathML2Prism.convert(reaction.kineticLaw, renameFrom, renameTo);
 			sb.append("\t[" + reaction.id + "] " + s2 + " > 0 -> " + s2 + " : true;\n");
 		}
 		sb.append("\nendmodule\n");
@@ -429,7 +433,7 @@ public class Reactions2Prism
 
 		public String toString()
 		{
-			return id + (name.length() > 0 ? (" (" + name + ")") : "");
+			return id + (name != null && name.length() > 0 ? (" (" + name + ")") : "");
 		}
 	}
 
@@ -461,6 +465,7 @@ public class Reactions2Prism
 		public ArrayList<String> products;
 		public ArrayList<Integer> productStoichs;
 		public Element kineticLaw;
+		public String kineticLawString;
 		public ArrayList<Parameter> parameters;
 
 		public Reaction(String id, String name)
@@ -472,6 +477,7 @@ public class Reactions2Prism
 			products = new ArrayList<String>();
 			productStoichs = new ArrayList<Integer>();
 			kineticLaw = null;
+			kineticLawString = null;
 			parameters = new ArrayList<Parameter>();
 		}
 
@@ -482,8 +488,13 @@ public class Reactions2Prism
 
 		public void addReactant(String reactant, int stoich)
 		{
-			reactants.add(reactant);
-			reactantStoichs.add(stoich);
+			int i = reactants.indexOf(reactant);
+			if (i == -1) {
+				reactants.add(reactant);
+				reactantStoichs.add(stoich);
+			} else {
+				reactantStoichs.set(i, reactantStoichs.get(i) + stoich);
+			}
 		}
 
 		public void addProduct(String product)
@@ -493,13 +504,25 @@ public class Reactions2Prism
 
 		public void addProduct(String product, int stoich)
 		{
-			products.add(product);
-			productStoichs.add(stoich);
+			int i = products.indexOf(product);
+			if (i == -1) {
+				products.add(product);
+				productStoichs.add(stoich);
+			} else {
+				productStoichs.set(i, productStoichs.get(i) + stoich);
+			}
 		}
 
 		public void setKineticLaw(Element kineticLaw)
 		{
 			this.kineticLaw = kineticLaw;
+			this.kineticLawString = null;
+		}
+
+		public void setKineticLawString(String kineticLawString)
+		{
+			this.kineticLawString = kineticLawString;
+			this.kineticLaw = null;
 		}
 
 		public void addParameter(String name, String value)
@@ -528,6 +551,13 @@ public class Reactions2Prism
 			return productStoichs.get(i);
 		}
 
+		public String reactionString()
+		{
+			String s = PrismUtils.joinString(reactants, "+");
+			s += " -> " + PrismUtils.joinString(products, "+");
+			return s;
+		}
+		
 		public String toString()
 		{
 			String s = "";
@@ -539,7 +569,10 @@ public class Reactions2Prism
 			s += "    Reactants stoichiometry: " + productStoichs + "\n";
 			s += "    Products: " + products + "\n";
 			s += "    Products stoichiometry: " + productStoichs + "\n";
-			s += "    Kinetic law: " + kineticLaw + "\n";
+			if (kineticLawString != null)
+				s += "    Kinetic law: " + kineticLawString + "\n";
+			else
+				s += "    Kinetic law: " + kineticLaw + "\n";
 			s += "    Parameters: " + parameters + "\n";
 			return s;
 		}
