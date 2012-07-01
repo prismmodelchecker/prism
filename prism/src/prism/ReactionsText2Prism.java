@@ -207,13 +207,25 @@ public class ReactionsText2Prism extends Reactions2Prism
 							}
 							// Next line
 							s = in.readLine();
+							lineNum++;
 							if (s == null)
 								throw new PrismException("missing line in reaction definition");
 							s = s.trim();
 							// Get kinetic law
-							// TODO: reversible case
-							reaction.setKineticLawString(s);
-							lineNum++;
+							// Irreversible case
+							if (secType == SectionType.R) {
+								reaction.setReversible(false);
+								reaction.setKineticLawString(s);
+							}
+							// Irreversible case
+							else {
+								reaction.setReversible(true);
+								ss = s.split("-");
+								if (ss.length != 2)
+									throw new PrismException("invalid kinetic law \"" + s + "\" for reversible reaction");
+								reaction.setKineticLawString(ss[0].trim());
+								reaction.setKineticLawReverseString(ss[1].trim());
+							}
 							reactionList.add(reaction);
 							break;
 

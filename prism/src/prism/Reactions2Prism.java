@@ -297,6 +297,7 @@ public class Reactions2Prism
 			for (i2 = 0; i2 < n2; i2++) {
 				reaction = reactionList.get(i2);
 				if (reaction.isSpeciesInvolved(species.id)) {
+					// Forwards
 					sb.append("\t// " + reaction.id);
 					if (reaction.name.length() > 0)
 						sb.append(" (" + reaction.name + ")");
@@ -317,6 +318,29 @@ public class Reactions2Prism
 					if (after - before < 0)
 						sb.append((after - before));
 					sb.append(");\n");
+					// Maybe also backwards
+					if (reaction.reversible) {
+						sb.append("\t// " + reaction.id);
+						if (reaction.name.length() > 0)
+							sb.append(" (" + reaction.name + ")");
+						sb.append("(reverse)\n");
+						sb.append("\t[" + reaction.id + "_rev] ");
+						before = reaction.after(species.id);
+						after = reaction.before(species.id);
+						if (before > 0)
+							sb.append(species.prismName + " > " + (before - 1));
+						if (after - before > 0) {
+							if (before > 0)
+								sb.append(" &");
+							sb.append(" " + species.prismName + " <= " + species.prismName + "_MAX-" + (after - before));
+						}
+						sb.append(" -> (" + species.prismName + "'=" + species.prismName);
+						if (after - before > 0)
+							sb.append("+" + (after - before));
+						if (after - before < 0)
+							sb.append((after - before));
+						sb.append(");\n");
+					}
 				}
 			}
 
@@ -357,6 +381,7 @@ public class Reactions2Prism
 				}
 			}
 			// Generate code
+			// Forwards
 			sb.append("\t// " + reaction.id);
 			if (reaction.name.length() > 0)
 				sb.append(" (" + reaction.name + ")");
@@ -367,6 +392,19 @@ public class Reactions2Prism
 			else
 				s2 = MathML2Prism.convert(reaction.kineticLaw, renameFrom, renameTo);
 			sb.append("\t[" + reaction.id + "] " + s2 + " > 0 -> " + s2 + " : true;\n");
+			// Maybe also backwards
+			if (reaction.reversible) {
+				sb.append("\t// " + reaction.id);
+				if (reaction.name.length() > 0)
+					sb.append(" (" + reaction.name + ")");
+				sb.append(": " + reaction.reactionString());
+				sb.append(" (reverse)\n");
+				if (reaction.kineticLawReverseString != null)
+					s2 = reaction.kineticLawReverseString;
+				else
+					s2 = MathML2Prism.convert(reaction.kineticLawReverse, renameFrom, renameTo);
+				sb.append("\t[" + reaction.id + "_rev] " + s2 + " > 0 -> " + s2 + " : true;\n");
+			}
 		}
 		sb.append("\nendmodule\n");
 
@@ -464,8 +502,11 @@ public class Reactions2Prism
 		public ArrayList<Integer> reactantStoichs;
 		public ArrayList<String> products;
 		public ArrayList<Integer> productStoichs;
+		public boolean reversible;
 		public Element kineticLaw;
 		public String kineticLawString;
+		public Element kineticLawReverse;
+		public String kineticLawReverseString;
 		public ArrayList<Parameter> parameters;
 
 		public Reaction(String id, String name)
@@ -476,8 +517,11 @@ public class Reactions2Prism
 			reactantStoichs = new ArrayList<Integer>();
 			products = new ArrayList<String>();
 			productStoichs = new ArrayList<Integer>();
+			reversible = false;
 			kineticLaw = null;
 			kineticLawString = null;
+			kineticLawReverse = null;
+			kineticLawReverseString = null;
 			parameters = new ArrayList<Parameter>();
 		}
 
@@ -513,6 +557,11 @@ public class Reactions2Prism
 			}
 		}
 
+		public void setReversible(boolean reversible)
+		{
+			this.reversible = reversible;
+		}
+
 		public void setKineticLaw(Element kineticLaw)
 		{
 			this.kineticLaw = kineticLaw;
@@ -523,6 +572,18 @@ public class Reactions2Prism
 		{
 			this.kineticLawString = kineticLawString;
 			this.kineticLaw = null;
+		}
+
+		public void setKineticLawReverse(Element kineticLawReverse)
+		{
+			this.kineticLawReverse = kineticLawReverse;
+			this.kineticLawReverseString = null;
+		}
+
+		public void setKineticLawReverseString(String kineticLawReverseString)
+		{
+			this.kineticLawReverseString = kineticLawReverseString;
+			this.kineticLawReverse = null;
 		}
 
 		public void addParameter(String name, String value)
@@ -557,7 +618,7 @@ public class Reactions2Prism
 			s += " -> " + PrismUtils.joinString(products, "+");
 			return s;
 		}
-		
+
 		public String toString()
 		{
 			String s = "";
@@ -569,10 +630,10 @@ public class Reactions2Prism
 			s += "    Reactants stoichiometry: " + productStoichs + "\n";
 			s += "    Products: " + products + "\n";
 			s += "    Products stoichiometry: " + productStoichs + "\n";
-			if (kineticLawString != null)
-				s += "    Kinetic law: " + kineticLawString + "\n";
-			else
-				s += "    Kinetic law: " + kineticLaw + "\n";
+			s += "    Kinetic law: " + ((kineticLawString != null) ? kineticLawString : kineticLaw) + "\n";
+			if (reversible) {
+				s += "    Reverse kinetic law: " + ((kineticLawReverseString != null) ? kineticLawReverseString : kineticLawReverse) + "\n";
+			}
 			s += "    Parameters: " + parameters + "\n";
 			return s;
 		}
