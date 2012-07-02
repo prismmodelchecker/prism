@@ -553,6 +553,7 @@ public class SimulatorEngine
 	 * The resulting index of the property is returned: this is used for later queries about the property.
 	 * Any constants/formulas etc. appearing in the property must have been defined in the current model
 	 * or be supplied in the (optional) passed in PropertiesFile.
+	 * In case of error, the property is not added an exception is thrown.
 	 */
 	public int addProperty(Expression prop, PropertiesFile pf) throws PrismException
 	{
@@ -567,9 +568,12 @@ public class SimulatorEngine
 			propNew = (Expression) propNew.replaceConstants(pf.getConstantValues());
 		}
 		propNew = (Expression) propNew.simplify();
-		// Create sampler, update lists and return index
+		// Create sampler
+		Sampler sampler = Sampler.createSampler(propNew, modulesFile);
+		// Update lists and return index
+		// (do this right at the end so that lists only get updated if there are no errors)
 		properties.add(propNew);
-		propertySamplers.add(Sampler.createSampler(propNew, modulesFile));
+		propertySamplers.add(sampler);
 		return properties.size() - 1;
 	}
 
