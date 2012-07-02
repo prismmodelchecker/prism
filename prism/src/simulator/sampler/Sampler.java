@@ -225,8 +225,9 @@ public abstract class Sampler
 		if (rs == null) {
 			rsi = 0;
 		} else if (rs instanceof Expression) {
-			rsi = ((Expression) rs).evaluateInt() - 1;
-			rs = new Integer(rsi + 1); // for better error reporting below
+			rsi = ((Expression) rs).evaluateInt();
+			rs = new Integer(rsi); // for better error reporting below
+			rsi = (rsi < 1 || rsi > mf.getNumRewardStructs()) ? -1 : rsi - 1;
 		} else if (rs instanceof String) {
 			rsi = mf.getRewardStructIndex((String) rs);
 		}
