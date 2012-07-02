@@ -28,10 +28,14 @@ package simulator;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
-import prism.*;
-import parser.*;
-import parser.ast.*;
+import parser.State;
+import parser.VarList;
+import parser.ast.ModulesFile;
+import prism.PrismException;
+import prism.PrismFileLog;
+import prism.PrismLog;
 import userinterface.graph.Graph;
 
 public class GenerateSimulationPath
@@ -39,6 +43,9 @@ public class GenerateSimulationPath
 	// The simulator engine and a log for output
 	private SimulatorEngine engine;
 	private PrismLog mainLog;
+	
+	// Store warnings
+	private List<String> warnings = new ArrayList<String>();
 
 	// Enums
 	private enum PathType {
@@ -64,6 +71,26 @@ public class GenerateSimulationPath
 	private boolean simPathSnapshots = false;
 	private double simPathSnapshotTime = 0.0;
 
+	public int getNumWarnings()
+	{
+		return warnings.size();
+	}
+	
+	public List<String> getWarnings()
+	{
+		return warnings;
+	}
+	
+	/**
+	 * Send a warning messages to the log;
+	 * also, store a copy for later retrieval.
+	 */
+	private void warning(String msg)
+	{
+		mainLog.printWarning(msg + ".");
+		warnings.add(msg);
+	}
+	
 	public GenerateSimulationPath(SimulatorEngine engine, PrismLog mainLog)
 	{
 		this.engine = engine;
@@ -83,6 +110,7 @@ public class GenerateSimulationPath
 		this.initialState = initialState;
 		this.maxPathLength = maxPathLength;
 		this.file = file;
+		warnings.clear();
 
 		parseDetails(details);
 		PathDisplayer displayer = generateDisplayerForExport();
@@ -367,10 +395,10 @@ public class GenerateSimulationPath
 
 		// Display warnings if needed
 		if (simLoopCheck && engine.isPathLooping()) {
-			mainLog.printWarning("Deterministic loop detected after " + engine.getPathSize() + " steps (use loopcheck=false option to extend path).");
+			warning("Deterministic loop detected after " + engine.getPathSize() + " steps (use loopcheck=false option to extend path)");
 		}
 		if (simPathType == PathType.SIM_PATH_TIME && path.getTotalTime() < simPathTime) {
-			mainLog.printWarning("Path terminated before time " + simPathTime + " because maximum path length (" + maxPathLength + ") was reached.");
+			warning("Path terminated before time " + simPathTime + " because maximum path length (" + maxPathLength + ") was reached");
 		}
 
 		// Print summary of path
