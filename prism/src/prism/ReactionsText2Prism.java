@@ -180,6 +180,11 @@ public class ReactionsText2Prism extends Reactions2Prism
 							} else if (ss.length == 2) {
 								// Get id and value
 								String paramId = ss[0];
+								try {
+									Double.parseDouble(ss[1]);
+								} catch (NumberFormatException e) {
+									throw new PrismException("invalid value \"" + ss[1] + "\" for parameter \"" + paramId + "\"");
+								}
 								parameter = new Parameter(paramId, ss[1]);
 							} else {
 								throw new PrismException("invalid parameter definition \"" + s + "\"");
