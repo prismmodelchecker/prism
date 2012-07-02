@@ -269,8 +269,12 @@ public class GUIGraphPicker extends javax.swing.JDialog
 		for (int i = 0; i < graphHandler.getNumModels(); i++) {
 			existingGraphCombo.addItem(graphHandler.getGraphName(i));
 		}
+		// default to latest one
+		if (existingGraphCombo.getItemCount() > 0) {
+			existingGraphCombo.setSelectedIndex(existingGraphCombo.getItemCount() - 1);
+		}
 		// if there are no graphs, disable control
-		if (graphHandler.getNumModels() == 0) {
+		else {
 			existingGraphCombo.setEnabled(false);
 			this.existingGraphRadio.setEnabled(false);
 		}
