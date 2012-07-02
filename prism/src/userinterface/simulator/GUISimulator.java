@@ -739,6 +739,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			Graph graphModel = new Graph();
 			guiProp.getGraphHandler().addGraph(graphModel);
 			int maxPathLength = getPrism().getSettings().getInteger(PrismSettings.SIMULATOR_DEFAULT_MAX_PATH);
+			getPrism().getMainLog().resetNumberOfWarnings();
 			parser.State initialStateObject = initialState == null ? null : new parser.State(initialState, parsedModel);
 			new SimPathPlotThread(this, engine, parsedModel, initialStateObject, simPathDetails, maxPathLength, graphModel).start();
 			setComputing(false);

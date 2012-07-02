@@ -299,6 +299,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 					error("No file selected");
 					return;
 				}
+				getPrism().getMainLog().resetNumberOfWarnings();
 				handler.loadModel(file);
 			}
 		}
@@ -307,8 +308,10 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 	protected void a_reloadModel()
 	{
 		int cont = doModificationCheck();
-		if (cont == CONTINUE)
+		if (cont == CONTINUE) {
+			getPrism().getMainLog().resetNumberOfWarnings();
 			handler.reloadActiveFile();
+		}
 	}
 
 	protected int a_saveModel()
@@ -316,6 +319,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		if (!handler.hasActiveFile()) {
 			return a_saveModelAs();
 		} else {
+			getPrism().getMainLog().resetNumberOfWarnings();
 			return handler.saveToActiveFile();
 		}
 	}
