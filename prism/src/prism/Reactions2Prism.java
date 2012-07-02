@@ -323,7 +323,7 @@ public class Reactions2Prism
 						sb.append("\t// " + reaction.id);
 						if (reaction.name.length() > 0)
 							sb.append(" (" + reaction.name + ")");
-						sb.append("(reverse)\n");
+						sb.append(" (reverse)\n");
 						sb.append("\t[" + reaction.id + "_rev] ");
 						before = reaction.after(species.id);
 						after = reaction.before(species.id);
