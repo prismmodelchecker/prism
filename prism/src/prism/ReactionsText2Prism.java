@@ -121,6 +121,8 @@ public class ReactionsText2Prism extends Reactions2Prism
 			s = s.replaceFirst("/#/", "");
 			lineNum++;
 			while (s != null) {
+				// Strip comments
+				s = s.replaceFirst(" *#.*", "");
 				// Skip blank lines
 				s = s.trim();
 				if (s.length() > 0) {
@@ -216,6 +218,8 @@ public class ReactionsText2Prism extends Reactions2Prism
 							lineNum++;
 							if (s == null)
 								throw new PrismException("missing line in reaction definition");
+							// Strip comments
+							s = s.replaceFirst(" *#.*", "");
 							s = s.trim();
 							// Get kinetic law
 							// Irreversible case
