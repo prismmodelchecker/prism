@@ -118,7 +118,6 @@ public class ReactionsText2Prism extends Reactions2Prism
 			in = new BufferedReader(new FileReader(file));
 			// Read remaining lines
 			s = in.readLine();
-			s = s.replaceFirst("/#/", "");
 			lineNum++;
 			while (s != null) {
 				// Strip comments
