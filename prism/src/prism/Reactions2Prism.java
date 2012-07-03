@@ -144,21 +144,38 @@ public class Reactions2Prism
 	/**
 	 * Do some processing of the reaction set model in preparation for conversion to PRISM code.
 	 */
-	private void processModel()
+	private void processModel() throws PrismException
 	{
-		int i, j, k, n, m;
+		int j, k, m;
 		String s, s2;
-		Species species;
-		Reaction reaction;
-		Parameter parameter;
 		HashSet<String> modulesNames;
 		HashSet<String> prismIdents;
 
+		// Check species ids are unique
+		ArrayList<String> speciesIDs = new ArrayList<String>();
+		for (Species species : speciesList) {
+			if (speciesIDs.contains(species.id))
+				throw new PrismException("Duplicate species id \"" + species.id + "\"");
+			speciesIDs.add(species.id);
+		}
+		// Check parameter names are unique
+		ArrayList<String> paramNames = new ArrayList<String>();
+		for (Parameter parameter : parameterList) {
+			if (paramNames.contains(parameter.name))
+				throw new PrismException("Duplicate parameter name \"" + parameter.name + "\"");
+			paramNames.add(parameter.name);
+		}
+		// Check reaction ids are unique
+		ArrayList<String> reactionIDs = new ArrayList<String>();
+		for (Reaction reaction : reactionList) {
+			if (reactionIDs.contains(reaction.id))
+				throw new PrismException("Duplicate reaction id \"" + reaction.id + "\"");
+			reactionIDs.add(reaction.id);
+		}
+		
 		// Look at initial amounts for all species
 		// If any exceed MAX_AMOUNT, increase it accordingly
-		n = speciesList.size();
-		for (i = 0; i < n; i++) {
-			species = speciesList.get(i);
+		for (Species species : speciesList) {
 			if (species.init > maxAmount)
 				maxAmount = (int) species.init;
 		}
@@ -166,9 +183,7 @@ public class Reactions2Prism
 		// Generate unique and valid PRISM identifier (module and variable name) for each species
 		modulesNames = new HashSet<String>();
 		prismIdents = new HashSet<String>();
-		n = speciesList.size();
-		for (i = 0; i < n; i++) {
-			species = speciesList.get(i);
+		for (Species species : speciesList) {
 			s = species.id;
 			s2 = convertToValidPrismIdent(s);
 			if (!s.equals(s2))
@@ -185,9 +200,7 @@ public class Reactions2Prism
 		}
 
 		// Generate unique and valid PRISM constant name for model parameter
-		n = parameterList.size();
-		for (i = 0; i < n; i++) {
-			parameter = parameterList.get(i);
+		for (Parameter parameter : parameterList) {
 			s = parameter.name;
 			s2 = convertToValidPrismIdent(s);
 			if (!s.equals(s2))
@@ -204,9 +217,7 @@ public class Reactions2Prism
 		}
 
 		// Generate unique and valid PRISM constant name for each reaction parameter
-		n = reactionList.size();
-		for (i = 0; i < n; i++) {
-			reaction = reactionList.get(i);
+		for (Reaction reaction : reactionList) {
 			m = reaction.parameters.size();
 			for (j = 0; j < m; j++) {
 				s = reaction.parameters.get(j).name;
