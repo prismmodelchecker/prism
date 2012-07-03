@@ -131,21 +131,25 @@ public abstract class CIMethod extends SimulationMethod
 	@Override
 	public Object getResult(Sampler sampler) throws PrismException
 	{
-		double estimate = sampler.getMeanValue();
+		double mean = sampler.getMeanValue();
+		//double variance = sampler.getVariance();
+		//double stddev = Math.sqrt(variance);
 		switch (prOp) {
 		case 0: // 0=quantitative
-			return new Double(estimate);
+			return new Double(mean);
+			//return new prism.Interval(mean - stddev, mean + stddev);
+			//return new Double(stddev / mean); // noise
 		case -1: // -1=lower bound
-			if (estimate >= theta + width)
+			if (mean >= theta + width)
 				return new Boolean(true);
-			else if (estimate <= theta - width)
+			else if (mean <= theta - width)
 				return new Boolean(false);
 			else
 				throw new PrismException("Approximation is not precise enough to get a result");
 		case 1: // 1=upper bound
-			if (estimate >= theta + width)
+			if (mean >= theta + width)
 				return new Boolean(false);
-			else if (estimate <= theta - width)
+			else if (mean <= theta - width)
 				return new Boolean(true);
 			else
 				throw new PrismException("Approximation is not precise enough to get a result");
