@@ -1552,6 +1552,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		//newPathPlot.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_N));
 		newPathPlot.putValue(Action.NAME, "Plot new path");
 		newPathPlot.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileGraph.png"));
+		newPathPlot.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F8, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 
 		newPathPlotFromState = new AbstractAction()
 		{
