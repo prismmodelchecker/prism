@@ -728,9 +728,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 
 			// Get path details from dialog
-			String simPathDetails = GUIPathPlotDialog.getPathPlotSettings(getGUI(), parsedModel);
+			GUIPathPlotDialog pathPlotDialog = GUIPathPlotDialog.showDialog(getGUI(), parsedModel);
+			String simPathDetails = pathPlotDialog.getSimPathString();
 			if (simPathDetails == null)
 				return;
+			int maxPathLength = pathPlotDialog.getMaxPathLength();
 						
 			// Create a new path in the simulator and plot it 
 			a_clearPath();
@@ -738,7 +740,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			guiProp.tabToFront();
 			Graph graphModel = new Graph();
 			guiProp.getGraphHandler().addGraph(graphModel);
-			int maxPathLength = getPrism().getSettings().getInteger(PrismSettings.SIMULATOR_DEFAULT_MAX_PATH);
 			getPrism().getMainLog().resetNumberOfWarnings();
 			parser.State initialStateObject = initialState == null ? null : new parser.State(initialState, parsedModel);
 			new SimPathPlotThread(this, engine, parsedModel, initialStateObject, simPathDetails, maxPathLength, graphModel).start();

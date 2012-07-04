@@ -54,6 +54,7 @@ import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 
 import parser.ast.ModulesFile;
+import prism.PrismSettings;
 import userinterface.CheckBoxList;
 import userinterface.GUIPrism;
 
@@ -78,14 +79,12 @@ public class GUIPathPlotDialog extends JDialog
 	};
 
 	public enum ShowChoice {
-		ALL_STEPS, CHANGES, SNAPSHOTS;
+		ALL_STEPS, SNAPSHOTS;
 		public String toString()
 		{
 			switch (this) {
 			case ALL_STEPS:
 				return "All steps";
-			case CHANGES:
-				return "Changes";
 			case SNAPSHOTS:
 				return "Snapshots";
 			default:
@@ -102,6 +101,7 @@ public class GUIPathPlotDialog extends JDialog
 	private ModulesFile modulesFile;
 	private boolean cancelled;
 	private String simPathString;
+	private int maxPathLength;
 
 	// GUI objects
 	private final JPanel topPanel = new JPanel();
@@ -131,6 +131,19 @@ public class GUIPathPlotDialog extends JDialog
 	private JRadioButton rdbtnRewardsAll;
 	private JRadioButton rdbtnRewardsNone;
 	private final ButtonGroup buttonGroupRewards = new ButtonGroup();
+	private JLabel lblMaximumPathLength;
+	private JTextField textFieldMaxLen;
+
+	/**
+	 * Show "Path Plot Details" dialog, return the dialog.
+	 * Returns null if the dialog was cancelled.
+	 */
+	public static GUIPathPlotDialog showDialog(GUIPrism parent, ModulesFile modulesFile)
+	{
+		GUIPathPlotDialog dialog = getInstance(parent, modulesFile);
+		dialog.setVisible(true);
+		return dialog.wasCancelled() ? null : dialog;
+	}
 
 	/**
 	 * Show "Path Plot Details" dialog, return settings as a simpath string.
@@ -139,7 +152,6 @@ public class GUIPathPlotDialog extends JDialog
 	public static String getPathPlotSettings(GUIPrism parent, ModulesFile modulesFile)
 	{
 		GUIPathPlotDialog dialog = getInstance(parent, modulesFile);
-		dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		dialog.setVisible(true);
 		return dialog.wasCancelled() ? null : dialog.getSimPathString();
 	}
@@ -155,6 +167,21 @@ public class GUIPathPlotDialog extends JDialog
 			instance = new GUIPathPlotDialog(parent, modulesFile);
 			return instance;
 		}
+	}
+
+	public boolean wasCancelled()
+	{
+		return cancelled;
+	}
+
+	public String getSimPathString()
+	{
+		return simPathString;
+	}
+
+	public int getMaxPathLength()
+	{
+		return maxPathLength;
 	}
 
 	/**
@@ -215,15 +242,15 @@ public class GUIPathPlotDialog extends JDialog
 			mainPanel.add(topPanel, gbc_topPanel);
 			GridBagLayout gbl_topPanel = new GridBagLayout();
 			gbl_topPanel.columnWidths = new int[] { 50, 0, 0, 60, 0 };
-			gbl_topPanel.rowHeights = new int[] { 0, 0, 0, 0 };
-			gbl_topPanel.columnWeights = new double[] { 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
-			gbl_topPanel.rowWeights = new double[] { 0.0, 0.0, 0.0, Double.MIN_VALUE };
+			gbl_topPanel.rowHeights = new int[] { 0, 0, 0, 0, 0 };
+			gbl_topPanel.columnWeights = new double[] { 0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE };
+			gbl_topPanel.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
 			topPanel.setLayout(gbl_topPanel);
 			{
 				JLabel lblSimulate = new JLabel("Simulate:");
 				GridBagConstraints gbc_lblSimulate = new GridBagConstraints();
 				gbc_lblSimulate.insets = new Insets(0, 0, 5, 5);
-				gbc_lblSimulate.anchor = GridBagConstraints.EAST;
+				gbc_lblSimulate.anchor = GridBagConstraints.WEST;
 				gbc_lblSimulate.gridx = 0;
 				gbc_lblSimulate.gridy = 0;
 				topPanel.add(lblSimulate, gbc_lblSimulate);
@@ -251,7 +278,7 @@ public class GUIPathPlotDialog extends JDialog
 			{
 				JLabel lblShow = new JLabel("Sample:");
 				GridBagConstraints gbc_lblShow = new GridBagConstraints();
-				gbc_lblShow.anchor = GridBagConstraints.EAST;
+				gbc_lblShow.anchor = GridBagConstraints.WEST;
 				gbc_lblShow.insets = new Insets(0, 0, 5, 5);
 				gbc_lblShow.gridx = 0;
 				gbc_lblShow.gridy = 1;
@@ -295,11 +322,33 @@ public class GUIPathPlotDialog extends JDialog
 			{
 				chckbxChanges = new JCheckBox("Plot changes only");
 				GridBagConstraints gbc_chckbxChanges = new GridBagConstraints();
+				gbc_chckbxChanges.anchor = GridBagConstraints.WEST;
 				gbc_chckbxChanges.gridwidth = 2;
-				gbc_chckbxChanges.insets = new Insets(0, 0, 0, 5);
+				gbc_chckbxChanges.insets = new Insets(0, 0, 5, 5);
 				gbc_chckbxChanges.gridx = 0;
 				gbc_chckbxChanges.gridy = 2;
 				topPanel.add(chckbxChanges, gbc_chckbxChanges);
+			}
+			{
+				lblMaximumPathLength = new JLabel("Maximum path length:");
+				GridBagConstraints gbc_lblMaximumPathLength = new GridBagConstraints();
+				gbc_lblMaximumPathLength.anchor = GridBagConstraints.WEST;
+				gbc_lblMaximumPathLength.gridwidth = 2;
+				gbc_lblMaximumPathLength.insets = new Insets(0, 0, 0, 5);
+				gbc_lblMaximumPathLength.gridx = 0;
+				gbc_lblMaximumPathLength.gridy = 3;
+				topPanel.add(lblMaximumPathLength, gbc_lblMaximumPathLength);
+			}
+			{
+				textFieldMaxLen = new JTextField();
+				GridBagConstraints gbc_textFieldMaxLen = new GridBagConstraints();
+				gbc_textFieldMaxLen.anchor = GridBagConstraints.WEST;
+				gbc_textFieldMaxLen.gridwidth = 2;
+				gbc_textFieldMaxLen.insets = new Insets(0, 0, 0, 5);
+				gbc_textFieldMaxLen.gridx = 2;
+				gbc_textFieldMaxLen.gridy = 3;
+				topPanel.add(textFieldMaxLen, gbc_textFieldMaxLen);
+				textFieldMaxLen.setColumns(8);
 			}
 			{
 				bottomPanel = new JPanel();
@@ -425,34 +474,29 @@ public class GUIPathPlotDialog extends JDialog
 
 	private void initComponents()
 	{
-		comboBoxShow.setSelectedItem(ShowChoice.CHANGES);
-		rdbtnVarsAll.setSelected(true);
 		if (modulesFile.getModelType().continuousTime()) {
 			comboBoxSimulate.setSelectedItem(SimulateChoice.TIME);
-			textFieldTime.setText("100.0");
-			textFieldInterval.setText("1.0");
+			comboBoxShow.setSelectedItem(ShowChoice.SNAPSHOTS);
+			textFieldTime.setText("10.0");
+			textFieldInterval.setText("0.1");
 		} else {
+			comboBoxSimulate.setSelectedItem(SimulateChoice.STEP);
+			comboBoxShow.setSelectedItem(ShowChoice.ALL_STEPS);
 			textFieldTime.setText("100");
 			textFieldInterval.setText("");
 		}
+		chckbxChanges.setSelected(true);
+		textFieldMaxLen.setText("" + gui.getPrism().getSettings().getInteger(PrismSettings.SIMULATOR_DEFAULT_MAX_PATH));
+		rdbtnVarsAll.setSelected(true);
 		for (int i = 0; i < modulesFile.getNumVars(); i++) {
 			varsCheckBoxes.add(new JCheckBox(modulesFile.getVarName(i)));
 		}
 		//
+		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setLocationRelativeTo(getParent()); // centre
 		pack();
 		doEnables();
 		cancelled = true;
-	}
-
-	public boolean wasCancelled()
-	{
-		return cancelled;
-	}
-
-	public String getSimPathString()
-	{
-		return simPathString;
 	}
 
 	private void doEnables()
@@ -485,7 +529,7 @@ public class GUIPathPlotDialog extends JDialog
 
 	public void okButtonActionPerformed(ActionEvent event)
 	{
-		// Validate inputs and build simpath string 
+		// Validate inputs and build simpath string, store max path len
 		simPathString = "";
 		switch ((SimulateChoice) comboBoxSimulate.getSelectedItem()) {
 		case STEP:
@@ -522,7 +566,7 @@ public class GUIPathPlotDialog extends JDialog
 				return;
 			}
 		}
-		if ((ShowChoice) comboBoxShow.getSelectedItem() == ShowChoice.CHANGES) {
+		if (chckbxChanges.isSelected()) {
 			simPathString += ",changes=true";
 		}
 		if (rdbtnVarsNone.isSelected()) {
@@ -537,6 +581,15 @@ public class GUIPathPlotDialog extends JDialog
 			simPathString += ",vars=(" + s + ")";
 		}
 		simPathString += ",rewards=" + rdbtnRewardsAll.isSelected();
+		try {
+			int i = Integer.parseInt(textFieldMaxLen.getText());
+			if (i < 0)
+				throw new NumberFormatException();
+			maxPathLength = i;
+		} catch (NumberFormatException e) {
+			gui.errorDialog("Invalid maximum path length \"" + textFieldMaxLen.getText() + "\"");
+			return;
+		}
 		
 		cancelled = false;
 		dispose();
