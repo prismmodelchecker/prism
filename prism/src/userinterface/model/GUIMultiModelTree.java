@@ -847,6 +847,13 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
                         inTreeNode.add(newVariable);
                         cIndices[j] = getVarTreeIndexOf(notTreeDec, inTreeNode);
                     }
+                    else if(notTreeDec.getType() instanceof TypeClock)
+                    {
+                    	DeclarationClock declClk = (DeclarationClock)notTreeDec.getDeclType();
+                        VarNode newVariable = new VarNode(notTreeDec.getName(), parsedModel.getSystemDefn() == null ? notTreeDec.getStartOrDefault() : null, Expression.Int(0), null, false);
+                        inTreeNode.add(newVariable);
+                        cIndices[j] = getVarTreeIndexOf(notTreeDec, inTreeNode);
+                    }
                 }
                 theModel.nodesWereInserted(inTreeNode, cIndices);
                 
@@ -897,6 +904,11 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
                     else if(aDec.getType() instanceof TypeBool)
                     {
                         BoolNode newVariable = new BoolNode(aDec.getName(), parsedModel.getSystemDefn() == null ? aDec.getStartOrDefault() : null, false);
+                        newNode.add(newVariable);
+                    }
+                    if(aDec.getType() instanceof TypeClock)
+                    {
+                        VarNode newVariable = new VarNode(aDec.getName(), parsedModel.getSystemDefn() == null ? aDec.getStartOrDefault() : null, Expression.Int(0), null, false);
                         newNode.add(newVariable);
                     }
                 }
