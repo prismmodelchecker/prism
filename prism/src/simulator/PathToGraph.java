@@ -27,6 +27,7 @@
 package simulator;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 
 import org.jfree.data.xy.XYDataItem;
@@ -54,10 +55,12 @@ public class PathToGraph extends PathDisplayer
 	private int numRewardStructs;
 
 	// Displayer state
-	/** Step counter */
 	private double lastTime;
 	private State lastState;
 	private double[] lastStateRewards;
+	/** For each variable/reward, whether we skipped plotting a point last time */
+	private BitSet skippedVars = new BitSet();
+	private BitSet skippedRewards = new BitSet();
 
 	/**
 	 * Construct a {@link PathToGraph} object
@@ -120,7 +123,7 @@ public class PathToGraph extends PathDisplayer
 	@Override
 	public void displaySnapshot(double timeCumul, State newState, double[] newStateRewards)
 	{
-		displayState(timeCumul, newState, newStateRewards, true);
+		displayState(timeCumul, newState, newStateRewards, !showChangesOnly);
 	}
 
 	private void displayState(double time, State state, double[] stateRewards, boolean force)
@@ -128,42 +131,36 @@ public class PathToGraph extends PathDisplayer
 		if (varsToShow == null) {
 			for (int j = 0; j < numVars; j++) {
 				Object val = state.varValues[j];
-				double d = 0.0;
-				if (force || !val.equals(lastState.varValues[j])) {
-					try {
-						d = TypeDouble.getInstance().castValueTo(val).doubleValue();
-						graphModel.addPointToSeries(varSeriesKeys.get(j), new XYDataItem(time, d));
-					} catch (PrismException e) {
-						if (val instanceof Boolean) {
-							d = ((Boolean) val).booleanValue() ? 1.0 : 0.0;
-							graphModel.addPointToSeries(varSeriesKeys.get(j), new XYDataItem(time, d));
-						}
-					}
+				boolean plot = force || !val.equals(lastState.varValues[j]);
+				if (plot) {
+					if (skippedVars.get(j))
+						addPoint(varSeriesKeys.get(j), lastTime, lastState.varValues[j]);
+					addPoint(varSeriesKeys.get(j), time, val);
 				}
+				skippedVars.set(j, !plot);
 			}
 		} else {
 			for (int j : varsToShow) {
 				Object val = state.varValues[j];
-				double d = 0.0;
-				if (force || !val.equals(lastState.varValues[j])) {
-					try {
-						d = TypeDouble.getInstance().castValueTo(val).doubleValue();
-						graphModel.addPointToSeries(varSeriesKeys.get(j), new XYDataItem(time, d));
-					} catch (PrismException e) {
-						if (val instanceof Boolean) {
-							d = ((Boolean) val).booleanValue() ? 1.0 : 0.0;
-							graphModel.addPointToSeries(varSeriesKeys.get(j), new XYDataItem(time, d));
-						}
-					}
+				boolean plot = force || !val.equals(lastState.varValues[j]);
+				if (plot) {
+					if (skippedVars.get(j))
+						addPoint(varSeriesKeys.get(j), lastTime, lastState.varValues[j]);
+					addPoint(varSeriesKeys.get(j), time, val);
 				}
+				skippedVars.set(j, !plot);
 			}
 		}
 		if (showRewards) {
 			for (int j = 0; j < numRewardStructs; j++) {
 				double d = stateRewards[j];
-				if (force || lastStateRewards[j] != stateRewards[j]) {
+				boolean plot = force || lastStateRewards[j] != stateRewards[j];
+				if (plot) {
+					if (skippedRewards.get(j))
+						graphModel.addPointToSeries(rewardSeriesKeys.get(j), new XYDataItem(lastTime, lastStateRewards[j]));
 					graphModel.addPointToSeries(rewardSeriesKeys.get(j), new XYDataItem(time, d));
 				}
+				skippedRewards.set(j, !plot);
 			}
 		}
 		lastTime = time;
@@ -173,6 +170,24 @@ public class PathToGraph extends PathDisplayer
 		}
 	}
 
+	/**
+	 * Add a point to a given graph series. X-value is {@code x}.
+	 * Y-value is {@code value}, which will mapped to a double as appropriate.
+	 */
+	private void addPoint(SeriesKey seriesKey, double x, Object val)
+	{
+		double d;
+		try {
+			d = TypeDouble.getInstance().castValueTo(val).doubleValue();
+			graphModel.addPointToSeries(seriesKey, new XYDataItem(x, d));
+		} catch (PrismException e) {
+			if (val instanceof Boolean) {
+				d = ((Boolean) val).booleanValue() ? 1.0 : 0.0;
+				graphModel.addPointToSeries(seriesKey, new XYDataItem(x, d));
+			}
+		}
+	}
+	
 	@Override
 	public void endDisplay()
 	{
