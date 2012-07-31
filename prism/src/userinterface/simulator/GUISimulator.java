@@ -729,6 +729,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 			// Get path details from dialog
 			GUIPathPlotDialog pathPlotDialog = GUIPathPlotDialog.showDialog(getGUI(), parsedModel);
+			if (pathPlotDialog == null)
+				return;
 			String simPathDetails = pathPlotDialog.getSimPathString();
 			if (simPathDetails == null)
 				return;
