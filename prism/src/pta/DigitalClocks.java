@@ -293,7 +293,12 @@ public class DigitalClocks
 				RewardStructItem rsi = rs.getRewardStructItem(i);
 				// Convert state rewards
 				if (!rsi.isTransitionReward()) {
-					rsi = new RewardStructItem(timeAction, rsi.getStates().deepCopy(), rsi.getReward().deepCopy());
+					// Scale reward by clock GCD
+					Expression rew = rsi.getReward().deepCopy();
+					if (cci.getScaleFactor() > 1) {
+						rew = Expression.Times(rew, Expression.Int(cci.getScaleFactor()));
+					}
+					rsi = new RewardStructItem(timeAction, rsi.getStates().deepCopy(), rew);
 					rs.setRewardStructItem(i, rsi);
 				}
 			}
