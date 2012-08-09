@@ -1756,7 +1756,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		StateValues probs = null;
 
 		// work out number of states in 'subset'
-		if (tr.equals(reach)) {
+		if (subset.equals(reach)) {
 			// avoid a call to GetNumMinterms in this simple (and common) case
 			n = model.getNumStates();
 		} else {
