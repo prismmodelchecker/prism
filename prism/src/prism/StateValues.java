@@ -61,6 +61,7 @@ public interface StateValues
 	JDDNode getBDDFromCloseValueRel(double val, double epsilon);
 	void print(PrismLog log) throws PrismException;
 	void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException;
+	void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices) throws PrismException;
 	void printFiltered(PrismLog log, JDDNode filter) throws PrismException;
 	void printFiltered(PrismLog log, JDDNode filter, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException;
 	StateValues deepCopy() throws PrismException; 

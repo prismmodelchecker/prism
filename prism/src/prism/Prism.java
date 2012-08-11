@@ -2645,9 +2645,9 @@ public class Prism implements PrismSettingsListener
 
 		// print out or export probabilities
 		if (!getExplicit())
-			probs.print(tmpLog, fileOut == null, exportType == EXPORT_MATLAB, fileOut == null);
+			probs.print(tmpLog, fileOut == null, exportType == EXPORT_MATLAB, fileOut == null, fileOut == null);
 		else
-			probsExpl.print(tmpLog, fileOut == null, exportType == EXPORT_MATLAB, fileOut == null, true);
+			probsExpl.print(tmpLog, fileOut == null, exportType == EXPORT_MATLAB, fileOut == null, fileOut == null);
 
 		// print out computation time
 		mainLog.println("\nTime for steady-state probability computation: " + l / 1000.0 + " seconds.");
@@ -2747,9 +2747,9 @@ public class Prism implements PrismSettingsListener
 
 		// print out or export probabilities
 		if (!getExplicit())
-			probs.print(tmpLog, fileOut == null, exportType == EXPORT_MATLAB, fileOut == null);
+			probs.print(tmpLog, fileOut == null, exportType == EXPORT_MATLAB, fileOut == null, fileOut == null);
 		else
-			probsExpl.print(tmpLog, fileOut == null, exportType == EXPORT_MATLAB, fileOut == null, true);
+			probsExpl.print(tmpLog, fileOut == null, exportType == EXPORT_MATLAB, fileOut == null, fileOut == null);
 
 		// print out computation time
 		mainLog.println("\nTime for transient probability computation: " + l / 1000.0 + " seconds.");
