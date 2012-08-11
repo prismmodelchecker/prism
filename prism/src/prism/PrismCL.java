@@ -728,7 +728,7 @@ public class PrismCL implements PrismModelListener
 				else
 					exportSteadyStateFile = new File(exportSteadyStateFilename);
 				// Compute steady-state probabilities
-				prism.doSteadyState(exportType, exportSteadyStateFile);
+				prism.doSteadyState(exportType, exportSteadyStateFile, importinitdist ? new File(importInitDistFilename) : null);
 			} catch (PrismException e) {
 				// In case of error, report it and proceed
 				error(e.getMessage());
