@@ -146,6 +146,13 @@ public class DoubleVector
 		DV_TimesConstant(v, n, d);
 	}
 
+	// compute dot (inner) product of this and another vector
+	private native double DV_DotProduct(long v, int n, long v2);
+	public double dotProduct(DoubleVector dv) 
+	{
+		return DV_DotProduct(v, n, dv.v);
+	}
+
 	// filter vector using a bdd (set elements not in filter to 0)
 	private native void DV_Filter(long v, long filter, long vars, int num_vars, long odd);
 	public void filter(JDDNode filter, JDDVars vars, ODDNode odd)

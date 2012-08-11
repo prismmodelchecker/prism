@@ -81,6 +81,14 @@ JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1TimesConstant
 
 /*
  * Class:     dv_DoubleVector
+ * Method:    DV_DotProduct
+ * Signature: (JIJ)D
+ */
+JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1DotProduct
+  (JNIEnv *, jobject, jlong, jint, jlong);
+
+/*
+ * Class:     dv_DoubleVector
  * Method:    DV_Filter
  * Signature: (JJJIJ)V
  */

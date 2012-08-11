@@ -42,6 +42,7 @@ public interface StateValues
 	void subtractFromOne();
 	void add(StateValues sp);
 	void timesConstant(double d);
+	double dotProduct(StateValues sp);
 	void filter(JDDNode filter);
 	public void maxMTBDD(JDDNode vec2);
 	void clear();

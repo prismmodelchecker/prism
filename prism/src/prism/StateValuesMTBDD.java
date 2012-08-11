@@ -206,6 +206,20 @@ public class StateValuesMTBDD implements StateValues
 		values = JDD.Apply(JDD.TIMES, values, JDD.Constant(d));
 	}
 	
+	// compute dot (inner) product of this and another vector
+	
+	public double dotProduct(StateValues sp) 
+	{
+		StateValuesMTBDD spm = (StateValuesMTBDD) sp;
+		JDD.Ref(values);
+		JDD.Ref(spm.values);
+		JDDNode tmp = JDD.Apply(JDD.TIMES, values, spm.values);
+		tmp = JDD.SumAbstract(tmp, vars);
+		double d = JDD.FindMax(tmp);
+		JDD.Deref(tmp);
+		return d;
+	}
+	
 	// filter vector using a bdd (set elements not in filter to 0)
 	
 	public void filter(JDDNode filter)

@@ -193,6 +193,13 @@ public class StateValuesDV implements StateValues
 		values.timesConstant(d);
 	}
 
+	// compute dot (inner) product of this and another vector
+	
+	public double dotProduct(StateValues sv)
+	{
+		return values.dotProduct(((StateValuesDV) sv).values);
+	}
+	
 	// filter vector using a bdd (set elements not in filter to 0)
 
 	public void filter(JDDNode filter)

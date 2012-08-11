@@ -212,6 +212,29 @@ jdouble d
 
 //------------------------------------------------------------------------------
 
+JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1DotProduct
+(
+JNIEnv *env,
+jobject obj,
+jlong __jlongpointer v,
+jint n,
+jlong __jlongpointer v2
+)
+{
+	double *vector = jlong_to_double(v);
+	double *vector2 = jlong_to_double(v2);
+	int i;
+	double d = 0.0;
+
+	for (i = 0; i < n; i++) {
+		d += vector[i] * vector2[i];
+	}
+	
+	return d;
+}
+
+//------------------------------------------------------------------------------
+
 JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1Filter
 (
 JNIEnv *env,
