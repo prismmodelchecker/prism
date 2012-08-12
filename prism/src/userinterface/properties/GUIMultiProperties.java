@@ -67,6 +67,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.border.TitledBorder;
@@ -142,7 +143,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	private GUIExperimentTable experiments;
 	private GUIGraphHandler graphHandler;
 	private JScrollPane expScroller;
-	private JLabel fileLabel;
+	private JTextField fileTextField;
 	private Action newProps, openProps, saveProps, savePropsAs, insertProps, verifySelected, newProperty, editProperty, newConstant, removeConstant, newLabel,
 			removeLabel, newExperiment, deleteExperiment, stopExperiment, viewResults, plotResults,
 			exportResultsListText, exportResultsListCSV, exportResultsMatrixText, exportResultsMatrixCSV, simulate, details;
@@ -586,7 +587,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 
 	protected void setActiveFileLabel()
 	{
-		fileLabel.setText("Properties list: " + ((activeFile == null) ? "<Untitled>" : activeFile.getPath()) + (modified ? "*" : ""));
+		fileTextField.setText("Properties list: " + ((activeFile == null) ? "<Untitled>" : activeFile.getPath()) + (modified ? "*" : ""));
 	}
 
 	protected void setParsedModel(ModulesFile m)
@@ -1582,17 +1583,19 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 
 		JPanel topPanel = new JPanel();
 		{
-			fileLabel = new JLabel();
+			fileTextField = new JTextField();
 			{
-				fileLabel.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-				fileLabel.setBorder(new javax.swing.border.EtchedBorder());
-				fileLabel.setMinimumSize(new java.awt.Dimension(40, 25));
+				fileTextField.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+				fileTextField.setBorder(new javax.swing.border.EtchedBorder());
+				fileTextField.setMinimumSize(new java.awt.Dimension(40, 25));
+				fileTextField.setEditable(false);
+				fileTextField.setBackground(null);
 			}
 
 			//progress = new JProgressBar(0, 100);
 			topPanel.setLayout(new BorderLayout());
 			//topPanel.add(progress, BorderLayout.WEST);
-			topPanel.add(fileLabel, BorderLayout.CENTER);
+			topPanel.add(fileTextField, BorderLayout.CENTER);
 		}
 		setLayout(new BorderLayout());
 		add(mainSplit, BorderLayout.CENTER);
