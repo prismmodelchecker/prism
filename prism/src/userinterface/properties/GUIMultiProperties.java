@@ -1158,6 +1158,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				if (simulateAfterReceiveParseNotification)
 					simulateAfterParse();
 			} else if (me.getID() == GUIModelEvent.MODEL_PARSE_FAILED) {
+				argsPropertiesFile = null;
 				verifyAfterReceiveParseNotification = false;
 				experimentAfterReceiveParseNotification = false;
 				simulateAfterReceiveParseNotification = false;
