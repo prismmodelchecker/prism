@@ -53,6 +53,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -95,6 +96,7 @@ import userinterface.GUISimulationPicker;
 import userinterface.OptionsPanel;
 import userinterface.SimulationInformation;
 import userinterface.model.GUIModelEvent;
+import userinterface.model.GUIMultiModel;
 import userinterface.properties.computation.ExportResultsThread;
 import userinterface.properties.computation.LoadPropertiesThread;
 import userinterface.properties.computation.ModelCheckThread;
@@ -134,6 +136,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	private ArrayList<GUIProperty> propertiesToBeVerified;
 	private File activeFile;
 	private Values pfConstants;
+	private String argsPropertiesFile;
 
 	// GUI
 	private GUIPrismFileFilter propsFilter[];
@@ -177,12 +180,9 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 
 	public void takeCLArgs(String args[])
 	{
-		// disabled for now - need to sort out so this doesn't happen until model is fully parsed
-		// 		if (args.length > 1) {
-		// 			Thread t = new LoadPropertiesThread(this, parsedModel, new File(args[1]));
-		// 			t.setPriority(Thread.NORM_PRIORITY);
-		// 			t.start();
-		// 		}
+		if(args.length > 1) {
+			argsPropertiesFile = args[1];
+		}
 	}
 
 	//ACCESS METHODS
@@ -1150,6 +1150,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				doEnables();
 			} else if (me.getID() == GUIModelEvent.MODEL_PARSED) {
 				setParsedModel(me.getModulesFile());
+				checkForPropertiesToLoad();
 				if (verifyAfterReceiveParseNotification)
 					verifyAfterParse();
 				if (experimentAfterReceiveParseNotification)
@@ -1210,6 +1211,15 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		}
 		return false;
+	}
+	
+	private void checkForPropertiesToLoad() {
+		if(argsPropertiesFile != null) {
+			Thread t = new LoadPropertiesThread(this, parsedModel, new File(argsPropertiesFile));
+			t.setPriority(Thread.NORM_PRIORITY);
+			t.start();
+			argsPropertiesFile = null;
+		}
 	}
 
 	//METHODS TO IMPLEMENT MouseListner INTERFACE
