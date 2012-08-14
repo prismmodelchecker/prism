@@ -2350,6 +2350,10 @@ public class Prism implements PrismSettingsListener
 
 		// Build model, if necessary
 		buildModelIfRequired();
+		
+		//Even if model is already built we need to check for timelocks.
+		if(digital) 
+			doBuildModelDigitalClocksChecks();
 
 		// Create new model checker object and do model checking
 		if (!getExplicit()) {
