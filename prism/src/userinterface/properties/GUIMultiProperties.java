@@ -1219,6 +1219,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			Thread t = new LoadPropertiesThread(this, parsedModel, new File(argsPropertiesFile));
 			t.setPriority(Thread.NORM_PRIORITY);
 			t.start();
+			//we clear the variable to avoid loading property file every time a model is parsed.
 			argsPropertiesFile = null;
 		}
 	}
