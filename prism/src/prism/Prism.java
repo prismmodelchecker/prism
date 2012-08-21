@@ -2628,8 +2628,7 @@ public class Prism implements PrismSettingsListener
 				DTMCModelChecker mcDTMC = new DTMCModelChecker();
 				mcDTMC.setLog(mainLog);
 				mcDTMC.setSettings(settings);
-				// TODO: pass in init dist file
-				probsExpl = mcDTMC.doSteadyState((DTMC) currentModelExpl, null);
+				probsExpl = mcDTMC.doSteadyState((DTMC) currentModelExpl, fileIn);
 			} else if (currentModelType == ModelType.CTMC) {
 				throw new PrismException("Not implemented yet");
 			} else {
