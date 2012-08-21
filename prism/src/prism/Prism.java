@@ -2351,10 +2351,6 @@ public class Prism implements PrismSettingsListener
 		// Build model, if necessary
 		buildModelIfRequired();
 		
-		//Even if model is already built we need to check for timelocks.
-		if(digital) 
-			doBuildModelDigitalClocksChecks();
-
 		// Create new model checker object and do model checking
 		if (!getExplicit()) {
 			ModelChecker mc = StateModelChecker.createModelChecker(currentModelType, this, currentModel, propertiesFile);
@@ -2393,6 +2389,8 @@ public class Prism implements PrismSettingsListener
 				currentModulesFile = dc.getNewModulesFile();
 				currentModulesFile.setUndefinedConstants(oldModulesFile.getConstantValues());
 				currentModelType = ModelType.MDP;
+				currentModel = null;
+				currentModelExpl = null;
 				// If required, export generated PRISM model
 				if (exportDigital) {
 					try {
@@ -2410,6 +2408,8 @@ public class Prism implements PrismSettingsListener
 				digital = false;
 				currentModulesFile = oldModulesFile;
 				currentModelType = ModelType.PTA;
+				currentModel = null;
+				currentModelExpl = null;
 			}
 		}
 		// Other methods
