@@ -352,22 +352,6 @@ public class JDD
 		return new JDDNode(DD_Xor(dd1.ptr(), dd2.ptr()));
 	}
 	
-	/**
-	 * Returns true if the two BDDs intersect (i.e. conjunction is non-empty)
-	 * [ REFS: <none>, DEREFS: <none> ]
-	 */
-	public static boolean AreInterecting(JDDNode dd1, JDDNode dd2)
-	{
-		JDDNode tmp;
-		boolean res;
-		JDD.Ref(dd1);
-		JDD.Ref(dd2);
-		tmp = JDD.And(dd1, dd2);
-		res = !tmp.equals(JDD.ZERO);
-		JDD.Deref(tmp);
-		return res;
-	}
-	
 	// implies of dd1, dd2
 	// [ REFS: <result>, DEREFS: dd1, dd2 ]
 
@@ -427,6 +411,38 @@ public class JDD
 		return new JDDNode(DD_ITE(dd1.ptr(), dd2.ptr(), dd3.ptr()));
 	}
 		
+	/**
+	 * Returns true if the two BDDs intersect (i.e. conjunction is non-empty).
+	 * [ REFS: <none>, DEREFS: <none> ]
+	 */
+	public static boolean AreInterecting(JDDNode dd1, JDDNode dd2)
+	{
+		JDDNode tmp;
+		boolean res;
+		JDD.Ref(dd1);
+		JDD.Ref(dd2);
+		tmp = JDD.And(dd1, dd2);
+		res = !tmp.equals(JDD.ZERO);
+		JDD.Deref(tmp);
+		return res;
+	}
+	
+	/**
+	 * Returns true if {@code dd1} is contained in {@code dd2}.
+	 * [ REFS: <none>, DEREFS: <none> ]
+	 */
+	public static boolean IsContainedIn(JDDNode dd1, JDDNode dd2)
+	{
+		JDDNode tmp;
+		boolean res;
+		JDD.Ref(dd1);
+		JDD.Ref(dd2);
+		tmp = JDD.Implies(dd1, dd2);
+		res = tmp.equals(JDD.ONE);
+		JDD.Deref(tmp);
+		return res;
+	}
+	
 	// wrapper methods for dd_vars
 	
 	// permute (->) variables in dd (cf. swap)
