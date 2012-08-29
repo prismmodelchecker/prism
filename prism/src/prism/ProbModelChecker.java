@@ -1106,7 +1106,7 @@ public class ProbModelChecker extends NonProbModelChecker
 	// -----------------------------------------------------------------------------------
 	// Utility methods for probability distributions
 	// -----------------------------------------------------------------------------------
-	
+
 	/**
 	 * Generate a probability distribution, stored as a StateValues object, from a file.
 	 * The type of storage (MTBDD or double vector) matches the current engine.
@@ -1127,7 +1127,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			// Populate vector from file
 			dist.readFromFile(distFile);
 		}
-		
+
 		return dist;
 	}
 
@@ -1141,7 +1141,7 @@ public class ProbModelChecker extends NonProbModelChecker
 	{
 		StateValues dist = null;
 		JDDNode init;
-		
+
 		// first construct as MTBDD
 		// get initial states of model
 		start = model.getStart();
@@ -1157,7 +1157,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			dist = new StateValuesDV(init, model);
 			JDD.Deref(init);
 		}
-		
+
 		return dist;
 	}
 
@@ -1620,159 +1620,132 @@ public class ProbModelChecker extends NonProbModelChecker
 	 */
 	public StateValues computeSteadyStateProbs(JDDNode tr, StateValues initDist) throws PrismException
 	{
-		// bscc stuff
-		Vector<JDDNode> vectBSCCs;
-		JDDNode notInBSCCs;
-		// mtbdd stuff
-		JDDNode start, bscc;
-		// other stuff
+		// BSCC stuff
+		Vector<JDDNode> vectBSCCs = null;
+		JDDNode notInBSCCs = null;
+		// MTBDD stuff
+		JDDNode start = null, bscc;
+		// Other stuff
 		StateValues probs = null, solnProbs = null;
 		double probBSCCs[];
-		int numBSCCs, allInOneBSCC;
+		int numBSCCs = 0, allInOneBSCC;
 
-		// compute bottom strongly connected components (bsccs)
-		if (bsccComp) {
-			SCCComputer sccComputer = prism.getSCCComputer(model);
-			sccComputer.computeBSCCs();
-			vectBSCCs = sccComputer.getVectBSCCs();
-			notInBSCCs = sccComputer.getNotInBSCCs();
-			numBSCCs = vectBSCCs.size();
-		}
-		// unless we've been told to skip it
-		else {
-			mainLog.println("\nSkipping BSCC computation...");
-			vectBSCCs = new Vector<JDDNode>();
-			JDD.Ref(reach);
-			vectBSCCs.add(reach);
-			notInBSCCs = JDD.Constant(0);
-			numBSCCs = 1;
-		}
+		try {
 
-		// See which states in the initial distribution have non-zero prob
-		start = initDist.getBDDFromInterval(">", 0);
-		// Determine whether initial states are all in a single BSCC 
-		allInOneBSCC = -1;
-		for (int b = 0; b < numBSCCs; b++) {
-			if (JDD.IsContainedIn(start, vectBSCCs.elementAt(b))) {
-				allInOneBSCC = b;
-				break;
+			// Compute bottom strongly connected components (bsccs)
+			if (bsccComp) {
+				SCCComputer sccComputer = prism.getSCCComputer(model);
+				sccComputer.computeBSCCs();
+				vectBSCCs = sccComputer.getVectBSCCs();
+				notInBSCCs = sccComputer.getNotInBSCCs();
+				numBSCCs = vectBSCCs.size();
 			}
-		}
+			// Unless we've been told to skip it
+			else {
+				mainLog.println("\nSkipping BSCC computation...");
+				vectBSCCs = new Vector<JDDNode>();
+				JDD.Ref(reach);
+				vectBSCCs.add(reach);
+				notInBSCCs = JDD.Constant(0);
+				numBSCCs = 1;
+			}
 
-		// if all initial states are in a single bscc, it's easy...
-		if (allInOneBSCC != -1) {
+			// See which states in the initial distribution have non-zero prob
+			start = initDist.getBDDFromInterval(">", 0);
+			// Determine whether initial states are all in a single BSCC 
+			allInOneBSCC = -1;
+			for (int b = 0; b < numBSCCs; b++) {
+				if (JDD.IsContainedIn(start, vectBSCCs.elementAt(b))) {
+					allInOneBSCC = b;
+					break;
+				}
+			}
 
-			mainLog.println("\nInitial states all in one BSCC (so no reachability probabilities computed)");
-
-			// get bscc
-			bscc = vectBSCCs.elementAt(allInOneBSCC);
-
-			// compute steady-state probabilities for the bscc
-			try {
+			// If all initial states are in a single BSCC, it's easy...
+			// Just compute steady-state probabilities for the BSCC
+			if (allInOneBSCC != -1) {
+				mainLog.println("\nInitial states all in one BSCC (so no reachability probabilities computed)");
+				bscc = vectBSCCs.elementAt(allInOneBSCC);
 				solnProbs = computeSteadyStateProbsForBSCC(trans, bscc);
-			} catch (PrismException e) {
-				JDD.Deref(start);
+			}
+
+			// Otherwise, have to consider all the BSCCs
+			else {
+
+				// Initialise total probabilities vector
+				switch (engine) {
+				case Prism.MTBDD:
+					solnProbs = new StateValuesMTBDD(JDD.Constant(0), model);
+					break;
+				case Prism.SPARSE:
+					solnProbs = new StateValuesDV(new DoubleVector((int) model.getNumStates()), model);
+					break;
+				case Prism.HYBRID:
+					solnProbs = new StateValuesDV(new DoubleVector((int) model.getNumStates()), model);
+					break;
+				}
+
+				// Compute prob of reaching each BSCC from initial state
+				probBSCCs = new double[numBSCCs];
 				for (int b = 0; b < numBSCCs; b++) {
-					JDD.Deref(vectBSCCs.elementAt(b));
-				}
-				JDD.Deref(notInBSCCs);
-				throw e;
-			}
-		}
-
-		// otherwise have to consider all the bsccs
-		else {
-
-			// initialise total probabilities vector
-			switch (engine) {
-			case Prism.MTBDD:
-				solnProbs = new StateValuesMTBDD(JDD.Constant(0), model);
-				break;
-			case Prism.SPARSE:
-				solnProbs = new StateValuesDV(new DoubleVector((int) model.getNumStates()), model);
-				break;
-			case Prism.HYBRID:
-				solnProbs = new StateValuesDV(new DoubleVector((int) model.getNumStates()), model);
-				break;
-			}
-
-			// compute prob of reaching each bscc from initial state
-			probBSCCs = new double[numBSCCs];
-			for (int b = 0; b < numBSCCs; b++) {
-
-				mainLog.println("\nComputing probability of reaching BSCC " + (b + 1));
-
-				// get bscc
-				bscc = vectBSCCs.elementAt(b);
-
-				// compute probabilities
-				try {
+					mainLog.println("\nComputing probability of reaching BSCC " + (b + 1));
+					bscc = vectBSCCs.elementAt(b);
+					// Compute probabilities
 					probs = computeUntilProbs(trans, trans01, notInBSCCs, bscc);
-				} catch (PrismException e) {
-					JDD.Deref(start);
-					for (b = 0; b < numBSCCs; b++) {
-						JDD.Deref(vectBSCCs.elementAt(b));
-					}
-					JDD.Deref(notInBSCCs);
-					solnProbs.clear();
-					throw e;
+					// Compute probability of reaching BSCC, which is dot product of
+					// vectors for initial distribution and probabilities of reaching it
+					probBSCCs[b] = probs.dotProduct(initDist);
+					mainLog.print("\nProbability of reaching BSCC " + (b + 1) + ": " + probBSCCs[b] + "\n");
+					// Free vector
+					probs.clear();
 				}
 
-				// compute probability of reaching BSCC, which is dot product of
-				// vectors for initial distribution and probabilities of reaching it
-				probBSCCs[b] = probs.dotProduct(initDist);
-				mainLog.print("\nProbability of reaching BSCC " + (b + 1) + ": " + probBSCCs[b] + "\n");
-
-				// free vector
-				probs.clear();
-			}
-
-			// compute steady-state for each bscc
-			for (int b = 0; b < numBSCCs; b++) {
-
-				mainLog.println("\nComputing steady-state probabilities for BSCC " + (b + 1));
-
-				// get bscc
-				bscc = vectBSCCs.elementAt(b);
-
-				// compute steady-state probabilities for the bscc
-				try {
+				// Compute steady-state probs for each BSCC
+				for (int b = 0; b < numBSCCs; b++) {
+					mainLog.println("\nComputing steady-state probabilities for BSCC " + (b + 1));
+					bscc = vectBSCCs.elementAt(b);
+					// Compute steady-state probabilities for the BSCC
 					probs = computeSteadyStateProbsForBSCC(trans, bscc);
-				} catch (PrismException e) {
-					JDD.Deref(start);
-					for (b = 0; b < numBSCCs; b++) {
-						JDD.Deref(vectBSCCs.elementAt(b));
+					// Print out probabilities
+					if (verbose) {
+						mainLog.print("\nBSCC " + (b + 1) + " Steady-State Probabilities: \n");
+						probs.print(mainLog);
 					}
-					JDD.Deref(notInBSCCs);
-					solnProbs.clear();
-					throw e;
+					// Multiply by BSCC reach prob, add to total
+					probs.timesConstant(probBSCCs[b]);
+					solnProbs.add(probs);
+					// Free vector
+					probs.clear();
 				}
-
-				// print out probabilities
-				if (verbose) {
-					mainLog.print("\nBSCC " + (b + 1) + " Steady-State Probabilities: \n");
-					probs.print(mainLog);
-				}
-
-				// times by bscc reach prob, add to total
-				probs.timesConstant(probBSCCs[b]);
-				solnProbs.add(probs);
-
-				// free vector
-				probs.clear();
 			}
+		} catch (PrismException e) {
+			// Tidy up and pass on the exception
+			if (start != null)
+				JDD.Deref(start);
+			for (int b = 0; b < numBSCCs; b++) {
+				if (vectBSCCs.elementAt(b) != null)
+					JDD.Deref(vectBSCCs.elementAt(b));
+			}
+			if (start != notInBSCCs)
+				JDD.Deref(notInBSCCs);
+			if (solnProbs != null)
+				solnProbs.clear();
+			throw e;
 		}
 
-		// derefs
-		JDD.Deref(start);
+		// Tidy up
+		if (start != null)
+			JDD.Deref(start);
 		for (int b = 0; b < numBSCCs; b++) {
-			JDD.Deref(vectBSCCs.elementAt(b));
+			if (vectBSCCs.elementAt(b) != null)
+				JDD.Deref(vectBSCCs.elementAt(b));
 		}
-		JDD.Deref(notInBSCCs);
+		if (start != notInBSCCs)
+			JDD.Deref(notInBSCCs);
 
 		return solnProbs;
 	}
-	
+
 	/**
 	 * Compute steady-state probabilities for a BSCC
 	 * i.e. compute the long-run probability of being in each state of the BSCC.
