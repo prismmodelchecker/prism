@@ -1624,11 +1624,11 @@ public class ProbModelChecker extends NonProbModelChecker
 		Vector<JDDNode> vectBSCCs;
 		JDDNode notInBSCCs;
 		// mtbdd stuff
-		JDDNode start, bscc, tmp;
+		JDDNode start, bscc;
 		// other stuff
 		StateValues probs = null, solnProbs = null;
 		double probBSCCs[];
-		int numBSCCs, whichBSCC, bsccCount;
+		int numBSCCs, allInOneBSCC;
 
 		// compute bottom strongly connected components (bsccs)
 		if (bsccComp) {
@@ -1648,37 +1648,24 @@ public class ProbModelChecker extends NonProbModelChecker
 			numBSCCs = 1;
 		}
 
-		// see which states in the initial distribution have non-zero prob
+		// See which states in the initial distribution have non-zero prob
 		start = initDist.getBDDFromInterval(">", 0);
-
-		// see how many bsccs contain initial states and, if just one, which one
-		whichBSCC = -1;
-		bsccCount = 0;
+		// Determine whether initial states are all in a single BSCC 
+		allInOneBSCC = -1;
 		for (int b = 0; b < numBSCCs; b++) {
-			bscc = vectBSCCs.elementAt(b);
-			JDD.Ref(bscc);
-			JDD.Ref(start);
-			tmp = JDD.And(bscc, start);
-			if (!tmp.equals(JDD.ZERO)) {
-				bsccCount++;
-				if (bsccCount == 1)
-					whichBSCC = b;
+			if (JDD.IsContainedIn(start, vectBSCCs.elementAt(b))) {
+				allInOneBSCC = b;
+				break;
 			}
-			JDD.Deref(tmp);
 		}
 
 		// if all initial states are in a single bscc, it's easy...
-		JDD.Ref(notInBSCCs);
-		JDD.Ref(start);
-		tmp = JDD.And(notInBSCCs, start);
-		if (tmp.equals(JDD.ZERO) && bsccCount == 1) {
-
-			JDD.Deref(tmp);
+		if (allInOneBSCC != -1) {
 
 			mainLog.println("\nInitial states all in one BSCC (so no reachability probabilities computed)");
 
 			// get bscc
-			bscc = vectBSCCs.elementAt(whichBSCC);
+			bscc = vectBSCCs.elementAt(allInOneBSCC);
 
 			// compute steady-state probabilities for the bscc
 			try {
@@ -1695,8 +1682,6 @@ public class ProbModelChecker extends NonProbModelChecker
 
 		// otherwise have to consider all the bsccs
 		else {
-
-			JDD.Deref(tmp);
 
 			// initialise total probabilities vector
 			switch (engine) {
