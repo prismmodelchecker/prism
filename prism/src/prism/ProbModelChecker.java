@@ -384,7 +384,7 @@ public class ProbModelChecker extends NonProbModelChecker
 
 			// If every state is in a BSCC, it's much easier...
 			if (notInBSCCs.equals(JDD.ZERO)) {
-				mainLog.println("\nAll states are in a BSCC (so no reachability probabilities computed)");
+				mainLog.println("\nAll states are in BSCCs (so no reachability probabilities computed)");
 				// There are more efficient ways to do this if we just create the solution BDD directly
 				// But we actually build the prob vector so it can be printed out if necessary
 				tmp = JDD.Constant(0);
@@ -432,7 +432,7 @@ public class ProbModelChecker extends NonProbModelChecker
 				}
 			}
 
-			// Print out probabilities
+			// print out probabilities
 			if (verbose) {
 				mainLog.print("\nS operator probabilities: \n");
 				totalProbs.print(mainLog);
@@ -940,7 +940,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		// if every state is in a bscc, it's much easier...
 		if (notInBSCCs.equals(JDD.ZERO)) {
 
-			mainLog.println("\nAll states are in a BSCC (so no reachability probabilities computed)");
+			mainLog.println("\nAll states are in BSCCs (so no reachability probabilities computed)");
 
 			// build the reward vector
 			tmp = JDD.Constant(0);
