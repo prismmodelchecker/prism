@@ -420,7 +420,7 @@ public class ProbModelChecker extends StateModelChecker
 		}
 		// S operator
 		else if (expr instanceof ExpressionSS) {
-			throw new PrismException("Explicit engine does not yet handle the S operator");
+			res = checkExpressionSteadyState(model, (ExpressionSS) expr); 
 		}
 		// Otherwise, use the superclass
 		else {
@@ -605,6 +605,58 @@ public class ProbModelChecker extends StateModelChecker
 		else {
 			BitSet sol = rews.getBitSetFromInterval(relOp, r);
 			rews.clear();
+			return StateValues.createFromBitSet(sol, model);
+		}
+	}
+
+	/**
+	 * Model check an S operator expression and return the values for all states.
+	 */
+	protected StateValues checkExpressionSteadyState(Model model, ExpressionSS expr) throws PrismException
+	{
+		Expression pb; // Probability bound (expression)
+		double p = 0; // Probability bound (actual value)
+		String relOp; // Relational operator
+		ModelType modelType = model.getModelType();
+
+		StateValues probs = null;
+
+		// Get info from prob operator
+		relOp = expr.getRelOp();
+		pb = expr.getProb();
+		if (pb != null) {
+			p = pb.evaluateDouble(constantValues);
+			if (p < 0 || p > 1)
+				throw new PrismException("Invalid probability bound " + p + " in P operator");
+		}
+
+
+		// Compute probabilities
+		switch (modelType) {
+		/*case CTMC:
+			probs = ((CTMCModelChecker) this).checkSteadyStateFormula(model, expr.getExpression());
+			break;*/
+		case DTMC:
+			probs = ((DTMCModelChecker) this).checkSteadyStateFormula(model, expr.getExpression());
+			break;
+		default:
+			throw new PrismException("Cannot model check " + expr + " for a " + modelType);
+		}
+
+		// Print out probabilities
+		if (getVerbosity() > 5) {
+			mainLog.print("\nProbabilities (non-zero only) for all states:\n");
+			mainLog.print(probs);
+		}
+
+		// For =? properties, just return values
+		if (pb == null) {
+			return probs;
+		}
+		// Otherwise, compare against bound to get set of satisfying states
+		else {
+			BitSet sol = probs.getBitSetFromInterval(relOp, p);
+			probs.clear();
 			return StateValues.createFromBitSet(sol, model);
 		}
 	}

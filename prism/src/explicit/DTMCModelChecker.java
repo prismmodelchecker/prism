@@ -194,6 +194,25 @@ public class DTMCModelChecker extends ProbModelChecker
 		return rewards;
 	}
 
+	/**
+	 * Compute steady-state probabilities for an S operator.
+	 */
+	protected StateValues checkSteadyStateFormula(Model model, Expression expr) throws PrismException
+	{
+		BitSet b;
+		StateValues probs = null;
+		ModelCheckerResult res = null;
+
+		// Model check operand first
+		b = checkExpression(model, expr).getBitSet();
+
+		double multProbs[] = Utils.bitsetToDoubleArray(b, model.getNumStates());
+		res = computeSteadyStateBackwardsProbs((DTMC) model, multProbs);
+		probs = StateValues.createFromDoubleArray(res.soln, model);
+
+		return probs;
+	}
+
 	// Steady-state/transient probability computation
 
 	/**
@@ -1002,7 +1021,7 @@ public class DTMCModelChecker extends ProbModelChecker
 	}
 
 	/**
-	 * Compute steady-state probabilities
+	 * Compute (forwards) steady-state probabilities
 	 * i.e. compute the long-run probability of being in each state,
 	 * assuming the initial distribution {@code initDist}. 
 	 * For space efficiency, the initial distribution vector will be modified and values over-written,  
@@ -1014,8 +1033,11 @@ public class DTMCModelChecker extends ProbModelChecker
 	{
 		ModelCheckerResult res;
 		BitSet startNot, bscc;
-		double probBSCCs[], solnProbs[], probsReach[];
+		double probBSCCs[], solnProbs[], reachProbs[];
 		int n, numBSCCs = 0, allInOneBSCC;
+		long timer;
+
+		timer = System.currentTimeMillis();
 
 		// Store num states
 		n = dtmc.getNumStates();
@@ -1043,7 +1065,7 @@ public class DTMCModelChecker extends ProbModelChecker
 				break;
 			}
 		}
-		
+
 		// If all initial states are in a single BSCC, it's easy...
 		// Just compute steady-state probabilities for the BSCC
 		if (allInOneBSCC != -1) {
@@ -1061,12 +1083,12 @@ public class DTMCModelChecker extends ProbModelChecker
 				mainLog.println("\nComputing probability of reaching BSCC " + (b + 1));
 				bscc = bsccs.get(b);
 				// Compute probabilities
-				probsReach = computeReachProbs(dtmc, bscc).soln;
+				reachProbs = computeUntilProbs(dtmc, notInBSCCs, bscc).soln;
 				// Compute probability of reaching BSCC, which is dot product of
 				// vectors for initial distribution and probabilities of reaching it
 				probBSCCs[b] = 0.0;
 				for (int i = 0; i < n; i++) {
-					probBSCCs[b] += initDist[i] * probsReach[i];
+					probBSCCs[b] += initDist[i] * reachProbs[i];
 				}
 				mainLog.print("\nProbability of reaching BSCC " + (b + 1) + ": " + probBSCCs[b] + "\n");
 			}
@@ -1086,8 +1108,101 @@ public class DTMCModelChecker extends ProbModelChecker
 		// Return results
 		res = new ModelCheckerResult();
 		res.soln = solnProbs;
-		// TODO
-		//res.timeTaken = timer / 1000.0;
+		timer = System.currentTimeMillis() - timer;
+		res.timeTaken = timer / 1000.0;
+		return res;
+	}
+
+	/**
+	 * Perform (backwards) steady-state probabilities, as required for (e.g. CSL) model checking.
+	 * Compute, for each initial state s, the sum over all states s'
+	 * of the steady-state probability of being in s'
+	 * multiplied by the corresponding probability in the vector {@code multProbs}.
+	 * If {@code multProbs} is null, it is assumed to be all 1s.
+	 * @param dtmc The DTMC
+	 * @param multProbs Multiplication vector (optional: null means all 1s)
+	 */
+	public ModelCheckerResult computeSteadyStateBackwardsProbs(DTMC dtmc, double multProbs[]) throws PrismException
+	{
+		ModelCheckerResult res;
+		BitSet bscc;
+		double probBSCCs[], ssProbs[], reachProbs[], soln[];
+		int n, numBSCCs = 0;
+		long timer;
+
+		timer = System.currentTimeMillis();
+
+		// Store num states
+		n = dtmc.getNumStates();
+
+		// Compute bottom strongly connected components (BSCCs)
+		SCCComputer sccComputer = SCCComputer.createSCCComputer(sccMethod, dtmc);
+		sccComputer.computeBSCCs();
+		List<BitSet> bsccs = sccComputer.getBSCCs();
+		BitSet notInBSCCs = sccComputer.getNotInBSCCs();
+		numBSCCs = bsccs.size();
+
+		// Compute steady-state probability for each BSCC...
+		probBSCCs = new double[numBSCCs];
+		ssProbs = new double[n];
+		for (int b = 0; b < numBSCCs; b++) {
+			mainLog.println("\nComputing steady state probabilities for BSCC " + (b + 1));
+			bscc = bsccs.get(b);
+			// Compute steady-state probabilities for the BSCC
+			computeSteadyStateProbsForBSCC(dtmc, bscc, ssProbs);
+			// Compute weighted sum of probabilities with multProbs
+			probBSCCs[b] = 0.0;
+			if (multProbs == null) {
+				for (int i = bscc.nextSetBit(0); i >= 0; i = bscc.nextSetBit(i + 1)) {
+					probBSCCs[b] += ssProbs[i];
+				}
+			} else {
+				for (int i = bscc.nextSetBit(0); i >= 0; i = bscc.nextSetBit(i + 1)) {
+					probBSCCs[b] += multProbs[i] * ssProbs[i];
+				}
+			}
+			mainLog.print("\nValue for BSCC " + (b + 1) + ": " + probBSCCs[b] + "\n");
+		}
+
+		// Create/initialise prob vector
+		soln = new double[n];
+		for (int i = 0; i < n; i++) {
+			soln[i] = 0.0;
+		}
+
+		// If every state is in a BSCC, it's much easier...
+		if (notInBSCCs.isEmpty()) {
+			mainLog.println("\nAll states are in BSCCs (so no reachability probabilities computed)");
+			for (int b = 0; b < numBSCCs; b++) {
+				bscc = bsccs.get(b);
+				for (int i = bscc.nextSetBit(0); i >= 0; i = bscc.nextSetBit(i + 1))
+					soln[i] += probBSCCs[b];
+			}
+		}
+
+		// Otherwise we have to do more work...
+		else {
+			// Compute probabilities of reaching each BSCC...
+			for (int b = 0; b < numBSCCs; b++) {
+				// Skip BSCCs with zero probability
+				if (probBSCCs[b] == 0.0)
+					continue;
+				mainLog.println("\nComputing probabilities of reaching BSCC " + (b + 1));
+				bscc = bsccs.get(b);
+				// Compute probabilities
+				reachProbs = computeUntilProbs(dtmc, notInBSCCs, bscc).soln;
+				// Multiply by value for BSCC, add to total
+				for (int i = 0; i < n; i++) {
+					soln[i] += reachProbs[i] * probBSCCs[b];
+				}
+			}
+		}
+
+		// Return results
+		res = new ModelCheckerResult();
+		res.soln = soln;
+		timer = System.currentTimeMillis() - timer;
+		res.timeTaken = timer / 1000.0;
 		return res;
 	}
 
