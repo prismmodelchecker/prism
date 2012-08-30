@@ -31,8 +31,10 @@ import java.util.Vector;
 
 import jdd.*;
 
-//	interface for SCC computing classes
-
+/**
+ * Abstract class for classes that compute (B)SCCs,
+ * i.e. (bottom) strongly connected components, for a model's transition graph.
+ */
 public abstract class SCCComputer
 {
 	protected Prism prism;
