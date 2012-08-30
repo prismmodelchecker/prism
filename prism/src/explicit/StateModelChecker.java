@@ -36,6 +36,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import explicit.SCCComputer.SCCMethod;
+
 import parser.State;
 import parser.Values;
 import parser.ast.Expression;
@@ -78,6 +80,12 @@ public class StateModelChecker
 
 	// PRISM settings object
 	//protected PrismSettings settings = new PrismSettings();
+	
+	// Flags/settings
+	// (NB: defaults do not necessarily coincide with PRISM)
+
+	// Method used for numerical solution
+	protected SCCMethod sccMethod = SCCMethod.TARJAN;
 
 	// Model file (for reward structures, etc.)
 	protected ModulesFile modulesFile = null;

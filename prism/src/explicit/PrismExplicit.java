@@ -268,7 +268,7 @@ public class PrismExplicit
 			DTMCModelChecker mcDTMC = new DTMCModelChecker();
 			mcDTMC.setLog(mainLog);
 			mcDTMC.setSettings(settings);
-			probs = mcDTMC.doSteadyState((DTMC) model, null);
+			probs = mcDTMC.doSteadyState((DTMC) model);
 		}
 		else if (model.getModelType() == ModelType.CTMC) {
 			throw new PrismException("Not implemented yet"); // TODO
