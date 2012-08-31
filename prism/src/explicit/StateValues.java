@@ -708,6 +708,46 @@ public class StateValues
 	}
 
 	/**
+	 * Modify the vector by applying 'plus' with a constant.
+	 */
+	public void plusConstant(int val) throws PrismException
+	{
+		if (type instanceof TypeInt) {
+			for (int i = 0; i < size; i++) {
+				valuesI[i] += val;
+			}
+		} else if (type instanceof TypeDouble) {
+			for (int i = 0; i < size; i++) {
+				valuesD[i] += val;
+			}
+		} else {
+			throw new PrismException("Operator + can not be applied to Boolean vectors");
+		}
+	}
+
+	/**
+	 * Modify the vector by applying 'plus' with a constant.
+	 */
+	public void plusConstant(double val) throws PrismException
+	{
+		if (type instanceof TypeInt) {
+			// Change type
+			valuesD = new double[size];
+			type = TypeDouble.getInstance();
+			for (int i = 0; i < size; i++) {
+				valuesD[i] = valuesI[i] + val;
+			}
+			valuesI = null;
+		} else if (type instanceof TypeDouble) {
+			for (int i = 0; i < size; i++) {
+				valuesD[i] += val;
+			}
+		} else {
+			throw new PrismException("Operator + can not be applied to Boolean vectors");
+		}
+	}
+
+	/**
 	 * Modify the vector by applying 'minus' with operand {@code sv}.
 	 */
 	public void minus(StateValues sv) throws PrismException
@@ -778,6 +818,46 @@ public class StateValues
 			}
 		} else {
 			throw new PrismException("Operator * can not be applied to Boolean vectors");
+		}
+	}
+
+	/**
+	 * Modify the vector by applying 'times' with a constant.
+	 */
+	public void timesConstant(int val) throws PrismException
+	{
+		if (type instanceof TypeInt) {
+			for (int i = 0; i < size; i++) {
+				valuesI[i] *= val;
+			}
+		} else if (type instanceof TypeDouble) {
+			for (int i = 0; i < size; i++) {
+				valuesD[i] *= val;
+			}
+		} else {
+			throw new PrismException("Operator + can not be applied to Boolean vectors");
+		}
+	}
+
+	/**
+	 * Modify the vector by applying 'times' with a constant.
+	 */
+	public void timesConstant(double val) throws PrismException
+	{
+		if (type instanceof TypeInt) {
+			// Change type
+			valuesD = new double[size];
+			type = TypeDouble.getInstance();
+			for (int i = 0; i < size; i++) {
+				valuesD[i] = valuesI[i] * val;
+			}
+			valuesI = null;
+		} else if (type instanceof TypeDouble) {
+			for (int i = 0; i < size; i++) {
+				valuesD[i] *= val;
+			}
+		} else {
+			throw new PrismException("Operator + can not be applied to Boolean vectors");
 		}
 	}
 
