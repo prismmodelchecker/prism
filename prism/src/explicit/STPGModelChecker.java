@@ -84,7 +84,7 @@ public class STPGModelChecker extends ProbModelChecker
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
 			// Next
 			if (exprTemp.getOperator() == ExpressionTemporal.P_X) {
-				throw new PrismException("The explicit engine does not yet handle the next operator");
+				probs = checkProbNext(model, exprTemp, min1, min2);
 			}
 			// Until
 			else if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
@@ -106,6 +106,21 @@ public class STPGModelChecker extends ProbModelChecker
 		return probs;
 	}
 
+	/**
+	 * Compute probabilities for a next operator.
+	 */
+	protected StateValues checkProbNext(Model model, ExpressionTemporal expr, boolean min1, boolean min2) throws PrismException
+	{
+		BitSet target = null;
+		ModelCheckerResult res = null;
+
+		// Model check the operand
+		target = checkExpression(model, expr.getOperand2()).getBitSet();
+
+		res = computeNextProbs((STPG) model, target, min1, min2);
+		return StateValues.createFromDoubleArray(res.soln, model);
+	}
+	
 	/**
 	 * Compute probabilities for a bounded until operator.
 	 */
@@ -195,6 +210,41 @@ public class STPGModelChecker extends ProbModelChecker
 	}
 
 	// Numerical computation functions
+
+	/**
+	 * Compute next=state probabilities.
+	 * i.e. compute the probability of being in a state in {@code target} in the next step.
+	 * @param stpg The STPG
+	 * @param target Target states
+	 * @param min1 Min or max probabilities for player 1 (true=lower bound, false=upper bound)
+	 * @param min2 Min or max probabilities for player 2 (true=min, false=max)
+	 */
+	public ModelCheckerResult computeNextProbs(STPG stpg, BitSet target, boolean min1, boolean min2) throws PrismException
+	{
+		ModelCheckerResult res = null;
+		int n;
+		double soln[], soln2[];
+		long timer;
+
+		timer = System.currentTimeMillis();
+		
+		// Store num states
+		n = stpg.getNumStates();
+
+		// Create/initialise solution vector(s)
+		soln = Utils.bitsetToDoubleArray(target, n);
+		soln2 = new double[n];
+
+		// Next-step probabilities 
+		stpg.mvMultMinMax(soln, min1, min2, soln2, null, false, null);
+
+		// Return results
+		res = new ModelCheckerResult();
+		res.soln = soln2;
+		res.numIters = 1;
+		res.timeTaken = timer / 1000.0;
+		return res;
+	}
 
 	/**
 	 * Compute reachability probabilities.

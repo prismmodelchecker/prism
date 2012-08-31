@@ -84,10 +84,10 @@ public class DTMCModelChecker extends ProbModelChecker
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
 			// Next
 			if (exprTemp.getOperator() == ExpressionTemporal.P_X) {
-				throw new PrismException("The explicit engine does not yet handle the next operator");
+				probs = checkProbNext(model, exprTemp);
 			}
 			// Until
-			if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
+			else if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
 				if (exprTemp.hasBounds()) {
 					probs = checkProbBoundedUntil(model, exprTemp);
 				} else {
@@ -106,6 +106,21 @@ public class DTMCModelChecker extends ProbModelChecker
 		return probs;
 	}
 
+	/**
+	 * Compute probabilities for a next operator.
+	 */
+	protected StateValues checkProbNext(Model model, ExpressionTemporal expr) throws PrismException
+	{
+		BitSet target = null;
+		ModelCheckerResult res = null;
+
+		// Model check the operand
+		target = checkExpression(model, expr.getOperand2()).getBitSet();
+
+		res = computeNextProbs((DTMC) model, target);
+		return StateValues.createFromDoubleArray(res.soln, model);
+	}
+	
 	/**
 	 * Compute probabilities for a bounded until operator.
 	 */
@@ -329,6 +344,39 @@ public class DTMCModelChecker extends ProbModelChecker
 	}
 
 	// Numerical computation functions
+
+	/**
+	 * Compute next=state probabilities.
+	 * i.e. compute the probability of being in a state in {@code target} in the next step.
+	 * @param dtmc The DTMC
+	 * @param target Target states
+	 */
+	public ModelCheckerResult computeNextProbs(DTMC dtmc, BitSet target) throws PrismException
+	{
+		ModelCheckerResult res = null;
+		int n;
+		double soln[], soln2[];
+		long timer;
+
+		timer = System.currentTimeMillis();
+		
+		// Store num states
+		n = dtmc.getNumStates();
+
+		// Create/initialise solution vector(s)
+		soln = Utils.bitsetToDoubleArray(target, n);
+		soln2 = new double[n];
+
+		// Next-step probabilities 
+		dtmc.mvMult(soln, soln2, null, false);
+
+		// Return results
+		res = new ModelCheckerResult();
+		res.soln = soln2;
+		res.numIters = 1;
+		res.timeTaken = timer / 1000.0;
+		return res;
+	}
 
 	/**
 	 * Compute reachability probabilities.

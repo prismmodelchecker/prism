@@ -90,7 +90,7 @@ public class MDPModelChecker extends ProbModelChecker
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
 			// Next
 			if (exprTemp.getOperator() == ExpressionTemporal.P_X) {
-				throw new PrismException("The explicit engine does not yet handle the next operator");
+				probs = checkProbNext(model, exprTemp, min);
 			}
 			// Until
 			else if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
@@ -112,6 +112,21 @@ public class MDPModelChecker extends ProbModelChecker
 		return probs;
 	}
 
+	/**
+	 * Compute probabilities for a next operator.
+	 */
+	protected StateValues checkProbNext(Model model, ExpressionTemporal expr, boolean min) throws PrismException
+	{
+		BitSet target = null;
+		ModelCheckerResult res = null;
+
+		// Model check the operand
+		target = checkExpression(model, expr.getOperand2()).getBitSet();
+
+		res = computeNextProbs((MDP) model, target, min);
+		return StateValues.createFromDoubleArray(res.soln, model);
+	}
+	
 	/**
 	 * Compute probabilities for a bounded until operator.
 	 */
@@ -227,6 +242,40 @@ public class MDPModelChecker extends ProbModelChecker
 	}
 
 	// Numerical computation functions
+
+	/**
+	 * Compute next=state probabilities.
+	 * i.e. compute the probability of being in a state in {@code target} in the next step.
+	 * @param mdp The MDP
+	 * @param target Target states
+	 * @param min Min or max probabilities (true=min, false=max)
+	 */
+	public ModelCheckerResult computeNextProbs(MDP mdp, BitSet target, boolean min) throws PrismException
+	{
+		ModelCheckerResult res = null;
+		int n;
+		double soln[], soln2[];
+		long timer;
+
+		timer = System.currentTimeMillis();
+		
+		// Store num states
+		n = mdp.getNumStates();
+
+		// Create/initialise solution vector(s)
+		soln = Utils.bitsetToDoubleArray(target, n);
+		soln2 = new double[n];
+
+		// Next-step probabilities 
+		mdp.mvMultMinMax(soln, min, soln2, null, false, null);
+
+		// Return results
+		res = new ModelCheckerResult();
+		res.soln = soln2;
+		res.numIters = 1;
+		res.timeTaken = timer / 1000.0;
+		return res;
+	}
 
 	/**
 	 * Compute reachability probabilities.
