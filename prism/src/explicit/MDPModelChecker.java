@@ -33,6 +33,7 @@ import java.util.Map;
 
 import parser.ast.Expression;
 import parser.ast.ExpressionTemporal;
+import parser.ast.ExpressionUnaryOp;
 import prism.PrismDevNullLog;
 import prism.PrismException;
 import prism.PrismFileLog;
@@ -68,11 +69,31 @@ public class MDPModelChecker extends ProbModelChecker
 	{
 		StateValues probs = null;
 
+		// Negation/parentheses
+		if (expr instanceof ExpressionUnaryOp) {
+			ExpressionUnaryOp exprUnary = (ExpressionUnaryOp) expr;
+			// Parentheses
+			if (exprUnary.getOperator() == ExpressionUnaryOp.PARENTH) {
+				// Recurse
+				probs = checkProbPathFormulaSimple(model, exprUnary.getOperand(), min);
+			}
+			// Negation
+			else if (exprUnary.getOperator() == ExpressionUnaryOp.NOT) {
+				// Compute, then subtract from 1 
+				probs = checkProbPathFormulaSimple(model, exprUnary.getOperand(), !min);
+				probs.timesConstant(-1.0);
+				probs.plusConstant(1.0);
+			}
+		}
 		// Temporal operators
-		if (expr instanceof ExpressionTemporal) {
+		else if (expr instanceof ExpressionTemporal) {
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
+			// Next
+			if (exprTemp.getOperator() == ExpressionTemporal.P_X) {
+				throw new PrismException("The explicit engine does not yet handle the next operator");
+			}
 			// Until
-			if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
+			else if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
 				if (exprTemp.hasBounds()) {
 					probs = checkProbBoundedUntil(model, exprTemp, min);
 				} else {
