@@ -768,7 +768,7 @@ public class MDPModelChecker extends ProbModelChecker
 	protected ModelCheckerResult computeReachProbsPolIter(MDP mdp, BitSet no, BitSet yes, boolean min) throws PrismException
 	{
 		ModelCheckerResult res;
-		int i, n, iters, totalIters, diff;
+		int i, n, iters, totalIters;
 		double soln[], soln2[];
 		boolean done;
 		long timer;
@@ -817,7 +817,6 @@ public class MDPModelChecker extends ProbModelChecker
 			// Check if optimal, improve non-optimal choices
 			mdp.mvMultMinMax(soln, min, soln2, null, false, null);
 			done = true;
-			diff = 0;
 			for (i = 0; i < n; i++) {
 				// Don't look at no/yes states - we don't store adversary info for them,
 				// so they might appear non-optimal
@@ -825,7 +824,6 @@ public class MDPModelChecker extends ProbModelChecker
 					continue;
 				if (!PrismUtils.doublesAreClose(soln[i], soln2[i], termCritParam, termCrit == TermCrit.ABSOLUTE)) {
 					done = false;
-					diff++;
 					List<Integer> opt = mdp.mvMultMinMaxSingleChoices(i, soln, min, soln2[i]);
 					// If update adversary if strictly better
 					if (!opt.contains(adv[i]))
@@ -857,7 +855,7 @@ public class MDPModelChecker extends ProbModelChecker
 	protected ModelCheckerResult computeReachProbsModPolIter(MDP mdp, BitSet no, BitSet yes, boolean min) throws PrismException
 	{
 		ModelCheckerResult res;
-		int i, n, iters, totalIters, diff;
+		int i, n, iters, totalIters;
 		double soln[], soln2[];
 		boolean done;
 		long timer;
@@ -906,7 +904,6 @@ public class MDPModelChecker extends ProbModelChecker
 			// Check if optimal, improve non-optimal choices
 			mdp.mvMultMinMax(soln, min, soln2, null, false, null);
 			done = true;
-			diff = 0;
 			for (i = 0; i < n; i++) {
 				// Don't look at no/yes states - we don't store adversary info for them,
 				// so they might appear non-optimal
@@ -914,7 +911,6 @@ public class MDPModelChecker extends ProbModelChecker
 					continue;
 				if (!PrismUtils.doublesAreClose(soln[i], soln2[i], termCritParam, termCrit == TermCrit.ABSOLUTE)) {
 					done = false;
-					diff++;
 					List<Integer> opt = mdp.mvMultMinMaxSingleChoices(i, soln, min, soln2[i]);
 					adv[i] = opt.get(0);
 				}
