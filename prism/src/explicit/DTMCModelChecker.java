@@ -846,9 +846,8 @@ public class DTMCModelChecker extends ProbModelChecker
 	 */
 	public ModelCheckerResult computeBoundedReachProbs(DTMC dtmc, BitSet remain, BitSet target, int k, double init[], double results[]) throws PrismException
 	{
-		// TODO: implement until
-
 		ModelCheckerResult res = null;
+		BitSet unknown;
 		int i, n, iters;
 		double soln[], soln2[], tmpsoln[];
 		long timer;
@@ -879,13 +878,20 @@ public class DTMCModelChecker extends ProbModelChecker
 			results[0] = Utils.minMaxOverArraySubset(soln2, dtmc.getInitialStates(), true);
 		}
 
+		// Determine set of states actually need to perform computation for
+		unknown = new BitSet();
+		unknown.set(0, n);
+		unknown.andNot(target);
+		if (remain != null)
+			unknown.and(remain);
+		
 		// Start iterations
 		iters = 0;
 		while (iters < k) {
 
 			iters++;
 			// Matrix-vector multiply
-			dtmc.mvMult(soln, soln2, target, true);
+			dtmc.mvMult(soln, soln2, unknown, false);
 			// Store intermediate results if required
 			// (compute min/max value over initial states for this step)
 			if (results != null) {

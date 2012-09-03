@@ -991,9 +991,8 @@ public class MDPModelChecker extends ProbModelChecker
 	public ModelCheckerResult computeBoundedReachProbs(MDP mdp, BitSet remain, BitSet target, int k, boolean min, double init[], double results[])
 			throws PrismException
 	{
-		// TODO: implement until
-
 		ModelCheckerResult res = null;
+		BitSet unknown;
 		int i, n, iters;
 		double soln[], soln2[], tmpsoln[];
 		long timer;
@@ -1024,12 +1023,19 @@ public class MDPModelChecker extends ProbModelChecker
 			results[0] = Utils.minMaxOverArraySubset(soln2, mdp.getInitialStates(), true);
 		}
 
+		// Determine set of states actually need to perform computation for
+		unknown = new BitSet();
+		unknown.set(0, n);
+		unknown.andNot(target);
+		if (remain != null)
+			unknown.and(remain);
+		
 		// Start iterations
 		iters = 0;
 		while (iters < k) {
 			iters++;
 			// Matrix-vector multiply and min/max ops
-			mdp.mvMultMinMax(soln, min, soln2, target, true, null);
+			mdp.mvMultMinMax(soln, min, soln2, unknown, false, null);
 			// Store intermediate results if required
 			// (compute min/max value over initial states for this step)
 			if (results != null) {
