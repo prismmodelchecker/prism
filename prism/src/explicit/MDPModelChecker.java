@@ -825,7 +825,7 @@ public class MDPModelChecker extends ProbModelChecker
 				if (!PrismUtils.doublesAreClose(soln[i], soln2[i], termCritParam, termCrit == TermCrit.ABSOLUTE)) {
 					done = false;
 					List<Integer> opt = mdp.mvMultMinMaxSingleChoices(i, soln, min, soln2[i]);
-					// If update adversary if strictly better
+					// Only update adversary if strictly better
 					if (!opt.contains(adv[i]))
 						adv[i] = opt.get(0);
 				}
