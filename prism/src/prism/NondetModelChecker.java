@@ -279,6 +279,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		expr2 = expr.getExpression();
 		if (expr2 instanceof ExpressionTemporal) {
 			switch (((ExpressionTemporal) expr2).getOperator()) {
+			case ExpressionTemporal.R_C:
+				throw new PrismException("Cumulative reward operator (C<=k) not yet supported for MDPs");
 			case ExpressionTemporal.R_I:
 				rewards = checkRewardInst((ExpressionTemporal) expr2, stateRewards, transRewards, min);
 				break;
