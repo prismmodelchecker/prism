@@ -50,7 +50,7 @@ public class Property extends ASTElement
 	private String comment;
 
 	// Constructors
-	
+
 	public Property(Expression expr)
 	{
 		this(expr, null, null);
@@ -69,7 +69,7 @@ public class Property extends ASTElement
 	}
 
 	// Mutators
-	
+
 	public void setExpression(Expression expr)
 	{
 		this.expr = expr;
@@ -86,7 +86,7 @@ public class Property extends ASTElement
 	}
 
 	// Accessors
-	
+
 	public Expression getExpression()
 	{
 		return expr;
@@ -117,7 +117,7 @@ public class Property extends ASTElement
 	{
 		return checkAgainstExpectedResult(result, null);
 	}
-	
+
 	/**
 	 * Tests a result (specified as an object of the appropriate type: Boolean, Double, etc.)
 	 * against the expected result for this Property, specified by an embedded "RESULT: xxx"
@@ -128,17 +128,77 @@ public class Property extends ASTElement
 	 * whether or not a check was actually applied (i.e. if the result specification is of the
 	 * form "RESULT: ?") then false is returned; otherwise true.   
 	 * @param result The actual result
-	 * @param constValues The values of any undefined constants (null or "" if none)
+	 * @param constValues The values of any undefined constants (null if none)
 	 * @return Whether or not the check was performed
 	 */
-	public boolean checkAgainstExpectedResult(Object result, String constValues) throws PrismException
+	public boolean checkAgainstExpectedResult(Object result, Values constValues) throws PrismException
 	{
-		HashMap<String,String> strExpectedMap = new HashMap<String, String>();
+		String strExpected = getExpectedResultString(constValues);
+		return checkAgainstExpectedResultString(strExpected, result);
+	}
+
+	/**
+	 * Get the expected result by extracting from the appropriate RESULT annotation.
+	 * This is done by finding the first RESULT whose constant values (if any) all match those
+	 * provided in {@code constValues}. A PrismException is thrown if no matching RESULT is found.
+	 * @param constValues The values of any undefined constants (null if none)
+	 */
+	private String getExpectedResultString(Values constValues) throws PrismException
+	{
 		String strExpected = null;
-		
-		if (constValues == null)
-			constValues = "";
-		
+
+		// Extract expected result(s) from comment
+		if (comment != null) {
+			// Look for "RESULT: val" or "RESULT (x=1,y=2): val"
+			Pattern p = Pattern.compile("RESULT[ \t]*(\\(([^\\)]+)\\))?[ \t]*:[ \t]*([^ \t\n\r]+)");
+			Matcher matcher = p.matcher(comment);
+			// Look at each RESULT specification found
+			while (matcher.find()) {
+				String constValsSubstring = matcher.group(2) == null ? "" : matcher.group(2);
+				boolean match = true;
+				// Look at each constant in the list
+				String ss[] = constValsSubstring.split(",");
+				for (String s : ss) {
+					s = s.trim();
+					if (s.length() == 0)
+						continue;
+					String pair[] = s.split("=");
+					if (pair.length != 2)
+						throw new PrismException("Badly formed RESULT specification \"" + matcher.group() + "\"");
+					// Make sure constant/value is in constValues list and matches
+					String constName = pair[0].trim();
+					String constVal = pair[1].trim();
+					Object constValToMatch = constValues.getValueOf(constName);
+					// Just check for exact string match for now
+					if (constValToMatch == null || !constValToMatch.toString().equals(constVal))
+						match = false;
+				}
+				// Found it...
+				if (match) {
+					strExpected = matcher.group(3);
+					continue;
+				}
+			}
+		}
+		if (strExpected == null) {
+			throw new PrismException("Did not find a RESULT specification (for " + constValues + ") to test against");
+		}
+
+		return strExpected;
+	}
+
+	/**
+	 * Get the expected result by extracting from the appropriate RESULT annotation.
+	 * This is done by an exact string match against the provided string of constant values.
+	 * A PrismException is thrown if no matching RESULT is found.
+	 * This method actually looks at all RESULTs and complains if there multiple matches. 
+	 * @param constValues The values of any undefined constants (null or "" if none)
+	 */
+	private String getExpectedResultString(String constValues) throws PrismException
+	{
+		HashMap<String, String> strExpectedMap = new HashMap<String, String>();
+		String strExpected = null;
+
 		// Extract expected result(s) from comment
 		if (comment != null) {
 			// Look for "RESULT: val" or "RESULT (x=1,y=2): val"
@@ -146,7 +206,7 @@ public class Property extends ASTElement
 			Matcher matcher = p.matcher(comment);
 			// Store RESULT specifications found
 			while (matcher.find()) {
-				String constValsSubstring = matcher.group(2) == null ? "" : matcher.group(2); 
+				String constValsSubstring = matcher.group(2) == null ? "" : matcher.group(2);
 				String expResultSubstring = matcher.group(3);
 				// Error if there are dupes 
 				if (strExpectedMap.put(constValsSubstring, expResultSubstring) != null) {
@@ -165,10 +225,10 @@ public class Property extends ASTElement
 		if (strExpected == null) {
 			throw new PrismException("Did not find a RESULT specification (for " + constValues + ") to test against");
 		}
-		
-		return checkAgainstExpectedResultString(strExpected, result);
+
+		return strExpected;
 	}
-	
+
 	/**
 	 * Tests a result (specified as an object of the appropriate type: Boolean, Double, etc.)
 	 * against the expected result, given by a string extracted from a RESULT: specification.
@@ -183,7 +243,7 @@ public class Property extends ASTElement
 		if (strExpected.equals("?")) {
 			return false;
 		}
-		
+
 		// Check for exceptions
 		if (result instanceof Exception) {
 			String errMsg = ((Exception) result).getMessage();
@@ -202,10 +262,10 @@ public class Property extends ASTElement
 		} else if (strExpected.startsWith("Error")) {
 			throw new PrismException("Was expecting an error");
 		}
-		
+
 		// Check expected/actual result
 		Type type = expr.getType();
-		
+
 		// Boolean-valued properties
 		if (type instanceof TypeBool) {
 			// Parse expected result
@@ -225,7 +285,7 @@ public class Property extends ASTElement
 			if (boolRes != boolExp)
 				throw new PrismException("Wrong result (expected " + boolExp + ")");
 		}
-		
+
 		// Integer-valued properties
 		else if (type instanceof TypeInt) {
 			// Parse expected result
@@ -243,7 +303,7 @@ public class Property extends ASTElement
 			if (intRes != intExp)
 				throw new PrismException("Wrong result (expected " + intExp + ")");
 		}
-		
+
 		// Double-valued properties
 		else if (type instanceof TypeDouble) {
 			// Parse expected result
@@ -280,17 +340,17 @@ public class Property extends ASTElement
 					throw new PrismException("Wrong result (expected " + doubleExp + ")");
 			}
 		}
-		
+
 		// Unknown type
 		else {
 			throw new PrismException("Don't know how to test properties of type " + type);
 		}
-		
+
 		return true;
 	}
-	
+
 	// Methods required for ASTElement:
-	
+
 	/**
 	 * Visitor method.
 	 */
@@ -298,14 +358,14 @@ public class Property extends ASTElement
 	{
 		return v.visit(this);
 	}
-	
+
 	@Override
 	public String toString()
 	{
 		// Note: don't print comment
 		String s = "";
 		//if (comment != null)
-			//s += PrismParser.slashCommentBlock(comment);
+		//s += PrismParser.slashCommentBlock(comment);
 		if (name != null)
 			s += "\"" + name + "\": ";
 		s += expr;

@@ -328,8 +328,9 @@ public class PrismCL implements PrismModelListener
 						// if required, check result against expected value
 						if (test) {
 							try {
-								String consts = Values.toStringConcatenated(definedMFConstants, definedPFConstants);
-								if (propertiesToCheck.get(j).checkAgainstExpectedResult(res.getResult(), consts)) {
+								Values allConsts = new Values(definedMFConstants);
+								allConsts.addValues(definedPFConstants);
+								if (propertiesToCheck.get(j).checkAgainstExpectedResult(res.getResult(), allConsts)) {
 									mainLog.println("Testing result: PASS");
 								} else {
 									mainLog.println("Testing result: NOT TESTED");
