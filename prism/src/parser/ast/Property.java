@@ -194,6 +194,7 @@ public class Property extends ASTElement
 	 * This method actually looks at all RESULTs and complains if there multiple matches. 
 	 * @param constValues The values of any undefined constants (null or "" if none)
 	 */
+	@SuppressWarnings("unused")
 	private String getExpectedResultString(String constValues) throws PrismException
 	{
 		HashMap<String, String> strExpectedMap = new HashMap<String, String>();
