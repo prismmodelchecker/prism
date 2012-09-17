@@ -142,6 +142,8 @@ public class ProbModelChecker extends StateModelChecker
 	 */
 	public void setSettings(PrismSettings settings) throws PrismException
 	{
+		super.setSettings(settings);
+		
 		if (settings == null)
 			return;
 		
