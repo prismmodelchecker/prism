@@ -437,8 +437,10 @@ public class JDD
 		boolean res;
 		JDD.Ref(dd1);
 		JDD.Ref(dd2);
-		tmp = JDD.Implies(dd1, dd2);
-		res = tmp.equals(JDD.ONE);
+		/*tmp = JDD.Implies(dd1, dd2);
+		res = tmp.equals(JDD.ONE);*/
+		tmp = JDD.And(dd1, dd2);
+		res = tmp.equals(dd1);
 		JDD.Deref(tmp);
 		return res;
 	}
