@@ -58,7 +58,7 @@ public class LTLModelChecker
 	{
 		return LTL2RabinLibrary.convertLTLFormulaToDRA(ltl);
 	}
-	
+
 	/**
 	 * Extract maximal state formula from an LTL path formula, model check them (with passed in model checker) and
 	 * replace them with ExpressionLabel objects L0, L1, etc. Expression passed in is modified directly, but the result
@@ -304,7 +304,7 @@ public class LTLModelChecker
 		JDD.Ref(model.getStart());
 		newStart = JDD.And(model.getStart(), newStart);
 		modelProd.setStart(newStart);
-		
+
 		// Reference DRA DD vars (if being returned)
 		if (draDDRowVarsCopy != null)
 			draDDRowVarsCopy.refAll();
@@ -520,7 +520,7 @@ public class LTLModelChecker
 		JDD.Ref(model.getStart());
 		newStart = JDD.And(model.getStart(), newStart);
 		modelProd.setStart(newStart);
-		
+
 		//try { prism.exportStatesToFile(modelProd, Prism.EXPORT_PLAIN, new java.io.File("prod.sta")); }
 		//catch (java.io.FileNotFoundException e) {}
 
@@ -539,7 +539,8 @@ public class LTLModelChecker
 	 * 
 	 * @return a referenced mask BDD over trans
 	 */
-	public JDDNode buildTransMask(DRA<BitSet> dra, Vector<JDDNode> labelDDs, JDDVars allDDRowVars, JDDVars allDDColVars, JDDVars draDDRowVars, JDDVars draDDColVars)
+	public JDDNode buildTransMask(DRA<BitSet> dra, Vector<JDDNode> labelDDs, JDDVars allDDRowVars, JDDVars allDDColVars, JDDVars draDDRowVars,
+			JDDVars draDDColVars)
 	{
 		JDDNode draMask, label, exprBDD, transition;
 		int i, j, k, numAPs, numStates, numEdges;
