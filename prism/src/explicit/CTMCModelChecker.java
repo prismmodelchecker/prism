@@ -216,7 +216,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 	{
 		mainLog.println("Building embedded DTMC...");
 		DTMC dtmcEmb = ((CTMC) dtmc).buildImplicitEmbeddedDTMC();
-		return super.computeReachProbs(dtmcEmb, null, target, init, known);
+		return super.computeReachProbs(dtmcEmb, remain, target, init, known);
 	}
 
 	/**
