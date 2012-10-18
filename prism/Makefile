@@ -363,6 +363,7 @@ VERSION=# default value for VERSION is blank to force provision at command-line
 
 dist_src: dist_check_version dist_copy clean_all dist_tidy
 
+dist_bin: JFLAGS += -source 1.6 -target 1.6
 dist_bin: dist_check_version all binary dist_tidy dist_bin_copy
 
 dist_check_version:
