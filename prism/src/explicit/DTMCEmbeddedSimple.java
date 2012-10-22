@@ -313,6 +313,42 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 		return d;
 	}
 
+	//@Override
+	public double mvMultRewJacSingle(int s, double vect[], MCRewards mcRewards)
+	{
+		int k;
+		double diag, d, er, prob;
+		Distribution distr;
+
+		distr = ctmc.getTransitions(s);
+		diag = d = 0.0;
+		er = exitRates[s];
+		// Exit rate 0: prob 1 self-loop
+		if (er == 0) {
+			return mcRewards.getStateReward(s);
+		}
+		// Exit rate > 0
+		else {
+			// (rew(s) + sum_{j!=s} P(s,j)*vect[j]) / (1-P(s,s))
+			// = (rew(s) + sum_{j!=s} (R(s,j)/E(s))*vect[j]) / (1-(P(s,s)/E(s)))
+			// = (rew(s) + sum_{j!=s} R(s,j)*vect[j]) / (E(s)-P(s,s))
+			d = mcRewards.getStateReward(s);
+			for (Map.Entry<Integer, Double> e : distr) {
+				k = (Integer) e.getKey();
+				prob = (Double) e.getValue();
+				// Non-diagonal entries only
+				if (k != s) {
+					d += prob * vect[k];
+				} else {
+					diag = prob;
+				}
+			}
+			d /= (er - diag);
+		}
+		
+		return d;
+	}
+
 	@Override
 	public void vmMult(double vect[], double result[])
 	{
