@@ -331,8 +331,8 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 		else {
 			// (rew(s) + sum_{j!=s} P(s,j)*vect[j]) / (1-P(s,s))
 			// = (rew(s) + sum_{j!=s} (R(s,j)/E(s))*vect[j]) / (1-(P(s,s)/E(s)))
-			// = (rew(s) + sum_{j!=s} R(s,j)*vect[j]) / (E(s)-P(s,s))
-			d = mcRewards.getStateReward(s);
+			// = (E(s)*rew(s) + sum_{j!=s} R(s,j)*vect[j]) / (E(s)-P(s,s))
+			d = er * mcRewards.getStateReward(s);
 			for (Map.Entry<Integer, Double> e : distr) {
 				k = (Integer) e.getKey();
 				prob = (Double) e.getValue();
