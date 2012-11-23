@@ -2325,7 +2325,7 @@ public class Prism implements PrismSettingsListener
 	/**
 	 * Perform model checking of a property on the currently loaded model and return result.
 	 * @param propertiesFile Parent property file of property (for labels/constants/...)
-	 * @param expr The property to check
+	 * @param prop The property to check
 	 */
 	public Result modelCheck(PropertiesFile propertiesFile, Property prop) throws PrismException, PrismLangException
 	{
