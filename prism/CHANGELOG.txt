@@ -2,9 +2,11 @@ This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
 Latest changes (mostly reverse chronological):
-[correct wrt svn rev 5476]
+[correct wrt svn rev 6022]
 -----------------------------------------------------------------------------
 
+* GUI now takes both model and properties files as arguments
+* -importinit option works for steady-state as well as transient probability computation
 * Prototype reactions-to-PRISM translator
 * New options to plot graphs for simulation paths in the GUI
 * Improvements to simulation path generation using -simpath switch
