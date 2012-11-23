@@ -82,6 +82,8 @@ PRISM was created and is still actively maintained by:
 We gratefully acknowledge contributions to the PRISM code-base from various sources,
 including (in approximately reverse chronological order):
 
+ * Mateusz Ujma: Bug fixes and GUI improvements
+ * Vojtech Forejt: Symbolic/explicit-state model checking, GUI enhancements
  * Vincent Nimal: Approximate (simulation-based) model checking techniques
  * Mark Kattenbelt: Wide range of enhancements/additions, especially in the GUI
  * Carlos Bederian (working with Pedro D'Argenio): LTL model checking for MDPs

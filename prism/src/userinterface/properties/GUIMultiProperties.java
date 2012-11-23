@@ -7,6 +7,7 @@
 //	* Mark Kattenbelt <mark.kattenbelt@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
 //	* Vincent Nimal <vincent.nimal@comlab.ox.ac.uk> (University of Oxford)
 //	* Vojtech Forejt <vojtech.forejt@cs.ox.ac.uk> (University of Oxford)
+//	* Mateusz Ujma <mateusz.ujma@cs.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
