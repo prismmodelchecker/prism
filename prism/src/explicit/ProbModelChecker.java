@@ -635,9 +635,10 @@ public class ProbModelChecker extends StateModelChecker
 
 		// Compute probabilities
 		switch (modelType) {
-		/*case CTMC:
-			probs = ((CTMCModelChecker) this).checkSteadyStateFormula(model, expr.getExpression());
-			break;*/
+		case CTMC:
+			//probs = ((CTMCModelChecker) this).checkSteadyStateFormula(model, expr.getExpression());
+			//break;
+			throw new PrismException("Explicit engine does not yet support the S operator for CTMCs");
 		case DTMC:
 			probs = ((DTMCModelChecker) this).checkSteadyStateFormula(model, expr.getExpression());
 			break;
