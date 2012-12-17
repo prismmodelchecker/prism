@@ -368,7 +368,8 @@ public class SemanticCheck extends ASTTraverse
 		if (op == ExpressionTemporal.P_X && (operand1 != null || operand2 == null || lBound != null || uBound != null)) {
 			throw new PrismLangException("Cannot attach bounds to " + e.getOperatorSymbol() + " operator", e);
 		}
-		if (op == ExpressionTemporal.R_C && (operand1 != null || operand2 != null || lBound != null)) { //NB we allow uBound to be null in multi-objective
+		if (op == ExpressionTemporal.R_C && (operand1 != null || operand2 != null || lBound != null)) {
+			// NB: upper bound is optional (e.g. multi-objective allows R...[C] operator)
 			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
 		}
 		if (op == ExpressionTemporal.R_I && (operand1 != null || operand2 != null || lBound != null || uBound == null)) {
