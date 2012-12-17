@@ -272,11 +272,13 @@ JAVA_INCLUDES = -I $(JAVA_JNI_H_DIR) -I $(JAVA_JNI_MD_H_DIR)
 
 MAKE_DIRS = dd jdd odd dv prism mtbdd sparse hybrid parser settings userinterface pepa/compiler simulator jltl2ba jltl2dstar explicit pta
 
+EXT_PACKAGES = lpsolve55 lp_solve_5.5_java
+
 .PHONY: clean javadoc tests
 
 default: all
 
-all: cuddpackage prism
+all: cuddpackage extpackages prism
 
 cuddpackage: checks
 	@if [ "$(CUDD_DIR)" = "" ]; then echo "Error: Cannot find CUDD"; exit 1; fi
@@ -296,6 +298,27 @@ cuddpackageforce: checks
 	  cd $(CUDD_DIR) && \
 	  $(MAKE) C="$(C)" CC="$(C)" CPP="$(CPP)" \
 	  XCFLAGS="$(CUDD_XCFLAGS)";
+
+extpackages: checks
+	@for ext in $(EXT_PACKAGES); do \
+	  echo Making $$ext ...; \
+	  (cd ext/$$ext && \
+	  $(MAKE) \
+	  OSTYPE="$(OSTYPE)" \
+	  ARCH="$(ARCH)" \
+	  C="$(C)" \
+	  CPP="$(CPP)" \
+	  LD="$(LD)" \
+	  CFLAGS="$(CFLAGS)" \
+	  CPPFLAGS="$(CPPFLAGS)" \
+	  LDFLAGS="$(LDFLAGS)" \
+	  SHARED="$(SHARED)" \
+	  LIBPREFIX="$(LIBPREFIX)" \
+	  LIBSUFFIX="$(LIBSUFFIX)" \
+	  LIBMATH="$(LIBMATH)" \
+	  JAVA_DIR="$(JAVA_DIR)" \
+	  ) || exit 1; \
+	done
 
 prism: checks make_dirs bin_scripts
 
@@ -468,6 +491,14 @@ clean_all: checks clean_cudd clean
 
 clean_cudd:
 	@(cd $(CUDD_DIR) && $(MAKE) distclean)
+
+clean_ext:
+	@(for ext in $(EXT_PACKAGES); do \
+	  echo Cleaning $$ext ...; \
+	  (cd ext/$$ext && \
+	  $(MAKE) -s LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean) \
+	  || exit 1; \
+	done )
 
 clean_dd: checks
 	@(cd src/dd && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
