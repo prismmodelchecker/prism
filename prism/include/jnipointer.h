@@ -51,6 +51,9 @@
 #define jlong_to_ODDNode(x)		(ODDNode *)jlong_to_ptr(x)
 #define jlong_to_double(x)		(double *)jlong_to_ptr(x)
 
+// for sparse matrices
+#define jlong_to_NDSparseMatrix(x)	(NDSparseMatrix *)jlong_to_ptr(x)
+
 // for simulator
 #define jlong_to_CExpression(x)		(CExpression *)jlong_to_ptr(x)
 #define jlong_to_CRealExpression(x)	(CRealExpression *)jlong_to_ptr(x)

@@ -44,11 +44,12 @@ public class ExpressionFunc extends Expression
 	public static final int POW = 4;
 	public static final int MOD = 5;
 	public static final int LOG = 6;
+	public static final int MULTI = 7;
 	// Built-in function names
-	public static final String names[] = { "min", "max", "floor", "ceil", "pow", "mod", "log" };
+	public static final String names[] = { "min", "max", "floor", "ceil", "pow", "mod", "log", "multi" };
 	// Min/max function arities
-	public static final int minArities[] = { 2, 2, 1, 1, 2, 2, 2 };
-	public static final int maxArities[] = { -1, -1, 1, 1, 2, 2, 2 };
+	public static final int minArities[] = { 2, 2, 1, 1, 2, 2, 2, 1 };
+	public static final int maxArities[] = { -1, -1, 1, 1, 2, 2, 2, -1 };
 
 	// Function name
 	private String name = "";
@@ -338,6 +339,7 @@ public class ExpressionFunc extends Expression
 	public boolean returnsSingleValue()
 	{
 		int i, n;
+		// Otherwise, true iff all operands true
 		n = getNumOperands();
 		for (i = 0; i < n; i++) {
 			if (!getOperand(i).returnsSingleValue())

@@ -86,6 +86,7 @@ public abstract class SCCComputer
 	// NB: This creates BDDs, obtainable from getVectSCCs() and getNotInSCCs(),
 	// which  the calling code is responsible for dereferencing.
 	public abstract void computeSCCs();
+	public abstract void computeSCCs(JDDNode filter);
 
 	// Bottom strongly connected components (BSCC) computation
 	// NB: This creates BDDs, obtainable from getVectBSCCs() and getNotInBSCCs(),

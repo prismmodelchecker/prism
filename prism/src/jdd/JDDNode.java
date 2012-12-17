@@ -3,6 +3,7 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Christian von Essen <christian.vonessen@imag.fr> (VERIMAG)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -48,11 +49,15 @@ public class JDDNode
 		}
 	}
 
-	public JDDNode(long p)
+	public JDDNode(long p, boolean increased_reference)
 	{
 		ptr = p;
 		if (DebugJDD.debugEnabled)
-			DebugJDD.addToSet(this);
+			DebugJDD.addToSet(this, increased_reference ? 1 : 0);
+	}
+	
+	public JDDNode(long p) {
+		this(p, true);
 	}
 	
 	public JDDNode(JDDNode dd)
@@ -82,12 +87,16 @@ public class JDDNode
 
 	public JDDNode getThen()
 	{
-		return new JDDNode(DDN_GetThen(ptr));
+		assert !this.isConstant();
+		// TODO I believe that this breaks debug reference counting
+		// JDDNode will create a reference to this, but DDN_GetThen will not.
+		return new JDDNode(DDN_GetThen(ptr), false);
 	}
 	
 	public JDDNode getElse()
 	{
-		return new JDDNode(DDN_GetElse(ptr));
+		assert !this.isConstant();
+		return new JDDNode(DDN_GetElse(ptr), false);
 	}
 
 	public boolean equals(Object o)        
@@ -102,7 +111,12 @@ public class JDDNode
 	
 	public String toString()
 	{
-		return "" + ptr;
+		String result = "" + ptr;
+		if (ptr != 0) {
+			if (this.isConstant()) result += " value=" + this.getValue();
+			result += " references=" + DebugJDD.getRefCount(this);
+		}
+		return result;
 	}
 }
 

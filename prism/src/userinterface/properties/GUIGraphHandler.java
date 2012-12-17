@@ -714,6 +714,15 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		g.clearRect(0,0,this.getWidth(),this.getHeight());
 	}
 	
+	/*public void deleteAllGraphs() {
+		
+		while (!this.models.isEmpty()) {
+			Graph g = this.models.remove(this.models.size()-1);
+			this.theTabs.remove(g);
+			this.options.clear();
+		}
+	}*/
+	
 	// don't implement these for tabs
 	//public void mouseClicked(MouseEvent e) { }
 	public void mouseEntered(MouseEvent e) { }

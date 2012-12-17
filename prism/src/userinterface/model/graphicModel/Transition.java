@@ -518,7 +518,7 @@ public class Transition implements PropertyOwner
         }
         
         
-        poly.add( new Point((int)fromX, (int)fromY));
+        poly.add( new java.awt.Point((int)fromX, (int)fromY));
         for(int i = 0; i < nails.size(); i++)
         {
             Nail toN = (Nail)(nails.get(i));
@@ -542,7 +542,7 @@ public class Transition implements PropertyOwner
                 toY += movingOffset;
             }
             
-            poly.add(new Point((int)toX, (int)toY));
+            poly.add(new java.awt.Point((int)toX, (int)toY));
             
             
         }
@@ -585,17 +585,17 @@ public class Transition implements PropertyOwner
                 toY += movingOffset;
             }
         }
-        poly.add( new Point((int)toX, (int)toY));
+        poly.add( new java.awt.Point((int)toX, (int)toY));
         
         try
         {
             //All of the points are now in poly, find the midpoint of the polyline
             //Find the total length of the polyline
-            Point last = null;
+            java.awt.Point last = null;
             double length = 0.0;
             for(int i = 0; i < poly.size(); i++)
             {
-                Point p = (Point)poly.get(i);
+                java.awt.Point p = (java.awt.Point)poly.get(i);
                 
                 if(last != null)
                 {
@@ -611,14 +611,14 @@ public class Transition implements PropertyOwner
             int i = 0;
             double sofar = 0;
             double lastAmount = 0;
-            last = (Point)poly.get(0);
-            Point p = (Point)poly.get(0);
+            last = (java.awt.Point)poly.get(0);
+            java.awt.Point p = (java.awt.Point)poly.get(0);
             
             while(sofar <= midpoint)
             {
                 last = p;
                 i++;
-                p = (Point)poly.get(i);
+                p = (java.awt.Point)poly.get(i);
                 lastAmount = Math.sqrt(Math.pow(p.x-last.x, 2) + Math.pow(p.y-last.y, 2));
                 sofar += lastAmount;
                 
@@ -636,14 +636,14 @@ public class Transition implements PropertyOwner
             //double xPoint = ((Point)poly.get(i-1)).x + ((((Point)poly.get(i)).x-((Point)poly.get(i-1)).x)*howmuch);
             //double yPoint = ((Point)poly.get(i-1)).y + ((((Point)poly.get(i)).y-((Point)poly.get(i-1)).y)*howmuch);
             
-            middle =  new Point((int)xPoint, (int)yPoint);
+            middle =  new java.awt.Point((int)xPoint, (int)yPoint);
             
         }
         catch(Exception e)
         {
             Rectangle2D rect = getBounds2D();
             
-            middle = new Point((int)(rect.getX()+(rect.getWidth()/2)), (int)(rect.getY()+(rect.getHeight()/2)));
+            middle = new java.awt.Point((int)(rect.getX()+(rect.getWidth()/2)), (int)(rect.getY()+(rect.getHeight()/2)));
         }
         //Rectangle2D rect = poly.getBounds2D();
         

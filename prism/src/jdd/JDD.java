@@ -4,6 +4,7 @@
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
 //	* Vojtech Forejt <vojtech.forejt@cs.ox.ac.uk> (University of Oxford)
+//	* Christian von Essen <christian.vonessen@imag.fr> (VERIMAG)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -229,6 +230,8 @@ public class JDD
 		Deref(ONE);
 		Deref(PLUS_INFINITY);
 		Deref(MINUS_INFINITY);
+		if (jdd.DebugJDD.debugEnabled)
+			DebugJDD.endLifeCycle();
 		DD_CloseDownCUDD(check);
 	}
 	

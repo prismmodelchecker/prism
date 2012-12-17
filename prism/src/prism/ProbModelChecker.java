@@ -788,6 +788,11 @@ public class ProbModelChecker extends NonProbModelChecker
 		int time; // time
 		StateValues rewards = null;
 
+		//check that there is an upper time bound
+		if (expr.getUpperBound() == null) {
+			throw new PrismException("Cumulative reward without any time bound is only allowed for multi-objective queries.");
+		}
+
 		// get info from inst reward
 		time = expr.getUpperBound().evaluateInt(constantValues);
 		if (time < 0) {

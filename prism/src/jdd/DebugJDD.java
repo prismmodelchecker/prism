@@ -3,6 +3,7 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Vojtech Forejt <vojtech.forejt@cs.ox.ac.uk> (University of Oxford)
+//	* Christian von Essen <christian.vonessen@imag.fr> (VERIMAG)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -27,8 +28,10 @@
 package jdd;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 
 public class DebugJDD
 {
@@ -69,7 +72,7 @@ public class DebugJDD
 	 */
 	protected static HashMap<Long, List<Integer>> instances;
 
-	protected static void addToSet(JDDNode node)
+	protected static void addToSet(JDDNode node, int count)
 	{
 		//not thread safe
 		if (instances == null) {
@@ -88,7 +91,7 @@ public class DebugJDD
 			al.add(hc);
 			instances.put(ptr, al);
 		}
-		localCounters.put(hc, 1);
+		localCounters.put(hc, count);
 
 		StackTraceElement[] st = Thread.currentThread().getStackTrace();
 		//ignore first two elements which are Thread and this constructor
@@ -104,18 +107,49 @@ public class DebugJDD
 	{
 		int hc = System.identityHashCode(node);
 		int newValue = localCounters.get(hc) - 1;
+		int cuddRefCount = DebugJDD_GetRefCount(node.ptr());
+		assert cuddRefCount > 0;
+		assert cuddRefCount - 1 >= newValue;
+		if (newValue < 0 && cuddRefCount == newValue) {
+			System.out.println("Dereferencing node " + node + " too often. Printing stack trace where it was created.");
+			//print only top 5 methods from stack
+			int i = 0;
+			for (StackTraceElement st : stackTraces.get(hc)) {
+				if (i++ > 5) {
+					break;
+				}
+				System.out.println("  " + st.toString());
+			}
+			assert false;
+		}
+
 		localCounters.put(hc, newValue);
 	}
 
 	protected static void increment(JDDNode node)
 	{
 		int hc = System.identityHashCode(node);
-		int newValue = localCounters.get(hc) - 1;
+		int newValue = localCounters.get(hc) + 1;
+		int cuddRefCount = DebugJDD_GetRefCount(node.ptr());
+		assert cuddRefCount + 1 >= newValue; 
 		localCounters.put(hc, newValue);
 	}
 
 	public static void endLifeCycle()
 	{
+		// Kick everybody who hasn't got a reference count higher than zero out
+		for (Iterator<Long> itt = instances.keySet().iterator(); itt.hasNext(); ) {
+			Long ptr = itt.next();
+			for (Iterator<Integer> it = instances.get(ptr).iterator(); it.hasNext(); ) {
+				int localRefCount = localCounters.get(it.next());
+				if (localRefCount != 0) {
+					it.remove();
+				}
+			}
+			if (instances.get(ptr).isEmpty()) {
+				itt.remove();
+			}
+		}
 		for (Long ptr : instances.keySet()) {
 			//check if cudd has nonzero number of references
 			int cuddRefCount = DebugJDD_GetRefCount(ptr);
@@ -138,7 +172,7 @@ public class DebugJDD
 						+ "Note that the stack traces below are from moments JDDNodes were "
 						+ "created. The actual problem can be elsewhere where the node is used");
 				//print warning together with suspicious nodes
-				System.out.println("Node has " + cuddRefCount + " reference(s), printing out stack traces of suspicious node instances:");
+				System.out.println("Node " + new JDDNode(ptr, false) + " has " + cuddRefCount + " reference(s), printing out stack traces of suspicious node instances:");
 				boolean first = true;
 				for (Integer hc : instances.get(ptr)) {
 					int localRefCount = localCounters.get(hc);
@@ -152,7 +186,7 @@ public class DebugJDD
 						//print only top 5 methods from stack
 						int i = 0;
 						for (StackTraceElement st : stackTraces.get(hc)) {
-							if (i++ > 5) {
+							if (i++ > 8) {
 								break;
 							}
 							System.out.println("  " + st.toString());
@@ -161,5 +195,9 @@ public class DebugJDD
 				}
 			}
 		}
+	}
+	
+	public static int getRefCount(JDDNode n) {
+		return DebugJDD_GetRefCount(n.ptr());
 	}
 }

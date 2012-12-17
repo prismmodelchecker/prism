@@ -2964,8 +2964,6 @@ public class Prism implements PrismSettingsListener
 		// Close down CUDD/JDD
 		if (cuddStarted) {
 			JDD.CloseDownCUDD(check);
-			if (jdd.DebugJDD.debugEnabled)
-				DebugJDD.endLifeCycle();
 		}
 	}
 

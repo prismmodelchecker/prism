@@ -70,7 +70,23 @@ public class SCCComputerLockstep extends SCCComputer
 		JDD.Ref(reach);
 		notInSCCs = JDD.And(reach, JDD.Not(allSCCs));
 	}
-	
+
+	public void computeSCCs(JDDNode filter)
+	{
+		//computeSCCs();
+		vectSCCs = new Vector<JDDNode>();
+		allSCCs = JDD.Constant(0);
+		tasks = new Stack<DecompTask>();
+		JDD.Ref(reach);
+		JDD.Ref(trans01);
+		tasks.push(new DecompTask(reach, trans01));
+		while (!tasks.isEmpty()) {
+			lockstep(tasks.pop(), filter);
+		}
+		JDD.Ref(reach);
+		notInSCCs = JDD.And(reach, JDD.Not(allSCCs));
+	}
+
 	// Return the image of nodes in edges
 	// Refs: result
 	// Derefs: edges, nodes
@@ -296,7 +312,7 @@ public class SCCComputerLockstep extends SCCComputer
 		// FIXME: restricting newEdges isn't necessary, needs benchmarking
 		//        (speed vs memory?)
 		// newNodes1 = convergedSet \ scc
-		JDD.Ref(scc);
+		//JDD.Ref(scc);
 		JDD.Ref(convergedSet);
 		JDDNode newNodes1 = JDD.And(convergedSet, JDD.Not(scc));
 		// newEdges1 = edges \intersect (newNodes x newNodes^t)
@@ -308,11 +324,11 @@ public class SCCComputerLockstep extends SCCComputer
 		newEdges1 = JDD.Apply(JDD.TIMES, newEdges1, tmp);
 
 		// newNodes2 = nodes \ convergedSet
-		JDD.Ref(nodes);
-		JDD.Ref(convergedSet);
+		//JDD.Ref(nodes);
+		//JDD.Ref(convergedSet);
 		JDDNode newNodes2 = JDD.And(nodes, JDD.Not(convergedSet));
 		// newEdges2 = edges \intersect (newNodes x newNodes^t)
-		JDD.Ref(edges);
+		//JDD.Ref(edges);
 		JDD.Ref(newNodes2);
 		JDDNode newEdges2 = JDD.Apply(JDD.TIMES, edges, newNodes2);
 		JDD.Ref(newNodes2);
@@ -323,9 +339,189 @@ public class SCCComputerLockstep extends SCCComputer
 		tasks.push(new DecompTask(newNodes2, newEdges2));
 		tasks.push(new DecompTask(newNodes1, newEdges1));
 		
-		JDD.Deref(scc);
-		JDD.Deref(convergedSet);
-		JDD.Deref(nodes);
+		//JDD.Deref(scc);
+		//JDD.Deref(convergedSet);
+		//JDD.Deref(nodes);
+		//JDD.Deref(edges);
+	} 
+	
+	private void lockstep(DecompTask task, JDDNode filter) {
+
+		JDDNode nodes = task.getNodes();
+		JDDNode edges = task.getEdges();
+		JDDNode tmp;
+				
+		if (nodes.equals(JDD.ZERO)) {
+			JDD.Deref(nodes);
+			JDD.Deref(edges);
+			return;
+		}
+		
+		/* if (prism.getVerbose()) {
+			log.println("Lockstep pass on nodes: ");
+			JDD.PrintVector(nodes, rows);
+		} */
+
+		// trim nodes
+		JDD.Ref(edges);
+		nodes = trim(nodes, edges);
+		JDD.Ref(nodes);
+		edges = JDD.Apply(JDD.TIMES, edges, nodes);
+		JDD.Ref(nodes);
+		edges = JDD.Apply(JDD.TIMES, edges, JDD.PermuteVariables(nodes, allDDRowVars, allDDColVars));
+		
+		// pick a starting node
+		JDD.Ref(nodes);
+		JDDNode v = JDD.RestrictToFirst(nodes, allDDRowVars);
+		// mainLog.println("Lockstep - picked node:");
+		// JDD.PrintVector(v, allDDRowVars);
+
+		
+		JDDNode f = v;			// forward set of v
+		JDDNode ffront = v;		// last update to f
+		JDD.Ref(f);
+		JDD.Ref(ffront);
+		
+		JDDNode b = v;			// backward set of v
+		JDDNode bfront = v;		// last update to b
+		JDD.Ref(b);
+		JDD.Ref(bfront);
+		
+		JDD.Deref(v);
+
+		// Compute forward and backward sets in lockstep until either one converges
+		while (!ffront.equals(JDD.ZERO) && !bfront.equals(JDD.ZERO)) {
+
+			JDD.Ref(edges);
+			// Get the image of the last update
+			tmp = image(ffront, edges);
+			// find new states in this update
+			JDD.Ref(f);
+			ffront = JDD.And(tmp, JDD.Not(f));
+			// add states to the forward set
+			JDD.Ref(ffront);
+			f = JDD.Or(f, ffront);
+
+			JDD.Ref(edges);
+			// Get the preimage of the last update
+			tmp = preimage(bfront, edges);
+			// find new states in this update
+			JDD.Ref(b);
+			bfront = JDD.And(tmp, JDD.Not(b));
+			// add states to the backward set
+			JDD.Ref(bfront);
+			b = JDD.Or(b, bfront);
+		}
+		
+		JDDNode convergedSet;	// set that converged first
+		JDDNode sccUpdate;		// update in the last approximation of the scc
+		
+		// if ffront is empty, the forward set converged first
+		if (ffront.equals(JDD.ZERO)) {
+			convergedSet = f;
+			JDD.Ref(convergedSet);
+			
+			// keep looking for states in the backward set until
+			// its intersection with the forward set stops growing
+			JDD.Ref(bfront);
+			JDD.Ref(f);
+			sccUpdate = JDD.And(bfront, f);
+			while (!sccUpdate.equals(JDD.ZERO)) {
+				JDD.Deref(sccUpdate);
+				JDD.Ref(edges);
+				JDD.Ref(b);
+				bfront = JDD.And(preimage(bfront, edges), JDD.Not(b));
+				JDD.Ref(bfront);
+				b = JDD.Or(bfront, b);
+				JDD.Ref(f);
+				JDD.Ref(bfront);
+				sccUpdate = JDD.And(bfront, f);			
+			}
+		}
+		
+		// bfront is empty, the backward set converged first
+		else {
+			convergedSet = b;
+			JDD.Ref(convergedSet);
+
+			// keep looking for states in the backward set until
+			// its intersection with the forward set stops growing
+			JDD.Ref(ffront);
+			JDD.Ref(b);
+			sccUpdate = JDD.And(ffront, b);
+			while (!sccUpdate.equals(JDD.ZERO)) {
+				JDD.Deref(sccUpdate);
+				JDD.Ref(edges);
+				JDD.Ref(f);
+				ffront = JDD.And(image(ffront, edges), JDD.Not(f));
+				JDD.Ref(ffront);
+				f = JDD.Or(ffront, f);
+				JDD.Ref(b);
+				JDD.Ref(ffront);
+				sccUpdate = JDD.And(ffront, b);
+			}
+		}
+		JDD.Deref(sccUpdate);
+		JDD.Deref(ffront);
+		JDD.Deref(bfront);
+		
+		// Found our SCC
+		JDDNode scc = JDD.Apply(JDD.TIMES, f, b);
+		
+		// check if SCC is nontrivial and report
+		JDD.Ref(scc);
+		tmp = JDD.PermuteVariables(scc, allDDRowVars, allDDColVars);
+		JDD.Ref(edges);
+		tmp = JDD.And(tmp, edges);
+		JDD.Ref(scc);
+		tmp = JDD.And(tmp, scc);
+		if (!tmp.equals(JDD.ZERO)) {
+			JDD.Ref(scc);
+			report(scc);
+		}
+		JDD.Deref(tmp);
+		
+		// FIXME: restricting newEdges isn't necessary, needs benchmarking
+		//        (speed vs memory?)
+		// newNodes1 = convergedSet \ scc
+		//JDD.Ref(scc);
+		JDD.Ref(convergedSet);
+		JDDNode newNodes1 = JDD.And(convergedSet, JDD.Not(scc));
+		if(JDD.AreInterecting(newNodes1, filter)) {
+			// newEdges1 = edges \intersect (newNodes x newNodes^t)
+			JDD.Ref(edges);
+			JDD.Ref(newNodes1);
+			JDDNode newEdges1 = JDD.Apply(JDD.TIMES, edges, newNodes1);
+			JDD.Ref(newNodes1);
+			tmp = JDD.PermuteVariables(newNodes1, allDDRowVars, allDDColVars);
+			newEdges1 = JDD.Apply(JDD.TIMES, newEdges1, tmp);
+
+			tasks.push(new DecompTask(newNodes1, newEdges1));
+		} else
+			JDD.Deref(newNodes1);
+
+		// newNodes2 = nodes \ convergedSet
+		//JDD.Ref(nodes);
+		//JDD.Ref(convergedSet);
+		JDDNode newNodes2 = JDD.And(nodes, JDD.Not(convergedSet));
+		if(JDD.AreInterecting(newNodes2, filter)) {
+		// newEdges2 = edges \intersect (newNodes x newNodes^t)
+			JDD.Ref(edges);
+			JDD.Ref(newNodes2);
+			JDDNode newEdges2 = JDD.Apply(JDD.TIMES, edges, newNodes2);
+			JDD.Ref(newNodes2);
+			tmp = JDD.PermuteVariables(newNodes2, allDDRowVars, allDDColVars);
+			newEdges2 = JDD.Apply(JDD.TIMES, newEdges2, tmp);
+			
+			// Queue new sets for search
+			tasks.push(new DecompTask(newNodes2, newEdges2));
+		} else
+			JDD.Deref(newNodes2);
+
+		
+		//JDD.Deref(scc);
+		//JDD.Deref(convergedSet);
+		//JDD.Deref(nodes);
 		JDD.Deref(edges);
 	} 
 }

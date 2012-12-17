@@ -36,6 +36,7 @@ import javax.swing.*;
 import userinterface.GUIPrism;
 import parser.*;
 import parser.ast.*;
+import parser.type.TypeVoid;
 import prism.*;
 
 /**
@@ -59,7 +60,9 @@ public class GUIProperty
 	public static final ImageIcon IMAGE_INVALID = GUIPrism.getIconFromImage("smallWarning.png");
 	/** A property state constant image */
 	public static final ImageIcon IMAGE_NUMBER = GUIPrism.getIconFromImage("smallCompute.png");
-
+	/** A property state constant image */
+	public static final ImageIcon IMAGE_PARETO = GUIPrism.getIconFromImage("smallPareto.png");
+	
 	/** Property status */
 	public static final int STATUS_NOT_DONE = 0;
 	/** Property status */
@@ -74,6 +77,8 @@ public class GUIProperty
 	public static final int STATUS_RESULT_FALSE = 5;
 	/** Property status */
 	public static final int STATUS_RESULT_NUMBER = 6;
+	/** Property status */
+	public static final int STATUS_RESULT_PARETO = 7;
 
 	//ATTRIBUTES
 
@@ -150,6 +155,8 @@ public class GUIProperty
 			return IMAGE_CROSS;
 		case STATUS_RESULT_NUMBER:
 			return IMAGE_NUMBER;
+		case STATUS_RESULT_PARETO:
+			return IMAGE_PARETO;
 		default:
 			return IMAGE_NOT_DONE;
 		}
@@ -315,6 +322,8 @@ public class GUIProperty
 			setStatus(STATUS_RESULT_NUMBER);
 		} else if (result.getResult() instanceof Exception) {
 			setStatus(STATUS_RESULT_ERROR);
+		} else if (result.getResult() instanceof TypeVoid) {
+			setStatus(STATUS_RESULT_PARETO);
 		} else {
 			setStatus(STATUS_NOT_DONE);
 			result = null;

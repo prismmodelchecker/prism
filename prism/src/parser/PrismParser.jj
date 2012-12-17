@@ -1604,7 +1604,8 @@ Expression ExpressionRewardContents(boolean prop, boolean pathprop) :
 	Token begin;
 }
 {
-	( begin = <C> <LE> expr = Expression(false, false) { ret = new ExpressionTemporal(ExpressionTemporal.R_C, null, null); ret.setUpperBound(expr); }
+	( LOOKAHEAD(<C> <LE>) begin = <C> <LE> expr = Expression(false, false) { ret = new ExpressionTemporal(ExpressionTemporal.R_C, null, null); ret.setUpperBound(expr); }
+	| begin = <C> { ret = new ExpressionTemporal(ExpressionTemporal.R_C, null, null); }
 	| begin = <I> <EQ> expr = Expression(false, false) { ret = new ExpressionTemporal(ExpressionTemporal.R_I, null, null); ret.setUpperBound(expr);  }
 	| begin = <F> expr = Expression(prop, pathprop) { ret = new ExpressionTemporal(ExpressionTemporal.R_F, null, expr); }
 	| begin = <S> { ret = new ExpressionTemporal(ExpressionTemporal.R_S, null, null); } )

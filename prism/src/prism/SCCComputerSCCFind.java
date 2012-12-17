@@ -77,7 +77,26 @@ public class SCCComputerSCCFind extends SCCComputer
 		JDD.Ref(reach);
 		notInSCCs = JDD.And(reach, JDD.Not(allSCCs));
 	}
-	
+
+	public void computeSCCs(JDDNode filter)
+	{
+		//computeSCCs();
+		vectSCCs = new Vector<JDDNode>();
+		allSCCs = JDD.Constant(0);
+		tasks = new Stack<DecompTask>();
+		JDD.Ref(reach);
+		JDD.Ref(trans01);
+		JDDNode trimmedNodes = trim(reach, trans01); 
+		JDD.Ref(trans01);
+		tasks.push(new DecompTask(trimmedNodes, trans01, JDD.Constant(0), JDD.Constant(0)));
+		while (!tasks.isEmpty()) {
+			//mainLog.println("length of scc queue = " + tasks.size());
+			sccFind(tasks.pop(), filter);
+		}
+		JDD.Ref(reach);
+		notInSCCs = JDD.And(reach, JDD.Not(allSCCs));
+	}
+
 	// Return the image of nodes in edges
 	// Refs: result
 	// Derefs: edges, nodes
@@ -206,7 +225,6 @@ public class SCCComputerSCCFind extends SCCComputer
 	// Refs: reported result
 	// Derefs: DecompTask contents
 	private void sccFind(DecompTask task) {
-
 		JDDNode nodes = task.nodes;
 		JDDNode edges = task.edges;
 		JDDNode spineSetPath = task.spineSetPath;
@@ -298,7 +316,7 @@ public class SCCComputerSCCFind extends SCCComputer
 		JDDNode newSpineSetNode1 = JDD.And(preimage(JDD.And(scc, spineSetPath), edges), newSpineSetPath1);
 		
 		// newNodes2 = forwardSet \ scc
-		JDD.Ref(forwardSet);
+		//JDD.Ref(forwardSet);
 		JDD.Ref(scc);
 		JDDNode newNodes2 = JDD.And(forwardSet, JDD.Not(scc));
 		// newEdges2 = edges \intersect (newNodes2 x newNodes2^t)
@@ -311,13 +329,143 @@ public class SCCComputerSCCFind extends SCCComputer
 		JDD.Ref(scc);
 		JDDNode newSpineSetPath2 = JDD.And(newSpineSetPath, JDD.Not(scc));
 		// newNode2 = newNode \ scc
-		JDD.Ref(scc);
+		//JDD.Ref(scc);
 		JDDNode newSpineSetNode2 = JDD.And(newSpineSetNode, JDD.Not(scc));
 		
 		tasks.push(new DecompTask(newNodes2, newEdges2, newSpineSetPath2, newSpineSetNode2));
 		tasks.push(new DecompTask(newNodes1, newEdges1, newSpineSetPath1, newSpineSetNode1));
 		
-		JDD.Deref(forwardSet);
+		//JDD.Deref(forwardSet);
+		JDD.Deref(spineSetNode);
+		JDD.Deref(spineSetPath);
+		//JDD.Deref(scc);
+		JDD.Deref(nodes);
+		JDD.Deref(edges);
+	} 
+	
+	private void sccFind(DecompTask task, JDDNode filter) {
+
+		JDDNode nodes = task.nodes;
+		JDDNode edges = task.edges;
+		JDDNode spineSetPath = task.spineSetPath;
+		JDDNode spineSetNode = task.spineSetNode;
+		JDDNode tmp;
+		
+		if (nodes.equals(JDD.ZERO)) {
+			JDD.Deref(nodes);
+			JDD.Deref(edges);
+			JDD.Deref(spineSetPath);
+			JDD.Deref(spineSetNode);
+			return;
+		}
+		
+		/* if (prism.getVerbose()) {
+			mainLog.println("SCC-Find pass on nodes: ");
+			JDD.PrintVector(nodes, rows);
+		} */
+		
+		if (spineSetPath.equals(JDD.ZERO)) {
+			JDD.Deref(spineSetNode);
+			// Pick a node
+			JDD.Ref(nodes);
+			spineSetNode = JDD.RestrictToFirst(nodes, allDDRowVars);
+		}
+		
+		SkelForwardResult skelFw = skelForward(nodes, edges, spineSetNode);
+		JDDNode forwardSet = skelFw.forwardSet;
+		JDDNode newSpineSetPath = skelFw.spineSetPath;
+		JDDNode newSpineSetNode = skelFw.spineSetNode;
+		
+		JDD.Ref(spineSetNode);
+		JDDNode scc = spineSetNode;
+		JDD.Ref(scc);
+		JDD.Ref(edges);
+		JDD.Ref(forwardSet);
+		JDDNode intersection = JDD.And(preimage(scc, edges), forwardSet);
+		JDD.Ref(intersection);
+		JDD.Ref(scc);
+		tmp = JDD.And(intersection, JDD.Not(scc));
+		while (!tmp.equals(JDD.ZERO)) {
+			scc = JDD.Or(scc, intersection);
+			JDD.Ref(scc);
+			JDD.Ref(edges);
+			JDD.Ref(forwardSet);
+			intersection = JDD.And(preimage(scc, edges), forwardSet);
+			JDD.Ref(intersection);
+			JDD.Ref(scc);
+			JDD.Deref(tmp);
+			tmp = JDD.And(intersection, JDD.Not(scc));
+		}
+		JDD.Deref(tmp);
+		JDD.Deref(intersection);
+		
+		// check if SCC is nontrivial and report
+		JDD.Ref(scc);
+		tmp = JDD.PermuteVariables(scc, allDDRowVars, allDDColVars);
+		JDD.Ref(edges);
+		tmp = JDD.And(tmp, edges);
+		JDD.Ref(scc);
+		tmp = JDD.And(tmp, scc);
+		if (!tmp.equals(JDD.ZERO)) {
+			JDD.Ref(scc);
+			report(scc);
+		}
+		JDD.Deref(tmp);
+		
+		// FIXME: restricting newEdges isn't necessary, needs benchmarking
+		//        (speed vs memory?)
+		// newNodes1 = nodes \ forwardSet
+		JDD.Ref(nodes);
+		JDD.Ref(forwardSet);
+		JDDNode newNodes1 = JDD.And(nodes, JDD.Not(forwardSet)); 
+		if(JDD.AreInterecting(newNodes1, filter)) {
+			// newEdges1 = edges \intersect (newNodes1 x newNodes1^t)
+			JDD.Ref(edges);
+			JDD.Ref(newNodes1);
+			JDDNode newEdges1 = JDD.Apply(JDD.TIMES, edges, newNodes1);
+			JDD.Ref(newNodes1);
+			newEdges1 = JDD.Apply(JDD.TIMES, newEdges1, JDD.PermuteVariables(newNodes1, allDDRowVars, allDDColVars));
+			// newS1 = spineSetPath \ scc
+			JDD.Ref(spineSetPath);
+			JDD.Ref(scc);
+			JDDNode newSpineSetPath1 = JDD.And(spineSetPath, JDD.Not(scc));
+			// newNode1 = preimage(scc \intersect spineSetPath) \intersect (spineSetPath \ scc)
+			JDD.Ref(scc);
+			JDD.Ref(spineSetPath);
+			JDD.Ref(edges);
+			JDD.Ref(newSpineSetPath1);
+			JDDNode newSpineSetNode1 = JDD.And(preimage(JDD.And(scc, spineSetPath), edges), newSpineSetPath1);
+
+			tasks.push(new DecompTask(newNodes1, newEdges1, newSpineSetPath1, newSpineSetNode1));
+		} else 
+			JDD.Deref(newNodes1);
+		
+		// newNodes2 = forwardSet \ scc
+		//JDD.Ref(forwardSet);
+		JDD.Ref(scc);
+		JDDNode newNodes2 = JDD.And(forwardSet, JDD.Not(scc));
+		if(JDD.AreInterecting(newNodes2, filter)) {
+			// newEdges2 = edges \intersect (newNodes2 x newNodes2^t)
+			JDD.Ref(edges);
+			JDD.Ref(newNodes2);
+			JDDNode newEdges2 = JDD.Apply(JDD.TIMES, edges, newNodes2);
+			JDD.Ref(newNodes2);
+			newEdges2 = JDD.Apply(JDD.TIMES, newEdges2, JDD.PermuteVariables(newNodes2, allDDRowVars, allDDColVars));
+			// newS2 = newS \ scc
+			JDD.Ref(scc);
+			JDDNode newSpineSetPath2 = JDD.And(newSpineSetPath, JDD.Not(scc));
+			// newNode2 = newNode \ scc
+			JDD.Ref(scc);
+			JDDNode newSpineSetNode2 = JDD.And(newSpineSetNode, JDD.Not(scc));
+			
+			tasks.push(new DecompTask(newNodes2, newEdges2, newSpineSetPath2, newSpineSetNode2));
+		} else {
+			JDD.Deref(newNodes2);
+			JDD.Deref(newSpineSetPath);
+			JDD.Deref(newSpineSetNode);
+		}
+		
+		//JDD.Deref(forwardSet);
 		JDD.Deref(spineSetNode);
 		JDD.Deref(spineSetPath);
 		JDD.Deref(scc);

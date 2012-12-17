@@ -129,6 +129,54 @@ JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1NondetReachReward
 
 /*
  * Class:     sparse_PrismSparse
+ * Method:    PS_NondetMultiObj
+ * Signature: (JJIJIJIZJJJ[J[I[J[D[I)[D
+ */
+JNIEXPORT jdoubleArray JNICALL Java_sparse_PrismSparse_PS_1NondetMultiObj
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jint, jboolean, jlong, jlong, jlong, jlongArray, jintArray, jlongArray, jdoubleArray, jintArray);
+
+/*
+ * Class:     sparse_PrismSparse
+ * Method:    PS_NondetMultiObjGS
+ * Signature: (JJIJIJIZJJJ[J[I[J[D[I)[D
+ */
+JNIEXPORT jdoubleArray JNICALL Java_sparse_PrismSparse_PS_1NondetMultiObjGS
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jint, jboolean, jlong, jlong, jlong, jlongArray, jintArray, jlongArray, jdoubleArray, jintArray);
+
+/*
+ * Class:     sparse_PrismSparse
+ * Method:    PS_NondetMultiReach
+ * Signature: (JJLjava/util/List;JJIJIJI[J[I[DJJ)D
+ */
+JNIEXPORT jdouble JNICALL Java_sparse_PrismSparse_PS_1NondetMultiReach
+  (JNIEnv *, jclass, jlong, jlong, jobject, jlong, jlong, jint, jlong, jint, jlong, jint, jlongArray, jintArray, jdoubleArray, jlong, jlong);
+
+/*
+ * Class:     sparse_PrismSparse
+ * Method:    PS_NondetMultiReach1
+ * Signature: (JJLjava/util/List;JJIJIJI[J[J[I[I[DJJ)D
+ */
+JNIEXPORT jdouble JNICALL Java_sparse_PrismSparse_PS_1NondetMultiReach1
+  (JNIEnv *, jclass, jlong, jlong, jobject, jlong, jlong, jint, jlong, jint, jlong, jint, jlongArray, jlongArray, jintArray, jintArray, jdoubleArray, jlong, jlong);
+
+/*
+ * Class:     sparse_PrismSparse
+ * Method:    PS_NondetMultiReachReward
+ * Signature: (JJLjava/util/List;JJIJIJI[J[I[D[I[DJJ[JJ)D
+ */
+JNIEXPORT jdouble JNICALL Java_sparse_PrismSparse_PS_1NondetMultiReachReward
+  (JNIEnv *, jclass, jlong, jlong, jobject, jlong, jlong, jint, jlong, jint, jlong, jint, jlongArray, jintArray, jdoubleArray, jintArray, jdoubleArray, jlong, jlong, jlongArray, jlong);
+
+/*
+ * Class:     sparse_PrismSparse
+ * Method:    PS_NondetMultiReachReward1
+ * Signature: (JJLjava/util/List;JJIJIJI[J[J[I[I[D[I[DJJ[JJ)D
+ */
+JNIEXPORT jdouble JNICALL Java_sparse_PrismSparse_PS_1NondetMultiReachReward1
+  (JNIEnv *, jclass, jlong, jlong, jobject, jlong, jlong, jint, jlong, jint, jlong, jint, jlongArray, jlongArray, jintArray, jintArray, jdoubleArray, jintArray, jdoubleArray, jlong, jlong, jlongArray, jlong);
+
+/*
+ * Class:     sparse_PrismSparse
  * Method:    PS_StochBoundedUntil
  * Signature: (JJJIJIJJDJ)J
  */

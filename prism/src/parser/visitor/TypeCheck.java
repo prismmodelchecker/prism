@@ -378,6 +378,15 @@ public class TypeCheck extends ASTTraverse
 				}
 			}
 			break;
+		case ExpressionFunc.MULTI:
+			// All operands must be booleans or doubles
+			for (i = 0; i < n; i++) {
+				if (!(types[i] instanceof TypeBool || types[i] instanceof TypeDouble)) {
+					throw new PrismLangException("Type error: non-Boolean/Double argument to  function \"" + e.getName()
+							+ "\"", e.getOperand(i));
+				}
+			}
+			break;
 		default:
 			throw new PrismLangException("Cannot type check unknown function", e);
 		}
@@ -408,6 +417,15 @@ public class TypeCheck extends ASTTraverse
 		case ExpressionFunc.LOG:
 			// Resulting type is always double
 			e.setType(TypeDouble.getInstance());
+			break;
+		case ExpressionFunc.MULTI:
+			// Resulting type is always same as first arg
+			if (types[0] instanceof TypeBool)
+				e.setType(TypeBool.getInstance());
+			else if (types.length == 1 || types[1] instanceof TypeBool) //in this case type[0] is TypeDouble
+				e.setType(TypeDouble.getInstance());
+			else
+				e.setType(TypeVoid.getInstance());
 			break;
 		}
 	}

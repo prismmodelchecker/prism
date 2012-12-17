@@ -71,6 +71,12 @@ public class SCCComputerXB extends SCCComputer
 		JDD.Deref(v);
 	}
 	
+	public void computeSCCs(JDDNode filter)
+	{
+		computeSCCs();
+		// TODO: why is filter ignored here?
+	}
+	
 	// pick a random (actually the first) state from set (set not empty)
 	
 	protected JDDNode pickRandomState(JDDNode set)

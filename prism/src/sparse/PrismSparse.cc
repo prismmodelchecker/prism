@@ -25,12 +25,14 @@
 //==============================================================================
 
 #include "PrismSparse.h"
+#include "NDSparseMatrix.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <limits.h>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
+#include "sparse.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
 
@@ -282,6 +284,70 @@ JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1FreeGlobalRefs(JNIEnv *env, j
 	main_log_obj = NULL;
 	env->DeleteGlobalRef(tech_log_obj);
 	tech_log_obj = NULL;
+}
+
+//------------------------------------------------------------------------------
+// Sparse matrix
+//------------------------------------------------------------------------------
+
+JNIEXPORT jlong __jlongpointer JNICALL Java_sparse_NDSparseMatrix_PS_1BuildNDSparseMatrix
+(JNIEnv *env, jclass cls,
+ jlong __jlongpointer t,    // trans
+ jlong __jlongpointer od, // odd
+ jlong __jlongpointer rv, // row vars
+ jint num_rvars,
+ jlong __jlongpointer cv, // col vars
+ jint num_cvars,
+ jlong __jlongpointer ndv,  // nondet vars
+ jint num_ndvars
+ )
+{
+    NDSparseMatrix *ndsm = NULL;
+    
+    DdNode *trans = jlong_to_DdNode(t); //trans/reward matrix
+    DdNode **rvars = jlong_to_DdNode_array(rv);   // row vars
+    DdNode **cvars = jlong_to_DdNode_array(cv);   // col vars
+    DdNode **ndvars = jlong_to_DdNode_array(ndv); // nondet vars
+    ODDNode *odd = jlong_to_ODDNode(od);      // reachable states
+    
+	ndsm = build_nd_sparse_matrix(ddman, trans, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
+    
+    return ptr_to_jlong(ndsm);
+}
+
+JNIEXPORT jlong __jlongpointer JNICALL Java_sparse_NDSparseMatrix_PS_1BuildSubNDSparseMatrix
+(JNIEnv *env, jclass cls,
+ jlong __jlongpointer t,    // trans
+ jlong __jlongpointer od, // odd
+ jlong __jlongpointer rv, // row vars
+ jint num_rvars,
+ jlong __jlongpointer cv, // col vars
+ jint num_cvars,
+ jlong __jlongpointer ndv,  // nondet vars
+ jint num_ndvars,
+ jlong __jlongpointer r    // reward
+ )
+{
+    NDSparseMatrix *ndsm = NULL;
+    
+    DdNode *trans = jlong_to_DdNode(t); //trans/reward matrix
+    DdNode **rvars = jlong_to_DdNode_array(rv);   // row vars
+    DdNode **cvars = jlong_to_DdNode_array(cv);   // col vars
+    DdNode **ndvars = jlong_to_DdNode_array(ndv); // nondet vars
+    ODDNode *odd = jlong_to_ODDNode(od);      // reachable states
+    DdNode *rewards = jlong_to_DdNode(r);
+    
+	ndsm = build_sub_nd_sparse_matrix(ddman, trans, rewards, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
+    
+    return ptr_to_jlong(ndsm);
+}
+
+JNIEXPORT void __jlongpointer JNICALL Java_sparse_NDSparseMatrix_PS_1DeleteNDSparseMatrix
+(JNIEnv *env, jclass cls,
+ jlong __jlongpointer _ndsm)
+{
+    NDSparseMatrix * ndsm = (NDSparseMatrix *) jlong_to_NDSparseMatrix(_ndsm);
+    if (ndsm) delete ndsm;
 }
 
 //------------------------------------------------------------------------------

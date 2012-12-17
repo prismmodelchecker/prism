@@ -16,7 +16,8 @@ INCLUDES = \
 -I$(PRISM_DIR_REL)/$(CUDD_DIR)/include \
 -I"$(JAVA_JNI_H_DIR)" \
 -I"$(JAVA_JNI_MD_H_DIR)" \
--I$(PRISM_DIR_REL)/$(INCLUDE_DIR)
+-I$(PRISM_DIR_REL)/$(INCLUDE_DIR) \
+-I$(PRISM_DIR_REL)/ext/lpsolve55/include
 
 LIBRARIES = \
 -L$(PRISM_DIR_REL)/$(LIB_DIR) \
@@ -24,7 +25,8 @@ LIBRARIES = \
 -ldd \
 -ldv \
 -lprism \
-$(LIBMATH)
+$(LIBMATH) \
+-llpsolve55
 
 JAVA_FILES_ALL = $(wildcard *.java)
 JAVA_FILES = $(subst package-info.java,,$(JAVA_FILES_ALL))

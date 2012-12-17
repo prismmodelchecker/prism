@@ -1307,8 +1307,12 @@ public class StateModelChecker implements ModelChecker
 				resObj = new Integer((int) d);
 			} else if (expr.getType() instanceof TypeDouble) {
 				resObj = new Double(d);
-			} else {
+			} else if (expr.getType() instanceof TypeBool) {
 				resObj = new Boolean(d > 0);
+			} else if (expr.getType() instanceof TypeVoid) {
+				resObj = TypeVoid.getInstance(); //we can't really return anything better
+			} else {
+				throw new PrismException("Don't know how to handle result of type " + expr.getType());
 			}
 			resVals = new StateValuesMTBDD(JDD.Constant(d), model);
 			// Create explanation of result and print some details to log

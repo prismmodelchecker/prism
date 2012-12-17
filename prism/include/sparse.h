@@ -24,6 +24,9 @@
 //	
 //==============================================================================
 
+#ifndef SPARSE_H
+#define SPARSE_H
+
 #include <util.h>
 #include <cudd.h>
 #include <odd.h>
@@ -191,3 +194,5 @@ double *cmsr_negative_row_sums(CMSRSparseMatrix *cmsrsm, bool transpose);
 double *cmsc_negative_row_sums(CMSCSparseMatrix *cmscsm, bool transpose);
 
 //------------------------------------------------------------------------------
+
+#endif // SPARSE_H
