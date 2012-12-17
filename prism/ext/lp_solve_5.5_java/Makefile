@@ -11,7 +11,7 @@ all: checks lpsolve55java
 
 # Try and prevent accidental makes (i.e. called manually, not from top-level Makefile)
 checks:
-	@if [ "$(LIBPREFIX)" = "" ]; then \
+	@if [ "$(LIBSUFFIX)" = "" ]; then \
 	  (echo "Error: This Makefile is designed to be called from the main PRISM Makefile"; exit 1) \
 	fi; 
 
