@@ -301,8 +301,6 @@ public class DA {
 	 * This functions expects that the DA is compact.
 	 * @param da_type a string specifying the type of automaton ("DRA", "DSA").
 	 * @param out the output stream 
-	 * 
-	 * @author Hongyang Qu
 	 */
 	public void	printDot(String da_type, PrintStream out) throws PrismException {
 		// Ensure that this DA is compact...
