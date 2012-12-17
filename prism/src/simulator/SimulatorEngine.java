@@ -1306,6 +1306,17 @@ public class SimulatorEngine
 		} catch (PrismException e) {
 			return "Simulator cannot handle this property: " + e.getMessage();
 		}
+		// Simulator cannot handle cumulative reward properties without a time bound
+		if (expr instanceof ExpressionReward) {
+			Expression exprTemp = ((ExpressionReward) expr).getExpression(); 
+			if (exprTemp instanceof ExpressionTemporal) {
+				if (((ExpressionTemporal) exprTemp).getOperator() == ExpressionTemporal.R_C) {
+					if (((ExpressionTemporal) exprTemp).getUpperBound() == null) {
+						return "Simulator cannot handle cumulative reward properties without time bounds";
+					}
+				}
+			}
+		}
 		// No errors
 		return null;
 	}

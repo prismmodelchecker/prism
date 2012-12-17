@@ -48,11 +48,6 @@ public class SamplerRewardCumulDisc extends SamplerDouble
 		if (expr.getOperator() != ExpressionTemporal.R_C)
 			throw new PrismException("Error creating Sampler");
 		
-		//Check that there is an upper time bound
-		if (expr.getUpperBound() == null) {
-			throw new PrismException("Cumulative reward without any time bound is only allowed for multi-objective queries.");
-		}
-		
 		timeBound = expr.getUpperBound().evaluateInt();
 		this.rewardStructIndex = rewardStructIndex;
 		// Initialise sampler info

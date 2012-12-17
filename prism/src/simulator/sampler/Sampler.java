@@ -238,11 +238,6 @@ public abstract class Sampler
 		ExpressionTemporal exprTemp = (ExpressionTemporal) expr.getExpression();
 		switch (exprTemp.getOperator()) {
 		case ExpressionTemporal.R_C:
-			//first check that there is an upper time bound
-			if (exprTemp.getUpperBound() == null) {
-				throw new PrismException("Cumulative reward without any time bound is only allowed for multi-objective queries.");
-			}
-			
 			if (mf.getModelType().continuousTime()) {
 				// Continuous-time cumulative reward
 				return new SamplerRewardCumulCont(exprTemp, rsi);
