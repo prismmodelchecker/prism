@@ -29,11 +29,8 @@ package prism;
 import java.io.*;
 import java.util.*;
 
-import cex.CexPathStates;
-
 import parser.*;
 import parser.ast.*;
-import simulator.SimulatorEngine;
 import simulator.method.*;
 
 // prism - command line version
