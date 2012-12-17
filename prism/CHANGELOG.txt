@@ -4,6 +4,8 @@ This file contains details of the changes in each new version of PRISM.
 Version 4.1 (beta released ???)
 -----------------------------------------------------------------------------
 
+* Multi-objective model checking for MDPs
+
 * New explicit-state (pure Java) model checking engine
   - coverage of much, but not all, of PRISM's model checking functionality
   - new methods for MDPs: policy iteration (-politer) and Gauss-Seidel (-gs)
@@ -14,16 +16,18 @@ Version 4.1 (beta released ???)
   - command-line GUI call (xprism)  takes both model and properties files as arguments
   - easier zoom-out (double click) for graphs in GUI
 
+* Non-probabilistic counterexample generation for CTL E[F ...] or A[G ...]
+  
 * Changes to deadlock handling:
   - new option for "fix deadlocks" (defaults to *true*) (and new switch -nofixdl) 
   - consistent deadlock handling everywhere, incl. GUI and experiments
 
 * Model checking improvements
-  - additional output in log of progress for numerical solution techniques
-  - -importinit option works for steady-state as well as transient probabilities
-  - new "printall" filter (shows zero results too, unlike "print")
   - incremental computation of ranges of transient probabilities
     when called from command-line (e.g. -tr 0.1:0.01:0.2) 
+  - new "printall" filter (shows zero results too, unlike "print")
+  - -importinit option works for steady-state as well as transient probabilities
+  - additional output in log of progress for numerical solution techniques
 
 * Improvements to simulation path generation using -simpath switch
   - more efficient path generation (on-the-fly) where possible
@@ -34,8 +38,6 @@ Version 4.1 (beta released ???)
   - settings file ~/.prism only read by GUI (not command-line) by default
   - new switch -settings to read a settings file from command-line PRISM
 
-* Added viewing of witness/counterexample for E[F...] in GUI.
-  
 * New file extensions: .prism, .props
 * New scripts: prism-auto/prism-test/prism-filler
 * New -exportdigital switch for exporting PRISM code built by digital clocks PTA engine
