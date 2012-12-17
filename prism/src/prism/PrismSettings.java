@@ -83,9 +83,6 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_TERM_CRIT						= "prism.termCrit";//"prism.termination";
 	public static final	String PRISM_TERM_CRIT_PARAM				= "prism.termCritParam";//"prism.terminationEpsilon";
 	public static final	String PRISM_MAX_ITERS						= "prism.maxIters";//"prism.maxIterations";
-	public static final	String PRISM_PARETO_EPSILON				= "prism.paretoEpsilon";//"prism.terminationEpsilon";
-	public static final	String PRISM_MAX_ITERS_MULTI				= "prism.maxItersMulti";//"prism.maxIterations"
-	public static final	String PRISM_PARETO_FILENAME				= "prism.paretoFileName";
 	
 	public static final	String PRISM_CUDD_MAX_MEM					= "prism.cuddMaxMem";
 	public static final	String PRISM_CUDD_EPSILON					= "prism.cuddEpsilon";
@@ -102,6 +99,10 @@ public class PrismSettings implements Observer
 	public static final String PRISM_AR_OPTIONS					= "prism.arOptions";
 	public static final String PRISM_EXPORT_ADV					= "prism.exportAdv";
 	public static final String PRISM_EXPORT_ADV_FILENAME			= "prism.exportAdvFilename";
+	
+	public static final	String PRISM_MULTI_MAX_POINTS				= "prism.multiMaxIters";
+	public static final	String PRISM_PARETO_EPSILON					= "prism.paretoEpsilon";
+	public static final	String PRISM_EXPORT_PARETO_FILENAME			= "prism.exportParetoFileName";
 	
 	//Simulator
 	public static final String SIMULATOR_DEFAULT_NUM_SAMPLES		= "simulator.defaultNumSamples";
@@ -209,15 +210,7 @@ public class PrismSettings implements Observer
 																			"Epsilon value to use for checking termination of iterative numerical methods." },
 			{ INTEGER_TYPE,		PRISM_MAX_ITERS,						"Termination max. iterations",			"2.1",			new Integer(10000),															"0,",																						
 																			"Maximum number of iterations to perform if iterative methods do not converge." },
-			{ DOUBLE_TYPE,		PRISM_PARETO_EPSILON,						"Pareto approx. threshold",			"4.1",			new Double(1.0E-2),															"0.0,",																						
-																			"Determines to what precision the Pareto curve will be approximated." },
-
-			{ INTEGER_TYPE,		PRISM_MAX_ITERS_MULTI,						"Termination max. corner points in multi-objective",			"2.1",			new Integer(50),															"0,",																						
-																			"Maximum number of corner points to explore if multi-objective value iteration does not converge." },
-			{ STRING_TYPE,		PRISM_PARETO_FILENAME,						"File to store Pareto curve",			"4.1",			"",															"0,",																						
-																			"The name of the file in which the Pareto curve will be stored." },
-
-																			// MODEL CHECKING OPTIONS:
+			// MODEL CHECKING OPTIONS:
 			{ BOOLEAN_TYPE,		PRISM_PRECOMPUTATION,					"Use precomputation",					"2.1",			new Boolean(true),															"",																							
 																			"Whether to use model checking precomputation algorithms (Prob0, Prob1, etc.), where optional." },
 			{ BOOLEAN_TYPE,		PRISM_PROB0,							"Use Prob0 precomputation",				"4.0.2",		new Boolean(true),															"",																							
@@ -238,8 +231,15 @@ public class PrismSettings implements Observer
 																			"Parameters for symmetry reduction (format: \"i j\" where i and j are the number of modules before and after the symmetric ones; empty string means symmetry reduction disabled)." },
 			{ STRING_TYPE,		PRISM_AR_OPTIONS,						"Abstraction refinement options",		"3.3",			"",																	"",																
 																			"Various options passed to the asbtraction-refinement engine (e.g. for PTA model checking)." },
+			// MULTI-OBJECTIVE MODEL CHECKING OPTIONS:
+			{ INTEGER_TYPE,		PRISM_MULTI_MAX_POINTS,					"Max. multi-objective corner points",			"4.0.3",			new Integer(50),															"0,",																						
+																			"Maximum number of corner points to explore if (value iteration based) multi-objective model checking does not converge." },
+			{ DOUBLE_TYPE,		PRISM_PARETO_EPSILON,					"Pareto approximation threshold",			"4.0.3",			new Double(1.0E-2),															"0.0,",																						
+																			"Determines to what precision the Pareto curve will be approximated." },
+			{ STRING_TYPE,		PRISM_EXPORT_PARETO_FILENAME,			"Pareto curve export filename",			"4.0.3",			"",															"0,",																						
+																			"If non-empty, any Pareto curve generated will be exported to this file." },
 			// OUTPUT OPTIONS:
-			{ BOOLEAN_TYPE,		PRISM_VERBOSE,							"Verbose output",						"2.1",			new Boolean(false),															"",																							
+			{ BOOLEAN_TYPE,		PRISM_VERBOSE,							"Verbose output",						"2.1",		new Boolean(false),															"",																							
 																			"Display verbose output to log." },
 			{ BOOLEAN_TYPE,		PRISM_EXTRA_DD_INFO,					"Extra MTBDD information",				"3.1.1",		new Boolean(false),															"0,",																						
 																			"Display extra information about (MT)BDDs used during and after model construction." },
@@ -862,39 +862,7 @@ public class PrismSettings implements Observer
 				throw new PrismException("No value specified for -" + sw + " switch");
 			}
 		}
-		// Max different corner points that will be generated when performing
-		// target driven multi-obj verification.
-		else if (sw.equals("maxiterspareto")) {
-			if (i < args.length - 1) {
-				try {
-					j = Integer.parseInt(args[++i]);
-					if (j < 0)
-						throw new NumberFormatException("");
-					set(PRISM_MAX_ITERS_MULTI, j);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
-		// Termination criterion for Pareto curve generation
-		else if (sw.equals("paretoepsilon")) {
-			if (i < args.length - 1) {
-				try {
-					d = Double.parseDouble(args[++i]);
-					if (d < 0)
-						throw new NumberFormatException("The argument for -paretoepsilon switch must be nonnegative");
-					set(PRISM_PARETO_EPSILON, d);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
-			} else {
-				throw new PrismException("No value specified for -" + sw + " switch");
-			}
-		}
 		
-
 		// MODEL CHECKING OPTIONS:
 		
 		// Precomputation algs off
@@ -964,6 +932,47 @@ public class PrismSettings implements Observer
 				set(PRISM_AR_OPTIONS, arOptions);
 			} else {
 				throw new PrismException("No parameter specified for -" + sw + " switch");
+			}
+		}
+		
+		// MULTI-OBJECTIVE MODEL CHECKING OPTIONS:
+		
+		// Max different corner points that will be generated when performing
+		// target driven multi-obj verification.
+		else if (sw.equals("multimaxpoints")) {
+			if (i < args.length - 1) {
+				try {
+					j = Integer.parseInt(args[++i]);
+					if (j < 0)
+						throw new NumberFormatException("");
+					set(PRISM_MULTI_MAX_POINTS, j);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
+		}
+		// Threshold for approximate Pareto curve generation
+		else if (sw.equals("paretoepsilon")) {
+			if (i < args.length - 1) {
+				try {
+					d = Double.parseDouble(args[++i]);
+					if (d < 0)
+						throw new PrismException("Value for -" + sw + " switch must be non-negative");
+					set(PRISM_PARETO_EPSILON, d);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
+		}
+		else if (sw.equals("exportpareto")) {
+			if (i < args.length - 1) {
+				set(PRISM_EXPORT_PARETO_FILENAME, args[++i]);
+			} else {
+				throw new PrismException("No file specified for -" + sw + " switch");
 			}
 		}
 		
@@ -1096,13 +1105,6 @@ public class PrismSettings implements Observer
 				throw new PrismException("No file specified for -" + sw + " switch");
 			}
 		}
-		else if (sw.equals("paretofile")) {
-			if (i < args.length - 1) {
-				set(PRISM_PARETO_FILENAME, args[++i]);
-			} else {
-				throw new PrismException("No file specified for -" + sw + " switch");
-			}
-		}
 		
 		// unknown switch - error
 		else {
@@ -1162,6 +1164,11 @@ public class PrismSettings implements Observer
 		mainLog.println("-aroptions <string> ............ Abstraction-refinement engine options string");
 		mainLog.println("-exportadv <file> .............. Export an adversary from MDP model checking (as a DTMC)");
 		mainLog.println("-exportadvmdp <file> ........... Export an adversary from MDP model checking (as an MDP)");
+		mainLog.println();
+		mainLog.println("MULTI-OBJECTIVE MODEL CHECKING:");
+		mainLog.println("-multimaxpoints <n> ............ Maximal number of corner points for (valiter-based) multi-objective");
+		mainLog.println("-paretoepsilon <x> ............. Threshold for Pareto curve approximation");
+		mainLog.println("-exportpareto <file> ........... When computing Pareto curves, export points to a file");
 		mainLog.println();
 		mainLog.println("OUTPUT OPTIONS:");
 		mainLog.println("-verbose (or -v) ............... Verbose mode: print out state lists and probability vectors");

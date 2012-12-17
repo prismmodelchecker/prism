@@ -1701,11 +1701,6 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-exporttransient <file> ........ Export transient probabilities to a file");
 		mainLog.println("-exportprism <file> ............ Export final PRISM model to a file");
 		mainLog.println("-exportprismconst <file> ....... Export final PRISM model with expanded constants to a file");
-		mainLog.println();
-		mainLog.println("MULTI-OBJECTIVE VERIFICATION:");
-		mainLog.println("-maxiterspareto ................ Maximal number of weights to be used");
-		mainLog.println("-paretofile <file> ............. When computing Pareto curve, the result is stored to file");
-		mainLog.println("-paretoepsilon ................. Threshold for Pareto curve approximation");
 		
 		prism.getSettings().printHelp(mainLog);
 
