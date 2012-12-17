@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Hongyang Qu <hongyang.qu@comlab.ox.ac.uk> (University of Oxford)
+//	* Vojtech Forejt <vojtech.forejt@cs.ox.ac.uk> (University of Oxford)
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
 //	
 //------------------------------------------------------------------------------

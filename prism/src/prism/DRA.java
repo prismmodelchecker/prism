@@ -3,7 +3,7 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
-//	* Hongyang Qu <hongyang.qu@comlab.ox.ac.uk> (University of Oxford)
+//	* Hongyang Qu <hongyang.qu@cs.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
