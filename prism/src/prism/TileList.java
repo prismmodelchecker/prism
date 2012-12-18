@@ -146,25 +146,29 @@ public class TileList
 		
 	@Override
 	public String toString() {
-		String s = "";
+		String s = "[";
+		boolean first = true;
 		for (int j = 0; j < this.list.size(); j++) {
 			Tile t = this.list.get(j);
 			for (Point p : t.cornerPoints) {
-				//we want to print the user-readable values if possible
+				// We want to print the user-readable values if possible
 				if (this.opsAndBoundsList != null) {
 					p = p.toRealProperties(this.opsAndBoundsList);
 				}
+				if (first)
+					first = false;
+				else
+					s += ",";
+				s += "(";
 				for (int i = 0; i < p.getDimension(); i++) {
-					s += p.getCoord(i) + ",";
+					if (i > 0)
+						s += ",";
+					s += p.getCoord(i);
 				}
-				s = s.substring(0,s.length() - 1);
-				s += ";";
+				s += ")";
 			}
-			s = s.substring(0,s.length() - 1);
-			s += '\n';
 		}
-		if (s.length() > 0)
-			s = s.substring(0,s.length() - 1);
+		s += "]";
 		return s;
 	}
 		
