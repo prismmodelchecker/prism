@@ -1046,7 +1046,8 @@ public class NondetModelChecker extends NonProbModelChecker
 					TileList.storedTileLists.add((TileList) value);
 				}
 			} //else, i.e. in 3D, the output was treated in the algorithm itself.
-			return new StateValuesMTBDD(JDD.Constant(1), model); //returning something dummy
+
+			return new StateValuesVoid(value);
 		}
 		else if (value instanceof Double) {
 			// Return result. Note: we only compute the value for a single state.
@@ -1055,7 +1056,8 @@ public class NondetModelChecker extends NonProbModelChecker
 			}
 	
 			return new StateValuesMTBDD(JDD.Constant((Double) value), model);
-		} else throw new PrismException("Do not know how to tread the returned value " + value);
+		}
+		else throw new PrismException("Do not know how to treat the returned value " + value);
 			
 	}
 

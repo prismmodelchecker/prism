@@ -322,7 +322,7 @@ public class GUIProperty
 			setStatus(STATUS_RESULT_NUMBER);
 		} else if (result.getResult() instanceof Exception) {
 			setStatus(STATUS_RESULT_ERROR);
-		} else if (result.getResult() instanceof TypeVoid) {
+		} else if (result.getResult() instanceof TileList) {
 			setStatus(STATUS_RESULT_PARETO);
 		} else {
 			setStatus(STATUS_NOT_DONE);

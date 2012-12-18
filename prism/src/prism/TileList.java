@@ -158,7 +158,7 @@ public class TileList
 				if (first)
 					first = false;
 				else
-					s += ",";
+					s += ",\n";
 				s += "(";
 				for (int i = 0; i < p.getDimension(); i++) {
 					if (i > 0)
