@@ -1125,6 +1125,7 @@ public class PrismSettings implements Observer
 		mainLog.println("-mtbdd (or -m) ................. Use the MTBDD engine");
 		mainLog.println("-sparse (or -s) ................ Use the Sparse engine");
 		mainLog.println("-hybrid (or -h) ................ Use the Hybrid engine [default]");
+		mainLog.println("-explicit (or -ex) ............. Use the explicit engine");
 		mainLog.println("-ptamethod <name> .............. Specify PTA engine (games, digital) [default: games]");
 		mainLog.println();
 		mainLog.println("NUMERICAL SOLUTION OPTIONS:");
