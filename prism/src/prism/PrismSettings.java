@@ -809,7 +809,7 @@ public class PrismSettings implements Observer
 			set(PRISM_MDP_SOLN_METHOD, "Value iteration");
 		} else if (sw.equals("politer")) {
 			set(PRISM_MDP_SOLN_METHOD, "Policy iteration");
-		} else if (sw.equals("linprog")) {
+		} else if (sw.equals("linprog") || sw.equals("lp")) {
 			set(PRISM_MDP_SOLN_METHOD, "Linear programming");
 		}
 		// Linear equation solver over-relaxation parameter
@@ -1141,7 +1141,7 @@ public class PrismSettings implements Observer
 		mainLog.println("-bpsor ......................... Use Backwards Pseudo SOR for numerical computation");
 		mainLog.println("-valiter ....................... Use value iteration for solving MDPs [default]");
 		mainLog.println("-politer ....................... Use policy iteration for solving MDPs");
-		mainLog.println("-linprog ....................... Use LP solver for solving MDPs");
+		mainLog.println("-linprog (or -lp) .............. Use LP solver for solving MDPs");
 		mainLog.println("-omega <x> ..................... Set over-relaxation parameter (for JOR/SOR/...) [default: 0.9]");
 		mainLog.println("-relative (or -rel) ............ Use relative error for detecting convergence [default]");
 		mainLog.println("-absolute (or -abs) ............ Use absolute error for detecting convergence");
