@@ -256,7 +256,7 @@ public class GUIProperty
 		case STATUS_RESULT_ERROR:
 			return getResultString();
 		default:
-			return "Result: " + getResultString();
+			return "<html>Result: " + getResultString().replaceAll("\n", "<br/>") + "</html>";
 		}
 	}
 
