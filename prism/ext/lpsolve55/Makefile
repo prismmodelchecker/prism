@@ -15,6 +15,12 @@ ifeq ($(OSTYPE),darwin)
 	  LPSOLVE55_BUILD=ccc.osx32
 	endif
 endif
+ifeq ($(OSTYPE),cygwin)
+	  LPSOLVE55_BUILD=ccc.cygwin
+endif
+ifeq ($(OSTYPE),solaris)
+	  LPSOLVE55_BUILD=ccc.solaris
+endif
 
 default: all
 
