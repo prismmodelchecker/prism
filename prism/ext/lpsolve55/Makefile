@@ -8,18 +8,18 @@
 ifeq ($(OSTYPE),linux)
 	  LPSOLVE55_BUILD=ccc
 endif
+ifeq ($(OSTYPE),solaris)
+	  LPSOLVE55_BUILD=ccc.solaris
+endif
+ifeq ($(OSTYPE),cygwin)
+	  LPSOLVE55_BUILD=ccc.cygwin
+endif
 ifeq ($(OSTYPE),darwin)
 	ifeq ($(ARCH),x86_64)
 	  LPSOLVE55_BUILD=ccc.osx64
 	else
 	  LPSOLVE55_BUILD=ccc.osx32
 	endif
-endif
-ifeq ($(OSTYPE),cygwin)
-	  LPSOLVE55_BUILD=ccc.cygwin
-endif
-ifeq ($(OSTYPE),solaris)
-	  LPSOLVE55_BUILD=ccc.solaris
 endif
 
 default: all
