@@ -33,7 +33,6 @@ import jdd.*;
 import odd.*;
 import mtbdd.*;
 import parser.*;
-import parser.ast.Expression;
 import sparse.*;
 
 /*
