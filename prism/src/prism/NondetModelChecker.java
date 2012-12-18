@@ -502,30 +502,6 @@ public class NondetModelChecker extends NonProbModelChecker
 		return ret;
 	}
 
-	//Vojta: I am not sure what exactly this does and if the name is appropriate
-	protected JDDNode updateRemovedActions(JDDNode rewardIndex, NondetModel modelProduct, Vector<JDDNode> mecs, JDDNode rmecs, boolean[] mecflags,
-			JDDNode removedActions, LTLModelChecker mcLtl)
-	{
-		JDD.Ref(rewardIndex);
-		JDDNode actions = JDD.GreaterThan(rewardIndex, 0.0);
-		if (!actions.equals(JDD.ZERO))
-			for (int j = 0; j < mecs.size(); j++) {
-				JDDNode mec = mecs.get(j);
-				JDD.Ref(mec);
-				JDDNode mecactions = mcLtl.maxStableSetTrans1(modelProduct, mec);
-				JDD.Ref(actions);
-				mecactions = JDD.And(actions, mecactions);
-				if (!mecactions.equals(JDD.ZERO)) {
-					mecflags[j] = true;
-					JDD.Ref(mec);
-					rmecs = JDD.Or(rmecs, mec);
-				}
-				removedActions = JDD.Or(removedActions, mecactions);
-			}
-		JDD.Deref(actions);
-		return removedActions;
-	}
-
 	protected void removeNonZeroMecsForMax(NondetModel modelProduct, LTLModelChecker mcLtl, List<JDDNode> rewardsIndex, OpsAndBoundsList opsAndBounds,
 			int numTargets, DRA<BitSet> dra[], JDDVars draDDRowVars[], JDDVars draDDColVars[]) throws PrismException
 	{
@@ -535,7 +511,22 @@ public class NondetModelChecker extends NonProbModelChecker
 		boolean mecflags[] = new boolean[mecs.size()];
 		for (int i = 0; i < rewardsIndex.size(); i++)
 			if (opsAndBounds.getRewardOperator(i) == Operator.R_MAX || opsAndBounds.getRewardOperator(i) == Operator.R_GE) {
-				removedActions = updateRemovedActions(rewardsIndex.get(i), modelProduct, mecs, rmecs, mecflags, removedActions, mcLtl);
+				JDD.Ref(rewardsIndex.get(i));
+				JDDNode actions = JDD.GreaterThan(rewardsIndex.get(i), 0.0);
+				if (!actions.equals(JDD.ZERO))
+					for (int j = 0; j < mecs.size(); j++) {
+						JDDNode mec = mecs.get(j);
+						JDD.Ref(mec);
+						JDDNode mecactions = mcLtl.maxStableSetTrans1(modelProduct, mec);
+						JDD.Ref(actions);
+						mecactions = JDD.And(actions, mecactions);
+						if (!mecactions.equals(JDD.ZERO)) {
+							JDD.Ref(mec);
+							rmecs = JDD.Or(rmecs, mec);
+						}
+						removedActions = JDD.Or(removedActions, mecactions);
+					}
+				JDD.Deref(actions);
 			}
 		for (JDDNode mec : mecs)
 			JDD.Deref(mec);
@@ -591,7 +582,7 @@ public class NondetModelChecker extends NonProbModelChecker
 						}
 					}
 
-					opsAndBounds.add(Operator.R_MAX, -1.0, -1);
+					tmpOpsAndBounds.add(Operator.R_MAX, -1.0, -1);
 
 					ArrayList<JDDNode> tmprewards = new ArrayList<JDDNode>(1);
 					tmprewards.add(rtarget);
