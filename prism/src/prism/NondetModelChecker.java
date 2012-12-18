@@ -374,9 +374,10 @@ public class NondetModelChecker extends NonProbModelChecker
 		if (exprReward != null) {
 			exprTemp = (ExpressionTemporal) exprReward.getExpression();
 			
-			//We only allow "C", others such as "F" are not supported currently
+			// We only allow C or C<=k reward operators, others such as F are not supported currently
 			if (exprTemp.getOperator() != ExpressionTemporal.R_C) {
-				throw new PrismException("Reward is only allowed with C operator, the following is not allowed: " + exprTemp);
+				throw new PrismException("Reward operators in multi-objective properties must be C or C<=k (" + exprTemp.getOperatorSymbol()
+						+ " is not yet supported)");
 			}
 			
 			if (exprTemp.getUpperBound() != null) {
@@ -409,18 +410,18 @@ public class NondetModelChecker extends NonProbModelChecker
 			op = (exprProb != null) ? Operator.P_MAX : Operator.R_MAX;
 		} else if (relOp.equals(">")) // currently do not support
 			//relOps.add(1);
-			throw new PrismException("Strict inequalities are not supported.");
+			throw new PrismException("Multi-objective properties can not use strict inequalities on P/R operators");
 		else if (relOp.equals(">=")) {
 			op = (exprProb != null) ? Operator.P_GE : Operator.R_GE;
 		} else if (relOp.equals("min=")) {
 			op = (exprProb != null) ? Operator.P_MIN : Operator.R_MIN;
 		} else if (relOp.equals("<")) // currently do not support
 			//relOps.add(6);
-			throw new PrismException("Strict inequalities are not supported.");
+			throw new PrismException("Multi-objective properties can not use strict inequalities on P/R operators");
 		else if (relOp.equals("<=")) {
 			op = (exprProb != null) ? Operator.P_LE : Operator.R_LE;
 		} else
-			throw new PrismException("Multiple objectives must be P/R operators with max/min=? or lower/upper probability bounds");
+			throw new PrismException("Multi-objective properties can only contain P/R operators with max/min=? or lower/upper probability bounds");
 		// Store probability/rewards bound
 		Expression pb = (exprProb != null) ? exprProb.getProb() : exprReward.getReward();
 		if (pb != null) {
@@ -612,10 +613,7 @@ public class NondetModelChecker extends NonProbModelChecker
 					JDD.Deref(tt);
 			}
 			if (constraintViolated) {
-				mainLog.println("-----------------------------------------------------------------");
-				mainLog.println("WARNING: There are reachable end compoments with non-zero reward!");
-				mainLog.println("-----------------------------------------------------------------");
-				mainLog.flush();
+				throw new PrismException("Cannot use multi-objective model checking with maximising objectives and non-zero reward end compoments");
 			}
 
 			JDD.Ref(removedActions);
