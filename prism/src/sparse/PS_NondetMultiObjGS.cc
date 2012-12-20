@@ -174,8 +174,8 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		
 		double* weights = env->GetDoubleArrayElements(_weights, 0);
 		
-		int* step_bounds_r = (has_rewards) ? env->GetIntArrayElements(_ndsm_r_step_bounds, 0) : NULL;
-		int* step_bounds = (has_yes_vec) ? env->GetIntArrayElements(_prob_step_bounds, 0) : NULL;
+		int* step_bounds_r = (has_rewards) ? (int*)env->GetIntArrayElements(_ndsm_r_step_bounds, 0) : NULL;
+		int* step_bounds = (has_yes_vec) ? (int*)env->GetIntArrayElements(_prob_step_bounds, 0) : NULL;
 		
 		for(int rewi = 0; rewi < lenRew; rewi++)
 			if (step_bounds_r[rewi] != -1) {
