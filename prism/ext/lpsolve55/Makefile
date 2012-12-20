@@ -34,7 +34,7 @@ checks:
 
 ../../lib/$(LIBPREFIX)lpsolve55$(LIBSUFFIX):
 	@(if [ "$(OSTYPE)" = "cygwin" ]; then \
-	  cp "bin/win32/*dll" ../../lib; \
+	  cp bin/win32/$(LIBPREFIX)lpsolve55$(LIBSUFFIX) ../../lib; \
 	else \
 	  (cd src/lp_solve_5.5/lpsolve55 && \
 	  c=$(C) sh -x $(LPSOLVE55_BUILD) \
