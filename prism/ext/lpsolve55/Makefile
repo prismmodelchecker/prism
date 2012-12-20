@@ -33,13 +33,13 @@ checks:
 	fi; 
 
 ../../lib/$(LIBPREFIX)lpsolve55$(LIBSUFFIX):
-	@if [ "$(OSTYPE)" = "cygwin" ]; then \
-	(cp bin/win32/*dll ../../lib) \
+	@(if [ "$(OSTYPE)" = "cygwin" ]; then \
+	  cp "bin/win32/*dll" ../../lib; \
 	else \
-	(cd src/lp_solve_5.5/lpsolve55 && \
-	c=$(C) sh -x $(LPSOLVE55_BUILD) \
-	) && mv lib/$(LIBPREFIX)lpsolve55$(LIBSUFFIX) ../../lib \
-	fi;
+	  (cd src/lp_solve_5.5/lpsolve55 && \
+	  c=$(C) sh -x $(LPSOLVE55_BUILD) \
+	  ) && mv lib/$(LIBPREFIX)lpsolve55$(LIBSUFFIX) ../../lib; \
+	fi)
 
 clean: checks
 	rm -f lib/$(LIBPREFIX)lpsolve55$(LIBSUFFIX) ../../lib/$(LIBPREFIX)lpsolve55$(LIBSUFFIX)
