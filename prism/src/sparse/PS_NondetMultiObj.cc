@@ -130,13 +130,14 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 	//from the combined value. We must make sure that this reward has nonzero weight,
 	//otherwise we can't compute it.
 	int ignoredWeight = -1;
-	
+
+	/* HOTFIX: not used for numerical problems	
 	for (i = lenProb + lenRew - 1; i>=0; i--) {
 		if (weights[i] > 0) {
 			ignoredWeight = i;
 			break;
 		}
-	}
+	}*/
 
 	//determine the minimal nonzero weight
 	double min_weight = 1;
