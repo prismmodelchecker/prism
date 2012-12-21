@@ -7,7 +7,7 @@ src='../lp_MDO.c ../shared/commonlib.c ../shared/mmio.c ../shared/myblas.c ../in
 echo '#include <stdlib.h>'>>/tmp/platform.c
 echo '#include <stdio.h>'>>/tmp/platform.c
 echo 'main(){printf("osx%d", (int) (sizeof(void *)*8));}'>>/tmp/platform.c
-$c /tmp/platform.c -o /tmp/platform
+$c -arch i386 /tmp/platform.c -o /tmp/platform
 PLATFORM=`/tmp/platform`
 rm /tmp/platform /tmp/platform.c >/dev/null 2>&1
 
@@ -19,7 +19,7 @@ echo '#include <stdio.h>'>>/tmp/isnan.c
 echo '#include <stdlib.h>'>>/tmp/isnan.c
 echo '#include <math.h>'>>/tmp/isnan.c
 echo 'main(){isnan(0);}'>>/tmp/isnan.c
-$c /tmp/isnan.c -o /tmp/isnan $math >/dev/null 2>&1
+$c -arch i386 /tmp/isnan.c -o /tmp/isnan $math >/dev/null 2>&1
 if [ $? = 0 ]
 then NOISNAN=
 else NOISNAN=-DNOISNAN
@@ -30,15 +30,15 @@ def=
 dl=-ldl
 so=y
 
-opts='-idirafter /usr/include/sys -O3 -DINTEGERTIME -Wno-long-double'
+opts='-idirafter /usr/include/sys -O3 -DINTEGERTIME'
 
-$c -s -c -I.. -I../shared -I../bfp -I../bfp/bfp_LUSOL -I../bfp/bfp_LUSOL/LUSOL -I../colamd $opts $def $NOISNAN -DYY_NEVER_INTERACTIVE -DPARSER_LP -DINVERSE_ACTIVE=INVERSE_LUSOL -DRoleIsExternalInvEngine $src
+$c -arch i386 -s -c -I.. -I../shared -I../bfp -I../bfp/bfp_LUSOL -I../bfp/bfp_LUSOL/LUSOL -I../colamd $opts $def $NOISNAN -DYY_NEVER_INTERACTIVE -DPARSER_LP -DINVERSE_ACTIVE=INVERSE_LUSOL -DRoleIsExternalInvEngine $src
 libtool -static -o bin/$PLATFORM/liblpsolve55.a `echo $src|sed s/[.]c/.o/g|sed 's/[^ ]*\///g'`
 
 if [ "$so" != "" ]
 then
-  $c -fPIC -fno-common -s -c -I.. -I../shared -I../bfp -I../bfp/bfp_LUSOL -I../bfp/bfp_LUSOL/LUSOL -I../colamd -I. $opts $NOISNAN -DYY_NEVER_INTERACTIVE -DPARSER_LP -DINVERSE_ACTIVE=INVERSE_LUSOL -DRoleIsExternalInvEngine $src
-  $c -dynamiclib bin/$PLATFORM/liblpsolve55.a -compatibility_version 5.5.0 -current_version 5.5.0 -o bin/$PLATFORM/liblpsolve55.dylib `echo $src|sed s/[.]c/.o/g|sed 's/[^ ]*\///g'` -lc
+  $c -arch i386 -fPIC -fno-common -s -c -I.. -I../shared -I../bfp -I../bfp/bfp_LUSOL -I../bfp/bfp_LUSOL/LUSOL -I../colamd -I. $opts $NOISNAN -DYY_NEVER_INTERACTIVE -DPARSER_LP -DINVERSE_ACTIVE=INVERSE_LUSOL -DRoleIsExternalInvEngine $src
+  $c -arch i386 -dynamiclib bin/$PLATFORM/liblpsolve55.a -compatibility_version 5.5.0 -current_version 5.5.0 -o bin/$PLATFORM/liblpsolve55.dylib `echo $src|sed s/[.]c/.o/g|sed 's/[^ ]*\///g'` -lc
   mv bin/$PLATFORM/liblpsolve55.dylib ../../../lib
 fi
 
