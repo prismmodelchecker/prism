@@ -20,7 +20,7 @@ lpsolve55java:
 	@(if [ "$(OSTYPE)" = "linux" ]; then \
 	  echo "Rebuild lpsolve55 Java wrapper for Linux"; \
 	  pushd lib/ ; \
-	  JAVA_JNI_H_DIR="$(JAVA_JNI_H_DIR)" sh build; \
+	  ARCH=$(ARCH) JAVA_JNI_H_DIR="$(JAVA_JNI_H_DIR)" sh build; \
 	  popd; \
 	  if [ "$(ARCH)" = "" ]; then \
 	    cp lib/lpsolve55j.jar lib/ux32/liblpsolve55j.so ../../lib/ ; \
