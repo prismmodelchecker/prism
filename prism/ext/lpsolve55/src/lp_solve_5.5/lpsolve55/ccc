@@ -8,7 +8,7 @@ fi
 if [ "$ARCH" = "amd64" ]; then
 	CFLAGS = -m64 -fPIC -DPIC
 fi
-if [ "$ARCH" = "" ]; then
+if [ "$ARCH" = "ia64" ]; then
 	CFLAGS = -fPIC -DPIC
 fi
 
