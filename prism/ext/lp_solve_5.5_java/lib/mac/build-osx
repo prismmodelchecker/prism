@@ -28,4 +28,4 @@ else
 fi
 
 g++ $CFLAGS $INCL -c $SRC_DIR/lpsolve5j.cpp
-g++ -dynamiclib lpsolve5j.o -compatibility_version 5.5.0 -current_version 5.5.0 -o liblpsolve55j.jnilib -lc -llpsolve55 -L$LPSOLVE_LIB_DIR
+g++ $CFLAGS -dynamiclib lpsolve5j.o -compatibility_version 5.5.0 -current_version 5.5.0 -o liblpsolve55j.jnilib -lc -llpsolve55 -L$LPSOLVE_LIB_DIR
