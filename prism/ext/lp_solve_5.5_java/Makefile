@@ -31,7 +31,7 @@ lpsolve55java:
 	@(if [ "$(OSTYPE)" = "darwin" ]; then \
 	  echo "Rebuild lpsolve55 Java wrapper for MacOS"; \
 	  pushd lib/mac/ ; \
-	  sh build-osx; \
+	  ARCH=$(ARCH) sh -x build-osx; \
 	  popd; \
 	  cp lib/lpsolve55j.jar lib/mac/liblpsolve55j.jnilib ../../lib/ ; \
 	fi)
