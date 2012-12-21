@@ -3,13 +3,13 @@ src='../lp_MDO.c ../shared/commonlib.c ../shared/mmio.c ../shared/myblas.c ../in
 #c=cc
 
 if [ "$ARCH" = "" ]; then
-	CFLAGS = -m32
+	CFLAGS=-m32
 fi
 if [ "$ARCH" = "amd64" ]; then
-	CFLAGS = -m64 -fPIC -DPIC
+	CFLAGS=-m64 -fPIC -DPIC
 fi
 if [ "$ARCH" = "ia64" ]; then
-	CFLAGS = -fPIC -DPIC
+	CFLAGS=-fPIC -DPIC
 fi
 
 #determine platform (32/64 bit)
