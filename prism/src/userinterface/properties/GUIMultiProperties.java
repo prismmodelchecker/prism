@@ -54,6 +54,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Comparator;
+import java.util.Collections;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -905,7 +908,22 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 					graph.getYAxisSettings().setHeading(TileList.getStoredFormulasY().get(i).toString());
 					SeriesKey sk = graph.addSeries("Pareto curve");
 					
-					for (prism.Point p : tl.getPoints()) {
+					//Get points in tilelist and sort them. This is required for the graph to show them right
+					List<prism.Point> l = tl.getPoints();
+					Comparator<prism.Point > c = new Comparator<prism.Point>()
+					{
+						public int compare(prism.Point o1, prism.Point o2)
+						{
+							if (o1.getCoord(0) == o2.getCoord(0))
+								return Double.compare(o1.getCoord(1), o2.getCoord(1));
+							else
+								return Double.compare(o1.getCoord(0), o2.getCoord(0));
+						};
+					};
+
+					Collections.sort(l, c);
+
+					for (prism.Point p : l) {
 						prism.Point pReal = p.toRealProperties(tl.getOpsAndBoundsList());
 						XYDataItem di = new XYDataItem(pReal.getCoord(0), pReal.getCoord(1));
 						graph.addPointToSeries(sk, di);
