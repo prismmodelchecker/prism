@@ -99,7 +99,7 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 	int adv_j;
 	//int *adv = NULL;
 	// action info
-	int *actions;
+	int *actions = NULL;
 	jstring *action_names_jstrings;
 	int num_actions;
 	// misc
@@ -552,7 +552,6 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 			PS_SetErrorMessage("Unknown error.");
 	}
 	
-	// free memory
 	if (soln) delete[] soln;
 	if (yes_vec) delete[] yes_vec; 
 	if (h2_r) delete[] h2_r;
@@ -562,7 +561,7 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 	if (pd2) delete[] pd2;
 	for (int it = 0; it < lenProb + lenRew; it++) {
 		if (it != ignoredWeight)
-			if (psoln[it]) delete[] psoln[it];
+			if (psoln && psoln[it]) delete[] psoln[it];
 	}
 	if (psoln) delete[] psoln;
 	if (actions != NULL) {

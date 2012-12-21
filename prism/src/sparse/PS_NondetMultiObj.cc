@@ -120,6 +120,8 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 	bool has_rewards = _ndsm_r != 0;
 	bool has_yes_vec = _yes_vec != 0;
     
+	//we will change maximal number of iters, so make sure we don't change the global number
+	int max_iters_local = max_iters;
     
 	jsize lenRew = (has_rewards) ? env->GetArrayLength(_ndsm_r) : 0;
 	jsize lenProb = (has_yes_vec) ? env->GetArrayLength(_yes_vec) : 0;
@@ -180,7 +182,7 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		int max_step_bound = 0;
 		for(int rewi = 0; rewi < lenRew; rewi++) {
 			if (step_bounds_r[rewi] == -1)
-				step_bounds_r[rewi] = max_iters;
+				step_bounds_r[rewi] = max_iters_local;
 			else if (max_step_bound < step_bounds_r[rewi]) {
 				max_step_bound = step_bounds_r[rewi];
 			}
@@ -188,7 +190,7 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		
 		for(int probi = 0; probi < lenProb; probi++) {
 			if (step_bounds[probi] == -1) {
-				step_bounds[probi] = max_iters;
+				step_bounds[probi] = max_iters_local;
 			} else if (max_step_bound < step_bounds[probi]) {
 				max_step_bound = step_bounds[probi];
 			}
@@ -239,13 +241,13 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 			soln[i] = 0;
 			soln2[i] = 0;
 			for (int probi = 0; probi < lenProb; probi++) {
-				if (step_bounds[probi] == max_iters)
+				if (step_bounds[probi] == max_iters_local)
 					soln[i] += weights[probi] * yes_vec[probi][i];
 				//PS_PrintToMainLog(env, "s: %d %d %f %f %f\n", i, probi, soln[i], weights[probi], yes_vec[probi][i]);
 			}
 			for (int probi = 0; probi < lenProb; probi++) {
 				if (probi != ignoredWeight) {
-					if (step_bounds[probi] == max_iters) {
+					if (step_bounds[probi] == max_iters_local) {
 						//PS_PrintToMainLog(env, "setting %d psoln to some number\n", probi);
 						psoln[probi][i] = 0;//yes_vec[probi][i];
 					}
@@ -321,7 +323,7 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		h2_r = new int[lenRew];
 		l2_r = new int[lenRew];
 		k_r = new int[lenRew];
-		while (!done && iters < max_iters) {
+		while (!done && iters < max_iters_local) {
 			iters++;
 			
 			// do matrix multiplication and min/max
@@ -361,7 +363,7 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 							while (k_r[rewi] < h2_r[rewi] && cols_r[rewi][k_r[rewi]] != cols[k])
 								k_r[rewi]++;
 							// if there is one, add reward * prob to reward value
-							if (k_r[rewi] < h2_r[rewi] && max_iters - iters < step_bounds_r[rewi]) {
+							if (k_r[rewi] < h2_r[rewi] && max_iters_local - iters < step_bounds_r[rewi]) {
 								d2 += weights[rewi + lenProb] * non_zeros_r[rewi][k_r[rewi]] * non_zeros[k];
 								if (lenProb + rewi != ignoredWeight) {
 									pd2[rewi + lenProb] += non_zeros_r[rewi][k_r[rewi]] * non_zeros[k];
@@ -405,7 +407,7 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 				
 				double val_yes = 0.0;
 				for (int probi = 0; probi < lenProb; probi++) {
-					if (max_iters - iters < step_bounds[probi])
+					if (max_iters_local - iters < step_bounds[probi])
 						val_yes += weights[probi] * yes_vec[probi][i];
 				}
 				
@@ -427,11 +429,11 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 				} else {
 					soln2[i] = 0;
 					for (int probi = 0; probi < lenProb; probi++)
-						if(max_iters - iters < step_bounds[probi])
+						if(max_iters_local - iters < step_bounds[probi])
 							soln2[i] += weights[probi] * yes_vec[probi][i];
 					
 					for (int probi = 0; probi < lenProb; probi++)
-						if (probi != ignoredWeight && max_iters - iters < step_bounds[probi])
+						if (probi != ignoredWeight && max_iters_local - iters < step_bounds[probi])
 							psoln2[probi][i] = yes_vec[probi][i];
 
 					for (int rewi = 0; rewi < lenRew; rewi++)
@@ -507,8 +509,8 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 			//max_step_bound more iterations will be performed
 			end_switch: if (done && max_step_bound > 0) {
 				done = false;
-				if (iters < max_iters - max_step_bound) {
-					max_iters = iters + max_step_bound;
+				if (iters < max_iters_local - max_step_bound) {
+					max_iters_local = iters + max_step_bound;
 				}
 			}
 			
