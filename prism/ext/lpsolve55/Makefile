@@ -37,7 +37,7 @@ checks:
 	  cp bin/win32/$(LIBPREFIX)lpsolve55$(LIBSUFFIX) ../../lib; \
 	else \
 	  (cd src/lp_solve_5.5/lpsolve55 && \
-	  c=$(C) sh -x $(LPSOLVE55_BUILD) \
+	  ARCH=$(ARCH) c=$(C) sh -x $(LPSOLVE55_BUILD) \
 	  ) && mv lib/$(LIBPREFIX)lpsolve55$(LIBSUFFIX) ../../lib; \
 	fi)
 
