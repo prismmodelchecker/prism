@@ -355,17 +355,26 @@ public class NondetModelChecker extends NonProbModelChecker
 			exprProb = null;
 			Object rs = exprReward.getRewardStructIndex();
 			JDDNode transRewards = null;
+			JDDNode stateRewards = null;
 			if (model.getNumRewardStructs() == 0)
 				throw new PrismException("Model has no rewards specified");
 			if (rs == null) {
 				transRewards = model.getTransRewards(0);
+				stateRewards = model.getStateRewards(0);
 			} else if (rs instanceof Expression) {
 				int j = ((Expression) rs).evaluateInt(constantValues);
 				rs = new Integer(j); // for better error reporting below
 				transRewards = model.getTransRewards(j - 1);
+				stateRewards = model.getStateRewards(j - 1);
 			} else if (rs instanceof String) {
 				transRewards = model.getTransRewards((String) rs);
+				stateRewards = model.getStateRewards((String) rs);	
 			}
+
+			//check if there are state rewards and display a warning
+			if (stateRewards != null && !stateRewards.equals(JDD.ZERO))
+				mainLog.printWarning("Multi-objective queries currently only support action rewards. State rewards were found, but will be ignored.");
+
 			if (transRewards == null)
 				throw new PrismException("Invalid reward structure index \"" + rs + "\"");
 			rewardsIndex.add(transRewards);
