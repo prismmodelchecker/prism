@@ -373,8 +373,7 @@ public class NondetModelChecker extends NonProbModelChecker
 
 			//check if there are state rewards and display a warning
 			if (stateRewards != null && !stateRewards.equals(JDD.ZERO))
-				mainLog.printWarning("Multi-objective queries currently only support action rewards. State rewards were found, but will be ignored.");
-
+				throw new PrismException("Multi-objective model checking does not support state rewards; please convert to transition rewards");
 			if (transRewards == null)
 				throw new PrismException("Invalid reward structure index \"" + rs + "\"");
 			rewardsIndex.add(transRewards);
