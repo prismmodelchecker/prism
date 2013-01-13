@@ -1,3 +1,5 @@
+// optimal program for the sum of two dice
+
 dtmc
 
 module sum_of_two_dice
