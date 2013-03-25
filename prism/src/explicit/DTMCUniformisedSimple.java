@@ -45,8 +45,6 @@ public class DTMCUniformisedSimple extends DTMCExplicit
 {
 	// Parent CTMC
 	protected CTMCSimple ctmc;
-	// Also store num states for easy access
-	protected int numStates;
 	// Uniformisation rate
 	protected double q;
 	// Number of extra transitions added (just for stats)
