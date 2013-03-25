@@ -196,6 +196,12 @@ public class DTMCModelChecker extends ProbModelChecker
 			case ExpressionTemporal.R_F:
 				rewards = checkRewardReach(model, modelRewards, exprTemp);
 				break;
+			case ExpressionTemporal.R_I:
+				rewards = checkRewardInstantaneous(model, modelRewards, exprTemp);
+				break;
+			case ExpressionTemporal.R_C:
+				rewards = checkRewardCumulative(model, modelRewards, exprTemp);
+				break;
 			default:
 				throw new PrismException("Explicit engine does not yet handle the " + exprTemp.getOperatorSymbol() + " operator in the R operator");
 			}
@@ -227,6 +233,145 @@ public class DTMCModelChecker extends ProbModelChecker
 		rewards = StateValues.createFromDoubleArray(res.soln, model);
 
 		return rewards;
+	}
+
+	/**
+	 * Compute rewards for an instantaneous reward operator.
+	 */
+	protected StateValues checkRewardInstantaneous(Model model, MCRewards modelRewards, ExpressionTemporal expr) throws PrismException
+	{
+		StateValues rewards = null;
+		ModelCheckerResult res = null;
+
+		// get time bound
+		double t = expr.getUpperBound().evaluateDouble(constantValues);
+
+		// print out some info about num states
+		// mainLog.print("\nb = " + JDD.GetNumMintermsString(b1,
+		// allDDRowVars.n()));
+
+		res = computeInstantaneousRewards((DTMC) model, modelRewards, t);
+		rewards = StateValues.createFromDoubleArray(res.soln, model);
+
+		return rewards;
+	}
+
+	/**
+	 * Compute rewards for a cumulative reward operator.
+	 */
+	protected StateValues checkRewardCumulative(Model model, MCRewards modelRewards, ExpressionTemporal expr) throws PrismException
+	{
+		StateValues rewards = null;
+		ModelCheckerResult res = null;
+
+		// get time bound
+		double t = expr.getUpperBound().evaluateDouble(constantValues);
+
+		// print out some info about num states
+		// mainLog.print("\nb = " + JDD.GetNumMintermsString(b1,
+		// allDDRowVars.n()));
+
+		res = computeCumulativeRewards((DTMC) model, modelRewards, t);
+		rewards = StateValues.createFromDoubleArray(res.soln, model);
+
+		return rewards;
+	}
+
+	public ModelCheckerResult computeInstantaneousRewards(DTMC dtmc, MCRewards mcRewards, double t) throws PrismException
+	{
+		ModelCheckerResult res = null;
+		int i, n, iters;
+		double soln[], soln2[], tmpsoln[];
+		long timer;
+		int right = (int) t;
+
+		// Store num states
+		n = dtmc.getNumStates();
+
+		// Start backwards transient computation
+		timer = System.currentTimeMillis();
+		mainLog.println("Starting backwards instantaneous rewards computation...");
+
+		// Create solution vector(s)
+		soln = new double[n];
+		soln2 = new double[n];
+
+		// Initialise solution vectors.
+		for (i = 0; i < n; i++)
+			soln[i] = mcRewards.getStateReward(i);
+
+		// Start iterations
+		for (iters = 0; iters < right; iters++) {
+			// Matrix-vector multiply
+			dtmc.mvMult(soln, soln2, null, false);
+			// Swap vectors for next iter
+			tmpsoln = soln;
+			soln = soln2;
+			soln2 = tmpsoln;
+			iters++;
+		}
+
+		// Finished backwards transient computation
+		timer = System.currentTimeMillis() - timer;
+		mainLog.print("Backwards transient instantaneous rewards computation");
+		mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
+
+		// Return results
+		res = new ModelCheckerResult();
+		res.soln = soln;
+		res.lastSoln = soln2;
+		res.numIters = iters;
+		res.timeTaken = timer / 1000.0;
+		res.timePre = 0.0;
+		return res;
+	}
+
+	public ModelCheckerResult computeCumulativeRewards(DTMC dtmc, MCRewards mcRewards, double t) throws PrismException
+	{
+		ModelCheckerResult res = null;
+		int i, n, iters;
+		double soln[], soln2[], tmpsoln[];
+		long timer;
+		int right = (int) t;
+
+		// Store num states
+		n = dtmc.getNumStates();
+
+		// Start backwards transient computation
+		timer = System.currentTimeMillis();
+		mainLog.println("Starting backwards cumulative rewards computation...");
+
+		// Create solution vector(s)
+		soln = new double[n];
+		soln2 = new double[n];
+
+		// Start iterations
+		for (iters = 0; iters < right; iters++) {
+			// Matrix-vector multiply plus adding rewards
+			dtmc.mvMult(soln, soln2, null, false);
+			for (i = 0; i < n; i++) {
+				soln2[i] += mcRewards.getStateReward(i);
+			}
+			// Swap vectors for next iter
+			tmpsoln = soln;
+			soln = soln2;
+			soln2 = tmpsoln;
+			iters++;
+		}
+
+		// Finished backwards transient computation
+		timer = System.currentTimeMillis() - timer;
+		mainLog.print("Backwards cumulative rewards computation");
+		mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
+
+		// Return results
+		res = new ModelCheckerResult();
+		res.soln = soln;
+		res.lastSoln = soln2;
+		res.numIters = iters;
+		res.timeTaken = timer / 1000.0;
+		res.timePre = 0.0;
+		return res;
 	}
 
 	/**

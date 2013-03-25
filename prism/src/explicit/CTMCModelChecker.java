@@ -385,6 +385,232 @@ public class CTMCModelChecker extends DTMCModelChecker
 	}
 
 	/**
+	 * Perform cumulative reward computation.
+	 * Compute, for each state of {@ctmc}, the expected rewards accumulated until {@code t}
+	 * when starting in this state and using reward structure {@code mcRewards}.
+	 * @param ctmc The CTMC
+	 * @param mcRewards The rewards
+	 * @param t Time bound
+	 */
+	@Override
+	public ModelCheckerResult computeCumulativeRewards(DTMC dtmc, MCRewards mcRewards, double t) throws PrismException
+	{
+		ModelCheckerResult res = null;
+		int i, n, iters;
+		double soln[], soln2[], tmpsoln[], sum[];
+		long timer;
+		// Fox-Glynn stuff
+		FoxGlynn fg;
+		int left, right;
+		double q, qt, acc, weights[], totalWeight;
+
+		// Optimisation: If t = 0, this is easy.
+		if (t == 0) {
+			res = new ModelCheckerResult();
+			res.soln = new double[dtmc.getNumStates()];
+			return res;
+		}
+
+		// Start backwards transient computation
+		timer = System.currentTimeMillis();
+		mainLog.println("Starting backwards cumulative rewards computation...");
+
+		CTMC ctmc = (CTMC) dtmc;
+
+		// Store num states
+		n = ctmc.getNumStates();
+
+		// Get uniformisation rate; do Fox-Glynn
+		q = ctmc.getDefaultUniformisationRate();
+		qt = q * t;
+		mainLog.println("\nUniformisation: q.t = " + q + " x " + t + " = " + qt);
+		acc = termCritParam / 8.0;
+		fg = new FoxGlynn(qt, 1e-300, 1e+300, acc);
+		left = fg.getLeftTruncationPoint();
+		right = fg.getRightTruncationPoint();
+		if (right < 0) {
+			throw new PrismException("Overflow in Fox-Glynn computation (time bound too big?)");
+		}
+		weights = fg.getWeights();
+		totalWeight = fg.getTotalWeight();
+		for (i = left; i <= right; i++) {
+			weights[i - left] /= totalWeight;
+		}
+
+		// modify the poisson probabilities to what we need for this computation
+		// first make the kth value equal to the sum of the values for 0...k
+		for (i = left+1; i <= right; i++) {
+			weights[i - left] += weights[i - 1 - left];
+		}
+		// then subtract from 1 and divide by uniformisation constant (q) to give mixed poisson probabilities
+		for (i = left; i <= right; i++) {
+			weights[i - left] = (1 - weights[i - left]) / q;
+		}
+		mainLog.println("Fox-Glynn (" + acc + "): left = " + left + ", right = " + right);
+
+		// Build (implicit) uniformised DTMC
+		dtmc = ctmc.buildImplicitUniformisedDTMC(q);
+
+		// Create solution vector(s)
+		soln = new double[n];
+		soln2 = new double[n];
+
+		// Initialise solution vectors.
+		for (i = 0; i < n; i++)
+			soln[i] = mcRewards.getStateReward(i);
+
+		// do 0th element of summation (doesn't require any matrix powers)
+		sum = new double[n];
+		if (left == 0) {
+			for (i = 0; i < n; i++)
+				sum[i] += weights[0] * soln[i];
+		} else {
+			for (i = 0; i < n; i++)
+				sum[i] += soln[i] / q;
+		}
+
+		// Start iterations
+		iters = 1;
+		while (iters <= right) {
+			// Matrix-vector multiply
+			dtmc.mvMult(soln, soln2, null, false);
+			// Swap vectors for next iter
+			tmpsoln = soln;
+			soln = soln2;
+			soln2 = tmpsoln;
+			// Add to sum
+			if (iters >= left) {
+				for (i = 0; i < n; i++)
+					sum[i] += weights[iters - left] * soln[i];
+			} else {
+				for (i = 0; i < n; i++)
+					sum[i] += soln[i] / q;
+			}
+			iters++;
+		}
+
+		// Finished backwards transient computation
+		timer = System.currentTimeMillis() - timer;
+		mainLog.print("Backwards transient cumulative rewards computation");
+		mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
+
+		// Return results
+		res = new ModelCheckerResult();
+		res.soln = sum;
+		res.lastSoln = soln2;
+		res.numIters = iters;
+		res.timeTaken = timer / 1000.0;
+		res.timePre = 0.0;
+		return res;
+	}
+
+	/**
+	 * Perform instantaneous reward computation.
+	 * Compute, for each state of {@ctmc}, the expected rewards at time {@code t}
+	 * when starting in this state and using reward structure {@code mcRewards}.
+	 * @param ctmc The CTMC
+	 * @param mcRewards The rewards
+	 * @param t Time bound
+	 */
+	@Override
+	public ModelCheckerResult computeInstantaneousRewards(DTMC dtmc, MCRewards mcRewards, double t) throws PrismException
+	{
+		ModelCheckerResult res = null;
+		int i, n, iters;
+		double soln[], soln2[], tmpsoln[], sum[];
+		long timer;
+		// Fox-Glynn stuff
+		FoxGlynn fg;
+		int left, right;
+		double q, qt, acc, weights[], totalWeight;
+
+		// Store num states
+		n = dtmc.getNumStates();
+
+		// Optimisation: If t = 0, this is easy.
+		if (t == 0) {
+			res = new ModelCheckerResult();
+			res.soln = new double[dtmc.getNumStates()];
+			for (i = 0; i < n; i++)
+				res.soln[i] = mcRewards.getStateReward(i);
+			return res;
+		}
+
+		// Start backwards transient computation
+		timer = System.currentTimeMillis();
+		mainLog.println("Starting backwards instantaneous rewards computation...");
+
+		CTMC ctmc = (CTMC) dtmc;
+
+		// Get uniformisation rate; do Fox-Glynn
+		q = ctmc.getDefaultUniformisationRate();
+		qt = q * t;
+		mainLog.println("\nUniformisation: q.t = " + q + " x " + t + " = " + qt);
+		acc = termCritParam / 8.0;
+		fg = new FoxGlynn(qt, 1e-300, 1e+300, acc);
+		left = fg.getLeftTruncationPoint();
+		right = fg.getRightTruncationPoint();
+		if (right < 0) {
+			throw new PrismException("Overflow in Fox-Glynn computation (time bound too big?)");
+		}
+		weights = fg.getWeights();
+		totalWeight = fg.getTotalWeight();
+		for (i = left; i <= right; i++) {
+			weights[i - left] /= totalWeight;
+		}
+
+		mainLog.println("Fox-Glynn (" + acc + "): left = " + left + ", right = " + right);
+
+		// Build (implicit) uniformised DTMC
+		dtmc = ctmc.buildImplicitUniformisedDTMC(q);
+
+		// Create solution vector(s)
+		soln = new double[n];
+		soln2 = new double[n];
+
+		// Initialise solution vectors.
+		for (i = 0; i < n; i++)
+			soln[i] = mcRewards.getStateReward(i);
+
+		// do 0th element of summation (doesn't require any matrix powers)
+		sum = new double[n];
+		if (left == 0)
+			for (i = 0; i < n; i++)
+				sum[i] += weights[0] * soln[i];
+
+		// Start iterations
+		iters = 1;
+		while (iters <= right) {
+			// Matrix-vector multiply
+			dtmc.mvMult(soln, soln2, null, false);
+			// Swap vectors for next iter
+			tmpsoln = soln;
+			soln = soln2;
+			soln2 = tmpsoln;
+			// Add to sum
+			if (iters >= left) {
+				for (i = 0; i < n; i++)
+					sum[i] += weights[iters - left] * soln[i];
+			}
+			iters++;
+		}
+
+		// Finished backwards transient computation
+		timer = System.currentTimeMillis() - timer;
+		mainLog.print("Backwards transient instantaneous rewards computation");
+		mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
+
+		// Return results
+		res = new ModelCheckerResult();
+		res.soln = sum;
+		res.lastSoln = soln2;
+		res.numIters = iters;
+		res.timeTaken = timer / 1000.0;
+		res.timePre = 0.0;
+		return res;
+	}
+
+	/**
 	 * Compute expected reachability rewards.
 	 * @param dtmc The CTMC
 	 * @param mcRewards The rewards
