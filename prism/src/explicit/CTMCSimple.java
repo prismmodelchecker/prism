@@ -137,7 +137,7 @@ public class CTMCSimple extends DTMCSimple implements CTMC
 	public DTMCSimple buildEmbeddedDTMC()
 	{
 		DTMCSimple dtmc;
-		Distribution distr;
+		StateActionDistribution distr;
 		int i;
 		double d;
 		dtmc = new DTMCSimple(numStates);
@@ -150,8 +150,8 @@ public class CTMCSimple extends DTMCSimple implements CTMC
 			if (d == 0) {
 				dtmc.setProbability(i, i, 1.0);
 			} else {
-				for (Map.Entry<Integer, Double> e : distr) {
-					dtmc.setProbability(i, e.getKey(), e.getValue() / d);
+				for (Map.Entry<StateAction, Double> e : distr) {
+					dtmc.setProbability(i, e.getKey().getState(), e.getKey().getAction(), e.getValue() / d);
 				}
 			}
 		}
@@ -161,7 +161,7 @@ public class CTMCSimple extends DTMCSimple implements CTMC
 	@Override
 	public void uniformise(double q)
 	{
-		Distribution distr;
+		StateActionDistribution distr;
 		int i;
 		for (i = 0; i < numStates; i++) {
 			distr = trans.get(i);
@@ -179,7 +179,7 @@ public class CTMCSimple extends DTMCSimple implements CTMC
 	public DTMCSimple buildUniformisedDTMC(double q)
 	{
 		DTMCSimple dtmc;
-		Distribution distr;
+		StateActionDistribution distr;
 		int i;
 		double d;
 		dtmc = new DTMCSimple(numStates);
@@ -189,8 +189,8 @@ public class CTMCSimple extends DTMCSimple implements CTMC
 		for (i = 0; i < numStates; i++) {
 			// Add scaled off-diagonal entries
 			distr = trans.get(i);
-			for (Map.Entry<Integer, Double> e : distr) {
-				dtmc.setProbability(i, e.getKey(), e.getValue() / q);
+			for (Map.Entry<StateAction, Double> e : distr) {
+				dtmc.setProbability(i, e.getKey().getState(), e.getKey().getAction(), e.getValue() / q);
 			}
 			// Add diagonal, if needed
 			d = distr.sumAllBut(i);
