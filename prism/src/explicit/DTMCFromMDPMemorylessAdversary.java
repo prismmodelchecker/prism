@@ -185,12 +185,6 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 		throw new RuntimeException("Not implemented yet");
 	}
 
-	public Iterator<Entry<StateAction,Double>> getTransitionsActionIterator(int s)
-	{
-		// TODO
-		throw new RuntimeException("Not implemented yet");
-	}
-	
 	public void prob0step(BitSet subset, BitSet u, BitSet result)
 	{
 		// TODO

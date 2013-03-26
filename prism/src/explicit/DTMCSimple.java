@@ -39,7 +39,7 @@ import prism.PrismException;
 public class DTMCSimple extends DTMCExplicit implements ModelSimple
 {
 	// Transition matrix (distribution list) 
-	protected List<StateActionDistribution> trans;
+	protected List<Distribution> trans;
 
 	// Other statistics
 	protected int numTransitions;
@@ -70,7 +70,7 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 		this(dtmc.numStates);
 		copyFrom(dtmc);
 		for (int i = 0; i < numStates; i++) {
-			trans.set(i, new StateActionDistribution(dtmc.trans.get(i)));
+			trans.set(i, new Distribution(dtmc.trans.get(i)));
 		}
 		numTransitions = dtmc.numTransitions;
 	}
@@ -87,7 +87,7 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 		this(dtmc.numStates);
 		copyFrom(dtmc, permut);
 		for (int i = 0; i < numStates; i++) {
-			trans.set(permut[i], new StateActionDistribution(dtmc.trans.get(i), permut));
+			trans.set(permut[i], new Distribution(dtmc.trans.get(i), permut));
 		}
 		numTransitions = dtmc.numTransitions;
 	}
@@ -98,9 +98,9 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	public void initialise(int numStates)
 	{
 		super.initialise(numStates);
-		trans = new ArrayList<StateActionDistribution>(numStates);
+		trans = new ArrayList<Distribution>(numStates);
 		for (int i = 0; i < numStates; i++) {
-			trans.add(new StateActionDistribution());
+			trans.add(new Distribution());
 		}
 	}
 
@@ -126,7 +126,7 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	public void addStates(int numToAdd)
 	{
 		for (int i = 0; i < numToAdd; i++) {
-			trans.add(new StateActionDistribution());
+			trans.add(new Distribution());
 			numStates++;
 		}
 	}
@@ -185,7 +185,7 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	 */
 	public void setProbability(int i, int j, double prob)
 	{
-		StateActionDistribution distr = trans.get(i);
+		Distribution distr = trans.get(i);
 		if (distr.get(i) != 0.0)
 			numTransitions--;
 		if (prob != 0.0)
@@ -194,35 +194,11 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	}
 
 	/**
-	 * Set the probability for a transition. 
-	 */
-	public void setProbability(int i, int j, Object a, double prob)
-	{
-		StateActionDistribution distr = trans.get(i);
-		if (distr.get(i, a) != 0.0)
-			numTransitions--;
-		if (prob != 0.0)
-			numTransitions++;
-		distr.set(j, a, prob);
-	}
-
-	/**
 	 * Add to the probability for a transition. 
 	 */
 	public void addToProbability(int i, int j, double prob)
 	{
 		if (!trans.get(i).add(j, prob)) {
-			if (prob != 0.0)
-				numTransitions++;
-		}
-	}
-
-	/**
-	 * Add to the probability for a transition. 
-	 */
-	public void addToProbability(int i, int j, int a, double prob)
-	{
-		if (!trans.get(i).add(j, a, prob)) {
 			if (prob != 0.0)
 				numTransitions++;
 		}
@@ -241,7 +217,7 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	{
 		return trans.get(s).getSupport().iterator();
 	}
-
+	
 	@Override
 	public boolean isSuccessor(int s1, int s2)
 	{
@@ -299,20 +275,14 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	@Override
 	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s)
 	{
-		return trans.get(s).toDistribution().iterator();
-	}
-
-	@Override
-	public Iterator<Entry<StateAction, Double>> getTransitionsActionIterator(int s)
-	{
 		return trans.get(s).iterator();
 	}
-	
+
 	@Override
 	public void prob0step(BitSet subset, BitSet u, BitSet result)
 	{
 		int i;
-		StateActionDistribution distr;
+		Distribution distr;
 		for (i = 0; i < numStates; i++) {
 			if (subset.get(i)) {
 				distr = trans.get(i);
@@ -325,7 +295,7 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	public void prob1step(BitSet subset, BitSet u, BitSet v, BitSet result)
 	{
 		int i;
-		StateActionDistribution distr;
+		Distribution distr;
 		for (i = 0; i < numStates; i++) {
 			if (subset.get(i)) {
 				distr = trans.get(i);
@@ -339,12 +309,12 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	{
 		int k;
 		double d, prob;
-		StateActionDistribution distr;
+		Distribution distr;
 
 		distr = trans.get(s);
 		d = 0.0;
-		for (Map.Entry<StateAction, Double> e : distr) {
-			k = (Integer) e.getKey().getState();
+		for (Map.Entry<Integer, Double> e : distr) {
+			k = (Integer) e.getKey();
 			prob = (Double) e.getValue();
 			d += prob * vect[k];
 		}
@@ -357,13 +327,13 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	{
 		int k;
 		double diag, d, prob;
-		StateActionDistribution distr;
+		Distribution distr;
 
 		distr = trans.get(s);
 		diag = 1.0;
 		d = 0.0;
-		for (Map.Entry<StateAction, Double> e : distr) {
-			k = (Integer) e.getKey().getState();
+		for (Map.Entry<Integer, Double> e : distr) {
+			k = (Integer) e.getKey();
 			prob = (Double) e.getValue();
 			if (k != s) {
 				d += prob * vect[k];
@@ -382,12 +352,12 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	{
 		int k;
 		double d, prob;
-		StateActionDistribution distr;
+		Distribution distr;
 
 		distr = trans.get(s);
 		d = mcRewards.getStateReward(s);
-		for (Map.Entry<StateAction, Double> e : distr) {
-			k = (Integer) e.getKey().getState();
+		for (Map.Entry<Integer, Double> e : distr) {
+			k = (Integer) e.getKey();
 			prob = (Double) e.getValue();
 			d += prob * vect[k];
 		}
@@ -400,7 +370,7 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	{
 		int i, j;
 		double prob;
-		StateActionDistribution distr;
+		Distribution distr;
 		
 		// Initialise result to 0
 		for (j = 0; j < numStates; j++) {
@@ -409,8 +379,8 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 		// Go through matrix elements (by row)
 		for (i = 0; i < numStates; i++) {
 			distr = trans.get(i);
-			for (Map.Entry<StateAction, Double> e : distr) {
-				j = (Integer) e.getKey().getState();
+			for (Map.Entry<Integer, Double> e : distr) {
+				j = (Integer) e.getKey();
 				prob = (Double) e.getValue();
 				result[j] += prob * vect[i];
 			}
@@ -425,7 +395,7 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	 */
 	public Distribution getTransitions(int s)
 	{
-		return trans.get(s).toDistribution();
+		return trans.get(s);
 	}
 
 	// Standard methods
