@@ -114,6 +114,8 @@ public class PathToText extends PathDisplayer
 		firstCol = true;
 		if (!getShowSnapshots()) {
 			log.print(getColSep() + "action");
+			if (showProbs)
+				log.print(getColSep() + "probability");
 			log.print(getColSep() + "step");
 		}
 		if (contTime && showTimeCumul)
@@ -148,7 +150,10 @@ public class PathToText extends PathDisplayer
 		step = 0;
 		firstCol = true;
 		if (!getShowSnapshots()) {
-			log.print(getColSep() + "-" + getColSep() + "0");
+			log.print(getColSep() + "-");
+			if (showProbs)
+				log.print(getColSep() + "-");
+			log.print(getColSep() + "0");
 		}
 		if (contTime && showTimeCumul)
 			log.print(getColSep() + "0.0");
@@ -163,7 +168,7 @@ public class PathToText extends PathDisplayer
 	}
 
 	@Override
-	public void displayStep(double timeSpent, double timeCumul, Object action, double[] transitionRewards, State newState, double[] newStateRewards)
+	public void displayStep(double timeSpent, double timeCumul, Object action, double probability, double[] transitionRewards, State newState, double[] newStateRewards)
 	{
 		if (!showChangesOnly || changed) {
 			// display rewards for last state
@@ -191,6 +196,9 @@ public class PathToText extends PathDisplayer
 
 		// display action
 		log.print(getColSep() + action);
+		// display probability/rate
+		if (showProbs)
+			log.print(getColSep() + probability);
 		// display state index
 		log.print(getColSep() + step);
 		// display cumulative time

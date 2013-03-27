@@ -43,7 +43,7 @@ public class GenerateSimulationPath
 	// The simulator engine and a log for output
 	private SimulatorEngine engine;
 	private PrismLog mainLog;
-	
+
 	// Store warnings
 	private List<String> warnings = new ArrayList<String>();
 
@@ -66,6 +66,7 @@ public class GenerateSimulationPath
 	private ArrayList<Integer> simVars = null;
 	private boolean simLoopCheck = true;
 	private int simPathRepeat = 1;
+	private boolean simPathShowProbs = false;
 	private boolean simPathShowRewards = false;
 	private boolean simPathShowChangesOnly = false;
 	private boolean simPathSnapshots = false;
@@ -75,12 +76,12 @@ public class GenerateSimulationPath
 	{
 		return warnings.size();
 	}
-	
+
 	public List<String> getWarnings()
 	{
 		return warnings;
 	}
-	
+
 	/**
 	 * Send a warning messages to the log;
 	 * also, store a copy for later retrieval.
@@ -90,7 +91,7 @@ public class GenerateSimulationPath
 		mainLog.printWarning(msg + ".");
 		warnings.add(msg);
 	}
-	
+
 	public GenerateSimulationPath(SimulatorEngine engine, PrismLog mainLog)
 	{
 		this.engine = engine;
@@ -255,6 +256,15 @@ public class GenerateSimulationPath
 				} catch (NumberFormatException e) {
 					throw new PrismException("Value for \"snapshot\" option must be a positive double");
 				}
+			} else if (ss[i].indexOf("probs=") == 0) {
+				// display probabilities/rates?
+				String bool = ss[i].substring(6).toLowerCase();
+				if (bool.equals("true"))
+					simPathShowProbs = true;
+				else if (bool.equals("false"))
+					simPathShowProbs = false;
+				else
+					throw new PrismException("Value for \"rewards\" option must \"true\" or \"false\"");
 			} else if (ss[i].indexOf("rewards=") == 0) {
 				// display rewards?
 				String bool = ss[i].substring(8).toLowerCase();
@@ -314,6 +324,7 @@ public class GenerateSimulationPath
 		displayer = new PathToText(log, modulesFile);
 		displayer.setColSep(simPathSep);
 		displayer.setVarsToShow(simVars);
+		displayer.setShowProbs(simPathShowProbs);
 		displayer.setShowRewards(simPathShowRewards);
 		displayer.setShowChangesOnly(simPathShowChangesOnly);
 		if (simPathSnapshots)
@@ -331,6 +342,7 @@ public class GenerateSimulationPath
 
 		displayer = new PathToGraph(graphModel, modulesFile);
 		displayer.setVarsToShow(simVars);
+		displayer.setShowProbs(simPathShowProbs);
 		displayer.setShowRewards(simPathShowRewards);
 		displayer.setShowChangesOnly(simPathShowChangesOnly);
 		if (simPathSnapshots)
@@ -373,8 +385,8 @@ public class GenerateSimulationPath
 			engine.automaticTransition();
 			i++;
 			if (simPathType != PathType.SIM_PATH_DEADLOCK) {
-				displayer.step(path.getTimeInPreviousState(), path.getTotalTime(), path.getPreviousModuleOrAction(), path.getPreviousTransitionRewards(),
-						path.getCurrentState(), path.getCurrentStateRewards());
+				displayer.step(path.getTimeInPreviousState(), path.getTotalTime(), path.getPreviousModuleOrAction(), path.getPreviousProbability(),
+						path.getPreviousTransitionRewards(), path.getCurrentState(), path.getCurrentStateRewards());
 			}
 			// Check for termination (depending on type)
 			switch (simPathType) {

@@ -47,6 +47,7 @@ public class PathOnTheFly extends Path
 	protected State previousState;
 	protected State currentState;
 	protected int previousModuleOrActionIndex;
+	protected double previousProbability;
 	protected double totalTime;
 	double timeInPreviousState;
 	protected double totalRewards[];
@@ -114,18 +115,19 @@ public class PathOnTheFly extends Path
 	}
 
 	@Override
-	public void addStep(int choice, int moduleOrActionIndex, double[] transRewards, State newState, double[] newStateRewards, TransitionList transitionList)
+	public void addStep(int choice, int moduleOrActionIndex, double probability, double[] transRewards, State newState, double[] newStateRewards, TransitionList transitionList)
 	{
-		addStep(1.0, choice, moduleOrActionIndex, transRewards, newState, newStateRewards, transitionList);
+		addStep(1.0, choice, moduleOrActionIndex, probability, transRewards, newState, newStateRewards, transitionList);
 	}
 
 	@Override
-	public void addStep(double time, int choice, int moduleOrActionIndex, double[] transRewards, State newState, double[] newStateRewards, TransitionList transitionList)
+	public void addStep(double time, int choice, int moduleOrActionIndex, double probability, double[] transRewards, State newState, double[] newStateRewards, TransitionList transitionList)
 	{
 		size++;
 		previousState.copy(currentState);
 		currentState.copy(newState);
 		previousModuleOrActionIndex = moduleOrActionIndex;
+		previousProbability = probability;
 		totalTime += time;
 		timeInPreviousState = time;
 		for (int i = 0; i < numRewardStructs; i++) {
@@ -184,6 +186,12 @@ public class PathOnTheFly extends Path
 			return "[" + modulesFile.getSynchs().get(i - 1) + "]";
 		else
 			return "?";
+	}
+
+	@Override
+	public double getPreviousProbability()
+	{
+		return previousProbability;
 	}
 
 	@Override

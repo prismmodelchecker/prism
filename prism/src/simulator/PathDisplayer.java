@@ -49,6 +49,9 @@ public abstract class PathDisplayer
 	/** Indices of variables to show (null = all) */
 	protected List<Integer> varsToShow = null;
 
+	/** Should we show transition probabilities/rates? */
+	protected boolean showProbs = false;
+	
 	/** Should we display rewards? */
 	protected boolean showRewards = false;
 
@@ -76,6 +79,14 @@ public abstract class PathDisplayer
 	public boolean getShowChangesOnly()
 	{
 		return showChangesOnly;
+	}
+	
+	/**
+	 * Should we display transition probabilities/rates?
+	 */
+	public boolean getShowProbs()
+	{
+		return showProbs;
 	}
 	
 	/**
@@ -123,6 +134,14 @@ public abstract class PathDisplayer
 	}
 
 	/**
+	 * Set whether we show the probability/rate for each transition
+	 */
+	public void setShowProbs(boolean showProbs)
+	{
+		this.showProbs = showProbs;
+	}
+
+	/**
 	 * Set whether we we display rewards.
 	 */
 	public void setShowRewards(boolean showRewards)
@@ -140,7 +159,7 @@ public abstract class PathDisplayer
 		}
 	}
 
-	public void step(double timeSpent, double timeCumul, Object action, double[] transitionRewards, State newState, double[] newStateRewards)
+	public void step(double timeSpent, double timeCumul, Object action, double probability, double[] transitionRewards, State newState, double[] newStateRewards)
 	{
 		if (showSnapshots) {
 			if (timeCumul < nextTime) {
@@ -152,7 +171,7 @@ public abstract class PathDisplayer
 				}
 			}
 		} else {
-			displayStep(timeSpent, timeCumul, action, transitionRewards, newState, newStateRewards);
+			displayStep(timeSpent, timeCumul, action, probability, transitionRewards, newState, newStateRewards);
 		}
 	}
 
@@ -171,7 +190,7 @@ public abstract class PathDisplayer
 	/**
 	 * Displaying a step of a path.
 	 */
-	public abstract void displayStep(double timeSpent, double timeCumul, Object action, double[] transitionRewards, State newState, double[] newStateRewards);
+	public abstract void displayStep(double timeSpent, double timeCumul, Object action, double probability, double[] transitionRewards, State newState, double[] newStateRewards);
 
 	/**
 	 * Displaying a snapshot of a path at a particular time instant.

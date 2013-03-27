@@ -45,13 +45,13 @@ public abstract class Path
 	 * Add a step to the path.
 	 * Note: State object and arrays will be copied, not stored directly.
 	 */
-	public abstract void addStep(int choice, int actionIndex, double[] transRewards, State newState, double[] newStateRewards, TransitionList transitionList);
+	public abstract void addStep(int choice, int actionIndex, double probability, double[] transRewards, State newState, double[] newStateRewards, TransitionList transitionList);
 
 	/**
 	 * Add a timed step to the path.
 	 * Note: State object and arrays will be copied, not stored directly.
 	 */
-	public abstract void addStep(double time, int choice, int actionIndex, double[] transRewards, State newState, double[] newStateRewards, TransitionList transitionList);
+	public abstract void addStep(double time, int choice, int actionIndex, double probability, double[] transRewards, State newState, double[] newStateRewards, TransitionList transitionList);
 
 	// ACCESSORS
 
@@ -86,6 +86,11 @@ public abstract class Path
 	 * Get a string describing the action/module of the previous step.
 	 */
 	public abstract String getPreviousModuleOrAction();
+	
+	/**
+	 * Get the probability or rate associated wuth the previous step.
+	 */
+	public abstract double getPreviousProbability();
 	
 	/**
 	 * Get the total time elapsed so far (where zero time has been spent in the current (final) state).

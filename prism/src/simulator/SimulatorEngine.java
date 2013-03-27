@@ -705,6 +705,8 @@ public class SimulatorEngine
 		Choice choice = transitions.getChoice(i);
 		if (!onTheFly && index == -1)
 			index = transitions.getTotalIndexOfTransition(i, offset);
+		// Compute probability for transition (is normalised for a DTMC)
+		double p = (modelType == ModelType.DTMC ? choice.getProbability(offset) / transitions.getNumChoices() : choice.getProbability(offset));
 		// Compute its transition rewards
 		updater.calculateTransitionRewards(path.getCurrentState(), choice, tmpTransitionRewards);
 		// Compute next state. Note use of path.getCurrentState() because currentState
@@ -713,7 +715,7 @@ public class SimulatorEngine
 		// Compute state rewards for new state 
 		updater.calculateStateRewards(currentState, tmpStateRewards);
 		// Update path
-		path.addStep(index, choice.getModuleOrActionIndex(), tmpTransitionRewards, currentState, tmpStateRewards, transitions);
+		path.addStep(index, choice.getModuleOrActionIndex(), p, tmpTransitionRewards, currentState, tmpStateRewards, transitions);
 		// Reset transition list 
 		transitionListBuilt = false;
 		transitionListState = null;
@@ -740,6 +742,8 @@ public class SimulatorEngine
 		Choice choice = transitions.getChoice(i);
 		if (!onTheFly && index == -1)
 			index = transitions.getTotalIndexOfTransition(i, offset);
+		// Get probability for transition (no need to normalise because DTMC transitions are never timed)
+		double p = choice.getProbability(offset);
 		// Compute its transition rewards
 		updater.calculateTransitionRewards(path.getCurrentState(), choice, tmpTransitionRewards);
 		// Compute next state. Note use of path.getCurrentState() because currentState
@@ -748,7 +752,7 @@ public class SimulatorEngine
 		// Compute state rewards for new state 
 		updater.calculateStateRewards(currentState, tmpStateRewards);
 		// Update path
-		path.addStep(time, index, choice.getModuleOrActionIndex(), tmpTransitionRewards, currentState, tmpStateRewards, transitions);
+		path.addStep(time, index, choice.getModuleOrActionIndex(), p, tmpTransitionRewards, currentState, tmpStateRewards, transitions);
 		// Reset transition list 
 		transitionListBuilt = false;
 		transitionListState = null;

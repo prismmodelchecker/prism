@@ -104,13 +104,13 @@ public class PathFull extends Path implements PathFullInfo
 	}
 
 	@Override
-	public void addStep(int choice, int moduleOrActionIndex, double[] transitionRewards, State newState, double[] newStateRewards, TransitionList transitionList)
+	public void addStep(int choice, int moduleOrActionIndex, double probability, double[] transitionRewards, State newState, double[] newStateRewards, TransitionList transitionList)
 	{
-		addStep(1.0, choice, moduleOrActionIndex, transitionRewards, newState, newStateRewards, transitionList);
+		addStep(1.0, choice, moduleOrActionIndex, probability, transitionRewards, newState, newStateRewards, transitionList);
 	}
 
 	@Override
-	public void addStep(double time, int choice, int moduleOrActionIndex, double[] transitionRewards, State newState, double[] newStateRewards,
+	public void addStep(double time, int choice, int moduleOrActionIndex, double probability, double[] transitionRewards, State newState, double[] newStateRewards,
 			TransitionList transitionList)
 	{
 		Step stepOld, stepNew;
@@ -119,6 +119,7 @@ public class PathFull extends Path implements PathFullInfo
 		stepOld.time = time;
 		stepOld.choice = choice;
 		stepOld.moduleOrActionIndex = moduleOrActionIndex;
+		stepOld.probability = probability;
 		stepOld.transitionRewards = transitionRewards.clone();
 		// Add new step item to the path
 		stepNew = new Step();
@@ -160,6 +161,7 @@ public class PathFull extends Path implements PathFullInfo
 		last.time = 0.0;
 		last.choice = -1;
 		last.moduleOrActionIndex = 0;
+		last.probability = 0.0;
 		for (i = 0; i < numRewardStructs; i++)
 			last.transitionRewards[i] = 0.0;
 		// Update size too
@@ -250,6 +252,12 @@ public class PathFull extends Path implements PathFullInfo
 			return "?";
 	}
 
+	@Override
+	public double getPreviousProbability()
+	{
+		return steps.get(steps.size() - 2).probability;
+	}
+	
 	@Override
 	public double getTotalTime()
 	{
@@ -416,6 +424,15 @@ public class PathFull extends Path implements PathFullInfo
 	}
 
 	/**
+	 * Get the probability or rate associated with a given step.
+	 * @param step Step index (0 = initial state/step of path)
+	 */
+	public double getProbability(int step)
+	{
+		return steps.get(steps.size() - 2).probability;
+	}
+	
+	/**
 	 * Get a transition reward associated with a given step.
 	 * @param step Step index (0 = initial state/step of path)
 	 * @param rsi Reward structure index
@@ -480,7 +497,7 @@ public class PathFull extends Path implements PathFullInfo
 		displayer.start(getState(0), getStateRewards(0));
 		int n = size();
 		for (int i = 1; i <= n; i++) {
-			displayer.step(getTime(i - 1), getCumulativeTime(i), getModuleOrAction(i - 1), getTransitionRewards(i), getState(i), getStateRewards(i));
+			displayer.step(getTime(i - 1), getCumulativeTime(i), getModuleOrAction(i - 1), getProbability(i - 1), getTransitionRewards(i), getState(i), getStateRewards(i));
 		}
 		displayer.end();
 	}
@@ -551,6 +568,7 @@ public class PathFull extends Path implements PathFullInfo
 			time = 0.0;
 			choice = -1;
 			moduleOrActionIndex = 0;
+			probability = 0.0;
 			transitionRewards = new double[numRewardStructs];
 		}
 
@@ -569,6 +587,8 @@ public class PathFull extends Path implements PathFullInfo
 		// Action label taken (i.e. the index in the model's list of all actions).
 		// This is 1-indexed, with 0 denoting an independent ("tau"-labelled) command.
 		public int moduleOrActionIndex;
+		// Probability or rate of step
+		public double probability;
 		// Transition rewards associated with step
 		public double transitionRewards[];
 	}

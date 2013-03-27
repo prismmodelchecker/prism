@@ -57,13 +57,13 @@ public class PathFullPrefix extends Path
 	}
 
 	@Override
-	public void addStep(int choice, int moduleOrActionIndex, double[] transitionRewards, State newState, double[] newStateRewards, TransitionList transitionList)
+	public void addStep(int choice, int moduleOrActionIndex, double probability, double[] transitionRewards, State newState, double[] newStateRewards, TransitionList transitionList)
 	{
 		// Do nothing (we are not allowed to modify the underlying PathFull)
 	}
 
 	@Override
-	public void addStep(double time, int choice, int moduleOrActionIndex, double[] transitionRewards, State newState, double[] newStateRewards, TransitionList transitionList)
+	public void addStep(double time, int choice, int moduleOrActionIndex, double probability, double[] transitionRewards, State newState, double[] newStateRewards, TransitionList transitionList)
 	{
 		// Do nothing (we are not allowed to modify the underlying PathFull)
 	}
@@ -113,6 +113,12 @@ public class PathFullPrefix extends Path
 		return pathFull.getModuleOrAction(prefixLength - 1);
 	}
 	
+	@Override
+	public double getPreviousProbability()
+	{
+		return pathFull.getProbability(prefixLength - 1);
+	}
+
 	@Override
 	public double getTotalTime()
 	{
