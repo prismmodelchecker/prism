@@ -776,11 +776,12 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.MODEL_PARSED, parsedModel));
 	}
 
-	public synchronized void modelParseFailed(PrismLangException parserError, boolean background)
+	public synchronized void modelParseFailed(PrismException parserError, boolean background)
 	{
 		lastError = parserError.getMessage();
 
-		editor.modelParseFailed(parserError, background);
+		if (parserError instanceof PrismLangException)
+			editor.modelParseFailed((PrismLangException) parserError, background);
 
 		tree.stopParsing();
 		parsing = false;

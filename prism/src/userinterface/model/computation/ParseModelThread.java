@@ -43,7 +43,7 @@ public class ParseModelThread extends GUIComputationThread
 	private boolean background;
 	private ModulesFile mod;
 	private String errMsg;
-	private PrismLangException parseError;
+	private PrismException parseError;
 	static int counter = 0;
 	int id;
 	long before;
@@ -91,7 +91,7 @@ public class ParseModelThread extends GUIComputationThread
 			}
 			// Load into PRISM once done
 			prism.loadPRISMModel(mod);
-		} catch (PrismLangException err) {
+		} catch (PrismException err) {
 			parseError = err;
 			errMsg = err.getMessage();
 			SwingUtilities.invokeLater(new Runnable()
@@ -109,8 +109,6 @@ public class ParseModelThread extends GUIComputationThread
 				}
 			});
 			return;
-		} catch (PrismException e) {
-			throw new RuntimeException("Unexpected PrismException: " + e.getMessage());
 		}
 
 		// If we get here, the parse has been successful, notify the interface and tell the handler.
