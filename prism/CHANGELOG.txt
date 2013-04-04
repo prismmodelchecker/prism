@@ -38,10 +38,10 @@ Version 4.1 (beta released 20/12/2012)
   - settings file ~/.prism only read by GUI (not command-line) by default
   - new switch -settings to read a settings file from command-line PRISM
 
-* New file extensions: .prism, .props
+* New file extensions for model/properties files: .prism, .props
 * New scripts for testing and benchmarking: prism-auto/prism-test/prism-filler
 * New -exportdigital switch for exporting PRISM code built by digital clocks PTA engine
-* New syntax for (CTMC) transient probabilities in P operator: P=?[ F=T "target" ]
+* New syntax for (CTMC) transient probabilities in P operator: P=? [ F=T "target" ]
 
 -----------------------------------------------------------------------------
 Version 4.0.3 (released 30/1/2012)
