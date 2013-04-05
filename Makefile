@@ -11,7 +11,7 @@ none:
 # Can be overridden by passing VERSION=xxx
 VERSION_NUM = $(shell grep versionString prism/src/prism/Version.java | sed -E 's/[^"]+"([^"]+)"[^"]+/\1/')
 VERSION_SUFFIX = $(shell grep versionSuffixString prism/src/prism/Version.java | sed -E 's/[^"]+"([^"]*)"[^"]+/\1/')
-VERSION = "$(VERSION_NUM)$(VERSION_SUFFIX)"
+VERSION = $(VERSION_NUM)$(VERSION_SUFFIX)
 
 # Build a source distribution
 dist_src: version
