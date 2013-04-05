@@ -25,8 +25,8 @@ dist_src: version
 	mv prism-examples prism/examples
 	mv cudd prism
 	mv prism "prism-$(VERSION)-src"
-	(cd "prism-$(VERSION)-src"; $(MAKE) dist_src )
-	tar --exclude=.svn cfz "prism-$(VERSION)-src.tar.gz" "prism-$(VERSION)-src"
+	(cd "prism-$(VERSION)-src"; $(MAKE) dist_src VERSION=$(VERSION))
+	tar cfz "prism-$(VERSION)-src.tar.gz" --exclude=.svn "prism-$(VERSION)-src"
 
 # Display version
 version:
