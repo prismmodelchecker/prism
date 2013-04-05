@@ -7,9 +7,14 @@ default: none
 none:
 	@echo 'Did you want to build PRISM? Do "cd prism" and then "make"'
 
-VERSION=# default value for VERSION is blank to force provision at command-line 
+# By default, extract version number from Version.java
+# Can be overridden by passing VERSION=xxx
+VERSION_NUM = $(shell grep versionString prism/src/prism/Version.java | sed -E 's/[^"]+"([^"]+)"[^"]+/\1/')
+VERSION_SUFFIX = $(shell grep versionSuffixString prism/src/prism/Version.java | sed -E 's/[^"]+"([^"]*)"[^"]+/\1/')
+VERSION = "$(VERSION_NUM)$(VERSION_SUFFIX)"
 
-dist_src: dist_check_version
+# Build a source distribution
+dist_src: version
 	mkdir dontcopy
 	@if [ -e prism/examples ]; then \
 	  echo "mv prism/examples dontcopy"; mv prism/examples dontcopy; \
@@ -21,9 +26,10 @@ dist_src: dist_check_version
 	mv cudd prism
 	mv prism "prism-$(VERSION)-src"
 	(cd "prism-$(VERSION)-src"; $(MAKE) dist_src )
-	tar cfz "prism-$(VERSION)-src.tar.gz" "prism-$(VERSION)-src"
+	tar --exclude=.svn cfz "prism-$(VERSION)-src.tar.gz" "prism-$(VERSION)-src"
 
-dist_check_version:
-	@if [ "$(VERSION)" = "" ]; then echo "Usage: make dist_src VERSION=XXX"; exit 1; fi
+# Display version
+version:
+	@echo VERSION = $(VERSION)
 
 #################################################
