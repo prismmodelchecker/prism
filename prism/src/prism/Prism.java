@@ -49,10 +49,21 @@ import prism.Model;
  */
 public class Prism implements PrismSettingsListener
 {
-	// PRISM version
+	/** PRISM version (e.g. "4.0.3"). Read from prism.Version. */
 	private static String version = prism.Version.versionString;
-	// PRISM version suffix
+	
+	/** Optional PRISM version suffix (e.g. "dev", "beta"). Read from prism.Version. */
 	private static String versionSuffix = prism.Version.versionSuffixString;
+	
+	/** Build number (e.g. "r6667"). Defaults to "" (undefined), read from prism.Revision class if present. */
+	private static String buildNumber = null;
+	static {
+	    try {
+	    	buildNumber = Prism.class.getClassLoader().loadClass("prism.Revision").getField("svnRevision").get(null).toString();
+	    } catch (Exception e) {
+	    	// Any problems (e.g. class not created), ignore.
+		}
+	 }
 
 	//------------------------------------------------------------------------------
 	// Constants
@@ -547,9 +558,28 @@ public class Prism implements PrismSettingsListener
 
 	// Get methods
 
+	/**
+	 * Get current version number, as a string. 
+	 */
 	public static String getVersion()
 	{
-		return version + versionSuffix;
+		String v = version;
+		// Append version suffix (e.g. "dev", "beta") if non-empty
+		if (versionSuffix.length() > 0) {
+			v += "." + versionSuffix;
+			// In this case, also append any build number
+			if (buildNumber.length() > 0)
+				v += "." + buildNumber;
+		}
+		return v;
+	}
+
+	/**
+	 * Get build number (SVN revision) for current version. Returns "" if not set up.
+	 */
+	public static String getBuildNumber()
+	{
+		return buildNumber;
 	}
 
 	public PrismLog getMainLog()
