@@ -12,7 +12,7 @@ none:
 VERSION = $(shell SRC_DIR=prism/src prism/src/scripts/printversion.sh 2> /dev/null)
 
 # Build a source distribution
-dist_src: version
+dist_src: add_rev version
 	mkdir dontcopy
 	@if [ -e prism/examples ]; then \
 	  echo "mv prism/examples dontcopy"; mv prism/examples dontcopy; \
@@ -25,6 +25,10 @@ dist_src: version
 	mv prism "prism-$(VERSION)-src"
 	(cd "prism-$(VERSION)-src"; $(MAKE) dist_src VERSION=$(VERSION))
 	tar cfz "prism-$(VERSION)-src.tar.gz" --exclude=.svn "prism-$(VERSION)-src"
+
+# Get svn revision (only works if done before dist_src)
+add_rev:
+	(cd "prism"; $(MAKE) add_rev)
 
 # Display version
 version:
