@@ -32,6 +32,7 @@ Version 4.1 (beta released 20/12/2012)
 * Improvements to simulation path generation using -simpath switch
   - more efficient path generation (on-the-fly) where possible
   - new 'snapshot' option to only show states at certain time-points
+  - added 'probs' option to display transition probabilities/rates
   - rewards are not displayed by default; use 'rewards' option to show
   
 * Changes to usage of PRISM settings file
