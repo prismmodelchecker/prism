@@ -56,7 +56,7 @@ public class Prism implements PrismSettingsListener
 	private static String versionSuffix = prism.Version.versionSuffixString;
 	
 	/** Build number (e.g. "r6667"). Defaults to "" (undefined), read from prism.Revision class if present. */
-	private static String buildNumber = null;
+	private static String buildNumber = "";
 	static {
 	    try {
 	    	buildNumber = Prism.class.getClassLoader().loadClass("prism.Revision").getField("svnRevision").get(null).toString();
