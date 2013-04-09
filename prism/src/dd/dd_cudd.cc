@@ -107,9 +107,11 @@ void DD_CloseDownCUDD(DdManager *ddman, bool check)
 
 	if (check) {
 		// if required, check everthing is closed down OK and warn if not
-		if (Cudd_DebugCheck(ddman)) {
+		// for now, we disable the debug check since there are increasingly
+		// problems occurring on 64 bit Linux/Mac
+		/*if (Cudd_DebugCheck(ddman)) {
 			printf("\nWarning: CUDD reports an error on closing.\n");
-		}
+		}*/
 		if (Cudd_CheckZeroRef(ddman) > 0) {
 			printf("\nWarning: CUDD reports %d non-zero references.\n", Cudd_CheckZeroRef(ddman));
 		}
