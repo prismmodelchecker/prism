@@ -390,7 +390,6 @@ REVISION = $(shell svnversion 2> /dev/null)
 
 # Add Revision.java with current svn revision
 add_rev:
-	
 	@echo "Creating $(SRC_DIR)/prism/Revision.java (REVISION = $(REVISION))"
 	echo 'package prism;\npublic class Revision\n{\n\tpublic static String svnRevision = "$(REVISION)";\n}' > $(SRC_DIR)/prism/Revision.java
 
@@ -400,11 +399,7 @@ dist_bin: JFLAGS += -source 1.6 -target 1.6
 dist_bin: dist_check_version all binary dist_tidy dist_bin_copy
 
 dist_check_version:
-	@if [ "$(VERSION)" = "" ]; then \
-	  echo "Usage: make dist_src/dist_bin VERSION=3.1"; exit 1; \
-	else \
-	  echo VERSION: $(VERSION); \
-	fi
+	@if [ "$(VERSION)" = "" ]; then echo "Usage: make dist_src/dist_bin VERSION=3.1"; exit 1; fi
 
 # Unless already present, copy cudd/examples/doc to this dir
 # By default, cudd/examples from svn trunk and doc from ~/prism-doc; other options commented out below
@@ -589,6 +584,7 @@ checks:
 	  echo "You may need to set JAVA_DIR by hand. See the PRISM manual for details."; \
 	  exit 1; \
 	fi; \
+	echo "VERSION: $(VERSION)"; \
 	echo "OSTYPE/ARCH: $(OSTYPE) $(ARCH)"; \
 	echo "JAVA_DIR: $(JAVA_DIR)"; \
 	echo "JAVAC: "`which $(JAVAC)` \
