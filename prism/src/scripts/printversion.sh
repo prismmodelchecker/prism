@@ -23,7 +23,7 @@ if [ -f "$SRC_DIR"/prism/Version.java ]; then
 			if [ -f "$SRC_DIR"/prism/Revision.java ]; then
 				REVISION_SVN=`grep svnRevision "$SRC_DIR"/prism/Revision.java | sed -E 's/[^"]+"([^"]*)"[^"]+/\1/'`
 				if [ "$REVISION_SVN" != "" ]; then
-					/bin/echo -n ".$REVISION_SVN"
+					/bin/echo -n ".r$REVISION_SVN"
 				fi
 			fi
 		fi
