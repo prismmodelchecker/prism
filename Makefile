@@ -7,11 +7,9 @@ default: none
 none:
 	@echo 'Did you want to build PRISM? Do "cd prism" and then "make"'
 
-# By default, extract version number from Version.java
+# By default, extract version number from Java code using printversion
 # Can be overridden by passing VERSION=xxx
-VERSION_NUM = $(shell grep versionString prism/src/prism/Version.java | sed -E 's/[^"]+"([^"]+)"[^"]+/\1/')
-VERSION_SUFFIX = $(shell grep versionSuffixString prism/src/prism/Version.java | sed -E 's/[^"]+"([^"]*)"[^"]+/\1/')
-VERSION = $(VERSION_NUM)$(VERSION_SUFFIX)
+VERSION = $(shell SRC_DIR=prism/src prism/src/scripts/printversion.sh 2> /dev/null)
 
 # Build a source distribution
 dist_src: version
