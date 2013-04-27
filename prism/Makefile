@@ -404,7 +404,6 @@ dist_check_version:
 # Unless already present, copy cudd/examples/doc to this dir
 # By default, cudd/examples from svn trunk and doc from ~/prism-doc; other options commented out below
 dist_copy:
-	@if [ -e .svn ]; then echo "Warning: This is an svn version; you should use an exported version really"; fi
 	@if [ -e cudd ]; then \
 	  echo "Warning: Not copying cudd since directory already exists"; \
 	else \
@@ -444,12 +443,8 @@ dist_bin_copy:
 dist_tidy:
 	@echo Detecting unwanted files...
 	@find . \( -name '*.o' -o -name '*.so' -o -name '*.dll' -o -name '*.exe' \)
-	@find . \( -name '*~*' -o -name '*bak*' -o -name '*CVS*' \)
-	@find . \( -name '*NEW*' -o -name '*new*' -o -name '*old*' \) | grep -v old\.gif || test 1
-	@find . -name '*tmp*' | grep -v cudd/util/tmpfile.c || test 1
+	@find . \( -name '*~*' -o -name '*bak*' \)
 	@find . -name 'log*' | grep -v userinterface/log || test 1
-	@find . -name '.nbattrs'
-	@find . -name '.xv*'
 	@find . -name '*NOTES*' | grep -v src/parser/NOTES | grep -v cudd/RELEASE.NOTES || test 1
 	@echo Processing text files...
 	@find . -type f -name '*.txt' -exec unix2dos {} {} \; 2> /dev/null
