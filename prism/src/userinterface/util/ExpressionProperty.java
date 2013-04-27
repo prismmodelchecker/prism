@@ -93,14 +93,7 @@ public class ExpressionProperty extends SingleProperty
         catch(PrismLangException e)
         {
             valid = false;
-            //System.out.println("Error: "+e);
         }
-        catch(PrismException e)
-        {
-            valid = false;
-            //System.out.println("Error: "+e);
-        }
-        
         super.setProperty(property);
     }	
 
