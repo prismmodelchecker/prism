@@ -16,7 +16,8 @@ Version 4.1 (beta released 20/12/2012)
   - command-line GUI call (xprism)  takes both model and properties files as arguments
   - easier zoom-out (double click) for graphs in GUI
 
-* Non-probabilistic counterexample generation for CTL E[F ...] or A[G ...]
+* CTL model checking (most operators)
+  - and counterexample/witness generation for A[G ...] or E[F ...]
   
 * Changes to deadlock handling:
   - new option for "fix deadlocks" (defaults to *true*) (and new switch -nofixdl) 
