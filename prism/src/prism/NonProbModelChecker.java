@@ -126,6 +126,10 @@ public class NonProbModelChecker extends StateModelChecker
 			else if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
 				res = checkExistsUntil(exprTemp);
 			}
+			// Globally (EG)
+			else if (exprTemp.getOperator() == ExpressionTemporal.P_G) {
+				res = checkExistsGlobally(exprTemp);
+			}
 			// Anything else - convert to until and recurse
 			else {
 				res = checkExpressionExists(exprTemp.convertToUntilForm());
@@ -179,6 +183,15 @@ public class NonProbModelChecker extends StateModelChecker
 			// Until (AU)
 			else if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
 				throw new PrismException("CTL model checking of the A U operator is not yet supported");
+			}
+			// Eventually (AF)
+			else if (exprTemp.getOperator() == ExpressionTemporal.P_F) {
+				// Reduce to EG (AF phi = !AG !phi)
+				ExpressionTemporal exprCopy = (ExpressionTemporal) exprTemp.deepCopy();
+				exprCopy.setOperator(ExpressionTemporal.P_G);
+				exprCopy.setOperand2(Expression.Not(exprCopy.getOperand2()));
+				res = checkExpressionExists(exprCopy);
+				res.subtractFromOne();
 			}
 			// Anything else - convert to until and recurse
 			else {
@@ -348,6 +361,99 @@ public class NonProbModelChecker extends StateModelChecker
 		JDD.Deref(b1);
 		JDD.Deref(b2);
 		JDD.Deref(transRel);
+
+		return new StateValuesMTBDD(tmp, model);
+	}
+
+	/**
+	 * Model check a CTL exists globally (EG) operator.
+	 */
+	protected StateValues checkExistsGlobally(ExpressionTemporal expr) throws PrismException
+	{
+		JDDNode b2, transRel, tmp, tmp2;
+		boolean done;
+		int iters, i;
+		long l;
+		// SCC stuff
+		Vector<JDDNode> sccs = null;
+		JDDNode notInSCCs = null;
+		int numSCCs = 0;
+
+		// Model check operand first
+		b2 = checkExpressionDD(expr.getOperand2());
+
+		l = System.currentTimeMillis();
+
+		// Get transition relation
+		if (model.getModelType() == ModelType.MDP) {
+			JDD.Ref(trans01);
+			transRel = JDD.ThereExists(trans01, ((NondetModel) model).getAllDDNondetVars());
+		} else {
+			JDD.Ref(trans01);
+			transRel = trans01;
+		}
+
+		// Strip out non-b2 states
+		JDD.Ref(b2);
+		transRel = JDD.And(transRel, b2);
+		JDD.Ref(b2);
+		transRel = JDD.And(transRel, JDD.PermuteVariables(b2, allDDRowVars, allDDColVars));
+		
+		// Find SCCs in resulting stripped down transition relation
+		SCCComputer sccComputer = prism.getSCCComputer(reach, transRel, allDDRowVars, allDDColVars);
+		sccComputer.computeSCCs();
+		sccs = sccComputer.getVectSCCs();
+		notInSCCs = sccComputer.getNotInSCCs();
+		numSCCs = sccs.size();
+
+		// Collect states from non-trivial SCCs in 'target'
+		// (non-trivial = has a transition)
+		JDDNode target = JDD.Create();
+		for (i = 0; i < numSCCs; i++) {
+			JDDNode scc = sccs.get(i);
+			if (scc != null) {
+				if (JDD.AreInterecting(scc, transRel)) {
+					JDD.Ref(scc);
+					target = JDD.Or(target, scc);
+				}
+			}
+		}
+		mainLog.println("\nCTL EG non-trivial SCC states: " + JDD.GetNumMintermsString(target, allDDRowVars.n()));
+
+		// Fixpoint loop - backwards reach
+		done = false;
+		iters = 0;
+		tmp = JDD.Constant(0);
+		while (!done) {
+			iters++;
+			JDD.Ref(tmp);
+			tmp2 = JDD.PermuteVariables(tmp, allDDRowVars, allDDColVars);
+			JDD.Ref(transRel);
+			tmp2 = JDD.And(tmp2, transRel);
+			tmp2 = JDD.ThereExists(tmp2, allDDColVars);
+			JDD.Ref(target);
+			tmp2 = JDD.Or(target, tmp2);
+			if (tmp2.equals(tmp)) {
+				done = true;
+			}
+			JDD.Deref(tmp);
+			tmp = tmp2;
+		}
+
+		// Print iterations/timing info
+		l = System.currentTimeMillis() - l;
+		mainLog.println("CTL EG reachability fixpoint: " + iters + " iterations in " + (l / 1000.0) + " seconds");
+
+		// Derefs
+		JDD.Deref(b2);
+		JDD.Deref(target);
+		JDD.Deref(transRel);
+		for (i = 0; i < numSCCs; i++) {
+			if (sccs.elementAt(i) != null)
+				JDD.Deref(sccs.elementAt(i));
+		}
+		if (notInSCCs != null)
+			JDD.Deref(notInSCCs);
 
 		return new StateValuesMTBDD(tmp, model);
 	}
