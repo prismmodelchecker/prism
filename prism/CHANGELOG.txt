@@ -1,7 +1,7 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
-Version 4.1 (beta released 20/12/2012)
+Version 4.1 (first released 20/12/2012)
 -----------------------------------------------------------------------------
 
 * Multi-objective model checking for MDPs
