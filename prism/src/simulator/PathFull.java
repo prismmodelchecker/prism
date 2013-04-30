@@ -497,7 +497,7 @@ public class PathFull extends Path implements PathFullInfo
 		displayer.start(getState(0), getStateRewards(0));
 		int n = size();
 		for (int i = 1; i <= n; i++) {
-			displayer.step(getTime(i - 1), getCumulativeTime(i), getModuleOrAction(i - 1), getProbability(i - 1), getTransitionRewards(i), getState(i), getStateRewards(i));
+			displayer.step(getTime(i - 1), getCumulativeTime(i), getModuleOrAction(i - 1), getProbability(i - 1), getTransitionRewards(i), i, getState(i), getStateRewards(i));
 		}
 		displayer.end();
 	}

@@ -386,7 +386,7 @@ public class GenerateSimulationPath
 			i++;
 			if (simPathType != PathType.SIM_PATH_DEADLOCK) {
 				displayer.step(path.getTimeInPreviousState(), path.getTotalTime(), path.getPreviousModuleOrAction(), path.getPreviousProbability(),
-						path.getPreviousTransitionRewards(), path.getCurrentState(), path.getCurrentStateRewards());
+						path.getPreviousTransitionRewards(), path.size(), path.getCurrentState(), path.getCurrentStateRewards());
 			}
 			// Check for termination (depending on type)
 			switch (simPathType) {

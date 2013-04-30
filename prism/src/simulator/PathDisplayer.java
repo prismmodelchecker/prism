@@ -159,19 +159,19 @@ public abstract class PathDisplayer
 		}
 	}
 
-	public void step(double timeSpent, double timeCumul, Object action, double probability, double[] transitionRewards, State newState, double[] newStateRewards)
+	public void step(double timeSpent, double timeCumul, Object action, double probability, double[] transitionRewards, int newStateIndex, State newState, double[] newStateRewards)
 	{
 		if (showSnapshots) {
 			if (timeCumul < nextTime) {
 				return;
 			} else {
 				while (timeCumul >= nextTime) {
-					displaySnapshot(nextTime, newState, newStateRewards);
+					displaySnapshot(nextTime, newStateIndex, newState, newStateRewards);
 					nextTime += snapshotTimeStep;
 				}
 			}
 		} else {
-			displayStep(timeSpent, timeCumul, action, probability, transitionRewards, newState, newStateRewards);
+			displayStep(timeSpent, timeCumul, action, probability, transitionRewards, newStateIndex, newState, newStateRewards);
 		}
 	}
 
@@ -190,12 +190,12 @@ public abstract class PathDisplayer
 	/**
 	 * Displaying a step of a path.
 	 */
-	public abstract void displayStep(double timeSpent, double timeCumul, Object action, double probability, double[] transitionRewards, State newState, double[] newStateRewards);
+	public abstract void displayStep(double timeSpent, double timeCumul, Object action, double probability, double[] transitionRewards, int newStateIndex, State newState, double[] newStateRewards);
 
 	/**
 	 * Displaying a snapshot of a path at a particular time instant.
 	 */
-	public abstract void displaySnapshot(double timeCumul, State newState, double[] newStateRewards);
+	public abstract void displaySnapshot(double timeCumul, int newStateIndex, State newState, double[] newStateRewards);
 
 	/**
 	 * Finish displaying a path..
