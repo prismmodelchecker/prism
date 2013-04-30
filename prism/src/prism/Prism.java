@@ -96,6 +96,11 @@ public class Prism implements PrismSettingsListener
 	public static final int MDP_MODPOLITER = 4;
 	public static final int MDP_LP = 5;
 
+	// methods for solving multi-objective queries on MDPs
+	public static final int MDP_MULTI_VALITER = 1;
+	public static final int MDP_MULTI_GAUSSSEIDEL = 2;
+	public static final int MDP_MULTI_LP = 3;
+	
 	// termination criterion for iterative methods
 	public static final int ABSOLUTE = 1;
 	public static final int RELATIVE = 2;
@@ -372,6 +377,11 @@ public class Prism implements PrismSettingsListener
 		settings.set(PrismSettings.PRISM_MDP_SOLN_METHOD, i - 1); // note index offset correction
 	}
 
+	public void setMDPMultiSolnMethod(int i) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_MDP_MULTI_SOLN_METHOD, i - 1); // note index offset correction
+	}
+
 	public void setTermCrit(int i) throws PrismException
 	{
 		settings.set(PrismSettings.PRISM_TERM_CRIT, i - 1); // note index offset correction
@@ -636,6 +646,11 @@ public class Prism implements PrismSettingsListener
 	public int getMDPSolnMethod()
 	{
 		return settings.getInteger(PrismSettings.PRISM_MDP_SOLN_METHOD) + 1;
+	} //NOTE THE CORRECTION for the ChoiceSetting index
+
+	public int getMDPMultiSolnMethod()
+	{
+		return settings.getInteger(PrismSettings.PRISM_MDP_MULTI_SOLN_METHOD) + 1;
 	} //NOTE THE CORRECTION for the ChoiceSetting index
 
 	public int getTermCrit()
@@ -2381,7 +2396,7 @@ public class Prism implements PrismSettingsListener
 		}
 
 		// Auto-switch engine if required
-		if (currentModelType == ModelType.MDP) {
+		if (currentModelType == ModelType.MDP && !Expression.containsMultiObjective(prop.getExpression())) {
 			if (getMDPSolnMethod() != Prism.MDP_VALITER && !getExplicit()) {
 				mainLog.printWarning("Switching to explicit engine to allow use of chosen MDP solution method.");
 				engineSwitch = true;

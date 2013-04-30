@@ -80,6 +80,7 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_LIN_EQ_METHOD					= "prism.linEqMethod";//"prism.iterativeMethod";
 	public static final	String PRISM_LIN_EQ_METHOD_PARAM			= "prism.linEqMethodParam";//"prism.overRelaxation";
 	public static final	String PRISM_MDP_SOLN_METHOD				= "prism.mdpSolnMethod";
+	public static final	String PRISM_MDP_MULTI_SOLN_METHOD			= "prism.mdpMultiSolnMethod";
 	public static final	String PRISM_TERM_CRIT						= "prism.termCrit";//"prism.termination";
 	public static final	String PRISM_TERM_CRIT_PARAM				= "prism.termCritParam";//"prism.terminationEpsilon";
 	public static final	String PRISM_MAX_ITERS						= "prism.maxIters";//"prism.maxIterations";
@@ -204,6 +205,8 @@ public class PrismSettings implements Observer
 																			"Over-relaxation parameter for iterative numerical methods such as JOR/SOR." },
 			{ CHOICE_TYPE,		PRISM_MDP_SOLN_METHOD,					"MDP solution method",				"4.0",			"Value iteration",																"Value iteration,Gauss-Seidel,Policy iteration,Modified policy iteration,Linear programming",
 																			"Which method to use when solving Markov decision processes." },
+			{ CHOICE_TYPE,		PRISM_MDP_MULTI_SOLN_METHOD,			"MDP multi-objective solution method",				"4.0.3",			"Value iteration",											"Value iteration,Gauss-Seidel,Linear programming",
+																			"Which method to use when solving multi-objective queries on Markov decision processes." },
 			{ CHOICE_TYPE,		PRISM_TERM_CRIT,						"Termination criteria",					"2.1",			"Relative",																	"Absolute,Relative",																		
 																			"Criteria to use for checking termination of iterative numerical methods." },
 			{ DOUBLE_TYPE,		PRISM_TERM_CRIT_PARAM,					"Termination epsilon",					"2.1",			new Double(1.0E-6),															"0.0,",																						
@@ -789,6 +792,7 @@ public class PrismSettings implements Observer
 		} else if (sw.equals("gaussseidel") || sw.equals("gs")) {
 			set(PRISM_LIN_EQ_METHOD, "Gauss-Seidel");
 			set(PRISM_MDP_SOLN_METHOD, "Gauss-Seidel");
+			set(PRISM_MDP_MULTI_SOLN_METHOD, "Gauss-Seidel");
 		} else if (sw.equals("bgaussseidel") || sw.equals("bgs")) {
 			set(PRISM_LIN_EQ_METHOD, "Backwards Gauss-Seidel");
 		} else if (sw.equals("pgaussseidel") || sw.equals("pgs")) {
@@ -807,12 +811,14 @@ public class PrismSettings implements Observer
 			set(PRISM_LIN_EQ_METHOD, "Backwards Pseudo-SOR");
 		} else if (sw.equals("valiter")) {
 			set(PRISM_MDP_SOLN_METHOD, "Value iteration");
+			set(PRISM_MDP_MULTI_SOLN_METHOD, "Value iteration");
 		} else if (sw.equals("politer")) {
 			set(PRISM_MDP_SOLN_METHOD, "Policy iteration");
 		} else if (sw.equals("modpoliter")) {
 			set(PRISM_MDP_SOLN_METHOD, "Modified policy iteration");
 		} else if (sw.equals("linprog") || sw.equals("lp")) {
 			set(PRISM_MDP_SOLN_METHOD, "Linear programming");
+			set(PRISM_MDP_MULTI_SOLN_METHOD, "Linear programming");
 		}
 		// Linear equation solver over-relaxation parameter
 		else if (sw.equals("omega")) {

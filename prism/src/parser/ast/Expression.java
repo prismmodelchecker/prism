@@ -659,6 +659,27 @@ public abstract class Expression extends ASTElement
 		}
 		return false;
 	}
+
+	/**
+	 * Test if an expression contains a multi(...) property within 
+	 */
+	public static boolean containsMultiObjective(Expression expr)
+	{
+		try {
+			ASTTraverse astt = new ASTTraverse()
+			{
+				public void visitPost(ExpressionFunc e) throws PrismLangException
+				{
+					if (e.getNameCode() == ExpressionFunc.MULTI)
+						throw new PrismLangException("Found one", e);
+				}
+			};
+			expr.accept(astt);
+		} catch (PrismLangException e) {
+			return true;
+		}
+		return false;
+	}
 }
 
 //------------------------------------------------------------------------------
