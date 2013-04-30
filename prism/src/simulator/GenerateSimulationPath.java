@@ -162,6 +162,8 @@ public class GenerateSimulationPath
 		String s, ss[];
 		int i, j, n;
 		boolean done;
+		boolean varsOptionGiven = false;
+		boolean changesFalseOptionGiven = false;
 
 		ss = details.split(",");
 		n = ss.length;
@@ -196,6 +198,7 @@ public class GenerateSimulationPath
 				}
 				throw new PrismException("Separator must be one of: \"space\", \"tab\", \"comma\"");
 			} else if (ss[i].indexOf("vars=") == 0) {
+				varsOptionGiven = true;
 				// Build list of indices of variables to display
 				VarList varList = modulesFile.createVarList();
 				simVars = new ArrayList<Integer>();
@@ -277,10 +280,12 @@ public class GenerateSimulationPath
 			} else if (ss[i].indexOf("changes=") == 0) {
 				// display changes only?
 				String bool = ss[i].substring(8).toLowerCase();
-				if (bool.equals("true"))
+				if (bool.equals("true")) {
 					simPathShowChangesOnly = true;
-				else if (bool.equals("false"))
+				} else if (bool.equals("false")) {
+					changesFalseOptionGiven = true;
 					simPathShowChangesOnly = false;
+				}
 				else
 					throw new PrismException("Value for \"changes\" option must \"true\" or \"false\"");
 			} else {
@@ -298,6 +303,11 @@ public class GenerateSimulationPath
 		if (simPathType == null)
 			throw new PrismException("Invalid path details \"" + details + "\"");
 
+		// Be default, set changes=true if vars=() was specified
+		if (varsOptionGiven && !changesFalseOptionGiven) {
+			simPathShowChangesOnly = true;
+		}
+		
 		// Display warning if attempt to use "repeat=" option and not "deadlock" option
 		if (simPathRepeat > 1 && simPathType != PathType.SIM_PATH_DEADLOCK) {
 			simPathRepeat = 1;
