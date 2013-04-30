@@ -11,8 +11,14 @@ none:
 # Can be overridden by passing VERSION=xxx
 VERSION = $(shell SRC_DIR=prism/src prism/src/scripts/printversion.sh 2> /dev/null)
 
-# Build a source distribution
-dist_src: add_rev version
+# Build a (development) source distribution
+dist_src: add_rev version do_build
+
+# Build a (public) source distribution
+dist_src_pub: version do_build
+
+# Do the build
+do_build:
 	mkdir dontcopy
 	@if [ -e prism/examples ]; then \
 	  echo "mv prism/examples dontcopy"; mv prism/examples dontcopy; \
