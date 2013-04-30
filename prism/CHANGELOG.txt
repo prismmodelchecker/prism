@@ -8,7 +8,7 @@ Version 4.1 (beta released 20/12/2012)
 
 * New explicit-state (pure Java) model checking engine
   - coverage of much, but not all, of PRISM's model checking functionality
-  - new methods for MDPs: policy iteration (-politer) and Gauss-Seidel (-gs)
+  - new methods for MDPs: policy iteration (-politer -modpoliter) and Gauss-Seidel (-gs)
   - accompanying significant changes to underlying PRISM (Java) API
 
 * GUI improvements
