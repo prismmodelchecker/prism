@@ -114,8 +114,8 @@ public class PathToText extends PathDisplayer
 			log.print(getColSep() + "action");
 			if (showProbs)
 				log.print(getColSep() + "probability");
-			log.print(getColSep() + "step");
 		}
+		log.print(getColSep() + "step");
 		if (contTime && showTimeCumul)
 			log.print(getColSep() + "time");
 		if (varsToShow == null)
@@ -150,8 +150,8 @@ public class PathToText extends PathDisplayer
 			log.print(getColSep() + "-");
 			if (showProbs)
 				log.print(getColSep() + "-");
-			log.print(getColSep() + "0");
 		}
+		log.print(getColSep() + "0");
 		if (contTime && showTimeCumul)
 			log.print(getColSep() + "0.0");
 		lastState = new State(initialState.varValues.length);
@@ -213,6 +213,8 @@ public class PathToText extends PathDisplayer
 	{
 		firstCol = true;
 
+		// display state index
+		log.print(getColSep() + newStateIndex);
 		// display cumulative time
 		if (contTime && showTimeCumul)
 			log.print(getColSep() + timeCumul);
