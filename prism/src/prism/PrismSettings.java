@@ -809,6 +809,8 @@ public class PrismSettings implements Observer
 			set(PRISM_MDP_SOLN_METHOD, "Value iteration");
 		} else if (sw.equals("politer")) {
 			set(PRISM_MDP_SOLN_METHOD, "Policy iteration");
+		} else if (sw.equals("modpoliter")) {
+			set(PRISM_MDP_SOLN_METHOD, "Modified policy iteration");
 		} else if (sw.equals("linprog") || sw.equals("lp")) {
 			set(PRISM_MDP_SOLN_METHOD, "Linear programming");
 		}
@@ -1128,7 +1130,7 @@ public class PrismSettings implements Observer
 		mainLog.println("-explicit (or -ex) ............. Use the explicit engine");
 		mainLog.println("-ptamethod <name> .............. Specify PTA engine (games, digital) [default: games]");
 		mainLog.println();
-		mainLog.println("NUMERICAL SOLUTION OPTIONS:");
+		mainLog.println("SOLUTION METHODS (LINEAR EQUATIONS):");
 		mainLog.println("-power (or -pow, -pwr) ......... Use the Power method for numerical computation");
 		mainLog.println("-jacobi (or -jac) .............. Use Jacobi for numerical computation [default]");
 		mainLog.println("-gaussseidel (or -gs) .......... Use Gauss-Seidel for numerical computation");
@@ -1140,9 +1142,15 @@ public class PrismSettings implements Observer
 		mainLog.println("-bsor .......................... Use Backwards SOR for numerical computation");
 		mainLog.println("-psor .......................... Use Pseudo SOR for numerical computation");
 		mainLog.println("-bpsor ......................... Use Backwards Pseudo SOR for numerical computation");
-		mainLog.println("-valiter ....................... Use value iteration for solving MDPs [default]");
-		mainLog.println("-politer ....................... Use policy iteration for solving MDPs");
 		mainLog.println("-omega <x> ..................... Set over-relaxation parameter (for JOR/SOR/...) [default: 0.9]");
+		mainLog.println();
+		mainLog.println("SOLUTION METHODS (MDPS):");
+		mainLog.println("-valiter ....................... Use value iteration for solving MDPs [default]");
+		mainLog.println("-gaussseidel (or -gs) .......... Use Gauss-Seidel value iteration for solving MDPs");
+		mainLog.println("-politer ....................... Use policy iteration for solving MDPs");
+		mainLog.println("-modpoliter .................... Use modified policy iteration for solving MDPs");
+		mainLog.println();
+		mainLog.println("SOLUTION METHOD SETTINGS");
 		mainLog.println("-relative (or -rel) ............ Use relative error for detecting convergence [default]");
 		mainLog.println("-absolute (or -abs) ............ Use absolute error for detecting convergence");
 		mainLog.println("-epsilon <x> (or -e <x>) ....... Set value of epsilon (for convergence check) [default: 1e-6]");

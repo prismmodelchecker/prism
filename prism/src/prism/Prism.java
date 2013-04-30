@@ -51,19 +51,19 @@ public class Prism implements PrismSettingsListener
 {
 	/** PRISM version (e.g. "4.0.3"). Read from prism.Version. */
 	private static String version = prism.Version.versionString;
-	
+
 	/** Optional PRISM version suffix (e.g. "dev", "beta"). Read from prism.Version. */
 	private static String versionSuffix = prism.Version.versionSuffixString;
-	
+
 	/** Build number (e.g. "6667"). Defaults to "" (undefined), read from prism.Revision class if present. */
 	private static String buildNumber = "";
 	static {
-	    try {
-	    	buildNumber = Prism.class.getClassLoader().loadClass("prism.Revision").getField("svnRevision").get(null).toString();
-	    } catch (Exception e) {
-	    	// Any problems (e.g. class not created), ignore.
+		try {
+			buildNumber = Prism.class.getClassLoader().loadClass("prism.Revision").getField("svnRevision").get(null).toString();
+		} catch (Exception e) {
+			// Any problems (e.g. class not created), ignore.
 		}
-	 }
+	}
 
 	//------------------------------------------------------------------------------
 	// Constants
@@ -212,7 +212,7 @@ public class Prism implements PrismSettingsListener
 	private explicit.Model currentModelExpl = null;
 	// Are we doing digital clocks translation for PTAs?
 	boolean digital = false;
-	
+
 	// Info for explicit files load
 	private File explicitFilesStatesFile = null;
 	private File explicitFilesTransFile = null;
@@ -253,7 +253,7 @@ public class Prism implements PrismSettingsListener
 	{
 		loadUserSettingsFile(null);
 	}
-	
+
 	/**
 	 * Read in PRISM settings from a specified file.
 	 * If the file is null, use the default (.prism in user's home directory).
@@ -279,7 +279,7 @@ public class Prism implements PrismSettingsListener
 			}
 		}
 	}
-	
+
 	// Set methods
 
 	/**
@@ -1741,7 +1741,8 @@ public class Prism implements PrismSettingsListener
 			case EXPLICIT_FILES:
 				if (!getExplicit()) {
 					expf2mtbdd = new ExplicitFiles2MTBDD(this);
-					currentModel = expf2mtbdd.build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, currentModulesFile, explicitFilesNumStates);
+					currentModel = expf2mtbdd.build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, currentModulesFile,
+							explicitFilesNumStates);
 				} else {
 					throw new PrismException("Explicit import not yet supported for explicit engine");
 				}
@@ -1756,7 +1757,7 @@ public class Prism implements PrismSettingsListener
 			if (digital) {
 				doBuildModelDigitalClocksChecks();
 			}
-			
+
 			// Deal with deadlocks
 			if (!getExplicit()) {
 				StateList deadlocks = currentModel.getDeadlockStates();
@@ -1841,7 +1842,7 @@ public class Prism implements PrismSettingsListener
 				throw new PrismException("Timelock in PTA, e.g. in state " + dls);
 			}
 		}
-				
+
 		/*// Create new model checker object and do model checking
 		PropertiesFile pf = parsePropertiesString(currentModulesFile, "filter(exists,!\"invariants\"); E[F!\"invariants\"]");
 		if (!getExplicit()) {
@@ -1860,7 +1861,7 @@ public class Prism implements PrismSettingsListener
 			sv.print(mainLog, 1);
 		}*/
 	}
-	
+
 	/**
 	 * Build a model from a PRISM modelling language description, storing it symbolically,
 	 * as MTBDDs) via explicit-state reachability and model construction.
@@ -2350,7 +2351,7 @@ public class Prism implements PrismSettingsListener
 	{
 		return modelCheck(propertiesFile, new Property(expr));
 	}
-	
+
 	/**
 	 * Perform model checking of a property on the currently loaded model and return result.
 	 * @param propertiesFile Parent property file of property (for labels/constants/...)
@@ -2360,6 +2361,8 @@ public class Prism implements PrismSettingsListener
 	{
 		Result res = null;
 		Values definedPFConstants = propertiesFile.getConstantValues();
+		boolean engineSwitch = false;
+		int lastEngine = -1;
 
 		if (!digital)
 			mainLog.printSeparator();
@@ -2377,19 +2380,36 @@ public class Prism implements PrismSettingsListener
 			return modelCheckPTA(propertiesFile, prop.getExpression(), definedPFConstants);
 		}
 
-		// Build model, if necessary
-		buildModelIfRequired();
-		
-		// Create new model checker object and do model checking
-		if (!getExplicit()) {
-			ModelChecker mc = StateModelChecker.createModelChecker(currentModelType, this, currentModel, propertiesFile);
-			res = mc.check(prop.getExpression());
-		} else {
-			explicit.StateModelChecker mc = explicit.StateModelChecker.createModelChecker(currentModelType);
-			mc.setLog(mainLog);
-			mc.setSettings(settings);
-			mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);
-			res = mc.check(currentModelExpl, prop.getExpression());
+		// Auto-switch engine if required
+		if (currentModelType == ModelType.MDP) {
+			if (getMDPSolnMethod() != Prism.MDP_VALITER && !getExplicit()) {
+				mainLog.printWarning("Switching to explicit engine to allow use of chosen MDP solution method.");
+				engineSwitch = true;
+				lastEngine = getEngine();
+				setEngine(Prism.EXPLICIT);
+			}
+		}
+
+		try {
+			// Build model, if necessary
+			buildModelIfRequired();
+
+			// Create new model checker object and do model checking
+			if (!getExplicit()) {
+				ModelChecker mc = StateModelChecker.createModelChecker(currentModelType, this, currentModel, propertiesFile);
+				res = mc.check(prop.getExpression());
+			} else {
+				explicit.StateModelChecker mc = explicit.StateModelChecker.createModelChecker(currentModelType);
+				mc.setLog(mainLog);
+				mc.setSettings(settings);
+				mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);
+				res = mc.check(currentModelExpl, prop.getExpression());
+			}
+		} finally {
+			// Undo auto-switch (if any)
+			if (engineSwitch) {
+				setEngine(lastEngine);
+			}
 		}
 
 		// Return result
@@ -2457,7 +2477,7 @@ public class Prism implements PrismSettingsListener
 	{
 		return getSimulator().isPropertyOKForSimulation(expr);
 	}
-	
+
 	/**
 	 * Check if a property is suitable for analysis with the simulator.
 	 * If not, an explanatory exception is thrown.
@@ -2831,7 +2851,7 @@ public class Prism implements PrismSettingsListener
 
 		// Step through required time points
 		for (i = 0; i < times.getNumPropertyIterations(); i++) {
-			
+
 			// Get time, check non-negative
 			time = times.getPFConstantValues().getValue(0);
 			if (currentModelType.continuousTime())
@@ -2843,7 +2863,7 @@ public class Prism implements PrismSettingsListener
 
 			mainLog.printSeparator();
 			mainLog.println("\nComputing transient probabilities (time = " + time + ")...");
-			
+
 			// Build model, if necessary
 			buildModelIfRequired();
 
@@ -2888,7 +2908,7 @@ public class Prism implements PrismSettingsListener
 			} else {
 				fileOutActual = fileOut;
 			}
-			
+
 			// print message
 			mainLog.print("\nPrinting transient probabilities ");
 			mainLog.print(getStringForExportType(exportType) + " ");
