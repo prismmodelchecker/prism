@@ -30,6 +30,7 @@ package userinterface.model.computation;
 import java.io.*;
 import javax.swing.*;
 
+import parser.ast.PropertiesFile;
 import prism.*;
 import userinterface.*;
 import userinterface.model.*;
@@ -40,22 +41,32 @@ import userinterface.util.*;
  */
 public class ExportBuiltModelThread extends GUIComputationThread
 {
-	@SuppressWarnings("unused")
-	private GUIMultiModelHandler handler;
 	private int exportEntity;
 	private int exportType;
 	private File exportFile;
+	private PropertiesFile propertiesFile;
 
 	/** Creates a new instance of ExportBuiltModelThread */
 	public ExportBuiltModelThread(GUIMultiModelHandler handler, int entity, int type, File f)
 	{
-		super(handler.getGUIPlugin());
-		this.handler = handler;
+		this(handler.getGUIPlugin(), entity, type, f);
+	}
+
+	/** Creates a new instance of ExportBuiltModelThread */
+	public ExportBuiltModelThread(GUIPlugin plug, int entity, int type, File f)
+	{
+		super(plug);
 		this.exportEntity = entity;
 		this.exportType = type;
 		this.exportFile = f;
 	}
 
+	/** Set (optional) associated PropertiesFile (for label export) */
+	public void setPropertiesFile(PropertiesFile propertiesFile)
+	{
+		this.propertiesFile = propertiesFile;
+	}
+	
 	public void run()
 	{
 		try {
@@ -84,6 +95,9 @@ public class ExportBuiltModelThread extends GUIComputationThread
 					break;
 				case GUIMultiModelHandler.TRANS_REWARDS_EXPORT:
 					prism.exportTransRewardsToFile(true, exportType, exportFile);
+					break;
+				case GUIMultiModelHandler.LABELS_EXPORT:
+					prism.exportLabelsToFile(propertiesFile, exportType, exportFile);
 					break;
 				}
 			} catch (FileNotFoundException e) {

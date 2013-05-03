@@ -80,11 +80,11 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 	//GUI
 	private JTextField fileTextField;
 	private JMenu modelMenu, newMenu, viewMenu, exportMenu, computeMenu;
-	private JMenu exportStatesMenu, exportTransMenu, exportStateRewardsMenu, exportTransRewardsMenu;
+	private JMenu exportStatesMenu, exportTransMenu, exportStateRewardsMenu, exportTransRewardsMenu, exportLabelsMenu;
 	private AbstractAction viewStates, viewTrans, viewStateRewards, viewTransRewards, viewPrismCode, computeSS, computeTr, newPRISMModel, newGraphicModel,
 			newPEPAModel, loadModel, reloadModel, saveModel, saveAsModel, parseModel, buildModel, exportStatesPlain, exportStatesMatlab, exportTransPlain,
 			exportTransMatlab, exportTransDot, exportTransDotStates, exportTransMRMC, exportStateRewardsPlain, exportStateRewardsMatlab,
-			exportStateRewardsMRMC, exportTransRewardsPlain, exportTransRewardsMatlab, exportTransRewardsMRMC;
+			exportStateRewardsMRMC, exportTransRewardsPlain, exportTransRewardsMatlab, exportTransRewardsMRMC, exportLabelsPlain, exportLabelsMatlab;
 	private JPopupMenu popup;
 	//Contents
 	private GUIMultiModelHandler handler;
@@ -188,6 +188,8 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		exportTransRewardsPlain.setEnabled(!computing);
 		exportTransRewardsMatlab.setEnabled(!computing);
 		exportTransRewardsMRMC.setEnabled(!computing);
+		exportLabelsPlain.setEnabled(!computing);
+		exportLabelsMatlab.setEnabled(!computing);
 	}
 
 	public int doModificationCheck()
@@ -375,7 +377,16 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 			res = showSaveFileDialog(matlabFilter, matlabFilter[0]);
 			break;
 		default:
-			res = showSaveFileDialog(textFilter, textFilter[0]);
+			switch (exportEntity) {
+			case GUIMultiModelHandler.STATES_EXPORT:
+				res = showSaveFileDialog(textFilter, textFilter[1]);
+			case GUIMultiModelHandler.TRANS_EXPORT:
+				res = showSaveFileDialog(textFilter, textFilter[2]);
+			case GUIMultiModelHandler.LABELS_EXPORT:
+				res = showSaveFileDialog(textFilter, textFilter[3]);
+			default:
+				res = showSaveFileDialog(textFilter, textFilter[0]);
+			}
 			break;
 		}
 		if (res != JFileChooser.APPROVE_OPTION)
@@ -765,6 +776,30 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		exportTransRewardsMRMC.putValue(Action.NAME, "MRMC file");
 		exportTransRewardsMRMC.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
 
+		exportLabelsPlain = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_exportBuildAs(GUIMultiModelHandler.LABELS_EXPORT, Prism.EXPORT_PLAIN);
+			}
+		};
+		exportLabelsPlain.putValue(Action.LONG_DESCRIPTION, "Exports the model's labels and their satisfying states to a plain text file");
+		exportLabelsPlain.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
+		exportLabelsPlain.putValue(Action.NAME, "Plain text file");
+		exportLabelsPlain.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
+
+		exportLabelsMatlab = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_exportBuildAs(GUIMultiModelHandler.LABELS_EXPORT, Prism.EXPORT_MATLAB);
+			}
+		};
+		exportLabelsMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the model's labels and their satisfying states to a Matlab file");
+		exportLabelsMatlab.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_M));
+		exportLabelsMatlab.putValue(Action.NAME, "Matlab file");
+		exportLabelsMatlab.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileMatlab.png"));
+
 		computeSS = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
@@ -978,6 +1013,12 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		exportTransRewardsMenu.add(exportTransRewardsMatlab);
 		exportTransRewardsMenu.add(exportTransRewardsMRMC);
 		exportMenu.add(exportTransRewardsMenu);
+		exportLabelsMenu = new JMenu("Labels");
+		exportLabelsMenu.setMnemonic('L');
+		exportLabelsMenu.setIcon(GUIPrism.getIconFromImage("smallStates.png"));
+		exportLabelsMenu.add(exportLabelsPlain);
+		exportLabelsMenu.add(exportLabelsMatlab);
+		exportMenu.add(exportLabelsMenu);
 		return exportMenu;
 	}
 
@@ -1077,13 +1118,15 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 			modelFilters[FILTER_GRAPHIC_MODEL].addExtension("gm");
 		modelFilters[FILTER_PEPA_MODEL] = new GUIPrismFileFilter("PEPA models (*.pepa)");
 		modelFilters[FILTER_PEPA_MODEL].addExtension("pepa");
-		textFilter = new GUIPrismFileFilter[3];
+		textFilter = new GUIPrismFileFilter[4];
 		textFilter[0] = new GUIPrismFileFilter("Plain text files (*.txt)");
 		textFilter[0].addExtension("txt");
 		textFilter[1] = new GUIPrismFileFilter("State list files (*.sta)");
 		textFilter[1].addExtension("sta");
 		textFilter[2] = new GUIPrismFileFilter("Transition matrix files (*.tra)");
 		textFilter[2].addExtension("tra");
+		textFilter[3] = new GUIPrismFileFilter("Label files (*.lab)");
+		textFilter[3].addExtension("lab");
 		matlabFilter = new GUIPrismFileFilter[1];
 		matlabFilter[0] = new GUIPrismFileFilter("Matlab files (*.m)");
 		matlabFilter[0].addExtension("m");

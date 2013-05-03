@@ -88,6 +88,7 @@ import parser.type.Type;
 import parser.type.TypeDouble;
 import parser.type.TypeInt;
 import parser.type.TypeInterval;
+import prism.Prism;
 import prism.PrismException;
 import prism.PrismSettings;
 import prism.PrismSettingsListener;
@@ -103,6 +104,8 @@ import userinterface.SimulationInformation;
 import userinterface.graph.Graph;
 import userinterface.graph.Graph.SeriesKey;
 import userinterface.model.GUIModelEvent;
+import userinterface.model.GUIMultiModelHandler;
+import userinterface.model.computation.ExportBuiltModelThread;
 import userinterface.properties.computation.ExportResultsThread;
 import userinterface.properties.computation.LoadPropertiesThread;
 import userinterface.properties.computation.ModelCheckThread;
@@ -136,17 +139,20 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	// State
 	private boolean modified;
 	private boolean computing;
-	private boolean verifyAfterReceiveParseNotification, experimentAfterReceiveParseNotification,
-			simulateAfterReceiveParseNotification;
+	private boolean verifyAfterReceiveParseNotification, experimentAfterReceiveParseNotification, simulateAfterReceiveParseNotification, exportLabelsAfterReceiveParseNotification;
 	private PropertiesFile parsedProperties;
 	private ArrayList<GUIProperty> propertiesToBeVerified;
 	private File activeFile;
 	private Values pfConstants;
 	private String argsPropertiesFile;
+	private int exportType = Prism.EXPORT_PLAIN;
+	private File exportFile = null;
 
 	// GUI
 	private GUIPrismFileFilter propsFilter[];
 	private GUIPrismFileFilter resultsFilter[];
+	private GUIPrismFileFilter textFilter[];
+	private GUIPrismFileFilter matlabFilter[];
 	private JMenu propMenu;
 	private JPopupMenu propertiesPopup, constantsPopup, labelsPopup, experimentPopup;
 	private GUIExperimentTable experiments;
@@ -154,8 +160,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	private JScrollPane expScroller;
 	private JTextField fileTextField;
 	private Action newProps, openProps, saveProps, savePropsAs, insertProps, verifySelected, newProperty, editProperty, newConstant, removeConstant, newLabel,
-			removeLabel, newExperiment, deleteExperiment, stopExperiment, viewResults, plotResults,
-			exportResultsListText, exportResultsListCSV, exportResultsMatrixText, exportResultsMatrixCSV, simulate, details;
+			removeLabel, newExperiment, deleteExperiment, stopExperiment, viewResults, plotResults, exportResultsListText, exportResultsListCSV,
+			exportResultsMatrixText, exportResultsMatrixCSV, simulate, details, exportLabelsPlain, exportLabelsMatlab;;
 
 	// Current properties
 	private GUIPropertiesList propList;
@@ -168,7 +174,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 
 	// The simulator
 	private GUISimulator simulator;
-	
+
 	// CONSTRUCTORS
 
 	/** Creates a new instance of GUIMultiProperties */
@@ -186,7 +192,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 
 	public void takeCLArgs(String args[])
 	{
-		if(args.length > 1) {
+		if (args.length > 1) {
 			argsPropertiesFile = args[1];
 		}
 	}
@@ -242,7 +248,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	{
 		return graphHandler;
 	}
-	
+
 	/* UPDATE METHODS */
 
 	public void repaintList()
@@ -346,7 +352,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				if (result != GUIConstantsPicker.VALUES_DONE)
 					return;
 			}
-			
+
 			// Store model/property constants
 			mfConstants = uCon.getMFConstantValues();
 			pfConstants = uCon.getPFConstantValues();
@@ -359,14 +365,14 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			propertiesToBeVerified = validGUIProperties;
 			for (GUIProperty gp : propertiesToBeVerified)
 				gp.setConstants(mfConstants, pfConstants);
-			
+
 			// Get simulation info with dialog
 			SimulationInformation info = GUISimulationPicker.defineSimulationWithDialog(this.getGUI(), simulatableExprs, parsedModel, null);
-			
+
 			// If user cancelled simulation, quit 
 			if (info == null)
 				return;
-			
+
 			if (parsedModel != null && parsedProperties != null) {
 				Thread t = new SimulateModelCheckThread(this, parsedProperties, simulatableGUIProperties, pfConstants, info);
 				t.setPriority(Thread.NORM_PRIORITY);
@@ -393,9 +399,10 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 					namedString += "\"" + namedProp.getName() + "\" : " + namedProp.getPropString() + "\n";
 				}
 			}*/
-			
+
 			// parse property to be used for experiment
-			parsedProperties = getPrism().parsePropertiesString(parsedModel, getLabelsString() + "\n" + getConstantsString() + "\n" + propList.getValidSelectedAndReferencedString());
+			parsedProperties = getPrism().parsePropertiesString(parsedModel,
+					getLabelsString() + "\n" + getConstantsString() + "\n" + propList.getValidSelectedAndReferencedString());
 			if (parsedProperties.getNumProperties() <= 0) {
 				error("There are no properties selected");
 				return;
@@ -418,7 +425,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		for (int i = 0; i < parsedProperties.getNumProperties(); i++) {
 			props.add(parsedProperties.getPropertyObject(i));
 		}
-		
+
 		// sort out undefined constants
 		UndefinedConstants uCon = new UndefinedConstants(parsedModel, parsedProperties, props);
 		boolean showGraphDialog = false;
@@ -427,9 +434,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			error("Cannot create an experiment because there are no constants with undefined values");
 			return;
 		}
-		boolean offerGraph = type instanceof TypeInt || type instanceof TypeDouble || type instanceof TypeInterval; 
-		int result = GUIExperimentPicker.defineConstantsWithDialog(this.getGUI(), uCon, offerGraph, gp
-				.isValidForSimulation());
+		boolean offerGraph = type instanceof TypeInt || type instanceof TypeDouble || type instanceof TypeInterval;
+		int result = GUIExperimentPicker.defineConstantsWithDialog(this.getGUI(), uCon, offerGraph, gp.isValidForSimulation());
 		if (result == GUIExperimentPicker.VALUES_DONE_SHOW_GRAPH || result == GUIExperimentPicker.VALUES_DONE_SHOW_GRAPH_AND_SIMULATE) {
 			showGraphDialog = true;
 		} else if (result == GUIExperimentPicker.CANCELLED)
@@ -519,14 +525,14 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 					//the string contains property name
 					int start = pctl.indexOf('"') + 1;
 					int end = pctl.indexOf('"', start);
-					String name = pctl.substring(start,end);
+					String name = pctl.substring(start, end);
 					int colon = pctl.indexOf(':') + 1;
 					pctl = pctl.substring(colon).trim();
 					gp.setPropStringAndName(pctl, name, parsedModel, getConstantsString(), getLabelsString());
 				} else {
 					gp.setPropStringAndName(pctl, null, parsedModel, getConstantsString(), getLabelsString());
 				}
-				
+
 				gp.setComment(comment);
 				setModified(true);
 			}
@@ -617,6 +623,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		savePropsAs.setEnabled(!computing);
 		simulate.setEnabled(!computing && parsedModel != null && propList.existsValidSimulatableSelectedProperties());
 		verifySelected.setEnabled(!computing && parsedModel != null && propList.existsValidSelectedProperties());
+		exportLabelsPlain.setEnabled(!computing && parsedModel != null);
+		exportLabelsMatlab.setEnabled(!computing && parsedModel != null);
 		details.setEnabled(!computing && parsedModel != null && propList.existsValidSelectedProperties());
 		// properties list
 		propList.setEnabled(!computing);
@@ -884,7 +892,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				new GUIPropertyResultDialog(getGUI(), this, gp).display();
 			}
 		}
-		
+
 		// For a single property with a displayable counterexample, offer to do show it
 		if (selected.length == 1) {
 			GUIProperty gp = propList.getProperty(selected[0]);
@@ -897,9 +905,9 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				}
 			}
 		}
-		
+
 		//print Pareto curves for all available TileLists, then clear the storage
-		synchronized(TileList.getStoredTileLists()) {
+		synchronized (TileList.getStoredTileLists()) {
 			for (int i = 0; i < TileList.getStoredTileLists().size(); i++) {
 				TileList tl = TileList.getStoredTileLists().get(i);
 				if (tl != null && tl.getDimension() == 2) {
@@ -907,10 +915,10 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 					graph.getXAxisSettings().setHeading(TileList.getStoredFormulasX().get(i).toString());
 					graph.getYAxisSettings().setHeading(TileList.getStoredFormulasY().get(i).toString());
 					SeriesKey sk = graph.addSeries("Pareto curve");
-					
+
 					//Get points in tilelist and sort them. This is required for the graph to show them right
 					List<prism.Point> l = tl.getPoints();
-					Comparator<prism.Point > c = new Comparator<prism.Point>()
+					Comparator<prism.Point> c = new Comparator<prism.Point>()
 					{
 						public int compare(prism.Point o1, prism.Point o2)
 						{
@@ -931,11 +939,11 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 					this.getGraphHandler().addGraph(graph);
 				}
 			}
-			
+
 			TileList.clearStoredTileLists();
 		}
 	}
-	
+
 	public void a_cut()
 	{
 		java.awt.datatransfer.Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -1052,6 +1060,67 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		}
 	}
 
+	public void a_exportLabels(int exportType)
+	{
+		int res = JFileChooser.CANCEL_OPTION;
+
+		// pop up dialog to select file
+		switch (exportType) {
+		case Prism.EXPORT_MATLAB:
+			res = showSaveFileDialog(matlabFilter, matlabFilter[0]);
+			break;
+		default:
+			res = showSaveFileDialog(textFilter, textFilter[1]);
+			break;
+		}
+		if (res != JFileChooser.APPROVE_OPTION)
+			return;
+		consTable.correctEditors();
+		labTable.correctEditors();
+		// Reset warnings counter 
+		getPrism().getMainLog().resetNumberOfWarnings();
+		// Set flag, store export info
+		exportLabelsAfterReceiveParseNotification = true;
+		this.exportType = exportType;
+		this.exportFile = getChooserFile();
+		// Request a parse
+		exportLabelsAfterReceiveParseNotification = true;
+		notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.REQUEST_MODEL_PARSE));
+	}
+	
+	public void exportLabelsAfterParse()
+	{
+		// Switch off flag
+		exportLabelsAfterReceiveParseNotification = false;
+		try {
+			// Parse labels/constants
+			parsedProperties = getPrism().parsePropertiesString(parsedModel, getLabelsString() + "\n" + getConstantsString());
+			// Query user for undefined constant values (if required)
+			UndefinedConstants uCon = new UndefinedConstants(parsedModel, parsedProperties, true);
+			if (uCon.getMFNumUndefined() + uCon.getPFNumUndefined() > 0) {
+				// Use previous constant values as defaults in dialog
+				int result = GUIConstantsPicker.defineConstantsWithDialog(this.getGUI(), uCon, mfConstants, pfConstants);
+				if (result != GUIConstantsPicker.VALUES_DONE)
+					return;
+			}
+			// Store model/property constants
+			mfConstants = uCon.getMFConstantValues();
+			pfConstants = uCon.getPFConstantValues();
+			getPrism().setPRISMModelConstants(mfConstants);
+			parsedProperties.setSomeUndefinedConstants(pfConstants);
+			// If export is being done to log, switch view to log
+			if (exportFile == null)
+				logToFront();
+			// Start export 
+			ExportBuiltModelThread ebmt = new ExportBuiltModelThread(this, GUIMultiModelHandler.LABELS_EXPORT, exportType, exportFile);
+			ebmt.setPropertiesFile(parsedProperties);
+			ebmt.start();
+		} catch (PrismException e) {
+			error(e.getMessage());
+			return;
+		}
+	}
+	
 	public void a_newExperiment()
 	{
 		// Reset warnings counter 
@@ -1200,11 +1269,14 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 					experimentAfterParse();
 				if (simulateAfterReceiveParseNotification)
 					simulateAfterParse();
+				if (exportLabelsAfterReceiveParseNotification)
+					exportLabelsAfterParse();
 			} else if (me.getID() == GUIModelEvent.MODEL_PARSE_FAILED) {
 				argsPropertiesFile = null;
 				verifyAfterReceiveParseNotification = false;
 				experimentAfterReceiveParseNotification = false;
 				simulateAfterReceiveParseNotification = false;
+				exportLabelsAfterReceiveParseNotification = false;
 			} else if (me.getID() == GUIModelEvent.NEW_LOAD_NOT_RELOAD_MODEL) {
 				if (getPrism().getSettings().getBoolean(PrismSettings.PROPERTIES_CLEAR_LIST_ON_LOAD)) {
 					a_newList();
@@ -1256,9 +1328,10 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		}
 		return false;
 	}
-	
-	private void checkForPropertiesToLoad() {
-		if(argsPropertiesFile != null) {
+
+	private void checkForPropertiesToLoad()
+	{
+		if (argsPropertiesFile != null) {
 			Thread t = new LoadPropertiesThread(this, parsedModel, new File(argsPropertiesFile));
 			t.setPriority(Thread.NORM_PRIORITY);
 			t.start();
@@ -1670,6 +1743,12 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			propMenu.add(verifySelected);
 			propMenu.add(simulate);
 			propMenu.add(newExperiment);
+			JMenu exportlabelsMenu = new JMenu("Export labels");
+			exportlabelsMenu.setMnemonic('E');
+			exportlabelsMenu.setIcon(GUIPrism.getIconFromImage("smallExport.png"));
+			exportlabelsMenu.add(exportLabelsPlain);
+			exportlabelsMenu.add(exportLabelsMatlab);
+			propMenu.add(exportlabelsMenu);
 			propMenu.setMnemonic('P');
 		}
 		createPopups();
@@ -1684,6 +1763,14 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		resultsFilter[0].addExtension("txt");
 		resultsFilter[1] = new GUIPrismFileFilter("Comma-separated values (*.csv)");
 		resultsFilter[1].addExtension("csv");
+		textFilter = new GUIPrismFileFilter[2];
+		textFilter[0] = new GUIPrismFileFilter("Plain text files (*.txt)");
+		textFilter[0].addExtension("txt");
+		textFilter[1] = new GUIPrismFileFilter("Label files (*.lab)");
+		textFilter[1].addExtension("lab");
+		matlabFilter = new GUIPrismFileFilter[1];
+		matlabFilter[0] = new GUIPrismFileFilter("Matlab files (*.m)");
+		matlabFilter[0].addExtension("m");
 	}
 
 	private void createPopups()
@@ -1750,7 +1837,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		newProps.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_N));
 		newProps.putValue(Action.NAME, "New properties list");
 		newProps.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallNew.png"));
-		newProps.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_N, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | InputEvent.SHIFT_MASK));
+		newProps.putValue(Action.ACCELERATOR_KEY,
+				KeyStroke.getKeyStroke(KeyEvent.VK_N, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | InputEvent.SHIFT_MASK));
 
 		openProps = new AbstractAction()
 		{
@@ -1764,7 +1852,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		openProps.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_O));
 		openProps.putValue(Action.NAME, "Open properties list...");
 		openProps.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallOpen.png"));
-		openProps.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | InputEvent.SHIFT_MASK));
+		openProps.putValue(Action.ACCELERATOR_KEY,
+				KeyStroke.getKeyStroke(KeyEvent.VK_O, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | InputEvent.SHIFT_MASK));
 
 		saveProps = new AbstractAction()
 		{
@@ -1779,7 +1868,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		saveProps.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_S));
 		saveProps.putValue(Action.NAME, "Save properties list");
 		saveProps.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallSave.png"));
-		saveProps.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | InputEvent.SHIFT_MASK));
+		saveProps.putValue(Action.ACCELERATOR_KEY,
+				KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | InputEvent.SHIFT_MASK));
 
 		savePropsAs = new AbstractAction()
 		{
@@ -2019,6 +2109,30 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		exportResultsMatrixCSV.putValue(Action.NAME, "Matrix (CSV)");
 		exportResultsMatrixCSV.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallMatrix.png"));
 
+		exportLabelsPlain = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_exportLabels(Prism.EXPORT_PLAIN);
+			}
+		};
+		exportLabelsPlain.putValue(Action.LONG_DESCRIPTION, "Exports the model and property file's labels and their satisfying states to a plain text file");
+		exportLabelsPlain.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
+		exportLabelsPlain.putValue(Action.NAME, "Plain text file");
+		exportLabelsPlain.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
+
+		exportLabelsMatlab = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_exportLabels(Prism.EXPORT_MATLAB);
+			}
+		};
+		exportLabelsMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the model and property file's labels and their satisfying states to a Matlab file");
+		exportLabelsMatlab.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_M));
+		exportLabelsMatlab.putValue(Action.NAME, "Matlab file");
+		exportLabelsMatlab.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileMatlab.png"));
+		
 		stopExperiment = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
