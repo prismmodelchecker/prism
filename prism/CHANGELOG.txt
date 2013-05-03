@@ -1,5 +1,9 @@
 This file contains details of the changes in each new version of PRISM.
 
+New since last release:
+
+* Export labels from GUI
+
 -----------------------------------------------------------------------------
 Version 4.1 (first released 20/12/2012)
 -----------------------------------------------------------------------------
