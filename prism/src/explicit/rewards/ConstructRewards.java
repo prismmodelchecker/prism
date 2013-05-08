@@ -180,14 +180,16 @@ public class ConstructRewards
 
 		try {
 			if (rews != null) {
-				// Open rews file
+				// Open state rewards file
 				in = new BufferedReader(new FileReader(rews));
-				// Ignore first line (num states)
+				// Ignore first line
 				s = in.readLine();
 				lineNum = 1;
-				if (s == null)
-					throw new PrismException("Missing first line of .rews file");
-				// Go though list of transitions in file
+				if (s == null) {
+					in.close();
+					throw new PrismException("Missing first line of state rewards file");
+				}
+				// Go though list of state rewards in file
 				s = in.readLine();
 				lineNum++;
 				while (s != null) {
@@ -205,21 +207,23 @@ public class ConstructRewards
 				in.close();
 			}
 		} catch (IOException e) {
-			throw new PrismException("Could not read rewards from file \"" + rewt + "\"" + e);
+			throw new PrismException("Could not read state rewards from file \"" + rews + "\"" + e);
 		} catch (NumberFormatException e) {
-			throw new PrismException("Problem in .rewt file (line " + lineNum + ") for MDP");
+			throw new PrismException("Problem in state rewards file (line " + lineNum + ") for MDP");
 		}
 
 		try {
 			if (rewt != null) {
-				// Open rewt file
+				// Open transition rewards file
 				in = new BufferedReader(new FileReader(rewt));
-				// Ignore first line (num states)
+				// Ignore first line
 				s = in.readLine();
 				lineNum = 1;
-				if (s == null)
-					throw new PrismException("Missing first line of .rewt file");
-				// Go though list of transitions in file
+				if (s == null) {
+					in.close();
+					throw new PrismException("Missing first line of transition rewards file");
+				}
+				// Go though list of transition rewards in file
 				s = in.readLine();
 				lineNum++;
 				while (s != null) {
@@ -228,7 +232,7 @@ public class ConstructRewards
 						ss = s.split(" ");
 						i = Integer.parseInt(ss[0]);
 						j = Integer.parseInt(ss[1]);
-						reward = Double.parseDouble(ss[2]);
+						reward = Double.parseDouble(ss[3]);
 						rs.setTransitionReward(i, j, reward);
 					}
 					s = in.readLine();
@@ -240,7 +244,7 @@ public class ConstructRewards
 		} catch (IOException e) {
 			throw new PrismException("Could not read transition rewards from file \"" + rewt + "\"" + e);
 		} catch (NumberFormatException e) {
-			throw new PrismException("Problem in .rewt file (line " + lineNum + ") for MDP");
+			throw new PrismException("Problem in transition rewards file (line " + lineNum + ") for MDP");
 		}
 
 		return rs;
