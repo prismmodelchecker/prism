@@ -26,6 +26,7 @@
 
 package prism;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -35,139 +36,146 @@ import parser.type.*;
 
 /**
  * Class to handle the undefined constants in model and/or properties file.
+ * This may not be *all* of the constants in the file(s); it may be just
+ * the ones that are required to execute model checking or some other task.
+ * Really, the main purpose of this class is to manage an "experiment",
+ * i.e. to iterate through several different values of one or more constants,
+ * but this includes the special case where all undefined constants are given a single value.
  */
 public class UndefinedConstants
 {
+	// info used to construct this object
 	// parsed model/properties files
-	private ModulesFile modulesFile;
-	private PropertiesFile propertiesFile;
-	
+	private ModulesFile modulesFile = null;
+	private PropertiesFile propertiesFile = null;
+	// optionally, specific properties to get constants from
+	private List<Property> props = null;
+	// just get constants from labels (in properties file)?
+	private boolean justLabels = false;
+
 	// info about constants
 	private int mfNumConsts = 0;
-	private DefinedConstant mfConsts[] = null;
+	private List<DefinedConstant> mfConsts = null;
 	private int pfNumConsts = 0;
-	private DefinedConstant pfConsts[] = null;
-	
+	private List<DefinedConstant> pfConsts = null;
+
 	// stuff for iterating through constant values
 	private Values mfValues = null;
 	private Values pfValues = null;
-	
+
 	// class-wide storage for info from -const switch
 	private Vector<String> constSwitchNames;
 	private Vector<String> constSwitchLows;
 	private Vector<String> constSwitchHighs;
 	private Vector<String> constSwitchSteps;
-	
+
 	/**
 	 * Construct information about undefined constants from a model and/or properties file.
 	 * If either is not required, it can be left as null. All undefined constants,
 	 * whether used or not, are assumed to be required to be provided.
 	 */
-	public UndefinedConstants(ModulesFile mf, PropertiesFile pf)
+	public UndefinedConstants(ModulesFile modulesFile, PropertiesFile propertiesFile)
 	{
-		this(mf, pf, false);
+		this(modulesFile, propertiesFile, false);
 	}
-	
+
 	/**
 	 * Construct information about undefined constants from a model and/or properties file.
 	 * If either is not required, it can be left as null. If {@code justLabels} is false,
 	 * all constants, whether used or not, are assumed to be required to be provided.
 	 * If {@code justLabels} is true, only properties file constants that are needed for labels are.
 	 */
-	public UndefinedConstants(ModulesFile mf, PropertiesFile pf, boolean justLabels)
+	public UndefinedConstants(ModulesFile modulesFile, PropertiesFile propertiesFile, boolean justLabels)
 	{
-		Vector<String> mfv, pfv;
-		// store model/properties files
-		modulesFile = mf;
-		propertiesFile = pf;
-		// determine which constants are undefined
-		mfv = (modulesFile == null) ? new Vector<String>() : modulesFile.getUndefinedConstants();
-		pfv = (propertiesFile == null) ? new Vector<String>() : propertiesFile.getUndefinedConstants();
-		if (propertiesFile == null) {
-			pfv = new Vector<String>();
-		} else {
-			if (justLabels) {
-				pfv = propertiesFile.getUndefinedConstantsUsedInLabels();
-				pfv = orderConstantsByPropertiesFile(pfv, pf);
-			} else {
-				pfv = propertiesFile.getUndefinedConstants();
-			}
-		}
-		// create data structures
-		initialise(mfv, pfv);
+		setModulesFile(modulesFile);
+		setPropertiesFile(propertiesFile);
+		setJustLabels(justLabels);
+		initialise();
 	}
-	
+
 	/**
 	 * Construct information about undefined constants for a specific property.
-	 * It is assumed that all undefined constants from model file are needed,
+	 * It is assumed that all undefined constants from the model file are needed,
 	 * plus any from the properties file that are use in the property {@code prop}.  
 	 */
-	public UndefinedConstants(ModulesFile mf, PropertiesFile pf, Property prop)
+	public UndefinedConstants(ModulesFile modulesFile, PropertiesFile propertiesFile, Property prop)
 	{
-		Vector<String> mfv, pfv;
-		// store model/properties files
-		modulesFile = mf;
-		propertiesFile = pf;
-		// determine which constants are undefined
-		mfv = (modulesFile == null) ? new Vector<String>() : modulesFile.getUndefinedConstants();
-		if (propertiesFile == null || prop == null) {
-			pfv = new Vector<String>();
-		} else {
-			pfv = propertiesFile.getUndefinedConstantsUsedInProperty(prop);
-			pfv = orderConstantsByPropertiesFile(pfv, pf);
-		}
-		// create data structures
-		initialise(mfv, pfv);
+		setModulesFile(modulesFile);
+		setPropertiesFile(propertiesFile);
+		addProperty(prop);
+		initialise();
 	}
 
 	/**
 	 * Construct information about undefined constants for specific properties.
-	 * It is assumed that all undefined constants from model file are needed,
+	 * It is assumed that all undefined constants from the model file are needed,
 	 * plus any from the properties file that are use in the properties {@code props}.  
 	 */
-	public UndefinedConstants(ModulesFile mf, PropertiesFile pf, List<Property> props)
+	public UndefinedConstants(ModulesFile modulesFile, PropertiesFile propertiesFile, List<Property> props)
 	{
-		Vector<String> mfv, pfv;
-		// store model/properties files
-		modulesFile = mf;
-		propertiesFile = pf;
-		// determine which constants are undefined
-		mfv = (modulesFile == null) ? new Vector<String>() : modulesFile.getUndefinedConstants();
-		if (propertiesFile == null || props == null) {
-			pfv = new Vector<String>();
-		} else {
-			pfv = propertiesFile.getUndefinedConstantsUsedInProperties(props);
-			pfv = orderConstantsByPropertiesFile(pfv, pf);
-		}
-		// create data structures
-		initialise(mfv, pfv);
+		setModulesFile(modulesFile);
+		setPropertiesFile(propertiesFile);
+		setProperties(props);
+		initialise();
+	}
+
+	// Setters
+
+	public void setModulesFile(ModulesFile modulesFile)
+	{
+		this.modulesFile = modulesFile;
+	}
+
+	public void setPropertiesFile(PropertiesFile propertiesFile)
+	{
+		this.propertiesFile = propertiesFile;
+	}
+
+	public void setProperties(List<Property> props)
+	{
+		this.props = props;
+	}
+
+	public void addProperty(Property prop)
+	{
+		if (props == null)
+			props = new ArrayList<Property>();
+		props.add(prop);
+	}
+
+	public void setJustLabels(boolean justLabels)
+	{
+		this.justLabels = justLabels;
 	}
 
 	/**
-	 * Set up data structures (as required by constructor methods)
+	 * Initialise this UndefinedConstants object:
+	 * determine which constants are undefined and then set up data structures.
 	 */
-	private void initialise(Vector<String> mfv, Vector<String> pfv)
+	public void initialise()
 	{
-		int i;
-		String s;
-		// determine how many constants there are
-		mfNumConsts = mfv.size();
-		pfNumConsts = pfv.size();
-		// create storage for info about constant definitions
-		mfConsts = new DefinedConstant[mfNumConsts];
-		for (i = 0; i < mfNumConsts; i++) {
-			s = (String)mfv.elementAt(i);
-			mfConsts[i] = new DefinedConstant(s, modulesFile.getConstantList().getConstantType(modulesFile.getConstantList().getConstantIndex(s)));
+		Vector<String> mfv, pfv;
+		// determine which constants are undefined
+		mfv = (modulesFile == null) ? new Vector<String>() : modulesFile.getUndefinedConstants();
+		if (propertiesFile == null) {
+			pfv = new Vector<String>();
+		} else {
+			if (props == null) {
+				if (justLabels) {
+					pfv = propertiesFile.getUndefinedConstantsUsedInLabels();
+					pfv = orderConstantsByPropertiesFile(pfv, propertiesFile);
+				} else {
+					pfv = propertiesFile.getUndefinedConstants();
+				}
+			} else {
+				pfv = propertiesFile.getUndefinedConstantsUsedInProperties(props);
+				pfv = orderConstantsByPropertiesFile(pfv, propertiesFile);
+			}
 		}
-		pfConsts = new DefinedConstant[pfNumConsts];
-		for (i = 0; i < pfNumConsts; i++) {
-			s = (String)pfv.elementAt(i);
-			pfConsts[i] = new DefinedConstant(s, propertiesFile.getConstantList().getConstantType(propertiesFile.getConstantList().getConstantIndex(s)));
-		}
-		// initialise storage just created
-		clearAllDefinitions();
+		// create data structures
+		setUpDataStructures(mfv, pfv);
 	}
-	
+
 	/**
 	 * Create a new copy of a list of constant names, sorted by their occurrence in a PropertiesFile. 
 	 */
@@ -181,24 +189,119 @@ public class UndefinedConstants
 		}
 		return newList;
 	}
-	
-	// accessor methods for info about undefined constants
-	
-	public int getMFNumUndefined() { return mfNumConsts; }
-	
-	public int getPFNumUndefined() { return pfNumConsts; }
-	
-	public String getMFUndefinedName(int i) { return mfConsts[i].getName(); }
-	
-	public String getPFUndefinedName(int i) { return pfConsts[i].getName(); }
-	
-	public Type getMFUndefinedType(int i) { return mfConsts[i].getType(); }
-	
-	public Type getPFUndefinedType(int i) { return pfConsts[i].getType(); }
-	
-	public int getMFConstIndex(String s) { for (int i = 0; i < mfNumConsts; i++) { if (mfConsts[i].getName().equals(s)) return i; } return -1; }
-	
-	public int getPFConstIndex(String s) { for (int i = 0; i < pfNumConsts; i++) { if (pfConsts[i].getName().equals(s)) return i; } return -1; }
+
+	/**
+	 * Set up data structures (as required by constructor methods)
+	 */
+	private void setUpDataStructures(Vector<String> mfv, Vector<String> pfv)
+	{
+		int i;
+		String s;
+		// determine how many constants there are
+		mfNumConsts = mfv.size();
+		pfNumConsts = pfv.size();
+		// create storage for info about constant definitions
+		mfConsts = new ArrayList<DefinedConstant>(mfNumConsts);
+		for (i = 0; i < mfNumConsts; i++) {
+			s = (String) mfv.elementAt(i);
+			mfConsts.add(new DefinedConstant(s, modulesFile.getConstantList().getConstantType(modulesFile.getConstantList().getConstantIndex(s))));
+		}
+		pfConsts = new ArrayList<DefinedConstant>(pfNumConsts);
+		for (i = 0; i < pfNumConsts; i++) {
+			s = (String) pfv.elementAt(i);
+			pfConsts.add(new DefinedConstant(s, propertiesFile.getConstantList().getConstantType(propertiesFile.getConstantList().getConstantIndex(s))));
+		}
+		// initialise storage just created
+		clearAllDefinitions();
+	}
+
+	/**
+	 * Remove a constant. This is used if you decide that you do not want to treat
+	 * some constant as undefined once you have created the UndefinedConstants object.
+	 * @return whether a constant was actually removed.  
+	 */
+	public boolean removeConstant(String constName)
+	{
+		int i = getMFConstIndex(constName);
+		if (i != -1) {
+			mfNumConsts--;
+			mfConsts.remove(i);
+			return true;
+		} else {
+			i = getPFConstIndex(constName);
+			if (i != -1) {
+				pfNumConsts--;
+				pfConsts.remove(i);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Remove some constants. This is used if you decide that you do not want to treat
+	 * some constants as undefined once you have created the UndefinedConstants object.  
+	 * @return how many constants were actually removed.  
+	 */
+	public int removeConstants(String constNames[])
+	{
+		int removed = 0, n = constNames.length;
+		for (int i = 0; i < n; i++) {
+			if (removeConstant(constNames[i]))
+				removed++;
+		}
+		return removed;
+	}
+
+	// Accessor methods for info about undefined constants
+
+	public int getMFNumUndefined()
+	{
+		return mfNumConsts;
+	}
+
+	public int getPFNumUndefined()
+	{
+		return pfNumConsts;
+	}
+
+	public String getMFUndefinedName(int i)
+	{
+		return mfConsts.get(i).getName();
+	}
+
+	public String getPFUndefinedName(int i)
+	{
+		return pfConsts.get(i).getName();
+	}
+
+	public Type getMFUndefinedType(int i)
+	{
+		return mfConsts.get(i).getType();
+	}
+
+	public Type getPFUndefinedType(int i)
+	{
+		return pfConsts.get(i).getType();
+	}
+
+	public int getMFConstIndex(String s)
+	{
+		for (int i = 0; i < mfNumConsts; i++) {
+			if (mfConsts.get(i).getName().equals(s))
+				return i;
+		}
+		return -1;
+	}
+
+	public int getPFConstIndex(String s)
+	{
+		for (int i = 0; i < pfNumConsts; i++) {
+			if (pfConsts.get(i).getName().equals(s))
+				return i;
+		}
+		return -1;
+	}
 
 	/**
 	 * Clear definitions of all undefined constants.
@@ -206,14 +309,15 @@ public class UndefinedConstants
 	public void clearAllDefinitions()
 	{
 		int i;
-		
+
 		// constants from model file
 		for (i = 0; i < mfNumConsts; i++) {
-			mfConsts[i].clear();;
+			mfConsts.get(i).clear();
+			;
 		}
 		// constants from properties file
 		for (i = 0; i < pfNumConsts; i++) {
-			pfConsts[i].clear();
+			pfConsts.get(i).clear();
 		}
 	}
 
@@ -227,13 +331,13 @@ public class UndefinedConstants
 		String name;
 		boolean dupe;
 		boolean useAll = false;
-		
+
 		// clear any previous definitions
 		clearAllDefinitions();
-		
+
 		// parse and store info from switch argument
 		parseConstSwitch(constSwitch);
-		
+
 		// if there are no undefined consts...
 		if (useAll && (mfNumConsts + pfNumConsts == 0)) {
 			if (constSwitchNames.size() > 0) {
@@ -241,25 +345,25 @@ public class UndefinedConstants
 			}
 			return;
 		}
-		
+
 		// go thru parts of -const switch one by one
 		for (i = 0; i < constSwitchNames.size(); i++) {
-			
+
 			// get name
 			name = constSwitchNames.elementAt(i);
-			
+
 			// define constant using info from switch
 			dupe = defineConstant(name, constSwitchLows.elementAt(i), constSwitchHighs.elementAt(i), constSwitchSteps.elementAt(i), useAll);
-			
+
 			// check for duplication
 			if (dupe) {
 				throw new PrismException("Duplicate definitions for undefined constant \"" + name + "\"");
 			}
 		}
-		
+
 		// check all undefined consts have now been defined
 		checkAllDefined();
-		
+
 		// initialise info for iterating
 		initialiseIterators();
 	}
@@ -271,36 +375,40 @@ public class UndefinedConstants
 	{
 		int i, j;
 		String parts[], args[];
-		
+
 		// create storage for info
 		constSwitchNames = new Vector<String>();
 		constSwitchLows = new Vector<String>();
 		constSwitchHighs = new Vector<String>();
 		constSwitchSteps = new Vector<String>();
-		
+
 		// if string is null, nothing more to do
-		if (constSwitch == null) return;
-		
+		if (constSwitch == null)
+			return;
+
 		// split into comma separated parts...
 		parts = constSwitch.split(",");
-		
+
 		// ...and treat each separately
 		for (i = 0; i < parts.length; i++) {
-			
+
 			// ignore blanks
-			if (parts[i].length() == 0) continue;
-			
+			if (parts[i].length() == 0)
+				continue;
+
 			// split either size of "=", store lhs (name)
 			j = parts[i].indexOf('=');
-			if (j < 1 || j+2 > parts[i].length()) throw new PrismException("Invalid format in definition of undefined constants");
+			if (j < 1 || j + 2 > parts[i].length())
+				throw new PrismException("Invalid format in definition of undefined constants");
 			constSwitchNames.add(parts[i].substring(0, j));
-			
+
 			// check for trailing colon(s)
 			// this is a formatting error not detected by split(":") below
-			if (parts[i].charAt(parts[i].length()-1) == ':') throw new PrismException("Invalid format in definition of undefined constants");
-			
+			if (parts[i].charAt(parts[i].length() - 1) == ':')
+				throw new PrismException("Invalid format in definition of undefined constants");
+
 			// split into colon separated parts
-			args = parts[i].substring(j+1).split(":");
+			args = parts[i].substring(j + 1).split(":");
 			// simple case - no colons, e.g. x=0
 			if (args.length == 1) {
 				constSwitchLows.add(args[0]);
@@ -328,9 +436,9 @@ public class UndefinedConstants
 
 	/** Define value for a single undefined constant.
 	 *  Returns whether or not an existing definition was overwritten.
-     *	Actually just helper method for more general method {@link #defineConstant(String, String, String, String) below}.
-     *  
-     *  The method {@link #initialiseIterators() initialiseIterators} must be called after all constants are defined.
+	 *	Actually just helper method for more general method {@link #defineConstant(String, String, String, String) below}.
+	 *  
+	 *  The method {@link #initialiseIterators() initialiseIterators} must be called after all constants are defined.
 	 *
 	 *  @param name The name of the constant.
 	 *  @param val The value to be assigned.
@@ -359,7 +467,7 @@ public class UndefinedConstants
 	{
 		return defineConstant(name, sl, sh, ss, false);
 	}
-	
+
 	/** Define value for a single undefined constant.
 	 *  Returns whether or not an existing definition was overwritten.
 	 *
@@ -377,23 +485,21 @@ public class UndefinedConstants
 	{
 		int index = 0;
 		boolean overwrite = false; // did definition exist already?
-		
+
 		// find out if const is in model or properties file (or neither)
 		// also check for overwriting
 		index = getMFConstIndex(name);
 		if (index != -1) {
 			// const is in modules file
-			overwrite = (mfConsts[index].isDefined());
-			mfConsts[index].define(sl, sh, ss);
-		}
-		else {
+			overwrite = (mfConsts.get(index).isDefined());
+			mfConsts.get(index).define(sl, sh, ss);
+		} else {
 			index = getPFConstIndex(name);
 			if (index != -1) {
 				// const is in properties file
-				overwrite = (pfConsts[index].isDefined());
-				pfConsts[index].define(sl, sh, ss);
-			}
-			else {
+				overwrite = (pfConsts.get(index).isDefined());
+				pfConsts.get(index).define(sl, sh, ss);
+			} else {
 				// If we are required to use all supplied const values, check for this
 				// (by default we don't care about un-needed or non-existent const values)
 				if (useAll)
@@ -407,7 +513,7 @@ public class UndefinedConstants
 				}
 			}
 		}
-		
+
 		// return whether or not we overwrote an existing definition
 		return overwrite;
 	}
@@ -421,27 +527,28 @@ public class UndefinedConstants
 		int i, n;
 		String s;
 		Vector<String> v = new Vector<String>();
-		
+
 		for (i = 0; i < mfNumConsts; i++) {
-			if (mfConsts[i].getLow() == null) {
-				v.add(mfConsts[i].getName());
+			if (mfConsts.get(i).getLow() == null) {
+				v.add(mfConsts.get(i).getName());
 			}
 		}
 		for (i = 0; i < pfNumConsts; i++) {
-			if (pfConsts[i].getLow() == null) {
-				v.add(pfConsts[i].getName());
+			if (pfConsts.get(i).getLow() == null) {
+				v.add(pfConsts.get(i).getName());
 			}
 		}
 		n = v.size();
 		if (n > 0) {
 			if (n == 1) {
 				s = "Undefined constant \"" + v.get(0) + "\" must be defined";
-			}
-			else {
+			} else {
 				s = "Undefined constants";
 				for (i = 0; i < n; i++) {
-					if (i > 0 && i < n-1) s += ",";
-					else if (i == n-1) s += " and";
+					if (i > 0 && i < n - 1)
+						s += ",";
+					else if (i == n - 1)
+						s += " and";
 					s += " \"" + v.get(i) + "\"";
 				}
 				s += " must be defined";
@@ -458,45 +565,45 @@ public class UndefinedConstants
 		intialiseModelIterator();
 		intialisePropertyIterator();
 	}
-	
+
 	/**
 	 * Initialise iterator for stepping through model constant values.
 	 */
 	private void intialiseModelIterator()
 	{
 		int i;
-		
+
 		// set all consts to lowest values
 		for (i = 0; i < mfNumConsts; i++) {
-			mfConsts[i].setValue(mfConsts[i].getLow());
+			mfConsts.get(i).setValue(mfConsts.get(i).getLow());
 		}
 		// create Values object
 		mfValues = new Values();
 		for (i = 0; i < mfNumConsts; i++) {
-			mfValues.addValue(mfConsts[i].getName(), mfConsts[i].getValue());
+			mfValues.addValue(mfConsts.get(i).getName(), mfConsts.get(i).getValue());
 		}
 	}
-	
+
 	/**
 	 * Initialise iterator for stepping through property constant values.
 	 */
 	private void intialisePropertyIterator()
 	{
 		int i;
-		
+
 		// set all consts to lowest values
 		for (i = 0; i < pfNumConsts; i++) {
-			pfConsts[i].setValue(pfConsts[i].getLow());
+			pfConsts.get(i).setValue(pfConsts.get(i).getLow());
 		}
 		// create Values object
 		pfValues = new Values();
 		for (i = 0; i < pfNumConsts; i++) {
-			pfValues.addValue(pfConsts[i].getName(), pfConsts[i].getValue());
+			pfValues.addValue(pfConsts.get(i).getName(), pfConsts.get(i).getValue());
 		}
 	}
 
 	// Accessor methods for info about values of defined constants, iterators, etc.
-	
+
 	/**
 	 * Get a string showing the values/ranges of all constants. 
 	 * (e.g. "x=1,y=1:100,z=1:10:100,b=true")
@@ -505,20 +612,23 @@ public class UndefinedConstants
 	{
 		int i;
 		String s = "";
-		
+
 		for (i = 0; i < mfNumConsts; i++) {
-			s += mfConsts[i];
-			if (i < mfNumConsts-1) s += ",";
+			s += mfConsts.get(i);
+			if (i < mfNumConsts - 1)
+				s += ",";
 		}
 		for (i = 0; i < pfNumConsts; i++) {
-			if (i == 0 && mfNumConsts > 0) s += ",";
-			s += pfConsts[i];
-			if (i < pfNumConsts-1) s += ",";
+			if (i == 0 && mfNumConsts > 0)
+				s += ",";
+			s += pfConsts.get(i);
+			if (i < pfNumConsts - 1)
+				s += ",";
 		}
-		
+
 		return s;
 	}
-	
+
 	/**
 	 * Get a string showing the values/ranges of all properties file constants. 
 	 * (e.g. "x=1,y=1:100,z=1:10:100,b=true")
@@ -527,22 +637,24 @@ public class UndefinedConstants
 	{
 		int i;
 		String s = "";
-		
+
 		for (i = 0; i < pfNumConsts; i++) {
-			s += pfConsts[i];
-			if (i < pfNumConsts-1) s += ",";
+			s += pfConsts.get(i);
+			if (i < pfNumConsts - 1)
+				s += ",";
 		}
-		
+
 		return s;
 	}
-	
+
 	public int getNumModelIterations()
 	{
 		int i, res;
-		
+
 		res = 1;
-		for (i = 0; i < mfNumConsts; i++) res *= mfConsts[i].getNumSteps();
-		
+		for (i = 0; i < mfNumConsts; i++)
+			res *= mfConsts.get(i).getNumSteps();
+
 		return res;
 	}
 
@@ -552,20 +664,23 @@ public class UndefinedConstants
 	public int getNumModelRangingConstants()
 	{
 		int i, res;
-		
+
 		res = 0;
-		for (i = 0; i < mfNumConsts; i++) if (mfConsts[i].getNumSteps() > 1) res++;
-		
+		for (i = 0; i < mfNumConsts; i++)
+			if (mfConsts.get(i).getNumSteps() > 1)
+				res++;
+
 		return res;
 	}
 
 	public int getNumPropertyIterations()
 	{
 		int i, res;
-		
+
 		res = 1;
-		for (i = 0; i < pfNumConsts; i++) res *= pfConsts[i].getNumSteps();
-		
+		for (i = 0; i < pfNumConsts; i++)
+			res *= pfConsts.get(i).getNumSteps();
+
 		return res;
 	}
 
@@ -575,10 +690,12 @@ public class UndefinedConstants
 	public int getNumPropertyRangingConstants()
 	{
 		int i, res;
-		
+
 		res = 0;
-		for (i = 0; i < pfNumConsts; i++) if (pfConsts[i].getNumSteps() > 1) res++;
-		
+		for (i = 0; i < pfNumConsts; i++)
+			if (pfConsts.get(i).getNumSteps() > 1)
+				res++;
+
 		return res;
 	}
 
@@ -595,28 +712,31 @@ public class UndefinedConstants
 	{
 		int i;
 		Vector<DefinedConstant> res;
-		
+
 		res = new Vector<DefinedConstant>();
-		for (i = 0; i < mfNumConsts; i++) if (mfConsts[i].getNumSteps() > 1) res.addElement(mfConsts[i]);
-		for (i = 0; i < pfNumConsts; i++) if (pfConsts[i].getNumSteps() > 1) res.addElement(pfConsts[i]);
-		
+		for (i = 0; i < mfNumConsts; i++)
+			if (mfConsts.get(i).getNumSteps() > 1)
+				res.addElement(mfConsts.get(i));
+		for (i = 0; i < pfNumConsts; i++)
+			if (pfConsts.get(i).getNumSteps() > 1)
+				res.addElement(pfConsts.get(i));
+
 		return res;
 	}
-	
+
 	public void iterateModel()
 	{
 		int i, ptr;
-		
+
 		// pointer to which constant we are looking at
-		ptr = mfNumConsts-1;
+		ptr = mfNumConsts - 1;
 		// cycle backwards through contants
 		while (ptr >= -1) {
 			// general case
 			if (ptr >= 0) {
-				if (!mfConsts[ptr].incr()) {
+				if (!mfConsts.get(ptr).incr()) {
 					break;
-				}
-				else {
+				} else {
 					ptr--;
 					continue;
 				}
@@ -624,33 +744,32 @@ public class UndefinedConstants
 			// special case - have reached last iteration and need to restart
 			else {
 				for (i = 0; i < mfNumConsts; i++) {
-					mfConsts[i].setValue(mfConsts[i].getLow());
+					mfConsts.get(i).setValue(mfConsts.get(i).getLow());
 				}
 				break;
 			}
 		}
-		
+
 		// create Values objects
 		mfValues = new Values();
 		for (i = 0; i < mfNumConsts; i++) {
-			mfValues.addValue(mfConsts[i].getName(), mfConsts[i].getValue());
+			mfValues.addValue(mfConsts.get(i).getName(), mfConsts.get(i).getValue());
 		}
 	}
-	
+
 	public void iterateProperty()
 	{
 		int i, ptr;
-		
+
 		// pointer to which constant we are looking at
-		ptr = pfNumConsts-1;
+		ptr = pfNumConsts - 1;
 		// cycle backwards through contants
 		while (ptr >= -1) {
 			// general case
 			if (ptr >= 0) {
-				if (!pfConsts[ptr].incr()) {
+				if (!pfConsts.get(ptr).incr()) {
 					break;
-				}
-				else {
+				} else {
 					ptr--;
 					continue;
 				}
@@ -658,27 +777,26 @@ public class UndefinedConstants
 			// special case - have reached last iteration and need to restart
 			else {
 				for (i = 0; i < pfNumConsts; i++) {
-					pfConsts[i].setValue(pfConsts[i].getLow());
+					pfConsts.get(i).setValue(pfConsts.get(i).getLow());
 				}
 				break;
 			}
 		}
-		
+
 		// create Values objects
 		pfValues = new Values();
 		for (i = 0; i < pfNumConsts; i++) {
-			pfValues.addValue(pfConsts[i].getName(), pfConsts[i].getValue());
+			pfValues.addValue(pfConsts.get(i).getName(), pfConsts.get(i).getValue());
 		}
 	}
-	
+
 	public Values getMFConstantValues()
 	{
 		return mfValues;
 	}
-	
+
 	public Values getPFConstantValues()
 	{
 		return pfValues;
 	}
 }
-
