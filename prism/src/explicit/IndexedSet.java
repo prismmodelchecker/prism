@@ -28,6 +28,8 @@ package explicit;
 
 import java.util.*;
 
+import parser.State;
+
 /**
  * Class storing an indexed set of objects of type T.
  * Typically used for storing state space during reachability.
@@ -177,5 +179,10 @@ public class IndexedSet<T>
 	public String toString()
 	{
 		return set.toString();
+	}
+
+	public int get(T t)
+	{
+		return set.get(t);
 	}
 }

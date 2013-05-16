@@ -33,7 +33,7 @@ import prism.PrismLangException;
 
 /**
  * Perform further semantic checks that can only be done once values
- * for any undefined constants have been defined. Optionally pass in parent
+ * for (at least some) undefined constants have been defined. Optionally pass in parent
  * ModulesFile and PropertiesFile for some additional checks (or leave null);
  */
 public class SemanticCheckAfterConstants extends ASTTraverse

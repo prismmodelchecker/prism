@@ -53,7 +53,9 @@ public class ExpressionFilter extends Expression
 	private boolean invisible = false;
 	// Whether or not an explanation should be displayed when model checking
 	private boolean explanationEnabled = true;
-	
+	// whether this is a filter over parameters
+	private boolean param = false;
+
 	// Constructors
 
 	public ExpressionFilter(String opName, Expression operand)
@@ -124,6 +126,11 @@ public class ExpressionFilter extends Expression
 		this.explanationEnabled = explanationEnabled;
 	}
 	
+	public void setParam()
+	{
+		param = true;
+	}
+
 	// Get methods
 
 	public FilterOperator getOperatorType()
@@ -156,6 +163,11 @@ public class ExpressionFilter extends Expression
 		return explanationEnabled;
 	}
 	
+	public boolean isParam()
+	{
+		return param;
+	}
+	
 	// Methods required for Expression:
 
 	/**
@@ -185,6 +197,7 @@ public class ExpressionFilter extends Expression
 		else if (opType == FilterOperator.PRINTALL) return false;
 		else if (opType == FilterOperator.ARGMIN) return false;
 		else if (opType == FilterOperator.ARGMAX) return false;
+		else if (param) return false;
 		else return true;
 	}
 	
@@ -206,7 +219,7 @@ public class ExpressionFilter extends Expression
 		String s = "";
 		if (invisible)
 			return operand.toString();
-		s += "filter(" + opName + ", " + operand;
+		s += (param ? "paramfilter(" : "filter(") + opName + ", " + operand;
 		if (filter != null)
 			s += ", " + filter;
 		s += ")";
@@ -223,6 +236,7 @@ public class ExpressionFilter extends Expression
 		e.setInvisible(invisible);
 		e.setType(type);
 		e.setPosition(this);
+		e.param = this.param;
 
 		return e;
 	}

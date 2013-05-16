@@ -36,6 +36,8 @@ import odd.*;
 import mtbdd.*;
 import sparse.*;
 import hybrid.*;
+import param.ModelBuilder;
+import param.ParamModelChecker;
 import parser.*;
 import parser.ast.*;
 import simulator.*;
@@ -1531,7 +1533,7 @@ public class Prism implements PrismSettingsListener
 	}
 
 	/**
-	 * Set any undefined constants for the currently loaded PRISM model
+	 * Set (some or all) undefined constants for the currently loaded PRISM model
 	 * (assuming they have changed since the last time this was called).
 	 * @param definedMFConstants The constant values
 	 */
@@ -1546,7 +1548,7 @@ public class Prism implements PrismSettingsListener
 		clearBuiltModel();
 		// Store constants here and in ModulesFile
 		currentDefinedMFConstants = definedMFConstants;
-		currentModulesFile.setUndefinedConstants(definedMFConstants);
+		currentModulesFile.setSomeUndefinedConstants(definedMFConstants);
 		// Reset dependent info
 		currentModel = null;
 		currentModelExpl = null;
@@ -2624,7 +2626,7 @@ public class Prism implements PrismSettingsListener
 		// Do simulation
 		getSimulator().modelCheckExperiment(currentModulesFile, propertiesFile, undefinedConstants, results, expr, initialState, pathLength, simMethod);
 	}
-
+	
 	/**
 	 * Generate a random path through the model using the simulator.
 	 * @param modulesFile The model
@@ -3380,6 +3382,45 @@ public class Prism implements PrismSettingsListener
 	{
 		loadBuiltModel(model);
 		doTransient(time, exportType, file, fileIn);
+	}
+
+	/**
+	 * Performs parametric model checking.
+	 * 
+	 * @param propertiesFile parent properties file
+	 * @param prop property to model check
+	 * @param paramNames parameter names
+	 * @param paramLowerBounds lower bounds of parameters
+	 * @param paramUpperBounds upper bounds of parameters
+	 * @return
+	 * @throws PrismException e.g. if no parameters specified or other things go wrong
+	 */
+	public Result modelCheckParametric(PropertiesFile propertiesFile, Property prop, String[] paramNames, String[] paramLowerBounds, String[] paramUpperBounds)
+	throws PrismException
+	{
+		
+		if (paramNames == null) {
+			throw new PrismException("Must specify some parameters when using "
+					+ "the parametric analysis");
+		}
+		Values constlist = currentModulesFile.getConstantValues();
+		for (int pnr = 0; pnr < paramNames.length; pnr++) {
+			constlist.removeValue(paramNames[pnr]);
+		}
+		param.ModelBuilder builder = new ModelBuilder();
+		builder.setModulesFile(currentModulesFile);
+		builder.setMainLong(mainLog);
+		builder.setParameters(paramNames, paramLowerBounds,	paramUpperBounds);
+		builder.setSettings(settings);
+		builder.build();						
+		explicit.Model modelExpl = builder.getModel();
+		ParamModelChecker mc = new ParamModelChecker();
+		mc.setModelBuilder(builder);
+		mc.setLog(mainLog);
+		mc.setSettings(settings);
+		mc.setParameters(paramNames, paramLowerBounds, paramUpperBounds);
+		mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);
+		return mc.check(modelExpl, prop.getExpression());
 	}
 }
 

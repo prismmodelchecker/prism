@@ -772,6 +772,18 @@ public class ModulesFile extends ASTElement
 	}
 
 	/**
+	 * Set values for *some* undefined constants and then evaluate all constants where possible.
+	 * If there are no undefined constants, {@code someValues} can be null.
+	 * Undefined constants can be subsequently redefined to different values with the same method.
+	 * The current constant values (if set) are available via {@link #getConstantValues()}.
+	 */
+	public void setSomeUndefinedConstants(Values someValues) throws PrismLangException
+	{
+		constantValues = constantList.evaluateSomeConstants(someValues, null);
+		semanticCheckAfterConstants(this, null);
+	}
+
+	/**
 	 * Check if {@code name} is a *defined* constant in the model,
 	 * i.e. a constant whose value was *not* left unspecified.
 	 */

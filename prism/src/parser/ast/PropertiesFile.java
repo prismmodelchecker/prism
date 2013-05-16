@@ -555,7 +555,6 @@ public class PropertiesFile extends ASTElement
 		constantValues = constantList.evaluateConstants(someValues, modulesFile.getConstantValues());
 		// Note: unlike ModulesFile, we don't trigger any semantic checks at this point
 		// This will usually be done on a per-property basis later
-		// (and sometimes we don't want to have to define all constants)
 	}
 
 	/**
@@ -570,7 +569,6 @@ public class PropertiesFile extends ASTElement
 		constantValues = constantList.evaluateSomeConstants(someValues, modulesFile.getConstantValues());
 		// Note: unlike ModulesFile, we don't trigger any semantic checks at this point
 		// This will usually be done on a per-property basis later
-		// (and sometimes we don't want to have to define all constants)
 	}
 
 	/**

@@ -29,6 +29,10 @@ package prism;
 import java.io.*;
 import java.util.*;
 
+import explicit.Model;
+
+import param.ModelBuilder;
+import param.ParamModelChecker;
 import parser.*;
 import parser.ast.*;
 import simulator.method.*;
@@ -159,6 +163,12 @@ public class PrismCL implements PrismModelListener
 	private boolean simManual = false;
 	private SimulationMethod simMethod = null;
 
+	// parametric analysis
+	private String paramConstSwitch = null;
+	private String[] paramLowerBounds = null;
+	private String[] paramUpperBounds = null;
+	private String[] paramNames = null;
+
 	// entry point - run method
 
 	public void run(String[] args)
@@ -175,24 +185,56 @@ public class PrismCL implements PrismModelListener
 		// Sort out properties to check
 		sortProperties();
 
+		// process info about parametric constants
+		if (!"".equals(paramConstSwitch)) {
+			String[] paramDefs = paramConstSwitch.split(",");
+			paramNames = new String[paramDefs.length];
+			paramLowerBounds = new String[paramDefs.length];
+			paramUpperBounds = new String[paramDefs.length];
+			for (int pdNr = 0; pdNr < paramDefs.length; pdNr++) {
+				if (!paramDefs[pdNr].contains("=")) {
+					paramNames[pdNr] = paramDefs[pdNr];
+					paramLowerBounds[pdNr] = "0";
+					paramUpperBounds[pdNr] = "1";
+				} else {
+					String[] paramDefSplit = paramDefs[pdNr].split("=");
+					paramNames[pdNr] = paramDefSplit[0];
+					paramDefSplit[1] = paramDefSplit[1].trim();
+					String[] upperLower = paramDefSplit[1].split(":");
+					paramLowerBounds[pdNr] = upperLower[0].trim();
+					paramUpperBounds[pdNr] = upperLower[1].trim();
+				}
+			}			
+		}
+		
 		// process info about undefined constants
 		try {
-			// one set of info for model
+			// first, see which constants are undefined
+			// (one set of info for model, and one set of info for each property)
 			if (exportlabels)
 				undefinedMFConstants = new UndefinedConstants(modulesFile, propertiesFile, true);
 			else
 				undefinedMFConstants = new UndefinedConstants(modulesFile, null);
-			undefinedMFConstants.defineUsingConstSwitch(constSwitch);
-			// and one set of info for each property
 			undefinedConstants = new UndefinedConstants[numPropertiesToCheck];
 			for (i = 0; i < numPropertiesToCheck; i++) {
 				undefinedConstants[i] = new UndefinedConstants(modulesFile, propertiesFile, propertiesToCheck.get(i));
+			}
+			// may need to remove some constants if they are used for parametric methods
+			if (paramNames != null) {
+				undefinedMFConstants.removeConstants(paramNames);
+				for (i = 0; i < numPropertiesToCheck; i++) {
+					undefinedConstants[i].removeConstants(paramNames);
+				}
+			}
+			// then set up value using const switch definitions
+			undefinedMFConstants.defineUsingConstSwitch(constSwitch);
+			for (i = 0; i < numPropertiesToCheck; i++) {
 				undefinedConstants[i].defineUsingConstSwitch(constSwitch);
 			}
 		} catch (PrismException e) {
 			errorAndExit(e.getMessage());
 		}
-
+		
 		// initialise storage for results
 		results = new ResultsCollection[numPropertiesToCheck];
 		for (i = 0; i < numPropertiesToCheck; i++) {
@@ -273,6 +315,7 @@ public class PrismCL implements PrismModelListener
 				}
 				// otherwise, treat each case individually
 				else {
+					boolean param = paramNames != null;
 					for (k = 0; k < undefinedConstants[j].getNumPropertyIterations(); k++) {
 
 						try {
@@ -282,15 +325,23 @@ public class PrismCL implements PrismModelListener
 								propertiesFile.setSomeUndefinedConstants(definedPFConstants);
 							}
 							// Normal model checking
-							if (!simulate) {
+							if (!simulate && !param) {
 								res = prism.modelCheck(propertiesFile, propertiesToCheck.get(j));
 							}
+							// Parametric model checking
+							else if (param) {
+								res = prism.modelCheckParametric(propertiesFile, propertiesToCheck.get(j),
+										paramNames, paramLowerBounds, paramUpperBounds);
+							}
 							// Approximate (simulation-based) model checking
-							else {
+							else if (simulate) {
 								simMethod = processSimulationOptions(propertiesToCheck.get(j).getExpression());
 								res = prism.modelCheckSimulator(propertiesFile, propertiesToCheck.get(j).getExpression(), definedPFConstants, null, simMaxPath,
 										simMethod);
 								simMethod.reset();
+							} else {
+								throw new PrismException("Cannot use parametric model checking and simulation "
+										+ "at the same time");
 							}
 						} catch (PrismException e) {
 							// in case of error, report it, store exception as the result and proceed
@@ -413,6 +464,7 @@ public class PrismCL implements PrismModelListener
 	private void initialise(String[] args)
 	{
 		try {
+			// prepare storage for parametric model checking
 			// default to logs going to stdout
 			// this means all errors etc. can be safely sent to the log
 			// even if a new log is created shortly
@@ -794,6 +846,7 @@ public class PrismCL implements PrismModelListener
 			mainLog.println(" during computation.");
 		}
 		mainLog.println();
+		ParamModelChecker.closeDown();
 	}
 
 	// PrismModelListener methods
@@ -820,6 +873,7 @@ public class PrismCL implements PrismModelListener
 		PrismLog log;
 
 		constSwitch = "";
+		paramConstSwitch= "";
 
 		for (i = 0; i < args.length; i++) {
 
@@ -888,6 +942,19 @@ public class PrismCL implements PrismModelListener
 						errorAndExit("Incomplete -" + sw + " switch");
 					}
 				}
+				// defining a parameter
+				else if (sw.equals("param")) {
+					if (i < args.length - 1) {
+						// store argument for later use (append if already partially specified)
+						if ("".equals(paramConstSwitch)) {
+							paramConstSwitch = args[++i].trim();
+						} else {
+							paramConstSwitch += "," + args[++i].trim();
+						}
+					} else {
+						errorAndExit("Incomplete -" + sw + " switch");
+					}
+				}				
 				// do steady-state probability computation
 				else if (sw.equals("steadystate") || sw.equals("ss")) {
 					steadystate = true;
