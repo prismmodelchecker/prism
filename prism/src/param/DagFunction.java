@@ -28,7 +28,7 @@ package param;
 
 /**
  * TODO implement completely
- * @author emhahn
+ * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
  */
 class DagFunction extends Function {
 	private DagFunctionFactory dagFactory;

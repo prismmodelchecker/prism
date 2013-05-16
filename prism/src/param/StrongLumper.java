@@ -32,12 +32,30 @@ import java.util.HashSet;
 import java.util.ListIterator;
 import java.util.Map.Entry;
 
+/**
+ * Strong bisimulation lumper.
+ * 
+ * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
+ */
 final class StrongLumper extends Lumper {
 
+	/**
+	 * Construct a new strong bisimulation lumper.
+	 * 
+	 * @param origPmc Markov chain to construct lumper for
+	 */
 	StrongLumper(MutablePMC origPmc) {
 		super(origPmc);
 	}
 
+	/**
+	 * Construct the strong bisimulation signature of given block.
+	 * The signature is a mapping of blocks to the probability to move
+	 * from the given state to any state of the block.
+	 * 
+	 * @param state state to compute signature of
+	 * @return signature of this state
+	 */
 	private HashMap<HashSet<Integer>, Function> stateSignature(int state)
 	{
 		HashMap<HashSet<Integer>, Function> signature = new HashMap<HashSet<Integer>, Function>();
@@ -57,6 +75,13 @@ final class StrongLumper extends Lumper {
 		return signature;
 	}
 	
+	/**
+	 * Refines a given block to a list of new blocks for strong bisimulation.
+	 * Each block will consist of the states with the same signature.
+	 * 
+	 * @param oldBlock block to refine
+	 * @param newBlocks list of new blocks generated
+	 */
 	@Override
 	protected void refineBlock(HashSet<Integer> oldBlock, ArrayList<HashSet<Integer>> newBlocks) {
 		HashMap<HashMap<HashSet<Integer>, Function>, HashSet<Integer>> signatures = new HashMap<HashMap<HashSet<Integer>, Function>, HashSet<Integer>>();
@@ -74,26 +99,31 @@ final class StrongLumper extends Lumper {
 		}
 	}
 
+	/**
+	 * Build the strong bisimulation quotient from the blocks computed.
+	 * Transition probabilities are simply derived from the signature
+	 * of an arbitrary state for each block.
+	 */
 	@Override
 	protected void buildQuotient() {
 		optPmc = new MutablePMC(origPmc.getFunctionFactory(), blocks.size(), origPmc.isUseRewards(), origPmc.isUseTime());
 		for (int newState = 0; newState < blocks.size(); newState++) {
 			HashSet<Integer> fromBlock = blocks.get(newState);
-			int someOldState = fromBlock.iterator().next();
-			HashMap<HashSet<Integer>, Function> signature = stateSignature(someOldState);
+			int someOriginalState = fromBlock.iterator().next();
+			HashMap<HashSet<Integer>, Function> signature = stateSignature(someOriginalState);
 			for (Entry<HashSet<Integer>, Function> entry : signature.entrySet()) {
 				optPmc.addTransition(newState, blockToNumber.get(entry.getKey()), entry.getValue());
 			}
 			if (origPmc.isUseRewards()) {
-				optPmc.setReward(newState, origPmc.getReward(someOldState));
+				optPmc.setReward(newState, origPmc.getReward(someOriginalState));
 				if (optPmc.getReward(newState).equals(origPmc.getFunctionFactory().getZero())) {
 					optPmc.setTargetState(newState, true);					
 				}
 				if (origPmc.isUseTime()) {
-					optPmc.setTime(newState, origPmc.getTime(someOldState));
+					optPmc.setTime(newState, origPmc.getTime(someOriginalState));
 				}
 			} else {
-				optPmc.setTargetState(newState, origPmc.isTargetState(someOldState));
+				optPmc.setTargetState(newState, origPmc.isTargetState(someOriginalState));
 			}
 			for (int oldState : fromBlock) {
 				if (origPmc.isInitState(oldState)) {

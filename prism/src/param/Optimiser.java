@@ -29,6 +29,11 @@ package param;
 
 import java.util.ArrayList;
 
+/**
+ * Searches for bounds of minimal/maximal values.
+ * 
+ * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
+ */
 final class Optimiser {
 	RegionValues values;
 	RegionValues filter;

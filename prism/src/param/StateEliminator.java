@@ -43,6 +43,8 @@ import java.util.ListIterator;
  * is maintained, but the state no longer has any incoming transitions,
  * except in some cases self loops. This way, after all states have been
  * treated, the value of concern can be obtained by a simple computation.
+ * 
+ * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
  */
 final class StateEliminator {
 	/**

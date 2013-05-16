@@ -26,10 +26,27 @@
 
 package param;
 
+/**
+ * Reward structure for parametric model.
+ * We only consider rewards assigned to a certain nondeterministic choice,
+ * because for the properties we consider, state rewards can be stored
+ * as equivalent choice rewards.
+ * 
+ * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
+ */
 final class ParamRewardStruct {
+	/** rewards for all choices */
 	Function[] rewards;
+	/** function factory the functions used for rewards belong to */
 	FunctionFactory factory;
 	
+	/**
+	 * Constructs a new reward structure for with given number of choices.
+	 * Initially, all rewards will be zero.
+	 * 
+	 * @param factory function factory to use
+	 * @param numChoices number of different rewards
+	 */
 	ParamRewardStruct(FunctionFactory factory, int numChoices)
 	{
 		this.rewards = new Function[numChoices];
@@ -39,6 +56,11 @@ final class ParamRewardStruct {
 		}
 	}
 	
+	/**
+	 * Constructs a new reward structure which is the copy of another one.
+	 * 
+	 * @param other original to construct copy of
+	 */
 	ParamRewardStruct(ParamRewardStruct other)
 	{
 		this.rewards = new Function[other.rewards.length];
@@ -48,6 +70,15 @@ final class ParamRewardStruct {
 		this.factory = other.factory;
 	}
 	
+	/**
+	 * Instantiate reward structure at a given point.
+	 * That is, a reward structure is computed in which the corresponding
+	 * values have been inserted for each parameter, and which is thus
+	 * nonparametric.
+	 * 
+	 * @param point instantiate for these parameter values
+	 * @return non-parametric reward structure instantiated at given point
+	 */
 	ParamRewardStruct instantiate(Point point)
 	{
 		ParamRewardStruct result = new ParamRewardStruct(factory, rewards.length);
@@ -59,16 +90,34 @@ final class ParamRewardStruct {
 		return result;
 	}
 	
+	/**
+	 * Set reward for given choice.
+	 * 
+	 * @param choice choice to set reward for
+	 * @param reward reward to set
+	 */
 	void setReward(int choice, Function reward)
 	{
 		rewards[choice] = reward;
 	}
 	
+	/**
+	 * Add reward to given choice.
+	 * 
+	 * @param choice choice to add reward to
+	 * @param reward reward to add to existing reward for choice
+	 */
 	void addReward(int choice, Function reward)
 	{
 		rewards[choice] = rewards[choice].add(reward);
 	}
 	
+	/**
+	 * Get reward for given choice.
+	 * 
+	 * @param choice choice to get reward of
+	 * @return reward for given choice
+	 */
 	Function getReward(int choice)
 	{
 		return rewards[choice];

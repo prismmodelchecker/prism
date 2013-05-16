@@ -30,7 +30,9 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-// TODO terms must be sorted finally, if this class is to be actually used
+// TODO terms should be sorted. will become necessary if a Function is
+// implemented which directly uses objects of this class to store
+// rational functions
 
 /**
  * A polynomial exressed as a sum of terms.

@@ -43,6 +43,9 @@ import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLangException;
 
+/**
+ * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
+ */
 public class SymbolicEngine
 {
 	protected ModulesFile modulesFile;

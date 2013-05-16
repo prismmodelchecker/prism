@@ -31,8 +31,22 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.PriorityQueue;
 
+/**
+ * Stores a given partitioning of the states of a Markov model.
+ * This class is intended to be used in combination with signature-based
+ * partitioning refinement. In addition to storing the states, it can also
+ * compute which blocks become subject to change due to changes in other
+ * blocks.  
+ * 
+ * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
+ */
 final class Partition {
-	final class SmallFirstComparator implements Comparator<HashSet<Integer>> {
+	/**
+	 * Comparator class comparing integer hash sets according to their size.
+	 *
+	 * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
+	 */
+	final class HashSetSizeComparator implements Comparator<HashSet<Integer>> {
 		@Override
 		public int compare(HashSet<Integer> o1, HashSet<Integer> o2) {
 			int size1 = o1.size();
@@ -49,7 +63,7 @@ final class Partition {
 		
 		@Override
 		public boolean equals(Object obj) {
-			return obj instanceof SmallFirstComparator;
+			return obj instanceof HashSetSizeComparator;
 		}
 		
 		@Override
@@ -58,20 +72,32 @@ final class Partition {
 		}
 	}
 
+	/** parametric Markov chain this partition is for */
 	private MutablePMC pmc;
+	/** all blocks of this partitioning */
 	private HashSet<HashSet<Integer>> blocks;
+	/** maps states to the block they are contained in */
 	private ArrayList<HashSet<Integer>> stateToBlock;
+	/** list of blocks which might need to be refined */
 	private PriorityQueue<HashSet<Integer>> mayChange;
+	/** hash set of blocks which might need to be refined */
 	private HashSet<HashSet<Integer>> mayChangeHash;
+	/** next block to refine */
 	private HashSet<Integer> nextBlock;
 
+	/**
+	 * Creates new partitioning for given parametric Markov chain.
+	 * Initially, all states will be in the same block.
+	 * 
+	 * @param pmc parametric Markov chain to create partitioning of
+	 */
 	Partition(MutablePMC pmc)
 	{
 		this.pmc = pmc;
 		blocks = new HashSet<HashSet<Integer>>();
 		stateToBlock = new ArrayList<HashSet<Integer>>(pmc.getNumStates());
 		HashSet<Integer> initialBlock = new HashSet<Integer>(1);
-		mayChange = new PriorityQueue<HashSet<Integer>>(11, new SmallFirstComparator());
+		mayChange = new PriorityQueue<HashSet<Integer>>(11, new HashSetSizeComparator());
 		mayChangeHash = new HashSet<HashSet<Integer>>();
 		for (int state = 0; state < pmc.getNumStates(); state++) {
 			initialBlock.add(state);
@@ -82,6 +108,11 @@ final class Partition {
 		mayChangeHash.add(initialBlock);
 	}
 
+	/**
+	 * Obtain the next changeable block, according to their priority (size).
+	 * 
+	 * @return next changeable block
+	 */
 	HashSet<Integer> nextChangeableBlock()
 	{
 		nextBlock = mayChange.poll();
@@ -90,6 +121,13 @@ final class Partition {
 		return nextBlock;
 	}
 
+	/**
+	 * Add a list of new blocks to list of blocks.
+	 * Also marks existing blocks as subject to change in case they have
+	 * transitions into these new blocks, and thus might have to be split. 
+	 * 
+	 * @param newBlocks list of blocks to add
+	 */
 	void addBlocks(ArrayList<HashSet<Integer>> newBlocks)
 	{
 		blocks.addAll(newBlocks);
@@ -117,11 +155,21 @@ final class Partition {
 		}
 	}
 
+	/**
+	 * Checks whether there are blocks remaining which might need refinement.
+	 * 
+	 * @return true iff blocks are remaining which might need refinement
+	 */
 	boolean mayChange()
 	{
 		return !mayChange.isEmpty();
 	}
 	
+	/**
+	 * Obtain a list of all blocks of the partition. 
+	 * 
+	 * @return list of all blocks of the partition
+	 */
 	ArrayList<HashSet<Integer>> getAllBlocks()
 	{
 		ArrayList<HashSet<Integer>> allBlocks = new ArrayList<HashSet<Integer>>(blocks.size());
@@ -132,11 +180,20 @@ final class Partition {
 		return allBlocks;
 	}
 	
+	/**
+	 * Get the block in which a given state is contained.
+	 * 
+	 * @param state state to search containing block of
+	 * @return block state is contained in
+	 */
 	HashSet<Integer> getStateBlock(int state)
 	{
 		return stateToBlock.get(state);
 	}
 	
+	/**
+	 * Marks all blocks as being new.
+	 */
 	void markAllBlocksAsNew()
 	{
 		mayChange.clear();

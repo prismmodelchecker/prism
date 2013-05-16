@@ -28,6 +28,9 @@ package param;
 
 import java.math.BigInteger;
 
+/**
+ * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
+ */
 abstract class DagOperator {
 	private BigInteger cValue;
 	DagOperator(BigInteger cValue) {

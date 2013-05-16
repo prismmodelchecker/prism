@@ -26,6 +26,15 @@
 
 package param;
 
+/**
+ * Maintains the intersection of two regions.
+ * This class is to be used in combination with
+ * {@code RegionValuesIntersections} to iterate over the intersection
+ * of two {@RegionValues}.
+ * 
+ * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
+ * @see RegionValuesIntersections
+ */
 final class RegionIntersection {
 	private Region region;
 	private StateValues values1;

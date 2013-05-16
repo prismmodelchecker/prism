@@ -30,6 +30,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
 
+/**
+ * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
+ */
 final class RegionsTODO {
 	class RegionsByVolumeComparator implements Comparator<Region> {
 

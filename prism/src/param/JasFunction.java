@@ -48,9 +48,13 @@ import edu.jas.ufd.Quotient;
  * @see JasFunctionFactory
  */
 final class JasFunction extends Function {
+	/** JAS object the function is wrapping */
 	private Quotient<BigInteger> jas;
+	/** numerator of function (stored if needed) */
 	Polynomial num;
+	/** denominator of function (stored if needed) */
 	Polynomial den;
+	/** type of function (rational function, infinity, etc.) */
 	int type;
 	final static int NORMAL = 0;
 	final static int INF = 1;
@@ -59,6 +63,13 @@ final class JasFunction extends Function {
 	
 	// constructors
 	
+	/**
+	 * Creates a new JAS function.
+	 * 
+	 * @param functionContext function context of this function
+	 * @param jas JAS object this function object is wrapping
+	 * @param type type of function represented
+	 */
 	JasFunction(JasFunctionFactory functionContext, Quotient<BigInteger> jas, int type) {
 		super(functionContext);
 		this.jas = jas;
@@ -103,6 +114,11 @@ final class JasFunction extends Function {
 		return jas.hashCode();
 	}
 	
+	/**
+	 * Returns JAS object this function is wrapping.
+	 * 
+	 * @return JAS object this function is wrapping
+	 */
 	Quotient<BigInteger> getJas()
 	{
 		return jas;
@@ -181,6 +197,12 @@ final class JasFunction extends Function {
 		return new JasFunction((JasFunctionFactory) factory, result, NORMAL);
 	}
 
+	/**
+	 * Transforms a JAS polynomial to a Polynomial object.
+	 * 
+	 * @param j JAS polynomial
+	 * @return polynomial of Polynomial class
+	 */
 	private Polynomial jasToPoly(GenPolynomial<BigInteger> j)
 	{
 		int numVariables = j.numberOfVariables();

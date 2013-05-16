@@ -40,8 +40,13 @@ import java.util.HashMap;
  * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
  */
 class ConstraintChecker {
+	/**
+	 * Class to store keys for the cache of the decision procedure.
+	 */
 	class DecisionEntryKey {
+		/** constraint to be stored (representing "constraint >=/> 0") */
 		Function constraint;
+		/** whether constraint should be strictly larger than zero */
 		boolean strict;
 		
 		@Override
@@ -63,8 +68,13 @@ class ConstraintChecker {
 		}
 	}
 	
+	/**
+	 * Class to store keys for the cache of the decision procedure.
+	 */
 	class DecisionEntryValue {
+		/** region this result is valid for */
 		Region region;
+		/** result, that is whether corresponding constraint holds in region */
 		boolean result;
 		
 		@Override
@@ -86,7 +96,9 @@ class ConstraintChecker {
 		}
 	}
 
+	/** number of random points to evaluate in decision procedure */
 	private int numRandomPoints;
+	/** decision cache */
 	protected HashMap<DecisionEntryKey,ArrayList<DecisionEntryValue>> decisions;
 	
 	/**
@@ -99,11 +111,30 @@ class ConstraintChecker {
 		decisions = new HashMap<DecisionEntryKey,ArrayList<DecisionEntryValue>>();
 	}
 
+	/**
+	 * Main decision check.
+	 * In this class, does nothing. Derived class could override this method
+	 * for instance by calling an external decision procedure, use a library
+	 * to decide validity in a given region, etc.
+	 * 
+	 * @param region region for which to check validity of constraint
+	 * @param constraint constraint to check (whether >=/> 0)
+	 * @param strict true iff ">" shold be checked rathern than ">="
+	 * @return true
+	 */
 	boolean mainCheck(Region region, Function constraint, boolean strict)
 	{
 		return true;
 	}
 
+	/**
+	 * Does a quick pre-check by evaluating constraint at random points.
+	 * 
+	 * @param region region for which to check validity of constraint
+	 * @param constraint constraint to check (whether >=/> 0)
+	 * @param strict true iff ">" shold be checked rathern than ">="
+	 * @return true if no counterexamples to validity found
+	 */
 	boolean preCheck(Region region, Function constraint, boolean strict)
 	{
 		ArrayList<Point> points = region.specialPoints();
@@ -123,11 +154,11 @@ class ConstraintChecker {
 	}
 	
 	/**
-	 * Checks whether 
+	 * Checks whether constraint holds in given region.
 	 * 
-	 * @param region
-	 * @param constraint
-	 * @param strict
+	 * @param region region for which to check validity of constraint
+	 * @param constraint constraint to check (whether >=/> 0)
+	 * @param strict true iff ">" shold be checked rathern than ">="
 	 * @return true iff function values are (strictly) larger than zero in whole region 
 	 */
 	boolean check(Region region, Function constraint, boolean strict)

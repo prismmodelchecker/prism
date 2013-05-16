@@ -50,6 +50,13 @@ final class JasFunctionFactory extends FunctionFactory {
 	private JasFunction minf;
 	private JasFunction[] parameters;
 
+	/**
+	 * Creates a new function factory.
+	 * 
+	 * @param parameterNames names of parameters
+	 * @param lowerBounds lower bounds of parameters
+	 * @param upperBounds upper bounds of parameters
+	 */
 	JasFunctionFactory(String[] parameterNames, BigRational[] lowerBounds, BigRational[] upperBounds)
 	{
 		super(parameterNames, lowerBounds, upperBounds);
@@ -102,11 +109,23 @@ final class JasFunctionFactory extends FunctionFactory {
 		return minf;
 	}
 
+	/**
+	 * Get JAS ring for rational functions used by this factory.
+	 * 
+	 * @return JAS ring for rational functions used by this factory
+	 */
 	QuotientRing<BigInteger> getJasQuotRing()
 	{
 		return jasQuotRing;
 	}
 	
+	/**
+	 * Get JAS ring for polynomials used by this factory.
+	 * In JAS, rational functions are built on polynomial rings, and this
+	 * function returns this corresponding ring.
+	 * 
+	 * @return JAS ring for polynomials used by this factory
+	 */
 	GenPolynomialRing<BigInteger> getJasPolyRing()
 	{
 		return jasPolyRing;

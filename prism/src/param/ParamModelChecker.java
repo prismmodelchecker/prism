@@ -74,6 +74,11 @@ import prism.PrismPrintStreamLog;
 import prism.PrismSettings;
 import prism.Result;
 
+/**
+ * Model checker for parametric Markov models.
+ * 
+ * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
+ */
 final public class ParamModelChecker
 {
 	// Log for output (default to System.out)

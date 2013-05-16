@@ -30,6 +30,10 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Random;
 
+/**
+ * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
+ * TODO complete once needed
+ */
 class DagFunctionFactory extends FunctionFactory {
 	private class Number extends DagOperator {
 		private BigInteger number;

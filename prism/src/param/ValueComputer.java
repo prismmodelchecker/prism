@@ -582,7 +582,7 @@ final class ValueComputer
 			lumper = new StrongLumper(pmc);
 		}
 		
-		MutablePMC quot = lumper.getOptimised();
+		MutablePMC quot = lumper.getQuotient();
 		StateEliminator eliminator = new StateEliminator(quot, eliminationOrder);
 		eliminator.eliminate();
 		int[] origToCopy = lumper.getOriginalToOptimised();

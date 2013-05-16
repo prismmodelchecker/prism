@@ -30,6 +30,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+/**
+ * TODO complete
+ * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
+ */
 final class RahdConstraintChecker extends ConstraintChecker {
 	// TODO read from PrismSettings
 	final static String rahdBin = "/home/scratch/svn/pers-sb/rahd/rahd-bin";	

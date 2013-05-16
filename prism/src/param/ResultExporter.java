@@ -38,6 +38,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
 
+/**
+ * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
+ */
 final class ResultExporter {
 	class PointComparator implements Comparator<Point> {
 		@Override

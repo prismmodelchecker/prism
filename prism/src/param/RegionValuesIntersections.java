@@ -29,6 +29,9 @@ package param;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+/**
+ * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
+ */
 final class RegionValuesIntersections implements Iterable<RegionIntersection> {
 	final private class RegionIntersectionOperator implements Iterator<RegionIntersection> {
 		private RegionValues regions1;

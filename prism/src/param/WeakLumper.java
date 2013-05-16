@@ -34,18 +34,44 @@ import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Map.Entry;
 
+/**
+ * Weak bisimulation lumper.
+ * Notice that weak bisimulation is only valid for unbounded reachability,
+ * but must not be used for expected accumulated rewards or long-run
+ * average rewards.
+ * 
+ * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
+ */
 final class WeakLumper extends Lumper {
 
+	/**
+	 * Construct a new weak bisimulation lumper.
+	 * 
+	 * @param origPmc Markov chain to construct lumper for
+	 */
 	WeakLumper(MutablePMC origPmc) {
 		super(origPmc);
 	}
 	
+	/**
+	 * Construct the weak bisimulation signature of given block.
+	 * The signature is a mapping of blocks to the probability to move
+	 * from the given state to any state of the block under the condition
+	 * that the block is left. Thus, it is only defined for states which have
+	 * a non-zero probability of leaving the block in one step. The function
+	 * returns {@code null} for states ("silent" states) for which this is
+	 * not the case.
+	 * 
+	 * @param state state to compute signature of
+	 * @return signature of this state
+	 */
 	private HashMap<HashSet<Integer>, Function> stateSignature(int state, HashSet<Integer> ownClass)
 	{
 		HashMap<HashSet<Integer>, Function> signature = new HashMap<HashSet<Integer>, Function>();
 		ListIterator<Integer> toStateIter = origPmc.transitionTargets.get(state).listIterator();
 		ListIterator<Function> toProbIter = origPmc.transitionProbs.get(state).listIterator();
 
+		/* compute probability to remain in block in one step */
 		Function slProb = origPmc.getFunctionFactory().getZero();
 		while (toStateIter.hasNext()) {
 			int toState = toStateIter.next();
@@ -54,9 +80,11 @@ final class WeakLumper extends Lumper {
 				slProb = slProb.add(toStateProb);
 			}
 		}
+		/* for states which cannot leave their block directly, return {@code null} */
 		if (slProb.equals(origPmc.getFunctionFactory().getOne())) {
 			return null;
 		}
+		/* 1 / (1 - slProb) */
 		Function star = slProb.star();
 
 		toStateIter = origPmc.transitionTargets.get(state).listIterator();
@@ -78,13 +106,33 @@ final class WeakLumper extends Lumper {
 		return signature;
 	}
 	
+	/**
+	 * Refines a given block to a list of new blocks for weak bisimulation.
+	 * New blocks are as follows: some of the new blocks consist of the
+	 * states which can leave their block ("non-silent" states) and which
+	 * have the same signature. In addition, such a block contains the states
+	 * which cannot leave their block in one step ("silent" states) and which
+	 * can only reach states of this particular new block. Other blocks
+	 * consist of silent states which can reach more than one particular
+	 * signature block. For these kind of blocks, we have a new block for
+	 * each combination of new blocks they might reach. For instance, if
+	 * there are new blocks (based on a signature) A,B,C, we add blocks
+	 * {A,B},{B,C} and {A,B,C}, containing silent states which can reach
+	 * A and B / B and C / A, B and C. 
+	 * 
+	 * @param oldBlock block to refine
+	 * @param newBlocks list of new blocks generated
+	 */
 	@Override
 	protected void refineBlock(HashSet<Integer> oldBlock,
 			ArrayList<HashSet<Integer>> newBlocks) {
 		ArrayList<Integer> nonSilent = new ArrayList<Integer>(oldBlock.size());
 		HashSet<Integer> silent = new HashSet<Integer>();
 		HashMap<HashMap<HashSet<Integer>, Function>, HashSet<Integer>> signatures = new HashMap<HashMap<HashSet<Integer>, Function>, HashSet<Integer>>();
-		HashMap<Integer, HashSet<Integer>> stateToBlock = new HashMap<Integer, HashSet<Integer>>(); 
+		HashMap<Integer, HashSet<Integer>> stateToBlock = new HashMap<Integer, HashSet<Integer>>();
+		/* compute signatures of states of old block and divide into silent/
+		 * nonsilent states. Silent states are states which cannot leave the
+		 * block in one step. */
 		for (int state : oldBlock) {
 			HashMap<HashSet<Integer>, Function> signature = stateSignature(state, oldBlock);
 			if (signature != null) {
@@ -101,6 +149,7 @@ final class WeakLumper extends Lumper {
 			}
 		}
 		
+		/* non-silent states reach only the new block they are contained in */
 		HashMap<Integer, HashSet<HashSet<Integer>>> reachWhichBlocks = new HashMap<Integer, HashSet<HashSet<Integer>>>();
 		for (int state : oldBlock) {
 			HashSet<HashSet<Integer>> predReachBlocks = new HashSet<HashSet<Integer>>();
@@ -110,6 +159,12 @@ final class WeakLumper extends Lumper {
 			reachWhichBlocks.put(state, predReachBlocks);
 		}
 		
+		/* collect all silent states which can reach a particular
+		 * non-silent state by performing a backwards depth-first search.
+		 * Mark silent states one comes across with the block of the
+		 * non-silent state. We can already stop the search if we know
+		 * that the state has previously been visited from another
+		 * state from the same block. */
 		for (int state : nonSilent) {
 			HashSet<Integer> block = stateToBlock.get(state);
 			ArrayDeque<Integer> stack = new ArrayDeque<Integer>();
@@ -125,6 +180,7 @@ final class WeakLumper extends Lumper {
 				}
 			}
 		}
+		/* compute new blocks, add the nonempty ones to list of new blocks */
 		HashMap<HashSet<HashSet<Integer>>, HashSet<Integer>> remap = new HashMap<HashSet<HashSet<Integer>>, HashSet<Integer>>();
 		for (Entry<Integer, HashSet<HashSet<Integer>>> entry : reachWhichBlocks.entrySet()) {
 			HashSet<Integer> sigStates = remap.get(entry.getValue());
@@ -141,6 +197,14 @@ final class WeakLumper extends Lumper {
 		}
 	}
 
+	/**
+	 * Build the weak bisimulation quotient from the blocks computed.
+	 * Transition probabilities are basically based on the weak bisimulation
+	 * signature. However, we must take care that we use a non-silent state
+	 * to compute transition probabilties from. Also, states which can never
+	 * leave their block after an arbitrary number of steps ("divergent"
+	 * states) must lead to adding a self loop in their containing block.
+	 */
 	@Override
 	protected void buildQuotient() {
 		optPmc = new MutablePMC(origPmc.getFunctionFactory(), blocks.size(), origPmc.isUseRewards(), false);
@@ -171,6 +235,14 @@ final class WeakLumper extends Lumper {
 		}
 	}
 	
+	/**
+	 * Creates an initial partitioning.
+	 * This function is based on the of the {@code Lumper} class. However,
+	 * for the weak bisimulation lumping to work correctly, for each block
+	 * of the initial partitioning, we have to split off "divergent" states.
+	 * Divergent states are states which can never leave their block, after
+	 * any number of steps.
+	 */
 	@Override
 	protected void createInitialPartition() {
 		super.createInitialPartition();
