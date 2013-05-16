@@ -2395,8 +2395,14 @@ public class Prism implements PrismSettingsListener
 			return modelCheckPTA(propertiesFile, prop.getExpression(), definedPFConstants);
 		}
 
+		// For fast adaptive uniformisation
+		if (currentModelType == ModelType.CTMC && settings.getString(PrismSettings.PRISM_TRANSIENT_METHOD).equals("Fast adaptive uniformisation")) {
+			FastAdaptiveUniformisationModelChecker fauMC;
+			fauMC = new FastAdaptiveUniformisationModelChecker(this, currentModulesFile, propertiesFile);
+			return fauMC.check(prop.getExpression());
+		}
 		// Auto-switch engine if required
-		if (currentModelType == ModelType.MDP && !Expression.containsMultiObjective(prop.getExpression())) {
+		else if (currentModelType == ModelType.MDP && !Expression.containsMultiObjective(prop.getExpression())) {
 			if (getMDPSolnMethod() != Prism.MDP_VALITER && !getExplicit()) {
 				mainLog.printWarning("Switching to explicit engine to allow use of chosen MDP solution method.");
 				engineSwitch = true;
@@ -2782,7 +2788,16 @@ public class Prism implements PrismSettingsListener
 
 		l = System.currentTimeMillis();
 
-		if (!getExplicit()) {
+		if (currentModelType == ModelType.CTMC && settings.getString(PrismSettings.PRISM_TRANSIENT_METHOD).equals("Fast adaptive uniformisation")) {
+			PrismModelExplorer modelExplorer = new PrismModelExplorer(getSimulator(), currentModulesFile);
+			FastAdaptiveUniformisation fau = new FastAdaptiveUniformisation(settings, modelExplorer);
+			fau.setConstantValues(currentModulesFile.getConstantValues());
+			mainLog.println("Starting transient probability computation using fast adaptive uniformisation...");
+			probsExpl = fau.doTransient(time, fileIn);
+			mainLog.println("\nTotal probability lost is : " + fau.getTotalDiscreteLoss());
+			mainLog.println("Maximal number of states stored during analysis : " + fau.getMaxNumStates());
+		}
+		else if (!getExplicit()) {
 			if (currentModelType == ModelType.DTMC) {
 				mc = new ProbModelChecker(this, currentModel, null);
 				probs = ((ProbModelChecker) mc).doTransient((int) time, fileIn);

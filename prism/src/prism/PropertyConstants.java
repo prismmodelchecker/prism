@@ -43,8 +43,9 @@ public final class PropertyConstants
 	public static final int PROPERTIES = 11;
 	public static final int SIMULATOR = 12;
 	public static final int LOG = 13;
-	public static final int SSHHOST = 14;
-	public static final int FILESYSTEM = 15;
-	public static final int NETWORK_PROFILE = 16;
-	public static final int GRAPH_DISPLAY = 17;
+	public static final int FAU = 14;
+	public static final int SSHHOST = 15;
+	public static final int FILESYSTEM = 16;
+	public static final int NETWORK_PROFILE = 17;
+	public static final int GRAPH_DISPLAY = 18;
 }

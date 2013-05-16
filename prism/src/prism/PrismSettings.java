@@ -97,6 +97,7 @@ public class PrismSettings implements Observer
 	public static final String PRISM_SCC_METHOD						= "prism.sccMethod";
 	public static final String PRISM_SYMM_RED_PARAMS					= "prism.symmRedParams";
 	public static final String PRISM_PTA_METHOD					= "prism.ptaMethod";
+	public static final String PRISM_TRANSIENT_METHOD				= "prism.transientMethod";
 	public static final String PRISM_AR_OPTIONS					= "prism.arOptions";
 	public static final String PRISM_EXPORT_ADV					= "prism.exportAdv";
 	public static final String PRISM_EXPORT_ADV_FILENAME			= "prism.exportAdvFilename";
@@ -156,6 +157,11 @@ public class PrismSettings implements Observer
 	public static final	String LOG_BG_COLOUR						= "log.bgColour";
 	public static final	String LOG_BUFFER_LENGTH					= "log.bufferLength";
 	
+	//FAU
+	public static final String PRISM_FAU_DELTA						= "prism.faudelta";
+	public static final String PRISM_FAU_INTERVALS					= "prism.fauintervals";
+	public static final String PRISM_FAU_INITIVAL					= "prism.fauinitival";
+	public static final String PRISM_FAU_ARRAYTHRESHOLD				= "prism.fauarraythreshold";
 	
 	//Defaults, types and constaints
 	
@@ -165,7 +171,8 @@ public class PrismSettings implements Observer
 		"Simulator",
 		"Model",
 		"Properties",
-		"Log"
+		"Log",
+		"FAU"
 	};
 	public static final int[] propertyOwnerIDs =
 	{
@@ -173,7 +180,8 @@ public class PrismSettings implements Observer
 		PropertyConstants.SIMULATOR,
 		PropertyConstants.MODEL,
 		PropertyConstants.PROPERTIES,
-		PropertyConstants.LOG
+		PropertyConstants.LOG,
+		PropertyConstants.FAU		
 	};
 	
 	
@@ -198,6 +206,8 @@ public class PrismSettings implements Observer
 																			"Which engine (hybrid, sparse, MTBDD, explicit) should be used for model checking." },
 			{ CHOICE_TYPE,		PRISM_PTA_METHOD,						"PTA model checking method",			"3.3",			"Stochastic games",																	"Digital clocks,Stochastic games",																
 																			"Which method to use for model checking of PTAs." },
+			{ CHOICE_TYPE,		PRISM_TRANSIENT_METHOD,					"Transient probability computation method",	"3.3",		"Uniformisation",															"Uniformisation,Fast adaptive uniformisation",																
+																			"Which method to use for computing transient probabilities in CTMCs." },
 			// NUMERICAL SOLUTION OPTIONS:
 			{ CHOICE_TYPE,		PRISM_LIN_EQ_METHOD,					"Linear equations method",				"2.1",			"Jacobi",																	"Power,Jacobi,Gauss-Seidel,Backwards Gauss-Seidel,Pseudo-Gauss-Seidel,Backwards Pseudo-Gauss-Seidel,JOR,SOR,Backwards SOR,Pseudo-SOR,Backwards Pseudo-SOR",
 																			"Which iterative method to use when solving linear equation systems." },
@@ -327,6 +337,12 @@ public class PrismSettings implements Observer
 			{ FONT_COLOUR_TYPE,	LOG_FONT,								"Display font",							"2.1",			new FontColorPair(new Font("monospaced", Font.PLAIN, 12), Color.black),		"",																							"Font used for the log display." },
 			{ COLOUR_TYPE,		LOG_BG_COLOUR,							"Background colour",					"2.1",			new Color(255,255,255),														"",																							"Background colour for the log display." },
 			{ INTEGER_TYPE,		LOG_BUFFER_LENGTH,						"Buffer length",						"2.1",			new Integer(10000),															"1,",																						"Length of the buffer for the log display." }
+		},
+		{
+			{ DOUBLE_TYPE,      PRISM_FAU_DELTA,					"Cut off delta", 						"4.0.1",   	 	new Double(10E-12),     													"",																							"States which get a probability below this number during the fast adaptive analysis will be removed." },
+			{ INTEGER_TYPE,     PRISM_FAU_ARRAYTHRESHOLD,			"Threshold to swap to array mode", 		"4.0.1",   	 	new Integer(100),    	 													"",																							"If this number of iterations happened during fast adaptive uniformisation without changes to the state space, assume that further changes are unlikely." },
+			{ INTEGER_TYPE,     PRISM_FAU_INTERVALS,				"Number of time intervals",				"4.0.1",   	 	new Integer(1),     														"",																							"Splits the time of a time-bounded property into the specified number of intervals." },
+			{ DOUBLE_TYPE,      PRISM_FAU_INITIVAL,					"Length of initial time interval",		"4.0.1",   	 	new Double(1.0),     														"",																							"Length of initial time interval in addition to regular time intervals." },
 		}
 	};
 	
@@ -781,6 +797,20 @@ public class PrismSettings implements Observer
 				throw new PrismException("No parameter specified for -" + sw + " switch");
 			}
 		}
+		// Transient methods
+		else if (sw.equals("transientmethod")) {
+			if (i < args.length - 1) {
+				s = args[++i];
+				if (s.equals("unif"))
+					set(PRISM_TRANSIENT_METHOD, "Uniformisation");
+				else if (s.equals("fau"))
+					set(PRISM_TRANSIENT_METHOD, "Fast adaptive uniformisation");
+				else
+					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: unif, fau)");
+			} else {
+				throw new PrismException("No parameter specified for -" + sw + " switch");
+			}
+		}
 
 		// NUMERICAL SOLUTION OPTIONS:
 		
@@ -1114,6 +1144,68 @@ public class PrismSettings implements Observer
 			}
 		}
 		
+		// Fast Adaptive Uniformisation
+		
+		// Delta for fast adaptive uniformisation
+		else if (sw.equals("faudelta")) {
+			if (i < args.length - 1) {
+				try {
+					d = Double.parseDouble(args[++i]);
+					if (d < 0)
+						throw new NumberFormatException("");
+					set(PRISM_FAU_DELTA, d);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
+		}
+		else if (sw.equals("fauarraythreshold")) {
+			if (i < args.length - 1) {
+				try {
+					j = Integer.parseInt(args[++i]);
+					if (j < 0)
+						throw new NumberFormatException("");
+					set(PRISM_FAU_ARRAYTHRESHOLD, j);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}			
+		}
+
+		// number of intervals for fast adaptive uniformisation
+		else if (sw.equals("fauintervals")) {
+			if (i < args.length - 1) {
+				try {
+					j = Integer.parseInt(args[++i]);
+					if (j < 0)
+						throw new NumberFormatException("");
+					set(PRISM_FAU_INTERVALS, j);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
+		}
+		else if (sw.equals("fauinitival")) {
+			if (i < args.length - 1) {
+				try {
+					d = Double.parseDouble(args[++i]);
+					if (d < 0.0)
+						throw new NumberFormatException("");
+					set(PRISM_FAU_INITIVAL, d);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
+		}
+
 		// unknown switch - error
 		else {
 			throw new PrismException("Invalid switch -" + sw + " (type \"prism -help\" for full list)");
@@ -1135,6 +1227,7 @@ public class PrismSettings implements Observer
 		mainLog.println("-hybrid (or -h) ................ Use the Hybrid engine [default]");
 		mainLog.println("-explicit (or -ex) ............. Use the explicit engine");
 		mainLog.println("-ptamethod <name> .............. Specify PTA engine (games, digital) [default: games]");
+		mainLog.println("-transientmethod <name> ........ CTMC transient analysis methof (unif, fau) [default: unif]");
 		mainLog.println();
 		mainLog.println("SOLUTION METHODS (LINEAR EQUATIONS):");
 		mainLog.println("-power (or -pow, -pwr) ......... Use the Power method for numerical computation");
@@ -1198,6 +1291,12 @@ public class PrismSettings implements Observer
 		mainLog.println("-gsmax <n> (or sormax <n>) ..... Set memory limit (KB) for hybrid GS/SOR [default: 1024]");
 		mainLog.println("-cuddmaxmem <n> ................ Set max memory for CUDD package (KB) [default: 200x1024]");
 		mainLog.println("-cuddepsilon <x> ............... Set epsilon value for CUDD package [default: 1e-15]");
+		mainLog.println();
+		mainLog.println("FAST ADAPTIVE UNIFORMISATION OPTIONS:");
+		mainLog.println("-faudelta <x> .................. Set probability threshold for irrelevant states [default: 1e-12]");
+		mainLog.println("-fauarraythreshold <x> ......... Set threshold when to switch to sparse matrix [default: 100]");
+		mainLog.println("-fauintervals <x> .............. Set number of intervals to divide time intervals to [default: 1]");
+		mainLog.println("-fauinitival <x> ............... Set length of additional initial time interval [default: 1.0]");
 	}
 
 	/**
