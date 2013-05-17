@@ -298,14 +298,19 @@ final class BoxRegion extends Region {
 			StateValues newValues = new StateValues(op1.getNumStates(), factory.getInitialState());
 			boolean allDecided = true;
 			for (int state = 0; state < op1.getNumStates(); state++) {
-				Function op1Val = op1.getStateValueAsFunction(state);
-				Function op2Val = op2.getStateValueAsFunction(state);
+				StateValue op1Val = op1.getStateValue(state);
+				StateValue op2Val = op2.getStateValue(state);
+				Function op1ValFn = op1Val instanceof Function ? (Function) op1Val : null;
+				Function op2ValFn = op2Val instanceof Function ? (Function) op2Val : null;
 				if (op == Region.EQ) {
-					if (op1Val.equals(op2Val)) {
+					if (op1Val instanceof StateBoolean) {
+						newValues.setStateValue(state, op1Val.equals(op2Val));						
+					}
+					else if (op1Val.equals(op2Val)) {
 						newValues.setStateValue(state, true);			
-					} else if (checker.check(region, op1Val.subtract(op2Val), true)) {
+					} else if (checker.check(region, op1ValFn.subtract(op2ValFn), true)) {
 						newValues.setStateValue(state, false);	
-					} else if (checker.check(region, op2Val.subtract(op1Val), true)) {
+					} else if (checker.check(region, op2ValFn.subtract(op1ValFn), true)) {
 						newValues.setStateValue(state, false);	
 					} else {
 						allDecided = false;
@@ -313,16 +318,16 @@ final class BoxRegion extends Region {
 					}
 				} else {
 					boolean strict = op == Region.GT || op == Region.LT;
-					Function cmpTrue = (op == Region.LT || op == Region.LE) ? op2Val.subtract(op1Val) : op1Val.subtract(op2Val);
+					Function cmpTrue = (op == Region.LT || op == Region.LE) ? op2ValFn.subtract(op1ValFn) : op1ValFn.subtract(op2ValFn);
 					if (checker.check(region, cmpTrue, strict)) {
 						newValues.setStateValue(state, true);
 					} else {
-						Function cmpFalse = (op == Region.LT || op == Region.LE) ? op1Val.subtract(op2Val) : op2Val.subtract(op1Val);
+						Function cmpFalse = (op == Region.LT || op == Region.LE) ? op1ValFn.subtract(op2ValFn) : op2ValFn.subtract(op1ValFn);
 						if (checker.check(region, cmpFalse, !strict)) {
 							newValues.setStateValue(state, false);	
 						} else {
 							allDecided = false;
-							lastFunction = op2Val.subtract(op1Val);
+							lastFunction = op2ValFn.subtract(op1ValFn);
 							break;
 						}
 					}
