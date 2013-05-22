@@ -308,7 +308,6 @@ public class DTMCModelChecker extends ProbModelChecker
 			tmpsoln = soln;
 			soln = soln2;
 			soln2 = tmpsoln;
-			iters++;
 		}
 
 		// Finished backwards transient computation
@@ -356,7 +355,6 @@ public class DTMCModelChecker extends ProbModelChecker
 			tmpsoln = soln;
 			soln = soln2;
 			soln2 = tmpsoln;
-			iters++;
 		}
 
 		// Finished backwards transient computation
