@@ -26,16 +26,29 @@
 
 package prism;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
 
-import explicit.Model;
-
-import param.ModelBuilder;
 import param.ParamModelChecker;
-import parser.*;
-import parser.ast.*;
-import simulator.method.*;
+import parser.Values;
+import parser.ast.Expression;
+import parser.ast.ExpressionReward;
+import parser.ast.ModulesFile;
+import parser.ast.PropertiesFile;
+import parser.ast.Property;
+import simulator.method.ACIconfidence;
+import simulator.method.ACIiterations;
+import simulator.method.ACIwidth;
+import simulator.method.APMCapproximation;
+import simulator.method.APMCconfidence;
+import simulator.method.APMCiterations;
+import simulator.method.CIconfidence;
+import simulator.method.CIiterations;
+import simulator.method.CIwidth;
+import simulator.method.SPRTMethod;
+import simulator.method.SimulationMethod;
 
 // prism - command line version
 
@@ -68,6 +81,7 @@ public class PrismCL implements PrismModelListener
 	private boolean exportordered = true;
 	private boolean simulate = false;
 	private boolean simpath = false;
+	private boolean param = false;
 	private ModelType typeOverride = null;
 	private boolean orderingOverride = false;
 	private boolean explicitbuild = false;
@@ -88,6 +102,9 @@ public class PrismCL implements PrismModelListener
 
 	// argument to -importprismpp switch
 	private String prismppParams = null;
+
+	// argument to -param switch
+	private String paramSwitch = null;
 
 	// files/filenames
 	private String mainLogFilename = "stdout";
@@ -163,8 +180,7 @@ public class PrismCL implements PrismModelListener
 	private boolean simManual = false;
 	private SimulationMethod simMethod = null;
 
-	// parametric analysis
-	private String paramConstSwitch = null;
+	// parametric analysis info
 	private String[] paramLowerBounds = null;
 	private String[] paramUpperBounds = null;
 	private String[] paramNames = null;
@@ -185,28 +201,6 @@ public class PrismCL implements PrismModelListener
 		// Sort out properties to check
 		sortProperties();
 
-		// process info about parametric constants
-		if (!"".equals(paramConstSwitch)) {
-			String[] paramDefs = paramConstSwitch.split(",");
-			paramNames = new String[paramDefs.length];
-			paramLowerBounds = new String[paramDefs.length];
-			paramUpperBounds = new String[paramDefs.length];
-			for (int pdNr = 0; pdNr < paramDefs.length; pdNr++) {
-				if (!paramDefs[pdNr].contains("=")) {
-					paramNames[pdNr] = paramDefs[pdNr];
-					paramLowerBounds[pdNr] = "0";
-					paramUpperBounds[pdNr] = "1";
-				} else {
-					String[] paramDefSplit = paramDefs[pdNr].split("=");
-					paramNames[pdNr] = paramDefSplit[0];
-					paramDefSplit[1] = paramDefSplit[1].trim();
-					String[] upperLower = paramDefSplit[1].split(":");
-					paramLowerBounds[pdNr] = upperLower[0].trim();
-					paramUpperBounds[pdNr] = upperLower[1].trim();
-				}
-			}			
-		}
-		
 		// process info about undefined constants
 		try {
 			// first, see which constants are undefined
@@ -220,7 +214,7 @@ public class PrismCL implements PrismModelListener
 				undefinedConstants[i] = new UndefinedConstants(modulesFile, propertiesFile, propertiesToCheck.get(i));
 			}
 			// may need to remove some constants if they are used for parametric methods
-			if (paramNames != null) {
+			if (param) {
 				undefinedMFConstants.removeConstants(paramNames);
 				for (i = 0; i < numPropertiesToCheck; i++) {
 					undefinedConstants[i].removeConstants(paramNames);
@@ -234,7 +228,7 @@ public class PrismCL implements PrismModelListener
 		} catch (PrismException e) {
 			errorAndExit(e.getMessage());
 		}
-		
+
 		// initialise storage for results
 		results = new ResultsCollection[numPropertiesToCheck];
 		for (i = 0; i < numPropertiesToCheck; i++) {
@@ -315,7 +309,6 @@ public class PrismCL implements PrismModelListener
 				}
 				// otherwise, treat each case individually
 				else {
-					boolean param = paramNames != null;
 					for (k = 0; k < undefinedConstants[j].getNumPropertyIterations(); k++) {
 
 						try {
@@ -330,8 +323,7 @@ public class PrismCL implements PrismModelListener
 							}
 							// Parametric model checking
 							else if (param) {
-								res = prism.modelCheckParametric(propertiesFile, propertiesToCheck.get(j),
-										paramNames, paramLowerBounds, paramUpperBounds);
+								res = prism.modelCheckParametric(propertiesFile, propertiesToCheck.get(j), paramNames, paramLowerBounds, paramUpperBounds);
 							}
 							// Approximate (simulation-based) model checking
 							else if (simulate) {
@@ -340,8 +332,7 @@ public class PrismCL implements PrismModelListener
 										simMethod);
 								simMethod.reset();
 							} else {
-								throw new PrismException("Cannot use parametric model checking and simulation "
-										+ "at the same time");
+								throw new PrismException("Cannot use parametric model checking and simulation at the same time");
 							}
 						} catch (PrismException e) {
 							// in case of error, report it, store exception as the result and proceed
@@ -477,7 +468,7 @@ public class PrismCL implements PrismModelListener
 
 			// parse command line arguments
 			parseArguments(args);
-			
+
 			// load setting file if requested
 			if (settingsFilename != null)
 				prism.loadUserSettingsFile(new File(settingsFilename));
@@ -816,7 +807,7 @@ public class PrismCL implements PrismModelListener
 					else
 						errorAndExit("\"" + transientTime + "\" is not a valid time for a " + modelType);
 				}
-				
+
 				// Compute transient probabilities
 				prism.doTransient(ucTransient, exportType, exportTransientFile, importinitdist ? new File(importInitDistFilename) : null);
 			}
@@ -873,7 +864,7 @@ public class PrismCL implements PrismModelListener
 		PrismLog log;
 
 		constSwitch = "";
-		paramConstSwitch= "";
+		paramSwitch = "";
 
 		for (i = 0; i < args.length; i++) {
 
@@ -944,17 +935,18 @@ public class PrismCL implements PrismModelListener
 				}
 				// defining a parameter
 				else if (sw.equals("param")) {
+					param = true;
 					if (i < args.length - 1) {
 						// store argument for later use (append if already partially specified)
-						if ("".equals(paramConstSwitch)) {
-							paramConstSwitch = args[++i].trim();
+						if ("".equals(paramSwitch)) {
+							paramSwitch = args[++i].trim();
 						} else {
-							paramConstSwitch += "," + args[++i].trim();
+							paramSwitch += "," + args[++i].trim();
 						}
 					} else {
 						errorAndExit("Incomplete -" + sw + " switch");
 					}
-				}				
+				}
 				// do steady-state probability computation
 				else if (sw.equals("steadystate") || sw.equals("ss")) {
 					steadystate = true;
@@ -1585,6 +1577,28 @@ public class PrismCL implements PrismModelListener
 				errorAndExit("Pseudo Gauss-Seidel/SOR methods are currently not supported by the sparse engine");
 			}
 		}
+
+		// process info about parametric constants
+		if (param) {
+			String[] paramDefs = paramSwitch.split(",");
+			paramNames = new String[paramDefs.length];
+			paramLowerBounds = new String[paramDefs.length];
+			paramUpperBounds = new String[paramDefs.length];
+			for (int pdNr = 0; pdNr < paramDefs.length; pdNr++) {
+				if (!paramDefs[pdNr].contains("=")) {
+					paramNames[pdNr] = paramDefs[pdNr];
+					paramLowerBounds[pdNr] = "0";
+					paramUpperBounds[pdNr] = "1";
+				} else {
+					String[] paramDefSplit = paramDefs[pdNr].split("=");
+					paramNames[pdNr] = paramDefSplit[0];
+					paramDefSplit[1] = paramDefSplit[1].trim();
+					String[] upperLower = paramDefSplit[1].split(":");
+					paramLowerBounds[pdNr] = upperLower[0].trim();
+					paramUpperBounds[pdNr] = upperLower[1].trim();
+				}
+			}
+		}
 	}
 
 	/**
@@ -1765,7 +1779,7 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-exporttransient <file> ........ Export transient probabilities to a file");
 		mainLog.println("-exportprism <file> ............ Export final PRISM model to a file");
 		mainLog.println("-exportprismconst <file> ....... Export final PRISM model with expanded constants to a file");
-		
+
 		prism.getSettings().printHelp(mainLog);
 
 		mainLog.println();
