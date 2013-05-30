@@ -491,7 +491,7 @@ public class ProbModelChecker extends StateModelChecker
 		// Print out probabilities
 		if (getVerbosity() > 5) {
 			mainLog.print("\nProbabilities (non-zero only) for all states:\n");
-			mainLog.print(probs);
+			probs.print(mainLog);
 		}
 
 		// For =? properties, just return values
@@ -596,7 +596,7 @@ public class ProbModelChecker extends StateModelChecker
 		// Print out probabilities
 		if (getVerbosity() > 5) {
 			mainLog.print("\nProbabilities (non-zero only) for all states:\n");
-			mainLog.print(rews);
+			rews.print(mainLog);
 		}
 
 		// For =? properties, just return values
@@ -649,7 +649,7 @@ public class ProbModelChecker extends StateModelChecker
 		// Print out probabilities
 		if (getVerbosity() > 5) {
 			mainLog.print("\nProbabilities (non-zero only) for all states:\n");
-			mainLog.print(probs);
+			probs.print(mainLog);
 		}
 
 		// For =? properties, just return values
