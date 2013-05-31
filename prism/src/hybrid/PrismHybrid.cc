@@ -58,7 +58,7 @@ static jmethodID main_log_warn = NULL;
 static jmethodID tech_log_mid = NULL;
 
 // error message
-char error_message[MAX_ERR_STRING_LEN];
+static char error_message[MAX_ERR_STRING_LEN];
 
 // details from numerical computation which may be queried
 double last_unif;

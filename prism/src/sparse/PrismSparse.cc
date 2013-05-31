@@ -64,7 +64,7 @@ FILE *export_file;
 JNIEnv *export_env;
 
 // error message
-char error_message[MAX_ERR_STRING_LEN];
+static char error_message[MAX_ERR_STRING_LEN];
 
 //------------------------------------------------------------------------------
 // cudd manager
