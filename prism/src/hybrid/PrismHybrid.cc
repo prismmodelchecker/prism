@@ -198,7 +198,7 @@ void PH_SetErrorMessage(const char *str, ...)
 	va_list argptr;
 	
 	va_start(argptr, str);
-	vsnprintf(error_message, MAX_LOG_STRING_LEN, str, argptr);
+	vsnprintf(error_message, MAX_ERR_STRING_LEN, str, argptr);
 	va_end(argptr);
 }
 
