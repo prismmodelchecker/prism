@@ -871,7 +871,11 @@ public class PrismCL implements PrismModelListener
 			// if is a switch...
 			if (args[i].length() > 0 && args[i].charAt(0) == '-') {
 
+				// Remove "-"
 				sw = args[i].substring(1);
+				// Remove optional second "-" (i.e. we allow switches of the form --sw too)
+				if (sw.charAt(0) == '-')
+					sw = sw.substring(1);
 
 				// Note: the order of these switches should match the -help output (just to help keep track of things).
 				// But: processing of "PRISM" options is done elsewhere in PrismSettings

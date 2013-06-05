@@ -787,7 +787,11 @@ public class PrismSettings implements Observer
 		int j;
 		double d;
 		
+		// Remove "-"
 		sw = args[i].substring(1);
+		// Remove optional second "-" (i.e. we allow switches of the form --sw too)
+		if (sw.charAt(0) == '-')
+			sw = sw.substring(1);
 
 		// Note: the order of these switches should match the -help output (just to help keep track of things).
 		
