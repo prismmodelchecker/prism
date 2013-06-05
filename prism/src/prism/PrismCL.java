@@ -1070,6 +1070,14 @@ public class PrismCL implements PrismModelListener
 						errorAndExit("No file/options specified for -" + sw + " switch");
 					}
 				}
+				// export model data to file(s)
+				else if (sw.equals("exportmodel")) {
+					if (i < args.length - 2) {
+						processExportModelSwitch(args[++i], args[++i]);
+					} else {
+						errorAndExit("No file/options specified for -" + sw + " switch");
+					}
+				}
 				// export transition matrix to file
 				else if (sw.equals("exporttrans")) {
 					if (i < args.length - 1) {
@@ -1512,6 +1520,84 @@ public class PrismCL implements PrismModelListener
 			// anything else - must be something wrong with command line syntax
 			else {
 				errorAndExit("Invalid argument syntax");
+			}
+		}
+	}
+
+	/**
+	 * Process the two arguments (basename, options) to the -exportmodel switch
+	 * NB: This is done at the time of parsing switches (not later)
+	 * because other individual switches (e.g. -exportmatlab) can later override
+	 * parts of the configurations set yp here.
+	 */
+	private void processExportModelSwitch(String basename, String optionsString) throws PrismException
+	{
+		String options[] = optionsString.split(",");
+		for (String opt : options) {
+			// Items to export
+			if (opt.equals("all")) {
+				exporttrans = true;
+				exportTransFilename = basename.equals("stdout") ? "stdout" : basename + ".tra";
+				exportstaterewards = true;
+				exportStateRewardsFilename = basename.equals("stdout") ? "stdout" : basename + ".srew";
+				exporttransrewards = true;
+				exportTransRewardsFilename = basename.equals("stdout") ? "stdout" : basename + ".trew";
+				exportstates = true;
+				exportStatesFilename = basename.equals("stdout") ? "stdout" : basename + ".sta";
+				exportlabels = true;
+				exportLabelsFilename = basename.equals("stdout") ? "stdout" : basename + ".lab";
+			} else if (opt.equals("tra")) {
+				exporttrans = true;
+				exportTransFilename = basename.equals("stdout") ? "stdout" : basename + ".tra";
+			} else if (opt.equals("tra")) {
+				exporttrans = true;
+				exportTransFilename = basename.equals("stdout") ? "stdout" : basename + ".tra";
+			} else if (opt.equals("srew")) {
+				exportstaterewards = true;
+				exportStateRewardsFilename = basename.equals("stdout") ? "stdout" : basename + ".srew";
+			} else if (opt.equals("trew")) {
+				exporttransrewards = true;
+				exportTransRewardsFilename = basename.equals("stdout") ? "stdout" : basename + ".trew";
+			} else if (opt.equals("rew")) {
+				exportstaterewards = true;
+				exportStateRewardsFilename = basename.equals("stdout") ? "stdout" : basename + ".srew";
+				exporttransrewards = true;
+				exportTransRewardsFilename = basename.equals("stdout") ? "stdout" : basename + ".trew";
+			} else if (opt.equals("sta")) {
+				exportstates = true;
+				exportStatesFilename = basename.equals("stdout") ? "stdout" : basename + ".sta";
+			} else if (opt.equals("lab")) {
+				exportlabels = true;
+				exportLabelsFilename = basename.equals("stdout") ? "stdout" : basename + ".lab";
+			}
+			// Export type
+			else if (opt.equals("matlab")) {
+				exportType = Prism.EXPORT_MATLAB;
+			} else if (opt.equals("mrmc")) {
+				exportType = Prism.EXPORT_MRMC;
+			} else if (opt.equals("rows")) {
+				exportType = Prism.EXPORT_ROWS;
+			} /*else if (opt.startsWith("type=")) {
+				String exportTypeString = opt.substring(5);
+				if (exportTypeString.equals("matlab")) {
+					exportType = Prism.EXPORT_MATLAB;
+				} else if (exportTypeString.equals("mrmc")) {
+					exportType = Prism.EXPORT_MRMC;
+				} else if (exportTypeString.equals("rows")) {
+					exportType = Prism.EXPORT_ROWS;
+				} else {
+					throw new PrismException("Unknown type \"" + opt + "\" for -exportmodel switch");
+				}
+				}*/
+			// Unordered/ordered
+			else if (opt.equals("unordered")) {
+				exportordered = false;
+			} else if (opt.equals("ordered")) {
+				exportordered = true;
+			}
+			// Unknown
+			else {
+				throw new PrismException("Unknown option \"" + opt + "\" for -exportmodel switch");
 			}
 		}
 	}
