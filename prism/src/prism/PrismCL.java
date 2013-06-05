@@ -1004,7 +1004,15 @@ public class PrismCL implements PrismModelListener
 						errorAndExit("No parameters specified for -" + sw + " switch");
 					}
 				}
-				// import model from explicit format
+				// import model from explicit file(s)
+				else if (sw.equals("importmodel")) {
+					if (i < args.length - 2) {
+						processImportModelSwitch(args[++i], args[++i]);
+					} else {
+						errorAndExit("No file/options specified for -" + sw + " switch");
+					}
+				}
+				// import transition matrix from explicit format
 				else if (sw.equals("importtrans")) {
 					importtrans = true;
 				}
@@ -1070,7 +1078,7 @@ public class PrismCL implements PrismModelListener
 						errorAndExit("No file/options specified for -" + sw + " switch");
 					}
 				}
-				// export model data to file(s)
+				// export model to explicit file(s)
 				else if (sw.equals("exportmodel")) {
 					if (i < args.length - 2) {
 						processExportModelSwitch(args[++i], args[++i]);
@@ -1525,10 +1533,52 @@ public class PrismCL implements PrismModelListener
 	}
 
 	/**
+	 * Process the two arguments (basename, options) to the -importmodel switch
+	 * NB: This is done at the time of parsing switches (not later)
+	 * because other individual switches (e.g. -importXXX) can later override
+	 * parts of the configurations set up here.
+	 */
+	private void processImportModelSwitch(String basename, String optionsString) throws PrismException
+	{
+		String options[] = optionsString.split(",");
+		for (String opt : options) {
+			// Items to export
+			if (opt.equals("all")) {
+				importtrans = true;
+				modelFilename = basename + ".tra";
+				importstates = true;
+				importStatesFilename = basename + ".sta";
+				importlabels = true;
+				importLabelsFilename = basename + ".lab";
+			} else if (opt.equals("tra")) {
+				importtrans = true;
+				modelFilename = basename + ".tra";
+			} else if (opt.equals("tra")) {
+				importtrans = true;
+				modelFilename = basename + ".tra";
+			} else if (opt.equals("sta")) {
+				importstates = true;
+				importStatesFilename = basename + ".sta";
+			} else if (opt.equals("lab")) {
+				importlabels = true;
+				importLabelsFilename = basename + ".lab";
+			}
+			// Unknown
+			else {
+				throw new PrismException("Unknown option \"" + opt + "\" for -importmodel switch");
+			}
+			
+			if (!importtrans) {
+				throw new PrismException("You must import the transition matrix when using -importmodel (use option \"tra\" or \"all\")");
+			}
+		}
+	}
+
+	/**
 	 * Process the two arguments (basename, options) to the -exportmodel switch
 	 * NB: This is done at the time of parsing switches (not later)
 	 * because other individual switches (e.g. -exportmatlab) can later override
-	 * parts of the configurations set yp here.
+	 * parts of the configurations set up here.
 	 */
 	private void processExportModelSwitch(String basename, String optionsString) throws PrismException
 	{
