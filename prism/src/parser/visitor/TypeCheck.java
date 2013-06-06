@@ -463,9 +463,11 @@ public class TypeCheck extends ASTTraverse
 
 	public void visitPost(ExpressionProb e) throws PrismLangException
 	{
+		// Check prob bound
 		if (e.getProb() != null && !TypeDouble.getInstance().canAssign(e.getProb().getType())) {
 			throw new PrismLangException("Type error: P operator probability bound is not a double", e.getProb());
 		}
+		// Check filter
 		if (e.getFilter() != null && !(e.getFilter().getExpression().getType() instanceof TypeBool)) {
 			throw new PrismLangException("Type error: P operator filter is not a Boolean", e.getFilter().getExpression());
 		}
@@ -475,21 +477,28 @@ public class TypeCheck extends ASTTraverse
 				throw new PrismLangException("Type error: Cannot use min/max filters in Boolean-valued properties");
 			}
 		}
+		// Check path operator
+		if (!(e.getExpression().getType() instanceof TypePathBool)) {
+			throw new PrismLangException("Type error: Contents of P operator is not a path formula", e.getExpression());
+		}
 		// Set type
 		e.setType(e.getProb() == null ? TypeDouble.getInstance() : TypeBool.getInstance());
 	}
 
 	public void visitPost(ExpressionReward e) throws PrismLangException
 	{
+		// Check reward struct ref
 		if (e.getRewardStructIndex() != null && e.getRewardStructIndex() instanceof Expression) {
 			Expression rsi = (Expression) e.getRewardStructIndex();
 			if (!(rsi.getType() instanceof TypeInt)) {
 				throw new PrismLangException("Type error: Reward structure index must be string or integer", rsi);
 			}
 		}
+		// Check reward bound
 		if (e.getReward() != null && !TypeDouble.getInstance().canAssign(e.getReward().getType())) {
 			throw new PrismLangException("Type error: R operator reward bound is not a double", e.getReward());
 		}
+		// Check filter
 		if (e.getFilter() != null && !(e.getFilter().getExpression().getType() instanceof TypeBool)) {
 			throw new PrismLangException("Type error: R operator filter is not a Boolean", e.getFilter().getExpression());
 		}
@@ -499,15 +508,21 @@ public class TypeCheck extends ASTTraverse
 				throw new PrismLangException("Type error: Cannot use min/max filters in Boolean-valued properties");
 			}
 		}
+		// Check argument
+		if (!(e.getExpression().getType() instanceof TypePathDouble)) {
+			throw new PrismLangException("Type error: Contents of R operator is invalid", e.getExpression());
+		}
 		// Set type
 		e.setType(e.getReward() == null ? TypeDouble.getInstance() : TypeBool.getInstance());
 	}
 
 	public void visitPost(ExpressionSS e) throws PrismLangException
 	{
+		// Check probability bound
 		if (e.getProb() != null && !TypeDouble.getInstance().canAssign(e.getProb().getType())) {
 			throw new PrismLangException("Type error: S operator probability bound is not a double", e.getProb());
 		}
+		// Check filter
 		if (e.getFilter() != null && !(e.getFilter().getExpression().getType() instanceof TypeBool)) {
 			throw new PrismLangException("Type error: P operator filter is not a Boolean", e.getFilter().getExpression());
 		}
@@ -516,6 +531,10 @@ public class TypeCheck extends ASTTraverse
 			if (e.getFilter().minRequested() || e.getFilter().maxRequested()) {
 				throw new PrismLangException("Type error: Cannot use min/max filters in Boolean-valued properties");
 			}
+		}
+		// Check argument
+		if (!(e.getExpression().getType() instanceof TypePathBool)) {
+			throw new PrismLangException("Type error: Contents of S operator is not a Boolean-valued expression", e.getExpression());
 		}
 		// Set type
 		e.setType(e.getProb() == null ? TypeDouble.getInstance() : TypeBool.getInstance());
