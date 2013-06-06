@@ -93,7 +93,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		boolean advGenNeeded = (prism.getExportAdv() != Prism.EXPORT_ADV_NONE);
 		if (advGenNeeded) {
 			if (engine != Prism.SPARSE) {
-				mainLog.printWarning("Adversary generation is only implemented for the sparse engine");
+				mainLog.println("Switching engine since only sparse engine currently supports this computation...");
+				engine = Prism.SPARSE;
 			}
 			if (precomp && prob1) {
 				mainLog.printWarning("Disabling Prob1 since this is needed for adversary generation");
