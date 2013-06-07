@@ -2285,6 +2285,7 @@ public class Prism implements PrismSettingsListener
 
 		// print message
 		mainLog.print("\nExporting labels and satisfying states ");
+		mainLog.print(getStringForExportType(exportType) + " ");
 		mainLog.println(getDestinationStringForFile(file));
 
 		// convert labels to bdds
