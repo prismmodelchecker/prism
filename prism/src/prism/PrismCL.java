@@ -1990,6 +1990,7 @@ public class PrismCL implements PrismModelListener
 		mainLog.println();
 		mainLog.println("IMPORT OPTIONS:");
 		mainLog.println("-importpepa .................... Model description is in PEPA, not the PRISM language");
+		mainLog.println("-importmodel <files> ........... Import the model directly from text file(s)");
 		mainLog.println("-importtrans <file> ............ Import the transition matrix directly from a text file");
 		mainLog.println("-importstates <file>............ Import the list of states directly from a text file");
 		mainLog.println("-importlabels <file>............ Import the list of labels directly from a text file");
@@ -2000,6 +2001,7 @@ public class PrismCL implements PrismModelListener
 		mainLog.println();
 		mainLog.println("EXPORT OPTIONS:");
 		mainLog.println("-exportresults <file[,options]>  Export the results of model checking to a file");
+		mainLog.println("-exportmodel <files[:options]> . Export the built model to file(s)");
 		mainLog.println("-exporttrans <file> ............ Export the transition matrix to a file");
 		mainLog.println("-exportstaterewards <file> ..... Export the state rewards vector to a file");
 		mainLog.println("-exporttransrewards <file> ..... Export the transition rewards matrix to a file");
@@ -2064,6 +2066,16 @@ public class PrismCL implements PrismModelListener
 			mainLog.println("<options> is a comma-separated list of options taken from:");
 			GenerateSimulationPath.printOptions(mainLog);
 		}
+		// -importmodel
+		else if (sw.equals("importmodel")) {
+			mainLog.println("Switch: -importmodel <files>\n");
+			mainLog.println("Import the model directly from text file(s).");
+			mainLog.println("Use a list of file extensions to indicate which files should be read, e.g.:");
+			mainLog.println("\n -importmodel in.tra,in.sta\n");
+			mainLog.println("Possible extensions are: .tra, .sta, .lab");
+			mainLog.println("Use extension .all to import all, e.g.:");
+			mainLog.println("\n -importmodel in.all\n");
+		}
 		// -exportresults
 		else if (sw.equals("exportresults")) {
 			mainLog.println("Switch: -exportresults <file[,options]>\n");
@@ -2072,6 +2084,24 @@ public class PrismCL implements PrismModelListener
 			mainLog.println("If provided, <options> is a comma-separated list of options taken from:");
 			mainLog.println(" * csv - Export results as comma-separated values");
 			mainLog.println(" * matrix - Export results as one or more 2D matrices (e.g. for surface plots)");
+		}
+		// -exportmodel
+		else if (sw.equals("exportmodel")) {
+			mainLog.println("Switch: -exportmodel <files[:options]>\n");
+			mainLog.println("Export the built model to file(s) (or to the screen if <file>=\"stdout\").");
+			mainLog.println("Use a list of file extensions to indicate which files should be generated, e.g.:");
+			mainLog.println("\n -exportmodel out.tra,out.sta\n");
+			mainLog.println("Possible extensions are: .tra, .srew, .trew, .sta, .lab");
+			mainLog.println("Use extension .all to export all and .rew to export both .srew/.trew, e.g.:");
+			mainLog.println("\n -exportmodel out.all\n");
+			mainLog.println("Omit the file basename to use the basename of the model file, e.g.:");
+			mainLog.println("\n -exportmodel .all\n");
+			mainLog.println("If provided, <options> is a comma-separated list of options taken from:");
+			mainLog.println(" * mrmc - export data in MRMC format");
+			mainLog.println(" * matlab - export data in Matlab format");
+			mainLog.println(" * rows - export matrices with one row/distribution on each line");
+			mainLog.println(" * ordered - output states indices inb ascending ordered [default]");
+			mainLog.println(" * unordered - don't output states indices inb ascending ordered [default]");
 		}
 		// Try PrismSettings
 		else if (PrismSettings.printHelpSwitch(mainLog, sw)) {
