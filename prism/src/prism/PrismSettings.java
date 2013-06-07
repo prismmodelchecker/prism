@@ -253,7 +253,7 @@ public class PrismSettings implements Observer
 			{ BOOLEAN_TYPE,		PRISM_DO_SS_DETECTION,					"Use steady-state detection",			"2.1",			new Boolean(true),															"0,",																						
 																			"Use steady-state detection during CTMC transient probability computation." },
 			{ CHOICE_TYPE,		PRISM_SCC_METHOD,						"SCC decomposition method",				"3.2",			"Lockstep",																	"Xie-Beerel,Lockstep,SCC-Find",																
-																			"Which algorithm to use for decomposing a graph into strongly connected components (SCCs)." },
+																			"Which algorithm to use for (symbolic) decomposition of a graph into strongly connected components (SCCs)." },
 			{ STRING_TYPE,		PRISM_SYMM_RED_PARAMS,					"Symmetry reduction parameters",		"3.2",			"",																	"",																
 																			"Parameters for symmetry reduction (format: \"i j\" where i and j are the number of modules before and after the symmetric ones; empty string means symmetry reduction disabled)." },
 			{ STRING_TYPE,		PRISM_AR_OPTIONS,						"Abstraction refinement options",		"3.3",			"",																	"",																
@@ -1359,7 +1359,7 @@ public class PrismSettings implements Observer
 		mainLog.println("-noprobchecks .................. Disable checks on model probabilities/rates");
 		mainLog.println("-zerorewardcheck ............... Check for absence of zero-reward loops");
 		mainLog.println("-nossdetect .................... Disable steady-state detection for CTMC transient computations");
-		mainLog.println("-sccmethod <name> .............. Specify SCC computation method (xiebeerel, lockstep, sccfind)");
+		mainLog.println("-sccmethod <name> .............. Specify (symbolic) SCC computation method (xiebeerel, lockstep, sccfind)");
 		mainLog.println("-symm <string> ................. Symmetry reduction options string");
 		mainLog.println("-aroptions <string> ............ Abstraction-refinement engine options string");
 		mainLog.println("-exportadv <file> .............. Export an adversary from MDP model checking (as a DTMC)");
