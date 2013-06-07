@@ -882,8 +882,15 @@ public class PrismCL implements PrismModelListener
 				// Any "hidden" options, i.e. not in -help text/manual, are indicated as such.
 
 				// print help
-				if (sw.equals("help") || sw.equals("-help") || sw.equals("?")) {
-					printHelp();
+				if (sw.equals("help") || sw.equals("?")) {
+					// see if userg requested help for a specific switch, e.g. -help simpath
+					// note: this is one of the few places where a second argument is optional,
+					// which is possible here because -help should usually be the only switch provided
+					if (i < args.length - 1) {
+						printHelpSwitch(args[++i]);
+					} else {
+						printHelp();
+					}
 					exit();
 				}
 				// print version
@@ -1875,11 +1882,11 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("========");
 		mainLog.println();
 		mainLog.println("-help .......................... Display this help message");
-		mainLog.println("-version ....................... Display tool version");
+		mainLog.println("-version ....................... Display PRISM version info");
 		mainLog.println("-settings <file>................ Load settings from <file>");
 		mainLog.println();
 		mainLog.println("-pf <props> (or -pctl or -csl) . Model check properties <props>");
-		mainLog.println("-property <n> (or -prop <n>) ... Only model check property <n>");
+		mainLog.println("-property <n> (or -prop <n>) ... Only model check property with index/name <n>");
 		mainLog.println("-const <vals> .................. Define constant values as <vals> (e.g. for experiments)");
 		mainLog.println("-steadystate (or -ss) .......... Compute steady-state probabilities (D/CTMCs only)");
 		mainLog.println("-transient <x> (or -tr <x>) .... Compute transient probabilities for time (or time range) <x> (D/CTMCs only)");
@@ -1934,8 +1941,44 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-simvar <n> .................... Set the minimum number of samples to know the variance is null or not");
 		mainLog.println("-simmaxrwd <x> ................. Set the maximum reward -- useful to display the CI/ACI methods progress");
 		mainLog.println("-simpathlen <n> ................ Set the maximum path length for the simulator");
+		
+		mainLog.println();
+		mainLog.println("You can also use \"prism -help xxx\" for help on some switches -xxx with non-obvious syntax.");
 	}
 
+	/**
+	 * Print a -help xxx message, i.e. display help on a specific switch
+	 */
+	private void printHelpSwitch(String sw)
+	{
+		// -const
+		if (sw.equals("const")) {
+			mainLog.println("Switch: -const <vals>\n");
+			mainLog.println("<vals> is a comma-separated list of values or value ranges for undefined constants");
+			mainLog.println("in the model or properties (i.e. those declared without values, such as \"const int a;\").");
+			mainLog.println("You can either specify a single value (a=1), a range (a=1:10) or a range with a step (a=1:2:50).");
+			mainLog.println("For convenience, constant definutions can also be split across multiple -const switches.");
+			mainLog.println("\nExamples:");
+			mainLog.println(" -const a=1,b=5.6,c=true");
+			mainLog.println(" -const a=1:10,b=5.6");
+			mainLog.println(" -const a=1:2:50,b=5.6");
+			mainLog.println(" -const a=1:2:50 -const b=5.6");
+		}
+		// -exportresults
+		else if (sw.equals("exportresults")) {
+			mainLog.println("Switch: -exportresults <file[,options]>\n");
+			mainLog.println("Exports the results of model checking to <file> (or to the screen if <file>=\"stdout\").");
+			mainLog.println("The default behaviour is to export a list of results in text form, using tabs to separate items.");
+			mainLog.println("If provided, <options> is a comma-separated list of options taken from:");
+			mainLog.println(" * csv - Export results as comma-separated values");
+			mainLog.println(" * matrix - Export results as one or more 2D matrices (e.g. for surface plots)");
+		}
+		// Unknown
+		else {
+			mainLog.println("Sorry - no help available for switch -" + sw);
+		}
+	}
+	
 	// print version
 
 	private void printVersion()
