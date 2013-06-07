@@ -38,6 +38,7 @@ import parser.ast.ExpressionReward;
 import parser.ast.ModulesFile;
 import parser.ast.PropertiesFile;
 import parser.ast.Property;
+import simulator.GenerateSimulationPath;
 import simulator.method.ACIconfidence;
 import simulator.method.ACIiterations;
 import simulator.method.ACIwidth;
@@ -1927,7 +1928,7 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-exportprism <file> ............ Export final PRISM model to a file");
 		mainLog.println("-exportprismconst <file> ....... Export final PRISM model with expanded constants to a file");
 
-		prism.getSettings().printHelp(mainLog);
+		PrismSettings.printHelp(mainLog);
 
 		mainLog.println();
 		mainLog.println("SIMULATION OPTIONS:");
@@ -1964,6 +1965,13 @@ public class PrismCL implements PrismModelListener
 			mainLog.println(" -const a=1:2:50,b=5.6");
 			mainLog.println(" -const a=1:2:50 -const b=5.6");
 		}
+		// -simpath
+		else if (sw.equals("simpath")) {
+			mainLog.println("Switch: -simpath <options> <file>\n");
+			mainLog.println("Generate a random path with the simulator and export it to <file> (or to the screen if <file>=\"stdout\").");
+			mainLog.println("<options> is a comma-separated list of options taken from:");
+			GenerateSimulationPath.printOptions(mainLog);
+		}
 		// -exportresults
 		else if (sw.equals("exportresults")) {
 			mainLog.println("Switch: -exportresults <file[,options]>\n");
@@ -1972,6 +1980,10 @@ public class PrismCL implements PrismModelListener
 			mainLog.println("If provided, <options> is a comma-separated list of options taken from:");
 			mainLog.println(" * csv - Export results as comma-separated values");
 			mainLog.println(" * matrix - Export results as one or more 2D matrices (e.g. for surface plots)");
+		}
+		// Try PrismSettings
+		else if (PrismSettings.printHelpSwitch(mainLog, sw)) {
+			return;
 		}
 		// Unknown
 		else {

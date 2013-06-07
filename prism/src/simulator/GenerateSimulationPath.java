@@ -316,6 +316,25 @@ public class GenerateSimulationPath
 	}
 
 	/**
+	 * Print bulleted list of options to a log (used by -help switch). 
+	 */
+	public static void printOptions(PrismLog mainLog)
+	{
+		mainLog.println(" * <n> - generate a path of <n> steps");
+		mainLog.println(" * time=<x> - generate a path of at least <x> time units");
+		mainLog.println(" * deadlock - generate a path until a deadlock is reached");
+		mainLog.println(" * repeat=<n> - try <n> paths until a deadlock is found");
+		
+		mainLog.println(" * sep=<val> - use <val> as column separator (space, tab, comma)");
+		mainLog.println(" * vars=<x1,x2,...> - show values for variables x1,x2,.. only");
+		mainLog.println(" * loopcheck=<true|false> - whether to detect deterministic loops");
+		mainLog.println(" * snapshot=<x> - view states at fixed timepoints of interval <x>");
+		mainLog.println(" * probs=<true|false> - display probability (or rate) of transitions taken");
+		mainLog.println(" * rewards=<true|false> - display state/transition rewards");
+		mainLog.println(" * changes=<true|false> - only display states where displayed variables change");
+	}
+
+	/**
 	 * Create a PathDisplayer object for file export
 	 */
 	private PathDisplayer generateDisplayerForExport() throws PrismException

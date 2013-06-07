@@ -371,6 +371,29 @@ public abstract class QuantAbstractRefine
 				parseOption(opt);
 	}
 
+	/**
+	 * Print bulleted list of options to a log (used by -help switch). 
+	 */
+	public static void printOptions(PrismLog mainLog)
+	{
+		mainLog.println(" * verbose=<n> (or v=<n>) - verbosity level");
+		mainLog.println(" * refine=<where,how> - which states to refine and how");
+		mainLog.println("     <where> = all, allmax, first, firstmax, last, lastmax");
+		mainLog.println("     <how> = all, val");
+		mainLog.println(" * epsilonref=<x> (or eref=<x>) - epsilon for refinement");
+		mainLog.println(" * nopre  - disable precomputation");
+		mainLog.println(" * pre - use precomputation");
+		mainLog.println(" * noprob0 - disable prob0 precomputation");
+		mainLog.println(" * noprob1 - disable prob1 precomputation");
+		mainLog.println(" * epsilon=<x> - epsilon for numerical convergence");
+		mainLog.println(" * maxref=<n> - maximum number of refinements");
+		mainLog.println(" * opt - use optimisations");
+		mainLog.println(" * noopt - disable optimisations");
+		mainLog.println(" * exportdot - export dot files for each refinement");
+		mainLog.println(" * above - start numerical soluton from above");
+		mainLog.println(" * below - start numerical soluton from below");
+	}
+	
 	// Abstract methods that must be implemented for abstraction-refinement loop
 
 	/**

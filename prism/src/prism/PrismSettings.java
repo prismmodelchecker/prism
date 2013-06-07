@@ -32,6 +32,9 @@ import java.util.*;
 import java.io.*;
 import java.awt.*;
 import javax.swing.*;
+
+import explicit.QuantAbstractRefine;
+
 import java.util.regex.*;
 
 import parser.ast.*;
@@ -1311,7 +1314,7 @@ public class PrismSettings implements Observer
 	 * Print a fragment of the -help message,
 	 * i.e. a list of the command-line switches handled by this class.
 	 */
-	public void printHelp(PrismLog mainLog)
+	public static void printHelp(PrismLog mainLog)
 	{
 		mainLog.println();
 		mainLog.println("ENGINES/METHODS:");
@@ -1403,6 +1406,22 @@ public class PrismSettings implements Observer
 		mainLog.println("-fauinitival <x> ............... Set length of additional initial time interval [default: 1.0]");
 	}
 
+	/**
+	 * Print a -help xxx message, i.e. display help on a specific switch {@code sw}.
+	 * Return true iff help was available for this switch.
+	 */
+	public static boolean printHelpSwitch(PrismLog mainLog, String sw)
+	{
+		// -aroptions
+		if (sw.equals("aroptions")) {
+			mainLog.println("Switch: -aroptions <string>\n");
+			mainLog.println("<string> is a comma-separated list of options regarding abstraction-refinement:");
+			QuantAbstractRefine.printOptions(mainLog);
+			return true;
+		}
+		return false;
+	}
+	
 	/**
 	 * Set the value for an option, with the option key given as a String,
 	 * and the value as an Object of appropriate type or a String to be parsed.
