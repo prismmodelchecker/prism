@@ -2,7 +2,7 @@ This file contains details of the changes in each new version of PRISM.
 
 New since last release:
 
-* Some new '-help xxx' switches
+* Some new '-help xxx' switches (const,simpath,exportresults,aroptions,exportmodel,importmodel)
 * New -exportmodel and -importmodel convenience switches
 * Allow command-line switches of form --sw (as well as -sw)
 * Parametric model checking
