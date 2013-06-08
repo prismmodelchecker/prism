@@ -1073,10 +1073,20 @@ public class PrismCL implements PrismModelListener
 						exportresults = true;
 						// Parse filename/options
 						s = args[++i];
-						String ss[] = s.split(",");
-						exportResultsFilename = ss[0];
-						for (j = 1; j < ss.length; j++) {
-							if (ss[j].equals("csv"))
+						// Assume use of : to split filename/options but check for , if : not found
+						// (this was the old notation)
+						String halves[] = splitFilesAndOptions(s); 
+						if (halves[1].length() == 0 && halves[0].indexOf(',') > -1) {
+							int comma = halves[0].indexOf(',');
+							halves[1] = halves[0].substring(comma + 1); 
+							halves[0] = halves[0].substring(0, comma);
+						}
+						exportResultsFilename = halves[0];
+						String ss[] = halves[1].split(",");
+						for (j = 0; j < ss.length; j++) {
+							if (ss[j].equals("")) {
+							}
+							else if (ss[j].equals("csv"))
 								exportresultscsv = true;
 							else if (ss[j].equals("matrix"))
 								exportresultsmatrix = true;
@@ -2000,7 +2010,7 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-mdp ........................... Force imported/built model to be an MDP");
 		mainLog.println();
 		mainLog.println("EXPORT OPTIONS:");
-		mainLog.println("-exportresults <file[,options]>  Export the results of model checking to a file");
+		mainLog.println("-exportresults <file[:options]>  Export the results of model checking to a file");
 		mainLog.println("-exportmodel <files[:options]> . Export the built model to file(s)");
 		mainLog.println("-exporttrans <file> ............ Export the transition matrix to a file");
 		mainLog.println("-exportstaterewards <file> ..... Export the state rewards vector to a file");
