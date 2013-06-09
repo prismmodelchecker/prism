@@ -524,7 +524,7 @@ public class TypeCheck extends ASTTraverse
 		}
 		// Check filter
 		if (e.getFilter() != null && !(e.getFilter().getExpression().getType() instanceof TypeBool)) {
-			throw new PrismLangException("Type error: P operator filter is not a Boolean", e.getFilter().getExpression());
+			throw new PrismLangException("Type error: S operator filter is not a Boolean", e.getFilter().getExpression());
 		}
 		// Need to to do this type check here because some info has been lost when converted to ExpressionFilter
 		if (e.getProb() != null && e.getFilter() != null) {
@@ -533,7 +533,7 @@ public class TypeCheck extends ASTTraverse
 			}
 		}
 		// Check argument
-		if (!(e.getExpression().getType() instanceof TypePathBool)) {
+		if (!(e.getExpression().getType() instanceof TypeBool)) {
 			throw new PrismLangException("Type error: Contents of S operator is not a Boolean-valued expression", e.getExpression());
 		}
 		// Set type
