@@ -2,7 +2,8 @@ This file contains details of the changes in each new version of PRISM.
 
 New since last release:
 
-* Slight change to notaton for -exportresults to match -exportmodel
+* Small improvements to usability of the GUI simulator transition table
+* Slight change to notation for -exportresults to match -exportmodel
 * Some new '-help xxx' switches (const,simpath,exportresults,aroptions,exportmodel,importmodel)
 * New -exportmodel and -importmodel convenience switches
 * Allow command-line switches of form --sw (as well as -sw)
