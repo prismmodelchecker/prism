@@ -130,7 +130,7 @@ public class Prism implements PrismSettingsListener
 	public static final int MDP_MULTI_VALITER = 1;
 	public static final int MDP_MULTI_GAUSSSEIDEL = 2;
 	public static final int MDP_MULTI_LP = 3;
-	
+
 	// termination criterion for iterative methods
 	public static final int ABSOLUTE = 1;
 	public static final int RELATIVE = 2;
@@ -2655,7 +2655,7 @@ public class Prism implements PrismSettingsListener
 		// Do simulation
 		getSimulator().modelCheckExperiment(currentModulesFile, propertiesFile, undefinedConstants, results, expr, initialState, pathLength, simMethod);
 	}
-	
+
 	/**
 	 * Generate a random path through the model using the simulator.
 	 * @param modulesFile The model
@@ -2827,8 +2827,7 @@ public class Prism implements PrismSettingsListener
 			probsExpl = fau.doTransient(time, fileIn);
 			mainLog.println("\nTotal probability lost is : " + fau.getTotalDiscreteLoss());
 			mainLog.println("Maximal number of states stored during analysis : " + fau.getMaxNumStates());
-		}
-		else if (!getExplicit()) {
+		} else if (!getExplicit()) {
 			if (currentModelType == ModelType.DTMC) {
 				mc = new ProbModelChecker(this, currentModel, null);
 				probs = ((ProbModelChecker) mc).doTransient((int) time, fileIn);
@@ -3425,12 +3424,11 @@ public class Prism implements PrismSettingsListener
 	 * @throws PrismException e.g. if no parameters specified or other things go wrong
 	 */
 	public Result modelCheckParametric(PropertiesFile propertiesFile, Property prop, String[] paramNames, String[] paramLowerBounds, String[] paramUpperBounds)
-	throws PrismException
+			throws PrismException
 	{
-		
+
 		if (paramNames == null) {
-			throw new PrismException("Must specify some parameters when using "
-					+ "the parametric analysis");
+			throw new PrismException("Must specify some parameters when using " + "the parametric analysis");
 		}
 		Values constlist = currentModulesFile.getConstantValues();
 		for (int pnr = 0; pnr < paramNames.length; pnr++) {
@@ -3439,9 +3437,9 @@ public class Prism implements PrismSettingsListener
 		param.ModelBuilder builder = new ModelBuilder();
 		builder.setModulesFile(currentModulesFile);
 		builder.setMainLong(mainLog);
-		builder.setParameters(paramNames, paramLowerBounds,	paramUpperBounds);
+		builder.setParameters(paramNames, paramLowerBounds, paramUpperBounds);
 		builder.setSettings(settings);
-		builder.build();						
+		builder.build();
 		explicit.Model modelExpl = builder.getModel();
 		ParamModelChecker mc = new ParamModelChecker();
 		mc.setModelBuilder(builder);
