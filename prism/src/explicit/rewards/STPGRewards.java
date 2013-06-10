@@ -38,14 +38,19 @@ public interface STPGRewards extends Rewards
 	 * Get the state reward for state {@code s}.
 	 */
 	public abstract double getStateReward(int s);
-	
+
 	/**
 	 * Get the transition reward for the {@code i}th choice from state {@code s}.
 	 */
-	public abstract double getTransitionReward(int s, int i); 
-	
+	public abstract double getTransitionReward(int s, int i);
+
 	/**
 	 * Get the transition reward for the {@code i,j}th nested choice from state {@code s}.
 	 */
-	public abstract double getNestedTransitionReward(int s, int i, int j); 
+	public abstract double getNestedTransitionReward(int s, int i, int j);
+
+	/**
+	 * Build an MDPRewards object containing all the same rewards except for the nested ones.
+	 */
+	public abstract MDPRewards buildMDPRewards();
 }

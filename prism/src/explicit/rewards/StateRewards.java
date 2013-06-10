@@ -29,7 +29,7 @@ package explicit.rewards;
 /**
  * Explicit-state storage of just state rewards.
  */
-public abstract class StateRewards implements MCRewards, MDPRewards
+public abstract class StateRewards implements MCRewards, MDPRewards, STPGRewards
 {
 	/**
 	 * Get the state reward for state {@code s}.
@@ -41,4 +41,21 @@ public abstract class StateRewards implements MCRewards, MDPRewards
 	{
 		return 0.0;
 	}
+	
+	@Override
+	public double getNestedTransitionReward(int s, int i, int j)
+	{
+		return 0.0;
+	}
+	
+	@Override
+	public MDPRewards buildMDPRewards()
+	{
+		return deepCopy();
+	}
+	
+	/**
+	 * Perform a deep copy.
+	 */
+	public abstract StateRewards deepCopy();
 }

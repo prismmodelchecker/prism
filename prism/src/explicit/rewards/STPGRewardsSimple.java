@@ -45,7 +45,7 @@ public class STPGRewardsSimple extends MDPRewardsSimple implements STPGRewards
 		// Initially list is just null (denoting all 0)
 		nestedTransRewards = null;
 	}
-	
+
 	// Mutators
 
 	/**
@@ -106,9 +106,9 @@ public class STPGRewardsSimple extends MDPRewardsSimple implements STPGRewards
 			nestedTransRewards.set(s, null);
 		}
 	}
-	
+
 	// Accessors
-	
+
 	@Override
 	public double getNestedTransitionReward(int s, int i, int j)
 	{
@@ -122,7 +122,15 @@ public class STPGRewardsSimple extends MDPRewardsSimple implements STPGRewards
 			return 0.0;
 		return list2.get(j);
 	}
-	
+
+	// Other
+
+	@Override
+	public MDPRewards buildMDPRewards()
+	{
+		return new MDPRewardsSimple(this);
+	}
+
 	@Override
 	public String toString()
 	{

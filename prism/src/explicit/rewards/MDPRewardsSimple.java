@@ -41,7 +41,7 @@ public class MDPRewardsSimple implements MDPRewards
 	protected List<Double> stateRewards;
 	/** Transition rewards */
 	protected List<List<Double>> transRewards;
-	
+
 	/**
 	 * Constructor: all zero rewards.
 	 * @param numStates Number of states
@@ -53,9 +53,44 @@ public class MDPRewardsSimple implements MDPRewards
 		stateRewards = null;
 		transRewards = null;
 	}
-	
+
+	/**
+	 * Copy constructor
+	 * @param rews Rewards to copy
+	 */
+	public MDPRewardsSimple(MDPRewardsSimple rews)
+	{
+		numStates = rews.numStates;
+		if (rews.stateRewards == null) {
+			stateRewards = null;
+		} else {
+			stateRewards = new ArrayList<Double>(numStates);
+			for (int i = 0; i < numStates; i++) {
+				stateRewards.add(rews.stateRewards.get(i));
+			}
+		}
+		if (rews.transRewards == null) {
+			transRewards = null;
+		} else {
+			transRewards = new ArrayList<List<Double>>(numStates);
+			for (int i = 0; i < numStates; i++) {
+				List<Double> list = rews.transRewards.get(i);
+				if (list == null) {
+					transRewards.add(null);
+				} else {
+					int n = list.size();
+					List<Double> list2 = new ArrayList<Double>(n);
+					transRewards.add(list2);
+					for (int j = 0; j < n; j++) {
+						list2.add(list.get(j));
+					}
+				}
+			}
+		}
+	}
+
 	// Mutators
-	
+
 	/**
 	 * Set the state reward for state {@code s} to {@code r}.
 	 */
@@ -116,7 +151,7 @@ public class MDPRewardsSimple implements MDPRewards
 	{
 		setTransitionReward(s, i, getTransitionReward(s, i) + r);
 	}
-	
+
 	/**
 	 * Clear all rewards for state s.
 	 */
@@ -127,9 +162,9 @@ public class MDPRewardsSimple implements MDPRewards
 			transRewards.set(s, null);
 		}
 	}
-	
+
 	// Accessors
-	
+
 	@Override
 	public double getStateReward(int s)
 	{
@@ -137,7 +172,7 @@ public class MDPRewardsSimple implements MDPRewards
 			return 0.0;
 		return stateRewards.get(s);
 	}
-	
+
 	@Override
 	public double getTransitionReward(int s, int i)
 	{
@@ -148,7 +183,7 @@ public class MDPRewardsSimple implements MDPRewards
 			return 0.0;
 		return list.get(i);
 	}
-	
+
 	@Override
 	public String toString()
 	{
