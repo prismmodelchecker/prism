@@ -27,13 +27,21 @@
 
 package explicit;
 
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
-import java.io.*;
 
-import explicit.rewards.MDPRewards;
 import prism.PrismException;
 import prism.PrismUtils;
+import explicit.rewards.MDPRewards;
 
 /**
  * Simple explicit-state representation of an MDP.
@@ -166,6 +174,47 @@ public class MDPSimple extends MDPExplicit implements ModelSimple
 		numTransitions = mdp.numTransitions;
 		maxNumDistrs = mdp.maxNumDistrs;
 		maxNumDistrsOk = mdp.maxNumDistrsOk;
+	}
+
+	/**
+	 * Construct an MDPSimple object from an MDPSparse one.
+	 */
+	public MDPSimple(MDPSparse mdp)
+	{
+		this(mdp.numStates);
+		copyFrom(mdp);
+		// Copy storage directly to avoid worrying about duplicate distributions (and for efficiency)
+		for (int s = 0; s < numStates; s++) {
+			for (int c = 0; c < mdp.getNumChoices(s); c++) {
+				Distribution distr = new Distribution();
+				Iterator<Entry<Integer, Double>> it = mdp.getTransitionsIterator(s, c);
+				while (it.hasNext()) {
+					Entry<Integer, Double> entry = it.next();
+					distr.add(entry.getKey(), entry.getValue());
+				}
+				this.addChoice(s, distr);
+			}
+		}
+
+		if (mdp.actions != null) {
+			actions = new ArrayList<List<Object>>(numStates);
+			for (int s = 0; s < numStates; s++)
+				actions.add(null);
+			for (int s = 0; s < numStates; s++) {
+				int n = mdp.getNumChoices(s);
+				List<Object> list = new ArrayList<Object>(n);
+				for (int i = 0; i < n; i++) {
+					list.add(mdp.getAction(s, i));
+				}
+				actions.set(s, list);
+			}
+		}
+		// Copy flags/stats too
+		allowDupes = false; // TODO check this
+		numDistrs = mdp.numDistrs;
+		numTransitions = mdp.numTransitions;
+		maxNumDistrs = mdp.maxNumDistrs;
+		maxNumDistrsOk = true; // TODO not sure
 	}
 
 	// Mutators (for ModelSimple)
@@ -400,7 +449,7 @@ public class MDPSimple extends MDPExplicit implements ModelSimple
 		}
 		return succs.iterator();
 	}
-	
+
 	@Override
 	public boolean isSuccessor(int s1, int s2)
 	{
