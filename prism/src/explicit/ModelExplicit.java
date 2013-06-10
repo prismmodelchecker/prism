@@ -27,7 +27,10 @@
 package explicit;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.List;
+import java.util.TreeSet;
 
 import parser.State;
 import parser.Values;
@@ -35,8 +38,8 @@ import parser.VarList;
 import prism.ModelType;
 import prism.Prism;
 import prism.PrismException;
-import prism.PrismLog;
 import prism.PrismFileLog;
+import prism.PrismLog;
 
 /**
  * Base class for explicit-state model representations.

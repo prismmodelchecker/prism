@@ -27,13 +27,22 @@
 
 package explicit;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.LinkedList;
+import java.util.List;
 
-import parser.*;
-import parser.ast.*;
-import prism.*;
-import simulator.*;
+import parser.State;
+import parser.Values;
+import parser.ast.ModulesFile;
+import prism.ModelType;
+import prism.Prism;
+import prism.PrismException;
+import prism.PrismLog;
+import prism.PrismPrintStreamLog;
+import prism.ProgressDisplay;
+import prism.UndefinedConstants;
+import simulator.SimulatorEngine;
 
 public class ConstructModel
 {
@@ -46,9 +55,9 @@ public class ConstructModel
 	private boolean findDeadlocks = true;
 	// Automatically fix deadlocks?
 	private boolean fixDeadlocks = true;
-	
+
 	// Basic info needed about model
-	//	private ModelType modelType;
+	// private ModelType modelType;
 
 	// Details of built model
 	private List<State> statesList;
@@ -68,7 +77,7 @@ public class ConstructModel
 	{
 		fixDeadlocks = b;
 	}
-	
+
 	/**
 	 * Build the set of reachable states for a PRISM model language description and return.
 	 * @param modulesFile The PRISM model
