@@ -104,14 +104,15 @@ public class PathFull extends Path implements PathFullInfo
 	}
 
 	@Override
-	public void addStep(int choice, int moduleOrActionIndex, double probability, double[] transitionRewards, State newState, double[] newStateRewards, TransitionList transitionList)
+	public void addStep(int choice, int moduleOrActionIndex, double probability, double[] transitionRewards, State newState, double[] newStateRewards,
+			TransitionList transitionList)
 	{
 		addStep(1.0, choice, moduleOrActionIndex, probability, transitionRewards, newState, newStateRewards, transitionList);
 	}
 
 	@Override
-	public void addStep(double time, int choice, int moduleOrActionIndex, double probability, double[] transitionRewards, State newState, double[] newStateRewards,
-			TransitionList transitionList)
+	public void addStep(double time, int choice, int moduleOrActionIndex, double probability, double[] transitionRewards, State newState,
+			double[] newStateRewards, TransitionList transitionList)
 	{
 		Step stepOld, stepNew;
 		// Add info to last existing step
@@ -257,7 +258,7 @@ public class PathFull extends Path implements PathFullInfo
 	{
 		return steps.get(steps.size() - 2).probability;
 	}
-	
+
 	@Override
 	public double getTotalTime()
 	{
@@ -431,7 +432,7 @@ public class PathFull extends Path implements PathFullInfo
 	{
 		return steps.get(steps.size() - 2).probability;
 	}
-	
+
 	/**
 	 * Get a transition reward associated with a given step.
 	 * @param step Step index (0 = initial state/step of path)
@@ -497,7 +498,8 @@ public class PathFull extends Path implements PathFullInfo
 		displayer.start(getState(0), getStateRewards(0));
 		int n = size();
 		for (int i = 1; i <= n; i++) {
-			displayer.step(getTime(i - 1), getCumulativeTime(i), getModuleOrAction(i - 1), getProbability(i - 1), getTransitionRewards(i), i, getState(i), getStateRewards(i));
+			displayer.step(getTime(i - 1), getCumulativeTime(i), getModuleOrAction(i - 1), getProbability(i - 1), getTransitionRewards(i), i, getState(i),
+					getStateRewards(i));
 		}
 		displayer.end();
 	}

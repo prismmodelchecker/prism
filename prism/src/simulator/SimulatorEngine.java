@@ -26,16 +26,34 @@
 
 package simulator;
 
-import java.util.*;
-import java.io.*;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
-import simulator.method.*;
-import simulator.sampler.*;
+import parser.State;
+import parser.Values;
+import parser.VarList;
+import parser.ast.Expression;
+import parser.ast.ExpressionFilter;
+import parser.ast.ExpressionProb;
+import parser.ast.ExpressionReward;
+import parser.ast.ExpressionTemporal;
+import parser.ast.LabelList;
+import parser.ast.ModulesFile;
+import parser.ast.PropertiesFile;
+import parser.type.Type;
+import prism.ModelType;
+import prism.Prism;
+import prism.PrismException;
+import prism.PrismFileLog;
+import prism.PrismLangException;
+import prism.PrismLog;
+import prism.PrismUtils;
+import prism.ResultsCollection;
+import prism.UndefinedConstants;
+import simulator.method.SimulationMethod;
+import simulator.sampler.Sampler;
 import userinterface.graph.Graph;
-import parser.*;
-import parser.ast.*;
-import parser.type.*;
-import prism.*;
 
 /**
  * A discrete event simulation engine for PRISM models.
@@ -184,7 +202,7 @@ public class SimulatorEngine
 			throw new PrismException("Sorry - the simulator does not currently handle the system...endsystem construct");
 		}
 	}
-	
+
 	/**
 	 * Create a new path for a model.
 	 * Note: All constants in the model must have already been defined.
@@ -499,7 +517,7 @@ public class SimulatorEngine
 			state = nextState;
 		}
 	}
-	
+
 	// ------------------------------------------------------------------------------
 	// Methods for adding/querying labels and properties
 	// ------------------------------------------------------------------------------
@@ -854,7 +872,7 @@ public class SimulatorEngine
 		}
 		return transitionList;
 	}
-	
+
 	/**
 	 * Returns the current number of available choices.
 	 */
@@ -1032,7 +1050,7 @@ public class SimulatorEngine
 	{
 		return (Path) path;
 	}
-	
+
 	/**
 	 * Get the size of the current path (number of steps; or number of states - 1).
 	 */
@@ -1089,7 +1107,7 @@ public class SimulatorEngine
 	{
 		return (PathFull) path;
 	}
-	
+
 	/**
 	 * Get the value of a variable at a given step of the path.
 	 * (Not applicable for on-the-fly paths)
@@ -1255,7 +1273,7 @@ public class SimulatorEngine
 		}
 		((PathFull) path).exportToLog(log, timeCumul, colSep, vars);
 	}
-	
+
 	/**
 	 * Plot the current path on a Graph.
 	 * @param graphModel Graph on which to plot path
@@ -1276,7 +1294,7 @@ public class SimulatorEngine
 	{
 		return isPropertyOKForSimulationString(expr) == null;
 	}
-	
+
 	/**
 	 * Check whether a property is suitable for approximate model checking using the simulator.
 	 * If not, an explanatory error message is thrown as an exception.
@@ -1287,7 +1305,7 @@ public class SimulatorEngine
 		if (errMsg != null)
 			throw new PrismException(errMsg);
 	}
-	
+
 	/**
 	 * Check whether a property is suitable for approximate model checking using the simulator.
 	 * If yes, return null; if not, return an explanatory error message.
@@ -1312,7 +1330,7 @@ public class SimulatorEngine
 		}
 		// Simulator cannot handle cumulative reward properties without a time bound
 		if (expr instanceof ExpressionReward) {
-			Expression exprTemp = ((ExpressionReward) expr).getExpression(); 
+			Expression exprTemp = ((ExpressionReward) expr).getExpression();
 			if (exprTemp instanceof ExpressionTemporal) {
 				if (((ExpressionTemporal) exprTemp).getOperator() == ExpressionTemporal.R_C) {
 					if (((ExpressionTemporal) exprTemp).getUpperBound() == null) {
