@@ -40,7 +40,9 @@ import parser.ast.RewardStruct;
 import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLog;
-import explicit.*;
+import explicit.DTMC;
+import explicit.MDP;
+import explicit.Model;
 
 public class ConstructRewards
 {
@@ -115,7 +117,7 @@ public class ConstructRewards
 
 	/**
 	 * Construct the rewards for an MDP from a model and reward structure. 
-	 * @param model The MDP
+	 * @param mdp The MDP
 	 * @param rewStr The reward structure
 	 * @param constantValues Values for any undefined constants needed
 	 */
