@@ -29,7 +29,7 @@ package prism;
 public enum ModelType {
 
 	// List of model types (ordered alphabetically)
-	CTMC, CTMDP, DTMC, MDP, PTA, STPG;
+	CTMC, CTMDP, DTMC, MDP, PTA, STPG, SMG;
 
 	/**
 	 * Get the full name, in words, of the this model type.
@@ -49,11 +49,13 @@ public enum ModelType {
 			return "probabilistic timed automaton";
 		case STPG:
 			return "stochastic two-player game";
+		case SMG:
+			return "stochastic multi-player game";
 		}
 		// Should never happen
 		return "";
 	}
-	
+
 	/**
 	 * Get the PRISM keyword for this model type.
 	 */
@@ -72,11 +74,13 @@ public enum ModelType {
 			return "pta";
 		case STPG:
 			return "stpg";
+		case SMG:
+			return "smg";
 		}
 		// Should never happen
 		return "";
 	}
-	
+
 	/**
 	 * Do the transitions in a choice sum to 1 for this model type?
 	 * Can also use this to test whether models uses rates or probabilities.
@@ -88,6 +92,7 @@ public enum ModelType {
 		case MDP:
 		case PTA:
 		case STPG:
+		case SMG:
 			return true;
 		case CTMC:
 		case CTMDP:
@@ -96,7 +101,7 @@ public enum ModelType {
 		// Should never happen
 		return true;
 	}
-	
+
 	/**
 	 * Are time delay continuous for this model type?
 	 */
@@ -106,6 +111,7 @@ public enum ModelType {
 		case DTMC:
 		case MDP:
 		case STPG:
+		case SMG:
 			return false;
 		case PTA:
 		case CTMC:
@@ -115,7 +121,7 @@ public enum ModelType {
 		// Should never happen
 		return true;
 	}
-	
+
 	/**
 	 * Does this model allow nondeterministic choices?
 	 */
@@ -127,6 +133,7 @@ public enum ModelType {
 			return false;
 		case MDP:
 		case STPG:
+		case SMG:
 		case PTA:
 		case CTMDP:
 			return true;
@@ -134,7 +141,7 @@ public enum ModelType {
 		// Should never happen
 		return true;
 	}
-	
+
 	/**
 	 * Does this model have probabilities or rates?
 	 * @return "Probability" or "Rate"
@@ -149,7 +156,7 @@ public enum ModelType {
 			return "Probability";
 		}
 	}
-	
+
 	public static ModelType parseName(String name)
 	{
 		if ("ctmc".equals(name))
@@ -164,6 +171,8 @@ public enum ModelType {
 			return PTA;
 		else if ("stpg".equals(name))
 			return STPG;
+		else if ("smg".equals(name))
+			return SMG;
 		else
 			return null;
 	}
