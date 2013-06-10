@@ -143,6 +143,26 @@ public enum ModelType {
 	}
 
 	/**
+	 * Does this model have more than 1 player?
+	 */
+	public boolean multiplePlayers()
+	{
+		switch (this) {
+		case DTMC:
+		case CTMC:
+		case MDP:
+		case PTA:
+		case CTMDP:
+			return false;
+		case STPG:
+		case SMG:
+			return true;
+		}
+		// Should never happen
+		return true;
+	}
+
+	/**
 	 * Does this model have probabilities or rates?
 	 * @return "Probability" or "Rate"
 	 */
