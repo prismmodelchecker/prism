@@ -203,12 +203,11 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 	class UpdateHeaderRenderer extends JButton implements ListCellRenderer
 	{
 
-		boolean selected;
 		ImageIcon selectedIcon;
+		ImageIcon selectedDisabledIcon;
 
 		UpdateHeaderRenderer(JTable table)
 		{
-			selected = false;
 			/*JTableHeader header = table.getTableHeader();
 			 setOpaque(true);
 			 setBorder(UIManager.getBorder("TableHeader.cellBorder"));
@@ -218,20 +217,20 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 			 setFont(header.getFont());*/
 			setBorder(null);
 			selectedIcon = GUIPrism.getIconFromImage("smallItemSelected.png");
+			selectedDisabledIcon = GUIPrism.getIconFromImage("smallItemSelectedDisabled.png");
 		}
 
 		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
 		{
-
 			setBorder(null);
-			selected = getSelectedRow() == index;
-
-			if (selected) {
-				setIcon(selectedIcon);
+			if (getSelectedRow() == index) {
+				if (GUISimulatorUpdatesTable.this.isEnabled())
+					setIcon(selectedIcon);
+				else
+					setIcon(selectedDisabledIcon);
 			} else {
 				setIcon(null);
 			}
-
 			return this;
 		}
 

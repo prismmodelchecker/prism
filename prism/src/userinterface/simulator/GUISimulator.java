@@ -132,7 +132,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					currentUpdatesTable.requestFocus();
 				} else if (e.getClickCount() == 2 && !currentUpdatesTable.isEnabled()) {
 					GUISimulator.this.warning("Simulation",
-							"You cannot continue exploration from the state that is current selected.\nSelect the last state in the path table to continue");
+							"These are updates from earlier in the path.\nSelect the last state in the path table to continue exploration");
 				}
 			}
 		});
@@ -928,6 +928,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		typeBacktrackCombo.setEnabled(pathActive);
 
 		currentUpdatesTable.setEnabled(pathActive && !computing);
+		currentUpdatesTable.setToolTipText(currentUpdatesTable.isEnabled() ? "Double click on an update to manually execute it" : null);
 		autoTimeCheck.setEnabled(pathActive && parsedModel != null && parsedModel.getModelType().continuousTime());
 
 		//resetPathButton.setEnabled(pathActive && !computing);
@@ -937,8 +938,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		//newPath.setEnabled(parsedModel != null && !computing);
 		//newPathFromState.setEnabled(parsedModel != null && !computing);
 		//newPathButton.setEnabled(parsedModel != null && !computing);
-
-		currentUpdatesTable.setEnabled(pathActive);
 
 		modelType.setEnabled(parsedModel != null);
 		modelTypeLabel.setEnabled(parsedModel != null);
@@ -1363,7 +1362,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		manualUpdateTableScrollPane.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
 		currentUpdatesTable.setModel(new javax.swing.table.DefaultTableModel(new Object[][] { { null, null, null, null }, { null, null, null, null },
 				{ null, null, null, null }, { null, null, null, null } }, new String[] { "Title 1", "Title 2", "Title 3", "Title 4" }));
-		currentUpdatesTable.setToolTipText("Double click on an update to manually execute the update");
 		manualUpdateTableScrollPane.setViewportView(currentUpdatesTable);
 
 		innerManualUpdatesPanel.add(manualUpdateTableScrollPane, java.awt.BorderLayout.CENTER);
@@ -2193,6 +2191,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			fireTableDataChanged();
 
 			currentUpdatesTable.setEnabled(true);
+			currentUpdatesTable.setToolTipText("Double click on an update to manually execute it");
 
 			if (getRowCount() > 0) {
 				currentUpdatesTable.getSelectionModel().setSelectionInterval(0, 0);
@@ -2215,6 +2214,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				fireTableDataChanged();
 
 				currentUpdatesTable.setEnabled(false);
+				currentUpdatesTable.setToolTipText(null);
 
 				if (getRowCount() > 0) {
 					int selectThis = engine.getChoiceOfPathStep(oldStep);
