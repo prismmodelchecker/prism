@@ -126,7 +126,7 @@ public class MDPModelChecker extends ProbModelChecker
 		res = computeNextProbs((MDP) model, target, min);
 		return StateValues.createFromDoubleArray(res.soln, model);
 	}
-	
+
 	/**
 	 * Compute probabilities for a bounded until operator.
 	 */
@@ -201,7 +201,7 @@ public class MDPModelChecker extends ProbModelChecker
 	protected StateValues checkRewardFormula(Model model, MDPRewards modelRewards, Expression expr, boolean min) throws PrismException
 	{
 		StateValues rewards = null;
-		
+
 		if (expr instanceof ExpressionTemporal) {
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
 			switch (exprTemp.getOperator()) {
@@ -212,7 +212,7 @@ public class MDPModelChecker extends ProbModelChecker
 				throw new PrismException("Explicit engine does not yet handle the " + exprTemp.getOperatorSymbol() + " operator in the R operator");
 			}
 		}
-		
+
 		if (rewards == null)
 			throw new PrismException("Unrecognised operator in R operator");
 
@@ -258,7 +258,7 @@ public class MDPModelChecker extends ProbModelChecker
 		long timer;
 
 		timer = System.currentTimeMillis();
-		
+
 		// Store num states
 		n = mdp.getNumStates();
 
@@ -330,12 +330,12 @@ public class MDPModelChecker extends ProbModelChecker
 			mdpSolnMethod = MDPSolnMethod.GAUSS_SEIDEL;
 			mainLog.printWarning("Switching to MDP solution method \"" + mdpSolnMethod.fullName() + "\"");
 		}
-		
+
 		// Check for some unsupported combinations
 		if (mdpSolnMethod == MDPSolnMethod.VALUE_ITERATION && valIterDir == ValIterDir.ABOVE) {
-			if (!(precomp && prob0)) 
+			if (!(precomp && prob0))
 				throw new PrismException("Precomputation (Prob0) must be enabled for value iteration from above");
-			if (!min) 
+			if (!min)
 				throw new PrismException("Value iteration from above only works for minimum probabilities");
 		}
 
@@ -651,7 +651,7 @@ public class MDPModelChecker extends ProbModelChecker
 			msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
 			throw new PrismException(msg);
 		}
-		
+
 		// Process adversary
 		if (genAdv) {
 			// Prune adversary
@@ -749,7 +749,7 @@ public class MDPModelChecker extends ProbModelChecker
 			msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
 			throw new PrismException(msg);
 		}
-		
+
 		// Return results
 		res = new ModelCheckerResult();
 		res.soln = soln;
@@ -1027,7 +1027,7 @@ public class MDPModelChecker extends ProbModelChecker
 		unknown.andNot(target);
 		if (remain != null)
 			unknown.and(remain);
-		
+
 		// Start iterations
 		iters = 0;
 		while (iters < k) {
@@ -1087,7 +1087,8 @@ public class MDPModelChecker extends ProbModelChecker
 	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
-	public ModelCheckerResult computeReachRewards(MDP mdp, MDPRewards mdpRewards, BitSet target, boolean min, double init[], BitSet known) throws PrismException
+	public ModelCheckerResult computeReachRewards(MDP mdp, MDPRewards mdpRewards, BitSet target, boolean min, double init[], BitSet known)
+			throws PrismException
 	{
 		ModelCheckerResult res = null;
 		BitSet inf;
@@ -1166,7 +1167,8 @@ public class MDPModelChecker extends ProbModelChecker
 	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.
 	 */
-	protected ModelCheckerResult computeReachRewardsGaussSeidel(MDP mdp, MDPRewards mdpRewards, BitSet target, BitSet inf, boolean min, double init[], BitSet known) throws PrismException
+	protected ModelCheckerResult computeReachRewardsGaussSeidel(MDP mdp, MDPRewards mdpRewards, BitSet target, BitSet inf, boolean min, double init[],
+			BitSet known) throws PrismException
 	{
 		ModelCheckerResult res;
 		BitSet unknown;
@@ -1231,7 +1233,7 @@ public class MDPModelChecker extends ProbModelChecker
 			msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
 			throw new PrismException(msg);
 		}
-		
+
 		// Return results
 		res = new ModelCheckerResult();
 		res.soln = soln;
@@ -1251,7 +1253,8 @@ public class MDPModelChecker extends ProbModelChecker
 	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.
 	 */
-	protected ModelCheckerResult computeReachRewardsValIter(MDP mdp, MDPRewards mdpRewards, BitSet target, BitSet inf, boolean min, double init[], BitSet known) throws PrismException
+	protected ModelCheckerResult computeReachRewardsValIter(MDP mdp, MDPRewards mdpRewards, BitSet target, BitSet inf, boolean min, double init[], BitSet known)
+			throws PrismException
 	{
 		ModelCheckerResult res;
 		BitSet unknown;
@@ -1321,7 +1324,7 @@ public class MDPModelChecker extends ProbModelChecker
 			msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
 			throw new PrismException(msg);
 		}
-		
+
 		// Return results
 		res = new ModelCheckerResult();
 		res.soln = soln;
@@ -1353,7 +1356,7 @@ public class MDPModelChecker extends ProbModelChecker
 	 * @param mdp The MDP
 	 * @param adv The adversary
 	 */
-	public void restrictAdversaryToReachableStates(MDP mdp,int adv[])
+	public void restrictAdversaryToReachableStates(MDP mdp, int adv[])
 	{
 		BitSet restrict = new BitSet();
 		BitSet explore = new BitSet();
@@ -1388,7 +1391,7 @@ public class MDPModelChecker extends ProbModelChecker
 			adv[s] = -1;
 		}
 	}
-	
+
 	/**
 	 * Simple test program.
 	 */
