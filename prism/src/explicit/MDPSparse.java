@@ -563,6 +563,22 @@ public class MDPSparse extends MDPExplicit
 	}
 
 	@Override
+	public boolean allSuccessorsInSet(int s, int i, BitSet set)
+	{
+		int j, k, l2, h2;
+		j = rowStarts[s] + i;
+		l2 = choiceStarts[j];
+		h2 = choiceStarts[j + 1];
+		for (k = l2; k < h2; k++) {
+			// Assume that only non-zero entries are stored
+			if (!set.get(cols[k])) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	@Override
 	public void prob0step(BitSet subset, BitSet u, boolean forall, BitSet result)
 	{
 		int i, j, k, l1, h1, l2, h2;
@@ -595,6 +611,85 @@ public class MDPSparse extends MDPExplicit
 						}
 					}
 				}
+				result.set(i, b1);
+			}
+		}
+	}
+
+	@Override
+	public void prob1Astep(BitSet subset, BitSet u, BitSet v, BitSet result)
+	{
+		int i, j, k, l1, h1, l2, h2;
+		boolean b1, some, all;
+		for (i = 0; i < numStates; i++) {
+			if (subset.get(i)) {
+				b1 = true;
+				l1 = rowStarts[i];
+				h1 = rowStarts[i + 1];
+				for (j = l1; j < h1; j++) {
+					some = false;
+					all = true;
+					l2 = choiceStarts[j];
+					h2 = choiceStarts[j + 1];
+					for (k = l2; k < h2; k++) {
+						// Assume that only non-zero entries are stored
+						if (!u.get(cols[k])) {
+							all = false;
+							continue; // Stop early (already know b1 will be set to false)
+						}
+						if (v.get(cols[k])) {
+							some = true;
+						}
+					}
+					if (!(some && all)) {
+						b1 = false;
+						continue;
+					}
+				}
+				result.set(i, b1);
+			}
+		}
+	}
+
+	@Override
+	public void prob1Estep(BitSet subset, BitSet u, BitSet v, BitSet result, int strat[])
+	{
+		int i, j, k, l1, h1, l2, h2, stratCh = -1;
+		boolean b1, some, all;
+		for (i = 0; i < numStates; i++) {
+			if (subset.get(i)) {
+				b1 = false;
+				l1 = rowStarts[i];
+				h1 = rowStarts[i + 1];
+				for (j = l1; j < h1; j++) {
+					some = false;
+					all = true;
+					l2 = choiceStarts[j];
+					h2 = choiceStarts[j + 1];
+					for (k = l2; k < h2; k++) {
+						// Assume that only non-zero entries are stored
+						if (!u.get(cols[k])) {
+							all = false;
+							continue; // Stop early (already know b1 will not be set to true)
+						}
+						if (v.get(cols[k])) {
+							some = true;
+						}
+					}
+					if (some && all) {
+						b1 = true;
+						// If strategy generation is enabled, remember optimal choice
+						if (strat != null)
+							stratCh = j - l1;
+						continue;
+					}
+				}
+				// If strategy generation is enabled, store optimal choice
+				// (only if this the first time we add the state to S^yes)
+				if (strat != null & b1 & !result.get(i)) {
+					strat[i] = stratCh;
+				}
+				// Store result
 				result.set(i, b1);
 			}
 		}

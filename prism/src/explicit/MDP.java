@@ -65,6 +65,15 @@ public interface MDP extends Model
 	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s, int i);
 
 	/**
+	 * Check if all the successor states from choice {@code i} of state {@code s} are in the set  {@code set}.
+	 * Get an iterator over the transitions .
+	 * @param s The state to check
+	 * @param i Choice index
+	 * @param set The set to test for inclusion
+	 */
+	public boolean allSuccessorsInSet(int s, int i, BitSet set);
+	
+	/**
 	 * Perform a single step of precomputation algorithm Prob0, i.e., for states i in {@code subset},
 	 * set bit i of {@code result} iff, for all/some choices,
 	 * there is a transition to a state in {@code u}.
@@ -75,6 +84,30 @@ public interface MDP extends Model
 	 * @param result Store results here
 	 */
 	public void prob0step(BitSet subset, BitSet u, boolean forall, BitSet result);
+
+	/**
+	 * Perform a single step of precomputation algorithm Prob1A, i.e., for states i in {@code subset},
+	 * set bit i of {@code result} iff, for all choices,
+	 * there is a transition to a state in {@code v} and all transitions go to states in {@code u}.
+	 * @param subset Only compute for these states
+	 * @param u Set of states {@code u}
+	 * @param v Set of states {@code v}
+	 * @param result Store results here
+	 */
+	public void prob1Astep(BitSet subset, BitSet u, BitSet v, BitSet result);
+
+	/**
+	 * Perform a single step of precomputation algorithm Prob1E, i.e., for states i in {@code subset},
+	 * set bit i of {@code result} iff, for some choice,
+	 * there is a transition to a state in {@code v} and all transitions go to states in {@code u}.
+	 * Optionally, store optimal (memoryless) strategy info. 
+	 * @param subset Only compute for these states
+	 * @param u Set of states {@code u}
+	 * @param v Set of states {@code v}
+	 * @param result Store results here
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 */
+	public void prob1Estep(BitSet subset, BitSet u, BitSet v, BitSet result, int strat[]);
 
 	/**
 	 * Perform a single step of precomputation algorithm Prob1, i.e., for states i in {@code subset},

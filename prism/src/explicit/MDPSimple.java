@@ -555,6 +555,12 @@ public class MDPSimple extends MDPExplicit implements ModelSimple
 	}
 
 	@Override
+	public boolean allSuccessorsInSet(int s, int i, BitSet set)
+	{
+		return trans.get(s).get(i).isSubsetOf(set);
+	}
+	
+	@Override
 	public void prob0step(BitSet subset, BitSet u, boolean forall, BitSet result)
 	{
 		int i;
@@ -576,6 +582,55 @@ public class MDPSimple extends MDPExplicit implements ModelSimple
 						}
 					}
 				}
+				result.set(i, b1);
+			}
+		}
+	}
+
+	@Override
+	public void prob1Astep(BitSet subset, BitSet u, BitSet v, BitSet result)
+	{
+		int i;
+		boolean b1;
+		for (i = 0; i < numStates; i++) {
+			if (subset.get(i)) {
+				b1 = true;
+				for (Distribution distr : trans.get(i)) {
+					if (!(distr.isSubsetOf(u) && distr.containsOneOf(v))) {
+						b1 = false;
+						continue;
+					}
+				}
+				result.set(i, b1);
+			}
+		}
+	}
+
+	@Override
+	public void prob1Estep(BitSet subset, BitSet u, BitSet v, BitSet result, int strat[])
+	{
+		int i, j, stratCh = -1;
+		boolean b1;
+		for (i = 0; i < numStates; i++) {
+			if (subset.get(i)) {
+				j = 0;
+				b1 = false;
+				for (Distribution distr : trans.get(i)) {
+					if (distr.isSubsetOf(u) && distr.containsOneOf(v)) {
+						b1 = true;
+						// If strategy generation is enabled, remember optimal choice
+						if (strat != null)
+							stratCh = j;
+						continue;
+					}
+					j++;
+				}
+				// If strategy generation is enabled, store optimal choice
+				// (only if this the first time we add the state to S^yes)
+				if (strat != null & b1 & !result.get(i)) {
+					strat[i] = stratCh;
+				}
+				// Store result
 				result.set(i, b1);
 			}
 		}
