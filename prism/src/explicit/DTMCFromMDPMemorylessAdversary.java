@@ -44,7 +44,7 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 {
 	// Parent MDP
 	protected MDP mdp;
-	// Adversary
+	// Adversary (array of choice indices; -1 denotes no choice)
 	protected int adv[];
 
 	/**
@@ -62,7 +62,7 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 	{
 		throw new PrismException("Not supported");
 	}
-	
+
 	// Accessors (for Model)
 
 	public ModelType getModelType()
@@ -104,17 +104,18 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 	{
 		return mdp.getStatesList();
 	}
-	
+
 	public Values getConstantValues()
 	{
 		return mdp.getConstantValues();
 	}
-	
+
 	public int getNumTransitions()
 	{
 		int numTransitions = 0;
 		for (int s = 0; s < numStates; s++)
-			numTransitions += mdp.getNumTransitions(s, adv[s]);
+			if (adv[s] >= 0)
+				numTransitions += mdp.getNumTransitions(s, adv[s]);
 		return numTransitions;
 	}
 
@@ -122,7 +123,7 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 	{
 		throw new RuntimeException("Not implemented yet");
 	}
-	
+
 	public boolean isSuccessor(int s1, int s2)
 	{
 		throw new RuntimeException("Not implemented yet");
@@ -175,12 +176,36 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 
 	public double getNumTransitions(int s)
 	{
-		return mdp.getNumTransitions(s, adv[s]);
+		return adv[s] >= 0 ? mdp.getNumTransitions(s, adv[s]) : 0;
 	}
 
-	public Iterator<Entry<Integer,Double>> getTransitionsIterator(int s)
+	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s)
 	{
-		return mdp.getTransitionsIterator(s, adv[s]);
+		if (adv[s] >= 0) {
+			return mdp.getTransitionsIterator(s, adv[s]);
+		} else {
+			// Empty iterator
+			return new Iterator<Entry<Integer, Double>>()
+			{
+				@Override
+				public boolean hasNext()
+				{
+					return false;
+				}
+
+				@Override
+				public Entry<Integer, Double> next()
+				{
+					return null;
+				}
+
+				@Override
+				public void remove()
+				{
+					throw new UnsupportedOperationException();
+				}
+			};
+		}
 	}
 
 	public void prob0step(BitSet subset, BitSet u, BitSet result)
@@ -198,13 +223,13 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 	@Override
 	public double mvMultSingle(int s, double vect[])
 	{
-		return mdp.mvMultSingle(s, adv[s], vect);
+		return adv[s] >= 0 ? mdp.mvMultSingle(s, adv[s], vect) : 0;
 	}
 
 	@Override
 	public double mvMultJacSingle(int s, double vect[])
 	{
-		return mdp.mvMultJacSingle(s, adv[s], vect);
+		return adv[s] >= 0 ? mdp.mvMultJacSingle(s, adv[s], vect) : 0;
 	}
 
 	@Override
@@ -217,7 +242,7 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 	@Override
 	public void vmMult(double vect[], double result[])
 	{
-		throw new RuntimeException("Not implemented yet"); // TODO
+		throw new RuntimeException("Not implemented yet");
 	}
 
 	@Override
