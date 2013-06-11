@@ -414,7 +414,7 @@ public class MDPModelChecker extends ProbModelChecker
 			res = computeReachProbsValIter(mdp, no, yes, min, init, known, strat);
 			break;
 		case GAUSS_SEIDEL:
-			res = computeReachProbsGaussSeidel(mdp, no, yes, min, init, known);
+			res = computeReachProbsGaussSeidel(mdp, no, yes, min, init, known, strat);
 			break;
 		case POLICY_ITERATION:
 			res = computeReachProbsPolIter(mdp, no, yes, min);
@@ -720,21 +720,18 @@ public class MDPModelChecker extends ProbModelChecker
 	 * @param min Min or max probabilities (true=min, false=max)
 	 * @param init Optionally, an initial solution vector (will be overwritten) 
 	 * @param known Optionally, a set of states for which the exact answer is known
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
-	protected ModelCheckerResult computeReachProbsGaussSeidel(MDP mdp, BitSet no, BitSet yes, boolean min, double init[], BitSet known) throws PrismException
+	protected ModelCheckerResult computeReachProbsGaussSeidel(MDP mdp, BitSet no, BitSet yes, boolean min, double init[], BitSet known, int strat[]) throws PrismException
 	{
 		ModelCheckerResult res;
 		BitSet unknown;
 		int i, n, iters;
 		double soln[], initVal, maxDiff;
-		int strat[] = null;
-		boolean genStrat, done;
+		boolean done;
 		long timer;
 
-		// Are we generating an optimal strategy?
-		genStrat = exportAdv;
-		
 		// Start value iteration
 		timer = System.currentTimeMillis();
 		mainLog.println("Starting Gauss-Seidel (" + (min ? "min" : "max") + ")...");
@@ -770,14 +767,6 @@ public class MDPModelChecker extends ProbModelChecker
 		if (known != null)
 			unknown.andNot(known);
 
-		// Create/initialise strategy storage
-		if (genStrat) {
-			strat = new int[n];
-			for (i = 0; i < n; i++) {
-				strat[i] = -1;
-			}
-		}
-
 		// Start iterations
 		iters = 0;
 		done = false;
@@ -799,19 +788,6 @@ public class MDPModelChecker extends ProbModelChecker
 			String msg = "Iterative method did not converge within " + iters + " iterations.";
 			msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
 			throw new PrismException(msg);
-		}
-
-		// Export adversary
-		if (genStrat && exportAdv) {
-			// Prune strategy
-			restrictStrategyToReachableStates(mdp, strat);
-			// Print strategy
-			PrismLog out = new PrismFileLog(exportAdvFilename);
-			out.print("Strat:");
-			for (i = 0; i < n; i++) {
-				out.print(" " + i + ":" + strat[i]);
-			}
-			out.println();
 		}
 
 		// Return results
