@@ -145,8 +145,10 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 			// Parse first line to get num states
 			s = in.readLine();
 			lineNum = 1;
-			if (s == null)
+			if (s == null) {
+				in.close();
 				throw new PrismException("Missing first line of .tra file");
+			}
 			ss = s.split(" ");
 			n = Integer.parseInt(ss[0]);
 			// Initialise
