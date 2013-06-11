@@ -244,28 +244,28 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 	}
 
 	@Override
-	public double mvMultGSMinMax(double vect[], boolean min, BitSet subset, boolean complement, boolean absolute)
+	public double mvMultGSMinMax(double vect[], boolean min, BitSet subset, boolean complement, boolean absolute, int strat[])
 	{
 		int s;
 		double d, diff, maxDiff = 0.0;
 		// Loop depends on subset/complement arguments
 		if (subset == null) {
 			for (s = 0; s < numStates; s++) {
-				d = mvMultJacMinMaxSingle(s, vect, min);
+				d = mvMultJacMinMaxSingle(s, vect, min, strat);
 				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
 				maxDiff = diff > maxDiff ? diff : maxDiff;
 				vect[s] = d;
 			}
 		} else if (complement) {
 			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1)) {
-				d = mvMultJacMinMaxSingle(s, vect, min);
+				d = mvMultJacMinMaxSingle(s, vect, min, strat);
 				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
 				maxDiff = diff > maxDiff ? diff : maxDiff;
 				vect[s] = d;
 			}
 		} else {
 			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1)) {
-				d = mvMultJacMinMaxSingle(s, vect, min);
+				d = mvMultJacMinMaxSingle(s, vect, min, strat);
 				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
 				maxDiff = diff > maxDiff ? diff : maxDiff;
 				vect[s] = d;
@@ -274,7 +274,7 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 		// Use this code instead for backwards Gauss-Seidel
 		/*for (s = numStates - 1; s >= 0; s--) {
 			if (subset.get(s)) {
-				d = mvMultJacMinMaxSingle(s, vect, min);
+				d = mvMultJacMinMaxSingle(s, vect, min, strat);
 				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
 				maxDiff = diff > maxDiff ? diff : maxDiff;
 				vect[s] = d;

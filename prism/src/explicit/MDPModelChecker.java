@@ -745,7 +745,7 @@ public class MDPModelChecker extends ProbModelChecker
 		while (!done && iters < maxIters) {
 			iters++;
 			// Matrix-vector multiply
-			maxDiff = mdp.mvMultGSMinMax(soln, min, unknown, false, termCrit == TermCrit.ABSOLUTE);
+			maxDiff = mdp.mvMultGSMinMax(soln, min, unknown, false, termCrit == TermCrit.ABSOLUTE, strat);
 			// Check termination
 			done = maxDiff < termCritParam;
 		}
@@ -760,6 +760,19 @@ public class MDPModelChecker extends ProbModelChecker
 			String msg = "Iterative method did not converge within " + iters + " iterations.";
 			msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
 			throw new PrismException(msg);
+		}
+
+		// Export adversary
+		if (genStrat && exportAdv) {
+			// Prune strategy
+			restrictStrategyToReachableStates(mdp, strat);
+			// Print strategy
+			PrismLog out = new PrismFileLog(exportAdvFilename);
+			out.print("Strat:");
+			for (i = 0; i < n; i++) {
+				out.print(" " + i + ":" + strat[i]);
+			}
+			out.println();
 		}
 
 		// Return results

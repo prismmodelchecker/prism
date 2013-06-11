@@ -136,23 +136,27 @@ public interface MDP extends Model
 	 * and store new values directly in {@code vect} as computed.
 	 * The maximum (absolute/relative) difference between old/new
 	 * elements of {@code vect} is also returned.
+	 * Optionally, store optimal (memoryless) strategy info. 
 	 * @param vect Vector to multiply by (and store the result in)
 	 * @param min Min or max for (true=min, false=max)
 	 * @param subset Only do multiplication for these rows (ignored if null)
 	 * @param complement If true, {@code subset} is taken to be its complement (ignored if {@code subset} is null)
 	 * @param absolute If true, compute absolute, rather than relative, difference
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 * @return The maximum difference between old/new elements of {@code vect}
 	 */
-	public double mvMultGSMinMax(double vect[], boolean min, BitSet subset, boolean complement, boolean absolute);
+	public double mvMultGSMinMax(double vect[], boolean min, BitSet subset, boolean complement, boolean absolute, int strat[]);
 
 	/**
 	 * Do a single row of Jacobi-style matrix-vector multiplication followed by min/max.
 	 * i.e. return min/max_k { (sum_{j!=s} P_k(s,j)*vect[j]) / P_k(s,s) }
+	 * Optionally, store optimal (memoryless) strategy info. 
 	 * @param s Row index
 	 * @param vect Vector to multiply by
 	 * @param min Min or max for (true=min, false=max)
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 */
-	public double mvMultJacMinMaxSingle(int s, double vect[], boolean min);
+	public double mvMultJacMinMaxSingle(int s, double vect[], boolean min, int strat[]);
 
 	/**
 	 * Do a single row of Jacobi-style matrix-vector multiplication for a specific choice.
