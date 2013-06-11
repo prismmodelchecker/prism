@@ -44,8 +44,6 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 {
 	// Parent MDP
 	protected MDP mdp;
-	// Also store num states for easy access
-	protected int numStates;
 	// Adversary
 	protected int adv[];
 
@@ -114,7 +112,10 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 	
 	public int getNumTransitions()
 	{
-		throw new RuntimeException("Not implemented");
+		int numTransitions = 0;
+		for (int s = 0; s < numStates; s++)
+			numTransitions += mdp.getNumTransitions(s, adv[s]);
+		return numTransitions;
 	}
 
 	public Iterator<Integer> getSuccessorsIterator(final int s)
@@ -170,19 +171,16 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 		return mdp.infoString() + " + " + "???\n"; // TODO
 	}
 
-
 	// Accessors (for DTMC)
 
 	public double getNumTransitions(int s)
 	{
-		// TODO
-		throw new RuntimeException("Not implemented yet");
+		return mdp.getNumTransitions(s, adv[s]);
 	}
 
 	public Iterator<Entry<Integer,Double>> getTransitionsIterator(int s)
 	{
-		// TODO
-		throw new RuntimeException("Not implemented yet");
+		return mdp.getTransitionsIterator(s, adv[s]);
 	}
 
 	public void prob0step(BitSet subset, BitSet u, BitSet result)
