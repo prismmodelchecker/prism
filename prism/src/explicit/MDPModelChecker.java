@@ -321,7 +321,7 @@ public class MDPModelChecker extends ProbModelChecker
 		BitSet no, yes;
 		int i, n, numYes, numNo;
 		long timer, timerProb0, timerProb1;
-		boolean genAdv;
+		boolean genStrat;
 		// Local copy of setting
 		MDPSolnMethod mdpSolnMethod = this.mdpSolnMethod;
 
@@ -339,8 +339,8 @@ public class MDPModelChecker extends ProbModelChecker
 				throw new PrismException("Value iteration from above only works for minimum probabilities");
 		}
 
-		// Are we generating an optimal adversary?
-		genAdv = exportAdv;
+		// Are we generating an optimal strategy?
+		genStrat = exportAdv;
 
 		// Start probabilistic reachability
 		timer = System.currentTimeMillis();
@@ -370,7 +370,7 @@ public class MDPModelChecker extends ProbModelChecker
 		}
 		timerProb0 = System.currentTimeMillis() - timerProb0;
 		timerProb1 = System.currentTimeMillis();
-		if (precomp && prob1 && !genAdv) {
+		if (precomp && prob1 && !genStrat) {
 			yes = prob1(mdp, remain, target, min);
 		} else {
 			yes = (BitSet) target.clone();
@@ -574,12 +574,12 @@ public class MDPModelChecker extends ProbModelChecker
 		BitSet unknown;
 		int i, n, iters;
 		double soln[], soln2[], tmpsoln[], initVal;
-		int adv[] = null;
-		boolean genAdv, done;
+		int strat[] = null;
+		boolean genStrat, done;
 		long timer;
 
-		// Are we generating an optimal adversary?
-		genAdv = exportAdv;
+		// Are we generating an optimal strategy?
+		genStrat = exportAdv;
 
 		// Start value iteration
 		timer = System.currentTimeMillis();
@@ -617,11 +617,11 @@ public class MDPModelChecker extends ProbModelChecker
 		if (known != null)
 			unknown.andNot(known);
 
-		// Create/initialise adversary storage
-		if (genAdv) {
-			adv = new int[n];
+		// Create/initialise strategy storage
+		if (genStrat) {
+			strat = new int[n];
 			for (i = 0; i < n; i++) {
-				adv[i] = -1;
+				strat[i] = -1;
 			}
 		}
 
@@ -631,7 +631,7 @@ public class MDPModelChecker extends ProbModelChecker
 		while (!done && iters < maxIters) {
 			iters++;
 			// Matrix-vector multiply and min/max ops
-			mdp.mvMultMinMax(soln, min, soln2, unknown, false, genAdv ? adv : null);
+			mdp.mvMultMinMax(soln, min, soln2, unknown, false, genStrat ? strat : null);
 			// Check termination
 			done = PrismUtils.doublesAreClose(soln, soln2, termCritParam, termCrit == TermCrit.ABSOLUTE);
 			// Swap vectors for next iter
@@ -652,15 +652,15 @@ public class MDPModelChecker extends ProbModelChecker
 			throw new PrismException(msg);
 		}
 
-		// Process adversary
-		if (genAdv) {
-			// Prune adversary
-			restrictAdversaryToReachableStates(mdp, adv);
-			// Print adversary
+		// Export adversary
+		if (genStrat && exportAdv) {
+			// Prune strategy
+			restrictStrategyToReachableStates(mdp, strat);
+			// Print strategy
 			PrismLog out = new PrismFileLog(exportAdvFilename);
-			out.print("Adv:");
+			out.print("Strat:");
 			for (i = 0; i < n; i++) {
-				out.print(" " + i + ":" + adv[i]);
+				out.print(" " + i + ":" + strat[i]);
 			}
 			out.println();
 		}
@@ -689,9 +689,13 @@ public class MDPModelChecker extends ProbModelChecker
 		BitSet unknown;
 		int i, n, iters;
 		double soln[], initVal, maxDiff;
-		boolean done;
+		int strat[] = null;
+		boolean genStrat, done;
 		long timer;
 
+		// Are we generating an optimal strategy?
+		genStrat = exportAdv;
+		
 		// Start value iteration
 		timer = System.currentTimeMillis();
 		mainLog.println("Starting Gauss-Seidel (" + (min ? "min" : "max") + ")...");
@@ -726,6 +730,14 @@ public class MDPModelChecker extends ProbModelChecker
 		unknown.andNot(no);
 		if (known != null)
 			unknown.andNot(known);
+
+		// Create/initialise strategy storage
+		if (genStrat) {
+			strat = new int[n];
+			for (i = 0; i < n; i++) {
+				strat[i] = -1;
+			}
+		}
 
 		// Start iterations
 		iters = 0;
@@ -772,11 +784,11 @@ public class MDPModelChecker extends ProbModelChecker
 		double soln[], soln2[];
 		boolean done;
 		long timer;
-		int adv[];
+		int strat[];
 		DTMCModelChecker mcDTMC;
 		DTMC dtmc;
 
-		// Re-use solution to solve each new adversary?
+		// Re-use solution to solve each new policy (strategy)?
 		boolean reUseSoln = true;
 
 		// Start value iteration
@@ -799,18 +811,18 @@ public class MDPModelChecker extends ProbModelChecker
 		for (i = 0; i < n; i++)
 			soln[i] = soln2[i] = yes.get(i) ? 1.0 : 0.0;
 
-		// Generate initial adversary
-		adv = new int[n];
+		// Generate initial strategy
+		strat = new int[n];
 		for (i = 0; i < n; i++)
-			adv[i] = 0;
+			strat[i] = 0;
 
 		// Start iterations
 		iters = totalIters = 0;
 		done = false;
 		while (!done) {
 			iters++;
-			// Solve induced DTMC for adversary
-			dtmc = new DTMCFromMDPMemorylessAdversary(mdp, adv);
+			// Solve induced DTMC for strategy
+			dtmc = new DTMCFromMDPMemorylessAdversary(mdp, strat);
 			res = mcDTMC.computeReachProbsGaussSeidel(dtmc, no, yes, reUseSoln ? soln : null, null);
 			soln = res.soln;
 			totalIters += res.numIters;
@@ -818,16 +830,16 @@ public class MDPModelChecker extends ProbModelChecker
 			mdp.mvMultMinMax(soln, min, soln2, null, false, null);
 			done = true;
 			for (i = 0; i < n; i++) {
-				// Don't look at no/yes states - we don't store adversary info for them,
+				// Don't look at no/yes states - we don't store strategy info for them,
 				// so they might appear non-optimal
 				if (no.get(i) || yes.get(i))
 					continue;
 				if (!PrismUtils.doublesAreClose(soln[i], soln2[i], termCritParam, termCrit == TermCrit.ABSOLUTE)) {
 					done = false;
 					List<Integer> opt = mdp.mvMultMinMaxSingleChoices(i, soln, min, soln2[i]);
-					// Only update adversary if strictly better
-					if (!opt.contains(adv[i]))
-						adv[i] = opt.get(0);
+					// Only update strategy if strictly better
+					if (!opt.contains(strat[i]))
+						strat[i] = opt.get(0);
 				}
 			}
 		}
@@ -859,7 +871,7 @@ public class MDPModelChecker extends ProbModelChecker
 		double soln[], soln2[];
 		boolean done;
 		long timer;
-		int adv[];
+		int strat[];
 		DTMCModelChecker mcDTMC;
 		DTMC dtmc;
 
@@ -886,18 +898,18 @@ public class MDPModelChecker extends ProbModelChecker
 		for (i = 0; i < n; i++)
 			soln[i] = soln2[i] = yes.get(i) ? 1.0 : 0.0;
 
-		// Generate initial adversary
-		adv = new int[n];
+		// Generate initial strategy
+		strat = new int[n];
 		for (i = 0; i < n; i++)
-			adv[i] = 0;
+			strat[i] = 0;
 
 		// Start iterations
 		iters = totalIters = 0;
 		done = false;
 		while (!done) {
 			iters++;
-			// Solve induced DTMC for adversary
-			dtmc = new DTMCFromMDPMemorylessAdversary(mdp, adv);
+			// Solve induced DTMC for strategy
+			dtmc = new DTMCFromMDPMemorylessAdversary(mdp, strat);
 			res = mcDTMC.computeReachProbsGaussSeidel(dtmc, no, yes, soln, null);
 			soln = res.soln;
 			totalIters += res.numIters;
@@ -905,14 +917,14 @@ public class MDPModelChecker extends ProbModelChecker
 			mdp.mvMultMinMax(soln, min, soln2, null, false, null);
 			done = true;
 			for (i = 0; i < n; i++) {
-				// Don't look at no/yes states - we don't store adversary info for them,
+				// Don't look at no/yes states - we don't store strategy info for them,
 				// so they might appear non-optimal
 				if (no.get(i) || yes.get(i))
 					continue;
 				if (!PrismUtils.doublesAreClose(soln[i], soln2[i], termCritParam, termCrit == TermCrit.ABSOLUTE)) {
 					done = false;
 					List<Integer> opt = mdp.mvMultMinMaxSingleChoices(i, soln, min, soln2[i]);
-					adv[i] = opt.get(0);
+					strat[i] = opt.get(0);
 				}
 			}
 		}
@@ -1351,12 +1363,12 @@ public class MDPModelChecker extends ProbModelChecker
 	}
 
 	/**
-	 * Restrict a (memoryless) adversary for an MDP, stored as an integer array of choice indices,
-	 * to the states of the MDP that are reachable under that adversary.  
+	 * Restrict a (memoryless) strategy for an MDP, stored as an integer array of choice indices,
+	 * to the states of the MDP that are reachable under that strategy.  
 	 * @param mdp The MDP
-	 * @param adv The adversary
+	 * @param strat The strategy
 	 */
-	public void restrictAdversaryToReachableStates(MDP mdp, int adv[])
+	public void restrictStrategyToReachableStates(MDP mdp, int strat[])
 	{
 		BitSet restrict = new BitSet();
 		BitSet explore = new BitSet();
@@ -1371,8 +1383,8 @@ public class MDPModelChecker extends ProbModelChecker
 			foundMore = false;
 			for (int s = explore.nextSetBit(0); s >= 0; s = explore.nextSetBit(s + 1)) {
 				explore.set(s, false);
-				if (adv[s] >= 0) {
-					Iterator<Map.Entry<Integer, Double>> iter = mdp.getTransitionsIterator(s, adv[s]);
+				if (strat[s] >= 0) {
+					Iterator<Map.Entry<Integer, Double>> iter = mdp.getTransitionsIterator(s, strat[s]);
 					while (iter.hasNext()) {
 						Map.Entry<Integer, Double> e = iter.next();
 						int dest = e.getKey();
@@ -1385,10 +1397,10 @@ public class MDPModelChecker extends ProbModelChecker
 				}
 			}
 		}
-		// Set adversary choice for non-reachable state to -1
+		// Set strategy choice for non-reachable state to -1
 		int n = mdp.getNumStates();
 		for (int s = restrict.nextClearBit(0); s < n; s = restrict.nextClearBit(s + 1)) {
-			adv[s] = -1;
+			strat[s] = -1;
 		}
 	}
 

@@ -92,26 +92,26 @@ public interface MDP extends Model
 	/**
 	 * Do a matrix-vector multiplication followed by min/max, i.e. one step of value iteration,
 	 * i.e. for all s: result[s] = min/max_k { sum_j P_k(s,j)*vect[j] }
-	 * Optionally, store optimal adversary info. 
+	 * Optionally, store optimal (memoryless) strategy info. 
 	 * @param vect Vector to multiply by
 	 * @param min Min or max for (true=min, false=max)
 	 * @param result Vector to store result in
 	 * @param subset Only do multiplication for these rows (ignored if null)
 	 * @param complement If true, {@code subset} is taken to be its complement (ignored if {@code subset} is null)
-	 * @param adv Storage for adversary choice indices (ignored if null)
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 */
-	public void mvMultMinMax(double vect[], boolean min, double result[], BitSet subset, boolean complement, int adv[]);
+	public void mvMultMinMax(double vect[], boolean min, double result[], BitSet subset, boolean complement, int strat[]);
 
 	/**
 	 * Do a single row of matrix-vector multiplication followed by min/max,
 	 * i.e. return min/max_k { sum_j P_k(s,j)*vect[j] }
-	 * Optionally, store optimal adversary info. 
+	 * Optionally, store optimal (memoryless) strategy info. 
 	 * @param s Row index
 	 * @param vect Vector to multiply by
 	 * @param min Min or max for (true=min, false=max)
-	 * @param adv Storage for adversary choice indices (ignored if null)
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 */
-	public double mvMultMinMaxSingle(int s, double vect[], boolean min, int adv[]);
+	public double mvMultMinMaxSingle(int s, double vect[], boolean min, int strat[]);
 
 	/**
 	 * Determine which choices result in min/max after a single row of matrix-vector multiplication.
@@ -166,15 +166,16 @@ public interface MDP extends Model
 	/**
 	 * Do a matrix-vector multiplication and sum of action reward followed by min/max, i.e. one step of value iteration.
 	 * i.e. for all s: result[s] = min/max_k { rew(s) + sum_j P_k(s,j)*vect[j] }
+	 * Optionally, store optimal (memoryless) strategy info. 
 	 * @param vect Vector to multiply by
 	 * @param mdpRewards The rewards
 	 * @param min Min or max for (true=min, false=max)
 	 * @param result Vector to store result in
 	 * @param subset Only do multiplication for these rows (ignored if null)
 	 * @param complement If true, {@code subset} is taken to be its complement (ignored if {@code subset} is null)
-	 * @param adv Storage for adversary choice indices (ignored if null)
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 */
-	public void mvMultRewMinMax(double vect[], MDPRewards mdpRewards, boolean min, double result[], BitSet subset, boolean complement, int adv[]);
+	public void mvMultRewMinMax(double vect[], MDPRewards mdpRewards, boolean min, double result[], BitSet subset, boolean complement, int strat[]);
 
 	/**
 	 * Do a Gauss-Seidel-style matrix-vector multiplication and sum of action reward followed by min/max.
@@ -195,13 +196,14 @@ public interface MDP extends Model
 	/**
 	 * Do a single row of matrix-vector multiplication and sum of action reward followed by min/max.
 	 * i.e. return min/max_k { rew(s) + sum_j P_k(s,j)*vect[j] }
+	 * Optionally, store optimal (memoryless) strategy info. 
 	 * @param s Row index
 	 * @param vect Vector to multiply by
 	 * @param mdpRewards The rewards
 	 * @param min Min or max for (true=min, false=max)
-	 * @param adv Storage for adversary choice indices (ignored if null)
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 */
-	public double mvMultRewMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int adv[]);
+	public double mvMultRewMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int strat[]);
 
 	/**
 	 * Do a single row of Jacobi-style matrix-vector multiplication and sum of action reward followed by min/max.
@@ -224,7 +226,7 @@ public interface MDP extends Model
 	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], MDPRewards mdpRewards, boolean min, double val);
 
 	/**
-	 * Multiply the probability matrix induced by the mdp and {@code adv}
+	 * Multiply the probability matrix induced by the MDP and {@code strat}
 	 * to the right of {@code source}. Only those entries in {@code source}
 	 * and only those columns in the probability matrix are considered, that
 	 * are elements of {@code states}.
@@ -232,14 +234,14 @@ public interface MDP extends Model
 	 * The result of this multiplication is added to the contents of {@code dest}.
 	 *   
 	 * @param states States for which to multiply
-	 * @param adv Strategy to use
+	 * @param strat (Memoryless) strategy to use
 	 * @param source Vector to multiply matrix with
 	 * @param dest Vector to write result to.
 	 */
-	public void mvMultRight(int[] states, int[] adv, double[] source, double[] dest);
+	public void mvMultRight(int[] states, int[] strat, double[] source, double[] dest);
 
 	/**
-	 * Export to a dot file, highlighting states in 'mark' and choices for a (memoryless) adversary.
+	 * Export to a dot file, highlighting states in 'mark' and choices for a (memoryless) strategy.
 	 */
-	public void exportToDotFileWithAdv(String filename, BitSet mark, int adv[]) throws PrismException;
+	public void exportToDotFileWithStrat(String filename, BitSet mark, int strat[]) throws PrismException;
 }

@@ -141,7 +141,7 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 	}
 
 	@Override
-	public void exportToDotFileWithAdv(String filename, BitSet mark, int adv[]) throws PrismException
+	public void exportToDotFileWithStrat(String filename, BitSet mark, int strat[]) throws PrismException
 	{
 		int i, j, numChoices;
 		String nij;
@@ -155,7 +155,7 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 					out.write(i + " [style=filled  fillcolor=\"#cccccc\"]\n");
 				numChoices = getNumChoices(i);
 				for (j = 0; j < numChoices; j++) {
-					style = (adv[i] == j) ? ",color=\"#ff0000\",fontcolor=\"#ff0000\"" : "";
+					style = (strat[i] == j) ? ",color=\"#ff0000\",fontcolor=\"#ff0000\"" : "";
 					action = getAction(i, j);
 					nij = "n" + i + "_" + j;
 					out.write(i + " -> " + nij + " [ arrowhead=none,label=\"" + j);
@@ -227,19 +227,19 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 	// Accessors (for MDP)
 
 	@Override
-	public void mvMultMinMax(double vect[], boolean min, double result[], BitSet subset, boolean complement, int adv[])
+	public void mvMultMinMax(double vect[], boolean min, double result[], BitSet subset, boolean complement, int strat[])
 	{
 		int s;
 		// Loop depends on subset/complement arguments
 		if (subset == null) {
 			for (s = 0; s < numStates; s++)
-				result[s] = mvMultMinMaxSingle(s, vect, min, adv);
+				result[s] = mvMultMinMaxSingle(s, vect, min, strat);
 		} else if (complement) {
 			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1))
-				result[s] = mvMultMinMaxSingle(s, vect, min, adv);
+				result[s] = mvMultMinMaxSingle(s, vect, min, strat);
 		} else {
 			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1))
-				result[s] = mvMultMinMaxSingle(s, vect, min, adv);
+				result[s] = mvMultMinMaxSingle(s, vect, min, strat);
 		}
 	}
 
@@ -284,19 +284,19 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 	}
 
 	@Override
-	public void mvMultRewMinMax(double vect[], MDPRewards mdpRewards, boolean min, double result[], BitSet subset, boolean complement, int adv[])
+	public void mvMultRewMinMax(double vect[], MDPRewards mdpRewards, boolean min, double result[], BitSet subset, boolean complement, int strat[])
 	{
 		int s;
 		// Loop depends on subset/complement arguments
 		if (subset == null) {
 			for (s = 0; s < numStates; s++)
-				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv);
+				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, strat);
 		} else if (complement) {
 			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1))
-				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv);
+				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, strat);
 		} else {
 			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1))
-				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv);
+				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, strat);
 		}
 	}
 

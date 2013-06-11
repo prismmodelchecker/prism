@@ -27,14 +27,23 @@
 
 package explicit;
 
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
-import java.io.*;
+import java.util.TreeMap;
 
-import explicit.rewards.MDPRewards;
 import parser.State;
 import prism.PrismException;
 import prism.PrismUtils;
+import explicit.rewards.MDPRewards;
 
 /**
  * Sparse matrix (non-mutable) explicit-state representation of an MDP.
@@ -384,7 +393,7 @@ public class MDPSparse extends MDPExplicit
 		}
 		return succs.iterator();
 	}
-	
+
 	@Override
 	public boolean isSuccessor(int s1, int s2)
 	{
@@ -631,9 +640,9 @@ public class MDPSparse extends MDPExplicit
 	}
 
 	@Override
-	public double mvMultMinMaxSingle(int s, double vect[], boolean min, int adv[])
+	public double mvMultMinMaxSingle(int s, double vect[], boolean min, int strat[])
 	{
-		int j, k, l1, h1, l2, h2, advCh = -1;
+		int j, k, l1, h1, l2, h2, stratCh = -1;
 		double d, minmax;
 		boolean first;
 
@@ -652,19 +661,19 @@ public class MDPSparse extends MDPExplicit
 			// Check whether we have exceeded min/max so far
 			if (first || (min && d < minmax) || (!min && d > minmax)) {
 				minmax = d;
-				// If adversary generation is enabled, remember optimal choice
-				if (adv != null)
-					advCh = j - l1;
+				// If strategy generation is enabled, remember optimal choice
+				if (strat != null)
+					stratCh = j - l1;
 			}
 			first = false;
 		}
-		// If adversary generation is enabled, store optimal choice
-		if (adv != null & !first) {
+		// If strategy generation is enabled, store optimal choice
+		if (strat != null & !first) {
 			// For max, only remember strictly better choices
 			if (min) {
-				adv[s] = advCh;
-			} else if (adv[s] == -1 || minmax > vect[s]) {
-				adv[s] = advCh;
+				strat[s] = stratCh;
+			} else if (strat[s] == -1 || minmax > vect[s]) {
+				strat[s] = stratCh;
 			}
 		}
 
@@ -680,7 +689,7 @@ public class MDPSparse extends MDPExplicit
 
 		// Create data structures to store strategy
 		res = new ArrayList<Integer>();
-		// One row of matrix-vector operation 
+		// One row of matrix-vector operation
 		l1 = rowStarts[s];
 		h1 = rowStarts[s + 1];
 		for (j = l1; j < h1; j++) {
@@ -779,9 +788,9 @@ public class MDPSparse extends MDPExplicit
 	}
 
 	@Override
-	public double mvMultRewMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int adv[])
+	public double mvMultRewMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int strat[])
 	{
-		int j, k, l1, h1, l2, h2, advCh = -1;
+		int j, k, l1, h1, l2, h2, stratCh = -1;
 		double d, minmax;
 		boolean first;
 
@@ -800,17 +809,17 @@ public class MDPSparse extends MDPExplicit
 			// Check whether we have exceeded min/max so far
 			if (first || (min && d < minmax) || (!min && d > minmax)) {
 				minmax = d;
-				// If adversary generation is enabled, remember optimal choice
-				if (adv != null)
-					advCh = j - l1;
+				// If strategy generation is enabled, remember optimal choice
+				if (strat != null)
+					stratCh = j - l1;
 			}
 			first = false;
 		}
-		// If adversary generation is enabled, store optimal choice
-		if (adv != null & !first) {
+		// If strategy generation is enabled, store optimal choice
+		if (strat != null & !first) {
 			// Only remember strictly better choices (required for max)
-			if (adv[s] == -1 || (min && minmax < vect[s]) || (!min && minmax > vect[s])) {
-				adv[s] = advCh;
+			if (strat[s] == -1 || (min && minmax < vect[s]) || (!min && minmax > vect[s])) {
+				strat[s] = stratCh;
 			}
 		}
 		// Add state reward (doesn't affect min/max)
@@ -865,7 +874,7 @@ public class MDPSparse extends MDPExplicit
 
 		// Create data structures to store strategy
 		res = new ArrayList<Integer>();
-		// One row of matrix-vector operation 
+		// One row of matrix-vector operation
 		l1 = rowStarts[s];
 		h1 = rowStarts[s + 1];
 		for (j = l1; j < h1; j++) {
@@ -886,11 +895,11 @@ public class MDPSparse extends MDPExplicit
 	}
 
 	@Override
-	public void mvMultRight(int[] states, int[] adv, double[] source, double[] dest)
+	public void mvMultRight(int[] states, int[] strat, double[] source, double[] dest)
 	{
 		for (int s : states) {
 			int j, l2, h2;
-			int k = adv[s];
+			int k = strat[s];
 			j = rowStarts[s] + k;
 			l2 = choiceStarts[j];
 			h2 = choiceStarts[j + 1];
@@ -899,7 +908,7 @@ public class MDPSparse extends MDPExplicit
 			}
 		}
 	}
-	
+
 	// Standard methods
 
 	@Override

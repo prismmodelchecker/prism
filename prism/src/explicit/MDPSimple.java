@@ -607,9 +607,9 @@ public class MDPSimple extends MDPExplicit implements ModelSimple
 	}
 
 	@Override
-	public double mvMultMinMaxSingle(int s, double vect[], boolean min, int adv[])
+	public double mvMultMinMaxSingle(int s, double vect[], boolean min, int strat[])
 	{
-		int j, k, advCh = -1;
+		int j, k, stratCh = -1;
 		double d, prob, minmax;
 		boolean first;
 		List<Distribution> step;
@@ -629,20 +629,20 @@ public class MDPSimple extends MDPExplicit implements ModelSimple
 			// Check whether we have exceeded min/max so far
 			if (first || (min && d < minmax) || (!min && d > minmax)) {
 				minmax = d;
-				// If adversary generation is enabled, remember optimal choice
-				if (adv != null)
-					advCh = j;
+				// If strategy generation is enabled, remember optimal choice
+				if (strat != null)
+					stratCh = j;
 			}
 			first = false;
 			j++;
 		}
-		// If adversary generation is enabled, store optimal choice
-		if (adv != null & !first) {
+		// If strategy generation is enabled, store optimal choice
+		if (strat != null & !first) {
 			// For max, only remember strictly better choices
 			if (min) {
-				adv[s] = advCh;
-			} else if (adv[s] == -1 || minmax > vect[s]) {
-				adv[s] = advCh;
+				strat[s] = stratCh;
+			} else if (strat[s] == -1 || minmax > vect[s]) {
+				strat[s] = stratCh;
 			}
 		}
 
@@ -760,9 +760,9 @@ public class MDPSimple extends MDPExplicit implements ModelSimple
 	}
 
 	@Override
-	public double mvMultRewMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int adv[])
+	public double mvMultRewMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int strat[])
 	{
-		int j, k, advCh = -1;
+		int j, k, stratCh = -1;
 		double d, prob, minmax;
 		boolean first;
 		List<Distribution> step;
@@ -783,17 +783,17 @@ public class MDPSimple extends MDPExplicit implements ModelSimple
 			// Check whether we have exceeded min/max so far
 			if (first || (min && d < minmax) || (!min && d > minmax)) {
 				minmax = d;
-				// If adversary generation is enabled, remember optimal choice
-				if (adv != null)
-					advCh = j;
+				// If strategy generation is enabled, remember optimal choice
+				if (strat != null)
+					stratCh = j;
 			}
 			first = false;
 		}
-		// If adversary generation is enabled, store optimal choice
-		if (adv != null & !first) {
+		// If strategy generation is enabled, store optimal choice
+		if (strat != null & !first) {
 			// Only remember strictly better choices (required for max)
-			if (adv[s] == -1 || (min && minmax < vect[s]) || (!min && minmax > vect[s])) {
-				adv[s] = advCh;
+			if (strat[s] == -1 || (min && minmax < vect[s]) || (!min && minmax > vect[s])) {
+				strat[s] = stratCh;
 			}
 		}
 		// Add state reward (doesn't affect min/max)
@@ -875,10 +875,10 @@ public class MDPSimple extends MDPExplicit implements ModelSimple
 	}
 
 	@Override
-	public void mvMultRight(int[] states, int[] adv, double[] source, double[] dest)
+	public void mvMultRight(int[] states, int[] strat, double[] source, double[] dest)
 	{
 		for (int s : states) {
-			Iterator<Entry<Integer, Double>> it = this.getTransitionsIterator(s, adv[s]);
+			Iterator<Entry<Integer, Double>> it = this.getTransitionsIterator(s, strat[s]);
 			while (it.hasNext()) {
 				Entry<Integer, Double> next = it.next();
 				int col = next.getKey();
