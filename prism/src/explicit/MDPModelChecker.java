@@ -429,7 +429,6 @@ public class MDPModelChecker extends ProbModelChecker
 		} else {
 			res = new ModelCheckerResult();
 			res.soln = Utils.bitsetToDoubleArray(yes, n);
-			return res;
 		}
 
 		// Finished probabilistic reachability
