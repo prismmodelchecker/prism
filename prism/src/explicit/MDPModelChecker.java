@@ -407,7 +407,7 @@ public class MDPModelChecker extends ProbModelChecker
 				}
 			}
 		}
-		
+
 		// Compute probabilities
 		switch (mdpSolnMethod) {
 		case VALUE_ITERATION:
@@ -417,10 +417,10 @@ public class MDPModelChecker extends ProbModelChecker
 			res = computeReachProbsGaussSeidel(mdp, no, yes, min, init, known, strat);
 			break;
 		case POLICY_ITERATION:
-			res = computeReachProbsPolIter(mdp, no, yes, min);
+			res = computeReachProbsPolIter(mdp, no, yes, min, strat);
 			break;
 		case MODIFIED_POLICY_ITERATION:
-			res = computeReachProbsModPolIter(mdp, no, yes, min);
+			res = computeReachProbsModPolIter(mdp, no, yes, min, strat);
 			break;
 		default:
 			throw new PrismException("Unknown MDP solution method " + mdpSolnMethod.fullName());
@@ -435,12 +435,13 @@ public class MDPModelChecker extends ProbModelChecker
 			// Prune strategy
 			restrictStrategyToReachableStates(mdp, strat);
 			// Print strategy
-			PrismLog out = new PrismFileLog(exportAdvFilename);
-			out.print("Strat:");
+			mainLog.print("Strat:");
 			for (i = 0; i < n; i++) {
-				out.print(" " + i + ":" + strat[i]);
+				mainLog.print(" " + i + ":" + strat[i]);
 			}
-			out.println();
+			mainLog.println();
+			// Export
+			PrismLog out = new PrismFileLog(exportAdvFilename);
 			new DTMCFromMDPMemorylessAdversary(mdp, strat).exportToPrismExplicitTra(out);
 		}
 
@@ -534,7 +535,7 @@ public class MDPModelChecker extends ProbModelChecker
 				}
 			}
 		}
-		
+
 		return u;
 	}
 
@@ -632,7 +633,8 @@ public class MDPModelChecker extends ProbModelChecker
 	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
-	protected ModelCheckerResult computeReachProbsValIter(MDP mdp, BitSet no, BitSet yes, boolean min, double init[], BitSet known, int strat[]) throws PrismException
+	protected ModelCheckerResult computeReachProbsValIter(MDP mdp, BitSet no, BitSet yes, boolean min, double init[], BitSet known, int strat[])
+			throws PrismException
 	{
 		ModelCheckerResult res;
 		BitSet unknown;
@@ -723,7 +725,8 @@ public class MDPModelChecker extends ProbModelChecker
 	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
-	protected ModelCheckerResult computeReachProbsGaussSeidel(MDP mdp, BitSet no, BitSet yes, boolean min, double init[], BitSet known, int strat[]) throws PrismException
+	protected ModelCheckerResult computeReachProbsGaussSeidel(MDP mdp, BitSet no, BitSet yes, boolean min, double init[], BitSet known, int strat[])
+			throws PrismException
 	{
 		ModelCheckerResult res;
 		BitSet unknown;
@@ -804,15 +807,15 @@ public class MDPModelChecker extends ProbModelChecker
 	 * @param no: Probability 0 states
 	 * @param yes: Probability 1 states
 	 * @param min: Min or max probabilities (true=min, false=max)
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 */
-	protected ModelCheckerResult computeReachProbsPolIter(MDP mdp, BitSet no, BitSet yes, boolean min) throws PrismException
+	protected ModelCheckerResult computeReachProbsPolIter(MDP mdp, BitSet no, BitSet yes, boolean min, int strat[]) throws PrismException
 	{
 		ModelCheckerResult res;
 		int i, n, iters, totalIters;
 		double soln[], soln2[];
 		boolean done;
 		long timer;
-		int strat[] = null;
 		DTMCModelChecker mcDTMC;
 		DTMC dtmc;
 
@@ -839,10 +842,20 @@ public class MDPModelChecker extends ProbModelChecker
 		for (i = 0; i < n; i++)
 			soln[i] = soln2[i] = yes.get(i) ? 1.0 : 0.0;
 
-		// Generate initial strategy
-		strat = new int[n];
-		for (i = 0; i < n; i++)
-			strat[i] = 0;
+		// If not passed in, create new storage for strategy and initialise
+		// Initial strategy just picks first choice (0) everywhere
+		if (strat == null) {
+			strat = new int[n];
+			for (i = 0; i < n; i++)
+				strat[i] = 0;
+		}
+		// Otherwise, just initialise for states not in yes/no
+		// (Optimal choices for yes/no should already be known)
+		else {
+			for (i = 0; i < n; i++)
+				if (!(no.get(i) || yes.get(i)))
+					strat[i] = 0;
+		}
 
 		// Start iterations
 		iters = totalIters = 0;
@@ -858,7 +871,7 @@ public class MDPModelChecker extends ProbModelChecker
 			mdp.mvMultMinMax(soln, min, soln2, null, false, null);
 			done = true;
 			for (i = 0; i < n; i++) {
-				// Don't look at no/yes states - we don't store strategy info for them,
+				// Don't look at no/yes states - we may not have strategy info for them,
 				// so they might appear non-optimal
 				if (no.get(i) || yes.get(i))
 					continue;
@@ -891,15 +904,15 @@ public class MDPModelChecker extends ProbModelChecker
 	 * @param no: Probability 0 states
 	 * @param yes: Probability 1 states
 	 * @param min: Min or max probabilities (true=min, false=max)
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 */
-	protected ModelCheckerResult computeReachProbsModPolIter(MDP mdp, BitSet no, BitSet yes, boolean min) throws PrismException
+	protected ModelCheckerResult computeReachProbsModPolIter(MDP mdp, BitSet no, BitSet yes, boolean min, int strat[]) throws PrismException
 	{
 		ModelCheckerResult res;
 		int i, n, iters, totalIters;
 		double soln[], soln2[];
 		boolean done;
 		long timer;
-		int strat[] = null;
 		DTMCModelChecker mcDTMC;
 		DTMC dtmc;
 
@@ -926,10 +939,20 @@ public class MDPModelChecker extends ProbModelChecker
 		for (i = 0; i < n; i++)
 			soln[i] = soln2[i] = yes.get(i) ? 1.0 : 0.0;
 
-		// Generate initial strategy
-		strat = new int[n];
-		for (i = 0; i < n; i++)
-			strat[i] = 0;
+		// If not passed in, create new storage for strategy and initialise
+		// Initial strategy just picks first choice (0) everywhere
+		if (strat == null) {
+			strat = new int[n];
+			for (i = 0; i < n; i++)
+				strat[i] = 0;
+		}
+		// Otherwise, just initialise for states not in yes/no
+		// (Optimal choices for yes/no should already be known)
+		else {
+			for (i = 0; i < n; i++)
+				if (!(no.get(i) || yes.get(i)))
+					strat[i] = 0;
+		}
 
 		// Start iterations
 		iters = totalIters = 0;
