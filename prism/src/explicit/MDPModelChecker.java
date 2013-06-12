@@ -1114,9 +1114,6 @@ public class MDPModelChecker extends ProbModelChecker
 			soln2 = tmpsoln;
 		}
 
-		// Print vector (for debugging)
-		mainLog.println(soln);
-
 		// Finished bounded probabilistic reachability
 		timer = System.currentTimeMillis() - timer;
 		mainLog.print("Bounded probabilistic reachability (" + (min ? "min" : "max") + ")");
