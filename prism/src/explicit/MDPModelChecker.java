@@ -408,22 +408,28 @@ public class MDPModelChecker extends ProbModelChecker
 			}
 		}
 
-		// Compute probabilities
-		switch (mdpSolnMethod) {
-		case VALUE_ITERATION:
-			res = computeReachProbsValIter(mdp, no, yes, min, init, known, strat);
-			break;
-		case GAUSS_SEIDEL:
-			res = computeReachProbsGaussSeidel(mdp, no, yes, min, init, known, strat);
-			break;
-		case POLICY_ITERATION:
-			res = computeReachProbsPolIter(mdp, no, yes, min, strat);
-			break;
-		case MODIFIED_POLICY_ITERATION:
-			res = computeReachProbsModPolIter(mdp, no, yes, min, strat);
-			break;
-		default:
-			throw new PrismException("Unknown MDP solution method " + mdpSolnMethod.fullName());
+		// Compute probabilities (if needed)
+		if (numYes + numNo < n) {
+			switch (mdpSolnMethod) {
+			case VALUE_ITERATION:
+				res = computeReachProbsValIter(mdp, no, yes, min, init, known, strat);
+				break;
+			case GAUSS_SEIDEL:
+				res = computeReachProbsGaussSeidel(mdp, no, yes, min, init, known, strat);
+				break;
+			case POLICY_ITERATION:
+				res = computeReachProbsPolIter(mdp, no, yes, min, strat);
+				break;
+			case MODIFIED_POLICY_ITERATION:
+				res = computeReachProbsModPolIter(mdp, no, yes, min, strat);
+				break;
+			default:
+				throw new PrismException("Unknown MDP solution method " + mdpSolnMethod.fullName());
+			}
+		} else {
+			res = new ModelCheckerResult();
+			res.soln = Utils.bitsetToDoubleArray(yes, n);
+			return res;
 		}
 
 		// Finished probabilistic reachability
