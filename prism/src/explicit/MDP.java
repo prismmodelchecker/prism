@@ -100,7 +100,7 @@ public interface MDP extends Model
 	 * Perform a single step of precomputation algorithm Prob1E, i.e., for states i in {@code subset},
 	 * set bit i of {@code result} iff, for some choice,
 	 * there is a transition to a state in {@code v} and all transitions go to states in {@code u}.
-	 * Optionally, store optimal (memoryless) strategy info. 
+	 * Optionally, store optimal (memoryless) strategy info for 1 states. 
 	 * @param subset Only compute for these states
 	 * @param u Set of states {@code u}
 	 * @param v Set of states {@code v}
