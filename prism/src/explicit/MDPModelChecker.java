@@ -633,7 +633,6 @@ public class MDPModelChecker extends ProbModelChecker
 			soln.clear();
 			soln.or(target);
 			while (!v_done) {
-				mainLog.print(strat);
 				mdp.prob1Estep(unknown, u, v, soln, strat);
 				v_done = soln.equals(v);
 				v.clear();
