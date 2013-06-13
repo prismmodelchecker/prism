@@ -463,7 +463,7 @@ public class MDPModelChecker extends ProbModelChecker
 	 * i.e. determine the states of an MDP which, with min/max probability 0,
 	 * reach a state in {@code target}, while remaining in those in @{code remain}.
 	 * {@code min}=true gives Prob0E, {@code min}=false gives Prob0A. 
-	 * Optionally, for min only, store optimal (memoryless) strategy info for 1 states. 
+	 * Optionally, for min only, store optimal (memoryless) strategy info for 0 states. 
 	 * @param mdp The MDP
 	 * @param remain Remain in these states (optional: null means "all")
 	 * @param target Target states
@@ -604,7 +604,7 @@ public class MDPModelChecker extends ProbModelChecker
 				if (min)
 					mdp.prob1Astep(unknown, u, v, soln);
 				else
-					mdp.prob1Estep(unknown, u, v, soln, strat);
+					mdp.prob1Estep(unknown, u, v, soln, null);
 				// Check termination (inner)
 				v_done = soln.equals(v);
 				// v = soln
@@ -616,6 +616,30 @@ public class MDPModelChecker extends ProbModelChecker
 			// u = v
 			u.clear();
 			u.or(v);
+		}
+
+		// If we need to generate a strategy, do another iteration of the inner loop for this
+		// We could do this during the main double fixed point above, but we would generate surplus
+		// strategy info for non-1 states during early iterations of the outer loop,
+		// which are not straightforward to remove since this method does not know which states
+		// already have valid strategy info from Prob0.
+		// Notice that we only need to look at states in u (since we already know the answer),
+		// so we restrict 'unknown' further 
+		unknown.and(u);
+		if (!min && strat != null) {
+			v_done = false;
+			v.clear();
+			v.or(target);
+			soln.clear();
+			soln.or(target);
+			while (!v_done) {
+				mainLog.print(strat);
+				mdp.prob1Estep(unknown, u, v, soln, strat);
+				v_done = soln.equals(v);
+				v.clear();
+				v.or(soln);
+			}
+			u_done = v.equals(u);
 		}
 
 		// Finished precomputation
