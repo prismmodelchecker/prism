@@ -305,7 +305,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 
 		// Start backwards transient computation
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting backwards transient probability computation...");
+		mainLog.println("\nStarting backwards transient probability computation...");
 
 		// Store num states
 		n = ctmc.getNumStates();
@@ -413,7 +413,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 
 		// Start backwards transient computation
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting backwards cumulative rewards computation...");
+		mainLog.println("\nStarting backwards cumulative rewards computation...");
 
 		CTMC ctmc = (CTMC) dtmc;
 
@@ -538,7 +538,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 
 		// Start backwards transient computation
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting backwards instantaneous rewards computation...");
+		mainLog.println("\nStarting backwards instantaneous rewards computation...");
 
 		CTMC ctmc = (CTMC) dtmc;
 
@@ -656,7 +656,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 
 		// Start bounded probabilistic reachability
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting transient probability computation...");
+		mainLog.println("\nStarting transient probability computation...");
 
 		// Store num states
 		n = ctmc.getNumStates();

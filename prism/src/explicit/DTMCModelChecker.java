@@ -290,7 +290,7 @@ public class DTMCModelChecker extends ProbModelChecker
 
 		// Start backwards transient computation
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting backwards instantaneous rewards computation...");
+		mainLog.println("\nStarting backwards instantaneous rewards computation...");
 
 		// Create solution vector(s)
 		soln = new double[n];
@@ -338,7 +338,7 @@ public class DTMCModelChecker extends ProbModelChecker
 
 		// Start backwards transient computation
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting backwards cumulative rewards computation...");
+		mainLog.println("\nStarting backwards cumulative rewards computation...");
 
 		// Create solution vector(s)
 		soln = new double[n];
@@ -573,7 +573,7 @@ public class DTMCModelChecker extends ProbModelChecker
 
 		// Start probabilistic reachability
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting probabilistic reachability...");
+		mainLog.println("\nStarting probabilistic reachability...");
 
 		// Check for deadlocks in non-target state (because breaks e.g. prob1)
 		dtmc.checkForDeadlocks(target);
@@ -997,7 +997,7 @@ public class DTMCModelChecker extends ProbModelChecker
 
 		// Start bounded probabilistic reachability
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting bounded probabilistic reachability...");
+		mainLog.println("\nStarting bounded probabilistic reachability...");
 
 		// Store num states
 		n = dtmc.getNumStates();
@@ -1099,7 +1099,7 @@ public class DTMCModelChecker extends ProbModelChecker
 
 		// Start expected reachability
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting expected reachability...");
+		mainLog.println("\nStarting expected reachability...");
 
 		// Check for deadlocks in non-target state (because breaks e.g. prob1)
 		dtmc.checkForDeadlocks(target);
