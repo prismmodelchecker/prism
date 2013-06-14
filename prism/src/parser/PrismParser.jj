@@ -711,6 +711,8 @@ DeclarationType DeclarationVarType() :
 	// Integer-range declaration
 	( <LBRACKET> low = Expression(false, false) <DOTS> high = Expression(false, false) <RBRACKET>
 		{ declType = new DeclarationInt(low, high); } )
+	// Integer (unbounded) declaration
+	| ( <INT> { declType = new DeclarationIntUnbounded(); } )
 	// Boolean variable declaration
 	| ( <BOOL> { declType = new DeclarationBool(); } )
 	// Array variable declaration

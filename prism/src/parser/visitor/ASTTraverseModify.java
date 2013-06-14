@@ -199,6 +199,15 @@ public class ASTTraverseModify implements ASTVisitor
 	}
 	public void visitPost(DeclarationClock e) throws PrismLangException { defaultVisitPost(e); }
 	// -----------------------------------------------------------------------------------
+	public void visitPre(DeclarationIntUnbounded e) throws PrismLangException { defaultVisitPre(e); }
+	public Object visit(DeclarationIntUnbounded e) throws PrismLangException
+	{
+		visitPre(e);
+		visitPost(e);
+		return e;
+	}
+	public void visitPost(DeclarationIntUnbounded e) throws PrismLangException { defaultVisitPost(e); }
+	// -----------------------------------------------------------------------------------
 	public void visitPre(Module e) throws PrismLangException { defaultVisitPre(e); }
 	public Object visit(Module e) throws PrismLangException
 	{

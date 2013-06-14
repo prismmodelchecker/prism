@@ -836,10 +836,16 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
                     Declaration notTreeDec = (Declaration)varNotInTree.get(j);
                     if(notTreeDec.getType() instanceof TypeInt)
                     {
-                    	DeclarationInt declInt = (DeclarationInt)notTreeDec.getDeclType();
-                        VarNode newVariable = new VarNode(notTreeDec.getName(), parsedModel.getSystemDefn() == null ? notTreeDec.getStartOrDefault() : null, declInt.getLow(), declInt.getHigh(), false);
-                        inTreeNode.add(newVariable);
-                        cIndices[j] = getVarTreeIndexOf(notTreeDec, inTreeNode);
+                    	if (notTreeDec.getDeclType() instanceof DeclarationInt) {
+							DeclarationInt declInt = (DeclarationInt) notTreeDec.getDeclType();
+							VarNode newVariable = new VarNode(notTreeDec.getName(), parsedModel.getSystemDefn() == null ? notTreeDec.getStartOrDefault() : null, declInt.getLow(), declInt.getHigh(), false);
+							inTreeNode.add(newVariable);
+							cIndices[j] = getVarTreeIndexOf(notTreeDec, inTreeNode);
+                    	} else {
+							VarNode newVariable = new VarNode(notTreeDec.getName(), parsedModel.getSystemDefn() == null ? notTreeDec.getStartOrDefault() : null, null, null, false);
+							inTreeNode.add(newVariable);
+							cIndices[j] = getVarTreeIndexOf(notTreeDec, inTreeNode);
+                    	}
                     }
                     else if(notTreeDec.getType() instanceof TypeBool)
                     {
@@ -849,7 +855,6 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
                     }
                     else if(notTreeDec.getType() instanceof TypeClock)
                     {
-                    	DeclarationClock declClk = (DeclarationClock)notTreeDec.getDeclType();
                         VarNode newVariable = new VarNode(notTreeDec.getName(), parsedModel.getSystemDefn() == null ? notTreeDec.getStartOrDefault() : null, Expression.Int(0), null, false);
                         inTreeNode.add(newVariable);
                         cIndices[j] = getVarTreeIndexOf(notTreeDec, inTreeNode);
@@ -897,9 +902,14 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
                     
                     if(aDec.getType() instanceof TypeInt)
                     {
-                    	DeclarationInt declInt = (DeclarationInt)aDec.getDeclType();
-                        VarNode newVariable = new VarNode(aDec.getName(), parsedModel.getSystemDefn() == null ? aDec.getStartOrDefault() : null, declInt.getLow(), declInt.getHigh(), false);
-                        newNode.add(newVariable);
+                    	if (aDec.getDeclType() instanceof DeclarationInt) {
+                        	DeclarationInt declInt = (DeclarationInt)aDec.getDeclType();
+                            VarNode newVariable = new VarNode(aDec.getName(), parsedModel.getSystemDefn() == null ? aDec.getStartOrDefault() : null, declInt.getLow(), declInt.getHigh(), false);
+                            newNode.add(newVariable);
+                    	} else {
+							VarNode newVariable = new VarNode(aDec.getName(), parsedModel.getSystemDefn() == null ? aDec.getStartOrDefault() : null, null, null, false);
+	                        newNode.add(newVariable);
+                    	}
                     }
                     else if(aDec.getType() instanceof TypeBool)
                     {

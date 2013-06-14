@@ -142,7 +142,7 @@ public class VarList
 		var.module = module;
 
 		declType = decl.getDeclType();
-		// Variable is integer
+		// Variable is a bounded integer
 		if (declType instanceof DeclarationInt) {
 			DeclarationInt intdecl = (DeclarationInt) declType;
 			low = intdecl.getLow().evaluateInt(constantValues);
@@ -163,17 +163,28 @@ public class VarList
 				throw new PrismLangException(s, decl);
 			}
 		}
-		// Variable is boolean
+		// Variable is a Boolean
 		else if (declType instanceof DeclarationBool) {
 			low = 0;
 			high = 1;
 			start = (decl.getStartOrDefault().evaluateBoolean(constantValues)) ? 1 : 0;
 		}
-		// Otherwise (i.e. clock) create dummy info
-		else {
+		// Variable is a clock
+		else if (declType instanceof DeclarationClock) {
+			// Create dummy info
 			low = 0;
 			high = 1;
 			start = 0;
+		}
+		// Variable is an (unbounded) integer
+		else if (declType instanceof DeclarationIntUnbounded) {
+			// Create dummy range info
+			low = 0;
+			high = 1;
+			start = decl.getStartOrDefault().evaluateInt(constantValues);
+		}
+		else {
+			throw new PrismLangException("Unknown variable type \"" + declType + "\" in declaration", decl);
 		}
 
 		// Store low/high/start and return
@@ -434,6 +445,21 @@ public class VarList
 		return state;
 	}
 
+	/**
+	 * Does the variable list contain any variables with unbounded range (e.g. "clock: or "int")?
+	 */
+	public boolean containsUnboundedVariables()
+	{
+		int n = getNumVars();
+		for (int i = 0; i < n; i++) {
+			DeclarationType declType = getDeclaration(i).getDeclType();
+			if (declType instanceof DeclarationClock || declType instanceof DeclarationIntUnbounded) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	/**
 	 * Clone this list.
 	 */
