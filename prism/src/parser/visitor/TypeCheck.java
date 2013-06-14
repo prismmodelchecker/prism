@@ -139,7 +139,7 @@ public class TypeCheck extends ASTTraverse
 		int i, n;
 		n = e.getNumElements();
 		for (i = 0; i < n; i++) {
-			// Udates to non-clocks
+			// Updates to non-clocks
 			if (!(e.getType(i) instanceof TypeClock)) {
 				if (!e.getType(i).canAssign(e.getExpression(i).getType())) {
 					throw new PrismLangException("Type error in update to variable \"" + e.getVar(i) + "\"", e.getExpression(i));
