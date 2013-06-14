@@ -33,100 +33,79 @@ import java.util.*;
 
 public class BooleanRenderer implements SettingRenderer
 {
-    private JCheckBox renderer;
-    private JPanel panel;
-    
-    public BooleanRenderer()
-    {
-        panel = new JPanel();
-        //FlowLayout flow = new FlowLayout(FlowLayout.CENTER);
-        //flow.setHgap(0);
-        panel.setLayout(new BorderLayout());//new GridBagLayout());//flow);//new FlowLayout(FlowLayout.CENTER));
-        renderer = new JCheckBox();
-        renderer.setPreferredSize(new Dimension(17,12));
-        panel.add(renderer);
-    }
-    
-    
-    public Component getTableCellRendererComponent(JTable table, Setting owner, Object value, boolean isSelected, boolean hasFocus, boolean isEnabled, int row, int column)
-    {
-        //renderer.setMargin(new Insets(0, 2, 4, 2));
-        if (isSelected)
-        {
-            panel.setBackground(table.getSelectionBackground());
-            renderer.setBackground(table.getSelectionBackground());
-        }
-        else
-        {
-            panel.setBackground(table.getBackground());
-            renderer.setBackground(table.getBackground());
-        }
-        
-        if(hasFocus)
-        {
-            panel.setBorder( UIManager.getBorder("Table.focusCellHighlightBorder") );
-        }
-        else
-        {
-            panel.setBorder(new EmptyBorder(1, 2, 2, 1));
-        }
-        
-        if(value instanceof Boolean)
-        {
-            Boolean boo = (Boolean)value;
-            
-            renderer.setSelected(boo.booleanValue());
+	private JCheckBox renderer;
+	private JPanel panel;
 
-	    renderer.setEnabled(isEnabled);
-        }
-        else if(value instanceof ArrayList)
-        {
-            ArrayList values = (ArrayList)value;
-            if(values.size() > 0)
-            {
-                //if we have multiple properties selected.
-                Boolean last = null;
-                boolean allSame = true;
-                for(int i = 0; i < values.size(); i++)
-                {
-                    if(values.get(i) instanceof Boolean)
-                    {
-                        Boolean str = (Boolean)values.get(i);
-                        if(last != null)
-                        {
-                            if(!str.equals(last))
-                            {
-                                allSame = false; break;
-                            }
-                            last = str;
-                        }
-                        else
-                        {
-                            last = str;
-                        }
-                    }
-                }
-                if(allSame)
-                {
-                    renderer.setSelected(last.booleanValue());
-                }
-                else
-                {
-                    renderer.setSelected(false);
-                    renderer.setBackground(Color.lightGray);
-                    panel.setBackground(Color.lightGray);
-                    
-                }
-                
-            }
-        }
-        renderer.setOpaque(true);
-        
-        return panel;
-        
-      
-    }
-    
-    
-    
+	public BooleanRenderer()
+	{
+		panel = new JPanel();
+		//FlowLayout flow = new FlowLayout(FlowLayout.CENTER);
+		//flow.setHgap(0);
+		panel.setLayout(new BorderLayout());//new GridBagLayout());//flow);//new FlowLayout(FlowLayout.CENTER));
+		renderer = new JCheckBox();
+		renderer.setPreferredSize(new Dimension(17, 12));
+		panel.add(renderer);
+	}
+
+	public Component getTableCellRendererComponent(JTable table, Setting owner, Object value, boolean isSelected, boolean hasFocus, boolean isEnabled, int row,
+			int column)
+	{
+		//renderer.setMargin(new Insets(0, 2, 4, 2));
+		if (isSelected) {
+			panel.setBackground(table.getSelectionBackground());
+			renderer.setBackground(table.getSelectionBackground());
+		} else {
+			panel.setBackground(table.getBackground());
+			renderer.setBackground(table.getBackground());
+		}
+
+		if (hasFocus) {
+			panel.setBorder(UIManager.getBorder("Table.focusCellHighlightBorder"));
+		} else {
+			panel.setBorder(new EmptyBorder(1, 2, 2, 1));
+		}
+
+		if (value instanceof Boolean) {
+			Boolean boo = (Boolean) value;
+
+			renderer.setSelected(boo.booleanValue());
+
+			renderer.setEnabled(isEnabled);
+		} else if (value instanceof ArrayList) {
+			ArrayList<?> values = (ArrayList<?>) value;
+			if (values.size() > 0) {
+				//if we have multiple properties selected.
+				Boolean last = null;
+				boolean allSame = true;
+				for (int i = 0; i < values.size(); i++) {
+					if (values.get(i) instanceof Boolean) {
+						Boolean str = (Boolean) values.get(i);
+						if (last != null) {
+							if (!str.equals(last)) {
+								allSame = false;
+								break;
+							}
+							last = str;
+						} else {
+							last = str;
+						}
+					}
+				}
+				if (allSame) {
+					renderer.setSelected(last.booleanValue());
+				} else {
+					renderer.setSelected(false);
+					renderer.setBackground(Color.lightGray);
+					panel.setBackground(Color.lightGray);
+
+				}
+
+			}
+		}
+		renderer.setOpaque(true);
+
+		return panel;
+
+	}
+
 }

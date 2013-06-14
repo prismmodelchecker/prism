@@ -33,87 +33,86 @@ import java.util.*;
  */
 public class DefaultSettingOwner extends Observable implements SettingOwner
 {
-    private String name;
-    private int id;
-    private SettingDisplay display;
-    
-    private ArrayList settings;
-    
-    /** Creates a new instance of DefaultSettingOwner */
-    public DefaultSettingOwner(String name, int id)
-    {
-        this.name = name;
-        this.id = id;
-        display = null;
-        
-        settings = new ArrayList();
-    }
-    
-    public int compareTo(Object o)
-    {
-        if(o instanceof SettingOwner)
-        {
-            SettingOwner po = (SettingOwner) o;
-            if(getSettingOwnerID() < po.getSettingOwnerID())return -1;
-            else if(getSettingOwnerID() > po.getSettingOwnerID()) return 1;
-            else return 0;
-        }
-        else return 0;
-    }
-    
-    public SettingDisplay getDisplay()
-    {
-        return display;
-    }
-    
-    public int getNumSettings()
-    {
-        return settings.size();
-    }
-    
-    public Setting getSetting(int index)
-    {
-        return (Setting)settings.get(index);
-    }
-    
-    public String getSettingOwnerClassName()
-    {
-        return "";
-    }
-    
-    public int getSettingOwnerID()
-    {
-        return id;
-    }
-    
-    public String getSettingOwnerName()
-    {
-        return name;
-    }
-    
-    public void notifySettingChanged(Setting setting)
-    {
-        setChanged();
-        notifyObservers(setting);
-    }
-    
-    public void setDisplay(SettingDisplay display)
-    {
-        this.display = display;
-    }
-    
-    public void addSetting(Setting s)
-    {
-        settings.add(s);
-    }
-	
+	private String name;
+	private int id;
+	private SettingDisplay display;
+	private ArrayList<Setting> settings;
+
+	/** Creates a new instance of DefaultSettingOwner */
+	public DefaultSettingOwner(String name, int id)
+	{
+		this.name = name;
+		this.id = id;
+		display = null;
+		settings = new ArrayList<Setting>();
+	}
+
+	public int compareTo(Object o)
+	{
+		if (o instanceof SettingOwner) {
+			SettingOwner po = (SettingOwner) o;
+			if (getSettingOwnerID() < po.getSettingOwnerID())
+				return -1;
+			else if (getSettingOwnerID() > po.getSettingOwnerID())
+				return 1;
+			else
+				return 0;
+		} else
+			return 0;
+	}
+
+	public SettingDisplay getDisplay()
+	{
+		return display;
+	}
+
+	public int getNumSettings()
+	{
+		return settings.size();
+	}
+
+	public Setting getSetting(int index)
+	{
+		return settings.get(index);
+	}
+
+	public String getSettingOwnerClassName()
+	{
+		return "";
+	}
+
+	public int getSettingOwnerID()
+	{
+		return id;
+	}
+
+	public String getSettingOwnerName()
+	{
+		return name;
+	}
+
+	public void notifySettingChanged(Setting setting)
+	{
+		setChanged();
+		notifyObservers(setting);
+	}
+
+	public void setDisplay(SettingDisplay display)
+	{
+		this.display = display;
+	}
+
+	public void addSetting(Setting s)
+	{
+		settings.add(s);
+	}
+
 	public Setting getFromKey(String key)
 	{
-		for(int i = 0; i < getNumSettings(); i++)
-		{
-			if(getSetting(i).equals(key)) return getSetting(i);
+		for (int i = 0; i < getNumSettings(); i++) {
+			if (getSetting(i).equals(key))
+				return getSetting(i);
 		}
 		return null;
 	}
-    
 }

@@ -35,141 +35,118 @@ import java.util.*;
 
 public class ChoiceEditor implements SettingEditor, ActionListener, FocusListener
 {
-    private Font font = new Font("monospaced", Font.PLAIN, 12);
-    private String[]choices;
-    private JComboBox combo;
-    
-    private JTable lastTable;
-    private int tableRow = -1;
-    private int tableCol = -1;
-    
-    private boolean modified = false;
-    
-    /** Creates a new instance of ChoiceEditor */
-    public ChoiceEditor(String[]choices)
-    {
-        combo = new JComboBox(choices);
-        combo.addActionListener(this);
-        combo.addFocusListener(this);
-        this.choices = choices;
-    }
-    
-    public Object getEditorValue() throws SettingException
-    {
-        if(modified)
-        {
-            modified = false;
-            if(combo.getSelectedItem() != null)
-                return combo.getSelectedItem().toString();
-            else return NOT_CHANGED_VALUE;
-        }
-        else return NOT_CHANGED_VALUE;
-    }
-    
-    public Component getTableCellEditorComponent(JTable table, Setting owner, Object value, boolean isSelected, int row, int column)
-    {
-        
-        if (isSelected)
-        {
-            combo.setForeground(table.getSelectionForeground());
-            combo.setBackground(table.getSelectionBackground());
-        }
-        else
-        {
-            combo.setForeground(table.getForeground());
-            combo.setBackground(table.getBackground());
-        }
-        
-        
-        combo.setBorder( new EmptyBorder(0,0,0,0));//UIManager.getBorder("Table.focusCellHighlightBorder") );
-        combo.setFont(font);
-        combo.setFocusable(false);
-        
-        if(value instanceof String)
-        {
-            int index = -1;
-            for(int i = 0; i < choices.length; i++)
-            {
-                if(choices[i].equals(value.toString()))
-                {
-                    index = i; break;
-                }
-            }
-            combo.setSelectedIndex(index);
-        }
-        else if(value instanceof ArrayList)
-        {
-            ArrayList values = (ArrayList)value;
-            if(values.size() > 0)
-            {
-                //if we have multiple properties selected.
-                String last = null;
-                boolean allSame = true;
-                for(int i = 0; i < values.size(); i++)
-                {
-                    if(values.get(i) instanceof String)
-                    {
-                        String str = (String)values.get(i);
-                        if(last != null)
-                        {
-                            if(!str.equals(last))
-                            {
-                                allSame = false; break;
-                            }
-                            last = str;
-                        }
-                        else
-                        {
-                            last = str;
-                        }
-                    }
-                }
-                if(allSame)
-                {
-                    
-                    int index = -1;
-                    for(int i = 0; i < choices.length; i++)
-                    {
-                        if(choices[i].equals(last))
-                        {
-                            index = i; break;
-                        }
-                    }
-                    combo.setSelectedIndex(index);
-                }
-                else
-                {
-                    combo.setSelectedIndex(-1);
-                    
-                }
-                
-            }
-        }
-        
-        lastTable = table;
-        tableRow = row;
-        tableCol = column;
-        return combo;
-    }
-    
-    public void stopEditing()
-    {
-    }
-    
-    public void actionPerformed(ActionEvent e)
-    {
-        modified = true;
-        if(lastTable != null)
-            lastTable.editingStopped(new ChangeEvent(this));
-    }
-    
-    public void focusGained(FocusEvent e)
-    {
-    }
-    
-    public void focusLost(FocusEvent e)
-    {
-        if(lastTable.getCellEditor() != null) lastTable.removeEditor();
-    }
-    
+	private Font font = new Font("monospaced", Font.PLAIN, 12);
+	private String[] choices;
+	private JComboBox<String> combo;
+	private JTable lastTable;
+	private boolean modified = false;
+
+	/** Creates a new instance of ChoiceEditor */
+	public ChoiceEditor(String[] choices)
+	{
+		combo = new JComboBox<String>(choices);
+		combo.addActionListener(this);
+		combo.addFocusListener(this);
+		this.choices = choices;
+	}
+
+	public Object getEditorValue() throws SettingException
+	{
+		if (modified) {
+			modified = false;
+			if (combo.getSelectedItem() != null)
+				return combo.getSelectedItem().toString();
+			else
+				return NOT_CHANGED_VALUE;
+		} else
+			return NOT_CHANGED_VALUE;
+	}
+
+	public Component getTableCellEditorComponent(JTable table, Setting owner, Object value, boolean isSelected, int row, int column)
+	{
+
+		if (isSelected) {
+			combo.setForeground(table.getSelectionForeground());
+			combo.setBackground(table.getSelectionBackground());
+		} else {
+			combo.setForeground(table.getForeground());
+			combo.setBackground(table.getBackground());
+		}
+
+		combo.setBorder(new EmptyBorder(0, 0, 0, 0));//UIManager.getBorder("Table.focusCellHighlightBorder") );
+		combo.setFont(font);
+		combo.setFocusable(false);
+
+		if (value instanceof String) {
+			int index = -1;
+			for (int i = 0; i < choices.length; i++) {
+				if (choices[i].equals(value.toString())) {
+					index = i;
+					break;
+				}
+			}
+			combo.setSelectedIndex(index);
+		} else if (value instanceof ArrayList) {
+			ArrayList<?> values = (ArrayList<?>) value;
+			if (values.size() > 0) {
+				//if we have multiple properties selected.
+				String last = null;
+				boolean allSame = true;
+				for (int i = 0; i < values.size(); i++) {
+					if (values.get(i) instanceof String) {
+						String str = (String) values.get(i);
+						if (last != null) {
+							if (!str.equals(last)) {
+								allSame = false;
+								break;
+							}
+							last = str;
+						} else {
+							last = str;
+						}
+					}
+				}
+				if (allSame) {
+
+					int index = -1;
+					for (int i = 0; i < choices.length; i++) {
+						if (choices[i].equals(last)) {
+							index = i;
+							break;
+						}
+					}
+					combo.setSelectedIndex(index);
+				} else {
+					combo.setSelectedIndex(-1);
+
+				}
+
+			}
+		}
+
+		lastTable = table;
+		return combo;
+	}
+
+	public void stopEditing()
+	{
+	}
+
+	public void actionPerformed(ActionEvent e)
+	{
+		modified = true;
+		if (lastTable != null)
+			lastTable.editingStopped(new ChangeEvent(this));
+	}
+
+	public void focusGained(FocusEvent e)
+	{
+	}
+
+	public void focusLost(FocusEvent e)
+	{
+		if (lastTable.getCellEditor() != null)
+			lastTable.removeEditor();
+	}
+
 }

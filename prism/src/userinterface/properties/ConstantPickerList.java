@@ -34,70 +34,69 @@ import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.util.*;
 
+@SuppressWarnings("serial")
 public class ConstantPickerList extends JPanel implements Scrollable
 {
-    private ArrayList rows;
-    private JPanel nextPanel;
-    
-    /** Creates a new instance of ConstantPickerList */
-    public ConstantPickerList()
-    {
-	setLayout(new BorderLayout());
-	nextPanel = new JPanel();
-	nextPanel.setLayout(new BorderLayout());
-	add(nextPanel, BorderLayout.CENTER);
-	rows = new ArrayList();
-    }
-    
-    public void addConstant(ConstantLine pl)
-    {
-	rows.add(pl);
-	JPanel containPl = new JPanel();
-	containPl.setLayout(new BorderLayout());
-	containPl.setBorder(new CompoundBorder(pl.new BottomBorder(), new LineBorder(Color.white, 2)));
-	containPl.add(pl, BorderLayout.CENTER);
-	nextPanel.add(containPl, BorderLayout.NORTH);
-	JPanel np = new JPanel();	
-	np.setLayout(new BorderLayout());
-	nextPanel.add(np, BorderLayout.CENTER);
-	nextPanel = np;
-    }
-    
-    public Dimension getPreferredScrollableViewportSize()
-    {
-	return getPreferredSize();
-    }
-    
-    public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction)
-    {
-	return 20;
-    }
-    
-    public boolean getScrollableTracksViewportHeight()
-    {
-	return false;
-    }
-    
-    public boolean getScrollableTracksViewportWidth()
-    {
-	return true;
-    }
-    
-    public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction)
-    {
-	return 40;
-    }
-    
-    public int getNumConstants()
-    {
-	return rows.size();
-    }
-    
-    public ConstantLine getConstantLine(int i)
-    {
-	return (ConstantLine)rows.get(i);
-    }
-    
-    
-    
+	private ArrayList<ConstantLine> rows;
+	private JPanel nextPanel;
+
+	/** Creates a new instance of ConstantPickerList */
+	public ConstantPickerList()
+	{
+		setLayout(new BorderLayout());
+		nextPanel = new JPanel();
+		nextPanel.setLayout(new BorderLayout());
+		add(nextPanel, BorderLayout.CENTER);
+		rows = new ArrayList<ConstantLine>();
+	}
+
+	public void addConstant(ConstantLine pl)
+	{
+		rows.add(pl);
+		JPanel containPl = new JPanel();
+		containPl.setLayout(new BorderLayout());
+		containPl.setBorder(new CompoundBorder(pl.new BottomBorder(), new LineBorder(Color.white, 2)));
+		containPl.add(pl, BorderLayout.CENTER);
+		nextPanel.add(containPl, BorderLayout.NORTH);
+		JPanel np = new JPanel();
+		np.setLayout(new BorderLayout());
+		nextPanel.add(np, BorderLayout.CENTER);
+		nextPanel = np;
+	}
+
+	public Dimension getPreferredScrollableViewportSize()
+	{
+		return getPreferredSize();
+	}
+
+	public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction)
+	{
+		return 20;
+	}
+
+	public boolean getScrollableTracksViewportHeight()
+	{
+		return false;
+	}
+
+	public boolean getScrollableTracksViewportWidth()
+	{
+		return true;
+	}
+
+	public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction)
+	{
+		return 40;
+	}
+
+	public int getNumConstants()
+	{
+		return rows.size();
+	}
+
+	public ConstantLine getConstantLine(int i)
+	{
+		return rows.get(i);
+	}
+
 }

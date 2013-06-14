@@ -34,7 +34,8 @@ import javax.swing.*;
  * Representation of an axis of a Graph.
  * The settings are propagated to the JFreeChart library.
  */
-public class SeriesSettingsList extends AbstractListModel implements Observer
+@SuppressWarnings("serial")
+public class SeriesSettingsList extends AbstractListModel<Object> implements Observer
 {
 	private Graph graph;
 	

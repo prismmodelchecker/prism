@@ -34,131 +34,111 @@ import java.util.*;
 
 public class BooleanEditor implements SettingEditor, ActionListener
 {
-    private JCheckBox renderer;
-    private JPanel panel;
-    
-    private JTable lastTable = null;
-    private int tableCol = -1;
-    private int tableRow = -1;
-    
-    private boolean modified = false;
-    
-    public BooleanEditor()
-    {
-        panel = new JPanel();
-        //FlowLayout flow = new FlowLayout(FlowLayout.CENTER);
-        //flow.setHgap(0);
-        panel.setLayout(new BorderLayout());//new GridBagLayout());//flow);//new FlowLayout(FlowLayout.CENTER));
-        renderer = new JCheckBox();
-        renderer.setPreferredSize(new Dimension(17,12));
-        panel.add(renderer);
-        renderer.addActionListener(this);
-    }
-    
-    
-    
-    public Object getEditorValue()
-    {
-        if(modified)
-        {
-            modified = false;
-            return new Boolean(renderer.isSelected());
-        }
-        else
-            return NOT_CHANGED_VALUE;
-    }    
-    
-    public Component getTableCellEditorComponent(JTable table, Setting owner, Object value, boolean isSelected, int row, int column)
-    {
-        if (isSelected)
-        {
-            panel.setBackground(table.getSelectionBackground());
-            renderer.setBackground(table.getSelectionBackground());
-        }
-        else
-        {
-            panel.setBackground(table.getBackground());
-            renderer.setBackground(table.getBackground());
-        }
-        
-        
-        panel.setBorder( UIManager.getBorder("Table.focusCellHighlightBorder") );
-        
-        
-        if(value instanceof Boolean)
-        {
-            Boolean boo = (Boolean)value;
-            
-            renderer.setSelected(boo.booleanValue());
+	private JCheckBox renderer;
+	private JPanel panel;
 
-        }
-        else if(value instanceof ArrayList)
-        {
-            ArrayList values = (ArrayList)value;
-            if(values.size() > 0)
-            {
-                //if we have multiple properties selected.
-                Boolean last = null;
-                boolean allSame = true;
-                for(int i = 0; i < values.size(); i++)
-                {
-                    if(values.get(i) instanceof Boolean)
-                    {
-                        Boolean str = (Boolean)values.get(i);
-                        if(last != null)
-                        {
-                            if(!str.equals(last))
-                            {
-                                allSame = false; break;
-                            }
-                            last = str;
-                        }
-                        else
-                        {
-                            last = str;
-                        }
-                    }
-                }
-                if(allSame)
-                {
-                    renderer.setSelected(last.booleanValue());
-                }
-                else
-                {
-                    renderer.setSelected(false);
-                    renderer.setBackground(Color.lightGray);
-                    
-                }
-                
-            }
-        }
-        
-        renderer.setOpaque(true);
-        
-        lastTable = table;
-        tableRow = row;
-        tableCol = column;
-        
-        return panel;
-    }    
-    
-    public void stopEditing()
-    {
-    }
-    
-    public void actionPerformed(ActionEvent e)
-    {
-        modified = true;
-        if(lastTable != null) lastTable.editingStopped(new ChangeEvent(this));
-        //if(lastTable.getCellEditor() != null) lastTable.removeEditor();
-        /*Object obj = getEditorValue();
-        
-        if(lastTable != null)
-        {
-            lastTable.setValueAt(obj, tableRow, tableCol);
-        }*/
+	private JTable lastTable = null;
+	private int tableCol = -1;
+	private int tableRow = -1;
+
+	private boolean modified = false;
+
+	public BooleanEditor()
+	{
+		panel = new JPanel();
+		//FlowLayout flow = new FlowLayout(FlowLayout.CENTER);
+		//flow.setHgap(0);
+		panel.setLayout(new BorderLayout());//new GridBagLayout());//flow);//new FlowLayout(FlowLayout.CENTER));
+		renderer = new JCheckBox();
+		renderer.setPreferredSize(new Dimension(17, 12));
+		panel.add(renderer);
+		renderer.addActionListener(this);
+	}
+
+	public Object getEditorValue()
+	{
+		if (modified) {
+			modified = false;
+			return new Boolean(renderer.isSelected());
+		} else
+			return NOT_CHANGED_VALUE;
+	}
+
+	public Component getTableCellEditorComponent(JTable table, Setting owner, Object value, boolean isSelected, int row, int column)
+	{
+		if (isSelected) {
+			panel.setBackground(table.getSelectionBackground());
+			renderer.setBackground(table.getSelectionBackground());
+		} else {
+			panel.setBackground(table.getBackground());
+			renderer.setBackground(table.getBackground());
+		}
+
+		panel.setBorder(UIManager.getBorder("Table.focusCellHighlightBorder"));
+
+		if (value instanceof Boolean) {
+			Boolean boo = (Boolean) value;
+
+			renderer.setSelected(boo.booleanValue());
+
+		} else if (value instanceof ArrayList) {
+			ArrayList<?> values = (ArrayList<?>) value;
+			if (values.size() > 0) {
+				//if we have multiple properties selected.
+				Boolean last = null;
+				boolean allSame = true;
+				for (int i = 0; i < values.size(); i++) {
+					if (values.get(i) instanceof Boolean) {
+						Boolean str = (Boolean) values.get(i);
+						if (last != null) {
+							if (!str.equals(last)) {
+								allSame = false;
+								break;
+							}
+							last = str;
+						} else {
+							last = str;
+						}
+					}
+				}
+				if (allSame) {
+					renderer.setSelected(last.booleanValue());
+				} else {
+					renderer.setSelected(false);
+					renderer.setBackground(Color.lightGray);
+
+				}
+
+			}
+		}
+
+		renderer.setOpaque(true);
+
+		lastTable = table;
+		tableRow = row;
+		tableCol = column;
+
+		return panel;
+	}
+
+	public void stopEditing()
+	{
+	}
+
+	public void actionPerformed(ActionEvent e)
+	{
+		modified = true;
+		if (lastTable != null)
+			lastTable.editingStopped(new ChangeEvent(this));
+		//if(lastTable.getCellEditor() != null) lastTable.removeEditor();
+		/*Object obj = getEditorValue();
+		
+		if(lastTable != null)
+		{
+		    lastTable.setValueAt(obj, tableRow, tableCol);
+		}*/
 		lastTable.getSelectionModel().setSelectionInterval(tableRow, tableRow);
 		lastTable.getColumnModel().getSelectionModel().setSelectionInterval(tableCol, tableCol);
-    }
-    
+	}
+
 }

@@ -36,6 +36,7 @@ import javax.swing.event.*;
 
 import userinterface.GUIPrism;
 
+@SuppressWarnings("serial")
 public class GUISimulatorUpdatesTable extends JTable implements ListSelectionListener
 {
 	public static Color[] DISTRIBUTION_COLOURS = { new Color(255, 255, 255), //white
@@ -49,7 +50,7 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 	private GUISimulator.UpdateTableModel utm;
 
 	private UpdateHeaderListModel headerModel;
-	private JList header;
+	private JList<?> header;
 	private UpdateHeaderRenderer updateHeaderRenderer;
 	private UpdateTableRenderer updateTableRenderer;
 
@@ -68,7 +69,7 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 		getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 		headerModel = new UpdateHeaderListModel();
-		JList rowHeader = new JList(headerModel);
+		JList<?> rowHeader = new JList<Object>(headerModel);
 
 		rowHeader.setBackground(new JPanel().getBackground());
 
@@ -146,7 +147,7 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 		repaint();
 	}
 
-	public JList getUpdateRowHeader()
+	public JList<?> getUpdateRowHeader()
 	{
 		return header;
 	}
@@ -200,7 +201,7 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 		}
 	}
 
-	class UpdateHeaderRenderer extends JButton implements ListCellRenderer
+	class UpdateHeaderRenderer extends JButton implements ListCellRenderer<Object>
 	{
 
 		ImageIcon selectedIcon;
@@ -220,7 +221,7 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 			selectedDisabledIcon = GUIPrism.getIconFromImage("smallItemSelectedDisabled.png");
 		}
 
-		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
+		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus)
 		{
 			setBorder(null);
 			if (getSelectedRow() == index) {
@@ -236,7 +237,7 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 
 	}
 
-	class UpdateHeaderListModel extends AbstractListModel
+	class UpdateHeaderListModel extends AbstractListModel<Object>
 	{
 
 		public Object getElementAt(int index)

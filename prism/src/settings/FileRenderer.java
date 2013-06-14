@@ -38,137 +38,91 @@ public class FileRenderer implements SettingRenderer
 {
 	private JLabel renderer;
 	private JPanel panel;
-	
 	private ImageIcon warningIcon = GUIPrism.getIconFromImage("smallError.png");
-	
-	private boolean isFileValid = false;
-	
+
 	public FileRenderer()
 	{
 		panel = new JPanel(new BorderLayout());
 		renderer = new JLabel();
 		panel.add(renderer, BorderLayout.CENTER);
 	}
-	
-	public Component getTableCellRendererComponent(JTable table, Setting owner, Object value, boolean isSelected, boolean hasFocus, boolean isEnabled, int row, int column)
+
+	public Component getTableCellRendererComponent(JTable table, Setting owner, Object value, boolean isSelected, boolean hasFocus, boolean isEnabled, int row,
+			int column)
 	{
 		//renderer.setMargin(new Insets(0, 2, 4, 2));
-		
-		if (isSelected)
-		{
+
+		if (isSelected) {
 			renderer.setForeground(table.getSelectionForeground());
 			panel.setBackground(table.getSelectionBackground());
-		}
-		else
-		{
+		} else {
 			renderer.setForeground(table.getForeground());
 			panel.setBackground(table.getBackground());
 		}
-		
-		if(hasFocus)
-		{
-			renderer.setBorder( UIManager.getBorder("Table.focusCellHighlightBorder") );
-		}
-		else
-		{
+
+		if (hasFocus) {
+			renderer.setBorder(UIManager.getBorder("Table.focusCellHighlightBorder"));
+		} else {
 			renderer.setBorder(new EmptyBorder(1, 2, 2, 1));
 		}
-		
-		if(value instanceof File)
-		{
-			File file = (File)value;
-			
-			//renderer.setForeground(fcp.c);
-			
-			renderer.setText(file.toString());;
-			
+
+		if (value instanceof File) {
+			File file = (File) value;
+			renderer.setText(file.toString());
 			renderer.setEnabled(isEnabled);
-			
-			
-			if(owner instanceof FileSetting)
-			{
-				FileSetting fset = (FileSetting)owner;
-				if(!fset.isValidFile())
-				{
+			if (owner instanceof FileSetting) {
+				FileSetting fset = (FileSetting) owner;
+				if (!fset.isValidFile()) {
 					renderer.setIcon(warningIcon);
-				}
-				else
-				{
+				} else {
 					renderer.setIcon(null);
 				}
 			}
-			//renderer.setFont(fcp.f);
-			
-		}
-		else if(value instanceof ArrayList)
-		{
-			ArrayList values = (ArrayList)value;
-			if(values.size() > 0)
-			{
+		} else if (value instanceof ArrayList) {
+			ArrayList<?> values = (ArrayList<?>) value;
+			if (values.size() > 0) {
 				//if we have multiple properties selected.
 				File last = null;
 				boolean allSame = true;
-				for(int i = 0; i < values.size(); i++)
-				{
-					if(values.get(i) instanceof File)
-					{
-						File str = (File)values.get(i);
-						if(last != null)
-						{
-							if(!str.equals(last))
-							{
-								allSame = false; break;
+				for (int i = 0; i < values.size(); i++) {
+					if (values.get(i) instanceof File) {
+						File str = (File) values.get(i);
+						if (last != null) {
+							if (!str.equals(last)) {
+								allSame = false;
+								break;
 							}
 							last = str;
-						}
-						else
-						{
+						} else {
 							last = str;
 						}
 					}
 				}
-				if(allSame)
-				{
+				if (allSame) {
 					File file = last;
-					
-					//renderer.setForeground(fcp.c);
-					
-					renderer.setText(file.toString());;
-					
+					renderer.setText(file.toString());
 					renderer.setEnabled(isEnabled);
-					
-					
-					if(owner instanceof FileSetting)
-					{
-						FileSetting fset = (FileSetting)owner;
-						if(!fset.isValidFile())
-						{
+					if (owner instanceof FileSetting) {
+						FileSetting fset = (FileSetting) owner;
+						if (!fset.isValidFile()) {
 							renderer.setIcon(warningIcon);
-						}
-						else
-						{
+						} else {
 							renderer.setIcon(null);
 						}
 					}
-				}
-				else
-				{
+				} else {
 					renderer.setText("(Different values)");
-					
 					renderer.setEnabled(isEnabled);
-					
 					renderer.setBackground(Color.lightGray);
 					panel.setBackground(Color.lightGray);
-					
 				}
-				
+
 			}
 		}
-		
+
 		//sort out the height
-		
-		
+
 		return panel;
 	}
-	
+
 }
