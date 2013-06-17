@@ -301,28 +301,28 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 	}
 
 	@Override
-	public double mvMultRewGSMinMax(double vect[], MDPRewards mdpRewards, boolean min, BitSet subset, boolean complement, boolean absolute)
+	public double mvMultRewGSMinMax(double vect[], MDPRewards mdpRewards, boolean min, BitSet subset, boolean complement, boolean absolute, int strat[])
 	{
 		int s;
 		double d, diff, maxDiff = 0.0;
 		// Loop depends on subset/complement arguments
 		if (subset == null) {
 			for (s = 0; s < numStates; s++) {
-				d = mvMultRewJacMinMaxSingle(s, vect, mdpRewards, min);
+				d = mvMultRewJacMinMaxSingle(s, vect, mdpRewards, min, strat);
 				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
 				maxDiff = diff > maxDiff ? diff : maxDiff;
 				vect[s] = d;
 			}
 		} else if (complement) {
 			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1)) {
-				d = mvMultRewJacMinMaxSingle(s, vect, mdpRewards, min);
+				d = mvMultRewJacMinMaxSingle(s, vect, mdpRewards, min, strat);
 				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
 				maxDiff = diff > maxDiff ? diff : maxDiff;
 				vect[s] = d;
 			}
 		} else {
 			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1)) {
-				d = mvMultRewJacMinMaxSingle(s, vect, mdpRewards, min);
+				d = mvMultRewJacMinMaxSingle(s, vect, mdpRewards, min, strat);
 				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
 				maxDiff = diff > maxDiff ? diff : maxDiff;
 				vect[s] = d;

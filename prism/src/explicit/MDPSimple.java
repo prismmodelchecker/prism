@@ -862,6 +862,8 @@ public class MDPSimple extends MDPExplicit implements ModelSimple
 			}
 			first = false;
 		}
+		// Add state reward (doesn't affect min/max)
+		minmax += mdpRewards.getStateReward(s);
 		// If strategy generation is enabled, store optimal choice
 		if (strat != null & !first) {
 			// Only remember strictly better choices (required for max)
@@ -869,16 +871,14 @@ public class MDPSimple extends MDPExplicit implements ModelSimple
 				strat[s] = stratCh;
 			}
 		}
-		// Add state reward (doesn't affect min/max)
-		minmax += mdpRewards.getStateReward(s);
 
 		return minmax;
 	}
 
 	@Override
-	public double mvMultRewJacMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min)
+	public double mvMultRewJacMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int strat[])
 	{
-		int j, k;
+		int j, k, stratCh = -1;
 		double diag, d, prob, minmax;
 		boolean first;
 		List<Distribution> step;
@@ -904,12 +904,24 @@ public class MDPSimple extends MDPExplicit implements ModelSimple
 			if (diag > 0)
 				d /= diag;
 			// Check whether we have exceeded min/max so far
-			if (first || (min && d < minmax) || (!min && d > minmax))
+			if (first || (min && d < minmax) || (!min && d > minmax)) {
 				minmax = d;
+				// If strategy generation is enabled, remember optimal choice
+				if (strat != null) {
+					stratCh = j;
+				}
+			}
 			first = false;
 		}
 		// Add state reward (doesn't affect min/max)
 		minmax += mdpRewards.getStateReward(s);
+		// If strategy generation is enabled, store optimal choice
+		if (strat != null & !first) {
+			// Only remember strictly better choices (required for max)
+			if (strat[s] == -1 || (min && minmax < vect[s]) || (!min && minmax > vect[s])) {
+				strat[s] = stratCh;
+			}
+		}
 
 		return minmax;
 	}
