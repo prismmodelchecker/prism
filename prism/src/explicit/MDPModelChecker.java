@@ -1235,6 +1235,29 @@ public class MDPModelChecker extends ProbModelChecker
 		numInf = inf.cardinality();
 		mainLog.println("target=" + numTarget + ", inf=" + numInf + ", rest=" + (n - (numTarget + numInf)));
 
+		// If required, generate strategy for "inf" states.
+		if (genStrat) {
+			if (min) {
+				// If min reward is infinite, all choices give infinity.
+				// So just pick the first choice (0) for all "inf" states. 
+				for (i = inf.nextSetBit(0); i >= 0; i = inf.nextSetBit(i + 1)) {
+					strat[i] = 0;
+				}
+			} else {
+				// If max reward is infinite, there is at least one choice giving infinity.
+				// So we pick, for all "inf" states, the first choice for which some transitions stays in "inf".
+				for (i = inf.nextSetBit(0); i >= 0; i = inf.nextSetBit(i + 1)) {
+					int numChoices = mdp.getNumChoices(i);
+					for (int k = 0; k < numChoices; k++) {
+						if (mdp.allSuccessorsInSet(i, k, inf)) {
+							strat[i] = k;
+							continue;
+						}
+					}
+				}
+			}
+		}
+
 		// Compute rewards
 		switch (mdpSolnMethod) {
 		case VALUE_ITERATION:
@@ -1245,6 +1268,21 @@ public class MDPModelChecker extends ProbModelChecker
 			break;
 		default:
 			throw new PrismException("Unknown MDP solution method " + mdpSolnMethod.fullName());
+		}
+
+		// Export adversary
+		if (genStrat && exportAdv) {
+			// Prune strategy
+			restrictStrategyToReachableStates(mdp, strat);
+			// Print strategy
+			mainLog.print("Strat:");
+			for (i = 0; i < n; i++) {
+				mainLog.print(" " + i + ":" + strat[i]);
+			}
+			mainLog.println();
+			// Export
+			PrismLog out = new PrismFileLog(exportAdvFilename);
+			new DTMCFromMDPMemorylessAdversary(mdp, strat).exportToPrismExplicitTra(out);
 		}
 
 		// Finished expected reachability

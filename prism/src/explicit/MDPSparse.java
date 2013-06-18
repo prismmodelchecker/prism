@@ -577,7 +577,23 @@ public class MDPSparse extends MDPExplicit
 		}
 		return true;
 	}
-	
+
+	@Override
+	public boolean someSuccessorsInSet(int s, int i, BitSet set)
+	{
+		int j, k, l2, h2;
+		j = rowStarts[s] + i;
+		l2 = choiceStarts[j];
+		h2 = choiceStarts[j + 1];
+		for (k = l2; k < h2; k++) {
+			// Assume that only non-zero entries are stored
+			if (set.get(cols[k])) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	@Override
 	public void prob0step(BitSet subset, BitSet u, boolean forall, BitSet result)
 	{

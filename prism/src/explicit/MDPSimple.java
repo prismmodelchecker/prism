@@ -561,6 +561,12 @@ public class MDPSimple extends MDPExplicit implements ModelSimple
 	}
 	
 	@Override
+	public boolean someSuccessorsInSet(int s, int i, BitSet set)
+	{
+		return trans.get(s).get(i).containsOneOf(set);
+	}
+	
+	@Override
 	public void prob0step(BitSet subset, BitSet u, boolean forall, BitSet result)
 	{
 		int i;

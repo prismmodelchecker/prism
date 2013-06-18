@@ -65,13 +65,20 @@ public interface MDP extends Model
 	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s, int i);
 
 	/**
-	 * Check if all the successor states from choice {@code i} of state {@code s} are in the set  {@code set}.
-	 * Get an iterator over the transitions .
+	 * Check if all the successor states from choice {@code i} of state {@code s} are in the set {@code set}.
 	 * @param s The state to check
 	 * @param i Choice index
 	 * @param set The set to test for inclusion
 	 */
 	public boolean allSuccessorsInSet(int s, int i, BitSet set);
+	
+	/**
+	 * Check if some successor state from choice {@code i} of state {@code s} is in the set {@code set}.
+	 * @param s The state to check
+	 * @param i Choice index
+	 * @param set The set to test for inclusion
+	 */
+	public boolean someSuccessorsInSet(int s, int i, BitSet set);
 	
 	/**
 	 * Perform a single step of precomputation algorithm Prob0, i.e., for states i in {@code subset},
