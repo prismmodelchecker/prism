@@ -32,13 +32,13 @@ import userinterface.*;
 public class GUIEventHandler
 {
 	public GUIPrism gui;
-	public ArrayList listeners;
+	public ArrayList<GUIEventListener> listeners;
 	
 	/** Creates a new instance of GUIEventHandler */
 	public GUIEventHandler(GUIPrism gui)
 	{
 		this.gui = gui;
-		listeners = new ArrayList();
+		listeners = new ArrayList<GUIEventListener>();
 	}
 	
 	public void addListener(GUIEventListener listen)
@@ -52,7 +52,7 @@ public class GUIEventHandler
 		// notify plugins
 		for(int i = 0; i < listeners.size(); i++)
 		{
-			GUIEventListener lis = (GUIEventListener)listeners.get(i);
+			GUIEventListener lis = listeners.get(i);
 			res = lis.processGUIEvent(e);
 			if (res) break;
 		}

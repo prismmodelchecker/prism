@@ -34,18 +34,18 @@ import javax.swing.filechooser.*;
 public class GUIPrismFileFilter extends FileFilter
 {
 	private String name;
-	private Vector exts;
+	private Vector<String> exts;
 	
 	public GUIPrismFileFilter()
 	{
 		name = "";
-		exts = new Vector();
+		exts = new Vector<String>();
 	}
 
 	public GUIPrismFileFilter(String s)
 	{
 		name = s;
-		exts = new Vector();
+		exts = new Vector<String>();
 	}
 
 	public void setName(String s)

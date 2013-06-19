@@ -37,11 +37,11 @@ import javax.swing.table.*;
  * An object to represent a grouped TableHeader. It extends JTableHeader, but actually consists of two separate
  * JTableHeaders. Some of this could be tidied up, but it is build more or less to Swings concepts.
  */
+@SuppressWarnings("serial")
 public class GUIGroupedTableHeader extends JTableHeader implements TableColumnModelListener, MouseListener
 {
 	private JTableHeader bottomHeader;
 	private JTableHeader topHeader;
-	private GUIGroupedTableColumnModel model;
 	private GUIGroupedTableModel tableModel;
 			
 	/**
@@ -53,14 +53,11 @@ public class GUIGroupedTableHeader extends JTableHeader implements TableColumnMo
 		super();
 		removeAll();
 		
-		this.model = model;
 		this.tableModel = tableModel;
 						
 		topHeader = new JTableHeader(model.getGroupTableColumnModel());
 		topHeader.setResizingAllowed(false);
 		topHeader.setReorderingAllowed(false);
-		
-		
 		
 		final TableCellRenderer renderer = topHeader.getDefaultRenderer();
 		topHeader.setDefaultRenderer(new TableCellRenderer() {

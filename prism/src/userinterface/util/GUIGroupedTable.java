@@ -32,12 +32,12 @@ import javax.swing.table.*;
 
 import java.util.*;
 
-
 /**
  * A table object that is capable of grouping headers, effectively by means of two JTableHeader
  * Objects on top of each other.
  */
-public class GUIGroupedTable extends JTable 
+@SuppressWarnings("serial")
+public class GUIGroupedTable extends JTable
 {
 	/**
 	 * Creates a new GUIGroupedTable.
@@ -45,20 +45,19 @@ public class GUIGroupedTable extends JTable
 	 */
 	public GUIGroupedTable(GUIGroupedTableModel tableModel)
 	{
-		super(tableModel);		
+		super(tableModel);
 	}
-	
+
 	/**
 	 * The default TableColumnModel Object (and the only valid one) is a GUIGroupedColumnModel Object.
 	 * @see javax.swing.JTable#createDefaultColumnModel()
 	 */
 	@Override
-    protected TableColumnModel createDefaultColumnModel() 
-	{	    
-	    return new GUIGroupedTableColumnModel();
-    }
+	protected TableColumnModel createDefaultColumnModel()
+	{
+		return new GUIGroupedTableColumnModel();
+	}
 
-	
 	/** 
 	 * Given a GUIGroupedTableModel, this function creates a GUIGroupedColumnModel.
 	 * This function is called by JTable when the structure of the table changes, such that
@@ -66,41 +65,38 @@ public class GUIGroupedTable extends JTable
 	 * @see javax.swing.JTable#createDefaultColumnsFromModel()
 	 */
 	@Override
-    public void createDefaultColumnsFromModel() 
-	{			
-		GUIGroupedTableColumnModel groupedColumnModel = (GUIGroupedTableColumnModel)columnModel;
-		
-		groupedColumnModel.clear();	
-				
-		if (dataModel != null && dataModel instanceof GUIGroupedTableModel && columnModel instanceof GUIGroupedTableColumnModel)
-		{			
-			GUIGroupedTableModel groupedDataModel = (GUIGroupedTableModel)dataModel;
-						
+	public void createDefaultColumnsFromModel()
+	{
+		GUIGroupedTableColumnModel groupedColumnModel = (GUIGroupedTableColumnModel) columnModel;
+
+		groupedColumnModel.clear();
+
+		if (dataModel != null && dataModel instanceof GUIGroupedTableModel && columnModel instanceof GUIGroupedTableColumnModel) {
+			GUIGroupedTableModel groupedDataModel = (GUIGroupedTableModel) dataModel;
+
 			int group = 0;
 			int element = 0;
-			
+
 			// Add a group every iteration
-			while (group < groupedDataModel.getGroupCount() && element < groupedDataModel.getColumnCount())
-			{								
-				ArrayList groupElements = new ArrayList();
-				
+			while (group < groupedDataModel.getGroupCount() && element < groupedDataModel.getColumnCount()) {
+				ArrayList<TableColumn> groupElements = new ArrayList<TableColumn>();
+
 				// Add an element every iteration
-				while (groupedDataModel.getLastColumnOfGroup(group) >= element)
-				{
+				while (groupedDataModel.getLastColumnOfGroup(group) >= element) {
 					TableColumn elementColumn = new TableColumn(element);
 					elementColumn.setHeaderValue(groupedDataModel.getColumnName(element));
 					groupElements.add(elementColumn);
 					element++;
 				}
-				
+
 				TableColumn groupColumn = new TableColumn(group);
 				groupColumn.setHeaderValue(groupedDataModel.getGroupName(group));
 				group++;
-				
+
 				groupedColumnModel.addColumnGroup(groupColumn, groupElements);
-			}		
-		}		
-    }
+			}
+		}
+	}
 
 	/**
 	 * Creates a default table header from the current column model.
@@ -109,26 +105,26 @@ public class GUIGroupedTable extends JTable
 	 * @see javax.swing.JTable#createDefaultTableHeader()
 	 */
 	@Override
-    protected JTableHeader createDefaultTableHeader() {
-		
-		GUIGroupedTableHeader header = null;
-		
-		if (columnModel != null && columnModel instanceof GUIGroupedTableColumnModel)
-			header =  new GUIGroupedTableHeader((GUIGroupedTableColumnModel)columnModel, (GUIGroupedTableModel)this.getModel(), this);
-		else
-			header = new GUIGroupedTableHeader(new GUIGroupedTableColumnModel(), (GUIGroupedTableModel)this.getModel(), this);
-		
-		header.setTable(this);
-		
-		return header;
-    }
-    
-    /** Override set font to set row height(s) */
-    @Override
-    public void setFont(Font font)
-    {
-		super.setFont(font);
-    	setRowHeight(getFontMetrics(font).getHeight() + 4);
-    }
-}
+	protected JTableHeader createDefaultTableHeader()
+	{
 
+		GUIGroupedTableHeader header = null;
+
+		if (columnModel != null && columnModel instanceof GUIGroupedTableColumnModel)
+			header = new GUIGroupedTableHeader((GUIGroupedTableColumnModel) columnModel, (GUIGroupedTableModel) this.getModel(), this);
+		else
+			header = new GUIGroupedTableHeader(new GUIGroupedTableColumnModel(), (GUIGroupedTableModel) this.getModel(), this);
+
+		header.setTable(this);
+
+		return header;
+	}
+
+	/** Override set font to set row height(s) */
+	@Override
+	public void setFont(Font font)
+	{
+		super.setFont(font);
+		setRowHeight(getFontMetrics(font).getHeight() + 4);
+	}
+}

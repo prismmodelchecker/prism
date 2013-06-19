@@ -34,26 +34,26 @@ import javax.swing.table.*;
  * The TableColumnModel with the addition of Groups. A group is a set of columns. The set of columns 
  * belonging to each group are disjoint and non-empty (!). 
  */
+@SuppressWarnings("serial")
 public class GUIGroupedTableColumnModel extends DefaultTableColumnModel implements TableColumnModelListener
 {
 	//private DefaultTableColumnModel elementTableColumnModel;
 	private DefaultTableColumnModel groupTableColumnModel;
-			
+
 	// The nth element is the index of the last element in the nth group.
-	private ArrayList lastColumn;		
-	
+	private ArrayList<Integer> lastColumn;
+
 	/**
 	 * Creates a new GUIGroupedTableModel with no groups.
 	 */
 	public GUIGroupedTableColumnModel()
-	{			
-		lastColumn = new ArrayList();		
-		
+	{
+		lastColumn = new ArrayList<Integer>();
+
 		//this.elementTableColumnModel = new DefaultTableColumnModel();
-		this.groupTableColumnModel = new DefaultTableColumnModel();			
+		this.groupTableColumnModel = new DefaultTableColumnModel();
 	}
-	
-	
+
 	/**
 	 * Returns The columns of all groups in terms of a DefaultTableColumnModel.
 	 * @return The columns of all groups in terms of a DefaultTableColumnModel.
@@ -62,26 +62,24 @@ public class GUIGroupedTableColumnModel extends DefaultTableColumnModel implemen
 	{
 		return groupTableColumnModel;
 	}
-	
-	
+
 	/**
 	 * Adds a group to this grouped column model.
 	 * @param groupColumn A TableColumn representing all of the group.
 	 * @param elementColumns An ArrayList of TableColumns representing the columns of this group in the model.
 	 */
-	public void addColumnGroup(TableColumn groupColumn, ArrayList elementColumns)
+	public void addColumnGroup(TableColumn groupColumn, ArrayList<TableColumn> elementColumns)
 	{
 		groupTableColumnModel.addColumn(groupColumn);
-		
-		for (int i = 0; i < elementColumns.size(); i++)
-		{
-			this.addColumn(((TableColumn)elementColumns.get(i)));
+
+		for (int i = 0; i < elementColumns.size(); i++) {
+			this.addColumn(elementColumns.get(i));
 		}
-		
-		lastColumn.add(new Integer(this.getColumnCount()-1));
+
+		lastColumn.add(new Integer(this.getColumnCount() - 1));
 		updateGroups();
 	}
-		
+
 	/**
 	 * A function that updates the widths of the group columns. 
 	 */
@@ -89,18 +87,15 @@ public class GUIGroupedTableColumnModel extends DefaultTableColumnModel implemen
 	{
 		int group = 0;
 		int groupWidth = 0;
-		
-		for (int i = 0; i < this.getColumnCount(); i++)
-		{
+
+		for (int i = 0; i < this.getColumnCount(); i++) {
 			groupWidth += this.getColumn(i).getWidth();
-			
+
 			// If this is the last column of a group.
-			if (i == ((Integer)lastColumn.get(group)).intValue())
-			{						
-				while (group < groupTableColumnModel.getColumnCount() && i == ((Integer)lastColumn.get(group)).intValue())
-				{
+			if (i == lastColumn.get(group).intValue()) {
+				while (group < groupTableColumnModel.getColumnCount() && i == lastColumn.get(group).intValue()) {
 					groupTableColumnModel.getColumn(group).setWidth(groupWidth);
-					
+
 					groupWidth = 0;
 					group++;
 				}
@@ -108,38 +103,50 @@ public class GUIGroupedTableColumnModel extends DefaultTableColumnModel implemen
 		}
 	}
 
-	public void columnAdded(TableColumnModelEvent e) {}
-	public void columnMarginChanged(ChangeEvent e) {}
-	public void columnMoved(TableColumnModelEvent e) {}
-	public void columnRemoved(TableColumnModelEvent e) {}
-	public void columnSelectionChanged(ListSelectionEvent e) {}
+	public void columnAdded(TableColumnModelEvent e)
+	{
+	}
+
+	public void columnMarginChanged(ChangeEvent e)
+	{
+	}
+
+	public void columnMoved(TableColumnModelEvent e)
+	{
+	}
+
+	public void columnRemoved(TableColumnModelEvent e)
+	{
+	}
+
+	public void columnSelectionChanged(ListSelectionEvent e)
+	{
+	}
 
 	/**
 	 * If something changed in the columns of the table, then adjust the group widths.
 	 */
 	@Override
-	protected void fireColumnMarginChanged() {
+	protected void fireColumnMarginChanged()
+	{
 		// Size must have changed then.
 		updateGroups();
 		super.fireColumnMarginChanged();
 	}
-	
+
 	/** 
 	 * Empties this GUIGroupedTableColumnModel.
 	 */
 	public void clear()
 	{
-		while (this.getColumnCount() > 0)
-		{
+		while (this.getColumnCount() > 0) {
 			this.removeColumn(this.getColumn(0));
 		}
-		
-		while (groupTableColumnModel.getColumnCount() > 0)
-		{
+
+		while (groupTableColumnModel.getColumnCount() > 0) {
 			groupTableColumnModel.removeColumn(groupTableColumnModel.getColumn(0));
 		}
-		
+
 		this.lastColumn.clear();
 	}
 }
-

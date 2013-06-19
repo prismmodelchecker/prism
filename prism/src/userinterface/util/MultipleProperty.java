@@ -36,10 +36,10 @@ import javax.swing.*;
  */
 public class MultipleProperty
 {
-    private ArrayList properties;
+    private ArrayList<SingleProperty> properties;
     
     /** Creates a new instance of MultipleProperty */
-    public MultipleProperty(ArrayList properties)
+    public MultipleProperty(ArrayList<SingleProperty> properties)
     {
         this.properties = properties;
     }
@@ -51,7 +51,7 @@ public class MultipleProperty
     
     public SingleProperty getProperty(int i)
     {
-        return (SingleProperty)properties.get(i);
+        return properties.get(i);
     }
     
     public int getNumProperties()
@@ -101,7 +101,7 @@ public class MultipleProperty
      * Getter for property properties.
      * @return Value of property properties.
      */
-    public java.util.ArrayList getProperties()
+    public ArrayList<SingleProperty> getProperties()
     {
         return properties;
     }

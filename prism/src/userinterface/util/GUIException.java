@@ -27,6 +27,7 @@
 
 package userinterface.util;
 
+@SuppressWarnings("serial")
 public class GUIException extends java.lang.Exception
 {
     /**

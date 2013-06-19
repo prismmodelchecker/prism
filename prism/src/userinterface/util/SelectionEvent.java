@@ -26,38 +26,37 @@
 //==============================================================================
 
 package userinterface.util;
+
 import java.util.ArrayList;
 
 public class SelectionEvent
 {
-    private ArrayList selectedItems;
-    
-    /** Creates a new instance of SelectionEvent 
-     *  All elements of selectedItems must be
-     *  instances of PropertyOwner.
-     */
-    public SelectionEvent(ArrayList selectedItems)
-    {
-        this.selectedItems = selectedItems;
-    }
-    
-    /** Getter for property selectedItems.
-     * @return Value of property selectedItems.
-     *
-     */
-    public java.util.ArrayList getSelectedItems()
-    {
-        return selectedItems;
-    }
-    
-    public PropertyOwner getSelectedItem(int i)
-    {
-        return (PropertyOwner)selectedItems.get(i);
-    }
-    
-    public int getSelectionSize()
-    {
-        return selectedItems.size();
-    }
-    
+	private ArrayList<PropertyOwner> selectedItems;
+
+	/**
+	 * Creates a new instance of SelectionEvent 
+	 */
+	public SelectionEvent(ArrayList<PropertyOwner> selectedItems)
+	{
+		this.selectedItems = selectedItems;
+	}
+
+	/**
+	 * Getter for property selectedItems.
+	 * @return Value of property selectedItems.
+	 */
+	public ArrayList<PropertyOwner> getSelectedItems()
+	{
+		return selectedItems;
+	}
+
+	public PropertyOwner getSelectedItem(int i)
+	{
+		return selectedItems.get(i);
+	}
+
+	public int getSelectionSize()
+	{
+		return selectedItems.size();
+	}
 }

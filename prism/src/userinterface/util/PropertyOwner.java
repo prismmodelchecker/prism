@@ -28,28 +28,29 @@ package userinterface.util;
 
 import java.util.*;
 
-public interface PropertyOwner extends Comparable
+public interface PropertyOwner extends Comparable<Object>
 {
-    //One for each type of owner
-    public int getUniquePropertyID();
-    //One for each owner
-    //This will be displayed when only
-    //this owner is being displayed.
-    public String getDescriptor();
-    //ONe for each type of property collection
-    //When only one owner is being displayed,
-    //we see the result of this method, and then
-    //the result of getDescriptor.
-    //If there is more than one owner being
-    //displayed, we see the number of
-    //owners, then the result of this method
-    //followed by an "s".
-    public String getClassDescriptor();
-    
-    public int getNumProperties();
-    
-    public SingleProperty getProperty(int index);
-    
-    public void registerObserver(Observer obs);
-    
+	// One for each type of owner
+	public int getUniquePropertyID();
+
+	// One for each owner
+	// This will be displayed when only
+	// this owner is being displayed.
+	public String getDescriptor();
+
+	// One for each type of property collection
+	// When only one owner is being displayed,
+	// we see the result of this method, and then
+	// the result of getDescriptor.
+	// If there is more than one owner being
+	// displayed, we see the number of
+	// owners, then the result of this method
+	// followed by an "s".
+	public String getClassDescriptor();
+
+	public int getNumProperties();
+
+	public SingleProperty getProperty(int index);
+
+	public void registerObserver(Observer obs);
 }

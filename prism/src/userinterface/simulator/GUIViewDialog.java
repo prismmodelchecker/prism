@@ -34,6 +34,7 @@ import java.awt.*;
 import java.util.*;
 import java.awt.event.*;
 import userinterface.*;
+import userinterface.simulator.SimulationView.Variable;
 import userinterface.simulator.SimulationView.*;
 
 public class GUIViewDialog extends JDialog implements KeyListener
@@ -65,9 +66,9 @@ public class GUIViewDialog extends JDialog implements KeyListener
 	private javax.swing.JPanel centerVariablePanel;
 	private javax.swing.JRadioButton changeRenderingButton;
 	private javax.swing.JLabel hiddenLabel;
-	private javax.swing.JList hiddenRewardList;
+	private javax.swing.JList<RewardListItem> hiddenRewardList;
 	private javax.swing.JScrollPane hiddenRewardScrollList;
-	private javax.swing.JList hiddenVariableList;
+	private javax.swing.JList<Variable> hiddenVariableList;
 	private javax.swing.JScrollPane hiddenVariableScrollList;
 	private javax.swing.JPanel innerPathStylePanel;
 	private javax.swing.JPanel innerTimePanel;
@@ -102,9 +103,9 @@ public class GUIViewDialog extends JDialog implements KeyListener
 	private javax.swing.JTabbedPane variableTabPane;
 	private javax.swing.JPanel variableTabPanel;
 	private javax.swing.JLabel visibleLabel;
-	private javax.swing.JList visibleRewardList;
+	private javax.swing.JList<RewardListItem> visibleRewardList;
 	private javax.swing.JScrollPane visibleRewardScrollList;
-	private javax.swing.JList visibleVariableList;
+	private javax.swing.JList<Variable> visibleVariableList;
 	private javax.swing.JScrollPane visibleVariableScrollList;
 
 	// End of variables declaration//GEN-END:variables
@@ -209,7 +210,7 @@ public class GUIViewDialog extends JDialog implements KeyListener
 		leftVariableColumn = new javax.swing.JPanel();
 		leftVariablePanel = new javax.swing.JPanel();
 		visibleVariableScrollList = new javax.swing.JScrollPane();
-		visibleVariableList = new javax.swing.JList();
+		visibleVariableList = new javax.swing.JList<Variable>();
 		selectAllVisibleVariablesButton = new javax.swing.JButton();
 		centerVariableColumn = new javax.swing.JPanel();
 		centerVariablePanel = new javax.swing.JPanel();
@@ -218,14 +219,14 @@ public class GUIViewDialog extends JDialog implements KeyListener
 		rightVariableColumn = new javax.swing.JPanel();
 		rightVariablePanel = new javax.swing.JPanel();
 		hiddenVariableScrollList = new javax.swing.JScrollPane();
-		hiddenVariableList = new javax.swing.JList();
+		hiddenVariableList = new javax.swing.JList<Variable>();
 		selectAllHiddenVariablesButton = new javax.swing.JButton();
 		rewardTabPanel = new javax.swing.JPanel();
 		rewardPanel = new javax.swing.JPanel();
 		leftRewardColumn = new javax.swing.JPanel();
 		leftRewardPanel = new javax.swing.JPanel();
 		visibleRewardScrollList = new javax.swing.JScrollPane();
-		visibleRewardList = new javax.swing.JList();
+		visibleRewardList = new javax.swing.JList<RewardListItem>();
 		selectAllVisibleRewardsButton = new javax.swing.JButton();
 		centerRewardColumn = new javax.swing.JPanel();
 		centerRewardPanel = new javax.swing.JPanel();
@@ -234,7 +235,7 @@ public class GUIViewDialog extends JDialog implements KeyListener
 		rightRewardColumn = new javax.swing.JPanel();
 		rightRewardPanel = new javax.swing.JPanel();
 		hiddenRewardScrollList = new javax.swing.JScrollPane();
-		hiddenRewardList = new javax.swing.JList();
+		hiddenRewardList = new javax.swing.JList<RewardListItem>();
 		selectAllHiddenRewardsButton = new javax.swing.JButton();
 		otherTabPanel = new javax.swing.JPanel();
 		boxPanel = new javax.swing.JPanel();
@@ -614,10 +615,8 @@ public class GUIViewDialog extends JDialog implements KeyListener
 	private void makeRewardVisibleButtonActionPerformed(java.awt.event.ActionEvent evt)
 	{//GEN-FIRST:event_makeRewardVisibleButtonActionPerformed
 		int[] indices = hiddenRewardList.getSelectedIndices();
-
 		for (int i = indices.length - 1; i >= 0; i--) {
 			RewardListItem rew = (RewardListItem) hiddenRewardListModel.get(indices[i]);
-
 			hiddenRewardListModel.removeReward(rew);
 			visibleRewardListModel.addReward(rew);
 		}
@@ -628,7 +627,6 @@ public class GUIViewDialog extends JDialog implements KeyListener
 		int[] indices = new int[visibleRewardListModel.getSize()];
 		for (int i = 0; i < indices.length; i++)
 			indices[i] = i;
-
 		visibleRewardList.setSelectedIndices(indices);
 	}//GEN-LAST:event_selectAllVisibleRewardsButtonActionPerformed
 
@@ -637,7 +635,6 @@ public class GUIViewDialog extends JDialog implements KeyListener
 		int[] indices = new int[visibleVariableListModel.getSize()];
 		for (int i = 0; i < indices.length; i++)
 			indices[i] = i;
-
 		visibleVariableList.setSelectedIndices(indices);
 	}//GEN-LAST:event_selectAllVisibleVariablesButtonActionPerformed
 
@@ -722,7 +719,7 @@ public class GUIViewDialog extends JDialog implements KeyListener
 
 	}
 
-	class VariableListModel extends DefaultListModel
+	class VariableListModel extends DefaultListModel<Variable>
 	{
 		private static final long serialVersionUID = 1L;
 
@@ -825,7 +822,7 @@ public class GUIViewDialog extends JDialog implements KeyListener
 		}
 	}
 
-	class RewardListModel extends DefaultListModel
+	class RewardListModel extends DefaultListModel<RewardListItem>
 	{
 		private static final long serialVersionUID = 1L;
 
