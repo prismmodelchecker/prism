@@ -1544,6 +1544,7 @@ public class DTMCModelChecker extends ProbModelChecker
 			} else {
 				
 				// 2. Build DTMC directly
+				//    Run as: PRISM_MAINCLASS=explicit.DTMCModelChecker bin/prism
 				//    (example taken from p.14 of Lec 5 of http://www.prismmodelchecker.org/lectures/pmc/) 
 				mc = new DTMCModelChecker();
 				dtmc = new DTMCSimple(6);
