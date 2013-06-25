@@ -46,7 +46,7 @@
 
   Author      [Curt Musfeldt, Alan Shuler, Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -100,7 +100,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddGenetic.c,v 1.28 2004/08/13 18:04:48 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddGenetic.c,v 1.30 2012/02/05 01:07:18 fabio Exp $";
 #endif
 
 static int popsize;		/* the size of the population */
@@ -326,6 +326,9 @@ cuddGa(
 	}
     } else {
 	cross = table->numberXovers;      /* use user specified value */
+    }
+    if (cross >= popsize) {
+	cross = popsize;
     }
 
     /* Perform the crossovers to get the best order. */

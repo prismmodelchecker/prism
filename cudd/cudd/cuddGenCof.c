@@ -17,6 +17,7 @@
 		<li> Cudd_bddCharToVect()
 		<li> Cudd_bddLICompaction()
 		<li> Cudd_bddSqueeze()
+                <li> Cudd_bddMinimize()
 		<li> Cudd_SubsetCompress()
 		<li> Cudd_SupersetCompress()
 		</ul>
@@ -35,13 +36,16 @@
 		<li> cuddBddCharToVect()
 		<li> cuddBddLICMarkEdges()
 		<li> cuddBddLICBuildResult()
+                <li> MarkCacheHash()
+                <li> MarkCacheCompare()
+                <li> MarkCacheCleanUp()
 		<li> cuddBddSqueeze()
 		</ul>
 		]
 
   Author      [Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -111,7 +115,7 @@ typedef struct MarkCacheKey {
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddGenCof.c,v 1.38 2005/05/14 17:27:11 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddGenCof.c,v 1.40 2012/02/05 01:07:18 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -153,7 +157,7 @@ static DdNode * cuddBddSqueeze (DdManager *dd, DdNode *l, DdNode *u);
   Synopsis    [Computes f constrain c.]
 
   Description [Computes f constrain c (f @ c).
-  Uses a canonical form: (f' @ c) = ( f @ c)'.  (Note: this is not true
+  Uses a canonical form: (f' @ c) = (f @ c)'.  (Note: this is not true
   for c.)  List of special cases:
     <ul>
     <li> f @ 0 = 0
@@ -356,7 +360,7 @@ Cudd_addConstrain(
   entry for each BDD variable in the manager if successful; otherwise
   NULL. The components of the solution have their reference counts
   already incremented (unlike the results of most other functions in
-  the package.]
+  the package).]
 
   SideEffects [None]
 
@@ -688,8 +692,8 @@ Cudd_bddMinimize(
 
   SideEffects [None]
 
-  SeeAlso     [Cudd_SubsetRemap Cudd_SubsetShortPaths Cudd_SubsetHeavyBranch
-  Cudd_bddSqueeze]
+  SeeAlso     [Cudd_RemapUnderApprox Cudd_SubsetShortPaths
+  Cudd_SubsetHeavyBranch Cudd_bddSqueeze]
 
 ******************************************************************************/
 DdNode *
@@ -704,7 +708,7 @@ Cudd_SubsetCompress(
     tmp1 = Cudd_SubsetShortPaths(dd, f, nvars, threshold, 0);
     if (tmp1 == NULL) return(NULL);
     cuddRef(tmp1);
-    tmp2 = Cudd_RemapUnderApprox(dd,tmp1,nvars,0,1.0);
+    tmp2 = Cudd_RemapUnderApprox(dd,tmp1,nvars,0,0.95);
     if (tmp2 == NULL) {
 	Cudd_IterDerefBdd(dd,tmp1);
 	return(NULL);
@@ -1912,7 +1916,6 @@ MarkCacheCompare(
     return((entry1->f != entry2->f) || (entry1->c != entry2->c));
 
 } /* end of MarkCacheCompare */
-
 
 
 /**Function********************************************************************

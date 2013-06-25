@@ -25,7 +25,7 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -85,7 +85,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddZddLin.c,v 1.14 2004/08/13 18:04:53 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddZddLin.c,v 1.16 2012/02/05 01:07:19 fabio Exp $";
 #endif
 
 extern  int	*zdd_entry;
@@ -191,6 +191,10 @@ cuddZddLinearSifting(
     for (i = 0; i < ddMin(table->siftMaxVar, size); i++) {
 	if (zddTotalNumberSwapping >= table->siftMaxSwap)
 	    break;
+        if (util_cpu_time() - table->startTime > table->timeLimit) {
+            table->autoDynZ = 0; /* prevent further reordering */
+            break;
+        }
 	x = table->permZ[var[i]];
 	if (x < lower || x > upper) continue;
 #ifdef DD_STATS

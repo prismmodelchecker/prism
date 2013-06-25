@@ -29,7 +29,7 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -89,7 +89,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddCache.c,v 1.34 2009/02/19 16:17:50 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddCache.c,v 1.36 2012/02/05 01:07:18 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -201,9 +201,12 @@ cuddInitCache(
 
 /**Function********************************************************************
 
-  Synopsis    [Inserts a result in the cache.]
+  Synopsis    [Inserts a result in the cache for a function with three
+  operands.]
 
-  Description []
+  Description [Inserts a result in the cache for a function with three
+  operands.  The operator tag (see cuddInt.h for details) is split and stored
+  into unused bits of the first two pointers.]
 
   SideEffects [None]
 

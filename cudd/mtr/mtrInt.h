@@ -12,7 +12,7 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -44,7 +44,7 @@
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE.]
 
-  Revision    [$Id: mtrInt.h,v 1.2 2004/08/13 18:15:12 fabio Exp $]
+  Revision    [$Id: mtrInt.h,v 1.3 2012/02/05 01:06:19 fabio Exp $]
 
 ******************************************************************************/
 

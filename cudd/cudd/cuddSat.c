@@ -4,8 +4,7 @@
 
   PackageName [cudd]
 
-  Synopsis    [Functions for the solution of satisfiability related
-  problems.]
+  Synopsis    [Functions for the solution of satisfiability related problems.]
 
   Description [External procedures included in this file:
 		<ul>
@@ -19,6 +18,8 @@
 		<li> Cudd_bddLeqUnless()
 		<li> Cudd_EqualSupNorm()
 		<li> Cudd_bddMakePrime()
+                <li> Cudd_bddMaximallyExpand()
+                <li> Cudd_bddLargestPrimeUnate()
 		</ul>
 	Internal procedures included in this module:
 	        <ul>
@@ -31,11 +32,13 @@
 		<li> getPath()
 		<li> getLargest()
 		<li> getCube()
+                <li> ddBddMaximallyExpand()
+                <li> ddShortestPathUnate()
 		</ul>]
 
   Author      [Seh-Woong Jeong, Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -76,7 +79,7 @@
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#define	DD_BIGGY	1000000
+#define	DD_BIGGY	100000000
 
 /*---------------------------------------------------------------------------*/
 /* Stucture declarations                                                     */
@@ -96,7 +99,7 @@ typedef struct cuddPathPair {
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddSat.c,v 1.36 2009/03/08 02:49:02 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddSat.c,v 1.39 2012/02/05 01:07:19 fabio Exp $";
 #endif
 
 static	DdNode	*one, *zero;
@@ -122,6 +125,9 @@ static cuddPathPair getShortest (DdNode *root, int *cost, int *support, st_table
 static DdNode * getPath (DdManager *manager, st_table *visited, DdNode *f, int *weight, int cost);
 static cuddPathPair getLargest (DdNode *root, st_table *visited);
 static DdNode * getCube (DdManager *manager, st_table *visited, DdNode *f, int cost);
+static DdNode * ddBddMaximallyExpand(DdManager *dd, DdNode *lb, DdNode *ub, DdNode *f);
+static int ddBddShortestPathUnate(DdManager *dd, DdNode *f, int *phases, st_table *table);
+static DdNode * ddGetLargestCubeUnate(DdManager *dd, DdNode *f, int *phases, st_table *table);
 
 /**AutomaticEnd***************************************************************/
 
@@ -272,7 +278,8 @@ Cudd_ShortestPath(
   corresponding to the DD. Therefore, it is not necessarily the largest
   implicant of f.  Returns the largest cube as a BDD.]
 
-  SideEffects [The number of literals of the cube is returned in length.]
+  SideEffects [The number of literals of the cube is returned in the location
+  pointed by length if it is non-null.]
 
   SeeAlso     [Cudd_ShortestPath]
 
@@ -293,7 +300,9 @@ Cudd_LargestCube(
     zero = DD_ZERO(manager);
 
     if (f == Cudd_Not(one) || f == zero) {
-	*length = DD_BIGGY;
+	if (length != NULL) {
+            *length = DD_BIGGY;
+        }
 	return(Cudd_Not(one));
     }
     /* From this point on, a path exists. */
@@ -327,7 +336,9 @@ Cudd_LargestCube(
 
     } while (manager->reordered == 1);
 
-    *length = cost;
+    if (length != NULL) {
+        *length = cost;
+    }
     return(sol);
 
 } /* end of Cudd_LargestCube */
@@ -920,7 +931,7 @@ Cudd_EqualSupNormRel(
 
   SideEffects [None]
 
-  SeeAlso     []
+  SeeAlso     [Cudd_bddMaximallyExpand]
 
 ******************************************************************************/
 DdNode *
@@ -940,6 +951,94 @@ Cudd_bddMakePrime(
     return(res);
 
 } /* end of Cudd_bddMakePrime */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Expands lb to prime implicants of (f and ub).]
+
+  Description [Expands lb to all prime implicants of (f and ub) that contain lb.
+  Assumes that lb is contained in ub.  Returns the disjunction of the primes if
+  lb is contained in f; returns the zero BDD if lb is not contained in f;
+  returns NULL in case of failure.  In particular, NULL is returned if cube is
+  not a real cube or is not an implicant of f.  Returning the disjunction of
+  all prime implicants works because the resulting function is unate.]
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_bddMakePrime]
+
+******************************************************************************/
+DdNode *
+Cudd_bddMaximallyExpand(
+  DdManager *dd /* manager */,
+  DdNode *lb /* cube to be expanded */,
+  DdNode *ub /* upper bound cube */,
+  DdNode *f /* function against which to expand */)
+{
+    DdNode *res;
+
+    if (!Cudd_bddLeq(dd,lb,ub)) return(NULL);
+
+    do {
+	dd->reordered = 0;
+	res = ddBddMaximallyExpand(dd,lb,ub,f);
+    } while (dd->reordered == 1);
+    return(res);
+
+} /* end of Cudd_bddMaximallyExpand */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Find a largest prime of a unate function.]
+
+  Description [Find a largest prime implicant of a unate function.
+  Returns the BDD for the prime if succesful; NULL otherwise.  The behavior
+  is undefined if f is not unate.  The third argument is used to determine
+  whether f is unate positive (increasing) or negative (decreasing)
+  in each of the variables in its support.]
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_bddMaximallyExpand]
+
+******************************************************************************/
+DdNode *
+Cudd_bddLargestPrimeUnate(
+  DdManager *dd /* manager */,
+  DdNode *f /* unate function */,
+  DdNode *phaseBdd /* cube of the phases */)
+{
+    DdNode *res;
+    int *phases;
+    int retval;
+    st_table *table;
+
+    /* Extract phase vector for quick access. */
+    phases = ALLOC(int, dd->size);
+    if (phases == NULL) return(NULL);
+    retval = Cudd_BddToCubeArray(dd, phaseBdd, phases);
+    if (retval == 0) {
+        FREE(phases);
+        return(NULL);
+    }
+    do {
+        dd->reordered = 0;
+        table = st_init_table(st_ptrcmp,st_ptrhash);
+        if (table == NULL) {
+            FREE(phases);
+            return(NULL);
+        }
+	(void) ddBddShortestPathUnate(dd, f, phases, table);
+        res = ddGetLargestCubeUnate(dd, f, phases, table);
+        st_free_table(table);
+    } while (dd->reordered == 1);
+
+    FREE(phases);
+    return(res);
+
+} /* end of Cudd_bddLargestPrimeUnate */
 
 
 /*---------------------------------------------------------------------------*/
@@ -977,6 +1076,7 @@ cuddBddMakePrime(
 	DdNode *var = dd->vars[reg->index];
 	DdNode *expanded = Cudd_bddExistAbstract(dd,res,var);
 	if (expanded == NULL) {
+            Cudd_RecursiveDeref(dd,res);
 	    return(NULL);
 	}
 	Cudd_Ref(expanded);
@@ -1403,3 +1503,339 @@ getCube(
     return(sol);
 
 } /* end of getCube */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Performs the recursive step of Cudd_bddMaximallyExpand.]
+
+  Description [Performs the recursive step of Cudd_bddMaximallyExpand.
+  Returns set of primes or zero BDD if successful; NULL otherwise.  On entry
+  to this function, ub and lb should be different from the zero BDD.  The
+  function then maintains this invariant.]
+
+  SideEffects [None]
+
+  SeeAlso     []
+
+******************************************************************************/
+static DdNode *
+ddBddMaximallyExpand(
+  DdManager *dd /* manager */,
+  DdNode *lb /* cube to be expanded */,
+  DdNode *ub /* upper bound cube */,
+  DdNode *f /* function against which to expand */)
+{
+    DdNode *one, *zero, *lbv, *lbvn, *lbnx, *ubv, *ubvn, *fv, *fvn, *res;
+    DdNode *F, *UB, *LB, *t, *e;
+    unsigned int top, toplb, topub, topf, index;
+
+    statLine(dd);
+    /* Terminal cases. */
+    one = DD_ONE(dd);
+    zero = Cudd_Not(one);
+    assert(ub != zero && lb != zero);
+    /** There are three major terminal cases in theory:
+     **   ub -> f     : return ub
+     **   lb == f     : return lb
+     **   not(lb -> f): return zero
+     ** Only the second case can be checked exactly in constant time.
+     ** For the others, we check for sufficient conditions.
+     */
+    if (ub == f || f == one) return(ub);
+    if (lb == f) return(lb);
+    if (f == zero || ub == Cudd_Not(f) || lb == one || lb == Cudd_Not(f))
+        return(zero);
+    if (!Cudd_IsComplement(lb) && Cudd_IsComplement(f)) return(zero);
+
+    /* Here lb and f are not constant. */
+
+    /* Check cache.  Since lb and ub are cubes, their local reference counts
+    ** are always 1.  Hence, we only check the reference count of f.
+    */
+    F = Cudd_Regular(f);
+    if (F->ref != 1) {
+        DdNode *tmp = cuddCacheLookup(dd, DD_BDD_MAX_EXP_TAG, lb, ub, f);
+        if (tmp != NULL) {
+            return(tmp);
+        }
+    }
+
+    /* Compute cofactors.  For lb we use the non-zero one in
+    ** both branches of the recursion.
+    */
+    LB = Cudd_Regular(lb);
+    UB = Cudd_Regular(ub);
+    topf = dd->perm[F->index];
+    toplb = dd->perm[LB->index];
+    topub = (ub == one) ? CUDD_CONST_INDEX : dd->perm[UB->index];
+    assert(toplb <= topub);
+    top = ddMin(topf,toplb);
+    if (toplb == top) {
+	index = LB->index;
+        lbv = cuddT(LB);
+        lbvn = cuddE(LB);
+        if (lb != LB) {
+            lbv = Cudd_Not(lbv);
+            lbvn = Cudd_Not(lbvn);
+        }
+        if (lbv == zero) {
+            lbnx = lbvn;
+        } else {
+            lbnx = lbv;
+        }
+    } else {
+	index = F->index;
+        lbnx = lbv = lbvn = lb;
+    }
+    if (topub == top) {
+        ubv = cuddT(UB);
+        ubvn = cuddE(UB);
+        if (ub != UB) {
+            ubv = Cudd_Not(ubv);
+            ubvn = Cudd_Not(ubvn);
+        }
+    } else {
+        ubv = ubvn = ub;
+    }
+    if (topf == top) {
+        fv = cuddT(F);
+        fvn = cuddE(F);
+        if (f != F) {
+            fv = Cudd_Not(fv);
+            fvn = Cudd_Not(fvn);
+        }
+    } else {
+        fv = fvn = f;
+    }
+
+    /* Recursive calls. */
+    if (ubv != zero) {
+        t = ddBddMaximallyExpand(dd, lbnx, ubv, fv);
+        if (t == NULL) return(NULL);
+    } else {
+        assert(topub == toplb && topub == top && lbv == zero);
+        t = zero;
+    }
+    cuddRef(t);
+
+    /* If the top variable appears only in lb, the positive and negative
+    ** cofactors of each operand are the same.  We want to avoid a
+    ** needless recursive call, which would force us to give up the
+    ** cache optimization trick based on reference counts.
+    */
+    if (ubv == ubvn && fv == fvn) {
+        res = t;
+    } else {
+        if (ubvn != zero) {
+            e = ddBddMaximallyExpand(dd, lbnx, ubvn, fvn);
+            if (e == NULL) {
+                Cudd_IterDerefBdd(dd,t);
+                return(NULL);
+            }
+        } else {
+            assert(topub == toplb && topub == top && lbvn == zero);
+            e = zero;
+        }
+
+        if (t == e) {
+            res = t;
+        } else {
+            cuddRef(e);
+
+            if (toplb == top) {
+                if (lbv == zero) {
+                    /* Top variable appears in negative phase. */
+                    if (t != one) {
+                        DdNode *newT;
+                        if (Cudd_IsComplement(t)) {
+                            newT = cuddUniqueInter(dd, index, Cudd_Not(t), zero);
+                            if (newT == NULL) {
+                                Cudd_IterDerefBdd(dd,t);
+                                Cudd_IterDerefBdd(dd,e);
+                                return(NULL);
+                            }
+                            newT = Cudd_Not(newT);
+                        } else {
+                            newT = cuddUniqueInter(dd, index, t, one);
+                            if (newT == NULL) {
+                                Cudd_IterDerefBdd(dd,t);
+                                Cudd_IterDerefBdd(dd,e);
+                                return(NULL);
+                            }
+                        }
+                        cuddRef(newT);
+                        cuddDeref(t);
+                        t = newT;
+                    }
+                } else if (lbvn == zero) {
+                    /* Top variable appears in positive phase. */
+                    if (e != one) {
+                        DdNode *newE;
+                        newE = cuddUniqueInter(dd, index, one, e);
+                        if (newE == NULL) {
+                            Cudd_IterDerefBdd(dd,t);
+                            Cudd_IterDerefBdd(dd,e);
+                            return(NULL);
+                        }
+                        cuddRef(newE);
+                        cuddDeref(e);
+                        e = newE;
+                    }
+                } else {
+                    /* Not a cube. */
+                    Cudd_IterDerefBdd(dd,t);
+                    Cudd_IterDerefBdd(dd,e);
+                    return(NULL);
+                }
+            }
+
+            /* Combine results. */
+            res = cuddBddAndRecur(dd, t, e);
+            if (res == NULL) {
+                Cudd_IterDerefBdd(dd,t);
+                Cudd_IterDerefBdd(dd,e);
+                return(NULL);
+            }
+            cuddRef(res);
+            Cudd_IterDerefBdd(dd,t);
+            Cudd_IterDerefBdd(dd,e);
+        }
+    }
+
+    /* Cache result and return. */
+    if (F->ref != 1) {
+        cuddCacheInsert(dd, DD_BDD_MAX_EXP_TAG, lb, ub, f, res);
+    }
+    cuddDeref(res);
+    return(res);
+
+} /* end of ddBddMaximallyExpand */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Performs shortest path computation on a unate function.]
+
+  Description [Performs shortest path computation on a unate function.
+  Returns the length of the shortest path to one if successful;
+  CUDD_OUT_OF_MEM otherwise.  This function is based on the observation
+  that in the BDD of a unate function no node except the constant is
+  reachable from the root via paths of different parity.]
+
+  SideEffects [None]
+
+  SeeAlso     [getShortest]
+
+******************************************************************************/
+static int
+ddBddShortestPathUnate(
+  DdManager *dd,
+  DdNode *f,
+  int *phases,
+  st_table *table)
+{
+    int positive, l, lT, lE;
+    DdNode *one = DD_ONE(dd);
+    DdNode *zero = Cudd_Not(one);
+    DdNode *F, *fv, *fvn;
+
+    if (st_lookup_int(table, f, &l)) {
+        return(l);
+    }
+    if (f == one) {
+        l = 0;
+    } else if (f == zero) {
+        l = DD_BIGGY;
+    } else {
+        F = Cudd_Regular(f);
+        fv = cuddT(F);
+        fvn = cuddE(F);
+        if (f != F) {
+            fv = Cudd_Not(fv);
+            fvn = Cudd_Not(fvn);
+        }
+        lT = ddBddShortestPathUnate(dd, fv, phases, table);
+        lE = ddBddShortestPathUnate(dd, fvn, phases, table);
+        positive = phases[F->index];
+        l = positive ? ddMin(lT+1, lE) : ddMin(lT, lE+1);
+    }
+    if (st_insert(table, f, (void *)(ptrint) l) == ST_OUT_OF_MEM) {
+        return(CUDD_OUT_OF_MEM);
+    }
+    return(l);
+
+} /* end of ddShortestPathUnate */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Extracts largest prime of a unate function.]
+
+  Description [Extracts largest prime of a unate function.  Returns the BDD of
+  the prime if successful; NULL otherwise.]
+
+  SideEffects [None]
+
+  SeeAlso     [getPath]
+
+******************************************************************************/
+static DdNode *
+ddGetLargestCubeUnate(
+  DdManager *dd,
+  DdNode *f,
+  int *phases,
+  st_table *table)
+{
+    DdNode *res, *scan;
+    DdNode *one = DD_ONE(dd);
+    int cost;
+
+    res = one;
+    cuddRef(res);
+    scan = f;
+    st_lookup_int(table, scan, &cost);
+
+    while (!Cudd_IsConstant(scan)) {
+        int Pcost, Ncost, Tcost;
+        DdNode *tmp, *T, *E;
+        DdNode *rscan = Cudd_Regular(scan);
+        int index = rscan->index;
+        assert(phases[index] == 0 || phases[index] == 1);
+        int positive = phases[index] == 1;
+        Pcost = positive ? cost - 1 : cost;
+        Ncost = positive ? cost : cost - 1;
+        T = cuddT(rscan);
+        E = cuddE(rscan);
+        if (rscan != scan) {
+            T = Cudd_Not(T);
+            E = Cudd_Not(E);
+        }
+        tmp = res;
+        st_lookup_int(table, T, &Tcost);
+        if (Tcost == Pcost) {
+            cost = Pcost;
+            scan = T;
+            if (positive) {
+                tmp = cuddBddAndRecur(dd, dd->vars[index], res);
+            }
+        } else {
+            cost = Ncost;
+            scan = E;
+            if (!positive) {
+                tmp = cuddBddAndRecur(dd, Cudd_Not(dd->vars[index]), res);
+            }
+        }
+        if (tmp == NULL) {
+            Cudd_IterDerefBdd(dd, res);
+            return(NULL);
+        }
+        cuddRef(tmp);
+        Cudd_IterDerefBdd(dd, res);
+        res = tmp;
+    }
+
+    cuddDeref(res);
+    return(res);
+
+} /* end of ddGetLargestCubeUnate */

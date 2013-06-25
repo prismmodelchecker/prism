@@ -33,7 +33,7 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -87,7 +87,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddZddGroup.c,v 1.20 2009/02/19 16:25:36 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddZddGroup.c,v 1.22 2012/02/05 01:07:19 fabio Exp $";
 #endif
 
 static	int	*entry;
@@ -684,6 +684,10 @@ zddGroupSifting(
     for (i = 0; i < ddMin(table->siftMaxVar,classes); i++) {
 	if (zddTotalNumberSwapping >= table->siftMaxSwap)
 	    break;
+        if (util_cpu_time() - table->startTime > table->timeLimit) {
+            table->autoDynZ = 0; /* prevent further reordering */
+            break;
+        }
 	xindex = var[i];
 	if (sifted[xindex] == 1) /* variable already sifted as part of group */
 	    continue;

@@ -1,5 +1,5 @@
 This file describes the modifications that have been made to this version of CUDD.
-It is based on CUDD 2.4.2. Below is a list of the files that have been changed.
+It is based on CUDD 2.5.0. Below is a list of the files that have been changed.
 
  * Makefile
  * setup.sh .
@@ -18,7 +18,7 @@ It is based on CUDD 2.4.2. Below is a list of the files that have been changed.
 
 The following structural changes have also been made:
 
- * ddmp/nanotrav/mnemosyne/obj/sis and various doc directories have been removed
+ * nanotrav/mnemosyne/obj/sis and various doc directories have been removed
  * lib directory added with symlinks to lib files
 
 
@@ -28,8 +28,7 @@ Details
 [Makefile]
 
 * Disabled building of nanotrav/mnemosyne packages (don't need)
-
-* Default options are for Linux (original makefile is in Makefile.orig)
+  (original makefile is in Makefile.orig)
 
 ------------------
 

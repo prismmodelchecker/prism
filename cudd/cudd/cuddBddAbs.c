@@ -9,6 +9,7 @@
   Description [External procedures included in this module:
 		<ul>
 		<li> Cudd_bddExistAbstract()
+                <li> Cudd_bddExistAbstractLimit()
 		<li> Cudd_bddXorExistAbstract()
 		<li> Cudd_bddUnivAbstract()
 		<li> Cudd_bddBooleanDiff()
@@ -28,7 +29,7 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -86,7 +87,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddBddAbs.c,v 1.26 2004/08/13 18:04:46 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddBddAbs.c,v 1.28 2012/02/05 01:07:18 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -145,6 +146,50 @@ Cudd_bddExistAbstract(
     return(res);
 
 } /* end of Cudd_bddExistAbstract */
+
+
+/**Function********************************************************************
+
+  Synopsis [Existentially abstracts all the variables in cube from f.]
+
+  Description [Existentially abstracts all the variables in cube from f.
+  Returns the abstracted BDD if successful; NULL if the intermediate
+  result blows up or more new nodes than <code>limit</code> are
+  required.]
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_bddExistAbstract]
+
+******************************************************************************/
+DdNode *
+Cudd_bddExistAbstractLimit(
+  DdManager * manager,
+  DdNode * f,
+  DdNode * cube,
+  unsigned int limit)
+{
+    DdNode *res;
+    unsigned int saveLimit = manager->maxLive;
+
+    if (bddCheckPositiveCube(manager, cube) == 0) {
+        (void) fprintf(manager->err,
+		       "Error: Can only abstract positive cubes\n");
+	manager->errorCode = CUDD_INVALID_ARG;
+        return(NULL);
+    }
+
+    manager->maxLive = (manager->keys - manager->dead) + 
+        (manager->keysZ - manager->deadZ) + limit;
+    do {
+	manager->reordered = 0;
+	res = cuddBddExistAbstractRecur(manager, f, cube);
+    } while (manager->reordered == 1);
+    manager->maxLive = saveLimit;
+
+    return(res);
+
+} /* end of Cudd_bddExistAbstractLimit */
 
 
 /**Function********************************************************************

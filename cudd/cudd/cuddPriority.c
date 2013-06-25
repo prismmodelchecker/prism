@@ -39,7 +39,7 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -98,7 +98,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddPriority.c,v 1.33 2009/02/20 02:14:58 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddPriority.c,v 1.36 2012/02/05 01:07:19 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -133,7 +133,7 @@ static DdNode * createResult (DdManager *dd, unsigned int index, unsigned int ph
   Cudd_PrioritySelect returns a pointer to
   the selected function if successful; NULL otherwise.
   Three of the arguments--x, y, and z--are vectors of BDD variables.
-  The first two are the variables on which R depends. The third vectore
+  The first two are the variables on which R depends. The third vector
   is a vector of auxiliary variables, used during the computation. This
   vector is optional. If a NULL value is passed instead,
   Cudd_PrioritySelect will create the working variables on the fly.
@@ -1201,7 +1201,7 @@ Cudd_CProjection(
     DdNode *res;
     DdNode *support;
 
-    if (cuddCheckCube(dd,Y) == 0) {
+    if (Cudd_CheckCube(dd,Y) == 0) {
 	(void) fprintf(dd->err,
 	"Error: The third argument of Cudd_CProjection should be a cube\n");
 	dd->errorCode = CUDD_INVALID_ARG;

@@ -9,11 +9,11 @@
   Description [External procedures included in this module:
 		<ul>
 		<li> Cudd_Cofactor()
+		<li> Cudd_CheckCube()
 		</ul>
 	       Internal procedures included in this module:
 		<ul>
 		<li> cuddGetBranches()
-		<li> cuddCheckCube()
 		<li> cuddCofactorRecur()
 		</ul>
 	      ]
@@ -22,7 +22,7 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -79,7 +79,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddCof.c,v 1.9 2004/08/13 18:04:47 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddCof.c,v 1.11 2012/02/05 01:07:18 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -138,6 +138,44 @@ Cudd_Cofactor(
 } /* end of Cudd_Cofactor */
 
 
+/**Function********************************************************************
+
+  Synopsis    [Checks whether g is the BDD of a cube.]
+
+  Description [Checks whether g is the BDD of a cube. Returns 1 in case
+  of success; 0 otherwise. The constant 1 is a valid cube, but all other
+  constant functions cause cuddCheckCube to return 0.]
+
+  SideEffects [None]
+
+  SeeAlso     []
+
+******************************************************************************/
+int
+Cudd_CheckCube(
+  DdManager * dd,
+  DdNode * g)
+{
+    DdNode *g1,*g0,*one,*zero;
+    
+    one = DD_ONE(dd);
+    if (g == one) return(1);
+    if (Cudd_IsConstant(g)) return(0);
+
+    zero = Cudd_Not(one);
+    cuddGetBranches(g,&g1,&g0);
+
+    if (g0 == zero) {
+        return(Cudd_CheckCube(dd, g1));
+    }
+    if (g1 == zero) {
+        return(Cudd_CheckCube(dd, g0));
+    }
+    return(0);
+
+} /* end of Cudd_CheckCube */
+
+
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
@@ -170,44 +208,6 @@ cuddGetBranches(
     }
 
 } /* end of cuddGetBranches */
-
-
-/**Function********************************************************************
-
-  Synopsis    [Checks whether g is the BDD of a cube.]
-
-  Description [Checks whether g is the BDD of a cube. Returns 1 in case
-  of success; 0 otherwise. The constant 1 is a valid cube, but all other
-  constant functions cause cuddCheckCube to return 0.]
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
-int
-cuddCheckCube(
-  DdManager * dd,
-  DdNode * g)
-{
-    DdNode *g1,*g0,*one,*zero;
-    
-    one = DD_ONE(dd);
-    if (g == one) return(1);
-    if (Cudd_IsConstant(g)) return(0);
-
-    zero = Cudd_Not(one);
-    cuddGetBranches(g,&g1,&g0);
-
-    if (g0 == zero) {
-        return(cuddCheckCube(dd, g1));
-    }
-    if (g1 == zero) {
-        return(cuddCheckCube(dd, g0));
-    }
-    return(0);
-
-} /* end of cuddCheckCube */
 
 
 /**Function********************************************************************

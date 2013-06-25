@@ -12,7 +12,7 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -44,7 +44,7 @@
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE.]
 
-  Revision    [$Id: cuddInt.h,v 1.139 2009/03/08 02:49:02 fabio Exp $]
+  Revision    [$Id: cuddInt.h,v 1.142 2012/02/05 01:07:19 fabio Exp $]
 
 ******************************************************************************/
 
@@ -188,6 +188,7 @@ extern "C" {
 #define DD_ADD_OUT_SUM_TAG			0x6e
 #define DD_BDD_LEQ_UNLESS_TAG			0x82
 #define DD_ADD_TRIANGLE_TAG			0x86
+#define DD_BDD_MAX_EXP_TAG			0x8a 
 
 /* Generator constants. */
 #define CUDD_GEN_CUBES 0
@@ -221,14 +222,7 @@ struct DdGen {
     } gen;
     struct {
 	int	sp;
-#ifdef __osf__
-#pragma pointer_size save
-#pragma pointer_size short
-#endif
 	DdNode	**stack;
-#ifdef __osf__
-#pragma pointer_size restore
-#endif
     } stack;
     DdNode	*node;
 };
@@ -254,11 +248,6 @@ typedef unsigned long ptruint;
 #else
 typedef int ptrint;
 typedef unsigned int ptruint;
-#endif
-
-#ifdef __osf__
-#pragma pointer_size save
-#pragma pointer_size short
 #endif
 
 typedef DdNode *DdNodePtr;
@@ -401,7 +390,8 @@ struct DdManager {	/* specialized DD symbol table */
     CUDD_VALUE_TYPE epsilon;	/* tolerance on comparisons */
     /* Dynamic Reordering Parameters */
     int reordered;		/* flag set at the end of reordering */
-    int reorderings;		/* number of calls to Cudd_ReduceHeap */
+    unsigned int reorderings;	/* number of calls to Cudd_ReduceHeap */
+    unsigned int maxReorderings;/* maximum number of calls to Cudd_ReduceHeap */
     int siftMaxVar;		/* maximum number of vars sifted */
     int siftMaxSwap;		/* maximum number of swaps per sifting */
     double maxGrowth;		/* maximum growth during reordering */
@@ -415,18 +405,16 @@ struct DdManager {	/* specialized DD symbol table */
     int realignZ;		/* realign BDD order after ZDD reordering */
     unsigned int nextDyn;	/* reorder if this size is reached */
     unsigned int countDead;	/* if 0, count deads to trigger reordering */
-    MtrNode *tree;		/* Variable group tree (BDD) */
-    MtrNode *treeZ;		/* Variable group tree (ZDD) */
-    Cudd_AggregationType groupcheck; /* Used during group sifting */
-    int recomb;			/* Used during group sifting */
-    int symmviolation;		/* Used during group sifting */
-    int arcviolation;		/* Used during group sifting */
+    MtrNode *tree;		/* variable group tree (BDD) */
+    MtrNode *treeZ;		/* variable group tree (ZDD) */
+    Cudd_AggregationType groupcheck; /* used during group sifting */
+    int recomb;			/* used during group sifting */
+    int symmviolation;		/* used during group sifting */
+    int arcviolation;		/* used during group sifting */
     int populationSize;		/* population size for GA */
     int	numberXovers;		/* number of crossovers for GA */
+    unsigned int randomizeOrder; /* perturb the next reordering threshold */
     DdLocalCache *localCaches;	/* local caches currently in existence */
-#ifdef __osf__
-#pragma pointer_size restore
-#endif
     char *hooks;		/* application-specific field (used by vis) */
     DdHook *preGCHook;		/* hooks to be called before GC */
     DdHook *postGCHook;		/* hooks to be called after GC */
@@ -434,18 +422,16 @@ struct DdManager {	/* specialized DD symbol table */
     DdHook *postReorderingHook;	/* hooks to be called after reordering */
     FILE *out;			/* stdout for this manager */
     FILE *err;			/* stderr for this manager */
-#ifdef __osf__
-#pragma pointer_size save
-#pragma pointer_size short
-#endif
     Cudd_ErrorType errorCode;	/* info on last error */
+    unsigned long startTime;    /* start time in milliseconds */
+    unsigned long timeLimit;    /* CPU time limit */
     /* Statistical counters. */
     unsigned long memused;	/* total memory allocated for the manager */
     unsigned long maxmem;	/* target maximum memory */
     unsigned long maxmemhard;	/* hard limit for maximum memory */
     int garbageCollections;	/* number of garbage collections */
-    long GCTime;		/* total time spent in garbage collection */
-    long reordTime;		/* total time spent in reordering */
+    unsigned long GCTime;	/* total time spent in garbage collection */
+    unsigned long reordTime;	/* total time spent in reordering */
     double totCachehits;	/* total number of cache hits */
     double totCacheMisses;	/* total number of cache misses */
     double cachecollisions;	/* number of cache collisions */
@@ -508,10 +494,6 @@ typedef struct DdLevelQueue {
     int numBuckets;
     int shift;
 } DdLevelQueue;
-
-#ifdef __osf__
-#pragma pointer_size restore
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
@@ -1063,7 +1045,6 @@ extern void cuddPrintVarGroups (DdManager * dd, MtrNode * root, int zdd, int sil
 extern DdNode * cuddBddClippingAnd (DdManager *dd, DdNode *f, DdNode *g, int maxDepth, int direction);
 extern DdNode * cuddBddClippingAndAbstract (DdManager *dd, DdNode *f, DdNode *g, DdNode *cube, int maxDepth, int direction);
 extern void cuddGetBranches (DdNode *g, DdNode **g1, DdNode **g0);
-extern int cuddCheckCube (DdManager *dd, DdNode *g);
 extern DdNode * cuddCofactorRecur (DdManager *dd, DdNode *f, DdNode *g);
 extern DdNode * cuddBddComposeRecur (DdManager *dd, DdNode *f, DdNode *g, DdNode *proj);
 extern DdNode * cuddAddComposeRecur (DdManager *dd, DdNode *f, DdNode *g, DdNode *proj);
@@ -1094,6 +1075,7 @@ extern int cuddLocalCacheProfile (DdLocalCache *cache);
 #endif
 extern DdHashTable * cuddHashTableInit (DdManager *manager, unsigned int keySize, unsigned int initSize);
 extern void cuddHashTableQuit (DdHashTable *hash);
+extern void cuddHashTableGenericQuit (DdHashTable *hash);
 extern int cuddHashTableInsert (DdHashTable *hash, DdNodePtr *key, DdNode *value, ptrint count);
 extern DdNode * cuddHashTableLookup (DdHashTable *hash, DdNodePtr *key);
 extern int cuddHashTableInsert1 (DdHashTable *hash, DdNode *f, DdNode *value, ptrint count);
@@ -1102,8 +1084,11 @@ extern int cuddHashTableInsert2 (DdHashTable *hash, DdNode *f, DdNode *g, DdNode
 extern DdNode * cuddHashTableLookup2 (DdHashTable *hash, DdNode *f, DdNode *g);
 extern int cuddHashTableInsert3 (DdHashTable *hash, DdNode *f, DdNode *g, DdNode *h, DdNode *value, ptrint count);
 extern DdNode * cuddHashTableLookup3 (DdHashTable *hash, DdNode *f, DdNode *g, DdNode *h);
+extern int cuddHashTableGenericInsert(DdHashTable * hash, DdNode * f, void * value);
+extern void * cuddHashTableGenericLookup(DdHashTable * hash, DdNode * f);
 extern DdLevelQueue * cuddLevelQueueInit (int levels, int itemSize, int numBuckets);
 extern void cuddLevelQueueQuit (DdLevelQueue *queue);
+extern void * cuddLevelQueueFirst(DdLevelQueue * queue, void * key, int  level);
 extern void * cuddLevelQueueEnqueue (DdLevelQueue *queue, void *key, int level);
 extern void cuddLevelQueueDequeue (DdLevelQueue *queue, int level);
 extern int cuddLinearAndSifting (DdManager *table, int lower, int upper);

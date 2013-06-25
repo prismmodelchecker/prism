@@ -39,7 +39,7 @@
 
   Author      [Hyong-Kyoon Shin, In-Ho Moon]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -98,7 +98,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddZddReord.c,v 1.47 2004/08/13 18:04:53 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddZddReord.c,v 1.49 2012/02/05 01:07:19 fabio Exp $";
 #endif
 
 int	*zdd_entry;
@@ -176,7 +176,7 @@ Cudd_zddReduceHeap(
     unsigned int initialSize;
     unsigned int finalSize;
 #endif
-    long	 localTime;
+    unsigned long localTime;
 
     /* Don't reorder if there are too many dead nodes. */
     if (table->keysZ - table->deadZ < (unsigned) minsize)
@@ -901,6 +901,10 @@ cuddZddSifting(
     for (i = 0; i < ddMin(table->siftMaxVar, size); i++) {
 	if (zddTotalNumberSwapping >= table->siftMaxSwap)
 	    break;
+        if (util_cpu_time() - table->startTime > table->timeLimit) {
+            table->autoDynZ = 0; /* prevent further reordering */
+            break;
+        }
 	x = table->permZ[var[i]];
 	if (x < lower || x > upper) continue;
 #ifdef DD_STATS
@@ -1537,7 +1541,7 @@ zddShuffle(
     int		numvars;
     int		result;
 #ifdef DD_STATS
-    long	localTime;
+    unsigned long localTime;
     int		initialSize;
     int		finalSize;
     int		previousSize;

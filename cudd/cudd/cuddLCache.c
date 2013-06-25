@@ -17,8 +17,11 @@
 		<li> cuddLocalCacheProfile()
 		<li> cuddHashTableInit()
 		<li> cuddHashTableQuit()
+		<li> cuddHashTableGenericQuit()
 		<li> cuddHashTableInsert()
 		<li> cuddHashTableLookup()
+		<li> cuddHashTableGenericInsert()
+		<li> cuddHashTableGenericLookup()
 		<li> cuddHashTableInsert2()
 		<li> cuddHashTableLookup2()
 		<li> cuddHashTableInsert3()
@@ -38,7 +41,7 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -96,12 +99,32 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddLCache.c,v 1.24 2009/03/08 02:49:02 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddLCache.c,v 1.27 2012/02/05 01:07:19 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
+
+/**Macro***********************************************************************
+
+  Synopsis    [Computes hash function for keys of one operand.]
+
+  Description []
+
+  SideEffects [None]
+
+  SeeAlso     [ddLCHash3 ddLCHash]
+
+******************************************************************************/
+#if SIZEOF_VOID_P == 8 && SIZEOF_INT == 4
+#define ddLCHash1(f,shift) \
+(((unsigned)(ptruint)(f) * DD_P1) >> (shift))
+#else
+#define ddLCHash1(f,shift) \
+(((unsigned)(f) * DD_P1) >> (shift))
+#endif
+
 
 /**Macro***********************************************************************
 
@@ -539,10 +562,6 @@ cuddHashTableInit(
     DdHashTable *hash;
     int logSize;
 
-#ifdef __osf__
-#pragma pointer_size save
-#pragma pointer_size short
-#endif
     hash = ALLOC(DdHashTable, 1);
     if (hash == NULL) {
 	manager->errorCode = CUDD_MEMORY_OUT;
@@ -568,9 +587,6 @@ cuddHashTableInit(
     memset(hash->bucket, 0, hash->numBuckets * sizeof(DdHashItem *));
     hash->size = 0;
     hash->maxsize = hash->numBuckets * DD_MAX_HASHTABLE_DENSITY;
-#ifdef __osf__
-#pragma pointer_size restore
-#endif
     return(hash);
 
 } /* end of cuddHashTableInit */
@@ -591,10 +607,6 @@ void
 cuddHashTableQuit(
   DdHashTable * hash)
 {
-#ifdef __osf__
-#pragma pointer_size save
-#pragma pointer_size short
-#endif
     unsigned int i;
     DdManager *dd = hash->manager;
     DdHashItem *bucket;
@@ -618,13 +630,50 @@ cuddHashTableQuit(
 
     FREE(hash->bucket);
     FREE(hash);
+
+    return;
+
+} /* end of cuddHashTableQuit */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Shuts down a hash table.]
+
+  Description [Shuts down a hash table, when the values are not DdNode
+  pointers.]
+
+  SideEffects [None]
+
+  SeeAlso     [cuddHashTableInit]
+
+******************************************************************************/
+void
+cuddHashTableGenericQuit(
+  DdHashTable * hash)
+{
+#ifdef __osf__
+#pragma pointer_size save
+#pragma pointer_size short
+#endif
+    DdHashItem **memlist, **nextmem;
+
+    memlist = hash->memoryList;
+    while (memlist != NULL) {
+	nextmem = (DdHashItem **) memlist[0];
+	FREE(memlist);
+	memlist = nextmem;
+    }
+
+    FREE(hash->bucket);
+    FREE(hash);
 #ifdef __osf__
 #pragma pointer_size restore
 #endif
 
     return;
 
-} /* end of cuddHashTableQuit */
+} /* end of cuddHashTableGenericQuit */
 
 
 /**Function********************************************************************
@@ -785,7 +834,7 @@ cuddHashTableInsert1(
     cuddRef(value);
     item->count = count;
     item->key[0] = f;
-    posn = ddLCHash2(f,f,hash->shift);
+    posn = ddLCHash1(f,hash->shift);
     item->next = hash->bucket[posn];
     hash->bucket[posn] = item;
 
@@ -823,7 +872,7 @@ cuddHashTableLookup1(
     assert(hash->keysize == 1);
 #endif
 
-    posn = ddLCHash2(f,f,hash->shift);
+    posn = ddLCHash1(f,hash->shift);
     item = hash->bucket[posn];
     prev = NULL;
 
@@ -851,6 +900,92 @@ cuddHashTableLookup1(
     return(NULL);
 
 } /* end of cuddHashTableLookup1 */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Inserts an item in a hash table.]
+
+  Description [Inserts an item in a hash table when the key is one
+  pointer and the value is not a DdNode pointer.  Returns 1 if
+  successful; 0 otherwise.]
+
+  SideEffects [None]
+
+  SeeAlso     [cuddHashTableInsert1 cuddHashTableGenericLookup]
+
+******************************************************************************/
+int
+cuddHashTableGenericInsert(
+  DdHashTable * hash,
+  DdNode * f,
+  void * value)
+{
+    int result;
+    unsigned int posn;
+    DdHashItem *item;
+
+#ifdef DD_DEBUG
+    assert(hash->keysize == 1);
+#endif
+
+    if (hash->size > hash->maxsize) {
+	result = cuddHashTableResize(hash);
+	if (result == 0) return(0);
+    }
+    item = cuddHashTableAlloc(hash);
+    if (item == NULL) return(0);
+    hash->size++;
+    item->value = (DdNode *) value;
+    item->count = 0;
+    item->key[0] = f;
+    posn = ddLCHash1(f,hash->shift);
+    item->next = hash->bucket[posn];
+    hash->bucket[posn] = item;
+
+    return(1);
+
+} /* end of cuddHashTableGenericInsert */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Looks up a key consisting of one pointer in a hash table.]
+
+  Description [Looks up a key consisting of one pointer in a hash
+  table when the value is not a DdNode pointer.  Returns the value
+  associated to the key if there is an entry for the given key in the
+  table; NULL otherwise.]
+
+  SideEffects [None]
+
+  SeeAlso     [cuddHashTableLookup1 cuddHashTableGenericInsert]
+
+******************************************************************************/
+void *
+cuddHashTableGenericLookup(
+  DdHashTable * hash,
+  DdNode * f)
+{
+    unsigned int posn;
+    DdHashItem *item;
+
+#ifdef DD_DEBUG
+    assert(hash->keysize == 1);
+#endif
+
+    posn = ddLCHash1(f,hash->shift);
+    item = hash->bucket[posn];
+
+    while (item != NULL) {
+	if (f == item->key[0]) {
+            return ((void *) item->value);
+	}
+	item = item->next;
+    }
+    return(NULL);
+
+} /* end of cuddHashTableGenericLookup */
 
 
 /**Function********************************************************************
@@ -1232,14 +1367,7 @@ cuddLocalCacheRemoveFromList(
   DdLocalCache * cache)
 {
     DdManager *manager = cache->manager;
-#ifdef __osf__
-#pragma pointer_size save
-#pragma pointer_size short
-#endif
     DdLocalCache **prevCache, *nextCache;
-#ifdef __osf__
-#pragma pointer_size restore
-#endif
 
     prevCache = &(manager->localCaches);
     nextCache = manager->localCaches;
@@ -1277,17 +1405,10 @@ cuddHashTableResize(
     unsigned int posn;
     DdHashItem *item;
     DdHashItem *next;
-#ifdef __osf__
-#pragma pointer_size save
-#pragma pointer_size short
-#endif
     DdNode **key;
     int numBuckets;
     DdHashItem **buckets;
     DdHashItem **oldBuckets = hash->bucket;
-#ifdef __osf__
-#pragma pointer_size restore
-#endif
     int shift;
     int oldNumBuckets = hash->numBuckets;
     extern DD_OOMFP MMoutOfMemory;
@@ -1297,10 +1418,6 @@ cuddHashTableResize(
     numBuckets = oldNumBuckets << 1;
     saveHandler = MMoutOfMemory;
     MMoutOfMemory = Cudd_OutOfMem;
-#ifdef __osf__
-#pragma pointer_size save
-#pragma pointer_size short
-#endif
     buckets = ALLOC(DdHashItem *, numBuckets);
     MMoutOfMemory = saveHandler;
     if (buckets == NULL) {
@@ -1313,9 +1430,6 @@ cuddHashTableResize(
     shift = --(hash->shift);
     hash->maxsize <<= 1;
     memset(buckets, 0, numBuckets * sizeof(DdHashItem *));
-#ifdef __osf__
-#pragma pointer_size restore
-#endif
     if (hash->keysize == 1) {
 	for (j = 0; j < oldNumBuckets; j++) {
 	    item = oldBuckets[j];
@@ -1393,10 +1507,6 @@ cuddHashTableAlloc(
     unsigned int itemsize = hash->itemsize;
     extern DD_OOMFP MMoutOfMemory;
     DD_OOMFP saveHandler;
-#ifdef __osf__
-#pragma pointer_size save
-#pragma pointer_size short
-#endif
     DdHashItem **mem, *thisOne, *next, *item;
 
     if (hash->nextFree == NULL) {
@@ -1404,9 +1514,6 @@ cuddHashTableAlloc(
 	MMoutOfMemory = Cudd_OutOfMem;
 	mem = (DdHashItem **) ALLOC(char,(DD_MEM_CHUNK+1) * itemsize);
 	MMoutOfMemory = saveHandler;
-#ifdef __osf__
-#pragma pointer_size restore
-#endif
 	if (mem == NULL) {
 	    if (hash->manager->stash != NULL) {
 		FREE(hash->manager->stash);
@@ -1420,14 +1527,7 @@ cuddHashTableAlloc(
 		hash->manager->gcFrac = 0.2;
 		hash->manager->minDead =
 		    (unsigned) (0.2 * (double) hash->manager->slots);
-#ifdef __osf__
-#pragma pointer_size save
-#pragma pointer_size short
-#endif
 		mem = (DdHashItem **) ALLOC(char,(DD_MEM_CHUNK+1) * itemsize);
-#ifdef __osf__
-#pragma pointer_size restore
-#endif
 	    }
 	    if (mem == NULL) {
 		(*MMoutOfMemory)((long)((DD_MEM_CHUNK + 1) * itemsize));

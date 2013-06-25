@@ -37,7 +37,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] UTIL_UNUSED = " $Id: st.c,v 1.11 2004/02/11 22:31:59 fabio Exp fabio $";
+static char rcsid[] UTIL_UNUSED = " $Id: st.c,v 1.12 2010/04/22 19:00:55 fabio Exp fabio $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -46,7 +46,7 @@ static char rcsid[] UTIL_UNUSED = " $Id: st.c,v 1.11 2004/02/11 22:31:59 fabio E
 
 #define ST_NUMCMP(x,y) ((x) != (y))
 
-#define ST_NUMHASH(x,size) (ABS((long)x)%(size))
+#define ST_NUMHASH(x,size) ((unsigned long)(x)%(size))
 
 #if SIZEOF_VOID_P == 8
 #define st_shift 3

@@ -13,6 +13,7 @@
 	    <li> Mtr_DissolveGroup()
 	    <li> Mtr_FindGroup()
 	    <li> Mtr_SwapGroups()
+            <li> Mtr_ReorderGroups()
 	    <li> Mtr_PrintGroups()
 	    <li> Mtr_ReadGroups()
 	    </ul>
@@ -26,7 +27,7 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -80,7 +81,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] MTR_UNUSED = "$Id: mtrGroup.c,v 1.18 2009/02/20 02:03:47 fabio Exp $";
+static char rcsid[] MTR_UNUSED = "$Id: mtrGroup.c,v 1.21 2012/02/05 01:06:19 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -142,8 +143,7 @@ Mtr_InitGroupTree(
   the low and size fields of each node. It also assumes that the
   children of each node are sorted in order of increasing low.  In
   case of a valid request, the flags of the new group are set to the
-  value passed in `flags.' This can also be used to change the flags
-  of an existing group.  Returns the pointer to the root of the new
+  value passed in `flags.'  Returns the pointer to the root of the new
   group upon successful termination; NULL otherwise. If the group
   already exists, the pointer to its root is returned.]
 
@@ -156,7 +156,7 @@ MtrNode *
 Mtr_MakeGroup(
   MtrNode * root /* root of the group tree */,
   unsigned int  low /* lower bound of the group */,
-  unsigned int  size /* upper bound of the group */,
+  unsigned int  size /* size of the group */,
   unsigned int  flags /* flags for the new group */)
 {
     MtrNode *node,
@@ -176,16 +176,10 @@ Mtr_MakeGroup(
 	low + size > (unsigned int) (root->low + root->size))
 	return(NULL);
 
-    /* Trying to create an existing group has the effect of updating
-    ** the flags. */
-    if (root->size == size && root->low == low) {
-	root->flags = flags;
-	return(root);
-    }
-
-    /* At this point we know that the new group is properly contained
-    ** in the group of root. We have two possible cases here: - root
-    ** is a terminal node; - root has children. */
+    /* At this point we know that the new group is contained
+    ** in the group of root. We have two possible cases here:
+    **  - root is a terminal node;
+    **  - root has children.       */
 
     /* Root has no children: create a new group. */
     if (root->child == NULL) {
@@ -200,8 +194,8 @@ Mtr_MakeGroup(
 	return(newn);
     }
 
-    /* Root has children: Find all chidren of root that are included
-    ** in the new group. If the group of any child entirely contains
+    /* Root has children: Find all children of root that are included
+    ** in the new group.  If the group of any child entirely contains
     ** the new group, call Mtr_MakeGroup recursively. */
     previous = NULL;
     first = root->child; /* guaranteed to be non-NULL */
@@ -512,6 +506,72 @@ Mtr_SwapGroups(
 
 /**Function********************************************************************
 
+  Synopsis    [Fix variable tree at the end of tree sifting.]
+
+  Description [Fix the levels in the variable tree sorting siblings
+  according to them.  It should be called on a non-NULL tree.  It then
+  maintains this invariant.  It applies insertion sorting to the list of
+  siblings  The order is determined by permutation, which is used to find
+  the new level of the node index.  Index must refer to the first variable
+  in the group.]
+
+  SideEffects [The tree is modified.]
+
+  SeeAlso     []
+
+******************************************************************************/
+void
+Mtr_ReorderGroups(
+  MtrNode *treenode,
+  int *permutation)
+{
+    MtrNode *auxnode;
+    /* Initialize sorted list to first element. */
+    MtrNode *sorted = treenode;
+    sorted->low = permutation[sorted->index];
+    if (sorted->child != NULL)
+      Mtr_ReorderGroups(sorted->child, permutation);
+
+    auxnode = treenode->younger;
+    while (auxnode != NULL) {
+        MtrNode *rightplace;
+        MtrNode *moving = auxnode;
+	auxnode->low = permutation[auxnode->index];
+	if (auxnode->child != NULL)
+          Mtr_ReorderGroups(auxnode->child, permutation);
+        rightplace = auxnode->elder;
+        /* Find insertion point. */
+        while (rightplace != NULL && auxnode->low < rightplace->low)
+            rightplace = rightplace->elder;
+        auxnode = auxnode->younger;
+        if (auxnode != NULL) {
+            auxnode->elder = moving->elder;
+            auxnode->elder->younger = auxnode;
+        } else {
+            moving->elder->younger = NULL;
+        }
+        if (rightplace == NULL) { /* Move to head of sorted list. */
+            sorted->elder = moving;
+            moving->elder = NULL;
+            moving->younger = sorted;
+            sorted = moving;
+        } else { /* Splice. */
+            moving->elder = rightplace;
+            moving->younger = rightplace->younger;
+            if (rightplace->younger != NULL)
+                rightplace->younger->elder = moving;
+            rightplace->younger = moving;
+        }
+    }
+    /* Fix parent. */
+    if (sorted->parent != NULL)
+        sorted->parent->child = sorted;
+
+} /* end of Mtr_ReorderGroups */
+
+
+/**Function********************************************************************
+
   Synopsis    [Prints the groups as a parenthesized list.]
 
   Description [Prints the groups as a parenthesized list. After each
@@ -576,6 +636,93 @@ Mtr_PrintGroups(
     return;
 
 } /* end of Mtr_PrintGroups */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Prints the variable order  as a parenthesized list.]
+
+  Description [Prints the variable order as a parenthesized list. After each
+  group, the group's flag are printed, preceded by a `|'.  For each
+  flag (except MTR_TERMINAL) a character is printed.
+  <ul>
+  <li>F: MTR_FIXED
+  <li>N: MTR_NEWNODE
+  <li>S: MTR_SOFT
+  </ul>
+  The second argument, gives the map from levels to variable indices.
+  ]
+
+  SideEffects [None]
+
+  SeeAlso     [Mtr_PrintGroups]
+
+******************************************************************************/
+int
+Mtr_PrintGroupedOrder(
+  MtrNode * root /* root of the group tree */,
+  int *invperm /* map from levels to indices */,
+  FILE *fp /* output file */)
+{
+    MtrNode *child;
+    MtrHalfWord level;
+    int retval;
+
+    assert(root != NULL);
+    assert(root->younger == NULL || root->younger->elder == root);
+    assert(root->elder == NULL || root->elder->younger == root);
+    retval = fprintf(fp,"(");
+    if (retval == EOF) return(0);
+    level = root->low;
+    child = root->child;
+    while (child != NULL) {
+        assert(child->low >= root->low && (child->low + child->size) <= (root->low + root->size));
+        assert(child->parent == root);
+        while (level < child->low) {
+            retval = fprintf(fp,"%d%s", invperm[level], (level < root->low + root->size - 1) ? "," : "");
+            if (retval == EOF) return(0);
+            level++;
+        }
+        retval = Mtr_PrintGroupedOrder(child,invperm,fp);
+        if (retval == 0) return(0);
+        level += child->size;
+        if (level < root->low + root->size - 1) {
+            retval = fprintf(fp,",");
+            if (retval == EOF) return(0);
+        }
+        child = child->younger;
+    }
+    while (level < root->low + root->size) {
+        retval = fprintf(fp,"%d%s", invperm[level], (level < root->low + root->size - 1) ? "," : "");
+        if (retval == EOF) return(0);
+        level++;
+    }
+    if (root->flags != MTR_DEFAULT) {
+      retval = fprintf(fp,"|");
+      if (retval == EOF) return(0);
+      if (MTR_TEST(root,MTR_FIXED)) {
+          retval = fprintf(fp,"F");
+          if (retval == EOF) return(0);
+      }
+      if (MTR_TEST(root,MTR_NEWNODE)) {
+          retval = fprintf(fp,"N");
+          if (retval == EOF) return(0);
+      }
+      if (MTR_TEST(root,MTR_SOFT)) {
+          retval = fprintf(fp,"S");
+          if (retval == EOF) return(0);
+      }
+    }
+    retval = fprintf(fp,")");
+    if (retval == EOF) return(0);
+    if (root->parent == NULL) {
+        retval = fprintf(fp,"\n");
+        if (retval == EOF) return(0);
+    }
+    assert((root->flags &~(MTR_SOFT | MTR_FIXED | MTR_NEWNODE)) == 0);
+    return(1);
+
+} /* end of Mtr_PrintGroupedOrder */
 
 
 /**Function********************************************************************

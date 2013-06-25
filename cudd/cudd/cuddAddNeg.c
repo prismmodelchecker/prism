@@ -19,7 +19,7 @@
 
   Author      [Fabio Somenzi, Balakrishna Kumthekar]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -77,7 +77,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddAddNeg.c,v 1.12 2009/02/20 02:14:58 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddAddNeg.c,v 1.14 2012/02/05 01:07:18 fabio Exp $";
 #endif
 
 
@@ -120,6 +120,7 @@ Cudd_addNegate(
     DdNode *res;
 
     do {
+	dd->reordered = 0;
 	res = cuddAddNegateRecur(dd,f);
     } while (dd->reordered == 1);
     return(res);

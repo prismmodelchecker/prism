@@ -27,7 +27,7 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -92,7 +92,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddLinear.c,v 1.28 2009/02/19 16:21:03 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddLinear.c,v 1.29 2012/02/05 01:07:19 fabio Exp $";
 #endif
 
 static	int	*entry;

@@ -33,7 +33,7 @@
 
   Author      [Hyong-Kyoon Shin, In-Ho Moon]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -89,7 +89,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddZddSymm.c,v 1.29 2004/08/13 18:04:54 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddZddSymm.c,v 1.31 2012/02/05 01:07:19 fabio Exp $";
 #endif
 
 extern int   	*zdd_entry;
@@ -343,6 +343,10 @@ cuddZddSymmSifting(
     for (i = 0; i < iteration; i++) {
 	if (zddTotalNumberSwapping >= table->siftMaxSwap)
 	    break;
+        if (util_cpu_time() - table->startTime > table->timeLimit) {
+            table->autoDynZ = 0; /* prevent further reordering */
+            break;
+        }
 	x = table->permZ[var[i]];
 #ifdef DD_STATS
 	previousSize = table->keysZ;
@@ -470,6 +474,10 @@ cuddZddSymmSiftingConv(
     for (i = 0; i < iteration; i++) {
 	if (zddTotalNumberSwapping >= table->siftMaxSwap)
 	    break;
+        if (util_cpu_time() - table->startTime > table->timeLimit) {
+            table->autoDynZ = 0; /* prevent further reordering */
+            break;
+        }
 	x = table->permZ[var[i]];
 	if (x < lower || x > upper) continue;
 	/* Only sift if not in symmetry group already. */
@@ -522,6 +530,10 @@ cuddZddSymmSiftingConv(
 	for (i = 0; i < iteration; i++) {
 	    if (zddTotalNumberSwapping >= table->siftMaxSwap)
 		break;
+            if (util_cpu_time() - table->startTime > table->timeLimit) {
+              table->autoDynZ = 0; /* prevent further reordering */
+              break;
+            }
 	    x = table->permZ[var[i]];
 	    if ((unsigned) x >= table->subtableZ[x].next) {
 #ifdef DD_STATS

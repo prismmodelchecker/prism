@@ -37,7 +37,7 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -143,7 +143,7 @@ typedef struct TlClause TlClause;
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddEssent.c,v 1.24 2009/02/21 18:24:10 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddEssent.c,v 1.25 2012/02/05 01:07:18 fabio Exp $";
 #endif
 
 static BitVector *Tolv;

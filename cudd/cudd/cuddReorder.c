@@ -38,7 +38,7 @@
 
   Author      [Shipra Panda, Bernard Plessier, Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -95,7 +95,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddReorder.c,v 1.69 2009/02/21 18:24:10 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddReorder.c,v 1.71 2012/02/05 01:07:19 fabio Exp $";
 #endif
 
 static	int	*entry;
@@ -181,7 +181,7 @@ Cudd_ReduceHeap(
     unsigned int initialSize;
     unsigned int finalSize;
 #endif
-    long localTime;
+    unsigned long localTime;
 
     /* Don't reorder if there are too many dead nodes. */
     if (table->keys - table->dead < (unsigned) minsize)
@@ -297,6 +297,9 @@ Cudd_ReduceHeap(
 	table->nextDyn = nextDyn;
     else
 	table->nextDyn += 20;
+    if (table->randomizeOrder != 0) {
+        table->nextDyn += Cudd_Random() & table->randomizeOrder;
+    }
     table->reordered = 1;
 
     /* Run hook functions. */
@@ -537,6 +540,11 @@ cuddSifting(
     for (i = 0; i < ddMin(table->siftMaxVar,size); i++) {
 	if (ddTotalNumberSwapping >= table->siftMaxSwap)
 	    break;
+        if (util_cpu_time() - table->startTime + table->reordTime
+            > table->timeLimit) {
+            table->autoDyn = 0; /* prevent further reordering */
+            break;
+        }
 	x = table->perm[var[i]];
 
 	if (x < lower || x > upper || table->subtables[x].bindVar == 1)
@@ -1895,7 +1903,7 @@ ddShuffle(
     int		numvars;
     int		result;
 #ifdef DD_STATS
-    long	localTime;
+    unsigned long localTime;
     int		initialSize;
     int		finalSize;
     int		previousSize;

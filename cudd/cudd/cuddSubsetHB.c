@@ -34,7 +34,7 @@
 
   Author      [Kavita Ravi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -113,7 +113,7 @@ typedef struct NodeData NodeData_t;
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddSubsetHB.c,v 1.37 2009/02/20 02:14:58 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddSubsetHB.c,v 1.39 2012/02/05 01:07:19 fabio Exp $";
 #endif
 
 static int memOut;
@@ -311,7 +311,7 @@ cuddSubsetHeavyBranch(
     NodeData_t *currNodeQual;
     DdNode *subset;
     st_table *storeTable, *approxTable;
-    char *key, *value;
+    DdNode *key, *value;
     st_generator *stGen;
 
     if (f == NULL) {
@@ -374,7 +374,7 @@ cuddSubsetHeavyBranch(
     storeTable = st_init_table(st_ptrcmp, st_ptrhash);
     /* insert the constant */
     cuddRef(one);
-    if (st_insert(storeTable, (char *)Cudd_ReadOne(dd), NIL(char)) ==
+    if (st_insert(storeTable, Cudd_ReadOne(dd), NULL) ==
 	ST_OUT_OF_MEM) {
 	fprintf(dd->out, "Something wrong, st_table insert failed\n");
     }
@@ -391,8 +391,8 @@ cuddSubsetHeavyBranch(
 	st_free_table(approxTable);
 	return(NULL);
     }
-    while(st_gen(stGen, (char **)&key, (char **)&value)) {
-	Cudd_RecursiveDeref(dd, (DdNode *)value);
+    while(st_gen(stGen, &key, &value)) {
+	Cudd_RecursiveDeref(dd, value);
     }
     st_free_gen(stGen); stGen = NULL;
     st_free_table(approxTable);
@@ -402,8 +402,8 @@ cuddSubsetHeavyBranch(
 	st_free_table(storeTable);
 	return(NULL);
     }
-    while(st_gen(stGen, (char **)&key, (char **)&value)) {
-	Cudd_RecursiveDeref(dd, (DdNode *)key);
+    while(st_gen(stGen, &key, &value)) {
+	Cudd_RecursiveDeref(dd, key);
     }
     st_free_gen(stGen); stGen = NULL;
     st_free_table(storeTable);
@@ -755,7 +755,7 @@ SubsetCountMintermAux(
 	newEntry->nodesPointer = NULL;
 
 	/* insert entry for the node in the table */
-	if (st_insert(table,(char *)node, (char *)newEntry) == ST_OUT_OF_MEM) {
+	if (st_insert(table,node, newEntry) == ST_OUT_OF_MEM) {
 	    memOut = 1;
 	    for (i = 0; i <= page; i++) FREE(mintermPages[i]);
 	    FREE(mintermPages);
@@ -1116,11 +1116,11 @@ StoreNodes(
 	return;
     }
     N = Cudd_Regular(node);
-    if (st_lookup(storeTable, (char *)N, NIL(char *))) {
+    if (st_lookup(storeTable, N, NULL)) {
 	return;
     }
     cuddRef(N);
-    if (st_insert(storeTable, (char *)N, NIL(char)) == ST_OUT_OF_MEM) {
+    if (st_insert(storeTable, N, NULL) == ST_OUT_OF_MEM) {
 	fprintf(dd->err,"Something wrong, st_table insert failed\n");
     }
 
@@ -1251,11 +1251,11 @@ BuildSubsetBdd(
 	 * subset, or one whose approximation has been computed, or
 	 * Zero.
 	 */
-	if (st_lookup(storeTable, (char *)Cudd_Regular(Nnv), &dummy)) {
+	if (st_lookup(storeTable, Cudd_Regular(Nnv), &dummy)) {
 	  ElseBranch = Nnv;
 	  cuddRef(ElseBranch);
 	} else {
-	  if (st_lookup(approxTable, (char *)Nnv, &dummy)) {
+	  if (st_lookup(approxTable, Nnv, &dummy)) {
 	    ElseBranch = (DdNode *)dummy;
 	    cuddRef(ElseBranch);
 	  } else {
@@ -1277,11 +1277,11 @@ BuildSubsetBdd(
 	 * subset, or one whose approximation has been computed, or
 	 * Zero.
 	 */
-	if (st_lookup(storeTable, (char *)Cudd_Regular(Nv), &dummy)) {
+	if (st_lookup(storeTable, Cudd_Regular(Nv), &dummy)) {
 	  ThenBranch = Nv;
 	  cuddRef(ThenBranch);
 	} else {
-	  if (st_lookup(approxTable, (char *)Nv, &dummy)) {
+	  if (st_lookup(approxTable, Nv, &dummy)) {
 	    ThenBranch = (DdNode *)dummy;
 	    cuddRef(ThenBranch);
 	  } else {
@@ -1308,18 +1308,20 @@ BuildSubsetBdd(
 	return(NULL);
     else {
 	/* store this node in the store table */
-	if (!st_lookup(storeTable, (char *)Cudd_Regular(neW), &dummy)) {
+	if (!st_lookup(storeTable, Cudd_Regular(neW), &dummy)) {
 	  cuddRef(neW);
-	  if (!st_insert(storeTable, (char *)Cudd_Regular(neW), NIL(char)))
-	      return (NULL);
+	  if (st_insert(storeTable, Cudd_Regular(neW), NULL) ==
+              ST_OUT_OF_MEM)
+              return (NULL);
 	}
 	/* store the approximation for this node */
 	if (N !=  Cudd_Regular(neW)) {
-	    if (st_lookup(approxTable, (char *)node, &dummy)) {
+	    if (st_lookup(approxTable, node, &dummy)) {
 		fprintf(dd->err, "This node should not be in the approximated table\n");
 	    } else {
 		cuddRef(neW);
-		if (!st_insert(approxTable, (char *)node, (char *)neW))
+		if (st_insert(approxTable, node, neW) ==
+                    ST_OUT_OF_MEM)
 		    return(NULL);
 	    }
 	}

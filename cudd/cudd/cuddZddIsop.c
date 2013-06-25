@@ -27,7 +27,7 @@
 
   Author      [In-Ho Moon]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -84,7 +84,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddZddIsop.c,v 1.20 2009/02/19 16:26:12 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddZddIsop.c,v 1.22 2012/02/05 01:07:19 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -154,10 +154,10 @@ Cudd_zddIsop(
 /**Function********************************************************************
 
   Synopsis    [Computes a BDD in the interval between L and U with a
-  simple sum-of-produuct cover.]
+  simple sum-of-product cover.]
 
   Description [Computes a BDD in the interval between L and U with a
-  simple sum-of-produuct cover. This procedure is similar to
+  simple sum-of-product cover. This procedure is similar to
   Cudd_zddIsop, but it does not return the ZDD for the cover. Returns
   a pointer to the BDD if successful; NULL otherwise.]
 
@@ -185,14 +185,15 @@ Cudd_bddIsop(
 
 /**Function********************************************************************
 
-  Synopsis [Converts a ZDD cover to a BDD graph.]
+  Synopsis [Converts a ZDD cover to a BDD.]
 
-  Description [Converts a ZDD cover to a BDD graph. If successful, it
-  returns a BDD node, otherwise it returns NULL.]
+  Description [Converts a ZDD cover to a BDD for the function represented
+  by the cover. If successful, it returns a BDD node, otherwise it returns
+  NULL.]
 
   SideEffects []
 
-  SeeAlso     [cuddMakeBddFromZddCover]
+  SeeAlso     [Cudd_zddIsop]
 
 ******************************************************************************/
 DdNode	*
@@ -775,17 +776,17 @@ cuddBddIsop(
 
 /**Function********************************************************************
 
-  Synopsis [Converts a ZDD cover to a BDD graph.]
+  Synopsis [Converts a ZDD cover to a BDD.]
 
-  Description [Converts a ZDD cover to a BDD graph. If successful, it
-  returns a BDD node, otherwise it returns NULL. It is a recursive
-  algorithm as the following. First computes 3 cofactors of a ZDD cover;
-  f1, f0 and fd. Second, compute BDDs(b1, b0 and bd) of f1, f0 and fd.
-  Third, compute T=b1+bd and E=b0+bd. Fourth, compute ITE(v,T,E) where v
-  is the variable which has the index of the top node of the ZDD cover.
-  In this case, since the index of v can be larger than either one of T or
-  one of E, cuddUniqueInterIVO is called, here IVO stands for
-  independent variable ordering.]
+  Description [Converts a ZDD cover to a BDD. If successful, it returns
+  a BDD node, otherwise it returns NULL. It is a recursive algorithm
+  that works as follows. First it computes 3 cofactors of a ZDD cover:
+  f1, f0 and fd. Second, it compute BDDs (b1, b0 and bd) of f1, f0 and fd.
+  Third, it computes T=b1+bd and E=b0+bd. Fourth, it computes ITE(v,T,E) where
+  v is the variable which has the index of the top node of the ZDD cover.
+  In this case, since the index of v can be larger than either the one of T
+  or the one of E, cuddUniqueInterIVO is called, where IVO stands for
+  independent from variable ordering.]
 
   SideEffects []
 

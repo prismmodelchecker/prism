@@ -26,7 +26,7 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -81,7 +81,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] MTR_UNUSED = "$Id: mtrBasic.c,v 1.13 2009/02/20 02:03:47 fabio Exp $";
+static char rcsid[] MTR_UNUSED = "$Id: mtrBasic.c,v 1.15 2012/02/05 01:06:19 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -341,7 +341,7 @@ Mtr_CreateFirstChild(
     child = Mtr_AllocNode();
     if (child == NULL) return(NULL);
 
-    child->child = child->younger = child-> elder = NULL;
+    child->child = NULL;
     child->flags = 0;
     Mtr_MakeFirstChild(parent,child);
     return(child);
@@ -370,7 +370,7 @@ Mtr_CreateLastChild(
     child = Mtr_AllocNode();
     if (child == NULL) return(NULL);
 
-    child->child = child->younger = child->elder = NULL;
+    child->child = NULL;
     child->flags = 0;
     Mtr_MakeLastChild(parent,child);
     return(child);
@@ -395,13 +395,13 @@ Mtr_MakeNextSibling(
   MtrNode * first,
   MtrNode * second)
 {
+    second->parent = first->parent;
+    second->elder = first;
     second->younger = first->younger;
     if (first->younger != NULL) {
 	first->younger->elder = second;
     }
-    second->parent = first->parent;
     first->younger = second;
-    second->elder = first;
     return;
 
 } /* end of Mtr_MakeNextSibling */

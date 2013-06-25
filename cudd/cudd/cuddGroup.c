@@ -38,11 +38,12 @@
 		<li> ddSetVarHandled()
 		<li> ddResetVarHandled()
 		<li> ddIsVarHandled()
+                <li> ddFixTree()
 		</ul>]
 
   Author      [Shipra Panda, Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -112,7 +113,7 @@ extern "C" {
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddGroup.c,v 1.44 2009/02/21 18:24:10 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddGroup.c,v 1.49 2012/02/05 01:07:18 fabio Exp $";
 #endif
 
 static	int	*entry;
@@ -186,7 +187,7 @@ static int ddIsVarHandled (DdManager *dd, int index);
   Synopsis    [Creates a new variable group.]
 
   Description [Creates a new variable group. The group starts at
-  variable and contains size variables. The parameter low is the index
+  variable low and contains size variables. The parameter low is the index
   of the first variable. If the variable already exists, its current
   position in the order is known to the manager. If the variable does
   not exist yet, the position is assumed to be the same as the index.
@@ -225,7 +226,7 @@ Cudd_MakeTreeNode(
 	dd->tree = tree = Mtr_InitGroupTree(0, dd->size);
 	if (tree == NULL)
 	    return(NULL);
-	tree->index = dd->invperm[0];
+	tree->index = dd->size == 0 ? 0 : dd->invperm[0];
     }
 
     /* Extend the upper bound of the tree if necessary. This allows the
@@ -333,6 +334,9 @@ cuddTreeSifting(
 
     if (tempTree)
 	Cudd_FreeTree(table);
+    else
+      Mtr_ReorderGroups(table->tree, table->perm);
+
     return(result);
 
 } /* end of cuddTreeSifting */
@@ -778,6 +782,11 @@ ddGroupSifting(
     for (i = 0; i < ddMin(table->siftMaxVar,classes); i++) {
 	if (ddTotalNumberSwapping >= table->siftMaxSwap)
 	    break;
+        if (util_cpu_time() - table->startTime + table->reordTime
+            > table->timeLimit) {
+            table->autoDyn = 0; /* prevent further reordering */
+            break;
+        }
 	xindex = var[i];
 	if (sifted[xindex] == 1) /* variable already sifted as part of group */
 	    continue;

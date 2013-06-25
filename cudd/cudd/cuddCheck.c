@@ -27,7 +27,7 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -84,7 +84,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddCheck.c,v 1.35 2009/03/08 02:49:01 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddCheck.c,v 1.37 2012/02/05 01:07:18 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -150,7 +150,7 @@ Cudd_DebugCheck(
     int		totalNode;
     int		deadNode;
     int		index;
-
+    int         shift;
 
     edgeTable = st_init_table(st_ptrcmp,st_ptrhash);
     if (edgeTable == NULL) return(CUDD_OUT_OF_MEM);
@@ -165,6 +165,7 @@ Cudd_DebugCheck(
 	}
 	nodelist = table->subtables[i].nodelist;
 	slots = table->subtables[i].slots;
+	shift = table->subtables[i].shift;
 
 	totalNode = 0;
 	deadNode = 0;
@@ -205,6 +206,11 @@ Cudd_DebugCheck(
 			cuddPrintNode(f,table->err);
 			flag =1;
 		    }
+                    if (ddHash(cuddT(f),cuddE(f),shift) != j) {
+                        (void) fprintf(table->err, "Error: misplaced node\n");
+			cuddPrintNode(f,table->err);
+			flag =1;
+                    }
 		    /* Increment the internal reference count for the
 		    ** then child of the current node.
 		    */
@@ -596,8 +602,8 @@ in the constant table (difference=%d)\n", dead);
 	(void) fprintf(table->err, "Wrong number of total dead found \
 (difference=%d)\n", (int) (totalDead-table->dead));
     }
-    (void)printf("Average length of non-empty lists = %g\n",
-    (double) table->keys / (double) nonEmpty);
+    (void) fprintf(table->out,"Average length of non-empty lists = %g\n",
+                   (double) table->keys / (double) nonEmpty);
 
     return(count);
 

@@ -9,15 +9,18 @@
   Description [External procedures included in this module:
 		<ul>
                 <li> Cudd_bddIte()
+                <li> Cudd_bddIteLimit()
        	        <li> Cudd_bddIteConstant()
 		<li> Cudd_bddIntersect()
 		<li> Cudd_bddAnd()
 		<li> Cudd_bddAndLimit()
 		<li> Cudd_bddOr()
+		<li> Cudd_bddOrLimit()
 		<li> Cudd_bddNand()
 		<li> Cudd_bddNor()
 		<li> Cudd_bddXor()
 		<li> Cudd_bddXnor()
+		<li> Cudd_bddXnorLimit()
 		<li> Cudd_bddLeq()
 		</ul>
        Internal procedures included in this module:
@@ -38,7 +41,7 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -96,7 +99,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddBddIte.c,v 1.24 2004/08/13 18:04:46 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddBddIte.c,v 1.26 2012/02/05 01:07:18 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -151,6 +154,43 @@ Cudd_bddIte(
     return(res);
 
 } /* end of Cudd_bddIte */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Implements ITE(f,g,h).  Returns
+  NULL if too many nodes are required.]
+
+  Description [Implements ITE(f,g,h).  Returns a
+  pointer to the resulting BDD if successful; NULL if the intermediate
+  result blows up or more new nodes than <code>limit</code> are
+  required.]
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_bddIte]
+
+******************************************************************************/
+DdNode *
+Cudd_bddIteLimit(
+  DdManager * dd,
+  DdNode * f,
+  DdNode * g,
+  DdNode * h,
+  unsigned int limit)
+{
+    DdNode *res;
+    unsigned int saveLimit = dd->maxLive;
+
+    dd->maxLive = (dd->keys - dd->dead) + (dd->keysZ - dd->deadZ) + limit;
+    do {
+	dd->reordered = 0;
+	res = cuddBddIteRecur(dd,f,g,h);
+    } while (dd->reordered == 1);
+    dd->maxLive = saveLimit;
+    return(res);
+
+} /* end of Cudd_bddIteLimit */
 
 
 /**Function********************************************************************
@@ -393,6 +433,43 @@ Cudd_bddOr(
 
 /**Function********************************************************************
 
+  Synopsis    [Computes the disjunction of two BDDs f and g.  Returns
+  NULL if too many nodes are required.]
+
+  Description [Computes the disjunction of two BDDs f and g. Returns a
+  pointer to the resulting BDD if successful; NULL if the intermediate
+  result blows up or more new nodes than <code>limit</code> are
+  required.]
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_bddOr]
+
+******************************************************************************/
+DdNode *
+Cudd_bddOrLimit(
+  DdManager * dd,
+  DdNode * f,
+  DdNode * g,
+  unsigned int limit)
+{
+    DdNode *res;
+    unsigned int saveLimit = dd->maxLive;
+
+    dd->maxLive = (dd->keys - dd->dead) + (dd->keysZ - dd->deadZ) + limit;
+    do {
+	dd->reordered = 0;
+	res = cuddBddAndRecur(dd,Cudd_Not(f),Cudd_Not(g));
+    } while (dd->reordered == 1);
+    dd->maxLive = saveLimit;
+    res = Cudd_NotCond(res,res != NULL);
+    return(res);
+
+} /* end of Cudd_bddOrLimit */
+
+
+/**Function********************************************************************
+
   Synopsis    [Computes the NAND of two BDDs f and g.]
 
   Description [Computes the NAND of two BDDs f and g. Returns a
@@ -514,6 +591,42 @@ Cudd_bddXnor(
     return(res);
 
 } /* end of Cudd_bddXnor */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Computes the exclusive NOR of two BDDs f and g.  Returns
+  NULL if too many nodes are required.]
+
+  Description [Computes the exclusive NOR of two BDDs f and g. Returns a
+  pointer to the resulting BDD if successful; NULL if the intermediate
+  result blows up or more new nodes than <code>limit</code> are
+  required.]
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_bddXnor]
+
+******************************************************************************/
+DdNode *
+Cudd_bddXnorLimit(
+  DdManager * dd,
+  DdNode * f,
+  DdNode * g,
+  unsigned int limit)
+{
+    DdNode *res;
+    unsigned int saveLimit = dd->maxLive;
+
+    dd->maxLive = (dd->keys - dd->dead) + (dd->keysZ - dd->deadZ) + limit;
+    do {
+	dd->reordered = 0;
+	res = cuddBddXorRecur(dd,f,Cudd_Not(g));
+    } while (dd->reordered == 1);
+    dd->maxLive = saveLimit;
+    return(res);
+
+} /* end of Cudd_bddXnorLimit */
 
 
 /**Function********************************************************************

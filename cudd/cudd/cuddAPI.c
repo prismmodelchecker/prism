@@ -18,6 +18,16 @@
 		<li> Cudd_zddVarsFromBddVars()
 		<li> Cudd_addConst()
 		<li> Cudd_IsNonConstant()
+		<li> Cudd_ReadStartTime()
+                <li> Cudd_ReadElapsedTime()
+		<li> Cudd_SetStartTime()
+                <li> Cudd_ResetStartTime()
+		<li> Cudd_ReadTimeLimit()
+		<li> Cudd_SetTimeLimit()
+                <li> Cudd_UpdateTimeLimit()
+                <li> Cudd_IncreaseTimeLimit()
+                <li> Cudd_UnsetTimeLimit()
+                <li> Cudd_TimeLimited()
 		<li> Cudd_AutodynEnable()
 		<li> Cudd_AutodynDisable()
 		<li> Cudd_ReorderingStatus()
@@ -57,6 +67,8 @@
 		<li> Cudd_ReadDead()
 		<li> Cudd_ReadMinDead()
 		<li> Cudd_ReadReorderings()
+		<li> Cudd_ReadMaxReorderings()
+		<li> Cudd_SetMaxReorderings()
 		<li> Cudd_ReadReorderingTime()
 		<li> Cudd_ReadGarbageCollections()
 		<li> Cudd_ReadGarbageCollectionTime()
@@ -102,6 +114,8 @@
 		<li> Cudd_SetPopulationSize()
 		<li> Cudd_ReadNumberXovers()
 		<li> Cudd_SetNumberXovers()
+                <li> Cudd_ReadOrderRandomization()
+                <li> Cudd_SetOrderRandomization()
 		<li> Cudd_ReadMemoryInUse()
 		<li> Cudd_PrintInfo()
 		<li> Cudd_ReadPeakNodeCount()
@@ -116,6 +130,10 @@
 		<li> Cudd_EnableReorderingReporting()
 		<li> Cudd_DisableReorderingReporting()
 		<li> Cudd_ReorderingReporting()
+                <li> Cudd_PrintGroupedOrder()
+                <li> Cudd_EnableOrderingMonitoring()
+                <li> Cudd_DisableOrderingMonitoring()
+                <li> Cudd_OrderingMonitoring()
 		<li> Cudd_ReadErrorCode()
 		<li> Cudd_ClearErrorCode()
 		<li> Cudd_ReadStdout()
@@ -157,7 +175,7 @@
 
   Author      [Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -211,7 +229,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddAPI.c,v 1.59 2009/02/19 16:14:14 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddAPI.c,v 1.64 2012/02/05 01:07:18 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -644,6 +662,232 @@ Cudd_IsNonConstant(
     return(f == DD_NON_CONSTANT || !Cudd_IsConstant(f));
 
 } /* end of Cudd_IsNonConstant */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Returns the start time of the manager.]
+
+  Description [Returns the start time of the manager.  This is initially set
+  to the number of milliseconds since the program started, but may be reset by
+  the application.]
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_SetStartTime Cudd_ResetStartTime Cudd_ReadTimeLimit]
+
+******************************************************************************/
+unsigned long
+Cudd_ReadStartTime(
+  DdManager * unique)
+{
+    return unique->startTime;
+
+} /* end of Cudd_ReadStartTime */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Returns the time elapsed since the start time of the manager.]
+
+  Description [Returns the time elapsed since the start time of the manager.]
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_ReadStartTime Cudd_SetStartTime]
+
+******************************************************************************/
+unsigned long
+Cudd_ReadElapsedTime(
+  DdManager * unique)
+{
+  return util_cpu_time() - unique->startTime;
+
+} /* end of Cudd_ReadElapsedTime */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Sets the start time of the manager.]
+
+  Description [Sets the start time of the manager.]
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_ReadStartTime Cudd_ResetStartTime Cudd_ReadElapsedTime
+  Cudd_SetTimeLimit]
+
+******************************************************************************/
+void
+Cudd_SetStartTime(
+  DdManager * unique,
+  unsigned long st)
+{
+    unique->startTime = st;
+
+} /* end of Cudd_SetStartTime */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Resets the start time of the manager.]
+
+  Description [Resets the start time of the manager.]
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_ReadStartTime Cudd_SetStartTime Cudd_SetTimeLimit]
+
+******************************************************************************/
+void
+Cudd_ResetStartTime(
+  DdManager * unique)
+{
+    unique->startTime = util_cpu_time();
+
+} /* end of Cudd_ResetStartTime */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Returns the time limit for the manager.]
+
+  Description [Returns the time limit for the manager.  This is initially set
+  to a very large number, but may be reset by the application.]
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_SetTimeLimit Cudd_UpdateTimeLimit Cudd_UnsetTimeLimit
+  Cudd_IncreaseTimeLimit Cudd_TimeLimited Cudd_ReadStartTime]
+
+******************************************************************************/
+unsigned long
+Cudd_ReadTimeLimit(
+  DdManager * unique)
+{
+    return unique->timeLimit;
+
+} /* end of Cudd_ReadTimeLimit */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Sets the time limit for the manager.]
+
+  Description [Sets the time limit for the manager.]
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_ReadTimeLimit Cudd_UnsetTimeLimit Cudd_UpdateTimeLimit
+  Cudd_IncreaseTimeLimit Cudd_TimeLimited Cudd_SetStartTime]
+
+******************************************************************************/
+void
+Cudd_SetTimeLimit(
+  DdManager * unique,
+  unsigned long tl)
+{
+    unique->timeLimit = tl;
+
+} /* end of Cudd_SetTimeLimit */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Updates the time limit for the manager.]
+
+  Description [Updates the time limit for the manager by subtracting the
+  elapsed time from it.]
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_ReadTimeLimit Cudd_SetTimeLimit Cudd_UnsetTimeLimit
+  Cudd_IncreaseTimeLimit Cudd_TimeLimited Cudd_SetStartTime]
+
+******************************************************************************/
+void
+Cudd_UpdateTimeLimit(
+  DdManager * unique)
+{
+    unsigned long elapsed;
+    if (unique->timeLimit == ~0UL)
+        return;
+    elapsed = util_cpu_time() - unique->startTime;
+    if (unique->timeLimit >= elapsed) {
+        unique->timeLimit -= elapsed;
+    } else {
+        unique->timeLimit = 0;
+    }
+
+} /* end of Cudd_UpdateTimeLimit */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Increases the time limit for the manager.]
+
+  Description [Increases the time limit for the manager.]
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_ReadTimeLimit Cudd_SetTimeLimit Cudd_UnsetTimeLimit
+  Cudd_UpdateTimeLimit Cudd_TimeLimited Cudd_SetStartTime]
+
+******************************************************************************/
+void
+Cudd_IncreaseTimeLimit(
+  DdManager * unique,
+  unsigned long increase)
+{
+    if (unique->timeLimit == ~0UL)
+        unique->timeLimit = increase;
+    else
+        unique->timeLimit += increase;
+
+} /* end of Cudd_IncreaseTimeLimit */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Unsets the time limit for the manager.]
+
+  Description [Unsets the time limit for the manager.  Actually, sets it to
+  a very large value.]
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_ReadTimeLimit Cudd_SetTimeLimit Cudd_UpdateTimeLimit
+  Cudd_IncreaseTimeLimit Cudd_TimeLimited Cudd_SetStartTime]
+
+******************************************************************************/
+void
+Cudd_UnsetTimeLimit(
+  DdManager * unique)
+{
+    unique->timeLimit = ~0UL;
+
+} /* end of Cudd_UnsetTimeLimit */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Returns true if the time limit for the manager is set.]
+
+  Description [Returns true if the time limit for the manager is set.]
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_ReadTimeLimit Cudd_SetTimeLimit Cudd_UpdateTimeLimit
+  Cudd_UnsetTimeLimit Cudd_IncreaseTimeLimit]
+
+******************************************************************************/
+int
+Cudd_TimeLimited(
+  DdManager * unique)
+{
+    return unique->timeLimit != ~0UL;
+
+} /* end of Cudd_TimeLimited */
 
 
 /**Function********************************************************************
@@ -1356,11 +1600,11 @@ Cudd_SetLooseUpTo(
 
   Synopsis    [Returns the soft limit for the cache size.]
 
-  Description [Returns the soft limit for the cache size. The soft limit]
+  Description [Returns the soft limit for the cache size.]
 
   SideEffects [None]
 
-  SeeAlso     [Cudd_ReadMaxCache]
+  SeeAlso     [Cudd_ReadMaxCacheHard]
 
 ******************************************************************************/
 unsigned int
@@ -1688,13 +1932,55 @@ Cudd_ReadMinDead(
   SeeAlso [Cudd_ReduceHeap Cudd_ReadReorderingTime]
 
 ******************************************************************************/
-int
+unsigned int
 Cudd_ReadReorderings(
   DdManager * dd)
 {
     return(dd->reorderings);
 
 } /* end of Cudd_ReadReorderings */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Returns the maximum number of times reordering may be invoked.]
+
+  Description [Returns the maximum number of times reordering may be invoked in
+  this manager.]
+
+  SideEffects [None]
+
+  SeeAlso [Cudd_ReadReorderings Cudd_SetMaxReorderings Cudd_ReduceHeap]
+
+******************************************************************************/
+unsigned int
+Cudd_ReadMaxReorderings(
+  DdManager * dd)
+{
+    return(dd->maxReorderings);
+
+} /* end of Cudd_ReadMaxReorderings */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Sets the maximum number of times reordering may be invoked.]
+
+  Description [Sets the maximum number of times reordering may be invoked in
+  this manager.  The default value is (practically) infinite.]
+
+  SideEffects [None]
+
+  SeeAlso [Cudd_ReadReorderings Cudd_ReadMaxReorderings Cudd_ReduceHeap]
+
+******************************************************************************/
+void
+Cudd_SetMaxReorderings(
+  DdManager * dd, unsigned int mr)
+{
+    dd->maxReorderings = mr;
+
+} /* end of Cudd_SetMaxReorderings */
 
 
 /**Function********************************************************************
@@ -2897,6 +3183,50 @@ Cudd_SetNumberXovers(
 
 } /* end of Cudd_SetNumberXovers */
 
+
+/**Function********************************************************************
+
+  Synopsis    [Returns the order randomization factor.]
+
+  Description [Returns the order randomization factor.  If non-zero this
+  factor is used to determine a perturbation of the next reordering threshold.
+  Larger factors cause larger perturbations.]
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_SetOrderRandomization]
+
+******************************************************************************/
+unsigned int
+Cudd_ReadOrderRandomization(
+  DdManager * dd)
+{
+    return(dd->randomizeOrder);
+
+} /* end of Cudd_ReadOrderRandomization */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Sets the order randomization factor.]
+
+  Description []
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_ReadOrderRandomization]
+
+******************************************************************************/
+void
+Cudd_SetOrderRandomization(
+  DdManager * dd,
+  unsigned int factor)
+{
+    dd->randomizeOrder = factor;
+
+} /* end of Cudd_SetOrderRandomization */
+
+
 /**Function********************************************************************
 
   Synopsis    [Returns the memory in use by the manager measured in bytes.]
@@ -3135,9 +3465,7 @@ Cudd_ReadPeakNodeCount(
 
   Synopsis    [Reports the peak number of live nodes.]
 
-  Description [Reports the peak number of live nodes. This count is kept
-  only if CUDD is compiled with DD_STATS defined. If DD_STATS is not
-  defined, this function returns -1.]
+  Description [Reports the peak number of live nodes.]
 
   SideEffects [None]
 
@@ -3500,9 +3828,9 @@ Cudd_StdPostReordHook(
   const char *str,
   void *data)
 {
-    long initialTime = (long) data;
+    unsigned long initialTime = (long) data;
     int retval;
-    long finalTime = util_cpu_time();
+    unsigned long finalTime = util_cpu_time();
     double totalTimeSec = (double)(finalTime - initialTime) / 1000.0;
 
     retval = fprintf(dd->out,"%ld nodes in %g sec\n", strcmp(str, "BDD") == 0 ?
@@ -3591,6 +3919,134 @@ Cudd_ReorderingReporting(
     return(Cudd_IsInHook(dd, Cudd_StdPreReordHook, CUDD_PRE_REORDERING_HOOK));
 
 } /* end of Cudd_ReorderingReporting */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Hook function to print the current variable order.]
+
+  Description [Hook function to print the current variable order.  It may be
+  called before or after reordering. Prints on the manager's stdout a
+  parenthesized list that describes the variable groups.
+  Returns 1 if successful; 0 otherwise.]
+
+  SideEffects [None]
+
+  SeeAlso     [Cudd_StdPreReordHook]
+
+******************************************************************************/
+int
+Cudd_PrintGroupedOrder(
+  DdManager * dd,
+  const char *str,
+  void *data)
+{
+    int isBdd = strcmp(str, "ZDD");
+    MtrNode *tree = isBdd ? dd->tree : dd->treeZ;
+    int *invperm = isBdd ? dd->invperm : dd->invpermZ;
+    int size = isBdd ? dd->size : dd->sizeZ;
+    if (tree == NULL) {
+        int i, retval;
+        for (i=0; i < size; i++) {
+            retval = fprintf(dd->out, "%c%d", i==0 ? '(' : ',', invperm[i]);
+            if (retval == EOF) return(0);
+        }
+        retval = fprintf(dd->out,")\n");
+        return (retval != EOF);
+    } else {
+        return Mtr_PrintGroupedOrder(tree,invperm,dd->out);
+    }
+        
+} /* end of Cudd_PrintGroupedOrder */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Enables monitoring of ordering.]
+
+  Description [Enables monitoring of ordering.
+  Returns 1 if successful; 0 otherwise.]
+
+  SideEffects [Installs functions in the pre-reordering and post-reordering
+  hooks.]
+
+  SeeAlso     [Cudd_EnableReorderingReporting]
+
+******************************************************************************/
+int
+Cudd_EnableOrderingMonitoring(
+  DdManager *dd)
+{
+    if (!Cudd_AddHook(dd, Cudd_PrintGroupedOrder, CUDD_PRE_REORDERING_HOOK)) {
+	return(0);
+    }
+    if (!Cudd_AddHook(dd, Cudd_StdPreReordHook, CUDD_PRE_REORDERING_HOOK)) {
+	return(0);
+    }
+    if (!Cudd_AddHook(dd, Cudd_StdPostReordHook, CUDD_POST_REORDERING_HOOK)) {
+	return(0);
+    }
+    if (!Cudd_AddHook(dd, Cudd_PrintGroupedOrder, CUDD_POST_REORDERING_HOOK)) {
+	return(0);
+    }
+    return(1);
+
+} /* end of Cudd_EnableOrderingMonitoring */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Disables monitoring of ordering.]
+
+  Description [Disables monitoring of ordering.
+  Returns 1 if successful; 0 otherwise.]
+
+  SideEffects [Removes functions from the pre-reordering and post-reordering
+  hooks.]
+
+  SeeAlso     [Cudd_EnableOrderingMonitoring]
+
+******************************************************************************/
+int
+Cudd_DisableOrderingMonitoring(
+  DdManager *dd)
+{
+    if (!Cudd_RemoveHook(dd, Cudd_StdPreReordHook, CUDD_PRE_REORDERING_HOOK)) {
+	return(0);
+    }
+    if (!Cudd_RemoveHook(dd, Cudd_PrintGroupedOrder, CUDD_PRE_REORDERING_HOOK)) {
+	return(0);
+    }
+    if (!Cudd_RemoveHook(dd, Cudd_PrintGroupedOrder, CUDD_POST_REORDERING_HOOK)) {
+	return(0);
+    }
+    if (!Cudd_RemoveHook(dd, Cudd_StdPostReordHook, CUDD_POST_REORDERING_HOOK)) {
+	return(0);
+    }
+    return(1);
+
+} /* end of Cudd_DisableOrderingMonitoring */
+
+
+/**Function********************************************************************
+
+  Synopsis    [Returns 1 if monitoring of ordering is enabled.]
+
+  Description [Returns 1 if monitoring of ordering is enabled;
+  0 otherwise.]
+
+  SideEffects [none]
+
+  SeeAlso     [Cudd_EnableOrderingMonitoring Cudd_DisableOrderingMonitoring]
+
+******************************************************************************/
+int
+Cudd_OrderingMonitoring(
+  DdManager *dd)
+{
+    return(Cudd_IsInHook(dd, Cudd_PrintGroupedOrder, CUDD_PRE_REORDERING_HOOK));
+
+} /* end of Cudd_OrderingMonitoring */
 
 
 /**Function********************************************************************

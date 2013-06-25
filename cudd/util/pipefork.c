@@ -1,7 +1,7 @@
 /*
  * Revision Control Information
  *
- * $Id: pipefork.c,v 1.6 2004/08/18 00:06:42 fabio Exp fabio $
+ * $Id: pipefork.c,v 1.7 2012/02/05 05:34:04 fabio Exp fabio $
  *
  */
 /* LINTLIBRARY */
@@ -46,8 +46,8 @@ util_pipefork(
      * fildes[0] for reading from command
      * fildes[1] for writing to command
      */
-    (void) pipe(topipe);
-    (void) pipe(frompipe);
+    if (pipe(topipe)) return(0);
+    if (pipe(frompipe)) return(0);
 
 #ifdef __CYGWIN32__
     if ((forkpid = fork()) == 0) {

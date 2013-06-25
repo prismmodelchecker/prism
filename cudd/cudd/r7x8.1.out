@@ -1,5 +1,5 @@
 # TestCudd Version #1.0, Release date 3/17/01
-# ./testcudd -p 2 r7x8.1.mat
+# ./testcudd -p2 r7x8.1.mat
 :name: r7x8.1.mat: 7 rows 9 columns
 :1: M: 63 nodes 5 leaves 52 minterms
 000000--  1
@@ -142,7 +142,7 @@ Testing iterator on primes (CNF):
 --0-00-1 1
 1-0-10-0 1
 
-Cache used slots = 58.06% (expected 58.92%)
+Cache used slots = 58.06% (expected 58.94%)
 xor1: 14 nodes 1 leaves 28 minterms
 000--1-1  1
 001-11-1  1
@@ -197,9 +197,28 @@ The value of M along the chosen shortest path is 1
 :6: shortP: 5 nodes 1 leaves 8 minterms
 0000----  1
 
-Average distance: 4133.34
+Support of f: : 8 nodes 1 leaves 2 minterms
+111111-1  1
+
+Size of the support of f: 7
+Size of the support of f: 7
+Support of f and g: : 8 nodes 1 leaves 2 minterms
+111111-1  1
+
+Size of the support of f and g: 7
+Size of the support of f and g: 7
+Support common to f and g: : 5 nodes 1 leaves 16 minterms
+-1-1-1-1  1
+
+Support private to f: : 4 nodes 1 leaves 32 minterms
+1-1-1---  1
+
+Support private to g: : 1 nodes 1 leaves 256 minterms
+--------  1
+
+Average distance: 4138.57
 Number of variables =      8	Number of slots     =   2304
-Number of keys      =    995	Number of min dead  =   9216
+Number of keys      =    999	Number of min dead  =   9216
 walsh1: 16 nodes 2 leaves 256 minterms
 -0--0--0--0-  1
 -0--0--0--10  1
@@ -325,18 +344,18 @@ GA population size: 0
 Number of crossovers for GA: 0
 Next reordering threshold: 4004
 **** CUDD non-modifiable parameters ****
-Memory in use: 4274484
+Memory in use: 4274508
 Peak number of nodes: 2044
 Peak number of live nodes: 119
 Number of BDD variables: 9
 Number of ZDD variables: 0
 Number of cache entries: 2048
-Number of cache look-ups: 2846
-Number of cache hits: 715
-Number of cache insertions: 2289
-Number of cache collisions: 937
-Number of cache deletions: 1348
-Cache used slots = 66.02% (expected 67.30%)
+Number of cache look-ups: 2864
+Number of cache hits: 729
+Number of cache insertions: 2301
+Number of cache collisions: 947
+Number of cache deletions: 1351
+Cache used slots = 66.11% (expected 67.49%)
 Soft limit for cache size: 13312
 Number of buckets in unique table: 2560
 Used buckets in unique table: 0.51% (expected 0.51%)
@@ -344,8 +363,8 @@ Number of BDD and ADD nodes: 13
 Number of ZDD nodes: 0
 Number of dead BDD and ADD nodes: 0
 Number of dead ZDD nodes: 0
-Total number of nodes allocated: 1091
-Total number of nodes reclaimed: 950
+Total number of nodes allocated: 1095
+Total number of nodes reclaimed: 967
 Garbage collections so far: 1
 Time for garbage collection: 0.00 sec
 Reorderings so far: 0
@@ -361,17 +380,17 @@ Average resident text size       =     0K
 Average resident data+stack size =     0K
 Maximum resident size            =     0K
 
-Virtual text size                = 131644K
-Virtual data size                =   151K
-    data size initialized        =    17K
-    data size uninitialized      =     0K
-    data size sbrk               =   134K
+Virtual text size                = 131653K
+Virtual data size                =   152K
+    data size initialized        =    18K
+    data size uninitialized      =     1K
+    data size sbrk               =   133K
 Virtual memory limit             = 358400K (4194304K)
 
 Major page faults = 0
-Minor page faults = 1318
+Minor page faults = 1330
 Swaps = 0
 Input blocks = 0
-Output blocks = 0
-Context switch (voluntary) = 1
+Output blocks = 16
+Context switch (voluntary) = 0
 Context switch (involuntary) = 1

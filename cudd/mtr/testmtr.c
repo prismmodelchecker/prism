@@ -12,7 +12,7 @@
 
    Author      [Fabio Somenzi]
    
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -54,7 +54,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] MTR_UNUSED = "$Id: testmtr.c,v 1.3 2004/08/13 18:15:12 fabio Exp $";
+static char rcsid[] MTR_UNUSED = "$Id: testmtr.c,v 1.5 2012/02/05 06:10:35 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -62,7 +62,7 @@ static char rcsid[] MTR_UNUSED = "$Id: testmtr.c,v 1.3 2004/08/13 18:15:12 fabio
 /*---------------------------------------------------------------------------*/
 
 #define TESTMTR_VERSION\
-    "TestMtr Version #0.5, Release date 8/26/99"
+    "TestMtr Version #0.6, Release date 2/6/12"
 
 /**AutomaticStart*************************************************************/
 
@@ -71,7 +71,7 @@ static char rcsid[] MTR_UNUSED = "$Id: testmtr.c,v 1.3 2004/08/13 18:15:12 fabio
 /*---------------------------------------------------------------------------*/
 
 static void usage (char *prog);
-static FILE * open_file (char *filename, char *mode);
+static FILE * open_file (const char *filename, const char *mode);
 
 /**AutomaticEnd***************************************************************/
 
@@ -103,7 +103,7 @@ main(
 	    c,
 	    pr = 0;
     FILE    *fp;
-    char    *file = NULL;
+    const char *file = NULL;
     
     (void) printf("# %s\n", TESTMTR_VERSION);
     /* Echo command line and arguments. */
@@ -253,8 +253,8 @@ usage(
 ******************************************************************************/
 static FILE *
 open_file(
-  char * filename,
-  char * mode)
+  const char * filename,
+  const char * mode)
 {
     FILE *fp;
 

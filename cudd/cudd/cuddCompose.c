@@ -48,7 +48,7 @@
 
   Author      [Fabio Somenzi and Kavita Ravi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -103,7 +103,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddCompose.c,v 1.45 2004/08/13 18:04:47 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddCompose.c,v 1.46 2012/02/05 01:07:18 fabio Exp $";
 #endif
 
 #ifdef DD_DEBUG

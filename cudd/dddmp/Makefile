@@ -76,9 +76,9 @@ ICFLAGS	= -g -O6 -Wall
 # When no special flags are needed
 #XCFLAGS	= -DHAVE_IEEE_754 -DBSD
 # Linux with Gcc 2.8.1 or higher on i686.
-XCFLAGS	= -mcpu=pentiumpro -malign-double -DHAVE_IEEE_754 -DBSD
+#XCFLAGS	= -mcpu=pentiumpro -malign-double -DHAVE_IEEE_754 -DBSD
 # Gcc 3.3.2 or higher on i686.
-#XCFLAGS	= -mcpu=pentium4 -malign-double -DHAVE_IEEE_754 -DBSD
+XCFLAGS	= -mcpu=pentium4 -malign-double -DHAVE_IEEE_754 -DBSD
 # For Solaris, BSD should not be replaced by UNIX100.
 #XCFLAGS	= -DHAVE_IEEE_754 -DUNIX100 -DEPD_BIG_ENDIAN
 # New native compiler for the Alphas; 64-bit pointers. 

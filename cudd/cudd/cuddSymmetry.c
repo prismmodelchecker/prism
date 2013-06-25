@@ -31,7 +31,7 @@
 
   Author      [Shipra Panda, Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -87,7 +87,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddSymmetry.c,v 1.26 2009/02/19 16:23:54 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddSymmetry.c,v 1.28 2012/02/05 01:07:19 fabio Exp $";
 #endif
 
 static	int	*entry;
@@ -362,6 +362,10 @@ cuddSymmSifting(
     for (i = 0; i < ddMin(table->siftMaxVar,size); i++) {
 	if (ddTotalNumberSwapping >= table->siftMaxSwap)
 	    break;
+        if (util_cpu_time() - table->startTime > table->timeLimit) {
+            table->autoDyn = 0; /* prevent further reordering */
+            break;
+        }
 	x = table->perm[var[i]];
 #ifdef DD_STATS
 	previousSize = table->keys - table->isolated;
@@ -485,6 +489,10 @@ cuddSymmSiftingConv(
     for (i = 0; i < ddMin(table->siftMaxVar, table->size); i++) {
 	if (ddTotalNumberSwapping >= table->siftMaxSwap)
 	    break;
+        if (util_cpu_time() - table->startTime > table->timeLimit) {
+            table->autoDyn = 0; /* prevent further reordering */
+            break;
+        }
 	x = table->perm[var[i]];
 	if (x < lower || x > upper) continue;
 	/* Only sift if not in symmetry group already. */
@@ -534,6 +542,10 @@ cuddSymmSiftingConv(
 	for (i = 0; i < ddMin(table->siftMaxVar,classes); i++) {
 	    if (ddTotalNumberSwapping >= table->siftMaxSwap)
 		break;
+            if (util_cpu_time() - table->startTime > table->timeLimit) {
+              table->autoDyn = 0; /* prevent further reordering */
+              break;
+            }
 	    x = table->perm[var[i]];
 	    if ((unsigned) x >= table->subtables[x].next) {
 #ifdef DD_STATS

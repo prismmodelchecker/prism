@@ -18,9 +18,8 @@ LINTFLAGS = -u -n
 LINTSWITCH = -o
 
 P	= util
-PSRC	= cpu_time.c cpu_stats.c getopt.c safe_mem.c strsav.c texpand.c \
-	  ptime.c prtime.c pipefork.c pathsearch.c stub.c \
-	  tmpfile.c datalimit.c
+PSRC	= cpu_time.c cpu_stats.c safe_mem.c strsav.c texpand.c \
+	  ptime.c prtime.c pipefork.c pathsearch.c stub.c datalimit.c
 POBJ	= $(PSRC:.c=.o)
 PUBJ	= $(PSRC:.c=.u)
 PHDR	= util.h
