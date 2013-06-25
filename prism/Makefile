@@ -285,7 +285,7 @@ cuddpackage: checks
 	@(if [ ! -h $(CUDD_DIR) ]; then \
 	  echo Making cudd ...; \
 	  cd $(CUDD_DIR) && \
-	  $(MAKE) C="$(C)" CC="$(C)" CPP="$(CPP)" \
+	  $(MAKE) C="$(C)" CC="$(C)" CPP="$(CPP)" CXX="$(CPP)" \
 	  XCFLAGS="$(CUDD_XCFLAGS)"; \
 	else \
 	  echo Skipping cudd make since it is a symlink...; \
