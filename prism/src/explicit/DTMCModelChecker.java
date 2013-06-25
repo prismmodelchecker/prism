@@ -1517,24 +1517,59 @@ public class DTMCModelChecker extends ProbModelChecker
 		DTMCModelChecker mc;
 		DTMCSimple dtmc;
 		ModelCheckerResult res;
-		BitSet target;
-		Map<String, BitSet> labels;
 		try {
-			mc = new DTMCModelChecker();
-			dtmc = new DTMCSimple();
-			dtmc.buildFromPrismExplicit(args[0]);
-			//System.out.println(dtmc);
-			labels = mc.loadLabelsFile(args[1]);
-			//System.out.println(labels);
-			target = labels.get(args[2]);
-			if (target == null)
-				throw new PrismException("Unknown label \"" + args[2] + "\"");
-			for (int i = 3; i < args.length; i++) {
-				if (args[i].equals("-nopre"))
-					mc.setPrecomp(false);
+			// Two examples of building and solving a DTMC
+			
+			int version = 2;
+			if (version == 1) {
+
+				// 1. Read in from .tra and .lab files
+				//    Run as: PRISM_MAINCLASS=explicit.DTMCModelChecker bin/prism dtmc.tra dtmc.lab target_label
+				mc = new DTMCModelChecker();
+				dtmc = new DTMCSimple();
+				dtmc.buildFromPrismExplicit(args[0]);
+				//System.out.println(dtmc);
+				Map<String, BitSet> labels = mc.loadLabelsFile(args[1]);
+				//System.out.println(labels);
+				BitSet target = labels.get(args[2]);
+				if (target == null)
+					throw new PrismException("Unknown label \"" + args[2] + "\"");
+				for (int i = 3; i < args.length; i++) {
+					if (args[i].equals("-nopre"))
+						mc.setPrecomp(false);
+				}
+				res = mc.computeReachProbs(dtmc, target);
+				System.out.println(res.soln[0]);
+				
+			} else {
+				
+				// 2. Build DTMC directly
+				//    (example taken from p.14 of Lec 5 of http://www.prismmodelchecker.org/lectures/pmc/) 
+				mc = new DTMCModelChecker();
+				dtmc = new DTMCSimple(6);
+				dtmc.setProbability(0, 1, 0.1);
+				dtmc.setProbability(0, 2, 0.9);
+				dtmc.setProbability(1, 0, 0.4);
+				dtmc.setProbability(1, 3, 0.6);
+				dtmc.setProbability(2, 2, 0.1);
+				dtmc.setProbability(2, 3, 0.1);
+				dtmc.setProbability(2, 4, 0.5);
+				dtmc.setProbability(2, 5, 0.3);
+				dtmc.setProbability(3, 3, 1.0);
+				dtmc.setProbability(4, 4, 1.0);
+				dtmc.setProbability(5, 5, 0.3);
+				dtmc.setProbability(5, 4, 0.7);
+				System.out.println(dtmc);
+				BitSet target = new BitSet();
+				target.set(4);
+				BitSet remain = new BitSet();
+				remain.set(1);
+				remain.flip(0, 6);
+				System.out.println(target);
+				System.out.println(remain);
+				res = mc.computeUntilProbs(dtmc, remain, target);
+				System.out.println(res.soln[0]);
 			}
-			res = mc.computeReachProbs(dtmc, target);
-			System.out.println(res.soln[0]);
 		} catch (PrismException e) {
 			System.out.println(e);
 		}
