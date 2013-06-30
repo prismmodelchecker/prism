@@ -3,6 +3,7 @@ package parser;
 
 import java.io.*;
 
+@SuppressWarnings({"unused", "static-access", "serial"})
 public class Prism3To4 implements Prism3To4Constants {
         public static void main(String[] args) throws ParseException
         {
@@ -2718,16 +2719,6 @@ public class Prism3To4 implements Prism3To4Constants {
     finally { jj_save(186, xla); }
   }
 
-  static private boolean jj_3R_49() {
-    if (jj_3R_89()) return true;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3_69()) { jj_scanpos = xsp; break; }
-    }
-    return false;
-  }
-
   static private boolean jj_3_63() {
     if (jj_3R_47()) return true;
     return false;
@@ -4759,6 +4750,16 @@ public class Prism3To4 implements Prism3To4Constants {
       if (jj_3_71()) { jj_scanpos = xsp; break; }
     }
     if (jj_scan_token(RBRACE)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_49() {
+    if (jj_3R_89()) return true;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3_69()) { jj_scanpos = xsp; break; }
+    }
     return false;
   }
 

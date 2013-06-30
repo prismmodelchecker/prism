@@ -10,6 +10,7 @@ import parser.type.*;
 import prism.ModelType;
 import prism.PrismLangException;
 
+@SuppressWarnings({"unused", "static-access", "serial"})
 public class PrismParser implements PrismParserConstants {
         // The modules file associated with properties file being parsed
         private static ModulesFile modulesFile;

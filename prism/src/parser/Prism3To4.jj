@@ -42,6 +42,7 @@ package parser;
 
 import java.io.*;
 
+@SuppressWarnings({"unused", "static-access", "serial"})
 public class Prism3To4
 {
 	public static void main(String[] args) throws ParseException

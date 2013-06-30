@@ -42,6 +42,7 @@ import parser.type.*;
 import prism.ModelType;
 import prism.PrismLangException;
 
+@SuppressWarnings({"unused", "static-access", "serial"})
 public class PrismParser
 {
 	// The modules file associated with properties file being parsed
