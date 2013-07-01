@@ -27,12 +27,17 @@
 
 package explicit;
 
-import java.util.*;
+import java.util.BitSet;
+import java.util.List;
+import java.util.Map;
 
 import parser.ast.Expression;
 import parser.ast.ExpressionTemporal;
 import parser.ast.ExpressionUnaryOp;
-import prism.*;
+import prism.PrismException;
+import prism.PrismFileLog;
+import prism.PrismLog;
+import prism.PrismUtils;
 import explicit.rewards.STPGRewards;
 
 /**
@@ -48,7 +53,7 @@ public class STPGModelChecker extends ProbModelChecker
 	protected StateValues checkProbPathFormula(Model model, Expression expr, boolean min1, boolean min2) throws PrismException
 	{
 		// Test whether this is a simple path formula (i.e. PCTL)
-		// and then pass control to appropriate method. 
+		// and then pass control to appropriate method.
 		if (expr.isSimplePathFormula()) {
 			return checkProbPathFormulaSimple(model, expr, min1, min2);
 		} else {
