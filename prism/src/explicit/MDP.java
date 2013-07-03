@@ -172,7 +172,7 @@ public interface MDP extends Model
 
 	/**
 	 * Do a Gauss-Seidel-style matrix-vector multiplication followed by min/max.
-	 * i.e. for all s: vect[s] = min/max_k { (sum_{j!=s} P_k(s,j)*vect[j]) / P_k(s,s) }
+	 * i.e. for all s: vect[s] = min/max_k { (sum_{j!=s} P_k(s,j)*vect[j]) / 1-P_k(s,s) }
 	 * and store new values directly in {@code vect} as computed.
 	 * The maximum (absolute/relative) difference between old/new
 	 * elements of {@code vect} is also returned.
@@ -189,7 +189,7 @@ public interface MDP extends Model
 
 	/**
 	 * Do a single row of Jacobi-style matrix-vector multiplication followed by min/max.
-	 * i.e. return min/max_k { (sum_{j!=s} P_k(s,j)*vect[j]) / P_k(s,s) }
+	 * i.e. return min/max_k { (sum_{j!=s} P_k(s,j)*vect[j]) / 1-P_k(s,s) }
 	 * Optionally, store optimal (memoryless) strategy info. 
 	 * @param s Row index
 	 * @param vect Vector to multiply by
@@ -200,7 +200,7 @@ public interface MDP extends Model
 
 	/**
 	 * Do a single row of Jacobi-style matrix-vector multiplication for a specific choice.
-	 * i.e. return min/max_k { (sum_{j!=s} P_k(s,j)*vect[j]) / P_k(s,s) }
+	 * i.e. return min/max_k { (sum_{j!=s} P_k(s,j)*vect[j]) / 1-P_k(s,s) }
 	 * @param s Row index
 	 * @param k Choice index
 	 * @param vect Vector to multiply by
@@ -223,7 +223,7 @@ public interface MDP extends Model
 
 	/**
 	 * Do a Gauss-Seidel-style matrix-vector multiplication and sum of action reward followed by min/max.
-	 * i.e. for all s: vect[s] = min/max_k { rew(s) + (sum_{j!=s} P_k(s,j)*vect[j]) / P_k(s,s) }
+	 * i.e. for all s: vect[s] = min/max_k { rew(s) + (sum_{j!=s} P_k(s,j)*vect[j]) / 1-P_k(s,s) }
 	 * and store new values directly in {@code vect} as computed.
 	 * The maximum (absolute/relative) difference between old/new
 	 * elements of {@code vect} is also returned.
@@ -253,7 +253,7 @@ public interface MDP extends Model
 
 	/**
 	 * Do a single row of Jacobi-style matrix-vector multiplication and sum of action reward followed by min/max.
-	 * i.e. return min/max_k { (sum_{j!=s} P_k(s,j)*vect[j]) / P_k(s,s) }
+	 * i.e. return min/max_k { (sum_{j!=s} P_k(s,j)*vect[j]) / 1-P_k(s,s) }
 	 * Optionally, store optimal (memoryless) strategy info. 
 	 * @param s Row index
 	 * @param vect Vector to multiply by
