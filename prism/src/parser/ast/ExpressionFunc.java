@@ -370,11 +370,11 @@ public class ExpressionFunc extends Expression
 		if (!oldStyle)
 			s += name + "(";
 		else
-			s += "func(" + name + ",";
+			s += "func(" + name + ", ";
 		n = operands.size();
 		for (i = 0; i < n; i++) {
 			if (!first)
-				s += ",";
+				s += ", ";
 			else
 				first = false;
 			s = s + getOperand(i);
