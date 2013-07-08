@@ -87,6 +87,11 @@ public class StateModelChecker
 	// Method used for numerical solution
 	protected SCCMethod sccMethod = SCCMethod.TARJAN;
 
+	// Additional flags/settings not included in PrismSettings
+	
+	// Generate/store a strategy during model checking?
+	protected boolean genStrat = false;
+	
 	// Model file (for reward structures, etc.)
 	protected ModulesFile modulesFile = null;
 
@@ -208,11 +213,27 @@ public class StateModelChecker
 		this.verbosity = verbosity;
 	}
 
+	/**
+	 * Specify whether or not a strategy should be generated during model checking.
+	 */
+	public void setGenStrat(boolean genStrat)
+	{
+		this.genStrat = genStrat;
+	}
+
 	// Get methods for flags/settings
 
 	public int getVerbosity()
 	{
 		return verbosity;
+	}
+
+	/**
+	 * Whether or not a strategy should be generated during model checking.
+	 */
+	public boolean getGenStrat()
+	{
+		return genStrat;
 	}
 
 	// Model checking functions

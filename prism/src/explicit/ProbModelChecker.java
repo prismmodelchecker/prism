@@ -70,9 +70,6 @@ public class ProbModelChecker extends StateModelChecker
 	protected boolean exportAdv = false;
 	protected String exportAdvFilename;
 
-	// Additional flags/settings not included in PrismSettings
-	protected boolean getStrat = false;
-	
 	// Enums for flags/settings
 
 	// Method used for numerical solution

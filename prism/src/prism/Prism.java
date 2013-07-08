@@ -176,7 +176,7 @@ public class Prism implements PrismSettingsListener
 	protected String exportProductTransFilename = null;
 	protected boolean exportProductStates = false;
 	protected String exportProductStatesFilename = null;
-	// Generate a strategy during model checking?
+	// Generate/store a strategy during model checking?
 	protected boolean genStrat = false; 
 
 	// A few miscellaneous options (i.e. defunct/hidden/undocumented/etc.)
@@ -2466,13 +2466,10 @@ public class Prism implements PrismSettingsListener
 
 			// Create new model checker object and do model checking
 			if (!getExplicit()) {
-				ModelChecker mc = StateModelChecker.createModelChecker(currentModelType, this, currentModel, propertiesFile);
+				ModelChecker mc = createModelChecker(propertiesFile); 
 				res = mc.check(prop.getExpression());
 			} else {
-				explicit.StateModelChecker mc = explicit.StateModelChecker.createModelChecker(currentModelType);
-				mc.setLog(mainLog);
-				mc.setSettings(settings);
-				mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);
+				explicit.StateModelChecker mc = createModelCheckerExplicit(propertiesFile);
 				res = mc.check(currentModelExpl, prop.getExpression());
 			}
 		} finally {
@@ -3094,6 +3091,37 @@ public class Prism implements PrismSettingsListener
 		}
 	}
 
+	/**
+	 * Utility method to create and initialiser a (symbolic) model checker based on the current model.
+	 * @param propertiesFile Optional properties file for extra info needed durinng model checking (can be null)
+	 */
+	private ModelChecker createModelChecker(PropertiesFile propertiesFile) throws PrismException
+	{
+		// Create model checker
+		ModelChecker mc = StateModelChecker.createModelChecker(currentModelType, this, currentModel, propertiesFile);
+		// Pass any additional local settings
+		// TODO
+		
+		return mc;
+	}
+	
+	/**
+	 * Utility method to create and initialiser an (explicit) model checker based on the current model.
+	 * @param propertiesFile Optional properties file for extra info needed durinng model checking (can be null)
+	 */
+	private explicit.StateModelChecker createModelCheckerExplicit(PropertiesFile propertiesFile) throws PrismException
+	{
+		// Create model checker
+		explicit.StateModelChecker mc = explicit.StateModelChecker.createModelChecker(currentModelType);
+		mc.setLog(mainLog);
+		mc.setSettings(settings);
+		mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);
+		// Pass any additional local settings
+		mc.setGenStrat(genStrat);
+		
+		return mc;
+	}
+	
 	/**
 	 * Either create a new PrismFileLog for {@code file} or,
 	 * if {@code file} is null, return {@code mainLog}.
