@@ -2,7 +2,8 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
+//	* Aistis Simaitis <aistis.aimaitis@cs.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -24,39 +25,17 @@
 //	
 //==============================================================================
 
-package explicit;
+package strat;
 
-import strat.Strategy;
+import prism.PrismLog;
 
 /**
- * Class storing some info/data from a call to a model checking or
- * numerical computation method in the explicit engine. 
+ * Interface for classes to store strategies (for MDPs, games, etc.)
  */
-public class ModelCheckerResult
+public interface Strategy
 {
-	// Solution vector
-	public double[] soln = null;
-	// Solution vector from previous iteration
-	public double[] lastSoln = null;
-	// Iterations performed
-	public int numIters = 0;
-	// Total time taken (secs)
-	public double timeTaken = 0.0;
-	// Time taken for any precomputation (secs)
-	public double timePre = 0.0;
-	// Time taken for Prob0-type precomputation (secs)
-	public double timeProb0 = 0.0;
-	// Strategy
-	public Strategy strat = null;
-
 	/**
-	 * Clear all stored data, including setting of array pointers to null
-	 * (which may be helpful for garbage collection purposes).
+	 * Export the strategy to a PrismLog.
 	 */
-	public void clear()
-	{
-		soln = lastSoln = null;
-		numIters = 0;
-		timeTaken = timePre = timeProb0 = 0.0;
-	}
+	public void export(PrismLog out);
 }

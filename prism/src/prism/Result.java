@@ -28,8 +28,12 @@
 
 package prism;
 
+import strat.Strategy;
+
 /**
  * This class stores the result of a single verification/simulation.
+ * It also stores other info/objects that may be passed back to the user,
+ * e.g. an explanation of the result, counterexample, or optimal strategy.
  */
 public class Result
 {
@@ -39,6 +43,8 @@ public class Result
 	private String explanation;
 	// Counterexample (optional)
 	private Object cex;
+	// Strategy (optional)
+	private Strategy strat;
 	
 	/**
 	 * Construct an empty Result object.
@@ -48,6 +54,7 @@ public class Result
 		this.result = null;
 		this.explanation = null;
 		this.cex = null;
+		this.strat = null;
 	}
 	
 	/**
@@ -84,6 +91,14 @@ public class Result
 	}
 	
 	/**
+	 * Set the strategy (null denotes n/a).
+	 */
+	public void setStrategy(Strategy strat)
+	{
+		this.strat = strat;
+	}
+	
+	/**
 	 * Get the result.
 	 */
 	public Object getResult()
@@ -105,6 +120,14 @@ public class Result
 	public Object getCounterexample()
 	{
 		return cex;
+	}
+	
+	/**
+	 * Get the strategy (null denotes n/a).
+	 */
+	public Strategy getStrategy()
+	{
+		return strat;
 	}
 	
 	/**

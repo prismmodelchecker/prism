@@ -350,6 +350,8 @@ public class PrismCL implements PrismModelListener
 
 						// store result of model checking
 						results[j].setResult(definedMFConstants, definedPFConstants, res.getResult());
+						
+						// if a counterexample was generated, display it
 						Object cex = res.getCounterexample();
 						if (cex != null) {
 							mainLog.println("\nCounterexample/witness:");
@@ -366,6 +368,12 @@ public class PrismCL implements PrismModelListener
 							}
 						}
 
+						// if a strategy was generated, and we need to export it, do so
+						if (res.getStrategy() != null) {
+							mainLog.println("\nExporting strategy...");
+							res.getStrategy().export(mainLog);
+						}
+						
 						// if required, check result against expected value
 						if (test) {
 							try {

@@ -39,6 +39,7 @@ import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLog;
 import prism.PrismUtils;
+import strat.MDStrategyArray;
 import explicit.rewards.MDPRewards;
 
 /**
@@ -191,6 +192,7 @@ public class MDPModelChecker extends ProbModelChecker
 
 		res = computeUntilProbs((MDP) model, b1, b2, min);
 		probs = StateValues.createFromDoubleArray(res.soln, model);
+		result.setStrategy(res.strat);
 
 		return probs;
 	}
@@ -435,6 +437,10 @@ public class MDPModelChecker extends ProbModelChecker
 		timer = System.currentTimeMillis() - timer;
 		mainLog.println("Probabilistic reachability took " + timer / 1000.0 + " seconds.");
 
+		// Store strategy
+		if (genStrat) {
+			res.strat = new MDStrategyArray(strat);
+		}
 		// Export adversary
 		if (genStrat && exportAdv) {
 			// Prune strategy

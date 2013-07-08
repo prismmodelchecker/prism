@@ -176,6 +176,8 @@ public class Prism implements PrismSettingsListener
 	protected String exportProductTransFilename = null;
 	protected boolean exportProductStates = false;
 	protected String exportProductStatesFilename = null;
+	// Generate a strategy during model checking?
+	protected boolean genStrat = false; 
 
 	// A few miscellaneous options (i.e. defunct/hidden/undocumented/etc.)
 	// See constructor below for default values
@@ -558,6 +560,14 @@ public class Prism implements PrismSettingsListener
 		exportProductStatesFilename = s;
 	}
 
+	/**
+	 * Specify whether or not a strategy should be generated during model checking.
+	 */
+	public void setGenStrat(boolean genStrat)
+	{
+		this.genStrat = genStrat;
+	}
+
 	public void setDoReach(boolean b) throws PrismException
 	{
 		doReach = b;
@@ -838,6 +848,14 @@ public class Prism implements PrismSettingsListener
 	public String getExportProductStatesFilename()
 	{
 		return exportProductStatesFilename;
+	}
+
+	/**
+	 * Whether or not a strategy should be generated during model checking.
+	 */
+	public boolean getGenStrat()
+	{
+		return genStrat;
 	}
 
 	public boolean getDoReach()
