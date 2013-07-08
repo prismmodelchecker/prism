@@ -371,9 +371,16 @@ public class PrismCL implements PrismModelListener
 						}
 
 						// if a strategy was generated, and we need to export it, do so
-						if (res.getStrategy() != null) {
-							mainLog.println("\nExporting strategy...");
-							res.getStrategy().export(mainLog);
+						if (exportstrat && res.getStrategy() != null) {
+							try {
+								prism.exportStrategy(res.getStrategy(), exportStratFilename.equals("stdout") ? null : new File(exportStratFilename));
+							}
+							// in case of error, report it and proceed
+							catch (FileNotFoundException e) {
+								error("Couldn't open file \"" + exportStratFilename + "\" for output");
+							} catch (PrismException e) {
+								error(e.getMessage());
+							}
 						}
 						
 						// if required, check result against expected value

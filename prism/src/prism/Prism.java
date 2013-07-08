@@ -64,6 +64,7 @@ import simulator.PrismModelExplorer;
 import simulator.SimulatorEngine;
 import simulator.method.SimulationMethod;
 import sparse.PrismSparse;
+import strat.Strategy;
 import dv.DoubleVector;
 import explicit.CTMC;
 import explicit.CTMCModelChecker;
@@ -2671,6 +2672,31 @@ public class Prism implements PrismSettingsListener
 		getSimulator().modelCheckExperiment(currentModulesFile, propertiesFile, undefinedConstants, results, expr, initialState, pathLength, simMethod);
 	}
 
+	/**
+	 * Export a strategy (for the currently loaded model);
+	 * @param strat The strategy
+	 * @param file File to output the path to (stdout if null)
+	 */
+	public void exportStrategy(Strategy strat, File file) throws FileNotFoundException, PrismException
+	{
+		PrismLog tmpLog;
+
+		// Print message
+		mainLog.print("\nExporting strategy ");
+		//mainLog.print(getStringForExportType(exportType) + " ");
+		mainLog.println(getDestinationStringForFile(file));
+
+		// Create new file log or use main log
+		tmpLog = getPrismLogForFile(file);
+
+		// Export
+		strat.export(tmpLog);
+
+		// Tidy up
+		if (file != null)
+			tmpLog.close();
+	}
+	
 	/**
 	 * Generate a random path through the model using the simulator.
 	 * @param modulesFile The model
