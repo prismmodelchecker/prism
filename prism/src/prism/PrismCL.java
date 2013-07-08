@@ -81,6 +81,7 @@ public class PrismCL implements PrismModelListener
 	private boolean exportModelNoBasename = false;
 	private int exportType = Prism.EXPORT_PLAIN;
 	private boolean exportordered = true;
+	private boolean exportstrat = false;
 	private boolean simulate = false;
 	private boolean simpath = false;
 	private boolean param = false;
@@ -130,6 +131,7 @@ public class PrismCL implements PrismModelListener
 	private String exportResultsFilename = null;
 	private String exportSteadyStateFilename = null;
 	private String exportTransientFilename = null;
+	private String exportStratFilename = null;
 	private String simpathFilename = null;
 
 	// logs
@@ -1241,6 +1243,14 @@ public class PrismCL implements PrismModelListener
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
 				}
+				// export strategy
+				else if (sw.equals("exportstrat")) {
+					if (i < args.length - 1) {
+						processExportStratSwitch(args[++i]);
+					} else {
+						errorAndExit("No file/options specified for -" + sw + " switch");
+					}
+				}
 				// export prism model to file
 				else if (sw.equals("exportprism")) {
 					if (i < args.length - 1) {
@@ -1725,6 +1735,33 @@ public class PrismCL implements PrismModelListener
 			// Unknown option
 			else {
 				throw new PrismException("Unknown option \"" + opt + "\" for -exportmodel switch");
+			}
+		}
+	}
+
+	/**
+	 * Process the arguments (files, options) to the -exportstrat switch
+	 */
+	private void processExportStratSwitch(String filesOptionsString) throws PrismException
+	{
+		// Split into files/options (on :)
+		String halves[] = splitFilesAndOptions(filesOptionsString);
+		String fileString = halves[0];
+		String optionsString = halves[1];
+		// Store some settings (here and in PRISM)
+		exportstrat = true;
+		exportStratFilename = fileString;
+		prism.setGenStrat(true);
+		// Process options
+		String options[] = optionsString.split(",");
+		for (String opt : options) {
+			// Ignore ""
+			if (opt.equals("")) {
+			}
+			// TODO: add some options
+			// Unknown option
+			else {
+				throw new PrismException("Unknown option \"" + opt + "\" for -exportstrat switch");
 			}
 		}
 	}
