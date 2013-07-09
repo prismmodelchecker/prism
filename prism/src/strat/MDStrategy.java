@@ -38,24 +38,24 @@ public abstract class MDStrategy implements Strategy
 	 * Get the number of states of the model associated with this strategy. 
 	 */
 	public abstract int getNumStates();
-	
+
 	/**
 	 * Get the index of the choice taken in state s.
 	 * The index is defined with respect to a particular model, stored locally.
 	 */
 	public abstract int getChoice(int s);
-	
+
 	/**
 	 * Get the action taken in state s.
 	 */
 	public abstract Object getChoiceAction(int s);
-	
+
 	@Override
 	public void exportActions(PrismLog out)
 	{
 		int n = getNumStates();
 		for (int s = 0; s < n; s++) {
-			out.println(s + ":" + getChoiceAction(s));
+			out.println(s + ":" + getChoice(s) + "," + getChoiceAction(s));
 		}
 	}
 }
