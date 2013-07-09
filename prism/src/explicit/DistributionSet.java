@@ -37,7 +37,7 @@ import java.util.*;
 public class DistributionSet extends LinkedHashSet<Distribution>
 {
 	private static final long serialVersionUID = 1L;
-	
+
 	public Object action;
 
 	public DistributionSet(Object action)
@@ -56,6 +56,32 @@ public class DistributionSet extends LinkedHashSet<Distribution>
 		this.action = action;
 	}
 
+	/**
+	 * Returns true if all indices in the supports of all distributions are in the set. 
+	 */
+	public boolean isSubsetOf(BitSet set)
+	{
+		for (Distribution itDist : this) {
+			if (!itDist.isSubsetOf(set)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Returns true if at least one index in the support of some distribution is in the set. 
+	 */
+	public boolean containsOneOf(BitSet set)
+	{
+		for (Distribution itDist : this) {
+			if (itDist.containsOneOf(set)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public String toString()
 	{
 		return (action == null ? "" : "\"" + action + "\":") + super.toString();
@@ -65,7 +91,7 @@ public class DistributionSet extends LinkedHashSet<Distribution>
 	{
 		return super.equals(o) && action == ((DistributionSet) o).action;
 	}
-	
+
 	/**
 	 * Returns the index of the distribution {@code d}, i.e. the position in the order given by the iterator of this set
 	 * @param d the distribution to look up
@@ -74,11 +100,9 @@ public class DistributionSet extends LinkedHashSet<Distribution>
 	public int indexOf(Distribution d)
 	{
 		int i = -1;
-		for(Distribution itDist : this)
-		{
+		for (Distribution itDist : this) {
 			i++;
-			if (itDist.equals(d))
-			{
+			if (itDist.equals(d)) {
 				return i;
 			}
 		}

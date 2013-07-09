@@ -239,13 +239,6 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	}
 
 	@Override
-	public int getNumChoices(int s)
-	{
-		// Always 1 for a DTMC
-		return 1;
-	}
-
-	@Override
 	public void findDeadlocks(boolean fix) throws PrismException
 	{
 		for (int i = 0; i < numStates; i++) {

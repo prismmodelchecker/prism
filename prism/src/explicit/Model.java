@@ -148,11 +148,6 @@ public interface Model
 	public boolean someSuccessorsInSet(int s, BitSet set);
 
 	/**
-	 * Get the number of nondeterministic choices in state s.
-	 */
-	public int getNumChoices(int s);
-	
-	/**
 	 * Find all deadlock states and store this information in the model.
 	 * If requested (if fix=true) and if needed (i.e. for DTMCs/CTMCs),
 	 * fix deadlocks by adding self-loops in these states.

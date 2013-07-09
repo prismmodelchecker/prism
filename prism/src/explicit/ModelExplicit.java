@@ -239,9 +239,6 @@ public abstract class ModelExplicit implements Model
 	public abstract boolean isSuccessor(int s1, int s2);
 
 	@Override
-	public abstract int getNumChoices(int s);
-
-	@Override
 	public void checkForDeadlocks() throws PrismException
 	{
 		checkForDeadlocks(null);

@@ -145,7 +145,7 @@ public class Distribution implements Iterable<Entry<Integer,Double>>
 	}
 	
 	/**
-	 * Returns true if all at least one index in the support of the distribution is in the set. 
+	 * Returns true if at least one index in the support of the distribution is in the set. 
 	 */
 	public boolean containsOneOf(BitSet set)
 	{

@@ -116,7 +116,7 @@ public abstract class QuantAbstractRefine
 	
 	// Abstract model info (updated by subclasses)
 	/** Abstract model */
-	protected ModelSimple abstraction;
+	protected NondetModelSimple abstraction;
 	/** BitSet of (abstract) target states for property to drive refinement */
 	protected BitSet target;
 	

@@ -435,7 +435,7 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Store strategy
 		if (genStrat) {
-			res.strat = new MDStrategyArray(strat);
+			res.strat = new MDStrategyArray(mdp, strat);
 		}
 		// Export adversary
 		if (exportAdv) {

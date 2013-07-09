@@ -37,23 +37,8 @@ import explicit.rewards.MDPRewards;
 /**
  * Interface for classes that provide (read) access to an explicit-state MDP.
  */
-public interface MDP extends Model
+public interface MDP extends NondetModel
 {
-	/**
-	 * Get the total number of choices (distributions) over all states.
-	 */
-	public int getNumChoices();
-
-	/**
-	 * Get the maximum number of choices (distributions) in any state.
-	 */
-	public int getMaxNumChoices();
-
-	/**
-	 * Get the action label (if any) for choice {@code i} of state {@code s}.
-	 */
-	public Object getAction(int s, int i);
-
 	/**
 	 * Get the number of transitions from choice {@code i} of state {@code s}.
 	 */
@@ -64,22 +49,6 @@ public interface MDP extends Model
 	 */
 	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s, int i);
 
-	/**
-	 * Check if all the successor states from choice {@code i} of state {@code s} are in the set {@code set}.
-	 * @param s The state to check
-	 * @param i Choice index
-	 * @param set The set to test for inclusion
-	 */
-	public boolean allSuccessorsInSet(int s, int i, BitSet set);
-	
-	/**
-	 * Check if some successor state from choice {@code i} of state {@code s} is in the set {@code set}.
-	 * @param s The state to check
-	 * @param i Choice index
-	 * @param set The set to test for inclusion
-	 */
-	public boolean someSuccessorsInSet(int s, int i, BitSet set);
-	
 	/**
 	 * Perform a single step of precomputation algorithm Prob0, i.e., for states i in {@code subset},
 	 * set bit i of {@code result} iff, for all/some choices,

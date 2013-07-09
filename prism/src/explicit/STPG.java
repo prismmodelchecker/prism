@@ -49,17 +49,12 @@ import explicit.rewards.STPGRewards;
  * Use {@link #getNumNestedChoices(s, i)}, {@link #getNestedAction(s, i)} and {@link #getNestedTransitionsIterator(s, i, j)}
  * to access the information.
  */
-public interface STPG extends Model
+public interface STPG extends NondetModel
 {
 	/**
 	 * Get the player (1 or 2) for state {@code s}.
 	 */
 	public int getPlayer(int s);
-
-	/**
-	 * Get the action label (if any) for choice {@code i} of state {@code s}.
-	 */
-	public Object getAction(int s, int i);
 
 	/**
 	 * Get the number of transitions from choice {@code i} of state {@code s}.

@@ -44,10 +44,9 @@ import explicit.ModelExplicit;
  * with and without nondeterminism, discrete- as well as continuous-time.
  * This turned out the be the most convenient way to implement model checking
  * for parametric models.
- * 
- * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
  */
-final class ParamModel extends ModelExplicit {
+final class ParamModel extends ModelExplicit
+{
 	/** total number of nondeterministic choices over all states */
 	private int numTotalChoices;
 	/** total number of probabilistic transitions over all states */
@@ -68,7 +67,7 @@ final class ParamModel extends ModelExplicit {
 	private ModelType modelType;
 	/** function factory which manages functions used on transitions, etc. */
 	private FunctionFactory functionFactory;
-	
+
 	/**
 	 * Constructs a new parametric model.
 	 */
@@ -80,36 +79,49 @@ final class ParamModel extends ModelExplicit {
 		initialStates = new LinkedList<Integer>();
 		deadlocks = new TreeSet<Integer>();
 	}
-	
+
 	/**
 	 * Sets the type of the model.
 	 * 
 	 * @param modelType type the model shall have
 	 */
-	void setModelType(ModelType modelType) {
+	void setModelType(ModelType modelType)
+	{
 		this.modelType = modelType;
 	}
-	
+
+	// Accessors (for Model)
+
 	@Override
-	public ModelType getModelType() {
+	public ModelType getModelType()
+	{
 		return modelType;
 	}
-	
+
 	@Override
-	public Values getConstantValues() {
+	public Values getConstantValues()
+	{
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public int getNumTransitions() {
+	public int getNumTransitions()
+	{
 		return numTotalTransitions;
 	}
 
 	@Override
-	public boolean isSuccessor(int from, int to) {
-		for (int choice = stateBegin(from); choice < stateEnd(from); choice++) {
+	public Iterator<Integer> getSuccessorsIterator(int s)
+	{
+		throw new UnsupportedOperationException();
+	}
+	
+	@Override
+	public boolean isSuccessor(int s1, int s2)
+	{
+		for (int choice = stateBegin(s1); choice < stateEnd(s1); choice++) {
 			for (int succ = choiceBegin(choice); succ < choiceEnd(choice); succ++) {
-				if (succState(succ) == to) {
+				if (succState(succ) == s2) {
 					return true;
 				}
 			}
@@ -118,78 +130,80 @@ final class ParamModel extends ModelExplicit {
 	}
 
 	@Override
-	public boolean allSuccessorsInSet(int s, BitSet set) {
+	public boolean allSuccessorsInSet(int s, BitSet set)
+	{
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public boolean someSuccessorsInSet(int s, BitSet set) {
+	public boolean someSuccessorsInSet(int s, BitSet set)
+	{
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public int getNumChoices(int state) {
-		return stateEnd(state) - stateBegin(state);
-	}
-	
-	public int getNumTotalChoices() {
-		return numTotalChoices;
-	}
-
-	@Override
-	public void checkForDeadlocks() throws PrismException {
+	public void findDeadlocks(boolean fix) throws PrismException
+	{
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void findDeadlocks(boolean fix) throws PrismException {
+	public void checkForDeadlocks() throws PrismException
+	{
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void checkForDeadlocks(BitSet except) throws PrismException {
+	public void checkForDeadlocks(BitSet except) throws PrismException
+	{
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void exportToPrismExplicit(String baseFilename)
-			throws PrismException {
+	public void exportToPrismExplicit(String baseFilename) throws PrismException
+	{
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void exportToPrismExplicitTra(String filename) throws PrismException {
+	public void exportToPrismExplicitTra(String filename) throws PrismException
+	{
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void exportToPrismExplicitTra(File file) throws PrismException {
+	public void exportToPrismExplicitTra(File file) throws PrismException
+	{
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void exportToPrismExplicitTra(PrismLog log) throws PrismException {
+	public void exportToPrismExplicitTra(PrismLog log) throws PrismException
+	{
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void exportToDotFile(String filename) throws PrismException {
+	public void exportToDotFile(String filename) throws PrismException
+	{
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void exportToDotFile(String filename, BitSet mark)
-			throws PrismException {
+	public void exportToDotFile(String filename, BitSet mark) throws PrismException
+	{
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void exportToPrismLanguage(String filename) throws PrismException {
+	public void exportToPrismLanguage(String filename) throws PrismException
+	{
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public String infoString() {
+	public String infoString()
+	{
 		throw new UnsupportedOperationException();
 	}
 
@@ -202,6 +216,18 @@ final class ParamModel extends ModelExplicit {
 		return s;
 	}
 
+	// Other
+	
+	public int getNumChoices(int state)
+	{
+		return stateEnd(state) - stateBegin(state);
+	}
+
+	public int getNumTotalChoices()
+	{
+		return numTotalChoices;
+	}
+
 	/**
 	 * Allocates memory for subsequent construction of model. 
 	 * 
@@ -209,7 +235,8 @@ final class ParamModel extends ModelExplicit {
 	 * @param numTotalChoices total number of nondeterministic choices of the model
 	 * @param numTotalSuccessors total number of probabilistic transitions of the model
 	 */
-	void reserveMem(int numStates, int numTotalChoices, int numTotalSuccessors) {
+	void reserveMem(int numStates, int numTotalChoices, int numTotalSuccessors)
+	{
 		rows = new int[numStates + 1];
 		choices = new int[numTotalChoices + 1];
 		labels = new String[numTotalSuccessors];
@@ -217,7 +244,7 @@ final class ParamModel extends ModelExplicit {
 		nonZeros = new Function[numTotalSuccessors];
 		sumRates = new Function[numTotalChoices];
 	}
-	
+
 	/**
 	 * Finish the current state.
 	 * Starting with the 0th state, this function shall be called once all
@@ -227,7 +254,8 @@ final class ParamModel extends ModelExplicit {
 	 * called for each state of the method, even the last one, once all its
 	 * transitions have been added.
 	 */
-	void finishState() {
+	void finishState()
+	{
 		rows[numStates + 1] = numTotalChoices;
 		numStates++;
 	}
@@ -240,7 +268,8 @@ final class ParamModel extends ModelExplicit {
 	 * one. Notice that DTMCs and CTMCs should only have a single
 	 * nondeterministic choice per state.
 	 */
-	void finishChoice() {
+	void finishChoice()
+	{
 		choices[numTotalChoices + 1] = numTotalTransitions;
 		numTotalChoices++;
 	}
@@ -256,13 +285,14 @@ final class ParamModel extends ModelExplicit {
 	 * @param probFn with which probability it leads to this state
 	 * @param action action with which the choice is labelled
 	 */
-	void addTransition(int toState, Function probFn, String action) {
+	void addTransition(int toState, Function probFn, String action)
+	{
 		cols[numTotalTransitions] = toState;
 		nonZeros[numTotalTransitions] = probFn;
 		labels[numTotalTransitions] = action;
 		numTotalTransitions++;
 	}
-	
+
 	/**
 	 * Sets the total sum of leaving rate of the current nondeterministic choice.
 	 * For discrete-time models, this function shall always be called with
@@ -274,7 +304,7 @@ final class ParamModel extends ModelExplicit {
 	{
 		sumRates[numTotalChoices] = leaving;
 	}
-	
+
 	/**
 	 * Returns the number of the first nondeterministic choice of {@code state}.
 	 * 
@@ -296,7 +326,7 @@ final class ParamModel extends ModelExplicit {
 	{
 		return rows[state + 1];
 	}
-	
+
 	/**
 	 * Returns the first probabilistic branch of the given nondeterministic decision.
 	 * 
@@ -307,7 +337,7 @@ final class ParamModel extends ModelExplicit {
 	{
 		return choices[choice];
 	}
-	
+
 	/**
 	 * Returns the last probabilistic branch of the given nondeterministic decision plus one.
 	 * 
@@ -318,7 +348,7 @@ final class ParamModel extends ModelExplicit {
 	{
 		return choices[choice + 1];
 	}
-	
+
 	/**
 	 * Returns the successor state of the given probabilistic branch.
 	 * 
@@ -329,7 +359,7 @@ final class ParamModel extends ModelExplicit {
 	{
 		return cols[succNr];
 	}
-	
+
 	/**
 	 * Returns the probability of the given probabilistic branch
 	 * 
@@ -362,7 +392,7 @@ final class ParamModel extends ModelExplicit {
 	{
 		return sumRates[choice];
 	}
-	
+
 	/**
 	 * Instantiates the parametric model at a given point.
 	 * All transition probabilities, etc. will be evaluated and set as
@@ -390,9 +420,10 @@ final class ParamModel extends ModelExplicit {
 
 		return result;
 	}
-	
+
 	@Override
-	public void buildFromPrismExplicit(String filename) throws PrismException {
+	public void buildFromPrismExplicit(String filename) throws PrismException
+	{
 		throw new UnsupportedOperationException();
 	}
 
@@ -405,20 +436,14 @@ final class ParamModel extends ModelExplicit {
 	{
 		this.functionFactory = functionFactory;
 	}
+
 	/**
 	 * Returns the function factory used in this parametric model.
 	 * 
 	 * @return function factory used in this parametric model
-	 */	
+	 */
 	FunctionFactory getFunctionFactory()
 	{
 		return functionFactory;
 	}
-
-	@Override
-	public Iterator<Integer> getSuccessorsIterator(int s)
-	{
-		throw new UnsupportedOperationException();
-	}
-	
 }
