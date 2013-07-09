@@ -239,6 +239,7 @@ public class MDPModelChecker extends ProbModelChecker
 
 		res = computeReachRewards((MDP) model, modelRewards, b, min);
 		rewards = StateValues.createFromDoubleArray(res.soln, model);
+		result.setStrategy(res.strat);
 
 		return rewards;
 	}
@@ -1268,6 +1269,10 @@ public class MDPModelChecker extends ProbModelChecker
 			throw new PrismException("Unknown MDP solution method " + mdpSolnMethod.fullName());
 		}
 
+		// Store strategy
+		if (genStrat) {
+			res.strat = new MDStrategyArray(mdp, strat);
+		}
 		// Export adversary
 		if (exportAdv) {
 			// Prune strategy
