@@ -32,34 +32,34 @@ package strat;
  */
 public class MDStrategyArray extends MDStrategy
 {
-	private explicit.Model model;
+	private explicit.NondetModel model;
 	private int choices[];
 	
 	/**
 	 * Creates an MDStrategyArray from an integer array of choices.
 	 * The array may later be modified/delete - take a copy if you want to keep it.
 	 */
-	public MDStrategyArray(explicit.Model model, int choices[])
+	public MDStrategyArray(explicit.NondetModel model, int choices[])
 	{
 		this.model = model;
 		this.choices = choices;
 	}
 	
+	@Override
 	public int getNumStates()
 	{
-		// Need?
-		return choices.length;
+		return model.getNumStates();
 	}
 	
 	@Override
-	public int getChoice(int i)
+	public int getChoice(int s)
 	{
-		return choices[i];
+		return choices[s];
 	}
 	
 	@Override
-	public Object getChoiceAction(int i)
+	public Object getChoiceAction(int s)
 	{
-		return "";//model.getAction(choices[i]);
+		return model.getAction(s, choices[s]);
 	}
 }
