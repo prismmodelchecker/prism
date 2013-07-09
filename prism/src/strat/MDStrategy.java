@@ -36,6 +36,7 @@ public abstract class MDStrategy implements Strategy
 {
 	public abstract int getNumStates();
 	public abstract int getChoice(int i);
+	public abstract Object getChoiceAction(int i);
 	
 	public void export(PrismLog out)
 	{
