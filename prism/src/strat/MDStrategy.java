@@ -55,7 +55,7 @@ public abstract class MDStrategy implements Strategy
 	{
 		int n = getNumStates();
 		for (int s = 0; s < n; s++) {
-			out.println(s + ":" + getChoice(s) + "," + getChoiceAction(s));
+			out.println(s + ":" + getChoiceAction(s));
 		}
 	}
 }
