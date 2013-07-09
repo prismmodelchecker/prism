@@ -32,7 +32,9 @@ package strat;
  */
 public class MDStrategyArray extends MDStrategy
 {
+	// Model associated with the strategy
 	private explicit.NondetModel model;
+	// Index of choice taken in each state 
 	private int choices[];
 	
 	/**
