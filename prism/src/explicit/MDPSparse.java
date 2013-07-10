@@ -499,7 +499,7 @@ public class MDPSparse extends MDPExplicit
 	@Override
 	public Object getAction(int s, int i)
 	{
-		return actions == null ? null : actions[rowStarts[s] + i];
+		return i < 0 || actions == null ? null : actions[rowStarts[s] + i];
 	}
 
 	@Override

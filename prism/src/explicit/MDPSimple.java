@@ -537,7 +537,7 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 	public Object getAction(int s, int i)
 	{
 		List<Object> list;
-		if (actions == null || (list = actions.get(s)) == null)
+		if (i < 0 || actions == null || (list = actions.get(s)) == null)
 			return null;
 		return list.get(i);
 	}

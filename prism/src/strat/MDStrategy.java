@@ -42,6 +42,7 @@ public abstract class MDStrategy implements Strategy
 	/**
 	 * Get the index of the choice taken in state s.
 	 * The index is defined with respect to a particular model, stored locally.
+	 * Other possible values: -1 (unknown), -2 (arbitrary), -3 (unreachable)
 	 */
 	public abstract int getChoice(int s);
 
@@ -55,7 +56,9 @@ public abstract class MDStrategy implements Strategy
 	{
 		int n = getNumStates();
 		for (int s = 0; s < n; s++) {
-			out.println(s + ":" + getChoiceAction(s));
+			// Only print actions for reachable states
+			if (getChoice(s) != -3)
+				out.println(s + ":" + getChoiceAction(s));
 		}
 	}
 }

@@ -34,7 +34,8 @@ public class MDStrategyArray extends MDStrategy
 {
 	// Model associated with the strategy
 	private explicit.NondetModel model;
-	// Index of choice taken in each state 
+	// Index of choice taken in each state (wrt model above) 
+	// Other possible values: -1 (unknown), -2 (arbitrary), -3 (unreachable)
 	private int choices[];
 	
 	/**
@@ -62,6 +63,7 @@ public class MDStrategyArray extends MDStrategy
 	@Override
 	public Object getChoiceAction(int s)
 	{
-		return model.getAction(s, choices[s]);
+		int c = choices[s];
+		return c >= 0 ? model.getAction(s, c) : c == -1 ? "?" : c == -2 ? "*" : "-";
 	}
 }

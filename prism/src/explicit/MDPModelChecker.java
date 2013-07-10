@@ -352,21 +352,22 @@ public class MDPModelChecker extends ProbModelChecker
 		// Store num states
 		n = mdp.getNumStates();
 
-		// If required, create/initialise strategy storage
-		// Set all choices to -1, denoting unknown/arbitrary
-		if (genStrat || exportAdv) {
-			strat = new int[n];
-			for (i = 0; i < n; i++) {
-				strat[i] = -1;
-			}
-		}
-
 		// Optimise by enlarging target set (if more info is available)
 		targetOrig = target;
 		if (init != null && known != null) {
 			target = new BitSet(n);
 			for (i = 0; i < n; i++) {
 				target.set(i, targetOrig.get(i) || (known.get(i) && init[i] == 1.0));
+			}
+		}
+
+		// If required, create/initialise strategy storage
+		// Set choices to -1, denoting unknown
+		// (except for target states, which are -2, denoting arbitrary)
+		if (genStrat || exportAdv) {
+			strat = new int[n];
+			for (i = 0; i < n; i++) {
+				strat[i] = target.get(i) ? -2 : -1;
 			}
 		}
 
@@ -391,18 +392,17 @@ public class MDPModelChecker extends ProbModelChecker
 		numNo = no.cardinality();
 		mainLog.println("target=" + target.cardinality() + ", yes=" + numYes + ", no=" + numNo + ", maybe=" + (n - (numYes + numNo)));
 
-		// If still required, generate strategy for no/yes (0/1) states.
-		// This is just for the cases max=0 and min=1, where arbitrary choices suffice.
-		// So just pick the first choice (0) for all these. 
+		// If still required, store strategy for no/yes (0/1) states.
+		// This is just for the cases max=0 and min=1, where arbitrary choices suffice (denoted by -2)
 		if (genStrat || exportAdv) {
 			if (min) {
 				for (i = yes.nextSetBit(0); i >= 0; i = yes.nextSetBit(i + 1)) {
 					if (!target.get(i))
-						strat[i] = 0;
+						strat[i] = -2;
 				}
 			} else {
 				for (i = no.nextSetBit(0); i >= 0; i = no.nextSetBit(i + 1)) {
-					strat[i] = 0;
+					strat[i] = -2;
 				}
 			}
 		}
@@ -1205,15 +1205,6 @@ public class MDPModelChecker extends ProbModelChecker
 		// Store num states
 		n = mdp.getNumStates();
 
-		// If required, create/initialise strategy storage
-		// Set all choices to -1, denoting unknown/arbitrary
-		if (genStrat || exportAdv) {
-			strat = new int[n];
-			for (i = 0; i < n; i++) {
-				strat[i] = -1;
-			}
-		}
-
 		// Optimise by enlarging target set (if more info is available)
 		if (init != null && known != null) {
 			BitSet targetNew = new BitSet(n);
@@ -1223,6 +1214,16 @@ public class MDPModelChecker extends ProbModelChecker
 			target = targetNew;
 		}
 
+		// If required, create/initialise strategy storage
+		// Set choices to -1, denoting unknown
+		// (except for target states, which are -2, denoting arbitrary)
+		if (genStrat || exportAdv) {
+			strat = new int[n];
+			for (i = 0; i < n; i++) {
+				strat[i] = target.get(i) ? -2 : -1;
+			}
+		}
+		
 		// Precomputation (not optional)
 		timerProb1 = System.currentTimeMillis();
 		inf = prob1(mdp, null, target, !min, null);
@@ -1237,10 +1238,10 @@ public class MDPModelChecker extends ProbModelChecker
 		// If required, generate strategy for "inf" states.
 		if (genStrat || exportAdv) {
 			if (min) {
-				// If min reward is infinite, all choices give infinity.
-				// So just pick the first choice (0) for all "inf" states. 
+				// If min reward is infinite, all choices give infinity
+				// So the choice can be arbitrary, denoted by -2; 
 				for (i = inf.nextSetBit(0); i >= 0; i = inf.nextSetBit(i + 1)) {
-					strat[i] = 0;
+					strat[i] = -2;
 				}
 			} else {
 				// If max reward is infinite, there is at least one choice giving infinity.
@@ -1535,7 +1536,7 @@ public class MDPModelChecker extends ProbModelChecker
 		// Set strategy choice for non-reachable state to -1
 		int n = mdp.getNumStates();
 		for (int s = restrict.nextClearBit(0); s < n; s = restrict.nextClearBit(s + 1)) {
-			strat[s] = -1;
+			strat[s] = -3;
 		}
 	}
 
