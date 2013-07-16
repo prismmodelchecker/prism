@@ -74,6 +74,7 @@ public class PrismCL implements PrismModelListener
 	private boolean exporttransdot = false;
 	private boolean exporttransdotstates = false;
 	private boolean exportbsccs = false;
+	private boolean exportmecs = false;
 	private boolean exportresults = false;
 	private boolean exportresultsmatrix = false;
 	private boolean exportresultscsv = false;
@@ -128,6 +129,7 @@ public class PrismCL implements PrismModelListener
 	private String exportTransDotFilename = null;
 	private String exportTransDotStatesFilename = null;
 	private String exportBSCCsFilename = null;
+	private String exportMECsFilename = null;
 	private String exportResultsFilename = null;
 	private String exportSteadyStateFilename = null;
 	private String exportTransientFilename = null;
@@ -771,6 +773,20 @@ public class PrismCL implements PrismModelListener
 				error(e.getMessage());
 			}
 		}
+
+		// export MECs to a file
+		if (exportmecs) {
+			try {
+				File f = (exportMECsFilename.equals("stdout")) ? null : new File(exportMECsFilename);
+				prism.exportMECsToFile(exportType, f);
+			}
+			// in case of error, report it and proceed
+			catch (FileNotFoundException e) {
+				error("Couldn't open file \"" + exportMECsFilename + "\" for output");
+			} catch (PrismException e) {
+				error(e.getMessage());
+			}
+		}
 	}
 
 	/**
@@ -1230,6 +1246,15 @@ public class PrismCL implements PrismModelListener
 					if (i < args.length - 1) {
 						exportbsccs = true;
 						exportBSCCsFilename = args[++i];
+					} else {
+						errorAndExit("No file specified for -" + sw + " switch");
+					}
+				}
+				// export mecs to file
+				else if (sw.equals("exportmecs")) {
+					if (i < args.length - 1) {
+						exportmecs = true;
+						exportMECsFilename = args[++i];
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}

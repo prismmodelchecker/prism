@@ -1002,6 +1002,22 @@ public class Prism implements PrismSettingsListener
 		return sccComputer;
 	}
 
+	/**
+	 * Get an ECComputer object.
+	 */
+	public ECComputer getECComputer(NondetModel model)
+	{
+		return getECComputer(model.getReach(), model.getTrans(), model.getTrans01(), model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars());
+	}
+
+	/**
+	 * Get an ECComputer object.
+	 */
+	public ECComputer getECComputer(JDDNode reach, JDDNode trans, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars, JDDVars allDDNondetVars)
+	{
+		return new ECComputerDefault(this, reach, trans, trans01, allDDRowVars, allDDColVars, allDDNondetVars);
+	}
+
 	//------------------------------------------------------------------------------
 	// Utility methods
 	//------------------------------------------------------------------------------
@@ -2290,6 +2306,88 @@ public class Prism implements PrismSettingsListener
 		}
 
 		JDD.Deref(not);
+
+		// tidy up
+		if (file != null)
+			tmpLog.close();
+	}
+
+	/**
+	 * Export the (states of the) currently loaded model's maximal end components (MECs) to a file
+	 * @param exportType Type of export; one of: <ul>
+	 * <li> {@link #EXPORT_PLAIN} 
+	 * <li> {@link #EXPORT_MATLAB}
+	 * </ul>
+	 * @param file File to export to (if null, print to the log instead)
+	 */
+	public void exportMECsToFile(int exportType, File file) throws FileNotFoundException, PrismException
+	{
+		int i, n;
+		long l; // timer
+		PrismLog tmpLog;
+		ECComputer ecComputer;
+		Vector<JDDNode> mecs;
+		JDDNode mec;
+
+		if (getExplicit())
+			throw new PrismException("Export of MECs not yet supported by explicit engine");
+
+		// no specific states format for MRMC
+		if (exportType == EXPORT_MRMC)
+			exportType = EXPORT_PLAIN;
+		// rows format does not apply to states output
+		if (exportType == EXPORT_ROWS)
+			exportType = EXPORT_PLAIN;
+
+		// Build model, if necessary
+		buildModelIfRequired();
+
+		// Compute MECs
+		mainLog.println("\nComputing MECs...");
+		ecComputer = getECComputer((NondetModel) currentModel);
+		l = System.currentTimeMillis();
+		ecComputer.computeECs();
+		l = System.currentTimeMillis() - l;
+		mecs = ecComputer.getVectECs();
+		mainLog.println("\nTime for MEC computation: " + l / 1000.0 + " seconds.");
+
+		// print message
+		mainLog.print("\nExporting MECs ");
+		mainLog.print(getStringForExportType(exportType) + " ");
+		mainLog.println(getDestinationStringForFile(file));
+
+		// create new file log or use main log
+		tmpLog = getPrismLogForFile(file);
+
+		// print header: list of model vars
+		if (exportType == EXPORT_MATLAB)
+			tmpLog.print("% ");
+		tmpLog.print("Variables: (");
+		for (i = 0; i < currentModel.getNumVars(); i++) {
+			tmpLog.print(currentModel.getVarName(i));
+			if (i < currentModel.getNumVars() - 1)
+				tmpLog.print(",");
+		}
+		tmpLog.println(")");
+
+		// print states for each mec
+		n = mecs.size();
+		for (i = 0; i < n; i++) {
+			tmpLog.println();
+			if (exportType == EXPORT_MATLAB)
+				tmpLog.print("% ");
+			tmpLog.println("MEC " + (i + 1) + "/" + n + ":");
+			if (exportType == EXPORT_MATLAB)
+				tmpLog.println("mec" + (i + 1) + "=[");
+			mec = mecs.get(i);
+			if (exportType != EXPORT_MATLAB)
+				new StateListMTBDD(mec, currentModel).print(tmpLog);
+			else
+				new StateListMTBDD(mec, currentModel).printMatlab(tmpLog);
+			if (exportType == EXPORT_MATLAB)
+				tmpLog.println("];");
+			JDD.Deref(mec);
+		}
 
 		// tidy up
 		if (file != null)
