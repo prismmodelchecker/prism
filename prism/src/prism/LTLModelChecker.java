@@ -29,8 +29,6 @@ package prism;
 
 import java.util.*;
 
-import mtbdd.PrismMTBDD;
-
 import jdd.*;
 import parser.*;
 import parser.ast.*;
@@ -120,7 +118,7 @@ public class LTLModelChecker
 	 * @param model: The  DTMC/CTMC
 	 * @param labelDDs: BDDs giving the set of states for each AP in the DRA
 	 */
-	public ProbModel constructProductMC(DRA dra, ProbModel model, Vector<JDDNode> labelDDs) throws PrismException
+	public ProbModel constructProductMC(DRA<BitSet> dra, ProbModel model, Vector<JDDNode> labelDDs) throws PrismException
 	{
 		return constructProductMC(dra, model, labelDDs, null, null, true);
 	}
@@ -133,7 +131,7 @@ public class LTLModelChecker
 	 * @param draDDRowVarsCopy: (Optionally) empty JDDVars object to obtain copy of DD row vars for DRA
 	 * @param draDDColVarsCopy: (Optionally) empty JDDVars object to obtain copy of DD col vars for DRA
 	 */
-	public ProbModel constructProductMC(DRA dra, ProbModel model, Vector<JDDNode> labelDDs, JDDVars draDDRowVarsCopy, JDDVars draDDColVarsCopy)
+	public ProbModel constructProductMC(DRA<BitSet> dra, ProbModel model, Vector<JDDNode> labelDDs, JDDVars draDDRowVarsCopy, JDDVars draDDColVarsCopy)
 			throws PrismException
 	{
 		return constructProductMC(dra, model, labelDDs, draDDRowVarsCopy, draDDColVarsCopy, true);
@@ -149,7 +147,7 @@ public class LTLModelChecker
 	 * @param allInit: Do we assume that all states of the original model are initial states?
 	 *        (just for the purposes of reachability)
 	 */
-	public ProbModel constructProductMC(DRA dra, ProbModel model, Vector<JDDNode> labelDDs, JDDVars draDDRowVarsCopy, JDDVars draDDColVarsCopy, boolean allInit)
+	public ProbModel constructProductMC(DRA<BitSet> dra, ProbModel model, Vector<JDDNode> labelDDs, JDDVars draDDRowVarsCopy, JDDVars draDDColVarsCopy, boolean allInit)
 			throws PrismException
 	{
 		// Existing model - dds, vars, etc.
@@ -320,7 +318,7 @@ public class LTLModelChecker
 	 * @param model: The MDP
 	 * @param labelDDs: BDDs giving the set of states for each AP in the DRA
 	 */
-	public NondetModel constructProductMDP(DRA dra, NondetModel model, Vector<JDDNode> labelDDs) throws PrismException
+	public NondetModel constructProductMDP(DRA<BitSet> dra, NondetModel model, Vector<JDDNode> labelDDs) throws PrismException
 	{
 		return constructProductMDP(dra, model, labelDDs, null, null, true, null);
 	}
@@ -333,7 +331,7 @@ public class LTLModelChecker
 	 * @param draDDRowVarsCopy: (Optionally) empty JDDVars object to obtain copy of DD row vars for DRA
 	 * @param draDDColVarsCopy: (Optionally) empty JDDVars object to obtain copy of DD col vars for DRA
 	 */
-	public NondetModel constructProductMDP(DRA dra, NondetModel model, Vector<JDDNode> labelDDs, JDDVars draDDRowVarsCopy, JDDVars draDDColVarsCopy)
+	public NondetModel constructProductMDP(DRA<BitSet> dra, NondetModel model, Vector<JDDNode> labelDDs, JDDVars draDDRowVarsCopy, JDDVars draDDColVarsCopy)
 			throws PrismException
 	{
 		return constructProductMDP(dra, model, labelDDs, draDDRowVarsCopy, draDDColVarsCopy, true, null);
@@ -351,7 +349,7 @@ public class LTLModelChecker
 	 * @param init: The initial state(s) (of the original model) used to build the product;
 	 *        if null; we just take the existing initial states from model.getStart().
 	 */
-	public NondetModel constructProductMDP(DRA dra, NondetModel model, Vector<JDDNode> labelDDs, JDDVars draDDRowVarsCopy, JDDVars draDDColVarsCopy,
+	public NondetModel constructProductMDP(DRA<BitSet> dra, NondetModel model, Vector<JDDNode> labelDDs, JDDVars draDDRowVarsCopy, JDDVars draDDColVarsCopy,
 			boolean allInit, JDDNode init) throws PrismException
 	{
 		// Existing model - dds, vars, etc.
