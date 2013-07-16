@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
+import explicit.SCCComputer.SCCMethod;
+
 /**
  * Maximal end component computer for a nondeterministic model such as MDP.
  */
@@ -54,12 +56,42 @@ public class ECComputerDefault extends ECComputer
 	@Override
 	public void computeMECs()
 	{
-		// TODO
+		SCCComputer sccc = SCCComputer.createSCCComputer(SCCMethod.TARJAN, model);
+		sccc.computeSCCs();
+		
+		List<BitSet> sccs = sccc.getSCCs();
+		
+		for(int i=0;i<sccs.size();i++) {
+			if(isMEC(sccs.get(i))) {
+				System.out.println("SCCs " + sccs.get(i));
+				mecs.add(sccs.get(i));
+			}
+		}
 	}
 
 	@Override
 	public List<BitSet> getMECs()
 	{
 		return mecs;
+	}
+	
+	private boolean isMEC(BitSet b) {
+		if(b.cardinality() == 0) return false;
+		
+		int state = b.nextSetBit(0);
+		while(state != -1) {
+			boolean atLeastOneAction = false;
+			for(int i=0;i<model.getNumChoices(state);i++) {
+				if(model.allSuccessorsInSet(state, i, b)) {
+					atLeastOneAction = true;
+				}
+			}
+			if(!atLeastOneAction) {
+				return false;
+			}
+			state = b.nextSetBit(state+1);
+		}
+		
+		return true;
 	}
 }
