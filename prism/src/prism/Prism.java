@@ -2354,8 +2354,6 @@ public class Prism implements PrismSettingsListener
 		PrismLog tmpLog;
 		ECComputer ecComputer = null;
 		explicit.ECComputer ecComputerExpl = null;
-		//Vector<JDDNode> mecs;
-		//JDDNode mec;
 
 		// no specific states format for MRMC
 		if (exportType == EXPORT_MRMC)
