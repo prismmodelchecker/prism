@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Carlos S. Bederián (Universidad Nacional de Córdoba)
+//	* Carlos S. Bederian (Universidad Nacional de Cordoba)
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
 //	
 //------------------------------------------------------------------------------
@@ -654,7 +654,7 @@ public class LTLModelChecker
 				 * [dA97] uses Rabin acceptance pairs (H_i, L_i) such that
 				 * H_i contains Inf(\rho) and the intersection of Inf(K) and L_i is non-empty
 				 * 
-				 * OTOH PRISM's DRAs (via ltl2dstar use pairs (L_i, K_i) such that
+				 * OTOH PRISM's DRAs (via ltl2dstar) use pairs (L_i, K_i) such that
 				 * the intersection of L_i and Inf(\rho) is empty
 				 * and the intersection of K_i and Inf(\rho) is non-empty
 				 * So: L_i = K_i, H_i = S - L_i 
@@ -717,7 +717,7 @@ public class LTLModelChecker
 					 * [dA97] uses Rabin acceptance pairs (H_i, L_i) such that
 					 * H_i contains Inf(\rho) and the intersection of Inf(K) and L_i is non-empty
 					 * 
-					 * OTOH PRISM's DRAs (via ltl2dstar use pairs (L_i, K_i) such that
+					 * OTOH PRISM's DRAs (via ltl2dstar) use pairs (L_i, K_i) such that
 					 * the intersection of L_i and Inf(\rho) is empty
 					 * and the intersection of K_i and Inf(\rho) is non-empty
 					 * So: L_i = K_i, H_i = S - L_i 
@@ -805,7 +805,7 @@ public class LTLModelChecker
 					 * [dA97] uses Rabin acceptance pairs (H_i, L_i) such that
 					 * H_i contains Inf(\rho) and the intersection of Inf(K) and L_i is non-empty
 					 * 
-					 * OTOH PRISM's DRAs (via ltl2dstar use pairs (L_i, K_i) such that
+					 * OTOH PRISM's DRAs (via ltl2dstar) use pairs (L_i, K_i) such that
 					 * the intersection of L_i and Inf(\rho) is empty
 					 * and the intersection of K_i and Inf(\rho) is non-empty
 					 * So: L_i = K_i, H_i = S - L_i 
