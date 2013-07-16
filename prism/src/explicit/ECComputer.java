@@ -38,7 +38,7 @@ public abstract class ECComputer
 	/**
 	 * Static method to create a new ECComputer object.
 	 */
-	public static ECComputer createSCCComputer(NondetModel model)
+	public static ECComputer createECComputer(NondetModel model)
 	{
 		return new ECComputerDefault(model);
 	}

@@ -1027,6 +1027,14 @@ public class Prism implements PrismSettingsListener
 		return new ECComputerDefault(this, reach, trans, trans01, allDDRowVars, allDDColVars, allDDNondetVars);
 	}
 
+	/**
+	 * Get an ECComputer object for the explicit engine.
+	 */
+	public explicit.ECComputer getExplicitECComputer(explicit.NondetModel model)
+	{
+		return explicit.ECComputer.createECComputer(model);
+	}
+	
 	//------------------------------------------------------------------------------
 	// Utility methods
 	//------------------------------------------------------------------------------
@@ -2314,12 +2322,12 @@ public class Prism implements PrismSettingsListener
 					new StateListMTBDD(sccComputer.getVectBSCCs().get(i), currentModel).print(tmpLog);
 				else
 					new StateListMTBDD(sccComputer.getVectBSCCs().get(i), currentModel).printMatlab(tmpLog);
-				if (exportType == EXPORT_MATLAB)
-					tmpLog.println("];");
 				JDD.Deref(sccComputer.getVectBSCCs().get(i));
 			} else {
 				explicit.StateValues.createFromBitSet(sccComputerExpl.getBSCCs().get(i), currentModelExpl).print(tmpLog, true, exportType == EXPORT_MATLAB, true, true);
 			}
+			if (exportType == EXPORT_MATLAB)
+				tmpLog.println("];");
 		}
 
 		if (!getExplicit()) {
@@ -2344,12 +2352,10 @@ public class Prism implements PrismSettingsListener
 		int i, n;
 		long l; // timer
 		PrismLog tmpLog;
-		ECComputer ecComputer;
-		Vector<JDDNode> mecs;
-		JDDNode mec;
-
-		if (getExplicit())
-			throw new PrismException("Export of MECs not yet supported by explicit engine");
+		ECComputer ecComputer = null;
+		explicit.ECComputer ecComputerExpl = null;
+		//Vector<JDDNode> mecs;
+		//JDDNode mec;
 
 		// no specific states format for MRMC
 		if (exportType == EXPORT_MRMC)
@@ -2363,11 +2369,15 @@ public class Prism implements PrismSettingsListener
 
 		// Compute MECs
 		mainLog.println("\nComputing MECs...");
-		ecComputer = getECComputer((NondetModel) currentModel);
 		l = System.currentTimeMillis();
-		ecComputer.computeECs();
+		if (!getExplicit()) {
+			ecComputer = getECComputer((NondetModel) currentModel);
+			ecComputer.computeECs();
+		} else {
+			ecComputerExpl = getExplicitECComputer((explicit.NondetModel) currentModelExpl);
+			ecComputerExpl.computeMECs();
+		}
 		l = System.currentTimeMillis() - l;
-		mecs = ecComputer.getVectECs();
 		mainLog.println("\nTime for MEC computation: " + l / 1000.0 + " seconds.");
 
 		// print message
@@ -2382,15 +2392,19 @@ public class Prism implements PrismSettingsListener
 		if (exportType == EXPORT_MATLAB)
 			tmpLog.print("% ");
 		tmpLog.print("Variables: (");
-		for (i = 0; i < currentModel.getNumVars(); i++) {
-			tmpLog.print(currentModel.getVarName(i));
-			if (i < currentModel.getNumVars() - 1)
+		for (i = 0; i < currentModulesFile.getNumVars(); i++) {
+			tmpLog.print(currentModulesFile.getVarName(i));
+			if (i < currentModulesFile.getNumVars() - 1)
 				tmpLog.print(",");
 		}
 		tmpLog.println(")");
 
 		// print states for each mec
-		n = mecs.size();
+		if (!getExplicit()) {
+			n = ecComputer.getVectECs().size();
+		} else {
+			n = ecComputerExpl.getMECs().size();
+		}
 		for (i = 0; i < n; i++) {
 			tmpLog.println();
 			if (exportType == EXPORT_MATLAB)
@@ -2398,14 +2412,17 @@ public class Prism implements PrismSettingsListener
 			tmpLog.println("MEC " + (i + 1) + "/" + n + ":");
 			if (exportType == EXPORT_MATLAB)
 				tmpLog.println("mec" + (i + 1) + "=[");
-			mec = mecs.get(i);
-			if (exportType != EXPORT_MATLAB)
-				new StateListMTBDD(mec, currentModel).print(tmpLog);
-			else
-				new StateListMTBDD(mec, currentModel).printMatlab(tmpLog);
+			if (!getExplicit()) {
+				if (exportType != EXPORT_MATLAB)
+					new StateListMTBDD(ecComputer.getVectECs().get(i), currentModel).print(tmpLog);
+				else
+					new StateListMTBDD(ecComputer.getVectECs().get(i), currentModel).printMatlab(tmpLog);
+				JDD.Deref(ecComputer.getVectECs().get(i));
+			} else {
+				explicit.StateValues.createFromBitSet(ecComputerExpl.getMECs().get(i), currentModelExpl).print(tmpLog, true, exportType == EXPORT_MATLAB, true, true);
+			}
 			if (exportType == EXPORT_MATLAB)
 				tmpLog.println("];");
-			JDD.Deref(mec);
 		}
 
 		// tidy up
