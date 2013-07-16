@@ -57,6 +57,7 @@ import parser.ast.LabelList;
 import parser.ast.ModulesFile;
 import parser.ast.PropertiesFile;
 import parser.ast.Property;
+import parser.type.TypeBool;
 import pta.DigitalClocks;
 import pta.PTAModelChecker;
 import simulator.GenerateSimulationPath;
@@ -1002,6 +1003,14 @@ public class Prism implements PrismSettingsListener
 		return sccComputer;
 	}
 
+	/**
+	 * Get an SCCComputer object for the explicit engine.
+	 */
+	public explicit.SCCComputer getExplicitSCCComputer(explicit.Model model)
+	{
+		return explicit.SCCComputer.createSCCComputer(explicit.SCCComputer.SCCMethod.TARJAN, model);
+	}
+	
 	/**
 	 * Get an ECComputer object.
 	 */
@@ -2240,12 +2249,10 @@ public class Prism implements PrismSettingsListener
 		int i, n;
 		long l; // timer
 		PrismLog tmpLog;
-		SCCComputer sccComputer;
-		Vector<JDDNode> bsccs;
-		JDDNode not, bscc;
-
-		if (getExplicit())
-			throw new PrismException("Export of BSCCs not yet supported by explicit engine");
+		SCCComputer sccComputer = null;
+		explicit.SCCComputer sccComputerExpl = null;
+		//Vector<JDDNode> bsccs;
+		//JDDNode not, bscc;
 
 		// no specific states format for MRMC
 		if (exportType == EXPORT_MRMC)
@@ -2259,12 +2266,15 @@ public class Prism implements PrismSettingsListener
 
 		// Compute BSCCs
 		mainLog.println("\nComputing BSCCs...");
-		sccComputer = getSCCComputer(currentModel);
 		l = System.currentTimeMillis();
-		sccComputer.computeBSCCs();
+		if (!getExplicit()) {
+			sccComputer = getSCCComputer(currentModel);
+			sccComputer.computeBSCCs();
+		} else {
+			sccComputerExpl = getExplicitSCCComputer(currentModelExpl);
+			sccComputerExpl.computeBSCCs();
+		}
 		l = System.currentTimeMillis() - l;
-		bsccs = sccComputer.getVectBSCCs();
-		not = sccComputer.getNotInBSCCs();
 		mainLog.println("\nTime for BSCC computation: " + l / 1000.0 + " seconds.");
 
 		// print message
@@ -2279,15 +2289,19 @@ public class Prism implements PrismSettingsListener
 		if (exportType == EXPORT_MATLAB)
 			tmpLog.print("% ");
 		tmpLog.print("Variables: (");
-		for (i = 0; i < currentModel.getNumVars(); i++) {
-			tmpLog.print(currentModel.getVarName(i));
-			if (i < currentModel.getNumVars() - 1)
+		for (i = 0; i < currentModulesFile.getNumVars(); i++) {
+			tmpLog.print(currentModulesFile.getVarName(i));
+			if (i < currentModulesFile.getNumVars() - 1)
 				tmpLog.print(",");
 		}
 		tmpLog.println(")");
 
 		// print states for each bscc
-		n = bsccs.size();
+		if (!getExplicit()) {
+			n = sccComputer.getVectBSCCs().size();
+		} else {
+			n = sccComputerExpl.getBSCCs().size();
+		}
 		for (i = 0; i < n; i++) {
 			tmpLog.println();
 			if (exportType == EXPORT_MATLAB)
@@ -2295,17 +2309,22 @@ public class Prism implements PrismSettingsListener
 			tmpLog.println("BSCC " + (i + 1) + "/" + n + ":");
 			if (exportType == EXPORT_MATLAB)
 				tmpLog.println("bscc" + (i + 1) + "=[");
-			bscc = bsccs.get(i);
-			if (exportType != EXPORT_MATLAB)
-				new StateListMTBDD(bscc, currentModel).print(tmpLog);
-			else
-				new StateListMTBDD(bscc, currentModel).printMatlab(tmpLog);
-			if (exportType == EXPORT_MATLAB)
-				tmpLog.println("];");
-			JDD.Deref(bscc);
+			if (!getExplicit()) {
+				if (exportType != EXPORT_MATLAB)
+					new StateListMTBDD(sccComputer.getVectBSCCs().get(i), currentModel).print(tmpLog);
+				else
+					new StateListMTBDD(sccComputer.getVectBSCCs().get(i), currentModel).printMatlab(tmpLog);
+				if (exportType == EXPORT_MATLAB)
+					tmpLog.println("];");
+				JDD.Deref(sccComputer.getVectBSCCs().get(i));
+			} else {
+				explicit.StateValues.createFromBitSet(sccComputerExpl.getBSCCs().get(i), currentModelExpl).print(tmpLog, true, exportType == EXPORT_MATLAB, true, true);
+			}
 		}
 
-		JDD.Deref(not);
+		if (!getExplicit()) {
+			JDD.Deref(sccComputer.getNotInBSCCs());
+		}
 
 		// tidy up
 		if (file != null)
