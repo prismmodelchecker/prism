@@ -2,6 +2,8 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
+//	* Carlos S. Bederian (Universidad Nacional de Cordoba)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
 //	* Mark Kattenbelt <mark.kattenbelt@comlab.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
@@ -42,21 +44,30 @@ public class ECComputerDefault extends ECComputer
 
 	public void computeECs()
 	{
-		vectECs = new Vector<JDDNode>();
+		vectECs = findEndComponents(reach, reach);
+	}
 
-		boolean initialCandidate = true;
+	/**
+	 * Find all maximal accepting end components (ECs) contained within {@code states},
+	 * where acceptance is defined as those which intersect with {@code filter}.
+	 * (If {@code filter} is null, the acceptance condition is trivially satisfied.)
+	 * @param states BDD of the set of containing states
+	 * @param filter BDD for the set of accepting states
+	 * @return a vector of (referenced) BDDs representing the ECs
+	 */
+	private Vector<JDDNode> findEndComponents(JDDNode states, JDDNode filter)
+	{
 		Stack<JDDNode> candidates = new Stack<JDDNode>();
-		JDD.Ref(reach);
-		candidates.push(reach);
+		JDD.Ref(states);
+		candidates.push(states);
+		Vector<JDDNode> ecs = new Vector<JDDNode>();
 		SCCComputer sccComputer;
 
 		while (!candidates.isEmpty()) {
 			JDDNode candidate = candidates.pop();
-
 			// Compute the stable set
 			JDD.Ref(candidate);
 			JDDNode stableSet = findMaximalStableSet(candidate);
-
 			// Drop empty sets
 			if (stableSet.equals(JDD.ZERO)) {
 				JDD.Deref(stableSet);
@@ -64,18 +75,11 @@ public class ECComputerDefault extends ECComputer
 				continue;
 			}
 
-			if (!initialCandidate) {
-				// candidate is an SCC, check if it's stable
-				if (stableSet.equals(candidate)) {
-					vectECs.add(maxStableSetChoices(candidate));
-					JDD.Deref(stableSet);
-					continue;
-				}
-			} else {
-				initialCandidate = false;
+			if (stableSet.equals(candidate) && JDD.GetNumMinterms(stableSet, allDDRowVars.n()) == 1) {
+				ecs.add(candidate);
+				JDD.Deref(stableSet);
+				continue;
 			}
-
-			JDD.Deref(candidate);
 
 			// Filter bad transitions
 			JDD.Ref(stableSet);
@@ -84,13 +88,26 @@ public class ECComputerDefault extends ECComputer
 			// now find the maximal SCCs in (stableSet, stableSetTrans)
 			Vector<JDDNode> sccs;
 			sccComputer = prism.getSCCComputer(stableSet, stableSetTrans, allDDRowVars, allDDColVars);
-			sccComputer.computeSCCs();
+			if (filter != null)
+				sccComputer.computeSCCs(filter);
+			else
+				sccComputer.computeSCCs();
 			JDD.Deref(stableSet);
 			JDD.Deref(stableSetTrans);
 			sccs = sccComputer.getVectSCCs();
 			JDD.Deref(sccComputer.getNotInSCCs());
-			candidates.addAll(sccs);
+			if (sccs.size() > 0) {
+				if (sccs.size() > 1 || !sccs.get(0).equals(candidate)) {
+					candidates.addAll(sccs);
+					JDD.Deref(candidate);
+				} else {
+					ecs.add(candidate);
+					JDD.Deref(sccs.get(0));
+				}
+			} else
+				JDD.Deref(candidate);
 		}
+		return ecs;
 	}
 
 	/**
@@ -126,6 +143,7 @@ public class ECComputerDefault extends ECComputer
 		}
 		JDD.Deref(old);
 		return current;
+
 	}
 
 	/**
@@ -136,6 +154,7 @@ public class ECComputerDefault extends ECComputer
 	 */
 	private JDDNode maxStableSetTrans(JDDNode b)
 	{
+
 		JDD.Ref(b);
 		JDD.Ref(trans);
 		// Select transitions starting in b
@@ -153,32 +172,5 @@ public class ECComputerDefault extends ECComputer
 		JDDNode stableTrans01 = JDD.And(trans01, mask);
 		// Abstract over actions
 		return JDD.ThereExists(stableTrans01, allDDNondetVars);
-	}
-
-	/**
-	 * Returns the transition relation of a stable set
-	 * 
-	 * @param b BDD of a stable set (dereferenced after calling this function)
-	 * @return referenced BDD of the transition relation restricted to the stable set
-	 */
-	public JDDNode maxStableSetChoices(JDDNode b)
-	{
-		JDD.Ref(b);
-		JDD.Ref(trans);
-		// Select transitions starting in b
-		JDDNode currTrans = JDD.Apply(JDD.TIMES, trans, b);
-		JDDNode mask = JDD.PermuteVariables(b, allDDRowVars, allDDColVars);
-		// Select transitions starting in current and ending in current
-		mask = JDD.Apply(JDD.TIMES, currTrans, mask);
-		// Sum all successor probabilities for each (state, action) tuple
-		mask = JDD.SumAbstract(mask, allDDColVars);
-		// If the sum for a (state,action) tuple is 1,
-		// there is an action that remains in the stable set with prob 1
-		mask = JDD.GreaterThan(mask, 1 - prism.getSumRoundOff());
-		// select the transitions starting in these tuples
-		JDD.Ref(trans01);
-		JDDNode stableTrans01 = JDD.And(trans01, mask);
-		// Abstract over actions
-		return JDD.ThereExists(stableTrans01, allDDColVars);
 	}
 }
