@@ -249,17 +249,12 @@ public class DTMCModelChecker extends ProbModelChecker
 		int invMap[] = pair.second;
 		int modelProductSize = modelProduct.getNumStates();
 
-		// Find accepting maximum end components
-		mainLog.println("\nFinding accepting end components...");
-
-		// Compute accepting BSCCs
+		// Find accepting BSCCs + compute reachability probabilities
+		mainLog.println("\nFinding accepting BSCCs...");
 		BitSet acceptingBSCCs = mcLtl.findAcceptingBSCCs(dra, modelProduct, invMap, sccMethod);
 		mainLog.println(acceptingBSCCs);
-
-		// Compute reachability probabilities
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = new DTMCModelChecker();
-
 		probsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachProbs((DTMC) modelProduct, acceptingBSCCs).soln, modelProduct);
 
 		// Mapping probabilities in the original model
