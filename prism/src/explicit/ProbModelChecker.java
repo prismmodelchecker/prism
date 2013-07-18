@@ -220,6 +220,8 @@ public class ProbModelChecker extends StateModelChecker
 	public void inheritSettings(ProbModelChecker other)
 	{
 		super.inheritSettings(other);
+		setLinEqMethod(other.getLinEqMethod());
+		setMDPSolnMethod(other.getMDPSolnMethod());
 		setTermCrit(other.getTermCrit());
 		setTermCritParam(other.getTermCritParam());
 		setMaxIters(other.getMaxIters());
