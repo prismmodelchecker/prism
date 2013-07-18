@@ -47,37 +47,46 @@ import prism.Pair;
 import prism.PrismException;
 import explicit.SCCComputer.SCCMethod;
 
+/**
+ * LTL model checking functionality
+ */
 public class LTLModelChecker
 {
-
+	/**
+	 * Convert an LTL formula into a DRA. The LTL formula is represented as a PRISM Expression,
+	 * in which atomic propositions are represented by ExpressionLabel objects.
+	 */
 	public static DRA<BitSet> convertLTLFormulaToDRA(Expression ltl) throws PrismException
 	{
 		return LTL2RabinLibrary.convertLTLFormulaToDRA(ltl);
 	}
 
+	/**
+	 * Extract maximal state formula from an LTL path formula, model check them (with passed in model checker) and
+	 * replace them with ExpressionLabel objects L0, L1, etc. Expression passed in is modified directly, but the result
+	 * is also returned. As an optimisation, model checking that results in true/false for all states is converted to an
+	 * actual true/false, and duplicate results are given the same label. BitSets giving the states which satisfy each label
+	 * are put into the vector {@code labelBS}, which should be empty when this function is called.
+	 */
 	public Expression checkMaximalStateFormulas(ProbModelChecker mc, Model model, Expression expr, Vector<BitSet> labelBS) throws PrismException
 	{
 		// A state formula
 		if (expr.getType() instanceof TypeBool) {
 			// Model check
 			StateValues sv = mc.checkExpression(model, expr);
-			if (sv.type != TypeBool.getInstance() || sv.valuesB == null) {
-				throw new PrismException("Excepting a boolean value here!");
-			}
 			BitSet bs = sv.getBitSet();
 			// Detect special cases (true, false) for optimisation
 			if (bs.isEmpty()) {
 				return Expression.False();
 			}
-			BitSet tmp = (BitSet) bs.clone();
-			tmp.flip(0, tmp.length());
-			if (tmp.isEmpty()) {
+			if (bs.cardinality() == model.getNumStates()) {
 				return Expression.True();
 			}
 			// See if we already have an identical result
 			// (in which case, reuse it)
 			int i = labelBS.indexOf(bs);
 			if (i != -1) {
+				sv.clear();
 				return new ExpressionLabel("L" + i);
 			}
 			// Otherwise, add result to list, return new label
@@ -107,22 +116,20 @@ public class LTLModelChecker
 	}
 
 	/**
-	 * Constructs the product of a DTMC and a DRA automaton
-	 * 
-	 * @param dra the DRA representing the LTL formula
-	 * @param model the original model
-	 * @param labelBS a set of labels for states in the original model
-	 * @return a Pair consisting of the product model and a map from 
+	 * Construct the product of a DRA and a DTMC.
+	 * @param dra The DRA
+	 * @param dtmc The DTMC
+	 * @param labelBS BitSets giving the set of states for each AP in the DRA
+	 * @return a Pair consisting of the product DTMC and a map from 
 	 *   (s_i * draSize + q_j) to the right state in the DRA product 
-	 * @throws PrismException
 	 */
-	public Pair<Model, int[]> constructProductMC(DRA<BitSet> dra, Model model, Vector<BitSet> labelBS) throws PrismException
+	public Pair<Model, int[]> constructProductMC(DRA<BitSet> dra, DTMC dtmc, Vector<BitSet> labelBS) throws PrismException
 	{
-		if (!(model instanceof DTMCSimple)) {
+		if (!(dtmc instanceof DTMCSimple)) {
 			throw new PrismException("Expecting a DTMC here");
 		}
 
-		DTMCSimple modelDTMC = (DTMCSimple) model;
+		DTMCSimple modelDTMC = (DTMCSimple) dtmc;
 		DTMCSimple prodModel = new DTMCSimple();
 
 		int draSize = dra.size();
@@ -139,7 +146,7 @@ public class LTLModelChecker
 		int map[] = new int[prodNumStates];
 		Arrays.fill(map, -1);
 		int q_0 = dra.getStartState();
-		for (int s_0 : model.getInitialStates()) {
+		for (int s_0 : dtmc.getInitialStates()) {
 			queue.add(new Point(s_0, q_0));
 			prodModel.addState();
 			prodModel.addInitialState(prodModel.getNumStates() - 1);
@@ -233,5 +240,4 @@ public class LTLModelChecker
 
 		return result;
 	}
-
 }
