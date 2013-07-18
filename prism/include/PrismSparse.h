@@ -106,10 +106,10 @@ JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1NondetBoundedUntil
 /*
  * Class:     sparse_PrismSparse
  * Method:    PS_NondetUntil
- * Signature: (JJLjava/util/List;JJIJIJIJJZ)J
+ * Signature: (JJLjava/util/List;JJIJIJIJJZLstrat/MDStrategyNative;)J
  */
 JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1NondetUntil
-  (JNIEnv *, jclass, jlong, jlong, jobject, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jboolean);
+  (JNIEnv *, jclass, jlong, jlong, jobject, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jboolean, jobject);
 
 /*
  * Class:     sparse_PrismSparse

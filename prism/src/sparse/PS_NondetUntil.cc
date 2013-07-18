@@ -57,7 +57,8 @@ jlong __jlongpointer ndv,	// nondet vars
 jint num_ndvars,
 jlong __jlongpointer y,		// 'yes' states
 jlong __jlongpointer m,		// 'maybe' states
-jboolean min				// min or max probabilities (true = min, false = max)
+jboolean min,				// min or max probabilities (true = min, false = max)
+jobject md_strat			// storage for an MD strategy
 )
 {
 	// cast function parameters
@@ -216,6 +217,19 @@ jboolean min				// min or max probabilities (true = min, false = max)
 			PS_PrintWarningToMainLog(env, "Adversary generation cancelled (could not open file \"%s\").", export_adv_filename);
 			export_adv_enabled = EXPORT_ADV_NONE;
 		}
+		
+		// store...
+		int i, j;
+		jclass vn_cls;
+		jmethodID vn_mid;
+   
+		vn_cls = env->GetObjectClass(md_strat);
+		vn_mid = env->GetMethodID(vn_cls, "setPointer", "(J)V");
+		if (vn_mid == 0) {
+			return;
+		}
+		env->CallIntMethod(md_strat, vn_mid, ptr_to_jlong(adv));
+		
 	}
 	
 	// store local copies of stuff
