@@ -609,11 +609,9 @@ public class ProbModelChecker extends NonProbModelChecker
 			modelProduct.exportStates(Prism.EXPORT_PLAIN, new PrismFileLog(prism.getExportProductStatesFilename()));
 		}
 
-		// Find accepting maximum end BSCC
+		// Find accepting BSCCs + compute reachability probabilities
 		mainLog.println("\nFinding accepting BSCCs...");
 		JDDNode acc = mcLtl.findAcceptingBSCCs(dra, draDDRowVars, draDDColVars, modelProduct);
-
-		// Compute reachability probabilities
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = createNewModelChecker(prism, modelProduct, null);
 		probsProduct = mcProduct.checkProbUntil(modelProduct.getReach(), acc, qual);
