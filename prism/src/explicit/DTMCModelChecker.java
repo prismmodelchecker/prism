@@ -28,14 +28,20 @@ package explicit;
 
 import java.io.File;
 import java.util.BitSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import parser.ast.Expression;
 import parser.ast.ExpressionTemporal;
 import parser.ast.ExpressionUnaryOp;
 import parser.type.TypeDouble;
+import parser.visitor.ASTTraverse;
+import prism.DRA;
+import prism.Pair;
 import prism.PrismException;
+import prism.PrismLangException;
 import prism.PrismUtils;
 import explicit.rewards.MCRewards;
 
@@ -56,7 +62,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		if (expr.isSimplePathFormula()) {
 			return checkProbPathFormulaSimple(model, expr);
 		} else {
-			throw new PrismException("Explicit engine does not yet handle LTL-style path formulas");
+			return checkProbPathFormulaLTL(model, expr, false);
 		}
 	}
 
@@ -183,6 +189,96 @@ public class DTMCModelChecker extends ProbModelChecker
 
 		res = computeUntilProbs((DTMC) model, b1, b2);
 		probs = StateValues.createFromDoubleArray(res.soln, model);
+
+		return probs;
+	}
+
+	/**
+	 * LTL-like path formula for P operator
+	 */
+	protected StateValues checkProbPathFormulaLTL(Model model, Expression expr, boolean qual) throws PrismException
+	{
+		LTLModelChecker mcLtl;
+		StateValues probsProduct, probs;
+		Expression ltl;
+		DRA<BitSet> dra;
+		Model modelProduct;
+		DTMCModelChecker mcProduct;
+		long time;
+
+		// Can't do LTL with time-bounded variants of the temporal operators
+		try {
+			expr.accept(new ASTTraverse()
+			{
+				public void visitPre(ExpressionTemporal e) throws PrismLangException
+				{
+					if (e.getLowerBound() != null)
+						throw new PrismLangException(e.getOperatorSymbol());
+					if (e.getUpperBound() != null)
+						throw new PrismLangException(e.getOperatorSymbol());
+				}
+			});
+		} catch (PrismLangException e) {
+			String s = "Temporal operators (like " + e.getMessage() + ")";
+			s += " cannot have time bounds for LTL properties";
+			throw new PrismException(s);
+		}
+
+		// For LTL model checking routines
+		mcLtl = new LTLModelChecker();
+
+		// Model check maximal state formulas
+		Vector<BitSet> labelBS = new Vector<BitSet>();
+		ltl = mcLtl.checkMaximalStateFormulas(this, model, expr.deepCopy(), labelBS);
+
+		// Convert LTL formula to deterministic Rabin automaton (DRA)
+		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
+		time = System.currentTimeMillis();
+		dra = LTLModelChecker.convertLTLFormulaToDRA(ltl);
+		int draSize = dra.size();
+		mainLog.println("\nDRA has " + dra.size() + " states, " + dra.getNumAcceptancePairs() + " pairs.");
+		// dra.print(System.out);
+		time = System.currentTimeMillis() - time;
+		mainLog.println("\nTime for Rabin translation: " + time / 1000.0 + " seconds.");
+
+		// Build product of Markov chain and automaton
+		// (note: might be a CTMC - StochModelChecker extends this class)
+		mainLog.println("\nConstructing MC-DRA product...");
+		Pair<Model, int[]> pair = mcLtl.constructProductMC(dra, model, labelBS);
+		modelProduct = pair.first;
+		int invMap[] = pair.second;
+		int modelProductSize = modelProduct.getNumStates();
+
+		// Find accepting maximum end components
+		mainLog.println("\nFinding accepting end components...");
+
+		// Compute accepting BSCCs
+		BitSet acceptingBSCCs = mcLtl.findAcceptingBSCCs(dra, modelProduct, invMap, sccMethod);
+		mainLog.println(acceptingBSCCs);
+
+		// Compute reachability probabilities
+		mainLog.println("\nComputing reachability probabilities...");
+		mcProduct = new DTMCModelChecker();
+
+		probsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachProbs((DTMC) modelProduct, acceptingBSCCs).soln, modelProduct);
+
+		// Mapping probabilities in the original model
+		double[] probsProductDbl = probsProduct.getDoubleArray();
+		double[] probsDbl = new double[modelProductSize];
+
+		LinkedList<Integer> queue = new LinkedList<Integer>();
+		for (int s : model.getInitialStates())
+			queue.add(s);
+
+		for (int i = 0; i < invMap.length; i++) {
+			int j = invMap[i];
+			int s = j / draSize;
+			// TODO: check whether this is the right way to compute probabilities in the original model
+			probsDbl[s] = Math.max(probsDbl[s], probsProductDbl[i]);
+		}
+
+		probs = StateValues.createFromDoubleArray(probsDbl, model);
+		probsProduct.clear();
 
 		return probs;
 	}
