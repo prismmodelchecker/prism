@@ -30,7 +30,6 @@ import java.io.FileNotFoundException;
 import java.util.List;
 
 import prism.*;
-import strat.MDStrategyNative;
 import jdd.*;
 import dv.*;
 import odd.*;
@@ -203,10 +202,10 @@ public class PrismSparse
 	}
 	
 	// pctl until (nondeterministic/mdp)
-	private static native long PS_NondetUntil(long trans, long trans_actions, List<String> synchs, long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long yes, long maybe, boolean minmax, MDStrategyNative strat);
-	public static DoubleVector NondetUntil(JDDNode trans, JDDNode transActions, List<String> synchs, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode yes, JDDNode maybe, boolean minmax, MDStrategyNative strat) throws PrismException
+	private static native long PS_NondetUntil(long trans, long trans_actions, List<String> synchs, long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long yes, long maybe, boolean minmax);
+	public static DoubleVector NondetUntil(JDDNode trans, JDDNode transActions, List<String> synchs, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode yes, JDDNode maybe, boolean minmax) throws PrismException
 	{
-		long ptr = PS_NondetUntil(trans.ptr(), (transActions == null) ? 0 : transActions.ptr(), synchs, odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), yes.ptr(), maybe.ptr(), minmax, strat);
+		long ptr = PS_NondetUntil(trans.ptr(), (transActions == null) ? 0 : transActions.ptr(), synchs, odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), yes.ptr(), maybe.ptr(), minmax);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}

@@ -42,7 +42,6 @@ import jdd.*;
 import dv.*;
 import mtbdd.*;
 import sparse.*;
-import strat.MDStrategyNative;
 import hybrid.*;
 import parser.ast.*;
 import parser.visitor.ASTTraverse;
@@ -1964,16 +1963,7 @@ public class NondetModelChecker extends NonProbModelChecker
 					probs = new StateValuesMTBDD(probsMTBDD, model);
 					break;
 				case Prism.SPARSE:
-					MDStrategyNative stratNative = null;
-					if (true) {
-						stratNative = new MDStrategyNative((int) model.getNumStates());
-					}
-					probsDV = PrismSparse.NondetUntil(tr, tra, model.getSynchs(), odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min, stratNative);
-					if (true) {
-						mainLog.println();
-						stratNative.exportActions(mainLog);
-						// TODO cexNative.clear();
-					}
+					probsDV = PrismSparse.NondetUntil(tr, tra, model.getSynchs(), odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min);
 					probs = new StateValuesDV(probsDV, model);
 					break;
 				case Prism.HYBRID:

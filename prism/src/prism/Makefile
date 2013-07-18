@@ -29,9 +29,6 @@ PRISM_CLASSPATH = "$(THIS_DIR)/$(PRISM_DIR_REL)/$(CLASSES_DIR)$(CLASSPATHSEP)$(T
 CC_FILES = $(wildcard *.cc)
 O_FILES = $(CC_FILES:%.cc=$(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/%.o)
 
-O_FILES_EXT = $(wildcard $(PRISM_DIR_REL)/$(OBJ_DIR)/strat/*.o)
-
-
 default: all
 
 all: checks $(CLASS_FILES) $(PRISM_DIR_REL)/$(INCLUDE_DIR)/PrismNative.h $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX)
@@ -48,8 +45,8 @@ $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class: %.java
 $(PRISM_DIR_REL)/$(INCLUDE_DIR)/PrismNative.h: $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/PrismNative.class
 	($(JAVAH) -classpath $(PRISM_DIR_REL)/$(CLASSES_DIR) -jni -o $@ $(THIS_DIR).PrismNative; touch $@)
 
-$(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX): $(O_FILES) $(O_FILES_EXT)
-	$(LD) $(SHARED) $(LDFLAGS) -o $@ $(O_FILES) $(O_FILES_EXT) $(LIBRARIES)
+$(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX): $(O_FILES)
+	$(LD) $(SHARED) $(LDFLAGS) -o $@ $(O_FILES) $(LIBRARIES)
 
 $(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/%.o: %.cc
 	$(CPP) $(CPPFLAGS) -c $< -o $@ $(INCLUDES)
