@@ -535,10 +535,10 @@ public class LTLModelChecker
 	}
 
 	/**
-	 * Builds a mask BDD for trans (which contains transitions between every DRA state after adding draRow/ColVars) that
-	 * includes only the transitions that exist in the DRA.
-	 * 
-	 * @return a referenced mask BDD over trans
+	 * Builds a (referenced) mask BDD representing all possible transitions in a product built with
+	 * DRA {@code dra}, i.e. all the transitions ((s,q),(s',q')) where q' = delta(q, label(s')) in the DRA.
+	 * So the BDD is over column variables for model states (permuted from those found in the BDDs in
+	 * {@code labelDDs}) and row/col variables for the DRA (from {@code draDDRowVars}, {@code draDDColVars}).
 	 */
 	public JDDNode buildTransMask(DRA<BitSet> dra, Vector<JDDNode> labelDDs, JDDVars allDDRowVars, JDDVars allDDColVars, JDDVars draDDRowVars,
 			JDDVars draDDColVars)
@@ -579,10 +579,10 @@ public class LTLModelChecker
 	}
 
 	/**
-	 * Builds a mask BDD for start (which contains start nodes for every DRA state after adding draRowVars) that
-	 * includes only the start states (s, q) such that q = delta(q_in, label(s)) in the DRA.
-	 * 
-	 * @return a referenced mask BDD over start
+	 * Builds a (referenced) mask BDD representing all possible "start" states for a product built with
+	 * DRA {@code dra}, i.e. all the states (s,q) where q = delta(q_init, label(s)) in the DRA.
+	 * So the BDD is over row variables for model states (as found in the BDDs in {@code labelDDs})
+	 * and row variables for the DRA (from {@code draDDRowVars}).
 	 */
 	public JDDNode buildStartMask(DRA<BitSet> dra, Vector<JDDNode> labelDDs, JDDVars draDDRowVars)
 	{
