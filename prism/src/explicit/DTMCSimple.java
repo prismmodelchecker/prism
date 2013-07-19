@@ -188,7 +188,7 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	public void setProbability(int i, int j, double prob)
 	{
 		Distribution distr = trans.get(i);
-		if (distr.get(i) != 0.0)
+		if (distr.get(j) != 0.0)
 			numTransitions--;
 		if (prob != 0.0)
 			numTransitions++;
