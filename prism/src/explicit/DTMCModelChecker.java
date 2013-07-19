@@ -249,7 +249,6 @@ public class DTMCModelChecker extends ProbModelChecker
 		int invMap[] = pair.second;
 		int modelProductSize = modelProduct.getNumStates();
 		mainLog.print("\n" + modelProduct.infoStringTable());
-		mainLog.print(modelProduct);
 
 		// Find accepting BSCCs + compute reachability probabilities
 		mainLog.println("\nFinding accepting BSCCs...");
