@@ -622,7 +622,8 @@ public class ProbModelChecker extends NonProbModelChecker
 		JDD.Ref(model.getReach());
 		startMask = JDD.And(model.getReach(), startMask);
 		probsProduct.filter(startMask);
-		// Then sum over DD vars for the DRA state
+		// Then sum over DD vars for the DRA state (could also have used,
+		// e.g. max, since there is just one state for each valuation of draDDRowVars) 
 		probs = probsProduct.sumOverDDVars(draDDRowVars, model);
 
 		// Deref, clean up
