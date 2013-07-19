@@ -159,6 +159,18 @@ public class DRA<Symbol>
 	}
 
 	/**
+	 * Get the destination of the edge from state i with label lab.
+	 * Returns -1 if no such edge is found.
+	 */
+	public int getEdgeDestByLabel(int i, Symbol lab)
+	{
+		for (Edge e : edges.get(i))
+			if (e.label.equals(lab))
+				return e.dest;
+		return -1;
+	}
+
+	/**
 	 * Get the number of pairs (L_i,K_i) in the acceptance condition.
 	 */
 	public int getNumAcceptancePairs()
