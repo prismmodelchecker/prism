@@ -127,16 +127,11 @@ public class LTLModelChecker
 	 */
 	public Pair<Model, int[]> constructProductMC(DRA<BitSet> dra, DTMC dtmc, Vector<BitSet> labelBS) throws PrismException
 	{
-		if (!(dtmc instanceof DTMCSimple)) {
-			throw new PrismException("Expecting a DTMC here");
-		}
-
-		DTMCSimple modelDTMC = (DTMCSimple) dtmc;
 		DTMCSimple prodModel = new DTMCSimple();
 
 		int draSize = dra.size();
 		int numAPs = dra.getAPList().size();
-		int modelNumStates = modelDTMC.getNumStates();
+		int modelNumStates = dtmc.getNumStates();
 		int prodNumStates = modelNumStates * draSize;
 
 		// Encoding: 
