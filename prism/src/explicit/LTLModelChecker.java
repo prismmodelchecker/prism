@@ -30,8 +30,10 @@ package explicit;
 import java.awt.Point;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import parser.ast.Expression;
@@ -133,6 +135,7 @@ public class LTLModelChecker
 		DTMCSimple prodModel = new DTMCSimple();
 
 		int draSize = dra.size();
+		int numAPs = dra.getAPList().size();
 		int modelNumStates = modelDTMC.getNumStates();
 		int prodNumStates = modelNumStates * draSize;
 
@@ -156,24 +159,32 @@ public class LTLModelChecker
 		// Product states
 		BitSet visited = new BitSet(prodNumStates);
 		int q_1 = 0, q_2 = 0, s_1 = 0, s_2 = 0;
+		BitSet s_2_labels = new BitSet(numAPs);
 		while (!queue.isEmpty()) {
 			Point p = queue.pop();
 			s_1 = p.x;
 			q_1 = p.y;
 			visited.set(s_1 * draSize + q_1);
-			int numEdges = dra.getNumEdges(q_1);
-			for (int j = 0; j < numEdges; j++) {
-				q_2 = dra.getEdgeDest(q_1, j);
-				BitSet label = computeLabel(dra, labelBS, modelNumStates, q_1, j);
-				for (s_2 = label.nextSetBit(0); s_2 != -1; s_2 = label.nextSetBit(s_2 + 1)) {
-					if (!visited.get(s_2 * draSize + q_2) && map[s_2 * draSize + q_2] == -1) {
-						queue.add(new Point(s_2, q_2));
-						prodModel.addState();
-						map[s_2 * draSize + q_2] = prodModel.getNumStates() - 1;
-					}
-					double prob = modelDTMC.getProbability(s_1, s_2);
-					prodModel.setProbability(map[s_1 * draSize + q_1], map[s_2 * draSize + q_2], prob);
+
+			// Go through transitions from state s_1 in original DTMC
+			Iterator<Map.Entry<Integer, Double>> iter = dtmc.getTransitionsIterator(s_1);
+			while (iter.hasNext()) {
+				Map.Entry<Integer, Double> e = iter.next();
+				s_2 = e.getKey();
+				double prob = e.getValue();
+				// Get BitSet representing APs (labels) satisfied by successor state s_2
+				for (int k = 0; k < numAPs; k++) {
+					s_2_labels.set(k, labelBS.get(k).get(s_2));
 				}
+				// Find corresponding successor in DRA
+				q_2 = dra.getEdgeDestByLabel(q_1, s_2_labels);
+				// Add state/transition to model
+				if (!visited.get(s_2 * draSize + q_2) && map[s_2 * draSize + q_2] == -1) {
+					queue.add(new Point(s_2, q_2));
+					prodModel.addState();
+					map[s_2 * draSize + q_2] = prodModel.getNumStates() - 1;
+				}
+				prodModel.setProbability(map[s_1 * draSize + q_1], map[s_2 * draSize + q_2], prob);
 			}
 		}
 
@@ -187,24 +198,6 @@ public class LTLModelChecker
 		prodModel.findDeadlocks(false);
 
 		return new Pair<Model, int[]>(prodModel, invMap);
-	}
-
-	private BitSet computeLabel(DRA<BitSet> dra, Vector<BitSet> labelBS, int origStates, int q_1, int j)
-	{
-		int numAPs = dra.getAPList().size();
-		List<String> apList = dra.getAPList();
-		BitSet label = new BitSet(origStates);
-		label.flip(0, origStates);
-		for (int k = 0; k < numAPs; k++) {
-			int bsID = Integer.parseInt(apList.get(k).substring(1));
-			BitSet bs = labelBS.get(bsID);
-			if (dra.getEdgeLabel(q_1, j).get(k)) {
-				label.and(bs);
-			} else {
-				label.andNot(bs);
-			}
-		}
-		return label;
 	}
 
 	public BitSet findAcceptingBSCCs(DRA<BitSet> dra, Model modelProduct, int invMap[], SCCMethod sccMethod)
