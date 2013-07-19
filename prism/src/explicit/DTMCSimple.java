@@ -196,14 +196,6 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	}
 
 	/**
-	 * Returns the probability for a transition
-	 */
-	public double getProbability(int i, int j)
-	{
-		return trans.get(i).get(j);
-	}
-
-	/**
 	 * Add to the probability for a transition. 
 	 */
 	public void addToProbability(int i, int j, double prob)
