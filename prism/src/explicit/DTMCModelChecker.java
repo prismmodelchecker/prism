@@ -242,7 +242,6 @@ public class DTMCModelChecker extends ProbModelChecker
 		mainLog.println("\nTime for Rabin translation: " + time / 1000.0 + " seconds.");
 
 		// Build product of Markov chain and automaton
-		// (note: might be a CTMC - StochModelChecker extends this class)
 		mainLog.println("\nConstructing MC-DRA product...");
 		Pair<Model, int[]> pair = mcLtl.constructProductMC(dra, (DTMC) model, labelBS);
 		modelProduct = pair.first;
