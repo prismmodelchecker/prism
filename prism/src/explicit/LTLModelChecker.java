@@ -195,34 +195,41 @@ public class LTLModelChecker
 		return new Pair<Model, int[]>(prodModel, invMap);
 	}
 
-	public BitSet findAcceptingBSCCs(DRA<BitSet> dra, Model modelProduct, int invMap[], SCCMethod sccMethod)
+	/**
+	 * Find the set of states belong to accepting BSCCs in a model, according to a DRA {@code dra}.
+	 * @param dra The DRA
+	 * @param model The model
+	 * @param invMap The map returned by the constructProduct method(s)
+	 * @param sccMethod The method to use for SCC detection
+	 * @return
+	 */
+	public BitSet findAcceptingBSCCs(DRA<BitSet> dra, Model model, int invMap[], SCCMethod sccMethod)
 	{
 		// Compute bottom strongly connected components (BSCCs)
-		SCCComputer sccComputer = SCCComputer.createSCCComputer(sccMethod, modelProduct);
+		SCCComputer sccComputer = SCCComputer.createSCCComputer(sccMethod, model);
 		sccComputer.computeBSCCs();
 		List<BitSet> bsccs = sccComputer.getBSCCs();
-
+		
 		int draSize = dra.size();
-
+		int numAcceptancePairs = dra.getNumAcceptancePairs();
 		BitSet result = new BitSet();
+		
 		for (BitSet bscc : bsccs) {
-			int numAcceptancePairs = dra.getNumAcceptancePairs();
 			boolean isLEmpty = true;
 			boolean isKEmpty = true;
 			for (int acceptancePair = 0; acceptancePair < numAcceptancePairs && isLEmpty && isKEmpty; acceptancePair++) {
 				BitSet L = dra.getAcceptanceL(acceptancePair);
 				BitSet K = dra.getAcceptanceK(acceptancePair);
-
 				for (int state = bscc.nextSetBit(0); state != -1; state = bscc.nextSetBit(state + 1)) {
 					int draState = invMap[state] % draSize;
 					isLEmpty &= !L.get(draState);
 					isKEmpty &= !K.get(draState);
 				}
-			}
-
-			if (isLEmpty && !isKEmpty) {
-				// Acceptance condition
-				result.or(bscc);
+				// Stop as soon as we find the first acceptance pair that is satisfied
+				if (isLEmpty && !isKEmpty) {
+					result.or(bscc);
+					break;
+				}
 			}
 		}
 
