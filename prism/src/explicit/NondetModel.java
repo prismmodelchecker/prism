@@ -27,6 +27,8 @@
 package explicit;
 
 import java.util.BitSet;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 /**
  * Interface for (abstract) classes that provide (read-only) access to an explicit-state model with nondeterminism.
@@ -70,4 +72,9 @@ public interface NondetModel extends Model
 	 * @param set The set to test for inclusion
 	 */
 	public boolean someSuccessorsInSet(int s, int i, BitSet set);
+	
+	/**
+	 * Get an iterator over the transitions of state s and action i.
+	 */
+	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s, int i);
 }
