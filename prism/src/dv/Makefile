@@ -35,7 +35,7 @@ O_FILES = $(CC_FILES:%.cc=$(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/%.o)
 
 default: all
 
-all: checks $(CLASS_FILES) $(PRISM_DIR_REL)/$(INCLUDE_DIR)/DoubleVector.h $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)dv$(LIBSUFFIX)
+all: checks $(CLASS_FILES) $(PRISM_DIR_REL)/$(INCLUDE_DIR)/DoubleVector.h $(PRISM_DIR_REL)/$(INCLUDE_DIR)/IntegerVector.h $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)dv$(LIBSUFFIX)
 
 # Try and prevent accidental makes (i.e. called manually, not from top-level Makefile)
 checks:
@@ -48,6 +48,9 @@ $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class: %.java
 
 $(PRISM_DIR_REL)/$(INCLUDE_DIR)/DoubleVector.h: $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/DoubleVector.class
 	($(JAVAH) -classpath $(PRISM_DIR_REL)/$(CLASSES_DIR) -jni -o $@ $(THIS_DIR).DoubleVector; touch $@)
+
+$(PRISM_DIR_REL)/$(INCLUDE_DIR)/IntegerVector.h: $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/IntegerVector.class
+	($(JAVAH) -classpath $(PRISM_DIR_REL)/$(CLASSES_DIR) -jni -o $@ $(THIS_DIR).IntegerVector; touch $@)
 
 $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)dv$(LIBSUFFIX): $(O_FILES)
 	$(LD) $(SHARED) $(LDFLAGS) -o $@ $(O_FILES) $(LIBRARIES)

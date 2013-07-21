@@ -2,8 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
-//	Description: Java wrapper class for double vector
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -31,6 +30,9 @@ import prism.*;
 import jdd.*;
 import odd.*;
 
+/**
+ * Class to encapsulate a vector of doubles, stored natively.
+ */
 public class DoubleVector
 {
 	//------------------------------------------------------------------------------

@@ -27,6 +27,7 @@
 
 #include "dv.h"
 #include "DoubleVector.h"
+#include "DoubleVectorGlob.h"
 #include "jnipointer.h"
 
 #include <math.h>
