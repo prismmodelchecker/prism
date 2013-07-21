@@ -54,20 +54,6 @@
 // for sparse matrices
 #define jlong_to_NDSparseMatrix(x)	(NDSparseMatrix *)jlong_to_ptr(x)
 
-// for simulator
-#define jlong_to_CExpression(x)		(CExpression *)jlong_to_ptr(x)
-#define jlong_to_CRealExpression(x)	(CRealExpression *)jlong_to_ptr(x)
-#define jlong_to_CNormalExpression(x)	(CNormalExpression *)jlong_to_ptr(x)
-
-#define jlong_to_CPathFormula(x)	(CPathFormula *)jlong_to_ptr(x)
-#define jlong_to_CRewardFormula(x)	(CRewardFormula *)jlong_to_ptr(x)
-
-#define jlong_to_CCommand(x)		(CCommand *)jlong_to_ptr(x)
-#define jlong_to_CUpdate(x)		(CUpdate *)jlong_to_ptr(x)
-
-#define jlong_to_CStateReward(x)	(CStateReward *)jlong_to_ptr(x)
-#define jlong_to_CTransitionReward(x)	(CTransitionReward *)jlong_to_ptr(x)
-
 // void* <-> jlong conversions functions
 
 static inline jlong __jlongpointer ptr_to_jlong(void *ptr)
