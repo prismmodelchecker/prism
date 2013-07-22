@@ -37,7 +37,6 @@ import explicit.QuantAbstractRefine;
 
 import java.util.regex.*;
 
-import parser.ast.*;
 import settings.*;
 
 public class PrismSettings implements Observer
@@ -109,6 +108,21 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_PARETO_EPSILON					= "prism.paretoEpsilon";
 	public static final	String PRISM_EXPORT_PARETO_FILENAME			= "prism.exportParetoFileName";
 	
+	public static final	String PRISM_PARAM_ENABLED					= "prism.param.enabled";
+	public static final	String PRISM_PARAM_PRECISION				= "prism.param.precision";
+	public static final	String PRISM_PARAM_SPLIT					= "prism.param.split";
+	public static final	String PRISM_PARAM_BISIM					= "prism.param.bisim";
+	public static final	String PRISM_PARAM_FUNCTION					= "prism.param.function";
+	public static final	String PRISM_PARAM_ELIM_ORDER				= "prism.param.elimOrder";
+	public static final	String PRISM_PARAM_RANDOM_POINTS			= "prism.param.randomPoints";
+	public static final	String PRISM_PARAM_SUBSUME_REGIONS			= "prism.param.subsumeRegions";
+	public static final String PRISM_PARAM_DAG_MAX_ERROR			= "prism.param.functionDagMaxError";
+
+	public static final String PRISM_FAU_DELTA						= "prism.faudelta";
+	public static final String PRISM_FAU_INTERVALS					= "prism.fauintervals";
+	public static final String PRISM_FAU_INITIVAL					= "prism.fauinitival";
+	public static final String PRISM_FAU_ARRAYTHRESHOLD				= "prism.fauarraythreshold";
+
 	//Simulator
 	public static final String SIMULATOR_DEFAULT_NUM_SAMPLES		= "simulator.defaultNumSamples";
 	public static final String SIMULATOR_DEFAULT_CONFIDENCE			= "simulator.defaultConfidence";
@@ -160,23 +174,6 @@ public class PrismSettings implements Observer
 	public static final	String LOG_BG_COLOUR						= "log.bgColour";
 	public static final	String LOG_BUFFER_LENGTH					= "log.bufferLength";
 	
-	// PARAM
-	public static final	String PARAM								= "param";
-	public static final	String PARAM_PRECISION						= "param.precision";
-	public static final	String PARAM_SPLIT							= "param.split";
-	public static final	String PARAM_BISIM							= "param.bisim";
-	public static final	String PARAM_FUNCTION						= "param.function";
-	public static final	String PARAM_ELIM_ORDER						= "param.elimOrder";
-	public static final	String PARAM_RANDOM_POINTS					= "param.randomPoints";
-	public static final	String PARAM_SUBSUME_REGIONS				= "param.subsumeRegions";
-	public static final String PARAM_DAG_MAX_ERROR					= "param.functionDagMaxError";
-
-	//FAU
-	public static final String PRISM_FAU_DELTA						= "prism.faudelta";
-	public static final String PRISM_FAU_INTERVALS					= "prism.fauintervals";
-	public static final String PRISM_FAU_INITIVAL					= "prism.fauinitival";
-	public static final String PRISM_FAU_ARRAYTHRESHOLD				= "prism.fauarraythreshold";
-
 	
 	//Defaults, types and constaints
 	
@@ -186,9 +183,7 @@ public class PrismSettings implements Observer
 		"Simulator",
 		"Model",
 		"Properties",
-		"Log",
-		"PARAM",
-		"FAU"
+		"Log"
 	};
 	public static final int[] propertyOwnerIDs =
 	{
@@ -196,9 +191,7 @@ public class PrismSettings implements Observer
 		PropertyConstants.SIMULATOR,
 		PropertyConstants.MODEL,
 		PropertyConstants.PROPERTIES,
-		PropertyConstants.LOG,
-		PropertyConstants.PARAM,
-		PropertyConstants.FAU		
+		PropertyConstants.LOG		
 	};
 	
 	
@@ -295,6 +288,36 @@ public class PrismSettings implements Observer
 																			"Type of adversary to generate and export during MDP model checking" },
 			{ STRING_TYPE,		PRISM_EXPORT_ADV_FILENAME,				"Adversary export filename",			"3.3",			"adv.tra",																	"",															
 																			"Name of file for MDP adversary export (if enabled)" },
+																		
+			// PARAMETRIC MODEL CHECKING
+			{ BOOLEAN_TYPE,		PRISM_PARAM_ENABLED,					"Do parametric model checking",			"4.1",			new Boolean(false),															"",
+																			"Perform parametric model checking." },
+			{ STRING_TYPE,		PRISM_PARAM_PRECISION,					"Parametric model checking precision",	"4.1",			"5/100",																	"",
+																			"Maximal volume of area to remain undecided in each step when performing parametric model checking." },
+			{ CHOICE_TYPE,		PRISM_PARAM_SPLIT,						"Parametric model checking split method",							"4.1",			"Longest",																	"Longest,All",
+																			"Strategy to use when splitting a region during parametric model checking. Either split on longest side, or split on all sides." },
+			{ CHOICE_TYPE,		PRISM_PARAM_BISIM,						"Parametric model checking bisimulation method",					"4.1",			"Weak",																		"Weak,Strong,None",
+																			"Type of bisimulation used to reduce model size during paramteric model checking. For reward-based properties, weak bisimulation cannot be used." },
+			{ CHOICE_TYPE,		PRISM_PARAM_FUNCTION,					"Parametric model checking function representation",				"4.1",			"JAS-cached",																"JAS-cached,JAS,DAG",
+																			"Type of representation for functions used during parametric model checking." },
+			{ CHOICE_TYPE,		PRISM_PARAM_ELIM_ORDER,					"Parametric model checking state elimination order",			"4.1",			"Backward",																		"Arbitrary,Forward,Forward-reversed,Backward,Backward-reversed,Random",
+																			"Order in which states are eliminated during unbounded parametric model checking analysis." },
+			{ INTEGER_TYPE,		PRISM_PARAM_RANDOM_POINTS,				"Parametric model checking random evaluations",		"4.1",			new Integer(5),																"",
+																			"Number of random points to evaluate per region to increase chance of correctness during parametric model checking." },
+			{ BOOLEAN_TYPE,		PRISM_PARAM_SUBSUME_REGIONS,			"Parametric model checking region subsumption",				"4.1",			new Boolean(true),															"",
+																			"Subsume adjacent regions during parametric model checking." },
+			{ DOUBLE_TYPE,		PRISM_PARAM_DAG_MAX_ERROR,				"Parametric model checking max. DAG error",	"4.1",			new Double(1E-100),															"",
+																			"Maximal error probability (i.e. maximum probability of of a wrong result) in DAG function representation used for parametric model checking." },
+			
+			// FAST ADAPTIVE UNIFORMISATION																
+			{ DOUBLE_TYPE,      PRISM_FAU_DELTA,						"Cut off delta", 						"4.1",   	 	new Double(10E-12),     													"",
+																			"States which get a probability below this number during the fast adaptive analysis will be removed." },
+			{ INTEGER_TYPE,     PRISM_FAU_ARRAYTHRESHOLD,				"Threshold to swap to array mode", 		"4.1",   	 	new Integer(100),    	 													"",
+																			"If this number of iterations happened during fast adaptive uniformisation without changes to the state space, assume that further changes are unlikely." },
+			{ INTEGER_TYPE,     PRISM_FAU_INTERVALS,					"Number of time intervals",				"4.1",   	 	new Integer(1),     														"",
+																			"Splits the time of a time-bounded property into the specified number of intervals." },
+			{ DOUBLE_TYPE,      PRISM_FAU_INITIVAL,						"Length of initial time interval",		"4.1",   	 	new Double(1.0),     														"",	
+																			"Length of initial time interval in addition to regular time intervals." },
 		},
 		{
 			{ INTEGER_TYPE,		SIMULATOR_DEFAULT_NUM_SAMPLES,			"Default number of samples",			"4.0",		new Integer(1000),			"1,",
@@ -354,23 +377,6 @@ public class PrismSettings implements Observer
 			{ FONT_COLOUR_TYPE,	LOG_FONT,								"Display font",							"2.1",			new FontColorPair(new Font("monospaced", Font.PLAIN, 12), Color.black),		"",																							"Font used for the log display." },
 			{ COLOUR_TYPE,		LOG_BG_COLOUR,							"Background colour",					"2.1",			new Color(255,255,255),														"",																							"Background colour for the log display." },
 			{ INTEGER_TYPE,		LOG_BUFFER_LENGTH,						"Buffer length",						"2.1",			new Integer(10000),															"1,",																						"Length of the buffer for the log display." }
-		},
-		{
-			{ BOOLEAN_TYPE,		PARAM,									"Do parametric model checking",			"4.0.4",		new Boolean(false),															"",																							"Perform parametric model checking." },
-			{ STRING_TYPE,		PARAM_PRECISION,						"Precision",							"4.0.4",		"5/100",																	"",																							"Maximal volume of area to remain undecided in each model checking step." },
-			{ CHOICE_TYPE,		PARAM_SPLIT,							"Split method",							"4.0.4",		"longest",																	"longest,all",																				"Strategy to use when a region has to be split. Either split on longest side, or split on all sides." },
-			{ CHOICE_TYPE,		PARAM_BISIM,							"Bisimulation method",					"4.0.4",		"weak",																		"weak,strong,none",																			"Bisimulation type to use to reduce model size. For reward-based properties, weak bisimulation cannot be used." },
-			{ CHOICE_TYPE,		PARAM_FUNCTION,							"Function representation",				"4.0.4",		"jas-cached",																"jas-cached,jas,dag",																			"Type of representation of functions used during parametric analysis." },
-			{ CHOICE_TYPE,		PARAM_ELIM_ORDER,						"Order of state elimination",			"4.0.4",		"backward",																	"arbitrary,forward,forward-reversed,backward,backward-reversed,random",						"Order in which states are eliminated during parametric unbounded analysis." },
-			{ INTEGER_TYPE,		PARAM_RANDOM_POINTS,					"Random evaluations per region",		"4.0.4",		new Integer(5),																"",																							"Number of random points to evaluate per region to increase chance of correctness." },
-			{ BOOLEAN_TYPE,		PARAM_SUBSUME_REGIONS,					"Subsume adjacent regions",				"4.0.4",		new Boolean(true),															"",																							"Subsume regions during parameter synthesis." },
-			{ DOUBLE_TYPE,		PARAM_DAG_MAX_ERROR,					"Maximal error prob for dag functions",	"4.0.4",		new Double(1E-100),															"",																							"Maximal probability of a wrong result in DAG function representation." },
-		},
-		{
-			{ DOUBLE_TYPE,      PRISM_FAU_DELTA,					"Cut off delta", 						"4.0.1",   	 	new Double(10E-12),     													"",																							"States which get a probability below this number during the fast adaptive analysis will be removed." },
-			{ INTEGER_TYPE,     PRISM_FAU_ARRAYTHRESHOLD,			"Threshold to swap to array mode", 		"4.0.1",   	 	new Integer(100),    	 													"",																							"If this number of iterations happened during fast adaptive uniformisation without changes to the state space, assume that further changes are unlikely." },
-			{ INTEGER_TYPE,     PRISM_FAU_INTERVALS,				"Number of time intervals",				"4.0.1",   	 	new Integer(1),     														"",																							"Splits the time of a time-bounded property into the specified number of intervals." },
-			{ DOUBLE_TYPE,      PRISM_FAU_INITIVAL,					"Length of initial time interval",		"4.0.1",   	 	new Double(1.0),     														"",																							"Length of initial time interval in addition to regular time intervals." },
 		}
 	};
 	
@@ -1176,71 +1182,108 @@ public class PrismSettings implements Observer
 			}
 		}
 		
-		// parametric extension
+		// PARAMETRIC MODEL CHECKING:
+		
 		else if (sw.equals("param")) {
-			set(PARAM, true);
+			set(PRISM_PARAM_ENABLED, true);
 		}
 		else if (sw.equals("param-precision")) {
 			if (i < args.length - 1) {
-				set(PARAM_PRECISION, args[++i]);
+				set(PRISM_PARAM_PRECISION, args[++i]);
 			} else {
 				throw new PrismException("No value specified for -" + sw + " switch");
 			}
 		}
-		else if (sw.equals("param-split")) {
+		else if (sw.equals("paramsplit")) {
 			if (i < args.length - 1) {
-				set(PARAM_SPLIT, args[++i]);
+				s = args[++i];
+				if (s.equals("longest"))
+					set(PRISM_PARAM_SPLIT, "Longest");
+				else if (s.equals("all"))
+					set(PRISM_PARAM_SPLIT, "All");
+				else
+					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: longest, all)");
 			} else {
 				throw new PrismException("No value specified for -" + sw + " switch");
 			}
 		}
-		else if (sw.equals("param-bisim")) {
+		else if (sw.equals("parambisim")) {
 			if (i < args.length - 1) {
-				set(PARAM_BISIM, args[++i]);
+				s = args[++i];
+				if (s.equals("strong"))
+					set(PRISM_PARAM_BISIM, "Strong");
+				else if (s.equals("weak"))
+					set(PRISM_PARAM_BISIM, "Weak");
+				else if (s.equals("none"))
+					set(PRISM_PARAM_BISIM, "None");
+				else
+					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: strong, weak, none)");
 			} else {
 				throw new PrismException("No value specified for -" + sw + " switch");
 			}
 		}
-		else if (sw.equals("param-function")) {
+		else if (sw.equals("paramfunction")) {
 			if (i < args.length - 1) {
-				set(PARAM_FUNCTION, args[++i]);
+				s = args[++i];
+				if (s.equals("jascached"))
+					set(PRISM_PARAM_FUNCTION, "JAS-cached");
+				else if (s.equals("jas"))
+					set(PRISM_PARAM_FUNCTION, "JAS");
+				else if (s.equals("dag"))
+					set(PRISM_PARAM_FUNCTION, "DAG");
+				else
+					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: jascached, jas, dag)");
 			} else {
 				throw new PrismException("No value specified for -" + sw + " switch");
 			}
 		}
-		else if (sw.equals("param-elim-order")) {
+		else if (sw.equals("paramelimorder")) {
 			if (i < args.length - 1) {
-				set(PARAM_ELIM_ORDER, args[++i]);
+				s = args[++i];
+				if (s.equals("arb"))
+					set(PRISM_PARAM_ELIM_ORDER, "Arbitrary");
+				else if (s.equals("fw"))
+					set(PRISM_PARAM_ELIM_ORDER, "Forward");
+				else if (s.equals("fwrev"))
+					set(PRISM_PARAM_ELIM_ORDER, "Forward-reversed");
+				else if (s.equals("bw"))
+					set(PRISM_PARAM_ELIM_ORDER, "Backward");
+				else if (s.equals("bwrev"))
+					set(PRISM_PARAM_ELIM_ORDER, "Backward-reversed");
+				else if (s.equals("rand"))
+					set(PRISM_PARAM_ELIM_ORDER, "Random");
+				else
+					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: arb,fw,fwrev,bw,bwrev,rand)");
 			} else {
 				throw new PrismException("No value specified for -" + sw + " switch");
 			}
 		}
-		else if (sw.equals("param-random-points")) {
+		else if (sw.equals("paramrandompoints")) {
 			try {
 				j = Integer.parseInt(args[++i]);
 				if (j < 0)
 					throw new NumberFormatException();
-				set(PARAM_RANDOM_POINTS, j);
+				set(PRISM_PARAM_RANDOM_POINTS, j);
 			} catch (NumberFormatException e) {
 				throw new PrismException("Invalid value for -" + sw + " switch");
 			}
 		}
-		else if (sw.equals("param-subsume-regions")) {
+		else if (sw.equals("paramsubsumeregions")) {
 			boolean b = Boolean.parseBoolean(args[++i]);
-			set(PARAM_SUBSUME_REGIONS, b);
+			set(PRISM_PARAM_SUBSUME_REGIONS, b);
 		}
-		else if (sw.equals("param-dag-max-error")) {
+		else if (sw.equals("paramdagmaxerror")) {
 			try {
 				d = Double.parseDouble(args[++i]);
 				if (d < 0)
 					throw new NumberFormatException();
-				set(PARAM_DAG_MAX_ERROR, d);
+				set(PRISM_PARAM_DAG_MAX_ERROR, d);
 			} catch (NumberFormatException e) {
 				throw new PrismException("Invalid value for -" + sw + " switch");
 			}
 		}
 		
-		// Fast Adaptive Uniformisation
+		// FAST ADAPTIVE UNIFORMISATION
 		
 		// Delta for fast adaptive uniformisation
 		else if (sw.equals("faudelta")) {
@@ -1271,8 +1314,7 @@ public class PrismSettings implements Observer
 				throw new PrismException("No value specified for -" + sw + " switch");
 			}			
 		}
-
-		// number of intervals for fast adaptive uniformisation
+		// Number of intervals for fast adaptive uniformisation
 		else if (sw.equals("fauintervals")) {
 			if (i < args.length - 1) {
 				try {
@@ -1389,21 +1431,21 @@ public class PrismSettings implements Observer
 		mainLog.println("-cuddepsilon <x> ............... Set epsilon value for CUDD package [default: 1e-15]");
 		mainLog.println();
 		mainLog.println("PARAMETRIC MODEL CHECKING OPTIONS:");
-		mainLog.println("-param <vals> .................. Define parameters and their ranges <vals>");
-		mainLog.println("-param-precision <x> ........... Set max undecided region for parameter synthesis [default: 5/100]");
-		mainLog.println("-param-split <name> ............ Set method to split parameter regions (longest,all) [default: longest]");
-		mainLog.println("-param-bisim <name> ............ Set bisimulation minimisation for parameter synthesis (weak,strong,none) [default: weak]");
-		mainLog.println("-param-function <name> ......... Set function representation for parameter synthesis (jas-cached,jas) [default: jas-cached]");
-		mainLog.println("-param-elim-order <name> ....... Set elimination order for parameter synthesis (arbitrary,forward,forward-reversed,backward,backward-reversed,random) [default: backward]");
-		mainLog.println("-param-random-points <n> ....... Set number of random points to evaluate per region [default: 5]");
-		mainLog.println("-param-subsume-regions <b> ..... Subsume adjacent regions during analysis [default: true]");
-		mainLog.println("-param-dag-max-error <b> ....... Maximal error probability allowed for DAG function representation [default: 1E-100]");
+		mainLog.println("-param <vals> .................. Do parametric model checking with parameters (and ranges) <vals>");
+		mainLog.println("-paramprecision <x> ............ Set max undecided region for parameter synthesis [default: 5/100]");
+		mainLog.println("-paramsplit <name> ............. Set method to split parameter regions (longest,all) [default: longest]");
+		mainLog.println("-parambisim <name> ............. Set bisimulation minimisation for parameter synthesis (weak,strong,none) [default: weak]");
+		mainLog.println("-paramfunction <name> .......... Set function representation for parameter synthesis (jascached,jas) [default: jascached]");
+		mainLog.println("-paramelimorder <name> ......... Set elimination order for parameter synthesis (arb,fw,fwrev,bw,bwrev,rand) [default: bw]");
+		mainLog.println("-paramrandompoints <n> ......... Set number of random points to evaluate per region [default: 5]");
+		mainLog.println("-paramsubsumeregions <b> ....... Subsume adjacent regions during analysis [default: true]");
+		mainLog.println("-paramdagmaxerror <b> .......... Maximal error probability allowed for DAG function representation [default: 1E-100]");
 		mainLog.println();
-		mainLog.println("FAST ADAPTIVE UNIFORMISATION OPTIONS:");
-		mainLog.println("-faudelta <x> .................. Set probability threshold for irrelevant states [default: 1e-12]");
-		mainLog.println("-fauarraythreshold <x> ......... Set threshold when to switch to sparse matrix [default: 100]");
-		mainLog.println("-fauintervals <x> .............. Set number of intervals to divide time intervals to [default: 1]");
-		mainLog.println("-fauinitival <x> ............... Set length of additional initial time interval [default: 1.0]");
+		mainLog.println("FAST ADAPTIVE UNIFORMISATION (FAU) OPTIONS:");
+		mainLog.println("-faudelta <x> .................. Set probability threshold for irrelevant states in FAU [default: 1e-12]");
+		mainLog.println("-fauarraythreshold <x> ......... Set threshold when to switch to sparse matrix in FAU [default: 100]");
+		mainLog.println("-fauintervals <x> .............. Set number of intervals to divide time intervals into for FAU [default: 1]");
+		mainLog.println("-fauinitival <x> ............... Set length of additional initial time interval for FAU [default: 1.0]");
 	}
 
 	/**

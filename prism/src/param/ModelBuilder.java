@@ -393,7 +393,7 @@ public final class ModelBuilder {
 	 * @param settings PRISM setting relevant to construct parametric model
 	 */
 	public void setSettings(PrismSettings settings) {
-		functionType = settings.getString(PrismSettings.PARAM_FUNCTION);
-		dagMaxError = settings.getDouble(PrismSettings.PARAM_DAG_MAX_ERROR);
+		functionType = settings.getString(PrismSettings.PRISM_PARAM_FUNCTION);
+		dagMaxError = settings.getDouble(PrismSettings.PRISM_PARAM_DAG_MAX_ERROR);
 	}
 }

@@ -160,8 +160,8 @@ final public class ParamModelChecker
 	public void setSettings(PrismSettings settings) throws PrismException
 	{
 		verbosity = settings.getBoolean(PrismSettings.PRISM_VERBOSE) ? 10 : 1;
-		precision = new BigRational(settings.getString(PrismSettings.PARAM_PRECISION));
-		String splitMethodString = settings.getString(PrismSettings.PARAM_SPLIT);
+		precision = new BigRational(settings.getString(PrismSettings.PRISM_PARAM_PRECISION));
+		String splitMethodString = settings.getString(PrismSettings.PRISM_PARAM_SPLIT);
 		if (splitMethodString.equals("longest")) {
 			splitMethod = BoxRegion.SPLIT_LONGEST;
 		} else if (splitMethodString.equals("all")) {
@@ -169,7 +169,7 @@ final public class ParamModelChecker
 		} else {
 			throw new PrismException("unknown region splitting method " + splitMethodString);				
 		}
-		String eliminationOrderString = settings.getString(PrismSettings.PARAM_ELIM_ORDER);
+		String eliminationOrderString = settings.getString(PrismSettings.PRISM_PARAM_ELIM_ORDER);
 		if (eliminationOrderString.equals("arbitrary")) {
 			eliminationOrder = EliminationOrder.ARBITRARY;
 		} else if (eliminationOrderString.equals("forward")) {
@@ -185,8 +185,8 @@ final public class ParamModelChecker
 		} else {
 			throw new PrismException("unknown state elimination order " + eliminationOrderString);				
 		}
-		numRandomPoints = settings.getInteger(PrismSettings.PARAM_RANDOM_POINTS);
-		String bisimTypeString = settings.getString(PrismSettings.PARAM_BISIM);
+		numRandomPoints = settings.getInteger(PrismSettings.PRISM_PARAM_RANDOM_POINTS);
+		String bisimTypeString = settings.getString(PrismSettings.PRISM_PARAM_BISIM);
 		if (bisimTypeString.equals("weak")) {
 			bisimType = BisimType.WEAK;
 		} else if (bisimTypeString.equals("strong")) {
@@ -196,7 +196,7 @@ final public class ParamModelChecker
 		} else {
 			throw new PrismException("unknown bisimulation type " + bisimTypeString);							
 		}
-		simplifyRegions = settings.getBoolean(PrismSettings.PARAM_SUBSUME_REGIONS);
+		simplifyRegions = settings.getBoolean(PrismSettings.PRISM_PARAM_SUBSUME_REGIONS);
 	}
 
 	/**
