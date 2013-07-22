@@ -43,6 +43,14 @@ import prism.*;
  */
 public class CTMCModelChecker extends DTMCModelChecker
 {
+	/**
+	 * Create a new CTMCModelChecker, inherit basic state from parent (unless null).
+	 */
+	public CTMCModelChecker(PrismComponent parent) throws PrismException
+	{
+		super(parent);
+	}
+	
 	// Model checking functions
 
 	/**
@@ -742,7 +750,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 		BitSet target;
 		Map<String, BitSet> labels;
 		try {
-			mc = new CTMCModelChecker();
+			mc = new CTMCModelChecker(null);
 			ctmc = new CTMCSimple();
 			ctmc.buildFromPrismExplicit(args[0]);
 			//System.out.println(dtmc);

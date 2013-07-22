@@ -52,7 +52,7 @@ public class SCCComputerSCCFind extends SCCComputer
 	
 	// Constructor
 	
-	public SCCComputerSCCFind(Prism prism, JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars)
+	public SCCComputerSCCFind(Prism prism, JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars) throws PrismException
 	{
 		super(prism, reach, trans01, allDDRowVars, allDDColVars);
 	}
@@ -147,7 +147,7 @@ public class SCCComputerSCCFind extends SCCComputer
 			JDD.Ref(edges);
 			pre = preimage(current, edges);
 			current = JDD.And(current, JDD.And(img, pre));
-			if (prism.getVerbose()) {
+			if (settings.getBoolean(PrismSettings.PRISM_VERBOSE)) {
 				mainLog.println("Trimming pass " + i + ":");
 				JDD.PrintVector(current, allDDRowVars);
 				i++;

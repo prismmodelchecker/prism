@@ -35,9 +35,8 @@ import jdd.*;
  * Abstract class for classes that compute (B)SCCs,
  * i.e. (bottom) strongly connected components, for a model's transition graph.
  */
-public abstract class SCCComputer
+public abstract class SCCComputer extends PrismComponent
 {
-	protected Prism prism;
 	protected PrismLog mainLog;
 
 	// model info
@@ -56,10 +55,9 @@ public abstract class SCCComputer
 	// Get methods
 	
 	// Constructor
-	public SCCComputer(Prism prism, JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars)
+	public SCCComputer(Prism prism, JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars) throws PrismException
 	{
-		this.prism = prism;
-		mainLog = prism.getMainLog();
+		super(prism);
 		this.trans01 = trans01;
 		this.reach = reach;
 		this.allDDRowVars = allDDRowVars;

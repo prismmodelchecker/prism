@@ -30,6 +30,7 @@ import java.util.BitSet;
 import java.util.Map;
 
 import parser.ast.ExpressionTemporal;
+import prism.PrismComponent;
 import prism.PrismException;
 
 /**
@@ -40,6 +41,16 @@ import prism.PrismException;
  */
 public class CTMDPModelChecker extends MDPModelChecker
 {
+	/**
+	 * Create a new CTMDPModelChecker, inherit basic state from parent (unless null).
+	 */
+	public CTMDPModelChecker(PrismComponent parent) throws PrismException
+	{
+		super(parent);
+	}
+	
+	// Model checking functions
+
 	protected StateValues checkProbBoundedUntil(Model model, ExpressionTemporal expr, boolean min) throws PrismException
 	{
 		double uTime;
@@ -115,7 +126,7 @@ public class CTMDPModelChecker extends MDPModelChecker
 		mainLog.println("q = " + q + ", k = " + k + ", tau = " + tau);
 		mdp = ctmdp.buildDiscretisedMDP(tau);
 		mainLog.println(mdp);
-		mc = new MDPModelChecker();
+		mc = new MDPModelChecker(null);
 		mc.inheritSettings(this);
 		res = mc.computeBoundedUntilProbs(mdp, null, target, k, min);
 
@@ -243,7 +254,7 @@ public class CTMDPModelChecker extends MDPModelChecker
 		Map<String, BitSet> labels;
 		boolean min = true;
 		try {
-			mc = new CTMDPModelChecker();
+			mc = new CTMDPModelChecker(null);
 			ctmdp = new CTMDPSimple();
 			ctmdp.buildFromPrismExplicit(args[0]);
 			System.out.println(ctmdp);

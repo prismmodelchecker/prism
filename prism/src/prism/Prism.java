@@ -36,7 +36,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import jdd.JDD;
 import jdd.JDDNode;
@@ -57,7 +56,6 @@ import parser.ast.LabelList;
 import parser.ast.ModulesFile;
 import parser.ast.PropertiesFile;
 import parser.ast.Property;
-import parser.type.TypeBool;
 import pta.DigitalClocks;
 import pta.PTAModelChecker;
 import simulator.GenerateSimulationPath;
@@ -79,7 +77,7 @@ import explicit.FastAdaptiveUniformisationModelChecker;
  * Main class for all PRISM's core functionality.
  * This is independent of the user interface (command line or gui).
  */
-public class Prism implements PrismSettingsListener
+public class Prism extends PrismComponent implements PrismSettingsListener
 {
 	/** PRISM version (e.g. "4.0.3"). Read from prism.Version. */
 	private static String version = prism.Version.versionString;
@@ -159,9 +157,6 @@ public class Prism implements PrismSettingsListener
 	// Settings / flags / options
 	//------------------------------------------------------------------------------
 
-	// Main PRISM settings
-	private PrismSettings settings;
-
 	// Export parsed PRISM model?
 	protected boolean exportPrism = false;
 	protected File exportPrismFile = null;
@@ -210,8 +205,7 @@ public class Prism implements PrismSettingsListener
 	// Logs
 	//------------------------------------------------------------------------------
 
-	private PrismLog mainLog; // one log for most output
-	private PrismLog techLog; // another one for technical/diagnostic output
+	private PrismLog techLog; // log for technical/diagnostic output
 
 	//------------------------------------------------------------------------------
 	// Parsers/translators/model checkers/simulators/etc.
@@ -975,7 +969,7 @@ public class Prism implements PrismSettingsListener
 	 * Get an SCCComputer object.
 	 * Type (i.e. algorithm) depends on SCCMethod PRISM option.
 	 */
-	public SCCComputer getSCCComputer(Model model)
+	public SCCComputer getSCCComputer(Model model) throws PrismException
 	{
 		return getSCCComputer(model.getReach(), model.getTrans01(), model.getAllDDRowVars(), model.getAllDDColVars());
 	}
@@ -984,7 +978,7 @@ public class Prism implements PrismSettingsListener
 	 * Get an SCCComputer object.
 	 * Type (i.e. algorithm) depends on SCCMethod PRISM option.
 	 */
-	public SCCComputer getSCCComputer(JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars)
+	public SCCComputer getSCCComputer(JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars) throws PrismException
 	{
 		SCCComputer sccComputer;
 		switch (getSCCMethod()) {
@@ -2900,9 +2894,7 @@ public class Prism implements PrismSettingsListener
 			}
 		} else {
 			if (currentModelExpl.getModelType() == ModelType.DTMC) {
-				DTMCModelChecker mcDTMC = new DTMCModelChecker();
-				mcDTMC.setLog(mainLog);
-				mcDTMC.setSettings(settings);
+				DTMCModelChecker mcDTMC = new DTMCModelChecker(this);
 				probsExpl = mcDTMC.doSteadyState((DTMC) currentModelExpl, (File) null);
 				//TODO: probsExpl = mcDTMC.doSteadyState((DTMC) currentModelExpl, fileIn);
 			} else if (currentModelType == ModelType.CTMC) {
@@ -3013,9 +3005,7 @@ public class Prism implements PrismSettingsListener
 			if (currentModelType == ModelType.DTMC) {
 				throw new PrismException("Not implemented yet");
 			} else if (currentModelType == ModelType.CTMC) {
-				CTMCModelChecker mcCTMC = new CTMCModelChecker();
-				mcCTMC.setLog(mainLog);
-				mcCTMC.setSettings(settings);
+				CTMCModelChecker mcCTMC = new CTMCModelChecker(this);
 				probsExpl = mcCTMC.doTransient((CTMC) currentModelExpl, time, fileIn);
 			} else {
 				throw new PrismException("Transient probabilities only computed for DTMCs/CTMCs");
@@ -3121,9 +3111,7 @@ public class Prism implements PrismSettingsListener
 				}
 			} else {
 				if (currentModelType.continuousTime()) {
-					CTMCModelChecker mc = new CTMCModelChecker();
-					mc.setLog(mainLog);
-					mc.setSettings(settings);
+					CTMCModelChecker mc = new CTMCModelChecker(this);
 					if (i == 0) {
 						initDistExpl = mc.readDistributionFromFile(fileIn, currentModelExpl);
 						initTimeDouble = 0;
@@ -3271,9 +3259,7 @@ public class Prism implements PrismSettingsListener
 	private explicit.StateModelChecker createModelCheckerExplicit(PropertiesFile propertiesFile) throws PrismException
 	{
 		// Create model checker
-		explicit.StateModelChecker mc = explicit.StateModelChecker.createModelChecker(currentModelType);
-		mc.setLog(mainLog);
-		mc.setSettings(settings);
+		explicit.StateModelChecker mc = explicit.StateModelChecker.createModelChecker(currentModelType, this);
 		mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);
 		// Pass any additional local settings
 		mc.setGenStrat(genStrat);

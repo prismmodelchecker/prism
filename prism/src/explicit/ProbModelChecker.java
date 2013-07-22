@@ -34,6 +34,7 @@ import parser.ast.ExpressionReward;
 import parser.ast.ExpressionSS;
 import parser.ast.RewardStruct;
 import prism.ModelType;
+import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismSettings;
 import explicit.rewards.ConstructRewards;
@@ -135,6 +136,14 @@ public class ProbModelChecker extends StateModelChecker
 		VALUE_ITERATION, GAUSS_SEIDEL, POLICY_ITERATION, MODIFIED_POLICY_ITERATION, LINEAR_PROGRAMMING
 	};
 
+	/**
+	 * Create a new ProbModelChecker, inherit basic state from parent (unless null).
+	 */
+	public ProbModelChecker(PrismComponent parent) throws PrismException
+	{
+		super(parent);
+	}
+	
 	// Settings methods
 
 	/**

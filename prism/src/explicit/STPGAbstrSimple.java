@@ -1138,7 +1138,7 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 			System.out.println(stpg);
 
 			// Model check
-			mc = new STPGModelChecker();
+			mc = new STPGModelChecker(null);
 			//mc.setVerbosity(2);
 			target = new BitSet();
 			target.set(3);

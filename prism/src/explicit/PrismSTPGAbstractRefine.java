@@ -106,7 +106,7 @@ public class PrismSTPGAbstractRefine extends QuantAbstractRefine
 		}
 
 		// Get initial/target (concrete) states
-		labels = new StateModelChecker().loadLabelsFile(labFile);
+		labels = new StateModelChecker(null).loadLabelsFile(labFile);
 		initialConcrete = labels.get("init");
 		targetConcrete = labels.get(targetLabel);
 		if (targetConcrete == null)
@@ -361,7 +361,7 @@ public class PrismSTPGAbstractRefine extends QuantAbstractRefine
 		ModelCheckerResult res = null;
 		switch (modelType) {
 		case DTMC:
-			DTMCModelChecker mcDtmc = new DTMCModelChecker();
+			DTMCModelChecker mcDtmc = new DTMCModelChecker(null);
 			mcDtmc.inheritSettings(mcOptions);
 			switch (propertyType) {
 			case PROB_REACH:
@@ -375,7 +375,7 @@ public class PrismSTPGAbstractRefine extends QuantAbstractRefine
 			}
 			break;
 		case CTMC:
-			CTMCModelChecker mcCtmc = new CTMCModelChecker();
+			CTMCModelChecker mcCtmc = new CTMCModelChecker(null);
 			mcCtmc.inheritSettings(mcOptions);
 			switch (propertyType) {
 			/*case PROB_REACH:
@@ -389,7 +389,7 @@ public class PrismSTPGAbstractRefine extends QuantAbstractRefine
 			}
 			break;
 		case MDP:
-			MDPModelChecker mcMdp = new MDPModelChecker();
+			MDPModelChecker mcMdp = new MDPModelChecker(null);
 			mcMdp.inheritSettings(mcOptions);
 			switch (propertyType) {
 			case PROB_REACH:

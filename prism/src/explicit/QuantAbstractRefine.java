@@ -152,7 +152,11 @@ public abstract class QuantAbstractRefine
 		// By default, log output goes to System.out.
 		setLog(new PrismPrintStreamLog(System.out));
 		// Create dummy model checker to store options
-		mcOptions = new ProbModelChecker();
+		try {
+			mcOptions = new ProbModelChecker(null);
+		} catch (PrismException e) {
+			// Won't happen
+		}
 	}
 
 	/**
@@ -467,15 +471,15 @@ public abstract class QuantAbstractRefine
 		switch (modelType) {
 		case DTMC:
 			abstractionType = ModelType.MDP;
-			mc = new MDPModelChecker();
+			mc = new MDPModelChecker(null);
 			break;
 		case CTMC:
 			abstractionType = ModelType.CTMDP;
-			mc = new CTMDPModelChecker();
+			mc = new CTMDPModelChecker(null);
 			break;
 		case MDP:
 			abstractionType = ModelType.STPG;
-			mc = new STPGModelChecker();
+			mc = new STPGModelChecker(null);
 			break;
 		default:
 			throw new PrismException("Cannot handle model type " + modelType);

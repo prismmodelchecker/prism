@@ -63,27 +63,23 @@ import parser.type.TypeDouble;
 import parser.type.TypeInt;
 import prism.Filter;
 import prism.ModelType;
+import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismLangException;
-import prism.PrismLog;
-import prism.PrismPrintStreamLog;
 import prism.PrismSettings;
 import prism.Result;
 
 /**
  * Super class for explicit-state model checkers
  */
-public class StateModelChecker
+public class StateModelChecker extends PrismComponent
 {
-	// Log for output (default to System.out)
-	protected PrismLog mainLog = new PrismPrintStreamLog(System.out);
-
-	// PRISM settings object
-	//protected PrismSettings settings = new PrismSettings();
-
-	// Flags/settings
+	// Flags/settings that can be extracted from PrismSettings
 	// (NB: defaults do not necessarily coincide with PRISM)
 
+	// Verbosity level
+	protected int verbosity = 0;
+	
 	// Method used for numerical solution
 	protected SCCMethod sccMethod = SCCMethod.TARJAN;
 
@@ -91,6 +87,7 @@ public class StateModelChecker
 	
 	// Generate/store a strategy during model checking?
 	protected boolean genStrat = false;
+	
 	
 	// Model file (for reward structures, etc.)
 	protected ModulesFile modulesFile = null;
@@ -108,69 +105,47 @@ public class StateModelChecker
 	protected Result result;
 
 	/**
+	 * Create a new StateModelChecker, inherit basic state from parent (unless null).
+	 */
+	public StateModelChecker(PrismComponent parent) throws PrismException
+	{
+		super(parent);
+	}
+	
+	/**
 	 * Create a model checker (a subclass of this one) for a given model type
 	 */
 	public static StateModelChecker createModelChecker(ModelType modelType) throws PrismException
 	{
+		return createModelChecker(modelType, null);
+	}
+	
+	/**
+	 * Create a model checker (a subclass of this one) for a given model type
+	 */
+	public static StateModelChecker createModelChecker(ModelType modelType, PrismComponent parent) throws PrismException
+	{
 		explicit.StateModelChecker mc = null;
 		switch (modelType) {
 		case DTMC:
-			mc = new DTMCModelChecker();
+			mc = new DTMCModelChecker(parent);
 			break;
 		case MDP:
-			mc = new MDPModelChecker();
+			mc = new MDPModelChecker(parent);
 			break;
 		case CTMC:
-			mc = new CTMCModelChecker();
+			mc = new CTMCModelChecker(parent);
 			break;
 		case CTMDP:
-			mc = new CTMDPModelChecker();
+			mc = new CTMDPModelChecker(parent);
 			break;
 		case STPG:
-			mc = new STPGModelChecker();
+			mc = new STPGModelChecker(parent);
 			break;
 		default:
 			throw new PrismException("Cannot create model checker for model type " + modelType);
 		}
 		return mc;
-	}
-
-	// Flags/settings
-
-	// Verbosity level
-	protected int verbosity = 0;
-
-	// Setters/getters
-
-	/**
-	 * Set log for output.
-	 */
-	public void setLog(PrismLog log)
-	{
-		this.mainLog = log;
-	}
-
-	/**
-	 * Get log for output.
-	 */
-	public PrismLog getLog()
-	{
-		return mainLog;
-	}
-
-	/**
-	 * Set the attached model file (for e.g. reward structures when model checking)
-	 * and the attached properties file (for e.g. constants/labels when model checking)
-	 */
-	public void setModulesFileAndPropertiesFile(ModulesFile modulesFile, PropertiesFile propertiesFile)
-	{
-		this.modulesFile = modulesFile;
-		this.propertiesFile = propertiesFile;
-		// Get combined constant values from model/properties
-		constantValues = new Values();
-		constantValues.addValues(modulesFile.getConstantValues());
-		if (propertiesFile != null)
-			constantValues.addValues(propertiesFile.getConstantValues());
 	}
 
 	// Settings methods
@@ -180,6 +155,8 @@ public class StateModelChecker
 	 */
 	public void setSettings(PrismSettings settings) throws PrismException
 	{
+		super.setSettings(settings);
+		
 		if (settings == null)
 			return;
 
@@ -234,6 +211,23 @@ public class StateModelChecker
 	public boolean getGenStrat()
 	{
 		return genStrat;
+	}
+
+	// Other setters/getters
+
+	/**
+	 * Set the attached model file (for e.g. reward structures when model checking)
+	 * and the attached properties file (for e.g. constants/labels when model checking)
+	 */
+	public void setModulesFileAndPropertiesFile(ModulesFile modulesFile, PropertiesFile propertiesFile)
+	{
+		this.modulesFile = modulesFile;
+		this.propertiesFile = propertiesFile;
+		// Get combined constant values from model/properties
+		constantValues = new Values();
+		constantValues.addValues(modulesFile.getConstantValues());
+		if (propertiesFile != null)
+			constantValues.addValues(propertiesFile.getConstantValues());
 	}
 
 	// Model checking functions

@@ -34,6 +34,7 @@ import java.util.Map;
 import parser.ast.Expression;
 import parser.ast.ExpressionTemporal;
 import parser.ast.ExpressionUnaryOp;
+import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLog;
@@ -45,6 +46,14 @@ import explicit.rewards.STPGRewards;
  */
 public class STPGModelChecker extends ProbModelChecker
 {
+	/**
+	 * Create a new STPGModelChecker, inherit basic state from parent (unless null).
+	 */
+	public STPGModelChecker(PrismComponent parent) throws PrismException
+	{
+		super(parent);
+	}
+	
 	// Model checking functions
 
 	/**
@@ -1060,7 +1069,7 @@ public class STPGModelChecker extends ProbModelChecker
 		Map<String, BitSet> labels;
 		boolean min1 = true, min2 = true;
 		try {
-			mc = new STPGModelChecker();
+			mc = new STPGModelChecker(null);
 			stpg = new STPGAbstrSimple();
 			stpg.buildFromPrismExplicit(args[0]);
 			//System.out.println(stpg);

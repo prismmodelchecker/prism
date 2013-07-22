@@ -40,6 +40,7 @@ import parser.type.TypeDouble;
 import parser.visitor.ASTTraverse;
 import prism.DRA;
 import prism.Pair;
+import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismLangException;
 import prism.PrismUtils;
@@ -50,6 +51,14 @@ import explicit.rewards.MCRewards;
  */
 public class DTMCModelChecker extends ProbModelChecker
 {
+	/**
+	 * Create a new DTMCModelChecker, inherit basic state from parent (unless null).
+	 */
+	public DTMCModelChecker(PrismComponent parent) throws PrismException
+	{
+		super(parent);
+	}
+	
 	// Model checking functions
 
 	/**
@@ -253,7 +262,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		mainLog.println("\nFinding accepting BSCCs...");
 		BitSet acceptingBSCCs = mcLtl.findAcceptingBSCCs(dra, modelProduct, invMap, sccMethod);
 		mainLog.println("\nComputing reachability probabilities...");
-		mcProduct = new DTMCModelChecker();
+		mcProduct = new DTMCModelChecker(this);
 		probsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachProbs((DTMC) modelProduct, acceptingBSCCs).soln, modelProduct);
 
 		// Mapping probabilities in the original model
@@ -1619,7 +1628,7 @@ public class DTMCModelChecker extends ProbModelChecker
 
 				// 1. Read in from .tra and .lab files
 				//    Run as: PRISM_MAINCLASS=explicit.DTMCModelChecker bin/prism dtmc.tra dtmc.lab target_label
-				mc = new DTMCModelChecker();
+				mc = new DTMCModelChecker(null);
 				dtmc = new DTMCSimple();
 				dtmc.buildFromPrismExplicit(args[0]);
 				//System.out.println(dtmc);
@@ -1640,7 +1649,7 @@ public class DTMCModelChecker extends ProbModelChecker
 				// 2. Build DTMC directly
 				//    Run as: PRISM_MAINCLASS=explicit.DTMCModelChecker bin/prism
 				//    (example taken from p.14 of Lec 5 of http://www.prismmodelchecker.org/lectures/pmc/) 
-				mc = new DTMCModelChecker();
+				mc = new DTMCModelChecker(null);
 				dtmc = new DTMCSimple(6);
 				dtmc.setProbability(0, 1, 0.1);
 				dtmc.setProbability(0, 2, 0.9);

@@ -37,7 +37,7 @@ public class SCCComputerXB extends SCCComputer
 {
 	// Constructor
 	
-	public SCCComputerXB(Prism prism, JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars)
+	public SCCComputerXB(Prism prism, JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars) throws PrismException
 	{
 		super(prism, reach, trans01, allDDRowVars, allDDColVars);
 	}

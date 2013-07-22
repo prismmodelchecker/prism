@@ -51,7 +51,7 @@ public class SCCComputerLockstep extends SCCComputer
 	
 	// Constructor
 	
-	public SCCComputerLockstep(Prism prism, JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars)
+	public SCCComputerLockstep(Prism prism, JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars) throws PrismException
 	{
 		super(prism, reach, trans01, allDDRowVars, allDDColVars);
 	}
