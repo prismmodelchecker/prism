@@ -347,7 +347,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	public void setEngine(int e) throws PrismException
 	{
-		settings.set(PrismSettings.PRISM_ENGINE, e - 1); // note index offset correction
+		settings.setChoice(PrismSettings.PRISM_ENGINE, e);
 	}
 
 	public void setVerbose(boolean b) throws PrismException
@@ -392,7 +392,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	public void setLinEqMethod(int i) throws PrismException
 	{
-		settings.set(PrismSettings.PRISM_LIN_EQ_METHOD, i - 1); // note index offset correction
+		settings.setChoice(PrismSettings.PRISM_LIN_EQ_METHOD, i);
 	}
 
 	public void setLinEqMethodParam(double d) throws PrismException
@@ -402,17 +402,17 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	public void setMDPSolnMethod(int i) throws PrismException
 	{
-		settings.set(PrismSettings.PRISM_MDP_SOLN_METHOD, i - 1); // note index offset correction
+		settings.setChoice(PrismSettings.PRISM_MDP_SOLN_METHOD, i);
 	}
 
 	public void setMDPMultiSolnMethod(int i) throws PrismException
 	{
-		settings.set(PrismSettings.PRISM_MDP_MULTI_SOLN_METHOD, i - 1); // note index offset correction
+		settings.setChoice(PrismSettings.PRISM_MDP_MULTI_SOLN_METHOD, i);
 	}
 
 	public void setTermCrit(int i) throws PrismException
 	{
-		settings.set(PrismSettings.PRISM_TERM_CRIT, i - 1); // note index offset correction
+		settings.setChoice(PrismSettings.PRISM_TERM_CRIT, i);
 	}
 
 	public void setTermCritParam(double d) throws PrismException
@@ -472,12 +472,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	public void setSCCMethod(int i) throws PrismException
 	{
-		settings.set(PrismSettings.PRISM_SCC_METHOD, i - 1); // note index offset correction
+		settings.setChoice(PrismSettings.PRISM_SCC_METHOD, i);
 	}
 
 	public void setExportAdv(int i) throws PrismException
 	{
-		settings.set(PrismSettings.PRISM_EXPORT_ADV, i - 1); // note index offset correction
+		settings.setChoice(PrismSettings.PRISM_EXPORT_ADV, i);
 	}
 
 	public void setExportAdvFilename(String s) throws PrismException
@@ -648,8 +648,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	public int getEngine()
 	{
-		return settings.getInteger(PrismSettings.PRISM_ENGINE) + 1;
-	} //note the correction
+		return settings.getInteger(PrismSettings.PRISM_ENGINE);
+	}
 
 	/**
 	 * Is the current engine "Explicit"?
@@ -671,8 +671,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	public int getLinEqMethod()
 	{
-		return settings.getInteger(PrismSettings.PRISM_LIN_EQ_METHOD) + 1;
-	} //NOTE THE CORRECTION for the ChoiceSetting index
+		return settings.getChoice(PrismSettings.PRISM_LIN_EQ_METHOD);
+	}
 
 	public double getLinEqMethodParam()
 	{
@@ -681,18 +681,18 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	public int getMDPSolnMethod()
 	{
-		return settings.getInteger(PrismSettings.PRISM_MDP_SOLN_METHOD) + 1;
-	} //NOTE THE CORRECTION for the ChoiceSetting index
+		return settings.getChoice(PrismSettings.PRISM_MDP_SOLN_METHOD);
+	}
 
 	public int getMDPMultiSolnMethod()
 	{
-		return settings.getInteger(PrismSettings.PRISM_MDP_MULTI_SOLN_METHOD) + 1;
-	} //NOTE THE CORRECTION for the ChoiceSetting index
+		return settings.getChoice(PrismSettings.PRISM_MDP_MULTI_SOLN_METHOD);
+	}
 
 	public int getTermCrit()
 	{
-		return settings.getInteger(PrismSettings.PRISM_TERM_CRIT) + 1;
-	} //NOTE THE CORRECTION for the ChoiceSetting index
+		return settings.getChoice(PrismSettings.PRISM_TERM_CRIT);
+	}
 
 	public double getTermCritParam()
 	{
@@ -781,13 +781,13 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	public int getSCCMethod()
 	{
-		return settings.getInteger(PrismSettings.PRISM_SCC_METHOD) + 1;
-	} //NOTE THE CORRECTION for the ChoiceSetting index
+		return settings.getChoice(PrismSettings.PRISM_SCC_METHOD);
+	}
 
 	public int getExportAdv()
 	{
-		return settings.getInteger(PrismSettings.PRISM_EXPORT_ADV) + 1;
-	} //NOTE THE CORRECTION for the ChoiceSetting index
+		return settings.getChoice(PrismSettings.PRISM_EXPORT_ADV);
+	}
 
 	public String getExportAdvFilename()
 	{

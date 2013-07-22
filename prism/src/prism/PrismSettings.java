@@ -1495,6 +1495,17 @@ public class PrismSettings implements Observer
 		}
 	}
 	
+	/**
+	 * Set the value for an option of type CHOICE_TYPE,
+	 * with the option key given as a String, and the value as an integer index.
+	 * This method exists to allow setting directly using 1-indexed values.
+	 */
+	public synchronized void setChoice(String key, int value) throws PrismException
+	{
+		// Adjust by 1
+		set(key, value - 1);
+	}
+	
 	public synchronized void setFileSelector(String key, FileSelector select)
 	{
 		Setting set = settingFromHash(key);
@@ -1554,6 +1565,17 @@ public class PrismSettings implements Observer
 			return ((BooleanSetting)set).getBooleanValue();
 		}
 		else return DEFAULT_BOOLEAN;
+	}
+	
+	public synchronized int getChoice(String key)
+	{
+		Setting set = settingFromHash(key);
+		if(set instanceof ChoiceSetting)
+		{
+			// Adjust by 1
+			return ((ChoiceSetting)set).getCurrentIndex() + 1;
+		}
+		else return DEFAULT_INT;
 	}
 	
 	public synchronized Color getColor(String key)
