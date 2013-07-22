@@ -67,13 +67,21 @@ public class DoubleVector
 	// instance variables/methods
 	//------------------------------------------------------------------------------
 
-	// data
-	private long v; // vector (actually a C/C++ pointer cast to a long)
-	private int n; // size
+	/**
+	 * Vector contents (C/C++ pointer cast to a long)
+	 */
+	private long v;
+	/**
+	 * Size of vector
+	 */
+	private int n;
 	
 	// constructors
 	
-	private native long DV_CreateZeroVector(int n);
+	/**
+	 * Create a new DoubleVector of size {@code size} with all entries set to 0.
+	 * @throws PrismException if there is insufficient memory to create the array.
+	 */
 	public DoubleVector(int size) throws PrismException
 	{
 		v = DV_CreateZeroVector(size);
@@ -81,19 +89,28 @@ public class DoubleVector
 		n = size;
 	}
 	
+	private native long DV_CreateZeroVector(int n);
+	
+	/**
+	 * Create a new DoubleVector from a pointer {@code vect} to an existing native double array of size {@code size}.
+	 */
 	public DoubleVector(long vector, int size)
 	{
 		v = vector;
 		n = size;
 	}
 	
-	private native long DV_ConvertMTBDD(long dd, long vars, int num_vars, long odd);
+	/**
+	 * Create a new DoubleVector from an existing MTBDD representation of an array.
+	 */
 	public DoubleVector(JDDNode dd, JDDVars vars, ODDNode odd)
 	{
 		v = DV_ConvertMTBDD(dd.ptr(), vars.array(), vars.n(), odd.ptr());
 		n = (int)(odd.getEOff() + odd.getTOff());
 	}
 	
+	private native long DV_ConvertMTBDD(long dd, long vars, int num_vars, long odd);
+
 	// get methods
 	
 	public long getPtr()
