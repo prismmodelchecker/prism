@@ -76,6 +76,8 @@ public class StateModelChecker implements ModelChecker
 	protected double termCritParam;
 	// Verbose mode?
 	protected boolean verbose;
+	// Generate/store a strategy during model checking?
+	protected boolean genStrat = false;
 
 	// Constructor
 
@@ -107,6 +109,7 @@ public class StateModelChecker implements ModelChecker
 		engine = prism.getEngine();
 		termCritParam = prism.getTermCritParam();
 		verbose = prism.getVerbose();
+		genStrat = prism.getGenStrat();
 	}
 
 	/**

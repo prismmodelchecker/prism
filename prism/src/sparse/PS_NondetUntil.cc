@@ -57,7 +57,8 @@ jlong __jlongpointer ndv,	// nondet vars
 jint num_ndvars,
 jlong __jlongpointer y,		// 'yes' states
 jlong __jlongpointer m,		// 'maybe' states
-jboolean min				// min or max probabilities (true = min, false = max)
+jboolean min,				// min or max probabilities (true = min, false = max)
+jlong _strat				// strategy storage
 )
 {
 	// cast function parameters
@@ -69,6 +70,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	DdNode **ndvars = jlong_to_DdNode_array(ndv);	// nondet vars
 	DdNode *yes = jlong_to_DdNode(y);				// 'yes' states
 	DdNode *maybe = jlong_to_DdNode(m); 			// 'maybe' states
+	int *strat = (int *)jlong_to_ptr(_strat);		// strategy storage
 
 	// mtbdds
 	DdNode *a = NULL, *tmp = NULL;
@@ -139,7 +141,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	
 	// if needed, and if info is available, build a vector of action indices for the MDP
 	actions = NULL;
-	if (export_adv_enabled != EXPORT_ADV_NONE) {
+	if (export_adv_enabled != EXPORT_ADV_NONE || strat != NULL) {
 		if (trans_actions != NULL) {
 			PS_PrintToMainLog(env, "Building action information... ");
 			// first need to filter out unwanted rows
@@ -175,9 +177,9 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	PS_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
 	
 	// if required, create storage for adversary and initialise
-	if (export_adv_enabled != EXPORT_ADV_NONE) {
+	if (export_adv_enabled != EXPORT_ADV_NONE || strat != NULL) {
 		PS_PrintToMainLog(env, "Allocating adversary vector... ");
-		adv = new int[n];
+		adv = (strat == NULL) ? new int[n] : strat;
 		kb = n*sizeof(int)/1024.0;
 		kbt += kb;
 		PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
@@ -249,7 +251,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 				if (first || (min&&(d2<d1)) || (!min&&(d2>d1))) {
 					d1 = d2;
 					// if adversary generation is enabled, remember optimal choice
-					if (export_adv_enabled != EXPORT_ADV_NONE) {
+					if (export_adv_enabled != EXPORT_ADV_NONE || strat != NULL) {
 						// for max, only remember strictly better choices
 						// (this resolves problems with end components)
 						if (!min) {
@@ -340,6 +342,13 @@ jboolean min				// min or max probabilities (true = min, false = max)
 		fclose(fp_adv);
 		PS_PrintToMainLog(env, "\nAdversary written to file \"%s\".\n", export_adv_filename);
 	}
+		
+	// convert strategy indices from choices to actions
+	if (strat != NULL) {
+		for (i = 0; i < n; i++) {
+			if (adv[i] > 0) strat[i] = actions[adv[i]] - 1;
+		}
+	}
 	
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
@@ -353,7 +362,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	if (ndsm) delete ndsm;
 	if (yes_vec) delete[] yes_vec;
 	if (soln2) delete[] soln2;
-	if (adv) delete[] adv;
+	//if (strat == NULL && adv) delete[] adv;
 	if (actions != NULL) {
 		delete[] actions;
 		release_string_array_from_java(env, action_names_jstrings, action_names, num_actions);

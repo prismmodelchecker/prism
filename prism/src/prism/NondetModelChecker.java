@@ -29,11 +29,8 @@
 
 package prism;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.*;
 
 import odd.ODDUtils;
@@ -42,6 +39,7 @@ import jdd.*;
 import dv.*;
 import mtbdd.*;
 import sparse.*;
+import strat.MDStrategyIV;
 import hybrid.*;
 import parser.ast.*;
 import parser.visitor.ASTTraverse;
@@ -1963,7 +1961,17 @@ public class NondetModelChecker extends NonProbModelChecker
 					probs = new StateValuesMTBDD(probsMTBDD, model);
 					break;
 				case Prism.SPARSE:
-					probsDV = PrismSparse.NondetUntil(tr, tra, model.getSynchs(), odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min);
+					IntegerVector strat = null;
+					if (genStrat) {
+						strat = new IntegerVector((int) model.getNumStates());
+					}
+					probsDV = PrismSparse.NondetUntil(tr, tra, model.getSynchs(), odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min, strat);
+					if (genStrat) {
+						mainLog.println();
+						MDStrategyIV strategy = new MDStrategyIV(model, strat);
+						strategy.exportActions(mainLog);
+						strategy.clear();
+					}
 					probs = new StateValuesDV(probsDV, model);
 					break;
 				case Prism.HYBRID:

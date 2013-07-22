@@ -54,13 +54,21 @@ public class IntegerVector
 	// instance variables/methods
 	//------------------------------------------------------------------------------
 
-	// data
-	private long v; // vector (actually a C/C++ pointer cast to a long)
-	private int n; // size
+	/**
+	 * Vector contents (C/C++ pointer cast to a long)
+	 */
+	private long v;
+	/**
+	 * Size of vector
+	 */
+	private int n;
 	
 	// constructors
 	
-	private native long IV_CreateZeroVector(int n);
+	/**
+	 * Create a new IntegerVector of size {@code size} with all entries set to 0.
+	 * @throws PrismException if there is insufficient memory to create the array.
+	 */
 	public IntegerVector(int size) throws PrismException
 	{
 		v = IV_CreateZeroVector(size);
@@ -68,6 +76,11 @@ public class IntegerVector
 		n = size;
 	}
 	
+	private native long IV_CreateZeroVector(int n);
+	
+	/**
+	 * Create a new IntegerVector from a pointer {@code vect} to an existing native integer array of size {@code size}.
+	 */
 	public IntegerVector(long vector, int size)
 	{
 		v = vector;
