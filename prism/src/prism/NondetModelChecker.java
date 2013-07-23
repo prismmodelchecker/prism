@@ -490,7 +490,7 @@ public class NondetModelChecker extends NonProbModelChecker
 	//Vojta: in addition to calling a method which does the computation
 	//there are some other bits which I don't currently understand
 	protected JDDNode computeAcceptingEndComponent(DRA<BitSet> dra, NondetModel modelProduct, JDDVars draDDRowVars, JDDVars draDDColVars,
-			Vector<JDDNode> allecs, ArrayList<JDDNode> statesH, ArrayList<JDDNode> statesL, //Vojta: at the time of writing this I have no idea what these two parameters do, so I don't know how to call them
+			List<JDDNode> allecs, List<JDDNode> statesH, List<JDDNode> statesL, //Vojta: at the time of writing this I have no idea what these two parameters do, so I don't know how to call them
 			LTLModelChecker mcLtl, boolean conflictformulaeGtOne, String name) throws PrismException
 	{
 		mainLog.println("\nFinding accepting end components for " + name + "...");
@@ -512,7 +512,7 @@ public class NondetModelChecker extends NonProbModelChecker
 	protected void removeNonZeroMecsForMax(NondetModel modelProduct, LTLModelChecker mcLtl, List<JDDNode> rewardsIndex, OpsAndBoundsList opsAndBounds,
 			int numTargets, DRA<BitSet> dra[], JDDVars draDDRowVars[], JDDVars draDDColVars[]) throws PrismException
 	{
-		Vector<JDDNode> mecs = mcLtl.findEndComponents(modelProduct, modelProduct.getReach());
+		List<JDDNode> mecs = mcLtl.findEndComponents(modelProduct, modelProduct.getReach());
 		JDDNode removedActions = JDD.Constant(0);
 		JDDNode rmecs = JDD.Constant(0);
 		boolean mecflags[] = new boolean[mecs.size()];
@@ -707,7 +707,7 @@ public class NondetModelChecker extends NonProbModelChecker
 	protected void addDummyFormula(NondetModel modelProduct, LTLModelChecker mcLtl, List<JDDNode> targetDDs, OpsAndBoundsList opsAndBounds)
 			throws PrismException
 	{
-		Vector<JDDNode> tmpecs = mcLtl.findEndComponents(modelProduct, modelProduct.getReach());
+		List<JDDNode> tmpecs = mcLtl.findEndComponents(modelProduct, modelProduct.getReach());
 		JDDNode acceptingStates = JDD.Constant(0);
 		for (JDDNode set : tmpecs)
 			acceptingStates = JDD.Or(acceptingStates, set);
@@ -749,7 +749,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		return modelNew;
 	}
 
-	protected Vector<JDDNode> computeAllEcs(NondetModel modelProduct, LTLModelChecker mcLtl, ArrayList<ArrayList<JDDNode>> allstatesH,
+	protected List<JDDNode> computeAllEcs(NondetModel modelProduct, LTLModelChecker mcLtl, ArrayList<ArrayList<JDDNode>> allstatesH,
 			ArrayList<ArrayList<JDDNode>> allstatesL, JDDNode acceptanceVector_H, JDDNode acceptanceVector_L, JDDVars draDDRowVars[], JDDVars draDDColVars[],
 			OpsAndBoundsList opsAndBounds, int numTargets) throws PrismException
 	{
@@ -765,7 +765,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		candidateStates = JDD.ThereExists(candidateStates, modelProduct.getAllDDColVars());
 		candidateStates = JDD.ThereExists(candidateStates, modelProduct.getAllDDNondetVars());
 		// find all maximal end components
-		Vector<JDDNode> allecs = mcLtl.findEndComponents(modelProduct, candidateStates, acceptanceVector_L);
+		List<JDDNode> allecs = mcLtl.findEndComponents(modelProduct, candidateStates, acceptanceVector_L);
 		JDD.Deref(candidateStates);
 		JDD.Deref(acceptanceVector_L);
 		return allecs;
@@ -957,7 +957,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		}
 
 		// Find accepting maximum end components for each LTL formula
-		Vector<JDDNode> allecs = computeAllEcs(modelProduct, mcLtl, allstatesH, allstatesL, acceptanceVector_H, acceptanceVector_L, draDDRowVars, draDDColVars,
+		List<JDDNode> allecs = computeAllEcs(modelProduct, mcLtl, allstatesH, allstatesL, acceptanceVector_H, acceptanceVector_L, draDDRowVars, draDDColVars,
 				opsAndBounds, numTargets);
 
 		for (int i = 0; i < numTargets; i++) {
@@ -1058,7 +1058,7 @@ public class NondetModelChecker extends NonProbModelChecker
 	}
 
 	protected void findTargetStates(NondetModel modelProduct, LTLModelChecker mcLtl, int numTargets, int conflictformulae, boolean reachExpr[], DRA dra[],
-			JDDVars draDDRowVars[], JDDVars draDDColVars[], Vector<JDDNode> targetDDs, List<JDDNode> multitargetDDs, List<Integer> multitargetIDs)
+			JDDVars draDDRowVars[], JDDVars draDDColVars[], List<JDDNode> targetDDs, List<JDDNode> multitargetDDs, List<Integer> multitargetIDs)
 			throws PrismException
 	{
 		int i, j;
@@ -1100,7 +1100,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		}
 
 		// Find accepting maximum end components for each LTL formula
-		Vector<JDDNode> allecs = null;
+		List<JDDNode> allecs = null;
 		//use acceptanceVector_H and acceptanceVector_L to speed up scc computation
 		/*// check number of states in each scc
 		allecs = mcLtl.findEndComponents(modelProduct, modelProduct.getReach());
@@ -2060,7 +2060,7 @@ public class NondetModelChecker extends NonProbModelChecker
 			no = JDD.Constant(0);
 			bottomec = PrismMTBDD.Prob0A(modelProduct.getTrans01(), modelProduct.getReach(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
 					modelProduct.getAllDDNondetVars(), modelProduct.getReach(), yes);
-			Vector<JDDNode> becs = mcLtl.findBottomEndComponents(modelProduct, bottomec);
+			List<JDDNode> becs = mcLtl.findBottomEndComponents(modelProduct, bottomec);
 			JDD.Deref(bottomec);
 			bottomec = JDD.Constant(0);
 			for (JDDNode ec : becs)

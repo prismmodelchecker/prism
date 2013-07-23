@@ -55,13 +55,25 @@ public class ECComputerDefault extends ECComputer
 	@Override
 	public void computeMECStates() throws PrismException
 	{
-		mecs = findEndComponents(reach, reach);
+		mecs = findEndComponents(reach, null);
+	}
+
+	@Override
+	public void computeMECStates(JDDNode states) throws PrismException
+	{
+		mecs = findEndComponents(states, null);
+	}
+
+	@Override
+	public void computeMECStates(JDDNode states, JDDNode filter) throws PrismException
+	{
+		mecs = findEndComponents(states, filter);
 	}
 
 	// Computation
 
 	/**
-	 * Find all maximal accepting end components (ECs) contained within {@code states},
+	 * Find all accepting maximal end components (MECs) contained within {@code states},
 	 * where acceptance is defined as those which intersect with {@code filter}.
 	 * (If {@code filter} is null, the acceptance condition is trivially satisfied.)
 	 * @param states BDD of the set of containing states
