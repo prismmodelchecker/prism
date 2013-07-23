@@ -146,8 +146,8 @@ public class LTLModelChecker extends PrismComponent
 	 * @param allInit Do we assume that all states of the original model are initial states?
 	 *        (just for the purposes of reachability)
 	 */
-	public ProbModel constructProductMC(DRA<BitSet> dra, ProbModel model, Vector<JDDNode> labelDDs, JDDVars draDDRowVarsCopy, JDDVars draDDColVarsCopy, boolean allInit)
-			throws PrismException
+	public ProbModel constructProductMC(DRA<BitSet> dra, ProbModel model, Vector<JDDNode> labelDDs, JDDVars draDDRowVarsCopy, JDDVars draDDColVarsCopy,
+			boolean allInit) throws PrismException
 	{
 		// Existing model - dds, vars, etc.
 		JDDVars varDDRowVars[];
@@ -625,7 +625,7 @@ public class LTLModelChecker extends PrismComponent
 	 * @param draDDRowVars BDD row variables for the DRA part of the model
 	 * @param draDDColVars BDD column variables for the DRA part of the model
 	 * @param model The model
-	 * @returns A referenced BDD for the union of all states in accepting BSCCs
+	 * @return A referenced BDD for the union of all states in accepting BSCCs
 	 */
 	public JDDNode findAcceptingBSCCsForRabin(DRA<BitSet> dra, ProbModel model, JDDVars draDDRowVars, JDDVars draDDColVars) throws PrismException
 	{
@@ -668,7 +668,6 @@ public class LTLModelChecker extends PrismComponent
 			}
 
 			// Check each BSCC for inclusion in H_i states
-			// i.e. restrict each BSCC to H_i states and test if unchanged
 			n = vectBSCCs.size();
 			newVectBSCCs = new Vector<JDDNode>();
 			for (j = 0; j < n; j++) {
@@ -698,9 +697,10 @@ public class LTLModelChecker extends PrismComponent
 	 * @param draDDRowVars BDD row variables for the DRA part of the model
 	 * @param draDDColVars BDD column variables for the DRA part of the model
 	 * @param fairness Consider fairness?
-	 * @returns A referenced BDD for the union of all states in accepting MECs
+	 * @return A referenced BDD for the union of all states in accepting MECs
 	 */
-	public JDDNode findAcceptingMECStatesForRabin(DRA<BitSet> dra, NondetModel model, JDDVars draDDRowVars, JDDVars draDDColVars, boolean fairness) throws PrismException
+	public JDDNode findAcceptingMECStatesForRabin(DRA<BitSet> dra, NondetModel model, JDDVars draDDRowVars, JDDVars draDDColVars, boolean fairness)
+			throws PrismException
 	{
 		JDDNode acceptingStates = null, allAcceptingStates, acceptanceVector_H, acceptanceVector_L, candidateStates;
 		int i, j;
@@ -747,7 +747,7 @@ public class LTLModelChecker extends PrismComponent
 			acceptanceVector_H = JDD.PermuteVariables(acceptanceVector_H, draDDRowVars, draDDColVars);
 			candidateStates = JDD.Apply(JDD.TIMES, candidateStates, acceptanceVector_H);
 			candidateStates = JDD.ThereExists(candidateStates, model.getAllDDColVars());
-			candidateStates = JDD.ThereExists(candidateStates, model.getAllDDNondetVars());			
+			candidateStates = JDD.ThereExists(candidateStates, model.getAllDDNondetVars());
 			// find all maximal end components
 			List<JDDNode> allecs = findEndComponents(model, candidateStates, acceptanceVector_L);
 			JDD.Deref(candidateStates);
@@ -1074,15 +1074,13 @@ public class LTLModelChecker extends PrismComponent
 				JDD.Deref(e.statesL.get(i));
 			}
 		}
-
 	}
 
 	/**
 	 * Returns all end components in candidateStates under fairness assumptions
 	 * 
-	 * @param candidateStates
-	 *            set of candidate states S x H_i (dereferenced after calling this function)
-	 * @return a referenced BDD with the maximal stable set in c
+	 * @param candidateStates Set of candidate states S x H_i (dereferenced after calling this function)
+	 * @return S referenced BDD with the maximal stable set in c
 	 */
 	private JDDNode findFairECs(NondetModel model, JDDNode candidateStates)
 	{
@@ -1114,7 +1112,9 @@ public class LTLModelChecker extends PrismComponent
 	}
 
 	/**
-	 * Return the set of states that reach nodes through edges Refs: result Derefs: nodes, edges
+	 * Return the set of states that reach nodes through edges
+	 * Refs: result
+	 * Derefs: nodes, edges
 	 */
 	private JDDNode backwardSet(NondetModel model, JDDNode nodes, JDDNode edges)
 	{
