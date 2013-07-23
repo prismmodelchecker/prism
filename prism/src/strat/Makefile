@@ -12,18 +12,6 @@
 THIS_DIR = strat
 PRISM_DIR_REL = ../..
 
-INCLUDES = \
--I$(PRISM_DIR_REL)/$(CUDD_DIR)/include \
--I"$(JAVA_JNI_H_DIR)" \
--I"$(JAVA_JNI_MD_H_DIR)" \
--I$(PRISM_DIR_REL)/$(INCLUDE_DIR)
-
-LIBRARIES = \
--L$(PRISM_DIR_REL)/$(LIB_DIR) \
--lodd \
--ldd \
-$(LIBMATH)
-
 JAVA_FILES_ALL = $(wildcard *.java)
 JAVA_FILES = $(subst package-info.java,,$(JAVA_FILES_ALL))
 CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class)
@@ -43,11 +31,8 @@ checks:
 $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class: %.java
 	(cd ..; $(JAVAC) -sourcepath $(THIS_DIR)/$(PRISM_DIR_REL)/$(SRC_DIR) -classpath $(PRISM_CLASSPATH) -d $(THIS_DIR)/$(PRISM_DIR_REL)/$(CLASSES_DIR) $(THIS_DIR)/$<)
 
-$(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/%.o: %.cc
-	$(CPP) $(CPPFLAGS) -c $< -o $@ $(INCLUDES)
-
 clean: checks
-	@rm -f $(CLASS_FILES) $(O_FILES)
+	@rm -f $(CLASS_FILES)
 
 celan: clean
 
