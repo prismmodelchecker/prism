@@ -33,18 +33,12 @@ import parser.ast.*;
 import parser.type.*;
 import parser.visitor.ASTTraverseModify;
 import prism.*;
-import simulator.sampler.Sampler;
-import explicit.*;
 
 /**
  * Model checker for probabilistic timed automata (PTAs).
  */
-public class PTAModelChecker
+public class PTAModelChecker extends PrismComponent
 {
-	// Prism object
-	private Prism prism;
-	// Log
-	private PrismLog mainLog;
 	// Model file
 	private ModulesFile modulesFile;
 	// Properties file
@@ -61,10 +55,9 @@ public class PTAModelChecker
 	/**
 	 * Constructor.
 	 */
-	public PTAModelChecker(Prism prism, ModulesFile modulesFile, PropertiesFile propertiesFile) throws PrismException
+	public PTAModelChecker(PrismComponent parent, ModulesFile modulesFile, PropertiesFile propertiesFile) throws PrismException
 	{
-		this.prism = prism;
-		mainLog = prism.getMainLog();
+		super(parent);
 		this.modulesFile = modulesFile;
 		this.propertiesFile = propertiesFile;
 
@@ -118,7 +111,7 @@ public class PTAModelChecker
 		
 		// Translate ModulesFile object into a PTA object
 		mainLog.println("\nBuilding PTA...");
-		m2pta = new Modules2PTA(prism, modulesFile);
+		m2pta = new Modules2PTA(this, modulesFile);
 		pta = m2pta.translate();
 		mainLog.println("\nPTA: " + pta.infoString());
 
@@ -308,13 +301,13 @@ public class PTAModelChecker
 	private double computeProbabilisticReachability(BitSet targetLocs, boolean min) throws PrismException
 	{
 		// Determine which method to use for computation
-		String ptaMethod = prism.getSettings().getString(PrismSettings.PRISM_PTA_METHOD);
+		String ptaMethod = settings.getString(PrismSettings.PRISM_PTA_METHOD);
 
 		// Do probability computation through abstraction/refinement/stochastic games  
 		if (ptaMethod.equals("Stochastic games")) {
 			PTAAbstractRefine ptaAR;
 			ptaAR = new PTAAbstractRefine();
-			String arOptions = prism.getSettings().getString(PrismSettings.PRISM_AR_OPTIONS);
+			String arOptions = settings.getString(PrismSettings.PRISM_AR_OPTIONS);
 			ptaAR.setLog(mainLog);
 			ptaAR.parseOptions(arOptions.split(","));
 			return ptaAR.forwardsReachAbstractRefine(pta, targetLocs, null, min);

@@ -40,12 +40,11 @@ import prism.*;
  * Class that converts a PRISM modelling language description
  * of a PTA into data structures in the pta package.
  */
-public class Modules2PTA
+public class Modules2PTA extends PrismComponent
 {
-	// Prism object
-	private Prism prism;
-	// Log
-	private PrismLog mainLog;
+	// Setting(s)
+	protected double sumRoundOff;
+
 	// Model to be converted
 	private ModulesFile modulesFile;
 	// Constants from model
@@ -54,10 +53,10 @@ public class Modules2PTA
 	/**
 	 * Constructor.
 	 */
-	public Modules2PTA(Prism prism, ModulesFile modulesFile)
+	public Modules2PTA(PrismComponent parent, ModulesFile modulesFile) throws PrismException
 	{
-		this.prism = prism;
-		mainLog = prism.getMainLog();
+		super(parent);
+		sumRoundOff = settings.getDouble(PrismSettings.PRISM_SUM_ROUND_OFF);
 		this.modulesFile = modulesFile;
 		constantValues = modulesFile.getConstantValues();
 	}
@@ -296,7 +295,7 @@ public class Modules2PTA
 					edge.setDestination(tr.getSource());
 			}
 			// Check probabilities sum to one (ish)
-			if (!PrismUtils.doublesAreCloseAbs(probSum, 1.0, prism.getSumRoundOff())) {
+			if (!PrismUtils.doublesAreCloseAbs(probSum, 1.0, sumRoundOff)) {
 				throw new PrismLangException("Probabilities do not sum to one (" + probSum + ") in PTA");
 			}
 		}
