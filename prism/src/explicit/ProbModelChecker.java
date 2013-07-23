@@ -484,13 +484,13 @@ public class ProbModelChecker extends StateModelChecker
 			probs = ((CTMCModelChecker) this).checkProbPathFormula(model, expr.getExpression());
 			break;
 		case CTMDP:
-			probs = ((CTMDPModelChecker) this).checkProbPathFormula(model, expr.getExpression(), min);
+			probs = ((CTMDPModelChecker) this).checkProbPathFormula((NondetModel) model, expr.getExpression(), min);
 			break;
 		case DTMC:
 			probs = ((DTMCModelChecker) this).checkProbPathFormula(model, expr.getExpression());
 			break;
 		case MDP:
-			probs = ((MDPModelChecker) this).checkProbPathFormula(model, expr.getExpression(), min);
+			probs = ((MDPModelChecker) this).checkProbPathFormula((NondetModel) model, expr.getExpression(), min);
 			break;
 		/*case STPG:
 			probs = ((STPGModelChecker) this).checkProbPathFormula(model, expr.getExpression(), min);
@@ -598,7 +598,7 @@ public class ProbModelChecker extends StateModelChecker
 			rews = ((DTMCModelChecker) this).checkRewardFormula(model, mcRewards, expr.getExpression());
 			break;
 		case MDP:
-			rews = ((MDPModelChecker) this).checkRewardFormula(model, mdpRewards, expr.getExpression(), min);
+			rews = ((MDPModelChecker) this).checkRewardFormula((NondetModel) model, mdpRewards, expr.getExpression(), min);
 			break;
 		default:
 			throw new PrismException("Cannot model check " + expr + " for " + modelType + "s");

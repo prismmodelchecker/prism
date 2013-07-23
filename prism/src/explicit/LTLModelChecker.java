@@ -141,18 +141,26 @@ public class LTLModelChecker extends PrismComponent
 		int numAPs = dra.getAPList().size();
 		int modelNumStates = dtmc.getNumStates();
 		int prodNumStates = modelNumStates * draSize;
+		int s_1, s_2, q_1, q_2;
+		BitSet s_labels = new BitSet(numAPs);
 
 		// Encoding: 
 		// each state s' = <s, q> = s * draSize + q
 		// s(s') = s' / draSize
 		// q(s') = s' % draSize
 
-		// Initial states
 		LinkedList<Point> queue = new LinkedList<Point>();
 		int map[] = new int[prodNumStates];
 		Arrays.fill(map, -1);
-		int q_0 = dra.getStartState();
+		
+		// Initial states
 		for (int s_0 : dtmc.getInitialStates()) {
+			// Get BitSet representing APs (labels) satisfied by initial state s_0
+			for (int k = 0; k < numAPs; k++) {
+				s_labels.set(k, labelBS.get(k).get(s_0));
+			}
+			// Find corresponding initial state in DRA
+			int q_0 = dra.getEdgeDestByLabel(dra.getStartState(), s_labels);
 			queue.add(new Point(s_0, q_0));
 			prodModel.addState();
 			prodModel.addInitialState(prodModel.getNumStates() - 1);
@@ -161,8 +169,6 @@ public class LTLModelChecker extends PrismComponent
 
 		// Product states
 		BitSet visited = new BitSet(prodNumStates);
-		int q_1 = 0, q_2 = 0, s_1 = 0, s_2 = 0;
-		BitSet s_2_labels = new BitSet(numAPs);
 		while (!queue.isEmpty()) {
 			Point p = queue.pop();
 			s_1 = p.x;
@@ -177,10 +183,10 @@ public class LTLModelChecker extends PrismComponent
 				double prob = e.getValue();
 				// Get BitSet representing APs (labels) satisfied by successor state s_2
 				for (int k = 0; k < numAPs; k++) {
-					s_2_labels.set(k, labelBS.get(k).get(s_2));
+					s_labels.set(k, labelBS.get(k).get(s_2));
 				}
 				// Find corresponding successor in DRA
-				q_2 = dra.getEdgeDestByLabel(q_1, s_2_labels);
+				q_2 = dra.getEdgeDestByLabel(q_1, s_labels);
 				// Add state/transition to model
 				if (!visited.get(s_2 * draSize + q_2) && map[s_2 * draSize + q_2] == -1) {
 					queue.add(new Point(s_2, q_2));
@@ -204,12 +210,99 @@ public class LTLModelChecker extends PrismComponent
 	}
 
 	/**
+	 * Construct the product of a DRA and an MDP.
+	 * @param dra The DRA
+	 * @param mdp The MDP
+	 * @param labelBS BitSets giving the set of states for each AP in the DRA
+	 * @return a Pair consisting of the product DTMC and a map from 
+	 *   (s_i * draSize + q_j) to the right state in the DRA product 
+	 */
+	public Pair<NondetModel, int[]> constructProductMDP(DRA<BitSet> dra, MDP mdp, Vector<BitSet> labelBS) throws PrismException
+	{
+		MDPSimple prodModel = new MDPSimple();
+
+		int draSize = dra.size();
+		int numAPs = dra.getAPList().size();
+		int modelNumStates = mdp.getNumStates();
+		int prodNumStates = modelNumStates * draSize;
+		int s_1, s_2, q_1, q_2;
+		BitSet s_labels = new BitSet(numAPs);
+
+		// Encoding: 
+		// each state s' = <s, q> = s * draSize + q
+		// s(s') = s' / draSize
+		// q(s') = s' % draSize
+
+		LinkedList<Point> queue = new LinkedList<Point>();
+		int map[] = new int[prodNumStates];
+		Arrays.fill(map, -1);
+		
+		// Initial states
+		for (int s_0 : mdp.getInitialStates()) {
+			// Get BitSet representing APs (labels) satisfied by initial state s_0
+			for (int k = 0; k < numAPs; k++) {
+				s_labels.set(k, labelBS.get(k).get(s_0));
+			}
+			// Find corresponding initial state in DRA
+			int q_0 = dra.getEdgeDestByLabel(dra.getStartState(), s_labels);
+			queue.add(new Point(s_0, q_0));
+			prodModel.addState();
+			prodModel.addInitialState(prodModel.getNumStates() - 1);
+			map[s_0 * draSize + q_0] = prodModel.getNumStates() - 1;
+		}
+
+		// Product states
+		BitSet visited = new BitSet(prodNumStates);
+		while (!queue.isEmpty()) {
+			Point p = queue.pop();
+			s_1 = p.x;
+			q_1 = p.y;
+			visited.set(s_1 * draSize + q_1);
+
+			// Go through transitions from state s_1 in original DTMC
+			int numChoices = mdp.getNumChoices(s_1);
+			for (int j = 0; j < numChoices; j++) {
+				Distribution prodDistr = new Distribution();
+				Iterator<Map.Entry<Integer, Double>> iter = mdp.getTransitionsIterator(s_1, j);
+				while (iter.hasNext()) {
+					Map.Entry<Integer, Double> e = iter.next();
+					s_2 = e.getKey();
+					double prob = e.getValue();
+					// Get BitSet representing APs (labels) satisfied by successor state s_2
+					for (int k = 0; k < numAPs; k++) {
+						s_labels.set(k, labelBS.get(k).get(s_2));
+					}
+					// Find corresponding successor in DRA
+					q_2 = dra.getEdgeDestByLabel(q_1, s_labels);
+					// Add state/transition to model
+					if (!visited.get(s_2 * draSize + q_2) && map[s_2 * draSize + q_2] == -1) {
+						queue.add(new Point(s_2, q_2));
+						prodModel.addState();
+						map[s_2 * draSize + q_2] = prodModel.getNumStates() - 1;
+					}
+					prodDistr.set(map[s_2 * draSize + q_2], prob);
+				}
+				prodModel.addActionLabelledChoice(map[s_1 * draSize + q_1], prodDistr, mdp.getAction(s_1, j));
+			}
+		}
+
+		int invMap[] = new int[prodModel.getNumStates()];
+		for (int i = 0; i < map.length; i++) {
+			if (map[i] != -1) {
+				invMap[map[i]] = i;
+			}
+		}
+
+		prodModel.findDeadlocks(false);
+
+		return new Pair<NondetModel, int[]>(prodModel, invMap);
+	}
+
+	/**
 	 * Find the set of states belong to accepting BSCCs in a model, according to a DRA {@code dra}.
 	 * @param dra The DRA
 	 * @param model The model
 	 * @param invMap The map returned by the constructProduct method(s)
-	 * @param sccMethod The method to use for SCC detection
-	 * @return
 	 */
 	public BitSet findAcceptingBSCCs(DRA<BitSet> dra, Model model, int invMap[]) throws PrismException
 	{
@@ -236,6 +329,46 @@ public class LTLModelChecker extends PrismComponent
 				// Stop as soon as we find the first acceptance pair that is satisfied
 				if (isLEmpty && !isKEmpty) {
 					result.or(bscc);
+					break;
+				}
+			}
+		}
+
+		return result;
+	}
+	
+	/**
+	 * Find the set of states belong to accepting MECs in a model, according to a DRA {@code dra}.
+	 * @param dra The DRA
+	 * @param model The model
+	 * @param invMap The map returned by the constructProduct method(s)
+	 */
+	public BitSet findAcceptingMECStates(DRA<BitSet> dra, NondetModel model, int invMap[]) throws PrismException
+	{
+		// Compute maximum end components (MECs)
+		ECComputer ecComputer = ECComputer.createECComputer(this, model);
+		ecComputer.computeMECStates();
+		List<BitSet> mecs = ecComputer.getMECStates();
+		mainLog.println(mecs);
+
+		int draSize = dra.size();
+		int numAcceptancePairs = dra.getNumAcceptancePairs();
+		BitSet result = new BitSet();
+
+		for (BitSet mec : mecs) {
+			boolean isLEmpty = true;
+			boolean isKEmpty = true;
+			for (int acceptancePair = 0; acceptancePair < numAcceptancePairs && isLEmpty && isKEmpty; acceptancePair++) {
+				BitSet L = dra.getAcceptanceL(acceptancePair);
+				BitSet K = dra.getAcceptanceK(acceptancePair);
+				for (int state = mec.nextSetBit(0); state != -1; state = mec.nextSetBit(state + 1)) {
+					int draState = invMap[state] % draSize;
+					isLEmpty &= !L.get(draState);
+					isKEmpty &= !K.get(draState);
+				}
+				// Stop as soon as we find the first acceptance pair that is satisfied
+				if (isLEmpty && !isKEmpty) {
+					result.or(mec);
 					break;
 				}
 			}

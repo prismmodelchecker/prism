@@ -28,16 +28,22 @@ package explicit;
 
 import java.util.BitSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import parser.ast.Expression;
 import parser.ast.ExpressionTemporal;
 import parser.ast.ExpressionUnaryOp;
+import parser.visitor.ASTTraverse;
+import prism.DRA;
+import prism.Pair;
 import prism.PrismComponent;
 import prism.PrismDevNullLog;
 import prism.PrismException;
 import prism.PrismFileLog;
+import prism.PrismLangException;
 import prism.PrismLog;
 import prism.PrismUtils;
 import strat.MDStrategyArray;
@@ -61,21 +67,21 @@ public class MDPModelChecker extends ProbModelChecker
 	/**
 	 * Compute probabilities for the contents of a P operator.
 	 */
-	protected StateValues checkProbPathFormula(Model model, Expression expr, boolean min) throws PrismException
+	protected StateValues checkProbPathFormula(NondetModel model, Expression expr, boolean min) throws PrismException
 	{
 		// Test whether this is a simple path formula (i.e. PCTL)
 		// and then pass control to appropriate method. 
 		if (expr.isSimplePathFormula()) {
 			return checkProbPathFormulaSimple(model, expr, min);
 		} else {
-			throw new PrismException("Explicit engine does not yet handle LTL-style path formulas");
+			return checkProbPathFormulaLTL(model, expr, min);
 		}
 	}
 
 	/**
 	 * Compute probabilities for a simple, non-LTL path operator.
 	 */
-	protected StateValues checkProbPathFormulaSimple(Model model, Expression expr, boolean min) throws PrismException
+	protected StateValues checkProbPathFormulaSimple(NondetModel model, Expression expr, boolean min) throws PrismException
 	{
 		StateValues probs = null;
 
@@ -125,7 +131,7 @@ public class MDPModelChecker extends ProbModelChecker
 	/**
 	 * Compute probabilities for a next operator.
 	 */
-	protected StateValues checkProbNext(Model model, ExpressionTemporal expr, boolean min) throws PrismException
+	protected StateValues checkProbNext(NondetModel model, ExpressionTemporal expr, boolean min) throws PrismException
 	{
 		BitSet target = null;
 		ModelCheckerResult res = null;
@@ -140,7 +146,7 @@ public class MDPModelChecker extends ProbModelChecker
 	/**
 	 * Compute probabilities for a bounded until operator.
 	 */
-	protected StateValues checkProbBoundedUntil(Model model, ExpressionTemporal expr, boolean min) throws PrismException
+	protected StateValues checkProbBoundedUntil(NondetModel model, ExpressionTemporal expr, boolean min) throws PrismException
 	{
 		int time;
 		BitSet b1, b2;
@@ -183,7 +189,7 @@ public class MDPModelChecker extends ProbModelChecker
 	/**
 	 * Compute probabilities for an (unbounded) until operator.
 	 */
-	protected StateValues checkProbUntil(Model model, ExpressionTemporal expr, boolean min) throws PrismException
+	protected StateValues checkProbUntil(NondetModel model, ExpressionTemporal expr, boolean min) throws PrismException
 	{
 		BitSet b1, b2;
 		StateValues probs = null;
@@ -207,9 +213,103 @@ public class MDPModelChecker extends ProbModelChecker
 	}
 
 	/**
+	 * Compute probabilities for an LTL path formula
+	 */
+	protected StateValues checkProbPathFormulaLTL(NondetModel model, Expression expr, boolean min) throws PrismException
+	{
+		LTLModelChecker mcLtl;
+		StateValues probsProduct, probs;
+		Expression ltl;
+		DRA<BitSet> dra;
+		NondetModel modelProduct;
+		MDPModelChecker mcProduct;
+		long time;
+
+		// Can't do LTL with time-bounded variants of the temporal operators
+		try {
+			expr.accept(new ASTTraverse()
+			{
+				public void visitPre(ExpressionTemporal e) throws PrismLangException
+				{
+					if (e.getLowerBound() != null)
+						throw new PrismLangException(e.getOperatorSymbol());
+					if (e.getUpperBound() != null)
+						throw new PrismLangException(e.getOperatorSymbol());
+				}
+			});
+		} catch (PrismLangException e) {
+			String s = "Temporal operators (like " + e.getMessage() + ")";
+			s += " cannot have time bounds for LTL properties";
+			throw new PrismException(s);
+		}
+
+		// For LTL model checking routines
+		mcLtl = new LTLModelChecker(this);
+
+		// Model check maximal state formulas
+		Vector<BitSet> labelBS = new Vector<BitSet>();
+		ltl = mcLtl.checkMaximalStateFormulas(this, model, expr.deepCopy(), labelBS);
+
+		// Convert LTL formula to deterministic Rabin automaton (DRA)
+		// For min probabilities, need to negate the formula
+		// (add parentheses to allow re-parsing if required)
+		if (min) {
+			ltl = Expression.Not(Expression.Parenth(ltl));
+		}
+		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
+		time = System.currentTimeMillis();
+		dra = LTLModelChecker.convertLTLFormulaToDRA(ltl);
+		int draSize = dra.size();
+		mainLog.println("\nDRA has " + dra.size() + " states, " + dra.getNumAcceptancePairs() + " pairs.");
+		// dra.print(System.out);
+		time = System.currentTimeMillis() - time;
+		mainLog.println("\nTime for Rabin translation: " + time / 1000.0 + " seconds.");
+
+		// Build product of MDP and automaton
+		mainLog.println("\nConstructing MDP-DRA product...");
+		Pair<NondetModel, int[]> pair = mcLtl.constructProductMDP(dra, (MDP) model, labelBS);
+		modelProduct = pair.first;
+		int invMap[] = pair.second;
+		int modelProductSize = modelProduct.getNumStates();
+
+		// Find accepting MECs + compute reachability probabilities
+		mainLog.println("\nFinding accepting MECs...");
+		BitSet acceptingMECs = mcLtl.findAcceptingMECStates(dra, modelProduct, invMap);
+		mainLog.println("\nComputing reachability probabilities...");
+		mcProduct = new MDPModelChecker(this);
+		probsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachProbs((MDP) modelProduct, acceptingMECs, false).soln, modelProduct);
+
+		// Subtract from 1 if we're model checking a negated formula for regular Pmin
+		if (min) {
+			probsProduct.timesConstant(-1.0);
+			probsProduct.plusConstant(1.0);
+		}
+
+		// Mapping probabilities in the original model
+		double[] probsProductDbl = probsProduct.getDoubleArray();
+		double[] probsDbl = new double[model.getNumStates()];
+
+		LinkedList<Integer> queue = new LinkedList<Integer>();
+		for (int s : model.getInitialStates())
+			queue.add(s);
+
+		for (int i = 0; i < invMap.length; i++) {
+			int j = invMap[i];
+			int s = j / draSize;
+			// TODO: check whether this is the right way to compute probabilities in the original model
+			probsDbl[s] = Math.max(probsDbl[s], probsProductDbl[i]);
+		}
+
+		probs = StateValues.createFromDoubleArray(probsDbl, model);
+		probsProduct.clear();
+
+		return probs;
+	}
+
+	/**
 	 * Compute rewards for the contents of an R operator.
 	 */
-	protected StateValues checkRewardFormula(Model model, MDPRewards modelRewards, Expression expr, boolean min) throws PrismException
+	protected StateValues checkRewardFormula(NondetModel model, MDPRewards modelRewards, Expression expr, boolean min) throws PrismException
 	{
 		StateValues rewards = null;
 
@@ -233,7 +333,7 @@ public class MDPModelChecker extends ProbModelChecker
 	/**
 	 * Compute rewards for a reachability reward operator.
 	 */
-	protected StateValues checkRewardReach(Model model, MDPRewards modelRewards, ExpressionTemporal expr, boolean min) throws PrismException
+	protected StateValues checkRewardReach(NondetModel model, MDPRewards modelRewards, ExpressionTemporal expr, boolean min) throws PrismException
 	{
 		BitSet b;
 		StateValues rewards = null;
