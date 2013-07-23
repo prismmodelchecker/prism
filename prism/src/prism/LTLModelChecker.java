@@ -1227,16 +1227,10 @@ public class LTLModelChecker extends PrismComponent
 	}
 
 	/**
-	 * Returns the union of each set in the vector that has nonempty intersection with the filter BDD.
-	 * 
-	 * @param sets
-	 *            Vector with sets which are dereferenced after calling this function
-	 * @param filter
-	 *            filter BDD against which each set is checked for nonempty intersection also dereferenced after calling
-	 *            this function
-	 * @return Referenced BDD with the filtered union
-	 * 
-	 * modified by Hongyang for testing
+	 * Return the union of sets from {@code sets} which have a non-empty intersection with {@code filter}.
+	 * @param sets List of BDDs representing sets (dereferenced after calling this function)
+	 * @param filter BDD of states to test for intersection (dereferenced after calling)
+	 * @return Referenced BDD representing the filtered union
 	 */
 	private JDDNode filteredUnion(List<JDDNode> sets, JDDNode filter)
 	{
