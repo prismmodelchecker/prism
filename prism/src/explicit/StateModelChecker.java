@@ -80,9 +80,6 @@ public class StateModelChecker extends PrismComponent
 	// Verbosity level
 	protected int verbosity = 0;
 	
-	// Method used for numerical solution
-	protected SCCMethod sccMethod = SCCMethod.TARJAN;
-
 	// Additional flags/settings not included in PrismSettings
 	
 	// Generate/store a strategy during model checking?

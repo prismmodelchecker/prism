@@ -30,22 +30,23 @@ import java.util.Vector;
 
 import jdd.*;
 
-// SCC (strongly connected component) decomposition
-// (from Xie/Beerel 1999)
-
+/**
+ * SCC (strongly connected component) decomposition
+ * (from Xie/Beerel 1999)
+*/
 public class SCCComputerXB extends SCCComputer
 {
-	// Constructor
-	
-	public SCCComputerXB(Prism prism, JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars) throws PrismException
+	/**
+	 * Build (B)SCC computer for a given model.
+	 */
+	public SCCComputerXB(PrismComponent parent, JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars) throws PrismException
 	{
-		super(prism, reach, trans01, allDDRowVars, allDDColVars);
+		super(parent, reach, trans01, allDDRowVars, allDDColVars);
 	}
 	
-	// Strongly connected components (SCC) computation
-	// NB: This creates BDDs, obtainable from getVectSCCs() and getNotInSCCs(),
-	// which  the calling code is responsible for dereferencing.
+	// Methods for SCCComputer
 
+	@Override
 	public void computeSCCs()
 	{
 		JDDNode v, s, back;
@@ -53,7 +54,7 @@ public class SCCComputerXB extends SCCComputer
 		mainLog.println("\nComputing (B)SCCs...");
 		
 		// vector to be filled with SCCs
-		vectSCCs = new Vector<JDDNode>();
+		sccs = new Vector<JDDNode>();
 		// BDD of non-SCC states (initially zero BDD)
 		notInSCCs = JDD.Constant(0);
 		
@@ -71,11 +72,15 @@ public class SCCComputerXB extends SCCComputer
 		JDD.Deref(v);
 	}
 	
-	public void computeSCCs(JDDNode filter)
+	@Override
+	public void computeSCCs(JDDNode filter) throws PrismException
 	{
-		computeSCCs();
+		throw new PrismException("Not implemented yet");
 		// TODO: why is filter ignored here?
+		// computeSCCs();
 	}
+	
+	// Computation
 	
 	// pick a random (actually the first) state from set (set not empty)
 	
@@ -242,7 +247,7 @@ public class SCCComputerXB extends SCCComputer
 		}
 		else {
 			JDD.Ref(forw);
-			vectSCCs.addElement(forw);
+			sccs.addElement(forw);
 		}
 		JDD.Ref(forw);
 		JDD.Ref(s);

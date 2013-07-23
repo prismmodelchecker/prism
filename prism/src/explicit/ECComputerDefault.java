@@ -35,150 +35,163 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import explicit.SCCComputer.SCCMethod;
+import prism.PrismComponent;
+import prism.PrismException;
 
 /**
- * Maximal end component computer for a nondeterministic model such as MDP.
+ * EXplicit maximal end component computer for a nondeterministic model such as MDP.
+ * Implements the algorithm from:
+ * Luca de Alfaro. Formal Verification of Probabilistic Systems. Ph.D. thesis, Stanford University (1997)
  */
 public class ECComputerDefault extends ECComputer
 {
-	/* The model to compute (M)ECs for */
+	/** The model to compute (M)ECs for **/
 	private NondetModel model;
-	/* Computed list of MECs */
+
+	/** Computed list of MECs **/
 	private List<BitSet> mecs = new ArrayList<BitSet>();
 
 	/**
 	 * Build (M)EC computer for a given model.
 	 */
-	public ECComputerDefault(NondetModel model)
+	public ECComputerDefault(PrismComponent parent, NondetModel model) throws PrismException
 	{
+		super(parent);
 		this.model = model;
 	}
 
-	// Methods for SCCComputer interface
-	// Algorithm based on the one found in Luca de Alfaro Ph.D Thesis
+	// Methods for ECComputer interface
 
 	@Override
-	public void computeMECs()
+	public void computeMECStates() throws PrismException
 	{
 		SubNondetModel submodel = null;
 		List<BitSet> L = new ArrayList<BitSet>();
-		
+
 		BitSet initialModel = new BitSet();
 		initialModel.set(0, model.getNumStates());
 		L.add(initialModel);
-		
+
 		boolean changed = true;
-		while(changed) {
+		while (changed) {
 			changed = false;
 			BitSet E = L.remove(0);
 			submodel = restrict(model, E);
 			List<BitSet> sccs = translateStates(submodel, computeSCCs(submodel));
 			L = replaceEWithSCCs(L, E, sccs);
-			changed = canLBeChanged(L,E);
+			changed = canLBeChanged(L, E);
 		}
 		mecs = L;
 	}
-	
+
+	@Override
+	public List<BitSet> getMECStates()
+	{
+		return mecs;
+	}
+
+	// Computation
+
 	private Set<BitSet> processedSCCs = new HashSet<BitSet>();
-	
-	private boolean canLBeChanged(List<BitSet> L, BitSet E) {
+
+	private boolean canLBeChanged(List<BitSet> L, BitSet E)
+	{
 		processedSCCs.add(E);
-		for(int i=0;i<L.size();i++) {
-			if(!processedSCCs.contains(L.get(i))) {
+		for (int i = 0; i < L.size(); i++) {
+			if (!processedSCCs.contains(L.get(i))) {
 				return true;
 			}
-		} 
+		}
 		return false;
 	}
-	
-	private List<BitSet> replaceEWithSCCs(List<BitSet> L, BitSet E, List<BitSet> sccs) {
-		if(sccs.size() > 0) {
+
+	private List<BitSet> replaceEWithSCCs(List<BitSet> L, BitSet E, List<BitSet> sccs)
+	{
+		if (sccs.size() > 0) {
 			List<BitSet> toAdd = new ArrayList<BitSet>();
-			for(int i=0;i<sccs.size();i++) {
-				if(!L.contains(sccs.get(i))) {
+			for (int i = 0; i < sccs.size(); i++) {
+				if (!L.contains(sccs.get(i))) {
 					toAdd.add(sccs.get(i));
 				}
 			}
-			if(toAdd.size() > 0) {
+			if (toAdd.size() > 0) {
 				L.addAll(toAdd);
 			}
 		}
 		return L;
 	}
-	
-	private SubNondetModel restrict(NondetModel model, BitSet states) {
-		Map<Integer,BitSet> actions = new HashMap<Integer,BitSet>();
+
+	private SubNondetModel restrict(NondetModel model, BitSet states)
+	{
+		Map<Integer, BitSet> actions = new HashMap<Integer, BitSet>();
 		BitSet initialStates = new BitSet();
 		initialStates.set(states.nextSetBit(0));
-		
+
 		boolean changed = true;
-		while(changed) {
+		while (changed) {
 			changed = false;
 			actions.clear();
-			for(int i=0;i<model.getNumStates();i++) {
+			for (int i = 0; i < model.getNumStates(); i++) {
 				BitSet act = new BitSet();
-				if(states.get(i)) {
-					for(int j=0;j<model.getNumChoices(i);j++) {
-						if(model.allSuccessorsInSet(i, j, states)) {
+				if (states.get(i)) {
+					for (int j = 0; j < model.getNumChoices(i); j++) {
+						if (model.allSuccessorsInSet(i, j, states)) {
 							act.set(j);
 						}
 					}
-					if(act.cardinality() == 0) {
+					if (act.cardinality() == 0) {
 						states.clear(i);
 						changed = true;
-					} 
-					actions.put(i,act);
+					}
+					actions.put(i, act);
 				}
 			}
 		}
-		
+
 		return new SubNondetModel(model, states, actions, initialStates);
 	}
-	
-	private List<BitSet> computeSCCs(NondetModel model) {
-		SCCComputer sccc = SCCComputer.createSCCComputer(SCCMethod.TARJAN, model);
+
+	private List<BitSet> computeSCCs(NondetModel model) throws PrismException
+	{
+		SCCComputer sccc = SCCComputer.createSCCComputer(this, model);
 		sccc.computeSCCs();
 		return sccc.getSCCs();
 	}
-	
-	private List<BitSet> translateStates(SubNondetModel model, List<BitSet> sccs) {
+
+	private List<BitSet> translateStates(SubNondetModel model, List<BitSet> sccs)
+	{
 		List<BitSet> r = new ArrayList<BitSet>();
-		for(int i=0;i<sccs.size();i++) {
+		for (int i = 0; i < sccs.size(); i++) {
 			BitSet set = sccs.get(i);
 			BitSet set2 = new BitSet();
 			r.add(set2);
-			for(int j=set.nextSetBit(0); j>=0; j=set.nextSetBit(j+1)) { 
+			for (int j = set.nextSetBit(0); j >= 0; j = set.nextSetBit(j + 1)) {
 				set2.set(model.translateState(j));
-				
+
 			}
 		}
 		return r;
 	}
-	
-	@Override
-	public List<BitSet> getMECs()
+
+	private boolean isMEC(BitSet b)
 	{
-		return mecs;
-	}
-	
-	private boolean isMEC(BitSet b) {
-		if(b.cardinality() == 0) return false;
-		
+		if (b.cardinality() == 0)
+			return false;
+
 		int state = b.nextSetBit(0);
-		while(state != -1) {
+		while (state != -1) {
 			boolean atLeastOneAction = false;
-			for(int i=0;i<model.getNumChoices(state);i++) {
-				if(model.allSuccessorsInSet(state, i, b)) {
+			for (int i = 0; i < model.getNumChoices(state); i++) {
+				if (model.allSuccessorsInSet(state, i, b)) {
 					atLeastOneAction = true;
 				}
 			}
-			if(!atLeastOneAction) {
+			if (!atLeastOneAction) {
 				return false;
 			}
-			state = b.nextSetBit(state+1);
+			state = b.nextSetBit(state + 1);
 		}
-		
+
 		return true;
 	}
 }

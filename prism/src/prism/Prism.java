@@ -967,7 +967,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public SCCComputer getSCCComputer(Model model) throws PrismException
 	{
-		return getSCCComputer(model.getReach(), model.getTrans01(), model.getAllDDRowVars(), model.getAllDDColVars());
+		return SCCComputer.createSCCComputer(this, model);
 	}
 
 	/**
@@ -976,53 +976,39 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public SCCComputer getSCCComputer(JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars) throws PrismException
 	{
-		SCCComputer sccComputer;
-		switch (getSCCMethod()) {
-		case Prism.LOCKSTEP:
-			sccComputer = new SCCComputerLockstep(this, reach, trans01, allDDRowVars, allDDColVars);
-			break;
-		case Prism.SCCFIND:
-			sccComputer = new SCCComputerSCCFind(this, reach, trans01, allDDRowVars, allDDColVars);
-			break;
-		case Prism.XIEBEEREL:
-			sccComputer = new SCCComputerXB(this, reach, trans01, allDDRowVars, allDDColVars);
-			break;
-		default:
-			sccComputer = new SCCComputerLockstep(this, reach, trans01, allDDRowVars, allDDColVars);
-		}
-		return sccComputer;
+		return SCCComputer.createSCCComputer(this, reach, trans01, allDDRowVars, allDDColVars);
 	}
 
 	/**
 	 * Get an SCCComputer object for the explicit engine.
 	 */
-	public explicit.SCCComputer getExplicitSCCComputer(explicit.Model model)
+	public explicit.SCCComputer getExplicitSCCComputer(explicit.Model model) throws PrismException
 	{
-		return explicit.SCCComputer.createSCCComputer(explicit.SCCComputer.SCCMethod.TARJAN, model);
+		return explicit.SCCComputer.createSCCComputer(this, model);
 	}
 	
 	/**
 	 * Get an ECComputer object.
 	 */
-	public ECComputer getECComputer(NondetModel model)
+	public ECComputer getECComputer(NondetModel model) throws PrismException
 	{
-		return getECComputer(model.getReach(), model.getTrans(), model.getTrans01(), model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars());
+		return ECComputer.createECComputer(this, model);
 	}
 
 	/**
 	 * Get an ECComputer object.
 	 */
-	public ECComputer getECComputer(JDDNode reach, JDDNode trans, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars, JDDVars allDDNondetVars)
+	public ECComputer getECComputer(JDDNode reach, JDDNode trans, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars, JDDVars allDDNondetVars) throws PrismException
 	{
-		return new ECComputerDefault(this, reach, trans, trans01, allDDRowVars, allDDColVars, allDDNondetVars);
+		return ECComputer.createECComputer(this, reach, trans, trans01, allDDRowVars, allDDColVars, allDDNondetVars);
 	}
 
 	/**
 	 * Get an ECComputer object for the explicit engine.
 	 */
-	public explicit.ECComputer getExplicitECComputer(explicit.NondetModel model)
+	public explicit.ECComputer getExplicitECComputer(explicit.NondetModel model) throws PrismException
 	{
-		return explicit.ECComputer.createECComputer(model);
+		return explicit.ECComputer.createECComputer(this, model);
 	}
 	
 	//------------------------------------------------------------------------------
@@ -2296,7 +2282,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 		// print states for each bscc
 		if (!getExplicit()) {
-			n = sccComputer.getVectBSCCs().size();
+			n = sccComputer.getBSCCs().size();
 		} else {
 			n = sccComputerExpl.getBSCCs().size();
 		}
@@ -2309,10 +2295,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				tmpLog.println("bscc" + (i + 1) + "=[");
 			if (!getExplicit()) {
 				if (exportType != EXPORT_MATLAB)
-					new StateListMTBDD(sccComputer.getVectBSCCs().get(i), currentModel).print(tmpLog);
+					new StateListMTBDD(sccComputer.getBSCCs().get(i), currentModel).print(tmpLog);
 				else
-					new StateListMTBDD(sccComputer.getVectBSCCs().get(i), currentModel).printMatlab(tmpLog);
-				JDD.Deref(sccComputer.getVectBSCCs().get(i));
+					new StateListMTBDD(sccComputer.getBSCCs().get(i), currentModel).printMatlab(tmpLog);
+				JDD.Deref(sccComputer.getBSCCs().get(i));
 			} else {
 				explicit.StateValues.createFromBitSet(sccComputerExpl.getBSCCs().get(i), currentModelExpl).print(tmpLog, true, exportType == EXPORT_MATLAB, true, true);
 			}
@@ -2360,10 +2346,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		l = System.currentTimeMillis();
 		if (!getExplicit()) {
 			ecComputer = getECComputer((NondetModel) currentModel);
-			ecComputer.computeECs();
+			ecComputer.computeMECStates();
 		} else {
 			ecComputerExpl = getExplicitECComputer((explicit.NondetModel) currentModelExpl);
-			ecComputerExpl.computeMECs();
+			ecComputerExpl.computeMECStates();
 		}
 		l = System.currentTimeMillis() - l;
 		mainLog.println("\nTime for MEC computation: " + l / 1000.0 + " seconds.");
@@ -2389,9 +2375,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 		// print states for each mec
 		if (!getExplicit()) {
-			n = ecComputer.getVectECs().size();
+			n = ecComputer.getMECStates().size();
 		} else {
-			n = ecComputerExpl.getMECs().size();
+			n = ecComputerExpl.getMECStates().size();
 		}
 		for (i = 0; i < n; i++) {
 			tmpLog.println();
@@ -2402,12 +2388,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				tmpLog.println("mec" + (i + 1) + "=[");
 			if (!getExplicit()) {
 				if (exportType != EXPORT_MATLAB)
-					new StateListMTBDD(ecComputer.getVectECs().get(i), currentModel).print(tmpLog);
+					new StateListMTBDD(ecComputer.getMECStates().get(i), currentModel).print(tmpLog);
 				else
-					new StateListMTBDD(ecComputer.getVectECs().get(i), currentModel).printMatlab(tmpLog);
-				JDD.Deref(ecComputer.getVectECs().get(i));
+					new StateListMTBDD(ecComputer.getMECStates().get(i), currentModel).printMatlab(tmpLog);
+				JDD.Deref(ecComputer.getMECStates().get(i));
 			} else {
-				explicit.StateValues.createFromBitSet(ecComputerExpl.getMECs().get(i), currentModelExpl).print(tmpLog, true, exportType == EXPORT_MATLAB, true, true);
+				explicit.StateValues.createFromBitSet(ecComputerExpl.getMECStates().get(i), currentModelExpl).print(tmpLog, true, exportType == EXPORT_MATLAB, true, true);
 			}
 			if (exportType == EXPORT_MATLAB)
 				tmpLog.println("];");

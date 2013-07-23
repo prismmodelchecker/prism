@@ -46,14 +46,22 @@ import parser.type.TypePathBool;
 import prism.DRA;
 import prism.LTL2RabinLibrary;
 import prism.Pair;
+import prism.PrismComponent;
 import prism.PrismException;
-import explicit.SCCComputer.SCCMethod;
 
 /**
  * LTL model checking functionality
  */
-public class LTLModelChecker
+public class LTLModelChecker extends PrismComponent
 {
+	/**
+	 * Create a new LTLModelChecker, inherit basic state from parent (unless null).
+	 */
+	public LTLModelChecker(PrismComponent parent) throws PrismException
+	{
+		super(parent);
+	}
+
 	/**
 	 * Convert an LTL formula into a DRA. The LTL formula is represented as a PRISM Expression,
 	 * in which atomic propositions are represented by ExpressionLabel objects.
@@ -203,17 +211,17 @@ public class LTLModelChecker
 	 * @param sccMethod The method to use for SCC detection
 	 * @return
 	 */
-	public BitSet findAcceptingBSCCs(DRA<BitSet> dra, Model model, int invMap[], SCCMethod sccMethod)
+	public BitSet findAcceptingBSCCs(DRA<BitSet> dra, Model model, int invMap[]) throws PrismException
 	{
 		// Compute bottom strongly connected components (BSCCs)
-		SCCComputer sccComputer = SCCComputer.createSCCComputer(sccMethod, model);
+		SCCComputer sccComputer = SCCComputer.createSCCComputer(this, model);
 		sccComputer.computeBSCCs();
 		List<BitSet> bsccs = sccComputer.getBSCCs();
-		
+
 		int draSize = dra.size();
 		int numAcceptancePairs = dra.getNumAcceptancePairs();
 		BitSet result = new BitSet();
-		
+
 		for (BitSet bscc : bsccs) {
 			boolean isLEmpty = true;
 			boolean isKEmpty = true;

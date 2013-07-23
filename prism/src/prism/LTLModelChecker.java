@@ -629,13 +629,13 @@ public class LTLModelChecker
 	{
 		SCCComputer sccComputer;
 		JDDNode acceptingStates, allAcceptingStates;
-		Vector<JDDNode> vectBSCCs, newVectBSCCs;
+		List<JDDNode> vectBSCCs, newVectBSCCs;
 		int i, j, n;
 
 		// Compute BSCCs for model
 		sccComputer = prism.getSCCComputer(model);
 		sccComputer.computeBSCCs();
-		vectBSCCs = sccComputer.getVectBSCCs();
+		vectBSCCs = sccComputer.getBSCCs();
 		JDD.Deref(sccComputer.getNotInBSCCs());
 
 		allAcceptingStates = JDD.Constant(0);
@@ -1192,7 +1192,7 @@ public class LTLModelChecker
 			JDDNode stableSetTrans = maxStableSetTrans(model, stableSet);
 
 			// now find the maximal SCCs in (stableSet, stableSetTrans)
-			Vector<JDDNode> sccs;
+			List<JDDNode> sccs;
 			sccComputer = prism.getSCCComputer(stableSet, stableSetTrans, model.getAllDDRowVars(), model.getAllDDColVars());
 			if (filter != null)
 				sccComputer.computeSCCs(filter);
@@ -1200,7 +1200,7 @@ public class LTLModelChecker
 				sccComputer.computeSCCs();
 			JDD.Deref(stableSet);
 			JDD.Deref(stableSetTrans);
-			sccs = sccComputer.getVectSCCs();
+			sccs = sccComputer.getSCCs();
 			JDD.Deref(sccComputer.getNotInSCCs());
 			if (sccs.size() > 0) {
 				if (sccs.size() > 1 || !sccs.get(0).equals(candidate)) {
@@ -1344,7 +1344,7 @@ public class LTLModelChecker
 	 * 
 	 * modified by Hongyang for testing
 	 */
-	private JDDNode filteredUnion(Vector<JDDNode> sets, JDDNode filter)
+	private JDDNode filteredUnion(List<JDDNode> sets, JDDNode filter)
 	{
 		JDDNode union = JDD.Constant(0);
 		for (JDDNode set : sets) {

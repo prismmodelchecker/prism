@@ -27,105 +27,176 @@
 
 package prism;
 
+import java.util.List;
 import java.util.Vector;
 
-import jdd.*;
+import jdd.JDD;
+import jdd.JDDNode;
+import jdd.JDDVars;
 
 /**
- * Abstract class for classes that compute (B)SCCs,
+ * Abstract class for (symbolic) classes that compute (B)SCCs,
  * i.e. (bottom) strongly connected components, for a model's transition graph.
  */
 public abstract class SCCComputer extends PrismComponent
 {
-	protected PrismLog mainLog;
-
 	// model info
 	protected JDDNode trans01;
 	protected JDDNode reach;
 	protected JDDVars allDDRowVars;
 	protected JDDVars allDDColVars;
-	
+
 	// stuff for SCCs
-	protected Vector<JDDNode> vectSCCs;
+	protected Vector<JDDNode> sccs;
 	protected JDDNode notInSCCs;
 	// stuff for BSCCs
-	protected Vector<JDDNode> vectBSCCs;
+	protected Vector<JDDNode> bsccs;
 	protected JDDNode notInBSCCs;
 
-	// Get methods
-	
-	// Constructor
-	public SCCComputer(Prism prism, JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars) throws PrismException
+	/**
+	 * Static method to create a new SCCComputer object, depending on current settings.
+	 */
+	public static SCCComputer createSCCComputer(PrismComponent parent, Model model) throws PrismException
 	{
-		super(prism);
+		return createSCCComputer(parent, model.getReach(), model.getTrans01(), model.getAllDDRowVars(), model.getAllDDColVars());
+	}
+
+	/**
+	 * Static method to create a new SCCComputer object, depending on current settings.
+	 */
+	public static SCCComputer createSCCComputer(PrismComponent parent, JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars)
+			throws PrismException
+	{
+		return createSCCComputer(parent, parent.getSettings().getChoice(PrismSettings.PRISM_SCC_METHOD), reach, trans01, allDDRowVars, allDDColVars);
+	}
+
+	/**
+	 * Static method to create a new SCCComputer object, depending on requested method.
+	 */
+	public static SCCComputer createSCCComputer(PrismComponent parent, int sccMethod, JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars)
+			throws PrismException
+	{
+		SCCComputer sccComputer;
+		switch (sccMethod) {
+		case Prism.LOCKSTEP:
+			sccComputer = new SCCComputerLockstep(parent, reach, trans01, allDDRowVars, allDDColVars);
+			break;
+		case Prism.SCCFIND:
+			sccComputer = new SCCComputerSCCFind(parent, reach, trans01, allDDRowVars, allDDColVars);
+			break;
+		case Prism.XIEBEEREL:
+			sccComputer = new SCCComputerXB(parent, reach, trans01, allDDRowVars, allDDColVars);
+			break;
+		default:
+			sccComputer = new SCCComputerLockstep(parent, reach, trans01, allDDRowVars, allDDColVars);
+		}
+		return sccComputer;
+	}
+
+	/**
+	 * Base constructor.
+	 */
+	public SCCComputer(PrismComponent parent, JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars) throws PrismException
+	{
+		super(parent);
 		this.trans01 = trans01;
 		this.reach = reach;
 		this.allDDRowVars = allDDRowVars;
 		this.allDDColVars = allDDColVars;
 	}
-	
-	// Get vector of SCCs
-	// NB: these BDDs aren't derefed by SCCComputer classes
-	public Vector<JDDNode> getVectSCCs() { return vectSCCs; }
-	
-	// Get states not in any SCCs
-	// NB: this BDD isn't derefed by SCCComputer classes
-	public JDDNode getNotInSCCs() { return notInSCCs; }
 
-	// Get vector of BSCCs
-	// NB: these BDDs aren't derefed by SCCComputer classes
-	public Vector<JDDNode> getVectBSCCs() { return vectBSCCs; }
-	
-	// Get states not in any BSCCs
-	// NB: this BDD isn't derefed by SCCComputer classes
-	public JDDNode getNotInBSCCs() { return notInBSCCs; }
-	
-	// Strongly connected components (SCC) computation
-	// NB: This creates BDDs, obtainable from getVectSCCs() and getNotInSCCs(),
-	// which  the calling code is responsible for dereferencing.
-	public abstract void computeSCCs();
-	public abstract void computeSCCs(JDDNode filter);
+	/**
+	 * Compute strongly connected components (SCCs) and store them.
+	 * They can be retrieved using {@link #getSCCs()} and {@link #getNotInSCCs()}.
+	 * You will need to to deref these afterwards.
+	 */
+	public abstract void computeSCCs() throws PrismException;
 
-	// Bottom strongly connected components (BSCC) computation
-	// NB: This creates BDDs, obtainable from getVectBSCCs() and getNotInBSCCs(),
-	// which  the calling code is responsible for dereferencing.
-	public void computeBSCCs()
+	/**
+	 * Compute strongly connected components (SCCs) containing a state from {@code filter} and store them.
+	 * They can be retrieved using {@link #getSCCs()} and {@link #getNotInSCCs()}.
+	 * You will need to to deref these afterwards.
+	 */
+	public abstract void computeSCCs(JDDNode filter) throws PrismException;
+
+	/**
+	 * Get the list of computed SCCs.
+	 * You need to deref these BDDs when you are finished with them.
+	 */
+	public List<JDDNode> getSCCs()
+	{
+		return sccs;
+	}
+
+	/**
+	 * Get the states not in any SCC.
+	 * Are there any? Hmmm.
+	 * You need to deref this BDD when you are finished with it.
+	 */
+	public JDDNode getNotInSCCs()
+	{
+		return notInSCCs;
+	}
+
+	/**
+	 * Get the list of computed BSCCs.
+	 * You need to deref these BDDs when you are finished with them.
+	 */
+	public List<JDDNode> getBSCCs()
+	{
+		return bsccs;
+	}
+
+	/**
+	 * Get the states not in any SCC.
+	 * You need to deref these BDDs when you are finished with them.
+	 */
+	public JDDNode getNotInBSCCs()
+	{
+		return notInBSCCs;
+	}
+
+	/**
+	 * Compute bottom strongly connected components (BSCCs) and store them.
+	 * They can be retrieved using {@link #getBSCCs()} and {@link #getNotInBSCCs()}.
+	 * You will need to to deref these afterwards.
+	 */
+	public void computeBSCCs() throws PrismException
 	{
 		JDDNode scc, out;
 		int i, n;
-		
+
 		// First compute SCCs
 		computeSCCs();
-		
+
 		// Now check which ones are bsccs and keep them
-		vectBSCCs = new Vector<JDDNode>();
+		bsccs = new Vector<JDDNode>();
 		notInBSCCs = notInSCCs;
-		n = vectSCCs.size();
+		n = sccs.size();
 		for (i = 0; i < n; i++) {
-			scc = vectSCCs.elementAt(i);
+			scc = sccs.elementAt(i);
 			JDD.Ref(trans01);
 			JDD.Ref(scc);
 			out = JDD.And(trans01, scc);
 			JDD.Ref(scc);
 			out = JDD.And(out, JDD.Not(JDD.PermuteVariables(scc, allDDRowVars, allDDColVars)));
 			if (out.equals(JDD.ZERO)) {
-				vectBSCCs.addElement(scc);
-			}
-			else {
+				bsccs.addElement(scc);
+			} else {
 				JDD.Ref(scc);
 				notInBSCCs = JDD.Or(scc, notInBSCCs);
 				JDD.Deref(scc);
 			}
 			JDD.Deref(out);
 		}
-		
+
 		// print out some info
-		mainLog.print("\nSCCs: " + vectSCCs.size()); // note: contents of vectSCCs derefed but array exiists
-		mainLog.print(", BSCCs: " + vectBSCCs.size());
+		mainLog.print("\nSCCs: " + sccs.size()); // note: contents of vectSCCs derefed but array exiists
+		mainLog.print(", BSCCs: " + bsccs.size());
 		mainLog.println(", non-BSCC states: " + JDD.GetNumMintermsString(notInBSCCs, allDDRowVars.n()));
 		mainLog.print("BSCC sizes:");
-		for (i = 0; i < vectBSCCs.size(); i++) {
-			mainLog.print(" " + (i+1) + ":" + JDD.GetNumMintermsString(vectBSCCs.elementAt(i), allDDRowVars.n()));
+		for (i = 0; i < bsccs.size(); i++) {
+			mainLog.print(" " + (i + 1) + ":" + JDD.GetNumMintermsString(bsccs.elementAt(i), allDDRowVars.n()));
 		}
 		mainLog.println();
 	}

@@ -33,6 +33,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import prism.PrismComponent;
+import prism.PrismException;
+
 /**
  * Tarjan's SCC algorithm operating on a Model object.
  */
@@ -61,8 +64,9 @@ public class SCCComputerTarjan extends SCCComputer
 	/**
 	 * Build (B)SCC computer for a given model.
 	 */
-	public SCCComputerTarjan(Model model)
+	public SCCComputerTarjan(PrismComponent parent, Model model) throws PrismException
 	{
+		super(parent);
 		this.model = model;
 		this.numNodes = model.getNumStates();
 		this.nodeList = new ArrayList<Node>(numNodes);

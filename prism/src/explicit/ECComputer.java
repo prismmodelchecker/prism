@@ -29,27 +29,40 @@ package explicit;
 import java.util.BitSet;
 import java.util.List;
 
+import prism.PrismComponent;
+import prism.PrismException;
+
 /**
- * Abstract class for classes that compute (M)ECs, i.e. (maximal) end components,
+ * Abstract class for (explicit) classes that compute (M)ECs, i.e. (maximal) end components,
  * for a nondeterministic model such as an MDP.
  */
-public abstract class ECComputer
+public abstract class ECComputer extends PrismComponent
 {
 	/**
-	 * Static method to create a new ECComputer object.
+	 * Static method to create a new ECComputer object, depending on current settings.
 	 */
-	public static ECComputer createECComputer(NondetModel model)
+	public static ECComputer createECComputer(PrismComponent parent, NondetModel model) throws PrismException
 	{
-		return new ECComputerDefault(model);
+		// Only one algorithm implemented currently
+		return new ECComputerDefault(parent, model);
 	}
 
 	/**
-	 * Compute MECs and store them. They can be retrieved using {@link #getMECs()}.
+	 * Base constructor.
 	 */
-	public abstract void computeMECs();
+	public ECComputer(PrismComponent parent) throws PrismException
+	{
+		super(parent);
+	}
 
 	/**
-	 * Get the list of computed MECs.
+	 * Compute states of maximal end components (MECs) and store them.
+	 * They can be retrieved using {@link #getMECStates()}.
 	 */
-	public abstract List<BitSet> getMECs();
+	public abstract void computeMECStates() throws PrismException;
+
+	/**
+	 * Get the list of states for computed MECs.
+	 */
+	public abstract List<BitSet> getMECStates();
 }

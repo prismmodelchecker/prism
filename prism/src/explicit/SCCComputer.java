@@ -30,11 +30,14 @@ package explicit;
 import java.util.BitSet;
 import java.util.List;
 
+import prism.PrismComponent;
+import prism.PrismException;
+
 /**
- * Abstract class for classes that compute (B)SCCs,
+ * Abstract class for (explicit) classes that compute (B)SCCs,
  * i.e. (bottom) strongly connected components, for a model's transition graph.
  */
-public abstract class SCCComputer
+public abstract class SCCComputer extends PrismComponent
 {
 	// Method used for finding (B)SCCs
 	public enum SCCMethod {
@@ -51,20 +54,31 @@ public abstract class SCCComputer
 	};
 
 	/**
-	 * Static method to create a new SCCComputer object, depending on requested method.
+	 * Static method to create a new SCCComputer object, depending on current settings.
 	 */
-	public static SCCComputer createSCCComputer(SCCMethod sccMethod, Model model)
+	public static SCCComputer createSCCComputer(PrismComponent parent, Model model) throws PrismException
 	{
-		return new SCCComputerTarjan(model);
+		// Only one algorithm implemented currently
+		return new SCCComputerTarjan(parent, model);
 	}
 
 	/**
-	 * Compute SCCs and store them. They can be retrieved using {@link #getSCCs()}.
+	 * Base constructor.
+	 */
+	public SCCComputer(PrismComponent parent) throws PrismException
+	{
+		super(parent);
+	}
+
+	/**
+	 * Compute strongly connected components (SCCs) and store them.
+	 * They can be retrieved using {@link #getSCCs()}.
 	 */
 	public abstract void computeSCCs();
 
 	/**
-	 * Compute SCCs and store them. They can be retrieved using {@link #getBSCCs()}.
+	 * Compute bottom strongly connected components (BSCCs) and store them.
+	 * They can be retrieved using {@link #getBSCCs()} and {@link #getNotInBSCCs()}.
 	 */
 	public abstract void computeBSCCs();
 

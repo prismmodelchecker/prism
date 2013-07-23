@@ -27,38 +27,58 @@
 
 package prism;
 
+import java.util.Stack;
+import java.util.Vector;
+
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
-import java.util.*;
 
-// SCC (strongly connected component) decomposition using lockstep search with trimming
-// (from Bloem/Gabow/Somenzi 2000)
-
+/**
+ * SCC (strongly connected component) decomposition using lockstep search with trimming
+ * (from Bloem/Gabow/Somenzi 2000)
+ */
 public class SCCComputerLockstep extends SCCComputer
 {
 	private class DecompTask
 	{
 		JDDNode _nodes;
 		JDDNode _edges;
-		DecompTask(JDDNode nodes, JDDNode edges) { _nodes = nodes; _edges = edges; }
-		JDDNode getNodes() { return _nodes; }
-		JDDNode getEdges() { return _edges; }
+
+		DecompTask(JDDNode nodes, JDDNode edges)
+		{
+			_nodes = nodes;
+			_edges = edges;
+		}
+
+		JDDNode getNodes()
+		{
+			return _nodes;
+		}
+
+		JDDNode getEdges()
+		{
+			return _edges;
+		}
 	}
-	
+
 	private JDDNode allSCCs;
-	private Stack<DecompTask> tasks; 
-	
-	// Constructor
-	
-	public SCCComputerLockstep(Prism prism, JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars) throws PrismException
+	private Stack<DecompTask> tasks;
+
+	/**
+	 * Build (B)SCC computer for a given model.
+	 */
+	public SCCComputerLockstep(PrismComponent parent, JDDNode reach, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars) throws PrismException
 	{
-		super(prism, reach, trans01, allDDRowVars, allDDColVars);
+		super(parent, reach, trans01, allDDRowVars, allDDColVars);
 	}
-	
+
+	// Methods for SCCComputer
+
+	@Override
 	public void computeSCCs()
 	{
-		vectSCCs = new Vector<JDDNode>();
+		sccs = new Vector<JDDNode>();
 		allSCCs = JDD.Constant(0);
 		tasks = new Stack<DecompTask>();
 		JDD.Ref(reach);
@@ -71,10 +91,11 @@ public class SCCComputerLockstep extends SCCComputer
 		notInSCCs = JDD.And(reach, JDD.Not(allSCCs));
 	}
 
+	@Override
 	public void computeSCCs(JDDNode filter)
 	{
 		//computeSCCs();
-		vectSCCs = new Vector<JDDNode>();
+		sccs = new Vector<JDDNode>();
 		allSCCs = JDD.Constant(0);
 		tasks = new Stack<DecompTask>();
 		JDD.Ref(reach);
@@ -86,6 +107,8 @@ public class SCCComputerLockstep extends SCCComputer
 		JDD.Ref(reach);
 		notInSCCs = JDD.And(reach, JDD.Not(allSCCs));
 	}
+
+	// Computation
 
 	// Return the image of nodes in edges
 	// Refs: result
@@ -116,7 +139,7 @@ public class SCCComputerLockstep extends SCCComputer
 		tmp = JDD.ThereExists(tmp, allDDColVars);
 		return tmp;
 	}
-	
+
 	// Report a SCC found by lockstep
 	private void report(JDDNode nodes)
 	{
@@ -125,13 +148,13 @@ public class SCCComputerLockstep extends SCCComputer
 			return;
 		}
 		// Sanity check, partitioning of the state space should prevent this
-		assert !vectSCCs.contains(nodes);
-		
+		assert !sccs.contains(nodes);
+
 		/* if (prism.getVerbose()) {
 			log.println("Found SCC:");
 			JDD.PrintVector(nodes, rows);
 		} */
-		vectSCCs.addElement(nodes);
+		sccs.addElement(nodes);
 		JDD.Ref(nodes);
 		allSCCs = JDD.Or(allSCCs, nodes);
 	}
@@ -140,9 +163,10 @@ public class SCCComputerLockstep extends SCCComputer
 	// or have no path from a node in a nontrivial SCC
 	// Refs: result
 	// Derefs: nodes, edges
-	private JDDNode trim(JDDNode nodes, JDDNode edges) {
+	private JDDNode trim(JDDNode nodes, JDDNode edges)
+	{
 		JDDNode old;
-		JDDNode current; 
+		JDDNode current;
 		JDDNode img;
 		JDDNode pre;
 		//int i = 1;
@@ -173,18 +197,19 @@ public class SCCComputerLockstep extends SCCComputer
 	// Lockstep SCC decomposition with trimming from [BGS00]
 	// Refs: reported result
 	// Derefs: nodes and edges in the DecompTask
-	private void lockstep(DecompTask task) {
+	private void lockstep(DecompTask task)
+	{
 
 		JDDNode nodes = task.getNodes();
 		JDDNode edges = task.getEdges();
 		JDDNode tmp;
-				
+
 		if (nodes.equals(JDD.ZERO)) {
 			JDD.Deref(nodes);
 			JDD.Deref(edges);
 			return;
 		}
-		
+
 		/* if (prism.getVerbose()) {
 			log.println("Lockstep pass on nodes: ");
 			JDD.PrintVector(nodes, rows);
@@ -197,24 +222,23 @@ public class SCCComputerLockstep extends SCCComputer
 		edges = JDD.Apply(JDD.TIMES, edges, nodes);
 		JDD.Ref(nodes);
 		edges = JDD.Apply(JDD.TIMES, edges, JDD.PermuteVariables(nodes, allDDRowVars, allDDColVars));
-		
+
 		// pick a starting node
 		JDD.Ref(nodes);
 		JDDNode v = JDD.RestrictToFirst(nodes, allDDRowVars);
 		// mainLog.println("Lockstep - picked node:");
 		// JDD.PrintVector(v, allDDRowVars);
 
-		
-		JDDNode f = v;			// forward set of v
-		JDDNode ffront = v;		// last update to f
+		JDDNode f = v; // forward set of v
+		JDDNode ffront = v; // last update to f
 		JDD.Ref(f);
 		JDD.Ref(ffront);
-		
-		JDDNode b = v;			// backward set of v
-		JDDNode bfront = v;		// last update to b
+
+		JDDNode b = v; // backward set of v
+		JDDNode bfront = v; // last update to b
 		JDD.Ref(b);
 		JDD.Ref(bfront);
-		
+
 		JDD.Deref(v);
 
 		// Compute forward and backward sets in lockstep until either one converges
@@ -240,15 +264,15 @@ public class SCCComputerLockstep extends SCCComputer
 			JDD.Ref(bfront);
 			b = JDD.Or(b, bfront);
 		}
-		
-		JDDNode convergedSet;	// set that converged first
-		JDDNode sccUpdate;		// update in the last approximation of the scc
-		
+
+		JDDNode convergedSet; // set that converged first
+		JDDNode sccUpdate; // update in the last approximation of the scc
+
 		// if ffront is empty, the forward set converged first
 		if (ffront.equals(JDD.ZERO)) {
 			convergedSet = f;
 			JDD.Ref(convergedSet);
-			
+
 			// keep looking for states in the backward set until
 			// its intersection with the forward set stops growing
 			JDD.Ref(bfront);
@@ -263,10 +287,10 @@ public class SCCComputerLockstep extends SCCComputer
 				b = JDD.Or(bfront, b);
 				JDD.Ref(f);
 				JDD.Ref(bfront);
-				sccUpdate = JDD.And(bfront, f);			
+				sccUpdate = JDD.And(bfront, f);
 			}
 		}
-		
+
 		// bfront is empty, the backward set converged first
 		else {
 			convergedSet = b;
@@ -292,10 +316,10 @@ public class SCCComputerLockstep extends SCCComputer
 		JDD.Deref(sccUpdate);
 		JDD.Deref(ffront);
 		JDD.Deref(bfront);
-		
+
 		// Found our SCC
 		JDDNode scc = JDD.Apply(JDD.TIMES, f, b);
-		
+
 		// check if SCC is nontrivial and report
 		JDD.Ref(scc);
 		tmp = JDD.PermuteVariables(scc, allDDRowVars, allDDColVars);
@@ -308,7 +332,7 @@ public class SCCComputerLockstep extends SCCComputer
 			report(scc);
 		}
 		JDD.Deref(tmp);
-		
+
 		// FIXME: restricting newEdges isn't necessary, needs benchmarking
 		//        (speed vs memory?)
 		// newNodes1 = convergedSet \ scc
@@ -334,29 +358,30 @@ public class SCCComputerLockstep extends SCCComputer
 		JDD.Ref(newNodes2);
 		tmp = JDD.PermuteVariables(newNodes2, allDDRowVars, allDDColVars);
 		newEdges2 = JDD.Apply(JDD.TIMES, newEdges2, tmp);
-		
+
 		// Queue new sets for search
 		tasks.push(new DecompTask(newNodes2, newEdges2));
 		tasks.push(new DecompTask(newNodes1, newEdges1));
-		
+
 		//JDD.Deref(scc);
 		//JDD.Deref(convergedSet);
 		//JDD.Deref(nodes);
 		//JDD.Deref(edges);
-	} 
-	
-	private void lockstep(DecompTask task, JDDNode filter) {
+	}
+
+	private void lockstep(DecompTask task, JDDNode filter)
+	{
 
 		JDDNode nodes = task.getNodes();
 		JDDNode edges = task.getEdges();
 		JDDNode tmp;
-				
+
 		if (nodes.equals(JDD.ZERO)) {
 			JDD.Deref(nodes);
 			JDD.Deref(edges);
 			return;
 		}
-		
+
 		/* if (prism.getVerbose()) {
 			log.println("Lockstep pass on nodes: ");
 			JDD.PrintVector(nodes, rows);
@@ -369,24 +394,23 @@ public class SCCComputerLockstep extends SCCComputer
 		edges = JDD.Apply(JDD.TIMES, edges, nodes);
 		JDD.Ref(nodes);
 		edges = JDD.Apply(JDD.TIMES, edges, JDD.PermuteVariables(nodes, allDDRowVars, allDDColVars));
-		
+
 		// pick a starting node
 		JDD.Ref(nodes);
 		JDDNode v = JDD.RestrictToFirst(nodes, allDDRowVars);
 		// mainLog.println("Lockstep - picked node:");
 		// JDD.PrintVector(v, allDDRowVars);
 
-		
-		JDDNode f = v;			// forward set of v
-		JDDNode ffront = v;		// last update to f
+		JDDNode f = v; // forward set of v
+		JDDNode ffront = v; // last update to f
 		JDD.Ref(f);
 		JDD.Ref(ffront);
-		
-		JDDNode b = v;			// backward set of v
-		JDDNode bfront = v;		// last update to b
+
+		JDDNode b = v; // backward set of v
+		JDDNode bfront = v; // last update to b
 		JDD.Ref(b);
 		JDD.Ref(bfront);
-		
+
 		JDD.Deref(v);
 
 		// Compute forward and backward sets in lockstep until either one converges
@@ -412,15 +436,15 @@ public class SCCComputerLockstep extends SCCComputer
 			JDD.Ref(bfront);
 			b = JDD.Or(b, bfront);
 		}
-		
-		JDDNode convergedSet;	// set that converged first
-		JDDNode sccUpdate;		// update in the last approximation of the scc
-		
+
+		JDDNode convergedSet; // set that converged first
+		JDDNode sccUpdate; // update in the last approximation of the scc
+
 		// if ffront is empty, the forward set converged first
 		if (ffront.equals(JDD.ZERO)) {
 			convergedSet = f;
 			JDD.Ref(convergedSet);
-			
+
 			// keep looking for states in the backward set until
 			// its intersection with the forward set stops growing
 			JDD.Ref(bfront);
@@ -435,10 +459,10 @@ public class SCCComputerLockstep extends SCCComputer
 				b = JDD.Or(bfront, b);
 				JDD.Ref(f);
 				JDD.Ref(bfront);
-				sccUpdate = JDD.And(bfront, f);			
+				sccUpdate = JDD.And(bfront, f);
 			}
 		}
-		
+
 		// bfront is empty, the backward set converged first
 		else {
 			convergedSet = b;
@@ -464,10 +488,10 @@ public class SCCComputerLockstep extends SCCComputer
 		JDD.Deref(sccUpdate);
 		JDD.Deref(ffront);
 		JDD.Deref(bfront);
-		
+
 		// Found our SCC
 		JDDNode scc = JDD.Apply(JDD.TIMES, f, b);
-		
+
 		// check if SCC is nontrivial and report
 		JDD.Ref(scc);
 		tmp = JDD.PermuteVariables(scc, allDDRowVars, allDDColVars);
@@ -480,14 +504,14 @@ public class SCCComputerLockstep extends SCCComputer
 			report(scc);
 		}
 		JDD.Deref(tmp);
-		
+
 		// FIXME: restricting newEdges isn't necessary, needs benchmarking
 		//        (speed vs memory?)
 		// newNodes1 = convergedSet \ scc
 		//JDD.Ref(scc);
 		JDD.Ref(convergedSet);
 		JDDNode newNodes1 = JDD.And(convergedSet, JDD.Not(scc));
-		if(JDD.AreInterecting(newNodes1, filter)) {
+		if (JDD.AreInterecting(newNodes1, filter)) {
 			// newEdges1 = edges \intersect (newNodes x newNodes^t)
 			JDD.Ref(edges);
 			JDD.Ref(newNodes1);
@@ -504,24 +528,23 @@ public class SCCComputerLockstep extends SCCComputer
 		//JDD.Ref(nodes);
 		//JDD.Ref(convergedSet);
 		JDDNode newNodes2 = JDD.And(nodes, JDD.Not(convergedSet));
-		if(JDD.AreInterecting(newNodes2, filter)) {
-		// newEdges2 = edges \intersect (newNodes x newNodes^t)
+		if (JDD.AreInterecting(newNodes2, filter)) {
+			// newEdges2 = edges \intersect (newNodes x newNodes^t)
 			JDD.Ref(edges);
 			JDD.Ref(newNodes2);
 			JDDNode newEdges2 = JDD.Apply(JDD.TIMES, edges, newNodes2);
 			JDD.Ref(newNodes2);
 			tmp = JDD.PermuteVariables(newNodes2, allDDRowVars, allDDColVars);
 			newEdges2 = JDD.Apply(JDD.TIMES, newEdges2, tmp);
-			
+
 			// Queue new sets for search
 			tasks.push(new DecompTask(newNodes2, newEdges2));
 		} else
 			JDD.Deref(newNodes2);
 
-		
 		//JDD.Deref(scc);
 		//JDD.Deref(convergedSet);
 		//JDD.Deref(nodes);
 		JDD.Deref(edges);
-	} 
+	}
 }

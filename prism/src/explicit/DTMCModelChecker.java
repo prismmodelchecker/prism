@@ -234,7 +234,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		}
 
 		// For LTL model checking routines
-		mcLtl = new LTLModelChecker();
+		mcLtl = new LTLModelChecker(this);
 
 		// Model check maximal state formulas
 		Vector<BitSet> labelBS = new Vector<BitSet>();
@@ -260,7 +260,7 @@ public class DTMCModelChecker extends ProbModelChecker
 
 		// Find accepting BSCCs + compute reachability probabilities
 		mainLog.println("\nFinding accepting BSCCs...");
-		BitSet acceptingBSCCs = mcLtl.findAcceptingBSCCs(dra, modelProduct, invMap, sccMethod);
+		BitSet acceptingBSCCs = mcLtl.findAcceptingBSCCs(dra, modelProduct, invMap);
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = new DTMCModelChecker(this);
 		probsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachProbs((DTMC) modelProduct, acceptingBSCCs).soln, modelProduct);
@@ -1365,7 +1365,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		solnProbs = new double[n];
 
 		// Compute bottom strongly connected components (BSCCs)
-		SCCComputer sccComputer = SCCComputer.createSCCComputer(sccMethod, dtmc);
+		SCCComputer sccComputer = SCCComputer.createSCCComputer(this, dtmc);
 		sccComputer.computeBSCCs();
 		List<BitSet> bsccs = sccComputer.getBSCCs();
 		BitSet notInBSCCs = sccComputer.getNotInBSCCs();
@@ -1456,7 +1456,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		n = dtmc.getNumStates();
 
 		// Compute bottom strongly connected components (BSCCs)
-		SCCComputer sccComputer = SCCComputer.createSCCComputer(sccMethod, dtmc);
+		SCCComputer sccComputer = SCCComputer.createSCCComputer(this, dtmc);
 		sccComputer.computeBSCCs();
 		List<BitSet> bsccs = sccComputer.getBSCCs();
 		BitSet notInBSCCs = sccComputer.getNotInBSCCs();

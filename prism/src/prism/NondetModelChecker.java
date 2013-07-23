@@ -2226,7 +2226,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		// Local copy of setting
 		int engine = this.engine;
 
-		Vector<JDDNode> zeroCostEndComponents = null;
+		List<JDDNode> zeroCostEndComponents = null;
 
 		// compute states which can't reach goal with probability 1
 		if (b.equals(JDD.ZERO)) {
@@ -2265,9 +2265,9 @@ public class NondetModelChecker extends NonProbModelChecker
 
 					ECComputer ecComp = new ECComputerDefault(prism, zeroReach, zeroTrans, zeroTrans01, model.getAllDDRowVars(), model.getAllDDColVars(),
 							model.getAllDDNondetVars());
-					ecComp.computeECs();
+					ecComp.computeMECStates();
 
-					zeroCostEndComponents = ecComp.getVectECs();
+					zeroCostEndComponents = ecComp.getMECStates();
 
 					JDD.Deref(zeroReach);
 					JDD.Deref(zeroTrans);

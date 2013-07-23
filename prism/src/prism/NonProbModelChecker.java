@@ -26,10 +26,18 @@
 
 package prism;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
 
-import jdd.*;
-import parser.ast.*;
+import jdd.JDD;
+import jdd.JDDNode;
+import parser.ast.Expression;
+import parser.ast.ExpressionExists;
+import parser.ast.ExpressionForAll;
+import parser.ast.ExpressionTemporal;
+import parser.ast.ExpressionUnaryOp;
+import parser.ast.PropertiesFile;
 import cex.CexPathAsBDDs;
 import cex.CexPathStates;
 
@@ -375,7 +383,7 @@ public class NonProbModelChecker extends StateModelChecker
 		int iters, i;
 		long l;
 		// SCC stuff
-		Vector<JDDNode> sccs = null;
+		List<JDDNode> sccs = null;
 		JDDNode notInSCCs = null;
 		int numSCCs = 0;
 
@@ -398,11 +406,11 @@ public class NonProbModelChecker extends StateModelChecker
 		transRel = JDD.And(transRel, b2);
 		JDD.Ref(b2);
 		transRel = JDD.And(transRel, JDD.PermuteVariables(b2, allDDRowVars, allDDColVars));
-		
+
 		// Find SCCs in resulting stripped down transition relation
 		SCCComputer sccComputer = prism.getSCCComputer(reach, transRel, allDDRowVars, allDDColVars);
 		sccComputer.computeSCCs();
-		sccs = sccComputer.getVectSCCs();
+		sccs = sccComputer.getSCCs();
 		notInSCCs = sccComputer.getNotInSCCs();
 		numSCCs = sccs.size();
 
@@ -449,8 +457,8 @@ public class NonProbModelChecker extends StateModelChecker
 		JDD.Deref(target);
 		JDD.Deref(transRel);
 		for (i = 0; i < numSCCs; i++) {
-			if (sccs.elementAt(i) != null)
-				JDD.Deref(sccs.elementAt(i));
+			if (sccs.get(i) != null)
+				JDD.Deref(sccs.get(i));
 		}
 		if (notInSCCs != null)
 			JDD.Deref(notInSCCs);

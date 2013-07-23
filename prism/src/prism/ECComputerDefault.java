@@ -28,6 +28,7 @@
 
 package prism;
 
+import java.util.List;
 import java.util.Stack;
 import java.util.Vector;
 
@@ -35,17 +36,29 @@ import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
 
+/**
+ * Symbolic maximal end component computer for a nondeterministic model such as MDP.
+ */
 public class ECComputerDefault extends ECComputer
 {
-	public ECComputerDefault(Prism prism, JDDNode reach, JDDNode trans, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars, JDDVars allDDNondetVars)
+	/**
+	 * Build (M)EC computer for a given model.
+	 */
+	public ECComputerDefault(PrismComponent parent, JDDNode reach, JDDNode trans, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars,
+			JDDVars allDDNondetVars) throws PrismException
 	{
-		super(prism, reach, trans, trans01, allDDRowVars, allDDColVars, allDDNondetVars);
+		super(parent, reach, trans, trans01, allDDRowVars, allDDColVars, allDDNondetVars);
 	}
 
-	public void computeECs()
+	// Methods for ECComputer interface
+
+	@Override
+	public void computeMECStates() throws PrismException
 	{
-		vectECs = findEndComponents(reach, reach);
+		mecs = findEndComponents(reach, reach);
 	}
+
+	// Computation
 
 	/**
 	 * Find all maximal accepting end components (ECs) contained within {@code states},
@@ -55,7 +68,7 @@ public class ECComputerDefault extends ECComputer
 	 * @param filter BDD for the set of accepting states
 	 * @return a vector of (referenced) BDDs representing the ECs
 	 */
-	private Vector<JDDNode> findEndComponents(JDDNode states, JDDNode filter)
+	private Vector<JDDNode> findEndComponents(JDDNode states, JDDNode filter) throws PrismException
 	{
 		Stack<JDDNode> candidates = new Stack<JDDNode>();
 		JDD.Ref(states);
@@ -86,15 +99,15 @@ public class ECComputerDefault extends ECComputer
 			JDDNode stableSetTrans = maxStableSetTrans(stableSet);
 
 			// now find the maximal SCCs in (stableSet, stableSetTrans)
-			Vector<JDDNode> sccs;
-			sccComputer = prism.getSCCComputer(stableSet, stableSetTrans, allDDRowVars, allDDColVars);
+			List<JDDNode> sccs;
+			sccComputer = SCCComputer.createSCCComputer(this, stableSet, stableSetTrans, allDDRowVars, allDDColVars);
 			if (filter != null)
 				sccComputer.computeSCCs(filter);
 			else
 				sccComputer.computeSCCs();
 			JDD.Deref(stableSet);
 			JDD.Deref(stableSetTrans);
-			sccs = sccComputer.getVectSCCs();
+			sccs = sccComputer.getSCCs();
 			JDD.Deref(sccComputer.getNotInSCCs());
 			if (sccs.size() > 0) {
 				if (sccs.size() > 1 || !sccs.get(0).equals(candidate)) {
@@ -137,7 +150,7 @@ public class ECComputerDefault extends ECComputer
 			tmp = JDD.SumAbstract(tmp, allDDColVars);
 			// If the sum for a (state,action) tuple is 1,
 			// there is an action that remains in the stable set with prob 1
-			tmp = JDD.GreaterThan(tmp, 1 - prism.getSumRoundOff());
+			tmp = JDD.GreaterThan(tmp, 1 - sumRoundOff);
 			// Without fairness, we just need one action per state
 			current = JDD.ThereExists(tmp, allDDNondetVars);
 		}
@@ -166,7 +179,7 @@ public class ECComputerDefault extends ECComputer
 		mask = JDD.SumAbstract(mask, allDDColVars);
 		// If the sum for a (state,action) tuple is 1,
 		// there is an action that remains in the stable set with prob 1
-		mask = JDD.GreaterThan(mask, 1 - prism.getSumRoundOff());
+		mask = JDD.GreaterThan(mask, 1 - sumRoundOff);
 		// select the transitions starting in these tuples
 		JDD.Ref(trans01);
 		JDDNode stableTrans01 = JDD.And(trans01, mask);

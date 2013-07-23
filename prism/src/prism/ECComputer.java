@@ -28,16 +28,20 @@
 
 package prism;
 
+import java.util.List;
 import java.util.Vector;
 
-import jdd.*;
+import jdd.JDDNode;
+import jdd.JDDVars;
 
-//	interface for end-component computing classes
-
-public abstract class ECComputer
+/**
+ * Abstract class for (symbolic) classes that compute (M)ECs, i.e. (maximal) end components,
+ * for a nondeterministic model such as an MDP.
+ */
+public abstract class ECComputer extends PrismComponent
 {
-	protected Prism prism;
-	protected PrismLog mainLog;
+	// setting(s)
+	protected double sumRoundOff;
 
 	// model info
 	protected JDDNode trans;
@@ -46,38 +50,58 @@ public abstract class ECComputer
 	protected JDDVars allDDRowVars;
 	protected JDDVars allDDColVars;
 	protected JDDVars allDDNondetVars;
-		
+
 	// stuff for ECs
-	protected Vector<JDDNode> vectECs;
-	protected JDDNode notInECs;
-		
-	// Constructor
+	protected Vector<JDDNode> mecs;
+
 	/**
-	 * Find maximal EC of a sub-MDP by restricting reach and trans01.
-	 * This sub-MDP needs to be deadlock-free.
+	 * Static method to create a new ECComputer object, depending on current settings.
 	 */
-	public ECComputer(Prism prism, JDDNode reach, JDDNode trans, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars, JDDVars allDDNondetVars)
+	public static ECComputer createECComputer(PrismComponent parent, NondetModel model) throws PrismException
 	{
-		this.prism = prism;
-		mainLog = prism.getMainLog();
+		return createECComputer(parent, model.getReach(), model.getTrans(), model.getTrans01(), model.getAllDDRowVars(), model.getAllDDColVars(),
+				model.getAllDDNondetVars());
+	}
+
+	/**
+	 * Static method to create a new ECComputer object, depending on current settings.
+	 */
+	public static ECComputer createECComputer(PrismComponent parent, JDDNode reach, JDDNode trans, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars,
+			JDDVars allDDNondetVars) throws PrismException
+	{
+		// Only one algorithm implemented currently
+		return new ECComputerDefault(parent, reach, trans, trans01, allDDRowVars, allDDColVars, allDDNondetVars);
+	}
+
+	/**
+	 * Base constructor.
+	 */
+	public ECComputer(PrismComponent parent, JDDNode reach, JDDNode trans, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars, JDDVars allDDNondetVars)
+			throws PrismException
+	{
+		super(parent);
 		this.reach = reach;
 		this.trans = trans;
-		this.trans01 = trans01;		
+		this.trans01 = trans01;
 		this.allDDRowVars = allDDRowVars;
 		this.allDDColVars = allDDColVars;
 		this.allDDNondetVars = allDDNondetVars;
+		sumRoundOff = settings.getDouble(PrismSettings.PRISM_SUM_ROUND_OFF);
 	}
-	
-	// Get vector of EndComponents
-	// NB: these BDDs aren't derefed by EndComponentComputer classes
-	public Vector<JDDNode> getVectECs() { return vectECs; }
-	
-	// Get states not in any EndComponent
-	// NB: this BDD isn't derefed by SCCComputer classes
-	//public JDDNode getNotInECs() { return notInECs; }
-	
-	// End Components (EC) computation
-	// NB: This creates BDDs, obtainable from getVectECs() and getNotInECs(),
-	// which  the calling code is responsible for dereferencing.
-	public abstract void computeECs();
+
+	/**
+	 * Compute states of maximal end components (MECs) and store them.
+	 * They can be retrieved using {@link #getMECStates()}.
+	 * You will need to to deref these afterwards.
+	 */
+	public abstract void computeMECStates() throws PrismException;
+
+	/**
+	 * Get the list of states for computed MECs.
+	 * You need to deref these BDDs when you are finished with them.
+	 */
+	public List<JDDNode> getMECStates()
+	{
+		return mecs;
+	}
 }
