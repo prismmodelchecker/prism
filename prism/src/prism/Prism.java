@@ -194,10 +194,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	//  2 - (s l ... l r c ... r c) (s l ... l r c ... r c) ...
 	private int ordering = 1;
 
-	// Round-off threshold for places where doubles are summed and compared to integers
-	// (e.g. checking that probabilities sum to 1 in an update).
-	private double sumRoundOff = 1e-5;
-
 	// Method to use for (symbolic) state-space reachability
 	private int reachMethod = REACH_BFS;
 
@@ -383,6 +379,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public void setDoProbChecks(boolean b) throws PrismException
 	{
 		settings.set(PrismSettings.PRISM_DO_PROB_CHECKS, b);
+	}
+
+	public void setSumRoundOff(double d) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_SUM_ROUND_OFF, d);
 	}
 
 	public void setCompact(boolean b) throws PrismException
@@ -589,11 +590,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		ordering = i;
 	}
 
-	public void setSumRoundOff(double d) throws PrismException
-	{
-		sumRoundOff = d;
-	}
-
 	public static int REACH_BFS = 1;
 	public static int REACH_FRONTIER = 2;
 
@@ -667,6 +663,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public boolean getDoProbChecks()
 	{
 		return settings.getBoolean(PrismSettings.PRISM_DO_PROB_CHECKS);
+	}
+
+	public double getSumRoundOff()
+	{
+		return settings.getDouble(PrismSettings.PRISM_SUM_ROUND_OFF);
 	}
 
 	public int getLinEqMethod()
@@ -877,11 +878,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public int getOrdering()
 	{
 		return ordering;
-	}
-
-	public double getSumRoundOff()
-	{
-		return sumRoundOff;
 	}
 
 	public int getReachMethod()

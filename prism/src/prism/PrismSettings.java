@@ -78,6 +78,7 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_PROB1							= "prism.prob1";
 	public static final	String PRISM_FIX_DEADLOCKS					= "prism.fixDeadlocks";
 	public static final	String PRISM_DO_PROB_CHECKS					= "prism.doProbChecks";
+	public static final	String PRISM_SUM_ROUND_OFF					= "prism.sumRoundOff";
 	public static final	String PRISM_COMPACT						= "prism.compact";
 	public static final	String PRISM_LIN_EQ_METHOD					= "prism.linEqMethod";//"prism.iterativeMethod";
 	public static final	String PRISM_LIN_EQ_METHOD_PARAM			= "prism.linEqMethodParam";//"prism.overRelaxation";
@@ -246,6 +247,8 @@ public class PrismSettings implements Observer
 																			"Automatically fix deadlocks, where necessary, when constructing probabilistic models." },
 			{ BOOLEAN_TYPE,		PRISM_DO_PROB_CHECKS,					"Do probability/rate checks",			"2.1",			new Boolean(true),															"",																							
 																			"Perform sanity checks on model probabilities/rates when constructing probabilistic models." },
+			{ DOUBLE_TYPE,		PRISM_SUM_ROUND_OFF,					"Probability sum threshold",					"2.1",			new Double(1.0E-5),													"0.0,",
+																			"Round-off threshold for places where doubles are summed and compared to integers (e.g. checking that probabilities sum to 1 in an update)." },							
 			{ BOOLEAN_TYPE,		PRISM_DO_SS_DETECTION,					"Use steady-state detection",			"2.1",			new Boolean(true),															"0,",																						
 																			"Use steady-state detection during CTMC transient probability computation." },
 			{ CHOICE_TYPE,		PRISM_SCC_METHOD,						"SCC decomposition method",				"3.2",			"Lockstep",																	"Xie-Beerel,Lockstep,SCC-Find",																
@@ -969,6 +972,21 @@ public class PrismSettings implements Observer
 		else if (sw.equals("noprobchecks")) {
 			set(PRISM_DO_PROB_CHECKS, false);
 		}
+		// Sum round-off threshold
+		else if (sw.equals("sumroundoff")) {
+			if (i < args.length - 1) {
+				try {
+					d = Double.parseDouble(args[++i]);
+					if (d < 0)
+						throw new NumberFormatException("");
+					set(PRISM_SUM_ROUND_OFF, d);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
+		}
 		// No steady-state detection
 		else if (sw.equals("nossdetect")) {
 			set(PRISM_DO_SS_DETECTION, false);
@@ -1402,6 +1420,7 @@ public class PrismSettings implements Observer
 		mainLog.println("-fixdl ......................... Automatically put self-loops in deadlock states [default]");
 		mainLog.println("-nofixdl ....................... Do not automatically put self-loops in deadlock states");
 		mainLog.println("-noprobchecks .................. Disable checks on model probabilities/rates");
+		mainLog.println("-sumroundoff <x> ............... Set probability sum threshold [default: 1-e5]");
 		mainLog.println("-zerorewardcheck ............... Check for absence of zero-reward loops");
 		mainLog.println("-nossdetect .................... Disable steady-state detection for CTMC transient computations");
 		mainLog.println("-sccmethod <name> .............. Specify (symbolic) SCC computation method (xiebeerel, lockstep, sccfind)");
