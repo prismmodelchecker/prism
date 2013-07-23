@@ -612,7 +612,7 @@ public class ProbModelChecker extends NonProbModelChecker
 
 		// Find accepting BSCCs + compute reachability probabilities
 		mainLog.println("\nFinding accepting BSCCs...");
-		JDDNode acc = mcLtl.findAcceptingBSCCs(dra, draDDRowVars, draDDColVars, modelProduct);
+		JDDNode acc = mcLtl.findAcceptingBSCCsForRabin(dra, modelProduct, draDDRowVars, draDDColVars);
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = createNewModelChecker(prism, modelProduct, null);
 		probsProduct = mcProduct.checkProbUntil(modelProduct.getReach(), acc, qual);

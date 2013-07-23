@@ -620,11 +620,14 @@ public class LTLModelChecker extends PrismComponent
 	}
 
 	/**
-	 * Computes sets of accepting states in a DTMC/CTMC for each Rabin acceptance pair
-	 * 
-	 * @returns a referenced BDD of the union of all the accepting sets
+	 * Find the set of accepting BSCCs in a model wrt a Rabin acceptance condition.
+	 * @param dra The DRA storing the Rabin acceptance condition
+	 * @param draDDRowVars BDD row variables for the DRA part of the model
+	 * @param draDDColVars BDD column variables for the DRA part of the model
+	 * @param model The model
+	 * @returns A referenced BDD for the union of all states in accepting BSCCs
 	 */
-	public JDDNode findAcceptingBSCCs(DRA<BitSet> dra, JDDVars draDDRowVars, JDDVars draDDColVars, ProbModel model) throws PrismException
+	public JDDNode findAcceptingBSCCsForRabin(DRA<BitSet> dra, ProbModel model, JDDVars draDDRowVars, JDDVars draDDColVars) throws PrismException
 	{
 		SCCComputer sccComputer;
 		JDDNode acceptingStates, allAcceptingStates;
@@ -689,11 +692,15 @@ public class LTLModelChecker extends PrismComponent
 	}
 
 	/**
-	 * Computes sets of accepting states in an MDP for each Rabin acceptance pair
-	 * 
-	 * @returns a referenced BDD of the union of all the accepting sets
+	 * Find the set of states in accepting MEC in a nondeterministic model wrt a Rabin acceptance condition.
+	 * @param dra The DRA storing the Rabin acceptance condition
+	 * @param model The model
+	 * @param draDDRowVars BDD row variables for the DRA part of the model
+	 * @param draDDColVars BDD column variables for the DRA part of the model
+	 * @param fairness Consider fairness?
+	 * @returns A referenced BDD for the union of all states in accepting MECs
 	 */
-	public JDDNode findAcceptingStates(DRA<BitSet> dra, NondetModel model, JDDVars draDDRowVars, JDDVars draDDColVars, boolean fairness) throws PrismException
+	public JDDNode findAcceptingMECStatesForRabin(DRA<BitSet> dra, NondetModel model, JDDVars draDDRowVars, JDDVars draDDColVars, boolean fairness) throws PrismException
 	{
 		JDDNode acceptingStates = null, allAcceptingStates, acceptanceVector_H, acceptanceVector_L, candidateStates;
 		int i, j;

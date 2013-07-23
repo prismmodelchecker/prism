@@ -1365,7 +1365,7 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// Find accepting MECs + compute reachability probabilities
 		mainLog.println("\nFinding accepting end components...");
-		JDDNode acc = mcLtl.findAcceptingStates(dra, modelProduct, draDDRowVars, draDDColVars, fairness);
+		JDDNode acc = mcLtl.findAcceptingMECStatesForRabin(dra, modelProduct, draDDRowVars, draDDColVars, fairness);
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = new NondetModelChecker(prism, modelProduct, null);
 		probsProduct = mcProduct.checkProbUntil(modelProduct.getReach(), acc, qual, min && fairness);
