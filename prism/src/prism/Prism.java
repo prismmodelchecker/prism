@@ -644,7 +644,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	public int getEngine()
 	{
-		return settings.getInteger(PrismSettings.PRISM_ENGINE);
+		return settings.getChoice(PrismSettings.PRISM_ENGINE);
 	}
 
 	/**
