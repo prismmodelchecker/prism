@@ -29,7 +29,6 @@
 package prism;
 
 import java.util.List;
-import java.util.Vector;
 
 import jdd.JDDNode;
 import jdd.JDDVars;
@@ -52,7 +51,7 @@ public abstract class ECComputer extends PrismComponent
 	protected JDDVars allDDNondetVars;
 
 	// stuff for ECs
-	protected Vector<JDDNode> mecs;
+	protected List<JDDNode> mecs;
 
 	/**
 	 * Static method to create a new ECComputer object, depending on current settings.

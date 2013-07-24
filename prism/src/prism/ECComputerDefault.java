@@ -37,8 +37,9 @@ import jdd.JDDNode;
 import jdd.JDDVars;
 
 /**
- * Symbolic maximal end component computer for a nondeterministic model such as MDP.
+ * Symbolic maximal end component computer for a nondeterministic model such as an MDP.
  */
+@SuppressWarnings("unused")
 public class ECComputerDefault extends ECComputer
 {
 	/**
@@ -78,21 +79,26 @@ public class ECComputerDefault extends ECComputer
 	 * (If {@code filter} is null, the acceptance condition is trivially satisfied.)
 	 * @param states BDD of the set of containing states
 	 * @param filter BDD for the set of accepting states
-	 * @return a vector of (referenced) BDDs representing the ECs
+	 * @return a list of (referenced) BDDs representing the MECs
 	 */
-	private Vector<JDDNode> findEndComponents(JDDNode states, JDDNode filter) throws PrismException
+	private List<JDDNode> findEndComponents(JDDNode states, JDDNode filter) throws PrismException
 	{
+		Vector<JDDNode> mecs = new Vector<JDDNode>();
+		SCCComputer sccComputer;
+
+		// Initial set of candidates for MECs just contains the whole set we are searching
 		Stack<JDDNode> candidates = new Stack<JDDNode>();
 		JDD.Ref(states);
 		candidates.push(states);
-		Vector<JDDNode> ecs = new Vector<JDDNode>();
-		SCCComputer sccComputer;
 
+		// Go through each candidate set
 		while (!candidates.isEmpty()) {
 			JDDNode candidate = candidates.pop();
-			// Compute the stable set
+			
+			// Compute its maximal stable set
 			JDD.Ref(candidate);
 			JDDNode stableSet = findMaximalStableSet(candidate);
+			
 			// Drop empty sets
 			if (stableSet.equals(JDD.ZERO)) {
 				JDD.Deref(stableSet);
@@ -101,7 +107,7 @@ public class ECComputerDefault extends ECComputer
 			}
 
 			if (stableSet.equals(candidate) && JDD.GetNumMinterms(stableSet, allDDRowVars.n()) == 1) {
-				ecs.add(candidate);
+				mecs.add(candidate);
 				JDD.Deref(stableSet);
 				continue;
 			}
@@ -110,8 +116,7 @@ public class ECComputerDefault extends ECComputer
 			JDD.Ref(stableSet);
 			JDDNode stableSetTrans = maxStableSetTrans(stableSet);
 
-			// now find the maximal SCCs in (stableSet, stableSetTrans)
-			List<JDDNode> sccs;
+			// Find the maximal SCCs in (stableSet, stableSetTrans)
 			sccComputer = SCCComputer.createSCCComputer(this, stableSet, stableSetTrans, allDDRowVars, allDDColVars);
 			if (filter != null)
 				sccComputer.computeSCCs(filter);
@@ -119,29 +124,74 @@ public class ECComputerDefault extends ECComputer
 				sccComputer.computeSCCs();
 			JDD.Deref(stableSet);
 			JDD.Deref(stableSetTrans);
-			sccs = sccComputer.getSCCs();
+			List<JDDNode> sccs = sccComputer.getSCCs();
 			JDD.Deref(sccComputer.getNotInSCCs());
-			if (sccs.size() > 0) {
-				if (sccs.size() > 1 || !sccs.get(0).equals(candidate)) {
-					candidates.addAll(sccs);
-					JDD.Deref(candidate);
-				} else {
-					ecs.add(candidate);
-					JDD.Deref(sccs.get(0));
-				}
-			} else
-				JDD.Deref(candidate);
+			
+			// If there are no SCCs, do nothing 
+			if (sccs.size() == 0) {
+			}
+			// If the whole sub-MDP is one SCC, we found an MEC
+			else if (sccs.size() == 1 && sccs.get(0).equals(candidate)) {
+				mecs.add(sccs.get(0));
+			}
+			// Otherwise add SCCs as candidates and proceed
+			else {
+				candidates.addAll(sccs);
+			}
+			JDD.Deref(candidate);
 		}
-		return ecs;
+		return mecs;
 	}
 
 	/**
-	 * Returns a stable set of states contained in candidateStates
-	 * 
-	 * @param candidateStates set of candidate states S x H_i (dereferenced after calling this function)
-	 * @return a referenced BDD with the maximal stable set in c
+	 * Returns the maximal stable set of states contained in {@code candidateStates},
+	 * i.e. the maximal subset of states which have a choice whose transitions remain in the subset. 
+	 * @param candidateStates BDD for a set of states (over allDDRowVars) (dereferenced after calling this function)
+	 * @return A referenced BDD with the maximal stable set in c
 	 */
 	private JDDNode findMaximalStableSet(JDDNode candidateStates)
+	{
+		// Store two copies to allow check for fixed point 
+		JDDNode current = candidateStates;
+		JDDNode old = JDD.Constant(0);
+		// Fixed point
+		while (!current.equals(old)) {
+			// Remember last set
+			JDD.Deref(old);
+			JDD.Ref(current);
+			old = current;
+			// Find transitions starting in current
+			JDD.Ref(trans01);
+			JDD.Ref(current);
+			JDDNode currTrans = JDD.Apply(JDD.TIMES, trans01, current);
+			// Find transitions starting in current *and* ending in current
+			current = JDD.PermuteVariables(current, allDDRowVars, allDDColVars);
+			JDD.Ref(currTrans);
+			JDDNode currTrans2 = JDD.Apply(JDD.TIMES, currTrans, current);
+			// Find transitions leaving current
+			JDD.Ref(currTrans2);
+			currTrans = JDD.And(currTrans, JDD.Not(currTrans2));
+			// Find choices leaving current
+			currTrans = JDD.ThereExists(currTrans, allDDColVars);
+			// Remove leaving choices
+			currTrans2 = JDD.ThereExists(currTrans2, allDDColVars);
+			currTrans2 = JDD.And(currTrans2, JDD.Not(currTrans));
+			// Keep states with at least one choice
+			current = JDD.ThereExists(currTrans2, allDDNondetVars);
+		}
+		JDD.Deref(old);
+		return current;
+	}
+
+	/**
+	 * Returns the maximal stable set of states contained in {@code candidateStates},
+	 * i.e. the maximal subset of states which have a choice whose transitions remain in the subset. 
+	 * @param candidateStates BDD for a set of states (over allDDRowVars) (dereferenced after calling this function)
+	 * @return A referenced BDD with the maximal stable set in c
+	 * 
+	 * Old version of the code (uses probability sum, which shouldn't be needed).
+	 */
+	private JDDNode findMaximalStableSetOld(JDDNode candidateStates)
 	{
 		JDDNode old = JDD.Constant(0);
 		JDDNode current = candidateStates;
@@ -168,7 +218,6 @@ public class ECComputerDefault extends ECComputer
 		}
 		JDD.Deref(old);
 		return current;
-
 	}
 
 	/**
