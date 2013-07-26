@@ -39,8 +39,8 @@ import prism.PrismComponent;
 import prism.PrismException;
 
 /**
- * EXplicit maximal end component computer for a nondeterministic model such as MDP.
- * Implements the algorithm from:
+ * Explicit maximal end component computer for a nondeterministic model such as an MDP.
+ * Implements the algorithm from p.48 of:
  * Luca de Alfaro. Formal Verification of Probabilistic Systems. Ph.D. thesis, Stanford University (1997)
  */
 public class ECComputerDefault extends ECComputer
@@ -65,23 +65,16 @@ public class ECComputerDefault extends ECComputer
 	@Override
 	public void computeMECStates() throws PrismException
 	{
-		SubNondetModel submodel = null;
-		List<BitSet> L = new ArrayList<BitSet>();
+		// Look within set of all reachable states
+		BitSet reach = new BitSet();
+		reach.set(0, model.getNumStates());
+		computeMECStates(reach);
+	}
 
-		BitSet initialModel = new BitSet();
-		initialModel.set(0, model.getNumStates());
-		L.add(initialModel);
-
-		boolean changed = true;
-		while (changed) {
-			changed = false;
-			BitSet E = L.remove(0);
-			submodel = restrict(model, E);
-			List<BitSet> sccs = translateStates(submodel, computeSCCs(submodel));
-			L = replaceEWithSCCs(L, E, sccs);
-			changed = canLBeChanged(L, E);
-		}
-		mecs = L;
+	@Override
+	public void computeMECStates(BitSet states) throws PrismException
+	{
+		mecs = findEndComponents(states, null); //TODO
 	}
 
 	@Override
@@ -91,6 +84,33 @@ public class ECComputerDefault extends ECComputer
 	}
 
 	// Computation
+
+	/**
+	 * Find all accepting maximal end components (MECs) contained within {@code states},
+	 * where acceptance is defined as those which intersect with {@code filter}.
+	 * (If {@code filter} is null, the acceptance condition is trivially satisfied.)
+	 * @param states BitSet for the set of containing states
+	 * @param filter BitSet for the set of accepting states
+	 * @return a list of BitSets representing the MECs
+	 */
+	private List<BitSet> findEndComponents(BitSet states, BitSet filter) throws PrismException
+	{
+		// Initialise L with set of all states to look in
+		List<BitSet> L = new ArrayList<BitSet>();
+		L.add(states);
+
+		boolean changed = true;
+		while (changed) {
+			changed = false;
+			BitSet E = L.remove(0);
+			SubNondetModel submodel = restrict(model, E);
+			List<BitSet> sccs = translateStates(submodel, computeSCCs(submodel));
+			L = replaceEWithSCCs(L, E, sccs);
+			changed = canLBeChanged(L, E);
+		}
+
+		return L;
+	}
 
 	private Set<BitSet> processedSCCs = new HashSet<BitSet>();
 

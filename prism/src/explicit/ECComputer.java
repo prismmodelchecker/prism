@@ -62,6 +62,13 @@ public abstract class ECComputer extends PrismComponent
 	public abstract void computeMECStates() throws PrismException;
 
 	/**
+	 * Compute states of all maximal end components (MECs) contained within {@code states}, and store them.
+	 * They can be retrieved using {@link #getMECStates()}.
+	 * @param states BitSet for the set of containing states
+	 */
+	public abstract void computeMECStates(BitSet states) throws PrismException;
+
+	/**
 	 * Get the list of states for computed MECs.
 	 */
 	public abstract List<BitSet> getMECStates();

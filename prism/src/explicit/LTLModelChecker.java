@@ -357,17 +357,17 @@ public class LTLModelChecker extends PrismComponent
 
 		for (BitSet mec : mecs) {
 			boolean isLEmpty = true;
-			boolean isKEmpty = true;
-			for (int acceptancePair = 0; acceptancePair < numAcceptancePairs && isLEmpty && isKEmpty; acceptancePair++) {
+			boolean isKNonEmpty = false;
+			for (int acceptancePair = 0; acceptancePair < numAcceptancePairs; acceptancePair++) {
 				BitSet L = dra.getAcceptanceL(acceptancePair);
 				BitSet K = dra.getAcceptanceK(acceptancePair);
 				for (int state = mec.nextSetBit(0); state != -1; state = mec.nextSetBit(state + 1)) {
 					int draState = invMap[state] % draSize;
 					isLEmpty &= !L.get(draState);
-					isKEmpty &= !K.get(draState);
+					isKNonEmpty |= K.get(draState);
 				}
 				// Stop as soon as we find the first acceptance pair that is satisfied
-				if (isLEmpty && !isKEmpty) {
+				if (isLEmpty && isKNonEmpty) {
 					result.or(mec);
 					break;
 				}
