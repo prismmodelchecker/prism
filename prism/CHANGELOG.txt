@@ -2,6 +2,14 @@ This file contains details of the changes in each new version of PRISM.
 
 New since last release:
 
+* Additional functionality in explicit engine
+  - export BSCCs, some LTL
+* New -exportmecs switch
+* Update CUDD to version 2.5.0
+* Strategy generation:
+  - improvements in explicit engine implementation
+  - new -exportstrat switch, in development
+* Integer variables can be unbounded (e.g. "x:int;"), for simulation only
 * Small improvements to usability of the GUI simulator transition table
 * Slight change to notation for -exportresults to match -exportmodel
 * Some new '-help xxx' switches (const,simpath,exportresults,aroptions,exportmodel,importmodel)
