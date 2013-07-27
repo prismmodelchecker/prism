@@ -1961,14 +1961,13 @@ public class NondetModelChecker extends NonProbModelChecker
 				case Prism.SPARSE:
 					IntegerVector strat = null;
 					if (genStrat) {
-						strat = new IntegerVector((int) model.getNumStates());
+						JDDNode ddStrat = JDD.ITE(yes, JDD.Constant(-2), JDD.Constant(-1));
+						strat = new IntegerVector(ddStrat, allDDRowVars, odd);
+						JDD.Deref(ddStrat);
 					}
 					probsDV = PrismSparse.NondetUntil(tr, tra, model.getSynchs(), odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min, strat);
 					if (genStrat) {
-						mainLog.println();
-						MDStrategyIV strategy = new MDStrategyIV(model, strat);
-						strategy.exportActions(mainLog);
-						strategy.clear();
+						result.setStrategy(new MDStrategyIV(model, strat));
 					}
 					probs = new StateValuesDV(probsDV, model);
 					break;

@@ -48,6 +48,8 @@ public class MDStrategyArray extends MDStrategy
 		this.choices = choices;
 	}
 	
+	// Methods for MDStrategy
+	
 	@Override
 	public int getNumStates()
 	{
@@ -55,7 +57,22 @@ public class MDStrategyArray extends MDStrategy
 	}
 	
 	@Override
-	public int getChoice(int s)
+	public Strategy.Choice getChoice(int s)
+	{
+		switch (choices[s]) {
+		case -1:
+			return Choice.UNKNOWN;
+		case -2:
+			return Choice.ARBITRARY;
+		case -3:
+			return Choice.UNREACHABLE;
+		default:
+			return Choice.INDEX;
+		}
+	}
+	
+	@Override
+	public int getChoiceIndex(int s)
 	{
 		return choices[s];
 	}
@@ -65,5 +82,13 @@ public class MDStrategyArray extends MDStrategy
 	{
 		int c = choices[s];
 		return c >= 0 ? model.getAction(s, c) : c == -1 ? "?" : c == -2 ? "*" : "-";
+	}
+
+	// Methods for Strategy
+	
+	@Override
+	public void clear()
+	{
+		choices = null;
 	}
 }

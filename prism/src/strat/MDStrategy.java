@@ -40,11 +40,16 @@ public abstract class MDStrategy implements Strategy
 	public abstract int getNumStates();
 
 	/**
+	 * Get the type of choice information stored for state s.
+	 */
+	public abstract Strategy.Choice getChoice(int s);
+
+	/**
 	 * Get the index of the choice taken in state s.
 	 * The index is defined with respect to a particular model, stored locally.
 	 * Other possible values: -1 (unknown), -2 (arbitrary), -3 (unreachable)
 	 */
-	public abstract int getChoice(int s);
+	public abstract int getChoiceIndex(int s);
 
 	/**
 	 * Get the action taken in state s.
@@ -57,7 +62,7 @@ public abstract class MDStrategy implements Strategy
 		int n = getNumStates();
 		for (int s = 0; s < n; s++) {
 			// Only print actions for reachable states
-			if (getChoice(s) != -3)
+			if (getChoice(s) != Choice.UNREACHABLE)
 				out.println(s + ":" + getChoiceAction(s));
 		}
 	}

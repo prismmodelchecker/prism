@@ -179,14 +179,19 @@ jlong _strat				// strategy storage
 	// if required, create storage for adversary and initialise
 	if (export_adv_enabled != EXPORT_ADV_NONE || strat != NULL) {
 		PS_PrintToMainLog(env, "Allocating adversary vector... ");
-		adv = (strat == NULL) ? new int[n] : strat;
+		// Use passed in (pre-filled) array, if provided
+		if (strat) {
+			adv = strat;
+		} else {
+			adv = new int[n];
+			// Initialise all entries to -1 ("don't know")
+			for (i = 0; i < n; i++) {
+				adv[i] = -1;
+			}
+		}
 		kb = n*sizeof(int)/1024.0;
 		kbt += kb;
 		PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
-		// Initialise all entries to -1 ("don't know")
-		for (i = 0; i < n; i++) {
-			adv[i] = -1;
-		}
 	}
 	
 	// print total memory usage
@@ -362,7 +367,7 @@ jlong _strat				// strategy storage
 	if (ndsm) delete ndsm;
 	if (yes_vec) delete[] yes_vec;
 	if (soln2) delete[] soln2;
-	//if (strat == NULL && adv) delete[] adv;
+	if (strat == NULL && adv) delete[] adv;
 	if (actions != NULL) {
 		delete[] actions;
 		release_string_array_from_java(env, action_names_jstrings, action_names, num_actions);

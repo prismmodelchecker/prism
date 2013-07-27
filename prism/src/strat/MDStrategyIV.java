@@ -31,34 +31,23 @@ import java.util.List;
 import dv.IntegerVector;
 
 import prism.Model;
+import strat.Strategy.Choice;
 
 /**
- * Class to store a memoryless deterministic (MD) strategy, as a IntegerVector (i.e. stored natively as an array).
+ * Class to store a memoryless deterministic (MD) strategy, as an IntegerVector (i.e. stored natively as an array).
  */
 public class MDStrategyIV extends MDStrategy
 {
 	// Model associated with the strategy
 	private Model model;
-	
+	// Other model info
+	private int numStates;
+	private List<String> actions;
+	// Array storing MD strategy (action index for each state)
 	private IntegerVector iv;
 	
-	private List<String> actions;
-	
-	private int numStates;
-	private long ptr;
-	
 	/**
-	 * Creates...
-	 */
-	public MDStrategyIV(Model model)
-	{
-		this.model = model;
-		numStates = (int) model.getNumStates();
-		actions = model.getSynchs();
-	}
-	
-	/**
-	 * Creates...
+	 * Create an MDStrategyIV from an IntegerVector.
 	 */
 	public MDStrategyIV(Model model, IntegerVector iv)
 	{
@@ -68,10 +57,7 @@ public class MDStrategyIV extends MDStrategy
 		this.iv = iv;
 	}
 	
-	public void setPointer(long ptr)
-	{
-		this.ptr = ptr;
-	}
+	// Methods for MDStrategy
 	
 	@Override
 	public int getNumStates()
@@ -80,19 +66,37 @@ public class MDStrategyIV extends MDStrategy
 	}
 	
 	@Override
-	public int getChoice(int s)
+	public Strategy.Choice getChoice(int s)
 	{
-		return 99;
+		int c = iv.getElement(s);
+		switch (c) {
+		case -1:
+			return Choice.UNKNOWN;
+		case -2:
+			return Choice.ARBITRARY;
+		case -3:
+			return Choice.UNREACHABLE;
+		default:
+			return Choice.INDEX;
+		}
+	}
+	
+	@Override
+	public int getChoiceIndex(int s)
+	{
+		throw new UnsupportedOperationException();
 	}
 	
 	@Override
 	public Object getChoiceAction(int s)
 	{
 		int c = iv.getElement(s);
-		//return ""+c; //c >= 0 ? actions.get(c) : "?";
 		return c >= 0 ? actions.get(c) : c == -1 ? "?" : c == -2 ? "*" : "-";
 	}
 	
+	// Methods for Strategy
+	
+	@Override
 	public void clear()
 	{
 		iv.clear();
