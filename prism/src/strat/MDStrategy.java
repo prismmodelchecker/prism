@@ -35,6 +35,11 @@ import prism.PrismLog;
 public abstract class MDStrategy implements Strategy
 {
 	/**
+	 * Current state of model
+	 */
+	protected int currentState = -1;
+	
+	/**
 	 * Get the number of states of the model associated with this strategy. 
 	 */
 	public abstract int getNumStates();
@@ -55,6 +60,26 @@ public abstract class MDStrategy implements Strategy
 	 * Get the action taken in state s.
 	 */
 	public abstract Object getChoiceAction(int s);
+
+	// Methods for Strategy
+	
+	@Override
+	public void initialise(int s)
+	{
+		currentState = s;
+	}
+	
+	@Override
+	public void update(int action, int s)
+	{
+		currentState = s;
+	}
+	
+	@Override
+	public Object getChoiceAction()
+	{
+		return getChoiceAction(currentState);
+	}
 
 	@Override
 	public void exportActions(PrismLog out)
