@@ -113,6 +113,22 @@ jint j
 
 //------------------------------------------------------------------------------
 
+JNIEXPORT void JNICALL Java_dv_IntegerVector_IV_1SetAllElements
+(
+JNIEnv *env,
+jobject obj,
+jlong __jlongpointer v,
+jint n,
+jint j
+)
+{
+	int *vector = (int *) jlong_to_ptr(v);
+	for(int i = 0; i < n; i++)
+		vector[i] = j;
+}
+
+//------------------------------------------------------------------------------
+
 JNIEXPORT void JNICALL Java_dv_IntegerVector_IV_1Clear
 (
 JNIEnv *env,
@@ -121,7 +137,7 @@ jlong __jlongpointer vector
 )
 {
 	// note we assume that this memory was created with new
-	delete (int *) jlong_to_ptr(vector);
+	if (vector) delete (int *) jlong_to_ptr(vector);
 }
 
 //------------------------------------------------------------------------------

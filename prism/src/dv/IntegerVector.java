@@ -36,7 +36,7 @@ import odd.*;
 public class IntegerVector
 {
 	//------------------------------------------------------------------------------
-	// load jni stuff from shared library
+	// Load JNI stuff from shared library
 	//------------------------------------------------------------------------------
 
 	static
@@ -51,7 +51,7 @@ public class IntegerVector
 	}
 	
 	//------------------------------------------------------------------------------
-	// instance variables/methods
+	// Instance variables/methods
 	//------------------------------------------------------------------------------
 
 	/**
@@ -63,7 +63,7 @@ public class IntegerVector
 	 */
 	private int n;
 	
-	// constructors
+	// Constructors
 	
 	/**
 	 * Create a new IntegerVector of size {@code size} with all entries set to 0.
@@ -87,47 +87,80 @@ public class IntegerVector
 		n = size;
 	}
 	
-	private native long IV_ConvertMTBDD(long dd, long vars, int num_vars, long odd);
+	/**
+	 * Create a new DoubleVector from an existing MTBDD representation of an array.
+	 */
 	public IntegerVector(JDDNode dd, JDDVars vars, ODDNode odd)
 	{
 		v = IV_ConvertMTBDD(dd.ptr(), vars.array(), vars.n(), odd.ptr());
 		n = (int)(odd.getEOff() + odd.getTOff());
 	}
 	
-	// get methods
+	private native long IV_ConvertMTBDD(long dd, long vars, int num_vars, long odd);
 	
+	// Accessors
+	
+	/**
+	 * Get the pointer to the native vector (C/C++ pointer cast to a long).
+	 */
 	public long getPtr()
 	{
 		return v;
 	}
 
+	/**
+	 * Get the size of the vector.
+	 */
 	public int getSize()
 	{
 		return n;
 	}
 
-	// get element
-	private native int IV_GetElement(long v, int n, int i);
+	/**
+	 * Get element {@code i} of the vector.
+	 */
 	public int getElement(int i)
 	{
 		return IV_GetElement(v, n, i);
 	}
 
-	// set element
-	private native void IV_SetElement(long v, int n, int i, int j);
+	private native int IV_GetElement(long v, int n, int i);
+	
+	// Mutators
+	
+	/**
+	 * Set element {@code i} of the vector to value {@code j}.
+	 */
 	public void setElement(int i, int j)
 	{
 		IV_SetElement(v, n, i, j);
 	}
 
-	// clear (free memory)
-	private native void IV_Clear(long v);
+	private native void IV_SetElement(long v, int n, int i, int j);
+	
+	/**
+	 * Set all elements of the vector to the same value {@code j}.
+	 */
+	public void setAllElements(int j)
+	{
+		IV_SetAllElements(v, n, j);
+	}
+
+	private native void IV_SetAllElements(long v, int n, int j);
+	
+	/**
+	 * Clear storage of the vector.
+	 */
 	public void clear() 
 	{
 		IV_Clear(v);
 	}
 
-	// print (all, including nonzeros)
+	private native void IV_Clear(long v);
+	
+	/**
+	 * Print the (all elements, including non-zeros) to a log.
+	 */
 	public void print(PrismLog log)
 	{
 		int i, j;

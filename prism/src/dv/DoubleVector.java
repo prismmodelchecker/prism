@@ -36,7 +36,7 @@ import odd.*;
 public class DoubleVector
 {
 	//------------------------------------------------------------------------------
-	// load jni stuff from shared library
+	// Load JNI stuff from shared library
 	//------------------------------------------------------------------------------
 
 	static
@@ -51,20 +51,21 @@ public class DoubleVector
 	}
 	
 	//------------------------------------------------------------------------------
-	// cudd manager
+	// CUDD manager
 	//------------------------------------------------------------------------------
 
-	// cudd manager
+	// CUDD manager
 	
-	// jni method to set cudd manager for native code
-	private static native void DV_SetCUDDManager(long ddm);
+	// JNI method to set CUDD manager for native code
 	public static void setCUDDManager()
 	{
 		DV_SetCUDDManager(JDD.GetCUDDManager());
 	}
 	
+	private static native void DV_SetCUDDManager(long ddm);
+	
 	//------------------------------------------------------------------------------
-	// instance variables/methods
+	// Instance variables/methods
 	//------------------------------------------------------------------------------
 
 	/**
@@ -76,7 +77,7 @@ public class DoubleVector
 	 */
 	private int n;
 	
-	// constructors
+	// Constructors
 	
 	/**
 	 * Create a new DoubleVector of size {@code size} with all entries set to 0.
@@ -111,32 +112,56 @@ public class DoubleVector
 	
 	private native long DV_ConvertMTBDD(long dd, long vars, int num_vars, long odd);
 
-	// get methods
+	// Accessors
 	
+	/**
+	 * Get the pointer to the native vector (C/C++ pointer cast to a long).
+	 */
 	public long getPtr()
 	{
 		return v;
 	}
 
+	/**
+	 * Get the size of the vector.
+	 */
 	public int getSize()
 	{
 		return n;
 	}
 
-	// get element
-	private native double DV_GetElement(long v, int n, int i);
+	/**
+	 * Get element {@code i} of the vector.
+	 */
 	public double getElement(int i)
 	{
 		return DV_GetElement(v, n, i);
 	}
 
-	// set element
-	private native void DV_SetElement(long v, int n, int i, double d);
+	private native double DV_GetElement(long v, int n, int i);
+	
+	// Mutators
+	
+	/**
+	 * Set element {@code i} of the vector to value {@code d}.
+	 */
 	public void setElement(int i, double d)
 	{
 		DV_SetElement(v, n, i, d);
 	}
 
+	private native void DV_SetElement(long v, int n, int i, double d);
+	
+	/**
+	 * Set all elements of the vector to the same value {@code d}.
+	 */
+	public void setAllElements(double d)
+	{
+		DV_SetAllElements(v, n, d);
+	}
+
+	private native void DV_SetAllElements(long v, int n, double d);
+	
 	// round off
 	private native void DV_RoundOff(long v, int n, int places);
 	public void roundOff(int places)

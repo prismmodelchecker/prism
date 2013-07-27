@@ -41,6 +41,14 @@ JNIEXPORT void JNICALL Java_dv_IntegerVector_IV_1SetElement
 
 /*
  * Class:     dv_IntegerVector
+ * Method:    IV_SetAllElements
+ * Signature: (JII)V
+ */
+JNIEXPORT void JNICALL Java_dv_IntegerVector_IV_1SetAllElements
+  (JNIEnv *, jobject, jlong, jint, jint);
+
+/*
+ * Class:     dv_IntegerVector
  * Method:    IV_Clear
  * Signature: (J)V
  */

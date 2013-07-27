@@ -132,6 +132,22 @@ jdouble d
 
 //------------------------------------------------------------------------------
 
+JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1SetAllElements
+(
+JNIEnv *env,
+jobject obj,
+jlong __jlongpointer v,
+jint n,
+jdouble d
+)
+{
+	double *vector = jlong_to_double(v);
+	for(int i = 0; i < n; i++)
+		vector[i] = d;
+}
+
+//------------------------------------------------------------------------------
+
 JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1RoundOff
 (
 JNIEnv *env,

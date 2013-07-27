@@ -49,6 +49,14 @@ JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1SetElement
 
 /*
  * Class:     dv_DoubleVector
+ * Method:    DV_SetAllElements
+ * Signature: (JID)V
+ */
+JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1SetAllElements
+  (JNIEnv *, jobject, jlong, jint, jdouble);
+
+/*
+ * Class:     dv_DoubleVector
  * Method:    DV_RoundOff
  * Signature: (JII)V
  */
