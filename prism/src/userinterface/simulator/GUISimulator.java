@@ -1785,6 +1785,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				} catch (NumberFormatException nfe) {
 					String msg = "The \"" + typeExploreCombo.getSelectedItem() + "\" parameter is invalid: ";
 					msg += "it should be greater than " + currentTime;
+					throw new PrismException(msg);
 				}
 			}
 
