@@ -512,7 +512,7 @@ public class NondetModelChecker extends NonProbModelChecker
 	protected void removeNonZeroMecsForMax(NondetModel modelProduct, LTLModelChecker mcLtl, List<JDDNode> rewardsIndex, OpsAndBoundsList opsAndBounds,
 			int numTargets, DRA<BitSet> dra[], JDDVars draDDRowVars[], JDDVars draDDColVars[]) throws PrismException
 	{
-		List<JDDNode> mecs = mcLtl.findEndComponents(modelProduct, modelProduct.getReach());
+		List<JDDNode> mecs = mcLtl.findMECStates(modelProduct, modelProduct.getReach());
 		JDDNode removedActions = JDD.Constant(0);
 		JDDNode rmecs = JDD.Constant(0);
 		boolean mecflags[] = new boolean[mecs.size()];
@@ -707,7 +707,7 @@ public class NondetModelChecker extends NonProbModelChecker
 	protected void addDummyFormula(NondetModel modelProduct, LTLModelChecker mcLtl, List<JDDNode> targetDDs, OpsAndBoundsList opsAndBounds)
 			throws PrismException
 	{
-		List<JDDNode> tmpecs = mcLtl.findEndComponents(modelProduct, modelProduct.getReach());
+		List<JDDNode> tmpecs = mcLtl.findMECStates(modelProduct, modelProduct.getReach());
 		JDDNode acceptingStates = JDD.Constant(0);
 		for (JDDNode set : tmpecs)
 			acceptingStates = JDD.Or(acceptingStates, set);
@@ -765,7 +765,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		candidateStates = JDD.ThereExists(candidateStates, modelProduct.getAllDDColVars());
 		candidateStates = JDD.ThereExists(candidateStates, modelProduct.getAllDDNondetVars());
 		// find all maximal end components
-		List<JDDNode> allecs = mcLtl.findEndComponents(modelProduct, candidateStates, acceptanceVector_L);
+		List<JDDNode> allecs = mcLtl.findMECStates(modelProduct, candidateStates, acceptanceVector_L);
 		JDD.Deref(candidateStates);
 		JDD.Deref(acceptanceVector_L);
 		return allecs;
@@ -1123,7 +1123,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		candidateStates = JDD.ThereExists(candidateStates, modelProduct.getAllDDColVars());
 		candidateStates = JDD.ThereExists(candidateStates, modelProduct.getAllDDNondetVars());
 		// find all maximal end components
-		allecs = mcLtl.findEndComponents(modelProduct, candidateStates, acceptanceVector_L);
+		allecs = mcLtl.findMECStates(modelProduct, candidateStates, acceptanceVector_L);
 		JDD.Deref(candidateStates);
 		JDD.Deref(acceptanceVector_L);
 
@@ -1365,7 +1365,7 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// Find accepting MECs + compute reachability probabilities
 		mainLog.println("\nFinding accepting end components...");
-		JDDNode acc = mcLtl.findAcceptingMECStatesForRabin(dra, modelProduct, draDDRowVars, draDDColVars, fairness);
+		JDDNode acc = mcLtl.findAcceptingECStatesForRabin(dra, modelProduct, draDDRowVars, draDDColVars, fairness);
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = new NondetModelChecker(prism, modelProduct, null);
 		probsProduct = mcProduct.checkProbUntil(modelProduct.getReach(), acc, qual, min && fairness);

@@ -27,12 +27,24 @@
 
 package prism;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.List;
+import java.util.Vector;
 
-import jdd.*;
-import parser.*;
-import parser.ast.*;
-import parser.type.*;
+import jdd.JDD;
+import jdd.JDDNode;
+import jdd.JDDVars;
+import parser.VarList;
+import parser.ast.Declaration;
+import parser.ast.DeclarationInt;
+import parser.ast.Expression;
+import parser.ast.ExpressionBinaryOp;
+import parser.ast.ExpressionLabel;
+import parser.ast.ExpressionTemporal;
+import parser.ast.ExpressionUnaryOp;
+import parser.type.TypeBool;
+import parser.type.TypePathBool;
 
 /**
  * LTL model checking functionality
@@ -620,6 +632,39 @@ public class LTLModelChecker extends PrismComponent
 	}
 
 	/**
+	 * Build a (referenced) BDD over variables {@code draDDRowVars} representing
+	 * the set L_i from the i-th pair (L_i,K_i) of the acceptance condition for a DRA.
+	 * @param complement If true, build the complement of the set L_i instead
+	 */
+	public JDDNode buildLStatesForRabinPair(JDDVars draDDRowVars, DRA<BitSet> dra, int i, boolean complement)
+	{
+		BitSet bitsetLi = dra.getAcceptanceL(i);
+		JDDNode statesLi = JDD.Constant(0);
+		for (int j = 0; j < dra.size(); j++) {
+			if (bitsetLi.get(j) ^ complement) {
+				statesLi = JDD.SetVectorElement(statesLi, draDDRowVars, j, 1.0);
+			}
+		}
+		return statesLi;
+	}
+
+	/**
+	 * Build a (referenced) BDD over variables {@code draDDRowVars} representing
+	 * the set K_i from the i-th pair (L_i,K_i) of the acceptance condition for a DRA.
+	 */
+	public JDDNode buildKStatesForRabinPair(JDDVars draDDRowVars, DRA<BitSet> dra, int i)
+	{
+		BitSet bitsetKi = dra.getAcceptanceK(i);
+		JDDNode statesKi = JDD.Constant(0);
+		for (int j = 0; j < dra.size(); j++) {
+			if (bitsetKi.get(j)) {
+				statesKi = JDD.SetVectorElement(statesKi, draDDRowVars, j, 1.0);
+			}
+		}
+		return statesKi;
+	}
+
+	/**
 	 * Find the set of accepting BSCCs in a model wrt a Rabin acceptance condition.
 	 * @param dra The DRA storing the Rabin acceptance condition
 	 * @param draDDRowVars BDD row variables for the DRA part of the model
@@ -629,61 +674,35 @@ public class LTLModelChecker extends PrismComponent
 	 */
 	public JDDNode findAcceptingBSCCsForRabin(DRA<BitSet> dra, ProbModel model, JDDVars draDDRowVars, JDDVars draDDColVars) throws PrismException
 	{
-		SCCComputer sccComputer;
 		JDDNode acceptingStates, allAcceptingStates;
 		List<JDDNode> vectBSCCs, newVectBSCCs;
 		int i, j, n;
 
-		// Compute BSCCs for model
-		sccComputer = SCCComputer.createSCCComputer(this, model);
+		allAcceptingStates = JDD.Constant(0);
+		// Compute all BSCCs for model
+		SCCComputer sccComputer = SCCComputer.createSCCComputer(this, model);
 		sccComputer.computeBSCCs();
 		vectBSCCs = sccComputer.getBSCCs();
 		JDD.Deref(sccComputer.getNotInBSCCs());
-
-		allAcceptingStates = JDD.Constant(0);
-
-		// for each acceptance pair (H_i, L_i) in the DRA, build H'_i = S x H_i
-		// and compute the BSCCs in H'_i
+		// Go through the DRA acceptance pairs (L_i, K_i) 
 		for (i = 0; i < dra.getNumAcceptancePairs(); i++) {
-
-			// build the acceptance vectors H_i and L_i
-			JDDNode acceptanceVector_H = JDD.Constant(0);
-			JDDNode acceptanceVector_L = JDD.Constant(0);
-			for (j = 0; j < dra.size(); j++) {
-				/*
-				 * [dA97] uses Rabin acceptance pairs (H_i, L_i) such that
-				 * H_i contains Inf(\rho) and the intersection of Inf(K) and L_i is non-empty
-				 * 
-				 * OTOH PRISM's DRAs (via ltl2dstar) use pairs (L_i, K_i) such that
-				 * the intersection of L_i and Inf(\rho) is empty
-				 * and the intersection of K_i and Inf(\rho) is non-empty
-				 * So: L_i = K_i, H_i = S - L_i 
-				 */
-				if (!dra.getAcceptanceL(i).get(j)) {
-					acceptanceVector_H = JDD.SetVectorElement(acceptanceVector_H, draDDRowVars, j, 1.0);
-				}
-				if (dra.getAcceptanceK(i).get(j)) {
-					acceptanceVector_L = JDD.SetVectorElement(acceptanceVector_L, draDDRowVars, j, 1.0);
-				}
-			}
-
-			// Check each BSCC for inclusion in H_i states
+			// Build BDDs for !L_i and K_i
+			JDDNode statesLi_not = buildLStatesForRabinPair(draDDRowVars, dra, i, true);
+			JDDNode statesK_i = buildKStatesForRabinPair(draDDRowVars, dra, i);
+			// Check each BSCC for inclusion in !L_i
 			n = vectBSCCs.size();
 			newVectBSCCs = new Vector<JDDNode>();
 			for (j = 0; j < n; j++) {
 				JDDNode bscc = vectBSCCs.get(j);
-				if (JDD.IsContainedIn(bscc, acceptanceVector_H)) {
+				if (JDD.IsContainedIn(bscc, statesLi_not)) {
 					newVectBSCCs.add(bscc);
 				} else {
 					JDD.Deref(bscc);
 				}
 			}
-			JDD.Deref(acceptanceVector_H);
-
-			// Compute union of BSCCs which overlap with acceptanceVector_L
-			acceptingStates = filteredUnion(newVectBSCCs, acceptanceVector_L);
-
-			// Add states to our destination BDD
+			JDD.Deref(statesLi_not);
+			// Compute/store union of BSCCs which overlap with K_i
+			acceptingStates = filteredUnion(newVectBSCCs, statesK_i);
 			allAcceptingStates = JDD.Or(allAcceptingStates, acceptingStates);
 		}
 
@@ -691,7 +710,7 @@ public class LTLModelChecker extends PrismComponent
 	}
 
 	/**
-	 * Find the set of states in accepting MEC in a nondeterministic model wrt a Rabin acceptance condition.
+	 * Find the set of states in accepting end components (ECs) in a nondeterministic model wrt a Rabin acceptance condition.
 	 * @param dra The DRA storing the Rabin acceptance condition
 	 * @param model The model
 	 * @param draDDRowVars BDD row variables for the DRA part of the model
@@ -699,69 +718,52 @@ public class LTLModelChecker extends PrismComponent
 	 * @param fairness Consider fairness?
 	 * @return A referenced BDD for the union of all states in accepting MECs
 	 */
-	public JDDNode findAcceptingMECStatesForRabin(DRA<BitSet> dra, NondetModel model, JDDVars draDDRowVars, JDDVars draDDColVars, boolean fairness)
+	public JDDNode findAcceptingECStatesForRabin(DRA<BitSet> dra, NondetModel model, JDDVars draDDRowVars, JDDVars draDDColVars, boolean fairness)
 			throws PrismException
 	{
-		JDDNode acceptingStates = null, allAcceptingStates, acceptanceVector_H, acceptanceVector_L, candidateStates;
-		int i, j;
+		JDDNode acceptingStates = null, allAcceptingStates, acceptanceVector_L_not, acceptanceVector_K, candidateStates;
+		int i;
 
 		allAcceptingStates = JDD.Constant(0);
 
 		if (dra.getNumAcceptancePairs() > 1) {
-			acceptanceVector_H = JDD.Constant(0);
-			acceptanceVector_L = JDD.Constant(0);
-			ArrayList<JDDNode> statesH = new ArrayList<JDDNode>();
-			ArrayList<JDDNode> statesL = new ArrayList<JDDNode>();
+			acceptanceVector_L_not = JDD.Constant(0);
+			acceptanceVector_K = JDD.Constant(0);
+			ArrayList<JDDNode> statesLnot = new ArrayList<JDDNode>();
+			ArrayList<JDDNode> statesK = new ArrayList<JDDNode>();
 
 			for (i = 0; i < dra.getNumAcceptancePairs(); i++) {
-				JDDNode tmpH = JDD.Constant(0);
-				JDDNode tmpL = JDD.Constant(0);
-				for (j = 0; j < dra.size(); j++) {
-					/*
-					 * [dA97] uses Rabin acceptance pairs (H_i, L_i) such that
-					 * H_i contains Inf(\rho) and the intersection of Inf(K) and L_i is non-empty
-					 * 
-					 * OTOH PRISM's DRAs (via ltl2dstar) use pairs (L_i, K_i) such that
-					 * the intersection of L_i and Inf(\rho) is empty
-					 * and the intersection of K_i and Inf(\rho) is non-empty
-					 * So: L_i = K_i, H_i = S - L_i 
-					 */
-					if (!dra.getAcceptanceL(i).get(j)) {
-						tmpH = JDD.SetVectorElement(tmpH, draDDRowVars, j, 1.0);
-					}
-					if (dra.getAcceptanceK(i).get(j)) {
-						tmpL = JDD.SetVectorElement(tmpL, draDDRowVars, j, 1.0);
-					}
-				}
-				statesH.add(tmpH);
-				JDD.Ref(tmpH);
-				acceptanceVector_H = JDD.Or(acceptanceVector_H, tmpH);
-				statesL.add(tmpL);
-				JDD.Ref(tmpL);
-				acceptanceVector_L = JDD.Or(acceptanceVector_L, tmpL);
+				JDDNode tmpLnot = buildLStatesForRabinPair(draDDRowVars, dra, i, true);
+				JDDNode tmpK = buildKStatesForRabinPair(draDDRowVars, dra, i);
+				statesLnot.add(tmpLnot);
+				JDD.Ref(tmpLnot);
+				acceptanceVector_L_not = JDD.Or(acceptanceVector_L_not, tmpLnot);
+				statesK.add(tmpK);
+				JDD.Ref(tmpK);
+				acceptanceVector_K = JDD.Or(acceptanceVector_K, tmpK);
 			}
 
 			JDD.Ref(model.getTrans01());
-			candidateStates = JDD.Apply(JDD.TIMES, model.getTrans01(), acceptanceVector_H);
-			JDD.Ref(acceptanceVector_H);
-			acceptanceVector_H = JDD.PermuteVariables(acceptanceVector_H, draDDRowVars, draDDColVars);
-			candidateStates = JDD.Apply(JDD.TIMES, candidateStates, acceptanceVector_H);
+			candidateStates = JDD.Apply(JDD.TIMES, model.getTrans01(), acceptanceVector_L_not);
+			JDD.Ref(acceptanceVector_L_not);
+			acceptanceVector_L_not = JDD.PermuteVariables(acceptanceVector_L_not, draDDRowVars, draDDColVars);
+			candidateStates = JDD.Apply(JDD.TIMES, candidateStates, acceptanceVector_L_not);
 			candidateStates = JDD.ThereExists(candidateStates, model.getAllDDColVars());
 			candidateStates = JDD.ThereExists(candidateStates, model.getAllDDNondetVars());
 			// find all maximal end components
-			List<JDDNode> allecs = findEndComponents(model, candidateStates, acceptanceVector_L);
+			List<JDDNode> allecs = findMECStates(model, candidateStates, acceptanceVector_K);
 			JDD.Deref(candidateStates);
 
 			for (i = 0; i < dra.getNumAcceptancePairs(); i++) {
-				// build the acceptance vectors H_i and L_i
-				acceptanceVector_H = statesH.get(i);
-				acceptanceVector_L = statesL.get(i);
+				// build the acceptance vectors L_i and K_i
+				acceptanceVector_L_not = statesLnot.get(i);
+				acceptanceVector_K = statesK.get(i);
 				for (JDDNode ec : allecs) {
-					// build bdd of accepting states (under H_i) in the product model
+					// build bdd of accepting states (under L_i) in the product model
 					List<JDDNode> ecs;
 					JDD.Ref(ec);
-					JDD.Ref(acceptanceVector_H);
-					candidateStates = JDD.And(ec, acceptanceVector_H);
+					JDD.Ref(acceptanceVector_L_not);
+					candidateStates = JDD.And(ec, acceptanceVector_L_not);
 					if (candidateStates.equals(ec)) {
 						//mainLog.println(" ------------- ec is not modified ------------- ");
 						ecs = new Vector<JDDNode>();
@@ -778,77 +780,57 @@ public class LTLModelChecker extends PrismComponent
 						newcandidateStates = JDD.Apply(JDD.TIMES, candidateStates, newcandidateStates);
 						newcandidateStates = JDD.ThereExists(newcandidateStates, model.getAllDDColVars());
 						candidateStates = JDD.ThereExists(newcandidateStates, model.getAllDDNondetVars());
-						ecs = findEndComponents(model, candidateStates, acceptanceVector_L);
+						ecs = findMECStates(model, candidateStates, acceptanceVector_K);
 					}
 
-					// find ECs in acceptingStates that are accepting under L_i
+					// find ECs in acceptingStates that are accepting under K_i
 					acceptingStates = JDD.Constant(0);
 					for (JDDNode set : ecs) {
-						if (JDD.AreInterecting(set, acceptanceVector_L))
+						if (JDD.AreInterecting(set, acceptanceVector_K))
 							acceptingStates = JDD.Or(acceptingStates, set);
 						else
 							JDD.Deref(set);
 					}
 					allAcceptingStates = JDD.Or(allAcceptingStates, acceptingStates);
 				}
-				JDD.Deref(acceptanceVector_L);
-				JDD.Deref(acceptanceVector_H);
+				JDD.Deref(acceptanceVector_K);
+				JDD.Deref(acceptanceVector_L_not);
 			}
 			for (JDDNode ec : allecs)
 				JDD.Deref(ec);
 		} else {
-			// for each acceptance pair (H_i, L_i) in the DRA, build H'_i = S x H_i
-			// and compute the maximal ECs in H'_i
+			// Go through the DRA acceptance pairs (L_i, K_i) 
 			for (i = 0; i < dra.getNumAcceptancePairs(); i++) {
-
-				// build the acceptance vectors H_i and L_i
-				acceptanceVector_H = JDD.Constant(0);
-				acceptanceVector_L = JDD.Constant(0);
-				for (j = 0; j < dra.size(); j++) {
-					/*
-					 * [dA97] uses Rabin acceptance pairs (H_i, L_i) such that
-					 * H_i contains Inf(\rho) and the intersection of Inf(K) and L_i is non-empty
-					 * 
-					 * OTOH PRISM's DRAs (via ltl2dstar) use pairs (L_i, K_i) such that
-					 * the intersection of L_i and Inf(\rho) is empty
-					 * and the intersection of K_i and Inf(\rho) is non-empty
-					 * So: L_i = K_i, H_i = S - L_i 
-					 */
-					if (!dra.getAcceptanceL(i).get(j)) {
-						acceptanceVector_H = JDD.SetVectorElement(acceptanceVector_H, draDDRowVars, j, 1.0);
-					}
-					if (dra.getAcceptanceK(i).get(j)) {
-						acceptanceVector_L = JDD.SetVectorElement(acceptanceVector_L, draDDRowVars, j, 1.0);
-					}
-				}
-
-				// build bdd of accepting states (under H_i) in the product model
+				// Build BDDs for !L_i and K_i
+				JDDNode statesLi_not = buildLStatesForRabinPair(draDDRowVars, dra, i, true);
+				JDDNode statesK_i = buildKStatesForRabinPair(draDDRowVars, dra, i);
+				// Find states in the model for which there are no transitions leaving !L_i
+				// (this will allow us to reduce the problem to finding MECs, not ECs)
 				JDD.Ref(model.getTrans01());
-				JDD.Ref(acceptanceVector_H);
-				candidateStates = JDD.Apply(JDD.TIMES, model.getTrans01(), acceptanceVector_H);
-				acceptanceVector_H = JDD.PermuteVariables(acceptanceVector_H, draDDRowVars, draDDColVars);
-				candidateStates = JDD.Apply(JDD.TIMES, candidateStates, acceptanceVector_H);
+				JDD.Ref(statesLi_not);
+				candidateStates = JDD.Apply(JDD.TIMES, model.getTrans01(), statesLi_not);
+				statesLi_not = JDD.PermuteVariables(statesLi_not, draDDRowVars, draDDColVars);
+				candidateStates = JDD.Apply(JDD.TIMES, candidateStates, statesLi_not);
 				candidateStates = JDD.ThereExists(candidateStates, model.getAllDDColVars());
 				candidateStates = JDD.ThereExists(candidateStates, model.getAllDDNondetVars());
-
-				if (fairness) {
-					// compute the backward set of S x L_i
+				// Normal case (no fairness): find accepting MECs within !L_i 
+				if (!fairness) {
+					List<JDDNode> ecs = findMECStates(model, candidateStates);
+					JDD.Deref(candidateStates);
+					acceptingStates = filteredUnion(ecs, statesK_i);
+				}
+				// For case of fairness...
+				else {
+					// Compute the backward set of S x !L_i
 					JDD.Ref(candidateStates);
-					JDDNode tmp = JDD.And(candidateStates, acceptanceVector_L);
+					JDDNode tmp = JDD.And(candidateStates, statesK_i);
 					JDD.Ref(model.getTrans01());
 					JDDNode edges = JDD.ThereExists(model.getTrans01(), model.getAllDDNondetVars());
 					JDDNode filterStates = backwardSet(model, tmp, edges);
-
-					// Filter out states that can't reach a state in L'_i
+					// Filter out states that can't reach a state in !L'_i
 					candidateStates = JDD.And(candidateStates, filterStates);
-
-					// Find accepting states in S x H_i
+					// Find accepting states in S x !L_i
 					acceptingStates = findFairECs(model, candidateStates);
-				} else {
-					// find ECs in acceptingStates that are accepting under L_i
-					List<JDDNode> ecs = findEndComponents(model, candidateStates);
-					JDD.Deref(candidateStates);
-					acceptingStates = filteredUnion(ecs, acceptanceVector_L);
 				}
 
 				// Add states to our destination BDD
@@ -900,7 +882,7 @@ public class LTLModelChecker extends PrismComponent
 					newcandidateStates = JDD.Apply(JDD.TIMES, candidateStates, newcandidateStates);
 					newcandidateStates = JDD.ThereExists(newcandidateStates, model.getAllDDColVars());
 					candidateStates = JDD.ThereExists(newcandidateStates, model.getAllDDNondetVars());
-					ecs = findEndComponents(model, candidateStates, acceptanceVector_L);
+					ecs = findMECStates(model, candidateStates, acceptanceVector_L);
 					JDD.Deref(candidateStates);
 				}
 
@@ -1009,7 +991,7 @@ public class LTLModelChecker extends PrismComponent
 					JDD.Ref(nextstatesL.get(k));
 					JDDNode acceptanceVector_L = JDD.And(e.statesL.get(j), nextstatesL.get(k));
 					List<JDDNode> ecs = null;
-					ecs = findEndComponents(model, candidateStates1, acceptanceVector_L);
+					ecs = findMECStates(model, candidateStates1, acceptanceVector_L);
 					JDD.Deref(candidateStates1);
 
 					// For each ec, test if it has non-empty intersection with L states
@@ -1150,11 +1132,11 @@ public class LTLModelChecker extends PrismComponent
 	}
 
 	/**
-	 * Find all maximal end components (MECs) contained within {@code states}.
+	 * Find (states of) all maximal end components (MECs) contained within {@code states}.
 	 * @param states BDD of the set of containing states
 	 * @return a vector of (referenced) BDDs representing the ECs
 	 */
-	public List<JDDNode> findEndComponents(NondetModel model, JDDNode states) throws PrismException
+	public List<JDDNode> findMECStates(NondetModel model, JDDNode states) throws PrismException
 	{
 		ECComputer ecComputer = ECComputer.createECComputer(this, model);
 		ecComputer.computeMECStates(states, null);
@@ -1162,14 +1144,14 @@ public class LTLModelChecker extends PrismComponent
 	}
 
 	/**
-	 * Find all accepting maximal end components (MECs) contained within {@code states},
+	 * Find (states of) all accepting maximal end components (MECs) contained within {@code states},
 	 * where acceptance is defined as those which intersect with {@code filter}.
 	 * (If {@code filter} is null, the acceptance condition is trivially satisfied.)
 	 * @param states BDD of the set of containing states
 	 * @param filter BDD for the set of accepting states
 	 * @return a vector of (referenced) BDDs representing the ECs
 	 */
-	public List<JDDNode> findEndComponents(NondetModel model, JDDNode states, JDDNode filter) throws PrismException
+	public List<JDDNode> findMECStates(NondetModel model, JDDNode states, JDDNode filter) throws PrismException
 	{
 		ECComputer ecComputer = ECComputer.createECComputer(this, model);
 		ecComputer.computeMECStates(states, filter);
@@ -1184,7 +1166,7 @@ public class LTLModelChecker extends PrismComponent
 	 */
 	public List<JDDNode> findBottomEndComponents(NondetModel model, JDDNode states) throws PrismException
 	{
-		List<JDDNode> ecs = findEndComponents(model, states);
+		List<JDDNode> ecs = findMECStates(model, states);
 		List<JDDNode> becs = new Vector<JDDNode>();
 		JDDNode out;
 
