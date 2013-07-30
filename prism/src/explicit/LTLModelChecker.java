@@ -152,7 +152,7 @@ public class LTLModelChecker extends PrismComponent
 		LinkedList<Point> queue = new LinkedList<Point>();
 		int map[] = new int[prodNumStates];
 		Arrays.fill(map, -1);
-		
+
 		// Initial states
 		for (int s_0 : dtmc.getInitialStates()) {
 			// Get BitSet representing APs (labels) satisfied by initial state s_0
@@ -236,7 +236,7 @@ public class LTLModelChecker extends PrismComponent
 		LinkedList<Point> queue = new LinkedList<Point>();
 		int map[] = new int[prodNumStates];
 		Arrays.fill(map, -1);
-		
+
 		// Initial states
 		for (int s_0 : mdp.getInitialStates()) {
 			// Get BitSet representing APs (labels) satisfied by initial state s_0
@@ -299,12 +299,12 @@ public class LTLModelChecker extends PrismComponent
 	}
 
 	/**
-	 * Find the set of states belong to accepting BSCCs in a model, according to a DRA {@code dra}.
+	 * Find the set of states belong to accepting BSCCs in a model wrt a Rabin acceptance condition.
 	 * @param dra The DRA
 	 * @param model The model
 	 * @param invMap The map returned by the constructProduct method(s)
 	 */
-	public BitSet findAcceptingBSCCs(DRA<BitSet> dra, Model model, int invMap[]) throws PrismException
+	public BitSet findAcceptingBSCCsForRabin(DRA<BitSet> dra, Model model, int invMap[]) throws PrismException
 	{
 		// Compute bottom strongly connected components (BSCCs)
 		SCCComputer sccComputer = SCCComputer.createSCCComputer(this, model);
@@ -336,44 +336,48 @@ public class LTLModelChecker extends PrismComponent
 
 		return result;
 	}
-	
+
 	/**
-	 * Find the set of states belong to accepting MECs in a model, according to a DRA {@code dra}.
+	 * Find the set of states in accepting end components (ECs) in a nondeterministic model wrt a Rabin acceptance condition.
 	 * @param dra The DRA
 	 * @param model The model
 	 * @param invMap The map returned by the constructProduct method(s)
 	 */
-	public BitSet findAcceptingMECStates(DRA<BitSet> dra, NondetModel model, int invMap[]) throws PrismException
+	public BitSet findAcceptingECStatesForRabin(DRA<BitSet> dra, NondetModel model, int invMap[]) throws PrismException
 	{
-		// Compute maximum end components (MECs)
-		ECComputer ecComputer = ECComputer.createECComputer(this, model);
-		ecComputer.computeMECStates();
-		List<BitSet> mecs = ecComputer.getMECStates();
-		mainLog.println(mecs);
-
+		BitSet allAcceptingStates = new BitSet();
+		int numStates = model.getNumStates();
 		int draSize = dra.size();
-		int numAcceptancePairs = dra.getNumAcceptancePairs();
-		BitSet result = new BitSet();
-
-		for (BitSet mec : mecs) {
-			boolean isLEmpty = true;
-			boolean isKNonEmpty = false;
-			for (int acceptancePair = 0; acceptancePair < numAcceptancePairs; acceptancePair++) {
-				BitSet L = dra.getAcceptanceL(acceptancePair);
-				BitSet K = dra.getAcceptanceK(acceptancePair);
-				for (int state = mec.nextSetBit(0); state != -1; state = mec.nextSetBit(state + 1)) {
-					int draState = invMap[state] % draSize;
-					isLEmpty &= !L.get(draState);
-					isKNonEmpty |= K.get(draState);
+		
+		// Go through the DRA acceptance pairs (L_i, K_i) 
+		for (int i = 0; i < dra.getNumAcceptancePairs(); i++) {
+			// Find model states *not* satisfying L_i
+			BitSet bitsetLi = dra.getAcceptanceL(i);
+			BitSet statesLi_not = new BitSet();
+			for (int s = 0; s < numStates; s++) {
+				if (!bitsetLi.get(invMap[s] % draSize)) {
+					statesLi_not.set(s);
 				}
-				// Stop as soon as we find the first acceptance pair that is satisfied
-				if (isLEmpty && isKNonEmpty) {
-					result.or(mec);
-					break;
+			}
+			// Skip pairs with empty !L_i
+			if (statesLi_not.cardinality() == 0)
+				continue;
+			// Compute maximum end components (MECs) in !L_i
+			ECComputer ecComputer = ECComputer.createECComputer(this, model);
+			ecComputer.computeMECStates(statesLi_not);
+			List<BitSet> mecs = ecComputer.getMECStates();
+			// Check with MECs contain a K_i state
+			BitSet bitsetKi = dra.getAcceptanceK(i);
+			for (BitSet mec : mecs) {
+				for (int s = mec.nextSetBit(0); s != -1; s = mec.nextSetBit(s + 1)) {
+					if (bitsetKi.get(invMap[s] % draSize)) {
+						allAcceptingStates.or(mec);
+						break;
+					}
 				}
 			}
 		}
 
-		return result;
+		return allAcceptingStates;
 	}
 }
