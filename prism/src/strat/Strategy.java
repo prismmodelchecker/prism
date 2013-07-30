@@ -55,7 +55,7 @@ public interface Strategy
 	 * @param action The action taken in the previous state of the model
 	 * @param s The new state of the model
 	 */
-	public void update(int action, int s);
+	public void update(Object action, int s);
 	
 	/**
 	 * Get the action chosen by the strategy in the current state (assuming it is deterministic). 

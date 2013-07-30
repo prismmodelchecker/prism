@@ -70,7 +70,7 @@ public abstract class MDStrategy implements Strategy
 	}
 	
 	@Override
-	public void update(int action, int s)
+	public void update(Object action, int s)
 	{
 		currentState = s;
 	}
