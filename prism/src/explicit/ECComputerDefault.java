@@ -65,16 +65,13 @@ public class ECComputerDefault extends ECComputer
 	@Override
 	public void computeMECStates() throws PrismException
 	{
-		// Look within set of all reachable states
-		BitSet reach = new BitSet();
-		reach.set(0, model.getNumStates());
-		computeMECStates(reach);
+		mecs = findEndComponents(null, null);
 	}
 
 	@Override
-	public void computeMECStates(BitSet states) throws PrismException
+	public void computeMECStates(BitSet restrict) throws PrismException
 	{
-		mecs = findEndComponents(states, null); //TODO
+		mecs = findEndComponents(restrict, null);
 	}
 
 	@Override
@@ -85,21 +82,30 @@ public class ECComputerDefault extends ECComputer
 
 	// Computation
 
+	// TODO: handle 'accept'
+	
 	/**
-	 * Find all accepting maximal end components (MECs) contained within {@code states},
-	 * where acceptance is defined as those which intersect with {@code filter}.
-	 * (If {@code filter} is null, the acceptance condition is trivially satisfied.)
-	 * @param states BitSet for the set of containing states
-	 * @param filter BitSet for the set of accepting states
+	 * Find all accepting maximal end components (MECs) in the submodel obtained
+	 * by restricting this one to the set of states {@code restrict},
+	 * where acceptance is defined as those which intersect with {@code accept}.
+	 * If {@code restrict} is null, we look at the whole model, not a submodel.
+	 * If {@code accept} is null, the acceptance condition is trivially satisfied.
+	 * @param restrict BitSet for the set of states to restrict to
+	 * @param accept BitSet for the set of accepting states
 	 * @return a list of BitSets representing the MECs
 	 */
-	private List<BitSet> findEndComponents(BitSet states, BitSet filter) throws PrismException
+	private List<BitSet> findEndComponents(BitSet restrict, BitSet accept) throws PrismException
 	{
+		// If restrict is null, look within set of all reachable states
+		if (restrict == null) {
+			restrict = new BitSet();
+			restrict.set(0, model.getNumStates());
+		}
 		// Initialise L with set of all states to look in (if non-empty)
 		List<BitSet> L = new ArrayList<BitSet>();
-		if (states.cardinality() == 0)
+		if (restrict.cardinality() == 0)
 			return L;
-		L.add(states);
+		L.add(restrict);
 		
 		boolean changed = true;
 		while (changed) {

@@ -96,22 +96,24 @@ public abstract class ECComputer extends PrismComponent
 	public abstract void computeMECStates() throws PrismException;
 
 	/**
-	 * Compute states of all maximal end components (MECs) contained within {@code states}, and store them.
+	 * Compute states of all maximal end components (MECs) in the submodel obtained
+	 * by restricting this one to the set of states {@code restrict}, and store them.
 	 * They can be retrieved using {@link #getMECStates()}.
 	 * You will need to to deref these afterwards.
-	 * @param states BDD of the set of containing states
+	 * @param restrict BDD for the set of states to restrict to
 	 */
-	public abstract void computeMECStates(JDDNode states) throws PrismException;
+	public abstract void computeMECStates(JDDNode restrict) throws PrismException;
 
 	/**
-	 * Compute states of all accepting maximal end components (MECs) contained within {@code states}, and store them,
-	 * where acceptance is defined as those which intersect with {@code filter}.
+	 * Compute states of all maximal end components (MECs) in the submodel obtained
+	 * by restricting this one to the set of states {@code restrict}, and store them,
+	 * where acceptance is defined as those which intersect with {@code accept}.
 	 * They can be retrieved using {@link #getMECStates()}.
 	 * You will need to to deref these afterwards.
-	 * @param states BDD of the set of containing states
-	 * @param filter BDD for the set of accepting states
+	 * @param restrict BDD for the set of states to restrict to
+	 * @param accept BDD for the set of accepting states
 	 */
-	public abstract void computeMECStates(JDDNode states, JDDNode filter) throws PrismException;
+	public abstract void computeMECStates(JDDNode restrict, JDDNode accept) throws PrismException;
 
 	/**
 	 * Get the list of states for computed MECs.

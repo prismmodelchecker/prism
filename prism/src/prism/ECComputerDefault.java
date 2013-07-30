@@ -56,40 +56,45 @@ public class ECComputerDefault extends ECComputer
 	@Override
 	public void computeMECStates() throws PrismException
 	{
-		mecs = findEndComponents(reach, null);
+		mecs = findEndComponents(null, null);
 	}
 
 	@Override
-	public void computeMECStates(JDDNode states) throws PrismException
+	public void computeMECStates(JDDNode restrict) throws PrismException
 	{
-		mecs = findEndComponents(states, null);
+		mecs = findEndComponents(restrict, null);
 	}
 
 	@Override
-	public void computeMECStates(JDDNode states, JDDNode filter) throws PrismException
+	public void computeMECStates(JDDNode restrict, JDDNode accept) throws PrismException
 	{
-		mecs = findEndComponents(states, filter);
+		mecs = findEndComponents(restrict, accept);
 	}
 
 	// Computation
 
 	/**
-	 * Find all accepting maximal end components (MECs) contained within {@code states},
-	 * where acceptance is defined as those which intersect with {@code filter}.
-	 * (If {@code filter} is null, the acceptance condition is trivially satisfied.)
-	 * @param states BDD of the set of containing states
-	 * @param filter BDD for the set of accepting states
+	 * Find all accepting maximal end components (MECs) in the submodel obtained
+	 * by restricting this one to the set of states {@code restrict},
+	 * where acceptance is defined as those which intersect with {@code accept}.
+	 * If {@code restrict} is null, we look at the whole model, not a submodel.
+	 * If {@code accept} is null, the acceptance condition is trivially satisfied.
+	 * @param restrict BDD for the set of states to restrict to
+	 * @param accept BDD for the set of accepting states
 	 * @return a list of (referenced) BDDs representing the MECs
 	 */
-	private List<JDDNode> findEndComponents(JDDNode states, JDDNode filter) throws PrismException
+	private List<JDDNode> findEndComponents(JDDNode restrict, JDDNode accept) throws PrismException
 	{
 		Vector<JDDNode> mecs = new Vector<JDDNode>();
 		SCCComputer sccComputer;
 
 		// Initial set of candidates for MECs just contains the whole set we are searching
+		// (which, if null, is all states)
+		if (restrict == null)
+			restrict = reach;
 		Stack<JDDNode> candidates = new Stack<JDDNode>();
-		JDD.Ref(states);
-		candidates.push(states);
+		JDD.Ref(restrict);
+		candidates.push(restrict);
 
 		// Go through each candidate set
 		while (!candidates.isEmpty()) {
@@ -118,8 +123,8 @@ public class ECComputerDefault extends ECComputer
 
 			// Find the maximal SCCs in (stableSet, stableSetTrans)
 			sccComputer = SCCComputer.createSCCComputer(this, stableSet, stableSetTrans, allDDRowVars, allDDColVars);
-			if (filter != null)
-				sccComputer.computeSCCs(filter);
+			if (accept != null)
+				sccComputer.computeSCCs(accept);
 			else
 				sccComputer.computeSCCs();
 			JDD.Deref(stableSet);
