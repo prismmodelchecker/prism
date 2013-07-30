@@ -95,10 +95,12 @@ public class ECComputerDefault extends ECComputer
 	 */
 	private List<BitSet> findEndComponents(BitSet states, BitSet filter) throws PrismException
 	{
-		// Initialise L with set of all states to look in
+		// Initialise L with set of all states to look in (if non-empty)
 		List<BitSet> L = new ArrayList<BitSet>();
+		if (states.cardinality() == 0)
+			return L;
 		L.add(states);
-
+		
 		boolean changed = true;
 		while (changed) {
 			changed = false;
