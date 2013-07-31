@@ -36,8 +36,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import explicit.SCCComputer.SCCMethod;
-
 import parser.State;
 import parser.Values;
 import parser.ast.Expression;
@@ -70,7 +68,11 @@ import prism.PrismSettings;
 import prism.Result;
 
 /**
- * Super class for explicit-state model checkers
+ * Super class for explicit-state model checkers.
+ * <br>
+ * This model checker class and its subclasses store their settings locally so
+ * that they can be configured and used without a PrismSettings object.
+ * Pass in null as a parent on creation to bypass the use of PrismSettings.
  */
 public class StateModelChecker extends PrismComponent
 {
@@ -79,13 +81,12 @@ public class StateModelChecker extends PrismComponent
 
 	// Verbosity level
 	protected int verbosity = 0;
-	
+
 	// Additional flags/settings not included in PrismSettings
-	
+
 	// Generate/store a strategy during model checking?
 	protected boolean genStrat = false;
-	
-	
+
 	// Model file (for reward structures, etc.)
 	protected ModulesFile modulesFile = null;
 
@@ -107,16 +108,27 @@ public class StateModelChecker extends PrismComponent
 	public StateModelChecker(PrismComponent parent) throws PrismException
 	{
 		super(parent);
+		
+		// For explicit.StateModelChecker and its subclasses, we explicitly set 'settings'
+		// to null if there is no parent or if the parent has a null 'settings'.
+		// This allows us to choose to ignore the default one created by PrismComponent.
+		if (parent == null || parent.getSettings() == null)
+			setSettings(null);
+		
+		// If present, initialise settings from PrismSettings
+		if (settings != null) {
+			verbosity = settings.getBoolean(PrismSettings.PRISM_VERBOSE) ? 10 : 1;
+		}
 	}
-	
+
 	/**
-	 * Create a model checker (a subclass of this one) for a given model type
+	 * Create a model checker (a subclass of this one) for a given model type.
 	 */
 	public static StateModelChecker createModelChecker(ModelType modelType) throws PrismException
 	{
 		return createModelChecker(modelType, null);
 	}
-	
+
 	/**
 	 * Create a model checker (a subclass of this one) for a given model type
 	 */
@@ -148,20 +160,9 @@ public class StateModelChecker extends PrismComponent
 	// Settings methods
 
 	/**
-	 * Set settings from a PRISMSettings object.
-	 */
-	public void setSettings(PrismSettings settings) throws PrismException
-	{
-		super.setSettings(settings);
-		
-		if (settings == null)
-			return;
-
-		verbosity = settings.getBoolean(PrismSettings.PRISM_VERBOSE) ? 10 : 1;
-	}
-
-	/**
-	 * Inherit settings (and other info) from another model checker object.
+	 * Inherit settings (and the log) from another StateModelChecker object.
+	 * For model checker objects that inherit a PrismSettings object, this is superfluous
+	 * since this has been done already.
 	 */
 	public void inheritSettings(StateModelChecker other)
 	{

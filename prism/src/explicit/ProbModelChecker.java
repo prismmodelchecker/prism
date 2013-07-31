@@ -42,7 +42,7 @@ import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
 
 /**
- * Super class for explicit-state probabilistic model checkers
+ * Super class for explicit-state probabilistic model checkers.
  */
 public class ProbModelChecker extends StateModelChecker
 {
@@ -142,89 +142,83 @@ public class ProbModelChecker extends StateModelChecker
 	public ProbModelChecker(PrismComponent parent) throws PrismException
 	{
 		super(parent);
+
+		// If present, initialise settings from PrismSettings
+		if (settings != null) {
+			String s;
+			// PRISM_LIN_EQ_METHOD
+			s = settings.getString(PrismSettings.PRISM_LIN_EQ_METHOD);
+			if (s.equals("Power")) {
+				setLinEqMethod(LinEqMethod.POWER);
+			} else if (s.equals("Jacobi")) {
+				setLinEqMethod(LinEqMethod.JACOBI);
+			} else if (s.equals("Gauss-Seidel")) {
+				setLinEqMethod(LinEqMethod.GAUSS_SEIDEL);
+			} else if (s.equals("Backwards Gauss-Seidel")) {
+				setLinEqMethod(LinEqMethod.BACKWARDS_GAUSS_SEIDEL);
+			} else if (s.equals("JOR")) {
+				setLinEqMethod(LinEqMethod.JOR);
+			} else if (s.equals("SOR")) {
+				setLinEqMethod(LinEqMethod.SOR);
+			} else if (s.equals("Backwards SOR")) {
+				setLinEqMethod(LinEqMethod.BACKWARDS_SOR);
+			} else {
+				throw new PrismException("Explicit engine does not support linear equation solution method \"" + s + "\"");
+			}
+			// PRISM_MDP_SOLN_METHOD
+			s = settings.getString(PrismSettings.PRISM_MDP_SOLN_METHOD);
+			if (s.equals("Value iteration")) {
+				setMDPSolnMethod(MDPSolnMethod.VALUE_ITERATION);
+			} else if (s.equals("Gauss-Seidel")) {
+				setMDPSolnMethod(MDPSolnMethod.GAUSS_SEIDEL);
+			} else if (s.equals("Policy iteration")) {
+				setMDPSolnMethod(MDPSolnMethod.POLICY_ITERATION);
+			} else if (s.equals("Modified policy iteration")) {
+				setMDPSolnMethod(MDPSolnMethod.MODIFIED_POLICY_ITERATION);
+			} else if (s.equals("Linear programming")) {
+				setMDPSolnMethod(MDPSolnMethod.LINEAR_PROGRAMMING);
+			} else {
+				throw new PrismException("Explicit engine does not support MDP solution method \"" + s + "\"");
+			}
+			// PRISM_TERM_CRIT
+			s = settings.getString(PrismSettings.PRISM_TERM_CRIT);
+			if (s.equals("Absolute")) {
+				setTermCrit(TermCrit.ABSOLUTE);
+			} else if (s.equals("Relative")) {
+				setTermCrit(TermCrit.RELATIVE);
+			} else {
+				throw new PrismException("Unknown termination criterion \"" + s + "\"");
+			}
+			// PRISM_TERM_CRIT_PARAM
+			setTermCritParam(settings.getDouble(PrismSettings.PRISM_TERM_CRIT_PARAM));
+			// PRISM_MAX_ITERS
+			setMaxIters(settings.getInteger(PrismSettings.PRISM_MAX_ITERS));
+			// PRISM_PRECOMPUTATION
+			setPrecomp(settings.getBoolean(PrismSettings.PRISM_PRECOMPUTATION));
+			// PRISM_PROB0
+			setProb0(settings.getBoolean(PrismSettings.PRISM_PROB0));
+			// PRISM_PROB1
+			setProb1(settings.getBoolean(PrismSettings.PRISM_PROB1));
+			// PRISM_FAIRNESS
+			if (settings.getBoolean(PrismSettings.PRISM_FAIRNESS)) {
+				throw new PrismException("The explicit engine does not support model checking MDPs under fairness");
+			}
+			
+			// PRISM_EXPORT_ADV
+			s = settings.getString(PrismSettings.PRISM_EXPORT_ADV);
+			if (!(s.equals("None")))
+				setExportAdv(true);
+			// PRISM_EXPORT_ADV_FILENAME
+			setExportAdvFilename(settings.getString(PrismSettings.PRISM_EXPORT_ADV_FILENAME));
+		}
 	}
 	
 	// Settings methods
 
 	/**
-	 * Set settings from a PRISMSettings object.
-	 */
-	public void setSettings(PrismSettings settings) throws PrismException
-	{
-		super.setSettings(settings);
-		
-		if (settings == null)
-			return;
-		
-		String s;
-		// PRISM_LIN_EQ_METHOD
-		s = settings.getString(PrismSettings.PRISM_LIN_EQ_METHOD);
-		if (s.equals("Power")) {
-			setLinEqMethod(LinEqMethod.POWER);
-		} else if (s.equals("Jacobi")) {
-			setLinEqMethod(LinEqMethod.JACOBI);
-		} else if (s.equals("Gauss-Seidel")) {
-			setLinEqMethod(LinEqMethod.GAUSS_SEIDEL);
-		} else if (s.equals("Backwards Gauss-Seidel")) {
-			setLinEqMethod(LinEqMethod.BACKWARDS_GAUSS_SEIDEL);
-		} else if (s.equals("JOR")) {
-			setLinEqMethod(LinEqMethod.JOR);
-		} else if (s.equals("SOR")) {
-			setLinEqMethod(LinEqMethod.SOR);
-		} else if (s.equals("Backwards SOR")) {
-			setLinEqMethod(LinEqMethod.BACKWARDS_SOR);
-		} else {
-			throw new PrismException("Explicit engine does not support linear equation solution method \"" + s + "\"");
-		}
-		// PRISM_MDP_SOLN_METHOD
-		s = settings.getString(PrismSettings.PRISM_MDP_SOLN_METHOD);
-		if (s.equals("Value iteration")) {
-			setMDPSolnMethod(MDPSolnMethod.VALUE_ITERATION);
-		} else if (s.equals("Gauss-Seidel")) {
-			setMDPSolnMethod(MDPSolnMethod.GAUSS_SEIDEL);
-		} else if (s.equals("Policy iteration")) {
-			setMDPSolnMethod(MDPSolnMethod.POLICY_ITERATION);
-		} else if (s.equals("Modified policy iteration")) {
-			setMDPSolnMethod(MDPSolnMethod.MODIFIED_POLICY_ITERATION);
-		} else if (s.equals("Linear programming")) {
-			setMDPSolnMethod(MDPSolnMethod.LINEAR_PROGRAMMING);
-		} else {
-			throw new PrismException("Explicit engine does not support MDP solution method \"" + s + "\"");
-		}
-		// PRISM_TERM_CRIT
-		s = settings.getString(PrismSettings.PRISM_TERM_CRIT);
-		if (s.equals("Absolute")) {
-			setTermCrit(TermCrit.ABSOLUTE);
-		} else if (s.equals("Relative")) {
-			setTermCrit(TermCrit.RELATIVE);
-		} else {
-			throw new PrismException("Unknown termination criterion \"" + s + "\"");
-		}
-		// PRISM_TERM_CRIT_PARAM
-		setTermCritParam(settings.getDouble(PrismSettings.PRISM_TERM_CRIT_PARAM));
-		// PRISM_MAX_ITERS
-		setMaxIters(settings.getInteger(PrismSettings.PRISM_MAX_ITERS));
-		// PRISM_PRECOMPUTATION
-		setPrecomp(settings.getBoolean(PrismSettings.PRISM_PRECOMPUTATION));
-		// PRISM_PROB0
-		setProb0(settings.getBoolean(PrismSettings.PRISM_PROB0));
-		// PRISM_PROB1
-		setProb1(settings.getBoolean(PrismSettings.PRISM_PROB1));
-		// PRISM_FAIRNESS
-		if (settings.getBoolean(PrismSettings.PRISM_FAIRNESS)) {
-			throw new PrismException("The explicit engine does not support model checking MDPs under fairness");
-		}
-		
-		// PRISM_EXPORT_ADV
-		s = settings.getString(PrismSettings.PRISM_EXPORT_ADV);
-		if (!(s.equals("None")))
-			setExportAdv(true);
-		// PRISM_EXPORT_ADV_FILENAME
-		setExportAdvFilename(settings.getString(PrismSettings.PRISM_EXPORT_ADV_FILENAME));
-	}
-
-	/**
-	 * Inherit settings (and other info) from another model checker object.
+	 * Inherit settings (and the log) from another ProbModelChecker object.
+	 * For model checker objects that inherit a PrismSettings object, this is superfluous
+	 * since this has been done already.
 	 */
 	public void inheritSettings(ProbModelChecker other)
 	{

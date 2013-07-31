@@ -29,15 +29,18 @@ package prism;
 /**
  * Base class for "components" of PRISM, i.e. classes that implement
  * a particular piece of functionality required for model checking.
+ * 
  * Stores:
  * <ul>
  * <li> A PrismLog ({@code mainLog}) for output 
  * <li> A PrismSettings object ({@code settings})
  * </ul>
- * These are usually freshly created to perform some task and then discarded.
- * In particular, settings are usually extracted from a PrismSettings object
- * upon creation, which is stored (to pass on to child PrismComponent objects)
- * but is not then monitored to detect when changes are made to settings later. 
+ * 
+ * Depending on the (sub)class, the {@code settings} object may either be read
+ * from each time that a setting is required (thus respecting any changes that
+ * are made to it over time), or read from initially and then ignored.
+ * Mostly, these classes are freshly created to perform some task and then discarded,
+ * so there is no point making changes to {@code settings} after creation.
  */
 public class PrismComponent
 {
@@ -50,11 +53,6 @@ public class PrismComponent
 	/**
 	 * PRISM settings object.
 	 * Defaults to a fresh PrismSettings() object containing PRISM defaults.
-	 * 
-	 * The idea is that settings are not extracted into local storage of
-	 * Used (optionally) to initialise settings.
-	 * Retained to allow it to be passed on to child PrismComponent objects.
-	 * It is not monitored to detect when changes are made to settings later.
 	 */
 	protected PrismSettings settings = new PrismSettings();
 
@@ -74,37 +72,36 @@ public class PrismComponent
 	{
 		if (parent == null)
 			return;
-		
 		setLog(parent.getLog());
 		setSettings(parent.getSettings());
 	}
 	
-	// Log
+	// Setters (declared as final since they are called from the constructor)
 	
 	/**
 	 * Set log ("mainLog") for output.
 	 */
-	public void setLog(PrismLog log)
+	public final void setLog(PrismLog mainLog)
 	{
-		this.mainLog = log;
+		this.mainLog = mainLog;
 	}
 
+	/**
+	 * Set PRISMSettings object.
+	 */
+	public final void setSettings(PrismSettings settings) throws PrismException
+	{
+		this.settings = settings;
+	}
+	
+	// Getters
+	
 	/**
 	 * Get log ("mainLog") for output.
 	 */
 	public PrismLog getLog()
 	{
 		return mainLog;
-	}
-
-	// Settings
-	
-	/**
-	 * Set settings from a PRISMSettings object.
-	 */
-	public void setSettings(PrismSettings settings) throws PrismException
-	{
-		this.settings = settings;
 	}
 	
 	/**

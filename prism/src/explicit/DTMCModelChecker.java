@@ -263,6 +263,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		BitSet acceptingBSCCs = mcLtl.findAcceptingBSCCsForRabin(dra, modelProduct, invMap);
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = new DTMCModelChecker(this);
+		mcProduct.inheritSettings(this);
 		probsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachProbs((DTMC) modelProduct, acceptingBSCCs).soln, modelProduct);
 
 		// Mapping probabilities in the original model

@@ -126,7 +126,7 @@ public class CTMDPModelChecker extends MDPModelChecker
 		mainLog.println("q = " + q + ", k = " + k + ", tau = " + tau);
 		mdp = ctmdp.buildDiscretisedMDP(tau);
 		mainLog.println(mdp);
-		mc = new MDPModelChecker(null);
+		mc = new MDPModelChecker(this);
 		mc.inheritSettings(this);
 		res = mc.computeBoundedUntilProbs(mdp, null, target, k, min);
 

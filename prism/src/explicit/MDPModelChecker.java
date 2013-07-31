@@ -277,6 +277,7 @@ public class MDPModelChecker extends ProbModelChecker
 		BitSet acceptingMECs = mcLtl.findAcceptingECStatesForRabin(dra, modelProduct, invMap);
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = new MDPModelChecker(this);
+		mcProduct.inheritSettings(this);
 		probsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachProbs((MDP) modelProduct, acceptingMECs, false).soln, modelProduct);
 
 		// Subtract from 1 if we're model checking a negated formula for regular Pmin
