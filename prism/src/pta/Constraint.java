@@ -41,7 +41,7 @@ public class Constraint
 	 * @param y Right clock
 	 * @param db Difference bound encoded as an integer
 	 */
-	public Constraint(int x, int y, int db)
+	private Constraint(int x, int y, int db)
 	{
 		this.x = x;
 		this.y = y;
@@ -169,5 +169,37 @@ public class Constraint
 	public static Constraint buildXGtY(int x, int y)
 	{
 		return new Constraint(y, x, DB.createLt(0));
+	}
+	
+	/**
+	 * Build constraint x - y <= v.
+	 */
+	public static Constraint buildXYLeq(int x, int y, int v)
+	{
+		return new Constraint(x, y, DB.createLeq(v));
+	}
+
+	/**
+	 * Build constraint x - y < v.
+	 */
+	public static Constraint buildXYLt(int x, int y, int v)
+	{
+		return new Constraint(x, y, DB.createLt(v));
+	}
+
+	/**
+	 * Build constraint x - y >= v.
+	 */
+	public static Constraint buildXYGeq(int x, int y, int v)
+	{
+		return new Constraint(y, x, DB.createLeq(-v));
+	}
+
+	/**
+	 * Build constraint x - y > v.
+	 */
+	public static Constraint buildXYGt(int x, int y, int v)
+	{
+		return new Constraint(y, x, DB.createLt(-v));
 	}
 }

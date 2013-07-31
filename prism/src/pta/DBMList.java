@@ -529,6 +529,10 @@ public class DBMList extends NCZone
 				list.remove(i);
 		}
 	}
+	
+	public int size() {
+		return list.size();
+	}
 
 	// Test program for complementing big DBM lists
 	
