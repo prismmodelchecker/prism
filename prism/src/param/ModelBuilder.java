@@ -41,6 +41,7 @@ import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismSettings;
 import explicit.IndexedSet;
+import explicit.StateStorage;
 
 /**
  * Class to construct a parametric Markov model.
@@ -233,7 +234,7 @@ public final class ModelBuilder {
 	 * @param states list of states to be filled by this method
 	 * @throws PrismException thrown if problems in underlying methods occur
 	 */
-	private void reserveMemoryAndExploreStates(ModulesFile modulesFile, ParamModel model, ModelType modelType, SymbolicEngine engine, IndexedSet<State> states)
+	private void reserveMemoryAndExploreStates(ModulesFile modulesFile, ParamModel model, ModelType modelType, SymbolicEngine engine, StateStorage<State> states)
 	throws PrismException
 	{
 		boolean isNonDet = modelType == ModelType.MDP;
@@ -311,7 +312,7 @@ public final class ModelBuilder {
 		}
 
 		boolean isNonDet = modelType == ModelType.MDP;
-		IndexedSet<State> states = new IndexedSet<State>(true);
+		StateStorage<State> states = new IndexedSet<State>(true);
 		reserveMemoryAndExploreStates(modulesFile, model, modelType, engine, states);
 		int[] permut = states.buildSortingPermutation();
 		List<State> statesList = states.toPermutedArrayList(permut);

@@ -89,7 +89,7 @@ public class ForwardsReach
 	{
 		LocZone init, lz, lz2;
 		LinkedList<LocZone> X;
-		IndexedSet<LocZone> Yset;
+		StateStorage<LocZone> Yset;
 		//LocZoneSetOld Zset;
 		ReachabilityGraph graph;
 		int src, dest, count, dests[];
@@ -272,7 +272,7 @@ public class ForwardsReach
 		Zone z;
 		LocZone init, lz, lz2;
 		LinkedList<LocZone> Y;
-		IndexedSet<LocZone> Zset;
+		StateStorage<LocZone> Zset;
 		//LocZoneSetOld Zset;
 		ReachabilityGraph graph;
 		int cMax;

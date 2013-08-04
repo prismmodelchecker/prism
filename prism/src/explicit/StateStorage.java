@@ -3,6 +3,8 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//  * Mateusz Ujma <mateusz.ujma@cs.ox.ac.uk> (University of Oxford)
+
 //	
 //------------------------------------------------------------------------------
 //	
@@ -29,121 +31,50 @@ package explicit;
 import java.util.*;
 
 /**
- * Class storing an indexed set of objects of type T.
+ * Interface for storing an set of objects of type T.
  * Typically used for storing state space during reachability.
  */
-public class IndexedSet<T> implements StateStorage<T>
+public interface StateStorage<T>
 {
-	private Map<T, Integer> set;
-	private int indexOfLastAdd;
-
-	public IndexedSet()
-	{
-		this(false);
-	}
-
-	public IndexedSet(boolean sorted)
-	{
-		set = sorted ? new TreeMap<T, Integer>() : new HashMap<T, Integer>();
-		indexOfLastAdd = -1;
-	}
-
-	@Override
-	public void clear()
-	{
-		set.clear();
-	}
+	public int get(T t);
 	
-	@Override
-	public boolean add(T state)
-	{
-		Integer i = set.get(state);
-		if (i != null) {
-			indexOfLastAdd = i;
-			return false;
-		} else {
-			indexOfLastAdd = set.size();
-			set.put(state, set.size());
-			return true;
-		}
-	}
+	public boolean add(T state);
+	
+	public void clear();
 
-	@Override
-	public boolean contains(T state)
-	{
-			return set.get(state) != null;
-	}
+	public boolean contains(T state);
 
-	@Override
-	public int getIndexOfLastAdd()
-	{
-		return indexOfLastAdd;
-	}
+	public int getIndexOfLastAdd();
 
-	@Override
-	public boolean isEmpty()
-	{
-		return set.isEmpty();
-	}
+	public boolean isEmpty();
 
 	/**
 	 * Get the number of objects stored in the set.
 	 */
-	@Override
-	public int size()
-	{
-		return set.size();
-	}
+	public int size();
 
 	/**
 	 * Get access to the underlying set of map entries. 
 	 */
-	@Override
-	public Set<Map.Entry<T, Integer>> getEntrySet()
-	{
-		return set.entrySet();
-	}
+	public Set<Map.Entry<T, Integer>> getEntrySet();
 	
 	/**
 	 * Create an ArrayList of the states, ordered by index.
 	 */
-	@Override
-	public ArrayList<T> toArrayList()
-	{
-		ArrayList<T> list = new ArrayList<T>(set.size());
-		toArrayList(list);
-		return list;
-	}
+	public ArrayList<T> toArrayList();
 
 	/**
 	 * Create an ArrayList of the states, ordered by index, storing in the passed in list.
 	 * @param list An empty ArrayList in which to store the result.
 	 */
-	@Override
-	public void toArrayList(ArrayList<T> list)
-	{
-		int i, n;
-
-		n = set.size();
-		for (i = 0; i < n ; i++)
-			list.add(null);
-		for (Map.Entry<T, Integer> e : set.entrySet()) {
-			list.set(e.getValue(), e.getKey());
-		}
-	}
+	public void toArrayList(ArrayList<T> list);
 	
 	/**
 	 * Create an ArrayList of the states, ordered by permuted index.
 	 * Index in new list is permut[old_index].
 	 * @param permut Permutation to apply
 	 */
-	@Override
-	public ArrayList<T> toPermutedArrayList(int permut[])
-	{
-		ArrayList<T> list = new ArrayList<T>(set.size());
-		toPermutedArrayList(permut, list);
-		return list;
-	}
+	public ArrayList<T> toPermutedArrayList(int permut[]);
 
 	/**
 	 * Create an ArrayList of the states, ordered by permuted index, storing in the passed in list.
@@ -151,49 +82,13 @@ public class IndexedSet<T> implements StateStorage<T>
 	 * @param permut Permutation to apply
 	 * @param list An empty ArrayList in which to store the result.
 	 */
-	@Override
-	public void toPermutedArrayList(int permut[], ArrayList<T> list)
-	{
-		int i, n;
-
-		n = set.size();
-		for (i = 0; i < n ; i++)
-			list.add(null);
-		for (Map.Entry<T, Integer> e : set.entrySet()) {
-			list.set(permut[e.getValue()], e.getKey());
-		}
-	}
+	public void toPermutedArrayList(int permut[], ArrayList<T> list);
 	
 	/**
 	 * Build sort permutation. Assuming this was built as a sorted set,
 	 * this returns a permutation (integer array) mapping current indices
 	 * to new indices under the sorting order.
 	 */
-	@Override
-	public int[] buildSortingPermutation()
-	{
-		int i, n;
-		int perm[];
-		
-		n = set.size();
-		perm = new int[n];
-		i = 0;
-		for (Map.Entry<T, Integer> e : set.entrySet()) {
-			perm[e.getValue()] = i++;
-		}
-		
-		return perm;
-	}
+	public int[] buildSortingPermutation();
 	
-	@Override
-	public String toString()
-	{
-		return set.toString();
-	}
-
-	@Override
-	public int get(T t)
-	{
-		return set.get(t);
-	}
 }

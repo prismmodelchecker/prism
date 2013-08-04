@@ -29,6 +29,7 @@ package pta;
 import java.util.*;
 
 import explicit.IndexedSet;
+import explicit.StateStorage;
 
 import parser.*;
 import parser.ast.*;
@@ -504,7 +505,7 @@ public class Modules2PTA extends PrismComponent
 		int numUpdates, numCommands, numElements;
 		// Stuff needed to do local reachability search
 		int src, dest;
-		IndexedSet<State> states;
+		StateStorage<State> states;
 		LinkedList<State> explore;
 		State state, stateNew;
 		int[] varMap;

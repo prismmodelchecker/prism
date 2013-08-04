@@ -30,6 +30,7 @@ import java.util.*;
 
 import prism.PrismException;
 import explicit.IndexedSet;
+import explicit.StateStorage;
 
 /**
  * Class to perform the parallel composition of PTAs.
@@ -37,7 +38,7 @@ import explicit.IndexedSet;
 public class PTAParallel
 {
 	// All states
-	private IndexedSet<IndexPair> states;
+	private StateStorage<IndexPair> states;
 	// States to be explored
 	private LinkedList<IndexPair> explore;
 	// Component PTAs

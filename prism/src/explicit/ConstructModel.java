@@ -125,7 +125,7 @@ public class ConstructModel
 		// Model info
 		ModelType modelType;
 		// State storage
-		IndexedSet<State> states;
+		StateStorage<State> states;
 		LinkedList<State> explore;
 		State state, stateNew;
 		// Explicit model storage
