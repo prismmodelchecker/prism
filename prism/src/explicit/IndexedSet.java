@@ -34,8 +34,8 @@ import java.util.*;
  */
 public class IndexedSet<T> implements StateStorage<T>
 {
-	private Map<T, Integer> set;
-	private int indexOfLastAdd;
+	protected Map<T, Integer> set;
+	protected int indexOfLastAdd;
 
 	public IndexedSet()
 	{
