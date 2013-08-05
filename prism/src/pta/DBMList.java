@@ -130,6 +130,14 @@ public class DBMList extends NCZone
 	{
 		return pta;
 	}
+	
+	/**
+	 * Get DBM
+	 */
+	public DBM getDBM(int i) 
+	{
+		return list.get(i);
+	}
 
 	// Zone operations (modify the zone)
 
