@@ -163,6 +163,11 @@ public class State implements Comparable<State>
 
 	public int compareTo(State s)
 	{
+		return compareTo(s, 0);
+	}
+	
+	public int compareTo(State s, int variableIndex)
+	{
 		int i, j, n;
 		Object svv[], o1, o2;
 		// Can't compare to null
@@ -173,8 +178,31 @@ public class State implements Comparable<State>
 		n = varValues.length;
 		if (n != svv.length)
 			throw new ClassCastException("States are different sizes");
+		
+		if (variableIndex > n-1)
+			throw new ClassCastException("Variable index is incorrect");
 		// Go through array
-		for (i = 0; i < n; i++) {
+		for (i = variableIndex; i < n; i++) {
+			o1 = varValues[i];
+			o2 = svv[i];
+			if (o1 instanceof Integer && o2 instanceof Integer) {
+				j = ((Integer) o1).compareTo((Integer) o2);
+				if (j != 0)
+					return j;
+				else
+					continue;
+			} else if (o1 instanceof Boolean && o2 instanceof Boolean) {
+				j = ((Boolean) o1).compareTo((Boolean) o2);
+				if (j != 0)
+					return j;
+				else
+					continue;
+			} else {
+				throw new ClassCastException("Can't compare " + o1.getClass() + " and " + o2.getClass());
+			}
+		}
+		
+		for (i = 0; i < variableIndex; i++) {
 			o1 = varValues[i];
 			o2 = svv[i];
 			if (o1 instanceof Integer && o2 instanceof Integer) {
