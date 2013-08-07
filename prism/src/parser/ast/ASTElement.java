@@ -338,6 +338,18 @@ public abstract class ASTElement
 	}
 
 	/**
+	 * Get all labels (i.e. ExpressionLabel objects), store names in set.
+	 * Special labels "deadlock", "init" *are* included in the list.
+	 */
+	public Vector<String> getAllLabels() throws PrismLangException
+	{
+		Vector<String> v = new Vector<String>();
+		GetAllLabels visitor = new GetAllLabels(v);
+		accept(visitor);
+		return v;
+	}
+
+	/**
 	 * Expand labels, return result.
 	 * Special labels "deadlock", "init" and any not in list are left.
 	 * @param labelList The LabelList for label definitions
