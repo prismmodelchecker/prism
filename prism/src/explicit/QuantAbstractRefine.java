@@ -50,10 +50,8 @@ import explicit.ProbModelChecker.ValIterDir;
  * <br><br>
  * The abstraction-refinement loop can then be started with {@link #abstractRefine}.
  */
-public abstract class QuantAbstractRefine
+public abstract class QuantAbstractRefine extends PrismComponent
 {
-	// Log for output (default: just send to stdout)
-	protected PrismLog mainLog = new PrismPrintStreamLog(System.out);
 	// Model checker
 	protected ProbModelChecker mc;
 	// Dummy model checker to store options
@@ -147,10 +145,9 @@ public abstract class QuantAbstractRefine
 	/**
 	 * Default constructor.
 	 */
-	public QuantAbstractRefine()
+	public QuantAbstractRefine(PrismComponent parent) throws PrismException
 	{
-		// By default, log output goes to System.out.
-		setLog(new PrismPrintStreamLog(System.out));
+		super(parent);
 		// Create dummy model checker to store options
 		try {
 			mcOptions = new ProbModelChecker(null);

@@ -83,7 +83,7 @@ public class PTAModelCheckerCL
 		try {
 
 			// Build PTAAbstractRefine object
-			abstractRefine = new PTAAbstractRefine();
+			abstractRefine = new PTAAbstractRefine(null);
 
 			// Parse command-line arguments
 			parseCommandLineArgs(args);

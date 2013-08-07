@@ -306,9 +306,8 @@ public class PTAModelChecker extends PrismComponent
 		// Do probability computation through abstraction/refinement/stochastic games  
 		if (ptaMethod.equals("Stochastic games")) {
 			PTAAbstractRefine ptaAR;
-			ptaAR = new PTAAbstractRefine();
+			ptaAR = new PTAAbstractRefine(this);
 			String arOptions = settings.getString(PrismSettings.PRISM_AR_OPTIONS);
-			ptaAR.setLog(mainLog);
 			ptaAR.parseOptions(arOptions.split(","));
 			return ptaAR.forwardsReachAbstractRefine(pta, targetLocs, null, min);
 		}

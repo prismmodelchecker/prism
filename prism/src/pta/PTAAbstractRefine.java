@@ -29,6 +29,7 @@ package pta;
 import java.util.*;
 
 import prism.ModelType;
+import prism.PrismComponent;
 import prism.PrismException;
 import explicit.*;
 
@@ -55,8 +56,9 @@ public class PTAAbstractRefine extends QuantAbstractRefine
 	/**
 	 * Default constructor.
 	 */
-	public PTAAbstractRefine()
+	public PTAAbstractRefine(PrismComponent parent) throws PrismException
 	{
+		super(parent);
 		// Just do basic config for QuantAbstractRefine
 		setModelType(ModelType.MDP);
 		setPropertyType(QuantAbstractRefine.PropertyType.PROB_REACH);

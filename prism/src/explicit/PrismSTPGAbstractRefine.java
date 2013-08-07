@@ -29,6 +29,7 @@ package explicit;
 import java.util.*;
 
 import prism.ModelType;
+import prism.PrismComponent;
 import prism.PrismException;
 
 public class PrismSTPGAbstractRefine extends QuantAbstractRefine
@@ -57,6 +58,14 @@ public class PrismSTPGAbstractRefine extends QuantAbstractRefine
 	protected int concreteToAbstract[];
 	// Map from abstract P1 choices to concrete state sets
 	protected List<List<Set<Integer>>> abstractToConcrete;
+
+	/**
+	 * Default constructor.
+	 */
+	public PrismSTPGAbstractRefine(PrismComponent parent) throws PrismException
+	{
+		super(parent);
+	}
 
 	// Implementation of initialise() for abstraction-refinement loop; see superclass for details 
 
@@ -447,16 +456,16 @@ public class PrismSTPGAbstractRefine extends QuantAbstractRefine
 		String s, sw, sOpt, filenameBase;
 		int i, j;
 
-		// Create abstraction-refinement engine
-		abstractRefine = new PrismSTPGAbstractRefine();
-		abstractRefine.sanityChecks = true;
-
-		// Parse command line args
-		if (args.length < 3) {
-			System.err.println("Usage: java ... [options] <tra file> <lab file> <target label>");
-			System.exit(1);
-		}
 		try {
+			// Create abstraction-refinement engine
+			abstractRefine = new PrismSTPGAbstractRefine(null);
+			abstractRefine.sanityChecks = true;
+
+			// Parse command line args
+			if (args.length < 3) {
+				System.err.println("Usage: java ... [options] <tra file> <lab file> <target label>");
+				System.exit(1);
+			}
 			nonSwitches = new ArrayList<String>();
 			for (i = 0; i < args.length; i++) {
 				s = args[i];
