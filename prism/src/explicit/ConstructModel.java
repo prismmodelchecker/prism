@@ -35,6 +35,7 @@ import java.util.List;
 import parser.State;
 import parser.Values;
 import parser.VarList;
+import parser.ast.Expression;
 import parser.ast.ModulesFile;
 import prism.ModelType;
 import prism.Prism;
@@ -137,11 +138,6 @@ public class ConstructModel extends PrismComponent
 		int i, j, nc, nt, src, dest;
 		long timer;
 
-		// Don't support multiple initial states
-		if (modulesFile.getInitialStates() != null) {
-			throw new PrismException("Cannot do explicit-state reachability if there are multiple initial states");
-		}
-
 		// Display a warning if there are unbounded vars
 		VarList varList = modulesFile.createVarList();
 		if (varList.containsUnboundedVariables())
@@ -180,16 +176,30 @@ public class ConstructModel extends PrismComponent
 		// Initialise states storage
 		states = new IndexedSet<State>(true);
 		explore = new LinkedList<State>();
-		// Add initial state to lists/model
-		if (modulesFile.getInitialStates() != null) {
-			throw new PrismException("Explicit model construction does not support multiple initial states");
+		// Add initial state(s) to 'explore'
+		// Easy (normal) case: just one initial state
+		if (modulesFile.getInitialStates() == null) {
+			state = modulesFile.getDefaultInitialState();
+			explore.add(state);
 		}
-		state = modulesFile.getDefaultInitialState();
-		states.add(state);
-		explore.add(state);
-		if (!justReach) {
-			modelSimple.addState();
-			modelSimple.addInitialState(0);
+		// Otherwise, there may be multiple initial states
+		// For now, we handle this is in a very inefficient way
+		else {
+			Expression init = modulesFile.getInitialStates();
+			List<State> allPossStates = varList.getAllStates();
+			for (State possState : allPossStates) {
+				if (init.evaluateBoolean(modulesFile.getConstantValues(), possState)) {
+					explore.add(possState);
+				}
+			}
+		}
+		// Copy initial state(s) to 'states' and to the model
+		for (State initState : explore) {
+			states.add(initState);
+			if (!justReach) {
+				modelSimple.addState();
+				modelSimple.addInitialState(modelSimple.getNumStates() - 1);
+			}
 		}
 		// Explore...
 		src = -1;

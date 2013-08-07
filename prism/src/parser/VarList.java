@@ -421,6 +421,48 @@ public class VarList
 	}
 
 	/**
+	 * Get a list of all possible states over the variables in this list. Use with care!
+	 */
+	public List<State> getAllStates() throws PrismLangException
+	{
+		List<State> allStates;
+		State state, stateNew;
+
+		int numVars = getNumVars();
+		allStates = new ArrayList<State>();
+		allStates.add(new State(numVars));
+		for (int i = 0; i < numVars; i++) {
+			if (getType(i) instanceof TypeBool) {
+				int n = allStates.size();
+				for (int j = 0; j < n; j++) {
+					state = allStates.get(j);
+					stateNew = new State(state);
+					stateNew.setValue(i, true);
+					state.setValue(i, false);
+					allStates.add(stateNew);
+				}
+			} else if (getType(i) instanceof TypeInt) {
+				int lo = getLow(i);
+				int hi = getHigh(i);
+				int n = allStates.size();
+				for (int j = 0; j < n; j++) {
+					state = allStates.get(j);
+					for (int k = lo + 1; k < hi + 1; k++) {
+						stateNew = new State(state);
+						stateNew.setValue(i, k);
+						allStates.add(stateNew);
+					}
+					state.setValue(i, lo);
+				}
+			} else {
+				throw new PrismLangException("Cannot determine all values for a variable of type " + getType(i));
+			}
+		}
+
+		return allStates;
+	}
+
+	/**
 	 * Convert a bit vector representing a single state to a State object. 
 	 */
 	public State convertBitSetToState(BitSet bits)
