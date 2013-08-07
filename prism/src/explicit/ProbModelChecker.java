@@ -600,7 +600,7 @@ public class ProbModelChecker extends StateModelChecker
 
 		// Print out probabilities
 		if (getVerbosity() > 5) {
-			mainLog.print("\nProbabilities (non-zero only) for all states:\n");
+			mainLog.print("\nRewards (non-zero only) for all states:\n");
 			rews.print(mainLog);
 		}
 
