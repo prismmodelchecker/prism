@@ -190,14 +190,6 @@ public abstract class QuantAbstractRefine extends PrismComponent
 
 	// Set methods for flags/settings, etc.
 
-	public void setLog(PrismLog log)
-	{
-		this.mainLog = log;
-		// Store this log in model checker options too
-		if (mcOptions != null)
-			mcOptions.setLog(log);
-	}
-
 	public void setModelType(ModelType modelType)
 	{
 		this.modelType = modelType;
