@@ -42,7 +42,7 @@ import javax.swing.border.EmptyBorder;
  * Extension of JList containing JCheckBoxes.
  */
 @SuppressWarnings("serial")
-public class CheckBoxList extends JList<JCheckBox>
+public class CheckBoxList extends JList
 {
 	protected static Border noFocusBorder = new EmptyBorder(1, 1, 1, 1);
 
@@ -55,7 +55,7 @@ public class CheckBoxList extends JList<JCheckBox>
 			{
 				int index = locationToIndex(e.getPoint());
 				if (index != -1) {
-					JCheckBox checkbox = getModel().getElementAt(index);
+					JCheckBox checkbox = (JCheckBox) getModel().getElementAt(index);
 					checkbox.setSelected(!checkbox.isSelected());
 					repaint();
 				}
@@ -64,11 +64,11 @@ public class CheckBoxList extends JList<JCheckBox>
 		setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 	}
 
-	protected class CellRenderer implements ListCellRenderer<JCheckBox>
+	protected class CellRenderer implements ListCellRenderer
 	{
-		public Component getListCellRendererComponent(JList<? extends JCheckBox> list, JCheckBox value, int index, boolean isSelected, boolean cellHasFocus)
+		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
 		{
-			JCheckBox checkbox = value;
+			JCheckBox checkbox = (JCheckBox) value;
 			checkbox.setBackground(isSelected ? getSelectionBackground() : getBackground());
 			checkbox.setForeground(isSelected ? getSelectionForeground() : getForeground());
 			checkbox.setEnabled(isEnabled());

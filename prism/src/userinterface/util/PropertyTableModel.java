@@ -43,7 +43,7 @@ public class PropertyTableModel extends AbstractTableModel implements Observer
 	private ArrayList<Integer> groupSizes;
 	private int currentGroup;
 
-	private DefaultComboBoxModel<Object> comboModel;
+	private DefaultComboBoxModel comboModel;
 
 	private JTable theTable;
 
@@ -55,7 +55,7 @@ public class PropertyTableModel extends AbstractTableModel implements Observer
 		groupStarts = new ArrayList<Integer>();
 		groupSizes = new ArrayList<Integer>();
 		owners = new ArrayList<PropertyOwner>();
-		comboModel = new DefaultComboBoxModel<Object>();
+		comboModel = new DefaultComboBoxModel();
 	}
 
 	public void setJTable(JTable tab)
@@ -123,7 +123,7 @@ public class PropertyTableModel extends AbstractTableModel implements Observer
 		}
 		if (currentGroup > owners.size() - 1)
 			currentGroup = 0;
-		comboModel = new DefaultComboBoxModel<Object>(groupNames.toArray());
+		comboModel = new DefaultComboBoxModel(groupNames.toArray());
 		fireTableDataChanged();
 	}
 
@@ -277,7 +277,7 @@ public class PropertyTableModel extends AbstractTableModel implements Observer
 	 * Getter for property comboModel.
 	 * @return Value of property comboModel.
 	 */
-	public DefaultComboBoxModel<Object> getComboModel()
+	public DefaultComboBoxModel getComboModel()
 	{
 		return comboModel;
 	}

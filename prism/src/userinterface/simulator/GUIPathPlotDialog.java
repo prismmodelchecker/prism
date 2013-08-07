@@ -108,8 +108,8 @@ public class GUIPathPlotDialog extends JDialog
 	private JTextField textFieldTime;
 	private JTextField textFieldInterval;
 	private JLabel lblInterval;
-	private JComboBox<ShowChoice> comboBoxShow;
-	private JComboBox<SimulateChoice> comboBoxSimulate;
+	private JComboBox comboBoxShow;
+	private JComboBox comboBoxSimulate;
 	private JButton okButton;
 	private JButton cancelButton;
 	private JTabbedPane tabbedPane;
@@ -256,8 +256,8 @@ public class GUIPathPlotDialog extends JDialog
 				topPanel.add(lblSimulate, gbc_lblSimulate);
 			}
 			{
-				comboBoxSimulate = new JComboBox<SimulateChoice>();
-				comboBoxSimulate.setModel(new DefaultComboBoxModel<SimulateChoice>(SimulateChoice.values()));
+				comboBoxSimulate = new JComboBox();
+				comboBoxSimulate.setModel(new DefaultComboBoxModel(SimulateChoice.values()));
 				GridBagConstraints gbc_comboBoxSimulate = new GridBagConstraints();
 				gbc_comboBoxSimulate.anchor = GridBagConstraints.WEST;
 				gbc_comboBoxSimulate.insets = new Insets(0, 0, 5, 5);
@@ -285,7 +285,7 @@ public class GUIPathPlotDialog extends JDialog
 				topPanel.add(lblShow, gbc_lblShow);
 			}
 			{
-				comboBoxShow = new JComboBox<ShowChoice>();
+				comboBoxShow = new JComboBox();
 				comboBoxShow.addActionListener(new ActionListener()
 				{
 					public void actionPerformed(ActionEvent e)
@@ -293,7 +293,7 @@ public class GUIPathPlotDialog extends JDialog
 						comboBoxShowActionPerformed(e);
 					}
 				});
-				comboBoxShow.setModel(new DefaultComboBoxModel<ShowChoice>(ShowChoice.values()));
+				comboBoxShow.setModel(new DefaultComboBoxModel(ShowChoice.values()));
 				GridBagConstraints gbc_comboBoxShow = new GridBagConstraints();
 				gbc_comboBoxShow.anchor = GridBagConstraints.WEST;
 				gbc_comboBoxShow.insets = new Insets(0, 0, 5, 5);

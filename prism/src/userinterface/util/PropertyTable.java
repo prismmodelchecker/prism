@@ -197,7 +197,7 @@ public class PropertyTable extends JPanel implements ListSelectionListener, Tabl
 		commentText = new javax.swing.JTextArea();
 		commentLabel = new javax.swing.JLabel();
 		topPanel = new javax.swing.JPanel();
-		theCombo = new javax.swing.JComboBox<Object>();
+		theCombo = new javax.swing.JComboBox();
 
 		setLayout(new java.awt.BorderLayout());
 
@@ -331,7 +331,7 @@ public class PropertyTable extends JPanel implements ListSelectionListener, Tabl
 	// Variables declaration - do not modify//GEN-BEGIN:variables
 	javax.swing.JLabel commentLabel;
 	javax.swing.JTextArea commentText;
-	javax.swing.JComboBox<Object> theCombo;
+	javax.swing.JComboBox theCombo;
 	javax.swing.JTable theTable;
 	javax.swing.JPanel topPanel;
 

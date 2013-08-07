@@ -119,9 +119,9 @@ public class FontChooser extends javax.swing.JDialog implements ListSelectionLis
 		String[] styles = { "Plain", "Bold", "Italic", "Bold Italic" };
 		String[] sizes = { "8", "9", "10", "11", "12", "14", "16", "18", "20" };
 
-		DefaultComboBoxModel<String> fontModel = new DefaultComboBoxModel<String>(allFonts);
-		DefaultComboBoxModel<String> styleModel = new DefaultComboBoxModel<String>(styles);
-		DefaultComboBoxModel<String> sizeModel = new DefaultComboBoxModel<String>(sizes);
+		DefaultComboBoxModel fontModel = new DefaultComboBoxModel(allFonts);
+		DefaultComboBoxModel styleModel = new DefaultComboBoxModel(styles);
+		DefaultComboBoxModel sizeModel = new DefaultComboBoxModel(sizes);
 
 		fontList.setModel(fontModel);
 		styleList.setModel(styleModel);
@@ -168,7 +168,7 @@ public class FontChooser extends javax.swing.JDialog implements ListSelectionLis
 		jPanel42 = new javax.swing.JPanel();
 		jPanel43 = new javax.swing.JPanel();
 		jScrollPane4 = new javax.swing.JScrollPane();
-		fontList = new javax.swing.JList<String>();
+		fontList = new javax.swing.JList();
 		jPanel44 = new javax.swing.JPanel();
 		jPanel45 = new javax.swing.JPanel();
 		jPanel46 = new javax.swing.JPanel();
@@ -180,7 +180,7 @@ public class FontChooser extends javax.swing.JDialog implements ListSelectionLis
 		jPanel50 = new javax.swing.JPanel();
 		jPanel51 = new javax.swing.JPanel();
 		jScrollPane5 = new javax.swing.JScrollPane();
-		styleList = new javax.swing.JList<String>();
+		styleList = new javax.swing.JList();
 		jPanel52 = new javax.swing.JPanel();
 		jPanel53 = new javax.swing.JPanel();
 		jPanel54 = new javax.swing.JPanel();
@@ -191,7 +191,7 @@ public class FontChooser extends javax.swing.JDialog implements ListSelectionLis
 		jPanel57 = new javax.swing.JPanel();
 		jPanel58 = new javax.swing.JPanel();
 		jScrollPane6 = new javax.swing.JScrollPane();
-		sizeList = new javax.swing.JList<String>();
+		sizeList = new javax.swing.JList();
 		jPanel59 = new javax.swing.JPanel();
 		jPanel60 = new javax.swing.JPanel();
 		previewLabel = new javax.swing.JLabel();
@@ -701,7 +701,7 @@ public class FontChooser extends javax.swing.JDialog implements ListSelectionLis
 	protected javax.swing.JColorChooser colorChooser;
 	private javax.swing.JButton defaultButton;
 	private javax.swing.JTextField fontBox;
-	private javax.swing.JList<String> fontList;
+	private javax.swing.JList fontList;
 	private javax.swing.JPanel fontPanel;
 	private javax.swing.JLabel jLabel4;
 	private javax.swing.JLabel jLabel5;
@@ -741,9 +741,9 @@ public class FontChooser extends javax.swing.JDialog implements ListSelectionLis
 	private javax.swing.JButton okayButton;
 	private javax.swing.JLabel previewLabel;
 	private javax.swing.JTextField sizeBox;
-	private javax.swing.JList<String> sizeList;
+	private javax.swing.JList sizeList;
 	private javax.swing.JTextField styleBox;
-	private javax.swing.JList<String> styleList;
+	private javax.swing.JList styleList;
 	private javax.swing.JTabbedPane theTabs;
 	// End of variables declaration//GEN-END:variables
 

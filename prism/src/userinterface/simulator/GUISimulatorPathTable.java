@@ -47,7 +47,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 	// Table model
 	private GUISimulatorPathTableModel ptm;
 	// Component on left hand side to show path loops
-	private JList<Object> loopIndicator;
+	private JList loopIndicator;
 	private LoopIndicatorListModel loopIndicatorModel;
 
 	/** Creates a new instance of GUISimulatorPathTable */
@@ -63,7 +63,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 		setDefaultRenderer(Object.class, new PathChangeTableRenderer(true));
 		// Loop indicator
 		loopIndicatorModel = new LoopIndicatorListModel();
-		loopIndicator = new JList<Object>(loopIndicatorModel);
+		loopIndicator = new JList(loopIndicatorModel);
 		loopIndicator.setBackground(new JPanel().getBackground());
 		loopIndicator.setFixedCellWidth(25);
 		loopIndicator.setFixedCellHeight(getRowHeight());
@@ -109,7 +109,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 
 	// Cell renderer for list representing loop indicator (left of path table)
 
-	class LoopIndicatorRenderer extends JPanel implements ListCellRenderer<Object>
+	class LoopIndicatorRenderer extends JPanel implements ListCellRenderer
 	{
 		private static final long serialVersionUID = 1L;
 
@@ -126,7 +126,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 			 setFont(header.getFont());*/
 		}
 
-		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus)
+		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
 		{
 			//setText((value == null) ? "" : value.toString());
 			//setBorder(new LineBorder(Color.black, 1));
@@ -216,7 +216,7 @@ public class GUISimulatorPathTable extends GUIGroupedTable
 
 	// Model for list representing loop indicator
 
-	class LoopIndicatorListModel extends AbstractListModel<Object>
+	class LoopIndicatorListModel extends AbstractListModel
 	{
 		private static final long serialVersionUID = 1L;
 
