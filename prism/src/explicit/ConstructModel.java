@@ -38,6 +38,7 @@ import parser.VarList;
 import parser.ast.ModulesFile;
 import prism.ModelType;
 import prism.Prism;
+import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismPrintStreamLog;
@@ -45,11 +46,10 @@ import prism.ProgressDisplay;
 import prism.UndefinedConstants;
 import simulator.SimulatorEngine;
 
-public class ConstructModel
+public class ConstructModel extends PrismComponent
 {
-	// The simulator engine and a log for output
+	// The simulator engine
 	private SimulatorEngine engine;
-	private PrismLog mainLog;
 
 	// Options:
 	// Find deadlocks during model construction?
@@ -57,16 +57,13 @@ public class ConstructModel
 	// Automatically fix deadlocks?
 	private boolean fixDeadlocks = true;
 
-	// Basic info needed about model
-	// private ModelType modelType;
-
 	// Details of built model
 	private List<State> statesList;
 
-	public ConstructModel(SimulatorEngine engine, PrismLog mainLog)
+	public ConstructModel(PrismComponent parent, SimulatorEngine engine) throws PrismException
 	{
+		super(parent);
 		this.engine = engine;
-		this.mainLog = mainLog;
 	}
 
 	public List<State> getStatesList()
@@ -338,7 +335,7 @@ public class ConstructModel
 			if (args.length > 2)
 				undefinedConstants.defineUsingConstSwitch(args[2]);
 			modulesFile.setUndefinedConstants(undefinedConstants.getMFConstantValues());
-			ConstructModel constructModel = new ConstructModel(prism.getSimulator(), mainLog);
+			ConstructModel constructModel = new ConstructModel(prism, prism.getSimulator());
 			Model model = constructModel.constructModel(modulesFile);
 			model.exportToPrismExplicitTra(args[1]);
 		} catch (FileNotFoundException e) {

@@ -67,7 +67,7 @@ public class PrismExplicit extends PrismComponent
 		mainLog.print("\nBuilding model...\n");
 
 		// create translator
-		constructModel = new ConstructModel(simEngine, mainLog);
+		constructModel = new ConstructModel(this, simEngine);
 
 		// build model
 		l = System.currentTimeMillis();

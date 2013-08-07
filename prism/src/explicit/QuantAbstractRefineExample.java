@@ -317,7 +317,7 @@ public class QuantAbstractRefineExample extends QuantAbstractRefine
 			modulesFile = (ModulesFile) modulesFile.deepCopy().expandConstants(modulesFile.getConstantList());
 			
 			// Build the model (explicit-state reachability) 
-			ConstructModel constructModel = new ConstructModel(prism.getSimulator(), mainLog);
+			ConstructModel constructModel = new ConstructModel(prism, prism.getSimulator());
 			ModelSimple model = (ModelSimple) constructModel.constructModel(modulesFile, false, false);
 			model.exportToPrismExplicitTra(args[1]);
 			
