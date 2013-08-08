@@ -96,6 +96,12 @@ public class ExpressionUnaryOp extends Expression
 		return operand.isConstant();
 	}
 
+	@Override
+	public boolean isProposition()
+	{
+		return operand.isProposition();
+	}
+	
 	/**
 	 * Evaluate this expression, return result. Note: assumes that type checking
 	 * has been done already.

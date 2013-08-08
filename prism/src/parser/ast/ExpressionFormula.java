@@ -82,6 +82,13 @@ public class ExpressionFormula extends Expression
 		return definition == null ? false : definition.isConstant();
 	}
 
+	@Override
+	public boolean isProposition()
+	{
+		// Unless defined, don't know so err on the side of caution
+		return definition == null ? false : definition.isProposition();
+	}
+	
 	/**
 	 * Evaluate this expression, return result.
 	 * Note: assumes that type checking has been done already.

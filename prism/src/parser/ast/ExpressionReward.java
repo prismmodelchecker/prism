@@ -117,6 +117,12 @@ public class ExpressionReward extends Expression
 		return false;
 	}
 
+	@Override
+	public boolean isProposition()
+	{
+		return false;
+	}
+	
 	/**
 	 * Evaluate this expression, return result.
 	 * Note: assumes that type checking has been done already.

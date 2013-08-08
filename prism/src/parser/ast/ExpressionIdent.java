@@ -70,6 +70,13 @@ public class ExpressionIdent extends Expression
 		return false;
 	}
 
+	@Override
+	public boolean isProposition()
+	{
+		// Don't know - err on the side of caution
+		return false;
+	}
+	
 	/**
 	 * Evaluate this expression, return result.
 	 * Note: assumes that type checking has been done already.

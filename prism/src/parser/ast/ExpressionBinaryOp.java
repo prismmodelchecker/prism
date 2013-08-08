@@ -123,6 +123,12 @@ public class ExpressionBinaryOp extends Expression
 		return operand1.isConstant() && operand2.isConstant();
 	}
 
+	@Override
+	public boolean isProposition()
+	{
+		return operand1.isProposition() && operand2.isProposition();
+	}
+
 	/**
 	 * Evaluate this expression, return result.
 	 * Note: assumes that type checking has been done already.

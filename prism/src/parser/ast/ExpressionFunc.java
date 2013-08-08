@@ -158,6 +158,18 @@ public class ExpressionFunc extends Expression
 		return true;
 	}
 
+	@Override
+	public boolean isProposition()
+	{
+		int i, n;
+		n = getNumOperands();
+		for (i = 0; i < n; i++) {
+			if (!getOperand(i).isProposition())
+				return false;
+		}
+		return true;
+	}
+	
 	/**
 	 * Evaluate this expression, return result. Note: assumes that type checking
 	 * has been done already.

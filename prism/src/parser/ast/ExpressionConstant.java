@@ -71,6 +71,12 @@ public class ExpressionConstant extends Expression
 		return true;
 	}
 
+	@Override
+	public boolean isProposition()
+	{
+		return true;
+	}
+	
 	/**
 	 * Evaluate this expression, return result.
 	 * Note: assumes that type checking has been done already.

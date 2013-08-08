@@ -90,6 +90,12 @@ public class ExpressionITE extends Expression
 		return operand1.isConstant() && operand2.isConstant() && operand3.isConstant();
 	}
 
+	@Override
+	public boolean isProposition()
+	{
+		return operand1.isProposition() && operand2.isProposition() && operand3.isProposition();
+	}
+	
 	/**
 	 * Evaluate this expression, return result. Note: assumes that type checking
 	 * has been done already.

@@ -81,6 +81,12 @@ public class ExpressionVar extends Expression
 		return false;
 	}
 
+	@Override
+	public boolean isProposition()
+	{
+		return true;
+	}
+	
 	/**
 	 * Evaluate this expression, return result.
 	 * Note: assumes that type checking has been done already.
