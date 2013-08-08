@@ -444,7 +444,6 @@ public class DBMList extends NCZone
 	
 	/**
 	 * Get the number of DBMs in this DBMList.
-	 * @return
 	 */
 	public int size()
 	{
