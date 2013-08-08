@@ -39,18 +39,18 @@ public class IndexedSet<T> implements StateStorage<T>
 
 	public IndexedSet()
 	{
-		indexOfLastAdd = -1;
+		this(false);
 	}
 
 	public IndexedSet(boolean sorted)
 	{
-		this();
+		indexOfLastAdd = -1;
 		set = sorted ? new TreeMap<T, Integer>() : new HashMap<T, Integer>();
 	}
 	
 	public IndexedSet(Comparator<T> comparator)
 	{
-		this();
+		indexOfLastAdd = -1;
 		set = new TreeMap<T, Integer>(comparator);
 	}
 
