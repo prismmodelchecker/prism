@@ -121,6 +121,14 @@ public class DBMList extends NCZone
 			addDBM(dbm);
 	}
 
+	/**
+	 * Get the {@code i}th DBM in the list.
+	 */
+	public DBM getDBM(int i) 
+	{
+		return list.get(i);
+	}
+
 	// Methods required for Zone interface
 
 	/**
@@ -131,14 +139,6 @@ public class DBMList extends NCZone
 		return pta;
 	}
 	
-	/**
-	 * Get DBM
-	 */
-	public DBM getDBM(int i) 
-	{
-		return list.get(i);
-	}
-
 	// Zone operations (modify the zone)
 
 	/**

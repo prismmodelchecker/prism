@@ -2,9 +2,8 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
-//  * Mateusz Ujma <mateusz.ujma@cs.ox.ac.uk> (University of Oxford)
-
+//	* Mateusz Ujma <mateusz.ujma@cs.ox.ac.uk> (University of Oxford)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -31,8 +30,8 @@ package explicit;
 import java.util.*;
 
 /**
- * Interface for storing an set of objects of type T.
- * Typically used for storing state space during reachability.
+ * Interface for storing a set of objects of type T.
+ * Typically used for storing states during reachability.
  */
 public interface StateStorage<T>
 {
@@ -90,5 +89,4 @@ public interface StateStorage<T>
 	 * to new indices under the sorting order.
 	 */
 	public int[] buildSortingPermutation();
-	
 }
