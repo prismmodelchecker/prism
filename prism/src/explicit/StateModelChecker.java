@@ -924,7 +924,7 @@ public class StateModelChecker extends PrismComponent
 		if (bsMatch != null) {
 			states = StateValues.createFromBitSet(bsMatch, model);
 			mainLog.print("\nThere are " + bsMatch.cardinality() + " states with ");
-			mainLog.print(expr.getType() instanceof TypeDouble ? "(approximately) " : "" + "this value");
+			mainLog.print((expr.getType() instanceof TypeDouble ? "(approximately) " : "") + "this value");
 			boolean verbose = verbosity > 0; // TODO
 			if (!verbose && bsMatch.cardinality() > 10) {
 				mainLog.print(".\nThe first 10 states are displayed below. To view them all, enable verbose mode or use a print filter.\n");

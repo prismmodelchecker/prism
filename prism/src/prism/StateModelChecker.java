@@ -1344,7 +1344,7 @@ public class StateModelChecker implements ModelChecker
 		if (ddMatch != null) {
 			states = new StateListMTBDD(ddMatch, model);
 			mainLog.print("\nThere are " + states.sizeString() + " states with ");
-			mainLog.print(expr.getType() instanceof TypeDouble ? "(approximately) " : "" + "this value");
+			mainLog.print((expr.getType() instanceof TypeDouble ? "(approximately) " : "") + "this value");
 			if (!verbose && (states.size() == -1 || states.size() > 10)) {
 				mainLog.print(".\nThe first 10 states are displayed below. To view them all, enable verbose mode or use a print filter.\n");
 				states.print(mainLog, 10);
