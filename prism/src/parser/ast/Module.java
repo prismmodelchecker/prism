@@ -87,6 +87,11 @@ public class Module extends ASTElement
 		c.setParent(this);
 	}
 	
+	public void removeCommand(Command c)
+	{
+		commands.remove(c);
+	}
+	
 	public void setCommand(int i, Command c)
 	{
 		commands.set(i, c);
