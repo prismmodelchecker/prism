@@ -267,7 +267,7 @@ public class Updater
 	 * @param m The module index
 	 * @param state State from which to explore
 	 */
-	private void calculateUpdatesForModule(int m, State state) throws PrismLangException
+	protected void calculateUpdatesForModule(int m, State state) throws PrismLangException
 	{
 		Module module;
 		Command command;
