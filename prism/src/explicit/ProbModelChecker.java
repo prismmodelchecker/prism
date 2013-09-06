@@ -44,7 +44,7 @@ import explicit.rewards.MDPRewards;
 /**
  * Super class for explicit-state probabilistic model checkers.
  */
-public class ProbModelChecker extends StateModelChecker
+public class ProbModelChecker extends NonProbModelChecker
 {
 	// Flags/settings
 	// (NB: defaults do not necessarily coincide with PRISM)
