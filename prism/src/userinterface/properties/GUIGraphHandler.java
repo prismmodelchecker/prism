@@ -27,18 +27,39 @@
 
 package userinterface.properties;
 
-import javax.swing.*;
-import javax.print.attribute.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
-import java.io.*;
+import javax.print.attribute.HashPrintRequestAttributeSet;
+import javax.print.attribute.PrintRequestAttributeSet;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JTabbedPane;
 
-import prism.*;
-import userinterface.*;
-import userinterface.graph.*;
-import userinterface.util.*;
+import prism.PrismException;
+import userinterface.GUIPlugin;
+import userinterface.GUIPrism;
+import userinterface.graph.GUIImageExportDialog;
+import userinterface.graph.Graph;
+import userinterface.graph.GraphException;
+import userinterface.graph.GraphOptions;
+import userinterface.util.GUIPrismFileFilter;
 
 public class GUIGraphHandler extends JPanel implements MouseListener
 {
@@ -53,14 +74,14 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 	
 	private GUIPlugin plug;
 	
-	private Action graphOptions;	
+	private Action graphOptions, zoomIn, zoomOut, zoomDefault;	
 	
 	private Action printGraph, deleteGraph;
 	private Action exportImageJPG, exportImagePNG, exportImageEPS, exportXML, exportMatlab;
 	private Action exportOpenDocumentChart, exportOpenDocumentSpreadsheet;
 	private Action exportCSV, exportGNUPlot, importXML;
 	
-	private JMenu exportMenu, importMenu;
+	private JMenu zoomMenu, exportMenu, importMenu;
 	
 	private GUIPrismFileFilter imagesFilter[], xmlFilter[], matlabFilter[],
 		OpenDocumentChartFilter[], OpenDocumentSpreadsheetFilter[],
@@ -160,6 +181,48 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		graphOptions.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_G));
 		graphOptions.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallOptions.png"));
 		graphOptions.putValue(Action.LONG_DESCRIPTION, "Displays the options dialog for the graph.");
+		
+		zoomIn = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{				
+				Graph mgm = models.get(theTabs.getSelectedIndex());
+				mgm.zoomInBoth(-1, -1);
+			}
+		};
+		
+		zoomIn.putValue(Action.NAME, "In");
+		zoomIn.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_I));
+		zoomIn.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlayerFwd.png"));
+		zoomIn.putValue(Action.LONG_DESCRIPTION, "Zoom in on the graph.");
+		
+		zoomOut = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{				
+				Graph mgm = models.get(theTabs.getSelectedIndex());
+				mgm.zoomOutBoth(-1, -1);
+			}
+		};
+		
+		zoomOut.putValue(Action.NAME, "Out");
+		zoomOut.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_O));
+		zoomOut.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlayerRew.png"));
+		zoomOut.putValue(Action.LONG_DESCRIPTION, "Zoom out of the graph.");
+		
+		zoomDefault = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{				
+				Graph mgm = models.get(theTabs.getSelectedIndex());
+				mgm.restoreAutoBounds();
+			}
+		};
+		
+		zoomDefault.putValue(Action.NAME, "Default");
+		zoomDefault.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_D));
+		zoomDefault.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlayerStart.png"));
+		zoomDefault.putValue(Action.LONG_DESCRIPTION, "Set the default zoom for the graph.");
 		
 		importXML = new AbstractAction()
 		{
@@ -397,6 +460,13 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		deleteGraph.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallDelete.png"));
 		deleteGraph.putValue(Action.LONG_DESCRIPTION, "Deletes the graph.");
 		
+		zoomMenu = new JMenu("Zoom");
+		zoomMenu.setMnemonic('Z');
+		zoomMenu.setIcon(GUIPrism.getIconFromImage("smallView.png"));
+		zoomMenu.add(zoomIn);
+		zoomMenu.add(zoomOut);
+		zoomMenu.add(zoomDefault);
+		
 		exportMenu = new JMenu("Export graph");
 		exportMenu.setMnemonic('E');
 		exportMenu.setIcon(GUIPrism.getIconFromImage("smallExport.png"));
@@ -412,8 +482,8 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		importMenu.setIcon(GUIPrism.getIconFromImage("smallImport.png"));
 		importMenu.add(importXML);
 				
-		/* Graph context menu */
 		graphMenu.add(graphOptions);
+		graphMenu.add(zoomMenu);
 		graphMenu.addSeparator();
 		graphMenu.add(printGraph);
 		graphMenu.add(deleteGraph);		
@@ -664,6 +734,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 			if (index != -1)
 			{
 				graphOptions.setEnabled(true);
+				zoomMenu.setEnabled(true);
 				
 				exportMenu.setEnabled(true);
 				importMenu.setEnabled(true);
@@ -672,11 +743,13 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 				deleteGraph.setEnabled(true);
 				
 				theTabs.setSelectedIndex(index);
+
 				this.graphMenu.show(theTabs, e.getX(), e.getY());
 			}
 			else
 			{
 				graphOptions.setEnabled(false);
+				zoomMenu.setEnabled(false);
 				
 				exportMenu.setEnabled(false);
 				importMenu.setEnabled(true);
@@ -694,6 +767,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 			if (e.getSource() == models.get(i))
 			{
 				graphOptions.setEnabled(true);
+				zoomMenu.setEnabled(true);
 				
 				exportMenu.setEnabled(true);
 				importMenu.setEnabled(true);
