@@ -93,7 +93,7 @@ public class ConstructModel extends PrismComponent
 	 */
 	public Model constructModel(ModulesFile modulesFile) throws PrismException
 	{
-		return constructModel(modulesFile, false, false, true);
+		return constructModel(modulesFile, false, true);
 	}
 
 	/**
