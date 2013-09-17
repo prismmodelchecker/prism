@@ -2249,13 +2249,13 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	{
 		displayStyleFast = settings.getInteger(PrismSettings.SIMULATOR_RENDER_ALL_VALUES) == 0;
 
-		if (displayStyleFast != view.isChangeRenderer()) {
+		/*if (displayStyleFast != view.isChangeRenderer()) {
 			String[] answers = { "Yes", "No" };
 			if (GUISimulator.this.question("You have changed the default rendering style of paths. Do you wish \nto reflect this in your current trace?",
 					answers, 0) == 0) {
 				view.setRenderer(displayStyleFast);
 			}
-		}
+		}*/
 	}
 
 	/**
