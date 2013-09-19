@@ -52,9 +52,9 @@ public class PrismComponent
 
 	/**
 	 * PRISM settings object.
-	 * Defaults to a fresh PrismSettings() object containing PRISM defaults.
+	 * Defaults to null to avoid delays when it will be copied from a parent object.
 	 */
-	protected PrismSettings settings = new PrismSettings();
+	protected PrismSettings settings = null;
 
 	// Constructors
 	
@@ -63,6 +63,8 @@ public class PrismComponent
 	 */
 	public PrismComponent()
 	{
+		// Create a fresh PrismSettings() object containing PRISM defaults.
+		settings = new PrismSettings();
 	}
 
 	/**
