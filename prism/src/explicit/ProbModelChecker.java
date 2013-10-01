@@ -67,6 +67,8 @@ public class ProbModelChecker extends NonProbModelChecker
 	protected ValIterDir valIterDir = ValIterDir.BELOW;
 	// Method used for numerical solution
 	protected SolnMethod solnMethod = SolnMethod.VALUE_ITERATION;
+	// Is non-convergence of an iterative method an error?
+	protected boolean errorOnNonConverge = true; 
 	// Adversary export
 	protected boolean exportAdv = false;
 	protected String exportAdvFilename;
@@ -233,6 +235,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		setProb1(other.getProb1());
 		setValIterDir(other.getValIterDir());
 		setSolnMethod(other.getSolnMethod());
+		setErrorOnNonConverge(other.geterrorOnNonConverge());
 	}
 
 	/**
@@ -251,6 +254,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		mainLog.print("prob1 = " + prob1 + " ");
 		mainLog.print("valIterDir = " + valIterDir + " ");
 		mainLog.print("solnMethod = " + solnMethod + " ");
+		mainLog.print("errorOnNonConverge = " + errorOnNonConverge + " ");
 	}
 
 	// Set methods for flags/settings
@@ -343,6 +347,14 @@ public class ProbModelChecker extends NonProbModelChecker
 		this.solnMethod = solnMethod;
 	}
 
+	/**
+	 * Set whether non-convergence of an iterative method an error
+	 */
+	public void setErrorOnNonConverge(boolean errorOnNonConverge)
+	{
+		this.errorOnNonConverge = errorOnNonConverge;
+	}
+
 	public void setExportAdv(boolean exportAdv)
 	{
 		this.exportAdv = exportAdv;
@@ -408,6 +420,14 @@ public class ProbModelChecker extends NonProbModelChecker
 	public SolnMethod getSolnMethod()
 	{
 		return solnMethod;
+	}
+
+	/**
+	 * Is non-convergence of an iterative method an error?
+	 */
+	public boolean geterrorOnNonConverge()
+	{
+		return errorOnNonConverge;
 	}
 
 	// Model checking functions

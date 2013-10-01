@@ -630,8 +630,8 @@ public class STPGModelChecker extends ProbModelChecker
 			mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
 		}
 
-		// Non-convergence is an error
-		if (!done) {
+		// Non-convergence is an error (usually)
+		if (!done && errorOnNonConverge) {
 			String msg = "Iterative method did not converge within " + iters + " iterations.";
 			msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
 			throw new PrismException(msg);
@@ -729,8 +729,8 @@ public class STPGModelChecker extends ProbModelChecker
 			mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
 		}
 
-		// Non-convergence is an error
-		if (!done) {
+		// Non-convergence is an error (usually)
+		if (!done && errorOnNonConverge) {
 			String msg = "Iterative method did not converge within " + iters + " iterations.";
 			msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
 			throw new PrismException(msg);
@@ -1042,8 +1042,8 @@ public class STPGModelChecker extends ProbModelChecker
 			mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
 		}
 
-		// Non-convergence is an error
-		if (!done) {
+		// Non-convergence is an error (usually)
+		if (!done && errorOnNonConverge) {
 			String msg = "Iterative method did not converge within " + iters + " iterations.";
 			msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
 			throw new PrismException(msg);

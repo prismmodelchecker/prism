@@ -840,8 +840,8 @@ public class MDPModelChecker extends ProbModelChecker
 		mainLog.print("Value iteration (" + (min ? "min" : "max") + ")");
 		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
 
-		// Non-convergence is an error
-		if (!done) {
+		// Non-convergence is an error (usually)
+		if (!done && errorOnNonConverge) {
 			String msg = "Iterative method did not converge within " + iters + " iterations.";
 			msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
 			throw new PrismException(msg);
@@ -927,8 +927,8 @@ public class MDPModelChecker extends ProbModelChecker
 		mainLog.print("Gauss-Seidel");
 		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
 
-		// Non-convergence is an error
-		if (!done) {
+		// Non-convergence is an error (usually)
+		if (!done && errorOnNonConverge) {
 			String msg = "Iterative method did not converge within " + iters + " iterations.";
 			msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
 			throw new PrismException(msg);
@@ -1068,6 +1068,7 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Limit iters for DTMC solution - this implements "modified" policy iteration
 		mcDTMC.setMaxIters(100);
+		mcDTMC.setErrorOnNonConverge(false);
 
 		// Store num states
 		n = mdp.getNumStates();
@@ -1488,8 +1489,8 @@ public class MDPModelChecker extends ProbModelChecker
 		mainLog.print("Value iteration (" + (min ? "min" : "max") + ")");
 		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
 
-		// Non-convergence is an error
-		if (!done) {
+		// Non-convergence is an error (usually)
+		if (!done && errorOnNonConverge) {
 			String msg = "Iterative method did not converge within " + iters + " iterations.";
 			msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
 			throw new PrismException(msg);
@@ -1576,8 +1577,8 @@ public class MDPModelChecker extends ProbModelChecker
 		mainLog.print("Gauss-Seidel (" + (min ? "min" : "max") + ")");
 		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
 
-		// Non-convergence is an error
-		if (!done) {
+		// Non-convergence is an error (usually)
+		if (!done && errorOnNonConverge) {
 			String msg = "Iterative method did not converge within " + iters + " iterations.";
 			msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
 			throw new PrismException(msg);
