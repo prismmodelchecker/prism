@@ -1501,14 +1501,6 @@ public class PrismCL implements PrismModelListener
 				else if (sw.equals("zerorewardcheck")) {
 					prism.setCheckZeroLoops(true);
 				}
-				// MDP solution method
-				else if (sw.equals("valiter")) {
-					prism.setMDPSolnMethod(Prism.MDP_VALITER);
-				} else if (sw.equals("politer")) {
-					prism.setMDPSolnMethod(Prism.MDP_POLITER);
-				} else if (sw.equals("modpoliter")) {
-					prism.setMDPSolnMethod(Prism.MDP_MODPOLITER);
-				}
 				// explicit-state model construction
 				else if (sw.equals("explicitbuild")) {
 					explicitbuild = true;
