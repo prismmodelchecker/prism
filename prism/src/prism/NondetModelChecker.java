@@ -1333,11 +1333,9 @@ public class NondetModelChecker extends NonProbModelChecker
 		l = System.currentTimeMillis();
 		dra = LTLModelChecker.convertLTLFormulaToDRA(ltl);
 		mainLog.println("\nDRA has " + dra.size() + " states, " + dra.getNumAcceptancePairs() + " pairs.");
-		/*try{
-			mainLog.println("Printing dra...   ");
-			dra.print(System.out);
+		/*try {
+			mainLog.print(dra);
 			dra.printDot(new java.io.PrintStream("dra.dot"));
-			mainLog.println("done...   ");
 		} catch(Exception e) {}*/
 		l = System.currentTimeMillis() - l;
 		mainLog.println("\nTime for Rabin translation: " + l / 1000.0 + " seconds.");
