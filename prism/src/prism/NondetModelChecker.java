@@ -298,7 +298,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		if (expr2 instanceof ExpressionTemporal) {
 			switch (((ExpressionTemporal) expr2).getOperator()) {
 			case ExpressionTemporal.R_C:
-				throw new PrismException("Cumulative reward operator (C<=k) not yet supported for MDPs");
+				rewards = checkRewardCumul((ExpressionTemporal) expr2, stateRewards, transRewards, min);
+				break;
 			case ExpressionTemporal.R_I:
 				rewards = checkRewardInst((ExpressionTemporal) expr2, stateRewards, transRewards, min);
 				break;
@@ -1590,6 +1591,39 @@ public class NondetModelChecker extends NonProbModelChecker
 		return probs;
 	}
 
+	// cumulative reward
+
+	protected StateValues checkRewardCumul(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards, boolean min) throws PrismException
+	{
+		int time; // time
+		StateValues rewards = null;
+
+		// check that there is an upper time bound
+		if (expr.getUpperBound() == null) {
+			throw new PrismException("Cumulative reward operator without time bound (C) is only allowed for multi-objective queries");
+		}
+
+		// get info from inst reward
+		time = expr.getUpperBound().evaluateInt(constantValues);
+		if (time < 0) {
+			throw new PrismException("Invalid time bound " + time + " in cumulative reward formula");
+		}
+
+		// a trivial case: "<=0"
+		if (time == 0) {
+			rewards = new StateValuesMTBDD(JDD.Constant(0), model);
+		} else {
+			// compute rewards
+			try {
+				rewards = computeCumulRewards(trans, stateRewards, transRewards, time, min);
+			} catch (PrismException e) {
+				throw e;
+			}
+		}
+
+		return rewards;
+	}
+
 	// inst reward
 
 	protected StateValues checkRewardInst(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards, boolean min) throws PrismException
@@ -2160,6 +2194,36 @@ public class NondetModelChecker extends NonProbModelChecker
 		}
 		
 		return value;
+	}
+
+	// compute cumulative rewards
+
+	protected StateValues computeCumulRewards(JDDNode tr, JDDNode sr, JDDNode trr, int time, boolean min) throws PrismException
+	{
+		DoubleVector rewardsDV;
+		StateValues rewards = null;
+
+		// compute rewards
+		mainLog.println("\nComputing rewards...");
+		mainLog.println("Engine: " + Prism.getEngineString(engine));
+		try {
+			switch (engine) {
+			case Prism.MTBDD:
+				throw new PrismException("MTBDD engine does not yet support this type of property (use the sparse engine instead)");
+			case Prism.SPARSE:
+				rewardsDV = PrismSparse.NondetCumulReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, time, min);
+				rewards = new StateValuesDV(rewardsDV, model);
+				break;
+			case Prism.HYBRID:
+				throw new PrismException("Hybrid engine does not yet support this type of property (use the sparse engine instead)");
+			default:
+				throw new PrismException("Unknown engine");
+			}
+		} catch (PrismException e) {
+			throw e;
+		}
+
+		return rewards;
 	}
 
 	// compute rewards for inst reward

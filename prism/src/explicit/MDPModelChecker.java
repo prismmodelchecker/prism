@@ -36,6 +36,7 @@ import java.util.Vector;
 import parser.ast.Expression;
 import parser.ast.ExpressionTemporal;
 import parser.ast.ExpressionUnaryOp;
+import parser.type.TypeDouble;
 import parser.visitor.ASTTraverse;
 import prism.DRA;
 import prism.Pair;
@@ -317,6 +318,9 @@ public class MDPModelChecker extends ProbModelChecker
 		if (expr instanceof ExpressionTemporal) {
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
 			switch (exprTemp.getOperator()) {
+			case ExpressionTemporal.R_C:
+				rewards = checkRewardCumul(model, modelRewards, exprTemp, min);
+				break;
 			case ExpressionTemporal.R_F:
 				rewards = checkRewardReach(model, modelRewards, exprTemp, min);
 				break;
@@ -327,6 +331,43 @@ public class MDPModelChecker extends ProbModelChecker
 
 		if (rewards == null)
 			throw new PrismException("Unrecognised operator in R operator");
+
+		return rewards;
+	}
+
+	/**
+	 * Compute rewards for a cumulative reward operator.
+	 */
+	protected StateValues checkRewardCumul(NondetModel model, MDPRewards modelRewards, ExpressionTemporal expr, boolean min) throws PrismException
+	{
+		int time; // time
+		StateValues rewards = null;
+		ModelCheckerResult res = null;
+
+		// check that there is an upper time bound
+		if (expr.getUpperBound() == null) {
+			throw new PrismException("Cumulative reward operator without time bound (C) is only allowed for multi-objective queries");
+		}
+
+		// get info from inst reward
+		time = expr.getUpperBound().evaluateInt(constantValues);
+		if (time < 0) {
+			throw new PrismException("Invalid time bound " + time + " in cumulative reward formula");
+		}
+
+		// a trivial case: "<=0"
+		if (time == 0) {
+			rewards = new StateValues(TypeDouble.getInstance(), model.getNumStates(), new Double(0));
+		} else {
+			// compute rewards
+			try {
+				res = computeCumulRewards((MDP) model, modelRewards, time, min);
+				rewards = StateValues.createFromDoubleArray(res.soln, model);
+				result.setStrategy(res.strat);
+			} catch (PrismException e) {
+				throw e;
+			}
+		}
 
 		return rewards;
 	}
@@ -1263,6 +1304,62 @@ public class MDPModelChecker extends ProbModelChecker
 		res.numIters = iters;
 		res.timeTaken = timer / 1000.0;
 		res.timePre = 0.0;
+		return res;
+	}
+
+	/**
+	 * Compute expected cumulative (step-bounded) rewards.
+	 * i.e. compute the min/max reward accumulated within {@code k} steps.
+	 * @param mdp The MDP
+	 * @param mdpRewards The rewards
+	 * @param target Target states
+	 * @param min Min or max rewards (true=min, false=max)
+	 */
+	public ModelCheckerResult computeCumulRewards(MDP mdp, MDPRewards mdpRewards, int k, boolean min) throws PrismException
+	{
+		ModelCheckerResult res = null;
+		int i, n, iters;
+		long timer;
+		double soln[], soln2[], tmpsoln[];
+
+		// Start expected cumulative reward
+		timer = System.currentTimeMillis();
+		mainLog.println("\nStarting expected cumulative reward (" + (min ? "min" : "max") + ")...");
+
+		// Store num states
+		n = mdp.getNumStates();
+
+		// Create/initialise solution vector(s)
+		soln = new double[n];
+		soln2 = new double[n];
+		for (i = 0; i < n; i++)
+			soln[i] = soln2[i] = 0.0;
+
+		// Start iterations
+		iters = 0;
+		while (iters < k) {
+			iters++;
+			// Matrix-vector multiply and min/max ops
+			int strat[] = new int[n];
+			mdp.mvMultRewMinMax(soln, mdpRewards, min, soln2, null, false, strat);
+			mainLog.println(strat);
+			// Swap vectors for next iter
+			tmpsoln = soln;
+			soln = soln2;
+			soln2 = tmpsoln;
+		}
+
+		// Finished value iteration
+		timer = System.currentTimeMillis() - timer;
+		mainLog.print("Expected cumulative reward (" + (min ? "min" : "max") + ")");
+		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
+
+		// Return results
+		res = new ModelCheckerResult();
+		res.soln = soln;
+		res.numIters = iters;
+		res.timeTaken = timer / 1000.0;
+
 		return res;
 	}
 

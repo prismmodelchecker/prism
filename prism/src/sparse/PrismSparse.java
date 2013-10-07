@@ -211,6 +211,15 @@ public class PrismSparse
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 	
+	// pctl cumulative reward (probabilistic/mdp)
+	private static native long PS_NondetCumulReward(long trans, long sr, long trr, long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, int bound, boolean minmax);
+	public static DoubleVector NondetCumulReward(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, int bound, boolean minmax) throws PrismException
+	{
+		long ptr = PS_NondetCumulReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), bound, minmax);
+		if (ptr == 0) throw new PrismException(getErrorMessage());
+		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
+	}
+
 	// pctl inst reward (nondeterministic/mdp)
 	private static native long PS_NondetInstReward(long trans, long sr, long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, int time, boolean minmax, long init);
 	public static DoubleVector NondetInstReward(JDDNode trans, JDDNode sr, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, int time, boolean minmax, JDDNode init) throws PrismException
