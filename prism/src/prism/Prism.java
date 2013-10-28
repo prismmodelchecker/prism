@@ -2403,6 +2403,99 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (file != null)
 			tmpLog.close();
 	}
+	
+	/**
+	 * Export the (states of the) currently loaded model's strongly connected components (SCCs) to a file
+	 * @param exportType Type of export; one of: <ul>
+	 * <li> {@link #EXPORT_PLAIN} 
+	 * <li> {@link #EXPORT_MATLAB}
+	 * </ul>
+	 * @param file File to export to (if null, print to the log instead)
+	 */
+	public void exportSCCsToFile(int exportType, File file) throws FileNotFoundException, PrismException
+	{
+		int i, n;
+		long l; // timer
+		PrismLog tmpLog;
+		SCCComputer sccComputer = null;
+		explicit.SCCComputer sccComputerExpl = null;
+
+		// no specific states format for MRMC
+		if (exportType == EXPORT_MRMC)
+			exportType = EXPORT_PLAIN;
+		// rows format does not apply to states output
+		if (exportType == EXPORT_ROWS)
+			exportType = EXPORT_PLAIN;
+
+		// Build model, if necessary
+		buildModelIfRequired();
+
+		// Compute SCCs
+		mainLog.println("\nComputing SCCs...");
+		l = System.currentTimeMillis();
+		if (!getExplicit()) {
+			sccComputer = getSCCComputer(currentModel);
+			sccComputer.computeSCCs();
+		} else {
+			sccComputerExpl = getExplicitSCCComputer(currentModelExpl);
+			sccComputerExpl.computeSCCs();
+		}
+		l = System.currentTimeMillis() - l;
+		mainLog.println("\nTime for SCC computation: " + l / 1000.0 + " seconds.");
+
+		// print message
+		mainLog.print("\nExporting SCCs ");
+		mainLog.print(getStringForExportType(exportType) + " ");
+		mainLog.println(getDestinationStringForFile(file));
+
+		// create new file log or use main log
+		tmpLog = getPrismLogForFile(file);
+
+		// print header: list of model vars
+		if (exportType == EXPORT_MATLAB)
+			tmpLog.print("% ");
+		tmpLog.print("Variables: (");
+		for (i = 0; i < currentModulesFile.getNumVars(); i++) {
+			tmpLog.print(currentModulesFile.getVarName(i));
+			if (i < currentModulesFile.getNumVars() - 1)
+				tmpLog.print(",");
+		}
+		tmpLog.println(")");
+
+		// print states for each scc
+		if (!getExplicit()) {
+			n = sccComputer.getSCCs().size();
+		} else {
+			n = sccComputerExpl.getSCCs().size();
+		}
+		for (i = 0; i < n; i++) {
+			tmpLog.println();
+			if (exportType == EXPORT_MATLAB)
+				tmpLog.print("% ");
+			tmpLog.println("SCC " + (i + 1) + "/" + n + ":");
+			if (exportType == EXPORT_MATLAB)
+				tmpLog.println("scc" + (i + 1) + "=[");
+			if (!getExplicit()) {
+				if (exportType != EXPORT_MATLAB)
+					new StateListMTBDD(sccComputer.getSCCs().get(i), currentModel).print(tmpLog);
+				else
+					new StateListMTBDD(sccComputer.getSCCs().get(i), currentModel).printMatlab(tmpLog);
+				JDD.Deref(sccComputer.getSCCs().get(i));
+			} else {
+				explicit.StateValues.createFromBitSet(sccComputerExpl.getSCCs().get(i), currentModelExpl).print(tmpLog, true, exportType == EXPORT_MATLAB, true, true);
+			}
+			if (exportType == EXPORT_MATLAB)
+				tmpLog.println("];");
+		}
+
+		if (!getExplicit()) {
+			JDD.Deref(sccComputer.getNotInSCCs());
+		}
+
+		// tidy up
+		if (file != null)
+			tmpLog.close();
+	}
 
 	/**
 	 * Export the states satisfying labels from the currently loaded model and a properties file to a file.
