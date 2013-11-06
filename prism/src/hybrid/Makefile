@@ -51,6 +51,9 @@ $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class: %.java
 
 $(PRISM_DIR_REL)/$(INCLUDE_DIR)/PrismHybrid.h: $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/PrismHybrid.class
 	($(JAVAH) -classpath $(PRISM_DIR_REL)/$(CLASSES_DIR) -jni -o $@ $(THIS_DIR).PrismHybrid; touch $@)
+	@if [ "$(LIBSUFFIX)" = ".dll" ]; then \
+	  (dos2unix $@) \
+	fi; 
 
 $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)prismhybrid$(LIBSUFFIX): $(O_FILES)
 	$(LD) $(SHARED) $(LDFLAGS) -o $@ $(O_FILES) $(LIBRARIES)

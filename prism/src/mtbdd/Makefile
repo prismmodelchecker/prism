@@ -49,6 +49,9 @@ $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class: %.java
 
 $(PRISM_DIR_REL)/$(INCLUDE_DIR)/PrismMTBDD.h: $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/PrismMTBDD.class
 	($(JAVAH) -classpath $(PRISM_DIR_REL)/$(CLASSES_DIR) -jni -o $@ $(THIS_DIR).PrismMTBDD; touch $@)
+	@if [ "$(LIBSUFFIX)" = ".dll" ]; then \
+	  (dos2unix $@) \
+	fi; 
 
 $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)prismmtbdd$(LIBSUFFIX): $(O_FILES)
 	$(LD) $(SHARED) $(LDFLAGS) -o $@ $(O_FILES) $(LIBRARIES)

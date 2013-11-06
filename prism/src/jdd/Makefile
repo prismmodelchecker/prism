@@ -46,15 +46,27 @@ $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class: %.java
 
 $(PRISM_DIR_REL)/$(INCLUDE_DIR)/JDD.h: $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/JDD.class
 	($(JAVAH) -classpath $(PRISM_DIR_REL)/$(CLASSES_DIR) -jni -o $@ $(THIS_DIR).JDD; touch $@)
+	@if [ "$(LIBSUFFIX)" = ".dll" ]; then \
+	  (dos2unix $@) \
+	fi; 
 
 $(PRISM_DIR_REL)/$(INCLUDE_DIR)/JDDNode.h: $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/JDDNode.class
 	($(JAVAH) -classpath $(PRISM_DIR_REL)/$(CLASSES_DIR) -jni -o $@ $(THIS_DIR).JDDNode; touch $@)
+	@if [ "$(LIBSUFFIX)" = ".dll" ]; then \
+	  (dos2unix $@) \
+	fi; 
 
 $(PRISM_DIR_REL)/$(INCLUDE_DIR)/JDDVars.h: $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/JDDVars.class
 	($(JAVAH) -classpath $(PRISM_DIR_REL)/$(CLASSES_DIR) -jni -o $@ $(THIS_DIR).JDDVars; touch $@)
+	@if [ "$(LIBSUFFIX)" = ".dll" ]; then \
+	  (dos2unix $@) \
+	fi; 
 
 $(PRISM_DIR_REL)/$(INCLUDE_DIR)/DebugJDD.h: $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/DebugJDD.class
 	($(JAVAH) -classpath $(PRISM_DIR_REL)/$(CLASSES_DIR) -jni -o $@ $(THIS_DIR).DebugJDD; touch $@)
+	@if [ "$(LIBSUFFIX)" = ".dll" ]; then \
+	  (dos2unix $@) \
+	fi; 
 
 $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)jdd$(LIBSUFFIX): $(O_FILES)
 	$(LD) $(SHARED) $(LDFLAGS) -o $@ $(O_FILES) $(LIBRARIES)

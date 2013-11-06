@@ -48,9 +48,15 @@ $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class: %.java
 
 $(PRISM_DIR_REL)/$(INCLUDE_DIR)/DoubleVector.h: $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/DoubleVector.class
 	($(JAVAH) -classpath $(PRISM_DIR_REL)/$(CLASSES_DIR) -jni -o $@ $(THIS_DIR).DoubleVector; touch $@)
+	@if [ "$(LIBSUFFIX)" = ".dll" ]; then \
+	  (dos2unix $@) \
+	fi; 
 
 $(PRISM_DIR_REL)/$(INCLUDE_DIR)/IntegerVector.h: $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/IntegerVector.class
 	($(JAVAH) -classpath $(PRISM_DIR_REL)/$(CLASSES_DIR) -jni -o $@ $(THIS_DIR).IntegerVector; touch $@)
+	@if [ "$(LIBSUFFIX)" = ".dll" ]; then \
+	  (dos2unix $@) \
+	fi; 
 
 $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)dv$(LIBSUFFIX): $(O_FILES)
 	$(LD) $(SHARED) $(LDFLAGS) -o $@ $(O_FILES) $(LIBRARIES)

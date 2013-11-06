@@ -52,6 +52,9 @@ $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class: %.java
 
 $(PRISM_DIR_REL)/$(INCLUDE_DIR)/PrismSparse.h: $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/PrismSparse.class
 	($(JAVAH) -classpath $(PRISM_DIR_REL)/$(CLASSES_DIR) -jni -o $@ $(THIS_DIR).PrismSparse; touch $@)
+	@if [ "$(LIBSUFFIX)" = ".dll" ]; then \
+	  (dos2unix $@) \
+	fi; 
 
 $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)prismsparse$(LIBSUFFIX): $(O_FILES)
 	$(LD) $(SHARED) $(LDFLAGS) -o $@ $(O_FILES) $(LIBRARIES)
