@@ -66,9 +66,18 @@ endif
 ifneq (,$(findstring ia64, $(shell uname -m)))
 	ARCH = ia64
 endif
-# For Macs, we decide whether to build in 64-bit mode based on
+# For Mac/Windows, we decide whether to build in 64-bit mode based on
 # whether java is 32/64-bit (since these need to match)
 ifeq ($(OSTYPE),darwin)
+    JAVA_VERSION_STRING = $(shell java -version 2>&1)
+    ifneq (,$(findstring 64-bit, $(JAVA_VERSION_STRING)))
+        ARCH = x86_64
+    endif
+    ifneq (,$(findstring 64-Bit, $(JAVA_VERSION_STRING)))
+        ARCH = x86_64
+    endif
+endif
+ifeq ($(OSTYPE),cygwin)
     JAVA_VERSION_STRING = $(shell java -version 2>&1)
     ifneq (,$(findstring 64-bit, $(JAVA_VERSION_STRING)))
         ARCH = x86_64
@@ -191,11 +200,23 @@ ifeq ($(OSTYPE),solaris)
 endif
 # Cygwin
 ifeq ($(OSTYPE),cygwin)
-	CUDD_XCFLAGS = -march=i686 -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=268435456 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0 $(DEBUG) -static-libgcc -static-libstdc++
-	CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
-	CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
-	LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,--add-stdcall-alias
-	BINDISTSUFFIX = win
+	ifeq ($(ARCH),x86_64)
+		C = /usr/bin/i686-w64-mingw32-gcc
+		CPP = /usr/bin/i686-w64-mingw32-g++
+		CUDD_XCFLAGS = -march=x86_64 -fPIC -DPIC -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=268435456 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0 -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 $(DEBUG) -static-libgcc -static-libstdc++
+		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+		CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,--add-stdcall-alias
+		BINDISTSUFFIX = win64
+	else
+		C = /usr/bin/x86_64-w64-mingw32-gcc
+		CPP = /usr/bin/x86_64-w64-mingw32-g++
+		CUDD_XCFLAGS = -march=i686 -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=268435456 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0 $(DEBUG) -static-libgcc -static-libstdc++
+		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+		CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,--add-stdcall-alias
+		BINDISTSUFFIX = win32
+	endif
 	BIN_TARGETS=prism.cygwin xprism.linux prism.bat.win xprism.bat.win
 	JFLAGS = -encoding UTF8
 	JAVACC = javacc.bat
@@ -206,10 +227,6 @@ ifeq ($(OSTYPE),cygwin)
 	LIBSUFFIX = .dll
 	LIBMATH = 
 	CLASSPATHSEP = ;
-	# Also override default compilers
-	# (because -mno-cygwin flag no longer in new versions of gcc)
-	C = /usr/bin/i686-w64-mingw32-gcc
-	CPP = /usr/bin/i686-w64-mingw32-g++
 endif
 # Darwin
 ifeq ($(OSTYPE),darwin)
