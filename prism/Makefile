@@ -191,7 +191,7 @@ ifeq ($(OSTYPE),solaris)
 endif
 # Cygwin
 ifeq ($(OSTYPE),cygwin)
-	CUDD_XCFLAGS = -mno-cygwin -march=i686 -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=268435456 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0 $(DEBUG)
+	CUDD_XCFLAGS = -march=i686 -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=268435456 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0 $(DEBUG) -static-libgcc -static-libstdc++
 	CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 	CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 	LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,--add-stdcall-alias
@@ -208,8 +208,8 @@ ifeq ($(OSTYPE),cygwin)
 	CLASSPATHSEP = ;
 	# Also override default compilers
 	# (because -mno-cygwin flag no longer in new versions of gcc)
-	C = gcc-3
-	CPP = g++-3
+	C = /usr/bin/i686-w64-mingw32-gcc
+	CPP = /usr/bin/i686-w64-mingw32-g++
 endif
 # Darwin
 ifeq ($(OSTYPE),darwin)
