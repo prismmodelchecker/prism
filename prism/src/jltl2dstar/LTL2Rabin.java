@@ -30,7 +30,10 @@ import java.util.BitSet;
 public class LTL2Rabin {
 	
 	public static prism.DRA<BitSet> ltl2rabin(SimpleLTL ltlFormula) throws PrismException {
+		System.out.println(ltlFormula);
 		SimpleLTL ltl = ltlFormula.simplify();
+		ltl2rabin(ltl, ltl.getAPs()).print(System.out);
+		ltl2rabin(ltl, ltl.getAPs()).printDot(System.out);
 		return ltl2rabin(ltl, ltl.getAPs()).createPrismDRA();
 	}
 	

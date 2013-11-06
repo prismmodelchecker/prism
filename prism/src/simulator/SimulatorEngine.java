@@ -53,6 +53,7 @@ import prism.ResultsCollection;
 import prism.UndefinedConstants;
 import simulator.method.SimulationMethod;
 import simulator.sampler.Sampler;
+import strat.Strategy;
 import userinterface.graph.Graph;
 
 /**
@@ -108,6 +109,12 @@ public class SimulatorEngine
 	// Constant definitions from model file
 	private Values mfConstants;
 
+	// Objects from model checking
+	// Reachable states
+	private List<State> reachableStates;
+	// Strategy
+	private Strategy strategy;
+	
 	// Labels + properties info
 	protected List<Expression> labels;
 	private List<Expression> properties;
@@ -258,6 +265,8 @@ public class SimulatorEngine
 		// Reset and then update samplers for any loaded properties
 		resetSamplers();
 		updateSamplers();
+		// Initialise the strategy (if loaded)
+		initialiseStrategy();
 	}
 
 	/**
@@ -479,6 +488,26 @@ public class SimulatorEngine
 		transitionListState = null;
 	}
 
+	// ------------------------------------------------------------------------------
+	// Methods for loading objects from model checking: paths, strategies, etc.
+	// ------------------------------------------------------------------------------
+
+	/**
+	 * Load the set of reachable states for the currently loaded model into the simulator.
+	 */
+	public void loadReachableStates(List<State> reachableStates)
+	{
+		this.reachableStates = reachableStates;
+	}
+	
+	/**
+	 * Load a strategy for the currently loaded model into the simulator.
+	 */
+	public void loadStrategy(Strategy strategy)
+	{
+		this.strategy = strategy;
+	}
+	
 	/**
 	 * Construct a path through a model to match a supplied path,
 	 * specified as a PathFullInfo object.
@@ -701,6 +730,9 @@ public class SimulatorEngine
 		// Create updater for model
 		updater = new Updater(this, modulesFile, varList);
 
+		// Clear storage for strategy
+		strategy = null;
+		
 		// Create storage for labels/properties
 		labels = new ArrayList<Expression>();
 		properties = new ArrayList<Expression>();
@@ -739,6 +771,8 @@ public class SimulatorEngine
 		transitionListState = null;
 		// Update samplers for any loaded properties
 		updateSamplers();
+		// Update strategy (if loaded)
+		updateStrategy();
 	}
 
 	/**
@@ -776,6 +810,8 @@ public class SimulatorEngine
 		transitionListState = null;
 		// Update samplers for any loaded properties
 		updateSamplers();
+		// Update strategy (if loaded)
+		updateStrategy();
 	}
 
 	/**
@@ -817,6 +853,31 @@ public class SimulatorEngine
 		}
 	}
 
+	/**
+	 * Initialise the state of the loaded strategy, if present, based on the current state.
+	 */
+	private void initialiseStrategy()
+	{
+		if (strategy != null) {
+			State state = getCurrentState();
+			int s = reachableStates.indexOf(state);
+			strategy.initialise(s);
+		}
+	}
+	
+	/**
+	 * Update the state of the loaded strategy, if present, based on the last step that occurred.
+	 */
+	private void updateStrategy()
+	{
+		if (strategy != null) {
+			State state = getCurrentState();
+			int s = reachableStates.indexOf(state);
+			Object action = path.getPreviousModuleOrAction();
+			strategy.update(action, s);
+		}
+	}
+	
 	// ------------------------------------------------------------------------------
 	// Queries regarding model
 	// ------------------------------------------------------------------------------
