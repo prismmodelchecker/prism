@@ -16,7 +16,7 @@ checks:
 	fi; 
 
 lpsolve55java:
-	@echo Making sure lpsolve55 Java wrapper is compatible with $(OSTYPE) $(EARCH)
+	@echo Making sure lpsolve55 Java wrapper is compatible with $(OSTYPE) $(ARCH)
 	@(if [ "$(OSTYPE)" = "linux" ]; then \
 	  echo "Rebuild lpsolve55 Java wrapper for Linux"; \
 	  (cd lib ; ARCH=$(ARCH) JAVA_JNI_H_DIR="$(JAVA_JNI_H_DIR)" sh build); \
@@ -32,7 +32,11 @@ lpsolve55java:
 	  cp lib/lpsolve55j.jar lib/mac/liblpsolve55j.jnilib ../../lib/ ; \
 	fi)
 	@(if [ "$(OSTYPE)" = "cygwin" ]; then \
-	  cp lib/lpsolve55j.jar lib/win32/lpsolve55j.dll ../../lib/ ; \
+	  if [ "$(ARCH)" = "x86_64" ]; then \
+	    cp lib/lpsolve55j.jar lib/win64/lpsolve55j.dll ../../lib/ ; \
+	  else \
+	    cp lib/lpsolve55j.jar lib/win32/lpsolve55j.dll ../../lib/ ; \
+	  fi; \
 	fi)
 clean: checks
 	rm -f $(LPSOLVE55JAVA_DIR)/lib/lpsolve55j.jar

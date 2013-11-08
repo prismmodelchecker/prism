@@ -332,6 +332,7 @@ extpackages: checks
 	  LIBPREFIX="$(LIBPREFIX)" \
 	  LIBSUFFIX="$(LIBSUFFIX)" \
 	  LIBMATH="$(LIBMATH)" \
+	  BINDISTSUFFIX="$(BINDISTSUFFIX)" \
 	  JAVA_DIR="$(JAVA_DIR)" \
 	  ) || exit 1; \
 	done
