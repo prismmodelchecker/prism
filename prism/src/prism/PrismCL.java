@@ -2204,8 +2204,8 @@ public class PrismCL implements PrismModelListener
 			mainLog.println(" * mrmc - export data in MRMC format");
 			mainLog.println(" * matlab - export data in Matlab format");
 			mainLog.println(" * rows - export matrices with one row/distribution on each line");
-			mainLog.println(" * ordered - output states indices in ascending ordered [default]");
-			mainLog.println(" * unordered - don't output states indices in ascending ordered [default]");
+			mainLog.println(" * ordered - output states indices in ascending order [default]");
+			mainLog.println(" * unordered - don't output states indices in ascending order");
 		}
 		// Try PrismSettings
 		else if (PrismSettings.printHelpSwitch(mainLog, sw)) {
