@@ -2935,25 +2935,23 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		explicit.StateValues probsExpl = null;
 		PrismLog tmpLog;
 
+		// Do some checks
 		if (!(currentModelType == ModelType.CTMC || currentModelType == ModelType.DTMC))
 			throw new PrismException("Steady-state probabilities only computed for DTMCs/CTMCs");
-
 		if (fileOut != null && getEngine() == MTBDD)
+			// TODO: auto-switch?
 			throw new PrismException("Steady-state probability export not supported for MTBDD engine");
-		// TODO: auto-switch?
+		if (exportType == EXPORT_MRMC)
+			exportType = EXPORT_PLAIN; // no specific states format for MRMC
+		if (exportType == EXPORT_ROWS)
+			exportType = EXPORT_PLAIN; // rows format does not apply to states output
 
+		// Print message
 		mainLog.printSeparator();
 		mainLog.println("\nComputing steady-state probabilities...");
 
 		// Build model, if necessary
 		buildModelIfRequired();
-
-		// no specific states format for MRMC
-		if (exportType == EXPORT_MRMC)
-			exportType = EXPORT_PLAIN;
-		// rows format does not apply to states output
-		if (exportType == EXPORT_ROWS)
-			exportType = EXPORT_PLAIN;
 
 		l = System.currentTimeMillis();
 
@@ -3032,31 +3030,25 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		explicit.StateValues probsExpl = null;
 		PrismLog tmpLog;
 
+		// Do some checks
 		if (!(currentModelType == ModelType.CTMC || currentModelType == ModelType.DTMC))
 			throw new PrismException("Steady-state probabilities only computed for DTMCs/CTMCs");
-
 		if (time < 0)
 			throw new PrismException("Cannot compute transient probabilities for negative time value");
-
 		if (fileOut != null && getEngine() == MTBDD)
 			throw new PrismException("Transient probability export only supported for sparse/hybrid engines");
+		if (exportType == EXPORT_MRMC)
+			exportType = EXPORT_PLAIN; // no specific states format for MRMC
+		if (exportType == EXPORT_ROWS)
+			exportType = EXPORT_PLAIN; // rows format does not apply to states output
 
+		// Print message
 		mainLog.printSeparator();
-		if (currentModelType.continuousTime()) {
-			mainLog.println("\nComputing transient probabilities (time = " + time + ")...");
-		} else {
-			mainLog.println("\nComputing transient probabilities (time = " + (int) time + ")...");
-		}
+		String strTime = currentModelType.continuousTime() ? Double.toString(time) : Integer.toString((int) time);
+			mainLog.println("\nComputing transient probabilities (time = " + strTime + ")...");
 
 		// Build model, if necessary
 		buildModelIfRequired();
-
-		// no specific states format for MRMC
-		if (exportType == EXPORT_MRMC)
-			exportType = EXPORT_PLAIN;
-		// rows format does not apply to states output
-		if (exportType == EXPORT_ROWS)
-			exportType = EXPORT_PLAIN;
 
 		l = System.currentTimeMillis();
 
@@ -3135,18 +3127,15 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		PrismLog tmpLog = null;
 		File fileOutActual = null;
 
+		// Do some checks
 		if (!(currentModelType == ModelType.CTMC || currentModelType == ModelType.DTMC))
 			throw new PrismException("Steady-state probabilities only computed for DTMCs/CTMCs");
-
 		if (fileOut != null && getEngine() == MTBDD)
 			throw new PrismException("Transient probability export only supported for sparse/hybrid engines");
-
-		// no specific states format for MRMC
 		if (exportType == EXPORT_MRMC)
-			exportType = EXPORT_PLAIN;
-		// rows format does not apply to states output
+			exportType = EXPORT_PLAIN; // no specific states format for MRMC
 		if (exportType == EXPORT_ROWS)
-			exportType = EXPORT_PLAIN;
+			exportType = EXPORT_PLAIN; // rows format does not apply to states output
 
 		// Step through required time points
 		for (i = 0; i < times.getNumPropertyIterations(); i++) {
@@ -3160,6 +3149,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			if (currentModelType.continuousTime() ? (((Double) time).doubleValue() < 0) : (((Integer) time).intValue() < 0))
 				throw new PrismException("Cannot compute transient probabilities for negative time value");
 
+			// Print message
 			mainLog.printSeparator();
 			mainLog.println("\nComputing transient probabilities (time = " + time + ")...");
 
