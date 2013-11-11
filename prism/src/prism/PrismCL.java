@@ -73,9 +73,9 @@ public class PrismCL implements PrismModelListener
 	private boolean exportdot = false;
 	private boolean exporttransdot = false;
 	private boolean exporttransdotstates = false;
+	private boolean exportsccs = false;
 	private boolean exportbsccs = false;
 	private boolean exportmecs = false;
-	private boolean exportsccs = false;
 	private boolean exportresults = false;
 	private boolean exportresultsmatrix = false;
 	private boolean exportresultscsv = false;
@@ -129,9 +129,9 @@ public class PrismCL implements PrismModelListener
 	private String exportDotFilename = null;
 	private String exportTransDotFilename = null;
 	private String exportTransDotStatesFilename = null;
+	private String exportSCCsFilename = null;
 	private String exportBSCCsFilename = null;
 	private String exportMECsFilename = null;
-	private String exportSCCsFilename = null;
 	private String exportResultsFilename = null;
 	private String exportSteadyStateFilename = null;
 	private String exportTransientFilename = null;
@@ -762,6 +762,20 @@ public class PrismCL implements PrismModelListener
 			}
 		}
 
+		// export SCCs to a file
+		if (exportsccs) {
+			try {
+				File f = (exportSCCsFilename.equals("stdout")) ? null : new File(exportSCCsFilename);
+				prism.exportSCCsToFile(exportType, f);
+			}
+			// in case of error, report it and proceed
+			catch (FileNotFoundException e) {
+				error("Couldn't open file \"" + exportSCCsFilename + "\" for output");
+			} catch (PrismException e) {
+				error(e.getMessage());
+			}
+		}
+		
 		// export BSCCs to a file
 		if (exportbsccs) {
 			try {
@@ -785,20 +799,6 @@ public class PrismCL implements PrismModelListener
 			// in case of error, report it and proceed
 			catch (FileNotFoundException e) {
 				error("Couldn't open file \"" + exportMECsFilename + "\" for output");
-			} catch (PrismException e) {
-				error(e.getMessage());
-			}
-		}
-		
-		// export SCCs to a file
-		if (exportsccs) {
-			try {
-				File f = (exportSCCsFilename.equals("stdout")) ? null : new File(exportSCCsFilename);
-				prism.exportSCCsToFile(exportType, f);
-			}
-			// in case of error, report it and proceed
-			catch (FileNotFoundException e) {
-				error("Couldn't open file \"" + exportSCCsFilename + "\" for output");
 			} catch (PrismException e) {
 				error(e.getMessage());
 			}
@@ -1257,6 +1257,15 @@ public class PrismCL implements PrismModelListener
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
 				}
+				// export sccs to file
+				else if (sw.equals("exportsccs")) {
+					if (i < args.length - 1) {
+						exportsccs = true;
+						exportSCCsFilename = args[++i];
+					} else {
+						errorAndExit("No file specified for -" + sw + " switch");
+					}
+				}
 				// export bsccs to file
 				else if (sw.equals("exportbsccs")) {
 					if (i < args.length - 1) {
@@ -1271,15 +1280,6 @@ public class PrismCL implements PrismModelListener
 					if (i < args.length - 1) {
 						exportmecs = true;
 						exportMECsFilename = args[++i];
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export sccs to file
-				else if (sw.equals("exportsccs")) {
-					if (i < args.length - 1) {
-						exportsccs = true;
-						exportSCCsFilename = args[++i];
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
@@ -2120,7 +2120,9 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-exporttransdot <file> ......... Export the transition matrix graph to a dot file");
 		mainLog.println("-exporttransdotstates <file> ... Export the transition matrix graph to a dot file, with state info");
 		mainLog.println("-exportdot <file> .............. Export the transition matrix MTBDD to a dot file");
+		mainLog.println("-exportsccs <file> ............. Compute and export all SCCs of the model");
 		mainLog.println("-exportbsccs <file> ............ Compute and export all BSCCs of the model");
+		mainLog.println("-exportmecs <file> ............. Compute and export all maximal end components (MDPs only)");
 		mainLog.println("-exportsteadystate <file> ...... Export steady-state probabilities to a file");
 		mainLog.println("-exporttransient <file> ........ Export transient probabilities to a file");
 		mainLog.println("-exportprism <file> ............ Export final PRISM model to a file");
