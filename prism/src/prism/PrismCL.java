@@ -2152,6 +2152,10 @@ public class PrismCL implements PrismModelListener
 	 */
 	private void printHelpSwitch(String sw)
 	{
+		// Remove "-" from start of switch, in case present (it shouldn't be really)
+		if (sw.charAt(0) == '-')
+			sw = sw.substring(1);
+		
 		// -const
 		if (sw.equals("const")) {
 			mainLog.println("Switch: -const <vals>\n");
