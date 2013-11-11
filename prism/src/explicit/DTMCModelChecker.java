@@ -573,7 +573,6 @@ public class DTMCModelChecker extends ProbModelChecker
 	 * Build a probability distribution, stored as a StateValues object,
 	 * from the initial states info of the current model: either probability 1 for
 	 * the (single) initial state or equiprobable over multiple initial states.
-	 * The type of storage (MTBDD or double vector) matches the current engine.
 	 */
 	public StateValues buildInitialDistribution(Model model) throws PrismException
 	{
