@@ -72,12 +72,9 @@ import prism.*;
  */
 
 /**
- * Implementation of fast adaptive uniformisation
- * @author Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
- * @author Frits Dannenberg <frits.dannenberg@cs.ox.ac.uk> (University of Oxford)
- * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk>  (University of Oxford)
+ * Implementation of fast adaptive uniformisation (FAU).
  */
-public class FastAdaptiveUniformisation
+public class FastAdaptiveUniformisation extends PrismComponent
 {
 	/**
 	 * Stores properties of states needed for fast adaptive method.
@@ -87,8 +84,6 @@ public class FastAdaptiveUniformisation
 	 * states and the rates to them, the number of incoming transitions
 	 * (references) and a flag whether the state has a significant probability
 	 * mass (alive).
-	 * 
-	 * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk>  (University of Oxford)
 	 */
 	private final class StateProp
 	{
@@ -410,8 +405,6 @@ public class FastAdaptiveUniformisation
 		REW_CUMUL
 	}
 
-	/** PRISM settings to read analysis parameters from */
-	private PrismSettings settings = null;
 	/** model exploration component to generate new states */
 	private ModelExplorer modelExplorer;
 	/** probability allowed to drop birth process */
@@ -466,11 +459,12 @@ public class FastAdaptiveUniformisation
 	/**
 	 * Constructor.
 	 */
-	public FastAdaptiveUniformisation(PrismSettings settings, ModelExplorer modelExplorer) throws PrismException
+	public FastAdaptiveUniformisation(PrismComponent parent, ModelExplorer modelExplorer) throws PrismException
 	{
-		maxNumStates = 0;
-		this.settings = settings;
+		super(parent);
+		
 		this.modelExplorer = modelExplorer;
+		maxNumStates = 0;
 
 		termCritParam = settings.getDouble(PrismSettings.PRISM_TERM_CRIT_PARAM);
 		delta = settings.getDouble(PrismSettings.PRISM_FAU_DELTA);
@@ -621,6 +615,8 @@ public class FastAdaptiveUniformisation
 	 */
 	public StateValues doTransient(double time, StateValues initDist) throws PrismException
 	{
+		mainLog.println("\nComputing probabilities (fast adaptive uniformisation)...");
+		
 		if (initDist == null) {
 			initDist = new StateValues();
 			initDist.type = TypeDouble.getInstance();
@@ -665,6 +661,10 @@ public class FastAdaptiveUniformisation
 		probs.size = probsArr.length;
 		probs.valuesD = probsArr;
 		probs.statesList = statesList;		
+
+		mainLog.println("\nTotal probability lost is : " + getTotalDiscreteLoss());
+		mainLog.println("Maximal number of states stored during analysis : " + getMaxNumStates());
+		
 		return probs;
 	}
 

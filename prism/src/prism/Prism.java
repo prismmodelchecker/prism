@@ -3054,12 +3054,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 		if (currentModelType == ModelType.CTMC && settings.getString(PrismSettings.PRISM_TRANSIENT_METHOD).equals("Fast adaptive uniformisation")) {
 			PrismModelExplorer modelExplorer = new PrismModelExplorer(getSimulator(), currentModulesFile);
-			FastAdaptiveUniformisation fau = new FastAdaptiveUniformisation(settings, modelExplorer);
+			FastAdaptiveUniformisation fau = new FastAdaptiveUniformisation(this, modelExplorer);
 			fau.setConstantValues(currentModulesFile.getConstantValues());
-			mainLog.println("Starting transient probability computation using fast adaptive uniformisation...");
 			probsExpl = fau.doTransient(time, fileIn);
-			mainLog.println("\nTotal probability lost is : " + fau.getTotalDiscreteLoss());
-			mainLog.println("Maximal number of states stored during analysis : " + fau.getMaxNumStates());
 		} else if (!getExplicit()) {
 			if (currentModelType == ModelType.DTMC) {
 				mc = new ProbModelChecker(this, currentModel, null);
