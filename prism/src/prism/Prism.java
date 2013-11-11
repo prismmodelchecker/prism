@@ -2649,7 +2649,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// For fast adaptive uniformisation
 		if (currentModelType == ModelType.CTMC && settings.getString(PrismSettings.PRISM_TRANSIENT_METHOD).equals("Fast adaptive uniformisation")) {
 			FastAdaptiveUniformisationModelChecker fauMC;
-			fauMC = new FastAdaptiveUniformisationModelChecker(this, currentModulesFile, propertiesFile);
+			fauMC = new FastAdaptiveUniformisationModelChecker(this, currentModulesFile, propertiesFile, getSimulator());
 			return fauMC.check(prop.getExpression());
 		}
 		// Auto-switch engine if required
