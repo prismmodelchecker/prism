@@ -2184,7 +2184,7 @@ public class PrismCL implements PrismModelListener
 		}
 		// -exportresults
 		else if (sw.equals("exportresults")) {
-			mainLog.println("Switch: -exportresults <file[,options]>\n");
+			mainLog.println("Switch: -exportresults <file[:options]>\n");
 			mainLog.println("Exports the results of model checking to <file> (or to the screen if <file>=\"stdout\").");
 			mainLog.println("The default behaviour is to export a list of results in text form, using tabs to separate items.");
 			mainLog.println("If provided, <options> is a comma-separated list of options taken from:");
