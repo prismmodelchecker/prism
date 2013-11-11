@@ -20,7 +20,7 @@ New since last release:
 * Allow command-line switches of form --sw (as well as -sw)
 * Parametric model checking
 * Fast adaptive uniformisation
-* Export labels from GUI
+* Export/view labels from GUI
 
 -----------------------------------------------------------------------------
 Version 4.1 (first released 20/12/2012)

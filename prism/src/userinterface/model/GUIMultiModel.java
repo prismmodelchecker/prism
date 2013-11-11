@@ -81,9 +81,9 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 	private JTextField fileTextField;
 	private JMenu modelMenu, newMenu, viewMenu, exportMenu, computeMenu;
 	private JMenu exportStatesMenu, exportTransMenu, exportStateRewardsMenu, exportTransRewardsMenu, exportLabelsMenu;
-	private AbstractAction viewStates, viewTrans, viewStateRewards, viewTransRewards, viewPrismCode, computeSS, computeTr, newPRISMModel, newGraphicModel,
-			newPEPAModel, loadModel, reloadModel, saveModel, saveAsModel, parseModel, buildModel, exportStatesPlain, exportStatesMatlab, exportTransPlain,
-			exportTransMatlab, exportTransDot, exportTransDotStates, exportTransMRMC, exportStateRewardsPlain, exportStateRewardsMatlab,
+	private AbstractAction viewStates, viewTrans, viewStateRewards, viewTransRewards, viewLabels, viewPrismCode, computeSS, computeTr, newPRISMModel,
+			newGraphicModel, newPEPAModel, loadModel, reloadModel, saveModel, saveAsModel, parseModel, buildModel, exportStatesPlain, exportStatesMatlab,
+			exportTransPlain, exportTransMatlab, exportTransDot, exportTransDotStates, exportTransMRMC, exportStateRewardsPlain, exportStateRewardsMatlab,
 			exportStateRewardsMRMC, exportTransRewardsPlain, exportTransRewardsMatlab, exportTransRewardsMRMC, exportLabelsPlain, exportLabelsMatlab;
 	private JPopupMenu popup;
 	//Contents
@@ -172,6 +172,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		viewTrans.setEnabled(!computing);
 		viewStateRewards.setEnabled(!computing);
 		viewTransRewards.setEnabled(!computing);
+		viewLabels.setEnabled(!computing);
 		viewPrismCode.setEnabled(!computing && handler.getParseState() == GUIMultiModelTree.TREE_SYNCHRONIZED_GOOD);
 		computeSS.setEnabled(!computing && (handler.getParsedModelType() == ModelType.CTMC || handler.getParsedModelType() == ModelType.DTMC));
 		computeTr.setEnabled(!computing && (handler.getParsedModelType() == ModelType.CTMC || handler.getParsedModelType() == ModelType.DTMC));
@@ -876,6 +877,18 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		viewTransRewards.putValue(Action.NAME, "Transition rewards");
 		viewTransRewards.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallMatrix.png"));
 
+		viewLabels = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_viewBuild(GUIMultiModelHandler.LABELS_EXPORT, Prism.EXPORT_PLAIN);
+			}
+		};
+		viewLabels.putValue(Action.LONG_DESCRIPTION, "Print the labels and satisfying states to the log");
+		viewLabels.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_L));
+		viewLabels.putValue(Action.NAME, "Labels");
+		viewLabels.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallStates.png"));
+
 		viewPrismCode = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
@@ -1031,6 +1044,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		viewMenu.add(viewTrans);
 		viewMenu.add(viewStateRewards);
 		viewMenu.add(viewTransRewards);
+		viewMenu.add(viewLabels);
 		viewMenu.add(viewPrismCode);
 		return viewMenu;
 	}
