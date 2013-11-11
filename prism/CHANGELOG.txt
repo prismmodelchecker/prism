@@ -2,9 +2,12 @@ This file contains details of the changes in each new version of PRISM.
 
 New since last release:
 
+* Additional graph zoom functionality on popup menu
+* Added R[C<=k] operator for MDPs (sparse, explicit)
 * Additional functionality in explicit engine
   - export BSCCs, some LTL
-* New -exportmecs switch
+* New -exportmecs and -exportsccs switches
+* New -sumroundoff switch (used when checking probabilities sum to 1)
 * Update CUDD to version 2.5.0
 * Strategy generation:
   - improvements in explicit engine implementation
