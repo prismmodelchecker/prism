@@ -27,6 +27,8 @@
 
 package userinterface.model.computation;
 
+import java.io.File;
+
 import javax.swing.*;
 import userinterface.*;
 import userinterface.model.*;
@@ -40,12 +42,22 @@ public class ComputeSteadyStateThread extends GUIComputationThread
 {
 	@SuppressWarnings("unused")
 	private GUIMultiModelHandler handler;
+	private int exportType;
+	private File exportFile;
 
 	/** Creates a new instance of ComputeSteadyStateThread */
 	public ComputeSteadyStateThread(GUIMultiModelHandler handler)
 	{
+		this(handler, Prism.EXPORT_PLAIN, null);
+	}
+
+	/** Creates a new instance of ComputeSteadyStateThread */
+	public ComputeSteadyStateThread(GUIMultiModelHandler handler, int type, File f)
+	{
 		super(handler.getGUIPlugin());
 		this.handler = handler;
+		this.exportType = type;
+		this.exportFile = f;
 	}
 
 	public void run()
@@ -63,7 +75,7 @@ public class ComputeSteadyStateThread extends GUIComputationThread
 
 		// Do Computation
 		try {
-			prism.doSteadyState();
+			prism.doSteadyState(exportType, exportFile, null);
 		} catch (PrismException e) {
 			error(e.getMessage());
 			SwingUtilities.invokeLater(new Runnable()

@@ -79,12 +79,13 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 
 	//GUI
 	private JTextField fileTextField;
-	private JMenu modelMenu, newMenu, viewMenu, exportMenu, computeMenu;
-	private JMenu exportStatesMenu, exportTransMenu, exportStateRewardsMenu, exportTransRewardsMenu, exportLabelsMenu;
+	private JMenu modelMenu, newMenu, viewMenu, exportMenu, computeMenu, computeExportMenu;
+	private JMenu exportStatesMenu, exportTransMenu, exportStateRewardsMenu, exportTransRewardsMenu, exportLabelsMenu, exportSSMenu, exportTrMenu;
 	private AbstractAction viewStates, viewTrans, viewStateRewards, viewTransRewards, viewLabels, viewPrismCode, computeSS, computeTr, newPRISMModel,
 			newGraphicModel, newPEPAModel, loadModel, reloadModel, saveModel, saveAsModel, parseModel, buildModel, exportStatesPlain, exportStatesMatlab,
 			exportTransPlain, exportTransMatlab, exportTransDot, exportTransDotStates, exportTransMRMC, exportStateRewardsPlain, exportStateRewardsMatlab,
-			exportStateRewardsMRMC, exportTransRewardsPlain, exportTransRewardsMatlab, exportTransRewardsMRMC, exportLabelsPlain, exportLabelsMatlab;
+			exportStateRewardsMRMC, exportTransRewardsPlain, exportTransRewardsMatlab, exportTransRewardsMRMC, exportLabelsPlain, exportLabelsMatlab,
+			exportSSPlain, exportSSMatlab, exportTrPlain, exportTrMatlab;
 	private JPopupMenu popup;
 	//Contents
 	private GUIMultiModelHandler handler;
@@ -416,23 +417,70 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		handler.requestViewModel();
 	}
 
+	protected void a_exportSteadyState(int exportType)
+	{
+		// Pop up dialog to select file
+		int res = JFileChooser.CANCEL_OPTION;
+		switch (exportType) {
+		case Prism.EXPORT_MATLAB:
+			res = showSaveFileDialog(matlabFilter, matlabFilter[0]);
+			break;
+		case Prism.EXPORT_PLAIN:
+		default:
+			res = showSaveFileDialog(textFilter, textFilter[0]);
+			break;
+		}
+		if (res != JFileChooser.APPROVE_OPTION)
+			return;
+		// Reset warnings counter 
+		getPrism().getMainLog().resetNumberOfWarnings();
+		// Do steady-state
+		handler.computeSteadyState(exportType, getChooserFile());
+	}
+
 	protected void a_computeSteadyState()
 	{
 		// Reset warnings counter 
 		getPrism().getMainLog().resetNumberOfWarnings();
 		// Do steady-state
-		handler.computeSteadyState();
+		handler.computeSteadyState(Prism.EXPORT_PLAIN, null);
+	}
+
+	protected void a_exportTransient(int exportType)
+	{
+		// Get time
+		int result = GUITransientTime.requestTime(this.getGUI());
+		if (result != GUITransientTime.OK)
+			return;
+		// Pop up dialog to select file
+		int res = JFileChooser.CANCEL_OPTION;
+		switch (exportType) {
+		case Prism.EXPORT_MATLAB:
+			res = showSaveFileDialog(matlabFilter, matlabFilter[0]);
+			break;
+		case Prism.EXPORT_PLAIN:
+		default:
+			res = showSaveFileDialog(textFilter, textFilter[0]);
+			break;
+		}
+		if (res != JFileChooser.APPROVE_OPTION)
+			return;
+		// Reset warnings counter 
+		getPrism().getMainLog().resetNumberOfWarnings();
+		// Do transient
+		handler.computeTransient(GUITransientTime.getTime(), exportType, getChooserFile());
 	}
 
 	protected void a_computeTransient()
 	{
 		// Reset warnings counter 
 		getPrism().getMainLog().resetNumberOfWarnings();
-		// Do transient
+		// Get time
 		int result = GUITransientTime.requestTime(this.getGUI());
-		if (result == GUITransientTime.OK) {
-			handler.computeTransient(GUITransientTime.getTime());
-		}
+		if (result != GUITransientTime.OK)
+			return;
+		// Do transient
+		handler.computeTransient(GUITransientTime.getTime(), Prism.EXPORT_PLAIN, null);
 	}
 
 	protected void a_convertToPrismTextModel()
@@ -829,6 +877,54 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		computeTr.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallClockAnim1.png"));
 		computeTr.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F4, KeyEvent.CTRL_DOWN_MASK));
 
+		exportSSPlain = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_exportSteadyState(Prism.EXPORT_PLAIN);
+			}
+		};
+		exportSSPlain.putValue(Action.LONG_DESCRIPTION, "Exports the steady-state probabilities to a plain text file");
+		exportSSPlain.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
+		exportSSPlain.putValue(Action.NAME, "Plain text file");
+		exportSSPlain.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
+
+		exportSSMatlab = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_exportSteadyState(Prism.EXPORT_MATLAB);
+			}
+		};
+		exportSSMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the steady-state probabilities to a Matlab file");
+		exportSSMatlab.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_M));
+		exportSSMatlab.putValue(Action.NAME, "Matlab file");
+		exportSSMatlab.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileMatlab.png"));
+
+		exportTrPlain = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_exportTransient(Prism.EXPORT_PLAIN);
+			}
+		};
+		exportTrPlain.putValue(Action.LONG_DESCRIPTION, "Exports the transient probabilities to a plain text file");
+		exportTrPlain.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
+		exportTrPlain.putValue(Action.NAME, "Plain text file");
+		exportTrPlain.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
+
+		exportTrMatlab = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_exportTransient(Prism.EXPORT_MATLAB);
+			}
+		};
+		exportTrMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the transient probabilities to a Matlab file");
+		exportTrMatlab.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_M));
+		exportTrMatlab.putValue(Action.NAME, "Matlab file");
+		exportTrMatlab.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileMatlab.png"));
+
 		viewStates = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
@@ -1059,6 +1155,26 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		return computeMenu;
 	}
 
+	private JMenu initComputeExportMenu()
+	{
+		JMenu computeExportMenu = new JMenu("Compute/export");
+		computeExportMenu.setMnemonic('X');
+		computeExportMenu.setIcon(GUIPrism.getIconFromImage("smallCompute.png"));
+		exportSSMenu = new JMenu("Steady-state probabilities");
+		exportSSMenu.setMnemonic('S');
+		exportSSMenu.setIcon(GUIPrism.getIconFromImage("smallSteadyState.png"));
+		exportSSMenu.add(exportSSPlain);
+		exportSSMenu.add(exportSSMatlab);
+		computeExportMenu.add(exportSSMenu);
+		exportTrMenu = new JMenu("Transient probabilities");
+		exportTrMenu.setMnemonic('A');
+		exportTrMenu.setIcon(GUIPrism.getIconFromImage("smallClockAnim1.png"));
+		exportTrMenu.add(exportTrPlain);
+		exportTrMenu.add(exportTrMatlab);
+		computeExportMenu.add(exportTrMenu);
+		return computeExportMenu;
+	}
+
 	private void initComponents()
 	{
 		setupActions();
@@ -1067,6 +1183,7 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		exportMenu = initExportMenu();
 		viewMenu = initViewMenu();
 		computeMenu = initComputeMenu();
+		computeExportMenu = initComputeExportMenu();
 
 		JPanel topPanel = new JPanel();
 		{
@@ -1112,6 +1229,8 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		modelMenu.add(viewMenu);
 
 		modelMenu.add(computeMenu);
+
+		modelMenu.add(computeExportMenu);
 
 		popup = new JPopupMenu();
 		{
@@ -1205,5 +1324,10 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 	public JMenu getComputeMenu()
 	{
 		return initComputeMenu();
+	}
+
+	public JMenu getComputeExportMenu()
+	{
+		return initComputeExportMenu();
 	}
 }

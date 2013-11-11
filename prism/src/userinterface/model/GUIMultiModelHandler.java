@@ -945,10 +945,12 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 
 	// Compute steady-state...
 
-	public void computeSteadyState()
+	public void computeSteadyState(int type, File f)
 	{
 		// set flags/store info
 		computeSSAfterReceiveParseNotification = true;
+		exportType = type;
+		exportFile = f;
 		// do a parse if necessary
 		requestParse(false);
 	}
@@ -973,17 +975,20 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 			theModel.error(e.getMessage());
 			return;
 		}
-		theModel.logToFront();
-		new ComputeSteadyStateThread(this).start();
+		// if the results are going to the log, switch view to there
+		if (exportFile == null)
+			theModel.logToFront();
+		new ComputeSteadyStateThread(this, exportType, exportFile).start();
 	}
 
 	// Compute transient probabilities...
 
-	public void computeTransient(double time)
+	public void computeTransient(double time, int type, File f)
 	{
-		// set flags/store info
 		computeTransientAfterReceiveParseNotification = true;
 		transientTime = time;
+		exportType = type;
+		exportFile = f;
 		// do a parse if necessary
 		requestParse(false);
 	}
@@ -1008,8 +1013,10 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 			theModel.error(e.getMessage());
 			return;
 		}
-		theModel.logToFront();
-		new ComputeTransientThread(this, transientTime).start();
+		// if the results are going to the log, switch view to there
+		if (exportFile == null)
+			theModel.logToFront();
+		new ComputeTransientThread(this, transientTime, exportType, exportFile).start();
 	}
 
 	public void requestViewModel()

@@ -457,6 +457,7 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 		contextPopup.add(((GUIMultiModel)handler.getGUIPlugin()).getExportMenu());
 		contextPopup.add(((GUIMultiModel)handler.getGUIPlugin()).getViewMenu());
 		contextPopup.add(((GUIMultiModel)handler.getGUIPlugin()).getComputeMenu());
+		contextPopup.add(((GUIMultiModel)handler.getGUIPlugin()).getComputeExportMenu());
 		//contextPopup.add(actionJumpToError);
 		//contextPopup.add(actionSearch);
 		
