@@ -119,10 +119,10 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_PARAM_SUBSUME_REGIONS			= "prism.param.subsumeRegions";
 	public static final String PRISM_PARAM_DAG_MAX_ERROR			= "prism.param.functionDagMaxError";
 
-	public static final String PRISM_FAU_DELTA						= "prism.faudelta";
-	public static final String PRISM_FAU_INTERVALS					= "prism.fauintervals";
-	public static final String PRISM_FAU_INITIVAL					= "prism.fauinitival";
-	public static final String PRISM_FAU_ARRAYTHRESHOLD				= "prism.fauarraythreshold";
+	public static final String PRISM_FAU_DELTA						= "prism.fau.delta";
+	public static final String PRISM_FAU_INTERVALS					= "prism.fau.intervals";
+	public static final String PRISM_FAU_INITIVAL					= "prism.fau.initival";
+	public static final String PRISM_FAU_ARRAYTHRESHOLD				= "prism.fau.arraythreshold";
 
 	//Simulator
 	public static final String SIMULATOR_DEFAULT_NUM_SAMPLES		= "simulator.defaultNumSamples";
@@ -313,14 +313,14 @@ public class PrismSettings implements Observer
 																			"Maximal error probability (i.e. maximum probability of of a wrong result) in DAG function representation used for parametric model checking." },
 			
 			// FAST ADAPTIVE UNIFORMISATION																
-			{ DOUBLE_TYPE,      PRISM_FAU_DELTA,						"Cut off delta", 						"4.1",   	 	new Double(10E-12),     													"",
-																			"States which get a probability below this number during the fast adaptive analysis will be removed." },
-			{ INTEGER_TYPE,     PRISM_FAU_ARRAYTHRESHOLD,				"Threshold to swap to array mode", 		"4.1",   	 	new Integer(100),    	 													"",
-																			"If this number of iterations happened during fast adaptive uniformisation without changes to the state space, assume that further changes are unlikely." },
-			{ INTEGER_TYPE,     PRISM_FAU_INTERVALS,					"Number of time intervals",				"4.1",   	 	new Integer(1),     														"",
-																			"Splits the time of a time-bounded property into the specified number of intervals." },
-			{ DOUBLE_TYPE,      PRISM_FAU_INITIVAL,						"Length of initial time interval",		"4.1",   	 	new Double(1.0),     														"",	
-																			"Length of initial time interval in addition to regular time intervals." },
+			{ DOUBLE_TYPE,      PRISM_FAU_DELTA,						"FAU cut off delta", 					"4.1",   	 	new Double(10E-12),     													"",
+																			"For fast adaptive uniformisation (FAU), states whose probability is below this value will be removed." },
+			{ INTEGER_TYPE,     PRISM_FAU_ARRAYTHRESHOLD,				"FAU array threshold", 			"4.1",   	 	new Integer(100),    	 													"",
+																			"For fast adaptive uniformisation (FAU), after this number of iterations without changes to the state space, storage is switched to a faster, fixed-size data structure." },
+			{ INTEGER_TYPE,     PRISM_FAU_INTERVALS,					"FAU time intervals",					"4.1",   	 	new Integer(1),     														"",
+																			"For fast adaptive uniformisation (FAU), the time period is split into this number of of intervals." },
+			{ DOUBLE_TYPE,      PRISM_FAU_INITIVAL,						"FAU initial time interval",			"4.1",   	 	new Double(1.0),     														"",	
+																			"For fast adaptive uniformisation (FAU), the length of initial time interval to analyse." },
 		},
 		{
 			{ INTEGER_TYPE,		SIMULATOR_DEFAULT_NUM_SAMPLES,			"Default number of samples",			"4.0",		new Integer(1000),			"1,",
