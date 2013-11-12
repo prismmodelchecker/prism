@@ -408,7 +408,7 @@ public class FastAdaptiveUniformisation extends PrismComponent
 	/** model exploration component to generate new states */
 	private ModelExplorer modelExplorer;
 	/** probability allowed to drop birth process */
-	private double termCritParam;
+	private double epsilon;
 	/** probability threshold when to drop states in discrete-time process */
 	private double delta;
 	/** number of intervals to divide time into */
@@ -466,7 +466,7 @@ public class FastAdaptiveUniformisation extends PrismComponent
 		this.modelExplorer = modelExplorer;
 		maxNumStates = 0;
 
-		termCritParam = settings.getDouble(PrismSettings.PRISM_TERM_CRIT_PARAM);
+		epsilon = settings.getDouble(PrismSettings.PRISM_FAU_EPSILON);
 		delta = settings.getDouble(PrismSettings.PRISM_FAU_DELTA);
 		numIntervals = settings.getInteger(PrismSettings.PRISM_FAU_INTERVALS);
 		arrayThreshold = settings.getInteger(PrismSettings.PRISM_FAU_ARRAYTHRESHOLD);
@@ -740,14 +740,14 @@ public class FastAdaptiveUniformisation extends PrismComponent
 	{
 		birthProc = new BirthProcess();
 		birthProc.setTime(interval);
-		birthProc.setTermCritParam(termCritParam);
+		birthProc.setEpsilon(epsilon);
 
 		int iters = 0;
 		birthProbSum = 0.0;
 		itersUnchanged = 0;
 		keepSumProb = false;
-		while (birthProbSum < (1 - termCritParam)) {
-			if (birthProbSum >= termCritParam/2) {
+		while (birthProbSum < (1 - epsilon)) {
+			if (birthProbSum >= epsilon/2) {
 				keepSumProb = true;
 			}
 			if ((itersUnchanged == arrayThreshold)) {

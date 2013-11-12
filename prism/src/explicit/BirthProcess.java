@@ -44,7 +44,7 @@ public class BirthProcess
 	 * Must be at least as large as largest rate. */
 	double unifRate;
 	/* precision of computations using Fox-Glynn algorithm */
-	double termCritParam;
+	double epsilon;
 	/* time to compute probabilities for */
 	double time;
 	/* values used to compute probability to be in a given stage */
@@ -68,7 +68,7 @@ public class BirthProcess
 	public BirthProcess()
 	{
 		stageNr = 0;
-		termCritParam = 1E-7;
+		epsilon = 1E-7;
 		withRateArray = true;
 		initialising = true;
 		avoidBirthComputation = true;
@@ -108,15 +108,15 @@ public class BirthProcess
 	/**
 	 * Sets precision to be used to compute probabilities.
 	 * 
-	 * @param termCritParam precision to be used to compute probabilities
+	 * @param epsilon precision to be used to compute probabilities
 	 */
-	public void setTermCritParam(double termCritParam)
+	public void setEpsilon(double epsilon)
 	{
 		if (!initialising) {
 			throw new IllegalArgumentException("this method might not be called after calculateNextRate");
 		}
 
-		this.termCritParam = termCritParam;
+		this.epsilon = epsilon;
 	}
 
 	/**
@@ -233,7 +233,7 @@ public class BirthProcess
 	{
 		long left, right;
 		double qt = unifRate * time;
-		double acc = termCritParam / 8.0;
+		double acc = epsilon / 8.0;
 		double[] weights;
 		double totalWeight;
 		if (unifRate * time == 0.0) {

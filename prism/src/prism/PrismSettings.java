@@ -119,6 +119,7 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_PARAM_SUBSUME_REGIONS			= "prism.param.subsumeRegions";
 	public static final String PRISM_PARAM_DAG_MAX_ERROR			= "prism.param.functionDagMaxError";
 
+	public static final String PRISM_FAU_EPSILON					= "prism.fau.epsilon";
 	public static final String PRISM_FAU_DELTA						= "prism.fau.delta";
 	public static final String PRISM_FAU_INTERVALS					= "prism.fau.intervals";
 	public static final String PRISM_FAU_INITIVAL					= "prism.fau.initival";
@@ -313,9 +314,11 @@ public class PrismSettings implements Observer
 																			"Maximal error probability (i.e. maximum probability of of a wrong result) in DAG function representation used for parametric model checking." },
 			
 			// FAST ADAPTIVE UNIFORMISATION																
+			{ DOUBLE_TYPE,      PRISM_FAU_EPSILON,						"FAU epsilon",		 					"4.1",   	 	new Double(1E-6),     													"",
+																			"For fast adaptive uniformisation (FAU), states whose probability is below this value will be removed." },
 			{ DOUBLE_TYPE,      PRISM_FAU_DELTA,						"FAU cut off delta", 					"4.1",   	 	new Double(1E-12),     													"",
 																			"For fast adaptive uniformisation (FAU), states whose probability is below this value will be removed." },
-			{ INTEGER_TYPE,     PRISM_FAU_ARRAYTHRESHOLD,				"FAU array threshold", 			"4.1",   	 	new Integer(100),    	 													"",
+			{ INTEGER_TYPE,     PRISM_FAU_ARRAYTHRESHOLD,				"FAU array threshold", 					"4.1",   	 	new Integer(100),    	 													"",
 																			"For fast adaptive uniformisation (FAU), after this number of iterations without changes to the state space, storage is switched to a faster, fixed-size data structure." },
 			{ INTEGER_TYPE,     PRISM_FAU_INTERVALS,					"FAU time intervals",					"4.1",   	 	new Integer(1),     														"",
 																			"For fast adaptive uniformisation (FAU), the time period is split into this number of of intervals." },
@@ -1303,6 +1306,21 @@ public class PrismSettings implements Observer
 		
 		// FAST ADAPTIVE UNIFORMISATION
 		
+		// Epsilon for fast adaptive uniformisation
+		else if (sw.equals("fauepsilon")) {
+			if (i < args.length - 1) {
+				try {
+					d = Double.parseDouble(args[++i]);
+					if (d < 0)
+						throw new NumberFormatException("");
+					set(PRISM_FAU_EPSILON, d);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
+		}
 		// Delta for fast adaptive uniformisation
 		else if (sw.equals("faudelta")) {
 			if (i < args.length - 1) {
@@ -1318,6 +1336,7 @@ public class PrismSettings implements Observer
 				throw new PrismException("No value specified for -" + sw + " switch");
 			}
 		}
+		// Array threshold for fast adaptive uniformisation
 		else if (sw.equals("fauarraythreshold")) {
 			if (i < args.length - 1) {
 				try {
