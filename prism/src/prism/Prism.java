@@ -2874,6 +2874,36 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
+	 * Perform parametric model checking on the currently loaded model.
+	 * @param propertiesFile parent properties file
+	 * @param prop property to model check
+	 * @param paramNames parameter names
+	 * @param paramLowerBounds lower bounds of parameters
+	 * @param paramUpperBounds upper bounds of parameters
+	 */
+	public Result modelCheckParametric(PropertiesFile propertiesFile, Property prop, String[] paramNames, String[] paramLowerBounds, String[] paramUpperBounds)
+			throws PrismException
+	{
+		if (paramNames == null) {
+			throw new PrismException("Must specify some parameters when using " + "the parametric analysis");
+		}
+		Values constlist = currentModulesFile.getConstantValues();
+		for (int pnr = 0; pnr < paramNames.length; pnr++) {
+			constlist.removeValue(paramNames[pnr]);
+		}
+		param.ModelBuilder builder = new ModelBuilder(this);
+		builder.setModulesFile(currentModulesFile);
+		builder.setParameters(paramNames, paramLowerBounds, paramUpperBounds);
+		builder.build();
+		explicit.Model modelExpl = builder.getModel();
+		ParamModelChecker mc = new ParamModelChecker(this);
+		mc.setModelBuilder(builder);
+		mc.setParameters(paramNames, paramLowerBounds, paramUpperBounds);
+		mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);
+		return mc.check(modelExpl, prop.getExpression());
+	}
+	
+	/**
 	 * Export a strategy (for the currently loaded model);
 	 * TODO: is it necessarily loaded?
 	 * @param strat The strategy
@@ -3677,39 +3707,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	{
 		loadBuiltModel(model);
 		doTransient(time, exportType, file, fileIn);
-	}
-
-	/**
-	 * Performs parametric model checking.
-	 * 
-	 * @param propertiesFile parent properties file
-	 * @param prop property to model check
-	 * @param paramNames parameter names
-	 * @param paramLowerBounds lower bounds of parameters
-	 * @param paramUpperBounds upper bounds of parameters
-	 * @return
-	 * @throws PrismException e.g. if no parameters specified or other things go wrong
-	 */
-	public Result modelCheckParametric(PropertiesFile propertiesFile, Property prop, String[] paramNames, String[] paramLowerBounds, String[] paramUpperBounds)
-			throws PrismException
-	{
-		if (paramNames == null) {
-			throw new PrismException("Must specify some parameters when using " + "the parametric analysis");
-		}
-		Values constlist = currentModulesFile.getConstantValues();
-		for (int pnr = 0; pnr < paramNames.length; pnr++) {
-			constlist.removeValue(paramNames[pnr]);
-		}
-		param.ModelBuilder builder = new ModelBuilder(this);
-		builder.setModulesFile(currentModulesFile);
-		builder.setParameters(paramNames, paramLowerBounds, paramUpperBounds);
-		builder.build();
-		explicit.Model modelExpl = builder.getModel();
-		ParamModelChecker mc = new ParamModelChecker(this);
-		mc.setModelBuilder(builder);
-		mc.setParameters(paramNames, paramLowerBounds, paramUpperBounds);
-		mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);
-		return mc.check(modelExpl, prop.getExpression());
 	}
 }
 
