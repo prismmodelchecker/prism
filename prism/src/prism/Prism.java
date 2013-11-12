@@ -3087,7 +3087,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		tmpLog = getPrismLogForFile(fileOut);
 
 		// print out or export probabilities
-		if (!getExplicit())
+		if (probs != null)
 			probs.print(tmpLog, fileOut == null, exportType == EXPORT_MATLAB, fileOut == null, fileOut == null);
 		else
 			probsExpl.print(tmpLog, fileOut == null, exportType == EXPORT_MATLAB, fileOut == null, fileOut == null);
@@ -3096,9 +3096,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mainLog.println("\nTime for transient probability computation: " + l / 1000.0 + " seconds.");
 
 		// tidy up
-		if (!getExplicit())
+		if (probs != null)
 			probs.clear();
-		else
+		if (probsExpl != null)
 			probsExpl.clear();
 		if (fileOut != null)
 			tmpLog.close();
@@ -3155,7 +3155,14 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 			l = System.currentTimeMillis();
 
-			if (!getExplicit()) {
+			if (currentModelType == ModelType.CTMC && settings.getString(PrismSettings.PRISM_TRANSIENT_METHOD).equals("Fast adaptive uniformisation")) {
+				// For FAU, we don't do computation incrementally
+				PrismModelExplorer modelExplorer = new PrismModelExplorer(getSimulator(), currentModulesFile);
+				FastAdaptiveUniformisation fau = new FastAdaptiveUniformisation(this, modelExplorer);
+				fau.setConstantValues(currentModulesFile.getConstantValues());
+				probsExpl = fau.doTransient(timeDouble, fileIn);
+			}
+			else if (!getExplicit()) {
 				if (currentModelType.continuousTime()) {
 					StochModelChecker mc = new StochModelChecker(this, currentModel, null);
 					if (i == 0) {
@@ -3202,7 +3209,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			tmpLog = getPrismLogForFile(fileOutActual);
 
 			// print out or export probabilities
-			if (!getExplicit())
+			if (probs != null)
 				probs.print(tmpLog, fileOut == null, exportType == EXPORT_MATLAB, fileOut == null);
 			else
 				probsExpl.print(tmpLog, fileOut == null, exportType == EXPORT_MATLAB, fileOut == null, true);
@@ -3219,9 +3226,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		}
 
 		// tidy up
-		if (!getExplicit())
+		if (probs != null)
 			probs.clear();
-		else
+		if (probsExpl != null)
 			probsExpl.clear();
 		if (fileOut != null)
 			tmpLog.close();
