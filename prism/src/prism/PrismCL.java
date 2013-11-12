@@ -356,7 +356,7 @@ public class PrismCL implements PrismModelListener
 
 						// store result of model checking
 						results[j].setResult(definedMFConstants, definedPFConstants, res.getResult());
-						
+
 						// if a counterexample was generated, display it
 						Object cex = res.getCounterexample();
 						if (cex != null) {
@@ -386,7 +386,7 @@ public class PrismCL implements PrismModelListener
 								error(e.getMessage());
 							}
 						}
-						
+
 						// if required, check result against expected value
 						if (test) {
 							try {
@@ -419,7 +419,7 @@ public class PrismCL implements PrismModelListener
 			}
 
 			// Explicitly request a build if necessary
-			if (propertiesToCheck.size() == 0 && !simpath && !nobuild && prism.modelCanBeBuilt() && !prism.modelIsBuilt()) {
+			if (propertiesToCheck.size() == 0 && !steadystate && !dotransient && !simpath && !nobuild && prism.modelCanBeBuilt() && !prism.modelIsBuilt()) {
 				try {
 					prism.buildModel();
 				} catch (PrismException e) {
@@ -775,7 +775,7 @@ public class PrismCL implements PrismModelListener
 				error(e.getMessage());
 			}
 		}
-		
+
 		// export BSCCs to a file
 		if (exportbsccs) {
 			try {
@@ -1124,18 +1124,17 @@ public class PrismCL implements PrismModelListener
 						s = args[++i];
 						// Assume use of : to split filename/options but check for , if : not found
 						// (this was the old notation)
-						String halves[] = splitFilesAndOptions(s); 
+						String halves[] = splitFilesAndOptions(s);
 						if (halves[1].length() == 0 && halves[0].indexOf(',') > -1) {
 							int comma = halves[0].indexOf(',');
-							halves[1] = halves[0].substring(comma + 1); 
+							halves[1] = halves[0].substring(comma + 1);
 							halves[0] = halves[0].substring(0, comma);
 						}
 						exportResultsFilename = halves[0];
 						String ss[] = halves[1].split(",");
 						for (j = 0; j < ss.length; j++) {
 							if (ss[j].equals("")) {
-							}
-							else if (ss[j].equals("csv"))
+							} else if (ss[j].equals("csv"))
 								exportresultscsv = true;
 							else if (ss[j].equals("matrix"))
 								exportresultsmatrix = true;
@@ -1926,7 +1925,7 @@ public class PrismCL implements PrismModelListener
 				}
 			}
 		}
-		
+
 		// plug in basename for -exportmodel switch if needed
 		if (exportModelNoBasename) {
 			String modelFileBasename = modelFilename;
@@ -2155,7 +2154,7 @@ public class PrismCL implements PrismModelListener
 		// Remove "-" from start of switch, in case present (it shouldn't be really)
 		if (sw.charAt(0) == '-')
 			sw = sw.substring(1);
-		
+
 		// -const
 		if (sw.equals("const")) {
 			mainLog.println("Switch: -const <vals>\n");

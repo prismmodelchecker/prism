@@ -1779,7 +1779,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	private void doBuildModel() throws PrismException
 	{
 		long l; // timer
-
+new Exception().printStackTrace();
 		// Clear any existing built model(s)
 		clearBuiltModel();
 
@@ -3047,17 +3047,18 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		String strTime = currentModelType.continuousTime() ? Double.toString(time) : Integer.toString((int) time);
 			mainLog.println("\nComputing transient probabilities (time = " + strTime + ")...");
 
-		// Build model, if necessary
-		buildModelIfRequired();
-
 		l = System.currentTimeMillis();
 
+		// FAU
 		if (currentModelType == ModelType.CTMC && settings.getString(PrismSettings.PRISM_TRANSIENT_METHOD).equals("Fast adaptive uniformisation")) {
 			PrismModelExplorer modelExplorer = new PrismModelExplorer(getSimulator(), currentModulesFile);
 			FastAdaptiveUniformisation fau = new FastAdaptiveUniformisation(this, modelExplorer);
 			fau.setConstantValues(currentModulesFile.getConstantValues());
 			probsExpl = fau.doTransient(time, fileIn);
-		} else if (!getExplicit()) {
+		}
+		// Symbolic
+		else if (!getExplicit()) {
+			buildModelIfRequired();
 			if (currentModelType == ModelType.DTMC) {
 				mc = new ProbModelChecker(this, currentModel, null);
 				probs = ((ProbModelChecker) mc).doTransient((int) time, fileIn);
@@ -3065,7 +3066,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				mc = new StochModelChecker(this, currentModel, null);
 				probs = ((StochModelChecker) mc).doTransient(time, fileIn);
 			}
-		} else {
+		}
+		// Explicit
+		else {
+			buildModelIfRequired();
 			if (currentModelType == ModelType.DTMC) {
 				throw new PrismException("Not implemented yet");
 			} else if (currentModelType == ModelType.CTMC) {
@@ -3150,11 +3154,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			mainLog.printSeparator();
 			mainLog.println("\nComputing transient probabilities (time = " + time + ")...");
 
-			// Build model, if necessary
-			buildModelIfRequired();
-
 			l = System.currentTimeMillis();
 
+			// FAU
 			if (currentModelType == ModelType.CTMC && settings.getString(PrismSettings.PRISM_TRANSIENT_METHOD).equals("Fast adaptive uniformisation")) {
 				// For FAU, we don't do computation incrementally
 				PrismModelExplorer modelExplorer = new PrismModelExplorer(getSimulator(), currentModulesFile);
@@ -3162,7 +3164,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				fau.setConstantValues(currentModulesFile.getConstantValues());
 				probsExpl = fau.doTransient(timeDouble, fileIn);
 			}
+			// Symbolic
 			else if (!getExplicit()) {
+				buildModelIfRequired();
 				if (currentModelType.continuousTime()) {
 					StochModelChecker mc = new StochModelChecker(this, currentModel, null);
 					if (i == 0) {
@@ -3178,7 +3182,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 					}
 					probs = ((ProbModelChecker) mc).doTransient(timeInt - initTimeInt, initDist);
 				}
-			} else {
+			}
+			// Explicit
+			else {
+				buildModelIfRequired();
 				if (currentModelType.continuousTime()) {
 					CTMCModelChecker mc = new CTMCModelChecker(this);
 					if (i == 0) {
