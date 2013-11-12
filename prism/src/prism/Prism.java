@@ -1779,7 +1779,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	private void doBuildModel() throws PrismException
 	{
 		long l; // timer
-new Exception().printStackTrace();
+		
 		// Clear any existing built model(s)
 		clearBuiltModel();
 
