@@ -313,7 +313,7 @@ public class PrismSettings implements Observer
 																			"Maximal error probability (i.e. maximum probability of of a wrong result) in DAG function representation used for parametric model checking." },
 			
 			// FAST ADAPTIVE UNIFORMISATION																
-			{ DOUBLE_TYPE,      PRISM_FAU_DELTA,						"FAU cut off delta", 					"4.1",   	 	new Double(10E-12),     													"",
+			{ DOUBLE_TYPE,      PRISM_FAU_DELTA,						"FAU cut off delta", 					"4.1",   	 	new Double(1E-12),     													"",
 																			"For fast adaptive uniformisation (FAU), states whose probability is below this value will be removed." },
 			{ INTEGER_TYPE,     PRISM_FAU_ARRAYTHRESHOLD,				"FAU array threshold", 			"4.1",   	 	new Integer(100),    	 													"",
 																			"For fast adaptive uniformisation (FAU), after this number of iterations without changes to the state space, storage is switched to a faster, fixed-size data structure." },
