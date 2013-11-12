@@ -162,36 +162,36 @@ final public class ParamModelChecker
 		verbosity = settings.getBoolean(PrismSettings.PRISM_VERBOSE) ? 10 : 1;
 		precision = new BigRational(settings.getString(PrismSettings.PRISM_PARAM_PRECISION));
 		String splitMethodString = settings.getString(PrismSettings.PRISM_PARAM_SPLIT);
-		if (splitMethodString.equals("longest")) {
+		if (splitMethodString.equals("Longest")) {
 			splitMethod = BoxRegion.SPLIT_LONGEST;
-		} else if (splitMethodString.equals("all")) {
+		} else if (splitMethodString.equals("All")) {
 			splitMethod = BoxRegion.SPLIT_ALL;
 		} else {
 			throw new PrismException("unknown region splitting method " + splitMethodString);				
 		}
 		String eliminationOrderString = settings.getString(PrismSettings.PRISM_PARAM_ELIM_ORDER);
-		if (eliminationOrderString.equals("arbitrary")) {
+		if (eliminationOrderString.equals("Arbitrary")) {
 			eliminationOrder = EliminationOrder.ARBITRARY;
-		} else if (eliminationOrderString.equals("forward")) {
+		} else if (eliminationOrderString.equals("Forward")) {
 			eliminationOrder = EliminationOrder.FORWARD;
-		} else if (eliminationOrderString.equals("forward-reversed")) {
+		} else if (eliminationOrderString.equals("Forward-reversed")) {
 			eliminationOrder = EliminationOrder.FORWARD_REVERSED;
-		} else if (eliminationOrderString.equals("backward")) {
+		} else if (eliminationOrderString.equals("Backward")) {
 			eliminationOrder = EliminationOrder.BACKWARD;
-		} else if (eliminationOrderString.equals("backward-reversed")) {
+		} else if (eliminationOrderString.equals("Backward-reversed")) {
 			eliminationOrder = EliminationOrder.BACKWARD_REVERSED;
-		} else if (eliminationOrderString.equals("random")) {
+		} else if (eliminationOrderString.equals("Random")) {
 			eliminationOrder = EliminationOrder.RANDOM;
 		} else {
 			throw new PrismException("unknown state elimination order " + eliminationOrderString);				
 		}
 		numRandomPoints = settings.getInteger(PrismSettings.PRISM_PARAM_RANDOM_POINTS);
 		String bisimTypeString = settings.getString(PrismSettings.PRISM_PARAM_BISIM);
-		if (bisimTypeString.equals("weak")) {
+		if (bisimTypeString.equals("Weak")) {
 			bisimType = BisimType.WEAK;
-		} else if (bisimTypeString.equals("strong")) {
+		} else if (bisimTypeString.equals("Strong")) {
 			bisimType = BisimType.STRONG;
-		} else if (bisimTypeString.equals("none")) {
+		} else if (bisimTypeString.equals("None")) {
 			bisimType = BisimType.NULL;
 		} else {
 			throw new PrismException("unknown bisimulation type " + bisimTypeString);							

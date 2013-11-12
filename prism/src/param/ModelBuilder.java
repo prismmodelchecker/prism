@@ -188,11 +188,11 @@ public final class ModelBuilder {
 	 */
 	public void build() throws PrismException
 	{
-		if (functionType.equals("jas")) {
+		if (functionType.equals("JAS")) {
 			functionFactory = new JasFunctionFactory(paramNames, lower, upper);
-		} else if (functionType.equals("jas-cached")) {
+		} else if (functionType.equals("JAS-cached")) {
 			functionFactory = new CachedFunctionFactory(new JasFunctionFactory(paramNames, lower, upper));
-		} else if (functionType.equals("dag")) {
+		} else if (functionType.equals("DAG")) {
 			functionFactory = new DagFunctionFactory(paramNames,  lower,  upper, dagMaxError, false);
 		}
 		long time;
