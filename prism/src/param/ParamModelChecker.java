@@ -68,6 +68,7 @@ import parser.ast.*;
 import parser.ast.ExpressionFilter.FilterOperator;
 import parser.type.*;
 import prism.ModelType;
+import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismPrintStreamLog;
@@ -79,7 +80,7 @@ import prism.Result;
  * 
  * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
  */
-final public class ParamModelChecker
+final public class ParamModelChecker extends PrismComponent
 {
 	// Log for output (default to System.out)
 	private PrismLog mainLog = new PrismPrintStreamLog(System.out);
@@ -118,47 +119,15 @@ final public class ParamModelChecker
 
 	private ModelBuilder modelBuilder;
 	
-	// Setters/getters
-
 	/**
-	 * Set log for output.
+	 * Constructor
 	 */
-	public void setLog(PrismLog log)
+	public ParamModelChecker(PrismComponent parent) throws PrismException
 	{
-		this.mainLog = log;
-	}
-
-	/**
-	 * Get log for output.
-	 */
-	public PrismLog getLog()
-	{
-		return mainLog;
-	}
-
-	/**
-	 * Set the attached model file (for e.g. reward structures when model checking)
-	 * and the attached properties file (for e.g. constants/labels when model checking)
-	 */
-	public void setModulesFileAndPropertiesFile(ModulesFile modulesFile, PropertiesFile propertiesFile)
-	{
-		this.modulesFile = modulesFile;
-		this.propertiesFile = propertiesFile;
-		// Get combined constant values from model/properties
-		constantValues = new Values();
-		constantValues.addValues(modulesFile.getConstantValues());
-		if (propertiesFile != null)
-			constantValues.addValues(propertiesFile.getConstantValues());
-	}
-
-	// Settings methods
-	
-	/**
-	 * Set settings from a PRISMSettings object.
-	 * @throws PrismException 
-	 */
-	public void setSettings(PrismSettings settings) throws PrismException
-	{
+		super(parent);
+		
+		// If present, initialise settings from PrismSettings
+		if (settings != null) {
 		verbosity = settings.getBoolean(PrismSettings.PRISM_VERBOSE) ? 10 : 1;
 		precision = new BigRational(settings.getString(PrismSettings.PRISM_PARAM_PRECISION));
 		String splitMethodString = settings.getString(PrismSettings.PRISM_PARAM_SPLIT);
@@ -197,40 +166,24 @@ final public class ParamModelChecker
 			throw new PrismException("unknown bisimulation type " + bisimTypeString);							
 		}
 		simplifyRegions = settings.getBoolean(PrismSettings.PRISM_PARAM_SUBSUME_REGIONS);
+		}
 	}
+	
+	// Setters/getters
 
 	/**
-	 * Inherit settings (and other info) from another model checker object.
+	 * Set the attached model file (for e.g. reward structures when model checking)
+	 * and the attached properties file (for e.g. constants/labels when model checking)
 	 */
-	public void inheritSettings(ParamModelChecker other)
+	public void setModulesFileAndPropertiesFile(ModulesFile modulesFile, PropertiesFile propertiesFile)
 	{
-		setLog(other.getLog());
-		setVerbosity(other.getVerbosity());
-	}
-
-	/**
-	 * Print summary of current settings.
-	 */
-	public void printSettings()
-	{
-		mainLog.print("verbosity = " + verbosity + " ");
-	}
-
-	// Set methods for flags/settings
-
-	/**
-	 * Set verbosity level, i.e. amount of output produced.
-	 */
-	public void setVerbosity(int verbosity)
-	{
-		this.verbosity = verbosity;
-	}
-
-	// Get methods for flags/settings
-
-	public int getVerbosity()
-	{
-		return verbosity;
+		this.modulesFile = modulesFile;
+		this.propertiesFile = propertiesFile;
+		// Get combined constant values from model/properties
+		constantValues = new Values();
+		constantValues.addValues(modulesFile.getConstantValues());
+		if (propertiesFile != null)
+			constantValues.addValues(propertiesFile.getConstantValues());
 	}
 
 	// Model checking functions
@@ -953,7 +906,7 @@ final public class ParamModelChecker
 		probs = checkProbPathFormulaSimple(model, expr.getExpression(), min, needStates);
 		probs.clearNotNeeded(needStates);
 
-		if (getVerbosity() > 5) {
+		if (verbosity > 5) {
 			mainLog.print("\nProbabilities (non-zero only) for all states:\n");
 			mainLog.print(probs);
 		}
@@ -1086,7 +1039,7 @@ final public class ParamModelChecker
 		rews.clearNotNeeded(needStates);
 
 		// Print out probabilities
-		if (getVerbosity() > 5) {
+		if (verbosity > 5) {
 			mainLog.print("\nProbabilities (non-zero only) for all states:\n");
 			mainLog.print(rews);
 		}
@@ -1231,7 +1184,7 @@ final public class ParamModelChecker
 		probs = checkProbSteadyState(model, expr.getExpression(), min, needStates);
 		probs.clearNotNeeded(needStates);
 
-		if (getVerbosity() > 5) {
+		if (verbosity > 5) {
 			mainLog.print("\nProbabilities (non-zero only) for all states:\n");
 			mainLog.print(probs);
 		}

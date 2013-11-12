@@ -3693,7 +3693,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public Result modelCheckParametric(PropertiesFile propertiesFile, Property prop, String[] paramNames, String[] paramLowerBounds, String[] paramUpperBounds)
 			throws PrismException
 	{
-
 		if (paramNames == null) {
 			throw new PrismException("Must specify some parameters when using " + "the parametric analysis");
 		}
@@ -3701,17 +3700,13 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		for (int pnr = 0; pnr < paramNames.length; pnr++) {
 			constlist.removeValue(paramNames[pnr]);
 		}
-		param.ModelBuilder builder = new ModelBuilder();
+		param.ModelBuilder builder = new ModelBuilder(this);
 		builder.setModulesFile(currentModulesFile);
-		builder.setMainLong(mainLog);
 		builder.setParameters(paramNames, paramLowerBounds, paramUpperBounds);
-		builder.setSettings(settings);
 		builder.build();
 		explicit.Model modelExpl = builder.getModel();
-		ParamModelChecker mc = new ParamModelChecker();
+		ParamModelChecker mc = new ParamModelChecker(this);
 		mc.setModelBuilder(builder);
-		mc.setLog(mainLog);
-		mc.setSettings(settings);
 		mc.setParameters(paramNames, paramLowerBounds, paramUpperBounds);
 		mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);
 		return mc.check(modelExpl, prop.getExpression());

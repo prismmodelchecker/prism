@@ -37,6 +37,7 @@ import parser.ast.ExpressionLiteral;
 import parser.ast.ExpressionUnaryOp;
 import parser.ast.ModulesFile;
 import prism.ModelType;
+import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismSettings;
@@ -49,11 +50,10 @@ import explicit.StateStorage;
  * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
  * @see ParamModel
  */
-public final class ModelBuilder {
+public final class ModelBuilder extends PrismComponent
+{
 	/** {@code ModulesFile} to be transformed to a {@code ParamModel} */
 	private ModulesFile modulesFile;
-	/** main log to write user info to */
-	private PrismLog mainLog;
 	/** parametric model constructed from {@code modulesFile} */
 	private ParamModel model;
 	/** function factory used in the constructed parametric model */
@@ -70,6 +70,19 @@ public final class ModelBuilder {
 	private double dagMaxError;
 
 	/**
+	 * Constructor
+	 */
+	public ModelBuilder(PrismComponent parent) throws PrismException
+	{
+		super(parent);
+		// If present, initialise settings from PrismSettings
+		if (settings != null) {
+			functionType = settings.getString(PrismSettings.PRISM_PARAM_FUNCTION);
+			dagMaxError = settings.getDouble(PrismSettings.PRISM_PARAM_DAG_MAX_ERROR);
+		}
+	}
+	
+	/**
 	 * Transform PRISM expression to rational function.
 	 * If successful, a function representing the given expression will be
 	 * constructed. This is however not always possible, as not each PRISM
@@ -81,12 +94,12 @@ public final class ModelBuilder {
 	 * @return rational function representing the given PRISM expression
 	 * @throws PrismException thrown if {@code expr} cannot be represented as rational function
 	 */
-	Function expr2function(FunctionFactory factory, Expression expr) throws PrismException {
+	Function expr2function(FunctionFactory factory, Expression expr) throws PrismException
+	{
 		if (expr instanceof ExpressionLiteral) {
 			String exprString = ((ExpressionLiteral) expr).getString();
 			if (exprString == null || exprString.equals("")) {
-				throw new PrismException("cannot convert from literal "
-						+ "for which no string is set");
+				throw new PrismException("cannot convert from literal " + "for which no string is set");
 			}
 			return factory.fromBigRational(new BigRational(exprString));
 		} else if (expr instanceof ExpressionConstant) {
@@ -116,8 +129,7 @@ public final class ModelBuilder {
 			case ExpressionBinaryOp.DIVIDE:
 				return f1.divide(f2);
 			default:
-				throw new PrismException("parametric analysis with rate/probability of " + expr
-						+ " not implemented");
+				throw new PrismException("parametric analysis with rate/probability of " + expr + " not implemented");
 			}
 		} else if (expr instanceof ExpressionUnaryOp) {
 			ExpressionUnaryOp unExpr = ((ExpressionUnaryOp) expr);
@@ -128,17 +140,15 @@ public final class ModelBuilder {
 			case ExpressionUnaryOp.PARENTH:
 				return f;
 			default:
-				throw new PrismException("parametric analysis with rate/probability of " + expr
-						+ " not implemented");
-			}			
+				throw new PrismException("parametric analysis with rate/probability of " + expr + " not implemented");
+			}
 		} else {
-			throw new PrismException("parametric analysis with rate/probability of " + expr
-					+ " not implemented");
+			throw new PrismException("parametric analysis with rate/probability of " + expr + " not implemented");
 		}
 	}
-	
+
 	// setters and getters
-	
+
 	/**
 	 * Set modules file to be transformed to parametric Markov model.
 	 * 
@@ -148,17 +158,7 @@ public final class ModelBuilder {
 	{
 		this.modulesFile = modulesFile;
 	}
-	
-	/**
-	 * Set PRISM main log to write user info to.
-	 * 
-	 * @param mainLog PRISM main log to write user info to
-	 */
-	public void setMainLong(PrismLog mainLog)
-	{
-		this.mainLog = mainLog;
-	}
-	
+
 	/**
 	 * Set parameter informations.
 	 * Obviously, all of {@code paramNames}, {@code lower}, {@code} upper
@@ -169,7 +169,8 @@ public final class ModelBuilder {
 	 * @param lower lower bounds of parameters
 	 * @param upper upper bounds of parameters
 	 */
-	public void setParameters(String[] paramNames, String[] lower, String[] upper) {
+	public void setParameters(String[] paramNames, String[] lower, String[] upper)
+	{
 		this.paramNames = paramNames;
 		this.lower = new BigRational[lower.length];
 		this.upper = new BigRational[upper.length];
@@ -178,7 +179,7 @@ public final class ModelBuilder {
 			this.upper[param] = new BigRational(upper[param]);
 		}
 	}
-	
+
 	/**
 	 * Construct parametric Markov model.
 	 * For this to work, module file, PRISM log, etc. must have been set
@@ -193,7 +194,7 @@ public final class ModelBuilder {
 		} else if (functionType.equals("JAS-cached")) {
 			functionFactory = new CachedFunctionFactory(new JasFunctionFactory(paramNames, lower, upper));
 		} else if (functionType.equals("DAG")) {
-			functionFactory = new DagFunctionFactory(paramNames,  lower,  upper, dagMaxError, false);
+			functionFactory = new DagFunctionFactory(paramNames, lower, upper, dagMaxError, false);
 		}
 		long time;
 
@@ -212,7 +213,7 @@ public final class ModelBuilder {
 		mainLog.println("\nTime for model construction: " + time / 1000.0 + " seconds.");
 		model = modelExpl;
 	}
-	
+
 	/**
 	 * Returns the constructed parametric Markov model.
 	 * 
@@ -222,7 +223,7 @@ public final class ModelBuilder {
 	{
 		return model;
 	}
-	
+
 	/**
 	 * Reserves memory needed for parametric model and reserves necessary space.
 	 * Afterwards, transition probabilities etc. can be added. 
@@ -235,13 +236,13 @@ public final class ModelBuilder {
 	 * @throws PrismException thrown if problems in underlying methods occur
 	 */
 	private void reserveMemoryAndExploreStates(ModulesFile modulesFile, ParamModel model, ModelType modelType, SymbolicEngine engine, StateStorage<State> states)
-	throws PrismException
+			throws PrismException
 	{
 		boolean isNonDet = modelType == ModelType.MDP;
 		int numStates = 0;
 		int numTotalChoices = 0;
 		int numTotalSuccessors = 0;
-		
+
 		LinkedList<State> explore = new LinkedList<State>();
 
 		State state = modulesFile.getDefaultInitialState();
@@ -262,7 +263,7 @@ public final class ModelBuilder {
 				int numSuccessors = tranlist.getChoice(choiceNr).size();
 				numTotalSuccessors += numSuccessors;
 				for (int succNr = 0; succNr < numSuccessors; succNr++) {
-					State stateNew = tranlist.getChoice(choiceNr).computeTarget(succNr, state); 
+					State stateNew = tranlist.getChoice(choiceNr).computeTarget(succNr, state);
 					if (states.add(stateNew)) {
 						numStates++;
 						explore.add(stateNew);
@@ -280,7 +281,7 @@ public final class ModelBuilder {
 
 		model.reserveMem(numStates, numTotalChoices, numTotalSuccessors);
 	}
-	
+
 	/**
 	 * Construct model once function factory etc. has been allocated.
 	 * 
@@ -350,7 +351,7 @@ public final class ModelBuilder {
 			for (int choiceNr = 0; choiceNr < numChoices; choiceNr++) {
 				ChoiceListFlexi choice = tranlist.getChoice(choiceNr);
 				int a = tranlist.getTransitionModuleOrActionIndex(tranlist.getTotalIndexOfTransition(choiceNr, 0));
-				String action =  a < 0 ? null : modulesFile.getSynch(a - 1);
+				String action = a < 0 ? null : modulesFile.getSynch(a - 1);
 				int numSuccessors = choice.size();
 				for (int succNr = 0; succNr < numSuccessors; succNr++) {
 					ChoiceListFlexi succ = tranlist.getChoice(choiceNr);
@@ -380,21 +381,10 @@ public final class ModelBuilder {
 			stateNr++;
 		}
 		model.setFunctionFactory(functionFactory);
-		
+
 		mainLog.print("Reachable states exploration and model construction");
 		mainLog.println(" done in " + ((System.currentTimeMillis() - timer) / 1000.0) + " secs.");
-		
-		return model;
-	}
 
-	/**
-	 * Sets information from PRISM setting relevant to construct parametric model.
-	 * This involves, for instance, the type of function representation. 
-	 * 
-	 * @param settings PRISM setting relevant to construct parametric model
-	 */
-	public void setSettings(PrismSettings settings) {
-		functionType = settings.getString(PrismSettings.PRISM_PARAM_FUNCTION);
-		dagMaxError = settings.getDouble(PrismSettings.PRISM_PARAM_DAG_MAX_ERROR);
+		return model;
 	}
 }
