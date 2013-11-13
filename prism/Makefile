@@ -444,9 +444,9 @@ dist_copy:
 	fi
 
 dist_bin_copy:
-	@if [ "$(BINDISTSUFFIX)" = "win" ]; then \
+	@if [ "$(BINDISTSUFFIX)" = "win32" -o "$(BINDISTSUFFIX)" = "win64" ]; then \
 		echo Building NSIS Windows installer...	&& \
-		makensis /NOCD /DPRISM_NAME="PRISM $(VERSION)" /DPRISM_BUILD="prism-$(VERSION)" /DPRISM_DIR="" src/nsis_script.nsi; \
+		makensis /NOCD /DPRISM_NAME="PRISM $(VERSION)" /DPRISM_BUILD="prism-$(VERSION)" /DPRISM_BINDISTSUFFIX="$(BINDISTSUFFIX)" /DPRISM_DIR="" src/nsis_script.nsi; \
 	else \
 		BIN_DIST_DIR=`/bin/pwd | sed 's/-src$$//'`"-$(BINDISTSUFFIX)" && \
 		BIN_DIST_DIR_NAME=`basename $$BIN_DIST_DIR` && \

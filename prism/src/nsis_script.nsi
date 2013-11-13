@@ -2,13 +2,15 @@
 
 ; You should always call makensis in the following way:
 ;
-; > makensis /NOCD /DPRISM_NAME="PRISM X.y" /DPRISM_BUILD="prism-X.y" 
-;	/DPRISM_DIR="" installer_script.nsi
+; > makensis /NOCD /DPRISM_NAME="PRISM X.y" /DPRISM_BUILD="prism-X.y"
+;   /DPRISM_BINDISTSUFFIX="winXX" /DPRISM_DIR="" installer_script.nsi
 ;
-; Where "PRISM X.y" is the name of the program displayed to the user, prism-3.0
-; is the name of the build (no spaces). The PRISM_DIR variable should be set
-; to "" if the working directory is the prism directory or to the prism 
-; directory otherwise (ending with `\').
+; where:
+; * PRISM X.y" is the name of the program displayed to the user
+; * prism-3.0 is the4 name of the build (no spaces)
+; * winXX is win32 or win6
+; The PRISM_DIR variable should be set to "" if the working directory
+; is the prism directory or to the prism directory otherwise (ending with `\').
 
 # --------------------------------------------------------------------------- #
 
@@ -23,7 +25,7 @@ UninstPage instfiles
 # --------------------------------------------------------------------------- #
 
 Name            "${PRISM_NAME}"
-OutFile         "..\${PRISM_BUILD}-win-installer.exe"
+OutFile         "..\${PRISM_BUILD}-${PRISM_BINDISTSUFFIX}-installer.exe"
 
 CRCCheck        on
 
