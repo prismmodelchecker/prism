@@ -2,6 +2,7 @@ This file contains details of the changes in each new version of PRISM.
 
 New since last release:
 
+* Fixed building on new versions of Cygwin (Windows)
 * Export steady-state/transient probabilities from GUI
 * Additional graph zoom functionality on popup menu
 * Added R[C<=k] operator for MDPs (sparse, explicit)
