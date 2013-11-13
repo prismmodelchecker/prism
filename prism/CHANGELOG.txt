@@ -2,27 +2,32 @@ This file contains details of the changes in each new version of PRISM.
 
 New since last release:
 
-* Fixed building on new versions of Cygwin (Windows)
-* Export steady-state/transient probabilities from GUI
-* Additional graph zoom functionality on popup menu
-* Added R[C<=k] operator for MDPs (sparse, explicit)
-* Additional functionality in explicit engine
-  - export BSCCs, some LTL
-* New -exportmecs and -exportsccs switches
-* New -sumroundoff switch (used when checking probabilities sum to 1)
-* Update CUDD to version 2.5.0
-* Strategy generation:
-  - improvements in explicit engine implementation
-  - new -exportstrat switch, in development
-* Integer variables can be unbounded (e.g. "x:int;"), for simulation only
-* Small improvements to usability of the GUI simulator transition table
-* Slight change to notation for -exportresults to match -exportmodel
-* Some new '-help xxx' switches (const,simpath,exportresults,aroptions,exportmodel,importmodel)
-* New -exportmodel and -importmodel convenience switches
-* Allow command-line switches of form --sw (as well as -sw)
 * Parametric model checking
-* Fast adaptive uniformisation
-* Export/view labels from GUI
+
+* New model checking and export functionality
+  - fast adaptive uniformisation for CTMC transient analysis
+  - added R[C<=k] operator for MDPs (sparse, explicit)
+  - new -exportmecs and -exportsccs switches
+  - additional functionality in explicit engine (export BSCCs, LTL)
+  - improved adversary.strategy generation in explicit engine
+  - integer variables can be unbounded (e.g. "x:int;"), for simulation-based analysis
+
+* New options/switches:
+  - new -exportmodel and -importmodel convenience switches
+  - new -sumroundoff switch (used when checking probabilities sum to 1)
+  - some new '-help xxx' switches (const,simpath,exportresults,aroptions,exportmodel,importmodel)
+  - allow command-line switches of form --sw (as well as -sw)
+  - slight change to notation for -exportresults to match -exportmodel
+
+* Additional functionality available in GUI:
+  - export steady-state/transient probabilities from GUI
+  - export/view labels from model/properties from GUI
+  - small improvements to usability of the GUI simulator transition table
+  - additional graph zoom functionality on popup menu
+
+* Updates to build process
+  - fixed building on new versions of Cygwin (Windows)
+  - update CUDD to version 2.5.0
 
 -----------------------------------------------------------------------------
 Version 4.1 (first released 20/12/2012)
