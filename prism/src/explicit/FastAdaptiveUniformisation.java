@@ -119,7 +119,6 @@ public class FastAdaptiveUniformisation extends PrismComponent
 			alive = true;
 			succRates = null;
 			succStates = null;
-			totalProbLoss = 0.0;
 		}
 		
 		/**
