@@ -1208,7 +1208,7 @@ public class PrismSettings implements Observer
 		else if (sw.equals("param")) {
 			set(PRISM_PARAM_ENABLED, true);
 		}
-		else if (sw.equals("param-precision")) {
+		else if (sw.equals("paramprecision")) {
 			if (i < args.length - 1) {
 				set(PRISM_PARAM_PRECISION, args[++i]);
 			} else {
