@@ -1860,7 +1860,7 @@ public class PrismCL implements PrismModelListener
 
 	// do some processing of the options
 
-	private void processOptions()
+	private void processOptions() throws PrismException
 	{
 		int j;
 
@@ -1920,6 +1920,8 @@ public class PrismCL implements PrismModelListener
 					paramNames[pdNr] = paramDefSplit[0];
 					paramDefSplit[1] = paramDefSplit[1].trim();
 					String[] upperLower = paramDefSplit[1].split(":");
+					if (upperLower.length != 2)
+						throw new PrismException("Invalid range \"" + paramDefSplit[1] + "\" for parameter " + paramNames[pdNr]);
 					paramLowerBounds[pdNr] = upperLower[0].trim();
 					paramUpperBounds[pdNr] = upperLower[1].trim();
 				}

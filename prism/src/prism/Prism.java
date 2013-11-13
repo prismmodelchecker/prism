@@ -2884,9 +2884,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public Result modelCheckParametric(PropertiesFile propertiesFile, Property prop, String[] paramNames, String[] paramLowerBounds, String[] paramUpperBounds)
 			throws PrismException
 	{
+		// Some checks
 		if (paramNames == null) {
 			throw new PrismException("Must specify some parameters when using " + "the parametric analysis");
 		}
+		if (!(currentModelType == ModelType.DTMC || currentModelType == ModelType.CTMC || currentModelType == ModelType.MDP))
+			throw new PrismException("Parametric model checking is only supported for DTMCs, CTMCs and MDPs");
 
 		Values definedPFConstants = propertiesFile.getConstantValues();
 		Values constlist = currentModulesFile.getConstantValues();
