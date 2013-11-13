@@ -113,12 +113,12 @@ public class FastAdaptiveUniformisation extends PrismComponent
 		{
 			prob = 0.0;
 			nextProb = 0.0;
-			prob = 0.0;
+			sum = 0.0;
 			reward = 0.0;
-			references = 0;
-			alive = true;
 			succRates = null;
 			succStates = null;
+			references = 0;
+			alive = true;
 		}
 		
 		/**
