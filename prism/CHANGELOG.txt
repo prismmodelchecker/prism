@@ -9,7 +9,7 @@ New since last release:
   - added R[C<=k] operator for MDPs (sparse, explicit)
   - new -exportmecs and -exportsccs switches
   - additional functionality in explicit engine (export BSCCs, LTL)
-  - improved adversary.strategy generation in explicit engine
+  - improved adversary strategy generation in explicit engine
   - integer variables can be unbounded (e.g. "x:int;"), for simulation-based analysis
 
 * New options/switches:
