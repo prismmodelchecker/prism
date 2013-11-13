@@ -382,6 +382,8 @@ public final class ModelBuilder extends PrismComponent
 		}
 		model.setFunctionFactory(functionFactory);
 
+		mainLog.println();
+		
 		mainLog.print("Reachable states exploration and model construction");
 		mainLog.println(" done in " + ((System.currentTimeMillis() - timer) / 1000.0) + " secs.");
 

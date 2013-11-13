@@ -265,10 +265,20 @@ final public class ParamModelChecker extends PrismComponent
 		RegionValues vals = checkExpression(paramModel, expr, needStates);
 		timer = System.currentTimeMillis() - timer;
 		mainLog.println("\nTime for model checking: " + timer / 1000.0 + " seconds.");
+
+		// Store result
 		result = new Result();
 		vals.clearExceptInit();
 		result.setResult(vals);
-		mainLog.println(result);
+		
+		// Print result to log
+		String resultString = "Result";
+		if (!("Result".equals(expr.getResultName())))
+			resultString += " (" + expr.getResultName().toLowerCase() + ")";
+		resultString += ": " + result.getResultString();
+		mainLog.print("\n" + resultString);
+		
+		/* // Output plot to tex file
 		if (paramLower.length == 2) {
 			try {
 				FileOutputStream file = new FileOutputStream("out.tex");
@@ -281,7 +291,7 @@ final public class ParamModelChecker extends PrismComponent
 			} catch (Exception e) {
 				throw new PrismException("file could not be written");
 			}
-		}
+		}*/
 		
 		return result;
 	}

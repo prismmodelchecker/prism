@@ -2887,10 +2887,21 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (paramNames == null) {
 			throw new PrismException("Must specify some parameters when using " + "the parametric analysis");
 		}
+
+		Values definedPFConstants = propertiesFile.getConstantValues();
 		Values constlist = currentModulesFile.getConstantValues();
 		for (int pnr = 0; pnr < paramNames.length; pnr++) {
 			constlist.removeValue(paramNames[pnr]);
 		}
+
+		// Print info
+		mainLog.printSeparator();
+		mainLog.println("\nParametric model checking: " + prop);
+		if (currentDefinedMFConstants != null && currentDefinedMFConstants.getNumValues() > 0)
+			mainLog.println("Model constants: " + currentDefinedMFConstants);
+		if (definedPFConstants != null && definedPFConstants.getNumValues() > 0)
+			mainLog.println("Property constants: " + definedPFConstants);
+
 		param.ModelBuilder builder = new ModelBuilder(this);
 		builder.setModulesFile(currentModulesFile);
 		builder.setParameters(paramNames, paramLowerBounds, paramUpperBounds);
