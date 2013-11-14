@@ -88,7 +88,7 @@ public class IntegerVector
 	}
 	
 	/**
-	 * Create a new DoubleVector from an existing MTBDD representation of an array.
+	 * Create a new IntegerVector from an existing MTBDD representation of an array.
 	 */
 	public IntegerVector(JDDNode dd, JDDVars vars, ODDNode odd)
 	{
