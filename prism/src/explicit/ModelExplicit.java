@@ -258,17 +258,25 @@ public abstract class ModelExplicit implements Model
 	@Override
 	public void exportToPrismExplicitTra(String filename) throws PrismException
 	{
-		exportToPrismExplicitTra(new PrismFileLog(filename));
+		PrismLog tmpLog = new PrismFileLog(filename);
+		if (!tmpLog.ready()) {
+			throw new PrismException("Could not open file \"" + filename + "\" for output");
+		}
+		exportToPrismExplicitTra(tmpLog);
 	}
 
 	@Override
 	public void exportToPrismExplicitTra(File file) throws PrismException
 	{
+		PrismLog tmpLog = new PrismFileLog(file.getPath());
+		if (!tmpLog.ready()) {
+			throw new PrismException("Could not open file \"" + file + "\" for output");
+		}
 		exportToPrismExplicitTra(new PrismFileLog(file.getPath()));
 	}
 
 	@Override
-	public abstract void exportToPrismExplicitTra(PrismLog out) throws PrismException;
+	public abstract void exportToPrismExplicitTra(PrismLog out);
 
 	@Override
 	public void exportToDotFile(String filename) throws PrismException

@@ -45,6 +45,16 @@ public interface Strategy
 	public void exportActions(PrismLog out);
 	
 	/**
+	 * Export the strategy to a PrismLog, displaying strategy choices as indices.
+	 */
+	public void exportIndices(PrismLog out);
+	
+	/**
+	 * Export the model induced by this strategy to a PrismLog.
+	 */
+	public void exportInducedModel(PrismLog out);
+	
+	/**
 	 * Initialise the strategy, based on an initial model state.
 	 * @param s Initial state of the model
 	 */

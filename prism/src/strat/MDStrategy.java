@@ -45,6 +45,11 @@ public abstract class MDStrategy implements Strategy
 	public abstract int getNumStates();
 
 	/**
+	 * Is choice information stored for state s?
+	 */
+	public abstract boolean isChoiceDefined(int s);
+
+	/**
 	 * Get the type of choice information stored for state s.
 	 */
 	public abstract Strategy.Choice getChoice(int s);
@@ -86,9 +91,18 @@ public abstract class MDStrategy implements Strategy
 	{
 		int n = getNumStates();
 		for (int s = 0; s < n; s++) {
-			// Only print actions for reachable states
-			if (getChoice(s) != Choice.UNREACHABLE)
+			if (isChoiceDefined(s))
 				out.println(s + ":" + getChoiceAction(s));
+		}
+	}
+
+	@Override
+	public void exportIndices(PrismLog out)
+	{
+		int n = getNumStates();
+		for (int s = 0; s < n; s++) {
+			if (isChoiceDefined(s))
+				out.println(s + ":" + getChoiceIndex(s));
 		}
 	}
 }

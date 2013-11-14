@@ -153,6 +153,24 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public static final int LOCKSTEP = 2;
 	public static final int SCCFIND = 3;
 
+	// Options for type of strategy export
+	public enum StrategyExportType {
+		ACTIONS, INDICES, INDUCED_MODEL;
+		public String description()
+		{
+			switch (this) {
+			case ACTIONS:
+				return "as actions";
+			case INDICES:
+				return "as indices";
+			case INDUCED_MODEL:
+				return "as an induced model";
+			default:
+				return this.toString();
+			}
+		}
+	}
+	
 	//------------------------------------------------------------------------------
 	// Settings / flags / options
 	//------------------------------------------------------------------------------
@@ -2918,27 +2936,34 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 	
 	/**
-	 * Export a strategy (for the currently loaded model);
-	 * TODO: is it necessarily loaded?
+	 * Export a strategy. The associated model should be attached to the strategy.
+	 * Strictly, speaking that does not need to be the currently loaded model,
+	 * but it would probably have been discarded if that was not the case.
 	 * @param strat The strategy
+	 * @param exportType The type of output
 	 * @param file File to output the path to (stdout if null)
 	 */
-	public void exportStrategy(Strategy strat, File file) throws FileNotFoundException, PrismException
+	public void exportStrategy(Strategy strat, StrategyExportType exportType, File file) throws FileNotFoundException, PrismException
 	{
 		PrismLog tmpLog;
 
 		// Print message
-		mainLog.print("\nExporting strategy ");
-		//mainLog.print(getStringForExportType(exportType) + " ");
+		mainLog.print("\nExporting strategy " + exportType.description() + " ");
 		mainLog.println(getDestinationStringForFile(file));
 
-		// Create new file log or use main log
+		// Export to file (or use main log)
 		tmpLog = getPrismLogForFile(file);
-
-		// Export
-		strat.exportActions(tmpLog);
-
-		// Tidy up
+		switch (exportType) {
+		case ACTIONS:
+			strat.exportActions(tmpLog);
+			break;
+		case INDICES:
+			strat.exportIndices(tmpLog);
+			break;
+		case INDUCED_MODEL:
+			strat.exportInducedModel(tmpLog);
+			break;
+		}
 		if (file != null)
 			tmpLog.close();
 	}

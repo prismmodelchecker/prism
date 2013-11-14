@@ -185,7 +185,7 @@ public interface Model
 	/**
 	 * Export transition matrix to explicit format readable by PRISM (i.e. a .tra file).
 	 */
-	public void exportToPrismExplicitTra(PrismLog log) throws PrismException;
+	public void exportToPrismExplicitTra(PrismLog log);
 	
 	/**
 	 * Export to a dot file.

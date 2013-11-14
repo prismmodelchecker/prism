@@ -72,7 +72,7 @@ public abstract class DTMCExplicit extends ModelExplicit implements DTMC
 	}
 	
 	@Override
-	public void exportToPrismExplicitTra(PrismLog out) throws PrismException
+	public void exportToPrismExplicitTra(PrismLog out)
 	{
 		int i;
 		TreeMap<Integer, Double> sorted;

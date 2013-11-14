@@ -30,6 +30,8 @@ import java.util.BitSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import strat.MDStrategy;
+
 /**
  * Interface for (abstract) classes that provide (read-only) access to an explicit-state model with nondeterminism.
  */
@@ -77,4 +79,11 @@ public interface NondetModel extends Model
 	 * Get an iterator over the transitions of state s and action i.
 	 */
 	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s, int i);
+	
+	/**
+	 * Construct a model that is induced by applying strategy {@code strat} to this model.
+	 * Note that the "new" model may be just an implicit (read-only) representation. 
+	 * @param strat (Memoryless) strategy to use
+	 */
+	public Model constructInducedModel(MDStrategy strat);
 }

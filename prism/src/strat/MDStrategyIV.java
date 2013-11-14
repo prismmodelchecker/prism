@@ -29,8 +29,10 @@ package strat;
 import java.util.List;
 
 import dv.IntegerVector;
+import explicit.MDP;
 
 import prism.Model;
+import prism.PrismLog;
 import strat.Strategy.Choice;
 
 /**
@@ -66,6 +68,12 @@ public class MDStrategyIV extends MDStrategy
 	}
 	
 	@Override
+	public boolean isChoiceDefined(int s)
+	{
+		return iv.getElement(s) >= 0;
+	}
+
+	@Override
 	public Strategy.Choice getChoice(int s)
 	{
 		int c = iv.getElement(s);
@@ -95,6 +103,12 @@ public class MDStrategyIV extends MDStrategy
 	}
 	
 	// Methods for Strategy
+	
+	@Override
+	public void exportInducedModel(PrismLog out)
+	{
+		// TODO
+	}
 	
 	@Override
 	public void clear()

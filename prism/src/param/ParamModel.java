@@ -178,7 +178,7 @@ final class ParamModel extends ModelExplicit
 	}
 
 	@Override
-	public void exportToPrismExplicitTra(PrismLog log) throws PrismException
+	public void exportToPrismExplicitTra(PrismLog log)
 	{
 		throw new UnsupportedOperationException();
 	}

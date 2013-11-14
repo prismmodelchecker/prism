@@ -38,6 +38,7 @@ import parser.ast.ExpressionReward;
 import parser.ast.ModulesFile;
 import parser.ast.PropertiesFile;
 import parser.ast.Property;
+import prism.Prism.StrategyExportType;
 import simulator.GenerateSimulationPath;
 import simulator.method.ACIconfidence;
 import simulator.method.ACIiterations;
@@ -188,6 +189,9 @@ public class PrismCL implements PrismModelListener
 	private boolean simManual = false;
 	private SimulationMethod simMethod = null;
 
+	// strategy export info
+	private Prism.StrategyExportType exportStratType = StrategyExportType.ACTIONS;
+	
 	// parametric analysis info
 	private String[] paramLowerBounds = null;
 	private String[] paramUpperBounds = null;
@@ -377,7 +381,7 @@ public class PrismCL implements PrismModelListener
 						// if a strategy was generated, and we need to export it, do so
 						if (exportstrat && res.getStrategy() != null) {
 							try {
-								prism.exportStrategy(res.getStrategy(), exportStratFilename.equals("stdout") ? null : new File(exportStratFilename));
+								prism.exportStrategy(res.getStrategy(), exportStratType, exportStratFilename.equals("stdout") ? null : new File(exportStratFilename));
 							}
 							// in case of error, report it and proceed
 							catch (FileNotFoundException e) {
@@ -1806,7 +1810,19 @@ public class PrismCL implements PrismModelListener
 			// Ignore ""
 			if (opt.equals("")) {
 			}
-			// TODO: add some options
+			else if (opt.startsWith("type")) {
+				if (!opt.startsWith("type="))
+					throw new PrismException("No value provided for \"type\" option of -exportstrat");
+				String optVal = opt.substring(5);
+				if (optVal.equals("actions"))
+					exportStratType = StrategyExportType.ACTIONS;
+				else if (optVal.equals("indices"))
+					exportStratType = StrategyExportType.INDICES;
+				else if (optVal.equals("induced"))
+					exportStratType = StrategyExportType.INDUCED_MODEL;
+				else
+					throw new PrismException("Unknown value \"" + optVal + "\" provided for \"type\" option of -exportstrat");
+			}
 			// Unknown option
 			else {
 				throw new PrismException("Unknown option \"" + opt + "\" for -exportstrat switch");

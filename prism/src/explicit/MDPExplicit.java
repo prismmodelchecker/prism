@@ -38,6 +38,7 @@ import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismUtils;
+import strat.MDStrategy;
 import explicit.rewards.MDPRewards;
 
 /**
@@ -76,7 +77,7 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 	}
 
 	@Override
-	public void exportToPrismExplicitTra(PrismLog out) throws PrismException
+	public void exportToPrismExplicitTra(PrismLog out)
 	{
 		int i, j, numChoices;
 		Object action;
@@ -338,5 +339,11 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 			}
 		}*/
 		return maxDiff;
+	}
+	
+	@Override
+	public Model constructInducedModel(MDStrategy strat)
+	{
+		return new DTMCFromMDPAndMDStrategy(this, strat);
 	}
 }
