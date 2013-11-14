@@ -30,6 +30,7 @@ package explicit;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.BitSet;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -225,6 +226,26 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 		}
 	}
 
+	// Accessors (for NondetModel)
+	
+	@Override
+	public boolean areAllChoiceActionsUnique()
+	{
+		HashSet<Object> sActions = new HashSet<Object>();
+		for (int s = 0; s < numStates; s++) {
+			int n = getNumChoices(s);
+			if (n > 1) {
+				sActions.clear();
+				for (int i = 0; i < n; i++) {
+					if (!sActions.add(getAction(s, i))) {
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+	}
+
 	// Accessors (for MDP)
 
 	@Override
@@ -340,7 +361,7 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 		}*/
 		return maxDiff;
 	}
-	
+
 	@Override
 	public Model constructInducedModel(MDStrategy strat)
 	{

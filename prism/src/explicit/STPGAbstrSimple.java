@@ -488,6 +488,12 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	}
 
 	@Override
+	public boolean areAllChoiceActionsUnique()
+	{
+		throw new RuntimeException("Not implemented");
+	}
+
+	@Override
 	public boolean allSuccessorsInSet(int s, int i, BitSet set)
 	{
 		return trans.get(s).get(i).isSubsetOf(set);

@@ -31,6 +31,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -292,6 +293,12 @@ public class SubNondetModel implements NondetModel {
 		i = translateAction(s, i);
 		
 		return model.getAction(s, i);
+	}
+
+	@Override
+	public boolean areAllChoiceActionsUnique()
+	{
+		throw new RuntimeException("Not implemented");
 	}
 
 	@Override
