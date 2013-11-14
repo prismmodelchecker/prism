@@ -126,6 +126,35 @@ public class NondetModel extends ProbModel
 		return "S";
 	}
 
+	/**
+	 * Do all choices in in each state have a unique action label?
+	 */
+	public boolean areAllChoiceActionsUnique()
+	{
+		// Action labels
+		for (int i = 0; i < numSynchs; i++) {
+			JDD.Ref(transActions);
+			JDDNode tmp = JDD.Equals(transActions, i + 1);
+			tmp = JDD.SumAbstract(tmp, allDDNondetVars);
+			double max = JDD.FindMax(tmp);
+			JDD.Deref(tmp);
+			if (max > 1)
+				return false;
+		}
+		// Unlabelled choices
+		JDD.Ref(reach);
+		JDD.Ref(transActions);
+		JDD.Ref(nondetMask);
+		JDDNode tmp = JDD.And(reach, JDD.And(JDD.LessThanEquals(transActions, 0), JDD.Not(nondetMask)));
+		tmp = JDD.SumAbstract(tmp, allDDNondetVars);
+		double max = JDD.FindMax(tmp); 
+		JDD.Deref(tmp);
+		if (max > 1)
+			return false;
+		
+		return true;
+	}
+	
 	// set methods for things not set up in constructor
 
 	public void setTransInd(JDDNode transInd)
