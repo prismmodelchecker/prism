@@ -96,9 +96,8 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	bool adv_new;
 	int *adv = NULL;
 	// action info
-	int *actions;
 	jstring *action_names_jstrings;
-	const char** action_names;
+	const char** action_names = NULL;
 	int num_actions;
 	// misc
 	int i, j, k, k_r, l1, h1, l2, h2, l2_r, h2_r, iters;
@@ -142,7 +141,6 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// if needed, and if info is available, build a vector of action indices for the MDP
-	actions = NULL;
 	if (export_adv_enabled != EXPORT_ADV_NONE) {
 		if (trans_actions != NULL) {
 			PS_PrintToMainLog(env, "Building action information... ");
@@ -151,7 +149,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 			Cudd_Ref(maybe);
 			tmp = DD_Apply(ddman, APPLY_TIMES, trans_actions, maybe);
 			// then convert to a vector of integer indices
-			actions = build_nd_action_vector(ddman, a, tmp, ndsm, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
+			build_nd_action_vector(ddman, a, tmp, ndsm, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
 			Cudd_RecursiveDeref(ddman, tmp);
 			kb = n*4.0/1024.0;
 			kbt += kb;
@@ -366,7 +364,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 						case EXPORT_ADV_MDP:
 							fprintf(fp_adv, "%d 0 %d %g", i, cols[k], non_zeros[k]); break;
 						}
-						if (actions != NULL) fprintf(fp_adv, " %s", actions[j]>0?action_names[actions[j]-1]:"");
+						if (ndsm->actions != NULL) fprintf(fp_adv, " %s", ndsm->actions[j]>0?action_names[ndsm->actions[j]-1]:"");
 						fprintf(fp_adv, "\n");
 					}
 				}
@@ -408,8 +406,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	if (sr_vec) delete[] sr_vec;
 	if (soln2) delete[] soln2;
 	if (adv) delete[] adv;
-	if (actions != NULL) {
-		delete[] actions;
+	if (action_names != NULL) {
 		release_string_array_from_java(env, action_names_jstrings, action_names, num_actions);
 	}
 	

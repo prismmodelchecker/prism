@@ -92,9 +92,8 @@ jlong _strat				// strategy storage
 	bool adv_new;
 	int *adv = NULL;
 	// action info
-	int *actions;
 	jstring *action_names_jstrings;
-	const char** action_names;
+	const char** action_names = NULL;
 	int num_actions;
 	// misc
 	int i, j, k, l1, h1, l2, h2, iters;
@@ -140,7 +139,6 @@ jlong _strat				// strategy storage
 	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// if needed, and if info is available, build a vector of action indices for the MDP
-	actions = NULL;
 	if (export_adv_enabled != EXPORT_ADV_NONE || strat != NULL) {
 		if (trans_actions != NULL) {
 			PS_PrintToMainLog(env, "Building action information... ");
@@ -149,7 +147,7 @@ jlong _strat				// strategy storage
 			Cudd_Ref(maybe);
 			tmp = DD_Apply(ddman, APPLY_TIMES, trans_actions, maybe);
 			// then convert to a vector of integer indices
-			actions = build_nd_action_vector(ddman, a, tmp, ndsm, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
+			build_nd_action_vector(ddman, a, tmp, ndsm, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
 			Cudd_RecursiveDeref(ddman, tmp);
 			kb = n*4.0/1024.0;
 			kbt += kb;
@@ -323,7 +321,7 @@ jlong _strat				// strategy storage
 						case EXPORT_ADV_MDP:
 							fprintf(fp_adv, "%d 0 %d %g", i, cols[k], non_zeros[k]); break;
 						}
-						if (actions != NULL) fprintf(fp_adv, " %s", actions[j]>0?action_names[actions[j]-1]:"");
+						if (ndsm->actions != NULL) fprintf(fp_adv, " %s", ndsm->actions[j]>0?action_names[ndsm->actions[j]-1]:"");
 						fprintf(fp_adv, "\n");
 					}
 				}
@@ -351,7 +349,7 @@ jlong _strat				// strategy storage
 	// convert strategy indices from choices to actions
 	if (strat != NULL) {
 		for (i = 0; i < n; i++) {
-			if (adv[i] > 0) strat[i] = actions[adv[i]] - 1;
+			if (adv[i] > 0) strat[i] = ndsm->actions[adv[i]] - 1;
 		}
 	}
 	
@@ -368,8 +366,7 @@ jlong _strat				// strategy storage
 	if (yes_vec) delete[] yes_vec;
 	if (soln2) delete[] soln2;
 	if (strat == NULL && adv) delete[] adv;
-	if (actions != NULL) {
-		delete[] actions;
+	if (action_names != NULL) {
 		release_string_array_from_java(env, action_names_jstrings, action_names, num_actions);
 	}
 	

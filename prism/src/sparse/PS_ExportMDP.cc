@@ -67,7 +67,6 @@ jstring fn		// filename
 	// sparse matrix
 	NDSparseMatrix *ndsm = NULL;
 	// action info
-	int *actions = NULL;
 	jstring *action_names_jstrings = NULL;
 	const char** action_names = NULL;
 	int num_actions;
@@ -92,7 +91,7 @@ jstring fn		// filename
 	// if needed, and if info is available, build a vector of action indices for the mdp
 	// also extract list of action names
 	if (true && trans_actions != NULL) {
-		actions = build_nd_action_vector(ddman, mdp, trans_actions, ndsm, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
+		build_nd_action_vector(ddman, mdp, trans_actions, ndsm, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
 		get_string_array_from_java(env, synchs, action_names_jstrings, action_names, num_actions);
 	}
 	
@@ -113,6 +112,7 @@ jstring fn		// filename
 	int *choice_starts = (int *)ndsm->choice_counts;
 	bool use_counts = ndsm->use_counts;
 	unsigned int *cols = ndsm->cols;
+	int *actions = ndsm->actions;
 	// then traverse data structure
 	h1 = h2 = 0;
 	for (i = 0; i < n; i++) {

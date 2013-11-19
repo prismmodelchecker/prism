@@ -290,6 +290,26 @@ JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1FreeGlobalRefs(JNIEnv *env, j
 // Sparse matrix
 //------------------------------------------------------------------------------
 
+JNIEXPORT jint JNICALL Java_sparse_NDSparseMatrix_PS_1NDGetActionIndex
+(JNIEnv *env, jclass cls,
+ jlong __jlongpointer _ndsm, // NDSparseMatrix ptr
+ jint __jlongpointer s, // state index
+ jint __jlongpointer i // choice index
+ )
+{
+    NDSparseMatrix * ndsm = (NDSparseMatrix *) jlong_to_NDSparseMatrix(_ndsm);
+	bool use_counts = ndsm->use_counts;
+	int *row_starts = (int *)ndsm->row_counts;
+	unsigned char *row_counts = ndsm->row_counts;
+	
+	int l1 = 0;
+	if (!use_counts) { l1 = row_starts[s]; }
+	else { for (int i = 0; i < s; i++) l1 += row_counts[i]; }
+	return ndsm->actions[l1];
+}
+
+//------------------------------------------------------------------------------
+
 JNIEXPORT jlong __jlongpointer JNICALL Java_sparse_NDSparseMatrix_PS_1BuildNDSparseMatrix
 (JNIEnv *env, jclass cls,
  jlong __jlongpointer t,    // trans
@@ -314,6 +334,8 @@ JNIEXPORT jlong __jlongpointer JNICALL Java_sparse_NDSparseMatrix_PS_1BuildNDSpa
     
     return ptr_to_jlong(ndsm);
 }
+
+//------------------------------------------------------------------------------
 
 JNIEXPORT jlong __jlongpointer JNICALL Java_sparse_NDSparseMatrix_PS_1BuildSubNDSparseMatrix
 (JNIEnv *env, jclass cls,
@@ -341,6 +363,8 @@ JNIEXPORT jlong __jlongpointer JNICALL Java_sparse_NDSparseMatrix_PS_1BuildSubND
     
     return ptr_to_jlong(ndsm);
 }
+
+//------------------------------------------------------------------------------
 
 JNIEXPORT void __jlongpointer JNICALL Java_sparse_NDSparseMatrix_PS_1DeleteNDSparseMatrix
 (JNIEnv *env, jclass cls,

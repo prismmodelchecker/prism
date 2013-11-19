@@ -162,6 +162,8 @@ struct NDSparseMatrix
 	unsigned char *row_counts;
 	unsigned char *choice_counts;
 	
+	int *actions; // indices for actions of each choice
+	
 	EXPORT NDSparseMatrix();
 	EXPORT ~NDSparseMatrix();
 };
@@ -175,7 +177,7 @@ CMSRSparseMatrix *build_cmsr_sparse_matrix(DdManager *ddman, DdNode *matrix, DdN
 CMSCSparseMatrix *build_cmsc_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode **rvars, DdNode **cvars, int num_vars, ODDNode *odd);
 NDSparseMatrix *build_nd_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode **rvars, DdNode **cvars, int num_vars, DdNode **ndvars, int num_ndvars, ODDNode *odd);
 NDSparseMatrix *build_sub_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode *submdp, DdNode **rvars, DdNode **cvars, int num_vars, DdNode **ndvars, int num_ndvars, ODDNode *odd);
-int *build_nd_action_vector(DdManager *ddman, DdNode *mdp, DdNode *trans_actions, NDSparseMatrix *mdp_ndsm, DdNode **rvars, DdNode **cvars, int num_vars, DdNode **ndvars, int num_ndvars, ODDNode *odd);
+void build_nd_action_vector(DdManager *ddman, DdNode *mdp, DdNode *trans_actions, NDSparseMatrix *mdp_ndsm, DdNode **rvars, DdNode **cvars, int num_vars, DdNode **ndvars, int num_ndvars, ODDNode *odd);
 
 RMSparseMatrix *build_rm_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode **rvars, DdNode **cvars, int num_vars, ODDNode *odd, bool transpose);
 CMSparseMatrix *build_cm_sparse_matrix(DdManager *ddman, DdNode *matrix, DdNode **rvars, DdNode **cvars, int num_vars, ODDNode *odd, bool transpose);

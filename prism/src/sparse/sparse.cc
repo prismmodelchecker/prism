@@ -173,6 +173,7 @@ EXPORT NDSparseMatrix::NDSparseMatrix()
 	cols = NULL;
 	row_counts = NULL;
 	choice_counts = NULL;
+	actions = NULL;
 }
 
 EXPORT NDSparseMatrix::~NDSparseMatrix()
@@ -181,6 +182,7 @@ EXPORT NDSparseMatrix::~NDSparseMatrix()
 	if (cols) delete[] cols;
 	if (row_counts) delete[] row_counts;
 	if (choice_counts) delete[] choice_counts;
+	if (actions) delete[] actions;
 }
 
 //------------------------------------------------------------------------------
@@ -837,10 +839,10 @@ NDSparseMatrix *build_sub_nd_sparse_matrix(DdManager *ddman, DdNode *mdp, DdNode
 
 // build nondeterministic (mdp) action vector to accompany a sparse matrix
 // (i.e. a vector containing for every state and nondet choice, an index
-//  into the list of all action labels)
+//  into the list of all action labels). store it in the 'actions' field.
 // throws std::bad_alloc on out-of-memory
 
-int *build_nd_action_vector(DdManager *ddman, DdNode *mdp, DdNode *trans_actions, NDSparseMatrix *mdp_ndsm, DdNode **rvars, DdNode **cvars, int num_vars, DdNode **ndvars, int num_ndvars, ODDNode *odd)
+void build_nd_action_vector(DdManager *ddman, DdNode *mdp, DdNode *trans_actions, NDSparseMatrix *mdp_ndsm, DdNode **rvars, DdNode **cvars, int num_vars, DdNode **ndvars, int num_ndvars, ODDNode *odd)
 {
 	int i, n, nm, nc;
 	DdNode *tmp = NULL, **matrices = NULL, **submatrices = NULL, **matrices_bdds = NULL;
@@ -922,7 +924,7 @@ int *build_nd_action_vector(DdManager *ddman, DdNode *mdp, DdNode *trans_actions
 	delete[] submatrices;
 	delete[] matrices_bdds;
 	
-	return actions;
+	ndsm->actions = actions;
 }
 
 //------------------------------------------------------------------------------

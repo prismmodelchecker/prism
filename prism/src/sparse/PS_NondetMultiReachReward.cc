@@ -97,9 +97,8 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
   // sparse matrix
   NDSparseMatrix *ndsm = NULL, *ndsm_r = NULL;
   // action info
-  int *actions;
   jstring *action_names_jstrings;
-  const char** action_names;
+  const char** action_names = NULL;
   int num_actions;
   // vectors
   double **yes_vecs, *maybe_vec = NULL, *bottomec_vec = NULL/*, *maybe_vec_r = NULL*/;
@@ -216,7 +215,6 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
     PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 
     // If needed, and if info is available, build a vector of action indices for the MDP
-    actions = NULL;
     if (export_adv != EXPORT_ADV_NONE) {
       if (trans_actions != NULL) {
         PS_PrintToMainLog(env, "Building action information... ");
@@ -227,7 +225,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
         Cudd_Ref(loops);
         tmp = DD_ITE(ddman, loops, DD_Constant(ddman, 0), tmp);
         // then convert to a vector of integer indices
-        actions = build_nd_action_vector(ddman, a, tmp, ndsm, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
+        build_nd_action_vector(ddman, a, tmp, ndsm, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
         Cudd_RecursiveDeref(ddman, tmp);
         kb = n*4.0/1024.0;
         kbt += kb;
@@ -704,8 +702,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
   //if (rewards)
   //  for(i = 0; i<num_rewards; i++)
   //    Cudd_RecursiveDeref(ddman, rewards[i]);
-  if (actions != NULL) {
-    delete[] actions;
+  if (action_names != NULL) {
     release_string_array_from_java(env, action_names_jstrings, action_names, num_actions);
   }
 

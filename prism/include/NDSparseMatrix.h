@@ -9,6 +9,14 @@ extern "C" {
 #endif
 /*
  * Class:     sparse_NDSparseMatrix
+ * Method:    PS_NDGetActionIndex
+ * Signature: (JII)I
+ */
+JNIEXPORT jint JNICALL Java_sparse_NDSparseMatrix_PS_1NDGetActionIndex
+  (JNIEnv *, jclass, jlong, jint, jint);
+
+/*
+ * Class:     sparse_NDSparseMatrix
  * Method:    PS_BuildNDSparseMatrix
  * Signature: (JJJIJIJI)J
  */

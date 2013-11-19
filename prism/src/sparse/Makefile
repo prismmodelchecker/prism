@@ -39,7 +39,7 @@ O_FILES = $(CC_FILES:%.cc=$(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/%.o)
 
 default: all
 
-all: checks $(CLASS_FILES) $(PRISM_DIR_REL)/$(INCLUDE_DIR)/PrismSparse.h $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)prismsparse$(LIBSUFFIX)
+all: checks $(CLASS_FILES) $(PRISM_DIR_REL)/$(INCLUDE_DIR)/PrismSparse.h $(PRISM_DIR_REL)/$(INCLUDE_DIR)/NDSparseMatrix.h $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)prismsparse$(LIBSUFFIX)
 
 # Try and prevent accidental makes (i.e. called manually, not from top-level Makefile)
 checks:
@@ -52,6 +52,12 @@ $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class: %.java
 
 $(PRISM_DIR_REL)/$(INCLUDE_DIR)/PrismSparse.h: $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/PrismSparse.class
 	($(JAVAH) -classpath $(PRISM_DIR_REL)/$(CLASSES_DIR) -jni -o $@ $(THIS_DIR).PrismSparse; touch $@)
+	@if [ "$(LIBSUFFIX)" = ".dll" ]; then \
+	  (dos2unix $@) \
+	fi; 
+
+$(PRISM_DIR_REL)/$(INCLUDE_DIR)/NDSparseMatrix.h: $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/NDSparseMatrix.class
+	($(JAVAH) -classpath $(PRISM_DIR_REL)/$(CLASSES_DIR) -jni -o $@ $(THIS_DIR).NDSparseMatrix; touch $@)
 	@if [ "$(LIBSUFFIX)" = ".dll" ]; then \
 	  (dos2unix $@) \
 	fi; 

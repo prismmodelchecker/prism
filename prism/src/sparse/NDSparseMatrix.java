@@ -32,58 +32,80 @@ import odd.ODDNode;
 import prism.PrismException;
 
 /**
- * A wrapper class around a native sparse matrix.
+ * A wrapper class around a native sparse representation of an MDP.
  */
-public class NDSparseMatrix 
+public class NDSparseMatrix
 {
-	private static native long PS_BuildNDSparseMatrix(long trans, long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv);
-	private static native long PS_BuildSubNDSparseMatrix(long trans, long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long rewards);
-	private static native void PS_DeleteNDSparseMatrix(long ptr_matrix);
+	// JNI methods
 	
-	static
-	{
+	private static native int PS_NDGetActionIndex(long ptr, int s, int i);
+
+	private static native long PS_BuildNDSparseMatrix(long trans, long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv);
+
+	private static native long PS_BuildSubNDSparseMatrix(long trans, long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long rewards);
+
+	private static native void PS_DeleteNDSparseMatrix(long ptr_matrix);
+
+	static {
 		try {
 			System.loadLibrary("prismsparse");
-		}
-		catch (UnsatisfiedLinkError e) {
+		} catch (UnsatisfiedLinkError e) {
 			System.out.println(e);
 			System.exit(1);
 		}
 	}
-	
+
+	/** Pointer to C++ data structure. **/
 	private long ptr;
-	
-	private NDSparseMatrix(long ptr) {
+
+	/**
+	 * Constructor (from a C++ pointer).
+	 */
+	private NDSparseMatrix(long ptr)
+	{
 		this.ptr = ptr;
 	}
-	
-	public static NDSparseMatrix BuildNDSparseMatrix(JDDNode trans, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet) throws PrismException
-	{
-		long ptr = PS_BuildNDSparseMatrix(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n());
-		if (ptr == 0) throw new PrismException(PrismSparse.getErrorMessage());
-		return new NDSparseMatrix(ptr);
-	}
-	
-	public static NDSparseMatrix BuildSubNDSparseMatrix(JDDNode trans, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode rewards) throws PrismException
-	{
-		long ptr = PS_BuildSubNDSparseMatrix(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), rewards.ptr());
-		if (ptr == 0) throw new PrismException(PrismSparse.getErrorMessage());
-		return new NDSparseMatrix(ptr);
-	}
-	
+
 	/**
-	 * Returns the pointer to the wrapped native array.
-	 * @return Pointer
+	 * Returns the pointer to the native C++ data structure.
 	 */
 	public long getPtr()
 	{
 		return ptr;
 	}
+
+	/**
+	 * Get the index of the action label (if any) for choice {@code i} of state {@code s}.
+	 */
+	public int getActionIndex(int s, int i)
+	{
+		return PS_NDGetActionIndex(ptr, s, i);
+	}
 	
 	/**
-	 * Deletes the matrix
+	 * Deletes the matrix.
 	 */
-	public void delete() {
+	public void delete()
+	{
 		PS_DeleteNDSparseMatrix(this.ptr);
+	}
+
+	// Static methods to construct NDSparseMatrix objects
+
+	public static NDSparseMatrix BuildNDSparseMatrix(JDDNode trans, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet) throws PrismException
+	{
+		long ptr = PS_BuildNDSparseMatrix(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n());
+		if (ptr == 0)
+			throw new PrismException(PrismSparse.getErrorMessage());
+		return new NDSparseMatrix(ptr);
+	}
+
+	public static NDSparseMatrix BuildSubNDSparseMatrix(JDDNode trans, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode rewards)
+			throws PrismException
+	{
+		long ptr = PS_BuildSubNDSparseMatrix(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), rewards.ptr());
+		if (ptr == 0)
+			throw new PrismException(PrismSparse.getErrorMessage());
+		return new NDSparseMatrix(ptr);
 	}
 }
