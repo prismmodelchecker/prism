@@ -220,7 +220,7 @@ public class LTLModelChecker extends PrismComponent
 	 * @param dra The DRA
 	 * @param mdp The MDP
 	 * @param labelBS BitSets giving the set of states for each AP in the DRA
-	 * @return The product DTMC and a list of each of its states (s,q), encoded as (s * draSize + q) 
+	 * @return The product MDP and a list of each of its states (s,q), encoded as (s * draSize + q) 
 	 */
 	public Pair<NondetModel, int[]> constructProductMDP(DRA<BitSet> dra, MDP mdp, Vector<BitSet> labelBS) throws PrismException
 	{
