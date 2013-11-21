@@ -674,9 +674,9 @@ public class LTLModelChecker extends PrismComponent
 	 */
 	public JDDNode findAcceptingBSCCsForRabin(DRA<BitSet> dra, ProbModel model, JDDVars draDDRowVars, JDDVars draDDColVars) throws PrismException
 	{
-		JDDNode acceptingStates, allAcceptingStates;
-		List<JDDNode> vectBSCCs, newVectBSCCs;
-		int i, j, n;
+		JDDNode allAcceptingStates;
+		List<JDDNode> vectBSCCs;
+		int i;
 
 		allAcceptingStates = JDD.Constant(0);
 		// Compute all BSCCs for model
@@ -684,26 +684,34 @@ public class LTLModelChecker extends PrismComponent
 		sccComputer.computeBSCCs();
 		vectBSCCs = sccComputer.getBSCCs();
 		JDD.Deref(sccComputer.getNotInBSCCs());
-		// Go through the DRA acceptance pairs (L_i, K_i) 
+
+		// Build BDDs for !L_i and K_i
+		ArrayList<JDDNode> statesL_not = new ArrayList<JDDNode>();
+		ArrayList<JDDNode> statesK = new ArrayList<JDDNode>();
 		for (i = 0; i < dra.getNumAcceptancePairs(); i++) {
-			// Build BDDs for !L_i and K_i
-			JDDNode statesLi_not = buildLStatesForRabinPair(draDDRowVars, dra, i, true);
-			JDDNode statesK_i = buildKStatesForRabinPair(draDDRowVars, dra, i);
-			// Check each BSCC for inclusion in !L_i
-			n = vectBSCCs.size();
-			newVectBSCCs = new Vector<JDDNode>();
-			for (j = 0; j < n; j++) {
-				JDDNode bscc = vectBSCCs.get(j);
-				if (JDD.IsContainedIn(bscc, statesLi_not)) {
-					newVectBSCCs.add(bscc);
-				} else {
-					JDD.Deref(bscc);
+			statesL_not.add(buildLStatesForRabinPair(draDDRowVars, dra, i, true));
+			statesK.add(buildKStatesForRabinPair(draDDRowVars, dra, i));
+		}
+		
+		// Go through the BSCCs
+		for (JDDNode bscc : vectBSCCs) {
+			// Go through the DRA acceptance pairs (L_i, K_i)
+			for (i = 0; i < dra.getNumAcceptancePairs(); i++) {
+				// Check each BSCC for inclusion in !L_i and intersection with K_i
+				if (JDD.IsContainedIn(bscc, statesL_not.get(i)) && JDD.AreInterecting(bscc, statesK.get(i))) {
+					// This BSCC is accepting: add and move on onto next one
+					JDD.Ref(bscc);
+					allAcceptingStates = JDD.Or(allAcceptingStates, bscc);
+					break;
 				}
 			}
-			JDD.Deref(statesLi_not);
-			// Compute/store union of BSCCs which overlap with K_i
-			acceptingStates = filteredUnion(newVectBSCCs, statesK_i);
-			allAcceptingStates = JDD.Or(allAcceptingStates, acceptingStates);
+			JDD.Deref(bscc);
+		}
+		
+		// Dereference BDDs for !L_i and K_i
+		for (i = 0; i < statesK.size(); i++) {
+			JDD.Deref(statesL_not.get(i));
+			JDD.Deref(statesK.get(i));
 		}
 
 		return allAcceptingStates;
