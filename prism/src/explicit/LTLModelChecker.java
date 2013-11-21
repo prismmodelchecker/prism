@@ -130,8 +130,7 @@ public class LTLModelChecker extends PrismComponent
 	 * @param dra The DRA
 	 * @param dtmc The DTMC
 	 * @param labelBS BitSets giving the set of states for each AP in the DRA
-	 * @return a Pair consisting of the product DTMC and a map from 
-	 *   (s_i * draSize + q_j) to the right state in the DRA product 
+	 * @return The product DTMC and a list of each of its states (s,q), encoded as (s * draSize + q) 
 	 */
 	public Pair<Model, int[]> constructProductMC(DRA<BitSet> dra, DTMC dtmc, Vector<BitSet> labelBS) throws PrismException
 	{
@@ -153,14 +152,20 @@ public class LTLModelChecker extends PrismComponent
 		int map[] = new int[prodNumStates];
 		Arrays.fill(map, -1);
 
-		// Initial states
-		for (int s_0 : dtmc.getInitialStates()) {
-			// Get BitSet representing APs (labels) satisfied by initial state s_0
+		// As we need results for all states of the original model,
+		// we explore states of the product starting from those that
+		// correspond to *all* states of the original model.
+		// These are designated as initial states of the model
+		// (a) to ensure reachability is done for these states; and
+		// (b) to later identify the corresponding product state for each model state 
+		for (int s_0 = 0; s_0 < dtmc.getNumStates(); s_0++) {
+			// Get BitSet representing APs (labels) satisfied by state s_0
 			for (int k = 0; k < numAPs; k++) {
 				s_labels.set(k, labelBS.get(k).get(s_0));
 			}
 			// Find corresponding initial state in DRA
 			int q_0 = dra.getEdgeDestByLabel(dra.getStartState(), s_labels);
+			// Add (initial) state to product
 			queue.add(new Point(s_0, q_0));
 			prodModel.addState();
 			prodModel.addInitialState(prodModel.getNumStates() - 1);
@@ -197,6 +202,7 @@ public class LTLModelChecker extends PrismComponent
 			}
 		}
 
+		// Build a mapping from state indices to states (s,q), encoded as (s * draSize + q) 
 		int invMap[] = new int[prodModel.getNumStates()];
 		for (int i = 0; i < map.length; i++) {
 			if (map[i] != -1) {
@@ -214,8 +220,7 @@ public class LTLModelChecker extends PrismComponent
 	 * @param dra The DRA
 	 * @param mdp The MDP
 	 * @param labelBS BitSets giving the set of states for each AP in the DRA
-	 * @return a Pair consisting of the product DTMC and a map from 
-	 *   (s_i * draSize + q_j) to the right state in the DRA product 
+	 * @return The product DTMC and a list of each of its states (s,q), encoded as (s * draSize + q) 
 	 */
 	public Pair<NondetModel, int[]> constructProductMDP(DRA<BitSet> dra, MDP mdp, Vector<BitSet> labelBS) throws PrismException
 	{
@@ -237,14 +242,20 @@ public class LTLModelChecker extends PrismComponent
 		int map[] = new int[prodNumStates];
 		Arrays.fill(map, -1);
 
-		// Initial states
-		for (int s_0 : mdp.getInitialStates()) {
-			// Get BitSet representing APs (labels) satisfied by initial state s_0
+		// As we need results for all states of the original model,
+		// we explore states of the product starting from those that
+		// correspond to *all* states of the original model.
+		// These are designated as initial states of the model
+		// (a) to ensure reachability is done for these states; and
+		// (b) to later identify the corresponding product state for each model state 
+		for (int s_0 = 0; s_0 < mdp.getNumStates(); s_0++) {
+			// Get BitSet representing APs (labels) satisfied by state s_0
 			for (int k = 0; k < numAPs; k++) {
 				s_labels.set(k, labelBS.get(k).get(s_0));
 			}
 			// Find corresponding initial state in DRA
 			int q_0 = dra.getEdgeDestByLabel(dra.getStartState(), s_labels);
+			// Add (initial) state to product
 			queue.add(new Point(s_0, q_0));
 			prodModel.addState();
 			prodModel.addInitialState(prodModel.getNumStates() - 1);
@@ -286,6 +297,7 @@ public class LTLModelChecker extends PrismComponent
 			}
 		}
 
+		// Build a mapping from state indices to states (s,q), encoded as (s * draSize + q) 
 		int invMap[] = new int[prodModel.getNumStates()];
 		for (int i = 0; i < map.length; i++) {
 			if (map[i] != -1) {

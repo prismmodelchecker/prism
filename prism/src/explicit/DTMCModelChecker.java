@@ -28,7 +28,6 @@ package explicit;
 
 import java.io.File;
 import java.util.BitSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -270,15 +269,11 @@ public class DTMCModelChecker extends ProbModelChecker
 		double[] probsProductDbl = probsProduct.getDoubleArray();
 		double[] probsDbl = new double[model.getNumStates()];
 
-		LinkedList<Integer> queue = new LinkedList<Integer>();
-		for (int s : model.getInitialStates())
-			queue.add(s);
-
-		for (int i = 0; i < invMap.length; i++) {
-			int j = invMap[i];
-			int s = j / draSize;
-			// TODO: check whether this is the right way to compute probabilities in the original model
-			probsDbl[s] = Math.max(probsDbl[s], probsProductDbl[i]);
+		// Get the probabilities for the original model by taking the initial states
+		// of the product and projecting back to the states of the original model
+		for (int i : modelProduct.getInitialStates()) {
+			int s = invMap[i] / draSize;
+			probsDbl[s] = probsProductDbl[i];
 		}
 
 		probs = StateValues.createFromDoubleArray(probsDbl, model);
