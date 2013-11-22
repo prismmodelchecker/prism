@@ -28,12 +28,9 @@ package strat;
 
 import java.util.List;
 
-import dv.IntegerVector;
-import explicit.MDP;
-
 import prism.Model;
 import prism.PrismLog;
-import strat.Strategy.Choice;
+import dv.IntegerVector;
 
 /**
  * Class to store a memoryless deterministic (MD) strategy, as an IntegerVector (i.e. stored natively as an array).
