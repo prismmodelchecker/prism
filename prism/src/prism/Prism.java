@@ -193,6 +193,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	protected String exportProductStatesFilename = null;
 	// Generate/store a strategy during model checking?
 	protected boolean genStrat = false; 
+	// Do bisimulation minimisation before model checking?
+	protected boolean doBisim = false;
 
 	// A few miscellaneous options (i.e. defunct/hidden/undocumented/etc.)
 	// See constructor below for default values
@@ -583,6 +585,14 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		this.genStrat = genStrat;
 	}
 
+	/**
+	 * Specify whether or not to do bisimulation minimisation before model checking.
+	 */
+	public void setDoBisim(boolean doBisim)
+	{
+		this.doBisim = doBisim;
+	}
+
 	public void setDoReach(boolean b) throws PrismException
 	{
 		doReach = b;
@@ -871,6 +881,14 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public boolean getGenStrat()
 	{
 		return genStrat;
+	}
+
+	/**
+	 * Whether or not to do bisimulation minimisation before model checking.
+	 */
+	public boolean getDoBisim()
+	{
+		return doBisim;
 	}
 
 	public boolean getDoReach()
@@ -3415,6 +3433,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);
 		// Pass any additional local settings
 		mc.setGenStrat(genStrat);
+		mc.setDoBisim(doBisim);
 		
 		return mc;
 	}

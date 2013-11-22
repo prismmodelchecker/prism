@@ -35,6 +35,7 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import parser.State;
 import parser.Values;
@@ -50,6 +51,7 @@ import parser.ast.ExpressionIdent;
 import parser.ast.ExpressionLabel;
 import parser.ast.ExpressionLiteral;
 import parser.ast.ExpressionProp;
+import parser.ast.ExpressionTemporal;
 import parser.ast.ExpressionUnaryOp;
 import parser.ast.ExpressionVar;
 import parser.ast.LabelList;
@@ -59,6 +61,8 @@ import parser.ast.Property;
 import parser.type.TypeBool;
 import parser.type.TypeDouble;
 import parser.type.TypeInt;
+import parser.type.TypePathBool;
+import parser.visitor.ASTTraverseModify;
 import prism.Filter;
 import prism.ModelType;
 import prism.PrismComponent;
@@ -86,6 +90,9 @@ public class StateModelChecker extends PrismComponent
 
 	// Generate/store a strategy during model checking?
 	protected boolean genStrat = false;
+
+	// Do bisimulation minimisation before model checking?
+	protected boolean doBisim = false;
 
 	// Model file (for reward structures, etc.)
 	protected ModulesFile modulesFile = null;
@@ -196,6 +203,14 @@ public class StateModelChecker extends PrismComponent
 		this.genStrat = genStrat;
 	}
 
+	/**
+	 * Specify whether or not to do bisimulation minimisation before model checking.
+	 */
+	public void setDoBisim(boolean doBisim)
+	{
+		this.doBisim = doBisim;
+	}
+
 	// Get methods for flags/settings
 
 	public int getVerbosity()
@@ -209,6 +224,14 @@ public class StateModelChecker extends PrismComponent
 	public boolean getGenStrat()
 	{
 		return genStrat;
+	}
+
+	/**
+	 * Whether or not to do bisimulation minimisation before model checking.
+	 */
+	public boolean getDoBisim()
+	{
+		return doBisim;
 	}
 
 	// Other setters/getters
@@ -293,6 +316,18 @@ public class StateModelChecker extends PrismComponent
 			expr = exprFilter;
 		}
 
+		// If required, do bisimulation minimisation
+		if (doBisim) {
+			mainLog.println("\nPerforming bisimulation minimisation...");
+			ArrayList<String> propNames = new ArrayList<String>();
+			ArrayList<BitSet> propBSs = new ArrayList<BitSet>();
+			Expression exprNew = checkMaximalPropositionalFormulas(model, expr.deepCopy(), propNames, propBSs);
+			Bisimulation bisim = new Bisimulation(this);
+			model = bisim.minimise(model, propNames, propBSs);
+			mainLog.println("Modified property: " + exprNew);
+			expr = exprNew;
+		}
+		
 		// Do model checking and store result vector
 		timer = System.currentTimeMillis();
 		vals = checkExpression(model, expr);
@@ -634,6 +669,10 @@ public class StateModelChecker extends PrismComponent
 			}
 			return StateValues.createFromBitSet(bs, model);
 		} else {
+			BitSet bs = ((ModelExplicit) model).labels.get(expr.getName());
+			if (bs != null) {
+				return StateValues.createFromBitSet((BitSet) bs.clone(), model);
+			}
 			ll = propertiesFile.getCombinedLabelList();
 			i = ll.getLabelIndex(expr.getName());
 			if (i == -1)
@@ -951,6 +990,143 @@ public class StateModelChecker extends PrismComponent
 		return resVals;
 	}
 
+	/**
+	 * Extract maximal propositional subformulas of an expression, model check them and
+	 * replace them with ExpressionLabel objects (L0, L1, etc.) Expression passed in is modified directly, but the result
+	 * is also returned. As an optimisation, model checking that results in true/false for all states is converted to an
+	 * actual true/false, and duplicate results are given the same proposition. BitSets giving the states which satisfy each proposition
+	 * are put into the list {@code propBSs}, which should be empty when this function is called.
+	 * The names of the labels (L0, L1, etc. by default) are put into {@code propNames}, which should also be empty. 
+	 */
+	public Expression checkMaximalPropositionalFormulas(Model model, Expression expr, List<String> propNames, List<BitSet> propBSs) throws PrismException
+	{
+		Expression exprNew = (Expression) expr.accept(new CheckMaximalPropositionalFormulas(this, model, propNames, propBSs));
+		return exprNew;
+	}
+
+	/**
+	 * Class to replace maximal propositional subformulas of an expression
+	 * with labels corresponding to BitSets for the states that satisfy them.
+	 */
+	class CheckMaximalPropositionalFormulas extends ASTTraverseModify
+	{
+		private StateModelChecker mc;
+		private Model model;
+		private List<String> propNames;
+		private List<BitSet> propBSs;
+		
+		public CheckMaximalPropositionalFormulas(StateModelChecker mc, Model model, List<String> propNames, List<BitSet> propBSs)
+		{
+			this.mc = mc;
+			this.model = model;
+			this.propNames = propNames;
+			this.propBSs = propBSs;
+		}
+		
+		public Object visit(ExpressionITE e) throws PrismLangException
+		{
+			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visit(e);
+		}
+		
+		public Object visit(ExpressionBinaryOp e) throws PrismLangException
+		{
+			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visit(e);
+		}
+		
+		public Object visit(ExpressionUnaryOp e) throws PrismLangException
+		{
+			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visit(e);
+		}
+		
+		public Object visit(ExpressionFunc e) throws PrismLangException
+		{
+			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visit(e);
+		}
+		
+		public Object visit(ExpressionIdent e) throws PrismLangException
+		{
+			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visit(e);
+		}
+		
+		public Object visit(ExpressionLiteral e) throws PrismLangException
+		{
+			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visit(e);
+		}
+		
+		public Object visit(ExpressionConstant e) throws PrismLangException
+		{
+			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visit(e);
+		}
+		
+		public Object visit(ExpressionFormula e) throws PrismLangException
+		{
+			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visit(e);
+		}
+		
+		public Object visit(ExpressionVar e) throws PrismLangException
+		{
+			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visit(e);
+		}
+		
+		public Object visit(ExpressionLabel e) throws PrismLangException
+		{
+			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visit(e);
+		}
+		
+		public Object visit(ExpressionProp e) throws PrismLangException
+		{
+			// Look up property and recurse
+			Property prop = propertiesFile.lookUpPropertyObjectByName(e.getName());
+			if (prop != null) {
+				return e.accept(this);
+			} else {
+				throw new PrismLangException("Unknown property reference " + e, e);
+			}
+		}
+		
+		public Object visit(ExpressionFilter e) throws PrismLangException
+		{
+			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visit(e);
+		}
+		
+		/**
+		 * Evaluate this expression in all states (i.e. model check it),
+		 * store the resulting BitSet in the list {@code propBSs},
+		 * and return an ExpressionLabel with name Li to replace it
+		 * (where i denotes the 0-indexed index into the list propBSs).
+		 */
+		private Object replaceWithLabel(Expression e) throws PrismLangException
+		{
+			// Model check
+			StateValues sv;
+			try {
+				sv = mc.checkExpression(model, e);
+			} catch (PrismException ex) {
+				throw new PrismLangException(ex.getMessage());
+			}
+			BitSet bs = sv.getBitSet();
+			// Detect special cases (true, false) for optimisation
+			if (bs.isEmpty()) {
+				return Expression.False();
+			}
+			if (bs.cardinality() == model.getNumStates()) {
+				return Expression.True();
+			}
+			// See if we already have an identical result
+			// (in which case, reuse it)
+			int i = propBSs.indexOf(bs);
+			if (i != -1) {
+				sv.clear();
+				return new ExpressionLabel("L" + i);
+			}
+			// Otherwise, add result to list, return new label
+			String newLabelName = "L" + propBSs.size();
+			propNames.add(newLabelName);
+			propBSs.add(bs);
+			return new ExpressionLabel(newLabelName);
+		}
+	}
+	
 	/**
 	 * Loads labels from a PRISM labels file and stores them in BitSet objects.
 	 * (Actually, it returns a map from label name Strings to BitSets.)

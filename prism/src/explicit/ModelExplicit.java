@@ -30,6 +30,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import parser.State;
@@ -60,6 +62,8 @@ public abstract class ModelExplicit implements Model
 	// Constant info (read only, just a pointer)
 	protected Values constantValues;
 
+	public Map<String,BitSet> labels = new TreeMap<String, BitSet>();
+	
 	// Mutators
 
 	/**
