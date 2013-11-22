@@ -35,7 +35,6 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import parser.State;
 import parser.Values;
@@ -51,7 +50,6 @@ import parser.ast.ExpressionIdent;
 import parser.ast.ExpressionLabel;
 import parser.ast.ExpressionLiteral;
 import parser.ast.ExpressionProp;
-import parser.ast.ExpressionTemporal;
 import parser.ast.ExpressionUnaryOp;
 import parser.ast.ExpressionVar;
 import parser.ast.LabelList;
@@ -61,7 +59,6 @@ import parser.ast.Property;
 import parser.type.TypeBool;
 import parser.type.TypeDouble;
 import parser.type.TypeInt;
-import parser.type.TypePathBool;
 import parser.visitor.ASTTraverseModify;
 import prism.Filter;
 import prism.ModelType;
@@ -1148,15 +1145,19 @@ public class StateModelChecker extends PrismComponent
 			in = new BufferedReader(new FileReader(new File(filename)));
 			// Parse first line to get label list
 			s = in.readLine();
-			if (s == null)
+			if (s == null) {
+				in.close();
 				throw new PrismException("Empty labels file");
+			}
 			ss = s.split(" ");
 			labels = new ArrayList<String>(ss.length);
 			for (i = 0; i < ss.length; i++) {
 				s = ss[i];
 				j = s.indexOf('=');
-				if (j < 0)
+				if (j < 0) {
+					in.close();
 					throw new PrismException("Corrupt labels file (line 1)");
+				}
 				k = Integer.parseInt(s.substring(0, j));
 				while (labels.size() <= k)
 					labels.add("?");

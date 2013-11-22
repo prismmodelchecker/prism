@@ -228,6 +228,7 @@ public class Bisimulation extends PrismComponent
 	/**
 	 * Display the current partition, showing the states in each block.
 	 */
+	@SuppressWarnings("unused")
 	private void printPartition(Model model)
 	{
 		for (int i = 0; i < numBlocks; i++) {

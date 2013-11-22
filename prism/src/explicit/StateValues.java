@@ -1207,8 +1207,10 @@ public class StateValues
 			while (s != null) {
 				s = s.trim();
 				if (!("".equals(s))) {
-					if (count + 1 > size)
+					if (count + 1 > size) {
+						in.close();
 						throw new PrismException("Too many values in file \"" + file + "\" (more than " + size + ")");
+					}
 					if (type instanceof TypeInt) {
 						int i = Integer.parseInt(s);
 						setIntValue(count, i);

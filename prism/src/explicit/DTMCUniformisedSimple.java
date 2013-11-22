@@ -26,16 +26,17 @@
 
 package explicit;
 
-import java.io.File;
-import java.util.*;
+import java.util.BitSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
-import explicit.rewards.MCRewards;
 import parser.State;
 import parser.Values;
 import prism.ModelType;
 import prism.PrismException;
-import prism.PrismLog;
+import explicit.rewards.MCRewards;
 
 /**
 * Simple explicit-state representation of a DTMC, constructed (implicitly) as the uniformised DTMC of a CTMC.
