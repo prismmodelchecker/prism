@@ -669,10 +669,12 @@ public class StateModelChecker extends PrismComponent
 			}
 			return StateValues.createFromBitSet(bs, model);
 		} else {
-			BitSet bs = ((ModelExplicit) model).labels.get(expr.getName());
+			// First look at lables attached directly to model
+			BitSet bs = model.getLabelStates(expr.getName());
 			if (bs != null) {
 				return StateValues.createFromBitSet((BitSet) bs.clone(), model);
 			}
+			// Failing that, look in the properties file
 			ll = propertiesFile.getCombinedLabelList();
 			i = ll.getLabelIndex(expr.getName());
 			if (i == -1)

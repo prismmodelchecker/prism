@@ -48,21 +48,26 @@ import prism.PrismLog;
  */
 public abstract class ModelExplicit implements Model
 {
-	// Number of states
+	// Basic model information
+	
+	/** Number of states */
 	protected int numStates;
-	// Initial states
+	/** Which states are initial states */
 	protected List<Integer> initialStates; // TODO: should be a (linkedhash?) set really
-	/**
-	 * States that are/were deadlocks. Where requested and where appropriate (DTMCs/MDPs),
-	 * these states may have been fixed at build time by adding self-loops.
-	 */
+	/** States that are/were deadlocks. Where requested and where appropriate (DTMCs/MDPs),
+	 * these states may have been fixed at build time by adding self-loops. */
 	protected TreeSet<Integer> deadlocks;
-	// State info (read only, just a pointer)
+	
+	// Additional, optional information associated with the model
+	
+	/** (Optionally) information about the states of this model,
+	 * i.e. the State object corresponding to each state index. */
 	protected List<State> statesList;
-	// Constant info (read only, just a pointer)
+	/** (Optionally) a list of values for constants associated with this model. */
 	protected Values constantValues;
-
-	public Map<String,BitSet> labels = new TreeMap<String, BitSet>();
+	/** (Optionally) some labels (atomic propositions) associated with the model,
+	 * represented as a String->BitSet mapping from their names to the states that satisfy them. */
+	protected Map<String,BitSet> labels = new TreeMap<String, BitSet>();
 	
 	// Mutators
 
@@ -82,6 +87,7 @@ public abstract class ModelExplicit implements Model
 		// Shallow copy of read-only stuff
 		statesList = model.statesList;
 		constantValues = model.constantValues;
+		labels = model.labels;
 	}
 
 	/**
@@ -104,6 +110,7 @@ public abstract class ModelExplicit implements Model
 		// (i.e. info that is not broken by permute)
 		statesList = null;
 		constantValues = model.constantValues;
+		labels.clear();
 	}
 
 	/**
@@ -115,6 +122,8 @@ public abstract class ModelExplicit implements Model
 		initialStates = new ArrayList<Integer>();
 		deadlocks = new TreeSet<Integer>();
 		statesList = null;
+		constantValues = null;
+		labels = new TreeMap<String, BitSet>();
 	}
 
 	/**
@@ -152,6 +161,17 @@ public abstract class ModelExplicit implements Model
 	public void setConstantValues(Values constantValues)
 	{
 		this.constantValues = constantValues;
+	}
+
+	/**
+	 * Adds a label and the set the states that satisfy it.
+	 * Any existing label with the same name is overwritten.
+	 * @param name The name of the label
+	 * @param states The states that satisyy the label 
+	 */
+	public void addLabel(String name, BitSet states)
+	{
+		labels.put(name, states);
 	}
 
 	// Accessors (for Model interface)
@@ -236,6 +256,12 @@ public abstract class ModelExplicit implements Model
 		return constantValues;
 	}
 
+	@Override
+	public BitSet getLabelStates(String name)
+	{
+		return labels.get(name);
+	}
+	
 	@Override
 	public abstract int getNumTransitions();
 

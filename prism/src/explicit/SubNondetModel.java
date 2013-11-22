@@ -164,6 +164,11 @@ public class SubNondetModel implements NondetModel {
 	}
 
 	@Override
+	public BitSet getLabelStates(String name) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public int getNumTransitions() {
 		return numTransitions;
 	}

@@ -276,7 +276,7 @@ public class Bisimulation extends PrismComponent
 			BitSet propBSnew = new BitSet();
 			for (int j = propBS.nextSetBit(0); j >= 0; j = propBS.nextSetBit(j + 1))
 				propBSnew.set(partition[j]);
-			modelNew.labels.put(propName, propBSnew);
+			modelNew.addLabel(propName, propBSnew);
 		}
 	}
 }
