@@ -34,10 +34,10 @@ import prism.*;
 
 public class Updater
 {
-	// Parent simulator/prism
-	protected SimulatorEngine simulator;
-	protected Prism prism;
-
+	// Settings:
+	// The precision to which we check probabilities sum to 1
+	protected double sumRoundOff = 1e-5;
+	
 	// Model to which the path corresponds
 	protected ModulesFile modulesFile;
 	protected ModelType modelType;
@@ -62,14 +62,12 @@ public class Updater
 	// (where j=0 denotes independent, otherwise 1-indexed action label)
 	protected BitSet enabledModules[];
 
-	public Updater(SimulatorEngine simulator, ModulesFile modulesFile, VarList varList)
+	public Updater(ModulesFile modulesFile, VarList varList)
 	{
 		int i, j;
 		String s;
 
 		// Get info from simulator/model
-		this.simulator = simulator;
-		prism = simulator.getPrism();
 		this.modulesFile = modulesFile;
 		modelType = modulesFile.getModelType();
 		numModules = modulesFile.getNumModules();
@@ -102,6 +100,22 @@ public class Updater
 		for (j = 0; j < numSynchs + 1; j++) {
 			enabledModules[j] = new BitSet(numModules);
 		}
+	}
+
+	/**
+	 * Set the precision to which we check that probabilities sum to 1.
+	 */
+	public void setSumRoundOff(double sumRoundOff)
+	{
+		this.sumRoundOff = sumRoundOff;
+	}
+
+	/**
+	 * Get the precision to which we check that probabilities sum to 1.
+	 */
+	public double getSumRoundOff()
+	{
+		return sumRoundOff;
 	}
 
 	/**
@@ -334,7 +348,7 @@ public class Updater
 			throw new PrismLangException(msg, ups);
 		}
 		// Check distribution sums to 1 (if required, and if is non-empty)
-		if (ch.size() > 0 && modelType.choicesSumToOne() && Math.abs(sum - 1) > prism.getSumRoundOff()) {
+		if (ch.size() > 0 && modelType.choicesSumToOne() && Math.abs(sum - 1) > sumRoundOff) {
 			throw new PrismLangException("Probabilities sum to " + sum + " in state " + state.toString(modulesFile), ups);
 		}
 		return ch;

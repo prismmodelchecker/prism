@@ -43,11 +43,12 @@ import parser.ast.ModulesFile;
 import parser.ast.PropertiesFile;
 import parser.type.Type;
 import prism.ModelType;
-import prism.Prism;
+import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLangException;
 import prism.PrismLog;
+import prism.PrismSettings;
 import prism.PrismUtils;
 import prism.ResultsCollection;
 import prism.UndefinedConstants;
@@ -94,12 +95,8 @@ import userinterface.graph.Graph;
  * <LI> {@link #modelCheckExperiment}
  * </UL>
  */
-public class SimulatorEngine
+public class SimulatorEngine extends PrismComponent
 {
-	// PRISM stuff
-	protected Prism prism;
-	protected PrismLog mainLog;
-
 	// The current parsed model + info
 	private ModulesFile modulesFile;
 	private ModelType modelType;
@@ -150,10 +147,9 @@ public class SimulatorEngine
 	/**
 	 * Constructor for the simulator engine.
 	 */
-	public SimulatorEngine(Prism prism)
+	public SimulatorEngine(PrismComponent parent)
 	{
-		this.prism = prism;
-		setMainLog(prism.getMainLog());
+		super(parent);
 		modulesFile = null;
 		modelType = null;
 		varList = null;
@@ -172,22 +168,6 @@ public class SimulatorEngine
 		tmpTransitionRewards = null;
 		updater = null;
 		rng = new RandomNumberGenerator();
-	}
-
-	/**
-	 * Set the log to which any output is sent. 
-	 */
-	public void setMainLog(PrismLog log)
-	{
-		mainLog = log;
-	}
-
-	/**
-	 * Get access to the parent Prism object
-	 */
-	public Prism getPrism()
-	{
-		return prism;
 	}
 
 	// ------------------------------------------------------------------------------
@@ -728,7 +708,8 @@ public class SimulatorEngine
 		transitionList = new TransitionList();
 
 		// Create updater for model
-		updater = new Updater(this, modulesFile, varList);
+		updater = new Updater(modulesFile, varList);
+		updater.setSumRoundOff(settings.getDouble(PrismSettings.PRISM_SUM_ROUND_OFF));
 
 		// Clear storage for strategy
 		strategy = null;

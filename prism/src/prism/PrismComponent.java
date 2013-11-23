@@ -70,7 +70,7 @@ public class PrismComponent
 	/**
 	 * Create a PrismComponent object, inheriting state from another ("parent") PrismComponent.
 	 */
-	public PrismComponent(PrismComponent parent) throws PrismException
+	public PrismComponent(PrismComponent parent)
 	{
 		if (parent == null)
 			return;
@@ -91,7 +91,7 @@ public class PrismComponent
 	/**
 	 * Set PRISMSettings object.
 	 */
-	public final void setSettings(PrismSettings settings) throws PrismException
+	public final void setSettings(PrismSettings settings)
 	{
 		this.settings = settings;
 	}
