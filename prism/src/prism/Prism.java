@@ -277,6 +277,15 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	/**
 	 * Construct a new Prism object.
+	 * @param mainLog PrismLog where all output will be sent.
+	 */
+	public Prism(PrismLog mainLog)
+	{
+		this(mainLog, mainLog);
+	}
+
+	/**
+	 * Construct a new Prism object.
 	 * @param mainLog PrismLog where messages and model checking output will be sent.
 	 * @param techLog PrismLog for output of detailed technical info (not really used).
 	 */
