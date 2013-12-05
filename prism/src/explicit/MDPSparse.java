@@ -43,6 +43,7 @@ import java.util.TreeMap;
 import parser.State;
 import prism.PrismException;
 import prism.PrismUtils;
+import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
 
 /**
@@ -755,6 +756,29 @@ public class MDPSparse extends MDPExplicit
 	}
 
 	@Override
+	public boolean prob1stepSingle(int s, int i, BitSet u, BitSet v)
+	{
+		int j, k, l2, h2;
+		boolean some, all;
+
+		j = rowStarts[s] + i;
+		some = false;
+		all = true;
+		l2 = choiceStarts[j];
+		h2 = choiceStarts[j + 1];
+		for (k = l2; k < h2; k++) {
+			// Assume that only non-zero entries are stored
+			if (v.get(cols[k])) {
+				some = true;
+			}
+			if (!u.get(cols[k])) {
+				all = false;
+			}
+		}
+		return some && all;
+	}
+
+	@Override
 	public double mvMultMinMaxSingle(int s, double vect[], boolean min, int strat[])
 	{
 		int j, k, l1, h1, l2, h2, stratCh = -1;
@@ -825,12 +849,12 @@ public class MDPSparse extends MDPExplicit
 	}
 
 	@Override
-	public double mvMultSingle(int s, int k, double vect[])
+	public double mvMultSingle(int s, int i, double vect[])
 	{
-		int j, l2, h2;
+		int j, k, l2, h2;
 		double d;
 
-		j = rowStarts[s] + k;
+		j = rowStarts[s] + i;
 		// Compute sum for this distribution
 		d = 0.0;
 		l2 = choiceStarts[j];
@@ -891,12 +915,12 @@ public class MDPSparse extends MDPExplicit
 	}
 
 	@Override
-	public double mvMultJacSingle(int s, int k, double vect[])
+	public double mvMultJacSingle(int s, int i, double vect[])
 	{
-		int j, l2, h2;
+		int j, k, l2, h2;
 		double diag, d;
 
-		j = rowStarts[s] + k;
+		j = rowStarts[s] + i;
 		diag = 1.0;
 		// Compute sum for this distribution
 		d = 0.0;
@@ -958,6 +982,26 @@ public class MDPSparse extends MDPExplicit
 		return minmax;
 	}
 
+	@Override
+	public double mvMultRewSingle(int s, int i, double[] vect, MCRewards mcRewards)
+	{
+		int j, k, l2, h2;
+		double d;
+
+		j = rowStarts[s] + i;
+		// Compute sum for this distribution
+		// TODO: use transition rewards when added to DTMCss
+		// d = mcRewards.getTransitionReward(s);
+		d = 0;
+		l2 = choiceStarts[j];
+		h2 = choiceStarts[j + 1];
+		for (k = l2; k < h2; k++) {
+			d += nonZeros[k] * vect[cols[k]];
+		}
+		d += mcRewards.getStateReward(s);
+		return d;
+	}
+	
 	@Override
 	public double mvMultRewJacMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int strat[])
 	{

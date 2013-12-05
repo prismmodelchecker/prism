@@ -216,8 +216,11 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 
 	public void prob1step(BitSet subset, BitSet u, BitSet v, BitSet result)
 	{
-		// TODO
-		throw new Error("Not yet supported");
+		for (int s = 0; s < numStates; s++) {
+			if (subset.get(s)) {
+				result.set(s, mdp.prob1stepSingle(s, adv[s], u, v));
+			}
+		}
 	}
 
 	@Override
@@ -235,8 +238,7 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 	@Override
 	public double mvMultRewSingle(int s, double vect[], MCRewards mcRewards)
 	{
-		throw new RuntimeException("Not implemented yet");
-		//return mdp.mvMultRewSingle(s, adv[s], vect);
+		return adv[s] >= 0 ? mdp.mvMultRewSingle(s, adv[s], vect, mcRewards) : 0;
 	}
 
 	@Override

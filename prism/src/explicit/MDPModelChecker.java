@@ -47,6 +47,8 @@ import prism.PrismLangException;
 import prism.PrismLog;
 import prism.PrismUtils;
 import strat.MDStrategyArray;
+import explicit.rewards.MCRewards;
+import explicit.rewards.MCRewardsFromMDPRewards;
 import explicit.rewards.MDPRewards;
 
 /**
@@ -980,6 +982,7 @@ public class MDPModelChecker extends ProbModelChecker
 
 	/**
 	 * Compute reachability probabilities using policy iteration.
+	 * Optionally, store optimal (memoryless) strategy info. 
 	 * @param mdp: The MDP
 	 * @param no: Probability 0 states
 	 * @param yes: Probability 1 states
@@ -999,7 +1002,7 @@ public class MDPModelChecker extends ProbModelChecker
 		// Re-use solution to solve each new policy (strategy)?
 		boolean reUseSoln = true;
 
-		// Start value iteration
+		// Start policy iteration
 		timer = System.currentTimeMillis();
 		mainLog.println("Starting policy iteration (" + (min ? "min" : "max") + ")...");
 
@@ -1393,7 +1396,7 @@ public class MDPModelChecker extends ProbModelChecker
 		MDPSolnMethod mdpSolnMethod = this.mdpSolnMethod;
 
 		// Switch to a supported method, if necessary
-		if (!(mdpSolnMethod == MDPSolnMethod.VALUE_ITERATION || mdpSolnMethod == MDPSolnMethod.GAUSS_SEIDEL)) {
+		if (!(mdpSolnMethod == MDPSolnMethod.VALUE_ITERATION || mdpSolnMethod == MDPSolnMethod.GAUSS_SEIDEL || mdpSolnMethod == MDPSolnMethod.POLICY_ITERATION)) {
 			mdpSolnMethod = MDPSolnMethod.GAUSS_SEIDEL;
 			mainLog.printWarning("Switching to MDP solution method \"" + mdpSolnMethod.fullName() + "\"");
 		}
@@ -1468,6 +1471,9 @@ public class MDPModelChecker extends ProbModelChecker
 			break;
 		case GAUSS_SEIDEL:
 			res = computeReachRewardsGaussSeidel(mdp, mdpRewards, target, inf, min, init, known, strat);
+			break;
+		case POLICY_ITERATION:
+			res = computeReachRewardsPolIter(mdp, mdpRewards, target, inf, min, strat);
 			break;
 		default:
 			throw new PrismException("Unknown MDP solution method " + mdpSolnMethod.fullName());
@@ -1680,6 +1686,124 @@ public class MDPModelChecker extends ProbModelChecker
 		res = new ModelCheckerResult();
 		res.soln = soln;
 		res.numIters = iters;
+		res.timeTaken = timer / 1000.0;
+		return res;
+	}
+
+	/**
+	 * Compute expected reachability rewards using policy iteration.
+	 * Optionally, store optimal (memoryless) strategy info. 
+	 * @param mdp The MDP
+	 * @param mdpRewards The rewards
+	 * @param target Target states
+	 * @param inf States for which reward is infinite
+	 * @param min Min or max rewards (true=min, false=max)
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 */
+	protected ModelCheckerResult computeReachRewardsPolIter(MDP mdp, MDPRewards mdpRewards, BitSet target, BitSet inf, boolean min, int strat[])
+			throws PrismException
+	{
+		ModelCheckerResult res;
+		int i, n, iters, totalIters;
+		double soln[], soln2[];
+		boolean done;
+		long timer;
+		DTMCModelChecker mcDTMC;
+		DTMC dtmc;
+		MCRewards mcRewards;
+
+		// Re-use solution to solve each new policy (strategy)?
+		boolean reUseSoln = true;
+
+		// Start policy iteration
+		timer = System.currentTimeMillis();
+		mainLog.println("Starting policy iteration (" + (min ? "min" : "max") + ")...");
+
+		// Create a DTMC model checker (for solving policies)
+		mcDTMC = new DTMCModelChecker(this);
+		mcDTMC.inheritSettings(this);
+		mcDTMC.setLog(new PrismDevNullLog());
+
+		// Store num states
+		n = mdp.getNumStates();
+
+		// Create solution vector(s)
+		soln = new double[n];
+		soln2 = new double[n];
+
+		// Initialise solution vectors.
+		for (i = 0; i < n; i++)
+			soln[i] = soln2[i] = target.get(i) ? 0.0 : inf.get(i) ? Double.POSITIVE_INFINITY : 0.0;
+
+		// If not passed in, create new storage for strategy and initialise
+		// Initial strategy just picks first choice (0) everywhere
+		if (strat == null) {
+			strat = new int[n];
+			for (i = 0; i < n; i++)
+				strat[i] = 0;
+		}
+		// Otherwise, just initialise for states not in target/inf
+		// (Optimal choices for target/inf should already be known)
+		else {
+			for (i = 0; i < n; i++)
+				if (!(target.get(i) || inf.get(i)))
+					strat[i] = 0;
+		}
+		// For minimum rewards, we need to make sure that initial strategy choices
+		// do not result in infinite rewards for any states that are know not to be infinite
+		// (otherwise policy iteration may not converge) 
+		if (min) {
+			for (i = 0; i < n; i++) {
+				if (!(target.get(i) || inf.get(i))) {
+					int numChoices = mdp.getNumChoices(i);
+					for (int k = 0; k < numChoices; k++) {
+						if (!mdp.someSuccessorsInSet(i, k, inf)) {
+							strat[i] = k;
+							continue;
+						}
+					}
+				}
+			}
+		}
+			
+		// Start iterations
+		iters = totalIters = 0;
+		done = false;
+		while (!done && iters < maxIters) {
+			iters++;
+			// Solve induced DTMC for strategy
+			dtmc = new DTMCFromMDPMemorylessAdversary(mdp, strat);
+			mcRewards = new MCRewardsFromMDPRewards(mdpRewards, strat);
+			res = mcDTMC.computeReachRewards(dtmc, mcRewards, target, reUseSoln ? soln : null, null);
+			soln = res.soln;
+			totalIters += res.numIters;
+			// Check if optimal, improve non-optimal choices
+			mdp.mvMultRewMinMax(soln, mdpRewards, min, soln2, null, false, null);
+			done = true;
+			for (i = 0; i < n; i++) {
+				// Don't look at target/inf states - we may not have strategy info for them,
+				// so they might appear non-optimal
+				if (target.get(i) || inf.get(i))
+					continue;
+				if (!PrismUtils.doublesAreClose(soln[i], soln2[i], termCritParam, termCrit == TermCrit.ABSOLUTE)) {
+					done = false;
+					List<Integer> opt = mdp.mvMultRewMinMaxSingleChoices(i, soln, mdpRewards, min, soln2[i]);
+					// Only update strategy if strictly better
+					if (!opt.contains(strat[i]))
+						strat[i] = opt.get(0);
+				}
+			}
+		}
+
+		// Finished policy iteration
+		timer = System.currentTimeMillis() - timer;
+		mainLog.print("Policy iteration");
+		mainLog.println(" took " + iters + " cycles (" + totalIters + " iterations in total) and " + timer / 1000.0 + " seconds.");
+
+		// Return results
+		res = new ModelCheckerResult();
+		res.soln = soln;
+		res.numIters = totalIters;
 		res.timeTaken = timer / 1000.0;
 		return res;
 	}

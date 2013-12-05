@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import prism.PrismException;
+import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
 
 /**
@@ -99,6 +100,16 @@ public interface MDP extends NondetModel
 	public void prob1step(BitSet subset, BitSet u, BitSet v, boolean forall, BitSet result);
 
 	/**
+	 * Perform a single step of precomputation algorithm Prob1 for a single state/choice,
+	 * i.e., return whether there is a transition to a state in {@code v} and all transitions go to states in {@code u}.
+	 * @param s State (row) index
+	 * @param i Choice index
+	 * @param u Set of states {@code u}
+	 * @param v Set of states {@code v}
+	 */
+	public boolean prob1stepSingle(int s, int i, BitSet u, BitSet v);
+	
+	/**
 	 * Do a matrix-vector multiplication followed by min/max, i.e. one step of value iteration,
 	 * i.e. for all s: result[s] = min/max_k { sum_j P_k(s,j)*vect[j] }
 	 * Optionally, store optimal (memoryless) strategy info. 
@@ -134,10 +145,10 @@ public interface MDP extends NondetModel
 	/**
 	 * Do a single row of matrix-vector multiplication for a specific choice.
 	 * @param s State (row) index
-	 * @param k Choice index
+	 * @param i Choice index
 	 * @param vect Vector to multiply by
 	 */
-	public double mvMultSingle(int s, int k, double vect[]);
+	public double mvMultSingle(int s, int i, double vect[]);
 
 	/**
 	 * Do a Gauss-Seidel-style matrix-vector multiplication followed by min/max.
@@ -171,14 +182,14 @@ public interface MDP extends NondetModel
 	 * Do a single row of Jacobi-style matrix-vector multiplication for a specific choice.
 	 * i.e. return min/max_k { (sum_{j!=s} P_k(s,j)*vect[j]) / 1-P_k(s,s) }
 	 * @param s Row index
-	 * @param k Choice index
+	 * @param i Choice index
 	 * @param vect Vector to multiply by
 	 */
-	public double mvMultJacSingle(int s, int k, double vect[]);
+	public double mvMultJacSingle(int s, int i, double vect[]);
 
 	/**
-	 * Do a matrix-vector multiplication and sum of action reward followed by min/max, i.e. one step of value iteration.
-	 * i.e. for all s: result[s] = min/max_k { rew(s) + sum_j P_k(s,j)*vect[j] }
+	 * Do a matrix-vector multiplication and sum of rewards followed by min/max, i.e. one step of value iteration.
+	 * i.e. for all s: result[s] = min/max_k { rew(s) + rew_k(s) + sum_j P_k(s,j)*vect[j] }
 	 * Optionally, store optimal (memoryless) strategy info. 
 	 * @param vect Vector to multiply by
 	 * @param mdpRewards The rewards
@@ -191,8 +202,30 @@ public interface MDP extends NondetModel
 	public void mvMultRewMinMax(double vect[], MDPRewards mdpRewards, boolean min, double result[], BitSet subset, boolean complement, int strat[]);
 
 	/**
-	 * Do a Gauss-Seidel-style matrix-vector multiplication and sum of action reward followed by min/max.
-	 * i.e. for all s: vect[s] = min/max_k { rew(s) + (sum_{j!=s} P_k(s,j)*vect[j]) / 1-P_k(s,s) }
+	 * Do a single row of matrix-vector multiplication and sum of rewards followed by min/max.
+	 * i.e. return min/max_k { rew(s) + rew_k(s) + sum_j P_k(s,j)*vect[j] }
+	 * Optionally, store optimal (memoryless) strategy info. 
+	 * @param s Row index
+	 * @param vect Vector to multiply by
+	 * @param mdpRewards The rewards
+	 * @param min Min or max for (true=min, false=max)
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 */
+	public double mvMultRewMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int strat[]);
+
+	/**
+	 * Do a single row of matrix-vector multiplication and sum of rewards for a specific choice.
+	 * i.e. rew(s) + rew_k(s) + sum_j P_k(s,j)*vect[j]
+	 * @param s State (row) index
+	 * @param i Choice index
+	 * @param vect Vector to multiply by
+	 * @param mcRewards The rewards
+	 */
+	public double mvMultRewSingle(int s, int i, double vect[], MCRewards mcRewards);
+
+	/**
+	 * Do a Gauss-Seidel-style matrix-vector multiplication and sum of rewards followed by min/max.
+	 * i.e. for all s: vect[s] = min/max_k { rew(s) + rew_k(s) + (sum_{j!=s} P_k(s,j)*vect[j]) / 1-P_k(s,s) }
 	 * and store new values directly in {@code vect} as computed.
 	 * The maximum (absolute/relative) difference between old/new
 	 * elements of {@code vect} is also returned.
@@ -209,22 +242,10 @@ public interface MDP extends NondetModel
 	public double mvMultRewGSMinMax(double vect[], MDPRewards mdpRewards, boolean min, BitSet subset, boolean complement, boolean absolute, int strat[]);
 
 	/**
-	 * Do a single row of matrix-vector multiplication and sum of action reward followed by min/max.
-	 * i.e. return min/max_k { rew(s) + sum_j P_k(s,j)*vect[j] }
+	 * Do a single row of Jacobi-style matrix-vector multiplication and sum of rewards followed by min/max.
+	 * i.e. return min/max_k { rew(s) + rew_k(s) + (sum_{j!=s} P_k(s,j)*vect[j]) / 1-P_k(s,s) }
 	 * Optionally, store optimal (memoryless) strategy info. 
-	 * @param s Row index
-	 * @param vect Vector to multiply by
-	 * @param mdpRewards The rewards
-	 * @param min Min or max for (true=min, false=max)
-	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
-	 */
-	public double mvMultRewMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int strat[]);
-
-	/**
-	 * Do a single row of Jacobi-style matrix-vector multiplication and sum of action reward followed by min/max.
-	 * i.e. return min/max_k { (sum_{j!=s} P_k(s,j)*vect[j]) / 1-P_k(s,s) }
-	 * Optionally, store optimal (memoryless) strategy info. 
-	 * @param s Row index
+	 * @param s State (row) index
 	 * @param vect Vector to multiply by
 	 * @param mdpRewards The rewards
 	 * @param min Min or max for (true=min, false=max)
@@ -233,8 +254,8 @@ public interface MDP extends NondetModel
 	public double mvMultRewJacMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int strat[]);
 
 	/**
-	 * Determine which choices result in min/max after a single row of matrix-vector multiplication and sum of action reward.
-	 * @param s Row index
+	 * Determine which choices result in min/max after a single row of matrix-vector multiplication and sum of rewards.
+	 * @param s State (row) index
 	 * @param vect Vector to multiply by
 	 * @param mdpRewards The rewards
 	 * @param min Min or max (true=min, false=max)
