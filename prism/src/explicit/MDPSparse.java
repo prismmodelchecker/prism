@@ -1066,7 +1066,7 @@ public class MDPSparse extends MDPExplicit
 		h1 = rowStarts[s + 1];
 		for (j = l1; j < h1; j++) {
 			// Compute sum for this distribution
-			d = mdpRewards.getTransitionReward(s, j);
+			d = mdpRewards.getTransitionReward(s, j - l1);
 			l2 = choiceStarts[j];
 			h2 = choiceStarts[j + 1];
 			for (k = l2; k < h2; k++) {
