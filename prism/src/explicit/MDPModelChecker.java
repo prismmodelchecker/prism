@@ -1423,7 +1423,7 @@ public class MDPModelChecker extends ProbModelChecker
 		// If required, create/initialise strategy storage
 		// Set choices to -1, denoting unknown
 		// (except for target states, which are -2, denoting arbitrary)
-		if (genStrat || exportAdv) {
+		if (genStrat || exportAdv || mdpSolnMethod == MDPSolnMethod.POLICY_ITERATION) {
 			strat = new int[n];
 			for (i = 0; i < n; i++) {
 				strat[i] = target.get(i) ? -2 : -1;
@@ -1432,17 +1432,17 @@ public class MDPModelChecker extends ProbModelChecker
 		
 		// Precomputation (not optional)
 		timerProb1 = System.currentTimeMillis();
-		inf = prob1(mdp, null, target, !min, null);
+		inf = prob1(mdp, null, target, !min, strat);
 		inf.flip(0, n);
 		timerProb1 = System.currentTimeMillis() - timerProb1;
-
+		
 		// Print results of precomputation
 		numTarget = target.cardinality();
 		numInf = inf.cardinality();
 		mainLog.println("target=" + numTarget + ", inf=" + numInf + ", rest=" + (n - (numTarget + numInf)));
 
 		// If required, generate strategy for "inf" states.
-		if (genStrat || exportAdv) {
+		if (genStrat || exportAdv || mdpSolnMethod == MDPSolnMethod.POLICY_ITERATION) {
 			if (min) {
 				// If min reward is infinite, all choices give infinity
 				// So the choice can be arbitrary, denoted by -2; 
@@ -1692,7 +1692,10 @@ public class MDPModelChecker extends ProbModelChecker
 
 	/**
 	 * Compute expected reachability rewards using policy iteration.
-	 * Optionally, store optimal (memoryless) strategy info. 
+	 * The array {@code strat} is used both to pass in the initial strategy for policy iteration,
+	 * and as storage for the resulting optimal strategy (if needed).
+	 * Passing in an initial strategy is required when some states have infinite reward,
+	 * to avoid the possibility of policy iteration getting stuck on an infinite-value strategy.
 	 * @param mdp The MDP
 	 * @param mdpRewards The rewards
 	 * @param target Target states
@@ -1741,29 +1744,6 @@ public class MDPModelChecker extends ProbModelChecker
 			strat = new int[n];
 			for (i = 0; i < n; i++)
 				strat[i] = 0;
-		}
-		// Otherwise, just initialise for states not in target/inf
-		// (Optimal choices for target/inf should already be known)
-		else {
-			for (i = 0; i < n; i++)
-				if (!(target.get(i) || inf.get(i)))
-					strat[i] = 0;
-		}
-		// For minimum rewards, we need to make sure that initial strategy choices
-		// do not result in infinite rewards for any states that are know not to be infinite
-		// (otherwise policy iteration may not converge) 
-		if (min) {
-			for (i = 0; i < n; i++) {
-				if (!(target.get(i) || inf.get(i))) {
-					int numChoices = mdp.getNumChoices(i);
-					for (int k = 0; k < numChoices; k++) {
-						if (!mdp.someSuccessorsInSet(i, k, inf)) {
-							strat[i] = k;
-							continue;
-						}
-					}
-				}
-			}
 		}
 			
 		// Start iterations
