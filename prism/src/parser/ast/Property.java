@@ -169,9 +169,14 @@ public class Property extends ASTElement
 					String constName = pair[0].trim();
 					String constVal = pair[1].trim();
 					Object constValToMatch = constValues.getValueOf(constName);
-					// Just check for exact string match for now
-					if (constValToMatch == null || !constValToMatch.toString().equals(constVal))
+					if (constValToMatch == null)
 						match = false;
+					// Check doubles numerically
+					else if (constValToMatch instanceof Double)
+						match = PrismUtils.doublesAreCloseRel(((Double) constValToMatch).doubleValue(), Double.parseDouble(constVal), 1e-10);
+					// Otherwise just check for exact string match for now
+					else
+						match = constValToMatch.toString().equals(constVal);
 				}
 				// Found it...
 				if (match) {
