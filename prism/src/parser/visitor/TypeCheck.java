@@ -478,7 +478,8 @@ public class TypeCheck extends ASTTraverse
 			}
 		}
 		// Check path operator
-		if (!(e.getExpression().getType() instanceof TypePathBool)) {
+		// Note: need to allow (non-path) Boolean types too, since propositional formulae are also LTL
+		if (!(e.getExpression().getType() instanceof TypePathBool || e.getExpression().getType() instanceof TypeBool)) {
 			throw new PrismLangException("Type error: Contents of P operator is not a path formula", e.getExpression());
 		}
 		// Set type
