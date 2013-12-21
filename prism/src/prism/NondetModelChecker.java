@@ -556,7 +556,7 @@ public class NondetModelChecker extends NonProbModelChecker
 				Vector<JDDNode> tmptargetDDs = new Vector<JDDNode>();
 				List<JDDNode> tmpmultitargetDDs = new ArrayList<JDDNode>();
 				List<Integer> tmpmultitargetIDs = new ArrayList<Integer>();
-				ArrayList<DRA> tmpdra = new ArrayList<DRA>();
+				ArrayList<DRA<BitSet>> tmpdra = new ArrayList<DRA<BitSet>>();
 				ArrayList<JDDVars> tmpdraDDRowVars = new ArrayList<JDDVars>();
 				ArrayList<JDDVars> tmpdraDDColVars = new ArrayList<JDDVars>();
 				int count = 0;
@@ -685,7 +685,7 @@ public class NondetModelChecker extends NonProbModelChecker
 	 * @param expr A multi objective 
 	 * @throws PrismException
 	 */
-	protected void ensureNoTimeBounded(ExpressionFunc expr) throws PrismException
+	private void ensureNoTimeBounded(ExpressionFunc expr) throws PrismException
 	{
 		try {
 			expr.accept(new ASTTraverse()
@@ -1216,8 +1216,11 @@ public class NondetModelChecker extends NonProbModelChecker
 			JDD.Deref(ec);
 	}
 
-	// Contents of a P operator, i.e. a path formula
-
+	// Model checking functions
+	
+	/**
+	 * Compute probabilities for the contents of a P operator.
+	 */
 	protected StateValues checkProbPathFormula(Expression expr, boolean qual, boolean min) throws PrismException
 	{
 		// Test whether this is a simple path formula (i.e. PCTL)
@@ -1229,8 +1232,9 @@ public class NondetModelChecker extends NonProbModelChecker
 		}
 	}
 
-	// Simple path formula for P operator (one temporal op, possibly negated)
-
+	/**
+	 * Compute probabilities for a simple, non-LTL path operator.
+	 */
 	protected StateValues checkProbPathFormulaSimple(Expression expr, boolean qual, boolean min) throws PrismException
 	{
 		StateValues probs = null;
@@ -1277,15 +1281,217 @@ public class NondetModelChecker extends NonProbModelChecker
 		return probs;
 	}
 
-	// LTL-like path formula for P operator
+	/**
+	 * Compute probabilities for a next operator.
+	 */
+	protected StateValues checkProbNext(ExpressionTemporal expr, boolean min) throws PrismException
+	{
+		JDDNode b;
+		StateValues probs = null;
 
+		// model check operand first
+		b = checkExpressionDD(expr.getOperand2());
+
+		// print out some info about num states
+		// mainLog.print("\nb = " + JDD.GetNumMintermsString(b,
+		// allDDRowVars.n()) + " states\n");
+
+		// compute probabilities
+		probs = computeNextProbs(trans, b, min);
+
+		// derefs
+		JDD.Deref(b);
+
+		return probs;
+	}
+
+	/**
+	 * Compute probabilities for a bounded until operator.
+	 */
+	protected StateValues checkProbBoundedUntil(ExpressionTemporal expr, boolean min) throws PrismException
+	{
+		int time;
+		JDDNode b1, b2;
+		StateValues probs = null;
+
+		// get info from bounded until
+		time = expr.getUpperBound().evaluateInt(constantValues);
+		if (expr.upperBoundIsStrict())
+			time--;
+		if (time < 0) {
+			String bound = expr.upperBoundIsStrict() ? "<" + (time + 1) : "<=" + time;
+			throw new PrismException("Invalid bound " + bound + " in bounded until formula");
+		}
+
+		// model check operands first
+		b1 = checkExpressionDD(expr.getOperand1());
+		try {
+			b2 = checkExpressionDD(expr.getOperand2());
+		} catch (PrismException e) {
+			JDD.Deref(b1);
+			throw e;
+		}
+
+		// print out some info about num states
+		// mainLog.print("\nb1 = " + JDD.GetNumMintermsString(b1,
+		// allDDRowVars.n()));
+		// mainLog.print(" states, b2 = " + JDD.GetNumMintermsString(b2,
+		// allDDRowVars.n()) + " states\n");
+
+		// compute probabilities
+
+		// a trivial case: "U<=0"
+		if (time == 0) {
+			// prob is 1 in b2 states, 0 otherwise
+			JDD.Ref(b2);
+			probs = new StateValuesMTBDD(b2, model);
+		} else {
+			try {
+				probs = computeBoundedUntilProbs(trans, trans01, b1, b2, time, min);
+			} catch (PrismException e) {
+				JDD.Deref(b1);
+				JDD.Deref(b2);
+				throw e;
+			}
+		}
+
+		// derefs
+		JDD.Deref(b1);
+		JDD.Deref(b2);
+
+		return probs;
+	}
+
+	/**
+	 * Compute probabilities for an (unbounded) until operator.
+	 * Note: This method is split into two steps so that the LTL model checker can use the second part directly.
+	 */
+	protected StateValues checkProbUntil(ExpressionTemporal expr, boolean qual, boolean min) throws PrismException
+	{
+		JDDNode b1, b2;
+		StateValues probs = null;
+
+		// model check operands first
+		b1 = checkExpressionDD(expr.getOperand1());
+		try {
+			b2 = checkExpressionDD(expr.getOperand2());
+		} catch (PrismException e) {
+			JDD.Deref(b1);
+			throw e;
+		}
+
+		// print out some info about num states
+		// mainLog.print("\nb1 = " + JDD.GetNumMintermsString(b1,
+		// allDDRowVars.n()));
+		// mainLog.print(" states, b2 = " + JDD.GetNumMintermsString(b2,
+		// allDDRowVars.n()) + " states\n");
+
+		try {
+			probs = checkProbUntil(b1, b2, qual, min);
+		} catch (PrismException e) {
+			JDD.Deref(b1);
+			JDD.Deref(b2);
+			throw e;
+		}
+
+		// derefs
+		JDD.Deref(b1);
+		JDD.Deref(b2);
+
+		return probs;
+	}
+
+	/**
+	 * Compute probabilities for an (unbounded) until operator.
+	 * @param b1 Remain in these states
+	 * @param b2 Target states
+	 * @param qual True if only qualititative (0/1) results are needed
+	 * @param min Min or max probabilities (true=min, false=max)
+	 */
+	protected StateValues checkProbUntil(JDDNode b1, JDDNode b2, boolean qual, boolean min) throws PrismException
+	{
+		JDDNode splus, newb1, newb2;
+		StateValues probs = null;
+		long l;
+
+		// compute probabilities
+
+		// if doing min with fairness, we solve a different problem
+		// (as in christel's habilitation)
+		if (min && fairness) {
+
+			// print out reminder that we have to do conversion for fairness
+			mainLog.print("\nDoing conversion for fairness...\n");
+			// start timer
+			l = System.currentTimeMillis();
+			// convert to new problem
+			newb2 = PrismMTBDD.Prob0A(trans01, reach, allDDRowVars, allDDColVars, allDDNondetVars, b1, b2);
+			JDD.Ref(newb2);
+			splus = JDD.Not(newb2);
+			JDD.Ref(splus);
+			JDD.Ref(b2);
+			newb1 = JDD.And(splus, JDD.Not(b2));
+			JDD.Deref(splus);
+			JDD.Ref(reach);
+			newb1 = JDD.And(reach, newb1);
+			JDD.Ref(reach);
+			newb2 = JDD.And(reach, newb2);
+			// stop timer
+			l = System.currentTimeMillis() - l;
+			// print out conversion info
+			mainLog.print("\nTime for fairness conversion: " + l / 1000.0 + " seconds.\n");
+			// mainLog.print("\nb1 = " + JDD.GetNumMintermsString(newb1, allDDRowVars.n()));
+			// mainLog.print(" states, b2 = " + JDD.GetNumMintermsString(newb2, allDDRowVars.n()) + " states\n");
+		} else {
+			JDD.Ref(b1);
+			newb1 = b1;
+			JDD.Ref(b2);
+			newb2 = b2;
+		}
+
+		// if requested (i.e. when prob bound is 0 or 1 and precomputation algorithms are enabled),
+		// compute probabilities qualitatively
+		if (qual) {
+			mainLog.print("\nProbability bound in formula is 0/1 so not computing exact probabilities...\n");
+			// for fairness, we compute max here
+			probs = computeUntilProbsQual(trans01, newb1, newb2, min && !fairness);
+		}
+		// otherwise actually compute probabilities
+		else {
+			// for fairness, we compute max here
+			try {
+				probs = computeUntilProbs(trans, transActions, trans01, newb1, newb2, min && !fairness);
+			} catch (PrismException e) {
+				JDD.Deref(newb1);
+				JDD.Deref(newb2);
+				throw e;
+			}
+		}
+
+		// if we're doing min with fairness,
+		// we need to subtract the probabilities from
+		// one to get the actual answer
+		if (min && fairness) {
+			probs.subtractFromOne();
+		}
+
+		// Derefs
+		JDD.Deref(newb1);
+		JDD.Deref(newb2);
+
+		return probs;
+	}
+
+	/**
+	 * Compute probabilities for an LTL path formula
+	 */
 	protected StateValues checkProbPathFormulaLTL(Expression expr, boolean qual, boolean min) throws PrismException
 	{
 		LTLModelChecker mcLtl;
 		StateValues probsProduct = null, probs = null;
 		Expression ltl;
 		Vector<JDDNode> labelDDs;
-		DRA dra;
+		DRA<BitSet> dra;
 		NondetModel modelProduct;
 		NondetModelChecker mcProduct;
 		JDDNode startMask;
@@ -1397,202 +1603,9 @@ public class NondetModelChecker extends NonProbModelChecker
 		return probs;
 	}
 
-	// next
-
-	protected StateValues checkProbNext(ExpressionTemporal expr, boolean min) throws PrismException
-	{
-		JDDNode b;
-		StateValues probs = null;
-
-		// model check operand first
-		b = checkExpressionDD(expr.getOperand2());
-
-		// print out some info about num states
-		// mainLog.print("\nb = " + JDD.GetNumMintermsString(b,
-		// allDDRowVars.n()) + " states\n");
-
-		// compute probabilities
-		probs = computeNextProbs(trans, b, min);
-
-		// derefs
-		JDD.Deref(b);
-
-		return probs;
-	}
-
-	// bounded until
-
-	protected StateValues checkProbBoundedUntil(ExpressionTemporal expr, boolean min) throws PrismException
-	{
-		int time;
-		JDDNode b1, b2;
-		StateValues probs = null;
-
-		// get info from bounded until
-		time = expr.getUpperBound().evaluateInt(constantValues);
-		if (expr.upperBoundIsStrict())
-			time--;
-		if (time < 0) {
-			String bound = expr.upperBoundIsStrict() ? "<" + (time + 1) : "<=" + time;
-			throw new PrismException("Invalid bound " + bound + " in bounded until formula");
-		}
-
-		// model check operands first
-		b1 = checkExpressionDD(expr.getOperand1());
-		try {
-			b2 = checkExpressionDD(expr.getOperand2());
-		} catch (PrismException e) {
-			JDD.Deref(b1);
-			throw e;
-		}
-
-		// print out some info about num states
-		// mainLog.print("\nb1 = " + JDD.GetNumMintermsString(b1,
-		// allDDRowVars.n()));
-		// mainLog.print(" states, b2 = " + JDD.GetNumMintermsString(b2,
-		// allDDRowVars.n()) + " states\n");
-
-		// compute probabilities
-
-		// a trivial case: "U<=0"
-		if (time == 0) {
-			// prob is 1 in b2 states, 0 otherwise
-			JDD.Ref(b2);
-			probs = new StateValuesMTBDD(b2, model);
-		} else {
-			try {
-				probs = computeBoundedUntilProbs(trans, trans01, b1, b2, time, min);
-			} catch (PrismException e) {
-				JDD.Deref(b1);
-				JDD.Deref(b2);
-				throw e;
-			}
-		}
-
-		// derefs
-		JDD.Deref(b1);
-		JDD.Deref(b2);
-
-		return probs;
-	}
-
-	// until (unbounded)
-
-	// this method is split into two steps so that the LTL model checker can use the second part directly
-
-	protected StateValues checkProbUntil(ExpressionTemporal expr, boolean qual, boolean min) throws PrismException
-	{
-		JDDNode b1, b2;
-		StateValues probs = null;
-
-		// model check operands first
-		b1 = checkExpressionDD(expr.getOperand1());
-		try {
-			b2 = checkExpressionDD(expr.getOperand2());
-		} catch (PrismException e) {
-			JDD.Deref(b1);
-			throw e;
-		}
-
-		// print out some info about num states
-		// mainLog.print("\nb1 = " + JDD.GetNumMintermsString(b1,
-		// allDDRowVars.n()));
-		// mainLog.print(" states, b2 = " + JDD.GetNumMintermsString(b2,
-		// allDDRowVars.n()) + " states\n");
-
-		try {
-			probs = checkProbUntil(b1, b2, qual, min);
-		} catch (PrismException e) {
-			JDD.Deref(b1);
-			JDD.Deref(b2);
-			throw e;
-		}
-
-		// derefs
-		JDD.Deref(b1);
-		JDD.Deref(b2);
-
-		return probs;
-	}
-
-	// until (unbounded): b1/b2 are bdds for until operands
-
-	protected StateValues checkProbUntil(JDDNode b1, JDDNode b2, boolean qual, boolean min) throws PrismException
-	{
-		JDDNode splus, newb1, newb2;
-		StateValues probs = null;
-		long l;
-
-		// compute probabilities
-
-		// if doing min with fairness, we solve a different problem
-		// (as in christel's habilitation)
-		if (min && fairness) {
-
-			// print out reminder that we have to do conversion for fairness
-			mainLog.print("\nDoing conversion for fairness...\n");
-			// start timer
-			l = System.currentTimeMillis();
-			// convert to new problem
-			newb2 = PrismMTBDD.Prob0A(trans01, reach, allDDRowVars, allDDColVars, allDDNondetVars, b1, b2);
-			JDD.Ref(newb2);
-			splus = JDD.Not(newb2);
-			JDD.Ref(splus);
-			JDD.Ref(b2);
-			newb1 = JDD.And(splus, JDD.Not(b2));
-			JDD.Deref(splus);
-			JDD.Ref(reach);
-			newb1 = JDD.And(reach, newb1);
-			JDD.Ref(reach);
-			newb2 = JDD.And(reach, newb2);
-			// stop timer
-			l = System.currentTimeMillis() - l;
-			// print out conversion info
-			mainLog.print("\nTime for fairness conversion: " + l / 1000.0 + " seconds.\n");
-			// mainLog.print("\nb1 = " + JDD.GetNumMintermsString(newb1, allDDRowVars.n()));
-			// mainLog.print(" states, b2 = " + JDD.GetNumMintermsString(newb2, allDDRowVars.n()) + " states\n");
-		} else {
-			JDD.Ref(b1);
-			newb1 = b1;
-			JDD.Ref(b2);
-			newb2 = b2;
-		}
-
-		// if requested (i.e. when prob bound is 0 or 1 and precomputation algorithms are enabled),
-		// compute probabilities qualitatively
-		if (qual) {
-			mainLog.print("\nProbability bound in formula is 0/1 so not computing exact probabilities...\n");
-			// for fairness, we compute max here
-			probs = computeUntilProbsQual(trans01, newb1, newb2, min && !fairness);
-		}
-		// otherwise actually compute probabilities
-		else {
-			// for fairness, we compute max here
-			try {
-				probs = computeUntilProbs(trans, transActions, trans01, newb1, newb2, min && !fairness);
-			} catch (PrismException e) {
-				JDD.Deref(newb1);
-				JDD.Deref(newb2);
-				throw e;
-			}
-		}
-
-		// if we're doing min with fairness,
-		// we need to subtract the probabilities from
-		// one to get the actual answer
-		if (min && fairness) {
-			probs.subtractFromOne();
-		}
-
-		// Derefs
-		JDD.Deref(newb1);
-		JDD.Deref(newb2);
-
-		return probs;
-	}
-
-	// cumulative reward
-
+	/**
+	 * Compute rewards for a cumulative reward operator.
+	 */
 	protected StateValues checkRewardCumul(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards, boolean min) throws PrismException
 	{
 		int time; // time
@@ -1624,8 +1637,9 @@ public class NondetModelChecker extends NonProbModelChecker
 		return rewards;
 	}
 
-	// inst reward
-
+	/**
+	 * Compute rewards for an instantaneous reward operator.
+	 */
 	protected StateValues checkRewardInst(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards, boolean min) throws PrismException
 	{
 		int time; // time bound
@@ -1643,8 +1657,9 @@ public class NondetModelChecker extends NonProbModelChecker
 		return rewards;
 	}
 
-	// reach reward
-
+	/**
+	 * Compute rewards for a reachability reward operator.
+	 */
 	protected StateValues checkRewardReach(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards, boolean min) throws PrismException
 	{
 		JDDNode b;
