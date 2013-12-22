@@ -111,12 +111,9 @@ public class NondetModelChecker extends NonProbModelChecker
 		PrismNative.setExportAdvFilename(prism.getExportAdvFilename());
 	}
 
-	// -----------------------------------------------------------------------------------
-	// Check a property, i.e. an expression
-	// -----------------------------------------------------------------------------------
+	// Model checking functions
 
-	// Check expression (recursive)
-
+	@Override
 	public StateValues checkExpression(Expression expr) throws PrismException
 	{
 		StateValues res;
@@ -153,12 +150,9 @@ public class NondetModelChecker extends NonProbModelChecker
 		return res;
 	}
 
-	// -----------------------------------------------------------------------------------
-	// Check method for each operator
-	// -----------------------------------------------------------------------------------
-
-	// P operator
-
+	/**
+	 * Model check a P operator expression and return the values for all states.
+	 */
 	protected StateValues checkExpressionProb(ExpressionProb expr) throws PrismException
 	{
 		Expression pb; // probability bound (expression)
@@ -227,8 +221,9 @@ public class NondetModelChecker extends NonProbModelChecker
 		}
 	}
 
-	// R operator
-
+	/**
+	 * Model check an R operator expression and return the values for all states.
+	 */
 	protected StateValues checkExpressionReward(ExpressionReward expr) throws PrismException
 	{
 		Object rs; // reward struct index
