@@ -679,32 +679,6 @@ public class NondetModelChecker extends NonProbModelChecker
 			}
 	}
 
-	/**
-	 * This function throws an exception if the parameter expr contains
-	 * a subexpression which is a time-bounded operator.
-	 * @param expr A multi objective 
-	 * @throws PrismException
-	 */
-	private void ensureNoTimeBounded(ExpressionFunc expr) throws PrismException
-	{
-		try {
-			expr.accept(new ASTTraverse()
-			{
-				public void visitPre(ExpressionTemporal e) throws PrismLangException
-				{
-					if (e.getLowerBound() != null)
-						throw new PrismLangException(e.getOperatorSymbol());
-					if (e.getUpperBound() != null)
-						throw new PrismLangException(e.getOperatorSymbol());
-				}
-			});
-		} catch (PrismLangException e) {
-			String s = "Temporal operators (like " + e.getMessage() + ")";
-			s += " cannot have time bounds for multi-objective properties";
-			throw new PrismException(s);
-		}
-	}
-
 	protected void addDummyFormula(NondetModel modelProduct, LTLModelChecker mcLtl, List<JDDNode> targetDDs, OpsAndBoundsList opsAndBounds)
 			throws PrismException
 	{
@@ -845,10 +819,12 @@ public class NondetModelChecker extends NonProbModelChecker
 		List<JDDNode> rewards = new ArrayList<JDDNode>(numTargets);
 		List<JDDNode> rewardsIndex = new ArrayList<JDDNode>(numTargets);
 
-		// No time-bounded variants of the temporal operators allowed for multi-objective (or LTL)
+		// Can't do LTL with time-bounded variants of the temporal operators
 		// TODO removed since it is allowed for valiter.
 		// TODO make sure it is treated correctly for all params
-		//ensureNoTimeBounded(expr);
+		/*if (Expression.containsTemporalTimeBounds(expr)) {
+			throw new PrismException("Time-bounded operators not supported in LTL: " + expr);
+		}*/
 
 		ArrayList<String> targetName = new ArrayList<String>();
 		targetExprs = new ArrayList<Expression>(numTargets);
@@ -1500,21 +1476,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		long l;
 
 		// Can't do LTL with time-bounded variants of the temporal operators
-		try {
-			expr.accept(new ASTTraverse()
-			{
-				public void visitPre(ExpressionTemporal e) throws PrismLangException
-				{
-					if (e.getLowerBound() != null)
-						throw new PrismLangException(e.getOperatorSymbol());
-					if (e.getUpperBound() != null)
-						throw new PrismLangException(e.getOperatorSymbol());
-				}
-			});
-		} catch (PrismLangException e) {
-			String s = "Temporal operators (like " + e.getMessage() + ")";
-			s += " cannot have time bounds for LTL properties";
-			throw new PrismException(s);
+		if (Expression.containsTemporalTimeBounds(expr)) {
+			throw new PrismException("Time-bounded operators not supported in LTL: " + expr);
 		}
 
 		// Can't do "dfa" properties yet

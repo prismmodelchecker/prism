@@ -667,6 +667,28 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
+	 * Test if an expression contains time bounds on temporal operators 
+	 */
+	public static boolean containsTemporalTimeBounds(Expression expr)
+	{
+		try {
+			expr.accept(new ASTTraverse()
+			{
+				public void visitPre(ExpressionTemporal e) throws PrismLangException
+				{
+					if (e.getLowerBound() != null)
+						throw new PrismLangException(e.getOperatorSymbol());
+					if (e.getUpperBound() != null)
+						throw new PrismLangException(e.getOperatorSymbol());
+				}
+			});
+		} catch (PrismLangException e) {
+			return true;
+		}
+		return false;
+	}
+	
+	/**
 	 * Test if an expression contains a multi(...) property within 
 	 */
 	public static boolean containsMultiObjective(Expression expr)
