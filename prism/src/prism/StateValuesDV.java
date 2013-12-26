@@ -32,6 +32,7 @@ import dv.*;
 import jdd.*;
 import odd.*;
 import parser.VarList;
+import parser.ast.RelOp;
 import parser.type.*;
 
 ;
@@ -303,7 +304,16 @@ public class StateValuesDV implements StateValues
 	 * 	Generate BDD for states in the given interval
 	 * (interval specified as relational operator and bound)
 	 */
-	public JDDNode getBDDFromInterval(String relOp, double bound)
+	public JDDNode getBDDFromInterval(String relOpString, double bound)
+	{
+		return getBDDFromInterval(RelOp.parseSymbol(relOpString), bound);
+	}
+
+	/**
+	 * 	Generate BDD for states in the given interval
+	 * (interval specified as relational operator and bound)
+	 */
+	public JDDNode getBDDFromInterval(RelOp relOp, double bound)
 	{
 		return values.getBDDFromInterval(relOp, bound, vars, odd);
 	}

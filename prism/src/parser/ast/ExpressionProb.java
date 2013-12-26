@@ -26,13 +26,13 @@
 
 package parser.ast;
 
-import parser.*;
-import parser.visitor.*;
+import parser.EvaluateContext;
+import parser.visitor.ASTVisitor;
 import prism.PrismLangException;
 
 public class ExpressionProb extends Expression
 {
-	String relOp = null;
+	RelOp relOp = null;
 	Expression prob = null;
 	Expression expression = null;
 	// Note: this "old-style" filter is just for display purposes
@@ -48,15 +48,20 @@ public class ExpressionProb extends Expression
 	public ExpressionProb(Expression e, String r, Expression p)
 	{
 		expression = e;
-		relOp = r;
+		relOp = RelOp.parseSymbol(r);
 		prob = p;
 	}
 
 	// Set methods
 
+	public void setRelOp(RelOp relOp)
+	{
+		this.relOp = relOp;
+	}
+
 	public void setRelOp(String r)
 	{
-		relOp = r;
+		relOp = RelOp.parseSymbol(r);
 	}
 
 	public void setProb(Expression p)
@@ -76,7 +81,7 @@ public class ExpressionProb extends Expression
 
 	// Get methods
 
-	public String getRelOp()
+	public RelOp getRelOp()
 	{
 		return relOp;
 	}
@@ -128,9 +133,9 @@ public class ExpressionProb extends Expression
 	{
 		if (prob != null)
 			return "Result";
-		else if (relOp.equals("min="))
+		else if (relOp == RelOp.MIN)
 			return "Minimum probability";
-		else if (relOp.equals("max="))
+		else if (relOp == RelOp.MAX)
 			return "Maximum probability";
 		else
 			return "Probability";

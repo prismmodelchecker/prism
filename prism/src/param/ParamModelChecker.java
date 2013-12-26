@@ -54,19 +54,35 @@
 
 package param;
 
-import java.io.FileOutputStream;
-import java.util.*;
-
-import edu.jas.kern.ComputerThreads;
-import explicit.Model;
+import java.util.BitSet;
+import java.util.List;
 
 import param.Lumper.BisimType;
 import param.StateEliminator.EliminationOrder;
 import parser.State;
 import parser.Values;
-import parser.ast.*;
+import parser.ast.Expression;
+import parser.ast.ExpressionBinaryOp;
+import parser.ast.ExpressionConstant;
+import parser.ast.ExpressionFilter;
 import parser.ast.ExpressionFilter.FilterOperator;
-import parser.type.*;
+import parser.ast.ExpressionLabel;
+import parser.ast.ExpressionLiteral;
+import parser.ast.ExpressionProb;
+import parser.ast.ExpressionProp;
+import parser.ast.ExpressionReward;
+import parser.ast.ExpressionSS;
+import parser.ast.ExpressionTemporal;
+import parser.ast.ExpressionUnaryOp;
+import parser.ast.LabelList;
+import parser.ast.ModulesFile;
+import parser.ast.PropertiesFile;
+import parser.ast.Property;
+import parser.ast.RelOp;
+import parser.ast.RewardStruct;
+import parser.type.TypeBool;
+import parser.type.TypeDouble;
+import parser.type.TypeInt;
 import prism.ModelType;
 import prism.PrismComponent;
 import prism.PrismException;
@@ -74,6 +90,8 @@ import prism.PrismLog;
 import prism.PrismPrintStreamLog;
 import prism.PrismSettings;
 import prism.Result;
+import edu.jas.kern.ComputerThreads;
+import explicit.Model;
 
 /**
  * Model checker for parametric Markov models.
@@ -881,7 +899,7 @@ final public class ParamModelChecker extends PrismComponent
 		//String relOp; // Relational operator
 		//boolean min = false; // For nondeterministic models, are we finding min (true) or max (false) probs
 		ModelType modelType = model.getModelType();
-		String relOp;
+		RelOp relOp;
 		boolean min = false;
 
 		RegionValues probs = null;
@@ -895,19 +913,7 @@ final public class ParamModelChecker extends PrismComponent
 			if (p.compareTo(0) == -1 || p.compareTo(1) == 1)
 				throw new PrismException("Invalid probability bound " + p + " in P operator");
 		}
-
-		// For nondeterministic models, determine whether min or max probabilities needed
-		if (modelType.nondeterministic()) {
-			if (relOp.equals(">") || relOp.equals(">=") || relOp.equals("min=")) {
-				// min
-				min = true;
-			} else if (relOp.equals("<") || relOp.equals("<=") || relOp.equals("max=")) {
-				// max
-				min = false;
-			} else {
-				throw new PrismException("Can't use \"P=?\" for nondeterministic models; use \"Pmin=?\" or \"Pmax=?\"");
-			}
-		}
+		min = relOp.isLowerBound();
 
 		// Compute probabilities
 		if (!expr.getExpression().isSimplePathFormula()) {
@@ -926,7 +932,7 @@ final public class ParamModelChecker extends PrismComponent
 		}
 		// Otherwise, compare against bound to get set of satisfying states
 		else {
-			return probs.binaryOp(Region.getOp(relOp), p);
+			return probs.binaryOp(Region.getOp(relOp.toString()), p);
 		}
 	}
 	
@@ -1003,7 +1009,7 @@ final public class ParamModelChecker extends PrismComponent
 
 		// Get info from reward operator
 		rs = expr.getRewardStructIndex();
-		String relOp = expr.getRelOp();
+		RelOp relOp = expr.getRelOp();
 		rb = expr.getReward();
 		if (rb != null) {
 			// TODO check whether actually evaluated as such, take constantValues into account
@@ -1011,19 +1017,7 @@ final public class ParamModelChecker extends PrismComponent
 			if (r.compareTo(0) == -1)
 				throw new PrismException("Invalid reward bound " + r + " in R[] formula");
 		}
-
-		// For nondeterministic models, determine whether min or max rewards needed
-		//if (modelType.nondeterministic()) {
-			if (relOp.equals(">") || relOp.equals(">=") || relOp.equals("min=")) {
-				// min
-				min = true;
-			} else if (relOp.equals("<") || relOp.equals("<=") || relOp.equals("max=")) {
-				// max
-				min = false;
-			} else if(modelType.nondeterministic()) {
-				throw new PrismException("Can't use \"R=?\" for nondeterministic models; use \"Rmin=?\" or \"Rmax=?\"");
-			} 
-		//}
+		min = relOp.isLowerBound();
 
 		// Get reward info
 		if (modulesFile == null)
@@ -1060,7 +1054,7 @@ final public class ParamModelChecker extends PrismComponent
 		}
 		// Otherwise, compare against bound to get set of satisfying states
 		else {
-			return rews.binaryOp(Region.getOp(relOp), r);
+			return rews.binaryOp(Region.getOp(relOp.toString()), r);
 		}
 	}
 	
@@ -1162,7 +1156,7 @@ final public class ParamModelChecker extends PrismComponent
 		//String relOp; // Relational operator
 		//boolean min = false; // For nondeterministic models, are we finding min (true) or max (false) probs
 		ModelType modelType = model.getModelType();
-		String relOp;
+		RelOp relOp;
 		boolean min = false;
 
 		RegionValues probs = null;
@@ -1176,19 +1170,7 @@ final public class ParamModelChecker extends PrismComponent
 			if (p.compareTo(0) == -1 || p.compareTo(1) == 1)
 				throw new PrismException("Invalid probability bound " + p + " in P operator");
 		}
-
-		// For nondeterministic models, determine whether min or max probabilities needed
-		if (modelType.nondeterministic()) {
-			if (relOp.equals(">") || relOp.equals(">=") || relOp.equals("min=")) {
-				// min
-				min = true;
-			} else if (relOp.equals("<") || relOp.equals("<=") || relOp.equals("max=")) {
-				// max
-				min = false;
-			} else {
-				throw new PrismException("Can't use \"S=?\" for nondeterministic models; use \"Smin=?\" or \"Smax=?\"");
-			}
-		}
+		min = relOp.isLowerBound();
 
 		// Compute probabilities
 		probs = checkProbSteadyState(model, expr.getExpression(), min, needStates);
@@ -1204,7 +1186,7 @@ final public class ParamModelChecker extends PrismComponent
 		}
 		// Otherwise, compare against bound to get set of satisfying states
 		else {
-			return probs.binaryOp(Region.getOp(relOp), p);
+			return probs.binaryOp(Region.getOp(relOp.toString()), p);
 		}
 	}
 

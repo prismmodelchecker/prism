@@ -37,6 +37,7 @@ import parser.State;
 import parser.ast.ExpressionBinaryOp;
 import parser.ast.ExpressionFunc;
 import parser.ast.ExpressionUnaryOp;
+import parser.ast.RelOp;
 import parser.type.Type;
 import parser.type.TypeBool;
 import parser.type.TypeDouble;
@@ -205,45 +206,66 @@ public class StateValues
 	 * Generate BitSet for states in the given interval
 	 * (interval specified as relational operator and bound)
 	 */
-	public BitSet getBitSetFromInterval(String relOp, double bound)
+	public BitSet getBitSetFromInterval(String relOpString, double bound)
+	{
+		return getBitSetFromInterval(RelOp.parseSymbol(relOpString), bound);
+	}
+	
+	/**
+	 * Generate BitSet for states in the given interval
+	 * (interval specified as relational operator and bound)
+	 */
+	public BitSet getBitSetFromInterval(RelOp relOp, double bound)
 	{
 		BitSet sol = new BitSet();
 
 		if (type instanceof TypeInt) {
-			if (relOp.equals(">=")) {
+			switch (relOp) {
+			case GEQ:
 				for (int i = 0; i < size; i++) {
 					sol.set(i, valuesI[i] >= bound);
 				}
-			} else if (relOp.equals(">")) {
+				break;
+			case GT:
 				for (int i = 0; i < size; i++) {
 					sol.set(i, valuesI[i] > bound);
 				}
-			} else if (relOp.equals("<=")) {
+				break;
+			case LEQ:
 				for (int i = 0; i < size; i++) {
 					sol.set(i, valuesI[i] <= bound);
 				}
-			} else if (relOp.equals("<")) {
+				break;
+			case LT:
 				for (int i = 0; i < size; i++) {
 					sol.set(i, valuesI[i] < bound);
 				}
+			default:
+				// Don't handle
 			}
 		} else if (type instanceof TypeDouble) {
-			if (relOp.equals(">=")) {
+			switch (relOp) {
+			case GEQ:
 				for (int i = 0; i < size; i++) {
 					sol.set(i, valuesD[i] >= bound);
 				}
-			} else if (relOp.equals(">")) {
+				break;
+			case GT:
 				for (int i = 0; i < size; i++) {
 					sol.set(i, valuesD[i] > bound);
 				}
-			} else if (relOp.equals("<=")) {
+				break;
+			case LEQ:
 				for (int i = 0; i < size; i++) {
 					sol.set(i, valuesD[i] <= bound);
 				}
-			} else if (relOp.equals("<")) {
+				break;
+			case LT:
 				for (int i = 0; i < size; i++) {
 					sol.set(i, valuesD[i] < bound);
 				}
+			default:
+				// Don't handle
 			}
 		}
 

@@ -30,6 +30,7 @@ package simulator.method;
 import parser.ast.Expression;
 import parser.ast.ExpressionProb;
 import parser.ast.ExpressionReward;
+import parser.ast.RelOp;
 import prism.PrismException;
 import simulator.sampler.Sampler;
 import simulator.sampler.SamplerDouble;
@@ -109,7 +110,7 @@ public final class SPRTMethod extends SimulationMethod
 	public void setExpression(Expression expr) throws PrismException
 	{
 		Expression bound;
-		String relOp;
+		RelOp relOp;
 		double theta;
 
 		// For P properties...
@@ -145,7 +146,7 @@ public final class SPRTMethod extends SimulationMethod
 			}
 			// Set p0/p1 values for two hypotheses
 			// Default case is that H0 means probability/reward >= theta + delta
-			if (relOp.equals(">") || relOp.equals(">=")) {
+			if (relOp.isLowerBound()) {
 				p0 = theta + delta;
 				p1 = theta - delta;
 			}

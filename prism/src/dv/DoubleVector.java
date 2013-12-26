@@ -26,6 +26,7 @@
 
 package dv;
 
+import parser.ast.RelOp;
 import prism.*;
 import jdd.*;
 import odd.*;
@@ -277,29 +278,42 @@ public class DoubleVector
 	 * 	Generate BDD for states in the given interval
 	 * (interval specified as relational operator and bound)
 	 */
-	public JDDNode getBDDFromInterval(String relOp, double bound, JDDVars vars, ODDNode odd)
+	public JDDNode getBDDFromInterval(String relOpString, double bound, JDDVars vars, ODDNode odd)
+	{
+		return getBDDFromInterval(RelOp.parseSymbol(relOpString), bound, vars, odd);
+	}
+	
+	/**
+	 * 	Generate BDD for states in the given interval
+	 * (interval specified as relational operator and bound)
+	 */
+	public JDDNode getBDDFromInterval(RelOp relOp, double bound, JDDVars vars, ODDNode odd)
 	{
 		JDDNode sol = null;
 		
-		if (relOp.equals(">=")) {
+		switch (relOp) {
+		case GEQ:
 			sol = new JDDNode(
 				DV_BDDGreaterThanEquals(v, bound, vars.array(), vars.n(), odd.ptr())
 			);
-		}
-		else if (relOp.equals(">")) {
+			break;
+		case GT:
 			sol = new JDDNode(
 				DV_BDDGreaterThan(v, bound, vars.array(), vars.n(), odd.ptr())
 			);
-		}
-		else if (relOp.equals("<=")) {
+			break;
+		case LEQ:
 			sol = new JDDNode(
 				DV_BDDLessThanEquals(v, bound, vars.array(), vars.n(), odd.ptr())
 			);
-		}
-		else if (relOp.equals("<")) {
+			break;
+		case LT:
 			sol = new JDDNode(
 				DV_BDDLessThan(v, bound, vars.array(), vars.n(), odd.ptr())
 			);
+			break;
+		default:
+			// Don't handle
 		}
 		
 		return sol;

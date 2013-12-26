@@ -32,7 +32,7 @@ import prism.PrismLangException;
 
 public class ExpressionSS extends Expression
 {
-	String relOp = null;
+	RelOp relOp = null;
 	Expression prob = null;
 	Expression expression = null;
 	// Note: this "old-style" filter is just for display purposes
@@ -48,15 +48,20 @@ public class ExpressionSS extends Expression
 	public ExpressionSS(Expression e, String r, Expression p)
 	{
 		expression = e;
-		relOp = r;
+		relOp = RelOp.parseSymbol(r);
 		prob = p;
 	}
 
 	// Set methods
 	
+	public void setRelOp(RelOp relOp)
+	{
+		this.relOp = relOp;
+	}
+
 	public void setRelOp(String r)
 	{
-		relOp =r;
+		relOp = RelOp.parseSymbol(r);
 	}
 
 	public void setProb(Expression p)
@@ -76,7 +81,7 @@ public class ExpressionSS extends Expression
 
 	// Get methods
 	
-	public String getRelOp()
+	public RelOp getRelOp()
 	{
 		return relOp;
 	}

@@ -28,6 +28,8 @@ package prism;
 
 import java.io.File;
 
+import parser.ast.RelOp;
+
 import jdd.JDDNode;
 import jdd.JDDVars;
 
@@ -148,7 +150,12 @@ public class StateValuesVoid implements StateValues
 		throw new UnsupportedOperationException();
 	}
 	
-	public JDDNode getBDDFromInterval(String relOp, double bound)
+	public JDDNode getBDDFromInterval(String relOpString, double bound)
+	{
+		throw new UnsupportedOperationException();
+	}
+	
+	public JDDNode getBDDFromInterval(RelOp relOp, double bound)
 	{
 		throw new UnsupportedOperationException();
 	}

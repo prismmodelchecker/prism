@@ -34,6 +34,7 @@ import java.io.IOException;
 import jdd.*;
 import odd.*;
 import parser.VarList;
+import parser.ast.RelOp;
 import parser.type.*;
 
 // Class for state-indexed vectors of (integer or double) values, represented by an MTBDD
@@ -408,22 +409,34 @@ public class StateValuesMTBDD implements StateValues
 	 * 	Generate BDD for states in the given interval
 	 * (interval specified as relational operator and bound)
 	 */
-	public JDDNode getBDDFromInterval(String relOp, double bound)
+	public JDDNode getBDDFromInterval(String relOpString, double bound)
+	{
+		return getBDDFromInterval(RelOp.parseSymbol(relOpString), bound);
+	}
+	
+	/**
+	 * 	Generate BDD for states in the given interval
+	 * (interval specified as relational operator and bound)
+	 */
+	public JDDNode getBDDFromInterval(RelOp relOp, double bound)
 	{
 		JDDNode sol = null;
 		
 		JDD.Ref(values);
-		if (relOp.equals(">=")) {
+		switch (relOp) {
+		case GEQ:
 			sol = JDD.GreaterThanEquals(values, bound);
-		}
-		else if (relOp.equals(">")) {
+			break;
+		case GT:
 			sol = JDD.GreaterThan(values, bound);
-		}
-		else if (relOp.equals("<=")) {
+			break;
+		case LEQ:
 			sol = JDD.LessThanEquals(values, bound);
-		}
-		else if (relOp.equals("<")) {
+			break;
+		case LT:
 			sol = JDD.LessThan(values, bound);
+		default:
+			// Don't handle
 		}
 		
 		return sol;

@@ -30,6 +30,7 @@ import java.io.File;
 
 import jdd.JDDNode;
 import jdd.JDDVars;
+import parser.ast.RelOp;
 
 // Interface for classes for state-indexed vectors of (integer or double) values
 
@@ -54,7 +55,8 @@ public interface StateValues
 	double sumOverBDD(JDDNode filter);
 	double sumOverMTBDD(JDDNode mult);
 	StateValues sumOverDDVars(JDDVars sumVars, Model newModel) throws PrismException;
-	JDDNode getBDDFromInterval(String relOp, double bound);
+	JDDNode getBDDFromInterval(String relOpString, double bound);
+	JDDNode getBDDFromInterval(RelOp relOp, double bound);
 	JDDNode getBDDFromInterval(double lo, double hi);
 	JDDNode getBDDFromCloseValue(double val, double epsilon, boolean abs);
 	JDDNode getBDDFromCloseValueAbs(double val, double epsilon);

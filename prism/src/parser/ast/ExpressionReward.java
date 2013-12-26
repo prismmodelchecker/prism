@@ -33,7 +33,7 @@ import prism.PrismLangException;
 public class ExpressionReward extends Expression
 {
 	Object rewardStructIndex = null;
-	String relOp = null;
+	RelOp relOp = null;
 	Expression reward = null;
 	Expression expression = null;
 	// Note: this "old-style" filter is just for display purposes
@@ -49,7 +49,7 @@ public class ExpressionReward extends Expression
 	public ExpressionReward(Expression e, String r, Expression p)
 	{
 		expression = e;
-		relOp = r;
+		relOp = RelOp.parseSymbol(r);
 		reward = p;
 	}
 
@@ -60,9 +60,14 @@ public class ExpressionReward extends Expression
 		rewardStructIndex = o;
 	}
 
+	public void setRelOp(RelOp relOp)
+	{
+		this.relOp = relOp;
+	}
+
 	public void setRelOp(String r)
 	{
-		relOp =r;
+		relOp = RelOp.parseSymbol(r);
 	}
 
 	public void setReward(Expression p)
@@ -87,7 +92,7 @@ public class ExpressionReward extends Expression
 		return rewardStructIndex;
 	}
 
-	public String getRelOp()
+	public RelOp getRelOp()
 	{
 		return relOp;
 	}
@@ -140,8 +145,8 @@ public class ExpressionReward extends Expression
 		// For R=? properties, use name of reward structure where applicable
 		if (reward == null) {
 			String s = "E";
-			if (relOp.equals("min=")) s = "Minimum e";
-			else if (relOp.equals("max=")) s = "Maximum e";
+			if (relOp == RelOp.MIN) s = "Minimum e";
+			else if (relOp == RelOp.MAX) s = "Maximum e";
 			else s = "E";
 			if (rewardStructIndex instanceof String) s += "xpected "+rewardStructIndex;
 			// Or just call it "Expected reward"

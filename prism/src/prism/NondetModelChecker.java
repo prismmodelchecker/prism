@@ -157,7 +157,7 @@ public class NondetModelChecker extends NonProbModelChecker
 	{
 		Expression pb; // probability bound (expression)
 		double p = 0; // probability bound (actual value)
-		String relOp; // relational operator
+		RelOp relOp; // relational operator
 		boolean min; // are we finding min (true) or max (false) probs
 
 		JDDNode sol;
@@ -171,28 +171,18 @@ public class NondetModelChecker extends NonProbModelChecker
 			if (p < 0 || p > 1)
 				throw new PrismException("Invalid probability bound " + p + " in P operator");
 		}
+		min = relOp.isLowerBound();
 
 		// Check for trivial (i.e. stupid) cases
 		if (pb != null) {
-			if ((p == 0 && relOp.equals(">=")) || (p == 1 && relOp.equals("<="))) {
+			if ((p == 0 && relOp == RelOp.GEQ) || (p == 1 && relOp == RelOp.LEQ)) {
 				mainLog.printWarning("Checking for probability " + relOp + " " + p + " - formula trivially satisfies all states");
 				JDD.Ref(reach);
 				return new StateValuesMTBDD(reach, model);
-			} else if ((p == 0 && relOp.equals("<")) || (p == 1 && relOp.equals(">"))) {
+			} else if ((p == 0 && relOp == RelOp.LT) || (p == 1 && relOp == RelOp.GT)) {
 				mainLog.printWarning("Checking for probability " + relOp + " " + p + " - formula trivially satisfies no states");
 				return new StateValuesMTBDD(JDD.Constant(0), model);
 			}
-		}
-
-		// Determine whether min or max probabilities needed
-		if (relOp.equals(">") || relOp.equals(">=") || relOp.equals("min=")) {
-			// min
-			min = true;
-		} else if (relOp.equals("<") || relOp.equals("<=") || relOp.equals("max=")) {
-			// max
-			min = false;
-		} else {
-			throw new PrismException("Can't use \"P=?\" for MDPs; use \"Pmin=?\" or \"Pmax=?\"");
 		}
 
 		// Compute probabilities
@@ -229,7 +219,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		Object rs; // reward struct index
 		Expression rb; // reward bound (expression)
 		double r = 0; // reward bound (actual value)
-		String relOp; // relational operator
+		RelOp relOp; // relational operator
 		boolean min; // are we finding min (true) or max (false) rewards
 		Expression expr2; // expression
 
@@ -246,6 +236,7 @@ public class NondetModelChecker extends NonProbModelChecker
 			if (r < 0)
 				throw new PrismException("Invalid reward bound " + r + " in R operator");
 		}
+		min = relOp.isLowerBound();
 
 		// get reward info
 		if (model.getNumRewardStructs() == 0)
@@ -267,25 +258,14 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// check for trivial (i.e. stupid) cases
 		if (rb != null) {
-			if (r == 0 && relOp.equals(">=")) {
+			if (r == 0 && relOp == RelOp.GEQ) {
 				mainLog.printWarning("Checking for reward " + relOp + " " + r + " - formula trivially satisfies all states");
 				JDD.Ref(reach);
 				return new StateValuesMTBDD(reach, model);
-			} else if (r == 0 && relOp.equals("<")) {
+			} else if (r == 0 && relOp == RelOp.LT) {
 				mainLog.printWarning("Checking for reward " + relOp + " " + r + " - formula trivially satisfies no states");
 				return new StateValuesMTBDD(JDD.Constant(0), model);
 			}
-		}
-
-		// determine whether min or max rewards needed
-		if (relOp.equals(">") || relOp.equals(">=") || relOp.equals("min=")) {
-			// min
-			min = true;
-		} else if (relOp.equals("<") || relOp.equals("<=") || relOp.equals("max=")) {
-			// max
-			min = false;
-		} else {
-			throw new PrismException("Can't use \"R=?\" for MDPs; use \"Rmin=?\" or \"Rmax=?\"");
 		}
 
 		// compute rewards
@@ -332,22 +312,19 @@ public class NondetModelChecker extends NonProbModelChecker
 	protected void extractInfoFromMultiObjectiveOperand(Expression operand, OpsAndBoundsList opsAndBounds, List<JDDNode> rewardsIndex, List<String> targetName,
 			List<Expression> targetExprs, boolean isFirst) throws PrismException
 	{
-		String relOp;
 		int stepBound = 0;
 		ExpressionProb exprProb = null;
 		ExpressionReward exprReward = null;
 		ExpressionTemporal exprTemp;
-		// Only do P or R operators
-		if (!(operand instanceof ExpressionProb || operand instanceof ExpressionReward))
-			throw new PrismException("Multiple objectives must be P or R operators");
-		//if (expr.getOperand(i) instanceof ExpressionReward && i > 0)
-		//	throw new PrismException("R operator can only be used as first argument of multi function");
+		RelOp relOp;
 		if (operand instanceof ExpressionProb) {
 			exprProb = (ExpressionProb) operand;
 			exprReward = null;
-		} else {
+			relOp = exprProb.getRelOp();
+		} else if (operand instanceof ExpressionReward) {
 			exprReward = (ExpressionReward) operand;
 			exprProb = null;
+			relOp = exprReward.getRelOp();
 			Object rs = exprReward.getRewardStructIndex();
 			JDDNode transRewards = null;
 			JDDNode stateRewards = null;
@@ -372,6 +349,8 @@ public class NondetModelChecker extends NonProbModelChecker
 			if (transRewards == null)
 				throw new PrismException("Invalid reward structure index \"" + rs + "\"");
 			rewardsIndex.add(transRewards);
+		} else {
+			throw new PrismException("Multi-objective properties can only contain P and R operators");
 		}
 		// Get the cumulative step bound for reward 
 		if (exprReward != null) {
@@ -405,23 +384,17 @@ public class NondetModelChecker extends NonProbModelChecker
 		}
 
 		// Get info from P/R operator
-		// Store relational operator as an integer
-		// Only do max=? or lower bounds
-		relOp = (exprProb != null) ? exprProb.getRelOp() : exprReward.getRelOp();
+		// Store relational operator
+		if (relOp.isStrict())
+			throw new PrismException("Multi-objective properties can not use strict inequalities on P/R operators");
 		Operator op;
-		if (relOp.equals("max=")) {
+		if (relOp == RelOp.MAX) {
 			op = (exprProb != null) ? Operator.P_MAX : Operator.R_MAX;
-		} else if (relOp.equals(">")) // currently do not support
-			//relOps.add(1);
-			throw new PrismException("Multi-objective properties can not use strict inequalities on P/R operators");
-		else if (relOp.equals(">=")) {
+		} else if (relOp == RelOp.GEQ) {
 			op = (exprProb != null) ? Operator.P_GE : Operator.R_GE;
-		} else if (relOp.equals("min=")) {
+		} else if (relOp == RelOp.MIN) {
 			op = (exprProb != null) ? Operator.P_MIN : Operator.R_MIN;
-		} else if (relOp.equals("<")) // currently do not support
-			//relOps.add(6);
-			throw new PrismException("Multi-objective properties can not use strict inequalities on P/R operators");
-		else if (relOp.equals("<=")) {
+		} else if (relOp == RelOp.LEQ) {
 			op = (exprProb != null) ? Operator.P_LE : Operator.R_LE;
 		} else
 			throw new PrismException("Multi-objective properties can only contain P/R operators with max/min=? or lower/upper probability bounds");
@@ -433,7 +406,7 @@ public class NondetModelChecker extends NonProbModelChecker
 				throw new PrismException("Invalid probability bound " + p + " in P operator");
 			if ((exprProb == null) && (p < 0))
 				throw new PrismException("Invalid reward bound " + p + " in P operator");
-			if (exprProb != null && relOp.equals("<="))
+			if (exprProb != null && relOp == RelOp.LEQ)
 				p = 1 - p;
 
 			opsAndBounds.add(op, p, stepBound);

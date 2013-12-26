@@ -30,6 +30,7 @@ package simulator.method;
 import parser.ast.Expression;
 import parser.ast.ExpressionProb;
 import parser.ast.ExpressionReward;
+import parser.ast.RelOp;
 import prism.PrismException;
 import simulator.sampler.Sampler;
 
@@ -91,7 +92,7 @@ public abstract class APMCMethod extends SimulationMethod
 	public void setExpression(Expression expr) throws PrismException
 	{
 		Expression bound;
-		String relOp;
+		RelOp relOp;
 		
 		// For P properties...
 		if (expr instanceof ExpressionProb) {
@@ -113,7 +114,7 @@ public abstract class APMCMethod extends SimulationMethod
 			prOp = 0;
 			theta = -1.0; // junk
 		} else {
-			prOp = (relOp.equals(">") || relOp.equals(">=")) ? -1 : 1;
+			prOp = relOp.isLowerBound() ? -1 : 1;
 			theta = bound.evaluateDouble();
 		}
 	}

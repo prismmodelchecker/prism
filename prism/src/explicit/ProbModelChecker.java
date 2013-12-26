@@ -32,6 +32,7 @@ import parser.ast.Expression;
 import parser.ast.ExpressionProb;
 import parser.ast.ExpressionReward;
 import parser.ast.ExpressionSS;
+import parser.ast.RelOp;
 import parser.ast.RewardStruct;
 import prism.ModelType;
 import prism.PrismComponent;
@@ -464,7 +465,7 @@ public class ProbModelChecker extends NonProbModelChecker
 	{
 		Expression pb; // Probability bound (expression)
 		double p = 0; // Probability bound (actual value)
-		String relOp; // Relational operator
+		RelOp relOp; // Relational operator
 		boolean min = false; // For nondeterministic models, are we finding min (true) or max (false) probs
 		ModelType modelType = model.getModelType();
 
@@ -478,19 +479,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			if (p < 0 || p > 1)
 				throw new PrismException("Invalid probability bound " + p + " in P operator");
 		}
-
-		// For nondeterministic models, determine whether min or max probabilities needed
-		if (modelType.nondeterministic()) {
-			if (relOp.equals(">") || relOp.equals(">=") || relOp.equals("min=")) {
-				// min
-				min = true;
-			} else if (relOp.equals("<") || relOp.equals("<=") || relOp.equals("max=")) {
-				// max
-				min = false;
-			} else {
-				throw new PrismException("Can't use \"P=?\" for nondeterministic models; use \"Pmin=?\" or \"Pmax=?\"");
-			}
-		}
+		min = relOp.isLowerBound();
 
 		// Compute probabilities
 		switch (modelType) {
@@ -540,7 +529,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		RewardStruct rewStruct = null; // Reward struct object
 		Expression rb; // Reward bound (expression)
 		double r = 0; // Reward bound (actual value)
-		String relOp; // Relational operator
+		RelOp relOp; // Relational operator
 		boolean min = false; // For nondeterministic models, are we finding min (true) or max (false) rewards
 		ModelType modelType = model.getModelType();
 		StateValues rews = null;
@@ -557,19 +546,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			if (r < 0)
 				throw new PrismException("Invalid reward bound " + r + " in R[] formula");
 		}
-
-		// For nondeterministic models, determine whether min or max rewards needed
-		if (modelType.nondeterministic()) {
-			if (relOp.equals(">") || relOp.equals(">=") || relOp.equals("min=")) {
-				// min
-				min = true;
-			} else if (relOp.equals("<") || relOp.equals("<=") || relOp.equals("max=")) {
-				// max
-				min = false;
-			} else {
-				throw new PrismException("Can't use \"R=?\" for nondeterministic models; use \"Rmin=?\" or \"Rmax=?\"");
-			}
-		}
+		min = relOp.isLowerBound();
 
 		// Get reward info
 		if (modulesFile == null)
@@ -643,7 +620,7 @@ public class ProbModelChecker extends NonProbModelChecker
 	{
 		Expression pb; // Probability bound (expression)
 		double p = 0; // Probability bound (actual value)
-		String relOp; // Relational operator
+		RelOp relOp; // Relational operator
 		ModelType modelType = model.getModelType();
 
 		StateValues probs = null;

@@ -36,12 +36,10 @@ import parser.ast.Expression;
 import parser.ast.ExpressionTemporal;
 import parser.ast.ExpressionUnaryOp;
 import parser.type.TypeDouble;
-import parser.visitor.ASTTraverse;
 import prism.DRA;
 import prism.Pair;
 import prism.PrismComponent;
 import prism.PrismException;
-import prism.PrismLangException;
 import prism.PrismUtils;
 import explicit.rewards.MCRewards;
 
