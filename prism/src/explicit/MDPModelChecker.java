@@ -1739,7 +1739,7 @@ public class MDPModelChecker extends ProbModelChecker
 			// Solve induced DTMC for strategy
 			dtmc = new DTMCFromMDPMemorylessAdversary(mdp, strat);
 			mcRewards = new MCRewardsFromMDPRewards(mdpRewards, strat);
-			res = mcDTMC.computeReachRewards(dtmc, mcRewards, target, reUseSoln ? soln : null, null);
+			res = mcDTMC.computeReachRewardsValIter(dtmc, mcRewards, target, inf, reUseSoln ? soln : null, null);
 			soln = res.soln;
 			totalIters += res.numIters;
 			// Check if optimal, improve non-optimal choices
