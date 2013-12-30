@@ -991,6 +991,7 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 				prob = (Double) e.getValue();
 				d += prob * vect[k];
 			}
+			d += mdpRewards.getStateReward(s);
 			// Store strategy info if value matches
 			//if (PrismUtils.doublesAreClose(val, d, termCritParam, termCrit == TermCrit.ABSOLUTE)) {
 			if (PrismUtils.doublesAreClose(val, d, 1e-12, false)) {

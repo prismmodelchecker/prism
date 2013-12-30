@@ -1072,6 +1072,7 @@ public class MDPSparse extends MDPExplicit
 			for (k = l2; k < h2; k++) {
 				d += nonZeros[k] * vect[cols[k]];
 			}
+			d += mdpRewards.getStateReward(s);
 			// Store strategy info if value matches
 			if (PrismUtils.doublesAreClose(val, d, 1e-12, false)) {
 				res.add(j - l1);
