@@ -55,7 +55,7 @@ public class GenerateSimulationPath
 	// Basic info needed for path
 	private ModulesFile modulesFile;
 	private State initialState;
-	private int maxPathLength;
+	private long maxPathLength;
 	private File file;
 
 	// Path configuration options
@@ -105,7 +105,7 @@ public class GenerateSimulationPath
 	 * @param details Information about the path to be generated
 	 * @param file File to output the path to (stdout if null)
 	 */
-	public void generateSimulationPath(ModulesFile modulesFile, State initialState, String details, int maxPathLength, File file) throws PrismException
+	public void generateSimulationPath(ModulesFile modulesFile, State initialState, String details, long maxPathLength, File file) throws PrismException
 	{
 		this.modulesFile = modulesFile;
 		this.initialState = initialState;
@@ -127,7 +127,7 @@ public class GenerateSimulationPath
 	 * @param initialState Initial state (if null, is selected randomly)
 	 * @param details Information about the path to be generated
 	 */
-	public void generateAndPlotSimulationPath(ModulesFile modulesFile, State initialState, String details, int maxPathLength, Graph graphModel)
+	public void generateAndPlotSimulationPath(ModulesFile modulesFile, State initialState, String details, long maxPathLength, Graph graphModel)
 			throws PrismException
 	{
 		this.modulesFile = modulesFile;
@@ -148,7 +148,7 @@ public class GenerateSimulationPath
 	 * @param initialState Initial state (if null, is selected randomly)
 	 * @param details Information about the path to be generated
 	 */
-	public void generateAndPlotSimulationPathInThread(ModulesFile modulesFile, State initialState, String details, int maxPathLength, Graph graphModel)
+	public void generateAndPlotSimulationPathInThread(ModulesFile modulesFile, State initialState, String details, long maxPathLength, Graph graphModel)
 			throws PrismException
 	{
 		new GenerateAndPlotThread(modulesFile, initialState, details, maxPathLength, graphModel).start();
@@ -386,7 +386,7 @@ public class GenerateSimulationPath
 	private void generatePath(PathDisplayer displayer) throws PrismException
 	{
 		Path path = null;
-		int i = 0;
+		long i = 0;
 		boolean done;
 
 		// Print details
@@ -536,10 +536,10 @@ public class GenerateSimulationPath
 		private ModulesFile modulesFile;
 		private parser.State initialState;
 		private String details;
-		private int maxPathLength;
+		private long maxPathLength;
 		private Graph graphModel;
 
-		public GenerateAndPlotThread(ModulesFile modulesFile, parser.State initialState, String details, int maxPathLength, Graph graphModel)
+		public GenerateAndPlotThread(ModulesFile modulesFile, parser.State initialState, String details, long maxPathLength, Graph graphModel)
 		{
 			this.modulesFile = modulesFile;
 			this.initialState = initialState;

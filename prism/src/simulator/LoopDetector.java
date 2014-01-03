@@ -34,8 +34,8 @@ public class LoopDetector
 {
 	// Deterministic loop info
 	private boolean isLooping;
-	private int loopStart;
-	private int loopEnd;
+	private long loopStart;
+	private long loopEnd;
 
 	/**
 	 * Initialise the loop detector.
@@ -110,7 +110,7 @@ public class LoopDetector
 	/**
 	 * What is the step index of the start of the deterministic loop, if it exists?
 	 */
-	public int loopStart()
+	public long loopStart()
 	{
 		return loopStart;
 	}
@@ -118,7 +118,7 @@ public class LoopDetector
 	/**
 	 * What is the step index of the end of the deterministic loop, if it exists?
 	 */
-	public int loopEnd()
+	public long loopEnd()
 	{
 		return loopEnd;
 	}

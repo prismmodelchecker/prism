@@ -101,7 +101,7 @@ public class GUIPathPlotDialog extends JDialog
 	private ModulesFile modulesFile;
 	private boolean cancelled;
 	private String simPathString;
-	private int maxPathLength;
+	private long maxPathLength;
 
 	// GUI objects
 	private final JPanel topPanel = new JPanel();
@@ -179,7 +179,7 @@ public class GUIPathPlotDialog extends JDialog
 		return simPathString;
 	}
 
-	public int getMaxPathLength()
+	public long getMaxPathLength()
 	{
 		return maxPathLength;
 	}
@@ -486,7 +486,7 @@ public class GUIPathPlotDialog extends JDialog
 			textFieldInterval.setText("");
 		}
 		chckbxChanges.setSelected(true);
-		textFieldMaxLen.setText("" + gui.getPrism().getSettings().getInteger(PrismSettings.SIMULATOR_DEFAULT_MAX_PATH));
+		textFieldMaxLen.setText("" + gui.getPrism().getSettings().getLong(PrismSettings.SIMULATOR_DEFAULT_MAX_PATH));
 		rdbtnVarsAll.setSelected(true);
 		for (int i = 0; i < modulesFile.getNumVars(); i++) {
 			varsCheckBoxes.add(new JCheckBox(modulesFile.getVarName(i)));
@@ -582,10 +582,10 @@ public class GUIPathPlotDialog extends JDialog
 		}
 		simPathString += ",rewards=" + rdbtnRewardsAll.isSelected();
 		try {
-			int i = Integer.parseInt(textFieldMaxLen.getText());
-			if (i < 0)
+			long l = Long.parseLong(textFieldMaxLen.getText());
+			if (l < 0)
 				throw new NumberFormatException();
-			maxPathLength = i;
+			maxPathLength = l;
 		} catch (NumberFormatException e) {
 			gui.errorDialog("Invalid maximum path length \"" + textFieldMaxLen.getText() + "\"");
 			return;

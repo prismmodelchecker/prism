@@ -63,7 +63,7 @@ public abstract class Path
 	/**
 	 * Get the size of the path (number of steps; or number of states - 1).
 	 */
-	public abstract int size();
+	public abstract long size();
 
 	/**
 	 * Get the previous state, i.e. the penultimate state of the current path.
@@ -155,10 +155,10 @@ public abstract class Path
 	/**
 	 * What is the step index of the start of the deterministic loop, if it exists?
 	 */
-	public abstract int loopStart();
+	public abstract long loopStart();
 	
 	/**
 	 * What is the step index of the end of the deterministic loop, if it exists?
 	 */
-	public abstract int loopEnd();
+	public abstract long loopEnd();
 }

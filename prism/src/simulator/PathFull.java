@@ -218,7 +218,7 @@ public class PathFull extends Path implements PathFullInfo
 	}
 
 	@Override
-	public int size()
+	public long size()
 	{
 		return size;
 	}
@@ -320,13 +320,13 @@ public class PathFull extends Path implements PathFullInfo
 	}
 
 	@Override
-	public int loopStart()
+	public long loopStart()
 	{
 		return loopDet.loopStart();
 	}
 
 	@Override
-	public int loopEnd()
+	public long loopEnd()
 	{
 		return loopDet.loopEnd();
 	}
@@ -496,7 +496,12 @@ public class PathFull extends Path implements PathFullInfo
 		}
 		// Display path
 		displayer.start(getState(0), getStateRewards(0));
-		int n = size();
+		// Get length (non-on-the-fly paths will never exceed length Integer.MAX_VALUE) 
+		long nLong = size();
+		if (nLong > Integer.MAX_VALUE)
+			throw new PrismException("PathFull cannot deal with paths over length " + Integer.MAX_VALUE);
+		int n = (int) nLong;
+		// Loop
 		for (int i = 1; i <= n; i++) {
 			displayer.step(getTime(i - 1), getCumulativeTime(i), getModuleOrAction(i - 1), getProbability(i - 1), getTransitionRewards(i), i, getState(i),
 					getStateRewards(i));

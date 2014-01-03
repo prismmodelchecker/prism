@@ -233,7 +233,8 @@ public class SimulatorNetworkHandler extends Observable implements EntityResolve
 	}
 	
 	private File simBinary;
-	private int maxPathLength, noIterations;
+	private long maxPathLength;
+	private int noIterations;
 	private boolean feedback, resultsFeedback;
 	private SimulatorResultsFile srf = new SimulatorResultsFile();
 	private Values modelConstants;
@@ -283,12 +284,12 @@ public class SimulatorNetworkHandler extends Observable implements EntityResolve
 		return true;
 	}
 	
-	public void doNetworking(int noIteration, int maxPathLengt, File simBinar, boolean feedbac, boolean resultsFeed)
+	public void doNetworking(int noIteration, long maxPathLengt, File simBinar, boolean feedbac, boolean resultsFeed)
 	{
 		doNetworking(noIteration, maxPathLengt, simBinar, feedbac, resultsFeed, null, null, null);
 	}
 	
-	public void doNetworking(int noIteration, int maxPathLengt, File simBinar, boolean feedbac, boolean resultsFeed, Values modelConstant, ArrayList propertyConstants, ResultsCollection rc)
+	public void doNetworking(int noIteration, long maxPathLengt, File simBinar, boolean feedbac, boolean resultsFeed, Values modelConstant, ArrayList propertyConstants, ResultsCollection rc)
 	{
 		this.simBinary = simBinar;
 		this.maxPathLength = maxPathLengt;

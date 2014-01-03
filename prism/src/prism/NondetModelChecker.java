@@ -42,7 +42,6 @@ import sparse.*;
 import strat.MDStrategyIV;
 import hybrid.*;
 import parser.ast.*;
-import parser.visitor.ASTTraverse;
 
 /*
  * Model checker for MDPs

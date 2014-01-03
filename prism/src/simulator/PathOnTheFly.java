@@ -43,7 +43,7 @@ public class PathOnTheFly extends Path
 	protected int numRewardStructs;
 
 	// Path info required to implement Path abstract class:
-	protected int size;
+	protected long size;
 	protected State previousState;
 	protected State currentState;
 	protected int previousModuleOrActionIndex;
@@ -153,7 +153,7 @@ public class PathOnTheFly extends Path
 	}
 	
 	@Override
-	public int size()
+	public long size()
 	{
 		return size;
 	}
@@ -255,13 +255,13 @@ public class PathOnTheFly extends Path
 	}
 	
 	@Override
-	public int loopStart()
+	public long loopStart()
 	{
 		return loopDet.loopStart();
 	}
 	
 	@Override
-	public int loopEnd()
+	public long loopEnd()
 	{
 		return loopDet.loopEnd();
 	}

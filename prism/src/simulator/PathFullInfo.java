@@ -36,7 +36,7 @@ public interface PathFullInfo
 	/**
 	 * Get the size of the path (number of steps; or number of states - 1).
 	 */
-	public abstract int size();
+	public abstract long size();
 	
 	/**
 	 * Get the state at a given step of the path.
@@ -115,13 +115,13 @@ public interface PathFullInfo
 	 * What is the step index of the start of the deterministic loop, if it exists?
 	 * If no loop info is stored ({@link #hasLoopInfo()} is false), returns 0. 
 	 */
-	public abstract int loopStart();
+	public abstract long loopStart();
 	
 	/**
 	 * What is the step index of the end of the deterministic loop, if it exists?
 	 * If no loop info is stored ({@link #hasLoopInfo()} is false), returns 0. 
 	 */
-	public abstract int loopEnd();
+	public abstract long loopEnd();
 	
 	/**
 	 * Does this object store information about rewards?

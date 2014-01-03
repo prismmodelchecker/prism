@@ -935,7 +935,7 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 			}
 			// Check/store max path length
 			parameter = "Maximum path length";
-			int maxPathLength = Integer.parseInt(pathLengthField.getText());
+			long maxPathLength = Long.parseLong(pathLengthField.getText());
 			if (maxPathLength <= 0) {
 				gui.errorDialog("Parameter \"" + parameter + "\" most be positive");
 				return;

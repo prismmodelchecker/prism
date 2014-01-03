@@ -84,7 +84,7 @@ public class PathFullPrefix extends Path
 	}
 	
 	@Override
-	public int size()
+	public long size()
 	{
 		return prefixLength;
 	}
@@ -180,13 +180,13 @@ public class PathFullPrefix extends Path
 	}
 	
 	@Override
-	public int loopStart()
+	public long loopStart()
 	{
 		return isLooping() ? pathFull.loopStart() : -1;
 	}
 	
 	@Override
-	public int loopEnd()
+	public long loopEnd()
 	{
 		return isLooping() ? pathFull.loopEnd() : -1;
 	}

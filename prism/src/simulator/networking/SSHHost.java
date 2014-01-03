@@ -304,7 +304,7 @@ public class SSHHost extends Thread implements SettingOwner, TreeNode
 		
 	}
 	
-	public void startStint(int noIterations, int maxPathLength, String binaryName, boolean doFeedback, boolean resultsFeedback)
+	public void startStint(int noIterations, long maxPathLength, String binaryName, boolean doFeedback, boolean resultsFeedback)
 	{
 		if(getHostState() != READY_OKAY && getHostState() != READY_UNKNOWN_STATUS) return; //must be ready
 		
@@ -494,9 +494,9 @@ public class SSHHost extends Thread implements SettingOwner, TreeNode
 	{
 		private String binaryName;
 		private String controlName;
-		private int maxPathLength;
+		private long maxPathLength;
 		
-		public StintThread(String binaryName, String controlName, int maxPathLength)
+		public StintThread(String binaryName, String controlName, long maxPathLength)
 		{
 			this.binaryName = binaryName;
 			this.controlName = controlName;

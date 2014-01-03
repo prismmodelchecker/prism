@@ -68,7 +68,7 @@ public class CexPathStates implements PathFullInfo
 	// ACCESSORS (for PathFullInfo)
 	
 	@Override
-	public int size()
+	public long size()
 	{
 		return states.size() - 1;
 	}
@@ -134,13 +134,13 @@ public class CexPathStates implements PathFullInfo
 	}
 	
 	@Override
-	public int loopStart()
+	public long loopStart()
 	{
 		return 0;
 	}
 	
 	@Override
-	public int loopEnd()
+	public long loopEnd()
 	{
 		return 0;
 	}

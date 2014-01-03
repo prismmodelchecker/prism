@@ -735,7 +735,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			String simPathDetails = pathPlotDialog.getSimPathString();
 			if (simPathDetails == null)
 				return;
-			int maxPathLength = pathPlotDialog.getMaxPathLength();
+			long maxPathLength = pathPlotDialog.getMaxPathLength();
 						
 			// Create a new path in the simulator and plot it 
 			a_clearPath();
@@ -1442,7 +1442,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 						throw new NumberFormatException();
 					// If number is too big, just set as max possible (i.e. path size)
 					if (noSteps > engine.getPathSize())
-						noSteps = engine.getPathSize();
+						noSteps = (int) engine.getPathSize();
 					// If number is 0, nothing to do
 					else if (noSteps == 0)
 						return;

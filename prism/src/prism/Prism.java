@@ -2822,7 +2822,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * @param maxPathLength The maximum path length for sampling
 	 * @param simMethod Object specifying details of method to use for simulation
 	 */
-	public Result modelCheckSimulator(PropertiesFile propertiesFile, Expression expr, Values definedPFConstants, State initialState, int maxPathLength,
+	public Result modelCheckSimulator(PropertiesFile propertiesFile, Expression expr, Values definedPFConstants, State initialState, long maxPathLength,
 			SimulationMethod simMethod) throws PrismException
 	{
 		Object res = null;
@@ -2859,7 +2859,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * @param simMethod Object specifying details of method to use for simulation
 	 */
 	public Result[] modelCheckSimulatorSimultaneously(PropertiesFile propertiesFile, List<Expression> exprs, Values definedPFConstants, State initialState,
-			int maxPathLength, SimulationMethod simMethod) throws PrismException
+			long maxPathLength, SimulationMethod simMethod) throws PrismException
 	{
 		Object[] res = null;
 
@@ -2912,7 +2912,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * @throws InterruptedException if the thread is interrupted
 	 */
 	public void modelCheckSimulatorExperiment(PropertiesFile propertiesFile, UndefinedConstants undefinedConstants, ResultsCollection results, Expression expr,
-			State initialState, int pathLength, SimulationMethod simMethod) throws PrismException, InterruptedException
+			State initialState, long maxPathLength, SimulationMethod simMethod) throws PrismException, InterruptedException
 	{
 		// Print info
 		mainLog.printSeparator();
@@ -2922,7 +2922,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mainLog.println("Property constants: " + undefinedConstants.getPFDefinedConstantsString());
 
 		// Do simulation
-		getSimulator().modelCheckExperiment(currentModulesFile, propertiesFile, undefinedConstants, results, expr, initialState, pathLength, simMethod);
+		getSimulator().modelCheckExperiment(currentModulesFile, propertiesFile, undefinedConstants, results, expr, initialState, maxPathLength, simMethod);
 	}
 
 	/**
@@ -3009,7 +3009,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * @param maxPathLength The maximum length of path to generate
 	 * @param file File to output the path to (stdout if null)
 	 */
-	public void generateSimulationPath(ModulesFile modulesFile, String details, int maxPathLength, File file) throws PrismException, PrismLangException
+	public void generateSimulationPath(ModulesFile modulesFile, String details, long maxPathLength, File file) throws PrismException, PrismLangException
 	{
 		GenerateSimulationPath genPath = new GenerateSimulationPath(getSimulator(), mainLog);
 		genPath.generateSimulationPath(modulesFile, null, details, maxPathLength, file);
@@ -3710,7 +3710,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	/**
 	 * Old API:
 	 */
-	public Result modelCheckSimulator(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression expr, State initialState, int maxPathLength,
+	public Result modelCheckSimulator(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression expr, State initialState, long maxPathLength,
 			SimulationMethod simMethod) throws PrismException
 	{
 		loadPRISMModel(modulesFile);
@@ -3721,7 +3721,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Old API:
 	 */
 	public Result[] modelCheckSimulatorSimultaneously(ModulesFile modulesFile, PropertiesFile propertiesFile, List<Expression> exprs, State initialState,
-			int maxPathLength, SimulationMethod simMethod) throws PrismException
+			long maxPathLength, SimulationMethod simMethod) throws PrismException
 	{
 		loadPRISMModel(modulesFile);
 		return modelCheckSimulatorSimultaneously(propertiesFile, exprs, null, initialState, maxPathLength, simMethod);
@@ -3731,11 +3731,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Old API:
 	 */
 	public void modelCheckSimulatorExperiment(ModulesFile modulesFile, PropertiesFile propertiesFile, UndefinedConstants undefinedConstants,
-			ResultsCollection results, Expression propertyToCheck, State initialState, int pathLength, SimulationMethod simMethod) throws PrismException,
+			ResultsCollection results, Expression propertyToCheck, State initialState, long maxPathLength, SimulationMethod simMethod) throws PrismException,
 			InterruptedException
 	{
 		loadPRISMModel(modulesFile);
-		modelCheckSimulatorExperiment(propertiesFile, undefinedConstants, results, propertyToCheck, initialState, pathLength, simMethod);
+		modelCheckSimulatorExperiment(propertiesFile, undefinedConstants, results, propertyToCheck, initialState, maxPathLength, simMethod);
 	}
 
 	/**

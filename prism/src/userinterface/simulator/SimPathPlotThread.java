@@ -39,11 +39,11 @@ public class SimPathPlotThread extends GUIComputationThread
 	private ModulesFile modulesFile;
 	private parser.State initialState;
 	private String simPathDetails;
-	private int maxPathLength;
+	private long maxPathLength;
 	private Graph graphModel;
 
 	public SimPathPlotThread(GUISimulator guiSim, SimulatorEngine engine, ModulesFile modulesFile, parser.State initialState, String simPathDetails,
-			int maxPathLength, Graph graphModel)
+			long maxPathLength, Graph graphModel)
 	{
 		super(guiSim);
 		this.engine = engine;

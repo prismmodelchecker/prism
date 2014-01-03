@@ -51,7 +51,7 @@ public class SimulateModelCheckThread extends GUIComputationThread
 	private PropertiesFile pf;
 	private ArrayList<GUIProperty> guiProps;
 	private Values definedPFConstants;
-	private int maxPathLength;
+	private long maxPathLength;
 	private SimulationInformation info;
 
 	/** Creates a new instance of SimulateModelCheckThread */

@@ -399,7 +399,7 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 	public int getRowCount()
 	{
 		// Return current path size if there is an active path.
-		return (pathActive ? path.size() + 1 : 0);
+		return (pathActive ? (int) path.size() + 1 : 0);
 	}
 
 	public boolean shouldColourRow(int row)
@@ -592,12 +592,12 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 
 	public int getLoopStart()
 	{
-		return path.loopStart();
+		return (int) path.loopStart();
 	}
 
 	public int getLoopEnd()
 	{
-		return path.loopEnd();
+		return (int) path.loopEnd();
 	}
 
 	public SimulationView getView()
