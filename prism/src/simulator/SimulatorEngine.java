@@ -715,8 +715,7 @@ public class SimulatorEngine extends PrismComponent
 		transitionList = new TransitionList();
 
 		// Create updater for model
-		updater = new Updater(modulesFile, varList);
-		updater.setSumRoundOff(settings.getDouble(PrismSettings.PRISM_SUM_ROUND_OFF));
+		updater = new Updater(modulesFile, varList, this);
 
 		// Clear storage for strategy
 		strategy = null;

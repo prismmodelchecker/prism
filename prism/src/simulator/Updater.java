@@ -32,9 +32,11 @@ import parser.*;
 import parser.ast.*;
 import prism.*;
 
-public class Updater
+public class Updater extends PrismComponent
 {
 	// Settings:
+	// Do we check that probabilities sum to 1?
+	protected boolean doProbChecks = true;
 	// The precision to which we check probabilities sum to 1
 	protected double sumRoundOff = 1e-5;
 	
@@ -64,9 +66,18 @@ public class Updater
 
 	public Updater(ModulesFile modulesFile, VarList varList)
 	{
+		this(modulesFile, varList, null);
+	}
+	
+	public Updater(ModulesFile modulesFile, VarList varList, PrismComponent parent)
+	{
 		int i, j;
 		String s;
 
+		// Store some settings
+		doProbChecks = parent.getSettings().getBoolean(PrismSettings.PRISM_DO_PROB_CHECKS);
+		sumRoundOff = parent.getSettings().getDouble(PrismSettings.PRISM_SUM_ROUND_OFF);
+		
 		// Get info from simulator/model
 		this.modulesFile = modulesFile;
 		modelType = modulesFile.getModelType();
@@ -348,7 +359,7 @@ public class Updater
 			throw new PrismLangException(msg, ups);
 		}
 		// Check distribution sums to 1 (if required, and if is non-empty)
-		if (ch.size() > 0 && modelType.choicesSumToOne() && Math.abs(sum - 1) > sumRoundOff) {
+		if (doProbChecks && ch.size() > 0 && modelType.choicesSumToOne() && Math.abs(sum - 1) > sumRoundOff) {
 			throw new PrismLangException("Probabilities sum to " + sum + " in state " + state.toString(modulesFile), ups);
 		}
 		return ch;
