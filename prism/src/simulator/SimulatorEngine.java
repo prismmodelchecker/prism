@@ -48,7 +48,6 @@ import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLangException;
 import prism.PrismLog;
-import prism.PrismSettings;
 import prism.PrismUtils;
 import prism.ResultsCollection;
 import prism.UndefinedConstants;
