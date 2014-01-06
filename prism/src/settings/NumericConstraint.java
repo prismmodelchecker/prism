@@ -44,6 +44,10 @@ public abstract class NumericConstraint implements SettingConstraint
 		{
 			checkValueInteger(((Integer)value).intValue());
 		}
+		else if(value instanceof Long)
+		{
+			checkValueLong(((Long)value).longValue());
+		}
 		else
 		{
 			throw new SettingException("Invalid type for property, should be numeric.");
@@ -54,4 +58,5 @@ public abstract class NumericConstraint implements SettingConstraint
 	
 	public abstract void checkValueInteger(int value) throws SettingException;
 	
+	public abstract void checkValueLong(long value) throws SettingException;
 }

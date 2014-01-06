@@ -151,6 +151,11 @@ public class AxisSettings extends Observable implements SettingOwner
 			{
 				if(activated && i >= maxValue.getDoubleValue()) throw new SettingException("Minimum value should be < Maximum value");
 			}
+			
+			public void checkValueLong(long i) throws SettingException
+			{
+				if(activated && i >= maxValue.getDoubleValue()) throw new SettingException("Minimum value should be < Maximum value");
+			}
 		});
 		maxValue.addConstraint(new NumericConstraint()
 		{
@@ -162,6 +167,11 @@ public class AxisSettings extends Observable implements SettingOwner
 			public void checkValueInteger(int i) throws SettingException
 			{
 				if(activated && i <= minValue.getDoubleValue()) throw new SettingException("Maximum value should be > Minimum value");
+			}
+			
+			public void checkValueLong(long i) throws SettingException
+			{
+				if(activated && i <= maxValue.getDoubleValue()) throw new SettingException("Minimum value should be > Maximum value");
 			}
 		});
 		minimumPower.addConstraint(new NumericConstraint()
@@ -175,6 +185,11 @@ public class AxisSettings extends Observable implements SettingOwner
 			{
 				if(activated && i >= maximumPower.getDoubleValue()) throw new SettingException("Minimum power should be < Maximum power");
 			}
+			
+			public void checkValueLong(long i) throws SettingException
+			{
+				if(activated && i >= maximumPower.getDoubleValue()) throw new SettingException("Minimum power should be < Maximum power");
+			}
 		});
 		maximumPower.addConstraint(new NumericConstraint()
 		{
@@ -184,6 +199,11 @@ public class AxisSettings extends Observable implements SettingOwner
 			}
 			
 			public void checkValueInteger(int i) throws SettingException
+			{
+				if(activated && i <= minimumPower.getDoubleValue()) throw new SettingException("Maximum power should be > Minimum power");
+			}
+			
+			public void checkValueLong(long i) throws SettingException
 			{
 				if(activated && i <= minimumPower.getDoubleValue()) throw new SettingException("Maximum power should be > Minimum power");
 			}

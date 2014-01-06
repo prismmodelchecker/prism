@@ -151,4 +151,24 @@ public class RangeConstraint extends NumericConstraint
 		}
 	}
 	
+	public void checkValueLong(long value) throws SettingException
+	{
+		if(inclusiveLower)
+		{
+			if(value < lower) throw new SettingException("The value: "+value+" should be >="+(long)lower);
+		}
+		else
+		{
+			if(value <= lower) throw new SettingException("The value: "+value+" should be >"+(long)lower);
+		}
+		
+		if(inclusiveUpper)
+		{
+			if(value > upper) throw new SettingException("The value: "+value+"should be <="+(long)upper);
+		}
+		else
+		{
+			if(value >= upper) throw new SettingException("The value: "+value+"should be <"+(long)upper);
+		}
+	}
 }
