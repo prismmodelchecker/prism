@@ -63,6 +63,12 @@ public class ChoiceSingleton implements Choice
 		this.probability = probability;
 	}
 
+	@Override
+	public void scaleProbabilitiesBy(double d)
+	{
+		probability *= d;
+	}
+
 	// Get methods
 	
 	public int getModuleOrActionIndex()

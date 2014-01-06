@@ -741,8 +741,8 @@ public class SimulatorEngine extends PrismComponent
 		Choice choice = transitions.getChoice(i);
 		if (!onTheFly && index == -1)
 			index = transitions.getTotalIndexOfTransition(i, offset);
-		// Compute probability for transition (is normalised for a DTMC)
-		double p = (modelType == ModelType.DTMC ? choice.getProbability(offset) / transitions.getProbabilitySum() : choice.getProbability(offset));
+		// Get probability for transition
+		double p = choice.getProbability(offset);
 		// Compute its transition rewards
 		updater.calculateTransitionRewards(path.getCurrentState(), choice, tmpTransitionRewards);
 		// Compute next state. Note use of path.getCurrentState() because currentState
@@ -780,7 +780,7 @@ public class SimulatorEngine extends PrismComponent
 		Choice choice = transitions.getChoice(i);
 		if (!onTheFly && index == -1)
 			index = transitions.getTotalIndexOfTransition(i, offset);
-		// Get probability for transition (no need to normalise because DTMC transitions are never timed)
+		// Get probability for transition
 		double p = choice.getProbability(offset);
 		// Compute its transition rewards
 		updater.calculateTransitionRewards(path.getCurrentState(), choice, tmpTransitionRewards);
@@ -1025,9 +1025,7 @@ public class SimulatorEngine extends PrismComponent
 	public double getTransitionProbability(int i, int offset) throws PrismException
 	{
 		TransitionList transitions = getTransitionList();
-		double p = transitions.getChoice(i).getProbability(offset);
-		// For DTMCs, we need to normalise (over choices)
-		return (modelType == ModelType.DTMC ? p / transitions.getProbabilitySum() : p);
+		return transitions.getChoice(i).getProbability(offset);
 	}
 
 	/**
@@ -1036,9 +1034,7 @@ public class SimulatorEngine extends PrismComponent
 	public double getTransitionProbability(int index) throws PrismException
 	{
 		TransitionList transitions = getTransitionList();
-		double p = transitions.getTransitionProbability(index);
-		// For DTMCs, we need to normalise (over choices)
-		return (modelType == ModelType.DTMC ? p / transitions.getProbabilitySum() : p);
+		return transitions.getTransitionProbability(index);
 	}
 
 	/**

@@ -102,9 +102,7 @@ public class ChoiceListFlexi implements Choice
 		this.probability.add(probability);
 	}
 
-	/**
-	 * Scale probability/rate of all transitions, multiplying by d.
-	 */
+	@Override
 	public void scaleProbabilitiesBy(double d)
 	{
 		int i, n;

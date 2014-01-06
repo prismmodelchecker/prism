@@ -92,6 +92,16 @@ public class ChoiceList implements Choice
 		this.command.set(i, command);
 	}
 	
+	@Override
+	public void scaleProbabilitiesBy(double d)
+	{
+		int i, n;
+		n = size();
+		for (i = 0; i < n; i++) {
+			probability.set(i, probability.get(i) * d);
+		}
+	}
+
 	// Get methods
 	
 	public int getModuleOrActionIndex()

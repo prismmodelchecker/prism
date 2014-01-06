@@ -226,6 +226,14 @@ public class Updater extends PrismComponent
 			}
 		}
 		
+		// For a DTMC, we need to normalise across all transitions
+		// This is partly to handle "local nondeterminism"
+		// and also to handle any dubious trickery done by disabling probability checks
+		if (modelType == ModelType.DTMC) {
+			double probSum = transitionList.getProbabilitySum();
+			transitionList.scaleProbabilitiesBy(1.0 / probSum);
+		}
+	
 		// Check validity of the computed transitions
 		// (not needed currently)
 		//transitionList.checkValid(modelType);

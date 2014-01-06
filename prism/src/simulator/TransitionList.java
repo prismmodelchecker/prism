@@ -75,6 +75,16 @@ public class TransitionList
 		probSum += tr.getProbabilitySum();
 	}
 	
+	/**
+	 * Scale probability/rate of all transitions in all choices, multiplying by d.
+	 */
+	public void scaleProbabilitiesBy(double d)
+	{
+		for (int i = 0; i < numChoices; i++) {
+			getChoice(i).scaleProbabilitiesBy(d);
+		}
+	}
+	
 	// ACCESSORS
 
 	/**
