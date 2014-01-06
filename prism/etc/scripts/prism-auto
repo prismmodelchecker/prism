@@ -172,7 +172,6 @@ def getArgsListsFromFile(file):
 
 def createLogFileName(args, dir=""):
 	logFile = '.'.join(args)
-	print logFile
 	if len(dir) > 0:
 		logFile = re.sub(dir+'/', '', logFile)
 	logFile = re.sub('/', '_', logFile)
