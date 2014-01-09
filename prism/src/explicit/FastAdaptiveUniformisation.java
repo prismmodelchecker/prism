@@ -882,7 +882,7 @@ public class FastAdaptiveUniformisation extends PrismComponent
 
 		/* iterate using matrix */
 		boolean canArray = true;
-		while (birthProbSum < (1 - 1E-9) && canArray) {
+		while (birthProbSum < (1 - epsilon) && canArray) {
 			//			timer2 = System.currentTimeMillis();
 			double prob = birthProc.calculateNextProb(maxRate);
 			birthProbSum += prob;
