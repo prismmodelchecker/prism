@@ -77,6 +77,7 @@ public class PrismSyntaxHighlighter
 		puncReplaceFrom_LATEX.add("="); puncReplaceTo_LATEX.add("\\${=}\\$");
 		puncReplaceFrom_LATEX.add(">"); puncReplaceTo_LATEX.add("\\${>}\\$");
 		puncReplaceFrom_LATEX.add("<"); puncReplaceTo_LATEX.add("\\${<}\\$");
+		puncReplaceFrom_LATEX.add("#"); puncReplaceTo_LATEX.add("\\\\#");
 		puncReplaceFrom_LATEXMATHS = new ArrayList<String>(); puncReplaceTo_LATEXMATHS = new ArrayList<String>();
 		puncReplaceFrom_LATEXMATHS.add("&"); puncReplaceTo_LATEXMATHS.add("\\\\&");
 		puncReplaceFrom_LATEXMATHS.add("_"); puncReplaceTo_LATEXMATHS.add("\\\\_");
