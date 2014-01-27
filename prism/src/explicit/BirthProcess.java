@@ -246,7 +246,7 @@ public class BirthProcess
 			FoxGlynn fg = new FoxGlynn(qt, 1e-300, 1e+300, acc);
 			left = fg.getLeftTruncationPoint();
 			right = fg.getRightTruncationPoint();
-			if (right < 0) {
+			if (right < 0 || right == Integer.MAX_VALUE) {
 				throw new PrismException("Overflow in Fox-Glynn computation (time bound too big?)");
 			}
 			weights = fg.getWeights();
