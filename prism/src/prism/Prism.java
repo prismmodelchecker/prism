@@ -3157,7 +3157,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			PrismModelExplorer modelExplorer = new PrismModelExplorer(getSimulator(), currentModulesFile);
 			FastAdaptiveUniformisation fau = new FastAdaptiveUniformisation(this, modelExplorer);
 			fau.setConstantValues(currentModulesFile.getConstantValues());
-			probsExpl = fau.doTransient(time, fileIn);
+			probsExpl = fau.doTransient(time, fileIn, currentModel);
 		}
 		// Symbolic
 		else if (!getExplicit()) {
@@ -3261,11 +3261,15 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 			// FAU
 			if (currentModelType == ModelType.CTMC && settings.getString(PrismSettings.PRISM_TRANSIENT_METHOD).equals("Fast adaptive uniformisation")) {
-				// For FAU, we don't do computation incrementally
 				PrismModelExplorer modelExplorer = new PrismModelExplorer(getSimulator(), currentModulesFile);
 				FastAdaptiveUniformisation fau = new FastAdaptiveUniformisation(this, modelExplorer);
 				fau.setConstantValues(currentModulesFile.getConstantValues());
-				probsExpl = fau.doTransient(timeDouble, fileIn);
+				if (i == 0) {
+					probsExpl = fau.doTransient(timeDouble, fileIn, currentModel);
+					initTimeDouble = 0.0;
+				} else {
+					probsExpl = fau.doTransient(timeDouble - initTimeDouble, probsExpl);
+				}
 			}
 			// Symbolic
 			else if (!getExplicit()) {
