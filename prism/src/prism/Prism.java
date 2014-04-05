@@ -2706,17 +2706,17 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				setEngine(Prism.EXPLICIT);
 			}
 		}
-		// Compatibility check
-		if (genStrat && currentModelType.nondeterministic() && !getExplicit()) {
-			if (!((NondetModel) currentModel).areAllChoiceActionsUnique())
-				throw new PrismException("Cannot generate strategies with the current engine "
-						+ "because some state of the model do not have unique action labels for each choice. "
-						+ "Either switch to the explicit engine or add more action labels to the model");
-		}
-
 		try {
 			// Build model, if necessary
 			buildModelIfRequired();
+
+			// Compatibility check
+			if (genStrat && currentModelType.nondeterministic() && !getExplicit()) {
+				if (!((NondetModel) currentModel).areAllChoiceActionsUnique())
+					throw new PrismException("Cannot generate strategies with the current engine "
+							+ "because some state of the model do not have unique action labels for each choice. "
+							+ "Either switch to the explicit engine or add more action labels to the model");
+			}
 
 			// Create new model checker object and do model checking
 			if (!getExplicit()) {
