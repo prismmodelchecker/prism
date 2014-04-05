@@ -167,6 +167,61 @@ public class ConstructRewards
 	}
 
 	/**
+	 * Construct the rewards for a Markov chain (DTMC or CTMC) from files exported explicitly by PRISM. 
+	 * @param mc The DTMC or CTMC
+	 * @param rews The file containing state rewards (ignored if null)
+	 * @param rewt The file containing transition rewards (ignored if null)
+	 */
+	public MCRewards buildMCRewardsFromPrismExplicit(DTMC mc, File rews, File rewt) throws PrismException
+	{
+		BufferedReader in;
+		String s, ss[];
+		int i, lineNum = 0;
+		double reward;
+		StateRewardsArray rewSA = new StateRewardsArray(mc.getNumStates());
+
+		try {
+			if (rews != null) {
+				// Open state rewards file
+				in = new BufferedReader(new FileReader(rews));
+				// Ignore first line
+				s = in.readLine();
+				lineNum = 1;
+				if (s == null) {
+					in.close();
+					throw new PrismException("Missing first line of state rewards file");
+				}
+				// Go though list of state rewards in file
+				s = in.readLine();
+				lineNum++;
+				while (s != null) {
+					s = s.trim();
+					if (s.length() > 0) {
+						ss = s.split(" ");
+						i = Integer.parseInt(ss[0]);
+						reward = Double.parseDouble(ss[1]);
+						rewSA.setStateReward(i, reward);
+					}
+					s = in.readLine();
+					lineNum++;
+				}
+				// Close file
+				in.close();
+			}
+		} catch (IOException e) {
+			throw new PrismException("Could not read state rewards from file \"" + rews + "\"" + e);
+		} catch (NumberFormatException e) {
+			throw new PrismException("Problem in state rewards file (line " + lineNum + ") for MDP");
+		}
+
+		if (rewt != null) {
+			throw new PrismException("Explicit engine does not yet handle transition rewards for D/CTMCs");
+		}
+
+		return rewSA;
+	}
+	
+	/**
 	 * Construct the rewards for an MDP from files exported explicitly by PRISM.
 	 * @param model The MDP
 	 * @param rews The file containing state rewards (ignored if null)
