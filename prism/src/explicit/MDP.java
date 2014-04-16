@@ -31,7 +31,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import prism.PrismException;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
 
@@ -277,9 +276,4 @@ public interface MDP extends NondetModel
 	 * @param dest Vector to write result to.
 	 */
 	public void mvMultRight(int[] states, int[] strat, double[] source, double[] dest);
-
-	/**
-	 * Export to a dot file, highlighting states in 'mark' and choices for a (memoryless) strategy.
-	 */
-	public void exportToDotFileWithStrat(String filename, BitSet mark, int strat[]) throws PrismException;
 }

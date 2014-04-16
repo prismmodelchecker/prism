@@ -104,6 +104,12 @@ public class MDStrategyArray extends MDStrategy
 	}
 
 	@Override
+	public void exportDotFile(PrismLog out)
+	{
+		model.exportToDotFileWithStrat(out, null, choices);
+	}
+
+	@Override
 	public void clear()
 	{
 		choices = null;

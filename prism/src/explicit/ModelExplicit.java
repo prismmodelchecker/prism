@@ -288,21 +288,13 @@ public abstract class ModelExplicit implements Model
 	@Override
 	public void exportToPrismExplicitTra(String filename) throws PrismException
 	{
-		PrismLog tmpLog = new PrismFileLog(filename);
-		if (!tmpLog.ready()) {
-			throw new PrismException("Could not open file \"" + filename + "\" for output");
-		}
-		exportToPrismExplicitTra(tmpLog);
+		exportToPrismExplicitTra(PrismFileLog.create(filename));
 	}
 
 	@Override
 	public void exportToPrismExplicitTra(File file) throws PrismException
 	{
-		PrismLog tmpLog = new PrismFileLog(file.getPath());
-		if (!tmpLog.ready()) {
-			throw new PrismException("Could not open file \"" + file + "\" for output");
-		}
-		exportToPrismExplicitTra(new PrismFileLog(file.getPath()));
+		exportToPrismExplicitTra(PrismFileLog.create(file.getPath()));
 	}
 
 	@Override
@@ -311,11 +303,23 @@ public abstract class ModelExplicit implements Model
 	@Override
 	public void exportToDotFile(String filename) throws PrismException
 	{
-		exportToDotFile(filename, null);
+		exportToDotFile(PrismFileLog.create(filename), null);
 	}
 
 	@Override
-	public abstract void exportToDotFile(String filename, BitSet mark) throws PrismException;
+	public void exportToDotFile(String filename, BitSet mark) throws PrismException
+	{
+		exportToDotFile(PrismFileLog.create(filename), mark);
+	}
+
+	@Override
+	public void exportToDotFile(PrismLog out)
+	{
+		exportToDotFile(out, null);
+	}
+
+	@Override
+	public abstract void exportToDotFile(PrismLog out, BitSet mark);
 
 	@Override
 	public abstract void exportToPrismLanguage(String filename) throws PrismException;

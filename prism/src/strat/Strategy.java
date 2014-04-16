@@ -55,6 +55,11 @@ public interface Strategy
 	public void exportInducedModel(PrismLog out);
 	
 	/**
+	 * Export the strategy to a dot file (of the model showing the strategy).
+	 */
+	public void exportDotFile(PrismLog out);
+	
+	/**
 	 * Initialise the strategy, based on an initial model state.
 	 * @param s Initial state of the model
 	 */

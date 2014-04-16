@@ -155,7 +155,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	// Options for type of strategy export
 	public enum StrategyExportType {
-		ACTIONS, INDICES, INDUCED_MODEL;
+		ACTIONS, INDICES, INDUCED_MODEL, DOT_FILE;
 		public String description()
 		{
 			switch (this) {
@@ -165,6 +165,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				return "as indices";
 			case INDUCED_MODEL:
 				return "as an induced model";
+			case DOT_FILE:
+				return "as a dot file";
 			default:
 				return this.toString();
 			}
@@ -2158,7 +2160,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				currentModelExpl.exportToPrismExplicitTra(tmpLog);
 				break;
 			case Prism.EXPORT_MATLAB:
+				throw new PrismException("Export not yet supported");
 			case Prism.EXPORT_DOT:
+				currentModelExpl.exportToDotFile(tmpLog);
 			case Prism.EXPORT_MRMC:
 			case Prism.EXPORT_ROWS:
 			case Prism.EXPORT_DOT_STATES:
@@ -2997,6 +3001,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		case INDUCED_MODEL:
 			strat.exportInducedModel(tmpLog);
 			break;
+		case DOT_FILE:
+			strat.exportDotFile(tmpLog);
+			break;
 		}
 		if (file != null)
 			tmpLog.close();
@@ -3475,10 +3482,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// create new file log or use main log
 		PrismLog tmpLog;
 		if (file != null) {
-			tmpLog = new PrismFileLog(file.getPath(), append);
-			if (!tmpLog.ready()) {
-				throw new PrismException("Could not open file \"" + file + "\" for output");
-			}
+			tmpLog = PrismFileLog.create(file.getPath(), append);
 		} else {
 			tmpLog = mainLog;
 		}

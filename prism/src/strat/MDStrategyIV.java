@@ -26,9 +26,12 @@
 
 package strat;
 
+import java.io.FileNotFoundException;
 import java.util.List;
 
 import prism.Model;
+import prism.Prism;
+import prism.PrismException;
 import prism.PrismLog;
 import dv.IntegerVector;
 
@@ -42,7 +45,7 @@ public class MDStrategyIV extends MDStrategy
 	// Other model info
 	private int numStates;
 	private List<String> actions;
-	// Array storing MD strategy (action index for each state)
+	// Array storing MD strategy: *action* index (not choice index) for each state
 	private IntegerVector iv;
 	
 	/**
@@ -105,6 +108,20 @@ public class MDStrategyIV extends MDStrategy
 	public void exportInducedModel(PrismLog out)
 	{
 		// TODO
+	}
+
+	@Override
+	public void exportDotFile(PrismLog out)
+	{
+		try {
+			model.exportToFile(Prism.EXPORT_DOT, true, new java.io.File("a.dot"));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (PrismException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	@Override

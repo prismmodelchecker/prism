@@ -204,6 +204,16 @@ public interface Model
 	public void exportToDotFile(String filename, BitSet mark) throws PrismException;
 
 	/**
+	 * Export to a dot file.
+	 */
+	public void exportToDotFile(PrismLog out);
+
+	/**
+	 * Export to a dot file, highlighting states in 'mark'.
+	 */
+	public void exportToDotFile(PrismLog out, BitSet mark);
+
+	/**
 	 * Export to a equivalent PRISM language model description.
 	 */
 	public void exportToPrismLanguage(String filename) throws PrismException;

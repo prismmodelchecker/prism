@@ -394,41 +394,41 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	}
 
 	@Override
-	public void exportToDotFile(String filename, BitSet mark) throws PrismException
+	public void exportToDotFile(PrismLog out, BitSet mark)
 	{
 		int i, j, k;
 		String nij, nijk;
-		try {
-			FileWriter out = new FileWriter(filename);
-			out.write("digraph " + getModelType() + " {\nsize=\"8,5\"\nnode [shape=box];\n");
-			for (i = 0; i < numStates; i++) {
-				if (mark != null && mark.get(i))
-					out.write(i + " [style=filled  fillcolor=\"#cccccc\"]\n");
-				j = -1;
-				for (DistributionSet distrs : trans.get(i)) {
-					j++;
-					nij = "n" + i + "_" + j;
-					out.write(i + " -> " + nij + " [ arrowhead=none,label=\"" + j + "\" ];\n");
-					out.write(nij + " [ shape=circle,width=0.1,height=0.1,label=\"\" ];\n");
-					k = -1;
-					for (Distribution distr : distrs) {
-						k++;
-						nijk = "n" + i + "_" + j + "_" + k;
-						out.write(nij + " -> " + nijk + " [ arrowhead=none,label=\"" + k + "\" ];\n");
-						out.write(nijk + " [ shape=point,label=\"\" ];\n");
-						for (Map.Entry<Integer, Double> e : distr) {
-							out.write(nijk + " -> " + e.getKey() + " [ label=\"" + e.getValue() + "\" ];\n");
-						}
+		out.print("digraph " + getModelType() + " {\nsize=\"8,5\"\nnode [shape=box];\n");
+		for (i = 0; i < numStates; i++) {
+			if (mark != null && mark.get(i))
+				out.print(i + " [style=filled  fillcolor=\"#cccccc\"]\n");
+			j = -1;
+			for (DistributionSet distrs : trans.get(i)) {
+				j++;
+				nij = "n" + i + "_" + j;
+				out.print(i + " -> " + nij + " [ arrowhead=none,label=\"" + j + "\" ];\n");
+				out.print(nij + " [ shape=circle,width=0.1,height=0.1,label=\"\" ];\n");
+				k = -1;
+				for (Distribution distr : distrs) {
+					k++;
+					nijk = "n" + i + "_" + j + "_" + k;
+					out.print(nij + " -> " + nijk + " [ arrowhead=none,label=\"" + k + "\" ];\n");
+					out.print(nijk + " [ shape=point,label=\"\" ];\n");
+					for (Map.Entry<Integer, Double> e : distr) {
+						out.print(nijk + " -> " + e.getKey() + " [ label=\"" + e.getValue() + "\" ];\n");
 					}
 				}
 			}
-			out.write("}\n");
-			out.close();
-		} catch (IOException e) {
-			throw new PrismException("Could not write " + getModelType() + " to file \"" + filename + "\"" + e);
 		}
+		out.print("}\n");
 	}
 
+	@Override
+	public void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[])
+	{
+		throw new RuntimeException("Not yet supported");
+	}
+	
 	@Override
 	public void exportToPrismLanguage(String filename) throws PrismException
 	{

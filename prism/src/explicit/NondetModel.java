@@ -30,6 +30,9 @@ import java.util.BitSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import prism.PrismException;
+import prism.PrismLog;
+
 import strat.MDStrategy;
 
 /**
@@ -91,4 +94,9 @@ public interface NondetModel extends Model
 	 * @param strat (Memoryless) strategy to use
 	 */
 	public Model constructInducedModel(MDStrategy strat);
+
+	/**
+	 * Export to a dot file, highlighting states in 'mark' and choices for a (memoryless) strategy.
+	 */
+	public void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[]);
 }

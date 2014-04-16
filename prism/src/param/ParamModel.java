@@ -196,6 +196,18 @@ final class ParamModel extends ModelExplicit
 	}
 
 	@Override
+	public void exportToDotFile(PrismLog out)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void exportToDotFile(PrismLog out, BitSet mark)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public void exportToPrismLanguage(String filename) throws PrismException
 	{
 		throw new UnsupportedOperationException();
