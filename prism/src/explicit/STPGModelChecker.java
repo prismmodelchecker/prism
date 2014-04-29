@@ -644,6 +644,7 @@ public class STPGModelChecker extends ProbModelChecker
 				out.println(i + " " + (adv[i] != -1 ? stpg.getAction(i, adv[i]) : "-"));
 			}
 			out.println();
+			out.close();
 		}
 
 		// Return results

@@ -1319,6 +1319,8 @@ public class SimulatorEngine extends PrismComponent
 			log.println();
 		}
 		((PathFull) path).exportToLog(log, timeCumul, colSep, vars);
+		if (file != null)
+			log.close();
 	}
 
 	/**

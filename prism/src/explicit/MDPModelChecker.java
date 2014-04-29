@@ -584,6 +584,7 @@ public class MDPModelChecker extends ProbModelChecker
 			// Export
 			PrismLog out = new PrismFileLog(exportAdvFilename);
 			new DTMCFromMDPMemorylessAdversary(mdp, strat).exportToPrismExplicitTra(out);
+			out.close();
 		}
 
 		// Update time taken
@@ -1481,6 +1482,7 @@ public class MDPModelChecker extends ProbModelChecker
 			// Export
 			PrismLog out = new PrismFileLog(exportAdvFilename);
 			new DTMCFromMDPMemorylessAdversary(mdp, strat).exportToPrismExplicitTra(out);
+			out.close();
 		}
 
 		// Finished expected reachability
