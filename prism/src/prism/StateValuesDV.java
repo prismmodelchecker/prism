@@ -627,10 +627,12 @@ public class StateValuesDV implements StateValues
 					outputLog.println(d);
 				}
 			} else {
-				if (printIndices)
+				if (printIndices) {
 					outputLog.print(n);
+					outputLog.print(":");
+				}
 				if (printStates) {
-					outputLog.print(":(");
+					outputLog.print("(");
 					j = varList.getNumVars();
 					for (i = 0; i < j; i++) {
 						// integer variable
