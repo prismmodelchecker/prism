@@ -1,6 +1,8 @@
 This file contains details of the changes in each new version of PRISM.
 
-New since last release:
+-----------------------------------------------------------------------------
+Version 4.2 (beta first released 12/5/2014)
+-----------------------------------------------------------------------------
 
 * Parametric model checking
 
