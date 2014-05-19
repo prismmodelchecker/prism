@@ -714,6 +714,8 @@ public class StateModelChecker implements ModelChecker
 		case ExpressionFunc.MOD:
 		case ExpressionFunc.LOG:
 			return checkExpressionFuncBinary(expr);
+		case ExpressionFunc.MULTI:
+			throw new PrismException("Multi-objective model checking is not supported for " + model.getModelType() + "s");
 		default:
 			throw new PrismException("Unrecognised function \"" + expr.getName() + "\"");
 		}
