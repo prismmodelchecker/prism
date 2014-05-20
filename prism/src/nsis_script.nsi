@@ -32,7 +32,7 @@ CRCCheck        on
 LicenseText     "For your information:" "Next >"
 LicenseData     "${PRISM_DIR}COPYING.txt"
 
-InstallDir      "$PROGRAMFILES\${PRISM_BUILD}"
+InstallDir      "$PROGRAMFILES64\${PRISM_BUILD}"
 
 SubCaption		0 ": Licensing Information"
 
