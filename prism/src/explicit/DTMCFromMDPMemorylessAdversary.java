@@ -174,7 +174,7 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 
 	// Accessors (for DTMC)
 
-	public double getNumTransitions(int s)
+	public int getNumTransitions(int s)
 	{
 		return adv[s] >= 0 ? mdp.getNumTransitions(s, adv[s]) : 0;
 	}

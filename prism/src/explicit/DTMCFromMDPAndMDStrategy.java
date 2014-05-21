@@ -175,7 +175,7 @@ public class DTMCFromMDPAndMDStrategy extends DTMCExplicit
 
 	// Accessors (for DTMC)
 
-	public double getNumTransitions(int s)
+	public int getNumTransitions(int s)
 	{
 		return strat.isChoiceDefined(s) ? mdp.getNumTransitions(s, strat.getChoiceIndex(s)) : 0;
 	}

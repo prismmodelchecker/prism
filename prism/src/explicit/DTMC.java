@@ -39,7 +39,7 @@ public interface DTMC extends Model
 	/**
 	 * Get the number of transitions from state s.
 	 */
-	public double getNumTransitions(int s);
+	public int getNumTransitions(int s);
 
 	/**
 	 * Get an iterator over the transitions from state s.

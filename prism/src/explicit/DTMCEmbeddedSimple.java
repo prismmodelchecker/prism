@@ -193,7 +193,7 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 
 	// Accessors (for DTMC)
 
-	public double getNumTransitions(int s)
+	public int getNumTransitions(int s)
 	{
 		// TODO
 		throw new RuntimeException("Not implemented yet");

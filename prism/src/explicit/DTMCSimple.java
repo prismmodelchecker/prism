@@ -262,7 +262,7 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	// Accessors (for DTMC)
 
 	@Override
-	public double getNumTransitions(int s)
+	public int getNumTransitions(int s)
 	{
 		return trans.get(s).size();
 	}
