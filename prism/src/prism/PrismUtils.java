@@ -28,6 +28,7 @@ package prism;
 
 import java.text.DecimalFormat;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Various general-purpose utility methods in Java
@@ -193,8 +194,9 @@ public class PrismUtils
 	 */
 	public static String formatDouble(double d)
 	{
-		// Note that we have to tweak this since Java do it quite like C. 
-		return String.format("%.12g", d).replaceFirst("\\.?0+(e|$)", "$1");
+		// Use UK locale to avoid . being changed to , in some countries.
+		// To match C's printf, we have to tweak the Java version (strip trailing .000)
+		return String.format(Locale.UK, "%.12g", d).replaceFirst("\\.?0+(e|$)", "$1");
 	}
 
 	/**
@@ -202,8 +204,9 @@ public class PrismUtils
 	 */
 	public static String formatDouble(int prec, double d)
 	{
-		// Note that we have to tweak this since Java do it quite like C. 
-		return String.format("%." + prec + "g", d).replaceFirst("\\.?0+(e|$)", "$1");
+		// Use UK locale to avoid . being changed to , in some countries.
+		// To match C's printf, we have to tweak the Java version (strip trailing .000)
+		return String.format(Locale.UK, "%." + prec + "g", d).replaceFirst("\\.?0+(e|$)", "$1");
 	}
 	
 	/**
