@@ -2163,6 +2163,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				throw new PrismException("Export not yet supported");
 			case Prism.EXPORT_DOT:
 				currentModelExpl.exportToDotFile(tmpLog);
+				break;
 			case Prism.EXPORT_MRMC:
 			case Prism.EXPORT_ROWS:
 			case Prism.EXPORT_DOT_STATES:
