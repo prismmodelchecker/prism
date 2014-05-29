@@ -3428,6 +3428,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		PrismMTBDD.closeDown();
 		PrismSparse.closeDown();
 		PrismHybrid.closeDown();
+		ParamModelChecker.closeDown();
 		// Close down CUDD/JDD
 		if (cuddStarted) {
 			JDD.CloseDownCUDD(check);
