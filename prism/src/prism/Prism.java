@@ -2169,6 +2169,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			case Prism.EXPORT_DOT_STATES:
 				throw new PrismException("Export not yet supported");
 			}
+			tmpLog.close();
 		}
 
 		// for export to dot with states, need to do a bit more

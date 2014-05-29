@@ -894,6 +894,9 @@ public class PrismCL implements PrismModelListener
 		}
 		mainLog.println();
 		ParamModelChecker.closeDown();
+		// Close logs (in case they are files)
+		mainLog.close();
+		techLog.close();
 	}
 
 	// PrismModelListener methods
