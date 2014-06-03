@@ -49,7 +49,7 @@ import prism.PrismLog;
 public abstract class ModelExplicit implements Model
 {
 	// Basic model information
-	
+
 	/** Number of states */
 	protected int numStates;
 	/** Which states are initial states */
@@ -57,9 +57,9 @@ public abstract class ModelExplicit implements Model
 	/** States that are/were deadlocks. Where requested and where appropriate (DTMCs/MDPs),
 	 * these states may have been fixed at build time by adding self-loops. */
 	protected TreeSet<Integer> deadlocks;
-	
+
 	// Additional, optional information associated with the model
-	
+
 	/** (Optionally) information about the states of this model,
 	 * i.e. the State object corresponding to each state index. */
 	protected List<State> statesList;
@@ -67,8 +67,8 @@ public abstract class ModelExplicit implements Model
 	protected Values constantValues;
 	/** (Optionally) some labels (atomic propositions) associated with the model,
 	 * represented as a String->BitSet mapping from their names to the states that satisfy them. */
-	protected Map<String,BitSet> labels = new TreeMap<String, BitSet>();
-	
+	protected Map<String, BitSet> labels = new TreeMap<String, BitSet>();
+
 	// Mutators
 
 	/**
@@ -154,7 +154,7 @@ public abstract class ModelExplicit implements Model
 	{
 		this.statesList = statesList;
 	}
-	
+
 	/**
 	 * Set the associated (read-only) constant values.
 	 */
@@ -214,7 +214,7 @@ public abstract class ModelExplicit implements Model
 	{
 		return deadlocks.size();
 	}
-	
+
 	@Override
 	public Iterable<Integer> getDeadlockStates()
 	{
@@ -228,7 +228,7 @@ public abstract class ModelExplicit implements Model
 		for (int dl : deadlocks) {
 			bs.set(dl);
 		}
-		
+
 		return StateValues.createFromBitSet(bs, this);
 	}
 
@@ -243,7 +243,7 @@ public abstract class ModelExplicit implements Model
 	{
 		return deadlocks.contains(i);
 	}
-	
+
 	@Override
 	public List<State> getStatesList()
 	{
@@ -261,7 +261,7 @@ public abstract class ModelExplicit implements Model
 	{
 		return labels.get(name);
 	}
-	
+
 	@Override
 	public abstract int getNumTransitions();
 
@@ -315,11 +315,17 @@ public abstract class ModelExplicit implements Model
 	@Override
 	public void exportToDotFile(PrismLog out)
 	{
-		exportToDotFile(out, null);
+		exportToDotFile(out, null, false);
 	}
 
 	@Override
 	public void exportToDotFile(PrismLog out, BitSet mark)
+	{
+		exportToDotFile(out, mark, false);
+	}
+
+	@Override
+	public void exportToDotFile(PrismLog out, BitSet mark, boolean showStates)
 	{
 		int i;
 		// Header
@@ -331,6 +337,15 @@ public abstract class ModelExplicit implements Model
 			// Transitions for state i
 			exportTransitionsToDotFile(i, out);
 		}
+		// Append state info (if required)
+		if (showStates) {
+			List<State> states = getStatesList();
+			if (states != null) {
+				for (i = 0; i < numStates; i++) {
+					out.print(i + " [label=\"" + i + "\\n" + states.get(i) + "\"]\n");
+				}
+			}
+		}
 		// Footer
 		out.print("}\n");
 	}
@@ -341,7 +356,7 @@ public abstract class ModelExplicit implements Model
 	 * @param out PrismLog for output
 	 */
 	protected abstract void exportTransitionsToDotFile(int i, PrismLog out);
-	
+
 	@Override
 	public abstract void exportToPrismLanguage(String filename) throws PrismException;
 
@@ -350,7 +365,7 @@ public abstract class ModelExplicit implements Model
 	{
 		if (statesList == null)
 			return;
-		
+
 		// Print header: list of model vars
 		if (exportType == Prism.EXPORT_MATLAB)
 			log.print("% ");
@@ -378,7 +393,7 @@ public abstract class ModelExplicit implements Model
 		if (exportType == Prism.EXPORT_MATLAB)
 			log.println("];");
 	}
-	
+
 	@Override
 	public abstract String infoString();
 
