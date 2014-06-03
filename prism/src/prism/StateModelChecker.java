@@ -76,6 +76,8 @@ public class StateModelChecker implements ModelChecker
 	protected double termCritParam;
 	// Verbose mode?
 	protected boolean verbose;
+	// Store the final results vector after model checking?
+	protected boolean storeVector = false; 
 	// Generate/store a strategy during model checking?
 	protected boolean genStrat = false;
 
@@ -179,7 +181,12 @@ public class StateModelChecker implements ModelChecker
 
 		// Wrap a filter round the property, if needed
 		// (in order to extract the final result of model checking) 
-		expr = ExpressionFilter.addDefaultFilterIfNeeded(expr, model.getNumStartStates() == 1);
+		ExpressionFilter exprFilter = ExpressionFilter.addDefaultFilterIfNeeded(expr, model.getNumStartStates() == 1);
+		// And if we need to store a copy of the results vector, make a note of this
+		if (storeVector) {
+			exprFilter.setStoreVector(true);
+		}
+		expr = exprFilter;
 		
 		// Do model checking and store result vector
 		timer = System.currentTimeMillis();

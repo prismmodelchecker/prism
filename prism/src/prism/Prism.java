@@ -193,6 +193,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	protected String exportProductTransFilename = null;
 	protected boolean exportProductStates = false;
 	protected String exportProductStatesFilename = null;
+	// Store the final results vector after model checking?
+	protected boolean storeVector = false; 
 	// Generate/store a strategy during model checking?
 	protected boolean genStrat = false; 
 	// Do bisimulation minimisation before model checking?
@@ -589,6 +591,14 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
+	 * Specify whether or not to store the final results vector after model checking.
+	 */
+	public void setStoreVector(boolean storeVector)
+	{
+		this.storeVector = storeVector;
+	}
+
+	/**
 	 * Specify whether or not a strategy should be generated during model checking.
 	 */
 	public void setGenStrat(boolean genStrat)
@@ -884,6 +894,14 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public String getExportProductStatesFilename()
 	{
 		return exportProductStatesFilename;
+	}
+
+	/**
+	 * Whether or not to store the final results vector after model checking.
+	 */
+	public boolean getStoreVector()
+	{
+		return storeVector;
 	}
 
 	/**
@@ -3461,6 +3479,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		explicit.StateModelChecker mc = explicit.StateModelChecker.createModelChecker(currentModelType, this);
 		mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);
 		// Pass any additional local settings
+		mc.setStoreVector(storeVector);
 		mc.setGenStrat(genStrat);
 		mc.setDoBisim(doBisim);
 		

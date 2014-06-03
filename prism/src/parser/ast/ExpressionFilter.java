@@ -54,8 +54,11 @@ public class ExpressionFilter extends Expression
 	private boolean invisible = false;
 	// Whether or not an explanation should be displayed when model checking
 	private boolean explanationEnabled = true;
+	// Do we need to store a copy of the results vector when model checking this?
+	private boolean storeVector = false;
 	// whether this is a filter over parameters
 	private boolean param = false;
+	
 
 	// Constructors
 
@@ -127,6 +130,11 @@ public class ExpressionFilter extends Expression
 		this.explanationEnabled = explanationEnabled;
 	}
 	
+	public void setStoreVector(boolean storeVector)
+	{
+		this.storeVector = storeVector;
+	}
+	
 	public void setParam()
 	{
 		param = true;
@@ -162,6 +170,11 @@ public class ExpressionFilter extends Expression
 	public boolean getExplanationEnabled()
 	{
 		return explanationEnabled;
+	}
+	
+	public boolean getStoreVector()
+	{
+		return storeVector;
 	}
 	
 	public boolean isParam()
@@ -257,7 +270,7 @@ public class ExpressionFilter extends Expression
 	 * @param expr Expression to be model checked
 	 * @param singleInit Does the model on which it is being checked have a single initial states? 
 	 */
-	public static Expression addDefaultFilterIfNeeded(Expression expr, boolean singleInit) throws PrismLangException
+	public static ExpressionFilter addDefaultFilterIfNeeded(Expression expr, boolean singleInit) throws PrismLangException
 	{
 		ExpressionFilter exprFilter = null;
 		
@@ -301,7 +314,8 @@ public class ExpressionFilter extends Expression
 			exprFilter.typeCheck();
 			return exprFilter;
 		} else {
-			return expr;
+			// If no new filter was created, we no expr is an ExpressionFilter
+			return (ExpressionFilter) expr;
 		}
 	}
 }

@@ -85,6 +85,9 @@ public class StateModelChecker extends PrismComponent
 
 	// Additional flags/settings not included in PrismSettings
 
+	// Store the final results vector after model checking?
+	protected boolean storeVector = false;
+	
 	// Generate/store a strategy during model checking?
 	protected boolean genStrat = false;
 
@@ -193,6 +196,14 @@ public class StateModelChecker extends PrismComponent
 	}
 
 	/**
+	 * Specify whether or not to store the final results vector after model checking.
+	 */
+	public void setStoreVector(boolean storeVector)
+	{
+		this.storeVector = storeVector;
+	}
+
+	/**
 	 * Specify whether or not a strategy should be generated during model checking.
 	 */
 	public void setGenStrat(boolean genStrat)
@@ -213,6 +224,14 @@ public class StateModelChecker extends PrismComponent
 	public int getVerbosity()
 	{
 		return verbosity;
+	}
+
+	/**
+	 * Whether or not to store the final results vector after model checking.
+	 */
+	public boolean getStoreVector()
+	{
+		return storeVector;
 	}
 
 	/**
@@ -271,7 +290,11 @@ public class StateModelChecker extends PrismComponent
 		
 		// Wrap a filter round the property, if needed
 		// (in order to extract the final result of model checking) 
-		expr = ExpressionFilter.addDefaultFilterIfNeeded(expr, model.getNumInitialStates() == 1);
+		ExpressionFilter exprFilter = ExpressionFilter.addDefaultFilterIfNeeded(expr, model.getNumInitialStates() == 1);
+		// And if we need to store a copy of the results vector, make a note of this
+		if (storeVector) {
+			exprFilter.setStoreVector(true);
+		}
 
 		// If required, do bisimulation minimisation
 		if (doBisim) {
