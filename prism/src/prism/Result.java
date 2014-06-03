@@ -45,6 +45,8 @@ public class Result
 	private Object cex;
 	// Strategy (optional)
 	private Strategy strat;
+	// Solution vector (optional)
+	private StateVector vect;
 	
 	/**
 	 * Construct an empty Result object.
@@ -55,6 +57,7 @@ public class Result
 		this.explanation = null;
 		this.cex = null;
 		this.strat = null;
+		this.vect = null;
 	}
 	
 	/**
@@ -99,6 +102,14 @@ public class Result
 	}
 	
 	/**
+	 * Set the result vector (null denotes n/a).
+	 */
+	public void setVector(StateVector vect)
+	{
+		this.vect = vect;
+	}
+	
+	/**
 	 * Get the result.
 	 */
 	public Object getResult()
@@ -128,6 +139,14 @@ public class Result
 	public Strategy getStrategy()
 	{
 		return strat;
+	}
+	
+	/**
+	 * Get the result vector (null denotes n/a).
+	 */
+	public StateVector getVector()
+	{
+		return vect;
 	}
 	
 	/**
