@@ -36,6 +36,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import jdd.JDD;
+
 import parser.State;
 import parser.Values;
 import parser.ast.Expression;
@@ -323,7 +325,8 @@ public class StateModelChecker extends PrismComponent
 		mainLog.print("\n" + resultString + "\n");
 
 		// Clean up
-		vals.clear();
+		//vals.clear();
+		result.setVector(vals);
 
 		// Return result
 		return result;
@@ -967,10 +970,12 @@ public class StateModelChecker extends PrismComponent
 		} else {
 			result.setExplanation(null);
 		}
-
-		// Clear up
-		if (vals != null)
+		// Store vector if requested (and if not, clear it)
+		if (storeVector) {
+			result.setVector(vals);
+		} else if (vals != null) {
 			vals.clear();
+		}
 
 		return resVals;
 	}

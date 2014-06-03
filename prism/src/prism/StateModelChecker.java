@@ -1332,11 +1332,14 @@ public class StateModelChecker implements ModelChecker
 		} else {
 			result.setExplanation(null);
 		}
-
-		// Derefs, clears
-		JDD.Deref(ddFilter);
-		if (vals != null)
+		// Store vector if requested (and if not, clear it)
+		if (storeVector) {
+			result.setVector(vals);
+		} else if (vals != null) {
 			vals.clear();
+		}
+		// Other derefs
+		JDD.Deref(ddFilter);
 
 		return resVals;
 	}
