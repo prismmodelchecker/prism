@@ -111,6 +111,7 @@ public class StateModelChecker implements ModelChecker
 		engine = prism.getEngine();
 		termCritParam = prism.getTermCritParam();
 		verbose = prism.getVerbose();
+		storeVector = prism.getStoreVector();
 		genStrat = prism.getGenStrat();
 	}
 
