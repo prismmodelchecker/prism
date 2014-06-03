@@ -45,6 +45,18 @@ public class StateValuesVoid implements StateValues
 		this.value = value;
 	}
 	
+	@Override
+	public int getSize()
+	{
+		return 1;
+	}
+
+	@Override
+	public Object getValue(int i)
+	{
+		return value;
+	}
+
 	public Object getValue()
 	{
 		return value;

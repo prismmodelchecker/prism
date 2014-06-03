@@ -34,7 +34,7 @@ import parser.ast.RelOp;
 
 // Interface for classes for state-indexed vectors of (integer or double) values
 
-public interface StateValues
+public interface StateValues extends StateVector
 {
 	StateValuesDV convertToStateValuesDV();
 	StateValuesMTBDD convertToStateValuesMTBDD();
@@ -55,6 +55,7 @@ public interface StateValues
 	double sumOverBDD(JDDNode filter);
 	double sumOverMTBDD(JDDNode mult);
 	StateValues sumOverDDVars(JDDVars sumVars, Model newModel) throws PrismException;
+	Object getValue(int i);
 	JDDNode getBDDFromInterval(String relOpString, double bound);
 	JDDNode getBDDFromInterval(RelOp relOp, double bound);
 	JDDNode getBDDFromInterval(double lo, double hi);

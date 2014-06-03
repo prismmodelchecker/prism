@@ -224,6 +224,19 @@ public class StateValuesDV implements StateValues
 
 	// METHODS TO ACCESS VECTOR DATA
 
+	@Override
+	public int getSize()
+	{
+		return values.getSize();
+	}
+	
+	@Override
+	public Object getValue(int i)
+	{
+		// TODO: cast to Integer or Double as required?
+		return values.getElement(i);
+	}
+	
 	// get vector
 
 	public DoubleVector getDoubleVector()
