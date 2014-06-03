@@ -624,7 +624,7 @@ public class StateValuesMTBDD implements StateValues
 				}
 				if (i < j-1) outputLog.print(",");
 			}
-			outputLog.print(")=" + dd.getValue() + " ");
+			outputLog.print(")=" + dd.getValue());
 			outputLog.println();
 			return;
 		}
