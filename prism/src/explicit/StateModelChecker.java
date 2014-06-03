@@ -295,6 +295,7 @@ public class StateModelChecker extends PrismComponent
 		if (storeVector) {
 			exprFilter.setStoreVector(true);
 		}
+		expr = exprFilter;
 
 		// If required, do bisimulation minimisation
 		if (doBisim) {
