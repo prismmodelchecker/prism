@@ -108,32 +108,26 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 	}
 
 	@Override
-	public void exportToDotFile(PrismLog out, BitSet mark)
+	public void exportTransitionsToDotFile(int i, PrismLog out)
 	{
-		int i, j, numChoices;
+		int j, numChoices;
 		String nij;
 		Object action;
-		out.print("digraph " + getModelType() + " {\nsize=\"8,5\"\nnode [shape=box];\n");
-		for (i = 0; i < numStates; i++) {
-			if (mark != null && mark.get(i))
-				out.print(i + " [style=filled  fillcolor=\"#cccccc\"]\n");
-			numChoices = getNumChoices(i);
-			for (j = 0; j < numChoices; j++) {
-				action = getAction(i, j);
-				nij = "n" + i + "_" + j;
-				out.print(i + " -> " + nij + " [ arrowhead=none,label=\"" + j);
-				if (action != null)
-					out.print(":" + action);
-				out.print("\" ];\n");
-				out.print(nij + " [ shape=point,width=0.1,height=0.1,label=\"\" ];\n");
-				Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i, j);
-				while (iter.hasNext()) {
-					Map.Entry<Integer, Double> e = iter.next();
-					out.print(nij + " -> " + e.getKey() + " [ label=\"" + e.getValue() + "\" ];\n");
-				}
+		numChoices = getNumChoices(i);
+		for (j = 0; j < numChoices; j++) {
+			action = getAction(i, j);
+			nij = "n" + i + "_" + j;
+			out.print(i + " -> " + nij + " [ arrowhead=none,label=\"" + j);
+			if (action != null)
+				out.print(":" + action);
+			out.print("\" ];\n");
+			out.print(nij + " [ shape=point,width=0.1,height=0.1,label=\"\" ];\n");
+			Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i, j);
+			while (iter.hasNext()) {
+				Map.Entry<Integer, Double> e = iter.next();
+				out.print(nij + " -> " + e.getKey() + " [ label=\"" + e.getValue() + "\" ];\n");
 			}
 		}
-		out.print("}\n");
 	}
 
 	@Override

@@ -319,8 +319,29 @@ public abstract class ModelExplicit implements Model
 	}
 
 	@Override
-	public abstract void exportToDotFile(PrismLog out, BitSet mark);
+	public void exportToDotFile(PrismLog out, BitSet mark)
+	{
+		int i;
+		// Header
+		out.print("digraph " + getModelType() + " {\nsize=\"8,5\"\nnode [shape=box];\n");
+		for (i = 0; i < numStates; i++) {
+			// Style for each state
+			if (mark != null && mark.get(i))
+				out.print(i + " [style=filled  fillcolor=\"#cccccc\"]\n");
+			// Transitions for state i
+			exportTransitionsToDotFile(i, out);
+		}
+		// Footer
+		out.print("}\n");
+	}
 
+	/**
+	 * Export the transitions from state {@code i} in Dot format to {@code out}.
+	 * @param i State index
+	 * @param out PrismLog for output
+	 */
+	protected abstract void exportTransitionsToDotFile(int i, PrismLog out);
+	
 	@Override
 	public abstract void exportToPrismLanguage(String filename) throws PrismException;
 

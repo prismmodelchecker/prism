@@ -394,33 +394,27 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	}
 
 	@Override
-	public void exportToDotFile(PrismLog out, BitSet mark)
+	protected void exportTransitionsToDotFile(int i, PrismLog out)
 	{
-		int i, j, k;
+		int j, k;
 		String nij, nijk;
-		out.print("digraph " + getModelType() + " {\nsize=\"8,5\"\nnode [shape=box];\n");
-		for (i = 0; i < numStates; i++) {
-			if (mark != null && mark.get(i))
-				out.print(i + " [style=filled  fillcolor=\"#cccccc\"]\n");
-			j = -1;
-			for (DistributionSet distrs : trans.get(i)) {
-				j++;
-				nij = "n" + i + "_" + j;
-				out.print(i + " -> " + nij + " [ arrowhead=none,label=\"" + j + "\" ];\n");
-				out.print(nij + " [ shape=circle,width=0.1,height=0.1,label=\"\" ];\n");
-				k = -1;
-				for (Distribution distr : distrs) {
-					k++;
-					nijk = "n" + i + "_" + j + "_" + k;
-					out.print(nij + " -> " + nijk + " [ arrowhead=none,label=\"" + k + "\" ];\n");
-					out.print(nijk + " [ shape=point,label=\"\" ];\n");
-					for (Map.Entry<Integer, Double> e : distr) {
-						out.print(nijk + " -> " + e.getKey() + " [ label=\"" + e.getValue() + "\" ];\n");
-					}
+		j = -1;
+		for (DistributionSet distrs : trans.get(i)) {
+			j++;
+			nij = "n" + i + "_" + j;
+			out.print(i + " -> " + nij + " [ arrowhead=none,label=\"" + j + "\" ];\n");
+			out.print(nij + " [ shape=circle,width=0.1,height=0.1,label=\"\" ];\n");
+			k = -1;
+			for (Distribution distr : distrs) {
+				k++;
+				nijk = "n" + i + "_" + j + "_" + k;
+				out.print(nij + " -> " + nijk + " [ arrowhead=none,label=\"" + k + "\" ];\n");
+				out.print(nijk + " [ shape=point,label=\"\" ];\n");
+				for (Map.Entry<Integer, Double> e : distr) {
+					out.print(nijk + " -> " + e.getKey() + " [ label=\"" + e.getValue() + "\" ];\n");
 				}
 			}
 		}
-		out.print("}\n");
 	}
 
 	@Override

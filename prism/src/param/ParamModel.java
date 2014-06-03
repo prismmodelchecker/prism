@@ -208,6 +208,12 @@ final class ParamModel extends ModelExplicit
 	}
 
 	@Override
+	protected void exportTransitionsToDotFile(int i, PrismLog out)
+	{
+		throw new UnsupportedOperationException();
+	}
+	
+	@Override
 	public void exportToPrismLanguage(String filename) throws PrismException
 	{
 		throw new UnsupportedOperationException();
