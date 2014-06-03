@@ -117,6 +117,7 @@ public class StateValuesVoid implements StateValues
 		throw new UnsupportedOperationException();
 	}
 	
+	@Override
 	public void clear()
 	{
 		// Do nothing

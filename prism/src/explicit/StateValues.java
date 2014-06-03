@@ -1263,12 +1263,10 @@ public class StateValues implements StateVector
 
 	// ...
 
-	/**
-	 * Clear the vector, i.e. free any used memory.
-	 * (Well, actually, just set pointer to null and wait for later garbage collection.)
-	 */
+	@Override
 	public void clear()
 	{
+		// Actually, just set pointers to null and wait for later garbage collection.
 		valuesI = null;
 		valuesD = null;
 		valuesB = null;

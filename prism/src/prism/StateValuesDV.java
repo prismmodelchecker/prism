@@ -215,8 +215,7 @@ public class StateValuesDV implements StateValues
 		values.maxMTBDD(vec2, vars, odd);
 	}
 
-	// clear (free memory)
-
+	@Override
 	public void clear()
 	{
 		values.clear();

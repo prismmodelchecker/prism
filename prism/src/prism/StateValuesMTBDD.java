@@ -237,8 +237,7 @@ public class StateValuesMTBDD implements StateValues
 		values = JDD.Apply(JDD.MAX, values, vec2);
 	}
 	
-	// clear
-	
+	@Override
 	public void clear()
 	{
 		JDD.Deref(values);
