@@ -222,7 +222,6 @@ final public class ParamModelChecker extends PrismComponent
 				model.getNumStates(), model.getFirstInitialState(), simplifyRegions, splitMethod);
 		valueComputer = new ValueComputer(paramModel, regionFactory, precision, eliminationOrder, bisimType);
 		
-		ExpressionFilter exprFilter = null;
 		long timer = 0;
 		
 		// Remove labels from property, using combined label list (on a copy of the expression)
@@ -233,48 +232,9 @@ final public class ParamModelChecker extends PrismComponent
 		// Also evaluate/replace any constants
 		//expr = (Expression) expr.replaceConstants(constantValues);
 
-		// The final result of model checking will be a single value. If the expression to be checked does not
-		// already yield a single value (e.g. because a filter has not been explicitly included), we need to wrap
-		// a new (invisible) filter around it. Note that some filters (e.g. print/argmin/argmax) also do not
-		// return single values and have to be treated in this way.
-		if (!expr.returnsSingleValue()) {
-			// New filter depends on expression type and number of initial states.
-			// Boolean expressions...
-			if (expr.getType() instanceof TypeBool) {
-				// Result is true iff true for all initial states
-				exprFilter = new ExpressionFilter("forall", expr, new ExpressionLabel("init"));
-			}
-			// Non-Boolean (double or integer) expressions...
-			else {
-				// Result is for the initial state, if there is just one,
-				// or the range over all initial states, if multiple
-				if (model.getNumInitialStates() == 1) {
-					exprFilter = new ExpressionFilter("state", expr, new ExpressionLabel("init"));
-				} else {
-					exprFilter = new ExpressionFilter("range", expr, new ExpressionLabel("init"));
-				}
-			}
-		}
-		// Even, when the expression does already return a single value, if the the outermost operator
-		// of the expression is not a filter, we still need to wrap a new filter around it.
-		// e.g. 2*filter(...) or 1-P=?[...{...}]
-		// This because the final result of model checking is only stored when we process a filter.
-		else if (!(expr instanceof ExpressionFilter)) {
-			// We just pick the first value (they are all the same)
-			exprFilter = new ExpressionFilter("first", expr, new ExpressionLabel("init"));
-			// We stop any additional explanation being displayed to avoid confusion.
-			exprFilter.setExplanationEnabled(false);
-		}
-		
-		// For any case where a new filter was created above...
-		if (exprFilter != null) {
-			// Make it invisible (not that it will be displayed)
-			exprFilter.setInvisible(true);
-			// Compute type of new filter expression (will be same as child)
-			exprFilter.typeCheck();
-			// Store as expression to be model checked
-			expr = exprFilter;
-		}
+		// Wrap a filter round the property, if needed
+		// (in order to extract the final result of model checking) 
+		expr = ExpressionFilter.addDefaultFilterIfNeeded(expr, model.getNumInitialStates() == 1);
 
 		// Do model checking and store result vector
 		timer = System.currentTimeMillis();

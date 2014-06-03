@@ -27,6 +27,7 @@
 package parser.ast;
 
 import parser.*;
+import parser.type.TypeBool;
 import parser.visitor.*;
 import prism.PrismLangException;
 
@@ -245,6 +246,63 @@ public class ExpressionFilter extends Expression
 		e.param = this.param;
 
 		return e;
+	}
+	
+	/**
+	 * Wrap a "default" ExpressionFilter around an Expression representing a property to be model checked,
+	 * in order to pick out a single value (the final result of model checking) from a vector of values for all states.
+	 * See the PRISM manual (or check the code below) to see the definition of the "default" filter.
+	 * If the expression is already an ExpressionFilter (of the right kind), nothing is done.
+	 * Note that we need to know whether the model has multiple initial states, because this affects the default filter.  
+	 * @param expr Expression to be model checked
+	 * @param singleInit Does the model on which it is being checked have a single initial states? 
+	 */
+	public static Expression addDefaultFilterIfNeeded(Expression expr, boolean singleInit) throws PrismLangException
+	{
+		ExpressionFilter exprFilter = null;
+		
+		// The final result of model checking will be a single value. If the expression to be checked does not
+		// already yield a single value (e.g. because a filter has not been explicitly included), we need to wrap
+		// a new (invisible) filter around it. Note that some filters (e.g. print/argmin/argmax) also do not
+		// return single values and have to be treated in this way.
+		if (!expr.returnsSingleValue()) {
+			// New filter depends on expression type and number of initial states.
+			// Boolean expressions...
+			if (expr.getType() instanceof TypeBool) {
+				// Result is true iff true for all initial states
+				exprFilter = new ExpressionFilter("forall", expr, new ExpressionLabel("init"));
+			}
+			// Non-Boolean (double or integer) expressions...
+			else {
+				// Result is for the initial state, if there is just one,
+				// or the range over all initial states, if multiple
+				if (singleInit) {
+					exprFilter = new ExpressionFilter("state", expr, new ExpressionLabel("init"));
+				} else {
+					exprFilter = new ExpressionFilter("range", expr, new ExpressionLabel("init"));
+				}
+			}
+		}
+		// Even, when the expression does already return a single value, if the the outermost operator
+		// of the expression is not a filter, we still need to wrap a new filter around it.
+		// e.g. 2*filter(...) or 1-P=?[...{...}]
+		// This because the final result of model checking is only stored when we process a filter.
+		else if (!(expr instanceof ExpressionFilter)) {
+			// We just pick the first value (they are all the same)
+			exprFilter = new ExpressionFilter("first", expr, new ExpressionLabel("init"));
+			// We stop any additional explanation being displayed to avoid confusion.
+			exprFilter.setExplanationEnabled(false);
+		}
+		// Finalise filter (if created) and return
+		if (exprFilter != null) {
+			// Make it invisible (not that it will be displayed)
+			exprFilter.setInvisible(true);
+			// Compute type of new filter expression (will be same as child)
+			exprFilter.typeCheck();
+			return exprFilter;
+		} else {
+			return expr;
+		}
 	}
 }
 
