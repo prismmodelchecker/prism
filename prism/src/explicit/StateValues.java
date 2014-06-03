@@ -46,11 +46,12 @@ import prism.PrismException;
 import prism.PrismLangException;
 import prism.PrismLog;
 import prism.PrismUtils;
+import prism.StateVector;
 
 /**
  * Class for explicit-state storage of a state-indexed vector of values (int, double, boolean).
  */
-public class StateValues
+public class StateValues implements StateVector
 {
 	// Type (int, double or boolean)
 	protected Type type;
@@ -1275,9 +1276,13 @@ public class StateValues
 
 	// METHODS TO ACCESS VECTOR DATA
 
-	/**
-	 * Get the value of the ith element of the vector, as an Object.
-	 */
+	@Override
+	public int getSize()
+	{
+		return size;
+	}
+	
+	@Override
 	public Object getValue(int i)
 	{
 		if (type instanceof TypeInt) {
