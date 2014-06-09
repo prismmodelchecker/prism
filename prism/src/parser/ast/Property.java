@@ -155,10 +155,11 @@ public class Property extends ASTElement
 			// Look at each RESULT specification found
 			while (matcher.find()) {
 				String constValsSubstring = matcher.group(2) == null ? "" : matcher.group(2);
-				boolean match = true;
+				boolean allMatch = true;
 				// Look at each constant in the list
 				String ss[] = constValsSubstring.split(",");
 				for (String s : ss) {
+					boolean match = true;
 					s = s.trim();
 					if (s.length() == 0)
 						continue;
@@ -177,9 +178,11 @@ public class Property extends ASTElement
 					// Otherwise just check for exact string match for now
 					else
 						match = constValToMatch.toString().equals(constVal);
+					// We need all constants to match
+					allMatch &= match;
 				}
 				// Found it...
-				if (match) {
+				if (allMatch) {
 					strExpected = matcher.group(3);
 					continue;
 				}
