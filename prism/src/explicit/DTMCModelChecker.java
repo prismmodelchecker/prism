@@ -55,7 +55,7 @@ public class DTMCModelChecker extends ProbModelChecker
 	{
 		super(parent);
 	}
-	
+
 	// Model checking functions
 
 	/**
@@ -136,7 +136,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		res = computeNextProbs((DTMC) model, target);
 		return StateValues.createFromDoubleArray(res.soln, model);
 	}
-	
+
 	/**
 	 * Compute probabilities for a bounded until operator.
 	 */
@@ -585,7 +585,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		long timer;
 
 		timer = System.currentTimeMillis();
-		
+
 		// Store num states
 		n = dtmc.getNumStates();
 
@@ -1110,7 +1110,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		unknown.andNot(target);
 		if (remain != null)
 			unknown.and(remain);
-		
+
 		// Start iterations
 		iters = 0;
 		while (iters < k) {
@@ -1602,7 +1602,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		ModelCheckerResult res;
 		try {
 			// Two examples of building and solving a DTMC
-			
+
 			int version = 2;
 			if (version == 1) {
 
@@ -1623,9 +1623,9 @@ public class DTMCModelChecker extends ProbModelChecker
 				}
 				res = mc.computeReachProbs(dtmc, target);
 				System.out.println(res.soln[0]);
-				
+
 			} else {
-				
+
 				// 2. Build DTMC directly
 				//    Run as: PRISM_MAINCLASS=explicit.DTMCModelChecker bin/prism
 				//    (example taken from p.14 of Lec 5 of http://www.prismmodelchecker.org/lectures/pmc/) 
