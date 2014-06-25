@@ -257,18 +257,7 @@ public class PrismExplicit extends PrismComponent
 		
 		mainLog.println("\nComputing steady-state probabilities...");
 		l = System.currentTimeMillis();
-
-		if (model.getModelType() == ModelType.DTMC) {
-			DTMCModelChecker mcDTMC = new DTMCModelChecker(this);
-			probs = mcDTMC.doSteadyState((DTMC) model);
-		}
-		else if (model.getModelType() == ModelType.CTMC) {
-			throw new PrismException("Not implemented yet"); // TODO
-		}
-		else {
-			throw new PrismException("Steady-state probabilities only computed for DTMCs/CTMCs");
-		}
-		
+		probs = computeSteadyStateProbabilities(model);
 		l = System.currentTimeMillis() - l;
 		
 		// print message
@@ -299,7 +288,27 @@ public class PrismExplicit extends PrismComponent
 		probs.clear();
 		if (fileOut != null) tmpLog.close();
 	}
-	
+
+	/**
+	 * Compute steady-state probabilities (for a DTMC or CTMC).
+	 * Start from initial state or a uniform distribution over multiple initial states.
+	 */
+	public StateValues computeSteadyStateProbabilities(Model model) throws PrismException
+	{
+		StateValues probs;
+		if (model.getModelType() == ModelType.DTMC) {
+			DTMCModelChecker mcDTMC = new DTMCModelChecker(this);
+			probs = mcDTMC.doSteadyState((DTMC) model);
+		}
+		else if (model.getModelType() == ModelType.CTMC) {
+			throw new PrismException("Not implemented yet"); // TODO
+		}
+		else {
+			throw new PrismException("Steady-state probabilities only computed for DTMCs/CTMCs");
+		}
+		return probs;
+	}
+
 	/**
 	 * Compute transient probabilities (for a DTMC or CTMC).
 	 * Output probability distribution to log. 
