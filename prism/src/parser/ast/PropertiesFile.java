@@ -31,6 +31,7 @@ import java.util.*;
 import parser.*;
 import parser.visitor.*;
 import prism.PrismLangException;
+import prism.PrismUtils;
 
 // Class representing parsed properties file/list
 
@@ -418,63 +419,23 @@ public class PropertiesFile extends ASTElement
 	 */
 	public void findCyclesInPropertyReferences() throws PrismLangException
 	{
-		int i, j, k, l, n, firstCycle = -1;
-		Vector<String> v;
-		boolean matrix[][];
-		boolean foundCycle = false;
-		Expression e;
-
-		// initialise boolean matrix
-		n = properties.size();
-		matrix = new boolean[n][n];
-		for (i = 0; i < n; i++) {
-			for (j = 0; j < n; j++) {
-				matrix[i][j] = false;
-			}
-		}
-
-		// determine which properties reference which other properties
-		// and store this info in boolean matrix
-		for (i = 0; i < n; i++) {
-			e = properties.get(i).getExpression();
-			v = e.getAllPropRefs();
-			for (j = 0; j < v.size(); j++) {
-				k = getPropertyIndexByName(v.elementAt(j));
+		// Create boolean matrix of dependencies
+		// (matrix[i][j] is true if prop i contains a ref to prop j)
+		int n = properties.size();
+		boolean matrix[][] = new boolean[n][n];
+		for (int i = 0; i < n; i++) {
+			Expression e = properties.get(i).getExpression();
+			Vector<String> v = e.getAllPropRefs();
+			for (int j = 0; j < v.size(); j++) {
+				int k = getPropertyIndexByName(v.elementAt(j));
 				if (k != -1) {
 					matrix[i][k] = true;
 				}
 			}
 		}
-
-		// check for dependencies
-		// (loop a maximum of n times)
-		// (n = max length of possible cycle)
-		for (i = 0; i < n; i++) {
-			// see if there is a cycle yet
-			for (j = 0; j < n; j++) {
-				if (matrix[j][j]) {
-					foundCycle = true;
-					firstCycle = j;
-					break;
-				}
-			}
-			// if so, stop
-			if (foundCycle)
-				break;
-			// extend dependencies
-			for (j = 0; j < n; j++) {
-				for (k = 0; k < n; k++) {
-					if (matrix[j][k]) {
-						for (l = 0; l < n; l++) {
-							matrix[j][l] |= matrix[k][l];
-						}
-					}
-				}
-			}
-		}
-
-		// report dependency
-		if (foundCycle) {
+		// Check for and report dependencies
+		int firstCycle = PrismUtils.findCycle(matrix);
+		if (firstCycle != -1) {
 			String s = "Cyclic dependency in property references from property \"" + getPropertyName(firstCycle) + "\"";
 			throw new PrismLangException(s, getPropertyObject(firstCycle));
 		}

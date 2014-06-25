@@ -246,6 +246,43 @@ public class PrismUtils
 		}
 		return s;
 	}
+	
+	/**
+	 * Check for any cycles in an 2D boolean array representing a graph.
+	 * Useful for checking for cyclic dependencies in connected definitions.
+	 * Returns the lowest index of a node contained in a cycle, if there is one, -1 if not.  
+	 * @param matrix Square matrix of connections: {@code matr[i][j] == true} iff
+	 * there is a connection from {@code i} to {@code j}.
+	 */
+	public static int findCycle(boolean matrix[][])
+	{
+		int n = matrix.length;
+		int firstCycle = -1;
+		// Go through nodes
+		for (int i = 0; i < n; i++) {
+			// See if there is a cycle yet
+			for (int j = 0; j < n; j++) {
+				if (matrix[j][j]) {
+					firstCycle = j;
+					break;
+				}
+			}
+			// If so, stop
+			if (firstCycle != -1)
+				break;
+			// Extend dependencies
+			for (int j = 0; j < n; j++) {
+				for (int k = 0; k < n; k++) {
+					if (matrix[j][k]) {
+						for (int l = 0; l < n; l++) {
+							matrix[j][l] |= matrix[k][l];
+						}
+					}
+				}
+			}
+		}
+		return firstCycle;
+	}
 }
 
 //------------------------------------------------------------------------------

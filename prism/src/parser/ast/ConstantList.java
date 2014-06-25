@@ -31,6 +31,7 @@ import java.util.Vector;
 import parser.*;
 import parser.visitor.*;
 import prism.PrismLangException;
+import prism.PrismUtils;
 import parser.type.*;
 
 /**
@@ -112,64 +113,25 @@ public class ConstantList extends ASTElement
 	*/
 	public void findCycles() throws PrismLangException
 	{
-		int i, j, k, l, n, firstCycle = -1;
-		Vector<String> v;
-		boolean matrix[][];
-		boolean foundCycle = false;
-		Expression e;
-		
-		// initialise boolean matrix
-		n = constants.size();
-		matrix = new boolean[n][n];
-		for (i = 0; i < n; i++) {
-			for (j = 0; j < n; j++) {
-				matrix[i][j] = false;
-			}
-		}
-		
-		// determine which constants contain which other constants
-		// and store this info in boolean matrix
-		for (i = 0; i < n; i++) {
-			e = getConstant(i);
+		// Create boolean matrix of dependencies
+		// (matrix[i][j] is true if constant i contains constant j)
+		int n = constants.size();
+		boolean matrix[][] = new boolean[n][n];
+		for (int i = 0; i < n; i++) {
+			Expression e = getConstant(i);
 			if (e != null) {
-				v = e.getAllConstants();
-				for (j = 0; j < v.size(); j++) {
-					k = getConstantIndex(v.elementAt(j));
+				Vector<String> v = e.getAllConstants();
+				for (int j = 0; j < v.size(); j++) {
+					int k = getConstantIndex(v.elementAt(j));
 					if (k != -1) {
 						matrix[i][k] = true;
 					}
 				}
 			}
 		}
-		
-		// check for dependencies
-		// (loop a maximum of n times)
-		// (n = max length of possible cycle)
-		for (i = 0 ; i < n; i++) {
-			// see if there is a cycle yet
-			for (j = 0; j < n; j++) {
-				if (matrix[j][j]) {
-					foundCycle = true;
-					firstCycle = j;
-					break;
-				}
-			}
-			// if so, stop
-			if (foundCycle) break;
-			// extend dependencies
-			for (j = 0; j < n; j++) {
-				for (k = 0; k < n; k++) {
-					if (matrix[j][k]) {
-						for (l = 0; l < n; l++) {
-							matrix[j][l] |= matrix[k][l];
-						}
-					}
-				}
-			}
-		}
-		
-		// report dependency
-		if (foundCycle) {
+		// Check for and report dependencies
+		int firstCycle = PrismUtils.findCycle(matrix);
+		if (firstCycle != -1) {
 			String s = "Cyclic dependency in definition of constant \"" + getConstantName(firstCycle) + "\"";
 			throw new PrismLangException(s, getConstant(firstCycle));
 		}
