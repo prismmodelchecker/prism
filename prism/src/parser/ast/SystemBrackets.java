@@ -68,15 +68,29 @@ public class SystemBrackets extends SystemDefn
 	// Methods required for SystemDefn (all subclasses should implement):
 	
 	@Override
+	@SuppressWarnings("deprecation")
 	public void getModules(Vector<String> v)
 	{
 		operand.getModules(v);
 	}
 
 	@Override
+	public void getModules(Vector<String> v, ModulesFile modulesFile)
+	{
+		operand.getModules(v, modulesFile);
+	}
+
+	@Override
+	@SuppressWarnings("deprecation")
 	public void getSynchs(Vector<String> v)
 	{
 		operand.getSynchs(v);
+	}
+	
+	@Override
+	public void getSynchs(Vector<String> v, ModulesFile modulesFile)
+	{
+		operand.getSynchs(v, modulesFile);
 	}
 	
 	// Methods required for ASTElement:

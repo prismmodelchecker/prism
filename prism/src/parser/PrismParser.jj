@@ -482,9 +482,6 @@ ModulesFile ModulesFile() throws PrismLangException :
 	Expression init = null;
 	int initCount = 0;
 	Expression initDupe = null;
-	SystemDefn sys = null;
-	int sysCount = 0;
-	SystemDefn sysDupe = null;
 	ModulesFile mf = new ModulesFile();
 	Token begin = null;
 }
@@ -505,7 +502,7 @@ ModulesFile ModulesFile() throws PrismLangException :
 	// Initial states ("init...endinit" construct)
 	init = Init() { mf.setInitialStates(init); initCount++; if (initCount == 2) initDupe = init; } |
 	// System definition ("system...endsystem" construct)
-	sys = SystemEndsystem() { mf.setSystemDefn(sys); sysCount++; if (sysCount == 2) sysDupe = sys; }
+	SystemEndsystem(mf)
 	)* <EOF>
 	{
 		// Check for multiple instances of some items
@@ -516,9 +513,6 @@ ModulesFile ModulesFile() throws PrismLangException :
 		}
 		if (initDupe != null) {
 			throw new PrismLangException("There were multiple init...endinit constructs", initDupe);
-		}
-		if (sysDupe != null) {
-			throw new PrismLangException("There were multiple system...endsystem constructs", sysDupe);
 		}
 		
 		// Set model type (note default is MDP)
@@ -875,13 +869,22 @@ Expression Init() :
 
 // System definition ("system...endsystem" construct)
 
-SystemDefn SystemEndsystem() :
+void SystemEndsystem(ModulesFile mf) :
 {
-	SystemDefn ret;
+	String name = null;
+	SystemDefn sysdef;
 }
 {
-	<SYSTEM> ( ret = SystemDefn() ) <ENDSYSTEM>
-	{ return ret; }
+	<SYSTEM>
+	// Optional name
+	// (need lookahead because names look like references)
+	( LOOKAHEAD(<DQUOTE> name = Identifier() <DQUOTE> SystemDefn()) <DQUOTE> name = Identifier() <DQUOTE> )?
+	// The rest
+	( sysdef = SystemDefn() )
+	<ENDSYSTEM>
+	{
+		mf.addSystemDefn(sysdef, name);
+	}
 }
 
 // System definition component
@@ -1008,10 +1011,14 @@ SystemDefn SystemAtomic() :
 }
 {
 	{ begin = getToken(1); }
+	(
 	// Module name
-	(( name = Identifier() { sys = new SystemModule(name); } )
+	( name = Identifier() { sys = new SystemModule(name); } )
+	// SystemDefn reference
+	|( <DQUOTE> name = Identifier() <DQUOTE> { sys = new SystemReference(name); } )
 	// Parentheses
-	|( <LPARENTH> sys = SystemDefn() <RPARENTH> { sys = new SystemBrackets(sys); } ))
+	|( <LPARENTH> sys = SystemDefn() <RPARENTH> { sys = new SystemBrackets(sys); } )
+	)
 	{ sys.setPosition(begin, getToken(0)); return sys; }
 }
 

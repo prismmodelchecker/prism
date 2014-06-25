@@ -70,7 +70,19 @@ public class SystemModule extends SystemDefn
 	}
 	
 	@Override
+	public void getModules(Vector<String> v, ModulesFile modulesFile)
+	{
+		v.addElement(name);
+	}
+	
+	@Override
 	public void getSynchs(Vector<String> v)
+	{
+		// do nothing
+	}
+	
+	@Override
+	public void getSynchs(Vector<String> v, ModulesFile modulesFile)
 	{
 		// do nothing
 	}

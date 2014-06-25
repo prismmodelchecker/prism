@@ -370,6 +370,15 @@ public class ASTTraverse implements ASTVisitor
 	}
 	public void visitPost(SystemBrackets e) throws PrismLangException { defaultVisitPost(e); }
 	// -----------------------------------------------------------------------------------
+	public void visitPre(SystemReference e) throws PrismLangException { defaultVisitPre(e); }
+	public Object visit(SystemReference e) throws PrismLangException
+	{
+		visitPre(e);
+		visitPost(e);
+		return null;
+	}
+	public void visitPost(SystemReference e) throws PrismLangException { defaultVisitPost(e); }
+	// -----------------------------------------------------------------------------------
 	public void visitPre(ExpressionTemporal e) throws PrismLangException { defaultVisitPre(e); }
 	public Object visit(ExpressionTemporal e) throws PrismLangException
 	{

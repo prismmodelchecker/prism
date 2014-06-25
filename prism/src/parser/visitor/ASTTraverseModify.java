@@ -57,7 +57,10 @@ public class ASTTraverseModify implements ASTVisitor
 		for (i = 0; i < n; i++) {
 			if (e.getModule(i) != null) e.setModule(i, (Module)(e.getModule(i).accept(this)));
 		}
-		if (e.getSystemDefn() != null) e.setSystemDefn((SystemDefn)(e.getSystemDefn().accept(this)));
+		n = e.getNumSystemDefns();
+		for (i = 0; i < n; i++) {
+			if (e.getSystemDefn(i) != null) e.setSystemDefn(i, (SystemDefn)(e.getSystemDefn(i).accept(this)), e.getSystemDefnName(i));
+		}
 		n = e.getNumRewardStructs();
 		for (i = 0; i < n; i++) {
 			if (e.getRewardStruct(i) != null) e.setRewardStruct(i, (RewardStruct)(e.getRewardStruct(i).accept(this)));
@@ -377,6 +380,15 @@ public class ASTTraverseModify implements ASTVisitor
 		return e;
 	}
 	public void visitPost(SystemBrackets e) throws PrismLangException { defaultVisitPost(e); }
+	// -----------------------------------------------------------------------------------
+	public void visitPre(SystemReference e) throws PrismLangException { defaultVisitPre(e); }
+	public Object visit(SystemReference e) throws PrismLangException
+	{
+		visitPre(e);
+		visitPost(e);
+		return e;
+	}
+	public void visitPost(SystemReference e) throws PrismLangException { defaultVisitPost(e); }
 	// -----------------------------------------------------------------------------------
 	public void visitPre(ExpressionTemporal e) throws PrismLangException { defaultVisitPre(e); }
 	public Object visit(ExpressionTemporal e) throws PrismLangException

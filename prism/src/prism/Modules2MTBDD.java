@@ -938,6 +938,13 @@ public class Modules2MTBDD
 		else if (sys instanceof SystemRename) {
 			sysDDs = translateSystemRename((SystemRename)sys, synchMin);
 		}
+		else if (sys instanceof SystemReference) {
+			String name = ((SystemReference) sys).getName();
+			SystemDefn sysRef = modulesFile.getSystemDefnByName(name);
+			if (sysRef == null)
+				throw new PrismLangException("Reference to system " + sys + " which does not exist", sys);
+			sysDDs = translateSystemDefnRec(sysRef, synchMin);
+		}
 		else {
 			throw new PrismLangException("Unknown operator in model construction", sys);
 		}

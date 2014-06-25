@@ -105,6 +105,7 @@ public class SystemParallel extends SystemDefn
 	// Methods required for SystemDefn (all subclasses should implement):
 	
 	@Override
+	@SuppressWarnings("deprecation")
 	public void getModules(Vector<String> v)
 	{
 		operand1.getModules(v);
@@ -112,10 +113,25 @@ public class SystemParallel extends SystemDefn
 	}
 
 	@Override
+	public void getModules(Vector<String> v, ModulesFile modulesFile)
+	{
+		operand1.getModules(v, modulesFile);
+		operand2.getModules(v, modulesFile);
+	}
+
+	@Override
+	@SuppressWarnings("deprecation")
 	public void getSynchs(Vector<String> v)
 	{
 		operand1.getSynchs(v);
 		operand2.getSynchs(v);
+	}
+	
+	@Override
+	public void getSynchs(Vector<String> v, ModulesFile modulesFile)
+	{
+		operand1.getSynchs(v, modulesFile);
+		operand2.getSynchs(v, modulesFile);
 	}
 	
 	// Methods required for ASTElement:

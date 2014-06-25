@@ -111,19 +111,28 @@ public class SemanticCheck extends ASTTraverse
 		// Check system...endsystem construct (if present)
 		// Each module should appear exactly once
 		if (e.getSystemDefn() != null) {
-			e.getSystemDefn().getModules(v = new Vector<String>());
-			if (v.size() != e.getNumModules()) {
-				throw new PrismLangException("All modules must appear in the \"system\" construct exactly once", e.getSystemDefn());
-			}
+			e.getSystemDefn().getModules(v = new Vector<String>(), modulesFile);
 			n = e.getNumModules();
 			for (i = 0; i < n; i++) {
-				if (!(v.contains(e.getModuleName(i)))) {
-					throw new PrismLangException("All modules must appear in the \"system\" construct exactly once", e.getSystemDefn());
+				int k = v.indexOf(e.getModuleName(i));
+				if (k == -1) {
+					throw new PrismLangException("Module " + e.getModuleName(i) + " does not appear in the \"system\" construct", e.getSystemDefn());
+				}
+				if (v.indexOf(e.getModuleName(i), k + 1) != -1) {
+					throw new PrismLangException("Module " + e.getModuleName(i) + " appears more than once in the \"system\" construct", e.getSystemDefn());
 				}
 			}
 		}
 	}
 
+	public Object visit(SystemReference e) throws PrismLangException
+	{
+		// Make sure referenced system exists
+		if (modulesFile.getSystemDefnByName(e.getName()) == null)
+			throw new PrismLangException("Reference to system " + e.getName() + " which does not exist", e);
+		return null;
+	}
+	
 	public Object visit(FormulaList e) throws PrismLangException
 	{
 		// Override - don't need to do any semantic checks on formulas

@@ -59,6 +59,7 @@ public interface ASTVisitor
 	public Object visit(SystemRename e) throws PrismLangException;
 	public Object visit(SystemModule e) throws PrismLangException;
 	public Object visit(SystemBrackets e) throws PrismLangException;
+	public Object visit(SystemReference e) throws PrismLangException;
 	// ASTElement/Expression classes
 	public Object visit(ExpressionTemporal e) throws PrismLangException;
 	public Object visit(ExpressionITE e) throws PrismLangException;

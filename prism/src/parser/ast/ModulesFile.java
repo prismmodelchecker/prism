@@ -47,7 +47,8 @@ public class ModulesFile extends ASTElement
 	private ConstantList constantList;
 	private Vector<Declaration> globals; // Global variables
 	private Vector<Object> modules; // Modules (includes renamed modules)
-	private SystemDefn systemDefn; // System definition (system...endsystem construct)
+	private ArrayList<SystemDefn> systemDefns; // System definitions (system...endsystem constructs)
+	private ArrayList<String> systemDefnNames; // System definition names (system...endsystem constructs)
 	private ArrayList<RewardStruct> rewardStructs; // Rewards structures
 	private Expression initStates; // Initial states specification
 
@@ -77,7 +78,8 @@ public class ModulesFile extends ASTElement
 		modelType = ModelType.MDP; // default type
 		globals = new Vector<Declaration>();
 		modules = new Vector<Object>();
-		systemDefn = null;
+		systemDefns = new ArrayList<SystemDefn>();
+		systemDefnNames = new ArrayList<String>();
 		rewardStructs = new ArrayList<RewardStruct>();
 		initStates = null;
 		formulaIdents = new Vector<String>();
@@ -138,9 +140,55 @@ public class ModulesFile extends ASTElement
 		modules.add(m);
 	}
 
-	public void setSystemDefn(SystemDefn s)
+	/**
+	 * Set a (single, un-named) "system...endsystem" construct for this model.
+	 * @param systemDefn SystemDefn object for the "system...endsystem" construct 
+	 */
+	public void setSystemDefn(SystemDefn systemDefn)
 	{
-		systemDefn = s;
+		clearSystemDefns();
+		addSystemDefn(systemDefn);
+	}
+
+	/**
+	 * Remove any "system...endsystem" constructs for this model.
+	 */
+	public void clearSystemDefns()
+	{
+		systemDefns.clear();
+		systemDefnNames.clear();
+	}
+
+	/**
+	 * Add an (un-named) "system...endsystem" construct to this model.
+	 * @param systemDefn SystemDefn object for the "system...endsystem" construct 
+	 */
+	public void addSystemDefn(SystemDefn systemDefn)
+	{
+		addSystemDefn(systemDefn, null);
+	}
+
+	/**
+	 * Add a "system...endsystem" construct to this model.
+	 * @param systemDefn SystemDefn object for the "system...endsystem" construct 
+	 * @param name Optional name for the construct (null if un-named) 
+	 */
+	public void addSystemDefn(SystemDefn systemDefn, String name)
+	{
+		systemDefns.add(systemDefn);
+		systemDefnNames.add(name);
+	}
+
+	/**
+	 * Set the {@code i}th  "system...endsystem" construct for this model.
+	 * @param i Index (starting from 0) 
+	 * @param systemDefn SystemDefn object for the "system...endsystem" construct 
+	 * @param name Optional name for the construct (null if un-named) 
+	 */
+	public void setSystemDefn(int i, SystemDefn systemDefn, String name)
+	{
+		systemDefns.set(i, systemDefn);
+		systemDefnNames.set(i, name);
 	}
 
 	public void clearRewardStructs()
@@ -245,9 +293,64 @@ public class ModulesFile extends ASTElement
 		return -1;
 	}
 
+	/**
+	 * Get the default "system...endsystem" construct for this model, if it exists.
+	 * If there is an un-named "system...endsystem" (there can be at most one),
+	 * this is the default. If not, the first (named) one is taken as the default.
+	 * If there are no  "system...endsystem" constructs, this method returns null.
+	 */
 	public SystemDefn getSystemDefn()
 	{
-		return systemDefn;
+		int n = systemDefns.size();
+		if (n == 0)
+			return null;
+		for (int i = 0; i < n; i++) {
+			if (systemDefnNames.get(i) == null)
+				return systemDefns.get(i);
+		}
+		return systemDefns.get(0);
+	}
+	
+	/**
+	 * Get the number of "system...endsystem" constructs for this model.
+	 */
+	public int getNumSystemDefns()
+	{
+		return systemDefns.size();
+	}
+
+	/**
+	 * Get the {@code i}th "system...endsystem" construct for this model (0-indexed).
+	 */
+	public SystemDefn getSystemDefn(int i)
+	{
+		return systemDefns.get(i);
+	}
+
+	/**
+	 * Get the name of the {@code i}th "system...endsystem" construct for this model (0-indexed).
+	 * Returns null if that construct is un-named.
+	 */
+	public String getSystemDefnName(int i)
+	{
+		return systemDefnNames.get(i);
+	}
+
+	/**
+	 * Get a "system...endsystem" construct by its name.
+	 * Passing null for the name looks up an un-named construct. 
+	 * Returns null if the requested construct does not exist.
+	 */
+	public SystemDefn getSystemDefnByName(String name)
+	{
+		int i, n;
+		n = systemDefns.size();
+		for (i = 0; i < n; i++) {
+			String s = systemDefnNames.get(i); 
+			if ((s == null && name == null) || (s != null && s.equals(name)))
+				return systemDefns.get(i);
+		}
+		return null;
 	}
 
 	/**
@@ -502,6 +605,9 @@ public class ModulesFile extends ASTElement
 		// Check reward structure names
 		checkRewardStructNames();
 
+		// Check "system...endsystem" constructs
+		checkSystemDefns();
+		
 		// Various semantic checks 
 		semanticCheck(this);
 		// Type checking
@@ -657,10 +763,10 @@ public class ModulesFile extends ASTElement
 			}
 		}
 
-		// then extract any which are introduced in system construct (i.e. by
-		// renaming)
-		if (systemDefn != null) {
-			systemDefn.getSynchs(synchs);
+		// then extract any which are introduced in the (default) system construct (by renaming)
+		SystemDefn defaultSystemDefn = getSystemDefn();
+		if (defaultSystemDefn != null) {
+			defaultSystemDefn.getSynchs(synchs, this);
 		}
 	}
 
@@ -748,6 +854,32 @@ public class ModulesFile extends ASTElement
 		}
 	}
 
+	/**
+	 * Check "system...endsystem" constructs, if present.
+	 */
+	private void checkSystemDefns() throws PrismLangException
+	{
+		int n = systemDefns.size();
+		// None is ok
+		if (n == 0)
+			return;
+		// If there are any, at most one should be un-named
+		// and names should be unique 
+		int numUnnamed = 0;
+		HashSet<String> names = new HashSet<String>();
+		for (int i = 0; i < n; i++) {
+			String s = systemDefnNames.get(i); 
+			if (s == null) {
+				numUnnamed++;
+			} else {
+				if (!names.add(s))
+					throw new PrismLangException("Duplicated system...endystem name \"" + s + "\"", getSystemDefn(i));
+			}
+			if (numUnnamed > 1)
+				throw new PrismLangException("There can be at most one un-named system...endsystem construct", getSystemDefn(i));
+		}
+	}
+	
 	/**
 	 * Get  a list of constants in the model that are undefined
 	 * ("const int x;" rather than "const int x = 1;") 
@@ -983,8 +1115,11 @@ public class ModulesFile extends ASTElement
 		}
 		s += modules.elementAt(modules.size() - 1) + "\n";
 
-		if (systemDefn != null) {
-			s += "\nsystem " + systemDefn + " endsystem\n";
+		for (i = 0; i < systemDefns.size(); i++) {
+			s += "\nsystem ";
+			if (systemDefnNames.get(i) != null)
+				s += "\"" + systemDefnNames.get(i) + "\" ";
+			s += systemDefns.get(i) + " endsystem\n";
 		}
 
 		n = getNumRewardStructs();
@@ -1024,8 +1159,10 @@ public class ModulesFile extends ASTElement
 		for (i = 0; i < n; i++) {
 			ret.addModule((Module) getModule(i).deepCopy());
 		}
-		if (systemDefn != null)
-			ret.setSystemDefn(systemDefn.deepCopy());
+		n = getNumSystemDefns();
+		for (i = 0; i < n; i++) {
+			ret.addSystemDefn(getSystemDefn(i).deepCopy(), getSystemDefnName(i));
+		}
 		n = getNumRewardStructs();
 		for (i = 0; i < n; i++) {
 			ret.addRewardStruct((RewardStruct) getRewardStruct(i).deepCopy());

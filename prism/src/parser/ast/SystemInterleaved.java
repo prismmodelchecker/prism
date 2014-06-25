@@ -70,6 +70,7 @@ public class SystemInterleaved extends SystemDefn
 	// Methods required for SystemDefn (all subclasses should implement):
 	
 	@Override
+	@SuppressWarnings("deprecation")
 	public void getModules(Vector<String> v)
 	{
 		int i, n;
@@ -81,6 +82,18 @@ public class SystemInterleaved extends SystemDefn
 	}
 
 	@Override
+	public void getModules(Vector<String> v, ModulesFile modulesFile)
+	{
+		int i, n;
+		
+		n = getNumOperands();
+		for (i = 0; i < n; i++) {
+			getOperand(i).getModules(v, modulesFile);
+		}
+	}
+
+	@Override
+	@SuppressWarnings("deprecation")
 	public void getSynchs(Vector<String> v)
 	{
 		int i, n;
@@ -88,6 +101,17 @@ public class SystemInterleaved extends SystemDefn
 		n = getNumOperands();
 		for (i = 0; i < n; i++) {
 			getOperand(i).getSynchs(v);
+		}
+	}
+	
+	@Override
+	public void getSynchs(Vector<String> v, ModulesFile modulesFile)
+	{
+		int i, n;
+		
+		n = getNumOperands();
+		for (i = 0; i < n; i++) {
+			getOperand(i).getSynchs(v, modulesFile);
 		}
 	}
 	

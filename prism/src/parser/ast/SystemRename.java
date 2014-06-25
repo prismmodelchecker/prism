@@ -111,12 +111,20 @@ public class SystemRename extends SystemDefn
 	// Methods required for SystemDefn (all subclasses should implement):
 	
 	@Override
+	@SuppressWarnings("deprecation")
 	public void getModules(Vector<String> v)
 	{
 		operand.getModules(v);
 	}
 
 	@Override
+	public void getModules(Vector<String> v, ModulesFile modulesFile)
+	{
+		operand.getModules(v, modulesFile);
+	}
+
+	@Override
+	@SuppressWarnings("deprecation")
 	public void getSynchs(Vector<String> v)
 	{
 		int i, n;
@@ -133,6 +141,25 @@ public class SystemRename extends SystemDefn
 		
 		// recurse
 		operand.getSynchs(v);
+	}
+
+	@Override
+	public void getSynchs(Vector<String> v, ModulesFile modulesFile)
+	{
+		int i, n;
+		String s;
+		
+		// add action names in renames
+		// (only look in 'to' vector because we're only
+		//  interested in actions _introduced_)
+		n = getNumRenames();
+		for (i = 0; i < n; i++) {
+			s = getTo(i);
+			if (!(v.contains(s))) v.addElement(s);
+		}
+		
+		// recurse
+		operand.getSynchs(v, modulesFile);
 	}
 
 	// Methods required for ASTElement:
