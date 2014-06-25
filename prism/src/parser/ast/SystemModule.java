@@ -63,17 +63,13 @@ public class SystemModule extends SystemDefn
 	
 	// Methods required for SystemDefn (all subclasses should implement):
 	
-	/**
-	 * Get list of all modules appearing (recursively).
-	 */
+	@Override
 	public void getModules(Vector<String> v)
 	{
 		v.addElement(name);
 	}
 	
-	/**
-	 * Get list of all synchronising actions _introduced_ (recursively).
-	 */
+	@Override
 	public void getSynchs(Vector<String> v)
 	{
 		// do nothing
@@ -81,25 +77,19 @@ public class SystemModule extends SystemDefn
 	
 	// Methods required for ASTElement:
 	
-	/**
-	 * Visitor method.
-	 */
+	@Override
 	public Object accept(ASTVisitor v) throws PrismLangException
 	{
 		return v.visit(this);
 	}
 	
-	/**
-	 * Convert to string.
-	 */
+	@Override
 	public String toString()
 	{
 		return name;
 	}
 	
-	/**
-	 * Perform a deep copy.
-	 */
+	@Override
 	public SystemDefn deepCopy()
 	{
 		SystemDefn ret = new SystemModule(name);

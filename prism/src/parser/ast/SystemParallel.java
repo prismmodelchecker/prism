@@ -104,18 +104,14 @@ public class SystemParallel extends SystemDefn
 		
 	// Methods required for SystemDefn (all subclasses should implement):
 	
-	/**
-	 * Get list of all modules appearing (recursively).
-	 */
+	@Override
 	public void getModules(Vector<String> v)
 	{
 		operand1.getModules(v);
 		operand2.getModules(v);
 	}
 
-	/**
-	 * Get list of all synchronising actions _introduced_ (recursively).
-	 */
+	@Override
 	public void getSynchs(Vector<String> v)
 	{
 		operand1.getSynchs(v);
@@ -124,17 +120,13 @@ public class SystemParallel extends SystemDefn
 	
 	// Methods required for ASTElement:
 	
-	/**
-	 * Visitor method.
-	 */
+	@Override
 	public Object accept(ASTVisitor v) throws PrismLangException
 	{
 		return v.visit(this);
 	}
 	
-	/**
-	 * Convert to string.
-	 */
+	@Override
 	public String toString()
 	{
 		int i, n;
@@ -153,9 +145,7 @@ public class SystemParallel extends SystemDefn
 		return s;
 	}
 	
-	/**
-	 * Perform a deep copy.
-	 */
+	@Override
 	@SuppressWarnings("unchecked")
 	public SystemDefn deepCopy()
 	{

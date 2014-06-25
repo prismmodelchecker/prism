@@ -110,17 +110,13 @@ public class SystemRename extends SystemDefn
 		
 	// Methods required for SystemDefn (all subclasses should implement):
 	
-	/**
-	 * Get list of all modules appearing (recursively).
-	 */
+	@Override
 	public void getModules(Vector<String> v)
 	{
 		operand.getModules(v);
 	}
 
-	/**
-	 * Get list of all synchronising actions _introduced_ (recursively).
-	 */
+	@Override
 	public void getSynchs(Vector<String> v)
 	{
 		int i, n;
@@ -141,17 +137,13 @@ public class SystemRename extends SystemDefn
 
 	// Methods required for ASTElement:
 	
-	/**
-	 * Visitor method.
-	 */
+	@Override
 	public Object accept(ASTVisitor v) throws PrismLangException
 	{
 		return v.visit(this);
 	}
 	
-	/**
-	 * Convert to string.
-	 */
+	@Override
 	public String toString()
 	{
 		int i, n;
@@ -170,9 +162,7 @@ public class SystemRename extends SystemDefn
 		return s;
 	}
 	
-	/**
-	 * Perform a deep copy.
-	 */
+	@Override
 	public SystemDefn deepCopy()
 	{
 		int i, n;
