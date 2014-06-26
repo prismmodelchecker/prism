@@ -115,6 +115,15 @@ public class SystemFullParallel extends SystemDefn
 		}
 	}
 	
+	@Override
+	public void getReferences(Vector<String> v)
+	{
+		int n = getNumOperands();
+		for (int i = 0; i < n; i++) {
+			getOperand(i).getReferences(v);
+		}
+	}
+	
 	// Methods required for ASTElement:
 	
 	@Override

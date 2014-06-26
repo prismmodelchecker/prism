@@ -91,6 +91,13 @@ public class SystemReference extends SystemDefn
 		}
 	}
 	
+	@Override
+	public void getReferences(Vector<String> v)
+	{
+		if (!v.contains(name))
+			v.add(name);
+	}
+	
 	// Methods required for ASTElement:
 	
 	@Override

@@ -32,6 +32,7 @@ import parser.*;
 import parser.visitor.*;
 import prism.PrismLangException;
 import prism.ModelType;
+import prism.PrismUtils;
 import parser.type.*;
 
 // Class representing parsed model file
@@ -337,20 +338,30 @@ public class ModulesFile extends ASTElement
 	}
 
 	/**
+	 * Get the index of a "system...endsystem" construct by its name (indexed from 0).
+	 * Passing null for the name looks up an un-named construct. 
+	 * Returns null if the requested construct does not exist.
+	 */
+	public int getSystemDefnIndex(String name)
+	{
+		int n = systemDefns.size();
+		for (int i = 0; i < n; i++) {
+			String s = systemDefnNames.get(i); 
+			if ((s == null && name == null) || (s != null && s.equals(name)))
+				return i;
+		}
+		return -1;
+	}
+
+	/**
 	 * Get a "system...endsystem" construct by its name.
 	 * Passing null for the name looks up an un-named construct. 
 	 * Returns null if the requested construct does not exist.
 	 */
 	public SystemDefn getSystemDefnByName(String name)
 	{
-		int i, n;
-		n = systemDefns.size();
-		for (i = 0; i < n; i++) {
-			String s = systemDefnNames.get(i); 
-			if ((s == null && name == null) || (s != null && s.equals(name)))
-				return systemDefns.get(i);
-		}
-		return null;
+		int i = getSystemDefnIndex(name);
+		return i == -1 ? null : getSystemDefn(i);
 	}
 
 	/**
@@ -580,11 +591,6 @@ public class ModulesFile extends ASTElement
 		// Check module names
 		checkModuleNames();
 
-		// Get synchronising action names
-		getSynchNames();
-		// Then identify/check any references to action names
-		findAllActions(synchs);
-
 		// Check constant identifiers
 		checkConstantIdents();
 		// Find all instances of constants
@@ -608,6 +614,12 @@ public class ModulesFile extends ASTElement
 		// Check "system...endsystem" constructs
 		checkSystemDefns();
 		
+		// Get synchronising action names
+		// (NB: Do this *after* checking for cycles in system defns above)
+		getSynchNames();
+		// Then identify/check any references to action names
+		findAllActions(synchs);
+
 		// Various semantic checks 
 		semanticCheck(this);
 		// Type checking
@@ -860,6 +872,9 @@ public class ModulesFile extends ASTElement
 	private void checkSystemDefns() throws PrismLangException
 	{
 		int n = systemDefns.size();
+		
+		// Check there is a most one un-named system...endsystem...
+		
 		// None is ok
 		if (n == 0)
 			return;
@@ -877,6 +892,29 @@ public class ModulesFile extends ASTElement
 			}
 			if (numUnnamed > 1)
 				throw new PrismLangException("There can be at most one un-named system...endsystem construct", getSystemDefn(i));
+		}
+
+		// Check for cyclic dependencies...
+		
+		// Create boolean matrix of dependencies
+		// (matrix[i][j] is true if prop i contains a ref to prop j)
+		boolean matrix[][] = new boolean[n][n];
+		for (int i = 0; i < n; i++) {
+			SystemDefn sys = systemDefns.get(i);
+			Vector<String> v = new Vector<>();
+			sys.getReferences(v);
+			for (int j = 0; j < v.size(); j++) {
+				int k = getSystemDefnIndex(v.elementAt(j));
+				if (k != -1) {
+					matrix[i][k] = true;
+				}
+			}
+		}
+		// Check for and report dependencies
+		int firstCycle = PrismUtils.findCycle(matrix);
+		if (firstCycle != -1) {
+			String s = "Cyclic dependency from references in system...endsystem definition \"" + getSystemDefnName(firstCycle) + "\"";
+			throw new PrismLangException(s, getSystemDefn(firstCycle));
 		}
 	}
 	

@@ -120,6 +120,12 @@ public class SystemHide extends SystemDefn
 		operand.getSynchs(v, modulesFile);
 	}
 	
+	@Override
+	public void getReferences(Vector<String> v)
+	{
+		operand.getReferences(v);
+	}
+	
 	// Methods required for ASTElement:
 	
 	@Override

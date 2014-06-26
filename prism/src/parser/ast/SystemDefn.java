@@ -64,6 +64,11 @@ public abstract class SystemDefn extends ASTElement
 	 * Get list of all synchronising actions _introduced_ (recursively, including descent into references).
 	 */
 	public abstract void getSynchs(Vector<String> v, ModulesFile modulesFile);
+
+	/**
+	 * Get list of all references to other SystemDefns (recursively, but not following references).
+	 */
+	public abstract void getReferences(Vector<String> v);
 }
 
 //------------------------------------------------------------------------------

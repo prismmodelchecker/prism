@@ -87,6 +87,12 @@ public class SystemModule extends SystemDefn
 		// do nothing
 	}
 	
+	@Override
+	public void getReferences(Vector<String> v)
+	{
+		// do nothing
+	}
+	
 	// Methods required for ASTElement:
 	
 	@Override

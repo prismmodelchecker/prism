@@ -134,6 +134,13 @@ public class SystemParallel extends SystemDefn
 		operand2.getSynchs(v, modulesFile);
 	}
 	
+	@Override
+	public void getReferences(Vector<String> v)
+	{
+		operand1.getReferences(v);
+		operand2.getReferences(v);
+	}
+	
 	// Methods required for ASTElement:
 	
 	@Override
