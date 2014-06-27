@@ -191,7 +191,7 @@ public class PTAModelChecker extends PrismComponent
 
 		// Check whether Pmin=? or Pmax=? (only two cases allowed)
 		RelOp relOp = expr.getRelOp();
-		if (!relOp.isNumerical()) {
+		if (expr.getProb() != null) {
 			throw new PrismException("PTA model checking currently only supports Pmin=? and Pmax=? properties (try the digital clocks engine instead)");
 		}
 		min = relOp.isLowerBound() || relOp.isMin();

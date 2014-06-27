@@ -75,20 +75,6 @@ public enum RelOp {
 	}
 
 	/**
-	 * Returns true if this is numerical (e.g. min=?, max=?).
-	 */
-	public boolean isNumerical()
-	{
-		switch (this) {
-		case MIN:
-		case MAX:
-			return true;
-		default:
-			return false;
-		}
-	}
-
-	/**
 	 * Returns true if this corresponds to minimum (min=?).
 	 */
 	public boolean isMin()
