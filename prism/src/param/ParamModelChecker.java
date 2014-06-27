@@ -873,7 +873,7 @@ final public class ParamModelChecker extends PrismComponent
 			if (p.compareTo(0) == -1 || p.compareTo(1) == 1)
 				throw new PrismException("Invalid probability bound " + p + " in P operator");
 		}
-		min = relOp.isLowerBound();
+		min = relOp.isLowerBound() || relOp.isMin();
 
 		// Compute probabilities
 		if (!expr.getExpression().isSimplePathFormula()) {
@@ -977,7 +977,7 @@ final public class ParamModelChecker extends PrismComponent
 			if (r.compareTo(0) == -1)
 				throw new PrismException("Invalid reward bound " + r + " in R[] formula");
 		}
-		min = relOp.isLowerBound();
+		min = relOp.isLowerBound() || relOp.isMin();
 
 		// Get reward info
 		if (modulesFile == null)
@@ -1130,7 +1130,7 @@ final public class ParamModelChecker extends PrismComponent
 			if (p.compareTo(0) == -1 || p.compareTo(1) == 1)
 				throw new PrismException("Invalid probability bound " + p + " in P operator");
 		}
-		min = relOp.isLowerBound();
+		min = relOp.isLowerBound() || relOp.isMin();
 
 		// Compute probabilities
 		probs = checkProbSteadyState(model, expr.getExpression(), min, needStates);

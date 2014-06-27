@@ -479,7 +479,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			if (p < 0 || p > 1)
 				throw new PrismException("Invalid probability bound " + p + " in P operator");
 		}
-		min = relOp.isLowerBound();
+		min = relOp.isLowerBound() || relOp.isMin();
 
 		// Compute probabilities
 		switch (modelType) {
@@ -546,7 +546,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			if (r < 0)
 				throw new PrismException("Invalid reward bound " + r + " in R[] formula");
 		}
-		min = relOp.isLowerBound();
+		min = relOp.isLowerBound() || relOp.isMin();
 
 		// Get reward info
 		if (modulesFile == null)
