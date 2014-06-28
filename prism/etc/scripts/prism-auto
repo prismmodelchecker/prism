@@ -228,7 +228,7 @@ def runPrism(args, dir=""):
 			if re.match('Error:', line):
 				print line,
 		print "To see log file, run:"
-		print "cat " + logFile
+		print "edit " + logFile
 		if not options.testAll:
 			sys.exit(1)
 
