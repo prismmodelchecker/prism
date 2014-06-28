@@ -613,25 +613,25 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 
 		// Model check operands first
-		BitSet b1 = checkExpression(model, expr.getOperand1()).getBitSet();
-		BitSet b2 = checkExpression(model, expr.getOperand2()).getBitSet();
+		BitSet remain = checkExpression(model, expr.getOperand1()).getBitSet();
+		BitSet target = checkExpression(model, expr.getOperand2()).getBitSet();
 
 		// Compute/return the probabilities
-		// A trivial case: "U<=0" (prob is 1 in b2 states, 0 otherwise)
+		// A trivial case: "U<=0" (prob is 1 in target states, 0 otherwise)
 		if (time == 0) {
-			return StateValues.createFromBitSetAsDoubles(b2, model);
+			return StateValues.createFromBitSetAsDoubles(target, model);
 		}
 		// Otherwise: numerical solution
 		ModelCheckerResult res = null;
 		switch (model.getModelType()) {
 		case DTMC:
-			res = ((DTMCModelChecker) this).computeBoundedUntilProbs((DTMC) model, b1, b2, time);
+			res = ((DTMCModelChecker) this).computeBoundedUntilProbs((DTMC) model, remain, target, time);
 			break;
 		case MDP:
-			res = ((MDPModelChecker) this).computeBoundedUntilProbs((MDP) model, b1, b2, time, minMax.isMin());
+			res = ((MDPModelChecker) this).computeBoundedUntilProbs((MDP) model, remain, target, time, minMax.isMin());
 			break;
 		case STPG:
-			res = ((STPGModelChecker) this).computeBoundedUntilProbs((STPG) model, b1, b2, time, minMax.isMin1(), minMax.isMin2());
+			res = ((STPGModelChecker) this).computeBoundedUntilProbs((STPG) model, remain, target, time, minMax.isMin1(), minMax.isMin2());
 			break;
 		default:
 			throw new PrismException("Cannot model check " + expr + " for " + model.getModelType() + "s");
@@ -645,24 +645,24 @@ public class ProbModelChecker extends NonProbModelChecker
 	protected StateValues checkProbUntil(Model model, ExpressionTemporal expr, MinMax minMax) throws PrismException
 	{
 		// Model check operands first
-		BitSet b1 = checkExpression(model, expr.getOperand1()).getBitSet();
-		BitSet b2 = checkExpression(model, expr.getOperand2()).getBitSet();
+		BitSet remain = checkExpression(model, expr.getOperand1()).getBitSet();
+		BitSet target = checkExpression(model, expr.getOperand2()).getBitSet();
 
 		// Compute/return the probabilities
 		ModelCheckerResult res = null;
 		switch (model.getModelType()) {
 		case CTMC:
-			res = ((CTMCModelChecker) this).computeUntilProbs((CTMC) model, b1, b2);
+			res = ((CTMCModelChecker) this).computeUntilProbs((CTMC) model, remain, target);
 			break;
 		case DTMC:
-			res = ((DTMCModelChecker) this).computeUntilProbs((DTMC) model, b1, b2);
+			res = ((DTMCModelChecker) this).computeUntilProbs((DTMC) model, remain, target);
 			break;
 		case MDP:
-			res = ((MDPModelChecker) this).computeUntilProbs((MDP) model, b1, b2, minMax.isMin());
+			res = ((MDPModelChecker) this).computeUntilProbs((MDP) model, remain, target, minMax.isMin());
 			result.setStrategy(res.strat);
 			break;
 		case STPG:
-			res = ((STPGModelChecker) this).computeUntilProbs((STPG) model, b1, b2, minMax.isMin1(), minMax.isMin2());
+			res = ((STPGModelChecker) this).computeUntilProbs((STPG) model, remain, target, minMax.isMin1(), minMax.isMin2());
 			break;
 		default:
 			throw new PrismException("Cannot model check " + expr + " for " + model.getModelType() + "s");
