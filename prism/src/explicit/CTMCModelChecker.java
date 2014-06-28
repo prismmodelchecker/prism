@@ -53,10 +53,8 @@ public class CTMCModelChecker extends DTMCModelChecker
 	
 	// Model checking functions
 
-	/**
-	 * Model check a time-bounded until operator; return vector of probabilities for all states.
-	 */
-	protected StateValues checkProbBoundedUntil(Model model, ExpressionTemporal expr) throws PrismException
+	@Override
+	protected StateValues checkProbBoundedUntil(Model model, ExpressionTemporal expr, MinMax minMax) throws PrismException
 	{
 		double lTime, uTime; // time bounds
 		Expression exprTmp;

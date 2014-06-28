@@ -34,7 +34,6 @@ import java.util.Vector;
 
 import parser.ast.Expression;
 import parser.ast.ExpressionTemporal;
-import parser.ast.ExpressionUnaryOp;
 import parser.type.TypeDouble;
 import prism.DRA;
 import prism.Pair;
@@ -58,74 +57,8 @@ public class DTMCModelChecker extends ProbModelChecker
 
 	// Model checking functions
 
-	/**
-	 * Compute probabilities for the contents of a P operator.
-	 */
-	protected StateValues checkProbPathFormula(Model model, Expression expr) throws PrismException
-	{
-		// Test whether this is a simple path formula (i.e. PCTL)
-		// and then pass control to appropriate method. 
-		if (expr.isSimplePathFormula()) {
-			return checkProbPathFormulaSimple(model, expr);
-		} else {
-			return checkProbPathFormulaLTL(model, expr, false);
-		}
-	}
-
-	/**
-	 * Compute probabilities for a simple, non-LTL path operator.
-	 */
-	protected StateValues checkProbPathFormulaSimple(Model model, Expression expr) throws PrismException
-	{
-		StateValues probs = null;
-
-		// Negation/parentheses
-		if (expr instanceof ExpressionUnaryOp) {
-			ExpressionUnaryOp exprUnary = (ExpressionUnaryOp) expr;
-			// Parentheses
-			if (exprUnary.getOperator() == ExpressionUnaryOp.PARENTH) {
-				// Recurse
-				probs = checkProbPathFormulaSimple(model, exprUnary.getOperand());
-			}
-			// Negation
-			else if (exprUnary.getOperator() == ExpressionUnaryOp.NOT) {
-				// Compute, then subtract from 1 
-				probs = checkProbPathFormulaSimple(model, exprUnary.getOperand());
-				probs.timesConstant(-1.0);
-				probs.plusConstant(1.0);
-			}
-		}
-		// Temporal operators
-		else if (expr instanceof ExpressionTemporal) {
-			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
-			// Next
-			if (exprTemp.getOperator() == ExpressionTemporal.P_X) {
-				probs = checkProbNext(model, exprTemp);
-			}
-			// Until
-			else if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
-				if (exprTemp.hasBounds()) {
-					probs = checkProbBoundedUntil(model, exprTemp);
-				} else {
-					probs = checkProbUntil(model, exprTemp);
-				}
-			}
-			// Anything else - convert to until and recurse
-			else {
-				probs = checkProbPathFormulaSimple(model, exprTemp.convertToUntilForm());
-			}
-		}
-
-		if (probs == null)
-			throw new PrismException("Unrecognised path operator in P operator");
-
-		return probs;
-	}
-
-	/**
-	 * Compute probabilities for a next operator.
-	 */
-	protected StateValues checkProbNext(Model model, ExpressionTemporal expr) throws PrismException
+	@Override
+	protected StateValues checkProbNext(Model model, ExpressionTemporal expr, MinMax minMax) throws PrismException
 	{
 		BitSet target = null;
 		ModelCheckerResult res = null;
@@ -137,10 +70,8 @@ public class DTMCModelChecker extends ProbModelChecker
 		return StateValues.createFromDoubleArray(res.soln, model);
 	}
 
-	/**
-	 * Compute probabilities for a bounded until operator.
-	 */
-	protected StateValues checkProbBoundedUntil(Model model, ExpressionTemporal expr) throws PrismException
+	@Override
+	protected StateValues checkProbBoundedUntil(Model model, ExpressionTemporal expr, MinMax minMax) throws PrismException
 	{
 		int time;
 		BitSet b1, b2;
@@ -174,10 +105,8 @@ public class DTMCModelChecker extends ProbModelChecker
 		return probs;
 	}
 
-	/**
-	 * Compute probabilities for an (unbounded) until operator.
-	 */
-	protected StateValues checkProbUntil(Model model, ExpressionTemporal expr) throws PrismException
+	@Override
+	protected StateValues checkProbUntil(Model model, ExpressionTemporal expr, MinMax minMax) throws PrismException
 	{
 		BitSet b1, b2;
 		StateValues probs = null;
@@ -199,10 +128,8 @@ public class DTMCModelChecker extends ProbModelChecker
 		return probs;
 	}
 
-	/**
-	 * Compute probabilities for an LTL path formula
-	 */
-	protected StateValues checkProbPathFormulaLTL(Model model, Expression expr, boolean qual) throws PrismException
+	@Override
+	protected StateValues checkProbPathFormulaLTL(Model model, Expression expr, boolean qual, MinMax minMax) throws PrismException
 	{
 		LTLModelChecker mcLtl;
 		StateValues probsProduct, probs;

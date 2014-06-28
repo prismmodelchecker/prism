@@ -34,7 +34,6 @@ import java.util.Vector;
 
 import parser.ast.Expression;
 import parser.ast.ExpressionTemporal;
-import parser.ast.ExpressionUnaryOp;
 import parser.type.TypeDouble;
 import prism.DRA;
 import prism.Pair;
@@ -64,74 +63,8 @@ public class MDPModelChecker extends ProbModelChecker
 	
 	// Model checking functions
 
-	/**
-	 * Compute probabilities for the contents of a P operator.
-	 */
-	protected StateValues checkProbPathFormula(NondetModel model, Expression expr, boolean min) throws PrismException
-	{
-		// Test whether this is a simple path formula (i.e. PCTL)
-		// and then pass control to appropriate method. 
-		if (expr.isSimplePathFormula()) {
-			return checkProbPathFormulaSimple(model, expr, min);
-		} else {
-			return checkProbPathFormulaLTL(model, expr, min);
-		}
-	}
-
-	/**
-	 * Compute probabilities for a simple, non-LTL path operator.
-	 */
-	protected StateValues checkProbPathFormulaSimple(NondetModel model, Expression expr, boolean min) throws PrismException
-	{
-		StateValues probs = null;
-
-		// Negation/parentheses
-		if (expr instanceof ExpressionUnaryOp) {
-			ExpressionUnaryOp exprUnary = (ExpressionUnaryOp) expr;
-			// Parentheses
-			if (exprUnary.getOperator() == ExpressionUnaryOp.PARENTH) {
-				// Recurse
-				probs = checkProbPathFormulaSimple(model, exprUnary.getOperand(), min);
-			}
-			// Negation
-			else if (exprUnary.getOperator() == ExpressionUnaryOp.NOT) {
-				// Compute, then subtract from 1 
-				probs = checkProbPathFormulaSimple(model, exprUnary.getOperand(), !min);
-				probs.timesConstant(-1.0);
-				probs.plusConstant(1.0);
-			}
-		}
-		// Temporal operators
-		else if (expr instanceof ExpressionTemporal) {
-			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
-			// Next
-			if (exprTemp.getOperator() == ExpressionTemporal.P_X) {
-				probs = checkProbNext(model, exprTemp, min);
-			}
-			// Until
-			else if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
-				if (exprTemp.hasBounds()) {
-					probs = checkProbBoundedUntil(model, exprTemp, min);
-				} else {
-					probs = checkProbUntil(model, exprTemp, min);
-				}
-			}
-			// Anything else - convert to until and recurse
-			else {
-				probs = checkProbPathFormulaSimple(model, exprTemp.convertToUntilForm(), min);
-			}
-		}
-
-		if (probs == null)
-			throw new PrismException("Unrecognised path operator in P operator");
-
-		return probs;
-	}
-
-	/**
-	 * Compute probabilities for a next operator.
-	 */
-	protected StateValues checkProbNext(NondetModel model, ExpressionTemporal expr, boolean min) throws PrismException
+	@Override
+	protected StateValues checkProbNext(Model model, ExpressionTemporal expr, MinMax minMax) throws PrismException
 	{
 		BitSet target = null;
 		ModelCheckerResult res = null;
@@ -139,14 +72,12 @@ public class MDPModelChecker extends ProbModelChecker
 		// Model check the operand
 		target = checkExpression(model, expr.getOperand2()).getBitSet();
 
-		res = computeNextProbs((MDP) model, target, min);
+		res = computeNextProbs((MDP) model, target, minMax.isMin());
 		return StateValues.createFromDoubleArray(res.soln, model);
 	}
 
-	/**
-	 * Compute probabilities for a bounded until operator.
-	 */
-	protected StateValues checkProbBoundedUntil(NondetModel model, ExpressionTemporal expr, boolean min) throws PrismException
+	@Override
+	protected StateValues checkProbBoundedUntil(Model model, ExpressionTemporal expr, MinMax minMax) throws PrismException
 	{
 		int time;
 		BitSet b1, b2;
@@ -179,17 +110,15 @@ public class MDPModelChecker extends ProbModelChecker
 			// prob is 1 in b2 states, 0 otherwise
 			probs = StateValues.createFromBitSetAsDoubles(b2, model);
 		} else {
-			res = computeBoundedUntilProbs((MDP) model, b1, b2, time, min);
+			res = computeBoundedUntilProbs((MDP) model, b1, b2, time, minMax.isMin());
 			probs = StateValues.createFromDoubleArray(res.soln, model);
 		}
 
 		return probs;
 	}
 
-	/**
-	 * Compute probabilities for an (unbounded) until operator.
-	 */
-	protected StateValues checkProbUntil(NondetModel model, ExpressionTemporal expr, boolean min) throws PrismException
+	@Override
+	protected StateValues checkProbUntil(Model model, ExpressionTemporal expr, MinMax minMax) throws PrismException
 	{
 		BitSet b1, b2;
 		StateValues probs = null;
@@ -205,17 +134,15 @@ public class MDPModelChecker extends ProbModelChecker
 		// mainLog.print(" states, b2 = " + JDD.GetNumMintermsString(b2,
 		// allDDRowVars.n()) + " states\n");
 
-		res = computeUntilProbs((MDP) model, b1, b2, min);
+		res = computeUntilProbs((MDP) model, b1, b2, minMax.isMin());
 		probs = StateValues.createFromDoubleArray(res.soln, model);
 		result.setStrategy(res.strat);
 
 		return probs;
 	}
 
-	/**
-	 * Compute probabilities for an LTL path formula
-	 */
-	protected StateValues checkProbPathFormulaLTL(NondetModel model, Expression expr, boolean min) throws PrismException
+	@Override
+	protected StateValues checkProbPathFormulaLTL(Model model, Expression expr, boolean qual, MinMax minMax) throws PrismException
 	{
 		LTLModelChecker mcLtl;
 		StateValues probsProduct, probs;
@@ -240,7 +167,7 @@ public class MDPModelChecker extends ProbModelChecker
 		// Convert LTL formula to deterministic Rabin automaton (DRA)
 		// For min probabilities, need to negate the formula
 		// (add parentheses to allow re-parsing if required)
-		if (min) {
+		if (minMax.isMin()) {
 			ltl = Expression.Not(Expression.Parenth(ltl));
 		}
 		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
@@ -268,7 +195,7 @@ public class MDPModelChecker extends ProbModelChecker
 		probsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachProbs((MDP) modelProduct, acceptingMECs, false).soln, modelProduct);
 
 		// Subtract from 1 if we're model checking a negated formula for regular Pmin
-		if (min) {
+		if (minMax.isMin()) {
 			probsProduct.timesConstant(-1.0);
 			probsProduct.plusConstant(1.0);
 		}

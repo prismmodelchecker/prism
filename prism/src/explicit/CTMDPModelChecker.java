@@ -51,7 +51,8 @@ public class CTMDPModelChecker extends MDPModelChecker
 	
 	// Model checking functions
 
-	protected StateValues checkProbBoundedUntil(Model model, ExpressionTemporal expr, boolean min) throws PrismException
+	@Override
+	protected StateValues checkProbBoundedUntil(Model model, ExpressionTemporal expr, MinMax minMax) throws PrismException
 	{
 		double uTime;
 		BitSet b1, b2;
@@ -76,7 +77,7 @@ public class CTMDPModelChecker extends MDPModelChecker
 			// prob is 1 in b2 states, 0 otherwise
 			probs = StateValues.createFromBitSetAsDoubles(b2, model);
 		} else {
-			res = computeBoundedUntilProbs((CTMDP) model, b1, b2, uTime, min);
+			res = computeBoundedUntilProbs((CTMDP) model, b1, b2, uTime, minMax.isMin());
 			probs = StateValues.createFromDoubleArray(res.soln, model);
 		}
 
