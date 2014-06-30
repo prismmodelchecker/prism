@@ -33,8 +33,6 @@ import java.util.Map;
 import java.util.Vector;
 
 import parser.ast.Expression;
-import parser.ast.ExpressionTemporal;
-import parser.type.TypeDouble;
 import prism.DRA;
 import prism.Pair;
 import prism.PrismComponent;
@@ -106,7 +104,6 @@ public class MDPModelChecker extends ProbModelChecker
 		Pair<NondetModel, int[]> pair = mcLtl.constructProductMDP(dra, (MDP) model, labelBS);
 		modelProduct = pair.first;
 		int invMap[] = pair.second;
-		int modelProductSize = modelProduct.getNumStates();
 
 		// Find accepting MECs + compute reachability probabilities
 		mainLog.println("\nFinding accepting MECs...");
@@ -137,93 +134,6 @@ public class MDPModelChecker extends ProbModelChecker
 		probsProduct.clear();
 
 		return probs;
-	}
-
-	/**
-	 * Compute rewards for the contents of an R operator.
-	 */
-	protected StateValues checkRewardFormula(NondetModel model, MDPRewards modelRewards, Expression expr, boolean min) throws PrismException
-	{
-		StateValues rewards = null;
-
-		if (expr instanceof ExpressionTemporal) {
-			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
-			switch (exprTemp.getOperator()) {
-			case ExpressionTemporal.R_C:
-				rewards = checkRewardCumul(model, modelRewards, exprTemp, min);
-				break;
-			case ExpressionTemporal.R_F:
-				rewards = checkRewardReach(model, modelRewards, exprTemp, min);
-				break;
-			default:
-				throw new PrismException("Explicit engine does not yet handle the " + exprTemp.getOperatorSymbol() + " operator in the R operator");
-			}
-		}
-
-		if (rewards == null)
-			throw new PrismException("Unrecognised operator in R operator");
-
-		return rewards;
-	}
-
-	/**
-	 * Compute rewards for a cumulative reward operator.
-	 */
-	protected StateValues checkRewardCumul(NondetModel model, MDPRewards modelRewards, ExpressionTemporal expr, boolean min) throws PrismException
-	{
-		int time; // time
-		StateValues rewards = null;
-		ModelCheckerResult res = null;
-
-		// check that there is an upper time bound
-		if (expr.getUpperBound() == null) {
-			throw new PrismException("Cumulative reward operator without time bound (C) is only allowed for multi-objective queries");
-		}
-
-		// get info from inst reward
-		time = expr.getUpperBound().evaluateInt(constantValues);
-		if (time < 0) {
-			throw new PrismException("Invalid time bound " + time + " in cumulative reward formula");
-		}
-
-		// a trivial case: "<=0"
-		if (time == 0) {
-			rewards = new StateValues(TypeDouble.getInstance(), model.getNumStates(), new Double(0));
-		} else {
-			// compute rewards
-			try {
-				res = computeCumulRewards((MDP) model, modelRewards, time, min);
-				rewards = StateValues.createFromDoubleArray(res.soln, model);
-				result.setStrategy(res.strat);
-			} catch (PrismException e) {
-				throw e;
-			}
-		}
-
-		return rewards;
-	}
-
-	/**
-	 * Compute rewards for a reachability reward operator.
-	 */
-	protected StateValues checkRewardReach(NondetModel model, MDPRewards modelRewards, ExpressionTemporal expr, boolean min) throws PrismException
-	{
-		BitSet b;
-		StateValues rewards = null;
-		ModelCheckerResult res = null;
-
-		// model check operand first
-		b = checkExpression(model, expr.getOperand2()).getBitSet();
-
-		// print out some info about num states
-		// mainLog.print("\nb = " + JDD.GetNumMintermsString(b1,
-		// allDDRowVars.n()));
-
-		res = computeReachRewards((MDP) model, modelRewards, b, min);
-		rewards = StateValues.createFromDoubleArray(res.soln, model);
-		result.setStrategy(res.strat);
-
-		return rewards;
 	}
 
 	// Numerical computation functions
@@ -1148,7 +1058,7 @@ public class MDPModelChecker extends ProbModelChecker
 	 * @param target Target states
 	 * @param min Min or max rewards (true=min, false=max)
 	 */
-	public ModelCheckerResult computeCumulRewards(MDP mdp, MDPRewards mdpRewards, int k, boolean min) throws PrismException
+	public ModelCheckerResult computeCumulativeRewards(MDP mdp, MDPRewards mdpRewards, int k, boolean min) throws PrismException
 	{
 		ModelCheckerResult res = null;
 		int i, n, iters;

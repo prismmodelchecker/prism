@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.Vector;
 
 import parser.ast.Expression;
-import parser.ast.ExpressionTemporal;
 import parser.type.TypeDouble;
 import prism.DRA;
 import prism.Pair;
@@ -95,7 +94,6 @@ public class DTMCModelChecker extends ProbModelChecker
 		Pair<Model, int[]> pair = mcLtl.constructProductMC(dra, (DTMC) model, labelBS);
 		modelProduct = pair.first;
 		int invMap[] = pair.second;
-		int modelProductSize = modelProduct.getNumStates();
 		mainLog.print("\n" + modelProduct.infoStringTable());
 
 		// Find accepting BSCCs + compute reachability probabilities
@@ -121,100 +119,6 @@ public class DTMCModelChecker extends ProbModelChecker
 		probsProduct.clear();
 
 		return probs;
-	}
-
-	/**
-	 * Compute rewards for the contents of an R operator.
-	 */
-	protected StateValues checkRewardFormula(Model model, MCRewards modelRewards, Expression expr) throws PrismException
-	{
-		StateValues rewards = null;
-
-		if (expr instanceof ExpressionTemporal) {
-			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
-			switch (exprTemp.getOperator()) {
-			case ExpressionTemporal.R_F:
-				rewards = checkRewardReach(model, modelRewards, exprTemp);
-				break;
-			case ExpressionTemporal.R_I:
-				rewards = checkRewardInstantaneous(model, modelRewards, exprTemp);
-				break;
-			case ExpressionTemporal.R_C:
-				rewards = checkRewardCumulative(model, modelRewards, exprTemp);
-				break;
-			default:
-				throw new PrismException("Explicit engine does not yet handle the " + exprTemp.getOperatorSymbol() + " operator in the R operator");
-			}
-		}
-
-		if (rewards == null)
-			throw new PrismException("Unrecognised operator in R operator");
-
-		return rewards;
-	}
-
-	/**
-	 * Compute rewards for a reachability reward operator.
-	 */
-	protected StateValues checkRewardReach(Model model, MCRewards modelRewards, ExpressionTemporal expr) throws PrismException
-	{
-		BitSet b;
-		StateValues rewards = null;
-		ModelCheckerResult res = null;
-
-		// model check operand first
-		b = checkExpression(model, expr.getOperand2()).getBitSet();
-
-		// print out some info about num states
-		// mainLog.print("\nb = " + JDD.GetNumMintermsString(b1,
-		// allDDRowVars.n()));
-
-		res = computeReachRewards((DTMC) model, modelRewards, b);
-		rewards = StateValues.createFromDoubleArray(res.soln, model);
-
-		return rewards;
-	}
-
-	/**
-	 * Compute rewards for an instantaneous reward operator.
-	 */
-	protected StateValues checkRewardInstantaneous(Model model, MCRewards modelRewards, ExpressionTemporal expr) throws PrismException
-	{
-		StateValues rewards = null;
-		ModelCheckerResult res = null;
-
-		// get time bound
-		double t = expr.getUpperBound().evaluateDouble(constantValues);
-
-		// print out some info about num states
-		// mainLog.print("\nb = " + JDD.GetNumMintermsString(b1,
-		// allDDRowVars.n()));
-
-		res = computeInstantaneousRewards((DTMC) model, modelRewards, t);
-		rewards = StateValues.createFromDoubleArray(res.soln, model);
-
-		return rewards;
-	}
-
-	/**
-	 * Compute rewards for a cumulative reward operator.
-	 */
-	protected StateValues checkRewardCumulative(Model model, MCRewards modelRewards, ExpressionTemporal expr) throws PrismException
-	{
-		StateValues rewards = null;
-		ModelCheckerResult res = null;
-
-		// get time bound
-		double t = expr.getUpperBound().evaluateDouble(constantValues);
-
-		// print out some info about num states
-		// mainLog.print("\nb = " + JDD.GetNumMintermsString(b1,
-		// allDDRowVars.n()));
-
-		res = computeCumulativeRewards((DTMC) model, modelRewards, t);
-		rewards = StateValues.createFromDoubleArray(res.soln, model);
-
-		return rewards;
 	}
 
 	public ModelCheckerResult computeInstantaneousRewards(DTMC dtmc, MCRewards mcRewards, double t) throws PrismException
@@ -310,25 +214,6 @@ public class DTMCModelChecker extends ProbModelChecker
 		res.timeTaken = timer / 1000.0;
 		res.timePre = 0.0;
 		return res;
-	}
-
-	/**
-	 * Compute steady-state probabilities for an S operator.
-	 */
-	protected StateValues checkSteadyStateFormula(Model model, Expression expr) throws PrismException
-	{
-		BitSet b;
-		StateValues probs = null;
-		ModelCheckerResult res = null;
-
-		// Model check operand first
-		b = checkExpression(model, expr).getBitSet();
-
-		double multProbs[] = Utils.bitsetToDoubleArray(b, model.getNumStates());
-		res = computeSteadyStateBackwardsProbs((DTMC) model, multProbs);
-		probs = StateValues.createFromDoubleArray(res.soln, model);
-
-		return probs;
 	}
 
 	// Steady-state/transient probability computation
