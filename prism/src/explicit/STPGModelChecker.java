@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 
 import parser.ast.Expression;
-import parser.ast.ExpressionTemporal;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismFileLog;
@@ -61,26 +60,6 @@ public class STPGModelChecker extends ProbModelChecker
 		throw new PrismException("LTL model checking not yet supported for stochastic games");
 	}
 	
-	/**
-	 * Compute rewards for the contents of an R operator.
-	 */
-	protected StateValues checkRewardFormula(Model model, STPGRewards rewards, ExpressionTemporal expr, boolean min1, boolean min2) throws PrismException
-	{
-		// Assume R [F ] for now...
-
-		BitSet target;
-		StateValues rews = null;
-		ModelCheckerResult res = null;
-
-		// model check operands first
-		target = checkExpression(model, expr.getOperand2()).getBitSet();
-
-		res = computeReachRewards((STPG) model, rewards, target, min1, min2);
-		rews = StateValues.createFromDoubleArray(res.soln, model);
-
-		return rews;
-	}
-
 	// Numerical computation functions
 
 	/**

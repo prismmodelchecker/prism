@@ -44,6 +44,7 @@ import explicit.rewards.ConstructRewards;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
 import explicit.rewards.Rewards;
+import explicit.rewards.STPGRewards;
 
 /**
  * Super class for explicit-state probabilistic model checkers.
@@ -807,6 +808,9 @@ public class ProbModelChecker extends NonProbModelChecker
 		case MDP:
 			res = ((MDPModelChecker) this).computeReachRewards((MDP) model, (MDPRewards) modelRewards, target, minMax.isMin());
 			result.setStrategy(res.strat);
+			break;
+		case STPG:
+			res = ((STPGModelChecker) this).computeReachRewards((STPG) model, (STPGRewards) modelRewards, target, minMax.isMin1(), minMax.isMin2());
 			break;
 		default:
 			throw new PrismException("Explicit engine does not yet handle the " + expr.getOperatorSymbol() + " reward operator for " + model.getModelType()
