@@ -911,7 +911,7 @@ SystemDefn SystemFullParallel() :
 	sys1 = SystemInterleaved()
 	( { par = new SystemFullParallel(); par.addOperand(sys1); } ( LOOKAHEAD(<OR> <OR>) <OR> <OR> sys2 = SystemParallel() { par.addOperand(sys2); } )* )
 	{
-		if (par==null) {
+		if (par==null || par.getNumOperands() == 1) {
 			return sys1;
 		}
 		else {
@@ -934,7 +934,7 @@ SystemDefn SystemInterleaved() :
 	sys1 = SystemParallel()
 	( { par = new SystemInterleaved(); par.addOperand(sys1); } ( LOOKAHEAD(<OR> <OR> <OR>) <OR> <OR> <OR>  sys2 = SystemFullParallel() { par.addOperand(sys2); } )* )
 	{
-		if (par==null) {
+		if (par==null || par.getNumOperands() == 1) {
 			return sys1;
 		}
 		else {
