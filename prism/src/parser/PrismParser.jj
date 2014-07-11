@@ -1551,7 +1551,6 @@ Expression ExpressionSS(boolean prop, boolean pathprop) :
 Expression ExpressionReward(boolean prop, boolean pathprop) :
 {
 	int r;
-	Object index = null;
 	String relOp = null;
 	Expression rew = null;
 	Expression expr;
@@ -1564,7 +1563,7 @@ Expression ExpressionReward(boolean prop, boolean pathprop) :
 	// This production is only allowed in expressions if the "prop" parameter is true
 	{ if (!prop) throw generateParseException(); }
 	// Various options for "R" keyword and attached symbols
-	(( begin = <R> (index = RewardIndex())?
+	(( begin = <R> (RewardIndex(ret))?
 	(( r = LtGt() rew = Expression(false, false) { relOp = ExpressionBinaryOp.opSymbols[r]; isBool = true; } )
 	   |( <EQ> <QMARK> { relOp = "="; isBool = false; } )
 	   |( <MIN> <EQ> <QMARK> { relOp = "min="; isBool = false; } )
@@ -1575,7 +1574,6 @@ Expression ExpressionReward(boolean prop, boolean pathprop) :
 	// Path formula, optional filter
 	<LBRACKET> expr = ExpressionRewardContents(prop, pathprop) (filter = Filter())? <RBRACKET>
 	{
-		ret.setRewardStructIndex(index);
 		ret.setRelOp(relOp);
 		ret.setReward(rew);
 		ret.setExpression(expr);
@@ -1595,14 +1593,22 @@ Expression ExpressionReward(boolean prop, boolean pathprop) :
 
 // Reward struct index for R operator
 
-Object RewardIndex() :
+void RewardIndex(ExpressionReward exprRew) :
 {
-	Object index;
+	Object index = null;
+	Object indexDiv = null;
 }
 {
 	// Lookahead here is to ensure that "id" is not misdetected as an ExpressionLabel
 	( <LBRACE> ( LOOKAHEAD(<DQUOTE>) ( <DQUOTE> index = Identifier() <DQUOTE> ) | index = Expression(false, false) ) <RBRACE> )
-	{ return index; }
+	// Optional second reward structure index (for ratio objectives)
+	( <DIVIDE> ( <LBRACE> ( LOOKAHEAD(<DQUOTE>) ( <DQUOTE> indexDiv = Identifier() <DQUOTE> ) | indexDiv = Expression(false, false) ) <RBRACE> ))?
+	{
+		exprRew.setRewardStructIndex(index);
+		if (indexDiv != null) {
+			exprRew.setRewardStructIndexDiv(indexDiv);
+		}
+	}
 }
 
 // Contents of an R operator

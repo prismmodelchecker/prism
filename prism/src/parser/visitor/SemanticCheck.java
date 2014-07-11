@@ -461,6 +461,19 @@ public class SemanticCheck extends ASTTraverse
 				}
 			}
 		}
+		if (e.getRewardStructIndexDiv() != null) {
+			if (e.getRewardStructIndexDiv() instanceof Expression) {
+				Expression rsi = (Expression) e.getRewardStructIndexDiv();
+				if (!(rsi.isConstant())) {
+					throw new PrismLangException("R operator reward struct index is not constant", rsi);
+				}
+			} else if (e.getRewardStructIndexDiv() instanceof String) {
+				String s = (String) e.getRewardStructIndexDiv();
+				if (modulesFile != null && modulesFile.getRewardStructIndex(s) == -1) {
+					throw new PrismLangException("R operator reward struct index \"" + s + "\" does not exist", e);
+				}
+			}
+		}
 		if (e.getReward() != null && !e.getReward().isConstant()) {
 			throw new PrismLangException("R operator reward bound is not constant", e.getReward());
 		}

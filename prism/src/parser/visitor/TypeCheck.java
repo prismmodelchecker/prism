@@ -488,9 +488,15 @@ public class TypeCheck extends ASTTraverse
 
 	public void visitPost(ExpressionReward e) throws PrismLangException
 	{
-		// Check reward struct ref
+		// Check reward struct ref(s)
 		if (e.getRewardStructIndex() != null && e.getRewardStructIndex() instanceof Expression) {
 			Expression rsi = (Expression) e.getRewardStructIndex();
+			if (!(rsi.getType() instanceof TypeInt)) {
+				throw new PrismLangException("Type error: Reward structure index must be string or integer", rsi);
+			}
+		}
+		if (e.getRewardStructIndexDiv() != null && e.getRewardStructIndexDiv() instanceof Expression) {
+			Expression rsi = (Expression) e.getRewardStructIndexDiv();
 			if (!(rsi.getType() instanceof TypeInt)) {
 				throw new PrismLangException("Type error: Reward structure index must be string or integer", rsi);
 			}

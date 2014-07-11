@@ -501,6 +501,7 @@ public class ASTTraverse implements ASTVisitor
 	{
 		visitPre(e);
 		if (e.getRewardStructIndex() != null && e.getRewardStructIndex() instanceof Expression) ((Expression)e.getRewardStructIndex()).accept(this);
+		if (e.getRewardStructIndexDiv() != null && e.getRewardStructIndexDiv() instanceof Expression) ((Expression)e.getRewardStructIndexDiv()).accept(this);
 		if (e.getReward() != null) e.getReward().accept(this);
 		if (e.getExpression() != null) e.getExpression().accept(this);
 		if (e.getFilter() != null) e.getFilter().accept(this);

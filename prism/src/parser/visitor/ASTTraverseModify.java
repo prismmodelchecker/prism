@@ -513,6 +513,8 @@ public class ASTTraverseModify implements ASTVisitor
 		visitPre(e);
 		if (e.getRewardStructIndex() != null && e.getRewardStructIndex() instanceof Expression)
 			e.setRewardStructIndex((Expression)(((Expression)e.getRewardStructIndex()).accept(this)));
+		if (e.getRewardStructIndexDiv() != null && e.getRewardStructIndexDiv() instanceof Expression)
+			e.setRewardStructIndexDiv((Expression)(((Expression)e.getRewardStructIndexDiv()).accept(this)));
 		if (e.getReward() != null) e.setReward((Expression)(e.getReward().accept(this)));
 		if (e.getExpression() != null) e.setExpression((Expression)(e.getExpression().accept(this)));
 		if (e.getFilter() != null) e.setFilter((Filter)(e.getFilter().accept(this)));

@@ -34,6 +34,7 @@ import prism.PrismLangException;
 public class ExpressionReward extends Expression
 {
 	Object rewardStructIndex = null;
+	Object rewardStructIndexDiv = null;
 	RelOp relOp = null;
 	Expression reward = null;
 	Expression expression = null;
@@ -59,6 +60,11 @@ public class ExpressionReward extends Expression
 	public void setRewardStructIndex(Object o)
 	{
 		rewardStructIndex = o;
+	}
+
+	public void setRewardStructIndexDiv(Object o)
+	{
+		rewardStructIndexDiv = o;
 	}
 
 	public void setRelOp(RelOp relOp)
@@ -91,6 +97,11 @@ public class ExpressionReward extends Expression
 	public Object getRewardStructIndex()
 	{
 		return rewardStructIndex;
+	}
+
+	public Object getRewardStructIndexDiv()
+	{
+		return rewardStructIndexDiv;
 	}
 
 	public RelOp getRelOp()
@@ -186,7 +197,14 @@ public class ExpressionReward extends Expression
 			if (relOp == RelOp.MIN) s = "Minimum e";
 			else if (relOp == RelOp.MAX) s = "Maximum e";
 			else s = "E";
-			if (rewardStructIndex instanceof String) s += "xpected "+rewardStructIndex;
+			if (rewardStructIndex instanceof String) {
+				if (rewardStructIndexDiv instanceof String)
+					s += "xpected "+rewardStructIndex + "/" + rewardStructIndexDiv;
+				else if (rewardStructIndexDiv == null)
+					s += "xpected "+rewardStructIndex;
+				else
+					s += "xpected reward";
+			}
 			// Or just call it "Expected reward"
 			else s += "xpected reward";
 			return s;
@@ -224,6 +242,11 @@ public class ExpressionReward extends Expression
 		if (rewardStructIndex != null) {
 			if (rewardStructIndex instanceof Expression) s += "{"+rewardStructIndex+"}";
 			else if (rewardStructIndex instanceof String) s += "{\""+rewardStructIndex+"\"}";
+			if (rewardStructIndexDiv != null) {
+				s += "/";
+				if (rewardStructIndexDiv instanceof Expression) s += "{"+rewardStructIndexDiv+"}";
+				else if (rewardStructIndexDiv instanceof String) s += "{\""+rewardStructIndexDiv+"\"}";
+			}
 		}
 		s += relOp;
 		s += (reward==null) ? "?" : reward.toString();
@@ -245,6 +268,8 @@ public class ExpressionReward extends Expression
 		expr.setReward(reward == null ? null : reward.deepCopy());
 		if (rewardStructIndex != null && rewardStructIndex instanceof Expression) expr.setRewardStructIndex(((Expression)rewardStructIndex).deepCopy());
 		else expr.setRewardStructIndex(rewardStructIndex);
+		if (rewardStructIndexDiv != null && rewardStructIndexDiv instanceof Expression) expr.setRewardStructIndexDiv(((Expression)rewardStructIndexDiv).deepCopy());
+		else expr.setRewardStructIndexDiv(rewardStructIndexDiv);
 		expr.setFilter(filter == null ? null : (Filter)filter.deepCopy());
 		expr.setType(type);
 		expr.setPosition(this);
