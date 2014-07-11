@@ -650,6 +650,14 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
+	 * Test if an expression is a function of type {@code nameCode}.
+	 */
+	public static boolean isFunc(Expression expr, int nameCode)
+	{
+		return expr instanceof ExpressionFunc && ((ExpressionFunc) expr).getNameCode() == nameCode;
+	}
+
+	/**
 	 * Test if an expression is a quantitative property (P=?, R=? or S=?) 
 	 */
 	public static boolean isQuantitative(Expression expr)
