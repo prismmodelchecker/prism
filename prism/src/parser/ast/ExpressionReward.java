@@ -28,6 +28,7 @@ package parser.ast;
 
 import parser.*;
 import parser.visitor.*;
+import prism.PrismException;
 import prism.PrismLangException;
 
 public class ExpressionReward extends Expression
@@ -112,6 +113,43 @@ public class ExpressionReward extends Expression
 		return filter;
 	}
 
+	// Other methods
+	
+	/**
+	 * Get the reward structure (from a model) corresponding to the index of this R operator.
+	 * Throws an exception (with explanatory message) if it cannot be found.
+	 */
+	public RewardStruct getRewardStructByIndexObject(ModulesFile modulesFile, Values constantValues) throws PrismException
+	{
+		RewardStruct rewStruct = null;
+		Object rsi = rewardStructIndex;
+		// Recall: the index is an Object which is either an Integer, denoting the index (starting from 0) directly,
+		// or an expression, which can be evaluated (possibly using the passed in constants) to an index. 
+		if (modulesFile == null)
+			throw new PrismException("No model file to obtain reward structures");
+		if (modulesFile.getNumRewardStructs() == 0)
+			throw new PrismException("Model has no rewards specified");
+		// No index specified - use the first one
+		if (rsi == null) {
+			rewStruct = modulesFile.getRewardStruct(0);
+		}
+		// Expression - evaluate to an index
+		else if (rewardStructIndex instanceof Expression) {
+			int i = ((Expression) rewardStructIndex).evaluateInt(constantValues);
+			rsi = new Integer(i); // (for better error reporting below)
+			rewStruct = modulesFile.getRewardStruct(i - 1);
+		}
+		// String - name of reward structure
+		else if (rsi instanceof String) {
+			rewStruct = modulesFile.getRewardStructByName((String) rsi);
+		}
+		if (rewStruct == null) {
+			throw new PrismException("Invalid reward structure index \"" + rsi + "\"");
+		}
+		return rewStruct;
+		
+	}
+	
 	// Methods required for Expression:
 	
 	/**

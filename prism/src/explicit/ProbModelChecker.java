@@ -685,17 +685,14 @@ public class ProbModelChecker extends NonProbModelChecker
 	 */
 	protected StateValues checkExpressionReward(Model model, ExpressionReward expr) throws PrismException
 	{
-		Object rs; // Reward struct index
-		RewardStruct rewStruct = null; // Reward struct object
 		Expression rb; // Reward bound (expression)
 		double r = 0; // Reward bound (actual value)
 		RelOp relOp; // Relational operator
 		StateValues rews = null;
 		Rewards rewards = null;
-		int i;
 
 		// Get info from R operator
-		rs = expr.getRewardStructIndex();
+		RewardStruct rewStruct = expr.getRewardStructByIndexObject(modulesFile, constantValues);
 		relOp = expr.getRelOp();
 		rb = expr.getReward();
 		if (rb != null) {
@@ -703,23 +700,6 @@ public class ProbModelChecker extends NonProbModelChecker
 			if (r < 0)
 				throw new PrismException("Invalid reward bound " + r + " in R[] formula");
 		}
-
-		// Get reward info
-		if (modulesFile == null)
-			throw new PrismException("No model file to obtain reward structures");
-		if (modulesFile.getNumRewardStructs() == 0)
-			throw new PrismException("Model has no rewards specified");
-		if (rs == null) {
-			rewStruct = modulesFile.getRewardStruct(0);
-		} else if (rs instanceof Expression) {
-			i = ((Expression) rs).evaluateInt(constantValues);
-			rs = new Integer(i); // for better error reporting below
-			rewStruct = modulesFile.getRewardStruct(i - 1);
-		} else if (rs instanceof String) {
-			rewStruct = modulesFile.getRewardStructByName((String) rs);
-		}
-		if (rewStruct == null)
-			throw new PrismException("Invalid reward structure index \"" + rs + "\"");
 
 		// Build rewards
 		mainLog.println("Building reward structure...");
