@@ -30,15 +30,6 @@ else
 	PRISM_JAVAMAXMEM="-Xmx512m"
 fi
 
-# Set up pointers to libraries
-PRISM_LIB_PATH="$PRISM_DIR"/lib
-if [ "$DYLD_LIBRARY_PATH" = "" ]; then
-	DYLD_LIBRARY_PATH="$PRISM_LIB_PATH"
-else
-	DYLD_LIBRARY_PATH="$PRISM_LIB_PATH":$DYLD_LIBRARY_PATH
-fi
-JAVA_LIBRARY_PATH="$PRISM_LIB_PATH"
-
 # Set up CLASSPATH:
 #  - PRISM jar file (for binary versions) (gets priority)
 #  - classes directory (most PRISM classes)
@@ -46,6 +37,17 @@ JAVA_LIBRARY_PATH="$PRISM_LIB_PATH"
 #  - lib/pepa.zip (PEPA stuff)
 #  - lib/*.jar (all other jars)
 PRISM_CLASSPATH="$PRISM_DIR"/lib/prism.jar:"$PRISM_DIR"/classes:"$PRISM_DIR":"$PRISM_DIR"/lib/pepa.zip:"$PRISM_DIR"/lib/*
+
+# Set up pointers to libraries
+PRISM_LIB_PATH="$PRISM_DIR"/lib
+
+# Copy library path to relevant vars
+if [ "$DYLD_LIBRARY_PATH" = "" ]; then
+	DYLD_LIBRARY_PATH="$PRISM_LIB_PATH"
+else
+	DYLD_LIBRARY_PATH="$PRISM_LIB_PATH":$DYLD_LIBRARY_PATH
+fi
+JAVA_LIBRARY_PATH="$PRISM_LIB_PATH"
 
 # Export environment variables
 export PRISM_DIR DYLD_LIBRARY_PATH
