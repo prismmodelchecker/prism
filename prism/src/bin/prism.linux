@@ -30,12 +30,14 @@ else
 	PRISM_JAVAMAXMEM="-Xmx512m"
 fi
 
-# Add PRISM to LD_LIBRARY_PATH
+# Set up pointers to libraries
+PRISM_LIB_PATH="$PRISM_DIR"/lib
 if [ "$LD_LIBRARY_PATH" = "" ]; then
-	LD_LIBRARY_PATH="$PRISM_DIR"/lib
+	LD_LIBRARY_PATH="$PRISM_LIB_PATH"
 else
-	LD_LIBRARY_PATH="$PRISM_DIR"/lib:$LD_LIBRARY_PATH
+	LD_LIBRARY_PATH="$PRISM_LIB_PATH":$LD_LIBRARY_PATH
 fi
+JAVA_LIBRARY_PATH="$PRISM_LIB_PATH"
 
 # Set up CLASSPATH:
 #  - PRISM jar file (for binary versions) (gets priority)
@@ -59,7 +61,7 @@ if [ "$PRISM_HEADLESS" = "" ]; then
 fi
 
 # Run PRISM through Java
-"$PRISM_JAVA" $PRISM_JAVA_DEBUG $PRISM_JAVAMAXMEM -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path=$PRISM_DIR/lib -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"
+"$PRISM_JAVA" $PRISM_JAVA_DEBUG $PRISM_JAVAMAXMEM -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path="$JAVA_LIBRARY_PATH" -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"
 
 PRISM_EXIT_CODE=$?
 

@@ -30,12 +30,14 @@ else
 	PRISM_JAVAMAXMEM="-Xmx512m"
 fi
 
-# Add PRISM to DYLD_LIBRARY_PATH
+# Set up pointers to libraries
+PRISM_LIB_PATH="$PRISM_DIR"/lib
 if [ "$DYLD_LIBRARY_PATH" = "" ]; then
-	DYLD_LIBRARY_PATH="$PRISM_DIR"/lib
+	DYLD_LIBRARY_PATH="$PRISM_LIB_PATH"
 else
-	DYLD_LIBRARY_PATH="$PRISM_DIR"/lib:$DYLD_LIBRARY_PATH
+	DYLD_LIBRARY_PATH="$PRISM_LIB_PATH":$DYLD_LIBRARY_PATH
 fi
+JAVA_LIBRARY_PATH="$PRISM_LIB_PATH"
 
 # Set up CLASSPATH:
 #  - PRISM jar file (for binary versions) (gets priority)
@@ -61,7 +63,7 @@ fi
 ICON_OPTION="-Xdock:name=PRISM -Xdock:icon=$PRISM_DIR/etc/icons/p64.png"
 
 # Run PRISM through Java
-"$PRISM_JAVA" -d64 $PRISM_JAVA_DEBUG $PRISM_JAVAMAXMEM $ICON_OPTION -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path=$PRISM_DIR/lib -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"
+"$PRISM_JAVA" -d64 $PRISM_JAVA_DEBUG $PRISM_JAVAMAXMEM $ICON_OPTION -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path="$JAVA_LIBRARY_PATH" -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"
 
 PRISM_EXIT_CODE=$?
 
