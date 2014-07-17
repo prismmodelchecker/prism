@@ -34,7 +34,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import parser.State;
 import parser.Values;
@@ -150,8 +149,7 @@ public class SubNondetModel implements NondetModel
 	@Override
 	public List<State> getStatesList()
 	{
-		//We use lazy generation because in many cases the state list is not 
-		//needed
+		// We use lazy generation because in many cases the state list is not needed
 		if (statesList == null) {
 			statesList = generateSubStateList(states);
 		}
@@ -191,14 +189,13 @@ public class SubNondetModel implements NondetModel
 	public Iterator<Integer> getSuccessorsIterator(int s)
 	{
 		s = translateState(s);
-
 		List<Integer> succ = new ArrayList<Integer>();
 		for (int i = 0; i < model.getNumChoices(s); i++) {
 			if (actions.get(s).get(i)) {
-				Iterator<Entry<Integer, Double>> it = model.getTransitionsIterator(s, i);
+				Iterator<Integer> it = model.getSuccessorsIterator(s);
 				while (it.hasNext()) {
-					int succc = it.next().getKey();
-					succ.add(inverseTranslateState(succc));
+					int j = it.next();
+					succ.add(inverseTranslateState(j));
 				}
 			}
 		}
@@ -362,6 +359,14 @@ public class SubNondetModel implements NondetModel
 	}
 
 	@Override
+	public int getNumTransitions(int s, int i)
+	{
+		s = translateState(s);
+		i = translateAction(s, i);
+		return model.getNumTransitions(s, i);
+	}
+	
+	@Override
 	public boolean allSuccessorsInSet(int s, int i, BitSet set)
 	{
 		s = translateState(s);
@@ -405,29 +410,11 @@ public class SubNondetModel implements NondetModel
 	{
 		int transitions = 0;
 		for (int i = 0; i < model.getNumChoices(state); i++) {
-			Iterator<Entry<Integer, Double>> it = model.getTransitionsIterator(state, i);
-			while (it.hasNext()) {
-				it.next();
-				transitions += 1;
+			if (actions.get(state).get(i)) {
+				transitions += model.getNumTransitions(state, i);
 			}
 		}
 		return transitions;
-	}
-
-	@Override
-	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s, int i)
-	{
-		s = translateState(s);
-		i = translateAction(s, i);
-
-		Map<Integer, Double> distrs = new HashMap<Integer, Double>();
-		Iterator<Entry<Integer, Double>> it = model.getTransitionsIterator(s, i);
-		while (it.hasNext()) {
-			Entry<Integer, Double> e = it.next();
-			int succ = inverseTranslateState(e.getKey());
-			distrs.put(succ, e.getValue());
-		}
-		return distrs.entrySet().iterator();
 	}
 
 	@Override

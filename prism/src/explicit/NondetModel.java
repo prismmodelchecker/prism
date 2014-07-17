@@ -27,12 +27,8 @@
 package explicit;
 
 import java.util.BitSet;
-import java.util.Iterator;
-import java.util.Map.Entry;
 
-import prism.PrismException;
 import prism.PrismLog;
-
 import strat.MDStrategy;
 
 /**
@@ -68,6 +64,11 @@ public interface NondetModel extends Model
 	public boolean areAllChoiceActionsUnique();
 	
 	/**
+	 * Get the number of transitions from choice {@code i} of state {@code s}.
+	 */
+	public int getNumTransitions(int s, int i);
+	
+	/**
 	 * Check if all the successor states from choice {@code i} of state {@code s} are in the set {@code set}.
 	 * @param s The state to check
 	 * @param i Choice index
@@ -86,7 +87,7 @@ public interface NondetModel extends Model
 	/**
 	 * Get an iterator over the transitions of state s and action i.
 	 */
-	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s, int i);
+	//public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s, int i);
 	
 	/**
 	 * Construct a model that is induced by applying strategy {@code strat} to this model.
