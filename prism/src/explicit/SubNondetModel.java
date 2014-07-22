@@ -192,7 +192,7 @@ public class SubNondetModel implements NondetModel
 		List<Integer> succ = new ArrayList<Integer>();
 		for (int i = 0; i < model.getNumChoices(s); i++) {
 			if (actions.get(s).get(i)) {
-				Iterator<Integer> it = model.getSuccessorsIterator(s);
+				Iterator<Integer> it = model.getSuccessorsIterator(s, i);
 				while (it.hasNext()) {
 					int j = it.next();
 					succ.add(inverseTranslateState(j));
@@ -384,6 +384,20 @@ public class SubNondetModel implements NondetModel
 		set = translateSet(set);
 
 		return model.someSuccessorsInSet(s, i, set);
+	}
+
+	@Override
+	public Iterator<Integer> getSuccessorsIterator(int s, int i)
+	{
+		s = translateState(s);
+		i = translateAction(s, i);
+		List<Integer> succ = new ArrayList<Integer>();
+		Iterator<Integer> it = model.getSuccessorsIterator(s, i);
+		while (it.hasNext()) {
+			int j = it.next();
+			succ.add(inverseTranslateState(j));
+		}
+		return succ.iterator();
 	}
 
 	private BitSet translateSet(BitSet set)

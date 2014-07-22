@@ -27,6 +27,7 @@
 package explicit;
 
 import java.util.BitSet;
+import java.util.Iterator;
 
 import prism.PrismLog;
 import strat.MDStrategy;
@@ -85,9 +86,11 @@ public interface NondetModel extends Model
 	public boolean someSuccessorsInSet(int s, int i, BitSet set);
 	
 	/**
-	 * Get an iterator over the transitions of state s and action i.
+	 * Get an iterator over the successor states from choice {@code i} of state {@code s}.
+	 * @param s The state
+	 * @param i Choice index
 	 */
-	//public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s, int i);
+	public Iterator<Integer> getSuccessorsIterator(int s, int i);
 	
 	/**
 	 * Construct a model that is induced by applying strategy {@code strat} to this model.

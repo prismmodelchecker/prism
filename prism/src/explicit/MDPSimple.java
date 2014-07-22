@@ -555,6 +555,12 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 		return trans.get(s).get(i).containsOneOf(set);
 	}
 
+	@Override
+	public Iterator<Integer> getSuccessorsIterator(final int s, final int i)
+	{
+		return trans.get(s).get(i).getSupport().iterator();
+	}
+
 	// Accessors (for MDP)
 
 	@Override
