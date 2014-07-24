@@ -52,20 +52,22 @@ package param;
  * @see FunctionFactory
  * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
  */
-abstract class Function extends StateValue {
+public abstract class Function extends StateValue
+{
 	/** function factory for this function */
 	protected FunctionFactory factory;
-	
+
 	/**
 	 * Creates a new function.
 	 * For internal use.
 	 * 
 	 * @param factory factory used for this function
 	 */
-	protected Function(FunctionFactory factory) {
+	protected Function(FunctionFactory factory)
+	{
 		this.factory = factory;
 	}
-	
+
 	/**
 	 * Adds {@code other} to this function.
 	 * 
@@ -73,14 +75,14 @@ abstract class Function extends StateValue {
 	 * @return sum of {@code} this and {@other}
 	 */
 	abstract Function add(Function other);
-	
+
 	/**
 	 * Negates this rational function.
 	 * 
 	 * @return negated rational function.
 	 */
 	abstract Function negate();
-	
+
 	/**
 	 * Multiplies {@code other} with this function.
 	 * 
@@ -88,7 +90,7 @@ abstract class Function extends StateValue {
 	 * @return product of {@code} this and {@other}
 	 */
 	abstract Function multiply(Function other);
-	
+
 	/**
 	 * Divides this function by {@code other}.
 	 * 
@@ -96,7 +98,7 @@ abstract class Function extends StateValue {
 	 * @return {@code this} divided by {@other}
 	 */
 	abstract Function divide(Function other);
-	
+
 	/**
 	 * Performs the {@code star} operation with this function.
 	 * The value of the result is equal to 1/(1-{@code this}).
@@ -107,7 +109,7 @@ abstract class Function extends StateValue {
 	 * @return result of star operation
 	 */
 	abstract Function star();
-	
+
 	/**
 	 * Returns a simplified version for constraint checking.
 	 * The function returned shall be a polynomial which is above/equal to
@@ -120,7 +122,7 @@ abstract class Function extends StateValue {
 	 * @return simplified form for constraint checking
 	 */
 	abstract Function toConstraint();
-	
+
 	/**
 	 * Evaluate this function at a given point.
 	 * The {@code point} represents an evaluation of the parameters, with
@@ -132,7 +134,7 @@ abstract class Function extends StateValue {
 	 * @return value at the given parameter evaluation
 	 */
 	abstract BigRational evaluate(Point point, boolean cancel);
-	
+
 	/**
 	 * Returns a BigRational representing the same number as this object.
 	 * Only works of this function is actually a rational number. Otherwise,
@@ -141,78 +143,82 @@ abstract class Function extends StateValue {
 	 * @return BigRational representation of this function
 	 */
 	abstract BigRational asBigRational();
-	
+
 	/**
 	 * Returns true iff this function represents not-a-number.
 	 * @return true iff this function represents not-a-number
 	 */
 	abstract boolean isNaN();
-	
+
 	/**
 	 * Returns true iff this function represents positive infinity.
 	 * @return true iff this function represents positive infinity
 	 */
 	abstract boolean isInf();
-	
+
 	/**
 	 * Returns true iff this function represents negative infinity.
 	 * @return true iff this function represents negative infinity
 	 */
 	abstract boolean isMInf();
-	
+
 	/**
 	 * Returns true iff this function represents the number one.
 	 * @return true iff this function represents the number one 
 	 */
 	abstract boolean isOne();
-	
+
 	/**
 	 * Returns true iff this function represents the number zero.
 	 * @return true iff this function represents the number zero
 	 */
 	abstract boolean isZero();
-	
+
 	/**
 	 * Multiplies {@code byNumber} with this function.
 	 * 
 	 * @param number to multiply with this function
 	 * @return product of {@code} this and {@byNumber}
 	 */
-	Function multiply(int byNumber) {
+	public Function multiply(int byNumber)
+	{
 		Function byFunction = factory.fromLong(byNumber);
 		return multiply(byFunction);
 	}
-	
+
 	/**
 	 * Divides this function by {@code byNumber}.
 	 * 
 	 * @param number to divide this function by
 	 * @return this function divided by {@code byNumber}
 	 */
-	Function divide(int byNumber) {
+	public Function divide(int byNumber)
+	{
 		Function byFunction = factory.fromLong(byNumber);
 		return divide(byFunction);
 	}
-	
+
 	/**
 	 * Returns the {@code FunctionFactory} of this function.
 	 * 
 	 * @return {@code FunctionFactory} of this function
 	 */
-	FunctionFactory getFactory() {
+	public FunctionFactory getFactory()
+	{
 		return factory;
 	}
-	
+
 	/**
 	 * Aubtracts {@code other} from this function.
 	 * 
 	 * @param other function to subtract from this function
 	 * @return this function minus {@coce other}
 	 */
-	Function subtract(Function other) {
+	public Function subtract(Function other)
+	{
 		return add(other.negate());
 	}
-	
+
 	/**
 	 * Evaluate this function at a given point.
 	 * The {@code point} represents an evaluation of the parameters, with
@@ -223,10 +229,11 @@ abstract class Function extends StateValue {
 	 * @param point parameter evaluation to evaluate
 	 * @return value at the given parameter evaluation
 	 */
-	BigRational evaluate(Point point) {
+	public BigRational evaluate(Point point)
+	{
 		return evaluate(point, true);
 	}
-	
+
 	/**
 	 * Checks whether this function is {@code >= 0} / {@code >0} at the given point.
 	 * 

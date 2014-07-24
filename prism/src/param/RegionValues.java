@@ -40,39 +40,40 @@ import java.util.Map.Entry;
  * 
  * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
  */
-final class RegionValues implements Iterable<Entry<Region,StateValues>> {
+public final class RegionValues implements Iterable<Entry<Region, StateValues>>
+{
 	/** list of all regions */
 	private ArrayList<Region> regions;
 	/** assigning values to regions */
-	private HashMap<Region,StateValues> values;
+	private HashMap<Region, StateValues> values;
 	/** region factory this object belongs to */
 	private RegionFactory factory;
-	
+
 	// constructors
-	
-	RegionValues(RegionFactory factory)
+
+	public RegionValues(RegionFactory factory)
 	{
 		regions = new ArrayList<Region>();
-		values = new HashMap<Region,StateValues>();
+		values = new HashMap<Region, StateValues>();
 		this.factory = factory;
 	}
-	
-	int getNumStates()
+
+	public int getNumStates()
 	{
 		return factory.getNumStates();
 	}
-	
-	int getInitState()
+
+	public int getInitState()
 	{
 		return factory.getInitialState();
 	}
-		
-	void add(Region region, StateValues result)
+
+	public void add(Region region, StateValues result)
 	{
 		regions.add(region);
 		values.put(region, result);
 	}
-			
+
 	/**
 	 * Helper function for simplify.
 	 * Subsumes some of the regions. If it contains true, must be called
@@ -84,13 +85,12 @@ final class RegionValues implements Iterable<Entry<Region,StateValues>> {
 	{
 		boolean changed = false;
 		ArrayList<Region> newRegions = new ArrayList<Region>();
-		HashMap<Region,StateValues> newValues = new HashMap<Region,StateValues>();
+		HashMap<Region, StateValues> newValues = new HashMap<Region, StateValues>();
 		HashSet<Region> done = new HashSet<Region>();
-		
+
 		for (Region region1 : regions) {
 			for (Region region2 : regions) {
-				if (values.get(region1).equals(values.get(region2)) && region1.adjacent(region2)
-						&& !done.contains(region1) && !done.contains(region2)) {
+				if (values.get(region1).equals(values.get(region2)) && region1.adjacent(region2) && !done.contains(region1) && !done.contains(region2)) {
 					done.add(region1);
 					done.add(region2);
 					Region newRegion = region1.glue(region2);
@@ -107,54 +107,54 @@ final class RegionValues implements Iterable<Entry<Region,StateValues>> {
 				newValues.put(region, values.get(region));
 			}
 		}
-		
+
 		regions.clear();
 		values.clear();
 		regions.addAll(newRegions);
 		values.putAll(newValues);
-				
+
 		return changed;
 	}
-	
+
 	/**
 	 * Simplify by subsuming adjacent regions with same value.
 	 */
-	void simplify()
+	public void simplify()
 	{
 		if (factory.isSubsumeRegions()) {
 			while (simplifyIter())
 				;
 		}
 	}
-	
-	Region getRegion(int number)
+
+	public Region getRegion(int number)
 	{
 		return regions.get(number);
 	}
-	
-	int getNumRegions()
+
+	public int getNumRegions()
 	{
 		return regions.size();
 	}
-	
-	StateValues getResult(int number)
+
+	public StateValues getResult(int number)
 	{
 		return values.get(regions.get(number));
 	}
-	
-	StateValues getResult(Region region)
+
+	public StateValues getResult(Region region)
 	{
 		return values.get(region);
 	}
-	
-	void cosplit(RegionValues other)
+
+	public void cosplit(RegionValues other)
 	{
 		this.simplify();
 		other.simplify();
-		
+
 		ArrayList<Region> newRegions = new ArrayList<Region>();
-		HashMap<Region,StateValues> thisNewStateValues = new HashMap<Region,StateValues>();
-		HashMap<Region,StateValues> otherNewStateValues = new HashMap<Region,StateValues>();
+		HashMap<Region, StateValues> thisNewStateValues = new HashMap<Region, StateValues>();
+		HashMap<Region, StateValues> otherNewStateValues = new HashMap<Region, StateValues>();
 		for (Region thisRegion : this.regions) {
 			for (Region otherRegion : other.regions) {
 				Region newRegion = thisRegion.conjunct(otherRegion);
@@ -165,15 +165,16 @@ final class RegionValues implements Iterable<Entry<Region,StateValues>> {
 				}
 			}
 		}
-		
+
 		this.regions = new ArrayList<Region>(newRegions);
 		this.values = thisNewStateValues;
 		other.regions = new ArrayList<Region>(newRegions);
 		other.values = otherNewStateValues;
 	}
-	
+
 	@Override
-	public String toString() {
+	public String toString()
+	{
 		StringBuilder builder = new StringBuilder();
 		for (int i = 0; i < regions.size(); i++) {
 			Region region = regions.get(i);
@@ -182,11 +183,12 @@ final class RegionValues implements Iterable<Entry<Region,StateValues>> {
 			builder.append(values.get(region));
 			builder.append("\n");
 		}
-		
+
 		return builder.toString();
 	}
 
-	void addAll(RegionValues other) {
+	public void addAll(RegionValues other)
+	{
 		int numOtherRegions = other.getNumRegions();
 		for (int i = 0; i < numOtherRegions; i++) {
 			Region region = other.getRegion(i);
@@ -194,8 +196,8 @@ final class RegionValues implements Iterable<Entry<Region,StateValues>> {
 			values.put(region, other.getResult(region));
 		}
 	}
-	
-	void clearExcept(BitSet except)
+
+	public void clearExcept(BitSet except)
 	{
 		for (Region region : regions) {
 			StateValues vals = values.get(region);
@@ -205,7 +207,7 @@ final class RegionValues implements Iterable<Entry<Region,StateValues>> {
 					if (oldValue instanceof StateBoolean) {
 						vals.setStateValue(state, false);
 					} else if (oldValue instanceof Function) {
-						vals.setStateValue(state, factory.getFunctionFactory().getZero());						
+						vals.setStateValue(state, factory.getFunctionFactory().getZero());
 					} else {
 						throw new RuntimeException();
 					}
@@ -214,8 +216,8 @@ final class RegionValues implements Iterable<Entry<Region,StateValues>> {
 		}
 		simplify();
 	}
-	
-	void clearExceptInit()
+
+	public void clearExceptInit()
 	{
 		if (regions.isEmpty()) {
 			return;
@@ -227,16 +229,17 @@ final class RegionValues implements Iterable<Entry<Region,StateValues>> {
 	}
 
 	@Override
-	public Iterator<Entry<Region, StateValues>> iterator() {
+	public Iterator<Entry<Region, StateValues>> iterator()
+	{
 		return values.entrySet().iterator();
 	}
-	
-	RegionFactory getRegionFactory()
+
+	public RegionFactory getRegionFactory()
 	{
 		return factory;
 	}
-	
-	boolean booleanValues()
+
+	public boolean booleanValues()
 	{
 		if (regions.isEmpty()) {
 			return true;
@@ -244,7 +247,8 @@ final class RegionValues implements Iterable<Entry<Region,StateValues>> {
 		return values.get(regions.get(0)).getStateValue(0) instanceof StateBoolean;
 	}
 
-	RegionValues binaryOp(int op, RegionValues other) {
+	public RegionValues binaryOp(int op, RegionValues other)
+	{
 		RegionValues result = new RegionValues(factory);
 		RegionValuesIntersections co = new RegionValuesIntersections(this, other);
 		for (RegionIntersection inter : co) {
@@ -257,7 +261,8 @@ final class RegionValues implements Iterable<Entry<Region,StateValues>> {
 		return result;
 	}
 
-	RegionValues binaryOp(int op, BigRational p) {
+	public RegionValues binaryOp(int op, BigRational p)
+	{
 		RegionValues result = new RegionValues(factory);
 		Function pFn = factory.getFunctionFactory().fromBigRational(p);
 		StateValues pValue = new StateValues(values.get(regions.get(0)).getNumStates(), factory.getInitialState(), pFn);
@@ -269,7 +274,7 @@ final class RegionValues implements Iterable<Entry<Region,StateValues>> {
 		return result;
 	}
 
-	RegionValues op(int op, BitSet whichStates)
+	public RegionValues op(int op, BitSet whichStates)
 	{
 		RegionValues result = new RegionValues(factory);
 		if (op == Region.FIRST) {
@@ -312,7 +317,7 @@ final class RegionValues implements Iterable<Entry<Region,StateValues>> {
 				Function countFn = factory.getFunctionFactory().fromLong(count);
 				StateValues resValues = new StateValues(getNumStates(), getInitState(), countFn);
 				result.add(region, resValues);
-			}			
+			}
 		} else if (op == Region.FORALL) {
 			for (Region region : regions) {
 				StateValues vals = values.get(region);
@@ -327,7 +332,7 @@ final class RegionValues implements Iterable<Entry<Region,StateValues>> {
 				}
 				StateValues resValues = new StateValues(getNumStates(), getInitState(), forall);
 				result.add(region, resValues);
-			}			
+			}
 		} else if (op == Region.EXISTS) {
 			for (Region region : regions) {
 				StateValues vals = values.get(region);
@@ -342,15 +347,15 @@ final class RegionValues implements Iterable<Entry<Region,StateValues>> {
 				}
 				StateValues resValues = new StateValues(getNumStates(), getInitState(), exists);
 				result.add(region, resValues);
-			}			
+			}
 		} else {
 			throw new RuntimeException("unknown operator");
 		}
-		
+
 		return result;
 	}
-	
-	boolean parameterIndependent()
+
+	public boolean parameterIndependent()
 	{
 		simplify();
 		if (regions.size() > 1) {
@@ -359,16 +364,17 @@ final class RegionValues implements Iterable<Entry<Region,StateValues>> {
 		if (!regions.get(0).volume().equals(factory.getFunctionFactory().getOne().asBigRational())) {
 			return false;
 		}
-		
+
 		return true;
 	}
 
-	StateValues getStateValues()
+	public StateValues getStateValues()
 	{
 		return values.get(regions.get(0));
 	}
 
-	void clearNotNeeded(BitSet needStates) {
+	public void clearNotNeeded(BitSet needStates)
+	{
 		for (Region region : regions) {
 			StateValues vals = values.get(region);
 			for (int state = 0; state < vals.getNumStates(); state++) {
@@ -384,26 +390,27 @@ final class RegionValues implements Iterable<Entry<Region,StateValues>> {
 		simplify();
 	}
 
-	String filteredString(BitSet filter) {
+	public String filteredString(BitSet filter)
+	{
 		StringBuilder builder = new StringBuilder();
-		
+
 		for (Region region : regions) {
 			builder.append(region);
 			StateValues vals = values.get(region);
 			for (int stateNr = filter.nextSetBit(0); stateNr >= 0; stateNr = filter.nextSetBit(stateNr + 1)) {
 				builder.append(stateNr);
 				builder.append(":");
-//				builder.append(statesList.get(stateNr).toString());
+				//				builder.append(statesList.get(stateNr).toString());
 				builder.append("=");
 				builder.append(vals.getStateValue(stateNr));
 			}
 		}
-		
+
 		return builder.toString();
 	}
 
-
-	RegionValues unaryOp(int parserUnaryOpToRegionOp) {
+	public RegionValues unaryOp(int parserUnaryOpToRegionOp)
+	{
 		RegionValues result = new RegionValues(factory);
 		for (Region region : regions) {
 			StateValues value = unaryOp(parserUnaryOpToRegionOp, values.get(region));
@@ -412,7 +419,8 @@ final class RegionValues implements Iterable<Entry<Region,StateValues>> {
 		return result;
 	}
 
-	private StateValues unaryOp(int op, StateValues stateValues) {
+	private StateValues unaryOp(int op, StateValues stateValues)
+	{
 		StateValues result = new StateValues(getNumStates(), getInitState());
 		for (int state = 0; state < stateValues.getNumStates(); state++) {
 			StateValue value = null;
@@ -430,5 +438,5 @@ final class RegionValues implements Iterable<Entry<Region,StateValues>> {
 			result.setStateValue(state, value);
 		}
 		return result;
-	}	
+	}
 }

@@ -35,35 +35,37 @@ package param;
  * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
  * @see Region
  */
-final class Point {
+public final class Point
+{
 	/** coordinates of point */
 	private BigRational[] dimensions;
-	
+
 	/**
 	 * Constructs a new point.
 	 * 
 	 * @param dimensions coordinates of this point
 	 */
-	Point(BigRational[] dimensions)
+	public Point(BigRational[] dimensions)
 	{
 		this.dimensions = new BigRational[dimensions.length];
-		System.arraycopy(dimensions, 0, this.dimensions, 0, dimensions.length);		
+		System.arraycopy(dimensions, 0, this.dimensions, 0, dimensions.length);
 	}
-	
+
 	/**
 	 * Returns value of a given coordinate
 	 * @param dim coordinate to return value of
 	 * @return value of given coordinate
 	 */
-	BigRational getDimension(int dim)
+	public BigRational getDimension(int dim)
 	{
 		return dimensions[dim];
 	}
-	
+
 	@Override
-	public String toString() {
+	public String toString()
+	{
 		StringBuilder builder = new StringBuilder();
-		
+
 		builder.append("(");
 		for (int dim = 0; dim < dimensions.length; dim++) {
 			builder.append(dimensions[dim].doubleValue());
@@ -72,38 +74,39 @@ final class Point {
 			}
 		}
 		builder.append(")");
-		
+
 		return builder.toString();
 	}
-	
+
 	/**
 	 * Returns array representation of point.
 	 * 
 	 * @return array representation of point
 	 */
-	BigRational[] toArray()
+	public BigRational[] toArray()
 	{
 		BigRational[] result = new BigRational[dimensions.length];
-		System.arraycopy(this.dimensions, 0, result, 0, this.dimensions.length);		
+		System.arraycopy(this.dimensions, 0, result, 0, this.dimensions.length);
 		return result;
 	}
-	
+
 	/**
 	 * Returns number of dimensions of point.
 	 * 
 	 * @return number of dimensions of point
 	 */
-	int size()
+	public int size()
 	{
 		return dimensions.length;
 	}
-	
+
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(Object obj)
+	{
 		if (!(obj instanceof Point)) {
 			return false;
 		}
-		
+
 		Point other = (Point) obj;
 		if (this.dimensions.length != other.dimensions.length) {
 			return false;
@@ -115,18 +118,19 @@ final class Point {
 		}
 		return true;
 	}
-	
+
 	@Override
-	public int hashCode() {
+	public int hashCode()
+	{
 		int hash = 0;
-		
+
 		for (int i = 0; i < dimensions.length; i++) {
 			hash = dimensions[i].hashCode() + (hash << 6) + (hash << 16) - hash;
 		}
-		
+
 		return hash;
 	}
-	
+
 	/**
 	 * Returns array of doubles approximating this point.
 	 * 

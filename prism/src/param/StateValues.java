@@ -38,12 +38,13 @@ import java.util.BitSet;
  * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
  * @see RegionValues
  */
-final class StateValues {
+public final class StateValues
+{
 	/** assigns values to each state of the model */
 	private ArrayList<StateValue> values;
 	/** initial state of the model */
-	int initState;
-	
+	private int initState;
+
 	/**
 	 * Constructs new set of state values.
 	 * Each state is mapped to {@code null}.
@@ -51,7 +52,7 @@ final class StateValues {
 	 * @param numStates number of states of model
 	 * @param initState initial state of the model
 	 */
-	StateValues(int numStates, int initState)
+	public StateValues(int numStates, int initState)
 	{
 		values = new ArrayList<StateValue>(numStates);
 		for (int state = 0; state < numStates; state++) {
@@ -59,7 +60,7 @@ final class StateValues {
 		}
 		this.initState = initState;
 	}
-	
+
 	/**
 	 * Constructs new set of state values.
 	 * Each state is mapped to the given value.
@@ -68,7 +69,8 @@ final class StateValues {
 	 * @param initState initial state of the model
 	 * @param value value to map all states to
 	 */
-	StateValues(int numStates, int initState, StateValue value) {
+	public StateValues(int numStates, int initState, StateValue value)
+	{
 		this(numStates, initState);
 		for (int state = 0; state < numStates; state++) {
 			values.set(state, value);
@@ -82,37 +84,41 @@ final class StateValues {
 	 * @param numStates number of states of the model
 	 * @param initState initial state of the model
 	 * @param value value to map all states to
-	 */	
-	StateValues(int numStates, int initState, boolean value) {
+	 */
+	public StateValues(int numStates, int initState, boolean value)
+	{
 		this(numStates, initState, new StateBoolean(value));
 	}
 
 	@Override
-	public String toString() {
+	public String toString()
+	{
 		return values.get(initState).toString();
 	}
-	
+
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(Object obj)
+	{
 		if (!(obj instanceof StateValues)) {
 			return false;
 		}
 
 		StateValues result = (StateValues) obj;
-		
+
 		for (int i = 0; i < values.size(); i++) {
 			if (!values.get(i).equals(result.values.get(i))) {
 				return false;
 			}
 		}
-		
+
 		return true;
 	}
-	
+
 	@Override
-	public int hashCode() {
+	public int hashCode()
+	{
 		int hash = 0;
-		
+
 		for (int i = 0; i < values.size(); i++) {
 			hash = values.get(i).hashCode() + (hash << 6) + (hash << 16) - hash;
 		}
@@ -126,29 +132,29 @@ final class StateValues {
 	 * @param state state to get value of
 	 * @return value of given state
 	 */
-	StateValue getStateValue(int state)
+	public StateValue getStateValue(int state)
 	{
 		return values.get(state);
 	}
-	
+
 	/**
 	 * Set value of given state.
 	 * 
 	 * @param state state to set value of
 	 * @param value value to set for state
 	 */
-	void setStateValue(int state, StateValue value)
+	public void setStateValue(int state, StateValue value)
 	{
 		values.set(state, value);
 	}
-	
+
 	/**
 	 * Set value of given state.
 	 * 
 	 * @param state state to set value of
 	 * @param value value to set for state
 	 */
-	void setStateValue(int state, boolean value)
+	public void setStateValue(int state, boolean value)
 	{
 		values.set(state, new StateBoolean(value));
 	}
@@ -160,7 +166,7 @@ final class StateValues {
 	 * @param state state to get value of
 	 * @return value of the state as a function
 	 */
-	Function getStateValueAsFunction(int state)
+	public Function getStateValueAsFunction(int state)
 	{
 		return (Function) values.get(state);
 	}
@@ -172,7 +178,7 @@ final class StateValues {
 	 * @param state state to get value of
 	 * @return value of the state as a boolean
 	 */
-	boolean getStateValueAsBoolean(int state)
+	public boolean getStateValueAsBoolean(int state)
 	{
 		return ((StateBoolean) values.get(state)).getValue();
 	}
@@ -183,7 +189,7 @@ final class StateValues {
 	 * 
 	 * @return value of the initial state as a function
 	 */
-	Function getInitStateValueAsFunction()
+	public Function getInitStateValueAsFunction()
 	{
 		return (Function) values.get(initState);
 	}
@@ -194,7 +200,7 @@ final class StateValues {
 	 * 
 	 * @return value of the initial state as a boolean
 	 */
-	boolean getInitStateValueAsBoolean()
+	public boolean getInitStateValueAsBoolean()
 	{
 		return ((StateBoolean) values.get(initState)).getValue();
 	}
@@ -204,7 +210,7 @@ final class StateValues {
 	 * 
 	 * @return number of states of the model
 	 */
-	int getNumStates()
+	public int getNumStates()
 	{
 		return values.size();
 	}
@@ -215,7 +221,8 @@ final class StateValues {
 	 * 
 	 * @return bitset representing this state value assignment
 	 */
-	BitSet toBitSet() {
+	public BitSet toBitSet()
+	{
 		BitSet result = new BitSet(values.size());
 		for (int state = 0; state < values.size(); state++) {
 			result.set(state, getStateValueAsBoolean(state));
@@ -230,7 +237,8 @@ final class StateValues {
 	 * @param point point to instantiate state values
 	 * @return array of {@code BigRational}s mapping each state to evaluated value
 	 */
-	public BigRational[] instantiate(Point point) {
+	public BigRational[] instantiate(Point point)
+	{
 		BigRational[] result = new BigRational[values.size()];
 		for (int state = 0; state < values.size(); state++) {
 			result[state] = this.getStateValueAsFunction(state).evaluate(point);
