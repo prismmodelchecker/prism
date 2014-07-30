@@ -30,7 +30,7 @@ package param;
  * TODO implement completely
  * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
  */
-class DagFunction extends Function {
+public class DagFunction extends Function {
 	private DagFunctionFactory dagFactory;
 	private DagOperator num;
 	private DagOperator den;
@@ -40,7 +40,7 @@ class DagFunction extends Function {
 	final static int MINF = 2;
 	final static int NAN = 3;
 	
-	DagFunction(FunctionFactory factory, DagOperator num, DagOperator den) {
+	public DagFunction(FunctionFactory factory, DagOperator num, DagOperator den) {
 		super(factory);
 		dagFactory = (DagFunctionFactory) factory;
 		this.num = num;
@@ -48,18 +48,18 @@ class DagFunction extends Function {
 		this.type = NORMAL;
 	}
 	
-	DagFunction(FunctionFactory factory, int type) {
+	public DagFunction(FunctionFactory factory, int type) {
 		super(factory);
 		this.type = type;
 		num = null;
 		den = null;
 	}	
 
-	DagOperator getNum() {
+	public DagOperator getNum() {
 		return num;
 	}
 	
-	DagOperator getDen() {
+	public DagOperator getDen() {
 		return den;
 	}
 	
@@ -92,73 +92,73 @@ class DagFunction extends Function {
 
 	
 	@Override
-	Function add(Function other) {
+	public Function add(Function other) {
 		return dagFactory.add(this, (DagFunction) other);
 	}
 
 	@Override
-	Function negate() {
+	public Function negate() {
 		return dagFactory.negate(this);
 	}
 	
 	@Override
-	Function subtract(Function other) {
+	public Function subtract(Function other) {
 		return dagFactory.subtract(this, (DagFunction) other);
 	}
 
 	@Override
-	Function multiply(Function other) {
+	public Function multiply(Function other) {
 		return dagFactory.multiply(this, (DagFunction) other);
 	}
 
 	@Override
-	Function divide(Function other) {
+	public Function divide(Function other) {
 		return dagFactory.divide(this, (DagFunction) other);
 	}
 
 	@Override
-	Function star() {
+	public Function star() {
 		return dagFactory.star(this);
 	}
 
 	@Override
-	Function toConstraint() {
+	public Function toConstraint() {
 		return dagFactory.toConstraint(this);
 	}
 
 	@Override
-	BigRational evaluate(Point point, boolean cancel) {
+	public BigRational evaluate(Point point, boolean cancel) {
 		BigRational result = dagFactory.evaluate(this, point, cancel);
 		return result;
 	}
 
 	@Override
-	BigRational asBigRational() {
+	public BigRational asBigRational() {
 		return dagFactory.asBigRational(this);
 	}
 
 	@Override
-	boolean isNaN() {
+	public boolean isNaN() {
 		return type == NAN;
 	}
 
 	@Override
-	boolean isInf() {
+	public boolean isInf() {
 		return type == INF;
 	}
 
 	@Override
-	boolean isMInf() {
+	public boolean isMInf() {
 		return type == MINF;
 	}
 
 	@Override
-	boolean isOne() {
+	public boolean isOne() {
 		return dagFactory.isOne(this);
 	}
 
 	@Override
-	boolean isZero() {
+	public boolean isZero() {
 		return dagFactory.isZero(this);
 	}
 	
@@ -167,7 +167,7 @@ class DagFunction extends Function {
 		return dagFactory.toString(this);
 	}
 
-	int getType() {
+	public int getType() {
 		return type;
 	}
 }

@@ -241,6 +241,14 @@ final public class ParamModelChecker extends PrismComponent
 		BitSet needStates = new BitSet(model.getNumStates());
 		needStates.set(0, model.getNumStates());
 		RegionValues vals = checkExpression(paramModel, expr, needStates);
+		mainLog.println(vals);
+		Function f = vals.getResult(0).getInitStateValueAsFunction();
+		int n = 100;
+		String s = "";
+		for (int i = 0; i < n; i++) {
+			BigRational br = f.evaluate(new param.Point(new BigRational[] {new BigRational(i, n)}));
+			s += " " + br.doubleValue();
+		}
 		timer = System.currentTimeMillis() - timer;
 		mainLog.println("\nTime for model checking: " + timer / 1000.0 + " seconds.");
 
