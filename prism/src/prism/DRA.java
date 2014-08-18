@@ -240,7 +240,7 @@ public class DRA<Symbol>
 		int i, n;
 		s += size + " states (start " + start + ")";
 		if (apList != null)
-			s += ", " + apList.size() + " labels";
+			s += ", " + apList.size() + " labels (" + apList + ")";
  		s += ":";
 		for (i = 0; i < size; i++) {
 			for (Edge e : edges.get(i)) {
