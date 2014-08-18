@@ -229,6 +229,7 @@ public class DRA<Symbol>
 				out.println("	" + i + " -> " + e.dest + " [label=\"" + e.label + "\"]");
 			}
 		}
+		out.println("}");
 	}
 
 	// Standard methods
