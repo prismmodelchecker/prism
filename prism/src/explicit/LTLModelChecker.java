@@ -161,7 +161,7 @@ public class LTLModelChecker extends PrismComponent
 		for (int s_0 = 0; s_0 < dtmc.getNumStates(); s_0++) {
 			// Get BitSet representing APs (labels) satisfied by state s_0
 			for (int k = 0; k < numAPs; k++) {
-				s_labels.set(k, labelBS.get(k).get(s_0));
+				s_labels.set(k, labelBS.get(Integer.parseInt(dra.getAPList().get(k).substring(1))).get(s_0));
 			}
 			// Find corresponding initial state in DRA
 			int q_0 = dra.getEdgeDestByLabel(dra.getStartState(), s_labels);
@@ -188,7 +188,7 @@ public class LTLModelChecker extends PrismComponent
 				double prob = e.getValue();
 				// Get BitSet representing APs (labels) satisfied by successor state s_2
 				for (int k = 0; k < numAPs; k++) {
-					s_labels.set(k, labelBS.get(k).get(s_2));
+					s_labels.set(k, labelBS.get(Integer.parseInt(dra.getAPList().get(k).substring(1))).get(s_2));
 				}
 				// Find corresponding successor in DRA
 				q_2 = dra.getEdgeDestByLabel(q_1, s_labels);
@@ -251,7 +251,7 @@ public class LTLModelChecker extends PrismComponent
 		for (int s_0 = 0; s_0 < mdp.getNumStates(); s_0++) {
 			// Get BitSet representing APs (labels) satisfied by state s_0
 			for (int k = 0; k < numAPs; k++) {
-				s_labels.set(k, labelBS.get(k).get(s_0));
+				s_labels.set(k, labelBS.get(Integer.parseInt(dra.getAPList().get(k).substring(1))).get(s_0));
 			}
 			// Find corresponding initial state in DRA
 			int q_0 = dra.getEdgeDestByLabel(dra.getStartState(), s_labels);
@@ -281,7 +281,7 @@ public class LTLModelChecker extends PrismComponent
 					double prob = e.getValue();
 					// Get BitSet representing APs (labels) satisfied by successor state s_2
 					for (int k = 0; k < numAPs; k++) {
-						s_labels.set(k, labelBS.get(k).get(s_2));
+						s_labels.set(k, labelBS.get(Integer.parseInt(dra.getAPList().get(k).substring(1))).get(s_2));
 					}
 					// Find corresponding successor in DRA
 					q_2 = dra.getEdgeDestByLabel(q_1, s_labels);
