@@ -336,7 +336,7 @@ public class Generalized {
 			p.trans = a.transition.get(list.get(i));
 			if (p.trans == null)
 				trans_exist = 0;
-			p.prod = prod.nxt.prod.merge(p.trans);
+			p.prod = Alternating.do_merge_atrans(prod.nxt.prod, p.trans);
 			p.nxt = prod.nxt;
 			p.prv = prod;
 			p.nxt.prv = p;
@@ -393,11 +393,11 @@ public class Generalized {
 			if (p == prod)
 				break;
 			p.trans = p.trans.nxt;
-			p.prod = p.nxt.prod.merge(p.trans);
+			p.prod = Alternating.do_merge_atrans(p.nxt.prod, p.trans);
 			p = p.prv;
 			while (p != prod) {
 				p.trans = a.transition.get(p.astate);
-				p.prod = p.nxt.prod.merge(p.trans);
+				p.prod = Alternating.do_merge_atrans(p.nxt.prod, p.trans);
 				p = p.prv;
 			}
 		}

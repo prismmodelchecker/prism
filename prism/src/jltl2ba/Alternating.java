@@ -66,21 +66,22 @@ public class Alternating {
 			rv.nxt = nxt;
 			return rv;
 		}
+	}
+	
+	public static ATrans do_merge_atrans(ATrans first, ATrans second) {
+		if (first == null || second == null)
+			return null;
 
-		public ATrans merge(ATrans other) {
-			if (other == null)
-				return null;
+		ATrans rv = first.clone();
+		rv.nxt = null;
 
-			ATrans rv = this.clone();
+		rv.to.or(second.to);
+		rv.pos.or(second.pos);
+		rv.neg.or(second.neg);
 
-			rv.to.or(other.to);
-			rv.pos.or(other.pos);
-			rv.neg.or(other.neg);
-
-			if (rv.pos.intersects(rv.neg))
-				rv = null;
-			return rv;
-		}
+		if (rv.pos.intersects(rv.neg))
+			rv = null;
+		return rv;
 	}
 
 	public static class AProd {
@@ -133,7 +134,7 @@ public class Alternating {
 			rgt = _boolean(p.right);
 			for (t1 = lft; t1 != null; t1 = t1.nxt) {
 				for (t2 = rgt; t2 != null; t2 = t2.nxt) {
-					ATrans tmp = t1.merge(t2);
+					ATrans tmp = do_merge_atrans(t1, t2);
 					if (tmp != null) {
 						tmp.nxt = result;
 						result = tmp;
@@ -217,7 +218,7 @@ public class Alternating {
 				ATrans tmp;
 
 				for (t2 = buildAlternating(p.left); t2 != null; t2 = t2.nxt) {
-					tmp = t1.merge(t2); /* p && q */
+					tmp = do_merge_atrans(t1, t2); /* p && q */
 					if (tmp != null) {
 						tmp.nxt = t;
 						t = tmp;
@@ -234,7 +235,7 @@ public class Alternating {
 		case AND:
 			for (t1 = buildAlternating(p.left); t1 != null; t1 = t1.nxt) {
 				for (t2 = buildAlternating(p.right); t2 != null; t2 = t2.nxt) {
-					ATrans tmp = t1.merge(t2);
+					ATrans tmp = do_merge_atrans(t1, t2);
 					if (tmp != null) {
 						tmp.nxt = t;
 						t = tmp;
