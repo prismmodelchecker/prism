@@ -40,17 +40,12 @@ import java.util.LinkedHashMap;
 import java.util.ListIterator;
 import java.util.Map;
 
-import dv.DoubleVector;
-
 import parser.ast.Expression;
 import parser.ast.ExpressionIdent;
 import parser.ast.LabelList;
 import parser.ast.RewardStruct;
-import parser.type.TypeBool;
 import parser.type.TypeDouble;
-import parser.type.TypeInt;
 import parser.Values;
-
 import parser.State;
 import prism.*;
 import prism.Model;
@@ -93,7 +88,7 @@ public class FastAdaptiveUniformisation extends PrismComponent
 	 * (references) and a flag whether the state has a significant probability
 	 * mass (alive).
 	 */
-	private final class StateProp
+	private final static class StateProp
 	{
 		/** current-step probability.
 		 * should contain initial probability before actual analysis is started.
@@ -1112,6 +1107,25 @@ public class FastAdaptiveUniformisation extends PrismComponent
 	public double getTotalDiscreteLoss()
 	{
 		return totalProbLoss;
+	}
+
+	/**
+	 * Sets the probability of sink states to zero.
+	 * @throws PrismException 
+	 */
+	public void clearSinkStates() throws PrismException {
+		for (Map.Entry<State,StateProp> statePair : states.entrySet()) {
+			State state = statePair.getKey();
+			StateProp prop = statePair.getValue();
+			modelExplorer.queryState(state);
+			specialLabels.setLabel(0, modelExplorer.getNumTransitions() == 0 ? Expression.True() : Expression.False());
+			specialLabels.setLabel(1, initStates.contains(state) ? Expression.True() : Expression.False());
+			Expression evSink = sink.deepCopy();
+			evSink = (Expression) evSink.expandLabels(specialLabels);
+			if (evSink.evaluateBoolean(constantValues, state)) {
+				prop.setProb(0.0);
+			}
+		}
 	}
 	
 	/**

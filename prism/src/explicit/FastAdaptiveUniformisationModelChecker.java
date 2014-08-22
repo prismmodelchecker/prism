@@ -189,9 +189,10 @@ public class FastAdaptiveUniformisationModelChecker extends PrismComponent
 		default:
 			throw new PrismException("operator currently not supported for fast adaptive uniformisation");
 		}
-		
 		fau.setSink(sink);
 		fau.computeTransientProbsAdaptive(timeLower);
+		fau.clearSinkStates();
+
 		switch (operator) {
 		case ExpressionTemporal.P_U:
 		case ExpressionTemporal.P_F:
