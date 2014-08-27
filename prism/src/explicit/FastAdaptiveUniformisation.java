@@ -77,7 +77,7 @@ import prism.Model;
 /**
  * Implementation of fast adaptive uniformisation (FAU).
  */
-public class FastAdaptiveUniformisation extends PrismComponent
+public final class FastAdaptiveUniformisation extends PrismComponent
 {
 	/**
 	 * Stores properties of states needed for fast adaptive method.
@@ -457,7 +457,9 @@ public class FastAdaptiveUniformisation extends PrismComponent
 	private AnalysisType analysisType;
 	/** total loss of probability in discrete-time process */
 	private double totalProbLoss;
-
+	/** probability mass intentionally set to zero */
+	private double totalProbSetZero;
+	
 	/**
 	 * Constructor.
 	 */
@@ -1096,6 +1098,8 @@ public class FastAdaptiveUniformisation extends PrismComponent
 		for (StateProp prop : states.values()) {
 			totalProb += prop.getSum();
 		}
+		totalProb += totalProbSetZero;
+		
 		totalProbLoss = 1.0 - totalProb;
 	}
 
@@ -1123,6 +1127,7 @@ public class FastAdaptiveUniformisation extends PrismComponent
 			Expression evSink = sink.deepCopy();
 			evSink = (Expression) evSink.expandLabels(specialLabels);
 			if (evSink.evaluateBoolean(constantValues, state)) {
+				totalProbSetZero += prop.getProb();
 				prop.setProb(0.0);
 			}
 		}
