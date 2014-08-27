@@ -901,7 +901,7 @@ public class ModulesFile extends ASTElement
 		boolean matrix[][] = new boolean[n][n];
 		for (int i = 0; i < n; i++) {
 			SystemDefn sys = systemDefns.get(i);
-			Vector<String> v = new Vector<>();
+			Vector<String> v = new Vector<String>();
 			sys.getReferences(v);
 			for (int j = 0; j < v.size(); j++) {
 				int k = getSystemDefnIndex(v.elementAt(j));
