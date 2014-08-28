@@ -87,8 +87,13 @@ public class SamplerBoundedUntilDisc extends SamplerBoolean
 				valueKnown = true;
 				value = true;
 			}
-			// Or, if not, have we violated the LJS of the until?
+			// Or, if not, have we violated the LHS of the until?
 			else if (!left.evaluateBoolean(currentState)) {
+				valueKnown = true;
+				value = false;
+			}
+			// Or, if we are now at a deadlock
+			else if (transList != null && transList.isDeadlock()) {
 				valueKnown = true;
 				value = false;
 			}

@@ -135,6 +135,12 @@ public class SamplerBoundedUntilCont extends SamplerBoolean
 						value = true;
 					}
 				}
+				// Or, if we are now at a deadlock
+				else if (transList != null && transList.isDeadlock()) {
+					valueKnown = true;
+					value = false;
+				}
+				// Otherwise, don't know
 			}
 		}
 		

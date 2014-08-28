@@ -79,6 +79,14 @@ public class SamplerRewardCumulCont extends SamplerDouble
 				value -= path.getPreviousTransitionReward(rewardStructIndex);
 			}
 		}
+		// Or, if we are now at a deadlock
+		else if (transList != null && transList.isDeadlock()) {
+			valueKnown = true;
+			value = path.getTotalCumulativeReward(rewardStructIndex);
+			// Compute remaining time, i.e. how long left until time bound will be reached
+			double remainingTime = timeBound - path.getTotalTime();
+			value += path.getCurrentStateReward(rewardStructIndex) * remainingTime;
+		}
 		
 		return valueKnown;
 	}
