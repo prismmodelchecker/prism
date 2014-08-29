@@ -275,10 +275,18 @@ public class Buchi {
 	{	
 		/* decides if the states are equivalent */
 		BTrans s, t;
+		
+		/* the states have to be both final or both non final,
+		 * or at least one of them has to be in a trivial SCC
+		 * (incoming == -1), as the acceptance condition of
+		 * such a state can be modified without changing the
+		 * language of the automaton
+		 */
 		if (((a._final == accept) || (b._final == accept)) &&
-		    (a._final + b._final != 2 * accept) &&
-		    a.incoming >= 0 && b.incoming >= 0)
-			return false;	/* the states have to be both final or both non final */
+		    (a._final + b._final != 2 * accept) /* final condition of a and b differs */
+		    && a.incoming >= 0   /* a is not in a trivial SCC */
+		    && b.incoming >= 0)  /* b is not in a trivial SCC */
+			return false;   /* states can not be matched */
 
 		for (s = a.trans.nxt; s != a.trans; s = s.nxt) {
 			/* all transitions from a appear in b */
@@ -524,8 +532,34 @@ public class Buchi {
 			while (!allBTransMatch(s, s1))
 				s1 = s1.nxt;
 			if (s1 != bstates) {	/* s and s1 are equivalent */
-				if (s1.incoming == -1)
-					s1._final = s._final;	/* get the good final condition */
+				/* we now want to remove s and replace it by s1 */
+				if (s1.incoming == -1) {  /* s1 is in a trivial SCC */
+					s1._final = s._final;  /* change the final condition of s1 to that of s */
+
+					/* We may have to update the SCC status of s1
+					 * stored in s1->incoming, because we will retarget the incoming
+					 * transitions of s to s1.
+					 *
+					 * If both s1 and s are in trivial SCC, then retargeting
+					 * the incoming transitions does not change the status of s1,
+					 * it remains in a trivial SCC.
+					 *
+					 * If s1 was in a trivial SCC, but s was not, then
+					 * s1 has to have a transition to s that corresponds to a
+					 * self-loop of s (as both states have the same outgoing transitions).
+					 * But then, s1 will not remain a trivial SCC after retargeting.
+					 * In particular, afterwards the final condition of s1 may not be
+					 * changed anymore.
+					 *
+					 * If both s1 and s are in non-trivial SCC, merging does not
+					 * change the SCC status of s1.
+					 *
+					 * If we are here, s1->incoming==1 and thus s1 forms a trivial SCC.
+					 * We therefore can set the status of s1 to that of s,
+					 * which correctly handles the first two cases above.
+					 */
+					s1.incoming = s.incoming;
+				}
 				s = removeBState(s, s1);
 				changed++;
 			}
