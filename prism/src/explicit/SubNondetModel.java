@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import parser.State;
 import parser.Values;
@@ -170,6 +171,11 @@ public class SubNondetModel implements NondetModel
 	@Override
 	public Values getConstantValues()
 	{
+		throw new UnsupportedOperationException();
+	}
+	
+	@Override
+	public Set<String> getLabels() {
 		throw new UnsupportedOperationException();
 	}
 

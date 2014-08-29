@@ -30,6 +30,7 @@ import java.io.File;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import parser.State;
 import parser.Values;
@@ -123,6 +124,12 @@ public interface Model
 	 * Returns null if there is no label of this name.
 	 */
 	public BitSet getLabelStates(String name);
+	
+	/**
+	 * Get the labels that are (optionally) stored.
+	 * Returns an empty set if there are no labels.
+	 */
+	public Set<String> getLabels();
 	
 	/**
 	 * Get the total number of transitions in the model.

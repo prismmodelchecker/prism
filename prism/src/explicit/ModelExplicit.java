@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -262,6 +263,12 @@ public abstract class ModelExplicit implements Model
 		return labels.get(name);
 	}
 
+	@Override
+	public Set<String> getLabels()
+	{
+		return labels.keySet();
+	}
+	
 	@Override
 	public abstract int getNumTransitions();
 
