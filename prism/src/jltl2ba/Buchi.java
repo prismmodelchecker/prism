@@ -454,7 +454,7 @@ public class Buchi {
 			} else {
 				for (c = scc_stack.nxt; c != null; c = c.nxt)
 					if (c.bstate == t.to) {
-						scc.theta = scc.theta < rank ? scc.theta : c.rank;
+						scc.theta = scc.theta < c.rank ? scc.theta : c.rank;
 						break;
 					}
 			}
