@@ -44,7 +44,7 @@ public class ExpressionTemporal extends Expression
 	public static final int R_F = 13; // Reachability (for R operator)
 	public static final int R_S = 14; // Steady-state (for R operator)
 	// Operator symbols
-	public static final String opSymbols[] = { "", "X", "U", "F", "G", "W", "", "", "", "", "", "C", "I", "F", "S" };
+	public static final String opSymbols[] = { "", "X", "U", "F", "G", "W", "R", "", "", "", "", "C", "I", "F", "S" };
 
 	// Operator
 	protected int op = 0;
