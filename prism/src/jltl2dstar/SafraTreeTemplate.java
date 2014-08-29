@@ -115,7 +115,7 @@ public class SafraTreeTemplate implements NBA2DAResult<SafraTree> {
 			}
 		}
 
-		assert(this_node.getLabeling() == other_node.getLabeling());
+		assert(this_node.getLabeling().equals(other_node.getLabeling()));
 		assert(this_node.hasFinalFlag() == other_node.hasFinalFlag());
 
 		// this node looks good, now the children
