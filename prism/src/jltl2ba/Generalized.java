@@ -200,6 +200,12 @@ public class Generalized {
 		// print(System.out, a.sym_table);
 	}
 	
+	/** Get the highest ID of a GState */
+	public int getGStateID()
+	{
+		return gstate_id;
+	}
+
 	/*is the transition final for i ? */
 	private boolean isFinal(Alternating a, MyBitSet from, Alternating.ATrans at, int i)
 	{

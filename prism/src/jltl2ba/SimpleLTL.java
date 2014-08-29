@@ -442,7 +442,7 @@ public class SimpleLTL {
 			/* X p && X q == X (p && q) */
 			if (right.kind == LTLType.NEXT && left.kind == LTLType.NEXT) {
 				rv = new SimpleLTL(LTLType.NEXT,
-						new SimpleLTL(LTLType.AND, right.left, left.left));
+						new SimpleLTL(LTLType.AND, left.left, right.left));
 				break;
 			}
 

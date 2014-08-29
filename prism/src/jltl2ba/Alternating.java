@@ -213,7 +213,7 @@ public class Alternating {
 			final_set.set(done.size());
 			break;
 
-		case RELEASE: /* p V q <-> (p && q) || (p && X (p V q)) */
+		case RELEASE: /* p V q <-> (p && q) || (q && X (p V q)) */
 			for (t1 = buildAlternating(p.right); t1 != null; t1 = t1.nxt) {
 				ATrans tmp;
 
@@ -225,7 +225,7 @@ public class Alternating {
 					}
 				}
 
-				tmp = t1.clone(); /* p */
+				tmp = t1.clone(); /* q */
 				tmp.to.set(done.size()); /* X (p V q) */
 				tmp.nxt = t;
 				t = tmp;

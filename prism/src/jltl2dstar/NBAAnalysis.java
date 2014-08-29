@@ -63,7 +63,7 @@ public class NBAAnalysis {
 	public SCCs getSCCs() {
 		if (_sccs == null) {
 			_sccs = new SCCs();
-			GraphAlgorithms.calculateSCCs(_nba, _sccs, false);
+			GraphAlgorithms.calculateSCCs(_nba, _sccs, true);
 		}
 		return _sccs;
 	}

@@ -52,6 +52,9 @@ public class Buchi {
 	private int btrans_count;
 	private int rank;
 	
+	// the highest id used for a BState.id
+	private int max_id;
+
 	public static class BState {
 		Generalized.GState gstate;
 		public int id;
@@ -132,6 +135,7 @@ public class Buchi {
 		g_init = g.g_init;
 		_final = g._final;
 		// gstates = g.gstates;
+		max_id = g.getGStateID();
 		
 		int i;
 		BState s = new BState();
@@ -565,6 +569,23 @@ public class Buchi {
 			}
 		}
 		retargetAllBTrans();
+
+		 /*
+		  * As merging equivalent states can change the 'final' attribute of
+		  * the remaining state, it is possible that now there are two
+		  * different states with the same id and final values.
+		  * This would lead to multiply-defined labels in the generated neverclaim.
+		  * We iterate over all states and assign new ids (previously unassigned)
+		  * to these states to disambiguate.
+		  * Fix from ltl3ba.
+		  */
+		for (s = bstates.nxt; s != bstates; s = s.nxt) {          /* For all states s*/
+			for (BState s2 = s.nxt; s2 != bstates; s2 = s2.nxt) { /*  and states s2 to the right of s */
+				if(s._final == s2._final && s.id == s2.id) {      /* if final and id match */
+					s.id = ++max_id;                              /* disambiguate by assigning unused id */
+				}
+			}
+		}
 
 		return changed;
 	}
