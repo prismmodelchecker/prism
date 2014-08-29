@@ -211,7 +211,7 @@ public class StateValues implements StateVector
 	{
 		return getBitSetFromInterval(RelOp.parseSymbol(relOpString), bound);
 	}
-	
+
 	/**
 	 * Generate BitSet for states in the given interval
 	 * (interval specified as relational operator and bound)
@@ -241,8 +241,9 @@ public class StateValues implements StateVector
 				for (int i = 0; i < size; i++) {
 					sol.set(i, valuesI[i] < bound);
 				}
+				break;
 			default:
-				// Don't handle
+				throw new PrismException("Unsupported operator " + relOp + " for getBitSetFromInterval()");
 			}
 		} else if (type instanceof TypeDouble) {
 			switch (relOp) {
@@ -265,8 +266,9 @@ public class StateValues implements StateVector
 				for (int i = 0; i < size; i++) {
 					sol.set(i, valuesD[i] < bound);
 				}
+				break;
 			default:
-				// Don't handle
+				throw new PrismException("Unsupported operator " + relOp + " for getBitSetFromInterval()");
 			}
 		} else {
 			throw new PrismException("Can't getBitSetFromInterval for a vector of type " + type);
@@ -1283,7 +1285,7 @@ public class StateValues implements StateVector
 	{
 		return size;
 	}
-	
+
 	@Override
 	public Object getValue(int i)
 	{
