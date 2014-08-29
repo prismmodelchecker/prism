@@ -208,7 +208,8 @@ public class MDPModelChecker extends ProbModelChecker
 	 * @param min Min or max probabilities (true=min, false=max)
 	 * @param init Optionally, an initial solution vector (may be overwritten) 
 	 * @param known Optionally, a set of states for which the exact answer is known
-	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
+	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values).
+	 * Also, 'known' values cannot be passed for some solution methods, e.g. policy iteration.  
 	 */
 	public ModelCheckerResult computeReachProbs(MDP mdp, BitSet remain, BitSet target, boolean min, double init[], BitSet known) throws PrismException
 	{
@@ -232,6 +233,11 @@ public class MDPModelChecker extends ProbModelChecker
 				throw new PrismException("Precomputation (Prob0) must be enabled for value iteration from above");
 			if (!min)
 				throw new PrismException("Value iteration from above only works for minimum probabilities");
+		}
+		if (mdpSolnMethod == MDPSolnMethod.POLICY_ITERATION || mdpSolnMethod == MDPSolnMethod.MODIFIED_POLICY_ITERATION) {
+			if (known != null) {
+				throw new PrismException("Policy iteration methods cannot be passed 'known' values for some states");
+			}
 		}
 
 		// Start probabilistic reachability
@@ -1127,7 +1133,8 @@ public class MDPModelChecker extends ProbModelChecker
 	 * @param min Min or max rewards (true=min, false=max)
 	 * @param init Optionally, an initial solution vector (may be overwritten) 
 	 * @param known Optionally, a set of states for which the exact answer is known
-	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
+	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values).  
+	 * Also, 'known' values cannot be passed for some solution methods, e.g. policy iteration.  
 	 */
 	public ModelCheckerResult computeReachRewards(MDP mdp, MDPRewards mdpRewards, BitSet target, boolean min, double init[], BitSet known)
 			throws PrismException
@@ -1146,6 +1153,13 @@ public class MDPModelChecker extends ProbModelChecker
 			mainLog.printWarning("Switching to MDP solution method \"" + mdpSolnMethod.fullName() + "\"");
 		}
 
+		// Check for some unsupported combinations
+		if (mdpSolnMethod == MDPSolnMethod.POLICY_ITERATION) {
+			if (known != null) {
+				throw new PrismException("Policy iteration methods cannot be passed 'known' values for some states");
+			}
+		}
+		
 		// Start expected reachability
 		timer = System.currentTimeMillis();
 		mainLog.println("\nStarting expected reachability (" + (min ? "min" : "max") + ")...");
