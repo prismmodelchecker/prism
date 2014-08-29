@@ -207,7 +207,7 @@ public class StateValues implements StateVector
 	 * Generate BitSet for states in the given interval
 	 * (interval specified as relational operator and bound)
 	 */
-	public BitSet getBitSetFromInterval(String relOpString, double bound)
+	public BitSet getBitSetFromInterval(String relOpString, double bound) throws PrismException
 	{
 		return getBitSetFromInterval(RelOp.parseSymbol(relOpString), bound);
 	}
@@ -216,7 +216,7 @@ public class StateValues implements StateVector
 	 * Generate BitSet for states in the given interval
 	 * (interval specified as relational operator and bound)
 	 */
-	public BitSet getBitSetFromInterval(RelOp relOp, double bound)
+	public BitSet getBitSetFromInterval(RelOp relOp, double bound) throws PrismException
 	{
 		BitSet sol = new BitSet();
 
@@ -268,6 +268,8 @@ public class StateValues implements StateVector
 			default:
 				// Don't handle
 			}
+		} else {
+			throw new PrismException("Can't getBitSetFromInterval for a vector of type " + type);
 		}
 
 		return sol;
@@ -278,7 +280,7 @@ public class StateValues implements StateVector
 	 * (within either absolute or relative error 'epsilon')
 	 * The type of 'value' is assumed to match that of the vector.
 	 */
-	public BitSet getBitSetFromCloseValue(Object value, double epsilon, boolean abs)
+	public BitSet getBitSetFromCloseValue(Object value, double epsilon, boolean abs) throws PrismException
 	{
 		BitSet sol = new BitSet();
 
@@ -292,6 +294,8 @@ public class StateValues implements StateVector
 			for (int i = 0; i < size; i++) {
 				sol.set(i, PrismUtils.doublesAreClose(valuesD[i], valueD, epsilon, abs));
 			}
+		} else {
+			throw new PrismException("Can't getBitSetFromCloseValue for a vector of type " + type);
 		}
 
 		return sol;
