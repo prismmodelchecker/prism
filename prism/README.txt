@@ -83,6 +83,8 @@ We gratefully acknowledge contributions to the PRISM code-base from various sour
 including (in approximately reverse chronological order):
 
  * Joachim Klein: Various bug fixes, especially related to LTL
+ * Ernst Moritz Hahn: Parametric model checking, fast adaptive uniformisation + various other features
+ * Frits Dannenberg: Fast adaptive uniformisation
  * Vojtech Forejt: Various model checking code, including multi-objective + GUI enhancements
  * Hongyang Qu: Multi-objective model checking
  * Mateusz Ujma: Bug fixes and GUI improvements
