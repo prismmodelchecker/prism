@@ -2,7 +2,8 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
+//	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -51,8 +52,35 @@ public class SamplerBoundedUntilDisc extends SamplerBoolean
 			throw new PrismException("Error creating Sampler");
 		left = expr.getOperand1();
 		right = expr.getOperand2();
-		lb = expr.getLowerBound() == null ? 0 : expr.getLowerBound().evaluateInt();
-		ub = expr.getUpperBound() == null ? Integer.MAX_VALUE : expr.getUpperBound().evaluateInt();
+		// Lower bound
+		if (expr.getLowerBound() != null) {
+			lb = expr.getLowerBound().evaluateInt();
+			if (expr.lowerBoundIsStrict()) {
+				// Convert to non-strict bound:  >lb  <=>  >=lb+1
+				lb = lb + 1;
+			}
+		} else {
+			// No lower bound
+			lb = 0;
+		}
+		if (lb < 0) {
+			throw new PrismException("Invalid lower bound in "+expr);
+		}
+		// Upper bound
+		if (expr.getUpperBound() != null) {
+			ub = expr.getUpperBound().evaluateInt();
+			if (expr.upperBoundIsStrict()) {
+				// Convert to non-strict bound:  <ub  <=>  <=ub-1
+				ub = ub - 1;
+			}
+		} else {
+			// No upper bound
+			ub = Integer.MAX_VALUE;
+		}
+		if (ub < 0) {
+			throw new PrismException("Invalid upper bound in "+expr);
+		}
+
 		// Initialise sampler info
 		reset();
 		resetStats();
