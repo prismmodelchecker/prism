@@ -383,9 +383,9 @@ final public class ParamModelChecker extends PrismComponent
 		return res;
 	}
 
-	private RegionValues checkExpressionAtomic(ParamModel model,
-			Expression expr, BitSet needStates) throws PrismException {
-		expr = (Expression) expr.replaceConstants(constantValues);
+	private RegionValues checkExpressionAtomic(ParamModel model, Expression expr, BitSet needStates) throws PrismException
+	{
+		expr = (Expression) expr.deepCopy().replaceConstants(constantValues);
 		
 		int numStates = model.getNumStates();
 		List<State> statesList = model.getStatesList();
@@ -395,7 +395,7 @@ final public class ParamModelChecker extends PrismComponent
 			varMap[var] = var;
 		}
 		for (int state = 0; state < numStates; state++) {
-			Expression exprVar = (Expression) expr.evaluatePartially(statesList.get(state), varMap);
+			Expression exprVar = (Expression) expr.deepCopy().evaluatePartially(statesList.get(state), varMap);
 			if (needStates.get(state)) {
 				if (exprVar instanceof ExpressionLiteral) {
 					ExpressionLiteral exprLit = (ExpressionLiteral) exprVar;
@@ -1048,7 +1048,7 @@ final public class ParamModelChecker extends PrismComponent
 		int numRewItems = rewStruct.getNumItems();
 		for (int rewItem = 0; rewItem < numRewItems; rewItem++) {
 			Expression expr = rewStruct.getReward(rewItem);
-			expr = (Expression) expr.replaceConstants(constantValues);
+			expr = (Expression) expr.deepCopy().replaceConstants(constantValues);
 			Expression guard = rewStruct.getStates(rewItem);
 			String action = rewStruct.getSynch(rewItem);
 			boolean isTransitionReward = rewStruct.getRewardStructItem(rewItem).isTransitionReward();
@@ -1058,7 +1058,7 @@ final public class ParamModelChecker extends PrismComponent
 					for (int i = 0; i < varMap.length; i++) {
 						varMap[i] = i;
 					}
-					Expression exprState = (Expression) expr.evaluatePartially(statesList.get(state), varMap);
+					Expression exprState = (Expression) expr.deepCopy().evaluatePartially(statesList.get(state), varMap);
 					Function newReward = modelBuilder.expr2function(functionFactory, exprState);
 					for (int choice = model.stateBegin(state); choice < model.stateEnd(state); choice++) {
 						Function sumOut = model.sumLeaving(choice);
