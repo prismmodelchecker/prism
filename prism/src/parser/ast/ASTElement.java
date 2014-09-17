@@ -473,7 +473,8 @@ public abstract class ASTElement
 	}
 
 	/**
-	 * Evaluate partially: replace some constants and variables with actual values. 
+	 * Evaluate partially: replace some constants and variables with actual values.
+	 * Warning: Unlike evaluate(), evaluatePartially() methods modify (and return) the expression. 
 	 */
 	public ASTElement evaluatePartially(EvaluateContext ec) throws PrismLangException
 	{
@@ -484,6 +485,7 @@ public abstract class ASTElement
 	/**
 	 * Evaluate partially: replace some constants and variables with actual values. 
 	 * Constants/variables are specified as Values objects; either can be left null.
+	 * Warning: Unlike evaluate(), evaluatePartially() methods modify (and return) the expression. 
 	 */
 	public ASTElement evaluatePartially(Values constantValues, Values varValues) throws PrismLangException
 	{
@@ -494,6 +496,7 @@ public abstract class ASTElement
 	 * Evaluate partially: replace some variables with actual values. 
 	 * Variables are specified as a State object, indexed over a subset of all variables,
 	 * and a mapping from indices (over all variables) to this subset (-1 if not in subset). 
+	 * Warning: Unlike evaluate(), evaluatePartially() methods modify (and return) the expression. 
 	 */
 	public ASTElement evaluatePartially(State substate, int[] varMap) throws PrismLangException
 	{
