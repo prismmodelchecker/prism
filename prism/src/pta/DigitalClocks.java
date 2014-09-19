@@ -318,6 +318,22 @@ public class DigitalClocks
 	{
 		ASTElement ast;
 
+		// LTL not handled (look in any P operators)
+		try {
+			propertyToCheck.accept(new ASTTraverse()
+			{
+				public void visitPost(ExpressionProb e) throws PrismLangException
+				{
+					if (!e.getExpression().isSimplePathFormula()) {
+						throw new PrismLangException("The digital clocks method does not support LTL properties");
+					}
+				}
+			});
+		} catch (PrismLangException e) {
+			e.setASTElement(propertyToCheck);
+			throw e;
+		}
+		
 		// Bounded properties not yet handled.
 		try {
 			propertyToCheck.accept(new ASTTraverse()
