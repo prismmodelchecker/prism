@@ -437,12 +437,16 @@ TOKEN :
 |	< RPARENTH:		")" >
 |	< LBRACKET: 	"[" >
 |	< RBRACKET:		"]" >
+|	< DLBRACKET: 	"[[" >
+|	< DRBRACKET:	"]]" >
 |	< LBRACE:		"{" >
 |	< RBRACE:		"}" >
 |	< EQ:			"=" >
 |	< NE:			"!=" >
 |	< LT:			"<" >
 |	< GT:			">" >
+|	< DLT:			"<<" >
+|	< DGT:			">>" >
 |	< LE:			"<=" >
 |	< GE:			">=" >
 |	< PLUS:			"+" >
@@ -1321,6 +1325,8 @@ Expression ExpressionBasic(boolean prop, boolean pathprop) :
 	|
 		ret = ExpressionForAll(prop, pathprop)
 	|
+		ret = ExpressionStrategy(prop, pathprop)
+	|
 		ret = ExpressionLabel(prop, pathprop)
 	|
 		ret = ExpressionFilter(prop, pathprop)
@@ -1661,6 +1667,32 @@ Expression ExpressionForAll(boolean prop, boolean pathprop) :
 	( begin = <A> <LBRACKET> expr = Expression(prop, true) <RBRACKET> )
 	{
 		ret.setExpression(expr);
+		ret.setPosition(begin, getToken(0));
+		return ret;
+	}
+}
+
+// (Property) expression: ATL strategy operators <<>> and [[]]
+
+Expression ExpressionStrategy(boolean prop, boolean pathprop) :
+{
+	ExpressionStrategy ret;
+	Expression expr;
+	Token begin = null;
+}
+{
+	// This production is only allowed in expressions if the "prop" parameter is true
+	{ if (!prop) throw generateParseException(); }
+	(
+	// <<...>> or [[...]]
+	(( begin = <DLT> { ret = new ExpressionStrategy(true); } <DGT> )
+	| (begin = <DLBRACKET> { ret = new ExpressionStrategy(false); } <DRBRACKET> ))
+	// Child expression
+	( expr = ExpressionProb(prop, pathprop) | expr = ExpressionReward(prop, pathprop)
+	| expr = ExpressionParenth(prop, pathprop) | expr = ExpressionFuncOrIdent(prop, pathprop) )
+	{ ret.setExpression(expr); }
+	)
+	{
 		ret.setPosition(begin, getToken(0));
 		return ret;
 	}

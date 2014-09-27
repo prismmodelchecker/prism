@@ -557,6 +557,11 @@ public class TypeCheck extends ASTTraverse
 		e.setType(TypeBool.getInstance());
 	}
 
+	public void visitPost(ExpressionStrategy e) throws PrismLangException
+	{
+		e.setType(e.getExpression().getType());
+	}
+
 	public void visitPost(ExpressionLabel e) throws PrismLangException
 	{
 		e.setType(TypeBool.getInstance());

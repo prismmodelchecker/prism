@@ -116,4 +116,10 @@ public class CheckValid extends ASTTraverse
 		/*if (modelType.nondeterministic() && e.getRelOp() == RelOp.EQ)
 			throw new PrismLangException("Can't use \"S=?\" for nondeterministic models; use \"Smin=?\" or \"Smax=?\"");*/
 	}
+
+	public void visitPost(ExpressionStrategy e) throws PrismLangException
+	{
+		if (!modelType.nondeterministic())
+			throw new PrismLangException("The " + e.getOperatorString() + " operator is only meaningful for models with nondeterminism");
+	}
 }

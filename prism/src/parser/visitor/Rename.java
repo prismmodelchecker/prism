@@ -147,5 +147,12 @@ public class Rename extends ASTTraverseModify
 		// at the level of an individual module (and below)
 		throw new PrismLangException("A operator should never be renamed");
 	}
+
+	public void visitPost(ExpressionStrategy e) throws PrismLangException
+	{
+		// This renaming is only designed to be applied
+		// at the level of an individual module (and below)
+		throw new PrismLangException(e.getOperatorString() + " operator should never be renamed");
+	}
 }
 

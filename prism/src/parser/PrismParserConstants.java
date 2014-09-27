@@ -141,49 +141,57 @@ public interface PrismParserConstants {
   /** RegularExpression Id. */
   int RBRACKET = 65;
   /** RegularExpression Id. */
-  int LBRACE = 66;
+  int DLBRACKET = 66;
   /** RegularExpression Id. */
-  int RBRACE = 67;
+  int DRBRACKET = 67;
   /** RegularExpression Id. */
-  int EQ = 68;
+  int LBRACE = 68;
   /** RegularExpression Id. */
-  int NE = 69;
+  int RBRACE = 69;
   /** RegularExpression Id. */
-  int LT = 70;
+  int EQ = 70;
   /** RegularExpression Id. */
-  int GT = 71;
+  int NE = 71;
   /** RegularExpression Id. */
-  int LE = 72;
+  int LT = 72;
   /** RegularExpression Id. */
-  int GE = 73;
+  int GT = 73;
   /** RegularExpression Id. */
-  int PLUS = 74;
+  int DLT = 74;
   /** RegularExpression Id. */
-  int MINUS = 75;
+  int DGT = 75;
   /** RegularExpression Id. */
-  int TIMES = 76;
+  int LE = 76;
   /** RegularExpression Id. */
-  int DIVIDE = 77;
+  int GE = 77;
   /** RegularExpression Id. */
-  int PRIME = 78;
+  int PLUS = 78;
   /** RegularExpression Id. */
-  int RENAME = 79;
+  int MINUS = 79;
   /** RegularExpression Id. */
-  int QMARK = 80;
+  int TIMES = 80;
   /** RegularExpression Id. */
-  int DQUOTE = 81;
+  int DIVIDE = 81;
   /** RegularExpression Id. */
-  int REG_INT = 82;
+  int PRIME = 82;
   /** RegularExpression Id. */
-  int REG_DOUBLE = 83;
+  int RENAME = 83;
   /** RegularExpression Id. */
-  int REG_IDENTPRIME = 84;
+  int QMARK = 84;
   /** RegularExpression Id. */
-  int REG_IDENT = 85;
+  int DQUOTE = 85;
   /** RegularExpression Id. */
-  int PREPROC = 86;
+  int REG_INT = 86;
   /** RegularExpression Id. */
-  int LEXICAL_ERROR = 87;
+  int REG_DOUBLE = 87;
+  /** RegularExpression Id. */
+  int REG_IDENTPRIME = 88;
+  /** RegularExpression Id. */
+  int REG_IDENT = 89;
+  /** RegularExpression Id. */
+  int PREPROC = 90;
+  /** RegularExpression Id. */
+  int LEXICAL_ERROR = 91;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -256,12 +264,16 @@ public interface PrismParserConstants {
     "\")\"",
     "\"[\"",
     "\"]\"",
+    "\"[[\"",
+    "\"]]\"",
     "\"{\"",
     "\"}\"",
     "\"=\"",
     "\"!=\"",
     "\"<\"",
     "\">\"",
+    "\"<<\"",
+    "\">>\"",
     "\"<=\"",
     "\">=\"",
     "\"+\"",
