@@ -28,18 +28,21 @@ package param;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import parser.State;
+import parser.ast.ConstantList;
 import parser.ast.Expression;
 import parser.ast.ExpressionBinaryOp;
 import parser.ast.ExpressionConstant;
 import parser.ast.ExpressionLiteral;
 import parser.ast.ExpressionUnaryOp;
 import parser.ast.ModulesFile;
+import parser.visitor.ASTTraverseModify;
 import prism.ModelType;
 import prism.PrismComponent;
 import prism.PrismException;
-import prism.PrismLog;
+import prism.PrismLangException;
 import prism.PrismSettings;
 import explicit.IndexedSet;
 import explicit.StateStorage;
@@ -69,6 +72,9 @@ public final class ModelBuilder extends PrismComponent
 	/** maximal error probability of DAG function representation */
 	private double dagMaxError;
 
+	/** local storage made static for use in anonymous class */
+	private static Map<String,Expression> constExprs;
+	
 	/**
 	 * Constructor
 	 */
@@ -206,7 +212,21 @@ public final class ModelBuilder extends PrismComponent
 
 		// build model
 		time = System.currentTimeMillis();
-		modulesFile = (ModulesFile) modulesFile.deepCopy().replaceConstants(modulesFile.getConstantValues()).simplify();
+		// First, set values for any constants in the model
+		// (but do this *symbolically* - partly because some constants are parameters and therefore unknown,
+		// but also to keep values like 1/3 as expressions rather than being converted to doubles,
+		// resulting in a loss of precision)
+		ConstantList constantList = modulesFile.getConstantList();
+		constExprs = constantList.evaluateConstantsPartially(modulesFile.getUndefinedConstantValues(), null);
+		modulesFile = (ModulesFile) modulesFile.deepCopy();
+		modulesFile = (ModulesFile) modulesFile.accept(new ASTTraverseModify()
+		{
+			public Object visit(ExpressionConstant e) throws PrismLangException
+			{
+				Expression expr = constExprs.get(e.getName());
+				return (expr != null) ? expr.deepCopy() : e;
+			}
+		});
 		ParamModel modelExpl = constructModel(modulesFile);
 		time = System.currentTimeMillis() - time;
 

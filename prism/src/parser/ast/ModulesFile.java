@@ -66,7 +66,9 @@ public class ModulesFile extends ASTElement
 	private Vector<String> varNames;
 	private Vector<Type> varTypes;
 
-	// actual values of (some or all) constants
+	// Values set for undefined constants (null if none)
+	private Values undefinedConstantValues;
+	// Actual values of (some or all) constants
 	private Values constantValues;
 
 	// Constructor
@@ -89,6 +91,7 @@ public class ModulesFile extends ASTElement
 		varDecls = new Vector<Declaration>();
 		varNames = new Vector<String>();
 		varTypes = new Vector<Type>();
+		undefinedConstantValues = null;
 		constantValues = null;
 	}
 
@@ -937,6 +940,7 @@ public class ModulesFile extends ASTElement
 	 */
 	public void setUndefinedConstants(Values someValues) throws PrismLangException
 	{
+		undefinedConstantValues = someValues == null ? null : new Values(someValues);
 		constantValues = constantList.evaluateConstants(someValues, null);
 		semanticCheckAfterConstants(this, null);
 	}
@@ -949,6 +953,7 @@ public class ModulesFile extends ASTElement
 	 */
 	public void setSomeUndefinedConstants(Values someValues) throws PrismLangException
 	{
+		undefinedConstantValues = someValues == null ? null : new Values(someValues);
 		constantValues = constantList.evaluateSomeConstants(someValues, null);
 		semanticCheckAfterConstants(this, null);
 	}
@@ -962,6 +967,15 @@ public class ModulesFile extends ASTElement
 		return constantList.isDefinedConstant(name);
 	}
 	
+	/**
+	 * Get access to the values that have been provided for undefined constants in the model 
+	 * (e.g. via the method {@link #setUndefinedConstants(Values)}).
+	 */
+	public Values getUndefinedConstantValues()
+	{
+		return undefinedConstantValues;
+	}
+
 	/**
 	 * Get access to the values for all constants in the model, including the 
 	 * undefined constants set previously via the method {@link #setUndefinedConstants(Values)}.

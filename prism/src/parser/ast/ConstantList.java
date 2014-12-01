@@ -26,6 +26,8 @@
 
 package parser.ast;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 
 import parser.*;
@@ -286,6 +288,71 @@ public class ConstantList extends ASTElement
 		}
 		
 		return allValues;
+	}
+
+	/**
+	 * Set values for some undefined constants, then partially evaluate values for constants where possible
+	 * and return a map from constant names to the Expression representing its value. 
+	 * Argument 'someValues' contains values for undefined ones, can be null if all already defined.
+	 * Argument 'otherValues' contains any other values which may be needed, null if none.
+	 */
+	public Map<String,Expression> evaluateConstantsPartially(Values someValues, Values otherValues) throws PrismLangException
+	{
+		ConstantList cl;
+		Expression e;
+		int i, j, n, numToEvaluate;
+		Type t = null;
+		ExpressionIdent s;
+		
+		// Create new copy of this ConstantList
+		// (copy existing constant definitions, add new ones where undefined)
+		cl = new ConstantList();
+		n = constants.size();
+		for (i = 0; i < n; i++) {
+			s = getConstantNameIdent(i);
+			e = getConstant(i);
+			t = getConstantType(i);
+			if (e != null) {
+				cl.addConstant((ExpressionIdent)s.deepCopy(), e.deepCopy(), t);
+			} else {
+				// Create new literal expression using values passed in (if possible and needed)
+				if (someValues != null && (j = someValues.getIndexOf(s.getName())) != -1) {
+					cl.addConstant((ExpressionIdent) s.deepCopy(), new ExpressionLiteral(t, t.castValueTo(someValues.getValue(j))), t);
+				}
+			}
+		}
+		numToEvaluate = cl.size();
+		
+		// Now add constants corresponding to the 'otherValues' argument to the new constant list
+		if (otherValues != null) {
+			n = otherValues.getNumValues();
+			for (i = 0; i < n; i++) {
+				Type iType = otherValues.getType(i);
+				cl.addConstant(new ExpressionIdent(otherValues.getName(i)), new ExpressionLiteral(iType, iType.castValueTo(otherValues.getValue(i))), iType);
+			}
+		}
+		
+		// Go trough and expand definition of each constant
+		// (i.e. replace other constant references with their definitions)
+		// Note: work with new copy of constant list, don't need to expand 'otherValues' ones.
+		for (i = 0; i < numToEvaluate; i++) {
+			try {
+				e = (Expression)cl.getConstant(i).expandConstants(cl);
+				cl.setConstant(i, e);
+			} catch (PrismLangException ex) {
+				cl.setConstant(i, null);
+			}
+		}
+		
+		// Store final expressions for each constant in a map and return
+		Map<String,Expression> constExprs = new HashMap<>();
+		for (i = 0; i < numToEvaluate; i++) {
+			if (cl.getConstant(i) != null) {
+				constExprs.put(cl.getConstantName(i), cl.getConstant(i).deepCopy());
+			}
+		}
+		
+		return constExprs;
 	}
 
 	// Methods required for ASTElement:
