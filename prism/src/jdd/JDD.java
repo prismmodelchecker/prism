@@ -180,9 +180,10 @@ public class JDD
 	
 	// wrapper methods for dd_cudd
 
-	// initialise cudd
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * initialise cudd
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static void InitialiseCUDD()
 	{
 		DD_InitialiseCUDD();
@@ -192,9 +193,10 @@ public class JDD
 		MINUS_INFINITY = JDD.MinusInfinity();
 	}
 		
-	// initialise cudd
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * initialise cudd
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static void InitialiseCUDD(long max_mem, double epsilon)
 	{
 		DD_InitialiseCUDD(max_mem, epsilon);
@@ -204,25 +206,28 @@ public class JDD
 		MINUS_INFINITY = JDD.MinusInfinity();
 	}
 		
-	// set cudd max memory
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * set cudd max memory
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static void SetCUDDMaxMem(long max_mem)
 	{
 		DD_SetCUDDMaxMem(max_mem);
 	}
 		
-	// set cudd epsilon
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * set cudd epsilon
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static void SetCUDDEpsilon(double epsilon)
 	{
 		DD_SetCUDDEpsilon(epsilon);
 	}
 		
-	// close down cudd
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * close down cudd
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static void CloseDownCUDD() { CloseDownCUDD(true); }
 	public static void CloseDownCUDD(boolean check)
 	{
@@ -235,9 +240,10 @@ public class JDD
 		DD_CloseDownCUDD(check);
 	}
 	
-	// reference dd
-	// [ REFS: dd, DEREFS: <none> ]
-	
+	/**
+	 * reference dd
+	 * <br>[ REFS: dd, DEREFS: <i>none</i> ]
+	 */
 	public static void Ref(JDDNode dd)
 	{
 		if (DebugJDD.debugEnabled)
@@ -245,9 +251,10 @@ public class JDD
 		DD_Ref(dd.ptr());
 	}
 	
-	// dereference dd
-	// [ REFS: <none>, DEREFS: dd ]
-	
+	/**
+	 * dereference dd
+	 * <br>[ REFS: <i>none</i>, DEREFS: dd ]
+	 */
 	public static void Deref(JDDNode dd)
 	{
 		if (DebugJDD.debugEnabled)
@@ -255,9 +262,10 @@ public class JDD
 		DD_Deref(dd.ptr());
 	}
 
-	// print cudd cache info
-	// [ REFS: <none>, DEREFS: <none> ]
-
+	/**
+	 * print cudd cache info
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static void PrintCacheInfo()
 	{
 		DD_PrintCacheInfo();
@@ -265,17 +273,19 @@ public class JDD
 	
 	// wrapper methods for dd_basics
 
-	// create new (zero) dd
-	// [ REFS: <result>, DEREFS: <none> ]
-
+	/**
+	 * create new (zero) dd
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
 	public static JDDNode Create()
 	{
 		return new JDDNode(DD_Create());
 	}
 	
-	// create new constant dd
-	// [ REFS: <result>, DEREFS: <none> ]
-
+	/**
+	 * create new constant dd
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
 	public static JDDNode Constant(double value)
 	{
 		if (Double.isInfinite(value))
@@ -284,33 +294,37 @@ public class JDD
 			return new JDDNode(DD_Constant(value));
 	}
 		
-	// create new constant (plus infinity)
-	// [ REFS: <result>, DEREFS: <none> ]
-
+	/**
+	 * create new constant (plus infinity)
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
 	public static JDDNode PlusInfinity()
 	{
 		return new JDDNode(DD_PlusInfinity());
 	}
 	
-	// create new constant (minus infinity)
-	// [ REFS: <result>, DEREFS: <none> ]
-
+	/**
+	 * create new constant (minus infinity)
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
 	public static JDDNode MinusInfinity()
 	{
 		return new JDDNode(DD_MinusInfinity());
 	}
 	
-	// create new variable dd (1 if var i is true, 0 if not)
-	// [ REFS: <result>, DEREFS: <none> ]
-
+	/**
+	 * create new variable dd (1 if var i is true, 0 if not)
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
 	public static JDDNode Var(int i)
 	{
 		return new JDDNode(DD_Var(i));
 	}
 	
-	// not of dd
-	// [ REFS: <result>, DEREFS: dd ]
-
+	/**
+	 * not of dd
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
+	 */
 	public static JDDNode Not(JDDNode dd)
 	{
 		if (DebugJDD.debugEnabled)
@@ -318,9 +332,10 @@ public class JDD
 		return new JDDNode(DD_Not(dd.ptr()));
 	}
 	
-	// or of dd1, dd2
-	// [ REFS: <result>, DEREFS: dd1, dd2 ]
-
+	/**
+	 * or of dd1, dd2
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd1, dd2 ]
+	 */
 	public static JDDNode Or(JDDNode dd1, JDDNode dd2)
 	{
 		if (DebugJDD.debugEnabled) {
@@ -330,9 +345,10 @@ public class JDD
 		return new JDDNode(DD_Or(dd1.ptr(), dd2.ptr()));
 	}
 	
-	// and of dd1, dd2
-	// [ REFS: <result>, DEREFS: dd1, dd2 ]
-
+	/**
+	 * and of dd1, dd2
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd1, dd2 ]
+	 */
 	public static JDDNode And(JDDNode dd1, JDDNode dd2)
 	{
 		if (DebugJDD.debugEnabled) {
@@ -343,9 +359,10 @@ public class JDD
 		return new JDDNode(DD_And(dd1.ptr(), dd2.ptr()));
 	}
 	
-	// xor of dd1, dd2
-	// [ REFS: <result>, DEREFS: dd1, dd2 ]
-
+	/**
+	 * xor of dd1, dd2
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd1, dd2 ]
+	 */
 	public static JDDNode Xor(JDDNode dd1, JDDNode dd2)
 	{
 		if (DebugJDD.debugEnabled) {
@@ -355,9 +372,10 @@ public class JDD
 		return new JDDNode(DD_Xor(dd1.ptr(), dd2.ptr()));
 	}
 	
-	// implies of dd1, dd2
-	// [ REFS: <result>, DEREFS: dd1, dd2 ]
-
+	/**
+	 * implies of dd1, dd2
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd1, dd2 ]
+	 */
 	public static JDDNode Implies(JDDNode dd1, JDDNode dd2)
 	{
 		if (DebugJDD.debugEnabled) {
@@ -367,9 +385,10 @@ public class JDD
 		return new JDDNode(DD_Implies(dd1.ptr(), dd2.ptr()));
 	}
 	
-	// generic apply operation
-	// [ REFS: <result>, DEREFS: dd1, dd2 ]
-
+	/**
+	 * generic apply operation
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd1, dd2 ]
+	 */
 	public static JDDNode Apply(int op, JDDNode dd1, JDDNode dd2)
 	{
 		if (DebugJDD.debugEnabled) {
@@ -379,9 +398,10 @@ public class JDD
 		return new JDDNode(DD_Apply(op, dd1.ptr(), dd2.ptr()));
 	}
 	
-	// generic monadic apply operation
-	// [ REFS: <result>, DEREFS: dd ]
-
+	/**
+	 * generic monadic apply operation
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
+	 */
 	public static JDDNode MonadicApply(int op, JDDNode dd)
 	{
 		if (DebugJDD.debugEnabled)
@@ -389,9 +409,10 @@ public class JDD
 		return new JDDNode(DD_MonadicApply(op, dd.ptr()));
 	}
 	
-	// restrict dd based on cube
-	// [ REFS: <result>, DEREFS: dd, cube ]
-
+	/**
+	 * restrict dd based on cube
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd, cube ]
+	 */
 	public static JDDNode Restrict(JDDNode dd, JDDNode cube)
 	{
 		if (DebugJDD.debugEnabled) {
@@ -401,9 +422,10 @@ public class JDD
 		return new JDDNode(DD_Restrict(dd.ptr(), cube.ptr()));
 	}
 	
-	// ITE (if-then-else) operation
-	// [ REFS: <result>, DEREFS: dd1, dd2, dd3 ]
-
+	/**
+	 * ITE (if-then-else) operation
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd1, dd2, dd3 ]
+	 */
 	public static JDDNode ITE(JDDNode dd1, JDDNode dd2, JDDNode dd3)
 	{
 		if (DebugJDD.debugEnabled) {
@@ -416,7 +438,7 @@ public class JDD
 		
 	/**
 	 * Returns true if the two BDDs intersect (i.e. conjunction is non-empty).
-	 * [ REFS: <none>, DEREFS: <none> ]
+	 * [ REFS: <i>none</i>, DEREFS: <i>none</i> ]
 	 */
 	public static boolean AreInterecting(JDDNode dd1, JDDNode dd2)
 	{
@@ -432,7 +454,7 @@ public class JDD
 	
 	/**
 	 * Returns true if {@code dd1} is contained in {@code dd2}.
-	 * [ REFS: <none>, DEREFS: <none> ]
+	 * [ REFS: <i>none</i>, DEREFS: <i>none</i> ]
 	 */
 	public static boolean IsContainedIn(JDDNode dd1, JDDNode dd2)
 	{
@@ -450,9 +472,10 @@ public class JDD
 	
 	// wrapper methods for dd_vars
 	
-	// permute (->) variables in dd (cf. swap)
-	// [ REFS: <result>, DEREFS: dd ]
-
+	/**
+	 * permute (->) variables in dd (cf. swap)
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
+	 */
 	public static JDDNode PermuteVariables(JDDNode dd, JDDVars old_vars, JDDVars new_vars)
 	{
 		if (DebugJDD.debugEnabled)
@@ -460,9 +483,10 @@ public class JDD
 		return new JDDNode(DD_PermuteVariables(dd.ptr(), old_vars.array(), new_vars.array(), old_vars.n()));
 	}
 
-	// swap (<->) variables in dd (cf. permute)
-	// [ REFS: <result>, DEREFS: dd ]
-
+	/**
+	 * swap (<->) variables in dd (cf. permute)
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
+	 */
 	public static JDDNode SwapVariables(JDDNode dd, JDDVars old_vars, JDDVars new_vars)
 	{
 		if (DebugJDD.debugEnabled)
@@ -470,41 +494,46 @@ public class JDD
 		return new JDDNode(DD_SwapVariables(dd.ptr(), old_vars.array(), new_vars.array(), old_vars.n()));
 	}
 
-	// build x > y for variables x, y
-	// [ REFS: <result>, DEREFS: <none> ]
-	
+	/**
+	 * build x > y for variables x, y
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
 	public static JDDNode VariablesGreaterThan(JDDVars x_vars, JDDVars y_vars)
 	{
 		return new JDDNode(DD_VariablesGreaterThan(x_vars.array(), y_vars.array(), x_vars.n()));
 	}
 
-	// build x >= y for variables x, y
-	// [ REFS: <result>, DEREFS: <none> ]
-	
+	/**
+	 * build x >= y for variables x, y
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
 	public static JDDNode VariablesGreaterThanEquals(JDDVars x_vars, JDDVars y_vars)
 	{
 		return new JDDNode(DD_VariablesGreaterThanEquals(x_vars.array(), y_vars.array(), x_vars.n()));
 	}
 
-	// build x < y for variables x, y
-	// [ REFS: <result>, DEREFS: <none> ]
-	
+	/**
+	 * build x < y for variables x, y
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
 	public static JDDNode VariablesLessThan(JDDVars x_vars, JDDVars y_vars)
 	{
 		return new JDDNode(DD_VariablesLessThan(x_vars.array(), y_vars.array(), x_vars.n()));
 	}
 
-	// build x <= y for variables x, y
-	// [ REFS: <result>, DEREFS: <none> ]
-	
+	/**
+	 * build x <= y for variables x, y
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
 	public static JDDNode VariablesLessThanEquals(JDDVars x_vars, JDDVars y_vars)
 	{
 		return new JDDNode(DD_VariablesLessThanEquals(x_vars.array(), y_vars.array(), x_vars.n()));
 	}
 
-	// build x == y for variables x, y
-	// [ REFS: <result>, DEREFS: <none> ]
-	
+	/**
+	 * build x == y for variables x, y
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
 	public static JDDNode VariablesEquals(JDDVars x_vars, JDDVars y_vars)
 	{
 		return new JDDNode(DD_VariablesEquals(x_vars.array(), y_vars.array(), x_vars.n()));
@@ -512,9 +541,10 @@ public class JDD
 
 	// wrapper methods for dd_abstr
 
-	// existential abstraction of vars from dd
-	// [ REFS: <result>, DEREFS: dd ]
-
+	/**
+	 * existential abstraction of vars from dd
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
+	 */
 	public static JDDNode ThereExists(JDDNode dd, JDDVars vars)
 	{
 		if (DebugJDD.debugEnabled)
@@ -522,9 +552,10 @@ public class JDD
 		return new JDDNode(DD_ThereExists(dd.ptr(), vars.array(), vars.n()));
 	}
 	
-	// universal abstraction of vars from dd
-	// [ REFS: <result>, DEREFS: dd ]
-
+	/**
+	 * universal abstraction of vars from dd
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
+	 */
 	public static JDDNode ForAll(JDDNode dd, JDDVars vars)
 	{
 		if (DebugJDD.debugEnabled)
@@ -532,9 +563,10 @@ public class JDD
 		return new JDDNode(DD_ForAll(dd.ptr(), vars.array(), vars.n()));
 	}
 	
-	// sum abstraction of vars from dd
-	// [ REFS: <result>, DEREFS: dd ]
-
+	/**
+	 * sum abstraction of vars from dd
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
+	 */
 	public static JDDNode SumAbstract(JDDNode dd, JDDVars vars)
 	{
 		if (DebugJDD.debugEnabled)
@@ -542,9 +574,10 @@ public class JDD
 		return new JDDNode(DD_SumAbstract(dd.ptr(), vars.array(), vars.n()));
 	}
 	
-	// product abstraction of vars from dd
-	// [ REFS: <result>, DEREFS: dd ]
-
+	/**
+	 * product abstraction of vars from dd
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
+	 */
 	public static JDDNode ProductAbstract(JDDNode dd, JDDVars vars)
 	{
 		if (DebugJDD.debugEnabled)
@@ -552,9 +585,10 @@ public class JDD
 		return new JDDNode(DD_ProductAbstract(dd.ptr(), vars.array(), vars.n()));
 	}
 	
-	// min abstraction of vars from dd
-	// [ REFS: <result>, DEREFS: dd ]
-
+	/**
+	 * min abstraction of vars from dd
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
+	 */
 	public static JDDNode MinAbstract(JDDNode dd, JDDVars vars)
 	{
 		if (DebugJDD.debugEnabled)
@@ -562,9 +596,10 @@ public class JDD
 		return new JDDNode(DD_MinAbstract(dd.ptr(), vars.array(), vars.n()));
 	}
 	
-	// max abstraction of vars from dd
-	// [ REFS: <result>, DEREFS: dd ]
-
+	/**
+	 * max abstraction of vars from dd
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
+	 */
 	public static JDDNode MaxAbstract(JDDNode dd, JDDVars vars)
 	{
 		if (DebugJDD.debugEnabled)
@@ -574,9 +609,10 @@ public class JDD
 	
 	// wrapper methods for dd_term
 
-	// converts dd to a 0-1 dd, based on the interval (threshold, +inf)
-	// [ REFS: <result>, DEREFS: dd ]
-
+	/**
+	 * converts dd to a 0-1 dd, based on the interval (threshold, +inf)
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
+	 */
 	public static JDDNode GreaterThan(JDDNode dd, double threshold)
 	{
 		if (DebugJDD.debugEnabled)
@@ -584,9 +620,10 @@ public class JDD
 		return new JDDNode(DD_GreaterThan(dd.ptr(), threshold));
 	}
 	
-	// converts dd to a 0-1 dd, based on the interval [threshold, +inf)
-	// [ REFS: <result>, DEREFS: dd ]
-
+	/**
+	 * converts dd to a 0-1 dd, based on the interval [threshold, +inf)
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
+	 */
 	public static JDDNode GreaterThanEquals(JDDNode dd, double threshold)
 	{
 		if (DebugJDD.debugEnabled)
@@ -594,9 +631,10 @@ public class JDD
 		return new JDDNode(DD_GreaterThanEquals(dd.ptr(), threshold));
 	}
 	
-	// converts dd to a 0-1 dd, based on the interval (-inf, threshold)
-	// [ REFS: <result>, DEREFS: dd ]
-
+	/**
+	 * converts dd to a 0-1 dd, based on the interval (-inf, threshold)
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
+	 */
 	public static JDDNode LessThan(JDDNode dd, double threshold)
 	{
 		if (DebugJDD.debugEnabled)
@@ -604,9 +642,10 @@ public class JDD
 		return new JDDNode(DD_LessThan(dd.ptr(), threshold));
 	}
 	
-	// converts dd to a 0-1 dd, based on the interval (-inf, threshold]
-	// [ REFS: <result>, DEREFS: dd ]
-
+	/**
+	 * converts dd to a 0-1 dd, based on the interval (-inf, threshold]
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
+	 */
 	public static JDDNode LessThanEquals(JDDNode dd, double threshold)
 	{
 		if (DebugJDD.debugEnabled)
@@ -614,9 +653,10 @@ public class JDD
 		return new JDDNode(DD_LessThanEquals(dd.ptr(), threshold));
 	}
 	
-	// converts dd to a 0-1 dd, based on the interval [threshold, threshold]
-	// [ REFS: <result>, DEREFS: dd ]
-
+	/**
+	 * converts dd to a 0-1 dd, based on the interval [threshold, threshold]
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
+	 */
 	public static JDDNode Equals(JDDNode dd, double value)
 	{
 		if (DebugJDD.debugEnabled)
@@ -624,9 +664,10 @@ public class JDD
 		return new JDDNode(DD_Equals(dd.ptr(), value));
 	}
 	
-	// converts dd to a 0-1 dd, based on the interval [lower, upper]
-	// [ REFS: <result>, DEREFS: dd ]
-
+	/**
+	 * converts dd to a 0-1 dd, based on the interval [lower, upper]
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
+	 */
 	public static JDDNode Interval(JDDNode dd, double lower, double upper)
 	{
 		if (DebugJDD.debugEnabled)
@@ -634,9 +675,10 @@ public class JDD
 		return new JDDNode(DD_Interval(dd.ptr(), lower, upper));
 	}
 	
-	// rounds terminals in dd to a certain number of decimal places
-	// [ REFS: <result>, DEREFS: dd ]
-
+	/**
+	 * rounds terminals in dd to a certain number of decimal places
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
+	 */
 	public static JDDNode RoundOff(JDDNode dd, int places)
 	{
 		if (DebugJDD.debugEnabled)
@@ -644,33 +686,37 @@ public class JDD
 		return new JDDNode(DD_RoundOff(dd.ptr(), places));
 	}
 	
-	// returns true if sup norm of dd1 and dd2 is less than epsilon, returns false otherwise
-	// [ REFS: <none>, DEREFS: <none> ]
-
+	/**
+	 * returns true if sup norm of dd1 and dd2 is less than epsilon, returns false otherwise
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static boolean EqualSupNorm(JDDNode dd1, JDDNode dd2, double epsilon)
 	{
 		return DD_EqualSupNorm(dd1.ptr(), dd2.ptr(), epsilon);
 	}
 	
-	// returns minimum terminal in dd
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * returns minimum terminal in dd
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static double FindMin(JDDNode dd)
 	{
 		return DD_FindMin(dd.ptr());
 	}
 	
-	// returns maximum terminal in dd
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * returns maximum terminal in dd
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static double FindMax(JDDNode dd)
 	{
 		return DD_FindMax(dd.ptr());
 	}
 	
-	// returns dd restricted to first non-zero path (cube)
-	// [ REFS: <result>, DEREFS: <dd> ]
-	
+	/**
+	 * returns dd restricted to first non-zero path (cube)
+	 * <br>[ REFS: <i>result</i>, DEREFS: <dd> ]
+	 */
 	public static JDDNode RestrictToFirst(JDDNode dd, JDDVars vars)
 	{
 		if (DebugJDD.debugEnabled)
@@ -680,34 +726,38 @@ public class JDD
 
 	// wrapper methods for dd_info
 
-	// returns number of nodes in dd
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * returns number of nodes in dd
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static int GetNumNodes(JDDNode dd)
 	{
 		return DD_GetNumNodes(dd.ptr());
 	}
 	
-	// returns number of terminals in dd
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * returns number of terminals in dd
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static int GetNumTerminals(JDDNode dd)
 	{
 		return DD_GetNumTerminals(dd.ptr());
 	}
 	
-	// returns number of minterms in dd
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * returns number of minterms in dd
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static double GetNumMinterms(JDDNode dd, int num_vars)
 	{
 		return DD_GetNumMinterms(dd.ptr(), num_vars);
 	}
 	
-	// get number of minterms as a string (have to store as a double
-	// because can be very big but want to print out as a decimal)
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * get number of minterms as a string (have to store as a double
+	 * because can be very big but want to print out as a decimal)
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static String GetNumMintermsString(JDDNode dd, int num_vars)
 	{
 		double minterms;
@@ -721,18 +771,20 @@ public class JDD
 		}
 	}
 
-	// returns number of paths in dd
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * returns number of paths in dd
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static double GetNumPaths(JDDNode dd)
 	{
 		return DD_GetNumPaths(dd.ptr());
 	}
 	
-	// get number of paths as a string (have to store as a double
-	// because can be very big but want to print out as a decimal)
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * get number of paths as a string (have to store as a double
+	 * because can be very big but want to print out as a decimal)
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static String GetNumPathsString(JDDNode dd)
 	{
 		double paths;
@@ -746,33 +798,37 @@ public class JDD
 		}
 	}
 	
-	// prints out info for dd (nodes, terminals, minterms)
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * prints out info for dd (nodes, terminals, minterms)
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static void PrintInfo(JDDNode dd, int num_vars)
 	{		
 		DD_PrintInfo(dd.ptr(), num_vars);
 	}
 	
-	// prints out compact info for dd (nodes, terminals, minterms)
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * prints out compact info for dd (nodes, terminals, minterms)
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static void PrintInfoBrief(JDDNode dd, int num_vars)
 	{
 		DD_PrintInfoBrief(dd.ptr(), num_vars);
 	}
 	
-	// gets info for dd as string (nodes, terminals, minterms)
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * gets info for dd as string (nodes, terminals, minterms)
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static String GetInfoString(JDDNode dd, int num_vars)
 	{
 		return GetNumNodes(dd)+" nodes ("+GetNumTerminals(dd)+" terminal), "+GetNumMintermsString(dd, num_vars)+" minterms";
 	}
 	
-	// gets compact info for dd as string (nodes, terminals, minterms)
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * gets compact info for dd as string (nodes, terminals, minterms)
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static String GetInfoBriefString(JDDNode dd, int num_vars)
 	{
 		return "["+GetNumNodes(dd)+","+GetNumTerminals(dd)+","+GetNumMintermsString(dd, num_vars)+"]";
@@ -780,7 +836,7 @@ public class JDD
 	
 	/**
 	 * Prints out the support of a DD (i.e. all DD variables that are actually present).
-	 * [ REFS: <none>, DEREFS: <none> ]
+	 * [ REFS: <i>none</i>, DEREFS: <i>none</i> ]
 	 */
 	public static void PrintSupport(JDDNode dd)
 	{
@@ -790,48 +846,53 @@ public class JDD
 	/**
 	 * Prints out the support of a DD (i.e. all DD variables that are actually present),
 	 * using the passed in list of DD variable names.
-	 * [ REFS: <none>, DEREFS: <none> ]
+	 * [ REFS: <i>none</i>, DEREFS: <i>none</i> ]
 	 */
 	public static void PrintSupportNames(JDDNode dd, List<String> varNames)
 	{
 		DD_PrintSupportNames(dd.ptr(), varNames);
 	}
 	
-	// returns support for dd (all dd variables present) as a cube of the dd vars
-	// [ REFS: <result>, DEREFS: <none> ]
-	
+	/**
+	 * returns support for dd (all dd variables present) as a cube of the dd vars
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
 	public static JDDNode GetSupport(JDDNode dd)
 	{
 		return new JDDNode(DD_GetSupport(dd.ptr()));
 	}
 	
-	// print out all values of all terminals in dd
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * print out all values of all terminals in dd
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static void PrintTerminals(JDDNode dd)
 	{
 		DD_PrintTerminals(dd.ptr());
 	}
 	
-	// get list of values of all terminals in dd as string (native method sends to stdout)
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * get list of values of all terminals in dd as string (native method sends to stdout)
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static String GetTerminalsString(JDDNode dd)
 	{
 		return GetTerminalsString(dd, 0, false);
 	}
 	
-	// print out all values of all terminals (and number of each) in dd
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * print out all values of all terminals (and number of each) in dd
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static void PrintTerminalsAndNumbers(JDDNode dd, int num_vars)
 	{
 		DD_PrintTerminalsAndNumbers(dd.ptr(), num_vars);
 	}
 	
-	// get list of values of all terminals (and number of each) in dd (native method sends to stdout)
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * get list of values of all terminals (and number of each) in dd (native method sends to stdout)
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static String GetTerminalsAndNumbersString(JDDNode dd, int num_vars)
 	{
 		return GetTerminalsString(dd, num_vars, true);
@@ -878,9 +939,10 @@ public class JDD
 
 	// wrapper methods for dd_matrix
 
-	// sets element in vector dd
-	// [ REFS: <result>, DEREFS: <dd> ]
-	
+	/**
+	 * sets element in vector dd
+	 * <br>[ REFS: <i>result</i>, DEREFS: <dd> ]
+	 */
 	public static JDDNode SetVectorElement(JDDNode dd, JDDVars vars, long index, double value)
 	{
 		if (DebugJDD.debugEnabled)
@@ -888,9 +950,10 @@ public class JDD
 		return new JDDNode(DD_SetVectorElement(dd.ptr(), vars.array(), vars.n(), index, value));
 	}
 	
-	// sets element in matrix dd
-	// [ REFS: <result>, DEREFS: <dd> ]
-	
+	/**
+	 * sets element in matrix dd
+	 * <br>[ REFS: <i>result</i>, DEREFS: <dd> ]
+	 */
 	public static JDDNode SetMatrixElement(JDDNode dd, JDDVars rvars, JDDVars cvars, long rindex, long cindex, double value)
 	{
 		if (DebugJDD.debugEnabled)
@@ -898,9 +961,10 @@ public class JDD
 		return new JDDNode(DD_SetMatrixElement(dd.ptr(), rvars.array(), rvars.n(), cvars.array(), cvars.n(), rindex, cindex, value));
 	}
 	
-	// sets element in 3d matrix dd
-	// [ REFS: <result>, DEREFS: <dd> ]
-	
+	/**
+	 * sets element in 3d matrix dd
+	 * <br>[ REFS: <i>result</i>, DEREFS: <dd> ]
+	 */
 	public static JDDNode Set3DMatrixElement(JDDNode dd, JDDVars rvars, JDDVars cvars, JDDVars lvars, long rindex, long cindex, long lindex, double value)
 	{
 		if (DebugJDD.debugEnabled)
@@ -908,25 +972,28 @@ public class JDD
 		return new JDDNode(DD_Set3DMatrixElement(dd.ptr(), rvars.array(), rvars.n(), cvars.array(), cvars.n(), lvars.array(), lvars.n(), rindex, cindex, lindex, value));
 	}
 	
-	// get element in vector dd
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * get element in vector dd
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static double GetVectorElement(JDDNode dd, JDDVars vars, long index)
 	{
 		return DD_GetVectorElement(dd.ptr(), vars.array(), vars.n(), index);
 	}
 	
-	// creates dd for identity matrix
-	// [ REFS: <result>, DEREFS: <none> ]
-	
+	/**
+	 * creates dd for identity matrix
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
 	public static JDDNode Identity(JDDVars rvars, JDDVars cvars)
 	{
 		return new JDDNode(DD_Identity(rvars.array(), cvars.array(), rvars.n()));
 	}
 	
-	// returns transpose of matrix dd
-	// [ REFS: <result>, DEREFS: <dd> ]
-	
+	/**
+	 * returns transpose of matrix dd
+	 * <br>[ REFS: <i>result</i>, DEREFS: <dd> ]
+	 */
 	public static JDDNode Transpose(JDDNode dd, JDDVars rvars, JDDVars cvars)
 	{
 		if (DebugJDD.debugEnabled)
@@ -934,9 +1001,10 @@ public class JDD
 		return new JDDNode(DD_Transpose(dd.ptr(), rvars.array(), cvars.array(), rvars.n()));
 	}
 	
-	// returns matrix multiplication of matrices dd1 and dd2
-	// [ REFS: <result>, DEREFS: <dd1, dd2> ]
-	
+	/**
+	 * returns matrix multiplication of matrices dd1 and dd2
+	 * <br>[ REFS: <i>result</i>, DEREFS: <dd1, dd2> ]
+	 */
 	public static JDDNode MatrixMultiply(JDDNode dd1, JDDNode dd2, JDDVars vars, int method)
 	{
 		if (DebugJDD.debugEnabled) {
@@ -946,57 +1014,64 @@ public class JDD
 		return new JDDNode(DD_MatrixMultiply(dd1.ptr(), dd2.ptr(), vars.array(), vars.n(), method));
 	}
 	
-	// prints out vector dd
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * prints out vector dd
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static void PrintVector(JDDNode dd, JDDVars vars)
 	{
 		DD_PrintVector(dd.ptr(), vars.array(), vars.n(), NORMAL);
 	}
 	
-	// prints out vector dd
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * prints out vector dd
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static void PrintVector(JDDNode dd, JDDVars vars, int accuracy)
 	{
 		DD_PrintVector(dd.ptr(), vars.array(), vars.n(), accuracy);
 	}
 	
-	// prints out matrix dd
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * prints out matrix dd
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static void PrintMatrix(JDDNode dd, JDDVars rvars, JDDVars cvars)
 	{
 		DD_PrintMatrix(dd.ptr(), rvars.array(), rvars.n(), cvars.array(), cvars.n(), NORMAL);
 	}
 	
-	// prints out matrix dd
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * prints out matrix dd
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static void PrintMatrix(JDDNode dd, JDDVars rvars, JDDVars cvars, int accuracy)
 	{
 		DD_PrintMatrix(dd.ptr(), rvars.array(), rvars.n(), cvars.array(), cvars.n(), accuracy);
 	}
 	
-	// prints out vector dd
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * prints out vector dd
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static void PrintVectorFiltered(JDDNode dd, JDDNode filter, JDDVars vars)
 	{
 		DD_PrintVectorFiltered(dd.ptr(), filter.ptr(), vars.array(), vars.n(), NORMAL);
 	}
 	
-	// prints out vector dd
-	// [ REFS: <none>, DEREFS: <none> ]
-	
+	/**
+	 * prints out vector dd
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static void PrintVectorFiltered(JDDNode dd, JDDNode filter, JDDVars vars, int accuracy)
 	{
 		DD_PrintVectorFiltered(dd.ptr(), filter.ptr(), vars.array(), vars.n(), accuracy);
 	}
 	
-	// traverse vector dd and call setElement method of VectorConsumer for each non zero element
-	// [ REFS: <none>, DEREFS: <none> ]
-
+	/**
+	 * traverse vector dd and call setElement method of VectorConsumer for each non zero element
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static void TraverseVector(JDDNode dd, JDDVars vars, JDDVectorConsumer vc, int code)
 	{
 		TraverseVectorRec(dd, vars, 0, 0, vc, code);
@@ -1034,25 +1109,28 @@ public class JDD
 
 	// wrapper methods for dd_export
 
-	// export dd to a dot file
-	// [ REFS: <none>, DEREFS: <none> ]
-
+	/**
+	 * export dd to a dot file
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static void ExportDDToDotFile(JDDNode dd, String filename)
 	{
 		DD_ExportDDToDotFile(dd.ptr(), filename);
 	}
 	
-	// export dd to a dot file
-	// [ REFS: <none>, DEREFS: <none> ]
-
+	/**
+	 * export dd to a dot file
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static void ExportDDToDotFileLabelled(JDDNode dd, String filename, List<String> varNames)
 	{
 		DD_ExportDDToDotFileLabelled(dd.ptr(), filename, varNames);
 	}
 	
-	// export matrix dd to a pp file
-	// [ REFS: <none>, DEREFS: <none> ]
-
+	/**
+	 * export matrix dd to a pp file
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static void ExportMatrixToPPFile(JDDNode dd, JDDVars rvars, JDDVars cvars, String filename)
 	{
 		DD_ExportMatrixToPPFile(dd.ptr(), rvars.array(), rvars.n(), cvars.array(), cvars.n(), filename);
@@ -1081,24 +1159,26 @@ public class JDD
 	 *	2 1 1.000000
 	 *  4
 	 *
-	 * [ REFS: <none>, DEREFS: <none> ]
+	 * [ REFS: <i>none</i>, DEREFS: <i>none</i> ]
 	 */
 	public static void Export3dMatrixToPPFile(JDDNode dd, JDDVars rvars, JDDVars cvars, JDDVars nvars, String filename)
 	{
 		DD_Export3dMatrixToPPFile(dd.ptr(), rvars.array(), rvars.n(), cvars.array(), cvars.n(), nvars.array(), nvars.n(), filename);
 	}
 
-	// export matrix dd to a matlab file
-	// [ REFS: <none>, DEREFS: <none> ]
-
+	/**
+	 * export matrix dd to a matlab file
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static void ExportMatrixToMatlabFile(JDDNode dd, JDDVars rvars, JDDVars cvars, String name, String filename)
 	{
 		DD_ExportMatrixToMatlabFile(dd.ptr(), rvars.array(), rvars.n(), cvars.array(), cvars.n(), name, filename);
 	}
 
-	// export matrix dd to a spy file
-	// [ REFS: <none>, DEREFS: <none> ]
-
+	/**
+	 * export matrix dd to a spy file
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public static void ExportMatrixToSpyFile(JDDNode dd, JDDVars rvars, JDDVars cvars, int depth, String filename)
 	{
 		DD_ExportMatrixToSpyFile(dd.ptr(), rvars.array(), rvars.n(), cvars.array(), cvars.n(), depth, filename);
