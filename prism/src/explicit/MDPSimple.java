@@ -844,7 +844,7 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 		for (Map.Entry<Integer, Double> e : distr) {
 			k = (Integer) e.getKey();
 			prob = (Double) e.getValue();
-			if (i != s) {
+			if (k != s) {
 				d += prob * vect[k];
 			} else {
 				diag -= prob;
