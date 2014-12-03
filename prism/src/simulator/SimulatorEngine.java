@@ -299,8 +299,16 @@ public class SimulatorEngine extends PrismComponent
 			return false;
 		//throw new PrismException("Deadlock found at state " + path.getCurrentState().toString(modulesFile));
 
+		TransitionList.Ref ref;
 		switch (modelType) {
 		case DTMC:
+			// Pick a random number to determine choice/transition
+			d = rng.randomUnifDouble();
+			ref = transitions.new Ref();
+			transitions.getChoiceIndexByProbabilitySum(d, ref);
+			// Execute
+			executeTransition(ref.i, ref.offset, -1);
+			break;
 		case MDP:
 			// Pick a random choice
 			i = rng.randomUnifInt(numChoices);
@@ -316,7 +324,7 @@ public class SimulatorEngine extends PrismComponent
 			r = transitions.getProbabilitySum();
 			// Pick a random number to determine choice/transition
 			d = rng.randomUnifDouble(r);
-			TransitionList.Ref ref = transitions.new Ref();
+			ref = transitions.new Ref();
 			transitions.getChoiceIndexByProbabilitySum(d, ref);
 			// Execute
 			executeTimedTransition(ref.i, ref.offset, rng.randomExpDouble(r), -1);
