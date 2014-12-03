@@ -108,6 +108,14 @@ public class NBAAnalysis {
 		return _nba.getFinalStates();
 	}
 
+	/**
+	 * Returns true if the NBA is disjoint, i.e., there are states
+	 * that are not reachable from the initial state
+	 */
+	public boolean isNBADisjoint() {
+		return getSCCs().getGraphIsDisjoint();
+	}
+	
 	/** Get the reachability analysis for the NBA
 	 * @return vector of BitSets representing the set of state which are reachable from a given state.
 	 */

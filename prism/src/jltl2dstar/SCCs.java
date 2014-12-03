@@ -37,6 +37,7 @@ public class SCCs {
 	public Vector<MyBitSet> _dag;
 	public Vector<Integer> _topological_order;
 	public Vector<MyBitSet> _reachability;
+	public boolean _graph_is_disjoint;
 
 
 	/** Constructor */
@@ -46,6 +47,7 @@ public class SCCs {
 		_dag = new Vector<MyBitSet>();
 		_topological_order = new Vector<Integer>();
 		_reachability = new Vector<MyBitSet>();
+		_graph_is_disjoint = false;
 	}
 	
 	/** Get the states that are in SCC scc_index */
@@ -130,5 +132,15 @@ public class SCCs {
 			_state_to_scc.setSize(state + 1);
 		}
 		_state_to_scc.set(state, new Integer(scc));
+	}
+
+	/** Set flag that the graph was discovered to be disjoint */
+	public void setGraphIsDisjoint() {
+		_graph_is_disjoint = true;
+	}
+	
+	/** Get flag wether the graph was discovered to be disjoint */
+	public boolean getGraphIsDisjoint() {
+		return _graph_is_disjoint;
 	}
 }

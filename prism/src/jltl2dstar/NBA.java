@@ -55,6 +55,12 @@ public class NBA implements Iterable<NBA_State> {
 	  /** The states that are accepting (final) */
 	  private MyBitSet _final_states;
 
+	  /**
+	   * Flag, telling whether to fail later on if the NBA is discovered
+	   * to be disjoint, as this is indicative of a malfunctioning
+	   * NBA generator.
+	   */
+	  private boolean _fail_if_disjoint = false;
 	
 	/**
 	 * Constructor.
@@ -259,7 +265,19 @@ public class NBA implements Iterable<NBA_State> {
 	{
 		return _state_count;
 	}
-
+	
+	/** Set fail_if_disjoint flag */
+	public void setFailIfDisjoint(boolean value)
+	{
+		_fail_if_disjoint = value;
+	}
+	
+	/** Get fail_if_disjoint flag */
+	public boolean getFailIfDisjoint()
+	{
+		return _fail_if_disjoint;
+	}
+	
 	/** 
 	 * Create a new state.
 	 * @return the index of the new state

@@ -51,10 +51,18 @@ public class SafrasAlgorithm {
 	 * @param nba The NBA
 	 * @param options The options for Safra's algorithm
 	 */
-	public SafrasAlgorithm(NBA nba, Options_Safra options) {
+	public SafrasAlgorithm(NBA nba, Options_Safra options) throws PrismException {
 		_options = options; 
 		_nba_analysis = new NBAAnalysis(nba);
 		_nba = nba;
+		
+		if (_nba.getFailIfDisjoint() && _nba_analysis.isNBADisjoint()) {
+			throw new PrismException("The NBA generated for the LTL formula was discovered to be disjoint,\n"
+			                       + "i.e., some states were not reachable from the initial state. This likely\n"
+			                       + "indicates a problem in the translation. Please report the formula to the\n"
+			                       + "PRISM developers");
+		}
+		
 		_NODES = 2 * nba.getStateCount();
 		stv_reorder = null; 
 		_next = new Vector<MyBitSet>();
@@ -462,7 +470,7 @@ public class SafrasAlgorithm {
 				_node_order[child.getID()] = i++;
 
 				MyBitSet label_this = child.getLabeling();
-				for (int setbit = label_this.nextSetBit(0); i >= 0; i = label_this.nextSetBit(i+1)) {
+				for (int setbit = label_this.nextSetBit(0); setbit >= 0; setbit = label_this.nextSetBit(setbit+1)) {
 					reachable_this.or(_nba_reachability.get(setbit));
 				}
 				//      std::cerr << "reachability_this: "<<reachable_this << std::endl; 

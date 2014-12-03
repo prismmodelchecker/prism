@@ -90,14 +90,14 @@ public class GraphAlgorithms {
 				return;
 			}
 
-			if (!disjoint) {
-				int start_idx = start_state.getName();
-				visit(start_idx);
-			} else {
+			int start_idx = start_state.getName();
+			visit(start_idx);
+			if (disjoint) {
 				// The Graph may be disjoint -> restart DFS on every not yet visited state 
 				for (int v = 0; v < _graph.size(); ++v) {
 					if (_dfs_data.get(v) == null) {
-						// not yet visited
+						// not yet visited, i.e., not reachable from the start state
+						_result.setGraphIsDisjoint();
 						visit(v);
 					}
 				}
