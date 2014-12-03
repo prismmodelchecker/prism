@@ -54,6 +54,16 @@ public class CTMCModelChecker extends DTMCModelChecker
 	// Model checking functions
 
 	@Override
+	protected StateValues checkProbPathFormulaLTL(Model model, Expression expr, boolean qual, MinMax minMax) throws PrismException
+	{
+		mainLog.println("Building embedded DTMC...");
+		DTMC dtmcEmb = ((CTMC)model).buildImplicitEmbeddedDTMC();
+		
+		// use superclass (DTMCModelChecker) method on the embedded DTMC
+		return super.checkProbPathFormulaLTL(dtmcEmb, expr, qual, minMax);
+	}
+	
+	@Override
 	protected StateValues checkProbBoundedUntil(Model model, ExpressionTemporal expr, MinMax minMax) throws PrismException
 	{
 		double lTime, uTime; // time bounds
