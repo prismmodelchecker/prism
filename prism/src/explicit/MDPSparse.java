@@ -538,8 +538,8 @@ public class MDPSparse extends MDPExplicit
 	@Override
 	public Iterator<Integer> getSuccessorsIterator(final int s, final int i)
 	{
-		int start = choiceStarts[rowStarts[s]];
-		int end = choiceStarts[rowStarts[s + 1]];
+		int start = choiceStarts[rowStarts[s] + i];
+		int end = choiceStarts[rowStarts[s] + i + 1];
 		List<Integer> succs = new ArrayList<Integer>();
 		for (int j = start; j < end; j++) {
 			succs.add(cols[j]);
