@@ -50,7 +50,7 @@ public class Simplify extends ASTTraverseModify
 			if (Expression.isFalse(e.getOperand1()) || Expression.isTrue(e.getOperand2()))
 				return Expression.True();
 			if (Expression.isFalse(e.getOperand2()))
-				return e.getOperand1();
+				return Expression.Not(e.getOperand1());
 			if (Expression.isTrue(e.getOperand1()))
 				return e.getOperand2();
 			break;
