@@ -31,6 +31,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -195,17 +196,17 @@ public class SubNondetModel implements NondetModel
 	public Iterator<Integer> getSuccessorsIterator(int s)
 	{
 		s = translateState(s);
-		List<Integer> succ = new ArrayList<Integer>();
+		HashSet<Integer> succs = new HashSet<Integer>();
 		for (int i = 0; i < model.getNumChoices(s); i++) {
 			if (actions.get(s).get(i)) {
 				Iterator<Integer> it = model.getSuccessorsIterator(s, i);
 				while (it.hasNext()) {
 					int j = it.next();
-					succ.add(inverseTranslateState(j));
+					succs.add(inverseTranslateState(j));
 				}
 			}
 		}
-		return succ.iterator();
+		return succs.iterator();
 	}
 
 	@Override
