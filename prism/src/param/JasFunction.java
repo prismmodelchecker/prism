@@ -182,6 +182,16 @@ final class JasFunction extends Function {
 		if (this.isNaN() || other.isNaN()) {
 			return factory.getNaN();
 		}
+		if (other.isZero()) {
+			if (this.isZero()) {
+				return factory.getNaN();
+			} else {
+				return factory.getInf();
+			}
+		}
+		if (this.isZero()) {
+			return factory.getZero();
+		}
 		return new JasFunction((JasFunctionFactory) factory, jas.divide(((JasFunction) other).jas), NORMAL);
 	}
 	
