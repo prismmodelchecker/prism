@@ -42,8 +42,10 @@ import jdd.JDDNode;
 import jdd.JDDVars;
 import mtbdd.PrismMTBDD;
 import odd.ODDUtils;
+import param.BigRational;
 import param.ModelBuilder;
 import param.ParamModelChecker;
+import param.RegionValues;
 import parser.ExplicitFiles2ModulesFile;
 import parser.PrismParser;
 import parser.State;
@@ -2951,6 +2953,56 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		getSimulator().modelCheckExperiment(currentModulesFile, propertiesFile, undefinedConstants, results, expr, initialState, maxPathLength, simMethod);
 	}
 
+	/**
+	 * Perform model checking on the currently loaded model using exact methods
+	 * (currently, this is done via the parametric model checking functionality)
+	 * @param propertiesFile parent properties file
+	 * @param prop property to model check
+	 */
+	public Result modelCheckExact(PropertiesFile propertiesFile, Property prop) throws PrismException
+	{
+		// Some checks
+		if (!(currentModelType == ModelType.DTMC || currentModelType == ModelType.CTMC || currentModelType == ModelType.MDP))
+			throw new PrismException("Exact model checking is only supported for DTMCs, CTMCs and MDPs");
+
+		// Print info
+		mainLog.printSeparator();
+		mainLog.println("\nExact model checking: " + prop);
+		if (currentDefinedMFConstants != null && currentDefinedMFConstants.getNumValues() > 0)
+			mainLog.println("Model constants: " + currentDefinedMFConstants);
+		Values definedPFConstants = propertiesFile.getConstantValues();
+		if (definedPFConstants != null && definedPFConstants.getNumValues() > 0)
+			mainLog.println("Property constants: " + definedPFConstants);
+
+		// Set up a dummy parameter (not used)
+		String[] paramNames = new String[] { "dummy" };
+		String[] paramLowerBounds = new String[] { "0" };
+		String[] paramUpperBounds = new String[] { "1" };
+		// And execute parameteric model checking
+		param.ModelBuilder builder = new ModelBuilder(this);
+		builder.setModulesFile(currentModulesFile);
+		builder.setParameters(paramNames, paramLowerBounds, paramUpperBounds);
+		builder.build();
+		explicit.Model modelExpl = builder.getModel();
+		ParamModelChecker mc = new ParamModelChecker(this);
+		mc.setModelBuilder(builder);
+		mc.setParameters(paramNames, paramLowerBounds, paramUpperBounds);
+		mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);
+		Result result = mc.check(modelExpl, prop.getExpression());
+		
+		// Convert result of parametric model checking to just a rational
+		// There should be just one region since no parameters are used
+		RegionValues regVals = (RegionValues) result.getResult();
+		if (regVals.getNumRegions() != 1)
+			throw new PrismException("Unexpected result from paramteric model checker");
+		param.Function func = regVals.getResult(0).getInitStateValueAsFunction();
+		// Evaluate the function at an arbitrary point (should not depend on parameter values)
+		BigRational rat = func.evaluate(new param.Point(new BigRational[] { new BigRational(0) }));
+		
+		result.setResult(rat);
+		return result;
+	}
+	
 	/**
 	 * Perform parametric model checking on the currently loaded model.
 	 * @param propertiesFile parent properties file
