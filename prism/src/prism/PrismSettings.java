@@ -109,6 +109,8 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_PARETO_EPSILON					= "prism.paretoEpsilon";
 	public static final	String PRISM_EXPORT_PARETO_FILENAME			= "prism.exportParetoFileName";
 	
+	public static final	String PRISM_EXACT_ENABLED					= "prism.exact.enabled";
+	
 	public static final	String PRISM_PARAM_ENABLED					= "prism.param.enabled";
 	public static final	String PRISM_PARAM_PRECISION				= "prism.param.precision";
 	public static final	String PRISM_PARAM_SPLIT					= "prism.param.split";
@@ -293,6 +295,10 @@ public class PrismSettings implements Observer
 			{ STRING_TYPE,		PRISM_EXPORT_ADV_FILENAME,				"Adversary export filename",			"3.3",			"adv.tra",																	"",															
 																			"Name of file for MDP adversary export (if enabled)" },
 																		
+			// EXACT MODEL CHECKING
+			{ BOOLEAN_TYPE,		PRISM_EXACT_ENABLED,					"Do exact model checking",			"4.2.1",			new Boolean(false),															"",
+																			"Perform exact model checking." },
+			
 			// PARAMETRIC MODEL CHECKING
 			{ BOOLEAN_TYPE,		PRISM_PARAM_ENABLED,					"Do parametric model checking",			"4.1",			new Boolean(false),															"",
 																			"Perform parametric model checking." },
@@ -1211,6 +1217,12 @@ public class PrismSettings implements Observer
 			} else {
 				throw new PrismException("No file specified for -" + sw + " switch");
 			}
+		}
+		
+		// EXACT MODEL CHECKING:
+		
+		else if (sw.equals("exact")) {
+			set(PRISM_EXACT_ENABLED, true);
 		}
 		
 		// PARAMETRIC MODEL CHECKING:

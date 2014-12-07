@@ -34,6 +34,7 @@ import java.util.Vector;
 import javax.swing.*;
 
 import userinterface.GUIPrism;
+import param.BigRational;
 import parser.*;
 import parser.ast.*;
 import parser.type.TypeVoid;
@@ -317,6 +318,8 @@ public class GUIProperty
 		} else if (result.getResult() instanceof Integer) {
 			setStatus(STATUS_RESULT_NUMBER);
 		} else if (result.getResult() instanceof Double) {
+			setStatus(STATUS_RESULT_NUMBER);
+		} else if (result.getResult() instanceof BigRational) {
 			setStatus(STATUS_RESULT_NUMBER);
 		} else if (result.getResult() instanceof Interval) {
 			setStatus(STATUS_RESULT_NUMBER);

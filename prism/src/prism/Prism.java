@@ -2719,6 +2719,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			return modelCheckPTA(propertiesFile, prop.getExpression(), definedPFConstants);
 		}
 
+		// For exact model checking
+		if (settings.getBoolean(PrismSettings.PRISM_EXACT_ENABLED)) {
+			return modelCheckExact(propertiesFile, prop);
+		}
 		// For fast adaptive uniformisation
 		if (currentModelType == ModelType.CTMC && settings.getString(PrismSettings.PRISM_TRANSIENT_METHOD).equals("Fast adaptive uniformisation")) {
 			FastAdaptiveUniformisationModelChecker fauMC;
@@ -2964,15 +2968,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Some checks
 		if (!(currentModelType == ModelType.DTMC || currentModelType == ModelType.CTMC || currentModelType == ModelType.MDP))
 			throw new PrismException("Exact model checking is only supported for DTMCs, CTMCs and MDPs");
-
-		// Print info
-		mainLog.printSeparator();
-		mainLog.println("\nExact model checking: " + prop);
-		if (currentDefinedMFConstants != null && currentDefinedMFConstants.getNumValues() > 0)
-			mainLog.println("Model constants: " + currentDefinedMFConstants);
-		Values definedPFConstants = propertiesFile.getConstantValues();
-		if (definedPFConstants != null && definedPFConstants.getNumValues() > 0)
-			mainLog.println("Property constants: " + definedPFConstants);
 
 		// Set up a dummy parameter (not used)
 		String[] paramNames = new String[] { "dummy" };
