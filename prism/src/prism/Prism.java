@@ -2998,8 +2998,16 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		param.Function func = regVals.getResult(0).getInitStateValueAsFunction();
 		// Evaluate the function at an arbitrary point (should not depend on parameter values)
 		BigRational rat = func.evaluate(new param.Point(new BigRational[] { new BigRational(0) }));
-		
+		// Restore in result object
 		result.setResult(rat);
+		
+		// Print result to log
+		String resultString = "Result";
+		if (!("Result".equals(prop.getExpression().getResultName())))
+			resultString += " (" + prop.getExpression().getResultName().toLowerCase() + ")";
+		resultString += ": " + result.getResultString();
+		mainLog.print("\n" + resultString);
+		
 		return result;
 	}
 	
@@ -3044,7 +3052,16 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mc.setModelBuilder(builder);
 		mc.setParameters(paramNames, paramLowerBounds, paramUpperBounds);
 		mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);
-		return mc.check(modelExpl, prop.getExpression());
+		Result result = mc.check(modelExpl, prop.getExpression());
+		
+		// Print result to log
+		String resultString = "Result";
+		if (!("Result".equals(prop.getExpression().getResultName())))
+			resultString += " (" + prop.getExpression().getResultName().toLowerCase() + ")";
+		resultString += ": " + result.getResultString();
+		mainLog.print("\n" + resultString);
+		
+		return result;
 	}
 	
 	/**

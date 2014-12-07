@@ -249,13 +249,6 @@ final public class ParamModelChecker extends PrismComponent
 		vals.clearExceptInit();
 		result.setResult(vals);
 		
-		// Print result to log
-		String resultString = "Result";
-		if (!("Result".equals(expr.getResultName())))
-			resultString += " (" + expr.getResultName().toLowerCase() + ")";
-		resultString += ": " + result.getResultString();
-		mainLog.print("\n" + resultString);
-		
 		/* // Output plot to tex file
 		if (paramLower.length == 2) {
 			try {
