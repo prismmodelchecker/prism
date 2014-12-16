@@ -65,7 +65,7 @@ fi
 ICON_OPTION="-Xdock:name=PRISM -Xdock:icon=$PRISM_DIR/etc/icons/p64.png"
 
 # Run PRISM through Java
-"$PRISM_JAVA" -d64 $PRISM_JAVA_DEBUG $PRISM_JAVAMAXMEM $ICON_OPTION -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path="$JAVA_LIBRARY_PATH" -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"
+"$PRISM_JAVA" -d64 $PRISM_JAVA_DEBUG $PRISM_JAVAMAXMEM "$ICON_OPTION" -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path="$JAVA_LIBRARY_PATH" -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"
 
 PRISM_EXIT_CODE=$?
 
