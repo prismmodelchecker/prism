@@ -38,6 +38,8 @@ import prism.DRA;
 import prism.Pair;
 import prism.PrismComponent;
 import prism.PrismException;
+import prism.PrismFileLog;
+import prism.PrismLog;
 import prism.PrismUtils;
 import explicit.rewards.MCRewards;
 
@@ -84,10 +86,17 @@ public class DTMCModelChecker extends ProbModelChecker
 		time = System.currentTimeMillis();
 		dra = LTLModelChecker.convertLTLFormulaToDRA(ltl);
 		int draSize = dra.size();
-		mainLog.println("\nDRA has " + dra.size() + " states, " + dra.getNumAcceptancePairs() + " pairs.");
-		// dra.print(System.out);
+		mainLog.println("DRA has " + dra.size() + " states, " + dra.getNumAcceptancePairs() + " pairs.");
 		time = System.currentTimeMillis() - time;
-		mainLog.println("\nTime for Rabin translation: " + time / 1000.0 + " seconds.");
+		mainLog.println("Time for Rabin translation: " + time / 1000.0 + " seconds.");
+		// If required, export DRA 
+		if (settings.getExportPropAut()) {
+			mainLog.println("Exporting DRA to file \"" + settings.getExportPropAutFilename() + "\"...");
+			PrismLog out = new PrismFileLog(settings.getExportPropAutFilename());
+			out.println(dra);
+			out.close();
+			//dra.printDot(new java.io.PrintStream("dra.dot"));
+		}
 
 		// Build product of Markov chain and automaton
 		mainLog.println("\nConstructing MC-DRA product...");

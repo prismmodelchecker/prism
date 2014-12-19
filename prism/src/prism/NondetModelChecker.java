@@ -673,10 +673,18 @@ public class NondetModelChecker extends NonProbModelChecker
 		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
 		long l = System.currentTimeMillis();
 		dra[i] = LTLModelChecker.convertLTLFormulaToDRA(ltl);
-		mainLog.print("\nDRA has " + dra[i].size() + " states, " + ", " + dra[i].getNumAcceptancePairs() + " pairs.");
-		//dra[i].print(System.out);
+		mainLog.print("DRA has " + dra[i].size() + " states, " + ", " + dra[i].getNumAcceptancePairs() + " pairs.");
 		l = System.currentTimeMillis() - l;
-		mainLog.println("\nTime for Rabin translation: " + l / 1000.0 + " seconds.");
+		mainLog.println("Time for Rabin translation: " + l / 1000.0 + " seconds.");
+		// If required, export DRA 
+		if (prism.getSettings().getExportPropAut()) {
+			String exportPropAutFilename = PrismUtils.addCounterSuffixToFilename(prism.getSettings().getExportPropAutFilename(), i);
+			mainLog.println("Exporting DRA to file \"" + exportPropAutFilename + "\"...");
+			PrismLog out = new PrismFileLog(exportPropAutFilename);
+			out.println(dra);
+			out.close();
+			//dra.printDot(new java.io.PrintStream("dra.dot"));
+		}
 
 		// Build product of MDP and automaton
 		mainLog.println("\nConstructing MDP-DRA product...");
@@ -1469,13 +1477,17 @@ public class NondetModelChecker extends NonProbModelChecker
 		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
 		l = System.currentTimeMillis();
 		dra = LTLModelChecker.convertLTLFormulaToDRA(ltl);
-		mainLog.println("\nDRA has " + dra.size() + " states, " + dra.getNumAcceptancePairs() + " pairs.");
-		/*try {
-			mainLog.print(dra);
-			dra.printDot(new java.io.PrintStream("dra.dot"));
-		} catch(Exception e) {}*/
+		mainLog.println("DRA has " + dra.size() + " states, " + dra.getNumAcceptancePairs() + " pairs.");
 		l = System.currentTimeMillis() - l;
-		mainLog.println("\nTime for Rabin translation: " + l / 1000.0 + " seconds.");
+		mainLog.println("Time for Rabin translation: " + l / 1000.0 + " seconds.");
+		// If required, export DRA 
+		if (prism.getSettings().getExportPropAut()) {
+			mainLog.println("Exporting DRA to file \"" + prism.getSettings().getExportPropAutFilename() + "\"...");
+			PrismLog out = new PrismFileLog(prism.getSettings().getExportPropAutFilename());
+			out.println(dra);
+			out.close();
+			//dra.printDot(new java.io.PrintStream("dra.dot"));
+		}
 
 		// Build product of MDP and automaton
 		mainLog.println("\nConstructing MDP-DRA product...");

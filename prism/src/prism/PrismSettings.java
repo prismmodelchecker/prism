@@ -803,7 +803,33 @@ public class PrismSettings implements Observer
 		
 		notifySettingsListeners();
 	}
+
+	// HIDDEN OPTIONS
 	
+	// Export property automaton info?
+	protected boolean exportPropAut = false;
+	protected String exportPropAutFilename = null;
+	
+	public void setExportPropAut(boolean b) throws PrismException
+	{
+		exportPropAut = b;
+	}
+
+	public void setExportPropAutFilename(String s) throws PrismException
+	{
+		exportPropAutFilename = s;
+	}
+
+	public boolean getExportPropAut()
+	{
+		return exportPropAut;
+	}
+
+	public String getExportPropAutFilename()
+	{
+		return exportPropAutFilename;
+	}
+
 	/**
 	 * Set an option by parsing one or more command-line arguments.
 	 * Reads the ith argument (assumed to be in the form "-switch")
@@ -1403,6 +1429,18 @@ public class PrismSettings implements Observer
 			}
 		}
 
+		// HIDDEN OPTIONS
+		
+		// export property automaton to file (hidden option)
+		else if (sw.equals("exportpropaut")) {
+			if (i < args.length - 1) {
+				setExportPropAut(true);
+				setExportPropAutFilename(args[++i]);
+			} else {
+				throw new PrismException("No file specified for -" + sw + " switch");
+			}
+		}
+		
 		// unknown switch - error
 		else {
 			throw new PrismException("Invalid switch -" + sw + " (type \"prism -help\" for full list)");
