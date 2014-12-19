@@ -583,9 +583,9 @@ public class ProbModelChecker extends NonProbModelChecker
 		l = System.currentTimeMillis() - l;
 		mainLog.println("Time for Rabin translation: " + l / 1000.0 + " seconds.");
 		// If required, export DRA 
-		if (prism.getExportPropAut()) {
-			mainLog.println("Exporting DRA to file \"" + prism.getExportPropAutFilename() + "\"...");
-			PrismLog out = new PrismFileLog(prism.getExportPropAutFilename());
+		if (prism.getSettings().getExportPropAut()) {
+			mainLog.println("Exporting DRA to file \"" + prism.getSettings().getExportPropAutFilename() + "\"...");
+			PrismLog out = new PrismFileLog(prism.getSettings().getExportPropAutFilename());
 			out.println(dra);
 			out.close();
 			//dra.printDot(new java.io.PrintStream("dra.dot"));
