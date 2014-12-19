@@ -665,6 +665,27 @@ public class LTLModelChecker extends PrismComponent
 	}
 
 	/**
+	 * Find the set of states in a model corresponding to the "target" part of a Rabin acceptance condition,
+	 * i.e. just the union of the K_i parts of the (L_i,K_i) pairs.  
+	 * @param dra The DRA storing the Rabin acceptance condition
+	 * @param model The model
+	 * @param draDDRowVars BDD row variables for the DRA part of the model
+	 * @param draDDColVars BDD column variables for the DRA part of the model
+	 * @return
+	 */
+	public JDDNode findTargetStatesForRabin(DRA<BitSet> dra, Model model, JDDVars draDDRowVars, JDDVars draDDColVars)
+	{
+		JDDNode acceptingStates = JDD.Constant(0);
+		for (int i = 0; i < dra.getNumAcceptancePairs(); i++) {
+			JDDNode tmpK = buildKStatesForRabinPair(draDDRowVars, dra, i);
+			acceptingStates = JDD.Or(acceptingStates, tmpK);
+		}
+		JDD.Ref(model.getReach());
+		acceptingStates = JDD.And(model.getReach(), acceptingStates);
+		return acceptingStates;
+	}
+	
+	/**
 	 * Find the set of accepting BSCCs in a model wrt a Rabin acceptance condition.
 	 * @param dra The DRA storing the Rabin acceptance condition
 	 * @param draDDRowVars BDD row variables for the DRA part of the model

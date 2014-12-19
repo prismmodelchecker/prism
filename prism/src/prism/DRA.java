@@ -197,6 +197,20 @@ public class DRA<Symbol>
 	}
 
 	/**
+	 * Is this Rabin automaton actually a Buchi automaton? This check is done syntactically:
+	 * it returns true if L_i is empty for any acceptance paairs (L_i,K_i).
+	 */
+	public boolean isDBA()
+	{
+		int n = getNumAcceptancePairs();
+		for (int i = 0; i < n; i++) {
+			if (!getAcceptanceL(i).isEmpty())
+				return false;
+		}
+		return true;
+	}
+	
+	/**
 	 * Print DRA in DOT format to an output stream.
 	 */
 	public void printDot(PrintStream out) throws PrismException
