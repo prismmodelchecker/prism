@@ -311,6 +311,33 @@ public class LTLModelChecker extends PrismComponent
 	}
 
 	/**
+	 * Find the set of states in a model corresponding to the "target" part of a Rabin acceptance condition,
+	 * i.e. just the union of the K_i parts of the (L_i,K_i) pairs.  
+	 * @param dra The DRA
+	 * @param model The model
+	 * @param invMap The map returned by the constructProduct method(s)
+	 * @return
+	 */
+	public BitSet findTargetStatesForRabin(DRA<BitSet> dra, Model model, int invMap[])
+	{
+		// Get union of K_i sets
+		BitSet unionK = new BitSet();
+		int numAcceptancePairs = dra.getNumAcceptancePairs();
+		for (int acceptancePair = 0; acceptancePair < numAcceptancePairs; acceptancePair++) {
+			unionK.or(dra.getAcceptanceK(acceptancePair));
+		}
+		// Collate all model states with a K_i component
+		int draSize = dra.size();
+		int numStates = (int) model.getNumStates();
+		BitSet result = new BitSet();
+		for (int state = 0; state < numStates; state++) {
+			int draState = invMap[state] % draSize;
+			result.set(state, unionK.get(draState));
+		}
+		return result;
+	}
+	
+	/**
 	 * Find the set of states belong to accepting BSCCs in a model wrt a Rabin acceptance condition.
 	 * @param dra The DRA
 	 * @param model The model

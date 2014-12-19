@@ -615,9 +615,17 @@ public class ProbModelChecker extends NonProbModelChecker
 			out.close();
 		}
 
-		// Find accepting BSCCs + compute reachability probabilities
-		mainLog.println("\nFinding accepting BSCCs...");
-		JDDNode acc = mcLtl.findAcceptingBSCCsForRabin(dra, modelProduct, draDDRowVars, draDDColVars);
+		// Find accepting states + compute reachability probabilities
+		JDDNode acc = null;
+		if (dra.isDFA()) {
+			// For a DFA, just collect the accept states
+			mainLog.println("\nSkipping BSCC detection since DRA is a DFA...");
+			acc = mcLtl.findTargetStatesForRabin(dra, modelProduct, draDDRowVars, draDDColVars);
+		} else {
+			// Usually, we have to detect BSCCs in the product
+			mainLog.println("\nFinding accepting BSCCs...");
+			acc = mcLtl.findAcceptingBSCCsForRabin(dra, modelProduct, draDDRowVars, draDDColVars);
+		}
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = createNewModelChecker(prism, modelProduct, null);
 		probsProduct = mcProduct.checkProbUntil(modelProduct.getReach(), acc, qual);

@@ -105,13 +105,21 @@ public class DTMCModelChecker extends ProbModelChecker
 		int invMap[] = pair.second;
 		mainLog.print("\n" + modelProduct.infoStringTable());
 
-		// Find accepting BSCCs + compute reachability probabilities
-		mainLog.println("\nFinding accepting BSCCs...");
-		BitSet acceptingBSCCs = mcLtl.findAcceptingBSCCsForRabin(dra, modelProduct, invMap);
+		// Find accepting states + compute reachability probabilities
+		BitSet acc = null;
+		if (dra.isDFA()) {
+			// For a DFA, just collect the accept states
+			mainLog.println("\nSkipping BSCC detection since DRA is a DFA...");
+			acc = mcLtl.findTargetStatesForRabin(dra, modelProduct, invMap);
+		} else {
+			// Usually, we have to detect BSCCs in the product
+			mainLog.println("\nFinding accepting BSCCs...");
+			acc = mcLtl.findAcceptingBSCCsForRabin(dra, modelProduct, invMap);
+		}
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = new DTMCModelChecker(this);
 		mcProduct.inheritSettings(this);
-		probsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachProbs((DTMC) modelProduct, acceptingBSCCs).soln, modelProduct);
+		probsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachProbs((DTMC) modelProduct, acc).soln, modelProduct);
 
 		// Mapping probabilities in the original model
 		double[] probsProductDbl = probsProduct.getDoubleArray();

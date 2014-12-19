@@ -198,7 +198,7 @@ public class DRA<Symbol>
 
 	/**
 	 * Is this Rabin automaton actually a Buchi automaton? This check is done syntactically:
-	 * it returns true if L_i is empty for any acceptance paairs (L_i,K_i).
+	 * it returns true if L_i is empty for any acceptance pairs (L_i,K_i).
 	 */
 	public boolean isDBA()
 	{
@@ -206,6 +206,32 @@ public class DRA<Symbol>
 		for (int i = 0; i < n; i++) {
 			if (!getAcceptanceL(i).isEmpty())
 				return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * Is this Rabin automaton actually a finite automaton? This check is done syntactically:
+	 * it returns true if L_i is empty for any acceptance pairs (L_i,K_i)
+	 * and every transition from a K_i state goes to another K_i state.
+	 */
+	public boolean isDFA()
+	{
+		if (!isDBA())
+			return false;
+		// Compute union of all K_i sets
+		BitSet acc = new BitSet();
+		int n = getNumAcceptancePairs();
+		for (int i = 0; i < n; i++) {
+			acc.or(getAcceptanceK(i));
+		}
+		// Check if every transition from a K_i state goes to another K_i state.
+		for (int i = acc.nextSetBit(0); i >= 0; i = acc.nextSetBit(i + 1)) {
+			int m = getNumEdges(i);
+			for (int j = 0; j < m; j++) {
+				if (!acc.get(getEdgeDest(i, j)))
+						return false;
+			}
 		}
 		return true;
 	}
