@@ -27,16 +27,19 @@
 package explicit;
 
 import java.util.BitSet;
+import java.util.List;
 
 import parser.ast.Expression;
 import parser.ast.ExpressionProb;
 import parser.ast.ExpressionReward;
 import parser.ast.ExpressionSS;
+import parser.ast.ExpressionStrategy;
 import parser.ast.ExpressionTemporal;
 import parser.ast.ExpressionUnaryOp;
 import parser.ast.RelOp;
 import parser.ast.RewardStruct;
 import parser.type.TypeDouble;
+import prism.ModelType;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismSettings;
@@ -454,6 +457,10 @@ public class ProbModelChecker extends NonProbModelChecker
 		else if (expr instanceof ExpressionSS) {
 			res = checkExpressionSteadyState(model, (ExpressionSS) expr);
 		}
+		// <<>> operator
+		else if (expr instanceof ExpressionStrategy) {
+			res = checkExpressionStrategy(model, (ExpressionStrategy) expr);
+		}
 		// Otherwise, use the superclass
 		else {
 			res = super.checkExpression(model, expr);
@@ -463,13 +470,64 @@ public class ProbModelChecker extends NonProbModelChecker
 	}
 
 	/**
+	 * Model check a <<>> or [[]] operator expression and return the values for all states.
+	 */
+	protected StateValues checkExpressionStrategy(Model model, ExpressionStrategy expr) throws PrismException
+	{
+		// Only support <<>> right now, not [[]]
+		if (!expr.isThereExists())
+			throw new PrismException("The " + expr.getOperatorString() + " operator is not yet supported");
+
+		// Only support <<>> for MDPs right now
+		if (!(this instanceof MDPModelChecker))
+			throw new PrismException("The " + expr.getOperatorString() + " operator is only supported for MDPs currently");
+
+		// Extract coalition info
+		List<String> coalition = expr.getCoalition();
+		// Strip any parentheses (they might have been needless wrapped around a single P or R)
+		Expression exprSub = expr.getExpression();
+		while (Expression.isParenth(exprSub))
+			exprSub = ((ExpressionUnaryOp) exprSub).getOperand();
+		// Pass onto relevant method:
+		// P operator
+		if (exprSub instanceof ExpressionProb) {
+			return checkExpressionProb(model, (ExpressionProb) exprSub, false, coalition);
+		}
+		// R operator
+		else if (exprSub instanceof ExpressionReward) {
+			return checkExpressionReward(model, (ExpressionReward) exprSub, false, coalition);
+		}
+		// Anything else is an error 
+		else {
+			throw new PrismException("Unexpected operators in " + expr.getOperatorString() + " operator");
+		}
+	}
+
+	/**
 	 * Model check a P operator expression and return the values for all states.
 	 */
 	protected StateValues checkExpressionProb(Model model, ExpressionProb expr) throws PrismException
 	{
+		// Use the default semantics for a standalone P operator
+		// (i.e. quantification over all strategies, and no game-coalition info)
+		return checkExpressionProb(model, expr, true, null);
+	}
+	
+	/**
+	 * Model check a P operator expression and return the values for all states.
+	 * @param model The model
+	 * @param expr The P operator expression
+	 * @param forAll Are we checking "for all strategies" (true) or "there exists a strategy" (false)? [irrelevant for numerical (=?) queries] 
+	 * @param coalition If relevant, info about which set of players this P operator refers to
+	 */
+	protected StateValues checkExpressionProb(Model model, ExpressionProb expr, boolean forAll, List<String> coalition) throws PrismException
+	{
 		Expression pb; // Probability bound (expression)
 		double p = 0; // Probability bound (actual value)
 		RelOp relOp; // Relational operator
+		MinMax minMax = MinMax.blank();
+		ModelType modelType = model.getModelType();
+		
 		StateValues probs = null;
 
 		// Get info from P operator
@@ -481,8 +539,19 @@ public class ProbModelChecker extends NonProbModelChecker
 				throw new PrismException("Invalid probability bound " + p + " in P operator");
 		}
 
+		// For nondeterministic models, determine whether min or max probabilities needed
+		if (modelType.nondeterministic()) {
+			if (relOp == RelOp.EQ && pb == null) {
+				throw new PrismException("Can't use \"P=?\" for nondeterministic models; use \"Pmin=?\" or \"Pmax=?\"");
+			}
+			if (modelType == ModelType.MDP || modelType == ModelType.CTMDP) {
+				minMax = (relOp.isLowerBound() || relOp.isMin()) ? MinMax.min() : MinMax.max();
+			} else {
+				throw new PrismException("Don't know how to model check " + expr.getTypeOfPOperator() + " properties for " + modelType + "s");
+			}
+		}
+
 		// Compute probabilities
-		MinMax minMax = (relOp.isLowerBound() || relOp.isMin()) ? MinMax.min() : MinMax.max();
 		probs = checkProbPathFormula(model, expr.getExpression(), minMax);
 
 		// Print out probabilities
@@ -681,13 +750,23 @@ public class ProbModelChecker extends NonProbModelChecker
 	}
 
 	/**
-	 * Model check an R operator expression and return the values for all states.
+	 * Model check a P operator expression and return the values for all states.
 	 */
 	protected StateValues checkExpressionReward(Model model, ExpressionReward expr) throws PrismException
+	{
+		return checkExpressionReward(model, expr, true, null);
+	}
+	
+	/**
+	 * Model check an R operator expression and return the values for all states.
+	 */
+	protected StateValues checkExpressionReward(Model model, ExpressionReward expr, boolean forAll, List<String> coalition) throws PrismException
 	{
 		Expression rb; // Reward bound (expression)
 		double r = 0; // Reward bound (actual value)
 		RelOp relOp; // Relational operator
+		MinMax minMax = MinMax.blank();
+		ModelType modelType = model.getModelType();
 		StateValues rews = null;
 		Rewards rewards = null;
 
@@ -701,12 +780,23 @@ public class ProbModelChecker extends NonProbModelChecker
 				throw new PrismException("Invalid reward bound " + r + " in R[] formula");
 		}
 
+		// For nondeterministic models, determine whether min or max rewards needed
+		if (modelType.nondeterministic()) {
+			if (relOp == RelOp.EQ && rb == null) {
+				throw new PrismException("Can't use \"R=?\" for nondeterministic models; use \"Rmin=?\" or \"Rmax=?\"");
+			}
+			if (modelType == ModelType.MDP || modelType == ModelType.CTMDP) {
+				minMax = (relOp.isLowerBound() || relOp.isMin()) ? MinMax.min() : MinMax.max();
+			} else {
+				throw new PrismException("Don't know how to model check " + expr.getTypeOfROperator() + " properties for " + modelType + "s");
+			}
+		}
+
 		// Build rewards
 		mainLog.println("Building reward structure...");
 		rewards = constructRewards(model, rewStruct);
 
 		// Compute rewards
-		MinMax minMax = (relOp.isLowerBound() || relOp.isMin()) ? MinMax.min() : MinMax.max();
 		rews = checkRewardFormula(model, rewards, expr.getExpression(), minMax);
 
 		// Print out rewards

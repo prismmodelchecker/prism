@@ -84,6 +84,11 @@ public class MinMax
 	
 	// Utility methods to create instances of this class
 	
+	public static MinMax blank()
+	{
+		return new MinMax();
+	}
+	
 	public static MinMax min()
 	{
 		MinMax minMax = new MinMax();

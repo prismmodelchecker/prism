@@ -127,6 +127,17 @@ public class ExpressionReward extends Expression
 	// Other methods
 	
 	/**
+	 * Get a string describing the type of R operator, e.g. "R=?" or "R<r".
+	 */
+	public String getTypeOfROperator()
+	{
+		String s = "";
+		s += "R" + relOp;
+		s += (reward == null) ? "?" : "r";
+		return s;
+	}
+
+	/**
 	 * Get the reward structure (from a model) corresponding to the index of this R operator.
 	 * Throws an exception (with explanatory message) if it cannot be found.
 	 */

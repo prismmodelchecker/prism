@@ -101,6 +101,17 @@ public class ExpressionProb extends Expression
 		return filter;
 	}
 
+	/**
+	 * Get a string describing the type of P operator, e.g. "P=?" or "P<p".
+	 */
+	public String getTypeOfPOperator()
+	{
+		String s = "";
+		s += "P" + relOp;
+		s += (prob == null) ? "?" : "p";
+		return s;
+	}
+
 	// Methods required for Expression:
 
 	/**
