@@ -28,11 +28,14 @@ package parser.ast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import prism.PrismUtils;
 
 /**
  * Class to represent coalition info, e.g., in an ExpressionStrategy object.
+ * Stored as a list of strings which are either player names (e.g. "controller")
+ * or player indices (e.g. "2") starting from 1. Alternatively, "*" denotes all players.
  */
 public class Coalition
 {
@@ -67,12 +70,19 @@ public class Coalition
 
 	// Set methods
 
+	/**
+	 * Make this coalition comprise all players (denoted "*")
+	 */
 	public void setAllPlayers()
 	{
 		allPlayers = true;
 		players = null;
 	}
 
+	/**
+	 * Make this coalition comprise these players
+	 * (each string can be a player name or a (1-indexed) player index)
+	 */
 	public void setPlayers(List<String> players)
 	{
 		allPlayers = false;
@@ -82,14 +92,71 @@ public class Coalition
 
 	// Get methods
 
+	/**
+	 * Does this coalition comprise all players? (denoted "*")
+	 */
 	public boolean isAllPlayers()
 	{
 		return allPlayers;
 	}
 	
+	/**
+	 * Get a list of strings describing the coalition
+	 * (each string can be a player name or a (1-indexed) player index).
+	 * This will be null is the coalition is "*" (all players).
+	 */
 	public List<String> getPlayers()
 	{
 		return players;
+	}
+	
+	// Other methods
+	
+	/**
+	 * Check if a given player (specified by its index) is in the coalition.
+	 * Player indices start from 1. A list of player names must be passed in,
+	 * whose size equals the number of players, but in which some names can be null or "".
+	 */
+	public boolean isPlayerIndexInCoalition(int index, List<String> playerNames)
+	{
+		if (allPlayers)
+			return true;
+		int playerIndex;
+		for (String player : players) {
+			try {
+				playerIndex = Integer.parseInt(player);
+				if (index == playerIndex)
+					return true;
+			} catch (NumberFormatException e) {
+				playerIndex = playerNames.indexOf(player);
+				if (playerIndex != -1 && index == playerIndex)
+					return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Check if a given player (specified by its index) is in the coalition.
+	 * Player indices start from 1. A mapping from player names to indices is passed in.
+	 */
+	public boolean isPlayerIndexInCoalition(int index, Map<String, Integer> playerNamesMap)
+	{
+		if (allPlayers)
+			return true;
+		int playerIndex;
+		for (String player : players) {
+			try {
+				playerIndex = Integer.parseInt(player);
+				if (index == playerIndex)
+					return true;
+			} catch (NumberFormatException e) {
+				Integer playerIndexI = playerNamesMap.get(player);
+				if (playerIndexI != null && index == (int) playerIndexI)
+					return true;
+			}
+		}
+		return false;
 	}
 	
 	@Override
