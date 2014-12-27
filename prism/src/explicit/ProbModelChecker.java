@@ -27,8 +27,8 @@
 package explicit;
 
 import java.util.BitSet;
-import java.util.List;
 
+import parser.ast.Coalition;
 import parser.ast.Expression;
 import parser.ast.ExpressionProb;
 import parser.ast.ExpressionReward;
@@ -483,7 +483,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			throw new PrismException("The " + expr.getOperatorString() + " operator is only supported for MDPs currently");
 
 		// Extract coalition info
-		List<String> coalition = expr.getCoalition();
+		Coalition coalition = expr.getCoalition();
 		// Strip any parentheses (they might have been needless wrapped around a single P or R)
 		Expression exprSub = expr.getExpression();
 		while (Expression.isParenth(exprSub))
@@ -520,7 +520,7 @@ public class ProbModelChecker extends NonProbModelChecker
 	 * @param forAll Are we checking "for all strategies" (true) or "there exists a strategy" (false)? [irrelevant for numerical (=?) queries] 
 	 * @param coalition If relevant, info about which set of players this P operator refers to
 	 */
-	protected StateValues checkExpressionProb(Model model, ExpressionProb expr, boolean forAll, List<String> coalition) throws PrismException
+	protected StateValues checkExpressionProb(Model model, ExpressionProb expr, boolean forAll, Coalition coalition) throws PrismException
 	{
 		Expression pb; // Probability bound (expression)
 		double p = 0; // Probability bound (actual value)
@@ -760,7 +760,7 @@ public class ProbModelChecker extends NonProbModelChecker
 	/**
 	 * Model check an R operator expression and return the values for all states.
 	 */
-	protected StateValues checkExpressionReward(Model model, ExpressionReward expr, boolean forAll, List<String> coalition) throws PrismException
+	protected StateValues checkExpressionReward(Model model, ExpressionReward expr, boolean forAll, Coalition coalition) throws PrismException
 	{
 		Expression rb; // Reward bound (expression)
 		double r = 0; // Reward bound (actual value)

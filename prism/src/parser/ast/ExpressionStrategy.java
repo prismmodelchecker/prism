@@ -26,13 +26,11 @@
 
 package parser.ast;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import parser.EvaluateContext;
 import parser.visitor.ASTVisitor;
 import prism.PrismLangException;
-import prism.PrismUtils;
 
 /**
  * Class to represent ATL <<.>> and [[.]] operators, i.e. quantification over strategies
@@ -43,9 +41,8 @@ public class ExpressionStrategy extends Expression
 	/** "There exists a strategy" (true) or "for all strategies" (false) */
 	protected boolean thereExists = false;
 	
-	// Coalition info (for game models)
-	/** Coalition: list of player names */
-	protected List<String> coalition = null; 
+	/** Coalition info (for game models) */
+	protected Coalition coalition = new Coalition(); 
 	
 	/** Child expression */
 	protected Expression expression = null;
@@ -54,7 +51,6 @@ public class ExpressionStrategy extends Expression
 
 	public ExpressionStrategy()
 	{
-
 	}
 
 	public ExpressionStrategy(boolean thereExists)
@@ -75,9 +71,14 @@ public class ExpressionStrategy extends Expression
 		this.thereExists = thereExists;
 	}
 	
+	public void setCoalitionAllPlayers()
+	{
+		this.coalition.setAllPlayers();
+	}
+
 	public void setCoalition(List<String> coalition)
 	{
-		this.coalition = coalition;
+		this.coalition.setPlayers(coalition);
 	}
 
 	public void setExpression(Expression expression)
@@ -100,9 +101,19 @@ public class ExpressionStrategy extends Expression
 		return thereExists ? "<<>>" : "[[]]";
 	}
 
-	public List<String> getCoalition()
+	public Coalition getCoalition()
 	{
 		return coalition;
+	}
+	
+	public boolean coalitionIsAllPlayers()
+	{
+		return coalition.isAllPlayers();
+	}
+	
+	public List<String> getCoalitionPlayers()
+	{
+		return coalition.getPlayers();
 	}
 	
 	public Expression getExpression()
@@ -155,7 +166,7 @@ public class ExpressionStrategy extends Expression
 	{
 		String s = "";
 		s += (thereExists ? "<<" : "[[");
-		s += PrismUtils.joinString(coalition, ",");
+		s += coalition;
 		s += (thereExists ? ">>" : "]]");
 		s += " " + expression.toString();
 		return s;
@@ -166,7 +177,7 @@ public class ExpressionStrategy extends Expression
 	{
 		ExpressionStrategy expr = new ExpressionStrategy();
 		expr.setThereExists(isThereExists());
-		expr.setCoalition(new ArrayList<String>(coalition));
+		expr.coalition = new Coalition(coalition);
 		expr.setExpression(expression == null ? null : expression.deepCopy());
 		expr.setType(type);
 		expr.setPosition(this);
