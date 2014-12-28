@@ -26,8 +26,10 @@
 
 package parser.ast;
 
-import parser.*;
-import parser.visitor.*;
+import parser.EvaluateContext;
+import parser.Values;
+import parser.visitor.ASTVisitor;
+import prism.OpRelOpBound;
 import prism.PrismException;
 import prism.PrismLangException;
 
@@ -170,6 +172,20 @@ public class ExpressionReward extends Expression
 		}
 		return rewStruct;
 		
+	}
+	
+	/**
+	 * Get info about the operator and bound.
+	 * @param constantValues Values for constants in order to evaluate any bound
+	 */
+	public OpRelOpBound getRelopBoundInfo(Values constantValues) throws PrismException
+	{
+		if (reward != null) {
+			double bound = reward.evaluateDouble(constantValues);
+			return new OpRelOpBound("R", relOp, bound);
+		} else {
+			return new OpRelOpBound("R", relOp, null);
+		}
 	}
 	
 	// Methods required for Expression:

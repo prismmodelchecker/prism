@@ -36,10 +36,9 @@ import parser.ast.ExpressionSS;
 import parser.ast.ExpressionStrategy;
 import parser.ast.ExpressionTemporal;
 import parser.ast.ExpressionUnaryOp;
-import parser.ast.RelOp;
 import parser.ast.RewardStruct;
 import parser.type.TypeDouble;
-import prism.ModelType;
+import prism.OpRelOpBound;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismSettings;
@@ -522,37 +521,13 @@ public class ProbModelChecker extends NonProbModelChecker
 	 */
 	protected StateValues checkExpressionProb(Model model, ExpressionProb expr, boolean forAll, Coalition coalition) throws PrismException
 	{
-		Expression pb; // Probability bound (expression)
-		double p = 0; // Probability bound (actual value)
-		RelOp relOp; // Relational operator
-		MinMax minMax = MinMax.blank();
-		ModelType modelType = model.getModelType();
-		
-		StateValues probs = null;
 
 		// Get info from P operator
-		relOp = expr.getRelOp();
-		pb = expr.getProb();
-		if (pb != null) {
-			p = pb.evaluateDouble(constantValues);
-			if (p < 0 || p > 1)
-				throw new PrismException("Invalid probability bound " + p + " in P operator");
-		}
-
-		// For nondeterministic models, determine whether min or max probabilities needed
-		if (modelType.nondeterministic()) {
-			if (relOp == RelOp.EQ && pb == null) {
-				throw new PrismException("Can't use \"P=?\" for nondeterministic models; use \"Pmin=?\" or \"Pmax=?\"");
-			}
-			if (modelType == ModelType.MDP || modelType == ModelType.CTMDP) {
-				minMax = (relOp.isLowerBound() || relOp.isMin()) ? MinMax.min() : MinMax.max();
-			} else {
-				throw new PrismException("Don't know how to model check " + expr.getTypeOfPOperator() + " properties for " + modelType + "s");
-			}
-		}
+		OpRelOpBound opInfo = expr.getRelopBoundInfo(constantValues);
+		MinMax minMax = opInfo.getMinMax(model.getModelType());
 
 		// Compute probabilities
-		probs = checkProbPathFormula(model, expr.getExpression(), minMax);
+		StateValues probs = checkProbPathFormula(model, expr.getExpression(), minMax);
 
 		// Print out probabilities
 		if (getVerbosity() > 5) {
@@ -561,12 +536,12 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 
 		// For =? properties, just return values
-		if (pb == null) {
+		if (opInfo.isNumeric()) {
 			return probs;
 		}
 		// Otherwise, compare against bound to get set of satisfying states
 		else {
-			BitSet sol = probs.getBitSetFromInterval(relOp, p);
+			BitSet sol = probs.getBitSetFromInterval(expr.getRelOp(), opInfo.getBound());
 			probs.clear();
 			return StateValues.createFromBitSet(sol, model);
 		}
@@ -762,42 +737,17 @@ public class ProbModelChecker extends NonProbModelChecker
 	 */
 	protected StateValues checkExpressionReward(Model model, ExpressionReward expr, boolean forAll, Coalition coalition) throws PrismException
 	{
-		Expression rb; // Reward bound (expression)
-		double r = 0; // Reward bound (actual value)
-		RelOp relOp; // Relational operator
-		MinMax minMax = MinMax.blank();
-		ModelType modelType = model.getModelType();
-		StateValues rews = null;
-		Rewards rewards = null;
-
 		// Get info from R operator
-		RewardStruct rewStruct = expr.getRewardStructByIndexObject(modulesFile, constantValues);
-		relOp = expr.getRelOp();
-		rb = expr.getReward();
-		if (rb != null) {
-			r = rb.evaluateDouble(constantValues);
-			if (r < 0)
-				throw new PrismException("Invalid reward bound " + r + " in R[] formula");
-		}
-
-		// For nondeterministic models, determine whether min or max rewards needed
-		if (modelType.nondeterministic()) {
-			if (relOp == RelOp.EQ && rb == null) {
-				throw new PrismException("Can't use \"R=?\" for nondeterministic models; use \"Rmin=?\" or \"Rmax=?\"");
-			}
-			if (modelType == ModelType.MDP || modelType == ModelType.CTMDP) {
-				minMax = (relOp.isLowerBound() || relOp.isMin()) ? MinMax.min() : MinMax.max();
-			} else {
-				throw new PrismException("Don't know how to model check " + expr.getTypeOfROperator() + " properties for " + modelType + "s");
-			}
-		}
+		OpRelOpBound opInfo = expr.getRelopBoundInfo(constantValues);
+		MinMax minMax = opInfo.getMinMax(model.getModelType());
 
 		// Build rewards
+		RewardStruct rewStruct = expr.getRewardStructByIndexObject(modulesFile, constantValues);
 		mainLog.println("Building reward structure...");
-		rewards = constructRewards(model, rewStruct);
+		Rewards rewards = constructRewards(model, rewStruct);
 
 		// Compute rewards
-		rews = checkRewardFormula(model, rewards, expr.getExpression(), minMax);
+		StateValues rews = checkRewardFormula(model, rewards, expr.getExpression(), minMax);
 
 		// Print out rewards
 		if (getVerbosity() > 5) {
@@ -806,12 +756,12 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 
 		// For =? properties, just return values
-		if (rb == null) {
+		if (opInfo.isNumeric()) {
 			return rews;
 		}
 		// Otherwise, compare against bound to get set of satisfying states
 		else {
-			BitSet sol = rews.getBitSetFromInterval(relOp, r);
+			BitSet sol = rews.getBitSetFromInterval(expr.getRelOp(), opInfo.getBound());
 			rews.clear();
 			return StateValues.createFromBitSet(sol, model);
 		}
@@ -979,23 +929,12 @@ public class ProbModelChecker extends NonProbModelChecker
 	 */
 	protected StateValues checkExpressionSteadyState(Model model, ExpressionSS expr) throws PrismException
 	{
-		Expression pb; // Probability bound (expression)
-		double p = 0; // Probability bound (actual value)
-		RelOp relOp; // Relational operator
-		StateValues probs = null;
-
 		// Get info from S operator
-		relOp = expr.getRelOp();
-		pb = expr.getProb();
-		if (pb != null) {
-			p = pb.evaluateDouble(constantValues);
-			if (p < 0 || p > 1)
-				throw new PrismException("Invalid probability bound " + p + " in P operator");
-		}
+		OpRelOpBound opInfo = expr.getRelopBoundInfo(constantValues);
+		MinMax minMax = opInfo.getMinMax(model.getModelType());
 
 		// Compute probabilities
-		MinMax minMax = (relOp.isLowerBound() || relOp.isMin()) ? MinMax.min() : MinMax.max();
-		probs = checkSteadyStateFormula(model, expr.getExpression(), minMax);
+		StateValues probs = checkSteadyStateFormula(model, expr.getExpression(), minMax);
 
 		// Print out probabilities
 		if (getVerbosity() > 5) {
@@ -1004,12 +943,12 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 
 		// For =? properties, just return values
-		if (pb == null) {
+		if (opInfo.isNumeric()) {
 			return probs;
 		}
 		// Otherwise, compare against bound to get set of satisfying states
 		else {
-			BitSet sol = probs.getBitSetFromInterval(relOp, p);
+			BitSet sol = probs.getBitSetFromInterval(expr.getRelOp(), opInfo.getBound());
 			probs.clear();
 			return StateValues.createFromBitSet(sol, model);
 		}
