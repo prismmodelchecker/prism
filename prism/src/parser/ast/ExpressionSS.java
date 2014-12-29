@@ -115,9 +115,9 @@ public class ExpressionSS extends Expression
 			double bound = prob.evaluateDouble(constantValues);
 			if (bound < 0 || bound > 1)
 				throw new PrismException("Invalid probability bound " + bound + " in P operator");
-			return new OpRelOpBound("P", relOp, bound);
+			return new OpRelOpBound("S", relOp, bound);
 		} else {
-			return new OpRelOpBound("P", relOp, null);
+			return new OpRelOpBound("S", relOp, null);
 		}
 	}
 	

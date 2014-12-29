@@ -151,42 +151,27 @@ public class ProbModelChecker extends NonProbModelChecker
 
 	protected StateValues checkExpressionProb(ExpressionProb expr) throws PrismException
 	{
-		Expression pb; // probability bound (expression)
-		double p = 0; // probability bound (actual value)
-		RelOp relOp; // relational operator
-
-		JDDNode sol;
-		StateValues probs = null;
-
-		// Get info from prob operator
-		relOp = expr.getRelOp();
-		pb = expr.getProb();
-		if (pb != null) {
-			p = pb.evaluateDouble(constantValues);
-			if (p < 0 || p > 1)
-				throw new PrismException("Invalid probability bound " + p + " in P operator");
-		}
+		// Get info from P operator
+		OpRelOpBound opInfo = expr.getRelopBoundInfo(constantValues);
 
 		// Check for trivial (i.e. stupid) cases
-		if (pb != null) {
-			if ((p == 0 && relOp == RelOp.GEQ) || (p == 1 && relOp == RelOp.LEQ)) {
-				mainLog.printWarning("Checking for probability " + relOp + " " + p + " - formula trivially satisfies all states");
-				JDD.Ref(reach);
-				return new StateValuesMTBDD(reach, model);
-			} else if ((p == 0 && relOp == RelOp.LT) || (p == 1 && relOp == RelOp.GT)) {
-				mainLog.printWarning("Checking for probability " + relOp + " " + p + " - formula trivially satisfies no states");
-				return new StateValuesMTBDD(JDD.Constant(0), model);
-			}
+		if (opInfo.isTriviallyTrue()) {
+			mainLog.printWarning("Checking for probability " + opInfo.relOpBoundString() + " - formula trivially satisfies all states");
+			JDD.Ref(reach);
+			return new StateValuesMTBDD(reach, model);
+		} else if (opInfo.isTriviallyFalse()) {
+			mainLog.printWarning("Checking for probability " + opInfo.relOpBoundString() + " - formula trivially satisfies no states");
+			return new StateValuesMTBDD(JDD.Constant(0), model);
 		}
 
 		// Print a warning if Pmin/Pmax used
-		if (relOp == RelOp.MIN || relOp == RelOp.MAX) {
+		if (opInfo.getRelOp() == RelOp.MIN || opInfo.getRelOp() == RelOp.MAX) {
 			mainLog.printWarning("\"Pmin=?\" and \"Pmax=?\" operators are identical to \"P=?\" for DTMCs/CTMCs");
 		}
 
 		// Compute probabilities
-		boolean qual = pb != null && ((p == 0) || (p == 1)) && precomp && prob0 && prob1;
-		probs = checkProbPathFormula(expr.getExpression(), qual);
+		boolean qual = opInfo.isQualitative() && precomp && prob0 && prob1;
+		StateValues probs = checkProbPathFormula(expr.getExpression(), qual);
 
 		// Print out probabilities
 		if (prism.getVerbose()) {
@@ -195,12 +180,12 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 
 		// For =? properties, just return values
-		if (pb == null) {
+		if (opInfo.isNumeric()) {
 			return probs;
 		}
 		// Otherwise, compare against bound to get set of satisfying states
 		else {
-			sol = probs.getBDDFromInterval(relOp, p);
+			JDDNode sol = probs.getBDDFromInterval(opInfo.getRelOp(), opInfo.getBound());
 			// remove unreachable states from solution
 			JDD.Ref(reach);
 			sol = JDD.And(sol, reach);
@@ -214,34 +199,19 @@ public class ProbModelChecker extends NonProbModelChecker
 
 	protected StateValues checkExpressionReward(ExpressionReward expr) throws PrismException
 	{
-		Object rs; // reward struct index
-		Expression rb; // reward bound (expression)
-		double r = 0; // reward bound (actual value)
-		RelOp relOp; // relational operator
-		Expression expr2; // expression
-
-		JDDNode stateRewards = null, transRewards = null, sol;
-		StateValues rewards = null;
-		int i;
-
-		// get info from reward operator
-		rs = expr.getRewardStructIndex();
-		relOp = expr.getRelOp();
-		rb = expr.getReward();
-		if (rb != null) {
-			r = rb.evaluateDouble(constantValues);
-			if (r < 0)
-				throw new PrismException("Invalid reward bound " + r + " in R[] formula");
-		}
-
-		// get reward info
+		// Get info from R operator
+		OpRelOpBound opInfo = expr.getRelopBoundInfo(constantValues);
+		
+		// Get reward info
+		JDDNode stateRewards = null, transRewards = null;
+		Object rs = expr.getRewardStructIndex();
 		if (model.getNumRewardStructs() == 0)
 			throw new PrismException("Model has no rewards specified");
 		if (rs == null) {
 			stateRewards = model.getStateRewards(0);
 			transRewards = model.getTransRewards(0);
 		} else if (rs instanceof Expression) {
-			i = ((Expression) rs).evaluateInt(constantValues);
+			int i = ((Expression) rs).evaluateInt(constantValues);
 			rs = new Integer(i); // for better error reporting below
 			stateRewards = model.getStateRewards(i - 1);
 			transRewards = model.getTransRewards(i - 1);
@@ -252,25 +222,14 @@ public class ProbModelChecker extends NonProbModelChecker
 		if (stateRewards == null || transRewards == null)
 			throw new PrismException("Invalid reward structure index \"" + rs + "\"");
 
-		// check for trivial (i.e. stupid) cases
-		if (rb != null) {
-			if (r == 0 && relOp == RelOp.GEQ) {
-				mainLog.printWarning("Checking for reward " + relOp + " " + r + " - formula trivially satisfies all states");
-				JDD.Ref(reach);
-				return new StateValuesMTBDD(reach, model);
-			} else if (r == 0 && relOp == RelOp.LT) {
-				mainLog.printWarning("Checking for reward " + relOp + " " + r + " - formula trivially satisfies no states");
-				return new StateValuesMTBDD(JDD.Constant(0), model);
-			}
-		}
-
-		// print a warning if Rmin/Rmax used
-		if (relOp == RelOp.MIN || relOp == RelOp.MAX) {
+		// Print a warning if Rmin/Rmax used
+		if (opInfo.getRelOp() == RelOp.MIN || opInfo.getRelOp() == RelOp.MAX) {
 			mainLog.printWarning("\"Rmin=?\" and \"Rmax=?\" operators are identical to \"R=?\" for DTMCs/CTMCs");
 		}
 
-		// compute rewards
-		expr2 = expr.getExpression();
+		// Compute rewards
+		StateValues rewards = null;
+		Expression expr2 = expr.getExpression();
 		if (expr2 instanceof ExpressionTemporal) {
 			switch (((ExpressionTemporal) expr2).getOperator()) {
 			case ExpressionTemporal.R_C:
@@ -290,19 +249,19 @@ public class ProbModelChecker extends NonProbModelChecker
 		if (rewards == null)
 			throw new PrismException("Unrecognised operator in R operator");
 
-		// print out rewards
+		// Print out rewards
 		if (prism.getVerbose()) {
 			mainLog.print("\nRewards (non-zero only) for all states:\n");
 			rewards.print(mainLog);
 		}
 
 		// For =? properties, just return values
-		if (rb == null) {
+		if (opInfo.isNumeric()) {
 			return rewards;
 		}
 		// Otherwise, compare against bound to get set of satisfying states
 		else {
-			sol = rewards.getBDDFromInterval(relOp, r);
+			JDDNode sol = rewards.getBDDFromInterval(opInfo.getRelOp(), opInfo.getBound());
 			// remove unreachable states from solution
 			JDD.Ref(reach);
 			sol = JDD.And(sol, reach);
@@ -316,10 +275,6 @@ public class ProbModelChecker extends NonProbModelChecker
 
 	protected StateValues checkExpressionSteadyState(ExpressionSS expr) throws PrismException
 	{
-		Expression pb; // probability bound (expression)
-		double p = 0; // probability bound (actual value)
-		RelOp relOp; // relational operator
-
 		// BSCC stuff
 		List<JDDNode> bsccs = null;
 		JDDNode notInBSCCs = null;
@@ -330,25 +285,17 @@ public class ProbModelChecker extends NonProbModelChecker
 		int i, numBSCCs = 0;
 		double d, probBSCCs[];
 
-		// Get info from steady-state operator
-		relOp = expr.getRelOp();
-		pb = expr.getProb();
-		if (pb != null) {
-			p = pb.evaluateDouble(constantValues);
-			if (p < 0 || p > 1)
-				throw new PrismException("Invalid probability bound " + p + " in S operator");
-		}
+		// Get info from S operator
+		OpRelOpBound opInfo = expr.getRelopBoundInfo(constantValues);
 
 		// Check for trivial (i.e. stupid) cases
-		if (pb != null) {
-			if ((p == 0 && relOp == RelOp.GEQ) || (p == 1 && relOp == RelOp.LEQ)) {
-				mainLog.printWarning("Checking for probability " + relOp + " " + p + " - formula trivially satisfies all states");
-				JDD.Ref(reach);
-				return new StateValuesMTBDD(reach, model);
-			} else if ((p == 0 && relOp == RelOp.LT) || (p == 1 && relOp == RelOp.GT)) {
-				mainLog.printWarning("Checking for probability " + relOp + " " + p + " - formula trivially satisfies no states");
-				return new StateValuesMTBDD(JDD.Constant(0), model);
-			}
+		if (opInfo.isTriviallyTrue()) {
+			mainLog.printWarning("Checking for probability " + opInfo.relOpBoundString() + " - formula trivially satisfies all states");
+			JDD.Ref(reach);
+			return new StateValuesMTBDD(reach, model);
+		} else if (opInfo.isTriviallyFalse()) {
+			mainLog.printWarning("Checking for probability " + opInfo.relOpBoundString() + " - formula trivially satisfies no states");
+			return new StateValuesMTBDD(JDD.Constant(0), model);
 		}
 
 		try {
@@ -473,12 +420,12 @@ public class ProbModelChecker extends NonProbModelChecker
 			JDD.Deref(notInBSCCs);
 
 		// For =? properties, just return values
-		if (pb == null) {
+		if (opInfo.isNumeric()) {
 			return totalProbs;
 		}
 		// Otherwise, compare against bound to get set of satisfying states
 		else {
-			sol = totalProbs.getBDDFromInterval(relOp, p);
+			sol = totalProbs.getBDDFromInterval(opInfo.getRelOp(), opInfo.getBound());
 			// remove unreachable states from solution
 			JDD.Ref(reach);
 			sol = JDD.And(sol, reach);

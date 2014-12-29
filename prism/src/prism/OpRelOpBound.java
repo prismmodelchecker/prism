@@ -12,7 +12,7 @@ public class OpRelOpBound
 	protected RelOp relOp;
 	protected boolean numeric;
 	protected double bound;
-	
+
 	public OpRelOpBound(String op, RelOp relOp, Double boundObject)
 	{
 		this.op = op;
@@ -21,28 +21,59 @@ public class OpRelOpBound
 		if (boundObject != null)
 			bound = boundObject.doubleValue();
 	}
-	
+
 	public RelOp getRelOp()
 	{
 		return relOp;
 	}
-	
+
 	public boolean isNumeric()
 	{
-		return numeric; 
+		return numeric;
 	}
-	
+
 	public double getBound()
 	{
 		return bound;
 	}
-	
+
+	public boolean isQualitative()
+	{
+		return !isNumeric() && op.equals("P") && (bound == 0 || bound == 1);
+	}
+
+	public boolean isTriviallyTrue()
+	{
+		if (!isNumeric() && op.equals("P")) {
+			// >=0
+			if (bound == 0 && relOp == RelOp.GEQ)
+				return true;
+			// <=1
+			if (bound == 1 && relOp == RelOp.LEQ)
+				return true;
+		}
+		return false;
+	}
+
+	public boolean isTriviallyFalse()
+	{
+		if (!isNumeric() && op.equals("P")) {
+			// <0
+			if (bound == 0 && relOp == RelOp.LT)
+				return true;
+			// >1
+			if (bound == 1 && relOp == RelOp.GT)
+				return true;
+		}
+		return false;
+	}
+
 	public MinMax getMinMax(ModelType modelType) throws PrismException
 	{
 		MinMax minMax = MinMax.blank();
 		if (modelType.nondeterministic()) {
 			if (relOp == RelOp.EQ && isNumeric()) {
-				throw new PrismException("Can't use \""+op+"=?\" for nondeterministic models; use e.g. \""+op+"min=?\" or \""+op+"max=?\"");
+				throw new PrismException("Can't use \"" + op + "=?\" for nondeterministic models; use e.g. \"" + op + "min=?\" or \"" + op + "max=?\"");
 			}
 			if (modelType == ModelType.MDP || modelType == ModelType.CTMDP) {
 				minMax = (relOp.isLowerBound() || relOp.isMin()) ? MinMax.min() : MinMax.max();
@@ -52,7 +83,7 @@ public class OpRelOpBound
 		}
 		return minMax;
 	}
-	
+
 	public String getTypeOfOperator()
 	{
 		String s = "";
@@ -60,10 +91,15 @@ public class OpRelOpBound
 		s += isNumeric() ? "?" : "p"; // TODO: always "p"?
 		return s;
 	}
-	
+
+	public String relOpBoundString()
+	{
+		return relOp.toString() + bound;
+	}
+
 	@Override
 	public String toString()
 	{
-		return relOp.toString() + bound;
+		return op + relOp.toString() + bound;
 	}
 }

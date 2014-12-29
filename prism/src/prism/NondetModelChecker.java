@@ -37,6 +37,7 @@ import odd.ODDUtils;
 
 import jdd.*;
 import dv.*;
+import explicit.MinMax;
 import mtbdd.*;
 import sparse.*;
 import strat.MDStrategyIV;
@@ -154,53 +155,37 @@ public class NondetModelChecker extends NonProbModelChecker
 	 */
 	protected StateValues checkExpressionProb(ExpressionProb expr) throws PrismException
 	{
-		Expression pb; // probability bound (expression)
-		double p = 0; // probability bound (actual value)
-		RelOp relOp; // relational operator
-		boolean min; // are we finding min (true) or max (false) probs
-
-		JDDNode sol;
-		StateValues probs = null;
-
-		// Get info from prob operator
-		relOp = expr.getRelOp();
-		pb = expr.getProb();
-		if (pb != null) {
-			p = pb.evaluateDouble(constantValues);
-			if (p < 0 || p > 1)
-				throw new PrismException("Invalid probability bound " + p + " in P operator");
-		}
-		min = relOp.isLowerBound() || relOp.isMin();
-
+		// Get info from P operator
+		OpRelOpBound opInfo = expr.getRelopBoundInfo(constantValues);
+		MinMax minMax = opInfo.getMinMax(model.getModelType());
+		
 		// Check for trivial (i.e. stupid) cases
-		if (pb != null) {
-			if ((p == 0 && relOp == RelOp.GEQ) || (p == 1 && relOp == RelOp.LEQ)) {
-				mainLog.printWarning("Checking for probability " + relOp + " " + p + " - formula trivially satisfies all states");
-				JDD.Ref(reach);
-				return new StateValuesMTBDD(reach, model);
-			} else if ((p == 0 && relOp == RelOp.LT) || (p == 1 && relOp == RelOp.GT)) {
-				mainLog.printWarning("Checking for probability " + relOp + " " + p + " - formula trivially satisfies no states");
-				return new StateValuesMTBDD(JDD.Constant(0), model);
-			}
+		if (opInfo.isTriviallyTrue()) {
+			mainLog.printWarning("Checking for probability " + opInfo.relOpBoundString() + " - formula trivially satisfies all states");
+			JDD.Ref(reach);
+			return new StateValuesMTBDD(reach, model);
+		} else if (opInfo.isTriviallyFalse()) {
+			mainLog.printWarning("Checking for probability " + opInfo.relOpBoundString() + " - formula trivially satisfies no states");
+			return new StateValuesMTBDD(JDD.Constant(0), model);
 		}
 
 		// Compute probabilities
-		boolean qual = pb != null && ((p == 0) || (p == 1)) && precomp && prob0 && prob1;
-		probs = checkProbPathFormula(expr.getExpression(), qual, min);
+		boolean qual = opInfo.isQualitative() && precomp && prob0 && prob1;
+		StateValues probs = checkProbPathFormula(expr.getExpression(), qual, minMax.isMin());
 
 		// Print out probabilities
 		if (verbose) {
-			mainLog.print("\n" + (min ? "Minimum" : "Maximum") + " probabilities (non-zero only) for all states:\n");
+			mainLog.print("\n" + (minMax.isMin() ? "Minimum" : "Maximum") + " probabilities (non-zero only) for all states:\n");
 			probs.print(mainLog);
 		}
 
 		// For =? properties, just return values
-		if (pb == null) {
+		if (opInfo.isNumeric()) {
 			return probs;
 		}
 		// Otherwise, compare against bound to get set of satisfying states
 		else {
-			sol = probs.getBDDFromInterval(relOp, p);
+			JDDNode sol = probs.getBDDFromInterval(opInfo.getRelOp(), opInfo.getBound());
 			// remove unreachable states from solution
 			JDD.Ref(reach);
 			sol = JDD.And(sol, reach);
@@ -215,29 +200,16 @@ public class NondetModelChecker extends NonProbModelChecker
 	 */
 	protected StateValues checkExpressionReward(ExpressionReward expr) throws PrismException
 	{
-		Object rs; // reward struct index
-		Expression rb; // reward bound (expression)
-		double r = 0; // reward bound (actual value)
-		RelOp relOp; // relational operator
-		boolean min; // are we finding min (true) or max (false) rewards
-		Expression expr2; // expression
-
-		JDDNode stateRewards = null, transRewards = null, sol;
 		StateValues rewards = null;
 		int i;
 
-		// get info from reward operator
-		rs = expr.getRewardStructIndex();
-		relOp = expr.getRelOp();
-		rb = expr.getReward();
-		if (rb != null) {
-			r = rb.evaluateDouble(constantValues);
-			if (r < 0)
-				throw new PrismException("Invalid reward bound " + r + " in R operator");
-		}
-		min = relOp.isLowerBound() || relOp.isMin();
+		// Get info from R operator
+		OpRelOpBound opInfo = expr.getRelopBoundInfo(constantValues);
+		MinMax minMax = opInfo.getMinMax(model.getModelType());
 
-		// get reward info
+		// Get reward info
+		JDDNode stateRewards = null, transRewards = null, sol;
+		Object rs = expr.getRewardStructIndex();
 		if (model.getNumRewardStructs() == 0)
 			throw new PrismException("Model has no rewards specified");
 		if (rs == null) {
@@ -255,30 +227,18 @@ public class NondetModelChecker extends NonProbModelChecker
 		if (stateRewards == null || transRewards == null)
 			throw new PrismException("Invalid reward structure index \"" + rs + "\"");
 
-		// check for trivial (i.e. stupid) cases
-		if (rb != null) {
-			if (r == 0 && relOp == RelOp.GEQ) {
-				mainLog.printWarning("Checking for reward " + relOp + " " + r + " - formula trivially satisfies all states");
-				JDD.Ref(reach);
-				return new StateValuesMTBDD(reach, model);
-			} else if (r == 0 && relOp == RelOp.LT) {
-				mainLog.printWarning("Checking for reward " + relOp + " " + r + " - formula trivially satisfies no states");
-				return new StateValuesMTBDD(JDD.Constant(0), model);
-			}
-		}
-
-		// compute rewards
-		expr2 = expr.getExpression();
+		// Compute rewards
+		Expression expr2 = expr.getExpression();
 		if (expr2 instanceof ExpressionTemporal) {
 			switch (((ExpressionTemporal) expr2).getOperator()) {
 			case ExpressionTemporal.R_C:
-				rewards = checkRewardCumul((ExpressionTemporal) expr2, stateRewards, transRewards, min);
+				rewards = checkRewardCumul((ExpressionTemporal) expr2, stateRewards, transRewards, minMax.isMin());
 				break;
 			case ExpressionTemporal.R_I:
-				rewards = checkRewardInst((ExpressionTemporal) expr2, stateRewards, transRewards, min);
+				rewards = checkRewardInst((ExpressionTemporal) expr2, stateRewards, transRewards, minMax.isMin());
 				break;
 			case ExpressionTemporal.R_F:
-				rewards = checkRewardReach((ExpressionTemporal) expr2, stateRewards, transRewards, min);
+				rewards = checkRewardReach((ExpressionTemporal) expr2, stateRewards, transRewards, minMax.isMin());
 				break;
 			}
 		}
@@ -287,17 +247,17 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// print out rewards
 		if (verbose) {
-			mainLog.print("\n" + (min ? "Minimum" : "Maximum") + " rewards (non-zero only) for all states:\n");
+			mainLog.print("\n" + (minMax.isMin() ? "Minimum" : "Maximum") + " rewards (non-zero only) for all states:\n");
 			rewards.print(mainLog);
 		}
 
 		// For =? properties, just return values
-		if (rb == null) {
+		if (opInfo.isNumeric()) {
 			return rewards;
 		}
 		// Otherwise, compare against bound to get set of satisfying states
 		else {
-			sol = rewards.getBDDFromInterval(relOp, r);
+			sol = rewards.getBDDFromInterval(opInfo.getRelOp(), opInfo.getBound());
 			// remove unreachable states from solution
 			JDD.Ref(reach);
 			sol = JDD.And(sol, reach);
