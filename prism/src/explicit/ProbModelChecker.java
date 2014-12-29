@@ -521,7 +521,6 @@ public class ProbModelChecker extends NonProbModelChecker
 	 */
 	protected StateValues checkExpressionProb(Model model, ExpressionProb expr, boolean forAll, Coalition coalition) throws PrismException
 	{
-
 		// Get info from P operator
 		OpRelOpBound opInfo = expr.getRelopBoundInfo(constantValues);
 		MinMax minMax = opInfo.getMinMax(model.getModelType());
@@ -541,7 +540,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 		// Otherwise, compare against bound to get set of satisfying states
 		else {
-			BitSet sol = probs.getBitSetFromInterval(expr.getRelOp(), opInfo.getBound());
+			BitSet sol = probs.getBitSetFromInterval(opInfo.getRelOp(), opInfo.getBound());
 			probs.clear();
 			return StateValues.createFromBitSet(sol, model);
 		}
@@ -761,7 +760,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 		// Otherwise, compare against bound to get set of satisfying states
 		else {
-			BitSet sol = rews.getBitSetFromInterval(expr.getRelOp(), opInfo.getBound());
+			BitSet sol = rews.getBitSetFromInterval(opInfo.getRelOp(), opInfo.getBound());
 			rews.clear();
 			return StateValues.createFromBitSet(sol, model);
 		}
@@ -948,7 +947,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 		// Otherwise, compare against bound to get set of satisfying states
 		else {
-			BitSet sol = probs.getBitSetFromInterval(expr.getRelOp(), opInfo.getBound());
+			BitSet sol = probs.getBitSetFromInterval(opInfo.getRelOp(), opInfo.getBound());
 			probs.clear();
 			return StateValues.createFromBitSet(sol, model);
 		}
