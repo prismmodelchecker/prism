@@ -140,12 +140,14 @@ public class ExpressionReward extends Expression
 	}
 
 	/**
-	 * Get the reward structure (from a model) corresponding to the index of this R operator.
+	 * Get the index of a reward structure (within a model) corresponding to the index of this R operator.
+	 * This is 0-indexed (as used e.g. in ModulesFile), not 1-indexed (as seen by user)
 	 * Throws an exception (with explanatory message) if it cannot be found.
+	 * This means that, the method always returns a valid index if it finishes.
 	 */
-	public RewardStruct getRewardStructByIndexObject(ModulesFile modulesFile, Values constantValues) throws PrismException
+	public int getRewardStructIndexByIndexObject(ModulesFile modulesFile, Values constantValues) throws PrismException
 	{
-		RewardStruct rewStruct = null;
+		int rewStruct = -1;
 		Object rsi = rewardStructIndex;
 		// Recall: the index is an Object which is either an Integer, denoting the index (starting from 0) directly,
 		// or an expression, which can be evaluated (possibly using the passed in constants) to an index. 
@@ -155,23 +157,32 @@ public class ExpressionReward extends Expression
 			throw new PrismException("Model has no rewards specified");
 		// No index specified - use the first one
 		if (rsi == null) {
-			rewStruct = modulesFile.getRewardStruct(0);
+			rewStruct = 0;
 		}
 		// Expression - evaluate to an index
 		else if (rewardStructIndex instanceof Expression) {
 			int i = ((Expression) rewardStructIndex).evaluateInt(constantValues);
 			rsi = new Integer(i); // (for better error reporting below)
-			rewStruct = modulesFile.getRewardStruct(i - 1);
+			rewStruct = i - 1;
 		}
 		// String - name of reward structure
 		else if (rsi instanceof String) {
-			rewStruct = modulesFile.getRewardStructByName((String) rsi);
+			rewStruct = modulesFile.getRewardStructIndex((String) rsi);
 		}
-		if (rewStruct == null) {
+		if (rewStruct == -1) {
 			throw new PrismException("Invalid reward structure index \"" + rsi + "\"");
 		}
 		return rewStruct;
-		
+	}
+	
+	/**
+	 * Get the reward structure (from a model) corresponding to the index of this R operator.
+	 * Throws an exception (with explanatory message) if it cannot be found.
+	 */
+	public RewardStruct getRewardStructByIndexObject(ModulesFile modulesFile, Values constantValues) throws PrismException
+	{
+		int rewardStructIndex = getRewardStructIndexByIndexObject(modulesFile, constantValues);
+		return modulesFile.getRewardStruct(rewardStructIndex);
 	}
 	
 	/**
