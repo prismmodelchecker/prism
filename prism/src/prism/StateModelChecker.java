@@ -1344,6 +1344,54 @@ public class StateModelChecker implements ModelChecker
 
 		return resVals;
 	}
+
+	// Utility functions for symbolic model checkers 
+	
+	/**
+	 * Get the state rewards (from a model) corresponding to the index of this R operator.
+	 * Throws an exception (with explanatory message) if it cannot be found.
+	 */
+	public JDDNode getStateRewardsByIndexObject(Object rs, Model model, Values constantValues) throws PrismException
+	{
+		JDDNode stateRewards = null;
+		if (model.getNumRewardStructs() == 0)
+			throw new PrismException("Model has no rewards specified");
+		if (rs == null) {
+			stateRewards = model.getStateRewards(0);
+		} else if (rs instanceof Expression) {
+			int i = ((Expression) rs).evaluateInt(constantValues);
+			rs = new Integer(i); // for better error reporting below
+			stateRewards = model.getStateRewards(i - 1);
+		} else if (rs instanceof String) {
+			stateRewards = model.getStateRewards((String) rs);
+		}
+		if (stateRewards == null)
+			throw new PrismException("Invalid reward structure index \"" + rs + "\"");
+		return stateRewards; 
+	}
+	
+	/**
+	 * Get the transition rewards (from a model) corresponding to the index of this R operator.
+	 * Throws an exception (with explanatory message) if it cannot be found.
+	 */
+	public JDDNode getTransitionRewardsByIndexObject(Object rs, Model model, Values constantValues) throws PrismException
+	{
+		JDDNode transRewards = null;
+		if (model.getNumRewardStructs() == 0)
+			throw new PrismException("Model has no rewards specified");
+		if (rs == null) {
+			transRewards = model.getTransRewards(0);
+		} else if (rs instanceof Expression) {
+			int i = ((Expression) rs).evaluateInt(constantValues);
+			rs = new Integer(i); // for better error reporting below
+			transRewards = model.getTransRewards(i - 1);
+		} else if (rs instanceof String) {
+			transRewards = model.getTransRewards((String) rs);
+		}
+		if (transRewards == null)
+			throw new PrismException("Invalid reward structure index \"" + rs + "\"");
+		return transRewards; 
+	}
 }
 
 // ------------------------------------------------------------------------------

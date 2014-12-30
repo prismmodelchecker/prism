@@ -38,6 +38,7 @@ import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
 import mtbdd.PrismMTBDD;
+import parser.Values;
 import parser.ast.Expression;
 import parser.ast.ExpressionProb;
 import parser.ast.ExpressionReward;
@@ -202,25 +203,10 @@ public class ProbModelChecker extends NonProbModelChecker
 		// Get info from R operator
 		OpRelOpBound opInfo = expr.getRelopBoundInfo(constantValues);
 		
-		// Get reward info
-		JDDNode stateRewards = null, transRewards = null;
+		// Get rewards
 		Object rs = expr.getRewardStructIndex();
-		if (model.getNumRewardStructs() == 0)
-			throw new PrismException("Model has no rewards specified");
-		if (rs == null) {
-			stateRewards = model.getStateRewards(0);
-			transRewards = model.getTransRewards(0);
-		} else if (rs instanceof Expression) {
-			int i = ((Expression) rs).evaluateInt(constantValues);
-			rs = new Integer(i); // for better error reporting below
-			stateRewards = model.getStateRewards(i - 1);
-			transRewards = model.getTransRewards(i - 1);
-		} else if (rs instanceof String) {
-			stateRewards = model.getStateRewards((String) rs);
-			transRewards = model.getTransRewards((String) rs);
-		}
-		if (stateRewards == null || transRewards == null)
-			throw new PrismException("Invalid reward structure index \"" + rs + "\"");
+		JDDNode stateRewards = getStateRewardsByIndexObject(rs, model, constantValues);
+		JDDNode transRewards = getTransitionRewardsByIndexObject(rs, model, constantValues);
 
 		// Print a warning if Rmin/Rmax used
 		if (opInfo.getRelOp() == RelOp.MIN || opInfo.getRelOp() == RelOp.MAX) {

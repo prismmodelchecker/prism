@@ -200,34 +200,17 @@ public class NondetModelChecker extends NonProbModelChecker
 	 */
 	protected StateValues checkExpressionReward(ExpressionReward expr) throws PrismException
 	{
-		StateValues rewards = null;
-		int i;
-
 		// Get info from R operator
 		OpRelOpBound opInfo = expr.getRelopBoundInfo(constantValues);
 		MinMax minMax = opInfo.getMinMax(model.getModelType());
 
-		// Get reward info
-		JDDNode stateRewards = null, transRewards = null, sol;
+		// Get rewards
 		Object rs = expr.getRewardStructIndex();
-		if (model.getNumRewardStructs() == 0)
-			throw new PrismException("Model has no rewards specified");
-		if (rs == null) {
-			stateRewards = model.getStateRewards(0);
-			transRewards = model.getTransRewards(0);
-		} else if (rs instanceof Expression) {
-			i = ((Expression) rs).evaluateInt(constantValues);
-			rs = new Integer(i); // for better error reporting below
-			stateRewards = model.getStateRewards(i - 1);
-			transRewards = model.getTransRewards(i - 1);
-		} else if (rs instanceof String) {
-			stateRewards = model.getStateRewards((String) rs);
-			transRewards = model.getTransRewards((String) rs);
-		}
-		if (stateRewards == null || transRewards == null)
-			throw new PrismException("Invalid reward structure index \"" + rs + "\"");
+		JDDNode stateRewards = getStateRewardsByIndexObject(rs, model, constantValues);
+		JDDNode transRewards = getTransitionRewardsByIndexObject(rs, model, constantValues);
 
 		// Compute rewards
+		StateValues rewards = null;
 		Expression expr2 = expr.getExpression();
 		if (expr2 instanceof ExpressionTemporal) {
 			switch (((ExpressionTemporal) expr2).getOperator()) {
@@ -257,7 +240,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		}
 		// Otherwise, compare against bound to get set of satisfying states
 		else {
-			sol = rewards.getBDDFromInterval(opInfo.getRelOp(), opInfo.getBound());
+			JDDNode sol = rewards.getBDDFromInterval(opInfo.getRelOp(), opInfo.getBound());
 			// remove unreachable states from solution
 			JDD.Ref(reach);
 			sol = JDD.And(sol, reach);
