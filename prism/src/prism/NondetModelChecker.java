@@ -257,10 +257,8 @@ public class NondetModelChecker extends NonProbModelChecker
 	protected StateValues checkExpressionMultiObjective(ExpressionFunc expr) throws PrismException
 	{
 		// Objective/target info
-		List<Expression> targetExprs;
 		List<JDDNode> multitargetDDs = null;
 		List<Integer> multitargetIDs = null;
-		OpsAndBoundsList opsAndBounds;
 
 		// LTL/product model stuff
 		NondetModel modelProduct, modelNew;
@@ -295,11 +293,11 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// Check format and extract bounds/etc.
 		int numObjectives = expr.getNumOperands();
-		opsAndBounds = new OpsAndBoundsList();
+		OpsAndBoundsList opsAndBounds = new OpsAndBoundsList();
 		List<JDDNode> rewards = new ArrayList<JDDNode>(numObjectives);
 		List<JDDNode> rewardsIndex = new ArrayList<JDDNode>(numObjectives);
 		ArrayList<String> targetName = new ArrayList<String>();
-		targetExprs = new ArrayList<Expression>(numObjectives);
+		List<Expression> targetExprs = new ArrayList<Expression>(numObjectives);
 		for (int i = 0; i < numObjectives; i++) {
 			extractInfoFromMultiObjectiveOperand(expr.getOperand(i), opsAndBounds, rewardsIndex, targetName, targetExprs);
 		}
@@ -532,8 +530,7 @@ public class NondetModelChecker extends NonProbModelChecker
 			//check if there are state rewards and display a warning
 			if (stateRewards != null && !stateRewards.equals(JDD.ZERO))
 				throw new PrismException("Multi-objective model checking does not support state rewards; please convert to transition rewards");
-			if (transRewards == null)
-				throw new PrismException("Invalid reward structure index \"" + rs + "\"");
+			
 			rewardsIndex.add(transRewards);
 		} else {
 			throw new PrismException("Multi-objective properties can only contain P and R operators");
