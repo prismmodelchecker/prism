@@ -262,8 +262,6 @@ public class NondetModelChecker extends NonProbModelChecker
 		List<Integer> multitargetIDs = null;
 		OpsAndBoundsList opsAndBounds;
 
-		// TODO this only stored prob vs reward objective anyway
-		// boolean[] reachExpr; // whether target is just reachability (true) or LTL (false)
 		// LTL/product model stuff
 		NondetModel modelProduct, modelNew;
 		JDDVars[] draDDRowVars, draDDColVars;
@@ -507,7 +505,10 @@ public class NondetModelChecker extends NonProbModelChecker
 			
 	}
 
-	//takes one operand of multi-objective expression and extracts operator, values and reward functions from it.
+	/**
+	 * Extract the information from the operator defining one objective of a multi-objective query,
+	 * store the info in the passed in arrays and so some checks. 
+	 */
 	protected void extractInfoFromMultiObjectiveOperand(Expression operand, OpsAndBoundsList opsAndBounds, List<JDDNode> rewardsIndex, List<String> targetName,
 			List<Expression> targetExprs) throws PrismException
 	{
@@ -600,16 +601,11 @@ public class NondetModelChecker extends NonProbModelChecker
 		}
 
 		// Now extract targets
-		// Also store which ones are just reachability (in reachExpr)
 		if (exprProb != null) {
 			targetExprs.add(exprProb.getExpression());
-			// TODO check if the following line is unneeded: it only kept track of probs vs rewards
-			// reachExpr[i] = false;
 			targetName.add(exprProb.getExpression().toString());
 		} else {
 			targetExprs.add(null);
-			// TODO check if the following line is unneeded: it only kept track of probs vs rewards
-			// reachExpr[i] = true;
 			targetName.add("");
 		}
 	}
