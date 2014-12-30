@@ -528,22 +528,8 @@ public class NondetModelChecker extends NonProbModelChecker
 			exprProb = null;
 			relOp = exprReward.getRelOp();
 			Object rs = exprReward.getRewardStructIndex();
-			JDDNode transRewards = null;
-			JDDNode stateRewards = null;
-			if (model.getNumRewardStructs() == 0)
-				throw new PrismException("Model has no rewards specified");
-			if (rs == null) {
-				transRewards = model.getTransRewards(0);
-				stateRewards = model.getStateRewards(0);
-			} else if (rs instanceof Expression) {
-				int j = ((Expression) rs).evaluateInt(constantValues);
-				rs = new Integer(j); // for better error reporting below
-				transRewards = model.getTransRewards(j - 1);
-				stateRewards = model.getStateRewards(j - 1);
-			} else if (rs instanceof String) {
-				transRewards = model.getTransRewards((String) rs);
-				stateRewards = model.getStateRewards((String) rs);	
-			}
+			JDDNode stateRewards = getStateRewardsByIndexObject(rs, model, constantValues);
+			JDDNode transRewards = getTransitionRewardsByIndexObject(rs, model, constantValues);
 
 			//check if there are state rewards and display a warning
 			if (stateRewards != null && !stateRewards.equals(JDD.ZERO))
