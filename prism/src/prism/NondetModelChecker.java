@@ -257,9 +257,8 @@ public class NondetModelChecker extends NonProbModelChecker
 	protected StateValues checkExpressionMultiObjective(ExpressionFunc expr) throws PrismException
 	{
 		// Objective/target info
-		int numTargets;
 		List<Expression> targetExprs;
-		List<JDDNode> targetDDs, multitargetDDs = null;
+		List<JDDNode> multitargetDDs = null;
 		List<Integer> multitargetIDs = null;
 		OpsAndBoundsList opsAndBounds;
 
@@ -289,12 +288,6 @@ public class NondetModelChecker extends NonProbModelChecker
 			ddStateIndex = ODDUtils.SingleIndexToDD(stateIndex, odd, allDDRowVars);
 		}
 
-		// Check format and extract bounds/etc.
-		numTargets = expr.getNumOperands();
-		opsAndBounds = new OpsAndBoundsList();
-		List<JDDNode> rewards = new ArrayList<JDDNode>(numTargets);
-		List<JDDNode> rewardsIndex = new ArrayList<JDDNode>(numTargets);
-
 		// Can't do LTL with time-bounded variants of the temporal operators
 		// TODO removed since it is allowed for valiter.
 		// TODO make sure it is treated correctly for all params
@@ -302,10 +295,15 @@ public class NondetModelChecker extends NonProbModelChecker
 			throw new PrismException("Time-bounded operators not supported in LTL: " + expr);
 		}*/
 
+		// Check format and extract bounds/etc.
+		int numObjectives = expr.getNumOperands();
+		opsAndBounds = new OpsAndBoundsList();
+		List<JDDNode> rewards = new ArrayList<JDDNode>(numObjectives);
+		List<JDDNode> rewardsIndex = new ArrayList<JDDNode>(numObjectives);
 		ArrayList<String> targetName = new ArrayList<String>();
-		targetExprs = new ArrayList<Expression>(numTargets);
-		for (int i = 0; i < numTargets; i++) {
-			extractInfoFromMultiObjectiveOperand(expr.getOperand(i), opsAndBounds, rewardsIndex, targetName, targetExprs, i == 0);
+		targetExprs = new ArrayList<Expression>(numObjectives);
+		for (int i = 0; i < numObjectives; i++) {
+			extractInfoFromMultiObjectiveOperand(expr.getOperand(i), opsAndBounds, rewardsIndex, targetName, targetExprs);
 		}
 
 		//currently we do 1 numerical subject to booleans, or multiple numericals only 
@@ -317,16 +315,13 @@ public class NondetModelChecker extends NonProbModelChecker
 		negateresult = opsAndBounds.contains(Operator.P_MIN);
 		hasMaxReward = opsAndBounds.contains(Operator.R_GE) || opsAndBounds.contains(Operator.R_MAX);
 
-		// Create array to store target DDs
-		targetDDs = new ArrayList<JDDNode>(numTargets);
-
 		// Multi-objective model checking
 
 		// Create arrays to store LTL/DRA info
-		ltl = new Expression[numTargets];
-		dra = new DRA[numTargets];
-		draDDRowVars = new JDDVars[numTargets];
-		draDDColVars = new JDDVars[numTargets];
+		ltl = new Expression[numObjectives];
+		dra = new DRA[numObjectives];
+		draDDRowVars = new JDDVars[numObjectives];
+		draDDColVars = new JDDVars[numObjectives];
 
 		// For LTL/multi-obj model checking routines
 		mcLtl = new LTLModelChecker(prism);
@@ -337,7 +332,7 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// Go through probabilistic objectives and construct product MDP.
 		boolean originalmodel = true;
-		for (int i = 0; i < numTargets; i++) {
+		for (int i = 0; i < numObjectives; i++) {
 			if (opsAndBounds.isProbabilityObjective(i)) {
 				draDDRowVars[i] = new JDDVars();
 				draDDColVars[i] = new JDDVars();
@@ -367,7 +362,7 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// Removing actions with non-zero reward from the product for maximum cases
 		if (hasMaxReward /*& hasLTLconstraint*/) {
-			mcMo.removeNonZeroMecsForMax(modelProduct, mcLtl, rewardsIndex, opsAndBounds, numTargets, dra, draDDRowVars, draDDColVars);
+			mcMo.removeNonZeroMecsForMax(modelProduct, mcLtl, rewardsIndex, opsAndBounds, numObjectives, dra, draDDRowVars, draDDColVars);
 		}
 
 		// Remove all non-zero reward from trans in order to search for zero reward end components
@@ -376,11 +371,11 @@ public class NondetModelChecker extends NonProbModelChecker
 		boolean transchanged = mcMo.removeNonZeroRewardTrans(modelProduct, rewardsIndex, opsAndBounds);
 
 		// Compute all maximal end components
-		ArrayList<ArrayList<JDDNode>> allstatesH = new ArrayList<ArrayList<JDDNode>>(numTargets);
-		ArrayList<ArrayList<JDDNode>> allstatesL = new ArrayList<ArrayList<JDDNode>>(numTargets);
+		ArrayList<ArrayList<JDDNode>> allstatesH = new ArrayList<ArrayList<JDDNode>>(numObjectives);
+		ArrayList<ArrayList<JDDNode>> allstatesL = new ArrayList<ArrayList<JDDNode>>(numObjectives);
 		JDDNode acceptanceVector_H = JDD.Constant(0);
 		JDDNode acceptanceVector_L = JDD.Constant(0);
-		for (int i = 0; i < numTargets; i++) {
+		for (int i = 0; i < numObjectives; i++) {
 			if (opsAndBounds.isProbabilityObjective(i)) {
 				ArrayList<JDDNode> statesH = new ArrayList<JDDNode>();
 				ArrayList<JDDNode> statesL = new ArrayList<JDDNode>();
@@ -412,9 +407,11 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// Find accepting maximum end components for each LTL formula
 		List<JDDNode> allecs = mcMo.computeAllEcs(modelProduct, mcLtl, allstatesH, allstatesL, acceptanceVector_H, acceptanceVector_L, draDDRowVars, draDDColVars,
-				opsAndBounds, numTargets);
+				opsAndBounds, numObjectives);
 
-		for (int i = 0; i < numTargets; i++) {
+		// Create array to store target DDs
+		List<JDDNode> targetDDs = new ArrayList<JDDNode>(numObjectives);
+		for (int i = 0; i < numObjectives; i++) {
 			if (opsAndBounds.isProbabilityObjective(i)) {
 				targetDDs.add(mcMo.computeAcceptingEndComponent(dra[i], modelProduct, draDDRowVars[i], draDDColVars[i], allecs, allstatesH.get(i),
 						allstatesL.get(i), mcLtl, conflictformulae > 1, targetName.get(i)));
@@ -433,7 +430,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		if (conflictformulae > 1) {
 			multitargetDDs = new ArrayList<JDDNode>();
 			multitargetIDs = new ArrayList<Integer>();
-			mcMo.checkConflictsInObjectives(modelProduct, mcLtl, conflictformulae, numTargets, opsAndBounds, dra, draDDRowVars, draDDColVars, targetDDs, allstatesH,
+			mcMo.checkConflictsInObjectives(modelProduct, mcLtl, conflictformulae, numObjectives, opsAndBounds, dra, draDDRowVars, draDDColVars, targetDDs, allstatesH,
 					allstatesL, multitargetDDs, multitargetIDs);
 		}
 
@@ -468,7 +465,7 @@ public class NondetModelChecker extends NonProbModelChecker
 			JDD.Deref(ddStateIndex);
 		if (modelProduct != null && modelProduct != model)
 			modelProduct.clear();
-		for (int i = 0; i < numTargets; i++) {
+		for (int i = 0; i < numObjectives; i++) {
 			if (opsAndBounds.isProbabilityObjective(i)) {
 				draDDRowVars[i].derefAll();
 				draDDColVars[i].derefAll();
@@ -512,7 +509,7 @@ public class NondetModelChecker extends NonProbModelChecker
 
 	//takes one operand of multi-objective expression and extracts operator, values and reward functions from it.
 	protected void extractInfoFromMultiObjectiveOperand(Expression operand, OpsAndBoundsList opsAndBounds, List<JDDNode> rewardsIndex, List<String> targetName,
-			List<Expression> targetExprs, boolean isFirst) throws PrismException
+			List<Expression> targetExprs) throws PrismException
 	{
 		int stepBound = 0;
 		ExpressionProb exprProb = null;

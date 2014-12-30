@@ -38,7 +38,6 @@ import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
 import mtbdd.PrismMTBDD;
-import parser.Values;
 import parser.ast.Expression;
 import parser.ast.ExpressionProb;
 import parser.ast.ExpressionReward;
