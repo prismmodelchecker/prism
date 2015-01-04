@@ -31,8 +31,7 @@ import java.util.BitSet;
 import java.util.List;
 
 /**
- * This class keeps lists of operators and bounds used in multi-objective
- * verification. 
+ * This class keeps lists of operators and bounds used in multi-objective verification. 
  *
  * The instance keeps an ordered instance of (operator,bound) values.
  * These are currently held in two separate lists internally. A tuple
@@ -52,6 +51,7 @@ public class OpsAndBoundsList
 	 */
 	private BitSet probNegated;
 	
+	protected List<OpRelOpBound> opInfos;
 	protected List<Operator> relOps, relOpsProb, relOpsReward;
 	protected List<Double> bounds,  boundsProb, boundsReward;
 	protected List<Integer> stepBounds,  stepBoundsProb, stepBoundsReward;
@@ -67,20 +67,21 @@ public class OpsAndBoundsList
 	/**
 	 * Creates an instance of the class in which the "big" lists
 	 * are allocated with size numTargets.
-	 * @param numTargets The expected number of elements that would be added to the list. 
+	 * @param numObjectives The expected number of elements that would be added to the list. 
 	 */
-	public OpsAndBoundsList(int numTargets)
+	public OpsAndBoundsList(int numObjectives)
 	{
 		probNegated = new BitSet();
-		relOps = new ArrayList<Operator>(numTargets);
-		bounds = new ArrayList<Double>(numTargets);
-		stepBounds = new ArrayList<Integer>(numTargets);
+		opInfos = new ArrayList<OpRelOpBound>(numObjectives);
+		relOps = new ArrayList<Operator>(numObjectives);
+		bounds = new ArrayList<Double>(numObjectives);
+		stepBounds = new ArrayList<Integer>(numObjectives);
 		relOpsProb = new ArrayList<Operator>();
 		boundsProb = new ArrayList<Double>();
-		stepBoundsProb = new ArrayList<Integer>(numTargets);
+		stepBoundsProb = new ArrayList<Integer>(numObjectives);
 		relOpsReward = new ArrayList<Operator>();
 		boundsReward = new ArrayList<Double>();
-		stepBoundsReward = new ArrayList<Integer>(numTargets);
+		stepBoundsReward = new ArrayList<Integer>(numObjectives);
 	}
 	
 	/**
@@ -89,8 +90,9 @@ public class OpsAndBoundsList
 	 * @param quantityBound
 	 * @param stepBound
 	 */
-	public void add(Operator op, double quantityBound, int stepBound)
+	public void add(OpRelOpBound opInfo, Operator op, double quantityBound, int stepBound)
 	{
+		opInfos.add(opInfo);
 		relOps.add(op);
 		bounds.add(quantityBound);
 		stepBounds.add(stepBound);
@@ -143,6 +145,14 @@ public class OpsAndBoundsList
 		return stepBounds.get(i);
 	}
 	
+	/**
+	 * Returns the operator/relop info at i-th position.
+	 */
+	public OpRelOpBound getOpRelOpBound(int i)
+	{
+		return opInfos.get(i);
+	}
+
 	/**
 	 * Returns the operator at i-th position in the subsequence containing only probabilistic
 	 * operators.

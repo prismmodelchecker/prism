@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Vector;
 
 import parser.ast.Expression;
+import parser.ast.RelOp;
 
 import dv.DoubleVector;
 
@@ -257,11 +258,10 @@ public class MultiObjModelChecker extends PrismComponent
 
 					for (int i = 0; i < opsAndBounds.probSize(); i++) {
 						if (opsAndBounds.getProbOperator(i) != Operator.P_MAX) {
-							tmpOpsAndBounds.add(opsAndBounds.getProbOperator(i), opsAndBounds.getProbBound(i), opsAndBounds.getProbStepBound(i));
+							tmpOpsAndBounds.add(opsAndBounds.getOpRelOpBound(i), opsAndBounds.getProbOperator(i), opsAndBounds.getProbBound(i), opsAndBounds.getProbStepBound(i));
 						}
 					}
-
-					tmpOpsAndBounds.add(Operator.R_MAX, -1.0, -1);
+					tmpOpsAndBounds.add(new OpRelOpBound("R", RelOp.MAX, -1.0), Operator.R_MAX, -1.0, -1);
 
 					ArrayList<JDDNode> tmprewards = new ArrayList<JDDNode>(1);
 					tmprewards.add(rtarget);

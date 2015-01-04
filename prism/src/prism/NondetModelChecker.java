@@ -299,7 +299,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		ArrayList<String> targetName = new ArrayList<String>();
 		List<Expression> targetExprs = new ArrayList<Expression>(numObjectives);
 		for (int i = 0; i < numObjectives; i++) {
-			extractInfoFromMultiObjectiveOperand(expr.getOperand(i), opsAndBounds, rewardsIndex, targetName, targetExprs);
+			extractInfoFromMultiObjectiveOperand((ExpressionQuant) expr.getOperand(i), opsAndBounds, rewardsIndex, targetName, targetExprs);
 		}
 
 		//currently we do 1 numerical subject to booleans, or multiple numericals only 
@@ -507,7 +507,7 @@ public class NondetModelChecker extends NonProbModelChecker
 	 * Extract the information from the operator defining one objective of a multi-objective query,
 	 * store the info in the passed in arrays and so some checks. 
 	 */
-	protected void extractInfoFromMultiObjectiveOperand(Expression operand, OpsAndBoundsList opsAndBounds, List<JDDNode> rewardsIndex, List<String> targetName,
+	protected void extractInfoFromMultiObjectiveOperand(ExpressionQuant exprQuant, OpsAndBoundsList opsAndBounds, List<JDDNode> rewardsIndex, List<String> targetName,
 			List<Expression> targetExprs) throws PrismException
 	{
 		int stepBound = 0;
@@ -515,12 +515,13 @@ public class NondetModelChecker extends NonProbModelChecker
 		ExpressionReward exprReward = null;
 		ExpressionTemporal exprTemp;
 		RelOp relOp;
-		if (operand instanceof ExpressionProb) {
-			exprProb = (ExpressionProb) operand;
+		
+		if (exprQuant instanceof ExpressionProb) {
+			exprProb = (ExpressionProb) exprQuant;
 			exprReward = null;
 			relOp = exprProb.getRelOp();
-		} else if (operand instanceof ExpressionReward) {
-			exprReward = (ExpressionReward) operand;
+		} else if (exprQuant instanceof ExpressionReward) {
+			exprReward = (ExpressionReward) exprQuant;
 			exprProb = null;
 			relOp = exprReward.getRelOp();
 			Object rs = exprReward.getRewardStructIndex();
@@ -567,9 +568,12 @@ public class NondetModelChecker extends NonProbModelChecker
 		}
 
 		// Get info from P/R operator
+		OpRelOpBound opInfo = exprQuant.getRelopBoundInfo(constantValues);
+		
 		// Store relational operator
-		if (relOp.isStrict())
+		if (opInfo.getRelOp().isStrict())
 			throw new PrismException("Multi-objective properties can not use strict inequalities on P/R operators");
+		
 		Operator op;
 		if (relOp == RelOp.MAX) {
 			op = (exprProb != null) ? Operator.P_MAX : Operator.R_MAX;
@@ -592,9 +596,9 @@ public class NondetModelChecker extends NonProbModelChecker
 			if (exprProb != null && relOp == RelOp.LEQ)
 				p = 1 - p;
 
-			opsAndBounds.add(op, p, stepBound);
+			opsAndBounds.add(opInfo, op, p, stepBound);
 		} else {
-			opsAndBounds.add(op, -1.0, stepBound);
+			opsAndBounds.add(opInfo, op, -1.0, stepBound);
 		}
 
 		// Now extract targets
@@ -615,7 +619,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		for (JDDNode set : tmpecs)
 			acceptingStates = JDD.Or(acceptingStates, set);
 		targetDDs.add(acceptingStates);
-		opsAndBounds.add(Operator.P_GE, 0.0, -1);
+		OpRelOpBound opInfo = new OpRelOpBound("P", RelOp.GEQ, 0.0);
+		opsAndBounds.add(opInfo, Operator.P_GE, 0.0, -1);
 	}
 
 	//Prints info about the product model in multi-objective

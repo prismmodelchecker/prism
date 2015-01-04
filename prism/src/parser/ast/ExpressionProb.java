@@ -33,7 +33,7 @@ import prism.OpRelOpBound;
 import prism.PrismException;
 import prism.PrismLangException;
 
-public class ExpressionProb extends Expression
+public class ExpressionProb extends Expression implements ExpressionQuant
 {
 	RelOp relOp = null;
 	Expression prob = null;

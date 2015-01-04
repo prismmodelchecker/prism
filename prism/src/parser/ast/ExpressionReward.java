@@ -33,7 +33,7 @@ import prism.OpRelOpBound;
 import prism.PrismException;
 import prism.PrismLangException;
 
-public class ExpressionReward extends Expression
+public class ExpressionReward extends Expression implements ExpressionQuant
 {
 	Object rewardStructIndex = null;
 	Object rewardStructIndexDiv = null;
