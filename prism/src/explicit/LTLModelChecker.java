@@ -355,9 +355,11 @@ public class LTLModelChecker extends PrismComponent
 		BitSet result = new BitSet();
 
 		for (BitSet bscc : bsccs) {
-			boolean isLEmpty = true;
-			boolean isKEmpty = true;
-			for (int acceptancePair = 0; acceptancePair < numAcceptancePairs && isLEmpty && isKEmpty; acceptancePair++) {
+			for (int acceptancePair = 0; acceptancePair < numAcceptancePairs; acceptancePair++) {
+				// accepting for L,K <=> BSCC does not intersect L but does intersect K
+				boolean isLEmpty = true;
+				boolean isKEmpty = true;
+
 				BitSet L = dra.getAcceptanceL(acceptancePair);
 				BitSet K = dra.getAcceptanceK(acceptancePair);
 				for (int state = bscc.nextSetBit(0); state != -1; state = bscc.nextSetBit(state + 1)) {
@@ -365,9 +367,10 @@ public class LTLModelChecker extends PrismComponent
 					isLEmpty &= !L.get(draState);
 					isKEmpty &= !K.get(draState);
 				}
-				// Stop as soon as we find the first acceptance pair that is satisfied
 				if (isLEmpty && !isKEmpty) {
+					// this BSCC is accepting
 					result.or(bscc);
+					// we do not have to consider the other acceptance pairs, continue with next BSCC
 					break;
 				}
 			}
