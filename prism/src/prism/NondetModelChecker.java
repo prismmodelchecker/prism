@@ -627,18 +627,16 @@ public class NondetModelChecker extends NonProbModelChecker
 		if (prism.getExportProductTrans()) {
 			try {
 				mainLog.println("\nExporting product transition matrix to file \"" + prism.getExportProductTransFilename() + "\"...");
-				prism.exportTransToFile(modelProduct, true, Prism.EXPORT_PLAIN, new File(prism.getExportProductTransFilename()));
+				modelProduct.exportToFile(Prism.EXPORT_PLAIN, true, new File(prism.getExportProductTransFilename()));
 			} catch (FileNotFoundException e) {
 				mainLog.printWarning("Could not export product transition matrix to file \"" + prism.getExportProductTransFilename() + "\"");
 			}
 		}
 		if (prism.getExportProductStates()) {
-			try {
-				mainLog.println("\nExporting product state space to file \"" + prism.getExportProductStatesFilename() + "\"...");
-				prism.exportStatesToFile(modelProduct, Prism.EXPORT_PLAIN, new File(prism.getExportProductStatesFilename()));
-			} catch (FileNotFoundException e) {
-				mainLog.printWarning("Could not export product state space to file \"" + prism.getExportProductStatesFilename() + "\"");
-			}
+			mainLog.println("\nExporting product state space to file \"" + prism.getExportProductStatesFilename() + "\"...");
+			PrismFileLog out = new PrismFileLog(prism.getExportProductStatesFilename());
+			modelProduct.exportStates(Prism.EXPORT_PLAIN, out);
+			out.close();
 		}
 	}
 
