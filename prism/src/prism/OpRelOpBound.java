@@ -22,6 +22,16 @@ public class OpRelOpBound
 			bound = boundObject.doubleValue();
 	}
 
+	public boolean isProbabilistic()
+	{
+		return "P".equals(op);
+	}
+
+	public boolean isReward()
+	{
+		return "R".equals(op);
+	}
+
 	public RelOp getRelOp()
 	{
 		return relOp;

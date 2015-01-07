@@ -268,7 +268,6 @@ public class NondetModelChecker extends NonProbModelChecker
 		Expression[] ltl;
 		DRA<BitSet>[] dra;
 		// State index info
-		JDDNode ddStateIndex = null;
 		// Misc
 		boolean negateresult = false;
 		int conflictformulae = 0;
@@ -277,6 +276,7 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// Make sure we are only expected to compute a value for a single state
 		// Assuming yes, determine index of state of interest and build BDD
+		JDDNode ddStateIndex = null;
 		if (currentFilter == null || !(currentFilter.getOperator() == Filter.FilterOperator.STATE))
 			throw new PrismException("Multi-objective model checking can only compute values from a single state");
 		else {
@@ -585,21 +585,14 @@ public class NondetModelChecker extends NonProbModelChecker
 			op = (exprProb != null) ? Operator.P_LE : Operator.R_LE;
 		} else
 			throw new PrismException("Multi-objective properties can only contain P/R operators with max/min=? or lower/upper probability bounds");
-		// Store probability/rewards bound
-		Expression pb = (exprProb != null) ? exprProb.getProb() : exprReward.getReward();
-		if (pb != null) {
-			double p = pb.evaluateDouble(constantValues);
-			if ((exprProb != null) && (p < 0 || p > 1))
-				throw new PrismException("Invalid probability bound " + p + " in P operator");
-			if ((exprProb == null) && (p < 0))
-				throw new PrismException("Invalid reward bound " + p + " in P operator");
-			if (exprProb != null && relOp == RelOp.LEQ)
-				p = 1 - p;
-
-			opsAndBounds.add(opInfo, op, p, stepBound);
-		} else {
-			opsAndBounds.add(opInfo, op, -1.0, stepBound);
-		}
+		
+		// Find bound
+		double p = opInfo.isNumeric() ? -1.0 : opInfo.getBound();
+		// Subtract bound from 1 if of the form P<=p
+		if (opInfo.isProbabilistic() && opInfo.getRelOp().isUpperBound())
+			p = 1 - p;
+		// Store bound
+		opsAndBounds.add(opInfo, op, p, stepBound);
 
 		// Now extract targets
 		if (exprProb != null) {

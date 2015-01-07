@@ -256,7 +256,7 @@ public class OpsAndBoundsList
 	}
 	
 	/**
-	 * Returns number of reward operators added so far
+	 * Returns the number of reward (R) operators added so far.
 	 */
 	public int rewardSize()
 	{
@@ -264,8 +264,7 @@ public class OpsAndBoundsList
 	}
 	
 	/**
-	 * Returns number of probabilistic operators added so far.
-	 * @return
+	 * Returns the number of probabilistic (P) operators added so far.
 	 */
 	public int probSize()
 	{
@@ -273,7 +272,7 @@ public class OpsAndBoundsList
 	}
 	
 	/**
-	 * Returns true if the list contains the operator op
+	 * Returns true if the list contains the operator op.
 	 */
 	public boolean contains(Operator op)
 	{
@@ -281,25 +280,27 @@ public class OpsAndBoundsList
 	}
 	
 	/**
-	 * returns the number of min/max operators.
-	 * @return
+	 * Returns the number of numerical (=?) operators.
 	 */
 	public int numberOfNumerical()
 	{
 		int num = 0;
-		for(Operator op : relOps) {
-			if (op == Operator.P_MAX
-				|| op == Operator.P_MIN
-				|| op == Operator.R_MAX
-				|| op == Operator.R_MIN) {
+		for (OpRelOpBound opInfo : opInfos)
+			if (opInfo.isNumeric())
 				num++;
-			}
-		}
 		return num;
 	}
 	
 	@Override
-	public String toString() {
-		return "Quantity bounds: " + this.bounds + "; Step bounds: " + this.stepBounds + "; Operators" + this.relOps;
+	public String toString()
+	{
+		String ret = "";
+		for (int i = 0; i < opInfos.size(); i++) {
+			if (i > 0)
+				ret += ",";
+			ret += opInfos.get(i);
+			ret += stepBounds.get(i);
+		}
+		return ret;
 	}
 }
