@@ -773,14 +773,15 @@ public class LTLModelChecker extends PrismComponent
 			}
 
 			JDD.Ref(model.getTrans01());
-			candidateStates = JDD.Apply(JDD.TIMES, model.getTrans01(), acceptanceVector_L_not);
 			JDD.Ref(acceptanceVector_L_not);
+			candidateStates = JDD.Apply(JDD.TIMES, model.getTrans01(), acceptanceVector_L_not);
 			acceptanceVector_L_not = JDD.PermuteVariables(acceptanceVector_L_not, draDDRowVars, draDDColVars);
 			candidateStates = JDD.Apply(JDD.TIMES, candidateStates, acceptanceVector_L_not);
 			candidateStates = JDD.ThereExists(candidateStates, model.getAllDDColVars());
 			candidateStates = JDD.ThereExists(candidateStates, model.getAllDDNondetVars());
 			// find all maximal end components
 			List<JDDNode> allecs = findMECStates(model, candidateStates, acceptanceVector_K);
+			JDD.Deref(acceptanceVector_K);
 			JDD.Deref(candidateStates);
 
 			for (i = 0; i < dra.getNumAcceptancePairs(); i++) {
@@ -796,9 +797,12 @@ public class LTLModelChecker extends PrismComponent
 					if (candidateStates.equals(ec)) {
 						//mainLog.println(" ------------- ec is not modified ------------- ");
 						ecs = new Vector<JDDNode>();
+						// store copy of ec in ecs
+						JDD.Ref(ec);
 						ecs.add(ec);
 					} else if (candidateStates.equals(JDD.ZERO)) {
 						//mainLog.println(" ------------- ec is ZERO ------------- ");
+						JDD.Deref(candidateStates);
 						continue;
 					} else { // recompute maximal end components
 						//mainLog.println(" ------------- ec is recomputed ------------- ");
@@ -811,6 +815,7 @@ public class LTLModelChecker extends PrismComponent
 						candidateStates = JDD.ThereExists(newcandidateStates, model.getAllDDNondetVars());
 						ecs = findMECStates(model, candidateStates, acceptanceVector_K);
 					}
+					JDD.Deref(candidateStates);
 
 					// find ECs in acceptingStates that are accepting under K_i
 					acceptingStates = JDD.Constant(0);
