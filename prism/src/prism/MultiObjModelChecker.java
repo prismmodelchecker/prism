@@ -87,10 +87,10 @@ public class MultiObjModelChecker extends PrismComponent
 		mainLog.println("Time for Rabin translation: " + l / 1000.0 + " seconds.");
 		// If required, export DRA 
 		if (prism.getSettings().getExportPropAut()) {
-			String exportPropAutFilename = PrismUtils.addCounterSuffixToFilename(prism.getSettings().getExportPropAutFilename(), i);
+			String exportPropAutFilename = PrismUtils.addCounterSuffixToFilename(prism.getSettings().getExportPropAutFilename(), i + 1);
 			mainLog.println("Exporting DRA to file \"" + exportPropAutFilename + "\"...");
 			PrismLog out = new PrismFileLog(exportPropAutFilename);
-			out.println(dra);
+			out.println(dra[i]);
 			out.close();
 			//dra.printDot(new java.io.PrintStream("dra.dot"));
 		}
