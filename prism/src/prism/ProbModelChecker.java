@@ -216,18 +216,23 @@ public class ProbModelChecker extends NonProbModelChecker
 		StateValues rewards = null;
 		Expression expr2 = expr.getExpression();
 		if (expr2 instanceof ExpressionTemporal) {
-			switch (((ExpressionTemporal) expr2).getOperator()) {
+			ExpressionTemporal exprTemp = (ExpressionTemporal) expr2;
+			switch (exprTemp.getOperator()) {
 			case ExpressionTemporal.R_C:
-				rewards = checkRewardCumul((ExpressionTemporal) expr2, stateRewards, transRewards);
+				if (exprTemp.hasBounds()) {
+					rewards = checkRewardCumul(exprTemp, stateRewards, transRewards);
+				} else {
+					rewards = checkRewardTotal(exprTemp, stateRewards, transRewards);
+				}
 				break;
 			case ExpressionTemporal.R_I:
-				rewards = checkRewardInst((ExpressionTemporal) expr2, stateRewards, transRewards);
+				rewards = checkRewardInst(exprTemp, stateRewards, transRewards);
 				break;
 			case ExpressionTemporal.R_F:
-				rewards = checkRewardReach((ExpressionTemporal) expr2, stateRewards, transRewards);
+				rewards = checkRewardReach(exprTemp, stateRewards, transRewards);
 				break;
 			case ExpressionTemporal.R_S:
-				rewards = checkRewardSS((ExpressionTemporal) expr2, stateRewards, transRewards);
+				rewards = checkRewardSS(exprTemp, stateRewards, transRewards);
 				break;
 			}
 		}
@@ -758,6 +763,14 @@ public class ProbModelChecker extends NonProbModelChecker
 			}
 		}
 
+		return rewards;
+	}
+
+	// cumulative reward
+
+	protected StateValues checkRewardTotal(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards) throws PrismException
+	{
+		StateValues rewards = computeTotalRewards(trans, trans01, stateRewards, transRewards);
 		return rewards;
 	}
 
@@ -1414,6 +1427,99 @@ public class ProbModelChecker extends NonProbModelChecker
 		} catch (PrismException e) {
 			throw e;
 		}
+
+		return rewards;
+	}
+
+	// compute total rewards
+
+	protected StateValues computeTotalRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr) throws PrismException
+	{
+		JDDNode rewardsMTBDD;
+		DoubleVector rewardsDV;
+		StateValues rewards = null;
+		// BSCC stuff
+		List<JDDNode> bsccs = null;
+		JDDNode notInBSCCs = null;
+		int numBSCCs = 0;
+
+		// Compute bottom strongly connected components (BSCCs)
+		SCCComputer sccComputer = prism.getSCCComputer(model);
+		sccComputer.computeBSCCs();
+		bsccs = sccComputer.getBSCCs();
+		notInBSCCs = sccComputer.getNotInBSCCs();
+		numBSCCs = bsccs.size();
+
+		// Find BSCCs with non-zero reward
+		JDD.Ref(sr);
+		JDDNode srNonZero = JDD.GreaterThan(sr, 0);
+		JDD.Ref(trr);
+		JDDNode trrNonZero = JDD.GreaterThan(trr, 0);
+		JDDNode bsccsNonZero = JDD.Constant(0);
+		for (int b = 0; b < numBSCCs; b++) {
+			if (JDD.AreInterecting(bsccs.get(b), srNonZero) || JDD.AreInterecting(bsccs.get(b), trrNonZero)) {
+				JDD.Ref(bsccs.get(b));
+				bsccsNonZero = JDD.Or(bsccsNonZero, bsccs.get(b));
+			}
+		}
+		JDD.Deref(srNonZero);
+		JDD.Deref(trrNonZero);
+		mainLog.print("States in non-zero reward BSCCs: " + JDD.GetNumMintermsString(bsccsNonZero, allDDRowVars.n()));
+
+		// Find states with infinite reward (those reach a non-zero reward BSCC with prob > 0)  
+		JDDNode inf = PrismMTBDD.Prob0(tr01, reach, allDDRowVars, allDDColVars, reach, bsccsNonZero);
+		inf = JDD.And(reach, JDD.Not(inf));
+		JDDNode maybe = JDD.And(reach, JDD.Not(inf));
+		JDD.Ref(bsccsNonZero);
+
+		// Print out inf/maybe
+		mainLog.print("\ninf = " + JDD.GetNumMintermsString(inf, allDDRowVars.n()));
+		mainLog.print(", maybe = " + JDD.GetNumMintermsString(maybe, allDDRowVars.n()) + "\n");
+
+		// If maybe is empty, we have the rewards already
+		if (maybe.equals(JDD.ZERO)) {
+			JDD.Ref(inf);
+			rewards = new StateValuesMTBDD(JDD.ITE(inf, JDD.PlusInfinity(), JDD.Constant(0)), model);
+		}
+		// Otherwise we compute the actual rewards
+		else {
+			// Compute the rewards
+			// (do this using the functions for "reward reachability" properties but with no targets)
+			mainLog.println("\nComputing remaining rewards...");
+			mainLog.println("Engine: " + Prism.getEngineString(engine));
+			try {
+				switch (engine) {
+				case Prism.MTBDD:
+					rewardsMTBDD = PrismMTBDD.ProbReachReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, JDD.ZERO, inf, maybe);
+					rewards = new StateValuesMTBDD(rewardsMTBDD, model);
+					break;
+				case Prism.SPARSE:
+					rewardsDV = PrismSparse.ProbReachReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, JDD.ZERO, inf, maybe);
+					rewards = new StateValuesDV(rewardsDV, model);
+					break;
+				case Prism.HYBRID:
+					rewardsDV = PrismHybrid.ProbReachReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, JDD.ZERO, inf, maybe);
+					rewards = new StateValuesDV(rewardsDV, model);
+					break;
+				default:
+					throw new PrismException("Unknown engine");
+				}
+			} catch (PrismException e) {
+				JDD.Deref(inf);
+				JDD.Deref(maybe);
+				throw e;
+			}
+		}
+
+		// Tidy up
+		for (int b = 0; b < numBSCCs; b++) {
+			if (bsccs.get(b) != null)
+				JDD.Deref(bsccs.get(b));
+		}
+		if (start != notInBSCCs)
+			JDD.Deref(notInBSCCs);
+		JDD.Deref(inf);
+		JDD.Deref(maybe);
 
 		return rewards;
 	}

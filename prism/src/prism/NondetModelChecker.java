@@ -213,15 +213,20 @@ public class NondetModelChecker extends NonProbModelChecker
 		StateValues rewards = null;
 		Expression expr2 = expr.getExpression();
 		if (expr2 instanceof ExpressionTemporal) {
-			switch (((ExpressionTemporal) expr2).getOperator()) {
+			ExpressionTemporal exprTemp = (ExpressionTemporal) expr2;
+			switch (exprTemp.getOperator()) {
 			case ExpressionTemporal.R_C:
-				rewards = checkRewardCumul((ExpressionTemporal) expr2, stateRewards, transRewards, minMax.isMin());
+				if (exprTemp.hasBounds()) {
+					rewards = checkRewardCumul(exprTemp, stateRewards, transRewards, minMax.isMin());
+				} else {
+					rewards = checkRewardTotal(exprTemp, stateRewards, transRewards, minMax.isMin());
+				}
 				break;
 			case ExpressionTemporal.R_I:
-				rewards = checkRewardInst((ExpressionTemporal) expr2, stateRewards, transRewards, minMax.isMin());
+				rewards = checkRewardInst(exprTemp, stateRewards, transRewards, minMax.isMin());
 				break;
 			case ExpressionTemporal.R_F:
-				rewards = checkRewardReach((ExpressionTemporal) expr2, stateRewards, transRewards, minMax.isMin());
+				rewards = checkRewardReach(exprTemp, stateRewards, transRewards, minMax.isMin());
 				break;
 			}
 		}
@@ -1063,6 +1068,15 @@ public class NondetModelChecker extends NonProbModelChecker
 	}
 
 	/**
+	 * Compute rewards for a total reward operator.
+	 */
+	protected StateValues checkRewardTotal(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards, boolean min) throws PrismException
+	{
+		StateValues rewards = computeTotalRewards(trans, trans01, stateRewards, transRewards, min);
+		return rewards;
+	}
+
+	/**
 	 * Compute rewards for an instantaneous reward operator.
 	 */
 	protected StateValues checkRewardInst(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards, boolean min) throws PrismException
@@ -1494,6 +1508,13 @@ public class NondetModelChecker extends NonProbModelChecker
 		}
 
 		return rewards;
+	}
+
+	// compute cumulative rewards
+
+	protected StateValues computeTotalRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr, boolean min) throws PrismException
+	{
+		throw new PrismException("Expected total reward (C) is not yet supported for MDPs.");
 	}
 
 	// compute rewards for inst reward
