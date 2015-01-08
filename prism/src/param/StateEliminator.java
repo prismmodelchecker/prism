@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.ListIterator;
 
 /**
@@ -225,7 +226,7 @@ final class StateEliminator {
 		}
 		
 		int[] states = new int[pmc.getNumStates()];
-
+		List<Integer> statesList = new ArrayList<Integer>();
 		switch (eliminationOrder) {
 		case ARBITRARY:
 			for (int state = 0; state < pmc.getNumStates(); state++) {
@@ -237,20 +238,35 @@ final class StateEliminator {
 			break;
 		case FORWARD_REVERSED:
 			states = collectStatesForward();
-			Collections.reverse(Arrays.asList(states));
+			for (int state = 0; state < pmc.getNumStates(); state++) {
+				statesList.add(states[state]);
+			}
+			Collections.reverse(statesList);
+			for (int state = 0; state < pmc.getNumStates(); state++) {
+				states[state] = statesList.get(state);
+			}
 			break;
 		case BACKWARD:
 			states = collectStatesBackward();
 			break;
 		case BACKWARD_REVERSED:
 			states = collectStatesBackward();
-			Collections.reverse(Arrays.asList(states));
+			for (int state = 0; state < pmc.getNumStates(); state++) {
+				statesList.add(states[state]);
+			}
+			Collections.reverse(statesList);
+			for (int state = 0; state < pmc.getNumStates(); state++) {
+				states[state] = statesList.get(state);
+			}
 			break;
 		case RANDOM:
 			for (int state = 0; state < pmc.getNumStates(); state++) {
-				states[state] = state;
+				statesList.add(state);
 			}
-			Collections.shuffle(Arrays.asList(states));
+			Collections.shuffle(statesList);
+			for (int state = 0; state < pmc.getNumStates(); state++) {
+				states[state] = statesList.get(state);
+			}
 			break;
 		default:
 			throw new RuntimeException("unknown state elimination order");
