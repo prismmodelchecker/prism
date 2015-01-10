@@ -154,7 +154,7 @@ public class SymbolicEngine
 			for (int var = 0; var < varMap.length; var++) {
 				varMap[var] = var;
 			}
-			p = (Expression) p.evaluatePartially(state, varMap);
+			p = (Expression) p.deepCopy().evaluatePartially(state, varMap);
 			list = new ArrayList<Update>();
 			list.add(ups.getUpdate(i));
 			ch.add(p, list);
