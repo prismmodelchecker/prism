@@ -333,6 +333,7 @@ public final class ModelBuilder extends PrismComponent
 		}
 
 		boolean isNonDet = modelType == ModelType.MDP;
+		boolean isContinuous = modelType == ModelType.CTMC;
 		StateStorage<State> states = new IndexedSet<State>(true);
 		reserveMemoryAndExploreStates(modulesFile, model, modelType, engine, states);
 		int[] permut = states.buildSortingPermutation();
@@ -381,7 +382,7 @@ public final class ModelBuilder extends PrismComponent
 					model.addTransition(permut[states.get(stateNew)], probFn, action);
 				}
 				if (isNonDet) {
-					model.setSumLeaving(sumOut);
+					model.setSumLeaving(isContinuous ? sumOut : functionFactory.getOne());
 					model.finishChoice();
 				}
 			}
@@ -389,12 +390,12 @@ public final class ModelBuilder extends PrismComponent
 				model.addDeadlockState(stateNr);
 				model.addTransition(stateNr, functionFactory.getOne(), null);
 				if (isNonDet) {
-					model.setSumLeaving(sumOut);
+					model.setSumLeaving(isContinuous ? sumOut : functionFactory.getOne());
 					model.finishChoice();
 				}
 			}
 			if (!isNonDet) {
-				model.setSumLeaving(sumOut);
+				model.setSumLeaving(isContinuous ? sumOut : functionFactory.getOne());
 				model.finishChoice();
 			}
 			model.finishState();
