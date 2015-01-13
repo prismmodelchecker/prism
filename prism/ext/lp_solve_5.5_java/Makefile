@@ -19,7 +19,7 @@ lpsolve55java:
 	@echo Making sure lpsolve55 Java wrapper is compatible with $(OSTYPE) $(ARCH)
 	@(if [ "$(OSTYPE)" = "linux" ]; then \
 	  echo "Rebuild lpsolve55 Java wrapper for Linux"; \
-	  (cd lib ; ARCH=$(ARCH) JAVA_JNI_H_DIR="$(JAVA_JNI_H_DIR)" sh build); \
+	  (cd lib ; ARCH=$(ARCH) JAVA_JNI_H_DIR="$(JAVA_JNI_H_DIR)" JAVA_JNI_MD_H_DIR="$(JAVA_JNI_MD_H_DIR)" sh build); \
 	  if [ "$(ARCH)" = "" ]; then \
 	    cp lib/lpsolve55j.jar lib/ux32/liblpsolve55j.so ../../lib/ ; \
 	  else \
@@ -28,7 +28,7 @@ lpsolve55java:
 	fi)
 	@(if [ "$(OSTYPE)" = "darwin" ]; then \
 	  echo "Rebuild lpsolve55 Java wrapper for MacOS"; \
-	  (cd lib/mac; ARCH=$(ARCH) sh -x build-osx); \
+	  (cd lib/mac; ARCH=$(ARCH) JAVA_JNI_H_DIR="$(JAVA_JNI_H_DIR)" JAVA_JNI_MD_H_DIR="$(JAVA_JNI_MD_H_DIR)" sh -x build-osx); \
 	  cp lib/lpsolve55j.jar lib/mac/liblpsolve55j.jnilib ../../lib/ ; \
 	fi)
 	@(if [ "$(OSTYPE)" = "cygwin" ]; then \

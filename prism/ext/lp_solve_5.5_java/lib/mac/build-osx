@@ -13,12 +13,13 @@
 # -------------------------------------------------------------------
 LPSOLVE_DIR=../../../lpsolve55/src/lp_solve_5.5
 LPSOLVE_LIB_DIR=../../../../lib
-JDK_DIR=/System/Library/Frameworks/JavaVM.framework/Versions/Current/Headers
+#JDK_DIR=/System/Library/Frameworks/JavaVM.framework/Versions/Current/Headers
+#JDK_DIR=$JAVA_DIR
 
 # OK, here we go!
 
 SRC_DIR=../../src/c
-INCL="-I $JDK_DIR -I $LPSOLVE_DIR -I $SRC_DIR -idirafter /usr/include/sys"
+INCL="-I -I$JAVA_JNI_H_DIR -I$JAVA_JNI_MD_H_DIR -I $LPSOLVE_DIR -I $SRC_DIR -idirafter /usr/include/sys"
 
 if [ "$ARCH" = "" ]
 then

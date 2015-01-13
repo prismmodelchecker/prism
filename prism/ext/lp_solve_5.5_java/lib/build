@@ -15,10 +15,8 @@
 LPSOLVE_DIR=../../lpsolve55/src/lp_solve_5.5
 LPSOLVE_LIB_DIR=../../../lib
 #JDK_DIR=/usr/local/lib/jdk1.5.0_02
-JDK_DIR=/usr/lib/jvm/java-6-sun-1.6.0.10
-JDK_DIR=$JAVA_DIR
-
-echo DIR $JDK_DIR
+#JDK_DIR=/usr/lib/jvm/java-6-sun-1.6.0.10
+#JDK_DIR=$JAVA_DIR
 
 c=g++
 
@@ -46,7 +44,7 @@ mkdir $PLATFORM >/dev/null 2>&1
 # OK, here we go!
 
 SRC_DIR=../src/c
-INCL="-I $JDK_DIR/include -I $JDK_DIR/include/linux -I $LPSOLVE_DIR -I $SRC_DIR"
+INCL="-I -I$JAVA_JNI_H_DIR -I$JAVA_JNI_MD_H_DIR -I $LPSOLVE_DIR -I $SRC_DIR"
 
 $c $CFLAGS $INCL -c $SRC_DIR/lpsolve5j.cpp
 $c $CFLAGS -shared -Wl,-soname,liblpsolve55j.so -o $PLATFORM/liblpsolve55j.so lpsolve5j.o -L$LPSOLVE_LIB_DIR -lc -llpsolve55

@@ -342,6 +342,8 @@ extpackages: checks
 	  LIBMATH="$(LIBMATH)" \
 	  BINDISTSUFFIX="$(BINDISTSUFFIX)" \
 	  JAVA_DIR="$(JAVA_DIR)" \
+	  JAVA_JNI_H_DIR="$(JAVA_JNI_H_DIR)" \
+	  JAVA_JNI_MD_H_DIR="$(JAVA_JNI_MD_H_DIR)" \
 	  ) || exit 1; \
 	done
 
