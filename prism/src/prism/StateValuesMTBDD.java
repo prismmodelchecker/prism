@@ -144,6 +144,7 @@ public class StateValuesMTBDD implements StateValues
 		String s;
 		int lineNum = 0, count = 0;
 		double d;
+		boolean hasIndices = false;
 		long size = model.getNumStates();
 		
 		try {
@@ -154,18 +155,28 @@ public class StateValuesMTBDD implements StateValues
 			while (s != null) {
 				s = s.trim();
 				if (!("".equals(s))) {
-					if (count + 1 > size)
+					// If entry is of form "i=x", use i as index not count
+					// (otherwise, assume line i contains value for state index i)
+					if (s.contains("=")) {
+						hasIndices = true;
+						String ss[] = s.split("=");
+						count = Integer.parseInt(ss[0]);
+						s = ss[1];
+					}
+					if (count + 1 > size) {
+						in.close();
 						throw new PrismException("Too many values in file \"" + file + "\" (more than " + size + ")");
+					}
 					d = Double.parseDouble(s);
 					setElement(count, d);
 					count++;
 				}
 				s = in.readLine(); lineNum++;
 			}
-			// close file
+			// Close file
 			in.close();
-			// check size
-			if (count < size)
+			// Check size
+			if (!hasIndices && count < size)
 				throw new PrismException("Too few values in file \"" + file + "\" (" + count + ", not " + size + ")");
 		}
 		catch (IOException e) {

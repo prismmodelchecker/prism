@@ -1226,16 +1226,25 @@ public class StateValues implements StateVector
 		BufferedReader in;
 		String s;
 		int lineNum = 0, count = 0;
+		boolean hasIndices = false;
 
 		try {
-			// open file for reading
+			// Open file for reading
 			in = new BufferedReader(new FileReader(file));
-			// read remaining lines
+			// Read remaining lines
 			s = in.readLine();
 			lineNum++;
 			while (s != null) {
 				s = s.trim();
 				if (!("".equals(s))) {
+					// If entry is of form "i=x", use i as index not count
+					// (otherwise, assume line i contains value for state index i)
+					if (s.contains("=")) {
+						hasIndices = true;
+						String ss[] = s.split("=");
+						count = Integer.parseInt(ss[0]);
+						s = ss[1];
+					}
 					if (count + 1 > size) {
 						in.close();
 						throw new PrismException("Too many values in file \"" + file + "\" (more than " + size + ")");
@@ -1255,10 +1264,10 @@ public class StateValues implements StateVector
 				s = in.readLine();
 				lineNum++;
 			}
-			// close file
+			// Close file
 			in.close();
-			// check size
-			if (count < size)
+			// Check size
+			if (!hasIndices && count < size)
 				throw new PrismException("Too few values in file \"" + file + "\" (" + count + ", not " + size + ")");
 		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + file + "\"");
