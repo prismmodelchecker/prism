@@ -44,7 +44,7 @@ mkdir $PLATFORM >/dev/null 2>&1
 # OK, here we go!
 
 SRC_DIR=../src/c
-INCL="-I -I$JAVA_JNI_H_DIR -I$JAVA_JNI_MD_H_DIR -I $LPSOLVE_DIR -I $SRC_DIR"
+INCL="-I$JAVA_JNI_H_DIR -I$JAVA_JNI_MD_H_DIR -I $LPSOLVE_DIR -I $SRC_DIR"
 
 $c $CFLAGS $INCL -c $SRC_DIR/lpsolve5j.cpp
 $c $CFLAGS -shared -Wl,-soname,liblpsolve55j.so -o $PLATFORM/liblpsolve55j.so lpsolve5j.o -L$LPSOLVE_LIB_DIR -lc -llpsolve55

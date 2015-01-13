@@ -19,7 +19,7 @@ LPSOLVE_LIB_DIR=../../../../lib
 # OK, here we go!
 
 SRC_DIR=../../src/c
-INCL="-I -I$JAVA_JNI_H_DIR -I$JAVA_JNI_MD_H_DIR -I $LPSOLVE_DIR -I $SRC_DIR -idirafter /usr/include/sys"
+INCL="-I$JAVA_JNI_H_DIR -I$JAVA_JNI_MD_H_DIR -I $LPSOLVE_DIR -I $SRC_DIR -idirafter /usr/include/sys"
 
 if [ "$ARCH" = "" ]
 then
