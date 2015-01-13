@@ -652,9 +652,9 @@ public class StateValuesDV implements StateValues
 			} else {
 				if (printIndices) {
 					outputLog.print(n);
-					outputLog.print(":");
 				}
 				if (printStates) {
+					outputLog.print(":");
 					outputLog.print("(");
 					j = varList.getNumVars();
 					for (i = 0; i < j; i++) {
