@@ -112,6 +112,11 @@ else
   endif
 endif
 
+# As a backup way of detecting JAVA_DIR, run java_home
+JAVA_DIR_BACKUP = $(shell \
+	if [ -f /usr/libexec/java_home ]; then /usr/libexec/java_home; \
+	else echo ""; fi )
+
 #JAVA_DIR =	/usr/java
 #JAVA_DIR =	/usr/java/j2sdk1.4.2
 #JAVA_DIR =	/bham/java/packages/j2sdk1.4.2
@@ -279,6 +284,8 @@ INCLUDE_DIR =	include
 JAVA_JNI_H_DIR = $(shell \
 	if [ -f "$(JAVA_DIR)"/include/jni.h ]; then echo "$(JAVA_DIR)"/include; \
 	elif [ -f "$(JAVA_DIR)"/Headers/jni.h ]; then echo "$(JAVA_DIR)"/Headers; \
+	elif [ -f "$(JAVA_DIR_BACKUP)"/include/jni.h ]; then echo "$(JAVA_DIR_BACKUP)"/include; \
+	elif [ -f "$(JAVA_DIR_BACKUP)"/Headers/jni.h ]; then echo "$(JAVA_DIR_BACKUP)"/Headers; \
 	else echo ""; fi )
 JAVA_JNI_MD_H_DIR = $(shell (ls "$(JAVA_JNI_H_DIR)"/jni_md.h "$(JAVA_JNI_H_DIR)"/*/jni_md.h | head -n 1 | sed 's/\/jni_md.h//') 2>/dev/null)
 JAVA_INCLUDES = -I $(JAVA_JNI_H_DIR) -I $(JAVA_JNI_MD_H_DIR)
@@ -605,6 +612,7 @@ checks:
 	echo "VERSION: $(VERSION)"; \
 	echo "OSTYPE/ARCH: $(OSTYPE) $(ARCH)"; \
 	echo "JAVA_DIR: $(JAVA_DIR)"; \
+	echo "JAVA_DIR_BACKUP: $(JAVA_DIR_BACKUP)"; \
 	echo "JAVAC: "`which $(JAVAC)` \
 	)
 
