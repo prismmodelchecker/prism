@@ -696,7 +696,7 @@ public class MultiObjModelChecker extends PrismComponent
 		int numberOfMaximizing = opsAndBounds.numberOfNumerical();
 
 		if (numberOfMaximizing > 2)
-			throw new PrismException("Number of maximizing objectives must be at most 3");
+			throw new PrismException("Number of maximizing objectives must be at most 2");
 
 		if (numberOfMaximizing >= 2 && opsAndBounds.probSize() + opsAndBounds.rewardSize() > numberOfMaximizing)
 				throw new PrismException("Number of maximizing objectives can be 2 or 3 only if there are no other (i.e. bounded) objectives present");
