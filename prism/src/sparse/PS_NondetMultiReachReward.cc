@@ -34,6 +34,7 @@
 #include <odd.h>
 #include <dv.h>
 #include "sparse.h"
+#include "sparse_adv.h"
 #include "prism.h"
 #include "PrismSparseGlob.h"
 #include "PrismNativeGlob.h"
@@ -641,6 +642,14 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
       lp_result = get_objective(lp);
       lp_soln = new double[num_lp_vars];
       get_ptr_variables(lp, &lp_soln);
+      
+      // Generate adversary from the solution, if required
+	  if (export_adv != EXPORT_ADV_NONE) {
+          // Adversary generation
+			export_adversary_ltl_tra(export_adv_filename, ndsm, ndsm->actions, action_names, yes_vec, maybe_vec, num_lp_vars, map_var, lp_soln, start_index);
+			//export_adversary_ltl_dot(env, ndsm, n, nnz, yes_vec, maybe_vec, num_lp_vars, map_var, lp_soln, start_index);
+      }
+      
       /*for (i=0; i<num_lp_vars; i++) {
         if(lp_soln[i] != 0) {
           PS_PrintToMainLog(env, "X%d = %g    ", i, lp_soln[i]);
