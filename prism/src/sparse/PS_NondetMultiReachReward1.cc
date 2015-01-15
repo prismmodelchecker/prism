@@ -34,6 +34,7 @@
 #include <odd.h>
 #include <dv.h>
 #include "sparse.h"
+#include "sparse_adv.h"
 #include "prism.h"
 #include "PrismSparseGlob.h"
 #include "PrismNativeGlob.h"
