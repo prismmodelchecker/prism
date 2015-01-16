@@ -63,12 +63,6 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
  jdoubleArray _bounds, // target probability bounds
  jlong __jlongpointer m, // 'maybe' states
  jlong __jlongpointer _start // initial state(s)
- //jlong __jlongpointer m_r, // 'maybe' states for the reward formula
- //jlong __jlongpointer trr // transition rewards
- // Reward paramters for more complicated cases
- //jlongArray _rewards, // sets of rewards for reward formulas
- //jlongArray _targets_r, // target state sets for reward formulas
- //jdoubleArray _bounds_r,  // target probability bounds for reward formulas
  )
 {
   // cast function parameters
@@ -80,7 +74,6 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
   DdNode **ndvars = jlong_to_DdNode_array(ndv); // nondet vars
   DdNode *maybe = jlong_to_DdNode(m); // 'maybe' states
   DdNode *start = jlong_to_DdNode(_start); // initial state(s)
-  DdNode *trans_rewards = NULL; // transition rewards
 
   // target info  
   jlong *target_ptrs = NULL;
@@ -519,10 +512,10 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
       get_ptr_variables(lp, &lp_soln);
         
       // Generate adversary from the solution, if required
-	  if (export_adv != EXPORT_ADV_NONE) {
-          // Adversary generation
-			export_adversary_ltl_tra(export_adv_filename, ndsm, ndsm->actions, action_names, yes_vec, maybe_vec, num_lp_vars, map_var, lp_soln, start_index);
-			//export_adversary_ltl_dot(env, ndsm, n, nnz, yes_vec, maybe_vec, num_lp_vars, map_var, lp_soln, start_index);
+      if (export_adv != EXPORT_ADV_NONE) {
+		// Adversary generation
+		export_adversary_ltl_tra(export_adv_filename, ndsm, ndsm->actions, action_names, yes_vec, maybe_vec, num_lp_vars, map_var, lp_soln, start_index);
+		//export_adversary_ltl_dot(env, ndsm, n, nnz, yes_vec, maybe_vec, num_lp_vars, map_var, lp_soln, start_index);
       }
       /*for (i=0; i<num_lp_vars; i++) {
         if(lp_soln[i] != 0) {
@@ -537,7 +530,6 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
       if(count)
 			PS_PrintToMainLog(env, "\n");*/
     }
-    
 
     // Modify result based on type
     if (relops[0] > 0) {
@@ -550,8 +542,8 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
       if (!lp_solved) lp_result = NAN;
     }
   
-    time_taken = time_for_setup + time_for_lp;
     // Print timing info
+    time_taken = time_for_setup + time_for_lp;
     PS_PrintToMainLog(env, "\nLP problem solved in %.2f seconds (setup %.2f, lpsolve %.2f)\n", time_taken, time_for_setup, time_for_lp);
 
     delete yes_vec;
@@ -567,7 +559,6 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
   if (lp) delete_lp(lp);
   if (a) Cudd_RecursiveDeref(ddman, a);
   if (maybe_yes) Cudd_RecursiveDeref(ddman, maybe_yes);
-  if (trans_rewards) Cudd_RecursiveDeref(ddman, trans_rewards);
   if (loops) Cudd_RecursiveDeref(ddman, loops);
   if (ndsm) delete ndsm;
   if (ndsm_r) delete ndsm_r;
