@@ -538,7 +538,6 @@ public class MultiObjModelChecker extends PrismComponent
 		n = targets.size();
 
 		JDDNode labels[] = new JDDNode[n];
-		String labelNames[] = new String[n];
 		// Build temporary DDs for combined targets
 		for (i = 0; i < n; i++) {
 			JDD.Ref(targets.get(i));
@@ -552,13 +551,21 @@ public class MultiObjModelChecker extends PrismComponent
 				}
 			}
 			labels[i] = tmp;
-			labelNames[i] = "target" + i;
 		}
 
+		// If required, export info about target states 
 		if (prism.getExportTarget()) {
+			JDDNode labels2[] = new JDDNode[n + 1];
+			String labelNames[] = new String[n + 1];
+			labels2[0] = modelProduct.getStart();
+			labelNames[0] = "init";
+			for (i = 0; i < n; i++) {
+				labels2[i + 1] = labels[i];
+				labelNames[i + 1] = "target" + i;
+			}
 			try {
 				mainLog.print("\nExporting target states info to file \"" + prism.getExportTargetFilename() + "\"...");
-				PrismMTBDD.ExportLabels(labels, labelNames, "l", modelProduct.getAllDDRowVars(), modelProduct.getODD(), Prism.EXPORT_PLAIN,
+				PrismMTBDD.ExportLabels(labels2, labelNames, "l", modelProduct.getAllDDRowVars(), modelProduct.getODD(), Prism.EXPORT_PLAIN,
 						prism.getExportTargetFilename());
 			} catch (FileNotFoundException e) {
 				mainLog.println("\nWarning: Could not export target to file \"" + prism.getExportTargetFilename() + "\"");
