@@ -35,6 +35,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
+import common.IterableStateSet;
+
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLog;
@@ -233,47 +235,20 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 	@Override
 	public void mvMultMinMax(double vect[], boolean min, double result[], BitSet subset, boolean complement, int strat[])
 	{
-		int s;
-		// Loop depends on subset/complement arguments
-		if (subset == null) {
-			for (s = 0; s < numStates; s++)
-				result[s] = mvMultMinMaxSingle(s, vect, min, strat);
-		} else if (complement) {
-			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1))
-				result[s] = mvMultMinMaxSingle(s, vect, min, strat);
-		} else {
-			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1))
-				result[s] = mvMultMinMaxSingle(s, vect, min, strat);
+		for (int s : new IterableStateSet(subset, numStates, complement)) {
+			result[s] = mvMultMinMaxSingle(s, vect, min, strat);
 		}
 	}
 
 	@Override
 	public double mvMultGSMinMax(double vect[], boolean min, BitSet subset, boolean complement, boolean absolute, int strat[])
 	{
-		int s;
 		double d, diff, maxDiff = 0.0;
-		// Loop depends on subset/complement arguments
-		if (subset == null) {
-			for (s = 0; s < numStates; s++) {
-				d = mvMultJacMinMaxSingle(s, vect, min, strat);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
-		} else if (complement) {
-			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1)) {
-				d = mvMultJacMinMaxSingle(s, vect, min, strat);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
-		} else {
-			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1)) {
-				d = mvMultJacMinMaxSingle(s, vect, min, strat);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
+		for (int s : new IterableStateSet(subset, numStates, complement)) {
+			d = mvMultJacMinMaxSingle(s, vect, min, strat);
+			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+			maxDiff = diff > maxDiff ? diff : maxDiff;
+			vect[s] = d;
 		}
 		// Use this code instead for backwards Gauss-Seidel
 		/*for (s = numStates - 1; s >= 0; s--) {
@@ -290,47 +265,20 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 	@Override
 	public void mvMultRewMinMax(double vect[], MDPRewards mdpRewards, boolean min, double result[], BitSet subset, boolean complement, int strat[])
 	{
-		int s;
-		// Loop depends on subset/complement arguments
-		if (subset == null) {
-			for (s = 0; s < numStates; s++)
-				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, strat);
-		} else if (complement) {
-			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1))
-				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, strat);
-		} else {
-			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1))
-				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, strat);
+		for (int s : new IterableStateSet(subset, numStates, complement)) {
+			result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, strat);
 		}
 	}
 
 	@Override
 	public double mvMultRewGSMinMax(double vect[], MDPRewards mdpRewards, boolean min, BitSet subset, boolean complement, boolean absolute, int strat[])
 	{
-		int s;
 		double d, diff, maxDiff = 0.0;
-		// Loop depends on subset/complement arguments
-		if (subset == null) {
-			for (s = 0; s < numStates; s++) {
-				d = mvMultRewJacMinMaxSingle(s, vect, mdpRewards, min, strat);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
-		} else if (complement) {
-			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1)) {
-				d = mvMultRewJacMinMaxSingle(s, vect, mdpRewards, min, strat);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
-		} else {
-			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1)) {
-				d = mvMultRewJacMinMaxSingle(s, vect, mdpRewards, min, strat);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
+		for (int s : new IterableStateSet(subset, numStates, complement)) {
+			d = mvMultRewJacMinMaxSingle(s, vect, mdpRewards, min, strat);
+			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+			maxDiff = diff > maxDiff ? diff : maxDiff;
+			vect[s] = d;
 		}
 		// Use this code instead for backwards Gauss-Seidel
 		/*for (s = numStates - 1; s >= 0; s--) {

@@ -29,6 +29,8 @@ package explicit;
 import java.util.*;
 import java.util.Map.Entry;
 
+import common.IterableStateSet;
+
 import explicit.rewards.MCRewards;
 import parser.State;
 import parser.Values;
@@ -258,21 +260,15 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 
 	public void prob0step(BitSet subset, BitSet u, BitSet result)
 	{
-		int i;
-		for (i = 0; i < numStates; i++) {
-			if (subset.get(i)) {
-				result.set(i, someSuccessorsInSet(i, u));
-			}
+		for (int i : new IterableStateSet(subset, numStates)) {
+			result.set(i, someSuccessorsInSet(i, u));
 		}
 	}
 
 	public void prob1step(BitSet subset, BitSet u, BitSet v, BitSet result)
 	{
-		int i;
-		for (i = 0; i < numStates; i++) {
-			if (subset.get(i)) {
-				result.set(i, someSuccessorsInSet(i, v) && allSuccessorsInSet(i, u));
-			}
+		for (int i : new IterableStateSet(subset, numStates)) {
+			result.set(i, someSuccessorsInSet(i, v) && allSuccessorsInSet(i, u));
 		}
 	}
 

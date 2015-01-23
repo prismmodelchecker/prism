@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import common.IterableStateSet;
+
 import prism.PrismException;
 import prism.PrismUtils;
 import explicit.rewards.MCRewards;
@@ -578,103 +580,92 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 	@Override
 	public void prob0step(BitSet subset, BitSet u, boolean forall, BitSet result)
 	{
-		int i;
 		boolean b1, b2;
-		for (i = 0; i < numStates; i++) {
-			if (subset.get(i)) {
-				b1 = forall; // there exists or for all
-				for (Distribution distr : trans.get(i)) {
-					b2 = distr.containsOneOf(u);
-					if (forall) {
-						if (!b2) {
-							b1 = false;
-							continue;
-						}
-					} else {
-						if (b2) {
-							b1 = true;
-							continue;
-						}
+		for (int i : new IterableStateSet(subset, numStates)) {
+			b1 = forall; // there exists or for all
+			for (Distribution distr : trans.get(i)) {
+				b2 = distr.containsOneOf(u);
+				if (forall) {
+					if (!b2) {
+						b1 = false;
+						continue;
+					}
+				} else {
+					if (b2) {
+						b1 = true;
+						continue;
 					}
 				}
-				result.set(i, b1);
 			}
+			result.set(i, b1);
 		}
 	}
 
 	@Override
 	public void prob1Astep(BitSet subset, BitSet u, BitSet v, BitSet result)
 	{
-		int i;
 		boolean b1;
-		for (i = 0; i < numStates; i++) {
-			if (subset.get(i)) {
-				b1 = true;
-				for (Distribution distr : trans.get(i)) {
-					if (!(distr.isSubsetOf(u) && distr.containsOneOf(v))) {
-						b1 = false;
-						continue;
-					}
+		for (int i : new IterableStateSet(subset, numStates)) {
+			b1 = true;
+			for (Distribution distr : trans.get(i)) {
+				if (!(distr.isSubsetOf(u) && distr.containsOneOf(v))) {
+					b1 = false;
+					continue;
 				}
-				result.set(i, b1);
 			}
+			result.set(i, b1);
 		}
 	}
 
 	@Override
 	public void prob1Estep(BitSet subset, BitSet u, BitSet v, BitSet result, int strat[])
 	{
-		int i, j, stratCh = -1;
+		int j, stratCh = -1;
 		boolean b1;
-		for (i = 0; i < numStates; i++) {
-			if (subset.get(i)) {
-				j = 0;
-				b1 = false;
-				for (Distribution distr : trans.get(i)) {
-					if (distr.isSubsetOf(u) && distr.containsOneOf(v)) {
-						b1 = true;
-						// If strategy generation is enabled, remember optimal choice
-						if (strat != null)
-							stratCh = j;
-						continue;
-					}
-					j++;
+		for (int i : new IterableStateSet(subset, numStates)) {
+			j = 0;
+			b1 = false;
+			for (Distribution distr : trans.get(i)) {
+				if (distr.isSubsetOf(u) && distr.containsOneOf(v)) {
+					b1 = true;
+					// If strategy generation is enabled, remember optimal choice
+					if (strat != null)
+						stratCh = j;
+					continue;
 				}
-				// If strategy generation is enabled, store optimal choice
-				// (only if this the first time we add the state to S^yes)
-				if (strat != null & b1 & !result.get(i)) {
-					strat[i] = stratCh;
-				}
-				// Store result
-				result.set(i, b1);
+				j++;
 			}
+			// If strategy generation is enabled, store optimal choice
+			// (only if this the first time we add the state to S^yes)
+			if (strat != null & b1 & !result.get(i)) {
+				strat[i] = stratCh;
+			}
+			// Store result
+			result.set(i, b1);
 		}
 	}
 
 	@Override
 	public void prob1step(BitSet subset, BitSet u, BitSet v, boolean forall, BitSet result)
 	{
-		int i;
 		boolean b1, b2;
-		for (i = 0; i < numStates; i++) {
-			if (subset.get(i)) {
-				b1 = forall; // there exists or for all
-				for (Distribution distr : trans.get(i)) {
-					b2 = distr.containsOneOf(v) && distr.isSubsetOf(u);
-					if (forall) {
-						if (!b2) {
-							b1 = false;
-							continue;
-						}
-					} else {
-						if (b2) {
-							b1 = true;
-							continue;
-						}
+		for (int i : new IterableStateSet(subset, numStates)) {
+			b1 = forall; // there exists or for all
+			for (Distribution distr : trans.get(i)) {
+				b2 = distr.containsOneOf(v) && distr.isSubsetOf(u);
+				if (forall) {
+					if (!b2) {
+						b1 = false;
+						continue;
+					}
+				} else {
+					if (b2) {
+						b1 = true;
+						continue;
 					}
 				}
-				result.set(i, b1);
 			}
+			result.set(i, b1);
 		}
 	}
 

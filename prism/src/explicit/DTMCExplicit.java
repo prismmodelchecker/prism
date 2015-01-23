@@ -33,8 +33,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
-import explicit.rewards.MCRewards;
+import common.IterableStateSet;
 
+import explicit.rewards.MCRewards;
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLog;
@@ -152,74 +153,38 @@ public abstract class DTMCExplicit extends ModelExplicit implements DTMC
 	@Override
 	public void mvMult(double vect[], double result[], BitSet subset, boolean complement)
 	{
-		int s;
-		// Loop depends on subset/complement arguments
-		if (subset == null) {
-			for (s = 0; s < numStates; s++)
-				result[s] = mvMultSingle(s, vect);
-		} else if (complement) {
-			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1))
-				result[s] = mvMultSingle(s, vect);
-		} else {
-			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1))
-				result[s] = mvMultSingle(s, vect);
+		for (int s : new IterableStateSet(subset, numStates, complement)) {
+			result[s] = mvMultSingle(s, vect);
 		}
 	}
 
 	@Override
 	public double mvMultGS(double vect[], BitSet subset, boolean complement, boolean absolute)
 	{
-		int s;
 		double d, diff, maxDiff = 0.0;
-		// Loop depends on subset/complement arguments
-		if (subset == null) {
-			for (s = 0; s < numStates; s++) {
-				d = mvMultJacSingle(s, vect);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
-		} else if (complement) {
-			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1)) {
-				d = mvMultJacSingle(s, vect);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
-		} else {
-			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1)) {
-				d = mvMultJacSingle(s, vect);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
-			// Use this code instead for backwards Gauss-Seidel
-			/*for (s = numStates - 1; s >= 0; s--) {
-				if (subset.get(s)) {
-					d = mvMultJacSingle(s, vect);
-					diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-					maxDiff = diff > maxDiff ? diff : maxDiff;
-					vect[s] = d;
-				}
-			}*/
+		for (int s : new IterableStateSet(subset, numStates, complement)) {
+			d = mvMultJacSingle(s, vect);
+			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+			maxDiff = diff > maxDiff ? diff : maxDiff;
+			vect[s] = d;
 		}
+		// Use this code instead for backwards Gauss-Seidel
+		/*for (s = numStates - 1; s >= 0; s--) {
+			if (subset.get(s)) {
+				d = mvMultJacSingle(s, vect);
+				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+				maxDiff = diff > maxDiff ? diff : maxDiff;
+				vect[s] = d;
+			}
+		}*/
 		return maxDiff;
 	}
 
 	@Override
 	public void mvMultRew(double vect[], MCRewards mcRewards, double result[], BitSet subset, boolean complement)
 	{
-		int s;
-		// Loop depends on subset/complement arguments
-		if (subset == null) {
-			for (s = 0; s < numStates; s++)
-				result[s] = mvMultRewSingle(s, vect, mcRewards);
-		} else if (complement) {
-			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1))
-				result[s] = mvMultRewSingle(s, vect, mcRewards);
-		} else {
-			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1))
-				result[s] = mvMultRewSingle(s, vect, mcRewards);
+		for (int s : new IterableStateSet(subset, numStates, complement)) {
+			result[s] = mvMultRewSingle(s, vect, mcRewards);
 		}
 	}
 }

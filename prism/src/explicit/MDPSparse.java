@@ -40,6 +40,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import common.IterableStateSet;
+
 import parser.State;
 import prism.PrismException;
 import prism.PrismUtils;
@@ -612,158 +614,150 @@ public class MDPSparse extends MDPExplicit
 	@Override
 	public void prob0step(BitSet subset, BitSet u, boolean forall, BitSet result)
 	{
-		int i, j, k, l1, h1, l2, h2;
+		int j, k, l1, h1, l2, h2;
 		boolean b1, some;
-		for (i = 0; i < numStates; i++) {
-			if (subset.get(i)) {
-				b1 = forall; // there exists or for all
-				l1 = rowStarts[i];
-				h1 = rowStarts[i + 1];
-				for (j = l1; j < h1; j++) {
-					some = false;
-					l2 = choiceStarts[j];
-					h2 = choiceStarts[j + 1];
-					for (k = l2; k < h2; k++) {
-						// Assume that only non-zero entries are stored
-						if (u.get(cols[k])) {
-							some = true;
-							continue;
-						}
-					}
-					if (forall) {
-						if (!some) {
-							b1 = false;
-							continue;
-						}
-					} else {
-						if (some) {
-							b1 = true;
-							continue;
-						}
+		for (int i : new IterableStateSet(subset, numStates)) {
+			b1 = forall; // there exists or for all
+			l1 = rowStarts[i];
+			h1 = rowStarts[i + 1];
+			for (j = l1; j < h1; j++) {
+				some = false;
+				l2 = choiceStarts[j];
+				h2 = choiceStarts[j + 1];
+				for (k = l2; k < h2; k++) {
+					// Assume that only non-zero entries are stored
+					if (u.get(cols[k])) {
+						some = true;
+						continue;
 					}
 				}
-				result.set(i, b1);
+				if (forall) {
+					if (!some) {
+						b1 = false;
+						continue;
+					}
+				} else {
+					if (some) {
+						b1 = true;
+						continue;
+					}
+				}
 			}
+			result.set(i, b1);
 		}
 	}
 
 	@Override
 	public void prob1Astep(BitSet subset, BitSet u, BitSet v, BitSet result)
 	{
-		int i, j, k, l1, h1, l2, h2;
+		int j, k, l1, h1, l2, h2;
 		boolean b1, some, all;
-		for (i = 0; i < numStates; i++) {
-			if (subset.get(i)) {
-				b1 = true;
-				l1 = rowStarts[i];
-				h1 = rowStarts[i + 1];
-				for (j = l1; j < h1; j++) {
-					some = false;
-					all = true;
-					l2 = choiceStarts[j];
-					h2 = choiceStarts[j + 1];
-					for (k = l2; k < h2; k++) {
-						// Assume that only non-zero entries are stored
-						if (!u.get(cols[k])) {
-							all = false;
-							continue; // Stop early (already know b1 will be set to false)
-						}
-						if (v.get(cols[k])) {
-							some = true;
-						}
+		for (int i : new IterableStateSet(subset, numStates)) {
+			b1 = true;
+			l1 = rowStarts[i];
+			h1 = rowStarts[i + 1];
+			for (j = l1; j < h1; j++) {
+				some = false;
+				all = true;
+				l2 = choiceStarts[j];
+				h2 = choiceStarts[j + 1];
+				for (k = l2; k < h2; k++) {
+					// Assume that only non-zero entries are stored
+					if (!u.get(cols[k])) {
+						all = false;
+						continue; // Stop early (already know b1 will be set to false)
 					}
-					if (!(some && all)) {
-						b1 = false;
-						continue;
+					if (v.get(cols[k])) {
+						some = true;
 					}
 				}
-				result.set(i, b1);
+				if (!(some && all)) {
+					b1 = false;
+					continue;
+				}
 			}
+			result.set(i, b1);
 		}
 	}
 
 	@Override
 	public void prob1Estep(BitSet subset, BitSet u, BitSet v, BitSet result, int strat[])
 	{
-		int i, j, k, l1, h1, l2, h2, stratCh = -1;
+		int j, k, l1, h1, l2, h2, stratCh = -1;
 		boolean b1, some, all;
-		for (i = 0; i < numStates; i++) {
-			if (subset.get(i)) {
-				b1 = false;
-				l1 = rowStarts[i];
-				h1 = rowStarts[i + 1];
-				for (j = l1; j < h1; j++) {
-					some = false;
-					all = true;
-					l2 = choiceStarts[j];
-					h2 = choiceStarts[j + 1];
-					for (k = l2; k < h2; k++) {
-						// Assume that only non-zero entries are stored
-						if (!u.get(cols[k])) {
-							all = false;
-							continue; // Stop early (already know b1 will not be set to true)
-						}
-						if (v.get(cols[k])) {
-							some = true;
-						}
+		for (int i : new IterableStateSet(subset, numStates)) {
+			b1 = false;
+			l1 = rowStarts[i];
+			h1 = rowStarts[i + 1];
+			for (j = l1; j < h1; j++) {
+				some = false;
+				all = true;
+				l2 = choiceStarts[j];
+				h2 = choiceStarts[j + 1];
+				for (k = l2; k < h2; k++) {
+					// Assume that only non-zero entries are stored
+					if (!u.get(cols[k])) {
+						all = false;
+						continue; // Stop early (already know b1 will not be set to true)
 					}
-					if (some && all) {
-						b1 = true;
-						// If strategy generation is enabled, remember optimal choice
-						if (strat != null)
-							stratCh = j - l1;
-						continue;
+					if (v.get(cols[k])) {
+						some = true;
 					}
 				}
-				// If strategy generation is enabled, store optimal choice
-				// (only if this the first time we add the state to S^yes)
-				if (strat != null & b1 & !result.get(i)) {
-					strat[i] = stratCh;
+				if (some && all) {
+					b1 = true;
+					// If strategy generation is enabled, remember optimal choice
+					if (strat != null)
+						stratCh = j - l1;
+					continue;
 				}
-				// Store result
-				result.set(i, b1);
 			}
+			// If strategy generation is enabled, store optimal choice
+			// (only if this the first time we add the state to S^yes)
+			if (strat != null & b1 & !result.get(i)) {
+				strat[i] = stratCh;
+			}
+			// Store result
+			result.set(i, b1);
 		}
 	}
 
 	@Override
 	public void prob1step(BitSet subset, BitSet u, BitSet v, boolean forall, BitSet result)
 	{
-		int i, j, k, l1, h1, l2, h2;
+		int j, k, l1, h1, l2, h2;
 		boolean b1, some, all;
-		for (i = 0; i < numStates; i++) {
-			if (subset.get(i)) {
-				b1 = forall; // there exists or for all
-				l1 = rowStarts[i];
-				h1 = rowStarts[i + 1];
-				for (j = l1; j < h1; j++) {
-					some = false;
-					all = true;
-					l2 = choiceStarts[j];
-					h2 = choiceStarts[j + 1];
-					for (k = l2; k < h2; k++) {
-						// Assume that only non-zero entries are stored
-						if (v.get(cols[k])) {
-							some = true;
-						}
-						if (!u.get(cols[k])) {
-							all = false;
-						}
+		for (int i : new IterableStateSet(subset, numStates)) {
+			b1 = forall; // there exists or for all
+			l1 = rowStarts[i];
+			h1 = rowStarts[i + 1];
+			for (j = l1; j < h1; j++) {
+				some = false;
+				all = true;
+				l2 = choiceStarts[j];
+				h2 = choiceStarts[j + 1];
+				for (k = l2; k < h2; k++) {
+					// Assume that only non-zero entries are stored
+					if (v.get(cols[k])) {
+						some = true;
 					}
-					if (forall) {
-						if (!(some && all)) {
-							b1 = false;
-							continue;
-						}
-					} else {
-						if (some && all) {
-							b1 = true;
-							continue;
-						}
+					if (!u.get(cols[k])) {
+						all = false;
 					}
 				}
-				result.set(i, b1);
+				if (forall) {
+					if (!(some && all)) {
+						b1 = false;
+						continue;
+					}
+				} else {
+					if (some && all) {
+						b1 = true;
+						continue;
+					}
+				}
 			}
+			result.set(i, b1);
 		}
 	}
 
