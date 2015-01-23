@@ -388,8 +388,8 @@ make_dirs:
 	fi
 
 tests: testslocal
-	@if [ -d ~/prism-tests ]; then \
-	  cd ~/prism-tests && $(PWD)/etc/scripts/prism-auto -t -m . -p $(PWD)/bin/prism; \
+	@if [ -d ~/prism/prism-tests ]; then \
+	  cd ~/prism/prism-tests && $(PWD)/etc/scripts/prism-auto -t -m . -p $(PWD)/bin/prism; \
 	else \
 	  echo "Skipping tests"; \
 	fi

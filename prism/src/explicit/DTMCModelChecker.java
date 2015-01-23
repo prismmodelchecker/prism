@@ -100,7 +100,7 @@ public class DTMCModelChecker extends ProbModelChecker
 
 		// Build product of Markov chain and automaton
 		mainLog.println("\nConstructing MC-DRA product...");
-		Pair<Model, int[]> pair = mcLtl.constructProductMC(dra, (DTMC) model, labelBS);
+		Pair<Model, int[]> pair = mcLtl.constructProductMC(dra, (DTMC) model, labelBS, statesOfInterest);
 		modelProduct = pair.first;
 		int invMap[] = pair.second;
 		mainLog.print("\n" + modelProduct.infoStringTable());

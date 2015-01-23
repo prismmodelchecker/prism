@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import common.IterableStateSet;
+
 import parser.ast.Expression;
 import parser.ast.ExpressionBinaryOp;
 import parser.ast.ExpressionLabel;
@@ -130,9 +132,10 @@ public class LTLModelChecker extends PrismComponent
 	 * @param dra The DRA
 	 * @param dtmc The DTMC
 	 * @param labelBS BitSets giving the set of states for each AP in the DRA
+	 * @param statesOfInterest the set of states for which values should be calculated (null = all states)
 	 * @return The product DTMC and a list of each of its states (s,q), encoded as (s * draSize + q) 
 	 */
-	public Pair<Model, int[]> constructProductMC(DRA<BitSet> dra, DTMC dtmc, Vector<BitSet> labelBS) throws PrismException
+	public Pair<Model, int[]> constructProductMC(DRA<BitSet> dra, DTMC dtmc, Vector<BitSet> labelBS, BitSet statesOfInterest) throws PrismException
 	{
 		DTMCSimple prodModel = new DTMCSimple();
 
@@ -152,13 +155,13 @@ public class LTLModelChecker extends PrismComponent
 		int map[] = new int[prodNumStates];
 		Arrays.fill(map, -1);
 
-		// As we need results for all states of the original model,
-		// we explore states of the product starting from those that
-		// correspond to *all* states of the original model.
-		// These are designated as initial states of the model
+		// We need results for all states of the original model in statesOfInterest
+		// We thus explore states of the product starting from these states.
+		// These are designated as initial states of the product model
 		// (a) to ensure reachability is done for these states; and
-		// (b) to later identify the corresponding product state for each model state 
-		for (int s_0 = 0; s_0 < dtmc.getNumStates(); s_0++) {
+		// (b) to later identify the corresponding product state for the original states
+		//     of interest
+		for (int s_0 : new IterableStateSet(statesOfInterest, dtmc.getNumStates())) {
 			// Get BitSet representing APs (labels) satisfied by state s_0
 			for (int k = 0; k < numAPs; k++) {
 				s_labels.set(k, labelBS.get(Integer.parseInt(dra.getAPList().get(k).substring(1))).get(s_0));
@@ -220,9 +223,10 @@ public class LTLModelChecker extends PrismComponent
 	 * @param dra The DRA
 	 * @param mdp The MDP
 	 * @param labelBS BitSets giving the set of states for each AP in the DRA
+	 * @param statesOfInterest the set of states for which values should be calculated (null = all states)
 	 * @return The product MDP and a list of each of its states (s,q), encoded as (s * draSize + q) 
 	 */
-	public Pair<NondetModel, int[]> constructProductMDP(DRA<BitSet> dra, MDP mdp, Vector<BitSet> labelBS) throws PrismException
+	public Pair<NondetModel, int[]> constructProductMDP(DRA<BitSet> dra, MDP mdp, Vector<BitSet> labelBS, BitSet statesOfInterest) throws PrismException
 	{
 		MDPSimple prodModel = new MDPSimple();
 
@@ -242,13 +246,13 @@ public class LTLModelChecker extends PrismComponent
 		int map[] = new int[prodNumStates];
 		Arrays.fill(map, -1);
 
-		// As we need results for all states of the original model,
-		// we explore states of the product starting from those that
-		// correspond to *all* states of the original model.
-		// These are designated as initial states of the model
+		// We need results for all states of the original model in statesOfInterest
+		// We thus explore states of the product starting from these states.
+		// These are designated as initial states of the product model
 		// (a) to ensure reachability is done for these states; and
-		// (b) to later identify the corresponding product state for each model state 
-		for (int s_0 = 0; s_0 < mdp.getNumStates(); s_0++) {
+		// (b) to later identify the corresponding product state for the original states
+		//     of interest
+		for (int s_0 : new IterableStateSet(statesOfInterest, mdp.getNumStates())) {
 			// Get BitSet representing APs (labels) satisfied by state s_0
 			for (int k = 0; k < numAPs; k++) {
 				s_labels.set(k, labelBS.get(Integer.parseInt(dra.getAPList().get(k).substring(1))).get(s_0));

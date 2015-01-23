@@ -108,7 +108,7 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Build product of MDP and automaton
 		mainLog.println("\nConstructing MDP-DRA product...");
-		Pair<NondetModel, int[]> pair = mcLtl.constructProductMDP(dra, (MDP) model, labelBS);
+		Pair<NondetModel, int[]> pair = mcLtl.constructProductMDP(dra, (MDP) model, labelBS, statesOfInterest);
 		modelProduct = pair.first;
 		int invMap[] = pair.second;
 
