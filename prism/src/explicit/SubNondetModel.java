@@ -376,21 +376,29 @@ public class SubNondetModel implements NondetModel
 	@Override
 	public boolean allSuccessorsInSet(int s, int i, BitSet set)
 	{
-		int sOriginal = translateState(s);
-		int iOriginal = translateAction(s, i);
-		set = translateSet(set);
+		Iterator<Integer> successors = getSuccessorsIterator(s,i);
+		while (successors.hasNext()) {
+			Integer successor = successors.next();
+			if (!set.get(successor)) {
+				return false;
+			}
+		}
 
-		return model.allSuccessorsInSet(sOriginal, iOriginal, set);
+		return true;
 	}
 
 	@Override
 	public boolean someSuccessorsInSet(int s, int i, BitSet set)
 	{
-		int sOriginal = translateState(s);
-		int iOriginal = translateAction(s, i);
-		set = translateSet(set);
+		Iterator<Integer> successors = getSuccessorsIterator(s,i);
+		while (successors.hasNext()) {
+			Integer successor = successors.next();
+			if (set.get(successor)) {
+				return true;
+			}
+		}
 
-		return model.someSuccessorsInSet(sOriginal, iOriginal, set);
+		return false;
 	}
 
 	@Override
