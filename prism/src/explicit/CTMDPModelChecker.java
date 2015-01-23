@@ -52,7 +52,7 @@ public class CTMDPModelChecker extends MDPModelChecker
 	// Model checking functions
 
 	@Override
-	protected StateValues checkProbBoundedUntil(Model model, ExpressionTemporal expr, MinMax minMax) throws PrismException
+	protected StateValues checkProbBoundedUntil(Model model, ExpressionTemporal expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
 		double uTime;
 		BitSet b1, b2;
@@ -66,9 +66,9 @@ public class CTMDPModelChecker extends MDPModelChecker
 			throw new PrismException("Invalid upper bound " + bound + " in time-bounded until formula");
 		}
 
-		// model check operands first
-		b1 = checkExpression(model, expr.getOperand1()).getBitSet();
-		b2 = checkExpression(model, expr.getOperand2()).getBitSet();
+		// model check operands first for all states
+		b1 = checkExpression(model, expr.getOperand1(), null).getBitSet();
+		b2 = checkExpression(model, expr.getOperand2(), null).getBitSet();
 
 		// compute probabilities
 

@@ -82,8 +82,8 @@ public class LTLModelChecker extends PrismComponent
 	{
 		// A state formula
 		if (expr.getType() instanceof TypeBool) {
-			// Model check
-			StateValues sv = mc.checkExpression(model, expr);
+			// Model check state formula for all states
+			StateValues sv = mc.checkExpression(model, expr, null);
 			BitSet bs = sv.getBitSet();
 			// Detect special cases (true, false) for optimisation
 			if (bs.isEmpty()) {

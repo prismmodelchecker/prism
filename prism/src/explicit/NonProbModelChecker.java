@@ -26,6 +26,8 @@
 
 package explicit;
 
+import java.util.BitSet;
+
 import parser.ast.Expression;
 import parser.ast.ExpressionExists;
 import parser.ast.ExpressionForAll;
@@ -46,7 +48,7 @@ public class NonProbModelChecker extends StateModelChecker
 	}
 	
 	@Override
-	public StateValues checkExpression(Model model, Expression expr) throws PrismException
+	public StateValues checkExpression(Model model, Expression expr, BitSet statesOfInterest) throws PrismException
 	{
 		StateValues res;
 
@@ -60,7 +62,7 @@ public class NonProbModelChecker extends StateModelChecker
 		}
 		// Otherwise, use the superclass
 		else {
-			res = super.checkExpression(model, expr);
+			res = super.checkExpression(model, expr, statesOfInterest);
 		}
 
 		return res;

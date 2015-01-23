@@ -54,17 +54,17 @@ public class CTMCModelChecker extends DTMCModelChecker
 	// Model checking functions
 
 	@Override
-	protected StateValues checkProbPathFormulaLTL(Model model, Expression expr, boolean qual, MinMax minMax) throws PrismException
+	protected StateValues checkProbPathFormulaLTL(Model model, Expression expr, boolean qual, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
 		mainLog.println("Building embedded DTMC...");
 		DTMC dtmcEmb = ((CTMC)model).buildImplicitEmbeddedDTMC();
 		
 		// use superclass (DTMCModelChecker) method on the embedded DTMC
-		return super.checkProbPathFormulaLTL(dtmcEmb, expr, qual, minMax);
+		return super.checkProbPathFormulaLTL(dtmcEmb, expr, qual, minMax, statesOfInterest);
 	}
 	
 	@Override
-	protected StateValues checkProbBoundedUntil(Model model, ExpressionTemporal expr, MinMax minMax) throws PrismException
+	protected StateValues checkProbBoundedUntil(Model model, ExpressionTemporal expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
 		double lTime, uTime; // time bounds
 		Expression exprTmp;
@@ -101,9 +101,9 @@ public class CTMCModelChecker extends DTMCModelChecker
 			uTime = -1;
 		}
 
-		// model check operands first
-		b1 = checkExpression(model, expr.getOperand1()).getBitSet();
-		b2 = checkExpression(model, expr.getOperand2()).getBitSet();
+		// model check operands first for all states
+		b1 = checkExpression(model, expr.getOperand1(), null).getBitSet();
+		b2 = checkExpression(model, expr.getOperand2(), null).getBitSet();
 
 		// compute probabilities
 
