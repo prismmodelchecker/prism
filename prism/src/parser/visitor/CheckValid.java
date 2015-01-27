@@ -88,6 +88,10 @@ public class CheckValid extends ASTTraverse
 						+ " operator must be integers for PTAs");
 			}
 		}
+		// Don't allow lower bounds on weak until - does not have intuitive semantics
+		if (e.getOperator() == ExpressionTemporal.P_W && e.getLowerBound() != null) {
+			throw new PrismLangException("The weak until operator (W) with lower bounds is not yet supported");
+		}
 	}
 
 	public void visitPost(ExpressionProb e) throws PrismLangException
