@@ -4,6 +4,7 @@
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
 //	* Hongyang Qu <hongyang.qu@cs.ox.ac.uk> (University of Oxford)
+//	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -30,13 +31,13 @@ package prism;
 import java.io.PrintStream;
 import java.util.*;
 
-import acceptance.AcceptanceRabin;
+import acceptance.AcceptanceOmega;
 
 /**
- * Class to store a deterministic Rabin automata (DRA).
+ * Class to store a deterministic automata of some acceptance type Acceptance.
  * States are 0-indexed integers; class is parameterised by edge labels (Symbol).
  */
-public class DRA<Symbol>
+public class DA<Symbol, Acceptance extends AcceptanceOmega>
 {
 	/** AP list */
 	private List<String> apList;
@@ -47,7 +48,7 @@ public class DRA<Symbol>
 	/** Edges of DRA */
 	private List<List<Edge>> edges;
 	/** The acceptance condition (as BitSets) */
-	private AcceptanceRabin acceptance;
+	private Acceptance acceptance;
 
 	/** Local class to represent DRA edge */
 	class Edge
@@ -65,7 +66,7 @@ public class DRA<Symbol>
 	/**
 	 * Construct a DRA of fixed size (i.e. fixed number of states).
 	 */
-	public DRA(int size)
+	public DA(int size)
 	{
 		apList = null;
 		this.size = size;
@@ -74,7 +75,15 @@ public class DRA<Symbol>
 		for (int i = 0; i < size; i++) {
 			edges.add(new ArrayList<Edge>());
 		}
-		acceptance = new AcceptanceRabin();
+	}
+
+	public void setAcceptance(Acceptance acceptance)
+	{
+		this.acceptance = acceptance;
+	}
+
+	public Acceptance getAcceptance() {
+		return acceptance;
 	}
 
 	// TODO: finish/tidy this
@@ -82,12 +91,12 @@ public class DRA<Symbol>
 	{
 		this.apList = apList;
 	}
-	
+
 	public List<String> getAPList()
 	{
 		return apList;
 	}
-	
+
 	// Mutators
 
 	/**
@@ -104,15 +113,6 @@ public class DRA<Symbol>
 	public void addEdge(int src, Symbol label, int dest)
 	{
 		edges.get(src).add(new Edge(label, dest));
-	}
-
-	/**
-	 * Add an acceptance pair (L_i,K_i)
-	 */
-	public void addAcceptancePair(BitSet L, BitSet K)
-	{
-		AcceptanceRabin.RabinPair pair = new AcceptanceRabin.RabinPair(L, K);
-		acceptance.add(pair);
 	}
 
 	// Accessors
@@ -170,63 +170,20 @@ public class DRA<Symbol>
 	}
 
 	/**
-	 * Get the number of pairs (L_i,K_i) in the acceptance condition.
-	 */
-	public int getNumAcceptancePairs()
-	{
-		return acceptance.size();
-	}
-
-	public AcceptanceRabin getAcceptance()
-	{
-		return acceptance; 
-	}
-	
-	/**
-	 * Get the states in set L_i for acceptance condition pair (L_i,K_i).
-	 * @param Pair index (0-indexed)
-	 */
-	public BitSet getAcceptanceL(int i)
-	{
-		return acceptance.get(i).getL();
-	}
-
-	/**
-	 * Get the states in set K_i for acceptance condition pair (L_i,K_i).
-	 * @param Pair index (0-indexed)
-	 */
-	public BitSet getAcceptanceK(int i)
-	{
-		return acceptance.get(i).getK();
-	}
-
-	/**
 	 * Print DRA in DOT format to an output stream.
 	 */
 	public void printDot(PrintStream out) throws PrismException
 	{
-		int i, j, n;
+		int i;
 		out.println("digraph model {");
 		for (i = 0; i < size; i++) {
+			out.print("	" + i + " [label=\"" + i + " [");
+			out.print(acceptance.getSignatureForState(i));
+			out.print("]\", shape=");
 			if (i == start)
-				out.println("	" + i + " [label=\"" + i + "\", shape=ellipse]");
-			else {
-				boolean isAcceptance = false;
-				n = getNumAcceptancePairs();
-				for (j = 0; j < n; j++) {
-					if (acceptance.get(j).getK().get(i)) {
-						out.println("	" + i + " [label=\"" + i + "\", shape=doublecircle]");
-						isAcceptance = true;
-						break;
-					} else if (acceptance.get(j).getL().get(i)) {
-						out.println("	" + i + " [label=\"" + i + "\", shape=box]");
-						isAcceptance = true;
-						break;
-					}
-				}
-				if (!isAcceptance)
-					out.println("	" + i + " [label=\"" + i + "\", shape=circle]");
-			}
+				out.println("doublecircle]");
+			else
+				out.println("ellipse]");
 		}
 		for (i = 0; i < size; i++) {
 			for (Edge e : edges.get(i)) {
@@ -242,21 +199,36 @@ public class DRA<Symbol>
 	public String toString()
 	{
 		String s = "";
-		int i, n;
+		int i;
 		s += size + " states (start " + start + ")";
 		if (apList != null)
 			s += ", " + apList.size() + " labels (" + apList + ")";
- 		s += ":";
+		s += ":";
 		for (i = 0; i < size; i++) {
 			for (Edge e : edges.get(i)) {
 				s += " " + i + "-" + e.label + "->" + e.dest;
 			}
 		}
-		n = acceptance.size();
-		s += "; " + n + " acceptance pairs:";
-		for (i = 0; i < n; i++) {
-			s += " (" + acceptance.get(i).getL() + "," + acceptance.get(i).getK() + ")";
-		}
+		s += "; " + acceptance.getTypeName() + " acceptance :";
+		s += acceptance;
 		return s;
+	}
+
+	public String getAutomataType()
+	{
+		return "D"+acceptance.getTypeAbbreviated()+"A";
+	}
+
+	/**
+	 * Switch the acceptance condition. This may change the acceptance type,
+	 * i.e., a DA<BitSet, AcceptanceRabin> may become a DA<BitSet, AcceptanceStreett>
+	 * @param da the automaton
+	 * @param newAcceptance the new acceptance condition
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static void switchAcceptance(DA da, AcceptanceOmega newAcceptance)
+	{
+		// as Java generics are only compile time, we can change the AcceptanceType
+		da.acceptance = newAcceptance;
 	}
 }
