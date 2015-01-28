@@ -36,8 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import acceptance.AcceptanceRabin;
 import common.IterableStateSet;
-
 import parser.ast.Expression;
 import parser.ast.ExpressionBinaryOp;
 import parser.ast.ExpressionLabel;
@@ -45,7 +45,7 @@ import parser.ast.ExpressionTemporal;
 import parser.ast.ExpressionUnaryOp;
 import parser.type.TypeBool;
 import parser.type.TypePathBool;
-import prism.DRA;
+import prism.DA;
 import prism.LTL2RabinLibrary;
 import prism.Pair;
 import prism.PrismComponent;
@@ -68,7 +68,7 @@ public class LTLModelChecker extends PrismComponent
 	 * Convert an LTL formula into a DRA. The LTL formula is represented as a PRISM Expression,
 	 * in which atomic propositions are represented by ExpressionLabel objects.
 	 */
-	public static DRA<BitSet> convertLTLFormulaToDRA(Expression ltl) throws PrismException
+	public static DA<BitSet,AcceptanceRabin> convertLTLFormulaToDRA(Expression ltl) throws PrismException
 	{
 		return LTL2RabinLibrary.convertLTLFormulaToDRA(ltl);
 	}
@@ -135,7 +135,7 @@ public class LTLModelChecker extends PrismComponent
 	 * @param statesOfInterest the set of states for which values should be calculated (null = all states)
 	 * @return The product DTMC and a list of each of its states (s,q), encoded as (s * draSize + q) 
 	 */
-	public Pair<Model, int[]> constructProductMC(DRA<BitSet> dra, DTMC dtmc, Vector<BitSet> labelBS, BitSet statesOfInterest) throws PrismException
+	public Pair<Model, int[]> constructProductMC(DA<BitSet,AcceptanceRabin> dra, DTMC dtmc, Vector<BitSet> labelBS, BitSet statesOfInterest) throws PrismException
 	{
 		DTMCSimple prodModel = new DTMCSimple();
 
@@ -226,7 +226,7 @@ public class LTLModelChecker extends PrismComponent
 	 * @param statesOfInterest the set of states for which values should be calculated (null = all states)
 	 * @return The product MDP and a list of each of its states (s,q), encoded as (s * draSize + q) 
 	 */
-	public Pair<NondetModel, int[]> constructProductMDP(DRA<BitSet> dra, MDP mdp, Vector<BitSet> labelBS, BitSet statesOfInterest) throws PrismException
+	public Pair<NondetModel, int[]> constructProductMDP(DA<BitSet,AcceptanceRabin> dra, MDP mdp, Vector<BitSet> labelBS, BitSet statesOfInterest) throws PrismException
 	{
 		MDPSimple prodModel = new MDPSimple();
 
@@ -320,7 +320,7 @@ public class LTLModelChecker extends PrismComponent
 	 * @param model The model
 	 * @param invMap The map returned by the constructProduct method(s)
 	 */
-	public BitSet findAcceptingBSCCsForRabin(DRA<BitSet> dra, Model model, int invMap[]) throws PrismException
+	public BitSet findAcceptingBSCCsForRabin(DA<BitSet,AcceptanceRabin> dra, Model model, int invMap[]) throws PrismException
 	{
 		// Compute bottom strongly connected components (BSCCs)
 		SCCComputer sccComputer = SCCComputer.createSCCComputer(this, model);
@@ -328,7 +328,7 @@ public class LTLModelChecker extends PrismComponent
 		List<BitSet> bsccs = sccComputer.getBSCCs();
 
 		int draSize = dra.size();
-		int numAcceptancePairs = dra.getNumAcceptancePairs();
+		int numAcceptancePairs = dra.getAcceptance().size();
 		BitSet result = new BitSet();
 
 		for (BitSet bscc : bsccs) {
@@ -337,8 +337,8 @@ public class LTLModelChecker extends PrismComponent
 				boolean isLEmpty = true;
 				boolean isKEmpty = true;
 
-				BitSet L = dra.getAcceptanceL(acceptancePair);
-				BitSet K = dra.getAcceptanceK(acceptancePair);
+				BitSet L = dra.getAcceptance().get(acceptancePair).getL();
+				BitSet K = dra.getAcceptance().get(acceptancePair).getK();
 				for (int state = bscc.nextSetBit(0); state != -1; state = bscc.nextSetBit(state + 1)) {
 					int draState = invMap[state] % draSize;
 					isLEmpty &= !L.get(draState);
@@ -362,16 +362,16 @@ public class LTLModelChecker extends PrismComponent
 	 * @param model The model
 	 * @param invMap The map returned by the constructProduct method(s)
 	 */
-	public BitSet findAcceptingECStatesForRabin(DRA<BitSet> dra, NondetModel model, int invMap[]) throws PrismException
+	public BitSet findAcceptingECStatesForRabin(DA<BitSet,AcceptanceRabin> dra, NondetModel model, int invMap[]) throws PrismException
 	{
 		BitSet allAcceptingStates = new BitSet();
 		int numStates = model.getNumStates();
 		int draSize = dra.size();
 		
 		// Go through the DRA acceptance pairs (L_i, K_i) 
-		for (int i = 0; i < dra.getNumAcceptancePairs(); i++) {
+		for (int i = 0; i < dra.getAcceptance().size(); i++) {
 			// Find model states *not* satisfying L_i
-			BitSet bitsetLi = dra.getAcceptanceL(i);
+			BitSet bitsetLi = dra.getAcceptance().get(i).getL();
 			BitSet statesLi_not = new BitSet();
 			for (int s = 0; s < numStates; s++) {
 				if (!bitsetLi.get(invMap[s] % draSize)) {
@@ -386,7 +386,7 @@ public class LTLModelChecker extends PrismComponent
 			ecComputer.computeMECStates(statesLi_not);
 			List<BitSet> mecs = ecComputer.getMECStates();
 			// Check with MECs contain a K_i state
-			BitSet bitsetKi = dra.getAcceptanceK(i);
+			BitSet bitsetKi = dra.getAcceptance().get(i).getK();
 			for (BitSet mec : mecs) {
 				for (int s = mec.nextSetBit(0); s != -1; s = mec.nextSetBit(s + 1)) {
 					if (bitsetKi.get(invMap[s] % draSize)) {

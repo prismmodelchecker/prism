@@ -29,6 +29,8 @@ package prism;
 import java.io.*;
 import java.util.*;
 
+import acceptance.AcceptanceRabin;
+import acceptance.AcceptanceRabin.RabinPair;
 import jltl2dstar.*;
 import parser.ast.*;
 import parser.visitor.ASTTraverse;
@@ -65,7 +67,7 @@ public class LTL2RabinLibrary
 	 * Convert an LTL formula into a DRA. The LTL formula is represented as a PRISM Expression,
 	 * in which atomic propositions are represented by ExpressionLabel objects.
 	 */
-	public static DRA<BitSet> convertLTLFormulaToDRA(Expression ltl) throws PrismException
+	public static DA<BitSet, AcceptanceRabin> convertLTLFormulaToDRA(Expression ltl) throws PrismException
 	{
 		// Get list of labels appearing
 		labels = new ArrayList<String>();
@@ -104,17 +106,19 @@ public class LTL2RabinLibrary
 	 * Create a DRA from a string, e.g.:
 	 * "2 states (start 0), 1 labels: 0-{0}->1 0-{}->0 1-{0}->1 1-{}->0; 1 acceptance pairs: ({},{1})"
 	 */
-	private static DRA<BitSet> createDRAFromString(String s, List<String> labels) throws PrismException
+	private static DA<BitSet,AcceptanceRabin> createDRAFromString(String s, List<String> labels) throws PrismException
 	{
 		int ptr = 0, i, j, k, n, from, to;
 		String bs;
-		prism.DRA<BitSet> draNew;
+		DA<BitSet,AcceptanceRabin> draNew;
+		AcceptanceRabin acceptance = new AcceptanceRabin();
 
 		try {
 			// Num states
 			j = s.indexOf("states", ptr);
 			n = Integer.parseInt(s.substring(0, j).trim());
-			draNew = new prism.DRA<BitSet>(n);
+			draNew = new DA<BitSet,AcceptanceRabin>(n);
+			draNew.setAcceptance(acceptance);
 			draNew.setAPList(labels);
 			// Start state
 			i = s.indexOf("start", j) + 6;
@@ -141,7 +145,9 @@ public class LTL2RabinLibrary
 			while (i != -1) {
 				j = s.indexOf("},{", i);
 				k = s.indexOf("})", j);
-				draNew.addAcceptancePair(createBitSetFromString(s.substring(i + 2, j)), createBitSetFromString(s.substring(j + 3, k)));
+				BitSet L = createBitSetFromString(s.substring(i + 2, j));
+				BitSet K = createBitSetFromString(s.substring(j + 3, k));
+				acceptance.add(new AcceptanceRabin.RabinPair(L,K));
 				i = s.indexOf("({", k);
 			}
 		} catch (NumberFormatException e) {
@@ -170,15 +176,16 @@ public class LTL2RabinLibrary
 	}
 
 	// Example: manual creation of DRA for: !(F ("L0"&(X "L1")))
-	public static DRA<BitSet> draForNotFaCb(String l0, String l1) throws PrismException
+	public static DA<BitSet,AcceptanceRabin> draForNotFaCb(String l0, String l1) throws PrismException
 	{
 		int numStates;
 		List<String> apList;
-		prism.DRA<BitSet> draNew;
+		DA<BitSet,AcceptanceRabin> draNew;
 
 		// 4 states (start 3), 2 labels: 0-{1}->0 0-{0, 1}->1 0-{}->0 0-{0}->1 1-{1}->2 1-{0, 1}->2 1-{}->0 1-{0}->1 2-{1}->2 2-{0, 1}->2 2-{}->2 2-{0}->2 3-{1}->0 3-{0, 1}->1 3-{}->0 3-{0}->1; 1 acceptance pairs: ({2},{0, 1})
 		numStates = 4;
-		draNew = new prism.DRA<BitSet>(numStates);
+		draNew = new DA<BitSet,AcceptanceRabin>(numStates);
+		draNew.setAcceptance(new AcceptanceRabin());
 		// AP set
 		apList = new ArrayList<String>(2);
 		apList.add(l0);
@@ -219,7 +226,7 @@ public class LTL2RabinLibrary
 		BitSet bitsetK = new BitSet();
 		bitsetK.set(01);
 		bitsetK.set(1);
-		draNew.addAcceptancePair(bitsetL, bitsetK);
+		draNew.getAcceptance().add(new AcceptanceRabin.RabinPair(bitsetL, bitsetK));
 
 		return draNew;
 	}
@@ -241,9 +248,9 @@ public class LTL2RabinLibrary
 			System.out.println(ltl);
 			System.out.println(expr.toString());
 			System.out.println(ltl.equals(expr.toString()));
-			DRA<BitSet> dra1 = jltl2dstar.LTL2Rabin.ltl2rabin(expr.convertForJltl2ba());
+			DA<BitSet,AcceptanceRabin> dra1 = jltl2dstar.LTL2Rabin.ltl2rabin(expr.convertForJltl2ba());
 			System.out.println(dra1);
-			DRA<BitSet> dra2 = convertLTLFormulaToDRA(expr);
+			DA<BitSet,AcceptanceRabin> dra2 = convertLTLFormulaToDRA(expr);
 			System.out.println(dra2);
 			System.out.println(dra1.toString().equals(dra2.toString()));
 			//dra2.printDot(new PrintStream(new File("dra")));

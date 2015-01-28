@@ -32,9 +32,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import acceptance.AcceptanceRabin;
 import parser.ast.Expression;
 import parser.type.TypeDouble;
-import prism.DRA;
+import prism.DA;
 import prism.Pair;
 import prism.PrismComponent;
 import prism.PrismException;
@@ -64,7 +65,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		LTLModelChecker mcLtl;
 		StateValues probsProduct, probs;
 		Expression ltl;
-		DRA<BitSet> dra;
+		DA<BitSet,AcceptanceRabin> dra;
 		Model modelProduct;
 		DTMCModelChecker mcProduct;
 		long time;
@@ -86,7 +87,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		time = System.currentTimeMillis();
 		dra = LTLModelChecker.convertLTLFormulaToDRA(ltl);
 		int draSize = dra.size();
-		mainLog.println("DRA has " + dra.size() + " states, " + dra.getNumAcceptancePairs() + " pairs.");
+		mainLog.println("DRA has " + dra.size() + " states, " + dra.getAcceptance().getSizeStatistics() + ".");
 		time = System.currentTimeMillis() - time;
 		mainLog.println("Time for Rabin translation: " + time / 1000.0 + " seconds.");
 		// If required, export DRA 

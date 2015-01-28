@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 
+import acceptance.AcceptanceRabin;
 import odd.ODDUtils;
 
 import jdd.*;
@@ -271,7 +272,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		MultiObjModelChecker mcMo;
 		LTLModelChecker mcLtl;
 		Expression[] ltl;
-		DRA<BitSet>[] dra;
+		DA<BitSet,AcceptanceRabin>[] dra;
 		// State index info
 		// Misc
 		boolean negateresult = false;
@@ -320,7 +321,7 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// Create arrays to store LTL/DRA info
 		ltl = new Expression[numObjectives];
-		dra = new DRA[numObjectives];
+		dra = new DA[numObjectives];
 		draDDRowVars = new JDDVars[numObjectives];
 		draDDColVars = new JDDVars[numObjectives];
 
@@ -380,14 +381,14 @@ public class NondetModelChecker extends NonProbModelChecker
 			if (opsAndBounds.isProbabilityObjective(i)) {
 				ArrayList<JDDNode> statesH = new ArrayList<JDDNode>();
 				ArrayList<JDDNode> statesL = new ArrayList<JDDNode>();
-				for (int k = 0; k < dra[i].getNumAcceptancePairs(); k++) {
+				for (int k = 0; k < dra[i].getAcceptance().size(); k++) {
 					JDDNode tmpH = JDD.Constant(0);
 					JDDNode tmpL = JDD.Constant(0);
 					for (int j = 0; j < dra[i].size(); j++) {
-						if (!dra[i].getAcceptanceL(k).get(j)) {
+						if (!dra[i].getAcceptance().get(k).getL().get(j)) {
 							tmpH = JDD.SetVectorElement(tmpH, draDDRowVars[i], j, 1.0);
 						}
-						if (dra[i].getAcceptanceK(k).get(j)) {
+						if (dra[i].getAcceptance().get(k).getK().get(j)) {
 							tmpL = JDD.SetVectorElement(tmpL, draDDRowVars[i], j, 1.0);
 						}
 					}
@@ -943,7 +944,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		StateValues probsProduct = null, probs = null;
 		Expression ltl;
 		Vector<JDDNode> labelDDs;
-		DRA<BitSet> dra;
+		DA<BitSet,AcceptanceRabin> dra;
 		NondetModel modelProduct;
 		NondetModelChecker mcProduct;
 		JDDNode startMask;
@@ -978,7 +979,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
 		l = System.currentTimeMillis();
 		dra = LTLModelChecker.convertLTLFormulaToDRA(ltl);
-		mainLog.println("DRA has " + dra.size() + " states, " + dra.getNumAcceptancePairs() + " pairs.");
+		mainLog.println("DRA has " + dra.size() + " states, " + dra.getAcceptance().getSizeStatistics()+".");
 		l = System.currentTimeMillis() - l;
 		mainLog.println("Time for Rabin translation: " + l / 1000.0 + " seconds.");
 		// If required, export DRA 

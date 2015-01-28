@@ -34,6 +34,7 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Vector;
 
+import acceptance.AcceptanceRabin;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
@@ -492,7 +493,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		StateValues probsProduct = null, probs = null;
 		Expression ltl;
 		Vector<JDDNode> labelDDs;
-		DRA<BitSet> dra;
+		DA<BitSet,AcceptanceRabin> dra;
 		ProbModel modelProduct;
 		ProbModelChecker mcProduct;
 		JDDNode startMask;
@@ -516,7 +517,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
 		l = System.currentTimeMillis();
 		dra = LTLModelChecker.convertLTLFormulaToDRA(ltl);
-		mainLog.println("DRA has " + dra.size() + " states, " + dra.getNumAcceptancePairs() + " pairs.");
+		mainLog.println("DRA has " + dra.size() + " states, " + dra.getAcceptance().getSizeStatistics()+".");
 		l = System.currentTimeMillis() - l;
 		mainLog.println("Time for Rabin translation: " + l / 1000.0 + " seconds.");
 		// If required, export DRA 

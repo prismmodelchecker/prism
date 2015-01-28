@@ -26,9 +26,9 @@ import java.io.FileWriter;
 import java.io.PrintStream;
 import java.util.*;
 
+import acceptance.AcceptanceRabin;
 import jltl2ba.APElement;
 import jltl2ba.APSet;
-
 import prism.PrismException;
 
 /**
@@ -146,17 +146,18 @@ public class DRA extends DA {
 	/**
 	 * Convert the DRA from jltl2dstar to PRISM data structures.  
 	 */
-	public prism.DRA<BitSet> createPrismDRA() throws PrismException
+	public prism.DA<BitSet,AcceptanceRabin> createPrismDRA() throws PrismException
 	{
 		int i, k, numLabels, numStates, src, dest;
 		List<String> apList;
-		BitSet bitset, bitset2;
+		BitSet bitset;
 		RabinAcceptance acc;
-		prism.DRA<BitSet> draNew;
+		prism.DA<BitSet,AcceptanceRabin> draNew;
+		AcceptanceRabin accNew = new AcceptanceRabin();
 		
 		numLabels = getAPSize();
 		numStates = size();
-		draNew = new prism.DRA<BitSet>(numStates);
+		draNew = new prism.DA<BitSet,AcceptanceRabin>(numStates);
 		// Copy AP set
 		apList = new ArrayList<String>(numLabels);
 		for (i = 0; i < numLabels; i++) {
@@ -181,14 +182,15 @@ public class DRA extends DA {
 		// Copy acceptance pairs
 		acc = acceptance(); 
 		for (i = 0; i < acc.size(); i++) {
-			bitset = new BitSet();
-			bitset.or(acc.getAcceptance_U(i));
-			bitset2 = new BitSet();
-			bitset2.or(acc.getAcceptance_L(i));
 			// Note: Pairs (U_i,L_i) become (L_i,K_i) in PRISM's notation
-			draNew.addAcceptancePair(bitset, bitset2);
+			BitSet newL = (BitSet)acc.getAcceptance_U(i).clone();
+			BitSet newK = (BitSet)acc.getAcceptance_L(i).clone();
+			AcceptanceRabin.RabinPair pair = new AcceptanceRabin.RabinPair(newL, newK);
+			accNew.add(pair);
 		}
 		
+		draNew.setAcceptance(accNew);
+
 		return draNew;
 	}
 	

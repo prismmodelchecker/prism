@@ -27,9 +27,11 @@ import prism.PrismException;
 
 import java.util.BitSet;
 
+import acceptance.AcceptanceRabin;
+
 public class LTL2Rabin {
 	
-	public static prism.DRA<BitSet> ltl2rabin(SimpleLTL ltlFormula) throws PrismException {
+	public static prism.DA<BitSet,AcceptanceRabin> ltl2rabin(SimpleLTL ltlFormula) throws PrismException {
 		SimpleLTL ltl = ltlFormula.simplify();
 		return ltl2rabin(ltl, ltl.getAPs()).createPrismDRA();
 	}

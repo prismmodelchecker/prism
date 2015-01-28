@@ -35,15 +35,13 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Vector;
 
+import acceptance.AcceptanceRabin;
 import parser.ast.Expression;
 import parser.ast.RelOp;
-
 import dv.DoubleVector;
-
 import mtbdd.PrismMTBDD;
 import sparse.NDSparseMatrix;
 import sparse.PrismSparse;
-
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
@@ -67,7 +65,7 @@ public class MultiObjModelChecker extends PrismComponent
 	}
 
 	//TODO: dra's element is changed here, not neat.
-	protected NondetModel constructDRAandProductMulti(NondetModel model, LTLModelChecker mcLtl, ModelChecker modelChecker, Expression ltl, int i, DRA<BitSet> dra[], Operator operator,
+	protected NondetModel constructDRAandProductMulti(NondetModel model, LTLModelChecker mcLtl, ModelChecker modelChecker, Expression ltl, int i, DA<BitSet,AcceptanceRabin> dra[], Operator operator,
 			Expression targetExpr, JDDVars draDDRowVars, JDDVars draDDColVars, JDDNode ddStateIndex) throws PrismException
 	{
 		// Model check maximal state formulas
@@ -82,7 +80,7 @@ public class MultiObjModelChecker extends PrismComponent
 		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
 		long l = System.currentTimeMillis();
 		dra[i] = LTLModelChecker.convertLTLFormulaToDRA(ltl);
-		mainLog.print("DRA has " + dra[i].size() + " states, " + ", " + dra[i].getNumAcceptancePairs() + " pairs.");
+		mainLog.print("DRA has " + dra[i].size() + " states, " + ", " + dra[i].getAcceptance().getSizeStatistics()+".");
 		l = System.currentTimeMillis() - l;
 		mainLog.println("Time for Rabin translation: " + l / 1000.0 + " seconds.");
 		// If required, export DRA 
@@ -165,7 +163,7 @@ public class MultiObjModelChecker extends PrismComponent
 	//computes accepting end component for the Rabin automaton dra.
 	//Vojta: in addition to calling a method which does the computation
 	//there are some other bits which I don't currently understand
-	protected JDDNode computeAcceptingEndComponent(DRA<BitSet> dra, NondetModel modelProduct, JDDVars draDDRowVars, JDDVars draDDColVars,
+	protected JDDNode computeAcceptingEndComponent(DA<BitSet,AcceptanceRabin> dra, NondetModel modelProduct, JDDVars draDDRowVars, JDDVars draDDColVars,
 			List<JDDNode> allecs, List<JDDNode> statesH, List<JDDNode> statesL, //Vojta: at the time of writing this I have no idea what these two parameters do, so I don't know how to call them
 			LTLModelChecker mcLtl, boolean conflictformulaeGtOne, String name) throws PrismException
 	{
@@ -186,7 +184,7 @@ public class MultiObjModelChecker extends PrismComponent
 	}
 
 	protected void removeNonZeroMecsForMax(NondetModel modelProduct, LTLModelChecker mcLtl, List<JDDNode> rewardsIndex, OpsAndBoundsList opsAndBounds,
-			int numTargets, DRA<BitSet> dra[], JDDVars draDDRowVars[], JDDVars draDDColVars[]) throws PrismException
+			int numTargets, DA<BitSet,AcceptanceRabin> dra[], JDDVars draDDRowVars[], JDDVars draDDColVars[]) throws PrismException
 	{
 		List<JDDNode> mecs = mcLtl.findMECStates(modelProduct, modelProduct.getReach());
 		JDDNode removedActions = JDD.Constant(0);
@@ -230,7 +228,7 @@ public class MultiObjModelChecker extends PrismComponent
 				Vector<JDDNode> tmptargetDDs = new Vector<JDDNode>();
 				List<JDDNode> tmpmultitargetDDs = new ArrayList<JDDNode>();
 				List<Integer> tmpmultitargetIDs = new ArrayList<Integer>();
-				ArrayList<DRA<BitSet>> tmpdra = new ArrayList<DRA<BitSet>>();
+				ArrayList<DA<BitSet,AcceptanceRabin>> tmpdra = new ArrayList<DA<BitSet,AcceptanceRabin>>();
 				ArrayList<JDDVars> tmpdraDDRowVars = new ArrayList<JDDVars>();
 				ArrayList<JDDVars> tmpdraDDColVars = new ArrayList<JDDVars>();
 				int count = 0;
@@ -244,7 +242,7 @@ public class MultiObjModelChecker extends PrismComponent
 					}
 				if (count > 0) {
 					// TODO: distinguish whether rtarget is empty
-					DRA newdra[] = new DRA[count];
+					DA<BitSet,AcceptanceRabin> newdra[] = new DA[count];
 					tmpdra.toArray(newdra);
 					JDDVars newdraDDRowVars[] = new JDDVars[count];
 					tmpdraDDRowVars.toArray(newdraDDRowVars);
@@ -298,11 +296,11 @@ public class MultiObjModelChecker extends PrismComponent
 
 	//TODO is conflictformulae actually just no of prob?
 	protected void checkConflictsInObjectives(NondetModel modelProduct, LTLModelChecker mcLtl, int conflictformulae, int numTargets,
-			OpsAndBoundsList opsAndBounds, DRA<BitSet> dra[], JDDVars draDDRowVars[], JDDVars draDDColVars[], List<JDDNode> targetDDs,
+			OpsAndBoundsList opsAndBounds, DA<BitSet,AcceptanceRabin> dra[], JDDVars draDDRowVars[], JDDVars draDDColVars[], List<JDDNode> targetDDs,
 			List<ArrayList<JDDNode>> allstatesH, List<ArrayList<JDDNode>> allstatesL, List<JDDNode> multitargetDDs, List<Integer> multitargetIDs)
 			throws PrismException
 	{
-		DRA[] tmpdra = new DRA[conflictformulae];
+		DA<BitSet,AcceptanceRabin>[] tmpdra = new DA[conflictformulae];
 		JDDVars[] tmpdraDDRowVars = new JDDVars[conflictformulae];
 		JDDVars[] tmpdraDDColVars = new JDDVars[conflictformulae];
 		List<JDDNode> tmptargetDDs = new ArrayList<JDDNode>(conflictformulae);
@@ -350,7 +348,7 @@ public class MultiObjModelChecker extends PrismComponent
 			}
 	}
 
-	protected void findTargetStates(NondetModel modelProduct, LTLModelChecker mcLtl, int numTargets, int conflictformulae, boolean reachExpr[], DRA dra[],
+	protected void findTargetStates(NondetModel modelProduct, LTLModelChecker mcLtl, int numTargets, int conflictformulae, boolean reachExpr[], DA<BitSet,AcceptanceRabin> dra[],
 			JDDVars draDDRowVars[], JDDVars draDDColVars[], List<JDDNode> targetDDs, List<JDDNode> multitargetDDs, List<Integer> multitargetIDs)
 			throws PrismException
 	{
@@ -366,14 +364,14 @@ public class MultiObjModelChecker extends PrismComponent
 			if (!reachExpr[i]) {
 				ArrayList<JDDNode> statesH = new ArrayList<JDDNode>();
 				ArrayList<JDDNode> statesL = new ArrayList<JDDNode>();
-				for (int k = 0; k < dra[i].getNumAcceptancePairs(); k++) {
+				for (int k = 0; k < dra[i].getAcceptance().size(); k++) {
 					JDDNode tmpH = JDD.Constant(0);
 					JDDNode tmpL = JDD.Constant(0);
 					for (j = 0; j < dra[i].size(); j++) {
-						if (!dra[i].getAcceptanceL(k).get(j)) {
+						if (!dra[i].getAcceptance().get(k).getL().get(j)) {
 							tmpH = JDD.SetVectorElement(tmpH, draDDRowVars[i], j, 1.0);
 						}
-						if (dra[i].getAcceptanceK(k).get(j)) {
+						if (dra[i].getAcceptance().get(k).getK().get(j)) {
 							tmpL = JDD.SetVectorElement(tmpL, draDDRowVars[i], j, 1.0);
 						}
 					}
@@ -455,7 +453,7 @@ public class MultiObjModelChecker extends PrismComponent
 
 		// check if there are conflicts in objectives
 		if (conflictformulae > 1) {
-			DRA[] tmpdra = new DRA[conflictformulae];
+			DA<BitSet,AcceptanceRabin>[] tmpdra = new DA[conflictformulae];
 			JDDVars[] tmpdraDDRowVars = new JDDVars[conflictformulae];
 			JDDVars[] tmpdraDDColVars = new JDDVars[conflictformulae];
 			List<JDDNode> tmptargetDDs = new ArrayList<JDDNode>(conflictformulae);
