@@ -30,6 +30,8 @@ package prism;
 import java.io.PrintStream;
 import java.util.*;
 
+import acceptance.AcceptanceRabin;
+
 /**
  * Class to store a deterministic Rabin automata (DRA).
  * States are 0-indexed integers; class is parameterised by edge labels (Symbol).
@@ -44,10 +46,8 @@ public class DRA<Symbol>
 	private int start;
 	/** Edges of DRA */
 	private List<List<Edge>> edges;
-	/** Sets L_i of acceptance condition pairs (L_i,K_i), stored as BitSets */
-	private List<BitSet> acceptanceL;
-	/** Sets K_i of acceptance condition pairs (L_i,K_i), stored as BitSets */
-	private List<BitSet> acceptanceK;
+	/** The acceptance condition (as BitSets) */
+	private AcceptanceRabin acceptance;
 
 	/** Local class to represent DRA edge */
 	class Edge
@@ -74,8 +74,7 @@ public class DRA<Symbol>
 		for (int i = 0; i < size; i++) {
 			edges.add(new ArrayList<Edge>());
 		}
-		acceptanceL = new ArrayList<BitSet>();
-		acceptanceK = new ArrayList<BitSet>();
+		acceptance = new AcceptanceRabin();
 	}
 
 	// TODO: finish/tidy this
@@ -110,10 +109,10 @@ public class DRA<Symbol>
 	/**
 	 * Add an acceptance pair (L_i,K_i)
 	 */
-	public void addAcceptancePair(BitSet l, BitSet k)
+	public void addAcceptancePair(BitSet L, BitSet K)
 	{
-		acceptanceL.add(l);
-		acceptanceK.add(k);
+		AcceptanceRabin.RabinPair pair = new AcceptanceRabin.RabinPair(L, K);
+		acceptance.add(pair);
 	}
 
 	// Accessors
@@ -175,16 +174,21 @@ public class DRA<Symbol>
 	 */
 	public int getNumAcceptancePairs()
 	{
-		return acceptanceL.size();
+		return acceptance.size();
 	}
 
+	public AcceptanceRabin getAcceptance()
+	{
+		return acceptance; 
+	}
+	
 	/**
 	 * Get the states in set L_i for acceptance condition pair (L_i,K_i).
 	 * @param Pair index (0-indexed)
 	 */
 	public BitSet getAcceptanceL(int i)
 	{
-		return acceptanceL.get(i);
+		return acceptance.get(i).getL();
 	}
 
 	/**
@@ -193,7 +197,7 @@ public class DRA<Symbol>
 	 */
 	public BitSet getAcceptanceK(int i)
 	{
-		return acceptanceK.get(i);
+		return acceptance.get(i).getK();
 	}
 
 	/**
@@ -210,11 +214,11 @@ public class DRA<Symbol>
 				boolean isAcceptance = false;
 				n = getNumAcceptancePairs();
 				for (j = 0; j < n; j++) {
-					if (acceptanceK.get(j).get(i)) {
+					if (acceptance.get(j).getK().get(i)) {
 						out.println("	" + i + " [label=\"" + i + "\", shape=doublecircle]");
 						isAcceptance = true;
 						break;
-					} else if (acceptanceL.get(j).get(i)) {
+					} else if (acceptance.get(j).getL().get(i)) {
 						out.println("	" + i + " [label=\"" + i + "\", shape=box]");
 						isAcceptance = true;
 						break;
@@ -248,10 +252,10 @@ public class DRA<Symbol>
 				s += " " + i + "-" + e.label + "->" + e.dest;
 			}
 		}
-		n = acceptanceL.size();
+		n = acceptance.size();
 		s += "; " + n + " acceptance pairs:";
 		for (i = 0; i < n; i++) {
-			s += " (" + acceptanceL.get(i) + "," + acceptanceK.get(i) + ")";
+			s += " (" + acceptance.get(i).getL() + "," + acceptance.get(i).getK() + ")";
 		}
 		return s;
 	}
