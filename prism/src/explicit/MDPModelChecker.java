@@ -188,6 +188,36 @@ public class MDPModelChecker extends ProbModelChecker
 	}
 
 	/**
+	 * Given a value vector x, compute the probability:
+	 *   v(s) = min/max sched [ Sum_s' P_sched(s,s')*x(s') ]  for s labeled with a,
+	 *   v(s) = 0   for s not labeled with a.
+	 *
+	 * Clears the StateValues object x.
+	 *
+	 * @param tr the transition matrix
+	 * @param a the set of states labeled with a
+	 * @param x the value vector
+	 * @param min compute min instead of max
+	 */
+	public double[] computeRestrictedNext(MDP mdp, BitSet a, double[] x, boolean min)
+	{
+		int n;
+		double soln[];
+
+		// Store num states
+		n = mdp.getNumStates();
+
+		// initialized to 0.0
+		soln = new double[n];
+
+		// Next-step probabilities multiplication
+		// restricted to a states
+		mdp.mvMultMinMax(x, min, soln, a, false, null);
+
+		return soln;
+	}
+
+	/**
 	 * Compute reachability probabilities.
 	 * i.e. compute the min/max probability of reaching a state in {@code target}.
 	 * @param mdp The MDP

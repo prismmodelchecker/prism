@@ -363,6 +363,33 @@ public class DTMCModelChecker extends ProbModelChecker
 	}
 
 	/**
+	 * Given a value vector x, compute the probability:
+	 *   v(s) = Sum_s' P(s,s')*x(s')   for s labeled with a,
+	 *   v(s) = 0                      for s not labeled with a.
+	 *
+	 * @param dtmc the DTMC model
+	 * @param a the set of states labeled with a
+	 * @param x the value vector
+	 */
+	protected double[] computeRestrictedNext(DTMC dtmc, BitSet a, double[] x)
+	{
+		double[] soln;
+		int n;
+
+		// Store num states
+		n = dtmc.getNumStates();
+
+		// initialized to 0.0
+		soln = new double[n];
+
+		// Next-step probabilities multiplication
+		// restricted to a states
+		dtmc.mvMult(x, soln, a, false);
+
+		return soln;
+	}
+
+	/**
 	 * Compute reachability probabilities.
 	 * i.e. compute the probability of reaching a state in {@code target}.
 	 * @param dtmc The DTMC

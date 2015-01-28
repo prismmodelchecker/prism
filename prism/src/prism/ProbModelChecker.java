@@ -1123,6 +1123,40 @@ public class ProbModelChecker extends NonProbModelChecker
 		return probs;
 	}
 
+	/**
+	 * Given a value vector x, compute the probability:
+	 *   v(s) = Sum_s' P(s,s')*x(s')   for s labeled with a,
+	 *   v(s) = 0                      for s not labeled with a.
+	 *
+	 * Clears the StateValues object x.
+	 *
+	 * @param tr the transition matrix
+	 * @param a the set of states labeled with a
+	 * @param x the value vector
+	 */
+	protected StateValues computeRestrictedNext(JDDNode tr, JDDNode a, StateValues x)
+	{
+		JDDNode tmp;
+		StateValuesMTBDD probs = null;
+
+		// ensure that values are given in MTBDD format
+		StateValuesMTBDD ddX = x.convertToStateValuesMTBDD();
+
+		tmp = ddX.getJDDNode();
+		JDD.Ref(tmp);
+		tmp = JDD.PermuteVariables(tmp, allDDRowVars, allDDColVars);
+		JDD.Ref(tr);
+		tmp = JDD.MatrixMultiply(tr, tmp, allDDColVars, JDD.BOULDER);
+
+		// label is 0/1 BDD, MIN sets all values to 0 for states not in a
+		JDD.Ref(a);
+		tmp = JDD.Apply(JDD.MIN, tmp, a);
+
+		ddX.clear();
+		probs = new StateValuesMTBDD(tmp, model);
+		return probs;
+	}
+
 	// compute probabilities for bounded until
 
 	protected StateValues computeBoundedUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2, int time) throws PrismException

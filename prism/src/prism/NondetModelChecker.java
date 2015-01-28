@@ -1156,6 +1156,51 @@ public class NondetModelChecker extends NonProbModelChecker
 		return probs;
 	}
 
+	/**
+	 * Given a value vector x, compute the probability:
+	 *   v(s) = min/max sched [ Sum_s' P_sched(s,s')*x(s') ]  for s labeled with a,
+	 *   v(s) = 0   for s not labeled with a.
+	 *
+	 * Clears the StateValues object x.
+	 *
+	 * @param tr the transition matrix
+	 * @param a the set of states labeled with a
+	 * @param x the value vector
+	 * @param min compute min instead of max
+	 */
+	protected StateValues computeRestrictedNext(JDDNode tr, JDDNode a, StateValues x, boolean min)
+	{
+		JDDNode tmp;
+		StateValuesMTBDD probs = null;
+
+		// ensure that values are given in MTBDD format
+		StateValuesMTBDD ddX = x.convertToStateValuesMTBDD();
+
+		tmp = ddX.getJDDNode();
+		JDD.Ref(tmp);
+		tmp = JDD.PermuteVariables(tmp, allDDRowVars, allDDColVars);
+		JDD.Ref(tr);
+		tmp = JDD.MatrixMultiply(tr, tmp, allDDColVars, JDD.BOULDER);
+		// (then min or max)
+		if (min) {
+			// min
+			JDD.Ref(nondetMask);
+			tmp = JDD.Apply(JDD.MAX, tmp, nondetMask);
+			tmp = JDD.MinAbstract(tmp, allDDNondetVars);
+		} else {
+			// max
+			tmp = JDD.MaxAbstract(tmp, allDDNondetVars);
+		}
+
+		// label is 0/1 BDD, MIN sets all values to 0 for states not in a
+		JDD.Ref(a);
+		tmp = JDD.Apply(JDD.MIN, tmp, a);
+
+		probs = new StateValuesMTBDD(tmp, model);
+		ddX.clear();
+		return probs;
+	}
+
 	// compute probabilities for bounded until
 
 	protected StateValues computeBoundedUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2, int time, boolean min) throws PrismException
