@@ -24,7 +24,6 @@
 //	
 //==============================================================================
 
-
 package prism;
 
 import parser.Values;
@@ -39,7 +38,6 @@ public class IntegerBound
 	private Integer lowest;
 	/** The highest integer that is included in the bound. {@code null} for "no bound". */
 	private Integer highest;
-
 
 	/** Create new bounds.
 	 * @param lower: The lower bound, {@code null} represents "no lower bound"
@@ -220,5 +218,10 @@ public class IntegerBound
 				return "";
 			}
 		}
+	}
+	
+	public static void main(String args[])
+	{
+		System.out.println(new IntegerBound(1, true, 3, false));
 	}
 }
