@@ -38,6 +38,7 @@ import parser.ast.ExpressionTemporal;
 import parser.ast.ExpressionUnaryOp;
 import parser.ast.RewardStruct;
 import parser.type.TypeDouble;
+import prism.IntegerBound;
 import prism.OpRelOpBound;
 import prism.PrismComponent;
 import prism.PrismException;
@@ -652,39 +653,99 @@ public class ProbModelChecker extends NonProbModelChecker
 		// Continuous-time model checkers will override this method
 
 		// Get info from bounded until
-		int time = expr.getUpperBound().evaluateInt(constantValues);
-		if (expr.upperBoundIsStrict())
-			time--;
-		if (time < 0) {
-			String bound = expr.upperBoundIsStrict() ? "<" + (time + 1) : "<=" + time;
-			throw new PrismException("Invalid bound " + bound + " in bounded until formula");
-		}
+		Integer lowerBound;
+		IntegerBound bounds;
+		int i;
+
+		// get and check bounds information
+		bounds = IntegerBound.fromExpressionTemporal(expr, constantValues, true);
 
 		// Model check operands for all states
 		BitSet remain = checkExpression(model, expr.getOperand1(), null).getBitSet();
 		BitSet target = checkExpression(model, expr.getOperand2(), null).getBitSet();
 
-		// Compute/return the probabilities
-		// A trivial case: "U<=0" (prob is 1 in target states, 0 otherwise)
-		if (time == 0) {
-			return StateValues.createFromBitSetAsDoubles(target, model);
+		if (bounds.hasLowerBound()) {
+			lowerBound = bounds.getLowestInteger();
+		} else {
+			lowerBound = 0;
 		}
-		// Otherwise: numerical solution
-		ModelCheckerResult res = null;
-		switch (model.getModelType()) {
-		case DTMC:
-			res = ((DTMCModelChecker) this).computeBoundedUntilProbs((DTMC) model, remain, target, time);
-			break;
-		case MDP:
-			res = ((MDPModelChecker) this).computeBoundedUntilProbs((MDP) model, remain, target, time, minMax.isMin());
-			break;
-		case STPG:
-			res = ((STPGModelChecker) this).computeBoundedUntilProbs((STPG) model, remain, target, time, minMax.isMin1(), minMax.isMin2());
-			break;
-		default:
-			throw new PrismException("Cannot model check " + expr + " for " + model.getModelType() + "s");
+
+		Integer windowSize = null;  // unbounded
+
+		if (bounds.hasUpperBound()) {
+			windowSize = bounds.getHighestInteger() - lowerBound;
 		}
-		return StateValues.createFromDoubleArray(res.soln, model);
+
+		// compute probabilities for Until<=windowSize
+		StateValues sv = null;
+
+		if (windowSize == null) {
+			// unbounded
+			ModelCheckerResult res = null;
+
+			switch (model.getModelType()) {
+			case DTMC:
+				res = ((DTMCModelChecker) this).computeUntilProbs((DTMC) model, remain, target);
+				break;
+			case MDP:
+				res = ((MDPModelChecker) this).computeUntilProbs((MDP) model, remain, target, minMax.isMin());
+				break;
+			case STPG:
+				res = ((STPGModelChecker) this).computeUntilProbs((STPG) model, remain, target, minMax.isMin1(), minMax.isMin2());
+				break;
+			default:
+				throw new PrismException("Cannot model check " + expr + " for " + model.getModelType() + "s");
+			}
+
+			sv = StateValues.createFromDoubleArray(res.soln, model);
+		} else if (windowSize == 0) {
+			// A trivial case: windowSize=0 (prob is 1 in target states, 0 otherwise)
+			sv = StateValues.createFromBitSetAsDoubles(target, model);
+		} else {
+			// Otherwise: numerical solution
+			ModelCheckerResult res = null;
+
+			switch (model.getModelType()) {
+			case DTMC:
+				res = ((DTMCModelChecker) this).computeBoundedUntilProbs((DTMC) model, remain, target, windowSize);
+				break;
+			case MDP:
+				res = ((MDPModelChecker) this).computeBoundedUntilProbs((MDP) model, remain, target, windowSize, minMax.isMin());
+				break;
+			case STPG:
+				res = ((STPGModelChecker) this).computeBoundedUntilProbs((STPG) model, remain, target, windowSize, minMax.isMin1(), minMax.isMin2());
+				break;
+			default:
+				throw new PrismException("Cannot model check " + expr + " for " + model.getModelType() + "s");
+			}
+			sv = StateValues.createFromDoubleArray(res.soln, model);
+		}
+
+		// perform lowerBound restricted next-step computations to
+		// deal with lower bound.
+		if (lowerBound > 0) {
+			double[] probs = sv.getDoubleArray();
+
+			for (i = 0; i < lowerBound; i++) {
+				switch (model.getModelType()) {
+				case DTMC:
+					probs = ((DTMCModelChecker) this).computeRestrictedNext((DTMC) model, remain, probs);
+					break;
+				case MDP:
+					probs = ((MDPModelChecker) this).computeRestrictedNext((MDP) model, remain, probs, minMax.isMin());
+					break;
+				case STPG:
+					// TODO (JK): Figure out if we can handle lower bounds for STPG in the same way
+					throw new PrismException("Lower bounds not yet supported for STPGModelChecker");
+				default:
+					throw new PrismException("Cannot model check " + expr + " for " + model.getModelType() + "s");
+				}
+			}
+
+			sv = StateValues.createFromDoubleArray(probs, model);
+		}
+
+		return sv;
 	}
 
 	/**
