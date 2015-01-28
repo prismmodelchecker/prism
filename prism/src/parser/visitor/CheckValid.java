@@ -58,23 +58,16 @@ public class CheckValid extends ASTTraverse
 				throw new PrismLangException("Only reachability (F) reward properties can be used for PTAs");
 			}
 		}
-		// Apart from CTMCs, we only support upper time bounds
+		// PTA only support upper time bounds
 		if (e.getLowerBound() != null) {
-			if (modelType == ModelType.DTMC) {
-				throw new PrismLangException("Only upper time bounds are allowed on the " + e.getOperatorSymbol()
-						+ " operator for DTMCs");
-			}
-			if (modelType == ModelType.MDP) {
-				throw new PrismLangException("Only upper time bounds are allowed on the " + e.getOperatorSymbol()
-						+ " operator for MDPs");
-			}
 			if (modelType == ModelType.PTA) {
 				throw new PrismLangException("Only upper time bounds are allowed on the " + e.getOperatorSymbol()
 						+ " operator for PTAs");
 			}
 		}
 		// Apart from CTMCs, we only support integer time bounds
-		if (e.getUpperBound() != null && !(e.getUpperBound().getType() instanceof TypeInt)) {
+		if ((e.getUpperBound() != null && !(e.getUpperBound().getType() instanceof TypeInt)) ||
+		    (e.getLowerBound() != null && !(e.getLowerBound().getType() instanceof TypeInt))) {
 			if (modelType == ModelType.DTMC) {
 				throw new PrismLangException("Time bounds on the " + e.getOperatorSymbol()
 						+ " operator must be integers for DTMCs");
