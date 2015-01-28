@@ -1013,17 +1013,9 @@ public class NondetModelChecker extends NonProbModelChecker
 			out.close();
 		}
 
-		// Find accepting states + compute reachability probabilities
-		JDDNode acc = null;
-		if (dra.isDFA()) {
-			// For a DFA, just collect the accept states
-			mainLog.println("\nSkipping end component detection since DRA is a DFA...");
-			acc = mcLtl.findTargetStatesForRabin(dra, modelProduct, draDDRowVars, draDDColVars);
-		} else {
-			// Usually, we have to detect end components in the product
-			mainLog.println("\nFinding accepting end components...");
-			acc = mcLtl.findAcceptingECStatesForRabin(dra, modelProduct, draDDRowVars, draDDColVars, fairness);
-		}
+		// Find accepting MECs + compute reachability probabilities
+		mainLog.println("\nFinding accepting end components...");
+		JDDNode acc = mcLtl.findAcceptingECStatesForRabin(dra, modelProduct, draDDRowVars, draDDColVars, fairness);
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = new NondetModelChecker(prism, modelProduct, null);
 		probsProduct = mcProduct.checkProbUntil(modelProduct.getReach(), acc, qual, min && fairness);

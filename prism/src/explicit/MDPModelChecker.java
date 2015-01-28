@@ -112,21 +112,13 @@ public class MDPModelChecker extends ProbModelChecker
 		modelProduct = pair.first;
 		int invMap[] = pair.second;
 
-		// Find accepting states + compute reachability probabilities
-		BitSet acc = null;
-		if (dra.isDFA()) {
-			// For a DFA, just collect the accept states
-			mainLog.println("\nSkipping MEC detection since DRA is a DFA...");
-			acc = mcLtl.findTargetStatesForRabin(dra, modelProduct, invMap);
-		} else {
-			// Usually, we have to detect MECs in the product
-			mainLog.println("\nFinding accepting MECs...");
-			acc = mcLtl.findAcceptingECStatesForRabin(dra, modelProduct, invMap);
-		}
+		// Find accepting MECs + compute reachability probabilities
+		mainLog.println("\nFinding accepting MECs...");
+		BitSet acceptingMECs = mcLtl.findAcceptingECStatesForRabin(dra, modelProduct, invMap);
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = new MDPModelChecker(this);
 		mcProduct.inheritSettings(this);
-		probsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachProbs((MDP) modelProduct, acc, false).soln, modelProduct);
+		probsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachProbs((MDP) modelProduct, acceptingMECs, false).soln, modelProduct);
 
 		// Subtract from 1 if we're model checking a negated formula for regular Pmin
 		if (minMax.isMin()) {
