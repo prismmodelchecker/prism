@@ -653,8 +653,18 @@ public class NondetModelChecker extends NonProbModelChecker
 	protected StateValues checkProbPathFormula(Expression expr, boolean qual, boolean min) throws PrismException
 	{
 		// Test whether this is a simple path formula (i.e. PCTL)
-		// and then pass control to appropriate method.
-		if (expr.isSimplePathFormula()) {
+		// and whether we want to use the corresponding algorithms
+		boolean useSimplePathAlgo = expr.isSimplePathFormula();
+
+		if (useSimplePathAlgo &&
+		    prism.getSettings().getBoolean(PrismSettings.PRISM_PATH_VIA_AUTOMATA) &&
+		    LTLModelChecker.isSupportedLTLFormula(model.getModelType(), expr)) {
+			// If PRISM_PATH_VIA_AUTOMATA is true, we want to use the LTL engine
+			// whenever possible
+			useSimplePathAlgo = false;
+		}
+
+		if (useSimplePathAlgo) {
 			return checkProbPathFormulaSimple(expr, qual, min);
 		} else {
 			return checkProbPathFormulaLTL(expr, qual, min);
