@@ -123,6 +123,34 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
+	 * Returns {@code true} if this expression is a path formula.
+	 * If {@code allowNestedOperators==false} then we don't allow
+	 * nested P, R, ... operators.
+	 * @param allowNestedOperators allow nested P, R, ... operators?
+	 */
+	public boolean isPathFormula(boolean allowNestedOperators)
+	{
+		try {
+			if (getType() == null) {
+				this.typeCheck();
+			}
+			if (getType() == TypePathBool.getInstance() ||
+			    getType() == TypeBool.getInstance()) {
+				if (!allowNestedOperators) {
+					if (this.computeProbNesting() >= 1) {
+						return false;
+					}
+				}
+				return true;
+			}
+
+			return false;
+		} catch (PrismLangException e) {
+			return false;
+		}
+	}
+
+	/**
 	 * Convert a property expression (an LTL formula) into the classes used by
 	 * the jltl2ba (and jltl2dstar) libraries.
 	 */
