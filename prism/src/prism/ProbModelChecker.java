@@ -441,25 +441,19 @@ public class ProbModelChecker extends NonProbModelChecker
 
 	protected StateValues checkProbPathFormulaSimple(Expression expr, boolean qual) throws PrismException
 	{
+		boolean negated = false;
 		StateValues probs = null;
 
-		// Negation/parentheses
-		if (expr instanceof ExpressionUnaryOp) {
-			ExpressionUnaryOp exprUnary = (ExpressionUnaryOp) expr;
-			// Parentheses
-			if (exprUnary.getOperator() == ExpressionUnaryOp.PARENTH) {
-				// Recurse
-				probs = checkProbPathFormulaSimple(exprUnary.getOperand(), qual);
-			}
-			// Negation
-			else if (exprUnary.getOperator() == ExpressionUnaryOp.NOT) {
-				// Compute, then subtract from 1 
-				probs = checkProbPathFormulaSimple(exprUnary.getOperand(), qual);
-				probs.subtractFromOne();
-			}
+		expr = Expression.convertSimplePathFormulaToCanonicalForm(expr);
+
+		// Negation
+		if (expr instanceof ExpressionUnaryOp &&
+		    ((ExpressionUnaryOp)expr).getOperator() == ExpressionUnaryOp.NOT) {
+			negated = true;
+			expr = ((ExpressionUnaryOp)expr).getOperand();
 		}
-		// Temporal operators
-		else if (expr instanceof ExpressionTemporal) {
+
+		if (expr instanceof ExpressionTemporal) {
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
 			// Next
 			if (exprTemp.getOperator() == ExpressionTemporal.P_X) {
@@ -473,14 +467,15 @@ public class ProbModelChecker extends NonProbModelChecker
 					probs = checkProbUntil(exprTemp, qual);
 				}
 			}
-			// Anything else - convert to until and recurse
-			else {
-				probs = checkProbPathFormulaSimple(exprTemp.convertToUntilForm(), qual);
-			}
 		}
 
 		if (probs == null)
 			throw new PrismException("Unrecognised path operator in P operator");
+
+		if (negated) {
+			// Subtract from 1 for negation
+			probs.subtractFromOne();
+		}
 
 		return probs;
 	}

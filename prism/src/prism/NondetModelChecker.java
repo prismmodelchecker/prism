@@ -667,25 +667,21 @@ public class NondetModelChecker extends NonProbModelChecker
 	 */
 	protected StateValues checkProbPathFormulaSimple(Expression expr, boolean qual, boolean min) throws PrismException
 	{
+		boolean negated = false;
 		StateValues probs = null;
 
-		// Negation/parentheses
-		if (expr instanceof ExpressionUnaryOp) {
-			ExpressionUnaryOp exprUnary = (ExpressionUnaryOp) expr;
-			// Parentheses
-			if (exprUnary.getOperator() == ExpressionUnaryOp.PARENTH) {
-				// Recurse
-				probs = checkProbPathFormulaSimple(exprUnary.getOperand(), qual, min);
-			}
-			// Negation
-			else if (exprUnary.getOperator() == ExpressionUnaryOp.NOT) {
-				// Flip min/max, then subtract from 1
-				probs = checkProbPathFormulaSimple(exprUnary.getOperand(), qual, !min);
-				probs.subtractFromOne();
-			}
+		expr = Expression.convertSimplePathFormulaToCanonicalForm(expr);
+
+		// Negation
+		if (expr instanceof ExpressionUnaryOp &&
+		    ((ExpressionUnaryOp)expr).getOperator() == ExpressionUnaryOp.NOT) {
+			// mark as negated, switch from min to max and vice versa
+			negated = true;
+			min = !min;
+			expr = ((ExpressionUnaryOp)expr).getOperand();
 		}
-		// Temporal operators
-		else if (expr instanceof ExpressionTemporal) {
+
+		if (expr instanceof ExpressionTemporal) {
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
 			// Next
 			if (exprTemp.getOperator() == ExpressionTemporal.P_X) {
@@ -699,14 +695,15 @@ public class NondetModelChecker extends NonProbModelChecker
 					probs = checkProbUntil(exprTemp, qual, min);
 				}
 			}
-			// Anything else - convert to until and recurse
-			else {
-				probs = checkProbPathFormulaSimple(exprTemp.convertToUntilForm(), qual, min);
-			}
 		}
 
 		if (probs == null)
 			throw new PrismException("Unrecognised path operator in P operator");
+
+		if (negated) {
+			// Subtract from 1 for negation
+			probs.subtractFromOne();
+		}
 
 		return probs;
 	}
