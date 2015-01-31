@@ -3,6 +3,7 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -100,6 +101,319 @@ public class LTL2RabinLibrary
 		
 		// If none, convert using jltl2dstar library
 		return LTL2Rabin.ltl2rabin(ltl.convertForJltl2ba());
+	}
+	
+	/**
+	 * Construct a prism.DA<BitSet,AcceptanceRabin> for the given until formula.
+	 * The expression is expected to have the form a U b, where
+	 * a and b are either ExpressionLabels or true/false.
+	 * The operator can have integer bounds.
+	 * @param expr the until formula
+	 * @param negated create DRA for the complement, i.e., !(a U b)
+	 */
+	public static DA<BitSet,AcceptanceRabin> constructDRAForSimpleUntilFormula(ExpressionTemporal expr, boolean negated) throws PrismException
+	{
+		IntegerBound bounds;
+		DA<BitSet,AcceptanceRabin> dra;
+
+		if (expr.getOperator() != ExpressionTemporal.P_U) {
+			throw new PrismException("Not an Until operator!");
+		}
+
+		// get and check bounds information (non-negative, non-empty)
+		bounds = IntegerBound.fromExpressionTemporal(expr, true);
+
+		// extract information about the operands of the until operator, either a label (extracted to labelA)
+		// or true/false (stored in aBoolean, labelA=null).
+		String labelA, labelB;
+		boolean aBoolean = false, bBoolean = false;
+
+		if (expr.getOperand1() instanceof ExpressionLabel) {
+			labelA = ((ExpressionLabel)expr.getOperand1()).getName();
+		} else {
+			if (expr.getOperand1() instanceof ExpressionLiteral &&
+			    ((ExpressionLiteral) expr.getOperand1()).getValue() instanceof Boolean) {
+				labelA = null;
+				aBoolean = (Boolean) ((ExpressionLiteral)expr.getOperand1()).getValue();
+			} else {
+				throw new PrismException("Unsupported expression "+expr.getOperand1()+" in formula.");
+			}
+		}
+
+		// do the same for the second operand.
+		if (expr.getOperand2() instanceof ExpressionLabel) {
+			labelB = ((ExpressionLabel)expr.getOperand2()).getName();
+		} else {
+			if (expr.getOperand2() instanceof ExpressionLiteral &&
+			    ((ExpressionLiteral) expr.getOperand2()).getValue() instanceof Boolean) {
+				labelB = null;
+				bBoolean = (Boolean) ((ExpressionLiteral)expr.getOperand2()).getValue();
+			} else {
+				throw new PrismException("Unsupported expression "+expr.getOperand2()+" in formula.");
+			}
+		}
+		
+		
+		// handle the special cases where one of the operands is true / false
+		if (labelA == null && labelB == null) {
+			// bool U bool
+			boolean untilIsTrue;
+			
+			if (bBoolean == false) {
+				// ? U false <=> false
+				untilIsTrue = false;
+			} else { // bBoolean == true
+				if (aBoolean == true) {
+					// true U true <=> true
+					untilIsTrue = true;
+				} else {
+					// false U_bounds true
+					// depends on bound, is true if 0 is in bound, false otherwise
+					untilIsTrue = bounds.isInBounds(0);
+				}
+			}
+			
+			dra = constructDRAForTrue(null);
+			if (!untilIsTrue) {
+				negated = !negated;
+			}
+		} else if (labelA == null) {
+			// first operand is boolean, second is normal label, bool U b
+			if (aBoolean) {
+				// true U_bounds b <=> F_bounds b
+				dra = constructDRAForFinally(labelB, false, bounds);
+			} else {
+				// false U_bounds b <=> b in first step and first step in bounds
+				if (bounds.isInBounds(0)) {
+					dra = constructDRAForInitialStateLabel(labelB);
+				} else {
+					// false
+					dra = constructDRAForTrue(labelB);
+					negated = !negated;
+				}
+			}
+		} else if (labelB == null) {
+			// second operand is boolean, first is normal label, a U bool
+			if (!bBoolean) {
+				// a U false <=> false
+				dra = constructDRAForTrue(labelA);
+				negated = !negated;
+			} else {
+				if ((!bounds.hasLowerBound()) ||
+					(bounds.isInBounds(0))) {
+					// a U_bounds true <=> true if there is no lower bound
+					// or if lower bound is >=0
+					dra = constructDRAForTrue(labelA);
+				} else {
+					//     a U>=lower true
+					// <=> G<lower a
+					// <=> !(F<lower !a)
+
+					// newBounds: >=lower becomes <lower
+					IntegerBound newBounds = new IntegerBound(null, false,
+					                                            bounds.getLowestInteger(), true);
+					dra = constructDRAForFinally(labelA, true, newBounds);
+					negated = !negated;
+				}
+			}
+		} else {
+			// the general case, a U_bounds b
+			dra = constructDRAForUntil(labelA, labelB, bounds);
+		}
+
+		
+		if (negated) {
+			// the constructed DRAs can be complemented by switching L and K
+			BitSet accL = (BitSet) dra.getAcceptance().get(0).getL().clone();
+			BitSet accK = (BitSet) dra.getAcceptance().get(0).getK().clone();
+			
+			dra.getAcceptance().get(0).getL().clear();
+			dra.getAcceptance().get(0).getL().or(accK);
+			
+			dra.getAcceptance().get(0).getK().clear();
+			dra.getAcceptance().get(0).getK().or(accL);
+		}
+		
+		return dra;
+	}
+	/** Construct a DRA for a U_bounds b. Can be complemented by switching the acceptance sets. */
+	public static DA<BitSet, AcceptanceRabin> constructDRAForUntil(String labelA, String labelB, IntegerBound bounds)
+	{
+		DA<BitSet, AcceptanceRabin> dra;
+		List<String> apList = new ArrayList<String>();
+		BitSet edge_ab, edge_Ab, edge_aB, edge_AB;
+		BitSet accL, accK;
+
+		int saturation = bounds.getMaximalInterestingValue();
+
+		// [0,saturation] + yes + no
+		int states = saturation + 3;
+
+		apList.add(labelA);
+		apList.add(labelB);
+
+		dra = new DA<BitSet,AcceptanceRabin>(states);
+		dra.setAcceptance(new AcceptanceRabin());
+		dra.setAPList(apList);
+		dra.setStartState(0);
+
+		edge_ab = new BitSet();  // !a & !b
+		edge_Ab = new BitSet();  //  a & !b
+		edge_aB = new BitSet();  // !a &  b
+		edge_AB = new BitSet();  //  a &  b
+		edge_Ab.set(0);
+		edge_aB.set(1);
+		edge_AB.set(0);
+		edge_AB.set(1);
+
+		int yes_state = states - 2;
+		int no_state = states - 1;
+
+		for (int counter = 0; counter <= saturation; counter++) {
+			int next_counter = counter + 1;
+			if (next_counter > saturation) next_counter = saturation;
+
+			if (bounds.isInBounds(counter)) {
+				// b => yes
+				dra.addEdge(counter, edge_aB, yes_state);
+				dra.addEdge(counter, edge_AB, yes_state);
+
+				// !a & !b => no
+				dra.addEdge(counter, edge_ab, no_state);
+
+				// a & !b => next_counter
+				dra.addEdge(counter, edge_Ab, next_counter);
+			} else {
+				// !a => no
+				dra.addEdge(counter, edge_aB, no_state);
+				dra.addEdge(counter, edge_ab, no_state);
+
+				// a => next_counter
+				dra.addEdge(counter, edge_Ab, next_counter);
+				dra.addEdge(counter, edge_AB, next_counter);
+			}
+		}
+
+		// yes state = true loop
+		dra.addEdge(yes_state, edge_ab, yes_state);
+		dra.addEdge(yes_state, edge_aB, yes_state);
+		dra.addEdge(yes_state, edge_Ab, yes_state);
+		dra.addEdge(yes_state, edge_AB, yes_state);
+
+		// no state = true loop
+		dra.addEdge(no_state, edge_ab, no_state);
+		dra.addEdge(no_state, edge_aB, no_state);
+		dra.addEdge(no_state, edge_Ab, no_state);
+		dra.addEdge(no_state, edge_AB, no_state);
+
+		// acceptance =
+		//   infinitely often yes_state,
+		//   not infinitely often no_state or saturation state
+		// this allows complementation by switching L and K.
+		accL = new BitSet();
+		accL.set(no_state);
+		accL.set(saturation);
+		accK = new BitSet();
+		accK.set(yes_state);
+		
+		dra.getAcceptance().add(new AcceptanceRabin.RabinPair(accL, accK));
+		
+		return dra;
+	}
+	/**
+	 * Construct a DRA for LTL formula "F_bounds a".
+	 * If {@code negateA == true}, constructs DRA for "F_bounds !a".
+	 * Can be complemented by switching the acceptance sets. */
+	public static DA<BitSet,AcceptanceRabin> constructDRAForFinally(String labelA, boolean negateA, IntegerBound bounds)
+	{
+		DA<BitSet,AcceptanceRabin> dra;
+		List<String> apList = new ArrayList<String>();
+		BitSet edge_no, edge_yes;
+		BitSet accL, accK;
+
+		int saturation = bounds.getMaximalInterestingValue();
+		
+		// [0,saturation] + yes
+		int states = saturation + 2;
+		
+		apList.add(labelA);
+		
+		dra = new DA<BitSet,AcceptanceRabin>(states);
+		dra.setAcceptance(new AcceptanceRabin());
+		dra.setAPList(apList);
+		dra.setStartState(0);
+		
+		// edge labeled with the target label
+		edge_yes  = new BitSet();
+		// edge not labeled with the target label
+		edge_no = new BitSet();
+		
+		if (negateA) {
+			edge_no.set(0);  // no = a, yes = !a
+		} else {
+			edge_yes.set(0); // yes = a, no = !a
+		}
+
+		int yes_state = states - 1;
+
+		for (int counter = 0; counter <= saturation; counter++) {
+			int next_counter = counter + 1;
+			if (next_counter > saturation) next_counter = saturation;
+		
+			if (bounds.isInBounds(counter)) {
+				// yes => yes_state
+				dra.addEdge(counter, edge_yes, yes_state);
+			
+				// no => next_counter
+				dra.addEdge(counter, edge_no, next_counter);
+			} else {
+				// true => next_counter
+				dra.addEdge(counter, edge_no, next_counter);
+				dra.addEdge(counter, edge_yes, next_counter);
+			}
+		}
+
+		// yes state = true loop
+		dra.addEdge(yes_state, edge_no, yes_state);
+		dra.addEdge(yes_state, edge_yes, yes_state);
+
+		// acceptance =
+		//   infinitely often yes_state,
+		//   not infinitely often saturation state
+		// this allows complementation by switching L and K.
+		accL = new BitSet();
+		accL.set(saturation);
+		accK = new BitSet();
+		accK.set(yes_state);
+		
+		dra.getAcceptance().add(new RabinPair(accL, accK));
+		
+		return dra;
+	}
+	/**
+	 * Construct a DRA that always accepts.
+	 * If {@code label == null}, then there is no label, if {@code label != null} then
+	 * there is a single label in the set of atomic propositions.
+	 * Can be complemented by switching the acceptance sets.
+	 */
+	public static DA<BitSet,AcceptanceRabin> constructDRAForTrue(String label) throws PrismException {
+		if (label != null) {
+			List<String> labels = new ArrayList<String>();
+			labels.add(label);
+			return createDRAFromString("1 states (start 0), 1 labels: 0-{}->0 0-{0}->0; 1 acceptance pairs: ({},{0})", labels);
+		} else {
+			return createDRAFromString("1 states (start 0), 0 labels: 0-{}->0; 1 acceptance pairs: ({},{0})", new ArrayList<String>());
+		}
+	}
+
+	/**
+	 * Construct a DRA that accepts if the first label corresponds to the provided label.
+	 * Can be complemented by switching the acceptance sets.
+	 */
+	public static DA<BitSet,AcceptanceRabin> constructDRAForInitialStateLabel(String label) throws PrismException {
+		List<String> labels = new ArrayList<String>();
+		labels.add(label);
+		return createDRAFromString("3 states (start 0), 1 labels: 0-{0}->1 0-{}->2 1-{}->1 1-{0}->1 2-{}->2 2-{0}->2; 1 acceptance pairs: ({2},{1})", labels);
 	}
 
 	/**
