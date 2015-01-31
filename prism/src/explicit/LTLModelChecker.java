@@ -51,8 +51,10 @@ import parser.type.TypeBool;
 import parser.type.TypePathBool;
 import prism.DA;
 import prism.LTL2RabinLibrary;
+import prism.ModelType;
 import prism.PrismComponent;
 import prism.PrismException;
+import prism.PrismLangException;
 import prism.PrismFileLog;
 import prism.PrismLog;
 
@@ -110,6 +112,30 @@ public class LTLModelChecker extends PrismComponent
 	public static DA<BitSet,AcceptanceRabin> convertLTLFormulaToDRA(Expression ltl, Values constantValues) throws PrismException
 	{
 		return LTL2RabinLibrary.convertLTLFormulaToDRA(ltl, constantValues);
+	}
+	
+	
+	/**
+	 * Returns {@code true} if expression {@code expr} is a formula that can be handled by
+	 * LTLModelChecker for the given ModelType.
+	 */
+	public static boolean isSupportedLTLFormula(ModelType modelType, Expression expr) throws PrismLangException
+	{
+		if (!expr.isPathFormula(true)) {
+			return false;
+		}
+		if (Expression.containsTemporalTimeBounds(expr)) {
+			if (modelType.continuousTime()) {
+				// Only support temporal bounds for discrete time models
+				return false;
+			}
+			
+			if (!expr.isSimplePathFormula()) {
+				// Only support temporal bounds for simple path formulas
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**

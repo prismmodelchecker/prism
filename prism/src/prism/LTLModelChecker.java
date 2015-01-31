@@ -62,6 +62,29 @@ public class LTLModelChecker extends PrismComponent
 	}
 
 	/**
+	 * Returns {@code true} if expression {@code expr} is a formula that can be handled by
+	 * LTLModelChecker for the given ModelType.
+	 */
+	public static boolean isSupportedLTLFormula(ModelType modelType, Expression expr) throws PrismLangException
+	{
+		if (!expr.isPathFormula(true)) {
+			return false;
+		}
+		if (Expression.containsTemporalTimeBounds(expr)) {
+			if (modelType.continuousTime()) {
+				// Only support temporal bounds for discrete time models
+				return false;
+			}
+			
+			if (!expr.isSimplePathFormula()) {
+				// Only support temporal bounds for simple path formulas
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * Convert an LTL formula into a DRA. The LTL formula is represented as a PRISM Expression,
 	 * in which atomic propositions are represented by ExpressionLabel objects.
 	 * @param ltl the LTL formula
