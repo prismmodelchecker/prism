@@ -252,6 +252,12 @@ public class StateModelChecker extends PrismComponent
 		return doBisim;
 	}
 
+	/** Get the constant values (both from the modules file and the properties file) */
+	public Values getConstantValues()
+	{
+		return constantValues;
+	}
+
 	// Other setters/getters
 
 	/**

@@ -1392,6 +1392,13 @@ public class StateModelChecker implements ModelChecker
 			throw new PrismException("Invalid reward structure index \"" + rs + "\"");
 		return transRewards; 
 	}
+
+	/** Get the constant values (both from the modules file and the properties file) */
+	@Override
+	public Values getConstantValues()
+	{
+		return constantValues;
+	}
 }
 
 // ------------------------------------------------------------------------------
