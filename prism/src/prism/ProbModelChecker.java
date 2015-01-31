@@ -34,7 +34,9 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Vector;
 
-import acceptance.AcceptanceRabin;
+import acceptance.AcceptanceOmega;
+import acceptance.AcceptanceOmegaDD;
+import acceptance.AcceptanceType;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
@@ -498,17 +500,17 @@ public class ProbModelChecker extends NonProbModelChecker
 		StateValues probsProduct = null, probs = null;
 		Expression ltl;
 		Vector<JDDNode> labelDDs;
-		DA<BitSet,AcceptanceRabin> dra;
+		DA<BitSet, ? extends AcceptanceOmega> da;
 		ProbModel modelProduct;
 		ProbModelChecker mcProduct;
 		JDDNode startMask;
-		JDDVars draDDRowVars, draDDColVars;
+		JDDVars daDDRowVars, daDDColVars;
 		int i;
 		long l;
 
 		if (Expression.containsTemporalTimeBounds(expr)) {
 			if (model.getModelType().continuousTime()) {
-				throw new PrismException("DRA construction for time-bounded operators not supported for " + model.getModelType()+".");
+				throw new PrismException("DA construction for time-bounded operators not supported for " + model.getModelType()+".");
 			}
 
 			if (expr.isSimplePathFormula()) {
@@ -532,29 +534,30 @@ public class ProbModelChecker extends NonProbModelChecker
 		labelDDs = new Vector<JDDNode>();
 		ltl = mcLtl.checkMaximalStateFormulas(this, model, expr.deepCopy(), labelDDs);
 
-		// Convert LTL formula to deterministic Rabin automaton (DRA)
-		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
+		// Convert LTL formula to deterministic automaton (DA)
+		mainLog.println("\nBuilding deterministic automaton (for " + ltl + ")...");
 		l = System.currentTimeMillis();
 		LTL2DA ltl2da = new LTL2DA(prism);
-		dra = ltl2da.convertLTLFormulaToDRA(ltl, constantValues);
-		mainLog.println("DRA has " + dra.size() + " states, " + dra.getAcceptance().getSizeStatistics()+".");
+		AcceptanceType[] allowedAcceptance = {AcceptanceType.RABIN};
+		da = ltl2da.convertLTLFormulaToDA(ltl, constantValues, allowedAcceptance);
+		mainLog.println(da.getAutomataType()+" has " + da.size() + " states, " + da.getAcceptance().getSizeStatistics() + ".");
 		l = System.currentTimeMillis() - l;
-		mainLog.println("Time for Rabin translation: " + l / 1000.0 + " seconds.");
-		// If required, export DRA 
+		mainLog.println("Time for deterministic automaton translation: " + l / 1000.0 + " seconds.");
+		// If required, export DA
 		if (prism.getSettings().getExportPropAut()) {
-			mainLog.println("Exporting DRA to file \"" + prism.getSettings().getExportPropAutFilename() + "\"...");
+			mainLog.println("Exporting DA to file \"" + prism.getSettings().getExportPropAutFilename() + "\"...");
 			PrismLog out = new PrismFileLog(prism.getSettings().getExportPropAutFilename());
-			out.println(dra);
+			out.println(da);
 			out.close();
 			//dra.printDot(new java.io.PrintStream("dra.dot"));
 		}
 
 		// Build product of Markov chain and automaton
 		// (note: might be a CTMC - StochModelChecker extends this class)
-		mainLog.println("\nConstructing MC-DRA product...");
-		draDDRowVars = new JDDVars();
-		draDDColVars = new JDDVars();
-		modelProduct = mcLtl.constructProductMC(dra, model, labelDDs, draDDRowVars, draDDColVars);
+		mainLog.println("\nConstructing MC-"+da.getAutomataType()+" product...");
+		daDDRowVars = new JDDVars();
+		daDDColVars = new JDDVars();
+		modelProduct = mcLtl.constructProductMC(da, model, labelDDs, daDDRowVars, daDDColVars);
 		mainLog.println();
 		modelProduct.printTransInfo(mainLog, prism.getExtraDDInfo());
 		// Output product, if required
@@ -575,20 +578,22 @@ public class ProbModelChecker extends NonProbModelChecker
 
 		// Find accepting BSCCs + compute reachability probabilities
 		mainLog.println("\nFinding accepting BSCCs...");
-		JDDNode acc = mcLtl.findAcceptingBSCCsForRabin(dra, modelProduct, draDDRowVars, draDDColVars);
+		AcceptanceOmegaDD acceptance = da.getAcceptance().toAcceptanceDD(daDDRowVars);
+		JDDNode acc = mcLtl.findAcceptingBSCCs(acceptance, modelProduct);
+		acceptance.clear();
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = createNewModelChecker(prism, modelProduct, null);
 		probsProduct = mcProduct.checkProbUntil(modelProduct.getReach(), acc, qual);
 
 		// Convert probability vector to original model
 		// First, filter over DRA start states
-		startMask = mcLtl.buildStartMask(dra, labelDDs, draDDRowVars);
+		startMask = mcLtl.buildStartMask(da, labelDDs, daDDRowVars);
 		JDD.Ref(model.getReach());
 		startMask = JDD.And(model.getReach(), startMask);
 		probsProduct.filter(startMask);
-		// Then sum over DD vars for the DRA state (could also have used,
-		// e.g. max, since there is just one state for each valuation of draDDRowVars) 
-		probs = probsProduct.sumOverDDVars(draDDRowVars, model);
+		// Then sum over DD vars for the DA state (could also have used,
+		// e.g. max, since there is just one state for each valuation of daDDRowVars) 
+		probs = probsProduct.sumOverDDVars(daDDRowVars, model);
 
 		// Deref, clean up
 		probsProduct.clear();
@@ -598,8 +603,8 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 		JDD.Deref(acc);
 		JDD.Deref(startMask);
-		draDDRowVars.derefAll();
-		draDDColVars.derefAll();
+		daDDRowVars.derefAll();
+		daDDColVars.derefAll();
 
 		return probs;
 	}
