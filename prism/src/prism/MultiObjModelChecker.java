@@ -82,7 +82,8 @@ public class MultiObjModelChecker extends PrismComponent
 			ltl = Expression.Not(Expression.Parenth(ltl));
 		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
 		long l = System.currentTimeMillis();
-		dra[i] = LTLModelChecker.convertLTLFormulaToDRA(ltl, modelChecker.getConstantValues());
+		LTL2DA ltl2da = new LTL2DA(prism);
+		dra[i] = ltl2da.convertLTLFormulaToDRA(ltl, modelChecker.getConstantValues());
 		mainLog.print("DRA has " + dra[i].size() + " states, " + ", " + dra[i].getAcceptance().getSizeStatistics()+".");
 		l = System.currentTimeMillis() - l;
 		mainLog.println("Time for Rabin translation: " + l / 1000.0 + " seconds.");

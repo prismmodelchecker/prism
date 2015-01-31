@@ -32,14 +32,17 @@ import java.util.*;
 
 import acceptance.AcceptanceRabin;
 import acceptance.AcceptanceRabin.RabinPair;
-import jltl2dstar.*;
 import parser.Values;
 import parser.ast.*;
 import parser.visitor.ASTTraverse;
 import parser.visitor.ASTTraverseModify;
 
 /**
- * LTL-to-DRA conversion.
+ * LTL-to-DRA conversion via
+ * <ol>
+ *  <li> hard-coded DRA for special formulas </li>
+ *  <li> direct translation into DRA for simple path formulas with temporal bounds</li>
+ * </ol>
  */
 public class LTL2RabinLibrary
 {
@@ -66,13 +69,19 @@ public class LTL2RabinLibrary
 	}
 
 	/**
-	 * Convert an LTL formula into a DRA. The LTL formula is represented as a PRISM Expression,
+	 * Attempts to convert an LTL formula into a DRA by direct translation methods of the library:
+	 * <ul>
+	 * <li>First, look up hard-coded DRA from the DRA map.</li>
+	 * <li>Second, if the formula is a simple path formula with temporal bounds, use the special
+	 *     constructions {@code constructDRAFor....}
+	 * </ul>
+	 * Return {@code null} if the automaton can not be constructed using the library.
+	 * <br/> The LTL formula is represented as a PRISM Expression,
 	 * in which atomic propositions are represented by ExpressionLabel objects.
 	 * @param ltl the LTL formula
 	 * @param constants values for constants in the formula (may be {@code null})
 	 */
-	public static DA<BitSet,AcceptanceRabin> convertLTLFormulaToDRA(Expression ltl, Values constants) throws PrismException
-	{
+	public static DA<BitSet, AcceptanceRabin> getDRAforLTL(Expression ltl, Values constants) throws PrismException {
 		// Get list of labels appearing
 		labels = new ArrayList<String>();
 		ltl.accept(new ASTTraverse()
@@ -118,12 +127,12 @@ public class LTL2RabinLibrary
 			    ((ExpressionTemporal)ltl).getOperator() == ExpressionTemporal.P_U) {
 				return constructDRAForSimpleUntilFormula((ExpressionTemporal)ltl, constants, negated);				
 			} else {
-				throw new PrismException("Unsupported LTL formula: "+ltl);
+				throw new PrismException("Unsupported LTL formula with time bounds: "+ltl);
 			}
 		}
 		
-		// No time-bounded operators, convert using jltl2dstar library
-		return LTL2Rabin.ltl2rabin(ltl.convertForJltl2ba());
+		// No time-bounded operators, do not convert using the library
+		return null;
 	}
 	
 	/**
@@ -588,7 +597,10 @@ public class LTL2RabinLibrary
 			System.out.println(ltl.equals(expr.toString()));
 			DA<BitSet,AcceptanceRabin> dra1 = jltl2dstar.LTL2Rabin.ltl2rabin(expr.convertForJltl2ba());
 			System.out.println(dra1);
-			DA<BitSet,AcceptanceRabin> dra2 = convertLTLFormulaToDRA(expr, null);
+			DA<BitSet,AcceptanceRabin> dra2 = getDRAforLTL(expr, null);
+			if (dra2 == null) {
+			    dra2 = jltl2dstar.LTL2Rabin.ltl2rabin(expr.convertForJltl2ba());
+			}
 			System.out.println(dra2);
 			System.out.println(dra1.toString().equals(dra2.toString()));
 			//dra2.printDot(new PrintStream(new File("dra")));

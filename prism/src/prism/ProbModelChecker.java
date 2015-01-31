@@ -535,7 +535,8 @@ public class ProbModelChecker extends NonProbModelChecker
 		// Convert LTL formula to deterministic Rabin automaton (DRA)
 		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
 		l = System.currentTimeMillis();
-		dra = LTLModelChecker.convertLTLFormulaToDRA(ltl, constantValues);
+		LTL2DA ltl2da = new LTL2DA(prism);
+		dra = ltl2da.convertLTLFormulaToDRA(ltl, constantValues);
 		mainLog.println("DRA has " + dra.size() + " states, " + dra.getAcceptance().getSizeStatistics()+".");
 		l = System.currentTimeMillis() - l;
 		mainLog.println("Time for Rabin translation: " + l / 1000.0 + " seconds.");

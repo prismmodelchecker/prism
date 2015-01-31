@@ -41,7 +41,6 @@ import java.util.Vector;
 import acceptance.AcceptanceRabin;
 import common.IterableStateSet;
 import parser.State;
-import parser.Values;
 import parser.ast.Expression;
 import parser.ast.ExpressionBinaryOp;
 import parser.ast.ExpressionLabel;
@@ -50,7 +49,7 @@ import parser.ast.ExpressionUnaryOp;
 import parser.type.TypeBool;
 import parser.type.TypePathBool;
 import prism.DA;
-import prism.LTL2RabinLibrary;
+import prism.LTL2DA;
 import prism.ModelType;
 import prism.PrismComponent;
 import prism.PrismException;
@@ -103,18 +102,6 @@ public class LTLModelChecker extends PrismComponent
 		super(parent);
 	}
 
-	/**
-	 * Convert an LTL formula into a DRA. The LTL formula is represented as a PRISM Expression,
-	 * in which atomic propositions are represented by ExpressionLabel objects.
-	 * @param ltl the LTL formula
-	 * @param constantValues values for constants in the formula
-	 */
-	public static DA<BitSet,AcceptanceRabin> convertLTLFormulaToDRA(Expression ltl, Values constantValues) throws PrismException
-	{
-		return LTL2RabinLibrary.convertLTLFormulaToDRA(ltl, constantValues);
-	}
-	
-	
 	/**
 	 * Returns {@code true} if expression {@code expr} is a formula that can be handled by
 	 * LTLModelChecker for the given ModelType.
@@ -234,7 +221,8 @@ public class LTLModelChecker extends PrismComponent
 		// Convert LTL formula to deterministic Rabin automaton (DRA)
 		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
 		time = System.currentTimeMillis();
-		dra = convertLTLFormulaToDRA(ltl, mc.getConstantValues());
+		LTL2DA ltl2da = new LTL2DA(this);
+		dra = ltl2da.convertLTLFormulaToDRA(ltl, mc.getConstantValues());
 		mainLog.println("DRA has " + dra.size() + " states, " + dra.getAcceptance().getSizeStatistics() + ".");
 		time = System.currentTimeMillis() - time;
 		mainLog.println("Time for Rabin translation: " + time / 1000.0 + " seconds.");
@@ -422,7 +410,8 @@ public class LTLModelChecker extends PrismComponent
 		// Convert LTL formula to deterministic Rabin automaton (DRA)
 		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
 		time = System.currentTimeMillis();
-		dra = convertLTLFormulaToDRA(ltl, mc.getConstantValues());
+		LTL2DA ltl2da = new LTL2DA(this);
+		dra = ltl2da.convertLTLFormulaToDRA(ltl, mc.getConstantValues());
 		mainLog.println("DRA has " + dra.size() + " states, " + dra.getAcceptance().getSizeStatistics() + ".");
 		time = System.currentTimeMillis() - time;
 		mainLog.println("Time for Rabin translation: " + time / 1000.0 + " seconds.");

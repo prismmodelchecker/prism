@@ -36,7 +36,6 @@ import acceptance.AcceptanceRabin;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
-import parser.Values;
 import parser.VarList;
 import parser.ast.Declaration;
 import parser.ast.DeclarationInt;
@@ -82,17 +81,6 @@ public class LTLModelChecker extends PrismComponent
 			}
 		}
 		return true;
-	}
-
-	/**
-	 * Convert an LTL formula into a DRA. The LTL formula is represented as a PRISM Expression,
-	 * in which atomic propositions are represented by ExpressionLabel objects.
-	 * @param ltl the LTL formula
-	 * @param constants values for constants, may be {@code null}
-	 */
-	public static DA<BitSet,AcceptanceRabin> convertLTLFormulaToDRA(Expression ltl, Values constants) throws PrismException
-	{
-		return LTL2RabinLibrary.convertLTLFormulaToDRA(ltl, constants);
 	}
 
 	/**
