@@ -27,16 +27,46 @@ import prism.PrismException;
 
 import java.util.BitSet;
 
+import prism.DA;
+import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceRabin;
+import acceptance.AcceptanceStreett;
+import acceptance.AcceptanceType;
 
 public class LTL2Rabin {
-	
-	public static prism.DA<BitSet,AcceptanceRabin> ltl2rabin(SimpleLTL ltlFormula) throws PrismException {
-		SimpleLTL ltl = ltlFormula.simplify();
-		return ltl2rabin(ltl, ltl.getAPs()).createPrismDRA();
+
+	@SuppressWarnings("unchecked")
+	public static prism.DA<BitSet,AcceptanceRabin> ltl2rabin(SimpleLTL ltlFormula) throws PrismException
+	{
+		DA<BitSet, ? extends AcceptanceOmega> result;
+		result = ltl2da(ltlFormula, AcceptanceType.RABIN);
+		return (DA<BitSet, AcceptanceRabin>)result;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static prism.DA<BitSet, AcceptanceStreett> ltl2streett(SimpleLTL ltlFormula) throws PrismException
+	{
+		DA<BitSet, ? extends AcceptanceOmega> result;
+		result = ltl2da(ltlFormula, AcceptanceType.STREETT);
+		return (DA<BitSet, AcceptanceStreett>)result;
 	}
 	
-	private static DRA ltl2rabin(SimpleLTL ltl, APSet apset) throws PrismException {
+	public static prism.DA<BitSet, ? extends AcceptanceOmega> ltl2da(SimpleLTL ltlFormula, AcceptanceType... allowedAcceptance) throws PrismException
+	{
+		SimpleLTL ltl = ltlFormula.simplify();
+
+		boolean allowRabin=AcceptanceType.contains(allowedAcceptance, AcceptanceType.RABIN);
+		boolean allowStreett=AcceptanceType.contains(allowedAcceptance, AcceptanceType.STREETT);
+
+		if (allowRabin && allowStreett) {
+			// currently, disable opportunistic generation of either Rabin or Streett automaton
+			allowStreett = false;
+		}
+
+		return ltl2da(ltl, ltl.getAPs(), allowRabin, allowStreett).createPrismDA();
+	}
+
+	private static DRA ltl2da(SimpleLTL ltl, APSet apset, boolean allowRabin, boolean allowStreett) throws PrismException {
 		DRA dra = null;
 		Options_LTL2DRA opt_ltl2rabin = new Options_LTL2DRA();
 		
@@ -57,7 +87,16 @@ public class LTL2Rabin {
 		// opt_ltl2dstar.scheck_path="";
 		// stuttercheck_timekeep = true;
 		// stuttercheck_print = false;
-		opt_ltl2rabin.automata = Options_LTL2DRA.AutomataType.RABIN;
+		if (allowRabin) {
+			if (allowStreett)
+				opt_ltl2rabin.automata = Options_LTL2DRA.AutomataType.RABIN_AND_STREETT;
+			else
+				opt_ltl2rabin.automata = Options_LTL2DRA.AutomataType.RABIN;
+		} else if (allowStreett) {
+			opt_ltl2rabin.automata = Options_LTL2DRA.AutomataType.STREETT;
+		} else {
+			throw new PrismException("Can not generate deterministic automata if neither Rabin nor Streett is allowed.");
+		}
 		opt_ltl2rabin.detailed_states = false;
 		opt_ltl2rabin.verbose_scheduler = false;
 		opt_ltl2rabin.opt_safra.opt_accloop = true;

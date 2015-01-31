@@ -26,7 +26,9 @@ import java.io.FileWriter;
 import java.io.PrintStream;
 import java.util.*;
 
+import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceRabin;
+import acceptance.AcceptanceStreett;
 import jltl2ba.APElement;
 import jltl2ba.APSet;
 import prism.PrismException;
@@ -144,28 +146,54 @@ public class DRA extends DA {
 	}
 
 	/**
-	 * Convert the DRA from jltl2dstar to PRISM data structures.  
+	 * Convert this jltl2dstar deterministic automaton to PRISM data structures.
 	 */
-	public prism.DA<BitSet,AcceptanceRabin> createPrismDRA() throws PrismException
+	public prism.DA<BitSet,? extends AcceptanceOmega> createPrismDA() throws PrismException
+	{
+		int numStates = size();
+		if (!isStreett()) {
+			// Rabin
+			prism.DA<BitSet, AcceptanceRabin> draNew;
+
+			draNew = new prism.DA<BitSet, AcceptanceRabin>(numStates);
+			createPrismDA(draNew);
+			AcceptanceRabin accNew = createRabinAcceptance();
+			draNew.setAcceptance(accNew);
+
+			return draNew;
+		} else {
+			// Streett
+			prism.DA<BitSet, AcceptanceStreett> dsaNew;
+
+			dsaNew = new prism.DA<BitSet, AcceptanceStreett>(numStates);
+			createPrismDA(dsaNew);
+			AcceptanceStreett accNew = createStreettAcceptance();
+			dsaNew.setAcceptance(accNew);
+
+			return dsaNew;
+		}
+	}
+
+	/**
+	 * Convert the state and transition structure of this jltl2dstar deterministic automaton
+	 * to the PRISM data structures.
+	 */
+	private void createPrismDA(prism.DA<BitSet, ?> da) throws PrismException
 	{
 		int i, k, numLabels, numStates, src, dest;
 		List<String> apList;
 		BitSet bitset;
-		RabinAcceptance acc;
-		prism.DA<BitSet,AcceptanceRabin> draNew;
-		AcceptanceRabin accNew = new AcceptanceRabin();
 		
 		numLabels = getAPSize();
 		numStates = size();
-		draNew = new prism.DA<BitSet,AcceptanceRabin>(numStates);
 		// Copy AP set
 		apList = new ArrayList<String>(numLabels);
 		for (i = 0; i < numLabels; i++) {
 			apList.add(getAPSet().getAP(i));
 		}
-		draNew.setAPList(apList);
+		da.setAPList(apList);
 		// Copy start state
-		draNew.setStartState(getStartState().getName());
+		da.setStartState(getStartState().getName());
 		// Copy edges
 		for (i = 0; i < numStates; i++) {
 			DA_State cur_state = get(i);
@@ -176,23 +204,51 @@ public class DRA extends DA {
 				for (k = 0; k < numLabels; k++) {
 					bitset.set(k, transition.getKey().get(k));
 				}
-				draNew.addEdge(src, bitset, dest);
+				da.addEdge(src, bitset, dest);
 			}
 		}
+	}
+
+	/**
+	 * Create an AcceptanceRabin acceptance condition from the acceptance condition
+	 * of this jltl2dstar deterministic automaton.
+	 */
+	private AcceptanceRabin createRabinAcceptance() throws PrismException {
+		AcceptanceRabin accNew = new AcceptanceRabin();
+
 		// Copy acceptance pairs
-		acc = acceptance(); 
-		for (i = 0; i < acc.size(); i++) {
+		RabinAcceptance acc = acceptance();
+		for (int i = 0; i < acc.size(); i++) {
 			// Note: Pairs (U_i,L_i) become (L_i,K_i) in PRISM's notation
 			BitSet newL = (BitSet)acc.getAcceptance_U(i).clone();
 			BitSet newK = (BitSet)acc.getAcceptance_L(i).clone();
 			AcceptanceRabin.RabinPair pair = new AcceptanceRabin.RabinPair(newL, newK);
 			accNew.add(pair);
 		}
-		
-		draNew.setAcceptance(accNew);
-
-		return draNew;
+		return accNew;
 	}
+
+	/**
+	 * Create an AcceptanceStreett acceptance condition from the acceptance condition
+	 * of this jltl2dstar deterministic automaton.
+	 */
+	private AcceptanceStreett createStreettAcceptance() throws PrismException {
+		AcceptanceStreett accNew = new AcceptanceStreett();
+		
+		// Copy acceptance pairs, interpreting the RabinAcceptance from this automaton
+		// as Streett acceptance
+		RabinAcceptance acc = acceptance();
+		for (int i = 0; i < acc.size(); i++) {
+			// Note: Pairs (U_i,L_i) become (G_i,R_i) in PRISM's notation
+			BitSet newR = (BitSet)acc.getAcceptance_L(i).clone();
+			BitSet newG = (BitSet)acc.getAcceptance_U(i).clone();
+			AcceptanceStreett.StreettPair pair = new AcceptanceStreett.StreettPair(newR, newG);
+
+			accNew.add(pair);
+		}
+		return accNew;
+	}
+
 	
 	//	public DRA calculateUnionStuttered(DRA other,
 	//			StutterSensitivenessInformation stutter_information,
