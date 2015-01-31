@@ -29,6 +29,7 @@
 package explicit;
 
 import java.awt.Point;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
@@ -39,6 +40,7 @@ import java.util.Vector;
 
 import acceptance.AcceptanceRabin;
 import common.IterableStateSet;
+import parser.State;
 import parser.ast.Expression;
 import parser.ast.ExpressionBinaryOp;
 import parser.ast.ExpressionLabel;
@@ -178,6 +180,7 @@ public class LTLModelChecker extends PrismComponent
 		int s_1, s_2, q_1, q_2;
 		BitSet s_labels = new BitSet(numAPs);
 		AcceptanceRabin prodAcceptance;
+		List<State> prodStatesList = null;
 
 		// Encoding: 
 		// each state s' = <s, q> = s * draSize + q
@@ -187,6 +190,10 @@ public class LTLModelChecker extends PrismComponent
 		LinkedList<Point> queue = new LinkedList<Point>();
 		int map[] = new int[prodNumStates];
 		Arrays.fill(map, -1);
+
+		if (dtmc.getStatesList() != null) {
+			prodStatesList = new ArrayList<State>();
+		}
 
 		// We need results for all states of the original model in statesOfInterest
 		// We thus explore states of the product starting from these states.
@@ -206,6 +213,10 @@ public class LTLModelChecker extends PrismComponent
 			prodModel.addState();
 			prodModel.addInitialState(prodModel.getNumStates() - 1);
 			map[s_0 * draSize + q_0] = prodModel.getNumStates() - 1;
+			if (prodStatesList != null) {
+				// store DTMC state information for the product state
+				prodStatesList.add(dtmc.getStatesList().get(s_0));
+			}
 		}
 
 		// Product states
@@ -233,6 +244,10 @@ public class LTLModelChecker extends PrismComponent
 					queue.add(new Point(s_2, q_2));
 					prodModel.addState();
 					map[s_2 * draSize + q_2] = prodModel.getNumStates() - 1;
+					if (prodStatesList != null) {
+						// store DTMC state information for the product state
+						prodStatesList.add(dtmc.getStatesList().get(s_2));
+					}
 				}
 				prodModel.setProbability(map[s_1 * draSize + q_1], map[s_2 * draSize + q_2], prob);
 			}
@@ -248,6 +263,10 @@ public class LTLModelChecker extends PrismComponent
 
 		prodModel.findDeadlocks(false);
 
+		if (prodStatesList != null) {
+			prodModel.setStatesList(prodStatesList);
+		}
+
 		prodAcceptance = new AcceptanceRabin();
 		LTLProduct<DTMC> product = new LTLProduct<DTMC>(prodModel, dtmc, prodAcceptance, draSize, invMap);
 
@@ -255,13 +274,17 @@ public class LTLModelChecker extends PrismComponent
 		for (AcceptanceRabin.RabinPair pair : dra.getAcceptance()) {
 			BitSet Lprod = product.liftFromAutomaton(pair.getL());
 			BitSet Kprod = product.liftFromAutomaton(pair.getK());
-
 			prodAcceptance.add(new AcceptanceRabin.RabinPair(Lprod, Kprod));
+		}
+
+		// lift the labels
+		for (String label : dtmc.getLabels()) {
+			BitSet liftedLabel = product.liftFromModel(dtmc.getLabelStates(label));
+			prodModel.addLabel(label, liftedLabel);
 		}
 
 		return product;
 	}
-
 	/**
 	 * Construct the product of a DRA and an MDP.
 	 * @param dra The DRA
@@ -281,6 +304,8 @@ public class LTLModelChecker extends PrismComponent
 		int s_1, s_2, q_1, q_2;
 		BitSet s_labels = new BitSet(numAPs);
 		AcceptanceRabin prodAcceptance;
+		List<State> prodStatesList = null;
+
 
 		// Encoding: 
 		// each state s' = <s, q> = s * draSize + q
@@ -290,6 +315,10 @@ public class LTLModelChecker extends PrismComponent
 		LinkedList<Point> queue = new LinkedList<Point>();
 		int map[] = new int[prodNumStates];
 		Arrays.fill(map, -1);
+
+		if (mdp.getStatesList() != null) {
+			prodStatesList = new ArrayList<State>();
+		}
 
 		// We need results for all states of the original model in statesOfInterest
 		// We thus explore states of the product starting from these states.
@@ -309,6 +338,10 @@ public class LTLModelChecker extends PrismComponent
 			prodModel.addState();
 			prodModel.addInitialState(prodModel.getNumStates() - 1);
 			map[s_0 * draSize + q_0] = prodModel.getNumStates() - 1;
+			if (prodStatesList != null) {
+				// store MDP state information for the product state
+				prodStatesList.add(mdp.getStatesList().get(s_0));
+			}
 		}
 
 		// Product states
@@ -339,6 +372,10 @@ public class LTLModelChecker extends PrismComponent
 						queue.add(new Point(s_2, q_2));
 						prodModel.addState();
 						map[s_2 * draSize + q_2] = prodModel.getNumStates() - 1;
+						if (prodStatesList != null) {
+							// store MDP state information for the product state
+							prodStatesList.add(mdp.getStatesList().get(s_2));
+						}
 					}
 					prodDistr.set(map[s_2 * draSize + q_2], prob);
 				}
@@ -356,6 +393,10 @@ public class LTLModelChecker extends PrismComponent
 
 		prodModel.findDeadlocks(false);
 
+		if (prodStatesList != null) {
+			prodModel.setStatesList(prodStatesList);
+		}
+
 		prodAcceptance = new AcceptanceRabin();
 		LTLProduct<MDP> product = new LTLProduct<MDP>(prodModel, mdp, prodAcceptance, draSize, invMap);
 
@@ -363,8 +404,13 @@ public class LTLModelChecker extends PrismComponent
 		for (AcceptanceRabin.RabinPair pair : dra.getAcceptance()) {
 			BitSet Lprod = product.liftFromAutomaton(pair.getL());
 			BitSet Kprod = product.liftFromAutomaton(pair.getK());
-
 			prodAcceptance.add(new AcceptanceRabin.RabinPair(Lprod, Kprod));
+		}
+
+		// lift the labels
+		for (String label : mdp.getLabels()) {
+			BitSet liftedLabel = product.liftFromModel(mdp.getLabelStates(label));
+			prodModel.addLabel(label, liftedLabel);
 		}
 
 		return product;
