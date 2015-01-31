@@ -31,6 +31,7 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
 
+import acceptance.AcceptanceType;
 import parser.ast.Expression;
 import parser.type.TypeDouble;
 import prism.PrismComponent;
@@ -65,11 +66,12 @@ public class DTMCModelChecker extends ProbModelChecker
 		mcLtl = new LTLModelChecker(this);
 
 		// Build product of Markov chain and automaton
-		product = mcLtl.constructProductMC(this, (DTMC)model, expr, statesOfInterest);
+		AcceptanceType[] allowedAcceptance = {AcceptanceType.RABIN};
+		product = mcLtl.constructProductMC(this, (DTMC)model, expr, statesOfInterest, allowedAcceptance);
 
 		// Find accepting BSCCs + compute reachability probabilities
 		mainLog.println("\nFinding accepting BSCCs...");
-		BitSet acceptingBSCCs = mcLtl.findAcceptingBSCCsForRabin(product.getProductModel(), product.getAcceptance());
+		BitSet acceptingBSCCs = mcLtl.findAcceptingBSCCs(product.getProductModel(), product.getAcceptance());
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = new DTMCModelChecker(this);
 		mcProduct.inheritSettings(this);

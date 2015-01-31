@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import acceptance.AcceptanceType;
 import parser.ast.Expression;
 import prism.PrismComponent;
 import prism.PrismDevNullLog;
@@ -75,11 +76,12 @@ public class MDPModelChecker extends ProbModelChecker
 		// For LTL model checking routines
 		mcLtl = new LTLModelChecker(this);
 
-		product = mcLtl.constructProductMDP(this, (MDP)model, expr, statesOfInterest);
+		AcceptanceType[] allowedAcceptance = {AcceptanceType.RABIN};
+		product = mcLtl.constructProductMDP(this, (MDP)model, expr, statesOfInterest, allowedAcceptance);
 		
 		// Find accepting MECs + compute reachability probabilities
 		mainLog.println("\nFinding accepting MECs...");
-		BitSet acceptingMECs = mcLtl.findAcceptingECStatesForRabin(product.getProductModel(), product.getAcceptance());
+		BitSet acceptingMECs = mcLtl.findAcceptingECStates(product.getProductModel(), product.getAcceptance());
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = new MDPModelChecker(this);
 		mcProduct.inheritSettings(this);
