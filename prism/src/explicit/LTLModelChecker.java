@@ -4,6 +4,7 @@
 //	Authors:
 //	* Alessandro Bruni <albr@dtu.dk> (Technical University of Denmark)
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -47,7 +48,6 @@ import parser.type.TypeBool;
 import parser.type.TypePathBool;
 import prism.DA;
 import prism.LTL2RabinLibrary;
-import prism.Pair;
 import prism.PrismComponent;
 import prism.PrismException;
 
@@ -56,6 +56,38 @@ import prism.PrismException;
  */
 public class LTLModelChecker extends PrismComponent
 {
+	/** Make LTL product accessible as a Product */
+	public class LTLProduct<M extends Model> extends Product<M> {
+		private int draSize;
+		private int invMap[];
+		private AcceptanceRabin acceptance;
+
+		public LTLProduct(M productModel, M originalModel, AcceptanceRabin acceptance, int draSize, int[] invMap)
+		{
+			super(productModel, originalModel);
+			this.draSize = draSize;
+			this.invMap = invMap;
+			this.acceptance = acceptance;
+		}
+
+		@Override
+		public int getModelState(int productState)
+		{
+			return invMap[productState] / draSize;
+		}
+
+		@Override
+		public int getAutomatonState(int productState)
+		{
+			return invMap[productState] % draSize;
+		}
+
+		public AcceptanceRabin getAcceptance() {
+			return acceptance;
+		}
+	}
+
+
 	/**
 	 * Create a new LTLModelChecker, inherit basic state from parent (unless null).
 	 */
@@ -133,9 +165,9 @@ public class LTLModelChecker extends PrismComponent
 	 * @param dtmc The DTMC
 	 * @param labelBS BitSets giving the set of states for each AP in the DRA
 	 * @param statesOfInterest the set of states for which values should be calculated (null = all states)
-	 * @return The product DTMC and a list of each of its states (s,q), encoded as (s * draSize + q) 
+	 * @return The product DTMC
 	 */
-	public Pair<Model, int[]> constructProductMC(DA<BitSet,AcceptanceRabin> dra, DTMC dtmc, Vector<BitSet> labelBS, BitSet statesOfInterest) throws PrismException
+	public LTLProduct<DTMC> constructProductMC(DA<BitSet,AcceptanceRabin> dra, DTMC dtmc, Vector<BitSet> labelBS, BitSet statesOfInterest) throws PrismException
 	{
 		DTMCSimple prodModel = new DTMCSimple();
 
@@ -145,6 +177,7 @@ public class LTLModelChecker extends PrismComponent
 		int prodNumStates = modelNumStates * draSize;
 		int s_1, s_2, q_1, q_2;
 		BitSet s_labels = new BitSet(numAPs);
+		AcceptanceRabin prodAcceptance;
 
 		// Encoding: 
 		// each state s' = <s, q> = s * draSize + q
@@ -215,7 +248,18 @@ public class LTLModelChecker extends PrismComponent
 
 		prodModel.findDeadlocks(false);
 
-		return new Pair<Model, int[]>(prodModel, invMap);
+		prodAcceptance = new AcceptanceRabin();
+		LTLProduct<DTMC> product = new LTLProduct<DTMC>(prodModel, dtmc, prodAcceptance, draSize, invMap);
+
+		// generate acceptance for the product model by lifting
+		for (AcceptanceRabin.RabinPair pair : dra.getAcceptance()) {
+			BitSet Lprod = product.liftFromAutomaton(pair.getL());
+			BitSet Kprod = product.liftFromAutomaton(pair.getK());
+
+			prodAcceptance.add(new AcceptanceRabin.RabinPair(Lprod, Kprod));
+		}
+
+		return product;
 	}
 
 	/**
@@ -224,9 +268,9 @@ public class LTLModelChecker extends PrismComponent
 	 * @param mdp The MDP
 	 * @param labelBS BitSets giving the set of states for each AP in the DRA
 	 * @param statesOfInterest the set of states for which values should be calculated (null = all states)
-	 * @return The product MDP and a list of each of its states (s,q), encoded as (s * draSize + q) 
+	 * @return The product MDP
 	 */
-	public Pair<NondetModel, int[]> constructProductMDP(DA<BitSet,AcceptanceRabin> dra, MDP mdp, Vector<BitSet> labelBS, BitSet statesOfInterest) throws PrismException
+	public LTLProduct<MDP> constructProductMDP(DA<BitSet,AcceptanceRabin> dra, MDP mdp, Vector<BitSet> labelBS, BitSet statesOfInterest) throws PrismException
 	{
 		MDPSimple prodModel = new MDPSimple();
 
@@ -236,6 +280,7 @@ public class LTLModelChecker extends PrismComponent
 		int prodNumStates = modelNumStates * draSize;
 		int s_1, s_2, q_1, q_2;
 		BitSet s_labels = new BitSet(numAPs);
+		AcceptanceRabin prodAcceptance;
 
 		// Encoding: 
 		// each state s' = <s, q> = s * draSize + q
@@ -311,45 +356,38 @@ public class LTLModelChecker extends PrismComponent
 
 		prodModel.findDeadlocks(false);
 
-		return new Pair<NondetModel, int[]>(prodModel, invMap);
+		prodAcceptance = new AcceptanceRabin();
+		LTLProduct<MDP> product = new LTLProduct<MDP>(prodModel, mdp, prodAcceptance, draSize, invMap);
+
+		// generate acceptance for the product model by lifting
+		for (AcceptanceRabin.RabinPair pair : dra.getAcceptance()) {
+			BitSet Lprod = product.liftFromAutomaton(pair.getL());
+			BitSet Kprod = product.liftFromAutomaton(pair.getK());
+
+			prodAcceptance.add(new AcceptanceRabin.RabinPair(Lprod, Kprod));
+		}
+
+		return product;
 	}
 
 	/**
 	 * Find the set of states belong to accepting BSCCs in a model wrt a Rabin acceptance condition.
-	 * @param dra The DRA
 	 * @param model The model
-	 * @param invMap The map returned by the constructProduct method(s)
+	 * @param acceptance The Rabin acceptance condition
 	 */
-	public BitSet findAcceptingBSCCsForRabin(DA<BitSet,AcceptanceRabin> dra, Model model, int invMap[]) throws PrismException
+	public BitSet findAcceptingBSCCsForRabin(Model model, AcceptanceRabin acceptance) throws PrismException
 	{
 		// Compute bottom strongly connected components (BSCCs)
 		SCCComputer sccComputer = SCCComputer.createSCCComputer(this, model);
 		sccComputer.computeBSCCs();
 		List<BitSet> bsccs = sccComputer.getBSCCs();
 
-		int draSize = dra.size();
-		int numAcceptancePairs = dra.getAcceptance().size();
 		BitSet result = new BitSet();
 
 		for (BitSet bscc : bsccs) {
-			for (int acceptancePair = 0; acceptancePair < numAcceptancePairs; acceptancePair++) {
-				// accepting for L,K <=> BSCC does not intersect L but does intersect K
-				boolean isLEmpty = true;
-				boolean isKEmpty = true;
-
-				BitSet L = dra.getAcceptance().get(acceptancePair).getL();
-				BitSet K = dra.getAcceptance().get(acceptancePair).getK();
-				for (int state = bscc.nextSetBit(0); state != -1; state = bscc.nextSetBit(state + 1)) {
-					int draState = invMap[state] % draSize;
-					isLEmpty &= !L.get(draState);
-					isKEmpty &= !K.get(draState);
-				}
-				if (isLEmpty && !isKEmpty) {
-					// this BSCC is accepting
-					result.or(bscc);
-					// we do not have to consider the other acceptance pairs, continue with next BSCC
-					break;
-				}
+			if (acceptance.isBSCCAccepting(bscc)) {
+				// this BSCC is accepting
+				result.or(bscc);
 			}
 		}
 
@@ -358,23 +396,21 @@ public class LTLModelChecker extends PrismComponent
 
 	/**
 	 * Find the set of states in accepting end components (ECs) in a nondeterministic model wrt a Rabin acceptance condition.
-	 * @param dra The DRA
 	 * @param model The model
-	 * @param invMap The map returned by the constructProduct method(s)
+	 * @param acceptance the acceptance condition
 	 */
-	public BitSet findAcceptingECStatesForRabin(DA<BitSet,AcceptanceRabin> dra, NondetModel model, int invMap[]) throws PrismException
+	public BitSet findAcceptingECStatesForRabin(NondetModel model, AcceptanceRabin acceptance) throws PrismException
 	{
 		BitSet allAcceptingStates = new BitSet();
 		int numStates = model.getNumStates();
-		int draSize = dra.size();
 		
 		// Go through the DRA acceptance pairs (L_i, K_i) 
-		for (int i = 0; i < dra.getAcceptance().size(); i++) {
+		for (int i = 0; i < acceptance.size(); i++) {
 			// Find model states *not* satisfying L_i
-			BitSet bitsetLi = dra.getAcceptance().get(i).getL();
+			BitSet bitsetLi = acceptance.get(i).getL();
 			BitSet statesLi_not = new BitSet();
 			for (int s = 0; s < numStates; s++) {
-				if (!bitsetLi.get(invMap[s] % draSize)) {
+				if (!bitsetLi.get(s)) {
 					statesLi_not.set(s);
 				}
 			}
@@ -386,13 +422,10 @@ public class LTLModelChecker extends PrismComponent
 			ecComputer.computeMECStates(statesLi_not);
 			List<BitSet> mecs = ecComputer.getMECStates();
 			// Check with MECs contain a K_i state
-			BitSet bitsetKi = dra.getAcceptance().get(i).getK();
+			BitSet bitsetKi = acceptance.get(i).getK();
 			for (BitSet mec : mecs) {
-				for (int s = mec.nextSetBit(0); s != -1; s = mec.nextSetBit(s + 1)) {
-					if (bitsetKi.get(invMap[s] % draSize)) {
-						allAcceptingStates.or(mec);
-						break;
-					}
+				if (mec.intersects(bitsetKi)) {
+					allAcceptingStates.or(mec);
 				}
 			}
 		}

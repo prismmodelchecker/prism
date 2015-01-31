@@ -36,7 +36,6 @@ import acceptance.AcceptanceRabin;
 import parser.ast.Expression;
 import parser.type.TypeDouble;
 import prism.DA;
-import prism.Pair;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismFileLog;
@@ -66,7 +65,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		StateValues probsProduct, probs;
 		Expression ltl;
 		DA<BitSet,AcceptanceRabin> dra;
-		Model modelProduct;
+		LTLModelChecker.LTLProduct<DTMC> product;
 		DTMCModelChecker mcProduct;
 		long time;
 
@@ -86,7 +85,6 @@ public class DTMCModelChecker extends ProbModelChecker
 		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
 		time = System.currentTimeMillis();
 		dra = LTLModelChecker.convertLTLFormulaToDRA(ltl);
-		int draSize = dra.size();
 		mainLog.println("DRA has " + dra.size() + " states, " + dra.getAcceptance().getSizeStatistics() + ".");
 		time = System.currentTimeMillis() - time;
 		mainLog.println("Time for Rabin translation: " + time / 1000.0 + " seconds.");
@@ -101,31 +99,19 @@ public class DTMCModelChecker extends ProbModelChecker
 
 		// Build product of Markov chain and automaton
 		mainLog.println("\nConstructing MC-DRA product...");
-		Pair<Model, int[]> pair = mcLtl.constructProductMC(dra, (DTMC) model, labelBS, statesOfInterest);
-		modelProduct = pair.first;
-		int invMap[] = pair.second;
-		mainLog.print("\n" + modelProduct.infoStringTable());
+		product = mcLtl.constructProductMC(dra, (DTMC) model, labelBS, statesOfInterest);
+		mainLog.print("\n" + product.getProductModel().infoStringTable());
 
 		// Find accepting BSCCs + compute reachability probabilities
 		mainLog.println("\nFinding accepting BSCCs...");
-		BitSet acceptingBSCCs = mcLtl.findAcceptingBSCCsForRabin(dra, modelProduct, invMap);
+		BitSet acceptingBSCCs = mcLtl.findAcceptingBSCCsForRabin(product.getProductModel(), product.getAcceptance());
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = new DTMCModelChecker(this);
 		mcProduct.inheritSettings(this);
-		probsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachProbs((DTMC) modelProduct, acceptingBSCCs).soln, modelProduct);
+		probsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachProbs(product.getProductModel(), acceptingBSCCs).soln, product.getProductModel());
 
 		// Mapping probabilities in the original model
-		double[] probsProductDbl = probsProduct.getDoubleArray();
-		double[] probsDbl = new double[model.getNumStates()];
-
-		// Get the probabilities for the original model by taking the initial states
-		// of the product and projecting back to the states of the original model
-		for (int i : modelProduct.getInitialStates()) {
-			int s = invMap[i] / draSize;
-			probsDbl[s] = probsProductDbl[i];
-		}
-
-		probs = StateValues.createFromDoubleArray(probsDbl, model);
+		probs = product.projectToOriginalModel(probsProduct);
 		probsProduct.clear();
 
 		return probs;
