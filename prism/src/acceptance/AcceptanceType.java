@@ -31,7 +31,8 @@ package acceptance;
  */
 public enum AcceptanceType {
 	RABIN,
- 	STREETT;
+ 	STREETT,
+ 	REACH;
 
 	/**
 	 * Check whether an array of AcceptanceTypes contains a specific element.
