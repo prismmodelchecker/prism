@@ -52,6 +52,8 @@ import prism.DA;
 import prism.LTL2RabinLibrary;
 import prism.PrismComponent;
 import prism.PrismException;
+import prism.PrismFileLog;
+import prism.PrismLog;
 
 /**
  * LTL model checking functionality
@@ -159,6 +161,56 @@ public class LTLModelChecker extends PrismComponent
 			}
 		}
 		return expr;
+	}
+
+	/**
+	 * Generate the DRA for the given LTL expression and construct the product.
+	 *
+	 * @param mc a ProbModelChecker, used for checking maximal state formulas
+	 * @param dtmc the model
+	 * @param expr a path expression
+ 	 * @param statesOfInterest the set of states for which values should be calculated (null = all states)
+	 * @return the product with the DRA
+	 */
+	public LTLProduct<DTMC> constructProductMC(ProbModelChecker mc, DTMC dtmc, Expression expr, BitSet statesOfInterest) throws PrismException
+	{
+		Expression ltl;
+		DA<BitSet,AcceptanceRabin> dra;
+		LTLProduct<DTMC> product;
+		long time;
+
+		// Can't do LTL with time-bounded variants of the temporal operators
+		if (Expression.containsTemporalTimeBounds(expr)) {
+			throw new PrismException("Time-bounded operators not supported in LTL: " + expr);
+		}
+
+		// Model check maximal state formulas
+		Vector<BitSet> labelBS = new Vector<BitSet>();
+		ltl = checkMaximalStateFormulas(mc, dtmc, expr.deepCopy(), labelBS);
+
+		// Convert LTL formula to deterministic Rabin automaton (DRA)
+		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
+		time = System.currentTimeMillis();
+		dra = convertLTLFormulaToDRA(ltl);
+		mainLog.println("DRA has " + dra.size() + " states, " + dra.getAcceptance().getSizeStatistics() + ".");
+		time = System.currentTimeMillis() - time;
+		mainLog.println("Time for Rabin translation: " + time / 1000.0 + " seconds.");
+		// If required, export DRA
+		if (settings.getExportPropAut()) {
+			mainLog.println("Exporting DRA to file \"" + settings.getExportPropAutFilename() + "\"...");
+			PrismLog out = new PrismFileLog(settings.getExportPropAutFilename());
+			out.println(dra);
+			out.close();
+			//dra.printDot(new java.io.PrintStream("dra.dot"));
+		}
+
+		// Build product of Markov chain and automaton
+		mainLog.println("\nConstructing MC-DRA product...");
+		product = constructProductMC(dra, dtmc, labelBS, statesOfInterest);
+
+		mainLog.print("\n" + product.getProductModel().infoStringTable());
+
+		return product;
 	}
 
 	/**

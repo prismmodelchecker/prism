@@ -30,16 +30,11 @@ import java.io.File;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
-import acceptance.AcceptanceRabin;
 import parser.ast.Expression;
 import parser.type.TypeDouble;
-import prism.DA;
 import prism.PrismComponent;
 import prism.PrismException;
-import prism.PrismFileLog;
-import prism.PrismLog;
 import prism.PrismUtils;
 import explicit.rewards.MCRewards;
 
@@ -63,44 +58,14 @@ public class DTMCModelChecker extends ProbModelChecker
 	{
 		LTLModelChecker mcLtl;
 		StateValues probsProduct, probs;
-		Expression ltl;
-		DA<BitSet,AcceptanceRabin> dra;
 		LTLModelChecker.LTLProduct<DTMC> product;
 		DTMCModelChecker mcProduct;
-		long time;
-
-		// Can't do LTL with time-bounded variants of the temporal operators
-		if (Expression.containsTemporalTimeBounds(expr)) {
-			throw new PrismException("Time-bounded operators not supported in LTL: " + expr);
-		}
 
 		// For LTL model checking routines
 		mcLtl = new LTLModelChecker(this);
 
-		// Model check maximal state formulas
-		Vector<BitSet> labelBS = new Vector<BitSet>();
-		ltl = mcLtl.checkMaximalStateFormulas(this, model, expr.deepCopy(), labelBS);
-
-		// Convert LTL formula to deterministic Rabin automaton (DRA)
-		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
-		time = System.currentTimeMillis();
-		dra = LTLModelChecker.convertLTLFormulaToDRA(ltl);
-		mainLog.println("DRA has " + dra.size() + " states, " + dra.getAcceptance().getSizeStatistics() + ".");
-		time = System.currentTimeMillis() - time;
-		mainLog.println("Time for Rabin translation: " + time / 1000.0 + " seconds.");
-		// If required, export DRA 
-		if (settings.getExportPropAut()) {
-			mainLog.println("Exporting DRA to file \"" + settings.getExportPropAutFilename() + "\"...");
-			PrismLog out = new PrismFileLog(settings.getExportPropAutFilename());
-			out.println(dra);
-			out.close();
-			//dra.printDot(new java.io.PrintStream("dra.dot"));
-		}
-
 		// Build product of Markov chain and automaton
-		mainLog.println("\nConstructing MC-DRA product...");
-		product = mcLtl.constructProductMC(dra, (DTMC) model, labelBS, statesOfInterest);
-		mainLog.print("\n" + product.getProductModel().infoStringTable());
+		product = mcLtl.constructProductMC(this, (DTMC)model, expr, statesOfInterest);
 
 		// Find accepting BSCCs + compute reachability probabilities
 		mainLog.println("\nFinding accepting BSCCs...");
