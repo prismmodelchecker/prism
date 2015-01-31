@@ -36,6 +36,7 @@ import java.util.Vector;
 
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceOmegaDD;
+import acceptance.AcceptanceReachDD;
 import acceptance.AcceptanceType;
 import jdd.JDD;
 import jdd.JDDNode;
@@ -538,7 +539,10 @@ public class ProbModelChecker extends NonProbModelChecker
 		mainLog.println("\nBuilding deterministic automaton (for " + ltl + ")...");
 		l = System.currentTimeMillis();
 		LTL2DA ltl2da = new LTL2DA(prism);
-		AcceptanceType[] allowedAcceptance = {AcceptanceType.RABIN};
+		AcceptanceType[] allowedAcceptance = {
+				AcceptanceType.RABIN,
+				AcceptanceType.REACH
+		};
 		da = ltl2da.convertLTLFormulaToDA(ltl, constantValues, allowedAcceptance);
 		mainLog.println(da.getAutomataType()+" has " + da.size() + " states, " + da.getAcceptance().getSizeStatistics() + ".");
 		l = System.currentTimeMillis() - l;
@@ -576,10 +580,16 @@ public class ProbModelChecker extends NonProbModelChecker
 			out.close();
 		}
 
-		// Find accepting BSCCs + compute reachability probabilities
-		mainLog.println("\nFinding accepting BSCCs...");
+		// Find accepting states + compute reachability probabilities
 		AcceptanceOmegaDD acceptance = da.getAcceptance().toAcceptanceDD(daDDRowVars);
-		JDDNode acc = mcLtl.findAcceptingBSCCs(acceptance, modelProduct);
+		JDDNode acc;
+		if (acceptance instanceof AcceptanceReachDD) {
+			mainLog.println("\nSkipping BSCC computation since acceptance is defined via goal states...");
+			acc = ((AcceptanceReachDD) acceptance).getGoalStates();
+		} else {
+			mainLog.println("\nFinding accepting BSCCs...");
+			acc = mcLtl.findAcceptingBSCCs(acceptance, modelProduct);
+		}
 		acceptance.clear();
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = createNewModelChecker(prism, modelProduct, null);

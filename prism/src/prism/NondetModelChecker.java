@@ -37,6 +37,7 @@ import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceOmegaDD;
 import acceptance.AcceptanceRabin;
 import acceptance.AcceptanceRabinDD;
+import acceptance.AcceptanceReachDD;
 import acceptance.AcceptanceType;
 import odd.ODDUtils;
 import jdd.*;
@@ -1004,7 +1005,10 @@ public class NondetModelChecker extends NonProbModelChecker
 		mainLog.println("\nBuilding deterministic automaton (for " + ltl + ")...");
 		l = System.currentTimeMillis();
 		LTL2DA ltl2da = new LTL2DA(prism);
-		AcceptanceType[] allowedAcceptance = {AcceptanceType.RABIN};
+		AcceptanceType[] allowedAcceptance = {
+				AcceptanceType.RABIN,
+				AcceptanceType.REACH
+		};
 		da = ltl2da.convertLTLFormulaToDA(ltl, constantValues, allowedAcceptance);
 		mainLog.println(da.getAutomataType()+" has " + da.size() + " states, " + da.getAcceptance().getSizeStatistics()+".");
 		l = System.currentTimeMillis() - l;
@@ -1041,10 +1045,16 @@ public class NondetModelChecker extends NonProbModelChecker
 			out.close();
 		}
 
-		// Find accepting MECs + compute reachability probabilities
-		mainLog.println("\nFinding accepting end components...");
+		// Find accepting states + compute reachability probabilities
 		AcceptanceOmegaDD acceptance = da.getAcceptance().toAcceptanceDD(daDDRowVars);
-		JDDNode acc = mcLtl.findAcceptingECStates(acceptance, modelProduct, daDDRowVars, daDDColVars, fairness);
+		JDDNode acc;
+		if (acceptance instanceof AcceptanceReachDD) {
+			mainLog.println("\nSkipping accepting MEC computation since acceptance is defined via goal states...");
+			acc = ((AcceptanceReachDD) acceptance).getGoalStates();
+		} else {
+			mainLog.println("\nFinding accepting end components...");
+			acc = mcLtl.findAcceptingECStates(acceptance, modelProduct, daDDRowVars, daDDColVars, fairness);
+		}
 		acceptance.clear();
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = new NondetModelChecker(prism, modelProduct, null);

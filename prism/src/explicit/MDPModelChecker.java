@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import acceptance.AcceptanceReach;
 import acceptance.AcceptanceType;
 import parser.ast.Expression;
 import prism.PrismComponent;
@@ -76,16 +77,26 @@ public class MDPModelChecker extends ProbModelChecker
 		// For LTL model checking routines
 		mcLtl = new LTLModelChecker(this);
 
-		AcceptanceType[] allowedAcceptance = {AcceptanceType.RABIN};
+		AcceptanceType[] allowedAcceptance = {
+				AcceptanceType.RABIN,
+				AcceptanceType.REACH
+		};
+
 		product = mcLtl.constructProductMDP(this, (MDP)model, expr, statesOfInterest, allowedAcceptance);
-		
-		// Find accepting MECs + compute reachability probabilities
-		mainLog.println("\nFinding accepting MECs...");
-		BitSet acceptingMECs = mcLtl.findAcceptingECStates(product.getProductModel(), product.getAcceptance());
+
+		// Find accepting states + compute reachability probabilities
+		BitSet acc;
+		if (product.getAcceptance() instanceof AcceptanceReach) {
+			mainLog.println("\nSkipping accepting MEC computation since acceptance is defined via goal states...");
+			acc = ((AcceptanceReach)product.getAcceptance()).getGoalStates();
+		} else {
+			mainLog.println("\nFinding accepting MECs...");
+			acc = mcLtl.findAcceptingECStates(product.getProductModel(), product.getAcceptance());
+		}
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = new MDPModelChecker(this);
 		mcProduct.inheritSettings(this);
-		probsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachProbs((MDP)product.getProductModel(), acceptingMECs, false).soln, product.getProductModel());
+		probsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachProbs((MDP)product.getProductModel(), acc, false).soln, product.getProductModel());
 
 		// Subtract from 1 if we're model checking a negated formula for regular Pmin
 		if (minMax.isMin()) {

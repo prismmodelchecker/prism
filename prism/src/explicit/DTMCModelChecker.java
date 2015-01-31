@@ -31,6 +31,7 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
 
+import acceptance.AcceptanceReach;
 import acceptance.AcceptanceType;
 import parser.ast.Expression;
 import parser.type.TypeDouble;
@@ -66,16 +67,25 @@ public class DTMCModelChecker extends ProbModelChecker
 		mcLtl = new LTLModelChecker(this);
 
 		// Build product of Markov chain and automaton
-		AcceptanceType[] allowedAcceptance = {AcceptanceType.RABIN};
+		AcceptanceType[] allowedAcceptance = {
+				AcceptanceType.RABIN,
+				AcceptanceType.REACH
+		};
 		product = mcLtl.constructProductMC(this, (DTMC)model, expr, statesOfInterest, allowedAcceptance);
 
-		// Find accepting BSCCs + compute reachability probabilities
-		mainLog.println("\nFinding accepting BSCCs...");
-		BitSet acceptingBSCCs = mcLtl.findAcceptingBSCCs(product.getProductModel(), product.getAcceptance());
+		// Find accepting states + compute reachability probabilities
+		BitSet acc;
+		if (product.getAcceptance() instanceof AcceptanceReach) {
+			mainLog.println("\nSkipping BSCC computation since acceptance is defined via goal states...");
+			acc = ((AcceptanceReach)product.getAcceptance()).getGoalStates();
+		} else {
+			mainLog.println("\nFinding accepting BSCCs...");
+			acc = mcLtl.findAcceptingBSCCs(product.getProductModel(), product.getAcceptance());
+		}
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = new DTMCModelChecker(this);
 		mcProduct.inheritSettings(this);
-		probsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachProbs(product.getProductModel(), acceptingBSCCs).soln, product.getProductModel());
+		probsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachProbs(product.getProductModel(), acc).soln, product.getProductModel());
 
 		// Mapping probabilities in the original model
 		probs = product.projectToOriginalModel(probsProduct);
