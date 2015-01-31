@@ -650,39 +650,6 @@ public class LTLModelChecker extends PrismComponent
 	}
 
 	/**
-	 * Build a (referenced) BDD over variables {@code draDDRowVars} representing
-	 * the set L_i from the i-th pair (L_i,K_i) of the acceptance condition for a DRA.
-	 * @param complement If true, build the complement of the set L_i instead
-	 */
-	public JDDNode buildLStatesForRabinPair(JDDVars draDDRowVars, DA<BitSet,AcceptanceRabin> dra, int i, boolean complement)
-	{
-		BitSet bitsetLi = dra.getAcceptance().get(i).getL();
-		JDDNode statesLi = JDD.Constant(0);
-		for (int j = 0; j < dra.size(); j++) {
-			if (bitsetLi.get(j) ^ complement) {
-				statesLi = JDD.SetVectorElement(statesLi, draDDRowVars, j, 1.0);
-			}
-		}
-		return statesLi;
-	}
-
-	/**
-	 * Build a (referenced) BDD over variables {@code draDDRowVars} representing
-	 * the set K_i from the i-th pair (L_i,K_i) of the acceptance condition for a DRA.
-	 */
-	public JDDNode buildKStatesForRabinPair(JDDVars draDDRowVars, DA<BitSet,AcceptanceRabin> dra, int i)
-	{
-		BitSet bitsetKi = dra.getAcceptance().get(i).getK();
-		JDDNode statesKi = JDD.Constant(0);
-		for (int j = 0; j < dra.size(); j++) {
-			if (bitsetKi.get(j)) {
-				statesKi = JDD.SetVectorElement(statesKi, draDDRowVars, j, 1.0);
-			}
-		}
-		return statesKi;
-	}
-
-	/**
 	 * Find the set of accepting BSCCs in a model wrt a Rabin acceptance condition.
 	 * Find the set of accepting BSCCs in a model wrt an acceptance condition.
 	 * @param acceptance the acceptance condition, with BDD based storage
