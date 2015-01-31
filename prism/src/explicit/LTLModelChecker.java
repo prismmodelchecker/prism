@@ -338,6 +338,56 @@ public class LTLModelChecker extends PrismComponent
 		return product;
 	}
 	/**
+	 * Generate the DRA for the given LTL expression and construct the product.
+	 *
+	 * @param mc a ProbModelChecker, used for checking maximal state formulas
+	 * @param model the model
+	 * @param expr a path expression
+ 	 * @param statesOfInterest the set of states for which values should be calculated (null = all states)
+	 * @return the product with the DRA
+	 */
+	public LTLProduct<MDP> constructProductMDP(ProbModelChecker mc, MDP model, Expression expr, BitSet statesOfInterest) throws PrismException
+	{
+		Expression ltl;
+		DA<BitSet,AcceptanceRabin> dra;
+		LTLProduct<MDP> product;
+		long time;
+		
+		// Can't do LTL with time-bounded variants of the temporal operators
+		if (Expression.containsTemporalTimeBounds(expr)) {
+			throw new PrismException("Time-bounded operators not supported in LTL: " + expr);
+		}
+
+		// Model check maximal state formulas
+		Vector<BitSet> labelBS = new Vector<BitSet>();
+		ltl = checkMaximalStateFormulas(mc, model, expr.deepCopy(), labelBS);
+
+		// Convert LTL formula to deterministic Rabin automaton (DRA)
+		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
+		time = System.currentTimeMillis();
+		dra = convertLTLFormulaToDRA(ltl);
+		mainLog.println("DRA has " + dra.size() + " states, " + dra.getAcceptance().getSizeStatistics() + ".");
+		time = System.currentTimeMillis() - time;
+		mainLog.println("Time for Rabin translation: " + time / 1000.0 + " seconds.");
+		// If required, export DRA
+		if (settings.getExportPropAut()) {
+			mainLog.println("Exporting DRA to file \"" + settings.getExportPropAutFilename() + "\"...");
+			PrismLog out = new PrismFileLog(settings.getExportPropAutFilename());
+			out.println(dra);
+			out.close();
+			//dra.printDot(new java.io.PrintStream("dra.dot"));
+		}
+
+		// Build product of MDP and automaton
+		mainLog.println("\nConstructing MDP-DRA product...");
+		product = constructProductMDP(dra, (MDP) model, labelBS, statesOfInterest);
+
+		mainLog.print("\n" + product.getProductModel().infoStringTable());
+
+		return product;
+	}
+
+	/**
 	 * Construct the product of a DRA and an MDP.
 	 * @param dra The DRA
 	 * @param mdp The MDP

@@ -30,11 +30,8 @@ import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
-import acceptance.AcceptanceRabin;
 import parser.ast.Expression;
-import prism.DA;
 import prism.PrismComponent;
 import prism.PrismDevNullLog;
 import prism.PrismException;
@@ -66,48 +63,20 @@ public class MDPModelChecker extends ProbModelChecker
 	{
 		LTLModelChecker mcLtl;
 		StateValues probsProduct, probs;
-		Expression ltl;
-		DA<BitSet,AcceptanceRabin> dra;
 		MDPModelChecker mcProduct;
-		long time;
+		LTLModelChecker.LTLProduct<MDP> product;
 
-		// Can't do LTL with time-bounded variants of the temporal operators
-		if (Expression.containsTemporalTimeBounds(expr)) {
-			throw new PrismException("Time-bounded operators not supported in LTL: " + expr);
-		}
-		
-		// For LTL model checking routines
-		mcLtl = new LTLModelChecker(this);
-
-		// Model check maximal state formulas
-		Vector<BitSet> labelBS = new Vector<BitSet>();
-		ltl = mcLtl.checkMaximalStateFormulas(this, model, expr.deepCopy(), labelBS);
-
-		// Convert LTL formula to deterministic Rabin automaton (DRA)
 		// For min probabilities, need to negate the formula
 		// (add parentheses to allow re-parsing if required)
 		if (minMax.isMin()) {
-			ltl = Expression.Not(Expression.Parenth(ltl));
-		}
-		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
-		time = System.currentTimeMillis();
-		dra = LTLModelChecker.convertLTLFormulaToDRA(ltl);
-		mainLog.println("DRA has " + dra.size() + " states, " + dra.getAcceptance().getSizeStatistics() + ".");
-		time = System.currentTimeMillis() - time;
-		mainLog.println("Time for Rabin translation: " + time / 1000.0 + " seconds.");
-		// If required, export DRA 
-		if (settings.getExportPropAut()) {
-			mainLog.println("Exporting DRA to file \"" + settings.getExportPropAutFilename() + "\"...");
-			PrismLog out = new PrismFileLog(settings.getExportPropAutFilename());
-			out.println(dra);
-			out.close();
-			//dra.printDot(new java.io.PrintStream("dra.dot"));
+			expr = Expression.Not(Expression.Parenth(expr.deepCopy()));
 		}
 
-		// Build product of MDP and automaton
-		mainLog.println("\nConstructing MDP-DRA product...");
-		LTLModelChecker.LTLProduct<MDP> product = mcLtl.constructProductMDP(dra, (MDP) model, labelBS, statesOfInterest);
+		// For LTL model checking routines
+		mcLtl = new LTLModelChecker(this);
 
+		product = mcLtl.constructProductMDP(this, (MDP)model, expr, statesOfInterest);
+		
 		// Find accepting MECs + compute reachability probabilities
 		mainLog.println("\nFinding accepting MECs...");
 		BitSet acceptingMECs = mcLtl.findAcceptingECStatesForRabin(product.getProductModel(), product.getAcceptance());
