@@ -68,6 +68,9 @@ public class MultiObjModelChecker extends PrismComponent
 	protected NondetModel constructDRAandProductMulti(NondetModel model, LTLModelChecker mcLtl, ModelChecker modelChecker, Expression ltl, int i, DA<BitSet,AcceptanceRabin> dra[], Operator operator,
 			Expression targetExpr, JDDVars draDDRowVars, JDDVars draDDColVars, JDDNode ddStateIndex) throws PrismException
 	{
+
+		// TODO (JK): Adapt to support simple path formulas with bounds via DRA construction
+
 		// Model check maximal state formulas
 		Vector<JDDNode> labelDDs = new Vector<JDDNode>();
 		ltl = mcLtl.checkMaximalStateFormulas(modelChecker, model, targetExpr.deepCopy(), labelDDs);
@@ -79,7 +82,7 @@ public class MultiObjModelChecker extends PrismComponent
 			ltl = Expression.Not(Expression.Parenth(ltl));
 		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
 		long l = System.currentTimeMillis();
-		dra[i] = LTLModelChecker.convertLTLFormulaToDRA(ltl);
+		dra[i] = LTLModelChecker.convertLTLFormulaToDRA(ltl, modelChecker.getConstantValues());
 		mainLog.print("DRA has " + dra[i].size() + " states, " + ", " + dra[i].getAcceptance().getSizeStatistics()+".");
 		l = System.currentTimeMillis() - l;
 		mainLog.println("Time for Rabin translation: " + l / 1000.0 + " seconds.");

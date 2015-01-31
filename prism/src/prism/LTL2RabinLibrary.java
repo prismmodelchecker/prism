@@ -33,6 +33,7 @@ import java.util.*;
 import acceptance.AcceptanceRabin;
 import acceptance.AcceptanceRabin.RabinPair;
 import jltl2dstar.*;
+import parser.Values;
 import parser.ast.*;
 import parser.visitor.ASTTraverse;
 import parser.visitor.ASTTraverseModify;
@@ -67,8 +68,10 @@ public class LTL2RabinLibrary
 	/**
 	 * Convert an LTL formula into a DRA. The LTL formula is represented as a PRISM Expression,
 	 * in which atomic propositions are represented by ExpressionLabel objects.
+	 * @param ltl the LTL formula
+	 * @param constants values for constants in the formula (may be {@code null})
 	 */
-	public static DA<BitSet, AcceptanceRabin> convertLTLFormulaToDRA(Expression ltl) throws PrismException
+	public static DA<BitSet,AcceptanceRabin> convertLTLFormulaToDRA(Expression ltl, Values constants) throws PrismException
 	{
 		// Get list of labels appearing
 		labels = new ArrayList<String>();
@@ -99,7 +102,27 @@ public class LTL2RabinLibrary
 		if (draString != null)
 			return createDRAFromString(draString, labels);
 		
-		// If none, convert using jltl2dstar library
+		
+		// handle simple until formula with time bounds
+		if (Expression.containsTemporalTimeBounds(ltl)) {
+			boolean negated = false;
+			
+			if (ltl instanceof ExpressionUnaryOp &&
+			    ((ExpressionUnaryOp)ltl).getOperator() == ExpressionUnaryOp.NOT) {
+				// negated
+				negated = true;
+				ltl = ((ExpressionUnaryOp)ltl).getOperand();
+			}
+			
+			if (ltl instanceof ExpressionTemporal &&
+			    ((ExpressionTemporal)ltl).getOperator() == ExpressionTemporal.P_U) {
+				return constructDRAForSimpleUntilFormula((ExpressionTemporal)ltl, constants, negated);				
+			} else {
+				throw new PrismException("Unsupported LTL formula: "+ltl);
+			}
+		}
+		
+		// No time-bounded operators, convert using jltl2dstar library
 		return LTL2Rabin.ltl2rabin(ltl.convertForJltl2ba());
 	}
 	
@@ -109,9 +132,10 @@ public class LTL2RabinLibrary
 	 * a and b are either ExpressionLabels or true/false.
 	 * The operator can have integer bounds.
 	 * @param expr the until formula
+	 * @param constants values for constants (in bounds)
 	 * @param negated create DRA for the complement, i.e., !(a U b)
 	 */
-	public static DA<BitSet,AcceptanceRabin> constructDRAForSimpleUntilFormula(ExpressionTemporal expr, boolean negated) throws PrismException
+	public static DA<BitSet,AcceptanceRabin> constructDRAForSimpleUntilFormula(ExpressionTemporal expr, Values constants, boolean negated) throws PrismException
 	{
 		IntegerBound bounds;
 		DA<BitSet,AcceptanceRabin> dra;
@@ -121,7 +145,7 @@ public class LTL2RabinLibrary
 		}
 
 		// get and check bounds information (non-negative, non-empty)
-		bounds = IntegerBound.fromExpressionTemporal(expr, true);
+		bounds = IntegerBound.fromExpressionTemporal(expr, constants, true);
 
 		// extract information about the operands of the until operator, either a label (extracted to labelA)
 		// or true/false (stored in aBoolean, labelA=null).
@@ -564,7 +588,7 @@ public class LTL2RabinLibrary
 			System.out.println(ltl.equals(expr.toString()));
 			DA<BitSet,AcceptanceRabin> dra1 = jltl2dstar.LTL2Rabin.ltl2rabin(expr.convertForJltl2ba());
 			System.out.println(dra1);
-			DA<BitSet,AcceptanceRabin> dra2 = convertLTLFormulaToDRA(expr);
+			DA<BitSet,AcceptanceRabin> dra2 = convertLTLFormulaToDRA(expr, null);
 			System.out.println(dra2);
 			System.out.println(dra1.toString().equals(dra2.toString()));
 			//dra2.printDot(new PrintStream(new File("dra")));
