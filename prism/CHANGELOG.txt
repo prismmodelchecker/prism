@@ -1,5 +1,15 @@
 This file contains details of the changes in each new version of PRISM.
 
+Latest changes: (up to rev 9654)
+
+* -exact switch
+* -exportpropaut (hidden)
+* Some LTL model checking optimisations
+* Expected total rewards (R[C]) implemented for DTMCs in symbolic engine.
+* lower time-bounds supported for DTMCs/MDPs
+* -pathviaautomata switch
+* Bug fixes
+
 -----------------------------------------------------------------------------
 Version 4.2.1 (first released 4/12/2014)
 -----------------------------------------------------------------------------
