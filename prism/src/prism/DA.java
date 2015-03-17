@@ -209,7 +209,7 @@ public class DA<Symbol, Acceptance extends AcceptanceOmega>
 				s += " " + i + "-" + e.label + "->" + e.dest;
 			}
 		}
-		s += "; " + acceptance.getTypeName() + " acceptance :";
+		s += "; " + acceptance.getTypeName() + " acceptance: ";
 		s += acceptance;
 		return s;
 	}

@@ -28,6 +28,8 @@ package acceptance;
 
 import java.util.BitSet;
 
+import acceptance.AcceptanceRabin.RabinPair;
+
 import jdd.JDDVars;
 
 /**
@@ -93,6 +95,13 @@ public class AcceptanceReach implements AcceptanceOmega
 	public String getSignatureForState(int i)
 	{
 		return goalStates.get(i) ? "!" : " ";
+	}
+
+	/** Returns a textual representation of this acceptance condition. */
+	@Override
+	public String toString()
+	{
+		return goalStates.toString();
 	}
 
 	@Override
