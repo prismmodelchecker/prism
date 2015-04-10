@@ -49,7 +49,8 @@ public class SBML2Prism extends Reactions2Prism implements EntityResolver
 {
 	/**
 	 * Calling point for command-line script:
-	 * e.g. java -cp classes prism.SBML2Prism myfile.sbml 100
+	 * This is probably the sbml2prism (found in etc/scripts)
+	 * But it can also be called as, e.g.: java -cp classes prism.SBML2Prism myfile.sbml 100
 	 * (100 denotes (integer) maximum for species population sizes, default is 100)
 	 * (also used to compute amounts from (real-valued) concentrations)
 	 */
@@ -58,7 +59,7 @@ public class SBML2Prism extends Reactions2Prism implements EntityResolver
 		PrismLog errLog = new PrismPrintStreamLog(System.err);
 		try {
 			if (args.length < 1) {
-				System.err.println("Usage: java -cp classes prism.SBML2Prism <sbml_file> [max_amount]");
+				System.err.println("Usage: sbml2prism <sbml_file> [max_amount]");
 				System.exit(1);
 			}
 			SBML2Prism sbml2prism = new SBML2Prism(errLog);
