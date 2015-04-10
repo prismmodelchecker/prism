@@ -50,7 +50,7 @@ public class PrismParser
 	
 	// List of keyword strings
 	private static ArrayList<String> keywordList = new ArrayList<String>();
-	{
+	static {
 		keywordList.clear();
 		for (int i = PrismParserConstants.COMMENT+1; i < PrismParserConstants.NOT; i++) {
 			keywordList.add(PrismParserConstants.tokenImage[i].replaceAll("\"", ""));
