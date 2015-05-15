@@ -1051,6 +1051,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		if (acceptance instanceof AcceptanceReachDD) {
 			mainLog.println("\nSkipping accepting MEC computation since acceptance is defined via goal states...");
 			acc = ((AcceptanceReachDD) acceptance).getGoalStates();
+			JDD.Ref(modelProduct.getReach());
+			acc = JDD.And(acc, modelProduct.getReach());
 		} else {
 			mainLog.println("\nFinding accepting end components...");
 			acc = mcLtl.findAcceptingECStates(acceptance, modelProduct, daDDRowVars, daDDColVars, fairness);

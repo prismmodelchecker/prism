@@ -586,6 +586,8 @@ public class ProbModelChecker extends NonProbModelChecker
 		if (acceptance instanceof AcceptanceReachDD) {
 			mainLog.println("\nSkipping BSCC computation since acceptance is defined via goal states...");
 			acc = ((AcceptanceReachDD) acceptance).getGoalStates();
+			JDD.Ref(modelProduct.getReach());
+			acc = JDD.And(acc, modelProduct.getReach());
 		} else {
 			mainLog.println("\nFinding accepting BSCCs...");
 			acc = mcLtl.findAcceptingBSCCs(acceptance, modelProduct);
