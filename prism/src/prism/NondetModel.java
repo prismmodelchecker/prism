@@ -233,7 +233,6 @@ public class NondetModel extends ProbModel
 		numChoices = JDD.GetNumMinterms(nondetMask, getNumDDRowVars() + getNumDDNondetVars());
 		JDD.Ref(reach);
 		nondetMask = JDD.And(JDD.Not(nondetMask), reach);
-		JDD.PrintInfo(nondetMask, getNumDDRowVars() + getNumDDNondetVars());
 	}
 
 	@Override
