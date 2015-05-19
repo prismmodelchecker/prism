@@ -628,18 +628,18 @@ public class MDPSparse extends MDPExplicit
 					// Assume that only non-zero entries are stored
 					if (u.get(cols[k])) {
 						some = true;
-						continue;
+						break;
 					}
 				}
 				if (forall) {
 					if (!some) {
 						b1 = false;
-						continue;
+						break;
 					}
 				} else {
 					if (some) {
 						b1 = true;
-						continue;
+						break;
 					}
 				}
 			}
@@ -665,7 +665,7 @@ public class MDPSparse extends MDPExplicit
 					// Assume that only non-zero entries are stored
 					if (!u.get(cols[k])) {
 						all = false;
-						continue; // Stop early (already know b1 will be set to false)
+						break; // Stop early (already know b1 will be set to false)
 					}
 					if (v.get(cols[k])) {
 						some = true;
@@ -673,7 +673,7 @@ public class MDPSparse extends MDPExplicit
 				}
 				if (!(some && all)) {
 					b1 = false;
-					continue;
+					break;
 				}
 			}
 			result.set(i, b1);
@@ -698,7 +698,7 @@ public class MDPSparse extends MDPExplicit
 					// Assume that only non-zero entries are stored
 					if (!u.get(cols[k])) {
 						all = false;
-						continue; // Stop early (already know b1 will not be set to true)
+						break; // Stop early (already know b1 will not be set to true)
 					}
 					if (v.get(cols[k])) {
 						some = true;
@@ -709,7 +709,7 @@ public class MDPSparse extends MDPExplicit
 					// If strategy generation is enabled, remember optimal choice
 					if (strat != null)
 						stratCh = j - l1;
-					continue;
+					break;
 				}
 			}
 			// If strategy generation is enabled, store optimal choice
@@ -748,12 +748,12 @@ public class MDPSparse extends MDPExplicit
 				if (forall) {
 					if (!(some && all)) {
 						b1 = false;
-						continue;
+						break;
 					}
 				} else {
 					if (some && all) {
 						b1 = true;
-						continue;
+						break;
 					}
 				}
 			}

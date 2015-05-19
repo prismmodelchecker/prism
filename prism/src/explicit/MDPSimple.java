@@ -588,12 +588,12 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 				if (forall) {
 					if (!b2) {
 						b1 = false;
-						continue;
+						break;
 					}
 				} else {
 					if (b2) {
 						b1 = true;
-						continue;
+						break;
 					}
 				}
 			}
@@ -610,7 +610,7 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 			for (Distribution distr : trans.get(i)) {
 				if (!(distr.isSubsetOf(u) && distr.containsOneOf(v))) {
 					b1 = false;
-					continue;
+					break;
 				}
 			}
 			result.set(i, b1);
@@ -631,7 +631,7 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 					// If strategy generation is enabled, remember optimal choice
 					if (strat != null)
 						stratCh = j;
-					continue;
+					break;
 				}
 				j++;
 			}
@@ -656,12 +656,12 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 				if (forall) {
 					if (!b2) {
 						b1 = false;
-						continue;
+						break;
 					}
 				} else {
 					if (b2) {
 						b1 = true;
-						continue;
+						break;
 					}
 				}
 			}
