@@ -126,7 +126,7 @@ public abstract class Product<M extends Model> implements ModelTransformation<M,
 	 * over states in the product model: A bit is set in the
 	 * result for a product state if the bit is set in the parameter
 	 * for the corresponding original model state.
-	 * @param automataStates a BitSet over states of the automaton for this product.
+	 * @param modelStates a BitSet over states of the original model for this product.
 	 */
 	public BitSet liftFromModel(BitSet modelStates)
 	{
