@@ -624,16 +624,13 @@ public class LTLModelChecker extends PrismComponent
 			// Skip pairs with empty !L_i
 			if (statesLi_not.cardinality() == 0)
 				continue;
-			// Compute maximum end components (MECs) in !L_i
+			// Compute accepting maximum end components (MECs) in !L_i
 			ECComputer ecComputer = ECComputer.createECComputer(this, model);
-			ecComputer.computeMECStates(statesLi_not);
+			ecComputer.computeMECStates(statesLi_not, acceptance.get(i).getK());
 			List<BitSet> mecs = ecComputer.getMECStates();
-			// Check with MECs contain a K_i state
-			BitSet bitsetKi = acceptance.get(i).getK();
+			// Union MEC states
 			for (BitSet mec : mecs) {
-				if (mec.intersects(bitsetKi)) {
-					allAcceptingStates.or(mec);
-				}
+				allAcceptingStates.or(mec);
 			}
 		}
 

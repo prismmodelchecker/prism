@@ -75,14 +75,18 @@ public class ECComputerDefault extends ECComputer
 	}
 
 	@Override
+	public void computeMECStates(BitSet restrict, BitSet accept) throws PrismException
+	{
+		mecs = findEndComponents(restrict, accept);
+	}
+
+	@Override
 	public List<BitSet> getMECStates()
 	{
 		return mecs;
 	}
 
 	// Computation
-
-	// TODO: handle 'accept'
 	
 	/**
 	 * Find all accepting maximal end components (MECs) in the submodel obtained
@@ -106,7 +110,7 @@ public class ECComputerDefault extends ECComputer
 		if (restrict.cardinality() == 0)
 			return L;
 		L.add(restrict);
-		
+		// Find MECs
 		boolean changed = true;
 		while (changed) {
 			changed = false;
@@ -116,7 +120,17 @@ public class ECComputerDefault extends ECComputer
 			L = replaceEWithSCCs(L, E, sccs);
 			changed = canLBeChanged(L, E);
 		}
-
+		// Filter and return those that contain a state in accept
+		if (accept != null) {
+			int i = 0;
+			while (i < L.size()) {
+				if (!L.get(i).intersects(accept)) {
+					L.remove(i);
+				} else {
+					i++;
+				}
+			}
+		}
 		return L;
 	}
 
