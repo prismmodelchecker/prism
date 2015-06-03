@@ -221,7 +221,7 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	{
 		return trans.get(s).getSupport().iterator();
 	}
-	
+
 	@Override
 	public boolean isSuccessor(int s1, int s2)
 	{
@@ -362,7 +362,7 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 		int i, j;
 		double prob;
 		Distribution distr;
-		
+
 		// Initialise result to 0
 		for (j = 0; j < numStates; j++) {
 			result[j] = 0;
