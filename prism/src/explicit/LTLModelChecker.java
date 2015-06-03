@@ -38,10 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-import acceptance.AcceptanceOmega;
-import acceptance.AcceptanceRabin;
-import acceptance.AcceptanceType;
-import common.IterableStateSet;
 import parser.State;
 import parser.ast.Expression;
 import parser.ast.ExpressionBinaryOp;
@@ -55,9 +51,14 @@ import prism.LTL2DA;
 import prism.ModelType;
 import prism.PrismComponent;
 import prism.PrismException;
-import prism.PrismLangException;
 import prism.PrismFileLog;
+import prism.PrismLangException;
 import prism.PrismLog;
+import acceptance.AcceptanceOmega;
+import acceptance.AcceptanceRabin;
+import acceptance.AcceptanceType;
+
+import common.IterableStateSet;
 
 /**
  * LTL model checking functionality
