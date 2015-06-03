@@ -503,7 +503,7 @@ public class LTLModelChecker extends PrismComponent
 			q_1 = p.y;
 			visited.set(s_1 * daSize + q_1);
 
-			// Go through transitions from state s_1 in original DTMC
+			// Go through transitions from state s_1 in original MDP
 			int numChoices = mdp.getNumChoices(s_1);
 			for (int j = 0; j < numChoices; j++) {
 				Distribution prodDistr = new Distribution();
