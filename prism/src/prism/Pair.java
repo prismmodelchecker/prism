@@ -26,10 +26,12 @@
 
 package prism;
 
+import java.util.Map.Entry;
+
 /**
  * Simple class to store a pair of values.
  */
-public class Pair<X,Y>
+public class Pair<X,Y> implements Entry<X, Y>
 {
 	public X first;
 	public Y second;
@@ -38,5 +40,27 @@ public class Pair<X,Y>
 	{
 		this.first = first;
 		this.second = second;
+	}
+
+	@Override
+	public X getKey() {
+		return first;
+	}
+
+	@Override
+	public Y getValue() {
+		return second;
+	}
+
+	@Override
+	public Y setValue(Y value) {
+		second = value;
+		return second;
+	}
+	
+	@Override
+	public String toString()
+	{
+		return "(" + first + "," + second + ")"; 
 	}
 }
