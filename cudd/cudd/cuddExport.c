@@ -546,7 +546,7 @@ Cudd_DumpDot(
 			/* print label (blank) */
 			retval = fprintf(fp,
 			    "\"%p\" [label = \"\"];\n",
-			    (unsigned long) ((mask & (long) scan) /
+			    (void *) ((mask & (ptrint) scan) /
 			    sizeof(DdNode)));
 			if (retval == EOF) goto failure;
 			if (cuddT(scan) != Cudd_ReadZero(dd)) {
