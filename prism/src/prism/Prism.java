@@ -3542,8 +3542,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Utility method to create and initialiser a (symbolic) model checker based on the current model.
-	 * @param propertiesFile Optional properties file for extra info needed durinng model checking (can be null)
+	 * Utility method to create and initialise a (symbolic) model checker based on the current model.
+	 * @param propertiesFile Optional properties file for extra info needed during model checking (can be null)
 	 */
 	private ModelChecker createModelChecker(PropertiesFile propertiesFile) throws PrismException
 	{
@@ -3556,8 +3556,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 	
 	/**
-	 * Utility method to create and initialiser an (explicit) model checker based on the current model.
-	 * @param propertiesFile Optional properties file for extra info needed durinng model checking (can be null)
+	 * Utility method to create and initialise an (explicit) model checker based on the current model.
+	 * @param propertiesFile Optional properties file for extra info needed during model checking (can be null)
 	 */
 	private explicit.StateModelChecker createModelCheckerExplicit(PropertiesFile propertiesFile) throws PrismException
 	{
