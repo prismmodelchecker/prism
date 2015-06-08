@@ -36,8 +36,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import jdd.JDD;
-
 import parser.State;
 import parser.Values;
 import parser.ast.Expression;
