@@ -168,7 +168,7 @@ public abstract class ModelExplicit implements Model
 	 * Adds a label and the set the states that satisfy it.
 	 * Any existing label with the same name is overwritten.
 	 * @param name The name of the label
-	 * @param states The states that satisyy the label 
+	 * @param states The states that satisfy the label 
 	 */
 	public void addLabel(String name, BitSet states)
 	{
