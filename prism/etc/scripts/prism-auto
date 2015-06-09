@@ -318,17 +318,19 @@ def verifyAndCleanupExports(outFiles, exportPrefix):
     result = True
     # Check for equality with out files
     for outFile in outFiles:
+    	print "Testing export " + os.path.basename(outFile) + ":",
         expFile = prependToFile(exportPrefix, outFile)
-        if os.path.isfile(expFile) and filecmp.cmp(outFile, expFile):
-            # If successful, notify and delete exported file
-            print "Testing result (" + os.path.basename(outFile) + "): PASS"
-            os.remove(expFile)
+        if os.path.isfile(expFile):
+            if filecmp.cmp(outFile, expFile):
+                # If successful, notify and delete exported file
+                print "PASS"
+                os.remove(expFile)
+            else:
+                print "FAIL (" + os.path.basename(expFile) + " does not match)"
+                result = False
         else:
-            # No .out file matches exported files, report error
-            #newName = file + ".fail"
-            #os.rename(file, newName)
+            print "FAIL (no " + os.path.basename(expFile) + " to compare to)"
             result = False
-            print "Error: No matching export for " + outFile
     return result
 
 # Run a benchmark, specified by a list of command-line args,
