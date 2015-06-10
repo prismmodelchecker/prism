@@ -218,12 +218,18 @@ def renameExports(prefix, args):
 
 def getExpectedOutFilesFromArgs(args):
     options = [args[i+1] for i in range(len(args)-1) if args[i].startswith("-export")]
-    files = map(lambda option: option.split(':')[0], options)
+    optionsFiles = map(lambda option: option.split(':')[0], options)
+    # Sometimes we have comma-separated lists of files (e.g. -exportmodel)
+    files = []
+    for file in optionsFiles:
+        files = files + file.split(",")
+    print str(files)
 
     resultFiles = []
     for file in files:
         split = file.rsplit('.', 1)
         base = split[0]
+        if (len(split) == 1): split = split + [""]
         # Determine relevant extensions
         if split[1] == 'all':
             exts = ['lab','tra','sta','srew','trew']
