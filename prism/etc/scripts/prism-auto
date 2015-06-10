@@ -343,6 +343,10 @@ def benchmark(file, args, dir=""):
     # Expand output files to full paths
     args = expandFilenames(args, dir)
 
+    # Determine which out files apply to this benchmark from the -export switches (if required)
+    if not options.echo and options.test:
+        outFiles = getExpectedOutFilesFromArgs(args)
+        
     # Rename export files to avoid overriding out files
     # (if in test mode, and if not disabled)
     exportPrefix = 'tmp.'
@@ -367,14 +371,11 @@ def benchmark(file, args, dir=""):
         runPrism(modelFileArg + args, dir)
 
     # Verify that exported files are correct (if required)
-    if not options.echo and options.test:
-        # Determine which out files apply to this benchmark from the -export switches
-        outFiles = getExpectedOutFilesFromArgs(args)
-        if outFiles:
-            # print "Out files to verify exports against: " + ' '.join(outFiles)
-            allEqual = verifyAndCleanupExports(outFiles, exportPrefix)
-            if (not allEqual) and (not options.testAll):
-                sys.exit(1)
+    if not options.echo and options.test and outFiles:
+        # print "Out files to verify exports against: " + ' '.join(outFiles)
+        allEqual = verifyAndCleanupExports(outFiles, exportPrefix)
+        if (not allEqual) and (not options.testAll):
+            sys.exit(1)
 
 # Execute benchmarking based on (possibly recursive) processing of a directory
 
