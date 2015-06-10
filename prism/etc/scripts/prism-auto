@@ -11,7 +11,7 @@
 
 # Run "prism-auto -h" for details of further options.
 
-import os,sys,re,subprocess,signal,tempfile,functools,filecmp
+import os,sys,re,subprocess,signal,tempfile,functools,filecmp,logging
 from optparse import OptionParser
 
 #==================================================================================================
@@ -337,6 +337,7 @@ def verifyAndCleanupExports(outFiles, exportPrefix):
 # possibly iterating over further lists of args from a "bm" file
 
 def benchmark(file, args, dir=""):
+    logging.debug("Benchmarking: " + file + ", " + str(args))
     # Add extra arguments from command line, if applicable
     args = addExtraArgs(args)
     # Expand output files to full paths
@@ -402,6 +403,7 @@ def runBenchmarksForModel(modelFile, modelArgs, dir):
 # Execute benchmarking based on (possibly recursive) processing of a directory
 
 def benchmarkDir(dir):
+    logging.debug("Benchmarking dir " + dir)
     # Recurse first, unless asked not to
     if not options.nonRec:
         for file in [file for file in os.listdir(dir) if not file in [".","..",".svn"]]:
@@ -436,10 +438,12 @@ def benchmarkFile(file):
 # Execute benchmarking based on a single model file
 
 def benchmarkModelFile(modelFile):
+    logging.debug("Benchmarking model file " + modelFile)
     dir = os.path.dirname(modelFile)
     if dir == "": dir = "."
     # Expand model file based on any .args file
     argLists = getMatchingArgListsForFile(modelFile)
+    logging.debug("Arg lists: " + modelFile)
     for args in argLists:
         # Build mode: just build
         if options.build:
@@ -449,6 +453,7 @@ def benchmarkModelFile(modelFile):
             # Find and benchmark properties
             if options.matching: propertiesFiles = getMatchingPropertiesInDir(dir, modelFile)
             else: propertiesFiles = getPropertiesInDir(dir)
+            logging.debug("Properties files: " + str(propertiesFiles))
             for propertiesFile in propertiesFiles:
                 for argsp in getMatchingArgListsForFile(propertiesFile):
                     benchmark(modelFile, args + [propertiesFile] + argsp, dir)
@@ -457,6 +462,7 @@ def benchmarkModelFile(modelFile):
 # but which does not have any corresponding prop file
 
 def benchmarkTestFile(testFile):
+    logging.debug("Benchmarking test file " + testFile)
     dir = os.path.dirname(testFile)
     if dir == "": dir = "."
     if options.matching:
@@ -480,6 +486,7 @@ def benchmarkTestFile(testFile):
 # Execute benchmarking based on a single properties file
 
 def benchmarkPropertiesFile(propertiesFile):
+    logging.debug("Benchmarking properties file " + propertiesFile)
     dir = os.path.dirname(propertiesFile)
     if dir == "": dir = "."
     # Expand properties file based on any .args file
@@ -498,6 +505,7 @@ def benchmarkPropertiesFile(propertiesFile):
 # Execute benchmarking based on a property list
 
 def benchmarkPropListFile(propListFile):
+    logging.debug("Benchmarking propertiy list file " + propListFile)
     listDir = os.path.dirname(propListFile)
     if listDir == "": listDir = "."
     for line in open(propListFile, 'r').readlines():
@@ -534,10 +542,12 @@ parser.add_option("-x", "--extra", dest="extraArgs", metavar="XXX", default="", 
 parser.add_option("-t", "--test", action="store_true", dest="test", default=False, help="Run in test mode")
 parser.add_option("--test-all", action="store_true", dest="testAll", default=False, help="In test mode, don't stop after an error")
 parser.add_option("--no-renaming", action="store_true", dest="noRenaming", default=False, help="Don't rename files to be exported")
+parser.add_option("--debug", action="store_true", dest="debug", default=False, help="Enable debug mode: display debugging info")
 (options, args) = parser.parse_args()
 if len(args) != 1:
     parser.print_help()
     sys.exit(1)
+logging.basicConfig(level=logging.DEBUG)
 if options.logDir and not os.path.isdir(options.logDir):
     print "Log directory \"" + options.logDir + "\" does not exist"
     sys.exit(1)
