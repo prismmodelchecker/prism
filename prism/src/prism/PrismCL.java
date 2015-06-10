@@ -1671,7 +1671,7 @@ public class PrismCL implements PrismModelListener
 			}
 			// Unknown extension
 			else {
-				throw new PrismException("Unknown extension \"" + ext + "\" for -exportmodel switch");
+				throw new PrismException("Unknown extension \"" + ext + "\" for -importmodel switch");
 			}
 			// Check at least the transition matrix was imported
 			if (!importtrans) {
@@ -1687,7 +1687,7 @@ public class PrismCL implements PrismModelListener
 			}
 			// Unknown option
 			else {
-				throw new PrismException("Unknown option \"" + opt + "\" for -exportmodel switch");
+				throw new PrismException("Unknown option \"" + opt + "\" for -importmodel switch");
 			}
 		}*/
 	}
@@ -1841,7 +1841,7 @@ public class PrismCL implements PrismModelListener
 	/**
 	 * Split a string of the form <files>:<options> into its two parts.
 	 * The latter can be empty, in which case the : is optional.
-	 * Instances of :\ are ignored (nor treated as :) in case there is a Windows filename.
+	 * Instances of :\ are ignored (not treated as :) in case there is a Windows filename.
 	 * @return the two parts as an array of two strings.
 	 */
 	private static String[] splitFilesAndOptions(String filesOptionsString)
