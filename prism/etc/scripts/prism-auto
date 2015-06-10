@@ -524,7 +524,7 @@ def signal_handler(signal, frame):
 # Main program
 
 signal.signal(signal.SIGINT, signal_handler)
-parser = OptionParser(usage="usage: %prog [options] arg")
+parser = OptionParser(usage="usage: %prog [options] args")
 parser.add_option("-l", "--log", dest="logDir", metavar="DIR", default="", help="Store PRISM output in logs in DIR")
 parser.add_option("-a", "--args", dest="bmFile", metavar="FILE", default="", help="Read argument lists for benchmarking from FILE")
 parser.add_option("-e", "--echo", action="store_true", dest="echo", default=False, help="Just print out tasks, don't execute")
@@ -538,7 +538,7 @@ parser.add_option("--test-all", action="store_true", dest="testAll", default=Fal
 parser.add_option("--no-renaming", action="store_true", dest="noRenaming", default=False, help="Don't rename files to be exported")
 parser.add_option("--debug", action="store_true", dest="debug", default=False, help="Enable debug mode: display debugging info")
 (options, args) = parser.parse_args()
-if len(args) != 1:
+if len(args) < 1:
     parser.print_help()
     sys.exit(1)
 if options.debug:
@@ -546,9 +546,10 @@ if options.debug:
 if options.logDir and not os.path.isdir(options.logDir):
     print "Log directory \"" + options.logDir + "\" does not exist"
     sys.exit(1)
-if os.path.isdir(args[0]):
-    benchmarkDir(args[0])
-elif os.path.isfile(args[0]):
-    benchmarkFile(args[0])
-else:
-    print "Error: File/directory " + args[0] + " does not exist"
+for arg in args:
+    if os.path.isdir(arg):
+        benchmarkDir(arg)
+    elif os.path.isfile(arg):
+        benchmarkFile(arg)
+    else:
+        print "Error: File/directory " + arg + " does not exist"
