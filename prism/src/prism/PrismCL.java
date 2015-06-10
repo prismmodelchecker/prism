@@ -2206,7 +2206,7 @@ public class PrismCL implements PrismModelListener
 			mainLog.println("Switch: -importmodel <files>\n");
 			mainLog.println("Import the model directly from text file(s).");
 			mainLog.println("Use a list of file extensions to indicate which files should be read, e.g.:");
-			mainLog.println("\n -importmodel in.tra,in.sta\n");
+			mainLog.println("\n -importmodel in.tra,sta\n");
 			mainLog.println("Possible extensions are: .tra, .sta, .lab");
 			mainLog.println("Use extension .all to import all, e.g.:");
 			mainLog.println("\n -importmodel in.all\n");
@@ -2225,7 +2225,7 @@ public class PrismCL implements PrismModelListener
 			mainLog.println("Switch: -exportmodel <files[:options]>\n");
 			mainLog.println("Export the built model to file(s) (or to the screen if <file>=\"stdout\").");
 			mainLog.println("Use a list of file extensions to indicate which files should be generated, e.g.:");
-			mainLog.println("\n -exportmodel out.tra,out.sta\n");
+			mainLog.println("\n -exportmodel out.tra,sta\n");
 			mainLog.println("Possible extensions are: .tra, .srew, .trew, .sta, .lab");
 			mainLog.println("Use extension .all to export all and .rew to export both .srew/.trew, e.g.:");
 			mainLog.println("\n -exportmodel out.all\n");
