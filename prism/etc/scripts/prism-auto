@@ -542,3 +542,5 @@ if os.path.isdir(args[0]):
     benchmarkDir(args[0])
 elif os.path.isfile(args[0]):
     benchmarkFile(args[0])
+else:
+    print "Error: File/directory " + args[0] + " does not exist"
