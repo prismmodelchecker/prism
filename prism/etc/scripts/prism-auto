@@ -547,7 +547,8 @@ parser.add_option("--debug", action="store_true", dest="debug", default=False, h
 if len(args) != 1:
     parser.print_help()
     sys.exit(1)
-logging.basicConfig(level=logging.DEBUG)
+if options.debug:
+    logging.basicConfig(level=logging.DEBUG)
 if options.logDir and not os.path.isdir(options.logDir):
     print "Log directory \"" + options.logDir + "\" does not exist"
     sys.exit(1)
