@@ -340,7 +340,7 @@ def benchmark(file, args, dir=""):
     logging.debug("Benchmarking: " + file + ", " + str(args))
     # Add extra arguments from command line, if applicable
     args = addExtraArgs(args)
-    # Expand output files to full paths
+    # Expand input/output files to full paths
     args = expandFilenames(args, dir)
 
     # Determine which out files apply to this benchmark from the -export switches (if required)
