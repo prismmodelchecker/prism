@@ -223,7 +223,6 @@ def getExpectedOutFilesFromArgs(args):
     files = []
     for file in optionsFiles:
         files = files + file.split(",")
-    print str(files)
 
     resultFiles = []
     for file in files:
