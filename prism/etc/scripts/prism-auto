@@ -394,6 +394,7 @@ def benchmarkDir(dir):
     # Get "orphan" tests
     testFiles = filter(functools.partial(isOrphan, dir), getTestFilesInDir(dir))
     for testFile in testFiles:
+        logging.debug("Orphan test file: " + testFile)
         # print "Processing orphan test " + testFile + " in dir " + dir
         for args in getArgsListsFromFile(testFile):
             benchmark("", args, dir)
