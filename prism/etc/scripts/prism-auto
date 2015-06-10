@@ -346,7 +346,8 @@ def benchmark(file, args, dir=""):
 
     # Rename export files to avoid overriding out files
     exportPrefix = 'tmp.'
-    args = renameExports(exportPrefix, args)
+    if (not options.noRenaming):
+        args = renameExports(exportPrefix, args)
 
     # print '\033[94m' + "EXECUTING BENCHMARK" + '\033[0m'
     # print "File: " + file
@@ -532,6 +533,7 @@ parser.add_option("-n", "--non-recursive", action="store_true", dest="nonRec", d
 parser.add_option("-x", "--extra", dest="extraArgs", metavar="XXX", default="", help="Pass (single string of) extra switches to PRISM")
 parser.add_option("-t", "--test", action="store_true", dest="test", default=False, help="Run in test mode")
 parser.add_option("--test-all", action="store_true", dest="testAll", default=False, help="In test mode, don't stop after an error")
+parser.add_option("--no-renaming", action="store_true", dest="noRenaming", default=False, help="Don't rename files to be exported")
 (options, args) = parser.parse_args()
 if len(args) != 1:
     parser.print_help()
