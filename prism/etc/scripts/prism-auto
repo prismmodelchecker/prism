@@ -342,8 +342,6 @@ def benchmark(file, args, dir=""):
     args = addExtraArgs(args)
     # Expand output files to full paths
     args = expandFilenames(args, dir)
-    # Determine which out files apply to this benchmark from the -export switches
-    outFiles = getExpectedOutFilesFromArgs(args)
 
     # Rename export files to avoid overriding out files
     exportPrefix = 'tmp.'
@@ -369,6 +367,8 @@ def benchmark(file, args, dir=""):
 
     # Verify that exported files are correct (if required)
     if not options.echo and outFiles and options.test:
+        # Determine which out files apply to this benchmark from the -export switches
+        outFiles = getExpectedOutFilesFromArgs(args)
         # print "Out files to verify exports against: " + ' '.join(outFiles)
         allEqual = verifyAndCleanupExports(outFiles, exportPrefix)
         if (not allEqual) and (not options.testAll):
