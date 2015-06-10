@@ -374,32 +374,6 @@ def benchmark(file, args, dir=""):
         if (not allEqual) and (not options.testAll):
             sys.exit(1)
 
-def runBenchmarksForModel(modelFile, modelArgs, dir):
-    # print "Processing model: " + modelFile
-    # Build mode: just build
-    if options.build:
-        propertiesFiles = [""]
-        # Otherwise, find properties
-    else:
-        if options.matching:
-            propertiesFiles = getMatchingPropertiesInDir(dir, modelFile)
-        else:
-            propertiesFiles = getPropertiesInDir(dir)
-
-    for propertiesFile in propertiesFiles:
-        for args in getMatchingArgListsForFile(propertiesFile):
-            # Benchmarks for .pm.props.args files
-            #print "Arg list from file: " + ' '.join(args)
-            #print "Arg list from models file: " + ' '.join(modelArgs)
-            #print "Properties file: " + propertiesFile
-            benchmark(modelFile, modelArgs + [propertiesFile] + args, dir)
-
-    testFiles = getMatchingTestsInDir(dir, modelFile)
-    for testFile in testFiles:
-        # print "Processing test file: " + testFile
-        for testArgs in getArgsListsFromFile(testFile):
-            benchmark(modelFile, modelArgs + testArgs, dir)
-
 # Execute benchmarking based on (possibly recursive) processing of a directory
 
 def benchmarkDir(dir):
@@ -413,9 +387,7 @@ def benchmarkDir(dir):
     modelFiles = getModelsInDir(dir)
     if len(modelFiles) > 0:
         for modelFile in modelFiles:
-            # Traverse through lines of args file, if any
-            for args in getMatchingArgListsForFile(modelFile[0]):
-                runBenchmarksForModel(modelFile[0], modelFile[1] + args, dir)
+            benchmarkModelFile(modelFile[0], modelFile[1], dir)
     # Get "orphan" tests
     testFiles = filter(functools.partial(isOrphan, dir), getTestFilesInDir(dir))
     for testFile in testFiles:
@@ -437,26 +409,36 @@ def benchmarkFile(file):
 
 # Execute benchmarking based on a single model file
 
-def benchmarkModelFile(modelFile):
-    logging.debug("Benchmarking model file " + modelFile)
-    dir = os.path.dirname(modelFile)
-    if dir == "": dir = "."
+def benchmarkModelFile(modelFile, modelArgs=[], dir=""):
+    logging.debug("Benchmarking model file " + modelFile + " " + str(modelArgs))
+    if dir == "":
+        dir = os.path.dirname(modelFile)
+        if dir == "": dir = "."
     # Expand model file based on any .args file
     argLists = getMatchingArgListsForFile(modelFile)
-    logging.debug("Arg lists: " + modelFile)
+    logging.debug("Arg lists: " + str(argLists))
     for args in argLists:
         # Build mode: just build
         if options.build:
-            benchmark(modelFile, args)
+            benchmark(modelFile, modelArgs + args)
         # Otherwise, find properties
         else:
             # Find and benchmark properties
-            if options.matching: propertiesFiles = getMatchingPropertiesInDir(dir, modelFile)
-            else: propertiesFiles = getPropertiesInDir(dir)
+            if options.matching:
+                propertiesFiles = getMatchingPropertiesInDir(dir, modelFile)
+            else:
+                propertiesFiles = getPropertiesInDir(dir)
             logging.debug("Properties files: " + str(propertiesFiles))
             for propertiesFile in propertiesFiles:
                 for argsp in getMatchingArgListsForFile(propertiesFile):
-                    benchmark(modelFile, args + [propertiesFile] + argsp, dir)
+                    benchmark(modelFile, modelArgs + args + [propertiesFile] + argsp, dir)
+        # Find and benchmark test files
+        testFiles = getMatchingTestsInDir(dir, modelFile)
+        logging.debug("Test files: " + str(testFiles))
+        for testFile in testFiles:
+            logging.debug("Test file: " + str(testFile))
+            for testArgs in getArgsListsFromFile(testFile):
+                benchmark(modelFile, modelArgs + testArgs, dir)
 
 # Execute benchmarking on a test file, i.e. a file that has the same structure as an args file,
 # but which does not have any corresponding prop file
