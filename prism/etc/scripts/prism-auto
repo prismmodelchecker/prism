@@ -493,8 +493,8 @@ def benchmarkPropertiesFile(propertiesFile):
             modelFiles = getModelsInDir(dir)
         for modelFile in modelFiles:
             # Expand model based on any .args file, too
-            for modelArgs in getMatchingArgListsForFile(modelFile[0]):
-                benchmark(modelFile[0], modelFile[1] + modelArgs + [propertiesFile] + args, dir)
+            for modelArgs in getMatchingArgListsForFile(modelFile):
+                benchmark(modelFile, modelArgs + [propertiesFile] + args, dir)
 
 # Execute benchmarking based on a property list
 
