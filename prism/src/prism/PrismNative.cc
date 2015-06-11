@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#include <locale.h>
 #include "PrismNativeGlob.h"
 #include "jnipointer.h"
 
@@ -75,6 +76,10 @@ JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetPrism(JNIEnv *env, jclass c
 	prism_obj = env->NewGlobalRef(prism);
 	// get the class and make a global reference to it
 	prism_cls = (jclass)env->NewGlobalRef(env->GetObjectClass(prism_obj));
+	
+	// We should also set the locale, to ensure consistent display of numerical values
+	// (e.g. 0.5 not 0,5). This seems as good a place as any to do it.
+	setlocale(LC_NUMERIC, "C");
 }
 
 //------------------------------------------------------------------------------
