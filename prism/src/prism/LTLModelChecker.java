@@ -89,9 +89,9 @@ public class LTLModelChecker extends PrismComponent
 	/**
 	 * Extract maximal state formula from an LTL path formula, model check them (with passed in model checker) and
 	 * replace them with ExpressionLabel objects L0, L1, etc. Expression passed in is modified directly, but the result
-	 * is also returned. As an optimisation, model checking that results in true/false for all states is converted to an
-	 * actual true/false, and duplicate results are given the same label. BDDs giving the states which satisfy each label
-	 * are put into the vector  labelDDs, which should be empty when this function is called.
+	 * is also returned. As an optimisation, expressions that results in true/false for all states are converted to an
+	 * actual true/false, and duplicate results (or their negations) reuse the same label. BDDs giving the states which
+	 * satisfy each label are put into the vector labelDDs, which should be empty when this function is called.
 	 */
 	public Expression checkMaximalStateFormulas(ModelChecker mc, Model model, Expression expr, Vector<JDDNode> labelDDs) throws PrismException
 	{
@@ -114,6 +114,17 @@ public class LTLModelChecker extends PrismComponent
 			if (i != -1) {
 				JDD.Deref(dd);
 				return new ExpressionLabel("L" + i);
+			}
+			// Also, see if we already have the negation of this result
+			// (in which case, reuse it)
+			JDD.Ref(dd);
+			JDD.Ref(model.getReach());
+			JDDNode ddNeg = JDD.And(JDD.Not(dd), model.getReach());
+			i = labelDDs.indexOf(ddNeg);
+			JDD.Deref(ddNeg);
+			if (i != -1) {
+				JDD.Deref(dd);
+				return Expression.Not(new ExpressionLabel("L" + i));
 			}
 			// Otherwise, add result to list, return new label
 			labelDDs.add(dd);
