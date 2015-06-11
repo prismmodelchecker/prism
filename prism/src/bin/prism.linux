@@ -29,6 +29,7 @@ else
 	# default
 	PRISM_JAVAMAXMEM="-Xmx512m"
 fi
+PRISM_JAVASTACKSIZE="-Xss4M"
 
 # Set up CLASSPATH:
 #  - PRISM jar file (for binary versions) (gets priority)
@@ -63,7 +64,7 @@ if [ "$PRISM_HEADLESS" = "" ]; then
 fi
 
 # Run PRISM through Java
-"$PRISM_JAVA" $PRISM_JAVA_DEBUG $PRISM_JAVAMAXMEM -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path="$JAVA_LIBRARY_PATH" -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"
+"$PRISM_JAVA" $PRISM_JAVA_DEBUG $PRISM_JAVAMAXMEM $PRISM_JAVASTACKSIZE -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path="$JAVA_LIBRARY_PATH" -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"
 
 PRISM_EXIT_CODE=$?
 
