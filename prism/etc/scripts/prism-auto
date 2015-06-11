@@ -12,6 +12,7 @@
 # Run "prism-auto -h" for details of further options.
 
 import os,sys,re,subprocess,signal,tempfile,functools,filecmp,logging
+from pipes import quote
 from optparse import OptionParser
 
 #==================================================================================================
@@ -290,9 +291,20 @@ def runPrism(args, dir=""):
         if options.testAll: args.append("-testall")
         else: args.append("-test")
     prismArgs = [options.prismExec] + args
-    print ' '.join(prismArgs)
     if options.echo:
+        prismArgs = ['echo', quote(' '.join(prismArgs)), ';'] + prismArgs
+        if options.logDir:
+            logFile = os.path.relpath(os.path.join(options.logDir, createLogFileName(args, dir)))
+            logFile = quote(logFile)
+            if options.test:
+                prismArgs += ['|', 'tee', logFile]
+            else:
+                prismArgs += ['>', logFile]
+        if options.test:
+            prismArgs += ['|', 'grep "Testing result:"']
+        print ' '.join(prismArgs)
         return
+    print ' '.join(prismArgs)
     if options.logDir:
         logFile = os.path.join(options.logDir, createLogFileName(args, dir))
         f = open(logFile, 'w')

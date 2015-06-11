@@ -567,7 +567,7 @@ public class NondetModelChecker extends NonProbModelChecker
 				throw new PrismException("Multi-objective only supports F operator for rewards");
 			}*/
 		}
-		if (exprProb != null) {// || ((ExpressionTemporal) exprReward.getExpression()).getOperator() != ExpressionTemporal.R_C) {
+		if (exprProb != null && exprProb.getExpression() instanceof ExpressionTemporal) {// || ((ExpressionTemporal) exprReward.getExpression()).getOperator() != ExpressionTemporal.R_C) {
 			exprTemp = (ExpressionTemporal) exprProb.getExpression();
 			//TODO we currently ignore the lower bound
 			if (exprTemp.getUpperBound() != null) {
