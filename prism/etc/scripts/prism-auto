@@ -168,7 +168,7 @@ def getMatchingArgListsForFile(file):
 
 def addExtraArgs(argLists):
     if options.extraArgs:
-        return map(lambda args: args + options.extraArgs.split(' '), argLists)
+        return argLists + options.extraArgs.split(' ')
     else:
         return argLists
 
