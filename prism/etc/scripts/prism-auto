@@ -261,7 +261,7 @@ def getExpectedOutFilesFromArgs(args):
 def createLogFileName(args, dir=""):
     logFile = '.'.join(args)
     if len(dir) > 0:
-        logFile = re.sub(didirr+'/', '', logFile)
+        logFile = re.sub(dir+'/', '', logFile)
     logFile = re.sub('/', '_', logFile)
     logFile = re.sub('[^a-zA-Z0-9=_, \.]', '', logFile)
     logFile = re.sub('[ ]+', '.', logFile)
