@@ -38,6 +38,7 @@ import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismPrintStreamLog;
+import prism.PrismNotSupportedException;
 import prism.UndefinedConstants;
 
 public class QuantAbstractRefineExample extends QuantAbstractRefine
@@ -288,7 +289,7 @@ public class QuantAbstractRefineExample extends QuantAbstractRefine
 					j = ((STPGAbstrSimple) abstraction).addDistributionSet(a, set);
 					break;
 				default:
-					throw new PrismException("Cannot handle model type " + modelType);
+					throw new PrismNotSupportedException("Cannot handle model type " + modelType);
 				}
 				if (j >= listNew.size())
 					listNew.add(new HashSet<Integer>(1));

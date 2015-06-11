@@ -66,6 +66,7 @@ import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismLangException;
 import prism.PrismSettings;
+import prism.PrismNotSupportedException;
 import prism.Result;
 
 /**
@@ -405,7 +406,7 @@ public class StateModelChecker extends PrismComponent
 		}
 		// Anything else - error
 		else {
-			throw new PrismException("Couldn't check " + expr.getClass());
+			throw new PrismNotSupportedException("Couldn't check " + expr.getClass());
 		}
 
 		return res;
@@ -506,7 +507,7 @@ public class StateModelChecker extends PrismComponent
 		case ExpressionFunc.LOG:
 			return checkExpressionFuncBinary(model, expr, statesOfInterest);
 		case ExpressionFunc.MULTI:
-			throw new PrismException("Multi-objective model checking is not supported for " + model.getModelType() + "s");
+			throw new PrismNotSupportedException("Multi-objective model checking is not supported for " + model.getModelType() + "s");
 		default:
 			throw new PrismException("Unrecognised function \"" + expr.getName() + "\"");
 		}

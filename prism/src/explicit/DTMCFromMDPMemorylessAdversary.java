@@ -34,6 +34,7 @@ import parser.State;
 import parser.Values;
 import prism.ModelType;
 import prism.PrismException;
+import prism.PrismNotSupportedException;
 
 /**
  * Explicit-state representation of a DTMC, constructed (implicitly)
@@ -60,7 +61,7 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 	@Override
 	public void buildFromPrismExplicit(String filename) throws PrismException
 	{
-		throw new PrismException("Not supported");
+		throw new PrismNotSupportedException("Not supported");
 	}
 
 	// Accessors (for Model)

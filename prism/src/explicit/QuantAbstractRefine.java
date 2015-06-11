@@ -277,7 +277,7 @@ public abstract class QuantAbstractRefine extends PrismComponent
 			try {
 				setVerbosity((optVal == null) ? 10 : Integer.parseInt(optVal));
 			} catch (NumberFormatException e) {
-				throw new PrismException("Invalid value \"" + optVal + "\" for abstraction-refinement setting \"" + opt + "\"");
+				throw new PrismNotSupportedException("Invalid value \"" + optVal + "\" for abstraction-refinement setting \"" + opt + "\"");
 			}
 		} else if (opt.matches("refine")) {
 			if (optVal != null) {
@@ -471,7 +471,7 @@ public abstract class QuantAbstractRefine extends PrismComponent
 			mc = new STPGModelChecker(null);
 			break;
 		default:
-			throw new PrismException("Cannot handle model type " + modelType);
+			throw new PrismNotSupportedException("Cannot handle model type " + modelType);
 		}
 		mc.inheritSettings(mcOptions);
 		// But limit verbosity (since model checking will be done many times)
@@ -627,7 +627,7 @@ public abstract class QuantAbstractRefine extends PrismComponent
 			modelCheckAbstractionExpReach(min);
 			break;
 		default:
-			throw new PrismException("Property type " + propertyType + " not supported");
+			throw new PrismNotSupportedException("Property type " + propertyType + " not supported");
 		}
 
 		// See if each state has "converged", i.e. bounds are close enough to assume exact
@@ -702,7 +702,7 @@ public abstract class QuantAbstractRefine extends PrismComponent
 			}
 			break;
 		default:
-			throw new PrismException("Cannot model check " + abstractionType);
+			throw new PrismNotSupportedException("Cannot model check " + abstractionType);
 		}
 		lbSoln = res.soln;
 		lbLastSoln = lbSoln; // TODO: fix (if nec.)
@@ -743,7 +743,7 @@ public abstract class QuantAbstractRefine extends PrismComponent
 			}
 			break;
 		default:
-			throw new PrismException("Cannot model check " + abstractionType);
+			throw new PrismNotSupportedException("Cannot model check " + abstractionType);
 		}
 		ubSoln = res.soln;
 		ubLastSoln = ubSoln; // TODO: fix (if nec.)
@@ -776,7 +776,7 @@ public abstract class QuantAbstractRefine extends PrismComponent
 					results);
 			break;
 		default:
-			throw new PrismException("Cannot model check " + abstractionType);
+			throw new PrismNotSupportedException("Cannot model check " + abstractionType);
 		}
 		lbSoln = res.soln;
 		lbLastSoln = res.lastSoln;
@@ -804,7 +804,7 @@ public abstract class QuantAbstractRefine extends PrismComponent
 					results);
 			break;
 		default:
-			throw new PrismException("Cannot model check " + abstractionType);
+			throw new PrismNotSupportedException("Cannot model check " + abstractionType);
 		}
 		ubSoln = res.soln;
 		ubLastSoln = res.lastSoln;
@@ -841,7 +841,7 @@ public abstract class QuantAbstractRefine extends PrismComponent
 			}
 			break;
 		default:
-			throw new PrismException("Cannot model check " + abstractionType);
+			throw new PrismNotSupportedException("Cannot model check " + abstractionType);
 		}
 		lbSoln = res.soln;
 		lbLastSoln = lbSoln; // TODO: fix (if nec.)
@@ -861,7 +861,7 @@ public abstract class QuantAbstractRefine extends PrismComponent
 			}
 			break;
 		default:
-			throw new PrismException("Cannot model check " + abstractionType);
+			throw new PrismNotSupportedException("Cannot model check " + abstractionType);
 		}
 		ubSoln = res.soln;
 		ubLastSoln = ubSoln; // TODO: fix (if nec.)
@@ -1262,7 +1262,7 @@ public abstract class QuantAbstractRefine extends PrismComponent
 		} else if (abstraction instanceof MDPSimple) {
 			stpg = new STPGAbstrSimple((MDPSimple) abstraction);
 		} else {
-			throw new PrismException("Cannot export this model type to a dot file");
+			throw new PrismNotSupportedException("Cannot export this model type to a dot file");
 		}
 
 		try {

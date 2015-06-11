@@ -35,6 +35,7 @@ import java.util.Map;
 import parser.State;
 import prism.PrismComponent;
 import prism.PrismException;
+import prism.PrismNotSupportedException;
 
 /**
  * Class to perform bisimulation minimisation for explicit-state models.
@@ -69,7 +70,7 @@ public class Bisimulation extends PrismComponent
 		case CTMC:
 			return minimiseCTMC((CTMC) model, propNames, propBSs);
 		default:
-			throw new PrismException("Bisimulation minimisation not yet supported for " + model.getModelType() + "s");
+			throw new PrismNotSupportedException("Bisimulation minimisation not yet supported for " + model.getModelType() + "s");
 		}
 	}
 

@@ -36,6 +36,7 @@ import parser.State;
 import parser.Values;
 import prism.ModelType;
 import prism.PrismException;
+import prism.PrismNotSupportedException;
 
 /**
  * Simple explicit-state representation of a DTMC, constructed (implicitly) as the embedded DTMC of a CTMC.
@@ -72,7 +73,7 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 	@Override
 	public void buildFromPrismExplicit(String filename) throws PrismException
 	{
-		throw new PrismException("Not supported");
+		throw new PrismNotSupportedException("Not supported");
 	}
 	
 	// Accessors (for Model)

@@ -641,12 +641,12 @@ public class MultiObjModelChecker extends PrismComponent
 		
 		try {
 			if (engine != Prism.SPARSE)
-				throw new PrismException("Currently only sparse engine supports multi-objective properties");
+				throw new PrismNotSupportedException("Currently only sparse engine supports multi-objective properties");
 		
 			if (method == Prism.MDP_MULTI_LP) {
 				//LP currently does not support Pareto
 				if (opsAndBounds.numberOfNumerical() > 1) {
-					throw new PrismException("Linear programming method currently does not support generating of Pareto curves.");
+					throw new PrismNotSupportedException("Linear programming method currently does not support generating of Pareto curves.");
 				}
 				
 				if (opsAndBounds.rewardSize() > 0) {

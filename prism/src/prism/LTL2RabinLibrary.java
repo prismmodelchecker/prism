@@ -127,7 +127,7 @@ public class LTL2RabinLibrary
 			    ((ExpressionTemporal)ltl).getOperator() == ExpressionTemporal.P_U) {
 				return constructDRAForSimpleUntilFormula((ExpressionTemporal)ltl, constants, negated);				
 			} else {
-				throw new PrismException("Unsupported LTL formula with time bounds: "+ltl);
+				throw new PrismNotSupportedException("Unsupported LTL formula with time bounds: "+ltl);
 			}
 		}
 		
@@ -169,7 +169,7 @@ public class LTL2RabinLibrary
 				labelA = null;
 				aBoolean = (Boolean) ((ExpressionLiteral)expr.getOperand1()).getValue();
 			} else {
-				throw new PrismException("Unsupported expression "+expr.getOperand1()+" in formula.");
+				throw new PrismNotSupportedException("Unsupported expression "+expr.getOperand1()+" in formula.");
 			}
 		}
 
@@ -182,7 +182,7 @@ public class LTL2RabinLibrary
 				labelB = null;
 				bBoolean = (Boolean) ((ExpressionLiteral)expr.getOperand2()).getValue();
 			} else {
-				throw new PrismException("Unsupported expression "+expr.getOperand2()+" in formula.");
+				throw new PrismNotSupportedException("Unsupported expression "+expr.getOperand2()+" in formula.");
 			}
 		}
 		

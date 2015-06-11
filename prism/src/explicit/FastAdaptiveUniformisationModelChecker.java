@@ -38,6 +38,7 @@ import parser.ast.PropertiesFile;
 import parser.ast.RewardStruct;
 import prism.PrismComponent;
 import prism.PrismException;
+import prism.PrismNotSupportedException;
 import prism.Result;
 import simulator.PrismModelExplorer;
 import simulator.SimulatorEngine;
@@ -122,7 +123,7 @@ public class FastAdaptiveUniformisationModelChecker extends PrismComponent
 		else if (expr instanceof ExpressionReward)
 			res = checkExpressionReward((ExpressionReward) expr);
 		else
-			throw new PrismException("Fast adaptive uniformisation not yet supported for this operator");
+			throw new PrismNotSupportedException("Fast adaptive uniformisation not yet supported for this operator");
 
 		return res;
 	}
@@ -134,15 +135,15 @@ public class FastAdaptiveUniformisationModelChecker extends PrismComponent
 	{
 		// Check whether P=? (only case allowed)
 		if (expr.getProb() != null) {
-			throw new PrismException("Fast adaptive uniformisation model checking currently only supports P=? properties");
+			throw new PrismNotSupportedException("Fast adaptive uniformisation model checking currently only supports P=? properties");
 		}
 
 		if (!(expr.getExpression() instanceof ExpressionTemporal)) {
-			throw new PrismException("Fast adaptive uniformisation model checking currently only supports simple path operators");
+			throw new PrismNotSupportedException("Fast adaptive uniformisation model checking currently only supports simple path operators");
 		}
 		ExpressionTemporal exprTemp = (ExpressionTemporal) expr.getExpression();
 		if (!exprTemp.isSimplePathFormula()) {
-			throw new PrismException("Fast adaptive uniformisation window model checking currently only supports simple until operators");
+			throw new PrismNotSupportedException("Fast adaptive uniformisation window model checking currently only supports simple until operators");
 		}
 
 		double timeLower = 0.0;
@@ -150,12 +151,12 @@ public class FastAdaptiveUniformisationModelChecker extends PrismComponent
 			timeLower = exprTemp.getLowerBound().evaluateDouble(constantValues);
 		}
 		if (exprTemp.getUpperBound() == null) {
-			throw new PrismException("Fast adaptive uniformisation window model checking currently requires an upper time bound");
+			throw new PrismNotSupportedException("Fast adaptive uniformisation window model checking currently requires an upper time bound");
 		}
 		double timeUpper = exprTemp.getUpperBound().evaluateDouble(constantValues);
 
 		if (!exprTemp.hasBounds()) {
-			throw new PrismException("Fast adaptive uniformisation window model checking currently only supports timed properties");
+			throw new PrismNotSupportedException("Fast adaptive uniformisation window model checking currently only supports timed properties");
 		}
 
 		mainLog.println("Starting transient probability computation using fast adaptive uniformisation...");
@@ -187,7 +188,7 @@ public class FastAdaptiveUniformisationModelChecker extends PrismComponent
 		case ExpressionTemporal.P_W:
 		case ExpressionTemporal.P_R:
 		default:
-			throw new PrismException("operator currently not supported for fast adaptive uniformisation");
+			throw new PrismNotSupportedException("operator currently not supported for fast adaptive uniformisation");
 		}
 		fau.setSink(sink);
 		fau.computeTransientProbsAdaptive(timeLower);
@@ -206,7 +207,7 @@ public class FastAdaptiveUniformisationModelChecker extends PrismComponent
 		case ExpressionTemporal.P_W:
 		case ExpressionTemporal.P_R:
 		default:
-			throw new PrismException("operator currently not supported for fast adaptive uniformisation");
+			throw new PrismNotSupportedException("operator currently not supported for fast adaptive uniformisation");
 		}
 		Values varValues = new Values();
 		varValues.addValue("deadlock", "true");
@@ -238,7 +239,7 @@ public class FastAdaptiveUniformisationModelChecker extends PrismComponent
 			fau.setAnalysisType(FastAdaptiveUniformisation.AnalysisType.REW_CUMUL);
 			break;
 		default:
-			throw new PrismException("Currently only instantaneous or cumulative rewards are allowed.");
+			throw new PrismNotSupportedException("Currently only instantaneous or cumulative rewards are allowed.");
 		}
 		double time = temporal.getUpperBound().evaluateDouble(constantValues);
 		RewardStruct rewStruct = expr.getRewardStructByIndexObject(modulesFile, constantValues);

@@ -34,6 +34,7 @@ import parser.State;
 import parser.Values;
 import prism.ModelType;
 import prism.PrismException;
+import prism.PrismNotSupportedException;
 import strat.MDStrategy;
 
 /**
@@ -61,7 +62,7 @@ public class DTMCFromMDPAndMDStrategy extends DTMCExplicit
 	@Override
 	public void buildFromPrismExplicit(String filename) throws PrismException
 	{
-		throw new PrismException("Not supported");
+		throw new PrismNotSupportedException("Not supported");
 	}
 
 	// Accessors (for Model)

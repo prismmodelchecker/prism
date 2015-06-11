@@ -33,6 +33,7 @@ import parser.type.TypeBool;
 import parser.type.TypeDouble;
 import parser.type.TypeInt;
 import prism.PrismException;
+import prism.PrismNotSupportedException;
 
 /**
  * Base class for the results of a product operation between a model and
@@ -168,7 +169,7 @@ public abstract class Product<M extends Model> implements ModelTransformation<M,
 			} else if (sv.type instanceof TypeDouble) {
 				result.setDoubleValue(modelState, (Double) sv.getValue(productState));
 			} else {
-				throw new PrismException("Handling for type "+sv.type+" not implemented.");
+				throw new PrismNotSupportedException("Handling for type "+sv.type+" not implemented.");
 			}
 		}
 

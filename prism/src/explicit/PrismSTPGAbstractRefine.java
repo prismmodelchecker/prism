@@ -31,6 +31,7 @@ import java.util.*;
 import prism.ModelType;
 import prism.PrismComponent;
 import prism.PrismException;
+import prism.PrismNotSupportedException;
 
 public class PrismSTPGAbstractRefine extends QuantAbstractRefine
 {
@@ -91,7 +92,7 @@ public class PrismSTPGAbstractRefine extends QuantAbstractRefine
 			modelConcrete = new MDPSimple();
 			break;
 		default:
-			throw new PrismException("Cannot handle model type " + modelType);
+			throw new PrismNotSupportedException("Cannot handle model type " + modelType);
 		}
 		modelConcrete.buildFromPrismExplicit(traFile);
 		if (buildEmbeddedDtmc) {
@@ -162,7 +163,7 @@ public class PrismSTPGAbstractRefine extends QuantAbstractRefine
 			abstraction = new STPGAbstrSimple(nAbstract);
 			break;
 		default:
-			throw new PrismException("Cannot handle model type " + modelType);
+			throw new PrismNotSupportedException("Cannot handle model type " + modelType);
 		}
 		abstraction.addInitialState(0);
 		if (existsTargetAndInitial)
@@ -195,7 +196,7 @@ public class PrismSTPGAbstractRefine extends QuantAbstractRefine
 				j = ((STPGAbstrSimple) abstraction).addDistributionSet(a, set);
 				break;
 			default:
-				throw new PrismException("Cannot handle model type " + modelType);
+				throw new PrismNotSupportedException("Cannot handle model type " + modelType);
 			}
 			list = abstractToConcrete.get(a);
 			if (j >= list.size())
@@ -350,7 +351,7 @@ public class PrismSTPGAbstractRefine extends QuantAbstractRefine
 					j = ((STPGAbstrSimple) abstraction).addDistributionSet(a, set);
 					break;
 				default:
-					throw new PrismException("Cannot handle model type " + modelType);
+					throw new PrismNotSupportedException("Cannot handle model type " + modelType);
 				}
 				if (j >= listNew.size())
 					listNew.add(new HashSet<Integer>(1));

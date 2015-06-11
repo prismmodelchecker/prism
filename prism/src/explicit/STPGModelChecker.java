@@ -36,6 +36,7 @@ import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLog;
+import prism.PrismNotSupportedException;
 import prism.PrismUtils;
 import explicit.rewards.STPGRewards;
 
@@ -57,7 +58,7 @@ public class STPGModelChecker extends ProbModelChecker
 	@Override
 	protected StateValues checkProbPathFormulaLTL(Model model, Expression expr, boolean qual, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
-		throw new PrismException("LTL model checking not yet supported for stochastic games");
+		throw new PrismNotSupportedException("LTL model checking not yet supported for stochastic games");
 	}
 	
 	// Numerical computation functions

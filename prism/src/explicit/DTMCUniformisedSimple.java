@@ -36,6 +36,7 @@ import parser.State;
 import parser.Values;
 import prism.ModelType;
 import prism.PrismException;
+import prism.PrismNotSupportedException;
 import explicit.rewards.MCRewards;
 
 /**
@@ -78,7 +79,7 @@ public class DTMCUniformisedSimple extends DTMCExplicit
 	@Override
 	public void buildFromPrismExplicit(String filename) throws PrismException
 	{
-		throw new PrismException("Not supported");
+		throw new PrismNotSupportedException("Not supported");
 	}
 	
 	// Accessors (for Model)

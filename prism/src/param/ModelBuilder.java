@@ -44,6 +44,7 @@ import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismLangException;
 import prism.PrismSettings;
+import prism.PrismNotSupportedException;
 import explicit.IndexedSet;
 import explicit.StateStorage;
 
@@ -135,7 +136,7 @@ public final class ModelBuilder extends PrismComponent
 			case ExpressionBinaryOp.DIVIDE:
 				return f1.divide(f2);
 			default:
-				throw new PrismException("parametric analysis with rate/probability of " + expr + " not implemented");
+				throw new PrismNotSupportedException("parametric analysis with rate/probability of " + expr + " not implemented");
 			}
 		} else if (expr instanceof ExpressionUnaryOp) {
 			ExpressionUnaryOp unExpr = ((ExpressionUnaryOp) expr);
@@ -146,10 +147,10 @@ public final class ModelBuilder extends PrismComponent
 			case ExpressionUnaryOp.PARENTH:
 				return f;
 			default:
-				throw new PrismException("parametric analysis with rate/probability of " + expr + " not implemented");
+				throw new PrismNotSupportedException("parametric analysis with rate/probability of " + expr + " not implemented");
 			}
 		} else {
-			throw new PrismException("parametric analysis with rate/probability of " + expr + " not implemented");
+			throw new PrismNotSupportedException("parametric analysis with rate/probability of " + expr + " not implemented");
 		}
 	}
 
@@ -205,7 +206,7 @@ public final class ModelBuilder extends PrismComponent
 		long time;
 
 		if (modulesFile.getModelType() == ModelType.PTA) {
-			throw new PrismException("You cannot build a PTA model explicitly, only perform model checking");
+			throw new PrismNotSupportedException("You cannot build a PTA model explicitly, only perform model checking");
 		}
 
 		mainLog.print("\nBuilding model...\n");
@@ -314,7 +315,7 @@ public final class ModelBuilder extends PrismComponent
 		ModelType modelType;
 
 		if (modulesFile.getInitialStates() != null) {
-			throw new PrismException("Cannot do explicit-state reachability if there are multiple initial states");
+			throw new PrismNotSupportedException("Cannot do explicit-state reachability if there are multiple initial states");
 		}
 
 		mainLog.print("\nComputing reachable states...");
@@ -324,12 +325,12 @@ public final class ModelBuilder extends PrismComponent
 		ParamModel model = new ParamModel();
 		model.setModelType(modelType);
 		if (modelType != ModelType.DTMC && modelType != ModelType.CTMC && modelType != ModelType.MDP) {
-			throw new PrismException("Unsupported model type: " + modelType);
+			throw new PrismNotSupportedException("Unsupported model type: " + modelType);
 		}
 		SymbolicEngine engine = new SymbolicEngine(modulesFile);
 
 		if (modulesFile.getInitialStates() != null) {
-			throw new PrismException("Explicit model construction does not support multiple initial states");
+			throw new PrismNotSupportedException("Explicit model construction does not support multiple initial states");
 		}
 
 		boolean isNonDet = modelType == ModelType.MDP;

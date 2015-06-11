@@ -33,6 +33,7 @@ import parser.ast.ExpressionExists;
 import parser.ast.ExpressionForAll;
 import prism.PrismComponent;
 import prism.PrismException;
+import prism.PrismNotSupportedException;
 
 /**
  * Explicit-state, non-probabilistic model checker.
@@ -54,11 +55,11 @@ public class NonProbModelChecker extends StateModelChecker
 
 		// E operator
 		if (expr instanceof ExpressionExists) {
-			throw new PrismException("CTL model checking is not yet supported by the explicit engine");
+			throw new PrismNotSupportedException("CTL model checking is not yet supported by the explicit engine");
 		}
 		// A operator
 		else if (expr instanceof ExpressionForAll) {
-			throw new PrismException("CTL model checking is not yet supported by the explicit engine");
+			throw new PrismNotSupportedException("CTL model checking is not yet supported by the explicit engine");
 		}
 		// Otherwise, use the superclass
 		else {

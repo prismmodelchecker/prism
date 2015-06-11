@@ -53,10 +53,10 @@ import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLangException;
 import prism.PrismLog;
+import prism.PrismNotSupportedException;
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceRabin;
 import acceptance.AcceptanceType;
-
 import common.IterableStateSet;
 
 /**
@@ -218,7 +218,7 @@ public class LTLModelChecker extends PrismComponent
 				// formulas only appear positively
 				expr = Expression.convertSimplePathFormulaToCanonicalForm(expr);
 			} else {
-				throw new PrismException("Time-bounded operators not supported in LTL: " + expr);
+				throw new PrismNotSupportedException("Time-bounded operators not supported in LTL: " + expr);
 			}
 		}
 
@@ -577,7 +577,7 @@ public class LTLModelChecker extends PrismComponent
 		if (acceptance instanceof AcceptanceRabin) {
 			return findAcceptingECStatesForRabin(model, (AcceptanceRabin) acceptance);
 		}
-		throw new PrismException("Computing end components for acceptance type '"+acceptance.getTypeName()+"' currently not supported (explicit engine).");
+		throw new PrismNotSupportedException("Computing end components for acceptance type '"+acceptance.getTypeName()+"' currently not supported (explicit engine).");
 	}
 
 	/**

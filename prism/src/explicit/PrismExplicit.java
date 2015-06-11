@@ -61,7 +61,7 @@ public class PrismExplicit extends PrismComponent
 		ConstructModel constructModel;
 
 		if (modulesFile.getModelType() == ModelType.PTA) {
-			throw new PrismException("You cannot build a PTA model explicitly, only perform model checking");
+			throw new PrismNotSupportedException("You cannot build a PTA model explicitly, only perform model checking");
 		}
 
 		mainLog.print("\nBuilding model...\n");
@@ -123,7 +123,7 @@ public class PrismExplicit extends PrismComponent
 		case Prism.EXPORT_MRMC:
 		case Prism.EXPORT_ROWS:
 		case Prism.EXPORT_DOT_STATES:
-			throw new PrismException("Export not yet supported"); // TODO
+			throw new PrismNotSupportedException("Export not yet supported"); // TODO
 		}
 	}
 
@@ -248,7 +248,7 @@ public class PrismExplicit extends PrismComponent
 		PrismLog tmpLog;
 		
 		if (!(model.getModelType() == ModelType.CTMC || model.getModelType() == ModelType.DTMC))
-			throw new PrismException("Steady-state probabilities only computed for DTMCs/CTMCs");
+			throw new PrismNotSupportedException("Steady-state probabilities only computed for DTMCs/CTMCs");
 		
 		// no specific states format for MRMC
 		if (exportType == Prism.EXPORT_MRMC) exportType = Prism.EXPORT_PLAIN;
@@ -301,10 +301,10 @@ public class PrismExplicit extends PrismComponent
 			probs = mcDTMC.doSteadyState((DTMC) model);
 		}
 		else if (model.getModelType() == ModelType.CTMC) {
-			throw new PrismException("Not implemented yet"); // TODO
+			throw new PrismNotSupportedException("Not implemented yet"); // TODO
 		}
 		else {
-			throw new PrismException("Steady-state probabilities only computed for DTMCs/CTMCs");
+			throw new PrismNotSupportedException("Steady-state probabilities only computed for DTMCs/CTMCs");
 		}
 		return probs;
 	}
@@ -340,7 +340,7 @@ public class PrismExplicit extends PrismComponent
 		l = System.currentTimeMillis();
 
 		if (model.getModelType() == ModelType.DTMC) {
-			throw new PrismException("Not implemented yet"); // TODO
+			throw new PrismNotSupportedException("Not implemented yet"); // TODO
 		}
 		else if (model.getModelType() == ModelType.CTMC) {
 			mainLog.println("\nComputing transient probabilities (time = " + time + ")...");
@@ -348,7 +348,7 @@ public class PrismExplicit extends PrismComponent
 			probs = mcCTMC.doTransient((CTMC) model, time, fileIn);
 		}
 		else {
-			throw new PrismException("Transient probabilities only computed for DTMCs/CTMCs");
+			throw new PrismNotSupportedException("Transient probabilities only computed for DTMCs/CTMCs");
 		}
 		
 		l = System.currentTimeMillis() - l;

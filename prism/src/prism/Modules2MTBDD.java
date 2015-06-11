@@ -181,7 +181,7 @@ public class Modules2MTBDD
 		// get variable info from ModulesFile
 		varList = modulesFile.createVarList();
 		if (varList.containsUnboundedVariables())
-			throw new PrismException("Cannot build a model that contains a variable with unbounded range (try the explicit engine instead)");
+			throw new PrismNotSupportedException("Cannot build a model that contains a variable with unbounded range (try the explicit engine instead)");
 		numVars = varList.getNumVars();
 		constantValues = modulesFile.getConstantValues();
 		
