@@ -401,6 +401,8 @@ public class PrismCL implements PrismModelListener
 								} else {
 									mainLog.println("Testing result: NOT TESTED");
 								}
+							} catch (PrismNotSupportedException e) {
+								mainLog.println("Testing result: UNSUPPORTED: " + e.getMessage());
 							} catch (PrismException e) {
 								mainLog.println("Testing result: FAIL: " + e.getMessage());
 								if (testExitsOnFail)

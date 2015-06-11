@@ -35,6 +35,7 @@ import parser.type.*;
 import parser.visitor.*;
 import prism.PrismException;
 import prism.PrismLangException;
+import prism.PrismNotSupportedException;
 import prism.PrismUtils;
 
 /**
@@ -254,6 +255,10 @@ public class Property extends ASTElement
 		}
 
 		// Check for exceptions
+		if (result instanceof PrismNotSupportedException) {
+			// not supported -> handle in caller
+			throw (PrismNotSupportedException)result;
+		}
 		if (result instanceof Exception) {
 			String errMsg = ((Exception) result).getMessage();
 			if (strExpected.startsWith("Error")) {
