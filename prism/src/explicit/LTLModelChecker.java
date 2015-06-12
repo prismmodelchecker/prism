@@ -37,8 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-import jdd.JDD;
-import jdd.JDDNode;
 import parser.State;
 import parser.ast.Expression;
 import parser.ast.ExpressionBinaryOp;
@@ -59,6 +57,7 @@ import prism.PrismNotSupportedException;
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceRabin;
 import acceptance.AcceptanceType;
+
 import common.IterableStateSet;
 
 /**
