@@ -55,24 +55,6 @@ public abstract class DTMCExplicit extends ModelExplicit implements DTMC
 	}
 
 	@Override
-	public String infoString()
-	{
-		String s = "";
-		s += numStates + " states (" + getNumInitialStates() + " initial)";
-		s += ", " + getNumTransitions() + " transitions";
-		return s;
-	}
-
-	@Override
-	public String infoStringTable()
-	{
-		String s = "";
-		s += "States:      " + numStates + " (" + getNumInitialStates() + " initial)\n";
-		s += "Transitions: " + getNumTransitions() + "\n";
-		return s;
-	}
-	
-	@Override
 	public void exportToPrismExplicitTra(PrismLog out)
 	{
 		int i;

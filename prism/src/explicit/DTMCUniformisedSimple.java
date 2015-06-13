@@ -183,7 +183,7 @@ public class DTMCUniformisedSimple extends DTMCExplicit
 	public String infoString()
 	{
 		String s = "";
-		s += numStates + " states (" + getNumInitialStates() + " initial)";
+		s += getNumStates() + " states (" + getNumInitialStates() + " initial)";
 		s += ", " + getNumTransitions() + " transitions (incl. " + numExtraTransitions + " self-loops)";
 		return s;
 	}
@@ -192,7 +192,7 @@ public class DTMCUniformisedSimple extends DTMCExplicit
 	public String infoStringTable()
 	{
 		String s = "";
-		s += "States:      " + numStates + " (" + getNumInitialStates() + " initial)\n";
+		s += "States:      " + getNumStates() + " (" + getNumInitialStates() + " initial)\n";
 		s += "Transitions: " + getNumTransitions() + "\n";
 		return s;
 	}

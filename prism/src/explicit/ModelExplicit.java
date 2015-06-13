@@ -402,11 +402,23 @@ public abstract class ModelExplicit implements Model
 	}
 
 	@Override
-	public abstract String infoString();
+	public String infoString()
+	{
+		String s = "";
+		s += numStates + " states (" + getNumInitialStates() + " initial)";
+		s += ", " + getNumTransitions() + " transitions";
+		return s;
+	}
 
 	@Override
-	public abstract String infoStringTable();
-
+	public String infoStringTable()
+	{
+		String s = "";
+		s += "States:      " + numStates + " (" + getNumInitialStates() + " initial)\n";
+		s += "Transitions: " + getNumTransitions() + "\n";
+		return s;
+	}
+	
 	@Override
 	public boolean equals(Object o)
 	{
