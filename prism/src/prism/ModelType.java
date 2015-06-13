@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -29,7 +29,7 @@ package prism;
 public enum ModelType {
 
 	// List of model types (ordered alphabetically)
-	CTMC, CTMDP, DTMC, MDP, PTA, STPG, SMG;
+	CTMC, CTMDP, DTMC, LTS, MDP, PTA, STPG, SMG;
 
 	/**
 	 * Get the full name, in words, of the this model type.
@@ -43,6 +43,8 @@ public enum ModelType {
 			return "continuous-time Markov decision process";
 		case DTMC:
 			return "discrete-time Markov chain";
+		case LTS:
+			return "labelled transition system";
 		case MDP:
 			return "Markov decision process";
 		case PTA:
@@ -68,6 +70,8 @@ public enum ModelType {
 			return "ctmdp";
 		case DTMC:
 			return "dtmc";
+		case LTS:
+			return "lts";
 		case MDP:
 			return "mdp";
 		case PTA:
@@ -89,6 +93,7 @@ public enum ModelType {
 	{
 		switch (this) {
 		case DTMC:
+		case LTS:
 		case MDP:
 		case PTA:
 		case STPG:
@@ -109,6 +114,7 @@ public enum ModelType {
 	{
 		switch (this) {
 		case DTMC:
+		case LTS:
 		case MDP:
 		case STPG:
 		case SMG:
@@ -131,6 +137,7 @@ public enum ModelType {
 		case DTMC:
 		case CTMC:
 			return false;
+		case LTS:
 		case MDP:
 		case STPG:
 		case SMG:
@@ -150,6 +157,7 @@ public enum ModelType {
 		switch (this) {
 		case DTMC:
 		case CTMC:
+		case LTS:
 		case MDP:
 		case PTA:
 		case CTMDP:
@@ -163,8 +171,21 @@ public enum ModelType {
 	}
 
 	/**
+	 * Is this model probabilistic?
+	 */
+	public boolean isProbabilistic()
+	{
+		switch (this) {
+		case LTS:
+			return false;
+		default:
+			return true;
+		}
+	}
+	
+	/**
 	 * Does this model have probabilities or rates?
-	 * @return "Probability" or "Rate"
+	 * Returns "Probability" or "Rate", accordingly (or "" if there are neither)
 	 */
 	public String probabilityOrRate()
 	{
@@ -172,6 +193,8 @@ public enum ModelType {
 		case CTMC:
 		case CTMDP:
 			return "Rate";
+		case LTS:
+			return "";
 		default:
 			return "Probability";
 		}
@@ -187,6 +210,8 @@ public enum ModelType {
 			return DTMC;
 		else if ("mdp".equals(name))
 			return MDP;
+		else if ("lts".equals(name))
+			return LTS;
 		else if ("pta".equals(name))
 			return PTA;
 		else if ("stpg".equals(name))
