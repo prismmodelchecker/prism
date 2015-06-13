@@ -71,21 +71,29 @@ public abstract class SCCComputer extends PrismComponent
 	}
 
 	/**
-	 * Compute strongly connected components (SCCs) and store them.
-	 * They can be retrieved using {@link #getSCCs()}.
+	 * Compute (non-trivial) strongly connected components (SCCs) and store them.
+	 * They should be retrieved using {@link #getSCCs()}.
+	 * States in trivial SCCs (those comprising a single state without a self-loop) are also stored.
+	 * They should be retrieved using {@link #getNotInSCCs()}.
 	 */
 	public abstract void computeSCCs();
+
+	/**
+	 * Get the list of computed (non-trivial) SCCs.
+	 */
+	public abstract List<BitSet> getSCCs();
+
+	/**
+	 * Get the states not in any (non-trivial) SCC.
+	 * In other words, this is all states in trivial SCCs (those comprising a single state without a self-loop).
+	 */
+	public abstract BitSet getNotInSCCs();
 
 	/**
 	 * Compute bottom strongly connected components (BSCCs) and store them.
 	 * They can be retrieved using {@link #getBSCCs()} and {@link #getNotInBSCCs()}.
 	 */
 	public abstract void computeBSCCs();
-
-	/**
-	 * Get the list of computed SCCs.
-	 */
-	public abstract List<BitSet> getSCCs();
 
 	/**
 	 * Get the list of computed BSCCs.

@@ -220,13 +220,27 @@ public class SubNondetModel implements NondetModel
 	@Override
 	public boolean allSuccessorsInSet(int s, BitSet set)
 	{
-		throw new UnsupportedOperationException();
+		Iterator<Integer> successors = getSuccessorsIterator(s);
+		while (successors.hasNext()) {
+			Integer successor = successors.next();
+			if (set.get(successor)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
 	public boolean someSuccessorsInSet(int s, BitSet set)
 	{
-		throw new UnsupportedOperationException();
+		Iterator<Integer> successors = getSuccessorsIterator(s);
+		while (successors.hasNext()) {
+			Integer successor = successors.next();
+			if (set.get(successor)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
@@ -376,28 +390,26 @@ public class SubNondetModel implements NondetModel
 	@Override
 	public boolean allSuccessorsInSet(int s, int i, BitSet set)
 	{
-		Iterator<Integer> successors = getSuccessorsIterator(s,i);
+		Iterator<Integer> successors = getSuccessorsIterator(s, i);
 		while (successors.hasNext()) {
 			Integer successor = successors.next();
 			if (!set.get(successor)) {
 				return false;
 			}
 		}
-
 		return true;
 	}
 
 	@Override
 	public boolean someSuccessorsInSet(int s, int i, BitSet set)
 	{
-		Iterator<Integer> successors = getSuccessorsIterator(s,i);
+		Iterator<Integer> successors = getSuccessorsIterator(s, i);
 		while (successors.hasNext()) {
 			Integer successor = successors.next();
 			if (set.get(successor)) {
 				return true;
 			}
 		}
-
 		return false;
 	}
 
