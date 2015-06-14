@@ -201,6 +201,21 @@ public class DA<Symbol, Acceptance extends AcceptanceOmega>
 		out.println("}");
 	}
 
+	/**
+	 * Print automaton to a PrismLog in a specified format ("dot" or "txt").
+	 */
+	public void print(PrismLog out, String type) throws PrismException
+	{
+		switch (type) {
+		case "txt":
+			out.println(toString());
+			break;
+		case "dot":
+			printDot(out);
+			break;
+		}
+	}
+
 	// Standard methods
 
 	@Override
