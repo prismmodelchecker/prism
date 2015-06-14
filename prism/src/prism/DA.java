@@ -170,9 +170,17 @@ public class DA<Symbol, Acceptance extends AcceptanceOmega>
 	}
 
 	/**
-	 * Print DRA in DOT format to an output stream.
+	 * Print the automaton in Dot format to an output stream.
 	 */
 	public void printDot(PrintStream out) throws PrismException
+	{
+		printDot(new PrismPrintStreamLog(out));
+	}
+
+	/**
+	 * Print automaton in Dot format to a PrismLog
+	 */
+	public void printDot(PrismLog out) throws PrismException
 	{
 		int i;
 		out.println("digraph model {");
