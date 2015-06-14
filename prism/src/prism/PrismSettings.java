@@ -31,6 +31,7 @@ package prism;
 import java.util.*;
 import java.io.*;
 import java.awt.*;
+
 import javax.swing.*;
 
 import explicit.QuantAbstractRefine;
@@ -811,11 +812,17 @@ public class PrismSettings implements Observer
 	
 	// Export property automaton info?
 	protected boolean exportPropAut = false;
+	protected String exportPropAutType = null;
 	protected String exportPropAutFilename = null;
 	
 	public void setExportPropAut(boolean b) throws PrismException
 	{
 		exportPropAut = b;
+	}
+
+	public void setExportPropAutType(String s) throws PrismException
+	{
+		exportPropAutType = s;
 	}
 
 	public void setExportPropAutFilename(String s) throws PrismException
@@ -826,6 +833,11 @@ public class PrismSettings implements Observer
 	public boolean getExportPropAut()
 	{
 		return exportPropAut;
+	}
+
+	public String getExportPropAutType()
+	{
+		return exportPropAutType;
 	}
 
 	public String getExportPropAutFilename()
@@ -843,16 +855,15 @@ public class PrismSettings implements Observer
 	 */
 	public synchronized int setFromCommandLineSwitch(String args[], int i) throws PrismException
 	{
-		String sw, s;
+		String s;
 		int j;
 		double d;
 		
-		// Remove "-"
-		sw = args[i].substring(1);
-		// Remove optional second "-" (i.e. we allow switches of the form --sw too)
-		if (sw.charAt(0) == '-')
-			sw = sw.substring(1);
-
+		// Process string (remove - and extract any options) 
+		Pair<String, Map<String, String>> pair = splitSwitch(args[i]);
+		String sw = pair.first;
+		Map<String, String> options = pair.second; 
+		
 		// Note: the order of these switches should match the -help output (just to help keep track of things).
 		
 		// ENGINES/METHODS:
@@ -1443,6 +1454,15 @@ public class PrismSettings implements Observer
 			if (i < args.length - 1) {
 				setExportPropAut(true);
 				setExportPropAutFilename(args[++i]);
+				for (Map.Entry<String, String> option : options.entrySet()) {
+				    if (option.getKey().equals("txt")) {
+						setExportPropAutType("txt");
+				    } else if (option.getKey().equals("dot")) {
+						setExportPropAutType("dot");
+				    } else {
+				    		throw new PrismException("Unknown option \"" + option.getKey() + "\" for -" + sw + " switch"); 
+				    }
+				}
 			} else {
 				throw new PrismException("No file specified for -" + sw + " switch");
 			}
@@ -1456,6 +1476,40 @@ public class PrismSettings implements Observer
 		return i + 1;
 	}
 	
+	/**
+	 * Split a switch of the form -switch:options into parts.
+	 * The latter can be empty, in which case the : is optional.
+	 * When present, the options is a comma-separated list of "option" or "option=value" items.
+	 * The switch itself can be prefixed with either 1 or 2 hyphens.
+	 * 
+	 * @return a pair containing the switch name and a mapping from options to values.  
+	 */
+	private static Pair<String, Map<String, String>> splitSwitch(String sw) throws PrismException
+	{
+		// Remove "-"
+		sw = sw.substring(1);
+		// Remove optional second "-" (i.e. we allow switches of the form --sw too)
+		if (sw.charAt(0) == '-')
+			sw = sw.substring(1);
+		// Extract options, if present
+		int i = sw.indexOf(':');
+		Map<String,String> map = new HashMap<String, String>();
+		if (i != -1) {
+			String optionsString = sw.substring(i + 1);
+			sw = sw.substring(0, i);
+			String options[] = optionsString.split(",");
+			for (String option : options) {
+				int j = option.indexOf("=");
+				if (j == -1) {
+					map.put(option, null);
+				} else {
+					map.put(option.substring(0,j), option.substring(j+1));
+				}
+			}
+		}
+		return new Pair<String, Map<String,String>>(sw, map);
+	}
+
 	/**
 	 * Print a fragment of the -help message,
 	 * i.e. a list of the command-line switches handled by this class.

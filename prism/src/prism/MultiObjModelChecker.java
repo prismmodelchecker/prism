@@ -92,9 +92,8 @@ public class MultiObjModelChecker extends PrismComponent
 			String exportPropAutFilename = PrismUtils.addCounterSuffixToFilename(prism.getSettings().getExportPropAutFilename(), i + 1);
 			mainLog.println("Exporting DRA to file \"" + exportPropAutFilename + "\"...");
 			PrismLog out = new PrismFileLog(exportPropAutFilename);
-			out.println(dra[i]);
+			dra[i].print(out, settings.getExportPropAutType());
 			out.close();
-			//dra.printDot(new java.io.PrintStream("dra.dot"));
 		}
 
 		// Build product of MDP and automaton

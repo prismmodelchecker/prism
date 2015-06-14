@@ -248,9 +248,8 @@ public class LTLModelChecker extends PrismComponent
 		if (settings.getExportPropAut()) {
 			mainLog.println("Exporting " + da.getAutomataType() + " to file \"" + settings.getExportPropAutFilename() + "\"...");
 			PrismLog out = new PrismFileLog(settings.getExportPropAutFilename());
-			out.println(da);
+			da.print(out, settings.getExportPropAutType());
 			out.close();
-			//dra.printDot(new java.io.PrintStream("da.dot"));
 		}
 		
 		return da;

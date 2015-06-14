@@ -1017,9 +1017,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		if (prism.getSettings().getExportPropAut()) {
 			mainLog.println("Exporting DA to file \"" + prism.getSettings().getExportPropAutFilename() + "\"...");
 			PrismLog out = new PrismFileLog(prism.getSettings().getExportPropAutFilename());
-			out.println(da);
+			da.print(out, prism.getSettings().getExportPropAutType());
 			out.close();
-			//da.printDot(new java.io.PrintStream("da.dot"));
 		}
 
 		// Build product of MDP and automaton

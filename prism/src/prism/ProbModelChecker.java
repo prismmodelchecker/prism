@@ -551,9 +551,8 @@ public class ProbModelChecker extends NonProbModelChecker
 		if (prism.getSettings().getExportPropAut()) {
 			mainLog.println("Exporting DA to file \"" + prism.getSettings().getExportPropAutFilename() + "\"...");
 			PrismLog out = new PrismFileLog(prism.getSettings().getExportPropAutFilename());
-			out.println(da);
+			da.print(out, prism.getSettings().getExportPropAutType());
 			out.close();
-			//dra.printDot(new java.io.PrintStream("dra.dot"));
 		}
 
 		// Build product of Markov chain and automaton
