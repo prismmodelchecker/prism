@@ -289,8 +289,8 @@ public class PrismSettings implements Observer
 																			"Number of MTBDD levels descended for hybrid engine data structures block division with GS/SOR." },
 			{ INTEGER_TYPE,		PRISM_SOR_MAX_MEM,						"Hybrid GS memory (KB)",				"2.1",			new Integer(1024),															"0,",																						
 																			"Maximum memory usage for hybrid engine data structures block division with GS/SOR (KB)." },
-			{ INTEGER_TYPE,		PRISM_CUDD_MAX_MEM,						"CUDD max. memory (KB)",				"2.1",			new Integer(409600),														"0,",																						
-																			"Maximum memory available to CUDD (underlying BDD/MTBDD library) in KB (Note: Restart PRISM after changing this.)" },
+			{ STRING_TYPE,		PRISM_CUDD_MAX_MEM,						"CUDD max. memory (KB)",				"4.2.1",			new String("1g"),														"",																						
+																			"Maximum memory available to CUDD (underlying BDD/MTBDD library), e.g. 125k, 50m, 4g. Note: Restart PRISM after changing this." },
 			{ DOUBLE_TYPE,		PRISM_CUDD_EPSILON,						"CUDD epsilon",							"2.1",			new Double(1.0E-15),														"0.0,",																						
 																			"Epsilon value used by CUDD (underlying BDD/MTBDD library) for terminal cache comparisons." },
 			// ADVERSARIES/COUNTEREXAMPLES:
@@ -1215,14 +1215,7 @@ public class PrismSettings implements Observer
 		// CUDD settings
 		else if (sw.equals("cuddmaxmem")) {
 			if (i < args.length - 1) {
-				try {
-					j = Integer.parseInt(args[++i]);
-					if (j < 0)
-						throw new NumberFormatException();
-					set(PRISM_CUDD_MAX_MEM, j);
-				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
-				}
+				set(PRISM_CUDD_MAX_MEM, args[++i]);
 			} else {
 				throw new PrismException("No value specified for -" + sw + " switch");
 			}
@@ -1587,7 +1580,7 @@ public class PrismSettings implements Observer
 		mainLog.println("-sbmax <n> ..................... Set memory limit (KB) (for hybrid engine) [default: 1024]");
 		mainLog.println("-gsl <n> (or sorl <n>) ......... Set number of levels for hybrid GS/SOR [default: -1]");
 		mainLog.println("-gsmax <n> (or sormax <n>) ..... Set memory limit (KB) for hybrid GS/SOR [default: 1024]");
-		mainLog.println("-cuddmaxmem <n> ................ Set max memory for CUDD package (KB) [default: 200x1024]");
+		mainLog.println("-cuddmaxmem <n> ................ Set max memory for CUDD package, e.g. 125k, 50m, 4g [default: 1g]");
 		mainLog.println("-cuddepsilon <x> ............... Set epsilon value for CUDD package [default: 1e-15]");
 		mainLog.println();
 		mainLog.println("PARAMETRIC MODEL CHECKING OPTIONS:");

@@ -29,6 +29,8 @@ package prism;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Various general-purpose utility methods in Java
@@ -282,6 +284,37 @@ public class PrismUtils
 			}
 		}
 		return firstCycle;
+	}
+
+	/**
+	 * Convert a string representing an amount of memory (e.g. 125k, 50m, 4g) to the value in KB.
+	 * If the letter prefix is omitted, we assume it is "k" (i.e. KB).
+	 */
+	public static long convertMemoryStringtoKB(String mem) throws PrismException
+	{
+		Pattern p = Pattern.compile("([0-9]+)([kmg]?)");
+		Matcher m = p.matcher(mem);
+		if (!m.matches()) {
+			throw new PrismException("Invalid amount of memory \"" + mem + "\"");
+		}
+		long num;
+		try {
+			num = Long.parseLong(m.group(1));
+		} catch (NumberFormatException e) {
+			throw new PrismException("Invalid amount of memory \"" + mem + "\"");
+		}
+		switch (m.group(2)) {
+		case "":
+		case "k":
+			return num;
+		case "m":
+			return num * 1024;
+		case "g":
+			return num * (1024 * 1024);
+		default:
+			// Shouldn't happen
+			throw new PrismException("Invalid amount of memory \"" + mem + "\"");
+		}
 	}
 }
 

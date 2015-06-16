@@ -461,9 +461,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		settings.set(PrismSettings.PRISM_MAX_ITERS, i);
 	}
 
-	public void setCUDDMaxMem(int i) throws PrismException
+	public void setCUDDMaxMem(String s) throws PrismException
 	{
-		settings.set(PrismSettings.PRISM_CUDD_MAX_MEM, i);
+		settings.set(PrismSettings.PRISM_CUDD_MAX_MEM, s);
 	}
 
 	public void setCUDDEpsilon(double d) throws PrismException
@@ -821,9 +821,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		return settings.getBoolean(PrismSettings.PRISM_COMPACT);
 	}
 
-	public long getCUDDMaxMem()
+	public String getCUDDMaxMem()
 	{
-		return settings.getInteger(PrismSettings.PRISM_CUDD_MAX_MEM);
+		return settings.getString(PrismSettings.PRISM_CUDD_MAX_MEM);
 	}
 
 	public double getCUDDEpsilon()
@@ -971,7 +971,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	{
 		if (cuddStarted) {
 			JDD.SetCUDDEpsilon(settings.getDouble(PrismSettings.PRISM_CUDD_EPSILON));
-			JDD.SetCUDDMaxMem(settings.getInteger(PrismSettings.PRISM_CUDD_MAX_MEM));
+			try {
+				long cuddMaxMem = PrismUtils.convertMemoryStringtoKB(getCUDDMaxMem());
+				JDD.SetCUDDMaxMem(cuddMaxMem);
+			} catch (PrismException e) {
+				// Fail silently if memory string is invalid 
+			}
 		}
 	}
 
@@ -1289,7 +1294,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		}
 
 		// initialise cudd/jdd
-		JDD.InitialiseCUDD(getCUDDMaxMem(), getCUDDEpsilon());
+		long cuddMaxMem = PrismUtils.convertMemoryStringtoKB(getCUDDMaxMem());
+		JDD.InitialiseCUDD(cuddMaxMem, getCUDDEpsilon());
 		cuddStarted = true;
 		JDD.SetOutputStream(techLog.getFilePointer());
 
