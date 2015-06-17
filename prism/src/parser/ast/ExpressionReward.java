@@ -241,7 +241,7 @@ public class ExpressionReward extends ExpressionQuant
 	{
 		String s = "";
 		
-		s += "R";
+		s += "R" + getModeString();
 		if (rewardStructIndex != null) {
 			if (rewardStructIndex instanceof Expression) s += "{"+rewardStructIndex+"}";
 			else if (rewardStructIndex instanceof String) s += "{\""+rewardStructIndex+"\"}";

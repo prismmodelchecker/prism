@@ -155,7 +155,7 @@ public class ExpressionProb extends ExpressionQuant
 	{
 		String s = "";
 
-		s += "P" + getRelOp();
+		s += "P" + getModeString() + getRelOp();
 		s += (getBound() == null) ? "?" : getBound().toString();
 		s += " [ " + getExpression();
 		if (getFilter() != null)

@@ -36,6 +36,8 @@ import prism.PrismException;
  */
 public abstract class ExpressionQuant extends Expression
 {
+	/** Optional "mode" to specify variants of the P/R/S operator */
+	protected String mode = null;
 	/** The attached relational operator (e.g. "<" in "P<0.1"). */
 	protected RelOp relOp = null;
 	/** The attached (probability/reward) bound, as an expression (e.g. "p" in "P<p"). Null if absent (e.g. "P=?"). */
@@ -47,6 +49,14 @@ public abstract class ExpressionQuant extends Expression
 	protected Filter filter = null;
 
 	// Set methods
+
+	/**
+	 * Set the (optional) "mode" for this operator.
+	 */
+	public void setMode(String mode)
+	{
+		this.mode = mode;
+	}
 
 	/**
 	 * Set the attached relational operator (e.g. "<" in "P<0.1").
@@ -92,6 +102,22 @@ public abstract class ExpressionQuant extends Expression
 	}
 
 	// Get methods
+
+	/**
+	 * Get the (optional) "mode" for this operator.
+	 */
+	public String getMode()
+	{
+		return mode;
+	}
+
+	/**
+	 * Get a string representing the model as a suffix for the operator.
+	 */
+	public String getModeString()
+	{
+		return mode == null ? "" : "(" + mode + ")";
+	}
 
 	/**
 	 * Get the attached relational operator (e.g. "<" in "P<0.1"), as a {@link RelOp}.
