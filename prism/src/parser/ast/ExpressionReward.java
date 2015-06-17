@@ -33,16 +33,10 @@ import prism.OpRelOpBound;
 import prism.PrismException;
 import prism.PrismLangException;
 
-public class ExpressionReward extends Expression implements ExpressionQuant
+public class ExpressionReward extends ExpressionQuant
 {
-	Object rewardStructIndex = null;
-	Object rewardStructIndexDiv = null;
-	RelOp relOp = null;
-	Expression reward = null;
-	Expression expression = null;
-	// Note: this "old-style" filter is just for display purposes
-	// The parser creates an (invisible) new-style filter around this expression
-	Filter filter = null;
+	protected Object rewardStructIndex = null;
+	protected Object rewardStructIndexDiv = null;
 	
 	// Constructors
 	
@@ -50,11 +44,11 @@ public class ExpressionReward extends Expression implements ExpressionQuant
 	{
 	}
 	
-	public ExpressionReward(Expression e, String r, Expression p)
+	public ExpressionReward(Expression expression, String relOpString, Expression r)
 	{
-		expression = e;
-		relOp = RelOp.parseSymbol(r);
-		reward = p;
+		setExpression(expression);
+		setRelOp(relOpString);
+		setBound(r);
 	}
 
 	// Set methods
@@ -69,29 +63,12 @@ public class ExpressionReward extends Expression implements ExpressionQuant
 		rewardStructIndexDiv = o;
 	}
 
-	public void setRelOp(RelOp relOp)
+	/**
+	 * Set the reward bound. Equivalent to {@code setBound(r)}.
+	 */
+	public void setReward(Expression r)
 	{
-		this.relOp = relOp;
-	}
-
-	public void setRelOp(String r)
-	{
-		relOp = RelOp.parseSymbol(r);
-	}
-
-	public void setReward(Expression p)
-	{
-		reward = p;
-	}
-
-	public void setExpression(Expression e)
-	{
-		expression = e;
-	}
-	
-	public void setFilter(Filter f)
-	{
-		filter = f;
+		setBound(r);
 	}
 
 	// Get methods
@@ -106,24 +83,12 @@ public class ExpressionReward extends Expression implements ExpressionQuant
 		return rewardStructIndexDiv;
 	}
 
-	public RelOp getRelOp()
-	{
-		return relOp;
-	}
-	
+	/**
+	 * Get the reward bound. Equivalent to {@code getBound()}.
+	 */
 	public Expression getReward()
 	{
-		return reward;
-	}
-
-	public Expression getExpression()
-	{
-		return expression;
-	}
-	
-	public Filter getFilter()
-	{
-		return filter;
+		return getBound();
 	}
 
 	// Other methods
@@ -134,8 +99,8 @@ public class ExpressionReward extends Expression implements ExpressionQuant
 	public String getTypeOfROperator()
 	{
 		String s = "";
-		s += "R" + relOp;
-		s += (reward == null) ? "?" : "r";
+		s += "R" + getRelOp();
+		s += (getBound() == null) ? "?" : "r";
 		return s;
 	}
 
@@ -191,11 +156,11 @@ public class ExpressionReward extends Expression implements ExpressionQuant
 	 */
 	public OpRelOpBound getRelopBoundInfo(Values constantValues) throws PrismException
 	{
-		if (reward != null) {
-			double bound = reward.evaluateDouble(constantValues);
-			return new OpRelOpBound("R", relOp, bound);
+		if (getBound() != null) {
+			double boundValue = getBound().evaluateDouble(constantValues);
+			return new OpRelOpBound("R", getRelOp(), boundValue);
 		} else {
-			return new OpRelOpBound("R", relOp, null);
+			return new OpRelOpBound("R", getRelOp(), null);
 		}
 	}
 	
@@ -230,10 +195,10 @@ public class ExpressionReward extends Expression implements ExpressionQuant
 	public String getResultName()
 	{
 		// For R=? properties, use name of reward structure where applicable
-		if (reward == null) {
+		if (getBound() == null) {
 			String s = "E";
-			if (relOp == RelOp.MIN) s = "Minimum e";
-			else if (relOp == RelOp.MAX) s = "Maximum e";
+			if (getRelOp() == RelOp.MIN) s = "Minimum e";
+			else if (getRelOp() == RelOp.MAX) s = "Maximum e";
 			else s = "E";
 			if (rewardStructIndex instanceof String) {
 				if (rewardStructIndexDiv instanceof String)
@@ -286,10 +251,10 @@ public class ExpressionReward extends Expression implements ExpressionQuant
 				else if (rewardStructIndexDiv instanceof String) s += "{\""+rewardStructIndexDiv+"\"}";
 			}
 		}
-		s += relOp;
-		s += (reward==null) ? "?" : reward.toString();
-		s += " [ " + expression;
-		if (filter != null) s += " "+filter;
+		s += getRelOp();
+		s += (getBound()==null) ? "?" : getBound().toString();
+		s += " [ " + getExpression();
+		if (getFilter() != null) s += " "+getFilter();
 		s += " ]";
 		
 		return s;
@@ -301,14 +266,14 @@ public class ExpressionReward extends Expression implements ExpressionQuant
 	public Expression deepCopy()
 	{
 		ExpressionReward expr = new ExpressionReward();
-		expr.setExpression(expression == null ? null : expression.deepCopy());
-		expr.setRelOp(relOp);
-		expr.setReward(reward == null ? null : reward.deepCopy());
+		expr.setExpression(getExpression() == null ? null : getExpression().deepCopy());
+		expr.setRelOp(getRelOp());
+		expr.setBound(getBound() == null ? null : getBound().deepCopy());
 		if (rewardStructIndex != null && rewardStructIndex instanceof Expression) expr.setRewardStructIndex(((Expression)rewardStructIndex).deepCopy());
 		else expr.setRewardStructIndex(rewardStructIndex);
 		if (rewardStructIndexDiv != null && rewardStructIndexDiv instanceof Expression) expr.setRewardStructIndexDiv(((Expression)rewardStructIndexDiv).deepCopy());
 		else expr.setRewardStructIndexDiv(rewardStructIndexDiv);
-		expr.setFilter(filter == null ? null : (Filter)filter.deepCopy());
+		expr.setFilter(getFilter() == null ? null : (Filter)getFilter().deepCopy());
 		expr.setType(type);
 		expr.setPosition(this);
 		return expr;
