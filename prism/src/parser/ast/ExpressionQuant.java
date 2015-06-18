@@ -53,7 +53,7 @@ public abstract class ExpressionQuant extends Expression
 	/**
 	 * Set the (optional) "modifier" for this operator.
 	 */
-	public void setMode(String modifier)
+	public void setModifier(String modifier)
 	{
 		this.modifier = modifier;
 	}

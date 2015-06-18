@@ -1454,7 +1454,7 @@ Expression ExpressionParenth(boolean prop, boolean pathprop) :
 
 Expression ExpressionProb(boolean prop, boolean pathprop) :
 {
-	ExpressionIdent mode = null;
+	ExpressionIdent modifier = null;
 	int r;
 	String relOp = null;
 	Expression prob = null;
@@ -1468,7 +1468,7 @@ Expression ExpressionProb(boolean prop, boolean pathprop) :
 	// This production is only allowed in expressions if the "prop" parameter is true
 	{ if (!prop) throw generateParseException(); }
 	// Various options for "P" keyword and attached symbols
-	(( begin = <P> ( <LPARENTH> mode = IdentifierExpression() <RPARENTH> )? (
+	(( begin = <P> ( <LPARENTH> modifier = IdentifierExpression() <RPARENTH> )? (
 			( r = LtGt() prob = Expression(false, false) { relOp = ExpressionBinaryOp.opSymbols[r]; isBool = true; } )
 	       |( <EQ> <QMARK> { relOp = "="; isBool = false; } )
 	       |( <MIN> <EQ> <QMARK> { relOp = "min="; isBool = false; } )
@@ -1479,7 +1479,7 @@ Expression ExpressionProb(boolean prop, boolean pathprop) :
 	// Path formula, optional filter
 	<LBRACKET> expr = Expression(prop, true) (filter = Filter())? <RBRACKET>
 	{
-		ret.setMode(mode == null ? null : mode.getName());
+		ret.setModifier(modifier == null ? null : modifier.getName());
 		ret.setRelOp(relOp);
 		ret.setProb(prob);
 		ret.setExpression(expr);

@@ -2433,7 +2433,7 @@ public class PrismParser implements PrismParserConstants {
 
 // (Property) expression: probabilistic operator P
   static final public Expression ExpressionProb(boolean prop, boolean pathprop) throws ParseException {
-        ExpressionIdent mode = null;
+        ExpressionIdent modifier = null;
         int r;
         String relOp = null;
         Expression prob = null;
@@ -2449,7 +2449,7 @@ public class PrismParser implements PrismParserConstants {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case LPARENTH:
         jj_consume_token(LPARENTH);
-        mode = IdentifierExpression();
+        modifier = IdentifierExpression();
         jj_consume_token(RPARENTH);
         break;
       default:
@@ -2516,7 +2516,7 @@ public class PrismParser implements PrismParserConstants {
       ;
     }
     jj_consume_token(RBRACKET);
-                ret.setMode(mode == null ? null : mode.getName());
+                ret.setModifier(modifier == null ? null : modifier.getName());
                 ret.setRelOp(relOp);
                 ret.setProb(prob);
                 ret.setExpression(expr);
