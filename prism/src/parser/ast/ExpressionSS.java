@@ -141,7 +141,7 @@ public class ExpressionSS extends ExpressionQuant
 	{
 		String s = "";
 		
-		s += "S" + getModeString() + getRelOp();
+		s += "S" + getModifierString() + getRelOp();
 		s += (getBound()==null) ? "?" : getBound().toString();
 		s += " [ " + getExpression();
 		if (getFilter() != null) s += " "+getFilter();

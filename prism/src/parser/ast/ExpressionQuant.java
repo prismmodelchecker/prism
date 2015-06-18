@@ -36,8 +36,8 @@ import prism.PrismException;
  */
 public abstract class ExpressionQuant extends Expression
 {
-	/** Optional "mode" to specify variants of the P/R/S operator */
-	protected String mode = null;
+	/** Optional "modifier" to specify variants of the P/R/S operator */
+	protected String modifier = null;
 	/** The attached relational operator (e.g. "<" in "P<0.1"). */
 	protected RelOp relOp = null;
 	/** The attached (probability/reward) bound, as an expression (e.g. "p" in "P<p"). Null if absent (e.g. "P=?"). */
@@ -51,11 +51,11 @@ public abstract class ExpressionQuant extends Expression
 	// Set methods
 
 	/**
-	 * Set the (optional) "mode" for this operator.
+	 * Set the (optional) "modifier" for this operator.
 	 */
-	public void setMode(String mode)
+	public void setMode(String modifier)
 	{
-		this.mode = mode;
+		this.modifier = modifier;
 	}
 
 	/**
@@ -104,19 +104,19 @@ public abstract class ExpressionQuant extends Expression
 	// Get methods
 
 	/**
-	 * Get the (optional) "mode" for this operator.
+	 * Get the (optional) "modifier" for this operator.
 	 */
-	public String getMode()
+	public String getModifier()
 	{
-		return mode;
+		return modifier;
 	}
 
 	/**
-	 * Get a string representing the model as a suffix for the operator.
+	 * Get a string representing the modifier as a suffix for the operator.
 	 */
-	public String getModeString()
+	public String getModifierString()
 	{
-		return mode == null ? "" : "(" + mode + ")";
+		return modifier == null ? "" : "(" + modifier + ")";
 	}
 
 	/**
