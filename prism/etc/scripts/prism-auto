@@ -295,17 +295,18 @@ def runPrism(args, dir=""):
         if options.testAll: args.append("-testall")
         else: args.append("-test")
     prismArgs = [options.prismExec] + args
-    if options.echo:
-        prismArgs = ['echo', quote(' '.join(prismArgs)), ';'] + prismArgs
-        if options.logDir:
-            logFile = os.path.relpath(os.path.join(options.logDir, createLogFileName(args, dir)))
-            logFile = quote(logFile)
+    if options.echo or options.echoFull:
+        if options.echoFull:
+            prismArgs = ['echo', quote(' '.join(prismArgs)), ';'] + prismArgs
+            if options.logDir:
+                logFile = os.path.relpath(os.path.join(options.logDir, createLogFileName(args, dir)))
+                logFile = quote(logFile)
+                if options.test:
+                    prismArgs += ['|', 'tee', logFile]
+                else:
+                    prismArgs += ['>', logFile]
             if options.test:
-                prismArgs += ['|', 'tee', logFile]
-            else:
-                prismArgs += ['>', logFile]
-        if options.test:
-            prismArgs += ['|', 'grep "Testing result:"']
+                prismArgs += ['|', 'grep "Testing result:"']
         print ' '.join(prismArgs)
         return
     print ' '.join(prismArgs)
@@ -585,6 +586,7 @@ parser.add_option("-t", "--test", action="store_true", dest="test", default=Fals
 parser.add_option("--test-all", action="store_true", dest="testAll", default=False, help="In test mode, don't stop after an error")
 parser.add_option("--no-renaming", action="store_true", dest="noRenaming", default=False, help="Don't rename files to be exported")
 parser.add_option("--debug", action="store_true", dest="debug", default=False, help="Enable debug mode: display debugging info")
+parser.add_option("--echo-full", action="store_true", dest="echoFull", default=False, help="An expanded version of -e/--echo")
 (options, args) = parser.parse_args()
 if len(args) < 1:
     parser.print_help()
