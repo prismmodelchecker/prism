@@ -177,7 +177,7 @@ FILE *fp
 		stored[count++] = dd;
 	}
 	
-	fprintf(fp, "%d\n", (size_t)dd);
+	fprintf(fp, "%zu\n", (size_t)dd);
 	return 0;
 }
 

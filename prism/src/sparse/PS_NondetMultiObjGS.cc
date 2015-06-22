@@ -372,11 +372,12 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 						else
 							d1 = d2;
 						for (int it = 0; it < lenRew + lenProb; it++) {
-							if (it != ignoredWeight)
+							if (it != ignoredWeight) {
 								if (fabs(pd2[it]) < near_zero)
 									pd1[it] = 0; //round off small numbers to 0
 								else
 									pd1[it] = pd2[it];
+							}
 						}
 					}
 					first = false;
