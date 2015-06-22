@@ -29,6 +29,7 @@ package param;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Vector;
 
@@ -64,15 +65,24 @@ public class SymbolicEngine
 		numModules = modulesFile.getNumModules();
 		synchs = modulesFile.getSynchs();
 		numSynchs = synchs.size();
+
+		// Compute count of number of modules using each synch action
+		// First, compute and cache the synch actions for each of the modules
+		List<HashSet<String>> synchsPerModule = new ArrayList<HashSet<String>>(numModules);
+		for (int i = 0; i < numModules; i++) {
+			synchsPerModule.add(new HashSet<String>(modulesFile.getModule(i).getAllSynchs()));
+		}
+		// Second, do the counting
 		synchModuleCounts = new int[numSynchs];
 		for (int j = 0; j < numSynchs; j++) {
 			synchModuleCounts[j] = 0;
 			String s = synchs.get(j);
 			for (int i = 0; i < numModules; i++) {
-				if (modulesFile.getModule(i).usesSynch(s))
+				if (synchsPerModule.get(i).contains(s))
 					synchModuleCounts[j]++;
 			}
-		}	
+		}
+
 		updateLists = new ArrayList<List<List<Updates>>>(numModules);
 		for (int i = 0; i < numModules; i++) {
 			updateLists.add(new ArrayList<List<Updates>>(numSynchs + 1));

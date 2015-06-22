@@ -88,12 +88,18 @@ public class Updater extends PrismComponent
 		this.varList = varList;
 
 		// Compute count of number of modules using each synch action
+		// First, compute and cache the synch actions for each of the modules
+		List<HashSet<String>> synchsPerModule = new ArrayList<HashSet<String>>(numModules);
+		for (i = 0; i < numModules; i++) {
+			synchsPerModule.add(new HashSet<String>(modulesFile.getModule(i).getAllSynchs()));
+		}
+		// Second, do the counting
 		synchModuleCounts = new int[numSynchs];
 		for (j = 0; j < numSynchs; j++) {
 			synchModuleCounts[j] = 0;
 			s = synchs.get(j);
 			for (i = 0; i < numModules; i++) {
-				if (modulesFile.getModule(i).usesSynch(s))
+				if (synchsPerModule.get(i).contains(s))
 					synchModuleCounts[j]++;
 			}
 		}
