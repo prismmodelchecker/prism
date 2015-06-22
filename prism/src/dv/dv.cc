@@ -487,8 +487,8 @@ EXPORT DistVector *double_vector_to_dist(double *v, int n)
 {
 	double *buffer = NULL, *tmp = NULL;
 	int i, j, num_dist, buffer_size, buffer_inc;
-	unsigned int max_size;
-	unsigned short s, *ptrs = NULL;
+	unsigned int max_size, s;
+	unsigned short *ptrs = NULL;
 	DistVector *dv = NULL;
 	
 	// try/catch for memory allocation/deallocation
@@ -504,9 +504,9 @@ EXPORT DistVector *double_vector_to_dist(double *v, int n)
 	num_dist = 0;
 	// go thru vector
 	for (i = 0; i < n; i++) {
-		// see if we have this distinct val already
-		for (s = 0; s < num_dist; s++)
+		for (s = 0; s < num_dist; s++) {
 			if (buffer[s] == v[i]) break;
+		}
 		// add a new val if necessary...
 		if (s == num_dist) {
 			// ...increasing buffer size if required...
@@ -521,6 +521,7 @@ EXPORT DistVector *double_vector_to_dist(double *v, int n)
 				}
 				delete[] buffer;
 				buffer = tmp;
+				tmp = NULL;
 				buffer_size += buffer_inc;
 			}
 			// add val
