@@ -52,7 +52,7 @@ public class STPGModelChecker extends ProbModelChecker
 	{
 		super(parent);
 	}
-	
+
 	// Model checking functions
 
 	@Override
@@ -60,7 +60,7 @@ public class STPGModelChecker extends ProbModelChecker
 	{
 		throw new PrismNotSupportedException("LTL model checking not yet supported for stochastic games");
 	}
-	
+
 	// Numerical computation functions
 
 	/**
@@ -79,7 +79,7 @@ public class STPGModelChecker extends ProbModelChecker
 		long timer;
 
 		timer = System.currentTimeMillis();
-		
+
 		// Store num states
 		n = stpg.getNumStates();
 
@@ -474,7 +474,7 @@ public class STPGModelChecker extends ProbModelChecker
 			msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
 			throw new PrismException(msg);
 		}
-		
+
 		// Print adversary
 		if (genAdv) {
 			PrismLog out = new PrismFileLog(exportAdvFilename);
@@ -574,7 +574,7 @@ public class STPGModelChecker extends ProbModelChecker
 			msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
 			throw new PrismException(msg);
 		}
-		
+
 		// Return results
 		res = new ModelCheckerResult();
 		res.soln = soln;
@@ -741,7 +741,8 @@ public class STPGModelChecker extends ProbModelChecker
 	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
-	public ModelCheckerResult computeReachRewards(STPG stpg, STPGRewards rewards, BitSet target, boolean min1, boolean min2, double init[], BitSet known) throws PrismException
+	public ModelCheckerResult computeReachRewards(STPG stpg, STPGRewards rewards, BitSet target, boolean min1, boolean min2, double init[], BitSet known)
+			throws PrismException
 	{
 		ModelCheckerResult res = null;
 		BitSet inf;
@@ -813,8 +814,8 @@ public class STPGModelChecker extends ProbModelChecker
 	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.
 	 */
-	protected ModelCheckerResult computeReachRewardsValIter(STPG stpg, STPGRewards rewards, BitSet target, BitSet inf, boolean min1, boolean min2, double init[], BitSet known)
-			throws PrismException
+	protected ModelCheckerResult computeReachRewardsValIter(STPG stpg, STPGRewards rewards, BitSet target, BitSet inf, boolean min1, boolean min2,
+			double init[], BitSet known) throws PrismException
 	{
 		ModelCheckerResult res;
 		BitSet unknown;
@@ -887,7 +888,7 @@ public class STPGModelChecker extends ProbModelChecker
 			msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
 			throw new PrismException(msg);
 		}
-		
+
 		// Return results
 		res = new ModelCheckerResult();
 		res.soln = soln;

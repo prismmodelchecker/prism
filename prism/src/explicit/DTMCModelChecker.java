@@ -31,14 +31,14 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
 
-import acceptance.AcceptanceReach;
-import acceptance.AcceptanceType;
 import parser.ast.Expression;
 import parser.type.TypeDouble;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
 import prism.PrismUtils;
+import acceptance.AcceptanceReach;
+import acceptance.AcceptanceType;
 import explicit.rewards.MCRewards;
 
 /**

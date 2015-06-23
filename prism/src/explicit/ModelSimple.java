@@ -37,7 +37,7 @@ public interface ModelSimple extends Model
 	 * Add a state to the list of initial states.
 	 */
 	public abstract void addInitialState(int i);
-	
+
 	/**
 	 * Build (anew) from a list of transitions exported explicitly by PRISM (i.e. a .tra file).
 	 */

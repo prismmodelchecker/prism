@@ -31,8 +31,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import acceptance.AcceptanceReach;
-import acceptance.AcceptanceType;
 import parser.ast.Expression;
 import prism.PrismComponent;
 import prism.PrismDevNullLog;
@@ -41,6 +39,8 @@ import prism.PrismFileLog;
 import prism.PrismLog;
 import prism.PrismUtils;
 import strat.MDStrategyArray;
+import acceptance.AcceptanceReach;
+import acceptance.AcceptanceType;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MCRewardsFromMDPRewards;
 import explicit.rewards.MDPRewards;
