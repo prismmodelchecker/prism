@@ -26,15 +26,19 @@
 
 package explicit;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 
-import explicit.rewards.MCRewards;
 import parser.State;
 import parser.Values;
 import prism.ModelType;
+import prism.Pair;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
+import explicit.rewards.MCRewards;
 
 /**
  * Explicit-state representation of a DTMC, constructed (implicitly)
@@ -175,37 +179,31 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 
 	// Accessors (for DTMC)
 
+	@Override
 	public int getNumTransitions(int s)
 	{
 		return adv[s] >= 0 ? mdp.getNumTransitions(s, adv[s]) : 0;
 	}
 
+	@Override
 	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s)
 	{
 		if (adv[s] >= 0) {
 			return mdp.getTransitionsIterator(s, adv[s]);
 		} else {
 			// Empty iterator
-			return new Iterator<Entry<Integer, Double>>()
-			{
-				@Override
-				public boolean hasNext()
-				{
-					return false;
-				}
+			return new ArrayList<Entry<Integer,Double>>().iterator();
+		}
+	}
 
-				@Override
-				public Entry<Integer, Double> next()
-				{
-					return null;
-				}
-
-				@Override
-				public void remove()
-				{
-					throw new UnsupportedOperationException();
-				}
-			};
+	@Override
+	public Iterator<Entry<Integer, Pair<Double, Object>>> getTransitionsAndActionsIterator(int s)
+	{
+		if (adv[s] >= 0) {
+			return new DTMCExplicit.AddDefaultActionToTransitionsIterator(mdp.getTransitionsIterator(s, adv[s]), mdp.getAction(s, adv[s]));
+		} else {
+			// Empty iterator
+			return new ArrayList<Entry<Integer,Pair<Double, Object>>>().iterator();
 		}
 	}
 
