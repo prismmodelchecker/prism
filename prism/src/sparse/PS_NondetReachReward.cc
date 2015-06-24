@@ -347,25 +347,39 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	
 	// Traverse matrix to extract adversary
 	if (export_adv_enabled != EXPORT_ADV_NONE) {
-		h1 = h2 = 0;
-		for (i = 0; i < n; i++) {
-			if (!use_counts) { l1 = row_starts[i]; h1 = row_starts[i+1]; }
-			else { l1 = h1; h1 += row_counts[i]; }
-			// Have to loop through all choices (to compute offsets)
-			for (j = l1; j < h1; j++) {
-				if (!use_counts) { l2 = choice_starts[j]; h2 = choice_starts[j+1]; }
-				else { l2 = h2; h2 += choice_counts[j]; }
-				// But only output a choice if it is in the adversary
-				if (j == adv[i]) {
-					for (k = l2; k < h2; k++) {
-						switch (export_adv_enabled) {
-						case EXPORT_ADV_DTMC:
-							fprintf(fp_adv, "%d %d %g", i, cols[k], non_zeros[k]); break;
-						case EXPORT_ADV_MDP:
-							fprintf(fp_adv, "%d 0 %d %g", i, cols[k], non_zeros[k]); break;
+		// Do two passes: first to compute the number of transitions,
+		// the second to actually do the export
+		int num_trans = 0;
+		for (int pass = 1; pass <= 2; pass++) {
+			if (pass == 2) {
+				fprintf(fp_adv, "%d %d\n", n, num_trans);
+			}
+			h1 = h2 = 0;
+			for (i = 0; i < n; i++) {
+				if (!use_counts) { l1 = row_starts[i]; h1 = row_starts[i+1]; }
+				else { l1 = h1; h1 += row_counts[i]; }
+				// Have to loop through all choices (to compute offsets)
+				for (j = l1; j < h1; j++) {
+					if (!use_counts) { l2 = choice_starts[j]; h2 = choice_starts[j+1]; }
+					else { l2 = h2; h2 += choice_counts[j]; }
+					// But only output a choice if it is in the adversary
+					if (j == adv[i]) {
+						switch (pass) {
+						case 1:
+							num_trans += (h2-l2);
+							break;
+						case 2:
+							for (k = l2; k < h2; k++) {
+								switch (export_adv_enabled) {
+								case EXPORT_ADV_DTMC:
+									fprintf(fp_adv, "%d %d %g", i, cols[k], non_zeros[k]); break;
+								case EXPORT_ADV_MDP:
+									fprintf(fp_adv, "%d 0 %d %g", i, cols[k], non_zeros[k]); break;
+								}
+								if (ndsm->actions != NULL) fprintf(fp_adv, " %s", ndsm->actions[j]>0?action_names[ndsm->actions[j]-1]:"");
+								fprintf(fp_adv, "\n");
+							}
 						}
-						if (ndsm->actions != NULL) fprintf(fp_adv, " %s", ndsm->actions[j]>0?action_names[ndsm->actions[j]-1]:"");
-						fprintf(fp_adv, "\n");
 					}
 				}
 			}
