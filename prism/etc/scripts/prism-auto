@@ -56,12 +56,15 @@ def lineIsCommentedOut(line):
 # A "models" file is a list of (relative) path names, in which lines starting with # are ignored.
 # Each item of the returned list is itself a tuple consisting of the name of the model file and
 # a possibly empty argument list, e.g. ("model.pm", ["-const", "N=2"])
+#
+# The name of the "models" file is configurable, defaults to "models" and is
+# stored in options.modelsFilename
 
 def getModelsInDir(dir):
     modelFiles = []
     # Process "models" file, if present
-    if os.path.isfile(os.path.join(dir, "models")):
-        for line in open(os.path.join(dir, "models"), 'r').readlines():
+    if os.path.isfile(os.path.join(dir, options.modelsFilename)):
+        for line in open(os.path.join(dir, options.modelsFilename), 'r').readlines():
             line = line.strip()
             if len(line) == 0 or lineIsCommentedOut(line): continue
             first = 1
@@ -593,6 +596,7 @@ parser.add_option("--test-all", action="store_true", dest="testAll", default=Fal
 parser.add_option("--no-renaming", action="store_true", dest="noRenaming", default=False, help="Don't rename files to be exported")
 parser.add_option("--debug", action="store_true", dest="debug", default=False, help="Enable debug mode: display debugging info")
 parser.add_option("--echo-full", action="store_true", dest="echoFull", default=False, help="An expanded version of -e/--echo")
+parser.add_option("--models-filename", dest="modelsFilename", default="models", help="The name of the optional 'models' file in directories, storing a list of models and parameters [default=models]")
 (options, args) = parser.parse_args()
 if len(args) < 1:
     parser.print_help()
