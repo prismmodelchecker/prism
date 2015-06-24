@@ -29,6 +29,7 @@ package explicit;
 import java.util.*;
 import java.util.Map.Entry;
 
+import prism.Pair;
 import explicit.rewards.MCRewards;
 
 /**
@@ -45,6 +46,11 @@ public interface DTMC extends Model
 	 * Get an iterator over the transitions from state s.
 	 */
 	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s);
+
+	/**
+	 * Get an iterator over the transitions from state s, with their attached actions if present.
+	 */
+	public Iterator<Entry<Integer, Pair<Double, Object>>> getTransitionsAndActionsIterator(int s);
 
 	/**
 	 * Perform a single step of precomputation algorithm Prob0, i.e., for states i in {@code subset},
