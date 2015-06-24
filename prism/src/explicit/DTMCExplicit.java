@@ -226,5 +226,11 @@ public abstract class DTMCExplicit extends ModelExplicit implements DTMC
 		{
 			return transIter.hasNext();
 		}
+		
+		@Override
+		public void remove()
+		{
+			// Do nothing: read-only
+		}
 	}
 }
