@@ -26,8 +26,8 @@
 
 package explicit;
 
-import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -192,7 +192,7 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 			return mdp.getTransitionsIterator(s, adv[s]);
 		} else {
 			// Empty iterator
-			return new ArrayList<Entry<Integer,Double>>().iterator();
+			return Collections.<Entry<Integer,Double>>emptyIterator(); 
 		}
 	}
 
@@ -203,7 +203,7 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 			return new DTMCExplicit.AddDefaultActionToTransitionsIterator(mdp.getTransitionsIterator(s, adv[s]), mdp.getAction(s, adv[s]));
 		} else {
 			// Empty iterator
-			return new ArrayList<Entry<Integer,Pair<Double, Object>>>().iterator();
+			return Collections.<Entry<Integer,Pair<Double, Object>>>emptyIterator(); 
 		}
 	}
 
