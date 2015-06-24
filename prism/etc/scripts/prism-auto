@@ -19,6 +19,12 @@ from optparse import OptionParser
 # Utility functions
 #==================================================================================================
 
+# returns a sorted list of files / directories in dir
+def sortedListDir(dir):
+    list = os.listdir(dir);
+    list.sort()
+    return list
+
 def isPrismModelFile(file):
     return re.match('.+(\.prism|\.nm|\.pm|\.sm)$', file)
 
@@ -69,7 +75,7 @@ def getModelsInDir(dir):
             modelFiles.append((modelFile, args))
     # Otherwise look for all model files
     else:
-        for file in os.listdir(dir):
+        for file in sortedListDir(dir):
             if os.path.isfile(os.path.join(dir, file)) and isPrismModelFile(file):
                 modelFiles.append((os.path.join(dir, file), []))
     #print "Model files in " + dir + ": " + ' '.join( map(lambda pair: pair[0], modelFiles ))
@@ -79,7 +85,7 @@ def getModelsInDir(dir):
 
 def getFilesInDir(dir, pred):
     resultFiles = []
-    for file in os.listdir(dir):
+    for file in sortedListDir(dir):
         if os.path.isfile(os.path.join(dir, file)) and pred(file):
             resultFiles.append(os.path.join(dir, file))
     return resultFiles
@@ -278,7 +284,7 @@ def createLogFileName(args, dir=""):
 
 def walk(dir, meth):
     dir = os.path.abspath(dir)
-    for file in [file for file in os.listdir(dir) if not file in [".","..",".svn"]]:
+    for file in [file for file in sortedListDir(dir) if not file in [".","..",".svn"]]:
         nfile = os.path.join(dir, file)
         meth(nfile)
         if os.path.isdir(nfile):
@@ -419,7 +425,7 @@ def benchmarkDir(dir):
     logging.debug("Benchmarking dir " + dir)
     # Recurse first, unless asked not to
     if not options.nonRec:
-        for file in [file for file in os.listdir(dir) if not file in [".","..",".svn"]]:
+        for file in [file for file in sortedListDir(dir) if not file in [".","..",".svn"]]:
             if os.path.isdir(os.path.join(dir, file)):
                 benchmarkDir(os.path.join(dir, file))
     # Get model files in dir
