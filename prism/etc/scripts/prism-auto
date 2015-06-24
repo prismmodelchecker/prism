@@ -538,7 +538,7 @@ def benchmarkPropertiesFile(propertiesFile):
     for args in argLists:
         # Find models
         if options.matching:
-            matchingModelFiles = getMatchingModelsInDir(dir, testFile)
+            matchingModelFiles = getMatchingModelsInDir(dir, propertiesFile)
             modelFiles = map(lambda file: [file,[]], matchingModelFiles)
         else:
             modelFiles = getModelsInDir(dir)
