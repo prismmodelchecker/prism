@@ -26,6 +26,7 @@
 
 package explicit;
 
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
@@ -33,7 +34,6 @@ import java.util.Map;
 
 import parser.VarList;
 import parser.ast.Declaration;
-import parser.ast.DeclarationInt;
 import parser.ast.DeclarationIntUnbounded;
 import parser.ast.Expression;
 import prism.Prism;
@@ -286,6 +286,18 @@ public class MDPModelChecker extends ProbModelChecker
 			for (i = 0; i < n; i++) {
 				target.set(i, targetOrig.get(i) || (known.get(i) && init[i] == 1.0));
 			}
+		}
+
+		// If required, export info about target states 
+		if (getExportTarget()) {
+			BitSet bsInit = new BitSet(n);
+			for (i = 0; i < n; i++) {
+				bsInit.set(i, mdp.isInitialState(i));
+			}
+			List<BitSet> labels = Arrays.asList(bsInit, target);
+			List<String> labelNames = Arrays.asList("init", "target");
+			mainLog.println("\nExporting target states info to file \"" + getExportTargetFilename() + "\"...");
+			exportLabels(mdp, labels, labelNames, Prism.EXPORT_PLAIN, new PrismFileLog(getExportTargetFilename()));
 		}
 
 		// If required, create/initialise strategy storage

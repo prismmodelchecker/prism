@@ -27,6 +27,7 @@
 package explicit;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
@@ -436,6 +437,18 @@ public class DTMCModelChecker extends ProbModelChecker
 				targetNew.set(i, target.get(i) || (known.get(i) && init[i] == 1.0));
 			}
 			target = targetNew;
+		}
+
+		// If required, export info about target states
+		if (getExportTarget()) {
+			BitSet bsInit = new BitSet(n);
+			for (i = 0; i < n; i++) {
+				bsInit.set(i, dtmc.isInitialState(i));
+			}
+			List<BitSet> labels = Arrays.asList(bsInit, target);
+			List<String> labelNames = Arrays.asList("init", "target");
+			mainLog.println("\nExporting target states info to file \"" + getExportTargetFilename() + "\"...");
+			exportLabels(dtmc, labels, labelNames, Prism.EXPORT_PLAIN, new PrismFileLog(getExportTargetFilename()));
 		}
 
 		// Precomputation
