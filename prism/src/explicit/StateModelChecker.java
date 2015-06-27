@@ -188,6 +188,15 @@ public class StateModelChecker extends PrismComponent
 	{
 		setLog(other.getLog());
 		setVerbosity(other.getVerbosity());
+		setExportTarget(other.getExportTarget());
+		setExportTargetFilename(other.getExportTargetFilename());
+		setExportProductTrans(other.getExportProductTrans());
+		setExportProductTransFilename(other.getExportProductTransFilename());
+		setExportProductStates(other.getExportProductStates());
+		setExportProductStatesFilename(other.getExportProductStatesFilename());
+		setStoreVector(other.getStoreVector());
+		setGenStrat(other.getGenStrat());
+		setDoBisim(other.getDoBisim());
 	}
 
 	/**
@@ -208,32 +217,32 @@ public class StateModelChecker extends PrismComponent
 		this.verbosity = verbosity;
 	}
 
-	public void setExportTarget(boolean b) throws PrismException
+	public void setExportTarget(boolean b)
 	{
 		exportTarget = b;
 	}
 
-	public void setExportTargetFilename(String s) throws PrismException
+	public void setExportTargetFilename(String s)
 	{
 		exportTargetFilename = s;
 	}
 
-	public void setExportProductTrans(boolean b) throws PrismException
+	public void setExportProductTrans(boolean b)
 	{
 		exportProductTrans = b;
 	}
 
-	public void setExportProductTransFilename(String s) throws PrismException
+	public void setExportProductTransFilename(String s)
 	{
 		exportProductTransFilename = s;
 	}
 
-	public void setExportProductStates(boolean b) throws PrismException
+	public void setExportProductStates(boolean b)
 	{
 		exportProductStates = b;
 	}
 
-	public void setExportProductStatesFilename(String s) throws PrismException
+	public void setExportProductStatesFilename(String s)
 	{
 		exportProductStatesFilename = s;
 	}
