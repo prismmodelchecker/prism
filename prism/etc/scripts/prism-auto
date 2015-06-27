@@ -361,6 +361,8 @@ def verifyAndCleanupExports(outFiles, exportPrefix):
                 os.remove(expFile)
             else:
                 print "FAIL (" + os.path.basename(expFile) + " does not match)"
+                print "To see difference, run:"
+                print "diff " + outFile + " " + expFile
                 result = False
         else:
             print "FAIL (no " + os.path.basename(expFile) + " to compare to)"
