@@ -2595,9 +2595,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		JDDNode dd, labels[];
 		String labelNames[];
 
-		if (getExplicit())
-			throw new PrismException("Export of labels not yet supported by explicit engine");
-
 		// get label list and size
 		if (propertiesFile == null) {
 			ll = currentModulesFile.getLabelList();
@@ -2614,6 +2611,20 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mainLog.print("\nExporting labels and satisfying states ");
 		mainLog.print(getStringForExportType(exportType) + " ");
 		mainLog.println(getDestinationStringForFile(file));
+
+		if (getExplicit()) {
+			PrismLog out = getPrismLogForFile(file);
+			List<String> labelNamesExpl = new ArrayList<String>();
+			labelNamesExpl.add("init");
+			labelNamesExpl.add("deadlock");
+			for (i = 0; i < n; i++) {
+				labelNamesExpl.add(ll.getLabelName(i));
+			}
+			explicit.StateModelChecker mcExpl = createModelCheckerExplicit(propertiesFile); 
+			mcExpl.exportLabels(currentModelExpl, labelNamesExpl, exportType, out);
+			out.close();
+			return;
+		}
 
 		// convert labels to bdds
 		if (n > 0) {

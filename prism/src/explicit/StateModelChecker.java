@@ -62,9 +62,11 @@ import parser.type.TypeInt;
 import parser.visitor.ASTTraverseModify;
 import prism.Filter;
 import prism.ModelType;
+import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismLangException;
+import prism.PrismLog;
 import prism.PrismNotSupportedException;
 import prism.PrismSettings;
 import prism.Result;
@@ -748,15 +750,27 @@ public class StateModelChecker extends PrismComponent
 			if (bs != null) {
 				return StateValues.createFromBitSet((BitSet) bs.clone(), model);
 			}
-			// Failing that, look in the properties file
-			ll = propertiesFile.getCombinedLabelList();
-			i = ll.getLabelIndex(expr.getName());
-			if (i == -1)
-				throw new PrismException("Unknown label \"" + expr.getName() + "\" in property");
-			// check recursively
-			return checkExpression(model, ll.getLabel(i), statesOfInterest);
+			// Failing that, look in the properties file (if possible)
+			if (propertiesFile != null) {
+				ll = propertiesFile.getCombinedLabelList();
+				i = ll.getLabelIndex(expr.getName());
+				if (i != -1) {
+					// check recursively
+					return checkExpression(model, ll.getLabel(i), statesOfInterest);
+				}
+			}
+			// Or just the model file
+			else {
+				ll = modulesFile.getLabelList();
+				i = ll.getLabelIndex(expr.getName());
+				if (i != -1) {
+					// check recursively
+					return checkExpression(model, ll.getLabel(i), statesOfInterest);
+				}
+			}
 		}
-	}
+		throw new PrismException("Unknown label \"" + expr.getName() + "\"");
+}
 
 	// Check property ref
 
@@ -1072,6 +1086,24 @@ public class StateModelChecker extends PrismComponent
 	}
 
 	/**
+	 * Export a set of labels and the states that satisfy them.
+	 * @param model The model
+	 * @param labels The states that satisfy each label, specified as a BitSet
+	 * @param labelNames The name of each label
+	 * @param exportType The format in which to export
+	 * @param out Where to export
+	 */
+	public void exportLabels(Model model, List<String> labelNames, int exportType, PrismLog out) throws PrismException
+	{
+		List<BitSet> labels = new ArrayList<BitSet>();
+		for (String labelName : labelNames) {
+			StateValues sv = checkExpression(model, new ExpressionLabel(labelName), null);
+			labels.add(sv.getBitSet());
+		}
+		exportLabels(model, labels, labelNames, exportType, out);
+	}
+	
+	/**
 	 * Extract maximal propositional subformulas of an expression, model check them and
 	 * replace them with ExpressionLabel objects (L0, L1, etc.) Expression passed in is modified directly, but the result
 	 * is also returned. As an optimisation, model checking that results in true/false for all states is converted to an
@@ -1284,6 +1316,79 @@ public class StateModelChecker extends PrismComponent
 			throw new PrismException("Error reading labels file \"" + filename + "\"");
 		} catch (NumberFormatException e) {
 			throw new PrismException("Error in labels file");
+		}
+	}
+
+	/**
+	 * Export a set of labels and the states that satisfy them.
+	 * @param model The model
+	 * @param labels The states that satisfy each label, specified as a BitSet
+	 * @param labelNames The name of each label
+	 * @param exportType The format in which to export
+	 * @param out Where to export
+	 */
+	public void exportLabels(Model model, List<BitSet> labels, List<String> labelNames, int exportType, PrismLog out)
+	{
+		String matlabVarName = "l";
+		int numStates = model.getNumStates();
+		
+		// Print list of labels
+		int numLabels = labels.size();
+		if (exportType == Prism.EXPORT_MRMC) {
+			out.println("#DECLARATION");
+		}
+		for (int i = 0; i < numLabels; i++) {
+			switch (exportType) {
+			case Prism.EXPORT_PLAIN:
+				out.print((i > 0 ? " " : "") + i + "=\"" + labelNames.get(i) + "\"");
+				break;
+			case Prism.EXPORT_MATLAB:
+				out.println(matlabVarName + "_" + labelNames.get(i) + "=sparse(" + numStates + ",1);");
+				break;
+			case Prism.EXPORT_MRMC:
+				out.print((i > 0 ? " " : "") + labelNames.get(i));
+				break;
+			}
+		}
+		out.println();
+		if (exportType == Prism.EXPORT_MRMC) {
+			out.println("#END");
+		}
+		
+		// Go through states and print satisfying label indices for each one
+		for (int s = 0; s < numStates; s++) {
+			boolean first = true;
+			for (int i = 0; i < numLabels; i++) {
+				if (labels.get(i).get(s)) {
+					if (first) {
+						switch (exportType) {
+						case Prism.EXPORT_PLAIN:
+							out.print(s + ":");
+							break;
+						case Prism.EXPORT_MATLAB:
+							break;
+						case Prism.EXPORT_MRMC:
+							out.print(s + 1);
+							break;
+						}
+						first = false;
+					}
+					switch (exportType) {
+						case Prism.EXPORT_PLAIN:
+							out.print(" " + i);
+							break;
+						case Prism.EXPORT_MATLAB:
+							out.println(matlabVarName + "_" + labelNames.get(i) + "(" + (s + 1) + ")=1;");
+							break;
+						case Prism.EXPORT_MRMC:
+							out.print(" " + labelNames.get(i));
+							break;
+					}
+				}
+			}
+			if (!first && exportType != Prism.EXPORT_MATLAB) {
+				out.println();
+			}
 		}
 	}
 }
