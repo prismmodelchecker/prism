@@ -1086,24 +1086,6 @@ public class StateModelChecker extends PrismComponent
 	}
 
 	/**
-	 * Export a set of labels and the states that satisfy them.
-	 * @param model The model
-	 * @param labels The states that satisfy each label, specified as a BitSet
-	 * @param labelNames The name of each label
-	 * @param exportType The format in which to export
-	 * @param out Where to export
-	 */
-	public void exportLabels(Model model, List<String> labelNames, int exportType, PrismLog out) throws PrismException
-	{
-		List<BitSet> labels = new ArrayList<BitSet>();
-		for (String labelName : labelNames) {
-			StateValues sv = checkExpression(model, new ExpressionLabel(labelName), null);
-			labels.add(sv.getBitSet());
-		}
-		exportLabels(model, labels, labelNames, exportType, out);
-	}
-	
-	/**
 	 * Extract maximal propositional subformulas of an expression, model check them and
 	 * replace them with ExpressionLabel objects (L0, L1, etc.) Expression passed in is modified directly, but the result
 	 * is also returned. As an optimisation, model checking that results in true/false for all states is converted to an
@@ -1319,6 +1301,24 @@ public class StateModelChecker extends PrismComponent
 		}
 	}
 
+	/**
+	 * Export a set of labels and the states that satisfy them.
+	 * @param model The model
+	 * @param labels The states that satisfy each label, specified as a BitSet
+	 * @param labelNames The name of each label
+	 * @param exportType The format in which to export
+	 * @param out Where to export
+	 */
+	public void exportLabels(Model model, List<String> labelNames, int exportType, PrismLog out) throws PrismException
+	{
+		List<BitSet> labels = new ArrayList<BitSet>();
+		for (String labelName : labelNames) {
+			StateValues sv = checkExpression(model, new ExpressionLabel(labelName), null);
+			labels.add(sv.getBitSet());
+		}
+		exportLabels(model, labels, labelNames, exportType, out);
+	}
+	
 	/**
 	 * Export a set of labels and the states that satisfy them.
 	 * @param model The model
