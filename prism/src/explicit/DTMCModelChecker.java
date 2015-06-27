@@ -31,10 +31,15 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
 
+import parser.VarList;
+import parser.ast.Declaration;
+import parser.ast.DeclarationIntUnbounded;
 import parser.ast.Expression;
 import parser.type.TypeDouble;
+import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismException;
+import prism.PrismFileLog;
 import prism.PrismNotSupportedException;
 import prism.PrismUtils;
 import acceptance.AcceptanceReach;
@@ -74,6 +79,24 @@ public class DTMCModelChecker extends ProbModelChecker
 		};
 		product = mcLtl.constructProductMC(this, (DTMC)model, expr, statesOfInterest, allowedAcceptance);
 
+		// Output product, if required
+		if (getExportProductTrans()) {
+				mainLog.println("\nExporting product transition matrix to file \"" + getExportProductTransFilename() + "\"...");
+				product.getProductModel().exportToPrismExplicitTra(getExportProductTransFilename());
+		}
+		if (getExportProductStates()) {
+			mainLog.println("\nExporting product state space to file \"" + getExportProductStatesFilename() + "\"...");
+			PrismFileLog out = new PrismFileLog(getExportProductStatesFilename());
+			VarList newVarList = (VarList) modulesFile.createVarList().clone();
+			String daVar = "_da";
+			while (newVarList.getIndex(daVar) != -1) {
+				daVar = "_" + daVar;
+			}
+			newVarList.addVar(0, new Declaration(daVar, new DeclarationIntUnbounded()), 1, null);
+			product.getProductModel().exportStates(Prism.EXPORT_PLAIN, modulesFile.createVarList(), out);
+			out.close();
+		}
+		
 		// Find accepting states + compute reachability probabilities
 		BitSet acc;
 		if (product.getAcceptance() instanceof AcceptanceReach) {

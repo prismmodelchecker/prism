@@ -86,6 +86,12 @@ public class StateModelChecker extends PrismComponent
 
 	// Additional flags/settings not included in PrismSettings
 
+	// Export product model info?
+	protected boolean exportProductTrans = false;
+	protected String exportProductTransFilename = null;
+	protected boolean exportProductStates = false;
+	protected String exportProductStatesFilename = null;
+	
 	// Store the final results vector after model checking?
 	protected boolean storeVector = false;
 
@@ -196,6 +202,26 @@ public class StateModelChecker extends PrismComponent
 		this.verbosity = verbosity;
 	}
 
+	public void setExportProductTrans(boolean b) throws PrismException
+	{
+		exportProductTrans = b;
+	}
+
+	public void setExportProductTransFilename(String s) throws PrismException
+	{
+		exportProductTransFilename = s;
+	}
+
+	public void setExportProductStates(boolean b) throws PrismException
+	{
+		exportProductStates = b;
+	}
+
+	public void setExportProductStatesFilename(String s) throws PrismException
+	{
+		exportProductStatesFilename = s;
+	}
+
 	/**
 	 * Specify whether or not to store the final results vector after model checking.
 	 */
@@ -225,6 +251,26 @@ public class StateModelChecker extends PrismComponent
 	public int getVerbosity()
 	{
 		return verbosity;
+	}
+
+	public boolean getExportProductTrans()
+	{
+		return exportProductTrans;
+	}
+
+	public String getExportProductTransFilename()
+	{
+		return exportProductTransFilename;
+	}
+
+	public boolean getExportProductStates()
+	{
+		return exportProductStates;
+	}
+
+	public String getExportProductStatesFilename()
+	{
+		return exportProductStatesFilename;
 	}
 
 	/**

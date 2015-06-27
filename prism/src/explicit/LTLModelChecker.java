@@ -299,7 +299,7 @@ public class LTLModelChecker extends PrismComponent
 		int prodNumStates = modelNumStates * daSize;
 		int s_1, s_2, q_1, q_2;
 		BitSet s_labels = new BitSet(numAPs);
-		List<State> prodStatesList = null;
+		List<State> prodStatesList = null, daStatesList = null;
 
 		// Encoding: 
 		// each state s' = <s, q> = s * daSize + q
@@ -312,6 +312,10 @@ public class LTLModelChecker extends PrismComponent
 
 		if (dtmc.getStatesList() != null) {
 			prodStatesList = new ArrayList<State>();
+			daStatesList = new ArrayList<State>(da.size());
+			for (int i = 0; i < da.size(); i++) {
+				daStatesList.add(new State(1).setValue(0, i));
+			}
 		}
 
 		// We need results for all states of the original model in statesOfInterest
@@ -334,7 +338,7 @@ public class LTLModelChecker extends PrismComponent
 			map[s_0 * daSize + q_0] = prodModel.getNumStates() - 1;
 			if (prodStatesList != null) {
 				// store DTMC state information for the product state
-				prodStatesList.add(dtmc.getStatesList().get(s_0));
+				prodStatesList.add(new State(daStatesList.get(q_0), dtmc.getStatesList().get(s_0)));
 			}
 		}
 
@@ -365,7 +369,7 @@ public class LTLModelChecker extends PrismComponent
 					map[s_2 * daSize + q_2] = prodModel.getNumStates() - 1;
 					if (prodStatesList != null) {
 						// store DTMC state information for the product state
-						prodStatesList.add(dtmc.getStatesList().get(s_2));
+						prodStatesList.add(new State(daStatesList.get(q_2), dtmc.getStatesList().get(s_2)));
 					}
 				}
 				prodModel.setProbability(map[s_1 * daSize + q_1], map[s_2 * daSize + q_2], prob);
@@ -444,7 +448,7 @@ public class LTLModelChecker extends PrismComponent
 		int prodNumStates = modelNumStates * daSize;
 		int s_1, s_2, q_1, q_2;
 		BitSet s_labels = new BitSet(numAPs);
-		List<State> prodStatesList = null;
+		List<State> prodStatesList = null, daStatesList = null;
 
 
 		// Encoding: 
@@ -458,6 +462,10 @@ public class LTLModelChecker extends PrismComponent
 
 		if (mdp.getStatesList() != null) {
 			prodStatesList = new ArrayList<State>();
+			daStatesList = new ArrayList<State>(da.size());
+			for (int i = 0; i < da.size(); i++) {
+				daStatesList.add(new State(1).setValue(0, i));
+			}
 		}
 
 		// We need results for all states of the original model in statesOfInterest
@@ -480,7 +488,7 @@ public class LTLModelChecker extends PrismComponent
 			map[s_0 * daSize + q_0] = prodModel.getNumStates() - 1;
 			if (prodStatesList != null) {
 				// store MDP state information for the product state
-				prodStatesList.add(mdp.getStatesList().get(s_0));
+				prodStatesList.add(new State(daStatesList.get(q_0), mdp.getStatesList().get(s_0)));
 			}
 		}
 
@@ -514,7 +522,7 @@ public class LTLModelChecker extends PrismComponent
 						map[s_2 * daSize + q_2] = prodModel.getNumStates() - 1;
 						if (prodStatesList != null) {
 							// store MDP state information for the product state
-							prodStatesList.add(mdp.getStatesList().get(s_2));
+							prodStatesList.add(new State(daStatesList.get(q_2), mdp.getStatesList().get(s_2)));
 						}
 					}
 					prodDistr.set(map[s_2 * daSize + q_2], prob);
