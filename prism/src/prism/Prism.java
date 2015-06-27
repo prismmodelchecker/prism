@@ -3571,6 +3571,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		explicit.StateModelChecker mc = explicit.StateModelChecker.createModelChecker(currentModelType, this);
 		mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);
 		// Pass any additional local settings
+		mc.setExportTarget(exportTarget);
+		mc.setExportTargetFilename(exportTargetFilename);
 		mc.setExportProductTrans(exportProductTrans);
 		mc.setExportProductTransFilename(exportProductTransFilename);
 		mc.setExportProductStates(exportProductStates);

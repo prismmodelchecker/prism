@@ -86,6 +86,10 @@ public class StateModelChecker extends PrismComponent
 
 	// Additional flags/settings not included in PrismSettings
 
+	// Export target state info?
+	protected boolean exportTarget = false;
+	protected String exportTargetFilename = null;
+	
 	// Export product model info?
 	protected boolean exportProductTrans = false;
 	protected String exportProductTransFilename = null;
@@ -202,6 +206,16 @@ public class StateModelChecker extends PrismComponent
 		this.verbosity = verbosity;
 	}
 
+	public void setExportTarget(boolean b) throws PrismException
+	{
+		exportTarget = b;
+	}
+
+	public void setExportTargetFilename(String s) throws PrismException
+	{
+		exportTargetFilename = s;
+	}
+
 	public void setExportProductTrans(boolean b) throws PrismException
 	{
 		exportProductTrans = b;
@@ -251,6 +265,16 @@ public class StateModelChecker extends PrismComponent
 	public int getVerbosity()
 	{
 		return verbosity;
+	}
+
+	public boolean getExportTarget()
+	{
+		return exportTarget;
+	}
+
+	public String getExportTargetFilename()
+	{
+		return exportTargetFilename;
 	}
 
 	public boolean getExportProductTrans()
