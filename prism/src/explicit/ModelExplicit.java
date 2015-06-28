@@ -136,6 +136,14 @@ public abstract class ModelExplicit implements Model
 	}
 
 	/**
+	 * Empty the list of initial states.
+	 */
+	public void clearInitialStates()
+	{
+		initialStates.clear();
+	}
+
+	/**
 	 * Add a state to the list of deadlock states.
 	 */
 	public void addDeadlockState(int i)
