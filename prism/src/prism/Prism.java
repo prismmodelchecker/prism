@@ -3536,6 +3536,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	private StateModelChecker createModelChecker(PropertiesFile propertiesFile) throws PrismException
 	{
+		// Create a dummy properties file if none exist
+		// (the symbolic model checkers rely on this to store e.g. model labels)
+		if (propertiesFile == null) {
+			propertiesFile = parsePropertiesString(currentModulesFile, "");
+		}
 		// Create model checker
 		StateModelChecker mc = StateModelChecker.createModelChecker(currentModelType, this, currentModel, propertiesFile);
 		// Pass any additional local settings
