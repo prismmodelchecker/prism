@@ -488,6 +488,7 @@ def benchmarkModelFile(modelFile, modelArgs=[], dir=""):
                 propertiesFiles = getPropertiesInDir(dir)
             logging.debug("Properties files: " + str(propertiesFiles))
             for propertiesFile in propertiesFiles:
+                logging.debug("Property file: " + propertiesFile)
                 for argsp in getMatchingArgListsForFile(propertiesFile):
                     benchmark(modelFile, modelArgs + args + [propertiesFile] + argsp, dir)
         # Find and benchmark auto files
