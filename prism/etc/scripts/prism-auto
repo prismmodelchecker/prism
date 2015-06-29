@@ -497,7 +497,8 @@ def benchmarkModelFile(modelFile, modelArgs=[], dir=""):
         for autoFile in autoFiles:
             logging.debug("Auto file: " + str(autoFile))
             for autoArgs in getArgsListsFromFile(autoFile):
-                benchmark(modelFile, modelArgs + args + autoArgs, dir)
+                for argsa in getMatchingArgListsForFile(autoFile):
+                   benchmark(modelFile, modelArgs + args + autoArgs + argsa, dir)
 
 # Execute benchmarking on an auto file, i.e. a file containing one or more lines
 # of command-line arguments specifying calls to be made to PRISM.
@@ -522,7 +523,8 @@ def benchmarkAutoFile(autoFile):
             # Treat auto file like an args file
             for argsList in getArgsListsFromFile(autoFile):
                 # Don't look for properties (corresponds to build mode)
-                benchmark(modelFile, modelArgs + argsList, dir)
+                for argsa in getMatchingArgListsForFile(autoFile):
+                    benchmark(modelFile, modelArgs + argsList + argsa, dir)
     if not modelFiles:
         # There aren't any (matching) model files, process as "orphaned" auto file
         for argsList in getArgsListsFromFile(autoFile):
