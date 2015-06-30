@@ -313,10 +313,10 @@ public class PTAModelChecker extends PrismComponent
 			return ptaAR.forwardsReachAbstractRefine(pta, targetLocs, null, min);
 		}
 
-		// Do probability computation by first constructing a bisimulation  
-		else if (ptaMethod.equals("Bisimulation minimisation")) {
-			// Not supported yet
-			throw new PrismException("Not yet supported");
+		// Do probability computation through backwards reachability  
+		else if (ptaMethod.equals("Backwards reachability")) {
+			BackwardsReach ptaBw = new BackwardsReach(this);
+			return ptaBw.computeProbabilisticReachability(pta, targetLocs, min);
 		}
 
 		else

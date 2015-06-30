@@ -373,8 +373,14 @@ public class DBM extends Zone
 
 	public int hashCode()
 	{
-		// Simple hash code
-		return pta.numClocks;
+		int n = pta.numClocks + 1;
+		int hash = 0;
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				hash = (hash * 7) + d[i][j];
+			}
+		}
+		return hash;
 	}
 
 	public boolean equals(Object o)

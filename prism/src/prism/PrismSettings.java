@@ -220,7 +220,7 @@ public class PrismSettings implements Observer
 			// ENGINES/METHODS:
 			{ CHOICE_TYPE,		PRISM_ENGINE,							"Engine",								"2.1",			"Hybrid",																	"MTBDD,Sparse,Hybrid,Explicit",																		
 																			"Which engine (hybrid, sparse, MTBDD, explicit) should be used for model checking." },
-			{ CHOICE_TYPE,		PRISM_PTA_METHOD,						"PTA model checking method",			"3.3",			"Stochastic games",																	"Digital clocks,Stochastic games",																
+			{ CHOICE_TYPE,		PRISM_PTA_METHOD,						"PTA model checking method",			"3.3",			"Stochastic games",																	"Digital clocks,Stochastic games,Backwards reachability",																
 																			"Which method to use for model checking of PTAs." },
 			{ CHOICE_TYPE,		PRISM_TRANSIENT_METHOD,					"Transient probability computation method",	"3.3",		"Uniformisation",															"Uniformisation,Fast adaptive uniformisation",																
 																			"Which method to use for computing transient probabilities in CTMCs." },
@@ -889,8 +889,8 @@ public class PrismSettings implements Observer
 					set(PRISM_PTA_METHOD, "Digital clocks");
 				else if (s.equals("games"))
 					set(PRISM_PTA_METHOD, "Stochastic games");
-				else if (s.equals("bisim"))
-					set(PRISM_PTA_METHOD, "Bisimulation minimisation");
+				else if (s.equals("backwards") || s.equals("bw"))
+					set(PRISM_PTA_METHOD, "Backwards reachability");
 				else
 					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: digital, games)");
 			} else {

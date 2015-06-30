@@ -80,6 +80,16 @@ public class LocZone
 	}
 	
 	/**
+	 * Do time part of predecessor operation (not including c-closure).
+	 * Note: pta is passed in just for efficiency, could find it if we wanted.
+	 */
+	public void tPre(PTA pta)
+	{
+		// Time predecessor (down)
+		zone.down(pta.getInvariantConstraints(loc));
+	}
+	
+	/**
 	 * dPre: discrete predecessor
 	 */
 	public void dPre(Edge edge)
@@ -111,8 +121,7 @@ public class LocZone
 
 	public int hashCode()
 	{
-		// Simple hash code
-		return loc;
+		return loc + zone.hashCode();
 	}
 	
 	public boolean equals(Object o)

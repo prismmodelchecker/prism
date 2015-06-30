@@ -467,8 +467,11 @@ public class DBMList extends NCZone
 	@Override
 	public int hashCode()
 	{
-		// Simple hash code
-		return list.size();
+		int hash = 0;
+		for (DBM dbm : list) {
+			hash = (hash * 7) + dbm.hashCode();
+		}
+		return hash;
 	}
 
 	@Override

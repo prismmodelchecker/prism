@@ -58,8 +58,7 @@ public class Constraint
 	
 	public int hashCode()
 	{
-		// Simple hash code
-		return db;
+		return (((db * 7) + x) * 7) + y;
 	}
 
 	public boolean equals(Object o)
