@@ -1218,7 +1218,7 @@ public abstract class QuantAbstractRefine extends PrismComponent
 		mainLog.print("* " + PrismUtils.formatDouble2dp(timeRebuild) + " secs");
 		mainLog.print(" (" + PrismUtils.formatPercent1dp(timeRebuild / timeTotal) + ")");
 		mainLog.print(" = Rebuilding " + abstractionType + " (");
-		mainLog.print(refinementNum + " x avg " + PrismUtils.formatDouble2dp(timeRebuild / (refinementNum)) + " secs)");
+		mainLog.print(refinementNum + " x avg " + PrismUtils.formatDouble2dp(refinementNum > 0 ? (timeRebuild / (refinementNum)) : 0) + " secs)");
 		mainLog.println();
 		mainLog.print("* " + PrismUtils.formatDouble2dp(timeCheck) + " secs");
 		mainLog.print(" (" + PrismUtils.formatPercent1dp(timeCheck / timeTotal) + ")");
@@ -1232,7 +1232,7 @@ public abstract class QuantAbstractRefine extends PrismComponent
 		mainLog.print("* " + PrismUtils.formatDouble2dp(timeRefine) + " secs");
 		mainLog.print(" (" + PrismUtils.formatPercent1dp(timeRefine / timeTotal) + ")");
 		mainLog.print(" = refinement (");
-		mainLog.print(refinementNum + " x avg " + PrismUtils.formatDouble2dp(timeRefine / refinementNum) + " secs)");
+		mainLog.print(refinementNum + " x avg " + PrismUtils.formatDouble2dp(refinementNum > 0 ? (timeRefine / refinementNum) : 0) + " secs)");
 		mainLog.println();
 
 		// Print result info for initial states
