@@ -27,6 +27,7 @@
 package prism;
 
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -179,7 +180,7 @@ public class PrismUtils
 		return formatterPercent1dp.format(frac);
 	}
 
-	private static DecimalFormat formatterPercent1dp = new DecimalFormat("#0.0%");
+	private static DecimalFormat formatterPercent1dp = new DecimalFormat("#0.0%", DecimalFormatSymbols.getInstance(Locale.UK));
 
 	/**
 	 * Format a double to 2 decimal places.
@@ -189,7 +190,7 @@ public class PrismUtils
 		return formatterDouble2dp.format(d);
 	}
 
-	private static DecimalFormat formatterDouble2dp = new DecimalFormat("#0.00");
+	private static DecimalFormat formatterDouble2dp = new DecimalFormat("#0.00", DecimalFormatSymbols.getInstance(Locale.UK));
 
 	/**
 	 * Format a double, as would be done by printf's %.12g
