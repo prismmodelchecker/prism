@@ -185,6 +185,7 @@ JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetExportAdvFilename(JNIEnv *e
 
 JNIEXPORT jlong __jlongpointer JNICALL Java_prism_PrismNative_PN_1GetStdout(JNIEnv *env, jclass cls)
 {
+	setvbuf(stdout, NULL, _IOLBF, 1024);
 	return ptr_to_jlong(stdout);
 }
 
