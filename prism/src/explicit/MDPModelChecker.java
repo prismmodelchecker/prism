@@ -88,7 +88,6 @@ public class MDPModelChecker extends ProbModelChecker
 		};
 
 		product = mcLtl.constructProductMDP(this, (MDP)model, expr, statesOfInterest, allowedAcceptance);
-		mainLog.println(product.getProductModel().getStatesList());
 		
 		// Output product, if required
 		if (getExportProductTrans()) {
