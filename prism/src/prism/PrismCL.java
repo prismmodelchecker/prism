@@ -441,32 +441,21 @@ public class PrismCL implements PrismModelListener
 
 		// export results (if required)
 		if (exportresults) {
-
-			mainLog.print("\nExporting results ");
-			if (exportResultsFormat.equals("matrix"))
-				mainLog.print("in matrix form ");
-			if (!exportResultsFilename.equals("stdout"))
-				mainLog.println("to file \"" + exportResultsFilename + "\"...");
-			else
-				mainLog.println("below:\n");
+			ResultsExporter exporter = new ResultsExporter(exportResultsFormat, "string");
+			mainLog.print("\nExporting results " + (exportResultsFormat.equals("matrix") ? "in matrix form " : ""));
+			mainLog.println(exportResultsFilename.equals("stdout") ? "below:\n" : "to file \"" + exportResultsFilename + "\"...");
 			PrismFileLog tmpLog = new PrismFileLog(exportResultsFilename);
 			if (!tmpLog.ready()) {
 				errorAndExit("Couldn't open file \"" + exportResultsFilename + "\" for output");
 			}
-
 			for (i = 0; i < numPropertiesToCheck; i++) {
 				if (i > 0)
 					tmpLog.println();
 				if (numPropertiesToCheck > 1) {
-					if (exportResultsFormat.equals("csv"))
-						tmpLog.print("\"" + propertiesToCheck.get(i) + ":\"\n");
-					else
-						tmpLog.print(propertiesToCheck.get(i) + ":\n");
+					exporter.setProperty(propertiesToCheck.get(i));
 				}
 				if (!exportResultsFormat.equals("matrix")) {
-					ResultsExporter exporter = new ResultsExporter(exportResultsFormat, "string");
 					tmpLog.println(results[i].export(exporter).getExportString());
-					//tmpLog.println(results[i].toString(false, sep, sep));
 				} else {
 					tmpLog.println(results[i].toStringMatrix("\t"));
 				}

@@ -29,6 +29,7 @@ package prism;
 import java.util.List;
 
 import parser.Values;
+import parser.ast.Property;
 
 /**
  * Class to export the results of model checking in various formats.
@@ -93,6 +94,7 @@ public class ResultsExporter
 	};
 
 	private List<DefinedConstant> constants;
+	private Property property;
 	private ResultsExportFormat format = ResultsExportFormat.PLAIN;
 
 	private boolean printHeader;
@@ -173,6 +175,11 @@ public class ResultsExporter
 		this.constants = constants;
 	}
 
+	public void setProperty(final Property property)
+	{
+		this.property = property;
+	}
+
 	/**
 	 * Get the exported results as a string (if the destination was specified to be a string).
 	 */
@@ -189,17 +196,34 @@ public class ResultsExporter
 	 */
 	public void start()
 	{
-		String s = "";
+		// Reset output string
+		exportString = "";
+		// Prepend property, if present
+		if (property != null) {
+			switch (format) {
+			case PLAIN:
+				exportString += property.toString() + ":\n";
+				break;
+			case CSV:
+				exportString += "\"" + property.toString().replaceAll("\"", "\\\"") + "\"\n";
+				break;
+			case COMMENT:
+				// None - it's printed at the the end in this case
+				break;
+			default:
+				break;
+			}
+		}
+		// Print header, if needed
 		if (printHeader && constants != null) {
 			for (int i = 0; i < constants.size(); i++) {
 				if (i > 0) {
-					s += separator;
+					exportString += separator;
 				}
-				s += constants.get(i).getName();
+				exportString += constants.get(i).getName();
 			}
-			s += equals + "Result\n";
+			exportString += equals + "Result\n";
 		}
-		exportString = s;
 	}
 
 	/**
@@ -222,10 +246,15 @@ public class ResultsExporter
 	 */
 	public void end()
 	{
+		// For "comment" format, print the property at the end, if present 
+		if (property != null && format == ResultsExportFormat.COMMENT) {
+			exportString +=  property.toString() + "\n";
+		}
+		// If writing to a string, strip off last \n before returning 
 		if (destination == ResultsExportDestination.STRING) {
-			// Strip off last \n before returning
-			if (exportString.charAt(exportString.length() - 1) == '\n')
+			if (exportString.charAt(exportString.length() - 1) == '\n') {
 				exportString = exportString.substring(0, exportString.length() - 1);
+			}
 		}
 	}
 }
