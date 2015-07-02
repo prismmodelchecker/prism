@@ -452,7 +452,11 @@ public class PrismCL implements PrismModelListener
 				if (i > 0)
 					tmpLog.println();
 				if (numPropertiesToCheck > 1) {
-					exporter.setProperty(propertiesToCheck.get(i));
+					if (!exportResultsFormat.equals("matrix")) {
+						exporter.setProperty(propertiesToCheck.get(i));
+					} else {
+						tmpLog.print(propertiesToCheck.get(i) + ":\n");
+					}
 				}
 				if (!exportResultsFormat.equals("matrix")) {
 					tmpLog.println(results[i].export(exporter).getExportString());
