@@ -94,7 +94,7 @@ public class DTMCModelChecker extends ProbModelChecker
 				daVar = "_" + daVar;
 			}
 			newVarList.addVar(0, new Declaration(daVar, new DeclarationIntUnbounded()), 1, null);
-			product.getProductModel().exportStates(Prism.EXPORT_PLAIN, modulesFile.createVarList(), out);
+			product.getProductModel().exportStates(Prism.EXPORT_PLAIN, newVarList, out);
 			out.close();
 		}
 		
