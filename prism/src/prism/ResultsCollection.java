@@ -263,7 +263,7 @@ public class ResultsCollection
 			for (i = 0; i < rangingConstants.size(); i++) {
 				if (i > 0)
 					s += sep;
-				s += ((DefinedConstant) rangingConstants.elementAt(i)).getName();
+				s += rangingConstants.elementAt(i).getName();
 			}
 			s += eq + "Result\n";
 		}
@@ -273,6 +273,19 @@ public class ResultsCollection
 		return s;
 	}
 
+	/**
+	 * Pass the results to a ResultsExporter.
+	 * For convenience, returns a pointer to the same ResultsExporter passed in 
+	 */
+	public ResultsExporter export(ResultsExporter exporter)
+	{
+		exporter.setConstantsInfo(rangingConstants);
+		exporter.start();
+		root.export(exporter);
+		exporter.end();
+		return exporter;
+	}
+	
 	/**
 	 * Create string representation of the data for a partial evaluation
 	 * @param partial Values for a subset of the constants
@@ -462,6 +475,14 @@ public class ResultsCollection
 			return ret;
 		}
 
+		/**
+		 * Pass the results to a ResultsExporter.
+		 */
+		public void export(ResultsExporter export)
+		{
+			exportRec(new Values(), export);
+		}
+
 		public String toStringRec(boolean pv, String sep, String eq, String head)
 		{
 			int i, n;
@@ -482,6 +503,15 @@ public class ResultsCollection
 			return res;
 		}
 
+		public void exportRec(Values values, ResultsExporter export)
+		{
+			int n = constant.getNumSteps();
+			for (int i = 0; i < n; i++) {
+				values.setValue(constant.getName(), constant.getValue(i));
+				kids[i].exportRec(values, export);
+			}
+		}
+		
 		/**
 		 * Create string representation of the data for a partial evaluation
 		 * @param partial Values for a subset of the constants
@@ -625,6 +655,11 @@ public class ResultsCollection
 			return head + eq + val + "\n";
 		}
 
+		public void exportRec(Values values, ResultsExporter export)
+		{
+			export.exportResult(values, val);
+		}
+		
 		public String toStringPartialRec(Values partial, boolean first, boolean pv, String sep, String eq, String head)
 		{
 			return head + eq + val + "\n";

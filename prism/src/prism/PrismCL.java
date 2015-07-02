@@ -466,7 +466,9 @@ public class PrismCL implements PrismModelListener
 						tmpLog.print(propertiesToCheck.get(i) + ":\n");
 				}
 				if (!exportresultsmatrix) {
-					tmpLog.println(results[i].toString(false, sep, sep));
+					ResultsExporter exporter = new ResultsExporter(exportresultscsv ? "csv" : "plain", "string");
+					tmpLog.println(results[i].export(exporter).getExportString());
+					//tmpLog.println(results[i].toString(false, sep, sep));
 				} else {
 					tmpLog.println(results[i].toStringMatrix(sep));
 				}
