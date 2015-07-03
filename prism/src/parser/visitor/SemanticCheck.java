@@ -452,7 +452,7 @@ public class SemanticCheck extends ASTTraverse
 	public void visitPost(ExpressionReward e) throws PrismLangException
 	{
 		if (e.getModifier() != null) {
-			throw new PrismLangException("Modifier \"" + e.getModifier() + "\" not supported for P operator");
+			throw new PrismLangException("Modifier \"" + e.getModifier() + "\" not supported for R operator");
 		}
 		if (e.getRewardStructIndex() != null) {
 			if (e.getRewardStructIndex() instanceof Expression) {
@@ -488,7 +488,7 @@ public class SemanticCheck extends ASTTraverse
 	public void visitPost(ExpressionSS e) throws PrismLangException
 	{
 		if (e.getModifier() != null) {
-			throw new PrismLangException("Modifier \"" + e.getModifier() + "\" not supported for P operator");
+			throw new PrismLangException("Modifier \"" + e.getModifier() + "\" not supported for S operator");
 		}
 		if (e.getProb() != null && !e.getProb().isConstant()) {
 			throw new PrismLangException("S operator probability bound is not constant", e.getProb());
