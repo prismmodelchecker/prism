@@ -222,13 +222,14 @@ public class ResultsExporter
 		}
 		// Print header, if needed
 		if (printHeader && rangingConstants != null) {
+			String namesString = "";
 			for (int i = 0; i < rangingConstants.size(); i++) {
 				if (i > 0) {
-					exportString += separator;
+					namesString += separator;
 				}
-				exportString += rangingConstants.get(i).getName();
+				namesString += rangingConstants.get(i).getName();
 			}
-			exportString += equals + "Result\n";
+			exportString += namesString + (namesString.length() > 0 ? equals : "") + "Result\n";
 		}
 	}
 
@@ -240,7 +241,8 @@ public class ResultsExporter
 		switch (format) {
 		case PLAIN:
 		case CSV:
-			exportString += values.toString(printNames, separator) + equals + result + "\n";
+			String valuesString = values.toString(printNames, separator); 
+			exportString += valuesString + (valuesString.length() > 0 ? equals : "") + result + "\n";
 			break;
 		case COMMENT:
 			Values mergedValues = new Values(nonRangingConstantValues, values);
