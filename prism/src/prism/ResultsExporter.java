@@ -205,7 +205,7 @@ public class ResultsExporter
 				exportString += property.toString() + ":\n";
 				break;
 			case CSV:
-				exportString += "\"" + property.toString().replaceAll("\"", "\\\\\"") + "\"\n";
+				exportString += "\"" + property.toString().replaceAll("\"", "\"\"") + "\"\n";
 				break;
 			case COMMENT:
 				// None - it's printed at the the end in this case

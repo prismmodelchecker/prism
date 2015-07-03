@@ -457,7 +457,7 @@ public class PrismCL implements PrismModelListener
 						exporter.setProperty(propertiesToCheck.get(i));
 					} else {
 						if (exportResultsFormat.equalsIgnoreCase("csv")) {
-							tmpLog.print( "\"" + propertiesToCheck.get(i).toString().replaceAll("\"", "\\\\\"") + "\"\n");
+							tmpLog.print( "\"" + propertiesToCheck.get(i).toString().replaceAll("\"", "\"\"") + "\"\n");
 						} else {
 							tmpLog.print(propertiesToCheck.get(i) + ":\n");
 						}
