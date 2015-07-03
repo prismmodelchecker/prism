@@ -77,6 +77,7 @@ public class PrismCL implements PrismModelListener
 	private boolean exportbsccs = false;
 	private boolean exportmecs = false;
 	private boolean exportresults = false;
+	private boolean exportresultsmatrix = false;
 	private String exportResultsFormat = "plain";
 	private boolean exportPlainDeprecated = false;
 	private boolean exportModelNoBasename = false;
@@ -442,7 +443,7 @@ public class PrismCL implements PrismModelListener
 		// export results (if required)
 		if (exportresults) {
 			ResultsExporter exporter = new ResultsExporter(exportResultsFormat, "string");
-			mainLog.print("\nExporting results " + (exportResultsFormat.equals("matrix") ? "in matrix form " : ""));
+			mainLog.print("\nExporting results " + (exportresultsmatrix ? "in matrix form " : ""));
 			mainLog.println(exportResultsFilename.equals("stdout") ? "below:\n" : "to file \"" + exportResultsFilename + "\"...");
 			PrismFileLog tmpLog = new PrismFileLog(exportResultsFilename);
 			if (!tmpLog.ready()) {
@@ -452,16 +453,21 @@ public class PrismCL implements PrismModelListener
 				if (i > 0)
 					tmpLog.println();
 				if (numPropertiesToCheck > 1) {
-					if (!exportResultsFormat.equals("matrix")) {
+					if (!exportresultsmatrix) {
 						exporter.setProperty(propertiesToCheck.get(i));
 					} else {
-						tmpLog.print(propertiesToCheck.get(i) + ":\n");
+						if (exportResultsFormat.equalsIgnoreCase("csv")) {
+							tmpLog.print( "\"" + propertiesToCheck.get(i).toString().replaceAll("\"", "\\\\\"") + "\"\n");
+						} else {
+							tmpLog.print(propertiesToCheck.get(i) + ":\n");
+						}
 					}
 				}
-				if (!exportResultsFormat.equals("matrix")) {
+				if (!exportresultsmatrix) {
 					tmpLog.println(results[i].export(exporter).getExportString());
 				} else {
-					tmpLog.println(results[i].toStringMatrix("\t"));
+					String sep = exportResultsFormat.equals("plain") ? "\t" : ", ";
+					tmpLog.println(results[i].toStringMatrix(sep));
 				}
 			}
 			tmpLog.close();
@@ -1139,7 +1145,7 @@ public class PrismCL implements PrismModelListener
 							} else if (ss[j].equals("csv"))
 								exportResultsFormat = "csv";
 							else if (ss[j].equals("matrix"))
-								exportResultsFormat = "matrix";
+								exportresultsmatrix = true;
 							else if (ss[j].equals("comment"))
 								exportResultsFormat = "comment";
 							else
