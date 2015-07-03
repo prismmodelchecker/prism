@@ -595,7 +595,9 @@ public class ResultsCollection
 				if (rangingConstants.size() == 1)
 					res += constant.getName() + ":";
 				else
-					res += constant.getName() + "\\" + kids[0].constant.getName() + ":";
+					res += constant.getName() + "\\" + kids[0].constant.getName();
+				if (!sep.equals(", "))
+					res += ":";
 				if (sep.equals(", "))
 					res += "\"";
 				res += "\n";
