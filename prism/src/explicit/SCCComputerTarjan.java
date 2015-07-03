@@ -102,7 +102,7 @@ public class SCCComputerTarjan extends SCCComputer
 	public void computeBSCCs()
 	{
 		computeSCCs();
-		notInBSCCs = new BitSet();
+		notInBSCCs = (BitSet) getNotInSCCs().clone();
 		int n = sccs.size();
 		for (int i = 0; i < n; i++) {
 			BitSet scc = sccs.get(i);
