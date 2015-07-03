@@ -237,7 +237,11 @@ public class ResultsExporter
 			exportString += values.toString(printNames, separator) + equals + result + "\n";
 			break;
 		case COMMENT:
-			exportString += "// RESULT (" + values.toString(true, ",") + "): " + result + "\n";
+			exportString += "// RESULT";
+			if (values.getNumValues() > 0) {
+				exportString += " (" + values.toString(true, ",") + ")";
+			}
+			exportString += ": " + result + "\n";
 		}
 	}
 	
