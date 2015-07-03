@@ -29,6 +29,7 @@
 package prism;
 
 import java.util.*;
+
 import parser.*;
 
 /**
@@ -212,7 +213,7 @@ public class ResultsCollection
 
 		// create header
 		for (i = 0; i < rangingConstants.size(); i++) {
-			res[i] = ((DefinedConstant) rangingConstants.elementAt(i)).getName();
+			res[i] = rangingConstants.elementAt(i).getName();
 		}
 		res[rangingConstants.size()] = "Result";
 
@@ -222,7 +223,7 @@ public class ResultsCollection
 	/**
 	 * Create ArrayList based representation of the data
 	 */
-	public ArrayList toArrayList()
+	public ArrayList<String[]> toArrayList()
 	{
 		return root.toArrayList();
 	}
@@ -306,7 +307,7 @@ public class ResultsCollection
 		// if there are no variables, override eq separator
 		noVars = true;
 		for (i = 0; i < rangingConstants.size(); i++) {
-			if (!partial.contains(((DefinedConstant) rangingConstants.elementAt(i)).getName())) {
+			if (!partial.contains(rangingConstants.elementAt(i).getName())) {
 				noVars = false;
 				break;
 			}
@@ -317,7 +318,7 @@ public class ResultsCollection
 		if (header) {
 			first = true;
 			for (i = 0; i < rangingConstants.size(); i++) {
-				name = ((DefinedConstant) rangingConstants.elementAt(i)).getName();
+				name = rangingConstants.elementAt(i).getName();
 				// only print constants for which we haven't been given values
 				if (!partial.contains(name)) {
 					if (!first)
@@ -373,7 +374,7 @@ public class ResultsCollection
 
 			// store level and create children
 			level = l;
-			constant = (DefinedConstant) rangingConstants.get(level);
+			constant = rangingConstants.get(level);
 			n = constant.getNumSteps();
 			kids = new TreeNode[n];
 			for (i = 0; i < n; i++) {
@@ -434,15 +435,15 @@ public class ResultsCollection
 		/**
 		 * Create ArrayList representation of the data
 		 */
-		public ArrayList toArrayList()
+		public ArrayList<String[]> toArrayList()
 		{
-			ArrayList a = new ArrayList();
+			ArrayList<String[]> a = new ArrayList<String[]>();
 			String line[] = new String[rangingConstants.size() + 1];
 			toArrayListRec(a, line);
 			return a;
 		}
 
-		public void toArrayListRec(ArrayList a, String line[])
+		public void toArrayListRec(ArrayList<String[]> a, String line[])
 		{
 			int i, n;
 			n = constant.getNumSteps();
@@ -665,7 +666,7 @@ public class ResultsCollection
 			return head + eq + val + "\n";
 		}
 
-		public void toArrayListRec(ArrayList a, String line[])
+		public void toArrayListRec(ArrayList<String[]> a, String line[])
 		{
 			line[rangingConstants.size()] = "" + val;
 			a.add(line.clone());
