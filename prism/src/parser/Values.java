@@ -68,6 +68,16 @@ public class Values //implements Comparable
 	}
 	
 	/**
+	 * Construct a new Values object by merging two existing ones.
+	 * There is no checking for duplicates.
+	 */
+	public Values(Values v1, Values v2)
+	{
+		this(v1);
+		addValues(v2);
+	}
+	
+	/**
 	 * Construct a new Values object by copying existing State object.
 	 * Need access to a ModulesFile for variable names.
 	 * @param s State object to copy.

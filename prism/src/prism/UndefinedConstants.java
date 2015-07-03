@@ -710,14 +710,11 @@ public class UndefinedConstants
 	 */
 	public Vector<DefinedConstant> getRangingConstants()
 	{
-		int i;
-		Vector<DefinedConstant> res;
-
-		res = new Vector<DefinedConstant>();
-		for (i = 0; i < mfNumConsts; i++)
+		Vector<DefinedConstant> res = new Vector<DefinedConstant>();
+		for (int i = 0; i < mfNumConsts; i++)
 			if (mfConsts.get(i).getNumSteps() > 1)
 				res.addElement(mfConsts.get(i));
-		for (i = 0; i < pfNumConsts; i++)
+		for (int i = 0; i < pfNumConsts; i++)
 			if (pfConsts.get(i).getNumSteps() > 1)
 				res.addElement(pfConsts.get(i));
 
@@ -798,5 +795,20 @@ public class UndefinedConstants
 	public Values getPFConstantValues()
 	{
 		return pfValues;
+	}
+
+	/**
+	 * Get the values for non-ranging model constants, i.e. each constant that has range 1.
+	 */
+	public Values getNonRangingConstantValues()
+	{
+		Values vals = new Values();
+		for (int i = 0; i < mfNumConsts; i++)
+			if (mfConsts.get(i).getNumSteps() == 1)
+				vals.addValue(mfConsts.get(i).getName(), mfConsts.get(i).getValue());
+		for (int i = 0; i < pfNumConsts; i++)
+			if (pfConsts.get(i).getNumSteps() == 1)
+				vals.addValue(pfConsts.get(i).getName(), pfConsts.get(i).getValue());
+		return vals;
 	}
 }

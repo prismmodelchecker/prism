@@ -43,6 +43,9 @@ public class ResultsCollection
 	private int numMFRangingConstants;
 	private int numPFRangingConstants;
 
+	// Info about other constants (over which these results do *not* range)
+	private Values nonRangingConstantValues;
+	
 	// Storage of the actual results
 	private TreeNode root;
 	private int currentIteration = 0;
@@ -69,7 +72,8 @@ public class ResultsCollection
 			rangingConstants.add(tmpRangingConstants.get(i));
 		}
 		numMFRangingConstants = uCons.getNumModelRangingConstants(); 
-		numPFRangingConstants = uCons.getNumPropertyRangingConstants(); 
+		numPFRangingConstants = uCons.getNumPropertyRangingConstants();
+		nonRangingConstantValues = uCons.getNonRangingConstantValues();
 
 		this.root = (rangingConstants.size() > 0) ? new TreeNode(0) : new TreeLeaf();
 		this.resultName = (resultName == null) ? "Result" : resultName;
@@ -93,6 +97,11 @@ public class ResultsCollection
 	public int getNumPropertyRangingConstants()
 	{
 		return numPFRangingConstants;
+	}
+
+	public Values getNonRangingConstantValues()
+	{
+		return nonRangingConstantValues;
 	}
 
 	public boolean addResultListener(ResultListener resultListener)
@@ -280,7 +289,8 @@ public class ResultsCollection
 	 */
 	public ResultsExporter export(ResultsExporter exporter)
 	{
-		exporter.setConstantsInfo(rangingConstants);
+		exporter.setRangingConstants(rangingConstants);
+		exporter.setNonRangingConstantValues(nonRangingConstantValues);
 		exporter.start();
 		root.export(exporter);
 		exporter.end();

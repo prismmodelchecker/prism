@@ -93,7 +93,8 @@ public class ResultsExporter
 		}
 	};
 
-	private List<DefinedConstant> constants;
+	private List<DefinedConstant> rangingConstants;
+	private Values nonRangingConstantValues;
 	private Property property;
 	private ResultsExportFormat format = ResultsExportFormat.PLAIN;
 
@@ -170,9 +171,14 @@ public class ResultsExporter
 		this.equals = equals;
 	}*/
 
-	public void setConstantsInfo(final List<DefinedConstant> constants)
+	public void setRangingConstants(final List<DefinedConstant> rangingConstants)
 	{
-		this.constants = constants;
+		this.rangingConstants = rangingConstants;
+	}
+
+	public void setNonRangingConstantValues(final Values nonRangingConstantValues)
+	{
+		this.nonRangingConstantValues = nonRangingConstantValues;
 	}
 
 	public void setProperty(final Property property)
@@ -215,12 +221,12 @@ public class ResultsExporter
 			}
 		}
 		// Print header, if needed
-		if (printHeader && constants != null) {
-			for (int i = 0; i < constants.size(); i++) {
+		if (printHeader && rangingConstants != null) {
+			for (int i = 0; i < rangingConstants.size(); i++) {
 				if (i > 0) {
 					exportString += separator;
 				}
-				exportString += constants.get(i).getName();
+				exportString += rangingConstants.get(i).getName();
 			}
 			exportString += equals + "Result\n";
 		}
@@ -237,9 +243,10 @@ public class ResultsExporter
 			exportString += values.toString(printNames, separator) + equals + result + "\n";
 			break;
 		case COMMENT:
+			Values mergedValues = new Values(nonRangingConstantValues, values);
 			exportString += "// RESULT";
-			if (values.getNumValues() > 0) {
-				exportString += " (" + values.toString(true, ",") + ")";
+			if (mergedValues.getNumValues() > 0) {
+				exportString += " (" + mergedValues.toString(true, ",") + ")";
 			}
 			exportString += ": " + result + "\n";
 		}
