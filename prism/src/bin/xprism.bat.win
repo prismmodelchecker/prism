@@ -21,5 +21,5 @@ rem  - lib/*.jar (all other jars)
 set CP=%PRISM_DIR%\lib\prism.jar;%PRISM_DIR%\classes;%PRISM_DIR%;%PRISM_DIR%\lib\pepa.zip;%PRISM_DIR%\lib\*
 
 rem Run PRISM through Java
-start "PRISM" javaw -Djava.library.path="%PRISM_DIR%\lib" -classpath "%CP%" userinterface/GUIPrism %*
+start "PRISM" javaw -Xmx1g -Xss4M -Djava.library.path="%PRISM_DIR%\lib" -classpath "%CP%" userinterface/GUIPrism %*
 exit
