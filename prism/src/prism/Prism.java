@@ -1292,6 +1292,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			mainLog.print("Hostname: " + h + "\n");
 		} catch (java.net.UnknownHostException e) {
 		}
+		mainLog.print("Memory limits: cudd=" + getCUDDMaxMem());
+		mainLog.println(", java=" + PrismUtils.convertBytesToMemoryString(Runtime.getRuntime().maxMemory()));
 
 		// initialise cudd/jdd
 		long cuddMaxMem = PrismUtils.convertMemoryStringtoKB(getCUDDMaxMem());
