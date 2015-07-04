@@ -1,13 +1,24 @@
 This file contains details of the changes in each new version of PRISM.
 
-Latest changes: (up to rev 9654)
+-----------------------------------------------------------------------------
+Version 4.2.2 (first released ???)
+-----------------------------------------------------------------------------
 
-* -exact switch
-* -exportpropaut (hidden)
-* Some LTL model checking optimisations
-* Expected total rewards (R[C]) implemented for DTMCs in symbolic engine.
-* lower time-bounds supported for DTMCs/MDPs
-* -pathviaautomata switch
+* Support for external LTL-to-automata converters via the HOA format
+* Lower time-bounds for properties of DTMCs/MDPs (e.g. P=? [ F>=2 "target" ])
+* Arbitrary precision computation via the parametric engine (switch -exact)
+* Expected total rewards (R[C]) implemented for DTMCs in symbolic engine
+* Backwards reachability algorithm implemented for model checking PTAs
+* Various LTL model checking optimisations
+* New -pathviaautomata switch to force model checking via automaton construction
+* New "comment" option for -exportresult switch (exports in regression test format)
+* Changes to memory limits
+  - New -javamaxmem switch (equivalent to setting PRISM_JAVAMAXMEM)
+  - More convenient format for CUDD max memory setting (125k, 50m, 4g, etc.)
+  - Higher default values for CUDD/Java memory limits
+* Additional functionality in prism-auto testing/benchmarking script
+  - .auto files, export testing, debug mode, custom model files, ...
+* New sbml2prism script
 * Bug fixes
 
 -----------------------------------------------------------------------------
