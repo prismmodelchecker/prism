@@ -895,7 +895,9 @@ final public class ParamModelChecker extends PrismComponent
 		RegionValues probs = null;
 		if (expr instanceof ExpressionTemporal) {
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
-			if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
+			if (exprTemp.getOperator() == ExpressionTemporal.P_X) {
+				throw new PrismNotSupportedException("Next operator not supported by parametric engine");
+			} else if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
 				BitSet needStatesInner = new BitSet(model.getNumStates());
 				needStatesInner.set(0, model.getNumStates());
 				RegionValues b1 = checkExpression(model, exprTemp.getOperand1(), needStatesInner);
