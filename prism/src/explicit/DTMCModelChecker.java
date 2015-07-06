@@ -452,14 +452,14 @@ public class DTMCModelChecker extends ProbModelChecker
 			exportLabels(dtmc, labels, labelNames, Prism.EXPORT_PLAIN, new PrismFileLog(getExportTargetFilename()));
 		}
 
-		if (precomp && (prob0 || prob1) && cachePre) {
+		if (precomp && (prob0 || prob1) && preRel) {
 			pre = dtmc.getPredecessorRelation(this, true);
 		}
 
 		// Precomputation
 		timerProb0 = System.currentTimeMillis();
 		if (precomp && prob0) {
-			if (cachePre) {
+			if (preRel) {
 				no = prob0(dtmc, remain, target, pre);
 			} else {
 				no = prob0(dtmc, remain, target);
@@ -470,7 +470,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		timerProb0 = System.currentTimeMillis() - timerProb0;
 		timerProb1 = System.currentTimeMillis();
 		if (precomp && prob1) {
-			if (cachePre) {
+			if (preRel) {
 				yes = prob1(dtmc, remain, target, pre);
 			} else {
 				yes = prob1(dtmc, remain, target);

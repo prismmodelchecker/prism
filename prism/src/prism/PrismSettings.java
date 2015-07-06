@@ -77,7 +77,7 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_PRECOMPUTATION					= "prism.precomputation";
 	public static final	String PRISM_PROB0							= "prism.prob0";
 	public static final	String PRISM_PROB1							= "prism.prob1";
-	public static final	String PRISM_CACHE_PRE					= "prism.cachePre";
+	public static final	String PRISM_PRE_REL					= "prism.preRel";
 	public static final	String PRISM_FIX_DEADLOCKS					= "prism.fixDeadlocks";
 	public static final	String PRISM_DO_PROB_CHECKS					= "prism.doProbChecks";
 	public static final	String PRISM_SUM_ROUND_OFF					= "prism.sumRoundOff";
@@ -249,8 +249,8 @@ public class PrismSettings implements Observer
 																			"Whether to use model checking precomputation algorithm Prob0 (if precomputation enabled)." },
 			{ BOOLEAN_TYPE,		PRISM_PROB1,							"Use Prob1 precomputation",				"4.0.2",		new Boolean(true),															"",																							
 																			"Whether to use model checking precomputation algorithm Prob1 (if precomputation enabled)." },
-			{ BOOLEAN_TYPE,		PRISM_CACHE_PRE,							"Cache predecessor relation",		"4.2.1",		new Boolean(true),											"",
-																			"Whether to use a precomputed predecessor relation in several algorithms." },
+			{ BOOLEAN_TYPE,		PRISM_PRE_REL,							"Use predecessor relation",		"4.2.1",		new Boolean(true),											"",
+																			"Whether to use a pre-computed predecessor relation in several algorithms." },
 			{ BOOLEAN_TYPE,		PRISM_FAIRNESS,							"Use fairness",							"2.1",			new Boolean(false),															"",																							
 																			"Constrain to fair adversaries when model checking MDPs." },
 			{ BOOLEAN_TYPE,		PRISM_FIX_DEADLOCKS,					"Automatically fix deadlocks",			"4.0.3",		new Boolean(true),															"",																							
@@ -1018,9 +1018,9 @@ public class PrismSettings implements Observer
 		else if (sw.equals("noprob1")) {
 			set(PRISM_PROB1, false);
 		}
-		// Caching of predecessor relation (e.g. for precomputation)
-		else if (sw.equals("nocachepre")) {
-			set(PRISM_CACHE_PRE, false);
+		// Use predecessor relation? (e.g. for precomputation)
+		else if (sw.equals("noprerel")) {
+			set(PRISM_PRE_REL, false);
 		}
 		// Fix deadlocks on/off
 		else if (sw.equals("fixdl")) {
@@ -1552,6 +1552,7 @@ public class PrismSettings implements Observer
 		mainLog.println("-nopre ......................... Skip precomputation algorithms (where optional)");
 		mainLog.println("-noprob0 ....................... Skip precomputation algorithm Prob0 (where optional)");
 		mainLog.println("-noprob1 ....................... Skip precomputation algorithm Prob1 (where optional)");
+		mainLog.println("-noprerel ...................... Do not pre-compute/use predecessor relation, e.g. for precomputation");
 		mainLog.println("-fair .......................... Use fairness (for model checking of MDPs)");
 		mainLog.println("-nofair ........................ Don't use fairness (for model checking of MDPs) [default]");
 		mainLog.println("-fixdl ......................... Automatically put self-loops in deadlock states [default]");
