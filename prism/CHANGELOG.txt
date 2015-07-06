@@ -12,6 +12,7 @@ Version 4.3 (first released ???)
   - expected total rewards (R[C]) implemented for DTMCs in symbolic engine
   - backwards reachability algorithm implemented for model checking PTAs
   - various LTL model checking optimisations
+  - faster precomputation by pre-computing predecessors
 
 * Options/switches:
   - new -pathviaautomata switch to force model checking via automaton construction
