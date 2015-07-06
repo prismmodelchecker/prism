@@ -72,7 +72,8 @@ public class ProbModelChecker extends NonProbModelChecker
 	protected boolean precomp = true;
 	protected boolean prob0 = true;
 	protected boolean prob1 = true;
-	protected boolean useBackward = true;
+	// Cache predecessor relation? (e.g. for precomputation)
+	protected boolean cachePre = true;
 	// Direction of convergence for value iteration (lfp/gfp)
 	protected ValIterDir valIterDir = ValIterDir.BELOW;
 	// Method used for numerical solution
@@ -212,7 +213,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			// PRISM_PROB1
 			setProb1(settings.getBoolean(PrismSettings.PRISM_PROB1));
 			// PRISM_USE_PRE
-			setUseBackward(settings.getBoolean(PrismSettings.PRISM_USE_BACKWARD));
+			setCachePre(settings.getBoolean(PrismSettings.PRISM_CACHE_PRE));
 			// PRISM_FAIRNESS
 			if (settings.getBoolean(PrismSettings.PRISM_FAIRNESS)) {
 				throw new PrismNotSupportedException("The explicit engine does not support model checking MDPs under fairness");
@@ -346,9 +347,9 @@ public class ProbModelChecker extends NonProbModelChecker
 	/**
 	 * Set whether or not to use precomputed Pre relation
 	 */
-	public void setUseBackward(boolean useBackward)
+	public void setCachePre(boolean cachePre)
 	{
-		this.useBackward = useBackward;
+		this.cachePre = cachePre;
 	}
 
 	/**
@@ -432,9 +433,9 @@ public class ProbModelChecker extends NonProbModelChecker
 		return prob1;
 	}
 
-	public boolean getUseBackward()
+	public boolean getCachePre()
 	{
-		return useBackward;
+		return cachePre;
 	}
 
 	public ValIterDir getValIterDir()

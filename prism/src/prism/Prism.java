@@ -776,9 +776,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		return settings.getBoolean(PrismSettings.PRISM_PROB1);
 	}
 	
-	public boolean getUseBackward()
+	public boolean getCachePre()
 	{
-		return settings.getBoolean(PrismSettings.PRISM_USE_BACKWARD);
+		return settings.getBoolean(PrismSettings.PRISM_CACHE_PRE);
 	}
 
 	public boolean getFairness()
