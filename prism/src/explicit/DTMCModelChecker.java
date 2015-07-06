@@ -411,6 +411,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		BitSet no, yes;
 		int i, n, numYes, numNo;
 		long timer, timerProb0, timerProb1;
+		PredecessorRelation pre = null;
 		// Local copy of setting
 		LinEqMethod linEqMethod = this.linEqMethod;
 
@@ -451,17 +452,29 @@ public class DTMCModelChecker extends ProbModelChecker
 			exportLabels(dtmc, labels, labelNames, Prism.EXPORT_PLAIN, new PrismFileLog(getExportTargetFilename()));
 		}
 
+		if (precomp && (prob0 || prob1) && cachePre) {
+			pre = dtmc.getPredecessorRelation(this, true);
+		}
+
 		// Precomputation
 		timerProb0 = System.currentTimeMillis();
 		if (precomp && prob0) {
-			no = prob0(dtmc, remain, target);
+			if (cachePre) {
+				no = prob0(dtmc, remain, target, pre);
+			} else {
+				no = prob0(dtmc, remain, target);
+			}
 		} else {
 			no = new BitSet();
 		}
 		timerProb0 = System.currentTimeMillis() - timerProb0;
 		timerProb1 = System.currentTimeMillis();
 		if (precomp && prob1) {
-			yes = prob1(dtmc, remain, target);
+			if (cachePre) {
+				yes = prob1(dtmc, remain, target, pre);
+			} else {
+				yes = prob1(dtmc, remain, target);
+			}
 		} else {
 			yes = (BitSet) target.clone();
 		}
@@ -496,12 +509,56 @@ public class DTMCModelChecker extends ProbModelChecker
 		return res;
 	}
 
+
 	/**
-	 * Prob0 precomputation algorithm.
+	 * Prob0 precomputation algorithm (using predecessor relation),
 	 * i.e. determine the states of a DTMC which, with probability 0,
-	 * reach a state in {@code target}, while remaining in those in @{code remain}.
-	 * @param mdp The MDP
-	 * @param remain Remain in these states (optional: null means "all")
+	 * reach a state in {@code target}, while remaining in those in {@code remain}.
+	 * @param dtmc The DTMC
+	 * @param remain Remain in these states (optional: {@code null} means "all states")
+	 * @param target Target states
+	 * @param pre The predecessor relation
+	 */
+	public BitSet prob0(DTMC dtmc, BitSet remain, BitSet target, PredecessorRelation pre)
+	{
+		BitSet canReachTarget, result;
+		long timer;
+
+		// Start precomputation
+		timer = System.currentTimeMillis();
+		mainLog.println("Starting Prob0...");
+
+		// Special case: no target states
+		if (target.isEmpty()) {
+			BitSet soln = new BitSet(dtmc.getNumStates());
+			soln.set(0, dtmc.getNumStates());
+			return soln;
+		}
+
+		// calculate all states that can reach 'target'
+		// while remaining in 'remain' in the underlying graph,
+		// where all the 'target' states are made absorbing
+		canReachTarget = pre.calculatePreStar(remain, target, target);
+
+		// prob0 = complement of 'canReachTarget'
+		result = new BitSet();
+		result.set(0, dtmc.getNumStates(), true);
+		result.andNot(canReachTarget);
+
+		// Finished precomputation
+		timer = System.currentTimeMillis() - timer;
+		mainLog.print("Prob0");
+		mainLog.println(" took " + timer / 1000.0 + " seconds.");
+
+		return result;
+	}
+
+	/**
+	 * Prob0 precomputation algorithm (using a fixed-point computation),
+	 * i.e. determine the states of a DTMC which, with probability 0,
+	 * reach a state in {@code target}, while remaining in those in {@code remain}.
+	 * @param dtmc The DTMC
+	 * @param remain Remain in these states (optional: {@code null} means "all")
 	 * @param target Target states
 	 */
 	public BitSet prob0(DTMC dtmc, BitSet remain, BitSet target)
@@ -564,11 +621,78 @@ public class DTMCModelChecker extends ProbModelChecker
 	}
 
 	/**
-	 * Prob1 precomputation algorithm.
+	 * Prob1 precomputation algorithm (using predecessor relation),
 	 * i.e. determine the states of a DTMC which, with probability 1,
-	 * reach a state in {@code target}, while remaining in those in @{code remain}.
-	 * @param mdp The MDP
+	 * reach a state in {@code target}, while remaining in those in {@code remain}.
+	 * @param dtmc The DTMC
 	 * @param remain Remain in these states (optional: null means "all")
+	 * @param target Target states
+	 * @param pre The predecessor relation of the DTMC
+	 */
+	public BitSet prob1(DTMC dtmc, BitSet remain, BitSet target, PredecessorRelation pre) {
+		// Implements the constrained reachability algorithm from
+		// Baier, Katoen: Principles of Model Checking (Corollary 10.31 Qualitative Constrained Reachability)
+		long timer;
+
+		// Start precomputation
+		timer = System.currentTimeMillis();
+		mainLog.println("Starting Prob1...");
+
+		// Special case: no 'target' states
+		if (target.isEmpty()) {
+			// empty set
+			return new BitSet();
+		}
+
+		// mark all states in 'target' and all states not in 'remain' as absorbing
+		BitSet absorbing = new BitSet();
+		if (remain != null) {
+			// complement remain
+			absorbing.set(0, dtmc.getNumStates(), true);
+			absorbing.andNot(remain);
+		} else {
+			// for remain == null, remain consists of all states
+			// thus, absorbing = the empty set is already the complementation of remain
+		}
+		// union with 'target'
+		absorbing.or(target);
+
+		// M' = DTMC where all 'absorbing' states are considered to be absorbing
+
+		// the set of states that satisfy E [ F target ] in M'
+		// Pre*(target)
+		BitSet canReachTarget = pre.calculatePreStar(null, target, absorbing);
+
+		// complement canReachTarget
+		// S\Pre*(target)
+		BitSet canNotReachTarget = new BitSet();
+		canNotReachTarget.set(0, dtmc.getNumStates(), true);
+		canNotReachTarget.andNot(canReachTarget);
+
+		// the set of states that can reach a canNotReachTarget state in M'
+		// Pre*(S\Pre*(target))
+		BitSet probTargetNot1 = pre.calculatePreStar(null, canNotReachTarget, absorbing);
+
+		// complement probTargetNot1
+		// S\Pre*(S\Pre*(target))
+		BitSet result = new BitSet();
+		result.set(0, dtmc.getNumStates(), true);
+		result.andNot(probTargetNot1);
+
+		// Finished precomputation
+		timer = System.currentTimeMillis() - timer;
+		mainLog.print("Prob1");
+		mainLog.println(" took " + timer / 1000.0 + " seconds.");
+
+		return result;
+	}
+
+	/**
+	 * Prob1 precomputation algorithm (using a fixed-point computation)
+	 * i.e. determine the states of a DTMC which, with probability 1,
+	 * reach a state in {@code target}, while remaining in those in {@code remain}.
+	 * @param dtmc The DTMC
+	 * @param remain Remain in these states (optional: {@code null} means "all")
 	 * @param target Target states
 	 */
 	public BitSet prob1(DTMC dtmc, BitSet remain, BitSet target)
