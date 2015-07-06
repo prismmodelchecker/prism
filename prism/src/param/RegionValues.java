@@ -270,7 +270,18 @@ public final class RegionValues implements Iterable<Entry<Region, StateValues>>
 			RegionValues vals = region.binaryOp(op, values.get(region), pValue);
 			result.addAll(vals);
 		}
+		return result;
+	}
 
+	public RegionValues binaryOp(BigRational p, int op)
+	{
+		RegionValues result = new RegionValues(factory);
+		Function pFn = factory.getFunctionFactory().fromBigRational(p);
+		StateValues pValue = new StateValues(values.get(regions.get(0)).getNumStates(), factory.getInitialState(), pFn);
+		for (Region region : regions) {
+			RegionValues vals = region.binaryOp(op, pValue, values.get(region));
+			result.addAll(vals);
+		}
 		return result;
 	}
 

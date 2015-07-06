@@ -892,12 +892,27 @@ final public class ParamModelChecker extends PrismComponent
 	
 	private RegionValues checkProbPathFormulaSimple(ParamModel model, Expression expr, boolean min, BitSet needStates) throws PrismException
 	{
+		boolean negated = false;
 		RegionValues probs = null;
+		
+		expr = Expression.convertSimplePathFormulaToCanonicalForm(expr);
+		
+		// Negation
+		if (expr instanceof ExpressionUnaryOp &&
+		    ((ExpressionUnaryOp)expr).getOperator() == ExpressionUnaryOp.NOT) {
+			negated = true;
+			expr = ((ExpressionUnaryOp)expr).getOperand();
+		}
+			
 		if (expr instanceof ExpressionTemporal) {
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
+			
+			// Next
 			if (exprTemp.getOperator() == ExpressionTemporal.P_X) {
 				throw new PrismNotSupportedException("Next operator not supported by parametric engine");
-			} else if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
+			}
+			// Until
+			else if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
 				BitSet needStatesInner = new BitSet(model.getNumStates());
 				needStatesInner.set(0, model.getNumStates());
 				RegionValues b1 = checkExpression(model, exprTemp.getOperand1(), needStatesInner);
@@ -908,10 +923,14 @@ final public class ParamModelChecker extends PrismComponent
 					probs = checkProbUntil(model, b1, b2, min, needStates);
 				}
 			}
-			// Anything else - convert to until and recurse
-			else {
-				probs = checkProbPathFormulaSimple(model, exprTemp.convertToUntilForm(), min, needStates);
-			}
+		}
+		
+		if (probs == null)
+			throw new PrismException("Unrecognised path operator in P operator");
+
+		if (negated) {
+			// Subtract from 1 for negation
+			probs = probs.binaryOp(new BigRational(1, 1), parserBinaryOpToRegionOp(ExpressionBinaryOp.MINUS));
 		}
 		
 		return probs;
