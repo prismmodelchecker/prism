@@ -100,6 +100,7 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_EXTRA_REACH_INFO				= "prism.extraReachInfo";
 	public static final String PRISM_SCC_METHOD						= "prism.sccMethod";
 	public static final String PRISM_SYMM_RED_PARAMS					= "prism.symmRedParams";
+	public static final	String PRISM_EXACT_ENABLED					= "prism.exact.enabled";
 	public static final String PRISM_PTA_METHOD					= "prism.ptaMethod";
 	public static final String PRISM_TRANSIENT_METHOD				= "prism.transientMethod";
 	public static final String PRISM_AR_OPTIONS					= "prism.arOptions";
@@ -110,8 +111,6 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_MULTI_MAX_POINTS				= "prism.multiMaxIters";
 	public static final	String PRISM_PARETO_EPSILON					= "prism.paretoEpsilon";
 	public static final	String PRISM_EXPORT_PARETO_FILENAME			= "prism.exportParetoFileName";
-	
-	public static final	String PRISM_EXACT_ENABLED					= "prism.exact.enabled";
 	
 	public static final	String PRISM_PARAM_ENABLED					= "prism.param.enabled";
 	public static final	String PRISM_PARAM_PRECISION				= "prism.param.precision";
@@ -220,6 +219,9 @@ public class PrismSettings implements Observer
 			// ENGINES/METHODS:
 			{ CHOICE_TYPE,		PRISM_ENGINE,							"Engine",								"2.1",			"Hybrid",																	"MTBDD,Sparse,Hybrid,Explicit",																		
 																			"Which engine (hybrid, sparse, MTBDD, explicit) should be used for model checking." },
+			{ BOOLEAN_TYPE,		PRISM_EXACT_ENABLED,					"Do exact model checking",			"4.2.1",			new Boolean(false),															"",
+																			"Perform exact model checking." },
+																			
 			{ CHOICE_TYPE,		PRISM_PTA_METHOD,						"PTA model checking method",			"3.3",			"Stochastic games",																	"Digital clocks,Stochastic games,Backwards reachability",																
 																			"Which method to use for model checking of PTAs." },
 			{ CHOICE_TYPE,		PRISM_TRANSIENT_METHOD,					"Transient probability computation method",	"3.3",		"Uniformisation",															"Uniformisation,Fast adaptive uniformisation",																
@@ -299,10 +301,6 @@ public class PrismSettings implements Observer
 			{ STRING_TYPE,		PRISM_EXPORT_ADV_FILENAME,				"Adversary export filename",			"3.3",			"adv.tra",																	"",															
 																			"Name of file for MDP adversary export (if enabled)" },
 																		
-			// EXACT MODEL CHECKING
-			{ BOOLEAN_TYPE,		PRISM_EXACT_ENABLED,					"Do exact model checking",			"4.2.1",			new Boolean(false),															"",
-																			"Perform exact model checking." },
-			
 			// PARAMETRIC MODEL CHECKING
 			{ BOOLEAN_TYPE,		PRISM_PARAM_ENABLED,					"Do parametric model checking",			"4.1",			new Boolean(false),															"",
 																			"Perform parametric model checking." },
@@ -881,6 +879,10 @@ public class PrismSettings implements Observer
 		else if (sw.equals("explicit") || sw.equals("ex")) {
 			set(PRISM_ENGINE, "Explicit");
 		}
+		// Exact model checking
+		else if (sw.equals("exact")) {
+			set(PRISM_EXACT_ENABLED, true);
+		}
 		// PTA model checking methods
 		else if (sw.equals("ptamethod")) {
 			if (i < args.length - 1) {
@@ -1256,12 +1258,6 @@ public class PrismSettings implements Observer
 			}
 		}
 		
-		// EXACT MODEL CHECKING:
-		
-		else if (sw.equals("exact")) {
-			set(PRISM_EXACT_ENABLED, true);
-		}
-		
 		// PARAMETRIC MODEL CHECKING:
 		
 		else if (sw.equals("param")) {
@@ -1515,6 +1511,7 @@ public class PrismSettings implements Observer
 		mainLog.println("-sparse (or -s) ................ Use the Sparse engine");
 		mainLog.println("-hybrid (or -h) ................ Use the Hybrid engine [default]");
 		mainLog.println("-explicit (or -ex) ............. Use the explicit engine");
+		mainLog.println("-exact ......................... Perform exact (arbitrary precision) model checking");
 		mainLog.println("-ptamethod <name> .............. Specify PTA engine (games, digital) [default: games]");
 		mainLog.println("-transientmethod <name> ........ CTMC transient analysis methof (unif, fau) [default: unif]");
 		mainLog.println();
