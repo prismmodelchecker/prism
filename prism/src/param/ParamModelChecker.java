@@ -923,29 +923,19 @@ final public class ParamModelChecker extends PrismComponent
 		
 	private RegionValues checkProbBoundedUntil(ParamModel model, RegionValues b1, RegionValues b2, boolean min) throws PrismException {
 		ModelType modelType = model.getModelType();
-		RegionValues probs;
+		//RegionValues probs;
 		switch (modelType) {
 		case CTMC:
-			throw new PrismNotSupportedException("bounded until not implemented for parametric CTMCs");
+			throw new PrismNotSupportedException("Bounded until operator not supported by parametric engine");
 		case DTMC:
-			probs = checkProbBoundedUntilDTMC(model, b1, b2);
-			break;
+			throw new PrismNotSupportedException("Bounded until operator not supported by parametric engine");
 		case MDP:
-			probs = checkProbBoundedUntilMDP(model, b1, b2, min);
-			break;
+			throw new PrismNotSupportedException("Bounded until operator not supported by parametric engine");
 		default:
 			throw new PrismNotSupportedException("Cannot model check for a " + modelType);
 		}
 
-		return probs;
-	}
-
-	private RegionValues checkProbBoundedUntilMDP(ParamModel model, RegionValues b1, RegionValues b2, boolean min) {
-		throw new UnsupportedOperationException("Bounded until is not supported at the moment");
-	}
-
-	private RegionValues checkProbBoundedUntilDTMC(ParamModel model, RegionValues b1, RegionValues b2) {
-		throw new UnsupportedOperationException("Bounded until is not supported at the moment");
+		//return probs;
 	}
 
 	/**
