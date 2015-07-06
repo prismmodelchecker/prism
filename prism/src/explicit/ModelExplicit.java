@@ -69,6 +69,11 @@ public abstract class ModelExplicit implements Model
 	/** (Optionally) some labels (atomic propositions) associated with the model,
 	 * represented as a String->BitSet mapping from their names to the states that satisfy them. */
 	protected Map<String, BitSet> labels = new TreeMap<String, BitSet>();
+	
+	/**
+	 * (Optionally) the stored predecessor relation. Becomes inaccurate after the model is changed!
+	 */
+	protected PredecessorRelation predecessorRelation = null;
 
 	// Mutators
 
@@ -439,4 +444,29 @@ public abstract class ModelExplicit implements Model
 			return false;
 		return true;
 	}
+
+	@Override
+	public boolean hasStoredPredecessorRelation() {
+		return (predecessorRelation != null);
+	}
+
+	@Override
+	public PredecessorRelation getPredecessorRelation(prism.PrismComponent parent, boolean storeIfNew) {
+		if (predecessorRelation != null) {
+			return predecessorRelation;
+		}
+
+		PredecessorRelation pre = PredecessorRelation.forModel(parent, this);
+
+		if (storeIfNew) {
+			predecessorRelation = pre;
+		}
+		return pre;
+	}
+
+	@Override
+	public void clearPredecessorRelation() {
+		predecessorRelation = null;
+	}
+
 }

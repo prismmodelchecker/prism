@@ -62,6 +62,11 @@ public class SubNondetModel implements NondetModel
 	private Map<Integer, Map<Integer, Integer>> actionLookupTable = new HashMap<Integer, Map<Integer, Integer>>();
 	private Map<Integer, Integer> inverseStateLookupTable = new HashMap<Integer, Integer>();
 
+	/**
+	 * (Optionally) the stored predecessor relation. Becomes inaccurate after the model is changed!
+	 */
+	protected PredecessorRelation predecessorRelation;
+
 	private int numTransitions = 0;
 	private int maxNumChoices = 0;
 	private int numChoices = 0;
@@ -494,5 +499,29 @@ public class SubNondetModel implements NondetModel
 	public int translateAction(int s, int i)
 	{
 		return actionLookupTable.get(s).get(i);
+	}
+
+	@Override
+	public boolean hasStoredPredecessorRelation() {
+		return (predecessorRelation != null);
+	}
+
+	@Override
+	public PredecessorRelation getPredecessorRelation(prism.PrismComponent parent, boolean storeIfNew) {
+		if (predecessorRelation != null) {
+			return predecessorRelation;
+		}
+
+		PredecessorRelation pre = PredecessorRelation.forModel(parent, this);
+
+		if (storeIfNew) {
+			predecessorRelation = pre;
+		}
+		return pre;
+	}
+
+	@Override
+	public void clearPredecessorRelation() {
+		predecessorRelation = null;
 	}
 }
