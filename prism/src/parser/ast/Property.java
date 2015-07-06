@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import param.BigRational;
 import parser.Values;
 import parser.type.*;
 import parser.visitor.*;
@@ -322,6 +323,8 @@ public class Property extends ASTElement
 		else if (type instanceof TypeDouble) {
 			// Parse expected result
 			double doubleExp;
+			boolean isRational = false;
+			int numer = 0, denom = 0;
 			try {
 				// See if it's NaN
 				if (strExpected.equals("NaN")) {
@@ -329,8 +332,9 @@ public class Property extends ASTElement
 				}
 				// See if it's a fraction
 				else if (strExpected.matches("[0-9]+/[0-9]+")) {
-					int numer = Integer.parseInt(strExpected.substring(0, strExpected.indexOf('/')));
-					int denom = Integer.parseInt(strExpected.substring(strExpected.indexOf('/') + 1));
+					isRational = true;
+					numer = Integer.parseInt(strExpected.substring(0, strExpected.indexOf('/')));
+					denom = Integer.parseInt(strExpected.substring(strExpected.indexOf('/') + 1));
 					doubleExp = ((double) numer) / denom;
 				}
 				// Otherwise, just a double
@@ -341,17 +345,33 @@ public class Property extends ASTElement
 				throw new PrismException("Invalid RESULT specification \"" + strExpected + "\" for double-valued property");
 			}
 			// Parse actual result
-			double doubleRes;
-			if (!(result instanceof Double))
-				throw new PrismException("Result is wrong type for (double-valued) property");
-			doubleRes = ((Double) result).doubleValue();
-			// Compare results
-			if (Double.isNaN(doubleRes)) {
-				if (!Double.isNaN(doubleExp))
-					throw new PrismException("Wrong result (expected " + doubleExp + ", got NaN)");
-			} else {
-				if (!PrismUtils.doublesAreCloseRel(doubleExp, doubleRes, 1e-5))
-					throw new PrismException("Wrong result (expected " + doubleExp + ", got " + doubleRes + ")");
+			// Result might be exact
+			if (result instanceof BigRational) {
+				if (((BigRational) result).isNaN()) {
+					if (!Double.isNaN(doubleExp)) {
+						throw new PrismException("Wrong result (expected " + doubleExp + ", got NaN)");
+					}
+				} else if (isRational) {
+					if (!((BigRational) result).equals(new BigRational(numer, denom))) {
+						throw new PrismException("Wrong result (expected " + numer + "/" + denom + ", got " + result + ")");
+					}
+				} else {
+					throw new PrismException("Couldn't match exact result");
+				}
+			}
+			// Otherwise, result should be a double
+			else {
+				if (!(result instanceof Double))
+					throw new PrismException("Result is wrong type for (double-valued) property");
+				double doubleRes = ((Double) result).doubleValue();
+				// Compare results
+				if (Double.isNaN(doubleRes)) {
+					if (!Double.isNaN(doubleExp))
+						throw new PrismException("Wrong result (expected " + doubleExp + ", got NaN)");
+				} else {
+					if (!PrismUtils.doublesAreCloseRel(doubleExp, doubleRes, 1e-5))
+						throw new PrismException("Wrong result (expected " + doubleExp + ", got " + doubleRes + ")");
+				}
 			}
 		}
 
