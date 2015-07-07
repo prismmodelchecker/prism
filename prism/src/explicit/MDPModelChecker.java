@@ -1125,7 +1125,6 @@ public class MDPModelChecker extends ProbModelChecker
 			// Matrix-vector multiply and min/max ops
 			int strat[] = new int[n];
 			mdp.mvMultRewMinMax(soln, mdpRewards, min, soln2, null, false, strat);
-			mainLog.println(strat);
 			// Swap vectors for next iter
 			tmpsoln = soln;
 			soln = soln2;
