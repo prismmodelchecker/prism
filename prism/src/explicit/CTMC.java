@@ -69,6 +69,19 @@ public interface CTMC extends DTMC
 	public DTMC buildImplicitEmbeddedDTMC();
 
 	/**
+	 * Get the embedded DTMC for this CTMC, in implicit form
+	 * (i.e. where the details are computed on the fly from this one).
+	 * <p>
+	 * If there is no cached embedded DTMC, build it and cache it.
+	 * Otherwise, return the cached one.
+	 * <p>
+	 * If the underlying CTMC has changed, build a fresh one using
+	 * buildImplicitEmbeddedDTMC, which will update the cached embedded
+	 * DTMC.
+	 */
+	public DTMC getImplicitEmbeddedDTMC();
+
+	/**
 	 * Build (a new) embedded DTMC for this CTMC.
 	 */
 	public DTMCSimple buildEmbeddedDTMC();

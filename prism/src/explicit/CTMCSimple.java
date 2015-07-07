@@ -36,8 +36,19 @@ import prism.ModelType;
  */
 public class CTMCSimple extends DTMCSimple implements CTMC
 {
+	/**
+	 * The cached embedded DTMC.
+	 * <p>
+	 * Will become invalid if the CTMC is changed. In this case
+	 * construct a new one by calling buildImplicitEmbeddedDTMC()
+	 * <p>
+	 * We cache this so that the PredecessorRelation of the
+	 * embedded DTMC is cached.
+	 */
+	private DTMCEmbeddedSimple cachedEmbeddedDTMC = null;
+
 	// Constructors
-	
+
 	/**
 	 * Constructor: empty CTMC.
 	 */
@@ -130,8 +141,23 @@ public class CTMCSimple extends DTMCSimple implements CTMC
 	@Override
 	public DTMC buildImplicitEmbeddedDTMC()
 	{
-		return new DTMCEmbeddedSimple(this);
+		DTMCEmbeddedSimple dtmc = new DTMCEmbeddedSimple(this);
+		if (cachedEmbeddedDTMC != null) {
+			// replace cached DTMC
+			cachedEmbeddedDTMC = dtmc;
+		}
+		return dtmc;
 	}
+	
+	@Override
+	public DTMC getImplicitEmbeddedDTMC()
+	{
+		if (cachedEmbeddedDTMC == null) {
+			cachedEmbeddedDTMC = new DTMCEmbeddedSimple(this);
+		}
+		return cachedEmbeddedDTMC;
+	}
+
 	
 	@Override
 	public DTMCSimple buildEmbeddedDTMC()

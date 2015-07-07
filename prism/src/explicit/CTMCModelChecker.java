@@ -57,7 +57,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 	protected StateValues checkProbPathFormulaLTL(Model model, Expression expr, boolean qual, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ((CTMC)model).buildImplicitEmbeddedDTMC();
+		DTMC dtmcEmb = ((CTMC)model).getImplicitEmbeddedDTMC();
 		
 		// use superclass (DTMCModelChecker) method on the embedded DTMC
 		return super.checkProbPathFormulaLTL(dtmcEmb, expr, qual, minMax, statesOfInterest);
@@ -226,7 +226,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 	public ModelCheckerResult computeNextProbs(CTMC ctmc, BitSet target) throws PrismException
 	{
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ctmc.buildImplicitEmbeddedDTMC();
+		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
 		return super.computeNextProbs(dtmcEmb, target);
 	}
 
@@ -239,7 +239,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 	public ModelCheckerResult computeReachProbs(CTMC ctmc, BitSet target) throws PrismException
 	{
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ctmc.buildImplicitEmbeddedDTMC();
+		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
 		return super.computeReachProbs(dtmcEmb, target);
 	}
 
@@ -254,7 +254,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 	public ModelCheckerResult computeUntilProbs(CTMC ctmc, BitSet remain, BitSet target) throws PrismException
 	{
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ctmc.buildImplicitEmbeddedDTMC();
+		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
 		return super.computeUntilProbs(dtmcEmb, remain, target);
 	}
 
@@ -272,7 +272,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 	public ModelCheckerResult computeReachProbs(CTMC ctmc, BitSet remain, BitSet target, double init[], BitSet known) throws PrismException
 	{
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ctmc.buildImplicitEmbeddedDTMC();
+		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
 		return super.computeReachProbs(dtmcEmb, remain, target, init, known);
 	}
 
@@ -662,7 +662,7 @@ public class CTMCModelChecker extends DTMCModelChecker
 		int i, n;
 		// Build embedded DTMC
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ctmc.buildImplicitEmbeddedDTMC();
+		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
 		// Convert rewards
 		n = ctmc.getNumStates();
 		StateRewardsArray rewEmb = new StateRewardsArray(n);
