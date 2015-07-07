@@ -94,7 +94,7 @@ public class ExpressionReward extends ExpressionQuant
 	// Other methods
 	
 	/**
-	 * Get a string describing the type of R operator, e.g. "R=?" or "R<r".
+	 * Get a string describing the type of R operator, e.g. "R=?" or "R&lt;r".
 	 */
 	public String getTypeOfROperator()
 	{
