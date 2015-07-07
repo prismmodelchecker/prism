@@ -368,8 +368,11 @@ def verifyAndCleanupExports(outFiles, exportPrefix):
                 print "diff " + outFile + " " + expFile
                 result = False
         else:
-            print "FAIL (no " + os.path.basename(expFile) + " to compare to)"
-            result = False
+            if options.noExportTests:
+                print "SKIPPED"
+            else:
+                print "FAIL (no " + os.path.basename(expFile) + " to compare to)"
+                result = False
     return result
 
 # Run a benchmark, specified by a list of command-line args,
