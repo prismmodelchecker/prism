@@ -366,19 +366,9 @@ public class Property extends ASTElement
 					if (!rationalRes.isNaN())
 						throw new PrismException("Wrong result (expected NaN, got " + rationalRes + ")");
 				}
-				// See if it's an integer
-				else if (strExpected.matches("[0-9]+")) {
-					int val =  Integer.parseInt(strExpected);
-					rationalExp = new BigRational(val, 1);
-				}
-				// See if it's a fraction
-				else if (strExpected.matches("[0-9]+/[0-9]+")) {
-					int numer = Integer.parseInt(strExpected.substring(0, strExpected.indexOf('/')));
-					int denom = Integer.parseInt(strExpected.substring(strExpected.indexOf('/') + 1));
-					rationalExp = new BigRational(numer, denom);
-				}
+				// For integers/rationals/doubles, parse with BigRational if it's an integer
 				else {
-					throw new PrismException("Invalid RESULT specification \"" + strExpected + "\" for rational-valued property");
+					rationalExp = new BigRational(strExpected);
 				}
 			} catch (NumberFormatException e) {
 				throw new PrismException("Invalid RESULT specification \"" + strExpected + "\" for rational-valued property");
