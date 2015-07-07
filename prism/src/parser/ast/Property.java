@@ -319,12 +319,10 @@ public class Property extends ASTElement
 				throw new PrismException("Wrong result (expected " + intExp + ", got " +intRes + ")");
 		}
 
-		// Double-valued properties
-		else if (type instanceof TypeDouble) {
+		// Double-valued properties (non-exact mode)
+		else if (type instanceof TypeDouble && !(result instanceof BigRational)) {
 			// Parse expected result
 			double doubleExp;
-			boolean isRational = false;
-			int numer = 0, denom = 0;
 			try {
 				// See if it's NaN
 				if (strExpected.equals("NaN")) {
@@ -332,9 +330,8 @@ public class Property extends ASTElement
 				}
 				// See if it's a fraction
 				else if (strExpected.matches("[0-9]+/[0-9]+")) {
-					isRational = true;
-					numer = Integer.parseInt(strExpected.substring(0, strExpected.indexOf('/')));
-					denom = Integer.parseInt(strExpected.substring(strExpected.indexOf('/') + 1));
+					int numer = Integer.parseInt(strExpected.substring(0, strExpected.indexOf('/')));
+					int denom = Integer.parseInt(strExpected.substring(strExpected.indexOf('/') + 1));
 					doubleExp = ((double) numer) / denom;
 				}
 				// Otherwise, just a double
@@ -345,36 +342,52 @@ public class Property extends ASTElement
 				throw new PrismException("Invalid RESULT specification \"" + strExpected + "\" for double-valued property");
 			}
 			// Parse actual result
-			// Result might be exact
-			if (result instanceof BigRational) {
-				if (((BigRational) result).isNaN()) {
-					if (!Double.isNaN(doubleExp)) {
-						throw new PrismException("Wrong result (expected " + doubleExp + ", got NaN)");
-					}
-				} else if (isRational) {
-					if (!((BigRational) result).equals(new BigRational(numer, denom))) {
-						throw new PrismException("Wrong result (expected " + numer + "/" + denom + ", got " + result + ")");
-					}
-				} else {
-					throw new PrismException("Couldn't match exact result");
-				}
-			}
-			// Otherwise, result should be a double
-			else {
-				if (!(result instanceof Double))
-					throw new PrismException("Result is wrong type for (double-valued) property");
-				double doubleRes = ((Double) result).doubleValue();
-				// Compare results
-				if (Double.isNaN(doubleRes)) {
-					if (!Double.isNaN(doubleExp))
-						throw new PrismException("Wrong result (expected " + doubleExp + ", got NaN)");
-				} else {
-					if (!PrismUtils.doublesAreCloseRel(doubleExp, doubleRes, 1e-5))
-						throw new PrismException("Wrong result (expected " + doubleExp + ", got " + doubleRes + ")");
-				}
+			if (!(result instanceof Double))
+				throw new PrismException("Result is wrong type for (double-valued) property");
+			double doubleRes = ((Double) result).doubleValue();
+			// Compare results
+			if (Double.isNaN(doubleRes)) {
+				if (!Double.isNaN(doubleExp))
+					throw new PrismException("Wrong result (expected " + doubleExp + ", got NaN)");
+			} else {
+				if (!PrismUtils.doublesAreCloseRel(doubleExp, doubleRes, 1e-5))
+					throw new PrismException("Wrong result (expected " + doubleExp + ", got " + doubleRes + ")");
 			}
 		}
 
+		// Double-valued properties (exact mode)
+		else if (type instanceof TypeDouble && result instanceof BigRational) {
+			// Parse expected result
+			BigRational rationalRes = (BigRational) result;
+			BigRational rationalExp = null;
+			try {
+				// See if it's NaN
+				if (strExpected.equals("NaN")) {
+					if (!rationalRes.isNaN())
+						throw new PrismException("Wrong result (expected NaN, got " + rationalRes + ")");
+				}
+				// See if it's an integer
+				else if (strExpected.matches("[0-9]+")) {
+					int val =  Integer.parseInt(strExpected);
+					rationalExp = new BigRational(val, 1);
+				}
+				// See if it's a fraction
+				else if (strExpected.matches("[0-9]+/[0-9]+")) {
+					int numer = Integer.parseInt(strExpected.substring(0, strExpected.indexOf('/')));
+					int denom = Integer.parseInt(strExpected.substring(strExpected.indexOf('/') + 1));
+					rationalExp = new BigRational(numer, denom);
+				}
+				else {
+					throw new PrismException("Invalid RESULT specification \"" + strExpected + "\" for rational-valued property");
+				}
+			} catch (NumberFormatException e) {
+				throw new PrismException("Invalid RESULT specification \"" + strExpected + "\" for rational-valued property");
+			}
+			// Compare results
+			if (!rationalRes.equals(rationalExp))
+				throw new PrismException("Wrong result (expected " + rationalExp + ", got " + rationalRes + ")");
+		}
+		
 		// Unknown type
 		else {
 			throw new PrismException("Don't know how to test properties of type " + type);
