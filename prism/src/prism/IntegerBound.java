@@ -41,9 +41,9 @@ public class IntegerBound
 
 	/** Create new bounds.
 	 * @param lower: The lower bound, {@code null} represents "no lower bound"
-	 * @param lower_strict: Is the lower bound strict (> lower) or non-strict (>= lower)
+	 * @param lower_strict: Is the lower bound strict (&gt; lower) or non-strict (&gt;= lower)
 	 * @param upper: The upper bound, {@code null} represents "no upper bound"
-	 * @param upper_strict: Is the upper bound strict (< upper) or non-strict (<= upper)
+	 * @param upper_strict: Is the upper bound strict (&lt; upper) or non-strict (&lt;= upper)
 	 */
 	public IntegerBound(Integer lower, boolean lower_strict, Integer upper, boolean upper_strict)
 	{
@@ -86,7 +86,7 @@ public class IntegerBound
 	 * If {@code check} is {@code true}, throws an exception for negative or empty bounds.
 	 *
 	 * @param expression the expression
-	 * @param values the values for constants (may be {@code null})
+	 * @param constantValues the values for constants (may be {@code null})
 	 * @param check check for non-negative bounds / non-emptiness?
 	 * @return the {@code IntegerBound} for the expression
 	 * @throws PrismException
@@ -181,7 +181,7 @@ public class IntegerBound
 	}
 
 	/** Get the maximal interesting value, i.e., the value v such that
-	 *  for _all_ i>=v either isInBound(i)=true or isInBound(i)=false */
+	 *  for _all_ i&gt;=v either isInBound(i)=true or isInBound(i)=false */
 	public int getMaximalInterestingValue()
 	{
 		int max = 0;

@@ -164,7 +164,7 @@ public interface Model
 	 * Find all deadlock states and store this information in the model.
 	 * If requested (if fix=true) and if needed (i.e. for DTMCs/CTMCs),
 	 * fix deadlocks by adding self-loops in these states.
-	 * The set of deadlocks (before any possible fixing) can be obtained from {@link #getDeadlocks()}.
+	 * The set of deadlocks (before any possible fixing) can be obtained from {@link #getDeadlockStates()}.
 	 * @throws PrismException if the model is unable to fix deadlocks because it is non-mutable.
 	 */
 	public void findDeadlocks(boolean fix) throws PrismException;

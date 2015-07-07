@@ -31,7 +31,7 @@ public enum RelOp {
 	}
 
 	/**
-	 * Returns true if this corresponds to a lower bound (i.e. >, >=).
+	 * Returns true if this corresponds to a lower bound (i.e. &gt;, &gt;=).
 	 * NB: "min=?" does not return true for this.
 	 */
 	public boolean isLowerBound()
@@ -46,7 +46,7 @@ public enum RelOp {
 	}
 
 	/**
-	 * Returns true if this corresponds to an upper bound (i.e. <, <=).
+	 * Returns true if this corresponds to an upper bound (i.e. &lt;, &lt;=).
 	 * NB: "max=?" does not return true for this.
 	 */
 	public boolean isUpperBound()
@@ -61,7 +61,7 @@ public enum RelOp {
 	}
 
 	/**
-	 * Returns true if this is a strict bound (i.e. < or >).
+	 * Returns true if this is a strict bound (i.e. &lt; or &gt;).
 	 */
 	public boolean isStrict()
 	{
@@ -102,7 +102,7 @@ public enum RelOp {
 
 	/**
 	 * Returns the RelOp object corresponding to a (string) symbol,
-	 * e.g. parseSymbol("<=") returns RelOp.LEQ. Returns null if invalid.
+	 * e.g. parseSymbol("&lt;=") returns RelOp.LEQ. Returns null if invalid.
 	 * @param symbol The symbol to look up
 	 * @return
 	 */

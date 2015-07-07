@@ -34,7 +34,7 @@ import prism.PrismLangException;
 
 /**
  * Class to store a list of updates with associated probabilities (or rates).
- * e.g. 0.5:(s'=1)&(x'=x+1) + 0.5:(s'=2)&(x'=x-1)
+ * e.g. 0.5:(s'=1)&amp;(x'=x+1) + 0.5:(s'=2)&amp;(x'=x-1)
  */
 public class Updates extends ASTElement
 {

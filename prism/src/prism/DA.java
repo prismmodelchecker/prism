@@ -244,7 +244,7 @@ public class DA<Symbol, Acceptance extends AcceptanceOmega>
 
 	/**
 	 * Switch the acceptance condition. This may change the acceptance type,
-	 * i.e., a DA<BitSet, AcceptanceRabin> may become a DA<BitSet, AcceptanceStreett>
+	 * i.e., a DA&lt;BitSet, AcceptanceRabin&gt; may become a DA&lt;BitSet, AcceptanceStreett&gt;
 	 * @param da the automaton
 	 * @param newAcceptance the new acceptance condition
 	 */

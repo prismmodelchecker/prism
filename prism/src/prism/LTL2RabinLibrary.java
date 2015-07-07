@@ -76,7 +76,7 @@ public class LTL2RabinLibrary
 	 *     constructions {@code constructDRAFor....}
 	 * </ul>
 	 * Return {@code null} if the automaton can not be constructed using the library.
-	 * <br/> The LTL formula is represented as a PRISM Expression,
+	 * <br> The LTL formula is represented as a PRISM Expression,
 	 * in which atomic propositions are represented by ExpressionLabel objects.
 	 * @param ltl the LTL formula
 	 * @param constants values for constants in the formula (may be {@code null})
@@ -136,7 +136,7 @@ public class LTL2RabinLibrary
 	}
 	
 	/**
-	 * Construct a prism.DA<BitSet,AcceptanceRabin> for the given until formula.
+	 * Construct a prism.DA&lt;BitSet,AcceptanceRabin&gt; for the given until formula.
 	 * The expression is expected to have the form a U b, where
 	 * a and b are either ExpressionLabels or true/false.
 	 * The operator can have integer bounds.

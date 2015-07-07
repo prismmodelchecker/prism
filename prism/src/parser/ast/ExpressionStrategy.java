@@ -33,7 +33,7 @@ import parser.visitor.ASTVisitor;
 import prism.PrismLangException;
 
 /**
- * Class to represent ATL <<.>> and [[.]] operators, i.e. quantification over strategies
+ * Class to represent ATL &lt;&lt;.&gt;&gt; and [[.]] operators, i.e. quantification over strategies
  * ("there exists a strategy" or "for all strategies").
  */
 public class ExpressionStrategy extends Expression
@@ -94,7 +94,7 @@ public class ExpressionStrategy extends Expression
 	}
 
 	/**
-	 * Get a string ""<<>>"" or "[[]]" indicating type of quantification.
+	 * Get a string ""&lt;&lt;&gt;&gt;"" or "[[]]" indicating type of quantification.
 	 */
 	public String getOperatorString()
 	{

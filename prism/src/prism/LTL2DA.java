@@ -64,7 +64,7 @@ public class LTL2DA extends PrismComponent
 	 * The LTL formula is represented as a PRISM Expression,
 	 * in which atomic propositions are represented by ExpressionLabel objects.
 	 * @param ltl the formula
-	 * @param constantValues the values of constants, may be {@code null}
+	 * @param constants the values of constants, may be {@code null}
 	 * @param allowedAcceptance the AcceptanceTypes that are allowed to be returned
 	 */
 	public DA<BitSet,? extends AcceptanceOmega> convertLTLFormulaToDA(Expression ltl, Values constants, AcceptanceType... allowedAcceptance) throws PrismException

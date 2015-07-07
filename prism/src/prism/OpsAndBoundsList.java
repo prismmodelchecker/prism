@@ -35,8 +35,8 @@ import java.util.List;
  *
  * The instance keeps an ordered instance of (operator,bound) values.
  * These are currently held in two separate lists internally. A tuple
- * is added using {@link add(Operator,bound)} method, and retrieved using
- * {@link getOperator(int)} and {@link getBound(double} methods.
+ * is added using {@link add(OpRelOpBound, Operator,double,int)} method, and retrieved using
+ * {@link getOperator(int)} and {@link getBound(int)} methods.
  * 
  * The class also provides methods for accessing i-th elements in the
  * subsequence containing only the tuples in which operator is a probabilistic
@@ -226,7 +226,7 @@ public class OpsAndBoundsList
 
 	/**
 	 * True if the ith probabilistic objective is negation of what the user required
-	 * (i.e. formula is negated and we use >= instead <= or max instead of min).
+	 * (i.e. formula is negated and we use &gt;= instead &lt;= or max instead of min).
 	 * Used to determine what values to display to the user.
 	 * @param i
 	 * @return
@@ -237,7 +237,7 @@ public class OpsAndBoundsList
 	}
 	
 	/**
-	 *  Replace min by max and <= by >= in prob.
+	 *  Replace min by max and &lt;= by &gt;= in prob.
 	 */
 	//TODO: why not do prob also in main list?
 	public void makeAllProbUp()

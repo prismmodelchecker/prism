@@ -49,7 +49,6 @@ public class MultiObjUtils
 	 * 
 	 * @param point A point which should be at one direction from the separating hyperplane.
 	 * @param computedPoints Set of points which should be at the other direction from the separating hyperplane.
-	 * @param tolerance
 	 * @return A vector orthogonal to the computed separating hyperplane.
 	 * @throws PrismException When the LP solver throws an exception or returns an unexpected result, an exception with a related message is thrown.
 	 */
@@ -249,11 +248,11 @@ public class MultiObjUtils
 	 * This method takes a list of computed points together with their associated directions, where points are possibly
 	 * repeated, and returns a map in which to each point from {@code computedPoints} corresponds the associated direction
 	 * from {@code directions} which has the most extreme slope. Which extreme is taken depends on the {@code horiz} parameter.
-	 * <p/>
-	 * Note that this method considers two points as "equal" if the method {@link #isCloseTo(Point)} returns {@code true}.
+	 * <br>
+	 * Note that this method considers two points as "equal" if the method {@code isCloseTo(Point)} returns {@code true}.
 	 * So the returned map will not contain two keys which are too close to each other, which should be fine w.r.t. roundoff
 	 * errors, but might theoretically cause trouble if the corner points of the Pareto curve are very close to each other.
-	 * <p/>
+	 * <br>
 	 * It is guaranteed that if there are two points {@code p1} and {@code p2} in {@code computedPoints} such that
 	 * {@code p1.isCloseTo{p2}} is {@code true} and {@code p1} occurs in {@code computedPoints} before
 	 * {@code p2}, then {@code p1} will be given precedence when picking a representative for the key in the map. This is crucial
@@ -291,7 +290,7 @@ public class MultiObjUtils
 
 	/**
 	 * This method takes a list of points and returns a sub-list in which points that are very close to
-	 * each other (where {@link #isCloseTo(Point)} is used to determine what is "very close") are removed.
+	 * each other (where {@code isCloseTo(Point)} is used to determine what is "very close") are removed.
 	 * The order of elements is preserved.
 	 * 
 	 * It is guaranteed that if there are two points {@code p1} and {@code p2} in {@code list} such that
@@ -328,7 +327,7 @@ public class MultiObjUtils
 
 	/**
 	 * This method takes the set of some corner points of a pareto curve {@code computedPoints} together
-	 * with associated orthogonal lines {@directions} that determine current over-approximation,
+	 * with associated orthogonal lines {@code directions} that determine current over-approximation,
 	 * and returns the points which determine the over-approximation. (These points are in fact the intersecting
 	 * points of the directions which are not covered by other points.)
 	 * @param computedPoints Corner points of the Pareto curve

@@ -42,8 +42,8 @@ public enum Operator {
 	}
 	
    	/**
-   	 * Returns {@code true} if op is one {@link Operator.P_MIN},
-   	 * {@link Operator.R_MIN}, {@link Operator.P_LE}, or {@link Operator.R_LE}.
+   	 * Returns {@code true} if op is one {@code Operator.P_MIN},
+   	 * {@code Operator.R_MIN}, {@code Operator.P_LE}, or {@code Operator.R_LE}.
    	 */
 	public static boolean isMinOrLe(Operator op)
 	{

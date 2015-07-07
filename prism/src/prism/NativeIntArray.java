@@ -83,7 +83,6 @@ public class NativeIntArray
 	/**
 	 * Returns the {@code index}-th element of the aray
 	 * @param index
-	 * @return
 	 * @throws IndexOutOfBoundsException If the index is outside of the bounds of the array
 	 */
 	public int get(int index) throws IndexOutOfBoundsException
@@ -96,7 +95,7 @@ public class NativeIntArray
 	/**
 	 * Sets the {@code index}-th element of the array to {@code val}.
 	 * @param index
-	 * @return
+	 * @param value
 	 * @throws IndexOutOfBoundsException If the index is outside of the bounds of the array
 	 */
 	public void set(int index, int value) throws IndexOutOfBoundsException

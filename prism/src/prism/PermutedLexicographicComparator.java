@@ -32,8 +32,8 @@ import java.util.Comparator;
 /**
  * A class that allows to compare points w.r.g. a lexicographic order.
  * The order of elements is given by the array {@code dimensionPermutation}
- * passed in the constructor {@link #PermutedLexicographicComparator(int[])}.
- * <p/>
+ * passed in the constructor {@link #PermutedLexicographicComparator(int[],boolean[])}.
+ * <br>
  * Note that the comparator is only capable of comparing points with equal
  * dimension. This probably violates the specification of the {@link Comparator}
  * class, but it shouldn't be any problem as comparing points of different dimensions

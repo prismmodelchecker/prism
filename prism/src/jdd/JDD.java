@@ -473,7 +473,7 @@ public class JDD
 	// wrapper methods for dd_vars
 	
 	/**
-	 * permute (->) variables in dd (cf. swap)
+	 * permute (-&gt;) variables in dd (cf. swap)
 	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
 	 */
 	public static JDDNode PermuteVariables(JDDNode dd, JDDVars old_vars, JDDVars new_vars)
@@ -484,7 +484,7 @@ public class JDD
 	}
 
 	/**
-	 * swap (<->) variables in dd (cf. permute)
+	 * swap (&lt;-&gt;) variables in dd (cf. permute)
 	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
 	 */
 	public static JDDNode SwapVariables(JDDNode dd, JDDVars old_vars, JDDVars new_vars)
@@ -495,7 +495,7 @@ public class JDD
 	}
 
 	/**
-	 * build x > y for variables x, y
+	 * build x &gt; y for variables x, y
 	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
 	 */
 	public static JDDNode VariablesGreaterThan(JDDVars x_vars, JDDVars y_vars)
@@ -504,7 +504,7 @@ public class JDD
 	}
 
 	/**
-	 * build x >= y for variables x, y
+	 * build x &gt;= y for variables x, y
 	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
 	 */
 	public static JDDNode VariablesGreaterThanEquals(JDDVars x_vars, JDDVars y_vars)
@@ -513,7 +513,7 @@ public class JDD
 	}
 
 	/**
-	 * build x < y for variables x, y
+	 * build x &lt; y for variables x, y
 	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
 	 */
 	public static JDDNode VariablesLessThan(JDDVars x_vars, JDDVars y_vars)
@@ -522,7 +522,7 @@ public class JDD
 	}
 
 	/**
-	 * build x <= y for variables x, y
+	 * build x &lt;= y for variables x, y
 	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
 	 */
 	public static JDDNode VariablesLessThanEquals(JDDVars x_vars, JDDVars y_vars)
@@ -715,7 +715,7 @@ public class JDD
 	
 	/**
 	 * returns dd restricted to first non-zero path (cube)
-	 * <br>[ REFS: <i>result</i>, DEREFS: <dd> ]
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
 	 */
 	public static JDDNode RestrictToFirst(JDDNode dd, JDDVars vars)
 	{
@@ -941,7 +941,7 @@ public class JDD
 
 	/**
 	 * sets element in vector dd
-	 * <br>[ REFS: <i>result</i>, DEREFS: <dd> ]
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
 	 */
 	public static JDDNode SetVectorElement(JDDNode dd, JDDVars vars, long index, double value)
 	{
@@ -952,7 +952,7 @@ public class JDD
 	
 	/**
 	 * sets element in matrix dd
-	 * <br>[ REFS: <i>result</i>, DEREFS: <dd> ]
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
 	 */
 	public static JDDNode SetMatrixElement(JDDNode dd, JDDVars rvars, JDDVars cvars, long rindex, long cindex, double value)
 	{
@@ -963,7 +963,7 @@ public class JDD
 	
 	/**
 	 * sets element in 3d matrix dd
-	 * <br>[ REFS: <i>result</i>, DEREFS: <dd> ]
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
 	 */
 	public static JDDNode Set3DMatrixElement(JDDNode dd, JDDVars rvars, JDDVars cvars, JDDVars lvars, long rindex, long cindex, long lindex, double value)
 	{
@@ -992,7 +992,7 @@ public class JDD
 	
 	/**
 	 * returns transpose of matrix dd
-	 * <br>[ REFS: <i>result</i>, DEREFS: <dd> ]
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
 	 */
 	public static JDDNode Transpose(JDDNode dd, JDDVars rvars, JDDVars cvars)
 	{
@@ -1003,7 +1003,7 @@ public class JDD
 	
 	/**
 	 * returns matrix multiplication of matrices dd1 and dd2
-	 * <br>[ REFS: <i>result</i>, DEREFS: <dd1, dd2> ]
+	 * <br>[ REFS: <i>result</i>, DEREFS: dd1, dd2 ]
 	 */
 	public static JDDNode MatrixMultiply(JDDNode dd1, JDDNode dd2, JDDVars vars, int method)
 	{
@@ -1144,10 +1144,10 @@ public class JDD
 	 * For example, for a model with the variable
 	 * 	x : [0..2];
 	 * and transitions
-	 *  [a] (x=0) -> 0.3:(x'=1) + 0.7:(x'=2);
-	 *  [b] (x=0) -> 1:(x'=2);
-	 *  [a] (x=2) -> (x'=1);
-	 *  [a] (x=1) -> (x'=0);
+	 *  [a] (x=0) -&gt; 0.3:(x'=1) + 0.7:(x'=2);
+	 *  [b] (x=0) -&gt; 1:(x'=2);
+	 *  [a] (x=2) -&gt; (x'=1);
+	 *  [a] (x=1) -&gt; (x'=0);
 	 * the output would be (e.g.)
  	 *  4
 	 *	4

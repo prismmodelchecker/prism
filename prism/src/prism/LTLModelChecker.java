@@ -165,7 +165,7 @@ public class LTLModelChecker extends PrismComponent
 
 	/**
 	 * Construct the product of a DA and a DTMC/CTMC.
-	 * @param dra The DA
+	 * @param da The DA
 	 * @param model The  DTMC/CTMC
 	 * @param labelDDs BDDs giving the set of states for each AP in the DA
 	 * @param daDDRowVarsCopy (Optionally) empty JDDVars object to obtain copy of DD row vars for DA

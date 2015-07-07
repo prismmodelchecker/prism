@@ -91,7 +91,7 @@ public class ExpressionTemporal extends Expression
 	}
 
 	/**
-	 * Set lower time bound to be of form >= e
+	 * Set lower time bound to be of form &gt;= e
 	 * (null denotes no lower bound, i.e. zero)
 	 */
 	public void setLowerBound(Expression e)
@@ -100,7 +100,7 @@ public class ExpressionTemporal extends Expression
 	}
 
 	/**
-	 * Set lower time bound to be of form >= e or > e
+	 * Set lower time bound to be of form &gt;= e or &gt; e
 	 * (null denotes no lower bound, i.e. zero)
 	 */
 	public void setLowerBound(Expression e, boolean strict)
@@ -110,7 +110,7 @@ public class ExpressionTemporal extends Expression
 	}
 
 	/**
-	 * Set upper time bound to be of form <= e
+	 * Set upper time bound to be of form &lt;= e
 	 * (null denotes no upper bound, i.e. infinity)
 	 */
 	public void setUpperBound(Expression e)
@@ -119,7 +119,7 @@ public class ExpressionTemporal extends Expression
 	}
 
 	/**
-	 * Set upper time bound to be of form <= e or < e
+	 * Set upper time bound to be of form &lt;= e or &lt; e
 	 * (null denotes no upper bound, i.e. infinity)
 	 */
 	public void setUpperBound(Expression e, boolean strict)

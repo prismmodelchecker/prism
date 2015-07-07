@@ -117,7 +117,7 @@ public class Tile
 	
 	/**
 	 * Returns true if this tile will be changed when {@code point} is added
-	 * to a parent {@link TileList}. If {@updateUpperBounds} is set, then also
+	 * to a parent {@link TileList}. If {@code updateUpperBounds} is set, then also
 	 * the information about the tile lying on a pareto curve is updated
 	 *
 	 * @param updateUpperBounds If true, the new point does not split the tile, and

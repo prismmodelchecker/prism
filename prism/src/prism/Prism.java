@@ -1095,7 +1095,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	/**
 	 * Compare two version numbers of PRISM (strings).
 	 * Example ordering: { "1", "2.0", "2.1.alpha", "2.1.alpha.r5555", "2.1.alpha.r5557", "2.1.beta", "2.1.beta4", "2.1", "2.1.dev", "2.1.dev.r6666", "2.1.dev1", "2.1.dev2", "2.1.2", "2.9", "3", "3.4"};
-	 * Returns: 1 if v1>v2, -1 if v1<v2, 0 if v1=v2
+	 * Returns: 1 if v1&gt;v2, -1 if v1&lt;v2, 0 if v1=v2
 	 */
 	public static int compareVersions(String v1, String v2)
 	{
@@ -2931,7 +2931,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Note: All constants in the model file must have already been defined.
 	 * @param propertiesFile Properties file containing property to check, constants defined
 	 * @param undefinedConstants Details of constant ranges defining the experiment
-	 * @param resultsCollection Where to store the results
+	 * @param results Where to store the results
 	 * @param expr The property to check
 	 * @param initialState Initial state (if null, is selected randomly)
 	 * @param maxPathLength The maximum path length for sampling

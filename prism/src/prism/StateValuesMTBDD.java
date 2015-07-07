@@ -429,7 +429,6 @@ public class StateValuesMTBDD implements StateValues
 	/**
 	* Sum up the elements of the vector, over a subset of its DD vars
 	* store the result in a new StateValues (for newModel)
-	* @throws PrismException (on out-of-memory)
 	*/
 	public StateValues sumOverDDVars(JDDVars sumVars, Model newModel)
 	{

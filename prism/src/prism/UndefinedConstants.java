@@ -459,7 +459,6 @@ public class UndefinedConstants
 	 *  @param sl If sh are ss are null, this is the value to be assigned. Otherwise, it is the lower bound for the range.
 	 *  @param sh The upper bound for the range.
 	 *  @param ss The step for the values. Null means 1.
-	 *  @param useAll If true, throw an exception if {@code name} is does not need to be defined
 	 *  
 	 *  @return True if the constant was defined before.
 	 */
@@ -659,7 +658,7 @@ public class UndefinedConstants
 	}
 
 	/**
-	 * Get the number of ranging constants (constants with range > 1) from the model file.
+	 * Get the number of ranging constants (constants with range greater than 1) from the model file.
 	 */
 	public int getNumModelRangingConstants()
 	{
@@ -685,7 +684,7 @@ public class UndefinedConstants
 	}
 
 	/**
-	 * Get the number of ranging constants (constants with range > 1) from the properties file.
+	 * Get the number of ranging constants (constants with range greater than 1) from the properties file.
 	 */
 	public int getNumPropertyRangingConstants()
 	{
@@ -706,7 +705,7 @@ public class UndefinedConstants
 
 	/**
 	 * Get a list of DefinedConstant objects: one for each ranging constant,
-	 * i.e. each constant that has range > 1.
+	 * i.e. each constant that has range greater than 1.
 	 */
 	public Vector<DefinedConstant> getRangingConstants()
 	{

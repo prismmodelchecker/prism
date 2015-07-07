@@ -203,7 +203,7 @@ public class PrismUtils
 	}
 
 	/**
-	 * Format a double, as would be done by printf's %.<prec>g
+	 * Format a double, as would be done by printf's %.(prec)g
 	 */
 	public static String formatDouble(int prec, double d)
 	{
@@ -214,7 +214,7 @@ public class PrismUtils
 	
 	/**
 	 * Create a string for a list of objects, with a specified separator,
-	 * e.g. ["a","b","c"], "," -> "a,b,c"
+	 * e.g. ["a","b","c"], "," -&gt; "a,b,c"
 	 */
 	public static String joinString(List<?> objs, String separator)
 	{
@@ -233,7 +233,7 @@ public class PrismUtils
 	
 	/**
 	 * Create a string for an array of objects, with a specified separator,
-	 * e.g. ["a","b","c"], "," -> "a,b,c"
+	 * e.g. ["a","b","c"], "," -&gt; "a,b,c"
 	 */
 	public static String joinString(Object[] objs, String separator)
 	{

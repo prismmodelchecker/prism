@@ -69,7 +69,7 @@ public class ExpressionProb extends ExpressionQuant
 	}
 
 	/**
-	 * Get a string describing the type of P operator, e.g. "P=?" or "P<p".
+	 * Get a string describing the type of P operator, e.g. "P=?" or "P&lt;p".
 	 */
 	public String getTypeOfPOperator()
 	{

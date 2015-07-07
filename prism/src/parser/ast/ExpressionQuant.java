@@ -38,11 +38,11 @@ public abstract class ExpressionQuant extends Expression
 {
 	/** Optional "modifier" to specify variants of the P/R/S operator */
 	protected String modifier = null;
-	/** The attached relational operator (e.g. "<" in "P<0.1"). */
+	/** The attached relational operator (e.g. "&lt;" in "P&lt;0.1"). */
 	protected RelOp relOp = null;
-	/** The attached (probability/reward) bound, as an expression (e.g. "p" in "P<p"). Null if absent (e.g. "P=?"). */
+	/** The attached (probability/reward) bound, as an expression (e.g. "p" in "P&lt;p"). Null if absent (e.g. "P=?"). */
 	protected Expression bound = null;
-	/** The main operand of the operator (e.g. "F target=true" in "P<0.1[F target=true]. */
+	/** The main operand of the operator (e.g. "F target=true" in "P&lt;0.1[F target=true]. */
 	protected Expression expression = null;
 	/** Optional "old-style" filter. This is just for display purposes since
 	  *  the parser creates an (invisible) new-style filter around this expression. */
@@ -59,7 +59,7 @@ public abstract class ExpressionQuant extends Expression
 	}
 
 	/**
-	 * Set the attached relational operator (e.g. "<" in "P<0.1").
+	 * Set the attached relational operator (e.g. "&lt;" in "P&lt;0.1").
 	 * Uses the enum {@link RelOp}. For example: {@code setRelOp(RelOp.GT);}
 	 */
 	public void setRelOp(RelOp relOp)
@@ -68,8 +68,8 @@ public abstract class ExpressionQuant extends Expression
 	}
 
 	/**
-	 * Set the attached relational operator (e.g. "<" in "P<0.1").
-	 * The operator is passed as a string, e.g. "<" or ">=".
+	 * Set the attached relational operator (e.g. "&lt;" in "P&lt;0.1").
+	 * The operator is passed as a string, e.g. "&lt;" or "&gt;=".
 	 */
 	public void setRelOp(String relOpString)
 	{
@@ -77,7 +77,7 @@ public abstract class ExpressionQuant extends Expression
 	}
 
 	/**
-	 * Set the attached bound, as an expression (e.g. "p" in "P<p"). Should be null if absent (e.g. "P=?").
+	 * Set the attached bound, as an expression (e.g. "p" in "P&lt;p"). Should be null if absent (e.g. "P=?").
 	 */
 	public void setBound(Expression bound)
 	{
@@ -85,7 +85,7 @@ public abstract class ExpressionQuant extends Expression
 	}
 
 	/**
-	 * Set the main operand of the operator (e.g. "F target=true" in "P<0.1[F target=true].
+	 * Set the main operand of the operator (e.g. "F target=true" in "P&lt;0.1[F target=true].
 	 */
 	public void setExpression(Expression expression)
 	{
@@ -120,7 +120,7 @@ public abstract class ExpressionQuant extends Expression
 	}
 
 	/**
-	 * Get the attached relational operator (e.g. "<" in "P<0.1"), as a {@link RelOp}.
+	 * Get the attached relational operator (e.g. "&lt;" in "P&lt;0.1"), as a {@link RelOp}.
 	 */
 	public RelOp getRelOp()
 	{
@@ -128,7 +128,7 @@ public abstract class ExpressionQuant extends Expression
 	}
 
 	/**
-	 * Get the attached bound, as an expression (e.g. "p" in "P<p"). Should be null if absent (e.g. "P=?").
+	 * Get the attached bound, as an expression (e.g. "p" in "P&lt;p"). Should be null if absent (e.g. "P=?").
 	 */
 	public Expression getBound()
 	{
@@ -136,7 +136,7 @@ public abstract class ExpressionQuant extends Expression
 	}
 
 	/**
-	 * Get the main operand of the operator (e.g. "F target=true" in "P<0.1[F target=true].
+	 * Get the main operand of the operator (e.g. "F target=true" in "P&lt;0.1[F target=true].
 	 */
 	public Expression getExpression()
 	{
@@ -145,7 +145,7 @@ public abstract class ExpressionQuant extends Expression
 
 	/**
 	 * Get an object storing info about the attached relational operator and bound, after evaluating the bound to a double.
-	 * For example "<0.1" in "P<p" where p=0.5 in {@code constantValues}.
+	 * For example "&lt;0.1" in "P&lt;p" where p=0.5 in {@code constantValues}.
 	 * Does some checks, e.g., throws an exception if a probability is not in the range [0,1]
 	 * 
 	 * @param constantValues Values for constants in order to evaluate any bound

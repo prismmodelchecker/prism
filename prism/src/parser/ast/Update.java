@@ -35,7 +35,7 @@ import prism.PrismLangException;
 
 /**
  * Class to store a single update, i.e. a mapping from variables to expressions. 
- * e.g. (s'=1)&(x'=x+1)
+ * e.g. (s'=1)&amp;(x'=x+1)
  */
 public class Update extends ASTElement
 {

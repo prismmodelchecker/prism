@@ -113,7 +113,7 @@ public class MultiObjModelChecker extends PrismComponent
 	 * 
 	 * @param modelProduct
 	 * @param rewardsIndex
-	 * @param relOpsReward
+	 * @param opsAndBounds
 	 * @return True if some transitions were removed
 	 */
 	protected boolean removeNonZeroRewardTrans(NondetModel modelProduct, List<JDDNode> rewardsIndex, OpsAndBoundsList opsAndBounds)
