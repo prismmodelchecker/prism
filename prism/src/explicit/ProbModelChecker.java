@@ -894,7 +894,11 @@ public class ProbModelChecker extends NonProbModelChecker
 				rewards = checkRewardInstantaneous(model, modelRewards, exprTemp, minMax);
 				break;
 			case ExpressionTemporal.R_C:
-				rewards = checkRewardCumulative(model, modelRewards, exprTemp, minMax);
+				if (exprTemp.hasBounds()) {
+					rewards = checkRewardCumulative(model, modelRewards, exprTemp, minMax);
+				} else {
+					rewards = checkRewardTotal(model, modelRewards, exprTemp, minMax);
+				}
 				break;
 			default:
 				throw new PrismNotSupportedException("Explicit engine does not yet handle the " + exprTemp.getOperatorSymbol() + " reward operator");
@@ -972,7 +976,7 @@ public class ProbModelChecker extends NonProbModelChecker
 
 		// Check that there is an upper time bound
 		if (expr.getUpperBound() == null) {
-			throw new PrismNotSupportedException("Cumulative reward operator without time bound (C) is only allowed for multi-objective queries");
+			throw new PrismNotSupportedException("This is not a cumulative reward operator");
 		}
 
 		// Get time bound
@@ -1005,6 +1009,33 @@ public class ProbModelChecker extends NonProbModelChecker
 		case MDP:
 			res = ((MDPModelChecker) this).computeCumulativeRewards((MDP) model, (MDPRewards) modelRewards, timeInt, minMax.isMin());
 			result.setStrategy(res.strat);
+			break;
+		default:
+			throw new PrismNotSupportedException("Explicit engine does not yet handle the " + expr.getOperatorSymbol() + " reward operator for " + model.getModelType()
+					+ "s");
+		}
+		return StateValues.createFromDoubleArray(res.soln, model);
+	}
+
+	/**
+	 * Compute expected rewards for a total reward operator.
+	 */
+	protected StateValues checkRewardTotal(Model model, Rewards modelRewards, ExpressionTemporal expr, MinMax minMax) throws PrismException
+	{
+		// Check that there is no upper time bound
+		if (expr.getUpperBound() != null) {
+			throw new PrismException("This is not a total reward operator");
+		}
+
+		// Compute/return the rewards
+		ModelCheckerResult res = null;
+		switch (model.getModelType()) {
+		case DTMC:
+			res = ((DTMCModelChecker) this).computeTotalRewards((DTMC) model, (MCRewards) modelRewards);
+			break;
+		case CTMC:
+			break;
+		case MDP:
 			break;
 		default:
 			throw new PrismNotSupportedException("Explicit engine does not yet handle the " + expr.getOperatorSymbol() + " reward operator for " + model.getModelType()

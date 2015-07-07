@@ -214,6 +214,69 @@ public class DTMCModelChecker extends ProbModelChecker
 		return res;
 	}
 
+	public ModelCheckerResult computeTotalRewards(DTMC dtmc, MCRewards mcRewards) throws PrismException
+	{
+		ModelCheckerResult res = null;
+		int n, numBSCCs = 0;
+		long timer;
+
+		// Switch to a supported method, if necessary
+		if (!(linEqMethod == LinEqMethod.POWER)) {
+			linEqMethod = LinEqMethod.POWER;
+			mainLog.printWarning("Switching to linear equation solution method \"" + linEqMethod.fullName() + "\"");
+		}
+
+		// Store num states
+		n = dtmc.getNumStates();
+
+		// Start total rewards computation
+		timer = System.currentTimeMillis();
+		mainLog.println("\nStarting total reward computation...");
+
+		// Compute bottom strongly connected components (BSCCs)
+		SCCComputer sccComputer = SCCComputer.createSCCComputer(this, dtmc);
+		sccComputer.computeBSCCs();
+		List<BitSet> bsccs = sccComputer.getBSCCs();
+		numBSCCs = bsccs.size();
+
+		// Find BSCCs with non-zero reward
+		BitSet bsccsNonZero = new BitSet();
+		for (int b = 0; b < numBSCCs; b++) {
+			BitSet bscc = bsccs.get(b);
+			for (int i = bscc.nextSetBit(0); i >= 0; i = bscc.nextSetBit(i + 1)) {
+				if (mcRewards.getStateReward(i) > 0) {
+					bsccsNonZero.or(bscc);
+					continue;
+				}
+			}
+		}
+		mainLog.print("States in non-zero reward BSCCs: " + bsccsNonZero.cardinality());
+		
+		// Find states with infinite reward (those reach a non-zero reward BSCC with prob > 0)
+		BitSet inf = prob0(dtmc, null, bsccsNonZero);
+		inf.flip(0, n);
+		int numInf = inf.cardinality();
+		mainLog.println(", inf=" + numInf + ", maybe=" + (n - numInf));
+		
+		// Compute rewards
+		// (do this using the functions for "reward reachability" properties but with no targets)
+		switch (linEqMethod) {
+		case POWER:
+			res = computeReachRewardsValIter(dtmc, mcRewards, new BitSet(), inf, null, null);
+			break;
+		default:
+			throw new PrismException("Unknown linear equation solution method " + linEqMethod.fullName());
+		}
+
+		// Finished total reward computation
+		timer = System.currentTimeMillis() - timer;
+		mainLog.print("Total reward computation");
+		mainLog.println(" took " + timer / 1000.0 + " seconds.");
+
+		// Return results
+		return res;
+	}
+
 	// Steady-state/transient probability computation
 
 	/**
