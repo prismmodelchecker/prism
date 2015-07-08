@@ -541,6 +541,7 @@ public class HOAF2DA implements HOAConsumer {
 	@Override
 	public void notifyEndOfState(int stateId) throws HOAConsumerException
 	{
+		// TODO: Check for completeness
 		implicitEdgeHelper.endOfState();
 	}
 
