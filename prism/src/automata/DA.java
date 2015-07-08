@@ -30,16 +30,17 @@
 package automata;
 
 import java.io.PrintStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.List;
 
+import jltl2ba.APElement;
+import jltl2ba.APElementIterator;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismPrintStreamLog;
-import jltl2ba.APElement;
-import jltl2ba.APElementIterator;
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceRabin;
-import acceptance.AcceptanceType;
 
 /**
  * Class to store a deterministic automata of some acceptance type Acceptance.
