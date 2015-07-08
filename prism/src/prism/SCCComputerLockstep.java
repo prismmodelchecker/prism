@@ -511,7 +511,7 @@ public class SCCComputerLockstep extends SCCComputer
 		//JDD.Ref(scc);
 		JDD.Ref(convergedSet);
 		JDDNode newNodes1 = JDD.And(convergedSet, JDD.Not(scc));
-		if (JDD.AreInterecting(newNodes1, filter)) {
+		if (JDD.AreIntersecting(newNodes1, filter)) {
 			// newEdges1 = edges \intersect (newNodes x newNodes^t)
 			JDD.Ref(edges);
 			JDD.Ref(newNodes1);
@@ -528,7 +528,7 @@ public class SCCComputerLockstep extends SCCComputer
 		//JDD.Ref(nodes);
 		//JDD.Ref(convergedSet);
 		JDDNode newNodes2 = JDD.And(nodes, JDD.Not(convergedSet));
-		if (JDD.AreInterecting(newNodes2, filter)) {
+		if (JDD.AreIntersecting(newNodes2, filter)) {
 			// newEdges2 = edges \intersect (newNodes x newNodes^t)
 			JDD.Ref(edges);
 			JDD.Ref(newNodes2);

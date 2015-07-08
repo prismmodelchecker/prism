@@ -102,11 +102,11 @@ public class AcceptanceStreettDD
 		 */
 		public boolean isBSCCAccepting(JDDNode bscc_states)
 		{
-			if (JDD.AreInterecting(R, bscc_states)) {
+			if (JDD.AreIntersecting(R, bscc_states)) {
 				// there is some state in bscc_states
 				// that is in R, requiring that G is visited
 				// as well:
-				if (!JDD.AreInterecting(G, bscc_states)) {
+				if (!JDD.AreIntersecting(G, bscc_states)) {
 					return false;
 				} else {
 					// G is visited as well

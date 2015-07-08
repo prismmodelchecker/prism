@@ -89,7 +89,7 @@ public class AcceptanceReachDD implements AcceptanceOmegaDD
 	@Override
 	public boolean isBSCCAccepting(JDDNode bscc_states)
 	{
-		return JDD.AreInterecting(goalStates, bscc_states);
+		return JDD.AreIntersecting(goalStates, bscc_states);
 	}
 
 	@Override

@@ -1546,7 +1546,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		JDDNode trrNonZero = JDD.GreaterThan(trr, 0);
 		JDDNode bsccsNonZero = JDD.Constant(0);
 		for (int b = 0; b < numBSCCs; b++) {
-			if (JDD.AreInterecting(bsccs.get(b), srNonZero) || JDD.AreInterecting(bsccs.get(b), trrNonZero)) {
+			if (JDD.AreIntersecting(bsccs.get(b), srNonZero) || JDD.AreIntersecting(bsccs.get(b), trrNonZero)) {
 				JDD.Ref(bsccs.get(b));
 				bsccsNonZero = JDD.Or(bsccsNonZero, bsccs.get(b));
 			}

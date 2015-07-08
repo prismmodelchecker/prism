@@ -799,7 +799,7 @@ public class LTLModelChecker extends PrismComponent
 					// find ECs in acceptingStates that are accepting under K_i
 					acceptingStates = JDD.Constant(0);
 					for (JDDNode set : ecs) {
-						if (JDD.AreInterecting(set, acceptanceVector_K))
+						if (JDD.AreIntersecting(set, acceptanceVector_K))
 							acceptingStates = JDD.Or(acceptingStates, set);
 						else
 							JDD.Deref(set);
@@ -960,7 +960,7 @@ public class LTLModelChecker extends PrismComponent
 				//int count = 0;
 				acceptingStates = JDD.Constant(0);
 				for (JDDNode set : ecs) {
-					if (JDD.AreInterecting(set, acceptanceVector_L))
+					if (JDD.AreIntersecting(set, acceptanceVector_L))
 						acceptingStates = JDD.Or(acceptingStates, set);
 					else
 						JDD.Deref(set);
@@ -1068,7 +1068,7 @@ public class LTLModelChecker extends PrismComponent
 					if (ecs != null) {
 						boolean valid = false;
 						for (JDDNode set : ecs) {
-							if (JDD.AreInterecting(set, acceptanceVector_L)) {
+							if (JDD.AreIntersecting(set, acceptanceVector_L)) {
 								allAcceptingStates = JDD.Or(allAcceptingStates, set);
 								valid = true;
 							} else
@@ -1288,7 +1288,7 @@ public class LTLModelChecker extends PrismComponent
 	{
 		JDDNode union = JDD.Constant(0);
 		for (JDDNode set : sets) {
-			if (JDD.AreInterecting(set, filter))
+			if (JDD.AreIntersecting(set, filter))
 				union = JDD.Or(union, set);
 			else
 				JDD.Deref(set);

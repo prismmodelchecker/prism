@@ -124,21 +124,21 @@ public class AcceptanceGenericDD implements AcceptanceOmegaDD {
 		case INF:
 			// bscc |= G F states?
 			// there exists a state in bscc and states
-			return JDD.AreInterecting(states, bscc);
+			return JDD.AreIntersecting(states, bscc);
 		case INF_NOT:
 			// bscc_state |= G F !states?
 			// the BSCC intersects Not(states)
 			JDD.Ref(states);
-			return JDD.AreInterecting(JDD.Not(states), bscc);
+			return JDD.AreIntersecting(JDD.Not(states), bscc);
 		case FIN:
 			// bscc |= F G !states?
 			// the BSCC consists only of !states
-			return !JDD.AreInterecting(states, bscc);
+			return !JDD.AreIntersecting(states, bscc);
 		case FIN_NOT:
 			// bscc |= F G states?
 			// the BSCC consists entirely of states
 			JDD.Ref(states);
-			return !JDD.AreInterecting(JDD.Not(states), bscc);
+			return !JDD.AreIntersecting(JDD.Not(states), bscc);
 		}
 		throw new UnsupportedOperationException("Unsupported operator in generic acceptance expression");
 	}

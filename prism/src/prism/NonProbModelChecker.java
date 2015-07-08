@@ -278,7 +278,7 @@ public class NonProbModelChecker extends StateModelChecker
 				JDD.Ref(tmp2);
 				cexDDs.add(JDD.And(tmp2, JDD.Not(tmp)));
 				// See if we have found the initial state yet, and if so, don't store any more info
-				if (JDD.AreInterecting(tmp2, init)) {
+				if (JDD.AreIntersecting(tmp2, init)) {
 					cexDone = true;
 					// Choose an initial state (in case there are several) which intersects
 					JDD.Ref(tmp2);
@@ -420,7 +420,7 @@ public class NonProbModelChecker extends StateModelChecker
 		for (i = 0; i < numSCCs; i++) {
 			JDDNode scc = sccs.get(i);
 			if (scc != null) {
-				if (JDD.AreInterecting(scc, transRel)) {
+				if (JDD.AreIntersecting(scc, transRel)) {
 					JDD.Ref(scc);
 					target = JDD.Or(target, scc);
 				}

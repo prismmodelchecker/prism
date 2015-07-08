@@ -441,7 +441,7 @@ public class SCCComputerSCCFind extends SCCComputer
 		JDD.Ref(nodes);
 		JDD.Ref(forwardSet);
 		JDDNode newNodes1 = JDD.And(nodes, JDD.Not(forwardSet));
-		if (JDD.AreInterecting(newNodes1, filter)) {
+		if (JDD.AreIntersecting(newNodes1, filter)) {
 			// newEdges1 = edges \intersect (newNodes1 x newNodes1^t)
 			JDD.Ref(edges);
 			JDD.Ref(newNodes1);
@@ -467,7 +467,7 @@ public class SCCComputerSCCFind extends SCCComputer
 		//JDD.Ref(forwardSet);
 		JDD.Ref(scc);
 		JDDNode newNodes2 = JDD.And(forwardSet, JDD.Not(scc));
-		if (JDD.AreInterecting(newNodes2, filter)) {
+		if (JDD.AreIntersecting(newNodes2, filter)) {
 			// newEdges2 = edges \intersect (newNodes2 x newNodes2^t)
 			JDD.Ref(edges);
 			JDD.Ref(newNodes2);

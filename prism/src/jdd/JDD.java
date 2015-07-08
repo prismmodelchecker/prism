@@ -440,7 +440,7 @@ public class JDD
 	 * Returns true if the two BDDs intersect (i.e. conjunction is non-empty).
 	 * [ REFS: <i>none</i>, DEREFS: <i>none</i> ]
 	 */
-	public static boolean AreInterecting(JDDNode dd1, JDDNode dd2)
+	public static boolean AreIntersecting(JDDNode dd1, JDDNode dd2)
 	{
 		JDDNode tmp;
 		boolean res;

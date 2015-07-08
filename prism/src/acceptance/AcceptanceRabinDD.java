@@ -102,13 +102,13 @@ public class AcceptanceRabinDD
 		 */
 		public boolean isBSCCAccepting(JDDNode bscc_states)
 		{
-			if (JDD.AreInterecting(L, bscc_states)) {
+			if (JDD.AreIntersecting(L, bscc_states)) {
 				// there is some state in bscc_states that is
 				// forbidden by L
 				return false;
 			}
 
-			if (JDD.AreInterecting(K, bscc_states)) {
+			if (JDD.AreIntersecting(K, bscc_states)) {
 				// there is some state in bscc_states that is
 				// contained in K -> infinitely often visits to K
 				return true;

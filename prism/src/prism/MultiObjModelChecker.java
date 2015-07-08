@@ -218,7 +218,7 @@ public class MultiObjModelChecker extends PrismComponent
 		// TODO: check if the model satisfies the LTL constraints 
 		if (!rmecs.equals(JDD.ZERO)) {
 			boolean constraintViolated = false;
-			if (JDD.AreInterecting(modelProduct.getStart(), rmecs)) {
+			if (JDD.AreIntersecting(modelProduct.getStart(), rmecs)) {
 				constraintViolated = true;
 				JDD.Deref(rmecs);
 			} else {
