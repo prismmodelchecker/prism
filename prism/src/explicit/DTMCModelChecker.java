@@ -247,7 +247,7 @@ public class DTMCModelChecker extends ProbModelChecker
 			for (int i = bscc.nextSetBit(0); i >= 0; i = bscc.nextSetBit(i + 1)) {
 				if (mcRewards.getStateReward(i) > 0) {
 					bsccsNonZero.or(bscc);
-					continue;
+					break;
 				}
 			}
 		}
