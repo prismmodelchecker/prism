@@ -266,8 +266,8 @@ public class Property extends ASTElement
 				if (strExpected.startsWith("Error:")) {
 					String words[] = strExpected.substring(6).split(",");
 					for (String word : words) {
-						String mustContain = word.trim();
-						if (!errMsg.contains(mustContain)) {
+						String mustContain = word.trim().toLowerCase();
+						if (!errMsg.toLowerCase().contains(mustContain)) {
 							throw new PrismException("Error message should contain \"" + mustContain + "\"");
 						}
 					}
