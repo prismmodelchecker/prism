@@ -334,15 +334,28 @@ def runPrism(args, dir=""):
     if options.test:
         for line in open(logFile, 'r').readlines():
             if re.match('Testing result:', line):
-                print line,
+                printTestResult(line)
     if options.test and exitCode != 0:
         for line in open(logFile, 'r').readlines():
             if re.match('Error:', line):
-                print line,
+                printTestResult(line)
         print "To see log file, run:"
         print "edit " + logFile
         if not options.testAll:
             sys.exit(1)
+
+def printTestResult(msg):
+    msg = str.rstrip(msg)
+    if 'Error:' in msg or 'FAIL' in msg:
+        print '\033[31m' + msg + '\033[0m'
+    elif 'PASS' in msg:
+        print '\033[32m' + msg + '\033[0m'
+    elif 'SKIPPED' in msg:
+        print '\033[90m' + msg + '\033[0m'
+    elif 'UNSUPPORTED' in msg:
+        print '\033[33m' + msg + '\033[0m'
+    else:
+        print msg
 
 # Checks for each file from the outFiles list whether there is an identical file
 # with the name exportPrefix + file. If so, said file is deleted. Otherwise, it is kept
@@ -352,27 +365,28 @@ def verifyAndCleanupExports(outFiles, exportPrefix):
     result = True
     # Check for equality with out files
     for outFile in outFiles:
-    	print "Testing export " + os.path.basename(outFile) + ":",
+    	msg = "Testing export " + os.path.basename(outFile) + ": "
         expFile = prependToFile(exportPrefix, outFile)
         if os.path.isfile(expFile):
             if options.noExportTests:
-                print "SKIPPED"
+                msg = msg + "SKIPPED"
                 os.remove(expFile)
             elif filecmp.cmp(outFile, expFile):
                 # If successful, notify and delete exported file
-                print "PASS"
+                msg = msg + "PASS"
                 os.remove(expFile)
             else:
-                print "FAIL (" + os.path.basename(expFile) + " does not match)"
+                msg = msg + "FAIL (" + os.path.basename(expFile) + " does not match)"
                 print "To see difference, run:"
                 print "diff " + outFile + " " + expFile
                 result = False
         else:
             if options.noExportTests:
-                print "SKIPPED"
+                msg = msg + "SKIPPED"
             else:
-                print "FAIL (no " + os.path.basename(expFile) + " to compare to)"
+                msg = msg + "FAIL (no " + os.path.basename(expFile) + " to compare to)"
                 result = False
+    printTestResult(msg)
     return result
 
 # Run a benchmark, specified by a list of command-line args,

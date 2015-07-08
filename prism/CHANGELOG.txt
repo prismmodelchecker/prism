@@ -5,10 +5,11 @@ Version 4.3 (first released ???)
 -----------------------------------------------------------------------------
 
 * Support for external LTL-to-automata converters via the HOA format
+  - including model checking for Generalised Rabin (GR) and generic acceptance conditions
 
 * New model checking functionality/optimisations
   - lower time-bounds for properties of DTMCs/MDPs (e.g. P=? [ F>=2 "target" ])
-  - expected total rewards (R[C]) implemented for DTMCs in symbolic engine
+  - expected total rewards (R[C]) implemented for DTMCs
   - backwards reachability algorithm implemented for model checking PTAs
   - exact (arbitrary precision) model checking via the parametric engine (experimental)
   - various LTL model checking optimisations
