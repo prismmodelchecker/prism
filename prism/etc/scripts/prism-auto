@@ -348,6 +348,10 @@ def runPrism(args, dir=""):
 
 def printTestResult(msg):
     msg = str.rstrip(msg)
+    if not isColourEnabled():
+        print msg;
+        return
+    # Coloured-coded...
     if 'Error:' in msg or 'FAIL' in msg:
         print '\033[31m' + msg + '\033[0m'
     elif 'PASS' in msg:
@@ -358,6 +362,17 @@ def printTestResult(msg):
         print '\033[33m' + msg + '\033[0m'
     else:
         print msg
+
+# Is printing of colour coded messages enabled?
+
+def isColourEnabled():
+    if options.colourEnabled == "yes":
+        return True
+    elif options.colourEnabled == "no":
+        return False
+    else:
+        # auto: yes if in terminal mode
+        return sys.stdout.isatty()
 
 # Checks for each file from the outFiles list whether there is an identical file
 # with the name exportPrefix + file. If so, said file is deleted. Otherwise, it is kept
@@ -625,6 +640,7 @@ parser.add_option("--debug", action="store_true", dest="debug", default=False, h
 parser.add_option("--echo-full", action="store_true", dest="echoFull", default=False, help="An expanded version of -e/--echo")
 parser.add_option("--models-filename", dest="modelsFilename", default="models", help="The name of the optional 'models' file in directories, storing a list of models and parameters [default=models]")
 parser.add_option("--no-export-tests", action="store_true", dest="noExportTests", default=False, help="Don't check exported files when in test mode")
+parser.add_option("--colour", dest="colourEnabled", metavar="X", type="choice", choices=["yes","no","auto"], default="auto", help="Whether to colour test results: yes, no, auto (yes iff in terminal mode) [default=auto]")
 (options, args) = parser.parse_args()
 if len(args) < 1:
     parser.print_help()
