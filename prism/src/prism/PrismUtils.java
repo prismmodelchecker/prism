@@ -327,7 +327,7 @@ public class PrismUtils
 		for (int i = 3; i > 0; i--) {
 			long pow = 1 << (i * 10);
 			if (bytes >= pow) {
-				return (bytes % pow == 0 ? (bytes / pow) : String.format("%.1f", ((double) bytes) / pow)) + units[i];
+				return (bytes % pow == 0 ? (bytes / pow) : String.format(Locale.UK, "%.1f", ((double) bytes) / pow)) + units[i];
 			}
 		}
 		return bytes + units[0];
