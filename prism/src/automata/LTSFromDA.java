@@ -24,13 +24,16 @@
 //	
 //==============================================================================
 
-package prism;
+package automata;
 
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import prism.ModelType;
+import prism.PrismException;
+import prism.PrismLog;
 import strat.MDStrategy;
 import explicit.LTS;
 import explicit.Model;

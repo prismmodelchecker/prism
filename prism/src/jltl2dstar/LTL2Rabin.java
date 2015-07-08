@@ -27,16 +27,16 @@ import prism.PrismException;
 
 import java.util.BitSet;
 
-import prism.DA;
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceRabin;
 import acceptance.AcceptanceStreett;
 import acceptance.AcceptanceType;
+import automata.DA;
 
 public class LTL2Rabin {
 
 	@SuppressWarnings("unchecked")
-	public static prism.DA<BitSet,AcceptanceRabin> ltl2rabin(SimpleLTL ltlFormula) throws PrismException
+	public static automata.DA<BitSet,AcceptanceRabin> ltl2rabin(SimpleLTL ltlFormula) throws PrismException
 	{
 		DA<BitSet, ? extends AcceptanceOmega> result;
 		result = ltl2da(ltlFormula, AcceptanceType.RABIN);
@@ -44,14 +44,14 @@ public class LTL2Rabin {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static prism.DA<BitSet, AcceptanceStreett> ltl2streett(SimpleLTL ltlFormula) throws PrismException
+	public static automata.DA<BitSet, AcceptanceStreett> ltl2streett(SimpleLTL ltlFormula) throws PrismException
 	{
 		DA<BitSet, ? extends AcceptanceOmega> result;
 		result = ltl2da(ltlFormula, AcceptanceType.STREETT);
 		return (DA<BitSet, AcceptanceStreett>)result;
 	}
 	
-	public static prism.DA<BitSet, ? extends AcceptanceOmega> ltl2da(SimpleLTL ltlFormula, AcceptanceType... allowedAcceptance) throws PrismException
+	public static automata.DA<BitSet, ? extends AcceptanceOmega> ltl2da(SimpleLTL ltlFormula, AcceptanceType... allowedAcceptance) throws PrismException
 	{
 		SimpleLTL ltl = ltlFormula.simplify();
 

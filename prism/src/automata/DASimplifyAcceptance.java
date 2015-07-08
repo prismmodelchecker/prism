@@ -1,7 +1,8 @@
-package prism;
+package automata;
 
 import java.util.BitSet;
 
+import prism.PrismException;
 import explicit.SCCComputer;
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceRabin;

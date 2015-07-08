@@ -25,7 +25,7 @@
 //	
 //==============================================================================
 
-package prism;
+package automata;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,6 +48,10 @@ import jltl2ba.SimpleLTL;
 import jltl2dstar.LTL2Rabin;
 import parser.Values;
 import parser.ast.Expression;
+import prism.PrismComponent;
+import prism.PrismException;
+import prism.PrismNotSupportedException;
+import prism.PrismSettings;
 
 /**
  * Infrastructure for constructing deterministic automata for LTL formulas.

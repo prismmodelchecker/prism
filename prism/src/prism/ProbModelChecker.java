@@ -38,6 +38,8 @@ import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceOmegaDD;
 import acceptance.AcceptanceReachDD;
 import acceptance.AcceptanceType;
+import automata.DA;
+import automata.LTL2DA;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;

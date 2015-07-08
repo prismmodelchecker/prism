@@ -27,11 +27,14 @@
 //	
 //==============================================================================
 
-package prism;
+package automata;
 
 import java.io.PrintStream;
 import java.util.*;
 
+import prism.PrismException;
+import prism.PrismLog;
+import prism.PrismPrintStreamLog;
 import jltl2ba.APElement;
 import jltl2ba.APElementIterator;
 import acceptance.AcceptanceOmega;

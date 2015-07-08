@@ -39,6 +39,8 @@ import acceptance.AcceptanceRabin;
 import acceptance.AcceptanceRabinDD;
 import acceptance.AcceptanceReachDD;
 import acceptance.AcceptanceType;
+import automata.DA;
+import automata.LTL2DA;
 import odd.ODDUtils;
 import jdd.*;
 import dv.*;

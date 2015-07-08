@@ -37,6 +37,7 @@ import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceOmegaDD;
 import acceptance.AcceptanceRabin;
 import acceptance.AcceptanceRabinDD;
+import automata.DA;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;

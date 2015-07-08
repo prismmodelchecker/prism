@@ -45,8 +45,6 @@ import parser.ast.ExpressionTemporal;
 import parser.ast.ExpressionUnaryOp;
 import parser.type.TypeBool;
 import parser.type.TypePathBool;
-import prism.DA;
-import prism.LTL2DA;
 import prism.ModelType;
 import prism.PrismComponent;
 import prism.PrismException;
@@ -58,7 +56,8 @@ import acceptance.AcceptanceGenRabin;
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceRabin;
 import acceptance.AcceptanceType;
-
+import automata.DA;
+import automata.LTL2DA;
 import common.IterableStateSet;
 
 /**

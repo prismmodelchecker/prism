@@ -26,13 +26,14 @@
 //==============================================================================
 
 
-package prism;
+package automata;
 
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
 
+import prism.PrismException;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;

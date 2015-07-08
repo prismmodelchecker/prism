@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Vector;
 
 import acceptance.AcceptanceRabin;
+import automata.DA;
+import automata.LTL2DA;
 import parser.ast.Expression;
 import parser.ast.RelOp;
 import dv.DoubleVector;

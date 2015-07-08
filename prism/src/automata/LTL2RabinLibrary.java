@@ -25,7 +25,7 @@
 //	
 //==============================================================================
 
-package prism;
+package automata;
 
 import java.io.*;
 import java.util.*;
@@ -36,6 +36,11 @@ import parser.Values;
 import parser.ast.*;
 import parser.visitor.ASTTraverse;
 import parser.visitor.ASTTraverseModify;
+import prism.IntegerBound;
+import prism.Prism;
+import prism.PrismException;
+import prism.PrismLangException;
+import prism.PrismNotSupportedException;
 
 /**
  * LTL-to-DRA conversion via

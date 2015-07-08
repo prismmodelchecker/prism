@@ -148,14 +148,14 @@ public class DRA extends DA {
 	/**
 	 * Convert this jltl2dstar deterministic automaton to PRISM data structures.
 	 */
-	public prism.DA<BitSet,? extends AcceptanceOmega> createPrismDA() throws PrismException
+	public automata.DA<BitSet,? extends AcceptanceOmega> createPrismDA() throws PrismException
 	{
 		int numStates = size();
 		if (!isStreett()) {
 			// Rabin
-			prism.DA<BitSet, AcceptanceRabin> draNew;
+			automata.DA<BitSet, AcceptanceRabin> draNew;
 
-			draNew = new prism.DA<BitSet, AcceptanceRabin>(numStates);
+			draNew = new automata.DA<BitSet, AcceptanceRabin>(numStates);
 			createPrismDA(draNew);
 			AcceptanceRabin accNew = createRabinAcceptance();
 			draNew.setAcceptance(accNew);
@@ -163,9 +163,9 @@ public class DRA extends DA {
 			return draNew;
 		} else {
 			// Streett
-			prism.DA<BitSet, AcceptanceStreett> dsaNew;
+			automata.DA<BitSet, AcceptanceStreett> dsaNew;
 
-			dsaNew = new prism.DA<BitSet, AcceptanceStreett>(numStates);
+			dsaNew = new automata.DA<BitSet, AcceptanceStreett>(numStates);
 			createPrismDA(dsaNew);
 			AcceptanceStreett accNew = createStreettAcceptance();
 			dsaNew.setAcceptance(accNew);
@@ -178,7 +178,7 @@ public class DRA extends DA {
 	 * Convert the state and transition structure of this jltl2dstar deterministic automaton
 	 * to the PRISM data structures.
 	 */
-	private void createPrismDA(prism.DA<BitSet, ?> da) throws PrismException
+	private void createPrismDA(automata.DA<BitSet, ?> da) throws PrismException
 	{
 		int i, k, numLabels, numStates, src, dest;
 		List<String> apList;
