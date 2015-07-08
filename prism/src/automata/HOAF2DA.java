@@ -53,35 +53,61 @@ import acceptance.AcceptanceRabin.RabinPair;
 
 /**
  * A HOAConsumer for jhoafparser that constructs a prism.DA from the parsed automaton.
+ * <br>
+ * The automaton has to be deterministic and complete, with state-based acceptance and
+ * labels (explicit/implicit) on the edges.
+ * <br>
+ * If the automaton has transition-based acceptance, {@code TransitionBasedAcceptanceException}
+ * is thrown.
+ * <br>
+ * There are (currently) more restrictions on the automaton:
+ * <ul>
+ * <li>The Start and States headers have to be present</li>
+ * <li>All explicit edge labels have to be in disjunctive normal form (disjunction of conjunctive clauses)</li>
+ * </ul>
  */
 public class HOAF2DA implements HOAConsumer {
 
+
+	/** An exception that is thrown to indicate that the automaton had transition based acceptance. */
+	@SuppressWarnings("serial")
 	public class TransitionBasedAcceptanceException extends HOAConsumerException {
 		public TransitionBasedAcceptanceException(String e) {super(e);}
 	}
 
+	/** The resulting deterministic automaton */
 	private DA<BitSet, ? extends AcceptanceOmega> da;
+	/** The set of atomic propositions of the automaton (in APSet form) */
 	private APSet aps = new APSet();
 
 	/** Size, i.e. number of states */
 	private int size;
+	/** Do we know the number of states? Is provided by the optional HOA States-header */
 	private boolean knowSize = false;
-	
+
 	/** Start state (index) */
 	private int startState;
+	/** Do we know the start state? Is provided by the HOA Start-header */
 	private boolean knowStartState = false;
-	
+
+	/** The acceptance condition */
 	private BooleanExpression<AtomAcceptance> accExpr = null;
+	/** The condition name from the acc-name header (optional) */
 	private String accName;
+	/** The extra information from the acc-name header (optional) */
 	private List<Object> extraInfo;
-	
+
+	/** For each acceptance set in the HOA automaton, the set of states that are included in that set */
 	private List<BitSet> acceptanceSets = null;
-	// set of acceptance set indizes where state membership has to be inverted
+	/** The set of acceptance set indizes where state membership has to be inverted */
 	private Set<Integer> negateAcceptanceSetMembership = null;
+	/** The list of atomic propositions (in List form) */
 	private List<String> apList;
 
+	/** The helper for handling implicit edges */
 	ImplicitEdgeHelper implicitEdgeHelper = null;
-	
+
+	/** Clear the various state information */
 	public void clear() {
 		aps = new APSet();
 
@@ -102,9 +128,10 @@ public class HOAF2DA implements HOAConsumer {
 		apList = null;
 	}
 
+	/** Constructor */
 	public HOAF2DA() {
 	}
-	
+
 	@Override
 	public boolean parserResolvesAliases() {
 		return true;
@@ -215,7 +242,7 @@ public class HOAF2DA implements HOAConsumer {
 		}
 		da.setAPList(apList);
 		implicitEdgeHelper = new ImplicitEdgeHelper(apList.size());
-		
+
 		DA.switchAcceptance(da, prepareAcceptance());
 	}
 
@@ -232,7 +259,7 @@ public class HOAF2DA implements HOAConsumer {
 				return prepareAcceptanceGenRabin();
 			}
 		}
-		
+
 		acceptanceSets = new ArrayList<BitSet>();
 		return prepareAcceptanceGeneric(accExpr);
 	}
