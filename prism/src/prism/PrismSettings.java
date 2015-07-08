@@ -1563,7 +1563,7 @@ public class PrismSettings implements Observer
 		mainLog.println("-hybrid (or -h) ................ Use the Hybrid engine [default]");
 		mainLog.println("-explicit (or -ex) ............. Use the explicit engine");
 		mainLog.println("-exact ......................... Perform exact (arbitrary precision) model checking");
-		mainLog.println("-ptamethod <name> .............. Specify PTA engine (games, digital) [default: games]");
+		mainLog.println("-ptamethod <name> .............. Specify PTA engine (games, digital, backwards) [default: games]");
 		mainLog.println("-transientmethod <name> ........ CTMC transient analysis methof (unif, fau) [default: unif]");
 		mainLog.println();
 		mainLog.println("SOLUTION METHODS (LINEAR EQUATIONS):");
