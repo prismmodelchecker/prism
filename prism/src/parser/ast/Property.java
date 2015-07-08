@@ -152,7 +152,7 @@ public class Property extends ASTElement
 		// Extract expected result(s) from comment
 		if (comment != null) {
 			// Look for "RESULT: val" or "RESULT (x=1,y=2): val"
-			Pattern p = Pattern.compile("RESULT[ \t]*(\\(([^\\)]+)\\))?[ \t]*:[ \t]*([^\n\r]+)");
+			Pattern p = Pattern.compile("RESULT[ \t]*(\\(([^\\)]+)\\))?[ \t]*:[ \t]*([^ \t\n\r]+)");
 			Matcher matcher = p.matcher(comment);
 			// Look at each RESULT specification found
 			while (matcher.find()) {
@@ -266,9 +266,8 @@ public class Property extends ASTElement
 				if (strExpected.startsWith("Error:")) {
 					String words[] = strExpected.substring(6).split(",");
 					for (String word : words) {
-						String mustContain = word.trim().toLowerCase();
-						if (!errMsg.toLowerCase().contains(mustContain)) {
-							throw new PrismException("Error message should contain \"" + mustContain + "\"");
+						if (!errMsg.toLowerCase().contains(word)) {
+							throw new PrismException("Error message should contain \"" + word + "\"");
 						}
 					}
 				}
