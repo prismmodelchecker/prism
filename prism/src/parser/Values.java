@@ -29,6 +29,7 @@ package parser;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Locale;
 
 import parser.ast.ModulesFile;
 import parser.type.Type;
@@ -485,7 +486,7 @@ public class Values //implements Comparable
 		String s;
 		
 		if (o instanceof Double) {
-			NumberFormat nf = new DecimalFormat();
+			NumberFormat nf = DecimalFormat.getInstance(Locale.UK);
 			nf.setMaximumFractionDigits(6);
 			s = nf.format(((Double)o).doubleValue());
 		} else {

@@ -33,6 +33,7 @@ import java.awt.Graphics;
 import java.awt.Insets;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.Locale;
 
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.Icon;
@@ -88,7 +89,7 @@ public class GraphConstantLine extends javax.swing.JPanel
                         setIcon(null);
                         String str;
                         Double d = (Double) obj;
-                        NumberFormat n = new DecimalFormat();
+                        NumberFormat n = DecimalFormat.getInstance(Locale.UK);
                         n.setMaximumFractionDigits(6);
                         str = n.format(d.doubleValue());
                         setText((obj == null) ? "" : str);
