@@ -12,7 +12,7 @@ Version 4.3 (first released ???)
   - backwards reachability algorithm implemented for model checking PTAs
   - exact (arbitrary precision) model checking via the parametric engine (experimental)
   - various LTL model checking optimisations
-  - faster precomputation by pre-computing predecessors
+  - faster precomputation by pre-computing predecessors (explicit engine)
 
 * Options/switches:
   - new -pathviaautomata switch to force model checking via automaton construction
