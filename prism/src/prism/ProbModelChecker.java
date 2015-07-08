@@ -541,7 +541,8 @@ public class ProbModelChecker extends NonProbModelChecker
 		LTL2DA ltl2da = new LTL2DA(prism);
 		AcceptanceType[] allowedAcceptance = {
 				AcceptanceType.RABIN,
-				AcceptanceType.REACH
+				AcceptanceType.REACH,
+				AcceptanceType.GENERIC
 		};
 		da = ltl2da.convertLTLFormulaToDA(ltl, constantValues, allowedAcceptance);
 		mainLog.println(da.getAutomataType()+" has " + da.size() + " states, " + da.getAcceptance().getSizeStatistics() + ".");

@@ -32,6 +32,7 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Vector;
 
+import acceptance.AcceptanceGenRabinDD;
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceOmegaDD;
 import acceptance.AcceptanceRabin;
@@ -708,6 +709,8 @@ public class LTLModelChecker extends PrismComponent
 		switch (acceptance.getType()) {
 		case RABIN:
 			return findAcceptingECStatesForRabin((AcceptanceRabinDD) acceptance, model, daDDRowVars, daDDColVars, fairness);
+		case GENERALIZED_RABIN:
+			return findAcceptingECStatesForGeneralizedRabin((AcceptanceGenRabinDD) acceptance, model, daDDRowVars, daDDColVars, fairness);
 		default:
 			throw new PrismNotSupportedException("Computing the accepting EC states for "+acceptance.getTypeName()+" acceptance is not yet implemented (symbolic engine)");
 		}
@@ -847,6 +850,61 @@ public class LTLModelChecker extends PrismComponent
 				// Add states to our destination BDD
 				allAcceptingStates = JDD.Or(allAcceptingStates, acceptingStates);
 			}
+		}
+
+		return allAcceptingStates;
+	}
+
+	/**
+	 * Find the set of states in accepting end components (ECs) in a nondeterministic model wrt a Generalized Rabin acceptance condition.
+	 * @param acceptance the Generalized Rabin acceptance condition
+	 * @param model The model
+	 * @param draDDRowVars BDD row variables for the DRA part of the model
+	 * @param draDDColVars BDD column variables for the DRA part of the model
+	 * @param fairness Consider fairness?
+	 * @return A referenced BDD for the union of all states in accepting MECs
+	 */
+	public JDDNode findAcceptingECStatesForGeneralizedRabin(AcceptanceGenRabinDD acceptance, NondetModel model, JDDVars draDDRowVars, JDDVars draDDColVars, boolean fairness)
+			throws PrismException
+	{
+		
+		if (fairness) {
+			throw new PrismException("Accepting end-component computation for generalized Rabin is currently not supported with fairness");
+		}
+
+		JDDNode allAcceptingStates;
+
+		allAcceptingStates = JDD.Constant(0);
+
+		// Go through the GR acceptance pairs (L_i, K_i_1, ..., K_i_n) 
+		for (int i = 0; i < acceptance.size(); i++) {
+					
+			// Filter out L_i states from the model and find the MECs
+			JDDNode notL = JDD.Not(acceptance.get(i).getL());
+			JDD.Ref(model.getTrans01());
+			JDD.Ref(notL);
+			JDDNode candidateStates = JDD.Apply(JDD.TIMES, model.getTrans01(), notL);
+			notL = JDD.PermuteVariables(notL, draDDRowVars, draDDColVars);
+			candidateStates = JDD.Apply(JDD.TIMES, candidateStates,	notL);
+			candidateStates = JDD.ThereExists(candidateStates, model.getAllDDColVars());
+			candidateStates = JDD.ThereExists(candidateStates, model.getAllDDNondetVars());
+			List<JDDNode> mecs = findMECStates(model, candidateStates);
+			JDD.Deref(candidateStates);
+
+			// Check which MECs are accepting for this pair, calculate union
+			JDDNode acceptingStates = JDD.Constant(0);
+			for (int k = 0; k < mecs.size(); k++) {
+				// Is the induced BSCC by this MEC accepting?
+				// (note we only really need to check K_i_1, ..., K_i_n here, not L too,
+				// but this should not really affect efficiency)
+				if (acceptance.get(i).isBSCCAccepting(mecs.get(k))) {
+					acceptingStates = JDD.Or(acceptingStates, mecs.get(k));
+				} else {
+					JDD.Deref(mecs.get(k));
+				}
+			}
+			// Add to the set of accepting states for all pairs
+			allAcceptingStates = JDD.Or(allAcceptingStates, acceptingStates);
 		}
 
 		return allAcceptingStates;

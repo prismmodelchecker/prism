@@ -82,4 +82,9 @@ public interface AcceptanceOmega extends Cloneable
 	 * @param ddRowVars JDDVars of the row variables corresponding to the bits in the bitset
 	 */
 	public AcceptanceOmegaDD toAcceptanceDD(JDDVars ddRowVars);
+	
+	/**
+	 * Convert this acceptance condition to an AcceptanceGeneric condition.
+	 */
+	public AcceptanceGeneric toAcceptanceGeneric();
 }

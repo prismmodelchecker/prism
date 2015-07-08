@@ -67,7 +67,8 @@ public class APMonom {
 	 */
 	public boolean isSet(int index) throws PrismException {
 		if (!isNormal()) {
-			throw new PrismException("Can't get AP, is either TRUE/FALSE!");
+			// TRUE / FALSE -> the bit is not set
+			return false;
 		}
 		return bits_set.get(index);
 	}
@@ -77,7 +78,7 @@ public class APMonom {
 	 * @param index index of AP
 	 * @return <b>true</b> if AP is true
 	 */
-	boolean getValue(int index) throws PrismException {
+	public boolean getValue(int index) throws PrismException {
 		if (!isNormal()) {
 			throw new PrismException("Can't get AP, is either TRUE/FALSE!");
 		}

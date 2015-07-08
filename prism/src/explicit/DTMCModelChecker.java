@@ -76,7 +76,8 @@ public class DTMCModelChecker extends ProbModelChecker
 		// Build product of Markov chain and automaton
 		AcceptanceType[] allowedAcceptance = {
 				AcceptanceType.RABIN,
-				AcceptanceType.REACH
+				AcceptanceType.REACH,
+				AcceptanceType.GENERIC
 		};
 		product = mcLtl.constructProductMC(this, (DTMC)model, expr, statesOfInterest, allowedAcceptance);
 

@@ -587,7 +587,49 @@ public class SimpleLTL {
 		}
 		return rv;
 	}
-	
+
+	/**
+	 * Returns an equivalent SimpleLTL formula with a
+	 * basic set of operators:
+	 *   AP, TRUE, FALSE, AND, OR, NOT, UNTIL, FINALLY, GLOBALLY, NEXT
+	 */
+	public SimpleLTL toBasicOperators() {
+		switch (kind) {
+		case AP:
+		case TRUE:
+		case FALSE:
+			return this;
+		case AND:
+		case OR:
+		case UNTIL:
+			return new SimpleLTL(kind, left.toBasicOperators(), right.toBasicOperators());
+		case FINALLY:
+		case GLOBALLY:
+		case NEXT:
+		case NOT:
+			return new SimpleLTL(kind, left.toBasicOperators());
+		case EQUIV: {
+			SimpleLTL newLeft = left.toBasicOperators();
+			SimpleLTL newRight = right.toBasicOperators();
+			SimpleLTL bothTrue = new SimpleLTL(LTLType.AND, newLeft, newRight);
+			SimpleLTL bothFalse = new SimpleLTL(LTLType.AND,
+			                                    new SimpleLTL(LTLType.NOT, newLeft),
+			                                    new SimpleLTL(LTLType.NOT, newRight));
+			return new SimpleLTL(LTLType.OR, bothTrue, bothFalse);
+		}
+		case IMPLIES: {
+			SimpleLTL newLeft = new SimpleLTL(LTLType.NOT, left.toBasicOperators());
+			return new SimpleLTL(LTLType.OR, newLeft, right.toBasicOperators());
+		}
+		case RELEASE: {
+			SimpleLTL newLeft = new SimpleLTL(LTLType.NOT, left.toBasicOperators());
+			SimpleLTL newRight = new SimpleLTL(LTLType.NOT, right.toBasicOperators());
+			return new SimpleLTL(LTLType.UNTIL, newLeft, newRight);
+		}
+		}
+		throw new UnsupportedOperationException("Unknown operator in SimpleLTL");
+	}
+
 	public SimpleLTL negate() {
 		return new SimpleLTL(LTLType.NOT, this);
 	}
@@ -935,6 +977,202 @@ public class SimpleLTL {
 		default:
 			throw new PrismException("Formula not in DNF!");
 		}
+	}
+
+	/**
+	 * Renames the atomic propositions apparing in the formula that
+	 * start with {@code prefixFrom}. For these, the prefix is replaced
+	 * by prefixTo. For example, with prefixFrom = "L" and prefixTo = "p",
+	 * "L3" will be renamed to "p3", but "T2" will be left as-is.
+	 */
+	public void renameAP(String prefixFrom, String prefixTo)
+	{
+		switch (kind) {
+		case AP:
+			if (ap.startsWith(prefixFrom)) {
+				ap = prefixTo + ap.substring(prefixFrom.length());
+			}
+			return;
+		case AND:
+		case OR:
+		case EQUIV:
+		case IMPLIES:
+		case RELEASE:
+		case UNTIL:
+			left.renameAP(prefixFrom, prefixTo);
+			right.renameAP(prefixFrom, prefixTo);
+			return;
+		case FINALLY:
+		case GLOBALLY:
+		case NEXT:
+		case NOT:
+			left.renameAP(prefixFrom, prefixTo);
+			return;
+		case TRUE:
+		case FALSE:
+			return;
+		}
+		throw new UnsupportedOperationException("Unknown operator in SimpleLTL formula: "+this);
+	}
+	
+	/**
+	 * Render this LTL formula in LBT syntax, i.e., in prefix notation.
+	 */
+	public String toStringLBT()
+	{
+		String rv = "";
+
+		switch (kind) {
+		case OR:
+			rv = "| " + left.toStringLBT() + " " + right.toStringLBT();
+			break;
+		case AND:
+			rv = "& " + left.toStringLBT() + " " + right.toStringLBT();
+			break;
+		case UNTIL:
+			rv = "U " + left.toStringLBT() + " " + right.toStringLBT();
+			break;
+		case RELEASE:
+			rv = "V " + left.toStringLBT() + " " + right.toStringLBT();
+			break;
+		case IMPLIES:
+			rv = "i " + left.toStringLBT() + " " + right.toStringLBT();
+			break;
+		case EQUIV:
+			rv = "e " + left.toStringLBT() + " " + right.toStringLBT();
+			break;
+		case NEXT:
+			rv = "X " + left.toStringLBT();
+			break;
+		case FINALLY:
+			rv = "F " + left.toStringLBT();
+			break;
+		case GLOBALLY:
+			rv = "G " + left.toStringLBT();
+			break;
+		case NOT:
+			rv = "! " + left.toStringLBT();
+			break;
+		case FALSE:
+			rv = "f";
+			break;
+		case TRUE:
+			rv = "t";
+			break;
+		case AP:
+			rv = ap;
+			break;
+		default:
+			rv = null;
+		}
+		return rv;
+	}
+
+	/**
+	 * Render this LTL formula in Spin syntax.
+	 */
+	public String toStringSpin()
+	{
+		String rv = "";
+
+		switch (kind) {
+		case OR:
+			rv = "(" + left.toStringSpin() + ") || (" + right.toStringSpin() + ")";
+			break;
+		case AND:
+			rv = "(" + left.toStringSpin() + ") && (" + right.toStringSpin() + ")";
+			break;
+		case UNTIL:
+			rv = "(" + left.toStringSpin() + ") U (" + right.toStringSpin() + ")";
+			break;
+		case RELEASE:
+			rv = "(" + left.toStringSpin() + ") V (" + right.toStringSpin() + ")";
+			break;
+		case IMPLIES:
+			rv = "(" + left.toStringSpin() + ") -> (" + right.toStringSpin() + ")";
+			break;
+		case EQUIV:
+			rv = "(" + left.toStringSpin() + ") <-> (" + right.toStringSpin() + ")";
+			break;
+		case NEXT:
+			rv = "X (" + left.toStringSpin() + ")";
+			break;
+		case FINALLY:
+			rv = "<> (" + left.toStringSpin() + ")";
+			break;
+		case GLOBALLY:
+			rv = "[] (" + left.toStringSpin() + ")";
+			break;
+		case NOT:
+			rv = "! (" + left.toStringSpin() + ")";
+			break;
+		case FALSE:
+			rv = "false";
+			break;
+		case TRUE:
+			rv = "true";
+			break;
+		case AP:
+			rv = ap;
+			break;
+		default:
+			rv = null;
+		}
+		return rv;
+	}
+
+	
+	/**
+	 * Render this LTL formula in Spot syntax.
+	 */
+	public String toStringSpot()
+	{
+		String rv = "";
+
+		switch (kind) {
+		case OR:
+			rv = "(" + left.toStringSpot() + ") | (" + right.toStringSpot() + ")";
+			break;
+		case AND:
+			rv = "(" + left.toStringSpot() + ") & (" + right.toStringSpot() + ")";
+			break;
+		case UNTIL:
+			rv = "(" + left.toStringSpot() + ") U (" + right.toStringSpot() + ")";
+			break;
+		case RELEASE:
+			rv = "(" + left.toStringSpot() + ") R (" + right.toStringSpot() + ")";
+			break;
+		case IMPLIES:
+			rv = "(" + left.toStringSpot() + ") -> (" + right.toStringSpot() + ")";
+			break;
+		case EQUIV:
+			rv = "(" + left.toStringSpot() + ") <-> (" + right.toStringSpot() + ")";
+			break;
+		case NEXT:
+			rv = "X (" + left.toStringSpot() + ")";
+			break;
+		case FINALLY:
+			rv = "F (" + left.toStringSpot() + ")";
+			break;
+		case GLOBALLY:
+			rv = "G (" + left.toStringSpot() + ")";
+			break;
+		case NOT:
+			rv = "! (" + left.toStringSpot() + ")";
+			break;
+		case FALSE:
+			rv = "false";
+			break;
+		case TRUE:
+			rv = "true";
+			break;
+		case AP:
+			rv = ap;
+			break;
+		default:
+			rv = null;
+		}
+		return rv;
 	}
 
 	public NBA toNBA(APSet apset) throws PrismException

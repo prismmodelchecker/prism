@@ -45,7 +45,7 @@ public class APSet implements Iterable<String> {
    * @param name the name of the AP
    * @return the index of the added AP
    */
-	int addAP(String name) {
+	public int addAP(String name) {
 		int i = vector.indexOf(name);
 		
 		if (i == -1) {

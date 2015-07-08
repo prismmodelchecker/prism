@@ -113,6 +113,9 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_PARETO_EPSILON					= "prism.paretoEpsilon";
 	public static final	String PRISM_EXPORT_PARETO_FILENAME			= "prism.exportParetoFileName";
 	
+	public static final String PRISM_LTL2DA_TOOL					= "prism.ltl2daTool";
+	public static final String PRISM_LTL2DA_SYNTAX					= "prism.ltl2daSyntax";
+	
 	public static final	String PRISM_PARAM_ENABLED					= "prism.param.enabled";
 	public static final	String PRISM_PARAM_PRECISION				= "prism.param.precision";
 	public static final	String PRISM_PARAM_SPLIT					= "prism.param.split";
@@ -304,6 +307,13 @@ public class PrismSettings implements Observer
 			{ STRING_TYPE,		PRISM_EXPORT_ADV_FILENAME,				"Adversary export filename",			"3.3",			"adv.tra",																	"",															
 																			"Name of file for MDP adversary export (if enabled)" },
 																		
+			// LTL2DA TOOLS
+			{ STRING_TYPE,		PRISM_LTL2DA_TOOL,						"Use external LTL->DA tool",		"4.2.1",			"",		null,
+																			"If non-empty, the path to the executable for the external LTL->DA tool."},
+
+			{ STRING_TYPE,		PRISM_LTL2DA_SYNTAX,					"LTL syntax for external LTL->DA tool",		"4.2.1",			"LBT",		"LBT,Spin,Spot,Rabinizer",
+																			"The syntax for LTL formulas passed to the external LTL->DA tool."},
+
 			// PARAMETRIC MODEL CHECKING
 			{ BOOLEAN_TYPE,		PRISM_PARAM_ENABLED,					"Do parametric model checking",			"4.1",			new Boolean(false),															"",
 																			"Perform parametric model checking." },
@@ -1265,6 +1275,40 @@ public class PrismSettings implements Observer
 			}
 		}
 		
+		// LTL2DA TOOLS
+		
+		else if (sw.equals("ltl2datool")) {
+			if (i < args.length - 1) {
+				String filename = args[++i];
+				set(PRISM_LTL2DA_TOOL, filename);
+				System.out.println(getString(PRISM_LTL2DA_TOOL));
+			} else {
+				throw new PrismException("The -" + sw + " switch requires one argument (path to the executable)");
+			}
+		}
+		else if (sw.equals("ltl2dasyntax")) {
+			if (i < args.length - 1) {
+				String syntax = args[++i];
+				switch (syntax) {
+				case "lbt":
+					set(PRISM_LTL2DA_SYNTAX, "LBT");
+					break;
+				case "spin":
+					set(PRISM_LTL2DA_SYNTAX, "Spin");
+					break;
+				case "spot":
+					set(PRISM_LTL2DA_SYNTAX, "Spot");
+				case "rabinizer":
+					set(PRISM_LTL2DA_SYNTAX, "Rabinizer");
+					break;
+				default:
+					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: lbt, spin, spot, rabinizer)");
+				}
+			} else {
+				throw new PrismException("The -" + sw + " switch requires one argument (options are: lbt, spin, spot, rabinizer)");
+			}
+		}
+
 		// PARAMETRIC MODEL CHECKING:
 		
 		else if (sw.equals("param")) {
@@ -1567,6 +1611,9 @@ public class PrismSettings implements Observer
 		mainLog.println("-pathviaautomata ............... Handle all path formulas via automata constructions");
 		mainLog.println("-exportadv <file> .............. Export an adversary from MDP model checking (as a DTMC)");
 		mainLog.println("-exportadvmdp <file> ........... Export an adversary from MDP model checking (as an MDP)");
+		mainLog.println("-ltl2datool <exec> ............. Run executable <exec> to convert LTL formulas to deterministic automata");
+		mainLog.println("-ltl2dasyntax <x> .............. Specify output format for -ltl2datool switch (lbt, spin, spot, rabinizer)");
+		
 		mainLog.println();
 		mainLog.println("MULTI-OBJECTIVE MODEL CHECKING:");
 		mainLog.println("-linprog (or -lp) .............. Use linear programming for multi-objective model checking");

@@ -1007,6 +1007,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		LTL2DA ltl2da = new LTL2DA(prism);
 		AcceptanceType[] allowedAcceptance = {
 				AcceptanceType.RABIN,
+				AcceptanceType.GENERALIZED_RABIN,
 				AcceptanceType.REACH
 		};
 		da = ltl2da.convertLTLFormulaToDA(ltl, constantValues, allowedAcceptance);

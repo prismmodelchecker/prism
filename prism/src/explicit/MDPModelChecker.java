@@ -84,6 +84,7 @@ public class MDPModelChecker extends ProbModelChecker
 
 		AcceptanceType[] allowedAcceptance = {
 				AcceptanceType.RABIN,
+				AcceptanceType.GENERALIZED_RABIN,
 				AcceptanceType.REACH
 		};
 

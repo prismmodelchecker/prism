@@ -98,6 +98,17 @@ public class AcceptanceStreett
 			}
 		}
 
+		public AcceptanceGeneric toAcceptanceGeneric()
+		{
+			AcceptanceGeneric genericR = new AcceptanceGeneric(AcceptanceGeneric.ElementType.FIN, (BitSet)R.clone());
+			AcceptanceGeneric genericG = new AcceptanceGeneric(AcceptanceGeneric.ElementType.INF, (BitSet)G.clone());
+			//      G F "R" -> G F "G"
+			// <=>  ! G F "R"  | G F "G"
+			// <=>  F G ! "R"  | G F "G"
+			// <=>  Fin(R) | Inf(G)
+			return new AcceptanceGeneric(AcceptanceGeneric.ElementType.OR, genericR, genericG);
+		}
+
 		/** Generate signature for this Streett pair and the given state.
 		 *  If the state is a member of R, returns "-pairIndex".
 		 *  If the state is a member of G, returns "+pairIndex".
@@ -204,6 +215,24 @@ public class AcceptanceStreett
 	public AcceptanceStreettDD toAcceptanceDD(JDDVars ddRowVars)
 	{
 		return new AcceptanceStreettDD(this, ddRowVars);
+	}
+
+	@Override
+	public AcceptanceGeneric toAcceptanceGeneric()
+	{
+		if (size() == 0) {
+			return new AcceptanceGeneric(true);
+		}
+		AcceptanceGeneric genericPairs = null;
+		for (StreettPair pair : this) {
+			AcceptanceGeneric genericPair = pair.toAcceptanceGeneric();
+			if (genericPairs == null) {
+				genericPairs = genericPair;
+			} else {
+				genericPairs = new AcceptanceGeneric(AcceptanceGeneric.ElementType.AND, genericPairs, genericPair);
+			}
+		}
+		return genericPairs;
 	}
 
 	/**

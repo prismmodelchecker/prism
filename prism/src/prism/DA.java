@@ -5,6 +5,7 @@
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
 //	* Hongyang Qu <hongyang.qu@cs.ox.ac.uk> (University of Oxford)
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* David Mueller <david.mueller@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -31,7 +32,11 @@ package prism;
 import java.io.PrintStream;
 import java.util.*;
 
+import jltl2ba.APElement;
+import jltl2ba.APElementIterator;
 import acceptance.AcceptanceOmega;
+import acceptance.AcceptanceRabin;
+import acceptance.AcceptanceType;
 
 /**
  * Class to store a deterministic automata of some acceptance type Acceptance.
@@ -107,6 +112,14 @@ public class DA<Symbol, Acceptance extends AcceptanceOmega>
 		this.start = start;
 	}
 
+	/**
+	 * Returns true if the automaton has an edge for {@code src} and {@label}.
+	 */
+	public boolean hasEdge(int src, Symbol label)
+	{
+		return edges.get(src).contains(label);
+	}
+	
 	/**
 	 * Add an edge
 	 */
@@ -199,6 +212,53 @@ public class DA<Symbol, Acceptance extends AcceptanceOmega>
 			}
 		}
 		out.println("}");
+	}
+	
+	/**
+	 * Print the DRA in ltl2dstar v2 format to the output stream.
+	 * @param out the output stream 
+	 */
+	public static void printLtl2dstar(DA<BitSet, AcceptanceRabin> dra, PrintStream out) throws PrismException {
+		AcceptanceRabin acceptance = dra.getAcceptance();
+
+		if (dra.getStartState() < 0) {
+			// No start state! 
+			throw new PrismException("No start state in DA!");
+		}
+
+		out.println("DRA v2 explicit");
+		out.println("States: " + dra.size());
+		out.println("Acceptance-Pairs: " + acceptance.size());
+		out.println("Start: " + dra.getStartState());
+
+		// Enumerate APSet
+		out.print("AP: " + dra.getAPList().size());
+		for (String ap : dra.getAPList()) {
+			out.print(" \"" + ap + "\"");
+		}
+		out.println();
+
+		out.println("---");
+
+		for (int i_state = 0; i_state < dra.size(); i_state++) {
+			out.println("State: " + i_state);
+
+			out.print("Acc-Sig:");
+			for (int pair = 0; pair < acceptance.size(); pair++) {
+				if (acceptance.get(pair).getL().get(i_state)) {
+					out.print(" -"+pair);
+				} else if (acceptance.get(pair).getK().get(i_state)) {
+					out.print(" +"+pair);
+				}
+			}
+			out.println();
+			
+			APElementIterator it = new APElementIterator(dra.apList.size());
+			while (it.hasNext()) {
+				APElement edge = it.next();
+				out.println(dra.getEdgeDestByLabel(i_state, edge));
+			}
+		}
 	}
 
 	/**

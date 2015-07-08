@@ -28,8 +28,6 @@ package acceptance;
 
 import java.util.BitSet;
 
-import acceptance.AcceptanceRabin.RabinPair;
-
 import jdd.JDDVars;
 
 /**
@@ -89,6 +87,12 @@ public class AcceptanceReach implements AcceptanceOmega
 	public AcceptanceReachDD toAcceptanceDD(JDDVars ddRowVars)
 	{
 		return new AcceptanceReachDD(this, ddRowVars);
+	}
+
+	@Override
+	public AcceptanceGeneric toAcceptanceGeneric()
+	{
+		return new AcceptanceGeneric(AcceptanceGeneric.ElementType.INF, (BitSet) goalStates.clone());
 	}
 
 	@Override

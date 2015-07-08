@@ -3,6 +3,7 @@
 //	Copyright (c) 2014-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -35,47 +36,48 @@ import jdd.JDDNode;
 import jdd.JDDVars;
 
 /**
- * A Rabin acceptance condition (based on JDD state sets)
- * This is a list of RabinPairs, which can be manipulated with the usual List interface.
+ * A Generalized Rabin acceptance condition (based on JDD state sets)
+ * This is a list of GenRabinPairs, which can be manipulated with the usual List interface.
  * <br>
- * Semantics: Each Rabin pair has a state set L and K and is accepting iff
- * L is not visited infinitely often and K is visited infinitely often:
- *   (F G !"L") & (G F "K").
+ * Semantics: Each Generalized Rabin pair has state sets L and K_1,...,K_n and is accepting iff
+ * L is not visited infinitely often and all K_j are visited infinitely often:
+ *   (F G !"L") & (G F "K_1") & ... & (G F "K_n").
  *
- * The Rabin condition is accepting if at least one of the pairs is accepting.
+ * The Generalized Rabin condition is accepting if at least one of the pairs is accepting.
  */
 @SuppressWarnings("serial")
-public class AcceptanceRabinDD
-       extends ArrayList<AcceptanceRabinDD.RabinPairDD>
+public class AcceptanceGenRabinDD
+       extends ArrayList<AcceptanceGenRabinDD.GenRabinPairDD>
        implements AcceptanceOmegaDD
 {
 
 	/**
-	 * A pair in a Rabin acceptance condition, i.e., with
-	 *  (F G !"L")  &  (G F "K")
+	 * A pair in a Generalized Rabin acceptance condition, i.e., with
+	 *  (F G !"L") & (G F "K_1") & ... & (G F "K_n").
 	 **/
-	public static class RabinPairDD {
+	public static class GenRabinPairDD {
 		/** State set L (should be visited only finitely often) */
 		private JDDNode L;
 
-		/** State set K (should be visited infinitely often) */
-		private JDDNode K;
+		/** State sets K_j (should all be visited infinitely often) */
+		private ArrayList<JDDNode> K_list;
 
 		/**
-		 * Constructor with L and K state sets.
-		 * Becomes owner of the references of L and K.
+		 * Constructor with L and K_j state sets.
+		 * Becomes owner of the references of L and K_j's.
 		 */
-		public RabinPairDD(JDDNode L, JDDNode K)
+		public GenRabinPairDD(JDDNode L, ArrayList<JDDNode> K_list)
 		{
 			this.L = L;
-			this.K = K;
+			this.K_list = K_list;
 		}
 
 		/** Clear resources of the state sets */
 		public void clear()
 		{
 			if (L!=null) JDD.Deref(L);
-			if (K!=null) JDD.Deref(K);
+			for (JDDNode K_j : K_list)
+				JDD.Deref(K_j);
 		}
 
 		/** Get a referenced copy of the state set L.
@@ -87,13 +89,19 @@ public class AcceptanceRabinDD
 			return L;
 		}
 
-		/** Get a referenced copy of the state set K.
+		/** Get the number of K_j sets */
+		public int getNumK()
+		{
+			return K_list.size();
+		}
+		
+		/** Get a referenced copy of the state set K_j.
 		 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
 		 */
-		public JDDNode getK()
+		public JDDNode getK(int j)
 		{
-			JDD.Ref(K);
-			return K;
+			JDD.Ref(K_list.get(j));
+			return K_list.get(j);
 		}
 
 		/** Returns true if the bottom strongly connected component
@@ -108,44 +116,55 @@ public class AcceptanceRabinDD
 				return false;
 			}
 
-			if (JDD.AreInterecting(K, bscc_states)) {
-				// there is some state in bscc_states that is
-				// contained in K -> infinitely often visits to K
-				return true;
+			for (JDDNode K_j : K_list) {
+				if (!JDD.AreInterecting(K_j, bscc_states)) {
+					// there is some state in bscc_states that is
+					// contained in K_j -> infinitely often visits to K_j
+					return false;
+				}
 			}
 
-			return false;
+			return true;
 		}
 
 		/** Returns a textual representation of this Rabin pair. */
 		@Override
 		public String toString()
 		{
-			return "(" + L + "," + K + ")";
+			String s = "(" + L;
+			for (JDDNode K_j : K_list)
+				s += "," + K_j;
+			s += ")";
+			return s;
 		}
 	}
 
 	/**
-	 * Constructor, from a BitSet-based AcceptanceRabin.
+	 * Constructor, from a BitSet-based AcceptanceGenRabin.
 	 *
 	 * @param acceptance the BitSet-based acceptance condition
 	 * @param ddRowVars JDDVars of the row variables corresponding to the bits in the bit set
 	 */
-	public AcceptanceRabinDD(AcceptanceRabin acceptance, JDDVars ddRowVars)
+	public AcceptanceGenRabinDD(AcceptanceGenRabin acceptance, JDDVars ddRowVars)
 	{
-		for (AcceptanceRabin.RabinPair pair : acceptance) {
+		for (AcceptanceGenRabin.GenRabinPair pair : acceptance) {
 			// get BDD based newL and newK from the bit sets
 			JDDNode newL = JDD.Constant(0);
 			for (int i : IterableBitSet.getSetBits(pair.getL())) {
 				newL = JDD.SetVectorElement(newL, ddRowVars, i, 1.0);
 			}
 
-			JDDNode newK = JDD.Constant(0);
-			for (int i : IterableBitSet.getSetBits(pair.getK())) {
-				newK = JDD.SetVectorElement(newK, ddRowVars, i, 1.0);
+			ArrayList<JDDNode> newK_list = new ArrayList<JDDNode>();
+			int n = pair.getNumK();
+			for (int j = 0; j < n; j++) {
+				JDDNode newK_j = JDD.Constant(0);
+				for (int i : IterableBitSet.getSetBits(pair.getK(j))) {
+					newK_j = JDD.SetVectorElement(newK_j, ddRowVars, i, 1.0);
+				}
+				newK_list.add(newK_j);
 			}
 
-			RabinPairDD newPair = new RabinPairDD(newL, newK);
+			GenRabinPairDD newPair = new GenRabinPairDD(newL, newK_list);
 			this.add(newPair);
 		}
 	}
@@ -153,7 +172,7 @@ public class AcceptanceRabinDD
 	@Override
 	public boolean isBSCCAccepting(JDDNode bscc_states)
 	{
-		for (RabinPairDD pair : this) {
+		for (GenRabinPairDD pair : this) {
 			if (pair.isBSCCAccepting(bscc_states)) {
 				return true;
 			}
@@ -164,7 +183,7 @@ public class AcceptanceRabinDD
 	@Override
 	public void clear()
 	{
-		for (RabinPairDD pair : this) {
+		for (GenRabinPairDD pair : this) {
 			pair.clear();
 		}
 		super.clear();
@@ -175,7 +194,7 @@ public class AcceptanceRabinDD
 	public String toString()
 	{
 		String result = "";
-		for (RabinPairDD pair : this) {
+		for (GenRabinPairDD pair : this) {
 			result += pair.toString();
 		}
 		return result;
@@ -184,24 +203,24 @@ public class AcceptanceRabinDD
 	@Override
 	public String getSizeStatistics()
 	{
-		return size() + " Rabin pairs";
+		return size() + " Generalized Rabin pairs";
 	}
 
 	@Override
 	public AcceptanceType getType()
 	{
-		return AcceptanceType.RABIN;
+		return AcceptanceType.GENERALIZED_RABIN;
 	}
 
 	@Override
 	public String getTypeAbbreviated()
 	{
-		return "R";
+		return "GR";
 	}
 
 	@Override
 	public String getTypeName()
 	{
-		return "Rabin";
+		return "Generalized Rabin";
 	}
 }

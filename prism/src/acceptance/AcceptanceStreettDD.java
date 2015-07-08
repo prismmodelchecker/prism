@@ -98,6 +98,7 @@ public class AcceptanceStreettDD
 
 		/** Returns true if the bottom strongly connected component
 		 * given by bscc_states is accepting for this pair.
+		 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
 		 */
 		public boolean isBSCCAccepting(JDDNode bscc_states)
 		{

@@ -3,6 +3,7 @@
 //	Copyright (c) 2014-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -32,36 +33,36 @@ import java.util.BitSet;
 import jdd.JDDVars;
 
 /**
- * A Rabin acceptance condition (based on BitSet state sets).
- * This is a list of RabinPairs, which can be manipulated with the usual List interface.
+ * A Generalized Rabin acceptance condition (based on BitSet state sets)
+ * This is a list of GenRabinPairs, which can be manipulated with the usual List interface.
  * <br>
- * Semantics: Each Rabin pair has a state set L and K and is accepting iff
- * L is not visited infinitely often and K is visited infinitely often:
- *   (F G !"L") & (G F "K").
+ * Semantics: Each Generalized Rabin pair has state sets L and K_1,...,K_n and is accepting iff
+ * L is not visited infinitely often and all K_j are visited infinitely often:
+ *   (F G !"L") & (G F "K_1") & ... & (G F "K_n").
  *
- * The Rabin condition is accepting if at least one of the pairs is accepting.
+ * The Generalized Rabin condition is accepting if at least one of the pairs is accepting.
  */
 @SuppressWarnings("serial")
-public class AcceptanceRabin
-       extends ArrayList<AcceptanceRabin.RabinPair>
+public class AcceptanceGenRabin
+       extends ArrayList<AcceptanceGenRabin.GenRabinPair>
        implements AcceptanceOmega
 {
 
 	/**
-	 * A pair in a Rabin acceptance condition, i.e., with
-	 *  (F G !"L")  &  (G F "K")
+	 * A pair in a Generalized Rabin acceptance condition, i.e., with
+	 *  (F G !"L") & (G F "K_1") & ... & (G F "K_n").
 	 **/
-	public static class RabinPair {
+	public static class GenRabinPair {
 		/** State set L (should be visited only finitely often) */
 		private BitSet L;
 
-		/** State set K (should be visited infinitely often) */
-		private BitSet K;
+		/** State sets K_j (should all be visited infinitely often) */
+		private ArrayList<BitSet> K_list;
 
-		/** Constructor with L and K state sets */
-		public RabinPair(BitSet L, BitSet K) {
+		/** Constructor with L and K_j state sets */
+		public GenRabinPair(BitSet L, ArrayList<BitSet> K_list) {
 			this.L = L;
-			this.K = K;
+			this.K_list = K_list;
 		}
 
 		/** Get the state set L */
@@ -70,10 +71,16 @@ public class AcceptanceRabin
 			return L;
 		}
 
-		/** Get the state set K */
-		public BitSet getK()
+		/** Get the number of K_j sets */
+		public int getNumK()
 		{
-			return K;
+			return K_list.size();
+		}
+		
+		/** Get the state set K_j */
+		public BitSet getK(int j)
+		{
+			return K_list.get(j);
 		}
 
 		/** Returns true if the bottom strongly connected component
@@ -87,23 +94,15 @@ public class AcceptanceRabin
 				return false;
 			}
 
-			if (K.intersects(bscc_states)) {
-				// there is some state in bscc_states that is
-				// contained in K -> infinitely often visits to K
-				return true;
+			for (BitSet K_j : K_list) {
+				if (!K_j.intersects(bscc_states)) {
+					// there is some state in bscc_states that is
+					// contained in K -> infinitely often visits to K
+					return false;
+				}
 			}
 
-			return false;
-		}
-
-		public AcceptanceGeneric toAcceptanceGeneric()
-		{
-			AcceptanceGeneric genericL = new AcceptanceGeneric(AcceptanceGeneric.ElementType.FIN, (BitSet)L.clone());
-			AcceptanceGeneric genericK = new AcceptanceGeneric(AcceptanceGeneric.ElementType.INF, (BitSet)K.clone());
-			
-			//      F G ! "L" & G F "K"
-			// <=>  Fin(L) & Inf(K)
-			return new AcceptanceGeneric(AcceptanceGeneric.ElementType.AND, genericL, genericK);
+			return true;
 		}
 
 		/** Generate signature for this Rabin pair and the given state.
@@ -114,33 +113,60 @@ public class AcceptanceRabin
 		 **/
 		public String getSignatureForState(int stateIndex, int pairIndex)
 		{
-			if (L.get(stateIndex)) {
+			// TODO: (What is the correct syntax here?)
+			/*if (L.get(stateIndex)) {
 				return "-"+pairIndex;
 			} else if (K.get(stateIndex)) {
 				return "+"+pairIndex;
 			} else {
 				return "";
-			}
+			}*/
+			return "?";
 		}
 
 		@Override
-		public RabinPair clone()
+		public GenRabinPair clone()
 		{
-			return new RabinPair((BitSet)L.clone(), (BitSet)K.clone());
+			ArrayList<BitSet> newK_list = new ArrayList<BitSet>();
+			for (BitSet K_j : K_list)
+				newK_list.add((BitSet) K_j.clone());
+			return new GenRabinPair((BitSet)L.clone(), newK_list);
 		}
 
-		/** Returns a textual representation of this Rabin pair. */
+		public AcceptanceGeneric toAcceptanceGeneric()
+		{
+			AcceptanceGeneric genericL = new AcceptanceGeneric(AcceptanceGeneric.ElementType.FIN, (BitSet) L.clone());
+			if (getNumK() == 0) {
+				return genericL;
+			}
+			AcceptanceGeneric genericKs = null;
+			for (BitSet K : K_list) {
+				AcceptanceGeneric genericK = new AcceptanceGeneric(AcceptanceGeneric.ElementType.INF, (BitSet) K.clone());
+				if (genericKs == null) {
+					genericKs = genericK;
+				} else {
+					genericKs = new AcceptanceGeneric(AcceptanceGeneric.ElementType.AND, genericKs, genericK);
+				}
+			}
+			return new AcceptanceGeneric(AcceptanceGeneric.ElementType.AND, genericL, genericKs);
+		}
+	
+		/** Returns a textual representation of this Generalized Rabin pair. */
 		@Override
 		public String toString() {
-			return "(" + L + "," + K + ")";
+			String s = "(" + L;
+			for (BitSet K_j : K_list)
+				s += "," + K_j;
+			s += ")";
+			return s;
 		}
 	}
 
 	/** Make a copy of the acceptance condition. */
-	public AcceptanceRabin clone()
+	public AcceptanceGenRabin clone()
 	{
-		AcceptanceRabin result = new AcceptanceRabin();
-		for (RabinPair pair : this) {
+		AcceptanceGenRabin result = new AcceptanceGenRabin();
+		for (GenRabinPair pair : this) {
 			result.add(pair.clone());
 		}
 
@@ -153,7 +179,7 @@ public class AcceptanceRabin
 	 */
 	public boolean isBSCCAccepting(BitSet bscc_states)
 	{
-		for (RabinPair pair : this) {
+		for (GenRabinPair pair : this) {
 			if (pair.isBSCCAccepting(bscc_states)) {
 				return true;
 			}
@@ -164,54 +190,37 @@ public class AcceptanceRabin
 
 	@Override
 	public void lift(LiftBitSet lifter) {
-		for (RabinPair pair : this) {
+		for (GenRabinPair pair : this) {
 			pair.L = lifter.lift(pair.L);
-			pair.K = lifter.lift(pair.K);
+			int n = pair.K_list.size();
+			for (int j = 0; j < n; j++)
+				pair.K_list.set(j, lifter.lift(pair.K_list.get(j)));
 		}
 	}
 
 	/**
-	 * Get the Streett acceptance condition that is the dual of this Rabin acceptance condition, i.e.,
-	 * any word that is accepted by this condition is rejected by the returned Streett condition.
-	 * @return the complement Streett acceptance condition
-	 */
-	public AcceptanceStreett complement()
-	{
-		AcceptanceStreett accRabin = new AcceptanceStreett();
-
-		for (RabinPair accPairRabin : this) {
-			BitSet R = (BitSet) accPairRabin.getK().clone();
-			BitSet G = (BitSet) accPairRabin.getL().clone();
-			AcceptanceStreett.StreettPair accPairStreett = new AcceptanceStreett.StreettPair(R, G);
-			accRabin.add(accPairStreett);
-		}
-
-		return accRabin;
-	}
-
-	/**
-	 * Returns a new Rabin acceptance condition that corresponds to the disjunction
-	 * of this and the other Rabin acceptance condition. The RabinPairs are cloned, i.e.,
+	 * Returns a new Generalized Rabin acceptance condition that corresponds to the disjunction
+	 * of this and the other Generalized Rabin acceptance condition. The GenRabinPairs are cloned, i.e.,
 	 * not shared with the argument acceptance condition.
-	 * @param other the other Rabin acceptance condition
-	 * @return new AcceptanceRabin, disjunction of this and other
+	 * @param other the other GeneralizedRabin acceptance condition
+	 * @return new AcceptanceGenRabin, disjunction of this and other
 	 */
-	public AcceptanceRabin or(AcceptanceRabin other)
+	public AcceptanceGenRabin or(AcceptanceGenRabin other)
 	{
-		AcceptanceRabin result = new AcceptanceRabin();
-		for (RabinPair pair : this) {
-			result.add((RabinPair) pair.clone());
+		AcceptanceGenRabin result = new AcceptanceGenRabin();
+		for (GenRabinPair pair : this) {
+			result.add((GenRabinPair) pair.clone());
 		}
-		for (RabinPair pair : other) {
-			result.add((RabinPair) pair.clone());
+		for (GenRabinPair pair : other) {
+			result.add((GenRabinPair) pair.clone());
 		}
 		return result;
 	}
 
 	@Override
-	public AcceptanceRabinDD toAcceptanceDD(JDDVars ddRowVars)
+	public AcceptanceGenRabinDD toAcceptanceDD(JDDVars ddRowVars)
 	{
-		return new AcceptanceRabinDD(this, ddRowVars);
+		return new AcceptanceGenRabinDD(this, ddRowVars);
 	}
 
 	@Override
@@ -221,7 +230,7 @@ public class AcceptanceRabin
 			return new AcceptanceGeneric(false);
 		}
 		AcceptanceGeneric genericPairs = null;
-		for (RabinPair pair : this) {
+		for (GenRabinPair pair : this) {
 			AcceptanceGeneric genericPair = pair.toAcceptanceGeneric();
 			if (genericPairs == null) {
 				genericPairs = genericPair;
@@ -240,7 +249,7 @@ public class AcceptanceRabin
 		String result = "";
 
 		for (int pairIndex=0; pairIndex<size(); pairIndex++) {
-			RabinPair pair = get(pairIndex);
+			GenRabinPair pair = get(pairIndex);
 			result += pair.getSignatureForState(stateIndex,  pairIndex);
 		}
 
@@ -252,7 +261,7 @@ public class AcceptanceRabin
 	public String toString()
 	{
 		String result = "";
-		for (RabinPair pair : this) {
+		for (GenRabinPair pair : this) {
 			result += pair.toString();
 		}
 		return result;
@@ -261,24 +270,24 @@ public class AcceptanceRabin
 	@Override
 	public String getSizeStatistics()
 	{
-		return size() + " Rabin pairs";
+		return size() + " Generalized Rabin pairs";
 	}
 
 	@Override
 	public AcceptanceType getType()
 	{
-		return AcceptanceType.RABIN;
+		return AcceptanceType.GENERALIZED_RABIN;
 	}
 
 	@Override
 	public String getTypeAbbreviated()
 	{
-		return "R";
+		return "GR";
 	}
 
 	@Override
 	public String getTypeName()
 	{
-		return "Rabin";
+		return "Generalized Rabin";
 	}
 }

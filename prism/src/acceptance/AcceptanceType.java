@@ -3,6 +3,7 @@
 //	Copyright (c) 2014-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -32,7 +33,9 @@ package acceptance;
 public enum AcceptanceType {
 	RABIN,
  	STREETT,
- 	REACH;
+ 	REACH,
+	GENERALIZED_RABIN,
+ 	GENERIC;
 
 	/**
 	 * Check whether an array of AcceptanceTypes contains a specific element.

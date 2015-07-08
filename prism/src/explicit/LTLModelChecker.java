@@ -54,6 +54,7 @@ import prism.PrismFileLog;
 import prism.PrismLangException;
 import prism.PrismLog;
 import prism.PrismNotSupportedException;
+import acceptance.AcceptanceGenRabin;
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceRabin;
 import acceptance.AcceptanceType;
@@ -594,6 +595,8 @@ public class LTLModelChecker extends PrismComponent
 	{
 		if (acceptance instanceof AcceptanceRabin) {
 			return findAcceptingECStatesForRabin(model, (AcceptanceRabin) acceptance);
+		} else if (acceptance instanceof AcceptanceGenRabin) {
+			return findAcceptingECStatesForGeneralizedRabin(model, (AcceptanceGenRabin) acceptance);
 		}
 		throw new PrismNotSupportedException("Computing end components for acceptance type '"+acceptance.getTypeName()+"' currently not supported (explicit engine).");
 	}
@@ -628,6 +631,53 @@ public class LTLModelChecker extends PrismComponent
 			// Union MEC states
 			for (BitSet mec : mecs) {
 				allAcceptingStates.or(mec);
+			}
+		}
+
+		return allAcceptingStates;
+	}
+
+	/**
+	 * Find the set of states in accepting end components (ECs) in a nondeterministic model wrt a Generalized Rabin acceptance condition.
+	 * @param model The model
+	 * @param acceptance The acceptance condition
+	 */
+	public BitSet findAcceptingECStatesForGeneralizedRabin(NondetModel model, AcceptanceGenRabin acceptance) throws PrismException
+	{
+		BitSet allAcceptingStates = new BitSet();
+		int numStates = model.getNumStates();
+		
+		// Go through the GR acceptance pairs (L_i, K_i_1, ..., K_i_n) 
+		for (int i = 0; i < acceptance.size(); i++) {
+			
+			// Find model states *not* satisfying L_i
+			BitSet bitsetLi = acceptance.get(i).getL();
+			BitSet statesLi_not = new BitSet();
+			for (int s = 0; s < numStates; s++) {
+				if (!bitsetLi.get(s)) {
+					statesLi_not.set(s);
+				}
+			}
+			// Skip pairs with empty !L_i
+			if (statesLi_not.cardinality() == 0)
+				continue;
+			// Compute maximum end components (MECs) in !L_i
+			ECComputer ecComputer = ECComputer.createECComputer(this, model);
+			ecComputer.computeMECStates(statesLi_not);
+			List<BitSet> mecs = ecComputer.getMECStates();
+			// Check which MECs contain a state from each K_i_j
+			int n = acceptance.get(i).getNumK();
+			for (BitSet mec : mecs) {
+				boolean allj = true;
+				for (int j = 0; j < n; j++) {
+					if (!mec.intersects(acceptance.get(i).getK(j))) {
+						allj = false;
+						break;
+					}
+				}
+				if (allj) {
+					allAcceptingStates.or(mec);
+				}
 			}
 		}
 

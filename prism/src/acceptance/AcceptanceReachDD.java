@@ -1,9 +1,9 @@
-package acceptance;
 //==============================================================================
 //
 //Copyright (c) 2014-
 //Authors:
-//* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
 //
 //------------------------------------------------------------------------------
 //
@@ -24,6 +24,8 @@ package acceptance;
 //Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 //==============================================================================
+
+package acceptance;
 
 import common.IterableBitSet;
 import jdd.JDD;
