@@ -344,6 +344,8 @@ def runPrism(args, dir=""):
         if not options.testAll:
             sys.exit(1)
 
+# Print a testing-related message, colour coding if needed
+
 def printTestResult(msg):
     msg = str.rstrip(msg)
     if 'Error:' in msg or 'FAIL' in msg:
