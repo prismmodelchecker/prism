@@ -266,6 +266,9 @@ public class Property extends ASTElement
 				if (strExpected.startsWith("Error:")) {
 					String words[] = strExpected.substring(6).split(",");
 					for (String word : words) {
+						if (word.length() == 0) {
+							throw new PrismException("Invalid RESULT specification: no expected words immediately following 'Error:'");
+						}
 						if (!errMsg.toLowerCase().contains(word)) {
 							throw new PrismException("Error message should contain \"" + word + "\"");
 						}
