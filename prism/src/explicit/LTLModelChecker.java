@@ -331,6 +331,9 @@ public class LTLModelChecker extends PrismComponent
 			}
 			// Find corresponding initial state in DA
 			int q_0 = da.getEdgeDestByLabel(da.getStartState(), s_labels);
+			if (q_0 < 0) {
+				throw new PrismException("The deterministic automaton is not complete (state " + da.getStartState() + ")");
+			}
 			// Add (initial) state to product
 			queue.add(new Point(s_0, q_0));
 			prodModel.addState();
@@ -362,6 +365,9 @@ public class LTLModelChecker extends PrismComponent
 				}
 				// Find corresponding successor in DRA
 				q_2 = da.getEdgeDestByLabel(q_1, s_labels);
+				if (q_2 < 0) {
+					throw new PrismException("The deterministic automaton is not complete (state " + q_1 + ")");
+				}
 				// Add state/transition to model
 				if (!visited.get(s_2 * daSize + q_2) && map[s_2 * daSize + q_2] == -1) {
 					queue.add(new Point(s_2, q_2));
@@ -481,6 +487,9 @@ public class LTLModelChecker extends PrismComponent
 			}
 			// Find corresponding initial state in DRA
 			int q_0 = da.getEdgeDestByLabel(da.getStartState(), s_labels);
+			if (q_0 < 0) {
+				throw new PrismException("The deterministic automaton is not complete (state " + da.getStartState() + ")");
+			}
 			// Add (initial) state to product
 			queue.add(new Point(s_0, q_0));
 			prodModel.addState();
@@ -515,6 +524,9 @@ public class LTLModelChecker extends PrismComponent
 					}
 					// Find corresponding successor in DRA
 					q_2 = da.getEdgeDestByLabel(q_1, s_labels);
+					if (q_2 < 0) {
+						throw new PrismException("The deterministic automaton is not complete (state " + q_1 + ")");
+					}
 					// Add state/transition to model
 					if (!visited.get(s_2 * daSize + q_2) && map[s_2 * daSize + q_2] == -1) {
 						queue.add(new Point(s_2, q_2));
