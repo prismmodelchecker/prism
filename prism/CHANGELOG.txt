@@ -5,7 +5,7 @@ Version 4.3 (first released ???)
 -----------------------------------------------------------------------------
 
 * Support for external LTL-to-automata converters via the HOA format
-  - including model checking for Generalised Rabin (GR) and generic acceptance conditions
+  - including model checking for Generalised Rabin (GR) conditions
 
 * New model checking functionality/optimisations
   - lower time-bounds for properties of DTMCs/MDPs (e.g. P=? [ F>=2 "target" ])
