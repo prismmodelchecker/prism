@@ -64,6 +64,7 @@ import acceptance.AcceptanceRabin.RabinPair;
  * <ul>
  * <li>The Start and States headers have to be present</li>
  * <li>All explicit edge labels have to be in disjunctive normal form (disjunction of conjunctive clauses)</li>
+ * <li>At most 30 atomic propositions</li>
  * </ul>
  */
 public class HOAF2DA implements HOAConsumer {
@@ -167,6 +168,10 @@ public class HOAF2DA implements HOAConsumer {
 
 	@Override
 	public void setAPs(List<String> aps) throws HOAConsumerException {
+		if (aps.size() > 30) {
+			throw new HOAConsumerException("Automaton has "+aps.size()+" atomic propositions, at most 30 are supported");
+		}
+
 		apList = aps;
 
 		for (String ap : aps) {
