@@ -63,6 +63,7 @@ import acceptance.AcceptanceRabin.RabinPair;
  * There are (currently) more restrictions on the automaton:
  * <ul>
  * <li>The Start and States headers have to be present</li>
+ * <li>At least one state in the automaton.
  * <li>All explicit edge labels have to be in disjunctive normal form (disjunction of conjunctive clauses)</li>
  * <li>At most 30 atomic propositions</li>
  * </ul>
@@ -106,7 +107,13 @@ public class HOAF2DA implements HOAConsumer {
 	private List<String> apList;
 
 	/** The helper for handling implicit edges */
-	ImplicitEdgeHelper implicitEdgeHelper = null;
+	private ImplicitEdgeHelper implicitEdgeHelper = null;
+
+	/**
+	 * The expected number of edges per state. As the automaton has to be complete,
+	 * this is 2^|AP|.
+	 */
+	private long expectedNumberOfEdgesPerState;
 
 	/** Clear the various state information */
 	public void clear() {
@@ -148,6 +155,9 @@ public class HOAF2DA implements HOAConsumer {
 			throws HOAConsumerException {
 		size = numberOfStates;
 		knowSize = true;
+		if (numberOfStates == 0) {
+			throw new HOAConsumerException("Automaton with zero states, need at least one state");
+		}
 	}
 
 	@Override
@@ -173,6 +183,7 @@ public class HOAF2DA implements HOAConsumer {
 		}
 
 		apList = aps;
+		expectedNumberOfEdgesPerState = 1L << apList.size();
 
 		for (String ap : aps) {
 			this.aps.addAP(ap);
@@ -546,8 +557,13 @@ public class HOAF2DA implements HOAConsumer {
 	@Override
 	public void notifyEndOfState(int stateId) throws HOAConsumerException
 	{
-		// TODO: Check for completeness
 		implicitEdgeHelper.endOfState();
+
+		if (da.getNumEdges(stateId) != expectedNumberOfEdgesPerState) {
+			throw new HOAConsumerException("State "+ stateId +" has " + da.getNumEdges(stateId)
+			                               + " transitions, should have " + expectedNumberOfEdgesPerState
+			                               + " (automaton is required to be complete and deterministic)");
+		}
 	}
 
 	@Override
