@@ -121,7 +121,12 @@ public class DA<Symbol, Acceptance extends AcceptanceOmega>
 	 */
 	public boolean hasEdge(int src, Symbol label)
 	{
-		return edges.get(src).contains(label);
+		for (Edge edge : edges.get(src)) {
+			if (edge.label.equals(label)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/**
