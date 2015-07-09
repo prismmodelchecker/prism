@@ -2,7 +2,7 @@
 
 # Interface wrapper for calling Rabinizer3 (transition-based DGRA)
 # Invoke from PRISM with
-#  -ltl2datool hoa-rabinizer3-tgdra-for-prism -ltl2dasyntax rabinizer
+#  -ltl2datool hoa-rabinizer3-tdgra-for-prism -ltl2dasyntax rabinizer
 #
 # Expects the rabinizer.jar file of Rabinizer3 in the current directory, otherwise
 # specify its location using

@@ -1,8 +1,8 @@
 #! /bin/bash
 
-# Interface wrapper for calling ltl3dra (transition-based DRA)
+# Interface wrapper for calling ltl3dra (transition-based DGRA)
 # Invoke from PRISM with
-#  -ltl2datool hoa-ltl3dra-tgdra-for-prism -ltl2dasyntax spin
+#  -ltl2datool hoa-ltl3dra-tdgra-for-prism -ltl2dasyntax spin
 #
 # Expects the ltl3dra on the PATH, otherwise
 # specify its location using
@@ -26,5 +26,5 @@ if [ ! -z "$BUDDY_LIB" ]; then
     fi
 fi
 
-# -H2 = output deterministic transition-based Rabin in HOA format
+# -H2 = output deterministic transition-based generalized-Rabin in HOA format
 $LTL3DRA_BIN  -H2 -F "$1" > "$2"
