@@ -2228,6 +2228,7 @@ public class PrismCL implements PrismModelListener
 			mainLog.println("If provided, <options> is a comma-separated list of options taken from:");
 			mainLog.println(" * csv - Export results as comma-separated values");
 			mainLog.println(" * matrix - Export results as one or more 2D matrices (e.g. for surface plots)");
+			mainLog.println(" * comment - Export results in comment format for regerssion testing)");
 		}
 		// -exportmodel
 		else if (sw.equals("exportmodel")) {
