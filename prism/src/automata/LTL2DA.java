@@ -103,8 +103,16 @@ public class LTL2DA extends PrismComponent
 					getLog().println("Taking deterministic Rabin automaton from library...");
 				}
 			} catch (Exception e) {
-				getLog().println("Warning: Exception during attempt to construct DRA using the LTL2RabinLibrary:");
-				getLog().println(" "+e.getMessage());
+				if (containsTemporalBounds) {
+					// there is (currently) no other way to translate LTL with temporal bounds,
+					// so treat an exception as a "real" one
+					throw e;
+				} else {
+					// there is the possibility that we might be able to construct
+					// an automaton below, just issue a warning
+					getLog().println("Warning: Exception during attempt to construct DRA using the LTL2RabinLibrary:");
+					getLog().println(" "+e.getMessage());
+				}
 			}
 		}
 
