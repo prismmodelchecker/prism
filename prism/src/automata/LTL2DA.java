@@ -290,22 +290,18 @@ public class LTL2DA extends PrismComponent
 		}
 		return false;
 	}
-	
+
+	/** Check the atomic propositions of the (externally generated) automaton */
 	private void checkAPs(SimpleLTL ltl, List<String> automatonAPs) throws PrismException
 	{
 		APSet ltlAPs = ltl.getAPs();
-		for (String ap : ltlAPs) {
-			if (!automatonAPs.contains(ap)) {
-				throw new PrismException("Generated automaton misses atomic proposition \""+ap+"\"");
-			}
-		}
 		for (String ap : automatonAPs) {
 			if (!ltlAPs.hasAP(ap)) {
 				throw new PrismException("Generated automaton has extra atomic proposition \""+ap+"\"");
 			}
 		}
+		// It's fine for the automaton to not have APs that occur in the formula, e.g., for
+		// p0 | !p0, the external tool could simplify to 'true' and omit all APs
 	}
 
-	
-	
 }

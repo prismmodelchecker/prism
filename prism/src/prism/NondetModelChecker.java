@@ -1013,6 +1013,7 @@ public class NondetModelChecker extends NonProbModelChecker
 				AcceptanceType.REACH
 		};
 		da = ltl2da.convertLTLFormulaToDA(ltl, constantValues, allowedAcceptance);
+		da.checkForCanonicalAPs(labelDDs.size());
 		mainLog.println(da.getAutomataType()+" has " + da.size() + " states, " + da.getAcceptance().getSizeStatistics()+".");
 		l = System.currentTimeMillis() - l;
 		mainLog.println("Time for deterministic automaton translation: " + l / 1000.0 + " seconds.");

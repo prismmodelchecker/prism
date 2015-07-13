@@ -323,4 +323,42 @@ public class DA<Symbol, Acceptance extends AcceptanceOmega>
 		// as Java generics are only compile time, we can change the AcceptanceType
 		da.acceptance = newAcceptance;
 	}
+
+	/**
+	 * Validates that the atomic propositions of this automaton
+	 * conform to the standard values that PRISM expects:
+	 *   L0, ..., Ln-1 (in arbitrary order)
+	 * if there are {@code n} expected atomic propositions.
+	 * <br/>
+	 * The automaton may actually have less atomic propositions than expected,
+	 * e.g., if the given atomic proposition does not influence the acceptance
+	 * of a run in the automaton.
+	 * <br/>
+	 * If there is an error, throws a {@code PrismException} detailing the problem.
+	 * @param expectedNumberOfAPs the expected number of atomic propositions
+	 */
+	public void checkForCanonicalAPs(int expectedNumberOfAPs) throws PrismException {
+		BitSet seen = new BitSet();
+		for (String ap : apList) {
+			if (!ap.substring(0,1).equals("L")) {
+				throw new PrismException("In deterministic automaton, unexpected atomic proposition "+ap+", expected L0, L1, ...");
+			}
+			try {
+				int index = Integer.parseInt(ap.substring(1));
+				if (seen.get(index)) {
+					throw new PrismException("In deterministic automaton, duplicate atomic proposition "+ap);
+				}
+				if (index < 0) {
+					throw new PrismException("In deterministic automaton, unexpected atomic proposition "+ap+", expected L0, L1, ...");
+				}
+				if (index >= expectedNumberOfAPs) {
+					throw new PrismException("In deterministic automaton, unexpected atomic proposition "+ap+", expected highest index to be "+(expectedNumberOfAPs-1));
+				}
+				seen.set(index);
+			} catch (NumberFormatException e) {
+				throw new PrismException("In deterministic automaton, unexpected atomic proposition "+ap+", expected L0, L1, ...");
+			}
+		}
+		// We are fine with an empty apList or an apList that lacks some of the expected Li.
+	}
 }
