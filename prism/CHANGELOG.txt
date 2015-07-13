@@ -23,7 +23,7 @@ Version 4.3 (first released ???)
   - higher default values for CUDD/Java memory limits
   
 * Additional functionality in prism-auto testing/benchmarking script
-  - export testing, .auto files, debug mode, custom model files, ...
+  - export testing, .auto files, debug mode, colouring, custom model files, ...
   
 * New sbml2prism script
 
