@@ -17,7 +17,7 @@ Version 4.3 (first released 14/7/2015)
 
 * Options/switches:
   - new -pathviaautomata switch to force model checking via automaton construction
-  - new "comment" option for exporting result (exports in regression test format)
+  - new "comment" option for exporting results (exports in regression test format)
   - new -javamaxmem switch (equivalent to setting PRISM_JAVAMAXMEM)
   - more convenient format for CUDD max memory setting (125k, 50m, 4g, etc.)
   - higher default values for CUDD/Java memory limits
