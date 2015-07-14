@@ -6,7 +6,7 @@ To simplify maintenance of scripts and config files, we mostly omit version numb
 * log4j.jar - Apache log4j (dependency of JAS)
 * jcommon.jar - JCommon, version 1.0.16
 * jfreechart.jar - JFreeChart, version 1.0.13
-* jhoafparser.jar - jhoafparser, version 1.1.0-rc3
+* jhoafparser.jar - jhoafparser, version 1.1.0
 
 See here for more details and links:
 
