@@ -1,7 +1,7 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
-Version 4.3 (first released ???)
+Version 4.3 (first released 14/7/2015)
 -----------------------------------------------------------------------------
 
 * Support for external LTL-to-automata converters via the HOA format
