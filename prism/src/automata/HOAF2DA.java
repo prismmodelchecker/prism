@@ -546,8 +546,15 @@ public class HOAF2DA implements HOAConsumer {
 			APMonom2APElements it = new APMonom2APElements(aps, monom);
 			while(it.hasNext()) {
 				APElement el = it.next();
-				if (da.hasEdge(stateId, el)) {
-					throw new HOAConsumerException("Not a deterministic automaton, non-determinism detected (state "+stateId+")");
+				// check whether this edge already exist
+				int previousTo = da.getEdgeDestByLabel(stateId, el);
+				if (previousTo == to) {
+					// there is already an edge for this label, but the target
+					// state is the same, so we don't add an additional edge
+					continue;
+				}
+				if (previousTo != -1) {
+					throw new HOAConsumerException("Not a deterministic automaton, non-determinism detected (state "+stateId+", label = "+el+", to="+to+", previously to "+previousTo+")");
 				}
 				da.addEdge(stateId, el, to);
 			}
