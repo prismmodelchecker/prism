@@ -337,6 +337,8 @@ def runPrism(args, dir=""):
         for line in open(logFile, 'r').readlines():
             if re.match('Testing result:', line):
                 printTestResult(line)
+            if options.showWarnings and re.match('Warning:', line):
+                printTestResult(line)
     if options.test and exitCode != 0:
         for line in open(logFile, 'r').readlines():
             if re.match('Error:', line):
@@ -360,7 +362,7 @@ def printTestResult(msg):
         print '\033[32m' + msg + '\033[0m'
     elif 'SKIPPED' in msg:
         print '\033[90m' + msg + '\033[0m'
-    elif 'UNSUPPORTED' in msg:
+    elif 'UNSUPPORTED' in msg or 'Warning:' in msg:
         print '\033[33m' + msg + '\033[0m'
     else:
         print msg
@@ -636,6 +638,7 @@ parser.add_option("-p", "--prog", dest="prismExec", metavar="FILE", default="pri
 parser.add_option("-n", "--non-recursive", action="store_true", dest="nonRec", default=False, help="Don't recurse into directories")
 parser.add_option("-x", "--extra", dest="extraArgs", metavar="XXX", default="", help="Pass (single string of) extra switches to PRISM")
 parser.add_option("-t", "--test", action="store_true", dest="test", default=False, help="Run in test mode")
+parser.add_option("-w", "--show-warnings", action="store_true", dest="showWarnings", default=False, help="Show warnings (as well as errors) when in test mode")
 parser.add_option("--test-all", action="store_true", dest="testAll", default=False, help="In test mode, don't stop after an error")
 parser.add_option("--no-renaming", action="store_true", dest="noRenaming", default=False, help="Don't rename files to be exported")
 parser.add_option("--debug", action="store_true", dest="debug", default=False, help="Enable debug mode: display debugging info")
