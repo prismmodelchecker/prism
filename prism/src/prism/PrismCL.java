@@ -394,8 +394,7 @@ public class PrismCL implements PrismModelListener
 						if (test) {
 							try {
 								mainLog.println();
-								Values allConsts = new Values(definedMFConstants);
-								allConsts.addValues(definedPFConstants);
+								Values allConsts = new Values(modulesFile.getConstantValues(), propertiesFile.getConstantValues());
 								if (propertiesToCheck.get(j).checkAgainstExpectedResult(res.getResult(), allConsts)) {
 									mainLog.println("Testing result: PASS");
 								} else {
