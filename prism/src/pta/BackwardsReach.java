@@ -66,7 +66,6 @@ public class BackwardsReach extends PrismComponent
 
 		// Compute reachability probs on MDP
 		MDPModelChecker mc = new MDPModelChecker(this);
-		mc.setExportAdv(true);
 		mc.setPrecomp(false);
 		ModelCheckerResult res = mc.computeReachProbs(mdp, graph.getTarget(), false);
 
