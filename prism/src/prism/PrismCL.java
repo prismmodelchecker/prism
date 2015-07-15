@@ -931,6 +931,9 @@ public class PrismCL implements PrismModelListener
 
 				// Remove "-"
 				sw = args[i].substring(1);
+				if (sw.length() == 0) {
+					errorAndExit("Invalid empty switch");
+				}
 				// Remove optional second "-" (i.e. we allow switches of the form --sw too)
 				if (sw.charAt(0) == '-')
 					sw = sw.substring(1);
