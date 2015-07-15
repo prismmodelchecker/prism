@@ -321,13 +321,15 @@ def runPrism(args, dir=""):
     print ' '.join(prismArgs)
     if options.logDir:
         logFile = os.path.join(options.logDir, createLogFileName(args, dir))
-        f = open(logFile, 'w')
-        exitCode = subprocess.Popen(prismArgs, stdout=f).wait()
+        #f = open(logFile, 'w')
+        prismArgs = prismArgs + ['-mainlog', logFile]
+        exitCode = subprocess.Popen(prismArgs).wait()
         #exitCode = subprocess.Popen(prismArgs, cwd=dir, stdout=f).wait()
     elif options.test:
         f = tempfile.NamedTemporaryFile(delete=False)
         logFile = f.name
-        exitCode = subprocess.Popen(prismArgs, stdout=f).wait()
+        prismArgs = prismArgs + ['-mainlog', logFile]
+        exitCode = subprocess.Popen(prismArgs).wait()
     else:
         exitCode = subprocess.Popen(prismArgs).wait()
     # Extract test results if needed
