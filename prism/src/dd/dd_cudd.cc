@@ -113,7 +113,7 @@ void DD_CloseDownCUDD(DdManager *ddman, bool check)
 			printf("\nWarning: CUDD reports an error on closing.\n");
 		}*/
 		if (Cudd_CheckZeroRef(ddman) > 0) {
-			printf("\nWarning: CUDD reports %d non-zero references.\n", Cudd_CheckZeroRef(ddman));
+			fprintf(dd_out, "\nWarning: CUDD reports %d non-zero references.\n", Cudd_CheckZeroRef(ddman));
 		}
 	}
 	
