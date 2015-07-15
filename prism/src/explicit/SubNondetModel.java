@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import common.IterableStateSet;
 import parser.State;
 import parser.Values;
 import parser.VarList;
@@ -166,10 +167,8 @@ public class SubNondetModel implements NondetModel
 	private List<State> generateSubStateList(BitSet states)
 	{
 		List<State> statesList = new ArrayList<State>();
-		for (int i = 0; i < model.getNumStates(); i++) {
-			if (states.get(i)) {
-				statesList.add(model.getStatesList().get(i));
-			}
+		for (int i : new IterableStateSet(states, model.getNumStates())){
+			statesList.add(model.getStatesList().get(i));
 		}
 		return statesList;
 	}
@@ -202,13 +201,11 @@ public class SubNondetModel implements NondetModel
 	{
 		s = translateState(s);
 		HashSet<Integer> succs = new HashSet<Integer>();
-		for (int i = 0; i < model.getNumChoices(s); i++) {
-			if (actions.get(s).get(i)) {
-				Iterator<Integer> it = model.getSuccessorsIterator(s, i);
-				while (it.hasNext()) {
-					int j = it.next();
-					succs.add(inverseTranslateState(j));
-				}
+		for (int i : new IterableStateSet(actions.get(s), model.getNumChoices(s))){
+			Iterator<Integer> it = model.getSuccessorsIterator(s, i);
+			while (it.hasNext()) {
+				int j = it.next();
+				succs.add(inverseTranslateState(j));
 			}
 		}
 		return succs.iterator();
@@ -228,11 +225,11 @@ public class SubNondetModel implements NondetModel
 		Iterator<Integer> successors = getSuccessorsIterator(s);
 		while (successors.hasNext()) {
 			Integer successor = successors.next();
-			if (set.get(successor)) {
-				return true;
+			if (!set.get(successor)) {
+				return false;
 			}
 		}
-		return false;
+		return true;
 	}
 
 	@Override
@@ -443,22 +440,18 @@ public class SubNondetModel implements NondetModel
 
 	private void generateStatistics()
 	{
-		for (int i = 0; i < model.getNumStates(); i++) {
-			if (states.get(i)) {
-				numTransitions += getTransitions(i);
-				numChoices += actions.get(i).cardinality();
-				maxNumChoices = Math.max(maxNumChoices, model.getNumChoices(i));
-			}
+		for (int i : new IterableStateSet(states, model.getNumStates())){
+			numTransitions += getTransitions(i);
+			numChoices += actions.get(i).cardinality();
+			maxNumChoices = Math.max(maxNumChoices, model.getNumChoices(i));
 		}
 	}
 
 	private int getTransitions(int state)
 	{
 		int transitions = 0;
-		for (int i = 0; i < model.getNumChoices(state); i++) {
-			if (actions.get(state).get(i)) {
-				transitions += model.getNumTransitions(state, i);
-			}
+		for (int i : new IterableStateSet(actions.get(state), model.getNumChoices(state))){
+			transitions += model.getNumTransitions(state, i);
 		}
 		return transitions;
 	}
@@ -471,18 +464,14 @@ public class SubNondetModel implements NondetModel
 
 	private void generateLookupTable(BitSet states, Map<Integer, BitSet> actions)
 	{
-		for (int i = 0; i < model.getNumStates(); i++) {
-			if (states.get(i)) {
-				inverseStateLookupTable.put(i, stateLookupTable.size());
-				stateLookupTable.put(stateLookupTable.size(), i);
-				Map<Integer, Integer> r = new HashMap<Integer, Integer>();
-				for (int j = 0; j < model.getNumChoices(i); j++) {
-					if (actions.get(i).get(j)) {
-						r.put(r.size(), j);
-					}
-				}
-				actionLookupTable.put(actionLookupTable.size(), r);
+		for (int i : new IterableStateSet(states, model.getNumStates())){
+			inverseStateLookupTable.put(i, stateLookupTable.size());
+			stateLookupTable.put(stateLookupTable.size(), i);
+			Map<Integer, Integer> r = new HashMap<Integer, Integer>();
+			for (int j : new IterableStateSet(actions.get(i), model.getNumChoices(i))){
+				r.put(r.size(), j);
 			}
+			actionLookupTable.put(actionLookupTable.size(), r);
 		}
 	}
 
