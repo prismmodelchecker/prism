@@ -744,6 +744,78 @@ public abstract class Expression extends ASTElement
 		}
 		return false;
 	}
+	
+	/**
+	 * Test if an expression is an LTL formula and is in positive normal form,
+	 * i.e. where negation only occurs at the level of state formulae.
+	 */
+	public static boolean isPositiveNormalFormLTL(Expression expr)
+	{
+		// State formulae (negated or otherwise) are OK
+		if (expr.type instanceof TypeBool)
+			return true;
+		// Otherwise recurse, looking for negations...
+		else if (expr instanceof ExpressionUnaryOp) {
+			ExpressionUnaryOp exprUnOp = (ExpressionUnaryOp) expr;
+			int op = exprUnOp.getOperator();
+			switch (op) {
+			// Negation is not allowed
+			// (since we already checked for state formulae that include negation)
+			case ExpressionUnaryOp.NOT:
+				return false;
+			default:
+				return isPositiveNormalFormLTL(exprUnOp.getOperand());
+			}
+		}
+		else if (expr instanceof ExpressionBinaryOp) {
+			ExpressionBinaryOp exprBinOp = (ExpressionBinaryOp) expr;
+			return isPositiveNormalFormLTL(exprBinOp.getOperand1()) && isPositiveNormalFormLTL(exprBinOp.getOperand2());
+		}
+		else if (expr instanceof ExpressionTemporal) {
+			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
+			if (exprTemp.getOperand1() != null && !isPositiveNormalFormLTL(exprTemp.getOperand1())) {
+				return false;
+			}
+			if (exprTemp.getOperand2() != null && !isPositiveNormalFormLTL(exprTemp.getOperand2())) {
+				return false;
+			}
+			return true;
+		}
+		// If we get here, it is probably not even LTL
+		return false;
+	}
+	
+	/**
+	 * Test if an expression is a co-safe LTL formula, detected syntactically
+	 * (i.e. if it is in positive normal form and only uses X, F and U. 
+	 */
+	public static boolean isCoSafeLTLSyntactic(Expression expr)
+	{
+		// Check for positive normal form
+		if (!isPositiveNormalFormLTL(expr))
+			return false;
+		// Check temporal operators
+		try {
+			ASTTraverse astt = new ASTTraverse()
+			{
+				public void visitPost(ExpressionTemporal e) throws PrismLangException
+				{
+					if (e.getOperator() == ExpressionTemporal.P_X)
+						return;
+					if (e.getOperator() == ExpressionTemporal.P_F)
+						return;
+					if (e.getOperator() == ExpressionTemporal.P_U)
+						return;
+					throw new PrismLangException("Found non-X/F/U", e);
+				}
+			};
+			expr.accept(astt);
+		} catch (PrismLangException e) {
+			return false;
+		}
+		// All good
+		return true;
+	}
 
 	/**
 	 * Converts an Expression that is a simple path formula to a canonical form:
