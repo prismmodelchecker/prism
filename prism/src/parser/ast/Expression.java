@@ -787,7 +787,7 @@ public abstract class Expression extends ASTElement
 	
 	/**
 	 * Test if an expression is a co-safe LTL formula, detected syntactically
-	 * (i.e. if it is in positive normal form and only uses X, F and U. 
+	 * (i.e. if it is in positive normal form and only uses X, F and U). 
 	 */
 	public static boolean isCoSafeLTLSyntactic(Expression expr)
 	{
