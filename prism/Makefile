@@ -323,6 +323,19 @@ cuddpackageforce: checks
 	  $(MAKE) C="$(C)" CC="$(C)" CPP="$(CPP)" \
 	  XCFLAGS="$(CUDD_XCFLAGS)";
 
+# use this to force a rebuild (with javacc) of the main parser
+parser:
+	@echo Making parser ...; \
+	cd src/parser && \
+	$(MAKE) SRC_DIR="$(SRC_DIR)" touch && \
+	$(MAKE) \
+	SRC_DIR="$(SRC_DIR)" \
+	CLASSES_DIR="$(CLASSES_DIR)" \
+	JAVAC="$(JAVAC) $(JFLAGS)" \
+	JAVACC="$(JAVACC)" \
+	JAVAH="$(JAVAH) $(JFLAGS)" \
+	CLASSPATHSEP="$(CLASSPATHSEP)"
+
 extpackages: checks
 	@for ext in $(EXT_PACKAGES); do \
 	  echo Making $$ext ...; \
