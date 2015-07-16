@@ -663,8 +663,7 @@ public class LTLModelChecker extends PrismComponent
 	}
 
 	/**
-	 * Find the set of accepting BSCCs in a model wrt a Rabin acceptance condition.
-	 * Find the set of accepting BSCCs in a model wrt an acceptance condition.
+	 * Find the set of accepting BSCCs in a model wrt an omega acceptance condition.
 	 * @param acceptance the acceptance condition, with BDD based storage
 	 * @param model The model
 	 * @return A referenced BDD for the union of all states in accepting BSCCs
