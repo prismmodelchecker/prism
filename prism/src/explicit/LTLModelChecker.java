@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 import java.util.Vector;
 
 import parser.State;
@@ -55,6 +56,7 @@ import prism.PrismNotSupportedException;
 import acceptance.AcceptanceGenRabin;
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceRabin;
+import acceptance.AcceptanceStreett;
 import acceptance.AcceptanceType;
 import automata.DA;
 import automata.LTL2DA;
@@ -607,6 +609,8 @@ public class LTLModelChecker extends PrismComponent
 	{
 		if (acceptance instanceof AcceptanceRabin) {
 			return findAcceptingECStatesForRabin(model, (AcceptanceRabin) acceptance);
+		} else if (acceptance instanceof AcceptanceStreett) {
+			return findAcceptingECStatesForStreett(model, (AcceptanceStreett) acceptance);
 		} else if (acceptance instanceof AcceptanceGenRabin) {
 			return findAcceptingECStatesForGeneralizedRabin(model, (AcceptanceGenRabin) acceptance);
 		}
@@ -643,6 +647,73 @@ public class LTLModelChecker extends PrismComponent
 			// Union MEC states
 			for (BitSet mec : mecs) {
 				allAcceptingStates.or(mec);
+			}
+		}
+
+		return allAcceptingStates;
+	}
+
+	/**
+	 * Find the set of states in accepting end components (ECs) in a nondeterministic model wrt a Streett acceptance condition.
+	 * @param model The model
+	 * @param acceptance The Streett acceptance condition
+	 */
+	public BitSet findAcceptingECStatesForStreett(NondetModel model, AcceptanceStreett acceptance) throws PrismException
+	{
+		class ECandPairs {
+			BitSet MEC;
+			BitSet activePairs;
+		}
+
+		BitSet allAcceptingStates = new BitSet();
+		BitSet allPairs = new BitSet();
+		allPairs.set(0, acceptance.size());
+
+		Stack<ECandPairs> todo = new Stack<ECandPairs>();
+		ECComputer ecComputer = ECComputer.createECComputer(this, model);
+		ecComputer.computeMECStates();
+		for (BitSet mecs : ecComputer.getMECStates()) {
+			ECandPairs ecp = new ECandPairs();
+			ecp.MEC = mecs;
+			ecp.activePairs = allPairs;
+			todo.push(ecp);
+		}
+
+		while (!todo.empty()) {
+			ECandPairs ecp = todo.pop();
+			BitSet newActivePairs = (BitSet)ecp.activePairs.clone();
+			BitSet restrict = null;
+
+			// check for acceptance
+			boolean allAccepting = true;
+			for (int pair = ecp.activePairs.nextSetBit(0);
+				 pair != -1;
+				 pair = ecp.activePairs.nextSetBit(pair + 1)) {
+
+				if (!acceptance.get(pair).isBSCCAccepting(ecp.MEC)) {
+					// this pair is not accepting
+					if (restrict == null) {
+						restrict = (BitSet)ecp.MEC.clone();
+					}
+					restrict.andNot(acceptance.get(pair).getR());
+					newActivePairs.clear(pair);
+					allAccepting = false;
+				}
+			}
+
+			if (allAccepting) {
+				allAcceptingStates.or(ecp.MEC);
+			} else if (restrict.isEmpty()) {
+				// nothing to do
+			} else {
+				ecComputer = ECComputer.createECComputer(this, model);
+				ecComputer.computeMECStates(restrict);
+				for (BitSet mecs : ecComputer.getMECStates()) {
+					ECandPairs newEcp = new ECandPairs();
+					newEcp.MEC = mecs;
+					newEcp.activePairs = newActivePairs;
+					todo.push(newEcp);
+				}
 			}
 		}
 
