@@ -469,7 +469,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 		// R operator
 		else if (expr instanceof ExpressionReward) {
-			res = checkExpressionReward(model, (ExpressionReward) expr);
+			res = checkExpressionReward(model, (ExpressionReward) expr, statesOfInterest);
 		}
 		// S operator
 		else if (expr instanceof ExpressionSS) {
@@ -514,7 +514,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 		// R operator
 		else if (exprSub instanceof ExpressionReward) {
-			return checkExpressionReward(model, (ExpressionReward) exprSub, false, coalition);
+			return checkExpressionReward(model, (ExpressionReward) exprSub, false, coalition, statesOfInterest);
 		}
 		// Anything else is an error 
 		else {
@@ -816,15 +816,15 @@ public class ProbModelChecker extends NonProbModelChecker
 	/**
 	 * Model check a P operator expression and return the values for all states.
 	 */
-	protected StateValues checkExpressionReward(Model model, ExpressionReward expr) throws PrismException
+	protected StateValues checkExpressionReward(Model model, ExpressionReward expr, BitSet statesOfInterest) throws PrismException
 	{
-		return checkExpressionReward(model, expr, true, null);
+		return checkExpressionReward(model, expr, true, null, statesOfInterest);
 	}
 	
 	/**
 	 * Model check an R operator expression and return the values for all states.
 	 */
-	protected StateValues checkExpressionReward(Model model, ExpressionReward expr, boolean forAll, Coalition coalition) throws PrismException
+	protected StateValues checkExpressionReward(Model model, ExpressionReward expr, boolean forAll, Coalition coalition, BitSet statesOfInterest) throws PrismException
 	{
 		// Get info from R operator
 		OpRelOpBound opInfo = expr.getRelopBoundInfo(constantValues);
@@ -836,7 +836,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		Rewards rewards = constructRewards(model, rewStruct);
 
 		// Compute rewards
-		StateValues rews = checkRewardFormula(model, rewards, expr.getExpression(), minMax);
+		StateValues rews = checkRewardFormula(model, rewards, expr.getExpression(), minMax, statesOfInterest);
 
 		// Print out rewards
 		if (getVerbosity() > 5) {
@@ -880,7 +880,7 @@ public class ProbModelChecker extends NonProbModelChecker
 	/**
 	 * Compute rewards for the contents of an R operator.
 	 */
-	protected StateValues checkRewardFormula(Model model, Rewards modelRewards, Expression expr, MinMax minMax) throws PrismException
+	protected StateValues checkRewardFormula(Model model, Rewards modelRewards, Expression expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
 		StateValues rewards = null;
 
@@ -888,7 +888,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
 			switch (exprTemp.getOperator()) {
 			case ExpressionTemporal.R_F:
-				rewards = checkRewardReach(model, modelRewards, exprTemp, minMax);
+				rewards = checkRewardReach(model, modelRewards, exprTemp, minMax, statesOfInterest);
 				break;
 			case ExpressionTemporal.R_I:
 				rewards = checkRewardInstantaneous(model, modelRewards, exprTemp, minMax);
@@ -914,7 +914,7 @@ public class ProbModelChecker extends NonProbModelChecker
 	/**
 	 * Compute rewards for a reachability reward operator.
 	 */
-	protected StateValues checkRewardReach(Model model, Rewards modelRewards, ExpressionTemporal expr, MinMax minMax) throws PrismException
+	protected StateValues checkRewardReach(Model model, Rewards modelRewards, ExpressionTemporal expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
 		// Model check the operand for all states
 		BitSet target = checkExpression(model, expr.getOperand2(), null).getBitSet();
