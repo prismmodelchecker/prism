@@ -917,37 +917,6 @@ public class ProbModelChecker extends NonProbModelChecker
 	}
 
 	/**
-	 * Compute rewards for a reachability reward operator.
-	 */
-	protected StateValues checkRewardReach(Model model, Rewards modelRewards, ExpressionTemporal expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
-	{
-		// Model check the operand for all states
-		BitSet target = checkExpression(model, expr.getOperand2(), null).getBitSet();
-
-		// Compute/return the rewards
-		ModelCheckerResult res = null;
-		switch (model.getModelType()) {
-		case DTMC:
-			res = ((DTMCModelChecker) this).computeReachRewards((DTMC) model, (MCRewards) modelRewards, target);
-			break;
-		case CTMC:
-			res = ((CTMCModelChecker) this).computeReachRewards((CTMC) model, (MCRewards) modelRewards, target);
-			break;
-		case MDP:
-			res = ((MDPModelChecker) this).computeReachRewards((MDP) model, (MDPRewards) modelRewards, target, minMax.isMin());
-			result.setStrategy(res.strat);
-			break;
-		case STPG:
-			res = ((STPGModelChecker) this).computeReachRewards((STPG) model, (STPGRewards) modelRewards, target, minMax.isMin1(), minMax.isMin2());
-			break;
-		default:
-			throw new PrismNotSupportedException("Explicit engine does not yet handle the " + expr.getOperatorSymbol() + " reward operator for " + model.getModelType()
-					+ "s");
-		}
-		return StateValues.createFromDoubleArray(res.soln, model);
-	}
-
-	/**
 	 * Compute rewards for an instantaneous reward operator.
 	 */
 	protected StateValues checkRewardInstantaneous(Model model, Rewards modelRewards, ExpressionTemporal expr, MinMax minMax) throws PrismException
@@ -1063,6 +1032,37 @@ public class ProbModelChecker extends NonProbModelChecker
 		throw new PrismException("Invalid contents for an R operator: " + expr);
 	}
 	
+	/**
+	 * Compute rewards for a reachability reward operator.
+	 */
+	protected StateValues checkRewardReach(Model model, Rewards modelRewards, ExpressionTemporal expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
+	{
+		// Model check the operand for all states
+		BitSet target = checkExpression(model, expr.getOperand2(), null).getBitSet();
+
+		// Compute/return the rewards
+		ModelCheckerResult res = null;
+		switch (model.getModelType()) {
+		case DTMC:
+			res = ((DTMCModelChecker) this).computeReachRewards((DTMC) model, (MCRewards) modelRewards, target);
+			break;
+		case CTMC:
+			res = ((CTMCModelChecker) this).computeReachRewards((CTMC) model, (MCRewards) modelRewards, target);
+			break;
+		case MDP:
+			res = ((MDPModelChecker) this).computeReachRewards((MDP) model, (MDPRewards) modelRewards, target, minMax.isMin());
+			result.setStrategy(res.strat);
+			break;
+		case STPG:
+			res = ((STPGModelChecker) this).computeReachRewards((STPG) model, (STPGRewards) modelRewards, target, minMax.isMin1(), minMax.isMin2());
+			break;
+		default:
+			throw new PrismNotSupportedException("Explicit engine does not yet handle the " + expr.getOperatorSymbol() + " reward operator for " + model.getModelType()
+					+ "s");
+		}
+		return StateValues.createFromDoubleArray(res.soln, model);
+	}
+
 	/**
 	 * Compute rewards for a co-safe LTL reward operator.
 	 */
