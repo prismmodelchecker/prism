@@ -1202,6 +1202,11 @@ public class NondetModelChecker extends NonProbModelChecker
 		JDDNode b;
 		StateValues rewards = null;
 
+		// No time bounds allowed
+		if (expr.hasBounds()) {
+			throw new PrismNotSupportedException("R operator cannot contain a bounded F operator: " + expr);
+		}
+		
 		// model check operand first
 		b = checkExpressionDD(expr.getOperand2());
 

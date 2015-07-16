@@ -725,10 +725,8 @@ public abstract class Expression extends ASTElement
 			{
 				public void visitPre(ExpressionTemporal e) throws PrismLangException
 				{
-					if (e.getLowerBound() != null)
-						throw new PrismLangException(e.getOperatorSymbol());
-					if (e.getUpperBound() != null)
-						throw new PrismLangException(e.getOperatorSymbol());
+					if (e.hasBounds())
+						throw new PrismLangException("");
 				}
 			});
 		} catch (PrismLangException e) {
