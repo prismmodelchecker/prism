@@ -26,7 +26,9 @@
 
 package explicit;
 
-import java.util.*;
+import java.util.BitSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 
 import explicit.rewards.STPGRewards;
@@ -52,7 +54,7 @@ import explicit.rewards.STPGRewards;
 public interface STPG extends NondetModel
 {
 	/**
-	 * Get the player (1 or 2) for state {@code s}.
+	 * Get the player that owns state {@code s} (1 or 2 for an STPG).
 	 */
 	public int getPlayer(int s);
 
@@ -70,7 +72,7 @@ public interface STPG extends NondetModel
 	 * Is choice {@code i} of state {@code s} in nested form? (See {@link explicit.STPG} for details)
 	 */
 	public boolean isChoiceNested(int s, int i);
-	
+
 	/**
 	 * Get the number of (nested) choices in choice {@code i} of state {@code s}.
 	 */
@@ -210,4 +212,13 @@ public interface STPG extends NondetModel
 	 * @param val Min or max value to match
 	 */
 	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], STPGRewards rewards, boolean min1, boolean min2, double val);
+
+	/**
+	 * Checks  whether all successors of action c in state s are in a given set
+	 * @param s state
+	 * @param c choice
+	 * @param set target set
+	 * @return true if all successors are, false otherwise
+	 */
+	public boolean allSuccessorsInSet(int s, int c, BitSet set);
 }
