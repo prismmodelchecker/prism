@@ -384,9 +384,6 @@ public class SemanticCheck extends ASTTraverse
 		if (op == ExpressionTemporal.R_I && (operand1 != null || operand2 != null || lBound != null || uBound == null)) {
 			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
 		}
-		if (op == ExpressionTemporal.R_F && (operand1 != null || operand2 == null || lBound != null || uBound != null)) {
-			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
-		}
 		if (op == ExpressionTemporal.R_S && (operand1 != null || operand2 != null || lBound != null || uBound != null)) {
 			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
 		}

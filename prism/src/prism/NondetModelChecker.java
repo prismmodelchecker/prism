@@ -249,9 +249,6 @@ public class NondetModelChecker extends NonProbModelChecker
 			case ExpressionTemporal.R_I:
 				rewards = checkRewardInst(exprTemp, stateRewards, transRewards, minMax.isMin());
 				break;
-			case ExpressionTemporal.R_F:
-				rewards = checkRewardReach(exprTemp, stateRewards, transRewards, minMax.isMin());
-				break;
 			}
 		} else if (expr2.getType() instanceof TypePathBool || expr2.getType() instanceof TypeBool) {
 			rewards = checkRewardPathFormula(expr2, stateRewards, transRewards, minMax.isMin());

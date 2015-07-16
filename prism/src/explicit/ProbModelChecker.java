@@ -890,9 +890,6 @@ public class ProbModelChecker extends NonProbModelChecker
 		if (expr.getType() instanceof TypePathDouble) {
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
 			switch (exprTemp.getOperator()) {
-			case ExpressionTemporal.R_F:
-				rewards = checkRewardReach(model, modelRewards, exprTemp, minMax, statesOfInterest);
-				break;
 			case ExpressionTemporal.R_I:
 				rewards = checkRewardInstantaneous(model, modelRewards, exprTemp, minMax);
 				break;

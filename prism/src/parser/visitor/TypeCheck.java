@@ -193,14 +193,6 @@ public class TypeCheck extends ASTTraverse
 			}
 			e.setType(TypePathBool.getInstance());
 			break;
-		case ExpressionTemporal.R_F:
-			if (e.getOperand2() != null) {
-				type = e.getOperand2().getType();
-				if (!(type instanceof TypeBool) && !(type instanceof TypePathBool))
-					throw new PrismLangException("Type error: Argument of " + e.getOperatorSymbol() + " operator is not Boolean", e.getOperand2());
-			}
-			e.setType(TypePathDouble.getInstance());
-			break;
 		case ExpressionTemporal.R_C:
 		case ExpressionTemporal.R_I:
 		case ExpressionTemporal.R_S:

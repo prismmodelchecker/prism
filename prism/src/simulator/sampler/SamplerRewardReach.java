@@ -49,7 +49,7 @@ public class SamplerRewardReach extends SamplerDouble
 		
 		// Make sure expression is of the correct type
 		// Then extract other required info
-		if (expr.getOperator() != ExpressionTemporal.R_F)
+		if (expr.getOperator() != ExpressionTemporal.P_F)
 			throw new PrismException("Error creating Sampler");
 		target = expr.getOperand2();
 		this.rewardStructIndex = rewardStructIndex;

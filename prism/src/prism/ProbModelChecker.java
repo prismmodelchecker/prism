@@ -237,9 +237,6 @@ public class ProbModelChecker extends NonProbModelChecker
 			case ExpressionTemporal.R_I:
 				rewards = checkRewardInst(exprTemp, stateRewards, transRewards);
 				break;
-			case ExpressionTemporal.R_F:
-				rewards = checkRewardReach(exprTemp, stateRewards, transRewards);
-				break;
 			case ExpressionTemporal.R_S:
 				rewards = checkRewardSS(exprTemp, stateRewards, transRewards);
 				break;

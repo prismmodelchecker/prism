@@ -1007,7 +1007,7 @@ final public class ParamModelChecker extends PrismComponent
 		if (expr instanceof ExpressionTemporal) {
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
 			switch (exprTemp.getOperator()) {
-			case ExpressionTemporal.R_F:
+			case ExpressionTemporal.P_F:
 				rewards = checkRewardReach(model, rew, exprTemp, min, needStates);
 				break;
 			case ExpressionTemporal.R_S:

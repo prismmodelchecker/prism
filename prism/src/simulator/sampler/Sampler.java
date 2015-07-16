@@ -253,7 +253,7 @@ public abstract class Sampler
 				// Discrete-time instantaneous reward
 				return new SamplerRewardInstDisc(exprTemp, rsi);
 			}
-		case ExpressionTemporal.R_F:
+		case ExpressionTemporal.P_F:
 			// reachability reward
 			return new SamplerRewardReach(exprTemp, rsi);
 		}
