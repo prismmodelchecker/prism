@@ -1054,7 +1054,7 @@ public class ProbModelChecker extends NonProbModelChecker
 	 */
 	protected StateValues checkRewardPathFormula(Model model, Rewards modelRewards, Expression expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
-		if (expr instanceof ExpressionTemporal && ((ExpressionTemporal) expr).getOperator() == ExpressionTemporal.P_F){
+		if (Expression.isReach(expr)) {
 			return checkRewardReach(model, modelRewards, (ExpressionTemporal) expr, minMax, statesOfInterest);
 		}
 		else if (Expression.isCoSafeLTLSyntactic(expr)) {

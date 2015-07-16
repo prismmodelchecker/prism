@@ -1186,7 +1186,7 @@ public class NondetModelChecker extends NonProbModelChecker
 	 */
 	protected StateValues checkRewardPathFormula(Expression expr, JDDNode stateRewards, JDDNode transRewards, boolean min) throws PrismException
 	{
-		if (expr instanceof ExpressionTemporal && ((ExpressionTemporal) expr).getOperator() == ExpressionTemporal.P_F){
+		if (Expression.isReach(expr)) {
 			return checkRewardReach((ExpressionTemporal) expr, stateRewards, transRewards, min);
 		}
 		else if (Expression.isCoSafeLTLSyntactic(expr)) {

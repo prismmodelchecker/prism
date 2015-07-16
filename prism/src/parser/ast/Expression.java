@@ -703,6 +703,19 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
+	 * Test if an expression is a reachability path formula (F phi) 
+	 */
+	public static boolean isReach(Expression expr)
+	{
+		if (expr instanceof ExpressionTemporal) {
+			if (((ExpressionTemporal) expr).getOperator() == ExpressionTemporal.P_F) {
+				return ((ExpressionTemporal) expr).getOperand2().isProposition();
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Test if an expression contains time bounds on temporal operators 
 	 */
 	public static boolean containsTemporalTimeBounds(Expression expr)
