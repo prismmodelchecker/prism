@@ -1632,15 +1632,21 @@ void RewardIndex(ExpressionReward exprRew) :
 Expression ExpressionRewardContents(boolean prop, boolean pathprop) :
 {
 	Expression expr = null;
-	ExpressionTemporal ret = null;
+	ExpressionTemporal exprTemp = null;
+	Expression ret = null;
 	Token begin;
 }
 {
-	( LOOKAHEAD(<C> <LE>) begin = <C> <LE> expr = Expression(false, false) { ret = new ExpressionTemporal(ExpressionTemporal.R_C, null, null); ret.setUpperBound(expr); }
-	| begin = <C> { ret = new ExpressionTemporal(ExpressionTemporal.R_C, null, null); }
-	| begin = <I> <EQ> expr = Expression(false, false) { ret = new ExpressionTemporal(ExpressionTemporal.R_I, null, null); ret.setUpperBound(expr);  }
-	| begin = <F> expr = Expression(prop, pathprop) { ret = new ExpressionTemporal(ExpressionTemporal.R_F, null, expr); }
-	| begin = <S> { ret = new ExpressionTemporal(ExpressionTemporal.R_S, null, null); } )
+	{ begin = getToken(1); }
+	(
+	// Normal reward operators
+	LOOKAHEAD(<C> <LE>) begin = <C> <LE> expr = Expression(false, false) { exprTemp = new ExpressionTemporal(ExpressionTemporal.R_C, null, null); exprTemp.setUpperBound(expr); ret = exprTemp; }
+	| <C> { ret = new ExpressionTemporal(ExpressionTemporal.R_C, null, null); }
+	| <I> <EQ> expr = Expression(false, false) { exprTemp = new ExpressionTemporal(ExpressionTemporal.R_I, null, null); exprTemp.setUpperBound(expr); ret = exprTemp; }
+	| <S> { ret = new ExpressionTemporal(ExpressionTemporal.R_S, null, null); }
+	// Path formula (including F "target")
+	| expr = Expression(prop, true) { ret = expr; }
+	)
 	{ ret.setPosition(begin, getToken(0)); return ret; }
 }
 

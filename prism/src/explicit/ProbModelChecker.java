@@ -37,7 +37,10 @@ import parser.ast.ExpressionStrategy;
 import parser.ast.ExpressionTemporal;
 import parser.ast.ExpressionUnaryOp;
 import parser.ast.RewardStruct;
+import parser.type.TypeBool;
 import parser.type.TypeDouble;
+import parser.type.TypePathBool;
+import parser.type.TypePathDouble;
 import prism.IntegerBound;
 import prism.OpRelOpBound;
 import prism.PrismComponent;
@@ -884,7 +887,7 @@ public class ProbModelChecker extends NonProbModelChecker
 	{
 		StateValues rewards = null;
 
-		if (expr instanceof ExpressionTemporal) {
+		if (expr.getType() instanceof TypePathDouble) {
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
 			switch (exprTemp.getOperator()) {
 			case ExpressionTemporal.R_F:
@@ -903,6 +906,8 @@ public class ProbModelChecker extends NonProbModelChecker
 			default:
 				throw new PrismNotSupportedException("Explicit engine does not yet handle the " + exprTemp.getOperatorSymbol() + " reward operator");
 			}
+		} else if (expr.getType() instanceof TypePathBool || expr.getType() instanceof TypeBool) {
+			rewards = checkRewardPathFormula(model, modelRewards, expr, minMax, statesOfInterest);
 		}
 
 		if (rewards == null)
@@ -1042,6 +1047,29 @@ public class ProbModelChecker extends NonProbModelChecker
 					+ "s");
 		}
 		return StateValues.createFromDoubleArray(res.soln, model);
+	}
+
+	/**
+	 * Compute rewards for a path formula in a reward operator.
+	 */
+	protected StateValues checkRewardPathFormula(Model model, Rewards modelRewards, Expression expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
+	{
+		if (expr instanceof ExpressionTemporal && ((ExpressionTemporal) expr).getOperator() == ExpressionTemporal.P_F){
+			return checkRewardReach(model, modelRewards, (ExpressionTemporal) expr, minMax, statesOfInterest);
+		}
+		else if (Expression.isCoSafeLTLSyntactic(expr)) {
+			return checkRewardCoSafeLTL(model, modelRewards, expr, minMax, statesOfInterest);
+		}
+		throw new PrismException("Invalid contents for an R operator: " + expr);
+	}
+	
+	/**
+	 * Compute rewards for a co-safe LTL reward operator.
+	 */
+	protected StateValues checkRewardCoSafeLTL(Model model, Rewards modelRewards, Expression expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
+	{
+		// To be overridden by subclasses
+		throw new PrismException("Computation not implemented yet");
 	}
 
 	/**

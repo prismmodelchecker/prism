@@ -516,7 +516,8 @@ public class TypeCheck extends ASTTraverse
 			}
 		}
 		// Check argument
-		if (!(e.getExpression().getType() instanceof TypePathDouble)) {
+		Type typeArg = e.getExpression().getType();
+		if (!(typeArg instanceof TypePathDouble || typeArg instanceof TypePathBool || typeArg instanceof TypeBool)) {
 			throw new PrismLangException("Type error: Contents of R operator is invalid", e.getExpression());
 		}
 		// Set type

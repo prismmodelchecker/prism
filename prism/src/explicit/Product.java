@@ -29,6 +29,9 @@ package explicit;
 
 import java.util.BitSet;
 
+import explicit.rewards.MDPRewards;
+import explicit.rewards.MDPRewardsSimple;
+import explicit.rewards.StateRewardsConstant;
 import parser.type.TypeBool;
 import parser.type.TypeDouble;
 import parser.type.TypeInt;
@@ -142,6 +145,37 @@ public abstract class Product<M extends Model> implements ModelTransformation<M,
 		return result;
 	}
 
+	/**
+	 * Lifts an MDP reward structure over states in the original model to one
+	 * over states in the product model: The rewards for a product state are
+	 * copied from those the parameter for the corresponding original model state.
+	 * It is assumed that the original model in the product was an MDP.
+	 * It is also assume that nondeterministic choices in each state of the product
+	 * are ordered in the same way as in the original model.
+	 * @param mdpRewards an MDPRewards over states of the original model for this product.
+	 */
+	public MDPRewards liftFromModel(MDPRewards mdpRewards)
+	{	
+		MDP productMDP = (MDP)productModel;
+		// Special case: constant state rewards
+		if (mdpRewards instanceof StateRewardsConstant) {
+			return ((StateRewardsConstant) mdpRewards).deepCopy();
+		}
+		// Normal: state and transition rewards
+		else {
+			int numStates = productMDP.getNumStates();
+			MDPRewardsSimple rewSimple = new MDPRewardsSimple(numStates);
+			for (int productState = 0; productState < numStates; productState++) {
+				rewSimple.setStateReward(productState, mdpRewards.getStateReward(getModelState(productState)));
+				int numChoices = productMDP.getNumChoices(productState);
+				for (int i = 0; i < numChoices; i++) {
+					rewSimple.setTransitionReward(productState, i, mdpRewards.getTransitionReward(getModelState(productState), i));
+				}
+			}
+			return rewSimple;
+		}
+	}
+	
 	/**
 	 * Project state values from the product model back to the original model. This function
 	 * assumes that the product model has at most one initial state per state in the original

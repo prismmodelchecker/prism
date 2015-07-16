@@ -49,6 +49,7 @@ import acceptance.AcceptanceType;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MCRewardsFromMDPRewards;
 import explicit.rewards.MDPRewards;
+import explicit.rewards.Rewards;
 
 /**
  * Explicit-state model checker for Markov decision processes (MDPs).
@@ -135,6 +136,71 @@ public class MDPModelChecker extends ProbModelChecker
 		return probs;
 	}
 
+	/**
+	 * Compute rewards for a co-safe LTL reward operator.
+	 */
+	protected StateValues checkRewardCoSafeLTL(Model model, Rewards modelRewards, Expression expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
+	{
+		LTLModelChecker mcLtl;
+		MDPRewards productRewards;
+		StateValues rewardsProduct, rewards;
+		MDPModelChecker mcProduct;
+		LTLModelChecker.LTLProduct<MDP> product;
+
+		// For LTL model checking routines
+		mcLtl = new LTLModelChecker(this);
+
+		AcceptanceType[] allowedAcceptance = {
+				AcceptanceType.RABIN,
+				AcceptanceType.REACH
+		};
+
+		product = mcLtl.constructProductMDP(this, (MDP)model, expr, statesOfInterest, allowedAcceptance);
+		
+		// Adapt reward info to product model
+		productRewards = product.liftFromModel((MDPRewards) modelRewards);
+		
+		// Output product, if required
+		if (getExportProductTrans()) {
+				mainLog.println("\nExporting product transition matrix to file \"" + getExportProductTransFilename() + "\"...");
+				product.getProductModel().exportToPrismExplicitTra(getExportProductTransFilename());
+		}
+		if (getExportProductStates()) {
+			mainLog.println("\nExporting product state space to file \"" + getExportProductStatesFilename() + "\"...");
+			PrismFileLog out = new PrismFileLog(getExportProductStatesFilename());
+			VarList newVarList = (VarList) modulesFile.createVarList().clone();
+			String daVar = "_da";
+			while (newVarList.getIndex(daVar) != -1) {
+				daVar = "_" + daVar;
+			}
+			newVarList.addVar(0, new Declaration(daVar, new DeclarationIntUnbounded()), 1, null);
+			product.getProductModel().exportStates(Prism.EXPORT_PLAIN, newVarList, out);
+			out.close();
+		}
+		
+		// Find accepting states + compute reachability rewards
+		BitSet acc;
+		if (product.getAcceptance() instanceof AcceptanceReach) {
+			// For a DFA, just collect the accept states
+			mainLog.println("\nSkipping end component detection since DRA is a DFA...");
+			acc = ((AcceptanceReach)product.getAcceptance()).getGoalStates();
+		} else {
+			// Usually, we have to detect end components in the product
+			mainLog.println("\nFinding accepting end components...");
+			acc = mcLtl.findAcceptingECStates(product.getProductModel(), product.getAcceptance());
+		}
+		mainLog.println("\nComputing reachability rewards...");
+		mcProduct = new MDPModelChecker(this);
+		mcProduct.inheritSettings(this);
+		rewardsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachRewards((MDP)product.getProductModel(), productRewards, acc, false).soln, product.getProductModel());
+		
+		// Mapping rewards in the original model
+		rewards = product.projectToOriginalModel(rewardsProduct);
+		rewardsProduct.clear();
+		
+		return rewards;
+	}
+	
 	// Numerical computation functions
 
 	/**

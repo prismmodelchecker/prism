@@ -29,27 +29,44 @@
 
 package prism;
 
+import hybrid.PrismHybrid;
+
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.List;
+import java.util.Vector;
 
+import jdd.JDD;
+import jdd.JDDNode;
+import jdd.JDDVars;
+import mtbdd.PrismMTBDD;
+import odd.ODDUtils;
+import parser.ast.Expression;
+import parser.ast.ExpressionFunc;
+import parser.ast.ExpressionProb;
+import parser.ast.ExpressionQuant;
+import parser.ast.ExpressionReward;
+import parser.ast.ExpressionTemporal;
+import parser.ast.ExpressionUnaryOp;
+import parser.ast.PropertiesFile;
+import parser.ast.RelOp;
+import parser.type.TypeBool;
+import parser.type.TypePathBool;
+import parser.type.TypePathDouble;
+import sparse.PrismSparse;
+import strat.MDStrategyIV;
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceOmegaDD;
 import acceptance.AcceptanceRabin;
-import acceptance.AcceptanceRabinDD;
 import acceptance.AcceptanceReachDD;
 import acceptance.AcceptanceType;
 import automata.DA;
 import automata.LTL2DA;
-import odd.ODDUtils;
-import jdd.*;
-import dv.*;
+import dv.DoubleVector;
+import dv.IntegerVector;
 import explicit.MinMax;
-import mtbdd.*;
-import sparse.*;
-import strat.MDStrategyIV;
-import hybrid.*;
-import parser.ast.*;
 
 /*
  * Model checker for MDPs
@@ -219,7 +236,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		// Compute rewards
 		StateValues rewards = null;
 		Expression expr2 = expr.getExpression();
-		if (expr2 instanceof ExpressionTemporal) {
+		if (expr2.getType() instanceof TypePathDouble) {
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr2;
 			switch (exprTemp.getOperator()) {
 			case ExpressionTemporal.R_C:
@@ -236,7 +253,10 @@ public class NondetModelChecker extends NonProbModelChecker
 				rewards = checkRewardReach(exprTemp, stateRewards, transRewards, minMax.isMin());
 				break;
 			}
+		} else if (expr2.getType() instanceof TypePathBool || expr2.getType() instanceof TypeBool) {
+			rewards = checkRewardPathFormula(expr2, stateRewards, transRewards, minMax.isMin());
 		}
+
 		if (rewards == null)
 			throw new PrismException("Unrecognised operator in R operator");
 
@@ -339,6 +359,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		modelProduct = model;
 
 		// Go through probabilistic objectives and construct product MDP.
+		long l = System.currentTimeMillis();
 		boolean originalmodel = true;
 		for (int i = 0; i < numObjectives; i++) {
 			if (opsAndBounds.isProbabilityObjective(i)) {
@@ -354,6 +375,8 @@ public class NondetModelChecker extends NonProbModelChecker
 				originalmodel = false;
 			}
 		}
+		l = System.currentTimeMillis() - l;
+		mainLog.println("Total time for product construction: " + l / 1000.0 + " seconds.");
 
 		// TODO: move this above
 		// Replace min by max and <= by >=
@@ -1030,6 +1053,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		daDDRowVars = new JDDVars();
 		daDDColVars = new JDDVars();
 		modelProduct = mcLtl.constructProductMDP(da, model, labelDDs, daDDRowVars, daDDColVars);
+		l = System.currentTimeMillis() - l;
+		mainLog.println("Time for product construction: " + l / 1000.0 + " seconds.");
 		mainLog.println();
 		modelProduct.printTransInfo(mainLog, prism.getExtraDDInfo());
 		// Output product, if required
@@ -1159,6 +1184,19 @@ public class NondetModelChecker extends NonProbModelChecker
 	/**
 	 * Compute rewards for a reachability reward operator.
 	 */
+	protected StateValues checkRewardPathFormula(Expression expr, JDDNode stateRewards, JDDNode transRewards, boolean min) throws PrismException
+	{
+		if (expr instanceof ExpressionTemporal && ((ExpressionTemporal) expr).getOperator() == ExpressionTemporal.P_F){
+			return checkRewardReach((ExpressionTemporal) expr, stateRewards, transRewards, min);
+		}
+		else if (Expression.isCoSafeLTLSyntactic(expr)) {
+			return checkRewardCoSafeLTL(expr, stateRewards, transRewards, min);
+		}
+		throw new PrismException("Invalid contents for an R operator: " + expr);
+	}
+	
+	// reach reward
+
 	protected StateValues checkRewardReach(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards, boolean min) throws PrismException
 	{
 		JDDNode b;
@@ -1181,6 +1219,150 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// derefs
 		JDD.Deref(b);
+
+		return rewards;
+	}
+
+	// co-safe LTL reward
+
+	protected StateValues checkRewardCoSafeLTL(Expression expr, JDDNode stateRewards, JDDNode transRewards, boolean min) throws PrismException
+	{
+		LTLModelChecker mcLtl;
+		StateValues rewardsProduct = null, rewards = null;
+		Expression ltl;
+		Vector<JDDNode> labelDDs;
+		DA<BitSet, ? extends AcceptanceOmega> da;
+		NondetModel modelProduct;
+		NondetModelChecker mcProduct;
+		JDDNode startMask;
+		JDDVars daDDRowVars, daDDColVars;
+		int i;
+		long l;
+
+		if (Expression.containsTemporalTimeBounds(expr)) {
+			if (model.getModelType().continuousTime()) {
+				throw new PrismException("DA construction for time-bounded operators not supported for " + model.getModelType()+".");
+			}
+
+			if (expr.isSimplePathFormula()) {
+				// Convert simple path formula to canonical form,
+				// DA is then generated by LTL2RabinLibrary.
+				//
+				// The conversion to canonical form has to happen here, because once
+				// checkMaximalStateFormulas has been called, the formula should not be modified
+				// anymore, as converters may expect that the generated labels for maximal state
+				// formulas only appear positively
+				expr = Expression.convertSimplePathFormulaToCanonicalForm(expr);
+			} else {
+				throw new PrismException("Time-bounded operators not supported in LTL: " + expr);
+			}
+		}
+
+		// Can't do "dfa" properties yet
+		if (expr instanceof ExpressionFunc && ((ExpressionFunc) expr).getName().equals("dfa")) {
+			throw new PrismException("Model checking for \"dfa\" specifications not supported yet");
+		}
+
+		// For LTL model checking routines
+		mcLtl = new LTLModelChecker(prism);
+
+		// Model check maximal state formulas
+		labelDDs = new Vector<JDDNode>();
+		ltl = mcLtl.checkMaximalStateFormulas(this, model, expr.deepCopy(), labelDDs);
+
+		// Convert LTL formula to deterministic automaton (DA)
+		mainLog.println("\nBuilding deterministic automaton (for " + ltl + ")...");
+		l = System.currentTimeMillis();
+		LTL2DA ltl2da = new LTL2DA(prism);
+		AcceptanceType[] allowedAcceptance = {
+				AcceptanceType.RABIN,
+				AcceptanceType.REACH
+		};
+		da = ltl2da.convertLTLFormulaToDA(ltl, constantValues, allowedAcceptance);
+		mainLog.println(da.getAutomataType()+" has " + da.size() + " states, " + da.getAcceptance().getSizeStatistics()+".");
+		l = System.currentTimeMillis() - l;
+		mainLog.println("Time for deterministic automaton translation: " + l / 1000.0 + " seconds.");
+		// If required, export DA 
+		if (prism.getSettings().getExportPropAut()) {
+			mainLog.println("Exporting DA to file \"" + prism.getSettings().getExportPropAutFilename() + "\"...");
+			PrismLog out = new PrismFileLog(prism.getSettings().getExportPropAutFilename());
+			da.print(out, prism.getSettings().getExportPropAutType());
+			out.close();
+			//da.printDot(new java.io.PrintStream("da.dot"));
+		}
+
+		// Build product of MDP and automaton
+		mainLog.println("\nConstructing MDP-"+da.getAutomataType()+" product...");
+		daDDRowVars = new JDDVars();
+		daDDColVars = new JDDVars();
+		l = System.currentTimeMillis();
+		modelProduct = mcLtl.constructProductMDP(da, model, labelDDs, daDDRowVars, daDDColVars);
+		l = System.currentTimeMillis() - l;
+		mainLog.println("Time for product construction: " + l / 1000.0 + " seconds.");
+		mainLog.println();
+		modelProduct.printTransInfo(mainLog, prism.getExtraDDInfo());
+		// Output product, if required
+		if (prism.getExportProductTrans()) {
+			try {
+				mainLog.println("\nExporting product transition matrix to file \"" + prism.getExportProductTransFilename() + "\"...");
+				modelProduct.exportToFile(Prism.EXPORT_PLAIN, true, new File(prism.getExportProductTransFilename()));
+			} catch (FileNotFoundException e) {
+				mainLog.printWarning("Could not export product transition matrix to file \"" + prism.getExportProductTransFilename() + "\"");
+			}
+		}
+		if (prism.getExportProductStates()) {
+			mainLog.println("\nExporting product state space to file \"" + prism.getExportProductStatesFilename() + "\"...");
+			PrismFileLog out = new PrismFileLog(prism.getExportProductStatesFilename());
+			modelProduct.exportStates(Prism.EXPORT_PLAIN, out);
+			out.close();
+		}
+
+		// Adapt reward info to product model
+		JDD.Ref(stateRewards);
+		JDD.Ref(modelProduct.getReach());
+		JDDNode stateRewardsProduct = JDD.Apply(JDD.TIMES, stateRewards, modelProduct.getReach());
+		JDD.Ref(transRewards);
+		JDD.Ref(modelProduct.getTrans01());
+		JDDNode transRewardsProduct = JDD.Apply(JDD.TIMES, transRewards, modelProduct.getTrans01());
+		
+		// Find accepting states + compute reachability rewards
+		AcceptanceOmegaDD acceptance = da.getAcceptance().toAcceptanceDD(daDDRowVars);
+		JDDNode acc = null;
+		if (acceptance instanceof AcceptanceReachDD) {
+			// For a DFA, just collect the accept states
+			mainLog.println("\nSkipping end component detection since DRA is a DFA...");
+			acc = ((AcceptanceReachDD) acceptance).getGoalStates();
+		} else {
+			// Usually, we have to detect end components in the product
+			mainLog.println("\nFinding accepting end components...");
+			acc = mcLtl.findAcceptingECStates(acceptance, modelProduct, daDDRowVars, daDDColVars, fairness);
+		}
+		acceptance.clear();
+		mainLog.println("\nComputing reachability rewards...");
+		mcProduct = new NondetModelChecker(prism, modelProduct, null);
+		rewardsProduct = mcProduct.computeReachRewards(modelProduct.getTrans(), modelProduct.getTransActions(), modelProduct.getTrans01(), stateRewardsProduct, transRewardsProduct, acc, min);
+
+		// Convert reward vector to original model
+		// First, filter over DRA start states
+		startMask = mcLtl.buildStartMask(da, labelDDs, daDDRowVars);
+		JDD.Ref(model.getReach());
+		startMask = JDD.And(model.getReach(), startMask);
+		rewardsProduct.filter(startMask);
+		// Then sum over DD vars for the DRA state
+		rewards = rewardsProduct.sumOverDDVars(daDDRowVars, model);
+
+		// Deref, clean up
+		JDD.Deref(stateRewardsProduct);
+		JDD.Deref(transRewardsProduct);
+		rewardsProduct.clear();
+		modelProduct.clear();
+		for (i = 0; i < labelDDs.size(); i++) {
+			JDD.Deref(labelDDs.get(i));
+		}
+		JDD.Deref(acc);
+		JDD.Deref(startMask);
+		daDDRowVars.derefAll();
+		daDDColVars.derefAll();
 
 		return rewards;
 	}
@@ -1682,6 +1864,18 @@ public class NondetModelChecker extends NonProbModelChecker
 		int engine = this.engine;
 
 		List<JDDNode> zeroCostEndComponents = null;
+
+		// If required, export info about target states 
+		if (prism.getExportTarget()) {
+			JDDNode labels[] = { model.getStart(), b };
+			String labelNames[] = { "init", "target" };
+			try {
+				mainLog.println("\nExporting target states info to file \"" + prism.getExportTargetFilename() + "\"...");
+				PrismMTBDD.ExportLabels(labels, labelNames, "l", model.getAllDDRowVars(), model.getODD(), Prism.EXPORT_PLAIN, prism.getExportTargetFilename());
+			} catch (FileNotFoundException e) {
+				mainLog.printWarning("Could not export target to file \"" + prism.getExportTargetFilename() + "\"");
+			}
+		}
 
 		// compute states which can't reach goal with probability 1
 		if (b.equals(JDD.ZERO)) {
