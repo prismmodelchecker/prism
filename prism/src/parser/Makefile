@@ -38,6 +38,9 @@ $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class: %.java
 clean: checks
 	@rm -f $(CLASS_FILES)
 
+touch: checks
+	@touch PrismParser.jj
+
 celan: clean
 
 #################################################
