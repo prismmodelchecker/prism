@@ -68,7 +68,7 @@ public class STPGModelChecker extends ProbModelChecker
 	 * i.e. compute the probability of being in a state in {@code target} in the next step.
 	 * @param stpg The STPG
 	 * @param target Target states
-	 * @param min1 Min or max probabilities for player 1 (true=lower bound, false=upper bound)
+	 * @param min1 Min or max probabilities for player 1 (true=min, false=max)
 	 * @param min2 Min or max probabilities for player 2 (true=min, false=max)
 	 */
 	public ModelCheckerResult computeNextProbs(STPG stpg, BitSet target, boolean min1, boolean min2) throws PrismException
@@ -103,7 +103,7 @@ public class STPGModelChecker extends ProbModelChecker
 	 * i.e. compute the min/max probability of reaching a state in {@code target}.
 	 * @param stpg The STPG
 	 * @param target Target states
-	 * @param min1 Min or max probabilities for player 1 (true=lower bound, false=upper bound)
+	 * @param min1 Min or max probabilities for player 1 (true=min, false=max)
 	 * @param min2 Min or max probabilities for player 2 (true=min, false=max)
 	 */
 	public ModelCheckerResult computeReachProbs(STPG stpg, BitSet target, boolean min1, boolean min2) throws PrismException
@@ -118,7 +118,7 @@ public class STPGModelChecker extends ProbModelChecker
 	 * @param stpg The STPG
 	 * @param remain Remain in these states (optional: null means "all")
 	 * @param target Target states
-	 * @param min1 Min or max probabilities for player 1 (true=lower bound, false=upper bound)
+	 * @param min1 Min or max probabilities for player 1 (true=min, false=max)
 	 * @param min2 Min or max probabilities for player 2 (true=min, false=max)
 	 */
 	public ModelCheckerResult computeUntilProbs(STPG stpg, BitSet remain, BitSet target, boolean min1, boolean min2) throws PrismException
@@ -133,7 +133,7 @@ public class STPGModelChecker extends ProbModelChecker
 	 * @param stpg The STPG
 	 * @param remain Remain in these states (optional: null means "all")
 	 * @param target Target states
-	 * @param min1 Min or max probabilities for player 1 (true=lower bound, false=upper bound)
+	 * @param min1 Min or max probabilities for player 1 (true=min, false=max)
 	 * @param min2 Min or max probabilities for player 2 (true=min, false=max)
 	 * @param init Optionally, an initial solution vector (may be overwritten) 
 	 * @param known Optionally, a set of states for which the exact answer is known
@@ -231,7 +231,7 @@ public class STPGModelChecker extends ProbModelChecker
 	 * @param stpg The STPG
 	 * @param remain Remain in these states (optional: null means "all")
 	 * @param target Target states
-	 * @param min1 Min or max probabilities for player 1 (true=lower bound, false=upper bound)
+	 * @param min1 Min or max probabilities for player 1 (true=min, false=max)
 	 * @param min2 Min or max probabilities for player 2 (true=min, false=max)
 	 */
 	public BitSet prob0(STPG stpg, BitSet remain, BitSet target, boolean min1, boolean min2)
@@ -303,7 +303,7 @@ public class STPGModelChecker extends ProbModelChecker
 	 * @param stpg The STPG
 	 * @param remain Remain in these states (optional: null means "all")
 	 * @param target Target states
-	 * @param min1 Min or max probabilities for player 1 (true=lower bound, false=upper bound)
+	 * @param min1 Min or max probabilities for player 1 (true=min, false=max)
 	 * @param min2 Min or max probabilities for player 2 (true=min, false=max)
 	 */
 	public BitSet prob1(STPG stpg, BitSet remain, BitSet target, boolean min1, boolean min2)
@@ -381,7 +381,7 @@ public class STPGModelChecker extends ProbModelChecker
 	 * @param stpg The STPG
 	 * @param no Probability 0 states
 	 * @param yes Probability 1 states
-	 * @param min1 Min or max probabilities for player 1 (true=lower bound, false=upper bound)
+	 * @param min1 Min or max probabilities for player 1 (true=min, false=max)
 	 * @param min2 Min or max probabilities for player 2 (true=min, false=max)
 	 * @param init Optionally, an initial solution vector (will be overwritten) 
 	 * @param known Optionally, a set of states for which the exact answer is known
@@ -498,7 +498,7 @@ public class STPGModelChecker extends ProbModelChecker
 	 * @param stpg The STPG
 	 * @param no Probability 0 states
 	 * @param yes Probability 1 states
-	 * @param min1 Min or max probabilities for player 1 (true=lower bound, false=upper bound)
+	 * @param min1 Min or max probabilities for player 1 (true=min, false=max)
 	 * @param min2 Min or max probabilities for player 2 (true=min, false=max)
 	 * @param init Optionally, an initial solution vector (will be overwritten) 
 	 * @param known Optionally, a set of states for which the exact answer is known
@@ -606,7 +606,7 @@ public class STPGModelChecker extends ProbModelChecker
 	 * @param stpg The STPG
 	 * @param target Target states
 	 * @param k Bound
-	 * @param min1 Min or max probabilities for player 1 (true=lower bound, false=upper bound)
+	 * @param min1 Min or max probabilities for player 1 (true=min, false=max)
 	 * @param min2 Min or max probabilities for player 2 (true=min, false=max)
 	 */
 	public ModelCheckerResult computeBoundedReachProbs(STPG stpg, BitSet target, int k, boolean min1, boolean min2) throws PrismException
@@ -622,7 +622,7 @@ public class STPGModelChecker extends ProbModelChecker
 	 * @param remain Remain in these states (optional: null means "all")
 	 * @param target Target states
 	 * @param k Bound
-	 * @param min1 Min or max probabilities for player 1 (true=lower bound, false=upper bound)
+	 * @param min1 Min or max probabilities for player 1 (true=min, false=max)
 	 * @param min2 Min or max probabilities for player 2 (true=min, false=max)
 	 */
 	public ModelCheckerResult computeBoundedUntilProbs(STPG stpg, BitSet remain, BitSet target, int k, boolean min1, boolean min2) throws PrismException
@@ -638,7 +638,7 @@ public class STPGModelChecker extends ProbModelChecker
 	 * @param remain Remain in these states (optional: null means "all")
 	 * @param target Target states
 	 * @param k Bound
-	 * @param min1 Min or max probabilities for player 1 (true=lower bound, false=upper bound)
+	 * @param min1 Min or max probabilities for player 1 (true=min, false=max)
 	 * @param min2 Min or max probabilities for player 2 (true=min, false=max)
 	 * @param init Initial solution vector - pass null for default
 	 * @param results Optional array of size k+1 to store (init state) results for each step (null if unused)
